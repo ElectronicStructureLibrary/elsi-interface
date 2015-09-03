@@ -1,0 +1,384 @@
+########## Command: mpirun -n 3 ./test_real2 1013 111 128
+Standard eigenvalue problem - REAL version
+ Error Residual     :   7.7927356240162731E-013
+ Error Orthogonality:   7.9936057773011271E-015
+########## Command: mpirun -n 3 ./test_complex2 1013 111 128
+Standard eigenvalue problem - COMPLEX version
+ Error Residual     :   3.8199982305810631E-013
+ Error Orthogonality:   6.6613381477509392E-015
+########## Command: mpirun -n 3 ./test_real2 1013 501 128
+Standard eigenvalue problem - REAL version
+ Error Residual     :   7.7927356240162731E-013
+ Error Orthogonality:   7.9936057773011271E-015
+########## Command: mpirun -n 3 ./test_complex2 1013 501 128
+Standard eigenvalue problem - COMPLEX version
+ Error Residual     :   3.8199982305810631E-013
+ Error Orthogonality:   6.6613381477509392E-015
+########## Command: mpirun -n 3 ./test_real2 1013 1013 128
+Standard eigenvalue problem - REAL version
+ Error Residual     :   1.7559608572323091E-012
+ Error Orthogonality:   7.9936057773011271E-015
+########## Command: mpirun -n 3 ./test_complex2 1013 1013 128
+Standard eigenvalue problem - COMPLEX version
+ Error Residual     :   1.6399843539338292E-012
+ Error Orthogonality:   6.6613381477509392E-015
+########## Command: mpirun -n 3 ./test_real2 1500 50 128
+Standard eigenvalue problem - REAL version
+ Error Residual     :   1.3052686635363414E-012
+ Error Orthogonality:   3.9968028886505635E-015
+########## Command: mpirun -n 3 ./test_complex2 1500 50 128
+Standard eigenvalue problem - COMPLEX version
+ Error Residual     :   3.3981003609775258E-013
+ Error Orthogonality:   7.1054273576010019E-015
+########## Command: mpirun -n 3 ./test_real2 1500 1500 128
+Standard eigenvalue problem - REAL version
+ Error Residual     :   1.8310784182569983E-012
+ Error Orthogonality:   1.0325074129013956E-014
+########## Command: mpirun -n 3 ./test_complex2 1500 1500 128
+Standard eigenvalue problem - COMPLEX version
+ Error Residual     :   2.2312997966446738E-012
+ Error Orthogonality:   1.0214051826551440E-014
+########## Command: mpirun -n 3 ./test_real2 5000 5000 128
+Standard eigenvalue problem - REAL version
+ Error Residual     :   8.1768373861391601E-012
+ Error Orthogonality:   4.0412118096355698E-014
+########## Command: mpirun -n 3 ./test_complex2 5000 5000 128
+Standard eigenvalue problem - COMPLEX version
+ Error Residual     :   1.2413980776059682E-011
+ Error Orthogonality:   4.2188474935755949E-014
+########## Command: mpirun -n 4 ./test_real2 1013 111 128
+Standard eigenvalue problem - REAL version
+ Error Residual     :   6.9916335962529003E-013
+ Error Orthogonality:   6.8833827526759706E-015
+########## Command: mpirun -n 4 ./test_complex2 1013 111 128
+Standard eigenvalue problem - COMPLEX version
+ Error Residual     :   2.4787670383637413E-013
+ Error Orthogonality:   6.2172489379008766E-015
+########## Command: mpirun -n 4 ./test_real2 1013 501 128
+Standard eigenvalue problem - REAL version
+ Error Residual     :   6.9858564032782715E-013
+ Error Orthogonality:   6.8833827526759706E-015
+########## Command: mpirun -n 4 ./test_complex2 1013 501 128
+Standard eigenvalue problem - COMPLEX version
+ Error Residual     :   2.4801818321700727E-013
+ Error Orthogonality:   6.2172489379008766E-015
+########## Command: mpirun -n 4 ./test_real2 1013 1013 128
+Standard eigenvalue problem - REAL version
+ Error Residual     :   1.2052289892123240E-012
+ Error Orthogonality:   6.8833827526759706E-015
+########## Command: mpirun -n 4 ./test_complex2 1013 1013 128
+Standard eigenvalue problem - COMPLEX version
+ Error Residual     :   1.7219630549736321E-012
+ Error Orthogonality:   6.2172489379008766E-015
+########## Command: mpirun -n 4 ./test_real2 1500 50 128
+Standard eigenvalue problem - REAL version
+ Error Residual     :   6.8137282159459765E-013
+ Error Orthogonality:   7.1054273576010019E-015
+########## Command: mpirun -n 4 ./test_complex2 1500 50 128
+Standard eigenvalue problem - COMPLEX version
+ Error Residual     :   2.6734497467761185E-013
+ Error Orthogonality:   5.7731597280508140E-015
+########## Command: mpirun -n 4 ./test_real2 1500 1500 128
+Standard eigenvalue problem - REAL version
+ Error Residual     :   2.1947490806009740E-012
+ Error Orthogonality:   1.5099033134902129E-014
+########## Command: mpirun -n 4 ./test_complex2 1500 1500 128
+Standard eigenvalue problem - COMPLEX version
+ Error Residual     :   3.2026605419475461E-012
+ Error Orthogonality:   1.9095836023552692E-014
+########## Command: mpirun -n 4 ./test_real2 5000 5000 128
+Standard eigenvalue problem - REAL version
+ Error Residual     :   1.5417618188188344E-011
+ Error Orthogonality:   3.9079850466805510E-014
+########## Command: mpirun -n 4 ./test_complex2 5000 5000 128
+Standard eigenvalue problem - COMPLEX version
+ Error Residual     :   1.9266044941283592E-011
+ Error Orthogonality:   4.2632564145606011E-014
+########## Command: mpirun -n 5 ./test_real2 1013 111 128
+Standard eigenvalue problem - REAL version
+ Error Residual     :   8.7130341918949926E-013
+ Error Orthogonality:   7.5495165674510645E-015
+########## Command: mpirun -n 5 ./test_complex2 1013 111 128
+Standard eigenvalue problem - COMPLEX version
+ Error Residual     :   2.2903798993980607E-013
+ Error Orthogonality:   9.5479180117763462E-015
+########## Command: mpirun -n 5 ./test_real2 1013 501 128
+Standard eigenvalue problem - REAL version
+ Error Residual     :   8.7130341918949926E-013
+ Error Orthogonality:   7.5495165674510645E-015
+########## Command: mpirun -n 5 ./test_complex2 1013 501 128
+Standard eigenvalue problem - COMPLEX version
+ Error Residual     :   2.2903798993980607E-013
+ Error Orthogonality:   9.5479180117763462E-015
+########## Command: mpirun -n 5 ./test_real2 1013 1013 128
+Standard eigenvalue problem - REAL version
+ Error Residual     :   1.3359148269534559E-012
+ Error Orthogonality:   7.5495165674510645E-015
+########## Command: mpirun -n 5 ./test_complex2 1013 1013 128
+Standard eigenvalue problem - COMPLEX version
+ Error Residual     :   1.5120250915663934E-012
+ Error Orthogonality:   9.5479180117763462E-015
+########## Command: mpirun -n 5 ./test_real2 1500 50 128
+Standard eigenvalue problem - REAL version
+ Error Residual     :   4.1927212397389922E-013
+ Error Orthogonality:   6.4392935428259079E-015
+########## Command: mpirun -n 5 ./test_complex2 1500 50 128
+Standard eigenvalue problem - COMPLEX version
+ Error Residual     :   7.0444981684528223E-013
+ Error Orthogonality:   6.4392935428259079E-015
+########## Command: mpirun -n 5 ./test_real2 1500 1500 128
+Standard eigenvalue problem - REAL version
+ Error Residual     :   1.7644544527653635E-012
+ Error Orthogonality:   1.4210854715202004E-014
+########## Command: mpirun -n 5 ./test_complex2 1500 1500 128
+Standard eigenvalue problem - COMPLEX version
+ Error Residual     :   3.7258732185785060E-012
+ Error Orthogonality:   8.6597395920762210E-015
+########## Command: mpirun -n 5 ./test_real2 5000 5000 128
+Standard eigenvalue problem - REAL version
+ Error Residual     :   1.0222919875225858E-011
+ Error Orthogonality:   4.2188474935755949E-014
+########## Command: mpirun -n 5 ./test_complex2 5000 5000 128
+Standard eigenvalue problem - COMPLEX version
+ Error Residual     :   1.3474009364513371E-011
+ Error Orthogonality:   4.5963233219481481E-014
+########## Command: mpirun -n 6 ./test_real2 1013 111 128
+Standard eigenvalue problem - REAL version
+ Error Residual     :   1.6315076558836611E-013
+ Error Orthogonality:   8.8817841970012523E-015
+########## Command: mpirun -n 6 ./test_complex2 1013 111 128
+Standard eigenvalue problem - COMPLEX version
+ Error Residual     :   7.0017178623132209E-013
+ Error Orthogonality:   8.8817841970012523E-015
+########## Command: mpirun -n 6 ./test_real2 1013 501 128
+Standard eigenvalue problem - REAL version
+ Error Residual     :   1.6277133783873297E-013
+ Error Orthogonality:   8.8817841970012523E-015
+########## Command: mpirun -n 6 ./test_complex2 1013 501 128
+Standard eigenvalue problem - COMPLEX version
+ Error Residual     :   6.9932267011471828E-013
+ Error Orthogonality:   8.8817841970012523E-015
+########## Command: mpirun -n 6 ./test_real2 1013 1013 128
+Standard eigenvalue problem - REAL version
+ Error Residual     :   2.1830319821976335E-012
+ Error Orthogonality:   8.8817841970012523E-015
+########## Command: mpirun -n 6 ./test_complex2 1013 1013 128
+Standard eigenvalue problem - COMPLEX version
+ Error Residual     :   1.1512183440647629E-012
+ Error Orthogonality:   8.8817841970012523E-015
+########## Command: mpirun -n 6 ./test_real2 1500 50 128
+Standard eigenvalue problem - REAL version
+ Error Residual     :   6.9815528321875340E-013
+ Error Orthogonality:   5.5511151231257827E-015
+########## Command: mpirun -n 6 ./test_complex2 1500 50 128
+Standard eigenvalue problem - COMPLEX version
+ Error Residual     :   1.0736017501510758E-012
+ Error Orthogonality:   3.7747582837255322E-015
+########## Command: mpirun -n 6 ./test_real2 1500 1500 128
+Standard eigenvalue problem - REAL version
+ Error Residual     :   2.1719374950892899E-012
+ Error Orthogonality:   6.6613381477509392E-015
+########## Command: mpirun -n 6 ./test_complex2 1500 1500 128
+Standard eigenvalue problem - COMPLEX version
+ Error Residual     :   2.3001372448052774E-012
+ Error Orthogonality:   1.3766765505351941E-014
+########## Command: mpirun -n 6 ./test_real2 5000 5000 128
+Standard eigenvalue problem - REAL version
+ Error Residual     :   1.5978202492301565E-011
+ Error Orthogonality:   4.3964831775156199E-014
+########## Command: mpirun -n 6 ./test_complex2 5000 5000 128
+Standard eigenvalue problem - COMPLEX version
+ Error Residual     :   1.4618688528572711E-011
+ Error Orthogonality:   4.3520742565306136E-014
+########## Command: mpirun -n 7 ./test_real2 1013 111 128
+Standard eigenvalue problem - REAL version
+ Error Residual     :   7.9600660173449557E-013
+ Error Orthogonality:   5.3290705182007514E-015
+########## Command: mpirun -n 7 ./test_complex2 1013 111 128
+Standard eigenvalue problem - COMPLEX version
+ Error Residual     :   2.0329793993194753E-013
+ Error Orthogonality:   5.7731597280508140E-015
+########## Command: mpirun -n 7 ./test_real2 1013 501 128
+Standard eigenvalue problem - REAL version
+ Error Residual     :   7.9600660173449557E-013
+ Error Orthogonality:   5.9952043329758453E-015
+########## Command: mpirun -n 7 ./test_complex2 1013 501 128
+Standard eigenvalue problem - COMPLEX version
+ Error Residual     :   2.0329793993194753E-013
+ Error Orthogonality:   5.7731597280508140E-015
+########## Command: mpirun -n 7 ./test_real2 1013 1013 128
+Standard eigenvalue problem - REAL version
+ Error Residual     :   1.5342417776566642E-012
+ Error Orthogonality:   5.9952043329758453E-015
+########## Command: mpirun -n 7 ./test_complex2 1013 1013 128
+Standard eigenvalue problem - COMPLEX version
+ Error Residual     :   3.0105024699096258E-012
+ Error Orthogonality:   5.7731597280508140E-015
+########## Command: mpirun -n 7 ./test_real2 1500 50 128
+Standard eigenvalue problem - REAL version
+ Error Residual     :   1.8551993071145785E-013
+ Error Orthogonality:   7.1054273576010019E-015
+########## Command: mpirun -n 7 ./test_complex2 1500 50 128
+Standard eigenvalue problem - COMPLEX version
+ Error Residual     :   3.1221863037942005E-013
+ Error Orthogonality:   5.3290705182007514E-015
+########## Command: mpirun -n 7 ./test_real2 1500 1500 128
+Standard eigenvalue problem - REAL version
+ Error Residual     :   1.8527904249290370E-012
+ Error Orthogonality:   7.9936057773011271E-015
+########## Command: mpirun -n 7 ./test_complex2 1500 1500 128
+Standard eigenvalue problem - COMPLEX version
+ Error Residual     :   2.1759211181956439E-012
+ Error Orthogonality:   1.3766765505351941E-014
+########## Command: mpirun -n 7 ./test_real2 5000 5000 128
+Standard eigenvalue problem - REAL version
+ Error Residual     :   1.2088929878181214E-011
+ Error Orthogonality:   3.9301895071730542E-014
+########## Command: mpirun -n 7 ./test_complex2 5000 5000 128
+Standard eigenvalue problem - COMPLEX version
+ Error Residual     :   1.2447217951388986E-011
+ Error Orthogonality:   4.8183679268731794E-014
+########## Command: mpirun -n 8 ./test_real2 1013 111 128
+Standard eigenvalue problem - REAL version
+ Error Residual     :   2.3618151375607313E-013
+ Error Orthogonality:   8.4376949871511897E-015
+########## Command: mpirun -n 8 ./test_complex2 1013 111 128
+Standard eigenvalue problem - COMPLEX version
+ Error Residual     :   3.7632781987492628E-013
+ Error Orthogonality:   8.8817841970012523E-015
+########## Command: mpirun -n 8 ./test_real2 1013 501 128
+Standard eigenvalue problem - REAL version
+ Error Residual     :   2.3630965060308583E-013
+ Error Orthogonality:   8.4376949871511897E-015
+########## Command: mpirun -n 8 ./test_complex2 1013 501 128
+Standard eigenvalue problem - COMPLEX version
+ Error Residual     :   3.7605352764023179E-013
+ Error Orthogonality:   8.8817841970012523E-015
+########## Command: mpirun -n 8 ./test_real2 1013 1013 128
+Standard eigenvalue problem - REAL version
+ Error Residual     :   1.1028129142833324E-012
+ Error Orthogonality:   8.4376949871511897E-015
+########## Command: mpirun -n 8 ./test_complex2 1013 1013 128
+Standard eigenvalue problem - COMPLEX version
+ Error Residual     :   1.2490896187080499E-012
+ Error Orthogonality:   8.8817841970012523E-015
+########## Command: mpirun -n 8 ./test_real2 1500 50 128
+Standard eigenvalue problem - REAL version
+ Error Residual     :   3.3244638219014852E-013
+ Error Orthogonality:   5.3290705182007514E-015
+########## Command: mpirun -n 8 ./test_complex2 1500 50 128
+Standard eigenvalue problem - COMPLEX version
+ Error Residual     :   1.0578445757816747E-012
+ Error Orthogonality:   4.8849813083506888E-015
+########## Command: mpirun -n 8 ./test_real2 1500 1500 128
+Standard eigenvalue problem - REAL version
+ Error Residual     :   3.2641164746544893E-012
+ Error Orthogonality:   1.1324274851176597E-014
+########## Command: mpirun -n 8 ./test_complex2 1500 1500 128
+Standard eigenvalue problem - COMPLEX version
+ Error Residual     :   1.9794107740429746E-012
+ Error Orthogonality:   1.5765166949677223E-014
+########## Command: mpirun -n 8 ./test_real2 5000 5000 128
+Standard eigenvalue problem - REAL version
+ Error Residual     :   9.7272028910450825E-012
+ Error Orthogonality:   4.3964831775156199E-014
+########## Command: mpirun -n 8 ./test_complex2 5000 5000 128
+Standard eigenvalue problem - COMPLEX version
+ Error Residual     :   1.2056580763526751E-011
+ Error Orthogonality:   2.9753977059954195E-014
+########## Command: mpirun -n 16 ./test_real2 1013 111 128
+Standard eigenvalue problem - REAL version
+ Error Residual     :   2.2940238863964044E-013
+ Error Orthogonality:   8.8817841970012523E-015
+########## Command: mpirun -n 16 ./test_complex2 1013 111 128
+Standard eigenvalue problem - COMPLEX version
+ Error Residual     :   5.3931182410596255E-013
+ Error Orthogonality:   5.7731597280508140E-015
+########## Command: mpirun -n 16 ./test_real2 1013 501 128
+Standard eigenvalue problem - REAL version
+ Error Residual     :   2.2884042698879680E-013
+ Error Orthogonality:   8.8817841970012523E-015
+########## Command: mpirun -n 16 ./test_complex2 1013 501 128
+Standard eigenvalue problem - COMPLEX version
+ Error Residual     :   5.3860612864230822E-013
+ Error Orthogonality:   5.7731597280508140E-015
+########## Command: mpirun -n 16 ./test_real2 1013 1013 128
+Standard eigenvalue problem - REAL version
+ Error Residual     :   1.2458379629851260E-012
+ Error Orthogonality:   8.8817841970012523E-015
+########## Command: mpirun -n 16 ./test_complex2 1013 1013 128
+Standard eigenvalue problem - COMPLEX version
+ Error Residual     :   1.6304120721415703E-012
+ Error Orthogonality:   5.7731597280508140E-015
+########## Command: mpirun -n 16 ./test_real2 1500 50 128
+Standard eigenvalue problem - REAL version
+ Error Residual     :   5.8044533909848438E-013
+ Error Orthogonality:   4.4408920985006262E-015
+########## Command: mpirun -n 16 ./test_complex2 1500 50 128
+Standard eigenvalue problem - COMPLEX version
+ Error Residual     :   2.8384437188386496E-013
+ Error Orthogonality:   3.9968028886505635E-015
+########## Command: mpirun -n 16 ./test_real2 1500 1500 128
+Standard eigenvalue problem - REAL version
+ Error Residual     :   2.4777752013270530E-012
+ Error Orthogonality:   7.9936057773011271E-015
+########## Command: mpirun -n 16 ./test_complex2 1500 1500 128
+Standard eigenvalue problem - COMPLEX version
+ Error Residual     :   2.3224749906059751E-012
+ Error Orthogonality:   1.2878587085651816E-014
+########## Command: mpirun -n 16 ./test_real2 5000 5000 128
+Standard eigenvalue problem - REAL version
+ Error Residual     :   1.1239456540605397E-011
+ Error Orthogonality:   4.1522341120980855E-014
+########## Command: mpirun -n 16 ./test_complex2 5000 5000 128
+Standard eigenvalue problem - COMPLEX version
+ Error Residual     :   1.2928515940138625E-011
+ Error Orthogonality:   3.1086244689504383E-014
+########## Command: mpirun -n 32 ./test_real2 1013 111 128
+Standard eigenvalue problem - REAL version
+ Error Residual     :   2.3499313801313797E-013
+ Error Orthogonality:   5.7731597280508140E-015
+########## Command: mpirun -n 32 ./test_complex2 1013 111 128
+Standard eigenvalue problem - COMPLEX version
+ Error Residual     :   3.2960845076579008E-013
+ Error Orthogonality:   9.3258734068513149E-015
+########## Command: mpirun -n 32 ./test_real2 1013 501 128
+Standard eigenvalue problem - REAL version
+ Error Residual     :   2.3486871229329598E-013
+ Error Orthogonality:   5.7731597280508140E-015
+########## Command: mpirun -n 32 ./test_complex2 1013 501 128
+Standard eigenvalue problem - COMPLEX version
+ Error Residual     :   3.2917008204886144E-013
+ Error Orthogonality:   9.3258734068513149E-015
+########## Command: mpirun -n 32 ./test_real2 1013 1013 128
+Standard eigenvalue problem - REAL version
+ Error Residual     :   1.1734944561843286E-012
+ Error Orthogonality:   5.7731597280508140E-015
+########## Command: mpirun -n 32 ./test_complex2 1013 1013 128
+Standard eigenvalue problem - COMPLEX version
+ Error Residual     :   1.6655339506596122E-012
+ Error Orthogonality:   9.3258734068513149E-015
+########## Command: mpirun -n 32 ./test_real2 1500 50 128
+Standard eigenvalue problem - REAL version
+ Error Residual     :   2.4336830936478387E-013
+ Error Orthogonality:   5.3290705182007514E-015
+########## Command: mpirun -n 32 ./test_complex2 1500 50 128
+Standard eigenvalue problem - COMPLEX version
+ Error Residual     :   6.7582796182644799E-013
+ Error Orthogonality:   6.2172489379008766E-015
+########## Command: mpirun -n 32 ./test_real2 1500 1500 128
+Standard eigenvalue problem - REAL version
+ Error Residual     :   2.2397795920364222E-012
+ Error Orthogonality:   9.5479180117763462E-015
+########## Command: mpirun -n 32 ./test_complex2 1500 1500 128
+Standard eigenvalue problem - COMPLEX version
+ Error Residual     :   1.9108304276018018E-012
+ Error Orthogonality:   1.2878587085651816E-014
+########## Command: mpirun -n 32 ./test_real2 5000 5000 128
+Standard eigenvalue problem - REAL version
+ Error Residual     :   8.8964774358625982E-012
+ Error Orthogonality:   4.1300296516055823E-014
+########## Command: mpirun -n 32 ./test_complex2 5000 5000 128
+Standard eigenvalue problem - COMPLEX version
+ Error Residual     :   1.5787069576525228E-011
+ Error Orthogonality:   5.6399329650957952E-014

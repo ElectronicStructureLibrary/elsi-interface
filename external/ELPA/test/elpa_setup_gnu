@@ -1,0 +1,12 @@
+module load cuda/6.0
+module load gcc/4.8.2
+module load intel/mkl/11.1 
+module load mvapich2-2.0/gcc-4.8.2/cuda-6.0
+
+
+export CUDA_PROFILE=0
+export CUDA_PROFILE_CSV=1
+export CUDA_PROFILE_CONFIG=profile.cfg
+export CUDA_PROFILE_LOG="csvprofiling/cuda_profile_%p.csv"
+
+

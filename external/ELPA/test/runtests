@@ -1,0 +1,26 @@
+#!/bin/bash
+
+mpi=( 3 4 5 6 7 8 16 32 )
+
+#we are testing tuples matrices[i]+evecs[i] so make sure they have the same lenght
+matrices=( 1013 1013 1013 1500 1500 5000 )
+evecs=( 111 501 1013 50 1500 5000 )
+
+log=run.log
+rm -f run.log
+
+for rank in "${mpi[@]}"
+do
+  for i in $(seq 0 $((${#matrices[*]}-1)))
+  do
+    m=${matrices[i]}
+    e=${evecs[i]}
+    #real
+    exe="mpirun -n $rank ./test_real2_gpu $m $e 128"
+    (echo "########## Command: $exe"; $exe) | grep 'Command\|Standard\|Error' | tee -a $log
+
+    #complex
+    exe="mpirun -n $rank ./test_complex2_gpu $m $e 128"
+    (echo "########## Command: $exe"; $exe) | grep 'Command\|Standard\|Error' | tee -a $log
+  done
+done
