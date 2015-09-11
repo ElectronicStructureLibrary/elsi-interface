@@ -5,11 +5,22 @@
  # MPI 
  MPIFC = mpiifort
 
-# ELPA 
- ELPALIB = -I../../external/ELPA/test \
-           -L../../external/ELPA/test \
-           ../../external/ELPA/test/elpa2.o 
+ # ELPA 
+ ELPALIB = -I../../external/ELPA-NVIDIA/test \
+           -L../../external/ELPA-NVIDIA/test \
+           ../../external/ELPA-NVIDIA/test/elpa1.o \
+           ../../external/ELPA-NVIDIA/test/elpa2.o \
+           ../../external/ELPA-NVIDIA/test/elpa_pdgeqrf.o \
+           ../../external/ELPA-NVIDIA/test/elpa_pdlarfb.o \
+           ../../external/ELPA-NVIDIA/test/elpa_qrkernels.o \
+           ../../external/ELPA-NVIDIA/test/tum_utils.o \
+           ../../external/ELPA-NVIDIA/test/elpa2_kernels.o
 
-# HDF5
+ # SCALAPACK
+ SCALAPACK = -L${MKLROOT}/lib/intel64 -lmkl_scalapack_lp64 \
+             -lmkl_intel_lp64 -lmkl_sequential -lmkl_core \
+             -lmkl_blacs_intelmpi_lp64 -lpthread -lm
+          
+ # HDF5
  HDF5 = -L$(HDF5_HOME)/lib -I$(HDF5_HOME)/include \
         -lhdf5_fortran -lhdf5hl_fortran -lhdf5 
