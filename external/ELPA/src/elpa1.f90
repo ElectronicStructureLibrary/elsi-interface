@@ -1,3 +1,44 @@
+!    This file is part of ELPA.
+!
+!    The ELPA library was originally created by the ELPA consortium, 
+!    consisting of the following organizations:
+!
+!    - Rechenzentrum Garching der Max-Planck-Gesellschaft (RZG), 
+!    - Bergische Universität Wuppertal, Lehrstuhl für angewandte
+!      Informatik,
+!    - Technische Universität München, Lehrstuhl für Informatik mit
+!      Schwerpunkt Wissenschaftliches Rechnen , 
+!    - Fritz-Haber-Institut, Berlin, Abt. Theorie, 
+!    - Max-Plack-Institut für Mathematik in den Naturwissenschaftrn, 
+!      Leipzig, Abt. Komplexe Strukutren in Biologie und Kognition, 
+!      and  
+!    - IBM Deutschland GmbH
+!
+!
+!    More information can be found here:
+!    http://elpa.rzg.mpg.de/
+!
+!    ELPA is free software: you can redistribute it and/or modify
+!    it under the terms of the version 3 of the license of the 
+!    GNU Lesser General Public License as published by the Free 
+!    Software Foundation.
+!
+!    ELPA is distributed in the hope that it will be useful,
+!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!    GNU Lesser General Public License for more details.
+!
+!    You should have received a copy of the GNU Lesser General Public License
+!    along with ELPA.  If not, see <http://www.gnu.org/licenses/>
+!
+!    ELPA reflects a substantial effort on the part of the original
+!    ELPA consortium, and we ask you to respect the spirit of the
+!    license that we chose: i.e., please contribute any changes you
+!    may have back to the original ELPA library distribution, and keep
+!    any derivatives of ELPA under the same license that we chose for
+!    the original distribution, the GNU Lesser General Public License.
+!
+!
 ! ELPA1 -- Faster replacements for ScaLAPACK symmetric eigenvalue routines
 ! 
 ! Copyright of the original code rests with the authors inside the ELPA
@@ -327,10 +368,7 @@ subroutine tridiag_real(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols, d, e, ta
    ! Matrix is split into tiles; work is done only for tiles on the diagonal or above
 
    tile_size = nblk*least_common_multiple(np_rows,np_cols) ! minimum global tile size
-  tile_size = ((128*max(np_rows,np_cols)-1)/tile_size+1)*tile_size ! make local tiles at least 128 wide
-
-!  tile_size = ((256*max(np_rows,np_cols)-1)/tile_size+1)*tile_size ! makelocal tiles at least 128 wide
-
+   tile_size = ((128*max(np_rows,np_cols)-1)/tile_size+1)*tile_size ! make local tiles at least 128 wide
 
    l_rows_tile = tile_size/np_rows ! local rows of a tile
    l_cols_tile = tile_size/np_cols ! local cols of a tile
@@ -1008,9 +1046,7 @@ subroutine tridiag_complex(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols, d, e,
    ! Matrix is split into tiles; work is done only for tiles on the diagonal or above
 
    tile_size = nblk*least_common_multiple(np_rows,np_cols) ! minimum global tile size
-    tile_size = ((128*max(np_rows,np_cols)-1)/tile_size+1)*tile_size ! make local tiles at least 128 wide
-!   tile_size = ((256*max(np_rows,np_cols)-1)/tile_size+1)*tile_size ! make local tiles at least 128 wide
-
+   tile_size = ((128*max(np_rows,np_cols)-1)/tile_size+1)*tile_size ! make local tiles at least 128 wide
 
    l_rows_tile = tile_size/np_rows ! local rows of a tile
    l_cols_tile = tile_size/np_cols ! local cols of a tile
@@ -1652,6 +1688,7 @@ subroutine solve_tridi( na, nev, d, e, q, ldq, nblk, mpi_comm_rows, mpi_comm_col
 
    integer, allocatable :: limits(:), l_col(:), p_col(:), l_col_bc(:), p_col_bc(:)
 
+
    call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
    call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
    call mpi_comm_rank(mpi_comm_cols,my_pcol,mpierr)
@@ -1702,9 +1739,8 @@ subroutine solve_tridi( na, nev, d, e, q, ldq, nblk, mpi_comm_rows, mpi_comm_col
    else
       nev1 = MIN(nev,l_cols)
    endif
-
-
    call solve_tridi_col(l_cols, nev1, nc, d(nc+1), e(nc+1), q, ldq, nblk, mpi_comm_rows)
+
 
    ! If there is only 1 processor column, we are done
 
@@ -2083,7 +2119,6 @@ subroutine merge_systems( na, nm, d, e, q, ldq, nqoff, nblk, mpi_comm_rows, mpi_
    real*8 d(na), e, q(ldq,*)
 
    integer, parameter :: max_strip=128
-!   integer, parameter :: max_strip=256
 
    real*8 beta, sig, s, c, t, tau, rho, eps, tol, dlamch, dlapy2, qtrans(2,2), dmax, zmax, d1new, d2new
    real*8 z(na), d1(na), d2(na), z1(na), delta(na), dbase(na), ddiff(na), ev_scale(na), tmp(na)
@@ -3131,9 +3166,6 @@ subroutine cholesky_real(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols)
    tile_size = nblk*least_common_multiple(np_rows,np_cols) ! minimum global tile size
    tile_size = ((128*max(np_rows,np_cols)-1)/tile_size+1)*tile_size ! make local tiles at least 128 wide
 
-!     tile_size = (( 256*max(np_rows,np_cols)-1)/tile_size+1)*tile_size ! make localtiles at least 128 wide
-
-
    l_rows_tile = tile_size/np_rows ! local rows of a tile
    l_cols_tile = tile_size/np_cols ! local cols of a tile
 
@@ -3443,9 +3475,6 @@ subroutine cholesky_complex(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols)
 
    tile_size = nblk*least_common_multiple(np_rows,np_cols) ! minimum global tile size
    tile_size = ((128*max(np_rows,np_cols)-1)/tile_size+1)*tile_size ! make local tiles at least 128 wide
-
-!   tile_size = ((256*max(np_rows,np_cols)-1)/tile_size+1)*tile_size ! make localtiles at least 128 wide
-
 
    l_rows_tile = tile_size/np_rows ! local rows of a tile
    l_cols_tile = tile_size/np_cols ! local cols of a tile

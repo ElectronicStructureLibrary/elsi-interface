@@ -1,3 +1,44 @@
+!    This file is part of ELPA.
+!
+!    The ELPA library was originally created by the ELPA consortium, 
+!    consisting of the following organizations:
+!
+!    - Rechenzentrum Garching der Max-Planck-Gesellschaft (RZG), 
+!    - Bergische Universität Wuppertal, Lehrstuhl für angewandte
+!      Informatik,
+!    - Technische Universität München, Lehrstuhl für Informatik mit
+!      Schwerpunkt Wissenschaftliches Rechnen , 
+!    - Fritz-Haber-Institut, Berlin, Abt. Theorie, 
+!    - Max-Plack-Institut für Mathematik in den Naturwissenschaftrn, 
+!      Leipzig, Abt. Komplexe Strukutren in Biologie und Kognition, 
+!      and  
+!    - IBM Deutschland GmbH
+!
+!
+!    More information can be found here:
+!    http://elpa.rzg.mpg.de/
+!
+!    ELPA is free software: you can redistribute it and/or modify
+!    it under the terms of the version 3 of the license of the 
+!    GNU Lesser General Public License as published by the Free 
+!    Software Foundation.
+!
+!    ELPA is distributed in the hope that it will be useful,
+!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!    GNU Lesser General Public License for more details.
+!
+!    You should have received a copy of the GNU Lesser General Public License
+!    along with ELPA.  If not, see <http://www.gnu.org/licenses/>
+!
+!    ELPA reflects a substantial effort on the part of the original
+!    ELPA consortium, and we ask you to respect the spirit of the
+!    license that we chose: i.e., please contribute any changes you
+!    may have back to the original ELPA library distribution, and keep
+!    any derivatives of ELPA under the same license that we chose for
+!    the original distribution, the GNU Lesser General Public License.
+!
+!
 program test_real2
 
 !-------------------------------------------------------------------------------
@@ -15,9 +56,6 @@ program test_real2
 
    use ELPA1
    use ELPA2
-#ifdef GPU_VERSION
-   use cuda_routines
-#endif
 
    implicit none
    include 'mpif.h'
@@ -29,27 +67,7 @@ program test_real2
    ! nblk: Blocking factor in block cyclic distribution
    !-------------------------------------------------------------------------------
 
-   !integer, parameter :: na = 4000, nev = 1500, nblk = 16
-   !integer, parameter :: na = 20000, nev = 5000, nblk = 16
-   !integer, parameter :: na = 2048, nev = 50, nblk = 16
-   !integer, parameter :: na = 10112, nev = 64, nblk = 16
-   !integer, parameter :: na = 10112, nev = 64, nblk = 16
-   !integer, parameter :: na = 10112, nev = 64, nblk =  32
-   !integer, parameter :: na = 10112, nev = 64, nblk = 16 
-!   integer, parameter :: na = 1024, nev = 1024, nblk = 16
-   !integer, parameter :: na = 5120, nev = 5120, nblk = 16
-!   integer, parameter :: na = 5120, nev = 2560, nblk = 16
-   !integer, parameter :: nblk = 16
-   integer na, nev, nblk
-
-
-   !integer, parameter :: na = 10112, nev = 64, nblk = 64
-   !integer, parameter :: na = 16, nev = 4, nblk = 8 
-   !integer, parameter :: na = 16, nev = 4, nblk = 8 
-   !integer, parameter :: na = 64, nev = 4, nblk = 8 
-   !integer, parameter :: na = 64, nev = 16, nblk = 8 
-   !integer, parameter :: na = 256, nev = 50, nblk = 16
-   !integer, parameter :: na = 2048, nev = 50, nblk = 16 
+   integer, parameter :: na = 4000, nev = 1500, nblk = 16
 
    !-------------------------------------------------------------------------------
    !  Local Variables
@@ -61,35 +79,12 @@ program test_real2
 
    integer, external :: numroc
 
-   real*8 err, errmax, time1,time2
+   real*8 err, errmax
    real*8, allocatable :: a(:,:), z(:,:), tmp1(:,:), tmp2(:,:), as(:,:), ev(:)
 
    integer :: iseed(4096) ! Random seed, size should be sufficient for every generator
 
-   integer :: IERR
-   integer :: istat, devnum, numdevs 
-
-   !-------------------------------------------------------------------------------
-   !  Pharse command line argumnents, if given
-   INTEGER*4 :: iargc
-   character*16 arg1
-   character*16 arg2
-   character*16 arg3
-
-   na = 1000
-   nev = 1000
-   nblk = 128
-
-   if (iargc() == 3) then
-      call getarg(1, arg1)
-      call getarg(2, arg2)
-      call getarg(3, arg3)
-      read(arg1, *) na
-      read(arg2, *) nev
-      read(arg3, *) nblk
-   endif
-
-
+   integer :: STATUS
 
    !-------------------------------------------------------------------------------
    !  MPI Initialization
@@ -98,21 +93,7 @@ program test_real2
    call mpi_comm_rank(mpi_comm_world,myid,mpierr)
    call mpi_comm_size(mpi_comm_world,nprocs,mpierr)
 
-#ifdef GPU_VERSION
-   !print *, "Myrank = ", myid
-   !print *, "setting to GPU = ", mod(myid, 2)
-   !call cudaSetDevice(mod(myid, 2))
-   !call cudaSetDevice(0)
-   !devnum = 0
-   istat = cuda_getdevicecount(numdevs)
-   if(myid==0) then
-       print *
-       print '(3(a,i0))','Found ', numdevs, ' GPUs'
-   endif
-   devnum = mod(myid, numdevs)
-   istat = cuda_setdevice(devnum)
-   print '(3(a,i0))', 'MPI rank ', myid, ' uses GPU #', devnum
-#endif
+   STATUS = 0
 
    !-------------------------------------------------------------------------------
    ! Selection of number of processor rows/columns
@@ -184,7 +165,6 @@ program test_real2
    !-------------------------------------------------------------------------------
    ! Allocate matrices and set up a test matrix for the eigenvalue problem
 
-   !Pallocate(a (na_rows,na_cols), align=4096)
    allocate(a (na_rows,na_cols))
    allocate(z (na_rows,na_cols))
    allocate(as(na_rows,na_cols))
@@ -197,7 +177,7 @@ program test_real2
    ! We want different random numbers on every process
    ! (otherways A might get rank deficient):
 
-   iseed(:) = myid + 1
+   iseed(:) = myid
    call RANDOM_SEED(put=iseed)
 
    call RANDOM_NUMBER(z)
@@ -221,13 +201,6 @@ program test_real2
    ! set print flag in elpa1
    elpa_print_times = .true.
 
-!   call MPI_Barrier(MPI_COMM_WORLD, mpierr)
-!   do i = 0, nprocs,1
-!    if(i .eq.  myid) print*, 'a = ', a(1:na_rows, 1:na)
-!     call MPI_Barrier(MPI_COMM_WORLD, mpierr)
-!   end do
-
-
    !-------------------------------------------------------------------------------
    ! Calculate eigenvalues/eigenvectors
 
@@ -237,16 +210,12 @@ program test_real2
    end if
 
    call mpi_barrier(mpi_comm_world, mpierr) ! for correct timings only
-   time1= mpi_wtime()
-   call solve_evp_real_2stage(na, nev, a, na_rows, ev, z, na_rows, na_cols, nblk, &
+   call solve_evp_real_2stage(na, nev, a, na_rows, ev, z, na_rows, nblk, &
                               mpi_comm_rows, mpi_comm_cols, mpi_comm_world)
 
-   time2=mpi_wtime()
- 
    if (myid==0) then
      print '(a)','| Two-step ELPA solver complete.'
      print *
-     print *, 'time for elpa2: ', time2-time1
    end if
 
    if(myid == 0) print *,'Time transform to tridi :',time_evp_fwd
@@ -264,7 +233,6 @@ program test_real2
    ! tmp1 =  A * Z
    call pdgemm('N','N',na,nev,na,1.d0,as,1,1,sc_desc, &
            z,1,1,sc_desc,0.d0,tmp1,1,1,sc_desc)
-   !print *, "tmp1 sum = ", sum(tmp1(:,1:nev))
 
    deallocate(as)
    allocate(tmp2(na_rows,na_cols))
@@ -274,11 +242,9 @@ program test_real2
    do i=1,nev
       call pdscal(na,ev(i),tmp2,1,i,sc_desc,1)
    enddo
-   !print *, "tmp2 sum = ", sum(tmp2(:,1:nev))
 
    !  tmp1 = A*Zi - Zi*EVi
    tmp1(:,:) =  tmp1(:,:) - tmp2(:,:)
-   !print *, "tmp1 sum redux = ", sum(tmp1(:,1:nev))
 
    ! Get maximum norm of columns of tmp1
    errmax = 0
@@ -288,11 +254,17 @@ program test_real2
       errmax = max(errmax, err)
    enddo
 
+
    ! Get maximum error norm over all processors
    err = errmax
    call mpi_allreduce(err,errmax,1,MPI_REAL8,MPI_MAX,MPI_COMM_WORLD,mpierr)
    if(myid==0) print *
    if(myid==0) print *,'Error Residual     :',errmax
+
+
+   if (errmax .gt. 5e-12) then
+      status = 1
+   endif
 
    ! 2. Eigenvector orthogonality
 
@@ -311,14 +283,18 @@ program test_real2
    err = maxval(abs(tmp1))
    call mpi_allreduce(err,errmax,1,MPI_REAL8,MPI_MAX,MPI_COMM_WORLD,mpierr)
    if(myid==0) print *,'Error Orthogonality:',errmax
+   
+   if (errmax .gt. 5e-12) then
+      status = 1
+   endif
 
    deallocate(z)
    deallocate(tmp1)
    deallocate(tmp2)
    deallocate(ev)
-
+   call blacs_gridexit(my_blacs_ctxt)
    call mpi_finalize(mpierr)
-
+   call EXIT(STATUS)
 end
 
 !-------------------------------------------------------------------------------

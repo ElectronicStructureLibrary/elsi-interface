@@ -1,3 +1,44 @@
+!    This file is part of ELPA.
+!
+!    The ELPA library was originally created by the ELPA consortium, 
+!    consisting of the following organizations:
+!
+!    - Rechenzentrum Garching der Max-Planck-Gesellschaft (RZG), 
+!    - Bergische Universität Wuppertal, Lehrstuhl für angewandte
+!      Informatik,
+!    - Technische Universität München, Lehrstuhl für Informatik mit
+!      Schwerpunkt Wissenschaftliches Rechnen , 
+!    - Fritz-Haber-Institut, Berlin, Abt. Theorie, 
+!    - Max-Plack-Institut für Mathematik in den Naturwissenschaftrn, 
+!      Leipzig, Abt. Komplexe Strukutren in Biologie und Kognition, 
+!      and  
+!    - IBM Deutschland GmbH
+!
+!
+!    More information can be found here:
+!    http://elpa.rzg.mpg.de/
+!
+!    ELPA is free software: you can redistribute it and/or modify
+!    it under the terms of the version 3 of the license of the 
+!    GNU Lesser General Public License as published by the Free 
+!    Software Foundation.
+!
+!    ELPA is distributed in the hope that it will be useful,
+!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!    GNU Lesser General Public License for more details.
+!
+!    You should have received a copy of the GNU Lesser General Public License
+!    along with ELPA.  If not, see <http://www.gnu.org/licenses/>
+!
+!    ELPA reflects a substantial effort on the part of the original
+!    ELPA consortium, and we ask you to respect the spirit of the
+!    license that we chose: i.e., please contribute any changes you
+!    may have back to the original ELPA library distribution, and keep
+!    any derivatives of ELPA under the same license that we chose for
+!    the original distribution, the GNU Lesser General Public License.
+!
+!
 program test_complex2
 
 !-------------------------------------------------------------------------------
@@ -14,9 +55,6 @@ program test_complex2
 
    use ELPA1
    use ELPA2
-#ifdef GPU_VERSION
-   use cuda_routines
-#endif
 
    implicit none
    include 'mpif.h'
@@ -28,8 +66,7 @@ program test_complex2
    ! nblk: Blocking factor in block cyclic distribution
    !-------------------------------------------------------------------------------
 
-   integer na ,nev, nblk 
-
+   integer, parameter :: na = 4000, nev = 1500, nblk = 16
 
    !-------------------------------------------------------------------------------
    !  Local Variables
@@ -49,48 +86,16 @@ program test_complex2
    complex*16, parameter :: CZERO = (0.d0,0.d0), CONE = (1.d0,0.d0)
 
    integer :: iseed(4096) ! Random seed, size should be sufficient for every generator
-   integer :: istat, devnum, numdevs
 
+   integer :: STATUS
    !-------------------------------------------------------------------------------
-
- !  Pharse command line argumnents, if given
-   INTEGER*4 :: iargc
-   character*16 arg1
-   character*16 arg2
-   character*16 arg3
-
-
-   na = 8000
-   nev = 400
-   nblk = 128
-
-
-   if (iargc() == 3) then
-      call getarg(1, arg1)
-      call getarg(2, arg2)
-      call getarg(3, arg3)
-      read(arg1, *) na
-      read(arg2, *) nev
-      read(arg3, *) nblk
-   endif
-
-  !----------------------------------------------------------------------------------------
    !  MPI Initialization
 
    call mpi_init(mpierr)
    call mpi_comm_rank(mpi_comm_world,myid,mpierr)
    call mpi_comm_size(mpi_comm_world,nprocs,mpierr)
-#ifdef GPU_VERSION
-   istat = cuda_getdevicecount(numdevs)
-   if(myid==0) then
-       print *
-       print '(3(a,i0))','Found ', numdevs, ' GPUs'
-   endif
-   devnum = mod(myid, numdevs)
-   istat = cuda_setdevice(devnum)
-   print '(3(a,i0))', 'MPI rank ', myid, ' uses GPU #', devnum
-#endif
 
+   STATUS = 0
    !-------------------------------------------------------------------------------
    ! Selection of number of processor rows/columns
    ! We try to set up the grid square-like, i.e. start the search for possible
@@ -152,7 +157,7 @@ program test_complex2
    allocate(a (na_rows,na_cols))
    allocate(z (na_rows,na_cols))
    allocate(as(na_rows,na_cols))
-   
+
    allocate(ev(na))
 
    ! For getting a hermitian test matrix A we get a random matrix Z
@@ -161,7 +166,7 @@ program test_complex2
    ! We want different random numbers on every process
    ! (otherways A might get rank deficient):
 
-   iseed(:) = myid+1
+   iseed(:) = myid
    call RANDOM_SEED(put=iseed)
 
    allocate(xr(na_rows,na_cols))
@@ -186,7 +191,7 @@ program test_complex2
    ! Calculate eigenvalues/eigenvectors
 
    call mpi_barrier(mpi_comm_world, mpierr) ! for correct timings only
-   call solve_evp_complex_2stage(na, nev, a, na_rows, ev, z, na_rows, na_cols, nblk, &
+   call solve_evp_complex_2stage(na, nev, a, na_rows, ev, z, na_rows, nblk, &
                                  mpi_comm_rows, mpi_comm_cols, mpi_comm_world)
 
    if(myid == 0) print *,'Time transform to tridi :',time_evp_fwd
@@ -232,6 +237,10 @@ program test_complex2
    if(myid==0) print *
    if(myid==0) print *,'Error Residual     :',errmax
 
+   if (errmax .gt. 5e-12) then
+      status = 1
+   endif
+
    ! 2. Eigenvector orthogonality
 
    ! tmp1 = Z**T * Z
@@ -250,13 +259,17 @@ program test_complex2
    call mpi_allreduce(err,errmax,1,MPI_REAL8,MPI_MAX,MPI_COMM_WORLD,mpierr)
    if(myid==0) print *,'Error Orthogonality:',errmax
 
+   if (errmax .gt. 5e-12) then
+      status = 1
+   endif
+
    deallocate(z)
    deallocate(tmp1)
    deallocate(tmp2)
    deallocate(ev)
-
+   call blacs_gridexit(my_blacs_ctxt)
    call mpi_finalize(mpierr)
-
+   call EXIT(STATUS)
 end
 
 !-------------------------------------------------------------------------------

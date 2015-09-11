@@ -1,3 +1,44 @@
+!    This file is part of ELPA.
+!
+!    The ELPA library was originally created by the ELPA consortium, 
+!    consisting of the following organizations:
+!
+!    - Rechenzentrum Garching der Max-Planck-Gesellschaft (RZG), 
+!    - Bergische Universität Wuppertal, Lehrstuhl für angewandte
+!      Informatik,
+!    - Technische Universität München, Lehrstuhl für Informatik mit
+!      Schwerpunkt Wissenschaftliches Rechnen , 
+!    - Fritz-Haber-Institut, Berlin, Abt. Theorie, 
+!    - Max-Plack-Institut für Mathematik in den Naturwissenschaftrn, 
+!      Leipzig, Abt. Komplexe Strukutren in Biologie und Kognition, 
+!      and  
+!    - IBM Deutschland GmbH
+!
+!
+!    More information can be found here:
+!    http://elpa.rzg.mpg.de/
+!
+!    ELPA is free software: you can redistribute it and/or modify
+!    it under the terms of the version 3 of the license of the 
+!    GNU Lesser General Public License as published by the Free 
+!    Software Foundation.
+!
+!    ELPA is distributed in the hope that it will be useful,
+!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!    GNU Lesser General Public License for more details.
+!
+!    You should have received a copy of the GNU Lesser General Public License
+!    along with ELPA.  If not, see <http://www.gnu.org/licenses/>
+!
+!    ELPA reflects a substantial effort on the part of the original
+!    ELPA consortium, and we ask you to respect the spirit of the
+!    license that we chose: i.e., please contribute any changes you
+!    may have back to the original ELPA library distribution, and keep
+!    any derivatives of ELPA under the same license that we chose for
+!    the original distribution, the GNU Lesser General Public License.
+!
+!
 program test_complex
 
 !-------------------------------------------------------------------------------
@@ -44,6 +85,7 @@ program test_complex
    complex*16, parameter :: CZERO = (0.d0,0.d0), CONE = (1.d0,0.d0)
 
    integer :: iseed(4096) ! Random seed, size should be sufficient for every generator
+   integer :: STATUS
 
    !-------------------------------------------------------------------------------
    !  MPI Initialization
@@ -57,6 +99,8 @@ program test_complex
    ! We try to set up the grid square-like, i.e. start the search for possible
    ! divisors of nprocs with a number next to the square root of nprocs
    ! and decrement it until a divisor is found.
+
+   STATUS = 0
 
    do np_cols = NINT(SQRT(REAL(nprocs))),2,-1
       if(mod(nprocs,np_cols) == 0 ) exit
@@ -220,6 +264,11 @@ program test_complex
    if(myid==0) print *
    if(myid==0) print *,'Error Residual     :',errmax
 
+
+   if (errmax .gt. 5e-12) then
+      status = 1
+   endif
+
    ! 2. Eigenvector orthogonality
 
    ! tmp1 = Z**T * Z
@@ -237,14 +286,17 @@ program test_complex
    err = maxval(abs(tmp1))
    call mpi_allreduce(err,errmax,1,MPI_REAL8,MPI_MAX,MPI_COMM_WORLD,mpierr)
    if(myid==0) print *,'Error Orthogonality:',errmax
-
+   
+   if (errmax .gt. 5e-12) then
+      status = 1
+   endif
    deallocate(z)
    deallocate(tmp1)
    deallocate(tmp2)
    deallocate(ev)
-
+   call blacs_gridexit(my_blacs_ctxt)
    call mpi_finalize(mpierr)
-
+   call EXIT(STATUS)
 end
 
 !-------------------------------------------------------------------------------

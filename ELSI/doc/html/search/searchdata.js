@@ -1,21 +1,21 @@
 var indexSectionsWithContent =
 {
-  0: "es",
+  0: "em",
   1: "e",
-  2: "s"
+  2: "m"
 };
 
 var indexSectionNames =
 {
   0: "all",
   1: "namespaces",
-  2: "functions"
+  2: "variables"
 };
 
 var indexSectionLabels =
 {
   0: "All",
   1: "Namespaces",
-  2: "Functions"
+  2: "Variables"
 };
 

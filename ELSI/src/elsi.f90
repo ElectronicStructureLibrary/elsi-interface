@@ -8,23 +8,16 @@
 module ELSI
 
   use iso_c_binding
-  use HDF5
+  !use HDF5
 
   implicit none
 
-  PRIVATE ! By default, all routines contained are private
+  integer :: method = -1 !<Method for EV Solver (ELPA=1,OMM=2,PEXSI=3)
+  integer :: mode = -1 !<Mode for EV Solver (REAL_VALUES=1,COMPLEX_VALUES=2)
 
-  integer method = -1 !<Method for EV Solver (ELPA=1,OMM=2,PEXSI=3)
-  integer mode = -1 !<Mode for EV Solver (REAL_VALUES=1,COMPLEX_VALUES=2)
-
-  real*8, allocatable H_real, S_real 
-  complex*8, allocatable H_complex, S_complex
+  real*8, allocatable    :: H_real(:,:), S_real(:,:) 
+  complex*8, allocatable :: H_complex(:,:), S_complex(:,:)
   
-  ! The following routines are public:
-
-
-  public :: set_matrix_element
-
   enum, bind( C )
     enumerator :: ELPA, OMM, PEXSI
   end enum
@@ -33,6 +26,15 @@ module ELSI
     enumerator :: REAL_VALUES, COMPLEX_VALUES
   end enum   
 
+  ! The following variables are private
+  private :: H_real, S_real, H_complex, S_complex
+
+  ! The following routines are public:
+
+  public :: set_method          !< Set routine for method
+  public :: set_mode            !< Set routine for mode
+  public :: allocate_matrices   !< Initialize matrices based on method and mode
+  public :: deallocate_matrices !< Cleanup matrix memory 
 
 contains
 
@@ -50,7 +52,22 @@ subroutine set_method(i_method)
 
 end subroutine set_method
 
-function allocate_matrices(n_rows, n_cols)
+subroutine set_mode(i_mode)
+
+   !>
+   !!  This routine sets the mode of the eigenvalue solver (Real or Complex)
+   !!
+
+   implicit none
+
+   integer, intent(in) :: i_mode !<one of (ELPA,OMM,PEXSI)
+
+   mode = i_mode
+
+end subroutine set_mode
+
+
+subroutine allocate_matrices(n_rows, n_cols)
 
 !>
 !!  This routine prepares the matrices based on the dimension and method
@@ -62,31 +79,34 @@ function allocate_matrices(n_rows, n_cols)
    integer, intent(in) :: n_cols !< Number of cols
    
    select case (method)
-      case ELPA
+      case (ELPA)
          select case (mode)
-            case COMPLEX_VALUES
+            case (COMPLEX_VALUES)
                allocate(H_complex (n_rows, n_cols))      
                allocate(S_complex (n_rows, n_cols))
-            case REAL_VALUES
+            case (REAL_VALUES)
                allocate(H_real (n_rows, n_cols))      
                allocate(S_real (n_rows, n_cols))
-         end select
-      case OMM
-         write(*,'a') "OMM not implemented yet!"
+            case DEFAULT
+               write(*,'(2a)') "No mode has been chosen. ", &
+               "Please choose method REAL_VALUES or COMPLEX_VALUES"
          stop
-      case PEXSI
-         write(*,'a') "PEXSI not implemented yet!"
+
+         end select
+      case (OMM)
+         write(*,'(a)') "OMM not implemented yet!"
+         stop
+      case (PEXSI)
+         write(*,'(a)') "PEXSI not implemented yet!"
          stop
       case DEFAULT
-         write(*,'2a') "No method has been chosen. " &
+         write(*,'(2a)') "No method has been chosen. ", &
             "Please choose method ELPA, OMM, or PEXSI"
          stop
-      end select
+   end select
+end subroutine
 
-   return 0
-end function
-
-function deallocate_matrices()
+subroutine deallocate_matrices()
 
 !>
 !!  This routine prepares the matrices based on the dimension and method
@@ -95,29 +115,28 @@ function deallocate_matrices()
    implicit none
 
    select case (method)
-      case ELPA
+      case (ELPA)
          select case (mode)
-            case COMPLEX_VALUES
+            case (COMPLEX_VALUES)
                deallocate(H_complex)      
                deallocate(S_complex)
-            case REAL_VALUES
+            case (REAL_VALUES)
                deallocate(H_real)      
                deallocate(S_real)
          end select
-      case OMM
-         write(*,'a') "OMM not implemented yet!"
+      case (OMM)
+         write(*,'(a)') "OMM not implemented yet!"
          stop
-      case PEXSI
-         write(*,'a') "PEXSI not implemented yet!"
+      case (PEXSI)
+         write(*,'(a)') "PEXSI not implemented yet!"
          stop
       case DEFAULT
-         write(*,'2a') "No method has been chosen. " &
+         write(*,'(2a)') "No method has been chosen. ", &
             "Please choose method ELPA, OMM, or PEXSI"
          stop
-      end select
+   end select
 
-   return 0
-end function
+end subroutine deallocate_matrices
 
 
 end module ELSI

@@ -5,14 +5,13 @@
 !! with their original authors, but shall adhere to the licensing terms
 !! distributed along with the original code in the file "COPYING".
 
-subroutine test
+subroutine readwrite
 
   use iso_c_binding
   use ELSI
-  use ELPA
 
   implicit none
-  include 'mpi.h'
+  include 'mpif.h'
 
   ! This is the ELSI test suite
   ! First we will test the writing and reading of a matrix to a file
@@ -23,25 +22,26 @@ subroutine test
   integer, parameter :: n_dim = 100
 
   ! Coarse grid
-  integer np_rows        !< Number of rows (coarse grid)
-  integer np_cols        !< Number of cols (coarse grid)
+  integer :: np_rows        !< Number of rows (coarse grid)
+  integer :: np_cols        !< Number of cols (coarse grid)
   
   ! Sub grid
-  integer n_rows        !< Total number of rows for this process
-  integer n_cols        !< Total number of columns for this process
+  integer :: n_rows        !< Total number of rows for this process
+  integer :: n_cols        !< Total number of columns for this process
 
   ! MPI variables
-  integer myid           !< local process id
-  integer mpierr         !< mpi error handler
-  integer mpi_comm_world !< global mpi communicator
-  integer n_procs        !< number of mpi processes
+  integer :: myid           !< local process id
+  integer :: mpierr         !< mpi error handler
+  integer :: n_procs        !< number of mpi processes
 
   ! BLACS variable
-  integer blacs_ctxt     !< local blacs context
-  integer mpi_comm_rows  !< row communicatior
-  integer mpi_comm_cols  !< row communicatior
-  integer ip_row         !< local row    position
-  integer ip_col         !< local column position
+  integer :: blacs_ctxt     !< local blacs context
+  integer :: sc_desc(9)     !< local blacs context
+  integer :: mpi_comm_rows  !< row communicatior
+  integer :: mpi_comm_cols  !< row communicatior
+  integer :: ip_row         !< local row    position
+  integer :: ip_col         !< local column position
+  integer :: info
 
   ! Random number generator
   integer :: iseed(4096) !< Random seed
@@ -51,6 +51,11 @@ subroutine test
   real*8, allocatable :: s(:,:)
   real*8, allocatable :: buffer(:,:) 
 
+  ! Local variables
+  real*8 :: errmax
+  real*8 :: colerr
+  integer :: i
+
   ! MPI Initialization
 
   call mpi_init(mpierr)
@@ -58,20 +63,20 @@ subroutine test
   call mpi_comm_size(mpi_comm_world, n_procs, mpierr)
  
   ! Define blockcyclic setup
-  do np_cols = NINT(SQRT(REAL(nprocs))),2,-1
-     if(mod(nprocs,np_cols) == 0 ) exit
+  do np_cols = NINT(SQRT(REAL(n_procs))),2,-1
+     if(mod(n_procs,np_cols) == 0 ) exit
   enddo
 
   np_rows = n_procs / np_cols
 
   ! Set up BLACS and MPI communicators
 
-  my_blacs_ctxt = mpi_comm_world
-  call BLACS_Gridinit( my_blacs_ctxt, 'C', np_rows, np_cols )
-  call BLACS_Gridinfo( my_blacs_ctxt, np_rows, np_cols, ip_prow, ip_col )
+  blacs_ctxt = mpi_comm_world
+  call BLACS_Gridinit( blacs_ctxt, 'C', np_rows, np_cols )
+  call BLACS_Gridinfo( blacs_ctxt, np_rows, np_cols, ip_row, ip_col )
 
   call descinit( sc_desc, n_dim, n_dim, 16, 16, 0, 0, &
-                 my_blacs_ctxt, n_rows, info )
+                 blacs_ctxt, n_rows, info )
 
   call get_elpa_row_col_comms( mpi_comm_world, ip_row, ip_col, &
                                mpi_comm_rows, mpi_comm_cols)
@@ -120,8 +125,8 @@ subroutine test
   errmax = 0
   do i=1,n_cols
       colerr = 0
-      call pdnrm2(na,colerr,buffer,1,i,sc_desc,1)
-      errmax = max(errmax, colerr)
+      call pdnrm2( n_dim, colerr, buffer, 1, i, sc_desc, 1)
+      if (colerr > errmax) errmax = colerr
   enddo
 
   ! Get maximum error norm over all processors
@@ -136,8 +141,8 @@ subroutine test
   errmax = 0
   do i=1,n_cols
       colerr = 0
-      call pdnrm2(na,colerr,buffer,1,i,sc_desc,1)
-      errmax = max(errmax, colerr)
+      call pdnrm2( n_dim, colerr, buffer, 1, i, sc_desc, 1)
+      if (colerr > errmax) errmax = colerr
   enddo
 
   ! Get maximum error norm over all processors
@@ -153,9 +158,9 @@ subroutine test
 
 
   ! exit BLACS grid
-  call blacs_gridexit(my_blacs_ctxt)
+  call blacs_gridexit(blacs_ctxt)
 
   ! finalize mpi
   call mpi_finalize(mpierr)
 
-end subroutine test
+end subroutine readwrite
