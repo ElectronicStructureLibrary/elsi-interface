@@ -1,17 +1,17 @@
 !    This file is part of ELPA.
 !
-!    The ELPA library was originally created by the ELPA consortium, 
+!    The ELPA library was originally created by the ELPA consortium,
 !    consisting of the following organizations:
 !
-!    - Rechenzentrum Garching der Max-Planck-Gesellschaft (RZG), 
+!    - Rechenzentrum Garching der Max-Planck-Gesellschaft (RZG),
 !    - Bergische Universität Wuppertal, Lehrstuhl für angewandte
 !      Informatik,
 !    - Technische Universität München, Lehrstuhl für Informatik mit
-!      Schwerpunkt Wissenschaftliches Rechnen , 
-!    - Fritz-Haber-Institut, Berlin, Abt. Theorie, 
-!    - Max-Plack-Institut für Mathematik in den Naturwissenschaftrn, 
-!      Leipzig, Abt. Komplexe Strukutren in Biologie und Kognition, 
-!      and  
+!      Schwerpunkt Wissenschaftliches Rechnen ,
+!    - Fritz-Haber-Institut, Berlin, Abt. Theorie,
+!    - Max-Plack-Institut für Mathematik in den Naturwissenschaftrn,
+!      Leipzig, Abt. Komplexe Strukutren in Biologie und Kognition,
+!      and
 !    - IBM Deutschland GmbH
 !
 !
@@ -19,8 +19,8 @@
 !    http://elpa.rzg.mpg.de/
 !
 !    ELPA is free software: you can redistribute it and/or modify
-!    it under the terms of the version 3 of the license of the 
-!    GNU Lesser General Public License as published by the Free 
+!    it under the terms of the version 3 of the license of the
+!    GNU Lesser General Public License as published by the Free
 !    Software Foundation.
 !
 !    ELPA is distributed in the hope that it will be useful,
@@ -40,16 +40,21 @@
 !
 !
 ! ELPA1 -- Faster replacements for ScaLAPACK symmetric eigenvalue routines
-! 
+!
 ! Copyright of the original code rests with the authors inside the ELPA
 ! consortium. The copyright of any additional modifications shall rest
 ! with their original authors, but shall adhere to the licensing terms
 ! distributed along with the original code in the file "COPYING".
 
+#include "config-f90.h"
+
 module ELPA1
 
-! Version 1.1.2, 2011-02-21
+  use elpa_utilities
 
+#ifdef HAVE_DETAILED_TIMINGS
+ use timings
+#endif
   implicit none
 
   PRIVATE ! By default, all routines contained are private
@@ -103,7 +108,7 @@ contains
 
 !-------------------------------------------------------------------------------
 
-subroutine get_elpa_row_col_comms(mpi_comm_global, my_prow, my_pcol, mpi_comm_rows, mpi_comm_cols)
+function get_elpa_row_col_comms(mpi_comm_global, my_prow, my_pcol, mpi_comm_rows, mpi_comm_cols) result(mpierr)
 
 !-------------------------------------------------------------------------------
 ! get_elpa_row_col_comms:
@@ -140,11 +145,11 @@ subroutine get_elpa_row_col_comms(mpi_comm_global, my_prow, my_pcol, mpi_comm_ro
    call mpi_comm_split(mpi_comm_global,my_pcol,my_prow,mpi_comm_rows,mpierr)
    call mpi_comm_split(mpi_comm_global,my_prow,my_pcol,mpi_comm_cols,mpierr)
 
-end subroutine get_elpa_row_col_comms
+end function get_elpa_row_col_comms
 
 !-------------------------------------------------------------------------------
 
-subroutine solve_evp_real(na, nev, a, lda, ev, q, ldq, nblk, mpi_comm_rows, mpi_comm_cols)
+function solve_evp_real(na, nev, a, lda, ev, q, ldq, nblk, mpi_comm_rows, mpi_comm_cols) result(success)
 
 !-------------------------------------------------------------------------------
 !  solve_evp_real: Solves the real eigenvalue problem
@@ -179,47 +184,72 @@ subroutine solve_evp_real(na, nev, a, lda, ev, q, ldq, nblk, mpi_comm_rows, mpi_
 !              MPI-Communicators for rows/columns
 !
 !-------------------------------------------------------------------------------
-
+#ifdef HAVE_DETAILED_TIMINGS
+ use timings
+#endif
    implicit none
 
-   integer, intent(in) :: na, nev, lda, ldq, nblk, mpi_comm_rows, mpi_comm_cols
-   real*8 :: a(lda,*), ev(na), q(ldq,*)
+   integer, intent(in)  :: na, nev, lda, ldq, nblk, mpi_comm_rows, mpi_comm_cols
+   real*8               :: a(lda,*), ev(na), q(ldq,*)
 
-   integer my_prow, my_pcol, mpierr
-   real*8, allocatable :: e(:), tau(:)
-   real*8 ttt0, ttt1
+   integer              :: my_prow, my_pcol, mpierr
+   real*8, allocatable  :: e(:), tau(:)
+   real*8               :: ttt0, ttt1
+   logical              :: success
+   logical, save        :: firstCall = .true.
+   logical              :: wantDebug
+
+#ifdef HAVE_DETAILED_TIMINGS
+   call timer%start("solve_evp_real")
+#endif
 
    call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
    call mpi_comm_rank(mpi_comm_cols,my_pcol,mpierr)
+
+   success = .true.
+
+   wantDebug = .false.
+   if (firstCall) then
+     ! are debug messages desired?
+     wantDebug = debug_messages_via_environment_variable()
+     firstCall = .false.
+   endif
 
    allocate(e(na), tau(na))
 
    ttt0 = MPI_Wtime()
    call tridiag_real(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols, ev, e, tau)
    ttt1 = MPI_Wtime()
-   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) print *,'Time tridiag_real :',ttt1-ttt0
+   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) write(error_unit,*) 'Time tridiag_real :',ttt1-ttt0
    time_evp_fwd = ttt1-ttt0
 
    ttt0 = MPI_Wtime()
-   call solve_tridi(na, nev, ev, e, q, ldq, nblk, mpi_comm_rows, mpi_comm_cols)
+   call solve_tridi(na, nev, ev, e, q, ldq, nblk, mpi_comm_rows, &
+                    mpi_comm_cols, wantDebug, success)
+   if (.not.(success)) return
+
    ttt1 = MPI_Wtime()
-   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) print *,'Time solve_tridi  :',ttt1-ttt0
+   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) write(error_unit,*) 'Time solve_tridi  :',ttt1-ttt0
    time_evp_solve = ttt1-ttt0
 
    ttt0 = MPI_Wtime()
    call trans_ev_real(na, nev, a, lda, tau, q, ldq, nblk, mpi_comm_rows, mpi_comm_cols)
    ttt1 = MPI_Wtime()
-   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) print *,'Time trans_ev_real:',ttt1-ttt0
+   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) write(error_unit,*) 'Time trans_ev_real:',ttt1-ttt0
    time_evp_back = ttt1-ttt0
 
    deallocate(e, tau)
 
-end subroutine solve_evp_real
+#ifdef HAVE_DETAILED_TIMINGS
+   call timer%stop("solve_evp_real")
+#endif
+
+end function solve_evp_real
 
 !-------------------------------------------------------------------------------
 
 
-subroutine solve_evp_complex(na, nev, a, lda, ev, q, ldq, nblk, mpi_comm_rows, mpi_comm_cols)
+function solve_evp_complex(na, nev, a, lda, ev, q, ldq, nblk, mpi_comm_rows, mpi_comm_cols) result(success)
 
 !-------------------------------------------------------------------------------
 !  solve_evp_complex: Solves the complex eigenvalue problem
@@ -254,23 +284,44 @@ subroutine solve_evp_complex(na, nev, a, lda, ev, q, ldq, nblk, mpi_comm_rows, m
 !              MPI-Communicators for rows/columns
 !
 !-------------------------------------------------------------------------------
+#ifdef HAVE_DETAILED_TIMINGS
+ use timings
+#endif
 
    implicit none
 
-   integer, intent(in) :: na, nev, lda, ldq, nblk, mpi_comm_rows, mpi_comm_cols
-   complex*16 :: a(lda,*), q(ldq,*)
-   real*8 :: ev(na)
+   integer, intent(in)     :: na, nev, lda, ldq, nblk, mpi_comm_rows, mpi_comm_cols
+   complex*16              :: a(lda,*), q(ldq,*)
+   real*8                  :: ev(na)
 
-   integer my_prow, my_pcol, np_rows, np_cols, mpierr
-   integer l_rows, l_cols, l_cols_nev
-   real*8, allocatable :: q_real(:,:), e(:)
+   integer                 :: my_prow, my_pcol, np_rows, np_cols, mpierr
+   integer                 :: l_rows, l_cols, l_cols_nev
+   real*8, allocatable     :: q_real(:,:), e(:)
    complex*16, allocatable :: tau(:)
    real*8 ttt0, ttt1
+
+   logical                 :: success
+   logical, save           :: firstCall = .true.
+   logical                 :: wantDebug
+
+#ifdef HAVE_DETAILED_TIMINGS
+   call timer%start("solve_evp_complex")
+#endif
 
    call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
    call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
    call mpi_comm_rank(mpi_comm_cols,my_pcol,mpierr)
    call mpi_comm_size(mpi_comm_cols,np_cols,mpierr)
+
+   success = .true.
+
+   wantDebug = .false.
+   if (firstCall) then
+     ! are debug messages desired?
+     wantDebug = debug_messages_via_environment_variable()
+     firstCall = .false.
+   endif
+
 
    l_rows = local_index(na, my_prow, np_rows, nblk, -1) ! Local rows of a and q
    l_cols = local_index(na, my_pcol, np_cols, nblk, -1) ! Local columns of q
@@ -283,13 +334,16 @@ subroutine solve_evp_complex(na, nev, a, lda, ev, q, ldq, nblk, mpi_comm_rows, m
    ttt0 = MPI_Wtime()
    call tridiag_complex(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols, ev, e, tau)
    ttt1 = MPI_Wtime()
-   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) print *,'Time tridiag_complex :',ttt1-ttt0
+   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) write(error_unit,*) 'Time tridiag_complex :',ttt1-ttt0
    time_evp_fwd = ttt1-ttt0
 
    ttt0 = MPI_Wtime()
-   call solve_tridi(na, nev, ev, e, q_real, l_rows, nblk, mpi_comm_rows, mpi_comm_cols)
+   call solve_tridi(na, nev, ev, e, q_real, l_rows, nblk, mpi_comm_rows, &
+                    mpi_comm_cols, wantDebug, success)
+   if (.not.(success)) return
+
    ttt1 = MPI_Wtime()
-   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) print *,'Time solve_tridi     :',ttt1-ttt0
+   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) write(error_unit,*) 'Time solve_tridi     :',ttt1-ttt0
    time_evp_solve = ttt1-ttt0
 
    ttt0 = MPI_Wtime()
@@ -297,13 +351,16 @@ subroutine solve_evp_complex(na, nev, a, lda, ev, q, ldq, nblk, mpi_comm_rows, m
 
    call trans_ev_complex(na, nev, a, lda, tau, q, ldq, nblk, mpi_comm_rows, mpi_comm_cols)
    ttt1 = MPI_Wtime()
-   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) print *,'Time trans_ev_complex:',ttt1-ttt0
+   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) write(error_unit,*) 'Time trans_ev_complex:',ttt1-ttt0
    time_evp_back = ttt1-ttt0
 
    deallocate(q_real)
    deallocate(e, tau)
+#ifdef HAVE_DETAILED_TIMINGS
+   call timer%stop("solve_evp_complex")
+#endif
 
-end subroutine solve_evp_complex
+end function solve_evp_complex
 
 !-------------------------------------------------------------------------------
 
@@ -337,7 +394,9 @@ subroutine tridiag_real(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols, d, e, ta
 !  tau(na)     Factors for the Householder vectors (returned), needed for back transformation
 !
 !-------------------------------------------------------------------------------
-
+#ifdef HAVE_DETAILED_TIMINGS
+ use timings
+#endif
    implicit none
 
    integer na, lda, nblk, mpi_comm_rows, mpi_comm_cols
@@ -351,14 +410,21 @@ subroutine tridiag_real(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols, d, e, ta
    integer istep, i, j, lcs, lce, lrs, lre
    integer tile_size, l_rows_tile, l_cols_tile
 
+#ifdef WITH_OPENMP
+   integer my_thread, n_threads, max_threads, n_iter
+   integer omp_get_thread_num, omp_get_num_threads, omp_get_max_threads
+#endif
+
    real*8 vav, vnorm2, x, aux(2*max_stored_rows), aux1(2), aux2(2), vrl, xf
 
    real*8, allocatable:: tmp(:), vr(:), vc(:), ur(:), uc(:), vur(:,:), uvc(:,:)
+#ifdef WITH_OPENMP
+   real*8, allocatable:: ur_p(:,:), uc_p(:,:)
+#endif
 
-   integer pcol, prow
-   pcol(i) = MOD((i-1)/nblk,np_cols) !Processor col for global col number
-   prow(i) = MOD((i-1)/nblk,np_rows) !Processor row for global row number
-
+#ifdef HAVE_DETAILED_TIMINGS
+   call timer%start("tridiag_real")
+#endif
 
    call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
    call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
@@ -387,6 +453,13 @@ subroutine tridiag_real(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols, d, e, ta
    allocate(vc(max_local_cols))
    allocate(uc(max_local_cols))
 
+#ifdef WITH_OPENMP
+   max_threads = omp_get_max_threads()
+
+   allocate(ur_p(max_local_rows,0:max_threads-1))
+   allocate(uc_p(max_local_cols,0:max_threads-1))
+#endif
+
    tmp = 0
    vr = 0
    ur = 0
@@ -404,7 +477,7 @@ subroutine tridiag_real(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols, d, e, ta
 
    l_rows = local_index(na, my_prow, np_rows, nblk, -1) ! Local rows of a
    l_cols = local_index(na, my_pcol, np_cols, nblk, -1) ! Local cols of a
-   if(my_prow==prow(na) .and. my_pcol==pcol(na)) d(na) = a(l_rows,l_cols)
+   if(my_prow==prow(na, nblk, np_rows) .and. my_pcol==pcol(na, nblk, np_cols)) d(na) = a(l_rows,l_cols)
 
    do istep=na,3,-1
 
@@ -417,7 +490,7 @@ subroutine tridiag_real(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols, d, e, ta
       ! Calculate vector for Householder transformation on all procs
       ! owning column istep
 
-      if(my_pcol==pcol(istep)) then
+      if(my_pcol==pcol(istep, nblk, np_cols)) then
 
          ! Get vector to be transformed; distribute last element and norm of
          ! remaining elements to all procs in current column
@@ -428,7 +501,7 @@ subroutine tridiag_real(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols, d, e, ta
                        uvc(l_cols+1,1),ubound(uvc,1),1.d0,vr,1)
          endif
 
-         if(my_prow==prow(istep-1)) then
+         if(my_prow==prow(istep-1, nblk, np_rows)) then
             aux1(1) = dot_product(vr(1:l_rows-1),vr(1:l_rows-1))
             aux1(2) = vr(l_rows)
          else
@@ -448,7 +521,7 @@ subroutine tridiag_real(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols, d, e, ta
          ! Scale vr and store Householder vector for back transformation
 
          vr(1:l_rows) = vr(1:l_rows) * xf
-         if(my_prow==prow(istep-1)) then
+         if(my_prow==prow(istep-1, nblk, np_rows)) then
             vr(l_rows) = 1.
             e(istep-1) = vrl
          endif
@@ -458,8 +531,8 @@ subroutine tridiag_real(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols, d, e, ta
 
       ! Broadcast the Householder vector (and tau) along columns
 
-      if(my_pcol==pcol(istep)) vr(l_rows+1) = tau(istep)
-      call MPI_Bcast(vr,l_rows+1,MPI_REAL8,pcol(istep),mpi_comm_cols,mpierr)
+      if(my_pcol==pcol(istep, nblk, np_cols)) vr(l_rows+1) = tau(istep)
+      call MPI_Bcast(vr,l_rows+1,MPI_REAL8,pcol(istep, nblk, np_cols),mpi_comm_cols,mpierr)
       tau(istep) =  vr(l_rows+1)
 
       ! Transpose Householder vector vr -> vc
@@ -478,6 +551,22 @@ subroutine tridiag_real(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols, d, e, ta
       ur(1:l_rows) = 0
       if(l_rows>0 .and. l_cols>0) then
 
+#ifdef WITH_OPENMP
+
+#ifdef HAVE_DETAILED_TIMINGS
+   call timer%start("OpenMP parallel")
+#endif
+
+!$OMP PARALLEL PRIVATE(my_thread,n_threads,n_iter,i,lcs,lce,j,lrs,lre)
+
+         my_thread = omp_get_thread_num()
+         n_threads = omp_get_num_threads()
+
+         n_iter = 0
+
+         uc_p(1:l_cols,my_thread) = 0.
+         ur_p(1:l_rows,my_thread) = 0.
+#endif
          do i=0,(istep-2)/tile_size
             lcs = i*l_cols_tile+1
             lce = min(l_cols,(i+1)*l_cols_tile)
@@ -486,11 +575,30 @@ subroutine tridiag_real(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols, d, e, ta
                lrs = j*l_rows_tile+1
                lre = min(l_rows,(j+1)*l_rows_tile)
                if(lre<lrs) cycle
+#ifdef WITH_OPENMP
+               if(mod(n_iter,n_threads) == my_thread) then
+                 call DGEMV('T',lre-lrs+1,lce-lcs+1,1.d0,a(lrs,lcs),lda,vr(lrs),1,1.d0,uc_p(lcs,my_thread),1)
+                 if(i/=j) call DGEMV('N',lre-lrs+1,lce-lcs+1,1.d0,a(lrs,lcs),lda,vc(lcs),1,1.d0,ur_p(lrs,my_thread),1)
+               endif
+               n_iter = n_iter+1
+#else
                call DGEMV('T',lre-lrs+1,lce-lcs+1,1.d0,a(lrs,lcs),lda,vr(lrs),1,1.d0,uc(lcs),1)
                if(i/=j) call DGEMV('N',lre-lrs+1,lce-lcs+1,1.d0,a(lrs,lcs),lda,vc(lcs),1,1.d0,ur(lrs),1)
+
+#endif
             enddo
          enddo
+#ifdef WITH_OPENMP
+!$OMP END PARALLEL  
+#ifdef HAVE_DETAILED_TIMINGS
+   call timer%stop("OpenMP parallel")
+#endif
 
+         do i=0,max_threads-1
+            uc(1:l_cols) = uc(1:l_cols) + uc_p(1:l_cols,i)
+            ur(1:l_rows) = ur(1:l_rows) + ur_p(1:l_rows,i)
+         enddo
+#endif
          if(nstor>0) then
             call DGEMV('T',l_rows,2*nstor,1.d0,vur,ubound(vur,1),vr,1,0.d0,aux,1)
             call DGEMV('N',l_cols,2*nstor,1.d0,uvc,ubound(uvc,1),aux,1,1.d0,uc,1)
@@ -559,7 +667,7 @@ subroutine tridiag_real(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols, d, e, ta
 
       endif
 
-      if(my_prow==prow(istep-1) .and. my_pcol==pcol(istep-1)) then
+      if(my_prow==prow(istep-1, nblk, np_rows) .and. my_pcol==pcol(istep-1, nblk, np_cols)) then
          if(nstor>0) a(l_rows,l_cols) = a(l_rows,l_cols) &
                         + dot_product(vur(l_rows,1:2*nstor),uvc(l_cols,1:2*nstor))
          d(istep-1) = a(l_rows,l_cols)
@@ -569,8 +677,8 @@ subroutine tridiag_real(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols, d, e, ta
 
    ! Store e(1) and d(1)
 
-   if(my_prow==prow(1) .and. my_pcol==pcol(2)) e(1) = a(1,l_cols) ! use last l_cols value of loop above
-   if(my_prow==prow(1) .and. my_pcol==pcol(1)) d(1) = a(1,1)
+   if(my_prow==prow(1, nblk, np_rows) .and. my_pcol==pcol(2, nblk, np_cols)) e(1) = a(1,l_cols) ! use last l_cols value of loop above
+   if(my_prow==prow(1, nblk, np_rows) .and. my_pcol==pcol(1, nblk, np_cols)) d(1) = a(1,1)
 
    deallocate(tmp, vr, ur, vc, uc, vur, uvc)
 
@@ -586,6 +694,9 @@ subroutine tridiag_real(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols, d, e, ta
    tmp = e
    call mpi_allreduce(tmp,e,na,MPI_REAL8,MPI_SUM,mpi_comm_cols,mpierr)
    deallocate(tmp)
+#ifdef HAVE_DETAILED_TIMINGS
+   call timer%stop("tridiag_real")
+#endif
 
 end subroutine tridiag_real
 
@@ -624,7 +735,9 @@ subroutine trans_ev_real(na, nqc, a, lda, tau, q, ldq, nblk, mpi_comm_rows, mpi_
 !              MPI-Communicators for rows/columns
 !
 !-------------------------------------------------------------------------------
-
+#ifdef HAVE_DETAILED_TIMINGS
+ use timings
+#endif
    implicit none
 
    integer na, nqc, lda, ldq, nblk, mpi_comm_rows, mpi_comm_cols
@@ -640,10 +753,9 @@ subroutine trans_ev_real(na, nqc, a, lda, tau, q, ldq, nblk, mpi_comm_rows, mpi_
    real*8, allocatable:: tmp1(:), tmp2(:), hvb(:), hvm(:,:)
    real*8, allocatable:: tmat(:,:), h1(:), h2(:)
 
-   integer pcol, prow
-   pcol(i) = MOD((i-1)/nblk,np_cols) !Processor col for global col number
-   prow(i) = MOD((i-1)/nblk,np_rows) !Processor row for global row number
-
+#ifdef HAVE_DETAILED_TIMINGS
+   call timer%start("trans_ev_real")
+#endif
 
    call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
    call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
@@ -682,7 +794,7 @@ subroutine trans_ev_real(na, nqc, a, lda, tau, q, ldq, nblk, mpi_comm_rows, mpi_
       ice = MIN(istep+nblk-1,na)
       if(ice<ics) cycle
 
-      cur_pcol = pcol(istep)
+      cur_pcol = pcol(istep, nblk, np_cols)
 
       nb = 0
       do ic=ics,ice
@@ -693,7 +805,7 @@ subroutine trans_ev_real(na, nqc, a, lda, tau, q, ldq, nblk, mpi_comm_rows, mpi_
 
          if(my_pcol==cur_pcol) then
             hvb(nb+1:nb+l_rows) = a(1:l_rows,l_colh)
-            if(my_prow==prow(ic-1)) then
+            if(my_prow==prow(ic-1, nblk, np_rows)) then
                hvb(nb+l_rows) = 1.
             endif
          endif
@@ -762,6 +874,9 @@ subroutine trans_ev_real(na, nqc, a, lda, tau, q, ldq, nblk, mpi_comm_rows, mpi_
 
    deallocate(tmat, h1, h2, tmp1, tmp2, hvb, hvm)
 
+#ifdef HAVE_DETAILED_TIMINGS
+   call timer%stop("trans_ev_real")
+#endif
 
 end subroutine trans_ev_real
 
@@ -816,7 +931,9 @@ subroutine mult_at_b_real(uplo_a, uplo_c, na, ncb, a, lda, b, ldb, nblk, mpi_com
 !  ldc         Leading dimension of c
 !
 !-------------------------------------------------------------------------------
-
+#ifdef HAVE_DETAILED_TIMINGS
+ use timings
+#endif
    implicit none
 
    character*1 uplo_a, uplo_c
@@ -835,7 +952,9 @@ subroutine mult_at_b_real(uplo_a, uplo_c, na, ncb, a, lda, b, ldb, nblk, mpi_com
 
    real*8, allocatable:: aux_mat(:,:), aux_bc(:), tmp1(:,:), tmp2(:,:)
 
-
+#ifdef HAVE_DETAILED_TIMINGS
+   call timer%start("mult_at_b_real")
+#endif
    call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
    call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
    call mpi_comm_rank(mpi_comm_cols,my_pcol,mpierr)
@@ -975,6 +1094,9 @@ subroutine mult_at_b_real(uplo_a, uplo_c, na, ncb, a, lda, b, ldb, nblk, mpi_com
    enddo
 
    deallocate(aux_mat, aux_bc, lrs_save, lre_save)
+#ifdef HAVE_DETAILED_TIMINGS
+   call timer%stop("mult_at_b_real")
+#endif
 
 end subroutine mult_at_b_real
 
@@ -1010,7 +1132,9 @@ subroutine tridiag_complex(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols, d, e,
 !  tau(na)     Factors for the Householder vectors (returned), needed for back transformation
 !
 !-------------------------------------------------------------------------------
-
+#ifdef HAVE_DETAILED_TIMINGS
+ use timings
+#endif
    implicit none
 
    integer na, lda, nblk, mpi_comm_rows, mpi_comm_cols
@@ -1027,16 +1151,23 @@ subroutine tridiag_complex(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols, d, e,
    integer istep, i, j, lcs, lce, lrs, lre
    integer tile_size, l_rows_tile, l_cols_tile
 
+#ifdef WITH_OPENMP
+   integer my_thread, n_threads, max_threads, n_iter
+   integer omp_get_thread_num, omp_get_num_threads, omp_get_max_threads
+#endif
+
    real*8 vnorm2
    complex*16 vav, xc, aux(2*max_stored_rows),  aux1(2), aux2(2), vrl, xf
 
    complex*16, allocatable:: tmp(:), vr(:), vc(:), ur(:), uc(:), vur(:,:), uvc(:,:)
+#ifdef WITH_OPENMP
+   complex*16, allocatable:: ur_p(:,:), uc_p(:,:)
+#endif
    real*8, allocatable:: tmpr(:)
 
-   integer pcol, prow
-   pcol(i) = MOD((i-1)/nblk,np_cols) !Processor col for global col number
-   prow(i) = MOD((i-1)/nblk,np_rows) !Processor row for global row number
-
+#ifdef HAVE_DETAILED_TIMINGS
+   call timer%start("tridiag_complex")
+#endif
 
    call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
    call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
@@ -1065,6 +1196,13 @@ subroutine tridiag_complex(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols, d, e,
    allocate(vc(max_local_cols))
    allocate(uc(max_local_cols))
 
+#ifdef WITH_OPENMP
+   max_threads = omp_get_max_threads()
+
+   allocate(ur_p(max_local_rows,0:max_threads-1))
+   allocate(uc_p(max_local_cols,0:max_threads-1))
+#endif
+
    tmp = 0
    vr = 0
    ur = 0
@@ -1082,7 +1220,7 @@ subroutine tridiag_complex(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols, d, e,
 
    l_rows = local_index(na, my_prow, np_rows, nblk, -1) ! Local rows of a
    l_cols = local_index(na, my_pcol, np_cols, nblk, -1) ! Local cols of a
-   if(my_prow==prow(na) .and. my_pcol==pcol(na)) d(na) = a(l_rows,l_cols)
+   if(my_prow==prow(na, nblk, np_rows) .and. my_pcol==pcol(na, nblk, np_cols)) d(na) = a(l_rows,l_cols)
 
    do istep=na,3,-1
 
@@ -1095,7 +1233,7 @@ subroutine tridiag_complex(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols, d, e,
       ! Calculate vector for Householder transformation on all procs
       ! owning column istep
 
-      if(my_pcol==pcol(istep)) then
+      if(my_pcol==pcol(istep, nblk, np_cols)) then
 
          ! Get vector to be transformed; distribute last element and norm of
          ! remaining elements to all procs in current column
@@ -1107,7 +1245,7 @@ subroutine tridiag_complex(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols, d, e,
                        aux,1,CONE,vr,1)
          endif
 
-         if(my_prow==prow(istep-1)) then
+         if(my_prow==prow(istep-1, nblk, np_rows)) then
             aux1(1) = dot_product(vr(1:l_rows-1),vr(1:l_rows-1))
             aux1(2) = vr(l_rows)
          else
@@ -1127,7 +1265,7 @@ subroutine tridiag_complex(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols, d, e,
          ! Scale vr and store Householder vector for back transformation
 
          vr(1:l_rows) = vr(1:l_rows) * xf
-         if(my_prow==prow(istep-1)) then
+         if(my_prow==prow(istep-1, nblk, np_rows)) then
             vr(l_rows) = 1.
             e(istep-1) = vrl
          endif
@@ -1137,8 +1275,8 @@ subroutine tridiag_complex(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols, d, e,
 
       ! Broadcast the Householder vector (and tau) along columns
 
-      if(my_pcol==pcol(istep)) vr(l_rows+1) = tau(istep)
-      call MPI_Bcast(vr,l_rows+1,MPI_DOUBLE_COMPLEX,pcol(istep),mpi_comm_cols,mpierr)
+      if(my_pcol==pcol(istep, nblk, np_cols)) vr(l_rows+1) = tau(istep)
+      call MPI_Bcast(vr,l_rows+1,MPI_DOUBLE_COMPLEX,pcol(istep, nblk, np_cols),mpi_comm_cols,mpierr)
       tau(istep) =  vr(l_rows+1)
 
       ! Transpose Householder vector vr -> vc
@@ -1156,6 +1294,23 @@ subroutine tridiag_complex(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols, d, e,
       ur(1:l_rows) = 0
       if(l_rows>0 .and. l_cols>0) then
 
+#ifdef WITH_OPENMP
+
+#ifdef HAVE_DETAILED_TIMINGS
+   call timer%start("OpenMP parallel")
+#endif
+
+!$OMP PARALLEL PRIVATE(my_thread,n_threads,n_iter,i,lcs,lce,j,lrs,lre)
+
+         my_thread = omp_get_thread_num()
+         n_threads = omp_get_num_threads()
+
+         n_iter = 0
+
+         uc_p(1:l_cols,my_thread) = 0.
+         ur_p(1:l_rows,my_thread) = 0.
+#endif
+
          do i=0,(istep-2)/tile_size
             lcs = i*l_cols_tile+1
             lce = min(l_cols,(i+1)*l_cols_tile)
@@ -1164,10 +1319,30 @@ subroutine tridiag_complex(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols, d, e,
                lrs = j*l_rows_tile+1
                lre = min(l_rows,(j+1)*l_rows_tile)
                if(lre<lrs) cycle
-               call ZGEMV('C',lre-lrs+1,lce-lcs+1,CONE,a(lrs,lcs),lda,vr(lrs),1,CONE,uc(lcs),1)
+#ifdef WITH_OPENMP
+               if(mod(n_iter,n_threads) == my_thread) then
+                  call ZGEMV('C',lre-lrs+1,lce-lcs+1,CONE,a(lrs,lcs),lda,vr(lrs),1,CONE,uc_p(lcs,my_thread),1)
+                  if(i/=j) call ZGEMV('N',lre-lrs+1,lce-lcs+1,CONE,a(lrs,lcs),lda,vc(lcs),1,CONE,ur_p(lrs,my_thread),1)
+               endif
+               n_iter = n_iter+1
+#else
+              call ZGEMV('C',lre-lrs+1,lce-lcs+1,CONE,a(lrs,lcs),lda,vr(lrs),1,CONE,uc(lcs),1)
                if(i/=j) call ZGEMV('N',lre-lrs+1,lce-lcs+1,CONE,a(lrs,lcs),lda,vc(lcs),1,CONE,ur(lrs),1)
+#endif
             enddo
          enddo
+
+#ifdef WITH_OPENMP
+!$OMP END PARALLEL
+#ifdef HAVE_DETAILED_TIMINGS
+   call timer%stop("OpenMP parallel")
+#endif
+
+         do i=0,max_threads-1
+            uc(1:l_cols) = uc(1:l_cols) + uc_p(1:l_cols,i)
+            ur(1:l_rows) = ur(1:l_rows) + ur_p(1:l_rows,i)
+         enddo
+#endif
 
          if(nstor>0) then
             call ZGEMV('C',l_rows,2*nstor,CONE,vur,ubound(vur,1),vr,1,CZERO,aux,1)
@@ -1237,7 +1412,7 @@ subroutine tridiag_complex(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols, d, e,
 
       endif
 
-      if(my_prow==prow(istep-1) .and. my_pcol==pcol(istep-1)) then
+      if(my_prow==prow(istep-1, nblk, np_rows) .and. my_pcol==pcol(istep-1, nblk, np_cols)) then
          if(nstor>0) a(l_rows,l_cols) = a(l_rows,l_cols) &
                         + dot_product(vur(l_rows,1:2*nstor),uvc(l_cols,1:2*nstor))
          d(istep-1) = a(l_rows,l_cols)
@@ -1247,19 +1422,19 @@ subroutine tridiag_complex(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols, d, e,
 
    ! Store e(1) and d(1)
 
-   if(my_pcol==pcol(2)) then
-      if(my_prow==prow(1)) then
+   if(my_pcol==pcol(2, nblk, np_cols)) then
+      if(my_prow==prow(1, nblk, np_rows)) then
          ! We use last l_cols value of loop above
          vrl = a(1,l_cols)
          call hh_transform_complex(vrl, 0.d0, xf, tau(2))
          e(1) = vrl
          a(1,l_cols) = 1. ! for consistency only
       endif
-      call mpi_bcast(tau(2),1,MPI_DOUBLE_COMPLEX,prow(1),mpi_comm_rows,mpierr)
+      call mpi_bcast(tau(2),1,MPI_DOUBLE_COMPLEX,prow(1, nblk, np_rows),mpi_comm_rows,mpierr)
    endif
-   call mpi_bcast(tau(2),1,MPI_DOUBLE_COMPLEX,pcol(2),mpi_comm_cols,mpierr)
+   call mpi_bcast(tau(2),1,MPI_DOUBLE_COMPLEX,pcol(2, nblk, np_cols),mpi_comm_cols,mpierr)
 
-   if(my_prow==prow(1) .and. my_pcol==pcol(1)) d(1) = a(1,1)
+   if(my_prow==prow(1, nblk, np_rows) .and. my_pcol==pcol(1, nblk, np_cols)) d(1) = a(1,1)
 
    deallocate(tmp, vr, ur, vc, uc, vur, uvc)
 
@@ -1275,6 +1450,9 @@ subroutine tridiag_complex(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols, d, e,
    tmpr = e
    call mpi_allreduce(tmpr,e,na,MPI_REAL8,MPI_SUM,mpi_comm_cols,mpierr)
    deallocate(tmpr)
+#ifdef HAVE_DETAILED_TIMINGS
+   call timer%stop("tridiag_complex")
+#endif
 
 end subroutine tridiag_complex
 
@@ -1313,7 +1491,9 @@ subroutine trans_ev_complex(na, nqc, a, lda, tau, q, ldq, nblk, mpi_comm_rows, m
 !              MPI-Communicators for rows/columns
 !
 !-------------------------------------------------------------------------------
-
+#ifdef HAVE_DETAILED_TIMINGS
+ use timings
+#endif
    implicit none
 
    integer na, nqc, lda, ldq, nblk, mpi_comm_rows, mpi_comm_cols
@@ -1331,11 +1511,9 @@ subroutine trans_ev_complex(na, nqc, a, lda, tau, q, ldq, nblk, mpi_comm_rows, m
    complex*16, allocatable:: tmp1(:), tmp2(:), hvb(:), hvm(:,:)
    complex*16, allocatable:: tmat(:,:), h1(:), h2(:)
 
-   integer pcol, prow
-   pcol(i) = MOD((i-1)/nblk,np_cols) !Processor col for global col number
-   prow(i) = MOD((i-1)/nblk,np_rows) !Processor row for global row number
-
-
+#ifdef HAVE_DETAILED_TIMINGS
+   call timer%start("trans_ev_complex")
+#endif
    call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
    call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
    call mpi_comm_rank(mpi_comm_cols,my_pcol,mpierr)
@@ -1368,7 +1546,7 @@ subroutine trans_ev_complex(na, nqc, a, lda, tau, q, ldq, nblk, mpi_comm_rows, m
    nstor = 0
 
    ! In the complex case tau(2) /= 0
-   if(my_prow == prow(1)) then
+   if(my_prow == prow(1, nblk, np_rows)) then
       q(1,1:l_cols) = q(1,1:l_cols)*((1.d0,0.d0)-tau(2))
    endif
 
@@ -1378,7 +1556,7 @@ subroutine trans_ev_complex(na, nqc, a, lda, tau, q, ldq, nblk, mpi_comm_rows, m
       ice = MIN(istep+nblk-1,na)
       if(ice<ics) cycle
 
-      cur_pcol = pcol(istep)
+      cur_pcol = pcol(istep, nblk, np_cols)
 
       nb = 0
       do ic=ics,ice
@@ -1389,7 +1567,7 @@ subroutine trans_ev_complex(na, nqc, a, lda, tau, q, ldq, nblk, mpi_comm_rows, m
 
          if(my_pcol==cur_pcol) then
             hvb(nb+1:nb+l_rows) = a(1:l_rows,l_colh)
-            if(my_prow==prow(ic-1)) then
+            if(my_prow==prow(ic-1, nblk, np_rows)) then
                hvb(nb+l_rows) = 1.
             endif
          endif
@@ -1458,6 +1636,9 @@ subroutine trans_ev_complex(na, nqc, a, lda, tau, q, ldq, nblk, mpi_comm_rows, m
 
    deallocate(tmat, h1, h2, tmp1, tmp2, hvb, hvm)
 
+#ifdef HAVE_DETAILED_TIMINGS
+   call timer%stop("trans_ev_complex")
+#endif
 
 end subroutine trans_ev_complex
 
@@ -1512,7 +1693,9 @@ subroutine mult_ah_b_complex(uplo_a, uplo_c, na, ncb, a, lda, b, ldb, nblk, mpi_
 !  ldc         Leading dimension of c
 !
 !-------------------------------------------------------------------------------
-
+#ifdef HAVE_DETAILED_TIMINGS
+ use timings
+#endif
    implicit none
 
    character*1 uplo_a, uplo_c
@@ -1531,7 +1714,9 @@ subroutine mult_ah_b_complex(uplo_a, uplo_c, na, ncb, a, lda, b, ldb, nblk, mpi_
 
    complex*16, allocatable:: aux_mat(:,:), aux_bc(:), tmp1(:,:), tmp2(:,:)
 
-
+#ifdef HAVE_DETAILED_TIMINGS
+   call timer%start("mult_ah_b_complex")
+#endif
    call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
    call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
    call mpi_comm_rank(mpi_comm_cols,my_pcol,mpierr)
@@ -1671,13 +1856,18 @@ subroutine mult_ah_b_complex(uplo_a, uplo_c, na, ncb, a, lda, b, ldb, nblk, mpi_
    enddo
 
    deallocate(aux_mat, aux_bc, lrs_save, lre_save)
+#ifdef HAVE_DETAILED_TIMINGS
+   call timer%stop("mult_ah_b_complex")
+#endif
 
 end subroutine mult_ah_b_complex
 
 !-------------------------------------------------------------------------------
 
-subroutine solve_tridi( na, nev, d, e, q, ldq, nblk, mpi_comm_rows, mpi_comm_cols )
-
+subroutine solve_tridi( na, nev, d, e, q, ldq, nblk, mpi_comm_rows, mpi_comm_cols, wantDebug, success )
+#ifdef HAVE_DETAILED_TIMINGS
+ use timings
+#endif
    implicit none
 
    integer  na, nev, ldq, nblk, mpi_comm_rows, mpi_comm_cols
@@ -1688,11 +1878,17 @@ subroutine solve_tridi( na, nev, d, e, q, ldq, nblk, mpi_comm_rows, mpi_comm_col
 
    integer, allocatable :: limits(:), l_col(:), p_col(:), l_col_bc(:), p_col_bc(:)
 
-
+   logical, intent(in)  :: wantDebug
+   logical, intent(out) :: success
+#ifdef HAVE_DETAILED_TIMINGS
+   call timer%start("solve_tridi")
+#endif
    call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
    call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
    call mpi_comm_rank(mpi_comm_cols,my_pcol,mpierr)
    call mpi_comm_size(mpi_comm_cols,np_cols,mpierr)
+
+   success = .true.
 
    l_rows = local_index(na, my_prow, np_rows, nblk, -1) ! Local rows of a and q
    l_cols = local_index(na, my_pcol, np_cols, nblk, -1) ! Local columns of q
@@ -1714,11 +1910,14 @@ subroutine solve_tridi( na, nev, d, e, q, ldq, nblk, mpi_comm_rows, mpi_comm_col
       ! This is not supported!
       ! Scalapack supports it but delivers no results for these columns,
       ! which is rather annoying
-      if(nc==0) then
-         print *,'ERROR: Problem contains processor column with zero width'
-         call MPI_Abort(MPI_COMM_WORLD,1,mpierr)
+      if (nc==0) then
+#ifdef HAVE_DETAILED_TIMINGS
+        call timer%stop("solve_tridi")
+#endif
+        if (wantDebug) write(error_unit,*) 'ELPA1_solve_tridi: ERROR: Problem contains processor column with zero width'
+        success = .false.
+        return
       endif
-
       limits(np+1) = limits(np) + nc
    enddo
 
@@ -1739,13 +1938,21 @@ subroutine solve_tridi( na, nev, d, e, q, ldq, nblk, mpi_comm_rows, mpi_comm_col
    else
       nev1 = MIN(nev,l_cols)
    endif
-   call solve_tridi_col(l_cols, nev1, nc, d(nc+1), e(nc+1), q, ldq, nblk, mpi_comm_rows)
-
-
+   call solve_tridi_col(l_cols, nev1, nc, d(nc+1), e(nc+1), q, ldq, nblk,  &
+                        mpi_comm_rows, wantDebug, success)
+   if (.not.(success)) then
+#ifdef HAVE_DETAILED_TIMINGS
+   call timer%stop("solve_tridi")
+#endif
+     return
+   endif
    ! If there is only 1 processor column, we are done
 
    if(np_cols==1) then
       deallocate(limits)
+#ifdef HAVE_DETAILED_TIMINGS
+   call timer%stop("solve_tridi")
+#endif
       return
    endif
 
@@ -1786,25 +1993,41 @@ subroutine solve_tridi( na, nev, d, e, q, ldq, nblk, mpi_comm_rows, mpi_comm_col
 
    ! Recursively merge sub problems
 
-   call merge_recursive(0, np_cols)
+   call merge_recursive(0, np_cols, wantDebug, success)
+   if (.not.(success)) then
+#ifdef HAVE_DETAILED_TIMINGS
+   call timer%stop("solve_tridi")
+#endif
+     return
+   endif
 
    deallocate(limits,l_col,p_col,l_col_bc,p_col_bc)
+#ifdef HAVE_DETAILED_TIMINGS
+   call timer%stop("solve_tridi")
+#endif
+   return
 
 contains
-recursive subroutine merge_recursive(np_off, nprocs)
+recursive subroutine merge_recursive(np_off, nprocs, wantDebug, success)
 
    implicit none
 
    ! noff is always a multiple of nblk_ev
    ! nlen-noff is always > nblk_ev
 
-   integer np_off, nprocs
-   integer np1, np2, noff, nlen, nmid, n, mpi_status(mpi_status_size)
+   integer              :: np_off, nprocs
+   integer              :: np1, np2, noff, nlen, nmid, n, &
+                           mpi_status(mpi_status_size)
+   logical, intent(in)  :: wantDebug
+   logical, intent(out) :: success
 
-   if(nprocs<=1) then
-      ! Safety check only
-      print *,"INTERNAL error merge_recursive: nprocs=",nprocs
-      call mpi_abort(MPI_COMM_WORLD,1,mpierr)
+   success = .true.
+
+   if (nprocs<=1) then
+     ! Safety check only
+     if (wantDebug) write(error_unit,*) "ELPA1_merge_recursive: INTERNAL error merge_recursive: nprocs=",nprocs
+     success = .false.
+     return
    endif
 
    ! Split problem into 2 subproblems of size np1 / np2
@@ -1812,9 +2035,10 @@ recursive subroutine merge_recursive(np_off, nprocs)
    np1 = nprocs/2
    np2 = nprocs-np1
 
-   if(np1 > 1) call merge_recursive(np_off, np1)
-   if(np2 > 1) call merge_recursive(np_off+np1, np2)
-
+   if(np1 > 1) call merge_recursive(np_off, np1, wantDebug, success)
+   if (.not.(success)) return
+   if(np2 > 1) call merge_recursive(np_off+np1, np2, wantDebug, success)
+   if (.not.(success)) return
 
    noff = limits(np_off)
    nmid = limits(np_off+np1) - noff
@@ -1845,15 +2069,16 @@ recursive subroutine merge_recursive(np_off, nprocs)
 
       call merge_systems(nlen, nmid, d(noff+1), e(noff+nmid), q, ldq, noff, &
                          nblk, mpi_comm_rows, mpi_comm_cols, l_col, p_col, &
-                         l_col_bc, p_col_bc, np_off, nprocs )
-
+                         l_col_bc, p_col_bc, np_off, nprocs, wantDebug, success )
+      if (.not.(success)) return
    else
 
       ! Not last merge, leave dense column distribution
 
       call merge_systems(nlen, nmid, d(noff+1), e(noff+nmid), q, ldq, noff, &
                          nblk, mpi_comm_rows, mpi_comm_cols, l_col(noff+1), p_col(noff+1), &
-                         l_col(noff+1), p_col(noff+1), np_off, nprocs )
+                         l_col(noff+1), p_col(noff+1), np_off, nprocs, wantDebug, success )
+      if (.not.(success)) return
    endif
 
 end subroutine merge_recursive
@@ -1862,31 +2087,37 @@ end subroutine solve_tridi
 
 !-------------------------------------------------------------------------------
 
-subroutine solve_tridi_col( na, nev, nqoff, d, e, q, ldq, nblk, mpi_comm_rows )
+subroutine solve_tridi_col( na, nev, nqoff, d, e, q, ldq, nblk, mpi_comm_rows, wantDebug, success )
 
    ! Solves the symmetric, tridiagonal eigenvalue problem on one processor column
    ! with the divide and conquer method.
    ! Works best if the number of processor rows is a power of 2!
-
+#ifdef HAVE_DETAILED_TIMINGS
+ use timings
+#endif
    implicit none
 
-   integer  na, nev, nqoff, ldq, nblk, mpi_comm_rows
-   real*8 d(na), e(na), q(ldq,*)
+   integer              :: na, nev, nqoff, ldq, nblk, mpi_comm_rows
+   real*8               :: d(na), e(na), q(ldq,*)
 
-   integer, parameter:: min_submatrix_size = 16 ! Minimum size of the submatrices to be used
+   integer, parameter   :: min_submatrix_size = 16 ! Minimum size of the submatrices to be used
 
-   real*8, allocatable :: qmat1(:,:), qmat2(:,:)
-
-   integer i, n, np
-   integer ndiv, noff, nmid, nlen, max_size
-   integer my_prow, np_rows, mpierr
+   real*8, allocatable  :: qmat1(:,:), qmat2(:,:)
+   integer              :: i, n, np
+   integer              :: ndiv, noff, nmid, nlen, max_size
+   integer              :: my_prow, np_rows, mpierr
 
    integer, allocatable :: limits(:), l_col(:), p_col_i(:), p_col_o(:)
-
+   logical, intent(in)  :: wantDebug
+   logical, intent(out) :: success
+#ifdef HAVE_DETAILED_TIMINGS
+   call timer%start("solve_tridi_col")
+#endif
 
    call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
    call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
 
+   success = .true.
    ! Calculate the number of subdivisions needed.
 
    n = na
@@ -1940,7 +2171,9 @@ subroutine solve_tridi_col( na, nev, nqoff, d, e, q, ldq, nblk, mpi_comm_rows )
          noff = limits(n)        ! Start of subproblem
          nlen = limits(n+1)-noff ! Size of subproblem
 
-         call solve_tridi_single(nlen,d(noff+1),e(noff+1),q(nqoff+noff+1,noff+1),ubound(q,1))
+         call solve_tridi_single(nlen,d(noff+1),e(noff+1), &
+                                 q(nqoff+noff+1,noff+1),ubound(q,1), wantDebug, success)
+         if (.not.(success)) return
       enddo
 
    else
@@ -1958,8 +2191,10 @@ subroutine solve_tridi_col( na, nev, nqoff, d, e, q, ldq, nblk, mpi_comm_rows )
          noff = limits(my_prow)        ! Start of subproblem
          nlen = limits(my_prow+1)-noff ! Size of subproblem
 
-         call solve_tridi_single(nlen,d(noff+1),e(noff+1),qmat1,ubound(qmat1,1))
+         call solve_tridi_single(nlen,d(noff+1),e(noff+1),qmat1, &
+                                 ubound(qmat1,1), wantDebug, success)
 
+         if (.not.(success)) return
       endif
 
       ! Fill eigenvectors in qmat1 into global matrix q
@@ -2011,7 +2246,8 @@ subroutine solve_tridi_col( na, nev, nqoff, d, e, q, ldq, nblk, mpi_comm_rows )
 
          call merge_systems(nlen, nmid, d(noff+1), e(noff+nmid), q, ldq, nqoff+noff, nblk, &
                             mpi_comm_rows, mpi_comm_self, l_col(noff+1), p_col_i(noff+1), &
-                            l_col(noff+1), p_col_o(noff+1), 0, 1)
+                            l_col(noff+1), p_col_o(noff+1), 0, 1, wantDebug, success)
+         if (.not.(success)) return
 
       enddo
 
@@ -2020,27 +2256,40 @@ subroutine solve_tridi_col( na, nev, nqoff, d, e, q, ldq, nblk, mpi_comm_rows )
    enddo
 
    deallocate(limits, l_col, p_col_i, p_col_o)
+#ifdef HAVE_DETAILED_TIMINGS
+   call timer%stop("solve_tridi_col")
+#endif
 
 end subroutine solve_tridi_col
 
 !-------------------------------------------------------------------------------
 
-subroutine solve_tridi_single(nlen, d, e, q, ldq)
+subroutine solve_tridi_single(nlen, d, e, q, ldq, wantDebug, success)
 
    ! Solves the symmetric, tridiagonal eigenvalue problem on a single processor.
    ! Takes precautions if DSTEDC fails or if the eigenvalues are not ordered correctly.
-
+#ifdef HAVE_DETAILED_TIMINGS
+ use timings
+#endif
    implicit none
 
-   integer nlen, ldq
-   real*8 d(nlen), e(nlen), q(ldq,nlen)
+   integer              :: nlen, ldq
+   real*8               :: d(nlen), e(nlen), q(ldq,nlen)
 
-   real*8, allocatable :: work(:), qtmp(:), ds(:), es(:)
-   real*8 dtmp
+   real*8, allocatable  :: work(:), qtmp(:), ds(:), es(:)
+   real*8               :: dtmp
 
-   integer i, j, lwork, liwork, info, mpierr
+   integer              :: i, j, lwork, liwork, info, mpierr
    integer, allocatable :: iwork(:)
 
+   logical, intent(in)  :: wantDebug
+   logical, intent(out) :: success
+
+#ifdef HAVE_DETAILED_TIMINGS
+   call timer%start("solve_tridi_single")
+#endif
+
+   success = .true.
    allocate(ds(nlen), es(nlen))
 
    ! Save d and e for the case that dstedc fails
@@ -2059,16 +2308,19 @@ subroutine solve_tridi_single(nlen, d, e, q, ldq)
 
       ! DSTEDC failed, try DSTEQR. The workspace is enough for DSTEQR.
 
-      print '(a,i8,a)','Warning: Lapack routine DSTEDC failed, info= ',info,', Trying DSTEQR!'
+      write(error_unit,'(a,i8,a)') 'Warning: Lapack routine DSTEDC failed, info= ',info,', Trying DSTEQR!'
 
       d(:) = ds(:)
       e(:) = es(:)
       call dsteqr('I',nlen,d,e,q,ldq,work,info)
 
       ! If DSTEQR fails also, we don't know what to do further ...
-      if(info /= 0) then
-         print '(a,i8,a)','ERROR: Lapack routine DSTEQR failed, info= ',info,', Aborting!'
-         call mpi_abort(mpi_comm_world,0,mpierr)
+
+      if (info /= 0) then
+        if (wantDebug) &
+         write(error_unit,'(a,i8,a)') 'ELPA1_solve_tridi_single: ERROR: Lapack routine DSTEQR failed, info= ',info,', Aborting!'
+         success = .false.
+         return
       endif
 
    end if
@@ -2081,12 +2333,12 @@ subroutine solve_tridi_single(nlen, d, e, q, ldq)
    do i=1,nlen-1
       if(d(i+1)<d(i)) then
          if (abs(d(i+1) - d(i)) / abs(d(i+1) + d(i)) > 1d-14) then
-            print '(a,i8,2g25.16)','***WARNING: Monotony error dste**:',i+1,d(i),d(i+1)
+            write(error_unit,'(a,i8,2g25.16)') '***WARNING: Monotony error dste**:',i+1,d(i),d(i+1)
          else
-            print '(a,i8,2g25.16)','Info: Monotony error dste{dc,qr}:',i+1,d(i),d(i+1)
-            print '(a)', 'The eigenvalues from a lapack call are not sorted to machine precision.'
-            print '(a)', 'In this extent, this is completely harmless.'
-            print '(a)', 'Still, we keep this info message just in case.'
+            write(error_unit,'(a,i8,2g25.16)') 'Info: Monotony error dste{dc,qr}:',i+1,d(i),d(i+1)
+            write(error_unit,'(a)') 'The eigenvalues from a lapack call are not sorted to machine precision.'
+            write(error_unit,'(a)') 'In this extent, this is completely harmless.'
+            write(error_unit,'(a)') 'Still, we keep this info message just in case.'
          end if
          allocate(qtmp(nlen))
          dtmp = d(i+1)
@@ -2104,34 +2356,62 @@ subroutine solve_tridi_single(nlen, d, e, q, ldq)
          deallocate(qtmp)
       endif
    enddo
+#ifdef HAVE_DETAILED_TIMINGS
+   call timer%stop("solve_tridi_single")
+#endif
 
 end subroutine solve_tridi_single
 
 !-------------------------------------------------------------------------------
 
 subroutine merge_systems( na, nm, d, e, q, ldq, nqoff, nblk, mpi_comm_rows, mpi_comm_cols, &
-                          l_col, p_col, l_col_out, p_col_out, npc_0, npc_n)
-
+                          l_col, p_col, l_col_out, p_col_out, npc_0, npc_n, wantDebug, success)
+#ifdef HAVE_DETAILED_TIMINGS
+ use timings
+#endif
    implicit none
 
-   integer  na, nm, ldq, nqoff, nblk, mpi_comm_rows, mpi_comm_cols, npc_0, npc_n
-   integer  l_col(na), p_col(na), l_col_out(na), p_col_out(na)
-   real*8 d(na), e, q(ldq,*)
+   integer              :: na, nm, ldq, nqoff, nblk, mpi_comm_rows, &
+                           mpi_comm_cols, npc_0, npc_n
+   integer              :: l_col(na), p_col(na), l_col_out(na), p_col_out(na)
+   real*8               :: d(na), e, q(ldq,*)
 
-   integer, parameter :: max_strip=128
+   integer, parameter   :: max_strip=128
 
-   real*8 beta, sig, s, c, t, tau, rho, eps, tol, dlamch, dlapy2, qtrans(2,2), dmax, zmax, d1new, d2new
-   real*8 z(na), d1(na), d2(na), z1(na), delta(na), dbase(na), ddiff(na), ev_scale(na), tmp(na)
-   real*8 d1u(na), zu(na), d1l(na), zl(na)
-   real*8, allocatable :: qtmp1(:,:), qtmp2(:,:), ev(:,:)
+   real*8               :: beta, sig, s, c, t, tau, rho, eps, tol, dlamch, &
+                           dlapy2, qtrans(2,2), dmax, zmax, d1new, d2new
+   real*8               :: z(na), d1(na), d2(na), z1(na), delta(na),  &
+                           dbase(na), ddiff(na), ev_scale(na), tmp(na)
+   real*8               :: d1u(na), zu(na), d1l(na), zl(na)
+   real*8, allocatable  :: qtmp1(:,:), qtmp2(:,:), ev(:,:)
+#ifdef WITH_OPENMP
+   real*8, allocatable  :: z_p(:,:)
+#endif
 
-   integer i, j, na1, na2, l_rows, l_cols, l_rqs, l_rqe, l_rqm, ns, info
-   integer l_rnm, nnzu, nnzl, ndef, ncnt, max_local_cols, l_cols_qreorg, np, l_idx, nqcols1, nqcols2
-   integer my_proc, n_procs, my_prow, my_pcol, np_rows, np_cols, mpierr, mpi_status(mpi_status_size)
-   integer np_next, np_prev, np_rem
-   integer idx(na), idx1(na), idx2(na)
-   integer coltyp(na), idxq1(na), idxq2(na)
+   integer              :: i, j, na1, na2, l_rows, l_cols, l_rqs, l_rqe, &
+                           l_rqm, ns, info
+   integer              :: l_rnm, nnzu, nnzl, ndef, ncnt, max_local_cols, &
+                           l_cols_qreorg, np, l_idx, nqcols1, nqcols2
+   integer              :: my_proc, n_procs, my_prow, my_pcol, np_rows, &
+                           np_cols, mpierr, mpi_status(mpi_status_size)
+   integer              :: np_next, np_prev, np_rem
+   integer              :: idx(na), idx1(na), idx2(na)
+   integer              :: coltyp(na), idxq1(na), idxq2(na)
 
+   logical, intent(in)  :: wantDebug
+   logical, intent(out) :: success
+#ifdef WITH_OPENMP
+   integer              :: max_threads, my_thread
+   integer              :: omp_get_max_threads, omp_get_thread_num
+
+   max_threads = omp_get_max_threads()
+
+   allocate(z_p(na,0:max_threads-1))
+#endif
+#ifdef HAVE_DETAILED_TIMINGS
+   call timer%start("merge_systems")
+#endif
+   success = .true.
 
    call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
    call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
@@ -2156,8 +2436,11 @@ subroutine merge_systems( na, nm, d, e, q, ldq, nqoff, nblk, mpi_comm_rows, mpi_
       np_prev = my_pcol - 1
    endif
 
-   call check_monotony(nm,d,'Input1')
-   call check_monotony(na-nm,d(nm+1),'Input2')
+   call check_monotony(nm,d,'Input1',wantDebug, success)
+   if (.not.(success)) return
+
+   call check_monotony(na-nm,d(nm+1),'Input2',wantDebug, success)
+   if (.not.(success)) return
 
    ! Get global number of processors and my processor number.
    ! Please note that my_proc does not need to match any real processor number,
@@ -2247,6 +2530,9 @@ subroutine merge_systems( na, nm, d, e, q, ldq, nqoff, nblk, mpi_comm_rows, mpi_
       ! Rearrange eigenvectors
 
       call resort_ev(idx)
+#ifdef HAVE_DETAILED_TIMINGS
+   call timer%stop("merge_systems")
+#endif
 
       return
    ENDIF
@@ -2359,8 +2645,10 @@ subroutine merge_systems( na, nm, d, e, q, ldq, nqoff, nblk, mpi_comm_rows, mpi_
       endif
 
    enddo
-   call check_monotony(na1,d1,'Sorted1')
-   call check_monotony(na2,d2,'Sorted2')
+   call check_monotony(na1,d1,'Sorted1', wantDebug, success)
+   if (.not.(success)) return
+   call check_monotony(na2,d2,'Sorted2', wantDebug, success)
+   if (.not.(success)) return
 
    if(na1==1 .or. na1==2) then
       ! if(my_proc==0) print *,'--- Remark solve_tridi: na1==',na1,' proc==',myid
@@ -2405,11 +2693,23 @@ subroutine merge_systems( na, nm, d, e, q, ldq, nqoff, nblk, mpi_comm_rows, mpi_
       ! Solve secular equation
 
       z(1:na1) = 1
+#ifdef WITH_OPENMP
+      z_p(1:na1,:) = 1
+#endif
       dbase(1:na1) = 0
       ddiff(1:na1) = 0
 
       info = 0
+#ifdef WITH_OPENMP
 
+#ifdef HAVE_DETAILED_TIMINGS
+   call timer%start("OpenMP parallel")
+#endif
+
+!$OMP PARALLEL PRIVATE(i,my_thread,delta,s,info,j)
+      my_thread = omp_get_thread_num()
+!$OMP DO
+#endif
       DO i = my_proc+1, na1, n_procs ! work distributed over all processors
 
          call DLAED4(na1, i, d1, z1, delta, rho, s, info) ! s is not used!
@@ -2423,11 +2723,17 @@ subroutine merge_systems( na, nm, d, e, q, ldq, nqoff, nblk, mpi_comm_rows, mpi_
 
          ! Compute updated z
 
+#ifdef WITH_OPENMP
+         do j=1,na1
+            if(i/=j)  z_p(j,my_thread) = z_p(j,my_thread)*( delta(j) / (d1(j)-d1(i)) )
+         enddo
+         z_p(i,my_thread) = z_p(i,my_thread)*delta(i)
+#else
          do j=1,na1
             if(i/=j)  z(j) = z(j)*( delta(j) / (d1(j)-d1(i)) )
          enddo
          z(i) = z(i)*delta(i)
-
+#endif
          ! store dbase/ddiff
 
          if(i<na1) then
@@ -2443,6 +2749,17 @@ subroutine merge_systems( na, nm, d, e, q, ldq, nqoff, nblk, mpi_comm_rows, mpi_
             ddiff(i) = delta(i)
          endif
       enddo
+#ifdef WITH_OPENMP
+!$OMP END PARALLEL
+
+#ifdef HAVE_DETAILED_TIMINGS
+   call timer%stop("OpenMP parallel")
+#endif
+
+      do i = 0, max_threads-1
+         z(1:na1) = z(1:na1)*z_p(1:na1,i)
+      enddo
+#endif
 
       call global_product(z, na1)
       z(1:na1) = SIGN( SQRT( -z(1:na1) ), z1(1:na1) )
@@ -2453,8 +2770,19 @@ subroutine merge_systems( na, nm, d, e, q, ldq, nqoff, nblk, mpi_comm_rows, mpi_
 
       ! Calculate scale factors for eigenvectors
 
-      ev_scale(:) = 0
+      ev_scale(:) = 0.
 
+#ifdef WITH_OPENMP
+
+#ifdef HAVE_DETAILED_TIMINGS
+   call timer%start("OpenMP parallel")
+#endif
+
+!$OMP PARALLEL DO PRIVATE(i) SHARED(na1, my_proc, n_procs,  &
+!$OMP d1,dbase, ddiff, z, ev_scale) &
+!$OMP DEFAULT(NONE)
+
+#endif
       DO i = my_proc+1, na1, n_procs ! work distributed over all processors
 
          ! tmp(1:na1) = z(1:na1) / delta(1:na1,i)  ! original code
@@ -2462,12 +2790,19 @@ subroutine merge_systems( na, nm, d, e, q, ldq, nqoff, nblk, mpi_comm_rows, mpi_
 
          ! All we want to calculate is tmp = (d1(1:na1)-dbase(i))+ddiff(i)
          ! in exactly this order, but we want to prevent compiler optimization
-
-         tmp(1:na1) = d1(1:na1)-dbase(i)
-         call v_add_s(tmp,na1,ddiff(i))
-         tmp(1:na1) = z(1:na1) / tmp(1:na1)
-         ev_scale(i) = 1.0/sqrt(dot_product(tmp(1:na1),tmp(1:na1)))
+!         ev_scale_val = ev_scale(i)
+         call add_tmp(d1, dbase, ddiff, z, ev_scale(i), na1,i)
+!         ev_scale(i) = ev_scale_val
       enddo
+#ifdef WITH_OPENMP
+!$OMP END PARALLEL DO
+
+#ifdef HAVE_DETAILED_TIMINGS
+   call timer%stop("OpenMP parallel")
+#endif
+
+#endif
+
       call global_gather(ev_scale, na1)
 
       ! Add the deflated eigenvalues
@@ -2483,7 +2818,8 @@ subroutine merge_systems( na, nm, d, e, q, ldq, nqoff, nblk, mpi_comm_rows, mpi_
       do i=1,na
          d(i) = tmp(idx(i))
       enddo
-      call check_monotony(na,d,'Output')
+      call check_monotony(na,d,'Output', wantDebug, success)
+      if (.not.(success)) return
 
       ! Eigenvector calculations
 
@@ -2663,10 +2999,38 @@ subroutine merge_systems( na, nm, d, e, q, ldq, nqoff, nblk, mpi_comm_rows, mpi_
       deallocate(ev, qtmp1, qtmp2)
 
    endif
-
+#ifdef HAVE_DETAILED_TIMINGS
+   call timer%stop("merge_systems")
+#endif
+   return
 !-------------------------------------------------------------------------------
 
 contains
+  subroutine add_tmp(d1, dbase, ddiff, z, ev_scale_value, na1,i)
+
+    implicit none
+
+    integer, intent(in) :: na1, i
+
+    real*8, intent(in)  :: d1(:), dbase(:), ddiff(:), z(:)
+    real*8, intent(inout) :: ev_scale_value
+    real*8  :: tmp(1:na1)
+
+         ! tmp(1:na1) = z(1:na1) / delta(1:na1,i)  ! original code
+         ! tmp(1:na1) = z(1:na1) / (d1(1:na1)-d(i))! bad results
+
+         ! All we want to calculate is tmp = (d1(1:na1)-dbase(i))+ddiff(i)
+         ! in exactly this order, but we want to prevent compiler optimization
+
+    tmp(1:na1) = d1(1:na1) -dbase(i)
+    call v_add_s(tmp(1:na1),na1,ddiff(i))
+
+    tmp(1:na1) = z(1:na1) / tmp(1:na1)
+
+    ev_scale_value = 1.0/sqrt(dot_product(tmp(1:na1),tmp(1:na1)))
+
+  end subroutine add_tmp
+
 subroutine resort_ev(idx_ev)
 
    implicit none
@@ -2852,23 +3216,27 @@ subroutine global_product(z, n)
 
 end subroutine global_product
 
-subroutine check_monotony(n,d,text)
+subroutine check_monotony(n,d,text, wantDebug, success)
 
 ! This is a test routine for checking if the eigenvalues are monotonically increasing.
 ! It is for debug purposes only, an error should never be triggered!
 
    implicit none
 
-   integer n
-   real*8 d(n)
-   character*(*) text
+   integer              :: n
+   real*8               :: d(n)
+   character*(*)        :: text
 
-   integer i
+   integer              :: i
+   logical, intent(in)  :: wantDebug
+   logical, intent(out) :: success
 
+   success = .true.
    do i=1,n-1
       if(d(i+1)<d(i)) then
-         print '(a,a,i8,2g25.17)','Monotony error on ',text,i,d(i),d(i+1)
-         call mpi_abort(mpi_comm_world,0,mpierr)
+        if (wantDebug) write(error_unit,'(a,a,i8,2g25.17)') 'ELPA1_check_monotony: Monotony error on ',text,i,d(i),d(i+1)
+         success = .false.
+         return
       endif
    enddo
 
@@ -2969,7 +3337,9 @@ subroutine solve_secular_equation(n, i, d, z, delta, rho, dlam)
 !         The computed lambda_I, the I-th updated eigenvalue.
 !-------------------------------------------------------------------------------
 
-
+#ifdef HAVE_DETAILED_TIMINGS
+ use timings
+#endif
    implicit none
 
    integer n, i
@@ -2983,7 +3353,9 @@ subroutine solve_secular_equation(n, i, d, z, delta, rho, dlam)
 
    ! Upper and lower bound of the shifted solution interval are a and b
 
-
+#ifdef HAVE_DETAILED_TIMINGS
+   call  timer%start("solve_secular_equation")
+#endif
    if(i==n) then
 
       ! Special case: Last eigenvalue
@@ -3049,6 +3421,9 @@ subroutine solve_secular_equation(n, i, d, z, delta, rho, dlam)
 
    dlam = x + dshift
    delta(:) = delta(:) - x
+#ifdef HAVE_DETAILED_TIMINGS
+   call  timer%stop("solve_secular_equation")
+#endif
 
 end subroutine solve_secular_equation
 
@@ -3113,7 +3488,7 @@ end function local_index
 
 !-------------------------------------------------------------------------------
 
-subroutine cholesky_real(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols)
+subroutine cholesky_real(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols, wantDebug, success)
 
 !-------------------------------------------------------------------------------
 !  cholesky_real: Cholesky factorization of a real symmetric matrix
@@ -3137,29 +3512,35 @@ subroutine cholesky_real(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols)
 !              MPI-Communicators for rows/columns
 !
 !-------------------------------------------------------------------------------
-
+#ifdef HAVE_DETAILED_TIMINGS
+ use timings
+#endif
    implicit none
 
-   integer na, lda, nblk, mpi_comm_rows, mpi_comm_cols
-   real*8 a(lda,*)
+   integer              :: na, lda, nblk, mpi_comm_rows, mpi_comm_cols
+   real*8               :: a(lda,*)
 
-   integer my_prow, my_pcol, np_rows, np_cols, mpierr
-   integer l_cols, l_rows, l_col1, l_row1, l_colx, l_rowx
-   integer n, nc, i, info
-   integer lcs, lce, lrs, lre
-   integer tile_size, l_rows_tile, l_cols_tile
+   integer              :: my_prow, my_pcol, np_rows, np_cols, mpierr
+   integer              :: l_cols, l_rows, l_col1, l_row1, l_colx, l_rowx
+   integer              :: n, nc, i, info
+   integer              :: lcs, lce, lrs, lre
+   integer              :: tile_size, l_rows_tile, l_cols_tile
 
-   real*8, allocatable:: tmp1(:), tmp2(:,:), tmatr(:,:), tmatc(:,:)
+   real*8, allocatable  :: tmp1(:), tmp2(:,:), tmatr(:,:), tmatc(:,:)
 
-   integer pcol, prow
-   pcol(i) = MOD((i-1)/nblk,np_cols) !Processor col for global col number
-   prow(i) = MOD((i-1)/nblk,np_rows) !Processor row for global row number
+   logical, intent(in)  :: wantDebug
+   logical, intent(out) :: success
 
+#ifdef HAVE_DETAILED_TIMINGS
+   call timer%start("cholesky_real")
+#endif
 
    call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
    call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
    call mpi_comm_rank(mpi_comm_cols,my_pcol,mpierr)
    call mpi_comm_size(mpi_comm_cols,np_cols,mpierr)
+
+   success = .true.
 
    ! Matrix is split into tiles; work is done only for tiles on the diagonal or above
 
@@ -3200,12 +3581,13 @@ subroutine cholesky_real(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols)
          ! This is the last step, just do a Cholesky-Factorization
          ! of the remaining block
 
-         if(my_prow==prow(n) .and. my_pcol==pcol(n)) then
+         if(my_prow==prow(n, nblk, np_rows) .and. my_pcol==pcol(n, nblk, np_cols)) then
 
             call dpotrf('U',na-n+1,a(l_row1,l_col1),lda,info)
             if(info/=0) then
-               print *,"Error in dpotrf"
-               call MPI_Abort(MPI_COMM_WORLD,1,mpierr)
+              if (wantDebug) write(error_unit,*) "ELPA1_cholesky_real: Error in dpotrf"
+               success = .false.
+               return
             endif
 
          endif
@@ -3215,17 +3597,18 @@ subroutine cholesky_real(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols)
       endif
 
 
-      if(my_prow==prow(n)) then
+      if(my_prow==prow(n, nblk, np_rows)) then
 
-         if(my_pcol==pcol(n)) then
+         if(my_pcol==pcol(n, nblk, np_cols)) then
 
             ! The process owning the upper left remaining block does the
             ! Cholesky-Factorization of this block
 
             call dpotrf('U',nblk,a(l_row1,l_col1),lda,info)
             if(info/=0) then
-               print *,"Error in dpotrf"
-               call MPI_Abort(MPI_COMM_WORLD,1,mpierr)
+              if (wantDebug) write(error_unit,*) "ELPA1_cholesky_real: Error in dpotrf"
+               success = .false.
+               return
             endif
 
             nc = 0
@@ -3235,7 +3618,7 @@ subroutine cholesky_real(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols)
             enddo
          endif
 
-         call MPI_Bcast(tmp1,nblk*(nblk+1)/2,MPI_REAL8,pcol(n),mpi_comm_cols,mpierr)
+         call MPI_Bcast(tmp1,nblk*(nblk+1)/2,MPI_REAL8,pcol(n, nblk, np_cols),mpi_comm_cols,mpierr)
 
          nc = 0
          do i=1,nblk
@@ -3250,9 +3633,9 @@ subroutine cholesky_real(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols)
 
       do i=1,nblk
 
-         if(my_prow==prow(n)) tmatc(l_colx:l_cols,i) = a(l_row1+i-1,l_colx:l_cols)
+         if(my_prow==prow(n, nblk, np_rows)) tmatc(l_colx:l_cols,i) = a(l_row1+i-1,l_colx:l_cols)
          if(l_cols-l_colx+1>0) &
-            call MPI_Bcast(tmatc(l_colx,i),l_cols-l_colx+1,MPI_REAL8,prow(n),mpi_comm_rows,mpierr)
+            call MPI_Bcast(tmatc(l_colx,i),l_cols-l_colx+1,MPI_REAL8,prow(n, nblk, np_rows),mpi_comm_rows,mpierr)
 
       enddo
 
@@ -3278,19 +3661,22 @@ subroutine cholesky_real(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols)
    ! Set the lower triangle to 0, it contains garbage (form the above matrix multiplications)
 
    do i=1,na
-      if(my_pcol==pcol(i)) then
+      if(my_pcol==pcol(i, nblk, np_cols)) then
          ! column i is on local processor
          l_col1 = local_index(i  , my_pcol, np_cols, nblk, +1) ! local column number
          l_row1 = local_index(i+1, my_prow, np_rows, nblk, +1) ! first row below diagonal
          a(l_row1:l_rows,l_col1) = 0
       endif
    enddo
+#ifdef HAVE_DETAILED_TIMINGS
+   call timer%stop("cholesky_real")
+#endif
 
 end subroutine cholesky_real
 
 !-------------------------------------------------------------------------------
 
-subroutine invert_trm_real(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols)
+subroutine invert_trm_real(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols, wantDebug, success)
 
 !-------------------------------------------------------------------------------
 !  invert_trm_real: Inverts a upper triangular matrix
@@ -3316,24 +3702,24 @@ subroutine invert_trm_real(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols)
 
    implicit none
 
-   integer na, lda, nblk, mpi_comm_rows, mpi_comm_cols
-   real*8 a(lda,*)
+   integer             :: na, lda, nblk, mpi_comm_rows, mpi_comm_cols
+   real*8              :: a(lda,*)
 
-   integer my_prow, my_pcol, np_rows, np_cols, mpierr
-   integer l_cols, l_rows, l_col1, l_row1, l_colx, l_rowx
-   integer n, nc, i, info, ns, nb
+   integer             :: my_prow, my_pcol, np_rows, np_cols, mpierr
+   integer             :: l_cols, l_rows, l_col1, l_row1, l_colx, l_rowx
+   integer             :: n, nc, i, info, ns, nb
 
-   real*8, allocatable:: tmp1(:), tmp2(:,:), tmat1(:,:), tmat2(:,:)
+   real*8, allocatable :: tmp1(:), tmp2(:,:), tmat1(:,:), tmat2(:,:)
 
-   integer pcol, prow
-   pcol(i) = MOD((i-1)/nblk,np_cols) !Processor col for global col number
-   prow(i) = MOD((i-1)/nblk,np_rows) !Processor row for global row number
-
+   logical, intent(in)  :: wantDebug
+   logical, intent(out) :: success
 
    call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
    call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
    call mpi_comm_rank(mpi_comm_cols,my_pcol,mpierr)
    call mpi_comm_size(mpi_comm_cols,np_cols,mpierr)
+
+   success = .true.
 
    l_rows = local_index(na, my_prow, np_rows, nblk, -1) ! Local rows of a
    l_cols = local_index(na, my_pcol, np_cols, nblk, -1) ! Local cols of a
@@ -3363,14 +3749,15 @@ subroutine invert_trm_real(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols)
       l_colx = local_index(n+nb, my_pcol, np_cols, nblk, +1)
 
 
-      if(my_prow==prow(n)) then
+      if(my_prow==prow(n, nblk, np_rows)) then
 
-         if(my_pcol==pcol(n)) then
+         if(my_pcol==pcol(n, nblk, np_cols)) then
 
             call DTRTRI('U','N',nb,a(l_row1,l_col1),lda,info)
             if(info/=0) then
-               print *,"Error in DTRTRI"
-               call MPI_Abort(MPI_COMM_WORLD,1,mpierr)
+              if (wantDebug) write(error_unit,*) "ELPA1_invert_trm_real: Error in DTRTRI"
+               success = .false.
+               return
             endif
 
             nc = 0
@@ -3380,7 +3767,7 @@ subroutine invert_trm_real(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols)
             enddo
          endif
 
-         call MPI_Bcast(tmp1,nb*(nb+1)/2,MPI_REAL8,pcol(n),mpi_comm_cols,mpierr)
+         call MPI_Bcast(tmp1,nb*(nb+1)/2,MPI_REAL8,pcol(n, nblk, np_cols),mpi_comm_cols,mpierr)
 
          nc = 0
          do i=1,nb
@@ -3392,23 +3779,23 @@ subroutine invert_trm_real(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols)
             call DTRMM('L','U','N','N',nb,l_cols-l_colx+1,1.d0,tmp2,ubound(tmp2,1),a(l_row1,l_colx),lda)
 
          if(l_colx<=l_cols)   tmat2(1:nb,l_colx:l_cols) = a(l_row1:l_row1+nb-1,l_colx:l_cols)
-         if(my_pcol==pcol(n)) tmat2(1:nb,l_col1:l_col1+nb-1) = tmp2(1:nb,1:nb) ! tmp2 has the lower left triangle 0
+         if(my_pcol==pcol(n, nblk, np_cols)) tmat2(1:nb,l_col1:l_col1+nb-1) = tmp2(1:nb,1:nb) ! tmp2 has the lower left triangle 0
 
       endif
 
       if(l_row1>1) then
-         if(my_pcol==pcol(n)) then
+         if(my_pcol==pcol(n, nblk, np_cols)) then
             tmat1(1:l_row1-1,1:nb) = a(1:l_row1-1,l_col1:l_col1+nb-1)
             a(1:l_row1-1,l_col1:l_col1+nb-1) = 0
          endif
 
          do i=1,nb
-            call MPI_Bcast(tmat1(1,i),l_row1-1,MPI_REAL8,pcol(n),mpi_comm_cols,mpierr)
+            call MPI_Bcast(tmat1(1,i),l_row1-1,MPI_REAL8,pcol(n, nblk, np_cols),mpi_comm_cols,mpierr)
          enddo
       endif
 
       if(l_cols-l_col1+1>0) &
-         call MPI_Bcast(tmat2(1,l_col1),(l_cols-l_col1+1)*nblk,MPI_REAL8,prow(n),mpi_comm_rows,mpierr)
+         call MPI_Bcast(tmat2(1,l_col1),(l_cols-l_col1+1)*nblk,MPI_REAL8,prow(n, nblk, np_rows),mpi_comm_rows,mpierr)
 
       if(l_row1>1 .and. l_cols-l_col1+1>0) &
          call dgemm('N','N',l_row1-1,l_cols-l_col1+1,nb, -1.d0, &
@@ -3423,7 +3810,7 @@ end subroutine invert_trm_real
 
 !-------------------------------------------------------------------------------
 
-subroutine cholesky_complex(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols)
+subroutine cholesky_complex(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols, wantDebug, success)
 
 !-------------------------------------------------------------------------------
 !  cholesky_complex: Cholesky factorization of a complex hermitian matrix
@@ -3447,24 +3834,28 @@ subroutine cholesky_complex(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols)
 !              MPI-Communicators for rows/columns
 !
 !-------------------------------------------------------------------------------
-
+#ifdef HAVE_DETAILED_TIMINGS
+ use timings
+#endif
    implicit none
 
-   integer na, lda, nblk, mpi_comm_rows, mpi_comm_cols
-   complex*16 a(lda,*)
+   integer                 :: na, lda, nblk, mpi_comm_rows, mpi_comm_cols
+   complex*16              :: a(lda,*)
 
-   integer my_prow, my_pcol, np_rows, np_cols, mpierr
-   integer l_cols, l_rows, l_col1, l_row1, l_colx, l_rowx
-   integer n, nc, i, info
-   integer lcs, lce, lrs, lre
-   integer tile_size, l_rows_tile, l_cols_tile
+   integer                 :: my_prow, my_pcol, np_rows, np_cols, mpierr
+   integer                 :: l_cols, l_rows, l_col1, l_row1, l_colx, l_rowx
+   integer                 :: n, nc, i, info
+   integer                 :: lcs, lce, lrs, lre
+   integer                 :: tile_size, l_rows_tile, l_cols_tile
 
-   complex*16, allocatable:: tmp1(:), tmp2(:,:), tmatr(:,:), tmatc(:,:)
+   complex*16, allocatable :: tmp1(:), tmp2(:,:), tmatr(:,:), tmatc(:,:)
 
-   integer pcol, prow
-   pcol(i) = MOD((i-1)/nblk,np_cols) !Processor col for global col number
-   prow(i) = MOD((i-1)/nblk,np_rows) !Processor row for global row number
-
+   logical, intent(in)     :: wantDebug
+   logical, intent(out)    :: success
+#ifdef HAVE_DETAILED_TIMINGS
+   call timer%start("cholesky_complex")
+#endif
+   success = .true.
 
    call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
    call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
@@ -3510,12 +3901,13 @@ subroutine cholesky_complex(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols)
          ! This is the last step, just do a Cholesky-Factorization
          ! of the remaining block
 
-         if(my_prow==prow(n) .and. my_pcol==pcol(n)) then
+         if(my_prow==prow(n, nblk, np_rows) .and. my_pcol==pcol(n, nblk, np_cols)) then
 
             call zpotrf('U',na-n+1,a(l_row1,l_col1),lda,info)
             if(info/=0) then
-               print *,"Error in zpotrf"
-               call MPI_Abort(MPI_COMM_WORLD,1,mpierr)
+              if (wantDebug) write(error_unit,*) "ELPA1_cholesky_complex: Error in zpotrf"
+               success = .false.
+               return
             endif
 
          endif
@@ -3525,17 +3917,18 @@ subroutine cholesky_complex(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols)
       endif
 
 
-      if(my_prow==prow(n)) then
+      if(my_prow==prow(n, nblk, np_rows)) then
 
-         if(my_pcol==pcol(n)) then
+         if(my_pcol==pcol(n, nblk, np_cols)) then
 
             ! The process owning the upper left remaining block does the
             ! Cholesky-Factorization of this block
 
             call zpotrf('U',nblk,a(l_row1,l_col1),lda,info)
             if(info/=0) then
-               print *,"Error in zpotrf"
-               call MPI_Abort(MPI_COMM_WORLD,1,mpierr)
+              if (wantDebug) write(error_unit,*) "ELPA1_cholesky_complex: Error in zpotrf"
+               success = .false.
+               return
             endif
 
             nc = 0
@@ -3545,7 +3938,7 @@ subroutine cholesky_complex(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols)
             enddo
          endif
 
-         call MPI_Bcast(tmp1,nblk*(nblk+1)/2,MPI_DOUBLE_COMPLEX,pcol(n),mpi_comm_cols,mpierr)
+         call MPI_Bcast(tmp1,nblk*(nblk+1)/2,MPI_DOUBLE_COMPLEX,pcol(n, nblk, np_cols),mpi_comm_cols,mpierr)
 
          nc = 0
          do i=1,nblk
@@ -3560,9 +3953,9 @@ subroutine cholesky_complex(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols)
 
       do i=1,nblk
 
-         if(my_prow==prow(n)) tmatc(l_colx:l_cols,i) = conjg(a(l_row1+i-1,l_colx:l_cols))
+         if(my_prow==prow(n, nblk, np_rows)) tmatc(l_colx:l_cols,i) = conjg(a(l_row1+i-1,l_colx:l_cols))
          if(l_cols-l_colx+1>0) &
-            call MPI_Bcast(tmatc(l_colx,i),l_cols-l_colx+1,MPI_DOUBLE_COMPLEX,prow(n),mpi_comm_rows,mpierr)
+            call MPI_Bcast(tmatc(l_colx,i),l_cols-l_colx+1,MPI_DOUBLE_COMPLEX,prow(n, nblk, np_rows),mpi_comm_rows,mpierr)
 
       enddo
 
@@ -3589,19 +3982,22 @@ subroutine cholesky_complex(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols)
    ! Set the lower triangle to 0, it contains garbage (form the above matrix multiplications)
 
    do i=1,na
-      if(my_pcol==pcol(i)) then
+      if(my_pcol==pcol(i, nblk, np_cols)) then
          ! column i is on local processor
          l_col1 = local_index(i  , my_pcol, np_cols, nblk, +1) ! local column number
          l_row1 = local_index(i+1, my_prow, np_rows, nblk, +1) ! first row below diagonal
          a(l_row1:l_rows,l_col1) = 0
       endif
    enddo
+#ifdef HAVE_DETAILED_TIMINGS
+   call timer%stop("cholesky_complex")
+#endif
 
 end subroutine cholesky_complex
 
 !-------------------------------------------------------------------------------
 
-subroutine invert_trm_complex(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols)
+subroutine invert_trm_complex(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols, wantDebug, success)
 
 !-------------------------------------------------------------------------------
 !  invert_trm_complex: Inverts a upper triangular matrix
@@ -3627,24 +4023,24 @@ subroutine invert_trm_complex(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols)
 
    implicit none
 
-   integer na, lda, nblk, mpi_comm_rows, mpi_comm_cols
-   complex*16 a(lda,*)
+   integer                 :: na, lda, nblk, mpi_comm_rows, mpi_comm_cols
+   complex*16              :: a(lda,*)
 
-   integer my_prow, my_pcol, np_rows, np_cols, mpierr
-   integer l_cols, l_rows, l_col1, l_row1, l_colx, l_rowx
-   integer n, nc, i, info, ns, nb
+   integer                 :: my_prow, my_pcol, np_rows, np_cols, mpierr
+   integer                 :: l_cols, l_rows, l_col1, l_row1, l_colx, l_rowx
+   integer                 :: n, nc, i, info, ns, nb
 
-   complex*16, allocatable:: tmp1(:), tmp2(:,:), tmat1(:,:), tmat2(:,:)
+   complex*16, allocatable :: tmp1(:), tmp2(:,:), tmat1(:,:), tmat2(:,:)
 
-   integer pcol, prow
-   pcol(i) = MOD((i-1)/nblk,np_cols) !Processor col for global col number
-   prow(i) = MOD((i-1)/nblk,np_rows) !Processor row for global row number
-
+   logical, intent(in)     :: wantDebug
+   logical, intent(out)    :: success
 
    call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
    call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
    call mpi_comm_rank(mpi_comm_cols,my_pcol,mpierr)
    call mpi_comm_size(mpi_comm_cols,np_cols,mpierr)
+
+   success = .true.
 
    l_rows = local_index(na, my_prow, np_rows, nblk, -1) ! Local rows of a
    l_cols = local_index(na, my_pcol, np_cols, nblk, -1) ! Local cols of a
@@ -3674,14 +4070,15 @@ subroutine invert_trm_complex(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols)
       l_colx = local_index(n+nb, my_pcol, np_cols, nblk, +1)
 
 
-      if(my_prow==prow(n)) then
+      if(my_prow==prow(n, nblk, np_rows)) then
 
-         if(my_pcol==pcol(n)) then
+         if(my_pcol==pcol(n, nblk, np_cols)) then
 
             call ZTRTRI('U','N',nb,a(l_row1,l_col1),lda,info)
             if(info/=0) then
-               print *,"Error in ZTRTRI"
-               call MPI_Abort(MPI_COMM_WORLD,1,mpierr)
+              if (wantDebug) write(error_unit,*) "ELPA1_invert_trm_complex: Error in ZTRTRI"
+               success = .false.
+               return
             endif
 
             nc = 0
@@ -3691,7 +4088,7 @@ subroutine invert_trm_complex(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols)
             enddo
          endif
 
-         call MPI_Bcast(tmp1,nb*(nb+1)/2,MPI_DOUBLE_COMPLEX,pcol(n),mpi_comm_cols,mpierr)
+         call MPI_Bcast(tmp1,nb*(nb+1)/2,MPI_DOUBLE_COMPLEX,pcol(n, nblk, np_cols),mpi_comm_cols,mpierr)
 
          nc = 0
          do i=1,nb
@@ -3703,23 +4100,23 @@ subroutine invert_trm_complex(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols)
             call ZTRMM('L','U','N','N',nb,l_cols-l_colx+1,(1.d0,0.d0),tmp2,ubound(tmp2,1),a(l_row1,l_colx),lda)
 
          if(l_colx<=l_cols)   tmat2(1:nb,l_colx:l_cols) = a(l_row1:l_row1+nb-1,l_colx:l_cols)
-         if(my_pcol==pcol(n)) tmat2(1:nb,l_col1:l_col1+nb-1) = tmp2(1:nb,1:nb) ! tmp2 has the lower left triangle 0
+         if(my_pcol==pcol(n, nblk, np_cols)) tmat2(1:nb,l_col1:l_col1+nb-1) = tmp2(1:nb,1:nb) ! tmp2 has the lower left triangle 0
 
       endif
 
       if(l_row1>1) then
-         if(my_pcol==pcol(n)) then
+         if(my_pcol==pcol(n, nblk, np_cols)) then
             tmat1(1:l_row1-1,1:nb) = a(1:l_row1-1,l_col1:l_col1+nb-1)
             a(1:l_row1-1,l_col1:l_col1+nb-1) = 0
          endif
 
          do i=1,nb
-            call MPI_Bcast(tmat1(1,i),l_row1-1,MPI_DOUBLE_COMPLEX,pcol(n),mpi_comm_cols,mpierr)
+            call MPI_Bcast(tmat1(1,i),l_row1-1,MPI_DOUBLE_COMPLEX,pcol(n, nblk, np_cols),mpi_comm_cols,mpierr)
          enddo
       endif
 
       if(l_cols-l_col1+1>0) &
-         call MPI_Bcast(tmat2(1,l_col1),(l_cols-l_col1+1)*nblk,MPI_DOUBLE_COMPLEX,prow(n),mpi_comm_rows,mpierr)
+         call MPI_Bcast(tmat2(1,l_col1),(l_cols-l_col1+1)*nblk,MPI_DOUBLE_COMPLEX,prow(n, nblk, np_rows),mpi_comm_rows,mpierr)
 
       if(l_row1>1 .and. l_cols-l_col1+1>0) &
          call ZGEMM('N','N',l_row1-1,l_cols-l_col1+1,nb, (-1.d0,0.d0), &

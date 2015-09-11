@@ -1,17 +1,17 @@
 !    This file is part of ELPA.
 !
-!    The ELPA library was originally created by the ELPA consortium, 
+!    The ELPA library was originally created by the ELPA consortium,
 !    consisting of the following organizations:
 !
-!    - Rechenzentrum Garching der Max-Planck-Gesellschaft (RZG), 
+!    - Rechenzentrum Garching der Max-Planck-Gesellschaft (RZG),
 !    - Bergische Universität Wuppertal, Lehrstuhl für angewandte
 !      Informatik,
 !    - Technische Universität München, Lehrstuhl für Informatik mit
-!      Schwerpunkt Wissenschaftliches Rechnen , 
-!    - Fritz-Haber-Institut, Berlin, Abt. Theorie, 
-!    - Max-Plack-Institut für Mathematik in den Naturwissenschaftrn, 
-!      Leipzig, Abt. Komplexe Strukutren in Biologie und Kognition, 
-!      and  
+!      Schwerpunkt Wissenschaftliches Rechnen ,
+!    - Fritz-Haber-Institut, Berlin, Abt. Theorie,
+!    - Max-Plack-Institut für Mathematik in den Naturwissenschaftrn,
+!      Leipzig, Abt. Komplexe Strukutren in Biologie und Kognition,
+!      and
 !    - IBM Deutschland GmbH
 !
 !
@@ -19,8 +19,8 @@
 !    http://elpa.rzg.mpg.de/
 !
 !    ELPA is free software: you can redistribute it and/or modify
-!    it under the terms of the version 3 of the license of the 
-!    GNU Lesser General Public License as published by the Free 
+!    it under the terms of the version 3 of the license of the
+!    GNU Lesser General Public License as published by the Free
 !    Software Foundation.
 !
 !    ELPA is distributed in the hope that it will be useful,
@@ -39,6 +39,25 @@
 !    the original distribution, the GNU Lesser General Public License.
 !
 !
+#include "config-f90.h"
+!>
+!> Fortran test programm to demonstrates the use of
+!> ELPA 1 complex case library.
+!> If "HAVE_REDIRECT" was defined at build time
+!> the stdout and stderr output of each MPI task
+!> can be redirected to files if the environment
+!> variable "REDIRECT_ELPA_TEST_OUTPUT" is set
+!> to "true".
+!>
+!> By calling executable [arg1] [arg2] [arg3] [arg4]
+!> one can define the size (arg1), the number of
+!> Eigenvectors to compute (arg2), and the blocking (arg3).
+!> If these values are not set default values (4000, 1500, 16)
+!> are choosen.
+!> If these values are set the 4th argument can be
+!> "output", which specifies that the EV's are written to
+!> an ascii file.
+!>
 program test_complex
 
 !-------------------------------------------------------------------------------
@@ -46,7 +65,7 @@ program test_complex
 !
 ! This program demonstrates the use of the ELPA module
 ! together with standard scalapack routines
-! 
+!
 ! Copyright of the original code rests with the authors inside the ELPA
 ! consortium. The copyright of any additional modifications shall rest
 ! with their original authors, but shall adhere to the licensing terms
@@ -54,7 +73,23 @@ program test_complex
 !-------------------------------------------------------------------------------
 
    use ELPA1
+   use elpa_utilities, only : error_unit
+#ifdef WITH_OPENMP
+   use test_util
+#endif
 
+   use mod_read_input_parameters
+   use mod_check_correctness
+   use mod_setup_mpi
+   use mod_blacs_infrastructure
+   use mod_prepare_matrix
+#ifdef HAVE_REDIRECT
+   use redirect
+#endif
+
+#ifdef HAVE_DETAILED_TIMINGS
+ use timings
+#endif
    implicit none
    include 'mpif.h'
 
@@ -65,42 +100,99 @@ program test_complex
    ! nblk: Blocking factor in block cyclic distribution
    !-------------------------------------------------------------------------------
 
-   integer, parameter :: na = 4000, nev = 1500, nblk = 16
+   integer :: nblk
+   integer na, nev
 
    !-------------------------------------------------------------------------------
    !  Local Variables
 
-   integer np_rows, np_cols, na_rows, na_cols
+   integer                 :: np_rows, np_cols, na_rows, na_cols
 
-   integer myid, nprocs, my_prow, my_pcol, mpi_comm_rows, mpi_comm_cols
-   integer i, mpierr, my_blacs_ctxt, sc_desc(9), info, nprow, npcol
+   integer                 :: myid, nprocs, my_prow, my_pcol, mpi_comm_rows, mpi_comm_cols
+   integer                 :: i, mpierr, my_blacs_ctxt, sc_desc(9), info, nprow, npcol
 
-   integer, external :: numroc
+   real*8, allocatable     :: ev(:), xr(:,:)
 
-   real*8 err, errmax
-   real*8, allocatable :: ev(:), xr(:,:)
-   complex*16 :: xc
    complex*16, allocatable :: a(:,:), z(:,:), tmp1(:,:), tmp2(:,:), as(:,:)
 
-   complex*16, parameter :: CZERO = (0.d0,0.d0), CONE = (1.d0,0.d0)
+   complex*16, parameter   :: CZERO = (0.d0,0.d0), CONE = (1.d0,0.d0)
 
-   integer :: iseed(4096) ! Random seed, size should be sufficient for every generator
-   integer :: STATUS
+   integer                 :: iseed(4096) ! Random seed, size should be sufficient for every generator
+   integer                 :: STATUS
+#ifdef WITH_OPENMP
+   integer                 :: omp_get_max_threads,  required_mpi_thread_level, provided_mpi_thread_level
+#endif
+   logical                 :: write_to_file
+   logical                 :: success
+
+   success = .true.
+   ! read input parameters if they are provided
+   call read_input_parameters(na, nev, nblk, write_to_file)
 
    !-------------------------------------------------------------------------------
    !  MPI Initialization
+   call setup_mpi(myid, nprocs)
 
-   call mpi_init(mpierr)
-   call mpi_comm_rank(mpi_comm_world,myid,mpierr)
-   call mpi_comm_size(mpi_comm_world,nprocs,mpierr)
+   STATUS = 0
+#ifdef WITH_OPENMP
+   if (myid .eq. 0) then
+      print *,"Threaded version of test program"
+      print *,"Using ",omp_get_max_threads()," threads"
+      print *," "
+   endif
+#endif
+
+#ifdef HAVE_REDIRECT
+   if (check_redirect_environment_variable()) then
+     if (myid .eq. 0) then
+       print *," "
+       print *,"Redirection of mpi processes is used"
+       print *," "
+       if (create_directories() .ne. 1) then
+         write(error_unit,*) "Unable to create directory for stdout and stderr!"
+         stop
+       endif
+     endif
+     call MPI_BARRIER(MPI_COMM_WORLD, mpierr)
+     call redirect_stdout(myid)
+   endif
+#endif
+   if (write_to_file) then
+     if (myid .eq. 0) print *,"Writing output files"
+   endif
+
+#ifdef HAVE_DETAILED_TIMINGS
+
+   ! initialise the timing functionality
+
+#ifdef HAVE_LIBPAPI
+   call timer%measure_flops(.true.)
+#endif
+
+   call timer%measure_allocated_memory(.true.)
+   call timer%measure_virtual_memory(.true.)
+   call timer%measure_max_allocated_memory(.true.)
+
+   call timer%set_print_options(&
+#ifdef HAVE_LIBPAPI
+                print_flop_count=.true., &
+                print_flop_rate=.true., &
+#endif
+                print_allocated_memory = .true. , &
+                print_virtual_memory=.true., &
+                print_max_allocated_memory=.true.)
+
+
+  call timer%enable()
+
+  call timer%start("program")
+#endif
 
    !-------------------------------------------------------------------------------
    ! Selection of number of processor rows/columns
    ! We try to set up the grid square-like, i.e. start the search for possible
    ! divisors of nprocs with a number next to the square root of nprocs
    ! and decrement it until a divisor is found.
-
-   STATUS = 0
 
    do np_cols = NINT(SQRT(REAL(nprocs))),2,-1
       if(mod(nprocs,np_cols) == 0 ) exit
@@ -128,9 +220,8 @@ program test_complex
    ! consistent (i.e. 0<=my_prow<np_rows, 0<=my_pcol<np_cols and every
    ! process has a unique (my_prow,my_pcol) pair).
 
-   my_blacs_ctxt = mpi_comm_world
-   call BLACS_Gridinit( my_blacs_ctxt, 'C', np_rows, np_cols )
-   call BLACS_Gridinfo( my_blacs_ctxt, nprow, npcol, my_prow, my_pcol )
+   call set_up_blacsgrid(mpi_comm_world, my_blacs_ctxt, np_rows, np_cols, &
+                         nprow, npcol, my_prow, my_pcol)
 
    if (myid==0) then
      print '(a)','| Past BLACS_Gridinfo.'
@@ -139,8 +230,8 @@ program test_complex
    ! All ELPA routines need MPI communicators for communicating within
    ! rows or columns of processes, these are set in get_elpa_row_col_comms.
 
-   call get_elpa_row_col_comms(mpi_comm_world, my_prow, my_pcol, &
-                               mpi_comm_rows, mpi_comm_cols)
+   mpierr = get_elpa_row_col_comms(mpi_comm_world, my_prow, my_pcol, &
+                                   mpi_comm_rows, mpi_comm_cols)
 
    if (myid==0) then
      print '(a)','| Past split communicator setup for rows and columns.'
@@ -149,15 +240,8 @@ program test_complex
    ! Determine the necessary size of the distributed matrices,
    ! we use the Scalapack tools routine NUMROC for that.
 
-   na_rows = numroc(na, nblk, my_prow, 0, np_rows)
-   na_cols = numroc(na, nblk, my_pcol, 0, np_cols)
-
-   ! Set up a scalapack descriptor for the checks below.
-   ! For ELPA the following restrictions hold:
-   ! - block sizes in both directions must be identical (args 4+5)
-   ! - first row and column of the distributed matrix must be on row/col 0/0 (args 6+7)
-
-   call descinit( sc_desc, na, na, nblk, nblk, 0, 0, my_blacs_ctxt, na_rows, info )
+   call set_up_blacs_descriptor(na ,nblk, my_prow, my_pcol, np_rows, np_cols, &
+                                na_rows, na_cols, sc_desc, my_blacs_ctxt, info)
 
    if (myid==0) then
      print '(a)','| Past scalapack descriptor setup.'
@@ -166,44 +250,23 @@ program test_complex
    !-------------------------------------------------------------------------------
    ! Allocate matrices and set up a test matrix for the eigenvalue problem
 
+#ifdef HAVE_DETAILED_TIMINGS
+   call timer%start("set up matrix")
+#endif
    allocate(a (na_rows,na_cols))
    allocate(z (na_rows,na_cols))
    allocate(as(na_rows,na_cols))
 
    allocate(ev(na))
 
-   ! For getting a hermitian test matrix A we get a random matrix Z
-   ! and calculate A = Z + Z**H
-
-   ! We want different random numbers on every process
-   ! (otherways A might get rank deficient):
-
-   iseed(:) = myid
-   call RANDOM_SEED(put=iseed)
-
    allocate(xr(na_rows,na_cols))
-   call RANDOM_NUMBER(xr)
-   z(:,:) = xr(:,:)
-   call RANDOM_NUMBER(xr)
-   z(:,:) = z(:,:) + (0.d0,1.d0)*xr(:,:)
+
+   call prepare_matrix(na, myid, sc_desc, iseed, xr, a, z, as)
+
    deallocate(xr)
-
-   a(:,:) = z(:,:)
-
-   if (myid==0) then
-     print '(a)','| Random matrix block has been set up. (only processor 0 confirms this step)'
-   end if
-
-   call pztranc(na, na, CONE, z, 1, 1, sc_desc, CONE, a, 1, 1, sc_desc) ! A = A + Z**H
-
-   if (myid==0) then
-     print '(a)','| Random matrix has been symmetrized.'
-   end if
-
-   ! Save original matrix A for later accuracy checks
-
-   as = a
-
+#ifdef HAVE_DETAILED_TIMINGS
+   call timer%stop("set up matrix")
+#endif
    !-------------------------------------------------------------------------------
    ! Calculate eigenvalues/eigenvectors
 
@@ -213,87 +276,56 @@ program test_complex
    end if
 
    call mpi_barrier(mpi_comm_world, mpierr) ! for correct timings only
-   call solve_evp_complex(na, nev, a, na_rows, ev, z, na_rows, nblk, &
+   success = solve_evp_complex(na, nev, a, na_rows, ev, z, na_rows, nblk, &
                           mpi_comm_rows, mpi_comm_cols)
+
+   if (.not.(success)) then
+      write(error_unit,*) "solve_evp_complex produced an error! Aborting..."
+      call MPI_ABORT(mpi_comm_world, 1, mpierr)
+   endif
 
    if (myid==0) then
      print '(a)','| One-step ELPA solver complete.'
      print *
    end if
 
-   if(myid == 0) print *,'Time tridiag_complex :',time_evp_fwd
-   if(myid == 0) print *,'Time solve_tridi     :',time_evp_solve
-   if(myid == 0) print *,'Time trans_ev_complex:',time_evp_back
+   if(myid == 0) print *,'Time tridiag_complex  :',time_evp_fwd
+   if(myid == 0) print *,'Time solve_tridi      :',time_evp_solve
+   if(myid == 0) print *,'Time trans_ev_complex :',time_evp_back
+   if(myid == 0) print *,'Total time (sum above):',time_evp_back+time_evp_solve+time_evp_fwd
 
+   if(write_to_file) then
+      if (myid == 0) then
+         open(17,file="EVs_complex_out.txt",form='formatted',status='new')
+         do i=1,na
+            write(17,*) i,ev(i)
+         enddo
+         close(17)
+      endif
+   endif
    !-------------------------------------------------------------------------------
    ! Test correctness of result (using plain scalapack routines)
-
-   ! 1. Residual (maximum of || A*Zi - Zi*EVi ||)
-
-   deallocate(a)
    allocate(tmp1(na_rows,na_cols))
-
-   ! tmp1 =  A * Z
-   call pzgemm('N','N',na,nev,na,CONE,as,1,1,sc_desc, &
-               z,1,1,sc_desc,CZERO,tmp1,1,1,sc_desc)
-
-   deallocate(as)
    allocate(tmp2(na_rows,na_cols))
 
-   ! tmp2 = Zi*EVi
-   tmp2(:,:) = z(:,:)
-   do i=1,nev
-      xc = ev(i)
-      call pzscal(na,xc,tmp2,1,i,sc_desc,1)
-   enddo
+   status = check_correctness(na, nev, as, z, ev, sc_desc, myid, tmp1, tmp2)
 
-   !  tmp1 = A*Zi - Zi*EVi
-   tmp1(:,:) =  tmp1(:,:) - tmp2(:,:)
+   deallocate(a)
+   deallocate(as)
 
-   ! Get maximum norm of columns of tmp1
-   errmax = 0
-   do i=1,nev
-      xc = 0
-      call pzdotc(na,xc,tmp1,1,i,sc_desc,1,tmp1,1,i,sc_desc,1)
-      errmax = max(errmax, sqrt(real(xc,8)))
-   enddo
-
-   ! Get maximum error norm over all processors
-   err = errmax
-   call mpi_allreduce(err,errmax,1,MPI_REAL8,MPI_MAX,MPI_COMM_WORLD,mpierr)
-   if(myid==0) print *
-   if(myid==0) print *,'Error Residual     :',errmax
-
-
-   if (errmax .gt. 5e-12) then
-      status = 1
-   endif
-
-   ! 2. Eigenvector orthogonality
-
-   ! tmp1 = Z**T * Z
-   tmp1 = 0
-   call pzgemm('C','N',nev,nev,na,CONE,z,1,1,sc_desc, &
-               z,1,1,sc_desc,CZERO,tmp1,1,1,sc_desc)
-   ! Initialize tmp2 to unit matrix
-   tmp2 = 0
-   call pzlaset('A',nev,nev,CZERO,CONE,tmp2,1,1,sc_desc)
-
-   ! tmp1 = Z**T * Z - Unit Matrix
-   tmp1(:,:) =  tmp1(:,:) - tmp2(:,:)
-
-   ! Get maximum error (max abs value in tmp1)
-   err = maxval(abs(tmp1))
-   call mpi_allreduce(err,errmax,1,MPI_REAL8,MPI_MAX,MPI_COMM_WORLD,mpierr)
-   if(myid==0) print *,'Error Orthogonality:',errmax
-   
-   if (errmax .gt. 5e-12) then
-      status = 1
-   endif
    deallocate(z)
    deallocate(tmp1)
    deallocate(tmp2)
    deallocate(ev)
+
+#ifdef HAVE_DETAILED_TIMINGS
+   call timer%stop("program")
+   print *," "
+   print *,"Timings program:"
+   call timer%print("program")
+   print *," "
+   print *,"End timings program"
+#endif
    call blacs_gridexit(my_blacs_ctxt)
    call mpi_finalize(mpierr)
    call EXIT(STATUS)
