@@ -8,7 +8,10 @@
 module ELSI
 
   use iso_c_binding
-  !use HDF5
+  use HDF5
+  use ELPA1
+  use ELPA2
+  use MPI_TOOLS
 
   implicit none
 
@@ -31,14 +34,14 @@ module ELSI
 
   ! The following routines are public:
 
-  public :: set_method          !< Set routine for method
-  public :: set_mode            !< Set routine for mode
-  public :: allocate_matrices   !< Initialize matrices based on method and mode
-  public :: deallocate_matrices !< Cleanup matrix memory 
+  public :: elsi_set_method          !< Set routine for method
+  public :: elsi_set_mode            !< Set routine for mode
+  public :: elsi_allocate_matrices   !< Initialize matrices
+  public :: elsi_deallocate_matrices !< Cleanup matrix memory 
 
 contains
 
-subroutine set_method(i_method)
+subroutine elsi_set_method(i_method)
 
    !>
    !!  This routine sets the method of choice for solving the eigenvalue problem
@@ -50,9 +53,9 @@ subroutine set_method(i_method)
 
    method = i_method
 
-end subroutine set_method
+end subroutine
 
-subroutine set_mode(i_mode)
+subroutine elsi_set_mode(i_mode)
 
    !>
    !!  This routine sets the mode of the eigenvalue solver (Real or Complex)
@@ -60,14 +63,15 @@ subroutine set_mode(i_mode)
 
    implicit none
 
-   integer, intent(in) :: i_mode !<one of (ELPA,OMM,PEXSI)
+   integer, intent(in) :: i_mode !<one of (REAL_VALUES,COMPLEX_VALUES)
 
    mode = i_mode
 
-end subroutine set_mode
+
+end subroutine 
 
 
-subroutine allocate_matrices(n_rows, n_cols)
+subroutine elsi_allocate_matrices(n_rows, n_cols)
 
 !>
 !!  This routine prepares the matrices based on the dimension and method
@@ -90,7 +94,7 @@ subroutine allocate_matrices(n_rows, n_cols)
             case DEFAULT
                write(*,'(2a)') "No mode has been chosen. ", &
                "Please choose method REAL_VALUES or COMPLEX_VALUES"
-         stop
+               stop
 
          end select
       case (OMM)
@@ -106,7 +110,391 @@ subroutine allocate_matrices(n_rows, n_cols)
    end select
 end subroutine
 
-subroutine deallocate_matrices()
+subroutine elsi_set_real_hamiltonian(h,n_rows,n_cols)
+
+!>
+!!  This routine sets the real hamiltonian matrix 
+
+   implicit none
+
+   integer, intent(in) :: n_rows !< Number of rows
+   integer, intent(in) :: n_cols !< Number of cols
+   real*8, intent(in) :: h(n_rows,n_cols) !< hamiltonian 
+   
+   select case (method)
+      case (ELPA)
+         if (mode == REAL_VALUES) then
+            H_real(:,:) = h(:,:)      
+         else  
+            write(*,'(2a)') "Wrong mode:", &
+               "Complex valued hamiltonian to be written in real storage"
+            stop
+         end if
+      case (OMM)
+         write(*,'(a)') "OMM not implemented yet!"
+         stop
+      case (PEXSI)
+         write(*,'(a)') "PEXSI not implemented yet!"
+         stop
+      case DEFAULT
+         write(*,'(2a)') "No method has been chosen. ", &
+            "Please choose method ELPA, OMM, or PEXSI"
+         stop
+   end select
+
+
+end subroutine
+
+subroutine elsi_set_complex_hamiltonian(h,n_rows,n_cols)
+
+!>
+!!  This routine sets the complex hamiltonian matrix 
+
+   implicit none
+
+   integer, intent(in) :: n_rows !< Number of rows
+   integer, intent(in) :: n_cols !< Number of cols
+   real*8, intent(in) :: h(n_rows,n_cols) !< hamiltonian 
+   
+   select case (method)
+      case (ELPA)
+         if (mode == COMPLEX_VALUES) then
+            H_complex(:,:) = h(:,:)      
+         else  
+            write(*,'(2a)') "Wrong mode:", &
+               "Real valued hamiltonian to be written in complex storage"
+            stop
+         end if
+      case (OMM)
+         write(*,'(a)') "OMM not implemented yet!"
+         stop
+      case (PEXSI)
+         write(*,'(a)') "PEXSI not implemented yet!"
+         stop
+      case DEFAULT
+         write(*,'(2a)') "No method has been chosen. ", &
+            "Please choose method ELPA, OMM, or PEXSI"
+         stop
+   end select
+
+
+end subroutine
+
+subroutine elsi_set_real_overlap(s,n_rows,n_cols)
+
+!>
+!!  This routine sets the real overlap matrix 
+
+   implicit none
+
+   integer, intent(in) :: n_rows !< Number of rows
+   integer, intent(in) :: n_cols !< Number of cols
+   real*8, intent(in) :: s(n_rows,n_cols) !< overlap 
+   
+   select case (method)
+      case (ELPA)
+         if (mode == REAL_VALUES) then
+            S_real(:,:) = s(:,:)      
+         else  
+            write(*,'(2a)') "Wrong mode:", &
+               "Complex valued overlap to be written in real storage"
+            stop
+         end if
+      case (OMM)
+         write(*,'(a)') "OMM not implemented yet!"
+         stop
+      case (PEXSI)
+         write(*,'(a)') "PEXSI not implemented yet!"
+         stop
+      case DEFAULT
+         write(*,'(2a)') "No method has been chosen. ", &
+            "Please choose method ELPA, OMM, or PEXSI"
+         stop
+   end select
+
+
+end subroutine
+
+subroutine elsi_set_complex_overlap(s,n_rows,n_cols)
+
+!>
+!!  This routine sets the hamiltonian matrix 
+
+   implicit none
+
+   integer, intent(in) :: n_rows !< Number of rows
+   integer, intent(in) :: n_cols !< Number of cols
+   complex*8, intent(in) :: s(n_rows,n_cols) !< overlap 
+   
+   select case (method)
+      case (ELPA)
+         if (mode == REAL_VALUES) then
+            S_complex(:,:) = s(:,:)      
+         else  
+            write(*,'(2a)') "Wrong mode:", &
+               " Real valued overlap to be written in complex storage"
+            stop
+         end if
+      case (OMM)
+         write(*,'(a)') "OMM not implemented yet!"
+         stop
+      case (PEXSI)
+         write(*,'(a)') "PEXSI not implemented yet!"
+         stop
+      case DEFAULT
+         write(*,'(2a)') "No method has been chosen. ", &
+            "Please choose method ELPA, OMM, or PEXSI"
+         stop
+   end select
+
+
+end subroutine
+
+subroutine elsi_get_real_hamiltonian(h,n_rows,n_cols)
+
+!>
+!!  This routine gets the real hamiltonian matrix 
+
+   implicit none
+
+   integer, intent(in) :: n_rows !< Number of rows
+   integer, intent(in) :: n_cols !< Number of cols
+   real*8, intent(out) :: h(n_rows,n_cols) !< hamiltonian 
+   
+   select case (method)
+      case (ELPA)
+         if (mode == COMPLEX_VALUES) then
+            h(:,:) = H_real(:,:)      
+         else  
+            write(*,'(2a)') "Wrong mode:", &
+               "Real valued hamiltonian to be written in complex storage"
+            stop
+         end if
+      case (OMM)
+         write(*,'(a)') "OMM not implemented yet!"
+         stop
+      case (PEXSI)
+         write(*,'(a)') "PEXSI not implemented yet!"
+         stop
+      case DEFAULT
+         write(*,'(2a)') "No method has been chosen. ", &
+            "Please choose method ELPA, OMM, or PEXSI"
+         stop
+   end select
+
+
+end subroutine
+
+
+subroutine elsi_get_complex_hamiltonian(h,n_rows,n_cols)
+
+!>
+!!  This routine gets the complex hamiltonian matrix 
+
+   implicit none
+
+   integer, intent(in) :: n_rows !< Number of rows
+   integer, intent(in) :: n_cols !< Number of cols
+   complex*8, intent(out) :: h(n_rows,n_cols) !< hamiltonian 
+   
+   select case (method)
+      case (ELPA)
+         if (mode == COMPLEX_VALUES) then
+            h(:,:) = H_complex(:,:)      
+         else  
+            write(*,'(2a)') "Wrong mode:", &
+               "Complex valued hamiltonian to be written in real storage"
+            stop
+         end if
+      case (OMM)
+         write(*,'(a)') "OMM not implemented yet!"
+         stop
+      case (PEXSI)
+         write(*,'(a)') "PEXSI not implemented yet!"
+         stop
+      case DEFAULT
+         write(*,'(2a)') "No method has been chosen. ", &
+            "Please choose method ELPA, OMM, or PEXSI"
+         stop
+   end select
+
+
+end subroutine
+
+subroutine elsi_get_real_overlap(s,n_rows,n_cols)
+
+!>
+!!  This routine gets the real overlap matrix 
+
+   implicit none
+
+   integer, intent(in) :: n_rows !< Number of rows
+   integer, intent(in) :: n_cols !< Number of cols
+   real*8, intent(out) :: s(n_rows,n_cols) !< overlap 
+   
+   select case (method)
+      case (ELPA)
+         if (mode == REAL_VALUES) then
+            s(:,:) = S_real(:,:)    
+         else  
+            write(*,'(2a)') "Wrong mode:", &
+               "Real valued overlap to be written in complex storage"
+            stop
+         end if
+      case (OMM)
+         write(*,'(a)') "OMM not implemented yet!"
+         stop
+      case (PEXSI)
+         write(*,'(a)') "PEXSI not implemented yet!"
+         stop
+      case DEFAULT
+         write(*,'(2a)') "No method has been chosen. ", &
+            "Please choose method ELPA, OMM, or PEXSI"
+         stop
+   end select
+
+
+end subroutine
+
+subroutine elsi_get_complex_overlap(s,n_rows,n_cols)
+
+!>
+!!  This routine gets the complex overlap matrix 
+
+   implicit none
+
+   integer, intent(in) :: n_rows !< Number of rows
+   integer, intent(in) :: n_cols !< Number of cols
+   complex*8, intent(out) :: s(n_rows,n_cols) !< overlap 
+   
+   select case (method)
+      case (ELPA)
+         if (mode == COMPLEX_VALUES) then
+            s(:,:) = S_complex(:,:)      
+         else  
+            write(*,'(2a)') "Wrong mode:", &
+               "Complex valued overlap to be written in real storage"
+            stop
+         end if
+      case (OMM)
+         write(*,'(a)') "OMM not implemented yet!"
+         stop
+      case (PEXSI)
+         write(*,'(a)') "PEXSI not implemented yet!"
+         stop
+      case DEFAULT
+         write(*,'(2a)') "No method has been chosen. ", &
+            "Please choose method ELPA, OMM, or PEXSI"
+         stop
+   end select
+
+
+end subroutine
+
+subroutine elsi_write_ev_problem(filename)
+
+!>
+!!  This routine writes the complete eigenvalue problem into a file
+
+   implicit none
+   character(len=*), intent(in) :: filename
+
+   integer :: h5err
+   integer(hid_t) :: plist_id
+   integer(hid_t) :: file_id
+
+   call h5open_f(h5err)
+   if (h5err) then
+      write(*,'(a)') "HDF5: Failed to initialize Fortran interface."
+      stop
+   end if
+
+   call h5pcreate_f(H5P_FILE_ACCESS_F,plist_id,h5err)
+   if (h5err) then
+      write(*,'(a)') "HDF5: Failed to create property list for parallel access."
+      stop
+   end if
+
+   call h5pset_fapl_mpio_f(plist_id, mpi_comm_world, mpi_info_null, h5err)
+   if (h5err) then
+      write(*,'(a)') "HDF5: Failed to set property list for parallel access."
+      stop
+   end if
+
+   call h5fcreate_f( trim(filename),H5F_ACC_TRUNC_F, file_id, h5err, & 
+                     access_prp = plist_id)
+   if (h5err) then
+      write(*,'(a)') "HDF5: Failed to create file for parallel access."
+      stop
+   end if
+
+   call h5fclose_f(file_id, h5err)
+   if (h5err) then
+      write(*,'(a)') "HDF5: Failed to close file for parallel access."
+      stop
+   end if
+
+   call h5close_f(h5err)
+   if (h5err) then
+      write(*,'(a)') "HDF5: Failed to finalize Fortran interface."
+      stop
+   end if
+
+end subroutine
+
+subroutine elsi_read_ev_problem(filename)
+
+!>
+!!  This routine writes the complete eigenvalue problem into a file
+
+   implicit none
+   character(len=*), intent(in) :: filename
+
+   integer :: h5err
+   integer(hid_t) :: plist_id
+   integer(hid_t) :: file_id
+
+   call h5open_f(h5err)
+   if (h5err) then
+      write(*,'(a)') "HDF5: Failed to initialize Fortran interface."
+      stop
+   end if
+
+   call h5pcreate_f(H5P_FILE_ACCESS_F,plist_id,h5err)
+   if (h5err) then
+      write(*,'(a)') "HDF5: Failed to create property list for parallel access."
+      stop
+   end if
+
+   call h5pset_fapl_mpio_f(plist_id, mpi_comm_world, mpi_info_null, h5err)
+   if (h5err) then
+      write(*,'(a)') "HDF5: Failed to set property list for parallel access."
+      stop
+   end if
+
+   call h5fcreate_f( filename,H5F_ACC_TRUNC_F, file_id, h5err, & 
+                     access_prp = plist_id)
+   if (h5err) then
+      write(*,'(a)') "HDF5: Failed to create file for parallel access."
+      stop
+   end if
+
+   call h5fclose_f(file_id, h5err)
+   if (h5err) then
+      write(*,'(a)') "HDF5: Failed to close file for parallel access."
+      stop
+   end if
+
+   call h5close_f(h5err)
+   if (h5err) then
+      write(*,'(a)') "HDF5: Failed to finalize Fortran interface."
+      stop
+   end if
+
+end subroutine
+
+
+subroutine elsi_deallocate_matrices()
 
 !>
 !!  This routine prepares the matrices based on the dimension and method
@@ -136,7 +524,7 @@ subroutine deallocate_matrices()
          stop
    end select
 
-end subroutine deallocate_matrices
+end subroutine
 
 
 end module ELSI
