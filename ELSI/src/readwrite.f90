@@ -18,7 +18,7 @@ program readwrite
   ! Ok, let us first create a matrix for the ELSI interface
   ! Something like
 
-  integer, parameter :: n_dim = 100, n_blocks = 16
+  integer, parameter :: matrixsize = 100, blocksize = 16
  
   ! Random number generator
   integer :: iseed(4096) !< Random seed
@@ -33,60 +33,103 @@ program readwrite
   real*8 :: colerr
   integer :: i
   integer :: error
+  integer :: i_row, i_col, p_row, p_col, l_row, l_col, g_row, g_col
+  logical :: my_task
 
+  if(myid==0) print *, 'Initialize ELSI MPI'
   call elsi_initialize_mpi()
+  if(myid==0) print *, 'DONE'
 
-  call elsi_initialize_blacs(n_dim, n_blocks)
- 
-  !TODO This belongs into elsi 
-  error = get_elpa_row_col_comms( mpi_comm_world, ip_row, ip_col, &
-                               mpi_comm_rows, mpi_comm_cols)
+  if(myid==0) print *, 'Initialize ELSI BLACS'
+  call elsi_initialize_blacs(matrixsize, blocksize)
+  if(myid==0) print *, 'DONE'
 
+  do i_row = 1, matrixsize
+    my_task = elsi_get_local_row(i_row, p_row, l_row)
+    call elsi_get_global_row(g_row, p_row, l_row)
+    do i_col = 1, matrixsize
+      my_task = elsi_get_local_col(i_col, p_col, l_col)
+      call elsi_get_global_col(g_col, p_col, l_col)
+      if(myid==0) write(*,'(8(a,I3),a)') &
+        '(',i_row,',',i_col,') mapped to process (', &
+            p_row,',',p_col,') and local (',l_row,',',l_col,') &
+        mapped back to (', g_row,',',g_col,')'
+     end do
+  end do
+
+  call MPI_BARRIER(mpi_comm_world,error)
+
+  if(myid==0) print *, 'Initialize H'
   ! Generate some data
-  allocate(h(n_dim,n_dim))
-  allocate(s(n_dim,n_dim))
+  allocate(h(matrixsize,matrixsize))
 
   iseed(:) = myid
   call RANDOM_SEED(put=iseed)
-  call RANDOM_NUMBER(buffer)
+  !call RANDOM_NUMBER(buffer)
+  !h = buffer
 
-  ! Symmetrize hamiltonian
-  h = buffer
+  ! Processor matrix
+  do i_row = 1, matrixsize
+    if (elsi_get_local_row(i_row, p_row, l_row)) then
+      do i_col = 1, matrixsize
+        if (elsi_get_local_col(i_col, p_col, l_col)) then
+          h(l_row,l_col) = 1.0 * myid
+        end if
+      end do
+    end if
+  end do
+
   ! h = h + buffer**T
-  call pdtran( n_dim, n_dim, 1.d0, buffer, 1, 1, sc_desc, &
-               1.d0, h, 1, 1, sc_desc)
+  !call pdtran( matrixsize, matrixsize, 1.d0, buffer, 1, 1, sc_desc, &
+  !             1.d0, h, 1, 1, sc_desc)
 
+  if(myid==0) print *, 'DONE'
+
+
+  if(myid==0) print *, 'Initialize S'
+  allocate(s(matrixsize,matrixsize))
+  allocate(buffer(matrixsize,matrixsize))
   call RANDOM_NUMBER(buffer)
   s = buffer
   ! s = s + buffer**T
-  call pdtran( n_dim, n_dim, 1.d0, buffer, 1, 1, sc_desc, &
+  call pdtran( matrixsize, matrixsize, 1.d0, buffer, 1, 1, sc_desc, &
                1.d0, s, 1, 1, sc_desc)
+  if(myid==0) print *, 'DONE'
 
-
+  if(myid==0) print *, 'Set ELSI Modes'
   ! Now set some ELSI specifications
   call elsi_set_method(ELPA)
   call elsi_set_mode(REAL_VALUES)
+  if(myid==0) print *, 'DONE'
 
+  if(myid==0) print *, 'ELSI allocate Matrices'
   ! Initialize the data space
   call elsi_allocate_matrices(n_rows,n_cols)
+  if(myid==0) print *, 'DONE'
 
+  if(myid==0) print *, 'ELSI set Matrices'
   ! Set matrices
-  call elsi_set_real_hamiltonian(h, n_rows, n_cols)
-  call elsi_set_real_overlap(s, n_rows, n_cols)
+  call elsi_set_hamiltonian(h, n_rows, n_cols)
+  call elsi_set_overlap(s, n_rows, n_cols)
+  if(myid==0) print *, 'DONE'
 
+  if(myid==0) print *, 'ELSI write Matrices'
   ! Write eigenvalue problem
   call elsi_write_ev_problem("elsi_eigenvalue_problem.hdf5")
+  if(myid==0) print *, 'DONE'
 
+  if(myid==0) print *, 'ELSI read Matrices'
   ! Read eigenvalue problem 
   call elsi_read_ev_problem("elsi_eigenvalue_problem.hdf5")
+  if(myid==0) print *, 'DONE'
 
-  call elsi_get_real_hamiltonian(buffer, n_rows, n_cols)
+  call elsi_get_hamiltonian(buffer, n_rows, n_cols)
   buffer = buffer - h
 
   errmax = 0
   do i=1,n_cols
       colerr = 0
-      call pdnrm2( n_dim, colerr, buffer, 1, i, sc_desc, 1)
+      call pdnrm2( matrixsize, colerr, buffer, 1, i, sc_desc, 1)
       if (colerr > errmax) errmax = colerr
   enddo
 
@@ -102,7 +145,7 @@ program readwrite
   errmax = 0
   do i=1,n_cols
       colerr = 0
-      call pdnrm2( n_dim, colerr, buffer, 1, i, sc_desc, 1)
+      call pdnrm2( matrixsize, colerr, buffer, 1, i, sc_desc, 1)
       if (colerr > errmax) errmax = colerr
   enddo
 

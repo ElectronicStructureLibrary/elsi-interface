@@ -12,7 +12,7 @@ elsi.o: elsi.f90 mpi_tools.o
 	$(MPIFC) -c $< mpi_tools.o $(ELPA) $(SCALAPACK) $(HDF5)
 
 mpi_tools.o: mpi_tools.f90
-	$(MPIFC) -c $<
+	$(MPIFC) -c $< $(SCALAPACK)
 
 clean:
 	rm -rf *.o *.mod readwrite

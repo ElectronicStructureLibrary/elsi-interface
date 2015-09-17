@@ -37,7 +37,31 @@ module ELSI
   public :: elsi_set_method          !< Set routine for method
   public :: elsi_set_mode            !< Set routine for mode
   public :: elsi_allocate_matrices   !< Initialize matrices
-  public :: elsi_deallocate_matrices !< Cleanup matrix memory 
+  public :: elsi_deallocate_matrices !< Cleanup matrix memory
+  public :: elsi_set_hamiltonian
+  public :: elsi_get_hamiltonian
+  public :: elsi_set_overlap
+  public :: elsi_get_overlap
+
+  interface elsi_set_hamiltonian
+     module procedure elsi_set_real_hamiltonian, &
+                      elsi_set_complex_hamiltonian
+  end interface 
+  
+  interface elsi_get_hamiltonian
+     module procedure elsi_get_real_hamiltonian, &
+                      elsi_get_complex_hamiltonian
+  end interface 
+  
+  interface elsi_set_overlap
+     module procedure elsi_set_real_overlap, &
+                      elsi_set_complex_overlap
+  end interface 
+  
+  interface elsi_get_overlap
+     module procedure elsi_set_real_overlap, &
+                      elsi_set_complex_overlap
+  end interface 
 
 contains
 
@@ -154,7 +178,7 @@ subroutine elsi_set_complex_hamiltonian(h,n_rows,n_cols)
 
    integer, intent(in) :: n_rows !< Number of rows
    integer, intent(in) :: n_cols !< Number of cols
-   real*8, intent(in) :: h(n_rows,n_cols) !< hamiltonian 
+   complex*8, intent(in) :: h(n_rows,n_cols) !< hamiltonian 
    
    select case (method)
       case (ELPA)
@@ -263,7 +287,7 @@ subroutine elsi_get_real_hamiltonian(h,n_rows,n_cols)
    
    select case (method)
       case (ELPA)
-         if (mode == COMPLEX_VALUES) then
+         if (mode == REAL_VALUES) then
             h(:,:) = H_real(:,:)      
          else  
             write(*,'(2a)') "Wrong mode:", &
