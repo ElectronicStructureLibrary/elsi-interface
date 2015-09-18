@@ -8,7 +8,7 @@
 module ELSI
 
   use iso_c_binding
-  use HDF5
+  use HDF5_TOOLS
   use ELPA1
   use ELPA2
   use MPI_TOOLS
@@ -415,54 +415,58 @@ subroutine elsi_get_complex_overlap(s,n_rows,n_cols)
 
 end subroutine
 
-subroutine elsi_write_ev_problem(filename)
+subroutine elsi_write_ev_problem(file_name)
 
 !>
 !!  This routine writes the complete eigenvalue problem into a file
 
    implicit none
-   character(len=*), intent(in) :: filename
+   character(len=*), intent(in) :: file_name
 
-   integer :: h5err
-   integer(hid_t) :: plist_id
    integer(hid_t) :: file_id
+   integer(hid_t) :: group_id
 
-   call h5open_f(h5err)
-   if (h5err) then
-      write(*,'(a)') "HDF5: Failed to initialize Fortran interface."
-      stop
-   end if
+   logical :: pattern
 
-   call h5pcreate_f(H5P_FILE_ACCESS_F,plist_id,h5err)
-   if (h5err) then
-      write(*,'(a)') "HDF5: Failed to create property list for parallel access."
-      stop
-   end if
 
-   call h5pset_fapl_mpio_f(plist_id, mpi_comm_world, mpi_info_null, h5err)
-   if (h5err) then
-      write(*,'(a)') "HDF5: Failed to set property list for parallel access."
-      stop
-   end if
+   call hdf5_initialize ()
 
-   call h5fcreate_f( trim(filename),H5F_ACC_TRUNC_F, file_id, h5err, & 
-                     access_prp = plist_id)
-   if (h5err) then
-      write(*,'(a)') "HDF5: Failed to create file for parallel access."
-      stop
-   end if
+   call hdf5_create_file_parallel (file_name, mpi_comm_world, &
+                                   mpi_info_null, file_id)
 
-   call h5fclose_f(file_id, h5err)
-   if (h5err) then
-      write(*,'(a)') "HDF5: Failed to close file for parallel access."
-      stop
-   end if
+   ! The Hamiltonian
+   call hdf5_create_group (file_id, "hamiltonian", group_id)
+   
+   ! Matrix dimension
+   call hdf5_write_attribute (group_id, "n_matrix_rows", n_dim)
+   call hdf5_write_attribute (group_id, "n_matrix_cols", n_dim)
+   call hdf5_write_attribute (group_id, "n_block_rows", n_block)
+   call hdf5_write_attribute (group_id, "n_block_cols", n_block)
 
-   call h5close_f(h5err)
-   if (h5err) then
-      write(*,'(a)') "HDF5: Failed to finalize Fortran interface."
-      stop
-   end if
+   !TODO Hamiltonian Write
+   call hdf5_get_scalapack_pattern(n_dim, n_dim, np_rows, np_cols, &
+         n_rows, n_cols, ip_row, ip_col, n_block, n_block, pattern)
+   call hdf5_write_matrix_parallel (group_id,"matrix", H_real, pattern)
+   
+   call hdf5_close_group (group_id)
+
+   ! The Overlap Matrix
+   call hdf5_create_group (file_id, "overlap", group_id)
+   
+   ! Matrix dimension
+   call hdf5_write_attribute (group_id, "n_matrix_rows", n_dim)
+   call hdf5_write_attribute (group_id, "n_matrix_cols", n_dim)
+   call hdf5_write_attribute (group_id, "n_block_rows", n_block)
+   call hdf5_write_attribute (group_id, "n_block_cols", n_block)
+
+   !TODO Overlap Write
+   call hdf5_write_matrix_parallel (group_id,"matrix", S_real, pattern)
+
+   call hdf5_close_group (group_id)
+
+   call hdf5_close_file (file_id)
+
+   call hdf5_finalize()
 
 end subroutine
 
@@ -478,38 +482,38 @@ subroutine elsi_read_ev_problem(filename)
    integer(hid_t) :: plist_id
    integer(hid_t) :: file_id
 
-   call h5open_f(h5err)
+   call H5open_f(h5err)
    if (h5err) then
       write(*,'(a)') "HDF5: Failed to initialize Fortran interface."
       stop
    end if
 
-   call h5pcreate_f(H5P_FILE_ACCESS_F,plist_id,h5err)
+   call H5Pcreate_f(H5P_FILE_ACCESS_F,plist_id,h5err)
    if (h5err) then
       write(*,'(a)') "HDF5: Failed to create property list for parallel access."
       stop
    end if
 
-   call h5pset_fapl_mpio_f(plist_id, mpi_comm_world, mpi_info_null, h5err)
+   call h5Pset_fapl_mpio_f(plist_id, mpi_comm_world, mpi_info_null, h5err)
    if (h5err) then
       write(*,'(a)') "HDF5: Failed to set property list for parallel access."
       stop
    end if
 
-   call h5fcreate_f( filename,H5F_ACC_TRUNC_F, file_id, h5err, & 
+   call H5Fopen_f( filename, H5F_ACC_RDONLY_F, file_id, h5err, & 
                      access_prp = plist_id)
    if (h5err) then
       write(*,'(a)') "HDF5: Failed to create file for parallel access."
       stop
    end if
 
-   call h5fclose_f(file_id, h5err)
+   call H5Fclose_f(file_id, h5err)
    if (h5err) then
       write(*,'(a)') "HDF5: Failed to close file for parallel access."
       stop
    end if
 
-   call h5close_f(h5err)
+   call H5close_f(h5err)
    if (h5err) then
       write(*,'(a)') "HDF5: Failed to finalize Fortran interface."
       stop
