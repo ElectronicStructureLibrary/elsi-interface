@@ -21,6 +21,8 @@ module HDF5_TOOLS
   integer(HSIZE_T) :: block(2)
   integer(HSIZE_T) :: g_dim(2)
   integer(HSIZE_T) :: l_dim(2)
+  integer(HSIZE_T) :: i_process(2)
+  integer(HSIZE_T) :: p_dim(2)
 
 
   private :: h5err
@@ -190,7 +192,7 @@ subroutine hdf5_write_matrix_parallel_double(place_id, matrix_name, matrix, patt
 
    integer(hid_t), intent(in) :: place_id
    character(len=*), intent(in) :: matrix_name 
-   real*8, intent(in) :: matrix(l_dim(1),l_dim(2))
+   real*8, intent(in) :: matrix(1:l_dim(1),1:l_dim(2))
    logical :: pattern
 
    integer(hid_t) :: memspace
@@ -263,6 +265,8 @@ end subroutine
 subroutine hdf5_get_scalapack_pattern(g_rows, g_cols, p_rows, p_cols, &
       l_rows, l_cols, ip_row, ip_col, b_rows, b_cols, pattern)
 
+   ! Follow: https://www.hdfgroup.org/HDF5/Tutor/selectsimple.html
+
    implicit none
    integer, intent(in) :: g_rows, g_cols !< global matrix dimension
    integer, intent(in) :: p_rows, p_cols !< process grid
@@ -274,21 +278,33 @@ subroutine hdf5_get_scalapack_pattern(g_rows, g_cols, p_rows, p_cols, &
    integer :: count_r, count_c
    integer :: stride_r, stride_c
 
-   g_dim = (/g_rows,g_cols/)
+   !g_dim = (/g_rows,g_cols/)
+   g_dim = (/l_rows*p_rows,l_cols*p_cols/)
    l_dim = (/l_rows,l_cols/)
    block = (/b_rows,b_cols/)
+   i_process = (/ip_row,ip_col/)
+   p_dim = (/p_rows,p_cols/)
 
    offset = (/ip_row * b_rows, ip_col * b_cols/)
    
-   count_r = FLOOR (1d0 * l_rows / b_rows) + 1
-   count_c = FLOOR (1d0 * l_cols / b_cols) + 1  
+   count_r = FLOOR (1d0 * l_rows / b_rows)
+   count_c = FLOOR (1d0 * l_cols / b_cols)  
    count   = (/count_r,count_c/)
 
-   stride_r = (p_rows - 1) * b_rows
-   stride_c = (p_cols - 1) * b_cols
+   stride_r = p_rows * b_rows 
+   stride_c = p_cols * b_cols 
    stride   = (/stride_r,stride_c/)
 
    pattern = .True.
+
+   if (ip_row == 0 .and. ip_col == 0) then
+     write (*,*) "Offset: ", offset
+     write (*,*) "Block: ", block
+     write (*,*) "Count: ", count
+     write (*,*) "Stride: ", stride
+     write (*,*) "l_dim: ", l_dim
+     write (*,*) "g_dim: ", g_dim
+   end if
 
 end subroutine
 

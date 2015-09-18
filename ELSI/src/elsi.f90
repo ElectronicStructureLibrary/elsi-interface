@@ -435,7 +435,7 @@ subroutine elsi_write_ev_problem(file_name)
                                    mpi_info_null, file_id)
 
    ! The Hamiltonian
-   call hdf5_create_group (file_id, "hamiltonian", group_id)
+   call hdf5_create_group (file_id, "/hamiltonian", group_id)
    
    ! Matrix dimension
    call hdf5_write_attribute (group_id, "n_matrix_rows", n_dim)
@@ -451,7 +451,7 @@ subroutine elsi_write_ev_problem(file_name)
    call hdf5_close_group (group_id)
 
    ! The Overlap Matrix
-   call hdf5_create_group (file_id, "overlap", group_id)
+   call hdf5_create_group (file_id, "/overlap", group_id)
    
    ! Matrix dimension
    call hdf5_write_attribute (group_id, "n_matrix_rows", n_dim)
@@ -461,7 +461,6 @@ subroutine elsi_write_ev_problem(file_name)
 
    !TODO Overlap Write
    call hdf5_write_matrix_parallel (group_id,"matrix", S_real, pattern)
-
    call hdf5_close_group (group_id)
 
    call hdf5_close_file (file_id)

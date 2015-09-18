@@ -18,7 +18,7 @@ program readwrite
   ! Ok, let us first create a matrix for the ELSI interface
   ! Something like
 
-  integer, parameter :: matrixsize = 100, blocksize = 16
+  integer :: matrixsize = 4, blocksize = 1
  
   ! Random number generator
   integer :: iseed(4096) !< Random seed
@@ -36,32 +36,44 @@ program readwrite
   integer :: i_row, i_col, p_row, p_col, l_row, l_col, g_row, g_col
   logical :: my_task
 
-  if(myid==0) print *, 'Initialize ELSI MPI'
+
+  !  Pharse command line argumnents, if given
+   INTEGER*4 :: iargc
+   character*16 arg1
+   character*16 arg2
+
+   if (iargc() == 2) then
+      call getarg(1, arg1)
+      call getarg(2, arg2)
+      read(arg1, *) matrixsize
+      read(arg2, *) blocksize
+   endif
+
+
   call elsi_initialize_mpi()
-  if(myid==0) print *, 'DONE'
 
   if(myid==0) print *, 'Initialize ELSI BLACS'
   call elsi_initialize_blacs(matrixsize, blocksize)
   if(myid==0) print *, 'DONE'
 
-  do i_row = 1, matrixsize
-    my_task = elsi_get_local_row(i_row, p_row, l_row)
-    call elsi_get_global_row(g_row, p_row, l_row)
-    do i_col = 1, matrixsize
-      my_task = elsi_get_local_col(i_col, p_col, l_col)
-      call elsi_get_global_col(g_col, p_col, l_col)
-      if(myid==0) write(*,'(8(a,I3),a)') &
-        '(',i_row,',',i_col,') mapped to process (', &
-            p_row,',',p_col,') and local (',l_row,',',l_col,') &
-        mapped back to (', g_row,',',g_col,')'
-     end do
-  end do
+  !do i_row = 1, matrixsize
+  !  my_task = elsi_get_local_row(i_row, p_row, l_row)
+  !  call elsi_get_global_row(g_row, p_row, l_row)
+  !  do i_col = 1, matrixsize
+  !    my_task = elsi_get_local_col(i_col, p_col, l_col)
+  !    call elsi_get_global_col(g_col, p_col, l_col)
+  !    if(myid==0) write(*,'(8(a,I3),a)') &
+  !      '(',i_row,',',i_col,') mapped to process (', &
+  !          p_row,',',p_col,') and local (',l_row,',',l_col,') &
+  !      mapped back to (', g_row,',',g_col,')'
+  !   end do
+  !end do
 
   call MPI_BARRIER(mpi_comm_world,error)
 
   if(myid==0) print *, 'Initialize H'
   ! Generate some data
-  allocate(h(matrixsize,matrixsize))
+  allocate(h(n_rows,n_cols))
 
   iseed(:) = myid
   call RANDOM_SEED(put=iseed)
@@ -73,7 +85,7 @@ program readwrite
     if (elsi_get_local_row(i_row, p_row, l_row)) then
       do i_col = 1, matrixsize
         if (elsi_get_local_col(i_col, p_col, l_col)) then
-          h(l_row,l_col) = 1.0 * myid
+          h(l_row,l_col) = 1.d0 * myid
         end if
       end do
     end if
@@ -87,13 +99,27 @@ program readwrite
 
 
   if(myid==0) print *, 'Initialize S'
-  allocate(s(matrixsize,matrixsize))
-  allocate(buffer(matrixsize,matrixsize))
-  call RANDOM_NUMBER(buffer)
-  s = buffer
+  allocate(s(n_rows,n_cols))
+  allocate(buffer(n_rows,n_cols))
+  !call RANDOM_NUMBER(buffer)
+  !s = buffer
   ! s = s + buffer**T
-  call pdtran( matrixsize, matrixsize, 1.d0, buffer, 1, 1, sc_desc, &
-               1.d0, s, 1, 1, sc_desc)
+  !call pdtran( matrixsize, matrixsize, 1.d0, buffer, 1, 1, sc_desc, &
+  !             1.d0, s, 1, 1, sc_desc)
+  do i_row = 1, matrixsize
+    if (elsi_get_local_row(i_row, p_row, l_row)) then
+      do i_col = 1, matrixsize
+        if (elsi_get_local_col(i_col, p_col, l_col)) then
+          if (i_row == i_col) then
+             s(l_row,l_col) = 1.d0
+          else 
+             s(l_row,l_col) = 0.d0
+          end if
+        end if
+      end do
+    end if
+  end do
+
   if(myid==0) print *, 'DONE'
 
   if(myid==0) print *, 'Set ELSI Modes'
