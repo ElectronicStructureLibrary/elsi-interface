@@ -11,11 +11,12 @@ module HDF5_TOOLS
   use HDF5
 
   implicit none
+  private
 
   integer :: h5err !< HDF5 Error Handling 
 
   !> HDF 5 Hyperslap specifics
-  integer(HSIZE_T) :: count(2) !< Number of blocks 
+  integer(HSIZE_T) :: count(2)  !< Number of blocks 
   integer(HSIZE_T) :: offset(2) !< Matrix offset 
   integer(HSIZE_T) :: stride(2) !< Distance between blocks 
   integer(HSIZE_T) :: block(2)  !< Dimension of block
@@ -25,9 +26,6 @@ module HDF5_TOOLS
   integer(HSIZE_T) :: p_dim(2)  !< Processor grid dimensions
   logical :: incomplete         !< Is block description complete?
 
-
-  private :: h5err
-  private :: count, offset, stride, block, g_dim, l_dim
 
   interface hdf5_write_attribute
      module procedure hdf5_write_attribute_integer
@@ -44,6 +42,20 @@ module HDF5_TOOLS
   interface hdf5_read_matrix_parallel
      module procedure hdf5_read_matrix_parallel_double
   end interface
+
+  public :: hdf5_initialize
+  public :: hdf5_create_file
+  public :: hdf5_open_file
+  public :: hdf5_close_file
+  public :: hdf5_create_group
+  public :: hdf5_open_group
+  public :: hdf5_close_group
+  public :: hdf5_get_scalapack_pattern
+  public :: hdf5_write_attribute 
+  public :: hdf5_read_attribute
+  public :: hdf5_write_matrix_parallel
+  public :: hdf5_read_matrix_parallel
+  public :: hdf5_finalize
 
   contains
 
@@ -72,8 +84,8 @@ subroutine hdf5_finalize()
 end subroutine
 
 
-subroutine hdf5_create_file_parallel(file_name, mpi_comm_world, &
-                                     mpi_info_null, file_id)
+subroutine hdf5_create_file(file_name, mpi_comm_world, &
+                             mpi_info_null, file_id)
   
    implicit none
    character(len=*), intent(in) :: file_name
@@ -104,8 +116,8 @@ subroutine hdf5_create_file_parallel(file_name, mpi_comm_world, &
 
 end subroutine
 
-subroutine hdf5_open_file_parallel(file_name, mpi_comm_world, &
-                                     mpi_info_null, file_id)
+subroutine hdf5_open_file(file_name, mpi_comm_world, &
+                          mpi_info_null, file_id)
   
    implicit none
    character(len=*), intent(in) :: file_name
@@ -590,6 +602,16 @@ subroutine hdf5_get_scalapack_pattern(g_rows, g_cols, p_rows, p_cols, &
    g_dim = (/g_rows,g_cols/)
    
    pattern = .True.
+
+   if (ip_row == 0 .and. ip_col == 0) then
+      print *, "global dim    :", g_dim
+      print *, "local dim     :",  l_dim
+      print *, "processor dim :",  p_dim
+      print *, "block dim     :",  block
+      print *, "offset        :",  offset
+      print *, "count         :",  count
+      print *, "stride        :",  stride
+   end if
 
 end subroutine
 

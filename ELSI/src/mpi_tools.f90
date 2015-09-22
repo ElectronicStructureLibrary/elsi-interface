@@ -10,7 +10,7 @@ module MPI_TOOLS
   use iso_c_binding
 
   implicit none
-  include 'mpif.h'
+  private
 
   ! Coarse grid
   integer :: np_rows        !< Number of rows (coarse grid)
@@ -37,11 +37,25 @@ module MPI_TOOLS
   integer :: n_block
   integer, external :: numroc
 
+  public :: elsi_initialize_mpi
+  public :: elsi_initialize_blacs 
+  public :: elsi_get_local_row
+  public :: elsi_get_local_col
+  public :: elsi_get_global_row
+  public :: elsi_get_global_col
+  public :: elsi_finalize_mpi
+  public :: elsi_finalize_blacs
+
+  public :: np_rows, np_cols, n_rows, n_cols, ip_row, ip_col 
+  public :: mpi_comm_rows, mpi_comm_cols
   contains
 
-subroutine elsi_initialize_mpi()
+subroutine elsi_initialize_mpi(myid_out)
 
    implicit none
+   include 'mpif.h'
+
+   integer, intent(out) :: myid_out
 
    ! MPI Initialization
 
@@ -62,12 +76,31 @@ subroutine elsi_initialize_mpi()
       stop
    end if
 
+   myid_out = myid
 
 end subroutine
+
+subroutine elsi_finalize_mpi()
+
+   implicit none
+   include 'mpif.h'
+
+   ! MPI Finalization
+
+   call mpi_finalize(mpierr)
+   if (mpierr) then
+      write(*,'(a)') "MPI: Failed to finalize MPI."
+      stop
+   end if
+
+end subroutine
+
 
 subroutine elsi_initialize_blacs(n_dim_in,n_block_in)
 
    implicit none
+
+   include "mpif.h"
 
    integer, intent(in) :: n_dim_in   !< dimension of matrix
    integer, intent(in) :: n_block_in !< dimension of sub blocks
@@ -113,6 +146,16 @@ subroutine elsi_initialize_blacs(n_dim_in,n_block_in)
 
 
 end subroutine
+
+subroutine elsi_finalize_blacs()
+
+   implicit none
+
+   call blacs_gridexit(blacs_ctxt)
+
+end subroutine
+
+
 
 logical function elsi_get_local_row (g_row, p_row, l_row)
 
