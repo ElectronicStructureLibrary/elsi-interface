@@ -1,6 +1,7 @@
  # IFORTRAN
  FC = ifort
- FFLAGS = -O3 -ip -module $(MODDIR)
+ FFLAGS = -O3 -ip 
+#FFLAGS = -O0 -ip -g -traceback 
 
  # MPI
  MPIFC = mpiifort

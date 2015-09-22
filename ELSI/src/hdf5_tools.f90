@@ -15,14 +15,15 @@ module HDF5_TOOLS
   integer :: h5err !< HDF5 Error Handling 
 
   !> HDF 5 Hyperslap specifics
-  integer(HSIZE_T) :: count(2)
-  integer(HSIZE_T) :: offset(2)
-  integer(HSIZE_T) :: stride(2)
-  integer(HSIZE_T) :: block(2)
-  integer(HSIZE_T) :: g_dim(2)
-  integer(HSIZE_T) :: l_dim(2)
-  integer(HSIZE_T) :: i_process(2)
-  integer(HSIZE_T) :: p_dim(2)
+  integer(HSIZE_T) :: count(2) !< Number of blocks 
+  integer(HSIZE_T) :: offset(2) !< Matrix offset 
+  integer(HSIZE_T) :: stride(2) !< Distance between blocks 
+  integer(HSIZE_T) :: block(2)  !< Dimension of block
+  integer(HSIZE_T) :: g_dim(2)  !< Global matrix dimension
+  integer(HSIZE_T) :: l_dim(2)  !< Local matrix dimension
+  integer(HSIZE_T) :: i_process(2) !< Position in process grid
+  integer(HSIZE_T) :: p_dim(2)  !< Processor grid dimensions
+  logical :: incomplete         !< Is block description complete?
 
 
   private :: h5err
@@ -32,9 +33,18 @@ module HDF5_TOOLS
      module procedure hdf5_write_attribute_integer
   end interface
 
+  interface hdf5_read_attribute
+     module procedure hdf5_read_attribute_integer
+  end interface
+
   interface hdf5_write_matrix_parallel
      module procedure hdf5_write_matrix_parallel_double
   end interface
+
+  interface hdf5_read_matrix_parallel
+     module procedure hdf5_read_matrix_parallel_double
+  end interface
+
   contains
 
 subroutine hdf5_initialize()
@@ -94,6 +104,39 @@ subroutine hdf5_create_file_parallel(file_name, mpi_comm_world, &
 
 end subroutine
 
+subroutine hdf5_open_file_parallel(file_name, mpi_comm_world, &
+                                     mpi_info_null, file_id)
+  
+   implicit none
+   character(len=*), intent(in) :: file_name
+   integer, intent(in) :: mpi_comm_world
+   integer, intent(in) :: mpi_info_null
+   integer, intent(out) :: file_id
+
+   integer(hid_t) :: plist_id
+
+   call H5Pcreate_f( H5P_FILE_ACCESS_F, plist_id, h5err )
+   if (h5err) then
+      write(*,'(a)') "HDF5: Failed to create property list for parallel access."
+      stop
+   end if
+
+   call H5Pset_fapl_mpio_f(plist_id, mpi_comm_world, mpi_info_null, h5err)
+   if (h5err) then
+      write(*,'(a)') "HDF5: Failed to set property list for parallel access."
+      stop
+   end if
+
+   call H5Fopen_f( file_name, H5F_ACC_RDONLY_F, file_id, h5err, & 
+                     access_prp = plist_id)
+   if (h5err) then
+      write(*,'(a)') "HDF5: Failed to create file for parallel access."
+      stop
+   end if
+
+end subroutine
+
+
 subroutine hdf5_close_file(file_id)
 
    implicit none
@@ -121,8 +164,25 @@ subroutine hdf5_create_group (place_id, group_name, group_id)
       write(*,'(a,a)') "HDF5: Failed to create group ", group_name
       stop
    end if
+ 
+end subroutine
+
+subroutine hdf5_open_group (place_id, group_name, group_id)
+
+   implicit none
+
+   integer(hid_t), intent(in)   :: place_id
+   character(len=*), intent(in) :: group_name
+   integer(hid_t), intent(out)  :: group_id
+
+   call H5Gopen_f( place_id, group_name, group_id, h5err)
+   if (h5err) then
+      write(*,'(a,a)') "HDF5: Failed to create group ", group_name
+      stop
+   end if
 
 end subroutine
+
 
 subroutine hdf5_close_group (group_id)
 
@@ -148,8 +208,7 @@ subroutine hdf5_write_attribute_integer(place_id, attr_name, attr_value)
 
    integer(hid_t) :: space_id
    integer(hid_t) :: attr_id
-   type(c_ptr)    :: f_ptr
-
+   integer(hsize_t) :: dims(1)
 
 
    call H5Screate_f( H5S_SCALAR_F, space_id, h5err)
@@ -165,8 +224,8 @@ subroutine hdf5_write_attribute_integer(place_id, attr_name, attr_value)
       stop
    end if
 
-   f_ptr = C_LOC(attr_value)
-   call H5Awrite_f ( attr_id, H5T_NATIVE_INTEGER, f_ptr, h5err )
+   dims = 1
+   call H5Awrite_f ( attr_id, H5T_NATIVE_INTEGER, attr_value, dims, h5err )
    if (h5err) then
       write(*,'(a)') "HDF5: Failed to write to Attribute Identifier."
       stop
@@ -186,7 +245,43 @@ subroutine hdf5_write_attribute_integer(place_id, attr_name, attr_value)
 
 end subroutine
 
-subroutine hdf5_write_matrix_parallel_double(place_id, matrix_name, matrix, pattern)
+subroutine hdf5_read_attribute_integer(place_id, attr_name, attr_value)
+
+   implicit none
+
+   integer(hid_t), intent(in)   :: place_id
+   character(len=*), intent(in) :: attr_name
+   integer, intent(out)         :: attr_value
+
+   integer(hid_t) :: space_id
+   integer(hid_t) :: attr_id
+   integer(hsize_t) :: dims(1)
+
+
+   call H5Aopen_f( place_id, attr_name, attr_id, h5err)
+   if (h5err) then
+      write(*,'(a)') "HDF5: Failed to create Attribute Identifier."
+      stop
+   end if
+
+   dims = 1
+   call H5Aread_f ( attr_id, H5T_NATIVE_INTEGER, attr_value, dims, h5err )
+   if (h5err) then
+      write(*,'(a)') "HDF5: Failed to write to Attribute Identifier."
+      stop
+   end if
+
+   call H5Aclose_f ( attr_id, h5err )
+   if (h5err) then
+      write(*,'(a)') "HDF5: Failed to close to Attribute Identifier."
+      stop
+   end if
+
+end subroutine
+
+
+subroutine hdf5_write_matrix_parallel_double(place_id, matrix_name, matrix, &
+      pattern)
 
    implicit none
 
@@ -198,6 +293,14 @@ subroutine hdf5_write_matrix_parallel_double(place_id, matrix_name, matrix, patt
    integer(hid_t) :: memspace
    integer(hid_t) :: filespace
    integer(hid_t) :: data_id
+   integer(hid_t) :: plist_id
+
+   integer(HSIZE_T) :: add_count(2) !< Number of blocks 
+   integer(HSIZE_T) :: add_offset(2) !< Matrix offset 
+   integer(HSIZE_T) :: miss_count(2) !< Number of blocks 
+   integer(HSIZE_T) :: miss_offset(2) !< Matrix offset
+   integer          :: i_block 
+
 
    if (.not. pattern) then
       write(*,'(a)') "HDF5: Pattern has not evaulated."
@@ -231,8 +334,56 @@ subroutine hdf5_write_matrix_parallel_double(place_id, matrix_name, matrix, patt
       stop
    end if
 
+   if (incomplete) then
+      miss_count = l_dim - block * count
+      miss_offset = count * stride + offset 
+      
+      ! row corner blocks
+      if (miss_count(2) /= 0) then
+         do i_block = 0, count(1) - 1
+            add_count = (/block(1),miss_count(2)/)
+            add_offset = (/i_block * stride(1) + offset(1), miss_offset(2)/)
+            call H5Sselect_hyperslab_f (filespace, H5S_SELECT_OR_F, add_offset,&
+               add_count, h5err)
+            if (h5err) then
+               write(*,'(a)') "HDF5: Failed to write select Hyperslap."
+               stop
+            end if
+         end do
+      end if
+
+      ! column corner blocks
+      if (miss_count(1) /= 0) then
+         do i_block = 0, count(2) - 1
+            add_count = (/miss_count(1),block(2)/)
+            add_offset = (/miss_offset(1),i_block * stride(2) + offset(2)/)
+            call H5Sselect_hyperslab_f (filespace, H5S_SELECT_OR_F, add_offset,&
+               add_count, h5err)
+            if (h5err) then
+               write(*,'(a)') "HDF5: Failed to write select Hyperslap."
+               stop
+            end if
+         end do
+      end if
+
+      ! Last missing partial block
+      if (miss_count(1) * miss_count(2) /= 0) then
+         call H5Sselect_hyperslab_f (filespace, H5S_SELECT_OR_F, miss_offset,&
+               miss_count, h5err)
+         if (h5err) then
+            write(*,'(a)') "HDF5: Failed to write select Hyperslap."
+            stop
+         end if
+      end if
+
+   end if
+
+   CALL h5pcreate_f(H5P_DATASET_XFER_F, plist_id, h5err) 
+   CALL h5pset_dxpl_mpio_f(plist_id, H5FD_MPIO_COLLECTIVE_F, h5err)
+
    call H5Dwrite_f (data_id, H5T_NATIVE_DOUBLE, matrix, &
-         l_dim, h5err, mem_space_id = memspace, file_space_id = filespace)
+         l_dim, h5err, mem_space_id = memspace, file_space_id = filespace, &
+         xfer_prp = plist_id)
    if (h5err) then
       write(*,'(a)') "HDF5: Failed to write Matrix to Filespace."
       stop
@@ -262,6 +413,140 @@ subroutine hdf5_write_matrix_parallel_double(place_id, matrix_name, matrix, patt
 
 end subroutine
 
+subroutine hdf5_read_matrix_parallel_double(place_id, matrix_name, matrix,&
+      pattern)
+
+   implicit none
+
+   integer(hid_t), intent(in) :: place_id
+   character(len=*), intent(in) :: matrix_name 
+   real*8, intent(out) :: matrix(1:l_dim(1),1:l_dim(2))
+   logical :: pattern
+
+   integer(hid_t) :: memspace
+   integer(hid_t) :: filespace
+   integer(hid_t) :: data_id
+   integer(hid_t) :: plist_id
+
+   integer(HSIZE_T) :: add_count(2) !< Number of blocks 
+   integer(HSIZE_T) :: add_offset(2) !< Matrix offset
+   integer(HSIZE_T) :: miss_count(2) !< Number of blocks 
+   integer(HSIZE_T) :: miss_offset(2) !< Matrix offset
+   integer          :: i_block 
+ 
+
+   if (.not. pattern) then
+      write(*,'(a)') "HDF5: Pattern has not evaulated."
+      stop
+   end if
+
+   call H5Screate_simple_f (2, l_dim, memspace, h5err)
+   if (h5err) then
+      write(*,'(a)') "HDF5: Failed to create local Matrix Space."
+      stop
+   end if
+
+   call H5Screate_simple_f (2, g_dim, filespace, h5err)
+   if (h5err) then
+      write(*,'(a)') "HDF5: Failed to create global Matrix Space."
+      stop
+   end if
+
+
+   call H5Dopen_f (place_id, matrix_name, data_id, h5err) 
+   if (h5err) then
+      write(*,'(a)') "HDF5: Failed to create Matrix Data Identifier."
+      stop
+   end if
+
+   call H5Sselect_hyperslab_f (filespace, H5S_SELECT_SET_F, offset, count,&
+         h5err, stride, block)
+   if (h5err) then
+      write(*,'(a)') "HDF5: Failed to write select Hyperslap."
+      stop
+   end if
+
+   if (incomplete) then
+      miss_count = l_dim - block * count
+      miss_offset = count * stride + offset 
+      
+      ! row corner blocks
+      if (miss_count(2) /= 0) then
+         do i_block = 0, count(1) - 1
+            add_count = (/block(1),miss_count(2)/)
+            add_offset = (/i_block * stride(1) + offset(1), miss_offset(2)/)
+            call H5Sselect_hyperslab_f (filespace, H5S_SELECT_OR_F, add_offset,&
+               add_count, h5err)
+            if (h5err) then
+               write(*,'(a)') "HDF5: Failed to write select Hyperslap."
+               stop
+            end if
+         end do
+      end if
+
+      ! column corner blocks
+      if (miss_count(1) /= 0) then
+         do i_block = 0, count(2) - 1
+            add_count = (/miss_count(1),block(2)/)
+            add_offset = (/miss_offset(1),i_block * stride(2) + offset(2)/)
+            call H5Sselect_hyperslab_f (filespace, H5S_SELECT_OR_F, add_offset,&
+               add_count, h5err)
+            if (h5err) then
+               write(*,'(a)') "HDF5: Failed to write select Hyperslap."
+               stop
+            end if
+         end do
+      end if
+
+      ! Last missing partial block
+      if (miss_count(1) * miss_count(2) /= 0) then
+         call H5Sselect_hyperslab_f (filespace, H5S_SELECT_OR_F, miss_offset,&
+               miss_count, h5err)
+         if (h5err) then
+            write(*,'(a)') "HDF5: Failed to write select Hyperslap."
+            stop
+         end if
+      end if
+
+   end if
+
+   CALL h5pcreate_f(H5P_DATASET_XFER_F, plist_id, h5err) 
+   CALL h5pset_dxpl_mpio_f(plist_id, H5FD_MPIO_COLLECTIVE_F, h5err)
+
+
+   call H5Dread_f (data_id, H5T_NATIVE_DOUBLE, matrix, &
+         l_dim, h5err, mem_space_id = memspace, file_space_id = filespace, &
+         xfer_prp = plist_id)
+   if (h5err) then
+      write(*,'(a)') "HDF5: Failed to write Matrix to Filespace."
+      stop
+   end if
+
+
+   call H5Sclose_f(filespace, h5err)
+   if (h5err) then
+      write(*,'(a)') "HDF5: Failed to close Filespace."
+      stop
+   end if
+
+
+   call H5Sclose_f(memspace, h5err)
+   if (h5err) then
+      write(*,'(a)') "HDF5: Failed to close Memspace."
+      stop
+   end if
+
+
+   call H5Dclose_f(data_id, h5err)
+   if (h5err) then
+      write(*,'(a)') "HDF5: Failed to close Data Identifier."
+      stop
+   end if
+
+
+end subroutine
+
+
 subroutine hdf5_get_scalapack_pattern(g_rows, g_cols, p_rows, p_cols, &
       l_rows, l_cols, ip_row, ip_col, b_rows, b_cols, pattern)
 
@@ -278,8 +563,8 @@ subroutine hdf5_get_scalapack_pattern(g_rows, g_cols, p_rows, p_cols, &
    integer :: count_r, count_c
    integer :: stride_r, stride_c
 
-   !g_dim = (/g_rows,g_cols/)
-   g_dim = (/l_rows*p_rows,l_cols*p_cols/)
+   integer process_id
+
    l_dim = (/l_rows,l_cols/)
    block = (/b_rows,b_cols/)
    i_process = (/ip_row,ip_col/)
@@ -291,20 +576,20 @@ subroutine hdf5_get_scalapack_pattern(g_rows, g_cols, p_rows, p_cols, &
    count_c = FLOOR (1d0 * l_cols / b_cols)  
    count   = (/count_r,count_c/)
 
+   if (count_r * b_rows /= l_rows .or. count_c * b_cols /= l_cols) then
+     incomplete = .True.
+   else
+     incomplete = .False.
+   end if
+     
+
    stride_r = p_rows * b_rows 
    stride_c = p_cols * b_cols 
    stride   = (/stride_r,stride_c/)
 
+   g_dim = (/g_rows,g_cols/)
+   
    pattern = .True.
-
-   if (ip_row == 0 .and. ip_col == 0) then
-     write (*,*) "Offset: ", offset
-     write (*,*) "Block: ", block
-     write (*,*) "Count: ", count
-     write (*,*) "Stride: ", stride
-     write (*,*) "l_dim: ", l_dim
-     write (*,*) "g_dim: ", g_dim
-   end if
 
 end subroutine
 

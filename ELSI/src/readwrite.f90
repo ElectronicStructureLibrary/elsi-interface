@@ -52,9 +52,7 @@ program readwrite
 
   call elsi_initialize_mpi()
 
-  if(myid==0) print *, 'Initialize ELSI BLACS'
   call elsi_initialize_blacs(matrixsize, blocksize)
-  if(myid==0) print *, 'DONE'
 
   !do i_row = 1, matrixsize
   !  my_task = elsi_get_local_row(i_row, p_row, l_row)
@@ -71,7 +69,6 @@ program readwrite
 
   call MPI_BARRIER(mpi_comm_world,error)
 
-  if(myid==0) print *, 'Initialize H'
   ! Generate some data
   allocate(h(n_rows,n_cols))
 
@@ -95,10 +92,8 @@ program readwrite
   !call pdtran( matrixsize, matrixsize, 1.d0, buffer, 1, 1, sc_desc, &
   !             1.d0, h, 1, 1, sc_desc)
 
-  if(myid==0) print *, 'DONE'
 
 
-  if(myid==0) print *, 'Initialize S'
   allocate(s(n_rows,n_cols))
   allocate(buffer(n_rows,n_cols))
   !call RANDOM_NUMBER(buffer)
@@ -120,34 +115,24 @@ program readwrite
     end if
   end do
 
-  if(myid==0) print *, 'DONE'
 
-  if(myid==0) print *, 'Set ELSI Modes'
   ! Now set some ELSI specifications
   call elsi_set_method(ELPA)
   call elsi_set_mode(REAL_VALUES)
-  if(myid==0) print *, 'DONE'
 
-  if(myid==0) print *, 'ELSI allocate Matrices'
   ! Initialize the data space
   call elsi_allocate_matrices(n_rows,n_cols)
-  if(myid==0) print *, 'DONE'
 
-  if(myid==0) print *, 'ELSI set Matrices'
   ! Set matrices
   call elsi_set_hamiltonian(h, n_rows, n_cols)
   call elsi_set_overlap(s, n_rows, n_cols)
-  if(myid==0) print *, 'DONE'
 
-  if(myid==0) print *, 'ELSI write Matrices'
   ! Write eigenvalue problem
+  if(myid==0) print *,'write eigenvalue problem'
   call elsi_write_ev_problem("elsi_eigenvalue_problem.hdf5")
-  if(myid==0) print *, 'DONE'
 
-  if(myid==0) print *, 'ELSI read Matrices'
   ! Read eigenvalue problem 
   call elsi_read_ev_problem("elsi_eigenvalue_problem.hdf5")
-  if(myid==0) print *, 'DONE'
 
   call elsi_get_hamiltonian(buffer, n_rows, n_cols)
   buffer = buffer - h
