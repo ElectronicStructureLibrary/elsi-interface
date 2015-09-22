@@ -5,6 +5,48 @@
 E\+L\+S\+I Interchange.  
 
 
+\subsection*{Data Types}
+\begin{DoxyCompactItemize}
+\item 
+interface \hyperlink{interfaceelsi_1_1elsi__get__hamiltonian}{elsi\+\_\+get\+\_\+hamiltonian}
+\item 
+interface \hyperlink{interfaceelsi_1_1elsi__get__overlap}{elsi\+\_\+get\+\_\+overlap}
+\item 
+interface \hyperlink{interfaceelsi_1_1elsi__set__hamiltonian}{elsi\+\_\+set\+\_\+hamiltonian}
+\item 
+interface \hyperlink{interfaceelsi_1_1elsi__set__overlap}{elsi\+\_\+set\+\_\+overlap}
+\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine, public \hyperlink{namespaceelsi_a783f376d4233c7ddd34506025e9da783}{elsi\+\_\+set\+\_\+method} (i\+\_\+method)
+\item 
+subroutine, public \hyperlink{namespaceelsi_aae6ed67fce5603d05ec7c9a12e1d2f5e}{elsi\+\_\+set\+\_\+mode} (i\+\_\+mode)
+\item 
+subroutine, public \hyperlink{namespaceelsi_a2fc97f3c50713d358599bf797f82df6a}{elsi\+\_\+allocate\+\_\+matrices} (n\+\_\+rows, n\+\_\+cols)
+\item 
+subroutine \hyperlink{namespaceelsi_a3989452ac9aa3b5a6b476b2f62f59aba}{elsi\+\_\+set\+\_\+real\+\_\+hamiltonian} (h, n\+\_\+rows, n\+\_\+cols)
+\item 
+subroutine \hyperlink{namespaceelsi_a2d89eafea4ad47fa346c6ef89b519e5e}{elsi\+\_\+set\+\_\+complex\+\_\+hamiltonian} (h, n\+\_\+rows, n\+\_\+cols)
+\item 
+subroutine \hyperlink{namespaceelsi_ac13a9b8801985cf6fe004db0f22a0de1}{elsi\+\_\+set\+\_\+real\+\_\+overlap} (s, n\+\_\+rows, n\+\_\+cols)
+\item 
+subroutine \hyperlink{namespaceelsi_a9b7229ecd7e605c81633716a1fb07e91}{elsi\+\_\+set\+\_\+complex\+\_\+overlap} (s, n\+\_\+rows, n\+\_\+cols)
+\item 
+subroutine \hyperlink{namespaceelsi_acc0d017a2182e5d08cf6ffecd5768690}{elsi\+\_\+get\+\_\+real\+\_\+hamiltonian} (h, n\+\_\+rows, n\+\_\+cols)
+\item 
+subroutine \hyperlink{namespaceelsi_ae8f16797d019c7ac5afd7d2d09d0e22c}{elsi\+\_\+get\+\_\+complex\+\_\+hamiltonian} (h, n\+\_\+rows, n\+\_\+cols)
+\item 
+subroutine \hyperlink{namespaceelsi_aa47462dda45687624299072ceda001b1}{elsi\+\_\+get\+\_\+real\+\_\+overlap} (s, n\+\_\+rows, n\+\_\+cols)
+\item 
+subroutine \hyperlink{namespaceelsi_aa4595860c94c26f30313e9d180edaa13}{elsi\+\_\+get\+\_\+complex\+\_\+overlap} (s, n\+\_\+rows, n\+\_\+cols)
+\item 
+subroutine \hyperlink{namespaceelsi_a71dabe27cfaefe4afe9b6316bfe8905f}{elsi\+\_\+write\+\_\+ev\+\_\+problem} (file\+\_\+name)
+\item 
+subroutine \hyperlink{namespaceelsi_a45a43fff9aa214be4c6aa6ac348c46c1}{elsi\+\_\+read\+\_\+ev\+\_\+problem} (filename)
+\item 
+subroutine, public \hyperlink{namespaceelsi_a499852f3083dae7991092915ef2dc5b2}{elsi\+\_\+deallocate\+\_\+matrices} ()
+\end{DoxyCompactItemize}
 \subsection*{Variables}
 \begin{DoxyCompactItemize}
 \item 
@@ -14,16 +56,16 @@ E\+L\+S\+I Interchange.
 \hypertarget{namespaceelsi_ac6c03b44a7776b204d99901393c46f64}{}integer \hyperlink{namespaceelsi_ac6c03b44a7776b204d99901393c46f64}{mode} = -\/1\label{namespaceelsi_ac6c03b44a7776b204d99901393c46f64}
 
 \begin{DoxyCompactList}\small\item\em Mode for E\+V Solver (R\+E\+A\+L\+\_\+\+V\+A\+L\+U\+E\+S=1,C\+O\+M\+P\+L\+E\+X\+\_\+\+V\+A\+L\+U\+E\+S=2) \end{DoxyCompactList}\item 
-\hypertarget{namespaceelsi_a25368fc70d64a9f61667dda554a8a9e3}{}real $\ast$8, allocatable {\bfseries h\+\_\+real}\label{namespaceelsi_a25368fc70d64a9f61667dda554a8a9e3}
+\hypertarget{namespaceelsi_ae7f6e8de89d8a7563dcd8e9c3492ab57}{}real $\ast$8, dimension(\+:,\+:), allocatable, private {\bfseries h\+\_\+real}\label{namespaceelsi_ae7f6e8de89d8a7563dcd8e9c3492ab57}
 
 \item 
-\hypertarget{namespaceelsi_a1696b277fa89ac67ccb13bd4297c85f8}{}real $\ast$8, allocatable {\bfseries s\+\_\+real}\label{namespaceelsi_a1696b277fa89ac67ccb13bd4297c85f8}
+\hypertarget{namespaceelsi_a6a921d47148bdf7549400007bac12164}{}real $\ast$8, dimension(\+:,\+:), allocatable, private {\bfseries s\+\_\+real}\label{namespaceelsi_a6a921d47148bdf7549400007bac12164}
 
 \item 
-\hypertarget{namespaceelsi_a4c6ffe9089d52f797917c58fdfaca93b}{}complex $\ast$8, allocatable {\bfseries h\+\_\+complex}\label{namespaceelsi_a4c6ffe9089d52f797917c58fdfaca93b}
+\hypertarget{namespaceelsi_afa23fd2866f336d9a872d3b62d7f579c}{}complex $\ast$8, dimension(\+:,\+:), allocatable, private {\bfseries h\+\_\+complex}\label{namespaceelsi_afa23fd2866f336d9a872d3b62d7f579c}
 
 \item 
-\hypertarget{namespaceelsi_a6ab74e762816f6c991b972639362513b}{}complex $\ast$8, allocatable {\bfseries s\+\_\+complex}\label{namespaceelsi_a6ab74e762816f6c991b972639362513b}
+\hypertarget{namespaceelsi_a5b82ddfa83983c38a879b2854ec93951}{}complex $\ast$8, dimension(\+:,\+:), allocatable, private {\bfseries s\+\_\+complex}\label{namespaceelsi_a5b82ddfa83983c38a879b2854ec93951}
 
 \end{DoxyCompactItemize}
 
@@ -32,3 +74,241 @@ E\+L\+S\+I Interchange.
 E\+L\+S\+I Interchange. 
 
 Copyright of the original code rests with the authors inside the E\+L\+S\+I consortium. The copyright of any additional modifications shall rest with their original authors, but shall adhere to the licensing terms distributed along with the original code in the file \char`\"{}\+C\+O\+P\+Y\+I\+N\+G\char`\"{}. 
+
+\subsection{Function/\+Subroutine Documentation}
+\hypertarget{namespaceelsi_a2fc97f3c50713d358599bf797f82df6a}{}\index{elsi@{elsi}!elsi\+\_\+allocate\+\_\+matrices@{elsi\+\_\+allocate\+\_\+matrices}}
+\index{elsi\+\_\+allocate\+\_\+matrices@{elsi\+\_\+allocate\+\_\+matrices}!elsi@{elsi}}
+\subsubsection[{elsi\+\_\+allocate\+\_\+matrices}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public elsi\+::elsi\+\_\+allocate\+\_\+matrices (
+\begin{DoxyParamCaption}
+\item[{integer, intent(in)}]{n\+\_\+rows, }
+\item[{integer, intent(in)}]{n\+\_\+cols}
+\end{DoxyParamCaption}
+)}\label{namespaceelsi_a2fc97f3c50713d358599bf797f82df6a}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em n\+\_\+rows} & This routine prepares the matrices based on the dimension and method specified\\
+\hline
+\mbox{\tt in}  & {\em n\+\_\+rows} & Number of rows\\
+\hline
+\mbox{\tt in}  & {\em n\+\_\+cols} & Number of cols \\
+\hline
+\end{DoxyParams}
+\hypertarget{namespaceelsi_a499852f3083dae7991092915ef2dc5b2}{}\index{elsi@{elsi}!elsi\+\_\+deallocate\+\_\+matrices@{elsi\+\_\+deallocate\+\_\+matrices}}
+\index{elsi\+\_\+deallocate\+\_\+matrices@{elsi\+\_\+deallocate\+\_\+matrices}!elsi@{elsi}}
+\subsubsection[{elsi\+\_\+deallocate\+\_\+matrices}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public elsi\+::elsi\+\_\+deallocate\+\_\+matrices (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}\label{namespaceelsi_a499852f3083dae7991092915ef2dc5b2}
+This routine prepares the matrices based on the dimension and method specified \hypertarget{namespaceelsi_ae8f16797d019c7ac5afd7d2d09d0e22c}{}\index{elsi@{elsi}!elsi\+\_\+get\+\_\+complex\+\_\+hamiltonian@{elsi\+\_\+get\+\_\+complex\+\_\+hamiltonian}}
+\index{elsi\+\_\+get\+\_\+complex\+\_\+hamiltonian@{elsi\+\_\+get\+\_\+complex\+\_\+hamiltonian}!elsi@{elsi}}
+\subsubsection[{elsi\+\_\+get\+\_\+complex\+\_\+hamiltonian}]{\setlength{\rightskip}{0pt plus 5cm}subroutine elsi\+::elsi\+\_\+get\+\_\+complex\+\_\+hamiltonian (
+\begin{DoxyParamCaption}
+\item[{complex$\ast$8, dimension(n\+\_\+rows,n\+\_\+cols), intent(out)}]{h, }
+\item[{integer, intent(in)}]{n\+\_\+rows, }
+\item[{integer, intent(in)}]{n\+\_\+cols}
+\end{DoxyParamCaption}
+)}\label{namespaceelsi_ae8f16797d019c7ac5afd7d2d09d0e22c}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em n\+\_\+rows} & This routine gets the complex hamiltonian matrix\\
+\hline
+\mbox{\tt in}  & {\em n\+\_\+rows} & Number of rows\\
+\hline
+\mbox{\tt in}  & {\em n\+\_\+cols} & Number of cols\\
+\hline
+\mbox{\tt out}  & {\em h} & hamiltonian \\
+\hline
+\end{DoxyParams}
+\hypertarget{namespaceelsi_aa4595860c94c26f30313e9d180edaa13}{}\index{elsi@{elsi}!elsi\+\_\+get\+\_\+complex\+\_\+overlap@{elsi\+\_\+get\+\_\+complex\+\_\+overlap}}
+\index{elsi\+\_\+get\+\_\+complex\+\_\+overlap@{elsi\+\_\+get\+\_\+complex\+\_\+overlap}!elsi@{elsi}}
+\subsubsection[{elsi\+\_\+get\+\_\+complex\+\_\+overlap}]{\setlength{\rightskip}{0pt plus 5cm}subroutine elsi\+::elsi\+\_\+get\+\_\+complex\+\_\+overlap (
+\begin{DoxyParamCaption}
+\item[{complex$\ast$8, dimension(n\+\_\+rows,n\+\_\+cols), intent(out)}]{s, }
+\item[{integer, intent(in)}]{n\+\_\+rows, }
+\item[{integer, intent(in)}]{n\+\_\+cols}
+\end{DoxyParamCaption}
+)}\label{namespaceelsi_aa4595860c94c26f30313e9d180edaa13}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em n\+\_\+rows} & This routine gets the complex overlap matrix\\
+\hline
+\mbox{\tt in}  & {\em n\+\_\+rows} & Number of rows\\
+\hline
+\mbox{\tt in}  & {\em n\+\_\+cols} & Number of cols\\
+\hline
+\mbox{\tt out}  & {\em s} & overlap \\
+\hline
+\end{DoxyParams}
+\hypertarget{namespaceelsi_acc0d017a2182e5d08cf6ffecd5768690}{}\index{elsi@{elsi}!elsi\+\_\+get\+\_\+real\+\_\+hamiltonian@{elsi\+\_\+get\+\_\+real\+\_\+hamiltonian}}
+\index{elsi\+\_\+get\+\_\+real\+\_\+hamiltonian@{elsi\+\_\+get\+\_\+real\+\_\+hamiltonian}!elsi@{elsi}}
+\subsubsection[{elsi\+\_\+get\+\_\+real\+\_\+hamiltonian}]{\setlength{\rightskip}{0pt plus 5cm}subroutine elsi\+::elsi\+\_\+get\+\_\+real\+\_\+hamiltonian (
+\begin{DoxyParamCaption}
+\item[{real$\ast$8, dimension(n\+\_\+rows,n\+\_\+cols), intent(out)}]{h, }
+\item[{integer, intent(in)}]{n\+\_\+rows, }
+\item[{integer, intent(in)}]{n\+\_\+cols}
+\end{DoxyParamCaption}
+)}\label{namespaceelsi_acc0d017a2182e5d08cf6ffecd5768690}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em n\+\_\+rows} & This routine gets the real hamiltonian matrix\\
+\hline
+\mbox{\tt in}  & {\em n\+\_\+rows} & Number of rows\\
+\hline
+\mbox{\tt in}  & {\em n\+\_\+cols} & Number of cols\\
+\hline
+\mbox{\tt out}  & {\em h} & hamiltonian \\
+\hline
+\end{DoxyParams}
+\hypertarget{namespaceelsi_aa47462dda45687624299072ceda001b1}{}\index{elsi@{elsi}!elsi\+\_\+get\+\_\+real\+\_\+overlap@{elsi\+\_\+get\+\_\+real\+\_\+overlap}}
+\index{elsi\+\_\+get\+\_\+real\+\_\+overlap@{elsi\+\_\+get\+\_\+real\+\_\+overlap}!elsi@{elsi}}
+\subsubsection[{elsi\+\_\+get\+\_\+real\+\_\+overlap}]{\setlength{\rightskip}{0pt plus 5cm}subroutine elsi\+::elsi\+\_\+get\+\_\+real\+\_\+overlap (
+\begin{DoxyParamCaption}
+\item[{real$\ast$8, dimension(n\+\_\+rows,n\+\_\+cols), intent(out)}]{s, }
+\item[{integer, intent(in)}]{n\+\_\+rows, }
+\item[{integer, intent(in)}]{n\+\_\+cols}
+\end{DoxyParamCaption}
+)}\label{namespaceelsi_aa47462dda45687624299072ceda001b1}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em n\+\_\+rows} & This routine gets the real overlap matrix\\
+\hline
+\mbox{\tt in}  & {\em n\+\_\+rows} & Number of rows\\
+\hline
+\mbox{\tt in}  & {\em n\+\_\+cols} & Number of cols\\
+\hline
+\mbox{\tt out}  & {\em s} & overlap \\
+\hline
+\end{DoxyParams}
+\hypertarget{namespaceelsi_a45a43fff9aa214be4c6aa6ac348c46c1}{}\index{elsi@{elsi}!elsi\+\_\+read\+\_\+ev\+\_\+problem@{elsi\+\_\+read\+\_\+ev\+\_\+problem}}
+\index{elsi\+\_\+read\+\_\+ev\+\_\+problem@{elsi\+\_\+read\+\_\+ev\+\_\+problem}!elsi@{elsi}}
+\subsubsection[{elsi\+\_\+read\+\_\+ev\+\_\+problem}]{\setlength{\rightskip}{0pt plus 5cm}subroutine elsi\+::elsi\+\_\+read\+\_\+ev\+\_\+problem (
+\begin{DoxyParamCaption}
+\item[{character(len=$\ast$), intent(in)}]{filename}
+\end{DoxyParamCaption}
+)}\label{namespaceelsi_a45a43fff9aa214be4c6aa6ac348c46c1}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em filename} & This routine writes the complete eigenvalue problem into a file \\
+\hline
+\end{DoxyParams}
+\hypertarget{namespaceelsi_a2d89eafea4ad47fa346c6ef89b519e5e}{}\index{elsi@{elsi}!elsi\+\_\+set\+\_\+complex\+\_\+hamiltonian@{elsi\+\_\+set\+\_\+complex\+\_\+hamiltonian}}
+\index{elsi\+\_\+set\+\_\+complex\+\_\+hamiltonian@{elsi\+\_\+set\+\_\+complex\+\_\+hamiltonian}!elsi@{elsi}}
+\subsubsection[{elsi\+\_\+set\+\_\+complex\+\_\+hamiltonian}]{\setlength{\rightskip}{0pt plus 5cm}subroutine elsi\+::elsi\+\_\+set\+\_\+complex\+\_\+hamiltonian (
+\begin{DoxyParamCaption}
+\item[{complex$\ast$8, dimension(n\+\_\+rows,n\+\_\+cols), intent(in)}]{h, }
+\item[{integer, intent(in)}]{n\+\_\+rows, }
+\item[{integer, intent(in)}]{n\+\_\+cols}
+\end{DoxyParamCaption}
+)}\label{namespaceelsi_a2d89eafea4ad47fa346c6ef89b519e5e}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em n\+\_\+rows} & This routine sets the complex hamiltonian matrix\\
+\hline
+\mbox{\tt in}  & {\em n\+\_\+rows} & Number of rows\\
+\hline
+\mbox{\tt in}  & {\em n\+\_\+cols} & Number of cols\\
+\hline
+\mbox{\tt in}  & {\em h} & hamiltonian \\
+\hline
+\end{DoxyParams}
+\hypertarget{namespaceelsi_a9b7229ecd7e605c81633716a1fb07e91}{}\index{elsi@{elsi}!elsi\+\_\+set\+\_\+complex\+\_\+overlap@{elsi\+\_\+set\+\_\+complex\+\_\+overlap}}
+\index{elsi\+\_\+set\+\_\+complex\+\_\+overlap@{elsi\+\_\+set\+\_\+complex\+\_\+overlap}!elsi@{elsi}}
+\subsubsection[{elsi\+\_\+set\+\_\+complex\+\_\+overlap}]{\setlength{\rightskip}{0pt plus 5cm}subroutine elsi\+::elsi\+\_\+set\+\_\+complex\+\_\+overlap (
+\begin{DoxyParamCaption}
+\item[{complex$\ast$8, dimension(n\+\_\+rows,n\+\_\+cols), intent(in)}]{s, }
+\item[{integer, intent(in)}]{n\+\_\+rows, }
+\item[{integer, intent(in)}]{n\+\_\+cols}
+\end{DoxyParamCaption}
+)}\label{namespaceelsi_a9b7229ecd7e605c81633716a1fb07e91}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em n\+\_\+rows} & This routine sets the hamiltonian matrix\\
+\hline
+\mbox{\tt in}  & {\em n\+\_\+rows} & Number of rows\\
+\hline
+\mbox{\tt in}  & {\em n\+\_\+cols} & Number of cols\\
+\hline
+\mbox{\tt in}  & {\em s} & overlap \\
+\hline
+\end{DoxyParams}
+\hypertarget{namespaceelsi_a783f376d4233c7ddd34506025e9da783}{}\index{elsi@{elsi}!elsi\+\_\+set\+\_\+method@{elsi\+\_\+set\+\_\+method}}
+\index{elsi\+\_\+set\+\_\+method@{elsi\+\_\+set\+\_\+method}!elsi@{elsi}}
+\subsubsection[{elsi\+\_\+set\+\_\+method}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public elsi\+::elsi\+\_\+set\+\_\+method (
+\begin{DoxyParamCaption}
+\item[{integer, intent(in)}]{i\+\_\+method}
+\end{DoxyParamCaption}
+)}\label{namespaceelsi_a783f376d4233c7ddd34506025e9da783}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em i\+\_\+method} & This routine sets the method of choice for solving the eigenvalue problem\\
+\hline
+\mbox{\tt in}  & {\em i\+\_\+method} & one of (E\+L\+P\+A,O\+M\+M,P\+E\+X\+S\+I) \\
+\hline
+\end{DoxyParams}
+\hypertarget{namespaceelsi_aae6ed67fce5603d05ec7c9a12e1d2f5e}{}\index{elsi@{elsi}!elsi\+\_\+set\+\_\+mode@{elsi\+\_\+set\+\_\+mode}}
+\index{elsi\+\_\+set\+\_\+mode@{elsi\+\_\+set\+\_\+mode}!elsi@{elsi}}
+\subsubsection[{elsi\+\_\+set\+\_\+mode}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public elsi\+::elsi\+\_\+set\+\_\+mode (
+\begin{DoxyParamCaption}
+\item[{integer, intent(in)}]{i\+\_\+mode}
+\end{DoxyParamCaption}
+)}\label{namespaceelsi_aae6ed67fce5603d05ec7c9a12e1d2f5e}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em i\+\_\+mode} & This routine sets the mode of the eigenvalue solver (Real or Complex)\\
+\hline
+\mbox{\tt in}  & {\em i\+\_\+mode} & one of (R\+E\+A\+L\+\_\+\+V\+A\+L\+U\+E\+S,C\+O\+M\+P\+L\+E\+X\+\_\+\+V\+A\+L\+U\+E\+S) \\
+\hline
+\end{DoxyParams}
+\hypertarget{namespaceelsi_a3989452ac9aa3b5a6b476b2f62f59aba}{}\index{elsi@{elsi}!elsi\+\_\+set\+\_\+real\+\_\+hamiltonian@{elsi\+\_\+set\+\_\+real\+\_\+hamiltonian}}
+\index{elsi\+\_\+set\+\_\+real\+\_\+hamiltonian@{elsi\+\_\+set\+\_\+real\+\_\+hamiltonian}!elsi@{elsi}}
+\subsubsection[{elsi\+\_\+set\+\_\+real\+\_\+hamiltonian}]{\setlength{\rightskip}{0pt plus 5cm}subroutine elsi\+::elsi\+\_\+set\+\_\+real\+\_\+hamiltonian (
+\begin{DoxyParamCaption}
+\item[{real$\ast$8, dimension(n\+\_\+rows,n\+\_\+cols), intent(in)}]{h, }
+\item[{integer, intent(in)}]{n\+\_\+rows, }
+\item[{integer, intent(in)}]{n\+\_\+cols}
+\end{DoxyParamCaption}
+)}\label{namespaceelsi_a3989452ac9aa3b5a6b476b2f62f59aba}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em n\+\_\+rows} & This routine sets the real hamiltonian matrix\\
+\hline
+\mbox{\tt in}  & {\em n\+\_\+rows} & Number of rows\\
+\hline
+\mbox{\tt in}  & {\em n\+\_\+cols} & Number of cols\\
+\hline
+\mbox{\tt in}  & {\em h} & hamiltonian \\
+\hline
+\end{DoxyParams}
+\hypertarget{namespaceelsi_ac13a9b8801985cf6fe004db0f22a0de1}{}\index{elsi@{elsi}!elsi\+\_\+set\+\_\+real\+\_\+overlap@{elsi\+\_\+set\+\_\+real\+\_\+overlap}}
+\index{elsi\+\_\+set\+\_\+real\+\_\+overlap@{elsi\+\_\+set\+\_\+real\+\_\+overlap}!elsi@{elsi}}
+\subsubsection[{elsi\+\_\+set\+\_\+real\+\_\+overlap}]{\setlength{\rightskip}{0pt plus 5cm}subroutine elsi\+::elsi\+\_\+set\+\_\+real\+\_\+overlap (
+\begin{DoxyParamCaption}
+\item[{real$\ast$8, dimension(n\+\_\+rows,n\+\_\+cols), intent(in)}]{s, }
+\item[{integer, intent(in)}]{n\+\_\+rows, }
+\item[{integer, intent(in)}]{n\+\_\+cols}
+\end{DoxyParamCaption}
+)}\label{namespaceelsi_ac13a9b8801985cf6fe004db0f22a0de1}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em n\+\_\+rows} & This routine sets the real overlap matrix\\
+\hline
+\mbox{\tt in}  & {\em n\+\_\+rows} & Number of rows\\
+\hline
+\mbox{\tt in}  & {\em n\+\_\+cols} & Number of cols\\
+\hline
+\mbox{\tt in}  & {\em s} & overlap \\
+\hline
+\end{DoxyParams}
+\hypertarget{namespaceelsi_a71dabe27cfaefe4afe9b6316bfe8905f}{}\index{elsi@{elsi}!elsi\+\_\+write\+\_\+ev\+\_\+problem@{elsi\+\_\+write\+\_\+ev\+\_\+problem}}
+\index{elsi\+\_\+write\+\_\+ev\+\_\+problem@{elsi\+\_\+write\+\_\+ev\+\_\+problem}!elsi@{elsi}}
+\subsubsection[{elsi\+\_\+write\+\_\+ev\+\_\+problem}]{\setlength{\rightskip}{0pt plus 5cm}subroutine elsi\+::elsi\+\_\+write\+\_\+ev\+\_\+problem (
+\begin{DoxyParamCaption}
+\item[{character(len=$\ast$), intent(in)}]{file\+\_\+name}
+\end{DoxyParamCaption}
+)}\label{namespaceelsi_a71dabe27cfaefe4afe9b6316bfe8905f}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em file\+\_\+name} & This routine writes the complete eigenvalue problem into a file \\
+\hline
+\end{DoxyParams}

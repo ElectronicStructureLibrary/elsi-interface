@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['method',['method',['../namespaceelsi.html#abb4e04a2d624f8d169abb6dd55f8510c',1,'elsi']]],
-  ['mode',['mode',['../namespaceelsi.html#ac6c03b44a7776b204d99901393c46f64',1,'elsi']]]
+  ['blacs_5fctxt',['blacs_ctxt',['../namespacempi__tools.html#aa958c1c99532e8b43840a3c6c1cdecb8',1,'mpi_tools']]]
 ];
