@@ -11,10 +11,11 @@ module ELSI
   !! 
 
   use iso_c_binding
+  use DIMENSIONS
+  use MPI_TOOLS
   use HDF5_TOOLS
   use ELPA1
   use ELPA2
-  use MPI_TOOLS
 
   implicit none
   private
@@ -42,10 +43,6 @@ module ELSI
   public :: ELPA, OMM, PEXSI
   public :: REAL_VALUES, COMPLEX_VALUES
 
-  ! Global Matrix information
-  integer :: n_dim  !< Global dimension of eigenvalue problem
-  integer :: n_block !< Block size 
-
   ! The following routines are public:
   public :: elsi_initialize_mpi      !< ELSI MPI initializer if not done 
                                      !! elsewhere  
@@ -56,8 +53,12 @@ module ELSI
   public :: elsi_allocate_matrices   !< Initialize matrices
   public :: elsi_deallocate_matrices !< Cleanup matrix memory
   public :: elsi_set_hamiltonian     !< Set Hamilitonian by Reference
+  public :: elsi_set_hamiltonian_element !< Set Hamilitonian element
+  public :: elsi_symmetrize_hamiltonian !< Symmetrize Hamiltonian matrix
   public :: elsi_get_hamiltonian     !< Get Hamiltonian by Reference
   public :: elsi_set_overlap         !< Set Overlap by Reference
+  public :: elsi_set_overlap_element !< Set Overlap by Reference
+  public :: elsi_symmetrize_overlap   !< Symmetrize overlap matrix
   public :: elsi_get_overlap         !< Get Overlap by Reference
   public :: elsi_get_global_row      !< Get global row indeces from local ones
   public :: elsi_get_global_col      !< Get global column indices from local
@@ -65,12 +66,19 @@ module ELSI
   public :: elsi_write_ev_problem    !< Write eigenvalue problem to HDF5
   public :: elsi_read_ev_problem     !< Read eigenvalue problem from HDF5
   public :: elsi_solve_ev_problem    !< Solve eigenvalue problem 
+  public :: elsi_get_eigenvalues     !< Get the eigenvalues 
   public :: elsi_finalize            !< Finalize and cleanup ELSI
 
   interface elsi_set_hamiltonian
      module procedure elsi_set_real_hamiltonian, &
                       elsi_set_complex_hamiltonian
   end interface 
+
+  interface elsi_set_hamiltonian_element
+     module procedure elsi_set_real_hamiltonian_element, &
+                      elsi_set_complex_hamiltonian_element
+  end interface 
+
   
   interface elsi_get_hamiltonian
      module procedure elsi_get_real_hamiltonian, &
@@ -81,6 +89,12 @@ module ELSI
      module procedure elsi_set_real_overlap, &
                       elsi_set_complex_overlap
   end interface 
+
+   interface elsi_set_overlap_element
+     module procedure elsi_set_real_overlap_element, &
+                      elsi_set_complex_overlap_element
+  end interface 
+
   
   interface elsi_get_overlap
      module procedure elsi_set_real_overlap, &
@@ -89,7 +103,7 @@ module ELSI
 
 contains
 
-subroutine elsi_initialize_problem(matrixsize, blocksize)
+subroutine elsi_initialize_problem(matrixsize, block_rows, block_cols)
 
    !>
    !!  This routine sets the method of choice for solving the eigenvalue problem
@@ -97,11 +111,13 @@ subroutine elsi_initialize_problem(matrixsize, blocksize)
 
    implicit none
 
-   integer, intent(in) :: matrixsize !< global dimension of matrix
-   integer, intent(in) :: blocksize  !< blocking dimension of matrix
+   integer, intent(in) :: matrixsize  !< global dimension of matrix
+   integer, intent(in) :: block_rows  !< block rows of matrix
+   integer, intent(in) :: block_cols  !< block cols of matrix
 
-   n_dim = matrixsize
-   n_block = blocksize
+   n_g_rank = matrixsize
+   n_b_rows = block_rows
+   n_b_cols = block_cols
 
 end subroutine
 
@@ -119,8 +135,7 @@ subroutine elsi_set_method(i_method)
    method = i_method
    select case (method)
       case (ELPA)
-         write(*,'(a)') "ELPA is chosen!"
-         call elsi_initialize_blacs(n_dim,n_block)
+         call elsi_initialize_blacs(n_g_rank,n_b_rows,n_b_cols)
       case (OMM)
          write(*,'(a)') "OMM not implemented yet!"
          stop
@@ -160,13 +175,16 @@ subroutine elsi_allocate_matrices()
 
    select case (method)
       case (ELPA)
+         allocate(eigenvalues(n_g_rank))
          select case (mode)
             case (COMPLEX_VALUES)
-               allocate(H_complex (n_rows, n_cols))      
-               allocate(S_complex (n_rows, n_cols))
+               allocate(H_complex (n_l_rows, n_l_cols))      
+               allocate(S_complex (n_l_rows, n_l_cols))
+               allocate(vectors_complex(n_l_rows, n_l_cols))
             case (REAL_VALUES)
-               allocate(H_real (n_rows, n_cols))      
-               allocate(S_real (n_rows, n_cols))
+               allocate(H_real (n_l_rows, n_l_cols))      
+               allocate(S_real (n_l_rows, n_l_cols))
+               allocate(vectors_real(n_l_rows, n_l_cols))
             case DEFAULT
                write(*,'(2a)') "No mode has been chosen. ", &
                "Please choose method REAL_VALUES or COMPLEX_VALUES"
@@ -185,6 +203,42 @@ subroutine elsi_allocate_matrices()
          stop
    end select
 end subroutine
+
+subroutine elsi_set_real_hamiltonian_element(element,i_row,i_col)
+
+!>
+!!  This routine sets the real hamiltonian matrix 
+
+   implicit none
+
+   integer, intent(in) :: i_row   !<  row position
+   integer, intent(in) :: i_col   !<  col position
+   real*8, intent(in)  :: element !< value 
+   
+   select case (method)
+      case (ELPA)
+         if (mode == REAL_VALUES) then
+            H_real(i_row,i_col) = element      
+         else  
+            write(*,'(2a)') "Wrong mode:", &
+               "Complex valued hamiltonian to be written in real storage"
+            stop
+         end if
+      case (OMM)
+         write(*,'(a)') "OMM not implemented yet!"
+         stop
+      case (PEXSI)
+         write(*,'(a)') "PEXSI not implemented yet!"
+         stop
+      case DEFAULT
+         write(*,'(2a)') "No method has been chosen. ", &
+            "Please choose method ELPA, OMM, or PEXSI"
+         stop
+   end select
+
+
+end subroutine
+
 
 subroutine elsi_set_real_hamiltonian(h,n_rows,n_cols)
 
@@ -221,6 +275,42 @@ subroutine elsi_set_real_hamiltonian(h,n_rows,n_cols)
 
 end subroutine
 
+subroutine elsi_set_complex_hamiltonian_element(element,i_row,i_col)
+
+!>
+!!  This routine sets the real hamiltonian matrix 
+
+   implicit none
+
+   integer, intent(in)     :: i_row   !<  row position
+   integer, intent(in)     :: i_col   !<  col position
+   complex*16, intent(in)  :: element !< value 
+   
+   select case (method)
+      case (ELPA)
+         if (mode == COMPLEX_VALUES) then
+            H_complex(i_row,i_col) = element      
+         else  
+            write(*,'(2a)') "Wrong mode:", &
+               "Complex valued hamiltonian to be written in real storage"
+            stop
+         end if
+      case (OMM)
+         write(*,'(a)') "OMM not implemented yet!"
+         stop
+      case (PEXSI)
+         write(*,'(a)') "PEXSI not implemented yet!"
+         stop
+      case DEFAULT
+         write(*,'(2a)') "No method has been chosen. ", &
+            "Please choose method ELPA, OMM, or PEXSI"
+         stop
+   end select
+
+
+end subroutine
+
+
 subroutine elsi_set_complex_hamiltonian(h,n_rows,n_cols)
 
 !>
@@ -230,7 +320,7 @@ subroutine elsi_set_complex_hamiltonian(h,n_rows,n_cols)
 
    integer, intent(in) :: n_rows !< Number of rows
    integer, intent(in) :: n_cols !< Number of cols
-   complex*8, intent(in) :: h(n_rows,n_cols) !< hamiltonian 
+   complex*16, intent(in) :: h(n_rows,n_cols) !< hamiltonian 
    
    select case (method)
       case (ELPA)
@@ -255,6 +345,127 @@ subroutine elsi_set_complex_hamiltonian(h,n_rows,n_cols)
 
 
 end subroutine
+
+subroutine elsi_set_real_overlap_element(element,i_row,i_col)
+
+!>
+!!  This routine sets the real overlap element 
+
+   implicit none
+
+   integer, intent(in) :: i_row   !<  row position
+   integer, intent(in) :: i_col   !<  col position
+   real*8, intent(in)  :: element !< value 
+   
+   select case (method)
+      case (ELPA)
+         if (mode == REAL_VALUES) then
+            S_real(i_row,i_col) = element      
+         else  
+            write(*,'(2a)') "Wrong mode:", &
+               "Complex valued overlap to be written in real storage"
+            stop
+         end if
+      case (OMM)
+         write(*,'(a)') "OMM not implemented yet!"
+         stop
+      case (PEXSI)
+         write(*,'(a)') "PEXSI not implemented yet!"
+         stop
+      case DEFAULT
+         write(*,'(2a)') "No method has been chosen. ", &
+            "Please choose method ELPA, OMM, or PEXSI"
+         stop
+   end select
+
+
+end subroutine
+
+subroutine elsi_symmetrize_hamiltonian()
+
+  !>
+  !!  This routine symmetrizes an upper or lower triangle hamiltonian
+
+  implicit none
+
+  real*8,     allocatable :: buffer_real   (:,:)
+  complex*16, allocatable :: buffer_complex(:,:)
+  complex*16, parameter :: CONE = (1d0,0d0)
+
+  select case (method)
+      case (ELPA)
+         if (mode == REAL_VALUES) then
+            allocate(buffer_real (n_l_rows, n_l_cols))
+            buffer_real = H_real
+            call pdtran(n_g_rank, n_g_rank, &
+                  1.d0, buffer_real, 1, 1, sc_desc, &
+                  1.d0, H_real, 1, 1, sc_desc)
+            deallocate(buffer_real)
+         else  
+            allocate(buffer_complex (n_l_rows, n_l_cols))
+            buffer_complex = H_complex
+            call pztranc(n_g_rank, n_g_rank, &
+                  CONE, buffer_complex, 1, 1, sc_desc, &
+                  CONE, H_complex, 1, 1, sc_desc)
+            deallocate(buffer_complex)
+         end if
+      case (OMM)
+         write(*,'(a)') "OMM not implemented yet!"
+         stop
+      case (PEXSI)
+         write(*,'(a)') "PEXSI not implemented yet!"
+         stop
+      case DEFAULT
+         write(*,'(2a)') "No method has been chosen. ", &
+            "Please choose method ELPA, OMM, or PEXSI"
+         stop
+   end select
+
+end subroutine 
+
+subroutine elsi_symmetrize_overlap()
+
+   !>
+  !!  This routine symmetrizes an upper or lower triangle overlap
+
+  implicit none
+
+  real*8,     allocatable :: buffer_real   (:,:)
+  complex*16, allocatable :: buffer_complex(:,:)
+  complex*16, parameter :: CONE = (1d0,0d0)
+
+  select case (method)
+      case (ELPA)
+         if (mode == REAL_VALUES) then
+            allocate(buffer_real (n_l_rows, n_l_cols))
+            buffer_real = S_real
+            call pdtran(n_g_rank, n_g_rank, &
+                  1.d0, buffer_real, 1, 1, sc_desc, &
+                  1.d0, S_real, 1, 1, sc_desc)
+            deallocate(buffer_real)
+         else  
+            allocate(buffer_complex (n_l_rows, n_l_cols))
+            buffer_complex = S_complex
+            call pztranc(n_g_rank, n_g_rank, &
+                  CONE, buffer_complex, 1, 1, sc_desc, &
+                  CONE, S_complex, 1, 1, sc_desc)
+            deallocate(buffer_complex)
+         end if
+      case (OMM)
+         write(*,'(a)') "OMM not implemented yet!"
+         stop
+      case (PEXSI)
+         write(*,'(a)') "PEXSI not implemented yet!"
+         stop
+      case DEFAULT
+         write(*,'(2a)') "No method has been chosen. ", &
+            "Please choose method ELPA, OMM, or PEXSI"
+         stop
+   end select
+
+end subroutine 
+
+
 
 subroutine elsi_set_real_overlap(s,n_rows,n_cols)
 
@@ -291,6 +502,42 @@ subroutine elsi_set_real_overlap(s,n_rows,n_cols)
 
 end subroutine
 
+subroutine elsi_set_complex_overlap_element(element,i_row,i_col)
+
+!>
+!!  This routine sets the real overlap element 
+
+   implicit none
+
+   integer, intent(in)     :: i_row   !<  row position
+   integer, intent(in)     :: i_col   !<  col position
+   complex*16, intent(in)  :: element !< value 
+   
+   select case (method)
+      case (ELPA)
+         if (mode == COMPLEX_VALUES) then
+            S_complex(i_row,i_col) = element      
+         else  
+            write(*,'(2a)') "Wrong mode:", &
+               "Real valued overlap to be written in complex storage"
+            stop
+         end if
+      case (OMM)
+         write(*,'(a)') "OMM not implemented yet!"
+         stop
+      case (PEXSI)
+         write(*,'(a)') "PEXSI not implemented yet!"
+         stop
+      case DEFAULT
+         write(*,'(2a)') "No method has been chosen. ", &
+            "Please choose method ELPA, OMM, or PEXSI"
+         stop
+   end select
+
+
+end subroutine
+
+
 subroutine elsi_set_complex_overlap(s,n_rows,n_cols)
 
 !>
@@ -300,7 +547,7 @@ subroutine elsi_set_complex_overlap(s,n_rows,n_cols)
 
    integer, intent(in) :: n_rows !< Number of rows
    integer, intent(in) :: n_cols !< Number of cols
-   complex*8, intent(in) :: s(n_rows,n_cols) !< overlap 
+   complex*16, intent(in) :: s(n_rows,n_cols) !< overlap 
    
    select case (method)
       case (ELPA)
@@ -371,7 +618,7 @@ subroutine elsi_get_complex_hamiltonian(h,n_rows,n_cols)
 
    integer, intent(in) :: n_rows !< Number of rows
    integer, intent(in) :: n_cols !< Number of cols
-   complex*8, intent(out) :: h(n_rows,n_cols) !< hamiltonian 
+   complex*16, intent(out) :: h(n_rows,n_cols) !< hamiltonian 
    
    select case (method)
       case (ELPA)
@@ -441,7 +688,7 @@ subroutine elsi_get_complex_overlap(s,n_rows,n_cols)
 
    integer, intent(in) :: n_rows !< Number of rows
    integer, intent(in) :: n_cols !< Number of cols
-   complex*8, intent(out) :: s(n_rows,n_cols) !< overlap 
+   complex*16, intent(out) :: s(n_rows,n_cols) !< overlap 
    
    select case (method)
       case (ELPA)
@@ -482,7 +729,6 @@ subroutine elsi_write_ev_problem(file_name)
 
    logical :: pattern
 
-
    call hdf5_initialize ()
 
    call hdf5_create_file (file_name, mpi_comm_world, mpi_info_null, file_id)
@@ -491,14 +737,14 @@ subroutine elsi_write_ev_problem(file_name)
    call hdf5_create_group (file_id, "hamiltonian", group_id)
    
    ! Matrix dimension
-   call hdf5_write_attribute (group_id, "n_matrix_rows", n_dim)
-   call hdf5_write_attribute (group_id, "n_matrix_cols", n_dim)
-   call hdf5_write_attribute (group_id, "n_block_rows", n_block)
-   call hdf5_write_attribute (group_id, "n_block_cols", n_block)
+   call hdf5_write_attribute (group_id, "n_matrix_rows", n_g_rank)
+   call hdf5_write_attribute (group_id, "n_matrix_cols", n_g_rank)
+   call hdf5_write_attribute (group_id, "n_block_rows", n_b_rows)
+   call hdf5_write_attribute (group_id, "n_block_cols", n_b_cols)
 
    !TODO Hamiltonian Write
-   call hdf5_get_scalapack_pattern(n_dim, n_dim, np_rows, np_cols, &
-         n_rows, n_cols, ip_row, ip_col, n_block, n_block, pattern)
+   call hdf5_get_scalapack_pattern(n_g_rank, n_g_rank, n_p_rows, n_p_cols, &
+         n_l_rows, n_l_cols, my_p_row, my_p_col, n_b_rows, n_b_cols, pattern)
    
    call hdf5_write_matrix_parallel (group_id, "matrix", H_real, pattern)
    
@@ -508,10 +754,10 @@ subroutine elsi_write_ev_problem(file_name)
    call hdf5_create_group (file_id, "overlap", group_id)
    
    ! Matrix dimension
-   call hdf5_write_attribute (group_id, "n_matrix_rows", n_dim)
-   call hdf5_write_attribute (group_id, "n_matrix_cols", n_dim)
-   call hdf5_write_attribute (group_id, "n_block_rows", n_block)
-   call hdf5_write_attribute (group_id, "n_block_cols", n_block)
+   call hdf5_write_attribute (group_id, "n_matrix_rows", n_g_rank)
+   call hdf5_write_attribute (group_id, "n_matrix_cols", n_g_rank)
+   call hdf5_write_attribute (group_id, "n_block_rows", n_b_rows)
+   call hdf5_write_attribute (group_id, "n_block_cols", n_b_cols)
 
    !TODO Overlap Write
    call hdf5_write_matrix_parallel (group_id, "matrix", S_real, pattern)
@@ -533,7 +779,6 @@ subroutine elsi_read_ev_problem(file_name)
    
    character(len=*), intent(in) :: file_name
 
-   integer :: h5err
    integer :: file_id
    integer :: group_id
 
@@ -547,14 +792,14 @@ subroutine elsi_read_ev_problem(file_name)
    call hdf5_open_group (file_id, "hamiltonian", group_id)
    
    ! Matrix dimension
-   call hdf5_read_attribute (group_id, "n_matrix_rows", n_dim)
-   call hdf5_read_attribute (group_id, "n_matrix_cols", n_dim)
-   call hdf5_read_attribute (group_id, "n_block_rows", n_block)
-   call hdf5_read_attribute (group_id, "n_block_cols", n_block)
+   call hdf5_read_attribute (group_id, "n_matrix_rows", n_g_rank)
+   call hdf5_read_attribute (group_id, "n_matrix_cols", n_g_rank)
+   call hdf5_read_attribute (group_id, "n_block_rows", n_b_rows)
+   call hdf5_read_attribute (group_id, "n_block_cols", n_b_cols)
 
    ! Hamiltonian Read
-   call hdf5_get_scalapack_pattern(n_dim, n_dim, np_rows, np_cols, &
-         n_rows, n_cols, ip_row, ip_col, n_block, n_block, pattern)
+   call hdf5_get_scalapack_pattern(n_g_rank, n_g_rank, n_p_rows, n_p_cols, &
+         n_l_rows, n_l_cols, my_p_row, my_p_col, n_b_rows, n_b_cols, pattern)
    call hdf5_read_matrix_parallel (group_id, "matrix", H_real, pattern)
    
    call hdf5_close_group (group_id)
@@ -563,10 +808,10 @@ subroutine elsi_read_ev_problem(file_name)
    call hdf5_open_group (file_id, "overlap", group_id)
    
    ! Matrix dimension
-   call hdf5_read_attribute (group_id, "n_matrix_rows", n_dim)
-   call hdf5_read_attribute (group_id, "n_matrix_cols", n_dim)
-   call hdf5_read_attribute (group_id, "n_block_rows", n_block)
-   call hdf5_read_attribute (group_id, "n_block_cols", n_block)
+   call hdf5_read_attribute (group_id, "n_matrix_rows", n_g_rank)
+   call hdf5_read_attribute (group_id, "n_matrix_cols", n_g_rank)
+   call hdf5_read_attribute (group_id, "n_block_rows", n_b_rows)
+   call hdf5_read_attribute (group_id, "n_block_cols", n_b_cols)
 
    ! Overlap Read
    call hdf5_read_matrix_parallel (group_id, "matrix", S_real, pattern)
@@ -590,7 +835,6 @@ subroutine elsi_initialize_problem_from_file(file_name)
 
    character(len=*), intent(in) :: file_name
 
-   integer :: h5err
    integer :: file_id
    integer :: group_id
 
@@ -602,10 +846,10 @@ subroutine elsi_initialize_problem_from_file(file_name)
    call hdf5_open_group (file_id, "hamiltonian", group_id)
 
    ! Matrix dimension
-   call hdf5_read_attribute (group_id, "n_matrix_rows", n_dim)
-   call hdf5_read_attribute (group_id, "n_matrix_cols", n_dim)
-   call hdf5_read_attribute (group_id, "n_block_rows", n_block)
-   call hdf5_read_attribute (group_id, "n_block_cols", n_block)
+   call hdf5_read_attribute (group_id, "n_matrix_rows", n_g_rank)
+   call hdf5_read_attribute (group_id, "n_matrix_cols", n_g_rank)
+   call hdf5_read_attribute (group_id, "n_block_rows", n_b_rows)
+   call hdf5_read_attribute (group_id, "n_block_cols", n_b_rows)
 
    call hdf5_close_group (group_id)
 
@@ -626,7 +870,7 @@ subroutine elsi_solve_ev_problem(n_vectors)
 
    integer, intent(in) :: n_vectors !< Number of eigenvectors to be calculated
 
-   logical success
+   logical :: success
 
    select case (method)
       case (ELPA)
@@ -634,13 +878,17 @@ subroutine elsi_solve_ev_problem(n_vectors)
          !      also we need to choose if 1stage or 2 stage elpa
          select case (mode)
             case (COMPLEX_VALUES)
-               success = solve_evp_complex_2stage(n_dim, n_vectors, H_complex, &
-                     n_dim, eigenvalues, vectors_complex, n_dim, n_block, &
-                     mpi_comm_rows, mpi_comm_cols, mpi_comm_world)
+               success = solve_evp_complex_2stage( &
+                     n_g_rank, n_vectors, H_complex, &
+                     n_g_rank, eigenvalues, vectors_complex, &
+                     n_g_rank, n_b_rows, &
+                     mpi_comm_row, mpi_comm_col, mpi_comm_world)
             case (REAL_VALUES)
-               success = solve_evp_real_2stage(n_dim, n_vectors, H_real, &
-                     n_dim, eigenvalues, vectors_real, n_dim, n_block, &
-                     mpi_comm_rows, mpi_comm_cols, mpi_comm_world)
+               success = solve_evp_real_2stage(&
+                     n_g_rank, n_vectors, H_real, &
+                     n_g_rank, eigenvalues, vectors_real, &
+                     n_g_rank, n_b_rows, &
+                     mpi_comm_row, mpi_comm_col, mpi_comm_world)
          end select
       case (OMM)
          write(*,'(a)') "OMM not implemented yet!"
@@ -654,7 +902,38 @@ subroutine elsi_solve_ev_problem(n_vectors)
          stop
    end select
 
+   call MPI_BARRIER(mpi_comm_world, mpierr)
+
 end subroutine
+
+subroutine elsi_get_eigenvalues(eigenvalues_out,n_eigenvalues)
+
+!>
+!!  This routine gets the eigenvalues 
+
+   implicit none
+
+   integer, intent(in) :: n_eigenvalues !< Number of eigenvalues
+   real*8, intent(out) :: eigenvalues_out(n_eigenvalues) !< eigenvalues 
+   
+   select case (method)
+      case (ELPA)
+            eigenvalues_out(:) = eigenvalues(:)      
+      case (OMM)
+         write(*,'(a)') "OMM not implemented yet!"
+         stop
+      case (PEXSI)
+         write(*,'(a)') "PEXSI not implemented yet!"
+         stop
+      case DEFAULT
+         write(*,'(2a)') "No method has been chosen. ", &
+            "Please choose method ELPA, OMM, or PEXSI"
+         stop
+   end select
+
+
+end subroutine
+
 
 
 subroutine elsi_deallocate_matrices()
@@ -667,13 +946,16 @@ subroutine elsi_deallocate_matrices()
 
    select case (method)
       case (ELPA)
+         deallocate(eigenvalues) 
          select case (mode)
             case (COMPLEX_VALUES)
                deallocate(H_complex)      
                deallocate(S_complex)
+               deallocate(vectors_complex)
             case (REAL_VALUES)
                deallocate(H_real)      
                deallocate(S_real)
+               deallocate(vectors_real)
          end select
       case (OMM)
          write(*,'(a)') "OMM not implemented yet!"

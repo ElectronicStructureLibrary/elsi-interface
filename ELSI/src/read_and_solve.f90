@@ -17,9 +17,11 @@ program readwrite
   ! This is the ELSI test suite
   ! First we will test the writing and reading of a matrix to a file
 
-  integer :: n_eigenvectors = 1
+  integer :: n_eigenvectors = 10
 
   integer :: myid
+  real*8, allocatable :: eigenvals(:)
+  integer :: matrixsize, block_rows, block_cols
 
 
   !  Pharse command line argumnents, if given
@@ -39,12 +41,26 @@ program readwrite
   call elsi_set_mode(REAL_VALUES)
 
   ! Read eigenvalue problem
+  call elsi_allocate_matrices()
   call elsi_read_ev_problem("elsi_eigenvalue_problem.hdf5")
 
+  call elsi_get_global_dimensions(matrixsize,block_rows,block_cols)
+  allocate (eigenvals(matrixsize))
+
   ! Solve the eigenvalue problem
+  if (myid == 0) print *, "Ready to solve"
   call elsi_solve_ev_problem(n_eigenvectors)
+  print *, myid, " Problem solved"
+
+  call elsi_get_eigenvalues(eigenvals, matrixsize)
+
+  if (myid == 0) print *, "Eigenvalues : ", eigenvals
+
+  deallocate(eigenvals)
 
   ! elsi shutdown
-  call elsi_finalize()
+  !if (myid == 0) print *, "Ready to shutdown"
+  !call elsi_finalize()
+  !if (myid == 0) print *, "Shutdown done"
 
 end program

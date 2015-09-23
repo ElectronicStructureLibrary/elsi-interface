@@ -9,11 +9,10 @@ module HDF5_TOOLS
 
   use iso_c_binding
   use HDF5
+  use DIMENSIONS
 
   implicit none
   private
-
-  integer :: h5err !< HDF5 Error Handling 
 
   !> HDF 5 Hyperslap specifics
   integer(HSIZE_T) :: count(2)  !< Number of blocks 

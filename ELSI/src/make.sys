@@ -1,7 +1,7 @@
  # IFORTRAN
  FC = ifort
- FFLAGS = -O3 -ip 
-#FFLAGS = -O0 -ip -g -traceback 
+#FFLAGS = -O3 -ip 
+ FFLAGS = -O0 -ip -g -traceback -check bounds -check uninit 
 
  # MPI
  MPIFC = mpiifort

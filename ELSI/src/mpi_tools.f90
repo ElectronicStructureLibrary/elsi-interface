@@ -8,33 +8,11 @@
 module MPI_TOOLS
 
   use iso_c_binding
+  use DIMENSIONS
 
   implicit none
   private
 
-  ! Coarse grid
-  integer :: np_rows        !< Number of rows (coarse grid)
-  integer :: np_cols        !< Number of cols (coarse grid)
-  
-  ! Sub grid
-  integer :: n_rows        !< Total number of rows for this process
-  integer :: n_cols        !< Total number of columns for this process
-
-  ! MPI variables
-  integer :: myid           !< local process id
-  integer :: mpierr         !< mpi error handler
-  integer :: n_procs        !< number of mpi processes
-
-  ! BLACS variable
-  integer :: blacs_ctxt     !< local blacs context
-  integer :: sc_desc(9)     !< local blacs context
-  integer :: mpi_comm_rows  !< row communicatior
-  integer :: mpi_comm_cols  !< row communicatior
-  integer :: ip_row         !< local row    position
-  integer :: ip_col         !< local column position
-  integer :: info
-  integer :: n_dim
-  integer :: n_block
   integer, external :: numroc
 
   public :: elsi_initialize_mpi
@@ -43,11 +21,13 @@ module MPI_TOOLS
   public :: elsi_get_local_col
   public :: elsi_get_global_row
   public :: elsi_get_global_col
+  public :: elsi_get_global_dimensions
+  public :: elsi_get_local_dimensions
+  public :: elsi_get_processor_grid
+  public :: elsi_get_comm_grid
   public :: elsi_finalize_mpi
   public :: elsi_finalize_blacs
 
-  public :: np_rows, np_cols, n_rows, n_cols, ip_row, ip_col 
-  public :: mpi_comm_rows, mpi_comm_cols
   contains
 
 subroutine elsi_initialize_mpi(myid_out)
@@ -96,53 +76,64 @@ subroutine elsi_finalize_mpi()
 end subroutine
 
 
-subroutine elsi_initialize_blacs(n_dim_in,n_block_in)
+subroutine elsi_initialize_blacs(n_dim_in,n_block_rows,n_block_cols)
 
    implicit none
 
    include "mpif.h"
 
    integer, intent(in) :: n_dim_in   !< dimension of matrix
-   integer, intent(in) :: n_block_in !< dimension of sub blocks
+   integer, intent(in) :: n_block_rows !< dimension of sub blocks
+   integer, intent(in) :: n_block_cols !< dimension of sub blocks
 
-   n_dim   = n_dim_in
-   n_block = n_block_in
+   n_g_rank = n_dim_in
+   n_b_rows = n_block_rows
+   n_b_cols = n_block_cols
 
   ! Define blockcyclic setup
-  do np_cols = NINT(SQRT(REAL(n_procs))),2,-1
-     if(mod(n_procs,np_cols) == 0 ) exit
+  do n_p_cols = NINT(SQRT(REAL(n_procs))),2,-1
+     if(mod(n_procs,n_p_cols) == 0 ) exit
   enddo
 
-  np_rows = n_procs / np_cols
+  n_p_rows = n_procs / n_p_cols
 
 
   ! Set up BLACS and MPI communicators
 
   blacs_ctxt = mpi_comm_world
-  call BLACS_Gridinit( blacs_ctxt, 'C', np_rows, np_cols )
-  call BLACS_Gridinfo( blacs_ctxt, np_rows, np_cols, ip_row, ip_col )
+  call BLACS_Gridinit( blacs_ctxt, 'C', n_p_rows, n_p_cols )
+  call BLACS_Gridinfo( blacs_ctxt, n_p_rows, n_p_cols, my_p_row, my_p_col )
 
-  call mpi_comm_split(mpi_comm_world,ip_col,ip_row,mpi_comm_rows,mpierr)
-  call mpi_comm_split(mpi_comm_world,ip_row,ip_col,mpi_comm_cols,mpierr)
+  call mpi_comm_split(mpi_comm_world,my_p_col,my_p_row,mpi_comm_row,mpierr)
+
+   if (mpierr) then
+      write(*,'(a)') "ELPA: Failed to get ELPA row communicators."
+      stop
+   end if
+ 
+  call mpi_comm_split(mpi_comm_world,my_p_row,my_p_col,mpi_comm_col,mpierr)
 
   if (mpierr) then
-      write(*,'(a)') "ELPA: Failed to get ELPA row / column communicators."
+      write(*,'(a)') "ELPA: Failed to get ELPA column communicators."
       stop
    end if
 
+  n_l_rows = numroc(n_g_rank, n_b_rows, my_p_row, 0, n_p_rows)
+  n_l_cols = numroc(n_g_rank, n_b_cols, my_p_col, 0, n_p_cols)
 
-  n_rows = numroc(n_dim, n_block, ip_row, 0, np_rows)
-  n_cols = numroc(n_dim, n_block, ip_col, 0, np_cols)
-
-  if(myid == 0) print *, 'Global matrixsize: ',n_dim, ' x ', n_dim
-  if(myid == 0) print *, 'Blocksize: ',n_block, ' x ', n_block
-  if(myid == 0) print *, 'Processor grid: ',np_rows, ' x ', np_cols
-  if(myid == 0) print *, 'Local Matrixsize: ',n_rows, ' x ', n_cols
-
+  if(myid == 0) print *, 'Global matrixsize: ',n_g_rank, ' x ', n_g_rank
+  if(myid == 0) print *, 'Blocksize: ',n_b_rows, ' x ', n_b_cols
+  if(myid == 0) print *, 'Processor grid: ',n_p_rows, ' x ', n_p_cols
+  if(myid == 0) print *, 'Local Matrixsize: ',n_l_rows, ' x ', n_l_cols
   call MPI_BARRIER(mpi_comm_world,mpierr)
 
-  call descinit( sc_desc, n_dim, n_dim, n_block, n_block, 0, 0, &
-                 blacs_ctxt, MAX(1,n_rows), info )
+  print *, myid," Id MPI_COMM_WORLD: ", mpi_comm_world
+  print *, myid," Id ip_row/col: ", my_p_row, "/", my_p_col
+  print *, myid," Id MPI_COMM_rows/cols: ", mpi_comm_row, "/", mpi_comm_col
+  call MPI_BARRIER(mpi_comm_world,mpierr)
+
+  call descinit( sc_desc, n_g_rank, n_g_rank, n_b_rows, n_b_cols, 0, 0, &
+                 blacs_ctxt, MAX(1,n_l_rows), blacs_info )
 
 
 end subroutine
@@ -154,7 +145,6 @@ subroutine elsi_finalize_blacs()
    call blacs_gridexit(blacs_ctxt)
 
 end subroutine
-
 
 
 logical function elsi_get_local_row (g_row, p_row, l_row)
@@ -170,13 +160,13 @@ logical function elsi_get_local_row (g_row, p_row, l_row)
 
    elsi_get_local_row = .False.
 
-   p_row = FLOOR ( 1d0 * MOD(g_row-1,n_block*np_rows) / n_block)
-   b_row = FLOOR ( 1d0 * (g_row - 1) / n_block / np_rows)
-   i_row = MOD( (g_row - 1), n_block) + 1
+   p_row = FLOOR ( 1d0 * MOD(g_row-1,n_b_rows * n_p_rows) / n_b_rows)
+   b_row = FLOOR ( 1d0 * (g_row - 1) / n_b_rows / n_p_rows)
+   i_row = MOD( (g_row - 1), n_b_rows) + 1
 
-   l_row = b_row * n_block + i_row
+   l_row = b_row * n_b_rows + i_row
    
-   if (p_row == ip_row) elsi_get_local_row = .True.
+   if (p_row == my_p_row) elsi_get_local_row = .True.
 
 end function
 
@@ -192,10 +182,10 @@ subroutine elsi_get_global_row (g_row, p_row, l_row)
    integer :: i_row !< local row index
 
 
-   b_row = FLOOR( 1d0 * (l_row - 1) / n_block) 
-   i_row = l_row - b_row * n_block
+   b_row = FLOOR( 1d0 * (l_row - 1) / n_b_rows) 
+   i_row = l_row - b_row * n_b_rows
 
-   g_row = p_row * n_block + b_row * np_rows * n_block + i_row
+   g_row = p_row * n_b_rows + b_row * n_p_rows * n_b_rows + i_row
   
 end subroutine
 
@@ -212,13 +202,13 @@ logical function elsi_get_local_col (g_col, p_col, l_col)
 
    elsi_get_local_col = .False.
 
-   p_col = FLOOR ( 1d0 * MOD(g_col-1,n_block*np_cols) / n_block)
-   b_col = FLOOR ( 1d0 * (g_col - 1) / n_block / np_cols)
-   i_col = MOD( (g_col - 1), n_block) + 1
+   p_col = FLOOR ( 1d0 * MOD(g_col-1,n_b_cols * n_p_cols) / n_b_cols)
+   b_col = FLOOR ( 1d0 * (g_col - 1) / n_b_cols / n_p_cols)
+   i_col = MOD( (g_col - 1), n_b_cols) + 1
 
-   l_col = b_col * n_block + i_col
+   l_col = b_col * n_b_cols + i_col
 
-   if (p_col == ip_col) elsi_get_local_col = .True.
+   if (p_col == my_p_col) elsi_get_local_col = .True.
 
 end function
 
@@ -234,11 +224,62 @@ subroutine elsi_get_global_col (g_col, p_col, l_col)
    integer :: i_col !< local col index
 
 
-   b_col = FLOOR( 1d0 * (l_col - 1) / n_block) 
-   i_col = l_col - b_col * n_block
+   b_col = FLOOR( 1d0 * (l_col - 1) / n_b_cols) 
+   i_col = l_col - b_col * n_b_cols
 
-   g_col = p_col * n_block + b_col * np_cols * n_block + i_col
+   g_col = p_col * n_b_cols + b_col * n_p_cols * n_b_cols + i_col
   
 end subroutine
+
+subroutine elsi_get_global_dimensions (g_dim, g_block_rows, g_block_cols)
+
+   implicit none
+
+   integer, intent(out) :: g_dim   !< global rank
+   integer, intent(out) :: g_block_rows !< global blocksize
+   integer, intent(out) :: g_block_cols !< global blocksize
+
+   g_dim   = n_g_rank 
+   g_block_rows = n_b_rows
+   g_block_cols = n_b_cols
+
+end subroutine
+
+subroutine elsi_get_local_dimensions (rows, cols)
+
+   implicit none
+
+   integer, intent(out) :: rows   !< output local rows
+   integer, intent(out) :: cols   !< output local cols
+
+   rows  = n_l_rows 
+   cols  = n_l_cols
+
+end subroutine
+
+subroutine elsi_get_processor_grid (rows, cols)
+
+   implicit none
+
+   integer, intent(out) :: rows   !< output processor rows
+   integer, intent(out) :: cols   !< output processor cols
+
+   rows  = n_p_rows 
+   cols  = n_p_cols
+
+end subroutine
+
+subroutine elsi_get_comm_grid (rows, cols)
+
+   implicit none
+
+   integer, intent(out) :: rows   !< output row communicator
+   integer, intent(out) :: cols   !< output col communicator
+
+   rows  = mpi_comm_row 
+   cols  = mpi_comm_col
+
+end subroutine
+
 
 end module MPI_TOOLS
