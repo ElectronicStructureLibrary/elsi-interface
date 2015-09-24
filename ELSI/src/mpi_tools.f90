@@ -14,6 +14,7 @@ module MPI_TOOLS
   implicit none
   private
 
+  !> Calculates the local matrix dimensions based on the BLACS grid
   integer, external :: numroc
 
   public :: elsi_initialize_mpi
@@ -29,6 +30,9 @@ module MPI_TOOLS
 
   contains
 
+!> 
+!! Initialize MPI
+!!
 subroutine elsi_initialize_mpi(myid_out)
 
    implicit none
@@ -61,6 +65,9 @@ subroutine elsi_initialize_mpi(myid_out)
 
 end subroutine
 
+!> 
+!! Finalize MPI
+!!
 subroutine elsi_finalize_mpi()
 
    implicit none
@@ -77,6 +84,9 @@ subroutine elsi_finalize_mpi()
 end subroutine
 
 
+!> 
+!! Initialize BLACS Grid
+!!
 subroutine elsi_initialize_blacs()
 
    implicit none
@@ -130,6 +140,9 @@ subroutine elsi_initialize_blacs()
 
 end subroutine
 
+!> 
+!! Finalize BLACS grid
+!!
 subroutine elsi_finalize_blacs()
 
    implicit none
@@ -138,6 +151,9 @@ subroutine elsi_finalize_blacs()
 
 end subroutine
 
+!> 
+!! Computes global row index based on local row index
+!!
 subroutine elsi_get_global_row (global_idx, local_idx)
 
    implicit none
@@ -156,6 +172,10 @@ subroutine elsi_get_global_row (global_idx, local_idx)
   
 end subroutine
 
+
+!> 
+!! Computes global column index based on local column index
+!!
 subroutine elsi_get_global_col (global_idx, local_idx)
 
    implicit none
@@ -174,6 +194,9 @@ subroutine elsi_get_global_col (global_idx, local_idx)
   
 end subroutine
 
+!> 
+!! Gets global matrix specifications such as rank and block dimensions
+!!
 subroutine elsi_get_global_dimensions (g_dim, g_block_rows, g_block_cols)
 
    implicit none
@@ -188,6 +211,9 @@ subroutine elsi_get_global_dimensions (g_dim, g_block_rows, g_block_cols)
 
 end subroutine
 
+!> 
+!! Gets the local matrix dimensions
+!!
 subroutine elsi_get_local_dimensions (rows, cols)
 
    implicit none
@@ -200,6 +226,9 @@ subroutine elsi_get_local_dimensions (rows, cols)
 
 end subroutine
 
+!> 
+!! Get the processor grid as specified by BLACS
+!!
 subroutine elsi_get_processor_grid (rows, cols)
 
    implicit none
@@ -212,6 +241,10 @@ subroutine elsi_get_processor_grid (rows, cols)
 
 end subroutine
 
+
+!> 
+!! Gets the row and column communicators for ELPA
+!!
 subroutine elsi_get_comm_grid (rows, cols)
 
    implicit none

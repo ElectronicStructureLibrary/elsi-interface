@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['elsi',['elsi',['../namespaceelsi.html',1,'']]]
+  ['dimensions',['dimensions',['../namespacedimensions.html',1,'']]]
 ];

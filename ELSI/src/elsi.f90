@@ -100,11 +100,11 @@ module ELSI
 
 contains
 
+!>
+!!  This routine sets the matrix dimensions for the eigenvalue problem
+!!
 subroutine elsi_initialize_problem(matrixsize, block_rows, block_cols)
 
-   !>
-   !!  This routine sets the method of choice for solving the eigenvalue problem
-   !!
 
    implicit none
 
@@ -119,11 +119,11 @@ subroutine elsi_initialize_problem(matrixsize, block_rows, block_cols)
 end subroutine
 
 
+!>
+!!  This routine sets the method of choice for solving the eigenvalue problem
+!!
 subroutine elsi_set_method(i_method)
 
-   !>
-   !!  This routine sets the method of choice for solving the eigenvalue problem
-   !!
 
    implicit none
 
@@ -147,11 +147,11 @@ subroutine elsi_set_method(i_method)
 
 end subroutine
 
+!>
+!!  This routine sets the mode of the eigenvalue solver (Real or Complex)
+!!
 subroutine elsi_set_mode(i_mode)
 
-   !>
-   !!  This routine sets the mode of the eigenvalue solver (Real or Complex)
-   !!
 
    implicit none
 
@@ -162,11 +162,11 @@ subroutine elsi_set_mode(i_mode)
 
 end subroutine 
 
-subroutine elsi_allocate_matrices()
-
 !>
 !!  This routine prepares the matrices based on the dimension and method
 !!  specified
+subroutine elsi_allocate_matrices()
+
 
    implicit none
 
@@ -201,10 +201,11 @@ subroutine elsi_allocate_matrices()
    end select
 end subroutine
 
+!>
+!!  This routine sets the element (i_row, i_col) real hamiltonian matrix 
+!!
 subroutine elsi_set_real_hamiltonian_element(element,i_row,i_col)
 
-!>
-!!  This routine sets the real hamiltonian matrix 
 
    implicit none
 
@@ -237,10 +238,11 @@ subroutine elsi_set_real_hamiltonian_element(element,i_row,i_col)
 end subroutine
 
 
+!>
+!!  This routine sets the full local real hamiltonian matrix 
+!!
 subroutine elsi_set_real_hamiltonian(h,n_rows,n_cols)
 
-!>
-!!  This routine sets the real hamiltonian matrix 
 
    implicit none
 
@@ -272,10 +274,12 @@ subroutine elsi_set_real_hamiltonian(h,n_rows,n_cols)
 
 end subroutine
 
+!>
+!!  This routine sets the element (i_row, i_col) in the complex 
+!!  hamiltonian matrix 
+!!
 subroutine elsi_set_complex_hamiltonian_element(element,i_row,i_col)
 
-!>
-!!  This routine sets the real hamiltonian matrix 
 
    implicit none
 
@@ -307,11 +311,10 @@ subroutine elsi_set_complex_hamiltonian_element(element,i_row,i_col)
 
 end subroutine
 
-
-subroutine elsi_set_complex_hamiltonian(h,n_rows,n_cols)
-
 !>
-!!  This routine sets the complex hamiltonian matrix 
+!!  This routine sets the full complex hamiltonian matrix 
+!!
+subroutine elsi_set_complex_hamiltonian(h,n_rows,n_cols)
 
    implicit none
 
@@ -343,10 +346,11 @@ subroutine elsi_set_complex_hamiltonian(h,n_rows,n_cols)
 
 end subroutine
 
-subroutine elsi_set_real_overlap_element(element,i_row,i_col)
-
 !>
-!!  This routine sets the real overlap element 
+!!  This routine sets the element (i_row, i_col) in the real 
+!!  overlap matrix 
+!!
+subroutine elsi_set_real_overlap_element(element,i_row,i_col)
 
    implicit none
 
@@ -375,19 +379,25 @@ subroutine elsi_set_real_overlap_element(element,i_row,i_col)
          stop
    end select
 
+   overlap_is_unity = .False.
+
 
 end subroutine
 
+!>
+!!  This routine symmetrizes an upper or lower triangle hamiltonian
+!!
 subroutine elsi_symmetrize_hamiltonian()
 
-  !>
-  !!  This routine symmetrizes an upper or lower triangle hamiltonian
 
   implicit none
 
   real*8,     allocatable :: buffer_real   (:,:)
   complex*16, allocatable :: buffer_complex(:,:)
   complex*16, parameter :: CONE = (1d0,0d0)
+
+  integer :: l_row, l_col  !< local matrix indices
+  integer :: g_row, g_col  !< global matrix indices
 
   select case (method)
       case (ELPA)
@@ -398,6 +408,17 @@ subroutine elsi_symmetrize_hamiltonian()
                   1.d0, buffer_real, 1, 1, sc_desc, &
                   1.d0, H_real, 1, 1, sc_desc)
             deallocate(buffer_real)
+            
+            do l_row = 1, n_l_rows
+               call elsi_get_global_row(g_row, l_row)
+               do l_col = l_row, n_l_cols
+                  call elsi_get_global_col(g_col, l_col)
+                  if (g_row == g_col) then
+                     H_real(l_row,l_col) = 0.5d0 * H_real(l_row,l_col)
+                  end if
+               end do
+            end do
+
          else  
             allocate(buffer_complex (n_l_rows, n_l_cols))
             buffer_complex = H_complex
@@ -405,6 +426,17 @@ subroutine elsi_symmetrize_hamiltonian()
                   CONE, buffer_complex, 1, 1, sc_desc, &
                   CONE, H_complex, 1, 1, sc_desc)
             deallocate(buffer_complex)
+
+            do l_row = 1, n_l_rows
+               call elsi_get_global_row(g_row, l_row)
+               do l_col = l_row, n_l_cols
+                  call elsi_get_global_col(g_col, l_col)
+                  if (g_row == g_col) then
+                     H_complex(l_row,l_col) = 0.5d0 * H_complex(l_row,l_col)
+                  end if
+               end do
+            end do
+
          end if
       case (OMM)
          write(*,'(a)') "OMM not implemented yet!"
@@ -420,6 +452,9 @@ subroutine elsi_symmetrize_hamiltonian()
 
 end subroutine 
 
+!>
+!!  This routine symmetrizes an upper or lower triangle overlap
+!!
 subroutine elsi_symmetrize_overlap()
 
    !>
@@ -431,6 +466,9 @@ subroutine elsi_symmetrize_overlap()
   complex*16, allocatable :: buffer_complex(:,:)
   complex*16, parameter :: CONE = (1d0,0d0)
 
+  integer :: l_row, l_col  !< local matrix indices
+  integer :: g_row, g_col  !< global matrix indices
+  
   select case (method)
       case (ELPA)
          if (mode == REAL_VALUES) then
@@ -440,6 +478,17 @@ subroutine elsi_symmetrize_overlap()
                   1.d0, buffer_real, 1, 1, sc_desc, &
                   1.d0, S_real, 1, 1, sc_desc)
             deallocate(buffer_real)
+
+            do l_row = 1, n_l_rows
+               call elsi_get_global_row(g_row, l_row)
+               do l_col = l_row, n_l_cols
+                  call elsi_get_global_col(g_col, l_col)
+                  if (g_row == g_col) then
+                     S_real(l_row,l_col) = 0.5d0 * S_real(l_row,l_col)
+                  end if
+               end do
+            end do
+
          else  
             allocate(buffer_complex (n_l_rows, n_l_cols))
             buffer_complex = S_complex
@@ -447,6 +496,17 @@ subroutine elsi_symmetrize_overlap()
                   CONE, buffer_complex, 1, 1, sc_desc, &
                   CONE, S_complex, 1, 1, sc_desc)
             deallocate(buffer_complex)
+
+            do l_row = 1, n_l_rows
+               call elsi_get_global_row(g_row, l_row)
+               do l_col = l_row, n_l_cols
+                  call elsi_get_global_col(g_col, l_col)
+                  if (g_row == g_col) then
+                     S_complex(l_row,l_col) = 0.5d0 * S_complex(l_row,l_col)
+                  end if
+               end do
+            end do
+
          end if
       case (OMM)
          write(*,'(a)') "OMM not implemented yet!"
@@ -464,10 +524,10 @@ end subroutine
 
 
 
-subroutine elsi_set_real_overlap(s,n_rows,n_cols)
-
 !>
-!!  This routine sets the real overlap matrix 
+!!  This routine sets the real overlap matrix
+!!
+subroutine elsi_set_real_overlap(s,n_rows,n_cols)
 
    implicit none
 
@@ -496,13 +556,14 @@ subroutine elsi_set_real_overlap(s,n_rows,n_cols)
          stop
    end select
 
+   overlap_is_unity = .False.
 
 end subroutine
 
-subroutine elsi_set_complex_overlap_element(element,i_row,i_col)
-
 !>
-!!  This routine sets the real overlap element 
+!!  This routine sets one element (i_row, i_col) of the complex overlap matrix
+!!
+subroutine elsi_set_complex_overlap_element(element,i_row,i_col)
 
    implicit none
 
@@ -531,14 +592,16 @@ subroutine elsi_set_complex_overlap_element(element,i_row,i_col)
          stop
    end select
 
+   overlap_is_unity = .False.
+
 
 end subroutine
 
 
-subroutine elsi_set_complex_overlap(s,n_rows,n_cols)
-
 !>
-!!  This routine sets the hamiltonian matrix 
+!!  This routine sets the full complex overlap matrix
+!!
+subroutine elsi_set_complex_overlap(s,n_rows,n_cols)
 
    implicit none
 
@@ -567,13 +630,15 @@ subroutine elsi_set_complex_overlap(s,n_rows,n_cols)
          stop
    end select
 
+   overlap_is_unity = .False.
 
 end subroutine
 
+!>
+!!  This routine gets the real hamiltonian matrix
+!!
 subroutine elsi_get_real_hamiltonian(h,n_rows,n_cols)
 
-!>
-!!  This routine gets the real hamiltonian matrix 
 
    implicit none
 
@@ -605,11 +670,10 @@ subroutine elsi_get_real_hamiltonian(h,n_rows,n_cols)
 
 end subroutine
 
-
-subroutine elsi_get_complex_hamiltonian(h,n_rows,n_cols)
-
 !>
 !!  This routine gets the complex hamiltonian matrix 
+!!
+subroutine elsi_get_complex_hamiltonian(h,n_rows,n_cols)
 
    implicit none
 
@@ -641,10 +705,10 @@ subroutine elsi_get_complex_hamiltonian(h,n_rows,n_cols)
 
 end subroutine
 
-subroutine elsi_get_real_overlap(s,n_rows,n_cols)
-
 !>
-!!  This routine gets the real overlap matrix 
+!!  This routine gets the real overlap matrix
+!!
+subroutine elsi_get_real_overlap(s,n_rows,n_cols)
 
    implicit none
 
@@ -676,10 +740,11 @@ subroutine elsi_get_real_overlap(s,n_rows,n_cols)
 
 end subroutine
 
-subroutine elsi_get_complex_overlap(s,n_rows,n_cols)
-
 !>
 !!  This routine gets the complex overlap matrix 
+!!
+subroutine elsi_get_complex_overlap(s,n_rows,n_cols)
+
 
    implicit none
 
@@ -711,20 +776,19 @@ subroutine elsi_get_complex_overlap(s,n_rows,n_cols)
 
 end subroutine
 
-subroutine elsi_write_ev_problem(file_name)
-
 !>
 !!  This routine writes the complete eigenvalue problem into a file
+!!
+subroutine elsi_write_ev_problem(file_name)
+
 
    implicit none
    include "mpif.h"
 
-   character(len=*), intent(in) :: file_name
+   character(len=*), intent(in) :: file_name !< File name where to write
 
-   integer :: file_id
-   integer :: group_id
-
-   logical :: pattern
+   integer :: file_id   !< HDF5 File identifier
+   integer :: group_id  !< HDF5 Group identifier
 
    call hdf5_initialize ()
 
@@ -739,7 +803,7 @@ subroutine elsi_write_ev_problem(file_name)
    call hdf5_write_attribute (group_id, "n_block_rows", n_b_rows)
    call hdf5_write_attribute (group_id, "n_block_cols", n_b_cols)
 
-   !TODO Hamiltonian Write
+   ! Hamiltonian Write
    call hdf5_get_scalapack_pattern()
    
    call hdf5_write_matrix_parallel (group_id, "matrix", H_real)
@@ -755,7 +819,7 @@ subroutine elsi_write_ev_problem(file_name)
    call hdf5_write_attribute (group_id, "n_block_rows", n_b_rows)
    call hdf5_write_attribute (group_id, "n_block_cols", n_b_cols)
 
-   !TODO Overlap Write
+   ! Overlap Write
    call hdf5_write_matrix_parallel (group_id, "matrix", S_real)
    call hdf5_close_group (group_id)
 
@@ -765,20 +829,19 @@ subroutine elsi_write_ev_problem(file_name)
 
 end subroutine
 
-subroutine elsi_read_ev_problem(file_name)
-
 !>
 !!  This routine reads the eigenvalue problem from a file
+!!
+subroutine elsi_read_ev_problem(file_name)
+
 
    implicit none
    include "mpif.h"
    
-   character(len=*), intent(in) :: file_name
+   character(len=*), intent(in) :: file_name !< File to open
 
-   integer :: file_id
-   integer :: group_id
-
-   logical :: pattern
+   integer :: file_id  !< HDF5 File identifier
+   integer :: group_id !< HDF5 Group identifier
 
    call hdf5_initialize ()
 
@@ -819,19 +882,19 @@ subroutine elsi_read_ev_problem(file_name)
 
 end subroutine
 
+!>
+!!  This routine sets the method of choice for solving the eigenvalue problem
+!!
 subroutine elsi_initialize_problem_from_file(file_name)
 
-   !>
-   !!  This routine sets the method of choice for solving the eigenvalue problem
-   !!
 
    implicit none
    include "mpif.h"
 
-   character(len=*), intent(in) :: file_name
+   character(len=*), intent(in) :: file_name !< File to open
 
-   integer :: file_id
-   integer :: group_id
+   integer :: file_id  !< HDF5 File identifier 
+   integer :: group_id !< HDF5 Group identifier
 
    call hdf5_initialize ()
 
@@ -855,10 +918,11 @@ subroutine elsi_initialize_problem_from_file(file_name)
 
 end subroutine
 
+!>
+!!  This routine interfaces to the eigenvalue solvers
+!!
 subroutine elsi_solve_ev_problem(n_vectors)
 
-   !>
-   !!  This routine interfaces to the possible eigenvalue solvers
 
    implicit none
    include "mpif.h"
@@ -866,11 +930,18 @@ subroutine elsi_solve_ev_problem(n_vectors)
    integer, intent(in) :: n_vectors !< Number of eigenvectors to be calculated
 
    logical :: success
+   logical :: two_step_solver
 
+   two_step_solver = .True.
    select case (method)
       case (ELPA)
-         ! TODO if S is not 1 we need the cholesky decomposition first
-         !      also we need to choose if 1stage or 2 stage elpa
+         if (1d0 * n_vectors/n_g_rank > elpa_step_switch) then
+           two_step_solver = .False.
+         end if 
+         if (two_step_solver) then
+         if (.not. overlap_is_unity) then
+            call elsi_to_standard_eigenvalue_problem ()
+         end if
          select case (mode)
             case (COMPLEX_VALUES)
                success = solve_evp_complex_2stage( &
@@ -885,6 +956,23 @@ subroutine elsi_solve_ev_problem(n_vectors)
                      n_l_rows, n_b_rows,&
                      mpi_comm_row, mpi_comm_col, mpi_comm_global)
          end select
+         else
+         select case (mode)
+            case (COMPLEX_VALUES)
+               success = solve_evp_complex( &
+                     n_g_rank, n_vectors, H_complex, &
+                     n_l_rows, eigenvalues, vectors_complex, &
+                     n_l_rows, n_b_rows, &
+                     mpi_comm_row, mpi_comm_col)
+            case (REAL_VALUES)
+               success = solve_evp_real( &
+                     n_g_rank, n_vectors, H_real, &
+                     n_l_rows, eigenvalues, vectors_real, &
+                     n_l_rows, n_b_rows,&
+                     mpi_comm_row, mpi_comm_col)
+         end select
+
+         end if
        
          if (.not.success) then
             write(*,'(a)') "ELPA failed."
@@ -907,10 +995,11 @@ subroutine elsi_solve_ev_problem(n_vectors)
 
 end subroutine
 
+!>
+!!  This routine gets the eigenvalues
+!!
 subroutine elsi_get_eigenvalues(eigenvalues_out,n_eigenvalues)
 
-!>
-!!  This routine gets the eigenvalues 
 
    implicit none
 
@@ -937,11 +1026,11 @@ end subroutine
 
 
 
-subroutine elsi_deallocate_matrices()
-
 !>
 !!  This routine prepares the matrices based on the dimension and method
 !!  specified
+!!
+subroutine elsi_deallocate_matrices()
 
    implicit none
 
@@ -972,11 +1061,10 @@ subroutine elsi_deallocate_matrices()
 
 end subroutine
 
+!>
+!!  This routine prepares the matrices based on the dimension and method
+!!  specified
 subroutine elsi_finalize()
-
-   !>
-   !!  This routine prepares the matrices based on the dimension and method
-   !!  specified
 
    implicit none
    include "mpif.h"
@@ -988,6 +1076,69 @@ subroutine elsi_finalize()
    call elsi_finalize_blacs()
 
    call elsi_finalize_mpi()
+
+end subroutine
+
+!> 
+!! This routine transforms a general eigenvalue problem to standart form 
+!!
+subroutine elsi_to_standard_eigenvalue_problem()
+
+   logical :: success  !< Success flag of eigensolver
+   real*8,     allocatable :: buffer_real (:,:) !< real valued matrix buffer
+   complex*16, allocatable :: buffer_complex (:,:) !< complex valued matrix buffer
+
+   select case (method)
+      case (ELPA)
+         select case (mode)
+            case (COMPLEX_VALUES)
+                write(*,'(a)') "COMPLEX Chloesky not implemented yet!"
+                stop
+            case (REAL_VALUES)
+               allocate (buffer_real(n_l_rows, n_l_cols))
+               buffer_real = 0d0
+               ! S = U^T U
+               call cholesky_real( &
+                     n_g_rank, S_real, &
+                     n_l_rows, n_b_rows,&
+                     mpi_comm_row, mpi_comm_col, .False., success)
+               ! calc U-1
+               call invert_trm_real( &
+                     n_g_rank, S_real, &
+                     n_l_rows, n_b_rows, &
+                     mpi_comm_row, mpi_comm_col, .False., success)
+               call mult_at_b_real('U','L', n_g_rank, n_g_rank, S_real, &
+                     n_l_rows, H_real, n_l_rows, n_b_rows, &
+                     mpi_comm_row, mpi_comm_col, &
+                     buffer_real, n_l_rows)
+               call pdtran(n_g_rank, n_g_rank, 1.d0, buffer_real, &
+                     1, 1, sc_desc, &
+                     0.d0, H_real, 1, 1, sc_desc)
+               buffer_real = H_real
+               call mult_at_b_real('U','U', n_g_rank, n_g_rank, S_real, &
+                     n_l_rows, buffer_real, n_l_rows, n_b_rows, &
+                     mpi_comm_row, mpi_comm_col, &
+                     H_real, n_l_rows)
+
+               call elsi_symmetrize_hamiltonian () 
+
+         end select
+         if (.not.success) then
+            write(*,'(a)') "ELPA failed."
+            stop
+         end if
+
+      case (OMM)
+         write(*,'(a)') "OMM not implemented yet!"
+         stop
+      case (PEXSI)
+         write(*,'(a)') "PEXSI not implemented yet!"
+         stop
+      case DEFAULT
+         write(*,'(2a)') "No method has been chosen. ", &
+            "Please choose method ELPA, OMM, or PEXSI"
+         stop
+   end select
 
 end subroutine
 

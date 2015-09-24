@@ -8,79 +8,36 @@ E\+L\+S\+I Interchange.
 \subsection*{Functions/\+Subroutines}
 \begin{DoxyCompactItemize}
 \item 
-\hypertarget{namespacempi__tools_a339ffffa5553a6d0cc03bd478c4aad56}{}subroutine, public {\bfseries elsi\+\_\+initialize\+\_\+mpi} (myid\+\_\+out)\label{namespacempi__tools_a339ffffa5553a6d0cc03bd478c4aad56}
+\hypertarget{namespacempi__tools_a339ffffa5553a6d0cc03bd478c4aad56}{}subroutine, public \hyperlink{namespacempi__tools_a339ffffa5553a6d0cc03bd478c4aad56}{elsi\+\_\+initialize\+\_\+mpi} (myid\+\_\+out)\label{namespacempi__tools_a339ffffa5553a6d0cc03bd478c4aad56}
 
-\item 
-\hypertarget{namespacempi__tools_a64bd78c07c0715573d7517a2a130d609}{}subroutine, public {\bfseries elsi\+\_\+finalize\+\_\+mpi} ()\label{namespacempi__tools_a64bd78c07c0715573d7517a2a130d609}
+\begin{DoxyCompactList}\small\item\em Initialize M\+P\+I. \end{DoxyCompactList}\item 
+\hypertarget{namespacempi__tools_a64bd78c07c0715573d7517a2a130d609}{}subroutine, public \hyperlink{namespacempi__tools_a64bd78c07c0715573d7517a2a130d609}{elsi\+\_\+finalize\+\_\+mpi} ()\label{namespacempi__tools_a64bd78c07c0715573d7517a2a130d609}
 
-\item 
-subroutine, public \hyperlink{namespacempi__tools_a3b7b2751959e5478de68e76a1baabb9b}{elsi\+\_\+initialize\+\_\+blacs} (n\+\_\+dim\+\_\+in, n\+\_\+block\+\_\+in)
-\item 
-\hypertarget{namespacempi__tools_a12c0b5f94b66cdc0ef469691eeeb6f7f}{}subroutine, public {\bfseries elsi\+\_\+finalize\+\_\+blacs} ()\label{namespacempi__tools_a12c0b5f94b66cdc0ef469691eeeb6f7f}
+\begin{DoxyCompactList}\small\item\em Finalize M\+P\+I. \end{DoxyCompactList}\item 
+\hypertarget{namespacempi__tools_a0ecb8273f1c5b7d1b277874a7964bd1d}{}subroutine, public \hyperlink{namespacempi__tools_a0ecb8273f1c5b7d1b277874a7964bd1d}{elsi\+\_\+initialize\+\_\+blacs} ()\label{namespacempi__tools_a0ecb8273f1c5b7d1b277874a7964bd1d}
 
-\item 
-logical function, public \hyperlink{namespacempi__tools_ad64b68016d44800009c91144353f0fc8}{elsi\+\_\+get\+\_\+local\+\_\+row} (g\+\_\+row, p\+\_\+row, l\+\_\+row)
-\item 
-subroutine, public \hyperlink{namespacempi__tools_a839b08ee7d36a54132ccb950c8f97278}{elsi\+\_\+get\+\_\+global\+\_\+row} (g\+\_\+row, p\+\_\+row, l\+\_\+row)
-\item 
-logical function, public \hyperlink{namespacempi__tools_a0fe5732ac6dc07b0132cd7375612a60c}{elsi\+\_\+get\+\_\+local\+\_\+col} (g\+\_\+col, p\+\_\+col, l\+\_\+col)
-\item 
-subroutine, public \hyperlink{namespacempi__tools_ace6ebd211463804356231d4ebf3389d7}{elsi\+\_\+get\+\_\+global\+\_\+col} (g\+\_\+col, p\+\_\+col, l\+\_\+col)
-\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em Initialize B\+L\+A\+C\+S Grid. \end{DoxyCompactList}\item 
+\hypertarget{namespacempi__tools_a12c0b5f94b66cdc0ef469691eeeb6f7f}{}subroutine, public \hyperlink{namespacempi__tools_a12c0b5f94b66cdc0ef469691eeeb6f7f}{elsi\+\_\+finalize\+\_\+blacs} ()\label{namespacempi__tools_a12c0b5f94b66cdc0ef469691eeeb6f7f}
+
+\begin{DoxyCompactList}\small\item\em Finalize B\+L\+A\+C\+S grid. \end{DoxyCompactList}\item 
+subroutine, public \hyperlink{namespacempi__tools_a3fa1d32ce548146736f4c270cf1e9d9f}{elsi\+\_\+get\+\_\+global\+\_\+row} (global\+\_\+idx, local\+\_\+idx)
+\begin{DoxyCompactList}\small\item\em Computes global row index based on local row index. \end{DoxyCompactList}\item 
+subroutine, public \hyperlink{namespacempi__tools_a17c5d512655384ab86d658548cda1525}{elsi\+\_\+get\+\_\+global\+\_\+col} (global\+\_\+idx, local\+\_\+idx)
+\begin{DoxyCompactList}\small\item\em Computes global column index based on local column index. \end{DoxyCompactList}\item 
+subroutine, public \hyperlink{namespacempi__tools_a18e3203faf14db998f265fa779a076e6}{elsi\+\_\+get\+\_\+global\+\_\+dimensions} (g\+\_\+dim, g\+\_\+block\+\_\+rows, g\+\_\+block\+\_\+cols)
+\begin{DoxyCompactList}\small\item\em Gets global matrix specifications such as rank and block dimensions. \end{DoxyCompactList}\item 
+subroutine, public \hyperlink{namespacempi__tools_aa24bc8448a5c6af4608ad752e692cb5c}{elsi\+\_\+get\+\_\+local\+\_\+dimensions} (rows, cols)
+\begin{DoxyCompactList}\small\item\em Gets the local matrix dimensions. \end{DoxyCompactList}\item 
+subroutine, public \hyperlink{namespacempi__tools_aa9343d548ec1446e891be7c5869f3d04}{elsi\+\_\+get\+\_\+processor\+\_\+grid} (rows, cols)
+\begin{DoxyCompactList}\small\item\em Get the processor grid as specified by B\+L\+A\+C\+S. \end{DoxyCompactList}\item 
+subroutine, public \hyperlink{namespacempi__tools_afdc591a3869677887dd297a27e3c1969}{elsi\+\_\+get\+\_\+comm\+\_\+grid} (rows, cols)
+\begin{DoxyCompactList}\small\item\em Gets the row and column communicators for E\+L\+P\+A. \end{DoxyCompactList}\end{DoxyCompactItemize}
 \subsection*{Variables}
 \begin{DoxyCompactItemize}
 \item 
-\hypertarget{namespacempi__tools_a2cd56c685e206873eb442373ecc65ce3}{}integer, public \hyperlink{namespacempi__tools_a2cd56c685e206873eb442373ecc65ce3}{np\+\_\+rows}\label{namespacempi__tools_a2cd56c685e206873eb442373ecc65ce3}
+\hypertarget{namespacempi__tools_a3affe5df388ed8093ebfd5d87f8c2827}{}integer, external \hyperlink{namespacempi__tools_a3affe5df388ed8093ebfd5d87f8c2827}{numroc}\label{namespacempi__tools_a3affe5df388ed8093ebfd5d87f8c2827}
 
-\begin{DoxyCompactList}\small\item\em Number of rows (coarse grid) \end{DoxyCompactList}\item 
-\hypertarget{namespacempi__tools_a27b553237754653c1ccc5b214c851c5b}{}integer, public \hyperlink{namespacempi__tools_a27b553237754653c1ccc5b214c851c5b}{np\+\_\+cols}\label{namespacempi__tools_a27b553237754653c1ccc5b214c851c5b}
-
-\begin{DoxyCompactList}\small\item\em Number of cols (coarse grid) \end{DoxyCompactList}\item 
-\hypertarget{namespacempi__tools_a2f5b133c9f71ef0be89ad7e98527b16a}{}integer, public \hyperlink{namespacempi__tools_a2f5b133c9f71ef0be89ad7e98527b16a}{n\+\_\+rows}\label{namespacempi__tools_a2f5b133c9f71ef0be89ad7e98527b16a}
-
-\begin{DoxyCompactList}\small\item\em Total number of rows for this process. \end{DoxyCompactList}\item 
-\hypertarget{namespacempi__tools_a7268786bfda0663898367d2a2bce4d43}{}integer, public \hyperlink{namespacempi__tools_a7268786bfda0663898367d2a2bce4d43}{n\+\_\+cols}\label{namespacempi__tools_a7268786bfda0663898367d2a2bce4d43}
-
-\begin{DoxyCompactList}\small\item\em Total number of columns for this process. \end{DoxyCompactList}\item 
-\hypertarget{namespacempi__tools_ad3cb5feb291992c32fc58d49f150d5bf}{}integer \hyperlink{namespacempi__tools_ad3cb5feb291992c32fc58d49f150d5bf}{myid}\label{namespacempi__tools_ad3cb5feb291992c32fc58d49f150d5bf}
-
-\begin{DoxyCompactList}\small\item\em local process id \end{DoxyCompactList}\item 
-\hypertarget{namespacempi__tools_a7b71c04b18a6a4fd86f0587e3fa4e048}{}integer \hyperlink{namespacempi__tools_a7b71c04b18a6a4fd86f0587e3fa4e048}{mpierr}\label{namespacempi__tools_a7b71c04b18a6a4fd86f0587e3fa4e048}
-
-\begin{DoxyCompactList}\small\item\em mpi error handler \end{DoxyCompactList}\item 
-\hypertarget{namespacempi__tools_a34d9e761c8198c44c2241b4112ce9ddd}{}integer \hyperlink{namespacempi__tools_a34d9e761c8198c44c2241b4112ce9ddd}{n\+\_\+procs}\label{namespacempi__tools_a34d9e761c8198c44c2241b4112ce9ddd}
-
-\begin{DoxyCompactList}\small\item\em number of mpi processes \end{DoxyCompactList}\item 
-\hypertarget{namespacempi__tools_aa958c1c99532e8b43840a3c6c1cdecb8}{}integer \hyperlink{namespacempi__tools_aa958c1c99532e8b43840a3c6c1cdecb8}{blacs\+\_\+ctxt}\label{namespacempi__tools_aa958c1c99532e8b43840a3c6c1cdecb8}
-
-\begin{DoxyCompactList}\small\item\em local blacs context \end{DoxyCompactList}\item 
-\hypertarget{namespacempi__tools_a8cd4b5b4fecb931612dba9d69e9ed52c}{}integer, dimension(9) \hyperlink{namespacempi__tools_a8cd4b5b4fecb931612dba9d69e9ed52c}{sc\+\_\+desc}\label{namespacempi__tools_a8cd4b5b4fecb931612dba9d69e9ed52c}
-
-\begin{DoxyCompactList}\small\item\em local blacs context \end{DoxyCompactList}\item 
-\hypertarget{namespacempi__tools_a1d3cf74e8603121d98c2b321c947b94c}{}integer, public \hyperlink{namespacempi__tools_a1d3cf74e8603121d98c2b321c947b94c}{mpi\+\_\+comm\+\_\+rows}\label{namespacempi__tools_a1d3cf74e8603121d98c2b321c947b94c}
-
-\begin{DoxyCompactList}\small\item\em row communicatior \end{DoxyCompactList}\item 
-\hypertarget{namespacempi__tools_a89d8ca567f63354a49fe5d85fe28b8d0}{}integer, public \hyperlink{namespacempi__tools_a89d8ca567f63354a49fe5d85fe28b8d0}{mpi\+\_\+comm\+\_\+cols}\label{namespacempi__tools_a89d8ca567f63354a49fe5d85fe28b8d0}
-
-\begin{DoxyCompactList}\small\item\em row communicatior \end{DoxyCompactList}\item 
-\hypertarget{namespacempi__tools_ae77502fd07699453a77a86cc7608330b}{}integer, public \hyperlink{namespacempi__tools_ae77502fd07699453a77a86cc7608330b}{ip\+\_\+row}\label{namespacempi__tools_ae77502fd07699453a77a86cc7608330b}
-
-\begin{DoxyCompactList}\small\item\em local row position \end{DoxyCompactList}\item 
-\hypertarget{namespacempi__tools_ad6b4e5d662f966957335837321699b49}{}integer, public \hyperlink{namespacempi__tools_ad6b4e5d662f966957335837321699b49}{ip\+\_\+col}\label{namespacempi__tools_ad6b4e5d662f966957335837321699b49}
-
-\begin{DoxyCompactList}\small\item\em local column position \end{DoxyCompactList}\item 
-\hypertarget{namespacempi__tools_a7abd18507f3403e91e42fc739b4a8b1b}{}integer {\bfseries info}\label{namespacempi__tools_a7abd18507f3403e91e42fc739b4a8b1b}
-
-\item 
-\hypertarget{namespacempi__tools_acbc2f0ef45644bb20bfe5af7662fe45d}{}integer {\bfseries n\+\_\+dim}\label{namespacempi__tools_acbc2f0ef45644bb20bfe5af7662fe45d}
-
-\item 
-\hypertarget{namespacempi__tools_a877feb7ffc11725c8f33b76add2956f5}{}integer {\bfseries n\+\_\+block}\label{namespacempi__tools_a877feb7ffc11725c8f33b76add2956f5}
-
-\item 
-\hypertarget{namespacempi__tools_a3affe5df388ed8093ebfd5d87f8c2827}{}integer, external {\bfseries numroc}\label{namespacempi__tools_a3affe5df388ed8093ebfd5d87f8c2827}
-
-\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em Calculates the local matrix dimensions based on the B\+L\+A\+C\+S grid. \end{DoxyCompactList}\end{DoxyCompactItemize}
 
 
 \subsection{Detailed Description}
@@ -89,90 +46,120 @@ E\+L\+S\+I Interchange.
 Copyright of the original code rests with the authors inside the E\+L\+S\+I consortium. The copyright of any additional modifications shall rest with their original authors, but shall adhere to the licensing terms distributed along with the original code in the file \char`\"{}\+C\+O\+P\+Y\+I\+N\+G\char`\"{}. 
 
 \subsection{Function/\+Subroutine Documentation}
-\hypertarget{namespacempi__tools_ace6ebd211463804356231d4ebf3389d7}{}\index{mpi\+\_\+tools@{mpi\+\_\+tools}!elsi\+\_\+get\+\_\+global\+\_\+col@{elsi\+\_\+get\+\_\+global\+\_\+col}}
+\hypertarget{namespacempi__tools_afdc591a3869677887dd297a27e3c1969}{}\index{mpi\+\_\+tools@{mpi\+\_\+tools}!elsi\+\_\+get\+\_\+comm\+\_\+grid@{elsi\+\_\+get\+\_\+comm\+\_\+grid}}
+\index{elsi\+\_\+get\+\_\+comm\+\_\+grid@{elsi\+\_\+get\+\_\+comm\+\_\+grid}!mpi\+\_\+tools@{mpi\+\_\+tools}}
+\subsubsection[{elsi\+\_\+get\+\_\+comm\+\_\+grid}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public mpi\+\_\+tools\+::elsi\+\_\+get\+\_\+comm\+\_\+grid (
+\begin{DoxyParamCaption}
+\item[{integer, intent(out)}]{rows, }
+\item[{integer, intent(out)}]{cols}
+\end{DoxyParamCaption}
+)}\label{namespacempi__tools_afdc591a3869677887dd297a27e3c1969}
+
+
+Gets the row and column communicators for E\+L\+P\+A. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt out}  & {\em rows} & output row communicator\\
+\hline
+\mbox{\tt out}  & {\em cols} & output col communicator \\
+\hline
+\end{DoxyParams}
+\hypertarget{namespacempi__tools_a17c5d512655384ab86d658548cda1525}{}\index{mpi\+\_\+tools@{mpi\+\_\+tools}!elsi\+\_\+get\+\_\+global\+\_\+col@{elsi\+\_\+get\+\_\+global\+\_\+col}}
 \index{elsi\+\_\+get\+\_\+global\+\_\+col@{elsi\+\_\+get\+\_\+global\+\_\+col}!mpi\+\_\+tools@{mpi\+\_\+tools}}
 \subsubsection[{elsi\+\_\+get\+\_\+global\+\_\+col}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public mpi\+\_\+tools\+::elsi\+\_\+get\+\_\+global\+\_\+col (
 \begin{DoxyParamCaption}
-\item[{integer, intent(out)}]{g\+\_\+col, }
-\item[{integer, intent(in)}]{p\+\_\+col, }
-\item[{integer, intent(in)}]{l\+\_\+col}
+\item[{integer, intent(out)}]{global\+\_\+idx, }
+\item[{integer, intent(in)}]{local\+\_\+idx}
 \end{DoxyParamCaption}
-)}\label{namespacempi__tools_ace6ebd211463804356231d4ebf3389d7}
+)}\label{namespacempi__tools_a17c5d512655384ab86d658548cda1525}
+
+
+Computes global column index based on local column index. 
+
 
 \begin{DoxyParams}[1]{Parameters}
-\mbox{\tt out}  & {\em g\+\_\+col} & global col\\
+\mbox{\tt out}  & {\em global\+\_\+idx} & global index\\
 \hline
-\mbox{\tt in}  & {\em p\+\_\+col} & process col\\
-\hline
-\mbox{\tt in}  & {\em l\+\_\+col} & local col \\
+\mbox{\tt in}  & {\em local\+\_\+idx} & local index \\
 \hline
 \end{DoxyParams}
-\hypertarget{namespacempi__tools_a839b08ee7d36a54132ccb950c8f97278}{}\index{mpi\+\_\+tools@{mpi\+\_\+tools}!elsi\+\_\+get\+\_\+global\+\_\+row@{elsi\+\_\+get\+\_\+global\+\_\+row}}
+\hypertarget{namespacempi__tools_a18e3203faf14db998f265fa779a076e6}{}\index{mpi\+\_\+tools@{mpi\+\_\+tools}!elsi\+\_\+get\+\_\+global\+\_\+dimensions@{elsi\+\_\+get\+\_\+global\+\_\+dimensions}}
+\index{elsi\+\_\+get\+\_\+global\+\_\+dimensions@{elsi\+\_\+get\+\_\+global\+\_\+dimensions}!mpi\+\_\+tools@{mpi\+\_\+tools}}
+\subsubsection[{elsi\+\_\+get\+\_\+global\+\_\+dimensions}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public mpi\+\_\+tools\+::elsi\+\_\+get\+\_\+global\+\_\+dimensions (
+\begin{DoxyParamCaption}
+\item[{integer, intent(out)}]{g\+\_\+dim, }
+\item[{integer, intent(out)}]{g\+\_\+block\+\_\+rows, }
+\item[{integer, intent(out)}]{g\+\_\+block\+\_\+cols}
+\end{DoxyParamCaption}
+)}\label{namespacempi__tools_a18e3203faf14db998f265fa779a076e6}
+
+
+Gets global matrix specifications such as rank and block dimensions. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt out}  & {\em g\+\_\+dim} & global rank\\
+\hline
+\mbox{\tt out}  & {\em g\+\_\+block\+\_\+rows} & global blocksize\\
+\hline
+\mbox{\tt out}  & {\em g\+\_\+block\+\_\+cols} & global blocksize \\
+\hline
+\end{DoxyParams}
+\hypertarget{namespacempi__tools_a3fa1d32ce548146736f4c270cf1e9d9f}{}\index{mpi\+\_\+tools@{mpi\+\_\+tools}!elsi\+\_\+get\+\_\+global\+\_\+row@{elsi\+\_\+get\+\_\+global\+\_\+row}}
 \index{elsi\+\_\+get\+\_\+global\+\_\+row@{elsi\+\_\+get\+\_\+global\+\_\+row}!mpi\+\_\+tools@{mpi\+\_\+tools}}
 \subsubsection[{elsi\+\_\+get\+\_\+global\+\_\+row}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public mpi\+\_\+tools\+::elsi\+\_\+get\+\_\+global\+\_\+row (
 \begin{DoxyParamCaption}
-\item[{integer, intent(out)}]{g\+\_\+row, }
-\item[{integer, intent(in)}]{p\+\_\+row, }
-\item[{integer, intent(in)}]{l\+\_\+row}
+\item[{integer, intent(out)}]{global\+\_\+idx, }
+\item[{integer, intent(in)}]{local\+\_\+idx}
 \end{DoxyParamCaption}
-)}\label{namespacempi__tools_a839b08ee7d36a54132ccb950c8f97278}
+)}\label{namespacempi__tools_a3fa1d32ce548146736f4c270cf1e9d9f}
+
+
+Computes global row index based on local row index. 
+
 
 \begin{DoxyParams}[1]{Parameters}
-\mbox{\tt out}  & {\em g\+\_\+row} & global row\\
+\mbox{\tt out}  & {\em global\+\_\+idx} & Global index\\
 \hline
-\mbox{\tt in}  & {\em p\+\_\+row} & process row\\
-\hline
-\mbox{\tt in}  & {\em l\+\_\+row} & local row \\
+\mbox{\tt in}  & {\em local\+\_\+idx} & Local index \\
 \hline
 \end{DoxyParams}
-\hypertarget{namespacempi__tools_a0fe5732ac6dc07b0132cd7375612a60c}{}\index{mpi\+\_\+tools@{mpi\+\_\+tools}!elsi\+\_\+get\+\_\+local\+\_\+col@{elsi\+\_\+get\+\_\+local\+\_\+col}}
-\index{elsi\+\_\+get\+\_\+local\+\_\+col@{elsi\+\_\+get\+\_\+local\+\_\+col}!mpi\+\_\+tools@{mpi\+\_\+tools}}
-\subsubsection[{elsi\+\_\+get\+\_\+local\+\_\+col}]{\setlength{\rightskip}{0pt plus 5cm}logical function, public mpi\+\_\+tools\+::elsi\+\_\+get\+\_\+local\+\_\+col (
+\hypertarget{namespacempi__tools_aa24bc8448a5c6af4608ad752e692cb5c}{}\index{mpi\+\_\+tools@{mpi\+\_\+tools}!elsi\+\_\+get\+\_\+local\+\_\+dimensions@{elsi\+\_\+get\+\_\+local\+\_\+dimensions}}
+\index{elsi\+\_\+get\+\_\+local\+\_\+dimensions@{elsi\+\_\+get\+\_\+local\+\_\+dimensions}!mpi\+\_\+tools@{mpi\+\_\+tools}}
+\subsubsection[{elsi\+\_\+get\+\_\+local\+\_\+dimensions}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public mpi\+\_\+tools\+::elsi\+\_\+get\+\_\+local\+\_\+dimensions (
 \begin{DoxyParamCaption}
-\item[{integer, intent(in)}]{g\+\_\+col, }
-\item[{integer, intent(out)}]{p\+\_\+col, }
-\item[{integer, intent(out)}]{l\+\_\+col}
+\item[{integer, intent(out)}]{rows, }
+\item[{integer, intent(out)}]{cols}
 \end{DoxyParamCaption}
-)}\label{namespacempi__tools_a0fe5732ac6dc07b0132cd7375612a60c}
+)}\label{namespacempi__tools_aa24bc8448a5c6af4608ad752e692cb5c}
+
+
+Gets the local matrix dimensions. 
+
 
 \begin{DoxyParams}[1]{Parameters}
-\mbox{\tt in}  & {\em g\+\_\+col} & global col\\
+\mbox{\tt out}  & {\em rows} & output local rows\\
 \hline
-\mbox{\tt out}  & {\em p\+\_\+col} & process col\\
-\hline
-\mbox{\tt out}  & {\em l\+\_\+col} & local col \\
+\mbox{\tt out}  & {\em cols} & output local cols \\
 \hline
 \end{DoxyParams}
-\hypertarget{namespacempi__tools_ad64b68016d44800009c91144353f0fc8}{}\index{mpi\+\_\+tools@{mpi\+\_\+tools}!elsi\+\_\+get\+\_\+local\+\_\+row@{elsi\+\_\+get\+\_\+local\+\_\+row}}
-\index{elsi\+\_\+get\+\_\+local\+\_\+row@{elsi\+\_\+get\+\_\+local\+\_\+row}!mpi\+\_\+tools@{mpi\+\_\+tools}}
-\subsubsection[{elsi\+\_\+get\+\_\+local\+\_\+row}]{\setlength{\rightskip}{0pt plus 5cm}logical function, public mpi\+\_\+tools\+::elsi\+\_\+get\+\_\+local\+\_\+row (
+\hypertarget{namespacempi__tools_aa9343d548ec1446e891be7c5869f3d04}{}\index{mpi\+\_\+tools@{mpi\+\_\+tools}!elsi\+\_\+get\+\_\+processor\+\_\+grid@{elsi\+\_\+get\+\_\+processor\+\_\+grid}}
+\index{elsi\+\_\+get\+\_\+processor\+\_\+grid@{elsi\+\_\+get\+\_\+processor\+\_\+grid}!mpi\+\_\+tools@{mpi\+\_\+tools}}
+\subsubsection[{elsi\+\_\+get\+\_\+processor\+\_\+grid}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public mpi\+\_\+tools\+::elsi\+\_\+get\+\_\+processor\+\_\+grid (
 \begin{DoxyParamCaption}
-\item[{integer, intent(in)}]{g\+\_\+row, }
-\item[{integer, intent(out)}]{p\+\_\+row, }
-\item[{integer, intent(out)}]{l\+\_\+row}
+\item[{integer, intent(out)}]{rows, }
+\item[{integer, intent(out)}]{cols}
 \end{DoxyParamCaption}
-)}\label{namespacempi__tools_ad64b68016d44800009c91144353f0fc8}
+)}\label{namespacempi__tools_aa9343d548ec1446e891be7c5869f3d04}
+
+
+Get the processor grid as specified by B\+L\+A\+C\+S. 
+
 
 \begin{DoxyParams}[1]{Parameters}
-\mbox{\tt in}  & {\em g\+\_\+row} & global row\\
+\mbox{\tt out}  & {\em rows} & output processor rows\\
 \hline
-\mbox{\tt out}  & {\em p\+\_\+row} & process row\\
-\hline
-\mbox{\tt out}  & {\em l\+\_\+row} & local row \\
-\hline
-\end{DoxyParams}
-\hypertarget{namespacempi__tools_a3b7b2751959e5478de68e76a1baabb9b}{}\index{mpi\+\_\+tools@{mpi\+\_\+tools}!elsi\+\_\+initialize\+\_\+blacs@{elsi\+\_\+initialize\+\_\+blacs}}
-\index{elsi\+\_\+initialize\+\_\+blacs@{elsi\+\_\+initialize\+\_\+blacs}!mpi\+\_\+tools@{mpi\+\_\+tools}}
-\subsubsection[{elsi\+\_\+initialize\+\_\+blacs}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public mpi\+\_\+tools\+::elsi\+\_\+initialize\+\_\+blacs (
-\begin{DoxyParamCaption}
-\item[{integer, intent(in)}]{n\+\_\+dim\+\_\+in, }
-\item[{integer, intent(in)}]{n\+\_\+block\+\_\+in}
-\end{DoxyParamCaption}
-)}\label{namespacempi__tools_a3b7b2751959e5478de68e76a1baabb9b}
-
-\begin{DoxyParams}[1]{Parameters}
-\mbox{\tt in}  & {\em n\+\_\+dim\+\_\+in} & dimension of matrix\\
-\hline
-\mbox{\tt in}  & {\em n\+\_\+block\+\_\+in} & dimension of sub blocks \\
+\mbox{\tt out}  & {\em cols} & output processor cols \\
 \hline
 \end{DoxyParams}

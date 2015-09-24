@@ -42,7 +42,7 @@ module HDF5_TOOLS
      module procedure hdf5_read_matrix_parallel_double
   end interface
 
-  public :: hdf5_initialize
+  public :: hdf5_initialize !< Initialization of the HDF5 infrastructure
   public :: hdf5_create_file
   public :: hdf5_open_file
   public :: hdf5_close_file
@@ -58,6 +58,9 @@ module HDF5_TOOLS
 
   contains
 
+!>
+!! Initialization of HDF5 infrastructure
+!!
 subroutine hdf5_initialize()
    
    implicit none
@@ -70,6 +73,9 @@ subroutine hdf5_initialize()
 
 end subroutine
 
+!>
+!! Shutdown of HDF5 infrastructure
+!!
 subroutine hdf5_finalize()
    
    implicit none
@@ -83,6 +89,9 @@ subroutine hdf5_finalize()
 end subroutine
 
 
+!>
+!! HDF5 File creation
+!!
 subroutine hdf5_create_file(file_name, mpi_comm_global, &
                              mpi_info_null, file_id)
   
@@ -115,6 +124,9 @@ subroutine hdf5_create_file(file_name, mpi_comm_global, &
 
 end subroutine
 
+!>
+!! HDF5 File open for read only
+!!
 subroutine hdf5_open_file(file_name, mpi_comm_global, &
                           mpi_info_null, file_id)
   
@@ -148,6 +160,9 @@ subroutine hdf5_open_file(file_name, mpi_comm_global, &
 end subroutine
 
 
+!>
+!! HDF5 File close
+!!
 subroutine hdf5_close_file(file_id)
 
    implicit none
@@ -162,6 +177,9 @@ subroutine hdf5_close_file(file_id)
 
 end subroutine
 
+!>
+!! HDF5 Group creation
+!!
 subroutine hdf5_create_group (place_id, group_name, group_id)
 
    implicit none
@@ -178,6 +196,9 @@ subroutine hdf5_create_group (place_id, group_name, group_id)
  
 end subroutine
 
+!>
+!! HDF5 Open existing group
+!!
 subroutine hdf5_open_group (place_id, group_name, group_id)
 
    implicit none
@@ -195,6 +216,9 @@ subroutine hdf5_open_group (place_id, group_name, group_id)
 end subroutine
 
 
+!>
+!! HDF5 close group
+!!
 subroutine hdf5_close_group (group_id)
 
    implicit none
@@ -209,6 +233,9 @@ subroutine hdf5_close_group (group_id)
 
 end subroutine
 
+!>
+!! HDF5 write an integer atrribute
+!!
 subroutine hdf5_write_attribute_integer(place_id, attr_name, attr_value)
 
    implicit none
@@ -256,6 +283,9 @@ subroutine hdf5_write_attribute_integer(place_id, attr_name, attr_value)
 
 end subroutine
 
+!>
+!! HDF5 read an integer atrribute
+!!
 subroutine hdf5_read_attribute_integer(place_id, attr_name, attr_value)
 
    implicit none
@@ -291,6 +321,9 @@ subroutine hdf5_read_attribute_integer(place_id, attr_name, attr_value)
 end subroutine
 
 
+!>
+!! HDF5 write a real valued matrix
+!!
 subroutine hdf5_write_matrix_parallel_double(place_id, matrix_name, matrix)
 
    implicit none
@@ -417,6 +450,9 @@ subroutine hdf5_write_matrix_parallel_double(place_id, matrix_name, matrix)
 
 end subroutine
 
+!>
+!! HDF5 read a real valued matrix
+!!
 subroutine hdf5_read_matrix_parallel_double(place_id, matrix_name, matrix)
 
    implicit none
@@ -544,6 +580,9 @@ subroutine hdf5_read_matrix_parallel_double(place_id, matrix_name, matrix)
 end subroutine
 
 
+!>
+!! HDF5 calculate pattern for scalapack distribution
+!!
 subroutine hdf5_get_scalapack_pattern()
 
    ! Follow: https://www.hdfgroup.org/HDF5/Tutor/selectsimple.html

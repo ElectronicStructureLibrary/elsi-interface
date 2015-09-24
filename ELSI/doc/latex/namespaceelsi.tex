@@ -8,26 +8,36 @@ E\+L\+S\+I Interchange.
 \subsection*{Functions/\+Subroutines}
 \begin{DoxyCompactItemize}
 \item 
-subroutine, public \hyperlink{namespaceelsi_a2d0ffe2765b86bc3ea833e228069038b}{elsi\+\_\+initialize\+\_\+problem} (matrixsize, blocksize)
-\item 
+subroutine, public \hyperlink{namespaceelsi_adb9219ba3ab342aef4277abbcb7c2533}{elsi\+\_\+initialize\+\_\+problem} (matrixsize, block\+\_\+rows, block\+\_\+cols)
+\begin{DoxyCompactList}\small\item\em This routine sets the matrix dimensions for the eigenvalue problem. \end{DoxyCompactList}\item 
 subroutine, public \hyperlink{namespaceelsi_a783f376d4233c7ddd34506025e9da783}{elsi\+\_\+set\+\_\+method} (i\+\_\+method)
-\item 
+\begin{DoxyCompactList}\small\item\em This routine sets the method of choice for solving the eigenvalue problem. \end{DoxyCompactList}\item 
 subroutine, public \hyperlink{namespaceelsi_aae6ed67fce5603d05ec7c9a12e1d2f5e}{elsi\+\_\+set\+\_\+mode} (i\+\_\+mode)
-\item 
-subroutine, public \hyperlink{namespaceelsi_a52d5a0efd881b80fa249a8f07b90249f}{elsi\+\_\+allocate\+\_\+matrices} ()
-\item 
+\begin{DoxyCompactList}\small\item\em This routine sets the mode of the eigenvalue solver (Real or Complex) \end{DoxyCompactList}\item 
+\hypertarget{namespaceelsi_a52d5a0efd881b80fa249a8f07b90249f}{}subroutine, public \hyperlink{namespaceelsi_a52d5a0efd881b80fa249a8f07b90249f}{elsi\+\_\+allocate\+\_\+matrices} ()\label{namespaceelsi_a52d5a0efd881b80fa249a8f07b90249f}
+
+\begin{DoxyCompactList}\small\item\em This routine prepares the matrices based on the dimension and method specified. \end{DoxyCompactList}\item 
+\hypertarget{namespaceelsi_a04a67c8d80ed033c08bdc21c09b9628a}{}subroutine, public \hyperlink{namespaceelsi_a04a67c8d80ed033c08bdc21c09b9628a}{elsi\+\_\+symmetrize\+\_\+hamiltonian} ()\label{namespaceelsi_a04a67c8d80ed033c08bdc21c09b9628a}
+
+\begin{DoxyCompactList}\small\item\em This routine symmetrizes an upper or lower triangle hamiltonian. \end{DoxyCompactList}\item 
+subroutine, public \hyperlink{namespaceelsi_a3c35d92aec96439594184b3488436b9a}{elsi\+\_\+symmetrize\+\_\+overlap} ()
+\begin{DoxyCompactList}\small\item\em This routine symmetrizes an upper or lower triangle overlap. \end{DoxyCompactList}\item 
 subroutine, public \hyperlink{namespaceelsi_acfc3cef5687edefbba8170aa3c957c0f}{elsi\+\_\+write\+\_\+ev\+\_\+problem} (file\+\_\+name)
-\item 
+\begin{DoxyCompactList}\small\item\em This routine writes the complete eigenvalue problem into a file. \end{DoxyCompactList}\item 
 subroutine, public \hyperlink{namespaceelsi_a05effde2e85df40e63ba3ff519dc457b}{elsi\+\_\+read\+\_\+ev\+\_\+problem} (file\+\_\+name)
-\item 
+\begin{DoxyCompactList}\small\item\em This routine reads the eigenvalue problem from a file. \end{DoxyCompactList}\item 
 subroutine, public \hyperlink{namespaceelsi_a8d4e07912d425d778af75fee646a724f}{elsi\+\_\+initialize\+\_\+problem\+\_\+from\+\_\+file} (file\+\_\+name)
-\item 
+\begin{DoxyCompactList}\small\item\em This routine sets the method of choice for solving the eigenvalue problem. \end{DoxyCompactList}\item 
 subroutine, public \hyperlink{namespaceelsi_af3291953e595197b4c492d176859d83d}{elsi\+\_\+solve\+\_\+ev\+\_\+problem} (n\+\_\+vectors)
-\item 
-subroutine, public \hyperlink{namespaceelsi_a499852f3083dae7991092915ef2dc5b2}{elsi\+\_\+deallocate\+\_\+matrices} ()
-\item 
-subroutine, public \hyperlink{namespaceelsi_aa635e42ca93ef9def165bccd1647031e}{elsi\+\_\+finalize} ()
-\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em This routine interfaces to the eigenvalue solvers. \end{DoxyCompactList}\item 
+subroutine, public \hyperlink{namespaceelsi_ad9a7ad318a1e7f570bfa2e64428b53f9}{elsi\+\_\+get\+\_\+eigenvalues} (eigenvalues\+\_\+out, n\+\_\+eigenvalues)
+\begin{DoxyCompactList}\small\item\em This routine gets the eigenvalues. \end{DoxyCompactList}\item 
+\hypertarget{namespaceelsi_a499852f3083dae7991092915ef2dc5b2}{}subroutine, public \hyperlink{namespaceelsi_a499852f3083dae7991092915ef2dc5b2}{elsi\+\_\+deallocate\+\_\+matrices} ()\label{namespaceelsi_a499852f3083dae7991092915ef2dc5b2}
+
+\begin{DoxyCompactList}\small\item\em This routine prepares the matrices based on the dimension and method specified. \end{DoxyCompactList}\item 
+\hypertarget{namespaceelsi_aa635e42ca93ef9def165bccd1647031e}{}subroutine, public \hyperlink{namespaceelsi_aa635e42ca93ef9def165bccd1647031e}{elsi\+\_\+finalize} ()\label{namespaceelsi_aa635e42ca93ef9def165bccd1647031e}
+
+\begin{DoxyCompactList}\small\item\em This routine prepares the matrices based on the dimension and method specified. \end{DoxyCompactList}\end{DoxyCompactItemize}
 \subsection*{Variables}
 \begin{DoxyCompactItemize}
 \item 
@@ -57,13 +67,7 @@ subroutine, public \hyperlink{namespaceelsi_aa635e42ca93ef9def165bccd1647031e}{e
 \begin{DoxyCompactList}\small\item\em Real Eigenvectors. \end{DoxyCompactList}\item 
 \hypertarget{namespaceelsi_ade72ed826776968c28d6406936b5c912}{}complex $\ast$16, dimension(\+:,\+:), allocatable \hyperlink{namespaceelsi_ade72ed826776968c28d6406936b5c912}{vectors\+\_\+complex}\label{namespaceelsi_ade72ed826776968c28d6406936b5c912}
 
-\begin{DoxyCompactList}\small\item\em Complex Eigenvectors. \end{DoxyCompactList}\item 
-\hypertarget{namespaceelsi_a6fe4260e151d1c07f4658f0712102cbb}{}integer \hyperlink{namespaceelsi_a6fe4260e151d1c07f4658f0712102cbb}{n\+\_\+dim}\label{namespaceelsi_a6fe4260e151d1c07f4658f0712102cbb}
-
-\begin{DoxyCompactList}\small\item\em Global dimension of eigenvalue problem. \end{DoxyCompactList}\item 
-\hypertarget{namespaceelsi_a2a4ab727e420415e5a07b499863a3f77}{}integer \hyperlink{namespaceelsi_a2a4ab727e420415e5a07b499863a3f77}{n\+\_\+block}\label{namespaceelsi_a2a4ab727e420415e5a07b499863a3f77}
-
-\begin{DoxyCompactList}\small\item\em Block size. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em Complex Eigenvectors. \end{DoxyCompactList}\end{DoxyCompactItemize}
 
 
 \subsection{Detailed Description}
@@ -72,42 +76,45 @@ E\+L\+S\+I Interchange.
 Copyright of the original code rests with the authors inside the E\+L\+S\+I consortium. The copyright of any additional modifications shall rest with their original authors, but shall adhere to the licensing terms distributed along with the original code in the file \char`\"{}\+C\+O\+P\+Y\+I\+N\+G\char`\"{}. 
 
 \subsection{Function/\+Subroutine Documentation}
-\hypertarget{namespaceelsi_a52d5a0efd881b80fa249a8f07b90249f}{}\index{elsi@{elsi}!elsi\+\_\+allocate\+\_\+matrices@{elsi\+\_\+allocate\+\_\+matrices}}
-\index{elsi\+\_\+allocate\+\_\+matrices@{elsi\+\_\+allocate\+\_\+matrices}!elsi@{elsi}}
-\subsubsection[{elsi\+\_\+allocate\+\_\+matrices}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public elsi\+::elsi\+\_\+allocate\+\_\+matrices (
+\hypertarget{namespaceelsi_ad9a7ad318a1e7f570bfa2e64428b53f9}{}\index{elsi@{elsi}!elsi\+\_\+get\+\_\+eigenvalues@{elsi\+\_\+get\+\_\+eigenvalues}}
+\index{elsi\+\_\+get\+\_\+eigenvalues@{elsi\+\_\+get\+\_\+eigenvalues}!elsi@{elsi}}
+\subsubsection[{elsi\+\_\+get\+\_\+eigenvalues}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public elsi\+::elsi\+\_\+get\+\_\+eigenvalues (
 \begin{DoxyParamCaption}
-{}
+\item[{real$\ast$8, dimension(n\+\_\+eigenvalues), intent(out)}]{eigenvalues\+\_\+out, }
+\item[{integer, intent(in)}]{n\+\_\+eigenvalues}
 \end{DoxyParamCaption}
-)}\label{namespaceelsi_a52d5a0efd881b80fa249a8f07b90249f}
-This routine prepares the matrices based on the dimension and method specified \hypertarget{namespaceelsi_a499852f3083dae7991092915ef2dc5b2}{}\index{elsi@{elsi}!elsi\+\_\+deallocate\+\_\+matrices@{elsi\+\_\+deallocate\+\_\+matrices}}
-\index{elsi\+\_\+deallocate\+\_\+matrices@{elsi\+\_\+deallocate\+\_\+matrices}!elsi@{elsi}}
-\subsubsection[{elsi\+\_\+deallocate\+\_\+matrices}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public elsi\+::elsi\+\_\+deallocate\+\_\+matrices (
-\begin{DoxyParamCaption}
-{}
-\end{DoxyParamCaption}
-)}\label{namespaceelsi_a499852f3083dae7991092915ef2dc5b2}
-This routine prepares the matrices based on the dimension and method specified \hypertarget{namespaceelsi_aa635e42ca93ef9def165bccd1647031e}{}\index{elsi@{elsi}!elsi\+\_\+finalize@{elsi\+\_\+finalize}}
-\index{elsi\+\_\+finalize@{elsi\+\_\+finalize}!elsi@{elsi}}
-\subsubsection[{elsi\+\_\+finalize}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public elsi\+::elsi\+\_\+finalize (
-\begin{DoxyParamCaption}
-{}
-\end{DoxyParamCaption}
-)}\label{namespaceelsi_aa635e42ca93ef9def165bccd1647031e}
-This routine prepares the matrices based on the dimension and method specified \hypertarget{namespaceelsi_a2d0ffe2765b86bc3ea833e228069038b}{}\index{elsi@{elsi}!elsi\+\_\+initialize\+\_\+problem@{elsi\+\_\+initialize\+\_\+problem}}
+)}\label{namespaceelsi_ad9a7ad318a1e7f570bfa2e64428b53f9}
+
+
+This routine gets the eigenvalues. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em n\+\_\+eigenvalues} & Number of eigenvalues\\
+\hline
+\mbox{\tt out}  & {\em eigenvalues\+\_\+out} & eigenvalues \\
+\hline
+\end{DoxyParams}
+\hypertarget{namespaceelsi_adb9219ba3ab342aef4277abbcb7c2533}{}\index{elsi@{elsi}!elsi\+\_\+initialize\+\_\+problem@{elsi\+\_\+initialize\+\_\+problem}}
 \index{elsi\+\_\+initialize\+\_\+problem@{elsi\+\_\+initialize\+\_\+problem}!elsi@{elsi}}
 \subsubsection[{elsi\+\_\+initialize\+\_\+problem}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public elsi\+::elsi\+\_\+initialize\+\_\+problem (
 \begin{DoxyParamCaption}
 \item[{integer, intent(in)}]{matrixsize, }
-\item[{integer, intent(in)}]{blocksize}
+\item[{integer, intent(in)}]{block\+\_\+rows, }
+\item[{integer, intent(in)}]{block\+\_\+cols}
 \end{DoxyParamCaption}
-)}\label{namespaceelsi_a2d0ffe2765b86bc3ea833e228069038b}
+)}\label{namespaceelsi_adb9219ba3ab342aef4277abbcb7c2533}
+
+
+This routine sets the matrix dimensions for the eigenvalue problem. 
+
 
 \begin{DoxyParams}[1]{Parameters}
-\mbox{\tt in}  & {\em matrixsize} & This routine sets the method of choice for solving the eigenvalue problem\\
-\hline
 \mbox{\tt in}  & {\em matrixsize} & global dimension of matrix\\
 \hline
-\mbox{\tt in}  & {\em blocksize} & blocking dimension of matrix \\
+\mbox{\tt in}  & {\em block\+\_\+rows} & block rows of matrix\\
+\hline
+\mbox{\tt in}  & {\em block\+\_\+cols} & block cols of matrix \\
 \hline
 \end{DoxyParams}
 \hypertarget{namespaceelsi_a8d4e07912d425d778af75fee646a724f}{}\index{elsi@{elsi}!elsi\+\_\+initialize\+\_\+problem\+\_\+from\+\_\+file@{elsi\+\_\+initialize\+\_\+problem\+\_\+from\+\_\+file}}
@@ -118,8 +125,12 @@ This routine prepares the matrices based on the dimension and method specified \
 \end{DoxyParamCaption}
 )}\label{namespaceelsi_a8d4e07912d425d778af75fee646a724f}
 
+
+This routine sets the method of choice for solving the eigenvalue problem. 
+
+
 \begin{DoxyParams}[1]{Parameters}
-\mbox{\tt in}  & {\em file\+\_\+name} & This routine sets the method of choice for solving the eigenvalue problem \\
+\mbox{\tt in}  & {\em file\+\_\+name} & File to open \\
 \hline
 \end{DoxyParams}
 \hypertarget{namespaceelsi_a05effde2e85df40e63ba3ff519dc457b}{}\index{elsi@{elsi}!elsi\+\_\+read\+\_\+ev\+\_\+problem@{elsi\+\_\+read\+\_\+ev\+\_\+problem}}
@@ -130,8 +141,12 @@ This routine prepares the matrices based on the dimension and method specified \
 \end{DoxyParamCaption}
 )}\label{namespaceelsi_a05effde2e85df40e63ba3ff519dc457b}
 
+
+This routine reads the eigenvalue problem from a file. 
+
+
 \begin{DoxyParams}[1]{Parameters}
-\mbox{\tt in}  & {\em file\+\_\+name} & This routine reads the eigenvalue problem from a file \\
+\mbox{\tt in}  & {\em file\+\_\+name} & File to open \\
 \hline
 \end{DoxyParams}
 \hypertarget{namespaceelsi_a783f376d4233c7ddd34506025e9da783}{}\index{elsi@{elsi}!elsi\+\_\+set\+\_\+method@{elsi\+\_\+set\+\_\+method}}
@@ -142,9 +157,11 @@ This routine prepares the matrices based on the dimension and method specified \
 \end{DoxyParamCaption}
 )}\label{namespaceelsi_a783f376d4233c7ddd34506025e9da783}
 
+
+This routine sets the method of choice for solving the eigenvalue problem. 
+
+
 \begin{DoxyParams}[1]{Parameters}
-\mbox{\tt in}  & {\em i\+\_\+method} & This routine sets the method of choice for solving the eigenvalue problem\\
-\hline
 \mbox{\tt in}  & {\em i\+\_\+method} & one of (E\+L\+P\+A,O\+M\+M,P\+E\+X\+S\+I) \\
 \hline
 \end{DoxyParams}
@@ -156,9 +173,11 @@ This routine prepares the matrices based on the dimension and method specified \
 \end{DoxyParamCaption}
 )}\label{namespaceelsi_aae6ed67fce5603d05ec7c9a12e1d2f5e}
 
+
+This routine sets the mode of the eigenvalue solver (Real or Complex) 
+
+
 \begin{DoxyParams}[1]{Parameters}
-\mbox{\tt in}  & {\em i\+\_\+mode} & This routine sets the mode of the eigenvalue solver (Real or Complex)\\
-\hline
 \mbox{\tt in}  & {\em i\+\_\+mode} & one of (R\+E\+A\+L\+\_\+\+V\+A\+L\+U\+E\+S,C\+O\+M\+P\+L\+E\+X\+\_\+\+V\+A\+L\+U\+E\+S) \\
 \hline
 \end{DoxyParams}
@@ -170,13 +189,26 @@ This routine prepares the matrices based on the dimension and method specified \
 \end{DoxyParamCaption}
 )}\label{namespaceelsi_af3291953e595197b4c492d176859d83d}
 
+
+This routine interfaces to the eigenvalue solvers. 
+
+
 \begin{DoxyParams}[1]{Parameters}
-\mbox{\tt in}  & {\em n\+\_\+vectors} & This routine interfaces to the possible eigenvalue solvers\\
-\hline
 \mbox{\tt in}  & {\em n\+\_\+vectors} & Number of eigenvectors to be calculated \\
 \hline
 \end{DoxyParams}
-\hypertarget{namespaceelsi_acfc3cef5687edefbba8170aa3c957c0f}{}\index{elsi@{elsi}!elsi\+\_\+write\+\_\+ev\+\_\+problem@{elsi\+\_\+write\+\_\+ev\+\_\+problem}}
+\hypertarget{namespaceelsi_a3c35d92aec96439594184b3488436b9a}{}\index{elsi@{elsi}!elsi\+\_\+symmetrize\+\_\+overlap@{elsi\+\_\+symmetrize\+\_\+overlap}}
+\index{elsi\+\_\+symmetrize\+\_\+overlap@{elsi\+\_\+symmetrize\+\_\+overlap}!elsi@{elsi}}
+\subsubsection[{elsi\+\_\+symmetrize\+\_\+overlap}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public elsi\+::elsi\+\_\+symmetrize\+\_\+overlap (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}\label{namespaceelsi_a3c35d92aec96439594184b3488436b9a}
+
+
+This routine symmetrizes an upper or lower triangle overlap. 
+
+This routine symmetrizes an upper or lower triangle overlap \hypertarget{namespaceelsi_acfc3cef5687edefbba8170aa3c957c0f}{}\index{elsi@{elsi}!elsi\+\_\+write\+\_\+ev\+\_\+problem@{elsi\+\_\+write\+\_\+ev\+\_\+problem}}
 \index{elsi\+\_\+write\+\_\+ev\+\_\+problem@{elsi\+\_\+write\+\_\+ev\+\_\+problem}!elsi@{elsi}}
 \subsubsection[{elsi\+\_\+write\+\_\+ev\+\_\+problem}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public elsi\+::elsi\+\_\+write\+\_\+ev\+\_\+problem (
 \begin{DoxyParamCaption}
@@ -184,7 +216,11 @@ This routine prepares the matrices based on the dimension and method specified \
 \end{DoxyParamCaption}
 )}\label{namespaceelsi_acfc3cef5687edefbba8170aa3c957c0f}
 
+
+This routine writes the complete eigenvalue problem into a file. 
+
+
 \begin{DoxyParams}[1]{Parameters}
-\mbox{\tt in}  & {\em file\+\_\+name} & This routine writes the complete eigenvalue problem into a file \\
+\mbox{\tt in}  & {\em file\+\_\+name} & File name where to write \\
 \hline
 \end{DoxyParams}

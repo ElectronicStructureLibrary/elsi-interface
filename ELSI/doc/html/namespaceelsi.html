@@ -96,25 +96,48 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions/Subroutines</h2></td></tr>
-<tr class="memitem:a2d0ffe2765b86bc3ea833e228069038b"><td class="memItemLeft" align="right" valign="top">subroutine, public&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceelsi.html#a2d0ffe2765b86bc3ea833e228069038b">elsi_initialize_problem</a> (matrixsize, blocksize)</td></tr>
-<tr class="separator:a2d0ffe2765b86bc3ea833e228069038b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adb9219ba3ab342aef4277abbcb7c2533"><td class="memItemLeft" align="right" valign="top">subroutine, public&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceelsi.html#adb9219ba3ab342aef4277abbcb7c2533">elsi_initialize_problem</a> (matrixsize, block_rows, block_cols)</td></tr>
+<tr class="memdesc:adb9219ba3ab342aef4277abbcb7c2533"><td class="mdescLeft">&#160;</td><td class="mdescRight">This routine sets the matrix dimensions for the eigenvalue problem.  <a href="#adb9219ba3ab342aef4277abbcb7c2533">More...</a><br /></td></tr>
+<tr class="separator:adb9219ba3ab342aef4277abbcb7c2533"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a783f376d4233c7ddd34506025e9da783"><td class="memItemLeft" align="right" valign="top">subroutine, public&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceelsi.html#a783f376d4233c7ddd34506025e9da783">elsi_set_method</a> (i_method)</td></tr>
+<tr class="memdesc:a783f376d4233c7ddd34506025e9da783"><td class="mdescLeft">&#160;</td><td class="mdescRight">This routine sets the method of choice for solving the eigenvalue problem.  <a href="#a783f376d4233c7ddd34506025e9da783">More...</a><br /></td></tr>
 <tr class="separator:a783f376d4233c7ddd34506025e9da783"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aae6ed67fce5603d05ec7c9a12e1d2f5e"><td class="memItemLeft" align="right" valign="top">subroutine, public&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceelsi.html#aae6ed67fce5603d05ec7c9a12e1d2f5e">elsi_set_mode</a> (i_mode)</td></tr>
+<tr class="memdesc:aae6ed67fce5603d05ec7c9a12e1d2f5e"><td class="mdescLeft">&#160;</td><td class="mdescRight">This routine sets the mode of the eigenvalue solver (Real or Complex)  <a href="#aae6ed67fce5603d05ec7c9a12e1d2f5e">More...</a><br /></td></tr>
 <tr class="separator:aae6ed67fce5603d05ec7c9a12e1d2f5e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a52d5a0efd881b80fa249a8f07b90249f"><td class="memItemLeft" align="right" valign="top">subroutine, public&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceelsi.html#a52d5a0efd881b80fa249a8f07b90249f">elsi_allocate_matrices</a> ()</td></tr>
+<tr class="memitem:a52d5a0efd881b80fa249a8f07b90249f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a52d5a0efd881b80fa249a8f07b90249f"></a>
+subroutine, public&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceelsi.html#a52d5a0efd881b80fa249a8f07b90249f">elsi_allocate_matrices</a> ()</td></tr>
+<tr class="memdesc:a52d5a0efd881b80fa249a8f07b90249f"><td class="mdescLeft">&#160;</td><td class="mdescRight">This routine prepares the matrices based on the dimension and method specified. <br /></td></tr>
 <tr class="separator:a52d5a0efd881b80fa249a8f07b90249f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a04a67c8d80ed033c08bdc21c09b9628a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a04a67c8d80ed033c08bdc21c09b9628a"></a>
+subroutine, public&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceelsi.html#a04a67c8d80ed033c08bdc21c09b9628a">elsi_symmetrize_hamiltonian</a> ()</td></tr>
+<tr class="memdesc:a04a67c8d80ed033c08bdc21c09b9628a"><td class="mdescLeft">&#160;</td><td class="mdescRight">This routine symmetrizes an upper or lower triangle hamiltonian. <br /></td></tr>
+<tr class="separator:a04a67c8d80ed033c08bdc21c09b9628a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3c35d92aec96439594184b3488436b9a"><td class="memItemLeft" align="right" valign="top">subroutine, public&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceelsi.html#a3c35d92aec96439594184b3488436b9a">elsi_symmetrize_overlap</a> ()</td></tr>
+<tr class="memdesc:a3c35d92aec96439594184b3488436b9a"><td class="mdescLeft">&#160;</td><td class="mdescRight">This routine symmetrizes an upper or lower triangle overlap.  <a href="#a3c35d92aec96439594184b3488436b9a">More...</a><br /></td></tr>
+<tr class="separator:a3c35d92aec96439594184b3488436b9a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acfc3cef5687edefbba8170aa3c957c0f"><td class="memItemLeft" align="right" valign="top">subroutine, public&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceelsi.html#acfc3cef5687edefbba8170aa3c957c0f">elsi_write_ev_problem</a> (file_name)</td></tr>
+<tr class="memdesc:acfc3cef5687edefbba8170aa3c957c0f"><td class="mdescLeft">&#160;</td><td class="mdescRight">This routine writes the complete eigenvalue problem into a file.  <a href="#acfc3cef5687edefbba8170aa3c957c0f">More...</a><br /></td></tr>
 <tr class="separator:acfc3cef5687edefbba8170aa3c957c0f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a05effde2e85df40e63ba3ff519dc457b"><td class="memItemLeft" align="right" valign="top">subroutine, public&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceelsi.html#a05effde2e85df40e63ba3ff519dc457b">elsi_read_ev_problem</a> (file_name)</td></tr>
+<tr class="memdesc:a05effde2e85df40e63ba3ff519dc457b"><td class="mdescLeft">&#160;</td><td class="mdescRight">This routine reads the eigenvalue problem from a file.  <a href="#a05effde2e85df40e63ba3ff519dc457b">More...</a><br /></td></tr>
 <tr class="separator:a05effde2e85df40e63ba3ff519dc457b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8d4e07912d425d778af75fee646a724f"><td class="memItemLeft" align="right" valign="top">subroutine, public&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceelsi.html#a8d4e07912d425d778af75fee646a724f">elsi_initialize_problem_from_file</a> (file_name)</td></tr>
+<tr class="memdesc:a8d4e07912d425d778af75fee646a724f"><td class="mdescLeft">&#160;</td><td class="mdescRight">This routine sets the method of choice for solving the eigenvalue problem.  <a href="#a8d4e07912d425d778af75fee646a724f">More...</a><br /></td></tr>
 <tr class="separator:a8d4e07912d425d778af75fee646a724f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af3291953e595197b4c492d176859d83d"><td class="memItemLeft" align="right" valign="top">subroutine, public&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceelsi.html#af3291953e595197b4c492d176859d83d">elsi_solve_ev_problem</a> (n_vectors)</td></tr>
+<tr class="memdesc:af3291953e595197b4c492d176859d83d"><td class="mdescLeft">&#160;</td><td class="mdescRight">This routine interfaces to the eigenvalue solvers.  <a href="#af3291953e595197b4c492d176859d83d">More...</a><br /></td></tr>
 <tr class="separator:af3291953e595197b4c492d176859d83d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a499852f3083dae7991092915ef2dc5b2"><td class="memItemLeft" align="right" valign="top">subroutine, public&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceelsi.html#a499852f3083dae7991092915ef2dc5b2">elsi_deallocate_matrices</a> ()</td></tr>
+<tr class="memitem:ad9a7ad318a1e7f570bfa2e64428b53f9"><td class="memItemLeft" align="right" valign="top">subroutine, public&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceelsi.html#ad9a7ad318a1e7f570bfa2e64428b53f9">elsi_get_eigenvalues</a> (eigenvalues_out, n_eigenvalues)</td></tr>
+<tr class="memdesc:ad9a7ad318a1e7f570bfa2e64428b53f9"><td class="mdescLeft">&#160;</td><td class="mdescRight">This routine gets the eigenvalues.  <a href="#ad9a7ad318a1e7f570bfa2e64428b53f9">More...</a><br /></td></tr>
+<tr class="separator:ad9a7ad318a1e7f570bfa2e64428b53f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a499852f3083dae7991092915ef2dc5b2"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a499852f3083dae7991092915ef2dc5b2"></a>
+subroutine, public&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceelsi.html#a499852f3083dae7991092915ef2dc5b2">elsi_deallocate_matrices</a> ()</td></tr>
+<tr class="memdesc:a499852f3083dae7991092915ef2dc5b2"><td class="mdescLeft">&#160;</td><td class="mdescRight">This routine prepares the matrices based on the dimension and method specified. <br /></td></tr>
 <tr class="separator:a499852f3083dae7991092915ef2dc5b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa635e42ca93ef9def165bccd1647031e"><td class="memItemLeft" align="right" valign="top">subroutine, public&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceelsi.html#aa635e42ca93ef9def165bccd1647031e">elsi_finalize</a> ()</td></tr>
+<tr class="memitem:aa635e42ca93ef9def165bccd1647031e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa635e42ca93ef9def165bccd1647031e"></a>
+subroutine, public&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceelsi.html#aa635e42ca93ef9def165bccd1647031e">elsi_finalize</a> ()</td></tr>
+<tr class="memdesc:aa635e42ca93ef9def165bccd1647031e"><td class="mdescLeft">&#160;</td><td class="mdescRight">This routine prepares the matrices based on the dimension and method specified. <br /></td></tr>
 <tr class="separator:aa635e42ca93ef9def165bccd1647031e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
@@ -155,68 +178,47 @@ real *8, dimension(:,:), allocatable&#160;</td><td class="memItemRight" valign="
 complex *16, dimension(:,:), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceelsi.html#ade72ed826776968c28d6406936b5c912">vectors_complex</a></td></tr>
 <tr class="memdesc:ade72ed826776968c28d6406936b5c912"><td class="mdescLeft">&#160;</td><td class="mdescRight">Complex Eigenvectors. <br /></td></tr>
 <tr class="separator:ade72ed826776968c28d6406936b5c912"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6fe4260e151d1c07f4658f0712102cbb"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6fe4260e151d1c07f4658f0712102cbb"></a>
-integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceelsi.html#a6fe4260e151d1c07f4658f0712102cbb">n_dim</a></td></tr>
-<tr class="memdesc:a6fe4260e151d1c07f4658f0712102cbb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Global dimension of eigenvalue problem. <br /></td></tr>
-<tr class="separator:a6fe4260e151d1c07f4658f0712102cbb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2a4ab727e420415e5a07b499863a3f77"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2a4ab727e420415e5a07b499863a3f77"></a>
-integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceelsi.html#a2a4ab727e420415e5a07b499863a3f77">n_block</a></td></tr>
-<tr class="memdesc:a2a4ab727e420415e5a07b499863a3f77"><td class="mdescLeft">&#160;</td><td class="mdescRight">Block size. <br /></td></tr>
-<tr class="separator:a2a4ab727e420415e5a07b499863a3f77"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>ELSI Interchange. </p>
 <p>Copyright of the original code rests with the authors inside the ELSI consortium. The copyright of any additional modifications shall rest with their original authors, but shall adhere to the licensing terms distributed along with the original code in the file "COPYING". </p>
 </div><h2 class="groupheader">Function/Subroutine Documentation</h2>
-<a class="anchor" id="a52d5a0efd881b80fa249a8f07b90249f"></a>
+<a class="anchor" id="ad9a7ad318a1e7f570bfa2e64428b53f9"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">subroutine, public elsi::elsi_allocate_matrices </td>
+          <td class="memname">subroutine, public elsi::elsi_get_eigenvalues </td>
           <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
+          <td class="paramtype">real*8, dimension(n_eigenvalues), intent(out)&#160;</td>
+          <td class="paramname"><em>eigenvalues_out</em>, </td>
         </tr>
-      </table>
-</div><div class="memdoc">
-<p>This routine prepares the matrices based on the dimension and method specified </p>
-
-</div>
-</div>
-<a class="anchor" id="a499852f3083dae7991092915ef2dc5b2"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
         <tr>
-          <td class="memname">subroutine, public elsi::elsi_deallocate_matrices </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">integer, intent(in)&#160;</td>
+          <td class="paramname"><em>n_eigenvalues</em>&#160;</td>
         </tr>
-      </table>
-</div><div class="memdoc">
-<p>This routine prepares the matrices based on the dimension and method specified </p>
-
-</div>
-</div>
-<a class="anchor" id="aa635e42ca93ef9def165bccd1647031e"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
         <tr>
-          <td class="memname">subroutine, public elsi::elsi_finalize </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
           <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>This routine prepares the matrices based on the dimension and method specified </p>
+
+<p>This routine gets the eigenvalues. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">n_eigenvalues</td><td>Number of eigenvalues</td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">eigenvalues_out</td><td>eigenvalues </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
-<a class="anchor" id="a2d0ffe2765b86bc3ea833e228069038b"></a>
+<a class="anchor" id="adb9219ba3ab342aef4277abbcb7c2533"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -230,7 +232,13 @@ integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="n
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">integer, intent(in)&#160;</td>
-          <td class="paramname"><em>blocksize</em>&#160;</td>
+          <td class="paramname"><em>block_rows</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">integer, intent(in)&#160;</td>
+          <td class="paramname"><em>block_cols</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -239,11 +247,13 @@ integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="n
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>This routine sets the matrix dimensions for the eigenvalue problem. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">matrixsize</td><td>This routine sets the method of choice for solving the eigenvalue problem</td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">matrixsize</td><td>global dimension of matrix</td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">blocksize</td><td>blocking dimension of matrix </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">block_rows</td><td>block rows of matrix</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">block_cols</td><td>block cols of matrix </td></tr>
   </table>
   </dd>
 </dl>
@@ -263,9 +273,11 @@ integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="n
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>This routine sets the method of choice for solving the eigenvalue problem. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">file_name</td><td>This routine sets the method of choice for solving the eigenvalue problem </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">file_name</td><td>File to open </td></tr>
   </table>
   </dd>
 </dl>
@@ -285,9 +297,11 @@ integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="n
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>This routine reads the eigenvalue problem from a file. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">file_name</td><td>This routine reads the eigenvalue problem from a file </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">file_name</td><td>File to open </td></tr>
   </table>
   </dd>
 </dl>
@@ -307,9 +321,10 @@ integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="n
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>This routine sets the method of choice for solving the eigenvalue problem. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">i_method</td><td>This routine sets the method of choice for solving the eigenvalue problem</td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">i_method</td><td>one of (ELPA,OMM,PEXSI) </td></tr>
   </table>
   </dd>
@@ -330,9 +345,10 @@ integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="n
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>This routine sets the mode of the eigenvalue solver (Real or Complex) </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">i_mode</td><td>This routine sets the mode of the eigenvalue solver (Real or Complex)</td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">i_mode</td><td>one of (REAL_VALUES,COMPLEX_VALUES) </td></tr>
   </table>
   </dd>
@@ -353,13 +369,32 @@ integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="n
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>This routine interfaces to the eigenvalue solvers. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">n_vectors</td><td>This routine interfaces to the possible eigenvalue solvers</td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">n_vectors</td><td>Number of eigenvectors to be calculated </td></tr>
   </table>
   </dd>
 </dl>
+
+</div>
+</div>
+<a class="anchor" id="a3c35d92aec96439594184b3488436b9a"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine, public elsi::elsi_symmetrize_overlap </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>This routine symmetrizes an upper or lower triangle overlap. </p>
+<p>This routine symmetrizes an upper or lower triangle overlap </p>
 
 </div>
 </div>
@@ -376,9 +411,11 @@ integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="n
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>This routine writes the complete eigenvalue problem into a file. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">file_name</td><td>This routine writes the complete eigenvalue problem into a file </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">file_name</td><td>File name where to write </td></tr>
   </table>
   </dd>
 </dl>
