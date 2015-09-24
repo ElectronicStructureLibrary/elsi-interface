@@ -45,8 +45,9 @@ program readwrite
    endif
 
   ! Now set some ELSI specifications
-  call elsi_initialize_mpi(myid)
+  call elsi_initialize_mpi()
   call elsi_initialize_problem(matrixsize, blocksize, blocksize)
+  call elsi_initialize_blacs()
   call elsi_set_method(ELPA)
   call elsi_set_mode(REAL_VALUES)
   
@@ -58,7 +59,7 @@ program readwrite
   iseed(:) = myid + 1 
   call RANDOM_SEED(put=iseed)
 
-  ! Construct H
+  ! Construct H and S
   do l_row = 1, n_rows
     call elsi_get_global_row(i_row, l_row)
     do l_col = l_row, n_cols

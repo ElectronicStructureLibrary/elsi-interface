@@ -20,8 +20,9 @@ program readwrite
   integer :: myid
 
   ! Now set some ELSI specifications
-  call elsi_initialize_mpi(myid)
+  call elsi_initialize_mpi()
   call elsi_initialize_problem_from_file("elsi_eigenvalue_problem.hdf5")
+  call elsi_initialize_blacs()
   call elsi_set_method(ELPA)
   call elsi_set_mode(REAL_VALUES)
 

@@ -131,8 +131,6 @@ subroutine elsi_set_method(i_method)
 
    method = i_method
    select case (method)
-      case (ELPA)
-         call elsi_initialize_blacs()
       case (OMM)
          write(*,'(a)') "OMM not implemented yet!"
          stop

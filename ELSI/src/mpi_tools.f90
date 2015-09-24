@@ -19,6 +19,8 @@ module MPI_TOOLS
 
   public :: elsi_initialize_mpi
   public :: elsi_initialize_blacs 
+  public :: elsi_set_mpi
+  public :: elsi_set_blacs 
   public :: elsi_get_global_row
   public :: elsi_get_global_col
   public :: elsi_get_global_dimensions
@@ -33,12 +35,10 @@ module MPI_TOOLS
 !> 
 !! Initialize MPI
 !!
-subroutine elsi_initialize_mpi(myid_out)
+subroutine elsi_initialize_mpi()
 
    implicit none
    include 'mpif.h'
-
-   integer, intent(out) :: myid_out
 
    ! MPI Initialization
 
@@ -61,9 +61,28 @@ subroutine elsi_initialize_mpi(myid_out)
       stop
    end if
 
-   myid_out = myid
-
 end subroutine
+
+!> 
+!! Set MPI from external
+!!
+subroutine elsi_set_mpi(global_comm, n_procs_in, myid_in)
+
+   implicit none
+   include 'mpif.h'
+
+   integer,intent(in) :: myid_in            !< local process id
+   integer,intent(in) :: n_procs_in         !< number of mpi processes
+   integer,intent(in) :: global_comm !< global mpi communicator
+
+
+   ! MPI Initialization
+
+   mpi_comm_global = global_comm
+   n_procs         = n_procs_in
+   myid            = myid_in
+end subroutine
+
 
 !> 
 !! Finalize MPI
@@ -139,6 +158,53 @@ subroutine elsi_initialize_blacs()
 
 
 end subroutine
+
+!> 
+!! Set BLACS Grid from external
+!!
+subroutine elsi_set_blacs( blacs_ctxt_in, n_p_rows_in, n_p_cols_in, &
+      my_p_row_in, my_p_col_in, mpi_comm_row_in, mpi_comm_col_in,&
+      n_l_rows_in, n_l_cols_in, sc_desc_in)
+
+   implicit none
+
+   include "mpif.h"
+
+  integer,intent(in) :: blacs_ctxt_in     !< local blacs context
+  integer,intent(in) :: sc_desc_in(9)     !< local blacs context
+  integer,intent(in) :: mpi_comm_row_in   !< row    communicatior
+  integer,intent(in) :: mpi_comm_col_in   !< column communicatior
+  integer,intent(in) :: my_p_row_in       !< process row    position
+  integer,intent(in) :: my_p_col_in       !< process column position
+  integer,intent(in) :: n_p_rows_in       !< Number of processes in row
+  integer,intent(in) :: n_p_cols_in       !< Number of processes in column
+  integer,intent(in) :: n_l_rows_in       !< Number of local rows
+  integer,intent(in) :: n_l_cols_in       !< Number of local columns
+   
+  blacs_ctxt = blacs_ctxt_in 
+  n_p_rows = n_p_rows_in 
+  n_p_cols = n_p_cols_in
+  my_p_row = my_p_row_in
+  my_p_col = my_p_col_in
+  mpi_comm_row = mpi_comm_row_in
+  mpi_comm_col = mpi_comm_col_in
+  n_l_rows = n_l_rows_in
+  n_l_cols = n_l_cols_in
+  sc_desc = sc_desc_in
+
+  if(myid == 0) print *, 'Global matrixsize: ',n_g_rank, ' x ', n_g_rank
+  if(myid == 0) print *, 'Blocksize: ',n_b_rows, ' x ', n_b_cols
+  if(myid == 0) print *, 'Processor grid: ',n_p_rows, ' x ', n_p_cols
+  if(myid == 0) print *, 'Local Matrixsize: ',n_l_rows, ' x ', n_l_cols
+  call MPI_BARRIER(mpi_comm_global,mpierr)
+
+  print *, myid," Id mpi_comm_global: ", mpi_comm_global
+  print *, myid," Id ip_row/col: ", my_p_row, "/", my_p_col
+  print *, myid," Id MPI_COMM_rows/cols: ", mpi_comm_row, "/", mpi_comm_col
+  call MPI_BARRIER(mpi_comm_global,mpierr)
+
+end subroutine
+
 
 !> 
 !! Finalize BLACS grid
