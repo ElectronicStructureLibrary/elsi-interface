@@ -27,9 +27,10 @@ module DIMENSIONS
   integer :: n_l_cols        !< Number of columns for this process
 
   ! MPI variables
-  integer :: myid           !< local process id
-  integer :: mpierr         !< mpi error handler
-  integer :: n_procs        !< number of mpi processes
+  integer :: myid            !< local process id
+  integer :: mpierr          !< mpi error handler
+  integer :: n_procs         !< number of mpi processes
+  integer :: mpi_comm_global !< global mpi communicator
 
   ! BLACS variables
   integer :: blacs_ctxt     !< local blacs context

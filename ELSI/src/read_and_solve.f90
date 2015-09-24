@@ -50,6 +50,7 @@ program readwrite
   ! Solve the eigenvalue problem
   if (myid == 0) print *, "Ready to solve"
   call elsi_solve_ev_problem(n_eigenvectors)
+  
   print *, myid, " Problem solved"
 
   call elsi_get_eigenvalues(eigenvals, matrixsize)
@@ -59,8 +60,6 @@ program readwrite
   deallocate(eigenvals)
 
   ! elsi shutdown
-  !if (myid == 0) print *, "Ready to shutdown"
-  !call elsi_finalize()
-  !if (myid == 0) print *, "Shutdown done"
+  call elsi_finalize()
 
 end program

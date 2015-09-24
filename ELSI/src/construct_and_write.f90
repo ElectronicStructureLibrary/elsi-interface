@@ -60,33 +60,21 @@ program readwrite
 
   ! Construct H
   do l_row = 1, n_rows
-    call elsi_get_global_row(i_row, my_p_row, l_row)
+    call elsi_get_global_row(i_row, l_row)
     do l_col = l_row, n_cols
-      call elsi_get_global_col(i_col, my_p_col, l_col)
+      call elsi_get_global_col(i_col, l_col)
       call RANDOM_NUMBER(element)
       if (i_row == i_col) then
-         call elsi_set_overlap_element(0.5d0 * element, l_row, l_col)
+         call elsi_set_hamiltonian_element(0.5d0 * element, l_row, l_col)
+         call elsi_set_overlap_element    (0.5d0,           l_row, l_col)
       else 
-         call elsi_set_overlap_element(element, l_row, l_col)
+         call elsi_set_hamiltonian_element(1.0d0 * element, l_row, l_col)
+         call elsi_set_overlap_element    (0.0d0,           l_row, l_col)
       end if
     end do
   end do
 
   call elsi_symmetrize_hamiltonian()
-
-  ! Construct S = 1
-  do l_row = 1, n_rows
-    call elsi_get_global_row(i_row, my_p_row, l_row)
-    do l_col = l_row, n_cols
-      call elsi_get_global_col(i_col, my_p_col, l_col)
-      if (i_row == i_col) then
-         call elsi_set_overlap_element(0.5d0, l_row, l_col)
-      else 
-         call elsi_set_overlap_element(0.0d0, l_row, l_col)
-      end if
-    end do
-  end do
-  
   call elsi_symmetrize_overlap()
 
   ! Write eigenvalue problem

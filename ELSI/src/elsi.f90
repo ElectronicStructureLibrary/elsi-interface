@@ -60,9 +60,6 @@ module ELSI
   public :: elsi_set_overlap_element !< Set Overlap by Reference
   public :: elsi_symmetrize_overlap   !< Symmetrize overlap matrix
   public :: elsi_get_overlap         !< Get Overlap by Reference
-  public :: elsi_get_global_row      !< Get global row indeces from local ones
-  public :: elsi_get_global_col      !< Get global column indices from local
-                                     !! ones
   public :: elsi_write_ev_problem    !< Write eigenvalue problem to HDF5
   public :: elsi_read_ev_problem     !< Read eigenvalue problem from HDF5
   public :: elsi_solve_ev_problem    !< Solve eigenvalue problem 
@@ -135,7 +132,7 @@ subroutine elsi_set_method(i_method)
    method = i_method
    select case (method)
       case (ELPA)
-         call elsi_initialize_blacs(n_g_rank,n_b_rows,n_b_cols)
+         call elsi_initialize_blacs()
       case (OMM)
          write(*,'(a)') "OMM not implemented yet!"
          stop
@@ -731,7 +728,7 @@ subroutine elsi_write_ev_problem(file_name)
 
    call hdf5_initialize ()
 
-   call hdf5_create_file (file_name, mpi_comm_world, mpi_info_null, file_id)
+   call hdf5_create_file (file_name, mpi_comm_global, mpi_info_null, file_id)
 
    ! The Hamiltonian
    call hdf5_create_group (file_id, "hamiltonian", group_id)
@@ -743,10 +740,9 @@ subroutine elsi_write_ev_problem(file_name)
    call hdf5_write_attribute (group_id, "n_block_cols", n_b_cols)
 
    !TODO Hamiltonian Write
-   call hdf5_get_scalapack_pattern(n_g_rank, n_g_rank, n_p_rows, n_p_cols, &
-         n_l_rows, n_l_cols, my_p_row, my_p_col, n_b_rows, n_b_cols, pattern)
+   call hdf5_get_scalapack_pattern()
    
-   call hdf5_write_matrix_parallel (group_id, "matrix", H_real, pattern)
+   call hdf5_write_matrix_parallel (group_id, "matrix", H_real)
    
    call hdf5_close_group (group_id)
 
@@ -760,7 +756,7 @@ subroutine elsi_write_ev_problem(file_name)
    call hdf5_write_attribute (group_id, "n_block_cols", n_b_cols)
 
    !TODO Overlap Write
-   call hdf5_write_matrix_parallel (group_id, "matrix", S_real, pattern)
+   call hdf5_write_matrix_parallel (group_id, "matrix", S_real)
    call hdf5_close_group (group_id)
 
    call hdf5_close_file (file_id)
@@ -786,7 +782,7 @@ subroutine elsi_read_ev_problem(file_name)
 
    call hdf5_initialize ()
 
-   call hdf5_open_file (file_name, mpi_comm_world, mpi_info_null, file_id)
+   call hdf5_open_file (file_name, mpi_comm_global, mpi_info_null, file_id)
 
    ! The Hamiltonian
    call hdf5_open_group (file_id, "hamiltonian", group_id)
@@ -798,9 +794,8 @@ subroutine elsi_read_ev_problem(file_name)
    call hdf5_read_attribute (group_id, "n_block_cols", n_b_cols)
 
    ! Hamiltonian Read
-   call hdf5_get_scalapack_pattern(n_g_rank, n_g_rank, n_p_rows, n_p_cols, &
-         n_l_rows, n_l_cols, my_p_row, my_p_col, n_b_rows, n_b_cols, pattern)
-   call hdf5_read_matrix_parallel (group_id, "matrix", H_real, pattern)
+   call hdf5_get_scalapack_pattern()
+   call hdf5_read_matrix_parallel (group_id, "matrix", H_real)
    
    call hdf5_close_group (group_id)
 
@@ -814,7 +809,7 @@ subroutine elsi_read_ev_problem(file_name)
    call hdf5_read_attribute (group_id, "n_block_cols", n_b_cols)
 
    ! Overlap Read
-   call hdf5_read_matrix_parallel (group_id, "matrix", S_real, pattern)
+   call hdf5_read_matrix_parallel (group_id, "matrix", S_real)
    
    call hdf5_close_group (group_id)
 
@@ -840,7 +835,7 @@ subroutine elsi_initialize_problem_from_file(file_name)
 
    call hdf5_initialize ()
 
-   call hdf5_open_file (file_name, mpi_comm_world, mpi_info_null, file_id)
+   call hdf5_open_file (file_name, mpi_comm_global, mpi_info_null, file_id)
 
    ! The Hamiltonian
    call hdf5_open_group (file_id, "hamiltonian", group_id)
@@ -848,8 +843,8 @@ subroutine elsi_initialize_problem_from_file(file_name)
    ! Matrix dimension
    call hdf5_read_attribute (group_id, "n_matrix_rows", n_g_rank)
    call hdf5_read_attribute (group_id, "n_matrix_cols", n_g_rank)
-   call hdf5_read_attribute (group_id, "n_block_rows", n_b_rows)
-   call hdf5_read_attribute (group_id, "n_block_cols", n_b_rows)
+   call hdf5_read_attribute (group_id, "n_block_rows",  n_b_rows)
+   call hdf5_read_attribute (group_id, "n_block_cols",  n_b_cols)
 
    call hdf5_close_group (group_id)
 
@@ -880,16 +875,22 @@ subroutine elsi_solve_ev_problem(n_vectors)
             case (COMPLEX_VALUES)
                success = solve_evp_complex_2stage( &
                      n_g_rank, n_vectors, H_complex, &
-                     n_g_rank, eigenvalues, vectors_complex, &
-                     n_g_rank, n_b_rows, &
-                     mpi_comm_row, mpi_comm_col, mpi_comm_world)
+                     n_l_rows, eigenvalues, vectors_complex, &
+                     n_l_rows, n_b_rows, &
+                     mpi_comm_row, mpi_comm_col, mpi_comm_global)
             case (REAL_VALUES)
-               success = solve_evp_real_2stage(&
+               success = solve_evp_real_2stage( &
                      n_g_rank, n_vectors, H_real, &
-                     n_g_rank, eigenvalues, vectors_real, &
-                     n_g_rank, n_b_rows, &
-                     mpi_comm_row, mpi_comm_col, mpi_comm_world)
+                     n_l_rows, eigenvalues, vectors_real, &
+                     n_l_rows, n_b_rows,&
+                     mpi_comm_row, mpi_comm_col, mpi_comm_global)
          end select
+       
+         if (.not.success) then
+            write(*,'(a)') "ELPA failed."
+            stop
+         end if
+
       case (OMM)
          write(*,'(a)') "OMM not implemented yet!"
          stop
@@ -902,7 +903,7 @@ subroutine elsi_solve_ev_problem(n_vectors)
          stop
    end select
 
-   call MPI_BARRIER(mpi_comm_world, mpierr)
+   call MPI_BARRIER(mpi_comm_global, mpierr)
 
 end subroutine
 
@@ -978,6 +979,9 @@ subroutine elsi_finalize()
    !!  specified
 
    implicit none
+   include "mpif.h"
+
+   call MPI_BARRIER(mpi_comm_global,mpierr)
 
    call elsi_deallocate_matrices()
 
