@@ -48,6 +48,7 @@ module DIMENSIONS
 
   !> Overlap
   logical :: overlap_is_unity = .True. !< Is the overlap unity
+  integer :: n_eigenvectors            !< Number of eigenvectors to be calculated
 
   !> ELPA variables
   real*8, parameter :: elpa_step_switch = 1.d0 !< This parameter sets the threshold when to switch from ELPA2 to ELPA1 

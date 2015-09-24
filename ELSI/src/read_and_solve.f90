@@ -48,11 +48,8 @@ program readwrite
   allocate (eigenvals(matrixsize))
 
   ! Solve the eigenvalue problem
-  if (myid == 0) print *, "Ready to solve"
   call elsi_solve_ev_problem(n_eigenvectors)
   
-  print *, myid, " Problem solved"
-
   call elsi_get_eigenvalues(eigenvals, matrixsize)
 
   if (myid == 0) print *, "Eigenvalues : ", eigenvals

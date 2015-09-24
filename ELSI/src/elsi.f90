@@ -932,6 +932,7 @@ subroutine elsi_solve_ev_problem(n_vectors)
    logical :: success
    logical :: two_step_solver
 
+   n_eigenvectors = n_vectors
    two_step_solver = .True.
    select case (method)
       case (ELPA)
@@ -1139,6 +1140,88 @@ subroutine elsi_to_standard_eigenvalue_problem()
             "Please choose method ELPA, OMM, or PEXSI"
          stop
    end select
+
+end subroutine
+
+!>
+!! This routine checks if the obtained eigenvalues and eigenvectors are indeed 
+!! solution of the eigenvalue problem HC = eSC. To use this function set the 
+!! hamiltonian and the overlap as in the beginning, the eigenvectors are taken
+!! from the elsi module
+!!
+subroutine elsi_check_solution(success)
+
+   implicit none
+
+   logical, intent(out)    :: success  !< Success flag of eigensolver
+   real*8,     allocatable :: buffer1_real (:,:) !< real valued matrix buffer
+   real*8,     allocatable :: buffer2_real (:,:) !< real valued matrix buffer
+   real*8,     allocatable :: buffer3_real (:,:) !< real valued matrix buffer
+   complex*16, allocatable :: buffer1_complex (:,:) !< complex valued matrix buffer
+   complex*16, allocatable :: buffer2_complex (:,:) !< complex valued matrix buffer
+   real*8                  :: norm !< norm of Hc - eSc
+   integer                 :: i_val !< eigenvalue index
+
+   success = .True.
+
+   select case (method)
+      case (ELPA)
+         select case (mode)
+            case (COMPLEX_VALUES)
+                write(*,'(a)') "COMPLEX check not implemented yet!"
+                stop
+            case (REAL_VALUES)
+               allocate (buffer1_real(n_l_rows, n_l_cols))
+               allocate (buffer2_real(n_l_rows, n_l_cols))
+               allocate (buffer3_real(n_l_rows, n_l_cols))
+               buffer1_real = 0d0
+               ! HC
+               call pdgemm('N','N', n_g_rank, n_eigenvectors, 1.0d0, H_real, &
+                     1, 1, sc_desc, vectors_real, 1, 1, sc_desc, &
+                     0.0d0, buffer1_real, 1, 1, sc_desc)
+
+               buffer2_real = vectors_real
+               do i_val = 1, n_eigenvectors
+                  call pdscal(n_g_rank, eigenvalues(i_val), &
+                        buffer2_real, 1, i_val, sc_desc, 1)
+               end do
+
+               call pdgemm('N','N', n_g_rank, buffer2_real, 1.0d0, S_real, &
+                     1, 1, sc_desc, vectors_real, 1, 1, sc_desc, &
+                     0.0d0, buffer3_real, 1, 1, sc_desc)
+               
+               buffer3_real = buffer3_real - buffer1_real
+
+               do i_val = 1, n_eigenvectors
+                  call pdnrm2(n_g_rank, norm, buffer3_real, 1, &
+                        i_val, sc_desc, 1)
+                  if (norm > 1d-10) then
+                    success = .False.
+                    if (myid == 0) print *, "Large Residuum: ", norm
+                  end if
+               end do
+               deallocate(buffer1_real)
+               deallocate(buffer2_real)
+               deallocate(buffer3_real)
+         end select
+         if (.not.success) then
+            write(*,'(a)') "ELPA failed."
+            stop
+         end if
+
+      case (OMM)
+         write(*,'(a)') "OMM not implemented yet!"
+         stop
+      case (PEXSI)
+         write(*,'(a)') "PEXSI not implemented yet!"
+         stop
+      case DEFAULT
+         write(*,'(2a)') "No method has been chosen. ", &
+            "Please choose method ELPA, OMM, or PEXSI"
+         stop
+   end select
+
+
 
 end subroutine
 
