@@ -7,7 +7,7 @@
 !!
 !! This module contains variables accessible in ELSI and related modules
 
-module DIMENSIONS
+module ELSI_DIMENSIONS
 
   use iso_c_binding
 
@@ -57,4 +57,4 @@ module DIMENSIONS
 
   !EMPTY
 
-end module DIMENSIONS
+end module ELSI_DIMENSIONS

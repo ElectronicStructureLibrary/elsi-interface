@@ -9,7 +9,7 @@ program readwrite
 
   use iso_c_binding
   use ELSI
-  use MPI_TOOLS
+  use ELSI_MPI_TOOLS
 
   implicit none
 

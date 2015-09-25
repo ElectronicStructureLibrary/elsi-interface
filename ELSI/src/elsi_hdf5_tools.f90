@@ -5,11 +5,11 @@
 !! with their original authors, but shall adhere to the licensing terms
 !! distributed along with the original code in the file "COPYING".
 
-module HDF5_TOOLS
+module ELSI_HDF5_TOOLS
 
   use iso_c_binding
   use HDF5
-  use DIMENSIONS
+  use ELSI_DIMENSIONS
 
   implicit none
   private
@@ -623,4 +623,4 @@ subroutine hdf5_get_scalapack_pattern()
 
 end subroutine
 
-end module HDF5_TOOLS
+end module ELSI_HDF5_TOOLS

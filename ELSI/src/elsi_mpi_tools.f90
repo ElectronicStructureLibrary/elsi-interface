@@ -5,11 +5,11 @@
 !! with their original authors, but shall adhere to the licensing terms
 !! distributed along with the original code in the file "COPYING".
 
-module MPI_TOOLS
+module ELSI_MPI_TOOLS
 
   use iso_c_binding
 
-  use DIMENSIONS
+  use ELSI_DIMENSIONS
 
   implicit none
   private
@@ -324,4 +324,4 @@ subroutine elsi_get_comm_grid (rows, cols)
 end subroutine
 
 
-end module MPI_TOOLS
+end module ELSI_MPI_TOOLS

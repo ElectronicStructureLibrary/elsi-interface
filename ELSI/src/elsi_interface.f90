@@ -11,9 +11,9 @@ module ELSI
   !! 
 
   use iso_c_binding
-  use DIMENSIONS
-  use MPI_TOOLS
-  use HDF5_TOOLS
+  use ELSI_DIMENSIONS
+  use ELSI_MPI_TOOLS
+  use ELSI_HDF5_TOOLS
   use ELPA1
   use ELPA2
 
