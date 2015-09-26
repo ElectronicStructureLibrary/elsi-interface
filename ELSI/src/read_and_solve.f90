@@ -28,7 +28,7 @@ program readwrite
    INTEGER*4 :: iargc
    character*16 arg1
 
-   if (iargc() == 2) then
+   if (iargc() == 1) then
       call getarg(1, arg1)
       read(arg1, *) n_eigenvectors
    endif
@@ -46,12 +46,12 @@ program readwrite
   call elsi_read_ev_problem("elsi_eigenvalue_problem.hdf5")
 
   call elsi_get_global_dimensions(matrixsize,block_rows,block_cols)
-  allocate (eigenvals(matrixsize))
+  allocate (eigenvals(n_eigenvectors))
 
   ! Solve the eigenvalue problem
   call elsi_solve_ev_problem(n_eigenvectors)
   
-  call elsi_get_eigenvalues(eigenvals, matrixsize)
+  call elsi_get_eigenvalues(eigenvals, n_eigenvectors)
 
   call elsi_get_myid(myid)
   if (myid == 0) print *, "Eigenvalues : ", eigenvals
