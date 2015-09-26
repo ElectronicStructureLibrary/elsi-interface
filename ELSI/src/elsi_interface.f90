@@ -873,6 +873,9 @@ subroutine elsi_read_ev_problem(file_name)
 
    ! Overlap Read
    call hdf5_read_matrix_parallel (group_id, "matrix", S_real)
+
+   ! TODO Check if is unity
+   overlap_is_unity = .False.
    
    call hdf5_close_group (group_id)
 
@@ -1009,7 +1012,7 @@ subroutine elsi_get_eigenvalues(eigenvalues_out,n_eigenvalues)
    
    select case (method)
       case (ELPA)
-            eigenvalues_out(:) = eigenvalues(:)      
+            eigenvalues_out(1:n_eigenvalues) = eigenvalues(1:n_eigenvalues)      
       case (OMM)
          write(*,'(a)') "OMM not implemented yet!"
          stop
@@ -1074,9 +1077,9 @@ subroutine elsi_finalize()
 
    call elsi_deallocate_matrices()
 
-   call elsi_finalize_blacs()
+   if (.not.external_blacs) call elsi_finalize_blacs()
 
-   call elsi_finalize_mpi()
+   if (.not.external_mpi)   call elsi_finalize_mpi()
 
 end subroutine
 
