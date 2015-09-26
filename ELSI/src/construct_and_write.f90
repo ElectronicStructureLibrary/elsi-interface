@@ -56,6 +56,7 @@ program readwrite
 
   call elsi_get_local_dimensions(n_rows,n_cols)
 
+  call elsi_get_myid(myid)
   iseed(:) = myid + 1 
   call RANDOM_SEED(put=iseed)
 
@@ -66,8 +67,8 @@ program readwrite
       call elsi_get_global_col(i_col, l_col)
       call RANDOM_NUMBER(element)
       if (i_row == i_col) then
-         call elsi_set_hamiltonian_element(0.5d0 * element, l_row, l_col)
-         call elsi_set_overlap_element    (0.5d0,           l_row, l_col)
+         call elsi_set_hamiltonian_element(element, l_row, l_col)
+         call elsi_set_overlap_element    (1.0d0,           l_row, l_col)
       else 
          call elsi_set_hamiltonian_element(1.0d0 * element, l_row, l_col)
          call elsi_set_overlap_element    (0.0d0,           l_row, l_col)
