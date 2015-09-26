@@ -33,6 +33,7 @@ module ELSI_DIMENSIONS
   integer :: n_procs         !< number of mpi processes
   integer :: mpi_comm_global !< global mpi communicator
   integer :: mpierr          !< mpi error handler
+  logical :: external_mpi    !< Has somebody else initialzed mpi
 
   !> BLACS variables
   integer :: blacs_ctxt     !< local blacs context
@@ -42,6 +43,7 @@ module ELSI_DIMENSIONS
   integer :: my_p_row       !< process row    position
   integer :: my_p_col       !< process column position
   integer :: blacs_info     !< Info code for blacs related calls 
+  logical :: external_blacs !< Has somebody else initialized blacs? 
 
   !> HDF5 variables
   integer :: h5err          !< HDF5 error code

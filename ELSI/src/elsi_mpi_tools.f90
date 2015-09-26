@@ -43,6 +43,8 @@ subroutine elsi_initialize_mpi()
 
    ! MPI Initialization
 
+   external_mpi = .False.
+
    call mpi_init(mpierr)
    if (mpierr /= 0) then
       write(*,'(a)') "MPI: Failed to initialize MPI."
@@ -79,6 +81,7 @@ subroutine elsi_set_mpi(global_comm, n_procs_in, myid_in)
 
    ! MPI Initialization
 
+   external_mpi = .True.
    mpi_comm_global = global_comm
    n_procs         = n_procs_in
    myid            = myid_in
@@ -113,6 +116,7 @@ subroutine elsi_initialize_blacs()
 
    include "mpif.h"
 
+   external_blacs = .False.
   ! Define blockcyclic setup
   do n_p_cols = NINT(SQRT(REAL(n_procs))),2,-1
      if(mod(n_procs,n_p_cols) == 0 ) exit
@@ -182,6 +186,7 @@ subroutine elsi_set_blacs( blacs_ctxt_in, n_p_rows_in, n_p_cols_in, &
   integer,intent(in) :: n_l_rows_in       !< Number of local rows
   integer,intent(in) :: n_l_cols_in       !< Number of local columns
    
+  external_blacs = .True.
   blacs_ctxt = blacs_ctxt_in 
   n_p_rows = n_p_rows_in 
   n_p_cols = n_p_cols_in
