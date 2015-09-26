@@ -27,6 +27,7 @@ module ELSI_MPI_TOOLS
   public :: elsi_get_local_dimensions
   public :: elsi_get_processor_grid
   public :: elsi_get_comm_grid
+  public :: elsi_get_myid
   public :: elsi_finalize_mpi
   public :: elsi_finalize_blacs
 
@@ -322,6 +323,21 @@ subroutine elsi_get_comm_grid (rows, cols)
    cols  = mpi_comm_col
 
 end subroutine
+
+!> 
+!! Gets the process id 
+!!
+
+subroutine elsi_get_myid (id)
+
+   implicit none
+
+   integer, intent(out) :: id   !< output process id
+
+   id = myid 
+
+end subroutine
+
 
 
 end module ELSI_MPI_TOOLS

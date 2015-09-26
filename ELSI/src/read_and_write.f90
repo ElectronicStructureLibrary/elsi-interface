@@ -16,9 +16,6 @@ program readwrite
   ! This is the ELSI test suite
   ! First we will test the writing and reading of a matrix to a file
 
-  ! Local variables
-  integer :: myid
-
   ! Now set some ELSI specifications
   call elsi_initialize_mpi()
   call elsi_initialize_problem_from_file("elsi_eigenvalue_problem.hdf5")

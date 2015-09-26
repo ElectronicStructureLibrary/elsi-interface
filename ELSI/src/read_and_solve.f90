@@ -53,6 +53,7 @@ program readwrite
   
   call elsi_get_eigenvalues(eigenvals, matrixsize)
 
+  call elsi_get_myid(myid)
   if (myid == 0) print *, "Eigenvalues : ", eigenvals
 
   deallocate(eigenvals)
