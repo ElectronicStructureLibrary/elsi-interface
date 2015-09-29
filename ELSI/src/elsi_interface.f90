@@ -43,13 +43,28 @@ module ELSI
   integer :: method = -1 !<Method for EV Solver (ELPA=1,OMM=2,PEXSI=3)
   integer :: mode = -1 !<Mode for EV Solver (REAL_VALUES=1,COMPLEX_VALUES=2)
 
-  real*8, allocatable       :: H_real(:,:) !< Real Hamiltonian Matrix 
-  real*8, allocatable       :: S_real(:,:) !< Real Overlap Matrix
-  complex*16, allocatable   :: H_complex(:,:) !< Complex Hamiltonian Matrix
-  complex*16, allocatable   :: S_complex(:,:) !< Complex Overlap Matrix
-  real*8, allocatable       :: eigenvalues(:) !< Eigenvalues
-  real*8, allocatable       :: vectors_real(:,:) !< Real Eigenvectors
-  complex*16, allocatable   :: vectors_complex(:,:) !< Complex Eigenvectors
+  !< Real Hamiltonian Matrix 
+  real*8, target, allocatable     :: H_real_target(:,:) 
+  !< External Real Hamiltonian Matrix 
+  real*8, pointer                 :: H_real(:,:)
+  !< Complex Hamiltonian Matrix 
+  complex*16, target, allocatable :: H_complex_target(:,:) 
+  !< External Complex Hamiltonian Matrix
+  complex*16, pointer             :: H_complex(:,:) 
+  !< Real Overlap Matrix
+  real*8, target, allocatable     :: S_real_target(:,:)   
+  !< External Real Overlap Matrix
+  real*8, pointer                 :: S_real(:,:)   
+  !< Complex Overlap Matrix
+  complex*16, target, allocatable :: S_complex_target(:,:)   
+  !< External Complex Overlap Matrix
+  complex*16, pointer             :: S_complex(:,:)
+  !< Eigenvalues   
+  real*8, allocatable             :: eigenvalues(:)
+  !< Real Eigenvectors   
+  real*8, allocatable             :: vectors_real(:,:)
+  !< Complex Eigenvectors 
+  complex*16, allocatable         :: vectors_complex(:,:) 
   
   enum, bind( C )
     enumerator :: ELPA, OMM, PEXSI
@@ -195,13 +210,17 @@ subroutine elsi_allocate_matrices()
          allocate(eigenvalues(n_g_rank))
          select case (mode)
             case (COMPLEX_VALUES)
-               allocate(H_complex (n_l_rows, n_l_cols))      
-               allocate(S_complex (n_l_rows, n_l_cols))
+               allocate(H_complex_target (n_l_rows, n_l_cols))      
+               allocate(S_complex_target (n_l_rows, n_l_cols))
                allocate(vectors_complex(n_l_rows, n_l_cols))
+               H_complex => H_complex_target
+               S_complex => S_complex_target
             case (REAL_VALUES)
                allocate(H_real (n_l_rows, n_l_cols))      
                allocate(S_real (n_l_rows, n_l_cols))
                allocate(vectors_real(n_l_rows, n_l_cols))
+               H_real => H_real_target
+               S_real => S_real_target
             case DEFAULT
                write(*,'(2a)') "No mode has been chosen. ", &
                "Please choose method REAL_VALUES or COMPLEX_VALUES"
@@ -268,12 +287,12 @@ subroutine elsi_set_real_hamiltonian(h,n_rows,n_cols)
 
    integer, intent(in) :: n_rows !< Number of rows
    integer, intent(in) :: n_cols !< Number of cols
-   real*8, intent(in) :: h(n_rows,n_cols) !< hamiltonian 
+   real*8, target, intent(in) :: h(n_rows,n_cols) !< hamiltonian 
    
    select case (method)
       case (ELPA)
          if (mode == REAL_VALUES) then
-            H_real(:,:) = h(:,:)      
+            H_real => h      
          else  
             write(*,'(2a)') "Wrong mode:", &
                "Complex valued hamiltonian to be written in real storage"
@@ -340,12 +359,12 @@ subroutine elsi_set_complex_hamiltonian(h,n_rows,n_cols)
 
    integer, intent(in) :: n_rows !< Number of rows
    integer, intent(in) :: n_cols !< Number of cols
-   complex*16, intent(in) :: h(n_rows,n_cols) !< hamiltonian 
+   complex*16, target, intent(in) :: h(n_rows,n_cols) !< hamiltonian 
    
    select case (method)
       case (ELPA)
          if (mode == COMPLEX_VALUES) then
-            H_complex(:,:) = h(:,:)      
+            H_complex => h      
          else  
             write(*,'(2a)') "Wrong mode:", &
                "Real valued hamiltonian to be written in complex storage"
@@ -423,7 +442,7 @@ subroutine elsi_symmetrize_hamiltonian()
       case (ELPA)
          if (mode == REAL_VALUES) then
             allocate(buffer_real (n_l_rows, n_l_cols))
-            buffer_real = H_real
+            buffer_real(:,:) = H_real(:,:)
             call pdtran(n_g_rank, n_g_rank, &
                   1.d0, buffer_real, 1, 1, sc_desc, &
                   1.d0, H_real, 1, 1, sc_desc)
@@ -441,7 +460,7 @@ subroutine elsi_symmetrize_hamiltonian()
 
          else  
             allocate(buffer_complex (n_l_rows, n_l_cols))
-            buffer_complex = H_complex
+            buffer_complex(:,:) = H_complex(:,:)
             call pztranc(n_g_rank, n_g_rank, &
                   CONE, buffer_complex, 1, 1, sc_desc, &
                   CONE, H_complex, 1, 1, sc_desc)
@@ -493,7 +512,7 @@ subroutine elsi_symmetrize_overlap()
       case (ELPA)
          if (mode == REAL_VALUES) then
             allocate(buffer_real (n_l_rows, n_l_cols))
-            buffer_real = S_real
+            buffer_real(:,:) = S_real(:,:)
             call pdtran(n_g_rank, n_g_rank, &
                   1.d0, buffer_real, 1, 1, sc_desc, &
                   1.d0, S_real, 1, 1, sc_desc)
@@ -511,7 +530,7 @@ subroutine elsi_symmetrize_overlap()
 
          else  
             allocate(buffer_complex (n_l_rows, n_l_cols))
-            buffer_complex = S_complex
+            buffer_complex(:,:) = S_complex(:,:)
             call pztranc(n_g_rank, n_g_rank, &
                   CONE, buffer_complex, 1, 1, sc_desc, &
                   CONE, S_complex, 1, 1, sc_desc)
@@ -553,12 +572,12 @@ subroutine elsi_set_real_overlap(s,n_rows,n_cols)
 
    integer, intent(in) :: n_rows !< Number of rows
    integer, intent(in) :: n_cols !< Number of cols
-   real*8, intent(in) :: s(n_rows,n_cols) !< overlap 
+   real*8, target, intent(in) :: s(n_rows,n_cols) !< overlap 
    
    select case (method)
       case (ELPA)
          if (mode == REAL_VALUES) then
-            S_real(:,:) = s(:,:)      
+            S_real => s      
          else  
             write(*,'(2a)') "Wrong mode:", &
                "Complex valued overlap to be written in real storage"
@@ -627,12 +646,12 @@ subroutine elsi_set_complex_overlap(s,n_rows,n_cols)
 
    integer, intent(in) :: n_rows !< Number of rows
    integer, intent(in) :: n_cols !< Number of cols
-   complex*16, intent(in) :: s(n_rows,n_cols) !< overlap 
+   complex*16, target, intent(in) :: s(n_rows,n_cols) !< overlap 
    
    select case (method)
       case (ELPA)
          if (mode == REAL_VALUES) then
-            S_complex(:,:) = s(:,:)      
+            S_complex => s      
          else  
             write(*,'(2a)') "Wrong mode:", &
                " Real valued overlap to be written in complex storage"
