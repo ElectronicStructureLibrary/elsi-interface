@@ -50,17 +50,16 @@ program set_and_write
 
   ! Local variables
   real*8  :: element
-  integer :: n_rows, n_cols, my_p_row, my_p_col
-  integer :: l_row, l_col, i_row, i_col
+  real*8, allocatable  :: H_matrix(:,:)
+  real*8, allocatable  :: S_matrix(:,:)
 
   ! Local MPI vars
   integer :: mpierr
-  integer :: mpi_comm_world
   integer :: myid
   integer :: n_procs
 
   ! Local BLACS vars
-  integer :: external :: numroc
+  integer,external :: numroc
   integer :: blacs_ctxt
   integer :: blacs_info
   integer :: sc_desc(9)
@@ -104,13 +103,13 @@ program set_and_write
 
   n_process_rows = n_procs / n_process_cols
 
-  blacs_ctxt = mpi_comm_global
+  blacs_ctxt = mpi_comm_world
   call BLACS_Gridinit( blacs_ctxt, 'C', n_process_rows, n_process_cols )
   call BLACS_Gridinfo( blacs_ctxt, n_process_rows, n_process_cols, &
         my_process_row, my_process_col )
-  call mpi_comm_split(mpi_comm_global,my_process_col,my_process_row,&
+  call mpi_comm_split(mpi_comm_world,my_process_col,my_process_row,&
         mpi_comm_row,mpierr)
-  call mpi_comm_split(mpi_comm_global,my_process_row,my_process_col,&
+  call mpi_comm_split(mpi_comm_world,my_process_row,my_process_col,&
         mpi_comm_col,mpierr)
   n_rows = numroc(matrixsize, blocksize, my_process_row, 0, n_process_rows)
   n_cols = numroc(matrixsize, blocksize, my_process_col, 0, n_process_cols)
@@ -131,14 +130,16 @@ program set_and_write
   allocate(S_matrix(n_rows,n_cols))
   iseed(:) = myid + 1 
   call RANDOM_SEED(put=iseed)
-  do l_row = 1, n_rows
-    do l_col = l_row, n_cols
+  do local_row = 1, n_rows
+    call elsi_get_global_row(global_row, local_row)
+    do local_col = local_row, n_cols
+      call elsi_get_global_col(global_col, local_col)
       call RANDOM_NUMBER(element)
-      H_matrix(l_row,l_col) = element
-      if (i_row == i_col) then
-         S(l_row,l_col) = 1d0
+      H_matrix(local_row,local_col) = element
+      if (global_row == global_col) then
+         S_matrix(local_row,local_col) = 1d0
       else 
-         S(l_row,l_col) = 0d0
+         S_matrix(local_row,local_col) = 0d0
       end if
     end do
   end do

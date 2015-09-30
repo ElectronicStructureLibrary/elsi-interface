@@ -169,15 +169,12 @@ subroutine elsi_set_method(i_method)
       case (ELPA)
          if (myid == 0) write(*,'(a)') "ELPA is chosen!"
       case (OMM)
-         write(*,'(a)') "OMM not implemented yet!"
-         stop
+         call elsi_stop("OMM not implemented yet!","elsi_set_method")
       case (PEXSI)
-         write(*,'(a)') "PEXSI not implemented yet!"
-         stop
+         call elsi_stop("PEXSI not implemented yet!","elsi_set_method")
       case DEFAULT
-         write(*,'(2a)') "No method has been chosen. ", &
-            "Please choose method ELPA, OMM, or PEXSI"
-         stop
+         call elsi_stop("No method has been chosen."//&
+               " Please choose method ELPA, OMM, or PEXSI", "elsi_set_method")
    end select
 
 end subroutine
@@ -193,7 +190,6 @@ subroutine elsi_set_mode(i_mode)
    integer, intent(in) :: i_mode !<one of (REAL_VALUES,COMPLEX_VALUES)
 
    mode = i_mode
-
 
 end subroutine 
 
@@ -215,28 +211,29 @@ subroutine elsi_allocate_matrices()
                allocate(vectors_complex(n_l_rows, n_l_cols))
                H_complex => H_complex_target
                S_complex => S_complex_target
+               H_complex = 0d0
+               S_complex = 0d0
             case (REAL_VALUES)
-               allocate(H_real (n_l_rows, n_l_cols))      
-               allocate(S_real (n_l_rows, n_l_cols))
+               allocate(H_real_target (n_l_rows, n_l_cols))      
+               allocate(S_real_target (n_l_rows, n_l_cols))
                allocate(vectors_real(n_l_rows, n_l_cols))
                H_real => H_real_target
                S_real => S_real_target
+               H_real = 0d0
+               S_real = 0d0
             case DEFAULT
-               write(*,'(2a)') "No mode has been chosen. ", &
-               "Please choose method REAL_VALUES or COMPLEX_VALUES"
-               stop
-
+               call elsi_stop("No mode has been chosen. "// &
+                  "Please choose method REAL_VALUES or COMPLEX_VALUES", &
+                  "elsi_allocate_matrices")
          end select
       case (OMM)
-         write(*,'(a)') "OMM not implemented yet!"
-         stop
+         call elsi_stop("OMM not implemented yet!","elsi_allocate_matrices")
       case (PEXSI)
-         write(*,'(a)') "PEXSI not implemented yet!"
-         stop
+         call elsi_stop("PEXSI not implemented yet!","elsi_allocate_matrices")
       case DEFAULT
-         write(*,'(2a)') "No method has been chosen. ", &
-            "Please choose method ELPA, OMM, or PEXSI"
-         stop
+         call elsi_stop("No method has been chosen. "// &
+            "Please choose method ELPA, OMM, or PEXSI",&
+            "elsi_allocate_matrices")
    end select
 end subroutine
 
@@ -255,22 +252,27 @@ subroutine elsi_set_real_hamiltonian_element(element,i_row,i_col)
    select case (method)
       case (ELPA)
          if (mode == REAL_VALUES) then
-            H_real(i_row,i_col) = element      
+            if(associated(H_real)) then
+               H_real(i_row,i_col) = element
+            else 
+              call elsi_stop("Hamiltonian not created/linked.",&
+                    "elsi_set_real_hamiltonian_element") 
+            endif
          else  
-            write(*,'(2a)') "Wrong mode:", &
-               "Complex valued hamiltonian to be written in real storage"
-            stop
+            call elsi_stop("Wrong mode: "// &
+               "Complex valued hamiltonian to be written in real storage",&
+               "elsi_set_real_hamiltonian_element")
          end if
       case (OMM)
-         write(*,'(a)') "OMM not implemented yet!"
-         stop
+         call elsi_stop("OMM not implemented yet!",&
+               "elsi_set_real_hamiltonian_element")
       case (PEXSI)
-         write(*,'(a)') "PEXSI not implemented yet!"
-         stop
+         call elsi_stop("PEXSI not implemented yet!",&
+               "elsi_set_real_hamiltonian_element")
       case DEFAULT
-         write(*,'(2a)') "No method has been chosen. ", &
-            "Please choose method ELPA, OMM, or PEXSI"
-         stop
+         call elsi_stop("No method has been chosen. "// &
+            "Please choose method ELPA, OMM, or PEXSI",&
+            "elsi_set_real_hamiltonian_element")
    end select
 
 
@@ -1051,7 +1053,8 @@ subroutine elsi_get_eigenvalues(eigenvalues_out,n_eigenvalues)
    
    select case (method)
       case (ELPA)
-            eigenvalues_out(1:n_eigenvalues) = eigenvalues(1:n_eigenvalues)      
+            eigenvalues_out(1:n_eigenvalues) = &
+               eigenvalues(1:n_eigenvalues)      
       case (OMM)
          write(*,'(a)') "OMM not implemented yet!"
          stop
@@ -1064,10 +1067,7 @@ subroutine elsi_get_eigenvalues(eigenvalues_out,n_eigenvalues)
          stop
    end select
 
-
 end subroutine
-
-
 
 !>
 !!  This routine prepares the matrices based on the dimension and method
@@ -1077,31 +1077,21 @@ subroutine elsi_deallocate_matrices()
 
    implicit none
 
-   select case (method)
-      case (ELPA)
-         deallocate(eigenvalues) 
-         select case (mode)
-            case (COMPLEX_VALUES)
-               deallocate(H_complex)      
-               deallocate(S_complex)
-               deallocate(vectors_complex)
-            case (REAL_VALUES)
-               deallocate(H_real)      
-               deallocate(S_real)
-               deallocate(vectors_real)
-         end select
-      case (OMM)
-         write(*,'(a)') "OMM not implemented yet!"
-         stop
-      case (PEXSI)
-         write(*,'(a)') "PEXSI not implemented yet!"
-         stop
-      case DEFAULT
-         write(*,'(2a)') "No method has been chosen. ", &
-            "Please choose method ELPA, OMM, or PEXSI"
-         stop
-   end select
-
+   ! Nullify pointers
+   if (associated(H_real))    nullify (H_real)
+   if (associated(H_complex)) nullify (H_complex)
+   if (associated(S_real))    nullify (S_real)
+   if (associated(S_complex)) nullify (S_complex)
+ 
+   ! Free Memory
+   if (allocated(H_real_target))    deallocate(H_real_target)
+   if (allocated(H_complex_target)) deallocate(H_complex_target)
+   if (allocated(S_real_target))    deallocate(S_real_target)
+   if (allocated(S_complex_target)) deallocate(S_complex_target)
+   if (allocated(vectors_real))     deallocate(vectors_real)
+   if (allocated(vectors_complex))  deallocate(vectors_complex)
+   if (allocated(eigenvalues))      deallocate(eigenvalues)
+   
 end subroutine
 
 !>
@@ -1263,8 +1253,21 @@ subroutine elsi_check_solution(success)
          stop
    end select
 
-
-
 end subroutine
+
+subroutine elsi_print(message)
+   
+      implicit none
+
+      character(len=*), intent(in) :: message
+
+       character(LEN=4096) :: string_message
+
+      write(string_message, "(1X,'*** Proc',I5,': ',A)") &
+           & myid, trim(message)
+
+      write(*,'(A)') trim(string_message)
+
+end subroutine 
 
 end module ELSI

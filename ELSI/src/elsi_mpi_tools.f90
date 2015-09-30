@@ -52,6 +52,7 @@ module ELSI_MPI_TOOLS
   public :: elsi_get_myid
   public :: elsi_finalize_mpi
   public :: elsi_finalize_blacs
+  public :: elsi_stop
 
   contains
 
@@ -173,12 +174,6 @@ subroutine elsi_initialize_blacs()
   if(myid == 0) print *, 'Blocksize: ',n_b_rows, ' x ', n_b_cols
   if(myid == 0) print *, 'Processor grid: ',n_p_rows, ' x ', n_p_cols
   if(myid == 0) print *, 'Local Matrixsize: ',n_l_rows, ' x ', n_l_cols
-  call MPI_BARRIER(mpi_comm_global,mpierr)
-
-  print *, myid," Id mpi_comm_global: ", mpi_comm_global
-  print *, myid," Id ip_row/col: ", my_p_row, "/", my_p_col
-  print *, myid," Id MPI_COMM_rows/cols: ", mpi_comm_row, "/", mpi_comm_col
-  call MPI_BARRIER(mpi_comm_global,mpierr)
 
   call descinit( sc_desc, n_g_rank, n_g_rank, n_b_rows, n_b_cols, 0, 0, &
                  blacs_ctxt, MAX(1,n_l_rows), blacs_info )
@@ -365,6 +360,29 @@ subroutine elsi_get_myid (id)
 
 end subroutine
 
+!>
+!! Clean shutdown in case of error
+!!
+subroutine elsi_stop(message, caller)
 
+      implicit none
+
+      character(len=*), intent(in) :: message
+      character(len=*), intent(in) :: caller
+
+      character(LEN=4096) :: string_message
+
+      write(string_message, "(1X,'*** Proc',I5,' in ',A,': ',A)") &
+           & myid, trim(caller), trim(message)
+
+      write(*,'(A)') trim(string_message)
+        
+      if (n_procs > 1) then
+         call MPI_Abort(mpi_comm_global, 0, mpierr)
+      end if
+        
+      stop
+
+end subroutine elsi_stop
 
 end module ELSI_MPI_TOOLS

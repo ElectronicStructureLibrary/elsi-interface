@@ -91,10 +91,10 @@ program construct_and_write
       call RANDOM_NUMBER(element)
       if (i_row == i_col) then
          call elsi_set_hamiltonian_element(element, l_row, l_col)
-         call elsi_set_overlap_element    (1.0d0,           l_row, l_col)
+         call elsi_set_overlap_element    (1.0d0,   l_row, l_col)
       else 
-         call elsi_set_hamiltonian_element(1.0d0 * element, l_row, l_col)
-         call elsi_set_overlap_element    (0.0d0,           l_row, l_col)
+         call elsi_set_hamiltonian_element(element, l_row, l_col)
+         call elsi_set_overlap_element    (0.0d0,   l_row, l_col)
       end if
     end do
   end do
