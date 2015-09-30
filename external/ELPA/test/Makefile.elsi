@@ -3,8 +3,8 @@
 #
 # Choose ELPA2 kernels.
 # Possible choices for ARCHITECTURE include: Generic, Simple, SSE, AVX, BlueGeneQ.
-# See ../src/elpa2_kernels/README.
-ARCHITECTURE = SSE
+# See ../src/elpa2_kernels/README_elpa2_kernels.
+ARCHITECTURE = Generic
 # For AVX, uncomment and set the following variables.
 # BLOCK_REAL = 2
 # BLOCK_COMPLEX = 1
@@ -12,10 +12,7 @@ ARCHITECTURE = SSE
 # Switch on/off OpenMP.
 OPENMP = no
 #
-# Switch on/off Installer.
-INSTALLER = no
-#
-PREPROCESSOR = -DHAVE_ENVIRONMENT_CHECKING
+PREPROCESSOR = -DINSTALLER -DHAVE_ENVIRONMENT_CHECKING
 ifeq ($(strip $(ARCHITECTURE)),Generic)
   PREPROCESSOR += -DWITH_COMPLEX_GENERIC_KERNEL -DWITH_REAL_GENERIC_KERNEL
 endif
@@ -68,7 +65,7 @@ SCALAPACK = -L${MKLROOT}/lib/intel64 -lmkl_scalapack_lp64 \
 #
 ifeq ($(strip $(ARCHITECTURE)),)
   $(info Please set the variable ARCHITECTURE.)
-  $(info How to choose appropriate kernels is documented in ../src/elpa2_kernels/README.)
+  $(info How to choose appropriate kernels is documented in ../src/elpa2_kernels/README_elpa2_kernels.)
   $(info Often, generic kernels and mpi-only may be a good first step,)
   $(info but considering your specific computer platform may make a big difference.)
   $(error ARCHITECTURE not set.)
@@ -77,17 +74,17 @@ ifeq ($(strip $(ARCHITECTURE)),Generic)
   ELPA2_KERNELS_O ?= elpa2_kernels_real.o elpa2_kernels_complex.o 
 endif
 ifeq ($(strip $(ARCHITECTURE)),Simple)
-  ELPA2_KERNELS_O ?= elpa2_kernels_real_simple.o elpa2_kernels_complex_simple.o elpa2_kernels_real.o elpa2_kernels_complex2.o
+  ELPA2_KERNELS_O ?= elpa2_kernels_real_simple.o elpa2_kernels_complex_simple.o
 endif
 ifeq ($(strip $(ARCHITECTURE)),SSE)
-  ELPA2_KERNELS_O ?= elpa2_kernels_asm_x86_64.o elpa2_kernels_real.o elpa2_kernels_complex.o
+  ELPA2_KERNELS_O ?= elpa2_kernels_asm_x86_64.o
 endif
 ifeq ($(strip $(ARCHITECTURE)),BlueGeneQ)
-  ELPA2_KERNELS_O ?= elpa2_kernels_real_bgq.o
+  ELPA2_KERNELS_O ?= elpa2_kernels_real_bgq.o elpa2_kernels_complex.o
 endif
 ifeq ($(strip $(ARCHITECTURE)),AVX)
   FCFLAGS += -lstdc++
-  ELPA2_KERNELS_O ?= elpa2_kernels_real_sse-avx_2hv.o elpa2_kernels_complex_sse-avx_1hv.o elpa2_kernels_real.o elpa2_kernels_complex.o
+  ELPA2_KERNELS_O ?= elpa2_kernels_real_sse-avx_2hv.o elpa2_kernels_complex_sse-avx_1hv.o
   ifeq ($(strip $(BLOCK_REAL)),2)
     ELPA2_KERNELS_O +=
   endif
@@ -106,7 +103,7 @@ ifeq ($(strip $(ARCHITECTURE)),AVX)
 endif
 ifeq ($(strip $(ELPA2_KERNELS_O)),)
   $(info Please check your choice for ARCHITECTURE: $(strip $(ARCHITECTURE)).)
-  $(info How to choose appropriate kernels is documented in ../src/elpa2_kernels/README.)
+  $(info How to choose appropriate kernels is documented in ../src/elpa2_kernels/README_elpa2_kernels.)
   $(info Often, generic kernels and mpi-only may be a good first step,)
   $(info but considering your specific computer platform may make a big difference.)
   $(error Invalid choice for ARCHITECTURE.)
@@ -191,12 +188,6 @@ elpa2_kernels_complex.o : ../src/elpa2_kernels/elpa2_kernels_complex.f90
 endif
 
 ifeq ($(ARCHITECTURE),Simple)
-elpa2_kernels_real.o : ../src/elpa2_kernels/elpa2_kernels_real.f90
-	$(MPIFC) $(FCFLAGS) -c $<
-
-elpa2_kernels_complex2.o : ../src/elpa2_kernels/elpa2_kernels_complex2.f90
-	$(MPIFC) $(FCFLAGS) -c $<
-
 elpa2_kernels_real_simple.o : ../src/elpa2_kernels/elpa2_kernels_real_simple.f90
 	$(MPIFC) $(FCFLAGS) -c $<
 
@@ -205,12 +196,6 @@ elpa2_kernels_complex_simple.o : ../src/elpa2_kernels/elpa2_kernels_complex_simp
 endif
 
 ifeq ($(ARCHITECTURE),AVX)
-elpa2_kernels_real.o : ../src/elpa2_kernels/elpa2_kernels_real.f90
-	$(MPIFC) $(FCFLAGS) -c $<
-
-elpa2_kernels_complex.o : ../src/elpa2_kernels/elpa2_kernels_complex.f90
-	$(MPIFC) $(FCFLAGS) -c $<
-
 elpa2_kernels_complex_sse-avx_1hv.o : ../src/elpa2_kernels/elpa2_kernels_complex_sse-avx_1hv.cpp
 	$(MPICC) $(CCFLAGS) -c $<
 
@@ -237,18 +222,15 @@ endif
 endif
 
 ifeq ($(ARCHITECTURE),SSE)
-elpa2_kernels_real.o : ../src/elpa2_kernels/elpa2_kernels_real.f90
-	$(MPIFC) $(FCFLAGS) -c $<
-
-elpa2_kernels_complex.o : ../src/elpa2_kernels/elpa2_kernels_complex.f90
-	$(MPIFC) $(FCFLAGS) -c $<
-
 elpa2_kernels_asm_x86_64.o : ../src/elpa2_kernels/elpa2_kernels_asm_x86_64.s
 	$(MPIFC) $(FCFLAGS) -xSSE4.2 -c $<
 endif
 
 ifeq ($(ARCHITECTURE),BlueGeneQ)
-$(ELPA2_KERNELS_O) : ../src/elpa2_kernels/elpa2_kernels_real_bgq.f90
+elpa2_kernels_complex.o : ../src/elpa2_kernels/elpa2_kernels_complex.f90
+	$(MPIFC) $(FCFLAGS) -c $<
+
+elpa2_kernels_real_bgq.o : ../src/elpa2_kernels/elpa2_kernels_real_bgq.f90
 	$(MPIFC) $(FCFLAGS) -c $<
 endif
 

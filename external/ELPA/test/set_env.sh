@@ -4,10 +4,10 @@
 # Possible choices for ARCHITECTURE include: Generic, Simple, BlueGeneQ, SSE, AVX.
 # See ../src/elpa2_kernels/README.
 #
-ARCHITECTURE="SSE"
+ARCHITECTURE="Generic"
 # For AVX, uncomment and set the following variables.
-#BLOCK_REAL=2
-#BLOCK_COMPLEX=1
+# BLOCK_REAL=2
+# BLOCK_COMPLEX=1
 #
 if [ $ARCHITECTURE = "Generic" ]
 then

@@ -55,8 +55,8 @@
 ! with their original authors, but shall adhere to the licensing terms
 ! distributed along with the original code in the file "COPYING".
 
-#if INSTALLER=yes
-  include "config-f90.h"
+#ifndef INSTALLER
+#include "config-f90.h"
 #endif
 
 module ELPA2
@@ -5383,9 +5383,9 @@ contains
 #if defined(WITH_COMPLEX_GENERIC_SIMPLE_KERNEL)
       use complex_generic_simple_kernel, only : single_hh_trafo_complex_generic_simple
 #endif
-#if defined(WITH_COMPLEX_GENERIC_SIMPLE_KERNEL)
-      use complex_generic_kernel, only : single_hh_trafo_complex_generic
-#endif
+!#if defined(WITH_COMPLEX_GENERIC_KERNEL)
+!      use complex_generic_kernel, only : single_hh_trafo_complex_generic
+!#endif
 #ifdef HAVE_DETAILED_TIMINGS
       use timings
 #endif
@@ -5473,22 +5473,7 @@ contains
 
 
 #if defined(WITH_NO_SPECIFIC_COMPLEX_KERNEL)
-        if (THIS_COMPLEX_ELPA_KERNEL .eq. COMPLEX_ELPA_KERNEL_GENERIC .or. &
-            THIS_COMPLEX_ELPA_KERNEL .eq. COMPLEX_ELPA_KERNEL_BGP .or. &
-            THIS_COMPLEX_ELPA_KERNEL .eq. COMPLEX_ELPA_KERNEL_BGQ ) then
-#endif /* WITH_NO_SPECIFIC_COMPLEX_KERNEL */
-          ttt = mpi_wtime()
-          do j = ncols, 1, -1
-#ifdef WITH_OPENMP
-            call single_hh_trafo_complex_generic(a(1,j+off+a_off,istripe,my_thread), &
-                                                   bcast_buffer(1,j+off),nbw,nl,stripe_width)
-#else
-            call single_hh_trafo_complex_generic(a(1,j+off+a_off,istripe), &
-                                                   bcast_buffer(1,j+off),nbw,nl,stripe_width)
-#endif
-          enddo
-#if defined(WITH_NO_SPECIFIC_COMPLEX_KERNEL)
-        endif
+        endif !
 #endif /* WITH_NO_SPECIFIC_COMPLEX_KERNEL */
 
 

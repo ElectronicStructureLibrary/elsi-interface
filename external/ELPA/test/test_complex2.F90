@@ -39,8 +39,8 @@
 !    the original distribution, the GNU Lesser General Public License.
 !
 !
-#if INSTALLER=no
-  include "config-f90.h"
+#ifndef INSTALLER
+#include "config-f90.h"
 #endif
 !>
 !> Fortran test programm to demonstrates the use of
