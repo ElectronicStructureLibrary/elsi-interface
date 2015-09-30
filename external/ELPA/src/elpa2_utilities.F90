@@ -55,8 +55,9 @@
 ! with their original authors, but shall adhere to the licensing terms
 ! distributed along with the original code in the file "COPYING".
 
-
-#include "config-f90.h"
+#if INSTALLER=yes
+  include "config-f90.h"
+#endif
 #include <elpa/elpa_kernel_constants.h>
 
 module ELPA2_utilities
@@ -244,7 +245,7 @@ module ELPA2_utilities
         endif
       enddo
       write(error_unit,*) " "
-      write(error_unit,*) " At the moment the following kernel would be choosen:"
+      write(error_unit,*) " At the moment the following kernel would be chosen:"
       write(error_unit,*) get_actual_real_kernel_name()
 
 #ifdef HAVE_DETAILED_TIMINGS
@@ -271,7 +272,7 @@ module ELPA2_utilities
         endif
       enddo
       write(error_unit,*) " "
-      write(error_unit,*) " At the moment the following kernel would be choosen:"
+      write(error_unit,*) " At the moment the following kernel would be chosen:"
       write(error_unit,*) get_actual_complex_kernel_name()
 
 #ifdef HAVE_DETAILED_TIMINGS
@@ -293,7 +294,7 @@ module ELPA2_utilities
 #endif
 
 
-      ! if kernel is not choosen via api
+      ! if kernel is not chosen via api
       ! check whether set by environment variable
       actual_kernel = real_kernel_via_environment_variable()
 
@@ -342,7 +343,7 @@ module ELPA2_utilities
 #endif
 
 
-     ! if kernel is not choosen via api
+     ! if kernel is not chosen via api
      ! check whether set by environment variable
      actual_kernel = complex_kernel_via_environment_variable()
 

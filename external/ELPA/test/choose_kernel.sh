@@ -1,0 +1,47 @@
+#1/bin/bash -l
+#
+# Choose ELPA2 kernels.
+# Possible choices for ARCHITECTURE include: Generic, Simple, BlueGeneQ, SSE, AVX.
+# See ../src/elpa2_kernels/README.
+#
+ARCHITECTURE="SSE"
+# For AVX, uncomment and set the following variables.
+#BLOCK_REAL=2
+#BLOCK_COMPLEX=1
+#
+if [ $ARCHITECTURE = "Generic" ]
+then
+  export REAL_ELPA_KERNEL=REAL_ELPA_KERNEL_GENERIC
+  export COMPLEX_ELPA_KERNEL=COMPLEX_ELPA_KERNEL_GENERIC
+elif [ $ARCHITECTURE = "Simple" ]
+then
+  export REAL_ELPA_KERNEL=REAL_ELPA_KERNEL_GENERIC_SIMPLE
+  export COMPLEX_ELPA_KERNEL=COMPLEX_ELPA_KERNEL_GENERIC_SIMPLE
+elif [ $ARCHITECTURE = "BlueGeneQ" ]
+then
+  export REAL_ELPA_KERNEL=REAL_ELPA_KERNEL_BGQ
+  export COMPLEX_ELPA_KERNEL=COMPLEX_ELPA_KERNEL_BGQ
+elif [ $ARCHITECTURE = "SSE" ]
+then
+  export REAL_ELPA_KERNEL=REAL_ELPA_KERNEL_SSE
+  export COMPLEX_ELPA_KERNEL=COMPLEX_ELPA_KERNEL_SSE
+elif [ $ARCHITECTURE = "AVX" ]
+then
+  if [ $BLOCK_REAL -eq 2 ]
+  then
+    export REAL_ELPA_KERNEL=REAL_ELPA_KERNEL_AVX_BLOCK2
+  elif [ $BLOCK_REAL -eq 4 ]
+  then
+    export REAL_ELPA_KERNEL=REAL_ELPA_KERNEL_AVX_BLOCK4
+  elif [ $BLOCK_REAL -eq 6 ]
+  then
+    export REAL_ELPA_KERNEL=REAL_ELPA_KERNEL_AVX_BLOCK6
+  fi
+  if [ $BLOCK_COMPLEX -eq 1 ]
+  then
+    export COMPLEX_ELPA_KERNEL=COMPLEX_ELPA_KERNEL_AVX_BLOCK1
+  elif [ $BLOCK_COMPLEX -eq 2 ]
+  then
+    export COMPLEX_ELPA_KERNEL=COMPLEX_ELPA_KERNEL_AVX_BLOCK2
+  fi
+fi

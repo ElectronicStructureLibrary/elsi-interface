@@ -55,8 +55,9 @@
 ! with their original authors, but shall adhere to the licensing terms
 ! distributed along with the original code in the file "COPYING".
 
-
-#include "config-f90.h"
+#if INSTALLER=yes
+  include "config-f90.h"
+#endif
 
 module ELPA2
 
@@ -224,17 +225,17 @@ function solve_evp_real_2stage(na, nev, a, lda, ev, q, ldq, nblk,        &
      THIS_REAL_ELPA_KERNEL = THIS_REAL_ELPA_KERNEL_API
    else
 
-     ! if kernel is not choosen via api
+     ! if kernel is not chosen via api
      ! check whether set by environment variable
      THIS_REAL_ELPA_KERNEL = get_actual_real_kernel()
    endif
 
-   ! check whether choosen kernel is allowed
+   ! check whether chosen kernel is allowed
    if (check_allowed_real_kernels(THIS_REAL_ELPA_KERNEL)) then
 
      if (my_pe == 0) then
        write(error_unit,*) " "
-       write(error_unit,*) "The choosen kernel ",REAL_ELPA_KERNEL_NAMES(THIS_REAL_ELPA_KERNEL)
+       write(error_unit,*) "The chosen kernel ",REAL_ELPA_KERNEL_NAMES(THIS_REAL_ELPA_KERNEL)
        write(error_unit,*) "is not in the list of the allowed kernels!"
        write(error_unit,*) " "
        write(error_unit,*) "Allowed kernels are:"
@@ -420,17 +421,17 @@ function solve_evp_complex_2stage(na, nev, a, lda, ev, q, ldq, nblk, &
      ! user defined kernel via the optional argument in the API call
      THIS_COMPLEX_ELPA_KERNEL = THIS_COMPLEX_ELPA_KERNEL_API
    else
-     ! if kernel is not choosen via api
+     ! if kernel is not chosen via api
      ! check whether set by environment variable
      THIS_COMPLEX_ELPA_KERNEL = get_actual_complex_kernel()
    endif
 
-   ! check whether choosen kernel is allowed
+   ! check whether chosen kernel is allowed
    if (check_allowed_complex_kernels(THIS_COMPLEX_ELPA_KERNEL)) then
 
      if (my_pe == 0) then
        write(error_unit,*) " "
-       write(error_unit,*) "The choosen kernel ",COMPLEX_ELPA_KERNEL_NAMES(THIS_COMPLEX_ELPA_KERNEL)
+       write(error_unit,*) "The chosen kernel ",COMPLEX_ELPA_KERNEL_NAMES(THIS_COMPLEX_ELPA_KERNEL)
        write(error_unit,*) "is not in the list of the allowed kernels!"
        write(error_unit,*) " "
        write(error_unit,*) "Allowed kernels are:"

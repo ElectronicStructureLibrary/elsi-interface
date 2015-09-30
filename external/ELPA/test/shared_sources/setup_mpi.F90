@@ -39,7 +39,10 @@
 !    the original distribution, the GNU Lesser General Public License.
 !
 !
-#include "config-f90.h"
+#if INSTALLER=yes
+  include "config-f90.h"
+#endif
+
 module mod_setup_mpi
 
   contains
