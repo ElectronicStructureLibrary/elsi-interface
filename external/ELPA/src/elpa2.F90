@@ -5473,7 +5473,20 @@ contains
 
 
 #if defined(WITH_NO_SPECIFIC_COMPLEX_KERNEL)
-        endif !
+        if (THIS_COMPLEX_ELPA_KERNEL .eq. COMPLEX_ELPA_KERNEL_GENERIC .or. &
+            THIS_COMPLEX_ELPA_KERNEL .eq. COMPLEX_ELPA_KERNEL_BGP .or. &
+            THIS_COMPLEX_ELPA_KERNEL .eq. COMPLEX_ELPA_KERNEL_BGQ ) then
+          ttt = mpi_wtime()
+          do j = ncols, 1, -1
+#ifdef WITH_OPENMP
+            call single_hh_trafo_complex_generic(a(1,j+off+a_off,istripe,my_thread), &
+                                                   bcast_buffer(1,j+off),nbw,nl,stripe_width)
+#else
+            call single_hh_trafo_complex_generic(a(1,j+off+a_off,istripe), &
+                                                   bcast_buffer(1,j+off),nbw,nl,stripe_width)
+#endif
+          enddo
+        endif
 #endif /* WITH_NO_SPECIFIC_COMPLEX_KERNEL */
 
 

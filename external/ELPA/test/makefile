@@ -1,16 +1,5 @@
 # This is an example of Makefile.
-# Please set the variables below according to your system!
-#
-# Choose ELPA2 kernels.
-# Possible choices for ARCHITECTURE include: Generic, Simple, SSE, AVX, BlueGeneQ.
-# See ../src/elpa2_kernels/README_elpa2_kernels.
-ARCHITECTURE = Generic
-# For AVX, uncomment and set the following variables.
-# BLOCK_REAL = 2
-# BLOCK_COMPLEX = 1
-#
-# Switch on/off OpenMP.
-OPENMP = no
+-include make.sys
 #
 PREPROCESSOR = -DINSTALLER -DHAVE_ENVIRONMENT_CHECKING
 ifeq ($(strip $(ARCHITECTURE)),Generic)
@@ -45,23 +34,6 @@ endif
 ifeq ($(strip $(OPENMP)),yes)
   PREPROCESSOR += -DWITH_OPENMP
 endif
-#
-# Settings of Fortran/C/C++ compilers and flags.
-MPIFC = mpiifort
-FCFLAGS = -O3 -traceback -g -fpe0 -fpp -I../ $(PREPROCESSOR)
-MPICC = mpicc
-CCFLAGS = -O3 -mavx -funsafe-loop-optimizations \
-          -funsafe-math-optimizations -ftree-vect-loop-version \
-          -ftree-vectorize
-MPICXX = mpicc
-CXXFLAGS = -O3 -mavx -funsafe-loop-optimizations \
-           -funsafe-math-optimizations -ftree-vect-loop-version \
-           -ftree-vectorize
-#
-# Location of ScaLapack library.
-SCALAPACK = -L${MKLROOT}/lib/intel64 -lmkl_scalapack_lp64 \
-            -lmkl_intel_lp64 -lmkl_sequential -lmkl_core \
-            -lmkl_blacs_intelmpi_lp64 -lpthread -lm
 #
 ifeq ($(strip $(ARCHITECTURE)),)
   $(info Please set the variable ARCHITECTURE.)
@@ -127,34 +99,34 @@ $(info OpenMP -- $(strip $(OPENMP)).)
 all: test_real test_complex test_real2 test_complex2
 
 test_real: test_real.o elpa1.o elpa_utilities.o $(SHARED_SOURCES_O) $(FTIMINGS_O)
-	$(MPIFC) $(FCFLAGS) -o $@ $^ $(SCALAPACK)
+	$(MPIFC) $(FCFLAGS) $(PREPROCESSOR) -o $@ $^ $(SCALAPACK)
 
 test_complex: test_complex.o elpa1.o elpa_utilities.o $(SHARED_SOURCES_O) $(FTIMINGS_O)
-	$(MPIFC) $(FCFLAGS) -o $@ $^ $(SCALAPACK)
+	$(MPIFC) $(FCFLAGS) $(PREPROCESSOR) -o $@ $^ $(SCALAPACK)
 
 test_real2: test_real2.o elpa1.o elpa2.o elpa_utilities.o elpa2_utilities.o $(ELPA_QR_O) $(SHARED_SOURCES_O) $(FTIMINGS) $(ELPA2_KERNELS_O)
-	$(MPIFC) $(FCFLAGS) -o $@ $^ $(SCALAPACK)
+	$(MPIFC) $(FCFLAGS) $(PREPROCESSOR) -o $@ $^ $(SCALAPACK)
 
 test_complex2: test_complex2.o elpa1.o elpa2.o elpa_utilities.o elpa2_utilities.o $(ELPA_QR_O) $(SHARED_SOURCES_O) $(FTIMINGS) $(ELPA2_KERNELS_O)
-	$(MPIFC) $(FCFLAGS) -o $@ $^ $(SCALAPACK)
+	$(MPIFC) $(FCFLAGS) $(PREPROCESSOR) -o $@ $^ $(SCALAPACK)
 
 test_real.o: test_real.f90 elpa1.o
-	$(MPIFC) $(FCFLAGS) -c $<
+	$(MPIFC) $(FCFLAGS) $(PREPROCESSOR) -c $<
 
 test_complex.o: test_complex.f90 elpa1.o
-	$(MPIFC) $(FCFLAGS) -c $<
+	$(MPIFC) $(FCFLAGS) $(PREPROCESSOR) -c $<
 
 test_real2.o: test_real2.F90 elpa2.o $(ELPA2_KERNELS_O)
-	$(MPIFC) $(FCFLAGS) -c $<
+	$(MPIFC) $(FCFLAGS) $(PREPROCESSOR) -c $<
 
 test_complex2.o: test_complex2.F90 elpa2.o $(ELPA2_KERNELS_O)
-	$(MPIFC) $(FCFLAGS) -c $<
+	$(MPIFC) $(FCFLAGS) $(PREPROCESSOR) -c $<
 
 elpa1.o: ../src/elpa1.f90 elpa_utilities.o $(SHARED_SOURCES_O)
-	$(MPIFC) $(FCFLAGS) -c $<
+	$(MPIFC) $(FCFLAGS) $(PREPROCESSOR) -c $<
 
 elpa2.o: ../src/elpa2.F90 elpa1.o elpa2_utilities.o elpa_pdgeqrf.o $(ELPA2_KERNELS_O)
-	$(MPIFC) $(FCFLAGS) -c $<
+	$(MPIFC) $(FCFLAGS) $(PREPROCESSOR) -c $<
 
 ifeq ($(OPENMP),yes)
 ftimings.o : ../src/ftimings/ftimings.F90 ftimings_type.o ftimings_value.o
@@ -235,10 +207,10 @@ elpa2_kernels_real_bgq.o : ../src/elpa2_kernels/elpa2_kernels_real_bgq.f90
 endif
 
 elpa_utilities.o: ../src/elpa_utilities.F90
-	$(MPIFC) $(FCFLAGS) -c $<
+	$(MPIFC) $(FCFLAGS) $(PREPROCESSOR) -c $<
 
 elpa2_utilities.o: ../src/elpa2_utilities.F90
-	$(MPIFC) $(FCFLAGS) -c $<
+	$(MPIFC) $(FCFLAGS) $(PREPROCESSOR) -c $<
 
 util.o: ./shared_sources/util.F90
 	$(MPIFC) $(FCFLAGS) -c $<
@@ -247,13 +219,13 @@ blacs_infrastructure.o: ./shared_sources/blacs_infrastructure.F90
 	$(MPIFC) $(FCFLAGS) -c $<
 
 check_correctnes.o: ./shared_sources/check_correctnes.F90
-	$(MPIFC) $(FCFLAGS) -c $<
+	$(MPIFC) $(FCFLAGS) $(PREPROCESSOR) -c $<
 
 read_input_parameters.o: ./shared_sources/read_input_parameters.F90
-	$(MPIFC) $(FCFLAGS) -c $<
+	$(MPIFC) $(FCFLAGS) $(PREPROCESSOR) -c $<
 
 setup_mpi.o: ./shared_sources/setup_mpi.F90
-	$(MPIFC) $(FCFLAGS) -c $<
+	$(MPIFC) $(FCFLAGS) $(PREPROCESSOR) -c $<
 
 prepare_matrix.o: ./shared_sources/prepare_matrix.F90
 	$(MPIFC) $(FCFLAGS) -c $<

@@ -1,0 +1,29 @@
+# Please set the variables below according to your system!
+#
+# Choose ELPA2 kernels.
+# Possible choices for ARCHITECTURE include: Generic, Simple, SSE, AVX, BlueGeneQ.
+# See ../src/elpa2_kernels/README_elpa2_kernels.
+ARCHITECTURE = Generic
+# For AVX, uncomment and set the following variables.
+# BLOCK_REAL = 2
+# BLOCK_COMPLEX = 1
+#
+# Switch on/off OpenMP.
+OPENMP = no
+#
+# Settings of Fortran/C/C++ compilers and flags.
+MPIFC = mpiifort
+FCFLAGS = -O3 -traceback -g -fpe0 -fpp -I../
+MPICC = mpicc
+CCFLAGS = -O3 -mavx -funsafe-loop-optimizations \
+          -funsafe-math-optimizations -ftree-vect-loop-version \
+          -ftree-vectorize
+MPICXX = mpicc
+CXXFLAGS = -O3 -mavx -funsafe-loop-optimizations \
+           -funsafe-math-optimizations -ftree-vect-loop-version \
+           -ftree-vectorize
+#
+# Location of ScaLapack library.
+SCALAPACK = -L${MKLROOT}/lib/intel64 -lmkl_scalapack_lp64 \
+            -lmkl_intel_lp64 -lmkl_sequential -lmkl_core \
+            -lmkl_blacs_intelmpi_lp64 -lpthread -lm
