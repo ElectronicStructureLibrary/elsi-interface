@@ -42,7 +42,7 @@ program read_and_solve
 
   integer :: n_eigenvectors = 10
 
-  integer :: myid
+  integer :: myid, i_eigenvector
   real*8, allocatable :: eigenvals(:)
   integer :: matrixsize, block_rows, block_cols
 
@@ -77,7 +77,12 @@ program read_and_solve
   call elsi_get_eigenvalues(eigenvals, n_eigenvectors)
 
   call elsi_get_myid(myid)
-  if (myid == 0) print *, "Eigenvalues : ", eigenvals
+  if (myid == 0) then 
+     do i_eigenvector = 1,n_eigenvectors
+        write (*,'(I5,A,E13.6)'), i_eigenvector," Eigenvalue : ", &
+           eigenvals(i_eigenvector)
+     end do
+  end if
 
   deallocate(eigenvals)
 

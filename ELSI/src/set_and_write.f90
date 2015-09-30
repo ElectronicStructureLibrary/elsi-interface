@@ -28,7 +28,7 @@
 !! using the ELSI Interface software
 !!
 
-program construct_and_write
+program set_and_write
 
   use iso_c_binding
   use ELSI
@@ -50,9 +50,33 @@ program construct_and_write
 
   ! Local variables
   real*8  :: element
+  real*8, allocatable  :: H_matrix(:,:)
+  real*8, allocatable  :: S_matrix(:,:)
+
+  ! Local MPI vars
+  integer :: mpierr
   integer :: myid
-  integer :: n_rows, n_cols, my_p_row, my_p_col
-  integer :: l_row, l_col, i_row, i_col
+  integer :: n_procs
+
+  ! Local BLACS vars
+  integer,external :: numroc
+  integer :: blacs_ctxt
+  integer :: blacs_info
+  integer :: sc_desc(9)
+  integer :: mpi_comm_row
+  integer :: mpi_comm_col
+  integer :: n_process_rows
+  integer :: n_process_cols
+  integer :: my_process_row
+  integer :: my_process_col
+
+  ! Local Matrix dimensions
+  integer :: n_rows
+  integer :: n_cols
+
+  ! Positions
+  integer :: global_row, local_row
+  integer :: global_col, local_col
 
 
   !  Pharse command line argumnents, if given
@@ -67,38 +91,62 @@ program construct_and_write
       read(arg2, *) blocksize
    endif
 
-  ! Now set some ELSI specifications
-  call elsi_initialize_mpi()
+  ! Simulate external MPI environment
+  call mpi_init(mpierr)
+  call mpi_comm_rank(mpi_comm_world, myid, mpierr)
+  call mpi_comm_size(mpi_comm_world, n_procs, mpierr)
+
+  ! Simulate external blacs environment
+  do n_process_cols = NINT(SQRT(REAL(n_procs))),2,-1
+     if(mod(n_procs,n_process_cols) == 0 ) exit
+  enddo
+
+  n_process_rows = n_procs / n_process_cols
+
+  blacs_ctxt = mpi_comm_world
+  call BLACS_Gridinit( blacs_ctxt, 'C', n_process_rows, n_process_cols )
+  call BLACS_Gridinfo( blacs_ctxt, n_process_rows, n_process_cols, &
+        my_process_row, my_process_col )
+  call mpi_comm_split(mpi_comm_world,my_process_col,my_process_row,&
+        mpi_comm_row,mpierr)
+  call mpi_comm_split(mpi_comm_world,my_process_row,my_process_col,&
+        mpi_comm_col,mpierr)
+  n_rows = numroc(matrixsize, blocksize, my_process_row, 0, n_process_rows)
+  n_cols = numroc(matrixsize, blocksize, my_process_col, 0, n_process_cols)
+  call descinit( sc_desc, matrixsize, matrixsize, blocksize, blocksize, 0, 0, &
+                 blacs_ctxt, MAX(1,n_rows), blacs_info )
+
+  ! ELSI Bootup
+  call elsi_set_mpi(mpi_comm_world,n_procs,myid)
   call elsi_initialize_problem(matrixsize, blocksize, blocksize)
-  call elsi_initialize_blacs()
+  call elsi_set_blacs(blacs_ctxt, n_process_rows, n_process_cols,&
+        my_process_row, my_process_col, mpi_comm_row, mpi_comm_col, &
+        n_rows, n_cols, sc_desc)
   call elsi_set_method(ELPA)
   call elsi_set_mode(REAL_VALUES)
   
-   ! Initialize the data space
-  call elsi_allocate_matrices()
-
-  call elsi_get_local_dimensions(n_rows,n_cols)
-
-  call elsi_get_myid(myid)
+  ! Simulate external matrix setup
+  allocate(H_matrix(n_rows,n_cols))
+  allocate(S_matrix(n_rows,n_cols))
   iseed(:) = myid + 1 
   call RANDOM_SEED(put=iseed)
-
-  ! Construct H and S
-  do l_row = 1, n_rows
-    call elsi_get_global_row(i_row, l_row)
-    do l_col = l_row, n_cols
-      call elsi_get_global_col(i_col, l_col)
+  do local_row = 1, n_rows
+    call elsi_get_global_row(global_row, local_row)
+    do local_col = local_row, n_cols
+      call elsi_get_global_col(global_col, local_col)
       call RANDOM_NUMBER(element)
-      if (i_row == i_col) then
-         call elsi_set_hamiltonian_element(element, l_row, l_col)
-         call elsi_set_overlap_element    (1.0d0,   l_row, l_col)
+      H_matrix(local_row,local_col) = element
+      if (global_row == global_col) then
+         S_matrix(local_row,local_col) = 1d0
       else 
-         call elsi_set_hamiltonian_element(element, l_row, l_col)
-         call elsi_set_overlap_element    (0.0d0,   l_row, l_col)
+         S_matrix(local_row,local_col) = 0d0
       end if
     end do
   end do
 
+  ! Construct H and S
+  call elsi_set_hamiltonian(H_matrix,n_rows,n_cols)
+  call elsi_set_overlap(S_matrix,n_rows,n_cols)
   call elsi_symmetrize_hamiltonian()
   call elsi_symmetrize_overlap()
 
@@ -107,5 +155,11 @@ program construct_and_write
 
   ! elsi shutdown
   call elsi_finalize()
+
+  deallocate(H_matrix)
+  deallocate(S_matrix)
+
+  call blacs_gridexit(blacs_ctxt)
+  call mpi_finalize(mpierr)
 
 end program
