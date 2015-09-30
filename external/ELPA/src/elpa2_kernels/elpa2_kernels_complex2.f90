@@ -52,11 +52,11 @@
 ! distributed along with the original code in the file "COPYING".
 !
 ! --------------------------------------------------------------------------------------------------
-!module complex_generic_kernel
+module complex_generic_kernel
 
-!  private
-!  public single_hh_trafo_complex_generic
-!contains
+  private
+  public single_hh_trafo_complex_generic
+contains
   subroutine single_hh_trafo_complex_generic(q, hh, nb, nq, ldq)
 
     implicit none
@@ -743,5 +743,5 @@
     q(12,nb+1) = q(12,nb+1) + x12*hh(nb,1)
 
   end subroutine hh_trafo_complex_kernel_12_2hv
-!end module complex_generic_kernel
+end module complex_generic_kernel
 ! --------------------------------------------------------------------------------------------------

@@ -55,8 +55,9 @@
 ! with their original authors, but shall adhere to the licensing terms
 ! distributed along with the original code in the file "COPYING".
 
-
-#include "config-f90.h"
+#if INSTALLER=yes
+  include "config-f90.h"
+#endif
 
 module ELPA_utilities
 

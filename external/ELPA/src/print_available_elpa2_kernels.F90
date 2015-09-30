@@ -69,7 +69,7 @@ program print_available_elpa2_kernels
 
    print *, "This program will give information on the ELPA2 kernels, "
    print *, "which are available with this library and it will give "
-   print *, "information if (and how) the kernels can be choosen at "
+   print *, "information if (and how) the kernels can be chosen at "
    print *, "runtime"
    print *
    print *

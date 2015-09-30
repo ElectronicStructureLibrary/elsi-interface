@@ -39,7 +39,9 @@
 !    the original distribution, the GNU Lesser General Public License.
 !
 !
-#include "config-f90.h"
+#if INSTALLER=no
+  include "config-f90.h"
+#endif
 !>
 !> Fortran test programm to demonstrates the use of
 !> ELPA 2 complex case library.
