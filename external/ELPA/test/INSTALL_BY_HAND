@@ -2,11 +2,10 @@ How to install ELPA without the autotools
 =========================================
 
 If you are looking at this file, you may try to build ELPA by yourself, 
-using the predefined makefile "Makefile.elsi". Please note that before 
-you run "make -f Makefile.elsi", there are a few variables to set in 
-the makefile.
+using the predefined makefile. Before you run "make", please set a few
+variables in "make.sys", which will be included in the makefile.
 
-1) Edit your Makefile.elsi
+1) Edit your "make.sys"
 
 1.1) Choose ELPA2 kernels
 
@@ -16,25 +15,25 @@ the makefile.
    used on the build system. The choice of the kernels is now a run-time 
    option.
 
-   However, without the autotools it is MANDATORY to define ONE specific 
-   kernel (for the real and the complex case each). Then, ELPA is 
-   configured only with this real (and complex) kernel, and all run-time 
-   checking is disabled.
+   However, when building ELPA without the autotools, it is MANDATORY to 
+   define specific kernel for the real and complex case each). Then ELPA 
+   is configured only with the chosen kernels, and all run-time checking 
+   is disabled.
 
-   The variable "ARCHITECTURE" in Makefile.elsi is used to specify ELPA2 
-   kernels. See the file "./src/elpa2_kernels/README_elpa2_kernels".
+   The variable "ARCHITECTURE" in "make.sys" is used to specify ELPA2 
+   kernels. Please refer to "./src/elpa2_kernels/README_elpa2_kernels".
 
 1.2) Switch on/off OpenMP
 
-   The variable "OPENMP" in Makefile.elsi is used to switch on/off OpenMP.
+   The variable "OPENMP" in "make.sys" is used to switch on/off OpenMP.
    Set this variable to "yes" or "no".
 
 1.3) Set up Blacs/Scalapack
 
-   The variable "SCALAPACK" in Makefile.elsi is used to specify the 
-   location of your Blacs/Scalapack installation.
+   The variable "SCALAPACK" in "make.sys" is used to specify the location 
+   of your Blacs/Scalapack installation.
 
-   For example with Intel MKL one might have to set
+   For example with Intel MKL one might have to set:
 
    SCALAPACK="-L${MKLROOT}/lib/intel64 -lmkl_scalapack_lp64 \
               -lmkl_intel_lp64 -lmkl_sequential -lmkl_core \
@@ -42,27 +41,26 @@ the makefile.
 
 1.4) Set compilers with flags
 
-   Please set the Fortran/C/C++ compilers that you prefer with the variables
-   "MPIFC", "MPICC", and "MPICXX". Flags are set with the variables "FCFLAGS",
-   "CCFLAGS", and "CXXFLAGS" respectively. 
+   Please set the compilers that you prefer with the variables "MPIFC", 
+   "MPICC", and "MPICXX", with flags "FCFLAGS", "CCFLAGS", and "CXXFLAGS". 
    
-   Note that C and C++ comlilers are only needed if AVX kernels and/or OpenMP
-   are included. See "./src/elpa2_kernels/README_elpa2_kernels".
+   Note that C and C++ comlilers are needed only if AVX kernels and/or OpenMP
+   are included. Please see "./src/elpa2_kernels/README_elpa2_kernels".
 
 2) Run "make"
-
-   Include the option "-f" to specify which makefile to use:
-
-   make -f Makefile.elsi
 
 3) Set environment variables for ELPA2 kernels
 
    Since this installation procedure does not support choosing ELPA2 kernels 
    with API, some environment variables have to be set, forcing the code to 
-   use the appropriate kernels.
+   deploy the appropriate kernels.
 
    The shell script "set_env.sh" is designed to set necessary environment 
-   variables for the (real and complex) ELPA2 kernels. After Seting the 
-   variable "ARCHITECTURE", run the script:
+   variables for the real and complex ELPA2 kernels. Set the variable 
+   "ARCHITECTURE", then run the script:
 
    . ./set_env.sh
+
+4) Run "make install"
+
+   This will build ELPA as a library.

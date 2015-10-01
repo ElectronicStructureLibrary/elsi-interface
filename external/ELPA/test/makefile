@@ -110,10 +110,10 @@ test_real2: test_real2.o elpa1.o elpa2.o elpa_utilities.o elpa2_utilities.o $(EL
 test_complex2: test_complex2.o elpa1.o elpa2.o elpa_utilities.o elpa2_utilities.o $(ELPA_QR_O) $(SHARED_SOURCES_O) $(FTIMINGS) $(ELPA2_KERNELS_O)
 	$(MPIFC) $(FCFLAGS) $(PREPROCESSOR) -o $@ $^ $(SCALAPACK)
 
-test_real.o: test_real.f90 elpa1.o
+test_real.o: test_real.F90 elpa1.o
 	$(MPIFC) $(FCFLAGS) $(PREPROCESSOR) -c $<
 
-test_complex.o: test_complex.f90 elpa1.o
+test_complex.o: test_complex.F90 elpa1.o
 	$(MPIFC) $(FCFLAGS) $(PREPROCESSOR) -c $<
 
 test_real2.o: test_real2.F90 elpa2.o $(ELPA2_KERNELS_O)
@@ -122,7 +122,7 @@ test_real2.o: test_real2.F90 elpa2.o $(ELPA2_KERNELS_O)
 test_complex2.o: test_complex2.F90 elpa2.o $(ELPA2_KERNELS_O)
 	$(MPIFC) $(FCFLAGS) $(PREPROCESSOR) -c $<
 
-elpa1.o: ../src/elpa1.f90 elpa_utilities.o $(SHARED_SOURCES_O)
+elpa1.o: ../src/elpa1.F90 elpa_utilities.o $(SHARED_SOURCES_O)
 	$(MPIFC) $(FCFLAGS) $(PREPROCESSOR) -c $<
 
 elpa2.o: ../src/elpa2.F90 elpa1.o elpa2_utilities.o elpa_pdgeqrf.o $(ELPA2_KERNELS_O)
