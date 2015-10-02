@@ -1,0 +1,8 @@
+SHELL     = /bin/sh
+FORTRAN   = mpif90
+OPTS      = -O3
+FPPFLAGS  = -DMPI -DLAP -DSLAP -DCONV
+ARCH      = ar
+ARCHFLAGS = cr
+RANLIB    = ranlib
+LIBNAME   = MatrixSwitch.a
