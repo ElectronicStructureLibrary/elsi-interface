@@ -3,7 +3,7 @@ How to install ELPA
 
 Please note that ELPA is shipped with a typical "configure" and "make"
 procedure. If the autoconf/automake procedure fails, please look at the 
-file "./test/INSTALL_BY_HAND" for instruction.
+file "INSTALL_BY_HAND" for instruction.
 
 If you obtained ELPA from the official git repository, you will not find 
 the needed configure script! Please look at "INSTALL_FROM_GIT_VERSION" 
@@ -79,7 +79,7 @@ The configure installation is best done in four steps.
    Note that NO compiler optimization flags are set automatically. It is 
    always adviced to set them by e.g.:
 
-   ./configure CFLAGS="-O2" CXXFLAGS="-O2" FCFLAGS="-O2"
+   CFLAGS="-O2" CXXFLAGS="-O2" FCFLAGS="-O2"
 
    Note that it is mandatory to set optimization flags for C, C++, and Fortran
    since ELPA uses source files and compile steps from all these languages.
@@ -87,7 +87,7 @@ The configure installation is best done in four steps.
    Also note that building of the SSE and AVX kernels, requires compilation 
    with the GNU C Compiler (gcc). It is advised to set also 
 
-   ./configure CFLAGS="-march=native" CXXFLAGS="-march=native"
+   CFLAGS="-march=native" CXXFLAGS="-march=native"
 
    Otherwise the GNU compiler does not support AVX, even if the hardware does. 
    If you already included "-mAVX" in the flags, you can skip "-march=native".
@@ -100,7 +100,7 @@ The configure installation is best done in four steps.
    are the better choice. AND this does NOT set the above mentioned flags,
    which you should still set by hand:
 
-   ./configure CFLAGS="-O2" CXXFLAGS="-O2" FCFLAGS="-O2"
+   CFLAGS="-O2" CXXFLAGS="-O2" FCFLAGS="-O2"
 
 1.4) Installation location
 
@@ -151,8 +151,8 @@ The configure installation is best done in four steps.
 B) Installing ELPA without the autotools procedure
 ==================================================
 
-   Again, If the autoconf/automake procedure fails, please look at the file 
-   "./test/INSTALL_BY_HAND" for instruction.
+   If the autoconf/automake procedure fails, please look at the file 
+   "INSTALL_BY_HAND" for instruction.
 
 
 How to use ELPA

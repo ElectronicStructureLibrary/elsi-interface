@@ -2,8 +2,8 @@ How to install ELPA without the autotools
 =========================================
 
 If you are looking at this file, you may try to build ELPA by yourself, 
-using the predefined makefile. Before you run "make", please set a few
-variables in "make.sys", which will be included in the makefile.
+using the predefined "Makefile.elsi". Before you run "make", please set 
+a few variables in "make.sys", which will be included in "Makefile.elsi".
 
 1) Edit your "make.sys"
 
@@ -49,18 +49,25 @@ variables in "make.sys", which will be included in the makefile.
 
 2) Run "make"
 
+   Set the option "-f" to specify which makefile to use:
+
+   make -f Makefile.elsi
+
 3) Set environment variables for ELPA2 kernels
 
-   Since this installation procedure does not support choosing ELPA2 kernels 
-   with API, some environment variables have to be set, forcing the code to 
-   deploy the appropriate kernels.
+   As mentioned in 1.1), this installation procedure specifies the elpa2 real
+   and cpmplex kernels at build time. For this reason, choosing ELPA2 kernels 
+   with API is not needed. However, two environment variables, namely 
+   REAL_ELPA_KERNEL and COMPLEX_ELPA_KERNEL, have to be set, forcing the code 
+   to use the appropriate kernels.
 
-   The shell script "set_env.sh" is designed to set necessary environment 
-   variables for the real and complex ELPA2 kernels. Set the variable 
-   "ARCHITECTURE", then run the script:
+   The script "set_env.sh" is designed to set these environment variables. 
+   Edit the variable "ARCHITECTURE" in "set_env.sh", then run it:
 
    . ./set_env.sh
 
 4) Run "make install"
+
+   make -f Makefile.elsi install
 
    This will build ELPA as a library.

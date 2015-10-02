@@ -2,7 +2,7 @@
 #
 # Choose ELPA2 kernels.
 # Possible choices for ARCHITECTURE include: Generic, Simple, BlueGeneQ, SSE, AVX.
-# See ../src/elpa2_kernels/README.
+# See ./src/elpa2_kernels/README.
 #
 ARCHITECTURE="Generic"
 # For AVX, uncomment and set the following variables.
