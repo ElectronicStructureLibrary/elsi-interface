@@ -55,8 +55,8 @@
 ! with their original authors, but shall adhere to the licensing terms
 ! distributed along with the original code in the file "COPYING".
 
-#if INSTALLER=yes
-  include "config-f90.h"
+#ifndef INSTALLER
+#include "config-f90.h"
 #endif
 
 module ELPA2
@@ -2809,13 +2809,13 @@ subroutine trans_ev_tridi_to_band_real(na, nev, nblk, nbw, q, ldq, &
    subroutine compute_hh_trafo(off, ncols, istripe, THIS_REAL_ELPA_KERNEL)
 #endif
 
-#if defined(WITH_REAL_GENERIC_SIMPLE_KERNEL)
-      use real_generic_simple_kernel, only : double_hh_trafo_generic_simple
-#endif
-
 !#if defined(WITH_REAL_GENERIC_KERNEL)
 !      use real_generic_kernel, only : double_hh_trafo_generic
 !#endif
+
+#if defined(WITH_REAL_GENERIC_SIMPLE_KERNEL)
+      use real_generic_simple_kernel, only : double_hh_trafo_generic_simple
+#endif
 
 #if defined(WITH_REAL_BGP_KERNEL)
       use real_bgp_kernel, only : double_hh_trafo_bgp
@@ -2859,13 +2859,26 @@ subroutine trans_ev_tridi_to_band_real(na, nev, nblk, nbw, q, ldq, &
 #endif
 
 #if defined(WITH_NO_SPECIFIC_REAL_KERNEL)
-      if (THIS_REAL_ELPA_KERNEL .eq. REAL_ELPA_KERNEL_AVX_BLOCK2 .or. &
-          THIS_REAL_ELPA_KERNEL .eq. REAL_ELPA_KERNEL_GENERIC    .or. &
-          THIS_REAL_ELPA_KERNEL .eq. REAL_ELPA_KERNEL_GENERIC_SIMPLE .or. &
-          THIS_REAL_ELPA_KERNEL .eq. REAL_ELPA_KERNEL_SSE .or.        &
-          THIS_REAL_ELPA_KERNEL .eq. REAL_ELPA_KERNEL_BGP .or.        &
-          THIS_REAL_ELPA_KERNEL .eq. REAL_ELPA_KERNEL_BGQ) then
+      if (THIS_REAL_ELPA_KERNEL .ne. REAL_ELPA_KERNEL_AVX_BLOCK2 .and.     &
+          THIS_REAL_ELPA_KERNEL .ne. REAL_ELPA_KERNEL_AVX_BLOCK4 .and.     &
+          THIS_REAL_ELPA_KERNEL .ne. REAL_ELPA_KERNEL_AVX_BLOCK6 .and.     &
+          THIS_REAL_ELPA_KERNEL .ne. REAL_ELPA_KERNEL_GENERIC .and.        &
+          THIS_REAL_ELPA_KERNEL .ne. REAL_ELPA_KERNEL_GENERIC_SIMPLE .and. &
+          THIS_REAL_ELPA_KERNEL .ne. REAL_ELPA_KERNEL_SSE .and.            &
+          THIS_REAL_ELPA_KERNEL .ne. REAL_ELPA_KERNEL_BGP .and.            &
+          THIS_REAL_ELPA_KERNEL .ne. REAL_ELPA_KERNEL_BGQ) then
+#ifdef WITH_OPENMP
+        if(j==1) call single_hh_trafo(a(1,1+off+a_off,istripe,my_thread), &
+                                      bcast_buffer(1,off+1), nbw, nl,     &
+                                      stripe_width)
+#else
+        if(j==1) call single_hh_trafo(a(1,1+off+a_off,istripe),           &
+                                      bcast_buffer(1,off+1), nbw, nl,     &
+                                      stripe_width)
+#endif /* WITH_OPENMP */
+      endif
 #endif /* WITH_NO_SPECIFIC_REAL_KERNEL */
+
 
         !FORTRAN CODE / X86 INRINISIC CODE / BG ASSEMBLER USING 2 HOUSEHOLDER VECTORS
 #if defined(WITH_REAL_GENERIC_KERNEL)
@@ -2931,26 +2944,6 @@ subroutine trans_ev_tridi_to_band_real(na, nev, nblk, nbw, q, ldq, &
 #endif /* WITH_REAL_SSE_KERNEL */
 
 
-#if defined(WITH_REAL_AVX_BLOCK2_KERNEL)
-#if defined(WITH_NO_SPECIFIC_REAL_KERNEL)
-        if (THIS_REAL_ELPA_KERNEL .eq. REAL_ELPA_KERNEL_AVX_BLOCK2) then
-#endif /* WITH_NO_SPECIFIC_REAL_KERNEL */
-          do j = ncols, 2, -2
-            w(:,1) = bcast_buffer(1:nbw,j+off)
-            w(:,2) = bcast_buffer(1:nbw,j+off-1)
-#ifdef WITH_OPENMP
-            call double_hh_trafo_real_sse_avx_2hv(a(1,j+off+a_off-1,istripe,my_thread), &
-                                                       w, nbw, nl, stripe_width, nbw)
-#else
-            call double_hh_trafo_real_sse_avx_2hv(a(1,j+off+a_off-1,istripe), &
-                                                       w, nbw, nl, stripe_width, nbw)
-#endif
-          enddo
-#if defined(WITH_NO_SPECIFIC_REAL_KERNEL)
-        endif
-#endif /* WITH_NO_SPECIFIC_REAL_KERNEL */
-#endif /* WITH_REAL_AVX_BLOCK2_KERNEL */
-
 #if defined(WITH_REAL_BGP_KERNEL)
 #if defined(WITH_NO_SPECIFIC_REAL_KERNEL)
         if (THIS_REAL_ELPA_KERNEL .eq. REAL_ELPA_KERNEL_BGP) then
@@ -2997,21 +2990,26 @@ subroutine trans_ev_tridi_to_band_real(na, nev, nblk, nbw, q, ldq, &
 !              call double_hh_trafo_real_sse_avx_2hv(a(1,j+off+a_off-1,istripe), w, nbw, nl, stripe_width, nbw)
 !#endif
 
-#ifdef WITH_OPENMP
-        if(j==1) call single_hh_trafo(a(1,1+off+a_off,istripe,my_thread), &
-                                      bcast_buffer(1,off+1), nbw, nl,     &
-                                      stripe_width)
-#else
-        if(j==1) call single_hh_trafo(a(1,1+off+a_off,istripe),           &
-                                      bcast_buffer(1,off+1), nbw, nl,     &
-                                      stripe_width)
-#endif
 
-
+#if defined(WITH_REAL_AVX_BLOCK2_KERNEL)
 #if defined(WITH_NO_SPECIFIC_REAL_KERNEL)
-      endif !
+        if (THIS_REAL_ELPA_KERNEL .eq. REAL_ELPA_KERNEL_AVX_BLOCK2) then
 #endif /* WITH_NO_SPECIFIC_REAL_KERNEL */
-
+          do j = ncols, 2, -2
+            w(:,1) = bcast_buffer(1:nbw,j+off)
+            w(:,2) = bcast_buffer(1:nbw,j+off-1)
+#ifdef WITH_OPENMP
+            call double_hh_trafo_real_sse_avx_2hv(a(1,j+off+a_off-1,istripe,my_thread), &
+                                                       w, nbw, nl, stripe_width, nbw)
+#else
+            call double_hh_trafo_real_sse_avx_2hv(a(1,j+off+a_off-1,istripe), &
+                                                       w, nbw, nl, stripe_width, nbw)
+#endif
+          enddo
+#if defined(WITH_NO_SPECIFIC_REAL_KERNEL)
+        endif
+#endif /* WITH_NO_SPECIFIC_REAL_KERNEL */
+#endif /* WITH_REAL_AVX_BLOCK2_KERNEL */
 
 
 #if defined(WITH_REAL_AVX_BLOCK4_KERNEL)
@@ -3110,7 +3108,8 @@ subroutine trans_ev_tridi_to_band_real(na, nev, nblk, nbw, q, ldq, &
 #if defined(WITH_NO_SPECIFIC_REAL_KERNEL)
     endif
 #endif /* WITH_NO_SPECIFIC_REAL_KERNEL */
-#endif /* WITH_REAL_AVX_BLOCK4_KERNEL */
+#endif /* WITH_REAL_AVX_BLOCK6_KERNEL */
+
 
 #ifdef WITH_OPENMP
     if (my_thread==1) then
@@ -5380,12 +5379,14 @@ contains
   subroutine compute_hh_trafo_complex(off, ncols, istripe, THIS_COMPLEX_ELPA_KERNEL)
 #endif
 
+#if defined(WITH_COMPLEX_GENERIC_KERNEL)
+      use complex_generic_kernel, only : single_hh_trafo_complex_generic
+#endif
+
 #if defined(WITH_COMPLEX_GENERIC_SIMPLE_KERNEL)
       use complex_generic_simple_kernel, only : single_hh_trafo_complex_generic_simple
 #endif
-#if defined(WITH_COMPLEX_GENERIC_SIMPLE_KERNEL)
-      use complex_generic_kernel, only : single_hh_trafo_complex_generic
-#endif
+
 #ifdef HAVE_DETAILED_TIMINGS
       use timings
 #endif
@@ -5423,33 +5424,46 @@ contains
 #endif
 
 
-#if defined(WITH_COMPLEX_AVX_BLOCK2_KERNEL)
 #if defined(WITH_NO_SPECIFIC_COMPLEX_KERNEL)
-        if (THIS_COMPLEX_ELPA_KERNEL .eq. COMPLEX_ELPA_KERNEL_AVX_BLOCK2) then
-#endif  /* WITH_NO_SPECIFIC_COMPLEX_KERNEL */
+        if (THIS_COMPLEX_ELPA_KERNEL .ne. COMPLEX_ELPA_KERNEL_GENERIC .and. &
+            THIS_COMPLEX_ELPA_KERNEL .ne. COMPLEX_ELPA_KERNEL_GENERIC_SIMPLE .and. &
+            THIS_COMPLEX_ELPA_KERNEL .ne. COMPLEX_ELPA_KERNEL_SSE .and. &
+            THIS_COMPLEX_ELPA_KERNEL .ne. COMPLEX_ELPA_KERNEL_AVX_BLOCK1 .and. &
+            THIS_COMPLEX_ELPA_KERNEL .ne. COMPLEX_ELPA_KERNEL_AVX_BLOCK2 .and. &
+            THIS_COMPLEX_ELPA_KERNEL .ne. COMPLEX_ELPA_KERNEL_BGP .and. &
+            THIS_COMPLEX_ELPA_KERNEL .ne. COMPLEX_ELPA_KERNEL_BGQ ) then
           ttt = mpi_wtime()
-          do j = ncols, 2, -2
-            w(:,1) = bcast_buffer(1:nbw,j+off)
-            w(:,2) = bcast_buffer(1:nbw,j+off-1)
+          do j = ncols, 1, -1
 #ifdef WITH_OPENMP
-            call double_hh_trafo_complex_sse_avx_2hv(a(1,j+off+a_off-1,istripe,my_thread), &
-                                                       w, nbw, nl, stripe_width, nbw)
+            call single_hh_trafo_complex_generic(a(1,j+off+a_off,istripe,my_thread), &
+                                                   bcast_buffer(1,j+off),nbw,nl,stripe_width)
 #else
-            call double_hh_trafo_complex_sse_avx_2hv(a(1,j+off+a_off-1,istripe), &
-                                                       w, nbw, nl, stripe_width, nbw)
+            call single_hh_trafo_complex_generic(a(1,j+off+a_off,istripe), &
+                                                   bcast_buffer(1,j+off),nbw,nl,stripe_width)
 #endif
           enddo
+        endif
+#endif /* WITH_NO_SPECIFIC_COMPLEX_KERNEL */
+
+
+#if defined(WITH_COMPLEX_GENERIC_KERNEL)
+#if defined(WITH_NO_SPECIFIC_COMPLEX_KERNEL)
+        if (THIS_COMPLEX_ELPA_KERNEL .eq. COMPLEX_ELPA_KERNEL_GENERIC) then
+#endif /* WITH_NO_SPECIFIC_COMPLEX_KERNEL */
+          ttt = mpi_wtime()
+          do j = ncols, 1, -1
 #ifdef WITH_OPENMP
-          if (j==1) call single_hh_trafo_complex_sse_avx_1hv(a(1,1+off+a_off,istripe,my_thread), &
-                                                             bcast_buffer(1,off+1), nbw, nl, stripe_width)
+            call single_hh_trafo_complex_generic(a(1,j+off+a_off,istripe,my_thread), &
+                                                   bcast_buffer(1,j+off),nbw,nl,stripe_width)
 #else
-          if (j==1) call single_hh_trafo_complex_sse_avx_1hv(a(1,1+off+a_off,istripe), &
-                                                             bcast_buffer(1,off+1), nbw, nl, stripe_width)
+            call single_hh_trafo_complex_generic(a(1,j+off+a_off,istripe), &
+                                                   bcast_buffer(1,j+off),nbw,nl,stripe_width)
 #endif
+          enddo
 #if defined(WITH_NO_SPECIFIC_COMPLEX_KERNEL)
         endif
-#endif  /* WITH_NO_SPECIFIC_COMPLEX_KERNEL */
-#endif /* WITH_COMPLEX_AVX_BLOCK2_KERNEL */
+#endif /* WITH_NO_SPECIFIC_COMPLEX_KERNEL */
+#endif /* WITH_COPLEX_GENERIC_KERNEL */
 
 
 #if defined(WITH_COMPLEX_GENERIC_SIMPLE_KERNEL)
@@ -5472,10 +5486,9 @@ contains
 #endif /* WITH_COMPLEX_GENERIC_SIMPLE_KERNEL */
 
 
+#if defined(WITH_COMPLEX_BGQ_KERNEL)
 #if defined(WITH_NO_SPECIFIC_COMPLEX_KERNEL)
-        if (THIS_COMPLEX_ELPA_KERNEL .eq. COMPLEX_ELPA_KERNEL_GENERIC .or. &
-            THIS_COMPLEX_ELPA_KERNEL .eq. COMPLEX_ELPA_KERNEL_BGP .or. &
-            THIS_COMPLEX_ELPA_KERNEL .eq. COMPLEX_ELPA_KERNEL_BGQ ) then
+        if (THIS_COMPLEX_ELPA_KERNEL .eq. COMPLEX_ELPA_KERNEL_BGQ) then
 #endif /* WITH_NO_SPECIFIC_COMPLEX_KERNEL */
           ttt = mpi_wtime()
           do j = ncols, 1, -1
@@ -5490,6 +5503,7 @@ contains
 #if defined(WITH_NO_SPECIFIC_COMPLEX_KERNEL)
         endif
 #endif /* WITH_NO_SPECIFIC_COMPLEX_KERNEL */
+#endif /* WITH_COMPLEX_BGQ_KERNEL */
 
 
 #if defined(WITH_COMPLEX_SSE_KERNEL)
@@ -5520,6 +5534,7 @@ contains
 !              call single_hh_trafo_complex_sse_avx_1hv(a(1,j+off+a_off,istripe),bcast_buffer(1,j+off),nbw,nl,stripe_width)
 !#endif
 
+
 #if defined(WITH_COMPLEX_AVX_BLOCK1_KERNEL)
 #if defined(WITH_NO_SPECIFIC_COMPLEX_KERNEL)
         if (THIS_COMPLEX_ELPA_KERNEL .eq. COMPLEX_ELPA_KERNEL_AVX_BLOCK1) then
@@ -5537,7 +5552,38 @@ contains
 #if defined(WITH_NO_SPECIFIC_COMPLEX_KERNEL)
         endif
 #endif /* WITH_NO_SPECIFIC_COMPLEX_KERNEL */
-#endif /* WITH_COMPLEX_AVX_BLOCK1_KERNE */
+#endif /* WITH_COMPLEX_AVX_BLOCK1_KERNEL */
+
+
+#if defined(WITH_COMPLEX_AVX_BLOCK2_KERNEL)
+#if defined(WITH_NO_SPECIFIC_COMPLEX_KERNEL)
+        if (THIS_COMPLEX_ELPA_KERNEL .eq. COMPLEX_ELPA_KERNEL_AVX_BLOCK2) then
+#endif  /* WITH_NO_SPECIFIC_COMPLEX_KERNEL */
+          ttt = mpi_wtime()
+          do j = ncols, 2, -2
+            w(:,1) = bcast_buffer(1:nbw,j+off)
+            w(:,2) = bcast_buffer(1:nbw,j+off-1)
+#ifdef WITH_OPENMP
+            call double_hh_trafo_complex_sse_avx_2hv(a(1,j+off+a_off-1,istripe,my_thread), &
+                                                       w, nbw, nl, stripe_width, nbw)
+#else
+            call double_hh_trafo_complex_sse_avx_2hv(a(1,j+off+a_off-1,istripe),
+&
+                                                       w, nbw, nl, stripe_width, nbw)
+#endif
+          enddo
+#ifdef WITH_OPENMP
+          if (j==1) call single_hh_trafo_complex_sse_avx_1hv(a(1,1+off+a_off,istripe,my_thread), &
+                                                             bcast_buffer(1,off+1), nbw, nl, stripe_width)
+#else
+          if (j==1) call single_hh_trafo_complex_sse_avx_1hv(a(1,1+off+a_off,istripe), &
+                                                             bcast_buffer(1,off+1), nbw, nl, stripe_width)
+#endif
+#if defined(WITH_NO_SPECIFIC_COMPLEX_KERNEL)
+        endif
+#endif  /* WITH_NO_SPECIFIC_COMPLEX_KERNEL */
+#endif /* WITH_COMPLEX_AVX_BLOCK2_KERNEL */
+
 
 #ifdef WITH_OPENMP
         if (my_thread==1) then

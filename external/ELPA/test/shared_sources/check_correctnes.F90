@@ -39,8 +39,8 @@
 !    the original distribution, the GNU Lesser General Public License.
 !
 !
-#if INSTALLER=yes
-  include "config-f90.h"
+#ifndef INSTALLER
+#include "config-f90.h"
 #endif
 
 module mod_check_correctness

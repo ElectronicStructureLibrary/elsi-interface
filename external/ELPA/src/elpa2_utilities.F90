@@ -55,9 +55,10 @@
 ! with their original authors, but shall adhere to the licensing terms
 ! distributed along with the original code in the file "COPYING".
 
-#if INSTALLER=yes
-  include "config-f90.h"
+#ifndef INSTALLER
+#include "config-f90.h"
 #endif
+
 #include <elpa/elpa_kernel_constants.h>
 
 module ELPA2_utilities
