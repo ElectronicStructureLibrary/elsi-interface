@@ -32,6 +32,7 @@ module ELSI_MPI_TOOLS
   use iso_c_binding
 
   use ELSI_DIMENSIONS
+  use matrixswitch
 
   implicit none
   private
@@ -139,6 +140,9 @@ subroutine elsi_initialize_blacs()
 
    include "mpif.h"
 
+   ! Exception how to deviate from blocksize for OMM
+   integer :: exception(2) = (/0,0/)
+
    external_blacs = .False.
   ! Define blockcyclic setup
   do n_p_cols = NINT(SQRT(REAL(n_procs))),2,-1
@@ -178,6 +182,11 @@ subroutine elsi_initialize_blacs()
   call descinit( sc_desc, n_g_rank, n_g_rank, n_b_rows, n_b_cols, 0, 0, &
                  blacs_ctxt, MAX(1,n_l_rows), blacs_info )
 
+  if (method == OMM_DENSE) then
+     call ms_scalapack_setup (n_procs, n_p_rows, "C", n_b_rows, exception,&
+           blacs_ctxt)
+  end if
+
 
 end subroutine
 
@@ -191,6 +200,8 @@ subroutine elsi_set_blacs( blacs_ctxt_in, n_p_rows_in, n_p_cols_in, &
    implicit none
 
    include "mpif.h"
+   ! Exception how to deviate from blocksize for OMM
+   integer :: exception(2) = (/0,0/)
 
   integer,intent(in) :: blacs_ctxt_in     !< local blacs context
   integer,intent(in) :: sc_desc_in(9)     !< local blacs context
@@ -225,6 +236,11 @@ subroutine elsi_set_blacs( blacs_ctxt_in, n_p_rows_in, n_p_cols_in, &
   print *, myid," Id ip_row/col: ", my_p_row, "/", my_p_col
   print *, myid," Id MPI_COMM_rows/cols: ", mpi_comm_row, "/", mpi_comm_col
   call MPI_BARRIER(mpi_comm_global,mpierr)
+  
+  if (method == OMM_DENSE) then
+     call ms_scalapack_setup (n_procs, n_p_rows, "C", n_b_rows, exception,&
+           blacs_ctxt)
+  end if
 
 end subroutine
 

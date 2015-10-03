@@ -32,6 +32,12 @@ module ELSI_DIMENSIONS
   use iso_c_binding
 
   implicit none
+  
+  !>Method for EV Solver (ELPA=1,OMM=2,PEXSI=3)
+  integer :: method = -1
+
+  !>Mode for EV Solver (REAL_VALUES=1,COMPLEX_VALUES=2)
+  integer :: mode = -1
 
   !> Global Matrix Dimensions
   integer :: n_g_rank       !< Rank of eigenvalue problem 
@@ -57,7 +63,7 @@ module ELSI_DIMENSIONS
 
   !> BLACS variables
   integer :: blacs_ctxt     !< local blacs context
-  integer :: sc_desc(9)     !< local blacs context
+  integer :: sc_desc(9)     !< blacs descriptor
   integer :: mpi_comm_row   !< row    communicatior
   integer :: mpi_comm_col   !< column communicatior
   integer :: my_p_row       !< process row    position
@@ -73,8 +79,50 @@ module ELSI_DIMENSIONS
   integer :: n_eigenvectors            !< Number of eigenvectors to be calculated
 
   !> ELPA variables
-  real*8, parameter :: elpa_step_switch = 1.d0 !< This parameter sets the threshold when to switch from ELPA2 to ELPA1 
+  !< This parameter sets the threshold when to switch from ELPA2 to ELPA1
+  real*8, parameter :: elpa_step_switch = 1.d0 
   
+  !> OMM variables
+  !< Is a new overlap used for OMM?
+  logical :: new_overlap = .False.
+  !< Total energy value
+  real*8  :: total_energy
+  !< Do we provide an initial guess for the Wannier functions?
+  logical :: C_matrix_initialized = .False.
+  !< How do we perform the calculation
+  !! 0 = Basic
+  !! 1 = Cholesky factorisation of S requested
+  !! 2 = Cholesky already performed, U is provided in S
+  !! 3 = Use preconditioning based on the energy density
+  integer :: omm_flavour = -1
+  !< scaling of the kinetic energy matrix, recommended round 5 Ha
+  real*8 :: scale_kinetic = 5d0
+  !< Calculate the energy weigthed density matrix
+  logical :: calc_ed = .False.
+  !< Eigenspectrum shift parameter
+  real*8 :: eta = 0d0
+  !< Tolerance for minimization
+  real*8 :: min_tol = 1.0d-9
+  !< n_k_points * n_spin
+  integer :: nk_times_nspin = -1
+  !< combined k_point spin index
+  integer :: i_k_spin = -1
+  !< Shall omm talk to us?
+  logical :: omm_verbose = .True.
+  !< Shall omm deallocate all internal?
+  logical :: do_dealloc = .True.
+
+
+  !> Method names
+  enum, bind( C )
+    enumerator :: ELPA, OMM_DENSE, PEXSI
+  end enum
+
+  enum, bind( C )
+    enumerator :: REAL_VALUES, COMPLEX_VALUES
+  end enum   
+
+
   contains
 
   !EMPTY

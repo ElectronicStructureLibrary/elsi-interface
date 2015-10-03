@@ -20,3 +20,8 @@
  # HDF5
  HDF5 = -L$(HDF5_HOME)/lib -I$(HDF5_HOME)/include \
         -lhdf5_fortran -lhdf5hl_fortran -lhdf5
+
+ # OMM
+ OMM_HOME = /home/bl126/installed/omm
+ OMM  = -I$(OMM_HOME)/include \
+        -L$(OMM_HOME)/lib -lOMM -lmatrixswitch
