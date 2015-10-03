@@ -1,0 +1,9 @@
+SHELL     = /bin/sh
+FORTRAN   = mpiifort
+OPTS      = -O3
+FPPFLAGS  = -DMPI -DLAP -DSLAP
+MSLIBPATH = MatrixSwitch-0.1.2/src/
+ARCH      = ar
+ARCHFLAGS = cr
+RANLIB    = ranlib
+LIBNAME   = libOMM.a

@@ -1,4 +1,0 @@
-LIBPATH   = ../src/
-BLASLIB   = -lblas
-LAPLIB    = -llapack
-SLAPLIB   = -lscalapack
