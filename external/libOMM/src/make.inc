@@ -1,9 +1,15 @@
 SHELL     = /bin/sh
-FORTRAN   = mpiifort
-OPTS      = -O3
-FPPFLAGS  = -DMPI -DLAP -DSLAP
-MSLIBPATH = MatrixSwitch-0.1.2/src/
-ARCH      = ar
-ARCHFLAGS = cr
-RANLIB    = ranlib
+FORTRAN   = $(MPIFC)
+OPTS      = $(FFLAGS_O)
+MSLIBPATH = $(libOMM_DIR)/src/MatrixSwitch-0.1.2/src/
 LIBNAME   = libOMM.a
+
+ifeq ($(strip $(MPI)),yes)
+  FPPFLAGS += -DMPI
+endif
+ifeq ($(strip $(LAP)),yes)
+  FPPFLAGS += -DLAP
+endif
+ifeq ($(strip $(SLAP)),yes)
+  FPPFLAGS += -DSLAP
+endif

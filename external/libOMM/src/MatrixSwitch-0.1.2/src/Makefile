@@ -1,14 +1,4 @@
-#-include make.inc
-
-ifeq ($(strip $(MPI)),yes)
-  FPPFLAGS += -DMPI
-endif
-ifeq ($(strip $(LAP)),yes)
-  FPPFLAGS += -DLAP
-endif
-ifeq ($(strip $(SLAP)),yes)
-  FPPFLAGS += -DSLAP
-endif
+include ../../make.inc
 
 .SUFFIXES:
 .SUFFIXES: .o .a .f90 .F90
@@ -18,8 +8,8 @@ all : libmatrixswitch.a
 ALLOBJ = MatrixSwitch.o
 
 libmatrixswitch.a : $(ALLOBJ)
-	ar cr $@ $(ALLOBJ)
-	ranlib $@
+	$(ARCH) $(ARCHFLAGS) $@ $(ALLOBJ)
+	$(RANLIB) $@
 
 clean : 
 	rm -f *.a

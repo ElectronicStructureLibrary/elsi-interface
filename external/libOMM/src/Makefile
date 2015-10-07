@@ -1,14 +1,4 @@
-#-include make.inc
-
-ifeq ($(strip $(MPI)),yes)
-  FPPFLAGS += -DMPI
-endif
-ifeq ($(strip $(LAP)),yes)
-  FPPFLAGS += -DLAP
-endif
-ifeq ($(strip $(SLAP)),yes)
-  FPPFLAGS += -DSLAP
-endif
+include make.inc
 
 .SUFFIXES:
 .SUFFIXES: .o .a .f90 .F90
@@ -16,24 +6,24 @@ endif
 all : MatrixSwitch libOMM
 
 MatrixSwitch :
-	cd MatrixSwitch-0.1.2/src; $(MAKE)
+	cd $(MSLIBPATH); $(MAKE)
 
-libOMM : libOMM.a
+libOMM : $(LIBNAME)
 
 ALLOBJ = omm_params.o omm_rand.o omm_quartic.o omm_ops.o omm.o omm_wrappers.o
 
-libOMM.a : omm_params.o $(ALLOBJ)
-	ar cr $@ $(ALLOBJ)
-	ranlib $@
+$(LIBNAME) : omm_params.o $(ALLOBJ)
+	$(ARCH) $(ARCHFLAGS) $@ $(ALLOBJ)
+	$(RANLIB) $@
 
 clean : 
 	rm -f *.a
 	rm -f *.o
 	rm -f *.mod
-	cd MatrixSwitch-0.1.2/src; rm -f *.a; rm -f *.o; rm -f *.mod
+	cd $(MSLIBPATH); rm -f *.a; rm -f *.o; rm -f *.mod
 
 .F90.o : 
-	$(MPIFC) $(FCFLAGS_O) $(FPPFLAGS) -IMatrixSwitch-0.1.2/src/ -c $< -o $@
+	$(MPIFC) $(FCFLAGS_O) $(FPPFLAGS) -I$(MSLIBPATH) -c $< -o $@
 
 .f90.o : 
-	$(MPIFC) $(FCFLAGS_O) -IMatrixSwitch-0.1.2/src/ -c $< -o $@
+	$(MPIFC) $(FCFLAGS_O) -I$(MSLIBPATH) -c $< -o $@

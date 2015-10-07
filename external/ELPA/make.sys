@@ -40,3 +40,10 @@ CXXFLAGS = -O3 -mavx -funsafe-loop-optimizations \
 SCALAPACK = -L${MKLROOT}/lib/intel64 -lmkl_scalapack_lp64 \
             -lmkl_intel_lp64 -lmkl_sequential -lmkl_core \
             -lmkl_blacs_intelmpi_lp64 -lpthread -lm
+
+# ========================================================
+# Archive tools.
+
+ARCH = ar
+ARCHFLAGS = cr
+RANLIB = ranlib

@@ -46,6 +46,7 @@
 #ifndef _PEXSI_ENVIRONMENT_HPP_
 #define _PEXSI_ENVIRONMENT_HPP_
 
+#include <mpi.h>
 // STL libraries
 #include <iostream> 
 #include <iomanip> 
@@ -75,7 +76,7 @@
 #include <stdint.h>
 
 // MPI
-#include <mpi.h>
+//#include <mpi.h>
 
 
 

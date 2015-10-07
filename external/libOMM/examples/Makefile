@@ -1,15 +1,5 @@
-#-include ../src/make.inc
-#-include make.inc
-
-ifeq ($(strip $(MPI)),yes)
-  FPPFLAGS += -DMPI
-endif
-ifeq ($(strip $(LAP)),yes)
-  FPPFLAGS += -DLAP
-endif
-ifeq ($(strip $(SLAP)),yes)
-  FPPFLAGS += -DSLAP
-endif
+include ../src/make.inc
+include make.inc
 
 .SUFFIXES:
 .SUFFIXES: .x .f90 .F90
@@ -33,7 +23,7 @@ example7.x : example7.F90
 clean : 
 	rm -f *.x
 
-LINK_MACRO = $< -I../src -I../src/MatrixSwitch-0.1.2/src -L../src -lOMM -L../src/MatrixSwitch-0.1.2/src -lmatrixswitch $(SCALAPACK) -lblas -llapack -o $@
+LINK_MACRO = $< -I$(LIBPATH) -I$(MSLIBPATH) $(LIBPATH)/$(LIBNAME) $(MSLIB) $(SLAPLIB) $(BLASLIB) $(LAPLIB) -o $@
 
 .F90.x : 
 	$(MPIFC) $(FCFLAGS_O) $(FPPFLAGS) $(LINK_MACRO)

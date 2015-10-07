@@ -1,15 +1,5 @@
 #-include make.sys
 
-ELPA = -L../external/ELPA/lib -lelpa \
-       -I../external/ELPA/include/elpa/modules
-
-OMM  = -I../external/libOMM/src \
-       -I../external/libOMM/src/MatrixSwitch-0.1.2/src \
-       -L../external/libOMM/src -lOMM \
-       -L../external/libOMM/src/MatrixSwitch-0.1.2/src -lmatrixswitch
-
-#PEXSI =
-
 all: example/construct_and_write_elpa.x \
      example/set_and_write_elpa.x \
      example/read_and_write_elpa.x \
@@ -42,7 +32,8 @@ clean:
 	rm -rf bin
 
 install:
-	ar r src/libelsi.a src/elsi*.o
+	$(ARCH) $(ARCHFLAGS)  src/libelsi.a src/elsi*.o
+	$(RANLIB) src/libelsi.a
 	mkdir -p lib
 	mv src/libelsi.a lib/libelsi.a
 	mkdir -p include

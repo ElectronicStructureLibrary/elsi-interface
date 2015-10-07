@@ -244,7 +244,8 @@ clean:
 	rm -rf ./lib ./bin ./include
 
 install:
-	ar r libelpa.a *.o
+	$(ARCH) $(ARCHFLAGS) libelpa.a *.o
+	$(RANLIB) libelpa.a
 	mkdir -p ./lib
 	mv libelpa.a ./lib/.
 	mkdir -p ./include/elpa/modules
