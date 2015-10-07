@@ -1,0 +1,39 @@
+# ====== Global settings ======
+
+MPIFC  = mpiifort
+MPICC  = mpicc
+MPICXX = mpicxx
+
+SCALAPACK = -L${MKLROOT}/lib/intel64 -lmkl_scalapack_lp64 \
+            -lmkl_intel_lp64 -lmkl_sequential -lmkl_core \
+            -lmkl_blacs_intelmpi_lp64 -lpthread -lm
+
+HDF5 = -L$(HDF5_HOME)/lib -I$(HDF5_HOME)/include \
+       -lhdf5_fortran -lhdf5hl_fortran -lhdf5
+
+# ====== ELSI-interface ======
+
+FFLAGS_I = -O0 -ip -g -traceback -check bounds -check uninit 
+
+# ====== ELPA ======
+
+FFLAGS_E   = -O3 -traceback -g -fpe0 -fpp -I../
+CFLAGS_E   = -O3 -mavx -funsafe-loop-optimizations \
+             -funsafe-math-optimizations -ftree-vect-loop-version \
+             -ftree-vectorize
+CXXFLAGS_E = -O3 -mavx -funsafe-loop-optimizations \
+             -funsafe-math-optimizations -ftree-vect-loop-version \
+             -ftree-vectorize
+
+ARCHITECTURE = Generic
+OPENMP = no
+
+# ====== libOMM ======
+
+FFLAGS_O = -O3
+
+MPI  = yes
+LAP  = yes
+SLAP = yes
+
+# ====== PEXSI ======
