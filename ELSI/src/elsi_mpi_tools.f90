@@ -68,6 +68,7 @@ subroutine elsi_initialize_mpi()
    ! MPI Initialization
 
    external_mpi = .False.
+   mpi_is_setup = .True.
 
    call mpi_init(mpierr)
    if (mpierr /= 0) then
@@ -106,6 +107,7 @@ subroutine elsi_set_mpi(global_comm, n_procs_in, myid_in)
    ! MPI Initialization
 
    external_mpi = .True.
+   mpi_is_setup = .True.
    mpi_comm_global = global_comm
    n_procs         = n_procs_in
    myid            = myid_in
@@ -121,6 +123,7 @@ subroutine elsi_finalize_mpi()
    include 'mpif.h'
 
    ! MPI Finalization
+   mpi_is_setup = .False.
 
    call mpi_finalize(mpierr)
    if (mpierr /= 0) then
@@ -144,6 +147,7 @@ subroutine elsi_initialize_blacs()
    integer :: exception(2) = (/0,0/)
 
    external_blacs = .False.
+   blacs_is_setup = .True.
   ! Define blockcyclic setup
   do n_p_cols = NINT(SQRT(REAL(n_procs))),2,-1
      if(mod(n_procs,n_p_cols) == 0 ) exit
@@ -182,8 +186,10 @@ subroutine elsi_initialize_blacs()
   call descinit( sc_desc, n_g_rank, n_g_rank, n_b_rows, n_b_cols, 0, 0, &
                  blacs_ctxt, MAX(1,n_l_rows), blacs_info )
 
+  if(myid == 0) print *, method, " = ", OMM_DENSE
   if (method == OMM_DENSE) then
-     call ms_scalapack_setup (n_procs, n_p_rows, "C", n_b_rows, exception,&
+     if(myid == 0) print *, 'Setup Scalapack for libOMM'
+     call ms_scalapack_setup (n_procs, n_p_rows, 'c', n_b_rows, exception,&
            blacs_ctxt)
   end if
 
@@ -215,6 +221,8 @@ subroutine elsi_set_blacs( blacs_ctxt_in, n_p_rows_in, n_p_cols_in, &
   integer,intent(in) :: n_l_cols_in       !< Number of local columns
    
   external_blacs = .True.
+  blacs_is_setup = .False.
+
   blacs_ctxt = blacs_ctxt_in 
   n_p_rows = n_p_rows_in 
   n_p_cols = n_p_cols_in
@@ -252,6 +260,7 @@ subroutine elsi_finalize_blacs()
 
    implicit none
 
+   blacs_is_setup = .False.
    call blacs_gridexit(blacs_ctxt)
 
 end subroutine
@@ -375,30 +384,5 @@ subroutine elsi_get_myid (id)
    id = myid 
 
 end subroutine
-
-!>
-!! Clean shutdown in case of error
-!!
-subroutine elsi_stop(message, caller)
-
-      implicit none
-
-      character(len=*), intent(in) :: message
-      character(len=*), intent(in) :: caller
-
-      character(LEN=4096) :: string_message
-
-      write(string_message, "(1X,'*** Proc',I5,' in ',A,': ',A)") &
-           & myid, trim(caller), trim(message)
-
-      write(*,'(A)') trim(string_message)
-        
-      if (n_procs > 1) then
-         call MPI_Abort(mpi_comm_global, 0, mpierr)
-      end if
-        
-      stop
-
-end subroutine elsi_stop
 
 end module ELSI_MPI_TOOLS

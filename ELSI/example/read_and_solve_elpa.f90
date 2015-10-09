@@ -32,7 +32,6 @@ program read_and_solve
 
   use iso_c_binding
   use ELSI
-  use ELSI_MPI_TOOLS
 
   implicit none
   include 'mpif.h'
@@ -57,12 +56,18 @@ program read_and_solve
    endif
 
 
-  ! Now set some ELSI specifications
+  ! First: the parallel treatment
   call elsi_initialize_mpi()
-  call elsi_initialize_problem_from_file("elsi_eigenvalue_problem.hdf5")
-  call elsi_initialize_blacs()
+  
+  ! Second set some ELSI specifications
   call elsi_set_method(ELPA)
   call elsi_set_mode(REAL_VALUES)
+  
+  ! Third define the problem
+  call elsi_initialize_problem_from_file("elsi_eigenvalue_problem.hdf5")
+  
+  ! Initialize problem distribution
+  call elsi_initialize_blacs()
 
   ! Read eigenvalue problem
   call elsi_allocate_matrices()

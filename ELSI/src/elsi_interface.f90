@@ -104,6 +104,16 @@ module ELSI
   public :: elsi_get_eigenvalues     !< Get the eigenvalues 
   public :: elsi_finalize            !< Finalize and cleanup ELSI
 
+  ! from other modules
+  public :: elsi_initialize_blacs
+  public :: elsi_get_local_dimensions
+  public :: elsi_get_myid
+  public :: elsi_get_global_row
+  public :: elsi_get_global_col
+  public :: elsi_set_mpi
+  public :: elsi_set_blacs
+  public :: elsi_get_global_dimensions
+
   interface elsi_set_hamiltonian
      module procedure elsi_set_real_hamiltonian, &
                       elsi_set_complex_hamiltonian
@@ -204,6 +214,8 @@ subroutine elsi_allocate_matrices()
 
    implicit none
 
+   character*200 :: message
+
    select case (method)
       case (ELPA)
          allocate(eigenvalues(n_g_rank))
@@ -232,19 +244,22 @@ subroutine elsi_allocate_matrices()
       case (OMM_DENSE)
          select case (mode)
             case (COMPLEX_VALUES)
-               call m_allocate (OMM_H_matrix, n_l_rows, n_l_cols,"pzdbc")
-               call m_allocate (OMM_S_matrix, n_l_rows, n_l_cols,"pzdbc")
-               call m_allocate (OMM_C_matrix, n_l_rows, n_l_cols,"pzdbc")
-               call m_allocate (OMM_D_matrix, n_l_rows, n_l_cols,"pzdbc")
-               call m_allocate (OMM_T_matrix, n_l_rows, n_l_cols,"pzdbc")
+               call m_allocate (OMM_H_matrix, n_g_rank, n_g_rank, "pzdbc")
+               call m_allocate (OMM_S_matrix, n_g_rank, n_g_rank, "pzdbc")
+               call m_allocate (OMM_C_matrix, n_g_rank, n_g_rank, "pzdbc")
+               call m_allocate (OMM_D_matrix, n_g_rank, n_g_rank, "pzdbc")
+               call m_allocate (OMM_T_matrix, n_g_rank, n_g_rank, "pzdbc")
                H_complex => OMM_H_matrix%zval
                S_complex => OMM_S_matrix%zval
             case (REAL_VALUES)
-               call m_allocate (OMM_H_matrix, n_l_rows, n_l_cols,"pddbc")
-               call m_allocate (OMM_S_matrix, n_l_rows, n_l_cols,"pddbc")
-               call m_allocate (OMM_C_matrix, n_l_rows, n_l_cols,"pddbc")
-               call m_allocate (OMM_D_matrix, n_l_rows, n_l_cols,"pddbc")
-               call m_allocate (OMM_T_matrix, n_l_rows, n_l_cols,"pddbc")
+               write(message,'(a,i5)') "Setting up OMM Matrices, rank = ", &
+                  n_g_rank
+               call elsi_print(trim(message))
+               call m_allocate (OMM_H_matrix, n_g_rank, n_g_rank, "pddbc")
+               call m_allocate (OMM_S_matrix, n_g_rank, n_g_rank, "pddbc")
+               call m_allocate (OMM_C_matrix, n_g_rank, n_g_rank, "pddbc")
+               call m_allocate (OMM_D_matrix, n_g_rank, n_g_rank, "pddbc")
+               call m_allocate (OMM_T_matrix, n_g_rank, n_g_rank, "pddbc")
                H_real => OMM_H_matrix%dval
                S_real => OMM_S_matrix%dval
             case DEFAULT
@@ -937,6 +952,9 @@ subroutine elsi_initialize_problem_from_file(file_name)
    integer :: file_id  !< HDF5 File identifier 
    integer :: group_id !< HDF5 Group identifier
 
+   if (.not. mpi_is_setup) call elsi_stop("MPI needs to be setup first!", &
+         "elsi_initialize_problem_from_file")
+
    call hdf5_initialize ()
 
    call hdf5_open_file (file_name, mpi_comm_global, mpi_info_null, file_id)
@@ -1022,11 +1040,22 @@ subroutine elsi_solve_ev_problem(n_vectors)
          end if
 
       case (OMM_DENSE)
+        if (.not. overlap_is_unity) then
+            ! Perform cholesky decomposition
+            omm_flavour = 1 
+        else
+            ! Perform Basic solver
+            omm_flavour = 0
+        end if 
+
         call omm(n_g_rank, n_vectors, OMM_H_matrix, OMM_S_matrix, new_overlap, &
               total_energy, OMM_D_matrix, calc_ED, eta, &
               OMM_C_matrix, C_matrix_initialized, OMM_T_matrix, &
               scale_kinetic, omm_flavour, nk_times_nspin, i_k_spin,&
-              min_tol, omm_verbose, do_dealloc, "pddbc", "lap", myid+1) 
+              min_tol, omm_verbose, do_dealloc, "pddbc", "lap", myid+1)
+
+        if (myid == 0) print *, "Total energy = ", total_energy
+
       case (PEXSI)
          call elsi_stop("PEXSI not yet implemented!","elsi_solve_ev_problem")
       case DEFAULT
@@ -1261,19 +1290,5 @@ subroutine elsi_check_solution(success)
 
 end subroutine
 
-subroutine elsi_print(message)
-   
-      implicit none
-
-      character(len=*), intent(in) :: message
-
-       character(LEN=4096) :: string_message
-
-      write(string_message, "(1X,'*** Proc',I5,': ',A)") &
-           & myid, trim(message)
-
-      write(*,'(A)') trim(string_message)
-
-end subroutine 
 
 end module ELSI

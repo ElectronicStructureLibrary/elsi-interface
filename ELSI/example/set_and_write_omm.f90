@@ -32,7 +32,6 @@ program set_and_write
 
   use iso_c_binding
   use ELSI
-  use ELSI_MPI_TOOLS
 
   implicit none
   include 'mpif.h'
@@ -116,14 +115,20 @@ program set_and_write
   call descinit( sc_desc, matrixsize, matrixsize, blocksize, blocksize, 0, 0, &
                  blacs_ctxt, MAX(1,n_rows), blacs_info )
 
-  ! ELSI Bootup
+  ! First set the parallel treatment
   call elsi_set_mpi(mpi_comm_world,n_procs,myid)
+  
+  ! Second ELSI Specifications
+  call elsi_set_method(OMM_DENSE)
+  call elsi_set_mode(REAL_VALUES)
+  
+  ! Third define the problem
   call elsi_initialize_problem(matrixsize, blocksize, blocksize)
+  
+  ! Forth: Set the parallel distribution
   call elsi_set_blacs(blacs_ctxt, n_process_rows, n_process_cols,&
         my_process_row, my_process_col, mpi_comm_row, mpi_comm_col, &
         n_rows, n_cols, sc_desc)
-  call elsi_set_method(OMM_DENSE)
-  call elsi_set_mode(REAL_VALUES)
   
   ! Simulate external matrix setup
   allocate(H_matrix(n_rows,n_cols))

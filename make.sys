@@ -14,6 +14,10 @@ SCALAPACK = -L${MKLROOT}/lib/intel64 -lmkl_scalapack_lp64 \
 
 # ====== ELSI-interface ======
 
+# Production Flags
+# FFLAGS_I = -O3 -ip  
+
+# DEBUG FLAGS
 FFLAGS_I = -O0 -ip -g -traceback -check bounds -check uninit 
 
 HDF5 = -L$(HDF5_HOME)/lib -I$(HDF5_HOME)/include \
@@ -21,7 +25,12 @@ HDF5 = -L$(HDF5_HOME)/lib -I$(HDF5_HOME)/include \
 
 # ====== ELPA ======
 
-FFLAGS_E   = -O3 -traceback -g -fpe0 -fpp -I../
+# Production Flags
+# FFLAGS_E   = -O3 -fpe0 -fpp -I../
+
+# Debug Flags
+FFLAGS_E   = -O0 -traceback -g -fpe0 -fpp -I../
+
 CFLAGS_E   = -O3 -mavx -funsafe-loop-optimizations \
              -funsafe-math-optimizations -ftree-vect-loop-version \
              -ftree-vectorize
@@ -34,7 +43,11 @@ OPENMP = no
 
 # ====== libOMM ======
 
-FFLAGS_O = -O3
+# Production Flags
+# FFLAGS_O = -O3
+
+# Debug Flags
+FFLAGS_E   = -O0 -traceback -g 
 
 MPI  = yes
 LAP  = yes
@@ -47,7 +60,7 @@ FORTRAN_LIB = -L${FORTRAN_DIR}/lib/intel64 -lifcore
 
 # ====== Library directories ======
 
-THIS_DIR = /home/wy29/elsi-interface
+THIS_DIR =$(shell pwd)
 
 ELPA_DIR = $(THIS_DIR)/external/ELPA
 ELPA = -L$(ELPA_DIR)/lib -lelpa \

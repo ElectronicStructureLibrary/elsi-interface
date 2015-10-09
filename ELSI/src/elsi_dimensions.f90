@@ -59,7 +59,8 @@ module ELSI_DIMENSIONS
   integer :: n_procs         !< number of mpi processes
   integer :: mpi_comm_global !< global mpi communicator
   integer :: mpierr          !< mpi error handler
-  logical :: external_mpi    !< Has somebody else initialzed mpi
+  logical :: external_mpi = .False. !< Has somebody else initialzed mpi
+  logical :: mpi_is_setup = .False. !< Has somebody initialzed mpi
 
   !> BLACS variables
   integer :: blacs_ctxt     !< local blacs context
@@ -69,7 +70,8 @@ module ELSI_DIMENSIONS
   integer :: my_p_row       !< process row    position
   integer :: my_p_col       !< process column position
   integer :: blacs_info     !< Info code for blacs related calls 
-  logical :: external_blacs !< Has somebody else initialized blacs? 
+  logical :: external_blacs = .False. !< Has somebody else initialized blacs? 
+  logical :: blacs_is_setup = .False. !< Has somebody initialized blacs? 
 
   !> HDF5 variables
   integer :: h5err          !< HDF5 error code
@@ -104,9 +106,9 @@ module ELSI_DIMENSIONS
   !< Tolerance for minimization
   real*8 :: min_tol = 1.0d-9
   !< n_k_points * n_spin
-  integer :: nk_times_nspin = -1
+  integer :: nk_times_nspin = 1
   !< combined k_point spin index
-  integer :: i_k_spin = -1
+  integer :: i_k_spin = 1
   !< Shall omm talk to us?
   logical :: omm_verbose = .True.
   !< Shall omm deallocate all internal?
@@ -125,6 +127,45 @@ module ELSI_DIMENSIONS
 
   contains
 
-  !EMPTY
+  subroutine elsi_print(message)
+   
+      implicit none
+
+      character(len=*), intent(in) :: message
+
+       character(LEN=4096) :: string_message
+
+      write(string_message, "(1X,'*** Proc',I5,': ',A)") &
+           & myid, trim(message)
+
+      write(*,'(A)') trim(string_message)
+
+  end subroutine 
+
+  !>
+!! Clean shutdown in case of error
+!!
+subroutine elsi_stop(message, caller)
+
+      implicit none
+      include "mpif.h"
+
+      character(len=*), intent(in) :: message
+      character(len=*), intent(in) :: caller
+
+      character(LEN=4096) :: string_message
+
+      write(string_message, "(1X,'*** Proc',I5,' in ',A,': ',A)") &
+           & myid, trim(caller), trim(message)
+
+      write(*,'(A)') trim(string_message)
+        
+      if (n_procs > 1) then
+         call MPI_Abort(mpi_comm_global, 0, mpierr)
+      end if
+        
+      stop
+
+end subroutine elsi_stop
 
 end module ELSI_DIMENSIONS

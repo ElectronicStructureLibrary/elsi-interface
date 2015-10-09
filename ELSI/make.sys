@@ -1,6 +1,6 @@
  # IFORTRAN
  FC = ifort
-#FFLAGS = -O3 -ip 
+ #FFLAGS = -O3 -ip 
  FFLAGS = -O0 -ip -g -traceback -check bounds -check uninit 
 
  # MPI
@@ -25,3 +25,8 @@
  OMM_HOME = /home/bl126/installed/omm
  OMM  = -I$(OMM_HOME)/include \
         -L$(OMM_HOME)/lib -lOMM -lmatrixswitch
+
+ # Library creation
+ ARCH      = ar
+ ARCHFLAGS = cr
+ RANLIB    = ranlib

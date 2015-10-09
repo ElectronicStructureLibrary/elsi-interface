@@ -32,7 +32,6 @@ program construct_and_write
 
   use iso_c_binding
   use ELSI
-  use ELSI_MPI_TOOLS
 
   implicit none
   include 'mpif.h'
@@ -67,12 +66,18 @@ program construct_and_write
       read(arg2, *) blocksize
    endif
 
-  ! Now set some ELSI specifications
+  ! First initialize parallel treatment
   call elsi_initialize_mpi()
-  call elsi_initialize_problem(matrixsize, blocksize, blocksize)
-  call elsi_initialize_blacs()
+  
+  ! Second set some ELSI specifications
   call elsi_set_method(ELPA)
   call elsi_set_mode(REAL_VALUES)
+ 
+  ! Third define the problem 
+  call elsi_initialize_problem(matrixsize, blocksize, blocksize)
+  
+  ! Forth define parallel distribution
+  call elsi_initialize_blacs()
   
    ! Initialize the data space
   call elsi_allocate_matrices()
