@@ -102,6 +102,7 @@ module ELSI
   public :: elsi_read_ev_problem     !< Read eigenvalue problem from HDF5
   public :: elsi_solve_ev_problem    !< Solve eigenvalue problem 
   public :: elsi_get_eigenvalues     !< Get the eigenvalues 
+  public :: elsi_get_total_energy    !< Get the sum of occupied eigenvalues 
   public :: elsi_finalize            !< Finalize and cleanup ELSI
 
   ! from other modules
@@ -226,8 +227,8 @@ subroutine elsi_allocate_matrices()
                allocate(vectors_complex(n_l_rows, n_l_cols))
                H_complex => H_complex_target
                S_complex => S_complex_target
-               H_complex = 0d0
-               S_complex = 0d0
+               H_complex = COMPLEX(0d0,0d0)
+               S_complex = COMPLEX(0d0,0d0)
             case (REAL_VALUES)
                allocate(H_real_target (n_l_rows, n_l_cols))      
                allocate(S_real_target (n_l_rows, n_l_cols))
@@ -251,6 +252,12 @@ subroutine elsi_allocate_matrices()
                call m_allocate (OMM_T_matrix, n_g_rank, n_g_rank, "pzdbc")
                H_complex => OMM_H_matrix%zval
                S_complex => OMM_S_matrix%zval
+               H_complex = COMPLEX(0d0,0d0)
+               S_complex = COMPLEX(0d0,0d0)
+               OMM_T_matrix%zval = COMPLEX(0d0,0d0)
+               OMM_C_matrix%zval = COMPLEX(0d0,0d0)
+               OMM_D_matrix%zval = COMPLEX(0d0,0d0)
+
             case (REAL_VALUES)
                write(message,'(a,i5)') "Setting up OMM Matrices, rank = ", &
                   n_g_rank
@@ -262,6 +269,13 @@ subroutine elsi_allocate_matrices()
                call m_allocate (OMM_T_matrix, n_g_rank, n_g_rank, "pddbc")
                H_real => OMM_H_matrix%dval
                S_real => OMM_S_matrix%dval
+
+               H_real = 0d0
+               S_real = 0d0
+               OMM_T_matrix%dval = 0d0
+               OMM_C_matrix%dval = 0d0
+               OMM_D_matrix%dval = 0d0
+
             case DEFAULT
                call elsi_stop("No mode has been chosen. "// &
                   "Please choose method REAL_VALUES or COMPLEX_VALUES", &
@@ -1042,11 +1056,14 @@ subroutine elsi_solve_ev_problem(n_vectors)
       case (OMM_DENSE)
         if (.not. overlap_is_unity) then
             ! Perform cholesky decomposition
-            omm_flavour = 1 
+            omm_flavour = 3 
         else
             ! Perform Basic solver
             omm_flavour = 0
         end if 
+
+        ! Shift eigenvalue spectrum
+        OMM_H_matrix = OMM_H_matrix - eta * OMM_S_matrix
 
         call omm(n_g_rank, n_vectors, OMM_H_matrix, OMM_S_matrix, new_overlap, &
               total_energy, OMM_D_matrix, calc_ED, eta, &
@@ -1095,6 +1112,64 @@ subroutine elsi_get_eigenvalues(eigenvalues_out,n_eigenvalues)
    end select
 
 end subroutine
+
+!>
+!!  This routine gets the eigenvalues
+!!
+subroutine elsi_get_eigenvalues(eigenvalues_out,n_eigenvalues)
+
+
+   implicit none
+
+   integer, intent(in) :: n_eigenvalues !< Number of eigenvalues
+   real*8, intent(out) :: eigenvalues_out(n_eigenvalues) !< eigenvalues 
+   
+   select case (method)
+      case (ELPA)
+            eigenvalues_out(1:n_eigenvalues) = &
+               eigenvalues(1:n_eigenvalues)      
+      case (OMM_DENSE)
+         write(*,'(a)') "OMM_DENSE not implemented yet!"
+         stop
+      case (PEXSI)
+         write(*,'(a)') "PEXSI not implemented yet!"
+         stop
+      case DEFAULT
+         write(*,'(2a)') "No method has been chosen. ", &
+            "Please choose method ELPA, OMM_DENSE, or PEXSI"
+         stop
+   end select
+
+end subroutine
+
+!>
+!!  This routine gets the sum of eigenvalues a.k.a total energy
+!!
+subroutine elsi_get_total_energy(e_tot,n_occ)
+
+
+   implicit none
+
+   integer, intent(in) :: n_occ !< Number of occupied orbitals
+   real*8, intent(out) :: e_tot !< eigenvalues 
+   
+   select case (method)
+      case (ELPA)
+            e_tot = SUM(eigenvalues(1:n_occ))      
+      case (OMM_DENSE)
+            e_tot = total_energy + n_occ * eta
+      case (PEXSI)
+         write(*,'(a)') "PEXSI not implemented yet!"
+         stop
+      case DEFAULT
+         write(*,'(2a)') "No method has been chosen. ", &
+            "Please choose method ELPA, OMM_DENSE, or PEXSI"
+         stop
+   end select
+
+end subroutine
+
+
 
 !>
 !!  This routine prepares the matrices based on the dimension and method

@@ -42,7 +42,7 @@ program read_and_solve
   integer :: n_eigenvectors = 10
 
   integer :: myid, i_eigenvector
-  real*8, allocatable :: eigenvals(:)
+  real*8  :: e_tot
   integer :: matrixsize, block_rows, block_cols
 
 
@@ -74,22 +74,16 @@ program read_and_solve
   call elsi_read_ev_problem("elsi_eigenvalue_problem.hdf5")
 
   call elsi_get_global_dimensions(matrixsize,block_rows,block_cols)
-  allocate (eigenvals(n_eigenvectors))
 
   ! Solve the eigenvalue problem
   call elsi_solve_ev_problem(n_eigenvectors)
   
-  call elsi_get_eigenvalues(eigenvals, n_eigenvectors)
+  call elsi_get_total_energy(e_tot, n_eigenvectors)
 
   call elsi_get_myid(myid)
   if (myid == 0) then 
-     do i_eigenvector = 1,n_eigenvectors
-        write (*,'(I5,A,E13.6)'), i_eigenvector," Eigenvalue : ", &
-           eigenvals(i_eigenvector)
-     end do
+     write (*,'(A,E13.6)'), "total energy : ", e_tot
   end if
-
-  deallocate(eigenvals)
 
   ! elsi shutdown
   call elsi_finalize()
