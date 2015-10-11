@@ -8,8 +8,8 @@ A) Install from zero: if you do not have any part of the ELSI package
    Edit this file to match your platform/environment.
 
 1.1) Global settings
-   Set the compilers, archive tools, and the location of ScaLAPACK.
-   These will be used during the whole installation.
+   Set the compilers, archive tools, and the location of BLAS, LAPACK, 
+   BLACS, and ScaLAPACK. These will be used during the whole installation.
 
 1.2) ELSI-interface
    Set the Fortran compiler flags and the location of HDF5.
@@ -26,8 +26,8 @@ A) Install from zero: if you do not have any part of the ELSI package
    Set the location of Fortran library.
 
 1.6) Library directories
-   Set the variable THIS_DIR to:
-   (where you put the ELSI package...)/elsi-interface
+   Since you do not have ELPA, libOMM, or PEXSI, please use the default 
+   settings for this part.
 
 2) PEXSI requires two external libraries: ParMETIS and SuperLU_DIST. 
    Run "make external" to build these libraries.
@@ -39,6 +39,7 @@ A) Install from zero: if you do not have any part of the ELSI package
 
 5) Run "make check" will perform the regression test of ELSI.
 
+
 B) If you already have some part of ELSI installed, you may choose to
    just build what you need.
 
@@ -49,17 +50,14 @@ B) If you already have some part of ELSI installed, you may choose to
 1) Edit the file "make.sys".
 
 1.1) Library directories
-   Set the variable THIS_DIR to:
-   (where you put the ELSI package...)/elsi-interface
-
-   And also set the directory and include/lib path of ELPA, which you 
-   already have.
+   Set the directory and include/lib path of ELPA, which you already have.
+   Use the default settings for libOMM and PEXSI.
 
 1.2) Global settings & ELSI-interface & libOMM & PEXSI
    SAME as described in A).
 
 1.3) ELPA
-   Nothing is needed to be done here.
+   Do nothing.
 
 2) PEXSI requires two external libraries: ParMETIS and SuperLU_DIST.
    Run "make external" to build these libraries.

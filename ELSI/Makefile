@@ -34,6 +34,7 @@ clean:
 	rm -rf lib 
 	rm -rf include 
 	rm -rf bin
+	rm -f src/libelsi.a
 
 install:
 	$(ARCH) $(ARCHFLAGS)  src/libelsi.a src/elsi*.o
