@@ -186,9 +186,7 @@ subroutine elsi_initialize_blacs()
   call descinit( sc_desc, n_g_rank, n_g_rank, n_b_rows, n_b_cols, 0, 0, &
                  blacs_ctxt, MAX(1,n_l_rows), blacs_info )
 
-  if(myid == 0) print *, method, " = ", OMM_DENSE
   if (method == OMM_DENSE) then
-     if(myid == 0) print *, 'Setup Scalapack for libOMM'
      call ms_scalapack_setup (n_procs, n_p_rows, 'c', n_b_rows, exception,&
            blacs_ctxt)
   end if

@@ -43,7 +43,6 @@ program read_and_solve
 
   integer :: myid, i_eigenvector
   real*8  :: e_tot
-  integer :: matrixsize, block_rows, block_cols
 
 
   !  Pharse command line argumnents, if given
@@ -72,8 +71,6 @@ program read_and_solve
   ! Read eigenvalue problem
   call elsi_allocate_matrices()
   call elsi_read_ev_problem("elsi_eigenvalue_problem.hdf5")
-
-  call elsi_get_global_dimensions(matrixsize,block_rows,block_cols)
 
   ! Solve the eigenvalue problem
   call elsi_solve_ev_problem(n_eigenvectors)

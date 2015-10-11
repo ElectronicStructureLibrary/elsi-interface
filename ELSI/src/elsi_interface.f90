@@ -41,29 +41,31 @@ module ELSI
   implicit none
   private
 
-  ! ELPA
+  !< Internal Storage
   !< Real Hamiltonian Matrix 
   real*8, target, allocatable     :: H_real_target(:,:) 
-  !< External Real Hamiltonian Matrix 
-  real*8, pointer                 :: H_real(:,:)
   !< Complex Hamiltonian Matrix 
   complex*16, target, allocatable :: H_complex_target(:,:) 
-  !< External Complex Hamiltonian Matrix
-  complex*16, pointer             :: H_complex(:,:) 
   !< Real Overlap Matrix
   real*8, target, allocatable     :: S_real_target(:,:)   
-  !< External Real Overlap Matrix
-  real*8, pointer                 :: S_real(:,:)   
   !< Complex Overlap Matrix
   complex*16, target, allocatable :: S_complex_target(:,:)   
-  !< External Complex Overlap Matrix
-  complex*16, pointer             :: S_complex(:,:)
   !< Eigenvalues   
   real*8, allocatable             :: eigenvalues(:)
   !< Real Eigenvectors   
   real*8, allocatable             :: vectors_real(:,:)
   !< Complex Eigenvectors 
   complex*16, allocatable         :: vectors_complex(:,:) 
+
+  ! Pointers
+  !< Real Hamiltonian Matrix 
+  real*8, pointer                 :: H_real(:,:)
+  !< External Complex Hamiltonian Matrix
+  complex*16, pointer             :: H_complex(:,:) 
+  !< External Real Overlap Matrix
+  real*8, pointer                 :: S_real(:,:)   
+  !< External Complex Overlap Matrix
+  complex*16, pointer             :: S_complex(:,:)
   
   !OMM
   !< OMM Hamiltonian matrix
@@ -227,8 +229,8 @@ subroutine elsi_allocate_matrices()
                allocate(vectors_complex(n_l_rows, n_l_cols))
                H_complex => H_complex_target
                S_complex => S_complex_target
-               H_complex = COMPLEX(0d0,0d0)
-               S_complex = COMPLEX(0d0,0d0)
+               H_complex = CMPLX(0d0,0d0)
+               S_complex = CMPLX(0d0,0d0)
             case (REAL_VALUES)
                allocate(H_real_target (n_l_rows, n_l_cols))      
                allocate(S_real_target (n_l_rows, n_l_cols))
@@ -245,35 +247,34 @@ subroutine elsi_allocate_matrices()
       case (OMM_DENSE)
          select case (mode)
             case (COMPLEX_VALUES)
-               call m_allocate (OMM_H_matrix, n_g_rank, n_g_rank, "pzdbc")
-               call m_allocate (OMM_S_matrix, n_g_rank, n_g_rank, "pzdbc")
-               call m_allocate (OMM_C_matrix, n_g_rank, n_g_rank, "pzdbc")
+               allocate(H_complex_target (n_l_rows, n_l_cols))      
+               allocate(S_complex_target (n_l_rows, n_l_cols))
+               allocate(vectors_complex(n_l_rows, n_l_cols))
+               H_complex => H_complex_target
+               S_complex => S_complex_target
+               H_complex = CMPLX(0d0,0d0)
+               S_complex = CMPLX(0d0,0d0)
+               call m_register_pdbc (OMM_H_matrix, H_complex, sc_desc)
+               call m_register_pdbc (OMM_S_matrix, S_complex, sc_desc)
                call m_allocate (OMM_D_matrix, n_g_rank, n_g_rank, "pzdbc")
                call m_allocate (OMM_T_matrix, n_g_rank, n_g_rank, "pzdbc")
-               H_complex => OMM_H_matrix%zval
-               S_complex => OMM_S_matrix%zval
-               H_complex = COMPLEX(0d0,0d0)
-               S_complex = COMPLEX(0d0,0d0)
-               OMM_T_matrix%zval = COMPLEX(0d0,0d0)
-               OMM_C_matrix%zval = COMPLEX(0d0,0d0)
-               OMM_D_matrix%zval = COMPLEX(0d0,0d0)
+               OMM_T_matrix%zval = CMPLX(0d0,0d0)
+               OMM_D_matrix%zval = CMPLX(0d0,0d0)
 
             case (REAL_VALUES)
-               write(message,'(a,i5)') "Setting up OMM Matrices, rank = ", &
-                  n_g_rank
-               call elsi_print(trim(message))
-               call m_allocate (OMM_H_matrix, n_g_rank, n_g_rank, "pddbc")
-               call m_allocate (OMM_S_matrix, n_g_rank, n_g_rank, "pddbc")
-               call m_allocate (OMM_C_matrix, n_g_rank, n_g_rank, "pddbc")
-               call m_allocate (OMM_D_matrix, n_g_rank, n_g_rank, "pddbc")
-               call m_allocate (OMM_T_matrix, n_g_rank, n_g_rank, "pddbc")
-               H_real => OMM_H_matrix%dval
-               S_real => OMM_S_matrix%dval
-
+               allocate(H_real_target (n_l_rows, n_l_cols))      
+               allocate(S_real_target (n_l_rows, n_l_cols))
+               allocate(vectors_real(n_l_rows, n_l_cols))
+               H_real => H_real_target
+               S_real => S_real_target
                H_real = 0d0
                S_real = 0d0
+
+               call m_register_pdbc (OMM_H_matrix, H_real, sc_desc)
+               call m_register_pdbc (OMM_S_matrix, S_real, sc_desc)
+               call m_allocate (OMM_D_matrix, n_g_rank, n_g_rank, "pddbc")
+               call m_allocate (OMM_T_matrix, n_g_rank, n_g_rank, "pddbc")
                OMM_T_matrix%dval = 0d0
-               OMM_C_matrix%dval = 0d0
                OMM_D_matrix%dval = 0d0
 
             case DEFAULT
@@ -1004,6 +1005,18 @@ subroutine elsi_solve_ev_problem(n_vectors)
 
    logical :: success
    logical :: two_step_solver
+   real*8  :: val
+   integer :: i,j
+
+   if (mode == REAL_VALUES .and. .not. associated(H_real)) then
+      call elsi_stop("Hamiltonian not created/linked.",&
+                    "elsi_solve_ev_problem")
+   end if
+   
+   if (mode == COMPLEX_VALUES .and. .not. associated(H_complex)) then
+      call elsi_stop("Hamiltonian not created/linked.",&
+                    "elsi_solve_ev_problem")
+   end if
 
    n_eigenvectors = n_vectors
    two_step_solver = .True.
@@ -1054,24 +1067,35 @@ subroutine elsi_solve_ev_problem(n_vectors)
          end if
 
       case (OMM_DENSE)
+
+        calc_ed = .False.
         if (.not. overlap_is_unity) then
             ! Perform cholesky decomposition
-            omm_flavour = 3 
+            !omm_flavour = 1 
+            omm_flavour = 0 
         else
             ! Perform Basic solver
             omm_flavour = 0
         end if 
 
+        ! Prepare Coefficient matrix
+        select case (mode)
+            case (COMPLEX_VALUES)
+               call m_allocate (OMM_C_matrix, n_vectors, n_g_rank, "pzdbc")
+               C_matrix_initialized = .False.
+            case (REAL_VALUES)
+               call m_allocate (OMM_C_matrix, n_vectors, n_g_rank, "pddbc")
+               C_matrix_initialized = .False.
+         end select
+
         ! Shift eigenvalue spectrum
-        OMM_H_matrix = OMM_H_matrix - eta * OMM_S_matrix
+        call m_add(OMM_S_matrix,'N',OMM_H_matrix,-eta,1d0,"lap")
 
         call omm(n_g_rank, n_vectors, OMM_H_matrix, OMM_S_matrix, new_overlap, &
               total_energy, OMM_D_matrix, calc_ED, eta, &
               OMM_C_matrix, C_matrix_initialized, OMM_T_matrix, &
               scale_kinetic, omm_flavour, nk_times_nspin, i_k_spin,&
               min_tol, omm_verbose, do_dealloc, "pddbc", "lap", myid+1)
-
-        if (myid == 0) print *, "Total energy = ", total_energy
 
       case (PEXSI)
          call elsi_stop("PEXSI not yet implemented!","elsi_solve_ev_problem")
@@ -1081,35 +1105,6 @@ subroutine elsi_solve_ev_problem(n_vectors)
    end select
 
    call MPI_BARRIER(mpi_comm_global, mpierr)
-
-end subroutine
-
-!>
-!!  This routine gets the eigenvalues
-!!
-subroutine elsi_get_eigenvalues(eigenvalues_out,n_eigenvalues)
-
-
-   implicit none
-
-   integer, intent(in) :: n_eigenvalues !< Number of eigenvalues
-   real*8, intent(out) :: eigenvalues_out(n_eigenvalues) !< eigenvalues 
-   
-   select case (method)
-      case (ELPA)
-            eigenvalues_out(1:n_eigenvalues) = &
-               eigenvalues(1:n_eigenvalues)      
-      case (OMM_DENSE)
-         write(*,'(a)') "OMM_DENSE not implemented yet!"
-         stop
-      case (PEXSI)
-         write(*,'(a)') "PEXSI not implemented yet!"
-         stop
-      case DEFAULT
-         write(*,'(2a)') "No method has been chosen. ", &
-            "Please choose method ELPA, OMM_DENSE, or PEXSI"
-         stop
-   end select
 
 end subroutine
 
@@ -1157,6 +1152,10 @@ subroutine elsi_get_total_energy(e_tot,n_occ)
       case (ELPA)
             e_tot = SUM(eigenvalues(1:n_occ))      
       case (OMM_DENSE)
+            if (myid == 0) then
+               print *, "Total energy = ", total_energy, &
+                 " + ", n_occ, " * ", eta
+            end if
             e_tot = total_energy + n_occ * eta
       case (PEXSI)
          write(*,'(a)') "PEXSI not implemented yet!"

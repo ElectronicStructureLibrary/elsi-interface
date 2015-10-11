@@ -62,20 +62,20 @@ cd ..
 
 # Read and Solve
 cd read_and_solve
-mpirun -n 4 ../../bin/read_and_solve_elpa 100 > buffer.dat
-tail -n 100 buffer.dat > eigenvalues.dat
+mpirun -n 4 ../../bin/read_and_solve_elpa 10 > buffer.dat
+grep "total energy" buffer.dat > e_tot.dat
 rm buffer.dat
-fail=`diff eigenvalues.dat data/eigenvalues.dat`
+fail=`diff e_tot.dat data/e_tot.dat`
 if [ "x$fail" != "x" ]; then
    echo "read_and_solve_elpa failed"
 else
    echo "read_and_solve_elpa successfull"
    rm eigenvalues.dat
 fi
-mpirun -n 4 ../../bin/read_and_solve_omm 100 > buffer.dat
-tail -n 100 buffer.dat > eigenvalues.dat
+mpirun -n 4 ../../bin/read_and_solve_omm 10 > buffer.dat
+grep "total energy" buffer.dat > e_tot.dat
 rm buffer.dat
-fail=`diff eigenvalues.dat data/eigenvalues.dat`
+fail=`diff e_tot.dat data/e_tot.dat`
 if [ "x$fail" != "x" ]; then
    echo "read_and_solve_omm failed"
 else
