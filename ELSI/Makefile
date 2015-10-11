@@ -39,18 +39,18 @@ install:
 	$(ARCH) $(ARCHFLAGS)  src/libelsi.a src/elsi*.o
 	$(RANLIB) src/libelsi.a
 	mkdir -p lib
-	mv src/libelsi.a lib/libelsi.a
+	cp src/libelsi.a lib/libelsi.a
 	mkdir -p include
-	mv src/*.mod include/.
+	cp src/*.mod include/.
 	mkdir -p bin
-	mv example/construct_and_write_elpa.x bin/construct_and_write_elpa
-	mv example/set_and_write_elpa.x bin/set_and_write_elpa
-	mv example/read_and_write_elpa.x bin/read_and_write_elpa
-	mv example/read_and_solve_elpa.x bin/read_and_solve_elpa
-	mv example/construct_and_write_omm.x bin/construct_and_write_omm
-	mv example/set_and_write_omm.x bin/set_and_write_omm
-	mv example/read_and_write_omm.x bin/read_and_write_omm
-	mv example/read_and_solve_omm.x bin/read_and_solve_omm
+	cp example/construct_and_write_elpa.x bin/construct_and_write_elpa
+	cp example/set_and_write_elpa.x bin/set_and_write_elpa
+	cp example/read_and_write_elpa.x bin/read_and_write_elpa
+	cp example/read_and_solve_elpa.x bin/read_and_solve_elpa
+	cp example/construct_and_write_omm.x bin/construct_and_write_omm
+	cp example/set_and_write_omm.x bin/set_and_write_omm
+	cp example/read_and_write_omm.x bin/read_and_write_omm
+	cp example/read_and_solve_omm.x bin/read_and_solve_omm
 
 check:
 	cd regression && ./regression.sh

@@ -247,11 +247,11 @@ install:
 	$(ARCH) $(ARCHFLAGS) libelpa.a *.o
 	$(RANLIB) libelpa.a
 	mkdir -p ./lib
-	mv libelpa.a ./lib/.
+	cp libelpa.a ./lib/.
 	mkdir -p ./include/elpa/modules
-	mv *.mod ./include/elpa/modules/.
+	cp *.mod ./include/elpa/modules/.
 	mkdir -p ./bin
-	mv test_real ./bin/.
-	mv test_real2 ./bin/.
-	mv test_complex ./bin/.
-	mv test_complex2 ./bin/.
+	cp test_real ./bin/.
+	cp test_real2 ./bin/.
+	cp test_complex ./bin/.
+	cp test_complex2 ./bin/.
