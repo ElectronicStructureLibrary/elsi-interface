@@ -169,11 +169,11 @@ elpa2_kernels_complex_sse-avx_1hv.o : ./src/elpa2_kernels/elpa2_kernels_complex_
 	$(MPICXX) $(CXXFLAGS_E) -c $<
 
 elpa2_kernels_real_sse-avx_2hv.o : ./src/elpa2_kernels/elpa2_kernels_real_sse-avx_2hv.c
-	$(MPICXX) $(CFLAGS_E) -c $<
+	$(MPICC) $(CFLAGS_E) -c $<
 
 ifeq ($(BLOCK_COMPLEX),2)
 elpa2_kernels_complex_sse-avx_2hv.o : ./src/elpa2_kernels/elpa2_kernels_complex_sse-avx_2hv.cpp
-	$(MPICC) $(CXXFLAGS_E) -c $<
+	$(MPICXX) $(CXXFLAGS_E) -c $<
 endif
 
 ifeq ($(BLOCK_REAL),4)

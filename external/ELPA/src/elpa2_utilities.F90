@@ -308,6 +308,27 @@ module ELPA2_utilities
       call timer%stop("get_actual_real_kernel")
 #endif
 
+#ifdef INSTALLER
+#ifdef WITH_REAL_GENERIC_KERNEL
+        actual_kernel = REAL_ELPA_KERNEL_GENERIC
+#endif
+#ifdef WITH_REAL_GENERIC_SIMPLE_KERNEL
+        actual_kernel = REAL_ELPA_KERNEL_GENERIC_SIMPLE
+#endif
+#ifdef WITH_REAL_SSE_KERNEL
+        actual_kernel = REAL_ELPA_KERNEL_SSE
+#endif
+#ifdef WITH_REAL_AVX_BLOCK2_KERNEL
+        actual_kernel = REAL_ELPA_KERNEL_AVX_BLOCK2
+#endif
+#ifdef WITH_REAL_AVX_BLOCK4_KERNEL
+        actual_kernel = REAL_ELPA_KERNEL_AVX_BLOCK4
+#endif
+#ifdef WITH_REAL_AVX_BLOCK6_KERNEL
+        actual_kernel = REAL_ELPA_KERNEL_AVX_BLOCK6
+#endif
+#endif
+
     end function get_actual_real_kernel
 
     function get_actual_real_kernel_name() result(actual_kernel_name)
@@ -355,6 +376,24 @@ module ELPA2_utilities
 
 #ifdef HAVE_DETAILED_TIMINGS
      call timer%stop("get_actual_complex_kernel")
+#endif
+
+#ifdef INSTALLER
+#ifdef WITH_COMPLEX_GENERIC_KERNEL
+        actual_kernel = COMPLEX_ELPA_KERNEL_GENERIC
+#endif
+#ifdef WITH_COMPLEX_GENERIC_SIMPLE_KERNEL
+        actual_kernel = COMPLEX_ELPA_KERNEL_GENERIC_SIMPLE
+#endif
+#ifdef WITH_COMPLEX_SSE_KERNEL
+        actual_kernel = COMPLEX_ELPA_KERNEL_SSE
+#endif
+#ifdef WITH_COMPLEX_AVX_BLOCK1_KERNEL
+        actual_kernel = COMPLEX_ELPA_KERNEL_AVX_BLOCK1
+#endif
+#ifdef WITH_COMPLEX_AVX_BLOCK2_KERNEL
+        actual_kernel = COMPLEX_ELPA_KERNEL_AVX_BLOCK2
+#endif
 #endif
 
    end function get_actual_complex_kernel

@@ -29,13 +29,13 @@ MPICC = mpicc
 CCFLAGS = -O3 -mavx -funsafe-loop-optimizations \
           -funsafe-math-optimizations -ftree-vect-loop-version \
           -ftree-vectorize
-MPICXX = mpicc
+MPICXX = mpicxx
 CXXFLAGS = -O3 -mavx -funsafe-loop-optimizations \
            -funsafe-math-optimizations -ftree-vect-loop-version \
            -ftree-vectorize
 
 # ========================================================
-# Location of ScaLapack.
+# Location of ScaLAPACK.
 
 SCALAPACK = -L${MKLROOT}/lib/intel64 -lmkl_scalapack_lp64 \
             -lmkl_intel_lp64 -lmkl_sequential -lmkl_core \
