@@ -127,6 +127,9 @@ module ELSI_DIMENSIONS
 
   contains
 
+!>
+!! Elsi print of process
+!!
   subroutine elsi_print(message)
    
       implicit none
@@ -142,7 +145,7 @@ module ELSI_DIMENSIONS
 
   end subroutine 
 
-  !>
+!>
 !! Clean shutdown in case of error
 !!
 subroutine elsi_stop(message, caller)
