@@ -633,16 +633,6 @@ subroutine hdf5_get_scalapack_pattern()
      incomplete = .False.
    end if
 
-   if (myid == 0) then
-      print *, "global dim    :",  global_dim
-      print *, "local dim     :",  local_dim
-      print *, "processor dim :",  process_grid
-      print *, "block         :",  block
-      print *, "offset        :",  offset
-      print *, "count         :",  count
-      print *, "stride        :",  stride
-   end if
-
 end subroutine
 
 end module ELSI_HDF5_TOOLS
