@@ -1029,13 +1029,13 @@ subroutine elsi_solve_ev_problem(n_vectors)
    select case (method)
       case (ELPA)
          ! Debug
-         call elsi_write_ev_problem("evp-general.h5")
+         !call elsi_write_ev_problem("evp-general.h5")
          ! Transform to Standard eigenvalue problem
          if (.not. overlap_is_unity) then
             call elsi_to_standard_eigenvalue_problem ()
          end if
          ! Debug
-         call elsi_write_ev_problem("evp-standard.h5")
+         !call elsi_write_ev_problem("evp-standard.h5")
 
          if (1d0 * n_vectors/n_g_rank > elpa_step_switch) then
            two_step_solver = .False.
