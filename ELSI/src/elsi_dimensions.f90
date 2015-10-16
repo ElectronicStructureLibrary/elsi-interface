@@ -76,6 +76,10 @@ module ELSI_DIMENSIONS
   !> HDF5 variables
   integer :: h5err          !< HDF5 error code
 
+  !> Sparse Matrix information
+  integer :: n_g_nonzero    !< Number of nonzero elements of the global matrix
+  integer :: n_l_nonzero    !< Number of nonzero elements of the local matrix
+
   !> Overlap
   logical :: overlap_is_unity = .True. !< Is the overlap unity
   integer :: n_eigenvectors            !< Number of eigenvectors to be calculated
@@ -114,6 +118,9 @@ module ELSI_DIMENSIONS
   !< Shall omm deallocate all internal?
   logical :: do_dealloc = .True.
 
+  !> Physics Variables
+  !< The number of electrons
+  real*8  :: n_electrons
 
   !> Method names
   enum, bind( C )

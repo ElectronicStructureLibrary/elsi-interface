@@ -34,9 +34,11 @@ module ELSI
   use ELSI_DIMENSIONS
   use ELSI_MPI_TOOLS
   use ELSI_HDF5_TOOLS
+  use ELSI_MATRIX_CONVERSION
   use ELPA1
   use ELPA2
   use matrixswitch
+  use f_ppexsi_interface
 
   implicit none
   private
@@ -78,6 +80,31 @@ module ELSI
   type(Matrix) :: OMM_D_matrix
   !< OMM kinetic energy density matrix
   type(Matrix) :: OMM_T_matrix
+
+  !PESXI
+  !< Sparse Hamiltonian
+  real*8,  allocatable  :: H_real_sparse(:)
+  !< Sparse Overlap 
+  real*8,  allocatable  :: S_real_sparse(:)
+  !< Sparse index array
+  integer, allocatable  :: sparse_index(:)
+  !< Sparse pointer array
+  integer, allocatable  :: sparse_pointer(:)
+  !< Pexsi Plan
+  integer(c_intptr_t)   :: pexsi_plan
+  !< Pexsi Options
+  type(f_ppexsi_options):: pexsi_options
+  !< Pexsi Info
+  integer(c_int)        :: pexsi_info
+  !< Pexsi chemical potential
+  real(c_double)        :: mu_pexsi
+  !< Pexsi number of electrons
+  real(c_double)        :: n_electrons_pexsi
+  real(c_double)        :: mu_min_inertia
+  real(c_double)        :: mu_max_inertia
+  integer(c_int)        :: n_total_inertia_iter
+  integer(c_int)        :: n_total_pexsi_iter
+
 
   !< The following variables from ELSI Dimensions are public
   public :: ELPA, OMM_DENSE, PEXSI
@@ -207,6 +234,10 @@ subroutine elsi_set_mode(i_mode)
 
    mode = i_mode
 
+   if (i_mode == COMPLEX_VALUES) then
+     call elsi_stop("COMPLEX VALUES not yet supported", "elsi_set_mode")
+   end if
+
 end subroutine 
 
 !>
@@ -284,7 +315,15 @@ subroutine elsi_allocate_matrices()
          end select
 
       case (PEXSI)
-         call elsi_stop("PEXSI not implemented yet!","elsi_allocate_matrices")
+         select case (mode)
+            case (REAL_VALUES)
+               ! We do not allocate anything here, yet.
+            case DEFAULT
+               call elsi_stop("No mode has been chosen. "// &
+                  "Please choose method REAL_VALUES or COMPLEX_VALUES", &
+                  "elsi_allocate_matrices")
+         end select
+
       case DEFAULT
          call elsi_stop("No method has been chosen. "// &
             "Please choose method ELPA, OMM_DENSE, or PEXSI",&
@@ -916,6 +955,11 @@ subroutine elsi_read_ev_problem(file_name)
 
    integer :: file_id  !< HDF5 File identifier
    integer :: group_id !< HDF5 Group identifier
+   real*8, allocatable :: buffer(:,:) !< Read buffer for PEXSI
+
+   ! For Pexsi we need to create a buffer 
+   ! we convert it directly to the CCS format
+   if (mode == PEXSI) allocate(buffer(n_l_rows, n_l_cols)) 
 
    call hdf5_initialize ()
 
@@ -932,7 +976,24 @@ subroutine elsi_read_ev_problem(file_name)
 
    ! Hamiltonian Read
    call hdf5_get_scalapack_pattern()
-   call hdf5_read_matrix_parallel (group_id, "matrix", H_real)
+   select case (method)
+      case (ELPA,OMM_DENSE)
+         call hdf5_read_matrix_parallel (group_id, "matrix", H_real)
+      case (PEXSI)
+         call hdf5_read_matrix_parallel (group_id, "matrix", buffer)
+         call elsi_compute_N_nonzero(buffer)
+         allocate(H_real_sparse(n_l_nonzero))
+         allocate(sparse_index(n_l_nonzero))
+         allocate(sparse_pointer(n_l_cols + 1))
+         call elsi_dense_to_ccs(buffer, H_real_sparse, sparse_index,&
+               sparse_pointer)
+      case DEFAULT
+         call elsi_stop("No supported method has been chosen. "&
+            // "Please choose method ELPA, OMM_DENSE, or PEXSI",&
+               "elsi_read_ev_problem")
+         stop
+    end select
+
    
    call hdf5_close_group (group_id)
 
@@ -946,9 +1007,25 @@ subroutine elsi_read_ev_problem(file_name)
    call hdf5_read_attribute (group_id, "n_block_cols", n_b_cols)
 
    ! Overlap Read
-   call hdf5_read_matrix_parallel (group_id, "matrix", S_real)
+   select case (method)
+      case (ELPA,OMM_DENSE)
+         call hdf5_read_matrix_parallel (group_id, "matrix", S_real)
+      case (PEXSI)
+         call hdf5_read_matrix_parallel (group_id, "matrix", buffer)
+         call elsi_compute_N_nonzero(buffer)
+         allocate(H_real_sparse(n_l_nonzero))
+         allocate(sparse_index(n_l_nonzero))
+         allocate(sparse_pointer(n_l_cols + 1))
+         call elsi_dense_to_ccs_by_pattern(buffer, H_real_sparse,&
+               sparse_index, sparse_pointer)
+      case DEFAULT
+         call elsi_stop("No supported method has been chosen. "&
+            // "Please choose method ELPA, OMM_DENSE, or PEXSI",&
+               "elsi_read_ev_problem")
+         stop
+   end select
 
-   ! TODO Check if is unity
+   ! TODO Check if overlap is unity
    overlap_is_unity = .False.
    
    call hdf5_close_group (group_id)
@@ -956,6 +1033,8 @@ subroutine elsi_read_ev_problem(file_name)
    call hdf5_close_file (file_id)
 
    call hdf5_finalize()
+
+   if (allocated(buffer)) deallocate (buffer)
 
 end subroutine
 
@@ -1112,6 +1191,9 @@ subroutine elsi_solve_ev_problem(n_vectors)
 
       case (PEXSI)
          call elsi_stop("PEXSI not yet implemented!","elsi_solve_ev_problem")
+         call f_ppexsi_dft_driver(pexsi_plan, pexsi_options, n_electrons,&
+               mu_Pexsi, n_electrons_pexsi, mu_min_inertia, mu_max_inertia,&
+               n_total_inertia_iter, n_total_pexsi_iter, pexsi_info)
       case DEFAULT
          call elsi_stop("No method has been chosen. "//&
             "Please choose method ELPA, OMM, or PEXSI","elsi_solve_ev_problem")
@@ -1205,6 +1287,10 @@ subroutine elsi_deallocate_matrices()
    if (allocated(vectors_real))     deallocate(vectors_real)
    if (allocated(vectors_complex))  deallocate(vectors_complex)
    if (allocated(eigenvalues))      deallocate(eigenvalues)
+   if (allocated(H_real_sparse))    deallocate(H_real_sparse)
+   if (allocated(S_real_sparse))    deallocate(S_real_sparse)
+   if (allocated(sparse_index))     deallocate(sparse_index)
+   if (allocated(sparse_pointer))   deallocate(sparse_pointer)
 
    if (method == OMM_DENSE) then
       call m_deallocate (OMM_H_matrix)
