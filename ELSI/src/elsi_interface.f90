@@ -483,7 +483,7 @@ subroutine elsi_symmetrize_hamiltonian()
 
   real*8,     allocatable :: buffer_real   (:,:)
   complex*16, allocatable :: buffer_complex(:,:)
-  complex*16, parameter :: CONE = (1d0,0d0)
+  complex*16, parameter   :: CONE = (1d0,0d0)
 
   integer :: l_row, l_col  !< local matrix indices
   integer :: g_row, g_col  !< global matrix indices
@@ -536,6 +536,9 @@ subroutine elsi_symmetrize_hamiltonian()
          stop
    end select
 
+   if (allocated(buffer_real))    deallocate (buffer_real)
+   if (allocated(buffer_complex)) deallocate (buffer_complex)
+
 end subroutine 
 
 !>
@@ -550,7 +553,7 @@ subroutine elsi_symmetrize_overlap()
 
   real*8,     allocatable :: buffer_real   (:,:)
   complex*16, allocatable :: buffer_complex(:,:)
-  complex*16, parameter :: CONE = (1d0,0d0)
+  complex*16, parameter   :: CONE = (1d0,0d0)
 
   integer :: l_row, l_col  !< local matrix indices
   integer :: g_row, g_col  !< global matrix indices
@@ -602,6 +605,9 @@ subroutine elsi_symmetrize_overlap()
             "Please choose method ELPA, OMM_DENSE, or PEXSI"
          stop
    end select
+   
+   if (allocated(buffer_real))    deallocate (buffer_real)
+   if (allocated(buffer_complex)) deallocate (buffer_complex)
 
 end subroutine 
 
@@ -1022,48 +1028,55 @@ subroutine elsi_solve_ev_problem(n_vectors)
    two_step_solver = .True.
    select case (method)
       case (ELPA)
-         if (1d0 * n_vectors/n_g_rank > elpa_step_switch) then
-           two_step_solver = .False.
-         end if 
-         if (two_step_solver) then
+         ! Debug
+         call elsi_write_ev_problem("evp-general.h5")
+         ! Transform to Standard eigenvalue problem
          if (.not. overlap_is_unity) then
             call elsi_to_standard_eigenvalue_problem ()
          end if
-         select case (mode)
-            case (COMPLEX_VALUES)
+         ! Debug
+         call elsi_write_ev_problem("evp-standard.h5")
+
+         if (1d0 * n_vectors/n_g_rank > elpa_step_switch) then
+           two_step_solver = .False.
+         end if
+
+
+         if (two_step_solver) then
+           select case (mode)
+             case (COMPLEX_VALUES)
                success = solve_evp_complex_2stage( &
                      n_g_rank, n_vectors, H_complex, &
                      n_l_rows, eigenvalues, vectors_complex, &
                      n_l_rows, n_b_rows, &
                      mpi_comm_row, mpi_comm_col, mpi_comm_global)
-            case (REAL_VALUES)
+             case (REAL_VALUES)
                success = solve_evp_real_2stage( &
                      n_g_rank, n_vectors, H_real, &
                      n_l_rows, eigenvalues, vectors_real, &
                      n_l_rows, n_b_rows,&
                      mpi_comm_row, mpi_comm_col, mpi_comm_global)
-         end select
+           end select
          else
-         select case (mode)
-            case (COMPLEX_VALUES)
+           select case (mode)
+             case (COMPLEX_VALUES)
                success = solve_evp_complex( &
                      n_g_rank, n_vectors, H_complex, &
                      n_l_rows, eigenvalues, vectors_complex, &
                      n_l_rows, n_b_rows, &
                      mpi_comm_row, mpi_comm_col)
-            case (REAL_VALUES)
+             case (REAL_VALUES)
                success = solve_evp_real( &
                      n_g_rank, n_vectors, H_real, &
                      n_l_rows, eigenvalues, vectors_real, &
                      n_l_rows, n_b_rows,&
                      mpi_comm_row, mpi_comm_col)
-         end select
+           end select
 
          end if
        
          if (.not.success) then
-            write(*,'(a)') "ELPA failed."
-            stop
+            call elsi_stop("ELPA failed","elsi_solve_ev_problem")
          end if
 
       case (OMM_DENSE)
@@ -1225,6 +1238,12 @@ end subroutine
 !> 
 !! This routine transforms a general eigenvalue problem to standart form 
 !!
+!! Starting from Ha = eSa, we first perform a Cholesky decomposition of S
+!! S = U^T U, resulting in Ha = eU^TUa
+!!
+!! Using 1=U^-1U we define a new standard eigenvalue problem by
+!! HU^-1(Ua) = eU^T(Ua) => U^-THU^-1 (Ua) = e(Ua)
+!!
 subroutine elsi_to_standard_eigenvalue_problem()
 
    logical :: success  !< Success flag of eigensolver
@@ -1235,52 +1254,64 @@ subroutine elsi_to_standard_eigenvalue_problem()
       case (ELPA)
          select case (mode)
             case (COMPLEX_VALUES)
-                write(*,'(a)') "COMPLEX Chloesky not implemented yet!"
-                stop
+                call elsi_stop ("ELPA general to standard complex EVP not yet "&
+                     // " implemented.",& 
+                  "elsi_to_standard_eigenvalue_problem")
             case (REAL_VALUES)
                allocate (buffer_real(n_l_rows, n_l_cols))
                buffer_real = 0d0
-               ! S = U^T U
+               
+               ! Compute U
+               ! S contains then U
                call cholesky_real( &
                      n_g_rank, S_real, &
                      n_l_rows, n_b_rows,&
                      mpi_comm_row, mpi_comm_col, .False., success)
-               ! calc U-1
+
+               ! compute U^-1
+               ! S contains U^-1
                call invert_trm_real( &
                      n_g_rank, S_real, &
                      n_l_rows, n_b_rows, &
                      mpi_comm_row, mpi_comm_col, .False., success)
-               call mult_at_b_real('U','L', n_g_rank, n_g_rank, S_real, &
-                     n_l_rows, H_real, n_l_rows, n_b_rows, &
-                     mpi_comm_row, mpi_comm_col, &
-                     buffer_real, n_l_rows)
-               call pdtran(n_g_rank, n_g_rank, 1.d0, buffer_real, &
-                     1, 1, sc_desc, &
-                     0.d0, H_real, 1, 1, sc_desc)
-               buffer_real = H_real
-               call mult_at_b_real('U','U', n_g_rank, n_g_rank, S_real, &
-                     n_l_rows, buffer_real, n_l_rows, n_b_rows, &
-                     mpi_comm_row, mpi_comm_col, &
-                     H_real, n_l_rows)
 
-               call elsi_symmetrize_hamiltonian () 
+               ! compute H U^-1 -> buffer
+               call pdgemm('N','N', n_g_rank, n_g_rank, n_g_rank,&
+                     1.0d0, H_real, 1, 1, sc_desc,&
+                     S_real, 1, 1, sc_desc,&
+                     0.0d0, buffer_real, 1, 1, sc_desc)
+
+               ! compute U^-TH by (HU^-1)^T 
+               call pdtran(n_g_rank, n_g_rank, &
+                  1.d0, buffer_real, 1, 1, sc_desc, &
+                  0.d0, H_real, 1, 1, sc_desc)
+
+               ! compute (U^-TH)U^-1
+               buffer_real = H_real
+               call pdgemm('N','N', n_g_rank, n_g_rank, n_g_rank,&
+                     1.0d0, buffer_real, 1, 1, sc_desc,&
+                     S_real, 1, 1, sc_desc,&
+                     0.0d0, H_real, 1, 1,sc_desc)
 
          end select
          if (.not.success) then
-            write(*,'(a)') "ELPA failed."
-            stop
+            call elsi_stop ("ELPA general to standard EVP failed",& 
+                  "elsi_to_standard_eigenvalue_problem")
          end if
 
       case (OMM_DENSE)
          ! Nothing to be done, supported by OMM
       case (PEXSI)
-         write(*,'(a)') "PEXSI not implemented yet!"
-         stop
+         call elsi_stop ("PEXSI not yet implemented",& 
+                  "elsi_to_standard_eigenvalue_problem")
       case DEFAULT
-         write(*,'(2a)') "No method has been chosen. ", &
-            "Please choose method ELPA, OMM_DENSE, or PEXSI"
-         stop
+         call elsi_stop ("No method has been chosen. " // &
+            "Please choose method ELPA, OMM_DENSE, or PEXSI",& 
+            "elsi_to_standard_eigenvalue_problem")
    end select
+
+   if (allocated(buffer_real))    deallocate (buffer_real)
+   if (allocated(buffer_complex)) deallocate (buffer_complex)
 
 end subroutine
 
