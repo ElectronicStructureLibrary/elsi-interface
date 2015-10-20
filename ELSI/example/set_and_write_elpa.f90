@@ -133,6 +133,8 @@ program set_and_write
   ! Simulate external matrix setup
   allocate(H_matrix(n_rows,n_cols))
   allocate(S_matrix(n_rows,n_cols))
+  H_matrix = 0d0
+  S_matrix = 0d0 
   iseed(:) = myid + 1 
   call RANDOM_SEED(put=iseed)
   do local_row = 1, n_rows

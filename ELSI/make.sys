@@ -26,6 +26,11 @@
  OMM  = -I$(OMM_HOME)/include \
         -L$(OMM_HOME)/lib -lOMM -lmatrixswitch
 
+ # PEXSI
+ PEXSI_HOME = /home/bl126/devel/PEXSI
+ PEXSI = -I$(PEXSI_HOME)/include \
+         -L$(PEXSI_HOME)/lib -lpexsi -lsuperlu -lparmetis -lmetis 
+
  # Library creation
  ARCH      = ar
  ARCHFLAGS = cr

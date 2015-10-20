@@ -53,7 +53,6 @@ module ELSI_MPI_TOOLS
   public :: elsi_get_myid
   public :: elsi_finalize_mpi
   public :: elsi_finalize_blacs
-  public :: elsi_stop
 
   contains
 
@@ -236,11 +235,6 @@ subroutine elsi_set_blacs( blacs_ctxt_in, n_p_rows_in, n_p_cols_in, &
   if(myid == 0) print *, 'Blocksize: ',n_b_rows, ' x ', n_b_cols
   if(myid == 0) print *, 'Processor grid: ',n_p_rows, ' x ', n_p_cols
   if(myid == 0) print *, 'Local Matrixsize: ',n_l_rows, ' x ', n_l_cols
-  call MPI_BARRIER(mpi_comm_global,mpierr)
-
-  print *, myid," Id mpi_comm_global: ", mpi_comm_global
-  print *, myid," Id ip_row/col: ", my_p_row, "/", my_p_col
-  print *, myid," Id MPI_COMM_rows/cols: ", mpi_comm_row, "/", mpi_comm_col
   call MPI_BARRIER(mpi_comm_global,mpierr)
   
   if (method == OMM_DENSE) then
