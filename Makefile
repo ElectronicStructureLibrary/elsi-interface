@@ -16,6 +16,8 @@ libomm:
 pexsi:
 	@echo Start building PEXSI...
 	cd $(PEXSI_DIR)/src && ${MAKE}
+	-cp $(PEXSI_DIR)/src/f_ppexsi_interface.mod $(PEXSI_DIR)/include
+	cd $(PEXSI_DIR)/fortran && ${MAKE} 
 	@echo PEXSI installed.
 
 interface:
@@ -42,6 +44,9 @@ clean:
 	cd $(libOMM_DIR)/src/MatrixSwitch-0.1.2/src && ${MAKE} clean
 	cd $(libOMM_DIR)/examples && ${MAKE} clean
 	cd $(PEXSI_DIR)/src && ${MAKE} cleanall
+	cd $(PEXSI_DIR)/fortran && ${MAKE} cleanall
+	rm -f $(PEXSI_DIR)/include/f_ppexsi_interface.mod
+	rm -f $(PEXSI_DIR)/src/f_ppexsi_interface.mod
 
 cleanall: clean
 	cd $(PEXSI_DIR)/external && ${MAKE} clean

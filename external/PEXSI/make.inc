@@ -1,8 +1,8 @@
 #!/usr/bin/bash
 COMPILE_MODE     = release
 USE_PROFILE      = 0
-PAR_ND_LIBRARY   = ptscotch
-SEQ_ND_LIBRARY   = scotch
+#PAR_ND_LIBRARY   = ptscotch
+#SEQ_ND_LIBRARY   = scotch
 
 # Compiler and tools
 ################################################################
@@ -40,7 +40,7 @@ SCALAPACK_LIB    = -Wl,-rpath,${MKLROOT}/lib/intel64 $(SCALAPACK)
 METIS_LIB        = -L$(PARMETIS_DIR)/lib -lmetis
 PARMETIS_LIB     = -L$(PARMETIS_DIR)/lib -lparmetis
 #SCOTCH_LIB       = -L$(SCOTCH_DIR)/lib -lscotchmetis -lscotcherrexit -lscotcherr -lscotch
-DSUPERLU_LIB     = $(DSUPERLU_DIR)/lib/libsuperlu_dist_3.3.a
+DSUPERLU_LIB     = $(DSUPERLU_DIR)/lib/libsuperlu.a
 PEXSI_LIB        = $(PEXSI_DIR)/lib/libpexsi.a
 
 # Different compiling and linking options.
