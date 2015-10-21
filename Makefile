@@ -1,7 +1,7 @@
 include make.sys
 export
 
-all: elpa libomm pexsi interface
+all: elpa libomm pexsi elsi
 
 elpa:
 	@echo Start building ELPA...
@@ -20,10 +20,10 @@ pexsi:
 	cd $(PEXSI_DIR)/fortran && ${MAKE} 
 	@echo PEXSI installed.
 
-interface:
-	@echo Start building ELSI-interface...
+elsi:
+	@echo Start building ELSI...
 	cd ELSI && ${MAKE}
-	@echo ELSI-interface installed.
+	@echo ELSI installed.
 
 external: pexsi_external
 
