@@ -24,64 +24,39 @@
 !OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 !> 
-!! This program illustratrates how to read and solve an eigenvalue problem 
-!! created by the ELSI interface
-!!
+!! This program illustrates how to read and write an eigenvalue problem 
+!! created by the ELSI Interface
+!! 
 
-program read_and_solve
+program read_and_write
 
   use iso_c_binding
   use ELSI
 
   implicit none
-  include 'mpif.h'
 
-  ! This is the ELSI test suite
-  ! First we will test the writing and reading of a matrix to a file
+  integer :: blocksize = 16
 
-  integer :: n_eigenvectors = 10, blocksize = 16
-
-  integer :: myid, i_eigenvector
-  real*8  :: e_tot
-
-
-  !  Pharse command line argumnents, if given
-   INTEGER*4 :: iargc
-   character*16 arg1
-
-   if (iargc() == 1) then
-      call getarg(1, arg1)
-      read(arg1, *) n_eigenvectors
-   endif
-
-
-  ! First: the parallel treatment
+  ! First the parallel treatment
   call elsi_initialize_mpi()
   
   ! Second set some ELSI specifications
-  call elsi_set_method(ELPA)
+  call elsi_set_method(PEXSI)
   call elsi_set_mode(REAL_VALUES)
   
   ! Third define the problem
   call elsi_initialize_problem_from_file("elsi_eigenvalue_problem.hdf5",&
-        blocksize,blocksize)
+        blocksize, blocksize)
   
-  ! Initialize problem distribution
+  ! Forth distribute the problem
   call elsi_initialize_blacs()
 
   ! Read eigenvalue problem
   call elsi_allocate_matrices()
   call elsi_read_ev_problem("elsi_eigenvalue_problem.hdf5")
 
-  ! Solve the eigenvalue problem
-  call elsi_solve_ev_problem(n_eigenvectors)
-  
-  call elsi_get_total_energy(e_tot, n_eigenvectors)
-
-  call elsi_get_myid(myid)
-  if (myid == 0) then 
-     write (*,'(A,E19.12)'), "total energy : ", e_tot
-  end if
+  ! Write eigenvalue problem to another file
+  call elsi_write_ev_problem("elsi_eigenvalue_problem_out.hdf5")
 
   ! elsi shutdown
   call elsi_finalize()

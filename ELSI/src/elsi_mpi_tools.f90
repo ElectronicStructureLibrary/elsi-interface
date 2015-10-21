@@ -154,6 +154,22 @@ subroutine elsi_initialize_blacs()
 
   n_p_rows = n_procs / n_p_cols
 
+  ! PEXSI needs a pure block distriburion.
+  ! This is why we reset the blocksize here 
+  if (method == PEXSI) then
+     n_b_rows = n_g_rank / n_p_rows
+     n_b_cols = n_g_rank / n_p_cols
+ 
+     if (mod(myid,n_p_rows * n_p_cols) == 0) then
+        pexsi_output_file_index = myid / (n_p_rows * n_p_cols)
+     else
+        pexsi_output_file_index = -1
+     end if
+
+     pexsi_plan = f_ppexsi_plan_initialize( mpi_comm_global, n_p_rows, &
+           n_p_cols, pexsi_output_file_index, pexsi_info)
+  end if
+
   ! Set up BLACS and MPI communicators
 
   blacs_ctxt = mpi_comm_global
@@ -176,11 +192,6 @@ subroutine elsi_initialize_blacs()
 
   n_l_rows = numroc(n_g_rank, n_b_rows, my_p_row, 0, n_p_rows)
   n_l_cols = numroc(n_g_rank, n_b_cols, my_p_col, 0, n_p_cols)
-
-  if(myid == 0) print *, 'Global matrixsize: ',n_g_rank, ' x ', n_g_rank
-  if(myid == 0) print *, 'Blocksize: ',n_b_rows, ' x ', n_b_cols
-  if(myid == 0) print *, 'Processor grid: ',n_p_rows, ' x ', n_p_cols
-  if(myid == 0) print *, 'Local Matrixsize: ',n_l_rows, ' x ', n_l_cols
 
   call descinit( sc_desc, n_g_rank, n_g_rank, n_b_rows, n_b_cols, 0, 0, &
                  blacs_ctxt, MAX(1,n_l_rows), blacs_info )

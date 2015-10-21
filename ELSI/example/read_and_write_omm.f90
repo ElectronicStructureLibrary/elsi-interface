@@ -35,6 +35,8 @@ program read_and_write
 
   implicit none
 
+  integer :: blocksize = 16
+
   ! First: the parallel treatment 
   call elsi_initialize_mpi()
   
@@ -43,7 +45,8 @@ program read_and_write
   call elsi_set_mode(REAL_VALUES)
   
   ! Third Define the problem
-  call elsi_initialize_problem_from_file("elsi_eigenvalue_problem.hdf5")
+  call elsi_initialize_problem_from_file("elsi_eigenvalue_problem.hdf5",&
+        blocksize, blocksize)
   
   ! Forth distribute the problem
   call elsi_initialize_blacs()

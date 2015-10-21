@@ -30,6 +30,7 @@
 module ELSI_DIMENSIONS
 
   use iso_c_binding
+  use f_ppexsi_interface
 
   implicit none
   
@@ -118,6 +119,28 @@ module ELSI_DIMENSIONS
   !< Shall omm deallocate all internal?
   logical :: do_dealloc = .True.
 
+  !> PEXSI Variables
+  !< Pexsi Plan
+  integer(c_intptr_t)   :: pexsi_plan
+  !< Pexsi Options
+  type(f_ppexsi_options):: pexsi_options
+  !< Pexsi Info
+  integer(c_int)        :: pexsi_info
+  !< Pexsi output file
+  integer(c_int)        :: pexsi_output_file_index
+  !< Pexsi chemical potential
+  real(c_double)        :: mu_pexsi
+  !< Pexsi number of electrons
+  real(c_double)        :: n_electrons_pexsi
+  real(c_double)        :: mu_min_inertia
+  real(c_double)        :: mu_max_inertia
+  integer(c_int)        :: n_total_inertia_iter
+  integer(c_int)        :: n_total_pexsi_iter
+  real(c_double)        :: e_tot_h
+  real(c_double)        :: e_tot_s
+  real(c_double)        :: f_tot
+
+
   !> Physics Variables
   !< The number of electrons
   real*8  :: n_electrons
@@ -177,5 +200,42 @@ subroutine elsi_stop(message, caller)
       stop
 
 end subroutine elsi_stop
+
+!>
+!! Give Status of ELSI variables 
+!!
+subroutine elsi_variable_status()
+
+      implicit none
+      include "mpif.h"
+
+      character(LEN=4096) :: string_message
+      integer :: i_task
+
+      do i_task = 0, n_procs
+         if (i_task == myid) then
+            write(string_message, "(1X,'*** Proc',I5,&
+            ' : Matrixsize global ',I5,' x ',I5)") &
+              & myid, n_g_rank, n_g_rank
+            write(*,'(A)') trim(string_message)
+            write(string_message, "(1X,'*** Proc',I5,&
+            ' : Matrixsize local ',I5,' x ',I5)") &
+              & myid, n_l_rows, n_l_cols
+            write(*,'(A)') trim(string_message)
+            write(string_message, "(1X,'*** Proc',I5,&
+            ' : Blocksize global ',I5,' x ',I5)") &
+              & myid, n_b_rows, n_b_cols
+            write(*,'(A)') trim(string_message)
+            write(string_message, "(1X,'*** Proc',I5,&
+            ' : Processgrid global ',I5,' x ',I5)") &
+              & myid, n_p_rows, n_p_cols
+            write(*,'(A)') trim(string_message)
+         end if
+
+         call MPI_BARRIER(mpi_comm_global,mpierr)
+      end do
+        
+end subroutine elsi_variable_status
+
 
 end module ELSI_DIMENSIONS

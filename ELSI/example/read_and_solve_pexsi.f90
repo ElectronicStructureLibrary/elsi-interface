@@ -59,12 +59,12 @@ program read_and_solve
   call elsi_initialize_mpi()
   
   ! Second set some ELSI specifications
-  call elsi_set_method(ELPA)
+  call elsi_set_method(PEXSI)
   call elsi_set_mode(REAL_VALUES)
   
   ! Third define the problem
   call elsi_initialize_problem_from_file("elsi_eigenvalue_problem.hdf5",&
-        blocksize,blocksize)
+        blocksize, blocksize)
   
   ! Initialize problem distribution
   call elsi_initialize_blacs()

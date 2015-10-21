@@ -7,7 +7,9 @@ all: example/construct_and_write_elpa.x \
      example/construct_and_write_omm.x \
      example/set_and_write_omm.x \
      example/read_and_write_omm.x \
-     example/read_and_solve_omm.x
+     example/read_and_write_pexsi.x \
+     example/read_and_solve_omm.x \
+     example/read_and_solve_pexsi.x
 
 example/%.x: example/%.o src/elsi_interface.o src/elsi_mpi_tools.o src/elsi_hdf5_tools.o src/elsi_matrix_conversion.o src/elsi_dimensions.o
 	$(MPIFC) $(FFLAGS) -o $@ $^ -Isrc/ $(ELPA) $(OMM) $(PEXSI) $(SCALAPACK) $(HDF5)
@@ -19,16 +21,16 @@ src/elsi_interface.o: src/elsi_interface.f90 src/elsi_mpi_tools.o src/elsi_hdf5_
 	$(MPIFC) $(FFLAGS) -module src/ -o $@ -c $^ $(ELPA) $(OMM) $(PEXSI) $(SCALAPACK) $(HDF5)
 
 src/elsi_mpi_tools.o: src/elsi_mpi_tools.f90 src/elsi_dimensions.o
-	$(MPIFC) $(FFLAGS) -module src/ -o $@ -c $^ $(OMM) $(SCALAPACK)
+	$(MPIFC) $(FFLAGS) -module src/ -o $@ -c $^ $(OMM) $(PEXSI) $(SCALAPACK)
 
 src/elsi_hdf5_tools.o: src/elsi_hdf5_tools.f90 src/elsi_dimensions.o
-	$(MPIFC) $(FFLAGS) -module src/ -o $@ -c $^ $(HDF5)
+	$(MPIFC) $(FFLAGS) -module src/ -o $@ -c $^ $(HDF5) $(PEXSI)
 
 src/elsi_matrix_conversion.o: src/elsi_matrix_conversion.f90 
-	$(MPIFC) $(FFLAGS) -module src/ -o $@ -c $< $(HDF5)
+	$(MPIFC) $(FFLAGS) -module src/ -o $@ -c $< $(HDF5) $(PEXSI)
 
-src/elsi_dimensions.o: src/elsi_dimensions.f90
-	$(MPIFC) $(FFLAGS) -module src/ -o $@ -c $<
+src/elsi_dimensions.o: src/elsi_dimensions.f90 
+	$(MPIFC) $(FFLAGS) -module src/ -o $@ -c $< $(PEXSI)
 
 clean:
 	rm -rf `find . -name "*.o"`
@@ -53,7 +55,9 @@ install:
 	cp example/construct_and_write_omm.x bin/construct_and_write_omm
 	cp example/set_and_write_omm.x bin/set_and_write_omm
 	cp example/read_and_write_omm.x bin/read_and_write_omm
+	cp example/read_and_write_pexsi.x bin/read_and_write_pexsi
 	cp example/read_and_solve_omm.x bin/read_and_solve_omm
+	cp example/read_and_solve_pexsi.x bin/read_and_solve_pexsi
 
 check:
 	cd regression && ./regression.sh
