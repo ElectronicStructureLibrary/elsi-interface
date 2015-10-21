@@ -43,6 +43,7 @@ module ELSI_MATRIX_CONVERSION
   public :: elsi_dense_to_crs
   public :: elsi_dense_to_ccs
   public :: elsi_dense_to_ccs_by_pattern
+  public :: elsi_ccs_to_dense
 
   contains
 
@@ -140,6 +141,14 @@ subroutine elsi_dense_to_ccs(matrix, val, row_ind, col_ptr)
    integer             :: i_val       !< value counter
    logical             :: first       !< First encounter in col?
 
+   integer             :: indexshift
+
+   if (method == PEXSI) then
+      indexshift = -1
+   else 
+      indexshift = 0
+   end if
+
    i_val = 0
    col_ptr = 0
    do i_col = 1, n_l_cols
@@ -148,11 +157,11 @@ subroutine elsi_dense_to_ccs(matrix, val, row_ind, col_ptr)
        if (abs(matrix(i_row,i_col)) > threshhold) then
          i_val = i_val + 1
          if (first) then
-           col_ptr(i_col) = i_val
+           col_ptr(i_col) = i_val + indexshift
            first = .false.
          end if
          val(i_val) = matrix(i_row,i_col)
-         row_ind(i_val) = i_row
+         row_ind(i_val) = i_row + indexshift
        end if
      end do
    end do
@@ -184,11 +193,59 @@ subroutine elsi_dense_to_ccs_by_pattern(matrix, val, row_ind, col_ptr)
    integer             :: i_col       !< col counter
    integer             :: i_val       !< value counter
 
-   do i_col = 1, n_l_cols
-     do i_val = col_ptr(i_col), col_ptr(i_col + 1)
-        i_row = row_ind(i_val)
-        val(i_val) = matrix(i_row,i_col)
-     end do
+   integer             :: indexshift
+
+   if (method == PEXSI) then
+      indexshift = 1
+   else 
+      indexshift = 0
+   end if
+
+   i_col = 0
+   do i_val = 1, n_l_nonzero
+     if (i_val == col_ptr(i_col + 1) + indexshift .and. i_col /= n_l_cols) then
+       i_col = i_col + 1
+     end if
+     i_row = row_ind(i_val) + indexshift
+     val(i_val) = matrix(i_row,i_col)
+   end do
+
+
+end subroutine
+
+!>
+!!  This routine transforms a dense matrix to the 
+!!  Compressed Column Storage (CCS) Format based 
+!!  on a given col_ind and row_ptr
+!!
+subroutine elsi_ccs_to_dense(matrix, val, row_ind, col_ptr)
+
+   implicit none
+
+   real*8,  intent(out) :: matrix(n_l_rows,n_l_cols) !< local matrix
+   real*8,  intent(in)  :: val(n_l_nonzero)          !< values
+   integer, intent(in)  :: row_ind(n_l_nonzero)      !< row index
+   integer, intent(in)  :: col_ptr(n_l_cols + 1)     !< column pointer
+
+   integer             :: i_row       !< row counter
+   integer             :: i_col       !< col counter
+   integer             :: i_val       !< value counter
+
+   integer             :: indexshift
+
+   if (method == PEXSI) then
+      indexshift = 1
+   else 
+      indexshift = 0
+   end if
+
+   i_col = 0
+   do i_val = 1, n_l_nonzero
+     if (i_val == col_ptr(i_col + 1) + indexshift .and. i_col /= n_l_cols) then
+       i_col = i_col + 1
+     end if
+     i_row = row_ind(i_val) + indexshift
+     matrix(i_row,i_col) = val(i_val)
    end do
 
 end subroutine
