@@ -145,20 +145,27 @@ subroutine elsi_initialize_blacs()
    ! Exception how to deviate from blocksize for OMM
    integer :: exception(2) = (/0,0/)
 
-   external_blacs = .False.
-   blacs_is_setup = .True.
-  ! Define blockcyclic setup
-  do n_p_cols = NINT(SQRT(REAL(n_procs))),2,-1
-     if(mod(n_procs,n_p_cols) == 0 ) exit
-  enddo
 
-  n_p_rows = n_procs / n_p_cols
+   if (method == PEXSI) then
 
-  ! PEXSI needs a pure block distriburion.
-  ! This is why we reset the blocksize here 
-  if (method == PEXSI) then
-     n_b_rows = n_g_rank / n_p_rows
-     n_b_cols = n_g_rank / n_p_cols
+     n_p_rows = 1
+     n_p_cols = n_procs
+
+     my_p_row = 0
+     my_p_col = myid
+
+     ! PEXSI needs a pure block distriburion.
+     ! This is why we reset the blocksize here 
+     n_b_rows = n_g_rank
+
+     ! The last process takes all remaining columns
+     n_b_cols = FLOOR(1d0*n_g_rank / n_p_cols)
+     if (myid == n_procs - 1) then
+        n_b_cols = n_g_rank - (n_procs-1) * n_b_cols
+     end if
+
+     n_l_rows = n_b_rows
+     n_l_cols = n_b_cols
  
      if (mod(myid,n_p_rows * n_p_cols) == 0) then
         pexsi_output_file_index = myid / (n_p_rows * n_p_cols)
@@ -174,39 +181,52 @@ subroutine elsi_initialize_blacs()
      else
         call elsi_print("Pexsi Plan initialized")
      end if
-  end if
 
-  ! Set up BLACS and MPI communicators
 
-  blacs_ctxt = mpi_comm_global
-  call BLACS_Gridinit( blacs_ctxt, 'C', n_p_rows, n_p_cols )
-  call BLACS_Gridinfo( blacs_ctxt, n_p_rows, n_p_cols, my_p_row, my_p_col )
+   else
+     external_blacs = .False.
+     blacs_is_setup = .True.
+     ! Define blockcyclic setup
+     do n_p_cols = NINT(SQRT(REAL(n_procs))),2,-1
+       if(mod(n_procs,n_p_cols) == 0 ) exit
+     enddo
 
-  call mpi_comm_split(mpi_comm_global,my_p_col,my_p_row,mpi_comm_row,mpierr)
+     n_p_rows = n_procs / n_p_cols
 
-   if (mpierr /= 0) then
-      write(*,'(a)') "ELPA: Failed to get ELPA row communicators."
-      stop
-   end if
+     ! Set up BLACS and MPI communicators
+
+     blacs_ctxt = mpi_comm_global
+     call BLACS_Gridinit( blacs_ctxt, 'C', n_p_rows, n_p_cols )
+     call BLACS_Gridinfo( blacs_ctxt, n_p_rows, n_p_cols, my_p_row, my_p_col )
+
+     call mpi_comm_split(mpi_comm_global,my_p_col,my_p_row,mpi_comm_row,mpierr)
+
+     if (mpierr /= 0) then
+       call elsi_stop("Failed to get row communicators.",&
+           "elsi_initialize_blacs")
+     end if
  
-  call mpi_comm_split(mpi_comm_global,my_p_row,my_p_col,mpi_comm_col,mpierr)
+     call mpi_comm_split(mpi_comm_global,my_p_row,my_p_col,mpi_comm_col,mpierr)
+   
+     if (mpierr /= 0) then
+       call elsi_stop("Failed to get column communicators.",&
+           "elsi_initialize_blacs")
+     end if
 
-  if (mpierr /= 0) then
-      write(*,'(a)') "ELPA: Failed to get ELPA column communicators."
-      stop
+     n_l_rows = numroc(n_g_rank, n_b_rows, my_p_row, 0, n_p_rows)
+     n_l_cols = numroc(n_g_rank, n_b_cols, my_p_col, 0, n_p_cols)
+
+     call descinit( sc_desc, n_g_rank, n_g_rank, n_b_rows, n_b_cols, 0, 0, &
+                   blacs_ctxt, MAX(1,n_l_rows), blacs_info )
+
+     if (method == OMM_DENSE) then
+        call ms_scalapack_setup (n_procs, n_p_rows, 'c', n_b_rows, exception,&
+             blacs_ctxt)
+     end if
+
    end if
 
-  n_l_rows = numroc(n_g_rank, n_b_rows, my_p_row, 0, n_p_rows)
-  n_l_cols = numroc(n_g_rank, n_b_cols, my_p_col, 0, n_p_cols)
-
-  call descinit( sc_desc, n_g_rank, n_g_rank, n_b_rows, n_b_cols, 0, 0, &
-                 blacs_ctxt, MAX(1,n_l_rows), blacs_info )
-
-  if (method == OMM_DENSE) then
-     call ms_scalapack_setup (n_procs, n_p_rows, 'c', n_b_rows, exception,&
-           blacs_ctxt)
-  end if
-
+  call elsi_variable_status()
 
 end subroutine
 
@@ -269,8 +289,10 @@ subroutine elsi_finalize_blacs()
 
    implicit none
 
-   blacs_is_setup = .False.
-   call blacs_gridexit(blacs_ctxt)
+   if(blacs_is_setup) then
+     blacs_is_setup = .False.
+     call blacs_gridexit(blacs_ctxt)
+   end if
 
 end subroutine
 

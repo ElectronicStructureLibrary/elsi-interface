@@ -611,28 +611,108 @@ subroutine hdf5_get_scalapack_pattern()
 
    implicit none
 
-   integer :: count_r, count_c
-   integer :: stride_r, stride_c
-
    global_dim       = (/n_g_rank,n_g_rank/)
    local_dim        = (/n_l_rows,n_l_cols/)
    block            = (/n_b_rows,n_b_cols/)
    process_position = (/my_p_row,my_p_col/)
    process_grid     = (/n_p_rows,n_p_cols/)
 
-   offset = process_position * block
-   stride = process_grid * block
-   
-   count_r = FLOOR (1d0 * n_l_rows / n_b_rows)
-   count_c = FLOOR (1d0 * n_l_cols / n_b_cols)  
-   count   = (/count_r,count_c/)
+   if (method == PEXSI) then
 
-   if (count_r * n_b_rows /= n_l_rows .or. count_c * n_b_cols /= n_l_cols) then
-     incomplete = .True.
+      offset(1) = process_position(1) &
+               * FLOOR (1d0 * global_dim(1) / process_grid(1))
+      offset(2) = process_position(2) &
+               * FLOOR (1d0 * global_dim(2) / process_grid(2))
+      
+      stride = global_dim
+      
+      count(1) = FLOOR (1d0 * local_dim(1) / block(1))
+      count(2) = FLOOR (1d0 * local_dim(2) / block(2))  
+      
+      if (count(1) * block(1) /= local_dim(1) .or.&
+          count(2) * block(2) /= local_dim(2)) then
+        incomplete = .True.
+      else
+        incomplete = .False.
+      end if
+
    else
-     incomplete = .False.
+
+      offset = process_position * block
+      stride = process_grid * block
+   
+      count(1) = FLOOR (1d0 * local_dim(1) / block(1))
+      count(2) = FLOOR (1d0 * local_dim(2) / block(2))  
+
+      if (count(1) * block(1) /= local_dim(1) .or.&
+          count(2) * block(2) /= local_dim(2)) then
+        incomplete = .True.
+      else
+        incomplete = .False.
+      end if
+
    end if
 
+   call elsi_hdf5_variable_status()
+
 end subroutine
+
+
+!>
+!! Give Status of ELSI HDF5 variables 
+!!
+subroutine elsi_hdf5_variable_status()
+
+      implicit none
+      include "mpif.h"
+
+      character(LEN=4096) :: string_message
+      integer :: i_task
+
+      do i_task = 0, n_procs
+         if (i_task == myid) then
+            write(string_message, "(1X,'*** Proc',I5,&
+            ' : Matrixsize global ',I5,' x ',I5)") &
+              & myid, global_dim(1), global_dim(2)
+            write(*,'(A)') trim(string_message)
+            write(string_message, "(1X,'*** Proc',I5,&
+            ' : Matrixsize local ',I5,' x ',I5)") &
+              & myid, local_dim(1), local_dim(1)
+            write(*,'(A)') trim(string_message)
+            write(string_message, "(1X,'*** Proc',I5,&
+            ' : Blocksize global ',I5,' x ',I5)") &
+              & myid, block(1), block(2)
+            write(*,'(A)') trim(string_message)
+            write(string_message, "(1X,'*** Proc',I5,&
+            ' : Processgrid global ',I5,' x ',I5)") &
+              & myid, process_grid(1), process_grid(2)
+            write(*,'(A)') trim(string_message)
+            write(string_message, "(1X,'*** Proc',I5,&
+            ' : Process ',I5,' x ',I5)") &
+              & myid, process_position(1), process_position(2)
+            write(*,'(A)') trim(string_message)
+            write(string_message, "(1X,'*** Proc',I5,&
+            ' : Count ',I5,' x ',I5)") &
+              & myid, count(1), count(2)
+            write(*,'(A)') trim(string_message)
+            write(string_message, "(1X,'*** Proc',I5,&
+            ' : Offset ',I5,' x ',I5)") &
+              & myid, offset(1), offset(2)
+            write(*,'(A)') trim(string_message)
+            write(string_message, "(1X,'*** Proc',I5,&
+            ' : Stride ',I5,' x ',I5)") &
+              & myid, stride(1), stride(2)
+            write(*,'(A)') trim(string_message)
+            write(string_message, "(1X,'*** Proc',I5,&
+            ' : Incomplete? ',L)") &
+              & myid, incomplete
+            write(*,'(A)') trim(string_message)
+         end if
+
+         call MPI_BARRIER(mpi_comm_global,mpierr)
+      end do
+        
+end subroutine elsi_hdf5_variable_status
+
 
 end module ELSI_HDF5_TOOLS

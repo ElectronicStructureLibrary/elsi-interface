@@ -1118,14 +1118,17 @@ subroutine elsi_solve_ev_problem(n_vectors)
          call elsi_stop("Hamiltonian not created/linked.",&
                        "elsi_solve_ev_problem")
       end if
-      !print *,"H_real_sparse"
-      !print *,H_real_sparse
-      !print *,"S_real_sparse"
-      !print *,S_real_sparse
-      !print *,"sparse_index"
-      !print *,sparse_index
-      !print *,"sparse_pointer"
-      !print *,sparse_pointer
+      if (myid == 0) then
+        print *,"H_real_sparse"
+        print *,H_real_sparse
+        print *,"S_real_sparse"
+        print *,S_real_sparse
+        print *,"sparse_index"
+        print *,sparse_index
+        print *,"sparse_pointer"
+        print *,sparse_pointer
+      end if
+      call MPI_BARRIER(mpi_comm_global,mpierr)
    end if
 
    n_eigenvectors = n_vectors

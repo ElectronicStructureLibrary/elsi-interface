@@ -166,12 +166,19 @@ module ELSI_DIMENSIONS
 
       character(len=*), intent(in) :: message
 
-       character(LEN=4096) :: string_message
+      character(LEN=4096) :: string_message
 
-      write(string_message, "(1X,'*** Proc',I5,': ',A)") &
-           & myid, trim(message)
+      integer :: i_task
 
-      write(*,'(A)') trim(string_message)
+       do i_task = 0, n_procs - 1
+        if (myid == i_task) then
+          write(string_message, "(1X,'*** Proc',I5,': ',A)") &
+            & myid, trim(message)
+
+          write(*,'(A)') trim(string_message)
+        end if
+        call MPI_BARRIER(mpi_comm_global,mpierr)
+      end do
 
   end subroutine 
 
@@ -187,12 +194,17 @@ subroutine elsi_stop(message, caller)
       character(len=*), intent(in) :: caller
 
       character(LEN=4096) :: string_message
+      integer :: i_task
 
-      write(string_message, "(1X,'*** Proc',I5,' in ',A,': ',A)") &
-           & myid, trim(caller), trim(message)
+      do i_task = 0, n_procs - 1
+        if (myid == i_task) then
+          write(string_message, "(1X,'*** Proc',I5,' in ',A,': ',A)") &
+             & myid, trim(caller), trim(message)
+          write(*,'(A)') trim(string_message)
+        end if
+        call MPI_BARRIER(mpi_comm_global,mpierr)
+      end do
 
-      write(*,'(A)') trim(string_message)
-        
       if (n_procs > 1) then
          call MPI_Abort(mpi_comm_global, 0, mpierr)
       end if
