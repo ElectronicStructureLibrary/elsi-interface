@@ -1107,10 +1107,10 @@ subroutine elsi_solve_ev_problem(n_vectors)
          call elsi_stop("Hamiltonian not created/linked.",&
                        "elsi_solve_ev_problem")
       end if
-      print *, "H_real"
-      print *, H_real
-      print *, "S_real"
-      print *, S_real
+      !print *, "H_real"
+      !print *, H_real
+      !print *, "S_real"
+      !print *, S_real
    end if
 
    if (method == PEXSI) then
@@ -1118,12 +1118,14 @@ subroutine elsi_solve_ev_problem(n_vectors)
          call elsi_stop("Hamiltonian not created/linked.",&
                        "elsi_solve_ev_problem")
       end if
-      print *,"H_real_sparse"
-      print *,H_real_sparse
-      print *,"sparse_index"
-      print *,sparse_index
-      print *,"sparse_pointer"
-      print *,sparse_pointer
+      !print *,"H_real_sparse"
+      !print *,H_real_sparse
+      !print *,"S_real_sparse"
+      !print *,S_real_sparse
+      !print *,"sparse_index"
+      !print *,sparse_index
+      !print *,"sparse_pointer"
+      !print *,sparse_pointer
    end if
 
    n_eigenvectors = n_vectors
@@ -1215,14 +1217,21 @@ subroutine elsi_solve_ev_problem(n_vectors)
               min_tol, omm_verbose, do_dealloc, "pddbc", "lap", myid+1)
 
       case (PEXSI)
+
+         allocate (D_real_sparse(n_l_nonzero))
+         allocate (ED_real_sparse(n_l_nonzero))
+         allocate (FD_real_sparse(n_l_nonzero))
+
          call f_ppexsi_set_default_options(pexsi_options)
 
          if (overlap_is_unity) then
+           call elsi_print("Pexsi Matrix setup with S = unity")
            call f_ppexsi_load_real_symmetric_hs_matrix( pexsi_plan,&
                pexsi_options, n_g_rank, n_g_nonzero, n_l_nonzero, n_l_cols,&
                sparse_pointer, sparse_index, H_real_sparse, 1, S_real_sparse,&
                pexsi_info)
          else
+           call elsi_print("Pexsi Matrix setup with non-unity S")
            call f_ppexsi_load_real_symmetric_hs_matrix( pexsi_plan,&
                pexsi_options, n_g_rank, n_g_nonzero, n_l_nonzero, n_l_cols,&
                sparse_pointer, sparse_index, H_real_sparse, 0, S_real_sparse,&
@@ -1234,6 +1243,27 @@ subroutine elsi_solve_ev_problem(n_vectors)
                   "elsi_solve_ev_problem")
          end if
 
+         !pexsi_options%muMin0   = 0d0
+         !pexsi_options%muMax0   = 0.5d0 
+         !pexsi_options%mu0      = 1.0d0
+         !pexsi_options%deltaE   = 20d0 
+         !pexsi_options%numPole  = 60
+         !pexsi_options%temperature = 0.019d0   ! 3000 K
+         !pexsi_options%muPEXSISafeGuard = 0.2d0
+         !pexsi_options%numElectronPEXSITolerance = 1d-3
+
+
+         if (myid == 0) then
+            print *, "Argument Summary before DFT driver:"
+            print *, "n_electrons:", n_electrons
+            print *, "mu_Pexsi:", mu_Pexsi
+            print *, "n_electrons_pexsi:", n_electrons_pexsi
+            print *, "mu_min_inertia:", mu_min_inertia
+            print *, "mu_max_inertia:", mu_max_inertia
+            print *, "n_total_inertia:", n_total_inertia_iter
+            print *, "n_total_pexsi_iter:", n_total_pexsi_iter
+         end if
+
          call f_ppexsi_dft_driver(pexsi_plan, pexsi_options, n_electrons,&
                mu_Pexsi, n_electrons_pexsi, mu_min_inertia, mu_max_inertia,&
                n_total_inertia_iter, n_total_pexsi_iter, pexsi_info)
@@ -1243,16 +1273,21 @@ subroutine elsi_solve_ev_problem(n_vectors)
                   "elsi_solve_ev_problem")
          end if
 
-
          call f_ppexsi_retrieve_real_symmetric_dft_matrix( pexsi_plan,&
             D_real_sparse, ED_real_sparse, FD_real_sparse, e_tot_H, &
             e_tot_S, f_tot, pexsi_info)
 
-          if (pexsi_info /= 0) then
+         if (pexsi_info /= 0) then
             call elsi_stop("PEXSI not able to retrieve solution.",&
                   "elsi_solve_ev_problem")
          end if
 
+         if( myid == 0 ) then
+           write(*,*) "Output from the main program."
+           write(*,*) "Total energy (H*DM)         = ", e_tot_H
+           write(*,*) "Total energy (S*EDM)        = ", e_tot_S
+           write(*,*) "Total free energy           = ", f_tot
+         endif
 
       case DEFAULT
          call elsi_stop("No method has been chosen. "//&
@@ -1303,13 +1338,11 @@ subroutine elsi_get_total_energy(e_tot,n_occ)
    
    select case (method)
       case (ELPA)
-         e_tot = SUM(eigenvalues(1:n_occ))      
+         e_tot = 2d0 * SUM(eigenvalues(1:n_occ))      
       case (OMM_DENSE)
          if (myid == 0) then
-            print *, "Total energy = ", total_energy, &
-              " + ", n_occ, " * ", eta
          end if
-         e_tot = total_energy + n_occ * eta
+         e_tot = 2d0 * (total_energy + n_occ * eta)
       case (PEXSI)
          e_tot = e_tot_h     
       case DEFAULT

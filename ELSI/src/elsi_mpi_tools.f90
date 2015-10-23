@@ -168,6 +168,12 @@ subroutine elsi_initialize_blacs()
 
      pexsi_plan = f_ppexsi_plan_initialize( mpi_comm_global, n_p_rows, &
            n_p_cols, pexsi_output_file_index, pexsi_info)
+     if (pexsi_info /= 0) then
+        call elsi_stop("Pexsi Plan initialization faild.",&
+              "elsi_initialize_blacs")
+     else
+        call elsi_print("Pexsi Plan initialized")
+     end if
   end if
 
   ! Set up BLACS and MPI communicators

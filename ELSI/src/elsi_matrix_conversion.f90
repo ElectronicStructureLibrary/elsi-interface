@@ -143,12 +143,6 @@ subroutine elsi_dense_to_ccs(matrix, val, row_ind, col_ptr)
 
    integer             :: indexshift
 
-   if (method == PEXSI) then
-      indexshift = -1
-   else 
-      indexshift = 0
-   end if
-
    i_val = 0
    col_ptr = 0
    do i_col = 1, n_l_cols
@@ -157,16 +151,16 @@ subroutine elsi_dense_to_ccs(matrix, val, row_ind, col_ptr)
        if (abs(matrix(i_row,i_col)) > threshhold) then
          i_val = i_val + 1
          if (first) then
-           col_ptr(i_col) = i_val + indexshift
+           col_ptr(i_col) = i_val
            first = .false.
          end if
          val(i_val) = matrix(i_row,i_col)
-         row_ind(i_val) = i_row + indexshift
+         row_ind(i_val) = i_row
        end if
      end do
    end do
 
-   col_ptr(n_l_cols + 1) = i_val
+   col_ptr(n_l_cols + 1) = i_val + 1
 
    if (i_val /= n_l_nonzero) then
       call elsi_stop("Number of non zero elements differ",&
@@ -203,10 +197,10 @@ subroutine elsi_dense_to_ccs_by_pattern(matrix, val, row_ind, col_ptr)
 
    i_col = 0
    do i_val = 1, n_l_nonzero
-     if (i_val == col_ptr(i_col + 1) + indexshift .and. i_col /= n_l_cols) then
+     if (i_val == col_ptr(i_col + 1) .and. i_col /= n_l_cols) then
        i_col = i_col + 1
      end if
-     i_row = row_ind(i_val) + indexshift
+     i_row = row_ind(i_val)
      val(i_val) = matrix(i_row,i_col)
    end do
 
@@ -231,20 +225,12 @@ subroutine elsi_ccs_to_dense(matrix, val, row_ind, col_ptr)
    integer             :: i_col       !< col counter
    integer             :: i_val       !< value counter
 
-   integer             :: indexshift
-
-   if (method == PEXSI) then
-      indexshift = 1
-   else 
-      indexshift = 0
-   end if
-
    i_col = 0
    do i_val = 1, n_l_nonzero
-     if (i_val == col_ptr(i_col + 1) + indexshift .and. i_col /= n_l_cols) then
+     if (i_val == col_ptr(i_col + 1) .and. i_col /= n_l_cols) then
        i_col = i_col + 1
      end if
-     i_row = row_ind(i_val) + indexshift
+     i_row = row_ind(i_val)
      matrix(i_row,i_col) = val(i_val)
    end do
 
