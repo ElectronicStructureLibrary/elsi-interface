@@ -1,7 +1,7 @@
 include make.sys
 export
 
-all: elpa libomm pexsi interface
+all: elpa libomm pexsi elsi
 
 elpa:
 	@echo Start building ELPA...
@@ -16,12 +16,14 @@ libomm:
 pexsi:
 	@echo Start building PEXSI...
 	cd $(PEXSI_DIR)/src && ${MAKE}
+	-cp $(PEXSI_DIR)/src/f_ppexsi_interface.mod $(PEXSI_DIR)/include
+	cd $(PEXSI_DIR)/fortran && ${MAKE} 
 	@echo PEXSI installed.
 
-interface:
-	@echo Start building ELSI-interface...
+elsi:
+	@echo Start building ELSI...
 	cd ELSI && ${MAKE}
-	@echo ELSI-interface installed.
+	@echo ELSI installed.
 
 external: pexsi_external
 
@@ -42,6 +44,9 @@ clean:
 	cd $(libOMM_DIR)/src/MatrixSwitch-0.1.2/src && ${MAKE} clean
 	cd $(libOMM_DIR)/examples && ${MAKE} clean
 	cd $(PEXSI_DIR)/src && ${MAKE} cleanall
+	cd $(PEXSI_DIR)/fortran && ${MAKE} cleanall
+	rm -f $(PEXSI_DIR)/include/f_ppexsi_interface.mod
+	rm -f $(PEXSI_DIR)/src/f_ppexsi_interface.mod
 
 cleanall: clean
 	cd $(PEXSI_DIR)/external && ${MAKE} clean

@@ -73,3 +73,4 @@ ${PEXSI_LIB}:
 
 cleanall:
 	rm -f ${EXES} ${OBJS} ${DEPS} *.d.* *.o *.mod
+	rm -f f_driver_ksdft_${SUFFIX} f_driver_pselinv_real_${SUFFIX} f_driver_pselinv_complex_${SUFFIX}

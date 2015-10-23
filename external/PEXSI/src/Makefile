@@ -4,7 +4,7 @@ SRCS_C   = pdsymbfact.c pzsymbfact.c get_perm_c_parmetis.c
 SRCS_CPP = interface.cpp ppexsi.cpp pole.cpp \
 					 superlu_dist_internal_complex.cpp superlu_dist_internal_real.cpp \
 					 mpi_interf.cpp lapack.cpp blas.cpp utility.cpp global.cpp timer.cpp
-
+SRCS_F90 = f_interface.f90
 
 OBJS     = ${SRCS_CPP:.cpp=.o} ${SRCS_C:.c=.o} ${SRCS_F90:.f90=.o} 
 DEPS     = ${SRCS_CPP:.cpp=.d} ${SRCS_C:.c=.d} ${SRCS_F90:.f90=.d}

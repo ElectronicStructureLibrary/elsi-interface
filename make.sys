@@ -1,4 +1,4 @@
-# ====== Global settings ======
+# ====== GLOBAL ======
 
 MPIFC  = mpiifort
 MPICC  = mpicc
@@ -14,25 +14,16 @@ SCALAPACK = -L${MKLROOT}/lib/intel64 -lmkl_scalapack_lp64 \
             -lmkl_intel_lp64 -lmkl_sequential -lmkl_core \
             -lmkl_blacs_intelmpi_lp64 -lpthread -lm
 
-# ====== ELSI-interface ======
+# ====== ELSI ======
 
-# Production Flags
-# FFLAGS_I = -O3 -ip  
-
-# DEBUG FLAGS
-FFLAGS_I = -O0 -ip -g -traceback -check bounds -check uninit 
+FFLAGS_I = -O3 -ip -lstdc++ 
 
 HDF5 = -L$(HDF5_HOME)/lib -I$(HDF5_HOME)/include \
        -lhdf5_fortran -lhdf5hl_fortran -lhdf5
 
 # ====== ELPA ======
 
-# Production Flags
-# FFLAGS_E   = -O3 -fpe0 -fpp -I../
-
-# Debug Flags
-FFLAGS_E   = -O0 -traceback -g -fpe0 -fpp -I../
-
+FFLAGS_E   = -O3 -fpe0 -fpp -I../
 CFLAGS_E   = -O3 -mavx -funsafe-loop-optimizations \
              -funsafe-math-optimizations -ftree-vect-loop-version \
              -ftree-vectorize
@@ -45,11 +36,7 @@ OPENMP = no
 
 # ====== libOMM ======
 
-# Production Flags
-# FFLAGS_O = -O3
-
-# Debug Flags
-FFLAGS_O = -O0 -traceback -g 
+FFLAGS_O = -O3
 
 MPI  = yes
 LAP  = yes
@@ -57,12 +44,9 @@ SLAP = yes
 
 # ====== PEXSI ======
 
-FORTRAN_DIR = /opt/intel/composer_xe_2013_sp1.1.106/compiler
-FORTRAN_LIB = -L${FORTRAN_DIR}/lib/intel64 -lifcore
+# ====== LINK ======
 
-# ====== Library directories ======
-
-THIS_DIR =$(shell pwd)
+THIS_DIR = $(shell pwd)
 
 ELPA_DIR = $(THIS_DIR)/external/ELPA
 ELPA = -L$(ELPA_DIR)/lib -lelpa \
@@ -75,4 +59,7 @@ OMM  = -I$(libOMM_DIR)/src \
        -L$(libOMM_DIR)/src/MatrixSwitch-0.1.2/src -lmatrixswitch
 
 PEXSI_DIR = $(THIS_DIR)/external/PEXSI
-#PEXSI = -I... -L...
+PEXSI = -I$(PEXSI_DIR)/include \
+        -I$(PEXSI_DIR)/include/pexsi \
+        -I$(PEXSI_DIR)/external/include \
+        -L$(PEXSI_DIR)/lib -lpexsi -lsuperlu -lparmetis -lmetis

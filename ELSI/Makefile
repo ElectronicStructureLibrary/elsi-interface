@@ -9,20 +9,23 @@ all: example/construct_and_write_elpa.x \
      example/read_and_write_omm.x \
      example/read_and_solve_omm.x
 
-example/%.x: example/%.o src/elsi_interface.o src/elsi_mpi_tools.o src/elsi_hdf5_tools.o src/elsi_dimensions.o
-	$(MPIFC) $(FFLAGS_I) -o $@ $^ -Isrc/ $(ELPA) $(OMM) $(SCALAPACK) $(HDF5)
+example/%.x: example/%.o src/elsi_interface.o src/elsi_mpi_tools.o src/elsi_hdf5_tools.o src/elsi_matrix_conversion.o src/elsi_dimensions.o
+	$(MPIFC) $(FFLAGS_I) -o $@ $^ -Isrc/ $(ELPA) $(OMM) $(PEXSI) $(SCALAPACK) $(HDF5)
 
 example/%.o: example/%.f90 src/elsi_interface.o
-	$(MPIFC) $(FFLAGS_I) -o $@ -c $^ -Isrc/ $(ELPA) $(OMM) $(SCALAPACK) $(HDF5)
+	$(MPIFC) $(FFLAGS_I) -o $@ -c $^ -Isrc/ $(ELPA) $(OMM) $(PEXSI) $(SCALAPACK) $(HDF5)
 
-src/elsi_interface.o: src/elsi_interface.f90 src/elsi_mpi_tools.o src/elsi_hdf5_tools.o src/elsi_dimensions.o
-	$(MPIFC) $(FFLAGS_I) -module src/ -o $@ -c $^ $(ELPA) $(OMM) $(SCALAPACK) $(HDF5)
+src/elsi_interface.o: src/elsi_interface.f90 src/elsi_mpi_tools.o src/elsi_hdf5_tools.o src/elsi_matrix_conversion.o src/elsi_dimensions.o
+	$(MPIFC) $(FFLAGS_I) -module src/ -o $@ -c $^ $(ELPA) $(OMM) $(PEXSI) $(SCALAPACK) $(HDF5)
 
 src/elsi_mpi_tools.o: src/elsi_mpi_tools.f90 src/elsi_dimensions.o
 	$(MPIFC) $(FFLAGS_I) -module src/ -o $@ -c $^ $(OMM) $(SCALAPACK)
 
 src/elsi_hdf5_tools.o: src/elsi_hdf5_tools.f90 src/elsi_dimensions.o
 	$(MPIFC) $(FFLAGS_I) -module src/ -o $@ -c $^ $(HDF5)
+
+src/elsi_matrix_conversion.o: src/elsi_matrix_conversion.f90
+	$(MPIFC) $(FFLAGS_I) -module src/ -o $@ -c $< $(HDF5)
 
 src/elsi_dimensions.o: src/elsi_dimensions.f90
 	$(MPIFC) $(FFLAGS_I) -module src/ -o $@ -c $<
