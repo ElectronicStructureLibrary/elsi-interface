@@ -1084,13 +1084,14 @@ end subroutine
 !>
 !!  This routine interfaces to the eigenvalue solvers
 !!
-subroutine elsi_solve_ev_problem(n_vectors)
+subroutine elsi_solve_ev_problem(number_of_electrons)
 
 
    implicit none
    include "mpif.h"
 
-   integer, intent(in) :: n_vectors !< Number of eigenvectors to be calculated
+   !< Number of electrons in the system
+   real*8, intent(in) :: number_of_electrons 
 
    logical :: success
    logical :: two_step_solver
@@ -1118,34 +1119,32 @@ subroutine elsi_solve_ev_problem(n_vectors)
          call elsi_stop("Hamiltonian not created/linked.",&
                        "elsi_solve_ev_problem")
       end if
-      if (myid == 0) then
-        print *,"H_real_sparse"
-        print *,H_real_sparse
-        print *,"S_real_sparse"
-        print *,S_real_sparse
-        print *,"sparse_index"
-        print *,sparse_index
-        print *,"sparse_pointer"
-        print *,sparse_pointer
-      end if
-      call MPI_BARRIER(mpi_comm_global,mpierr)
+      !if (myid == 0) then
+      !  print *,"H_real_sparse"
+      !  print *,H_real_sparse
+      !  print *,"S_real_sparse"
+      !  print *,S_real_sparse
+      !  print *,"sparse_index"
+      !  print *,sparse_index
+      !  print *,"sparse_pointer"
+      !  print *,sparse_pointer
+      !end if
+      !call MPI_BARRIER(mpi_comm_global,mpierr)
    end if
 
-   n_eigenvectors = n_vectors
-   n_electrons = 2d0 * n_vectors
-   two_step_solver = .True.
+   n_electrons = number_of_electrons
+   n_eigenvectors = ceiling(n_electrons/2d0)
+
+   call elsi_variable_status()
+
    select case (method)
       case (ELPA)
-         ! Debug
-         !call elsi_write_ev_problem("evp-general.h5")
-         ! Transform to Standard eigenvalue problem
+         two_step_solver = .True.
          if (.not. overlap_is_unity) then
             call elsi_to_standard_eigenvalue_problem ()
          end if
-         ! Debug
-         !call elsi_write_ev_problem("evp-standard.h5")
 
-         if (1d0 * n_vectors/n_g_rank > elpa_step_switch) then
+         if (1d0 * n_eigenvectors/n_g_rank > elpa_step_switch) then
            two_step_solver = .False.
          end if
 
@@ -1154,13 +1153,13 @@ subroutine elsi_solve_ev_problem(n_vectors)
            select case (mode)
              case (COMPLEX_VALUES)
                success = solve_evp_complex_2stage( &
-                     n_g_rank, n_vectors, H_complex, &
+                     n_g_rank, n_eigenvectors, H_complex, &
                      n_l_rows, eigenvalues, vectors_complex, &
                      n_l_rows, n_b_rows, &
                      mpi_comm_row, mpi_comm_col, mpi_comm_global)
              case (REAL_VALUES)
                success = solve_evp_real_2stage( &
-                     n_g_rank, n_vectors, H_real, &
+                     n_g_rank, n_eigenvectors, H_real, &
                      n_l_rows, eigenvalues, vectors_real, &
                      n_l_rows, n_b_rows,&
                      mpi_comm_row, mpi_comm_col, mpi_comm_global)
@@ -1169,13 +1168,13 @@ subroutine elsi_solve_ev_problem(n_vectors)
            select case (mode)
              case (COMPLEX_VALUES)
                success = solve_evp_complex( &
-                     n_g_rank, n_vectors, H_complex, &
+                     n_g_rank, n_eigenvectors, H_complex, &
                      n_l_rows, eigenvalues, vectors_complex, &
                      n_l_rows, n_b_rows, &
                      mpi_comm_row, mpi_comm_col)
              case (REAL_VALUES)
                success = solve_evp_real( &
-                     n_g_rank, n_vectors, H_real, &
+                     n_g_rank, n_eigenvectors, H_real, &
                      n_l_rows, eigenvalues, vectors_real, &
                      n_l_rows, n_b_rows,&
                      mpi_comm_row, mpi_comm_col)
@@ -1190,51 +1189,47 @@ subroutine elsi_solve_ev_problem(n_vectors)
 
       case (OMM_DENSE)
 
-        calc_ed = .False.
-        if (.not. overlap_is_unity) then
-            ! Perform cholesky decomposition
-            !omm_flavour = 1 
-            omm_flavour = 0 
-        else
-            ! Perform Basic solver
-            omm_flavour = 0
-        end if 
+        call elsi_set_omm_default_options()
 
         ! Prepare Coefficient matrix
         select case (mode)
             case (COMPLEX_VALUES)
-               call m_allocate (OMM_C_matrix, n_vectors, n_g_rank, "pzdbc")
+               call m_allocate (OMM_C_matrix, n_eigenvectors, n_g_rank, "pzdbc")
                C_matrix_initialized = .False.
             case (REAL_VALUES)
-               call m_allocate (OMM_C_matrix, n_vectors, n_g_rank, "pddbc")
+               call m_allocate (OMM_C_matrix, n_eigenvectors, n_g_rank, "pddbc")
                C_matrix_initialized = .False.
          end select
 
         ! Shift eigenvalue spectrum
         call m_add(OMM_S_matrix,'N',OMM_H_matrix,-eta,1d0,"lap")
 
-        call omm(n_g_rank, n_vectors, OMM_H_matrix, OMM_S_matrix, new_overlap, &
-              total_energy, OMM_D_matrix, calc_ED, eta, &
+        call omm(n_g_rank, n_eigenvectors, OMM_H_matrix, OMM_S_matrix, &
+              new_overlap, total_energy, OMM_D_matrix, calc_ED, eta, &
               OMM_C_matrix, C_matrix_initialized, OMM_T_matrix, &
               scale_kinetic, omm_flavour, nk_times_nspin, i_k_spin,&
               min_tol, omm_verbose, do_dealloc, "pddbc", "lap", myid+1)
 
       case (PEXSI)
 
-         allocate (D_real_sparse(n_l_nonzero))
-         allocate (ED_real_sparse(n_l_nonzero))
-         allocate (FD_real_sparse(n_l_nonzero))
+         if (.not. allocated(D_real_sparse))  &
+            allocate (D_real_sparse(n_l_nonzero))
+         if (.not. allocated(ED_real_sparse)) &
+            allocate (ED_real_sparse(n_l_nonzero))
+         if (.not. allocated(FD_real_sparse)) &
+            allocate (FD_real_sparse(n_l_nonzero))
 
-         call f_ppexsi_set_default_options(pexsi_options)
+         ! Set the default options
+         !TODO: User interface is missing
+         call elsi_set_pexsi_default_options()
 
+         ! Load sparse matrices for PEXSI
          if (overlap_is_unity) then
-           call elsi_print("Pexsi Matrix setup with S = unity")
            call f_ppexsi_load_real_symmetric_hs_matrix( pexsi_plan,&
                pexsi_options, n_g_rank, n_g_nonzero, n_l_nonzero, n_l_cols,&
                sparse_pointer, sparse_index, H_real_sparse, 1, S_real_sparse,&
                pexsi_info)
          else
-           call elsi_print("Pexsi Matrix setup with non-unity S")
            call f_ppexsi_load_real_symmetric_hs_matrix( pexsi_plan,&
                pexsi_options, n_g_rank, n_g_nonzero, n_l_nonzero, n_l_cols,&
                sparse_pointer, sparse_index, H_real_sparse, 0, S_real_sparse,&
@@ -1246,27 +1241,7 @@ subroutine elsi_solve_ev_problem(n_vectors)
                   "elsi_solve_ev_problem")
          end if
 
-         !pexsi_options%muMin0   = 0d0
-         !pexsi_options%muMax0   = 0.5d0 
-         !pexsi_options%mu0      = 1.0d0
-         !pexsi_options%deltaE   = 20d0 
-         !pexsi_options%numPole  = 60
-         !pexsi_options%temperature = 0.019d0   ! 3000 K
-         !pexsi_options%muPEXSISafeGuard = 0.2d0
-         !pexsi_options%numElectronPEXSITolerance = 1d-3
-
-
-         if (myid == 0) then
-            print *, "Argument Summary before DFT driver:"
-            print *, "n_electrons:", n_electrons
-            print *, "mu_Pexsi:", mu_Pexsi
-            print *, "n_electrons_pexsi:", n_electrons_pexsi
-            print *, "mu_min_inertia:", mu_min_inertia
-            print *, "mu_max_inertia:", mu_max_inertia
-            print *, "n_total_inertia:", n_total_inertia_iter
-            print *, "n_total_pexsi_iter:", n_total_pexsi_iter
-         end if
-
+         ! Solve the eigenvalue problem
          call f_ppexsi_dft_driver(pexsi_plan, pexsi_options, n_electrons,&
                mu_Pexsi, n_electrons_pexsi, mu_min_inertia, mu_max_inertia,&
                n_total_inertia_iter, n_total_pexsi_iter, pexsi_info)
@@ -1276,6 +1251,7 @@ subroutine elsi_solve_ev_problem(n_vectors)
                   "elsi_solve_ev_problem")
          end if
 
+         ! Get the results
          call f_ppexsi_retrieve_real_symmetric_dft_matrix( pexsi_plan,&
             D_real_sparse, ED_real_sparse, FD_real_sparse, e_tot_H, &
             e_tot_S, f_tot, pexsi_info)
@@ -1286,7 +1262,6 @@ subroutine elsi_solve_ev_problem(n_vectors)
          end if
 
          if( myid == 0 ) then
-           write(*,*) "Output from the main program."
            write(*,*) "Total energy (H*DM)         = ", e_tot_H
            write(*,*) "Total energy (S*EDM)        = ", e_tot_S
            write(*,*) "Total free energy           = ", f_tot
@@ -1331,21 +1306,21 @@ end subroutine
 !>
 !!  This routine gets the sum of eigenvalues a.k.a total energy
 !!
-subroutine elsi_get_total_energy(e_tot,n_occ)
+subroutine elsi_get_total_energy(e_tot)
 
 
    implicit none
 
-   integer, intent(in) :: n_occ !< Number of occupied orbitals
    real*8, intent(out) :: e_tot !< eigenvalues 
    
    select case (method)
       case (ELPA)
-         e_tot = 2d0 * SUM(eigenvalues(1:n_occ))      
+
+         e_tot = 2d0 * SUM(eigenvalues(1:n_eigenvectors))      
       case (OMM_DENSE)
          if (myid == 0) then
          end if
-         e_tot = 2d0 * (total_energy + n_occ * eta)
+         e_tot = 2d0 * total_energy + 2d0 * n_eigenvectors * eta
       case (PEXSI)
          e_tot = e_tot_h     
       case DEFAULT

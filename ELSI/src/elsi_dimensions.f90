@@ -91,11 +91,11 @@ module ELSI_DIMENSIONS
   
   !> OMM variables
   !< Is a new overlap used for OMM?
-  logical :: new_overlap = .False.
+  logical :: new_overlap
   !< Total energy value
   real*8  :: total_energy
   !< Do we provide an initial guess for the Wannier functions?
-  logical :: C_matrix_initialized = .False.
+  logical :: C_matrix_initialized
   !< How do we perform the calculation
   !! 0 = Basic
   !! 1 = Cholesky factorisation of S requested
@@ -103,21 +103,21 @@ module ELSI_DIMENSIONS
   !! 3 = Use preconditioning based on the energy density
   integer :: omm_flavour = -1
   !< scaling of the kinetic energy matrix, recommended round 5 Ha
-  real*8 :: scale_kinetic = 5d0
+  real*8 :: scale_kinetic
   !< Calculate the energy weigthed density matrix
   logical :: calc_ed = .False.
   !< Eigenspectrum shift parameter
-  real*8 :: eta = 0d0
+  real*8 :: eta
   !< Tolerance for minimization
-  real*8 :: min_tol = 1.0d-9
+  real*8 :: min_tol
   !< n_k_points * n_spin
-  integer :: nk_times_nspin = 1
+  integer :: nk_times_nspin = -1
   !< combined k_point spin index
-  integer :: i_k_spin = 1
+  integer :: i_k_spin = -1
   !< Shall omm talk to us?
-  logical :: omm_verbose = .True.
+  logical :: omm_verbose
   !< Shall omm deallocate all internal?
-  logical :: do_dealloc = .True.
+  logical :: do_dealloc
 
   !> PEXSI Variables
   !< Pexsi Plan
@@ -249,5 +249,188 @@ subroutine elsi_variable_status()
         
 end subroutine elsi_variable_status
 
+!>
+!! Set the Status of PEXSI variables to the ELSI standard 
+!!
+subroutine elsi_set_pexsi_default_options()
+
+      implicit none
+      include "mpif.h"
+
+      character(LEN=4096) :: string_message
+      integer :: i_task
+
+
+      ! Use the PEXSI Default options
+      call f_ppexsi_set_default_options(pexsi_options)
+
+      ! But let us do some modification to be more secure in convergence:
+
+      !Initial guess of lower bound for mu. 
+      pexsi_options%muMin0   = -0.5d0
+      !Initial guess of upper bound for mu.
+      pexsi_options%muMax0   = 0.5d0 
+      !Initial guess for mu (for the solver) (AG) 
+      pexsi_options%mu0      = 0.0d0
+      !An upper bound for the spectral radius of S−1H.
+      pexsi_options%deltaE   = 20d0 
+      !Number of terms in the pole expansion.
+      pexsi_options%numPole  = 150
+      !Temperature, in the same unit as H. 
+      pexsi_options%temperature = 0.02d0   
+      !Safe guard criterion in terms of the chemical potential to 
+      !reinvoke the inertia counting procedure. 
+      pexsi_options%muPEXSISafeGuard = 0.2d0
+      !Stopping criterion of the PEXSI iteration in terms of the number of
+      !electrons compared to numElectronExact. 
+      pexsi_options%numElectronPEXSITolerance = 1d-6
+      ! Output 
+      pexsi_options%verbosity = 1
+      ! Maximum number of Iterations
+      pexsi_options%maxPEXSIIter = 10
+
+      call elsi_print_pexsi_options()
+
+end subroutine elsi_set_pexsi_default_options
+
+!>
+!! Give Status of PEXSI variables 
+!!
+subroutine elsi_print_pexsi_options()
+
+      implicit none
+      include "mpif.h"
+
+      character(LEN=4096) :: string_message
+
+      if (myid == 0) then
+         write(string_message, "(1X,'Temperature (H) ',F10.4)") &
+              & pexsi_options%temperature
+         write(*,'(A)') trim(string_message)
+
+         write(string_message, "(1X,'Spectral Gap (H) ',F10.4)") &
+              & pexsi_options%gap
+         write(*,'(A)') trim(string_message)
+
+         write(string_message, "(1X,'Delta E (H) ',F10.4)") &
+              & pexsi_options%deltaE
+         write(*,'(A)') trim(string_message)
+
+         write(string_message, "(1X,'Number of Poles ',I5)") &
+              & pexsi_options%numPole
+         write(*,'(A)') trim(string_message)
+
+         write(string_message, "(1X,'Use inertial count ',I2)") &
+              & pexsi_options%isInertiaCount
+         write(*,'(A)') trim(string_message)
+         
+         write(string_message, "(1X,'Max Pexsi Iterations ',I5)") &
+              & pexsi_options%maxPEXSIIter
+         write(*,'(A)') trim(string_message)
+
+         write(string_message, "(1X,'Minimal Mu (H) ',F10.4)") &
+              & pexsi_options%muMin0
+         write(*,'(A)') trim(string_message)
+
+         write(string_message, "(1X,'Maximal Mu (H) ',F10.4)") &
+              & pexsi_options%muMax0
+         write(*,'(A)') trim(string_message)
+
+         write(string_message, "(1X,'Start Mu (H) ',F10.4)") &
+              & pexsi_options%mu0
+         write(*,'(A)') trim(string_message)
+
+         write(string_message, "(1X,'Tolerance Mu (H) ',F10.4)") &
+              & pexsi_options%muInertiaTolerance
+         write(*,'(A)') trim(string_message)
+
+         write(string_message, "(1X,'Expansion Mu (H) ',F10.4)") &
+              & pexsi_options%muInertiaExpansion
+         write(*,'(A)') trim(string_message)
+
+         write(string_message, "(1X,'Safe guard Mu (H) ',F10.4)") &
+              & pexsi_options%muPexsiSafeGuard
+         write(*,'(A)') trim(string_message)
+
+         write(string_message, "(1X,'Tolerance Electrons (H) ',F10.4)") &
+              & pexsi_options%numElectronPEXSITolerance
+         write(*,'(A)') trim(string_message)
+
+         write(string_message, "(1X,'Sparcity ',F7.3)") &
+              & (1d2 * n_g_nonzero / n_g_rank**2)
+         write(*,'(A)') trim(string_message)
+
+      end if
+        
+end subroutine elsi_print_pexsi_options
+
+
+!>
+!! Set the Status of PEXSI variables to the ELSI standard 
+!!
+subroutine elsi_set_omm_default_options()
+
+      implicit none
+      include "mpif.h"
+
+      character(LEN=4096) :: string_message
+      integer :: i_task
+
+      !< Is a new overlap used for OMM?
+      new_overlap = .True.
+      C_matrix_initialized = .False.
+      !< How do we perform the calculation
+      !! 0 = Basic
+      !! 1 = Cholesky factorisation of S requested
+      !! 2 = Cholesky already performed, U is provided in S
+      !! 3 = Use preconditioning based on the energy density
+      omm_flavour = 0
+      !< scaling of the kinetic energy matrix, recommended round 5 Ha
+      scale_kinetic = 5d0
+      !< Calculate the energy weigthed density matrix
+      calc_ed = .False.
+      !< Eigenspectrum shift parameter
+      eta = 0.0d0
+      !< Tolerance for minimization
+      min_tol = 1.0d-6
+      !< n_k_points * n_spin
+      nk_times_nspin = 1
+      !< combined k_point spin index
+      i_k_spin = 1
+      !< Shall omm talk to us?
+      omm_verbose = .True.
+      !< Shall omm deallocate all internal?
+      do_dealloc = .False.
+
+      call elsi_print_omm_options()
+
+end subroutine elsi_set_omm_default_options
+
+!>
+!! Give Status of PEXSI variables 
+!!
+subroutine elsi_print_omm_options()
+
+      implicit none
+      include "mpif.h"
+
+      character(LEN=4096) :: string_message
+
+      if (myid == 0) then
+         write(string_message, "(1X,'Eta (H) ',F10.4)") &
+              & eta
+         write(*,'(A)') trim(string_message)
+
+         write(string_message, "(1X,'Kinetic scaling (H) ',F10.4)") &
+              & scale_kinetic
+         write(*,'(A)') trim(string_message)
+
+         write(string_message, "(1X,'Tolerance (H) ',F10.4)") &
+              & min_tol
+         write(*,'(A)') trim(string_message)
+
+      end if
+        
+end subroutine elsi_print_omm_options
 
 end module ELSI_DIMENSIONS

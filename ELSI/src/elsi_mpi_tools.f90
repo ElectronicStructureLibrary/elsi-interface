@@ -178,8 +178,6 @@ subroutine elsi_initialize_blacs()
      if (pexsi_info /= 0) then
         call elsi_stop("Pexsi Plan initialization faild.",&
               "elsi_initialize_blacs")
-     else
-        call elsi_print("Pexsi Plan initialized")
      end if
 
 
@@ -226,7 +224,8 @@ subroutine elsi_initialize_blacs()
 
    end if
 
-  call elsi_variable_status()
+  ! For DEBUG
+  !call elsi_variable_status()
 
 end subroutine
 

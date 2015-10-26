@@ -653,7 +653,8 @@ subroutine hdf5_get_scalapack_pattern()
 
    end if
 
-   call elsi_hdf5_variable_status()
+   ! For Debug
+   !call elsi_hdf5_variable_status()
 
 end subroutine
 

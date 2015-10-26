@@ -39,7 +39,8 @@ program read_and_solve
   ! This is the ELSI test suite
   ! First we will test the writing and reading of a matrix to a file
 
-  integer :: n_eigenvectors = 10, blocksize = 16
+  integer :: blocksize = 16
+  real*8  :: n_electrons
 
   integer :: myid, i_eigenvector
   real*8  :: e_tot
@@ -51,7 +52,7 @@ program read_and_solve
 
    if (iargc() == 1) then
       call getarg(1, arg1)
-      read(arg1, *) n_eigenvectors
+      read(arg1, *) n_electrons
    endif
 
 
@@ -74,9 +75,9 @@ program read_and_solve
   call elsi_read_ev_problem("elsi_eigenvalue_problem.hdf5")
 
   ! Solve the eigenvalue problem
-  call elsi_solve_ev_problem(n_eigenvectors)
+  call elsi_solve_ev_problem(n_electrons)
   
-  call elsi_get_total_energy(e_tot, n_eigenvectors)
+  call elsi_get_total_energy(e_tot)
 
   call elsi_get_myid(myid)
   if (myid == 0) then 
