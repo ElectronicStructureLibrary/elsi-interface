@@ -15,6 +15,7 @@ parMetis:
 	-cp `find $(PEXSI_DIR)/external/parMetis/metis/include -name metis.h` $(PEXSI_DIR)/external/include/.
 	-cp `find $(PEXSI_DIR)/external/parMetis/build -name libparmetis.a` $(PEXSI_DIR)/external/lib/.
 	-cp `find $(PEXSI_DIR)/external/parMetis/build -name libmetis.a` $(PEXSI_DIR)/external/lib/.
+	cd $(PEXSI_DIR) && mkdir -p lib
 	-cp $(PEXSI_DIR)/external/lib/libparmetis.a $(PEXSI_DIR)/lib/.
 	-cp $(PEXSI_DIR)/external/lib/libmetis.a $(PEXSI_DIR)/lib/.
 	@echo parMetis installed.
