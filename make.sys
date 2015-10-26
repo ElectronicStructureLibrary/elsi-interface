@@ -44,6 +44,10 @@ SLAP = yes
 
 # ====== PEXSI ======
 
+CXXFLAGS_P = -O3 -w
+CFLAGS_P   = -O3 -w
+FFLAGS_P   = -O3 -w
+
 # ====== LINK ======
 
 THIS_DIR = $(shell pwd)
