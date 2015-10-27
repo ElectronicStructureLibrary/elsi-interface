@@ -119,10 +119,12 @@ subroutine elsi_print_timers()
          "ELPA"
       end if
       if (method == OMM_DENSE) then 
-      write(*,"('| Method:                        : OMM_DENSE            ')")
+      write(*,"('| Method:                        : ',A13)")&
+         "OMM_DENSE"
       end if
       if (method == PEXSI) then 
-      write(*,"('| Method                         : PEXSI                ')")
+      write(*,"('| Method:                        : ',A13)")&
+         "PEXSI"
       end if
       write(*,"('|-------------------------------------------------------')")
       write(*,"('| Parallel Distribution:                                ')")

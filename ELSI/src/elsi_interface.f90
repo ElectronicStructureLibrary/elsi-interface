@@ -206,11 +206,8 @@ subroutine elsi_set_method(i_method)
    method = i_method
    select case (method)
       case (ELPA)
-         if (myid == 0) write(*,'(a)') "ELPA is chosen!"
       case (OMM_DENSE)
-         if (myid == 0) write(*,'(a)') "OMM_DENSE is chosen!"
       case (PEXSI)
-         if (myid == 0) write(*,'(a)') "PEXSI is chosen!"
       case DEFAULT
          call elsi_stop("No method has been chosen."//&
                " Please choose method ELPA, OMM_DENSE, or PEXSI", "elsi_set_method")
