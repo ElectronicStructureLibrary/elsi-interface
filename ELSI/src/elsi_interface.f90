@@ -32,6 +32,7 @@ module ELSI
 
   use iso_c_binding
   use ELSI_DIMENSIONS
+  use ELSI_TIMERS
   use ELSI_MPI_TOOLS
   use ELSI_HDF5_TOOLS
   use ELSI_MATRIX_CONVERSION
@@ -198,6 +199,9 @@ subroutine elsi_set_method(i_method)
    implicit none
 
    integer, intent(in) :: i_method !<one of (ELPA,OMM,PEXSI)
+   
+   call elsi_initialize_timers()
+   call elsi_start_total_time()
 
    method = i_method
    select case (method)
@@ -974,6 +978,8 @@ subroutine elsi_read_ev_problem(file_name)
    ! For Pexsi we need to create a buffer 
    ! we convert it directly to the CCS format
 
+   call elsi_start_read_evp_time()
+
    if (method == PEXSI) then
       allocate(buffer(n_l_rows, n_l_cols)) 
    end if
@@ -1037,6 +1043,8 @@ subroutine elsi_read_ev_problem(file_name)
 
    if (allocated(buffer)) deallocate (buffer)
 
+   call elsi_stop_read_evp_time()
+
 end subroutine
 
 !>
@@ -1054,6 +1062,8 @@ subroutine elsi_initialize_problem_from_file(file_name, block_rows, block_cols)
 
    integer :: file_id  !< HDF5 File identifier 
    integer :: group_id !< HDF5 Group identifier
+
+   call elsi_start_read_evp_time()
 
    n_b_rows = block_rows
    n_b_cols = block_cols
@@ -1077,7 +1087,8 @@ subroutine elsi_initialize_problem_from_file(file_name, block_rows, block_cols)
    call hdf5_close_file (file_id)
 
    call hdf5_finalize()
-
+   
+   call elsi_stop_read_evp_time()
 
 end subroutine
 
@@ -1097,6 +1108,9 @@ subroutine elsi_solve_ev_problem(number_of_electrons)
    logical :: two_step_solver
    real*8  :: val
    integer :: i,j
+
+
+   call elsi_start_solve_evp_time()
 
    if (method == ELPA .or. method == OMM_DENSE) then
       if (mode == REAL_VALUES .and. .not. associated(H_real)) then
@@ -1135,7 +1149,8 @@ subroutine elsi_solve_ev_problem(number_of_electrons)
    n_electrons = number_of_electrons
    n_eigenvectors = ceiling(n_electrons/2d0)
 
-   call elsi_variable_status()
+   ! Debug
+   !call elsi_variable_status()
 
    select case (method)
       case (ELPA)
@@ -1273,6 +1288,8 @@ subroutine elsi_solve_ev_problem(number_of_electrons)
    end select
 
    call MPI_BARRIER(mpi_comm_global, mpierr)
+   
+   call elsi_stop_solve_evp_time()
 
 end subroutine
 
@@ -1391,6 +1408,10 @@ subroutine elsi_finalize()
    if (.not.external_blacs) call elsi_finalize_blacs()
 
    if (.not.external_mpi)   call elsi_finalize_mpi()
+
+   call elsi_stop_total_time()
+
+   call elsi_print_timers()
 
 end subroutine
 

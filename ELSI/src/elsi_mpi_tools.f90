@@ -214,6 +214,9 @@ subroutine elsi_initialize_blacs()
      n_l_rows = numroc(n_g_rank, n_b_rows, my_p_row, 0, n_p_rows)
      n_l_cols = numroc(n_g_rank, n_b_cols, my_p_col, 0, n_p_cols)
 
+     n_l_nonzero = n_l_rows * n_l_cols
+     n_g_nonzero = n_g_rank * n_g_rank
+
      call descinit( sc_desc, n_g_rank, n_g_rank, n_b_rows, n_b_cols, 0, 0, &
                    blacs_ctxt, MAX(1,n_l_rows), blacs_info )
 
@@ -267,12 +270,6 @@ subroutine elsi_set_blacs( blacs_ctxt_in, n_p_rows_in, n_p_cols_in, &
   n_l_cols = n_l_cols_in
   sc_desc = sc_desc_in
 
-  if(myid == 0) print *, 'Global matrixsize: ',n_g_rank, ' x ', n_g_rank
-  if(myid == 0) print *, 'Blocksize: ',n_b_rows, ' x ', n_b_cols
-  if(myid == 0) print *, 'Processor grid: ',n_p_rows, ' x ', n_p_cols
-  if(myid == 0) print *, 'Local Matrixsize: ',n_l_rows, ' x ', n_l_cols
-  call MPI_BARRIER(mpi_comm_global,mpierr)
-  
   if (method == OMM_DENSE) then
      call ms_scalapack_setup (n_procs, n_p_rows, "C", n_b_rows, exception,&
            blacs_ctxt)

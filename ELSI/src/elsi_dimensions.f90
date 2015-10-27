@@ -224,25 +224,45 @@ subroutine elsi_variable_status()
       character(LEN=4096) :: string_message
       integer :: i_task
 
-      do i_task = 0, n_procs
-         if (i_task == myid) then
+
+       if (myid == 0) then
             write(string_message, "(1X,'*** Proc',I5,&
             ' : Matrixsize global ',I5,' x ',I5)") &
               & myid, n_g_rank, n_g_rank
             write(*,'(A)') trim(string_message)
-            write(string_message, "(1X,'*** Proc',I5,&
-            ' : Matrixsize local ',I5,' x ',I5)") &
-              & myid, n_l_rows, n_l_cols
-            write(*,'(A)') trim(string_message)
-            write(string_message, "(1X,'*** Proc',I5,&
-            ' : Blocksize global ',I5,' x ',I5)") &
-              & myid, n_b_rows, n_b_cols
-            write(*,'(A)') trim(string_message)
+            
             write(string_message, "(1X,'*** Proc',I5,&
             ' : Processgrid global ',I5,' x ',I5)") &
               & myid, n_p_rows, n_p_cols
             write(*,'(A)') trim(string_message)
-         end if
+
+            write(string_message, "(1X,'*** Proc',I5,&
+            ' : Number of Electrons ',F10.2)") &
+              & myid, n_electrons
+            write(*,'(A)') trim(string_message)
+            
+            write(string_message, "(1X,'*** Proc',I5,&
+            ' : Number of States ',I10)") &
+              & myid, n_eigenvectors
+            write(*,'(A)') trim(string_message)
+
+      end if
+
+      call MPI_BARRIER(mpi_comm_global,mpierr)
+
+      do i_task = 0, n_procs
+         if (i_task == myid) then
+            write(string_message, "(1X,'*** Proc',I5,&
+            ' : Matrixsize local ',I5,' x ',I5)") &
+              & myid, n_l_rows, n_l_cols
+            write(*,'(A)') trim(string_message)
+            
+            write(string_message, "(1X,'*** Proc',I5,&
+            ' : Blocksize global ',I5,' x ',I5)") &
+              & myid, n_b_rows, n_b_cols
+            write(*,'(A)') trim(string_message)
+         
+          end if
 
          call MPI_BARRIER(mpi_comm_global,mpierr)
       end do
@@ -275,15 +295,15 @@ subroutine elsi_set_pexsi_default_options()
       !An upper bound for the spectral radius of S−1H.
       pexsi_options%deltaE   = 20d0 
       !Number of terms in the pole expansion.
-      pexsi_options%numPole  = 150
+      pexsi_options%numPole  = 80
       !Temperature, in the same unit as H. 
-      pexsi_options%temperature = 0.02d0   
+      pexsi_options%temperature = 0.003 ! 1000K   
       !Safe guard criterion in terms of the chemical potential to 
       !reinvoke the inertia counting procedure. 
       pexsi_options%muPEXSISafeGuard = 0.2d0
       !Stopping criterion of the PEXSI iteration in terms of the number of
       !electrons compared to numElectronExact. 
-      pexsi_options%numElectronPEXSITolerance = 1d-6
+      pexsi_options%numElectronPEXSITolerance = 1d-3
       ! Output 
       pexsi_options%verbosity = 1
       ! Maximum number of Iterations
@@ -340,7 +360,7 @@ subroutine elsi_print_pexsi_options()
               & pexsi_options%mu0
          write(*,'(A)') trim(string_message)
 
-         write(string_message, "(1X,'Tolerance Mu (H) ',F10.4)") &
+         write(string_message, "(1X,'Tolerance Mu (H) ',E10.1)") &
               & pexsi_options%muInertiaTolerance
          write(*,'(A)') trim(string_message)
 
@@ -352,7 +372,7 @@ subroutine elsi_print_pexsi_options()
               & pexsi_options%muPexsiSafeGuard
          write(*,'(A)') trim(string_message)
 
-         write(string_message, "(1X,'Tolerance Electrons (H) ',F10.4)") &
+         write(string_message, "(1X,'Tolerance Electrons (H) ',E10.1)") &
               & pexsi_options%numElectronPEXSITolerance
          write(*,'(A)') trim(string_message)
 
@@ -366,7 +386,7 @@ end subroutine elsi_print_pexsi_options
 
 
 !>
-!! Set the Status of PEXSI variables to the ELSI standard 
+!! Set the Status of OMM variables to the ELSI standard 
 !!
 subroutine elsi_set_omm_default_options()
 
@@ -384,7 +404,7 @@ subroutine elsi_set_omm_default_options()
       !! 1 = Cholesky factorisation of S requested
       !! 2 = Cholesky already performed, U is provided in S
       !! 3 = Use preconditioning based on the energy density
-      omm_flavour = 0
+      omm_flavour = 1
       !< scaling of the kinetic energy matrix, recommended round 5 Ha
       scale_kinetic = 5d0
       !< Calculate the energy weigthed density matrix
@@ -392,7 +412,7 @@ subroutine elsi_set_omm_default_options()
       !< Eigenspectrum shift parameter
       eta = 0.0d0
       !< Tolerance for minimization
-      min_tol = 1.0d-6
+      min_tol = 1.0d-9
       !< n_k_points * n_spin
       nk_times_nspin = 1
       !< combined k_point spin index
@@ -400,7 +420,7 @@ subroutine elsi_set_omm_default_options()
       !< Shall omm talk to us?
       omm_verbose = .True.
       !< Shall omm deallocate all internal?
-      do_dealloc = .False.
+      do_dealloc = .True.
 
       call elsi_print_omm_options()
 
@@ -425,7 +445,7 @@ subroutine elsi_print_omm_options()
               & scale_kinetic
          write(*,'(A)') trim(string_message)
 
-         write(string_message, "(1X,'Tolerance (H) ',F10.4)") &
+         write(string_message, "(1X,'Tolerance (H) ',E10.1)") &
               & min_tol
          write(*,'(A)') trim(string_message)
 
