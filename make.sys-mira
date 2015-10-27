@@ -1,32 +1,40 @@
 # ====== GLOBAL ======
 
-MPIFC  = mpiifort
-MPICC  = mpicc
-MPICXX = mpicxx
+MPIFC  = mpixlf95_r
+MPICC  = mpixlc_r
+MPICXX = mpixlcxx_r
+XLF = yes
 
 ARCH      = ar
 ARCHFLAGS = cr
 RANLIB    = ranlib
 
-BLAS      = -L${MKLROOT}/lib/intel64 -lmkl_blas95_lp64
-LAPACK    = -L${MKLROOT}/lib/intel64 -lmkl_lapack95_lp64
-SCALAPACK = -L${MKLROOT}/lib/intel64 -lmkl_scalapack_lp64 \
-            -lmkl_intel_lp64 -lmkl_sequential -lmkl_core \
-            -lmkl_blacs_intelmpi_lp64 -lpthread -lm
+BLAS      = -L/soft/libraries/alcf/current/xl/BLAS/lib -lblas\
+            -L/soft/libraries/essl/current/essl/5.1/lib64 -lesslsmpbg -Wl,--allow-multiple-definition\
+            -L${IBM_MAIN_DIR}/xlf/bg/14.1/bglib64 -lxlf90_r -lxlopt -lxlfmath -lxl -ldl\
+            -L${IBM_MAIN_DIR}/xlsmp/bg/3.1/bglib64 -lxlsmp\
+            -L${IBM_MAIN_DIR}/xlmass/bg/7.3/bglib64 -lmass
+LAPACK    = -L/soft/libraries/alcf/current/xl/LAPACK/lib -llapack
+SCALAPACK = -L/soft/libraries/alcf/current/xl/SCALAPACK/lib -lscalapack
 
 THIS_DIR = $(shell pwd)
 
 # ====== ELSI ======
 
-FFLAGS_I = -O3 -ip -lstdc++ 
-
+FFLAGS_I = -g -O3 -qstrict -qmaxmem=-1 -qsmp=noomp
+FFLAGS_I += -qxlf90=autodealloc -qfree=f90
+FFLAGS_I += -qarch=qp -qtune=qp
+FFLAGS_I += -qsimd=auto -qhot=level=1 -qprefetch -qunroll=yes
+FFLAGS_I += -qreport -qsource -qlistopt -qlist -qessl
+ 
+HDF5_HOME = /soft/libraries/hdf5/1.8.14/cnk-xl/current
 HDF5 = -L$(HDF5_HOME)/lib -I$(HDF5_HOME)/include \
        -lhdf5_fortran -lhdf5hl_fortran -lhdf5
 
 # ====== ELPA ======
 
 ELPA_DIR = $(THIS_DIR)/external/ELPA
-FFLAGS_E   = -O3 -fpe0 -fpp -I$(ELPA_DIR)
+FFLAGS_E   = ${FFLAGS_I} -I$(ELPA_DIR)
 CFLAGS_E   = -O3 -mavx -funsafe-loop-optimizations \
              -funsafe-math-optimizations -ftree-vect-loop-version \
              -ftree-vectorize
@@ -34,13 +42,13 @@ CXXFLAGS_E = -O3 -mavx -funsafe-loop-optimizations \
              -funsafe-math-optimizations -ftree-vect-loop-version \
              -ftree-vectorize
 
-ARCHITECTURE = Generic
+ARCHITECTURE = BlueGeneQ
 OPENMP = no
 
 # ====== libOMM ======
 
 libOMM_DIR = $(THIS_DIR)/external/libOMM
-FFLAGS_O = -O3
+FFLAGS_O = ${FFLAGS_I}
 
 MPI  = yes
 LAP  = yes
@@ -49,9 +57,9 @@ SLAP = yes
 # ====== PEXSI ======
 
 PEXSI_DIR = $(THIS_DIR)/external/PEXSI
-CXXFLAGS_P = -O3 -w
-CFLAGS_P   = -O3 -w
-FFLAGS_P   = -O3 -w
+CXXFLAGS_P = ${CXXFLAGS_E} -w
+CFLAGS_P   = ${CFLAGS_E} -w
+FFLAGS_P   = ${FFLAGS_I} -w
 
 # ====== LINK ======
 
