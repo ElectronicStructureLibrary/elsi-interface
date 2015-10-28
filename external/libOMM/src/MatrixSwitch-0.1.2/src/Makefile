@@ -17,7 +17,7 @@ clean :
 	rm -f *.mod
 
 .F90.o : 
-	$(MPIFC) $(FCFLAGS_O) $(FPPFLAGS) -DCONV -c $< -o $@
+	$(MPIFC) $(FCFLAGS_O) $(FPPFLAGS) $(XLFPP)-DCONV -c $< -o $@
 
 .f90.o : 
 	$(MPIFC) $(FCFLAGS_O) -c $< -o $@

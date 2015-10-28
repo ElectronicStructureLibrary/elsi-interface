@@ -4,12 +4,16 @@ OPTS      = $(FFLAGS_O)
 MSLIBPATH = $(libOMM_DIR)/src/MatrixSwitch-0.1.2/src/
 LIBNAME   = libOMM.a
 
+ifeq ($(strip $(XLF)),yes)
+  XLFPP = -WF,
+endif
+
 ifeq ($(strip $(MPI)),yes)
-  FPPFLAGS += -DMPI
+  FPPFLAGS += ${XLFPP}-DMPI
 endif
 ifeq ($(strip $(LAP)),yes)
-  FPPFLAGS += -DLAP
+  FPPFLAGS += ${XLFPP}-DLAP
 endif
 ifeq ($(strip $(SLAP)),yes)
-  FPPFLAGS += -DSLAP
+  FPPFLAGS += ${XLFPP}-DSLAP
 endif
