@@ -13,7 +13,7 @@ libomm:
 	cd $(libOMM_DIR)/examples && ${MAKE}
 	@echo libOMM installed.
 
-pexsi:
+pexsi: external
 	@echo Start building PEXSI...
 	cd $(PEXSI_DIR)/src && ${MAKE}
 	-cp $(PEXSI_DIR)/src/f_ppexsi_interface.mod $(PEXSI_DIR)/include
@@ -23,6 +23,7 @@ pexsi:
 elsi:
 	@echo Start building ELSI...
 	cd ELSI && ${MAKE}
+	cd ELSI && ${MAKE} install
 	@echo ELSI installed.
 
 external: pexsi_external

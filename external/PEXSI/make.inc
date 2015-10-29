@@ -31,15 +31,11 @@ DSUPERLU_INCLUDE = -I$(DSUPERLU_DIR)/include
 INCLUDES         = $(PEXSI_INCLUDE) $(DSUPERLU_INCLUDE)
 
 # Libraries
-#BLACS_LIB        = -Wl,-rpath,${MKLROOT}/lib/intel64 \
-#                   -L${MKLROOT}/lib/intel64 \
-#                   -lmkl_blacs_openmpi_lp64
-SCALAPACK_LIB    = -Wl,-rpath,${MKLROOT}/lib/intel64 $(SCALAPACK)
-#                   -L${MKLROOT}/lib/intel64 -lmkl_scalapack_lp64 \
-#                   -lmkl_intel_lp64 -lmkl_core -lmkl_sequential -lpthread
+SCALAPACK_LIB    = $(SCALAPACK) $(LAPACK) $(BLAS)
 METIS_LIB        = -L$(PARMETIS_DIR)/lib -lmetis
 PARMETIS_LIB     = -L$(PARMETIS_DIR)/lib -lparmetis
-#SCOTCH_LIB       = -L$(SCOTCH_DIR)/lib -lscotchmetis -lscotcherrexit -lscotcherr -lscotch
+#SCOTCH_LIB       = -L$(SCOTCH_DIR)/lib -lscotchmetis -lscotcherrexit \
+#                   -lscotcherr -lscotch
 DSUPERLU_LIB     = $(DSUPERLU_DIR)/lib/libsuperlu.a
 PEXSI_LIB        = $(PEXSI_DIR)/lib/libpexsi.a
 
@@ -73,7 +69,7 @@ LIBS  = ${PEXSI_LIB} ${DSUPERLU_LIB} ${PAR_ND_LIB} ${SEQ_ND_LIB} ${SCALAPACK_LIB
 
 COMPILE_DEF  += -DAdd_
 LOADER = $(MPICXX)
-CPPFLAG = -std=c++11
+CPPFLAG = -std=c++0x
 FLOADOPTS    = ${LIBS} -lstdc++
 
 CFLAGS       = ${CFLAGS_P} ${PROFILE_FLAG} ${INCLUDES}

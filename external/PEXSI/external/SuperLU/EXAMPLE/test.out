@@ -1,0 +1,60 @@
+Warning: no access to tty (Bad file descriptor).
+Thus no job control in this shell.
+/global/homes/x/xiaoye/Release_Codes/SuperLU_DIST-branch/EXAMPLE
+	Process grid	2 X 4
+.. equilibrated? *equed = N
+.. LDPERM job 5	 time: 0.00
+.. anorm 2.000000e+00
+.. Use METIS ordering on A'+A
+.. symbfact(): relax   12, maxsuper   60, fill    5
+	Nonzeros in L       30206
+	Nonzeros in U       30206
+	nonzeros in L+U     55452
+	nonzeros in LSUB    15086
+	No of supers 1477
+	Size of G(L) 8089
+	Size of G(U) 3129
+	int 8, short 2, float 4, double 8
+	SYMBfact (MB):	L\U 0.34	total 0.70	expansions 0
+.. # L blocks 664	# U blocks 297
+ === using DAG ===
+ * init: 1.312017e-03 seconds
+.. thresh = s_eps 5.960464e-08 * anorm 2.000000e+00 = 1.192093e-07
+.. Buffer size: Lsub 26	Lval 192	Usub 16	Uval 36	LDA 16
+	NUMfact space (MB) sum(procs):  L\U	0.76	all	1.13
+	Total highmark (MB):  All	14.06	Avg	1.76	Max	1.80
+( 0) .. Step  0: berr[j] = 6.767251e-11
+( 0) .. Step  1: berr[j] = 2.175533e-16
+( 0) .. Step  2: berr[j] = 2.005874e-16
+.. DiagScale = 3
+	Sol  0: ||X-Xtrue||/||X|| = 1.110223e-14
+	EQUIL time             0.00
+	ROWPERM time           0.00
+	COLPERM time           0.03
+	SYMBFACT time          0.00
+	DISTRIBUTE time        0.00
+	FACTOR time            0.01
+	Factor flops	4.270600e+05	Mflops 	   56.36
+	SOLVE time             0.00
+	Solve flops	1.140330e+05	Mflops 	   57.92
+	REFINEMENT time        0.00	Steps       2
+
+Application 7005957 resources: utime ~1s, stime ~0s
+
+ + --------------------------------------------------------------------------
+ +        Job name: test.bat
+ +          Job Id: 1538917.sdb
+ +          System: hopper
+ +     Queued Time: Fri Apr 20 10:28:13 2012
+ +      Start Time: Fri Apr 20 10:29:00 2012
+ + Completion Time: Fri Apr 20 10:29:03 2012
+ +            User: xiaoye
+ +        MOM Host: nid04219
+ +           Queue: debug
+ +  Req. Resources: other=QSUBPID:400:hopper04,walltime=00:05:00
+ +  Used Resources: cput=00:00:00,mem=0kb,vmem=0kb,walltime=00:00:03
+ +     Acct String: mp127
+ +   PBS_O_WORKDIR: /global/homes/x/xiaoye/Release_Codes/SuperLU_DIST-branch/EXAMPLE
+ +     Submit Args: test.bat
+ + --------------------------------------------------------------------------
+

@@ -8,12 +8,12 @@ ARCH      = ar
 ARCHFLAGS = cr
 RANLIB    = ranlib
 
-BLAS      = -L${MKLROOT}/lib/intel64 -lmkl_blas95_lp64
+BLAS      = -L${MKLROOT}/lib/intel64 -lmkl_blas95_lp64 \
+            -lmkl_intel_lp64 -lmkl_sequential -lmkl_core \
+            -lpthread -lm
 LAPACK    = -L${MKLROOT}/lib/intel64 -lmkl_lapack95_lp64
 SCALAPACK = -L${MKLROOT}/lib/intel64 -lmkl_scalapack_lp64 \
-            -lmkl_intel_lp64 -lmkl_sequential -lmkl_core \
-            -lmkl_blacs_intelmpi_lp64 -lpthread -lm
-
+            -lmkl_blacs_intelmpi_lp64
 THIS_DIR = $(shell pwd)
 
 # ====== ELSI ======

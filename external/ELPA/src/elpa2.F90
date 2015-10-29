@@ -5564,19 +5564,18 @@ contains
             w(:,1) = bcast_buffer(1:nbw,j+off)
             w(:,2) = bcast_buffer(1:nbw,j+off-1)
 #ifdef WITH_OPENMP
-            call double_hh_trafo_complex_sse_avx_2hv(a(1,j+off+a_off-1,istripe,my_thread), &
+            call double_hh_trafo_complex_sse_avx_2hv(a(1,j+off+a_off-1,istripe,my_thread),&
                                                        w, nbw, nl, stripe_width, nbw)
 #else
-            call double_hh_trafo_complex_sse_avx_2hv(a(1,j+off+a_off-1,istripe),
-&
+            call double_hh_trafo_complex_sse_avx_2hv(a(1,j+off+a_off-1,istripe),&
                                                        w, nbw, nl, stripe_width, nbw)
 #endif
           enddo
 #ifdef WITH_OPENMP
-          if (j==1) call single_hh_trafo_complex_sse_avx_1hv(a(1,1+off+a_off,istripe,my_thread), &
+          if (j==1) call single_hh_trafo_complex_sse_avx_1hv(a(1,1+off+a_off,istripe,my_thread),&
                                                              bcast_buffer(1,off+1), nbw, nl, stripe_width)
 #else
-          if (j==1) call single_hh_trafo_complex_sse_avx_1hv(a(1,1+off+a_off,istripe), &
+          if (j==1) call single_hh_trafo_complex_sse_avx_1hv(a(1,1+off+a_off,istripe),&
                                                              bcast_buffer(1,off+1), nbw, nl, stripe_width)
 #endif
 #if defined(WITH_NO_SPECIFIC_COMPLEX_KERNEL)
