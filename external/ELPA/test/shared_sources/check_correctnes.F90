@@ -55,7 +55,6 @@ module mod_check_correctness
 
     function check_correctness_complex(na, nev, as, z, ev, sc_desc, myid, tmp1, tmp2) result(status)
 
-!      use mpi
       implicit none
       include 'mpif.h'
       integer                   :: status
@@ -131,7 +130,6 @@ module mod_check_correctness
 
     function check_correctness_real(na, nev, as, z, ev, sc_desc, myid, tmp1, tmp2) result(status)
 
-!      use mpi
       implicit none
       include 'mpif.h'
       integer                   :: status
