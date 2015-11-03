@@ -63,9 +63,9 @@ fi
 mpirun -n 4 ../../bin/read_and_write_pexsi > /dev/null
 fail=`h5diff elsi_eigenvalue_problem_out.hdf5 data/elsi_eigenvalue_problem_out.hdf5`
 if [ "x$fail" != "x" ]; then
-   echo "read_and_write_omm failed"
+   echo "read_and_write_pexsi failed"
 else
-   echo "read_and_write_omm successfull"
+   echo "read_and_write_pexsi successfull"
    rm elsi_eigenvalue_problem_out.hdf5
 fi
 
@@ -73,37 +73,46 @@ cd ..
 
 # Read and Solve
 cd read_and_solve
-mpirun -n 4 ../../bin/read_and_solve_elpa 10 > buffer.dat
+mpirun -n 4 ../../bin/read_and_solve_elpa 360 > buffer.dat
 grep "total energy" buffer.dat > e_tot.dat
 rm buffer.dat
-fail=`diff e_tot.dat data/e_tot_elpa.dat`
-if [ "x$fail" != "x" ]; then
-   echo "read_and_solve_elpa failed"
-else
+etot=`cat e_tot.dat | awk '{print $4}' | sed 's/[eE]+/\*10\^/'`
+etot_ref=`cat data/e_tot-elpa.dat | awk '{print $4}' | sed 's/[eE]+/\*10\^/'`
+diff=`echo "sqrt(($etot - $etot_ref)^2)" | bc -l` 
+small=`echo "$diff < 1*10^-6" | bc -l`
+if [ $small == "1" ]; then
    echo "read_and_solve_elpa successfull"
    rm e_tot.dat
+else
+   echo "read_and_solve_elpa failed, difference $diff"
 fi
 
-mpirun -n 4 ../../bin/read_and_solve_omm 10 > buffer.dat
+mpirun -n 4 ../../bin/read_and_solve_omm 360 > buffer.dat
 grep "total energy" buffer.dat > e_tot.dat
 rm buffer.dat
-fail=`diff e_tot.dat data/e_tot_omm.dat`
-if [ "x$fail" != "x" ]; then
-   echo "read_and_solve_omm failed"
-else
+etot=`cat e_tot.dat | awk '{print $4}' | sed 's/[eE]+/\*10\^/'`
+etot_ref=`cat data/e_tot-omm.dat | awk '{print $4}' | sed 's/[eE]+/\*10\^/'`
+diff=`echo "sqrt(($etot - $etot_ref)^2)" | bc -l` 
+small=`echo "$diff < 1*10^-6" | bc -l`
+if [ $small == "1" ]; then
    echo "read_and_solve_omm successfull"
    rm e_tot.dat
+else
+   echo "read_and_solve_omm failed, difference $diff, $etot, $etot_ref"
 fi
 
-mpirun -n 4 ../../bin/read_and_solve_pexsi 10 > buffer.dat
+mpirun -n 4 ../../bin/read_and_solve_pexsi 360 > buffer.dat
 grep "total energy" buffer.dat > e_tot.dat
 rm buffer.dat
-fail=`diff e_tot.dat data/e_tot_pexsi.dat`
-if [ "x$fail" != "x" ]; then
-   echo "read_and_solve_omm failed"
-else
-   echo "read_and_solve_omm successfull"
+etot=`cat e_tot.dat | awk '{print $4}' | sed 's/[eE]+/\*10\^/'`
+etot_ref=`cat data/e_tot-pexsi.dat | awk '{print $4}' | sed 's/[eE]+/\*10\^/'`
+diff=`echo "sqrt(($etot - $etot_ref)^2)" | bc -l` 
+small=`echo "$diff < 1*10^-6" | bc -l`
+if [ $small == "1" ]; then
+   echo "read_and_solve_pexsi successfull"
    rm e_tot.dat
+else
+   echo "read_and_solve_pexsi failed, difference $diff, $etot, $etot_ref"
 fi
 
 cd ..
