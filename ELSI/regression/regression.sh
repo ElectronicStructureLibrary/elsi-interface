@@ -50,6 +50,7 @@ else
    echo "read_and_write_elpa successfull"
    rm elsi_eigenvalue_problem_out.hdf5
 fi
+
 mpirun -n 4 ../../bin/read_and_write_omm > /dev/null
 fail=`h5diff elsi_eigenvalue_problem_out.hdf5 data/elsi_eigenvalue_problem_out.hdf5`
 if [ "x$fail" != "x" ]; then
@@ -58,28 +59,51 @@ else
    echo "read_and_write_omm successfull"
    rm elsi_eigenvalue_problem_out.hdf5
 fi
+
+mpirun -n 4 ../../bin/read_and_write_pexsi > /dev/null
+fail=`h5diff elsi_eigenvalue_problem_out.hdf5 data/elsi_eigenvalue_problem_out.hdf5`
+if [ "x$fail" != "x" ]; then
+   echo "read_and_write_omm failed"
+else
+   echo "read_and_write_omm successfull"
+   rm elsi_eigenvalue_problem_out.hdf5
+fi
+
 cd ..
 
 # Read and Solve
 cd read_and_solve
-mpirun -n 4 ../../bin/read_and_solve_elpa 20 > buffer.dat
+mpirun -n 4 ../../bin/read_and_solve_elpa 10 > buffer.dat
 grep "total energy" buffer.dat > e_tot.dat
 rm buffer.dat
-fail=`diff e_tot.dat data/e_tot.dat`
+fail=`diff e_tot.dat data/e_tot_elpa.dat`
 if [ "x$fail" != "x" ]; then
    echo "read_and_solve_elpa failed"
 else
    echo "read_and_solve_elpa successfull"
    rm e_tot.dat
 fi
-mpirun -n 4 ../../bin/read_and_solve_omm 20 > buffer.dat
+
+mpirun -n 4 ../../bin/read_and_solve_omm 10 > buffer.dat
 grep "total energy" buffer.dat > e_tot.dat
 rm buffer.dat
-fail=`diff e_tot.dat data/e_tot.dat`
+fail=`diff e_tot.dat data/e_tot_omm.dat`
 if [ "x$fail" != "x" ]; then
    echo "read_and_solve_omm failed"
 else
    echo "read_and_solve_omm successfull"
    rm e_tot.dat
 fi
+
+mpirun -n 4 ../../bin/read_and_solve_pexsi 10 > buffer.dat
+grep "total energy" buffer.dat > e_tot.dat
+rm buffer.dat
+fail=`diff e_tot.dat data/e_tot_pexsi.dat`
+if [ "x$fail" != "x" ]; then
+   echo "read_and_solve_omm failed"
+else
+   echo "read_and_solve_omm successfull"
+   rm e_tot.dat
+fi
+
 cd ..
