@@ -673,39 +673,39 @@ subroutine elsi_hdf5_variable_status()
       do i_task = 0, n_procs
          if (i_task == myid) then
             write(string_message, "(1X,'*** Proc',I5,&
-            ' : Matrixsize global ',I5,' x ',I5)") &
+              &' : Matrixsize global ',I5,' x ',I5)") &
               & myid, global_dim(1), global_dim(2)
             write(*,'(A)') trim(string_message)
             write(string_message, "(1X,'*** Proc',I5,&
-            ' : Matrixsize local ',I5,' x ',I5)") &
+              &' : Matrixsize local ',I5,' x ',I5)") &
               & myid, local_dim(1), local_dim(1)
             write(*,'(A)') trim(string_message)
             write(string_message, "(1X,'*** Proc',I5,&
-            ' : Blocksize global ',I5,' x ',I5)") &
+              &' : Blocksize global ',I5,' x ',I5)") &
               & myid, block(1), block(2)
             write(*,'(A)') trim(string_message)
             write(string_message, "(1X,'*** Proc',I5,&
-            ' : Processgrid global ',I5,' x ',I5)") &
+              &' : Processgrid global ',I5,' x ',I5)") &
               & myid, process_grid(1), process_grid(2)
             write(*,'(A)') trim(string_message)
             write(string_message, "(1X,'*** Proc',I5,&
-            ' : Process ',I5,' x ',I5)") &
+              &' : Process ',I5,' x ',I5)") &
               & myid, process_position(1), process_position(2)
             write(*,'(A)') trim(string_message)
             write(string_message, "(1X,'*** Proc',I5,&
-            ' : Count ',I5,' x ',I5)") &
+              &' : Count ',I5,' x ',I5)") &
               & myid, count(1), count(2)
             write(*,'(A)') trim(string_message)
             write(string_message, "(1X,'*** Proc',I5,&
-            ' : Offset ',I5,' x ',I5)") &
+              &' : Offset ',I5,' x ',I5)") &
               & myid, offset(1), offset(2)
             write(*,'(A)') trim(string_message)
             write(string_message, "(1X,'*** Proc',I5,&
-            ' : Stride ',I5,' x ',I5)") &
+              &' : Stride ',I5,' x ',I5)") &
               & myid, stride(1), stride(2)
             write(*,'(A)') trim(string_message)
             write(string_message, "(1X,'*** Proc',I5,&
-            ' : Incomplete? ',L)") &
+              &' : Incomplete? ',L2)") &
               & myid, incomplete
             write(*,'(A)') trim(string_message)
          end if

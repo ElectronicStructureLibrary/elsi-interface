@@ -202,6 +202,7 @@ subroutine elsi_set_method(i_method)
    
    call elsi_initialize_timers()
    call elsi_start_total_time()
+   call hdf5_initialize ()
 
    method = i_method
    select case (method)
@@ -893,13 +894,13 @@ subroutine elsi_write_ev_problem(file_name)
    integer :: group_id  !< HDF5 Group identifier
    real*8, allocatable :: buffer(:,:) !< Read buffer for PEXSI
 
+   call elsi_start_write_evp_time()
 
    if (method == PEXSI) then
       allocate(buffer(n_l_rows, n_l_cols)) 
    end if
 
 
-   call hdf5_initialize ()
 
    call hdf5_create_file (file_name, mpi_comm_global, mpi_info_null, file_id)
 
@@ -953,7 +954,7 @@ subroutine elsi_write_ev_problem(file_name)
 
    call hdf5_close_file (file_id)
 
-   call hdf5_finalize()
+   call elsi_stop_write_evp_time()
 
 end subroutine
 
@@ -980,8 +981,6 @@ subroutine elsi_read_ev_problem(file_name)
    if (method == PEXSI) then
       allocate(buffer(n_l_rows, n_l_cols)) 
    end if
-
-   call hdf5_initialize ()
 
    call hdf5_open_file (file_name, mpi_comm_global, mpi_info_null, file_id)
 
@@ -1036,8 +1035,6 @@ subroutine elsi_read_ev_problem(file_name)
 
    call hdf5_close_file (file_id)
 
-   call hdf5_finalize()
-
    if (allocated(buffer)) deallocate (buffer)
 
    call elsi_stop_read_evp_time()
@@ -1068,8 +1065,6 @@ subroutine elsi_initialize_problem_from_file(file_name, block_rows, block_cols)
    if (.not. mpi_is_setup) call elsi_stop("MPI needs to be setup first!", &
          "elsi_initialize_problem_from_file")
 
-   call hdf5_initialize ()
-
    call hdf5_open_file (file_name, mpi_comm_global, mpi_info_null, file_id)
 
    ! The Hamiltonian
@@ -1083,7 +1078,6 @@ subroutine elsi_initialize_problem_from_file(file_name, block_rows, block_cols)
 
    call hdf5_close_file (file_id)
 
-   call hdf5_finalize()
    
    call elsi_stop_read_evp_time()
 
@@ -1401,6 +1395,8 @@ subroutine elsi_finalize()
    call elsi_deallocate_matrices()
 
    if (mode == PEXSI) call f_ppexsi_plan_finalize(pexsi_plan, pexsi_info)
+   
+   call hdf5_finalize()
 
    if (.not.external_blacs) call elsi_finalize_blacs()
 

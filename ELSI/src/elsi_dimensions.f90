@@ -227,22 +227,22 @@ subroutine elsi_variable_status()
 
        if (myid == 0) then
             write(string_message, "(1X,'*** Proc',I5,&
-            ' : Matrixsize global ',I5,' x ',I5)") &
+              &' : Matrixsize global ',I5,' x ',I5)")&
               & myid, n_g_rank, n_g_rank
             write(*,'(A)') trim(string_message)
             
             write(string_message, "(1X,'*** Proc',I5,&
-            ' : Processgrid global ',I5,' x ',I5)") &
+              &' : Processgrid global ',I5,' x ',I5)")&
               & myid, n_p_rows, n_p_cols
             write(*,'(A)') trim(string_message)
 
             write(string_message, "(1X,'*** Proc',I5,&
-            ' : Number of Electrons ',F10.2)") &
+              &' : Number of Electrons ',F10.2)")&
               & myid, n_electrons
             write(*,'(A)') trim(string_message)
             
             write(string_message, "(1X,'*** Proc',I5,&
-            ' : Number of States ',I10)") &
+              &' : Number of States ',I10)") &
               & myid, n_eigenvectors
             write(*,'(A)') trim(string_message)
 
@@ -253,12 +253,12 @@ subroutine elsi_variable_status()
       do i_task = 0, n_procs
          if (i_task == myid) then
             write(string_message, "(1X,'*** Proc',I5,&
-            ' : Matrixsize local ',I5,' x ',I5)") &
+              &' : Matrixsize local ',I5,' x ',I5)") &
               & myid, n_l_rows, n_l_cols
             write(*,'(A)') trim(string_message)
             
             write(string_message, "(1X,'*** Proc',I5,&
-            ' : Blocksize global ',I5,' x ',I5)") &
+              &' : Blocksize global ',I5,' x ',I5)") &
               & myid, n_b_rows, n_b_cols
             write(*,'(A)') trim(string_message)
          

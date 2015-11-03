@@ -37,14 +37,22 @@ module ELSI_TIMERS
   private
 
   !> Timers for the file reading of the eigenvalue problem
+  logical:: total_time = .false.
   real*8 :: walltime_total  
   real*8 :: walltime_total_start  
 
   !> Timers for the file reading of the eigenvalue problem
+  logical:: read_time = .false.
   real*8 :: walltime_read_evp  
   real*8 :: walltime_read_evp_start  
+  
+  !> Timers for the file writing of the eigenvalue problem
+  logical:: write_time = .false.
+  real*8 :: walltime_write_evp  
+  real*8 :: walltime_write_evp_start  
 
   !> Timers for solving the eigenvalue problem
+  logical:: solve_time = .false.
   real*8 :: walltime_solve_evp  
   real*8 :: walltime_solve_evp_start  
   
@@ -59,6 +67,8 @@ module ELSI_TIMERS
   public :: elsi_stop_total_time
   public :: elsi_start_read_evp_time
   public :: elsi_stop_read_evp_time
+  public :: elsi_start_write_evp_time
+  public :: elsi_stop_write_evp_time
   public :: elsi_start_solve_evp_time
   public :: elsi_stop_solve_evp_time
 
@@ -82,6 +92,10 @@ subroutine elsi_initialize_timers()
    !> Timers for the file reading of the eigenvalue problem
    walltime_read_evp        = 0d0 
    walltime_read_evp_start  = 0d0
+   
+   !> Timers for the file writing of the eigenvalue problem
+   walltime_write_evp        = 0d0 
+   walltime_write_evp_start  = 0d0
 
    !> Timers for solving the eigenvalue problem
    walltime_solve_evp        = 0d0
@@ -138,13 +152,23 @@ subroutine elsi_print_timers()
       write(*,"('|-------------------------------------------------------')")
       write(*,"('| Timings:                                              ')")
       write(*,"('|-------------------------------------------------------')")
+      if (read_time) then  
       write(*,"('| Reading the Eigenvalue problem :',F13.3,' s')")&
          walltime_read_evp  
+      end if  
+      if (write_time) then  
+      write(*,"('| Writing the Eigenvalue problem :',F13.3,' s')")&
+         walltime_write_evp
+      end if  
+      if (solve_time) then  
       write(*,"('| Solving the Eigenvalue problem :',F13.3,' s')")&
-         walltime_solve_evp  
+         walltime_solve_evp
+      end if
+      if (total_time) then  
       write(*,"('|-------------------------------------------------------')")
       write(*,"('| Total Time                     :',F13.3,' s')")&
          walltime_total  
+      end if
       write(*,"('|-------------------------------------------------------')")
    end if
 
@@ -174,7 +198,8 @@ end subroutine
 subroutine elsi_start_total_time()
 
    implicit none
-   
+  
+   total_time = .true. 
    call elsi_get_time(walltime_total_start)
 
 end subroutine
@@ -201,6 +226,7 @@ subroutine elsi_start_read_evp_time()
 
    implicit none
    
+   read_time = .true. 
    call elsi_get_time(walltime_read_evp_start)
 
 end subroutine
@@ -223,10 +249,39 @@ end subroutine
 !>
 !!  This routine starts the read evp timer
 !!
+subroutine elsi_start_write_evp_time()
+
+   implicit none
+   
+   write_time = .true. 
+   call elsi_get_time(walltime_write_evp_start)
+
+end subroutine
+
+!>
+!!  This routine stops the read evp timer
+!!
+subroutine elsi_stop_write_evp_time()
+
+   implicit none
+
+   real*8 :: stop_time
+   
+   call elsi_get_time(stop_time)
+   walltime_write_evp = walltime_write_evp &
+     + stop_time - walltime_write_evp_start
+
+end subroutine
+
+
+!>
+!!  This routine starts the read evp timer
+!!
 subroutine elsi_start_solve_evp_time()
 
    implicit none
    
+   solve_time = .true. 
    call elsi_get_time(walltime_solve_evp_start)
 
 end subroutine

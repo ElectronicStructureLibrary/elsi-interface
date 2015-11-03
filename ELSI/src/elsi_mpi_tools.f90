@@ -100,7 +100,7 @@ subroutine elsi_set_mpi(global_comm, n_procs_in, myid_in)
 
    integer,intent(in) :: myid_in            !< local process id
    integer,intent(in) :: n_procs_in         !< number of mpi processes
-   integer,intent(in) :: global_comm !< global mpi communicator
+   integer,intent(in) :: global_comm        !< global mpi communicator
 
 
    ! MPI Initialization
