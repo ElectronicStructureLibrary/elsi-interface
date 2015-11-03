@@ -9,16 +9,15 @@ ARCH      = ar
 ARCHFLAGS = cr
 RANLIB    = ranlib
 
-BLAS        = -L/soft/libraries/alcf/current/xl/BLAS/lib -lblas\
-              -L/soft/libraries/essl/current/essl/5.1/lib64 -lesslsmpbg \
+BLAS        = -L/soft/libraries/essl/current/essl/5.1/lib64 -lesslsmpbg \
               -Wl,--allow-multiple-definition\
               -L${IBM_MAIN_DIR}/xlf/bg/14.1/bglib64 -lxlf90_r -lxlopt \
               -lxlfmath -lxl -ldl\
               -L${IBM_MAIN_DIR}/xlsmp/bg/3.1/bglib64 -lxlsmp\
               -L${IBM_MAIN_DIR}/xlmass/bg/7.3/bglib64 -lmass
-LAPACK      = -L/soft/libraries/alcf/current/xl/LAPACK/lib -llapack
+LAPACK      = -L/soft/libraries/alcf/current/xl/LAPACK/lib -llapack 
 SCALAPACK   = -L/soft/libraries/alcf/current/xl/SCALAPACK/lib -lscalapack
-BLAS_C      = -L/soft/libraries/alcf/current/gcc/BLAS/lib -lblas
+BLAS_C      = $(BLAS)
 LAPACK_C    = -L/soft/libraries/alcf/current/gcc/LAPACK/lib -llapack
 SCALAPACK_C = -L/soft/libraries/alcf/current/gcc/SCALAPACK/lib -lscalapack
 
