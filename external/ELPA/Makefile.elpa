@@ -102,7 +102,7 @@ endif
 SHARED_SOURCES_O = util.o blacs_infrastructure.o check_correctnes.o prepare_matrix.o read_input_parameters.o setup_mpi.o
 ELPA_QR_O = elpa_pdgeqrf.o elpa_pdlarfb.o elpa_qrkernels.o qr_utils.o
 #
-all: test_real test_complex test_real2 test_complex2
+all: test_real test_complex test_real2 test_complex2 elpa_c_interface.o
 
 test_real: test_real.o elpa1.o elpa_utilities.o $(SHARED_SOURCES_O) $(FTIMINGS_O)
 	$(MPIFC) $(FFLAGS_E) -o $@ $^ $(SCALAPACK) $(LAPACK) $(BLAS)
@@ -247,6 +247,9 @@ qr_utils.o: ./src/elpa_qr/qr_utils.f90
 
 elpa_qrkernels.o: ./src/elpa_qr/elpa_qrkernels.f90
 	$(MPIFC) $(FFLAGS_E) -c $<
+
+elpa_c_interface.o: ./src/elpa_c_interface.F90 elpa2.o elpa1.o
+	$(MPIFC) $(FFLAGS_E) $(PREPROCESSOR) -c $<
 
 clean:
 	rm -f *.o *.mod test_real test_complex test_real2 test_complex2

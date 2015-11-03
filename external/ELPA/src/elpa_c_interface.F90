@@ -46,7 +46,9 @@
 ! with their original authors, but shall adhere to the licensing terms
 ! distributed along with the original code in the file "COPYING".
 
+#ifndef INSTALLER
 #include "config-f90.h"
+#endif
 
   !c> int elpa_get_communicators(int mpi_comm_world, int my_prow, int my_pcol, int *mpi_comm_rows, int *mpi_comm_cols);
   function get_elpa_row_col_comms_wrapper(mpi_comm_world, my_prow, my_pcol, &
