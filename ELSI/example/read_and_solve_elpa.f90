@@ -81,7 +81,7 @@ program read_and_solve
 
   call elsi_get_myid(myid)
   if (myid == 0) then 
-     write (*,'(A,E19.12)'), "total energy : ", e_tot
+     write (*,'(A,E19.12)') "total energy : ", e_tot
   end if
 
   ! elsi shutdown

@@ -17,9 +17,6 @@ BLAS        = -L/soft/libraries/essl/current/essl/5.1/lib64 -lesslsmpbg \
               -L${IBM_MAIN_DIR}/xlmass/bg/7.3/bglib64 -lmass
 LAPACK      = -L/soft/libraries/alcf/current/xl/LAPACK/lib -llapack 
 SCALAPACK   = -L/soft/libraries/alcf/current/xl/SCALAPACK/lib -lscalapack
-BLAS_C      = $(BLAS)
-LAPACK_C    = -L/soft/libraries/alcf/current/gcc/LAPACK/lib -llapack
-SCALAPACK_C = -L/soft/libraries/alcf/current/gcc/SCALAPACK/lib -lscalapack
 
 THIS_DIR = $(shell pwd)
 
@@ -31,8 +28,10 @@ FFLAGS_I += -qarch=qp -qtune=qp
 FFLAGS_I += -qsimd=auto -qhot=level=1 -qprefetch -qunroll=yes
 FFLAGS_I += -qreport -qsource -qlistopt -qlist -qessl
  
-HDF5_HOME = /soft/libraries/hdf5/1.8.14/cnk-xl/current
-HDF5 = -L$(HDF5_HOME)/lib -I$(HDF5_HOME)/include \
+HDF5_HOME = /gpfs/mira-home/blange/devel/HDF5
+HDF5 = -I$(HDF5_HOME)/include \
+       -L$(HDF5_HOME)/lib \
+       -Wl,-rpath -Wl,$(HDF5_HOME)/lib \
        -lhdf5_fortran -lhdf5hl_fortran -lhdf5
 
 # ====== ELPA ======
