@@ -65,7 +65,7 @@ ifeq ($(strip $(ARCHITECTURE)),BlueGeneQ)
   ELPA2_KERNELS_O ?= elpa2_kernels_real_bgq.o elpa2_kernels_complex.o
 endif
 ifeq ($(strip $(ARCHITECTURE)),AVX)
-  FFLAGS += -lstdc++
+  FFLAGS_E += -lstdc++
   ELPA2_KERNELS_O ?= elpa2_kernels_real_sse-avx_2hv.o elpa2_kernels_complex_sse-avx_1hv.o
   ifeq ($(strip $(BLOCK_REAL)),2)
     ELPA2_KERNELS_O +=
@@ -92,7 +92,7 @@ ifeq ($(strip $(ELPA2_KERNELS_O)),)
 endif
 
 ifeq ($(strip $(OPENMP)),yes)
-  FFLAGS += -openmp -lstdc++
+  FFLAGS_E += -openmp -lstdc++
   FTIMINGS_O ?= ftimings.o ftimings_type.o ftimings_value.o time.o highwater_mark.o virtual_memory.o resident_set_size.o
 else
   ifneq ($(strip $(OPENMP)),no)
@@ -107,127 +107,127 @@ ELPA_QR_O = elpa_pdgeqrf.o elpa_pdlarfb.o elpa_qrkernels.o qr_utils.o
 all: test_real test_complex test_real2 test_complex2 elpa_c_interface.o
 
 test_real: test_real.o elpa1.o elpa_utilities.o $(SHARED_SOURCES_O) $(FTIMINGS_O)
-	$(MPIFC) $(FFLAGS) -o $@ $^ $(LIBS)
+	$(MPIFC) $(FFLAGS_E) -o $@ $^ $(LIBS)
 
 test_complex: test_complex.o elpa1.o elpa_utilities.o $(SHARED_SOURCES_O) $(FTIMINGS_O)
-	$(MPIFC) $(FFLAGS) -o $@ $^ $(LIBS)
+	$(MPIFC) $(FFLAGS_E) -o $@ $^ $(LIBS)
 
 test_real2: test_real2.o elpa1.o elpa2.o elpa_utilities.o elpa2_utilities.o $(ELPA_QR_O) $(SHARED_SOURCES_O) $(FTIMINGS) $(ELPA2_KERNELS_O)
-	$(MPIFC) $(FFLAGS) -o $@ $^ $(LIBS)
+	$(MPIFC) $(FFLAGS_E) -o $@ $^ $(LIBS)
 
 test_complex2: test_complex2.o elpa1.o elpa2.o elpa_utilities.o elpa2_utilities.o $(ELPA_QR_O) $(SHARED_SOURCES_O) $(FTIMINGS) $(ELPA2_KERNELS_O)
-	$(MPIFC) $(FFLAGS) -o $@ $^ $(LIBS)
+	$(MPIFC) $(FFLAGS_E) -o $@ $^ $(LIBS)
 
 test_real.o: ./test/fortran_test_programs/test_real.F90 elpa1.o
-	$(MPIFC) $(FFLAGS) $(PREPROCESSOR) -c $<
+	$(MPIFC) $(FFLAGS_E) $(PREPROCESSOR) -c $<
 
 test_complex.o: ./test/fortran_test_programs/test_complex.F90 elpa1.o
-	$(MPIFC) $(FFLAGS) $(PREPROCESSOR) -c $<
+	$(MPIFC) $(FFLAGS_E) $(PREPROCESSOR) -c $<
 
 test_real2.o: ./test/fortran_test_programs/test_real2.F90 elpa2.o $(ELPA2_KERNELS_O)
-	$(MPIFC) $(FFLAGS) $(PREPROCESSOR) -c $<
+	$(MPIFC) $(FFLAGS_E) $(PREPROCESSOR) -c $<
 
 test_complex2.o: ./test/fortran_test_programs/test_complex2.F90 elpa2.o $(ELPA2_KERNELS_O)
-	$(MPIFC) $(FFLAGS) $(PREPROCESSOR) -c $<
+	$(MPIFC) $(FFLAGS_E) $(PREPROCESSOR) -c $<
 
 elpa1.o: ./src/elpa1.F90 elpa_utilities.o $(SHARED_SOURCES_O)
-	$(MPIFC) $(FFLAGS) $(PREPROCESSOR) -c $<
+	$(MPIFC) $(FFLAGS_E) $(PREPROCESSOR) -c $<
 
 elpa2.o: ./src/elpa2.F90 elpa1.o elpa2_utilities.o elpa_pdgeqrf.o $(ELPA2_KERNELS_O)
-	$(MPIFC) $(FFLAGS) $(PREPROCESSOR) -c $<
+	$(MPIFC) $(FFLAGS_E) $(PREPROCESSOR) -c $<
 
 ftimings.o : ./src/ftimings/ftimings.F90 ftimings_type.o ftimings_value.o
-	$(MPIFC) $(FFLAGS) -c $<
+	$(MPIFC) $(FFLAGS_E) -c $<
 
 ftimings_type.o : ./src/ftimings/ftimings_type.F90
-	$(MPIFC) $(FFLAGS) -c $<
+	$(MPIFC) $(FFLAGS_E) -c $<
 
 ftimings_value.o : ./src/ftimings/ftimings_value.F90
-	$(MPIFC) $(FFLAGS) -c $<
+	$(MPIFC) $(FFLAGS_E) -c $<
 
 time.o : ./src/ftimings/time.c
-	$(MPICC) $(CFLAGS) -c $<
+	$(MPICC) $(CFLAGS_E) -c $<
 
 highwater_mark.o : ./src/ftimings/highwater_mark.c
-	$(MPICC) $(CFLAGS) -c $<
+	$(MPICC) $(CFLAGS_E) -c $<
 
 virtual_memory.o : ./src/ftimings/virtual_memory.c
-	$(MPICC) $(CFLAGS) -c $<
+	$(MPICC) $(CFLAGS_E) -c $<
 
 resident_set_size.o : ./src/ftimings/resident_set_size.c
-	$(MPICC) $(CFLAGS) -c $<
+	$(MPICC) $(CFLAGS_E) -c $<
 
 elpa2_kernels_real.o : ./src/elpa2_kernels/elpa2_kernels_real.f90
-	$(MPIFC) $(FFLAGS) -c $<
+	$(MPIFC) $(FFLAGS_E) -c $<
 
 elpa2_kernels_complex.o : ./src/elpa2_kernels/elpa2_kernels_complex.f90
-	$(MPIFC) $(FFLAGS) -c $<
+	$(MPIFC) $(FFLAGS_E) -c $<
 
 elpa2_kernels_real_simple.o : ./src/elpa2_kernels/elpa2_kernels_real_simple.f90
-	$(MPIFC) $(FFLAGS) -c $<
+	$(MPIFC) $(FFLAGS_E) -c $<
 
 elpa2_kernels_complex_simple.o : ./src/elpa2_kernels/elpa2_kernels_complex_simple.f90
-	$(MPIFC) $(FFLAGS) -c $<
+	$(MPIFC) $(FFLAGS_E) -c $<
 
 elpa2_kernels_complex_sse-avx_1hv.o : ./src/elpa2_kernels/elpa2_kernels_complex_sse-avx_1hv.cpp
-	$(MPICXX) $(CXXFLAGS) -c $<
+	$(MPICXX) $(CXXFLAGS_E) -c $<
 
 elpa2_kernels_real_sse-avx_2hv.o : ./src/elpa2_kernels/elpa2_kernels_real_sse-avx_2hv.c
-	$(MPICC) $(CFLAGS) -c $<
+	$(MPICC) $(CFLAGS_E) -c $<
 
 elpa2_kernels_complex_sse-avx_2hv.o : ./src/elpa2_kernels/elpa2_kernels_complex_sse-avx_2hv.cpp
-	$(MPICXX) $(CXXFLAGS) -c $<
+	$(MPICXX) $(CXXFLAGS_E) -c $<
 
 elpa2_kernels_real_sse-avx_4hv.o : ./src/elpa2_kernels/elpa2_kernels_real_sse-avx_4hv.c
-	$(MPICC) $(CFLAGS) -c $<
+	$(MPICC) $(CFLAGS_E) -c $<
 
 elpa2_kernels_real_sse-avx_6hv.o : ./src/elpa2_kernels/elpa2_kernels_real_sse-avx_6hv.c
-	$(MPICC) $(CFLAGS) -c $<
+	$(MPICC) $(CFLAGS_E) -c $<
 
 elpa2_kernels_asm_x86_64.o : ./src/elpa2_kernels/elpa2_kernels_asm_x86_64.s
-	$(MPIFC) $(FFLAGS) -xSSE4.2 -c $<
+	$(MPIFC) $(FFLAGS_E) -xSSE4.2 -c $<
 
 elpa2_kernels_real_bgq.o : ./src/elpa2_kernels/elpa2_kernels_real_bgq.f90
-	$(MPIFC) $(FFLAGS) -c $<
+	$(MPIFC) $(FFLAGS_E) -c $<
 
 elpa_utilities.o: ./src/elpa_utilities.F90
-	$(MPIFC) $(FFLAGS) $(PREPROCESSOR) -c $<
+	$(MPIFC) $(FFLAGS_E) $(PREPROCESSOR) -c $<
 
 elpa2_utilities.o: ./src/elpa2_utilities.F90
-	$(MPIFC) $(FFLAGS) $(PREPROCESSOR) -c $<
+	$(MPIFC) $(FFLAGS_E) $(PREPROCESSOR) -c $<
 
 util.o: ./test/shared_sources/util.F90
-	$(MPIFC) $(FFLAGS) -c $<
+	$(MPIFC) $(FFLAGS_E) -c $<
 
 blacs_infrastructure.o: ./test/shared_sources/blacs_infrastructure.F90
-	$(MPIFC) $(FFLAGS) -c $<
+	$(MPIFC) $(FFLAGS_E) -c $<
 
 check_correctnes.o: ./test/shared_sources/check_correctnes.F90
-	$(MPIFC) $(FFLAGS) $(PREPROCESSOR) -c $<
+	$(MPIFC) $(FFLAGS_E) $(PREPROCESSOR) -c $<
 
 read_input_parameters.o: ./test/shared_sources/read_input_parameters.F90
-	$(MPIFC) $(FFLAGS) $(PREPROCESSOR) -c $<
+	$(MPIFC) $(FFLAGS_E) $(PREPROCESSOR) -c $<
 
 setup_mpi.o: ./test/shared_sources/setup_mpi.F90
-	$(MPIFC) $(FFLAGS) $(PREPROCESSOR) -c $<
+	$(MPIFC) $(FFLAGS_E) $(PREPROCESSOR) -c $<
 
 prepare_matrix.o: ./test/shared_sources/prepare_matrix.F90
-	$(MPIFC) $(FFLAGS) -c $<
+	$(MPIFC) $(FFLAGS_E) -c $<
 
 elpa_pdgeqrf.o: ./src/elpa_qr/elpa_pdgeqrf.f90 elpa_pdlarfb.o qr_utils.o elpa_qrkernels.o
-	$(MPIFC) $(FFLAGS) -c $<
+	$(MPIFC) $(FFLAGS_E) -c $<
 
 elpa_pdlarfb.o: ./src/elpa_qr/elpa_pdlarfb.f90 qr_utils.o
-	$(MPIFC) $(FFLAGS) -c $<
+	$(MPIFC) $(FFLAGS_E) -c $<
 
 qr_utils.o: ./src/elpa_qr/qr_utils.f90
-	$(MPIFC) $(FFLAGS) -c $<
+	$(MPIFC) $(FFLAGS_E) -c $<
 
 elpa_qrkernels.o: ./src/elpa_qr/elpa_qrkernels.f90
-	$(MPIFC) $(FFLAGS) -c $<
+	$(MPIFC) $(FFLAGS_E) -c $<
 
 elpa_c_interface.o: ./src/elpa_c_interface.F90 elpa2.o elpa1.o
-	$(MPIFC) $(FFLAGS) $(PREPROCESSOR) -c $<
+	$(MPIFC) $(FFLAGS_E) $(PREPROCESSOR) -c $<
 
 clean:
 	rm -f *.o *.mod test_real test_complex test_real2 test_complex2
