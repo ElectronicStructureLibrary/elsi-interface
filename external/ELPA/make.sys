@@ -23,23 +23,29 @@ OPENMP = no
 # Only Fortran compiler and flags are necessary,
 # unless using AVX kernels and/or OpenMP.
 
-MPIFC = mpiifort
-FCFLAGS = -O3 -traceback -g -fpe0 -fpp -I../
-MPICC = mpicc
-CCFLAGS = -O3 -mavx -funsafe-loop-optimizations \
-          -funsafe-math-optimizations -ftree-vect-loop-version \
-          -ftree-vectorize
-MPICXX = mpicxx
+MPIFC    = mpiifort
+FCFLAGS  = -O3 -fpe0 -fpp
+MPICC    = mpicc
+CFLAGS   = -O3 -mavx -funsafe-loop-optimizations \
+           -funsafe-math-optimizations -ftree-vect-loop-version \
+           -ftree-vectorize
+MPICXX   = mpicxx
 CXXFLAGS = -O3 -mavx -funsafe-loop-optimizations \
            -funsafe-math-optimizations -ftree-vect-loop-version \
            -ftree-vectorize
 
-# ========================================================
-# Location of ScaLAPACK.
+# Set XLF to yes if using IBM XF compilers.
+XLF = no
 
+# ========================================================
+# Location of BLAS/LAPACK/BLACS/ScaLAPACK.
+
+BLAS      = -L${MKLROOT}/lib/intel64 -lmkl_blas95_lp64
+LAPACK    = -L${MKLROOT}/lib/intel64 -lmkl_lapack95_lp64
+BLACS     = -L${MKLROOT}/lib/intel64 -lmkl_blacs_intelmpi_lp64
 SCALAPACK = -L${MKLROOT}/lib/intel64 -lmkl_scalapack_lp64 \
-            -lmkl_intel_lp64 -lmkl_sequential -lmkl_core \
-            -lmkl_blacs_intelmpi_lp64 -lpthread -lm
+            -lmkl_intel_lp64 -lmkl_sequential \
+            -lmkl_core -lpthread -lm
 
 # ========================================================
 # Archive tools.

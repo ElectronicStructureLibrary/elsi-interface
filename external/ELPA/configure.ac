@@ -101,8 +101,6 @@ if test x"${enable_openmp}" = x"yes"; then
 	FCFLAGS="$OPENMP_FCFLAGS $FCFLAGS"
 fi
 
-
-
 # C++
 AC_LANG([C++])
 AC_PROG_CXX
@@ -233,6 +231,43 @@ if test "${can_compile_avx}" = "yes" ; then
   fi
 fi
 
+AC_MSG_CHECKING([whether we can compile AVX2 intrinsics in C])
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([
+ #include <x86intrin.h>
+ int main(int argc, char **argv){
+ double* q;
+ __m256d q1 = _mm256_load_pd(q);
+ __m256d y1 = _mm256_fmadd_pd(q1, q1, q1);
+ return 0;
+ }
+ ])],
+ [can_compile_avx2=yes],
+ [can_compile_avx2=no]
+)
+AC_MSG_RESULT([${can_compile_avx2}])
+if test "${can_compile_avx2}" = "yes" ; then
+  AC_MSG_CHECKING([whether we can compile AVX2 intrinsics in C++])
+  AC_LANG_PUSH([C++])
+  AC_COMPILE_IFELSE([AC_LANG_SOURCE([
+   #include <x86intrin.h>
+   int main(int argc, char **argv){
+   double* q;
+   __m256d q1 = _mm256_load_pd(q);
+   __m256d y1 = _mm256_fmadd_pd(q1, q1, q1);
+   return 0;
+   }
+   ])],
+   [can_compile_avx2=yes],
+   [can_compile_avx2=no]
+  )
+  AC_LANG_POP([C++])
+  AC_MSG_RESULT([${can_compile_avx2}])
+  if test "${can_compile_avx2}" = "no" ; then
+    AC_MSG_WARN([Cannot compile C++ with AVX2!])
+  fi
+fi
+
+
 if test "${can_compile_avx}" = "yes" ; then
   install_real_avx_block2=yes
   install_real_avx_block4=yes
@@ -340,7 +375,7 @@ else
   AC_MSG_RESULT([${have_blas}])
 
   if test x"${have_blas}" = x"no" ; then
-    AC_MSG_ERROR([could not link with blas: specify path]) 
+    AC_MSG_ERROR([could not link with blas: specify path])
   fi
   dnl now lapack
   AC_SEARCH_LIBS([dlarrv],[lapack],[have_lapack=yes],[have_lapack=no])
@@ -460,8 +495,8 @@ AC_MSG_CHECKING([whether we can compile with BGQ intrinsics])
 
 AC_LINK_IFELSE([AC_LANG_SOURCE([
   program test_bgq
-    VECTOR(REAL(8))::QPX_x2
-    real*8 :: hh(10,2))
+    VECTOR(REAL(8))::QPX_h2
+    real*8         :: hh(10,2)
     QPX_h2 = VEC_SPLATS(hh(2,2))
 
   end program
@@ -687,6 +722,11 @@ grep "^ *!c>" $srcdir/src/elpa_c_interface.F90 | sed 's/^ *!c>//;' > elpa/elpa_g
 if test "${can_compile_avx}" = "no" ; then
   if test x"${want_avx}" = x"yes" ; then
     AC_MSG_WARN([Could not compile AVX instructions])
+  fi
+fi
+if test "${can_compile_avx2}" = "no" ; then
+  if test x"${want_avx}" = x"yes" ; then
+    AC_MSG_WARN([Could not compile AVX2 instructions])
   fi
 fi
 

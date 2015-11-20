@@ -1,6 +1,6 @@
 # The name of the libraries to be created/linked to
 DSuperLUroot = $(PEXSI_DIR)/external/SuperLU
-DSUPERLULIB  = $(DSuperLUroot)/lib/libsuperlu.a
+DSUPERLULIB  = $(PEXSI_DIR)/external/lib/libsuperlu.a
 BLASDEF      = -DUSE_VENDOR_BLAS
 BLASLIB      = $(BLAS)
 # parmetis 4.0.2, 32-bit integer

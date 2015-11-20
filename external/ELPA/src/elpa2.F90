@@ -14,6 +14,9 @@
 !      and
 !    - IBM Deutschland GmbH
 !
+!    This particular source code file contains additions, changes and
+!    enhancements authored by Intel Corporation which is not part of
+!    the ELPA consortium.
 !
 !    More information can be found here:
 !    http://elpa.rzg.mpg.de/
@@ -113,6 +116,7 @@ module ELPA2
 contains
 
 function solve_evp_real_2stage(na, nev, a, lda, ev, q, ldq, nblk,        &
+                               matrixCols,                               &
                                  mpi_comm_rows, mpi_comm_cols,           &
                                  mpi_comm_all, THIS_REAL_ELPA_KERNEL_API,&
                                  useQR) result(success)
@@ -126,16 +130,17 @@ function solve_evp_real_2stage(na, nev, a, lda, ev, q, ldq, nblk,        &
 !
 !  nev         Number of eigenvalues needed
 !
-!  a(lda,*)    Distributed matrix for which eigenvalues are to be computed.
+!  a(lda,matrixCols)    Distributed matrix for which eigenvalues are to be computed.
 !              Distribution is like in Scalapack.
 !              The full matrix must be set (not only one half like in scalapack).
 !              Destroyed on exit (upper and lower half).
 !
 !  lda         Leading dimension of a
+!  matrixCols  local columns of matrix a and q
 !
 !  ev(na)      On output: eigenvalues of a, every processor gets the complete set
 !
-!  q(ldq,*)    On output: Eigenvectors of a
+!  q(ldq,matrixCols)    On output: Eigenvectors of a
 !              Distribution is like in Scalapack.
 !              Must be always dimensioned to the full size (corresponding to (na,na))
 !              even if only a part of the eigenvalues is needed.
@@ -160,10 +165,10 @@ function solve_evp_real_2stage(na, nev, a, lda, ev, q, ldq, nblk,        &
    integer, intent(in), optional :: THIS_REAL_ELPA_KERNEL_API
    integer                       :: THIS_REAL_ELPA_KERNEL
 
-   integer, intent(in)           :: na, nev, lda, ldq, mpi_comm_rows, &
+   integer, intent(in)           :: na, nev, lda, ldq, matrixCols, mpi_comm_rows, &
                                     mpi_comm_cols, mpi_comm_all
    integer, intent(in)           :: nblk
-   real*8, intent(inout)         :: a(lda,*), ev(na), q(ldq,*)
+   real*8, intent(inout)         :: a(lda,matrixCols), ev(na), q(ldq,matrixCols)
 
    integer                       :: my_pe, n_pes, my_prow, my_pcol, np_rows, np_cols, mpierr
    integer                       :: nbw, num_blocks
@@ -253,8 +258,11 @@ function solve_evp_real_2stage(na, nev, a, lda, ev, q, ldq, nblk,        &
    endif
 
    ! Choose bandwidth, must be a multiple of nblk, set to a value >= 32
-
-   nbw = (31/nblk+1)*nblk
+   ! On older systems (IBM Bluegene/P, Intel Nehalem) a value of 32 was optimal.
+   ! For Intel(R) Xeon(R) E5 v2 and v3, better use 64 instead of 32!
+   ! For IBM Bluegene/Q this is not clear at the moment. We have to keep an eye
+   ! on this and maybe allow a run-time optimization here
+   nbw = (63/nblk+1)*nblk
 
    num_blocks = (na-1)/nbw + 1
 
@@ -264,7 +272,7 @@ function solve_evp_real_2stage(na, nev, a, lda, ev, q, ldq, nblk,        &
 
    ttt0 = MPI_Wtime()
    ttts = ttt0
-   call bandred_real(na, a, lda, nblk, nbw, mpi_comm_rows, mpi_comm_cols, &
+   call bandred_real(na, a, lda, nblk, nbw, matrixCols, num_blocks, mpi_comm_rows, mpi_comm_cols, &
                      tmat, wantDebug, success, useQRActual)
    if (.not.(success)) return
    ttt1 = MPI_Wtime()
@@ -276,7 +284,7 @@ function solve_evp_real_2stage(na, nev, a, lda, ev, q, ldq, nblk,        &
    allocate(e(na))
 
    ttt0 = MPI_Wtime()
-   call tridiag_band_real(na, nbw, nblk, a, lda, ev, e, mpi_comm_rows, &
+   call tridiag_band_real(na, nbw, nblk, a, lda, ev, e, matrixCols, mpi_comm_rows, &
                           mpi_comm_cols, mpi_comm_all)
    ttt1 = MPI_Wtime()
    if (my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
@@ -291,7 +299,7 @@ function solve_evp_real_2stage(na, nev, a, lda, ev, q, ldq, nblk,        &
    ! Solve tridiagonal system
 
    ttt0 = MPI_Wtime()
-   call solve_tridi(na, nev, ev, e, q, ldq, nblk, mpi_comm_rows,  &
+   call solve_tridi(na, nev, ev, e, q, ldq, nblk, matrixCols, mpi_comm_rows,  &
                     mpi_comm_cols, wantDebug, success)
    if (.not.(success)) return
 
@@ -306,7 +314,7 @@ function solve_evp_real_2stage(na, nev, a, lda, ev, q, ldq, nblk,        &
    ! Backtransform stage 1
 
    ttt0 = MPI_Wtime()
-   call trans_ev_tridi_to_band_real(na, nev, nblk, nbw, q, ldq, mpi_comm_rows, &
+   call trans_ev_tridi_to_band_real(na, nev, nblk, nbw, q, ldq, matrixCols, mpi_comm_rows, &
                                     mpi_comm_cols, wantDebug, success, THIS_REAL_ELPA_KERNEL)
    if (.not.(success)) return
    ttt1 = MPI_Wtime()
@@ -319,7 +327,7 @@ function solve_evp_real_2stage(na, nev, a, lda, ev, q, ldq, nblk,        &
    ! Backtransform stage 2
 
    ttt0 = MPI_Wtime()
-   call trans_ev_band_to_full_real(na, nev, nblk, nbw, a, lda, tmat, q, ldq, mpi_comm_rows, &
+   call trans_ev_band_to_full_real(na, nev, nblk, nbw, a, lda, tmat, q, ldq, matrixCols, num_blocks, mpi_comm_rows, &
                                    mpi_comm_cols, useQRActual)
    ttt1 = MPI_Wtime()
    if (my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
@@ -339,7 +347,7 @@ end function solve_evp_real_2stage
 !-------------------------------------------------------------------------------
 
 function solve_evp_complex_2stage(na, nev, a, lda, ev, q, ldq, nblk, &
-                                    mpi_comm_rows, mpi_comm_cols,      &
+                                  matrixCols, mpi_comm_rows, mpi_comm_cols,      &
                                     mpi_comm_all, THIS_COMPLEX_ELPA_KERNEL_API) result(success)
 
 !-------------------------------------------------------------------------------
@@ -351,16 +359,17 @@ function solve_evp_complex_2stage(na, nev, a, lda, ev, q, ldq, nblk, &
 !
 !  nev         Number of eigenvalues needed
 !
-!  a(lda,*)    Distributed matrix for which eigenvalues are to be computed.
+!  a(lda,matrixCols)    Distributed matrix for which eigenvalues are to be computed.
 !              Distribution is like in Scalapack.
 !              The full matrix must be set (not only one half like in scalapack).
 !              Destroyed on exit (upper and lower half).
 !
 !  lda         Leading dimension of a
+!  matrixCols  local columns of matrix a and q
 !
 !  ev(na)      On output: eigenvalues of a, every processor gets the complete set
 !
-!  q(ldq,*)    On output: Eigenvectors of a
+!  q(ldq,matrixCols)    On output: Eigenvectors of a
 !              Distribution is like in Scalapack.
 !              Must be always dimensioned to the full size (corresponding to (na,na))
 !              even if only a part of the eigenvalues is needed.
@@ -382,8 +391,8 @@ function solve_evp_complex_2stage(na, nev, a, lda, ev, q, ldq, nblk, &
    implicit none
    integer, intent(in), optional :: THIS_COMPLEX_ELPA_KERNEL_API
    integer                       :: THIS_COMPLEX_ELPA_KERNEL
-   integer, intent(in)           :: na, nev, lda, ldq, nblk, mpi_comm_rows, mpi_comm_cols, mpi_comm_all
-   complex*16, intent(inout)     :: a(lda,*), q(ldq,*)
+   integer, intent(in)           :: na, nev, lda, ldq, nblk, matrixCols, mpi_comm_rows, mpi_comm_cols, mpi_comm_all
+   complex*16, intent(inout)     :: a(lda,matrixCols), q(ldq,matrixCols)
    real*8, intent(inout)         :: ev(na)
 
    integer                       :: my_prow, my_pcol, np_rows, np_cols, mpierr, my_pe, n_pes
@@ -458,7 +467,7 @@ function solve_evp_complex_2stage(na, nev, a, lda, ev, q, ldq, nblk, &
 
    ttt0 = MPI_Wtime()
    ttts = ttt0
-   call bandred_complex(na, a, lda, nblk, nbw, mpi_comm_rows, mpi_comm_cols, &
+   call bandred_complex(na, a, lda, nblk, nbw, matrixCols, num_blocks, mpi_comm_rows, mpi_comm_cols, &
                         tmat, wantDebug, success)
    if (.not.(success)) then
 #ifdef HAVE_DETAILED_TIMINGS
@@ -475,7 +484,7 @@ function solve_evp_complex_2stage(na, nev, a, lda, ev, q, ldq, nblk, &
    allocate(e(na))
 
    ttt0 = MPI_Wtime()
-   call tridiag_band_complex(na, nbw, nblk, a, lda, ev, e, mpi_comm_rows, mpi_comm_cols, mpi_comm_all)
+   call tridiag_band_complex(na, nbw, nblk, a, lda, ev, e, matrixCols, mpi_comm_rows, mpi_comm_cols, mpi_comm_all)
    ttt1 = MPI_Wtime()
    if (my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
       write(error_unit,*) 'Time tridiag_band_complex          :',ttt1-ttt0
@@ -495,7 +504,7 @@ function solve_evp_complex_2stage(na, nev, a, lda, ev, q, ldq, nblk, &
    ! Solve tridiagonal system
 
    ttt0 = MPI_Wtime()
-   call solve_tridi(na, nev, ev, e, q_real, ubound(q_real,1), nblk, &
+   call solve_tridi(na, nev, ev, e, q_real, ubound(q_real,dim=1), nblk, matrixCols, &
                     mpi_comm_rows, mpi_comm_cols, wantDebug, success)
    if (.not.(success)) return
 
@@ -513,7 +522,7 @@ function solve_evp_complex_2stage(na, nev, a, lda, ev, q, ldq, nblk, &
 
    ttt0 = MPI_Wtime()
    call trans_ev_tridi_to_band_complex(na, nev, nblk, nbw, q, ldq,  &
-                                       mpi_comm_rows, mpi_comm_cols,&
+                                       matrixCols, mpi_comm_rows, mpi_comm_cols,&
                                        wantDebug, success,THIS_COMPLEX_ELPA_KERNEL)
    if (.not.(success)) return
    ttt1 = MPI_Wtime()
@@ -526,7 +535,8 @@ function solve_evp_complex_2stage(na, nev, a, lda, ev, q, ldq, nblk, &
    ! Backtransform stage 2
 
    ttt0 = MPI_Wtime()
-   call trans_ev_band_to_full_complex(na, nev, nblk, nbw, a, lda, tmat, q, ldq, mpi_comm_rows, mpi_comm_cols)
+   call trans_ev_band_to_full_complex(na, nev, nblk, nbw, a, lda, tmat, q, ldq, matrixCols, num_blocks, &
+                                      mpi_comm_rows, mpi_comm_cols)
    ttt1 = MPI_Wtime()
    if (my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
       write(error_unit,*) 'Time trans_ev_band_to_full_complex :',ttt1-ttt0
@@ -543,7 +553,7 @@ end function solve_evp_complex_2stage
 
 !-------------------------------------------------------------------------------
 
-subroutine bandred_real(na, a, lda, nblk, nbw, mpi_comm_rows, mpi_comm_cols, &
+subroutine bandred_real(na, a, lda, nblk, nbw, matrixCols, numBlocks, mpi_comm_rows, mpi_comm_cols, &
                         tmat, wantDebug, success, useQR)
 
 !-------------------------------------------------------------------------------
@@ -553,13 +563,14 @@ subroutine bandred_real(na, a, lda, nblk, nbw, mpi_comm_rows, mpi_comm_cols, &
 !
 !  na          Order of matrix
 !
-!  a(lda,*)    Distributed matrix which should be reduced.
+!  a(lda,matrixCols)    Distributed matrix which should be reduced.
 !              Distribution is like in Scalapack.
 !              Opposed to Scalapack, a(:,:) must be set completely (upper and lower half)
 !              a(:,:) is overwritten on exit with the band and the Householder vectors
 !              in the upper half.
 !
 !  lda         Leading dimension of a
+!  matrixCols  local columns of matrix a
 !
 !  nblk        blocksize of cyclic distribution, must be the same in both directions!
 !
@@ -569,22 +580,25 @@ subroutine bandred_real(na, a, lda, nblk, nbw, mpi_comm_rows, mpi_comm_cols, &
 !  mpi_comm_cols
 !              MPI-Communicators for rows/columns
 !
-!  tmat(nbw,nbw,num_blocks)    where num_blocks = (na-1)/nbw + 1
+!  tmat(nbw,nbw,numBlocks)    where numBlocks = (na-1)/nbw + 1
 !              Factors for the Householder vectors (returned), needed for back transformation
 !
 !-------------------------------------------------------------------------------
 #ifdef HAVE_DETAILED_TIMINGS
  use timings
 #endif
+#ifdef WITH_OPENMP
+   use omp_lib
+#endif
    implicit none
-   
-   integer             :: na, lda, nblk, nbw, mpi_comm_rows, mpi_comm_cols
-   real*8              :: a(lda,*), tmat(nbw,nbw,*)
+
+   integer             :: na, lda, nblk, nbw, matrixCols, numBlocks, mpi_comm_rows, mpi_comm_cols
+   real*8              :: a(lda,matrixCols), tmat(nbw,nbw,numBlocks)
 
    integer             :: my_prow, my_pcol, np_rows, np_cols, mpierr
    integer             :: l_cols, l_rows
-   integer             :: i, j, lcs, lce, lre, lc, lr, cur_pcol, n_cols, nrow
-   integer             :: istep, ncol, lch, lcx, nlc
+   integer             :: i, j, lcs, lce, lrs, lre, lc, lr, cur_pcol, n_cols, nrow
+   integer             :: istep, ncol, lch, lcx, nlc, mynlc
    integer             :: tile_size, l_rows_tile, l_cols_tile
 
    real*8              :: vnorm2, xf, aux1(nbw), aux2(nbw), vrl, tau, vav(nbw,nbw)
@@ -600,6 +614,8 @@ subroutine bandred_real(na, a, lda, nblk, nbw, mpi_comm_rows, mpi_comm_cols, &
    logical, intent(out):: success
 
    logical, intent(in) :: useQR
+
+   integer :: mystart, myend, m_way, n_way, work_per_thread, m_id, n_id, n_threads, ii, pp, transformChunkSize
 
 #ifdef HAVE_DETAILED_TIMINGS
    call timer%start("bandred_real")
@@ -744,7 +760,55 @@ subroutine bandred_real(na, a, lda, nblk, nbw, mpi_comm_rows, mpi_comm_cols, &
          ! Local dot product
 
          aux1 = 0
+#ifdef WITH_OPENMP
+         !Open up one omp region to avoid paying openmp overhead.
+         !This does not help performance due to the addition of two openmp barriers around the MPI call,
+         !But in the future this may be beneficial if these barriers are replaced with a faster implementation
 
+         !$omp parallel private(mynlc, j, lcx, ii, pp ) shared(aux1)
+         mynlc = 0 ! number of local columns
+
+         !This loop does not have independent iterations,
+         !'mynlc' is incremented each iteration, and it is difficult to remove this dependency 
+         !Thus each thread executes every iteration of the loop, except it only does the work if it 'owns' that iteration
+         !That is, a thread only executes the work associated with an iteration if its thread id is congruent to 
+         !the iteration number modulo the number of threads
+         do j=1,lc-1
+           lcx = local_index(istep*nbw+j, my_pcol, np_cols, nblk, 0)
+           if (lcx>0 ) then
+             mynlc = mynlc+1
+             if ( mod((j-1), omp_get_num_threads()) .eq. omp_get_thread_num() ) then
+                 if (lr>0) aux1(mynlc) = dot_product(vr(1:lr),a(1:lr,lcx))
+             endif
+           endif
+         enddo
+         
+         ! Get global dot products
+         !$omp barrier
+         !$omp single 
+         if (mynlc>0) call mpi_allreduce(aux1,aux2,mynlc,MPI_REAL8,MPI_SUM,mpi_comm_rows,mpierr)
+         !$omp end single 
+         !$omp barrier
+
+         ! Transform
+         transformChunkSize=32
+         mynlc = 0
+         do j=1,lc-1
+           lcx = local_index(istep*nbw+j, my_pcol, np_cols, nblk, 0)
+           if (lcx>0) then
+             mynlc = mynlc+1
+             !This loop could be parallelized with an openmp pragma with static scheduling and chunk size 32
+             !However, for some reason this is slower than doing it manually, so it is parallelized as below.
+             do ii=omp_get_thread_num()*transformChunkSize,lr,omp_get_num_threads()*transformChunkSize
+                do pp = 1,transformChunkSize
+                    if (pp + ii > lr) exit
+                        a(ii+pp,lcx) = a(ii+pp,lcx) - tau*aux2(mynlc)*vr(ii+pp)
+                enddo
+             enddo
+           endif
+         enddo
+         !$omp end parallel
+#else
          nlc = 0 ! number of local columns
          do j=1,lc-1
            lcx = local_index(istep*nbw+j, my_pcol, np_cols, nblk, 0)
@@ -767,7 +831,7 @@ subroutine bandred_real(na, a, lda, nblk, nbw, mpi_comm_rows, mpi_comm_cols, &
              a(1:lr,lcx) = a(1:lr,lcx) - tau*aux2(nlc)*vr(1:lr)
            endif
          enddo
-
+#endif
        enddo
 
        ! Calculate scalar products of stored Householder vectors.
@@ -775,15 +839,15 @@ subroutine bandred_real(na, a, lda, nblk, nbw, mpi_comm_rows, mpi_comm_cols, &
 
        vav = 0
        if (l_rows>0) &
-           call dsyrk('U','T',n_cols,l_rows,1.d0,vmr,ubound(vmr,1),0.d0,vav,ubound(vav,1))
-       call symm_matrix_allreduce(n_cols,vav,ubound(vav,1),mpi_comm_rows)
+           call dsyrk('U','T',n_cols,l_rows,1.d0,vmr,ubound(vmr,dim=1),0.d0,vav,ubound(vav,dim=1))
+       call symm_matrix_allreduce(n_cols,vav, nbw, nbw,mpi_comm_rows)
 
        ! Calculate triangular matrix T for block Householder Transformation
 
        do lc=n_cols,1,-1
          tau = tmat(lc,lc,istep)
          if (lc<n_cols) then
-           call dtrmv('U','T','N',n_cols-lc,tmat(lc+1,lc+1,istep),ubound(tmat,1),vav(lc+1,lc),1)
+           call dtrmv('U','T','N',n_cols-lc,tmat(lc+1,lc+1,istep),ubound(tmat,dim=1),vav(lc+1,lc),1)
            tmat(lc,lc+1:n_cols,istep) = -tau * vav(lc+1:n_cols,lc)
          endif
        enddo
@@ -791,44 +855,110 @@ subroutine bandred_real(na, a, lda, nblk, nbw, mpi_comm_rows, mpi_comm_cols, &
 
     ! Transpose vmr -> vmc (stored in umc, second half)
 
-    call elpa_transpose_vectors  (vmr, ubound(vmr,1), mpi_comm_rows, &
-                                    umc(1,n_cols+1), ubound(umc,1), mpi_comm_cols, &
+    call elpa_transpose_vectors_real  (vmr, ubound(vmr,dim=1), mpi_comm_rows, &
+                                    umc(1,n_cols+1), ubound(umc,dim=1), mpi_comm_cols, &
                                     1, istep*nbw, n_cols, nblk)
 
     ! Calculate umc = A**T * vmr
     ! Note that the distributed A has to be transposed
     ! Opposed to direct tridiagonalization there is no need to use the cache locality
     ! of the tiles, so we can use strips of the matrix
+    !Code for Algorithm 4
 
-    umc(1:l_cols,1:n_cols) = 0.d0
-    vmr(1:l_rows,n_cols+1:2*n_cols) = 0
-    if (l_cols>0 .and. l_rows>0) then
-      do i=0,(istep*nbw-1)/tile_size
+    n_way = 1
+#ifdef WITH_OPENMP
+    n_way = omp_get_max_threads()
+#endif
+    !umc(1:l_cols,1:n_cols) = 0.d0
+    !vmr(1:l_rows,n_cols+1:2*n_cols) = 0
+#ifdef WITH_OPENMP
+    !$omp parallel private( i,lcs,lce,lrs,lre)
+#endif
+    if(n_way > 1) then
+        !$omp do
+        do i=1,min(l_cols_tile, l_cols)
+            umc(i,1:n_cols) = 0.d0
+        enddo
+        !$omp do
+        do i=1,l_rows
+            vmr(i,n_cols+1:2*n_cols) = 0.d0
+        enddo
+        if (l_cols>0 .and. l_rows>0) then
 
-        lcs = i*l_cols_tile+1
-        lce = min(l_cols,(i+1)*l_cols_tile)
-        if (lce<lcs) cycle
+          !SYMM variant 4
+          !Partitioned Matrix Expression:
+          ! Ct = Atl Bt + Atr Bb
+          ! Cb = Atr' Bt + Abl Bb
+          !
+          !Loop invariant:
+          ! Ct = Atl Bt + Atr Bb
+          !
+          !Update:
+          ! C1 = A10'B0 + A11B1 + A21 B2
+          !
+          !This algorithm chosen because in this algoirhtm, the loop around the dgemm calls
+          !is easily parallelized, and regardless of choise of algorithm,
+          !the startup cost for parallelizing the dgemms inside the loop is too great
 
-        lre = min(l_rows,(i+1)*l_rows_tile)
-        call DGEMM('T','N',lce-lcs+1,n_cols,lre,1.d0,a(1,lcs),ubound(a,1), &
-                     vmr,ubound(vmr,1),1.d0,umc(lcs,1),ubound(umc,1))
+          !$omp do schedule(static,1)
+          do i=0,(istep*nbw-1)/tile_size
+            lcs = i*l_cols_tile+1                   ! local column start
+            lce = min(l_cols, (i+1)*l_cols_tile)    ! local column end
 
-        if (i==0) cycle
-        lre = min(l_rows,i*l_rows_tile)
-        call DGEMM('N','N',lre,n_cols,lce-lcs+1,1.d0,a(1,lcs),lda, &
-                     umc(lcs,n_cols+1),ubound(umc,1),1.d0,vmr(1,n_cols+1),ubound(vmr,1))
-      enddo
+            lrs = i*l_rows_tile+1                   ! local row start
+            lre = min(l_rows, (i+1)*l_rows_tile)    ! local row end
+
+            !C1 += [A11 A12] [B1
+            !                 B2]
+            if( lre > lrs .and. l_cols > lcs ) then
+            call DGEMM('N','N', lre-lrs+1, n_cols, l_cols-lcs+1,    &
+                       1.d0, a(lrs,lcs), ubound(a,dim=1),           &
+                             umc(lcs,n_cols+1), ubound(umc,dim=1),  &
+                       0.d0, vmr(lrs,n_cols+1), ubound(vmr,dim=1))
+            endif
+
+            ! C1 += A10' B0
+            if( lce > lcs .and. i > 0 ) then
+            call DGEMM('T','N', lce-lcs+1, n_cols, lrs-1,           &
+                       1.d0, a(1,lcs),   ubound(a,dim=1),           &
+                             vmr(1,1),   ubound(vmr,dim=1),         &
+                       0.d0, umc(lcs,1), ubound(umc,dim=1))
+            endif
+          enddo
+        endif
+    else
+        umc(1:l_cols,1:n_cols) = 0.d0
+        vmr(1:l_rows,n_cols+1:2*n_cols) = 0
+        if (l_cols>0 .and. l_rows>0) then
+          do i=0,(istep*nbw-1)/tile_size
+
+            lcs = i*l_cols_tile+1
+            lce = min(l_cols,(i+1)*l_cols_tile)
+            if (lce<lcs) cycle
+
+            lre = min(l_rows,(i+1)*l_rows_tile)
+            call DGEMM('T','N',lce-lcs+1,n_cols,lre,1.d0,a(1,lcs),ubound(a,dim=1), &
+                         vmr,ubound(vmr,dim=1),1.d0,umc(lcs,1),ubound(umc,dim=1))
+
+            if (i==0) cycle
+            lre = min(l_rows,i*l_rows_tile)
+            call DGEMM('N','N',lre,n_cols,lce-lcs+1,1.d0,a(1,lcs),lda, &
+                         umc(lcs,n_cols+1),ubound(umc,dim=1),1.d0,vmr(1,n_cols+1),ubound(vmr,dim=1))
+          enddo
+        endif
     endif
-
+#ifdef WITH_OPENMP
+    !$omp end parallel
+#endif
     ! Sum up all ur(:) parts along rows and add them to the uc(:) parts
     ! on the processors containing the diagonal
     ! This is only necessary if ur has been calculated, i.e. if the
     ! global tile size is smaller than the global remaining matrix
-
-    if (tile_size < istep*nbw) then
-       call elpa_reduce_add_vectors  (vmr(1,n_cols+1),ubound(vmr,1),mpi_comm_rows, &
-                                      umc, ubound(umc,1), mpi_comm_cols, &
-                                      istep*nbw, n_cols, nblk)
+    ! Or if we used the Algorithm 4
+    if (tile_size < istep*nbw .or. n_way > 1) then
+    call elpa_reduce_add_vectors_real  (vmr(1,n_cols+1),ubound(vmr,dim=1),mpi_comm_rows, &
+                                        umc, ubound(umc,dim=1), mpi_comm_cols, &
+                                        istep*nbw, n_cols, nblk)
     endif
 
     if (l_cols>0) then
@@ -840,36 +970,74 @@ subroutine bandred_real(na, a, lda, nblk, nbw, mpi_comm_rows, mpi_comm_cols, &
 
     ! U = U * Tmat**T
 
-    call dtrmm('Right','Upper','Trans','Nonunit',l_cols,n_cols,1.d0,tmat(1,1,istep),ubound(tmat,1),umc,ubound(umc,1))
+    call dtrmm('Right','Upper','Trans','Nonunit',l_cols,n_cols,1.d0,tmat(1,1,istep),ubound(tmat,dim=1),umc,ubound(umc,dim=1))
 
     ! VAV = Tmat * V**T * A * V * Tmat**T = (U*Tmat**T)**T * V * Tmat**T
 
-    call dgemm('T','N',n_cols,n_cols,l_cols,1.d0,umc,ubound(umc,1),umc(1,n_cols+1),ubound(umc,1),0.d0,vav,ubound(vav,1))
-    call dtrmm('Right','Upper','Trans','Nonunit',n_cols,n_cols,1.d0,tmat(1,1,istep),ubound(tmat,1),vav,ubound(vav,1))
+    call dgemm('T','N',n_cols,n_cols,l_cols,1.d0,umc,ubound(umc,dim=1),umc(1,n_cols+1), &
+               ubound(umc,dim=1),0.d0,vav,ubound(vav,dim=1))
+    call dtrmm('Right','Upper','Trans','Nonunit',n_cols,n_cols,1.d0,tmat(1,1,istep),    &
+               ubound(tmat,dim=1),vav,ubound(vav,dim=1))
 
-    call symm_matrix_allreduce(n_cols,vav,ubound(vav,1),mpi_comm_cols)
+    call symm_matrix_allreduce(n_cols,vav, nbw, nbw ,mpi_comm_cols)
 
     ! U = U - 0.5 * V * VAV
-    call dgemm('N','N',l_cols,n_cols,n_cols,-0.5d0,umc(1,n_cols+1),ubound(umc,1),vav,ubound(vav,1),1.d0,umc,ubound(umc,1))
+    call dgemm('N','N',l_cols,n_cols,n_cols,-0.5d0,umc(1,n_cols+1),ubound(umc,dim=1),vav, &
+                ubound(vav,dim=1),1.d0,umc,ubound(umc,dim=1))
 
     ! Transpose umc -> umr (stored in vmr, second half)
 
-    call elpa_transpose_vectors  (umc, ubound(umc,1), mpi_comm_cols, &
-                                   vmr(1,n_cols+1), ubound(vmr,1), mpi_comm_rows, &
+    call elpa_transpose_vectors_real  (umc, ubound(umc,dim=1), mpi_comm_cols, &
+                                   vmr(1,n_cols+1), ubound(vmr,dim=1), mpi_comm_rows, &
                                    1, istep*nbw, n_cols, nblk)
 
     ! A = A - V*U**T - U*V**T
+#ifdef WITH_OPENMP
+    !$omp parallel private( ii, i, lcs, lce, lre, n_way, m_way, m_id, n_id, work_per_thread, mystart, myend  )
+    n_threads = omp_get_num_threads()
+    if(mod(n_threads, 2) == 0) then
+        n_way = 2
+    else
+        n_way = 1
+    endif
 
+    m_way = n_threads / n_way
+
+    m_id = mod(omp_get_thread_num(),  m_way)
+    n_id = omp_get_thread_num() / m_way
+
+    do ii=n_id*tile_size,(istep*nbw-1),tile_size*n_way
+      i = ii / tile_size
+      lcs = i*l_cols_tile+1
+      lce = min(l_cols,(i+1)*l_cols_tile)
+      lre = min(l_rows,(i+1)*l_rows_tile)
+      if (lce<lcs .or. lre<1) cycle
+
+      !Figure out this thread's range
+      work_per_thread = lre / m_way
+      if (work_per_thread * m_way < lre) work_per_thread = work_per_thread + 1
+      mystart = m_id * work_per_thread + 1
+      myend   = mystart + work_per_thread - 1
+      if( myend > lre ) myend = lre
+      if( myend-mystart+1 < 1) cycle
+
+      call dgemm('N','T',myend-mystart+1, lce-lcs+1, 2*n_cols, -1.d0, &
+                  vmr(mystart, 1), ubound(vmr,1), umc(lcs,1), ubound(umc,1), &
+                  1.d0,a(mystart,lcs),ubound(a,1))
+    enddo
+    !$omp end parallel
+
+#else /* WITH_OPENMP */
     do i=0,(istep*nbw-1)/tile_size
       lcs = i*l_cols_tile+1
       lce = min(l_cols,(i+1)*l_cols_tile)
       lre = min(l_rows,(i+1)*l_rows_tile)
       if (lce<lcs .or. lre<1) cycle
       call dgemm('N','T',lre,lce-lcs+1,2*n_cols,-1.d0, &
-                  vmr,ubound(vmr,1),umc(lcs,1),ubound(umc,1), &
+                  vmr,ubound(vmr,dim=1),umc(lcs,1),ubound(umc,dim=1), &
                   1.d0,a(1,lcs),lda)
     enddo
-
+#endif /* WITH_OPENMP */
     deallocate(vmr, umc, vr)
 
   enddo
@@ -888,7 +1056,7 @@ end subroutine bandred_real
 
 !-------------------------------------------------------------------------------
 
-subroutine symm_matrix_allreduce(n,a,lda,comm)
+subroutine symm_matrix_allreduce(n,a,lda,ldb,comm)
 
 !-------------------------------------------------------------------------------
 !  symm_matrix_allreduce: Does an mpi_allreduce for a symmetric matrix A.
@@ -899,8 +1067,8 @@ subroutine symm_matrix_allreduce(n,a,lda,comm)
  use timings
 #endif
    implicit none
-   integer  :: n, lda, comm
-   real*8   :: a(lda,*)
+   integer  :: n, lda, ldb, comm
+   real*8   :: a(lda,ldb)
 
    integer  :: i, nc, mpierr
    real*8   :: h1(n*n), h2(n*n)
@@ -932,7 +1100,7 @@ end subroutine symm_matrix_allreduce
 
 !-------------------------------------------------------------------------------
 
-subroutine trans_ev_band_to_full_real(na, nqc, nblk, nbw, a, lda, tmat, q, ldq, mpi_comm_rows, &
+subroutine trans_ev_band_to_full_real(na, nqc, nblk, nbw, a, lda, tmat, q, ldq, matrixCols, numBlocks, mpi_comm_rows, &
                                       mpi_comm_cols, useQR)
 
 
@@ -950,12 +1118,13 @@ subroutine trans_ev_band_to_full_real(na, nqc, nblk, nbw, a, lda, tmat, q, ldq, 
 !
 !  nbw         semi bandwith
 !
-!  a(lda,*)    Matrix containing the Householder vectors (i.e. matrix a after bandred_real)
+!  a(lda,matrixCols)    Matrix containing the Householder vectors (i.e. matrix a after bandred_real)
 !              Distribution is like in Scalapack.
 !
 !  lda         Leading dimension of a
+!  matrixCols  local columns of matrix a and q
 !
-!  tmat(nbw,nbw,.) Factors returned by bandred_real
+!  tmat(nbw,nbw,numBlocks) Factors returned by bandred_real
 !
 !  q           On input: Eigenvectors of band matrix
 !              On output: Transformed eigenvectors
@@ -973,8 +1142,8 @@ subroutine trans_ev_band_to_full_real(na, nqc, nblk, nbw, a, lda, tmat, q, ldq, 
 #endif
    implicit none
 
-   integer              :: na, nqc, lda, ldq, nblk, nbw, mpi_comm_rows, mpi_comm_cols
-   real*8               :: a(lda,*), q(ldq,*), tmat(nbw, nbw, *)
+   integer              :: na, nqc, lda, ldq, nblk, nbw, matrixCols, numBlocks, mpi_comm_rows, mpi_comm_cols
+   real*8               :: a(lda,matrixCols), q(ldq,matrixCols), tmat(nbw, nbw, numBlocks)
 
    integer              :: my_prow, my_pcol, np_rows, np_cols, mpierr
    integer              :: max_blocks_row, max_blocks_col, max_local_rows, &
@@ -1005,8 +1174,13 @@ subroutine trans_ev_band_to_full_real(na, nqc, nblk, nbw, a, lda, tmat, q, ldq, 
    max_local_rows = max_blocks_row*nblk
    max_local_cols = max_blocks_col*nblk
 
-   if (useQR) then
-     t_blocking = 2 ! number of matrices T (tmat) which are aggregated into a new (larger) T matrix (tmat_complete) and applied at once
+
+! This conditional was introduced due to an merge error. For better performance this code path should
+! always be used
+!   if (useQR) then
+
+     ! t_blocking was formerly 2; 3 is a better choice
+     t_blocking = 3 ! number of matrices T (tmat) which are aggregated into a new (larger) T matrix (tmat_complete) and applied at once
      cwy_blocking = t_blocking * nbw
 
      allocate(tmp1(max_local_cols*cwy_blocking))
@@ -1016,19 +1190,20 @@ subroutine trans_ev_band_to_full_real(na, nqc, nblk, nbw, a, lda, tmat, q, ldq, 
      allocate(tmat_complete(cwy_blocking,cwy_blocking))
      allocate(t_tmp(cwy_blocking,nbw))
      allocate(t_tmp2(cwy_blocking,nbw))
-   else
-     allocate(tmp1(max_local_cols*nbw))
-     allocate(tmp2(max_local_cols*nbw))
-     allocate(hvb(max_local_rows*nbw))
-     allocate(hvm(max_local_rows,nbw))
-   endif
+!   else
+!     allocate(tmp1(max_local_cols*nbw))
+!     allocate(tmp2(max_local_cols*nbw))
+!     allocate(hvb(max_local_rows*nbw))
+!     allocate(hvm(max_local_rows,nbw))
+!   endif
 
    hvm = 0   ! Must be set to 0 !!!
    hvb = 0   ! Safety only
 
    l_cols = local_index(nqc, my_pcol, np_cols, nblk, -1) ! Local columns of q
 
-   if (useQR) then
+! This conditional has been introduced by the same merge error. Execute always this code path
+!   if (useQR) then
 
      do istep=1,((na-1)/nbw-1)/t_blocking + 1
        n_cols = MIN(na,istep*cwy_blocking+nbw) - (istep-1)*cwy_blocking - nbw ! Number of columns in current step
@@ -1090,7 +1265,7 @@ subroutine trans_ev_band_to_full_real(na, nqc, nblk, nbw, a, lda, tmat, q, ldq, 
        ! Q = Q - V * T**T * V**T * Q
 
        if (l_rows>0) then
-         call dgemm('T','N',n_cols,l_cols,l_rows,1.d0,hvm,ubound(hvm,1), &
+         call dgemm('T','N',n_cols,l_cols,l_rows,1.d0,hvm,ubound(hvm,dim=1), &
                     q,ldq,0.d0,tmp1,n_cols)
        else
          tmp1(1:l_cols*n_cols) = 0
@@ -1100,76 +1275,76 @@ subroutine trans_ev_band_to_full_real(na, nqc, nblk, nbw, a, lda, tmat, q, ldq, 
 
        if (l_rows>0) then
          call dtrmm('L','U','T','N',n_cols,l_cols,1.0d0,tmat_complete,cwy_blocking,tmp2,n_cols)
-         call dgemm('N','N',l_rows,l_cols,n_cols,-1.d0,hvm,ubound(hvm,1), tmp2,n_cols,1.d0,q,ldq)
+         call dgemm('N','N',l_rows,l_cols,n_cols,-1.d0,hvm,ubound(hvm,dim=1), tmp2,n_cols,1.d0,q,ldq)
        endif
      enddo
 
-   else !  do not useQR
-
-     do istep=1,(na-1)/nbw
-
-       n_cols = MIN(na,(istep+1)*nbw) - istep*nbw ! Number of columns in current step
-
-       ! Broadcast all Householder vectors for current step compressed in hvb
-
-       nb = 0
-       ns = 0
-
-       do lc = 1, n_cols
-         ncol = istep*nbw + lc ! absolute column number of householder vector
-         nrow = ncol - nbw ! absolute number of pivot row
-
-         l_rows = local_index(nrow-1, my_prow, np_rows, nblk, -1) ! row length for bcast
-         l_colh = local_index(ncol  , my_pcol, np_cols, nblk, -1) ! HV local column number
-
-         if (my_pcol==pcol(ncol, nblk, np_cols)) hvb(nb+1:nb+l_rows) = a(1:l_rows,l_colh)
-
-         nb = nb+l_rows
-
-         if (lc==n_cols .or. mod(ncol,nblk)==0) then
-           call MPI_Bcast(hvb(ns+1),nb-ns,MPI_REAL8,pcol(ncol, nblk, np_cols),mpi_comm_cols,mpierr)
-           ns = nb
-         endif
-       enddo
-
-       ! Expand compressed Householder vectors into matrix hvm
-
-       nb = 0
-       do lc = 1, n_cols
-         nrow = (istep-1)*nbw+lc ! absolute number of pivot row
-         l_rows = local_index(nrow-1, my_prow, np_rows, nblk, -1) ! row length for bcast
-
-         hvm(1:l_rows,lc) = hvb(nb+1:nb+l_rows)
-         if (my_prow==prow(nrow, nblk, np_rows)) hvm(l_rows+1,lc) = 1.
-
-         nb = nb+l_rows
-       enddo
-
-       l_rows = local_index(MIN(na,(istep+1)*nbw), my_prow, np_rows, nblk, -1)
-
-       ! Q = Q - V * T**T * V**T * Q
-
-       if (l_rows>0) then
-         call dgemm('T','N',n_cols,l_cols,l_rows,1.d0,hvm,ubound(hvm,1), &
-                    q,ldq,0.d0,tmp1,n_cols)
-       else
-         tmp1(1:l_cols*n_cols) = 0
-       endif
-
-       call mpi_allreduce(tmp1,tmp2,n_cols*l_cols,MPI_REAL8,MPI_SUM,mpi_comm_rows,mpierr)
-
-       if (l_rows>0) then
-         call dtrmm('L','U','T','N',n_cols,l_cols,1.0d0,tmat(1,1,istep),ubound(tmat,1),tmp2,n_cols)
-         call dgemm('N','N',l_rows,l_cols,n_cols,-1.d0,hvm,ubound(hvm,1), &
-                    tmp2,n_cols,1.d0,q,ldq)
-       endif
-     enddo
-   endif ! endQR
+!   else !  do not useQR
+!
+!     do istep=1,(na-1)/nbw
+!
+!       n_cols = MIN(na,(istep+1)*nbw) - istep*nbw ! Number of columns in current step
+!
+!       ! Broadcast all Householder vectors for current step compressed in hvb
+!
+!       nb = 0
+!       ns = 0
+!
+!       do lc = 1, n_cols
+!         ncol = istep*nbw + lc ! absolute column number of householder vector
+!         nrow = ncol - nbw ! absolute number of pivot row
+!
+!         l_rows = local_index(nrow-1, my_prow, np_rows, nblk, -1) ! row length for bcast
+!         l_colh = local_index(ncol  , my_pcol, np_cols, nblk, -1) ! HV local column number
+!
+!         if (my_pcol==pcol(ncol, nblk, np_cols)) hvb(nb+1:nb+l_rows) = a(1:l_rows,l_colh)
+!
+!         nb = nb+l_rows
+!
+!         if (lc==n_cols .or. mod(ncol,nblk)==0) then
+!           call MPI_Bcast(hvb(ns+1),nb-ns,MPI_REAL8,pcol(ncol, nblk, np_cols),mpi_comm_cols,mpierr)
+!           ns = nb
+!         endif
+!       enddo
+!
+!       ! Expand compressed Householder vectors into matrix hvm
+!
+!       nb = 0
+!       do lc = 1, n_cols
+!         nrow = (istep-1)*nbw+lc ! absolute number of pivot row
+!         l_rows = local_index(nrow-1, my_prow, np_rows, nblk, -1) ! row length for bcast
+!
+!         hvm(1:l_rows,lc) = hvb(nb+1:nb+l_rows)
+!         if (my_prow==prow(nrow, nblk, np_rows)) hvm(l_rows+1,lc) = 1.
+!
+!         nb = nb+l_rows
+!       enddo
+!
+!       l_rows = local_index(MIN(na,(istep+1)*nbw), my_prow, np_rows, nblk, -1)
+!
+!       ! Q = Q - V * T**T * V**T * Q
+!
+!       if (l_rows>0) then
+!         call dgemm('T','N',n_cols,l_cols,l_rows,1.d0,hvm,ubound(hvm,dim=1), &
+!                    q,ldq,0.d0,tmp1,n_cols)
+!       else
+!         tmp1(1:l_cols*n_cols) = 0
+!       endif
+!
+!       call mpi_allreduce(tmp1,tmp2,n_cols*l_cols,MPI_REAL8,MPI_SUM,mpi_comm_rows,mpierr)
+!
+!       if (l_rows>0) then
+!         call dtrmm('L','U','T','N',n_cols,l_cols,1.0d0,tmat(1,1,istep),ubound(tmat,dim=1),tmp2,n_cols)
+!         call dgemm('N','N',l_rows,l_cols,n_cols,-1.d0,hvm,ubound(hvm,dim=1), &
+!                    tmp2,n_cols,1.d0,q,ldq)
+!       endif
+!     enddo
+!   endif ! endQR
 
    deallocate(tmp1, tmp2, hvb, hvm)
-   if (useQr) then
+!   if (useQr) then
      deallocate(tmat_complete, t_tmp, t_tmp2)
-   endif
+!   endif
 
 #ifdef HAVE_DETAILED_TIMINGS
    call timer%stop("trans_ev_band_to_full_real")
@@ -1178,7 +1353,7 @@ end subroutine trans_ev_band_to_full_real
 
 ! --------------------------------------------------------------------------------------------------
 
-subroutine tridiag_band_real(na, nb, nblk, a, lda, d, e, mpi_comm_rows, mpi_comm_cols, mpi_comm)
+subroutine tridiag_band_real(na, nb, nblk, a, lda, d, e, matrixCols, mpi_comm_rows, mpi_comm_cols, mpi_comm)
 
 !-------------------------------------------------------------------------------
 ! tridiag_band_real:
@@ -1190,9 +1365,10 @@ subroutine tridiag_band_real(na, nb, nblk, a, lda, d, e, mpi_comm_rows, mpi_comm
 !
 !  nblk        blocksize of cyclic distribution, must be the same in both directions!
 !
-!  a(lda,*)    Distributed system matrix reduced to banded form in the upper diagonal
+!  a(lda,matrixCols)    Distributed system matrix reduced to banded form in the upper diagonal
 !
 !  lda         Leading dimension of a
+!  matrixCols  local columns of matrix a
 !
 !  d(na)       Diagonal of tridiagonal matrix, set only on PE 0 (output)
 !
@@ -1209,8 +1385,8 @@ subroutine tridiag_band_real(na, nb, nblk, a, lda, d, e, mpi_comm_rows, mpi_comm
 #endif
    implicit none
 
-   integer, intent(in) ::  na, nb, nblk, lda, mpi_comm_rows, mpi_comm_cols, mpi_comm
-   real*8, intent(in)  :: a(lda,*)
+   integer, intent(in) ::  na, nb, nblk, lda, matrixCols, mpi_comm_rows, mpi_comm_cols, mpi_comm
+   real*8, intent(in)  :: a(lda,matrixCols)
    real*8, intent(out) :: d(na), e(na) ! set only on PE 0
 
 
@@ -1233,8 +1409,8 @@ subroutine tridiag_band_real(na, nb, nblk, a, lda, d, e, mpi_comm_rows, mpi_comm
    integer, allocatable :: limits(:), snd_limits(:,:)
    integer, allocatable :: block_limits(:)
    real*8, allocatable :: ab(:,:), hh_gath(:,:,:), hh_send(:,:,:)
-   ! dummies for calling redist_band
-   complex*16 :: c_a(1,1), c_ab(1,1)
+!   ! dummies for calling redist_band
+!   complex*16 :: c_a(1,1), c_ab(1,1)
 
 #ifdef WITH_OPENMP
    integer :: omp_get_max_threads
@@ -1290,7 +1466,7 @@ subroutine tridiag_band_real(na, nb, nblk, a, lda, d, e, mpi_comm_rows, mpi_comm
    n_off = block_limits(my_pe)*nb
 
    ! Redistribute band in a to ab
-   call redist_band(.true., a, c_a, lda, na, nblk, nb, mpi_comm_rows, mpi_comm_cols, mpi_comm, ab, c_ab)
+   call redist_band_real(a, lda, na, nblk, nb, matrixCols, mpi_comm_rows, mpi_comm_cols, mpi_comm, ab)
 
    ! Calculate the workload for each sweep in the back transformation
    ! and the space requirements to hold the HH vectors
@@ -1848,7 +2024,7 @@ subroutine tridiag_band_real(na, nb, nblk, a, lda, d, e, mpi_comm_rows, mpi_comm
 ! --------------------------------------------------------------------------------------------------
 
 
-subroutine trans_ev_tridi_to_band_real(na, nev, nblk, nbw, q, ldq, &
+subroutine trans_ev_tridi_to_band_real(na, nev, nblk, nbw, q, ldq, matrixCols, &
                                        mpi_comm_rows, mpi_comm_cols, wantDebug, success, &
                                        THIS_REAL_ELPA_KERNEL)
 !-------------------------------------------------------------------------------
@@ -1870,6 +2046,7 @@ subroutine trans_ev_tridi_to_band_real(na, nev, nblk, nbw, q, ldq, &
 !              Distribution is like in Scalapack.
 !
 !  ldq         Leading dimension of q
+!  matrixCols  local columns of matrix q
 !
 !  mpi_comm_rows
 !  mpi_comm_cols
@@ -1882,8 +2059,8 @@ subroutine trans_ev_tridi_to_band_real(na, nev, nblk, nbw, q, ldq, &
     implicit none
 
     integer, intent(in) :: THIS_REAL_ELPA_KERNEL
-    integer, intent(in) :: na, nev, nblk, nbw, ldq, mpi_comm_rows, mpi_comm_cols
-    real*8 q(ldq,*)
+    integer, intent(in) :: na, nev, nblk, nbw, ldq, matrixCols, mpi_comm_rows, mpi_comm_cols
+    real*8              :: q(ldq,matrixCols)
 
     integer np_rows, my_prow, np_cols, my_pcol
 
@@ -2809,13 +2986,13 @@ subroutine trans_ev_tridi_to_band_real(na, nev, nblk, nbw, q, ldq, &
    subroutine compute_hh_trafo(off, ncols, istripe, THIS_REAL_ELPA_KERNEL)
 #endif
 
-!#if defined(WITH_REAL_GENERIC_KERNEL)
-!      use real_generic_kernel, only : double_hh_trafo_generic
-!#endif
-
 #if defined(WITH_REAL_GENERIC_SIMPLE_KERNEL)
       use real_generic_simple_kernel, only : double_hh_trafo_generic_simple
 #endif
+
+!#if defined(WITH_REAL_GENERIC_KERNEL)
+!      use real_generic_kernel, only : double_hh_trafo_generic
+!#endif
 
 #if defined(WITH_REAL_BGP_KERNEL)
       use real_bgp_kernel, only : double_hh_trafo_bgp
@@ -2859,26 +3036,13 @@ subroutine trans_ev_tridi_to_band_real(na, nev, nblk, nbw, q, ldq, &
 #endif
 
 #if defined(WITH_NO_SPECIFIC_REAL_KERNEL)
-      if (THIS_REAL_ELPA_KERNEL .ne. REAL_ELPA_KERNEL_AVX_BLOCK2 .and.     &
-          THIS_REAL_ELPA_KERNEL .ne. REAL_ELPA_KERNEL_AVX_BLOCK4 .and.     &
-          THIS_REAL_ELPA_KERNEL .ne. REAL_ELPA_KERNEL_AVX_BLOCK6 .and.     &
-          THIS_REAL_ELPA_KERNEL .ne. REAL_ELPA_KERNEL_GENERIC .and.        &
-          THIS_REAL_ELPA_KERNEL .ne. REAL_ELPA_KERNEL_GENERIC_SIMPLE .and. &
-          THIS_REAL_ELPA_KERNEL .ne. REAL_ELPA_KERNEL_SSE .and.            &
-          THIS_REAL_ELPA_KERNEL .ne. REAL_ELPA_KERNEL_BGP .and.            &
-          THIS_REAL_ELPA_KERNEL .ne. REAL_ELPA_KERNEL_BGQ) then
-#ifdef WITH_OPENMP
-        if(j==1) call single_hh_trafo(a(1,1+off+a_off,istripe,my_thread), &
-                                      bcast_buffer(1,off+1), nbw, nl,     &
-                                      stripe_width)
-#else
-        if(j==1) call single_hh_trafo(a(1,1+off+a_off,istripe),           &
-                                      bcast_buffer(1,off+1), nbw, nl,     &
-                                      stripe_width)
-#endif /* WITH_OPENMP */
-      endif
+      if (THIS_REAL_ELPA_KERNEL .eq. REAL_ELPA_KERNEL_AVX_BLOCK2 .or. &
+          THIS_REAL_ELPA_KERNEL .eq. REAL_ELPA_KERNEL_GENERIC    .or. &
+          THIS_REAL_ELPA_KERNEL .eq. REAL_ELPA_KERNEL_GENERIC_SIMPLE .or. &
+          THIS_REAL_ELPA_KERNEL .eq. REAL_ELPA_KERNEL_SSE .or.        &
+          THIS_REAL_ELPA_KERNEL .eq. REAL_ELPA_KERNEL_BGP .or.        &
+          THIS_REAL_ELPA_KERNEL .eq. REAL_ELPA_KERNEL_BGQ) then
 #endif /* WITH_NO_SPECIFIC_REAL_KERNEL */
-
 
         !FORTRAN CODE / X86 INRINISIC CODE / BG ASSEMBLER USING 2 HOUSEHOLDER VECTORS
 #if defined(WITH_REAL_GENERIC_KERNEL)
@@ -2944,6 +3108,26 @@ subroutine trans_ev_tridi_to_band_real(na, nev, nblk, nbw, q, ldq, &
 #endif /* WITH_REAL_SSE_KERNEL */
 
 
+#if defined(WITH_REAL_AVX_BLOCK2_KERNEL)
+#if defined(WITH_NO_SPECIFIC_REAL_KERNEL)
+        if (THIS_REAL_ELPA_KERNEL .eq. REAL_ELPA_KERNEL_AVX_BLOCK2) then
+#endif /* WITH_NO_SPECIFIC_REAL_KERNEL */
+          do j = ncols, 2, -2
+            w(:,1) = bcast_buffer(1:nbw,j+off)
+            w(:,2) = bcast_buffer(1:nbw,j+off-1)
+#ifdef WITH_OPENMP
+            call double_hh_trafo_real_sse_avx_2hv(a(1,j+off+a_off-1,istripe,my_thread), &
+                                                       w, nbw, nl, stripe_width, nbw)
+#else
+            call double_hh_trafo_real_sse_avx_2hv(a(1,j+off+a_off-1,istripe), &
+                                                       w, nbw, nl, stripe_width, nbw)
+#endif
+          enddo
+#if defined(WITH_NO_SPECIFIC_REAL_KERNEL)
+        endif
+#endif /* WITH_NO_SPECIFIC_REAL_KERNEL */
+#endif /* WITH_REAL_AVX_BLOCK2_KERNEL */
+
 #if defined(WITH_REAL_BGP_KERNEL)
 #if defined(WITH_NO_SPECIFIC_REAL_KERNEL)
         if (THIS_REAL_ELPA_KERNEL .eq. REAL_ELPA_KERNEL_BGP) then
@@ -2990,26 +3174,21 @@ subroutine trans_ev_tridi_to_band_real(na, nev, nblk, nbw, q, ldq, &
 !              call double_hh_trafo_real_sse_avx_2hv(a(1,j+off+a_off-1,istripe), w, nbw, nl, stripe_width, nbw)
 !#endif
 
-
-#if defined(WITH_REAL_AVX_BLOCK2_KERNEL)
-#if defined(WITH_NO_SPECIFIC_REAL_KERNEL)
-        if (THIS_REAL_ELPA_KERNEL .eq. REAL_ELPA_KERNEL_AVX_BLOCK2) then
-#endif /* WITH_NO_SPECIFIC_REAL_KERNEL */
-          do j = ncols, 2, -2
-            w(:,1) = bcast_buffer(1:nbw,j+off)
-            w(:,2) = bcast_buffer(1:nbw,j+off-1)
 #ifdef WITH_OPENMP
-            call double_hh_trafo_real_sse_avx_2hv(a(1,j+off+a_off-1,istripe,my_thread), &
-                                                       w, nbw, nl, stripe_width, nbw)
+        if(j==1) call single_hh_trafo(a(1,1+off+a_off,istripe,my_thread), &
+                                      bcast_buffer(1,off+1), nbw, nl,     &
+                                      stripe_width)
 #else
-            call double_hh_trafo_real_sse_avx_2hv(a(1,j+off+a_off-1,istripe), &
-                                                       w, nbw, nl, stripe_width, nbw)
+        if(j==1) call single_hh_trafo(a(1,1+off+a_off,istripe),           &
+                                      bcast_buffer(1,off+1), nbw, nl,     &
+                                      stripe_width)
 #endif
-          enddo
+
+
 #if defined(WITH_NO_SPECIFIC_REAL_KERNEL)
-        endif
+      endif !
 #endif /* WITH_NO_SPECIFIC_REAL_KERNEL */
-#endif /* WITH_REAL_AVX_BLOCK2_KERNEL */
+
 
 
 #if defined(WITH_REAL_AVX_BLOCK4_KERNEL)
@@ -3108,8 +3287,7 @@ subroutine trans_ev_tridi_to_band_real(na, nev, nblk, nbw, q, ldq, &
 #if defined(WITH_NO_SPECIFIC_REAL_KERNEL)
     endif
 #endif /* WITH_NO_SPECIFIC_REAL_KERNEL */
-#endif /* WITH_REAL_AVX_BLOCK6_KERNEL */
-
+#endif /* WITH_REAL_AVX_BLOCK4_KERNEL */
 
 #ifdef WITH_OPENMP
     if (my_thread==1) then
@@ -3210,7 +3388,7 @@ end subroutine
 
 !-------------------------------------------------------------------------------
 
-subroutine bandred_complex(na, a, lda, nblk, nbw, mpi_comm_rows, mpi_comm_cols, tmat, wantDebug, success)
+subroutine bandred_complex(na, a, lda, nblk, nbw, matrixCols, numBlocks, mpi_comm_rows, mpi_comm_cols, tmat, wantDebug, success)
 
 !-------------------------------------------------------------------------------
 !  bandred_complex: Reduces a distributed hermitian matrix to band form
@@ -3219,13 +3397,14 @@ subroutine bandred_complex(na, a, lda, nblk, nbw, mpi_comm_rows, mpi_comm_cols, 
 !
 !  na          Order of matrix
 !
-!  a(lda,*)    Distributed matrix which should be reduced.
+!  a(lda,matrixCols)    Distributed matrix which should be reduced.
 !              Distribution is like in Scalapack.
 !              Opposed to Scalapack, a(:,:) must be set completely (upper and lower half)
 !              a(:,:) is overwritten on exit with the band and the Householder vectors
 !              in the upper half.
 !
 !  lda         Leading dimension of a
+!  matrixCols  local columns of matrix a
 !
 !  nblk        blocksize of cyclic distribution, must be the same in both directions!
 !
@@ -3235,7 +3414,7 @@ subroutine bandred_complex(na, a, lda, nblk, nbw, mpi_comm_rows, mpi_comm_cols, 
 !  mpi_comm_cols
 !              MPI-Communicators for rows/columns
 !
-!  tmat(nbw,nbw,num_blocks)    where num_blocks = (na-1)/nbw + 1
+!  tmat(nbw,nbw,numBlocks)    where numBlocks = (na-1)/nbw + 1
 !              Factors for the Householder vectors (returned), needed for back transformation
 !
 !-------------------------------------------------------------------------------
@@ -3244,8 +3423,8 @@ subroutine bandred_complex(na, a, lda, nblk, nbw, mpi_comm_rows, mpi_comm_cols, 
 #endif
    implicit none
 
-   integer                 :: na, lda, nblk, nbw, mpi_comm_rows, mpi_comm_cols
-   complex*16              :: a(lda,*), tmat(nbw,nbw,*)
+   integer                 :: na, lda, nblk, nbw, matrixCols, numBlocks, mpi_comm_rows, mpi_comm_cols
+   complex*16              :: a(lda,matrixCols), tmat(nbw,nbw,numBlocks)
 
    complex*16, parameter   :: CZERO = (0.d0,0.d0), CONE = (1.d0,0.d0)
 
@@ -3409,24 +3588,24 @@ subroutine bandred_complex(na, a, lda, nblk, nbw, mpi_comm_rows, mpi_comm_cols, 
 
      vav = 0
      if (l_rows>0) &
-        call zherk('U','C',n_cols,l_rows,CONE,vmr,ubound(vmr,1),CZERO,vav,ubound(vav,1))
-     call herm_matrix_allreduce(n_cols,vav,ubound(vav,1),mpi_comm_rows)
+        call zherk('U','C',n_cols,l_rows,CONE,vmr,ubound(vmr,dim=1),CZERO,vav,ubound(vav,dim=1))
+     call herm_matrix_allreduce(n_cols,vav, nbw,nbw,mpi_comm_rows)
 
      ! Calculate triangular matrix T for block Householder Transformation
 
      do lc=n_cols,1,-1
        tau = tmat(lc,lc,istep)
        if (lc<n_cols) then
-         call ztrmv('U','C','N',n_cols-lc,tmat(lc+1,lc+1,istep),ubound(tmat,1),vav(lc+1,lc),1)
+         call ztrmv('U','C','N',n_cols-lc,tmat(lc+1,lc+1,istep),ubound(tmat,dim=1),vav(lc+1,lc),1)
          tmat(lc,lc+1:n_cols,istep) = -tau * conjg(vav(lc+1:n_cols,lc))
        endif
      enddo
 
      ! Transpose vmr -> vmc (stored in umc, second half)
 
-     call elpa_transpose_vectors  (vmr, 2*ubound(vmr,1), mpi_comm_rows, &
-                                   umc(1,n_cols+1), 2*ubound(umc,1), mpi_comm_cols, &
-                                   1, 2*istep*nbw, n_cols, 2*nblk)
+     call elpa_transpose_vectors_complex  (vmr, ubound(vmr,dim=1), mpi_comm_rows, &
+                                   umc(1,n_cols+1), ubound(umc,dim=1), mpi_comm_cols, &
+                                   1, istep*nbw, n_cols, nblk)
 
      ! Calculate umc = A**T * vmr
      ! Note that the distributed A has to be transposed
@@ -3443,13 +3622,13 @@ subroutine bandred_complex(na, a, lda, nblk, nbw, mpi_comm_rows, mpi_comm_cols, 
          if (lce<lcs) cycle
 
          lre = min(l_rows,(i+1)*l_rows_tile)
-         call ZGEMM('C','N',lce-lcs+1,n_cols,lre,CONE,a(1,lcs),ubound(a,1), &
-                      vmr,ubound(vmr,1),CONE,umc(lcs,1),ubound(umc,1))
+         call ZGEMM('C','N',lce-lcs+1,n_cols,lre,CONE,a(1,lcs),ubound(a,dim=1), &
+                      vmr,ubound(vmr,dim=1),CONE,umc(lcs,1),ubound(umc,dim=1))
 
          if (i==0) cycle
          lre = min(l_rows,i*l_rows_tile)
          call ZGEMM('N','N',lre,n_cols,lce-lcs+1,CONE,a(1,lcs),lda, &
-                      umc(lcs,n_cols+1),ubound(umc,1),CONE,vmr(1,n_cols+1),ubound(vmr,1))
+                      umc(lcs,n_cols+1),ubound(umc,dim=1),CONE,vmr(1,n_cols+1),ubound(vmr,dim=1))
        enddo
      endif
 
@@ -3459,9 +3638,9 @@ subroutine bandred_complex(na, a, lda, nblk, nbw, mpi_comm_rows, mpi_comm_cols, 
      ! global tile size is smaller than the global remaining matrix
 
      if (tile_size < istep*nbw) then
-       call elpa_reduce_add_vectors  (vmr(1,n_cols+1),2*ubound(vmr,1),mpi_comm_rows, &
-                                       umc, 2*ubound(umc,1), mpi_comm_cols, &
-                                       2*istep*nbw, n_cols, 2*nblk)
+       call elpa_reduce_add_vectors_complex  (vmr(1,n_cols+1),ubound(vmr,dim=1),mpi_comm_rows, &
+                                       umc, ubound(umc,dim=1), mpi_comm_cols, &
+                                       istep*nbw, n_cols, nblk)
      endif
 
      if (l_cols>0) then
@@ -3473,23 +3652,25 @@ subroutine bandred_complex(na, a, lda, nblk, nbw, mpi_comm_rows, mpi_comm_cols, 
 
      ! U = U * Tmat**T
 
-     call ztrmm('Right','Upper','C','Nonunit',l_cols,n_cols,CONE,tmat(1,1,istep),ubound(tmat,1),umc,ubound(umc,1))
+     call ztrmm('Right','Upper','C','Nonunit',l_cols,n_cols,CONE,tmat(1,1,istep),ubound(tmat,dim=1),umc,ubound(umc,dim=1))
 
      ! VAV = Tmat * V**T * A * V * Tmat**T = (U*Tmat**T)**T * V * Tmat**T
 
-     call zgemm('C','N',n_cols,n_cols,l_cols,CONE,umc,ubound(umc,1),umc(1,n_cols+1),ubound(umc,1),CZERO,vav,ubound(vav,1))
-     call ztrmm('Right','Upper','C','Nonunit',n_cols,n_cols,CONE,tmat(1,1,istep),ubound(tmat,1),vav,ubound(vav,1))
+     call zgemm('C','N',n_cols,n_cols,l_cols,CONE,umc,ubound(umc,dim=1),umc(1,n_cols+1), &
+         ubound(umc,dim=1),CZERO,vav,ubound(vav,dim=1))
+     call ztrmm('Right','Upper','C','Nonunit',n_cols,n_cols,CONE,tmat(1,1,istep),ubound(tmat,dim=1),vav,ubound(vav,dim=1))
 
-     call herm_matrix_allreduce(n_cols,vav,ubound(vav,1),mpi_comm_cols)
+     call herm_matrix_allreduce(n_cols,vav, nbw,nbw,mpi_comm_cols)
 
      ! U = U - 0.5 * V * VAV
-     call zgemm('N','N',l_cols,n_cols,n_cols,(-0.5d0,0.d0),umc(1,n_cols+1),ubound(umc,1),vav,ubound(vav,1),CONE,umc,ubound(umc,1))
+     call zgemm('N','N',l_cols,n_cols,n_cols,(-0.5d0,0.d0),umc(1,n_cols+1),ubound(umc,dim=1),vav,ubound(vav,dim=1), &
+         CONE,umc,ubound(umc,dim=1))
 
      ! Transpose umc -> umr (stored in vmr, second half)
 
-     call elpa_transpose_vectors  (umc, 2*ubound(umc,1), mpi_comm_cols, &
-                                    vmr(1,n_cols+1), 2*ubound(vmr,1), mpi_comm_rows, &
-                                    1, 2*istep*nbw, n_cols, 2*nblk)
+     call elpa_transpose_vectors_complex  (umc, ubound(umc,dim=1), mpi_comm_cols, &
+                                    vmr(1,n_cols+1), ubound(vmr,dim=1), mpi_comm_rows, &
+                                    1, istep*nbw, n_cols, nblk)
 
      ! A = A - V*U**T - U*V**T
 
@@ -3499,7 +3680,7 @@ subroutine bandred_complex(na, a, lda, nblk, nbw, mpi_comm_rows, mpi_comm_cols, 
        lre = min(l_rows,(i+1)*l_rows_tile)
        if (lce<lcs .or. lre<1) cycle
        call zgemm('N','C',lre,lce-lcs+1,2*n_cols,-CONE, &
-                   vmr,ubound(vmr,1),umc(lcs,1),ubound(umc,1), &
+                   vmr,ubound(vmr,dim=1),umc(lcs,1),ubound(umc,dim=1), &
                    CONE,a(1,lcs),lda)
      enddo
 
@@ -3514,7 +3695,7 @@ end subroutine bandred_complex
 
 !-------------------------------------------------------------------------------
 
-subroutine herm_matrix_allreduce(n,a,lda,comm)
+subroutine herm_matrix_allreduce(n,a,lda,ldb,comm)
 
 !-------------------------------------------------------------------------------
 !  herm_matrix_allreduce: Does an mpi_allreduce for a hermitian matrix A.
@@ -3525,8 +3706,8 @@ subroutine herm_matrix_allreduce(n,a,lda,comm)
    use timings
 #endif
    implicit none
-   integer    :: n, lda, comm
-   complex*16 :: a(lda,*)
+   integer    :: n, lda, ldb, comm
+   complex*16 :: a(lda,ldb)
 
    integer    :: i, nc, mpierr
    complex*16 :: h1(n*n), h2(n*n)
@@ -3558,7 +3739,8 @@ end subroutine herm_matrix_allreduce
 
 !-------------------------------------------------------------------------------
 
-subroutine trans_ev_band_to_full_complex(na, nqc, nblk, nbw, a, lda, tmat, q, ldq, mpi_comm_rows, mpi_comm_cols)
+subroutine trans_ev_band_to_full_complex(na, nqc, nblk, nbw, a, lda, tmat, q, ldq, matrixCols,  &
+                                         numBlocks, mpi_comm_rows, mpi_comm_cols)
 
 !-------------------------------------------------------------------------------
 !  trans_ev_band_to_full_complex:
@@ -3574,12 +3756,13 @@ subroutine trans_ev_band_to_full_complex(na, nqc, nblk, nbw, a, lda, tmat, q, ld
 !
 !  nbw         semi bandwith
 !
-!  a(lda,*)    Matrix containing the Householder vectors (i.e. matrix a after bandred_complex)
+!  a(lda,matrixCols)    Matrix containing the Householder vectors (i.e. matrix a after bandred_complex)
 !              Distribution is like in Scalapack.
 !
 !  lda         Leading dimension of a
+!  matrixCols  local columns of matrix a and q
 !
-!  tmat(nbw,nbw,.) Factors returned by bandred_complex
+!  tmat(nbw,nbw,numBlocks) Factors returned by bandred_complex
 !
 !  q           On input: Eigenvectors of band matrix
 !              On output: Transformed eigenvectors
@@ -3597,8 +3780,8 @@ subroutine trans_ev_band_to_full_complex(na, nqc, nblk, nbw, a, lda, tmat, q, ld
 #endif
    implicit none
 
-   integer                 :: na, nqc, lda, ldq, nblk, nbw, mpi_comm_rows, mpi_comm_cols
-   complex*16              :: a(lda,*), q(ldq,*), tmat(nbw, nbw, *)
+   integer                 :: na, nqc, lda, ldq, nblk, nbw, matrixCols, numBlocks, mpi_comm_rows, mpi_comm_cols
+   complex*16              :: a(lda,matrixCols), q(ldq,matrixCols), tmat(nbw, nbw, numBlocks)
 
    complex*16, parameter   :: CZERO = (0.d0,0.d0), CONE = (1.d0,0.d0)
 
@@ -3679,15 +3862,15 @@ subroutine trans_ev_band_to_full_complex(na, nqc, nblk, nbw, a, lda, tmat, q, ld
      ! Q = Q - V * T**T * V**T * Q
 
      if (l_rows>0) then
-       call zgemm('C','N',n_cols,l_cols,l_rows,CONE,hvm,ubound(hvm,1), &
+       call zgemm('C','N',n_cols,l_cols,l_rows,CONE,hvm,ubound(hvm,dim=1), &
                    q,ldq,CZERO,tmp1,n_cols)
      else
        tmp1(1:l_cols*n_cols) = 0
      endif
      call mpi_allreduce(tmp1,tmp2,n_cols*l_cols,MPI_DOUBLE_COMPLEX,MPI_SUM,mpi_comm_rows,mpierr)
      if (l_rows>0) then
-       call ztrmm('L','U','C','N',n_cols,l_cols,CONE,tmat(1,1,istep),ubound(tmat,1),tmp2,n_cols)
-       call zgemm('N','N',l_rows,l_cols,n_cols,-CONE,hvm,ubound(hvm,1), &
+       call ztrmm('L','U','C','N',n_cols,l_cols,CONE,tmat(1,1,istep),ubound(tmat,dim=1),tmp2,n_cols)
+       call zgemm('N','N',l_rows,l_cols,n_cols,-CONE,hvm,ubound(hvm,dim=1), &
                    tmp2,n_cols,CONE,q,ldq)
      endif
 
@@ -3703,7 +3886,7 @@ subroutine trans_ev_band_to_full_complex(na, nqc, nblk, nbw, a, lda, tmat, q, ld
 
 !---------------------------------------------------------------------------------------------------
 
-subroutine tridiag_band_complex(na, nb, nblk, a, lda, d, e, mpi_comm_rows, mpi_comm_cols, mpi_comm)
+subroutine tridiag_band_complex(na, nb, nblk, a, lda, d, e, matrixCols, mpi_comm_rows, mpi_comm_cols, mpi_comm)
 
 !-------------------------------------------------------------------------------
 ! tridiag_band_complex:
@@ -3715,9 +3898,10 @@ subroutine tridiag_band_complex(na, nb, nblk, a, lda, d, e, mpi_comm_rows, mpi_c
 !
 !  nblk        blocksize of cyclic distribution, must be the same in both directions!
 !
-!  a(lda,*)    Distributed system matrix reduced to banded form in the upper diagonal
+!  a(lda,matrixCols)    Distributed system matrix reduced to banded form in the upper diagonal
 !
 !  lda         Leading dimension of a
+!  matrixCols  local columns of matrix a
 !
 !  d(na)       Diagonal of tridiagonal matrix, set only on PE 0 (output)
 !
@@ -3734,8 +3918,8 @@ subroutine tridiag_band_complex(na, nb, nblk, a, lda, d, e, mpi_comm_rows, mpi_c
 #endif
    implicit none
 
-   integer, intent(in)      ::  na, nb, nblk, lda, mpi_comm_rows, mpi_comm_cols, mpi_comm
-   complex*16, intent(in)   :: a(lda,*)
+   integer, intent(in)      ::  na, nb, nblk, lda, matrixCols, mpi_comm_rows, mpi_comm_cols, mpi_comm
+   complex*16, intent(in)   :: a(lda,matrixCols)
    real*8, intent(out)      :: d(na), e(na) ! set only on PE 0
 
 
@@ -3760,8 +3944,8 @@ subroutine tridiag_band_complex(na, nb, nblk, a, lda, d, e, mpi_comm_rows, mpi_c
    integer, allocatable     :: limits(:), snd_limits(:,:)
    integer, allocatable     :: block_limits(:)
    complex*16, allocatable  :: ab(:,:), hh_gath(:,:,:), hh_send(:,:,:)
-   ! dummies for calling redist_band
-   real*8                   :: r_a(1,1), r_ab(1,1)
+!   ! dummies for calling redist_band
+!   real*8                   :: r_a(1,1), r_ab(1,1)
 
 #ifdef HAVE_DETAILED_TIMINGS
    call timer%start("tridiag_band_complex")
@@ -3804,7 +3988,7 @@ subroutine tridiag_band_complex(na, nb, nblk, a, lda, d, e, mpi_comm_rows, mpi_c
    n_off = block_limits(my_pe)*nb
 
    ! Redistribute band in a to ab
-   call redist_band(.false., r_a, a, lda, na, nblk, nb, mpi_comm_rows, mpi_comm_cols, mpi_comm, r_ab, ab)
+   call redist_band_complex(a, lda, na, nblk, nb, matrixCols, mpi_comm_rows, mpi_comm_cols, mpi_comm, ab)
 
    ! Calculate the workload for each sweep in the back transformation
    ! and the space requirements to hold the HH vectors
@@ -4363,7 +4547,7 @@ subroutine tridiag_band_complex(na, nb, nblk, a, lda, d, e, mpi_comm_rows, mpi_c
 !---------------------------------------------------------------------------------------------------
 
 
-subroutine trans_ev_tridi_to_band_complex(na, nev, nblk, nbw, q, ldq,   &
+subroutine trans_ev_tridi_to_band_complex(na, nev, nblk, nbw, q, ldq, matrixCols,  &
                                           mpi_comm_rows, mpi_comm_cols, &
                                           wantDebug, success, THIS_COMPLEX_ELPA_KERNEL)
 
@@ -4386,6 +4570,7 @@ subroutine trans_ev_tridi_to_band_complex(na, nev, nblk, nbw, q, ldq,   &
 !              Distribution is like in Scalapack.
 !
 !  ldq         Leading dimension of q
+! matrixCols   local columns of matrix q
 !
 !  mpi_comm_rows
 !  mpi_comm_cols
@@ -4398,8 +4583,8 @@ subroutine trans_ev_tridi_to_band_complex(na, nev, nblk, nbw, q, ldq,   &
     implicit none
 
     integer, intent(in)     :: THIS_COMPLEX_ELPA_KERNEL
-    integer, intent(in)     :: na, nev, nblk, nbw, ldq, mpi_comm_rows, mpi_comm_cols
-    complex*16              :: q(ldq,*)
+    integer, intent(in)     :: na, nev, nblk, nbw, ldq, matrixCols, mpi_comm_rows, mpi_comm_cols
+    complex*16              :: q(ldq,matrixCols)
 
     integer                 :: np_rows, my_prow, np_cols, my_pcol
 
@@ -5379,14 +5564,12 @@ contains
   subroutine compute_hh_trafo_complex(off, ncols, istripe, THIS_COMPLEX_ELPA_KERNEL)
 #endif
 
-#if defined(WITH_COMPLEX_GENERIC_KERNEL)
-      use complex_generic_kernel, only : single_hh_trafo_complex_generic
-#endif
-
 #if defined(WITH_COMPLEX_GENERIC_SIMPLE_KERNEL)
       use complex_generic_simple_kernel, only : single_hh_trafo_complex_generic_simple
 #endif
-
+#if defined(WITH_COMPLEX_GENERIC_KERNEL)
+      use complex_generic_kernel, only : single_hh_trafo_complex_generic
+#endif
 #ifdef HAVE_DETAILED_TIMINGS
       use timings
 #endif
@@ -5424,46 +5607,33 @@ contains
 #endif
 
 
+#if defined(WITH_COMPLEX_AVX_BLOCK2_KERNEL)
 #if defined(WITH_NO_SPECIFIC_COMPLEX_KERNEL)
-        if (THIS_COMPLEX_ELPA_KERNEL .ne. COMPLEX_ELPA_KERNEL_GENERIC .and. &
-            THIS_COMPLEX_ELPA_KERNEL .ne. COMPLEX_ELPA_KERNEL_GENERIC_SIMPLE .and. &
-            THIS_COMPLEX_ELPA_KERNEL .ne. COMPLEX_ELPA_KERNEL_SSE .and. &
-            THIS_COMPLEX_ELPA_KERNEL .ne. COMPLEX_ELPA_KERNEL_AVX_BLOCK1 .and. &
-            THIS_COMPLEX_ELPA_KERNEL .ne. COMPLEX_ELPA_KERNEL_AVX_BLOCK2 .and. &
-            THIS_COMPLEX_ELPA_KERNEL .ne. COMPLEX_ELPA_KERNEL_BGP .and. &
-            THIS_COMPLEX_ELPA_KERNEL .ne. COMPLEX_ELPA_KERNEL_BGQ ) then
+        if (THIS_COMPLEX_ELPA_KERNEL .eq. COMPLEX_ELPA_KERNEL_AVX_BLOCK2) then
+#endif  /* WITH_NO_SPECIFIC_COMPLEX_KERNEL */
           ttt = mpi_wtime()
-          do j = ncols, 1, -1
+          do j = ncols, 2, -2
+            w(:,1) = bcast_buffer(1:nbw,j+off)
+            w(:,2) = bcast_buffer(1:nbw,j+off-1)
 #ifdef WITH_OPENMP
-            call single_hh_trafo_complex_generic(a(1,j+off+a_off,istripe,my_thread), &
-                                                   bcast_buffer(1,j+off),nbw,nl,stripe_width)
+            call double_hh_trafo_complex_sse_avx_2hv(a(1,j+off+a_off-1,istripe,my_thread), &
+                                                       w, nbw, nl, stripe_width, nbw)
 #else
-            call single_hh_trafo_complex_generic(a(1,j+off+a_off,istripe), &
-                                                   bcast_buffer(1,j+off),nbw,nl,stripe_width)
+            call double_hh_trafo_complex_sse_avx_2hv(a(1,j+off+a_off-1,istripe), &
+                                                       w, nbw, nl, stripe_width, nbw)
 #endif
           enddo
-        endif
-#endif /* WITH_NO_SPECIFIC_COMPLEX_KERNEL */
-
-
-#if defined(WITH_COMPLEX_GENERIC_KERNEL)
-#if defined(WITH_NO_SPECIFIC_COMPLEX_KERNEL)
-        if (THIS_COMPLEX_ELPA_KERNEL .eq. COMPLEX_ELPA_KERNEL_GENERIC) then
-#endif /* WITH_NO_SPECIFIC_COMPLEX_KERNEL */
-          ttt = mpi_wtime()
-          do j = ncols, 1, -1
 #ifdef WITH_OPENMP
-            call single_hh_trafo_complex_generic(a(1,j+off+a_off,istripe,my_thread), &
-                                                   bcast_buffer(1,j+off),nbw,nl,stripe_width)
+          if (j==1) call single_hh_trafo_complex_sse_avx_1hv(a(1,1+off+a_off,istripe,my_thread), &
+                                                             bcast_buffer(1,off+1), nbw, nl, stripe_width)
 #else
-            call single_hh_trafo_complex_generic(a(1,j+off+a_off,istripe), &
-                                                   bcast_buffer(1,j+off),nbw,nl,stripe_width)
+          if (j==1) call single_hh_trafo_complex_sse_avx_1hv(a(1,1+off+a_off,istripe), &
+                                                             bcast_buffer(1,off+1), nbw, nl, stripe_width)
 #endif
-          enddo
 #if defined(WITH_NO_SPECIFIC_COMPLEX_KERNEL)
         endif
-#endif /* WITH_NO_SPECIFIC_COMPLEX_KERNEL */
-#endif /* WITH_COPLEX_GENERIC_KERNEL */
+#endif  /* WITH_NO_SPECIFIC_COMPLEX_KERNEL */
+#endif /* WITH_COMPLEX_AVX_BLOCK2_KERNEL */
 
 
 #if defined(WITH_COMPLEX_GENERIC_SIMPLE_KERNEL)
@@ -5486,9 +5656,11 @@ contains
 #endif /* WITH_COMPLEX_GENERIC_SIMPLE_KERNEL */
 
 
-#if defined(WITH_COMPLEX_BGQ_KERNEL)
+#if defined(WITH_COMPLEX_GENERIC_KERNEL)
 #if defined(WITH_NO_SPECIFIC_COMPLEX_KERNEL)
-        if (THIS_COMPLEX_ELPA_KERNEL .eq. COMPLEX_ELPA_KERNEL_BGQ) then
+        if (THIS_COMPLEX_ELPA_KERNEL .eq. COMPLEX_ELPA_KERNEL_GENERIC .or. &
+            THIS_COMPLEX_ELPA_KERNEL .eq. COMPLEX_ELPA_KERNEL_BGP .or. &
+            THIS_COMPLEX_ELPA_KERNEL .eq. COMPLEX_ELPA_KERNEL_BGQ ) then
 #endif /* WITH_NO_SPECIFIC_COMPLEX_KERNEL */
           ttt = mpi_wtime()
           do j = ncols, 1, -1
@@ -5503,8 +5675,7 @@ contains
 #if defined(WITH_NO_SPECIFIC_COMPLEX_KERNEL)
         endif
 #endif /* WITH_NO_SPECIFIC_COMPLEX_KERNEL */
-#endif /* WITH_COMPLEX_BGQ_KERNEL */
-
+#endif /* WITH_COMPLEX_GENERIC_KERNEL */
 
 #if defined(WITH_COMPLEX_SSE_KERNEL)
 #if defined(WITH_NO_SPECIFIC_COMPLEX_KERNEL)
@@ -5534,7 +5705,6 @@ contains
 !              call single_hh_trafo_complex_sse_avx_1hv(a(1,j+off+a_off,istripe),bcast_buffer(1,j+off),nbw,nl,stripe_width)
 !#endif
 
-
 #if defined(WITH_COMPLEX_AVX_BLOCK1_KERNEL)
 #if defined(WITH_NO_SPECIFIC_COMPLEX_KERNEL)
         if (THIS_COMPLEX_ELPA_KERNEL .eq. COMPLEX_ELPA_KERNEL_AVX_BLOCK1) then
@@ -5552,37 +5722,7 @@ contains
 #if defined(WITH_NO_SPECIFIC_COMPLEX_KERNEL)
         endif
 #endif /* WITH_NO_SPECIFIC_COMPLEX_KERNEL */
-#endif /* WITH_COMPLEX_AVX_BLOCK1_KERNEL */
-
-
-#if defined(WITH_COMPLEX_AVX_BLOCK2_KERNEL)
-#if defined(WITH_NO_SPECIFIC_COMPLEX_KERNEL)
-        if (THIS_COMPLEX_ELPA_KERNEL .eq. COMPLEX_ELPA_KERNEL_AVX_BLOCK2) then
-#endif  /* WITH_NO_SPECIFIC_COMPLEX_KERNEL */
-          ttt = mpi_wtime()
-          do j = ncols, 2, -2
-            w(:,1) = bcast_buffer(1:nbw,j+off)
-            w(:,2) = bcast_buffer(1:nbw,j+off-1)
-#ifdef WITH_OPENMP
-            call double_hh_trafo_complex_sse_avx_2hv(a(1,j+off+a_off-1,istripe,my_thread),&
-                                                       w, nbw, nl, stripe_width, nbw)
-#else
-            call double_hh_trafo_complex_sse_avx_2hv(a(1,j+off+a_off-1,istripe),&
-                                                       w, nbw, nl, stripe_width, nbw)
-#endif
-          enddo
-#ifdef WITH_OPENMP
-          if (j==1) call single_hh_trafo_complex_sse_avx_1hv(a(1,1+off+a_off,istripe,my_thread),&
-                                                             bcast_buffer(1,off+1), nbw, nl, stripe_width)
-#else
-          if (j==1) call single_hh_trafo_complex_sse_avx_1hv(a(1,1+off+a_off,istripe),&
-                                                             bcast_buffer(1,off+1), nbw, nl, stripe_width)
-#endif
-#if defined(WITH_NO_SPECIFIC_COMPLEX_KERNEL)
-        endif
-#endif  /* WITH_NO_SPECIFIC_COMPLEX_KERNEL */
-#endif /* WITH_COMPLEX_AVX_BLOCK2_KERNEL */
-
+#endif /* WITH_COMPLEX_AVX_BLOCK1_KERNE */
 
 #ifdef WITH_OPENMP
         if (my_thread==1) then
@@ -5601,233 +5741,21 @@ contains
 
 end subroutine
 
-! --------------------------------------------------------------------------------------------------
-! redist_band: redistributes band from 2D block cyclic form to 1D band
+#define DATATYPE REAL
+#define BYTESIZE 8
+#define REALCASE 1
+#include "redist_band.X90"
+#undef DATATYPE
+#undef BYTESIZE
+#undef REALCASE
 
-subroutine redist_band(l_real, r_a, c_a, lda, na, nblk, nbw, mpi_comm_rows, mpi_comm_cols, mpi_comm, r_ab, c_ab)
-#ifdef HAVE_DETAILED_TIMINGS
-   use timings
-#endif
-   implicit none
-   logical, intent(in)     :: l_real
-   real*8, intent(in)      :: r_a(lda, *)
-   complex*16, intent(in)  :: c_a(lda, *)
-   integer, intent(in)     :: lda, na, nblk, nbw, mpi_comm_rows, mpi_comm_cols, mpi_comm
-   real*8, intent(out)     :: r_ab(:,:)
-   complex*16, intent(out) :: c_ab(:,:)
-
-   integer, allocatable    :: ncnt_s(:), nstart_s(:), ncnt_r(:), nstart_r(:), &
-                              global_id(:,:), global_id_tmp(:,:), block_limits(:)
-   real*8, allocatable     :: r_sbuf(:,:,:), r_rbuf(:,:,:), r_buf(:,:)
-   complex*16, allocatable :: c_sbuf(:,:,:), c_rbuf(:,:,:), c_buf(:,:)
-
-   integer                 :: i, j, my_pe, n_pes, my_prow, np_rows, my_pcol, np_cols, &
-                              nfact, np, npr, npc, mpierr, is, js
-   integer                 :: nblocks_total, il, jl, l_rows, l_cols, n_off
-
-#ifdef HAVE_DETAILED_TIMINGS
-        call timer%start("redist_band")
-#endif
-
-   call mpi_comm_rank(mpi_comm,my_pe,mpierr)
-   call mpi_comm_size(mpi_comm,n_pes,mpierr)
-
-   call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
-   call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
-   call mpi_comm_rank(mpi_comm_cols,my_pcol,mpierr)
-   call mpi_comm_size(mpi_comm_cols,np_cols,mpierr)
-
-   ! Get global_id mapping 2D procssor coordinates to global id
-
-   allocate(global_id(0:np_rows-1,0:np_cols-1))
-#ifdef WITH_OPENMP
-   allocate(global_id_tmp(0:np_rows-1,0:np_cols-1))
-#endif
-   global_id(:,:) = 0
-   global_id(my_prow, my_pcol) = my_pe
-#ifdef WITH_OPENMP
-   global_id_tmp(:,:) = global_id(:,:)
-   call mpi_allreduce(global_id_tmp, global_id, np_rows*np_cols, mpi_integer, mpi_sum, mpi_comm, mpierr)
-   deallocate(global_id_tmp)
-#else
-   call mpi_allreduce(mpi_in_place, global_id, np_rows*np_cols, mpi_integer, mpi_sum, mpi_comm, mpierr)
-#endif
-
-   ! Set work distribution
-
-   nblocks_total = (na-1)/nbw + 1
-
-   allocate(block_limits(0:n_pes))
-   call divide_band(nblocks_total, n_pes, block_limits)
-
-
-   allocate(ncnt_s(0:n_pes-1))
-   allocate(nstart_s(0:n_pes-1))
-   allocate(ncnt_r(0:n_pes-1))
-   allocate(nstart_r(0:n_pes-1))
-
-
-   nfact = nbw/nblk
-
-   ! Count how many blocks go to which PE
-
-   ncnt_s(:) = 0
-   np = 0 ! receiver PE number
-   do j=0,(na-1)/nblk ! loop over rows of blocks
-     if (j/nfact==block_limits(np+1)) np = np+1
-     if (mod(j,np_rows) == my_prow) then
-       do i=0,nfact
-         if (mod(i+j,np_cols) == my_pcol) then
-           ncnt_s(np) = ncnt_s(np) + 1
-         endif
-       enddo
-     endif
-   enddo
-
-   ! Allocate send buffer
-
-   if (l_real) then
-     allocate(r_sbuf(nblk,nblk,sum(ncnt_s)))
-     r_sbuf(:,:,:) = 0.
-   else
-     allocate(c_sbuf(nblk,nblk,sum(ncnt_s)))
-     c_sbuf(:,:,:) = 0.
-   endif
-
-   ! Determine start offsets in send buffer
-
-   nstart_s(0) = 0
-   do i=1,n_pes-1
-     nstart_s(i) = nstart_s(i-1) + ncnt_s(i-1)
-   enddo
-
-   ! Fill send buffer
-
-   l_rows = local_index(na, my_prow, np_rows, nblk, -1) ! Local rows of a
-   l_cols = local_index(na, my_pcol, np_cols, nblk, -1) ! Local columns of a
-
-   np = 0
-   do j=0,(na-1)/nblk ! loop over rows of blocks
-     if (j/nfact==block_limits(np+1)) np = np+1
-     if (mod(j,np_rows) == my_prow) then
-       do i=0,nfact
-         if (mod(i+j,np_cols) == my_pcol) then
-           nstart_s(np) = nstart_s(np) + 1
-           js = (j/np_rows)*nblk
-           is = ((i+j)/np_cols)*nblk
-           jl = MIN(nblk,l_rows-js)
-           il = MIN(nblk,l_cols-is)
-           if (l_real) then
-             r_sbuf(1:jl,1:il,nstart_s(np)) = r_a(js+1:js+jl,is+1:is+il)
-           else
-             c_sbuf(1:jl,1:il,nstart_s(np)) = c_a(js+1:js+jl,is+1:is+il)
-           endif
-         endif
-       enddo
-      endif
-   enddo
-
-   ! Count how many blocks we get from which PE
-
-   ncnt_r(:) = 0
-   do j=block_limits(my_pe)*nfact,min(block_limits(my_pe+1)*nfact-1,(na-1)/nblk)
-     npr = mod(j,np_rows)
-     do i=0,nfact
-       npc = mod(i+j,np_cols)
-       np = global_id(npr,npc)
-       ncnt_r(np) = ncnt_r(np) + 1
-     enddo
-   enddo
-
-   ! Allocate receive buffer
-
-   if (l_real) then
-     allocate(r_rbuf(nblk,nblk,sum(ncnt_r)))
-   else
-     allocate(c_rbuf(nblk,nblk,sum(ncnt_r)))
-   endif
-
-   ! Set send counts/send offsets, receive counts/receive offsets
-   ! now actually in variables, not in blocks
-
-   ncnt_s(:) = ncnt_s(:)*nblk*nblk
-
-   nstart_s(0) = 0
-   do i=1,n_pes-1
-     nstart_s(i) = nstart_s(i-1) + ncnt_s(i-1)
-   enddo
-
-   ncnt_r(:) = ncnt_r(:)*nblk*nblk
-
-   nstart_r(0) = 0
-   do i=1,n_pes-1
-     nstart_r(i) = nstart_r(i-1) + ncnt_r(i-1)
-   enddo
-
-   ! Exchange all data with MPI_Alltoallv
-
-   if (l_real) then
-     call MPI_Alltoallv(r_sbuf,ncnt_s,nstart_s,MPI_REAL8,r_rbuf,ncnt_r,nstart_r,MPI_REAL8,mpi_comm,mpierr)
-   else
-     call MPI_Alltoallv(c_sbuf,ncnt_s,nstart_s,MPI_COMPLEX16,c_rbuf,ncnt_r,nstart_r,MPI_COMPLEX16,mpi_comm,mpierr)
-   endif
-
-   ! set band from receive buffer
-
-   ncnt_r(:) = ncnt_r(:)/(nblk*nblk)
-
-   nstart_r(0) = 0
-   do i=1,n_pes-1
-     nstart_r(i) = nstart_r(i-1) + ncnt_r(i-1)
-   enddo
-
-   if (l_real) then
-     allocate(r_buf((nfact+1)*nblk,nblk))
-   else
-     allocate(c_buf((nfact+1)*nblk,nblk))
-   endif
-
-   ! n_off: Offset of ab within band
-   n_off = block_limits(my_pe)*nbw
-
-   do j=block_limits(my_pe)*nfact,min(block_limits(my_pe+1)*nfact-1,(na-1)/nblk)
-     npr = mod(j,np_rows)
-     do i=0,nfact
-       npc = mod(i+j,np_cols)
-       np = global_id(npr,npc)
-       nstart_r(np) = nstart_r(np) + 1
-       if (l_real) then
-         r_buf(i*nblk+1:i*nblk+nblk,:) = transpose(r_rbuf(:,:,nstart_r(np)))
-       else
-         c_buf(i*nblk+1:i*nblk+nblk,:) = conjg(transpose(c_rbuf(:,:,nstart_r(np))))
-       endif
-     enddo
-     do i=1,MIN(nblk,na-j*nblk)
-       if (l_real) then
-         r_ab(1:nbw+1,i+j*nblk-n_off) = r_buf(i:i+nbw,i)
-       else
-         c_ab(1:nbw+1,i+j*nblk-n_off) = c_buf(i:i+nbw,i)
-       endif
-     enddo
-   enddo
-
-   deallocate(ncnt_s, nstart_s)
-   deallocate(ncnt_r, nstart_r)
-   deallocate(global_id)
-   deallocate(block_limits)
-
-   if (l_real) then
-     deallocate(r_sbuf, r_rbuf, r_buf)
-   else
-     deallocate(c_sbuf, c_rbuf, c_buf)
-   endif
-
-#ifdef HAVE_DETAILED_TIMINGS
-   call timer%stop("redist_band")
-#endif
-
-
-end subroutine
+#define DATATYPE COMPLEX
+#define BYTESIZE 16
+#define COMPLEXCASE 1
+#include "redist_band.X90"
+#undef DATATYPE
+#undef BYTESIZE
+#undef COMPLEXCASE
 
 !---------------------------------------------------------------------------------------------------
 ! divide_band: sets the work distribution in band
