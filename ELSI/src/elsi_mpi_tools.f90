@@ -148,11 +148,22 @@ subroutine elsi_initialize_blacs()
 
    if (method == PEXSI) then
 
-     n_p_rows = 1
-     n_p_cols = n_procs
+     if (mod(n_procs, 10) == 0 .and. n_procs > 100) then
+        n_p_rows = 10
+     else if (mod(n_procs, 5) == 0 .and. n_procs > 25) then
+        n_p_rows = 5
+     else if (mod(n_procs, 4) == 0 .and. n_procs > 16) then
+        n_p_rows = 4
+     else if (mod(n_procs, 2) == 0 .and. n_procs > 4) then
+        n_p_rows = 2
+     else 
+        n_p_rows = 1
+     end if
 
-     my_p_row = 0
-     my_p_col = myid
+     n_p_cols = n_procs / n_p_rows 
+     
+     my_p_row = FLOOR(1d0*myid/n_p_cols)
+     my_p_col = mod(myid,n_p_cols)
 
      ! PEXSI needs a pure block distriburion.
      ! This is why we reset the blocksize here 
@@ -160,8 +171,8 @@ subroutine elsi_initialize_blacs()
 
      ! The last process takes all remaining columns
      n_b_cols = FLOOR(1d0*n_g_rank / n_p_cols)
-     if (myid == n_procs - 1) then
-        n_b_cols = n_g_rank - (n_procs-1) * n_b_cols
+     if (my_p_col == n_p_cols - 1) then
+        n_b_cols = n_g_rank - (n_p_cols-1) * n_b_cols
      end if
 
      n_l_rows = n_b_rows
