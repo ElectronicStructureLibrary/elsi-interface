@@ -59,6 +59,7 @@
 !> an ascii file.
 !>
 !> The real ELPA 2 kernel is set as the default kernel.
+!> In this test case the qr_decomposition is used.
 !> However, this can be overriden by setting
 !> the environment variable "REAL_ELPA_KERNEL" to an
 !> appropiate value.
@@ -134,8 +135,17 @@ program test_real2
    logical :: success
 
    success = .true.
+   write_to_file = .false.
 
-   call read_input_parameters(na, nev, nblk, write_to_file)
+   if (COMMAND_ARGUMENT_COUNT() /= 0) then
+     write(error_unit,*) "This program does not support any command-line arguments"
+     stop 1
+   endif
+
+   nblk = 2
+   na   = 4000
+   nev  = 1500
+
    !-------------------------------------------------------------------------------
    !  MPI Initialization
    call setup_mpi(myid, nprocs)
@@ -191,9 +201,9 @@ program test_real2
                 print_max_allocated_memory=.true.)
 
 
-  call timer%enable()
+   call timer%enable()
 
-  call timer%start("program")
+   call timer%start("program")
 #endif
    !-------------------------------------------------------------------------------
    ! Selection of number of processor rows/columns
@@ -228,6 +238,7 @@ program test_real2
       print *, " kernel via an environment variable! To change this re-install"
       print *, " the library and have a look at the log files"
 #endif
+      print *, " The qr-decomposition is used via the api call"
    endif
 
    !-------------------------------------------------------------------------------
@@ -299,7 +310,9 @@ program test_real2
 
    call mpi_barrier(mpi_comm_world, mpierr) ! for correct timings only
    success = solve_evp_real_2stage(na, nev, a, na_rows, ev, z, na_rows, nblk, &
-                              mpi_comm_rows, mpi_comm_cols, mpi_comm_world)
+                              na_cols,                                        &
+                              mpi_comm_rows, mpi_comm_cols, mpi_comm_world,   &
+                              useQR=.true.)
 
    if (.not.(success)) then
       write(error_unit,*) "solve_evp_real_2stage produced an error! Aborting..."

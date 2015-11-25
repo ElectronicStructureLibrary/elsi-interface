@@ -54,8 +54,8 @@
 ! --------------------------------------------------------------------------------------------------
 module complex_generic_kernel
 
-    private
-    public single_hh_trafo_complex_generic
+  private
+  public single_hh_trafo_complex_generic
 contains
   subroutine single_hh_trafo_complex_generic(q, hh, nb, nq, ldq)
 

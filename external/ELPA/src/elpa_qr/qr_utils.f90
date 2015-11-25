@@ -205,9 +205,9 @@ end subroutine reverse_matrix_2dcomm_ref
 ! b: if trans = 'N': b is size of block distribution between rows
 ! b: if trans = 'T': b is size of block distribution between columns
 subroutine reverse_matrix_1dcomm(trans,m,n,b,a,lda,work,lwork,mpicomm)
+    use mpi
 
     implicit none
-    include 'mpif.h'
 
     ! input
     integer trans

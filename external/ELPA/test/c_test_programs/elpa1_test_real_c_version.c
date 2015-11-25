@@ -93,7 +93,8 @@ main(int argc, char** argv) {
      printf("and uses a blocksize of %d\n",nblk);
      printf("\n");
      printf("This is an example program with much less functionality\n");
-     printf("as it's Fortran counterpart \n");
+     printf("as it's Fortran counterpart. It's only purpose is to show how \n");
+     printf("to evoke ELPA1 from a c programm\n");
      printf("\n");
 
    }
@@ -176,7 +177,7 @@ main(int argc, char** argv) {
 
    mpierr = MPI_Barrier(MPI_COMM_WORLD);
 
-   success = elpa_solve_evp_real_1stage(na, nev, na_cols, a, na_rows, ev, z, na_rows, nblk, mpi_comm_rows, mpi_comm_cols);
+   success = elpa_solve_evp_real_1stage(na, nev, a, na_rows, ev, z, na_rows, nblk, na_cols, mpi_comm_rows, mpi_comm_cols);
 
    if (success != 1) {
      printf("error in ELPA solve \n");

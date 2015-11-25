@@ -39,10 +39,12 @@
 !    the original distribution, the GNU Lesser General Public License.
 !
 !
+#ifndef INSTALLER
 #include "config-f90.h"
+#endif
 !>
 !> Fortran test programm to demonstrates the use of
-!> ELPA 2 real case library.
+!> ELPA 2 complex case library.
 !> If "HAVE_REDIRECT" was defined at build time
 !> the stdout and stderr output of each MPI task
 !> can be redirected to files if the environment
@@ -58,16 +60,15 @@
 !> "output", which specifies that the EV's are written to
 !> an ascii file.
 !>
-!> The real ELPA 2 kernel is set as the default kernel.
-!> In this test case the qr_decomposition is used.
+!> The complex ELPA 2 kernel is set as the default kernel.
 !> However, this can be overriden by setting
-!> the environment variable "REAL_ELPA_KERNEL" to an
+!> the environment variable "COMPLEX_ELPA_KERNEL" to an
 !> appropiate value.
 !>
-program test_real2
+program test_complex2
 
 !-------------------------------------------------------------------------------
-! Standard eigenvalue problem - REAL version
+! Standard eigenvalue problem - COMPLEX version
 !
 ! This program demonstrates the use of the ELPA module
 ! together with standard scalapack routines
@@ -76,23 +77,20 @@ program test_real2
 ! consortium. The copyright of any additional modifications shall rest
 ! with their original authors, but shall adhere to the licensing terms
 ! distributed along with the original code in the file "COPYING".
-!
 !-------------------------------------------------------------------------------
 
    use ELPA1
    use ELPA2
    use elpa_utilities, only : error_unit
-   use elpa2_utilities
+#ifdef WITH_OPENMP
+   use test_util
+#endif
 
    use mod_read_input_parameters
    use mod_check_correctness
    use mod_setup_mpi
    use mod_blacs_infrastructure
    use mod_prepare_matrix
-
-#ifdef WITH_OPENMP
-   use test_util
-#endif
 
 #ifdef HAVE_REDIRECT
   use redirect
@@ -124,9 +122,14 @@ program test_real2
 
    integer, external :: numroc
 
-   real*8, allocatable :: a(:,:), z(:,:), tmp1(:,:), tmp2(:,:), as(:,:), ev(:)
+   complex*16, parameter     :: CZERO = (0.d0,0.d0), CONE = (1.d0,0.d0)
+   real*8, allocatable :: ev(:), xr(:,:)
+
+   complex*16, allocatable :: a(:,:), z(:,:), tmp1(:,:), tmp2(:,:), as(:,:)
+
 
    integer :: iseed(4096) ! Random seed, size should be sufficient for every generator
+
    integer :: STATUS
 #ifdef WITH_OPENMP
    integer :: omp_get_max_threads,  required_mpi_thread_level, provided_mpi_thread_level
@@ -135,18 +138,9 @@ program test_real2
    logical :: success
 
    success = .true.
-   write_to_file = .false.
 
-   if (COMMAND_ARGUMENT_COUNT() /= 0) then
-     write(error_unit,*) "This program does not support any command-line arguments"
-     stop 1
-   endif
-
-   nblk = 2
-   na   = 4000
-   nev  = 1500
-
-   !-------------------------------------------------------------------------------
+   call read_input_parameters(na, nev, nblk, write_to_file)
+      !-------------------------------------------------------------------------------
    !  MPI Initialization
    call setup_mpi(myid, nprocs)
 
@@ -175,6 +169,28 @@ program test_real2
    endif
 #endif
 
+   if (myid .eq. 0) then
+      print *," "
+      print *,"This ELPA2 is build with"
+#ifdef  WITH_COMPLEX_AVX_BLOCK2_KERNEL
+      print *,"AVX optimized kernel (2 blocking) for complex matrices"
+#endif
+#ifdef WITH_COMPLEX_AVX_BLOCK1_KERNEL
+      print *,"AVX optimized kernel (1 blocking) for complex matrices"
+#endif
+
+#ifdef WITH_COMPLEX_GENERIC_KERNEL
+     print *,"GENERIC kernel for complex matrices"
+#endif
+#ifdef WITH_COMPLEX_GENERIC_SIMPLE_KERNEL
+     print *,"GENERIC SIMPLE kernel for complex matrices"
+#endif
+#ifdef WITH_COMPLEX_SSE_KERNEL
+     print *,"SSE ASSEMBLER kernel for complex matrices"
+#endif
+
+   endif
+
    if (write_to_file) then
      if (myid .eq. 0) print *,"Writing output files"
    endif
@@ -201,10 +217,11 @@ program test_real2
                 print_max_allocated_memory=.true.)
 
 
-   call timer%enable()
+  call timer%enable()
 
-   call timer%start("program")
+  call timer%start("program")
 #endif
+
    !-------------------------------------------------------------------------------
    ! Selection of number of processor rows/columns
    ! We try to set up the grid square-like, i.e. start the search for possible
@@ -220,25 +237,11 @@ program test_real2
 
    if(myid==0) then
       print *
-      print '(a)','Standard eigenvalue problem - REAL version'
+      print '(a)','Standard eigenvalue problem - COMPLEX version'
       print *
       print '(3(a,i0))','Matrix size=',na,', Number of eigenvectors=',nev,', Block size=',nblk
       print '(3(a,i0))','Number of processor rows=',np_rows,', cols=',np_cols,', total=',nprocs
       print *
-      print *, "This is an example how ELPA2 chooses a default kernel,"
-#ifdef HAVE_ENVIRONMENT_CHECKING
-      print *, "or takes the kernel defined in the environment variable,"
-#endif
-      print *, "since the ELPA API call does not contain any kernel specification"
-      print *
-      print *, " The settings are: ",trim(get_actual_real_kernel_name())," as real kernel"
-      print *
-#ifndef HAVE_ENVIRONMENT_CHECKING
-      print *, " Notice that it is not possible with this build to set the "
-      print *, " kernel via an environment variable! To change this re-install"
-      print *, " the library and have a look at the log files"
-#endif
-      print *, " The qr-decomposition is used via the api call"
    endif
 
    !-------------------------------------------------------------------------------
@@ -268,15 +271,18 @@ program test_real2
      print '(a)','| Past split communicator setup for rows and columns.'
    end if
 
+   ! Determine the necessary size of the distributed matrices,
+   ! we use the Scalapack tools routine NUMROC for that.
+
    call set_up_blacs_descriptor(na ,nblk, my_prow, my_pcol, np_rows, np_cols, &
                                 na_rows, na_cols, sc_desc, my_blacs_ctxt, info)
 
    if (myid==0) then
      print '(a)','| Past scalapack descriptor setup.'
    end if
-
    !-------------------------------------------------------------------------------
    ! Allocate matrices and set up a test matrix for the eigenvalue problem
+
 #ifdef HAVE_DETAILED_TIMINGS
    call timer%start("set up matrix")
 #endif
@@ -285,43 +291,31 @@ program test_real2
    allocate(as(na_rows,na_cols))
 
    allocate(ev(na))
+   allocate(xr(na_rows,na_cols))
 
-   call prepare_matrix(na, myid, sc_desc, iseed,  a, z, as)
+   call prepare_matrix(na, myid, sc_desc, iseed, xr, a, z, as)
+
+   deallocate(xr)
+
 
 #ifdef HAVE_DETAILED_TIMINGS
    call timer%stop("set up matrix")
 #endif
+
    ! set print flag in elpa1
    elpa_print_times = .true.
 
    !-------------------------------------------------------------------------------
    ! Calculate eigenvalues/eigenvectors
 
-   if (myid==0) then
-     print '(a)','| Entering two-stage ELPA solver ... '
-     print *
-   end if
-
-
-   ! ELPA is called without any kernel specification in the API,
-   ! furthermore, if the environment variable is not set, the
-   ! default kernel is called. Otherwise, the kernel defined in the
-   ! environment variable
-
    call mpi_barrier(mpi_comm_world, mpierr) ! for correct timings only
-   success = solve_evp_real_2stage(na, nev, a, na_rows, ev, z, na_rows, nblk, &
-                              mpi_comm_rows, mpi_comm_cols, mpi_comm_world,   &
-                              useQR=.true.)
+   success = solve_evp_complex_2stage(na, nev, a, na_rows, ev, z, na_rows, nblk, &
+                                 na_cols, mpi_comm_rows, mpi_comm_cols, mpi_comm_world)
 
    if (.not.(success)) then
-      write(error_unit,*) "solve_evp_real_2stage produced an error! Aborting..."
+      write(error_unit,*) "solve_evp_complex_2stage produced an error! Aborting..."
       call MPI_ABORT(mpi_comm_world, 1, mpierr)
    endif
-
-   if (myid==0) then
-     print '(a)','| Two-step ELPA solver complete.'
-     print *
-   end if
 
    if(myid == 0) print *,'Time transform to tridi :',time_evp_fwd
    if(myid == 0) print *,'Time solve tridi        :',time_evp_solve
@@ -330,7 +324,7 @@ program test_real2
 
    if(write_to_file) then
       if (myid == 0) then
-         open(17,file="EVs_real2_out.txt",form='formatted',status='new')
+         open(17,file="EVs_complex2_out.txt",form='formatted',status='new')
          do i=1,na
             write(17,*) i,ev(i)
          enddo
@@ -360,9 +354,10 @@ program test_real2
    print *," "
    print *,"End timings program"
 #endif
+
    call blacs_gridexit(my_blacs_ctxt)
    call mpi_finalize(mpierr)
-   call EXIT(STATUS)
+!   call EXIT(STATUS)
 end
 
 !-------------------------------------------------------------------------------
