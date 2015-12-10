@@ -48,8 +48,8 @@ module ELSI_HDF5_TOOLS
   integer(HSIZE_T) :: chunk(2)  !< Dimension of chunks
   logical :: incomplete         !< Is block description complete?
 
-  integer(HSIZE_T) :: nslots = 523 !< Number of Slots for chunk hash table
-  integer(HSIZE_T) :: nchunk_bytes = 1*1024*1024 !< Size of chunk cache
+  integer(HSIZE_T) :: nslots = 9973 !< Number of Slots for chunk hash table
+  integer(HSIZE_T) :: nchunk_bytes = 2*1024*1024 !< Size of chunk cache
 
 
   interface hdf5_write_attribute
@@ -366,11 +366,11 @@ subroutine hdf5_write_matrix_parallel_double(place_id, matrix_name, matrix)
    integer(hid_t) :: dataprop_id
    integer(hid_t) :: plist_id
 
-   integer(HSIZE_T) :: add_count(2)   !< Number of blocks 
-   integer(HSIZE_T) :: add_offset(2)  !< Matrix offset 
-   integer(HSIZE_T) :: add_block(2)   !< Incomplete blocksize 
-   integer(HSIZE_T) :: miss_count(2)  !< Number of incomplete blocks 
-   integer(HSIZE_T) :: miss_offset(2) !< Offset of incomplete blocks
+   integer(HSIZE_T) :: add_count(2) !< Number of blocks 
+   integer(HSIZE_T) :: add_offset(2) !< Matrix offset 
+   integer(HSIZE_T) :: miss_count(2) !< Number of blocks 
+   integer(HSIZE_T) :: miss_offset(2) !< Matrix offset
+   integer          :: i_block 
    character*40     :: caller = "hdf5_write_matrix_parallel_double"
 
 
@@ -388,6 +388,12 @@ subroutine hdf5_write_matrix_parallel_double(place_id, matrix_name, matrix)
    call H5Pcreate_f(H5P_DATASET_CREATE_F, dataprop_id, h5err)
    if (h5err /= 0) then
       call elsi_stop("HDF5: Failed to create dataset property list.",caller)
+   end if
+
+   ! Set cache to 5 MB and slots to a prime number 
+   call H5Pset_chunk_cache_f(dataprop_id,nslots,nchunk_bytes,1.0,h5err)
+   if (h5err /= 0) then
+      call elsi_stop("HDF5: Failed to create dataset chunck cache.",caller)
    end if
 
    call H5Pset_chunk_f(dataprop_id,2,chunk,h5err)
@@ -411,56 +417,36 @@ subroutine hdf5_write_matrix_parallel_double(place_id, matrix_name, matrix)
       miss_count = local_dim - block * count
       miss_offset = count * stride + offset 
       
-      ! only row corner blocks
-      if (miss_count(2) /= 0 .and. miss_count(1) == 0) then
-         add_block  = (/block(1),miss_count(2)/)
-         add_offset = (/offset(1), miss_offset(2)/)
-         add_count  = (/count(1), 1/)
-         call H5Sselect_hyperslab_f (filespace, H5S_SELECT_OR_F, add_offset,&
-            add_count, h5err,stride,add_block)
-         if (h5err /= 0) then
-            call elsi_stop("HDF5: Failed to write select Hyperslap.",caller)
-         end if
+      ! row corner blocks
+      if (miss_count(2) /= 0) then
+         do i_block = 0, count(1) - 1
+            add_count = (/block(1),miss_count(2)/)
+            add_offset = (/i_block * stride(1) + offset(1), miss_offset(2)/)
+            call H5Sselect_hyperslab_f (filespace, H5S_SELECT_OR_F, add_offset,&
+               add_count, h5err)
+            if (h5err /= 0) then
+               call elsi_stop("HDF5: Failed to write select Hyperslap.",caller)
+            end if
+         end do
       end if
 
-      ! only column corner blocks
-      if (miss_count(1) /= 0 .and. miss_count(2) == 0) then
-         add_block  = (/miss_count(1),block(2)/)
-         add_offset = (/miss_offset(1),offset(2)/)
-         add_count  = (/1,count(2)/)
-         call H5Sselect_hyperslab_f (filespace, H5S_SELECT_OR_F, add_offset,&
-            add_count, h5err)
-         if (h5err /= 0) then
-            call elsi_stop("HDF5: Failed to write select Hyperslap.",caller)
-         end if
+      ! column corner blocks
+      if (miss_count(1) /= 0) then
+         do i_block = 0, count(2) - 1
+            add_count = (/miss_count(1),block(2)/)
+            add_offset = (/miss_offset(1),i_block * stride(2) + offset(2)/)
+            call H5Sselect_hyperslab_f (filespace, H5S_SELECT_OR_F, add_offset,&
+               add_count, h5err)
+            if (h5err /= 0) then
+               call elsi_stop("HDF5: Failed to write select Hyperslap.",caller)
+            end if
+         end do
       end if
 
-      ! both
-      if (miss_count(1) /= 0 .and. miss_count(2) /= 0) then
-         ! Edge block
+      ! Last missing partial block
+      if (miss_count(1) * miss_count(2) /= 0) then
          call H5Sselect_hyperslab_f (filespace, H5S_SELECT_OR_F, miss_offset,&
                miss_count, h5err)
-         if (h5err /= 0) then
-            call elsi_stop("HDF5: Failed to write select Hyperslap.",caller)
-         end if
-
-         ! side rows
-         add_block  = (/block(1),miss_count(2)/)
-         add_offset = (/offset(1), miss_offset(2)/)
-         add_count  = (/count(1)-1, 1/)
-         call H5Sselect_hyperslab_f (filespace, H5S_SELECT_OR_F, add_offset,&
-            add_count, h5err,stride,add_block)
-         if (h5err /= 0) then
-            call elsi_stop("HDF5: Failed to write select Hyperslap.",caller)
-         end if
-
-         ! side columns
-         if (miss_count(1) /= 0 .and. miss_count(2) == 0) then
-         add_block  = (/miss_count(1),block(2)/)
-         add_offset = (/miss_offset(1),offset(2)/)
-         add_count  = (/1,count(2)-1/)
-         call H5Sselect_hyperslab_f (filespace, H5S_SELECT_OR_F, add_offset,&
-            add_count, h5err)
          if (h5err /= 0) then
             call elsi_stop("HDF5: Failed to write select Hyperslap.",caller)
          end if
@@ -530,11 +516,11 @@ subroutine hdf5_read_matrix_parallel_double(place_id, matrix_name, matrix)
    integer(hid_t) :: dataprop_id
    integer(hid_t) :: plist_id
 
-   integer(HSIZE_T) :: add_count(2)   !< Number of blocks 
-   integer(HSIZE_T) :: add_offset(2)  !< Matrix offset
-   integer(HSIZE_T) :: add_block(2)   !< Incomplete blocksize
-   integer(HSIZE_T) :: miss_count(2)  !< Number of incomplete blocks 
-   integer(HSIZE_T) :: miss_offset(2) !< Offset of incomplete blocks
+   integer(HSIZE_T) :: add_count(2) !< Number of blocks 
+   integer(HSIZE_T) :: add_offset(2) !< Matrix offset
+   integer(HSIZE_T) :: miss_count(2) !< Number of blocks 
+   integer(HSIZE_T) :: miss_offset(2) !< Matrix offset
+   integer          :: i_block
    character*40     :: caller = "hdf5_read_matrix_parallel_double" 
  
 
@@ -548,7 +534,23 @@ subroutine hdf5_read_matrix_parallel_double(place_id, matrix_name, matrix)
       call elsi_stop("HDF5: Failed to create global Matrix Space.",caller)
    end if
 
-   call H5Dopen_f (place_id, matrix_name, data_id, h5err) 
+   ! Create dataset chunks according to blocksize
+   call H5Pcreate_f(H5P_DATASET_ACCESS_F, dataprop_id, h5err)
+   if (h5err /= 0) then
+      call elsi_stop("HDF5: Failed to create dataset property list.",caller)
+   end if
+
+   call H5Pset_chunk_cache_f(dataprop_id,nslots,nchunk_bytes,1.0,h5err)
+   if (h5err /= 0) then
+      call elsi_stop("HDF5: Failed to create dataset chunck cache.",caller)
+   end if
+
+   call H5Pset_chunk_f(dataprop_id,2,chunk,h5err)
+   if (h5err /= 0) then
+      call elsi_stop("HDF5: Failed to create dtaset chunks property.",caller)
+   end if
+
+   call H5Dopen_f (place_id, matrix_name, data_id, h5err, dataprop_id) 
    if (h5err /= 0) then
       call elsi_stop("HDF5: Failed to create Matrix Data Identifier.", caller)
    end if
@@ -563,56 +565,36 @@ subroutine hdf5_read_matrix_parallel_double(place_id, matrix_name, matrix)
       miss_count = local_dim - block * count
       miss_offset = count * stride + offset 
       
-      ! only row corner blocks
-      if (miss_count(2) /= 0 .and. miss_count(1) == 0) then
-         add_block  = (/block(1),miss_count(2)/)
-         add_offset = (/offset(1), miss_offset(2)/)
-         add_count  = (/count(1), 1/)
-         call H5Sselect_hyperslab_f (filespace, H5S_SELECT_OR_F, add_offset,&
-            add_count, h5err,stride,add_block)
-         if (h5err /= 0) then
-            call elsi_stop("HDF5: Failed to write select Hyperslap.",caller)
-         end if
+      ! row corner blocks
+      if (miss_count(2) /= 0) then
+         do i_block = 0, count(1) - 1
+            add_count = (/block(1),miss_count(2)/)
+            add_offset = (/i_block * stride(1) + offset(1), miss_offset(2)/)
+            call H5Sselect_hyperslab_f (filespace, H5S_SELECT_OR_F, add_offset,&
+               add_count, h5err)
+            if (h5err /= 0) then
+               call elsi_stop("HDF5: Failed to write select Hyperslap.",caller)
+            end if
+         end do
       end if
 
-      ! only column corner blocks
-      if (miss_count(1) /= 0 .and. miss_count(2) == 0) then
-         add_block  = (/miss_count(1),block(2)/)
-         add_offset = (/miss_offset(1),offset(2)/)
-         add_count  = (/1,count(2)/)
-         call H5Sselect_hyperslab_f (filespace, H5S_SELECT_OR_F, add_offset,&
-            add_count, h5err)
-         if (h5err /= 0) then
-            call elsi_stop("HDF5: Failed to write select Hyperslap.",caller)
-         end if
+      ! column corner blocks
+      if (miss_count(1) /= 0) then
+         do i_block = 0, count(2) - 1
+            add_count = (/miss_count(1),block(2)/)
+            add_offset = (/miss_offset(1),i_block * stride(2) + offset(2)/)
+            call H5Sselect_hyperslab_f (filespace, H5S_SELECT_OR_F, add_offset,&
+               add_count, h5err)
+            if (h5err /= 0) then
+               call elsi_stop("HDF5: Failed to write select Hyperslap.",caller)
+            end if
+         end do
       end if
 
-      ! both
-      if (miss_count(1) /= 0 .and. miss_count(2) /= 0) then
-         ! Edge block
+      ! Last missing partial block
+      if (miss_count(1) * miss_count(2) /= 0) then
          call H5Sselect_hyperslab_f (filespace, H5S_SELECT_OR_F, miss_offset,&
                miss_count, h5err)
-         if (h5err /= 0) then
-            call elsi_stop("HDF5: Failed to write select Hyperslap.",caller)
-         end if
-
-         ! side rows
-         add_block  = (/block(1),miss_count(2)/)
-         add_offset = (/offset(1), miss_offset(2)/)
-         add_count  = (/count(1)-1, 1/)
-         call H5Sselect_hyperslab_f (filespace, H5S_SELECT_OR_F, add_offset,&
-            add_count, h5err,stride,add_block)
-         if (h5err /= 0) then
-            call elsi_stop("HDF5: Failed to write select Hyperslap.",caller)
-         end if
-
-         ! side columns
-         if (miss_count(1) /= 0 .and. miss_count(2) == 0) then
-         add_block  = (/miss_count(1),block(2)/)
-         add_offset = (/miss_offset(1),offset(2)/)
-         add_count  = (/1,count(2)-1/)
-         call H5Sselect_hyperslab_f (filespace, H5S_SELECT_OR_F, add_offset,&
-            add_count, h5err)
          if (h5err /= 0) then
             call elsi_stop("HDF5: Failed to write select Hyperslap.",caller)
          end if
@@ -645,6 +627,11 @@ subroutine hdf5_read_matrix_parallel_double(place_id, matrix_name, matrix)
 
 
    call H5Dclose_f(data_id, h5err)
+   if (h5err /= 0) then
+      call elsi_stop("HDF5: Failed to close Data Identifier.",caller)
+   end if
+
+   call H5Pclose_f(dataprop_id, h5err)
    if (h5err /= 0) then
       call elsi_stop("HDF5: Failed to close Data Identifier.",caller)
    end if
@@ -703,7 +690,7 @@ subroutine hdf5_get_scalapack_pattern()
         incomplete = .False.
       end if
 
-      chunk = block
+      chunk = 10 * block
 
    end if
 
@@ -761,10 +748,6 @@ subroutine elsi_hdf5_variable_status()
             write(string_message, "(1X,'*** Proc',I5,&
               &' : Incomplete? ',L2)") &
               & myid, incomplete
-            write(*,'(A)') trim(string_message)
-            write(string_message, "(1X,'*** Proc',I5,&
-              &' : Chunk ',I5,' x ',I5)") &
-              & myid, chunk(1), chunk(2)
             write(*,'(A)') trim(string_message)
          end if
 
