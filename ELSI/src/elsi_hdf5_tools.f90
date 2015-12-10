@@ -373,7 +373,6 @@ subroutine hdf5_write_matrix_parallel_double(place_id, matrix_name, matrix)
    integer(HSIZE_T) :: miss_offset(2) !< Offset of incomplete blocks
    character*40     :: caller = "hdf5_write_matrix_parallel_double"
 
-
    call H5Screate_simple_f (2, local_dim, memspace, h5err)
    if (h5err /= 0) then
       call elsi_stop("HDF5: Failed to create local Matrix Space.",caller)
@@ -409,30 +408,36 @@ subroutine hdf5_write_matrix_parallel_double(place_id, matrix_name, matrix)
 
    if (incomplete) then
       miss_count = local_dim - block * count
-      miss_offset = count * stride + offset 
-      
+      miss_offset = count * stride + offset
+
       ! only row corner blocks
       if (miss_count(2) /= 0 .and. miss_count(1) == 0) then
          add_block  = (/block(1),miss_count(2)/)
          add_offset = (/offset(1), miss_offset(2)/)
-         add_count  = (/count(1), 1/)
+         add_count(1) = count(1)
+         add_count(2) = 1
+
          call H5Sselect_hyperslab_f (filespace, H5S_SELECT_OR_F, add_offset,&
-            add_count, h5err,stride,add_block)
+            add_count, h5err, stride, add_block)
          if (h5err /= 0) then
             call elsi_stop("HDF5: Failed to write select Hyperslap.",caller)
          end if
+
       end if
 
       ! only column corner blocks
       if (miss_count(1) /= 0 .and. miss_count(2) == 0) then
          add_block  = (/miss_count(1),block(2)/)
          add_offset = (/miss_offset(1),offset(2)/)
-         add_count  = (/1,count(2)/)
+         add_count(1) = 1
+         add_count(2) = count(2)
+
          call H5Sselect_hyperslab_f (filespace, H5S_SELECT_OR_F, add_offset,&
-            add_count, h5err)
+            add_count, h5err, stride, add_block)
          if (h5err /= 0) then
             call elsi_stop("HDF5: Failed to write select Hyperslap.",caller)
          end if
+
       end if
 
       ! both
@@ -447,7 +452,9 @@ subroutine hdf5_write_matrix_parallel_double(place_id, matrix_name, matrix)
          ! side rows
          add_block  = (/block(1),miss_count(2)/)
          add_offset = (/offset(1), miss_offset(2)/)
-         add_count  = (/count(1)-1, 1/)
+         add_count(1) = count(1)
+         add_count(2) = 1
+
          call H5Sselect_hyperslab_f (filespace, H5S_SELECT_OR_F, add_offset,&
             add_count, h5err,stride,add_block)
          if (h5err /= 0) then
@@ -455,15 +462,17 @@ subroutine hdf5_write_matrix_parallel_double(place_id, matrix_name, matrix)
          end if
 
          ! side columns
-         if (miss_count(1) /= 0 .and. miss_count(2) == 0) then
          add_block  = (/miss_count(1),block(2)/)
          add_offset = (/miss_offset(1),offset(2)/)
-         add_count  = (/1,count(2)-1/)
+         add_count(1) = 1
+         add_count(2) = count(2)
+
          call H5Sselect_hyperslab_f (filespace, H5S_SELECT_OR_F, add_offset,&
-            add_count, h5err)
+            add_count, h5err,stride,add_block)
          if (h5err /= 0) then
-            call elsi_stop("HDF5: Failed to write select Hyperslap.",caller)
+              call elsi_stop("HDF5: Failed to write select Hyperslap.",caller)
          end if
+
       end if
 
    end if
@@ -478,7 +487,6 @@ subroutine hdf5_write_matrix_parallel_double(place_id, matrix_name, matrix)
       call elsi_stop("HDF5: Failed to MPI-IO.",caller)
    end if
 
-
    call H5Dwrite_f (data_id, H5T_NATIVE_DOUBLE, matrix, &
          local_dim, h5err, mem_space_id = memspace, file_space_id = filespace, &
          xfer_prp = plist_id)
@@ -486,18 +494,15 @@ subroutine hdf5_write_matrix_parallel_double(place_id, matrix_name, matrix)
       call elsi_stop("HDF5: Failed to write Matrix to Filespace.",caller)
    end if
 
-
    call H5Sclose_f(filespace, h5err)
    if (h5err /= 0) then
       call elsi_stop("HDF5: Failed to close Filespace.",caller)
    end if
 
-
    call H5Sclose_f(memspace, h5err)
    if (h5err /= 0) then
       call elsi_stop("HDF5: Failed to close Memspace.",caller)
    end if
-
 
    call H5Dclose_f(data_id, h5err)
    if (h5err /= 0) then
@@ -508,7 +513,6 @@ subroutine hdf5_write_matrix_parallel_double(place_id, matrix_name, matrix)
    if (h5err /= 0) then
       call elsi_stop("HDF5: Failed to close Data Identifier.",caller)
    end if
-
 
 
 end subroutine
@@ -536,7 +540,6 @@ subroutine hdf5_read_matrix_parallel_double(place_id, matrix_name, matrix)
    integer(HSIZE_T) :: miss_count(2)  !< Number of incomplete blocks 
    integer(HSIZE_T) :: miss_offset(2) !< Offset of incomplete blocks
    character*40     :: caller = "hdf5_read_matrix_parallel_double" 
- 
 
    call H5Screate_simple_f (2, local_dim, memspace, h5err)
    if (h5err /= 0) then
@@ -567,24 +570,28 @@ subroutine hdf5_read_matrix_parallel_double(place_id, matrix_name, matrix)
       if (miss_count(2) /= 0 .and. miss_count(1) == 0) then
          add_block  = (/block(1),miss_count(2)/)
          add_offset = (/offset(1), miss_offset(2)/)
-         add_count  = (/count(1), 1/)
+         add_count(1) = count(1)
+         add_count(2) = 1
          call H5Sselect_hyperslab_f (filespace, H5S_SELECT_OR_F, add_offset,&
-            add_count, h5err,stride,add_block)
+            add_count, h5err, stride, add_block)
          if (h5err /= 0) then
             call elsi_stop("HDF5: Failed to write select Hyperslap.",caller)
          end if
+
       end if
 
       ! only column corner blocks
       if (miss_count(1) /= 0 .and. miss_count(2) == 0) then
          add_block  = (/miss_count(1),block(2)/)
          add_offset = (/miss_offset(1),offset(2)/)
-         add_count  = (/1,count(2)/)
+         add_count(1) = 1
+         add_count(2) = count(2)
          call H5Sselect_hyperslab_f (filespace, H5S_SELECT_OR_F, add_offset,&
-            add_count, h5err)
+            add_count, h5err, stride, add_block)
          if (h5err /= 0) then
             call elsi_stop("HDF5: Failed to write select Hyperslap.",caller)
          end if
+   
       end if
 
       ! both
@@ -599,30 +606,31 @@ subroutine hdf5_read_matrix_parallel_double(place_id, matrix_name, matrix)
          ! side rows
          add_block  = (/block(1),miss_count(2)/)
          add_offset = (/offset(1), miss_offset(2)/)
-         add_count  = (/count(1)-1, 1/)
+         add_count(1) = count(1) 
+         add_count(2) = 1
          call H5Sselect_hyperslab_f (filespace, H5S_SELECT_OR_F, add_offset,&
-            add_count, h5err,stride,add_block)
+            add_count, h5err, stride, add_block)
          if (h5err /= 0) then
             call elsi_stop("HDF5: Failed to write select Hyperslap.",caller)
          end if
 
          ! side columns
-         if (miss_count(1) /= 0 .and. miss_count(2) == 0) then
          add_block  = (/miss_count(1),block(2)/)
          add_offset = (/miss_offset(1),offset(2)/)
-         add_count  = (/1,count(2)-1/)
+         add_count(1) = 1 
+         add_count(2) = count(2)
          call H5Sselect_hyperslab_f (filespace, H5S_SELECT_OR_F, add_offset,&
-            add_count, h5err)
+            add_count, h5err, stride, add_block)
          if (h5err /= 0) then
             call elsi_stop("HDF5: Failed to write select Hyperslap.",caller)
          end if
+
       end if
 
    end if
 
    CALL h5pcreate_f(H5P_DATASET_XFER_F, plist_id, h5err) 
    CALL h5pset_dxpl_mpio_f(plist_id, H5FD_MPIO_COLLECTIVE_F, h5err)
-
 
    call H5Dread_f (data_id, H5T_NATIVE_DOUBLE, matrix, &
          local_dim, h5err, mem_space_id = memspace, file_space_id = filespace, &
@@ -631,18 +639,15 @@ subroutine hdf5_read_matrix_parallel_double(place_id, matrix_name, matrix)
       call elsi_stop("HDF5: Failed to write Matrix to Filespace.",caller)
    end if
 
-
    call H5Sclose_f(filespace, h5err)
    if (h5err /= 0) then
       call elsi_stop("HDF5: Failed to close Filespace.",caller)
    end if
 
-
    call H5Sclose_f(memspace, h5err)
    if (h5err /= 0) then
       call elsi_stop("HDF5: Failed to close Memspace.",caller)
    end if
-
 
    call H5Dclose_f(data_id, h5err)
    if (h5err /= 0) then
@@ -732,7 +737,7 @@ subroutine elsi_hdf5_variable_status()
             write(*,'(A)') trim(string_message)
             write(string_message, "(1X,'*** Proc',I5,&
               &' : Matrixsize local ',I5,' x ',I5)") &
-              & myid, local_dim(1), local_dim(1)
+              & myid, local_dim(1), local_dim(2)
             write(*,'(A)') trim(string_message)
             write(string_message, "(1X,'*** Proc',I5,&
               &' : Blocksize global ',I5,' x ',I5)") &
