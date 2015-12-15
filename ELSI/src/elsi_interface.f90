@@ -1161,13 +1161,13 @@ subroutine elsi_solve_ev_problem(number_of_electrons)
                success = solve_evp_complex_2stage( &
                      n_g_rank, n_eigenvectors, H_complex, &
                      n_l_rows, eigenvalues, vectors_complex, &
-                     n_l_rows, n_b_rows, &
+                     n_l_rows, n_b_rows, n_l_cols,&
                      mpi_comm_row, mpi_comm_col, mpi_comm_global)
              case (REAL_VALUES)
                success = solve_evp_real_2stage( &
                      n_g_rank, n_eigenvectors, H_real, &
                      n_l_rows, eigenvalues, vectors_real, &
-                     n_l_rows, n_b_rows,&
+                     n_l_rows, n_b_rows, n_l_cols,&
                      mpi_comm_row, mpi_comm_col, mpi_comm_global)
            end select
          else
@@ -1176,13 +1176,13 @@ subroutine elsi_solve_ev_problem(number_of_electrons)
                success = solve_evp_complex( &
                      n_g_rank, n_eigenvectors, H_complex, &
                      n_l_rows, eigenvalues, vectors_complex, &
-                     n_l_rows, n_b_rows, &
+                     n_l_rows, n_b_rows, n_l_cols,&
                      mpi_comm_row, mpi_comm_col)
              case (REAL_VALUES)
                success = solve_evp_real( &
                      n_g_rank, n_eigenvectors, H_real, &
                      n_l_rows, eigenvalues, vectors_real, &
-                     n_l_rows, n_b_rows,&
+                     n_l_rows, n_b_rows, n_l_cols,&
                      mpi_comm_row, mpi_comm_col)
            end select
 
@@ -1438,14 +1438,14 @@ subroutine elsi_to_standard_eigenvalue_problem()
                ! S contains then U
                call cholesky_real( &
                      n_g_rank, S_real, &
-                     n_l_rows, n_b_rows,&
+                     n_l_rows, n_b_rows, n_l_cols,&
                      mpi_comm_row, mpi_comm_col, .False., success)
 
                ! compute U^-1
                ! S contains U^-1
                call invert_trm_real( &
                      n_g_rank, S_real, &
-                     n_l_rows, n_b_rows, &
+                     n_l_rows, n_b_rows, n_l_cols,&
                      mpi_comm_row, mpi_comm_col, .False., success)
 
                ! compute H U^-1 -> buffer
