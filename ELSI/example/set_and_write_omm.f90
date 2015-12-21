@@ -44,9 +44,6 @@ program set_and_write
 
   integer :: matrixsize = 10, blocksize = 2
  
-  ! Random number generator
-  integer :: iseed(4096) !< Random seed
-
   ! Local variables
   real*8  :: element
   real*8, allocatable  :: H_matrix(:,:)
@@ -135,18 +132,18 @@ program set_and_write
   allocate(S_matrix(n_rows,n_cols))
   H_matrix = 0d0
   S_matrix = 0d0 
-  iseed(:) = myid + 1 
-  call RANDOM_SEED(put=iseed)
   do local_row = 1, n_rows
     call elsi_get_global_row(global_row, local_row)
-    do local_col = local_row, n_cols
+    do local_col = 1, n_cols
       call elsi_get_global_col(global_col, local_col)
-      call RANDOM_NUMBER(element)
-      H_matrix(local_row,local_col) = element
-      if (global_row == global_col) then
-         S_matrix(local_row,local_col) = 1d0
-      else 
-         S_matrix(local_row,local_col) = 0d0
+      if (global_row >= global_col) then
+        element = 1d3 * global_row + 1d0 * global_col
+        H_matrix(local_row,local_col) = element
+        if (global_row == global_col) then
+           S_matrix(local_row,local_col) = 1d0
+        else 
+           S_matrix(local_row,local_col) = 0d0
+        end if
       end if
     end do
   end do

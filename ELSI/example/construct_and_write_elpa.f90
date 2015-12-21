@@ -44,12 +44,8 @@ program construct_and_write
 
   integer :: matrixsize = 10, blocksize = 2
  
-  ! Random number generator
-  integer :: iseed(4096) !< Random seed
-
   ! Local variables
   real*8  :: element
-  integer :: myid
   integer :: n_rows, n_cols, my_p_row, my_p_col
   integer :: l_row, l_col, i_row, i_col
 
@@ -84,22 +80,20 @@ program construct_and_write
 
   call elsi_get_local_dimensions(n_rows,n_cols)
 
-  call elsi_get_myid(myid)
-  iseed(:) = myid + 1 
-  call RANDOM_SEED(put=iseed)
-
   ! Construct H and S
   do l_row = 1, n_rows
     call elsi_get_global_row(i_row, l_row)
-    do l_col = l_row, n_cols
+    do l_col = 1, n_cols
       call elsi_get_global_col(i_col, l_col)
-      call RANDOM_NUMBER(element)
-      if (i_row == i_col) then
-         call elsi_set_hamiltonian_element(element, l_row, l_col)
-         call elsi_set_overlap_element    (1.0d0,   l_row, l_col)
-      else 
-         call elsi_set_hamiltonian_element(element, l_row, l_col)
-         call elsi_set_overlap_element    (0.0d0,   l_row, l_col)
+      if (i_row >= i_col) then
+        element = 1d3 * i_row + 1d0 * i_col
+        if (i_row == i_col) then
+          call elsi_set_hamiltonian_element(element, l_row, l_col)
+          call elsi_set_overlap_element    (1.0d0,   l_row, l_col)
+        else 
+          call elsi_set_hamiltonian_element(element, l_row, l_col)
+          call elsi_set_overlap_element    (0.0d0,   l_row, l_col)
+        end if
       end if
     end do
   end do
