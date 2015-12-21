@@ -1,0 +1,70 @@
+# ====== GLOBAL ======
+
+MPIFC  = mpiifort
+MPICC  = mpicc
+MPICXX = mpicxx
+
+ARCH      = ar
+ARCHFLAGS = cr
+RANLIB    = ranlib
+
+BLAS      = -L${MKLROOT}/lib/intel64 -lmkl_blas95_lp64 \
+            -lmkl_intel_lp64 -lmkl_sequential -lmkl_core \
+            -lpthread -lm
+LAPACK    = -L${MKLROOT}/lib/intel64 -lmkl_lapack95_lp64
+SCALAPACK = -L${MKLROOT}/lib/intel64 -lmkl_scalapack_lp64 \
+            -lmkl_blacs_intelmpi_lp64
+THIS_DIR = $(shell pwd)
+
+# ====== ELSI ======
+
+FFLAGS_I = -O0 -g -traceback -check bounds -check uninit -ip -lstdc++ 
+
+HDF5 = -L$(HDF5_HOME)/lib -I$(HDF5_HOME)/include \
+       -lhdf5_fortran -lhdf5hl_fortran -lhdf5
+
+# ====== ELPA ======
+
+ELPA_DIR = $(THIS_DIR)/external/ELPA
+FFLAGS_E   = -O0 -g -traceback -check bounds -check uninit -fpe0 \
+             -fpp -I$(ELPA_DIR)
+CFLAGS_E   = -O0 -g -traceback -check bounds -check uninit \
+             -mavx -funsafe-loop-optimizations \
+             -funsafe-math-optimizations -ftree-vect-loop-version \
+             -ftree-vectorize
+CXXFLAGS_E = -O0 -g -traceback -check bounds -check uninit \
+             -mavx -funsafe-loop-optimizations \
+             -funsafe-math-optimizations -ftree-vect-loop-version \
+             -ftree-vectorize
+
+ARCHITECTURE = Generic
+OPENMP = no
+
+# ====== libOMM ======
+
+libOMM_DIR = $(THIS_DIR)/external/libOMM
+FFLAGS_O = -O0 -g -traceback -check bounds -check uninit 
+
+MPI  = yes
+LAP  = yes
+SLAP = yes
+
+# ====== PEXSI ======
+
+PEXSI_DIR = $(THIS_DIR)/external/PEXSI
+COMPILE_MODE = debug
+
+# ====== LINK ======
+
+ELPA = -L$(ELPA_DIR)/lib -lelpa \
+       -I$(ELPA_DIR)/include/elpa/modules
+
+OMM  = -I$(libOMM_DIR)/src \
+       -I$(libOMM_DIR)/src/MatrixSwitch-0.1.2/src \
+       -L$(libOMM_DIR)/src -lOMM \
+       -L$(libOMM_DIR)/src/MatrixSwitch-0.1.2/src -lmatrixswitch
+
+PEXSI = -I$(PEXSI_DIR)/include \
+        -I$(PEXSI_DIR)/include/pexsi \
+        -I$(PEXSI_DIR)/external/include \
+        -L$(PEXSI_DIR)/lib -lpexsi -lsuperlu -lparmetis -lmetis
