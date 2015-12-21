@@ -674,8 +674,7 @@ subroutine hdf5_get_scalapack_pattern()
 
    if (method == PEXSI) then
 
-      offset(1) = process_position(1) &
-               * FLOOR (1d0 * global_dim(1) / process_grid(1))
+      offset(1) = 0 
       offset(2) = process_position(2) &
                * FLOOR (1d0 * global_dim(2) / process_grid(2))
       
@@ -693,7 +692,7 @@ subroutine hdf5_get_scalapack_pattern()
 
       chunk = block
 
-   else
+   else !(ELPA, OMM_dense are using block-cyclic for scalapack)
 
       offset = process_position * block
       stride = process_grid * block
