@@ -148,24 +148,34 @@ subroutine elsi_initialize_blacs()
 
    if (method == PEXSI) then
 
-     if (mod(n_procs, 10) == 0 .and. n_procs > 100) then
-        n_p_rows = 10
-     else if (mod(n_procs, 5) == 0 .and. n_procs > 25) then
-        n_p_rows = 5
-     else if (mod(n_procs, 4) == 0 .and. n_procs > 16) then
-        n_p_rows = 4
-     else if (mod(n_procs, 2) == 0 .and. n_procs > 4) then
-        n_p_rows = 2
-     else 
-        n_p_rows = 1
-     end if
+     ! Find balancing between expansion parallel and matrix inversion parallel
+     !if (mod(n_procs, 10) == 0 .and. n_procs > 100) then
+     !   n_p_rows = 10
+     !else if (mod(n_procs, 5) == 0 .and. n_procs > 25) then
+     !   n_p_rows = 5
+     !else if (mod(n_procs, 4) == 0 .and. n_procs > 16) then
+     !   n_p_rows = 4
+     !else if (mod(n_procs, 2) == 0 .and. n_procs > 4) then
+     !   n_p_rows = 2
+     !else 
+     !   n_p_rows = 1
+     !end if
 
-     n_p_cols = n_procs / n_p_rows 
-     
-     my_p_row = FLOOR(1d0*myid/n_p_cols)
-     my_p_col = mod(myid,n_p_cols)
+     !n_p_cols = n_procs / n_p_rows
 
-     ! PEXSI needs a pure block distriburion.
+     !Only Matrix parallel
+     n_p_rows = 1 
+     n_p_cols = n_procs
+
+     !Only expansion parallel
+     !n_p_rows = n_procs
+     !n_p_cols = 1
+
+     ! Find position in process grid
+     my_p_col = FLOOR(1d0*myid / n_p_rows)
+     my_p_row = mod(myid,n_p_rows)
+
+     ! PEXSI needs a pure block distribution.
      ! This is why we reset the blocksize here 
      n_b_rows = n_g_rank
 
@@ -178,8 +188,9 @@ subroutine elsi_initialize_blacs()
      n_l_rows = n_b_rows
      n_l_cols = n_b_cols
  
-     if (mod(myid,n_p_rows * n_p_cols) == 0) then
-        pexsi_output_file_index = myid / (n_p_rows * n_p_cols)
+     ! Each master process for each pole should write an output 
+     if (mod(myid,n_p_cols) == 0) then
+        pexsi_output_file_index = my_p_row
      else
         pexsi_output_file_index = -1
      end if
