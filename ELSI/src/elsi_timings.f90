@@ -62,6 +62,7 @@ module ELSI_TIMERS
 
   !> public subroutines
   public :: elsi_initialize_timers 
+  public :: elsi_print_setup 
   public :: elsi_print_timers 
   public :: elsi_start_total_time 
   public :: elsi_stop_total_time
@@ -102,6 +103,54 @@ subroutine elsi_initialize_timers()
    walltime_solve_evp_start  = 0d0
 
    call system_clock (initial_time, clock_rate, clock_max)
+
+end subroutine
+
+!>
+!!  This routine prints the timing results
+!!
+subroutine elsi_print_setup()
+
+   implicit none
+
+   if (myid == 0) then
+      write(*,"('|-------------------------------------------------------')")
+      write(*,"('| Initial ELSI Output:                                  ')")
+      write(*,"('|-------------------------------------------------------')")
+      write(*,"('| ELSI worked on a eigenvalue problem with dimensions   ')")
+      write(*,"('| Rank                           : ',I13)")&
+         n_g_rank
+      write(*,"('| Non zero elements              : ',I13)")&
+         n_g_nonzero    
+      write(*,"('| Sparcity                       : ',F13.3)")& 
+         1d0 * n_g_nonzero / n_g_rank / n_g_rank    
+      write(*,"('| Number of Electrons            : ',F13.3)")& 
+         n_electrons    
+      write(*,"('| Number of States               : ',I13)")& 
+         n_eigenvectors   
+      if (method == ELPA) then 
+      write(*,"('| Method:                        : ',A13)")&
+         "ELPA"
+      end if
+      if (method == OMM_DENSE) then 
+      write(*,"('| Method:                        : ',A13)")&
+         "OMM_DENSE"
+      end if
+      if (method == PEXSI) then 
+      write(*,"('| Method:                        : ',A13)")&
+         "PEXSI"
+      end if
+      write(*,"('|-------------------------------------------------------')")
+      write(*,"('| Parallel Distribution:                                ')")
+      write(*,"('|-------------------------------------------------------')")
+      write(*,"('| Process grid                   : ',I5,' x ',I5)")&
+         n_p_rows, n_p_cols
+      write(*,"('| Local matrix size process 0    : ',I5,' x ',I5)")&
+         n_l_rows, n_l_cols
+      write(*,"('| Local matrix blocking process 0: ',I5,' x ',I5)")&
+         n_b_rows, n_b_cols
+      write(*,"('|-------------------------------------------------------')")
+   end if
 
 end subroutine
 
