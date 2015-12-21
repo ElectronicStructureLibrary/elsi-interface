@@ -23,7 +23,7 @@ clean :
 	cd $(MSLIBPATH); rm -f *.a; rm -f *.o; rm -f *.mod
 
 .F90.o : 
-	$(MPIFC) $(FCFLAGS_O) $(FPPFLAGS) -I$(MSLIBPATH) -c $< -o $@
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -I$(MSLIBPATH) -c $< -o $@
 
 .f90.o : 
-	$(MPIFC) $(FCFLAGS_O) -I$(MSLIBPATH) -c $< -o $@
+	$(MPIFC) $(FFLAGS_O) -I$(MSLIBPATH) -c $< -o $@
