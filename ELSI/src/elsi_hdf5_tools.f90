@@ -675,8 +675,7 @@ subroutine hdf5_get_scalapack_pattern()
    if (method == PEXSI) then
 
       offset(1) = 0 
-      offset(2) = process_position(2) &
-               * FLOOR (1d0 * global_dim(2) / process_grid(2))
+      offset(2) = myid * FLOOR (1d0 * global_dim(2) / n_procs)
       
       stride = global_dim
       

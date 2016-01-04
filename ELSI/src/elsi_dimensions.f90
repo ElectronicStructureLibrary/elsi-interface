@@ -453,4 +453,29 @@ subroutine elsi_print_omm_options()
         
 end subroutine elsi_print_omm_options
 
+!>
+!! Give Status of ELSI sparse hamiltonian 
+!!
+subroutine elsi_sparse_ham_status(H_real_sparse)
+
+      implicit none
+      include "mpif.h"
+
+      character(LEN=4096) :: string_message
+      integer :: i_task
+      real*8, intent(in) :: H_real_sparse(n_l_nonzero)
+
+      do i_task = 0, n_procs
+         if (i_task == myid) then
+            write(string_message, "(1X,'*** Proc',I5, ' : local H ')") i_task 
+            write(*,'(A)') trim(string_message)
+            print *,H_real_sparse(1:10)
+          end if
+
+         call MPI_BARRIER(mpi_comm_global,mpierr)
+      end do
+        
+end subroutine elsi_sparse_ham_status
+
+
 end module ELSI_DIMENSIONS

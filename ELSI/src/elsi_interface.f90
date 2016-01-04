@@ -1099,7 +1099,8 @@ subroutine elsi_solve_ev_problem(number_of_electrons)
    logical :: two_step_solver
    real*8  :: val
    integer :: i,j
-
+   integer :: i_task
+   character(len=4096) :: string_message
 
    call elsi_start_solve_evp_time()
 
@@ -1113,10 +1114,6 @@ subroutine elsi_solve_ev_problem(number_of_electrons)
          call elsi_stop("Hamiltonian not created/linked.",&
                        "elsi_solve_ev_problem")
       end if
-      !print *, "H_real"
-      !print *, H_real
-      !print *, "S_real"
-      !print *, S_real
    end if
 
    if (method == PEXSI) then
@@ -1124,23 +1121,13 @@ subroutine elsi_solve_ev_problem(number_of_electrons)
          call elsi_stop("Hamiltonian not created/linked.",&
                        "elsi_solve_ev_problem")
       end if
-      !if (myid == 0) then
-      !  print *,"H_real_sparse"
-      !  print *,H_real_sparse
-      !  print *,"S_real_sparse"
-      !  print *,S_real_sparse
-      !  print *,"sparse_index"
-      !  print *,sparse_index
-      !  print *,"sparse_pointer"
-      !  print *,sparse_pointer
-      !end if
-      !call MPI_BARRIER(mpi_comm_global,mpierr)
    end if
 
    n_electrons = number_of_electrons
    n_eigenvectors = ceiling(n_electrons/2d0)
 
    ! Debug
+   !call elsi_print_setup()
    !call elsi_variable_status()
 
    select case (method)

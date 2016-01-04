@@ -148,28 +148,23 @@ subroutine elsi_initialize_blacs()
 
    if (method == PEXSI) then
 
+     external_blacs = .False.
+     blacs_is_setup = .False.
+
      ! Find balancing between expansion parallel and matrix inversion parallel
-     !if (mod(n_procs, 10) == 0 .and. n_procs > 100) then
-     !   n_p_rows = 10
-     !else if (mod(n_procs, 5) == 0 .and. n_procs > 25) then
-     !   n_p_rows = 5
-     !else if (mod(n_procs, 4) == 0 .and. n_procs > 16) then
-     !   n_p_rows = 4
-     !else if (mod(n_procs, 2) == 0 .and. n_procs > 4) then
-     !   n_p_rows = 2
-     !else 
-     !   n_p_rows = 1
-     !end if
+     if (mod(n_procs, 10) == 0 .and. n_procs > 100) then
+        n_p_rows = 10
+     else if (mod(n_procs, 5) == 0 .and. n_procs > 25) then
+        n_p_rows = 5
+     else if (mod(n_procs, 4) == 0 .and. n_procs > 16) then
+        n_p_rows = 4
+     else if (mod(n_procs, 2) == 0 .and. n_procs > 4) then
+        n_p_rows = 2
+     else 
+        n_p_rows = 1
+     end if
 
-     !n_p_cols = n_procs / n_p_rows
-
-     !Only Matrix parallel
-     n_p_rows = 1 
-     n_p_cols = n_procs
-
-     !Only expansion parallel
-     !n_p_rows = n_procs
-     !n_p_cols = 1
+     n_p_cols = n_procs / n_p_rows
 
      ! Find position in process grid
      my_p_col = FLOOR(1d0*myid / n_p_rows)
@@ -180,9 +175,9 @@ subroutine elsi_initialize_blacs()
      n_b_rows = n_g_rank
 
      ! The last process takes all remaining columns
-     n_b_cols = FLOOR(1d0*n_g_rank / n_p_cols)
-     if (my_p_col == n_p_cols - 1) then
-        n_b_cols = n_g_rank - (n_p_cols-1) * n_b_cols
+     n_b_cols = FLOOR(1d0*n_g_rank / n_procs)
+     if (myid == n_procs - 1) then
+        n_b_cols = n_g_rank - (n_procs-1) * n_b_cols
      end if
 
      n_l_rows = n_b_rows
@@ -204,8 +199,10 @@ subroutine elsi_initialize_blacs()
 
 
    else
+     
      external_blacs = .False.
      blacs_is_setup = .True.
+     
      ! Define blockcyclic setup
      do n_p_cols = NINT(SQRT(REAL(n_procs))),2,-1
        if(mod(n_procs,n_p_cols) == 0 ) exit
