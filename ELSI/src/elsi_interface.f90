@@ -1201,7 +1201,7 @@ subroutine elsi_solve_ev_problem(number_of_electrons)
               new_overlap, total_energy, OMM_D_matrix, calc_ED, eta, &
               OMM_C_matrix, C_matrix_initialized, OMM_T_matrix, &
               scale_kinetic, omm_flavour, nk_times_nspin, i_k_spin,&
-              min_tol, omm_verbose, do_dealloc, "pddbc", "lap", myid+1)
+              min_tol, omm_verbose, do_dealloc, "pddbc", "lap", myid)
 
       case (PEXSI)
 
