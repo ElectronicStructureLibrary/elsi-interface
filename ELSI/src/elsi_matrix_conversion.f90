@@ -190,14 +190,6 @@ subroutine elsi_dense_to_ccs_by_pattern(matrix, val, row_ind, col_ptr)
    integer             :: i_col       !< col counter
    integer             :: i_val       !< value counter
 
-   integer             :: indexshift
-
-   if (method == PEXSI) then
-      indexshift = 1
-   else 
-      indexshift = 0
-   end if
-
    i_col = 0
    do i_val = 1, n_l_nonzero
      if (i_val == col_ptr(i_col + 1) .and. i_col /= n_l_cols) then

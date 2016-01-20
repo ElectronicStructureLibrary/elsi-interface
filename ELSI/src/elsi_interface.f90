@@ -126,6 +126,7 @@ module ELSI
   public :: elsi_get_eigenvalues     !< Get the eigenvalues 
   public :: elsi_get_total_energy    !< Get the sum of occupied eigenvalues 
   public :: elsi_finalize            !< Finalize and cleanup ELSI
+  public :: scalapack_dense_to_pexsi_sparse !< Allow for converting a external scalapack dense matrix to pexsi sparse format
 
   ! from other modules
   public :: elsi_initialize_blacs
@@ -956,6 +957,8 @@ subroutine elsi_write_ev_problem(file_name)
 
    call elsi_stop_write_evp_time()
 
+   if (allocated(buffer)) deallocate (buffer)
+
 end subroutine
 
 !>
@@ -1601,7 +1604,7 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
    integer :: my_counts
    integer, allocatable :: strides(:)
    integer, allocatable :: rcounts(:)
-   integer :: i_proc
+   integer :: i_proc, i_col
 
 
    call BLACS_Gridinfo( blacs_ctxt_external, n_p_rows_external, &
@@ -1619,7 +1622,7 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
      "restart your calculation choosing a process number which in a "      //&
      "square number in best case for optimal performance and refrain from "//&
      "using prime numbers."
-     call MPI_ABORT(mpi_comm_world)
+     call MPI_ABORT(mpi_comm_external)
      stop
    end if
 
@@ -1649,7 +1652,12 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
    n_l_rows = n_g_rank
    n_l_cols_g = FLOOR(1d0 * n_g_rank / n_procs)
    n_cols_add = n_g_rank - n_l_cols_g * n_procs
-   n_l_cols = n_l_cols_g + n_cols_add
+   
+   if (myid == n_procs - 1) then
+      n_l_cols = n_l_cols_g + n_cols_add
+   else
+      n_l_cols = n_l_cols_g
+   end if
 
    ! Prepare for adding cols to last process
    if (n_cols_add > 0) then 
@@ -1695,7 +1703,6 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
 
    ! The last process gathers all remaining columns
    allocate(buffer_dense(n_l_rows,n_l_cols))
-   buffer_dense = 0d0
 
    ! Get my id within the the current process row
    call mpi_comm_rank(mpi_comm_row_external, my_col_offset, mpierr)
@@ -1706,7 +1713,13 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
          1d0, H_external, 1, 1, sc_desc_external, &
          0d0, buffer, 1, 1, sc_desc_buffer)
 
+  ! However, no inter blacs is possible so we have to do some by hand
+  ! communication and broadcast the results over the process column
+  call MPI_Bcast(buffer, n_l_buffer_rows * n_l_buffer_cols, MPI_DOUBLE, &
+        0, mpi_comm_row_external, mpierr) 
+   
    ! Fill elements from buffer
+   buffer_dense = 0d0
    buffer_dense(:,1:n_l_cols_g) = &
      buffer(:,my_col_offset:my_col_offset+n_l_cols_g-1)
    
@@ -1719,6 +1732,7 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
             MPI_DOUBLE, n_p_cols_external - 1, mpi_comm_col_external, mpierr)
    end if
 
+   call elsi_compute_N_nonzero(buffer_dense)
    allocate(H_real_sparse(n_l_nonzero))
    allocate(sparse_index(n_l_nonzero))
    allocate(sparse_pointer(n_l_cols + 1))
@@ -1730,7 +1744,13 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
          1d0, S_external, 1, 1, sc_desc_external, &
          0d0, buffer, 1, 1, sc_desc_buffer)
 
+   ! However, no inter blacs is possible so we have to do some by hand
+   ! communication and broadcast the results over the process column
+   call MPI_Bcast(buffer, n_l_buffer_rows * n_l_buffer_cols, MPI_DOUBLE, &
+        0, mpi_comm_row_external, mpierr) 
+
    ! Fill elements from buffer
+   buffer_dense = 0d0
    buffer_dense(:,1:n_l_cols_g) = &
      buffer(:,my_col_offset:my_col_offset+n_l_cols_g-1)
    

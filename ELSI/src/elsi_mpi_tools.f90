@@ -294,6 +294,9 @@ subroutine elsi_set_blacs( blacs_ctxt_in, n_p_rows_in, n_p_cols_in, &
            blacs_ctxt)
   end if
 
+  ! For DEBUG
+  !call elsi_variable_status()
+
 end subroutine
 
 
