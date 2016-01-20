@@ -1553,4 +1553,208 @@ subroutine elsi_check_solution(success)
 end subroutine
 
 
+!>
+!!  This routine transforms the eigenvalue problem from scalapack dense to pexsi sparse
+!!
+subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
+      n_l_rows_external, n_l_cols_external, mpi_comm_external,&
+      blacs_ctxt_external, sc_desc_external)
+
+
+   implicit none
+   include "mpif.h"
+
+   ! Arguments
+   integer :: n_l_rows_external
+   integer :: n_l_cols_external
+   real*8  :: H_external(n_l_rows_external, n_l_cols_external) 
+   real*8  :: S_external(n_l_rows_external, n_l_cols_external) 
+   integer :: mpi_comm_external
+   integer :: blacs_ctxt_external
+   integer :: sc_desc_external(9)
+
+   ! External functions
+   integer, external :: numroc
+
+   ! Local variables
+   integer :: n_p_rows_external
+   integer :: n_p_cols_external
+   integer :: my_p_row_external
+   integer :: my_p_col_external
+   integer :: mpi_comm_row_external
+   integer :: mpi_comm_col_external
+   
+   real*8, allocatable :: buffer(:,:)
+   integer :: sc_desc_buffer(9)
+   integer :: n_l_buffer_rows
+   integer :: n_l_buffer_cols
+   integer :: n_b_buffer_rows
+   integer :: n_b_buffer_cols
+   
+   real*8, allocatable :: buffer_dense(:,:)
+   integer :: n_l_cols_g
+   integer :: n_cols_add
+   integer :: my_col_offset
+   integer :: my_cols_sent
+   integer :: offset_sent
+   integer :: offset_receive
+   integer :: my_counts
+   integer, allocatable :: strides(:)
+   integer, allocatable :: rcounts(:)
+   integer :: i_proc
+
+
+   call BLACS_Gridinfo( blacs_ctxt_external, n_p_rows_external, &
+          n_p_cols_external, my_p_row_external, &
+          my_p_col_external )
+
+   ! Scalapack has a bug:
+   if ((n_p_rows_external == 1 .or. n_p_cols_external == 1) &
+       .and. n_procs /= 1) then
+     if (myid == 0) &
+     print *, "We encountered an scalapack bug when working "//&
+     "with prime process numbers and using pdtran to transform a matrix "  //&
+     "to a different blacs transcriptor. We stop here and wait for a "     //&
+     "scalapack patch. While this setup is an inefficient corner case, "   //&
+     "restart your calculation choosing a process number which in a "      //&
+     "square number in best case for optimal performance and refrain from "//&
+     "using prime numbers."
+     call MPI_ABORT(mpi_comm_world)
+     stop
+   end if
+
+   call mpi_comm_split(mpi_comm_external,my_p_col_external,&
+         my_p_row_external, mpi_comm_row_external,mpierr)
+   call mpi_comm_split(mpi_comm_external,my_p_row_external,&
+         my_p_col_external,mpi_comm_col_external,mpierr)
+
+   
+   ! Determine dimensions of buffer for transformation to Pexsi layout
+   n_b_buffer_rows = n_g_rank
+   n_b_buffer_cols = FLOOR(1d0 * n_g_rank / n_p_cols_external)
+   n_l_buffer_rows = n_g_rank
+   n_l_buffer_cols = numroc(n_g_rank, n_b_buffer_cols, my_p_col_external, &
+         0, n_p_cols_external)
+
+   ! Setup new descriptor for buffer based on the new dimensions
+   call descinit (sc_desc_buffer, n_g_rank, n_g_rank, n_b_buffer_rows, &
+         n_b_buffer_cols, 0, 0, blacs_ctxt_external, n_l_buffer_rows, &
+         blacs_info)
+
+   ! Initialize buffer
+   allocate(buffer(n_l_buffer_rows, n_l_buffer_cols))
+   buffer = 0d0 
+
+   ! Pexsi setup
+   n_l_rows = n_g_rank
+   n_l_cols_g = FLOOR(1d0 * n_g_rank / n_procs)
+   n_cols_add = n_g_rank - n_l_cols_g * n_procs
+   n_l_cols = n_l_cols_g + n_cols_add
+
+   ! Prepare for adding cols to last process
+   if (n_cols_add > 0) then 
+     
+     ! How many columns do I have to share?
+     my_cols_sent = n_l_buffer_cols - n_p_rows_external * n_l_cols_g
+
+     ! If I receive elements where do I start to put them?
+     if (myid .eq. n_procs - 1) then
+        offset_receive = n_l_cols_g + 1
+     else 
+        offset_receive = 1
+     end if
+
+     ! If I sent elements where do I start to take them?
+     if (my_cols_sent > 0) then
+        offset_sent = n_l_buffer_cols - my_cols_sent + 1
+     else 
+        offset_sent = 1
+     end if
+    
+     allocate(strides(n_p_cols_external))
+     allocate(rcounts(n_p_cols_external))
+
+     strides = 0
+     rcounts = 0
+
+     ! How many elements do I sent
+     my_counts = my_cols_sent * n_l_buffer_rows
+     
+     ! Tell Host process how many elements I sent  
+     call MPI_Gather (my_counts, 1, MPI_INT, &
+           rcounts, 1, MPI_INT, &
+           n_p_cols_external - 1, mpi_comm_col_external, mpierr)
+
+     ! Where will I put the recieved elements from process i
+     do i_proc = 2, n_p_cols_external
+        strides(i_proc) = SUM(rcounts(1:i_proc-1))
+     end do
+
+  end if
+
+
+   ! The last process gathers all remaining columns
+   allocate(buffer_dense(n_l_rows,n_l_cols))
+   buffer_dense = 0d0
+
+   ! Get my id within the the current process row
+   call mpi_comm_rank(mpi_comm_row_external, my_col_offset, mpierr)
+   my_col_offset = 1 + my_col_offset * Floor(1d0 * n_g_rank / n_procs)
+
+   ! The Hamiltonian
+   call pdtran(n_g_rank, n_g_rank, &
+         1d0, H_external, 1, 1, sc_desc_external, &
+         0d0, buffer, 1, 1, sc_desc_buffer)
+
+   ! Fill elements from buffer
+   buffer_dense(:,1:n_l_cols_g) = &
+     buffer(:,my_col_offset:my_col_offset+n_l_cols_g-1)
+   
+   if ((n_cols_add > 0) .and. &
+         (my_p_row_external .eq. n_p_rows_external - 1)) then     
+       call MPI_GatherV (buffer(1,offset_sent), &
+            n_l_buffer_rows * my_cols_sent, MPI_DOUBLE, &
+            buffer_dense(1,offset_receive), &
+            rcounts, strides, &
+            MPI_DOUBLE, n_p_cols_external - 1, mpi_comm_col_external, mpierr)
+   end if
+
+   allocate(H_real_sparse(n_l_nonzero))
+   allocate(sparse_index(n_l_nonzero))
+   allocate(sparse_pointer(n_l_cols + 1))
+   call elsi_dense_to_ccs(buffer_dense, H_real_sparse, sparse_index,&
+         sparse_pointer)
+
+   ! The Overlap Matrix
+   call pdtran(n_g_rank, n_g_rank, &
+         1d0, S_external, 1, 1, sc_desc_external, &
+         0d0, buffer, 1, 1, sc_desc_buffer)
+
+   ! Fill elements from buffer
+   buffer_dense(:,1:n_l_cols_g) = &
+     buffer(:,my_col_offset:my_col_offset+n_l_cols_g-1)
+   
+   if ((n_cols_add > 0) .and. &
+         (my_p_row_external .eq. n_p_rows_external - 1)) then     
+       call MPI_GatherV (buffer(1,offset_sent), &
+            n_l_buffer_rows * my_cols_sent, MPI_DOUBLE, &
+            buffer_dense(1,offset_receive), &
+            rcounts, strides, &
+            MPI_DOUBLE, n_p_cols_external - 1, mpi_comm_col_external, mpierr)
+   end if
+
+   allocate(S_real_sparse(n_l_nonzero))
+   call elsi_dense_to_ccs_by_pattern(buffer_dense, S_real_sparse, &
+         sparse_index, sparse_pointer)
+
+   ! TODO Check if overlap is unity
+   overlap_is_unity = .False.
+   
+   if (allocated(buffer) ) deallocate (buffer)
+   if (allocated(buffer_dense) ) deallocate (buffer_dense)
+   if (allocated(strides)) deallocate(strides)
+   if (allocated(rcounts)) deallocate(rcounts)
+
+end subroutine
+
 end module ELSI
