@@ -53,8 +53,9 @@ subroutine omm(m,n,H,S,new_S,e_min,D_min,calc_ED,eta,C_min,init_C,T,scale_T,flav
   logical :: conv ! CG minimization converged?
   logical :: ls_conv ! line search converged?
   logical :: ls_fail ! line search failed?
-  logical, save :: log_start=.false.
+  logical, save :: log_started=.false.
   logical, allocatable, save :: first_call(:) ! first call for this value of ip?
+  logical :: log_exist
 
   integer :: i
   integer :: j
@@ -100,12 +101,29 @@ subroutine omm(m,n,H,S,new_S,e_min,D_min,calc_ED,eta,C_min,init_C,T,scale_T,flav
 
   !**********************************************!
 
-  if (log_start) then
-    open(newunit=log_unit,file='libOMM.log',position='append')
+  if (mpi_rank == 0) then
+     ! Check if log file exists
+     inquire(file='libOMM.log', exist=log_exist)
+     ! If file does not exist and we start, create it
+     if (.not. log_exist) then
+        open(unit=log_unit,file='libOMM.log',status='new')
+     ! If file exist ...
+     else 
+        !we start, replace it
+        if (.not. log_started) then 
+           open(unit=log_unit,file='libOMM.log',status='replace')
+        ! we start next cycle append new data
+        else
+           open(unit=log_unit,file='libOMM.log',position='append')
+        end if
+     end if
   else
-    open(newunit=log_unit,file='libOMM.log',status='replace')
-    log_start=.true.
+     log_unit = -1
   end if
+
+  ! After here we have a file and we have started the logging
+  log_started = .True.
+
 
   if (S%is_initialized) then
     no_S=.false.
@@ -226,7 +244,7 @@ subroutine omm(m,n,H,S,new_S,e_min,D_min,calc_ED,eta,C_min,init_C,T,scale_T,flav
       if (allocated(first_call)) deallocate(first_call)
     end if
 
-    close(log_unit)
+    if (mpi_rank == 0) close(log_unit)
     return
 
   end if
@@ -637,6 +655,6 @@ subroutine omm(m,n,H,S,new_S,e_min,D_min,calc_ED,eta,C_min,init_C,T,scale_T,flav
     first_call(ip)=.false.
   end if
 
-  close(log_unit)
+  if (mpi_rank == 0) close(log_unit)
 
 end subroutine omm

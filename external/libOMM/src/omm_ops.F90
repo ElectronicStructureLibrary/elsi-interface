@@ -1104,10 +1104,11 @@ subroutine die(message)
   character(*), intent(in), optional :: message
 
   !**********************************************!
-
-  write(log_unit,'(a)') 'FATAL ERROR in libOMM!'
-  if (present(message)) write(log_unit,'(a)') message
-  close(log_unit)
+  if (log_unit > 0) then
+     write(log_unit,'(a)') 'FATAL ERROR in libOMM!'
+     if (present(message)) write(log_unit,'(a)') message
+     close(log_unit)
+  end if
   stop
 
 end subroutine die
