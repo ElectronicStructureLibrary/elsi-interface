@@ -9,7 +9,8 @@ all: example/construct_and_write_elpa.x \
      example/read_and_write_omm.x \
      example/read_and_write_pexsi.x \
      example/read_and_solve_omm.x \
-     example/read_and_solve_pexsi.x
+     example/read_and_solve_pexsi.x \
+     example/set_and_convert_pexsi.x
 
 example/%.x: example/%.o src/elsi_interface.o src/elsi_mpi_tools.o src/elsi_hdf5_tools.o src/elsi_matrix_conversion.o src/elsi_timings.o src/elsi_dimensions.o
 	$(MPIFC) $(FFLAGS_I) -o $@ $^ -Isrc/ $(ELPA) $(OMM) $(PEXSI) $(SCALAPACK) $(LAPACK) $(BLAS) $(HDF5)
@@ -62,6 +63,7 @@ install:
 	cp example/read_and_write_pexsi.x bin/read_and_write_pexsi
 	cp example/read_and_solve_omm.x bin/read_and_solve_omm
 	cp example/read_and_solve_pexsi.x bin/read_and_solve_pexsi
+	cp example/set_and_convert_pexsi.x bin/set_and_convert_pexsi
 
 check:
 	cd regression && ./regression.sh
