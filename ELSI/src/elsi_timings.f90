@@ -54,7 +54,12 @@ module ELSI_TIMERS
   !> Timers for solving the eigenvalue problem
   logical:: solve_time = .false.
   real*8 :: walltime_solve_evp  
-  real*8 :: walltime_solve_evp_start  
+  real*8 :: walltime_solve_evp_start
+
+  !> Timers for solving the eigenvalue problem
+  logical:: dist_pexsi_time = .false.
+  real*8 :: walltime_dist_pexsi  
+  real*8 :: walltime_dist_pexsi_start   
   
   !> system clock specifics
   integer :: clock_rate
@@ -72,6 +77,9 @@ module ELSI_TIMERS
   public :: elsi_stop_write_evp_time
   public :: elsi_start_solve_evp_time
   public :: elsi_stop_solve_evp_time
+  public :: elsi_start_dist_pexsi_time
+  public :: elsi_stop_dist_pexsi_time
+
 
 
 contains
@@ -102,6 +110,11 @@ subroutine elsi_initialize_timers()
    walltime_solve_evp        = 0d0
    walltime_solve_evp_start  = 0d0
 
+    !> Timers for communicating the eigenvalue problem to PEXSI style
+   walltime_dist_pexsi        = 0d0
+   walltime_dist_pexsi_start  = 0d0
+
+
    call system_clock (initial_time, clock_rate, clock_max)
 
 end subroutine
@@ -120,14 +133,6 @@ subroutine elsi_print_setup()
       write(*,"('| ELSI worked on a eigenvalue problem with dimensions   ')")
       write(*,"('| Rank                           : ',I13)")&
          n_g_rank
-      write(*,"('| Non zero elements              : ',I13)")&
-         n_g_nonzero    
-      write(*,"('| Sparcity                       : ',F13.3)")& 
-         1d0 * n_g_nonzero / n_g_rank / n_g_rank    
-      write(*,"('| Number of Electrons            : ',F13.3)")& 
-         n_electrons    
-      write(*,"('| Number of States               : ',I13)")& 
-         n_eigenvectors   
       if (method == ELPA) then 
       write(*,"('| Method:                        : ',A13)")&
          "ELPA"
@@ -208,7 +213,11 @@ subroutine elsi_print_timers()
       if (write_time) then  
       write(*,"('| Writing the Eigenvalue problem :',F13.3,' s')")&
          walltime_write_evp
-      end if  
+      end if 
+      if (dist_pexsi_time) then  
+      write(*,"('| Distributing to PEXSI          :',F13.3,' s')")&
+         walltime_dist_pexsi
+      end if   
       if (solve_time) then  
       write(*,"('| Solving the Eigenvalue problem :',F13.3,' s')")&
          walltime_solve_evp
@@ -349,5 +358,33 @@ subroutine elsi_stop_solve_evp_time()
      + stop_time - walltime_solve_evp_start
 
 end subroutine
+
+!>
+!!  This routine starts the dist pexsi timer
+!!
+subroutine elsi_start_dist_pexsi_time()
+
+   implicit none
+   
+   dist_pexsi_time = .true. 
+   call elsi_get_time(walltime_dist_pexsi_start)
+
+end subroutine
+
+!>
+!!  This routine stops the dist pexsi timer
+!!
+subroutine elsi_stop_dist_pexsi_time()
+
+   implicit none
+
+   real*8 :: stop_time
+   
+   call elsi_get_time(stop_time)
+   walltime_dist_pexsi = walltime_dist_pexsi &
+     + stop_time - walltime_dist_pexsi_start
+
+end subroutine
+
 
 end module ELSI_TIMERS
