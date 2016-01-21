@@ -166,9 +166,9 @@ subroutine elsi_initialize_blacs()
 
      n_p_cols = n_procs / n_p_rows
 
-     ! Find position in process grid
-     my_p_col = FLOOR(1d0*myid / n_p_rows)
-     my_p_row = mod(myid,n_p_rows)
+     ! position in process grid must not be used
+     my_p_col = -1
+     my_p_row = -1
 
      ! PEXSI needs a pure block distribution.
      ! This is why we reset the blocksize here 

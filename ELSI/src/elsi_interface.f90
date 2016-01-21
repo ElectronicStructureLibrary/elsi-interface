@@ -901,8 +901,6 @@ subroutine elsi_write_ev_problem(file_name)
       allocate(buffer(n_l_rows, n_l_cols)) 
    end if
 
-
-
    call hdf5_create_file (file_name, mpi_comm_global, mpi_info_null, file_id)
 
    ! The Hamiltonian
@@ -1634,7 +1632,7 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
    
    ! Determine dimensions of buffer for transformation to Pexsi layout
    n_b_buffer_rows = n_g_rank
-   n_b_buffer_cols = FLOOR(1d0 * n_g_rank / n_p_cols_external)
+   n_b_buffer_cols = CEILING(1d0 * n_g_rank / n_p_cols_external)
    n_l_buffer_rows = n_g_rank
    n_l_buffer_cols = numroc(n_g_rank, n_b_buffer_cols, my_p_col_external, &
          0, n_p_cols_external)

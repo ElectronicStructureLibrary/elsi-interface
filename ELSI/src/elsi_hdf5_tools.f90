@@ -689,7 +689,7 @@ subroutine hdf5_get_scalapack_pattern()
         incomplete = .False.
       end if
 
-      chunk = block
+      chunk = (/n_g_rank,1/)
 
    else !(ELPA, OMM_dense are using block-cyclic for scalapack)
 

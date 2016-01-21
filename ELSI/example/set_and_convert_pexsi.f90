@@ -179,7 +179,7 @@ program set_and_convert
 
       element = 1d3 * global_row + 1d0 * global_col
       H_matrix(local_row, local_col) = element
-      if (global_row == global_col) S_matrix(local_row, local_col) = 1d0
+      S_matrix(local_row, local_col) = element + 0.5d0
     end do
   end do
 
