@@ -1128,7 +1128,7 @@ subroutine elsi_solve_ev_problem(number_of_electrons)
    n_eigenvectors = ceiling(n_electrons/2d0)
 
    ! Debug
-   !call elsi_print_setup()
+   call elsi_print_setup()
    !call elsi_variable_status()
 
    select case (method)
@@ -1586,24 +1586,22 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
    integer :: mpi_comm_col_external
    
    real*8, allocatable :: buffer(:,:)
+   real*8, allocatable :: buffer2(:,:)
+   real*8, allocatable :: buffer_dense(:,:)
    integer :: sc_desc_buffer(9)
    integer :: n_l_buffer_rows
    integer :: n_l_buffer_cols
    integer :: n_b_buffer_rows
    integer :: n_b_buffer_cols
    
-   real*8, allocatable :: buffer_dense(:,:)
    integer :: n_l_cols_g
    integer :: n_cols_add
    integer :: my_col_offset
-   integer :: my_cols_sent
-   integer :: offset_sent
-   integer :: offset_receive
-   integer :: my_counts
-   integer, allocatable :: strides(:)
-   integer, allocatable :: rcounts(:)
+   integer :: buffer2_col_offset
+   integer :: dense_col_offset
    integer :: i_proc, i_col
 
+   call elsi_start_dist_pexsi_time()
 
    call BLACS_Gridinfo( blacs_ctxt_external, n_p_rows_external, &
           n_p_cols_external, my_p_row_external, &
@@ -1642,9 +1640,15 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
          n_b_buffer_cols, 0, 0, blacs_ctxt_external, n_l_buffer_rows, &
          blacs_info)
 
+   ! TODO FIX SCALAPACK Bug with the following ?
+   !if (my_p_row_external > 0) then
+   !  sc_desc_buffer = 0
+   !  sc_desc_buffer(2) = -1
+   !end if
+
    ! Initialize buffer
-   allocate(buffer(n_l_buffer_rows, n_l_buffer_cols))
-   buffer = 0d0 
+   allocate(buffer(n_l_buffer_rows, n_b_buffer_cols))
+   allocate(buffer2(n_l_buffer_rows, n_b_buffer_cols))
 
    ! Pexsi setup
    n_l_rows = n_g_rank
@@ -1657,78 +1661,43 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
       n_l_cols = n_l_cols_g
    end if
 
-   ! Prepare for adding cols to last process
-   if (n_cols_add > 0) then 
-     
-     ! How many columns do I have to share?
-     my_cols_sent = n_l_buffer_cols - n_p_rows_external * n_l_cols_g
-
-     ! If I receive elements where do I start to put them?
-     if (myid .eq. n_procs - 1) then
-        offset_receive = n_l_cols_g + 1
-     else 
-        offset_receive = 1
-     end if
-
-     ! If I sent elements where do I start to take them?
-     if (my_cols_sent > 0) then
-        offset_sent = n_l_buffer_cols - my_cols_sent + 1
-     else 
-        offset_sent = 1
-     end if
-    
-     allocate(strides(n_p_cols_external))
-     allocate(rcounts(n_p_cols_external))
-
-     strides = 0
-     rcounts = 0
-
-     ! How many elements do I sent
-     my_counts = my_cols_sent * n_l_buffer_rows
-     
-     ! Tell Host process how many elements I sent  
-     call MPI_Gather (my_counts, 1, MPI_INT, &
-           rcounts, 1, MPI_INT, &
-           n_p_cols_external - 1, mpi_comm_col_external, mpierr)
-
-     ! Where will I put the recieved elements from process i
-     do i_proc = 2, n_p_cols_external
-        strides(i_proc) = SUM(rcounts(1:i_proc-1))
-     end do
-
-  end if
-
-
    ! The last process gathers all remaining columns
    allocate(buffer_dense(n_l_rows,n_l_cols))
 
-   ! Get my id within the the current process row
-   call mpi_comm_rank(mpi_comm_row_external, my_col_offset, mpierr)
-   my_col_offset = 1 + my_col_offset * Floor(1d0 * n_g_rank / n_procs)
-
    ! The Hamiltonian
+   buffer = 0d0 
+   buffer2 = 0d0
+   buffer_dense = 0d0
    call pdtran(n_g_rank, n_g_rank, &
          1d0, H_external, 1, 1, sc_desc_external, &
          0d0, buffer, 1, 1, sc_desc_buffer)
 
-  ! However, no inter blacs is possible so we have to do some by hand
-  ! communication and broadcast the results over the process column
-  call MPI_Bcast(buffer, n_l_buffer_rows * n_l_buffer_cols, MPI_DOUBLE, &
+   ! However, no inter blacs is possible so we have to do some by hand
+   ! communication and broadcast the results over the process column
+   call MPI_Bcast(buffer, n_l_buffer_rows * n_b_buffer_cols, MPI_DOUBLE, &
         0, mpi_comm_row_external, mpierr) 
-   
-   ! Fill elements from buffer
-   buffer_dense = 0d0
-   buffer_dense(:,1:n_l_cols_g) = &
-     buffer(:,my_col_offset:my_col_offset+n_l_cols_g-1)
-   
-   if ((n_cols_add > 0) .and. &
-         (my_p_row_external .eq. n_p_rows_external - 1)) then     
-       call MPI_GatherV (buffer(1,offset_sent), &
-            n_l_buffer_rows * my_cols_sent, MPI_DOUBLE, &
-            buffer_dense(1,offset_receive), &
-            rcounts, strides, &
-            MPI_DOUBLE, n_p_cols_external - 1, mpi_comm_col_external, mpierr)
-   end if
+  
+   do i_proc = 0, n_p_cols_external - 1
+      
+      buffer2 = buffer
+      call MPI_Bcast(buffer2, n_l_buffer_rows * n_b_buffer_cols, MPI_DOUBLE, &
+        i_proc, mpi_comm_col_external, mpierr)
+
+      buffer2_col_offset = 1 + i_proc * n_b_buffer_cols
+      dense_col_offset = 1 + myid * n_l_cols_g
+      my_col_offset = 1 + dense_col_offset - buffer2_col_offset
+
+      ! Fill elements from buffer
+      do i_col = my_col_offset, my_col_offset + n_l_cols - 1
+        
+       if (i_col > 0 .and. i_col <= n_b_buffer_cols) then
+         buffer_dense(:,i_col - my_col_offset + 1) = buffer2(:,i_col)
+       end if
+
+      end do
+
+
+   end do 
 
    call elsi_compute_N_nonzero(buffer_dense)
    allocate(H_real_sparse(n_l_nonzero))
@@ -1738,29 +1707,40 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
          sparse_pointer)
 
    ! The Overlap Matrix
+   buffer  = 0d0
+   buffer2 = 0d0
+   buffer_dense = 0d0
    call pdtran(n_g_rank, n_g_rank, &
          1d0, S_external, 1, 1, sc_desc_external, &
          0d0, buffer, 1, 1, sc_desc_buffer)
 
    ! However, no inter blacs is possible so we have to do some by hand
    ! communication and broadcast the results over the process column
-   call MPI_Bcast(buffer, n_l_buffer_rows * n_l_buffer_cols, MPI_DOUBLE, &
+   call MPI_Bcast(buffer, n_l_buffer_rows * n_b_buffer_cols, MPI_DOUBLE, &
         0, mpi_comm_row_external, mpierr) 
+  
+   do i_proc = 0, n_p_cols_external - 1
+      
+      buffer2 = buffer
+      call MPI_Bcast(buffer2, n_l_buffer_rows * n_b_buffer_cols, MPI_DOUBLE, &
+        i_proc, mpi_comm_col_external, mpierr)
 
-   ! Fill elements from buffer
-   buffer_dense = 0d0
-   buffer_dense(:,1:n_l_cols_g) = &
-     buffer(:,my_col_offset:my_col_offset+n_l_cols_g-1)
+      buffer2_col_offset = 1 + i_proc * n_b_buffer_cols
+      dense_col_offset = 1 + myid * n_l_cols_g
+      my_col_offset = 1 + dense_col_offset - buffer2_col_offset
+
+      ! Fill elements from buffer
+      do i_col = my_col_offset, my_col_offset + n_l_cols - 1
+        
+       if (i_col > 0 .and. i_col <= n_b_buffer_cols) then
+         buffer_dense(:,i_col - my_col_offset + 1) = buffer2(:,i_col)
+       end if
+
+      end do
+
+
+   end do 
    
-   if ((n_cols_add > 0) .and. &
-         (my_p_row_external .eq. n_p_rows_external - 1)) then     
-       call MPI_GatherV (buffer(1,offset_sent), &
-            n_l_buffer_rows * my_cols_sent, MPI_DOUBLE, &
-            buffer_dense(1,offset_receive), &
-            rcounts, strides, &
-            MPI_DOUBLE, n_p_cols_external - 1, mpi_comm_col_external, mpierr)
-   end if
-
    allocate(S_real_sparse(n_l_nonzero))
    call elsi_dense_to_ccs_by_pattern(buffer_dense, S_real_sparse, &
          sparse_index, sparse_pointer)
@@ -1769,9 +1749,10 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
    overlap_is_unity = .False.
    
    if (allocated(buffer) ) deallocate (buffer)
+   if (allocated(buffer2) ) deallocate (buffer2)
    if (allocated(buffer_dense) ) deallocate (buffer_dense)
-   if (allocated(strides)) deallocate(strides)
-   if (allocated(rcounts)) deallocate(rcounts)
+
+   call elsi_stop_dist_pexsi_time()
 
 end subroutine
 
