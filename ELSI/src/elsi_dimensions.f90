@@ -230,6 +230,11 @@ subroutine elsi_variable_status()
               &' : Matrixsize global ',I5,' x ',I5)")&
               & myid, n_g_rank, n_g_rank
             write(*,'(A)') trim(string_message)
+
+            write(string_message, "(1X,'*** Proc',I5,&
+              &' : Non_zero elements global ',I16)")&
+              & myid, n_g_nonzero
+            write(*,'(A)') trim(string_message)
             
             write(string_message, "(1X,'*** Proc',I5,&
               &' : Processgrid global ',I5,' x ',I5)")&
@@ -246,6 +251,12 @@ subroutine elsi_variable_status()
               & myid, n_eigenvectors
             write(*,'(A)') trim(string_message)
 
+            write(string_message, "(1X,'*** Proc',I5,&
+              &' : Overlap is Unity ? ',L2)") &
+              & myid, overlap_is_unity
+            write(*,'(A)') trim(string_message)
+
+
       end if
 
       call MPI_BARRIER(mpi_comm_global,mpierr)
@@ -261,6 +272,12 @@ subroutine elsi_variable_status()
               &' : Blocksize global ',I5,' x ',I5)") &
               & myid, n_b_rows, n_b_cols
             write(*,'(A)') trim(string_message)
+
+            write(string_message, "(1X,'*** Proc',I5,&
+              &' : Non_zero elements local ',I16)")&
+              & myid, n_l_nonzero
+            write(*,'(A)') trim(string_message)
+
          
           end if
 
