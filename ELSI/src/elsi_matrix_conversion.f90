@@ -77,9 +77,6 @@ subroutine elsi_compute_N_nonzero(matrix)
    call MPI_ALLREDUCE(i_nonzero, n_g_nonzero, 1, mpi_integer, mpi_sum,&
          mpi_comm_global, mpierr)
 
-   ! Divide by the number of processes working on the same matrix
-   n_g_nonzero = n_g_nonzero / n_p_rows
-
 end subroutine
 
 !>
