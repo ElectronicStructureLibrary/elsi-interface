@@ -188,6 +188,9 @@ program set_and_convert
 
   ! Write eigenvalue problem to another file
   call elsi_write_ev_problem("elsi_eigenvalue_problem_out.hdf5")
+  
+  ! elsi shutdown
+  call elsi_finalize()
 
   deallocate(H_matrix)
   deallocate(S_matrix)
