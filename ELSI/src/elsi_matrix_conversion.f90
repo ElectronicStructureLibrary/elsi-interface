@@ -40,7 +40,8 @@ module ELSI_MATRIX_CONVERSION
   real*8 :: threshhold = 1.0d-12  !< threshhold to define numerical zero
 
   public :: elsi_compute_N_nonzero
-  public :: elsi_dense_to_crs
+  public :: elsi_get_local_N_nonzero
+  public :: elsi_get_n_nonzero_column
   public :: elsi_dense_to_ccs
   public :: elsi_dense_to_ccs_by_pattern
   public :: elsi_ccs_to_dense
@@ -48,78 +49,101 @@ module ELSI_MATRIX_CONVERSION
   contains
 
 !>
-!!  This routine computes the number of non_zero elements
-!!
-subroutine elsi_compute_N_nonzero(matrix)
+!!  This routine computes the number of non_zero elements column-wise for 
+!!  the full matrix and return it as a vector of dimension n_g_rank 
+subroutine elsi_get_n_nonzero_column(matrix, n_rows, n_cols, l_offset,n_nonzero)
 
    implicit none
    include 'mpif.h'
 
-   real*8,  intent(in) :: matrix(:,:) !< local matrix
+   real*8,   intent(in)  :: matrix(n_rows,n_cols)  !< local matrix
+   integer,  intent(in)  :: n_rows !< local rows
+   integer,  intent(in)  :: n_cols !< local cols
+   integer,  intent(in)  :: l_offset !< offset in global array
+   integer,  intent(out) :: n_nonzero (n_g_rank)
+   
+   integer, allocatable :: buffer(:)  !< buffer for MPI communication
+   integer             :: i_col       !< col counter
+   integer             :: nnz_in_col  !< non-zero element counter in column
+   integer             :: sent_n_elements  !< number of elements to sent in MPI call
+
+   integer, parameter :: max_len = 1e6
+
+   n_nonzero = 0
+
+   do i_col = 1, n_cols
+     call elsi_get_local_N_nonzero(matrix(:,i_col), n_rows, 1, nnz_in_col)
+     n_nonzero(l_offset + i_col - 1) = nnz_in_col
+   end do
+
+   allocate(buffer (min(n_g_rank,max_len)))
+
+   do i_col = 1,n_g_rank,max_len
+
+     if (n_g_rank - i_col + 1 < max_len) then
+        sent_n_elements = n_g_rank - i_col + 1
+     else
+        sent_n_elements = max_len
+     end if
+
+     call MPI_AllReduce(n_nonzero(i_col), buffer, sent_n_elements, MPI_INTEGER,&
+           MPI_SUM, mpi_comm_global, mpierr)
+     n_nonzero(i_col:i_col-1+sent_n_elements) = buffer(1:sent_n_elements)
+   
+   end do
+
+   deallocate(buffer)
+
+
+end subroutine
+
+
+!>
+!!  This routine computes the number of non_zero elements for a local matrix
+!!
+subroutine elsi_get_local_N_nonzero(matrix, n_rows, n_cols, n_nonzero)
+
+   implicit none
+   include 'mpif.h'
+
+   real*8,  intent(in)  :: matrix(n_rows,n_cols)  !< local matrix
+   integer,  intent(in) :: n_rows !< local rows
+   integer,  intent(in) :: n_cols !< local cols
+   integer, intent(out) :: n_nonzero
    
    integer             :: i_row       !< row counter
    integer             :: i_col       !< col counter
    integer             :: i_nonzero   !< non-zero element counter
 
-   i_nonzero = 0
-   do i_row = 1, n_l_rows
-     do i_col = 1, n_l_cols
+   n_nonzero = 0
+   do i_col = 1, n_cols
+     do i_row = 1, n_rows
        if (abs(matrix(i_row,i_col)) > threshhold) then
-         i_nonzero = i_nonzero + 1
+         n_nonzero = n_nonzero + 1
        end if
      end do
    end do
-
-   ! Set the number of non-zero elements in the local matrix
-   n_l_nonzero = i_nonzero
-
-   ! Set the number of non_zero elements in the global matrix
-   call MPI_ALLREDUCE(i_nonzero, n_g_nonzero, 1, mpi_integer, mpi_sum,&
-         mpi_comm_global, mpierr)
 
 end subroutine
 
 !>
-!!  This routine transforms a dense matrix to the 
-!!  Compressed Row Storage (CRS) Format
+!!  This routine computes the number of non_zero elements
 !!
-subroutine elsi_dense_to_crs(matrix, val, col_ind, row_ptr)
+subroutine elsi_compute_N_nonzero(matrix,n_rows,n_cols)
 
    implicit none
+   include 'mpif.h'
 
-   real*8,  intent(in) :: matrix(n_l_rows,n_l_cols) !< local matrix
-   real*8,  intent(out):: val(n_l_nonzero)          !< values
-   integer, intent(out):: col_ind(n_l_nonzero)      !< column index
-   integer, intent(out):: row_ptr(n_l_rows + 1)     !< row pointer
+   integer, intent(in) :: n_rows !< number of rows
+   integer, intent(in) :: n_cols !< number of columns
+   real*8,  intent(in) :: matrix(n_rows,n_cols) !< local matrix
 
-   integer             :: i_row       !< row counter
-   integer             :: i_col       !< col counter
-   integer             :: i_val       !< value counter
-   logical             :: first       !< First encounter in row?
+   ! Set the number of non-zero elements in the local matrix
+   call elsi_get_local_N_nonzero(matrix,n_rows,n_cols,n_l_nonzero)
 
-   i_val = 0
-   row_ptr = 0
-   do i_row = 1, n_l_rows
-     first = .true.
-     do i_col = 1, n_l_cols
-       if (abs(matrix(i_row,i_col)) > threshhold) then
-         i_val = i_val + 1
-         if (first) then
-           row_ptr(i_row) = i_val
-           first = .false.
-         end if
-         val(i_val) = matrix(i_row,i_col)
-         col_ind(i_val) = i_col
-       end if
-     end do
-   end do
-
-   row_ptr(n_l_rows + 1) = i_val
-
-   if (i_val /= n_l_nonzero) then
-      call elsi_stop("Number of non zero elements differ",&
-         "elsi_sparse_to_crs")
-   end if
+   ! Set the number of non_zero elements in the global matrix
+   call MPI_ALLREDUCE(n_l_nonzero, n_g_nonzero, 1, mpi_integer, mpi_sum,&
+         mpi_comm_global, mpierr)
 
 end subroutine
 
@@ -127,14 +151,17 @@ end subroutine
 !!  This routine transforms a dense matrix to the 
 !!  Compressed Column Storage (CCS) Format
 !!
-subroutine elsi_dense_to_ccs(matrix, val, row_ind, col_ptr)
+subroutine elsi_dense_to_ccs(matrix, n_rows, n_cols, val, nnz, row_ind, col_ptr)
 
    implicit none
 
-   real*8,  intent(in) :: matrix(n_l_rows,n_l_cols) !< local matrix
-   real*8,  intent(out):: val(n_l_nonzero)          !< values
-   integer, intent(out):: row_ind(n_l_nonzero)      !< row index
-   integer, intent(out):: col_ptr(n_l_cols + 1)     !< column pointer
+   integer, intent(in) :: n_rows !< number of rows
+   integer, intent(in) :: n_cols !< number of columns
+   integer, intent(in) :: nnz    !< number of non zero elements
+   real*8,  intent(in) :: matrix(n_rows,n_cols) !< local matrix
+   real*8,  intent(out):: val(nnz)          !< values
+   integer, intent(out):: row_ind(nnz)      !< row index
+   integer, intent(out):: col_ptr(n_cols + 1)     !< column pointer
 
    integer             :: i_row       !< row counter
    integer             :: i_col       !< col counter
@@ -145,9 +172,9 @@ subroutine elsi_dense_to_ccs(matrix, val, row_ind, col_ptr)
 
    i_val = 0
    col_ptr = 0
-   do i_col = 1, n_l_cols
+   do i_col = 1, n_cols
      first = .true.
-     do i_row = 1, n_l_rows
+     do i_row = 1, n_rows
        if (abs(matrix(i_row,i_col)) > threshhold) then
          i_val = i_val + 1
          if (first) then
@@ -160,12 +187,13 @@ subroutine elsi_dense_to_ccs(matrix, val, row_ind, col_ptr)
      end do
    end do
 
-   col_ptr(n_l_cols + 1) = i_val + 1
+   col_ptr(n_cols + 1) = i_val + 1
 
-   if (i_val /= n_l_nonzero) then
+   if (i_val /= nnz) then
       call elsi_stop("Number of non zero elements differ",&
-         "elsi_sparse_to_ccs")
+         "elsi_dense_to_ccs")
    end if
+
 
 end subroutine
 
@@ -174,22 +202,25 @@ end subroutine
 !!  Compressed Column Storage (CCS) Format based 
 !!  on a given col_ind and row_ptr
 !!
-subroutine elsi_dense_to_ccs_by_pattern(matrix, val, row_ind, col_ptr)
+subroutine elsi_dense_to_ccs_by_pattern(matrix, n_rows, n_cols, val, nnz, row_ind, col_ptr)
 
    implicit none
 
-   real*8,  intent(in) :: matrix(n_l_rows,n_l_cols) !< local matrix
-   real*8,  intent(out):: val(n_l_nonzero)          !< values
-   integer, intent(in) :: row_ind(n_l_nonzero)      !< row index
-   integer, intent(in) :: col_ptr(n_l_cols + 1)     !< column pointer
+   integer, intent(in) :: n_rows !< number of rows
+   integer, intent(in) :: n_cols !< number of columns
+   integer, intent(in) :: nnz    !< number of non zero elements
+   real*8,  intent(in) :: matrix(n_rows,n_cols) !< local matrix
+   real*8,  intent(out):: val(nnz)          !< values
+   integer, intent(in) :: row_ind(nnz)      !< row index
+   integer, intent(in) :: col_ptr(n_cols + 1)     !< column pointer
 
    integer             :: i_row       !< row counter
    integer             :: i_col       !< col counter
    integer             :: i_val       !< value counter
 
    i_col = 0
-   do i_val = 1, n_l_nonzero
-     if (i_val == col_ptr(i_col + 1) .and. i_col /= n_l_cols) then
+   do i_val = 1, nnz
+     if (i_val == col_ptr(i_col + 1) .and. i_col /= n_cols) then
        i_col = i_col + 1
      end if
      i_row = row_ind(i_val)
@@ -200,26 +231,29 @@ subroutine elsi_dense_to_ccs_by_pattern(matrix, val, row_ind, col_ptr)
 end subroutine
 
 !>
-!!  This routine transforms a dense matrix to the 
-!!  Compressed Column Storage (CCS) Format based 
+!!  This routine transforms a CCS matrix back to dense form  
 !!  on a given col_ind and row_ptr
 !!
-subroutine elsi_ccs_to_dense(matrix, val, row_ind, col_ptr)
+subroutine elsi_ccs_to_dense(matrix, n_rows, n_cols, val, nnz, row_ind, col_ptr)
 
    implicit none
 
-   real*8,  intent(out) :: matrix(n_l_rows,n_l_cols) !< local matrix
-   real*8,  intent(in)  :: val(n_l_nonzero)          !< values
-   integer, intent(in)  :: row_ind(n_l_nonzero)      !< row index
-   integer, intent(in)  :: col_ptr(n_l_cols + 1)     !< column pointer
+   integer, intent(in) :: n_rows !< number of rows
+   integer, intent(in) :: n_cols !< number of columns
+   integer, intent(in) :: nnz    !< number of non zero elements
+   real*8,  intent(out) :: matrix(n_rows,n_cols) !< local matrix
+   real*8,  intent(in)  :: val(nnz)          !< values
+   integer, intent(in)  :: row_ind(nnz)      !< row index
+   integer, intent(in)  :: col_ptr(n_cols + 1)     !< column pointer
 
    integer             :: i_row       !< row counter
    integer             :: i_col       !< col counter
    integer             :: i_val       !< value counter
 
+   matrix = 0d0
    i_col = 0
-   do i_val = 1, n_l_nonzero
-     if (i_val == col_ptr(i_col + 1) .and. i_col /= n_l_cols) then
+   do i_val = 1, nnz
+     if (i_val == col_ptr(i_col + 1) .and. i_col /= n_cols) then
        i_col = i_col + 1
      end if
      i_row = row_ind(i_val)

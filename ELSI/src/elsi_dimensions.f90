@@ -312,9 +312,9 @@ subroutine elsi_set_pexsi_default_options()
       !An upper bound for the spectral radius of S−1H.
       pexsi_options%deltaE   = 20d0 
       !Number of terms in the pole expansion.
-      pexsi_options%numPole  = 80
+      pexsi_options%numPole  = 40
       !Temperature, in the same unit as H. 
-      pexsi_options%temperature = 0.003 ! 1000K   
+      pexsi_options%temperature = 0.0095 ! 3000K   
       !Safe guard criterion in terms of the chemical potential to 
       !reinvoke the inertia counting procedure. 
       pexsi_options%muPEXSISafeGuard = 0.2d0
@@ -394,7 +394,7 @@ subroutine elsi_print_pexsi_options()
          write(*,'(A)') trim(string_message)
 
          write(string_message, "(1X,'Sparcity ',F7.3)") &
-              & (1d2 * n_g_nonzero / n_g_rank**2)
+              & (1d0 * n_g_nonzero / n_g_rank) / n_g_rank
          write(*,'(A)') trim(string_message)
 
       end if
@@ -421,13 +421,13 @@ subroutine elsi_set_omm_default_options()
       !! 1 = Cholesky factorisation of S requested
       !! 2 = Cholesky already performed, U is provided in S
       !! 3 = Use preconditioning based on the energy density
-      omm_flavour = 1
+      omm_flavour = 2  ! We do Cholesky with ELPA
       !< scaling of the kinetic energy matrix, recommended round 5 Ha
       scale_kinetic = 5d0
       !< Calculate the energy weigthed density matrix
       calc_ed = .False.
       !< Eigenspectrum shift parameter
-      eta = 0.0d0
+      eta = 0.5d0
       !< Tolerance for minimization
       min_tol = 1.0d-9
       !< n_k_points * n_spin
@@ -464,6 +464,18 @@ subroutine elsi_print_omm_options()
 
          write(string_message, "(1X,'Tolerance (H) ',E10.1)") &
               & min_tol
+         write(*,'(A)') trim(string_message)
+
+         write(string_message, "(1X,'OMM Flavour ',I1)") &
+              & omm_flavour
+         write(*,'(A)') trim(string_message)
+
+         write(string_message, "(1X,'Verbose ?',L1)") &
+              & omm_verbose
+         write(*,'(A)') trim(string_message)
+
+         write(string_message, "(1X,'Dealloc ? ',L1)") &
+              & do_dealloc
          write(*,'(A)') trim(string_message)
 
       end if

@@ -167,6 +167,8 @@ subroutine elsi_print_timers()
 
    implicit none
 
+   integer :: i_proc
+
    if (myid == 0) then
       write(*,"('|-------------------------------------------------------')")
       write(*,"('| Final ELSI Output:                                    ')")
@@ -177,7 +179,7 @@ subroutine elsi_print_timers()
       write(*,"('| Non zero elements              : ',I13)")&
          n_g_nonzero    
       write(*,"('| Sparcity                       : ',F13.3)")& 
-         1d0 * n_g_nonzero / n_g_rank / n_g_rank    
+         (1d0 * n_g_nonzero / n_g_rank) / n_g_rank    
       write(*,"('| Number of Electrons            : ',F13.3)")& 
          n_electrons    
       write(*,"('| Number of States               : ',I13)")& 
@@ -199,10 +201,20 @@ subroutine elsi_print_timers()
       write(*,"('|-------------------------------------------------------')")
       write(*,"('| Process grid                   : ',I5,' x ',I5)")&
          n_p_rows, n_p_cols
-      write(*,"('| Local matrix size process 0    : ',I5,' x ',I5)")&
-         n_l_rows, n_l_cols
-      write(*,"('| Local matrix blocking process 0: ',I5,' x ',I5)")&
-         n_b_rows, n_b_cols
+    end if
+
+    do i_proc = 0, n_procs - 1
+
+      if (i_proc == myid) then
+         write(*,"('| Local matrix size process     ',I5,' : ',I5,' x ',I5)")&
+            myid, n_l_rows, n_l_cols
+         write(*,"('| Local matrix blocking process ',I5,' : ',I5,' x ',I5)")&
+            myid, n_b_rows, n_b_cols
+       end if
+       call MPI_Barrier(mpi_comm_global,mpierr)
+    end do
+
+    if (myid == 0) then
       write(*,"('|-------------------------------------------------------')")
       write(*,"('| Timings:                                              ')")
       write(*,"('|-------------------------------------------------------')")

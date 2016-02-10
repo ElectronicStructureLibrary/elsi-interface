@@ -53,6 +53,21 @@ module ELSI_MPI_TOOLS
   public :: elsi_get_myid
   public :: elsi_finalize_mpi
   public :: elsi_finalize_blacs
+  public :: elsi_value_print
+  public :: elsi_vector_print
+  public :: elsi_matrix_print
+  public :: elsi_statement_print
+
+  interface elsi_vector_print
+     module procedure elsi_int_vector_print, &
+                      elsi_real_vector_print
+  end interface
+
+  interface elsi_value_print
+     module procedure elsi_int_value_print, &
+                      elsi_real_value_print
+  end interface
+
 
   contains
 
@@ -152,13 +167,17 @@ subroutine elsi_initialize_blacs()
      blacs_is_setup = .False.
 
      ! Find balancing between expansion parallel and matrix inversion parallel
-     if (mod(n_procs, 10) == 0 .and. n_procs >= 100) then
+     if (mod(n_procs, 40) == 0 .and. n_procs >= 640) then
         n_p_rows = 10
-     else if (mod(n_procs, 5) == 0 .and. n_procs >= 25) then
+     else if (mod(n_procs, 20) == 0 .and. n_procs >= 320) then
+        n_p_rows = 20
+     else if (mod(n_procs, 10) == 0 .and. n_procs >= 90) then
+        n_p_rows = 10
+     else if (mod(n_procs, 5) == 0 .and. n_procs >= 20) then
         n_p_rows = 5
      else if (mod(n_procs, 4) == 0 .and. n_procs >= 16) then
         n_p_rows = 4
-     else if (mod(n_procs, 2) == 0 .and. n_procs >= 4) then
+     else if (mod(n_procs, 2) == 0 .and. n_procs >= 2) then
         n_p_rows = 2
      else 
         n_p_rows = 1
@@ -184,8 +203,8 @@ subroutine elsi_initialize_blacs()
      n_l_cols = n_b_cols
  
      ! Each master process for each pole should write an output 
-     if (mod(myid,n_p_cols) == 0) then
-        pexsi_output_file_index = my_p_row
+     if (mod(myid,n_p_cols * n_p_rows) == 0) then
+        pexsi_output_file_index = myid / (n_p_cols * n_p_rows)
      else
         pexsi_output_file_index = -1
      end if
@@ -433,5 +452,146 @@ subroutine elsi_get_myid (id)
    id = myid 
 
 end subroutine
+
+!> 
+!! Debug printout of a matrix
+!!
+
+subroutine elsi_matrix_print (matrix, n_rows, n_cols, matrixname)
+
+   implicit none
+
+   integer, intent(in) :: n_rows
+   integer, intent(in) :: n_cols
+   real*8, intent(in) :: matrix(n_rows,n_cols) 
+   character(len=*), intent(in) :: matrixname 
+
+   integer :: id, i_row, i_col
+   
+   if (myid == 0) print *, trim(matrixname)
+
+   do id = 0, n_procs - 1
+     if (myid == id) then
+        do i_row = 1, n_rows
+           do i_col = 1, n_cols
+              print *, id, " ", i_row, " ", i_col, " ", matrix(i_row,i_col)
+           end do
+        end do
+     end if
+     call MPI_Barrier(mpi_comm_global, mpierr)
+   end do 
+
+end subroutine
+
+!> 
+!! Debug printout of a vector
+!!
+
+subroutine elsi_int_vector_print (vector, n_dim, vectorname)
+
+   implicit none
+
+   integer, intent(in) :: n_dim
+   integer, intent(in) :: vector(n_dim) 
+   character(len=*), intent(in) :: vectorname 
+
+   integer :: id, i_dim
+
+   if (myid == 0) print *, trim(vectorname)
+
+   do id = 0, n_procs - 1
+     if (myid == id) then
+        do i_dim = 1, n_dim
+           print *, id, " ", i_dim, " ", vector(i_dim)
+        end do
+     end if
+     call MPI_Barrier(mpi_comm_global, mpierr)
+   end do 
+
+end subroutine
+
+subroutine elsi_int_value_print (val, valname)
+
+   implicit none
+
+   integer :: val
+   character(len=*), intent(in) :: valname 
+
+   integer :: id
+
+   if (myid == 0) print *, trim(valname)
+
+   do id = 0, n_procs - 1
+     if (myid == id) then
+       print *, id, " ", val
+     end if
+     call MPI_Barrier(mpi_comm_global, mpierr)
+   end do 
+
+end subroutine
+
+subroutine elsi_real_value_print (val, valname)
+
+   implicit none
+
+   real :: val
+   character(len=*), intent(in) :: valname 
+
+   integer :: id
+
+   if (myid == 0) print *, trim(valname)
+
+   do id = 0, n_procs - 1
+     if (myid == id) then
+       print *, id, " ", val
+     end if
+     call MPI_Barrier(mpi_comm_global, mpierr)
+   end do 
+
+end subroutine
+
+
+
+subroutine elsi_real_vector_print (vector, n_dim, vectorname)
+
+   implicit none
+
+   integer, intent(in) :: n_dim
+   real*8, intent(in) :: vector(n_dim) 
+   character(len=*), intent(in) :: vectorname 
+
+   integer :: id, i_dim
+
+   if (myid == 0) print *, trim(vectorname)
+
+   do id = 0, n_procs - 1
+     if (myid == id) then
+        do i_dim = 1, n_dim
+           print *, id, " ", i_dim, " ", vector(i_dim)
+        end do
+     end if
+     call MPI_Barrier(mpi_comm_global, mpierr)
+   end do 
+
+end subroutine
+
+
+!> 
+!! Debug printout of a vector
+!!
+
+subroutine elsi_statement_print (message)
+
+   implicit none
+
+   character(len=*), intent(in) :: message 
+
+   if (myid == 0) print *, trim(message)
+   call MPI_Barrier(mpi_comm_global, mpierr)
+
+end subroutine
+
+
+
 
 end module ELSI_MPI_TOOLS

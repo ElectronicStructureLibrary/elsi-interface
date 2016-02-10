@@ -917,8 +917,8 @@ subroutine elsi_write_ev_problem(file_name)
       case (ELPA,OMM_DENSE) 
          call hdf5_write_matrix_parallel (group_id, "matrix", H_real)
       case (PEXSI)
-         call elsi_ccs_to_dense(buffer, H_real_sparse, sparse_index,&
-               sparse_pointer)
+         call elsi_ccs_to_dense(buffer, n_l_rows, n_l_cols, H_real_sparse, &
+               n_l_nonzero, sparse_index, sparse_pointer)
          call hdf5_write_matrix_parallel (group_id, "matrix", buffer)
       case DEFAULT
          call elsi_stop("No supported method has been chosen. "&
@@ -940,8 +940,8 @@ subroutine elsi_write_ev_problem(file_name)
       case (ELPA,OMM_DENSE) 
          call hdf5_write_matrix_parallel (group_id, "matrix", S_real)
       case (PEXSI)
-         call elsi_ccs_to_dense(buffer, S_real_sparse, sparse_index,&
-               sparse_pointer)
+         call elsi_ccs_to_dense(buffer, n_l_rows, n_l_cols, S_real_sparse, &
+               n_l_nonzero, sparse_index, sparse_pointer)
          call hdf5_write_matrix_parallel (group_id, "matrix", buffer)
       case DEFAULT
          call elsi_stop("No supported method has been chosen. "&
@@ -995,12 +995,12 @@ subroutine elsi_read_ev_problem(file_name)
          call hdf5_read_matrix_parallel (group_id, "matrix", H_real)
       case (PEXSI)
          call hdf5_read_matrix_parallel (group_id, "matrix", buffer)
-         call elsi_compute_N_nonzero(buffer)
+         call elsi_compute_N_nonzero(buffer,n_l_rows, n_l_cols)
          allocate(H_real_sparse(n_l_nonzero))
          allocate(sparse_index(n_l_nonzero))
          allocate(sparse_pointer(n_l_cols + 1))
-         call elsi_dense_to_ccs(buffer, H_real_sparse, sparse_index,&
-               sparse_pointer)
+         call elsi_dense_to_ccs(buffer, n_l_rows, n_l_cols, H_real_sparse, &
+               n_l_nonzero, sparse_index, sparse_pointer)
       case DEFAULT
          call elsi_stop("No supported method has been chosen. "&
             // "Please choose method ELPA, OMM_DENSE, or PEXSI",&
@@ -1020,8 +1020,8 @@ subroutine elsi_read_ev_problem(file_name)
       case (PEXSI)
          call hdf5_read_matrix_parallel (group_id, "matrix", buffer)
          allocate(S_real_sparse(n_l_nonzero))
-         call elsi_dense_to_ccs_by_pattern(buffer, S_real_sparse,&
-               sparse_index, sparse_pointer)
+         call elsi_dense_to_ccs_by_pattern(buffer, n_l_rows, n_l_cols, &
+               S_real_sparse, n_l_nonzero, sparse_index, sparse_pointer)
       case DEFAULT
          call elsi_stop("No supported method has been chosen. "&
             // "Please choose method ELPA, OMM_DENSE, or PEXSI",&
@@ -1198,6 +1198,10 @@ subroutine elsi_solve_ev_problem(number_of_electrons)
         ! Shift eigenvalue spectrum
         call m_add(OMM_S_matrix,'N',OMM_H_matrix,-eta,1d0,"lap")
 
+        if (.not. overlap_is_unity) then
+            call elsi_to_standard_eigenvalue_problem ()
+        end if
+
         call omm(n_g_rank, n_eigenvectors, OMM_H_matrix, OMM_S_matrix, &
               new_overlap, total_energy, OMM_D_matrix, calc_ED, eta, &
               OMM_C_matrix, C_matrix_initialized, OMM_T_matrix, &
@@ -1314,9 +1318,7 @@ subroutine elsi_get_total_energy(e_tot)
 
          e_tot = 2d0 * SUM(eigenvalues(1:n_eigenvectors))      
       case (OMM_DENSE)
-         if (myid == 0) then
-         end if
-         e_tot = 2d0 * total_energy + 2d0 * n_eigenvectors * eta
+         e_tot = 2d0 * total_energy 
       case (PEXSI)
          e_tot = e_tot_h     
       case DEFAULT
@@ -1385,14 +1387,14 @@ subroutine elsi_finalize()
    if (mode == PEXSI) call f_ppexsi_plan_finalize(pexsi_plan, pexsi_info)
    
    call hdf5_finalize()
+   
+   call elsi_stop_total_time()
+
+   call elsi_print_timers()
 
    if (.not.external_blacs) call elsi_finalize_blacs()
 
    if (.not.external_mpi)   call elsi_finalize_mpi()
-
-   call elsi_stop_total_time()
-
-   call elsi_print_timers()
 
 end subroutine
 
@@ -1461,7 +1463,17 @@ subroutine elsi_to_standard_eigenvalue_problem()
          end if
 
       case (OMM_DENSE)
-         ! Nothing to be done, supported by OMM
+         ! Compute U
+         ! S contains then U
+         call cholesky_real( &
+            n_g_rank, S_real, &
+            n_l_rows, n_b_rows, n_l_cols,&
+            mpi_comm_row, mpi_comm_col, .False., success)
+         if (.not.success) then
+            call elsi_stop ("ELPA Cholesky decomposition of S failed",& 
+                  "elsi_to_standard_eigenvalue_problem")
+         end if
+
       case (PEXSI)
          call elsi_stop ("PEXSI not yet implemented",& 
                   "elsi_to_standard_eigenvalue_problem")
@@ -1585,9 +1597,16 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
    integer :: mpi_comm_row_external
    integer :: mpi_comm_col_external
    
-   real*8, allocatable :: buffer(:,:)
-   real*8, allocatable :: buffer2(:,:)
-   real*8, allocatable :: buffer_dense(:,:)
+   real*8,  allocatable :: buffer(:,:)
+   integer :: n_buffer_nonzero
+   integer :: n_buffer_bcast_nonzero
+   integer :: id_sent
+   real*8,  allocatable :: buffer_sparse(:)
+   integer, allocatable :: buffer_sparse_index(:)
+   integer, allocatable :: buffer_sparse_pointer(:)
+   real*8,  allocatable :: buffer_bcast_sparse(:)
+   integer, allocatable :: buffer_bcast_sparse_index(:)
+   integer, allocatable :: buffer_bcast_sparse_pointer(:)
    integer :: sc_desc_buffer(9)
    integer :: n_l_buffer_rows
    integer :: n_l_buffer_cols
@@ -1596,12 +1615,23 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
    
    integer :: n_l_cols_g
    integer :: n_cols_add
+   integer :: blacs_col_offset
+   integer :: pexsi_col_offset
    integer :: my_col_offset
-   integer :: buffer2_col_offset
-   integer :: dense_col_offset
-   integer :: i_proc, i_col
+   integer :: g_column
+   integer :: offset_B
+   integer :: offset
+   integer :: n_elements
+   integer :: i_proc, i_col, id, l_col
+   
+   integer, allocatable :: n_l_nonzero_column(:)
 
    call elsi_start_dist_pexsi_time()
+
+   ! Caution: only n_g_nonzero is meaningful, 
+   ! n_l_nonzero refers to wrong distribution
+   call elsi_compute_N_nonzero(H_external,n_l_rows_external, n_l_cols_external)
+   n_l_nonzero = -1
 
    call BLACS_Gridinfo( blacs_ctxt_external, n_p_rows_external, &
           n_p_cols_external, my_p_row_external, &
@@ -1640,16 +1670,6 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
          n_b_buffer_cols, 0, 0, blacs_ctxt_external, n_l_buffer_rows, &
          blacs_info)
 
-   ! TODO FIX SCALAPACK Bug with the following ?
-   !if (my_p_row_external > 0) then
-   !  sc_desc_buffer = 0
-   !  sc_desc_buffer(2) = -1
-   !end if
-
-   ! Initialize buffer
-   allocate(buffer(n_l_buffer_rows, n_b_buffer_cols))
-   allocate(buffer2(n_l_buffer_rows, n_b_buffer_cols))
-
    ! Pexsi setup
    n_l_rows = n_g_rank
    n_l_cols_g = FLOOR(1d0 * n_g_rank / n_procs)
@@ -1661,97 +1681,231 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
       n_l_cols = n_l_cols_g
    end if
 
-   ! The last process gathers all remaining columns
-   allocate(buffer_dense(n_l_rows,n_l_cols))
-
    ! The Hamiltonian
+   allocate(buffer(n_l_buffer_rows, n_b_buffer_cols))
    buffer = 0d0 
-   buffer2 = 0d0
-   buffer_dense = 0d0
    call pdtran(n_g_rank, n_g_rank, &
          1d0, H_external, 1, 1, sc_desc_external, &
          0d0, buffer, 1, 1, sc_desc_buffer)
 
-   ! However, no inter blacs is possible so we have to do some by hand
-   ! communication and broadcast the results over the process column
-   call MPI_Bcast(buffer, n_l_buffer_rows * n_b_buffer_cols, MPI_DOUBLE, &
-        0, mpi_comm_row_external, mpierr) 
-  
-   do i_proc = 0, n_p_cols_external - 1
-      
-      buffer2 = buffer
-      call MPI_Bcast(buffer2, n_l_buffer_rows * n_b_buffer_cols, MPI_DOUBLE, &
-        i_proc, mpi_comm_col_external, mpierr)
+   ! Calculate number of nonzero elements on this process
+   ! Here we set no the meaningful n_l_nonzero
+   allocate(n_l_nonzero_column(n_g_rank))
+   blacs_col_offset = 1 + my_p_col_external * n_b_buffer_cols
+   call elsi_get_n_nonzero_column(buffer,n_l_buffer_rows, n_b_buffer_cols,&
+         blacs_col_offset,n_l_nonzero_column)
+   pexsi_col_offset = 1 + myid * n_l_cols_g
+   n_l_nonzero = &
+   sum(n_l_nonzero_column(pexsi_col_offset:pexsi_col_offset + n_l_cols - 1))
 
-      buffer2_col_offset = 1 + i_proc * n_b_buffer_cols
-      dense_col_offset = 1 + myid * n_l_cols_g
-      my_col_offset = 1 + dense_col_offset - buffer2_col_offset
+   !call elsi_vector_print(n_l_nonzero_column, n_g_rank, "n_l_nonzero_column")
+   !call elsi_value_print(n_l_nonzero, "n_l_nonzero")
+
+   allocate(H_real_sparse(n_l_nonzero))
+   allocate(sparse_index(n_l_nonzero))
+   allocate(sparse_pointer(n_l_cols + 1))
+   H_real_sparse = 0d0
+   sparse_index = -1
+   sparse_pointer = -1
+
+   call elsi_get_local_N_nonzero(buffer,n_l_buffer_rows, n_b_buffer_cols,&
+         n_buffer_nonzero)
+
+   allocate(buffer_sparse(n_buffer_nonzero))
+   allocate(buffer_sparse_index(n_buffer_nonzero))
+   allocate(buffer_sparse_pointer(n_b_buffer_cols + 1))
+   call elsi_dense_to_ccs(buffer, n_l_buffer_rows, n_l_buffer_cols, &
+         buffer_sparse, n_buffer_nonzero, buffer_sparse_index, &
+         buffer_sparse_pointer)
+   deallocate(buffer)
+
+   !call elsi_vector_print(buffer_sparse, n_buffer_nonzero, "Hamiltonian sparse")
+   !call elsi_vector_print(buffer_sparse_index, n_buffer_nonzero, "Hamiltonian sparse index")
+   !call elsi_vector_print(buffer_sparse_pointer, n_b_buffer_cols+1, "Hamiltonian sparse pointer")
+
+   do i_proc = 0, n_p_cols_external - 1
+   
+      n_buffer_bcast_nonzero = n_buffer_nonzero
+
+      id_sent = i_proc
+
+      !call elsi_value_print(id_sent,"id sent")
+
+      call MPI_Bcast(n_buffer_bcast_nonzero, 1, MPI_INT, id_sent, &
+            mpi_comm_external, mpierr)
+      
+      allocate(buffer_bcast_sparse(n_buffer_bcast_nonzero))
+      allocate(buffer_bcast_sparse_index(n_buffer_bcast_nonzero))
+      allocate(buffer_bcast_sparse_pointer(n_b_buffer_cols + 1))
+
+      if (myid == id_sent) then
+        buffer_bcast_sparse         = buffer_sparse
+        buffer_bcast_sparse_index   = buffer_sparse_index
+        buffer_bcast_sparse_pointer = buffer_sparse_pointer
+      else
+        buffer_bcast_sparse         = 0
+        buffer_bcast_sparse_index   = 0
+        buffer_bcast_sparse_pointer = 0
+      end if
+
+      ! However, no inter blacs is possible so we have to do some by hand
+      ! communication and broadcast the results over all the processes
+      call MPI_Bcast(buffer_bcast_sparse, n_buffer_bcast_nonzero, &
+            MPI_DOUBLE, id_sent, mpi_comm_external, mpierr)
+      call MPI_Bcast(buffer_bcast_sparse_index, n_buffer_bcast_nonzero, &
+            MPI_INT, id_sent, mpi_comm_external, mpierr)  
+      call MPI_Bcast(buffer_bcast_sparse_pointer, n_b_buffer_cols + 1, &
+            MPI_INT, id_sent, mpi_comm_external, mpierr)  
+ 
+      !call elsi_vector_print(buffer_bcast_sparse_pointer, n_b_buffer_cols+1,&
+      !      "Hamiltonian sparse pointer bcast")
+
+      blacs_col_offset = 1 + i_proc * n_b_buffer_cols
+      pexsi_col_offset = 1 + myid * n_l_cols_g
+      my_col_offset    = 1 + pexsi_col_offset - blacs_col_offset
 
       ! Fill elements from buffer
       do i_col = my_col_offset, my_col_offset + n_l_cols - 1
         
        if (i_col > 0 .and. i_col <= n_b_buffer_cols) then
-         buffer_dense(:,i_col - my_col_offset + 1) = buffer2(:,i_col)
+         
+         ! Get the global column
+         !print *, "process ", myid, " pexsi_col_offset ", pexsi_col_offset
+         g_column = i_col + blacs_col_offset - 1
+         !print *, "process ", myid, " g_column ", g_column
+         
+         ! Get the offset in the buffer for this column
+         offset_B = buffer_bcast_sparse_pointer(i_col)
+         !print *, "process ", myid, " offset_B ", offset_B
+
+         ! How many elements are in this column
+         n_elements = buffer_bcast_sparse_pointer(i_col+1) &
+                    - buffer_bcast_sparse_pointer(i_col)
+         !print *, "process ", myid, " n_elements ", n_elements
+
+         ! Local offset
+         l_col = i_col - my_col_offset + 1
+         !print *, "process ", myid, " l_col ", l_col
+         
+         offset = sum(n_l_nonzero_column(pexsi_col_offset:g_column-1)) + 1
+         !print *, "process ", myid, " offset ", offset
+         
+         ! Populate sparse matrix
+         sparse_pointer(l_col) = offset
+         !print *, "process ", myid, " filling ", offset, " to ", &
+         !   offset+n_elements-1, " from ", offset_B, " to ", &
+         !   offset_B+n_elements-1 
+
+         H_real_sparse(offset:offset+n_elements-1) = &
+            buffer_bcast_sparse(offset_B:offset_B+n_elements-1)
+         sparse_index(offset:offset+n_elements-1) = &
+            buffer_bcast_sparse_index(offset_B:offset_B+n_elements-1)
+
        end if
 
       end do
+      
+      deallocate(buffer_bcast_sparse)
+      deallocate(buffer_bcast_sparse_index)
+      deallocate(buffer_bcast_sparse_pointer)
 
+   end do
 
-   end do 
-
-   call elsi_compute_N_nonzero(buffer_dense)
-   allocate(H_real_sparse(n_l_nonzero))
-   allocate(sparse_index(n_l_nonzero))
-   allocate(sparse_pointer(n_l_cols + 1))
-   call elsi_dense_to_ccs(buffer_dense, H_real_sparse, sparse_index,&
-         sparse_pointer)
+   !call elsi_stop("Stop here","dense_to_pexsi")
 
    ! The Overlap Matrix
-   buffer  = 0d0
-   buffer2 = 0d0
-   buffer_dense = 0d0
+   allocate(buffer(n_l_buffer_rows, n_b_buffer_cols))
+   buffer = 0d0 
    call pdtran(n_g_rank, n_g_rank, &
          1d0, S_external, 1, 1, sc_desc_external, &
          0d0, buffer, 1, 1, sc_desc_buffer)
 
-   ! However, no inter blacs is possible so we have to do some by hand
-   ! communication and broadcast the results over the process column
-   call MPI_Bcast(buffer, n_l_buffer_rows * n_b_buffer_cols, MPI_DOUBLE, &
-        0, mpi_comm_row_external, mpierr) 
-  
+   allocate(S_real_sparse(n_l_nonzero))
+   S_real_sparse = 0d0
+   call elsi_dense_to_ccs_by_pattern(buffer, n_l_buffer_rows, n_l_buffer_cols, &
+         buffer_sparse, n_buffer_nonzero, buffer_sparse_index, &
+         buffer_sparse_pointer)
+   deallocate(buffer)
+   
    do i_proc = 0, n_p_cols_external - 1
-      
-      buffer2 = buffer
-      call MPI_Bcast(buffer2, n_l_buffer_rows * n_b_buffer_cols, MPI_DOUBLE, &
-        i_proc, mpi_comm_col_external, mpierr)
+   
+      n_buffer_bcast_nonzero = n_buffer_nonzero
 
-      buffer2_col_offset = 1 + i_proc * n_b_buffer_cols
-      dense_col_offset = 1 + myid * n_l_cols_g
-      my_col_offset = 1 + dense_col_offset - buffer2_col_offset
+      id_sent = i_proc
+
+      call MPI_Bcast(n_buffer_bcast_nonzero, 1, MPI_INT, id_sent, &
+            mpi_comm_external, mpierr)
+
+      allocate(buffer_bcast_sparse(n_buffer_bcast_nonzero))
+      allocate(buffer_bcast_sparse_index(n_buffer_bcast_nonzero))
+      allocate(buffer_bcast_sparse_pointer(n_b_buffer_cols + 1))
+
+      if (myid == id_sent) then
+        buffer_bcast_sparse         = buffer_sparse
+        buffer_bcast_sparse_index   = buffer_sparse_index
+        buffer_bcast_sparse_pointer = buffer_sparse_pointer
+      else
+        buffer_bcast_sparse         = 0
+        buffer_bcast_sparse_index   = 0
+        buffer_bcast_sparse_pointer = 0
+      end if
+
+      ! However, no inter blacs is possible so we have to do some by hand
+      ! communication and broadcast the results over all the processes
+      call MPI_Bcast(buffer_bcast_sparse, n_buffer_bcast_nonzero, &
+            MPI_DOUBLE, id_sent, mpi_comm_external, mpierr)
+      call MPI_Bcast(buffer_bcast_sparse_index, n_buffer_bcast_nonzero, &
+            MPI_INT, id_sent, mpi_comm_external, mpierr)  
+      call MPI_Bcast(buffer_bcast_sparse_pointer, n_b_buffer_cols + 1, &
+            MPI_INT, id_sent, mpi_comm_external, mpierr)  
+  
+      blacs_col_offset = 1 + i_proc * n_b_buffer_cols
+      pexsi_col_offset = 1 + myid * n_l_cols_g
+      my_col_offset    = 1 + pexsi_col_offset - blacs_col_offset
 
       ! Fill elements from buffer
       do i_col = my_col_offset, my_col_offset + n_l_cols - 1
         
        if (i_col > 0 .and. i_col <= n_b_buffer_cols) then
-         buffer_dense(:,i_col - my_col_offset + 1) = buffer2(:,i_col)
+
+         ! Get the global column
+         g_column = i_col + blacs_col_offset - 1
+         
+         ! Get the offset in the buffer for this column
+         offset_B = buffer_bcast_sparse_pointer(i_col)
+
+         ! How many elements are in this column
+         n_elements = buffer_bcast_sparse_pointer(i_col+1) &
+                    - buffer_bcast_sparse_pointer(i_col)
+
+         ! Local offset
+         l_col = i_col - my_col_offset + 1
+
+         ! Populate sparse matrix
+         offset = sparse_pointer(l_col)
+         S_real_sparse(offset:offset+n_elements-1) = &
+            buffer_bcast_sparse(offset_B:offset_B+n_elements-1)
+
        end if
 
       end do
+       
+      deallocate(buffer_bcast_sparse)
+      deallocate(buffer_bcast_sparse_index)
+      deallocate(buffer_bcast_sparse_pointer)
 
+   end do
 
-   end do 
    
-   allocate(S_real_sparse(n_l_nonzero))
-   call elsi_dense_to_ccs_by_pattern(buffer_dense, S_real_sparse, &
-         sparse_index, sparse_pointer)
+   deallocate(buffer_sparse)
+   deallocate(buffer_sparse_index)
+   deallocate(buffer_sparse_pointer)
+   deallocate(n_l_nonzero_column)
+
 
    ! TODO Check if overlap is unity
    overlap_is_unity = .False.
    
-   if (allocated(buffer) ) deallocate (buffer)
-   if (allocated(buffer2) ) deallocate (buffer2)
-   if (allocated(buffer_dense) ) deallocate (buffer_dense)
-
    call elsi_stop_dist_pexsi_time()
 
 end subroutine
