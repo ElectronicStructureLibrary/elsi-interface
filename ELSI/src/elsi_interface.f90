@@ -1128,7 +1128,7 @@ subroutine elsi_solve_ev_problem(number_of_electrons)
    n_eigenvectors = ceiling(n_electrons/2d0)
 
    ! Debug
-   call elsi_print_setup()
+   !call elsi_print_setup()
    !call elsi_variable_status()
 
    select case (method)
@@ -1220,6 +1220,13 @@ subroutine elsi_solve_ev_problem(number_of_electrons)
          ! Set the default options
          !TODO: User interface is missing
          call elsi_set_pexsi_default_options()
+
+         !call elsi_vector_print(H_real_sparse,n_l_nonzero,"H_real_sparse")
+         !call elsi_vector_print(S_real_sparse,n_l_nonzero,"S_real_sparse")
+         !call elsi_vector_print(sparse_index,n_l_nonzero,"sparse_index")
+         !call elsi_vector_print(sparse_pointer,n_l_cols + 1,"sparse_pointer")
+         !call elsi_value_print(n_g_nonzero,"n_g_nonzero")
+         !call elsi_value_print(n_l_nonzero,"n_l_nonzero")
 
          ! Load sparse matrices for PEXSI
          if (overlap_is_unity) then
@@ -1315,7 +1322,6 @@ subroutine elsi_get_total_energy(e_tot)
    
    select case (method)
       case (ELPA)
-
          e_tot = 2d0 * SUM(eigenvalues(1:n_eigenvectors))      
       case (OMM_DENSE)
          e_tot = 2d0 * total_energy 
@@ -1810,6 +1816,9 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
       deallocate(buffer_bcast_sparse_pointer)
 
    end do
+
+   ! Last element in sparse pointer is n_l_nonzero + 1
+   sparse_pointer(n_l_cols + 1) = n_l_nonzero + 1
 
    !call elsi_stop("Stop here","dense_to_pexsi")
 
