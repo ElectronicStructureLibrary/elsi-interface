@@ -474,7 +474,8 @@ subroutine elsi_matrix_print (matrix, n_rows, n_cols, matrixname)
      if (myid == id) then
         do i_row = 1, n_rows
            do i_col = 1, n_cols
-              print *, id, " ", i_row, " ", i_col, " ", matrix(i_row,i_col)
+               write(*,"(A,I6,A,I6,A,I6,F13.6)") " Process ", id, &
+               " Row ", i_row, " Col ", i_col, " value", matrix(i_row,i_col)
            end do
         end do
      end if
@@ -502,7 +503,8 @@ subroutine elsi_int_vector_print (vector, n_dim, vectorname)
    do id = 0, n_procs - 1
      if (myid == id) then
         do i_dim = 1, n_dim
-           print *, id, " ", i_dim, " ", vector(i_dim)
+            write(*,"(A,I6,A,I10,A,I13)") " Process ", id, " Entry ", i_dim,&
+           " value", vector(i_dim)
         end do
      end if
      call MPI_Barrier(mpi_comm_global, mpierr)
@@ -523,7 +525,7 @@ subroutine elsi_int_value_print (val, valname)
 
    do id = 0, n_procs - 1
      if (myid == id) then
-       print *, id, " ", val
+        write(*,"(A,I6,A,I13)") " Process ", id, " value", val
      end if
      call MPI_Barrier(mpi_comm_global, mpierr)
    end do 
@@ -543,7 +545,7 @@ subroutine elsi_real_value_print (val, valname)
 
    do id = 0, n_procs - 1
      if (myid == id) then
-       print *, id, " ", val
+       write(*,"(A,I4,A,F13.6)") " Process ", id, " value", val
      end if
      call MPI_Barrier(mpi_comm_global, mpierr)
    end do 
@@ -567,7 +569,8 @@ subroutine elsi_real_vector_print (vector, n_dim, vectorname)
    do id = 0, n_procs - 1
      if (myid == id) then
         do i_dim = 1, n_dim
-           print *, id, " ", i_dim, " ", vector(i_dim)
+           write(*,"(A,I6,A,I10,A,F13.6)") " Process ", id, " Entry ", i_dim,&
+           " value", vector(i_dim)
         end do
      end if
      call MPI_Barrier(mpi_comm_global, mpierr)
