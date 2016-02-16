@@ -26,10 +26,10 @@ HDF5 = -L$(HDF5_HOME)/lib -I$(HDF5_HOME)/include \
 # ====== ELPA ======
 
 ELPA_DIR = $(THIS_DIR)/external/ELPA
-FFLAGS_E = -O3 -fpe0 -fpp -I$(ELPA_DIR)
-CFLAGS_E = -O3 -mavx -funsafe-loop-optimizations \
-           -funsafe-math-optimizations -ftree-vect-loop-version \
-           -ftree-vectorize
+FFLAGS_E   = -O3 -fpe0 -fpp -I$(ELPA_DIR)
+CFLAGS_E   = -O3 -mavx -funsafe-loop-optimizations \
+             -funsafe-math-optimizations -ftree-vect-loop-version \
+             -ftree-vectorize
 CXXFLAGS_E = -O3 -mavx -funsafe-loop-optimizations \
              -funsafe-math-optimizations -ftree-vect-loop-version \
              -ftree-vectorize
@@ -58,13 +58,12 @@ FFLAGS_P   = -O3 -w
 ELPA = -L$(ELPA_DIR)/lib -lelpa \
        -I$(ELPA_DIR)/include/elpa/modules
 
-OMM = -I$(libOMM_DIR)/src \
-      -I$(libOMM_DIR)/src/MatrixSwitch-0.1.2/src \
-      -L$(libOMM_DIR)/src -lOMM \
-      -L$(libOMM_DIR)/src/MatrixSwitch-0.1.2/src -lmatrixswitch
+OMM  = -I$(libOMM_DIR)/src \
+       -I$(libOMM_DIR)/src/MatrixSwitch-0.1.2/src \
+       -L$(libOMM_DIR)/src -lOMM \
+       -L$(libOMM_DIR)/src/MatrixSwitch-0.1.2/src -lmatrixswitch
 
 PEXSI = -I$(PEXSI_DIR)/include \
         -I$(PEXSI_DIR)/include/pexsi \
-        -I$(THIS_DIR)/external/include \
-        -L$(PEXSI_DIR)/lib -lpexsi \
-        -L$(THIS_DIR)/external/lib -lsuperlu -lparmetis -lmetis
+        -I$(PEXSI_DIR)/external/include \
+        -L$(PEXSI_DIR)/lib -lpexsi -lsuperlu -lparmetis -lmetis

@@ -9,14 +9,14 @@ ARCH      = ar
 ARCHFLAGS = cr
 RANLIB    = ranlib
 
-BLAS      = -L/soft/libraries/essl/current/essl/5.1/lib64 -lesslsmpbg \
-            -Wl,--allow-multiple-definition\
-            -L${IBM_MAIN_DIR}/xlf/bg/14.1/bglib64 -lxlf90_r -lxlopt \
-            -lxlfmath -lxl -ldl\
-            -L${IBM_MAIN_DIR}/xlsmp/bg/3.1/bglib64 -lxlsmp\
-            -L${IBM_MAIN_DIR}/xlmass/bg/7.3/bglib64 -lmass
-LAPACK    = -L/soft/libraries/alcf/current/xl/LAPACK/lib -llapack 
-SCALAPACK = -L/soft/libraries/alcf/current/xl/SCALAPACK/lib -lscalapack
+BLAS        = -L/soft/libraries/essl/current/essl/5.1/lib64 -lesslsmpbg \
+              -Wl,--allow-multiple-definition\
+              -L${IBM_MAIN_DIR}/xlf/bg/14.1/bglib64 -lxlf90_r -lxlopt \
+              -lxlfmath -lxl -ldl\
+              -L${IBM_MAIN_DIR}/xlsmp/bg/3.1/bglib64 -lxlsmp\
+              -L${IBM_MAIN_DIR}/xlmass/bg/7.3/bglib64 -lmass
+LAPACK      = -L/soft/libraries/alcf/current/xl/LAPACK/lib -llapack 
+SCALAPACK   = -L/soft/libraries/alcf/current/xl/SCALAPACK/lib -lscalapack
 
 THIS_DIR = $(shell pwd)
 
@@ -76,6 +76,5 @@ OMM  = -I$(libOMM_DIR)/src \
 
 PEXSI = -I$(PEXSI_DIR)/include \
         -I$(PEXSI_DIR)/include/pexsi \
-        -I$(THIS_DIR)/external/include \
-        -L$(PEXSI_DIR)/lib -lpexsi \
-        -L$(THIS_DIR)/external/lib -lsuperlu -lparmetis -lmetis
+        -I$(PEXSI_DIR)/external/include \
+        -L$(PEXSI_DIR)/lib -lpexsi -lsuperlu -lparmetis -lmetis
