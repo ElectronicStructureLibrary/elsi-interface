@@ -27,8 +27,6 @@ all: SuperLU
 
 if !HAS_SUPERLU
 SuperLU:
-	mkdir -p $(EXTDIR)/lib 
-	mkdir -p $(EXTDIR)/include 
 	@echo Start building SuperLU... 
 	-cp $(EXTDIR)/SuperLU/make.inc.superlu $(SUPERLUDIR)/make.inc
 	$(MAKE) $(AM_MAKEFLAGS) -C $(SUPERLUDIR) MPICC="$(MPICC)" MPIFC="$(MPIF77)" PEXSI_DIR="$(abs_srcdir)/../.." FLIBS="$(LIBS) $(FCLIBS)" AR=$(AR) RANLIB=$(RANLIB) THIS_DIR="$(abs_srcdir)/../.."

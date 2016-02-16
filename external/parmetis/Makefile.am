@@ -32,8 +32,6 @@ libraries: parMetis
 
 if !HAS_LIBPARMETIS
 parMetis:
-	mkdir -p $(EXTDIR)/lib
-	mkdir -p $(EXTDIR)/include
 	@echo Start building parMetis...
 	$(MAKE) -C $(EXTDIR)/parmetis/parMetis $(AM_MAKEFLAGS) config prefix=$(EXTDIR) cc=$(MPICC) cxx=$(MPICXX) cputype=$(CPU) systype=$(SYS) openmp=$(OMP)
 	$(MAKE)  $(AM_MAKEFLAGS) -C $(EXTDIR)/parmetis/parMetis/build/$(SYS)-$(CPU)
