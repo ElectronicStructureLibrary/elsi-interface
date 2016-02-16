@@ -244,23 +244,30 @@ subroutine elsi_allocate_matrices()
    implicit none
 
    character*200 :: message
+   character*40, parameter :: caller = "elsi_allocate_matrices"
 
    select case (method)
       case (ELPA)
-         allocate(eigenvalues(n_g_rank))
+         call elsi_allocate(eigenvalues,n_g_rank,"eigenvalues",caller)
          select case (mode)
             case (COMPLEX_VALUES)
-               allocate(H_complex_target (n_l_rows, n_l_cols))      
-               allocate(S_complex_target (n_l_rows, n_l_cols))
-               allocate(vectors_complex(n_l_rows, n_l_cols))
+               call elsi_allocate(H_complex_target, n_l_rows, n_l_cols, &
+                     "H_complex_target", caller)      
+               call elsi_allocate(S_complex_target, n_l_rows, n_l_cols, &
+                     "S_complex_target", caller)
+               call elsi_allocate(vectors_complex, n_l_rows, n_l_cols, &
+                     "vectors_complex", caller)
                H_complex => H_complex_target
                S_complex => S_complex_target
                H_complex = CMPLX(0d0,0d0)
                S_complex = CMPLX(0d0,0d0)
             case (REAL_VALUES)
-               allocate(H_real_target (n_l_rows, n_l_cols))      
-               allocate(S_real_target (n_l_rows, n_l_cols))
-               allocate(vectors_real(n_l_rows, n_l_cols))
+               call elsi_allocate(H_real_target, n_l_rows, n_l_cols, &
+                     "H_real_target", caller)      
+               call elsi_allocate(S_real_target, n_l_rows, n_l_cols, &
+                     "S_real_target", caller)
+               call elsi_allocate(vectors_real, n_l_rows, n_l_cols, &
+                     "vectors_real", caller)
                H_real => H_real_target
                S_real => S_real_target
                H_real = 0d0
@@ -273,9 +280,12 @@ subroutine elsi_allocate_matrices()
       case (OMM_DENSE)
          select case (mode)
             case (COMPLEX_VALUES)
-               allocate(H_complex_target (n_l_rows, n_l_cols))      
-               allocate(S_complex_target (n_l_rows, n_l_cols))
-               allocate(vectors_complex(n_l_rows, n_l_cols))
+               call elsi_allocate(H_complex_target, n_l_rows, n_l_cols, &
+                     "H_complex_target", caller)      
+               call elsi_allocate(S_complex_target, n_l_rows, n_l_cols, &
+                     "S_complex_target", caller)
+               call elsi_allocate(vectors_complex, n_l_rows, n_l_cols, &
+                     "vectors_complex", caller)
                H_complex => H_complex_target
                S_complex => S_complex_target
                H_complex = CMPLX(0d0,0d0)
@@ -288,9 +298,12 @@ subroutine elsi_allocate_matrices()
                OMM_D_matrix%zval = CMPLX(0d0,0d0)
 
             case (REAL_VALUES)
-               allocate(H_real_target (n_l_rows, n_l_cols))      
-               allocate(S_real_target (n_l_rows, n_l_cols))
-               allocate(vectors_real(n_l_rows, n_l_cols))
+               call elsi_allocate(H_real_target, n_l_rows, n_l_cols, &
+                     "H_real_target", caller)      
+               call elsi_allocate(S_real_target, n_l_rows, n_l_cols, &
+                     "S_real_target", caller)
+               call elsi_allocate(vectors_real, n_l_rows, n_l_cols, &
+                     "vectors_real", caller)
                H_real => H_real_target
                S_real => S_real_target
                H_real = 0d0
@@ -522,10 +535,13 @@ subroutine elsi_symmetrize_hamiltonian()
   integer :: l_row, l_col  !< local matrix indices
   integer :: g_row, g_col  !< global matrix indices
 
+  character*40, parameter :: caller = "elsi_symmetrize_hamiltonian"
+
   select case (method)
       case (ELPA,OMM_DENSE)
          if (mode == REAL_VALUES) then
-            allocate(buffer_real (n_l_rows, n_l_cols))
+            call elsi_allocate(buffer_real, n_l_rows, n_l_cols, &
+                  "buffer_real", caller)
             buffer_real(:,:) = H_real(:,:)
             call pdtran(n_g_rank, n_g_rank, &
                   1.d0, buffer_real, 1, 1, sc_desc, &
@@ -543,7 +559,8 @@ subroutine elsi_symmetrize_hamiltonian()
             end do
 
          else  
-            allocate(buffer_complex (n_l_rows, n_l_cols))
+            call elsi_allocate(buffer_complex, n_l_rows, n_l_cols, &
+                  "buffer_complex", caller)
             buffer_complex(:,:) = H_complex(:,:)
             call pztranc(n_g_rank, n_g_rank, &
                   CONE, buffer_complex, 1, 1, sc_desc, &
@@ -591,11 +608,14 @@ subroutine elsi_symmetrize_overlap()
 
   integer :: l_row, l_col  !< local matrix indices
   integer :: g_row, g_col  !< global matrix indices
+
+  character*40, parameter :: caller = "elsi_symmetrize_overlap"
   
   select case (method)
       case (ELPA,OMM_DENSE)
          if (mode == REAL_VALUES) then
-            allocate(buffer_real (n_l_rows, n_l_cols))
+            call elsi_allocate(buffer_real, n_l_rows, n_l_cols, &
+                  "buffer_real", caller)
             buffer_real(:,:) = S_real(:,:)
             call pdtran(n_g_rank, n_g_rank, &
                   1.d0, buffer_real, 1, 1, sc_desc, &
@@ -613,7 +633,8 @@ subroutine elsi_symmetrize_overlap()
             end do
 
          else  
-            allocate(buffer_complex (n_l_rows, n_l_cols))
+            call elsi_allocate(buffer_complex, n_l_rows, n_l_cols, &
+                  "buffer_complex", caller)
             buffer_complex(:,:) = S_complex(:,:)
             call pztranc(n_g_rank, n_g_rank, &
                   CONE, buffer_complex, 1, 1, sc_desc, &
@@ -895,10 +916,12 @@ subroutine elsi_write_ev_problem(file_name)
    integer :: group_id  !< HDF5 Group identifier
    real*8, allocatable :: buffer(:,:) !< Read buffer for PEXSI
 
+   character*40, parameter :: caller = "elsi_write_ev_problem"
+  
    call elsi_start_write_evp_time()
 
    if (method == PEXSI) then
-      allocate(buffer(n_l_rows, n_l_cols)) 
+      call elsi_allocate(buffer, n_l_rows, n_l_cols, "buffer", caller) 
    end if
 
    call hdf5_create_file (file_name, mpi_comm_global, mpi_info_null, file_id)
@@ -973,6 +996,8 @@ subroutine elsi_read_ev_problem(file_name)
    integer :: file_id  !< HDF5 File identifier
    integer :: group_id !< HDF5 Group identifier
    real*8, allocatable :: buffer(:,:) !< Read buffer for PEXSI
+  
+   character*40, parameter :: caller = "elsi_read_ev_problem"
 
    ! For Pexsi we need to create a buffer 
    ! we convert it directly to the CCS format
@@ -980,7 +1005,7 @@ subroutine elsi_read_ev_problem(file_name)
    call elsi_start_read_evp_time()
 
    if (method == PEXSI) then
-      allocate(buffer(n_l_rows, n_l_cols)) 
+      call elsi_allocate(buffer, n_l_rows, n_l_cols, "buffer", caller) 
    end if
 
    call hdf5_open_file (file_name, mpi_comm_global, mpi_info_null, file_id)
@@ -996,9 +1021,11 @@ subroutine elsi_read_ev_problem(file_name)
       case (PEXSI)
          call hdf5_read_matrix_parallel (group_id, "matrix", buffer)
          call elsi_compute_N_nonzero(buffer,n_l_rows, n_l_cols)
-         allocate(H_real_sparse(n_l_nonzero))
-         allocate(sparse_index(n_l_nonzero))
-         allocate(sparse_pointer(n_l_cols + 1))
+         call elsi_allocate(H_real_sparse, n_l_nonzero, "H_real_sparse", &
+               caller)
+         call elsi_allocate(sparse_index, n_l_nonzero, "sparse_index", caller)
+         call elsi_allocate(sparse_pointer, n_l_cols + 1, "sparse_pointer", &
+               caller)
          call elsi_dense_to_ccs(buffer, n_l_rows, n_l_cols, H_real_sparse, &
                n_l_nonzero, sparse_index, sparse_pointer)
       case DEFAULT
@@ -1019,7 +1046,8 @@ subroutine elsi_read_ev_problem(file_name)
          call hdf5_read_matrix_parallel (group_id, "matrix", S_real)
       case (PEXSI)
          call hdf5_read_matrix_parallel (group_id, "matrix", buffer)
-         allocate(S_real_sparse(n_l_nonzero))
+         call elsi_allocate(S_real_sparse, n_l_nonzero, "S_real_sparse", &
+               caller)
          call elsi_dense_to_ccs_by_pattern(buffer, n_l_rows, n_l_cols, &
                S_real_sparse, n_l_nonzero, sparse_index, sparse_pointer)
       case DEFAULT
@@ -1103,6 +1131,7 @@ subroutine elsi_solve_ev_problem(number_of_electrons)
    integer :: i_task
    character(len=4096) :: string_message
 
+   call elsi_statement_print("Solving Eigenvalue Problem")
    call elsi_start_solve_evp_time()
 
    if (method == ELPA .or. method == OMM_DENSE) then
@@ -1419,6 +1448,8 @@ subroutine elsi_to_standard_eigenvalue_problem()
    real*8,     allocatable :: buffer_real (:,:) !< real valued matrix buffer
    complex*16, allocatable :: buffer_complex (:,:) !< complex valued matrix buffer
 
+   character*100, parameter :: caller = "elsi_to_standard_eigenvalue_problem"
+
    select case (method)
       case (ELPA)
          select case (mode)
@@ -1427,8 +1458,8 @@ subroutine elsi_to_standard_eigenvalue_problem()
                      // " implemented.",& 
                   "elsi_to_standard_eigenvalue_problem")
             case (REAL_VALUES)
-               allocate (buffer_real(n_l_rows, n_l_cols))
-               buffer_real = 0d0
+               call elsi_allocate (buffer_real, n_l_rows, n_l_cols,&
+                     "buffer_real", caller)
                
                ! Compute U
                ! S contains then U
@@ -1513,6 +1544,8 @@ subroutine elsi_check_solution(success)
    real*8                  :: norm !< norm of Hc - eSc
    integer                 :: i_val !< eigenvalue index
 
+   character*100, parameter :: caller = "elsi_check_solution"
+   
    success = .True.
 
    select case (method)
@@ -1522,11 +1555,14 @@ subroutine elsi_check_solution(success)
                 write(*,'(a)') "COMPLEX check not implemented yet!"
                 stop
             case (REAL_VALUES)
-               allocate (buffer1_real(n_l_rows, n_l_cols))
-               allocate (buffer2_real(n_l_rows, n_l_cols))
-               allocate (buffer3_real(n_l_rows, n_l_cols))
+               call elsi_allocate (buffer1_real, n_l_rows, n_l_cols, &
+                     "buffer_1_real", caller)
+               call elsi_allocate (buffer2_real, n_l_rows, n_l_cols, &
+                     "buffer2_real", caller)
+               call elsi_allocate (buffer3_real, n_l_rows, n_l_cols, &
+                     "buffer3_real", caller)
                buffer1_real = 0d0
-               ! HC
+               ! H|C>
                call pdgemm('N','N', n_g_rank, n_eigenvectors, 1.0d0, H_real, &
                      1, 1, sc_desc, vectors_real, 1, 1, sc_desc, &
                      0.0d0, buffer1_real, 1, 1, sc_desc)
@@ -1631,8 +1667,11 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
    integer :: i_proc, i_col, id, l_col
    
    integer, allocatable :: n_l_nonzero_column(:)
+   character*100, parameter :: caller = "scalapack_dense_to_pexsi_sparse"
 
    call elsi_start_dist_pexsi_time()
+
+   call elsi_statement_print("Redistribution of H and S for PEXSI Started")
 
    ! Caution: only n_g_nonzero is meaningful, 
    ! n_l_nonzero refers to wrong distribution
@@ -1688,15 +1727,16 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
    end if
 
    ! The Hamiltonian
-   allocate(buffer(n_l_buffer_rows, n_b_buffer_cols))
-   buffer = 0d0 
+   call elsi_allocate(buffer, n_l_buffer_rows, n_b_buffer_cols, &
+         "buffer", caller)
    call pdtran(n_g_rank, n_g_rank, &
          1d0, H_external, 1, 1, sc_desc_external, &
          0d0, buffer, 1, 1, sc_desc_buffer)
 
    ! Calculate number of nonzero elements on this process
    ! Here we set no the meaningful n_l_nonzero
-   allocate(n_l_nonzero_column(n_g_rank))
+   call elsi_allocate(n_l_nonzero_column, n_g_rank, "n_l_nonzero_column", &
+         caller)
    blacs_col_offset = 1 + my_p_col_external * n_b_buffer_cols
    call elsi_get_n_nonzero_column(buffer,n_l_buffer_rows, n_b_buffer_cols,&
          blacs_col_offset,n_l_nonzero_column)
@@ -1707,19 +1747,20 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
    !call elsi_vector_print(n_l_nonzero_column, n_g_rank, "n_l_nonzero_column")
    !call elsi_value_print(n_l_nonzero, "n_l_nonzero")
 
-   allocate(H_real_sparse(n_l_nonzero))
-   allocate(sparse_index(n_l_nonzero))
-   allocate(sparse_pointer(n_l_cols + 1))
-   H_real_sparse = 0d0
+   call elsi_allocate(H_real_sparse, n_l_nonzero, "H_real_sparse", caller)
+   call elsi_allocate(sparse_index, n_l_nonzero, "sparse_index", caller)
+   call elsi_allocate(sparse_pointer, n_l_cols + 1, "sparse_pointer", caller)
    sparse_index = -1
    sparse_pointer = -1
 
    call elsi_get_local_N_nonzero(buffer,n_l_buffer_rows, n_b_buffer_cols,&
          n_buffer_nonzero)
 
-   allocate(buffer_sparse(n_buffer_nonzero))
-   allocate(buffer_sparse_index(n_buffer_nonzero))
-   allocate(buffer_sparse_pointer(n_b_buffer_cols + 1))
+   call elsi_allocate(buffer_sparse, n_buffer_nonzero, "buffer_sparse", caller)
+   call elsi_allocate(buffer_sparse_index, n_buffer_nonzero, &
+         "buffer_sparse_index", caller)
+   call elsi_allocate(buffer_sparse_pointer, n_b_buffer_cols + 1, &
+         "buffer_sparse_pointer", caller)
    call elsi_dense_to_ccs(buffer, n_l_buffer_rows, n_l_buffer_cols, &
          buffer_sparse, n_buffer_nonzero, buffer_sparse_index, &
          buffer_sparse_pointer)
@@ -1740,9 +1781,12 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
       call MPI_Bcast(n_buffer_bcast_nonzero, 1, MPI_INT, id_sent, &
             mpi_comm_external, mpierr)
       
-      allocate(buffer_bcast_sparse(n_buffer_bcast_nonzero))
-      allocate(buffer_bcast_sparse_index(n_buffer_bcast_nonzero))
-      allocate(buffer_bcast_sparse_pointer(n_b_buffer_cols + 1))
+      call elsi_allocate(buffer_bcast_sparse, n_buffer_bcast_nonzero, &
+            "buffer_bcast_spase", caller)
+      call elsi_allocate(buffer_bcast_sparse_index, n_buffer_bcast_nonzero, &
+            "buffer_bcast_sparse_index", caller)
+      call elsi_allocate(buffer_bcast_sparse_pointer,n_b_buffer_cols + 1, &
+            "buffer_bcast_sparse_pointer", caller)
 
       if (myid == id_sent) then
         buffer_bcast_sparse         = buffer_sparse
@@ -1823,14 +1867,14 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
    !call elsi_stop("Stop here","dense_to_pexsi")
 
    ! The Overlap Matrix
-   allocate(buffer(n_l_buffer_rows, n_b_buffer_cols))
+   call elsi_allocate(buffer, n_l_buffer_rows, n_b_buffer_cols, &
+         "buffer", caller)
    buffer = 0d0 
    call pdtran(n_g_rank, n_g_rank, &
          1d0, S_external, 1, 1, sc_desc_external, &
          0d0, buffer, 1, 1, sc_desc_buffer)
 
-   allocate(S_real_sparse(n_l_nonzero))
-   S_real_sparse = 0d0
+   call elsi_allocate(S_real_sparse, n_l_nonzero, "S_real_sparse", caller)
    call elsi_dense_to_ccs_by_pattern(buffer, n_l_buffer_rows, n_l_buffer_cols, &
          buffer_sparse, n_buffer_nonzero, buffer_sparse_index, &
          buffer_sparse_pointer)
@@ -1845,9 +1889,12 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
       call MPI_Bcast(n_buffer_bcast_nonzero, 1, MPI_INT, id_sent, &
             mpi_comm_external, mpierr)
 
-      allocate(buffer_bcast_sparse(n_buffer_bcast_nonzero))
-      allocate(buffer_bcast_sparse_index(n_buffer_bcast_nonzero))
-      allocate(buffer_bcast_sparse_pointer(n_b_buffer_cols + 1))
+      call elsi_allocate(buffer_bcast_sparse, n_buffer_bcast_nonzero, &
+            "buffer_bcast_sparse", caller)
+      call elsi_allocate(buffer_bcast_sparse_index, n_buffer_bcast_nonzero, &
+            "buffer_bcast_sparse_index", caller)
+      call elsi_allocate(buffer_bcast_sparse_pointer, n_b_buffer_cols + 1, &
+            "buffer_bcast_sparse_pointer", caller)
 
       if (myid == id_sent) then
         buffer_bcast_sparse         = buffer_sparse
@@ -1916,6 +1963,8 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
    overlap_is_unity = .False.
    
    call elsi_stop_dist_pexsi_time()
+   
+   call elsi_statement_print("Redistribution of H and S for PEXSI Done")
 
 end subroutine
 

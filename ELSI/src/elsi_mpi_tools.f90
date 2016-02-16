@@ -57,6 +57,7 @@ module ELSI_MPI_TOOLS
   public :: elsi_vector_print
   public :: elsi_matrix_print
   public :: elsi_statement_print
+  public :: elsi_allocate
 
   interface elsi_vector_print
      module procedure elsi_int_vector_print, &
@@ -66,6 +67,15 @@ module ELSI_MPI_TOOLS
   interface elsi_value_print
      module procedure elsi_int_value_print, &
                       elsi_real_value_print
+  end interface
+
+  interface elsi_allocate
+     module procedure elsi_allocate_real_vector, &
+                      elsi_allocate_real_matrix, &
+                      elsi_allocate_int_vector, &
+                      elsi_allocate_int_matrix, &
+                      elsi_allocate_complex_vector, &
+                      elsi_allocate_complex_matrix
   end interface
 
 
@@ -594,7 +604,134 @@ subroutine elsi_statement_print (message)
 
 end subroutine
 
+!>
+!! Elsi allocation routines with error handling
+!!
 
+subroutine elsi_allocate_real_vector (vector, n_elements, vectorname, caller)
 
+   implicit none
+
+   real*8, allocatable, intent(inout) :: vector(:)
+   integer, intent(in) :: n_elements
+   character(len=*), intent(in) :: vectorname
+   character(len=*), intent(in) :: caller
+
+   integer :: error
+
+   allocate(vector(n_elements), stat = error)
+
+   if (error > 0) call elsi_stop ("Insufficient memory to allocate " &
+         // trim(vectorname), caller)
+
+   vector = 0d0 
+
+end subroutine
+
+subroutine elsi_allocate_int_vector (vector, n_elements, vectorname, caller)
+
+   implicit none
+
+   integer, allocatable, intent(inout) :: vector(:)
+   integer, intent(in) :: n_elements
+   character(len=*), intent(in) :: vectorname
+   character(len=*), intent(in) :: caller
+
+   integer :: error
+
+   allocate(vector(n_elements), stat = error)
+
+   if (error > 0) call elsi_stop ("Insufficient memory to allocate " &
+         // trim(vectorname), caller)
+
+   vector = 0
+
+end subroutine
+
+subroutine elsi_allocate_complex_vector (vector, n_elements, vectorname, caller)
+
+   implicit none
+
+   complex*16, allocatable, intent(inout) :: vector(:)
+   integer, intent(in) :: n_elements
+   character(len=*), intent(in) :: vectorname
+   character(len=*), intent(in) :: caller
+
+   integer :: error
+
+   allocate(vector(n_elements), stat = error)
+
+   if (error > 0) call elsi_stop ("Insufficient memory to allocate " &
+         // trim(vectorname), caller)
+
+   vector = CMPLX(0d0,0d0)
+
+end subroutine
+
+subroutine elsi_allocate_real_matrix (matrix, n_rows, n_cols, matrixname,&
+      caller)
+
+   implicit none
+
+   real*8, allocatable, intent(inout) :: matrix(:,:)
+   integer, intent(in) :: n_rows
+   integer, intent(in) :: n_cols
+   character(len=*), intent(in) :: matrixname
+   character(len=*), intent(in) :: caller
+
+   integer :: error
+
+   allocate(matrix(n_rows,n_cols), stat = error)
+
+   if (error > 0) call elsi_stop ("Insufficient memory to allocate " &
+         // trim(matrixname), caller)
+
+   matrix = 0d0 
+
+end subroutine
+
+subroutine elsi_allocate_int_matrix (matrix, n_rows, n_cols, matrixname,&
+      caller)
+
+   implicit none
+
+   integer, allocatable, intent(inout) :: matrix(:,:)
+   integer, intent(in) :: n_rows
+   integer, intent(in) :: n_cols
+   character(len=*), intent(in) :: matrixname
+   character(len=*), intent(in) :: caller
+
+   integer :: error
+
+   allocate(matrix(n_rows,n_cols), stat = error)
+
+   if (error > 0) call elsi_stop ("Insufficient memory to allocate " &
+         // trim(matrixname), caller)
+
+   matrix = 0 
+
+end subroutine
+
+subroutine elsi_allocate_complex_matrix (matrix, n_rows, n_cols, matrixname,&
+      caller)
+
+   implicit none
+
+   complex*16, allocatable, intent(inout) :: matrix(:,:)
+   integer, intent(in) :: n_rows
+   integer, intent(in) :: n_cols
+   character(len=*), intent(in) :: matrixname
+   character(len=*), intent(in) :: caller
+
+   integer :: error
+
+   allocate(matrix(n_rows,n_cols), stat = error)
+
+   if (error > 0) call elsi_stop ("Insufficient memory to allocate " &
+         // trim(matrixname), caller)
+
+   matrix = CMPLX(0d0,0d0) 
+
+end subroutine
 
 end module ELSI_MPI_TOOLS
