@@ -10,20 +10,14 @@ metis_path = not-set
 shared     = not-set
 cc         = mpicc
 cxx        = mpicxx
-cputype    = not-set
-systype    = not-set
 
 
 # Basically proxies everything to the builddir cmake.
 
 PKGNAME = parmetis-4.0.2
 
-ifeq ($(cputype), not-set)
-    cputype = $(shell uname -m | sed "s/\\ /_/g")
-endif
-ifeq ($(systype), not-set)
-    systype = $(shell uname -s)
-endif
+cputype = $(shell uname -m | sed "s/\\ /_/g")
+systype = $(shell uname -s)
 
 BUILDDIR = build/$(systype)-$(cputype)
 

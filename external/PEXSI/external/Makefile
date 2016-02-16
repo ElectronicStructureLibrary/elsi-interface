@@ -1,14 +1,11 @@
 CC = $(MPICC)
 
-all: parMetis SuperLU
+all: libparmetis libsuperlu
 
-parMetis:
+libparmetis:
 	@echo Start building parMetis...
-	mkdir -p parMetis
-	cp fetch-parmetis.sh $(PEXSI_DIR)/external/parMetis/fetch.sh
-	cd $(PEXSI_DIR)/external/parMetis && ./fetch.sh
 	cd $(PEXSI_DIR)/external/parMetis && make config prefix=$(PEXSI_DIR)/external
-	cd $(PEXSI_DIR)/external/parMetis/build/Linux-x86_64 && make && make install
+	cd $(PEXSI_DIR)/external/parMetis/build/Linux-* && make && make install
 	mkdir -p include
 	mkdir -p lib
 	-cp `find $(PEXSI_DIR)/external/parMetis/include -name parmetis.h` $(PEXSI_DIR)/external/include/.
@@ -20,11 +17,8 @@ parMetis:
 	-cp $(PEXSI_DIR)/external/lib/libmetis.a $(PEXSI_DIR)/lib/.
 	@echo parMetis installed.
 
-SuperLU:
+libsuperlu:
 	@echo Start building SuperLU...
-	mkdir -p SuperLU
-	cp fetch-superlu.sh $(PEXSI_DIR)/external/SuperLU/fetch.sh
-	cd $(PEXSI_DIR)/external/SuperLU && ./fetch.sh
 	cp make.inc.superlu SuperLU/make.inc
 	cd $(PEXSI_DIR)/external/SuperLU && make
 	-cp $(PEXSI_DIR)/external/SuperLU/SRC/*.h $(PEXSI_DIR)/external/include/.
@@ -33,5 +27,5 @@ SuperLU:
 	@echo SuperLU installed.
 
 clean:
-	rm -rf parMetis SuperLU bin include lib
+	rm -rf bin include lib
 	rm -f ../lib/libmetis.a ../lib/libparmetis.a ../lib/libsuperlu.a

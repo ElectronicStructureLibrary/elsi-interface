@@ -9,35 +9,30 @@ elpa:
 	@echo ELPA installed.
 libomm:
 	@echo Start building libOMM...
-	cd $(libOMM_DIR)/src && ${MAKE} -f Makefile.elsi
-	cd $(libOMM_DIR)/examples && ${MAKE} -f Makefile.elsi
+	cd $(libOMM_DIR)/src && ${MAKE}
+	cd $(libOMM_DIR)/examples && ${MAKE}
 	@echo libOMM installed.
 
-pexsi:  external
+pexsi: external
 	@echo Start building PEXSI...
-	cd $(PEXSI_DIR)/src && ${MAKE}  -f Makefile.elsi 
+	cd $(PEXSI_DIR)/src && ${MAKE}
 	-cp $(PEXSI_DIR)/src/f_ppexsi_interface.mod $(PEXSI_DIR)/include
-	cd $(PEXSI_DIR)/fortran && ${MAKE}  -f Makefile.elsi
+	cd $(PEXSI_DIR)/fortran && ${MAKE} 
 	@echo PEXSI installed.
 
 elsi:
 	@echo Start building ELSI...
-	cd ELSI && ${MAKE} -f Makefile.elsi
-	cd ELSI && ${MAKE} -f Makefile.elsi install
+	cd ELSI && ${MAKE}
+	cd ELSI && ${MAKE} install
 	@echo ELSI installed.
 
 external: pexsi_external
 
-pexsi_external: libparmetis libsuperlu
-
-libparmetis:
-	cd $(THIS_DIR)/external/parmetis && ${MAKE} -f Makefile.elsi
-
-libsuperlu:
-	cd $(THIS_DIR)/external/SuperLU && ${MAKE} -f Makefile.elsi
+pexsi_external:
+	cd $(PEXSI_DIR)/external && ${MAKE}
 
 install:
-	cd ELSI && ${MAKE} -f Makefile.elsi install
+	cd ELSI && ${MAKE} install
 	@echo ELSI library created.
 
 check:
