@@ -70,5 +70,6 @@ OMM  = -I$(libOMM_DIR)/src \
 
 PEXSI = -I$(PEXSI_DIR)/include \
         -I$(PEXSI_DIR)/include/pexsi \
-        -I$(PEXSI_DIR)/external/include \
-        -L$(PEXSI_DIR)/lib -lpexsi -lsuperlu -lparmetis -lmetis
+        -I$(THIS_DIR)/external/include \
+        -L$(PEXSI_DIR)/lib -lpexsi \
+        -L$(THIS_DIR)/external/lib -lsuperlu -lparmetis -lmetis
