@@ -1,0 +1,17 @@
+CC = $(MPICC)
+
+all: libsuperlu
+
+libsuperlu:
+	@echo Start building SuperLU...
+	cp make.inc.superlu SuperLU/make.inc
+	cd $(THIS_DIR)/external/SuperLU/SuperLU && make
+	mkdir -p $(THIS_DIR)/external/include
+	mkdir -p $(THIS_DIR)/external/lib
+	-cp $(THIS_DIR)/external/SuperLU/SuperLU/SRC/*.h $(THIS_DIR)/external/include/.
+	@echo SuperLU installed.
+	@echo Start building SuperLU...
+	mkdir -p SuperLU
+
+clean:
+	rm -rf bin include lib

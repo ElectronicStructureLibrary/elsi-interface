@@ -1,0 +1,24 @@
+CC = $(MPICC)
+
+CPU=$(shell uname -m | sed "s/\\ /_/g")
+SYS=$(shell uname -s)
+
+#all: libparmetis libsuperlu
+
+	#cd $(THIS_DIR)/external/parmetis/parMetis && make config prefix=$(THIS_DIR)/external
+	#cd $(THIS_DIR)/external/parmetis/parMetis/build/Linux-* && make && make install
+libparmetis:
+	@echo Start building parMetis...
+	$(MAKE) -C $(EXTDIR)/parmetis/parMetis $(AM_MAKEFLAGS) config prefix=$(EXTDIR) cc=$(MPICC) cxx=$(MPICXX) cputype=$(CPU) systype=$(SYS)
+	cd $(THIS_DIR)/external/parmetis/parMetis/build/$(SYS)-$(CPU) && make && make install
+	mkdir -p $(THIS_DIR)/external/include
+	mkdir -p $(THIS_DIR)/external/lib
+	-cp `find $(PEXSI_DIR)/external/parmetis/parMetis/include -name parmetis.h` $(THIS_DIR)/external/include/.
+	-cp `find $(THIS_DIR)/external/parmetis/parMetis/metis/include -name metis.h` $(THIS_DIR)/external/include/.
+	-cp `find $(THIS_DIR)/external/parmetis/parMetis/build -name libparmetis.a` $(THIS_DIR)/external/lib/.
+	-cp `find $(THIS_DIR)/external/parmetis/parMetis/build -name libmetis.a` $(THIS_DIR)/external/lib/.
+	@echo parMetis installed.
+
+clean:
+	rm -rf bin include lib
+	rm -f ../lib/libmetis.a ../lib/libparmetis.a ../lib/libsuperlu.a
