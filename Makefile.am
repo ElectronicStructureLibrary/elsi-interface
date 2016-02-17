@@ -39,6 +39,8 @@ pexsi_external: libparmetis libsuperlu
 
 if !HAS_SUPERLU
 libsuperlu: 
+	mkdir -p external/lib
+	mkdir -p external/include
 	$(MAKE) -C external/SuperLU SuperLU
 else
 libsuperlu:
@@ -46,6 +48,8 @@ endif
 
 if !HAS_LIBPARMETIS
 libparmetis: 
+	mkdir -p external/lib
+	mkdir -p external/include
 	$(MAKE) -C external/parmetis parMetis
 else
 libparmetis:
