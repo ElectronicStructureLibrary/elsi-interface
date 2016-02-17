@@ -29,20 +29,15 @@ elsi:
 
 external: pexsi_external
 
-pexsi_external: libparmetis libsuperlu
-
-libparmetis:
-	cd $(THIS_DIR)/external/parmetis && ${MAKE} -f Makefile.elsi
-
-libsuperlu:
-	cd $(THIS_DIR)/external/SuperLU && ${MAKE} -f Makefile.elsi
+pexsi_external:
+	cd $(PEXSI_DIR)/external && ${MAKE} -f Makefile.elsi
 
 install:
 	cd ELSI && ${MAKE} -f Makefile.elsi install
 	@echo ELSI library created.
 
 check:
-	cd ELSI && ${MAKE} check
+	cd ELSI && ${MAKE} -f Makefile.elsi check
 
 clean:
 	cd ELSI && ${MAKE} -f Makefile.elsi clean
@@ -56,5 +51,4 @@ clean:
 	rm -f $(PEXSI_DIR)/src/f_ppexsi_interface.mod
 
 cleanall: clean
-	cd $(THIS_DIR)/external/parmetis && ${MAKE} -f Makefile.elsi clean
-	cd $(THIS_DIR)/external/SuperLU && ${MAKE} -f Makefile.elsi clean
+	cd $(PEXSI_DIR)/external && ${MAKE} -f Makefile.elsi clean

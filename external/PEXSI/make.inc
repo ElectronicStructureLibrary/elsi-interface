@@ -22,8 +22,8 @@ RMFLAGS      = -f
 PEXSI_DIR     = $(THIS_DIR)/external/PEXSI
 
 # Required libraries directories
-DSUPERLU_DIR  = $(THIS_DIR)/external
-PARMETIS_DIR  = $(THIS_DIR)/external
+DSUPERLU_DIR  = $(PEXSI_DIR)/external
+PARMETIS_DIR  = $(PEXSI_DIR)/external
 
 # Includes
 PEXSI_INCLUDE    = -I$(PEXSI_DIR)/include 
