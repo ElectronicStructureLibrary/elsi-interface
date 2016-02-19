@@ -178,7 +178,7 @@ subroutine elsi_initialize_blacs()
 
      ! Find balancing between expansion parallel and matrix inversion parallel
      if (mod(n_procs, 40) == 0 .and. n_procs >= 640) then
-        n_p_rows = 10
+        n_p_rows = 40
      else if (mod(n_procs, 20) == 0 .and. n_procs >= 320) then
         n_p_rows = 20
      else if (mod(n_procs, 10) == 0 .and. n_procs >= 90) then
