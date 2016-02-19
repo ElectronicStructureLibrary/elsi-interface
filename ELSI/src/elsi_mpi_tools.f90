@@ -233,7 +233,7 @@ subroutine elsi_initialize_blacs()
      blacs_is_setup = .True.
      
      ! Define blockcyclic setup
-     do n_p_cols = NINT(SQRT(REAL(n_procs))),2,-1
+     do n_p_cols = NINT(SQRT(REAL(n_procs))),n_procs,1
        if(mod(n_procs,n_p_cols) == 0 ) exit
      enddo
 
@@ -242,7 +242,7 @@ subroutine elsi_initialize_blacs()
      ! Set up BLACS and MPI communicators
 
      blacs_ctxt = mpi_comm_global
-     call BLACS_Gridinit( blacs_ctxt, 'C', n_p_rows, n_p_cols )
+     call BLACS_Gridinit( blacs_ctxt, 'R', n_p_rows, n_p_cols )
      call BLACS_Gridinfo( blacs_ctxt, n_p_rows, n_p_cols, my_p_row, my_p_col )
 
      call mpi_comm_split(mpi_comm_global,my_p_col,my_p_row,mpi_comm_row,mpierr)
@@ -618,11 +618,30 @@ subroutine elsi_allocate_real_vector (vector, n_elements, vectorname, caller)
    character(len=*), intent(in) :: caller
 
    integer :: error
+   integer :: id
+
+   character*200 :: message
+
+   real*8 :: memory
+
+   memory = 8d0 * n_elements / 2d0**20
+
+
+   !do id = 0, n_procs - 1
+   !  if (myid == id) then
+   !    write(*,"(A,I6,A,F10.3,A,A)") " Process ", id, " allocates ", &
+   !    memory, " MB for real vector ", vectorname
+   !  end if
+   !  call MPI_Barrier(mpi_comm_global, mpierr)
+   !end do 
 
    allocate(vector(n_elements), stat = error)
 
-   if (error > 0) call elsi_stop ("Insufficient memory to allocate " &
-         // trim(vectorname), caller)
+   if (error > 0) then 
+      write(message,"(A,A,A,F10.3,A)") "Insufficient memory to allocate ", &
+         trim(vectorname), ", ", memory, " MB needed."
+         call elsi_stop (message, caller)
+   end if
 
    vector = 0d0 
 
@@ -638,11 +657,31 @@ subroutine elsi_allocate_int_vector (vector, n_elements, vectorname, caller)
    character(len=*), intent(in) :: caller
 
    integer :: error
+   integer :: id
+
+   character*200 :: message
+
+   real*8 :: memory
+
+   memory = 4d0 * n_elements / 2d0**20
+
+
+   !do id = 0, n_procs - 1
+   !  if (myid == id) then
+   !    write(*,"(A,I6,A,F10.3,A,A)") " Process ", id, " allocates ", &
+   !    memory, " MB for integer vector ", vectorname
+   !  end if
+   !  call MPI_Barrier(mpi_comm_global, mpierr)
+   !end do 
+
 
    allocate(vector(n_elements), stat = error)
 
-   if (error > 0) call elsi_stop ("Insufficient memory to allocate " &
-         // trim(vectorname), caller)
+   if (error > 0) then 
+      write(message,"(A,A,A,F10.3,A)") "Insufficient memory to allocate ", &
+         trim(vectorname), ", ", memory, " MB needed."
+         call elsi_stop (message, caller)
+   end if
 
    vector = 0
 
@@ -658,11 +697,30 @@ subroutine elsi_allocate_complex_vector (vector, n_elements, vectorname, caller)
    character(len=*), intent(in) :: caller
 
    integer :: error
+   integer :: id
+
+   character*200 :: message
+
+   real*8 :: memory
+
+   memory = 16d0 * n_elements / 2d0**20
+
+   !do id = 0, n_procs - 1
+   !  if (myid == id) then
+   !    write(*,"(A,I6,A,F10.3,A,A)") " Process ", id, " allocates ", &
+   !    memory, " MB for complex vector ", vectorname
+   !  end if
+   !  call MPI_Barrier(mpi_comm_global, mpierr)
+   !end do 
+
 
    allocate(vector(n_elements), stat = error)
 
-   if (error > 0) call elsi_stop ("Insufficient memory to allocate " &
-         // trim(vectorname), caller)
+   if (error > 0) then 
+      write(message,"(A,A,A,F10.3,A)") "Insufficient memory to allocate ", &
+         trim(vectorname), ", ", memory, " MB needed."
+         call elsi_stop (message, caller)
+   end if
 
    vector = CMPLX(0d0,0d0)
 
@@ -680,11 +738,30 @@ subroutine elsi_allocate_real_matrix (matrix, n_rows, n_cols, matrixname,&
    character(len=*), intent(in) :: caller
 
    integer :: error
+   integer :: id
+
+   character*200 :: message
+
+   real*8 :: memory
+
+   memory = 8d0 * n_rows * n_cols / 2d0**20
+
+   !do id = 0, n_procs - 1
+   !  if (myid == id) then
+   !    write(*,"(A,I6,A,F10.3,A,A)") " Process ", id, " allocates ", &
+   !    memory, " MB for real matrix ", matrixname
+   !  end if
+   !  call MPI_Barrier(mpi_comm_global, mpierr)
+   !end do 
+
 
    allocate(matrix(n_rows,n_cols), stat = error)
 
-   if (error > 0) call elsi_stop ("Insufficient memory to allocate " &
-         // trim(matrixname), caller)
+   if (error > 0) then 
+      write(message,"(A,A,A,F10.3,A)") "Insufficient memory to allocate ", &
+         trim(matrixname), ", ", memory, " MB needed."
+         call elsi_stop (message, caller)
+   end if
 
    matrix = 0d0 
 
@@ -702,11 +779,30 @@ subroutine elsi_allocate_int_matrix (matrix, n_rows, n_cols, matrixname,&
    character(len=*), intent(in) :: caller
 
    integer :: error
+   integer :: id
+
+   character*200 :: message
+
+   real*8 :: memory
+
+   memory = 4d0 * n_rows * n_cols / 2d0**20
+
+   !do id = 0, n_procs - 1
+   !  if (myid == id) then
+   !    write(*,"(A,I6,A,F10.3,A,A)") " Process ", id, " allocates ", &
+   !    memory, " MB for real matrix ", matrixname
+   !  end if
+   !  call MPI_Barrier(mpi_comm_global, mpierr)
+   !end do 
+
 
    allocate(matrix(n_rows,n_cols), stat = error)
 
-   if (error > 0) call elsi_stop ("Insufficient memory to allocate " &
-         // trim(matrixname), caller)
+   if (error > 0) then 
+      write(message,"(A,A,A,F10.3,A)") "Insufficient memory to allocate ", &
+         trim(matrixname), ", ", memory, " MB needed."
+         call elsi_stop (message, caller)
+   end if
 
    matrix = 0 
 
@@ -724,11 +820,30 @@ subroutine elsi_allocate_complex_matrix (matrix, n_rows, n_cols, matrixname,&
    character(len=*), intent(in) :: caller
 
    integer :: error
+   integer :: id
+
+   character*200 :: message
+
+   real*8 :: memory
+
+   memory = 16d0 * n_rows * n_cols / 2d0**20
+
+   !do id = 0, n_procs - 1
+   !  if (myid == id) then
+   !    write(*,"(A,I6,A,F10.3,A,A)") " Process ", id, " allocates ", &
+   !    memory, " MB for real matrix ", matrixname
+   !  end if
+   !  call MPI_Barrier(mpi_comm_global, mpierr)
+   !end do 
+
 
    allocate(matrix(n_rows,n_cols), stat = error)
 
-   if (error > 0) call elsi_stop ("Insufficient memory to allocate " &
-         // trim(matrixname), caller)
+   if (error > 0) then 
+      write(message,"(A,A,A,F10.3,A)") "Insufficient memory to allocate ", &
+         trim(matrixname), ", ", memory, " MB needed."
+         call elsi_stop (message, caller)
+   end if
 
    matrix = CMPLX(0d0,0d0) 
 

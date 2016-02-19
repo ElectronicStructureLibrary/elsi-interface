@@ -93,14 +93,14 @@ program set_and_write
   call mpi_comm_size(mpi_comm_world, n_procs, mpierr)
 
   ! Simulate external blacs environment
-  do n_process_cols = NINT(SQRT(REAL(n_procs))),2,-1
+  do n_process_cols = NINT(SQRT(REAL(n_procs))),n_procs,1
      if(mod(n_procs,n_process_cols) == 0 ) exit
   enddo
 
   n_process_rows = n_procs / n_process_cols
 
   blacs_ctxt = mpi_comm_world
-  call BLACS_Gridinit( blacs_ctxt, 'C', n_process_rows, n_process_cols )
+  call BLACS_Gridinit( blacs_ctxt, 'R', n_process_rows, n_process_cols )
   call BLACS_Gridinfo( blacs_ctxt, n_process_rows, n_process_cols, &
         my_process_row, my_process_col )
   call mpi_comm_split(mpi_comm_world,my_process_col,my_process_row,&
