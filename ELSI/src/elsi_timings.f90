@@ -203,7 +203,8 @@ subroutine elsi_print_timers()
          n_p_rows, n_p_cols
     end if
 
-    do i_proc = 0, n_procs - 1
+    !do i_proc = 0, n_procs - 1
+    do i_proc = 0, 1
 
       if (i_proc == myid) then
          write(*,"('| Local matrix size process     ',I5,' : ',I5,' x ',I5)")&
