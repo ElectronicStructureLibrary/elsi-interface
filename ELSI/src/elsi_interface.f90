@@ -1764,13 +1764,13 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
    sparse_index = -1
    sparse_pointer = -1
 
-   call elsi_get_local_N_nonzero(buffer,n_l_buffer_rows, n_b_buffer_cols,&
+   call elsi_get_local_N_nonzero(buffer,n_l_buffer_rows, n_l_buffer_cols,&
          n_buffer_nonzero)
 
    call elsi_allocate(buffer_sparse, n_buffer_nonzero, "buffer_sparse", caller)
    call elsi_allocate(buffer_sparse_index, n_buffer_nonzero, &
          "buffer_sparse_index", caller)
-   call elsi_allocate(buffer_sparse_pointer, n_b_buffer_cols + 1, &
+   call elsi_allocate(buffer_sparse_pointer, n_l_buffer_cols + 1, &
          "buffer_sparse_pointer", caller)
    call elsi_dense_to_ccs(buffer, n_l_buffer_rows, n_l_buffer_cols, &
          buffer_sparse, n_buffer_nonzero, buffer_sparse_index, &
@@ -1779,7 +1779,7 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
 
    !call elsi_vector_print(buffer_sparse, n_buffer_nonzero, "Hamiltonian sparse")
    !call elsi_vector_print(buffer_sparse_index, n_buffer_nonzero, "Hamiltonian sparse index")
-   !call elsi_vector_print(buffer_sparse_pointer, n_b_buffer_cols+1, "Hamiltonian sparse pointer")
+   !call elsi_vector_print(buffer_sparse_pointer, n_l_buffer_cols+1, "Hamiltonian sparse pointer")
 
    do i_proc = 0, n_p_cols_external - 1
    
@@ -1796,7 +1796,7 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
             "buffer_bcast_spase", caller)
       call elsi_allocate(buffer_bcast_sparse_index, n_buffer_bcast_nonzero, &
             "buffer_bcast_sparse_index", caller)
-      call elsi_allocate(buffer_bcast_sparse_pointer,n_b_buffer_cols + 1, &
+      call elsi_allocate(buffer_bcast_sparse_pointer,n_l_buffer_cols + 1, &
             "buffer_bcast_sparse_pointer", caller)
 
       if (myid == id_sent) then
@@ -1815,10 +1815,10 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
             MPI_DOUBLE, id_sent, mpi_comm_external, mpierr)
       call MPI_Bcast(buffer_bcast_sparse_index, n_buffer_bcast_nonzero, &
             MPI_INT, id_sent, mpi_comm_external, mpierr)  
-      call MPI_Bcast(buffer_bcast_sparse_pointer, n_b_buffer_cols + 1, &
+      call MPI_Bcast(buffer_bcast_sparse_pointer, n_l_buffer_cols + 1, &
             MPI_INT, id_sent, mpi_comm_external, mpierr)  
  
-      !call elsi_vector_print(buffer_bcast_sparse_pointer, n_b_buffer_cols+1,&
+      !call elsi_vector_print(buffer_bcast_sparse_pointer, n_l_buffer_cols+1,&
       !      "Hamiltonian sparse pointer bcast")
 
       blacs_col_offset = 1 + i_proc * n_b_buffer_cols
@@ -1828,7 +1828,7 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
       ! Fill elements from buffer
       do i_col = my_col_offset, my_col_offset + n_l_cols - 1
         
-       if (i_col > 0 .and. i_col <= n_b_buffer_cols) then
+       if (i_col > 0 .and. i_col <= n_l_buffer_cols) then
          
          ! Get the global column
          !print *, "process ", myid, " pexsi_col_offset ", pexsi_col_offset
@@ -1878,7 +1878,7 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
    !call elsi_stop("Stop here","dense_to_pexsi")
 
    ! The Overlap Matrix
-   call elsi_allocate(buffer, n_l_buffer_rows, n_b_buffer_cols, &
+   call elsi_allocate(buffer, n_l_buffer_rows, n_l_buffer_cols, &
          "buffer", caller)
    buffer = 0d0 
    call pdtran(n_g_rank, n_g_rank, &
@@ -1904,7 +1904,7 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
             "buffer_bcast_sparse", caller)
       call elsi_allocate(buffer_bcast_sparse_index, n_buffer_bcast_nonzero, &
             "buffer_bcast_sparse_index", caller)
-      call elsi_allocate(buffer_bcast_sparse_pointer, n_b_buffer_cols + 1, &
+      call elsi_allocate(buffer_bcast_sparse_pointer, n_l_buffer_cols + 1, &
             "buffer_bcast_sparse_pointer", caller)
 
       if (myid == id_sent) then
@@ -1923,7 +1923,7 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
             MPI_DOUBLE, id_sent, mpi_comm_external, mpierr)
       call MPI_Bcast(buffer_bcast_sparse_index, n_buffer_bcast_nonzero, &
             MPI_INT, id_sent, mpi_comm_external, mpierr)  
-      call MPI_Bcast(buffer_bcast_sparse_pointer, n_b_buffer_cols + 1, &
+      call MPI_Bcast(buffer_bcast_sparse_pointer, n_l_buffer_cols + 1, &
             MPI_INT, id_sent, mpi_comm_external, mpierr)  
   
       blacs_col_offset = 1 + i_proc * n_b_buffer_cols
@@ -1933,7 +1933,7 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
       ! Fill elements from buffer
       do i_col = my_col_offset, my_col_offset + n_l_cols - 1
         
-       if (i_col > 0 .and. i_col <= n_b_buffer_cols) then
+       if (i_col > 0 .and. i_col <= n_l_buffer_cols) then
 
          ! Get the global column
          g_column = i_col + blacs_col_offset - 1
