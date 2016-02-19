@@ -1710,6 +1710,17 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
    n_l_buffer_cols = numroc(n_g_rank, n_b_buffer_cols, my_p_col_external, &
          0, n_p_cols_external)
 
+   if (myid == 0) then
+      write(*,"('|-------------------------------------------------------')")
+      write(*,"('| Initial Parallel Distribution:                        ')")
+      write(*,"('|-------------------------------------------------------')")
+      write(*,"('| Process grid                   : ',I5,' x ',I5)")&
+         n_p_rows_external, n_p_cols_external
+      write(*,"('| Buffer Dimension               : ',I5,' x ',I5)")&
+         n_l_buffer_rows, n_b_buffer_cols
+   end if
+
+
    ! Setup new descriptor for buffer based on the new dimensions
    call descinit (sc_desc_buffer, n_g_rank, n_g_rank, n_b_buffer_rows, &
          n_b_buffer_cols, 0, 0, blacs_ctxt_external, n_l_buffer_rows, &
@@ -1727,7 +1738,7 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
    end if
 
    ! The Hamiltonian
-   call elsi_allocate(buffer, n_l_buffer_rows, n_b_buffer_cols, &
+   call elsi_allocate(buffer, n_l_buffer_rows, n_l_buffer_cols, &
          "buffer", caller)
    call pdtran(n_g_rank, n_g_rank, &
          1d0, H_external, 1, 1, sc_desc_external, &
@@ -1738,7 +1749,7 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
    call elsi_allocate(n_l_nonzero_column, n_g_rank, "n_l_nonzero_column", &
          caller)
    blacs_col_offset = 1 + my_p_col_external * n_b_buffer_cols
-   call elsi_get_n_nonzero_column(buffer,n_l_buffer_rows, n_b_buffer_cols,&
+   call elsi_get_n_nonzero_column(buffer,n_l_buffer_rows, n_l_buffer_cols,&
          blacs_col_offset,n_l_nonzero_column)
    pexsi_col_offset = 1 + myid * n_l_cols_g
    n_l_nonzero = &
