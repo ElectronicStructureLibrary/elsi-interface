@@ -294,8 +294,6 @@ subroutine elsi_allocate_matrices()
                call m_register_pdbc (OMM_S_matrix, S_complex, sc_desc)
                call m_allocate (OMM_D_matrix, n_g_rank, n_g_rank, "pzdbc")
                call m_allocate (OMM_T_matrix, n_g_rank, n_g_rank, "pzdbc")
-               OMM_T_matrix%zval = CMPLX(0d0,0d0)
-               OMM_D_matrix%zval = CMPLX(0d0,0d0)
 
             case (REAL_VALUES)
                call elsi_allocate(H_real_target, n_l_rows, n_l_cols, &
@@ -313,8 +311,6 @@ subroutine elsi_allocate_matrices()
                call m_register_pdbc (OMM_S_matrix, S_real, sc_desc)
                call m_allocate (OMM_D_matrix, n_g_rank, n_g_rank, "pddbc")
                call m_allocate (OMM_T_matrix, n_g_rank, n_g_rank, "pddbc")
-               OMM_T_matrix%dval = 0d0
-               OMM_D_matrix%dval = 0d0
 
             case DEFAULT
                call elsi_stop("No mode has been chosen. "// &
