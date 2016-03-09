@@ -1150,7 +1150,7 @@ subroutine elsi_solve_ev_problem(number_of_electrons)
    end if
 
    n_electrons = number_of_electrons
-   n_eigenvectors = ceiling(n_electrons/2d0)
+   n_eigenvectors = nint(n_electrons/2d0)
 
    ! Debug
    !call elsi_print_setup()
