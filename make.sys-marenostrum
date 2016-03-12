@@ -15,7 +15,7 @@ LAPACK    = -L${MKLROOT}/lib/intel64 -lmkl_lapack95_lp64
 SCALAPACK = -L${MKLROOT}/lib/intel64 -lmkl_scalapack_lp64 \
             -lmkl_blacs_intelmpi_lp64
 
-THIS_DIR = $(shell pwd)
+THIS_DIR  = $(shell pwd)
 
 # ====== ELSI ======
 
@@ -30,7 +30,7 @@ HDF5 = -I/gpfs/apps/MN3/HDF5/1.8.15p1/static/include \
 
 # ====== ELPA ======
 
-ELPA_DIR = $(THIS_DIR)/external/ELPA
+ELPA_DIR   = $(THIS_DIR)/external/ELPA
 FFLAGS_E   = -O3 -fpe0 -fpp -I$(ELPA_DIR)
 CFLAGS_E   = -O3 -mavx -funsafe-loop-optimizations \
              -funsafe-math-optimizations -ftree-vect-loop-version \
@@ -45,7 +45,7 @@ OPENMP = no
 # ====== libOMM ======
 
 libOMM_DIR = $(THIS_DIR)/external/libOMM
-FFLAGS_O = -O3
+FFLAGS_O   = -O3
 
 MPI  = yes
 LAP  = yes
@@ -53,22 +53,27 @@ SLAP = yes
 
 # ====== PEXSI ======
 
-PEXSI_DIR = $(THIS_DIR)/external/PEXSI
+PEXSI_DIR  = $(THIS_DIR)/external/PEXSI
 CXXFLAGS_P = -O3 -w
 CFLAGS_P   = -O3 -w
 FFLAGS_P   = -O3 -w
 
+METIS_LIB       = -L$(METIS_LIB_DIR) -lmetis
+PARMETIS_LIB    = -L$(PARMETIS_LIB_DIR) -lparmetis
+SUPERLU_LIB     = -L$(SUPERLU_LIB_DIR) -lsuperlu
+SUPERLU_INCLUDE = -I$(SUPERLU_INCLUDE_DIR)
+
 # ====== LINK ======
 
-ELPA = -L$(ELPA_DIR)/lib -lelpa \
-       -I$(ELPA_DIR)/include/elpa/modules
+ELPA  = -L$(ELPA_DIR)/lib -lelpa \
+        -I$(ELPA_DIR)/include/elpa/modules
 
-OMM  = -I$(libOMM_DIR)/src \
-       -I$(libOMM_DIR)/src/MatrixSwitch-0.1.2/src \
-       -L$(libOMM_DIR)/src -lOMM \
-       -L$(libOMM_DIR)/src/MatrixSwitch-0.1.2/src -lmatrixswitch
+OMM   = -I$(libOMM_DIR)/src \
+        -I$(libOMM_DIR)/src/MatrixSwitch-0.1.2/src \
+        -L$(libOMM_DIR)/src -lOMM \
+        -L$(libOMM_DIR)/src/MatrixSwitch-0.1.2/src -lmatrixswitch
 
 PEXSI = -I$(PEXSI_DIR)/include \
         -I$(PEXSI_DIR)/include/pexsi \
         -I$(PEXSI_DIR)/external/include \
-        -L$(PEXSI_DIR)/lib -lpexsi -lsuperlu -lparmetis -lmetis
+        -L$(PEXSI_DIR)/lib -lpexsi $(SUPERLU_LIB) $(PARMETIS_LIB) $(METIS_LIB)

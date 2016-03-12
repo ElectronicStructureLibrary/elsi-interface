@@ -14,6 +14,7 @@ BLAS      = -L${MKLROOT}/lib/intel64 -lmkl_blas95_lp64 \
 LAPACK    = -L${MKLROOT}/lib/intel64 -lmkl_lapack95_lp64
 SCALAPACK = -L${MKLROOT}/lib/intel64 -lmkl_scalapack_lp64 \
             -lmkl_blacs_intelmpi_lp64
+
 THIS_DIR  = $(shell pwd)
 
 # ====== ELSI ======
@@ -55,18 +56,18 @@ FFLAGS_P   = -O3 -w
 
 METIS_LIB       = -L/home/wy29/yu/parmetis-4.0.3/build/Linux-x86_64/libmetis -lmetis
 PARMETIS_LIB    = -L/home/wy29/yu/parmetis-4.0.3/build/Linux-x86_64/libparmetis -lparmetis
-SUPERLU_LIB     = -L$/home/wy29/yu/SuperLU_DIST_3.3/lib -lsuperlu
-SUPERLU_INCLUDE = -I$/home/wy29/yu/SuperLU_DIST_3.3/SRC
+SUPERLU_LIB     = -L/home/wy29/yu/SuperLU_DIST_3.3/lib -lsuperlu
+SUPERLU_INCLUDE = -I/home/wy29/yu/SuperLU_DIST_3.3/SRC
 
 # ====== LINK ======
 
-ELPA = -L$(ELPA_DIR)/lib -lelpa \
-       -I$(ELPA_DIR)/include/elpa/modules
+ELPA  = -L$(ELPA_DIR)/lib -lelpa \
+        -I$(ELPA_DIR)/include/elpa/modules
 
-OMM = -I$(libOMM_DIR)/src \
-      -I$(libOMM_DIR)/src/MatrixSwitch-0.1.2/src \
-      -L$(libOMM_DIR)/src -lOMM \
-      -L$(libOMM_DIR)/src/MatrixSwitch-0.1.2/src -lmatrixswitch
+OMM   = -I$(libOMM_DIR)/src \
+        -I$(libOMM_DIR)/src/MatrixSwitch-0.1.2/src \
+        -L$(libOMM_DIR)/src -lOMM \
+        -L$(libOMM_DIR)/src/MatrixSwitch-0.1.2/src -lmatrixswitch
 
 PEXSI = -I$(PEXSI_DIR)/include \
         -I$(PEXSI_DIR)/include/pexsi \

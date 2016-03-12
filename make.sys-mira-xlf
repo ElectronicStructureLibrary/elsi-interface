@@ -3,7 +3,7 @@
 MPIFC  = mpixlf95_r
 MPICC  = mpicc
 MPICXX = mpicxx
-XLF = yes
+XLF    = yes
 
 ARCH      = ar
 ARCHFLAGS = cr
@@ -18,7 +18,7 @@ BLAS      = -L/soft/libraries/essl/current/essl/5.1/lib64 -lesslsmpbg \
 LAPACK    = -L/soft/libraries/alcf/current/xl/LAPACK/lib -llapack 
 SCALAPACK = -L/soft/libraries/alcf/current/xl/SCALAPACK/lib -lscalapack
 
-THIS_DIR = $(shell pwd)
+THIS_DIR  = $(shell pwd)
 
 # ====== ELSI ======
 
@@ -29,14 +29,14 @@ FFLAGS_I += -qsimd=auto -qhot=level=1 -qprefetch -qunroll=yes
 FFLAGS_I += -qreport -qsource -qlistopt -qlist -qessl
  
 HDF5_HOME = /gpfs/mira-home/blange/devel/HDF5
-HDF5 = -I$(HDF5_HOME)/include \
-       -L$(HDF5_HOME)/lib \
-       -Wl,-rpath -Wl,$(HDF5_HOME)/lib \
-       -lhdf5_fortran -lhdf5hl_fortran -lhdf5
+HDF5      = -I$(HDF5_HOME)/include \
+            -L$(HDF5_HOME)/lib \
+            -Wl,-rpath -Wl,$(HDF5_HOME)/lib \
+            -lhdf5_fortran -lhdf5hl_fortran -lhdf5
 
 # ====== ELPA ======
 
-ELPA_DIR = $(THIS_DIR)/external/ELPA
+ELPA_DIR   = $(THIS_DIR)/external/ELPA
 FFLAGS_E   = ${FFLAGS_I} -I$(ELPA_DIR)
 CFLAGS_E   = -O3 -funsafe-loop-optimizations \
              -funsafe-math-optimizations -ftree-vect-loop-version \
@@ -51,7 +51,7 @@ OPENMP = no
 # ====== libOMM ======
 
 libOMM_DIR = $(THIS_DIR)/external/libOMM
-FFLAGS_O = ${FFLAGS_I}
+FFLAGS_O   = ${FFLAGS_I}
 
 MPI  = yes
 LAP  = yes
@@ -59,22 +59,27 @@ SLAP = yes
 
 # ====== PEXSI ======
 
-PEXSI_DIR = $(THIS_DIR)/external/PEXSI
+PEXSI_DIR  = $(THIS_DIR)/external/PEXSI
 CXXFLAGS_P = ${CXXFLAGS_E} -w
 CFLAGS_P   = ${CFLAGS_E} -w
 FFLAGS_P   = ${FFLAGS_I} -w
 
+METIS_LIB       = -L$(METIS_LIB_DIR) -lmetis
+PARMETIS_LIB    = -L$(PARMETIS_LIB_DIR) -lparmetis
+SUPERLU_LIB     = -L$(SUPERLU_LIB_DIR) -lsuperlu
+SUPERLU_INCLUDE = -I$(SUPERLU_INCLUDE_DIR)
+
 # ====== LINK ======
 
-ELPA = -L$(ELPA_DIR)/lib -lelpa \
-       -I$(ELPA_DIR)/include/elpa/modules
+ELPA  = -L$(ELPA_DIR)/lib -lelpa \
+        -I$(ELPA_DIR)/include/elpa/modules
 
-OMM  = -I$(libOMM_DIR)/src \
-       -I$(libOMM_DIR)/src/MatrixSwitch-0.1.2/src \
-       -L$(libOMM_DIR)/src -lOMM \
-       -L$(libOMM_DIR)/src/MatrixSwitch-0.1.2/src -lmatrixswitch
+OMM   = -I$(libOMM_DIR)/src \
+        -I$(libOMM_DIR)/src/MatrixSwitch-0.1.2/src \
+        -L$(libOMM_DIR)/src -lOMM \
+        -L$(libOMM_DIR)/src/MatrixSwitch-0.1.2/src -lmatrixswitch
 
 PEXSI = -I$(PEXSI_DIR)/include \
         -I$(PEXSI_DIR)/include/pexsi \
         -I$(PEXSI_DIR)/external/include \
-        -L$(PEXSI_DIR)/lib -lpexsi -lsuperlu -lparmetis -lmetis
+        -L$(PEXSI_DIR)/lib -lpexsi $(SUPERLU_LIB) $(PARMETIS_LIB) $(METIS_LIB)
