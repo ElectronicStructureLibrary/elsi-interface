@@ -14,22 +14,22 @@ BLAS      = -L${MKLROOT}/lib/intel64 -lmkl_blas95_lp64 \
 LAPACK    = -L${MKLROOT}/lib/intel64 -lmkl_lapack95_lp64
 SCALAPACK = -L${MKLROOT}/lib/intel64 -lmkl_scalapack_lp64 \
             -lmkl_blacs_intelmpi_lp64
-THIS_DIR = $(shell pwd)
+THIS_DIR  = $(shell pwd)
 
 # ====== ELSI ======
 
 FFLAGS_I = -O3 -ip -lstdc++ 
 
-HDF5 = -L$(HDF5_HOME)/lib -I$(HDF5_HOME)/include \
-       -lhdf5_fortran -lhdf5hl_fortran -lhdf5
+HDF5     = -L$(HDF5_HOME)/lib -I$(HDF5_HOME)/include \
+           -lhdf5_fortran -lhdf5hl_fortran -lhdf5
 
 # ====== ELPA ======
 
-ELPA_DIR = $(THIS_DIR)/external/ELPA
-FFLAGS_E = -O3 -fpe0 -fpp -I$(ELPA_DIR)
-CFLAGS_E = -O3 -mavx -funsafe-loop-optimizations \
-           -funsafe-math-optimizations -ftree-vect-loop-version \
-           -ftree-vectorize
+ELPA_DIR   = $(THIS_DIR)/external/ELPA
+FFLAGS_E   = -O3 -fpe0 -fpp -I$(ELPA_DIR)
+CFLAGS_E   = -O3 -mavx -funsafe-loop-optimizations \
+             -funsafe-math-optimizations -ftree-vect-loop-version \
+             -ftree-vectorize
 CXXFLAGS_E = -O3 -mavx -funsafe-loop-optimizations \
              -funsafe-math-optimizations -ftree-vect-loop-version \
              -ftree-vectorize
@@ -40,7 +40,7 @@ OPENMP = no
 # ====== libOMM ======
 
 libOMM_DIR = $(THIS_DIR)/external/libOMM
-FFLAGS_O = -O3
+FFLAGS_O   = -O3
 
 MPI  = yes
 LAP  = yes
@@ -48,10 +48,15 @@ SLAP = yes
 
 # ====== PEXSI ======
 
-PEXSI_DIR = $(THIS_DIR)/external/PEXSI
+PEXSI_DIR  = $(THIS_DIR)/external/PEXSI
 CXXFLAGS_P = -O3 -w
 CFLAGS_P   = -O3 -w
 FFLAGS_P   = -O3 -w
+
+METIS_LIB       = -L/home/wy29/yu/parmetis-4.0.3/build/Linux-x86_64/libmetis -lmetis
+PARMETIS_LIB    = -L/home/wy29/yu/parmetis-4.0.3/build/Linux-x86_64/libparmetis -lparmetis
+SUPERLU_LIB     = -L$/home/wy29/yu/SuperLU_DIST_3.3/lib -lsuperlu
+SUPERLU_INCLUDE = -I$/home/wy29/yu/SuperLU_DIST_3.3/SRC
 
 # ====== LINK ======
 
@@ -66,4 +71,4 @@ OMM = -I$(libOMM_DIR)/src \
 PEXSI = -I$(PEXSI_DIR)/include \
         -I$(PEXSI_DIR)/include/pexsi \
         -I$(PEXSI_DIR)/external/include \
-        -L$(PEXSI_DIR)/lib -lpexsi -lsuperlu -lparmetis -lmetis
+        -L$(PEXSI_DIR)/lib -lpexsi $(SUPERLU_LIB) $(PARMETIS_LIB) $(METIS_LIB)

@@ -6,6 +6,6 @@ Requirements
   * Autoconf 2.69
   * Cmake 2.8.12.2
   * h5fd 1.8.15
-  * ParMetis (optional)
-  * SuperLU (optional)
+  * ParMetis
+  * SuperLU
   * Mathematical Libaries (MKL, ESSL, NetLib)

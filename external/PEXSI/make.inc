@@ -22,21 +22,21 @@ RMFLAGS      = -f
 PEXSI_DIR     = $(THIS_DIR)/external/PEXSI
 
 # Required libraries directories
-DSUPERLU_DIR  = $(PEXSI_DIR)/external
-PARMETIS_DIR  = $(PEXSI_DIR)/external
+#DSUPERLU_DIR  = $(PEXSI_DIR)/external
+#PARMETIS_DIR  = $(PEXSI_DIR)/external
 
 # Includes
 PEXSI_INCLUDE    = -I$(PEXSI_DIR)/include 
-DSUPERLU_INCLUDE = -I$(DSUPERLU_DIR)/include
-INCLUDES         = $(PEXSI_INCLUDE) $(DSUPERLU_INCLUDE)
+#DSUPERLU_INCLUDE = -I$(DSUPERLU_DIR)/include
+INCLUDES         = $(PEXSI_INCLUDE) $(SUPERLU_INCLUDE)
 
 # Libraries
 SCALAPACK_LIB    = $(SCALAPACK) $(LAPACK) $(BLAS)
-METIS_LIB        = -L$(PARMETIS_DIR)/lib -lmetis
-PARMETIS_LIB     = -L$(PARMETIS_DIR)/lib -lparmetis
+#METIS_LIB        = -L$(PARMETIS_DIR)/lib -lmetis
+#PARMETIS_LIB     = -L$(PARMETIS_DIR)/lib -lparmetis
 #SCOTCH_LIB       = -L$(SCOTCH_DIR)/lib -lscotchmetis -lscotcherrexit \
 #                   -lscotcherr -lscotch
-DSUPERLU_LIB     = $(DSUPERLU_DIR)/lib/libsuperlu.a
+#DSUPERLU_LIB     = $(DSUPERLU_DIR)/lib/libsuperlu.a
 PEXSI_LIB        = $(PEXSI_DIR)/lib/libpexsi.a
 
 # Different compiling and linking options.
@@ -65,7 +65,7 @@ ifeq (${USE_PROFILE}, 1)
   PROFILE_FLAG  = -DPROFILE
 endif
 
-LIBS  = ${PEXSI_LIB} ${DSUPERLU_LIB} ${PAR_ND_LIB} ${SEQ_ND_LIB} ${SCALAPACK_LIB} ${BLACS_LIB} ${FORTRAN_LIB}
+LIBS  = ${PEXSI_LIB} ${SUPERLU_LIB} ${PAR_ND_LIB} ${SEQ_ND_LIB} ${SCALAPACK_LIB} ${BLACS_LIB} ${FORTRAN_LIB}
 
 COMPILE_DEF  += -DAdd_
 LOADER = $(MPICXX)

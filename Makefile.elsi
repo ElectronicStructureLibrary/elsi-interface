@@ -13,7 +13,7 @@ omm:
 	cd $(libOMM_DIR)/examples && ${MAKE} -f Makefile.elsi
 	@echo libOMM installed.
 
-pexsi:  pexsi_external
+pexsi:  
 	@echo Start building PEXSI...
 	cd $(PEXSI_DIR) && mkdir -p lib
 	cd $(PEXSI_DIR)/src && ${MAKE} -f Makefile.elsi 
@@ -26,11 +26,6 @@ elsi:
 	cd ELSI && ${MAKE} -f Makefile.elsi
 	cd ELSI && ${MAKE} -f Makefile.elsi install
 	@echo ELSI installed.
-
-external: pexsi_external
-
-pexsi_external:
-	cd $(PEXSI_DIR)/external && ${MAKE} -f Makefile.elsi
 
 install:
 	cd ELSI && ${MAKE} -f Makefile.elsi install
@@ -49,6 +44,3 @@ clean:
 	cd $(PEXSI_DIR)/fortran && ${MAKE} -f Makefile.elsi cleanall
 	rm -f $(PEXSI_DIR)/include/f_ppexsi_interface.mod
 	rm -f $(PEXSI_DIR)/src/f_ppexsi_interface.mod
-
-cleanall: clean
-	cd $(PEXSI_DIR)/external && ${MAKE} -f Makefile.elsi clean
