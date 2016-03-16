@@ -29,7 +29,8 @@ AM_CXXFLAGS = -I$(thisincludedir) -I$(top_builddir)/external/PEXSI/include -I$(t
 
 noinst_PROGRAMS = driver_ksdft driver_pselinv_real \
                   driver_pselinv_complex \
-                  run_pselinv run_ppexsi run_ppexsi_old 
+                  run_pselinv run_ppexsi_old 
+# run_ppexsi  
 #run_inertia f_ppexsi
 
 driver_ksdft_SOURCES = driver_ksdft.c
@@ -42,7 +43,7 @@ driver_pselinv_complex_SOURCES = driver_pselinv_complex.c
 
 run_pselinv_SOURCES = run_pselinv.cpp
 
-run_ppexsi_SOURCES = run_ppexsi.cpp
+#run_ppexsi_SOURCES = run_ppexsi.cpp
 
 run_ppexsi_old_SOURCES = run_ppexsi_old.cpp
 
