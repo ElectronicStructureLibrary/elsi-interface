@@ -94,32 +94,32 @@ AC_ARG_WITH([openmp],
 dnl Check for C language
     AC_LANG(C)
 
-    AC_CACHE_CHECK([for OpenMP flag of _AC_LANG compiler], 
-    ax_cv_[]_AC_LANG_ABBREV[]_openmp, 
-    [save[]_AC_LANG_PREFIX[]FLAGS=$[]_AC_LANG_PREFIX[]FLAGS
-    ax_cv_[]_AC_LANG_ABBREV[]_openmp=unknown
+    AC_CACHE_CHECK([for OpenMP flag of C compiler], 
+    ax_cv_c_openmp, 
+    [saveCFLAGS=$CFLAGS
+    ax_cv_c_openmp=unknown
 
 # Flags to try:  -fopenmp (gcc), -openmp (icc), -mp (SGI & PGI),
 #                -xopenmp (Sun), -omp (Tru64), -qsmp=omp (AIX), none
 
-    ax_openmp_flags="-openmp -fopenmp -mp -xopenmp -omp -qsmp=omp none"
+    ax_openmp_c_flags="-openmp -fopenmp -mp -xopenmp -omp -qsmp=omp none"
 
-    if test "x$OPENMP_[]_AC_LANG_PREFIX[]FLAGS" != x; then
+    if test "x$OPENMP_CFLAGS" != x; then
 
-      ax_openmp_flags="$OPENMP_[]_AC_LANG_PREFIX[]FLAGS $ax_openmp_flags"
+      ax_openmp_c_flags="$OPENMP_CFLAGS $ax_openmp_c_flags"
 
     fi
 
-    for ax_openmp_flag in $ax_openmp_flags;
+    for ax_openmp_flag in $ax_openmp_c_flags;
     do
       case $ax_openmp_flag in
 
         none) 
-          []_AC_LANG_PREFIX[]FLAGS=$save[]_AC_LANG_PREFIX[] 
+          CFLAGS=$saveCFLAGS 
         ;;
 
         *) 
-          []_AC_LANG_PREFIX[]FLAGS="$save[]_AC_LANG_PREFIX[]FLAGS $ax_openmp_flag" 
+          CFLAGS="$saveCFLAGS $ax_openmp_flag" 
         ;;
 
       esac
@@ -144,39 +144,39 @@ dnl Check for C language
         parallel_fill(arr, 100000);
         return 0;
       }
-      ]])],[ax_cv_[]_AC_LANG_ABBREV[]_openmp=$ax_openmp_flag; break],[])
+      ]])],[ax_cv_c_openmp=$ax_openmp_flag; break],[])
     done
-    []_AC_LANG_PREFIX[]FLAGS=$save[]_AC_LANG_PREFIX[]FLAGS
+    CFLAGS=$saveCFLAGS
     ])
 dnl Check for Fortran
     AC_LANG(Fortran)
 
-    AC_CACHE_CHECK([for OpenMP flag of _AC_LANG compiler], 
-    ax_cv_[]_AC_LANG_ABBREV[]_openmp, 
-    [save[]_AC_LANG_PREFIX[]FLAGS=$[]_AC_LANG_PREFIX[]FLAGS
-    ax_cv_[]_AC_LANG_ABBREV[]_openmp=unknown
+    AC_CACHE_CHECK([for OpenMP flag of Fortran compiler], 
+    ax_cv_fc_openmp, 
+    [saveFCFLAGS=$FCFLAGS
+    ax_cv_fc_openmp=unknown
 
 # Flags to try:  -fopenmp (gcc), -openmp (icc), -mp (SGI & PGI),
 #                -xopenmp (Sun), -omp (Tru64), -qsmp=omp (AIX), none
 
-    ax_openmp_flags="-openmp -fopenmp -mp -xopenmp -omp -qsmp=omp none"
+    ax_openmp_fc_flags="-openmp -fopenmp -mp -xopenmp -omp -qsmp=omp none"
 
-    if test "x$OPENMP_[]_AC_LANG_PREFIX[]FLAGS" != x; then
+    if test "x$OPENMP_FCFLAGS" != x; then
 
-      ax_openmp_flags="$OPENMP_[]_AC_LANG_PREFIX[]FLAGS $ax_openmp_flags"
+      ax_openmp_fc_flags="$OPENMP_FCFLAGS $ax_openmp_fc_flags"
 
     fi
 
-    for ax_openmp_flag in $ax_openmp_flags;
+    for ax_openmp_flag in $ax_openmp_fc_flags;
     do
       case $ax_openmp_flag in
 
         none) 
-          []_AC_LANG_PREFIX[]FLAGS=$save[]_AC_LANG_PREFIX[] 
+          FCFLAGS=$saveFCFLAGS
         ;;
 
         *) 
-          []_AC_LANG_PREFIX[]FLAGS="$save[]_AC_LANG_PREFIX[]FLAGS $ax_openmp_flag" 
+          FCFLAGS="$saveFCFLAGS $ax_openmp_flag" 
         ;;
 
       esac
@@ -199,21 +199,29 @@ dnl Check for Fortran
           enddo
       end subroutine parallel_fill
 
-      ]])],[ax_cv_[]_AC_LANG_ABBREV[]_openmp=$ax_openmp_flag; break],[])
+      ]])],[ax_cv_fc_openmp=$ax_openmp_flag; break],[])
     done
-    []_AC_LANG_PREFIX[]FLAGS=$save[]_AC_LANG_PREFIX[]FLAGS
+    FCFLAGS=$saveFCFLAGS
     ])
 
 
-    if test "x$ax_cv_[]_AC_LANG_ABBREV[]_openmp" = "xunknown"; then
+    if test "x$ax_cv_fc_openmp" = "xunknown"; then
       m4_default([$2],:)
     else
-      if test "x$ax_cv_[]_AC_LANG_ABBREV[]_openmp" != "xnone"; then
-        OPENMP_[]_AC_LANG_PREFIX[]FLAGS=$ax_cv_[]_AC_LANG_ABBREV[]_openmp
+      if test "x$ax_cv_fc_openmp" != "xnone"; then
+        OPENMP_FCFLAGS=$ax_cv_fc_openmp
       fi
       m4_default([$1], [AC_DEFINE(HAVE_OPENMP,1,[Define if OpenMP is enabled])])
     fi
-    AM_CONDITIONAL([HAVE_OPENMP], [test "x$ax_cv_[]_AC_LANG_ABBREV[]_openmp" != "xnone"])
+    if test "x$ax_cv_c_openmp" = "xunknown"; then
+      m4_default([$2],:)
+    else
+      if test "x$ax_cv_c_openmp" != "xnone"; then
+        OPENMP_CFLAGS=$ax_cv_c_openmp
+      fi
+      m4_default([$1], [AC_DEFINE(HAVE_OPENMP,1,[Define if OpenMP is enabled])])
+    fi
+    AM_CONDITIONAL([HAVE_OPENMP], [test "x$ax_cv_c_openmp" != "xnone"])
     ]) dnl ACX_WITH_OPENMP
 
 ])
