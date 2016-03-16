@@ -1,5 +1,5 @@
 AC_DEFUN([ACX_WITH_PARMETIS], [
-  acx_with_parmetis=""
+  acx_with_parmetis="yes"
   AC_ARG_WITH([parmetis],
     [AS_HELP_STRING([--with-parmetis@<:@=Install DIR@:>@],
       [Enables use of ParMetis and Metis, required for PEXSI and SuperLU])],

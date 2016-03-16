@@ -1,5 +1,5 @@
 AC_DEFUN([ACX_WITH_SUPERLU], [
-  acx_with_superlu=no
+  acx_with_superlu=yes
   AC_ARG_WITH([superlu],
     [AS_HELP_STRING([--with-superlu@<:@=DIR@:>@], [Build with SuperLu headers.])],
     [

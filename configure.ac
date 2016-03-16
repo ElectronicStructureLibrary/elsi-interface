@@ -278,8 +278,6 @@ AC_CONFIG_FILES([
   external/libOMM/src/MatrixSwitch-0.1.2/Makefile
   external/libOMM/src/MatrixSwitch-0.1.2/src/Makefile
   external/libOMM/examples/Makefile
-  external/parmetis/Makefile
-  external/SuperLU/Makefile
   external/PEXSI/Makefile
   external/PEXSI/src/Makefile
   external/PEXSI/fortran/Makefile
@@ -289,3 +287,5 @@ AC_CONFIG_FILES([
   ELSI/example/Makefile
  ])
 AC_OUTPUT
+  #external/parmetis/Makefile
+  #external/SuperLU/Makefile
