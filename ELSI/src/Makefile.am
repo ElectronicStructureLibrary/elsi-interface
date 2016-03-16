@@ -35,7 +35,7 @@ ELPAMODULES = $(top_builddir)/external/ELPA/modules
 
 lib_LIBRARIES = libelsi.a 
 
-LDADD =i $(LIBOMMLIB) $(LIBMATRIXSWITCH) $(LIBPARMETIS) $(LIBSUPERLU) $(HDF5_FLIBS) $(HDF5_LIBS)  $(LIBELSI)
+LDADD =i $(LIBOMMLIB) $(LIBMATRIXSWITCH) $(LIBPARMETIS) $(LIBSUPERLU) $(HDF5_FLIBS) $(HDF5_LIBS)  $(LIBELSI) $(SCALAPACK_FCFLAGS)
 
 
 thisincludedir = $(top_builddir)/external/PEXSI/external/include

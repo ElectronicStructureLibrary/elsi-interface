@@ -16,7 +16,7 @@ lib_LIBRARIES = libpexsi.a
 
 nobase_include_HEADERS= f_ppexsi_interface.mod
 
-LDADD = $(LIBPARMETIS) $(LIBMETIS) $(LIBSUPERLU)
+LDADD = $(LIBPARMETIS) $(LIBMETIS) $(LIBSUPERLU) $(SCALAPACK_FCFLAGS)
 
 
 thisincludedir = $(top_builddir)/external/PEXSI/external/include
