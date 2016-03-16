@@ -13,7 +13,7 @@ AC_DEFUN([ACX_WITH_PARMETIS], [
       ;;
       *)
         #CFLAGS="$FCFLAGS -I$withval/include"
-        CPPFLAGS="$FCFLAGS -I$withval/include"
+        CPPFLAGS="$CFLAGS -I$withval/include"
         LIBSPARMETISLIB="-L$withval/lib  -lparmetis -lmetis "
         LIBS="$LIBSPARMETISLIB $LIBS"
         acx_with_parmetis="$withval"
