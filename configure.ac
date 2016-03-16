@@ -84,12 +84,14 @@ AC_FC_LIBRARY_LDFLAGS
 
 save_FCFLAGS=$FCFLAGS
 save_LDFLAGS=$LDFLAGS
+save_LIBS=$LIBS
 
-AC_ARG_VAR([SCALAPACK_LDFLAGS],[Extra LDFLAGS necessary to link a program with Scalapack])
-AC_ARG_VAR([SCALAPACK_FCFLAGS],[Extra FCFLAGS necessary to compile a Fortran program with Scalapack])
+#AC_ARG_VAR([SCALAPACK_LDFLAGS],[Extra LDFLAGS necessary to link a program with Scalapack])
+#AC_ARG_VAR([SCALAPACK_FCFLAGS],[Extra FCFLAGS necessary to compile a Fortran program with Scalapack])
 
-FCFLAGS="$FCFLAGS $SCALAPACK_FCFLAGS"
-LDFLAGS="$LDFLAGS $SCALAPACK_LDFLAGS"
+#FCFLAGS="$FCFLAGS $SCALAPACK_FCFLAGS"
+#LDFLAGS="$LDFLAGS $SCALAPACK_LDFLAGS"
+LIBS="$LIBS $SCALAPACK_LIBS"
 #vama#
 #vama#
 AC_MSG_CHECKING([whether Fortran module iso_fortran_env is available])
@@ -144,8 +146,10 @@ if test x"${have_mkl}" = x"yes" ; then
   WITH_MKL=1
 else
 
+withscalapack=no
+
   dnl first check blas
-  AC_SEARCH_LIBS([dgemm],[blas],[have_blas=yes],[have_blas=no])
+  AC_CHECK_LIB(blas, dgemm, have_blas=yes, have_blas=no)
   AC_MSG_CHECKING([whether we can link a program with a blas lib])
   AC_MSG_RESULT([${have_blas}])
 
@@ -153,7 +157,7 @@ else
     AC_MSG_ERROR([could not link with blas: specify path]) 
   fi
   dnl now lapack
-  AC_SEARCH_LIBS([dlarrv],[lapack],[have_lapack=yes],[have_lapack=no])
+  AC_CHECK_LIB(lapack, dlarrv, have_lapack=yes, have_lapack=no)
   AC_MSG_CHECKING([whether we can link a program with a lapack lib])
   AC_MSG_RESULT([${have_lapack}])
 
@@ -162,7 +166,7 @@ else
   fi
 
   dnl test whether scalapack already contains blacs
-  scalapack_libs="mpiscalapack scalapack"
+  scalapack_libs="scalapack mpiscalapack"
   old_LIBS="$LIBS"
   for lib in ${scalapack_libs}; do
     LIBS="-l${lib} ${old_LIBS}"
@@ -178,15 +182,17 @@ else
     LIBS="${old_LIBS}"
 
     dnl Test for stand-alone blacs
-    AC_SEARCH_LIBS([bi_f77_init],[mpiblacsF77init],[],[],[-lmpiblacs])
-    AC_SEARCH_LIBS([blacs_gridinit],[mpiblacs blacs],[have_blacs=yes],[have_blacs=no])
+    AC_MSG_CHECKING([whether -lmpiblacs or -llblacs already contains a BLACS implementation])
+    AC_CHECK_LIB(mpiblacs blacs , blacs_gridinit, have_blacs=yes, have_blacs=no)
 
     if test x"${have_blacs}" = x"no"; then
       AC_MSG_ERROR([No usable BLACS found. If installed in a non-standard place, please specify suitable LDFLAGS and FCFLAGS as arguments to configure])
     fi
   fi
 
-  AC_SEARCH_LIBS([pdtran],[$scalapack_libs],[have_scalapack=yes],[have_scalapack=no])
+  if test x"${have_blacs}" != x"no"; then
+     AC_SEARCH_LIBS([pdtran],[$scalapack_libs],[have_scalapack=yes],[have_scalapack=no])
+  fi
 
   if test x"${have_scalapack}" = x"no" ; then
     AC_MSG_ERROR([could not link with scalapack: specify path])
@@ -214,11 +220,14 @@ else
    else
    AC_MSG_ERROR([We can neither link with MKL or another Scalpack. Please specify SCALAPACK_LDFLAGS and SCALAPACK_FCFLAGS!])
    fi
+dnl no MKL ends
 fi
 
 dnl important: reset them again!
 FCFLAGS=$save_FCFLAGS
 LDFLAGS=$save_LDFLAGS
+LIBS=$save_LIBS
+
 # Initialize Libtools (for shared libraries)
 LT_INIT
 LT_LANG([C++])
@@ -268,6 +277,8 @@ ACX_WITH_SUPERLU
 AC_SUBST(LIBOMM_FLAGS)
 AC_SUBST(SUPERLU_LIBS)
 AC_SUBST(LIBSPARMETISLIB)
+
+AC_SUBST(SCALAPACK_LIBS)
 
 AC_CONFIG_SUBDIRS([external/ELPA])
 AC_CONFIG_FILES([
