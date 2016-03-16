@@ -1,2 +1,2 @@
 
-SUBDIRS = parmetis SuperLU PEXSI libOMM ELPA  
+SUBDIRS = PEXSI libOMM ELPA  
