@@ -91,7 +91,7 @@ save_LIBS=$LIBS
 
 #FCFLAGS="$FCFLAGS $SCALAPACK_FCFLAGS"
 #LDFLAGS="$LDFLAGS $SCALAPACK_LDFLAGS"
-LIBS="$LIBS $SCALAPACK_LIBS"
+LIBS="$LIBS $SCALAPACK_FCFLAGS"
 #vama#
 #vama#
 AC_MSG_CHECKING([whether Fortran module iso_fortran_env is available])
