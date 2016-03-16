@@ -91,6 +91,9 @@ AC_ARG_WITH([openmp],
       ]
    )
 
+dnl Check for C language
+    AC_LANG(C)
+
     AC_CACHE_CHECK([for OpenMP flag of _AC_LANG compiler], 
     ax_cv_[]_AC_LANG_ABBREV[]_openmp, 
     [save[]_AC_LANG_PREFIX[]FLAGS=$[]_AC_LANG_PREFIX[]FLAGS
@@ -145,6 +148,63 @@ AC_ARG_WITH([openmp],
     done
     []_AC_LANG_PREFIX[]FLAGS=$save[]_AC_LANG_PREFIX[]FLAGS
     ])
+dnl Check for Fortran
+    AC_LANG(Fortran)
+
+    AC_CACHE_CHECK([for OpenMP flag of _AC_LANG compiler], 
+    ax_cv_[]_AC_LANG_ABBREV[]_openmp, 
+    [save[]_AC_LANG_PREFIX[]FLAGS=$[]_AC_LANG_PREFIX[]FLAGS
+    ax_cv_[]_AC_LANG_ABBREV[]_openmp=unknown
+
+# Flags to try:  -fopenmp (gcc), -openmp (icc), -mp (SGI & PGI),
+#                -xopenmp (Sun), -omp (Tru64), -qsmp=omp (AIX), none
+
+    ax_openmp_flags="-openmp -fopenmp -mp -xopenmp -omp -qsmp=omp none"
+
+    if test "x$OPENMP_[]_AC_LANG_PREFIX[]FLAGS" != x; then
+
+      ax_openmp_flags="$OPENMP_[]_AC_LANG_PREFIX[]FLAGS $ax_openmp_flags"
+
+    fi
+
+    for ax_openmp_flag in $ax_openmp_flags;
+    do
+      case $ax_openmp_flag in
+
+        none) 
+          []_AC_LANG_PREFIX[]FLAGS=$save[]_AC_LANG_PREFIX[] 
+        ;;
+
+        *) 
+          []_AC_LANG_PREFIX[]FLAGS="$save[]_AC_LANG_PREFIX[]FLAGS $ax_openmp_flag" 
+        ;;
+
+      esac
+
+      AC_LINK_IFELSE([AC_LANG_SOURCE([[
+
+      program main
+          implicit none
+          integer arr(100)
+          call omp_set_num_threads(2)
+          call parallel_fill(arr, 100)
+      end program main
+
+      subroutine parallel_fill(data, n)
+          integer i
+          integer data(n)
+!$omp parallel do
+          do i=1, n
+              data(i) = i
+          enddo
+      end subroutine parallel_fill
+
+      ]])],[ax_cv_[]_AC_LANG_ABBREV[]_openmp=$ax_openmp_flag; break],[])
+    done
+    []_AC_LANG_PREFIX[]FLAGS=$save[]_AC_LANG_PREFIX[]FLAGS
+    ])
+
+
     if test "x$ax_cv_[]_AC_LANG_ABBREV[]_openmp" = "xunknown"; then
       m4_default([$2],:)
     else
