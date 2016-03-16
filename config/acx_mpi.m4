@@ -4,7 +4,7 @@ AC_DEFUN([ACX_MPI], [
         # entries were incorrect (specifically std::exit problem with PGI)
 
         # Disable MPI C++ bindings.
-        CPPFLAGS="$CPPFLAGS -DMPICH_SKIP_MPICXX=1 -DOMPI_SKIP_MPICXX=1"
+        #CPPFLAGS="$CPPFLAGS -DMPICH_SKIP_MPICXX=1 -DOMPI_SKIP_MPICXX=1"
         
         AC_ARG_VAR(MPICC,[MPI C compiler command])
         AC_CHECK_PROGS(MPICC, mpiicc mpicc hcc mpcc mpcc_r mpxlc cmpicc, $CC)
