@@ -1,0 +1,91 @@
+# ====== GLOBAL ======
+
+MPIFC  = mpif90
+MPICC  = mpicc
+MPICXX = mpicxx
+
+ARCH      = ar
+ARCHFLAGS = cr
+RANLIB    = ranlib
+
+BLAS      = -L${MKLROOT}/lib/intel64 -lmkl_blas95_lp64
+LAPACK    = -L${MKLROOT}/lib/intel64 -lmkl_lapack95_lp64
+SCALAPACK = -L${MKLROOT}/lib/intel64 -lmkl_scalapack_lp64 \
+            -lmkl_intel_lp64 -lmkl_sequential -lmkl_core \
+            -lmkl_blacs_intelmpi_lp64 -lpthread -lm
+
+
+PARMETIS = /home/vama/install/local/parmetis
+SUPERLU = /home/vama/install/local/superlu
+
+#PARMETIS = /usr
+#SUPERLU = /usr
+
+METIS_LIB       = -L$(PARMETIS)/lib -lmetis
+PARMETIS_LIB    = -L$(PARMETIS)/lib -lparmetis
+SUPERLU_LIB     = -L$(SUPERLU)/lib -lsuperlu
+SUPERLU_INCLUDE = -I$(SUPERLU)/include
+
+
+# ====== ELSI ======
+
+
+HDF5_HOME = /home/vama/install/local/hdf5
+
+HDF5 = -L$(HDF5_HOME)/lib -lhdf5_fortran -lhdf5hl_fortran -lhdf5
+
+FFLAGS_I = -O3 -ip -lstdc++  -I$(HDF5_HOME)/include
+
+# ====== ELPA ======
+
+FFLAGS_E   = -O3 -fpe0 -fpp -I../
+CFLAGS_E   = -O3 -mavx -funsafe-loop-optimizations \
+             -funsafe-math-optimizations -ftree-vect-loop-version \
+             -ftree-vectorize
+CXXFLAGS_E = -O3 -mavx -funsafe-loop-optimizations \
+             -funsafe-math-optimizations -ftree-vect-loop-version \
+             -ftree-vectorize
+
+ARCHITECTURE = Generic
+OPENMP = no
+
+# ====== libOMM ======
+
+FFLAGS_O = -O3
+
+MPI  = yes
+LAP  = yes
+SLAP = yes
+
+# ====== PEXSI ======
+
+CXXFLAGS_P = -O3 -w
+CFLAGS_P   = -O3 -w
+FFLAGS_P   = -O3 -w
+
+# ====== LINK ======
+
+THIS_DIR = $(shell pwd)
+#THIS_DIR = /home/vama/soft/chem2/elsi/gitrepo/pristine
+
+ELPA_DIR = $(THIS_DIR)/external/ELPA
+ELPA = -L$(ELPA_DIR)/lib -lelpa \
+       -I$(ELPA_DIR)/include/elpa/modules
+
+libOMM_DIR = $(THIS_DIR)/external/libOMM
+OMM  = -I$(libOMM_DIR)/src \
+       -I$(libOMM_DIR)/src/MatrixSwitch-0.1.2/src \
+       -L$(libOMM_DIR)/src -lOMM \
+       -L$(libOMM_DIR)/src/MatrixSwitch-0.1.2/src -lmatrixswitch
+
+
+ PEXSI_DIR = $(THIS_DIR)/external/PEXSI
+PEXSI = -I$(PEXSI_DIR)/include \
+        -I$(PEXSI_DIR)/include/pexsi \
+        -I$(PEXSI_DIR)/external/include \
+        -I$(THIS_DIR)/external/include \
+        -I$(SUPERLU_INCLUDE) \
+        -I$(PARMETISDIR)/include \
+        -L$(THIS_DIR)/external/PEXSI/lib \
+        -lpexsi \
+        $(SUPERLU_LIB) $(PARMETIS_LIB) $(METIS_LIB)
