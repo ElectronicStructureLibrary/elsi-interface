@@ -254,47 +254,47 @@ HDF5 support is being disabled (equivalent to --with-hdf5=no).
         LDFLAGS=$ax_lib_hdf5_save_LDFLAGS
         AC_LANG_POP([C])
 
-#        AC_MSG_CHECKING([for matching HDF5 Fortran wrapper])
-#        dnl Presume HDF5 Fortran wrapper is just a name variant from H5CC
-#        H5FC=$(eval echo -n $H5CC | $SED -n 's/cc$/fc/p')
-#        if test -x "$H5FC"; then
-#            AC_MSG_RESULT([$H5FC])
-#            with_hdf5_fortran="yes"
-#            AC_SUBST([H5FC])
-#
-#            dnl Again, pry any remaining -Idir/-Ldir from compiler wrapper
-#            for arg in `$H5FC -show`
-#            do
-#              case "$arg" in #(
-#                -I*) echo $HDF5_FFLAGS | $GREP -e "$arg" >/dev/null \
-#                      || HDF5_FFLAGS="$arg $HDF5_FFLAGS"
-#                  ;;#(
-#                -L*) echo $HDF5_FFLAGS | $GREP -e "$arg" >/dev/null \
-#                      || HDF5_FFLAGS="$arg $HDF5_FFLAGS"
-#                     dnl HDF5 installs .mod files in with libraries,
-#                     dnl but some compilers need to find them with -I
-#                     echo $HDF5_FFLAGS | $GREP -e "-I${arg#-L}" >/dev/null \
-#                      || HDF5_FFLAGS="-I${arg#-L} $HDF5_FFLAGS"
-#                  ;;
-#              esac
-#            done
-#
-#            dnl Make Fortran link line by inserting Fortran libraries
-#            for arg in $HDF5_LIBS
-#            do
-#              case "$arg" in #(
-#                -lhdf5_hl) HDF5_FLIBS="$HDF5_FLIBS -lhdf5hl_fortran $arg"
-#                  ;; #(
-#                -lhdf5)    HDF5_FLIBS="$HDF5_FLIBS -lhdf5_fortran $arg"
-#                  ;; #(
-#                *) HDF5_FLIBS="$HDF5_FLIBS $arg"
-#                  ;;
-#              esac
-#            done
-#        else
-#            AC_MSG_RESULT([no])
-#            with_hdf5_fortran="no"
-#        fi
+        AC_MSG_CHECKING([for matching HDF5 Fortran wrapper])
+        dnl Presume HDF5 Fortran wrapper is just a name variant from H5CC
+        H5FC=$(eval echo -n $H5CC | $SED -n 's/cc$/fc/p')
+        if test -x "$H5FC"; then
+            AC_MSG_RESULT([$H5FC])
+            with_hdf5_fortran="yes"
+            AC_SUBST([H5FC])
+
+            dnl Again, pry any remaining -Idir/-Ldir from compiler wrapper
+            for arg in `$H5FC -show`
+            do
+              case "$arg" in #(
+                -I*) echo $HDF5_FFLAGS | $GREP -e "$arg" >/dev/null \
+                      || HDF5_FFLAGS="$arg $HDF5_FFLAGS"
+                  ;;#(
+                -L*) echo $HDF5_FFLAGS | $GREP -e "$arg" >/dev/null \
+                      || HDF5_FFLAGS="$arg $HDF5_FFLAGS"
+                     dnl HDF5 installs .mod files in with libraries,
+                     dnl but some compilers need to find them with -I
+                     echo $HDF5_FFLAGS | $GREP -e "-I${arg#-L}" >/dev/null \
+                      || HDF5_FFLAGS="-I${arg#-L} $HDF5_FFLAGS"
+                  ;;
+              esac
+            done
+
+            dnl Make Fortran link line by inserting Fortran libraries
+            for arg in $HDF5_LIBS
+            do
+              case "$arg" in #(
+                -lhdf5_hl) HDF5_FLIBS="$HDF5_FLIBS -lhdf5hl_fortran $arg"
+                  ;; #(
+                -lhdf5)    HDF5_FLIBS="$HDF5_FLIBS -lhdf5_fortran $arg"
+                  ;; #(
+                *) HDF5_FLIBS="$HDF5_FLIBS $arg"
+                  ;;
+              esac
+            done
+        else
+            AC_MSG_RESULT([no])
+            with_hdf5_fortran="no"
+        fi
 
 	AC_SUBST([HDF5_VERSION])
 	AC_SUBST([HDF5_CC])
