@@ -13,7 +13,7 @@ AC_DEFUN([ACX_WITH_SUPERLU], [
       *)
         acx_with_superlu=yes
         CFLAGS="-I$withval/include $CFLAGS"
-        CXXFLAGS="-I$withval/include $CPPFLAGS"
+        CXXFLAGS="-I$withval/include $CXXFLAGS"
         SUPERLU_LIBS="-L$withval/lib -lsuperlu "
         LIBS="$SUPERLU_LIBS $LIBS"
       ;;
