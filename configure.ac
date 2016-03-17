@@ -149,7 +149,7 @@ else
 withscalapack=no
 
   dnl first check blas
-  AC_CHECK_LIB(blas, dgemm, have_blas=yes, have_blas=no)
+  AC_SEARCH_LIBS([dgemm],[blas],[have_blas=yes],[have_blas=no])
   AC_MSG_CHECKING([whether we can link a program with a blas lib])
   AC_MSG_RESULT([${have_blas}])
 
@@ -157,7 +157,7 @@ withscalapack=no
     AC_MSG_ERROR([could not link with blas: specify path]) 
   fi
   dnl now lapack
-  AC_CHECK_LIB(lapack, dlarrv, have_lapack=yes, have_lapack=no)
+  AC_SEARCH_LIBS([dlarrv],[lapack],[have_blas=yes],[have_blas=no])
   AC_MSG_CHECKING([whether we can link a program with a lapack lib])
   AC_MSG_RESULT([${have_lapack}])
 
@@ -183,7 +183,7 @@ withscalapack=no
 
     dnl Test for stand-alone blacs
     AC_MSG_CHECKING([whether -lmpiblacs or -llblacs already contains a BLACS implementation])
-    AC_CHECK_LIB(mpiblacs blacs , blacs_gridinit, have_blacs=yes, have_blacs=no)
+    AC_SEARCH_LIBS([blacs_gridinit],[mpiblacs blacs],[have_blas=yes],[have_blas=no])
 
     if test x"${have_blacs}" = x"no"; then
       AC_MSG_ERROR([No usable BLACS found. If installed in a non-standard place, please specify suitable LDFLAGS and FCFLAGS as arguments to configure])
@@ -259,7 +259,7 @@ AM_CONDITIONAL([LINK_ALL_STATIC], [test $acx_enable_all_static ="yes"])
 #ACX_DETECT_CXX
 # Check for C++11 support, and
 # add the -std=c++11 or -std=c++0x flag to CXXFLAGS if necessary.
-AX_CXX_COMPILE_STDCXX_11([noext],[mandatory])
+#AX_CXX_COMPILE_STDCXX_11([noext],[mandatory])
 
 
 # Check for HDF5

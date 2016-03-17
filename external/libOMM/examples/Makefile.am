@@ -1,19 +1,6 @@
 
 
 
-if !HAS_LIBPARMETIS
-LIBPARMETIS=$(top_builddir)/external/lib/libparmetis.a
-LIBMETIS=$(top_builddir)/external/lib/libmetis.a
-else
-LIBPARMETIS=$(LIBSPARMETISLIB)
-LIBMETIS=$(LIBSPARMETISLIB)
-endif
-
-if !HAS_SUPERLU
-LIBSUPERLU=$(top_builddir)/external/lib/libsuperlu.a
-else
-LIBSUPERLU=$(SUPERLU_LIBS)
-endif
 #this has to change
 
 LIBPEXSI=$(top_builddir)/external/PEXSI/src/libpexsi.a

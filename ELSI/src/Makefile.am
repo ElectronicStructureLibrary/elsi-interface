@@ -1,18 +1,5 @@
 
 
-if !HAS_LIBPARMETIS
-LIBPARMETIS=$(top_builddir)/external/lib/libparmetis.a
-LIBMETIS=$(top_builddir)/external/lib/libmetis.a
-else
-LIBPARMETIS=$(LIBSPARMETISLIB)
-LIBMETIS=$(LIBSPARMETISLIB)
-endif
-
-if !HAS_SUPERLU
-LIBSUPERLU=$(top_builddir)/external/lib/libsuperlu.a
-else
-LIBSUPERLU=$(SUPERLU_LIBS)
-endif
 
 LIBOMMLIB=$(top_builddir)/external/libOMM/src/libOMM.a
 
@@ -35,7 +22,7 @@ ELPAMODULES = $(top_builddir)/external/ELPA/modules
 
 lib_LIBRARIES = libelsi.a 
 
-LDADD =i $(LIBOMMLIB) $(LIBMATRIXSWITCH) $(LIBPARMETIS) $(LIBSUPERLU) $(HDF5_FLIBS) $(HDF5_LIBS)  $(LIBELSI) $(SCALAPACK_FCFLAGS)
+LDADD = $(LIBOMMLIB) $(LIBMATRIXSWITCH) $(LIBSPARMETISLIB) $(SUPERLU_LIBS) $(HDF5_FLIBS) $(HDF5_LIBS)  $(LIBELSI)
 
 
 thisincludedir = $(top_builddir)/external/PEXSI/external/include

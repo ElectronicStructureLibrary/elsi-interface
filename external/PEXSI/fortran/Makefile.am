@@ -1,19 +1,6 @@
 
 #SUBDIRS = MatrixSwitch-0.1.2
 
-if !HAS_LIBPARMETIS
-LIBPARMETIS=$(top_builddir)/external/lib/libparmetis.a 
-LIBMETIS=$(top_builddir)/external/lib/libmetis.a
-else
-LIBPARMETIS=$(LIBSPARMETISLIB)
-LIBMETIS=$(LIBSPARMETISLIB)
-endif
-
-if !HAS_SUPERLU
-LIBSUPERLU=$(top_builddir)/external/lib/libsuperlu.a
-else
-LIBSUPERLU=$(SUPERLU_LIBS)
-endif
 LIBPEXSI=$(top_builddir)/external/PEXSI/src/libpexsi.a
 
 #LIBS  = ${PEXSI_LIB} ${DSUPERLU_LIB} ${PAR_ND_LIB} ${SEQ_ND_LIB} ${SCALAPACK_LIB} ${BLACS_LIB} ${FORTRAN_LIB}
@@ -25,14 +12,15 @@ LIBPEXSI=$(top_builddir)/external/PEXSI/src/libpexsi.a
 #lib_LIBRARIES = libpexsi.a 
 bin_PROGRAMS = f_driver_ksdft f_driver_pselinv_real f_driver_pselinv_complex
 
-LDADD = $(LIBPEXSI)  $(LIBPARMETIS) $(LIBMETIS) $(LIBSUPERLU)  $(SCALAPACK_FCFLAGS)
+LDADD = $(LIBPEXSI)  $(LIBSPARMETISLIB) $(SUPERLU_LIBS)  $(SCALAPACK_FCFLAGS)
 
 
 thisincludedir = $(top_builddir)/external/PEXSI/external/include
 
 #AM_CFLAGS = $(LIBOMM) -I$(LIBMATSWITCH)/. -I$(thisincludedir)
 AM_CFLAGS   = -I$(thisincludedir)
-AM_FCFLAGS =  -I$(thisincludedir) -I$(top_builddir)/external/PEXSI/include -I$(top_builddir)/external/PEXSI/src -lstdc++
+#AM_FCFLAGS =  -I$(thisincludedir) -I$(top_builddir)/external/PEXSI/include -I$(top_builddir)/external/PEXSI/src -lstdc++
+AM_FCFLAGS =  -I$(thisincludedir) -I$(top_builddir)/external/PEXSI/include -I$(top_builddir)/external/PEXSI/src 
 #AM_CXXFLAGS = -lstdc++ -std=c++11 -I$(thisincludedir) -I$(top_builddir)/external/PEXSI/include
 
 #include_HEADERS = f_ppexsi_interface.mod

@@ -1,3 +1,3 @@
 
-SUBDIRS = src fortran
+SUBDIRS = src 
 #SUBDIRS = src fortran external

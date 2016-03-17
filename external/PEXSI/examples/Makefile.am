@@ -1,50 +1,22 @@
-if !HAS_LIBPARMETIS
-LIBPARMETIS=$(top_builddir)/external/lib/libparmetis.a
-LIBMETIS=$(top_builddir)/external/lib/libmetis.a
-else
-LIBPARMETIS=$(LIBSPARMETISLIB)
-LIBMETIS=$(LIBSPARMETISLIB)
-endif
 
-if !HAS_SUPERLU
-LIBSUPERLU=$(top_builddir)/external/lib/libsuperlu.a
-else
-LIBSUPERLU=$(SUPERLU_LIBS)
-endif
+lib_LIBRARIES = libpexsi.a 
 
-#this has to change
-LIBPEXSI=$(top_builddir)/external/PEXSI/src/libpexsi.a
+nobase_include_HEADERS= f_ppexsi_interface.mod
 
-LDADD = $(LIBPEXSI) $(LIBPARMETIS) $(LIBMETIS) $(LIBSUPERLU) $(SCALAPACK_FCFLAGS)
+LDADD = $(LIBSPARMETISLIB) $(SUPERLU_LIBS)
+
 
 thisincludedir = $(top_builddir)/external/PEXSI/external/include
 
 #AM_CFLAGS = $(LIBOMM) -I$(LIBMATSWITCH)/. -I$(thisincludedir)
 #AM_CFLAGS   = -I$(thisincludedir)
-AM_FCFLAGS =  -I$(thisincludedir) -I$(top_builddir)/external/PEXSI/include -I$(top_builddir)/external/PEXSI/src
+AM_CFLAGS   =  -I$(thisincludedir) -I$(top_builddir)/external/PEXSI/include -I$(top_builddir)/external/include
+AM_CXXFLAGS =  -I$(thisincludedir) -I$(top_builddir)/external/PEXSI/include -I$(top_builddir)/external/include
 
-AM_CFLAGS   =  -I$(thisincludedir) -I$(top_builddir)/external/PEXSI/include -I$(top_builddir)/external/include -I$(top_builddir)/external/PEXSI/src
+libpexsi_a_SOURCES = pdsymbfact.c pzsymbfact.c get_perm_c_parmetis.c \
+                     interface.cpp ppexsi.cpp pole.cpp \
+		     superlu_dist_internal_complex.cpp superlu_dist_internal_real.cpp \
+		     mpi_interf.cpp lapack.cpp blas.cpp utility.cpp global.cpp timer.cpp \
+                     f_interface.f90 
+#interface_old.cpp
 
-AM_CXXFLAGS = -I$(thisincludedir) -I$(top_builddir)/external/PEXSI/include -I$(top_builddir)/external/include -I$(top_builddir)/external/PEXSI/src
-
-noinst_PROGRAMS = driver_ksdft driver_pselinv_real \
-                  driver_pselinv_complex \
-                  run_pselinv run_ppexsi_old 
-# run_ppexsi  
-#run_inertia f_ppexsi
-
-driver_ksdft_SOURCES = driver_ksdft.c
-
-driver_pselinv_real_SOURCES = driver_pselinv_real.c
-
-driver_pselinv_complex_SOURCES = driver_pselinv_complex.c
-
-#run_inertia_SOURCES = run_inertia.cpp
-
-run_pselinv_SOURCES = run_pselinv.cpp
-
-#run_ppexsi_SOURCES = run_ppexsi.cpp
-
-run_ppexsi_old_SOURCES = run_ppexsi_old.cpp
-
-#f_ppexsi_SOURCES = f_ppexsi.f90

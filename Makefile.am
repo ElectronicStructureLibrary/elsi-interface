@@ -3,16 +3,16 @@ ACLOCAL_AMFLAGS = -I config
 
 SUBDIRS = external ELSI
 
-.PHONY: external libparmetis libsuperlu pexsi_external external MatrixSwitch libOMM elpa elsi
+.PHONY: external  MatrixSwitch libOMM elpa elsi
 
 .NOTPARALLEL: external pexsi_external
 
-elsi-example: libelsi
+elsi-example: elsi
 	@echo Start building ELSI examples
 	$(MAKE) -C ELSI/example $(AM_MAKEFLAGS)
 	@echo ELSI examples installed.
 
-elsi: libOMM libpexsi elpa
+elsi: libOMM pexsi elpa
 	@echo Start building ELSI
 	$(MAKE) -C ELSI/src  $(AM_MAKEFLAGS)
 	@echo ELSI installed.
@@ -33,25 +33,6 @@ pexsi: external
 	$(MAKE) -C external/PEXSI/src 
 	cp external/PEXSI/src/f_ppexsi_interface.mod  external/PEXSI/include
 
-external: pexsi_external
 
-pexsi_external: libparmetis libsuperlu
 
-if !HAS_SUPERLU
-libsuperlu: 
-	mkdir -p external/lib
-	mkdir -p external/include
-	$(MAKE) -C external/SuperLU SuperLU
-else
-libsuperlu:
-endif
-
-if !HAS_LIBPARMETIS
-libparmetis: 
-	mkdir -p external/lib
-	mkdir -p external/include
-	$(MAKE) -C external/parmetis parMetis
-else
-libparmetis:
-endif
 

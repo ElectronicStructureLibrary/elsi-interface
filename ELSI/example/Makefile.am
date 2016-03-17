@@ -1,19 +1,6 @@
 
 
 
-if !HAS_LIBPARMETIS
-LIBPARMETIS=$(top_builddir)/external/lib/libparmetis.a
-LIBMETIS=$(top_builddir)/external/lib/libmetis.a
-else
-LIBPARMETIS=$(LIBSPARMETISLIB)
-LIBMETIS=$(LIBSPARMETISLIB)
-endif
-
-if !HAS_SUPERLU
-LIBSUPERLU=$(top_builddir)/external/lib/libsuperlu.a
-else
-LIBSUPERLU=$(SUPERLU_LIBS)
-endif
 #this has to change
 
 LIBPEXSI=$(top_builddir)/external/PEXSI/src/libpexsi.a
@@ -38,7 +25,7 @@ LIBMATRIXSWITCH = $(MATRIXSWITCH)/libmatrixswitch.a
 ELPAMODULES = $(top_builddir)/external/ELPA/modules
 
 
-LDADD = $(LIBELSI) $(LIBELPA) $(LIBOMMLIB) $(LIBMATRIXSWITCH) $(LIBPEXSI) $(LIBSUPERLU) $(LIBPARMETIS) $(LIBMETIS) $(HDF5_FLIBS) $(HDF5_LIBS)  $(SCALAPACK_FCFLAGS)
+LDADD = $(LIBELSI) $(LIBELPA) $(LIBOMMLIB) $(LIBMATRIXSWITCH) $(LIBPEXSI) $(LIBSPARMETISLIB) $(SUPERLU_LIBS) $(HDF5_FLIBS) $(HDF5_LIBS)  $(SCALAPACK_FCFLAGS)
 
 thisincludedir = $(top_builddir)/external/include
 
