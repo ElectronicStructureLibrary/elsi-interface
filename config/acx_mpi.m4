@@ -26,14 +26,15 @@ AC_DEFUN([ACX_MPI], [
         F77="$MPIF77"
         AC_SUBST(MPIF77)
 
-       #dd if test $acx_with_mpi != "no"; then
-        if test -n "$MPICXX"; then
-          AC_LANG_SAVE
-          AC_LANG([C++])
-          AC_CHECK_HEADERS([mpi.h], [acx_with_mpi=yes], 
-                           [acx_with_mpi=no 
-                            AC_MSG_ERROR(["Unable to include with mpi.h])])
-          AC_LANG_RESTORE
+        if test $acx_with_mpi != "no"; then
+          if test -n "$MPICXX"; then
+            AC_LANG_SAVE
+            AC_LANG([C++])
+            AC_CHECK_HEADERS([mpi.h], [acx_with_mpi=yes], 
+                             [acx_with_mpi=no 
+                               AC_MSG_ERROR(["Unable to include with mpi.h])])
+            AC_LANG_RESTORE
+          fi
         fi
 
         if test $acx_with_mpi != no; then
