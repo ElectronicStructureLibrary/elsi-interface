@@ -1,7 +1,11 @@
 ./configure  \
+ --prefix=/home/vama/install/local/elsi-fv \
 FCFLAGS="-I/opt/intel/mkl/include/intel64/lp64" \
-SCALAPACK_FCFLAGS="-L${MKLROOT}/lib/intel64 -lmkl_scalapack_lp64 -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lmkl_blacs_intelmpi_lp64 -lpthread -lm " \
+LIBS="-L${MKLROOT}/lib/intel64 -lmkl_scalapack_lp64 -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lmkl_blacs_intelmpi_lp64 -lpthread -lm " \
+  CXXFLAGS="-std=c++11" \
+  FCFLAGS="-lstdc++" \
   --with-parmetis=/home/vama/install/local/parmetis \
   --with-superlu=/home/vama/install/local/superlu \
    --with-hdf5=/home/vama/install/local/hdf5/bin/h5pcc \
-   MPICC=mpicc CC=mpicc MPIFC=mpif90  MPIF77=mpif90 --enable-shared=no --enable-static=yes --prefix=/home/vama/soft/chem2/elsi/gitrepo/install
+   --enable-openmp \
+   MPICC=mpicc CC=mpicc MPIFC=mpif90  MPIF77=mpif90 --enable-shared=no --enable-static=yes 
