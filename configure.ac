@@ -46,6 +46,7 @@ AC_PROG_CXX([$MPICXX])
 AC_PROG_FC([$MPIF77]) # f90 is a superset of f77
 AC_PROG_F77([$MPIF77])
 AM_PROG_AR
+AC_PROG_RANLIB
 #vama##vama##AC_PROG_CC
 #vama##vama##AC_PROG_FC
 #vama##vama## All source will be built with the MPI C++ and C compilers
@@ -228,30 +229,30 @@ FCFLAGS=$save_FCFLAGS
 LDFLAGS=$save_LDFLAGS
 LIBS=$save_LIBS
 
-# Initialize Libtools (for shared libraries)
-LT_INIT
-LT_LANG([C++])
-AC_SUBST(enable_shared)
-AC_SUBST(enable_static)
-AC_ARG_ENABLE([all-static],
-    [AC_HELP_STRING([--enable-all-static@<:@=yes|no@:>@],
-      [Link with all static libraries.])],
-    [
-      case $enableval in
-      yes)
-        acx_enable_all_static="yes"
-      ;;
-      no)
-        acx_enable_all_static="no"
-      ;;
-      *)
-        AC_MSG_ERROR([Invalid argument '$enableval' given for --enable-all-static])
-      esac
-    ],
-    [acx_enable_all_static="$acx_default_enable_all_static"]
-  )
-
-AM_CONDITIONAL([LINK_ALL_STATIC], [test $acx_enable_all_static ="yes"])
+## Initialize Libtools (for shared libraries)
+#LT_INIT
+#LT_LANG([C++])
+#AC_SUBST(enable_shared)
+#AC_SUBST(enable_static)
+#AC_ARG_ENABLE([all-static],
+#    [AC_HELP_STRING([--enable-all-static@<:@=yes|no@:>@],
+#      [Link with all static libraries.])],
+#    [
+#      case $enableval in
+#      yes)
+#        acx_enable_all_static="yes"
+#      ;;
+#      no)
+#        acx_enable_all_static="no"
+#      ;;
+#      *)
+#        AC_MSG_ERROR([Invalid argument '$enableval' given for --enable-all-static])
+#      esac
+#    ],
+#    [acx_enable_all_static="$acx_default_enable_all_static"]
+#  )
+#
+#AM_CONDITIONAL([LINK_ALL_STATIC], [test $acx_enable_all_static ="yes"])
 
 
 
