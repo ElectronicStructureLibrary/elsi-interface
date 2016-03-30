@@ -26,16 +26,14 @@ AC_DEFUN([ACX_MPI], [
         F77="$MPIF77"
         AC_SUBST(MPIF77)
 
-        if test "$acx_with_mpi" != "no"; then
-         if test -n "$MPICXX"; then
+         if test -n "$MPICC"; then
             AC_LANG_SAVE
-            AC_LANG([C++])
+            AC_LANG([C])
             AC_CHECK_HEADERS([mpi.h], [acx_with_mpi=yes], 
                              [acx_with_mpi=no 
                                AC_MSG_ERROR(["Unable to include with mpi.h])])
             AC_LANG_RESTORE
          fi
-        fi
 
         if test $acx_with_mpi != no; then
           AC_DEFINE([HAVE_MPI], [1], [Define if using mpi])
