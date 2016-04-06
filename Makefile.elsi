@@ -4,32 +4,51 @@ export
 all: elpa omm pexsi elsi
 
 elpa:
-	@echo Start building ELPA...
+	@echo ==========================
+	@echo = Start building ELPA... =
+	@echo ==========================
 	cd $(ELPA_DIR) && ${MAKE} -f Makefile.elpa; ${MAKE} -f Makefile.elpa install
-	@echo ELPA installed.
+	@echo ===================
+	@echo = ELPA installed. =
+	@echo ===================
+
 omm:
-	@echo Start building libOMM...
+	@echo ============================
+	@echo = Start building libOMM... =
+	@echo ============================
 	cd $(libOMM_DIR)/src && ${MAKE} -f Makefile.elsi
 	cd $(libOMM_DIR)/examples && ${MAKE} -f Makefile.elsi
-	@echo libOMM installed.
+	@echo =====================
+	@echo = libOMM installed. =
+	@echo =====================
 
 pexsi:  
-	@echo Start building PEXSI...
+	@echo ===========================
+	@echo = Start building PEXSI... =
+	@echo ===========================
 	cd $(PEXSI_DIR) && mkdir -p lib
 	cd $(PEXSI_DIR)/src && ${MAKE} -f Makefile.elsi 
 	-cp $(PEXSI_DIR)/src/f_ppexsi_interface.mod $(PEXSI_DIR)/include
 	cd $(PEXSI_DIR)/fortran && ${MAKE} -f Makefile.elsi
-	@echo PEXSI installed.
+	@echo ====================
+	@echo = PEXSI installed. =
+	@echo ====================
 
 elsi:
-	@echo Start building ELSI...
+	@echo ==========================
+	@echo = Start building ELSI... =
+	@echo ==========================
 	cd ELSI && ${MAKE} -f Makefile.elsi
 	cd ELSI && ${MAKE} -f Makefile.elsi install
-	@echo ELSI installed.
+	@echo ===================
+	@echo = ELSI installed. =
+	@echo ===================
 
 install:
 	cd ELSI && ${MAKE} -f Makefile.elsi install
-	@echo ELSI library created.
+	@echo =========================
+	@echo = ELSI library created. =
+	@echo =========================
 
 check:
 	cd ELSI && ${MAKE} -f Makefile.elsi check
