@@ -69,4 +69,9 @@ ${PEXSI_LIB}:
 	(cd ${PEXSI_DIR}/src; make all)
 
 cleanall:
-	rm -f ${EXES} ${OBJS} ${DEPS} *.d.* *.o *.mod
+	rm -f ${EXES} ${OBJS} ${DEPS} *.d.* *.o *.mod \
+              f_driver_ksdft \
+              f_driver_pselinv_complex \
+              f_driver_pselinv_complex_unsym \
+              f_driver_pselinv_real \
+              f_driver_pselinv_real_unsym

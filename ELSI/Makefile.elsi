@@ -44,6 +44,12 @@ clean:
 	rm -rf include 
 	rm -rf bin
 	rm -f src/libelsi.a
+	rm -f regression/construct_and_write/elsi_eigenvalue_problem.hdf5
+	rm -f regression/read_and_solve/e_tot.dat
+	rm -f regression/read_and_solve/libOMM.log
+	rm -f regression/read_and_solve/logPEXSI0
+	rm -f regression/read_and_write/logPEXSI0
+	rm -f regression/set_and_write/elsi_eigenvalue_problem.hdf5
 
 install:
 	$(ARCH) $(ARCHFLAGS)  src/libelsi.a src/elsi*.o
