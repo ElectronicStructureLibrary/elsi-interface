@@ -39,7 +39,7 @@
 !	 works, incorporate into other computer software, distribute, and sublicense
 !	 such enhancements or derivative works thereof, in binary and source code form.
 !
-!> @file f_driver_pselinv_complex.f90
+!> @file f_driver_pselinv_complex_unsym.f90
 !> @brief FORTRAN version of the driver for using PSelInv for complex unsymmetric
 !> matrices.
 !> @date 2015-01-21

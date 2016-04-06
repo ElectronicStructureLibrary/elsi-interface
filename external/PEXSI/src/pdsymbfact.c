@@ -3,9 +3,14 @@
 ///
 /// 
 /// @date 2013-07-20 modified by Lin Lin.
+/// @date 2016-02-23 Compatible with SuperLU_DIST_v4.3
 #include <math.h>
 #include "superlu_ddefs.h"
 #define  PRNTlevel 0
+
+#ifndef MIN
+#define MIN(a,b) (((a)<(b))?(a):(b))
+#endif
 
 /// @brief pdsymbfact performs symbolic factorization that can be
 /// reused.
@@ -46,7 +51,6 @@ pdsymbfact(superlu_options_t *options, SuperMatrix *A,
 	int_t    *perm_c; /* column permutation vector */
 	int_t    *etree;  /* elimination tree */
 	int_t    *rowptr, *colind;  /* Local A in NR*/
-	int_t    *rowind_loc, *colptr_loc;
 	int_t    colequ, Equil, factored, job, notran, rowequ, need_value;
 	int_t    i, iinfo, j, irow, m, n, nnz, permc_spec;
 	int_t    nnz_loc, m_loc, fst_row, icol;
@@ -62,7 +66,6 @@ pdsymbfact(superlu_options_t *options, SuperMatrix *A,
 #if ( PRNTlevel>= 2 )
 	double   dmin, dsum, dprod;
 #endif
-	int_t procs;
 
 	/* Structures needed for parallel symbolic factorization */
 	int_t *sizes, *fstVtxSep, parSymbFact;
@@ -106,7 +109,9 @@ pdsymbfact(superlu_options_t *options, SuperMatrix *A,
 		*info = -2;
 	if ( *info ) {
 		i = -(*info);
-		pxerbla("pdsymbfact", grid, -*info);
+    // pxerbla("pdsymbfact", grid, -*info);
+    // SuperLU_DIST v4.3
+    pxerr_dist("pdgssvx", grid, -*info);
 		return;
 	}
 
@@ -208,15 +213,29 @@ pdsymbfact(superlu_options_t *options, SuperMatrix *A,
 			}
 		} else { /* Compute R & C from scratch */
 			/* Compute the row and column scalings. */
-			pdgsequ(A, R, C, &rowcnd, &colcnd, &amax, &iinfo, grid);
+	    pdgsequ(A, R, C, &rowcnd, &colcnd, &amax, &iinfo, grid);
+
+      if ( iinfo > 0 ) {
+        if ( iinfo <= m ) {
+#if ( PRNTlevel>=1 )
+          fprintf(stderr, "The " IFMT "-th row of A is exactly zero\n", iinfo);
+#endif
+        } else {
+#if ( PRNTlevel>=1 )
+          fprintf(stderr, "The " IFMT "-th column of A is exactly zero\n", iinfo-n);
+#endif
+        }
+      } else if ( iinfo < 0 ) return;
 
 			/* Equilibrate matrix A if it is badly-scaled. */
 			pdlaqgs(A, R, C, rowcnd, colcnd, amax, equed);
 
 			if ( lsame_(equed, "R") ) {
 				ScalePermstruct->DiagScale = rowequ = ROW;
+        rowequ = ROW;
 			} else if ( lsame_(equed, "C") ) {
 				ScalePermstruct->DiagScale = colequ = COL;
+        colequ = COL;
 			} else if ( lsame_(equed, "B") ) {
 				ScalePermstruct->DiagScale = BOTH;
 				rowequ = ROW;
@@ -285,84 +304,100 @@ pdsymbfact(superlu_options_t *options, SuperMatrix *A,
 							ABORT("SUPERLU_MALLOC fails for C1[]");
 					}
 
-					if ( !iam ) {
-						/* Process 0 finds a row permutation */
-						dldperm(job, m, nnz, colptr, rowind, a_GA,
-										perm_r, R1, C1);
+          // SuperLU_DIST v4.3
+          if ( !iam ) {
+            /* Process 0 finds a row permutation */
+            // SuperLU_DIST v4.3
+            iinfo = dldperm_dist(job, m, nnz, colptr, rowind, a_GA,
+                perm_r, R1, C1);
 
-						MPI_Bcast( perm_r, m, mpi_int_t, 0, grid->comm );
-						if ( job == 5 && Equil ) {
-							MPI_Bcast( R1, m, MPI_DOUBLE, 0, grid->comm );
-							MPI_Bcast( C1, n, MPI_DOUBLE, 0, grid->comm );
-						}
-					} else {
-						MPI_Bcast( perm_r, m, mpi_int_t, 0, grid->comm );
-						if ( job == 5 && Equil ) {
-							MPI_Bcast( R1, m, MPI_DOUBLE, 0, grid->comm );
-							MPI_Bcast( C1, n, MPI_DOUBLE, 0, grid->comm );
-						}
-					}
+            MPI_Bcast( &iinfo, 1, mpi_int_t, 0, grid->comm );
+            if ( iinfo == 0 ) {
+              MPI_Bcast( perm_r, m, mpi_int_t, 0, grid->comm );
+              if ( job == 5 && Equil ) {
+                MPI_Bcast( R1, m, MPI_DOUBLE, 0, grid->comm );
+                MPI_Bcast( C1, n, MPI_DOUBLE, 0, grid->comm );
+              }
+            }
+          } else {
+            MPI_Bcast( &iinfo, 1, mpi_int_t, 0, grid->comm );
+            if ( iinfo == 0 ) {
+              MPI_Bcast( perm_r, m, mpi_int_t, 0, grid->comm );
+              if ( job == 5 && Equil ) {
+                MPI_Bcast( R1, m, MPI_DOUBLE, 0, grid->comm );
+                MPI_Bcast( C1, n, MPI_DOUBLE, 0, grid->comm );
+              }
+            }
+          }
 
+          if ( iinfo && job == 5) {
+            SUPERLU_FREE(R1);
+            SUPERLU_FREE(C1);
+          }
 #if ( PRNTlevel>=2 )
-					dmin = dlamch_("Overflow");
-					dsum = 0.0;
-					dprod = 1.0;
+          dmin = dmach_dist("Overflow");
+          dsum = 0.0;
+          dprod = 1.0;
 #endif
-					if ( job == 5 ) {
-						if ( Equil ) {
-							for (i = 0; i < n; ++i) {
-								R1[i] = exp(R1[i]);
-								C1[i] = exp(C1[i]);
-							}
+          if ( iinfo == 0 ) {
+            if ( job == 5 ) {
+              if ( Equil ) {
+                for (i = 0; i < n; ++i) {
+                  R1[i] = exp(R1[i]);
+                  C1[i] = exp(C1[i]);
+                }
 
-							/* Scale the distributed matrix */
-							irow = fst_row;
-							for (j = 0; j < m_loc; ++j) {
-								for (i = rowptr[j]; i < rowptr[j+1]; ++i) {
-									icol = colind[i];
-									a[i] *= R1[irow] * C1[icol];
+                /* Scale the distributed matrix */
+                irow = fst_row;
+                for (j = 0; j < m_loc; ++j) {
+                  for (i = rowptr[j]; i < rowptr[j+1]; ++i) {
+                    icol = colind[i];
+                    a[i] *= R1[irow] * C1[icol];
 #if ( PRNTlevel>=2 )
-									if ( perm_r[irow] == icol ) { /* New diagonal */
-										if ( job == 2 || job == 3 )
-											dmin = SUPERLU_MIN(dmin, fabs(a[i]));
-										else if ( job == 4 )
-											dsum += fabs(a[i]);
-										else if ( job == 5 )
-											dprod *= fabs(a[i]);
-									}
+                    if ( perm_r[irow] == icol ) { /* New diagonal */
+                      if ( job == 2 || job == 3 )
+                        dmin = SUPERLU_MIN(dmin, fabs(a[i]));
+                      else if ( job == 4 )
+                        dsum += fabs(a[i]);
+                      else if ( job == 5 )
+                        dprod *= fabs(a[i]);
+                    }
 #endif
-								}
-								++irow;
-							}
+                  }
+                  ++irow;
+                }
 
-							/* Multiply together the scaling factors. */
-							if ( rowequ ) for (i = 0; i < m; ++i) R[i] *= R1[i];
-							else for (i = 0; i < m; ++i) R[i] = R1[i];
-							if ( colequ ) for (i = 0; i < n; ++i) C[i] *= C1[i];
-							else for (i = 0; i < n; ++i) C[i] = C1[i];
+                /* Multiply together the scaling factors. */
+                if ( rowequ ) for (i = 0; i < m; ++i) R[i] *= R1[i];
+                else for (i = 0; i < m; ++i) R[i] = R1[i];
+                if ( colequ ) for (i = 0; i < n; ++i) C[i] *= C1[i];
+                else for (i = 0; i < n; ++i) C[i] = C1[i];
 
-							ScalePermstruct->DiagScale = BOTH;
-							rowequ = colequ = 1;
+                ScalePermstruct->DiagScale = BOTH;
+                rowequ = colequ = 1;
 
-						} /* end Equil */
+              } /* end Equil */
 
-						/* Now permute global A to prepare for symbfact() */
-						for (j = 0; j < n; ++j) {
-							for (i = colptr[j]; i < colptr[j+1]; ++i) {
-								irow = rowind[i];
-								rowind[i] = perm_r[irow];
-							}
-						}
-						SUPERLU_FREE (R1);
-						SUPERLU_FREE (C1);
-					} else { /* job = 2,3,4 */
-						for (j = 0; j < n; ++j) {
-							for (i = colptr[j]; i < colptr[j+1]; ++i) {
-								irow = rowind[i];
-								rowind[i] = perm_r[irow];
-							} /* end for i ... */
-						} /* end for j ... */
-					} /* end else job ... */
+              /* Now permute global A to prepare for symbfact() */
+              for (j = 0; j < n; ++j) {
+                for (i = colptr[j]; i < colptr[j+1]; ++i) {
+                  irow = rowind[i];
+                  rowind[i] = perm_r[irow];
+                }
+              }
+              SUPERLU_FREE (R1);
+              SUPERLU_FREE (C1);
+            } else { /* job = 2,3,4 */
+              for (j = 0; j < n; ++j) {
+                for (i = colptr[j]; i < colptr[j+1]; ++i) {
+                  irow = rowind[i];
+                  rowind[i] = perm_r[irow];
+                } /* end for i ... */
+              } /* end for j ... */
+            } /* end else job ... */
+          } else { /* if iinfo != 0 */
+            for (i = 0; i < m; ++i) perm_r[i] = i;
+          }
 
 #if ( PRNTlevel>=2 )
 					if ( job == 2 || job == 3 ) {
@@ -379,7 +414,7 @@ pdsymbfact(superlu_options_t *options, SuperMatrix *A,
 				t = SuperLU_timer_() - t;
 				stat->utime[ROWPERM] = t;
 #if ( PRNTlevel>=1 )
-				if ( !iam ) printf(".. LDPERM job %d\t time: %.2f\n", job, t);
+        if ( !iam ) printf(".. LDPERM job " IFMT "\t time: %.2f\n", job, t);
 #endif
 			} /* end if Fact ... */
 		} else { /* options->RowPerm == NOROWPERM */
@@ -420,13 +455,11 @@ pdsymbfact(superlu_options_t *options, SuperMatrix *A,
 
 		if ( parSymbFact == YES || permc_spec == PARMETIS ) {	
 			nprocs_num = grid->nprow * grid->npcol;
-			if( *numProcSymbFact == 0 ){
-				// Default value
-				noDomains = (int) ( pow(2, ((int) LOG2( nprocs_num ))));
-			}
-			else{
+			// Default value
+			noDomains = (int) ( pow(2, ((int) LOG2( nprocs_num ))));
+			if( *numProcSymbFact != 0 ){
 				// User-provided value
-				noDomains = *numProcSymbFact;
+				noDomains = MIN(noDomains,*numProcSymbFact);
 			}
 #if ( PRNTlevel >= 1 )
 			if( !iam ) fprintf(stderr,"Using %d processors for ParMETIS.\n", noDomains);
@@ -458,8 +491,13 @@ pdsymbfact(superlu_options_t *options, SuperMatrix *A,
 #if ( PRNTlevel >= 1 )
 				if( !iam ) fprintf(stderr,"After get_perm_c_parmetis.");
 #endif
-				if (flinfo > 0)
-					ABORT("ERROR in get perm_c parmetis.");
+        if (flinfo > 0) {
+#if ( PRNTlevel>=1 )
+          fprintf(stderr, "Insufficient memory for get_perm_c parmetis\n");
+#endif
+          *info = flinfo;
+          return;
+        }
 			} else {
 				get_perm_c_dist(iam, permc_spec, &GA, perm_c);
 			}
@@ -493,7 +531,7 @@ pdsymbfact(superlu_options_t *options, SuperMatrix *A,
 					 the nonzero data structures for L & U. */
 #if ( PRNTlevel>=1 ) 
 				if ( !iam )
-					printf(".. symbfact(): relax %4d, maxsuper %4d, fill %4d\n",
+		  printf(".. symbfact(): relax " IFMT ", maxsuper " IFMT ", fill " IFMT "\n",
 								 sp_ienv_dist(2), sp_ienv_dist(3), sp_ienv_dist(6));
 #endif
 				t = SuperLU_timer_();
@@ -506,28 +544,30 @@ pdsymbfact(superlu_options_t *options, SuperMatrix *A,
 												 Glu_persist, Glu_freeable);
 
 				stat->utime[SYMBFAC] = SuperLU_timer_() - t;
-				if ( iinfo < 0 ) { /* Successful return */
+				if ( iinfo <= 0 ) { /* Successful return */
 					QuerySpace_dist(n, -iinfo, Glu_freeable, &symb_mem_usage);
 #if ( PRNTlevel>=1 )
-					if ( !iam ) {
-						printf("\tNo of supers %ld\n", Glu_persist->supno[n-1]+1);
-						printf("\tSize of G(L) %ld\n", Glu_freeable->xlsub[n]);
-						printf("\tSize of G(U) %ld\n", Glu_freeable->xusub[n]);
-						printf("\tint %d, short %d, float %d, double %d\n", 
-									 sizeof(int_t), sizeof(short), sizeof(float),
-									 sizeof(double));
-						printf("\tSYMBfact (MB):\tL\\U %.2f\ttotal %.2f\texpansions %d\n",
-									 symb_mem_usage.for_lu*1e-6, 
-									 symb_mem_usage.total*1e-6,
-									 symb_mem_usage.expansions);
-					}
+          if ( !iam ) {
+            printf("\tNo of supers %ld\n", (long long) Glu_persist->supno[n-1]+1);
+            printf("\tSize of G(L) %ld\n", (long long) Glu_freeable->xlsub[n]);
+            printf("\tSize of G(U) %ld\n", (long long) Glu_freeable->xusub[n]);
+            printf("\tint %d, short %d, float %d, double %d\n", 
+                (int) sizeof(int_t), (int) sizeof(short),
+                (int) sizeof(float), (int) sizeof(double));
+            printf("\tSYMBfact (MB):\tL\\U %.2f\ttotal %.2f\texpansions " IFMT "\n",
+                symb_mem_usage.for_lu*1e-6, 
+                symb_mem_usage.total*1e-6,
+                symb_mem_usage.expansions);
+          }
 #endif
-				} else {
-					if ( !iam ) {
-						fprintf(stderr,"symbfact() error returns %d\n",iinfo);
-						exit(-1);
-					}
-				}
+        } else { /* symbfact out of memory */
+#if ( PRNTlevel>=1 )
+          if ( !iam )
+            fprintf(stderr,"symbfact() error returns " IFMT "\n",iinfo);
+#endif
+          *info = iinfo;
+          return;
+        }
 			} /* end serial symbolic factorization */
 			else {  /* parallel symbolic factorization */
 				t = SuperLU_timer_();
@@ -542,8 +582,13 @@ pdsymbfact(superlu_options_t *options, SuperMatrix *A,
 				if( !iam ) fprintf(stderr,"After symbfact_dist.");
 #endif
 				stat->utime[SYMBFAC] = SuperLU_timer_() - t;
-				if (flinfo > 0) 
-					ABORT("Insufficient memory for parallel symbolic factorization.");
+        if (flinfo > 0) {
+#if ( PRNTlevel>=1 )
+          fprintf(stderr, "Insufficient memory for parallel symbolic factorization.");
+#endif
+          *info = flinfo;
+          return;
+        }
 			}
 
 			/* Destroy GA */
@@ -604,7 +649,7 @@ distribution routine. */
 			int_t TinyPivots;
 			float for_lu, total, max, avg, temp;
 
-			dQuerySpace_dist(n, LUstruct, grid, &num_mem_usage);
+			dQuerySpace_dist(n, LUstruct, grid, stat, &num_mem_usage);
 
 			if (parSymbFact == TRUE) {
 				/* The memory used in the redistribution routine
@@ -642,13 +687,18 @@ distribution routine. */
 
 
 			if ( options->PrintStat ) {
-				if ( !iam ) {
-					printf("\tNUMfact space (MB) sum(procs):  L\\U\t%.2f\tall\t%.2f\n",
-								 for_lu*1e-6, total*1e-6);
-					printf("\tTotal highmark (MB):  "
-								 "All\t%.2f\tAvg\t%.2f\tMax\t%.2f\n",
-								 avg*1e-6, avg/grid->nprow/grid->npcol*1e-6, max*1e-6);
-				}
+        if (!iam) {
+          printf("\n** Memory Usage **********************************\n");
+          printf("** NUMfact space (MB): (sum-of-all-processes)\n"
+              "    L\\U :        %8.2f |  Total : %8.2f\n",
+              for_lu * 1e-6, total * 1e-6);
+          printf("** Total highmark (MB):\n"
+              "    Sum-of-all : %8.2f | Avg : %8.2f  | Max : %8.2f\n",
+              avg * 1e-6,  
+              avg / grid->nprow / grid->npcol * 1e-6,
+              max * 1e-6);
+          printf("**************************************************\n");
+        }
 			}
 		}
 

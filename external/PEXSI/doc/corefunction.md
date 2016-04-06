@@ -266,18 +266,63 @@ directly used to compute the band energy without using eigenvalues.
 
 
 <!-- ************************************************************ -->
-@page pageFactor Factorization
+@page pageOptions Options
 \tableofcontents
 
 
+Options for factorization and selected inversion       {#secOptions}
+================================================
+
+Several parameters need to be specified to configure the different
+routines of PSelInv depending on the nature of the matrix and of which
+selected elements are desired.
+
+This is done by setting the relevant fields in the 
+[SuperLUOptions](@ref PEXSI::SuperLUOptions) 
+and [PSelInvOptions](@ref PEXSI::PSelInvOptions) structures.
+
+The options for the factorization include:
+- [ColPerm](@ref PEXSI::SuperLUOptions::ColPerm) controls the column permutation strategy.
+- [RowPerm](@ref PEXSI::SuperLUOptions::RowPerm) controls the row permutation strategy.
+- [Equil](@ref PEXSI::SuperLUOptions::Equil) controls the system equilibration strategy.
+- [Symmetric](@ref PEXSI::SuperLUOptions::Symmetric) specifies whether the matrix is symmetric or unsymmetric.
+- [Transpose](@ref PEXSI::SuperLUOptions::Transpose) specifies whether the original matrix or the transposed matrix
+  needs to be factored. This is only relevant in the unsymmetric case. 
+  Indeed, when the transposed matrix is factored, then selected elements PLACEHOLDER can be retrieved.
+  
+
+The extra options for the selected inversion is:
+- [maxPipelineDepth](@ref PEXSI::PSelInvOptions::maxPipelineDepth) controls the tree parallelism strategy of PSelInv.
+
+
+
+Related structures and subroutines
+----------------------------------
+
+> @ref PEXSI::SuperLUOptions "SuperLUOptions"
+
+A thin interface for passing parameters to set the SuperLU
+options.
+
+> @ref PEXSI::PSelInvOptions "PSelInvOptions"
+
+A thin interface for passing parameters to set the PSelInv
+options.
+
+
+
+<!-- ************************************************************ -->
+@page pageFactor Factorization
+\tableofcontents
 
 Procedure for factorization       {#secProcedureFactor}
 ===========================
 
 Before the selected inversion step, the matrix saved in 
 [DistSparseMatrix](@ref PEXSI::DistSparseMatrix) format must first be
-factorized.  In principle this can be done with any \f$LDL^T\f$
-factorization or \f$LU\f$ factorization routines.  In the current
+factorized.  In principle, for symmetric matrices, this can be done with any \f$LDL^T\f$
+factorization or \f$LU\f$ factorization routines. For unsymmetric matrices, only the latter 
+can be used. In the current
 version of %PEXSI, [SuperLU_DIST
 v3.3](http://crd-legacy.lbl.gov/~xiaoye/SuperLU/) is used for the
 \f$LU\f$ factorization.  
@@ -315,12 +360,14 @@ Convert a distributed sparse matrix in compressed sparse
 column format into the SuperLU compressed row format.  The output is
 saved in the current %SuperLUMatrix.
 
+<!--
 @note
 Although LU factorization is used, the routine
 assumes that the matrix is strictly symmetric, and therefore the
 compressed sparse row (CSR) format, used by SuperLU_DIST, gives
 exactly the same matrix as formed by the compresed sparse column
 format (CSC).
+-->
 
 > @ref PEXSI::SuperLUMatrix::SymbolicFactorize "SuperLUMatrix::SymbolicFactorize"
 
@@ -332,9 +379,10 @@ factorization contains three steps.
 - Distribute the matrix into 2D block cyclic format.
 
 This routine is controlled via 
-[SuperLUOptions](@ref PEXSI::SuperLUOptions). In particular, the permutation strategy is
+[SuperLUOptions](@ref PEXSI::SuperLUOptions). In particular, the column permutation strategy is
 controlled by 
-[SuperLUOptions::ColPerm](@ref PEXSI::SuperLUOptions::ColPerm).
+[SuperLUOptions::ColPerm](@ref PEXSI::SuperLUOptions::ColPerm). Similarly, the row permutation strategy
+is controlled by [SuperLUOptions::RowPerm](@ref PEXSI::SuperLUOptions::RowPerm).
  
 > @ref PEXSI::SuperLUMatrix::NumericalFactorize "SuperLUMatrix::NumericalFactorize"
 
@@ -574,6 +622,13 @@ GridType should be consistent with the grid used by SuperLU.
 @note
 It is the user's responsibility to enforce the coherence between [SuperLUGrid](@ref PEXSI::SuperLUGrid) and GridType.
 
+
+> @ref PEXSI::PSelInvOptions "PSelInvOptions"
+
+A thin interface for passing parameters to set the PSelInv
+options.
+
+
 > @ref PEXSI::SuperNodeType "SuperNodeType"
 
 A data structure containing the supernodal partitioning of the matrix.
@@ -592,17 +647,19 @@ computational routines for parallel selected inversion.
 
 Converts a compressed row format [SuperLUMatrix](@ref PEXSI::SuperLUMatrix) into a PMatrix object, using the compressed column format used by PSelInv.
 
+<!--
 @note
 Although LU factorization is used, the routine
 assumes that the matrix is strictly symmetric, and therefore the
 compressed sparse row (CSR) format, used by SuperLU_DIST, gives
 exactly the same matrix as formed by the compresed sparse column
 format (CSC).
+-->
 
 > @ref PEXSI::PMatrix::Create "PMatrix::Create"
 
 This static factory routine instantiates the correct PMatrix object type depending on matrix structure.
-The matrix structure is specified by the [SuperLUOptions::symmetric](@ref PEXSI::SuperLUOptions::symmetric) attribute of the [SuperLUOptions](@ref PEXSI::SuperLUOptions) data structure.
+The matrix structure is specified by the [SuperLUOptions::Symmetric](@ref PEXSI::SuperLUOptions::Symmetric) attribute of the [SuperLUOptions](@ref PEXSI::SuperLUOptions) data structure.
  
 
 > @ref PEXSI::PMatrix::ConstructCommunicationPattern "PMatrix::ConstructCommunicationPattern" 
@@ -647,7 +704,7 @@ Example
   SuperLUGrid<Complex> g( comm, nprow, npcol );
   SuperLUOptions luOpt;
   luOpt.ColPerm = "MMD_AT_PLUS_A";
-  luOpt.symmetric = 0;
+  luOpt.Symmetric = 1;
 
   SuperLUMatrix<Complex> luMat( g );
 
@@ -662,12 +719,14 @@ Example
   luMat.NumericalFactorize();
 
   /****** SELECTED INVERSION ******/
+  PSelInvOptions selinvOpt;
+
   GridType gPM( comm, nprow, npcol );
 
   SuperNodeType super;
   luMat.SymbolicToSuperNode( super );
 
-  PMatrix<Complex> * PMloc = PMatrix<Complex>::Create(&gPM, &super, &luOpt);
+  PMatrix<Complex> * PMloc = PMatrix<Complex>::Create(&gPM, &super, &selinvOpt, &luOpt);
 
   // Conversion to PMatrix
   luMat.LUstructToPMatrix( *PMloc );
@@ -793,4 +852,6 @@ call f_ppexsi_plan_finalize( plan, info )
 The examples of the FORTRAN interface can be found under `fortran/`
 directory, including @ref f_driver_pselinv_real.f90, 
 @ref f_driver_pselinv_complex.f90, 
+@ref f_driver_pselinv_real_unsym.f90,
+@ref f_driver_pselinv_complex_unsym.f90,
 @ref f_driver_ksdft.f90.

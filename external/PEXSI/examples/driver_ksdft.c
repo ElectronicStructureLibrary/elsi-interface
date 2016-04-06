@@ -114,11 +114,12 @@ int main(int argc, char **argv)
 
 #if 1
   numElectronExact    = 12.0;
-  nprow               = 2;
-  npcol               = 2;
+  nprow               = 1;
+  npcol               = 1;
   Hfile               = "lap2dr.matrix";
   Sfile               = "";
   isFormatted         = 1;
+  isSIdentity         = 1;
 #else
 #if 1
   numElectronExact    = 7000.0;
@@ -262,12 +263,12 @@ int main(int argc, char **argv)
   options.mu0    = 0.0;
   options.npSymbFact = 4;
   options.ordering = 0;
-  options.isInertiaCount = 0;
+  options.isInertiaCount = 1;
   options.maxPEXSIIter   = 1;
   options.verbosity = 1;
   options.deltaE   = 20.0;
   options.numPole  = 40;
-  options.temperature  = 0.019; // 3000K
+  options.temperature  = 0.0019; // 300K
   options.muPEXSISafeGuard  = 0.2; 
   options.numElectronPEXSITolerance = 0.001;
   options.isSymbolicFactorize = 1;

@@ -22,9 +22,9 @@ download ParMETIS.
 Build ParMETIS
 --------------
 
-Download ParMETIS (latest version 4.0.2) from
+Download ParMETIS (latest version 4.0.3) from
 
-http://glaros.dtc.umn.edu/gkhome/fetch/sw/parmetis/parmetis-4.0.2.tar.gz
+http://glaros.dtc.umn.edu/gkhome/fetch/sw/parmetis/parmetis-4.0.3.tar.gz
 
 Follow the installation step to install ParMETIS.
 
@@ -47,15 +47,41 @@ fine.
 Build SuperLU_DIST
 ------------------
 
-Download SuperLU_DIST (latest version 3.3) from
+**SuperLU_DIST v4.3 starting from %PEXSI v0.9.2**
 
-http://crd-legacy.lbl.gov/~xiaoye/SuperLU/superlu_dist_3.3.tar.gz
+
+Download SuperLU_DIST (latest version 4.3) from
+
+http://crd-legacy.lbl.gov/~xiaoye/SuperLU/superlu_dist_4.3.tar.gz
 
 Follow the installation step to install SuperLU_DIST.
 
 @attention Our experience shows that on some machines it may be better
 to build SuperLU_DIST with -O2 option than the more aggresive
 optimization options provided by vendors.
+
+@attention In SuperLU_DIST v4.3, some functions conflict when both real
+and complex arithmetic factorization is needed. This can be temporarily
+solved by adding  `-Wl,--allow-multiple-definition` in the linking
+option.
+
+@attention In SuperLU_DIST v4.3, there could be some excessive outputs.
+This can be removed by going to the SRC/ directory of superlu, and
+comment out the line starting with `printf(".. dQuery_Space` in
+dmemory_dist.c. Do the same thing for the line starting with
+`printf(".. zQuery_Space` in zmemory_dist.c.
+
+@attention Please note that the number of processors for symbolic
+factorization cannot be too large when PARMETIS is used together with
+SuperLU. The exact number of processors for symbolic factorization is
+unfortunately a **magic parameter**.  See @ref pageFAQ.
+
+**SuperLU_DIST v3.3 for %PEXSI v0.9.0 and before**
+
+Download SuperLU_DIST (latest version 3.3) from
+
+http://crd-legacy.lbl.gov/~xiaoye/SuperLU/superlu_dist_3.3.tar.gz
+
 
 (Optional) Build PT-Scotch
 --------------------------
@@ -96,7 +122,7 @@ at NERSC, a CRAY X30 machine).  `${PEXSI_DIR}` stands for the main
 directory of %PEXSI.
 
     cd ${PEXSI_DIR}
-    cp config/make.inc.CRAY_XC30.intel
+    cp config/make.inc.CRAY_XC30.intel make.inc
 
 Edit the variables in make.inc. 
     
@@ -117,6 +143,9 @@ Edit the compiler options, for instance
 - Starting from %PEXSI v0.8.0, `-std=c++11` is required in
 `CXXFLAGS`. 
 
+- Starting from %PEXSI v0.9.2, `-std=c99` is required to be compatible
+  with SuperLU_DIST v4.3.
+
 - For **FORTRAN** users, `CPP_LIB=-lstdc++ -lmpi -lmpi_cxx` is often needed.
 Check this if there is link error.
 
@@ -134,31 +163,25 @@ Build the %PEXSI library
 
 If make.inc is configured correctly,
     
-    cd ${PEXSI_DIR}
-    cd src
-    make
+    make 
+    make install
 
-should produce `libpexsi_(suffix).a` under `src/`.
+Should build the %PEXSI library under the `build` directory ready to be
+used in an external package.  If
+examples are needed (not necessary if you use %PEXSI in an external
+package), type 
 
-Build examples
---------------
+    make all
 
-After `libpexsi_(suffix).a` is built, all driver routines are readily to be
-compiled.  For example, the selected inversion for a complex matrix has
-the test routine
-
-    cd ${PEXSI_DIR}
-    cd examples
-    make driver_pselinv_complex
-
-should produce `driver_pselinv_complex_(suffix)`, which can be executed with MPI.
+which will generate C examples in `examples/` directory and FORTRAN examples in
+`fortran/` directory, respectively.
 
 For more information on the examples, see @ref pageTutorial.
 
 Tests
 -----
 
-After driver_pselinv_complex is compiled, 
+After example files are compiled, go to the `examples/` directory, and
 
     examples$ mpirun -n 1 ./driver_pselinv_complex_(suffix)
 
@@ -169,4 +192,5 @@ should return the diagonal of the matrix
 saved on the 0-th processor, where \f$A\f$ is the five-point
 discretization of a Laplacian operator on a 2D domain.  The result can
 be compared with `examples/driver_pselinv_complex.out` to check the
-correctness of the result.
+correctness of the result. For more examples see @ref pageTutorial.
+

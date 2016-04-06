@@ -247,6 +247,61 @@ namespace PEXSI{
       int Npole, double temp, double gap, double deltaE,
       double mu);
 
+
+  /// @brief Pole expansion for the Fermi-Dirac operator and update the
+  /// weight at mu+dmu.
+  /// 
+  /// The shift is given at chemical potential mu, while the weight is
+  /// given at mu+dmu. 
+  ///
+  /// @note
+  ///
+  /// - This is used to evaluate the number of electrons at mu+dmu without
+  /// recomputing the pole expansion.  dmu should be <b>on the order of
+  /// \f$k_BT\f$</b> in order to be accurate.
+  ///
+  /// - All units (temperature, gap, deltaE) should be the same.  
+  ///	Without specification they should all be Hartree (au).
+  ///
+  ///
+  /// @param[out]  zshift Dimension: Npole. The shifts \f$\{z_l\}\f$.
+  /// @param[out]  zweight Dimension: Npole. The weights \f$\{\omega^{\rho}_l\}\f$.
+  /// @param[in]   Npole   Number of poles. **Must be an even number**.
+  /// @param[in]   temp    Temperature. Temperature equals to
+  /// \f$1/\beta\f$.
+  /// @param[in]   gap     The spectral gap, defined as
+  /// \f$\min_{\varepsilon} |\varepsilon-\mu|\f$, where
+  /// \f$\varepsilon\f$ is an eigenvalue.
+  /// @param[in]   deltaE  The spectral range, defined as
+  /// \f$\max_{\varepsilon} |\varepsilon-\mu|\f$, where
+  /// \f$\varepsilon\f$ is an eigenvalue.
+  /// @param[in]   mu      The chemical potential.
+  /// @param[in] dmu Update of chemical potential. 
+  ///
+  /// @return 
+  /// - = 0: successful exit.  
+  /// - > 0: unsuccessful.
+  ///  
+  int GetPoleDensityUpdate(Complex* zshift, Complex* zweight, 
+      int Npole, double temp, double gap, double deltaE,
+      double mu, double dmu);
+
+  /// @brief Pole expansion for the Helmholtz free energy function.
+  ///
+  /// Similar to @ref GetPoleHelmholtz but obtain the weights using the
+  /// update formula
+  int GetPoleHelmholtzUpdate(Complex* zshift, Complex* zweight, 
+      int Npole, double temp, double gap, double deltaE,
+      double mu, double dmu);
+
+  /// @brief Pole expansion for the energy density function.
+  ///
+  /// Similar to @ref GetPoleForce but obtain the weights using the
+  /// update formula
+  int GetPoleForceUpdate(Complex* zshift, Complex* zweight, 
+      int Npole, double temp, double gap, double deltaE,
+      double mu, double dmu);
+
 }
 
 #endif //_PEXSI_POLE_HPP_

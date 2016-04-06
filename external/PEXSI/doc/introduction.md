@@ -2,6 +2,7 @@ Introduction      {#pageIntro}
 ============
 
 - @subpage pageOverview
+- @subpage pageExternal
 - @subpage pageLicense
 - @subpage pageReference
 - @subpage pageChangeLog
@@ -19,17 +20,6 @@ and forces in electronic structure calculations.  The PEXSI library is
 written in C++, and uses message passing interface (MPI) to parallelize
 the computation on distributed memory computing systems and achieve
 scalability on more than 10,000 processors. 
-
-The %PEXSI library has been integrated into the Siesta package for
-demonstrating efficient and accurate ab initio materials simulation on
-massively parallel machines, and can regularly handle systems with
-10,000 to 100,000 electrons. 
-
-L. Lin, A. Garcia, G. Huhs and C. Yang, <a
-href="http://dx.doi.org/10.1088/0953-8984/26/30/305503">SIESTA-PEXSI: Massively parallel
-method for efficient and accurate ab initio materials simulation without
-matrix diagonalization</a>, J. Phys. Condens.  Matter 26, 305503, 2014.
-
 
 From numerical linear algebra perspective, the %PEXSI library can be
 used as a general tool for evaluating certain [selected elements](@ref defSelectedElem) of a matrix function, and therefore has application
@@ -93,6 +83,14 @@ size.  Therefore it is most advantageous to use %PEXSI when more than
 For some problems we have also observed that it can be
 advantageous to use %PEXSI using hundreds to thousands of processors.
 
+For details of the implementation of parallel selected inversion used in
+%PEXSI,  please see
+
+
+M. Jacquelin, L. Lin and C. Yang, PSelInv -- A Distributed Memory
+Parallel Algorithm for Selected Inversion : the Symmetric Case, to appear in ACM Trans. Math. Software 
+[<a href="http://arxiv.org/abs/1404.0447">arXiv</a>]
+
 @anchor defDiagonalization
 **Diagonalization method** 
 
@@ -114,12 +112,35 @@ needed to be computed, depending on the value of \f$f(\lambda_i)\f$.
 For structurally symmetric matrices (i.e. \f$A_{i,j}\ne 0\f$ implies
 \f$A_{j,i}\ne 0\f$), we define the selected
 elements of a matrix \f$B\f$ with respect to a matrix \f$A\f$ as the set
-\f$\{B_{i,j}\vert A_{i,j}\ne 0\}\f$.
+\f$\{B_{i,j}\vert A_{i,j}\ne 0\}\f$. For general matrices, the selected
+elements are \f$\{B_{i,j}\vert A_{j,i}\ne 0\}\f$.
 
 A commonly used case in %PEXSI is the selected elements of
 \f$A^{-1}\f$ with respect to \f$A\f$, or simply the selected elements of
 \f$A^{-1}\f$, which corresponds to the set \f$\{A^{-1}_{i,j}\vert
 A_{i,j}\ne 0\}\f$.
+
+
+<!-- ************************************************************ -->
+@page pageExternal %PEXSI used in external packages
+
+The %PEXSI library has been integrated into the SIESTA package for
+demonstrating efficient and accurate ab initio materials simulation on
+massively parallel machines, and can regularly handle systems with
+10,000 to 100,000 electrons. 
+
+L. Lin, A. Garcia, G. Huhs and C. Yang, <a
+href="http://dx.doi.org/10.1088/0953-8984/26/30/305503">SIESTA-PEXSI: Massively parallel
+method for efficient and accurate ab initio materials simulation without
+matrix diagonalization</a>, J. Phys. Condens.  Matter 26, 305503, 2014.
+
+Download link for SIESTA-PEXSI:
+http://departments.icmab.es/leem/siesta/CodeAccess/Code/siesta-pexsi/siesta-pexsi.html
+
+
+%PEXSI has also been recently integrated with CP2K.
+
+Tutorials for compiling CP2K-PEXSI: http://www.cp2k.org/howto:compile
 
 
 <!-- ************************************************************ -->
@@ -195,6 +216,18 @@ If you use %PEXSI for electronic structure calculation in general,
 }
 @endverbatim
 
+<!--If you use %PEXSI for selected inversion,-->
+<!--**please cite the following paper.**-->
+<!---->
+<!--@verbatim-->
+<!--@Article{TOMS2014,-->
+<!--  Title                    = {PSelInv--A Distributed Memory Parallel Algorithm for Selected Inversion: the Symmetric Case},-->
+<!--  Author                   = {Jacquelin, Mathias and Lin, Lin and Yang, Chao},-->
+<!--  Journal                  = {arXiv preprint arXiv:1404.0447},-->
+<!--  Year                     = {2014}-->
+<!--}-->
+<!--@endverbatim-->
+
 
 **More references:**
 
@@ -210,7 +243,7 @@ matrix diagonalization, J. Phys. Condens.  Matter 26, 305503, 2014 [<a
 href="http://dx.doi.org/10.1088/0953-8984/26/30/305503">journal</a>]
 
 M. Jacquelin, L. Lin and C. Yang, PSelInv -- A Distributed Memory
-Parallel Algorithm for Selected Inversion : the Symmetric Case
+Parallel Algorithm for Selected Inversion : the Symmetric Case, to appear in ACM Trans. Math. Software 
 [<a href="http://arxiv.org/abs/1404.0447">arXiv</a>]
 
 L. Lin, M. Chen, C. Yang and L. He, Accelerating atomic
@@ -243,7 +276,47 @@ Fermi-Dirac function, Chin. Ann. Math. 30B, 729, 2009
 <!-- ************************************************************ -->
 @page pageChangeLog Change Log
 
-- v0.8.0 (05/11/2015) **Major update**
+- v0.9.2 (2/29/2016) **Beta version**
+    - **v0.9.2 contains major changes to SuperLU_DIST v4.3 and new DFTDriver. Use with care.**
+
+    - Add support for SuperLU_DIST v4.3. Starting from v0.9.2, the
+      SuperLU_DIST v3.3 version is **NO LONGER SUPPORTED**.
+
+    - Change the compile / installation to the more standard make / make
+      install commands.
+
+    - Add pole expansion C/FORTRAN interfaces that can be called
+      separately.
+    
+    - Bug fix: remove a const attribute in CSCToCSR since it is modified
+      by MPI. Add (void*) to MPI_Allgather for some compilers.
+    
+    - Bug fix: Mathjax is upgraded to v2.6 to support chrome rendering.
+
+    - Experimental feature: Add DFTDriver2 which allows only one PEXSI
+      iteration per SCF iteration. This requires a careful setup of the
+      inertia counting procedure.
+
+    - Experimental feature: In DFTDriver2, the muMinInertia and
+      muMaxInertia are updated to avoid the true chemical potential to
+      be at the edge of an interval.
+
+
+- v0.9.0 (07/15/2015)
+    - Add parallel selected inversion (PSelInv) for asymmetric matrices.
+      The asymmetric matrix can be either structurally symmetric or
+      fully asymmetric. 
+
+    - Add the example routines and fortran interfaces for asymmetric
+      selected inversion.
+
+    - Simplify the interface for installation.
+
+    - (Contributed by Patrick Seewald) Bug fix: output string for
+      SharedWrite utility routine.
+
+
+- v0.8.0 (05/11/2015) 
     - Improve the data communication pattern for PSelInv. The parallel
       scalability of PSelInv is much improved when more than 1000
       processors are used. The variation of running time among different
@@ -283,7 +356,7 @@ Fermi-Dirac function, Chin. Ann. Math. 30B, 729, 2009
   - Add test matrices to the fortran/ folder as well.
   - Update the configuration files.
 
-- v0.7.1 (07/01/2014) **Major update**
+- v0.7.1 (07/01/2014) 
   - Bug fix: PPEXSIPlanInitialize specifics the input according to
     mpirank instead of outputFileIndex.
   - Bug fix: PPEXSIPlanFinalize gives floating point error due to the
@@ -304,7 +377,7 @@ Fermi-Dirac function, Chin. Ann. Math. 30B, 729, 2009
     guidance.
 
 
-- v0.6.0 (03/11/2014) **Initial release of %PEXSI**
+- v0.6.0 (03/11/2014) 
   - Version integrated with the SIESTA package for Kohn-Sham density
     functional theory (KSDFT) calculation.
   - Parallel selected inversion for complex symmetric matrices.

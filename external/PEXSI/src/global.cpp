@@ -55,7 +55,7 @@ namespace PEXSI{
   std::deque<int > gemm_stat;
 #endif
 
-#ifdef COMM_PROFILE
+#if defined(COMM_PROFILE) || defined(COMM_PROFILE_BCAST)
   std::ofstream  commOFS;
   std::deque<int > comm_stat;
 #endif

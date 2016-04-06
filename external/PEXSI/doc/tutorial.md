@@ -4,6 +4,8 @@ Tutorial              {#pageTutorial}
 - @subpage pagePEXSIPlan
 - @subpage pagePselinvRealSymmetric
 - @subpage pagePselinvComplexSymmetric
+- @subpage pagePselinvRealUnsymmetric
+- @subpage pagePselinvComplexUnsymmetric
 - @subpage pageDFT1
 - @subpage pageDFT2
 
@@ -170,7 +172,6 @@ for detailed information of its usage.
 
 
 <!-- ************************************************************ -->
-<!--
 @page pagePselinvRealUnsymmetric Parallel selected inversion for a real unsymmetric matrix
 \tableofcontents
 
@@ -251,15 +252,12 @@ same as the nonzero sparsity pattern of \f$H\f$.  Both `HnzvalLocal` and
 
 An example is given in driver_pselinv_real_unsym.c, which evaluates the
 selected elements of the inverse of the matrix saved in
-`examples/lap2dr.matrix`.  See also @ref PPEXSISelInvRealUnsymmetricMatrix
+`examples/big.unsym.matrix`.  See also @ref PPEXSISelInvRealUnsymmetricMatrix
 for detailed information of its usage.
-
--->
 
 
 
 <!-- ************************************************************ -->
-<!--
 @page pagePselinvComplexUnsymmetric Parallel selected inversion for a complex unsymmetric matrix
 \tableofcontents
 
@@ -267,8 +265,6 @@ The parallel selected inversion routine for a complex unsymmetric matrix
 is very similar to the real unsymmetric case. An example is given in
 driver_pselinv_complex_unsym.c. See also @ref PPEXSISelInvComplexUnsymmetricMatrix
 for detailed information of its usage.
-
--->
 
 
 

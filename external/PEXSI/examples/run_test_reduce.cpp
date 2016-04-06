@@ -167,6 +167,65 @@ int main(int argc, char **argv)
 
 
       Int msgSize = sizeof(MYSCALAR)*nprow*nprow;
+#if 1
+      TreeBcast2<MYSCALAR> * redDTree;
+      double rseed = 0;
+      redDTree = TreeBcast2<MYSCALAR>::Create(g1Ptr->colComm,&tree_ranks[0],tree_ranks.size(),msgSize,rseed);
+
+#ifdef COMM_PROFILE
+      redDTree->SetGlobalComm(g1Ptr->comm);
+#endif
+
+      NumMat<MYSCALAR> buffer(nprow,nprow);
+      Int myRow = MYROW(g1Ptr);
+
+      for(int r=0;r<1;++r){
+
+//if(mpirank==15){i
+//gdb_lock();
+//}
+        
+        //bcastUTree2->AllocRecvBuffer();
+        if(myRow==0){
+          redDTree->SetLocalBuffer(buffer.Data());
+          for(int i =0;i<nprow;++i){buffer(myRow,i)=myRow; buffer(i,i)=1;}
+          redDTree->SetDataReady(true);
+        }
+        redDTree->SetTag( 7 );
+        //Initialize the tree
+        //redDTree->AllocRecvBuffers();
+        //Post All Recv requests;
+ //       redDTree->PostRecv();
+
+
+
+        bool done = redDTree->Progress();
+
+
+        //try a blocking wait
+        redDTree->Wait();
+
+        //      MPI_Barrier(g1Ptr->colComm);
+
+        //root dumps the results
+        //if(myRow == 0){
+          statusOFS<<"DEBUG"<<endl;
+          MYSCALAR * res = redDTree->GetLocalBuffer();
+          for(int i =0;i<nprow;++i){
+            for(int j =0;j<nprow;++j){
+              statusOFS<<res[j*nprow+i]<<" ";
+            }
+            statusOFS<<endl;
+          }
+          statusOFS<<endl;
+          redDTree->SetLocalBuffer(buffer.Data());
+          statusOFS<<buffer<<endl;
+        //}
+
+        redDTree->CleanupBuffers();
+
+      }
+#else
       TreeReduce<MYSCALAR> * redDTree;
       redDTree = TreeReduce<MYSCALAR>::Create(g1Ptr->colComm,&tree_ranks[0],tree_ranks.size(),msgSize);
 #ifdef COMM_PROFILE
@@ -217,6 +276,7 @@ int main(int argc, char **argv)
         redDTree->CleanupBuffers();
 
       }
+#endif
 
 
       delete redDTree;

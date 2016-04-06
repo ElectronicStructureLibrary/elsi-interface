@@ -1,8 +1,8 @@
 # ====== GLOBAL ======
 
 MPIFC  = mpiifort
-MPICC  = mpicc
-MPICXX = mpicxx
+MPICC  = mpiicc
+MPICXX = mpiicc
 
 ARCH      = ar
 ARCHFLAGS = cr
@@ -19,7 +19,7 @@ THIS_DIR  = $(shell pwd)
 
 # ====== ELSI ======
 
-FFLAGS_I = -O3 -ip -lstdc++ 
+FFLAGS_I  = -O3 -ip -lstdc++ 
 
 HDF5     = -L$(HDF5_HOME)/lib -I$(HDF5_HOME)/include \
            -lhdf5_fortran -lhdf5hl_fortran -lhdf5
@@ -56,8 +56,8 @@ FFLAGS_P   = -O3 -w
 
 METIS_LIB       = -L/home/wy29/yu/parmetis-4.0.3/build/Linux-x86_64/libmetis -lmetis
 PARMETIS_LIB    = -L/home/wy29/yu/parmetis-4.0.3/build/Linux-x86_64/libparmetis -lparmetis
-SUPERLU_LIB     = -L/home/wy29/yu/SuperLU_DIST_3.3/lib -lsuperlu
-SUPERLU_INCLUDE = -I/home/wy29/yu/SuperLU_DIST_3.3/SRC
+SUPERLU_LIB     = -L/home/wy29/yu/SuperLU_DIST_4.3/lib -lsuperlu
+SUPERLU_INCLUDE = -I/home/wy29/yu/SuperLU_DIST_4.3/SRC
 
 # ====== LINK ======
 

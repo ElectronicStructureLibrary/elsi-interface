@@ -60,20 +60,21 @@
 #include "pexsi/utility.hpp"
 #include "pexsi/blas.hpp"
 #include "pexsi/lapack.hpp"
+
 #include "pexsi/TreeBcast.hpp"
 
 
 #include <set>
 
-#define IDX_TO_TAG(lidx,tag) (SELINV_TAG_COUNT*(lidx)+(tag)) 
+
+//#define IDX_TO_TAG(lidx,tag) (SELINV_TAG_COUNT*(lidx)+(tag)) 
+#define IDX_TO_TAG(lidx,tag,max) ((SELINV_TAG_COUNT*(lidx%(max+1))+(tag)))
 #define IDX_TO_TAG2(sidx,lidx,tag) (SELINV_TAG_COUNT*(sidx)+(tag)) 
 #define TAG_TO_IDX(tag,typetag) (((tag)-(typetag))/SELINV_TAG_COUNT) 
 
 
 //#define LIST_BARRIER
 //#define ALL_BARRIER
-
-
 
 namespace PEXSI{
 
@@ -89,6 +90,28 @@ namespace PEXSI{
 
   typedef std::vector<bool> bitMask;
   typedef std::map<bitMask , std::vector<Int> > bitMaskSet;
+
+
+
+
+
+  /// @struct PSelInvOptions
+  /// @brief A thin interface for passing parameters to set the PSelInv
+  /// options.  
+  ///
+  struct PSelInvOptions{
+    /// @brief The maximum pipeline depth. 
+    ///
+    /// @todo
+    /// This option should not be here and should be moved into PMatrix.
+    Int              maxPipelineDepth; 
+
+    // Member functions to setup the default value
+    PSelInvOptions(): maxPipelineDepth(-1) {}
+  };
+
+
+
 
 
   /**********************************************************************
@@ -219,7 +242,7 @@ namespace PEXSI{
     /// @brief Number of nonzero columns. 
     Int               numCol;
 
-    /// @brief Dimension numRow * 1, index (0-based) for the number of nonzero rows.
+    /// @brief Dimension numCol * 1, index (0-based) for the number of nonzero rows.
     IntNumVec         cols;
 
     /// @brief Dimension numRow * numCol, nonzero elements.
@@ -507,21 +530,23 @@ namespace PEXSI{
   template<typename T>
   class PMatrix{
      public:
-      /// @brief Create is a factory method which returns a pointer to a new PMatrix
-      static PMatrix<T> * Create(const GridType * pGridType, const SuperNodeType * pSuper, const SuperLUOptions * pLuOpt);
+      /// @brief Create is a factory method which returns a pointer either to a new PMatrix or to a new PMatrixUnsym
+      /// depending on the pLuOpt parameter.
+
+      static PMatrix<T> * Create(const GridType * pGridType, const SuperNodeType * pSuper, const PSelInvOptions * pSelInvOpt , const SuperLUOptions * pLuOpt);
       static PMatrix<T> * Create(const SuperLUOptions * pLuOpt);
 
      public:
       // This is the tag used for mpi communication for selinv
 
       enum{
-        SELINV_TAG_U_SIZE,
+/**/        SELINV_TAG_U_SIZE,
         SELINV_TAG_U_CONTENT,
-        SELINV_TAG_L_SIZE,
+/**/        SELINV_TAG_L_SIZE,
         SELINV_TAG_L_CONTENT,
         SELINV_TAG_L_REDUCE,
-        SELINV_TAG_D_SIZE,
-        SELINV_TAG_D_CONTENT,
+/**/        SELINV_TAG_D_SIZE,
+/**/        SELINV_TAG_D_CONTENT,
         SELINV_TAG_D_REDUCE,
         SELINV_TAG_L_SIZE_CD,
         SELINV_TAG_L_CONTENT_CD,
@@ -539,7 +564,11 @@ namespace PEXSI{
 
       const SuperNodeType*  super_;
 
-      const SuperLUOptions * options_;
+      const PSelInvOptions * options_;
+      const SuperLUOptions * optionsLU_;
+
+      Int limIndex_;
+      Int maxTag_;
 
       std::vector<std::vector<Int> > ColBlockIdx_;
       std::vector<std::vector<Int> > RowBlockIdx_;
@@ -561,10 +590,16 @@ namespace PEXSI{
       BolNumMat                       isRecvFromCrossDiagonal_;
 
 
+#ifdef NEW_BCAST
+      std::vector<TreeBcast2<T> *> fwdToBelowTree2_; 
+      std::vector<TreeBcast2<T> *> fwdToRightTree2_; 
+#endif
       std::vector<TreeBcast *> fwdToBelowTree_; 
       std::vector<TreeBcast *> fwdToRightTree_; 
       std::vector<TreeReduce<T> *> redToLeftTree_; 
       std::vector<TreeReduce<T> *> redToAboveTree_; 
+
+
 
       struct SuperNodeBufferType{
         NumMat<T>    LUpdateBuf;
@@ -580,6 +615,7 @@ namespace PEXSI{
         Int               SizeSstrLcolRecv;
         Int               SizeSstrUrowRecv;
         Int               Index;
+        Int               Rank;
         Int               isReady;
 
 
@@ -589,6 +625,7 @@ namespace PEXSI{
           SizeSstrLcolRecv(0),
           SizeSstrUrowRecv(0),
           Index(0), 
+          Rank(0), 
           isReady(0){}
 
         SuperNodeBufferType(Int &pIndex) :
@@ -597,13 +634,14 @@ namespace PEXSI{
           SizeSstrLcolRecv(0),
           SizeSstrUrowRecv(0),
           Index(pIndex),
+          Rank(0), 
           isReady(0) {}
 
       };
 
 
       /// @brief SelInvIntra_P2p
-      inline void SelInvIntra_P2p(Int lidx);
+      inline void SelInvIntra_P2p(Int lidx,Int & rank);
 
       /// @brief SelInv_lookup_indexes
       inline void SelInv_lookup_indexes(SuperNodeBufferType & snode, std::vector<LBlock<T> > & LcolRecv, std::vector<UBlock<T> > & UrowRecv, NumMat<T> & AinvBuf,NumMat<T> & UBuf);
@@ -625,16 +663,18 @@ namespace PEXSI{
       // Public member functions 
       // *********************************************************************
 
-      PMatrix() {}
+      PMatrix();
 
-      PMatrix( const GridType* g, const SuperNodeType* s, const PEXSI::SuperLUOptions * o );
+      PMatrix( const GridType* g, const SuperNodeType* s, const PEXSI::PSelInvOptions * o, const PEXSI::SuperLUOptions * oLU  );
 
       void deallocate();
+     
+
       virtual ~PMatrix();
       PMatrix( const PMatrix & C);
       PMatrix & operator = ( const PMatrix & C);
 
-      void Setup( const GridType* g, const SuperNodeType* s, const PEXSI::SuperLUOptions * o );
+      void Setup( const GridType* g, const SuperNodeType* s, const PEXSI::PSelInvOptions * o, const PEXSI::SuperLUOptions * oLU  );
 
       Int NumCol() const { return super_ -> superIdx.m(); }
 
@@ -679,6 +719,7 @@ namespace PEXSI{
       /// @brief WorkingSet returns the ordered list of supernodes which could
       /// be done in parallel.
       std::vector<std::vector<int> >& WorkingSet( ) { return workingSet_; } 	
+      //void WorkingSet(const std::vector<std::vector<int> > * pWSet,const std::vector<std::vector<int> > * pWRanks) { pWSet = &workingSet_; pWRanks = &workingRanks_; } 	
 
       /// @brief CountSendToRight returns the number of processors 
       /// to the right of current processor with which it has to communicate
@@ -899,6 +940,20 @@ namespace PEXSI{
       /// @param[out] A Output sparse matrix.
       void PMatrixToDistSparseMatrix( DistSparseMatrix<T>& A );
 
+      /// @brief PMatrixToDistSparseMatrix_OLD converts the PMatrix into a
+      /// distributed compressed sparse column matrix format B, which has
+      /// the same sparsity pattern as the DistSparseMatrix A.
+      ///
+      /// The DistSparseMatrix follows the natural order.
+      ///
+      /// @param[in]  A Input sparse matrix to provide the sparsity pattern.
+      ///
+      /// @param[out] B Output sparse matrix.
+      void PMatrixToDistSparseMatrix_OLD( 
+          const DistSparseMatrix<T>& A,
+          DistSparseMatrix<T>& B	);
+
+
       /// @brief PMatrixToDistSparseMatrix converts the PMatrix into a
       /// distributed compressed sparse column matrix format B, which has
       /// the same sparsity pattern as the DistSparseMatrix A.
@@ -909,21 +964,6 @@ namespace PEXSI{
       ///
       /// @param[out] B Output sparse matrix.
       void PMatrixToDistSparseMatrix( 
-          const DistSparseMatrix<T>& A,
-          DistSparseMatrix<T>& B	);
-
-
-      /// @brief PMatrixToDistSparseMatrix2 is a more efficient version
-      /// which performs the same job as PMatrixToDistSparseMatrix(A,B)
-      /// especially when A contains much less nonzero elements than the
-      /// current PMatrix.
-      ///
-      /// The DistSparseMatrix follows the natural order.
-      ///
-      /// @param[in]  A Input sparse matrix to provide the sparsity pattern.
-      ///
-      /// @param[out] B Output sparse matrix.
-      void PMatrixToDistSparseMatrix2( 
           const DistSparseMatrix<T>& A,
           DistSparseMatrix<T>& B );
 
@@ -941,9 +981,14 @@ namespace PEXSI{
       /// eigenvalues of a matrix below a certain threshold.
       void GetNegativeInertia	( Real& inertia );
 
-      inline int IdxToTag(Int lidx, Int tag) { return SELINV_TAG_COUNT*(lidx)+(tag);}
+//      inline int IdxToTag(Int lidx, Int tag) { return SELINV_TAG_COUNT*(lidx)+(tag);}
+
+      void DumpLU();      
+
+      void CopyLU( const PMatrix & C);
   };
 
+  template<typename T>  class PMatrixUnsym;
 
 
 } // namespace PEXSI

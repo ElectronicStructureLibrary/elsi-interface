@@ -81,6 +81,8 @@ int main(int argc, char **argv)
 
   nprow               = 1;
   npcol               = mpisize;
+  //npcol               = 1;
+  //nprow               = mpisize;
   Rfile               = "lap2dr.matrix";
 
 
@@ -156,6 +158,8 @@ int main(int argc, char **argv)
       options,
       &info );
 
+
+
   PPEXSISelInvRealSymmetricMatrix (
       plan,
       options,
@@ -173,6 +177,7 @@ int main(int argc, char **argv)
     MPI_Finalize();
     return info;
   }
+
 
 
   /* The first processor output the diagonal elements in natural order

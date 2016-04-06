@@ -1318,7 +1318,7 @@ throw std::logic_error( msg.str().c_str() );
 
 
 
-template <typename T> void CSCToCSR(const DistSparseMatrix<T>& sparseA, DistSparseMatrix<T> & sparseB ){
+template <typename T> void CSCToCSR(DistSparseMatrix<T>& sparseA, DistSparseMatrix<T> & sparseB ){
 
 
     Int mpirank;
@@ -1347,7 +1347,7 @@ template <typename T> void CSCToCSR(const DistSparseMatrix<T>& sparseA, DistSpar
       /* Allgatherv for row indices. */ 
       IntNumVec prevnz(mpisize);
       IntNumVec rcounts(mpisize);
-      MPI_Allgather(&sparseA.nnzLocal, 1, MPI_INT, rcounts.Data(), 1, MPI_INT, sparseA.comm);
+      MPI_Allgather((void*)&sparseA.nnzLocal, 1, MPI_INT, rcounts.Data(), 1, MPI_INT, sparseA.comm);
 
       prevnz[0] = 0;
       for (Int i = 0; i < mpisize-1; ++i) { prevnz[i+1] = prevnz[i] + rcounts[i]; } 

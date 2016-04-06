@@ -235,19 +235,25 @@ LinearInterpolation (
   Int numXX = xx.size();
 
   for( Int i = 1; i < numX; i++ ){
-    if( x[i] <= x[i-1] ) 
-      #ifdef USE_ABORT
+    if( x[i] <= x[i-1] ){ 
+#ifdef USE_ABORT
 abort();
 #endif
+//statusOFS<<"x["<<i<<"] = "<<x[i]<<std::endl;
+//statusOFS<<"x["<<i-1<<"] = "<<x[i-1]<<std::endl;
+//statusOFS<<"x"<<x<<std::endl;
 throw std::runtime_error("x must be sorted strictly ascendingly.");
+}
   }
 
   for( Int i = 1; i < numXX; i++){
-    if( xx[i] < xx[i-1] )
+    if( xx[i] < xx[i-1] ){
       #ifdef USE_ABORT
 abort();
 #endif
+//statusOFS<<"xx"<<x<<std::endl;
 throw std::runtime_error("xx must be sorted ascendingly.");
+}
   }
 
 

@@ -12,7 +12,6 @@ DEPS = ${SRCS_CPP:.cpp=.d} ${SRCS_C:.c=.d}
 EXES = ${SRCS_CPP:.cpp=} ${SRCS_C:.c=} 
 
 # Compilation replacement rules
-
 %.o: %.c
 	${CC} -c ${CFLAGS} ${CCDEFS} $< 
 %.o: %.cpp
@@ -22,37 +21,35 @@ EXES = ${SRCS_CPP:.cpp=} ${SRCS_C:.c=}
 %.o: %.F
 	${FC} -c ${FFLAGS} $<
 
-all: f_driver_ksdft f_driver_pselinv_real f_driver_pselinv_complex
+all: f_driver_ksdft f_driver_pselinv_real f_driver_pselinv_complex \
+ 	f_driver_pselinv_real_unsym f_driver_pselinv_complex_unsym
 
 f_driver_ksdft: f_interface.o f_driver_ksdft.o ${PEXSI_LIB} 
-	($(FC) -o $@_${SUFFIX} f_driver_ksdft.o  $(FLOADOPTS) )
+	($(FC) -o $@ f_driver_ksdft.o  $(FLOADOPTS) )
 
 f_driver_ksdft.o: f_driver_ksdft.f90
 	  ${FC} -c ${FFLAGS} $<
 
-
 f_driver_pselinv_real: f_interface.o f_driver_pselinv_real.o ${PEXSI_LIB} 
-	($(FC) -o $@_${SUFFIX} f_driver_pselinv_real.o  $(FLOADOPTS) )
+	($(FC) -o $@ f_driver_pselinv_real.o  $(FLOADOPTS) )
 
 f_driver_pselinv_real.o: f_driver_pselinv_real.f90
 	  ${FC} -c ${FFLAGS} $<
 
-
 f_driver_pselinv_complex: f_interface.o f_driver_pselinv_complex.o ${PEXSI_LIB} 
-	($(FC) -o $@_${SUFFIX} f_driver_pselinv_complex.o  $(FLOADOPTS) )
+	($(FC) -o $@ f_driver_pselinv_complex.o  $(FLOADOPTS) )
 
 f_driver_pselinv_complex.o: f_driver_pselinv_complex.f90
 	  ${FC} -c ${FFLAGS} $<
 
 f_driver_pselinv_real_unsym: f_interface.o f_driver_pselinv_real_unsym.o ${PEXSI_LIB} 
-	($(FC) -o $@_${SUFFIX} f_driver_pselinv_real_unsym.o  $(FLOADOPTS) )
+	($(FC) -o $@ f_driver_pselinv_real_unsym.o  $(FLOADOPTS) )
 
 f_driver_pselinv_real_unsym.o: f_driver_pselinv_real_unsym.f90
 	  ${FC} -c ${FFLAGS} $<
 
-
 f_driver_pselinv_complex_unsym: f_interface.o f_driver_pselinv_complex_unsym.o ${PEXSI_LIB} 
-	($(FC) -o $@_${SUFFIX} f_driver_pselinv_complex_unsym.o  $(FLOADOPTS) )
+	($(FC) -o $@ f_driver_pselinv_complex_unsym.o  $(FLOADOPTS) )
 
 f_driver_pselinv_complex_unsym.o: f_driver_pselinv_complex_unsym.f90
 	  ${FC} -c ${FFLAGS} $<
@@ -61,7 +58,7 @@ f_interface.o: f_interface.f90
 	  ${FC} -c ${FFLAGS} $<
 
 f_ppexsi_old: f_ppexsi_old.o ${PEXSI_LIB} 
-	  ($(FC) -o $@_${SUFFIX} f_ppexsi_old.o  $(FLOADOPTS) )
+	  ($(FC) -o $@ f_ppexsi_old.o  $(FLOADOPTS) )
 
 f_ppexsi_old.o: f_ppexsi_old.f90
 	  ${FC} -c ${FFLAGS} $<
@@ -73,4 +70,3 @@ ${PEXSI_LIB}:
 
 cleanall:
 	rm -f ${EXES} ${OBJS} ${DEPS} *.d.* *.o *.mod
-	rm -f f_driver_ksdft_${SUFFIX} f_driver_pselinv_real_${SUFFIX} f_driver_pselinv_complex_${SUFFIX}

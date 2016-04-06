@@ -47,6 +47,7 @@
 #define _PEXSI_ENVIRONMENT_HPP_
 
 #include <mpi.h>
+
 // STL libraries
 #include <iostream> 
 #include <iomanip> 
@@ -76,8 +77,6 @@
 #include <stdint.h>
 
 // MPI
-//#include <mpi.h>
-
 
 
 // *********************************************************************
@@ -138,7 +137,7 @@ extern  std::ofstream  statOFS;
 extern std::deque<int > gemm_stat;
 #endif
 
-#ifdef COMM_PROFILE
+#if defined(COMM_PROFILE) || defined(COMM_PROFILE_BCAST)
 extern  std::ofstream  commOFS;
 #include <deque>
 extern std::deque<int > comm_stat;

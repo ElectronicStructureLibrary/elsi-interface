@@ -66,15 +66,10 @@ namespace PEXSI{
     ///
     /// ColPerm = "PARMETIS"
     Int              numProcSymbFact;
-    /// @brief The maximum pipeline depth. 
-    ///
-    /// @todo
-    /// This option should not be here and should be moved into PMatrix.
-    Int              maxPipelineDepth; 
 
-    /// @brief Option of matrix permutation strategy.
+    /// @brief Option of matrixi column permutation strategy.
     ///
-    /// The following options of permutation strategy is available (case
+    /// The following options of column permutation strategy are available (case
     /// sensitive):
     ///
     /// - "MMD_AT_PLUS_A": Multiple minimum degree ordering. This is the
@@ -83,13 +78,43 @@ namespace PEXSI{
     /// requires the usage of METIS package.
     /// - "PARMETIS": Parallel ordering. This requires the usage of
     /// ParMETIS/PT-SCOTCH package.
+    /// - "NATURAL": No ordering. This lead to SIGNIFICANTLY higher 
+    /// computational and storage costs.
     ///
     std::string      ColPerm;
 
+    /// @brief Option of matrix row permutation strategy.
+    ///
+    /// The following options of row permutation strategy are available (case
+    /// sensitive):
+    ///
+    /// - "LargeDiag": Make the diagonal large relative to off-diagonal elements (MC64).
+    /// - "NOROWPERM": No row permutation. This might lead to numerically unstable
+    /// factorization, and selected inversion.
+    ///
     std::string      RowPerm;
 
+    /// @brief Option whether to equilibrate the system.
+    /// 
+    /// The following options of equilibration strategy are available (case
+    /// sensitive):
+    /// 
+    /// - "YES": Scale A's rows and columns to have unit norm.
+    /// - "NO": Don't equilibrate the system.
+    /// 
+    std::string      Equil;
+
+    /// @brief Option to specify if matrix is symmetric or not.
+    Int              Symmetric;
+
+    /// @brief Option to specify whether selected elements should 
+    /// be computed in the pattern of the transposed matrix or not.
+    /// Note that this has an impact only for unsymmetric matrices.
+    Int              Transpose;
+
+
     // Member functions to setup the default value
-    SuperLUOptions(): numProcSymbFact(0), maxPipelineDepth(-1), ColPerm("MMD_AT_PLUS_A"), RowPerm("NOROWPERM") {}
+    SuperLUOptions(): numProcSymbFact(0), ColPerm("MMD_AT_PLUS_A"), Symmetric(1), RowPerm("NOROWPERM"), Transpose(0), Equil("NO") {}
   };
 
 

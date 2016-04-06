@@ -44,6 +44,8 @@
 /// @brief Main class for parallel %PEXSI.
 /// @date Original:      2012-11-20  Initially started.
 /// @date Revision:      2014-03-09  Second generation interface.
+/// @date Revision:      2015-11-25  Update strategy with pole
+/// expansion.
 #ifndef _PPEXSI_HPP_
 #define _PPEXSI_HPP_
 #include "pexsi/environment.hpp"
@@ -55,6 +57,7 @@
 #include "pexsi/SuperLUGrid.hpp"
 #include "pexsi/superlu_dist_interf.hpp"
 #include "pexsi/pselinv.hpp"
+#include	"pexsi/pselinv_unsym.hpp"
 //#include "pexsi/ngchol_interf.hpp"
 //#include "pexsi/c_pexsi_interface.h"
 
@@ -110,9 +113,12 @@ namespace PEXSI{
     SuperLUMatrix<Complex>*    luComplexMat_;
 
     SuperLUOptions             luOpt_;
+    PSelInvOptions             selinvOpt_;
 
     PMatrix<Real>*             PMRealMat_;
     PMatrix<Complex>*          PMComplexMat_;
+    PMatrixUnsym<Real>*        PMRealUnsymMat_;
+    PMatrixUnsym<Complex>*     PMComplexUnsymMat_;
 
     // Whether the matrices have been loaded into HRealMat_ and
     // SRealMat_
@@ -121,6 +127,8 @@ namespace PEXSI{
     // information
     bool                       isRealSymmetricSymbolicFactorized_;
     bool                       isComplexSymmetricSymbolicFactorized_;
+    bool                       isRealUnsymmetricSymbolicFactorized_;
+    bool                       isComplexUnsymmetricSymbolicFactorized_;
     // Supernode partition for the real matrix
     SuperNodeType              superReal_;             
     // Supernode partition for the complex matrix
@@ -164,6 +172,18 @@ namespace PEXSI{
         Real*         SnzvalLocal,
         Int           verbosity );
 
+    void LoadRealUnsymmetricMatrix(
+        Int           nrows,                        
+        Int           nnz,                          
+        Int           nnzLocal,                     
+        Int           numColLocal,                  
+        Int*          colptrLocal,                  
+        Int*          rowindLocal,                  
+        Real*         HnzvalLocal,                  
+        Int           isSIdentity,                  
+        Real*         SnzvalLocal,
+        Int           verbosity );
+
 
     
     /// @brief Symbolically factorize the loaded matrices for real
@@ -185,6 +205,31 @@ namespace PEXSI{
 				Int                            numProcSymbFact,
         Int                            verbosity );
  
+    /// @brief Symbolically factorize the loaded matrices for real
+    /// arithmetic factorization and selected inversion.
+    ///
+    /// The symbolic information is saved internally at luRealMat_ and
+    /// PMRealMat_.
+    ///
+		/// @param[in] ColPerm   Permutation method used for SuperLU_DIST
+		/// @param[in] RowPerm   Row Permutation method used for SuperLU_DIST
+		///
+		/// @param[in] numProcSymbFact Number of processors used for parallel
+		/// symbolic factorization and PARMETIS/PT-SCOTCH.
+		/// @param[in] Transpose TODO
+		/// @param[in] AnzvalLocal non zero values for row permutation 
+    /// @param[in] verbosity The level of output information.
+    /// - = 0   : No output.
+    /// - = 1   : Basic output (default)
+    /// - = 2   : Detailed output.
+    void SymbolicFactorizeRealUnsymmetricMatrix(
+				std::string                    ColPerm,
+        std::string                    RowPerm,
+				Int                            numProcSymbFact,
+        Int                            Transpose,
+        double*                        AnzvalLocal,                  
+        Int                            verbosity );
+
    
     /// @brief Symbolically factorize the loaded matrices for complex
     /// arithmetic factorization and selected inversion.
@@ -205,15 +250,55 @@ namespace PEXSI{
 				Int                            numProcSymbFact,
         Int                            verbosity );
 
+    /// @brief Symbolically factorize the loaded matrices for complex
+    /// arithmetic factorization and selected inversion.
+    ///
+    /// The symbolic information is saved internally at luComplexMat_ and
+    /// PMComplexUnsymMat_.
+    ///
+		/// @param[in] ColPerm   Permutation method used for SuperLU_DIST
+		/// @param[in] RowPerm   Row Permutation method used for SuperLU_DIST
+		///
+		/// @param[in] numProcSymbFact Number of processors used for parallel
+		/// symbolic factorization and PARMETIS/PT-SCOTCH.
+		/// @param[in] Transpose TODO
+		/// @param[in] AnzvalLocal non zero values for row permutation 
+    /// @param[in] verbosity The level of output information.
+    /// - = 0   : No output.
+    /// - = 1   : Basic output (default)
+    /// - = 2   : Detailed output.
+    void SymbolicFactorizeComplexUnsymmetricMatrix(
+				std::string                    ColPerm,
+        std::string                    RowPerm,
+				Int                            numProcSymbFact,
+        Int                            Transpose,
+        double*                        AnzvalLocal,                  
+        Int                            verbosity );
+
+
+
     void SelInvRealSymmetricMatrix(
           double*           AnzvalLocal,                  
           Int               verbosity,
           double*           AinvnzvalLocal );
 
+    void SelInvRealUnsymmetricMatrix(
+          double*           AnzvalLocal,                  
+          Int               verbosity,
+          double*           AinvnzvalLocal );
+
+
     void SelInvComplexSymmetricMatrix(
           double*           AnzvalLocal,                  
           Int               verbosity,
           double*           AinvnzvalLocal );
+
+    void SelInvComplexUnsymmetricMatrix(
+          double*           AnzvalLocal,                  
+          Int               verbosity,
+          double*           AinvnzvalLocal );
+
+
 
 		/// @brief Compute the negative inertia (the number of eigenvalues
 		/// below a shift) for real symmetric matrices.  The factorization
@@ -314,6 +399,81 @@ namespace PEXSI{
         Real&      muMaxInertia,             
         Int&       numTotalInertiaIter,   
         Int&       numTotalPEXSIIter );
+
+
+
+    /// @brief Compute the Fermi operator and derivied quantities.
+		/// 
+    /// This routine also updates the chemical potential mu by reusing
+    /// Green's functions but with updated contour.
+    ///
+    /// This routine also computes the single particle density matrix,
+    /// the Helmholtz free energy density matrix, and the energy density
+    /// matrix (for computing the Pulay force) simultaneously.   These
+    /// matrices can be called later via member functions DensityMatrix,
+    /// FreeEnergyDensityMatrix, EnergyDensityMatrix.
+		///
+		/// @param[in] numPole Number of poles for the pole expansion
+		///	@param[in] temperature  Temperature
+		/// @param[in] gap Band gap
+		/// @param[in] deltaE Upperbound of the spectrum width
+		/// @param[in] numElectronExact  Exact number of electrons.
+    /// @param[in] numElectronTolerance  Tolerance for the number of
+    /// electrons. This is just used to discard some poles in the pole
+    /// expansion.
+    /// @param[in] muMinPEXSI Minimum of the interval for searching mu.
+    /// @param[in] muMaxPEXSI Maximum of the interval for searching mu.
+    /// @param[in] verbosity The level of output information.
+    /// - = 0   : No output.
+    /// - = 1   : Basic output (default)
+    /// - = 2   : Detailed output.
+		/// @param[in,out] mu Initial guess of chemical potential. On return
+    /// it gives the updated chemical potential within the range of
+    /// [muMinPEXSI, muMaxPEXSI]
+    /// @param[out] numElectron The number of electron calculated at mu.
+    /// @param[out] isConverged Whether the update strategy for finding
+    /// the chemical potential has converged.
+		void CalculateFermiOperatorReal2(
+				Int   numPole, 
+				Real  temperature,
+				Real  gap,
+				Real  deltaE,
+        Real  numElectronExact, 
+        Real  numElectronTolerance,
+        Real  muMinPEXSI,
+        Real  muMaxPEXSI,
+        Int   verbosity,
+				Real& mu,
+        Real& numElectron, 
+        bool& isPEXSIConverged );
+
+    /// @brief Updated main driver for DFT. This reuses the pole
+    /// expansion and only performs one PEXSI iteration per SCF step.
+    void DFTDriver2(
+        Real       numElectronExact,
+        Real       temperature,
+        Real       gap,
+        Real       deltaE,
+        Int        numPole, 
+        Int        isInertiaCount,
+        Real       muMin0,
+        Real       muMax0,
+        Real       mu0,
+        Real       muInertiaTolerance,
+        Real       muInertiaExpansion,
+        Real       numElectronPEXSITolerance,
+        Int        matrixType,
+        Int        isSymbolicFactorize,
+        Int        ordering,
+        Int        numProcSymbFact,
+        Int        verbosity,
+        Real&      muPEXSI,                   
+        Real&      numElectronPEXSI,         
+        Real&      muMinInertia,              
+        Real&      muMaxInertia,             
+        Int&       numTotalInertiaIter );
+
+
 
 
     // *********************************************************************

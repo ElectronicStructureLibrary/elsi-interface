@@ -1182,7 +1182,7 @@ USE_MATHJAX            = YES
 # However, it is strongly recommended to install a local
 # copy of MathJax from http://www.mathjax.org before deployment.
 
-MATHJAX_RELPATH        = https://math.berkeley.edu/~linlin/MathJax-2.5
+MATHJAX_RELPATH        = https://math.berkeley.edu/~linlin/MathJax-2.6
 #MATHJAX_RELPATH        = ../MathJax-2.5 
 #http://cdn.mathjax.org/mathjax/latest
 

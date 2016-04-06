@@ -247,7 +247,6 @@ typedef struct {
     int           isSymbolicFactorize;
     /** 
      * @brief  Whether to construct PSelInv communication pattern.
-     * This option is NOT used for now (v0.8.0).
      */ 
     int           isConstructCommPattern;
     /** 
@@ -262,6 +261,15 @@ typedef struct {
      */ 
     int           ordering;
     /** 
+     * @brief  row permutation strategy for factorization and selected
+     * inversion.  
+     * - = 0   : No row permutation (NOROWPERM
+     *   option in SuperLU_DIST).
+     * - = 1   : Make diagonal entry larger than off diagonal ( LargeDiag
+     *   option in SuperLU_DIST).
+     */ 
+    int           rowOrdering;
+    /** 
      * @brief  Number of processors for PARMETIS/PT-SCOTCH.  Only used
      * if the ordering == 0.
      */ 
@@ -272,6 +280,12 @@ typedef struct {
      * - = 1   : Symmetric matrix (default).
      */ 
     int           symmetric;
+    /** 
+     * @brief  Transpose.
+     * - = 0   : Factor non transposed matrix (default).
+     * - = 1   : Factor transposed matrix.
+     */ 
+    int           transpose;
     /** 
      * @brief  The level of output information.
      * - = 0   : No output.
@@ -321,16 +335,9 @@ void PPEXSISetDefaultOptions(
  * for each pole.
  * @param[in] outputFileIndex (local) The index for the %PEXSI output file.  For
  * instance, if this index is 1, then the corresponding processor will
- * output to the file `logPEXSI1`.  (starting from v0.8.0) If
- * outputFileIndex is negative, then * this processor does NOT output
- * logPEXSI files.
- * **Note** Each processor must output to a **different** file if
- * outputFileIndex is non-negative.  By default, outputFileIndex can be
- * set as mpirank.  When many processors are used, it is **not recommended** for all
- * processors to output the log files. This is because the IO takes time
- * and can be the bottleneck on many architecture. A good practice is to
- * let the master processor output information (generating `logPEXSI0`) or 
- * to let the master processor of each pole to output the information.
+ * output to the file `logPEXSI1`.  If the index is negative, then no output file is given.
+ * **Note** Each processor must output to a **different** file.  By
+ * default, outputFileIndex can be set as mpirank.
  * @param[out] info (local) whether the current processor returns the correct information.
  * - = 0: successful exit.  
  * - > 0: unsuccessful.
@@ -511,6 +518,7 @@ void PPEXSILoadRealUnsymmetricHSMatrix(
  * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
  * data structure.
  * @param[in] options (global) Other input parameters for the DFT driver.  
+ * @param[in] AnzvalLocal non zero values required to compute row permutation
  * @param[out] info (local) whether the current processor returns the correct information.
  * - = 0: successful exit.  
  * - > 0: unsuccessful.
@@ -518,6 +526,7 @@ void PPEXSILoadRealUnsymmetricHSMatrix(
 void PPEXSISymbolicFactorizeRealUnsymmetricMatrix(
     PPEXSIPlan        plan,
     PPEXSIOptions     options,
+    double*           AnzvalLocal,                  
     int*              info );
 
 /**
@@ -527,6 +536,7 @@ void PPEXSISymbolicFactorizeRealUnsymmetricMatrix(
  * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
  * data structure.
  * @param[in] options (global) Other input parameters for the DFT driver.  
+ * @param[in] AnzvalLocal non zero values required to compute row permutation
  * @param[out] info (local) whether the current processor returns the correct information.
  * - = 0: successful exit.  
  * - > 0: unsuccessful.
@@ -534,6 +544,7 @@ void PPEXSISymbolicFactorizeRealUnsymmetricMatrix(
 void PPEXSISymbolicFactorizeComplexUnsymmetricMatrix(
     PPEXSIPlan        plan,
     PPEXSIOptions     options,
+    double*           AnzvalLocal,                  
     int*              info );
 
 
@@ -845,6 +856,85 @@ void PPEXSIDFTDriver(
     int*              info );
 
 /**
+ * @brief Simplified driver for solving Kohn-Sham DFT. Version 2. This
+ * is still in test phase.
+ * 
+ * This function contains both the inertia counting step for estimating
+ * the chemical potential, and strategy for updating the chemical
+ * potential WITHOUT Newton's iteration.  Heuristics are built into this
+ * routine.  Expert users and developers can modify this routine to
+ * obtain better heuristics.  The implementation of this function
+ * contains **all** the heuristics for a DFT solver.
+ *
+ * The input parameter options are controlled through the structure
+ * PPEXSIOptions.  The default value can be obtained through
+ * PPEXSISetDefaultOptions.
+ *
+ * **Basic strategy of the heuristics**
+ *
+ * - If isInertiaCount == 1, then the inertia counting procedure is
+ * invoked until the chemical potential interval is refined from size
+ * (muMax0-muMin0) to muInertiaTolerance, or the estimated band gap is
+ * larger than muInertiaTolerance.
+ * - The number of shifts in the inertia count is always automatically
+ * chosen to be (mpisize / npPerPole). This minimizes the wall clock
+ * time of the inertia counting procedure.
+ *
+ * **Input/Output**
+ *
+ * The input H and S matrices should be given by loading functions
+ * (currently it is PPEXSILoadRealSymmetricHSMatrix).  The output
+ * matrices should be obtained from retrieving functions (currently it
+ * is PPEXSIRetrieveRealSymmetricDFTMatrix).
+ *
+ *
+ * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
+ * data structure.
+ * @param[in] options (global) Other input parameters for the DFT driver.  
+ * @param[in] numElectronExact (global) Exact number of electrons, i.e.
+ * \f$N_e(\mu_{\mathrm{exact}})\f$.
+ * @param[out]  DMnzvalLocal (local)  Dimension: nnzLocal.  Nonzero value
+ * of density matrix in CSC format.
+ * @param[out] EDMnzvalLocal (local)  Dimension: nnzLocal.  Nonzero
+ * value of energy density matrix in CSC format.
+ * @param[out] FDMnzvalLocal (local)  Dimension: nnzLocal.  Nonzero
+ * value of free energy density matrix in CSC format.
+ * @param[out] muPEXSI      (global) Chemical potential after the last
+ * iteration.
+ * - In the case that convergence is reached within maxPEXSIIter steps, the
+ * value of muPEXSI is the last mu used to achieve accuracy within
+ * numElectronPEXSITolerance.
+ * - In the case that convergence is not reached within maxPEXSIIter steps,
+ * and the update from Newton's iteration does not exceed
+ * muPEXSISafeGuard, the value of muPEXSI is the last mu plus the update
+ * from Newton's iteration.
+ * @param[out] numElectronPEXSI (global) Number of electrons
+ * evaluated at the last step.  
+ * **Note** In the case that convergence is not reached within maxPEXSIIter steps,
+ * and numElectron does not correspond to the number of electrons
+ * evaluated at muPEXSI.
+ * @param[out] muMinInertia (global) Lower bound for mu after the last
+ * inertia count procedure.
+ * @param[out] muMaxInertia (global) Upper bound for mu after the last
+ * inertia count procedure.
+ * @param[out] numTotalInertiaIter (global) Number of total inertia
+ * counting procedure.
+ * @param[out] info (local) whether the current processor returns the correct information.
+ * - = 0: successful exit.  
+ * - > 0: unsuccessful.
+ */
+void PPEXSIDFTDriver2(
+    PPEXSIPlan        plan,
+    PPEXSIOptions     options,
+    double            numElectronExact,
+		double*           muPEXSI,
+		double*           numElectronPEXSI,
+    double*           muMinInertia,
+		double*           muMaxInertia,
+		int*              numTotalInertiaIter,
+    int*              info );
+
+/**
  * @brief Retrieve the output matrices after running PPEXSIDFTDriver.
 
  *
@@ -888,6 +978,65 @@ void PPEXSIPlanFinalize(
     PPEXSIPlan plan, 
     int*       info );
 
+/**
+ * @brief Pole expansion for density matrix (DM).
+ *
+ * @param[out] zshift  (global) Quadrature point (shift).
+ * @param[out] zweight (global) Quadrature weight.
+ * @param[in]  Npole   (global) Number of poles.
+ * @param[in]  temp    (global) Temperature (unit: au).
+ * @param[in]  gap     (global) Energy gap (unit: au).
+ * @param[in]  deltaE  (global) Spectral radius (unit: au).
+ * @param[in]  mu      (global) Chemical potential (unit: au).
+ */
+void PPEXSIGetPoleDM( 
+    double*       zshift,
+    double*       zweight,
+    int           Npole,
+    double        temp,
+    double        gap,
+    double        deltaE,
+    double        mu );
+
+/**
+ * @brief Pole expansion for energy density matrix (EDM).
+ *
+ * @param[out] zshift  (global) Quadrature point (shift).
+ * @param[out] zweight (global) Quadrature weight.
+ * @param[in]  Npole   (global) Number of poles.
+ * @param[in]  temp    (global) Temperature (unit: au).
+ * @param[in]  gap     (global) Energy gap (unit: au).
+ * @param[in]  deltaE  (global) Spectral radius (unit: au).
+ * @param[in]  mu      (global) Chemical potential (unit: au).
+ */
+void PPEXSIGetPoleEDM( 
+    double*       zshift,
+    double*       zweight,
+    int           Npole,
+    double        temp,
+    double        gap,
+    double        deltaE,
+    double        mu );
+
+/**
+ * @brief Pole expansion for free energy density matrix (FDM).
+ *
+ * @param[out] zshift  (global) Quadrature point (shift).
+ * @param[out] zweight (global) Quadrature weight.
+ * @param[in]  Npole   (global) Number of poles.
+ * @param[in]  temp    (global) Temperature (unit: au).
+ * @param[in]  gap     (global) Energy gap (unit: au).
+ * @param[in]  deltaE  (global) Spectral radius (unit: au).
+ * @param[in]  mu      (global) Chemical potential (unit: au).
+ */
+void PPEXSIGetPoleFDM( 
+    double*       zshift,
+    double*       zweight,
+    int           Npole,
+    double        temp,
+    double        gap,
+    double        deltaE,
+    double        mu );
 
 #ifdef __cplusplus
 }// extern "C"

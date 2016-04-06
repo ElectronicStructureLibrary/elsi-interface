@@ -6,7 +6,7 @@ SEQ_ND_LIBRARY   = scotch
 
 # Different compiling and linking options.
 # Marenostrum machine in Barcelona. IBM machine
-SUFFIX       = mn
+SUFFIX       = mn_v0.9.2
 
 # Compiler and tools
 ################################################################
@@ -30,9 +30,10 @@ RMFLAGS      = -f
 
 # PEXSI directory
 PEXSI_DIR     = $(HOME)/pexsi
+PEXSI_BUILD_DIR = $(PEXSI_DIR)/build
 
 # Required libraries directories
-DSUPERLU_DIR  = $(HOME)/Software/SuperLU_DIST_3.3
+DSUPERLU_DIR  = $(HOME)/Software/SuperLU_DIST_4.3
 PARMETIS_DIR  = $(HOME)/Software/parmetis-4.0.2/build/Linux-x86_64
 SCOTCH_DIR    = $(HOME)/Software/scotch_6.0.0
 
@@ -49,7 +50,7 @@ SCALAPACK_LIB    =-Wl,-rpath,/apps/INTEL/mkl/lib/intel64/ -L/apps/INTEL/mkl/lib/
 METIS_LIB        = -L${PARMETIS_DIR}/libmetis -lmetis
 PARMETIS_LIB     = -L${PARMETIS_DIR}/libparmetis -lparmetis
 SCOTCH_LIB       = -L${SCOTCH_DIR}/lib -lptscotchparmetis -lptscotch -lptscotcherr -lscotch
-DSUPERLU_LIB     = ${DSUPERLU_DIR}/lib/libsuperlu_dist_3.3.a
+DSUPERLU_LIB     = ${DSUPERLU_DIR}/lib/libsuperlu_dist_4.3.a
 PEXSI_LIB        = ${PEXSI_DIR}/src/libpexsi_${SUFFIX}.a
 
 # Different compiling and linking options.
@@ -84,14 +85,14 @@ LIBS  = ${PEXSI_LIB} ${DSUPERLU_LIB} ${PAR_ND_LIB} ${SEQ_ND_LIB} ${SCALAPACK_LIB
 COMPILE_DEF  += -DAdd_
 
 CPPFLAG = -std=c++11
-FLOADOPTS    = ${LIBS} -lstdc++
 
-CFLAGS       = ${COMPILE_FLAG} ${PROFILE_FLAG} ${INCLUDES}
+CFLAGS       = ${COMPILE_FLAG} ${PROFILE_FLAG} ${INCLUDES} -std=c99
 FFLAGS       = ${COMPILE_FLAG} ${PROFILE_FLAG} ${INCLUDES}
 CXXFLAGS     = ${COMPILE_FLAG} ${CPPFLAG} ${PROFILE_FLAG} ${INCLUDES} 
 CCDEFS       = ${COMPILE_DEF} 
 CPPDEFS      = ${COMPILE_DEF} 
-LOADOPTS     = ${PROFILE_FLAG} ${LIBS}
+LOADOPTS     = ${PROFILE_FLAG} ${LIBS} -Wl,--allow-multiple-definition
+FLOADOPTS    = ${LIBS} -lstdc++ -Wl,--allow-multiple-definition
 
 
 # Generate auto-dependencies 

@@ -70,7 +70,7 @@ call mpi_init( ierr )
 call mpi_comm_rank( MPI_COMM_WORLD, mpirank, ierr )
 call mpi_comm_size( MPI_COMM_WORLD, mpisize, ierr )
 
-Hfile            = "lap2dr.matrix"
+Hfile            = "big.unsym.matrix"
 
 nprow = 1
 npcol = 1
