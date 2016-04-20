@@ -14,7 +14,7 @@ AM_CFLAGS   = -I$(top_builddir)/external/PEXSI/include -I$(top_builddir)/externa
 AM_CXXFLAGS = -I$(top_builddir)/external/PEXSI/include -I$(top_builddir)/external/include
 
 libpexsi_a_SOURCES = pdsymbfact.c pzsymbfact.c get_perm_c_parmetis.c \
-                     interface.cpp ppexsi.cpp pole.cpp \
+                     interface.cpp ppexsi.cpp pole.cpp TreeBcast.cpp \
 		     superlu_dist_internal_complex.cpp superlu_dist_internal_real.cpp \
 		     mpi_interf.cpp lapack.cpp blas.cpp utility.cpp global.cpp timer.cpp \
                      f_interface.f90 
