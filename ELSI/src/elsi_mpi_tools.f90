@@ -58,6 +58,7 @@ module ELSI_MPI_TOOLS
   public :: elsi_matrix_print
   public :: elsi_statement_print
   public :: elsi_allocate
+  public :: elsi_sync_vector
 
   interface elsi_vector_print
      module procedure elsi_int_vector_print, &
@@ -127,7 +128,6 @@ subroutine elsi_set_mpi(global_comm, n_procs_in, myid_in)
    integer,intent(in) :: n_procs_in         !< number of mpi processes
    integer,intent(in) :: global_comm        !< global mpi communicator
 
-
    ! MPI Initialization
 
    external_mpi = .True.
@@ -136,7 +136,6 @@ subroutine elsi_set_mpi(global_comm, n_procs_in, myid_in)
    n_procs         = n_procs_in
    myid            = myid_in
 end subroutine
-
 
 !> 
 !! Finalize MPI
@@ -156,7 +155,6 @@ subroutine elsi_finalize_mpi()
    end if
 
 end subroutine
-
 
 !> 
 !! Initialize BLACS Grid
@@ -225,7 +223,6 @@ subroutine elsi_initialize_blacs()
         call elsi_stop("Pexsi Plan initialization faild.",&
               "elsi_initialize_blacs")
      end if
-
 
    else
      
@@ -328,7 +325,6 @@ subroutine elsi_set_blacs( blacs_ctxt_in, n_p_rows_in, n_p_cols_in, &
 
 end subroutine
 
-
 !> 
 !! Finalize BLACS grid
 !!
@@ -356,14 +352,12 @@ subroutine elsi_get_global_row (global_idx, local_idx)
    integer :: block !< local block 
    integer :: idx   !< local index in block
 
-
    block = FLOOR( 1d0 * (local_idx - 1) / n_b_rows) 
    idx = local_idx - block * n_b_rows
 
    global_idx = my_p_row * n_b_rows + block * n_b_rows * n_p_rows + idx
   
 end subroutine
-
 
 !> 
 !! Computes global column index based on local column index
@@ -433,7 +427,6 @@ subroutine elsi_get_processor_grid (rows, cols)
 
 end subroutine
 
-
 !> 
 !! Gets the row and column communicators for ELPA
 !!
@@ -452,7 +445,6 @@ end subroutine
 !> 
 !! Gets the process id 
 !!
-
 subroutine elsi_get_myid (id)
 
    implicit none
@@ -466,7 +458,6 @@ end subroutine
 !> 
 !! Debug printout of a matrix
 !!
-
 subroutine elsi_matrix_print (matrix, n_rows, n_cols, matrixname)
 
    implicit none
@@ -497,7 +488,6 @@ end subroutine
 !> 
 !! Debug printout of a vector
 !!
-
 subroutine elsi_int_vector_print (vector, n_dim, vectorname)
 
    implicit none
@@ -562,8 +552,6 @@ subroutine elsi_real_value_print (val, valname)
 
 end subroutine
 
-
-
 subroutine elsi_real_vector_print (vector, n_dim, vectorname)
 
    implicit none
@@ -588,11 +576,9 @@ subroutine elsi_real_vector_print (vector, n_dim, vectorname)
 
 end subroutine
 
-
 !> 
 !! Debug printout of a vector
 !!
-
 subroutine elsi_statement_print (message)
 
    implicit none
@@ -607,7 +593,6 @@ end subroutine
 !>
 !! Elsi allocation routines with error handling
 !!
-
 subroutine elsi_allocate_real_vector (vector, n_elements, vectorname, caller)
 
    implicit none
@@ -625,7 +610,6 @@ subroutine elsi_allocate_real_vector (vector, n_elements, vectorname, caller)
    real*8 :: memory
 
    memory = 8d0 * n_elements / 2d0**20
-
 
    !do id = 0, n_procs - 1
    !  if (myid == id) then
@@ -665,7 +649,6 @@ subroutine elsi_allocate_int_vector (vector, n_elements, vectorname, caller)
 
    memory = 4d0 * n_elements / 2d0**20
 
-
    !do id = 0, n_procs - 1
    !  if (myid == id) then
    !    write(*,"(A,I6,A,F10.3,A,A)") " Process ", id, " allocates ", &
@@ -673,7 +656,6 @@ subroutine elsi_allocate_int_vector (vector, n_elements, vectorname, caller)
    !  end if
    !  call MPI_Barrier(mpi_comm_global, mpierr)
    !end do 
-
 
    allocate(vector(n_elements), stat = error)
 
@@ -712,7 +694,6 @@ subroutine elsi_allocate_complex_vector (vector, n_elements, vectorname, caller)
    !  end if
    !  call MPI_Barrier(mpi_comm_global, mpierr)
    !end do 
-
 
    allocate(vector(n_elements), stat = error)
 
@@ -754,7 +735,6 @@ subroutine elsi_allocate_real_matrix (matrix, n_rows, n_cols, matrixname,&
    !  call MPI_Barrier(mpi_comm_global, mpierr)
    !end do 
 
-
    allocate(matrix(n_rows,n_cols), stat = error)
 
    if (error > 0) then 
@@ -794,7 +774,6 @@ subroutine elsi_allocate_int_matrix (matrix, n_rows, n_cols, matrixname,&
    !  end if
    !  call MPI_Barrier(mpi_comm_global, mpierr)
    !end do 
-
 
    allocate(matrix(n_rows,n_cols), stat = error)
 
@@ -836,7 +815,6 @@ subroutine elsi_allocate_complex_matrix (matrix, n_rows, n_cols, matrixname,&
    !  call MPI_Barrier(mpi_comm_global, mpierr)
    !end do 
 
-
    allocate(matrix(n_rows,n_cols), stat = error)
 
    if (error > 0) then 
@@ -846,6 +824,46 @@ subroutine elsi_allocate_complex_matrix (matrix, n_rows, n_cols, matrixname,&
    end if
 
    matrix = CMPLX(0d0,0d0) 
+
+end subroutine
+
+subroutine elsi_sync_vector (vector, dim, mpi_comm)
+
+   implicit none
+   include 'mpif.h'
+
+   integer :: dim
+   real*8 :: vector(dim)
+   integer :: mpi_comm
+
+   real*8, allocatable :: temp_mpi(:)
+
+   integer :: comm, i, len
+   integer :: mpierr
+
+   ! adjust if needed
+   integer, parameter :: max_len = 1000000
+
+   comm = mpi_comm
+
+   allocate(temp_mpi(min(dim,max_len)),stat=i)
+
+   do i=1,dim,max_len
+
+      if(dim-i+1 < max_len) then
+         len = dim-i+1
+      else
+         len = max_len
+      endif
+
+      call MPI_AllReduce(vector(i), temp_mpi, len, MPI_DOUBLE_PRECISION, &
+                         MPI_SUM, comm, mpierr)
+
+      vector(i:i-1+len) = temp_mpi(1:len)
+
+   enddo
+
+   deallocate(temp_mpi)
 
 end subroutine
 

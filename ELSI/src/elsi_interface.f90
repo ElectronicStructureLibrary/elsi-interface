@@ -579,9 +579,6 @@ end subroutine
 !!
 subroutine elsi_symmetrize_overlap()
 
-   !>
-  !!  This routine symmetrizes an upper or lower triangle overlap
-
   implicit none
 
   real*8,     allocatable :: buffer_real   (:,:)
@@ -1086,13 +1083,13 @@ end subroutine
 !>
 !!  This routine interfaces to the eigenvalue solvers
 !!
-subroutine elsi_solve_ev_problem(number_of_electrons)
+subroutine elsi_solve_ev_problem(number_of_states)
 
    implicit none
    include "mpif.h"
 
    !< Number of electrons in the system
-   real*8, intent(in) :: number_of_electrons 
+   real*8, intent(in) :: number_of_states
 
    logical :: success
    logical :: two_step_solver
@@ -1101,7 +1098,11 @@ subroutine elsi_solve_ev_problem(number_of_electrons)
    integer :: i_task
    character(len=4096) :: string_message
 
-   call elsi_statement_print("Solving Eigenvalue Problem")
+! Copies of H and S for solution check
+!   real*8, allocatable :: H_real_save (:,:) !< real valued matrix
+!   real*8, allocatable :: S_real_save (:,:) !< real valued matrix
+
+   call elsi_statement_print(" Solving Eigenvalue Problem")
    call elsi_start_solve_evp_time()
 
    if(method == ELPA .or. method == OMM_DENSE) then
@@ -1123,9 +1124,9 @@ subroutine elsi_solve_ev_problem(number_of_electrons)
       endif
    endif
 
-   n_electrons = number_of_electrons
 !   n_eigenvectors = ceiling(n_electrons/2d0)
-   n_eigenvectors = nint(n_electrons/2d0)
+!   n_eigenvectors = nint(n_electrons/2d0)
+   n_eigenvectors = number_of_states
 
    ! Debug
    !call elsi_print_setup()
@@ -1133,9 +1134,20 @@ subroutine elsi_solve_ev_problem(number_of_electrons)
 
    select case (method)
       case (ELPA)
+         ! Save H and S for solution check
+!         call elsi_allocate(H_real_save, n_l_rows, n_l_cols, &
+!                            "H_real_save", "check solution")
+!         call elsi_allocate(S_real_save, n_l_rows, n_l_cols, &
+!                            "S_real_save", "check solution")
+!         H_real_save = H_real
+!         S_real_save = S_real
+
+         ! Choose 1-stage or 2-stage solver
          two_step_solver = .True.
 
+         ! Transform to standard form
          if(.not. overlap_is_unity) then
+            call elsi_statement_print(" Tansforming to standard evp")
             call elsi_to_standard_eigenvalue_problem()
          endif
 
@@ -1147,34 +1159,37 @@ subroutine elsi_solve_ev_problem(number_of_electrons)
             two_step_solver = .False.
          endif
 
+         ! Solve evp, reture eigenvalues and eigenvectors
          if(two_step_solver) then
+            call elsi_statement_print(" Starting ELPA 2-stage solver")
             select case (mode)
                case (COMPLEX_VALUES)
                   success = solve_evp_complex_2stage( &
                             n_g_rank, n_eigenvectors, H_complex, &
                             n_l_rows, eigenvalues, vectors_complex, &
-                            n_l_rows, n_b_rows, n_l_cols,&
+                            n_l_rows, n_b_rows, n_l_cols, &
                             mpi_comm_row, mpi_comm_col, mpi_comm_global)
                case (REAL_VALUES)
                   success = solve_evp_real_2stage( &
                             n_g_rank, n_eigenvectors, H_real, &
                             n_l_rows, eigenvalues, vectors_real, &
-                            n_l_rows, n_b_rows, n_l_cols,&
+                            n_l_rows, n_b_rows, n_l_cols, &
                             mpi_comm_row, mpi_comm_col, mpi_comm_global)
             end select
          else
+            call elsi_statement_print(" Starting ELPA 1-stage solver")
             select case (mode)
                case (COMPLEX_VALUES)
                   success = solve_evp_complex( &
                             n_g_rank, n_eigenvectors, H_complex, &
                             n_l_rows, eigenvalues, vectors_complex, &
-                            n_l_rows, n_b_rows, n_l_cols,&
+                            n_l_rows, n_b_rows, n_l_cols, &
                             mpi_comm_row, mpi_comm_col)
                case (REAL_VALUES)
                   success = solve_evp_real( &
                             n_g_rank, n_eigenvectors, H_real, &
                             n_l_rows, eigenvalues, vectors_real, &
-                            n_l_rows, n_b_rows, n_l_cols,&
+                            n_l_rows, n_b_rows, n_l_cols, &
                             mpi_comm_row, mpi_comm_col)
             end select
 
@@ -1185,9 +1200,23 @@ subroutine elsi_solve_ev_problem(number_of_electrons)
                            "elsi_solve_ev_problem")
          endif
 
+         ! Back-transform eigenvectors
          if(.not. overlap_is_unity) then
+            call elsi_statement_print(" Transforming to original eigenvectors")
             call elsi_to_original_eigenvectors()
-         endif
+
+           ! Check solution
+!           call elsi_statement_print(" Checking the solution of evp")
+!           success = .true.
+!           H_real = H_real_save
+!           S_real = S_real_save
+
+!           call elsi_check_solution(success)
+
+!           deallocate(H_real_save)
+!           deallocate(S_real_save)
+
+        endif
 
       case (OMM_DENSE)
 
@@ -1225,13 +1254,6 @@ subroutine elsi_solve_ev_problem(number_of_electrons)
          ! Set the default options
          !TODO: User interface is missing
          call elsi_set_pexsi_default_options()
-
-         !call elsi_vector_print(H_real_sparse,n_l_nonzero,"H_real_sparse")
-         !call elsi_vector_print(S_real_sparse,n_l_nonzero,"S_real_sparse")
-         !call elsi_vector_print(sparse_index,n_l_nonzero,"sparse_index")
-         !call elsi_vector_print(sparse_pointer,n_l_cols + 1,"sparse_pointer")
-         !call elsi_value_print(n_g_nonzero,"n_g_nonzero")
-         !call elsi_value_print(n_l_nonzero,"n_l_nonzero")
 
          ! Load sparse matrices for PEXSI
          if(overlap_is_unity) then
@@ -1298,7 +1320,7 @@ subroutine elsi_get_eigenvalues(eigenvalues_out,n_eigenvalues)
    
    select case (method)
       case (ELPA)
-         eigenvalues_out(1:n_eigenvalues) = eigenvalues(1:n_eigenvalues)      
+         eigenvalues_out(1:n_eigenvalues) = eigenvalues(1:n_eigenvalues)
       case (OMM_DENSE)
          call elsi_stop("OMM_DENSE not implemented yet!","elsi_get_eigenvalues")
       case (PEXSI)
@@ -1313,17 +1335,60 @@ end subroutine
 
 !>
 !!  This routine gets the eigenvectors
+!!  NOTE! Each processor gets the same copy of eigenvectors,
+!!  i.e. vectors are no longer block-cyclic distributed on output
 !!
 subroutine elsi_get_eigenvectors(eigenvectors_out)
 
    implicit none
 
-!   integer, intent(in) :: n_eigenvectors !< Number of eigenvectors
-   real*8, intent(out) :: eigenvectors_out(n_l_rows, n_l_cols) !< eigenvectors 
+   real*8, intent(out) :: eigenvectors_out(n_g_rank,n_eigenvectors) !< eigenvectors
+
+   integer, allocatable :: local_row(:)
+   integer, allocatable :: local_col(:)
+   integer :: i_col, i_row, i, j
+   character*100, parameter :: caller = "elsi_get_eigenvectors"
 
    select case (method)
       case (ELPA)
-         eigenvectors_out(:,:) = vectors_real(:,:)
+         ! Mapping of global rows/cols to local
+         call elsi_allocate(local_row,n_g_rank,"local_row",caller)
+         call elsi_allocate(local_col,n_g_rank,"local_col",caller)
+         local_row(:) = 0
+         local_col(:) = 0
+
+         i_row = 0 ! local row counter
+         i_col = 0 ! local column counter
+
+         do i = 1, n_g_rank, 1
+            if(MOD((i-1)/n_b_rows,n_p_rows) == my_p_row) then
+              ! row i is on local processor
+               i_row = i_row+1
+               local_row(i) = i_row
+            endif
+
+            if(MOD((i-1)/n_b_cols,n_p_cols) == my_p_col) then
+              ! column i is on local processor
+               i_col = i_col+1
+               local_col(i) = i_col
+            endif
+         enddo
+
+         do i_col = 1, n_eigenvectors, 1
+            if(local_col(i_col) == 0) cycle
+            do i_row = 1, n_g_rank, 1
+               if(local_row(i_row)>0) then
+                  eigenvectors_out(i_row,i_col) = &
+                  vectors_real(local_row(i_row),local_col(i_col))
+               endif
+            enddo
+         enddo
+
+         deallocate(local_row)
+         deallocate(local_col)
+
+      call elsi_sync_vector(eigenvectors_out,n_g_rank*n_eigenvectors,mpi_comm_global)
+
       case (OMM_DENSE)
          call elsi_stop("OMM_DENSE not implemented yet!","elsi_get_eigenvectors")
       case (PEXSI)
@@ -1413,7 +1478,7 @@ subroutine elsi_finalize()
 
    call elsi_deallocate_matrices()
 
-   if (mode == PEXSI) call f_ppexsi_plan_finalize(pexsi_plan, pexsi_info)
+   if(mode == PEXSI) call f_ppexsi_plan_finalize(pexsi_plan, pexsi_info)
    
    call hdf5_finalize()
    
@@ -1421,9 +1486,9 @@ subroutine elsi_finalize()
 
    call elsi_print_timers()
 
-   if (.not.external_blacs) call elsi_finalize_blacs()
+   if(.not.external_blacs) call elsi_finalize_blacs()
 
-   if (.not.external_mpi)   call elsi_finalize_mpi()
+   if(.not.external_mpi)   call elsi_finalize_mpi()
 
 end subroutine
 
@@ -1490,17 +1555,11 @@ subroutine elsi_to_standard_eigenvalue_problem()
          endif
 
       case (OMM_DENSE)
-         ! Compute U
-         ! S contains then U
-         call cholesky_real(n_g_rank, S_real, n_l_rows, n_b_rows, n_l_cols, &
-                            mpi_comm_row, mpi_comm_col, .False., success)
-         if(.not.success) then
-            call elsi_stop("ELPA Cholesky decomposition of S failed.", & 
-                           "elsi_to_standard_eigenvalue_problem")
-         endif
+         call elsi_stop("OMM does not need to transform evp.", &
+                        "elsi_to_standard_eigenvalue_problem")
 
       case (PEXSI)
-         call elsi_stop("PEXSI not yet implemented.", &
+         call elsi_stop("PEXSI does not need to transform evp.", &
                         "elsi_to_standard_eigenvalue_problem")
       case DEFAULT
          call elsi_stop("No method has been chosen. " // &
@@ -1521,11 +1580,11 @@ end subroutine
 !!
 subroutine elsi_to_original_eigenvectors()
 
-!   logical :: success  !< Success flag
-!   real*8,     allocatable :: buffer_real (:,:) !< real valued matrix buffer
-!   complex*16, allocatable :: buffer_complex (:,:) !< complex valued matrix buffer
-
+   real*8, allocatable :: temp(:,:) !< real valued matrix buffer
    character*100, parameter :: caller = "elsi_to_original_eigenvectors"
+
+! Debug
+   integer :: i,j
 
    select case (method)
       case (ELPA)
@@ -1538,26 +1597,33 @@ subroutine elsi_to_original_eigenvectors()
                ! (U^-1) is stored in S_real after
                ! elsi_to_standard_eigenvalue_problem
                ! vectors_real = S_real * vectors_real
-               call pdgemm('N','N', n_g_rank, n_eigenvectors, n_g_rank, 1.0d0, &
-                           S_real, 1, 1, sc_desc, vectors_real, 1, 1, &
-                           sc_desc, 0.0d0, vectors_real, 1, 1, sc_desc)
+               call elsi_allocate(temp, n_l_rows, n_l_cols, "temp", caller)
+               temp = vectors_real
 
+               ! This alternative should work as well
+!               call pdtran(n_g_rank,n_g_rank,1.d0,S_real,1,1,sc_desc, &
+!                           0.d0,H_real,1,1,sc_desc)
+!               call mult_at_b_real('L','N',n_g_rank,n_eigenvectors,H_real,n_l_rows,temp,n_l_rows, &
+!                                   n_b_rows,mpi_comm_row,mpi_comm_col,vectors_real(1,1),n_l_rows)
+
+               call pdgemm('N', 'N', n_g_rank, n_eigenvectors, n_g_rank, 1.0d0, &
+                           S_real, 1, 1, sc_desc, temp, 1, 1, &
+                           sc_desc, 0.0d0, vectors_real(1,1), 1, 1, sc_desc)
+
+               deallocate(temp)
          end select
 
       case (OMM_DENSE)
-         call elsi_stop("OMM not yet implemented.", &
+         call elsi_stop("OMM does not need to transform evp.", &
                         "elsi_to_original_eigenvectors")
       case (PEXSI)
-         call elsi_stop("PEXSI not yet implemented.", &
+         call elsi_stop("PEXSI does not need to transform evp.", &
                         "elsi_to_original_eigenvectors")
       case DEFAULT
          call elsi_stop("No method has been chosen. " // &
                         "Please choose method ELPA, OMM_DENSE, or PEXSI.", &
                         "elsi_to_original_eigenvectors")
    end select
-
-!   if (allocated(buffer_real))    deallocate (buffer_real)
-!   if (allocated(buffer_complex)) deallocate (buffer_complex)
 
 end subroutine
 
@@ -1588,48 +1654,61 @@ subroutine elsi_check_solution(success)
       case (ELPA)
          select case (mode)
             case (COMPLEX_VALUES)
-                write(*,'(a)') "COMPLEX check not implemented yet!"
-                stop
+               write(*,'(a)') "COMPLEX check not implemented yet!"
+               stop
             case (REAL_VALUES)
-               call elsi_allocate (buffer1_real, n_l_rows, n_l_cols, &
-                     "buffer_1_real", caller)
-               call elsi_allocate (buffer2_real, n_l_rows, n_l_cols, &
-                     "buffer2_real", caller)
-               call elsi_allocate (buffer3_real, n_l_rows, n_l_cols, &
-                     "buffer3_real", caller)
+
+               call elsi_allocate(buffer1_real, n_l_rows, n_l_cols, &
+                                  "buffer_1_real", caller)
+               call elsi_allocate(buffer2_real, n_l_rows, n_l_cols, &
+                                  "buffer2_real", caller)
+               call elsi_allocate(buffer3_real, n_l_rows, n_l_cols, &
+                                  "buffer3_real", caller)
+
                buffer1_real = 0d0
-               ! H|C>
-               call pdgemm('N','N', n_g_rank, n_eigenvectors, 1.0d0, H_real, &
-                     1, 1, sc_desc, vectors_real, 1, 1, sc_desc, &
-                     0.0d0, buffer1_real, 1, 1, sc_desc)
+
+               ! H|C> -> buffer1
+               call pdgemm('N','N', n_g_rank, n_eigenvectors, n_g_rank, 1.0d0, &
+                           H_real, 1, 1, sc_desc, vectors_real, 1, 1, sc_desc, &
+                           0.0d0, buffer1_real, 1, 1, sc_desc)
 
                buffer2_real = vectors_real
+
+               ! e|C> -> buffer2
                do i_val = 1, n_eigenvectors
                   call pdscal(n_g_rank, eigenvalues(i_val), &
-                        buffer2_real, 1, i_val, sc_desc, 1)
-               end do
+                              buffer2_real, 1, i_val, sc_desc, 1)
+               enddo
 
-               call pdgemm('N','N', n_g_rank, buffer2_real, 1.0d0, S_real, &
-                     1, 1, sc_desc, vectors_real, 1, 1, sc_desc, &
-                     0.0d0, buffer3_real, 1, 1, sc_desc)
-               
+               ! eS|C> -> buffer3
+               call pdgemm('N','N', n_g_rank, n_eigenvectors, n_g_rank, 1.0d0, &
+                           S_real, 1, 1, sc_desc, buffer2_real, 1, 1, sc_desc, &
+                           0.0d0, buffer3_real, 1, 1, sc_desc)
+
+               ! eS|C> - H|C>
                buffer3_real = buffer3_real - buffer1_real
 
                do i_val = 1, n_eigenvectors
                   call pdnrm2(n_g_rank, norm, buffer3_real, 1, &
-                        i_val, sc_desc, 1)
-                  if (norm > 1d-10) then
-                    success = .False.
-                    if (myid == 0) print *, "Large Residuum: ", norm
-                  end if
-               end do
+                              i_val, sc_desc, 1)
+
+                  if(norm > 1d-10) then
+                     success = .False.
+                  endif
+
+                  if(myid == 0) print *, " Residual of eigenvector ",i_val,": ", norm
+
+               enddo
+
                deallocate(buffer1_real)
                deallocate(buffer2_real)
                deallocate(buffer3_real)
+
          end select
-         if (.not.success) then
+
+         if(.not.success) then
             call elsi_stop("ELPA failed.","elsi_check_solution")
-         end if
+         endif
 
       case (OMM_DENSE)
          call elsi_stop("OMM_DENSE not implemented yet!","elsi_check_solution")
@@ -1637,8 +1716,8 @@ subroutine elsi_check_solution(success)
          call elsi_stop("PEXSI not implemented yet!","elsi_check_solution")
       case DEFAULT
          call elsi_stop("No method has been chosen. "//&
-            "Please choose method ELPA, OMM_DENSE, or PEXSI",&
-            "elsi_check_solution")
+                        "Please choose method ELPA, OMM_DENSE, or PEXSI",&
+                        "elsi_check_solution")
    end select
 
 end subroutine
