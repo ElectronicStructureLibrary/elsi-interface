@@ -209,7 +209,7 @@ subroutine elsi_set_method(i_method)
       case (PEXSI)
       case DEFAULT
          call elsi_stop("No method has been chosen."//&
-               " Please choose method ELPA, OMM_DENSE, or PEXSI", "elsi_set_method")
+                        " Please choose method ELPA, OMM_DENSE, or PEXSI", "elsi_set_method")
    end select
 
 end subroutine
@@ -225,8 +225,8 @@ subroutine elsi_set_mode(i_mode)
 
    mode = i_mode
 
-   if (i_mode == COMPLEX_VALUES) then
-     call elsi_stop("COMPLEX VALUES not yet supported", "elsi_set_mode")
+   if(i_mode == COMPLEX_VALUES) then
+      call elsi_stop("COMPLEX VALUES not yet supported", "elsi_set_mode")
    end if
 
 end subroutine 
@@ -331,7 +331,7 @@ subroutine elsi_allocate_matrices()
 end subroutine
 
 !>
-!!  This routine sets the element (i_row, i_col) real hamiltonian matrix 
+!!  This routine sets the element (i_row,i_col) real hamiltonian matrix 
 !!
 subroutine elsi_set_real_hamiltonian_element(element,i_row,i_col)
 
@@ -343,25 +343,25 @@ subroutine elsi_set_real_hamiltonian_element(element,i_row,i_col)
    
    select case (method)
       case (ELPA,OMM_DENSE)
-         if (mode == REAL_VALUES) then
+         if(mode == REAL_VALUES) then
             if(associated(H_real)) then
                H_real(i_row,i_col) = element
             else 
-              call elsi_stop("Hamiltonian not created/linked.",&
-                    "elsi_set_real_hamiltonian_element") 
+               call elsi_stop("Hamiltonian not created/linked.",&
+                              "elsi_set_real_hamiltonian_element") 
             endif
          else  
             call elsi_stop("Wrong mode: "// &
-               "Complex valued hamiltonian to be written in real storage",&
-               "elsi_set_real_hamiltonian_element")
-         end if
+                 "Complex valued hamiltonian to be written in real storage",&
+                 "elsi_set_real_hamiltonian_element")
+         endif
       case (PEXSI)
          call elsi_stop("PEXSI not implemented yet!",&
-               "elsi_set_real_hamiltonian_element")
+                        "elsi_set_real_hamiltonian_element")
       case DEFAULT
          call elsi_stop("No method has been chosen. "// &
-            "Please choose method ELPA, OMM_DENSE, or PEXSI",&
-            "elsi_set_real_hamiltonian_element")
+                        "Please choose method ELPA, OMM_DENSE, or PEXSI",&
+                        "elsi_set_real_hamiltonian_element")
    end select
 
 end subroutine
@@ -379,11 +379,11 @@ subroutine elsi_set_real_hamiltonian(h,n_rows,n_cols)
    
    select case (method)
       case (ELPA)
-         if (mode == REAL_VALUES) then
+         if(mode == REAL_VALUES) then
             H_real => h      
          else  
             write(*,'(2a)') "Wrong mode:", &
-               "Complex valued hamiltonian to be written in real storage"
+                            "Complex valued hamiltonian to be written in real storage"
             stop
          end if
       case (OMM_DENSE)
@@ -391,11 +391,11 @@ subroutine elsi_set_real_hamiltonian(h,n_rows,n_cols)
          H_real => OMM_H_matrix%dval
       case (PEXSI)
          call elsi_stop("PEXSI not implemented yet!",&
-               "elsi_set_real_hamiltonian")
+                        "elsi_set_real_hamiltonian")
       case DEFAULT
-          call elsi_stop("No method has been chosen. "// &
-            "Please choose method ELPA, OMM_DENSE, or PEXSI",&
-            "elsi_set_real_hamiltonian")
+         call elsi_stop("No method has been chosen. "// &
+                        "Please choose method ELPA, OMM_DENSE, or PEXSI",&
+                        "elsi_set_real_hamiltonian")
    end select
 
 end subroutine
@@ -658,11 +658,11 @@ subroutine elsi_set_real_overlap(s,n_rows,n_cols)
    
    select case (method)
       case (ELPA)
-         if (mode == REAL_VALUES) then
+         if(mode == REAL_VALUES) then
             S_real => s      
          else  
             write(*,'(2a)') "Wrong mode:", &
-               "Complex valued overlap to be written in real storage"
+                            "Complex valued overlap to be written in real storage"
             stop
          end if
       case (OMM_DENSE)
@@ -670,11 +670,11 @@ subroutine elsi_set_real_overlap(s,n_rows,n_cols)
          S_real => OMM_S_matrix%dval
       case (PEXSI)
         call elsi_stop("PEXSI not implemented yet!",&
-               "elsi_set_real_overlap")
+                       "elsi_set_real_overlap")
       case DEFAULT
          call elsi_stop("No method has been chosen. "// &
-            "Please choose method ELPA, OMM_DENSE, or PEXSI",&
-            "elsi_set_real_overlap")
+                        "Please choose method ELPA, OMM_DENSE, or PEXSI",&
+                        "elsi_set_real_overlap")
    end select
 
    overlap_is_unity = .False.
@@ -1129,8 +1129,8 @@ subroutine elsi_solve_ev_problem(number_of_states)
    n_eigenvectors = number_of_states
 
    ! Debug
-   !call elsi_print_setup()
-   !call elsi_variable_status()
+!   call elsi_print_setup()
+!   call elsi_variable_status()
 
    select case (method)
       case (ELPA)
@@ -1145,12 +1145,6 @@ subroutine elsi_solve_ev_problem(number_of_states)
          ! Choose 1-stage or 2-stage solver
          two_step_solver = .True.
 
-         ! Transform to standard form
-         if(.not. overlap_is_unity) then
-            call elsi_statement_print(" Tansforming to standard evp")
-            call elsi_to_standard_eigenvalue_problem()
-         endif
-
          if(n_g_rank < 256) then
             two_step_solver = .False.
          endif
@@ -1159,8 +1153,14 @@ subroutine elsi_solve_ev_problem(number_of_states)
             two_step_solver = .False.
          endif
 
+         ! Transform to standard form
+         if(.not. overlap_is_unity) then
+            call elsi_statement_print(" Tansforming to standard evp")
+            call elsi_to_standard_eigenvalue_problem()
+         endif
+
          ! Solve evp, reture eigenvalues and eigenvectors
-         if(two_step_solver) then
+         if(two_step_solver) then ! 2-stage solver
             call elsi_statement_print(" Starting ELPA 2-stage solver")
             select case (mode)
                case (COMPLEX_VALUES)
@@ -1176,7 +1176,7 @@ subroutine elsi_solve_ev_problem(number_of_states)
                             n_l_rows, n_b_rows, n_l_cols, &
                             mpi_comm_row, mpi_comm_col, mpi_comm_global)
             end select
-         else
+         else ! 1-stage solver
             call elsi_statement_print(" Starting ELPA 1-stage solver")
             select case (mode)
                case (COMPLEX_VALUES)
@@ -1192,11 +1192,10 @@ subroutine elsi_solve_ev_problem(number_of_states)
                             n_l_rows, n_b_rows, n_l_cols, &
                             mpi_comm_row, mpi_comm_col)
             end select
-
          endif
 
          if(.not.success) then
-            call elsi_stop("ELPA failed in solving eigenvalue problem.",&
+            call elsi_stop("ELPA failed in solving eigenvalue problem.", &
                            "elsi_solve_ev_problem")
          endif
 
@@ -1205,7 +1204,7 @@ subroutine elsi_solve_ev_problem(number_of_states)
             call elsi_statement_print(" Transforming to original eigenvectors")
             call elsi_to_original_eigenvectors()
 
-           ! Check solution
+            ! Check solution
 !           call elsi_statement_print(" Checking the solution of evp")
 !           success = .true.
 !           H_real = H_real_save
@@ -1215,7 +1214,6 @@ subroutine elsi_solve_ev_problem(number_of_states)
 
 !           deallocate(H_real_save)
 !           deallocate(S_real_save)
-
         endif
 
       case (OMM_DENSE)
@@ -1235,15 +1233,11 @@ subroutine elsi_solve_ev_problem(number_of_states)
          ! Shift eigenvalue spectrum
          call m_add(OMM_S_matrix,'N',OMM_H_matrix,-eta,1d0,"lap")
 
-         if(.not. overlap_is_unity) then
-            call elsi_to_standard_eigenvalue_problem()
-         endif
-
          call omm(n_g_rank, n_eigenvectors, OMM_H_matrix, OMM_S_matrix, &
-                 new_overlap, total_energy, OMM_D_matrix, calc_ED, eta, &
-                 OMM_C_matrix, C_matrix_initialized, OMM_T_matrix, &
-                 scale_kinetic, omm_flavour, nk_times_nspin, i_k_spin,&
-                 min_tol, omm_verbose, do_dealloc, "pddbc", "lap", myid)
+                  new_overlap, total_energy, OMM_D_matrix, calc_ED, eta, &
+                  OMM_C_matrix, C_matrix_initialized, OMM_T_matrix, &
+                  scale_kinetic, omm_flavour, nk_times_nspin, i_k_spin,&
+                  min_tol, omm_verbose, do_dealloc, "pddbc", "lap", myid)
 
       case (PEXSI)
 
@@ -1303,7 +1297,6 @@ subroutine elsi_solve_ev_problem(number_of_states)
    end select
 
    call MPI_BARRIER(mpi_comm_global, mpierr)
-   
    call elsi_stop_solve_evp_time()
 
 end subroutine
@@ -1351,6 +1344,7 @@ subroutine elsi_get_eigenvectors(eigenvectors_out)
 
    select case (method)
       case (ELPA)
+
          ! Mapping of global rows/cols to local
          call elsi_allocate(local_row,n_g_rank,"local_row",caller)
          call elsi_allocate(local_col,n_g_rank,"local_col",caller)
@@ -1362,13 +1356,13 @@ subroutine elsi_get_eigenvectors(eigenvectors_out)
 
          do i = 1, n_g_rank, 1
             if(MOD((i-1)/n_b_rows,n_p_rows) == my_p_row) then
-              ! row i is on local processor
+               ! row i is on local processor
                i_row = i_row+1
                local_row(i) = i_row
             endif
 
             if(MOD((i-1)/n_b_cols,n_p_cols) == my_p_col) then
-              ! column i is on local processor
+               ! column i is on local processor
                i_col = i_col+1
                local_col(i) = i_col
             endif
@@ -1387,12 +1381,13 @@ subroutine elsi_get_eigenvectors(eigenvectors_out)
          deallocate(local_row)
          deallocate(local_col)
 
-      call elsi_sync_vector(eigenvectors_out,n_g_rank*n_eigenvectors,mpi_comm_global)
+         call elsi_sync_vector(eigenvectors_out, &
+              n_g_rank*n_eigenvectors,mpi_comm_global)
 
       case (OMM_DENSE)
-         call elsi_stop("OMM_DENSE not implemented yet!","elsi_get_eigenvectors")
+         call elsi_stop("OMM does not deal with eigenvectors!","elsi_get_eigenvectors")
       case (PEXSI)
-         call elsi_stop("PEXSI not implemented yet!","elsi_get_eigenvectors")
+         call elsi_stop("PEXSI does not deal with eigenvectors!","elsi_get_eigenvectors")
       case DEFAULT
          call elsi_stop("No method has been chosen. "// &
                         "Please choose method ELPA, OMM_DENSE, or PEXSI",&
@@ -1426,8 +1421,7 @@ subroutine elsi_get_total_energy(e_tot)
 end subroutine
 
 !>
-!!  This routine prepares the matrices based on the dimension and method
-!!  specified
+!!  This routine deallocates the matrices
 !!
 subroutine elsi_deallocate_matrices()
 
@@ -1455,7 +1449,7 @@ subroutine elsi_deallocate_matrices()
    if (allocated(sparse_index))     deallocate(sparse_index)
    if (allocated(sparse_pointer))   deallocate(sparse_pointer)
 
-   if (method == OMM_DENSE) then
+   if(method == OMM_DENSE) then
       call m_deallocate (OMM_H_matrix)
       call m_deallocate (OMM_S_matrix)
       call m_deallocate (OMM_C_matrix)
@@ -1466,15 +1460,14 @@ subroutine elsi_deallocate_matrices()
 end subroutine
 
 !>
-!!  This routine prepares the matrices based on the dimension and method
-!!  specified
+!!  This routine shuts elsi down
 !!
 subroutine elsi_finalize()
 
    implicit none
    include "mpif.h"
 
-   call MPI_BARRIER(mpi_comm_global,mpierr)
+   call MPI_BARRIER(mpi_comm_global, mpierr)
 
    call elsi_deallocate_matrices()
 
@@ -1483,11 +1476,9 @@ subroutine elsi_finalize()
    call hdf5_finalize()
    
    call elsi_stop_total_time()
-
    call elsi_print_timers()
 
    if(.not.external_blacs) call elsi_finalize_blacs()
-
    if(.not.external_mpi)   call elsi_finalize_mpi()
 
 end subroutine
@@ -1580,11 +1571,9 @@ end subroutine
 !!
 subroutine elsi_to_original_eigenvectors()
 
-   real*8, allocatable :: temp(:,:) !< real valued matrix buffer
+   real*8, allocatable :: buffer_real(:,:) !< real valued matrix buffer
+   complex*16, allocatable :: buffer_complex (:,:) !< complex valued matrix buffer
    character*100, parameter :: caller = "elsi_to_original_eigenvectors"
-
-! Debug
-   integer :: i,j
 
    select case (method)
       case (ELPA)
@@ -1597,20 +1586,18 @@ subroutine elsi_to_original_eigenvectors()
                ! (U^-1) is stored in S_real after
                ! elsi_to_standard_eigenvalue_problem
                ! vectors_real = S_real * vectors_real
-               call elsi_allocate(temp, n_l_rows, n_l_cols, "temp", caller)
-               temp = vectors_real
+               call elsi_allocate(buffer_real, n_l_rows, n_l_cols, "temp", caller)
+               buffer_real = vectors_real
 
                ! This alternative should work as well
 !               call pdtran(n_g_rank,n_g_rank,1.d0,S_real,1,1,sc_desc, &
 !                           0.d0,H_real,1,1,sc_desc)
-!               call mult_at_b_real('L','N',n_g_rank,n_eigenvectors,H_real,n_l_rows,temp,n_l_rows, &
+!               call mult_at_b_real('L','N',n_g_rank,n_eigenvectors,H_real,n_l_rows,buffer_real,n_l_rows, &
 !                                   n_b_rows,mpi_comm_row,mpi_comm_col,vectors_real(1,1),n_l_rows)
 
-               call pdgemm('N', 'N', n_g_rank, n_eigenvectors, n_g_rank, 1.0d0, &
-                           S_real, 1, 1, sc_desc, temp, 1, 1, &
-                           sc_desc, 0.0d0, vectors_real(1,1), 1, 1, sc_desc)
-
-               deallocate(temp)
+               call pdgemm('N', 'N', n_g_rank, n_eigenvectors, n_g_rank, &
+                           1.0d0, S_real, 1, 1, sc_desc, buffer_real , 1, 1, &
+                           sc_desc, 0.0d0, vectors_real, 1, 1, sc_desc)
          end select
 
       case (OMM_DENSE)
@@ -1624,6 +1611,9 @@ subroutine elsi_to_original_eigenvectors()
                         "Please choose method ELPA, OMM_DENSE, or PEXSI.", &
                         "elsi_to_original_eigenvectors")
    end select
+
+   if (allocated(buffer_real))    deallocate (buffer_real)
+   if (allocated(buffer_complex)) deallocate (buffer_complex)
 
 end subroutine
 
@@ -1726,8 +1716,8 @@ end subroutine
 !!  This routine transforms the eigenvalue problem from scalapack dense to pexsi sparse
 !!
 subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
-      n_l_rows_external, n_l_cols_external, mpi_comm_external,&
-      blacs_ctxt_external, sc_desc_external)
+           n_l_rows_external, n_l_cols_external, mpi_comm_external, &
+           blacs_ctxt_external, sc_desc_external)
 
    implicit none
    include "mpif.h"
