@@ -1,4 +1,4 @@
-!Copyright (c) 2015, ELSI consortium
+!Copyright (c) 2016, ELSI consortium
 !All rights reserved.
 !
 !Redistribution and use in source and binary forms, with or without
@@ -89,7 +89,6 @@ contains
 !!
 subroutine elsi_initialize_timers()
 
-
    implicit none
 
    integer :: initial_time
@@ -114,7 +113,6 @@ subroutine elsi_initialize_timers()
    walltime_dist_pexsi        = 0d0
    walltime_dist_pexsi_start  = 0d0
 
-
    call system_clock (initial_time, clock_rate, clock_max)
 
 end subroutine
@@ -126,39 +124,34 @@ subroutine elsi_print_setup()
 
    implicit none
 
-   if (myid == 0) then
+   if(myid == 0) then
       write(*,"('|-------------------------------------------------------')")
       write(*,"('| Initial ELSI Output:                                  ')")
       write(*,"('|-------------------------------------------------------')")
       write(*,"('| ELSI worked on a eigenvalue problem with dimensions   ')")
-      write(*,"('| Rank                           : ',I13)")&
-         n_g_rank
-      if (method == ELPA) then 
-      write(*,"('| Method:                        : ',A13)")&
-         "ELPA"
-      end if
-      if (method == OMM_DENSE) then 
-      write(*,"('| Method:                        : ',A13)")&
-         "OMM_DENSE"
-      end if
-      if (method == PEXSI) then 
-      write(*,"('| Method:                        : ',A13)")&
-         "PEXSI"
-      end if
+      write(*,"('| Rank                           : ',I13)") n_g_rank
+      if(method == ELPA) then 
+         write(*,"('| Method:                        : ',A13)") "ELPA"
+      endif
+      if(method == OMM_DENSE) then 
+         write(*,"('| Method:                        : ',A13)") "OMM_DENSE"
+      endif
+      if(method == PEXSI) then 
+         write(*,"('| Method:                        : ',A13)") "PEXSI"
+      endif
       write(*,"('|-------------------------------------------------------')")
       write(*,"('| Parallel Distribution:                                ')")
       write(*,"('|-------------------------------------------------------')")
       write(*,"('| Process grid                   : ',I5,' x ',I5)")&
-         n_p_rows, n_p_cols
+            n_p_rows, n_p_cols
       write(*,"('| Local matrix size process 0    : ',I5,' x ',I5)")&
-         n_l_rows, n_l_cols
+            n_l_rows, n_l_cols
       write(*,"('| Local matrix blocking process 0: ',I5,' x ',I5)")&
-         n_b_rows, n_b_cols
+            n_b_rows, n_b_cols
       write(*,"('|-------------------------------------------------------')")
-   end if
+   endif
 
 end subroutine
-
 
 !>
 !!  This routine prints the timing results
@@ -169,79 +162,71 @@ subroutine elsi_print_timers()
 
    integer :: i_proc
 
-   if (myid == 0) then
+   if(myid == 0) then
       write(*,"('|-------------------------------------------------------')")
       write(*,"('| Final ELSI Output:                                    ')")
       write(*,"('|-------------------------------------------------------')")
       write(*,"('| ELSI worked on a eigenvalue problem with dimensions   ')")
-      write(*,"('| Rank                           : ',I13)")&
-         n_g_rank
-      write(*,"('| Non zero elements              : ',I13)")&
-         n_g_nonzero    
-      write(*,"('| Sparcity                       : ',F13.3)")& 
-         (1d0 * n_g_nonzero / n_g_rank) / n_g_rank    
-      write(*,"('| Number of Electrons            : ',F13.3)")& 
-         n_electrons    
-      write(*,"('| Number of States               : ',I13)")& 
-         n_eigenvectors   
+      write(*,"('| Rank                           : ',I13)") n_g_rank
+      write(*,"('| Non zero elements              : ',I13)") n_g_nonzero
+      write(*,"('| Sparcity                       : ',F13.3)") &
+            (1d0 * n_g_nonzero / n_g_rank) / n_g_rank
+      write(*,"('| Number of Electrons            : ',F13.3)") &
+            n_electrons
+      write(*,"('| Number of States               : ',I13)") n_eigenvectors   
       if (method == ELPA) then 
-      write(*,"('| Method:                        : ',A13)")&
-         "ELPA"
+      write(*,"('| Method:                        : ',A13)") "ELPA"
       end if
-      if (method == OMM_DENSE) then 
-      write(*,"('| Method:                        : ',A13)")&
-         "OMM_DENSE"
-      end if
-      if (method == PEXSI) then 
-      write(*,"('| Method:                        : ',A13)")&
-         "PEXSI"
-      end if
+      if(method == OMM_DENSE) then 
+         write(*,"('| Method:                        : ',A13)") "OMM_DENSE"
+      endif
+      if(method == PEXSI) then 
+         write(*,"('| Method:                        : ',A13)") "PEXSI"
+      endif
       write(*,"('|-------------------------------------------------------')")
       write(*,"('| Parallel Distribution:                                ')")
       write(*,"('|-------------------------------------------------------')")
-      write(*,"('| Process grid                   : ',I5,' x ',I5)")&
-         n_p_rows, n_p_cols
-    end if
+      write(*,"('| Process grid                   : ',I5,' x ',I5)") &
+            n_p_rows, n_p_cols
+    endif
 
-    !do i_proc = 0, n_procs - 1
-    do i_proc = 0, 1
-
-      if (i_proc == myid) then
-         write(*,"('| Local matrix size process     ',I5,' : ',I5,' x ',I5)")&
-            myid, n_l_rows, n_l_cols
-         write(*,"('| Local matrix blocking process ',I5,' : ',I5,' x ',I5)")&
-            myid, n_b_rows, n_b_cols
-       end if
+    do i_proc = 0, n_procs - 1
+       if(i_proc == myid) then
+          write(*,"('| Local matrix size process     ',I5,' : ',I5,' x ',I5)")&
+                myid, n_l_rows, n_l_cols
+          write(*,"('| Local matrix blocking process ',I5,' : ',I5,' x ',I5)")&
+                myid, n_b_rows, n_b_cols
+       endif
        call MPI_Barrier(mpi_comm_global,mpierr)
-    end do
+    enddo
 
-    if (myid == 0) then
-      write(*,"('|-------------------------------------------------------')")
-      write(*,"('| Timings:                                              ')")
-      write(*,"('|-------------------------------------------------------')")
-      if (read_time) then  
-      write(*,"('| Reading the Eigenvalue problem :',F13.3,' s')")&
-         walltime_read_evp  
-      end if  
-      if (write_time) then  
-      write(*,"('| Writing the Eigenvalue problem :',F13.3,' s')")&
-         walltime_write_evp
-      end if 
-      if (dist_pexsi_time) then  
-      write(*,"('| Distributing to PEXSI          :',F13.3,' s')")&
-         walltime_dist_pexsi
-      end if   
-      if (solve_time) then  
-      write(*,"('| Solving the Eigenvalue problem :',F13.3,' s')")&
-         walltime_solve_evp
-      end if
-      if (total_time) then  
-      write(*,"('|-------------------------------------------------------')")
-      write(*,"('| Total Time                     :',F13.3,' s')")&
-         walltime_total  
-      end if
-      write(*,"('|-------------------------------------------------------')")
-   end if
+    if(myid == 0) then
+       write(*,"('|-------------------------------------------------------')")
+       write(*,"('| Timings:                                              ')")
+       write(*,"('|-------------------------------------------------------')")
+       if(read_time) then
+          write(*,"('| Reading the Eigenvalue problem :',F13.3,' s')")&
+                walltime_read_evp  
+       endif
+       if(write_time) then
+          write(*,"('| Writing the Eigenvalue problem :',F13.3,' s')")&
+                walltime_write_evp
+       endif
+       if(dist_pexsi_time) then
+          write(*,"('| Distributing to PEXSI          :',F13.3,' s')")&
+                walltime_dist_pexsi
+       endif
+       if(solve_time) then
+          write(*,"('| Solving the Eigenvalue problem :',F13.3,' s')")&
+                walltime_solve_evp
+       endif
+       if(total_time) then
+          write(*,"('|-------------------------------------------------------')")
+          write(*,"('| Total Time                     :',F13.3,' s')")&
+                walltime_total  
+       endif
+       write(*,"('|-------------------------------------------------------')")
+    endif
 
 end subroutine
 
@@ -256,12 +241,11 @@ subroutine elsi_get_time(wtime)
    
    integer :: tics
 
-   call system_clock (tics)
+   call system_clock(tics)
 
    wtime = 1d0 * tics / clock_rate
 
 end subroutine
-
 
 !>
 !!  This routine starts the total timer
@@ -344,7 +328,6 @@ subroutine elsi_stop_write_evp_time()
 
 end subroutine
 
-
 !>
 !!  This routine starts the read evp timer
 !!
@@ -398,6 +381,5 @@ subroutine elsi_stop_dist_pexsi_time()
      + stop_time - walltime_dist_pexsi_start
 
 end subroutine
-
 
 end module ELSI_TIMERS

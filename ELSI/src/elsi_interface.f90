@@ -1,4 +1,4 @@
-!Copyright (c) 2015, ELSI consortium
+!Copyright (c) 2016, ELSI consortium
 !All rights reserved.
 !
 !Redistribution and use in source and binary forms, with or without
@@ -118,7 +118,7 @@ module ELSI
   public :: elsi_get_hamiltonian     !< Get Hamiltonian by Reference
   public :: elsi_set_overlap         !< Set Overlap by Reference
   public :: elsi_set_overlap_element !< Set Overlap by Reference
-  public :: elsi_symmetrize_overlap  !< Symmetrize overlap matrix
+  public :: elsi_symmetrize_overlap  !< Symmetrize Overlap matrix
   public :: elsi_get_overlap         !< Get Overlap by Reference
   public :: elsi_write_ev_problem    !< Write eigenvalue problem to HDF5
   public :: elsi_read_ev_problem     !< Read eigenvalue problem from HDF5
@@ -127,7 +127,7 @@ module ELSI
   public :: elsi_get_eigenvectors    !< Get the eigenvectots
   public :: elsi_get_total_energy    !< Get the sum of occupied eigenvalues 
   public :: elsi_finalize            !< Finalize and cleanup ELSI
-  public :: scalapack_dense_to_pexsi_sparse !< Allow for converting a external scalapack dense matrix to pexsi sparse format
+  public :: scalapack_dense_to_pexsi_sparse !< Converte ScaLAPACK dense matrix to PEXSI sparse
 
   ! from other modules
   public :: elsi_initialize_blacs
@@ -140,34 +140,34 @@ module ELSI
   public :: elsi_get_global_dimensions
 
   interface elsi_set_hamiltonian
-     module procedure elsi_set_real_hamiltonian, &
+     module procedure elsi_set_real_hamiltonian,&
                       elsi_set_complex_hamiltonian
   end interface 
 
   interface elsi_set_hamiltonian_element
-     module procedure elsi_set_real_hamiltonian_element, &
+     module procedure elsi_set_real_hamiltonian_element,&
                       elsi_set_complex_hamiltonian_element
   end interface 
 
   
   interface elsi_get_hamiltonian
-     module procedure elsi_get_real_hamiltonian, &
+     module procedure elsi_get_real_hamiltonian,&
                       elsi_get_complex_hamiltonian
   end interface 
   
   interface elsi_set_overlap
-     module procedure elsi_set_real_overlap, &
+     module procedure elsi_set_real_overlap,&
                       elsi_set_complex_overlap
   end interface 
 
   interface elsi_set_overlap_element
-     module procedure elsi_set_real_overlap_element, &
+     module procedure elsi_set_real_overlap_element,&
                       elsi_set_complex_overlap_element
   end interface 
 
   
   interface elsi_get_overlap
-     module procedure elsi_set_real_overlap, &
+     module procedure elsi_set_real_overlap,&
                       elsi_set_complex_overlap
   end interface 
 
@@ -224,11 +224,13 @@ subroutine elsi_set_mode(i_mode)
 
    integer, intent(in) :: i_mode !<one of (REAL_VALUES,COMPLEX_VALUES)
 
+   character*40, parameter :: caller = "elsi_set_mode"
+
    mode = i_mode
 
    if(i_mode == COMPLEX_VALUES) then
-      call elsi_stop("COMPLEX VALUES not yet supported", "elsi_set_mode")
-   end if
+      call elsi_stop("COMPLEX VALUES not yet supported",caller)
+   endif
 
 end subroutine 
 
@@ -247,41 +249,43 @@ subroutine elsi_allocate_matrices()
          call elsi_allocate(eigenvalues,n_g_rank,"eigenvalues",caller)
          select case (mode)
             case (COMPLEX_VALUES)
-               call elsi_allocate(H_complex_target, n_l_rows, n_l_cols, &
-                     "H_complex_target", caller)      
-               call elsi_allocate(S_complex_target, n_l_rows, n_l_cols, &
-                     "S_complex_target", caller)
-               call elsi_allocate(vectors_complex, n_l_rows, n_l_cols, &
-                     "vectors_complex", caller)
+               call elsi_allocate(H_complex_target, n_l_rows, n_l_cols,&
+                                  "H_complex_target", caller)      
+               call elsi_allocate(S_complex_target, n_l_rows, n_l_cols,&
+                                  "S_complex_target", caller)
+               call elsi_allocate(vectors_complex, n_l_rows, n_l_cols,&
+                                  "vectors_complex", caller)
                H_complex => H_complex_target
                S_complex => S_complex_target
                H_complex = CMPLX(0d0,0d0)
                S_complex = CMPLX(0d0,0d0)
+               vectors_complex = CMPLX(0d0,0d0)
             case (REAL_VALUES)
-               call elsi_allocate(H_real_target, n_l_rows, n_l_cols, &
-                     "H_real_target", caller)      
-               call elsi_allocate(S_real_target, n_l_rows, n_l_cols, &
-                     "S_real_target", caller)
-               call elsi_allocate(vectors_real, n_l_rows, n_l_cols, &
-                     "vectors_real", caller)
+               call elsi_allocate(H_real_target, n_l_rows, n_l_cols,&
+                                  "H_real_target", caller)      
+               call elsi_allocate(S_real_target, n_l_rows, n_l_cols,&
+                                  "S_real_target", caller)
+               call elsi_allocate(vectors_real, n_l_rows, n_l_cols,&
+                                  "vectors_real", caller)
                H_real => H_real_target
                S_real => S_real_target
                H_real = 0d0
                S_real = 0d0
+               vectors_real = 0d0
             case DEFAULT
-               call elsi_stop("No mode has been chosen. "// &
-                  "Please choose method REAL_VALUES or COMPLEX_VALUES", &
-                  "elsi_allocate_matrices")
+               call elsi_stop("No mode has been chosen. "//&
+                              "Please choose method REAL_VALUES or COMPLEX_VALUES",&
+                              caller)
          end select
       case (OMM_DENSE)
          select case (mode)
             case (COMPLEX_VALUES)
-               call elsi_allocate(H_complex_target, n_l_rows, n_l_cols, &
-                     "H_complex_target", caller)      
-               call elsi_allocate(S_complex_target, n_l_rows, n_l_cols, &
-                     "S_complex_target", caller)
-               call elsi_allocate(vectors_complex, n_l_rows, n_l_cols, &
-                     "vectors_complex", caller)
+               call elsi_allocate(H_complex_target, n_l_rows, n_l_cols,&
+                                  "H_complex_target", caller)      
+               call elsi_allocate(S_complex_target, n_l_rows, n_l_cols,&
+                                  "S_complex_target", caller)
+               call elsi_allocate(vectors_complex, n_l_rows, n_l_cols,&
+                                  "vectors_complex", caller)
                H_complex => H_complex_target
                S_complex => S_complex_target
                H_complex = CMPLX(0d0,0d0)
@@ -292,12 +296,12 @@ subroutine elsi_allocate_matrices()
                call m_allocate (OMM_T_matrix, n_g_rank, n_g_rank, "pzdbc")
 
             case (REAL_VALUES)
-               call elsi_allocate(H_real_target, n_l_rows, n_l_cols, &
-                     "H_real_target", caller)      
-               call elsi_allocate(S_real_target, n_l_rows, n_l_cols, &
-                     "S_real_target", caller)
-               call elsi_allocate(vectors_real, n_l_rows, n_l_cols, &
-                     "vectors_real", caller)
+               call elsi_allocate(H_real_target, n_l_rows, n_l_cols,&
+                                  "H_real_target", caller)      
+               call elsi_allocate(S_real_target, n_l_rows, n_l_cols,&
+                                  "S_real_target", caller)
+               call elsi_allocate(vectors_real, n_l_rows, n_l_cols,&
+                                  "vectors_real", caller)
                H_real => H_real_target
                S_real => S_real_target
                H_real = 0d0
@@ -309,9 +313,9 @@ subroutine elsi_allocate_matrices()
                call m_allocate (OMM_T_matrix, n_g_rank, n_g_rank, "pddbc")
 
             case DEFAULT
-               call elsi_stop("No mode has been chosen. "// &
-                  "Please choose method REAL_VALUES or COMPLEX_VALUES", &
-                  "elsi_allocate_matrices")
+               call elsi_stop("No mode has been chosen. "//&
+                              "Please choose method REAL_VALUES or COMPLEX_VALUES",&
+                              caller)
          end select
 
       case (PEXSI)
@@ -319,15 +323,15 @@ subroutine elsi_allocate_matrices()
             case (REAL_VALUES)
                ! We do not allocate anything here, yet.
             case DEFAULT
-               call elsi_stop("No mode has been chosen. "// &
-                  "Please choose method REAL_VALUES or COMPLEX_VALUES", &
-                  "elsi_allocate_matrices")
+               call elsi_stop("No mode has been chosen. "//&
+                              "Please choose method REAL_VALUES or COMPLEX_VALUES",&
+                              caller)
          end select
 
       case DEFAULT
-         call elsi_stop("No method has been chosen. "// &
-            "Please choose method ELPA, OMM_DENSE, or PEXSI",&
-            "elsi_allocate_matrices")
+         call elsi_stop("No method has been chosen. "//&
+                        "Please choose method ELPA, OMM_DENSE, or PEXSI",&
+                        caller)
    end select
 end subroutine
 
@@ -341,6 +345,7 @@ subroutine elsi_set_real_hamiltonian_element(element,i_row,i_col)
    integer, intent(in) :: i_row   !<  row position
    integer, intent(in) :: i_col   !<  col position
    real*8, intent(in)  :: element !< value 
+   character*40, parameter :: caller = "elsi_set_real_hamiltonian_element"
    
    select case (method)
       case (ELPA,OMM_DENSE)
@@ -348,21 +353,19 @@ subroutine elsi_set_real_hamiltonian_element(element,i_row,i_col)
             if(associated(H_real)) then
                H_real(i_row,i_col) = element
             else 
-               call elsi_stop("Hamiltonian not created/linked.",&
-                              "elsi_set_real_hamiltonian_element") 
+               call elsi_stop("Hamiltonian not created/linked.",caller)
             endif
          else  
-            call elsi_stop("Wrong mode: "// &
+            call elsi_stop("Wrong mode: "//&
                  "Complex valued hamiltonian to be written in real storage",&
-                 "elsi_set_real_hamiltonian_element")
+                 caller)
          endif
       case (PEXSI)
-         call elsi_stop("PEXSI not implemented yet!",&
-                        "elsi_set_real_hamiltonian_element")
+         call elsi_stop("PEXSI not implemented yet!",caller)
       case DEFAULT
-         call elsi_stop("No method has been chosen. "// &
+         call elsi_stop("No method has been chosen. "//&
                         "Please choose method ELPA, OMM_DENSE, or PEXSI",&
-                        "elsi_set_real_hamiltonian_element")
+                        caller)
    end select
 
 end subroutine
@@ -376,27 +379,27 @@ subroutine elsi_set_real_hamiltonian(h,n_rows,n_cols)
 
    integer, intent(in) :: n_rows !< Number of rows
    integer, intent(in) :: n_cols !< Number of cols
-   real*8, target, intent(in) :: h(n_rows,n_cols) !< hamiltonian 
-   
+   real*8, target, intent(in) :: h(n_rows,n_cols) !< hamiltonian
+   character*40, parameter :: caller = "elsi_set_real_hamiltonian"
+
    select case (method)
       case (ELPA)
          if(mode == REAL_VALUES) then
             H_real => h      
          else  
-            write(*,'(2a)') "Wrong mode:", &
-                            "Complex valued hamiltonian to be written in real storage"
+            write(*,'(2a)') "Wrong mode:",&
+                  "Complex valued hamiltonian to be written in real storage"
             stop
          end if
       case (OMM_DENSE)
          call m_register_pdbc(OMM_H_matrix,h,sc_desc)
          H_real => OMM_H_matrix%dval
       case (PEXSI)
-         call elsi_stop("PEXSI not implemented yet!",&
-                        "elsi_set_real_hamiltonian")
+         call elsi_stop("PEXSI not implemented yet!",caller)
       case DEFAULT
-         call elsi_stop("No method has been chosen. "// &
+         call elsi_stop("No method has been chosen. "//&
                         "Please choose method ELPA, OMM_DENSE, or PEXSI",&
-                        "elsi_set_real_hamiltonian")
+                        caller)
    end select
 
 end subroutine
@@ -411,24 +414,24 @@ subroutine elsi_set_complex_hamiltonian_element(element,i_row,i_col)
 
    integer, intent(in)     :: i_row   !<  row position
    integer, intent(in)     :: i_col   !<  col position
-   complex*16, intent(in)  :: element !< value 
-   
+   complex*16, intent(in)  :: element !< value
+   character*40, parameter :: caller = "elsi_set_complex_hamiltonian_element"
+
    select case (method)
       case (ELPA,OMM_DENSE)
-         if (mode == COMPLEX_VALUES) then
+         if(mode == COMPLEX_VALUES) then
             H_complex(i_row,i_col) = element      
          else  
-            write(*,'(2a)') "Wrong mode:", &
-               "Complex valued hamiltonian to be written in real storage"
+            write(*,'(2a)') "Wrong mode:",&
+                  "Complex valued hamiltonian to be written in real storage"
             stop
-         end if
+         endif
       case (PEXSI)
-        call elsi_stop("PEXSI not implemented yet!",&
-               "elsi_set_complex_hamiltonian_element")
+         call elsi_stop("PEXSI not implemented yet!",caller)
       case DEFAULT
-          call elsi_stop("No method has been chosen. "// &
-            "Please choose method ELPA, OMM_DENSE, or PEXSI",&
-            "elsi_set_complex_hamiltonian_element")
+         call elsi_stop("No method has been chosen. "//&
+                       "Please choose method ELPA, OMM_DENSE, or PEXSI",&
+                       caller)
    end select
 
 end subroutine
@@ -442,31 +445,30 @@ subroutine elsi_set_complex_hamiltonian(h,n_rows,n_cols)
 
    integer, intent(in) :: n_rows !< Number of rows
    integer, intent(in) :: n_cols !< Number of cols
-   complex*16, target, intent(in) :: h(n_rows,n_cols) !< hamiltonian 
-   
+   complex*16, target, intent(in) :: h(n_rows,n_cols) !< hamiltonian
+   character*40, parameter :: caller = "elsi_set_complex_hamiltonian"
+
    select case (method)
       case (ELPA)
-         if (mode == COMPLEX_VALUES) then
+         if(mode == COMPLEX_VALUES) then
             H_complex => h      
          else  
-            write(*,'(2a)') "Wrong mode:", &
-               "Real valued hamiltonian to be written in complex storage"
+            write(*,'(2a)') "Wrong mode:",&
+                  "Real valued hamiltonian to be written in complex storage"
             stop
-         end if
+         endif
       case (OMM_DENSE)
          call m_register_pdbc(OMM_H_matrix,h,sc_desc)
          H_complex => OMM_H_matrix%zval
          write(*,'(a)') "OMM not implemented yet!"
          stop
       case (PEXSI)
-         call elsi_stop("PEXSI not implemented yet!",&
-               "elsi_set_complex_hamiltonian")
+         call elsi_stop("PEXSI not implemented yet!",caller)
       case DEFAULT
-          call elsi_stop("No method has been chosen. "// &
-            "Please choose method ELPA, OMM_DENSE, or PEXSI",&
-            "elsi_set_complex_hamiltonian")
+         call elsi_stop("No method has been chosen. "//&
+                        "Please choose method ELPA, OMM_DENSE, or PEXSI",&
+                        caller)
    end select
-
 
 end subroutine
 
@@ -480,24 +482,24 @@ subroutine elsi_set_real_overlap_element(element,i_row,i_col)
 
    integer, intent(in) :: i_row   !<  row position
    integer, intent(in) :: i_col   !<  col position
-   real*8, intent(in)  :: element !< value 
-   
+   real*8, intent(in)  :: element !< value
+   character*40, parameter :: caller = "elsi_set_real_overlap_element"
+
    select case (method)
       case (ELPA,OMM_DENSE)
-         if (mode == REAL_VALUES) then
+         if(mode == REAL_VALUES) then
             S_real(i_row,i_col) = element      
          else  
-            write(*,'(2a)') "Wrong mode:", &
-               "Complex valued overlap to be written in real storage"
+            write(*,'(2a)') "Wrong mode:",&
+                  "Complex valued overlap to be written in real storage"
             stop
-         end if
+         endif
       case (PEXSI)
-         call elsi_stop("PEXSI not implemented yet!",&
-               "elsi_set_real_overlap")
+         call elsi_stop("PEXSI not implemented yet!",caller)
       case DEFAULT
-         call elsi_stop("No method has been chosen. "// &
-            "Please choose method ELPA, OMM_DENSE, or PEXSI",&
-            "elsi_set_real_overlap_element")
+         call elsi_stop("No method has been chosen. "//&
+                        "Please choose method ELPA, OMM_DENSE, or PEXSI",&
+                        caller)
    end select
 
    overlap_is_unity = .False.
@@ -521,53 +523,50 @@ subroutine elsi_symmetrize_hamiltonian()
   character*40, parameter :: caller = "elsi_symmetrize_hamiltonian"
 
   select case (method)
-      case (ELPA,OMM_DENSE)
-         if (mode == REAL_VALUES) then
-            call elsi_allocate(buffer_real, n_l_rows, n_l_cols, &
-                  "buffer_real", caller)
-            buffer_real(:,:) = H_real(:,:)
-            call pdtran(n_g_rank, n_g_rank, &
-                  1.d0, buffer_real, 1, 1, sc_desc, &
-                  1.d0, H_real, 1, 1, sc_desc)
-            deallocate(buffer_real)
+     case (ELPA,OMM_DENSE)
+        if(mode == REAL_VALUES) then
+           call elsi_allocate(buffer_real, n_l_rows, n_l_cols,&
+                              "buffer_real", caller)
+           buffer_real(:,:) = H_real(:,:)
+           call pdtran(n_g_rank, n_g_rank, 1.d0, buffer_real, 1, 1,&
+                       sc_desc, 1.d0, H_real, 1, 1, sc_desc)
+           deallocate(buffer_real)
             
-            do l_row = 1, n_l_rows
-               call elsi_get_global_row(g_row, l_row)
-               do l_col = l_row, n_l_cols
-                  call elsi_get_global_col(g_col, l_col)
-                  if (g_row == g_col) then
-                     H_real(l_row,l_col) = 0.5d0 * H_real(l_row,l_col)
-                  end if
-               end do
-            end do
+           do l_row = 1, n_l_rows
+              call elsi_get_global_row(g_row, l_row)
+              do l_col = l_row, n_l_cols
+                 call elsi_get_global_col(g_col, l_col)
+                 if(g_row == g_col) then
+                    H_real(l_row,l_col) = 0.5d0 * H_real(l_row,l_col)
+                 endif
+              enddo
+           enddo
 
-         else  
-            call elsi_allocate(buffer_complex, n_l_rows, n_l_cols, &
-                  "buffer_complex", caller)
-            buffer_complex(:,:) = H_complex(:,:)
-            call pztranc(n_g_rank, n_g_rank, &
-                  CONE, buffer_complex, 1, 1, sc_desc, &
-                  CONE, H_complex, 1, 1, sc_desc)
-            deallocate(buffer_complex)
+        else 
+           call elsi_allocate(buffer_complex, n_l_rows, n_l_cols,&
+                              "buffer_complex", caller)
+           buffer_complex(:,:) = H_complex(:,:)
+           call pztranc(n_g_rank, n_g_rank, CONE, buffer_complex, 1, 1,&
+                        sc_desc, CONE, H_complex, 1, 1, sc_desc)
+           deallocate(buffer_complex)
 
-            do l_row = 1, n_l_rows
-               call elsi_get_global_row(g_row, l_row)
-               do l_col = l_row, n_l_cols
-                  call elsi_get_global_col(g_col, l_col)
-                  if (g_row == g_col) then
-                     H_complex(l_row,l_col) = 0.5d0 * H_complex(l_row,l_col)
-                  end if
-               end do
-            end do
+           do l_row = 1, n_l_rows
+              call elsi_get_global_row(g_row, l_row)
+              do l_col = l_row, n_l_cols
+                 call elsi_get_global_col(g_col, l_col)
+                 if(g_row == g_col) then
+                    H_complex(l_row,l_col) = 0.5d0 * H_complex(l_row,l_col)
+                 endif
+              enddo
+           enddo
 
-         end if
-      case (PEXSI)
-         call elsi_stop("PEXSI not implemented yet!",&
-               "elsi_symmetrize_hamiltonian")
-      case DEFAULT
-         call elsi_stop("No method has been chosen. "// &
-            "Please choose method ELPA, OMM_DENSE, or PEXSI",&
-            "elsi_symetrize_hamiltonian")
+        endif
+     case (PEXSI)
+        call elsi_stop("PEXSI not implemented yet!",caller)
+     case DEFAULT
+        call elsi_stop("No method has been chosen. "//&
+                       "Please choose method ELPA, OMM_DENSE, or PEXSI",&
+                       caller)
    end select
 
    if (allocated(buffer_real))    deallocate (buffer_real)
@@ -592,53 +591,49 @@ subroutine elsi_symmetrize_overlap()
   character*40, parameter :: caller = "elsi_symmetrize_overlap"
   
   select case (method)
-      case (ELPA,OMM_DENSE)
-         if (mode == REAL_VALUES) then
-            call elsi_allocate(buffer_real, n_l_rows, n_l_cols, &
-                  "buffer_real", caller)
-            buffer_real(:,:) = S_real(:,:)
-            call pdtran(n_g_rank, n_g_rank, &
-                  1.d0, buffer_real, 1, 1, sc_desc, &
-                  1.d0, S_real, 1, 1, sc_desc)
-            deallocate(buffer_real)
+     case (ELPA,OMM_DENSE)
+        if(mode == REAL_VALUES) then
+           call elsi_allocate(buffer_real, n_l_rows, n_l_cols,&
+                             "buffer_real", caller)
+           buffer_real(:,:) = S_real(:,:)
+           call pdtran(n_g_rank, n_g_rank, 1.d0, buffer_real, 1, 1,&
+                       sc_desc, 1.d0, S_real, 1, 1, sc_desc)
+           deallocate(buffer_real)
 
-            do l_row = 1, n_l_rows
-               call elsi_get_global_row(g_row, l_row)
-               do l_col = l_row, n_l_cols
-                  call elsi_get_global_col(g_col, l_col)
-                  if (g_row == g_col) then
-                     S_real(l_row,l_col) = 0.5d0 * S_real(l_row,l_col)
-                  end if
-               end do
-            end do
+           do l_row = 1, n_l_rows
+              call elsi_get_global_row(g_row, l_row)
+              do l_col = l_row, n_l_cols
+                 call elsi_get_global_col(g_col, l_col)
+                 if(g_row == g_col) then
+                    S_real(l_row,l_col) = 0.5d0 * S_real(l_row,l_col)
+                 endif
+              enddo
+           enddo
 
-         else  
-            call elsi_allocate(buffer_complex, n_l_rows, n_l_cols, &
-                  "buffer_complex", caller)
-            buffer_complex(:,:) = S_complex(:,:)
-            call pztranc(n_g_rank, n_g_rank, &
-                  CONE, buffer_complex, 1, 1, sc_desc, &
-                  CONE, S_complex, 1, 1, sc_desc)
-            deallocate(buffer_complex)
+        else
+           call elsi_allocate(buffer_complex, n_l_rows, n_l_cols,&
+                              "buffer_complex", caller)
+           buffer_complex(:,:) = S_complex(:,:)
+           call pztranc(n_g_rank, n_g_rank, CONE, buffer_complex, 1, 1,&
+                        sc_desc, CONE, S_complex, 1, 1, sc_desc)
+           deallocate(buffer_complex)
 
-            do l_row = 1, n_l_rows
-               call elsi_get_global_row(g_row, l_row)
-               do l_col = l_row, n_l_cols
-                  call elsi_get_global_col(g_col, l_col)
-                  if (g_row == g_col) then
-                     S_complex(l_row,l_col) = 0.5d0 * S_complex(l_row,l_col)
-                  end if
-               end do
-            end do
-
-         end if
-      case (PEXSI)
-         call elsi_stop("PEXSI not implemented yet!",&
-               "elsi_symmetrize_overlap")
-      case DEFAULT
-         call elsi_stop("No method has been chosen. "// &
-            "Please choose method ELPA, OMM_DENSE, or PEXSI",&
-            "elsi_symmetrize_overlap")
+           do l_row = 1, n_l_rows
+              call elsi_get_global_row(g_row, l_row)
+              do l_col = l_row, n_l_cols
+                 call elsi_get_global_col(g_col, l_col)
+                 if(g_row == g_col) then
+                    S_complex(l_row,l_col) = 0.5d0 * S_complex(l_row,l_col)
+                 endif
+              enddo
+           enddo
+        endif
+     case (PEXSI)
+        call elsi_stop("PEXSI not implemented yet!",caller)
+     case DEFAULT
+        call elsi_stop("No method has been chosen. "//&
+                       "Please choose method ELPA, OMM_DENSE, or PEXSI",&
+                       caller)
    end select
    
    if (allocated(buffer_real))    deallocate (buffer_real)
@@ -655,27 +650,27 @@ subroutine elsi_set_real_overlap(s,n_rows,n_cols)
 
    integer, intent(in) :: n_rows !< Number of rows
    integer, intent(in) :: n_cols !< Number of cols
-   real*8, target, intent(in) :: s(n_rows,n_cols) !< overlap 
-   
+   real*8, target, intent(in) :: s(n_rows,n_cols) !< overlap
+   character*40, parameter :: caller = "elsi_set_real_overlap"
+
    select case (method)
       case (ELPA)
          if(mode == REAL_VALUES) then
             S_real => s      
          else  
-            write(*,'(2a)') "Wrong mode:", &
+            write(*,'(2a)') "Wrong mode:",&
                             "Complex valued overlap to be written in real storage"
             stop
-         end if
+         endif
       case (OMM_DENSE)
          call m_register_pdbc(OMM_S_matrix,s,sc_desc)
          S_real => OMM_S_matrix%dval
       case (PEXSI)
-        call elsi_stop("PEXSI not implemented yet!",&
-                       "elsi_set_real_overlap")
+        call elsi_stop("PEXSI not implemented yet!",caller)
       case DEFAULT
-         call elsi_stop("No method has been chosen. "// &
+         call elsi_stop("No method has been chosen. "//&
                         "Please choose method ELPA, OMM_DENSE, or PEXSI",&
-                        "elsi_set_real_overlap")
+                        caller)
    end select
 
    overlap_is_unity = .False.
@@ -691,24 +686,24 @@ subroutine elsi_set_complex_overlap_element(element,i_row,i_col)
 
    integer, intent(in)     :: i_row   !<  row position
    integer, intent(in)     :: i_col   !<  col position
-   complex*16, intent(in)  :: element !< value 
-   
+   complex*16, intent(in)  :: element !< value
+   character*40, parameter :: caller = "elsi_set_complex_overlap_element"
+
    select case (method)
       case (ELPA,OMM_DENSE)
-         if (mode == COMPLEX_VALUES) then
+         if(mode == COMPLEX_VALUES) then
             S_complex(i_row,i_col) = element      
          else  
-            write(*,'(2a)') "Wrong mode:", &
-               "Real valued overlap to be written in complex storage"
+            write(*,'(2a)') "Wrong mode:",&
+                  "Real valued overlap to be written in complex storage"
             stop
-         end if
+         endif
       case (PEXSI)
-         call elsi_stop("PEXSI not implemented yet!",&
-               "elsi_set_complex_overlap_element")
+         call elsi_stop("PEXSI not implemented yet!",caller)
       case DEFAULT
-         call elsi_stop("No method has been chosen. "// &
-            "Please choose method ELPA, OMM_DENSE, or PEXSI",&
-            "elsi_set_complex_overlap_element")
+         call elsi_stop("No method has been chosen. "//&
+                        "Please choose method ELPA, OMM_DENSE, or PEXSI",&
+                        caller)
    end select
 
    overlap_is_unity = .False.
@@ -724,27 +719,27 @@ subroutine elsi_set_complex_overlap(s,n_rows,n_cols)
 
    integer, intent(in) :: n_rows !< Number of rows
    integer, intent(in) :: n_cols !< Number of cols
-   complex*16, target, intent(in) :: s(n_rows,n_cols) !< overlap 
-   
+   complex*16, target, intent(in) :: s(n_rows,n_cols) !< overlap
+   character*40, parameter :: caller = "elsi_set_complex_overlap"
+
    select case (method)
       case (ELPA)
-         if (mode == REAL_VALUES) then
+         if(mode == REAL_VALUES) then
             S_complex => s      
          else  
-            write(*,'(2a)') "Wrong mode:", &
-               " Real valued overlap to be written in complex storage"
+            write(*,'(2a)') "Wrong mode:",&
+                  " Real valued overlap to be written in complex storage"
             stop
-         end if
+         endif
       case (OMM_DENSE)
          call m_register_pdbc(OMM_S_matrix,s,sc_desc)
          S_complex => OMM_S_matrix%zval
       case (PEXSI)
-         call elsi_stop("PEXSI not implemented yet!",&
-               "elsi_set_complex_overlap")
+         call elsi_stop("PEXSI not implemented yet!",caller)
       case DEFAULT
-         call elsi_stop("No method has been chosen. "// &
-            "Please choose method ELPA, OMM_DENSE, or PEXSI",&
-            "elsi_set_complex_overlap")
+         call elsi_stop("No method has been chosen. "//&
+                        "Please choose method ELPA, OMM_DENSE, or PEXSI",&
+                        caller)
    end select
 
    overlap_is_unity = .False.
@@ -760,24 +755,24 @@ subroutine elsi_get_real_hamiltonian(h,n_rows,n_cols)
 
    integer, intent(in) :: n_rows !< Number of rows
    integer, intent(in) :: n_cols !< Number of cols
-   real*8, intent(out) :: h(n_rows,n_cols) !< hamiltonian 
-   
+   real*8, intent(out) :: h(n_rows,n_cols) !< hamiltonian
+   character*40, parameter :: caller = "elsi_get_real_hamiltonian"
+
    select case (method)
       case (ELPA,OMM_DENSE)
-         if (mode == REAL_VALUES) then
+         if(mode == REAL_VALUES) then
             h(:,:) = H_real(:,:)      
          else  
-            write(*,'(2a)') "Wrong mode:", &
-               "Real valued hamiltonian to be written in complex storage"
+            write(*,'(2a)') "Wrong mode:",&
+                  "Real valued hamiltonian to be written in complex storage"
             stop
-         end if
+         endif
       case (PEXSI)
-         call elsi_stop("PEXSI not implemented yet!",&
-               "elsi_get_real_hamiltonian")
+         call elsi_stop("PEXSI not implemented yet!",caller)
       case DEFAULT
-         call elsi_stop("No method has been chosen. "// &
-            "Please choose method ELPA, OMM_DENSE, or PEXSI",&
-            "elsi_get_real_hamiltonian")
+         call elsi_stop("No method has been chosen. "//&
+                        "Please choose method ELPA, OMM_DENSE, or PEXSI",&
+                        caller)
    end select
 
 end subroutine
@@ -791,24 +786,24 @@ subroutine elsi_get_complex_hamiltonian(h,n_rows,n_cols)
 
    integer, intent(in) :: n_rows !< Number of rows
    integer, intent(in) :: n_cols !< Number of cols
-   complex*16, intent(out) :: h(n_rows,n_cols) !< hamiltonian 
-   
+   complex*16, intent(out) :: h(n_rows,n_cols) !< hamiltonian
+   character*40, parameter :: caller = "elsi_get_coomplex_hamiltonian"
+
    select case (method)
       case (ELPA,OMM_DENSE)
-         if (mode == COMPLEX_VALUES) then
+         if(mode == COMPLEX_VALUES) then
             h(:,:) = H_complex(:,:)      
          else  
-            write(*,'(2a)') "Wrong mode:", &
-               "Complex valued hamiltonian to be written in real storage"
+            write(*,'(2a)') "Wrong mode:",&
+                  "Complex valued hamiltonian to be written in real storage"
             stop
-         end if
+         endif
       case (PEXSI)
-        call elsi_stop("PEXSI not implemented yet!",&
-               "elsi_get_complex_hamiltonian")
+         call elsi_stop("PEXSI not implemented yet!",caller)
       case DEFAULT
-         call elsi_stop("No method has been chosen. "// &
-            "Please choose method ELPA, OMM_DENSE, or PEXSI",&
-            "elsi_get_complex_hamiltonian")
+         call elsi_stop("No method has been chosen. "//&
+                        "Please choose method ELPA, OMM_DENSE, or PEXSI",&
+                        caller)
    end select
 
 end subroutine
@@ -822,24 +817,24 @@ subroutine elsi_get_real_overlap(s,n_rows,n_cols)
 
    integer, intent(in) :: n_rows !< Number of rows
    integer, intent(in) :: n_cols !< Number of cols
-   real*8, intent(out) :: s(n_rows,n_cols) !< overlap 
-   
+   real*8, intent(out) :: s(n_rows,n_cols) !< overlap
+   character*40, parameter :: caller = "elsi_get_real_overlap"
+
    select case (method)
       case (ELPA,OMM_DENSE)
-         if (mode == REAL_VALUES) then
+         if(mode == REAL_VALUES) then
             s(:,:) = S_real(:,:)    
          else  
-            write(*,'(2a)') "Wrong mode:", &
-               "Real valued overlap to be written in complex storage"
+            write(*,'(2a)') "Wrong mode:",&
+                  "Real valued overlap to be written in complex storage"
             stop
-         end if
+         endif
       case (PEXSI)
-         call elsi_stop("PEXSI not implemented yet!",&
-               "elsi_get_real_overlap")
+         call elsi_stop("PEXSI not implemented yet!",caller)
       case DEFAULT
-         call elsi_stop("No method has been chosen. "// &
-            "Please choose method ELPA, OMM_DENSE, or PEXSI",&
-            "elsi_get_real_overlap")
+         call elsi_stop("No method has been chosen. "//&
+                        "Please choose method ELPA, OMM_DENSE, or PEXSI",&
+                        caller)
    end select
 
 end subroutine
@@ -853,23 +848,23 @@ subroutine elsi_get_complex_overlap(s,n_rows,n_cols)
 
    integer, intent(in) :: n_rows !< Number of rows
    integer, intent(in) :: n_cols !< Number of cols
-   complex*16, intent(out) :: s(n_rows,n_cols) !< overlap 
-   
+   complex*16, intent(out) :: s(n_rows,n_cols) !< overlap
+   character*40, parameter :: caller = "elsi_get_complex_overlap"
+
    select case (method)
       case (ELPA,OMM_DENSE)
-         if (mode == COMPLEX_VALUES) then
+         if(mode == COMPLEX_VALUES) then
             s(:,:) = S_complex(:,:)      
          else  
-            write(*,'(2a)') "Wrong mode:", &
-               "Complex valued overlap to be written in real storage"
+            write(*,'(2a)') "Wrong mode:",&
+                  "Complex valued overlap to be written in real storage"
             stop
-         end if
+         endif
       case (PEXSI)
-         call elsi_stop("PEXSI not implemented yet!",&
-               "elsi_get_complex_overlap")
+         call elsi_stop("PEXSI not implemented yet!",caller)
       case DEFAULT
-         write(*,'(2a)') "No method has been chosen. ", &
-            "Please choose method ELPA, OMM_DENSE, or PEXSI"
+         write(*,'(2a)') "No method has been chosen. ",&
+               "Please choose method ELPA, OMM_DENSE, or PEXSI"
          stop
    end select
 
@@ -893,61 +888,61 @@ subroutine elsi_write_ev_problem(file_name)
   
    call elsi_start_write_evp_time()
 
-   if (method == PEXSI) then
+   if(method == PEXSI) then
       call elsi_allocate(buffer, n_l_rows, n_l_cols, "buffer", caller) 
-   end if
+   endif
 
-   call hdf5_create_file (file_name, mpi_comm_global, mpi_info_null, file_id)
+   call hdf5_create_file(file_name, mpi_comm_global, mpi_info_null, file_id)
 
    ! The Hamiltonian
-   call hdf5_create_group (file_id, "hamiltonian", group_id)
+   call hdf5_create_group(file_id, "hamiltonian", group_id)
    
    ! Matrix dimension
-   call hdf5_write_attribute (group_id, "n_matrix_rows", n_g_rank)
-   call hdf5_write_attribute (group_id, "n_matrix_cols", n_g_rank)
+   call hdf5_write_attribute(group_id, "n_matrix_rows", n_g_rank)
+   call hdf5_write_attribute(group_id, "n_matrix_cols", n_g_rank)
 
    ! Hamiltonian Write
    call hdf5_get_scalapack_pattern()
    
    select case (method)
-      case (ELPA,OMM_DENSE) 
-         call hdf5_write_matrix_parallel (group_id, "matrix", H_real)
+      case (ELPA,OMM_DENSE)
+         call hdf5_write_matrix_parallel(group_id, "matrix", H_real)
       case (PEXSI)
-         call elsi_ccs_to_dense(buffer, n_l_rows, n_l_cols, H_real_sparse, &
-               n_l_nonzero, sparse_index, sparse_pointer)
-         call hdf5_write_matrix_parallel (group_id, "matrix", buffer)
+         call elsi_ccs_to_dense(buffer, n_l_rows, n_l_cols, H_real_sparse,&
+                                n_l_nonzero, sparse_index, sparse_pointer)
+         call hdf5_write_matrix_parallel(group_id, "matrix", buffer)
       case DEFAULT
          call elsi_stop("No supported method has been chosen. "&
-            // "Please choose method ELPA, OMM_DENSE, or PEXSI",&
-               "elsi_write_ev_problem")
+                        // "Please choose method ELPA, OMM_DENSE, or PEXSI",&
+                        caller)
    end select
 
-   call hdf5_close_group (group_id)
+   call hdf5_close_group(group_id)
 
    ! The Overlap Matrix
-   call hdf5_create_group (file_id, "overlap", group_id)
+   call hdf5_create_group(file_id, "overlap", group_id)
    
    ! Matrix dimension
-   call hdf5_write_attribute (group_id, "n_matrix_rows", n_g_rank)
-   call hdf5_write_attribute (group_id, "n_matrix_cols", n_g_rank)
+   call hdf5_write_attribute(group_id, "n_matrix_rows", n_g_rank)
+   call hdf5_write_attribute(group_id, "n_matrix_cols", n_g_rank)
 
    ! Overlap Write
    select case (method)
       case (ELPA,OMM_DENSE) 
-         call hdf5_write_matrix_parallel (group_id, "matrix", S_real)
+         call hdf5_write_matrix_parallel(group_id, "matrix", S_real)
       case (PEXSI)
-         call elsi_ccs_to_dense(buffer, n_l_rows, n_l_cols, S_real_sparse, &
-               n_l_nonzero, sparse_index, sparse_pointer)
-         call hdf5_write_matrix_parallel (group_id, "matrix", buffer)
+         call elsi_ccs_to_dense(buffer, n_l_rows, n_l_cols, S_real_sparse,&
+                                n_l_nonzero, sparse_index, sparse_pointer)
+         call hdf5_write_matrix_parallel(group_id, "matrix", buffer)
       case DEFAULT
          call elsi_stop("No supported method has been chosen. "&
-            // "Please choose method ELPA, OMM_DENSE, or PEXSI",&
-               "elsi_write_ev_problem")
+                        // "Please choose method ELPA, OMM_DENSE, or PEXSI",&
+                        caller)
    end select
 
-   call hdf5_close_group (group_id)
+   call hdf5_close_group(group_id)
 
-   call hdf5_close_file (file_id)
+   call hdf5_close_file(file_id)
 
    call elsi_stop_write_evp_time()
 
@@ -976,64 +971,61 @@ subroutine elsi_read_ev_problem(file_name)
 
    call elsi_start_read_evp_time()
 
-   if (method == PEXSI) then
+   if(method == PEXSI) then
       call elsi_allocate(buffer, n_l_rows, n_l_cols, "buffer", caller) 
-   end if
+   endif
 
-   call hdf5_open_file (file_name, mpi_comm_global, mpi_info_null, file_id)
+   call hdf5_open_file(file_name, mpi_comm_global, mpi_info_null, file_id)
 
    ! The Hamiltonian
-   call hdf5_open_group (file_id, "hamiltonian", group_id)
+   call hdf5_open_group(file_id, "hamiltonian", group_id)
    
    ! Hamiltonian Read
    call hdf5_get_scalapack_pattern()
    select case (method)
       case (ELPA,OMM_DENSE)
-         call hdf5_read_matrix_parallel (group_id, "matrix", H_real)
+         call hdf5_read_matrix_parallel(group_id, "matrix", H_real)
       case (PEXSI)
-         call hdf5_read_matrix_parallel (group_id, "matrix", buffer)
+         call hdf5_read_matrix_parallel(group_id, "matrix", buffer)
          call elsi_compute_N_nonzero(buffer,n_l_rows, n_l_cols)
-         call elsi_allocate(H_real_sparse, n_l_nonzero, "H_real_sparse", &
-               caller)
+         call elsi_allocate(H_real_sparse, n_l_nonzero, "H_real_sparse", caller)
          call elsi_allocate(sparse_index, n_l_nonzero, "sparse_index", caller)
-         call elsi_allocate(sparse_pointer, n_l_cols + 1, "sparse_pointer", &
-               caller)
-         call elsi_dense_to_ccs(buffer, n_l_rows, n_l_cols, H_real_sparse, &
-               n_l_nonzero, sparse_index, sparse_pointer)
+         call elsi_allocate(sparse_pointer, n_l_cols+1, "sparse_pointer", caller)
+         call elsi_dense_to_ccs(buffer, n_l_rows, n_l_cols, H_real_sparse,&
+                                n_l_nonzero, sparse_index, sparse_pointer)
       case DEFAULT
          call elsi_stop("No supported method has been chosen. "&
-            // "Please choose method ELPA, OMM_DENSE, or PEXSI",&
-               "elsi_read_ev_problem")
+                        // "Please choose method ELPA, OMM_DENSE, or PEXSI",&
+                        caller)
     end select
 
-   call hdf5_close_group (group_id)
+   call hdf5_close_group(group_id)
 
    ! The Overlap Matrix
-   call hdf5_open_group (file_id, "overlap", group_id)
+   call hdf5_open_group(file_id, "overlap", group_id)
    
    ! Overlap Read
    select case (method)
       case (ELPA,OMM_DENSE)
-         call hdf5_read_matrix_parallel (group_id, "matrix", S_real)
+         call hdf5_read_matrix_parallel(group_id, "matrix", S_real)
       case (PEXSI)
-         call hdf5_read_matrix_parallel (group_id, "matrix", buffer)
-         call elsi_allocate(S_real_sparse, n_l_nonzero, "S_real_sparse", &
-               caller)
-         call elsi_dense_to_ccs_by_pattern(buffer, n_l_rows, n_l_cols, &
-               S_real_sparse, n_l_nonzero, sparse_index, sparse_pointer)
+         call hdf5_read_matrix_parallel(group_id, "matrix", buffer)
+         call elsi_allocate(S_real_sparse, n_l_nonzero, "S_real_sparse", caller)
+         call elsi_dense_to_ccs_by_pattern(buffer, n_l_rows, n_l_cols, S_real_sparse,&
+                                           n_l_nonzero, sparse_index, sparse_pointer)
       case DEFAULT
          call elsi_stop("No supported method has been chosen. "&
-            // "Please choose method ELPA, OMM_DENSE, or PEXSI",&
-               "elsi_read_ev_problem")
+                        // "Please choose method ELPA, OMM_DENSE, or PEXSI",&
+                        caller)
          stop
    end select
 
    ! TODO Check if overlap is unity
    overlap_is_unity = .False.
    
-   call hdf5_close_group (group_id)
+   call hdf5_close_group(group_id)
 
-   call hdf5_close_file (file_id)
+   call hdf5_close_file(file_id)
 
    if (allocated(buffer)) deallocate (buffer)
 
@@ -1055,28 +1047,26 @@ subroutine elsi_initialize_problem_from_file(file_name, block_rows, block_cols)
 
    integer :: file_id  !< HDF5 File identifier 
    integer :: group_id !< HDF5 Group identifier
+   character*40, parameter :: caller = "elsi_initialize_problem_from_file"
 
    call elsi_start_read_evp_time()
 
    n_b_rows = block_rows
    n_b_cols = block_cols
 
-   if (.not. mpi_is_setup) call elsi_stop("MPI needs to be setup first!", &
-         "elsi_initialize_problem_from_file")
+   if (.not. mpi_is_setup) call elsi_stop("MPI needs to be setup first!",caller)
 
-   call hdf5_open_file (file_name, mpi_comm_global, mpi_info_null, file_id)
+   call hdf5_open_file(file_name, mpi_comm_global, mpi_info_null, file_id)
 
    ! The Hamiltonian
-   call hdf5_open_group (file_id, "hamiltonian", group_id)
+   call hdf5_open_group(file_id, "hamiltonian", group_id)
 
    ! Matrix dimension
-   call hdf5_read_attribute (group_id, "n_matrix_rows", n_g_rank)
-   call hdf5_read_attribute (group_id, "n_matrix_cols", n_g_rank)
+   call hdf5_read_attribute(group_id, "n_matrix_rows", n_g_rank)
+   call hdf5_read_attribute(group_id, "n_matrix_cols", n_g_rank)
 
-   call hdf5_close_group (group_id)
-
-   call hdf5_close_file (file_id)
-
+   call hdf5_close_group(group_id)
+   call hdf5_close_file(file_id)
    call elsi_stop_read_evp_time()
 
 end subroutine
@@ -1182,7 +1172,6 @@ subroutine elsi_solve_ev_problem(number_of_states)
                             n_l_rows, n_b_rows, n_l_cols, &
                             mpi_comm_row, mpi_comm_col)
                case (REAL_VALUES)
-                  call elsi_matrix_print(H_real,n_l_rows,n_l_cols,"Ham")
                   success = solve_evp_real( &
                             n_g_rank, n_eigenvectors, H_real, &
                             n_l_rows, eigenvalues, vectors_real, &
@@ -1304,19 +1293,20 @@ subroutine elsi_get_eigenvalues(eigenvalues_out,n_eigenvalues)
    implicit none
 
    integer, intent(in) :: n_eigenvalues !< Number of eigenvalues
-   real*8, intent(out) :: eigenvalues_out(n_eigenvalues) !< eigenvalues 
-   
+   real*8, intent(out) :: eigenvalues_out(n_eigenvalues) !< eigenvalues
+   character*40, parameter :: caller = "elsi_get_eigenvalues"
+
    select case (method)
       case (ELPA)
          eigenvalues_out(1:n_eigenvalues) = eigenvalues(1:n_eigenvalues)
       case (OMM_DENSE)
-         call elsi_stop("OMM_DENSE not implemented yet!","elsi_get_eigenvalues")
+         call elsi_stop("OMM_DENSE not implemented yet!",caller)
       case (PEXSI)
-         call elsi_stop("PEXSI not implemented yet!","elsi_get_eigenvalues")
+         call elsi_stop("PEXSI not implemented yet!",caller)
       case DEFAULT
-         call elsi_stop("No method has been chosen. "// &
+         call elsi_stop("No method has been chosen. "//&
                         "Please choose method ELPA, OMM_DENSE, or PEXSI",&
-                        "elsi_get_eigenvalues")
+                        caller)
    end select
 
 end subroutine
@@ -1339,6 +1329,9 @@ subroutine elsi_get_eigenvectors(eigenvectors_out)
 
    select case (method)
       case (ELPA)
+
+         ! Clean up data from last cycle
+         eigenvectors_out = 0d0
 
          ! Mapping of global rows/cols to local
          call elsi_allocate(local_row,n_g_rank,"local_row",caller)
@@ -1380,13 +1373,13 @@ subroutine elsi_get_eigenvectors(eigenvectors_out)
               n_g_rank*n_eigenvectors,mpi_comm_global)
 
       case (OMM_DENSE)
-         call elsi_stop("OMM does not deal with eigenvectors!","elsi_get_eigenvectors")
+         call elsi_stop("OMM does not deal with eigenvectors!",caller)
       case (PEXSI)
-         call elsi_stop("PEXSI does not deal with eigenvectors!","elsi_get_eigenvectors")
+         call elsi_stop("PEXSI does not deal with eigenvectors!",caller)
       case DEFAULT
-         call elsi_stop("No method has been chosen. "// &
+         call elsi_stop("No method has been chosen. "//&
                         "Please choose method ELPA, OMM_DENSE, or PEXSI",&
-                        "elsi_get_eigenvectors")
+                        caller)
    end select
 
 end subroutine
@@ -1398,8 +1391,9 @@ subroutine elsi_get_total_energy(e_tot)
 
    implicit none
 
-   real*8, intent(out) :: e_tot !< eigenvalues 
-   
+   real*8, intent(out) :: e_tot !< eigenvalues
+   character*40, parameter :: caller = "elsi_get_total_energy"
+
    select case (method)
       case (ELPA)
          e_tot = 2d0 * SUM(eigenvalues(1:n_eigenvectors))      
@@ -1410,7 +1404,7 @@ subroutine elsi_get_total_energy(e_tot)
       case DEFAULT
          call elsi_stop("No method has been chosen. "//&
                         "Please choose method ELPA, OMM_DENSE, or PEXSI",&
-                        "elsi_get_total_energy")
+                        caller)
    end select
 
 end subroutine
@@ -1450,7 +1444,7 @@ subroutine elsi_deallocate_matrices()
       call m_deallocate (OMM_C_matrix)
       call m_deallocate (OMM_D_matrix)
       call m_deallocate (OMM_T_matrix)
-   end if
+   endif
 
 end subroutine
 
@@ -1498,9 +1492,6 @@ subroutine elsi_to_standard_ev_problem()
 
    character*100, parameter :: caller = "elsi_to_standard_ev_problem"
 
-! Debug
-   integer :: i,j
-
    select case (method)
       case (ELPA)
          select case (mode)
@@ -1509,7 +1500,7 @@ subroutine elsi_to_standard_ev_problem()
                               // " not yet implemented.",caller)
             case (REAL_VALUES)
                call elsi_allocate(buffer_real, n_l_rows, n_l_cols, &
-                                  "buffer_real", caller)
+                                  "buffer_real",caller)
 
                if(first_call) then
                   call elsi_statement_print(" Starting Cholesty decomposition")
@@ -1518,7 +1509,7 @@ subroutine elsi_to_standard_ev_problem()
                                      n_b_rows, n_l_cols, mpi_comm_row, &
                                      mpi_comm_col, .False., success)
                   if(.not.success) then
-                     call elsi_stop("Cholesky decomposition failed.", caller)
+                     call elsi_stop("Cholesky decomposition failed.",caller)
                   endif
 
                   ! compute U^-1 -> S
@@ -1526,7 +1517,7 @@ subroutine elsi_to_standard_ev_problem()
                                        n_b_rows, n_l_cols, mpi_comm_row, &
                                        mpi_comm_col, .False., success)
                   if(.not.success) then
-                     call elsi_stop("Matrix invertion failed.", caller)
+                     call elsi_stop("Matrix invertion failed.",caller)
                   endif
                endif
 
@@ -1547,10 +1538,10 @@ subroutine elsi_to_standard_ev_problem()
          end select
 
       case (OMM_DENSE)
-         call elsi_stop("OMM does not need to transform evp.", caller)
+         call elsi_stop("OMM does not need to transform evp.",caller)
 
       case (PEXSI)
-         call elsi_stop("PEXSI does not need to transform evp.", caller)
+         call elsi_stop("PEXSI does not need to transform evp.",caller)
 
       case DEFAULT
          call elsi_stop("No method has been chosen. " // &
@@ -1585,15 +1576,17 @@ subroutine elsi_to_original_ev()
                ! (U^-1) is stored in S_real after
                ! elsi_to_standard_ev_problem
                ! vectors_real = S_real * vectors_real
-               call elsi_allocate(buffer_real, n_l_rows, n_l_cols, "temp", caller)
+               call elsi_allocate(buffer_real, n_l_rows, n_l_cols, "temp",caller)
                buffer_real = vectors_real
 
-               ! This alternative should work as well
+               ! Alternative (a)
 !               call pdtran(n_g_rank,n_g_rank,1.d0,S_real,1,1,sc_desc, &
 !                           0.d0,H_real,1,1,sc_desc)
-!               call mult_at_b_real('L','N',n_g_rank,n_eigenvectors,H_real,n_l_rows,buffer_real,n_l_rows, &
-!                                   n_b_rows,mpi_comm_row,mpi_comm_col,vectors_real(1,1),n_l_rows)
+!               call mult_at_b_real('L','N',n_g_rank,n_eigenvectors,H_real, &
+!                                   n_l_rows,buffer_real,n_l_rows,n_b_rows, &
+!                                   mpi_comm_row,mpi_comm_col,vectors_real,n_l_rows)
 
+               ! Alternative (b)
                call pdgemm('N', 'N', n_g_rank, n_eigenvectors, n_g_rank, &
                            1.0d0, S_real, 1, 1, sc_desc, buffer_real , 1, 1, &
                            sc_desc, 0.0d0, vectors_real, 1, 1, sc_desc)

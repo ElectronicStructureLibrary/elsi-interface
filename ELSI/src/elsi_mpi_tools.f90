@@ -1,4 +1,4 @@
-!Copyright (c) 2015, ELSI consortium
+!Copyright (c) 2016, ELSI consortium
 !All rights reserved.
 !
 !Redistribution and use in source and binary forms, with or without
@@ -79,7 +79,6 @@ module ELSI_MPI_TOOLS
                       elsi_allocate_complex_matrix
   end interface
 
-
   contains
 
 !> 
@@ -96,23 +95,23 @@ subroutine elsi_initialize_mpi()
    mpi_is_setup = .True.
 
    call mpi_init(mpierr)
-   if (mpierr /= 0) then
+   if(mpierr /= 0) then
       write(*,'(a)') "MPI: Failed to initialize MPI."
       stop
-   end if
+   endif
    call mpi_comm_rank(mpi_comm_world, myid, mpierr)
-   if (mpierr /= 0) then
+   if(mpierr /= 0) then
       write(*,'(a)') "MPI: Failed to determine MPI rank."
       stop
-   end if
+   endif
 
    mpi_comm_global = mpi_comm_world
 
    call mpi_comm_size(mpi_comm_global, n_procs, mpierr)
-   if (mpierr /= 0) then
+   if(mpierr /= 0) then
       write(*,'(a)') "MPI: Failed to determine MPI size."
       stop
-   end if
+   endif
 
 end subroutine
 
@@ -135,6 +134,7 @@ subroutine elsi_set_mpi(global_comm, n_procs_in, myid_in)
    mpi_comm_global = global_comm
    n_procs         = n_procs_in
    myid            = myid_in
+
 end subroutine
 
 !> 
@@ -149,10 +149,10 @@ subroutine elsi_finalize_mpi()
    mpi_is_setup = .False.
 
    call mpi_finalize(mpierr)
-   if (mpierr /= 0) then
+   if(mpierr /= 0) then
       write(*,'(a)') "MPI: Failed to finalize MPI."
       stop
-   end if
+   endif
 
 end subroutine
 
@@ -168,121 +168,119 @@ subroutine elsi_initialize_blacs()
    ! Exception how to deviate from blocksize for OMM
    integer :: exception(2) = (/0,0/)
 
+   if(method == PEXSI) then
 
-   if (method == PEXSI) then
+      external_blacs = .False.
+      blacs_is_setup = .False.
 
-     external_blacs = .False.
-     blacs_is_setup = .False.
+      ! Find balancing between expansion parallel and matrix inversion parallel
+      if(mod(n_procs, 40) == 0 .and. n_procs >= 640) then
+         n_p_rows = 40
+      else if (mod(n_procs, 20) == 0 .and. n_procs >= 320) then
+         n_p_rows = 20
+      else if (mod(n_procs, 10) == 0 .and. n_procs >= 90) then
+         n_p_rows = 10
+      else if (mod(n_procs, 5) == 0 .and. n_procs >= 20) then
+         n_p_rows = 5
+      else if (mod(n_procs, 4) == 0 .and. n_procs >= 16) then
+         n_p_rows = 4
+      else if (mod(n_procs, 2) == 0 .and. n_procs >= 2) then
+         n_p_rows = 2
+      else 
+         n_p_rows = 1
+      endif
 
-     ! Find balancing between expansion parallel and matrix inversion parallel
-     if (mod(n_procs, 40) == 0 .and. n_procs >= 640) then
-        n_p_rows = 40
-     else if (mod(n_procs, 20) == 0 .and. n_procs >= 320) then
-        n_p_rows = 20
-     else if (mod(n_procs, 10) == 0 .and. n_procs >= 90) then
-        n_p_rows = 10
-     else if (mod(n_procs, 5) == 0 .and. n_procs >= 20) then
-        n_p_rows = 5
-     else if (mod(n_procs, 4) == 0 .and. n_procs >= 16) then
-        n_p_rows = 4
-     else if (mod(n_procs, 2) == 0 .and. n_procs >= 2) then
-        n_p_rows = 2
-     else 
-        n_p_rows = 1
-     end if
+      n_p_cols = n_procs / n_p_rows
 
-     n_p_cols = n_procs / n_p_rows
+      ! position in process grid must not be used
+      my_p_col = -1
+      my_p_row = -1
 
-     ! position in process grid must not be used
-     my_p_col = -1
-     my_p_row = -1
+      ! PEXSI needs a pure block distribution.
+      ! This is why we reset the blocksize here 
+      n_b_rows = n_g_rank
 
-     ! PEXSI needs a pure block distribution.
-     ! This is why we reset the blocksize here 
-     n_b_rows = n_g_rank
+      ! The last process takes all remaining columns
+      n_b_cols = FLOOR(1d0*n_g_rank / n_procs)
+      if(myid == n_procs - 1) then
+         n_b_cols = n_g_rank - (n_procs-1) * n_b_cols
+      endif
 
-     ! The last process takes all remaining columns
-     n_b_cols = FLOOR(1d0*n_g_rank / n_procs)
-     if (myid == n_procs - 1) then
-        n_b_cols = n_g_rank - (n_procs-1) * n_b_cols
-     end if
-
-     n_l_rows = n_b_rows
-     n_l_cols = n_b_cols
+      n_l_rows = n_b_rows
+      n_l_cols = n_b_cols
  
-     ! Each master process for each pole should write an output 
-     if (mod(myid,n_p_cols * n_p_rows) == 0) then
-        pexsi_output_file_index = myid / (n_p_cols * n_p_rows)
-     else
-        pexsi_output_file_index = -1
-     end if
+      ! Each master process for each pole should write an output 
+      if(mod(myid,n_p_cols * n_p_rows) == 0) then
+         pexsi_output_file_index = myid / (n_p_cols * n_p_rows)
+      else
+         pexsi_output_file_index = -1
+      endif
 
-     pexsi_plan = f_ppexsi_plan_initialize( mpi_comm_global, n_p_rows, &
-           n_p_cols, pexsi_output_file_index, pexsi_info)
-     if (pexsi_info /= 0) then
-        call elsi_stop("Pexsi Plan initialization faild.",&
-              "elsi_initialize_blacs")
-     end if
+      pexsi_plan = f_ppexsi_plan_initialize( mpi_comm_global, n_p_rows, &
+                   n_p_cols, pexsi_output_file_index, pexsi_info)
+      if(pexsi_info /= 0) then
+         call elsi_stop("Pexsi Plan initialization faild.",&
+                        "elsi_initialize_blacs")
+      endif
 
    else
      
-     external_blacs = .False.
-     blacs_is_setup = .True.
+      external_blacs = .False.
+      blacs_is_setup = .True.
      
-     ! Define blockcyclic setup
-     do n_p_cols = NINT(SQRT(REAL(n_procs))),n_procs,1
-       if(mod(n_procs,n_p_cols) == 0 ) exit
-     enddo
+      ! Define blockcyclic setup
+      do n_p_cols = NINT(SQRT(REAL(n_procs))),n_procs,1
+         if(mod(n_procs,n_p_cols) == 0 ) exit
+      enddo
 
-     n_p_rows = n_procs / n_p_cols
+      n_p_rows = n_procs / n_p_cols
 
-     ! Set up BLACS and MPI communicators
+      ! Set up BLACS and MPI communicators
 
-     blacs_ctxt = mpi_comm_global
-     call BLACS_Gridinit( blacs_ctxt, 'R', n_p_rows, n_p_cols )
-     call BLACS_Gridinfo( blacs_ctxt, n_p_rows, n_p_cols, my_p_row, my_p_col )
+      blacs_ctxt = mpi_comm_global
+      call BLACS_Gridinit(blacs_ctxt, 'R', n_p_rows, n_p_cols)
+      call BLACS_Gridinfo(blacs_ctxt, n_p_rows, n_p_cols, my_p_row, my_p_col)
 
-     call mpi_comm_split(mpi_comm_global,my_p_col,my_p_row,mpi_comm_row,mpierr)
+      call mpi_comm_split(mpi_comm_global,my_p_col,my_p_row,mpi_comm_row,mpierr)
 
-     if (mpierr /= 0) then
-       call elsi_stop("Failed to get row communicators.",&
-           "elsi_initialize_blacs")
-     end if
+      if(mpierr /= 0) then
+         call elsi_stop("Failed to get row communicators.",&
+                        "elsi_initialize_blacs")
+      endif
  
-     call mpi_comm_split(mpi_comm_global,my_p_row,my_p_col,mpi_comm_col,mpierr)
+      call mpi_comm_split(mpi_comm_global,my_p_row,my_p_col,mpi_comm_col,mpierr)
    
-     if (mpierr /= 0) then
-       call elsi_stop("Failed to get column communicators.",&
-           "elsi_initialize_blacs")
-     end if
+      if(mpierr /= 0) then
+         call elsi_stop("Failed to get column communicators.",&
+                        "elsi_initialize_blacs")
+      endif
 
-     n_l_rows = numroc(n_g_rank, n_b_rows, my_p_row, 0, n_p_rows)
-     n_l_cols = numroc(n_g_rank, n_b_cols, my_p_col, 0, n_p_cols)
+      n_l_rows = numroc(n_g_rank, n_b_rows, my_p_row, 0, n_p_rows)
+      n_l_cols = numroc(n_g_rank, n_b_cols, my_p_col, 0, n_p_cols)
 
-     n_l_nonzero = n_l_rows * n_l_cols
-     n_g_nonzero = n_g_rank * n_g_rank
+      n_l_nonzero = n_l_rows * n_l_cols
+      n_g_nonzero = n_g_rank * n_g_rank
 
-     call descinit( sc_desc, n_g_rank, n_g_rank, n_b_rows, n_b_cols, 0, 0, &
-                   blacs_ctxt, MAX(1,n_l_rows), blacs_info )
+      call descinit(sc_desc, n_g_rank, n_g_rank, n_b_rows, n_b_cols, 0, 0, &
+                    blacs_ctxt, MAX(1,n_l_rows), blacs_info)
 
-     if (method == OMM_DENSE) then
-        call ms_scalapack_setup (n_procs, n_p_rows, 'c', n_b_rows, exception,&
-             blacs_ctxt)
-     end if
+      if(method == OMM_DENSE) then
+         call ms_scalapack_setup(n_procs, n_p_rows, 'c', n_b_rows, exception,&
+                                 blacs_ctxt)
+      endif
+   endif
 
-   end if
-
-  ! For DEBUG
-  !call elsi_variable_status()
+   ! For DEBUG
+   !call elsi_variable_status()
 
 end subroutine
 
 !> 
 !! Set BLACS Grid from external
 !!
-subroutine elsi_set_blacs( blacs_ctxt_in, n_p_rows_in, n_p_cols_in, &
-      my_p_row_in, my_p_col_in, mpi_comm_row_in, mpi_comm_col_in,&
-      n_l_rows_in, n_l_cols_in, sc_desc_in)
+subroutine elsi_set_blacs(blacs_ctxt_in, n_p_rows_in, n_p_cols_in, &
+                          my_p_row_in, my_p_col_in, mpi_comm_row_in, mpi_comm_col_in, &
+                          n_l_rows_in, n_l_cols_in, sc_desc_in)
 
    implicit none
 
@@ -290,38 +288,37 @@ subroutine elsi_set_blacs( blacs_ctxt_in, n_p_rows_in, n_p_cols_in, &
    ! Exception how to deviate from blocksize for OMM
    integer :: exception(2) = (/0,0/)
 
-  integer,intent(in) :: blacs_ctxt_in     !< local blacs context
-  integer,intent(in) :: sc_desc_in(9)     !< local blacs context
-  integer,intent(in) :: mpi_comm_row_in   !< row    communicatior
-  integer,intent(in) :: mpi_comm_col_in   !< column communicatior
-  integer,intent(in) :: my_p_row_in       !< process row    position
-  integer,intent(in) :: my_p_col_in       !< process column position
-  integer,intent(in) :: n_p_rows_in       !< Number of processes in row
-  integer,intent(in) :: n_p_cols_in       !< Number of processes in column
-  integer,intent(in) :: n_l_rows_in       !< Number of local rows
-  integer,intent(in) :: n_l_cols_in       !< Number of local columns
-   
-  external_blacs = .True.
-  blacs_is_setup = .False.
+   integer,intent(in) :: blacs_ctxt_in     !< local blacs context
+   integer,intent(in) :: sc_desc_in(9)     !< local blacs context
+   integer,intent(in) :: mpi_comm_row_in   !< row    communicatior
+   integer,intent(in) :: mpi_comm_col_in   !< column communicatior
+   integer,intent(in) :: my_p_row_in       !< process row    position
+   integer,intent(in) :: my_p_col_in       !< process column position
+   integer,intent(in) :: n_p_rows_in       !< Number of processes in row
+   integer,intent(in) :: n_p_cols_in       !< Number of processes in column
+   integer,intent(in) :: n_l_rows_in       !< Number of local rows
+   integer,intent(in) :: n_l_cols_in       !< Number of local columns
 
-  blacs_ctxt = blacs_ctxt_in 
-  n_p_rows = n_p_rows_in 
-  n_p_cols = n_p_cols_in
-  my_p_row = my_p_row_in
-  my_p_col = my_p_col_in
-  mpi_comm_row = mpi_comm_row_in
-  mpi_comm_col = mpi_comm_col_in
-  n_l_rows = n_l_rows_in
-  n_l_cols = n_l_cols_in
-  sc_desc = sc_desc_in
+   external_blacs = .True.
+   blacs_is_setup = .False.
 
-  if (method == OMM_DENSE) then
-     call ms_scalapack_setup (n_procs, n_p_rows, "C", n_b_rows, exception,&
-           blacs_ctxt)
-  end if
+   blacs_ctxt = blacs_ctxt_in 
+   n_p_rows = n_p_rows_in 
+   n_p_cols = n_p_cols_in
+   my_p_row = my_p_row_in
+   my_p_col = my_p_col_in
+   mpi_comm_row = mpi_comm_row_in
+   mpi_comm_col = mpi_comm_col_in
+   n_l_rows = n_l_rows_in
+   n_l_cols = n_l_cols_in
+   sc_desc = sc_desc_in
 
-  ! For DEBUG
-  !call elsi_variable_status()
+   if(method == OMM_DENSE) then
+      call ms_scalapack_setup(n_procs, n_p_rows, "C", n_b_rows, exception, blacs_ctxt)
+   endif
+
+   ! For DEBUG
+   !call elsi_variable_status()
 
 end subroutine
 
@@ -333,16 +330,16 @@ subroutine elsi_finalize_blacs()
    implicit none
 
    if(blacs_is_setup) then
-     blacs_is_setup = .False.
-     call blacs_gridexit(blacs_ctxt)
-   end if
+      blacs_is_setup = .False.
+      call blacs_gridexit(blacs_ctxt)
+   endif
 
 end subroutine
 
 !> 
 !! Computes global row index based on local row index
 !!
-subroutine elsi_get_global_row (global_idx, local_idx)
+subroutine elsi_get_global_row(global_idx, local_idx)
 
    implicit none
 
@@ -352,7 +349,7 @@ subroutine elsi_get_global_row (global_idx, local_idx)
    integer :: block !< local block 
    integer :: idx   !< local index in block
 
-   block = FLOOR( 1d0 * (local_idx - 1) / n_b_rows) 
+   block = FLOOR(1d0 * (local_idx - 1) / n_b_rows) 
    idx = local_idx - block * n_b_rows
 
    global_idx = my_p_row * n_b_rows + block * n_b_rows * n_p_rows + idx
@@ -362,7 +359,7 @@ end subroutine
 !> 
 !! Computes global column index based on local column index
 !!
-subroutine elsi_get_global_col (global_idx, local_idx)
+subroutine elsi_get_global_col(global_idx, local_idx)
 
    implicit none
 
@@ -373,7 +370,7 @@ subroutine elsi_get_global_col (global_idx, local_idx)
    integer :: idx   !< local index in block
 
 
-   block = FLOOR( 1d0 * (local_idx - 1) / n_b_cols) 
+   block = FLOOR(1d0 * (local_idx - 1) / n_b_cols) 
    idx = local_idx - block * n_b_cols
 
    global_idx = my_p_col * n_b_cols + block * n_p_cols * n_b_cols + idx
@@ -383,7 +380,7 @@ end subroutine
 !> 
 !! Gets global matrix specifications such as rank and block dimensions
 !!
-subroutine elsi_get_global_dimensions (g_dim, g_block_rows, g_block_cols)
+subroutine elsi_get_global_dimensions(g_dim, g_block_rows, g_block_cols)
 
    implicit none
 
@@ -400,30 +397,30 @@ end subroutine
 !> 
 !! Gets the local matrix dimensions
 !!
-subroutine elsi_get_local_dimensions (rows, cols)
+subroutine elsi_get_local_dimensions(rows, cols)
 
    implicit none
 
    integer, intent(out) :: rows   !< output local rows
    integer, intent(out) :: cols   !< output local cols
 
-   rows  = n_l_rows 
-   cols  = n_l_cols
+   rows = n_l_rows
+   cols = n_l_cols
 
 end subroutine
 
 !> 
 !! Get the processor grid as specified by BLACS
 !!
-subroutine elsi_get_processor_grid (rows, cols)
+subroutine elsi_get_processor_grid(rows, cols)
 
    implicit none
 
    integer, intent(out) :: rows   !< output processor rows
    integer, intent(out) :: cols   !< output processor cols
 
-   rows  = n_p_rows 
-   cols  = n_p_cols
+   rows = n_p_rows
+   cols = n_p_cols
 
 end subroutine
 
@@ -437,8 +434,8 @@ subroutine elsi_get_comm_grid (rows, cols)
    integer, intent(out) :: rows   !< output row communicator
    integer, intent(out) :: cols   !< output col communicator
 
-   rows  = mpi_comm_row 
-   cols  = mpi_comm_col
+   rows = mpi_comm_row
+   cols = mpi_comm_col
 
 end subroutine
 
@@ -451,14 +448,14 @@ subroutine elsi_get_myid (id)
 
    integer, intent(out) :: id   !< output process id
 
-   id = myid 
+   id = myid
 
 end subroutine
 
 !> 
 !! Debug printout of a matrix
 !!
-subroutine elsi_matrix_print (matrix, n_rows, n_cols, matrixname)
+subroutine elsi_matrix_print(matrix, n_rows, n_cols, matrixname)
 
    implicit none
 
@@ -469,14 +466,14 @@ subroutine elsi_matrix_print (matrix, n_rows, n_cols, matrixname)
 
    integer :: id, i_row, i_col
    
-   if (myid == 0) print *, trim(matrixname)
+   if(myid == 0) print *, trim(matrixname)
 
    do id = 0, n_procs - 1
       if(myid == id) then
          do i_row = 1, n_rows
             do i_col = 1, n_cols
-               write(*,"(A,I6,A,I6,A,I6,A,F13.6)") " Process ",id, &
-               " Row ",i_row," Col ",i_col," value ",matrix(i_row,i_col)
+               write(*,"(A,I6,A,I6,A,I6,A,F13.6)") " Process ",id,&
+               " Row ",i_row," Col ",i_col," Value ",matrix(i_row,i_col)
             enddo
          enddo
       endif
@@ -488,112 +485,112 @@ end subroutine
 !> 
 !! Debug printout of a vector
 !!
-subroutine elsi_int_vector_print (vector, n_dim, vectorname)
+subroutine elsi_int_vector_print(vector, n_dim, vectorname)
 
    implicit none
 
    integer, intent(in) :: n_dim
-   integer, intent(in) :: vector(n_dim) 
-   character(len=*), intent(in) :: vectorname 
+   integer, intent(in) :: vector(n_dim)
+   character(len=*), intent(in) :: vectorname
 
    integer :: id, i_dim
 
-   if (myid == 0) print *, trim(vectorname)
+   if(myid == 0) print *, trim(vectorname)
 
    do id = 0, n_procs - 1
-     if (myid == id) then
-        do i_dim = 1, n_dim
-            write(*,"(A,I6,A,I10,A,I13)") " Process ", id, " Entry ", i_dim,&
-           " value", vector(i_dim)
-        end do
-     end if
-     call MPI_Barrier(mpi_comm_global, mpierr)
-   end do 
+      if(myid == id) then
+         do i_dim = 1, n_dim
+            write(*,"(A,I6,A,I10,A,I13)") " Process ",id,&
+            " Entry ",i_dim," Value ",vector(i_dim)
+         enddo
+      endif
+      call MPI_Barrier(mpi_comm_global,mpierr)
+   enddo
 
 end subroutine
 
-subroutine elsi_int_value_print (val, valname)
+subroutine elsi_int_value_print(val, valname)
 
    implicit none
 
    integer :: val
-   character(len=*), intent(in) :: valname 
+   character(len=*), intent(in) :: valname
 
    integer :: id
 
-   if (myid == 0) print *, trim(valname)
+   if(myid == 0) print *, trim(valname)
 
    do id = 0, n_procs - 1
-     if (myid == id) then
-        write(*,"(A,I6,A,I13)") " Process ", id, " value", val
-     end if
-     call MPI_Barrier(mpi_comm_global, mpierr)
-   end do 
+      if(myid == id) then
+         write(*,"(A,I6,A,I13)") " Process ",id," Value ",val
+      endif
+      call MPI_Barrier(mpi_comm_global,mpierr)
+   enddo
 
 end subroutine
 
-subroutine elsi_real_value_print (val, valname)
+subroutine elsi_real_value_print(val, valname)
 
    implicit none
 
    real :: val
-   character(len=*), intent(in) :: valname 
+   character(len=*), intent(in) :: valname
 
    integer :: id
 
-   if (myid == 0) print *, trim(valname)
+   if(myid == 0) print *, trim(valname)
 
    do id = 0, n_procs - 1
-     if (myid == id) then
-       write(*,"(A,I4,A,F13.6)") " Process ", id, " value", val
-     end if
-     call MPI_Barrier(mpi_comm_global, mpierr)
-   end do 
+      if(myid == id) then
+         write(*,"(A,I4,A,F13.6)") " Process ",id," Value ",val
+      endif
+      call MPI_Barrier(mpi_comm_global,mpierr)
+   enddo
 
 end subroutine
 
-subroutine elsi_real_vector_print (vector, n_dim, vectorname)
+subroutine elsi_real_vector_print(vector, n_dim, vectorname)
 
    implicit none
 
    integer, intent(in) :: n_dim
-   real*8, intent(in) :: vector(n_dim) 
-   character(len=*), intent(in) :: vectorname 
+   real*8, intent(in) :: vector(n_dim)
+   character(len=*), intent(in) :: vectorname
 
    integer :: id, i_dim
 
-   if (myid == 0) print *, trim(vectorname)
+   if(myid == 0) print *, trim(vectorname)
 
    do id = 0, n_procs - 1
-     if (myid == id) then
-        do i_dim = 1, n_dim
-           write(*,"(A,I6,A,I10,A,F13.6)") " Process ", id, " Entry ", i_dim,&
-           " value", vector(i_dim)
-        end do
-     end if
-     call MPI_Barrier(mpi_comm_global, mpierr)
-   end do 
+      if(myid == id) then
+         do i_dim = 1, n_dim
+            write(*,"(A,I6,A,I10,A,F13.6)") " Process ",id, &
+            " Entry ",i_dim," Value ",vector(i_dim)
+         enddo
+      endif
+      call MPI_Barrier(mpi_comm_global,mpierr)
+   enddo
 
 end subroutine
 
 !> 
-!! Debug printout of a vector
+!! Printout of a statement
 !!
-subroutine elsi_statement_print (message)
+subroutine elsi_statement_print(message)
 
    implicit none
 
-   character(len=*), intent(in) :: message 
+   character(len=*), intent(in) :: message
 
-   if (myid == 0) print *, trim(message)
-   call MPI_Barrier(mpi_comm_global, mpierr)
+   if(myid == 0) print *, trim(message)
+   call MPI_Barrier(mpi_comm_global,mpierr)
 
 end subroutine
 
 !>
 !! Elsi allocation routines with error handling
 !!
-subroutine elsi_allocate_real_vector (vector, n_elements, vectorname, caller)
+subroutine elsi_allocate_real_vector(vector, n_elements, vectorname, caller)
 
    implicit none
 
@@ -612,26 +609,26 @@ subroutine elsi_allocate_real_vector (vector, n_elements, vectorname, caller)
    memory = 8d0 * n_elements / 2d0**20
 
    !do id = 0, n_procs - 1
-   !  if (myid == id) then
-   !    write(*,"(A,I6,A,F10.3,A,A)") " Process ", id, " allocates ", &
-   !    memory, " MB for real vector ", vectorname
-   !  end if
-   !  call MPI_Barrier(mpi_comm_global, mpierr)
-   !end do 
+   !   if(myid == id) then
+   !      write(*,"(A,I6,A,F10.3,A,A)") " Process ", id, " allocates ", &
+   !      memory, " MB for real vector ", vectorname
+   !   endif
+   !   call MPI_Barrier(mpi_comm_global, mpierr)
+   !enddo 
 
    allocate(vector(n_elements), stat = error)
 
-   if (error > 0) then 
+   if(error > 0) then 
       write(message,"(A,A,A,F10.3,A)") "Insufficient memory to allocate ", &
-         trim(vectorname), ", ", memory, " MB needed."
-         call elsi_stop (message, caller)
-   end if
+            trim(vectorname), ", ", memory, " MB needed."
+      call elsi_stop(message, caller)
+   endif
 
    vector = 0d0 
 
 end subroutine
 
-subroutine elsi_allocate_int_vector (vector, n_elements, vectorname, caller)
+subroutine elsi_allocate_int_vector(vector, n_elements, vectorname, caller)
 
    implicit none
 
@@ -650,26 +647,26 @@ subroutine elsi_allocate_int_vector (vector, n_elements, vectorname, caller)
    memory = 4d0 * n_elements / 2d0**20
 
    !do id = 0, n_procs - 1
-   !  if (myid == id) then
-   !    write(*,"(A,I6,A,F10.3,A,A)") " Process ", id, " allocates ", &
-   !    memory, " MB for integer vector ", vectorname
-   !  end if
+   !   if(myid == id) then
+   !      write(*,"(A,I6,A,F10.3,A,A)") " Process ", id, " allocates ", &
+   !      memory, " MB for integer vector ", vectorname
+   !  endif
    !  call MPI_Barrier(mpi_comm_global, mpierr)
-   !end do 
+   !enddo 
 
    allocate(vector(n_elements), stat = error)
 
-   if (error > 0) then 
+   if(error > 0) then 
       write(message,"(A,A,A,F10.3,A)") "Insufficient memory to allocate ", &
-         trim(vectorname), ", ", memory, " MB needed."
-         call elsi_stop (message, caller)
-   end if
+            trim(vectorname), ", ", memory, " MB needed."
+      call elsi_stop(message, caller)
+   endif
 
    vector = 0
 
 end subroutine
 
-subroutine elsi_allocate_complex_vector (vector, n_elements, vectorname, caller)
+subroutine elsi_allocate_complex_vector(vector, n_elements, vectorname, caller)
 
    implicit none
 
@@ -688,27 +685,26 @@ subroutine elsi_allocate_complex_vector (vector, n_elements, vectorname, caller)
    memory = 16d0 * n_elements / 2d0**20
 
    !do id = 0, n_procs - 1
-   !  if (myid == id) then
-   !    write(*,"(A,I6,A,F10.3,A,A)") " Process ", id, " allocates ", &
-   !    memory, " MB for complex vector ", vectorname
-   !  end if
-   !  call MPI_Barrier(mpi_comm_global, mpierr)
-   !end do 
+   !   if(myid == id) then
+   !      write(*,"(A,I6,A,F10.3,A,A)") " Process ", id, " allocates ", &
+   !      memory, " MB for complex vector ", vectorname
+   !   endif
+   !   call MPI_Barrier(mpi_comm_global, mpierr)
+   !enddo 
 
    allocate(vector(n_elements), stat = error)
 
-   if (error > 0) then 
+   if(error > 0) then
       write(message,"(A,A,A,F10.3,A)") "Insufficient memory to allocate ", &
-         trim(vectorname), ", ", memory, " MB needed."
-         call elsi_stop (message, caller)
-   end if
+            trim(vectorname), ", ", memory, " MB needed."
+      call elsi_stop(message, caller)
+   endif
 
    vector = CMPLX(0d0,0d0)
 
 end subroutine
 
-subroutine elsi_allocate_real_matrix (matrix, n_rows, n_cols, matrixname,&
-      caller)
+subroutine elsi_allocate_real_matrix(matrix, n_rows, n_cols, matrixname, caller)
 
    implicit none
 
@@ -728,27 +724,26 @@ subroutine elsi_allocate_real_matrix (matrix, n_rows, n_cols, matrixname,&
    memory = 8d0 * n_rows * n_cols / 2d0**20
 
    !do id = 0, n_procs - 1
-   !  if (myid == id) then
-   !    write(*,"(A,I6,A,F10.3,A,A)") " Process ", id, " allocates ", &
-   !    memory, " MB for real matrix ", matrixname
-   !  end if
-   !  call MPI_Barrier(mpi_comm_global, mpierr)
-   !end do 
+   !   if(myid == id) then
+   !      write(*,"(A,I6,A,F10.3,A,A)") " Process ", id, " allocates ", &
+   !      memory, " MB for real matrix ", matrixname
+   !   endif
+   !   call MPI_Barrier(mpi_comm_global, mpierr)
+   !enddo 
 
    allocate(matrix(n_rows,n_cols), stat = error)
 
-   if (error > 0) then 
+   if(error > 0) then 
       write(message,"(A,A,A,F10.3,A)") "Insufficient memory to allocate ", &
-         trim(matrixname), ", ", memory, " MB needed."
-         call elsi_stop (message, caller)
-   end if
+            trim(matrixname), ", ", memory, " MB needed."
+      call elsi_stop(message, caller)
+   endif
 
    matrix = 0d0 
 
 end subroutine
 
-subroutine elsi_allocate_int_matrix (matrix, n_rows, n_cols, matrixname,&
-      caller)
+subroutine elsi_allocate_int_matrix(matrix, n_rows, n_cols, matrixname, caller)
 
    implicit none
 
@@ -768,27 +763,26 @@ subroutine elsi_allocate_int_matrix (matrix, n_rows, n_cols, matrixname,&
    memory = 4d0 * n_rows * n_cols / 2d0**20
 
    !do id = 0, n_procs - 1
-   !  if (myid == id) then
-   !    write(*,"(A,I6,A,F10.3,A,A)") " Process ", id, " allocates ", &
-   !    memory, " MB for real matrix ", matrixname
-   !  end if
-   !  call MPI_Barrier(mpi_comm_global, mpierr)
-   !end do 
+   !   if(myid == id) then
+   !      write(*,"(A,I6,A,F10.3,A,A)") " Process ", id, " allocates ", &
+   !      memory, " MB for real matrix ", matrixname
+   !   endif
+   !   call MPI_Barrier(mpi_comm_global, mpierr)
+   !enddo 
 
    allocate(matrix(n_rows,n_cols), stat = error)
 
-   if (error > 0) then 
+   if(error > 0) then 
       write(message,"(A,A,A,F10.3,A)") "Insufficient memory to allocate ", &
-         trim(matrixname), ", ", memory, " MB needed."
-         call elsi_stop (message, caller)
-   end if
+            trim(matrixname), ", ", memory, " MB needed."
+      call elsi_stop(message, caller)
+   endif
 
    matrix = 0 
 
 end subroutine
 
-subroutine elsi_allocate_complex_matrix (matrix, n_rows, n_cols, matrixname,&
-      caller)
+subroutine elsi_allocate_complex_matrix(matrix, n_rows, n_cols, matrixname, caller)
 
    implicit none
 
@@ -808,26 +802,26 @@ subroutine elsi_allocate_complex_matrix (matrix, n_rows, n_cols, matrixname,&
    memory = 16d0 * n_rows * n_cols / 2d0**20
 
    !do id = 0, n_procs - 1
-   !  if (myid == id) then
-   !    write(*,"(A,I6,A,F10.3,A,A)") " Process ", id, " allocates ", &
-   !    memory, " MB for real matrix ", matrixname
-   !  end if
-   !  call MPI_Barrier(mpi_comm_global, mpierr)
-   !end do 
+   !   if(myid == id) then
+   !      write(*,"(A,I6,A,F10.3,A,A)") " Process ", id, " allocates ", &
+   !      memory, " MB for real matrix ", matrixname
+   !   endif
+   !   call MPI_Barrier(mpi_comm_global, mpierr)
+   !enddo 
 
    allocate(matrix(n_rows,n_cols), stat = error)
 
-   if (error > 0) then 
+   if(error > 0) then 
       write(message,"(A,A,A,F10.3,A)") "Insufficient memory to allocate ", &
-         trim(matrixname), ", ", memory, " MB needed."
-         call elsi_stop (message, caller)
-   end if
+            trim(matrixname), ", ", memory, " MB needed."
+      call elsi_stop(message, caller)
+   endif
 
    matrix = CMPLX(0d0,0d0) 
 
 end subroutine
 
-subroutine elsi_sync_vector (vector, dim, mpi_comm)
+subroutine elsi_sync_vector(vector, dim, mpi_comm)
 
    implicit none
    include 'mpif.h'
@@ -860,7 +854,6 @@ subroutine elsi_sync_vector (vector, dim, mpi_comm)
                          MPI_SUM, comm, mpierr)
 
       vector(i:i-1+len) = temp_mpi(1:len)
-
    enddo
 
    deallocate(temp_mpi)

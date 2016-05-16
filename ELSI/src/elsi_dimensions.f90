@@ -1,4 +1,4 @@
-!Copyright (c) 2015, ELSI consortium
+!Copyright (c) 2016, ELSI consortium
 !All rights reserved.
 !
 !Redistribution and use in source and binary forms, with or without
@@ -170,15 +170,15 @@ module ELSI_DIMENSIONS
 
       integer :: i_task
 
-       do i_task = 0, n_procs - 1
-        if (myid == i_task) then
-          write(string_message, "(1X,'*** Proc',I5,': ',A)") &
-            & myid, trim(message)
+      do i_task = 0, n_procs - 1
+         if(myid == i_task) then
+            write(string_message, "(1X,'*** Proc',I5,': ',A)") &
+                  & myid, trim(message)
 
-          write(*,'(A)') trim(string_message)
-        end if
-        call MPI_BARRIER(mpi_comm_global,mpierr)
-      end do
+            write(*,'(A)') trim(string_message)
+         endif
+         call MPI_BARRIER(mpi_comm_global,mpierr)
+      enddo
 
   end subroutine 
 
@@ -197,17 +197,17 @@ subroutine elsi_stop(message, caller)
       integer :: i_task
 
       do i_task = 0, n_procs - 1
-        if (myid == i_task) then
-          write(string_message, "(1X,'*** Proc',I5,' in ',A,': ',A)") &
-             & myid, trim(caller), trim(message)
-          write(*,'(A)') trim(string_message)
-        end if
-        call MPI_BARRIER(mpi_comm_global,mpierr)
-      end do
+         if(myid == i_task) then
+            write(string_message, "(1X,'*** Proc',I5,' in ',A,': ',A)") &
+                  & myid, trim(caller), trim(message)
+            write(*,'(A)') trim(string_message)
+         endif
+         call MPI_BARRIER(mpi_comm_global,mpierr)
+      enddo
 
-      if (n_procs > 1) then
+      if(n_procs > 1) then
          call MPI_Abort(mpi_comm_global, 0, mpierr)
-      end if
+      endif
         
       stop
 
@@ -225,64 +225,61 @@ subroutine elsi_variable_status()
       integer :: i_task
 
 
-       if (myid == 0) then
-            write(string_message, "(1X,'*** Proc',I5,&
-              &' : Matrixsize global ',I5,' x ',I5)")&
-              & myid, n_g_rank, n_g_rank
-            write(*,'(A)') trim(string_message)
+       if(myid == 0) then
+          write(string_message, "(1X,'*** Proc',I5,&
+                &' : Matrixsize global ',I5,' x ',I5)")&
+                & myid, n_g_rank, n_g_rank
+          write(*,'(A)') trim(string_message)
 
-            write(string_message, "(1X,'*** Proc',I5,&
-              &' : Non_zero elements global ',I16)")&
-              & myid, n_g_nonzero
-            write(*,'(A)') trim(string_message)
+          write(string_message, "(1X,'*** Proc',I5,&
+                &' : Non_zero elements global ',I16)")&
+                & myid, n_g_nonzero
+          write(*,'(A)') trim(string_message)
             
-            write(string_message, "(1X,'*** Proc',I5,&
-              &' : Processgrid global ',I5,' x ',I5)")&
-              & myid, n_p_rows, n_p_cols
-            write(*,'(A)') trim(string_message)
+          write(string_message, "(1X,'*** Proc',I5,&
+                &' : Processgrid global ',I5,' x ',I5)")&
+                & myid, n_p_rows, n_p_cols
+          write(*,'(A)') trim(string_message)
 
-            write(string_message, "(1X,'*** Proc',I5,&
-              &' : Number of Electrons ',F10.2)")&
-              & myid, n_electrons
-            write(*,'(A)') trim(string_message)
+          write(string_message, "(1X,'*** Proc',I5,&
+                &' : Number of Electrons ',F10.2)")&
+                & myid, n_electrons
+          write(*,'(A)') trim(string_message)
             
-            write(string_message, "(1X,'*** Proc',I5,&
-              &' : Number of States ',I10)") &
-              & myid, n_eigenvectors
-            write(*,'(A)') trim(string_message)
+          write(string_message, "(1X,'*** Proc',I5,&
+                &' : Number of States ',I10)") &
+                & myid, n_eigenvectors
+          write(*,'(A)') trim(string_message)
 
-            write(string_message, "(1X,'*** Proc',I5,&
-              &' : Overlap is Unity ? ',L2)") &
-              & myid, overlap_is_unity
-            write(*,'(A)') trim(string_message)
+          write(string_message, "(1X,'*** Proc',I5,&
+                &' : Overlap is Unity ? ',L2)") &
+                & myid, overlap_is_unity
+          write(*,'(A)') trim(string_message)
+      endif
 
-
-      end if
-
-      call MPI_BARRIER(mpi_comm_global,mpierr)
+      call MPI_BARRIER(mpi_comm_global, mpierr)
 
       do i_task = 0, n_procs
-         if (i_task == myid) then
+         if(i_task == myid) then
             write(string_message, "(1X,'*** Proc',I5,&
-              &' : Matrixsize local ',I5,' x ',I5)") &
-              & myid, n_l_rows, n_l_cols
+                  &' : Matrixsize local ',I5,' x ',I5)") &
+                  & myid, n_l_rows, n_l_cols
             write(*,'(A)') trim(string_message)
             
             write(string_message, "(1X,'*** Proc',I5,&
-              &' : Blocksize global ',I5,' x ',I5)") &
-              & myid, n_b_rows, n_b_cols
+                  &' : Blocksize global ',I5,' x ',I5)") &
+                  & myid, n_b_rows, n_b_cols
             write(*,'(A)') trim(string_message)
 
             write(string_message, "(1X,'*** Proc',I5,&
-              &' : Non_zero elements local ',I16)")&
-              & myid, n_l_nonzero
+                  &' : Non_zero elements local ',I16)")&
+                  & myid, n_l_nonzero
             write(*,'(A)') trim(string_message)
 
-         
-          end if
+         endif
 
-         call MPI_BARRIER(mpi_comm_global,mpierr)
-      end do
+         call MPI_BARRIER(mpi_comm_global, mpierr)
+      enddo
         
 end subroutine elsi_variable_status
 
@@ -296,7 +293,6 @@ subroutine elsi_set_pexsi_default_options()
 
       character(LEN=4096) :: string_message
       integer :: i_task
-
 
       ! Use the PEXSI Default options
       call f_ppexsi_set_default_options(pexsi_options)
@@ -340,67 +336,66 @@ subroutine elsi_print_pexsi_options()
 
       character(LEN=4096) :: string_message
 
-      if (myid == 0) then
+      if(myid == 0) then
          write(string_message, "(1X,'Temperature (H) ',F10.4)") &
-              & pexsi_options%temperature
+               & pexsi_options%temperature
          write(*,'(A)') trim(string_message)
 
          write(string_message, "(1X,'Spectral Gap (H) ',F10.4)") &
-              & pexsi_options%gap
+               & pexsi_options%gap
          write(*,'(A)') trim(string_message)
 
          write(string_message, "(1X,'Delta E (H) ',F10.4)") &
-              & pexsi_options%deltaE
+               & pexsi_options%deltaE
          write(*,'(A)') trim(string_message)
 
          write(string_message, "(1X,'Number of Poles ',I5)") &
-              & pexsi_options%numPole
+               & pexsi_options%numPole
          write(*,'(A)') trim(string_message)
 
          write(string_message, "(1X,'Use inertial count ',I2)") &
-              & pexsi_options%isInertiaCount
+               & pexsi_options%isInertiaCount
          write(*,'(A)') trim(string_message)
          
          write(string_message, "(1X,'Max Pexsi Iterations ',I5)") &
-              & pexsi_options%maxPEXSIIter
+               & pexsi_options%maxPEXSIIter
          write(*,'(A)') trim(string_message)
 
          write(string_message, "(1X,'Minimal Mu (H) ',F10.4)") &
-              & pexsi_options%muMin0
+               & pexsi_options%muMin0
          write(*,'(A)') trim(string_message)
 
          write(string_message, "(1X,'Maximal Mu (H) ',F10.4)") &
-              & pexsi_options%muMax0
+               & pexsi_options%muMax0
          write(*,'(A)') trim(string_message)
 
          write(string_message, "(1X,'Start Mu (H) ',F10.4)") &
-              & pexsi_options%mu0
+               & pexsi_options%mu0
          write(*,'(A)') trim(string_message)
 
          write(string_message, "(1X,'Tolerance Mu (H) ',E10.1)") &
-              & pexsi_options%muInertiaTolerance
+               & pexsi_options%muInertiaTolerance
          write(*,'(A)') trim(string_message)
 
          write(string_message, "(1X,'Expansion Mu (H) ',F10.4)") &
-              & pexsi_options%muInertiaExpansion
+               & pexsi_options%muInertiaExpansion
          write(*,'(A)') trim(string_message)
 
          write(string_message, "(1X,'Safe guard Mu (H) ',F10.4)") &
-              & pexsi_options%muPexsiSafeGuard
+               & pexsi_options%muPexsiSafeGuard
          write(*,'(A)') trim(string_message)
 
          write(string_message, "(1X,'Tolerance Electrons (H) ',E10.1)") &
-              & pexsi_options%numElectronPEXSITolerance
+               & pexsi_options%numElectronPEXSITolerance
          write(*,'(A)') trim(string_message)
 
          write(string_message, "(1X,'Sparcity ',F7.3)") &
-              & (1d0 * n_g_nonzero / n_g_rank) / n_g_rank
+               & (1d0 * n_g_nonzero / n_g_rank) / n_g_rank
          write(*,'(A)') trim(string_message)
 
-      end if
-        
-end subroutine elsi_print_pexsi_options
+      endif
 
+end subroutine elsi_print_pexsi_options
 
 !>
 !! Set the Status of OMM variables to the ELSI standard 
@@ -453,32 +448,25 @@ subroutine elsi_print_omm_options()
 
       character(LEN=4096) :: string_message
 
-      if (myid == 0) then
-         write(string_message, "(1X,'Eta (H) ',F10.4)") &
-              & eta
+      if(myid == 0) then
+         write(string_message, "(1X,'Eta (H) ',F10.4)") eta
          write(*,'(A)') trim(string_message)
 
-         write(string_message, "(1X,'Kinetic scaling (H) ',F10.4)") &
-              & scale_kinetic
+         write(string_message, "(1X,'Kinetic scaling (H) ',F10.4)") scale_kinetic
          write(*,'(A)') trim(string_message)
 
-         write(string_message, "(1X,'Tolerance (H) ',E10.1)") &
-              & min_tol
+         write(string_message, "(1X,'Tolerance (H) ',E10.1)") min_tol
          write(*,'(A)') trim(string_message)
 
-         write(string_message, "(1X,'OMM Flavour ',I1)") &
-              & omm_flavour
+         write(string_message, "(1X,'OMM Flavour ',I1)") omm_flavour
          write(*,'(A)') trim(string_message)
 
-         write(string_message, "(1X,'Verbose ?',L1)") &
-              & omm_verbose
+         write(string_message, "(1X,'Verbose ?',L1)") omm_verbose
          write(*,'(A)') trim(string_message)
 
-         write(string_message, "(1X,'Dealloc ? ',L1)") &
-              & do_dealloc
+         write(string_message, "(1X,'Dealloc ? ',L1)") do_dealloc
          write(*,'(A)') trim(string_message)
-
-      end if
+      endif
         
 end subroutine elsi_print_omm_options
 
@@ -495,14 +483,14 @@ subroutine elsi_sparse_ham_status(H_real_sparse)
       real*8, intent(in) :: H_real_sparse(n_l_nonzero)
 
       do i_task = 0, n_procs
-         if (i_task == myid) then
+         if(i_task == myid) then
             write(string_message, "(1X,'*** Proc',I5, ' : local H ')") i_task 
             write(*,'(A)') trim(string_message)
             print *,H_real_sparse(1:10)
-          end if
+         endif
 
-         call MPI_BARRIER(mpi_comm_global,mpierr)
-      end do
+         call MPI_BARRIER(mpi_comm_global, mpierr)
+      enddo
         
 end subroutine elsi_sparse_ham_status
 

@@ -1,4 +1,4 @@
-!Copyright (c) 2015, ELSI consortium
+!Copyright (c) 2016, ELSI consortium
 !All rights reserved.
 !
 !Redistribution and use in source and binary forms, with or without
@@ -72,31 +72,29 @@ subroutine elsi_get_n_nonzero_column(matrix, n_rows, n_cols, l_offset,n_nonzero)
    n_nonzero = 0
 
    do i_col = 1, n_cols
-     call elsi_get_local_N_nonzero(matrix(:,i_col), n_rows, 1, nnz_in_col)
-     n_nonzero(l_offset + i_col - 1) = nnz_in_col
-   end do
+      call elsi_get_local_N_nonzero(matrix(:,i_col), n_rows, 1, nnz_in_col)
+      n_nonzero(l_offset + i_col - 1) = nnz_in_col
+   enddo
 
    allocate(buffer (min(n_g_rank,max_len)))
 
    do i_col = 1,n_g_rank,max_len
 
-     if (n_g_rank - i_col + 1 < max_len) then
-        sent_n_elements = n_g_rank - i_col + 1
-     else
+      if(n_g_rank - i_col + 1 < max_len) then
+         sent_n_elements = n_g_rank - i_col + 1
+      else
         sent_n_elements = max_len
-     end if
+      endif
 
-     call MPI_AllReduce(n_nonzero(i_col), buffer, sent_n_elements, MPI_INTEGER,&
-           MPI_SUM, mpi_comm_global, mpierr)
-     n_nonzero(i_col:i_col-1+sent_n_elements) = buffer(1:sent_n_elements)
+      call MPI_AllReduce(n_nonzero(i_col), buffer, sent_n_elements, MPI_INTEGER,&
+                         MPI_SUM, mpi_comm_global, mpierr)
+      n_nonzero(i_col:i_col-1+sent_n_elements) = buffer(1:sent_n_elements)
    
-   end do
+   enddo
 
    deallocate(buffer)
 
-
 end subroutine
-
 
 !>
 !!  This routine computes the number of non_zero elements for a local matrix
@@ -117,12 +115,12 @@ subroutine elsi_get_local_N_nonzero(matrix, n_rows, n_cols, n_nonzero)
 
    n_nonzero = 0
    do i_col = 1, n_cols
-     do i_row = 1, n_rows
-       if (abs(matrix(i_row,i_col)) > threshhold) then
-         n_nonzero = n_nonzero + 1
-       end if
-     end do
-   end do
+      do i_row = 1, n_rows
+         if(abs(matrix(i_row,i_col)) > threshhold) then
+            n_nonzero = n_nonzero + 1
+         endif
+      enddo
+   enddo
 
 end subroutine
 
@@ -143,7 +141,7 @@ subroutine elsi_compute_N_nonzero(matrix,n_rows,n_cols)
 
    ! Set the number of non_zero elements in the global matrix
    call MPI_ALLREDUCE(n_l_nonzero, n_g_nonzero, 1, mpi_integer, mpi_sum,&
-         mpi_comm_global, mpierr)
+                      mpi_comm_global, mpierr)
 
 end subroutine
 
@@ -173,27 +171,26 @@ subroutine elsi_dense_to_ccs(matrix, n_rows, n_cols, val, nnz, row_ind, col_ptr)
    i_val = 0
    col_ptr = 0
    do i_col = 1, n_cols
-     first = .true.
-     do i_row = 1, n_rows
-       if (abs(matrix(i_row,i_col)) > threshhold) then
-         i_val = i_val + 1
-         if (first) then
-           col_ptr(i_col) = i_val
-           first = .false.
-         end if
-         val(i_val) = matrix(i_row,i_col)
-         row_ind(i_val) = i_row
-       end if
-     end do
-   end do
+      first = .true.
+      do i_row = 1, n_rows
+         if(abs(matrix(i_row,i_col)) > threshhold) then
+            i_val = i_val + 1
+            if(first) then
+               col_ptr(i_col) = i_val
+               first = .false.
+            endif
+            val(i_val) = matrix(i_row,i_col)
+            row_ind(i_val) = i_row
+         endif
+      enddo
+   enddo
 
    col_ptr(n_cols + 1) = i_val + 1
 
-   if (i_val /= nnz) then
+   if(i_val /= nnz) then
       call elsi_stop("Number of non zero elements differ",&
-         "elsi_dense_to_ccs")
-   end if
-
+                     "elsi_dense_to_ccs")
+   endif
 
 end subroutine
 
@@ -220,13 +217,12 @@ subroutine elsi_dense_to_ccs_by_pattern(matrix, n_rows, n_cols, val, nnz, row_in
 
    i_col = 0
    do i_val = 1, nnz
-     if (i_val == col_ptr(i_col + 1) .and. i_col /= n_cols) then
-       i_col = i_col + 1
-     end if
-     i_row = row_ind(i_val)
-     val(i_val) = matrix(i_row,i_col)
-   end do
-
+      if(i_val == col_ptr(i_col + 1) .and. i_col /= n_cols) then
+         i_col = i_col + 1
+      endif
+      i_row = row_ind(i_val)
+      val(i_val) = matrix(i_row,i_col)
+   enddo
 
 end subroutine
 
@@ -253,12 +249,12 @@ subroutine elsi_ccs_to_dense(matrix, n_rows, n_cols, val, nnz, row_ind, col_ptr)
    matrix = 0d0
    i_col = 0
    do i_val = 1, nnz
-     if (i_val == col_ptr(i_col + 1) .and. i_col /= n_cols) then
-       i_col = i_col + 1
-     end if
-     i_row = row_ind(i_val)
-     matrix(i_row,i_col) = val(i_val)
-   end do
+      if(i_val == col_ptr(i_col + 1) .and. i_col /= n_cols) then
+         i_col = i_col + 1
+      endif
+      i_row = row_ind(i_val)
+      matrix(i_row,i_col) = val(i_val)
+   enddo
 
 end subroutine
 
