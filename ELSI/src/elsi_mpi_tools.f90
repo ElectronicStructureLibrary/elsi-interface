@@ -472,16 +472,16 @@ subroutine elsi_matrix_print (matrix, n_rows, n_cols, matrixname)
    if (myid == 0) print *, trim(matrixname)
 
    do id = 0, n_procs - 1
-     if (myid == id) then
-        do i_row = 1, n_rows
-           do i_col = 1, n_cols
-               write(*,"(A,I6,A,I6,A,I6,F13.6)") " Process ", id, &
-               " Row ", i_row, " Col ", i_col, " value", matrix(i_row,i_col)
-           end do
-        end do
-     end if
-     call MPI_Barrier(mpi_comm_global, mpierr)
-   end do 
+      if(myid == id) then
+         do i_row = 1, n_rows
+            do i_col = 1, n_cols
+               write(*,"(A,I6,A,I6,A,I6,A,F13.6)") " Process ",id, &
+               " Row ",i_row," Col ",i_col," value ",matrix(i_row,i_col)
+            enddo
+         enddo
+      endif
+      call MPI_Barrier(mpi_comm_global, mpierr)
+   enddo 
 
 end subroutine
 
