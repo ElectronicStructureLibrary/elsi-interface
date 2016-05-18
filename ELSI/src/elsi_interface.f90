@@ -128,6 +128,10 @@ module ELSI
   public :: elsi_get_total_energy    !< Get the sum of occupied eigenvalues 
   public :: elsi_finalize            !< Finalize and cleanup ELSI
   public :: scalapack_dense_to_pexsi_sparse !< Converte ScaLAPACK dense matrix to PEXSI sparse
+  public :: elsi_ev_real             !< API v1 that outputs eigenvalues and eigenvectors
+!  public :: elsi_ev_complex          !< API v1 that outputs eigenvalues and eigenvectors
+!  public :: elsi_dm_real             !< API v2 that outputs density matrix
+!  public :: elsi_dm_complex          !< API v2 that outputs density matrix
 
   ! from other modules
   public :: elsi_initialize_blacs
@@ -1292,7 +1296,7 @@ subroutine elsi_get_eigenvalues(eigenvalues_out,n_eigenvalues)
 
    implicit none
 
-   integer, intent(in) :: n_eigenvalues !< Number of eigenvalues
+   real*8, intent(in) :: n_eigenvalues !< Number of eigenvalues
    real*8, intent(out) :: eigenvalues_out(n_eigenvalues) !< eigenvalues
    character*40, parameter :: caller = "elsi_get_eigenvalues"
 
@@ -2064,6 +2068,85 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
    call elsi_stop_dist_pexsi_time()
    
    call elsi_statement_print("Redistribution of H and S for PEXSI Done")
+
+end subroutine
+
+
+! ####################################
+! ####################################
+! ###  ELSI API UNDER DEVELOPMENT  ###
+! ####################################
+! ####################################
+
+!>
+!!  This is the ELPA API v1 that outputs the eigenvalues and eigenvectors
+!!
+subroutine elsi_ev_real(Ham, Ovlp, matrix_size, n_row, n_col, b_row, b_col, &
+                        n_state, E_val, E_vec, i_method, i_mode, &
+                        mpi_comm_row, mpi_comm_col, mpi_comm_global, &
+                        n_p_row, n_p_col, my_p_id, my_p_row, my_p_col, &
+                        blacs_context, sc_desc)
+
+   implicit none
+
+   real*8, target, intent(in) :: Ham(n_row,n_col)     !< Hamiltonian
+   real*8, target, intent(in) :: Ovlp(n_row,n_col)    !< Overlap
+   integer, intent(in) :: matrix_size                 !< Dimension of matrix
+   integer, intent(in) :: n_row                       !< Number of local rows
+   integer, intent(in) :: n_col                       !< Number of local columns
+   integer, intent(in) :: b_row                       !< Row block number
+   integer, intent(in) :: b_col                       !< Column block number
+   real*8,  intent(in) :: n_state                     !< Number of states
+   real*8, intent(out) :: E_val(n_state)              !< Eigenvalues
+   real*8, intent(out) :: E_vec(matrix_size,n_state)  !< Eigenvectors
+   integer, intent(in) :: i_method                    !< ELPA,OMM,PEXSI
+   integer, intent(in) :: i_mode                      !< REAL_VALUES,COMPLEX_VALUES
+   integer, intent(in) :: mpi_comm_row                !< Row communicatior
+   integer, intent(in) :: mpi_comm_col                !< Column communicatior
+   integer, intent(in) :: mpi_comm_global             !< Global communicatior
+   integer, intent(in) :: n_p_row                     !< Number of processes in row
+   integer, intent(in) :: n_p_col                     !< Number of processes in column
+   integer, intent(in) :: my_p_id                     !< Process id
+   integer, intent(in) :: my_p_row                    !< Process row position
+   integer, intent(in) :: my_p_col                    !< Process column position
+   integer, intent(in) :: blacs_context               !< BLACS context
+   integer, intent(in) :: sc_desc(9)                  !< BLACS descriptor
+
+   character*40, parameter :: caller = "elsi_ev"
+
+   ! Set MPI
+   call elsi_set_mpi(mpi_comm_global,n_p_row*n_p_col,my_p_id)
+
+   ! Initialization
+   call elsi_initialize_problem(matrix_size,b_row,b_col)
+
+   ! Choice of ELPA, OMM_DENSE, PEXSI
+   if(i_method == 0) call elsi_set_method(ELPA)
+   if(i_method == 1) call elsi_set_method(OMM_DENSE)
+   if(i_method == 2) call elsi_set_method(PEXSI)
+
+   ! REAL or COMPLEX mode
+   if(i_mode == 1) call elsi_set_mode(REAL_VALUES)
+   if(i_mode == 2) call elsi_set_mode(COMPLEX_VALUES)
+
+   ! Set BLACS
+   call elsi_set_blacs(blacs_context,n_p_row,n_p_col,my_p_row,my_p_col,&
+                       mpi_comm_row,mpi_comm_col,n_row,n_col,sc_desc)
+
+   ! Allocation of matrices
+   call elsi_allocate_matrices()
+
+   ! Set Hamiltonian and Overlap matrices
+   call elsi_set_hamiltonian(Ham,n_row,n_col)
+   call elsi_set_overlap(Ovlp,n_row,n_col)
+
+   ! Solve evp
+   call elsi_solve_ev_problem(n_state)
+   call elsi_get_eigenvalues(E_val,n_state)
+   call elsi_get_eigenvectors(E_vec)
+
+   ! Shut down
+   call elsi_finalize()
 
 end subroutine
 
