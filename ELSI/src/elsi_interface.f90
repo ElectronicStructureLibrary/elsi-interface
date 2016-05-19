@@ -71,15 +71,15 @@ module ELSI
   complex*16, pointer             :: S_complex(:,:)
   
   !OMM
-  !< OMM Hamiltonian matrix
+  !< OMM Hamiltonian Matrix
   type(Matrix) :: OMM_H_matrix
-  !< OMM Overlap matrix
+  !< OMM Overlap Matrix
   type(Matrix) :: OMM_S_matrix
-  !< OMM coefficient matrix
+  !< OMM coefficient Matrix
   type(Matrix) :: OMM_C_matrix
-  !< OMM density matrix
+  !< OMM Density Matrix
   type(Matrix) :: OMM_D_matrix
-  !< OMM kinetic energy density matrix
+  !< OMM Kinetic Energy Density Matrix
   type(Matrix) :: OMM_T_matrix
 
   !PESXI
@@ -87,15 +87,15 @@ module ELSI
   real*8,  allocatable  :: H_real_sparse(:)
   !< Sparse Overlap 
   real*8,  allocatable  :: S_real_sparse(:)
-  !< Sparse Density matrix 
+  !< Sparse Density Matrix 
   real*8,  allocatable  :: D_real_sparse(:)
-  !< Sparse Energydensity matrix 
+  !< Sparse Energy Density Matrix 
   real*8,  allocatable  :: ED_real_sparse(:)
-  !< Sparse Freeenergydensity matrix 
+  !< Sparse Free Energy Density Matrix 
   real*8,  allocatable  :: FD_real_sparse(:)
-  !< Sparse index array
+  !< Sparse Index Array
   integer, allocatable  :: sparse_index(:)
-  !< Sparse pointer array
+  !< Sparse Pointer Array
   integer, allocatable  :: sparse_pointer(:)
   
   logical, save :: first_call = .True.
@@ -105,33 +105,33 @@ module ELSI
   public :: REAL_VALUES, COMPLEX_VALUES
 
   ! The following routines are public:
-  public :: elsi_initialize_mpi      !< ELSI MPI initializer if not done elsewhere  
-  public :: elsi_initialize_problem  !< Set dimensions in code
-  public :: elsi_initialize_problem_from_file !< Get dimensions from HDF5 file
-  public :: elsi_set_method          !< Set routine for method
-  public :: elsi_set_mode            !< Set routine for mode
-  public :: elsi_allocate_matrices   !< Initialize matrices
-  public :: elsi_deallocate_matrices !< Cleanup matrix memory
-  public :: elsi_set_hamiltonian     !< Set Hamilitonian by Reference
-  public :: elsi_set_hamiltonian_element !< Set Hamilitonian element
-  public :: elsi_symmetrize_hamiltonian  !< Symmetrize Hamiltonian matrix
-  public :: elsi_get_hamiltonian     !< Get Hamiltonian by Reference
-  public :: elsi_set_overlap         !< Set Overlap by Reference
-  public :: elsi_set_overlap_element !< Set Overlap by Reference
-  public :: elsi_symmetrize_overlap  !< Symmetrize Overlap matrix
-  public :: elsi_get_overlap         !< Get Overlap by Reference
-  public :: elsi_write_ev_problem    !< Write eigenvalue problem to HDF5
-  public :: elsi_read_ev_problem     !< Read eigenvalue problem from HDF5
-  public :: elsi_solve_ev_problem    !< Solve eigenvalue problem 
-  public :: elsi_get_eigenvalues     !< Get the eigenvalues 
-  public :: elsi_get_eigenvectors    !< Get the eigenvectots
-  public :: elsi_get_total_energy    !< Get the sum of occupied eigenvalues 
-  public :: elsi_finalize            !< Finalize and cleanup ELSI
-  public :: scalapack_dense_to_pexsi_sparse !< Converte ScaLAPACK dense matrix to PEXSI sparse
-  public :: elsi_ev_real             !< API v1 that outputs eigenvalues and eigenvectors
-!  public :: elsi_ev_complex          !< API v1 that outputs eigenvalues and eigenvectors
-!  public :: elsi_dm_real             !< API v2 that outputs density matrix
-!  public :: elsi_dm_complex          !< API v2 that outputs density matrix
+  public :: elsi_initialize_mpi                !< ELSI MPI initializer if not done elsewhere  
+  public :: elsi_initialize_problem            !< Set dimensions in code
+  public :: elsi_initialize_problem_from_file  !< Get dimensions from HDF5 file
+  public :: elsi_set_method                    !< Set routine for method
+  public :: elsi_set_mode                      !< Set routine for mode
+  public :: elsi_allocate_matrices             !< Initialize matrices
+  public :: elsi_deallocate_matrices           !< Cleanup matrix memory
+  public :: elsi_set_hamiltonian               !< Set Hamilitonian by Reference
+  public :: elsi_set_hamiltonian_element       !< Set Hamilitonian element
+  public :: elsi_symmetrize_hamiltonian        !< Symmetrize Hamiltonian matrix
+  public :: elsi_get_hamiltonian               !< Get Hamiltonian by Reference
+  public :: elsi_set_overlap                   !< Set Overlap by Reference
+  public :: elsi_set_overlap_element           !< Set Overlap by Reference
+  public :: elsi_symmetrize_overlap            !< Symmetrize Overlap matrix
+  public :: elsi_get_overlap                   !< Get Overlap by Reference
+  public :: elsi_write_ev_problem              !< Write eigenvalue problem to HDF5
+  public :: elsi_read_ev_problem               !< Read eigenvalue problem from HDF5
+  public :: elsi_solve_ev_problem              !< Solve eigenvalue problem 
+  public :: elsi_get_eigenvalues               !< Get the eigenvalues 
+  public :: elsi_get_eigenvectors              !< Get the eigenvectots
+  public :: elsi_get_total_energy              !< Get the sum of occupied eigenvalues 
+  public :: elsi_finalize                      !< Finalize and cleanup ELSI
+  public :: scalapack_dense_to_pexsi_sparse    !< Converte ScaLAPACK dense matrix to PEXSI sparse
+  public :: elsi_ev_real                       !< API v1 that outputs eigenvalues and eigenvectors
+  public :: elsi_ev_complex                    !< API v1 that outputs eigenvalues and eigenvectors
+!  public :: elsi_dm_real                     !< API v2 that outputs density matrix
+!  public :: elsi_dm_complex                  !< API v2 that outputs density matrix
 
   ! from other modules
   public :: elsi_initialize_blacs
@@ -153,7 +153,6 @@ module ELSI
                       elsi_set_complex_hamiltonian_element
   end interface 
 
-  
   interface elsi_get_hamiltonian
      module procedure elsi_get_real_hamiltonian,&
                       elsi_get_complex_hamiltonian
@@ -169,10 +168,14 @@ module ELSI
                       elsi_set_complex_overlap_element
   end interface 
 
-  
   interface elsi_get_overlap
-     module procedure elsi_set_real_overlap,&
-                      elsi_set_complex_overlap
+     module procedure elsi_get_real_overlap,&
+                      elsi_get_complex_overlap
+  end interface
+
+  interface elsi_get_eigenvectors
+     module procedure elsi_get_real_eigenvectors,&
+                      elsi_get_complex_eigenvectors
   end interface 
 
 contains
@@ -184,9 +187,9 @@ subroutine elsi_initialize_problem(matrixsize, block_rows, block_cols)
 
    implicit none
 
-   integer, intent(in) :: matrixsize  !< global dimension of matrix
-   integer, intent(in) :: block_rows  !< block rows of matrix
-   integer, intent(in) :: block_cols  !< block cols of matrix
+   integer, intent(in) :: matrixsize  !< Global dimension of matrix
+   integer, intent(in) :: block_rows  !< Block rows of matrix
+   integer, intent(in) :: block_cols  !< Block cols of matrix
 
    n_g_rank = matrixsize
    n_b_rows = block_rows
@@ -201,7 +204,7 @@ subroutine elsi_set_method(i_method)
 
    implicit none
 
-   integer, intent(in) :: i_method !<one of (ELPA,OMM,PEXSI)
+   integer, intent(in) :: i_method !< ELPA,OMM,PEXSI
    
    call elsi_initialize_timers()
    call elsi_start_total_time()
@@ -226,7 +229,7 @@ subroutine elsi_set_mode(i_mode)
 
    implicit none
 
-   integer, intent(in) :: i_mode !<one of (REAL_VALUES,COMPLEX_VALUES)
+   integer, intent(in) :: i_mode !< REAL_VALUES,COMPLEX_VALUES
 
    character*40, parameter :: caller = "elsi_set_mode"
 
@@ -346,9 +349,9 @@ subroutine elsi_set_real_hamiltonian_element(element,i_row,i_col)
 
    implicit none
 
-   integer, intent(in) :: i_row   !<  row position
-   integer, intent(in) :: i_col   !<  col position
-   real*8, intent(in)  :: element !< value 
+   integer, intent(in) :: i_row   !< Row position
+   integer, intent(in) :: i_col   !< Col position
+   real*8, intent(in)  :: element !< Value 
    character*40, parameter :: caller = "elsi_set_real_hamiltonian_element"
    
    select case (method)
@@ -383,7 +386,7 @@ subroutine elsi_set_real_hamiltonian(h,n_rows,n_cols)
 
    integer, intent(in) :: n_rows !< Number of rows
    integer, intent(in) :: n_cols !< Number of cols
-   real*8, target, intent(in) :: h(n_rows,n_cols) !< hamiltonian
+   real*8, target, intent(in) :: h(n_rows,n_cols) !< Hamiltonian
    character*40, parameter :: caller = "elsi_set_real_hamiltonian"
 
    select case (method)
@@ -416,9 +419,9 @@ subroutine elsi_set_complex_hamiltonian_element(element,i_row,i_col)
 
    implicit none
 
-   integer, intent(in)     :: i_row   !<  row position
-   integer, intent(in)     :: i_col   !<  col position
-   complex*16, intent(in)  :: element !< value
+   integer, intent(in)     :: i_row   !< Row position
+   integer, intent(in)     :: i_col   !< Col position
+   complex*16, intent(in)  :: element !< Value
    character*40, parameter :: caller = "elsi_set_complex_hamiltonian_element"
 
    select case (method)
@@ -449,7 +452,7 @@ subroutine elsi_set_complex_hamiltonian(h,n_rows,n_cols)
 
    integer, intent(in) :: n_rows !< Number of rows
    integer, intent(in) :: n_cols !< Number of cols
-   complex*16, target, intent(in) :: h(n_rows,n_cols) !< hamiltonian
+   complex*16, target, intent(in) :: h(n_rows,n_cols) !< Hamiltonian
    character*40, parameter :: caller = "elsi_set_complex_hamiltonian"
 
    select case (method)
@@ -484,9 +487,9 @@ subroutine elsi_set_real_overlap_element(element,i_row,i_col)
 
    implicit none
 
-   integer, intent(in) :: i_row   !<  row position
-   integer, intent(in) :: i_col   !<  col position
-   real*8, intent(in)  :: element !< value
+   integer, intent(in) :: i_row   !< Row position
+   integer, intent(in) :: i_col   !< Col position
+   real*8, intent(in)  :: element !< Value
    character*40, parameter :: caller = "elsi_set_real_overlap_element"
 
    select case (method)
@@ -521,8 +524,8 @@ subroutine elsi_symmetrize_hamiltonian()
   complex*16, allocatable :: buffer_complex(:,:)
   complex*16, parameter   :: CONE = (1d0,0d0)
 
-  integer :: l_row, l_col  !< local matrix indices
-  integer :: g_row, g_col  !< global matrix indices
+  integer :: l_row, l_col  !< Local matrix indices
+  integer :: g_row, g_col  !< Global matrix indices
 
   character*40, parameter :: caller = "elsi_symmetrize_hamiltonian"
 
@@ -589,8 +592,8 @@ subroutine elsi_symmetrize_overlap()
   complex*16, allocatable :: buffer_complex(:,:)
   complex*16, parameter   :: CONE = (1d0,0d0)
 
-  integer :: l_row, l_col  !< local matrix indices
-  integer :: g_row, g_col  !< global matrix indices
+  integer :: l_row, l_col  !< Local matrix indices
+  integer :: g_row, g_col  !< Global matrix indices
 
   character*40, parameter :: caller = "elsi_symmetrize_overlap"
   
@@ -654,7 +657,7 @@ subroutine elsi_set_real_overlap(s,n_rows,n_cols)
 
    integer, intent(in) :: n_rows !< Number of rows
    integer, intent(in) :: n_cols !< Number of cols
-   real*8, target, intent(in) :: s(n_rows,n_cols) !< overlap
+   real*8, target, intent(in) :: s(n_rows,n_cols) !< Overlap
    character*40, parameter :: caller = "elsi_set_real_overlap"
 
    select case (method)
@@ -688,9 +691,9 @@ subroutine elsi_set_complex_overlap_element(element,i_row,i_col)
 
    implicit none
 
-   integer, intent(in)     :: i_row   !<  row position
-   integer, intent(in)     :: i_col   !<  col position
-   complex*16, intent(in)  :: element !< value
+   integer, intent(in)     :: i_row   !< Row position
+   integer, intent(in)     :: i_col   !< Col position
+   complex*16, intent(in)  :: element !< Value
    character*40, parameter :: caller = "elsi_set_complex_overlap_element"
 
    select case (method)
@@ -723,7 +726,7 @@ subroutine elsi_set_complex_overlap(s,n_rows,n_cols)
 
    integer, intent(in) :: n_rows !< Number of rows
    integer, intent(in) :: n_cols !< Number of cols
-   complex*16, target, intent(in) :: s(n_rows,n_cols) !< overlap
+   complex*16, target, intent(in) :: s(n_rows,n_cols) !< Overlap
    character*40, parameter :: caller = "elsi_set_complex_overlap"
 
    select case (method)
@@ -759,7 +762,7 @@ subroutine elsi_get_real_hamiltonian(h,n_rows,n_cols)
 
    integer, intent(in) :: n_rows !< Number of rows
    integer, intent(in) :: n_cols !< Number of cols
-   real*8, intent(out) :: h(n_rows,n_cols) !< hamiltonian
+   real*8, intent(out) :: h(n_rows,n_cols) !< Hamiltonian
    character*40, parameter :: caller = "elsi_get_real_hamiltonian"
 
    select case (method)
@@ -790,7 +793,7 @@ subroutine elsi_get_complex_hamiltonian(h,n_rows,n_cols)
 
    integer, intent(in) :: n_rows !< Number of rows
    integer, intent(in) :: n_cols !< Number of cols
-   complex*16, intent(out) :: h(n_rows,n_cols) !< hamiltonian
+   complex*16, intent(out) :: h(n_rows,n_cols) !< Hamiltonian
    character*40, parameter :: caller = "elsi_get_coomplex_hamiltonian"
 
    select case (method)
@@ -821,7 +824,7 @@ subroutine elsi_get_real_overlap(s,n_rows,n_cols)
 
    integer, intent(in) :: n_rows !< Number of rows
    integer, intent(in) :: n_cols !< Number of cols
-   real*8, intent(out) :: s(n_rows,n_cols) !< overlap
+   real*8, intent(out) :: s(n_rows,n_cols) !< Overlap
    character*40, parameter :: caller = "elsi_get_real_overlap"
 
    select case (method)
@@ -852,7 +855,7 @@ subroutine elsi_get_complex_overlap(s,n_rows,n_cols)
 
    integer, intent(in) :: n_rows !< Number of rows
    integer, intent(in) :: n_cols !< Number of cols
-   complex*16, intent(out) :: s(n_rows,n_cols) !< overlap
+   complex*16, intent(out) :: s(n_rows,n_cols) !< Overlap
    character*40, parameter :: caller = "elsi_get_complex_overlap"
 
    select case (method)
@@ -1046,8 +1049,8 @@ subroutine elsi_initialize_problem_from_file(file_name, block_rows, block_cols)
    include "mpif.h"
 
    character(len=*), intent(in) :: file_name !< File to open
-   integer, intent(in) :: block_rows  !< block rows of matrix
-   integer, intent(in) :: block_cols  !< block cols of matrix
+   integer, intent(in) :: block_rows  !< Block rows of matrix
+   integer, intent(in) :: block_cols  !< Block cols of matrix
 
    integer :: file_id  !< HDF5 File identifier 
    integer :: group_id !< HDF5 Group identifier
@@ -1083,8 +1086,7 @@ subroutine elsi_solve_ev_problem(number_of_states)
    implicit none
    include "mpif.h"
 
-   !< Number of electrons in the system
-   real*8, intent(in) :: number_of_states
+   real*8, intent(in) :: number_of_states !< Number of states
 
    logical :: success
    logical :: two_step_solver
@@ -1093,10 +1095,6 @@ subroutine elsi_solve_ev_problem(number_of_states)
    integer :: i_task
    character(len=4096) :: string_message
    character*100, parameter :: caller = "elsi_solve_ev_problem"
-
-! Copies of H and S for solution check
-!   real*8, allocatable :: H_real_save (:,:) !< real valued matrix
-!   real*8, allocatable :: S_real_save (:,:) !< real valued matrix
 
    call elsi_start_solve_evp_time()
 
@@ -1124,14 +1122,6 @@ subroutine elsi_solve_ev_problem(number_of_states)
 
    select case (method)
       case (ELPA)
-         ! Save H and S for solution check
-!         call elsi_allocate(H_real_save, n_l_rows, n_l_cols, &
-!                            "H_real_save", "check solution")
-!         call elsi_allocate(S_real_save, n_l_rows, n_l_cols, &
-!                            "S_real_save", "check solution")
-!         H_real_save = H_real
-!         S_real_save = S_real
-
          ! Choose 1-stage or 2-stage solver
          two_step_solver = .True.
 
@@ -1192,20 +1182,9 @@ subroutine elsi_solve_ev_problem(number_of_states)
          if(.not. overlap_is_unity) then
             call elsi_statement_print(" Transforming to original eigenvectors")
             call elsi_to_original_ev()
+         endif
 
-            ! Check solution
-!           call elsi_statement_print(" Checking the solution of evp")
-!           success = .true.
-!           H_real = H_real_save
-!           S_real = S_real_save
-
-!           call elsi_check_solution(success)
-
-!           deallocate(H_real_save)
-!           deallocate(S_real_save)
-        endif
-
-        first_call = .False.
+         first_call = .False.
 
       case (OMM_DENSE)
 
@@ -1297,7 +1276,7 @@ subroutine elsi_get_eigenvalues(eigenvalues_out,n_eigenvalues)
    implicit none
 
    real*8, intent(in) :: n_eigenvalues !< Number of eigenvalues
-   real*8, intent(out) :: eigenvalues_out(n_eigenvalues) !< eigenvalues
+   real*8, intent(out) :: eigenvalues_out(n_eigenvalues) !< Eigenvalues
    character*40, parameter :: caller = "elsi_get_eigenvalues"
 
    select case (method)
@@ -1320,16 +1299,16 @@ end subroutine
 !!  NOTE! Each processor gets the same copy of eigenvectors,
 !!  i.e. vectors are no longer block-cyclic distributed on output
 !!
-subroutine elsi_get_eigenvectors(eigenvectors_out)
+subroutine elsi_get_real_eigenvectors(eigenvectors_out)
 
    implicit none
 
-   real*8, intent(out) :: eigenvectors_out(n_g_rank,n_eigenvectors) !< eigenvectors
+   real*8, intent(out) :: eigenvectors_out(n_g_rank,n_eigenvectors) !< Eigenvectors
 
    integer, allocatable :: local_row(:)
    integer, allocatable :: local_col(:)
    integer :: i_col, i_row, i, j
-   character*100, parameter :: caller = "elsi_get_eigenvectors"
+   character*100, parameter :: caller = "elsi_get_real_eigenvectors"
 
    select case (method)
       case (ELPA)
@@ -1373,7 +1352,80 @@ subroutine elsi_get_eigenvectors(eigenvectors_out)
          deallocate(local_row)
          deallocate(local_col)
 
-         call elsi_sync_vector(eigenvectors_out, &
+         call elsi_sync_real_vector(eigenvectors_out, &
+              n_g_rank*n_eigenvectors,mpi_comm_global)
+
+      case (OMM_DENSE)
+         call elsi_stop("OMM does not deal with eigenvectors!",caller)
+      case (PEXSI)
+         call elsi_stop("PEXSI does not deal with eigenvectors!",caller)
+      case DEFAULT
+         call elsi_stop("No method has been chosen. "//&
+                        "Please choose method ELPA, OMM_DENSE, or PEXSI",&
+                        caller)
+   end select
+
+end subroutine
+
+!>
+!!  This routine gets the eigenvectors
+!!  NOTE! Each processor gets the same copy of eigenvectors,
+!!  i.e. vectors are no longer block-cyclic distributed on output
+!!
+subroutine elsi_get_complex_eigenvectors(eigenvectors_out)
+
+   implicit none
+
+   complex*16, intent(out) :: eigenvectors_out(n_g_rank,n_eigenvectors) !< Eigenvectors
+
+   integer, allocatable :: local_row(:)
+   integer, allocatable :: local_col(:)
+   integer :: i_col, i_row, i, j
+   character*100, parameter :: caller = "elsi_get_complex_eigenvectors"
+
+   select case (method)
+      case (ELPA)
+
+         ! Clean up data from last cycle
+         eigenvectors_out = CMPLX(0d0,0d0)
+
+         ! Mapping of global rows/cols to local
+         call elsi_allocate(local_row,n_g_rank,"local_row",caller)
+         call elsi_allocate(local_col,n_g_rank,"local_col",caller)
+         local_row(:) = 0
+         local_col(:) = 0
+
+         i_row = 0 ! local row counter
+         i_col = 0 ! local column counter
+
+         do i = 1, n_g_rank, 1
+            if(MOD((i-1)/n_b_rows,n_p_rows) == my_p_row) then
+               ! row i is on local processor
+               i_row = i_row+1
+               local_row(i) = i_row
+            endif
+
+            if(MOD((i-1)/n_b_cols,n_p_cols) == my_p_col) then
+               ! column i is on local processor
+               i_col = i_col+1
+               local_col(i) = i_col
+            endif
+         enddo
+
+         do i_col = 1, n_eigenvectors, 1
+            if(local_col(i_col) == 0) cycle
+            do i_row = 1, n_g_rank, 1
+               if(local_row(i_row)>0) then
+                  eigenvectors_out(i_row,i_col) = &
+                  vectors_real(local_row(i_row),local_col(i_col))
+               endif
+            enddo
+         enddo
+
+         deallocate(local_row)
+         deallocate(local_col)
+
+         call elsi_sync_complex_vector(eigenvectors_out,&
               n_g_rank*n_eigenvectors,mpi_comm_global)
 
       case (OMM_DENSE)
@@ -1395,7 +1447,7 @@ subroutine elsi_get_total_energy(e_tot)
 
    implicit none
 
-   real*8, intent(out) :: e_tot !< eigenvalues
+   real*8, intent(out) :: e_tot !< Eigenvalues
    character*40, parameter :: caller = "elsi_get_total_energy"
 
    select case (method)
@@ -1490,9 +1542,9 @@ end subroutine
 !!
 subroutine elsi_to_standard_ev_problem()
 
-   logical :: success  !< Success flag
-   real*8,     allocatable :: buffer_real (:,:) !< real valued matrix buffer
-   complex*16, allocatable :: buffer_complex (:,:) !< complex valued matrix buffer
+   logical :: success                              !< Success flag
+   real*8,     allocatable :: buffer_real (:,:)    !< Real valued matrix buffer
+   complex*16, allocatable :: buffer_complex (:,:) !< Complex valued matrix buffer
 
    character*100, parameter :: caller = "elsi_to_standard_ev_problem"
 
@@ -1500,8 +1552,43 @@ subroutine elsi_to_standard_ev_problem()
       case (ELPA)
          select case (mode)
             case (COMPLEX_VALUES)
-               call elsi_stop("ELPA generalized to standard complex EVP" &
-                              // " not yet implemented.",caller)
+               call elsi_allocate(buffer_complex, n_l_rows, n_l_cols, &
+                                  "buffer_complex",caller)
+
+               if(first_call) then
+                  call elsi_statement_print(" Starting Cholesty decomposition")
+                  ! Compute S = (U^T)U, U -> S
+                  call cholesky_complex(n_g_rank, S_complex, n_l_rows, &
+                                        n_b_rows, n_l_cols, mpi_comm_row, &
+                                        mpi_comm_col, .False., success)
+                  if(.not.success) then
+                     call elsi_stop("Cholesky decomposition failed.",caller)
+                  endif
+
+                  ! compute U^-1 -> S
+                  call invert_trm_complex(n_g_rank, S_complex, n_l_rows, &
+                                          n_b_rows, n_l_cols, mpi_comm_row, &
+                                          mpi_comm_col, .False., success)
+                  if(.not.success) then
+                     call elsi_stop("Matrix invertion failed.",caller)
+                  endif
+               endif
+
+               ! compute H(U^-1) -> buff
+               call pzgemm('N','N', n_g_rank, n_g_rank, n_g_rank, 1.0d0, &
+                           H_complex, 1, 1, sc_desc, S_complex, 1, 1, sc_desc, &
+                           0.0d0, buffer_complex, 1, 1, sc_desc)
+
+               ! compute ((U^-1)^T)H by (H(U^-1))^T -> H
+               call pztranc(n_g_rank, n_g_rank, 1.d0, buffer_complex, 1, 1, &
+                            sc_desc, 0.d0, H_complex, 1, 1, sc_desc)
+
+               ! compute ((U^-1)^T)H(U^-1) -> H
+               buffer_complex = H_complex
+               call pzgemm('N','N', n_g_rank, n_g_rank, n_g_rank, 1.0d0, &
+                           buffer_complex, 1, 1, sc_desc, S_complex, 1, 1, &
+                           sc_desc, 0.0d0, H_complex, 1, 1, sc_desc)
+
             case (REAL_VALUES)
                call elsi_allocate(buffer_real, n_l_rows, n_l_cols, &
                                   "buffer_real",caller)
@@ -1566,16 +1653,24 @@ end subroutine
 !!
 subroutine elsi_to_original_ev()
 
-   real*8, allocatable :: buffer_real(:,:) !< real valued matrix buffer
-   complex*16, allocatable :: buffer_complex (:,:) !< complex valued matrix buffer
+   real*8, allocatable :: buffer_real(:,:)         !< Real valued matrix buffer
+   complex*16, allocatable :: buffer_complex (:,:) !< Complex valued matrix buffer
    character*100, parameter :: caller = "elsi_to_original_ev"
 
    select case (method)
       case (ELPA)
          select case (mode)
             case (COMPLEX_VALUES)
-               call elsi_stop("ELPA standard to generalized eigenvectors " &
-                              // "complex case not yet implemented.",caller)
+               ! (U^-1) is stored in S_complex after
+               ! elsi_to_standard_ev_problem
+               ! vectors_complex = S_complex * vectors_complex
+               call elsi_allocate(buffer_complex, n_l_rows, n_l_cols, "temp", caller)
+               buffer_complex = vectors_complex
+
+               call pzgemm('N', 'N', n_g_rank, n_eigenvectors, n_g_rank, &
+                           1.0d0, S_complex, 1, 1, sc_desc, buffer_complex, 1, 1, &
+                           sc_desc, 0.0d0, vectors_complex, 1, 1, sc_desc)
+
             case (REAL_VALUES)
                ! (U^-1) is stored in S_real after
                ! elsi_to_standard_ev_problem
@@ -1583,14 +1678,14 @@ subroutine elsi_to_original_ev()
                call elsi_allocate(buffer_real, n_l_rows, n_l_cols, "temp",caller)
                buffer_real = vectors_real
 
-               ! Alternative (a)
-!               call pdtran(n_g_rank,n_g_rank,1.d0,S_real,1,1,sc_desc, &
-!                           0.d0,H_real,1,1,sc_desc)
-!               call mult_at_b_real('L','N',n_g_rank,n_eigenvectors,H_real, &
-!                                   n_l_rows,buffer_real,n_l_rows,n_b_rows, &
-!                                   mpi_comm_row,mpi_comm_col,vectors_real,n_l_rows)
+               ! method (a)
+!               call pdtran(n_g_rank, n_g_rank, 1.d0, S_real, 1, 1, sc_desc, &
+!                           0.d0, H_real, 1, 1, sc_desc)
+!               call mult_at_b_real('L', 'N', n_g_rank, n_eigenvectors, H_real, &
+!                                   n_l_rows, buffer_real, n_l_rows, n_b_rows, &
+!                                   mpi_comm_row, mpi_comm_col, vectors_real, n_l_rows)
 
-               ! Alternative (b)
+               ! method (b)
                call pdgemm('N', 'N', n_g_rank, n_eigenvectors, n_g_rank, &
                            1.0d0, S_real, 1, 1, sc_desc, buffer_real , 1, 1, &
                            sc_desc, 0.0d0, vectors_real, 1, 1, sc_desc)
@@ -1608,100 +1703,6 @@ subroutine elsi_to_original_ev()
 
    if (allocated(buffer_real))    deallocate (buffer_real)
    if (allocated(buffer_complex)) deallocate (buffer_complex)
-
-end subroutine
-
-!>
-!! This routine checks if the obtained eigenvalues and eigenvectors are indeed 
-!! solution of the eigenvalue problem HC = eSC. To use this function set the 
-!! hamiltonian and the overlap as in the beginning, the eigenvectors are taken
-!! from the elsi module
-!!
-subroutine elsi_check_solution(success)
-
-   implicit none
-
-   logical, intent(out)    :: success  !< Success flag of eigensolver
-   real*8,     allocatable :: buffer1_real (:,:) !< real valued matrix buffer
-   real*8,     allocatable :: buffer2_real (:,:) !< real valued matrix buffer
-   real*8,     allocatable :: buffer3_real (:,:) !< real valued matrix buffer
-   complex*16, allocatable :: buffer1_complex (:,:) !< complex valued matrix buffer
-   complex*16, allocatable :: buffer2_complex (:,:) !< complex valued matrix buffer
-   real*8                  :: norm !< norm of Hc - eSc
-   integer                 :: i_val !< eigenvalue index
-
-   character*100, parameter :: caller = "elsi_check_solution"
-   
-   success = .True.
-
-   select case (method)
-      case (ELPA)
-         select case (mode)
-            case (COMPLEX_VALUES)
-               write(*,'(a)') "COMPLEX check not implemented yet!"
-               stop
-            case (REAL_VALUES)
-
-               call elsi_allocate(buffer1_real, n_l_rows, n_l_cols, &
-                                  "buffer_1_real", caller)
-               call elsi_allocate(buffer2_real, n_l_rows, n_l_cols, &
-                                  "buffer2_real", caller)
-               call elsi_allocate(buffer3_real, n_l_rows, n_l_cols, &
-                                  "buffer3_real", caller)
-
-               buffer1_real = 0d0
-
-               ! H|C> -> buffer1
-               call pdgemm('N','N', n_g_rank, n_eigenvectors, n_g_rank, 1.0d0, &
-                           H_real, 1, 1, sc_desc, vectors_real, 1, 1, sc_desc, &
-                           0.0d0, buffer1_real, 1, 1, sc_desc)
-
-               buffer2_real = vectors_real
-
-               ! e|C> -> buffer2
-               do i_val = 1, n_eigenvectors
-                  call pdscal(n_g_rank, eigenvalues(i_val), &
-                              buffer2_real, 1, i_val, sc_desc, 1)
-               enddo
-
-               ! eS|C> -> buffer3
-               call pdgemm('N','N', n_g_rank, n_eigenvectors, n_g_rank, 1.0d0, &
-                           S_real, 1, 1, sc_desc, buffer2_real, 1, 1, sc_desc, &
-                           0.0d0, buffer3_real, 1, 1, sc_desc)
-
-               ! eS|C> - H|C>
-               buffer3_real = buffer3_real - buffer1_real
-
-               do i_val = 1, n_eigenvectors
-                  call pdnrm2(n_g_rank, norm, buffer3_real, 1, &
-                              i_val, sc_desc, 1)
-
-                  if(norm > 1d-10) then
-                     success = .False.
-                  endif
-
-                  if(myid == 0) print *, " Residual of eigenvector ",i_val,": ", norm
-
-               enddo
-
-               deallocate(buffer1_real)
-               deallocate(buffer2_real)
-               deallocate(buffer3_real)
-
-         end select
-
-         if(.not.success) then
-            call elsi_stop("ELPA failed.",caller)
-         endif
-
-      case (OMM_DENSE)
-         call elsi_stop("OMM_DENSE not implemented yet!",caller)
-      case (PEXSI)
-         call elsi_stop("PEXSI not implemented yet!",caller)
-      case DEFAULT
-         call elsi_stop("No method has been chosen. "//&
-                        "Please choose method ELPA, OMM_DENSE, or PEXSI",caller)
-   end select
 
 end subroutine
 
@@ -1774,38 +1775,38 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
    call elsi_compute_N_nonzero(H_external,n_l_rows_external, n_l_cols_external)
    n_l_nonzero = -1
 
-   call BLACS_Gridinfo( blacs_ctxt_external, n_p_rows_external, &
-          n_p_cols_external, my_p_row_external, &
-          my_p_col_external )
+   call BLACS_Gridinfo(blacs_ctxt_external, n_p_rows_external, &
+                       n_p_cols_external, my_p_row_external, &
+                       my_p_col_external)
 
    ! Scalapack has a bug:
-   if ((n_p_rows_external == 1 .or. n_p_cols_external == 1) &
-       .and. n_procs /= 1) then
-     if (myid == 0) &
-     print *, "We encountered an scalapack bug when working "//&
-     "with prime process numbers and using pdtran to transform a matrix "  //&
-     "to a different blacs transcriptor. We stop here and wait for a "     //&
-     "scalapack patch. While this setup is an inefficient corner case, "   //&
-     "restart your calculation choosing a process number which in a "      //&
-     "square number in best case for optimal performance and refrain from "//&
-     "using prime numbers."
-     call MPI_ABORT(mpi_comm_external)
-     stop
-   end if
+   if((n_p_rows_external == 1 .or. n_p_cols_external == 1) &
+      .and. n_procs /= 1) then
+      if(myid == 0) &
+      print *, "We encountered an scalapack bug when working "//&
+      "with prime process numbers and using pdtran to transform a matrix "  //&
+      "to a different blacs transcriptor. We stop here and wait for a "     //&
+      "scalapack patch. While this setup is an inefficient corner case, "   //&
+      "restart your calculation choosing a process number which in a "      //&
+      "square number in best case for optimal performance and refrain from "//&
+      "using prime numbers."
+      call MPI_ABORT(mpi_comm_external)
+      stop
+   endif
 
-   call mpi_comm_split(mpi_comm_external,my_p_col_external,&
-         my_p_row_external, mpi_comm_row_external,mpierr)
-   call mpi_comm_split(mpi_comm_external,my_p_row_external,&
-         my_p_col_external,mpi_comm_col_external,mpierr)
+   call mpi_comm_split(mpi_comm_external, my_p_col_external, &
+                       my_p_row_external, mpi_comm_row_external, mpierr)
+   call mpi_comm_split(mpi_comm_external, my_p_row_external, &
+                       my_p_col_external, mpi_comm_col_external, mpierr)
    
-   ! Determine dimensions of buffer for transformation to Pexsi layout
+   ! Determine dimensions of buffer for transformation to PEXSI layout
    n_b_buffer_rows = n_g_rank
-   n_b_buffer_cols = CEILING(1d0 * n_g_rank / n_p_cols_external)
+   n_b_buffer_cols = CEILING(1d0*n_g_rank / n_p_cols_external)
    n_l_buffer_rows = n_g_rank
    n_l_buffer_cols = numroc(n_g_rank, n_b_buffer_cols, my_p_col_external, &
-         0, n_p_cols_external)
+                            0, n_p_cols_external)
 
-   if (myid == 0) then
+   if(myid == 0) then
       write(*,"('|-------------------------------------------------------')")
       write(*,"('| Initial Parallel Distribution:                        ')")
       write(*,"('|-------------------------------------------------------')")
@@ -1813,38 +1814,36 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
          n_p_rows_external, n_p_cols_external
       write(*,"('| Buffer Dimension               : ',I5,' x ',I5)")&
          n_l_buffer_rows, n_b_buffer_cols
-   end if
+   endif
 
    ! Setup new descriptor for buffer based on the new dimensions
-   call descinit (sc_desc_buffer, n_g_rank, n_g_rank, n_b_buffer_rows, &
-         n_b_buffer_cols, 0, 0, blacs_ctxt_external, n_l_buffer_rows, &
-         blacs_info)
+   call descinit(sc_desc_buffer, n_g_rank, n_g_rank, n_b_buffer_rows, n_b_buffer_cols, &
+                 0, 0, blacs_ctxt_external, n_l_buffer_rows, blacs_info)
 
-   ! Pexsi setup
+   ! PEXSI setup
    n_l_rows = n_g_rank
-   n_l_cols_g = FLOOR(1d0 * n_g_rank / n_procs)
+   n_l_cols_g = FLOOR(1d0*n_g_rank / n_procs)
    n_cols_add = n_g_rank - n_l_cols_g * n_procs
    
-   if (myid == n_procs - 1) then
+   if(myid == n_procs - 1) then
       n_l_cols = n_l_cols_g + n_cols_add
    else
       n_l_cols = n_l_cols_g
-   end if
+   endif
 
    ! The Hamiltonian
    call elsi_allocate(buffer, n_l_buffer_rows, n_l_buffer_cols, &
-         "buffer", caller)
-   call pdtran(n_g_rank, n_g_rank, &
-         1d0, H_external, 1, 1, sc_desc_external, &
-         0d0, buffer, 1, 1, sc_desc_buffer)
+                      "buffer", caller)
+   call pdtran(n_g_rank, n_g_rank, 1d0, H_external, 1, 1, &
+               sc_desc_external, 0d0, buffer, 1, 1, sc_desc_buffer)
 
    ! Calculate number of nonzero elements on this process
    ! Here we set no the meaningful n_l_nonzero
-   call elsi_allocate(n_l_nonzero_column, n_g_rank, "n_l_nonzero_column", &
-         caller)
+   call elsi_allocate(n_l_nonzero_column, n_g_rank, &
+                      "n_l_nonzero_column", caller)
    blacs_col_offset = 1 + my_p_col_external * n_b_buffer_cols
-   call elsi_get_n_nonzero_column(buffer,n_l_buffer_rows, n_l_buffer_cols,&
-         blacs_col_offset,n_l_nonzero_column)
+   call elsi_get_n_nonzero_column(buffer, n_l_buffer_rows, n_l_buffer_cols, &
+                                  blacs_col_offset, n_l_nonzero_column)
    pexsi_col_offset = 1 + myid * n_l_cols_g
    n_l_nonzero = &
    sum(n_l_nonzero_column(pexsi_col_offset:pexsi_col_offset + n_l_cols - 1))
@@ -1858,17 +1857,17 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
    sparse_index = -1
    sparse_pointer = -1
 
-   call elsi_get_local_N_nonzero(buffer,n_l_buffer_rows, n_b_buffer_cols,&
-         n_buffer_nonzero)
+   call elsi_get_local_N_nonzero(buffer, n_l_buffer_rows, &
+                                 n_b_buffer_cols, n_buffer_nonzero)
 
    call elsi_allocate(buffer_sparse, n_buffer_nonzero, "buffer_sparse", caller)
    call elsi_allocate(buffer_sparse_index, n_buffer_nonzero, &
-         "buffer_sparse_index", caller)
+                      "buffer_sparse_index", caller)
    call elsi_allocate(buffer_sparse_pointer, n_b_buffer_cols + 1, &
-         "buffer_sparse_pointer", caller)
+                      "buffer_sparse_pointer", caller)
    call elsi_dense_to_ccs(buffer, n_l_buffer_rows, n_l_buffer_cols, &
-         buffer_sparse, n_buffer_nonzero, buffer_sparse_index, &
-         buffer_sparse_pointer)
+                          buffer_sparse, n_buffer_nonzero, buffer_sparse_index, &
+                          buffer_sparse_pointer)
    deallocate(buffer)
 
    !call elsi_vector_print(buffer_sparse, n_buffer_nonzero, "Hamiltonian sparse")
@@ -1884,33 +1883,33 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
       !call elsi_value_print(id_sent,"id sent")
 
       call MPI_Bcast(n_buffer_bcast_nonzero, 1, MPI_INT, id_sent, &
-            mpi_comm_external, mpierr)
+                     mpi_comm_external, mpierr)
       
       call elsi_allocate(buffer_bcast_sparse, n_buffer_bcast_nonzero, &
-            "buffer_bcast_spase", caller)
+                         "buffer_bcast_spase", caller)
       call elsi_allocate(buffer_bcast_sparse_index, n_buffer_bcast_nonzero, &
-            "buffer_bcast_sparse_index", caller)
+                         "buffer_bcast_sparse_index", caller)
       call elsi_allocate(buffer_bcast_sparse_pointer,n_b_buffer_cols + 1, &
-            "buffer_bcast_sparse_pointer", caller)
+                         "buffer_bcast_sparse_pointer", caller)
 
-      if (myid == id_sent) then
-        buffer_bcast_sparse         = buffer_sparse
-        buffer_bcast_sparse_index   = buffer_sparse_index
-        buffer_bcast_sparse_pointer = buffer_sparse_pointer
+      if(myid == id_sent) then
+         buffer_bcast_sparse         = buffer_sparse
+         buffer_bcast_sparse_index   = buffer_sparse_index
+         buffer_bcast_sparse_pointer = buffer_sparse_pointer
       else
-        buffer_bcast_sparse         = 0
-        buffer_bcast_sparse_index   = 0
-        buffer_bcast_sparse_pointer = 0
-      end if
+         buffer_bcast_sparse         = 0
+         buffer_bcast_sparse_index   = 0
+         buffer_bcast_sparse_pointer = 0
+      endif
 
-      ! However, no inter blacs is possible so we have to do some by hand
+      ! However, no inter BLACS is possible so we have to do some by hand
       ! communication and broadcast the results over all the processes
       call MPI_Bcast(buffer_bcast_sparse, n_buffer_bcast_nonzero, &
-            MPI_DOUBLE, id_sent, mpi_comm_external, mpierr)
+                     MPI_DOUBLE, id_sent, mpi_comm_external, mpierr)
       call MPI_Bcast(buffer_bcast_sparse_index, n_buffer_bcast_nonzero, &
-            MPI_INT, id_sent, mpi_comm_external, mpierr)  
+                     MPI_INT, id_sent, mpi_comm_external, mpierr)  
       call MPI_Bcast(buffer_bcast_sparse_pointer, n_b_buffer_cols + 1, &
-            MPI_INT, id_sent, mpi_comm_external, mpierr)  
+                     MPI_INT, id_sent, mpi_comm_external, mpierr)  
  
       !call elsi_vector_print(buffer_bcast_sparse_pointer, n_b_buffer_cols+1,&
       !      "Hamiltonian sparse pointer bcast")
@@ -1922,140 +1921,140 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
       ! Fill elements from buffer
       do i_col = my_col_offset, my_col_offset + n_l_cols - 1
         
-       if (i_col > 0 .and. i_col <= n_b_buffer_cols) then
+         if(i_col > 0 .and. i_col <= n_b_buffer_cols) then
          
-         ! Get the global column
-         !print *, "process ", myid, " pexsi_col_offset ", pexsi_col_offset
-         g_column = i_col + blacs_col_offset - 1
-         !print *, "process ", myid, " g_column ", g_column
+            ! Get the global column
+            !print *, "process ", myid, " pexsi_col_offset ", pexsi_col_offset
+            g_column = i_col + blacs_col_offset - 1
+            !print *, "process ", myid, " g_column ", g_column
          
-         ! Get the offset in the buffer for this column
-         offset_B = buffer_bcast_sparse_pointer(i_col)
-         !print *, "process ", myid, " offset_B ", offset_B
+            ! Get the offset in the buffer for this column
+            offset_B = buffer_bcast_sparse_pointer(i_col)
+            !print *, "process ", myid, " offset_B ", offset_B
 
-         ! How many elements are in this column
-         n_elements = buffer_bcast_sparse_pointer(i_col+1) &
-                    - buffer_bcast_sparse_pointer(i_col)
-         !print *, "process ", myid, " n_elements ", n_elements
+            ! How many elements are in this column
+            n_elements = buffer_bcast_sparse_pointer(i_col+1) &
+                         - buffer_bcast_sparse_pointer(i_col)
+            !print *, "process ", myid, " n_elements ", n_elements
 
-         ! Local offset
-         l_col = i_col - my_col_offset + 1
-         !print *, "process ", myid, " l_col ", l_col
+            ! Local offset
+            l_col = i_col - my_col_offset + 1
+            !print *, "process ", myid, " l_col ", l_col
          
-         offset = sum(n_l_nonzero_column(pexsi_col_offset:g_column-1)) + 1
-         !print *, "process ", myid, " offset ", offset
+            offset = sum(n_l_nonzero_column(pexsi_col_offset:g_column-1)) + 1
+            !print *, "process ", myid, " offset ", offset
          
-         ! Populate sparse matrix
-         sparse_pointer(l_col) = offset
-         !print *, "process ", myid, " filling ", offset, " to ", &
-         !   offset+n_elements-1, " from ", offset_B, " to ", &
-         !   offset_B+n_elements-1 
+            ! Populate sparse matrix
+            sparse_pointer(l_col) = offset
+            !print *, "process ", myid, " filling ", offset, " to ", &
+            !   offset+n_elements-1, " from ", offset_B, " to ", &
+            !   offset_B+n_elements-1 
 
-         H_real_sparse(offset:offset+n_elements-1) = &
+            H_real_sparse(offset:offset+n_elements-1) = &
             buffer_bcast_sparse(offset_B:offset_B+n_elements-1)
-         sparse_index(offset:offset+n_elements-1) = &
+            sparse_index(offset:offset+n_elements-1) = &
             buffer_bcast_sparse_index(offset_B:offset_B+n_elements-1)
 
-       end if
+        endif
 
-      end do
+     enddo
       
-      deallocate(buffer_bcast_sparse)
-      deallocate(buffer_bcast_sparse_index)
-      deallocate(buffer_bcast_sparse_pointer)
+     deallocate(buffer_bcast_sparse)
+     deallocate(buffer_bcast_sparse_index)
+     deallocate(buffer_bcast_sparse_pointer)
 
-   end do
+  enddo
 
-   ! Last element in sparse pointer is n_l_nonzero + 1
-   sparse_pointer(n_l_cols + 1) = n_l_nonzero + 1
+     ! Last element in sparse pointer is n_l_nonzero + 1
+     sparse_pointer(n_l_cols + 1) = n_l_nonzero + 1
 
-   !call elsi_stop("Stop here","dense_to_pexsi")
+     !call elsi_stop("Stop here","dense_to_pexsi")
 
-   ! The Overlap Matrix
-   call elsi_allocate(buffer, n_l_buffer_rows, n_b_buffer_cols, &
-         "buffer", caller)
-   buffer = 0d0 
-   call pdtran(n_g_rank, n_g_rank, &
-         1d0, S_external, 1, 1, sc_desc_external, &
-         0d0, buffer, 1, 1, sc_desc_buffer)
+     ! The Overlap Matrix
+     call elsi_allocate(buffer, n_l_buffer_rows, n_b_buffer_cols, &
+                        "buffer", caller)
+     buffer = 0d0 
+     call pdtran(n_g_rank, n_g_rank, &
+                 1d0, S_external, 1, 1, sc_desc_external, &
+                 0d0, buffer, 1, 1, sc_desc_buffer)
 
-   call elsi_allocate(S_real_sparse, n_l_nonzero, "S_real_sparse", caller)
-   call elsi_dense_to_ccs_by_pattern(buffer, n_l_buffer_rows, n_l_buffer_cols, &
-         buffer_sparse, n_buffer_nonzero, buffer_sparse_index, &
-         buffer_sparse_pointer)
-   deallocate(buffer)
+     call elsi_allocate(S_real_sparse, n_l_nonzero, "S_real_sparse", caller)
+     call elsi_dense_to_ccs_by_pattern(buffer, n_l_buffer_rows, n_l_buffer_cols, &
+                                       buffer_sparse, n_buffer_nonzero, buffer_sparse_index, &
+                                       buffer_sparse_pointer)
+     deallocate(buffer)
    
-   do i_proc = 0, n_p_cols_external - 1
+     do i_proc = 0, n_p_cols_external - 1
    
-      n_buffer_bcast_nonzero = n_buffer_nonzero
+        n_buffer_bcast_nonzero = n_buffer_nonzero
 
-      id_sent = i_proc
+        id_sent = i_proc
 
-      call MPI_Bcast(n_buffer_bcast_nonzero, 1, MPI_INT, id_sent, &
-            mpi_comm_external, mpierr)
+        call MPI_Bcast(n_buffer_bcast_nonzero, 1, MPI_INT, id_sent, &
+                       mpi_comm_external, mpierr)
 
-      call elsi_allocate(buffer_bcast_sparse, n_buffer_bcast_nonzero, &
-            "buffer_bcast_sparse", caller)
-      call elsi_allocate(buffer_bcast_sparse_index, n_buffer_bcast_nonzero, &
-            "buffer_bcast_sparse_index", caller)
-      call elsi_allocate(buffer_bcast_sparse_pointer, n_b_buffer_cols + 1, &
-            "buffer_bcast_sparse_pointer", caller)
+        call elsi_allocate(buffer_bcast_sparse, n_buffer_bcast_nonzero, &
+                           "buffer_bcast_sparse", caller)
+        call elsi_allocate(buffer_bcast_sparse_index, n_buffer_bcast_nonzero, &
+                           "buffer_bcast_sparse_index", caller)
+        call elsi_allocate(buffer_bcast_sparse_pointer, n_b_buffer_cols + 1, &
+                           "buffer_bcast_sparse_pointer", caller)
 
-      if (myid == id_sent) then
-        buffer_bcast_sparse         = buffer_sparse
-        buffer_bcast_sparse_index   = buffer_sparse_index
-        buffer_bcast_sparse_pointer = buffer_sparse_pointer
-      else
-        buffer_bcast_sparse         = 0
-        buffer_bcast_sparse_index   = 0
-        buffer_bcast_sparse_pointer = 0
-      end if
+        if(myid == id_sent) then
+           buffer_bcast_sparse         = buffer_sparse
+           buffer_bcast_sparse_index   = buffer_sparse_index
+           buffer_bcast_sparse_pointer = buffer_sparse_pointer
+        else
+           buffer_bcast_sparse         = 0
+           buffer_bcast_sparse_index   = 0
+           buffer_bcast_sparse_pointer = 0
+        endif
 
-      ! However, no inter blacs is possible so we have to do some by hand
-      ! communication and broadcast the results over all the processes
-      call MPI_Bcast(buffer_bcast_sparse, n_buffer_bcast_nonzero, &
-            MPI_DOUBLE, id_sent, mpi_comm_external, mpierr)
-      call MPI_Bcast(buffer_bcast_sparse_index, n_buffer_bcast_nonzero, &
-            MPI_INT, id_sent, mpi_comm_external, mpierr)  
-      call MPI_Bcast(buffer_bcast_sparse_pointer, n_b_buffer_cols + 1, &
-            MPI_INT, id_sent, mpi_comm_external, mpierr)  
+        ! However, no inter BLACS is possible so we have to do some by hand
+        ! communication and broadcast the results over all the processes
+        call MPI_Bcast(buffer_bcast_sparse, n_buffer_bcast_nonzero, &
+                       MPI_DOUBLE, id_sent, mpi_comm_external, mpierr)
+        call MPI_Bcast(buffer_bcast_sparse_index, n_buffer_bcast_nonzero, &
+                       MPI_INT, id_sent, mpi_comm_external, mpierr)  
+        call MPI_Bcast(buffer_bcast_sparse_pointer, n_b_buffer_cols + 1, &
+                       MPI_INT, id_sent, mpi_comm_external, mpierr)  
   
-      blacs_col_offset = 1 + i_proc * n_b_buffer_cols
-      pexsi_col_offset = 1 + myid * n_l_cols_g
-      my_col_offset    = 1 + pexsi_col_offset - blacs_col_offset
+        blacs_col_offset = 1 + i_proc * n_b_buffer_cols
+        pexsi_col_offset = 1 + myid * n_l_cols_g
+        my_col_offset    = 1 + pexsi_col_offset - blacs_col_offset
 
-      ! Fill elements from buffer
-      do i_col = my_col_offset, my_col_offset + n_l_cols - 1
+        ! Fill elements from buffer
+        do i_col = my_col_offset, my_col_offset + n_l_cols - 1
         
-       if (i_col > 0 .and. i_col <= n_b_buffer_cols) then
+           if(i_col > 0 .and. i_col <= n_b_buffer_cols) then
 
-         ! Get the global column
-         g_column = i_col + blacs_col_offset - 1
+              ! Get the global column
+              g_column = i_col + blacs_col_offset - 1
          
-         ! Get the offset in the buffer for this column
-         offset_B = buffer_bcast_sparse_pointer(i_col)
+              ! Get the offset in the buffer for this column
+              offset_B = buffer_bcast_sparse_pointer(i_col)
 
-         ! How many elements are in this column
-         n_elements = buffer_bcast_sparse_pointer(i_col+1) &
-                    - buffer_bcast_sparse_pointer(i_col)
+              ! How many elements are in this column
+              n_elements = buffer_bcast_sparse_pointer(i_col+1) &
+                           - buffer_bcast_sparse_pointer(i_col)
 
-         ! Local offset
-         l_col = i_col - my_col_offset + 1
+              ! Local offset
+              l_col = i_col - my_col_offset + 1
 
-         ! Populate sparse matrix
-         offset = sparse_pointer(l_col)
-         S_real_sparse(offset:offset+n_elements-1) = &
-            buffer_bcast_sparse(offset_B:offset_B+n_elements-1)
+              ! Populate sparse matrix
+              offset = sparse_pointer(l_col)
+              S_real_sparse(offset:offset+n_elements-1) = &
+              buffer_bcast_sparse(offset_B:offset_B+n_elements-1)
 
-       end if
+           endif
 
-      end do
+        enddo
        
-      deallocate(buffer_bcast_sparse)
-      deallocate(buffer_bcast_sparse_index)
-      deallocate(buffer_bcast_sparse_pointer)
+        deallocate(buffer_bcast_sparse)
+        deallocate(buffer_bcast_sparse_index)
+        deallocate(buffer_bcast_sparse_pointer)
 
-   end do
+   enddo
 
    deallocate(buffer_sparse)
    deallocate(buffer_sparse_index)
@@ -2071,48 +2070,42 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
 
 end subroutine
 
-
-! ####################################
-! ####################################
-! ###  ELSI API UNDER DEVELOPMENT  ###
-! ####################################
-! ####################################
+! ########################################
+! ###    ELSI API UNDER DEVELOPMENT    ###
+! ########################################
 
 !>
 !!  This is the ELPA API v1 that outputs the eigenvalues and eigenvectors
 !!
-subroutine elsi_ev_real(Ham, Ovlp, matrix_size, n_row, n_col, b_row, b_col, &
-                        n_state, E_val, E_vec, i_method, i_mode, &
-                        mpi_comm_row, mpi_comm_col, mpi_comm_global, &
+subroutine elsi_ev_real(Ham, Ovlp, matrix_size, n_row, n_col, &
+                        b_row, b_col, n_state, E_val, E_vec, method, &
                         n_p_row, n_p_col, my_p_id, my_p_row, my_p_col, &
+                        mpi_comm_row, mpi_comm_col, mpi_comm_global, &
                         blacs_context, sc_desc)
 
    implicit none
 
-   real*8, target, intent(in) :: Ham(n_row,n_col)     !< Hamiltonian
-   real*8, target, intent(in) :: Ovlp(n_row,n_col)    !< Overlap
-   integer, intent(in) :: matrix_size                 !< Dimension of matrix
-   integer, intent(in) :: n_row                       !< Number of local rows
-   integer, intent(in) :: n_col                       !< Number of local columns
-   integer, intent(in) :: b_row                       !< Row block number
-   integer, intent(in) :: b_col                       !< Column block number
-   real*8,  intent(in) :: n_state                     !< Number of states
-   real*8, intent(out) :: E_val(n_state)              !< Eigenvalues
-   real*8, intent(out) :: E_vec(matrix_size,n_state)  !< Eigenvectors
-   integer, intent(in) :: i_method                    !< ELPA,OMM,PEXSI
-   integer, intent(in) :: i_mode                      !< REAL_VALUES,COMPLEX_VALUES
-   integer, intent(in) :: mpi_comm_row                !< Row communicatior
-   integer, intent(in) :: mpi_comm_col                !< Column communicatior
-   integer, intent(in) :: mpi_comm_global             !< Global communicatior
-   integer, intent(in) :: n_p_row                     !< Number of processes in row
-   integer, intent(in) :: n_p_col                     !< Number of processes in column
-   integer, intent(in) :: my_p_id                     !< Process id
-   integer, intent(in) :: my_p_row                    !< Process row position
-   integer, intent(in) :: my_p_col                    !< Process column position
-   integer, intent(in) :: blacs_context               !< BLACS context
-   integer, intent(in) :: sc_desc(9)                  !< BLACS descriptor
-
-   character*40, parameter :: caller = "elsi_ev"
+   real*8, target, intent(in) :: Ham(n_row,n_col)    !< Hamiltonian
+   real*8, target, intent(in) :: Ovlp(n_row,n_col)   !< Overlap
+   integer, intent(in) :: matrix_size                !< Dimension of matrix
+   integer, intent(in) :: n_row                      !< Number of local rows
+   integer, intent(in) :: n_col                      !< Number of local columns
+   integer, intent(in) :: b_row                      !< Row block number
+   integer, intent(in) :: b_col                      !< Column block number
+   real*8,  intent(in) :: n_state                    !< Number of states
+   real*8, intent(out) :: E_val(n_state)             !< Eigenvalues
+   real*8, intent(out) :: E_vec(matrix_size,n_state) !< Eigenvectors
+   integer, intent(in) :: method                     !< ELPA,OMM,PEXSI
+   integer, intent(in) :: n_p_row                    !< Number of processes in row
+   integer, intent(in) :: n_p_col                    !< Number of processes in column
+   integer, intent(in) :: my_p_id                    !< Process id
+   integer, intent(in) :: my_p_row                   !< Process row position
+   integer, intent(in) :: my_p_col                   !< Process column position
+   integer, intent(in) :: mpi_comm_row               !< Row communicatior
+   integer, intent(in) :: mpi_comm_col               !< Column communicatior
+   integer, intent(in) :: mpi_comm_global            !< Global communicatior
+   integer, intent(in) :: blacs_context              !< BLACS context
+   integer, intent(in) :: sc_desc(9)                 !< BLACS descriptor
 
    ! Set MPI
    call elsi_set_mpi(mpi_comm_global,n_p_row*n_p_col,my_p_id)
@@ -2121,13 +2114,12 @@ subroutine elsi_ev_real(Ham, Ovlp, matrix_size, n_row, n_col, b_row, b_col, &
    call elsi_initialize_problem(matrix_size,b_row,b_col)
 
    ! Choice of ELPA, OMM_DENSE, PEXSI
-   if(i_method == 0) call elsi_set_method(ELPA)
-   if(i_method == 1) call elsi_set_method(OMM_DENSE)
-   if(i_method == 2) call elsi_set_method(PEXSI)
+   if(method == 0) call elsi_set_method(ELPA)
+   if(method == 1) call elsi_set_method(OMM_DENSE)
+   if(method == 2) call elsi_set_method(PEXSI)
 
-   ! REAL or COMPLEX mode
-   if(i_mode == 1) call elsi_set_mode(REAL_VALUES)
-   if(i_mode == 2) call elsi_set_mode(COMPLEX_VALUES)
+   ! REAL case
+   call elsi_set_mode(REAL_VALUES)
 
    ! Set BLACS
    call elsi_set_blacs(blacs_context,n_p_row,n_p_col,my_p_row,my_p_col,&
@@ -2140,7 +2132,75 @@ subroutine elsi_ev_real(Ham, Ovlp, matrix_size, n_row, n_col, b_row, b_col, &
    call elsi_set_hamiltonian(Ham,n_row,n_col)
    call elsi_set_overlap(Ovlp,n_row,n_col)
 
-   ! Solve evp
+   ! Solve eigenvalue problem
+   call elsi_solve_ev_problem(n_state)
+   call elsi_get_eigenvalues(E_val,n_state)
+   call elsi_get_eigenvectors(E_vec)
+
+   ! Shut down
+   call elsi_finalize()
+
+end subroutine
+
+!>
+!!  This is the ELPA API v1 that outputs the eigenvalues and eigenvectors
+!!
+subroutine elsi_ev_complex(Ham, Ovlp, matrix_size, n_row, n_col, &
+                           b_row, b_col, n_state, E_val, E_vec, method, &
+                           n_p_row, n_p_col, my_p_id, my_p_row, my_p_col, &
+                           mpi_comm_row, mpi_comm_col, mpi_comm_global, &
+                           blacs_context, sc_desc)
+
+   implicit none
+
+   complex*16, target, intent(in) :: Ham(n_row,n_col)    !< Hamiltonian
+   complex*16, target, intent(in) :: Ovlp(n_row,n_col)   !< Overlap
+   integer, intent(in) :: matrix_size                    !< Dimension of matrix
+   integer, intent(in) :: n_row                          !< Number of local rows
+   integer, intent(in) :: n_col                          !< Number of local columns
+   integer, intent(in) :: b_row                          !< Row block number
+   integer, intent(in) :: b_col                          !< Column block number
+   real*8, intent(in)  :: n_state                        !< Number of states
+   real*8, intent(out) :: E_val(n_state)                 !< Eigenvalues
+   complex*16, intent(out) :: E_vec(matrix_size,n_state) !< Eigenvectors
+   integer, intent(in) :: method                         !< ELPA,OMM,PEXSI
+   integer, intent(in) :: n_p_row                        !< Number of processes in row
+   integer, intent(in) :: n_p_col                        !< Number of processes in column
+   integer, intent(in) :: my_p_id                        !< Process id
+   integer, intent(in) :: my_p_row                       !< Process row position
+   integer, intent(in) :: my_p_col                       !< Process column position
+   integer, intent(in) :: mpi_comm_row                   !< Row communicatior
+   integer, intent(in) :: mpi_comm_col                   !< Column communicatior
+   integer, intent(in) :: mpi_comm_global                !< Global communicatior
+   integer, intent(in) :: blacs_context                  !< BLACS context
+   integer, intent(in) :: sc_desc(9)                     !< BLACS descriptor
+
+   ! Set MPI
+   call elsi_set_mpi(mpi_comm_global,n_p_row*n_p_col,my_p_id)
+
+   ! Initialization
+   call elsi_initialize_problem(matrix_size,b_row,b_col)
+
+   ! Choice of ELPA, OMM_DENSE, PEXSI
+   if(method == 0) call elsi_set_method(ELPA)
+   if(method == 1) call elsi_set_method(OMM_DENSE)
+   if(method == 2) call elsi_set_method(PEXSI)
+
+   ! COMPLEX case
+   call elsi_set_mode(COMPLEX_VALUES)
+
+   ! Set BLACS
+   call elsi_set_blacs(blacs_context,n_p_row,n_p_col,my_p_row,my_p_col,&
+                       mpi_comm_row,mpi_comm_col,n_row,n_col,sc_desc)
+
+   ! Allocation of matrices
+   call elsi_allocate_matrices()
+
+   ! Set Hamiltonian and Overlap matrices
+   call elsi_set_hamiltonian(Ham,n_row,n_col)
+   call elsi_set_overlap(Ovlp,n_row,n_col)
+
+   ! Solve eigenvalue problem
    call elsi_solve_ev_problem(n_state)
    call elsi_get_eigenvalues(E_val,n_state)
    call elsi_get_eigenvectors(E_vec)

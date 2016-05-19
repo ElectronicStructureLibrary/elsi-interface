@@ -58,7 +58,8 @@ module ELSI_MPI_TOOLS
   public :: elsi_matrix_print
   public :: elsi_statement_print
   public :: elsi_allocate
-  public :: elsi_sync_vector
+  public :: elsi_sync_real_vector
+  public :: elsi_sync_complex_vector
 
   interface elsi_vector_print
      module procedure elsi_int_vector_print, &
@@ -821,7 +822,7 @@ subroutine elsi_allocate_complex_matrix(matrix, n_rows, n_cols, matrixname, call
 
 end subroutine
 
-subroutine elsi_sync_vector(vector, dim, mpi_comm)
+subroutine elsi_sync_real_vector(vector, dim, mpi_comm)
 
    implicit none
    include 'mpif.h'
@@ -831,6 +832,45 @@ subroutine elsi_sync_vector(vector, dim, mpi_comm)
    integer :: mpi_comm
 
    real*8, allocatable :: temp_mpi(:)
+
+   integer :: comm, i, len
+   integer :: mpierr
+
+   ! adjust if needed
+   integer, parameter :: max_len = 1000000
+
+   comm = mpi_comm
+
+   allocate(temp_mpi(min(dim,max_len)),stat=i)
+
+   do i=1,dim,max_len
+
+      if(dim-i+1 < max_len) then
+         len = dim-i+1
+      else
+         len = max_len
+      endif
+
+      call MPI_AllReduce(vector(i), temp_mpi, len, MPI_DOUBLE_PRECISION, &
+                         MPI_SUM, comm, mpierr)
+
+      vector(i:i-1+len) = temp_mpi(1:len)
+   enddo
+
+   deallocate(temp_mpi)
+
+end subroutine
+
+subroutine elsi_sync_complex_vector(vector, dim, mpi_comm)
+
+   implicit none
+   include 'mpif.h'
+
+   integer :: dim
+   complex*16 :: vector(dim)
+   integer :: mpi_comm
+
+   complex*16, allocatable :: temp_mpi(:)
 
    integer :: comm, i, len
    integer :: mpierr
