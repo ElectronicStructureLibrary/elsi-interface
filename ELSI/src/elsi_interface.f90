@@ -2101,9 +2101,9 @@ subroutine elsi_ev_real(Ham, Ovlp, matrix_size, n_row, n_col, &
    integer, intent(in) :: my_p_id                    !< Process id
    integer, intent(in) :: my_p_row                   !< Process row position
    integer, intent(in) :: my_p_col                   !< Process column position
-   integer, intent(in) :: mpi_comm_row               !< Row communicatior
-   integer, intent(in) :: mpi_comm_col               !< Column communicatior
-   integer, intent(in) :: mpi_comm_global            !< Global communicatior
+   integer, intent(in) :: mpi_comm_row               !< Row communicator
+   integer, intent(in) :: mpi_comm_col               !< Column communicator
+   integer, intent(in) :: mpi_comm_global            !< Global communicator
    integer, intent(in) :: blacs_context              !< BLACS context
    integer, intent(in) :: sc_desc(9)                 !< BLACS descriptor
 
@@ -2169,9 +2169,9 @@ subroutine elsi_ev_complex(Ham, Ovlp, matrix_size, n_row, n_col, &
    integer, intent(in) :: my_p_id                        !< Process id
    integer, intent(in) :: my_p_row                       !< Process row position
    integer, intent(in) :: my_p_col                       !< Process column position
-   integer, intent(in) :: mpi_comm_row                   !< Row communicatior
-   integer, intent(in) :: mpi_comm_col                   !< Column communicatior
-   integer, intent(in) :: mpi_comm_global                !< Global communicatior
+   integer, intent(in) :: mpi_comm_row                   !< Row communicator
+   integer, intent(in) :: mpi_comm_col                   !< Column communicator
+   integer, intent(in) :: mpi_comm_global                !< Global communicator
    integer, intent(in) :: blacs_context                  !< BLACS context
    integer, intent(in) :: sc_desc(9)                     !< BLACS descriptor
 
