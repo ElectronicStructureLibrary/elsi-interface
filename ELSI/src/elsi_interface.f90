@@ -98,8 +98,6 @@ module ELSI
   !< Sparse Pointer Array
   integer, allocatable  :: sparse_pointer(:)
   
-  logical, save :: first_call = .True.
-
   !< The following variables from ELSI Dimensions are public
   public :: ELPA, OMM_DENSE, PEXSI
   public :: REAL_VALUES, COMPLEX_VALUES
@@ -1081,11 +1079,12 @@ end subroutine
 !>
 !!  This routine interfaces to the eigenvalue solvers
 !!
-subroutine elsi_solve_ev_problem(number_of_states)
+subroutine elsi_solve_ev_problem(Cholesky, number_of_states)
 
    implicit none
    include "mpif.h"
 
+   logical, intent(in) :: Cholesky        !< If .True. factorize Overlap
    real*8, intent(in) :: number_of_states !< Number of states
 
    logical :: success
@@ -1116,10 +1115,6 @@ subroutine elsi_solve_ev_problem(number_of_states)
 
    n_eigenvectors = number_of_states
 
-   ! Debug
-!   call elsi_print_setup()
-!   call elsi_variable_status()
-
    select case (method)
       case (ELPA)
          ! Choose 1-stage or 2-stage solver
@@ -1136,7 +1131,7 @@ subroutine elsi_solve_ev_problem(number_of_states)
          ! Transform to standard form
          if(.not. overlap_is_unity) then
             call elsi_statement_print(" Tansforming to standard evp")
-            call elsi_to_standard_ev_problem()
+            call elsi_to_standard_ev_problem(Cholesky)
          endif
 
          ! Solve evp, reture eigenvalues and eigenvectors
@@ -1183,8 +1178,6 @@ subroutine elsi_solve_ev_problem(number_of_states)
             call elsi_statement_print(" Transforming to original eigenvectors")
             call elsi_to_original_ev()
          endif
-
-         first_call = .False.
 
       case (OMM_DENSE)
 
@@ -1296,64 +1289,19 @@ end subroutine
 
 !>
 !!  This routine gets the eigenvectors
-!!  NOTE! Each processor gets the same copy of eigenvectors,
-!!  i.e. vectors are no longer block-cyclic distributed on output
 !!
 subroutine elsi_get_real_eigenvectors(eigenvectors_out)
 
    implicit none
 
-   real*8, intent(out) :: eigenvectors_out(n_g_rank,n_eigenvectors) !< Eigenvectors
+   real*8, intent(out) :: eigenvectors_out(n_l_rows,n_l_cols) !< Eigenvectors
 
-   integer, allocatable :: local_row(:)
-   integer, allocatable :: local_col(:)
-   integer :: i_col, i_row, i, j
    character*100, parameter :: caller = "elsi_get_real_eigenvectors"
 
    select case (method)
       case (ELPA)
 
-         ! Clean up data from last cycle
-         eigenvectors_out = 0d0
-
-         ! Mapping of global rows/cols to local
-         call elsi_allocate(local_row,n_g_rank,"local_row",caller)
-         call elsi_allocate(local_col,n_g_rank,"local_col",caller)
-         local_row(:) = 0
-         local_col(:) = 0
-
-         i_row = 0 ! local row counter
-         i_col = 0 ! local column counter
-
-         do i = 1, n_g_rank, 1
-            if(MOD((i-1)/n_b_rows,n_p_rows) == my_p_row) then
-               ! row i is on local processor
-               i_row = i_row+1
-               local_row(i) = i_row
-            endif
-
-            if(MOD((i-1)/n_b_cols,n_p_cols) == my_p_col) then
-               ! column i is on local processor
-               i_col = i_col+1
-               local_col(i) = i_col
-            endif
-         enddo
-
-         do i_col = 1, n_eigenvectors, 1
-            if(local_col(i_col) == 0) cycle
-            do i_row = 1, n_g_rank, 1
-               if(local_row(i_row)>0) then
-                  eigenvectors_out(i_row,i_col) = &
-                  vectors_real(local_row(i_row),local_col(i_col))
-               endif
-            enddo
-         enddo
-
-         deallocate(local_row)
-         deallocate(local_col)
-
-         call elsi_sync_real_vector(eigenvectors_out, &
-              n_g_rank*n_eigenvectors,mpi_comm_global)
+         eigenvectors_out = vectors_real
 
       case (OMM_DENSE)
          call elsi_stop("OMM does not deal with eigenvectors!",caller)
@@ -1369,64 +1317,19 @@ end subroutine
 
 !>
 !!  This routine gets the eigenvectors
-!!  NOTE! Each processor gets the same copy of eigenvectors,
-!!  i.e. vectors are no longer block-cyclic distributed on output
 !!
 subroutine elsi_get_complex_eigenvectors(eigenvectors_out)
 
    implicit none
 
-   complex*16, intent(out) :: eigenvectors_out(n_g_rank,n_eigenvectors) !< Eigenvectors
+   complex*16, intent(out) :: eigenvectors_out(n_l_rows,n_l_cols) !< Eigenvectors
 
-   integer, allocatable :: local_row(:)
-   integer, allocatable :: local_col(:)
-   integer :: i_col, i_row, i, j
    character*100, parameter :: caller = "elsi_get_complex_eigenvectors"
 
    select case (method)
       case (ELPA)
 
-         ! Clean up data from last cycle
-         eigenvectors_out = CMPLX(0d0,0d0)
-
-         ! Mapping of global rows/cols to local
-         call elsi_allocate(local_row,n_g_rank,"local_row",caller)
-         call elsi_allocate(local_col,n_g_rank,"local_col",caller)
-         local_row(:) = 0
-         local_col(:) = 0
-
-         i_row = 0 ! local row counter
-         i_col = 0 ! local column counter
-
-         do i = 1, n_g_rank, 1
-            if(MOD((i-1)/n_b_rows,n_p_rows) == my_p_row) then
-               ! row i is on local processor
-               i_row = i_row+1
-               local_row(i) = i_row
-            endif
-
-            if(MOD((i-1)/n_b_cols,n_p_cols) == my_p_col) then
-               ! column i is on local processor
-               i_col = i_col+1
-               local_col(i) = i_col
-            endif
-         enddo
-
-         do i_col = 1, n_eigenvectors, 1
-            if(local_col(i_col) == 0) cycle
-            do i_row = 1, n_g_rank, 1
-               if(local_row(i_row)>0) then
-                  eigenvectors_out(i_row,i_col) = &
-                  vectors_real(local_row(i_row),local_col(i_col))
-               endif
-            enddo
-         enddo
-
-         deallocate(local_row)
-         deallocate(local_col)
-
-         call elsi_sync_complex_vector(eigenvectors_out,&
-              n_g_rank*n_eigenvectors,mpi_comm_global)
+         eigenvectors_out = vectors_complex
 
       case (OMM_DENSE)
          call elsi_stop("OMM does not deal with eigenvectors!",caller)
@@ -1540,7 +1443,9 @@ end subroutine
 !!
 !! On exit, (U^-1) is stored in S, to be used for back-transformation
 !!
-subroutine elsi_to_standard_ev_problem()
+subroutine elsi_to_standard_ev_problem(Cholesky)
+
+   logical, intent(in) :: Cholesky                 !< If .True. factorize Overlap
 
    logical :: success                              !< Success flag
    real*8,     allocatable :: buffer_real (:,:)    !< Real valued matrix buffer
@@ -1555,7 +1460,7 @@ subroutine elsi_to_standard_ev_problem()
                call elsi_allocate(buffer_complex, n_l_rows, n_l_cols, &
                                   "buffer_complex",caller)
 
-               if(first_call) then
+               if(Cholesky) then
                   call elsi_statement_print(" Starting Cholesty decomposition")
                   ! Compute S = (U^T)U, U -> S
                   call cholesky_complex(n_g_rank, S_complex, n_l_rows, &
@@ -1593,7 +1498,7 @@ subroutine elsi_to_standard_ev_problem()
                call elsi_allocate(buffer_real, n_l_rows, n_l_cols, &
                                   "buffer_real",caller)
 
-               if(first_call) then
+               if(Cholesky) then
                   call elsi_statement_print(" Starting Cholesty decomposition")
                   ! Compute S = (U^T)U, U -> S
                   call cholesky_real(n_g_rank, S_real, n_l_rows, &
@@ -1664,7 +1569,7 @@ subroutine elsi_to_original_ev()
                ! (U^-1) is stored in S_complex after
                ! elsi_to_standard_ev_problem
                ! vectors_complex = S_complex * vectors_complex
-               call elsi_allocate(buffer_complex, n_l_rows, n_l_cols, "temp", caller)
+               call elsi_allocate(buffer_complex,n_l_rows,n_l_cols,"temp",caller)
                buffer_complex = vectors_complex
 
                call pzgemm('N', 'N', n_g_rank, n_eigenvectors, n_g_rank, &
@@ -1675,7 +1580,7 @@ subroutine elsi_to_original_ev()
                ! (U^-1) is stored in S_real after
                ! elsi_to_standard_ev_problem
                ! vectors_real = S_real * vectors_real
-               call elsi_allocate(buffer_real, n_l_rows, n_l_cols, "temp",caller)
+               call elsi_allocate(buffer_real,n_l_rows,n_l_cols,"temp",caller)
                buffer_real = vectors_real
 
                ! method (a)
@@ -2077,7 +1982,7 @@ end subroutine
 !>
 !!  This is the ELPA API v1 that outputs the eigenvalues and eigenvectors
 !!
-subroutine elsi_ev_real(Ham, Ovlp, matrix_size, n_row, n_col, &
+subroutine elsi_ev_real(Ham, Ovlp, Cholesky, matrix_size, n_row, n_col, &
                         b_row, b_col, n_state, E_val, E_vec, method, &
                         n_p_row, n_p_col, my_p_id, my_p_row, my_p_col, &
                         mpi_comm_row, mpi_comm_col, mpi_comm_global, &
@@ -2087,6 +1992,7 @@ subroutine elsi_ev_real(Ham, Ovlp, matrix_size, n_row, n_col, &
 
    real*8, target, intent(in) :: Ham(n_row,n_col)    !< Hamiltonian
    real*8, target, intent(in) :: Ovlp(n_row,n_col)   !< Overlap
+   logical, intent(inout) :: Cholesky                !< If .True. factorize Overlap
    integer, intent(in) :: matrix_size                !< Dimension of matrix
    integer, intent(in) :: n_row                      !< Number of local rows
    integer, intent(in) :: n_col                      !< Number of local columns
@@ -2094,7 +2000,7 @@ subroutine elsi_ev_real(Ham, Ovlp, matrix_size, n_row, n_col, &
    integer, intent(in) :: b_col                      !< Column block number
    real*8,  intent(in) :: n_state                    !< Number of states
    real*8, intent(out) :: E_val(n_state)             !< Eigenvalues
-   real*8, intent(out) :: E_vec(matrix_size,n_state) !< Eigenvectors
+   real*8, intent(out) :: E_vec(n_row,n_col)         !< Eigenvectors
    integer, intent(in) :: method                     !< ELPA,OMM,PEXSI
    integer, intent(in) :: n_p_row                    !< Number of processes in row
    integer, intent(in) :: n_p_col                    !< Number of processes in column
@@ -2133,7 +2039,9 @@ subroutine elsi_ev_real(Ham, Ovlp, matrix_size, n_row, n_col, &
    call elsi_set_overlap(Ovlp,n_row,n_col)
 
    ! Solve eigenvalue problem
-   call elsi_solve_ev_problem(n_state)
+   call elsi_solve_ev_problem(Cholesky,n_state)
+   Cholesky = .False.
+
    call elsi_get_eigenvalues(E_val,n_state)
    call elsi_get_eigenvectors(E_vec)
 
@@ -2145,7 +2053,7 @@ end subroutine
 !>
 !!  This is the ELPA API v1 that outputs the eigenvalues and eigenvectors
 !!
-subroutine elsi_ev_complex(Ham, Ovlp, matrix_size, n_row, n_col, &
+subroutine elsi_ev_complex(Ham, Ovlp, Cholesky, matrix_size, n_row, n_col, &
                            b_row, b_col, n_state, E_val, E_vec, method, &
                            n_p_row, n_p_col, my_p_id, my_p_row, my_p_col, &
                            mpi_comm_row, mpi_comm_col, mpi_comm_global, &
@@ -2155,6 +2063,7 @@ subroutine elsi_ev_complex(Ham, Ovlp, matrix_size, n_row, n_col, &
 
    complex*16, target, intent(in) :: Ham(n_row,n_col)    !< Hamiltonian
    complex*16, target, intent(in) :: Ovlp(n_row,n_col)   !< Overlap
+   logical, intent(inout) :: Cholesky                    !< If .True. factorize Overlap
    integer, intent(in) :: matrix_size                    !< Dimension of matrix
    integer, intent(in) :: n_row                          !< Number of local rows
    integer, intent(in) :: n_col                          !< Number of local columns
@@ -2162,7 +2071,7 @@ subroutine elsi_ev_complex(Ham, Ovlp, matrix_size, n_row, n_col, &
    integer, intent(in) :: b_col                          !< Column block number
    real*8, intent(in)  :: n_state                        !< Number of states
    real*8, intent(out) :: E_val(n_state)                 !< Eigenvalues
-   complex*16, intent(out) :: E_vec(matrix_size,n_state) !< Eigenvectors
+   complex*16, intent(out) :: E_vec(n_row,n_col)         !< Eigenvectors
    integer, intent(in) :: method                         !< ELPA,OMM,PEXSI
    integer, intent(in) :: n_p_row                        !< Number of processes in row
    integer, intent(in) :: n_p_col                        !< Number of processes in column
@@ -2201,7 +2110,9 @@ subroutine elsi_ev_complex(Ham, Ovlp, matrix_size, n_row, n_col, &
    call elsi_set_overlap(Ovlp,n_row,n_col)
 
    ! Solve eigenvalue problem
-   call elsi_solve_ev_problem(n_state)
+   call elsi_solve_ev_problem(Cholesky,n_state)
+   Cholesky = .False.
+
    call elsi_get_eigenvalues(E_val,n_state)
    call elsi_get_eigenvectors(E_vec)
 

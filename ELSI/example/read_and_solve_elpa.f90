@@ -1,4 +1,4 @@
-!Copyright (c) 2015, ELSI consortium
+!Copyright (c) 2016, ELSI consortium
 !All rights reserved.
 !
 !Redistribution and use in source and binary forms, with or without
@@ -30,61 +30,60 @@
 
 program read_and_solve
 
-  use iso_c_binding
-  use ELSI
+   use iso_c_binding
+   use ELSI
 
-  implicit none
-  include 'mpif.h'
+   implicit none
+   include 'mpif.h'
 
-  ! This is the ELSI test suite
-  ! First we will test the writing and reading of a matrix to a file
+   ! This is the ELSI test suite.
+   ! Read an eigenvalue problem and solve with ELPA.
 
-  integer :: blocksize = 16
-  real*8  :: n_electrons
+   integer :: blocksize = 16
+   real*8  :: n_electrons
 
-  integer :: myid, i_eigenvector
-  real*8  :: e_tot
+   integer :: myid, i_eigenvector
+   real*8  :: e_tot
+   logical :: Cholesky
 
-
-  !  Pharse command line argumnents, if given
+   ! Pharse command line argumnents, if given
    INTEGER*4 :: iargc
    character*16 arg1
 
-   if (iargc() == 1) then
+   if(iargc() == 1) then
       call getarg(1, arg1)
       read(arg1, *) n_electrons
    endif
 
-
-  ! First: the parallel treatment
-  call elsi_initialize_mpi()
+   ! Parallel treatment
+   call elsi_initialize_mpi()
   
-  ! Second set some ELSI specifications
-  call elsi_set_method(ELPA)
-  call elsi_set_mode(REAL_VALUES)
+   ! Set ELSI specifications
+   call elsi_set_method(ELPA)
+   call elsi_set_mode(REAL_VALUES)
   
-  ! Third define the problem
-  call elsi_initialize_problem_from_file("elsi_eigenvalue_problem.hdf5",&
-        blocksize,blocksize)
+   ! Define the problem
+   call elsi_initialize_problem_from_file("elsi_eigenvalue_problem.hdf5",&
+                                          blocksize,blocksize)
   
-  ! Initialize problem distribution
-  call elsi_initialize_blacs()
+   ! Initialize problem distribution
+   call elsi_initialize_blacs()
 
-  ! Read eigenvalue problem
-  call elsi_allocate_matrices()
-  call elsi_read_ev_problem("elsi_eigenvalue_problem.hdf5")
+   ! Read eigenvalue problem
+   call elsi_allocate_matrices()
+   call elsi_read_ev_problem("elsi_eigenvalue_problem.hdf5")
 
-  ! Solve the eigenvalue problem
-  call elsi_solve_ev_problem(n_electrons)
+   ! Solve eigenvalue problem
+   Cholesky = .True.
+   call elsi_solve_ev_problem(Cholesky,n_electrons)
   
-  call elsi_get_total_energy(e_tot)
+   call elsi_get_total_energy(e_tot)
+   call elsi_get_myid(myid)
+   if(myid == 0) then 
+      write (*,'(A,E19.12)') "total energy : ", e_tot
+   endif
 
-  call elsi_get_myid(myid)
-  if (myid == 0) then 
-     write (*,'(A,E19.12)') "total energy : ", e_tot
-  end if
-
-  ! elsi shutdown
-  call elsi_finalize()
+   ! Shutdown
+   call elsi_finalize()
 
 end program
