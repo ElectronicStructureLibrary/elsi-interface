@@ -277,7 +277,7 @@ function solve_evp_real_2stage(na, nev, a, lda, ev, q, ldq, nblk,        &
    if (.not.(success)) return
    ttt1 = MPI_Wtime()
    if (my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-      write(error_unit,*) 'Time bandred_real               :',ttt1-ttt0
+      print *, '  | Time bandred_real               :',ttt1-ttt0
 
    ! Reduction band -> tridiagonal
 
@@ -288,7 +288,7 @@ function solve_evp_real_2stage(na, nev, a, lda, ev, q, ldq, nblk,        &
                           mpi_comm_cols, mpi_comm_all)
    ttt1 = MPI_Wtime()
    if (my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-      write(error_unit,*) 'Time tridiag_band_real          :',ttt1-ttt0
+      print *, '  | Time tridiag_band_real          :',ttt1-ttt0
 
    call mpi_bcast(ev,na,MPI_REAL8,0,mpi_comm_all,mpierr)
    call mpi_bcast(e,na,MPI_REAL8,0,mpi_comm_all,mpierr)
@@ -305,7 +305,7 @@ function solve_evp_real_2stage(na, nev, a, lda, ev, q, ldq, nblk,        &
 
    ttt1 = MPI_Wtime()
    if (my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-     write(error_unit,*) 'Time solve_tridi                :',ttt1-ttt0
+     print *, '  | Time solve_tridi                :',ttt1-ttt0
    time_evp_solve = ttt1-ttt0
    ttts = ttt1
 
@@ -319,7 +319,7 @@ function solve_evp_real_2stage(na, nev, a, lda, ev, q, ldq, nblk,        &
    if (.not.(success)) return
    ttt1 = MPI_Wtime()
    if (my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-      write(error_unit,*) 'Time trans_ev_tridi_to_band_real:',ttt1-ttt0
+      print *, '  | Time trans_ev_tridi_to_band_real:',ttt1-ttt0
 
    ! We can now deallocate the stored householder vectors
    deallocate(hh_trans_real)
@@ -331,7 +331,7 @@ function solve_evp_real_2stage(na, nev, a, lda, ev, q, ldq, nblk,        &
                                    mpi_comm_cols, useQRActual)
    ttt1 = MPI_Wtime()
    if (my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-      write(error_unit,*) 'Time trans_ev_band_to_full_real :',ttt1-ttt0
+      print *, '  | Time trans_ev_band_to_full_real :',ttt1-ttt0
    time_evp_back = ttt1-ttts
 
    deallocate(tmat)
@@ -477,7 +477,7 @@ function solve_evp_complex_2stage(na, nev, a, lda, ev, q, ldq, nblk, &
    endif
    ttt1 = MPI_Wtime()
    if (my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-      write(error_unit,*) 'Time bandred_complex               :',ttt1-ttt0
+      print *, '  | Time bandred_complex               :',ttt1-ttt0
 
    ! Reduction band -> tridiagonal
 
@@ -487,7 +487,7 @@ function solve_evp_complex_2stage(na, nev, a, lda, ev, q, ldq, nblk, &
    call tridiag_band_complex(na, nbw, nblk, a, lda, ev, e, matrixCols, mpi_comm_rows, mpi_comm_cols, mpi_comm_all)
    ttt1 = MPI_Wtime()
    if (my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-      write(error_unit,*) 'Time tridiag_band_complex          :',ttt1-ttt0
+      print *, '  | Time tridiag_band_complex          :',ttt1-ttt0
 
    call mpi_bcast(ev,na,MPI_REAL8,0,mpi_comm_all,mpierr)
    call mpi_bcast(e,na,MPI_REAL8,0,mpi_comm_all,mpierr)
@@ -510,7 +510,7 @@ function solve_evp_complex_2stage(na, nev, a, lda, ev, q, ldq, nblk, &
 
    ttt1 = MPI_Wtime()
    if (my_prow==0 .and. my_pcol==0 .and. elpa_print_times)  &
-      write(error_unit,*) 'Time solve_tridi                   :',ttt1-ttt0
+      print *, '  | Time solve_tridi                   :',ttt1-ttt0
    time_evp_solve = ttt1-ttt0
    ttts = ttt1
 
@@ -527,7 +527,7 @@ function solve_evp_complex_2stage(na, nev, a, lda, ev, q, ldq, nblk, &
    if (.not.(success)) return
    ttt1 = MPI_Wtime()
    if (my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-      write(error_unit,*) 'Time trans_ev_tridi_to_band_complex:',ttt1-ttt0
+      print *, '  | Time trans_ev_tridi_to_band_complex:',ttt1-ttt0
 
    ! We can now deallocate the stored householder vectors
    deallocate(hh_trans_complex)
@@ -539,7 +539,7 @@ function solve_evp_complex_2stage(na, nev, a, lda, ev, q, ldq, nblk, &
                                       mpi_comm_rows, mpi_comm_cols)
    ttt1 = MPI_Wtime()
    if (my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-      write(error_unit,*) 'Time trans_ev_band_to_full_complex :',ttt1-ttt0
+      print *, '  | Time trans_ev_band_to_full_complex :',ttt1-ttt0
    time_evp_back = ttt1-ttts
 
    deallocate(tmat)

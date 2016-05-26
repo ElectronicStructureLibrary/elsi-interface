@@ -29,7 +29,7 @@ A) Install from zero: if you do not have any part of the ELSI package
 
 1.6) LINK
    Since you do not have ELPA, libOMM, or PEXSI, please use the default 
-   settings for this part.
+   settings in this part.
 
 2) Make sure your "make.sys" is correctly configured.
 
@@ -64,7 +64,7 @@ B) If you already have some libraries of ELSI installed, you may choose
 
 2) Make sure your "make.sys" is correctly configured.
 
-   Run "make -f Makefile.elsi {libomm|pexsi|elsi}" to build OMM, PEXSI, 
+   Run "make -f Makefile.elsi {omm|pexsi|elsi}" to build OMM, PEXSI, 
    and the ELSI interface one by one.
 
 3) To install ELSI as a library, run "make -f Makefile.elsi install".

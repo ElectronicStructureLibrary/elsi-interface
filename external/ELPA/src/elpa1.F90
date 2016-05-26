@@ -106,7 +106,7 @@ module ELPA1
 
   ! Set elpa_print_times to .true. for explicit timing outputs
 
-  logical, public :: elpa_print_times = .false.
+  logical, public :: elpa_print_times = .True.
 
 !-------------------------------------------------------------------------------
 
@@ -228,7 +228,7 @@ function solve_evp_real(na, nev, a, lda, ev, q, ldq, nblk, matrixCols, mpi_comm_
    ttt0 = MPI_Wtime()
    call tridiag_real(na, a, lda, nblk, matrixCols, mpi_comm_rows, mpi_comm_cols, ev, e, tau)
    ttt1 = MPI_Wtime()
-   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) write(error_unit,*) 'Time tridiag_real :',ttt1-ttt0
+   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) print *, '  | Time tridiag_real :',ttt1-ttt0
    time_evp_fwd = ttt1-ttt0
 
    ttt0 = MPI_Wtime()
@@ -237,13 +237,13 @@ function solve_evp_real(na, nev, a, lda, ev, q, ldq, nblk, matrixCols, mpi_comm_
    if (.not.(success)) return
 
    ttt1 = MPI_Wtime()
-   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) write(error_unit,*) 'Time solve_tridi  :',ttt1-ttt0
+   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) print *, '  | Time solve_tridi  :',ttt1-ttt0
    time_evp_solve = ttt1-ttt0
 
    ttt0 = MPI_Wtime()
    call trans_ev_real(na, nev, a, lda, tau, q, ldq, nblk, matrixCols, mpi_comm_rows, mpi_comm_cols)
    ttt1 = MPI_Wtime()
-   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) write(error_unit,*) 'Time trans_ev_real:',ttt1-ttt0
+   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) print *, '  | Time trans_ev_real:',ttt1-ttt0
    time_evp_back = ttt1-ttt0
 
    deallocate(e, tau)
@@ -342,7 +342,7 @@ function solve_evp_complex(na, nev, a, lda, ev, q, ldq, nblk, matrixCols, mpi_co
    ttt0 = MPI_Wtime()
    call tridiag_complex(na, a, lda, nblk, matrixCols, mpi_comm_rows, mpi_comm_cols, ev, e, tau)
    ttt1 = MPI_Wtime()
-   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) write(error_unit,*) 'Time tridiag_complex :',ttt1-ttt0
+   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) print *, '  | Time tridiag_complex :',ttt1-ttt0
    time_evp_fwd = ttt1-ttt0
 
    ttt0 = MPI_Wtime()
@@ -351,7 +351,7 @@ function solve_evp_complex(na, nev, a, lda, ev, q, ldq, nblk, matrixCols, mpi_co
    if (.not.(success)) return
 
    ttt1 = MPI_Wtime()
-   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) write(error_unit,*) 'Time solve_tridi     :',ttt1-ttt0
+   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) print *, '  | Time solve_tridi     :',ttt1-ttt0
    time_evp_solve = ttt1-ttt0
 
    ttt0 = MPI_Wtime()
@@ -359,7 +359,7 @@ function solve_evp_complex(na, nev, a, lda, ev, q, ldq, nblk, matrixCols, mpi_co
 
    call trans_ev_complex(na, nev, a, lda, tau, q, ldq, nblk, matrixCols, mpi_comm_rows, mpi_comm_cols)
    ttt1 = MPI_Wtime()
-   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) write(error_unit,*) 'Time trans_ev_complex:',ttt1-ttt0
+   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) print *, '  | Time trans_ev_complex:',ttt1-ttt0
    time_evp_back = ttt1-ttt0
 
    deallocate(q_real)

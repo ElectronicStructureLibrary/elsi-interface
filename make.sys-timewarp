@@ -2,7 +2,7 @@
 
 MPIFC  = mpiifort
 MPICC  = mpiicc
-MPICXX = mpiicc
+MPICXX = mpiicpc
 
 ARCH      = ar
 ARCHFLAGS = cr
