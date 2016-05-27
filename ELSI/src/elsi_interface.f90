@@ -233,10 +233,6 @@ subroutine elsi_set_mode(i_mode)
 
    mode = i_mode
 
-   if(i_mode == COMPLEX_VALUES) then
-      call elsi_stop("COMPLEX VALUES not yet supported",caller)
-   endif
-
 end subroutine 
 
 !>
@@ -729,7 +725,7 @@ subroutine elsi_set_complex_overlap(s,n_rows,n_cols)
 
    select case (method)
       case (ELPA)
-         if(mode == REAL_VALUES) then
+         if(mode == COMPLEX_VALUES) then
             S_complex => s      
          else  
             write(*,'(2a)') "Wrong mode:",&
