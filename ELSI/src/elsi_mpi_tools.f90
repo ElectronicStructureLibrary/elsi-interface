@@ -271,7 +271,7 @@ subroutine elsi_initialize_blacs()
       endif
    endif
 
-   ! For DEBUG
+   ! Debug
    !call elsi_variable_status()
 
 end subroutine
@@ -318,7 +318,7 @@ subroutine elsi_set_blacs(blacs_ctxt_in, n_p_rows_in, n_p_cols_in, &
       call ms_scalapack_setup(n_procs, n_p_rows, "C", n_b_rows, exception, blacs_ctxt)
    endif
 
-   ! For DEBUG
+   ! Debug
    !call elsi_variable_status()
 
 end subroutine

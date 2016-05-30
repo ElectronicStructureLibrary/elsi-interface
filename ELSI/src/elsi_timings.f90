@@ -80,8 +80,6 @@ module ELSI_TIMERS
   public :: elsi_start_dist_pexsi_time
   public :: elsi_stop_dist_pexsi_time
 
-
-
 contains
 
 !>
@@ -168,11 +166,11 @@ subroutine elsi_print_timers()
       write(*,"('|-------------------------------------------------------')")
       write(*,"('| ELSI worked on a eigenvalue problem with dimensions   ')")
       write(*,"('| Rank                           : ',I13)") n_g_rank
-      write(*,"('| Non zero elements              : ',I13)") n_g_nonzero
-      write(*,"('| Sparcity                       : ',F13.3)") &
-            (1d0 * n_g_nonzero / n_g_rank) / n_g_rank
-      write(*,"('| Number of Electrons            : ',F13.3)") &
-            n_electrons
+!      write(*,"('| Non zero elements              : ',I13)") n_g_nonzero
+!      write(*,"('| Sparcity                       : ',F13.3)") &
+!            (1d0 * n_g_nonzero / n_g_rank) / n_g_rank
+!      write(*,"('| Number of Electrons            : ',F13.3)") &
+!            n_electrons
       write(*,"('| Number of States               : ',I13)") n_eigenvectors   
       if (method == ELPA) then 
       write(*,"('| Method:                        : ',A13)") "ELPA"
@@ -183,22 +181,22 @@ subroutine elsi_print_timers()
       if(method == PEXSI) then 
          write(*,"('| Method:                        : ',A13)") "PEXSI"
       endif
-      write(*,"('|-------------------------------------------------------')")
-      write(*,"('| Parallel Distribution:                                ')")
-      write(*,"('|-------------------------------------------------------')")
-      write(*,"('| Process grid                   : ',I5,' x ',I5)") &
-            n_p_rows, n_p_cols
+!      write(*,"('|-------------------------------------------------------')")
+!      write(*,"('| Parallel Distribution:                                ')")
+!      write(*,"('|-------------------------------------------------------')")
+!      write(*,"('| Process grid                   : ',I5,' x ',I5)") &
+!            n_p_rows, n_p_cols
     endif
 
-    do i_proc = 0, n_procs - 1
-       if(i_proc == myid) then
-          write(*,"('| Local matrix size process     ',I5,' : ',I5,' x ',I5)")&
-                myid, n_l_rows, n_l_cols
-          write(*,"('| Local matrix blocking process ',I5,' : ',I5,' x ',I5)")&
-                myid, n_b_rows, n_b_cols
-       endif
-       call MPI_Barrier(mpi_comm_global,mpierr)
-    enddo
+!    do i_proc = 0, n_procs - 1
+!       if(i_proc == myid) then
+!          write(*,"('| Local matrix size process     ',I5,' : ',I5,' x ',I5)")&
+!                myid, n_l_rows, n_l_cols
+!          write(*,"('| Local matrix blocking process ',I5,' : ',I5,' x ',I5)")&
+!                myid, n_b_rows, n_b_cols
+!       endif
+!       call MPI_Barrier(mpi_comm_global,mpierr)
+!    enddo
 
     if(myid == 0) then
        write(*,"('|-------------------------------------------------------')")
