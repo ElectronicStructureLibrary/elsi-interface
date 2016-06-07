@@ -76,7 +76,7 @@ program read_and_solve
 
    ! Solve eigenvalue problem
    Cholesky = .True.
-   call elsi_solve_ev_problem(Cholesky,n_electrons)
+   call elsi_solve_ev_problem(Cholesky,int(n_electrons))
   
 !   call elsi_get_total_energy(e_tot)
 !   call elsi_get_myid(myid)

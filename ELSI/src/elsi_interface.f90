@@ -1106,8 +1106,8 @@ subroutine elsi_solve_ev_problem(cholesky, number_of_states)
    implicit none
    include "mpif.h"
 
-   logical, intent(in) :: cholesky        !< If .True. factorize Overlap
-   real*8, intent(in) :: number_of_states !< Number of states
+   logical, intent(in) :: cholesky         !< If .True. factorize Overlap
+   integer, intent(in) :: number_of_states !< Number of states
 
    logical :: success
    logical :: two_step_solver
@@ -1298,7 +1298,7 @@ subroutine elsi_get_eigenvalues(eigenvalues_out,n_eigenvalues)
 
    implicit none
 
-   real*8, intent(in) :: n_eigenvalues !< Number of eigenvalues
+   integer, intent(in) :: n_eigenvalues !< Number of eigenvalues
    real*8, intent(out) :: eigenvalues_out(n_eigenvalues) !< Eigenvalues
 
    character*40, parameter :: caller = "elsi_get_eigenvalues"
@@ -1400,17 +1400,16 @@ end subroutine
 !>
 !!  This routine gets the number of occupied states from occupation numbers
 !!
-subroutine elsi_get_occupied_number(occ,n_state,occupied)
+subroutine elsi_get_occupied_number(occ,occupied)
 
    implicit none
 
-   real*8, intent(in) :: occ(n_state)
-   real*8, intent(in) :: n_state
+   real*8, intent(in) :: occ(n_states)
    integer, intent(out) :: occupied
 
    integer :: i
 
-   do i = 1,n_state,1
+   do i = 1,n_states,1
       if(occ(i) > 0d0) then
          occupied = i
       endif
@@ -2169,35 +2168,36 @@ end subroutine
 !>
 !!  This is the ELSI API v1 that outputs the eigenvalues and eigenvectors
 !!
-subroutine elsi_ev_real(ham, ovlp, n_calls, matrix_size, l_row, l_col, &
+subroutine elsi_ev_real(ham, ovlp, need_cholesky, matrix_size, l_row, l_col, &
                         b_row, b_col, n_state, e_val, e_vec, method, &
-                        n_proc, my_p_id, mpi_comm_global)
+                        p_row, p_col, my_p_id, my_p_row, my_p_col, &
+                        mpi_comm_row, mpi_comm_col, mpi_comm_global, &
+                        blacs_context, sc_desc )
 
    implicit none
 
-   real*8, target, intent(in) :: ham(n_row,n_col)    !< Hamiltonian
-   real*8, target, intent(in) :: ovlp(n_row,n_col)   !< Overlap
-   integer, intent(in) :: n_calls                    !< How many times ELSI is called
+   real*8, target, intent(in) :: ham(l_row,l_col)    !< Hamiltonian
+   real*8, target, intent(in) :: ovlp(l_row,l_col)   !< Overlap
+   logical, intent(inout) :: need_cholesky           !< If .True. perform Cholesky factorization
    integer, intent(in) :: matrix_size                !< Dimension of matrix
    integer, intent(in) :: l_row                      !< Number of local rows
    integer, intent(in) :: l_col                      !< Number of local columns
    integer, intent(in) :: b_row                      !< Row block number
    integer, intent(in) :: b_col                      !< Column block number
-   real*8,  intent(in) :: n_state                    !< Number of states
+   integer, intent(in) :: n_state                    !< Number of states
    real*8, intent(out) :: e_val(n_state)             !< Eigenvalues
-   real*8, intent(out) :: e_vec(n_row,n_col)         !< Eigenvectors
+   real*8, intent(out) :: e_vec(l_row,l_col)         !< Eigenvectors
    integer, intent(in) :: method                     !< ELPA,OMM,PEXSI
-!   integer, intent(in) :: p_row                      !< Number of processes in row
-!   integer, intent(in) :: p_col                      !< Number of processes in column
-   integer, intent(in) :: n_proc                     !< Number of processes
+   integer, intent(in) :: p_row                      !< Number of processes in row
+   integer, intent(in) :: p_col                      !< Number of processes in column
    integer, intent(in) :: my_p_id                    !< Process id
-!   integer, intent(in) :: my_p_row                   !< Process row position
-!   integer, intent(in) :: my_p_col                   !< Process column position
-!   integer, intent(in) :: mpi_comm_row               !< Row communicator
-!   integer, intent(in) :: mpi_comm_col               !< Column communicator
+   integer, intent(in) :: my_p_row                   !< Process row position
+   integer, intent(in) :: my_p_col                   !< Process column position
+   integer, intent(in) :: mpi_comm_row               !< Row communicator
+   integer, intent(in) :: mpi_comm_col               !< Column communicator
    integer, intent(in) :: mpi_comm_global            !< Global communicator
-!   integer, intent(in) :: blacs_context              !< BLACS context
-!   integer, intent(in) :: sc_desc(9)                 !< BLACS descriptor
+   integer, intent(in) :: blacs_context              !< BLACS context
+   integer, intent(in) :: sc_desc(9)                 !< BLACS descriptor
 
    character*40, parameter :: caller = "elsi_ev_real"
 
@@ -2206,6 +2206,8 @@ subroutine elsi_ev_real(ham, ovlp, n_calls, matrix_size, l_row, l_col, &
 
    ! Initialization
    call elsi_initialize_problem(matrix_size,b_row,b_col)
+   ! TODO: move this to where it should be
+   n_states = n_state
 
    ! Choice of ELPA, OMM_DENSE, PEXSI
    if(method == 0) then
@@ -2219,14 +2221,14 @@ subroutine elsi_ev_real(ham, ovlp, n_calls, matrix_size, l_row, l_col, &
 
    ! Set BLACS
    call elsi_set_blacs(blacs_context,p_row,p_col,my_p_row,my_p_col,&
-                       mpi_comm_row,mpi_comm_col,n_row,n_col,sc_desc)
+                       mpi_comm_row,mpi_comm_col,l_row,l_col,sc_desc)
 
    ! Allocation of matrices
    call elsi_allocate_matrices()
 
    ! Set Hamiltonian and Overlap matrices
-   call elsi_set_hamiltonian(ham,n_row,n_col)
-   call elsi_set_overlap(ovlp,n_row,n_col)
+   call elsi_set_hamiltonian(ham,l_row,l_col)
+   call elsi_set_overlap(ovlp,l_row,l_col)
 
    ! Solve eigenvalue problem
    call elsi_solve_ev_problem(need_cholesky,n_state)
@@ -2243,7 +2245,7 @@ end subroutine
 !>
 !!  This is the ELSI API v1 that outputs the eigenvalues and eigenvectors
 !!
-subroutine elsi_ev_complex(ham, ovlp, need_cholesky, matrix_size, n_row, n_col, &
+subroutine elsi_ev_complex(ham, ovlp, need_cholesky, matrix_size, l_row, l_col, &
                            b_row, b_col, n_state, e_val, e_vec, method, &
                            p_row, p_col, my_p_id, my_p_row, my_p_col, &
                            mpi_comm_row, mpi_comm_col, mpi_comm_global, &
@@ -2251,17 +2253,17 @@ subroutine elsi_ev_complex(ham, ovlp, need_cholesky, matrix_size, n_row, n_col, 
 
    implicit none
 
-   complex*16, target, intent(in) :: ham(n_row,n_col)    !< Hamiltonian
-   complex*16, target, intent(in) :: ovlp(n_row,n_col)   !< Overlap
+   complex*16, target, intent(in) :: ham(l_row,l_col)    !< Hamiltonian
+   complex*16, target, intent(in) :: ovlp(l_row,l_col)   !< Overlap
    logical, intent(inout) :: need_cholesky               !< If .True. factorize Overlap
    integer, intent(in) :: matrix_size                    !< Dimension of matrix
-   integer, intent(in) :: n_row                          !< Number of local rows
-   integer, intent(in) :: n_col                          !< Number of local columns
+   integer, intent(in) :: l_row                          !< Number of local rows
+   integer, intent(in) :: l_col                          !< Number of local columns
    integer, intent(in) :: b_row                          !< Row block number
    integer, intent(in) :: b_col                          !< Column block number
-   real*8, intent(in)  :: n_state                        !< Number of states
+   integer, intent(in) :: n_state                        !< Number of states
    real*8, intent(out) :: e_val(n_state)                 !< Eigenvalues
-   complex*16, intent(out) :: e_vec(n_row,n_col)         !< Eigenvectors
+   complex*16, intent(out) :: e_vec(l_row,l_col)         !< Eigenvectors
    integer, intent(in) :: method                         !< ELPA,OMM,PEXSI
    integer, intent(in) :: p_row                          !< Number of processes in row
    integer, intent(in) :: p_col                          !< Number of processes in column
@@ -2281,6 +2283,8 @@ subroutine elsi_ev_complex(ham, ovlp, need_cholesky, matrix_size, n_row, n_col, 
 
    ! Initialization
    call elsi_initialize_problem(matrix_size,b_row,b_col)
+   ! TODO: move this to where it should be
+   n_states = n_state
 
    ! Choice of ELPA, OMM_DENSE, PEXSI
    if(method == 0) then
@@ -2294,14 +2298,14 @@ subroutine elsi_ev_complex(ham, ovlp, need_cholesky, matrix_size, n_row, n_col, 
 
    ! Set BLACS
    call elsi_set_blacs(blacs_context,p_row,p_col,my_p_row,my_p_col,&
-                       mpi_comm_row,mpi_comm_col,n_row,n_col,sc_desc)
+                       mpi_comm_row,mpi_comm_col,l_row,l_col,sc_desc)
 
    ! Allocation of matrices
    call elsi_allocate_matrices()
 
    ! Set Hamiltonian and Overlap matrices
-   call elsi_set_hamiltonian(ham,n_row,n_col)
-   call elsi_set_overlap(ovlp,n_row,n_col)
+   call elsi_set_hamiltonian(ham,l_row,l_col)
+   call elsi_set_overlap(ovlp,l_row,l_col)
 
    ! Solve eigenvalue problem
    call elsi_solve_ev_problem(need_cholesky,n_state)
@@ -2318,7 +2322,7 @@ end subroutine
 !>
 !!  This is the ELSI API v2 that outputs the density matrix
 !!
-subroutine elsi_dm_real(ham, ovlp, need_cholesky, matrix_size, n_row, n_col, &
+subroutine elsi_dm_real(ham, ovlp, need_cholesky, matrix_size, l_row, l_col, &
                         b_row, b_col, n_state, occupation, den_mat, method, &
                         p_row, p_col, my_p_id, my_p_row, my_p_col, &
                         mpi_comm_row, mpi_comm_col, mpi_comm_global, &
@@ -2326,17 +2330,17 @@ subroutine elsi_dm_real(ham, ovlp, need_cholesky, matrix_size, n_row, n_col, &
 
    implicit none
 
-   real*8, target, intent(in) :: ham(n_row,n_col)    !< Hamiltonian
-   real*8, target, intent(in) :: ovlp(n_row,n_col)   !< Overlap
+   real*8, target, intent(in) :: ham(l_row,l_col)    !< Hamiltonian
+   real*8, target, intent(in) :: ovlp(l_row,l_col)   !< Overlap
    logical, intent(inout) :: need_cholesky           !< If .True. factorize Overlap
    integer, intent(in) :: matrix_size                !< Dimension of matrix
-   integer, intent(in) :: n_row                      !< Number of local rows
-   integer, intent(in) :: n_col                      !< Number of local columns
+   integer, intent(in) :: l_row                      !< Number of local rows
+   integer, intent(in) :: l_col                      !< Number of local columns
    integer, intent(in) :: b_row                      !< Row block number
    integer, intent(in) :: b_col                      !< Column block number
-   real*8,  intent(in) :: n_state                    !< Number of states
+   integer, intent(in) :: n_state                    !< Number of states
    real*8,  intent(in) :: occupation(n_state)        !< Occupation number
-   real*8, intent(out) :: den_mat(n_row,n_col)      !< Density matrix
+   real*8, intent(out) :: den_mat(l_row,l_col)       !< Density matrix
    integer, intent(in) :: method                     !< ELPA,OMM,PEXSI
    integer, intent(in) :: p_row                      !< Number of processes in row
    integer, intent(in) :: p_col                      !< Number of processes in column
@@ -2356,6 +2360,8 @@ subroutine elsi_dm_real(ham, ovlp, need_cholesky, matrix_size, n_row, n_col, &
 
    ! Initialization
    call elsi_initialize_problem(matrix_size,b_row,b_col)
+   ! TODO: move this to where it should be
+   n_states = n_state
 
    ! Choice of ELPA, OMM_DENSE, PEXSI
    if(method == 0) call elsi_set_method(ELPA)
@@ -2367,19 +2373,19 @@ subroutine elsi_dm_real(ham, ovlp, need_cholesky, matrix_size, n_row, n_col, &
 
    ! Set BLACS
    call elsi_set_blacs(blacs_context,p_row,p_col,my_p_row,my_p_col,&
-                       mpi_comm_row,mpi_comm_col,n_row,n_col,sc_desc)
+                       mpi_comm_row,mpi_comm_col,l_row,l_col,sc_desc)
 
    ! Allocation of matrices
    call elsi_allocate_matrices()
 
    ! Set Hamiltonian and Overlap matrices
-   call elsi_set_hamiltonian(ham,n_row,n_col)
-   call elsi_set_overlap(ovlp,n_row,n_col)
+   call elsi_set_hamiltonian(ham,l_row,l_col)
+   call elsi_set_overlap(ovlp,l_row,l_col)
 
    ! Solve eigenvalue problem
    if(method == 1) then
-      call elsi_get_occupied_number(occupation,n_state,occupied)
-      call elsi_solve_ev_problem(need_cholesky,1d0*occupied)
+      call elsi_get_occupied_number(occupation,occupied)
+      call elsi_solve_ev_problem(need_cholesky,occupied)
    else
       call elsi_solve_ev_problem(need_cholesky,n_state)
    endif
@@ -2397,7 +2403,7 @@ end subroutine
 !>
 !!  This is the ELSI API v2 that outputs the density matrix
 !!
-subroutine elsi_dm_complex(ham, ovlp, need_cholesky, matrix_size, n_row, n_col, &
+subroutine elsi_dm_complex(ham, ovlp, need_cholesky, matrix_size, l_row, l_col, &
                            b_row, b_col, n_state, occupation, den_mat, method, &
                            p_row, p_col, my_p_id, my_p_row, my_p_col, &
                            mpi_comm_row, mpi_comm_col, mpi_comm_global, &
@@ -2405,17 +2411,17 @@ subroutine elsi_dm_complex(ham, ovlp, need_cholesky, matrix_size, n_row, n_col, 
 
    implicit none
 
-   complex*16, target, intent(in) :: ham(n_row,n_col)    !< Hamiltonian
-   complex*16, target, intent(in) :: ovlp(n_row,n_col)   !< Overlap
+   complex*16, target, intent(in) :: ham(l_row,l_col)    !< Hamiltonian
+   complex*16, target, intent(in) :: ovlp(l_row,l_col)   !< Overlap
    logical, intent(inout) :: need_cholesky               !< If .True. factorize Overlap
    integer, intent(in) :: matrix_size                    !< Dimension of matrix
-   integer, intent(in) :: n_row                          !< Number of local rows
-   integer, intent(in) :: n_col                          !< Number of local columns
+   integer, intent(in) :: l_row                          !< Number of local rows
+   integer, intent(in) :: l_col                          !< Number of local columns
    integer, intent(in) :: b_row                          !< Row block number
    integer, intent(in) :: b_col                          !< Column block number
-   real*8,  intent(in) :: n_state                        !< Number of states
+   integer, intent(in) :: n_state                        !< Number of states
    real*8,  intent(in) :: occupation(n_state)            !< Occupation number
-   real*8, intent(out) :: den_mat(n_row,n_col)           !< Density matrix
+   real*8, intent(out) :: den_mat(l_row,l_col)           !< Density matrix
    integer, intent(in) :: method                         !< ELPA,OMM,PEXSI
    integer, intent(in) :: p_row                          !< Number of processes in row
    integer, intent(in) :: p_col                          !< Number of processes in column
@@ -2433,6 +2439,8 @@ subroutine elsi_dm_complex(ham, ovlp, need_cholesky, matrix_size, n_row, n_col, 
 
    ! Initialization
    call elsi_initialize_problem(matrix_size,b_row,b_col)
+   ! TODO: move this to where it should be
+   n_states = n_state
 
    ! Choice of ELPA, OMM_DENSE, PEXSI
    if(method == 0) call elsi_set_method(ELPA)
@@ -2444,18 +2452,18 @@ subroutine elsi_dm_complex(ham, ovlp, need_cholesky, matrix_size, n_row, n_col, 
 
    ! Set BLACS
    call elsi_set_blacs(blacs_context,p_row,p_col,my_p_row,my_p_col,&
-                       mpi_comm_row,mpi_comm_col,n_row,n_col,sc_desc)
+                       mpi_comm_row,mpi_comm_col,l_row,l_col,sc_desc)
 
    ! Allocation of matrices
    call elsi_allocate_matrices()
 
    ! Set Hamiltonian and Overlap matrices
-   call elsi_set_hamiltonian(ham,n_row,n_col)
-   call elsi_set_overlap(ovlp,n_row,n_col)
+   call elsi_set_hamiltonian(ham,l_row,l_col)
+   call elsi_set_overlap(ovlp,l_row,l_col)
 
    ! Set Hamiltonian and Overlap matrices
-   call elsi_set_hamiltonian(ham,n_row,n_col)
-   call elsi_set_overlap(ovlp,n_row,n_col)
+   call elsi_set_hamiltonian(ham,l_row,l_col)
+   call elsi_set_overlap(ovlp,l_row,l_col)
 
    ! Solve eigenvalue problem
    call elsi_solve_ev_problem(need_cholesky,n_state)

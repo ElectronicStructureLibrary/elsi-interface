@@ -84,6 +84,7 @@ module ELSI_DIMENSIONS
   !> Overlap
   logical :: overlap_is_unity = .True. !< Is the overlap unity
   integer :: n_eigenvectors            !< Number of eigenvectors to be calculated
+  integer :: n_states                  !< Number of state to be considered
 
   !> ELPA variables
   !< This parameter sets the threshold when to switch from ELPA2 to ELPA1
