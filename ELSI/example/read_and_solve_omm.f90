@@ -78,11 +78,11 @@ program read_and_solve
    Cholesky = .True.
    call elsi_solve_ev_problem(Cholesky,n_electrons)
   
-   call elsi_get_total_energy(e_tot)
-   call elsi_get_myid(myid)
-   if(myid == 0) then 
-      write (*,'(A,E19.12)') "total energy : ", e_tot
-   endif
+!   call elsi_get_total_energy(e_tot)
+!   call elsi_get_myid(myid)
+!   if(myid == 0) then 
+!      write (*,'(A,E19.12)') "total energy : ", e_tot
+!   endif
 
    ! Shutdown
    call elsi_finalize()
