@@ -534,7 +534,7 @@ subroutine elsi_real_value_print(val, valname)
 
    implicit none
 
-   real :: val
+   real*8 :: val
    character(len=*), intent(in) :: valname
 
    integer :: id
