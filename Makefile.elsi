@@ -34,14 +34,19 @@ pexsi:
 	@echo ====================
 
 elsi:
-	@echo ==========================
-	@echo = Start building ELSI... =
-	@echo ==========================
-	cd ELSI && ${MAKE} -f Makefile.elsi
-	cd ELSI && ${MAKE} -f Makefile.elsi install
-	@echo ===================
-	@echo = ELSI installed. =
-	@echo ===================
+	@echo ===================================
+	@echo === ELSI is being upgraded now. ===
+	@echo === Thank you for your patient! ===
+	@echo ===================================
+
+#	@echo ==========================
+#	@echo = Start building ELSI... =
+#	@echo ==========================
+#	cd ELSI && ${MAKE} -f Makefile.elsi
+#	cd ELSI && ${MAKE} -f Makefile.elsi install
+#	@echo ===================
+#	@echo = ELSI installed. =
+#	@echo ===================
 
 install:
 	cd ELSI && ${MAKE} -f Makefile.elsi install
@@ -52,11 +57,19 @@ install:
 check:
 	cd ELSI && ${MAKE} -f Makefile.elsi check
 
-clean:
-	cd ELSI && ${MAKE} -f Makefile.elsi clean
+clean: cleanelpa cleanomm cleanpexsi cleanelsi
+
+cleanelpa:
 	cd $(ELPA_DIR) && ${MAKE} -f Makefile.elpa clean
+
+cleanomm:
 	cd $(libOMM_DIR) && ${MAKE} -f Makefile.elsi clean
+
+cleanpexsi:
 	cd $(PEXSI_DIR)/src && ${MAKE} -f Makefile.elsi cleanall
 	cd $(PEXSI_DIR)/fortran && ${MAKE} -f Makefile.elsi cleanall
 	rm -f $(PEXSI_DIR)/include/f_ppexsi_interface.mod
 	rm -f $(PEXSI_DIR)/src/f_ppexsi_interface.mod
+
+cleanelsi:
+	cd ELSI && ${MAKE} -f Makefile.elsi clean

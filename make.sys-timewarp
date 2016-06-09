@@ -64,10 +64,10 @@ SUPERLU_INCLUDE = -I/home/wy29/yu/SuperLU_DIST_4.3/SRC
 ELPA  = -L$(ELPA_DIR)/lib -lelpa \
         -I$(ELPA_DIR)/include/elpa/modules
 
-OMM   = -I$(libOMM_DIR)/src \
-        -I$(libOMM_DIR)/src/MatrixSwitch-0.1.2/src \
-        -L$(libOMM_DIR)/src -lOMM \
-        -L$(libOMM_DIR)/src/MatrixSwitch-0.1.2/src -lmatrixswitch
+OMM   = -I$(libOMM_DIR)/build_libOMM/include \
+        -I$(libOMM_DIR)/build_MatrixSwitch/include \
+        -L$(libOMM_DIR)/build_libOMM/lib -lOMM \
+        -L$(libOMM_DIR)/build_MatrixSwitch/lib -lMatrixSwitch
 
 PEXSI = -I$(PEXSI_DIR)/include \
         -I$(PEXSI_DIR)/include/pexsi \
