@@ -1,0 +1,7 @@
+ROOTDIR = ../..
+include $(dir $(lastword $(MAKEFILE_LIST)))/$(ROOTDIR)/make.inc
+
+LIBNAME = $(OMMLIBNAME)
+BUILDPATH = $(OMMBUILDPATH)
+PSPINCLUDEPATH = $(PSPBUILDPATH)/include
+MSINCLUDEPATH = $(MSBUILDPATH)/include

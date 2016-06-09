@@ -1,0 +1,3 @@
+ROOTDIR = ../..
+
+PSPLIB = $(PSPBUILDPATH)/lib/$(PSPLIBNAME)

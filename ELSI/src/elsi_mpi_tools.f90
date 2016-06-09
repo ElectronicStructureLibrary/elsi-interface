@@ -32,7 +32,7 @@ module ELSI_MPI_TOOLS
   use iso_c_binding
 
   use ELSI_DIMENSIONS
-  use matrixswitch
+  use MatrixSwitch
 
   implicit none
   private
@@ -266,7 +266,7 @@ subroutine elsi_initialize_blacs()
                     blacs_ctxt, MAX(1,n_l_rows), blacs_info)
 
       if(method == OMM_DENSE) then
-         call ms_scalapack_setup(n_procs, n_p_rows, 'c', n_b_rows, exception,&
+         call ms_scalapack_setup(myid, n_procs, n_p_rows, 'c', n_b_rows, exception,&
                                  blacs_ctxt)
       endif
    endif
@@ -315,7 +315,7 @@ subroutine elsi_set_blacs(blacs_ctxt_in, n_p_rows_in, n_p_cols_in, &
    sc_desc = sc_desc_in
 
    if(method == OMM_DENSE) then
-      call ms_scalapack_setup(n_procs, n_p_rows, "C", n_b_rows, exception, blacs_ctxt)
+      call ms_scalapack_setup(myid, n_procs, n_p_rows, "C", n_b_rows, exception, blacs_ctxt)
    endif
 
    ! Debug

@@ -16,8 +16,7 @@ omm:
 	@echo ============================
 	@echo = Start building libOMM... =
 	@echo ============================
-	cd $(libOMM_DIR)/src && ${MAKE} -f Makefile.elsi
-	cd $(libOMM_DIR)/examples && ${MAKE} -f Makefile.elsi
+	cd $(libOMM_DIR) && ${MAKE} -f Makefile.elsi
 	@echo =====================
 	@echo = libOMM installed. =
 	@echo =====================
@@ -56,9 +55,7 @@ check:
 clean:
 	cd ELSI && ${MAKE} -f Makefile.elsi clean
 	cd $(ELPA_DIR) && ${MAKE} -f Makefile.elpa clean
-	cd $(libOMM_DIR)/src && ${MAKE} -f Makefile.elsi clean
-	cd $(libOMM_DIR)/src/MatrixSwitch-0.1.2/src && ${MAKE} -f Makefile.elsi clean
-	cd $(libOMM_DIR)/examples && ${MAKE} -f Makefile.elsi clean
+	cd $(libOMM_DIR) && ${MAKE} -f Makefile.elsi clean
 	cd $(PEXSI_DIR)/src && ${MAKE} -f Makefile.elsi cleanall
 	cd $(PEXSI_DIR)/fortran && ${MAKE} -f Makefile.elsi cleanall
 	rm -f $(PEXSI_DIR)/include/f_ppexsi_interface.mod

@@ -38,7 +38,7 @@ module ELSI
   use ELSI_MATRIX_CONVERSION
   use ELPA1
   use ELPA2
-  use matrixswitch
+  use MatrixSwitch
   use f_ppexsi_interface
 
   implicit none

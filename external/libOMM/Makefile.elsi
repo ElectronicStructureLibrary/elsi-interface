@@ -1,0 +1,63 @@
+all : libs tests
+
+libs : psp_lib MatrixSwitch_lib libOMM_lib
+
+tests : psp_test MatrixSwitch_examples libOMM_examples
+
+clean : clean_libs clean_tests
+	rm -rf build_*
+
+clean_libs : clean_psp clean_MatrixSwitch clean_libOMM
+
+clean_tests : clean_psp_test clean_MatrixSwitch_examples clean_libOMM_examples
+
+psp_lib :
+	cd psp; \
+	make -f Makefile.elsi; \
+	make -f Makefile.elsi install
+
+MatrixSwitch_lib : psp_lib
+	cd MatrixSwitch/src; \
+	make -f Makefile.elsi; \
+	make -f Makefile.elsi install
+
+libOMM_lib : MatrixSwitch_lib psp_lib
+	cd libOMM/src; \
+	make -f Makefile.elsi; \
+	make -f Makefile.elsi install
+
+psp_test : psp_lib
+	cd psp/test; \
+	make -f Makefile.elsi
+
+MatrixSwitch_examples : MatrixSwitch_lib
+	cd MatrixSwitch/examples; \
+	make -f Makefile.elsi
+
+libOMM_examples : libOMM_lib
+	cd libOMM/examples; \
+	make -f Makefile.elsi
+
+clean_psp :
+	cd psp; \
+	make -f Makefile.elsi clean
+
+clean_MatrixSwitch :
+	cd MatrixSwitch/src; \
+	make -f Makefile.elsi clean
+
+clean_libOMM :
+	cd libOMM/src; \
+	make -f Makefile.elsi clean
+
+clean_psp_test :
+	cd psp/test; \
+	make -f Makefile.elsi clean
+
+clean_MatrixSwitch_examples :
+	cd MatrixSwitch/examples; \
+	make -f Makefile.elsi clean
+
+clean_libOMM_examples :
+	cd libOMM/examples; \
+	make -f Makefile.elsi clean

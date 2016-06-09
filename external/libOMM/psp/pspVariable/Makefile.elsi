@@ -1,0 +1,18 @@
+PSPDIR = ..
+include $(PSPDIR)/make.inc
+
+.SUFFIXES:
+.SUFFIXES: .o .a .f90 .F90
+
+all : pspVariable.o 
+
+clean :
+	rm -f *.a
+	rm -f *.o
+	rm -f *.mod
+
+.F90.o :
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -I$(PSPDIR) -o $@
+
+.f90.o :
+	$(MPIFC) $(FFLAGS_O) -c $< -I$(PSPDIR) -o $@

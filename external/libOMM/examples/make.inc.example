@@ -1,6 +1,0 @@
-LIBPATH   = ../src/
-MSLIBPATH = ../src/MatrixSwitch-0.1.2/src/
-MSLIB     = ../src/MatrixSwitch-0.1.2/src/MatrixSwitch.a
-BLASLIB   = -lblas
-LAPLIB    = -llapack
-SLAPLIB   = -lscalapack
