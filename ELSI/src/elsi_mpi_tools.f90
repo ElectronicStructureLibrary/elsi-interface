@@ -24,7 +24,7 @@
 !OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 !> 
-!! This module contains wrapper functions to the MPI library 
+!! This module contains wrappers to the MPI library.
 !!
 
 module ELSI_MPI_TOOLS
@@ -40,8 +40,8 @@ module ELSI_MPI_TOOLS
   !> Calculates the local matrix dimensions based on the BLACS grid
   integer, external :: numroc
 
-  public :: elsi_initialize_mpi
-  public :: elsi_initialize_blacs 
+  public :: elsi_init_mpi
+  public :: elsi_init_blacs 
   public :: elsi_set_mpi
   public :: elsi_set_blacs 
   public :: elsi_get_global_row
@@ -85,7 +85,7 @@ module ELSI_MPI_TOOLS
 !> 
 !! Initialize MPI
 !!
-subroutine elsi_initialize_mpi()
+subroutine elsi_init_mpi()
 
    implicit none
    include 'mpif.h'
@@ -160,7 +160,7 @@ end subroutine
 !> 
 !! Initialize BLACS Grid
 !!
-subroutine elsi_initialize_blacs()
+subroutine elsi_init_blacs()
 
    implicit none
 

@@ -24,7 +24,7 @@
 !OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 !>
-!! This module contains wrapper functions to the HDF5 library 
+!! This module contains wrappers to the HDF5 library.
 !!
 
 module ELSI_HDF5_TOOLS
@@ -68,7 +68,7 @@ module ELSI_HDF5_TOOLS
      module procedure hdf5_read_matrix_parallel_double
   end interface
 
-  public :: hdf5_initialize !< Initialization of the HDF5 infrastructure
+  public :: hdf5_init
   public :: hdf5_create_file
   public :: hdf5_open_file
   public :: hdf5_close_file
@@ -87,11 +87,11 @@ module ELSI_HDF5_TOOLS
 !>
 !! Initialization of HDF5 infrastructure
 !!
-subroutine hdf5_initialize()
+subroutine hdf5_init()
    
    implicit none
    
-   character*40 :: caller = "hdf5_initialize"
+   character*40 :: caller = "hdf5_init"
 
    call H5open_f(h5err)
    if(h5err /= 0) then

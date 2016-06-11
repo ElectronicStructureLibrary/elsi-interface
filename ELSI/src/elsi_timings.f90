@@ -24,8 +24,7 @@
 !OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 !> ELSI Interchange
-!! This module is the actual ELSI Interface, providing functions for setting up
-!! and solving or circumventing an eigenvalue problem using ELPA, OMM, or PEXSI
+!! This module provides timers for ELSI.
 !!
 
 module ELSI_TIMERS
@@ -66,7 +65,7 @@ module ELSI_TIMERS
   integer :: clock_max
 
   !> public subroutines
-  public :: elsi_initialize_timers 
+  public :: elsi_init_timers 
   public :: elsi_print_setup 
   public :: elsi_print_timers 
   public :: elsi_start_total_time 
@@ -85,7 +84,7 @@ contains
 !>
 !!  This routine sets all timers to zero
 !!
-subroutine elsi_initialize_timers()
+subroutine elsi_init_timers()
 
    implicit none
 

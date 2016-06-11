@@ -24,8 +24,7 @@
 !OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 !> ELSI Matrix conversion
-!! This module converts dense matrices to sparse matrices and vice versa
-!! and solving or circumventing an eigenvalue problem using ELPA, OMM, or PEXSI
+!! This module converts matrix format.
 !!
 
 module ELSI_MATRIX_CONVERSION

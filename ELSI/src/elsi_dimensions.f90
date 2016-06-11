@@ -24,7 +24,7 @@
 !OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 !> 
-!! This module contains variables accessible in ELSI and related modules
+!! This module contains variables accessible in ELSI and related modules.
 !!
 
 module ELSI_DIMENSIONS
@@ -83,7 +83,6 @@ module ELSI_DIMENSIONS
 
   !> Overlap
   logical :: overlap_is_unity = .True. !< Is the overlap unity
-  integer :: n_eigenvectors            !< Number of eigenvectors to be calculated
   integer :: n_states                  !< Number of state to be considered
 
   !> ELPA variables
@@ -147,17 +146,13 @@ module ELSI_DIMENSIONS
 
   !> Method names
   enum, bind( C )
-    enumerator :: ELPA, OMM_DENSE, PEXSI
+    enumerator :: ELPA, OMM_DENSE, PEXSI, CHESS
   end enum
-
-  enum, bind( C )
-    enumerator :: REAL_VALUES, COMPLEX_VALUES
-  end enum   
 
 contains
 
 !>
-!! Elsi print of process
+!! ELSI print of process
 !!
 subroutine elsi_print(message)
    
@@ -166,7 +161,6 @@ subroutine elsi_print(message)
    character(len=*), intent(in) :: message
 
    character(LEN=4096) :: string_message
-
    integer :: i_task
 
    do i_task = 0, n_procs - 1
@@ -411,7 +405,7 @@ subroutine elsi_set_omm_default_options()
    !! 1 = Cholesky factorisation of S requested
    !! 2 = Cholesky already performed, U is provided in S
    !! 3 = Use preconditioning based on the energy density
-   omm_flavour = 3
+   omm_flavour = 2
    !< scaling of the kinetic energy matrix, recommended round 5 Ha
    scale_kinetic = 5d0
    !< Calculate the energy weigthed density matrix
@@ -464,29 +458,5 @@ subroutine elsi_print_omm_options()
    endif
 
 end subroutine elsi_print_omm_options
-
-!>
-!! Give Status of ELSI sparse hamiltonian 
-!!
-subroutine elsi_sparse_ham_status(H_real_sparse)
-
-   implicit none
-   include "mpif.h"
-
-   character(LEN=4096) :: string_message
-   integer :: i_task
-   real*8, intent(in) :: H_real_sparse(n_l_nonzero)
-
-   do i_task = 0, n_procs
-      if(i_task == myid) then
-         write(string_message, "(1X,'*** Proc',I5, ' : local H ')") i_task 
-         write(*,'(A)') trim(string_message)
-         print *,H_real_sparse(1:10)
-      endif
-
-      call MPI_BARRIER(mpi_comm_global, mpierr)
-   enddo
- 
-end subroutine elsi_sparse_ham_status
 
 end module ELSI_DIMENSIONS
