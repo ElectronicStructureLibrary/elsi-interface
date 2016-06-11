@@ -83,7 +83,7 @@ module ELSI_DIMENSIONS
 
   !> Overlap
   logical :: overlap_is_unity = .True. !< Is the overlap unity
-  integer :: n_states                  !< Number of state to be considered
+  integer :: n_states                  !< Number of states to be considered
 
   !> ELPA variables
   !< This parameter sets the threshold when to switch from ELPA2 to ELPA1
@@ -146,7 +146,7 @@ module ELSI_DIMENSIONS
 
   !> Method names
   enum, bind( C )
-    enumerator :: ELPA, OMM_DENSE, PEXSI, CHESS
+    enumerator :: ELPA, OMM, PEXSI, CHESS
   end enum
 
 contains
@@ -411,7 +411,7 @@ subroutine elsi_set_omm_default_options()
    !< Calculate the energy weigthed density matrix
    calc_ed = .False.
    !< Eigenspectrum shift parameter
-   eta = 0.5d0
+   eta = 0.0d0
    !< Tolerance for minimization
    min_tol = 1.0d-9
    !< n_k_points * n_spin
