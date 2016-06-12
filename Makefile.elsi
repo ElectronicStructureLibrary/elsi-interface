@@ -34,10 +34,10 @@ pexsi:
 	@echo ====================
 
 elsi:
-	@echo ===================================
-	@echo === ELSI is being upgraded now. ===
-	@echo === Thank you for your patient! ===
-	@echo ===================================
+	@echo ====================================
+	@echo === ELSI is being upgraded now.. ===
+	@echo === Thank you for your patience! ===
+	@echo ====================================
 
 #	@echo ==========================
 #	@echo = Start building ELSI... =

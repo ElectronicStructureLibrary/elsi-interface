@@ -210,7 +210,7 @@ contains
     integer :: psp_npcol
     integer :: psp_bs_def_row
     integer :: psp_bs_def_col
-    integer :: psp_update_rank ! In SUMMA for C=A*B, C is computed by rank psp_update_rank=1 local update
+    integer :: psp_update_rank ! In SUMMA paper for C=A*B, C is computed by rank psp_update_rank=1 local update
     integer :: psp_bs_num
     integer :: psp_icontxt ! BLACS context handle used by psp
     integer :: psp_mpi_comm_cart, psp_mpi_comm_row, psp_mpi_comm_col
@@ -218,7 +218,7 @@ contains
 
     common /coeff/ psp_mpi_comm_world, psp_mpi_size, psp_nprow, psp_npcol
     common /coeff/ psp_bs_def_row, psp_bs_def_col
-    common /coeff/ psp_update_rank ! In SUMMA for C=A*B, C is computed by rank psp_update_rank=1 local update
+    common /coeff/ psp_update_rank ! In SUMMA paper for C=A*B, C is computed by rank psp_update_rank=1 local update
     common /coeff/ psp_bs_num
     common /coeff/ psp_icontxt ! BLACS context handle used by psp
     common /coeff/ psp_mpi_comm_cart, psp_mpi_comm_row, psp_mpi_comm_col

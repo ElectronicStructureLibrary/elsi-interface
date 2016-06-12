@@ -299,14 +299,20 @@ contains
        idx_prow = mod(idx_k_row-1,nprow) ! identify the processor owing B(kth block,:), the cart coordinate
        if (iprow==idx_prow) then
           call psp_idx_glb2loc(glb_st,psp_bs_def_row,nprow,loc_st)
+          if (width<psp_update_rank) then
+             B_loc=0.0_dp
+          end if
           call psp_copy_m(width,B_loc_dim(2),B,loc_st,1,B_loc,1,1,1.0_dp,0.0_dp)
        end if
        ! boardcast in column
        call MPI_Bcast(B_loc, B_loc_dim(1)*B_loc_dim(2), MPI_DOUBLE, idx_prow, psp_mpi_comm_col,mpi_err)
 
        ! compute local update of C
-       do i=A_loc_idx2(1),A_loc_idx2(2)-1
-          C_loc(A_loc_idx1(i),1:C_loc_dim(2))= A_loc_val(i)*B_loc(1,1:C_loc_dim(2))+C_loc(A_loc_idx1(i),1:C_loc_dim(2))
+       ! C=MATMUL(A_loc,B_loc)+C
+       do cnt1=1,width
+         do i=A_loc_idx2(cnt1),A_loc_idx2(cnt1+1)-1
+            C_loc(A_loc_idx1(i),1:C_loc_dim(2))= A_loc_val(i)*B_loc(cnt1,1:C_loc_dim(2))+C_loc(A_loc_idx1(i),1:C_loc_dim(2))
+         end do
        end do
     enddo
 
