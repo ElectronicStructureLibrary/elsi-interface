@@ -43,7 +43,6 @@ elsi:
 #	@echo = Start building ELSI... =
 #	@echo ==========================
 #	cd ELSI && ${MAKE} -f Makefile.elsi
-#	cd ELSI && ${MAKE} -f Makefile.elsi install
 #	@echo ===================
 #	@echo = ELSI installed. =
 #	@echo ===================

@@ -354,7 +354,13 @@ subroutine elsi_solve_evp_elpa(cholesky)
    endif
 
    ! Get ELPA row/column communicators
-   ! TODO: get communicators
+   call blacs_gridinfo(blacs_ctxt,n_p_rows,n_p_cols,my_p_row,my_p_col)
+   success = get_elpa_row_col_comms(mpi_comm_global, my_prow, my_pcol, &
+                                    mpi_comm_row, mpi_comm_col)
+   if(.not.success) then
+      call elsi_stop(" ELPA failed when getting row and column communicators. " &
+                     // " Exiting... ", caller)
+   endif
 
    ! Solve evp, return eigenvalues and eigenvectors
    if(two_step_solver) then
@@ -419,7 +425,21 @@ subroutine elsi_solve_evp_omm(cholesky)
    if(cholesky) then
       new_overlap = .true.
       C_matrix_initialized = .false.
-      ! TODO: factorize overlap
+
+      ! Cholesky
+      if(.not. ms_matrices(ms_lookup('S'))%is_real) then ! Complex
+         ! Compute S = (U^T)U, U -> S
+         call cholesky_complex(n_g_rank, ms_matrices(ms_loopup('S'))%zval, &
+                               n_l_rows, n_b_rows, n_l_cols, mpi_comm_row, &
+                               mpi_comm_col, .false., success)
+
+      else ! Real
+         ! Compute S = (U^T)U, U -> S
+         call cholesky_real(n_g_rank, ms_matrices(ms_loopup('S'))%dval, &
+                            n_l_rows, n_b_rows, n_l_cols, mpi_comm_row, &
+                            mpi_comm_col, .false., success)
+      endif
+
    else
       new_overlap = .false.
       C_matrix_initialized = .true.
@@ -665,8 +685,9 @@ subroutine elsi_compute_dm_elpa(occ)
                enddo
 
                ! Compute density matrix
-               call pzherk('U', 'N', n_g_rank, n_states, (1.d0,0.d0), tmp_complex, 1, 1, &
-                           sc_desc, (0.d0,0.d0), ms_matrices(ms_loopup('D'))%dval, 1, 1, sc_desc)
+               call pzherk('U', 'N', n_g_rank, n_states, (1.d0,0.d0), &
+                           tmp_complex, 1, 1, sc_desc, (0.d0,0.d0), &
+                           ms_matrices(ms_loopup('D'))%dval, 1, 1, sc_desc)
 
          end select
 
@@ -815,16 +836,17 @@ subroutine elsi_to_standard_evp(cholesky)
             if(cholesky) then
                call elsi_statement_print(" Starting Cholesky decomposition")
                ! Compute S = (U^T)U, U -> S
-               call cholesky_real(n_g_rank, ms_matrices(ms_loopup('S'))%dval, n_l_rows, &
-                                  n_b_rows, n_l_cols, mpi_comm_row, mpi_comm_col, .false., success)
+               call cholesky_real(n_g_rank, ms_matrices(ms_loopup('S'))%dval, &
+                                  n_l_rows, n_b_rows, n_l_cols, mpi_comm_row, &
+                                  mpi_comm_col, .false., success)
                if(.not.success) then
                   call elsi_stop(" Cholesky decomposition failed. Exiting... ", caller)
                endif
 
                ! compute U^-1 -> S
                call invert_trm_real(n_g_rank, ms_matrices(ms_loopup('S'))%dval, &
-                                    n_l_rows, n_b_rows, n_l_cols, &
-                                    mpi_comm_row, mpi_comm_col, .false., success)
+                                    n_l_rows, n_b_rows, n_l_cols, mpi_comm_row, &
+                                    mpi_comm_col, .false., success)
                if(.not.success) then
                   call elsi_stop(" Matrix invertion failed. Exiting... " , caller)
                endif
