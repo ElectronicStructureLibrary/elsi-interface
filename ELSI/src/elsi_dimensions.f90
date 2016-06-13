@@ -34,7 +34,7 @@ module ELSI_DIMENSIONS
 
   implicit none
   
-  !>Method for EV Solver (ELPA=1,OMM=2,PEXSI=3)
+  !>Method for EV Solver (ELPA=0,LIBOMM=1,PEXSI=2,CHESS=3)
   integer :: method = -1
 
   !>Mode for EV Solver (REAL_VALUES=1,COMPLEX_VALUES=2)
@@ -89,8 +89,8 @@ module ELSI_DIMENSIONS
   !< This parameter sets the threshold when to switch from ELPA2 to ELPA1
   real*8, parameter :: elpa_step_switch = 1.d0 
   
-  !> OMM variables
-  !< Is a new overlap used for OMM?
+  !> libOMM variables
+  !< Is a new overlap used for libOMM?
   logical :: new_overlap
   !< Total energy value
   real*8  :: total_energy
@@ -146,7 +146,7 @@ module ELSI_DIMENSIONS
 
   !> Method names
   enum, bind( C )
-    enumerator :: ELPA, OMM, PEXSI, CHESS
+    enumerator :: ELPA, LIBOMM, PEXSI, CHESS
   end enum
 
 contains
@@ -241,7 +241,7 @@ subroutine elsi_variable_status()
         
       write(string_message, "(1X,'*** Proc',I5,&
             &' : Number of States ',I10)") &
-            & myid, n_eigenvectors
+            & myid, n_states
       write(*,'(A)') trim(string_message)
 
       write(string_message, "(1X,'*** Proc',I5,&
@@ -389,7 +389,7 @@ subroutine elsi_print_pexsi_options()
 end subroutine elsi_print_pexsi_options
 
 !>
-!! Set the Status of OMM variables to the ELSI standard 
+!! Set the Status of libOMM variables to the ELSI standard 
 !!
 subroutine elsi_set_omm_default_options()
 
@@ -397,7 +397,7 @@ subroutine elsi_set_omm_default_options()
 
    include "mpif.h"
 
-   !< Is a new overlap used for OMM?
+   !< Is a new overlap used for libOMM?
 !   new_overlap = .True.
 !   C_matrix_initialized = .False.
    !< How do we perform the calculation
@@ -428,7 +428,7 @@ subroutine elsi_set_omm_default_options()
 end subroutine elsi_set_omm_default_options
 
 !>
-!! Give Status of OMM variables 
+!! Give Status of libOMM variables 
 !!
 subroutine elsi_print_omm_options()
 
@@ -447,7 +447,7 @@ subroutine elsi_print_omm_options()
       write(string_message, "(1X,'  | Tolerance (H) ',E10.1)") min_tol
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,'  | OMM Flavour ',I1)") omm_flavour
+      write(string_message, "(1X,'  | libOMM Flavour ',I1)") omm_flavour
       write(*,'(A)') trim(string_message)
 
       write(string_message, "(1X,'  | Verbose ',L1)") omm_verbose

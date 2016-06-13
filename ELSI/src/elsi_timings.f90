@@ -130,8 +130,8 @@ subroutine elsi_print_setup()
       if(method == ELPA) then 
          write(*,"('| Method:                        : ',A13)") "ELPA"
       endif
-      if(method == OMM_DENSE) then 
-         write(*,"('| Method:                        : ',A13)") "OMM_DENSE"
+      if(method == LIBOMM) then 
+         write(*,"('| Method:                        : ',A13)") "OMM"
       endif
       if(method == PEXSI) then 
          write(*,"('| Method:                        : ',A13)") "PEXSI"
@@ -170,12 +170,12 @@ subroutine elsi_print_timers()
 !            (1d0 * n_g_nonzero / n_g_rank) / n_g_rank
 !      write(*,"('| Number of Electrons            : ',F13.3)") &
 !            n_electrons
-      write(*,"('| Number of States               : ',I13)") n_eigenvectors   
+      write(*,"('| Number of States               : ',I13)") n_states   
       if (method == ELPA) then 
       write(*,"('| Method:                        : ',A13)") "ELPA"
       end if
-      if(method == OMM_DENSE) then 
-         write(*,"('| Method:                        : ',A13)") "OMM_DENSE"
+      if(method == LIBOMM) then 
+         write(*,"('| Method:                        : ',A13)") "OMM"
       endif
       if(method == PEXSI) then 
          write(*,"('| Method:                        : ',A13)") "PEXSI"

@@ -58,8 +58,6 @@ module ELSI_MPI_TOOLS
   public :: elsi_matrix_print
   public :: elsi_statement_print
   public :: elsi_allocate
-  public :: elsi_sync_real_vector
-  public :: elsi_sync_complex_vector
 
   interface elsi_vector_print
      module procedure elsi_int_vector_print, &
@@ -265,7 +263,7 @@ subroutine elsi_init_blacs()
       call descinit(sc_desc, n_g_rank, n_g_rank, n_b_rows, n_b_cols, 0, 0, &
                     blacs_ctxt, MAX(1,n_l_rows), blacs_info)
 
-      if(method == OMM_DENSE) then
+      if(method == LIBOMM) then
          call ms_scalapack_setup(myid, n_procs, n_p_rows, 'c', n_b_rows, exception,&
                                  blacs_ctxt)
       endif
@@ -314,7 +312,7 @@ subroutine elsi_set_blacs(blacs_ctxt_in, n_p_rows_in, n_p_cols_in, &
    n_l_cols = n_l_cols_in
    sc_desc = sc_desc_in
 
-   if(method == OMM_DENSE) then
+   if(method == LIBOMM) then
       call ms_scalapack_setup(myid, n_procs, n_p_rows, "C", n_b_rows, exception, blacs_ctxt)
    endif
 
@@ -609,14 +607,6 @@ subroutine elsi_allocate_real_vector(vector, n_elements, vectorname, caller)
 
    memory = 8d0 * n_elements / 2d0**20
 
-   !do id = 0, n_procs - 1
-   !   if(myid == id) then
-   !      write(*,"(A,I6,A,F10.3,A,A)") " Process ", id, " allocates ", &
-   !      memory, " MB for real vector ", vectorname
-   !   endif
-   !   call MPI_Barrier(mpi_comm_global, mpierr)
-   !enddo 
-
    allocate(vector(n_elements), stat = error)
 
    if(error > 0) then 
@@ -647,14 +637,6 @@ subroutine elsi_allocate_int_vector(vector, n_elements, vectorname, caller)
 
    memory = 4d0 * n_elements / 2d0**20
 
-   !do id = 0, n_procs - 1
-   !   if(myid == id) then
-   !      write(*,"(A,I6,A,F10.3,A,A)") " Process ", id, " allocates ", &
-   !      memory, " MB for integer vector ", vectorname
-   !  endif
-   !  call MPI_Barrier(mpi_comm_global, mpierr)
-   !enddo 
-
    allocate(vector(n_elements), stat = error)
 
    if(error > 0) then 
@@ -684,14 +666,6 @@ subroutine elsi_allocate_complex_vector(vector, n_elements, vectorname, caller)
    real*8 :: memory
 
    memory = 16d0 * n_elements / 2d0**20
-
-   !do id = 0, n_procs - 1
-   !   if(myid == id) then
-   !      write(*,"(A,I6,A,F10.3,A,A)") " Process ", id, " allocates ", &
-   !      memory, " MB for complex vector ", vectorname
-   !   endif
-   !   call MPI_Barrier(mpi_comm_global, mpierr)
-   !enddo 
 
    allocate(vector(n_elements), stat = error)
 
@@ -724,14 +698,6 @@ subroutine elsi_allocate_real_matrix(matrix, n_rows, n_cols, matrixname, caller)
 
    memory = 8d0 * n_rows * n_cols / 2d0**20
 
-   !do id = 0, n_procs - 1
-   !   if(myid == id) then
-   !      write(*,"(A,I6,A,F10.3,A,A)") " Process ", id, " allocates ", &
-   !      memory, " MB for real matrix ", matrixname
-   !   endif
-   !   call MPI_Barrier(mpi_comm_global, mpierr)
-   !enddo 
-
    allocate(matrix(n_rows,n_cols), stat = error)
 
    if(error > 0) then 
@@ -762,14 +728,6 @@ subroutine elsi_allocate_int_matrix(matrix, n_rows, n_cols, matrixname, caller)
    real*8 :: memory
 
    memory = 4d0 * n_rows * n_cols / 2d0**20
-
-   !do id = 0, n_procs - 1
-   !   if(myid == id) then
-   !      write(*,"(A,I6,A,F10.3,A,A)") " Process ", id, " allocates ", &
-   !      memory, " MB for real matrix ", matrixname
-   !   endif
-   !   call MPI_Barrier(mpi_comm_global, mpierr)
-   !enddo 
 
    allocate(matrix(n_rows,n_cols), stat = error)
 
@@ -802,14 +760,6 @@ subroutine elsi_allocate_complex_matrix(matrix, n_rows, n_cols, matrixname, call
 
    memory = 16d0 * n_rows * n_cols / 2d0**20
 
-   !do id = 0, n_procs - 1
-   !   if(myid == id) then
-   !      write(*,"(A,I6,A,F10.3,A,A)") " Process ", id, " allocates ", &
-   !      memory, " MB for real matrix ", matrixname
-   !   endif
-   !   call MPI_Barrier(mpi_comm_global, mpierr)
-   !enddo 
-
    allocate(matrix(n_rows,n_cols), stat = error)
 
    if(error > 0) then 
@@ -819,84 +769,6 @@ subroutine elsi_allocate_complex_matrix(matrix, n_rows, n_cols, matrixname, call
    endif
 
    matrix = CMPLX(0d0,0d0) 
-
-end subroutine
-
-subroutine elsi_sync_real_vector(vector, dim, mpi_comm)
-
-   implicit none
-   include 'mpif.h'
-
-   integer :: dim
-   real*8 :: vector(dim)
-   integer :: mpi_comm
-
-   real*8, allocatable :: temp_mpi(:)
-
-   integer :: comm, i, len
-   integer :: mpierr
-
-   ! adjust if needed
-   integer, parameter :: max_len = 1000000
-
-   comm = mpi_comm
-
-   allocate(temp_mpi(min(dim,max_len)),stat=i)
-
-   do i=1,dim,max_len
-
-      if(dim-i+1 < max_len) then
-         len = dim-i+1
-      else
-         len = max_len
-      endif
-
-      call MPI_AllReduce(vector(i), temp_mpi, len, MPI_DOUBLE_PRECISION, &
-                         MPI_SUM, comm, mpierr)
-
-      vector(i:i-1+len) = temp_mpi(1:len)
-   enddo
-
-   deallocate(temp_mpi)
-
-end subroutine
-
-subroutine elsi_sync_complex_vector(vector, dim, mpi_comm)
-
-   implicit none
-   include 'mpif.h'
-
-   integer :: dim
-   complex*16 :: vector(dim)
-   integer :: mpi_comm
-
-   complex*16, allocatable :: temp_mpi(:)
-
-   integer :: comm, i, len
-   integer :: mpierr
-
-   ! adjust if needed
-   integer, parameter :: max_len = 1000000
-
-   comm = mpi_comm
-
-   allocate(temp_mpi(min(dim,max_len)),stat=i)
-
-   do i=1,dim,max_len
-
-      if(dim-i+1 < max_len) then
-         len = dim-i+1
-      else
-         len = max_len
-      endif
-
-      call MPI_AllReduce(vector(i), temp_mpi, len, MPI_DOUBLE_PRECISION, &
-                         MPI_SUM, comm, mpierr)
-
-      vector(i:i-1+len) = temp_mpi(1:len)
-   enddo
-
-   deallocate(temp_mpi)
 
 end subroutine
 
