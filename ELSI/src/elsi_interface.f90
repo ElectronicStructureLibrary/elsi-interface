@@ -79,7 +79,7 @@ contains
 !>
 !!  This routine initializes ELSI.
 !!
-subroutine elsi_init(p_id,p_total,blk,solver)
+subroutine elsi_init(solver,p_id,p_total,blk,mpi_comm_world)
 
    implicit none
 
@@ -87,6 +87,7 @@ subroutine elsi_init(p_id,p_total,blk,solver)
    integer, intent(in) :: p_total !< Total number of processes
    integer, intent(in) :: blk !< Block size
    integer, intent(in) :: solver !< ELPA, LIBOMM, PEXSI, CHESS
+   integer, intent(in) :: mpi_comm_world !< MPI global communicator
 
 !   call elsi_init_timers()
 !   call elsi_start_total_time()
@@ -98,6 +99,7 @@ subroutine elsi_init(p_id,p_total,blk,solver)
    n_procs = p_total
    n_b_rows = blk
    n_b_cols = blk
+   mpi_comm_global = mpi_comm_world
 
    ! Set up processes grid
    do n_p_cols = NINT(SQRT(REAL(n_procs))),n_procs,1
@@ -737,22 +739,22 @@ subroutine elsi_deallocate_matrices()
 
    ! Free Memory
    if(ms_matrices(ms_lookup('H'))%is_initialized) &
-      call m_deallocate(ms_matrices(ms_lookup('H')))
+      call m_deallocate('H')
 
    if(ms_matrices(ms_lookup('S'))%is_initialized) &
-      call m_deallocate(ms_matrices(ms_lookup('S')))
+      call m_deallocate('S')
 
    if(ms_matrices(ms_lookup('D'))%is_initialized) &
-      call m_deallocate(ms_matrices(ms_lookup('D')))
+      call m_deallocate('D')
 
    if(ms_matrices(ms_lookup('C'))%is_initialized) &
-      call m_deallocate(ms_matrices(ms_lookup('C')))
+      call m_deallocate('C')
 
    if(allocated(eigenvalues)) deallocate(eigenvalues)
 
-   if(Coeff_omm%is_initialized) call m_deallocate(Coeff_omm)
+   if(Coeff_omm%is_initialized) call m_deallocate_orig(Coeff_omm)
 
-   if(T_omm%is_initialized) call m_deallocate(T_omm)
+   if(T_omm%is_initialized) call m_deallocate_orig(T_omm)
 
 !   CHESS
 !   PEXSI
@@ -773,13 +775,13 @@ subroutine elsi_finalize()
 
    if(method == PEXSI) call f_ppexsi_plan_finalize(pexsi_plan, pexsi_info)
    
-   call hdf5_finalize()
+!   call hdf5_finalize()
    
 !   call elsi_stop_total_time()
 !   call elsi_print_timers()
 
-   if(.not.external_blacs) call elsi_finalize_blacs()
-   if(.not.external_mpi)   call elsi_finalize_mpi()
+!   if(.not.external_blacs) call elsi_finalize_blacs()
+!   if(.not.external_mpi)   call elsi_finalize_mpi()
 
 end subroutine
 
@@ -1112,7 +1114,7 @@ subroutine elsi_dm(need_cholesky, n_state, occupation)
       case (LIBOMM)
          ! Allocate coefficient matrix for libOMM
          if(.not. Coeff_omm%is_initialized) then
-            call m_allocate(Coeff_omm,n_states,n_g_rank,'pddbc')
+            call m_allocate_orig(Coeff_omm,n_states,n_g_rank,'pddbc')
          endif
          call elsi_solve_evp_omm(need_cholesky)
       case (PEXSI)
