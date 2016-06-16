@@ -81,96 +81,17 @@ module ELSI_MPI_TOOLS
   contains
 
 !> 
-!! Initialize MPI
-!!
-subroutine elsi_init_mpi()
-
-   implicit none
-   include 'mpif.h'
-
-   ! MPI Initialization
-
-   external_mpi = .False.
-   mpi_is_setup = .True.
-
-   call mpi_init(mpierr)
-   if(mpierr /= 0) then
-      write(*,'(a)') "MPI: Failed to initialize MPI."
-      stop
-   endif
-   call mpi_comm_rank(mpi_comm_world, myid, mpierr)
-   if(mpierr /= 0) then
-      write(*,'(a)') "MPI: Failed to determine MPI rank."
-      stop
-   endif
-
-   mpi_comm_global = mpi_comm_world
-
-   call mpi_comm_size(mpi_comm_global, n_procs, mpierr)
-   if(mpierr /= 0) then
-      write(*,'(a)') "MPI: Failed to determine MPI size."
-      stop
-   endif
-
-end subroutine
-
-!> 
-!! Set MPI from external
-!!
-subroutine elsi_set_mpi(global_comm, n_procs_in, myid_in)
-
-   implicit none
-   include 'mpif.h'
-
-   integer,intent(in) :: myid_in            !< local process id
-   integer,intent(in) :: n_procs_in         !< number of mpi processes
-   integer,intent(in) :: global_comm        !< global mpi communicator
-
-   ! MPI Initialization
-
-   external_mpi = .True.
-   mpi_is_setup = .True.
-   mpi_comm_global = global_comm
-   n_procs         = n_procs_in
-   myid            = myid_in
-
-end subroutine
-
-!> 
-!! Finalize MPI
-!!
-subroutine elsi_finalize_mpi()
-
-   implicit none
-   include 'mpif.h'
-
-   ! MPI Finalization
-   mpi_is_setup = .False.
-
-   call mpi_finalize(mpierr)
-   if(mpierr /= 0) then
-      write(*,'(a)') "MPI: Failed to finalize MPI."
-      stop
-   endif
-
-end subroutine
-
-!> 
-!! Initialize BLACS Grid
+!! Initialize BLACS.
 !!
 subroutine elsi_init_blacs()
 
    implicit none
-
    include "mpif.h"
-
-   ! Exception how to deviate from blocksize for OMM
-   integer :: exception(2) = (/0,0/)
 
    if(method == PEXSI) then
 
-      external_blacs = .False.
-      blacs_is_setup = .False.
+      external_blacs = .false.
+      blacs_is_setup = .false.
 
       ! Find balancing between expansion parallel and matrix inversion parallel
       if(mod(n_procs, 40) == 0 .and. n_procs >= 640) then
@@ -189,14 +110,13 @@ subroutine elsi_init_blacs()
          n_p_rows = 1
       endif
 
-      n_p_cols = n_procs / n_p_rows
+      n_p_cols = n_procs/n_p_rows
 
-      ! position in process grid must not be used
+      ! Position in process grid must not be used
       my_p_col = -1
       my_p_row = -1
 
-      ! PEXSI needs a pure block distribution.
-      ! This is why we reset the blocksize here 
+      ! PEXSI needs a pure block distribution, so the blocksize is reset here
       n_b_rows = n_g_rank
 
       ! The last process takes all remaining columns
@@ -224,15 +144,15 @@ subroutine elsi_init_blacs()
 
    else
      
-      external_blacs = .False.
-      blacs_is_setup = .True.
+      external_blacs = .false.
+      blacs_is_setup = .true.
      
-      ! Define blockcyclic setup
+      ! Determine number of process columns
       do n_p_cols = NINT(SQRT(REAL(n_procs))),n_procs,1
          if(mod(n_procs,n_p_cols) == 0 ) exit
       enddo
 
-      n_p_rows = n_procs / n_p_cols
+      n_p_rows = n_procs/n_p_cols
 
       ! Set up BLACS and MPI communicators
 
@@ -243,14 +163,14 @@ subroutine elsi_init_blacs()
       call mpi_comm_split(mpi_comm_global,my_p_col,my_p_row,mpi_comm_row,mpierr)
 
       if(mpierr /= 0) then
-         call elsi_stop("Failed to get row communicators.",&
+         call elsi_stop("Failed to get row communicators.", &
                         "elsi_initialize_blacs")
       endif
  
       call mpi_comm_split(mpi_comm_global,my_p_row,my_p_col,mpi_comm_col,mpierr)
    
       if(mpierr /= 0) then
-         call elsi_stop("Failed to get column communicators.",&
+         call elsi_stop("Failed to get column communicators.", &
                         "elsi_initialize_blacs")
       endif
 
@@ -264,144 +184,117 @@ subroutine elsi_init_blacs()
                     blacs_ctxt, MAX(1,n_l_rows), blacs_info)
 
       if(method == LIBOMM) then
-         call ms_scalapack_setup(myid, n_procs, n_p_rows, 'c', n_b_rows, exception,&
-                                 blacs_ctxt)
-      endif
+         call ms_scalapack_setup(myid, n_procs, n_p_rows, 'c', &
+                                 n_b_rows, icontxt=blacs_ctxt)
+     endif
    endif
-
-   ! Debug
-   !call elsi_variable_status()
 
 end subroutine
 
 !> 
-!! Set BLACS Grid from external
+!! Set BLACS grid externally.
 !!
-subroutine elsi_set_blacs(blacs_ctxt_in, n_p_rows_in, n_p_cols_in, &
-                          my_p_row_in, my_p_col_in, mpi_comm_row_in, mpi_comm_col_in, &
-                          n_l_rows_in, n_l_cols_in, sc_desc_in)
+subroutine elsi_set_blacs(blacs_ctxt_in, block_size, n_p_rows_in, my_p_row_in, &
+                          my_p_col_in, sc_desc_in, mpi_comm_row_in, mpi_comm_col_in)
 
    implicit none
-
    include "mpif.h"
-   ! Exception how to deviate from blocksize for OMM
-   integer :: exception(2) = (/0,0/)
 
-   integer,intent(in) :: blacs_ctxt_in     !< local blacs context
-   integer,intent(in) :: sc_desc_in(9)     !< local blacs context
-   integer,intent(in) :: mpi_comm_row_in   !< row    communicatior
-   integer,intent(in) :: mpi_comm_col_in   !< column communicatior
-   integer,intent(in) :: my_p_row_in       !< process row    position
-   integer,intent(in) :: my_p_col_in       !< process column position
-   integer,intent(in) :: n_p_rows_in       !< Number of processes in row
-   integer,intent(in) :: n_p_cols_in       !< Number of processes in column
-   integer,intent(in) :: n_l_rows_in       !< Number of local rows
-   integer,intent(in) :: n_l_cols_in       !< Number of local columns
+   integer, intent(in) :: blacs_ctxt_in   !< BLACS context
+   integer, intent(in) :: n_b_rows        !< Block size in row
+   integer, intent(in) :: n_b_cols        !< Block size in column
+   integer, intent(in) :: n_p_rows_in     !< Number of porcesses in row
+   integer, intent(in) :: my_p_row_in     !< Process row position
+   integer, intent(in) :: my_p_col_in     !< Process column position
+   integer, intent(in) :: sc_desc_in(9)   !< BLACS descriptor
+   integer, intent(in), optional :: mpi_comm_row_in !< Row communicatior, only needed by ELPA
+   integer, intent(in), optional :: mpi_comm_col_in !< Column communicatior, only needed by ELPA
 
-   external_blacs = .True.
-   blacs_is_setup = .False.
-
-   blacs_ctxt = blacs_ctxt_in 
-   n_p_rows = n_p_rows_in 
-   n_p_cols = n_p_cols_in
+   blacs_ctxt = blacs_ctxt_in
+   n_b_rows = n_b_rows_in
+   n_b_cols = n_b_cols_in
+   n_p_rows = n_p_rows_in
+   n_p_cols = n_procs/n_p_rows
    my_p_row = my_p_row_in
    my_p_col = my_p_col_in
-   mpi_comm_row = mpi_comm_row_in
-   mpi_comm_col = mpi_comm_col_in
-   n_l_rows = n_l_rows_in
-   n_l_cols = n_l_cols_in
    sc_desc = sc_desc_in
 
-   if(method == LIBOMM) then
-      call ms_scalapack_setup(myid, n_procs, n_p_rows, "C", n_b_rows, exception, blacs_ctxt)
-   endif
+   if(present(mpi_comm_row_in) mpi_comm_row = mpi_comm_row_in
+   if(present(mpi_comm_col_in) mpi_comm_col = mpi_comm_col_in
 
-   ! Debug
-   !call elsi_variable_status()
+   call ms_scalapack_setup(myid, n_procs, n_p_rows, "r", n_b_rows, icontxt=blacs_ctxt)
+
+   n_l_rows = numroc(n_g_rank, n_b_rows, my_p_row, 0, n_p_rows)
+   n_l_cols = numroc(n_g_rank, n_b_cols, my_p_col, 0, n_p_cols)
+
+   external_blacs = .true.
+   blacs_is_setup = .true.
 
 end subroutine
 
 !> 
-!! Finalize BLACS grid
+!! Finalize BLACS.
 !!
 subroutine elsi_finalize_blacs()
 
    implicit none
 
    if(blacs_is_setup) then
-      blacs_is_setup = .False.
       call blacs_gridexit(blacs_ctxt)
+      blacs_is_setup = .false.
    endif
 
 end subroutine
 
 !> 
-!! Computes global row index based on local row index
+!! Computes global row index based on local row index.
 !!
 subroutine elsi_get_global_row(global_idx, local_idx)
 
    implicit none
 
-   integer, intent(out) :: global_idx  !< Global index 
-   integer, intent(in)  :: local_idx   !< Local index
+   integer, intent(out) :: global_idx !< Global index 
+   integer, intent(in)  :: local_idx  !< Local index
 
    integer :: block !< local block 
    integer :: idx   !< local index in block
 
-   block = FLOOR(1d0 * (local_idx - 1) / n_b_rows) 
+   block = FLOOR(1d0 * (local_idx - 1) / n_b_rows)
    idx = local_idx - block * n_b_rows
 
    global_idx = my_p_row * n_b_rows + block * n_b_rows * n_p_rows + idx
-  
+ 
 end subroutine
 
 !> 
-!! Computes global column index based on local column index
+!! Computes global column index based on local column index.
 !!
 subroutine elsi_get_global_col(global_idx, local_idx)
 
    implicit none
 
-   integer, intent(out) :: global_idx   !< global index
-   integer, intent(in)  :: local_idx    !< local index
+   integer, intent(out) :: global_idx !< global index
+   integer, intent(in)  :: local_idx  !< local index
 
    integer :: block !< local block
    integer :: idx   !< local index in block
 
-
-   block = FLOOR(1d0 * (local_idx - 1) / n_b_cols) 
+   block = FLOOR(1d0 * (local_idx - 1) / n_b_cols)
    idx = local_idx - block * n_b_cols
 
    global_idx = my_p_col * n_b_cols + block * n_p_cols * n_b_cols + idx
-  
-end subroutine
-
-!> 
-!! Gets global matrix specifications such as rank and block dimensions
-!!
-subroutine elsi_get_global_dimensions(g_dim, g_block_rows, g_block_cols)
-
-   implicit none
-
-   integer, intent(out) :: g_dim   !< global rank
-   integer, intent(out) :: g_block_rows !< global blocksize
-   integer, intent(out) :: g_block_cols !< global blocksize
-
-   g_dim   = n_g_rank 
-   g_block_rows = n_b_rows
-   g_block_cols = n_b_cols
 
 end subroutine
 
 !> 
-!! Gets the local matrix dimensions
+!! Gets the local matrix dimensions.
 !!
 subroutine elsi_get_local_dimensions(rows, cols)
 
    implicit none
 
-   integer, intent(out) :: rows   !< output local rows
-   integer, intent(out) :: cols   !< output local cols
+   integer, intent(out) :: rows !< output local rows
+   integer, intent(out) :: cols !< output local cols
 
    rows = n_l_rows
    cols = n_l_cols
@@ -409,14 +302,14 @@ subroutine elsi_get_local_dimensions(rows, cols)
 end subroutine
 
 !> 
-!! Get the processor grid as specified by BLACS
+!! Get the processor grid as specified by BLACS.
 !!
 subroutine elsi_get_processor_grid(rows, cols)
 
    implicit none
 
-   integer, intent(out) :: rows   !< output processor rows
-   integer, intent(out) :: cols   !< output processor cols
+   integer, intent(out) :: rows !< output processor rows
+   integer, intent(out) :: cols !< output processor cols
 
    rows = n_p_rows
    cols = n_p_cols
@@ -424,35 +317,7 @@ subroutine elsi_get_processor_grid(rows, cols)
 end subroutine
 
 !> 
-!! Gets the row and column communicators for ELPA
-!!
-subroutine elsi_get_comm_grid (rows, cols)
-
-   implicit none
-
-   integer, intent(out) :: rows   !< output row communicator
-   integer, intent(out) :: cols   !< output col communicator
-
-   rows = mpi_comm_row
-   cols = mpi_comm_col
-
-end subroutine
-
-!> 
-!! Gets the process id 
-!!
-subroutine elsi_get_myid (id)
-
-   implicit none
-
-   integer, intent(out) :: id   !< output process id
-
-   id = myid
-
-end subroutine
-
-!> 
-!! Debug printout of a matrix
+!! Print a matrix.
 !!
 subroutine elsi_matrix_print(matrix, n_rows, n_cols, matrixname)
 
@@ -481,8 +346,8 @@ subroutine elsi_matrix_print(matrix, n_rows, n_cols, matrixname)
 
 end subroutine
 
-!> 
-!! Debug printout of a vector
+!>
+!! Print a vector.
 !!
 subroutine elsi_int_vector_print(vector, n_dim, vectorname)
 
@@ -572,8 +437,8 @@ subroutine elsi_real_vector_print(vector, n_dim, vectorname)
 
 end subroutine
 
-!> 
-!! Printout of a statement
+!>
+!! Print a statement.
 !!
 subroutine elsi_statement_print(message)
 
@@ -587,7 +452,7 @@ subroutine elsi_statement_print(message)
 end subroutine
 
 !>
-!! Elsi allocation routines with error handling
+!! Elsi allocation routines with error handling.
 !!
 subroutine elsi_allocate_real_vector(vector, n_elements, vectorname, caller)
 

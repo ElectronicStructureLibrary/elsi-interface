@@ -1,12 +1,12 @@
 all: src/elsi_interface.o
 
-src/elsi_interface.o: src/elsi_interface.f90 src/elsi_mpi_tools.o src/elsi_timings.o src/elsi_dimensions.o
+src/elsi_interface.o: src/elsi_interface.f90 src/elsi_mpi_tools.o src/elsi_timers.o src/elsi_dimensions.o
 	$(MPIFC) $(FFLAGS_I) -o $@ -c $^ $(ELPA) $(OMM) $(PEXSI) $(SCALAPACK)
 
 src/elsi_mpi_tools.o: src/elsi_mpi_tools.f90 src/elsi_dimensions.o
 	$(MPIFC) $(FFLAGS_I) -o $@ -c $^ $(OMM) $(PEXSI) $(SCALAPACK)
 
-src/elsi_timings.o: src/elsi_timings.f90 
+src/elsi_timers.o: src/elsi_timers.f90 
 	$(MPIFC) $(FFLAGS_I) -o $@ -c $< $(PEXSI)
 
 src/elsi_dimensions.o: src/elsi_dimensions.f90 

@@ -3,33 +3,30 @@
 !
 !Redistribution and use in source and binary forms, with or without
 !modification, are permitted provided that the following conditions are met:
-!
-! * Redistributions of source code must retain the above copyright notice,
-!   this list of conditions and the following disclaimer.
-!
+! * Redistributions of source code must retain the above copyright
+!   notice, this list of conditions and the following disclaimer.
 ! * Redistributions in binary form must reproduce the above copyright
 !   notice, this list of conditions and the following disclaimer in the
 !   documentation and/or other materials provided with the distribution.
-!
-! * Neither the name of the ELSI project nor the names of its contributors
-!   may be used to endorse or promote products derived from this software
-!   without specific prior written permission.
+! * Neither the name of the ELSI project nor the
+!   names of its contributors may be used to endorse or promote products
+!   derived from this software without specific prior written permission.
 !
 !THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 !AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-!IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-!ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
-!LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-!CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-!SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-!INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-!CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-!ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-!POSSIBILITY OF SUCH DAMAGE.
+!IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+!DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
+!FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+!DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+!SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+!CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+!OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+!OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 !> ELSI Interchange
-!! This is the ELSI interface, providing routines for solving or circumventing
-!! an eigenvalue problem using ELPA, libOMM, PEXSI, or CheSS.
+!! This module is the actual ELSI interface, providing functions for setting up
+!! and solving or circumventing an eigenvalue problem using ELPA, libOMM, PEXSI,
+!! or CheSS.
 !!
 
 module ELSI
@@ -40,38 +37,41 @@ module ELSI
   use ELSI_MPI_TOOLS
   use ELPA1
   use ELPA2
-  use MatrixSwitch
+  use MatrixSwitch_wrapper
+  use MatrixSwitch_wrapper_params
+  use f_ppexsi_interface
 
   implicit none
-
   private
 
   !< Hamiltonian, overlap, density matrix, and eigenvectors
-  !! are stored in MatrixSwitch type(matrix)
-  type(matrix) :: H_elsi, S_elsi, D_elsi, C_elsi
+  !! are stored by MatrixSwitch
+
   !< libOMM: coefficient matrix, kinetic energy matrix
   type(matrix) :: Coeff_omm, T_omm
   !< ELPA: eigenvalues
   real*8, allocatable :: eigenvalues(:)
-  !< PEXSI:
+  !< PEXSI: energy density matrix, free energy density matrix
+  type(matrix) :: ED_pexsi, FED_pexsi
   !< CHESS:
 
+  !< The following variables from ELSI Dimensions are public
   public :: ELPA, LIBOMM, PEXSI, CHESS
 
   !< The following routines are public:
   public :: elsi_init             !< Set dimensions in code
-  public :: elsi_finalize         !< Finalize ELSI
+  public :: elsi_init_from_file   !< Get dimensions from HDF5 file
   public :: elsi_set_method       !< Set method
+  public :: elsi_write_evp        !< Write eigenvalue problem to HDF5
+  public :: elsi_read_evp         !< Read eigenvalue problem from HDF5
   public :: elsi_customize_elpa   !< Set ELPA parameters
   public :: elsi_customize_omm    !< Set libOMM parameters
-  public :: elsi_set_matrices     !< Set H, S, C, D
+  public :: elsi_customize_pexsi  !< Set PEXSI parameters
+  public :: elsi_customize_chess  !< Set CheSS parameters
+  public :: elsi_get_total_energy !< Get total energy
+  public :: elsi_finalize         !< Finalize ELSI
   public :: elsi_ev               !< Compute eigenvalues and eigenvectors
   public :: elsi_dm               !< Compute density matrix
-
-  interface elsi_set_matrices
-     module procedure elsi_set_real_matrices, &
-                      elsi_set_complex_matrices
-  end interface
 
 contains
 
@@ -82,10 +82,12 @@ subroutine elsi_init(solver,mpi_comm_world)
 
    implicit none
 
-   integer, intent(in)      :: solver          !< ELPA, LIBOMM, PEXSI, CHESS
-   integer, intent(in)      :: mpi_comm_world  !< MPI global communicator
+   integer, intent(in) :: solver !< ELPA, LIBOMM, PEXSI, CHESS
+   integer, intent(in) :: mpi_comm_world !< MPI global communicator
 
-   call elsi_start_total_time()
+!   call elsi_init_timers()
+!   call elsi_start_total_time()
+!   call hdf5_init()
 
    call elsi_set_method(solver)
 
@@ -93,78 +95,6 @@ subroutine elsi_init(solver,mpi_comm_world)
 
    call mpi_comm_rank(mpi_comm_global,myid,mpierr)
    call mpi_comm_size(mpi_comm_global,n_procs,mpierr)
-
-end subroutine
-
-!>
-!!  This routine sets real ELSI matrices.
-!!
-subroutine elsi_set_real_matrices(H_ext, S_ext, C_or_D_ext, &
-                                  is_D, format_ext, desc_ext)
-
-   implicit none
-
-   real*8 :: H_ext, S_ext, C_or_D_ext           !< H, S, C or D
-   logical, intent(in) :: is_D                  !< T: density matrix; F: eigenvectors
-   character(5), intent(in) :: format_ext       !< Matrix format
-   integer, intent(in), optional :: desc_ext(9) !< BLACS descriptor
-
-   matrix_format = format_ext
-
-   if(matrix_format == 'pddbc') then
-      sc_desc = desc_ext
-      call m_register_pdbc(H_elsi, H_ext, sc_desc)
-      call m_register_pdbc(S_elsi, S_ext, sc_desc)
-      if(is_D) then
-         call m_register_pdbc(D_elsi, C_or_D_ext, sc_desc)
-      else
-         call m_register_pdbc(C_elsi, C_or_D_ext, sc_desc)
-      endif
-
-      n_g_rank = sc_desc(3)
-      n_l_rows = H_elsi%iaux2(1)
-      n_l_cols = H_elsi%iaux2(2)
-      n_b_rows = sc_desc(5)
-      n_b_cols = sc_desc(6)
-   else
-      call elsi_stop(" Matrix format not supported. Exiting... ", caller)
-   endif
-
-end subroutine
-
-!>
-!!  This routine sets complex ELSI matrices.
-!!
-subroutine elsi_set_complex_matrices(H_ext, S_ext, C_or_D_ext, &
-                                     is_D, format_ext, desc_ext)
-
-   implicit none
-
-   complex*16 :: H_ext, S_ext, C_or_D_ext       !< H, S, C or D
-   logical, intent(in) :: is_D                  !< T: density matrix; F: eigenvectors
-   character(5), intent(in) :: format_ext       !< Matrix format
-   integer, intent(in), optional :: desc_ext(9) !< BLACS descriptor
-
-   matrix_format = format_ext
-
-   if(matrix_format == 'pzdbc') then
-      sc_desc = desc_ext
-      call m_register_pdbc(H_elsi, H_ext, sc_desc)
-      call m_register_pdbc(S_elsi, S_ext, sc_desc)
-      if(is_D) then
-         call m_register_pdbc(D_elsi, C_or_D_ext, sc_desc)
-      else
-         call m_register_pdbc(C_elsi, C_or_D_ext, sc_desc)
-      endif
-
-      n_g_rank = sc_desc(3)
-      n_l_rows = H_elsi%iaux2(1)
-      n_l_cols = H_elsi%iaux2(2)
-      n_b_rows = sc_desc(5)
-      n_b_cols = sc_desc(6)
-   else
-      call elsi_stop(" Matrix format not supported. Exiting... ", caller)
-   endif
 
 end subroutine
 
@@ -208,7 +138,7 @@ subroutine elsi_customize_omm(scale_kinetic_in,calc_ed_in,eta_in,&
 
    ! Scaling of kinetic energy matrix
    scale_kinetic = scale_kinetic_in
-   ! Calculate energy weigthed density matrix?
+   ! Calculate energy weigthed density matrix
    calc_ed = calc_ed_in
    ! Eigenspectrum shift parameter
    eta = eta_in
@@ -218,10 +148,30 @@ subroutine elsi_customize_omm(scale_kinetic_in,calc_ed_in,eta_in,&
    nk_times_nspin = nk_times_nspin_in
    ! Index
    i_k_spin = i_k_spin_in
-   ! OMM output?
+   ! OMM output
    omm_verbose = omm_verbose_in
-   ! Deallocate internal storage?
+   ! Deallocate internal storage
    do_dealloc = do_dealloc_in
+
+end subroutine
+
+!>
+!!  This routine overrides PEXSI default settings.
+!!
+subroutine elsi_customize_pexsi()
+
+   implicit none
+
+
+end subroutine
+
+!>
+!!  This routine overrides CheSS default settings.
+!!
+subroutine elsi_customize_chess()
+
+   implicit none
+
 
 end subroutine
 
@@ -235,6 +185,219 @@ subroutine elsi_set_method(i_method)
    integer, intent(in) :: i_method
 
    method = i_method
+
+end subroutine
+
+!>
+!!  This routine writes an eigenvalue problem to an HDF5 file.
+!!
+subroutine elsi_write_evp(file_name)
+
+   implicit none
+   include "mpif.h"
+
+   character(len=*), intent(in) :: file_name !< File name where to write
+
+   integer :: file_id  !< HDF5 File identifier
+   integer :: group_id !< HDF5 Group identifier
+   real*8, allocatable :: buffer(:,:) !< Read buffer for PEXSI
+   character*40, parameter :: caller = "elsi_write_evp"
+  
+!   call elsi_start_write_evp_time()
+
+!   if(method == PEXSI) then
+!      call elsi_allocate(buffer, n_l_rows, n_l_cols, "buffer", caller) 
+!   endif
+
+!   call hdf5_create_file(file_name, mpi_comm_global, mpi_info_null, file_id)
+
+   ! Hamiltonian
+!   call hdf5_create_group(file_id, "hamiltonian", group_id)
+
+   ! Matrix dimension
+!   call hdf5_write_attribute(group_id, "n_matrix_rows", n_g_rank)
+!   call hdf5_write_attribute(group_id, "n_matrix_cols", n_g_rank)
+
+   ! Hamiltonian Write
+!   call hdf5_get_scalapack_pattern()
+   
+!   select case (method)
+!      case (ELPA,OMM)
+!         call hdf5_write_matrix_parallel(group_id, "matrix", H_real)
+!      case (PEXSI)
+!         call elsi_ccs_to_dense(buffer, n_l_rows, n_l_cols, H_real_sparse, &
+!                                n_l_nonzero, sparse_index, sparse_pointer)
+!         call hdf5_write_matrix_parallel(group_id, "matrix", buffer)
+!      case DEFAULT
+!         call elsi_stop(" No supported method has been chosen. " &
+!                        // " Please choose method CHESS, ELPA, OMM, or PEXSI. " &
+!                        // " Exiting... ",caller)
+!   end select
+
+!   call hdf5_close_group(group_id)
+
+   ! The Overlap Matrix
+!   call hdf5_create_group(file_id, "overlap", group_id)
+   
+   ! Matrix dimension
+!   call hdf5_write_attribute(group_id, "n_matrix_rows", n_g_rank)
+!   call hdf5_write_attribute(group_id, "n_matrix_cols", n_g_rank)
+
+   ! Overlap
+!   select case (method)
+!      case (ELPA,OMM) 
+!         call hdf5_write_matrix_parallel(group_id, "matrix", S_real)
+!      case (PEXSI)
+!         call elsi_ccs_to_dense(buffer, n_l_rows, n_l_cols, S_real_sparse,&
+!                                n_l_nonzero, sparse_index, sparse_pointer)
+!         call hdf5_write_matrix_parallel(group_id, "matrix", buffer)
+!      case DEFAULT
+!         call elsi_stop(" No supported method has been chosen. " &
+!                        // " Please choose method CHESS, ELPA, OMM, or PEXSI. " &
+!                        // " Exiting... ",caller)
+!   end select
+
+!   call hdf5_close_group(group_id)
+!   call hdf5_close_file(file_id)
+
+!   call elsi_stop_write_evp_time()
+
+!   if(allocated(buffer)) deallocate(buffer)
+
+end subroutine
+
+!>
+!!  This routine reads an eigenvalue problem from a file.
+!!
+subroutine elsi_read_evp(file_name)
+
+   implicit none
+   include "mpif.h"
+   
+   character(len=*), intent(in) :: file_name !< File to open
+
+   integer :: file_id  !< HDF5 File identifier
+   integer :: group_id !< HDF5 Group identifier
+   real*8, allocatable :: buffer(:,:) !< Read buffer for PEXSI
+   character*40, parameter :: caller = "elsi_read_evp"
+
+   ! For PEXSI we need to create a buffer
+   ! we convert it directly to the CCS format
+
+!   call elsi_start_read_evp_time()
+
+!   if(method == PEXSI) then
+!      call elsi_allocate(buffer, n_l_rows, n_l_cols, "buffer", caller) 
+!   endif
+
+!   call hdf5_open_file(file_name, mpi_comm_global, mpi_info_null, file_id)
+
+   ! The Hamiltonian
+!   call hdf5_open_group(file_id, "hamiltonian", group_id)
+   
+   ! Hamiltonian Read
+!   call hdf5_get_scalapack_pattern()
+!   select case (method)
+!      case (ELPA,OMM)
+!         call hdf5_read_matrix_parallel(group_id, "matrix", H_real)
+!      case (PEXSI)
+!         call hdf5_read_matrix_parallel(group_id, "matrix", buffer)
+!         call elsi_compute_N_nonzero(buffer,n_l_rows, n_l_cols)
+!         call elsi_allocate(H_real_sparse, n_l_nonzero, "H_real_sparse", caller)
+!         call elsi_allocate(sparse_index, n_l_nonzero, "sparse_index", caller)
+!         call elsi_allocate(sparse_pointer, n_l_cols+1, "sparse_pointer", caller)
+!         call elsi_dense_to_ccs(buffer, n_l_rows, n_l_cols, H_real_sparse,&
+!                                n_l_nonzero, sparse_index, sparse_pointer)
+!      case DEFAULT
+!         call elsi_stop(" No supported method has been chosen. " &
+!                        // " Please choose method CHESS, ELPA, OMM, or PEXSI. " &
+!                        // " Exiting... ",caller)
+!   end select
+
+!   call hdf5_close_group(group_id)
+
+   ! The Overlap Matrix
+!   call hdf5_open_group(file_id, "overlap", group_id)
+   
+   ! Overlap Read
+!   select case (method)
+!      case (ELPA,OMM)
+!         call hdf5_read_matrix_parallel(group_id, "matrix", S_real)
+!      case (PEXSI)
+!         call hdf5_read_matrix_parallel(group_id, "matrix", buffer)
+!         call elsi_allocate(S_real_sparse, n_l_nonzero, "S_real_sparse", caller)
+!         call elsi_dense_to_ccs_by_pattern(buffer, n_l_rows, n_l_cols, S_real_sparse,&
+!                                           n_l_nonzero, sparse_index, sparse_pointer)
+!      case DEFAULT
+!         call elsi_stop(" No supported method has been chosen. " &
+!                        // " Please choose method CHESS, ELPA, OMM, or PEXSI. " &
+!                        // " Exiting... ",caller)
+!   end select
+
+   ! TODO Check if overlap is unity
+!   overlap_is_unity = .False.
+   
+!   call hdf5_close_group(group_id)
+!   call hdf5_close_file(file_id)
+
+!   if(allocated(buffer)) deallocate(buffer)
+
+!   call elsi_stop_read_evp_time()
+
+end subroutine
+
+!>
+!!  This routine initialize an eigenvalue problem from a file.
+!!
+subroutine elsi_init_from_file(file_name, block_rows, block_cols)
+
+   implicit none
+   include "mpif.h"
+
+   character(len=*), intent(in) :: file_name !< File to open
+   integer, intent(in) :: block_rows !< Block rows of matrix
+   integer, intent(in) :: block_cols !< Block cols of matrix
+
+   integer :: file_id !< HDF5 File identifier 
+   integer :: group_id !< HDF5 Group identifier
+
+   character*40, parameter :: caller = "elsi_init_from_file"
+
+!   call elsi_start_read_evp_time()
+
+!   n_b_rows = block_rows
+!   n_b_cols = block_cols
+
+!   if(.not. mpi_is_setup) call elsi_stop("MPI needs to be set up first!",caller)
+
+!   call hdf5_open_file(file_name, mpi_comm_global, mpi_info_null, file_id)
+
+   ! The Hamiltonian
+!   call hdf5_open_group(file_id, "hamiltonian", group_id)
+
+   ! Matrix dimension
+!   call hdf5_read_attribute(group_id, "n_matrix_rows", n_g_rank)
+!   call hdf5_read_attribute(group_id, "n_matrix_cols", n_g_rank)
+
+!   call hdf5_close_group(group_id)
+!   call hdf5_close_file(file_id)
+!   call elsi_stop_read_evp_time()
+
+end subroutine
+
+!>
+!!  This routine gets information from MatrixSwitch.
+!!
+subroutine elsi_get_ms_info()
+
+   implicit none
+
+   sc_desc  = ms_matrices(ms_lookup('H'))%iaux1
+   n_g_rank = sc_desc(3)
+   n_l_rows = ms_matrices(ms_lookup('H'))%iaux2(1)
+   n_l_cols = ms_matrices(ms_lookup('H'))%iaux2(2)
+   n_b_rows = sc_desc(5)
+   n_b_cols = sc_desc(6)
 
 end subroutine
 
@@ -268,33 +431,33 @@ subroutine elsi_solve_evp_elpa(cholesky)
    endif
 
    ! Solve evp, return eigenvalues and eigenvectors
-   if(two_step_solver) then
+   if(two_step_solver) then ! 2-stage solver
       call elsi_statement_print(" Starting ELPA 2-stage solver")
-      if(.not. H_elsi%is_real) then ! Complex
+      if(.not. ms_matrices(ms_lookup('H'))%is_real) then ! Complex
          success = solve_evp_complex_2stage(n_g_rank, n_states, &
-                   H_elsi%zval, n_l_rows, &
-                   eigenvalues, C_elsi%zval, &
+                   ms_matrices(ms_lookup('H'))%zval, n_l_rows, &
+                   eigenvalues, ms_matrices(ms_lookup('C'))%zval, &
                    n_l_rows, n_b_rows, n_l_cols, &
                    mpi_comm_row, mpi_comm_col, mpi_comm_global)
       else ! Real
          success = solve_evp_real_2stage(n_g_rank, n_states, &
-                   H_elsi%dval, n_l_rows, &
-                   eigenvalues, C_elsi%dval, &
+                   ms_matrices(ms_lookup('H'))%dval, n_l_rows, &
+                   eigenvalues, ms_matrices(ms_lookup('C'))%dval, &
                    n_l_rows, n_b_rows, n_l_cols, &
                    mpi_comm_row, mpi_comm_col, mpi_comm_global)
       endif
    else ! 1-stage solver
       call elsi_statement_print(" Starting ELPA 1-stage solver")
-      if(.not. H_elsi%is_real) then ! Complex
+      if(.not. ms_matrices(ms_lookup('H'))%is_real) then ! Complex
          success = solve_evp_complex(n_g_rank, n_states, &
-                   H_elsi%zval, n_l_rows, &
-                   eigenvalues, C_elsi%zval, &
+                   ms_matrices(ms_lookup('H'))%zval, n_l_rows, &
+                   eigenvalues, ms_matrices(ms_lookup('C'))%zval, &
                    n_l_rows, n_b_rows, n_l_cols, &
                    mpi_comm_row, mpi_comm_col)
       else ! Real
          success = solve_evp_real(n_g_rank, n_states, &
-                   H_elsi%dval, n_l_rows, &
-                   eigenvalues, C_elsi%dval, &
+                   ms_matrices(ms_lookup('H'))%dval, n_l_rows, &
+                   eigenvalues, ms_matrices(ms_lookup('C'))%dval, &
                    n_l_rows, n_b_rows, n_l_cols, &
                    mpi_comm_row, mpi_comm_col)
       endif
@@ -338,15 +501,15 @@ subroutine elsi_solve_evp_omm(cholesky)
       C_matrix_initialized = .false.
 
       ! Cholesky
-      if(.not. S_elsi%is_real) then ! Complex
+      if(.not. ms_matrices(ms_lookup('S'))%is_real) then ! Complex
          ! Compute S = (U^T)U, U -> S
-         call cholesky_complex(n_g_rank, S_elsi%zval, &
+         call cholesky_complex(n_g_rank, ms_matrices(ms_lookup('S'))%zval, &
                                n_l_rows, n_b_rows, n_l_cols, mpi_comm_row, &
                                mpi_comm_col, .false., success)
 
       else ! Real
          ! Compute S = (U^T)U, U -> S
-         call cholesky_real(n_g_rank, S_elsi%dval, &
+         call cholesky_real(n_g_rank, ms_matrices(ms_lookup('S'))%dval, &
                             n_l_rows, n_b_rows, n_l_cols, mpi_comm_row, &
                             mpi_comm_col, .false., success)
       endif
@@ -357,14 +520,138 @@ subroutine elsi_solve_evp_omm(cholesky)
    endif
 
    ! Shift eigenvalue spectrum
-!   call m_add(S_elsi,'N',H_elsi,-eta,1d0,"lap")
+!   call m_add(ms_matrices(ms_lookup('S')),'N',ms_matrices(ms_lookup('H')),-eta,1d0,"lap")
 
-   call omm(n_g_rank, n_states, H_elsi, S_elsi, new_overlap, total_energy, D_elsi, calc_ED, &
-            eta, Coeff_omm, C_matrix_initialized, T_omm, scale_kinetic, omm_flavour, &
+   call omm(n_g_rank, n_states, ms_matrices(ms_lookup('H')), ms_matrices(ms_lookup('S')), &
+            new_overlap, total_energy, ms_matrices(ms_lookup('D')), calc_ED, eta, &
+            Coeff_omm, C_matrix_initialized, T_omm, scale_kinetic, omm_flavour, &
             nk_times_nspin, i_k_spin, min_tol, omm_verbose, do_dealloc, "pddbc", "lap", myid)
 
    call MPI_BARRIER(mpi_comm_global,mpierr)
    call elsi_stop_solve_evp_time()
+
+end subroutine
+
+!>
+!!  This routine interfaces to PEXSI.
+!!
+subroutine elsi_solve_evp_pexsi()
+
+   implicit none
+   include "mpif.h"
+
+   character*100, parameter :: caller = "elsi_solve_evp_pexsi"
+
+   call elsi_stop(" PEXSI: not yet implemented. Exiting... ", caller)
+
+   call elsi_start_solve_evp_time()
+
+   ! FIXME
+
+!   if(.not. allocated(D_real_sparse))  allocate(D_real_sparse(n_l_nonzero))
+!   if(.not. allocated(ED_real_sparse)) allocate(ED_real_sparse(n_l_nonzero))
+!   if(.not. allocated(FD_real_sparse)) allocate(FD_real_sparse(n_l_nonzero))
+
+   ! Set the default options
+!   call elsi_set_pexsi_default_options()
+
+   ! Load sparse matrices for PEXSI
+!   if(overlap_is_unity) then
+!      call f_ppexsi_load_real_symmetric_hs_matrix(pexsi_plan, pexsi_options, &
+!           n_g_rank, n_g_nonzero, n_l_nonzero, n_l_cols, sparse_pointer, &
+!           sparse_index, H_real_sparse, 1, S_real_sparse, pexsi_info)
+!   else
+!      call f_ppexsi_load_real_symmetric_hs_matrix(pexsi_plan, pexsi_options, &
+!           n_g_rank, n_g_nonzero, n_l_nonzero, n_l_cols, sparse_pointer, &
+!           sparse_index, H_real_sparse, 0, S_real_sparse, pexsi_info)
+!   endif
+
+!   if(pexsi_info /= 0) then
+!      call elsi_stop("PEXSI was not able to load H/S matrix.",caller)
+!   endif
+
+!   ! Solve the eigenvalue problem
+!   call f_ppexsi_dft_driver(pexsi_plan, pexsi_options, n_electrons, &
+!        mu_Pexsi, n_electrons_pexsi, mu_min_inertia, mu_max_inertia, &
+!        n_total_inertia_iter, n_total_pexsi_iter, pexsi_info)
+   
+!   if(pexsi_info /= 0) then
+!      call elsi_stop("PEXSI DFT Driver was not able to solve the problem.",caller)
+!   endif
+
+   ! Get the results
+!   call f_ppexsi_retrieve_real_symmetric_dft_matrix(pexsi_plan, &
+!        D_real_sparse, ED_real_sparse, FD_real_sparse, e_tot_H, &
+!        e_tot_S, f_tot, pexsi_info)
+
+!   if(pexsi_info /= 0) then
+!      call elsi_stop("PEXSI was not able to retrieve the solution.",caller)
+!   endif
+
+!   if(myid == 0) then
+!      write(*,*) "Total energy (H*DM)         = ", e_tot_H
+!      write(*,*) "Total energy (S*EDM)        = ", e_tot_S
+!      write(*,*) "Total free energy           = ", f_tot
+!   endif
+
+   call MPI_BARRIER(mpi_comm_global,mpierr)
+   call elsi_stop_solve_evp_time()
+
+end subroutine
+
+!>
+!!  This routine interfaces to CheSS.
+!!
+subroutine elsi_solve_evp_chess()
+
+   implicit none
+   include "mpif.h"
+
+   character*100, parameter :: caller = "elsi_solve_evp_chess"
+
+   call elsi_stop(" CheSS: not yet implemented. Exiting... ", caller)
+
+   ! TODO: implement CHESS
+
+   call elsi_start_solve_evp_time()
+
+   call MPI_BARRIER(mpi_comm_global,mpierr)
+   call elsi_stop_solve_evp_time()
+
+end subroutine
+
+!>
+!!  This routine gets total energy.
+!!
+subroutine elsi_get_total_energy(e_tot,n_occupied)
+
+   implicit none
+
+   real*8, intent(out) :: e_tot !< Eigenvalues
+   integer, intent(in), optional :: n_occupied
+
+   integer, parameter :: n_spin = 2 ! Only support non-spin-polarizard systems
+   character*40, parameter :: caller = "elsi_get_total_energy"
+
+   select case (method)
+      case (ELPA)
+         if(present(n_occupied)) then
+            e_tot = n_spin * SUM(eigenvalues(1:n_occupied))
+            call elsi_statement_print( " Sum of eigenvalues of occupied states")
+         else
+            e_tot = n_spin * SUM(eigenvalues(1:n_states))
+            call elsi_statement_print( &
+                 " Sum of eigenvalues of all (occupied and unoccupied) states")
+         endif
+      case (LIBOMM)
+         e_tot = n_spin * total_energy
+      case (PEXSI)
+      case (CHESS)
+      case DEFAULT
+         call elsi_stop(" No supported method has been chosen. " &
+                        // " Please choose method CHESS, ELPA, LIBOMM, or PEXSI. " &
+                        // " Exiting... ", caller)
+   end select
 
 end subroutine
 
@@ -430,10 +717,10 @@ subroutine elsi_compute_dm_elpa(occ)
             endif
          enddo
          
-         if(H_elsi%is_real) then ! Real
+         if(ms_matrices(ms_lookup('H'))%is_real) then ! Real
             ! Get eigenvectors into tmp_real
             call elsi_allocate(tmp_real,n_l_rows,n_l_cols,"tmp_real",caller)
-            tmp_real = C_elsi%dval
+            tmp_real = ms_matrices(ms_lookup('C'))%dval
 
             ! Compute the factors used to construct density matrix
             call elsi_allocate(factor,n_states,"factor",caller)
@@ -457,12 +744,12 @@ subroutine elsi_compute_dm_elpa(occ)
 
             ! Compute density matrix
             call pdsyrk('U', 'N', n_g_rank, n_states, 1.d0, tmp_real, 1, 1, sc_desc, &
-                        0.d0, D_elsi%dval, 1, sc_desc)
+                        0.d0, ms_matrices(ms_lookup('D'))%dval, 1, sc_desc)
 
          else ! Complex
             ! Get eigenvectors into tmp_complex
             call elsi_allocate(tmp_complex,n_l_rows,n_l_cols,"tmp_complex",caller)
-            tmp_complex = C_elsi%zval
+            tmp_complex = ms_matrices(ms_lookup('C'))%zval
 
             ! Compute the factors used to construct density matrix
             call elsi_allocate(factor,n_states,"factor",caller)
@@ -487,7 +774,7 @@ subroutine elsi_compute_dm_elpa(occ)
             ! Compute density matrix
             call pzherk('U', 'N', n_g_rank, n_states, (1.d0,0.d0), &
                         tmp_complex, 1, 1, sc_desc, (0.d0,0.d0), &
-                        D_elsi%dval, 1, 1, sc_desc)
+                        ms_matrices(ms_lookup('D'))%dval, 1, 1, sc_desc)
 
          endif
 
@@ -522,23 +809,23 @@ subroutine elsi_deallocate_matrices()
    implicit none
 
    ! Free Memory
-   if(H_elsi%is_initialized) &
-      call m_deallocate(H_elsi)
+   if(ms_matrices(ms_lookup('H'))%is_initialized) &
+      call m_deallocate('H')
 
-   if(S_elsi%is_initialized) &
-      call m_deallocate(S_elsi)
+   if(ms_matrices(ms_lookup('S'))%is_initialized) &
+      call m_deallocate('S')
 
-   if(D_elsi%is_initialized) &
-      call m_deallocate(D_elsi)
+   if(ms_matrices(ms_lookup('D'))%is_initialized) &
+      call m_deallocate('D')
 
-   if(C_elsi%is_initialized) &
-      call m_deallocate(C_elsi)
+   if(ms_matrices(ms_lookup('C'))%is_initialized) &
+      call m_deallocate('C')
 
    if(allocated(eigenvalues)) deallocate(eigenvalues)
 
-   if(Coeff_omm%is_initialized) call m_deallocate(Coeff_omm)
+!   if(Coeff_omm%is_initialized) call m_deallocate_orig(Coeff_omm)
 
-   if(T_omm%is_initialized) call m_deallocate(T_omm)
+!   if(T_omm%is_initialized) call m_deallocate_orig(T_omm)
 
 !   CHESS
 !   PEXSI
@@ -557,9 +844,15 @@ subroutine elsi_finalize()
 
    call elsi_deallocate_matrices()
 
-   call elsi_stop_total_time()
+   if(method == PEXSI) call f_ppexsi_plan_finalize(pexsi_plan, pexsi_info)
+   
+!   call hdf5_finalize()
+   
+!   call elsi_stop_total_time()
+!   call elsi_print_timers()
 
-   if(.not.external_blacs) call elsi_finalize_blacs()
+!   if(.not.external_blacs) call elsi_finalize_blacs()
+!   if(.not.external_mpi)   call elsi_finalize_mpi()
 
 end subroutine
 
@@ -586,13 +879,13 @@ subroutine elsi_to_standard_evp(cholesky)
 
    select case (method)
       case (ELPA)
-         if(.not. H_elsi%is_real) then ! Complex
+         if(.not. ms_matrices(ms_lookup('H'))%is_real) then ! Complex
             call elsi_allocate(buffer_complex, n_l_rows, n_l_cols, "buffer_complex", caller)
 
             if(cholesky) then
                call elsi_statement_print(" Starting Cholesky decomposition")
                ! Compute S = (U^T)U, U -> S
-               call cholesky_complex(n_g_rank, S_elsi%zval, &
+               call cholesky_complex(n_g_rank, ms_matrices(ms_lookup('S'))%zval, &
                                      n_l_rows, n_b_rows, n_l_cols, mpi_comm_row, &
                                      mpi_comm_col, .false., success)
                if(.not.success) then
@@ -600,7 +893,7 @@ subroutine elsi_to_standard_evp(cholesky)
                endif
 
                ! compute U^-1 -> S
-               call invert_trm_complex(n_g_rank, S_elsi%zval, &
+               call invert_trm_complex(n_g_rank, ms_matrices(ms_lookup('S'))%zval, &
                                        n_l_rows, n_b_rows, n_l_cols, mpi_comm_row, &
                                        mpi_comm_col, .false., success)
                if(.not.success) then
@@ -610,19 +903,19 @@ subroutine elsi_to_standard_evp(cholesky)
 
             ! compute H(U^-1) -> buff
             call pzgemm('N','N', n_g_rank, n_g_rank, n_g_rank, 1.0d0, &
-                        H_elsi%zval, 1, 1, sc_desc, &
-                        S_elsi%zval, 1, 1, &
+                        ms_matrices(ms_lookup('H'))%zval, 1, 1, sc_desc, &
+                        ms_matrices(ms_lookup('S'))%zval, 1, 1, &
                         sc_desc, 0.0d0, buffer_complex, 1, 1, sc_desc)
 
             ! compute ((U^-1)^T)H by (H(U^-1))^T -> H
             call pztranc(n_g_rank, n_g_rank, 1.d0, buffer_complex, 1, 1, sc_desc, &
-                         0.d0, H_elsi%zval, 1, 1, sc_desc)
+                         0.d0, ms_matrices(ms_lookup('H'))%zval, 1, 1, sc_desc)
 
             ! compute ((U^-1)^T)H(U^-1) -> H
-            buffer_complex = H_elsi%zval
+            buffer_complex = ms_matrices(ms_lookup('H'))%zval
             call pzgemm('N','N', n_g_rank, n_g_rank, n_g_rank, 1.0d0, buffer_complex, &
-                        1, 1, sc_desc, S_elsi%zval, 1, 1, sc_desc, &
-                        0.0d0, H_elsi%zval, 1, 1, sc_desc)
+                        1, 1, sc_desc, ms_matrices(ms_lookup('S'))%zval, 1, 1, sc_desc, &
+                        0.0d0, ms_matrices(ms_lookup('H'))%zval, 1, 1, sc_desc)
 
          else ! Real
             call elsi_allocate(buffer_real, n_l_rows, n_l_cols, "buffer_real", caller)
@@ -630,7 +923,7 @@ subroutine elsi_to_standard_evp(cholesky)
             if(cholesky) then
                call elsi_statement_print(" Starting Cholesky decomposition")
                ! Compute S = (U^T)U, U -> S
-               call cholesky_real(n_g_rank, S_elsi%dval, &
+               call cholesky_real(n_g_rank, ms_matrices(ms_lookup('S'))%dval, &
                                   n_l_rows, n_b_rows, n_l_cols, mpi_comm_row, &
                                   mpi_comm_col, .false., success)
                if(.not.success) then
@@ -638,7 +931,7 @@ subroutine elsi_to_standard_evp(cholesky)
                endif
 
                ! compute U^-1 -> S
-               call invert_trm_real(n_g_rank, S_elsi%dval, &
+               call invert_trm_real(n_g_rank, ms_matrices(ms_lookup('S'))%dval, &
                                     n_l_rows, n_b_rows, n_l_cols, mpi_comm_row, &
                                     mpi_comm_col, .false., success)
                if(.not.success) then
@@ -648,19 +941,19 @@ subroutine elsi_to_standard_evp(cholesky)
 
             ! compute H(U^-1) -> buff
             call pdgemm('N','N', n_g_rank, n_g_rank, n_g_rank, 1.0d0, &
-                        H_elsi%dval, 1, 1, &
-                        sc_desc, S_elsi%dval, 1, 1, &
+                        ms_matrices(ms_lookup('H'))%dval, 1, 1, &
+                        sc_desc, ms_matrices(ms_lookup('S'))%dval, 1, 1, &
                         sc_desc, 0.0d0, buffer_real, 1, 1, sc_desc)
 
             ! compute ((U^-1)^T)H by (H(U^-1))^T -> H
             call pdtran(n_g_rank, n_g_rank, 1.d0, buffer_real, 1, 1, sc_desc, &
-                        0.d0, H_elsi%dval, 1, 1, sc_desc)
+                        0.d0, ms_matrices(ms_lookup('H'))%dval, 1, 1, sc_desc)
 
             ! compute ((U^-1)^T)H(U^-1) -> H
-            buffer_real = H_elsi%dval
+            buffer_real = ms_matrices(ms_lookup('H'))%dval
             call pdgemm('N','N', n_g_rank, n_g_rank, n_g_rank, 1.0d0, buffer_real, &
-                        1, 1, sc_desc, S_elsi%dval, 1, 1, &
-                        sc_desc, 0.0d0, H_elsi%dval, 1, 1, sc_desc)
+                        1, 1, sc_desc, ms_matrices(ms_lookup('S'))%dval, 1, 1, &
+                        sc_desc, 0.0d0, ms_matrices(ms_lookup('H'))%dval, 1, 1, sc_desc)
          endif
 
       case (LIBOMM)
@@ -694,23 +987,22 @@ subroutine elsi_to_original_ev()
 
    select case (method)
       case (ELPA)
-         if(.not. H_elsi%is_real) then ! Complex
+         if(.not. ms_matrices(ms_lookup('H'))%is_real) then ! Complex
             ! (U^-1) is stored in S after elsi_to_standard_evp
-            ! C = S * C
+            ! C = (U^-1) * C
             call elsi_allocate(buffer_complex,n_l_rows,n_l_cols,"temp",caller)
-            buffer_complex = C_elsi%zval
+            buffer_complex = ms_matrices(ms_lookup('C'))%zval
 
             call pzgemm('N', 'N', n_g_rank, n_states, n_g_rank, 1.0d0, &
-                        S_elsi%zval, 1, 1, sc_desc, &
+                        ms_matrices(ms_lookup('S'))%zval, 1, 1, sc_desc, &
                         buffer_complex, 1, 1, sc_desc, 0.0d0, &
-                        C_elsi%zval, 1, 1, sc_desc)
+                        ms_matrices(ms_lookup('C'))%zval, 1, 1, sc_desc)
 
          else ! Real
             ! (U^-1) is stored in S after elsi_to_standard_evp
-            ! C = S * C
+            ! C = (U^-1) * C
             call elsi_allocate(buffer_real,n_l_rows,n_l_cols,"temp",caller)
-            buffer_real = C_elsi%dval
-
+            buffer_real = ms_matrices(ms_lookup('C'))%dval
             ! method (a)
 !            call pdtran(n_g_rank, n_g_rank, 1.d0, S_real, 1, 1, sc_desc, &
 !                        0.d0, H_real, 1, 1, sc_desc)
@@ -720,9 +1012,9 @@ subroutine elsi_to_original_ev()
 
             ! method (b)
             call pdgemm('N', 'N', n_g_rank, n_states, n_g_rank, 1.0d0, &
-                        S_elsi%dval, 1, 1, sc_desc, &
+                        ms_matrices(ms_lookup('S'))%dval, 1, 1, sc_desc, &
                         buffer_real, 1, 1, sc_desc, 0.0d0, &
-                        C_elsi%dval, 1, 1, sc_desc)
+                        ms_matrices(ms_lookup('C'))%dval, 1, 1, sc_desc)
          endif
 
       case (LIBOMM)
@@ -746,34 +1038,47 @@ end subroutine
 !!  This routine computes eigenvalues and eigenvectors.
 !!  ELPA is the only supported method.
 !!
+!!  This needs to be written in the case where the user needs the eigensystem
+!!  but a non-ELPA method was used, that is, the code would switch over to ELPA
+!!  to obtain the eigensystem from the supplied Hamiltonian and, afterward, 
+!!  switch back to the original method.  The user always needs to have the
+!!  option of obtaining the eigensystem because many post-processed methods
+!!  depend on them (and not the density matrix!)
+!!
 subroutine elsi_ev(need_cholesky, n_state, e_val)
 
    implicit none
 
-   logical, intent(inout) :: need_cholesky       !< If .true. factorize Overlap
-   integer, intent(in)    :: n_state             !< Number of states
-   real*8, intent(out)    :: e_val(n_state)      !< Eigenvalues
+   logical, intent(inout) :: need_cholesky !< If .true. factorize Overlap
+   integer, intent(in) :: n_state          !< Number of states
+   real*8, intent(out) :: e_val(n_state)   !< Eigenvalues
 
    character*40, parameter :: caller = "elsi_ev"
+
+   ! Initialize timers
+   call elsi_init_timers()
+   call elsi_start_total_time()
 
    ! For ELPA this is the number of eigenvectors, including occupied states
    ! and unoccupied states in some cases
    n_states = n_state
-
    ! Matrices should be ready
-   if(.not. H_elsi%is_initialized) then
+   if(.not. ms_matrices(ms_lookup('H'))%is_initialized) then
       call elsi_stop(" Hamiltonian not found! Exiting... ", caller)
    endif
 
-   if(.not. S_elsi%is_initialized) then
+   if(.not. ms_matrices(ms_lookup('S'))%is_initialized) then
       call elsi_stop(" Overlap not found! Exiting... ", caller)
    endif
+
+   ! Fetch all the information from MatrixSwitch
+   call elsi_get_ms_info()
 
    ! Here the only supported method is ELPA
    select case (method)
       case (ELPA)
          ! Allocate eigenvalues for ELPA
-         call elsi_allocate(eigenvalues, n_states, "eigenvalues", caller)
+         call elsi_allocate(eigenvalues,n_states,"eigenvalues",caller)
 
          ! Solve eigenvalue problem with ELPA
          call elsi_solve_evp_elpa(need_cholesky)
@@ -803,6 +1108,10 @@ subroutine elsi_ev(need_cholesky, n_state, e_val)
    e_val(1:n_states) = eigenvalues(1:n_states)
    deallocate(eigenvalues)
 
+   ! Print ELSI timing
+   call elsi_stop_total_time()
+   call elsi_print_timers()
+
 end subroutine
 
 !>
@@ -812,11 +1121,15 @@ subroutine elsi_dm(need_cholesky, n_state, occupation)
 
    implicit none
 
-   logical, intent(inout)       :: need_cholesky       !< If .true. factorize Overlap
-   integer, intent(in)          :: n_state             !< Number of states
+   logical, intent(inout) :: need_cholesky             !< If .true. factorize Overlap
+   integer, intent(in) :: n_state                      !< Number of states
    real*8, intent(in), optional :: occupation(n_state) !< Occupation number, only needed by ELPA
 
    character*40, parameter :: caller = "elsi_dm"
+
+   ! Initialize timers
+   call elsi_init_timers()
+   call elsi_start_total_time()
 
    ! For libOMM, PEXSI, and CHESS, this is the number of occupied states
    ! For ELPA, this is the number of total states; the number of occupied
@@ -824,13 +1137,16 @@ subroutine elsi_dm(need_cholesky, n_state, occupation)
    n_states = n_state
 
    ! Matrices should be ready
-   if(.not. H_elsi%is_initialized) then
+   if(.not. ms_matrices(ms_lookup('H'))%is_initialized) then
       call elsi_stop(" Hamiltonian not found! Exiting... ", caller)
    endif
 
-   if(.not. S_elsi%is_initialized) then
+   if(.not. ms_matrices(ms_lookup('S'))%is_initialized) then
       call elsi_stop(" Overlap not found! Exiting... ", caller)
    endif
+
+   ! Fetch all the information from MatrixSwitch
+   call elsi_get_ms_info()
 
    ! Solve eigenvalue problem
    select case (method)
@@ -856,9 +1172,9 @@ subroutine elsi_dm(need_cholesky, n_state, occupation)
          endif
       case (LIBOMM)
          ! Allocate coefficient matrix for libOMM
-         if(.not. Coeff_omm%is_initialized) then
-            call m_allocate(Coeff_omm,n_states,n_g_rank,'pddbc')
-         endif
+!         if(.not. Coeff_omm%is_initialized) then
+!            call m_allocate_orig(Coeff_omm,n_states,n_g_rank,'pddbc')
+!         endif
          call elsi_solve_evp_omm(need_cholesky)
       case (PEXSI)
          call elsi_solve_evp_pexsi()
@@ -872,6 +1188,10 @@ subroutine elsi_dm(need_cholesky, n_state, occupation)
 
    ! Cholesky needs to be done no more than once
    need_cholesky = .false.
+
+   ! Print ELSI timing
+   call elsi_stop_total_time()
+   call elsi_print_timers()
 
 end subroutine
 
