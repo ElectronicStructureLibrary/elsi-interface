@@ -52,7 +52,6 @@ module ELSI_TIMERS
   !> public subroutines
   public :: elsi_init_timers
   public :: elsi_print_setup
-  public :: elsi_print_timers
   public :: elsi_start_total_time
   public :: elsi_stop_total_time
   public :: elsi_start_solve_evp_time

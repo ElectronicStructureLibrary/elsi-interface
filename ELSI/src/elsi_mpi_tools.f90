@@ -40,18 +40,12 @@ module ELSI_MPI_TOOLS
   !> Calculates the local matrix dimensions based on the BLACS grid
   integer, external :: numroc
 
-  public :: elsi_init_mpi
   public :: elsi_init_blacs 
-  public :: elsi_set_mpi
   public :: elsi_set_blacs 
   public :: elsi_get_global_row
   public :: elsi_get_global_col
-  public :: elsi_get_global_dimensions
   public :: elsi_get_local_dimensions
   public :: elsi_get_processor_grid
-  public :: elsi_get_comm_grid
-  public :: elsi_get_myid
-  public :: elsi_finalize_mpi
   public :: elsi_finalize_blacs
   public :: elsi_value_print
   public :: elsi_vector_print
@@ -194,15 +188,15 @@ end subroutine
 !> 
 !! Set BLACS grid externally.
 !!
-subroutine elsi_set_blacs(blacs_ctxt_in, block_size, n_p_rows_in, my_p_row_in, &
+subroutine elsi_set_blacs(blacs_ctxt_in, n_b_rows_in, n_b_cols_in, n_p_rows_in, my_p_row_in, &
                           my_p_col_in, sc_desc_in, mpi_comm_row_in, mpi_comm_col_in)
 
    implicit none
    include "mpif.h"
 
    integer, intent(in) :: blacs_ctxt_in   !< BLACS context
-   integer, intent(in) :: n_b_rows        !< Block size in row
-   integer, intent(in) :: n_b_cols        !< Block size in column
+   integer, intent(in) :: n_b_rows_in     !< Block size in row
+   integer, intent(in) :: n_b_cols_in     !< Block size in column
    integer, intent(in) :: n_p_rows_in     !< Number of porcesses in row
    integer, intent(in) :: my_p_row_in     !< Process row position
    integer, intent(in) :: my_p_col_in     !< Process column position
@@ -219,8 +213,8 @@ subroutine elsi_set_blacs(blacs_ctxt_in, block_size, n_p_rows_in, my_p_row_in, &
    my_p_col = my_p_col_in
    sc_desc = sc_desc_in
 
-   if(present(mpi_comm_row_in) mpi_comm_row = mpi_comm_row_in
-   if(present(mpi_comm_col_in) mpi_comm_col = mpi_comm_col_in
+   if(present(mpi_comm_row_in)) mpi_comm_row = mpi_comm_row_in
+   if(present(mpi_comm_col_in)) mpi_comm_col = mpi_comm_col_in
 
    call ms_scalapack_setup(myid, n_procs, n_p_rows, "r", n_b_rows, icontxt=blacs_ctxt)
 

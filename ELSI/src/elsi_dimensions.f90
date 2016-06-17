@@ -63,8 +63,9 @@ module ELSI_DIMENSIONS
   logical :: mpi_is_setup = .false. !< Is MPI initialized? 
 
   !> BLACS variables
-  integer :: blacs_ctxt               !< Blacs context
-  integer :: sc_desc(9)               !< Blacs descriptor
+  integer :: blacs_ctxt               !< BLACS context
+  integer :: sc_desc(9)               !< BLACS descriptor
+  integer :: blacs_info               !< BLACS info
   integer :: mpi_comm_row             !< Row communicatior for ELPA
   integer :: mpi_comm_col             !< Column communicatior for ELPA
   integer :: my_p_row                 !< Process row position

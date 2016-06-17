@@ -99,16 +99,22 @@ end subroutine
 !>
 !!  This routine sets real ELSI matrices.
 !!
-subroutine elsi_set_real_matrices(H_ext, S_ext, C_or_D_ext, &
+subroutine elsi_set_real_matrices(global_size, H_ext, S_ext, C_or_D_ext, &
                                   is_D, format_ext, desc_ext)
 
    implicit none
 
-   real*8 :: H_ext, S_ext, C_or_D_ext           !< H, S, C or D
-   logical, intent(in) :: is_D                  !< T: density matrix; F: eigenvectors
-   character(5), intent(in) :: format_ext       !< Matrix format
-   integer, intent(in), optional :: desc_ext(9) !< BLACS descriptor
+   integer, intent(in) :: global_size            !< Global size of matrices
+   real*8 :: H_ext(global_size,global_size)      !< H
+   real*8 :: S_ext(global_size,global_size)      !< S
+   real*8 :: C_or_D_ext(global_size,global_size) !< C or D
+   logical, intent(in) :: is_D                   !< T: density matrix; F: eigenvectors
+   character(5), intent(in) :: format_ext        !< Matrix format
+   integer, intent(in), optional :: desc_ext(9)  !< BLACS descriptor
 
+   character*100, parameter :: caller = "elsi_set_matrices"
+
+   n_g_rank = global_size
    matrix_format = format_ext
 
    if(matrix_format == 'pddbc') then
@@ -121,7 +127,6 @@ subroutine elsi_set_real_matrices(H_ext, S_ext, C_or_D_ext, &
          call m_register_pdbc(C_elsi, C_or_D_ext, sc_desc)
       endif
 
-      n_g_rank = sc_desc(3)
       n_l_rows = H_elsi%iaux2(1)
       n_l_cols = H_elsi%iaux2(2)
       n_b_rows = sc_desc(5)
@@ -135,16 +140,22 @@ end subroutine
 !>
 !!  This routine sets complex ELSI matrices.
 !!
-subroutine elsi_set_complex_matrices(H_ext, S_ext, C_or_D_ext, &
+subroutine elsi_set_complex_matrices(global_size, H_ext, S_ext, C_or_D_ext, &
                                      is_D, format_ext, desc_ext)
 
    implicit none
 
-   complex*16 :: H_ext, S_ext, C_or_D_ext       !< H, S, C or D
-   logical, intent(in) :: is_D                  !< T: density matrix; F: eigenvectors
-   character(5), intent(in) :: format_ext       !< Matrix format
-   integer, intent(in), optional :: desc_ext(9) !< BLACS descriptor
+   integer, intent(in) :: global_size                !< Global size of matrices
+   complex*16 :: H_ext(global_size,global_size)      !< H
+   complex*16 :: S_ext(global_size,global_size)      !< S
+   complex*16 :: C_or_D_ext(global_size,global_size) !< C or D
+   logical, intent(in) :: is_D                       !< T: density matrix; F: eigenvectors
+   character(5), intent(in) :: format_ext            !< Matrix format
+   integer, intent(in), optional :: desc_ext(9)      !< BLACS descriptor
 
+   character*100, parameter :: caller = "elsi_set_matrices"
+
+   n_g_rank = global_size
    matrix_format = format_ext
 
    if(matrix_format == 'pzdbc') then
@@ -157,7 +168,6 @@ subroutine elsi_set_complex_matrices(H_ext, S_ext, C_or_D_ext, &
          call m_register_pdbc(C_elsi, C_or_D_ext, sc_desc)
       endif
 
-      n_g_rank = sc_desc(3)
       n_l_rows = H_elsi%iaux2(1)
       n_l_cols = H_elsi%iaux2(2)
       n_b_rows = sc_desc(5)
