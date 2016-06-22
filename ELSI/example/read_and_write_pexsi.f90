@@ -32,31 +32,32 @@ program read_and_write
 
   use iso_c_binding
   use ELSI
+  use ELSI_MPI_TOOLS
 
   implicit none
 
   integer :: blocksize = 16
 
   ! First the parallel treatment
-  call elsi_initialize_mpi()
+  call elsi_init_mpi()
   
   ! Second set some ELSI specifications
   call elsi_set_method(PEXSI)
   call elsi_set_mode(REAL_VALUES)
   
   ! Third define the problem
-  call elsi_initialize_problem_from_file("elsi_eigenvalue_problem.hdf5",&
+  call elsi_init_problem_from_file("elsi_eigenvalue_problem.hdf5",&
         blocksize, blocksize)
   
   ! Forth distribute the problem
-  call elsi_initialize_blacs()
+  call elsi_init_blacs()
 
   ! Read eigenvalue problem
   call elsi_allocate_matrices()
-  call elsi_read_ev_problem("elsi_eigenvalue_problem.hdf5")
+  call elsi_read_evp("elsi_eigenvalue_problem.hdf5")
 
   ! Write eigenvalue problem to another file
-  call elsi_write_ev_problem("elsi_eigenvalue_problem_out.hdf5")
+  call elsi_write_evp("elsi_eigenvalue_problem_out.hdf5")
 
   ! elsi shutdown
   call elsi_finalize()

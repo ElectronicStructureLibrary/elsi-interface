@@ -7,7 +7,7 @@ elpa:
 	@echo ==========================
 	@echo = Start building ELPA... =
 	@echo ==========================
-	cd $(ELPA_DIR) && ${MAKE} -f Makefile.elpa; ${MAKE} -f Makefile.elpa install
+	cd $(ELPA_DIR) && ${MAKE} -f Makefile.elsi; ${MAKE} -f Makefile.elsi install
 	@echo ===================
 	@echo = ELPA installed. =
 	@echo ===================
@@ -34,18 +34,13 @@ pexsi:
 	@echo ====================
 
 elsi:
-	@echo ====================================
-	@echo === ELSI is being upgraded now.. ===
-	@echo === Thank you for your patience! ===
-	@echo ====================================
-
-#	@echo ==========================
-#	@echo = Start building ELSI... =
-#	@echo ==========================
-#	cd ELSI && ${MAKE} -f Makefile.elsi
-#	@echo ===================
-#	@echo = ELSI installed. =
-#	@echo ===================
+	@echo ==========================
+	@echo = Start building ELSI... =
+	@echo ==========================
+	cd ELSI && ${MAKE} -f Makefile.elsi
+	@echo ===================
+	@echo = ELSI installed. =
+	@echo ===================
 
 install:
 	cd ELSI && ${MAKE} -f Makefile.elsi install
@@ -58,8 +53,11 @@ check:
 
 clean: cleanelpa cleanomm cleanpexsi cleanelsi
 
+cleanelsi:
+	cd ELSI && ${MAKE} -f Makefile.elsi clean
+
 cleanelpa:
-	cd $(ELPA_DIR) && ${MAKE} -f Makefile.elpa clean
+	cd $(ELPA_DIR) && ${MAKE} -f Makefile.elsi clean
 
 cleanomm:
 	cd $(libOMM_DIR) && ${MAKE} -f Makefile.elsi clean
@@ -69,6 +67,3 @@ cleanpexsi:
 	cd $(PEXSI_DIR)/fortran && ${MAKE} -f Makefile.elsi cleanall
 	rm -f $(PEXSI_DIR)/include/f_ppexsi_interface.mod
 	rm -f $(PEXSI_DIR)/src/f_ppexsi_interface.mod
-
-cleanelsi:
-	cd ELSI && ${MAKE} -f Makefile.elsi clean

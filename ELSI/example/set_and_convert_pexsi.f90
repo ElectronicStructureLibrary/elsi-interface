@@ -157,10 +157,10 @@ program set_and_convert
   call elsi_set_mode(REAL_VALUES)
   
   ! Third Define the problem
-  call elsi_initialize_problem(matrixsize, blocksize, blocksize)
+  call elsi_init_problem(matrixsize, blocksize, blocksize)
   
   ! Forth Set the parallel distribution
-  call elsi_initialize_blacs() 
+  call elsi_init_blacs() 
 
   ! Simulate external matrix setup
   allocate(H_matrix(n_rows,n_cols))
@@ -187,7 +187,7 @@ program set_and_convert
         mpi_comm_world, blacs_ctxt, sc_desc)
 
   ! Write eigenvalue problem to another file
-  call elsi_write_ev_problem("elsi_eigenvalue_problem_out.hdf5")
+  call elsi_write_evp("elsi_eigenvalue_problem_out.hdf5")
   
   ! elsi shutdown
   call elsi_finalize()

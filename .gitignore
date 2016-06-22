@@ -1,1 +1,5 @@
 make.sys
+*.[oaxd]
+*.mod
+ELSI/bin
+external/PEXSI/fortran

@@ -71,11 +71,7 @@ contains
     psp_proc_order=order
     psp_bs_def_row=bs_def_row
     psp_bs_def_col=bs_def_col
-    if (bs_def_row.eq.bs_def_col) then
-       psp_update_rank = bs_def_row
-    else
-       psp_update_rank=1
-    end if 
+    psp_update_rank=1
 
     if (present(icontxt)) then
        psp_icontxt=icontxt

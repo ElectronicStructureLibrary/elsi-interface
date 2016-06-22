@@ -116,17 +116,17 @@ program set_and_write
   call elsi_set_mpi(mpi_comm_world,n_procs,myid)
   
   ! Second ELSI Specifications
-  call elsi_set_method(OMM_DENSE)
+  call elsi_set_method(LIBOMM)
   call elsi_set_mode(REAL_VALUES)
   
   ! Third define the problem
-  call elsi_initialize_problem(matrixsize, blocksize, blocksize)
+  call elsi_init_problem(matrixsize, blocksize, blocksize)
   
   ! Forth: Set the parallel distribution
-  call elsi_set_blacs(blacs_ctxt, n_process_rows, n_process_cols,&
-        my_process_row, my_process_col, mpi_comm_row, mpi_comm_col, &
-        n_rows, n_cols, sc_desc)
-  
+  call elsi_set_blacs(blacs_ctxt, blocksize, blocksize, n_process_rows, &
+        n_process_cols, my_process_row, my_process_col, n_rows, n_cols, &
+        sc_desc, mpi_comm_row, mpi_comm_col)
+
   ! Simulate external matrix setup
   allocate(H_matrix(n_rows,n_cols))
   allocate(S_matrix(n_rows,n_cols))
@@ -149,13 +149,13 @@ program set_and_write
   end do
 
   ! Construct H and S
-  call elsi_set_hamiltonian(H_matrix,n_rows,n_cols)
-  call elsi_set_overlap(S_matrix,n_rows,n_cols)
+  call elsi_set_hamiltonian(H_matrix)
+  call elsi_set_overlap(S_matrix)
   call elsi_symmetrize_hamiltonian()
   call elsi_symmetrize_overlap()
 
   ! Write eigenvalue problem
-  call elsi_write_ev_problem("elsi_eigenvalue_problem.hdf5")
+  call elsi_write_evp("elsi_eigenvalue_problem.hdf5")
 
   ! elsi shutdown
   call elsi_finalize()

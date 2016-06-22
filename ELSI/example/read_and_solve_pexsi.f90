@@ -32,6 +32,7 @@ program read_and_solve
 
    use iso_c_binding
    use ELSI
+   use ELSI_MPI_TOOLS
 
    implicit none
    include 'mpif.h'
@@ -56,33 +57,27 @@ program read_and_solve
    endif
 
    ! Parallel treatment
-   call elsi_initialize_mpi()
+   call elsi_init_mpi()
   
    ! Set ELSI specifications
    call elsi_set_method(PEXSI)
    call elsi_set_mode(REAL_VALUES)
   
    ! Define the problem
-   call elsi_initialize_problem_from_file("elsi_eigenvalue_problem.hdf5",&
-                                          blocksize, blocksize)
+   call elsi_init_problem_from_file("elsi_eigenvalue_problem.hdf5",&
+                                    blocksize, blocksize)
   
    ! Initialize problem distribution
-   call elsi_initialize_blacs()
+   call elsi_init_blacs()
 
    ! Read eigenvalue problem
    call elsi_allocate_matrices()
-   call elsi_read_ev_problem("elsi_eigenvalue_problem.hdf5")
+   call elsi_read_evp("elsi_eigenvalue_problem.hdf5")
 
    ! Solve eigenvalue problem
    Cholesky = .True.
-   call elsi_solve_ev_problem(Cholesky,int(n_electrons))
+   call elsi_solve_evp(Cholesky)
   
-!   call elsi_get_total_energy(e_tot)
-!   call elsi_get_myid(myid)
-!   if(myid == 0) then 
-!      write (*,'(A,E19.12)') "total energy : ", e_tot
-!   endif
-
    ! Shutdown
    call elsi_finalize()
 

@@ -37,13 +37,13 @@ module ELSI_DIMENSIONS
   !> Solver (ELPA=0,LIBOMM=1,PEXSI=2,CHESS=3)
   integer :: method = -1
 
-  !> Matrix storage format
-  character(5) :: matrix_format
+  !> Real or complex data (REAL_VALUES=1,COMPLEX_VALUES=2)
+  integer :: mode = -1
 
   !> Global matrix dimension
   integer :: n_g_rank
   
-  !> Block size
+  !> Block size in case of block-cyclic distribution
   integer :: n_b_rows
   integer :: n_b_cols
 
@@ -51,74 +51,100 @@ module ELSI_DIMENSIONS
   integer :: n_p_rows
   integer :: n_p_cols
   
-  !> Local matrix dimension
-  integer :: n_l_rows
-  integer :: n_l_cols
+  !> Local matrix size
+  integer :: n_l_rows !< Number of rows on this process
+  integer :: n_l_cols !< Number of columns on this process
 
-  !> MPI variables
-  integer :: myid                   !< Local process ID
-  integer :: n_procs                !< Number of MPI tasks
-  integer :: mpi_comm_global        !< Global MPI communicator
-  integer :: mpierr                 !< Error handler
-  logical :: mpi_is_setup = .false. !< Is MPI initialized? 
+  !> MPI
+  integer :: myid
+  integer :: n_procs         !< Number of MPI processes
+  integer :: mpi_comm_global !< Global MPI communicator
+  integer :: mpierr
+  logical :: external_mpi = .true.
+  logical :: mpi_is_setup = .false.
 
-  !> BLACS variables
-  integer :: blacs_ctxt               !< BLACS context
-  integer :: sc_desc(9)               !< BLACS descriptor
-  integer :: blacs_info               !< BLACS info
-  integer :: mpi_comm_row             !< Row communicatior for ELPA
-  integer :: mpi_comm_col             !< Column communicatior for ELPA
-  integer :: my_p_row                 !< Process row position
-  integer :: my_p_col                 !< Process column position
-  logical :: external_blacs = .true.  !< Is BLACS initialized outside ELSI?
-  logical :: blacs_is_setup = .false. !< Is BLACS initialized?
+  !> BLACS
+  integer :: blacs_ctxt
+  integer :: sc_desc(9)
+  integer :: mpi_comm_row
+  integer :: mpi_comm_col
+  integer :: my_p_row       !< Process row position
+  integer :: my_p_col       !< Process column position
+  integer :: blacs_info
+  logical :: external_blacs = .false.
+  logical :: blacs_is_setup = .false.
+
+  !> HDF5
+  integer :: h5err
 
   !> Sparse matrix information
-  integer :: n_g_nonzero !< Number of nonzeros in the global matrix
-  integer :: n_l_nonzero !< Number of nonzeros in the local matrix
+  integer :: n_g_nonzero    !< Number of nonzero elements of the global matrix
+  integer :: n_l_nonzero    !< Number of nonzero elements of the local matrix
 
   !> Overlap
-  logical :: overlap_is_unity = .false. !< Is overlap matrix unity?
-  integer :: n_states                   !< Number of states to be computed
+  logical :: overlap_is_unity = .false.
 
-  !> libOMM variables
-  logical :: new_overlap          !< Is a new overlap matrix provided?
-  real*8  :: total_energy         !< Total energy value
-  logical :: C_matrix_initialized !< Is there an initial guess of coefficients?
-  integer :: omm_flavour = -1     !< "Flavours": 0 = Basic, 1 = Cholesky S, Cholesky U in S, 3 = preconditioning
-  real*8  :: scale_kinetic        !< Scaling of the kinetic energy matrix
-  logical :: calc_ed              !< Calculate the energy weigthed density matrix?
-  real*8  :: eta                  !< Eigenspectrum shift parameter
-  real*8  :: min_tol              !< Tolerance for minimization
-  integer :: nk_times_nspin = -1  !< n_k_points * n_spin
-  integer :: i_k_spin = -1        !< Combined k_point spin index
-  logical :: omm_verbose          !< OMM output level
-  logical :: do_dealloc           !< Deallocate internal storage?
+  real*8 :: n_electrons
+  integer :: n_states
 
-  !> PEXSI Variables
-  integer(c_intptr_t)    :: pexsi_plan !< PEXSI plan
-  type(f_ppexsi_options) :: pexsi_options
-  integer(c_int)         :: pexsi_info
-  integer(c_int)         :: pexsi_output_file_index
-  real(c_double)         :: mu_pexsi   !< Chemical potential
-  real(c_double)         :: n_electrons_pexsi
-  real(c_double)         :: mu_min_inertia
-  real(c_double)         :: mu_max_inertia
-  integer(c_int)         :: n_total_inertia_iter
-  integer(c_int)         :: n_total_pexsi_iter
-  real(c_double)         :: e_tot_h
-  real(c_double)         :: e_tot_s
-  real(c_double)         :: f_tot
+  !> ELPA
+  logical :: elpa_one_always = .false.
+  logical :: elpa_two_always = .false.
+
+  !> OMM
+  logical :: new_overlap
+  logical :: C_matrix_initialized
+  !< Total energy value
+  real*8  :: total_energy
+  !< How to perform the calculation
+  !! 0 = Basic
+  !! 1 = Cholesky factorisation of S requested
+  !! 2 = Cholesky already performed, U is provided in S
+  !! 3 = Use preconditioning based on the energy density
+  integer :: omm_flavour = -1
+  !< Scaling of the kinetic energy matrix
+  real*8 :: scale_kinetic
+  !< Calculate the energy weigthed density matrix
+  logical :: calc_ed = .False.
+  !< Eigenspectrum shift parameter
+  real*8 :: eta
+  !< Tolerance for minimization
+  real*8 :: min_tol
+  !< n_k_points * n_spin
+  integer :: nk_times_nspin = -1
+  !< Combined k_point spin index
+  integer :: i_k_spin = -1
+  logical :: omm_verbose
+  logical :: do_dealloc
+
+  !> PEXSI
+  integer(c_intptr_t)   :: pexsi_plan
+  type(f_ppexsi_options):: pexsi_options
+  integer(c_int)        :: pexsi_info
+  integer(c_int)        :: pexsi_output_file_index
+  real(c_double)        :: mu_pexsi
+  real(c_double)        :: n_electrons_pexsi
+  real(c_double)        :: mu_min_inertia
+  real(c_double)        :: mu_max_inertia
+  integer(c_int)        :: n_total_inertia_iter
+  integer(c_int)        :: n_total_pexsi_iter
+  real(c_double)        :: e_tot_h
+  real(c_double)        :: e_tot_s
+  real(c_double)        :: f_tot
 
   !> Method names
   enum, bind( C )
     enumerator :: ELPA, LIBOMM, PEXSI, CHESS
   end enum
 
+  enum, bind( C )
+    enumerator :: REAL_VALUES, COMPLEX_VALUES
+  end enum   
+
 contains
 
 !>
-!! Print message
+!! Print a message on every process.
 !!
 subroutine elsi_print(message)
    
@@ -127,6 +153,7 @@ subroutine elsi_print(message)
    character(len=*), intent(in) :: message
 
    character(LEN=4096) :: string_message
+
    integer :: i_task
 
    do i_task = 0, n_procs - 1
@@ -142,7 +169,7 @@ subroutine elsi_print(message)
 end subroutine 
 
 !>
-!! Clean shutdown.
+!! Clean shutdown in case of error.
 !!
 subroutine elsi_stop(message, caller)
 
@@ -155,7 +182,7 @@ subroutine elsi_stop(message, caller)
    character(LEN=4096) :: string_message
    integer :: i_task
 
-   do i_task = 0, n_procs-1
+   do i_task = 0, n_procs - 1
       if(myid == i_task) then
          write(string_message, "(1X,'*** Proc',I5,' in ',A,': ',A)") &
                & myid, trim(caller), trim(message)
@@ -173,7 +200,7 @@ subroutine elsi_stop(message, caller)
 end subroutine
 
 !>
-!! Print status of variables.
+!! Print status of ELSI variables.
 !!
 subroutine elsi_variable_status()
 
@@ -182,6 +209,7 @@ subroutine elsi_variable_status()
 
    character(LEN=4096) :: string_message
    integer :: i_task
+
 
    if(myid == 0) then
       write(string_message, "(1X,'*** Proc',I5,&
@@ -200,10 +228,15 @@ subroutine elsi_variable_status()
       write(*,'(A)') trim(string_message)
 
       write(string_message, "(1X,'*** Proc',I5,&
-            &' : Number of States ',I5)")&
-            & myid, n_states
+            &' : Number of Electrons ',F10.2)")&
+            & myid, n_electrons
       write(*,'(A)') trim(string_message)
         
+      write(string_message, "(1X,'*** Proc',I5,&
+            &' : Number of States ',I10)") &
+            & myid, n_states
+      write(*,'(A)') trim(string_message)
+
       write(string_message, "(1X,'*** Proc',I5,&
             &' : Overlap is Unity ? ',L2)") &
             & myid, overlap_is_unity
@@ -228,6 +261,7 @@ subroutine elsi_variable_status()
                &' : Non_zero elements local ',I16)")&
                & myid, n_l_nonzero
          write(*,'(A)') trim(string_message)
+
       endif
 
       call MPI_BARRIER(mpi_comm_global, mpierr)
@@ -236,11 +270,12 @@ subroutine elsi_variable_status()
 end subroutine
 
 !>
-!! Set PEXSI variables to default.
+!! Set PEXSI variables to ELSI default. 
 !!
 subroutine elsi_set_pexsi_default_options()
 
    implicit none
+
    include "mpif.h"
 
    ! Use the PEXSI Default options
@@ -248,25 +283,25 @@ subroutine elsi_set_pexsi_default_options()
 
    ! But do some modification to be more secure in convergence:
 
-   ! Initial guess of lower bound for mu
+   ! Initial guess of lower bound for mu 
    pexsi_options%muMin0   = -0.5d0
    ! Initial guess of upper bound for mu
-   pexsi_options%muMax0   = 0.5d0
-   ! Initial guess for mu (for the solver) (AG)
+   pexsi_options%muMax0   = 0.5d0 
+   ! Initial guess for mu (for the solver) (AG) 
    pexsi_options%mu0      = 0.0d0
    ! An upper bound for the spectral radius of S−1H
-   pexsi_options%deltaE   = 20d0
+   pexsi_options%deltaE   = 20d0 
    ! Number of terms in the pole expansion
    pexsi_options%numPole  = 40
    ! Temperature, in the same unit as H
-   pexsi_options%temperature = 0.0095 ! 3000K
-   ! Safe guard criterion in terms of the chemical potential to
-   ! reinvoke the inertia counting procedure.
+   pexsi_options%temperature = 0.0095 ! 3000K   
+   ! Safe guard criterion in terms of the chemical potential to 
+   ! reinvoke the inertia counting procedure
    pexsi_options%muPEXSISafeGuard = 0.2d0
    ! Stopping criterion of the PEXSI iteration in terms of the number of
    ! electrons compared to numElectronExact
    pexsi_options%numElectronPEXSITolerance = 1d-3
-   ! Output
+   ! Output 
    pexsi_options%verbosity = 1
    ! Maximum number of Iterations
    pexsi_options%maxPEXSIIter = 10
@@ -275,9 +310,6 @@ subroutine elsi_set_pexsi_default_options()
 
 end subroutine
 
-!>
-!! Print status of PEXSI variables. 
-!!
 subroutine elsi_print_pexsi_options()
 
    implicit none
@@ -347,14 +379,14 @@ subroutine elsi_print_pexsi_options()
 end subroutine
 
 !>
-!! Set libOMM variables to default.
+!! Set OMM variables to ELSI default.
 !!
 subroutine elsi_set_omm_default_options()
 
    implicit none
    include "mpif.h"
 
-   !< How to perform the calculation
+   !< How do we perform the calculation
    !! 0 = Basic
    !! 1 = Cholesky factorisation of S requested
    !! 2 = Cholesky already performed, U is provided in S
@@ -362,28 +394,23 @@ subroutine elsi_set_omm_default_options()
    omm_flavour = 2
    !< Scaling of the kinetic energy matrix
    scale_kinetic = 5d0
-   !< Calculate the energy weigthed density matrix?
+   !< Calculate the energy weigthed density matrix
    calc_ed = .false.
    !< Eigenspectrum shift parameter
-   eta = 0.0d0
+   eta = 0d0
    !< Tolerance for minimization
    min_tol = 1.0d-9
    !< n_k_points * n_spin
    nk_times_nspin = 1
    !< Combined k_point spin index
    i_k_spin = 1
-   !< OMM output level
-   omm_verbose = .true.
-   !< Deallocate internal storage?
-   do_dealloc = .false.
+   omm_verbose = .True.
+   do_dealloc = .False.
 
    call elsi_print_omm_options()
 
 end subroutine
 
-!>
-!! Print status of libOMM variables.
-!!
 subroutine elsi_print_omm_options()
 
    implicit none
@@ -401,7 +428,7 @@ subroutine elsi_print_omm_options()
       write(string_message, "(1X,'  | Tolerance (H) ',E10.1)") min_tol
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,'  | libOMM Flavour ',I1)") omm_flavour
+      write(string_message, "(1X,'  | OMM Flavour ',I1)") omm_flavour
       write(*,'(A)') trim(string_message)
 
       write(string_message, "(1X,'  | Verbose ',L1)") omm_verbose
@@ -411,6 +438,27 @@ subroutine elsi_print_omm_options()
       write(*,'(A)') trim(string_message)
    endif
 
+end subroutine
+
+subroutine elsi_sparse_ham_status(H_real_sparse)
+
+   implicit none
+   include "mpif.h"
+
+   character(LEN=4096) :: string_message
+   integer :: i_task
+   real*8, intent(in) :: H_real_sparse(n_l_nonzero)
+
+   do i_task = 0, n_procs
+      if(i_task == myid) then
+         write(string_message, "(1X,'*** Proc',I5, ' : local H ')") i_task 
+         write(*,'(A)') trim(string_message)
+         print *,H_real_sparse(1:10)
+      endif
+
+      call MPI_BARRIER(mpi_comm_global, mpierr)
+   enddo
+ 
 end subroutine
 
 end module ELSI_DIMENSIONS

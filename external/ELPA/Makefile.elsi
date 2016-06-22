@@ -104,18 +104,18 @@ endif
 SHARED_SOURCES_O = util.o blacs_infrastructure.o check_correctnes.o prepare_matrix.o read_input_parameters.o setup_mpi.o
 ELPA_QR_O = elpa_pdgeqrf.o elpa_pdlarfb.o elpa_qrkernels.o qr_utils.o
 
-all: test_real test_complex test_real2 test_complex2 elpa_c_interface.o
+all: test_real.x test_complex.x test_real2.x test_complex2.x elpa_c_interface.o
 
-test_real: test_real.o elpa1.o elpa_utilities.o $(SHARED_SOURCES_O) $(FTIMINGS_O)
+test_real.x: test_real.o elpa1.o elpa_utilities.o $(SHARED_SOURCES_O) $(FTIMINGS_O)
 	$(MPIFC) $(FFLAGS_E) -o $@ $^ $(LIBS)
 
-test_complex: test_complex.o elpa1.o elpa_utilities.o $(SHARED_SOURCES_O) $(FTIMINGS_O)
+test_complex.x: test_complex.o elpa1.o elpa_utilities.o $(SHARED_SOURCES_O) $(FTIMINGS_O)
 	$(MPIFC) $(FFLAGS_E) -o $@ $^ $(LIBS)
 
-test_real2: test_real2.o elpa1.o elpa2.o elpa_utilities.o elpa2_utilities.o $(ELPA_QR_O) $(SHARED_SOURCES_O) $(FTIMINGS) $(ELPA2_KERNELS_O)
+test_real2.x: test_real2.o elpa1.o elpa2.o elpa_utilities.o elpa2_utilities.o $(ELPA_QR_O) $(SHARED_SOURCES_O) $(FTIMINGS) $(ELPA2_KERNELS_O)
 	$(MPIFC) $(FFLAGS_E) -o $@ $^ $(LIBS)
 
-test_complex2: test_complex2.o elpa1.o elpa2.o elpa_utilities.o elpa2_utilities.o $(ELPA_QR_O) $(SHARED_SOURCES_O) $(FTIMINGS) $(ELPA2_KERNELS_O)
+test_complex2.x: test_complex2.o elpa1.o elpa2.o elpa_utilities.o elpa2_utilities.o $(ELPA_QR_O) $(SHARED_SOURCES_O) $(FTIMINGS) $(ELPA2_KERNELS_O)
 	$(MPIFC) $(FFLAGS_E) -o $@ $^ $(LIBS)
 
 test_real.o: ./test/fortran_test_programs/test_real.F90 elpa1.o
@@ -230,7 +230,7 @@ elpa_c_interface.o: ./src/elpa_c_interface.F90 elpa2.o elpa1.o
 	$(MPIFC) $(FFLAGS_E) $(PREPROCESSOR) -c $<
 
 clean:
-	rm -f *.o *.mod test_real test_complex test_real2 test_complex2
+	rm -f *.o *.mod test_real.x test_complex.x test_real2.x test_complex2.x
 	rm -f libelpa.a 
 	rm -rf ./lib ./bin ./include
 
@@ -242,7 +242,7 @@ install:
 	mkdir -p ./include/elpa/modules
 	cp *.mod ./include/elpa/modules/.
 	mkdir -p ./bin
-	cp test_real ./bin/.
-	cp test_real2 ./bin/.
-	cp test_complex ./bin/.
-	cp test_complex2 ./bin/.
+	cp test_real.x ./bin/.
+	cp test_real2.x ./bin/.
+	cp test_complex.x ./bin/.
+	cp test_complex2.x ./bin/.
