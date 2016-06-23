@@ -98,7 +98,7 @@ subroutine elsi_init_timers()
    walltime_dist_pexsi        = 0d0
    walltime_dist_pexsi_start  = 0d0
 
-   call system_clock (initial_time, clock_rate, clock_max)
+   call system_clock(initial_time, clock_rate, clock_max)
 
 end subroutine
 

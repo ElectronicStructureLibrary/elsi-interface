@@ -783,11 +783,11 @@ subroutine elsi_deallocate_matrices()
    if(allocated(sparse_pointer))   deallocate(sparse_pointer)
 
    if(method == LIBOMM) then
-      call m_deallocate(H_omm)
-      call m_deallocate(S_omm)
-      call m_deallocate(D_omm)
-      call m_deallocate(Coeff_omm)
-      call m_deallocate(T_omm)
+      if(H_omm%is_initialized)     call m_deallocate(H_omm)
+      if(S_omm%is_initialized)     call m_deallocate(S_omm)
+      if(D_omm%is_initialized)     call m_deallocate(D_omm)
+      if(Coeff_omm%is_initialized) call m_deallocate(Coeff_omm)
+      if(T_omm%is_initialized)     call m_deallocate(T_omm)
    endif
 
 end subroutine
@@ -1230,7 +1230,7 @@ subroutine elsi_ev_real(H_in, S_in, e_val_out, e_vec_out, need_cholesky)
          ! REAL case
          call elsi_set_mode(REAL_VALUES)
 
-         ! Allocation of matrices
+         ! Allocate matrices
          call elsi_allocate_matrices()
 
          ! Set Hamiltonian and Overlap matrices
@@ -1241,6 +1241,9 @@ subroutine elsi_ev_real(H_in, S_in, e_val_out, e_vec_out, need_cholesky)
          call elsi_solve_evp_elpa(need_cholesky)
          call elsi_get_eigenvalues(e_val_out)
          call elsi_get_eigenvectors(e_vec_out)
+
+         ! Deallocate
+         call elsi_deallocate_matrices()
 
       case (LIBOMM)
          call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors. "//&
@@ -1282,7 +1285,7 @@ subroutine elsi_ev_complex(H_in, S_in, e_val_out, e_vec_out, need_cholesky)
          ! COMPLEX case
          call elsi_set_mode(COMPLEX_VALUES)
 
-         ! Allocation of matrices
+         ! Allocate matrices
          call elsi_allocate_matrices()
 
          ! Set Hamiltonian and Overlap matrices
@@ -1293,6 +1296,9 @@ subroutine elsi_ev_complex(H_in, S_in, e_val_out, e_vec_out, need_cholesky)
          call elsi_solve_evp(need_cholesky)
          call elsi_get_eigenvalues(e_val_out)
          call elsi_get_eigenvectors(e_vec_out)
+
+         ! Deallocate
+         call elsi_deallocate_matrices()
 
       case (LIBOMM)
          call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors. "//&
@@ -1358,6 +1364,9 @@ subroutine elsi_dm_real(H_in, S_in, D_out, need_cholesky, occupation)
                         " Exiting... ",caller)
    end select
 
+   ! Deallocate
+   call elsi_deallocate_matrices()
+
    need_cholesky = .false.
 
 end subroutine
@@ -1406,6 +1415,9 @@ subroutine elsi_dm_complex(H_in, S_in, D_out, need_cholesky, occupation)
                         " Please choose ELPA to compute eigenpairs. "//&
                         " Exiting... ",caller)
    end select
+
+   ! Deallocate
+   call elsi_deallocate_matrices()
 
    need_cholesky = .false.
 
