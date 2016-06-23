@@ -299,11 +299,14 @@ contains
        call MPI_Bcast(B_loc_val, nnz_loc, MPI_DOUBLE, idx_prow, psp_mpi_comm_col,mpi_err)
 
        ! compute local update of C
+       ! C=MATMUL(A_loc,B_loc)+C
        do idx_col=1,C_loc_dim(2)
-          if (B_loc_idx2(idx_col)<B_loc_idx2(idx_col+1)) then
-             C_loc(1:C_loc_dim(1),idx_col)= B_loc_val(B_loc_idx2(idx_col))*A_loc(1:C_loc_dim(1),1) &
-                  + C_loc(1:C_loc_dim(1),idx_col)
-          end if
+          do i=B_loc_idx2(idx_col),B_loc_idx2(idx_col+1)-1
+             if (B_loc_idx1(i)<=width) then
+                C_loc(1:C_loc_dim(1),idx_col)= B_loc_val(i)*A_loc(1:C_loc_dim(1),B_loc_idx1(i)) &
+                     + C_loc(1:C_loc_dim(1),idx_col)
+             end if
+          end do
        end do
     enddo
 
