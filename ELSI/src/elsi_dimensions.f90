@@ -104,7 +104,7 @@ module ELSI_DIMENSIONS
   integer :: omm_flavour = -1
   !< Scaling of the kinetic energy matrix
   real*8 :: scale_kinetic
-  !< Calculate the energy weigthed density matrix
+  !< Calculate the energy weighted density matrix
   logical :: calc_ed = .False.
   !< Eigenspectrum shift parameter
   real*8 :: eta
@@ -394,7 +394,7 @@ subroutine elsi_set_omm_default_options()
    omm_flavour = 2
    !< Scaling of the kinetic energy matrix
    scale_kinetic = 5d0
-   !< Calculate the energy weigthed density matrix
+   !< Calculate the energy weighted density matrix
    calc_ed = .false.
    !< Eigenspectrum shift parameter
    eta = 0d0
@@ -419,6 +419,7 @@ subroutine elsi_print_omm_options()
    character(LEN=4096) :: string_message
 
    if(myid == 0) then
+
       write(string_message, "(1X,'  | Eta (H) ',F10.4)") eta
       write(*,'(A)') trim(string_message)
 
@@ -431,11 +432,21 @@ subroutine elsi_print_omm_options()
       write(string_message, "(1X,'  | OMM Flavour ',I1)") omm_flavour
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,'  | Verbose ',L1)") omm_verbose
+      write(string_message, "(1X,'  | Energy weighted densigy matrix? ',L1)") calc_ed
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,'  | Dealloc  ',L1)") do_dealloc
+      write(string_message, "(1X,'  | Verbose? ',L1)") omm_verbose
       write(*,'(A)') trim(string_message)
+
+      write(string_message, "(1X,'  | Dealloc?  ',L1)") do_dealloc
+      write(*,'(A)') trim(string_message)
+
+      write(string_message, "(1X,'  | k points x spin ',I1)") nk_times_nspin
+      write(*,'(A)') trim(string_message)
+
+      write(string_message, "(1X,'  | index ',I1)") i_k_spin
+      write(*,'(A)') trim(string_message)
+
    endif
 
 end subroutine

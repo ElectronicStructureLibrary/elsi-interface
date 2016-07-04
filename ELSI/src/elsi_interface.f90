@@ -44,16 +44,6 @@ module ELSI
    implicit none
    private
 
-   !< Internal Storage
-   !< Real Hamiltonian matrix
-   real*8, target, allocatable     :: H_real_target(:,:)
-   !< Complex Hamiltonian matrix
-   complex*16, target, allocatable :: H_complex_target(:,:)
-   !< Real overlap matrix
-   real*8, target, allocatable     :: S_real_target(:,:)
-   !< Complex overlap matrix
-   complex*16, target, allocatable :: S_complex_target(:,:)
-
    ! Pointers
    !< Real Hamiltonian
    real*8, pointer     :: H_real(:,:)
@@ -126,6 +116,8 @@ module ELSI
    public :: elsi_ev_complex     !< Compute eigenvalues and eigenvectors
    public :: elsi_dm_real        !< Compute density matrix
    public :: elsi_dm_complex     !< Compute density matrix
+   ! Under test
+   public :: elsi_ev_real_ms
    ! Legacy
    public :: elsi_init_problem
    public :: elsi_init_problem_from_file
@@ -217,7 +209,7 @@ subroutine elsi_set_method(i_method)
 
    implicit none
 
-   integer, intent(in) :: i_method !< ELPA,OMM,PEXSI
+   integer, intent(in) :: i_method !< ELPA,OMM,PEXSI,CHESS
    
    method = i_method
 
@@ -251,33 +243,11 @@ subroutine elsi_allocate_matrices()
 
          select case (mode)
             case (COMPLEX_VALUES)
-               call elsi_allocate(H_complex_target, n_l_rows, n_l_cols,&
-                                  "H_complex_target", caller)      
-               call elsi_allocate(S_complex_target, n_l_rows, n_l_cols,&
-                                  "S_complex_target", caller)
                call elsi_allocate(C_complex, n_l_rows, n_l_cols,&
                                   "C_complex", caller)
-
-               H_complex => H_complex_target
-               S_complex => S_complex_target
-               H_complex = CMPLX(0d0,0d0)
-               S_complex = CMPLX(0d0,0d0)
-               C_complex = CMPLX(0d0,0d0)
-
             case (REAL_VALUES)
-               call elsi_allocate(H_real_target, n_l_rows, n_l_cols,&
-                                  "H_real_target", caller)      
-               call elsi_allocate(S_real_target, n_l_rows, n_l_cols,&
-                                  "S_real_target", caller)
                call elsi_allocate(C_real, n_l_rows, n_l_cols,&
                                   "C_real", caller)
-
-               H_real => H_real_target
-               S_real => S_real_target
-               H_real = 0d0
-               S_real = 0d0
-               C_real = 0d0
-
             case DEFAULT
                call elsi_stop(" No mode has been chosen. "//&
                               " Please choose REAL_VALUES or COMPLEX_VALUES. ",&
@@ -287,35 +257,15 @@ subroutine elsi_allocate_matrices()
       case (LIBOMM)
          select case (mode)
             case (COMPLEX_VALUES)
-               call elsi_allocate(H_complex_target, n_l_rows, n_l_cols,&
-                                  "H_complex_target", caller)      
-               call elsi_allocate(S_complex_target, n_l_rows, n_l_cols,&
-                                  "S_complex_target", caller)
-
-               H_complex => H_complex_target
-               S_complex => S_complex_target
-               H_complex = CMPLX(0d0,0d0)
-               S_complex = CMPLX(0d0,0d0)
-
-               call m_register_pdbc(H_omm, H_complex, sc_desc)
-               call m_register_pdbc(S_omm, S_complex, sc_desc)
-               call m_allocate(D_omm, n_g_rank, n_g_rank, "pddbc")
-               call m_allocate(Coeff_omm, n_states, n_g_rank, "pddbc")
-               call m_allocate(T_omm, n_g_rank, n_g_rank, "pddbc")
+!               call m_register_pdbc(H_omm, H_complex, sc_desc)
+!               call m_register_pdbc(S_omm, S_complex, sc_desc)
+               call m_allocate(D_omm, n_g_rank, n_g_rank, "pzdbc")
+               call m_allocate(Coeff_omm, n_states, n_g_rank, "pzdbc")
+               call m_allocate(T_omm, n_g_rank, n_g_rank, "pzdbc")
 
             case (REAL_VALUES)
-               call elsi_allocate(H_real_target, n_l_rows, n_l_cols,&
-                                  "H_real_target", caller)      
-               call elsi_allocate(S_real_target, n_l_rows, n_l_cols,&
-                                  "S_real_target", caller)
-
-               H_real => H_real_target
-               S_real => S_real_target
-               H_real = 0d0
-               S_real = 0d0
-
-               call m_register_pdbc(H_omm, H_real, sc_desc)
-               call m_register_pdbc(S_omm, S_real, sc_desc)
+!               call m_register_pdbc(H_omm, H_real, sc_desc)
+!               call m_register_pdbc(S_omm, S_real, sc_desc)
                call m_allocate(D_omm, n_g_rank, n_g_rank, "pddbc")
                call m_allocate(Coeff_omm, n_states, n_g_rank, "pddbc")
                call m_allocate(T_omm, n_g_rank, n_g_rank, "pddbc")
@@ -356,16 +306,9 @@ subroutine elsi_set_real_hamiltonian(H_in)
 
    select case (method)
       case (ELPA)
-         if(mode == REAL_VALUES) then
-            H_real => H_in
-         else  
-            write(*,'(2a)') " Wrong mode:",&
-                  " Complex valued hamiltonian to be written in real storage"
-            stop
-         endif
+         H_real => H_in
       case (LIBOMM)
          call m_register_pdbc(H_omm,H_in,sc_desc)
-         H_real => H_omm%dval
       case (PEXSI)
          call elsi_stop(" PEXSI not yet implemented. Exiting... ",caller)
       case (CHESS)
@@ -391,16 +334,9 @@ subroutine elsi_set_complex_hamiltonian(H_in)
 
    select case (method)
       case (ELPA)
-         if(mode == COMPLEX_VALUES) then
-            H_complex => H_in
-         else  
-            write(*,'(2a)') " Wrong mode:",&
-                  " Real valued hamiltonian to be written in complex storage"
-            stop
-         endif
+         H_complex => H_in
       case (LIBOMM)
          call m_register_pdbc(H_omm,H_in,sc_desc)
-         H_complex => H_omm%zval
       case (PEXSI)
          call elsi_stop(" PEXSI not yet implemented. Exiting... ",caller)
       case (CHESS)
@@ -426,16 +362,9 @@ subroutine elsi_set_real_overlap(S_in)
 
    select case (method)
       case (ELPA)
-         if(mode == REAL_VALUES) then
-            S_real => S_in
-         else  
-            write(*,'(2a)') " Wrong mode:",&
-                            " Complex valued overlap to be written in real storage"
-            stop
-         endif
+         S_real => S_in
       case (LIBOMM)
          call m_register_pdbc(S_omm,S_in,sc_desc)
-         S_real => S_omm%dval
       case (PEXSI)
          call elsi_stop(" PEXSI not yet implemented. Exiting... ",caller)
       case (CHESS)
@@ -463,16 +392,9 @@ subroutine elsi_set_complex_overlap(S_in)
 
    select case (method)
       case (ELPA)
-         if(mode == COMPLEX_VALUES) then
-            S_complex => S_in
-         else  
-            write(*,'(2a)') " Wrong mode:",&
-                  " Real valued overlap to be written in complex storage"
-            stop
-         endif
+         S_complex => S_in
       case (LIBOMM)
          call m_register_pdbc(S_omm,S_in,sc_desc)
-         S_complex => S_omm%zval
       case (PEXSI)
          call elsi_stop(" PEXSI not yet implemented. Exiting... ",caller)
       case (CHESS)
@@ -524,7 +446,7 @@ subroutine elsi_get_real_eigenvectors(e_vec_out)
 
    real*8, intent(out) :: e_vec_out(n_l_rows,n_l_cols) !< Eigenvectors
 
-   character*100, parameter :: caller = "elsi_get_real_eigenvectors"
+   character*40, parameter :: caller = "elsi_get_real_eigenvectors"
 
    select case (method)
       case (ELPA)
@@ -552,7 +474,7 @@ subroutine elsi_get_complex_eigenvectors(e_vec_out)
 
    complex*16, intent(out) :: e_vec_out(n_l_rows,n_l_cols) !< Eigenvectors
 
-   character*100, parameter :: caller = "elsi_get_complex_eigenvectors"
+   character*40, parameter :: caller = "elsi_get_complex_eigenvectors"
 
    select case (method)
       case (ELPA)
@@ -766,10 +688,6 @@ subroutine elsi_deallocate_matrices()
    if(associated(S_complex)) nullify(S_complex)
  
    ! Free Memory
-   if(allocated(H_real_target))    deallocate(H_real_target)
-   if(allocated(H_complex_target)) deallocate(H_complex_target)
-   if(allocated(S_real_target))    deallocate(S_real_target)
-   if(allocated(S_complex_target)) deallocate(S_complex_target)
    if(allocated(C_real))           deallocate(C_real)
    if(allocated(C_complex))        deallocate(C_complex)
    if(allocated(eigenvalues))      deallocate(eigenvalues)
@@ -834,7 +752,7 @@ subroutine elsi_to_standard_evp(cholesky)
    real*8,     allocatable :: buffer_real (:,:)    !< Real valued matrix buffer
    complex*16, allocatable :: buffer_complex (:,:) !< Complex valued matrix buffer
 
-   character*100, parameter :: caller = "elsi_to_standard_evp"
+   character*40, parameter :: caller = "elsi_to_standard_evp"
 
    select case (method)
       case (ELPA)
@@ -942,7 +860,7 @@ subroutine elsi_to_original_ev()
    real*8, allocatable :: buffer_real(:,:)         !< Real valued matrix buffer
    complex*16, allocatable :: buffer_complex (:,:) !< Complex valued matrix buffer
 
-   character*100, parameter :: caller = "elsi_to_original_ev"
+   character*40, parameter :: caller = "elsi_to_original_ev"
 
    select case (method)
       case (ELPA)
@@ -1006,7 +924,7 @@ subroutine elsi_solve_evp_elpa(cholesky)
    logical :: success
    logical :: two_step_solver
 
-   character*100, parameter :: caller = "elsi_solve_evp_elpa"
+   character*40, parameter :: caller = "elsi_solve_evp_elpa"
 
    call elsi_start_solve_evp_time()
 
@@ -1089,7 +1007,7 @@ subroutine elsi_customize_elpa(elpa_solver)
 
    integer, intent(in) :: elpa_solver
 
-   character*100, parameter :: caller = "elsi_customize_elpa"
+   character*40, parameter :: caller = "elsi_customize_elpa"
 
    if(method == 0) then
       if(elpa_solver == 1) then
@@ -1119,7 +1037,9 @@ subroutine elsi_solve_evp_omm(cholesky)
    logical, intent(in) :: cholesky !< Cholesky factorize overlap?
 
    logical :: success
-   character*100, parameter :: caller = "elsi_solve_evp_omm"
+   character*40, parameter :: caller = "elsi_solve_evp_omm"
+
+   call elsi_statement_print(" OMM start ")
 
    call elsi_start_solve_evp_time()
 
@@ -1184,7 +1104,7 @@ subroutine elsi_customize_omm(scale_kinetic_in,calc_ed_in,eta_in,&
    logical, intent(in), optional :: omm_verbose_in
    logical, intent(in), optional :: do_dealloc_in
 
-   character*100, parameter :: caller = "elsi_customize_omm"
+   character*40, parameter :: caller = "elsi_customize_omm"
 
    if(method == 1) then
       ! Scaling of kinetic energy matrix
@@ -1241,6 +1161,57 @@ subroutine elsi_ev_real(H_in, S_in, e_val_out, e_vec_out, need_cholesky)
          call elsi_solve_evp_elpa(need_cholesky)
          call elsi_get_eigenvalues(e_val_out)
          call elsi_get_eigenvectors(e_vec_out)
+
+         ! Deallocate
+         call elsi_deallocate_matrices()
+
+      case (LIBOMM)
+         call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors. "//&
+                        " Choose ELPA if necessary. Exiting... ",caller)
+      case (PEXSI)
+         call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors. "//&
+                        " Choose ELPA if necessary. Exiting... ",caller)
+      case (CHESS)
+         call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors. "//&
+                        " Choose ELPA if necessary. Exiting... ",caller)
+      case DEFAULT
+         call elsi_stop(" No supported method has been chosen. "//&
+                        " Please choose ELPA to compute eigenpairs. "//&
+                        " Exiting... ",caller)
+   end select
+
+   need_cholesky = .false.
+
+end subroutine
+
+subroutine elsi_ev_real_ms(H_ms, S_ms, e_val_out, C_ms, need_cholesky)
+   implicit none
+
+   type(matrix) :: H_ms                       !< Hamiltonian
+   type(matrix) :: S_ms                       !< Overlap
+   real*8, intent(out) :: e_val_out(n_states) !< Eigenvalues
+   type(matrix) :: C_ms                       !< Eigenvectors
+   logical, intent(inout) :: need_cholesky    !< Cholesky factorize overlap?
+
+   character*40, parameter :: caller = "elsi_ev_real"
+
+   ! Here the only supported method is ELPA
+   select case (method)
+      case (ELPA)
+         ! REAL case
+         call elsi_set_mode(REAL_VALUES)
+
+         ! Allocate matrices
+         call elsi_allocate_matrices()
+
+         ! Set Hamiltonian and Overlap matrices
+         call elsi_set_hamiltonian(H_ms%dval)
+         call elsi_set_overlap(S_ms%dval)
+
+         ! Solve eigenvalue problem
+         call elsi_solve_evp_elpa(need_cholesky)
+         call elsi_get_eigenvalues(e_val_out)
+         call elsi_get_eigenvectors(C_ms%dval)
 
          ! Deallocate
          call elsi_deallocate_matrices()
@@ -1332,7 +1303,7 @@ subroutine elsi_dm_real(H_in, S_in, D_out, need_cholesky, occupation)
    logical, intent(inout) :: need_cholesky               !< Cholesky factorize overlap?
    real*8,  intent(in), optional :: occupation(n_states) !< Occupation number
 
-   character*100, parameter :: caller = "elsi_dm_real"
+   character*40, parameter :: caller = "elsi_dm_real"
 
    ! REAL case
    call elsi_set_mode(REAL_VALUES)
@@ -1343,6 +1314,7 @@ subroutine elsi_dm_real(H_in, S_in, D_out, need_cholesky, occupation)
    ! Set Hamiltonian and overlap matrices
    call elsi_set_hamiltonian(H_in)
    call elsi_set_overlap(S_in)
+   call elsi_statement_print(" Matrices values set. ")
 
    ! Solve eigenvalue problem
    select case (method)
@@ -1384,7 +1356,7 @@ subroutine elsi_dm_complex(H_in, S_in, D_out, need_cholesky, occupation)
    logical, intent(inout) :: need_cholesky                   !< Cholesky factorize overlap?
    real*8,  intent(in), optional :: occupation(n_states)     !< Occupation number
 
-   character*100, parameter :: caller = "elsi_dm_complex"
+   character*40, parameter :: caller = "elsi_dm_complex"
 
    ! COMPLEX case
    call elsi_set_mode(COMPLEX_VALUES)
