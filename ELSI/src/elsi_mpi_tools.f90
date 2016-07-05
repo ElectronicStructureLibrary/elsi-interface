@@ -116,20 +116,20 @@ end subroutine
 !>
 !! Set MPI from external.
 !!
-subroutine elsi_set_mpi(global_comm, n_procs_in, myid_in)
+subroutine elsi_set_mpi(mpi_comm_global_in, n_procs_in, myid_in)
 
    implicit none
    include 'mpif.h'
 
    integer,intent(in) :: myid_in            !< local process id
    integer,intent(in) :: n_procs_in         !< number of mpi processes
-   integer,intent(in) :: global_comm        !< global mpi communicator
+   integer,intent(in) :: mpi_comm_global_in !< global mpi communicator
 
    ! MPI Initialization
 
    external_mpi = .True.
    mpi_is_setup = .True.
-   mpi_comm_global = global_comm
+   mpi_comm_global = mpi_comm_global_in
    n_procs         = n_procs_in
    myid            = myid_in
 
@@ -161,9 +161,6 @@ subroutine elsi_init_blacs()
 
    implicit none
    include "mpif.h"
-
-   ! Exception how to deviate from blocksize for OMM
-   integer :: exception(2) = (/0,0/)
 
    if(method == PEXSI) then
 
@@ -258,12 +255,12 @@ subroutine elsi_init_blacs()
       n_l_nonzero = n_l_rows * n_l_cols
       n_g_nonzero = n_g_rank * n_g_rank
 
-      call descinit(sc_desc, n_g_rank, n_g_rank, n_b_rows, n_b_cols, 0, 0, &
-                    blacs_ctxt, MAX(1,n_l_rows), blacs_info)
+      call descinit(sc_desc, n_g_rank, n_g_rank, n_b_rows, n_b_cols, &
+                    0, 0, blacs_ctxt, MAX(1,n_l_rows), blacs_info)
 
       if(method == LIBOMM) then
-         call ms_scalapack_setup(myid, n_procs, n_p_rows, 'c', n_b_rows, exception,&
-                                 blacs_ctxt)
+         call ms_scalapack_setup(myid, n_procs, n_p_rows, 'c', &
+                                 n_b_rows, icontxt=blacs_ctxt)
       endif
    endif
 
@@ -282,9 +279,6 @@ subroutine elsi_set_blacs(blacs_ctxt_in, n_b_rows_in, n_b_cols_in, n_p_rows_in, 
    implicit none
    include "mpif.h"
 
-   ! Exception how to deviate from blocksize for OMM
-   integer :: exception(2) = (/0,0/)
-
    integer, intent(in) :: blacs_ctxt_in   !< local blacs context
    integer, intent(in) :: n_b_rows_in     !< Block size
    integer, intent(in) :: n_b_cols_in     !< Block size
@@ -295,8 +289,8 @@ subroutine elsi_set_blacs(blacs_ctxt_in, n_b_rows_in, n_b_cols_in, n_p_rows_in, 
    integer, intent(in) :: n_l_rows_in     !< Number of local rows
    integer, intent(in) :: n_l_cols_in     !< Number of local columns
    integer, intent(in) :: sc_desc_in(9)   !< local blacs context
-   integer, intent(in) :: mpi_comm_row_in !< row    communicatior
-   integer, intent(in) :: mpi_comm_col_in !< column communicatior
+   integer, intent(in), optional :: mpi_comm_row_in !< row    communicatior
+   integer, intent(in), optional :: mpi_comm_col_in !< column communicatior
 
    external_blacs = .true.
    blacs_is_setup = .true.
@@ -316,7 +310,7 @@ subroutine elsi_set_blacs(blacs_ctxt_in, n_b_rows_in, n_b_cols_in, n_p_rows_in, 
    mpi_comm_col = mpi_comm_col_in
 
    if(method == LIBOMM) then
-      call ms_scalapack_setup(myid, n_procs, n_p_rows, "r", n_b_rows, exception, blacs_ctxt)
+      call ms_scalapack_setup(myid, n_procs, n_p_rows, "r", n_b_rows, icontxt=blacs_ctxt)
    endif
 
 end subroutine

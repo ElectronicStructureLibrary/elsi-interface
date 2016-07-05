@@ -257,19 +257,11 @@ subroutine elsi_allocate_matrices()
       case (LIBOMM)
          select case (mode)
             case (COMPLEX_VALUES)
-!               call m_register_pdbc(H_omm, H_complex, sc_desc)
-!               call m_register_pdbc(S_omm, S_complex, sc_desc)
-               call m_allocate(D_omm, n_g_rank, n_g_rank, "pzdbc")
-               call m_allocate(Coeff_omm, n_states, n_g_rank, "pzdbc")
-               call m_allocate(T_omm, n_g_rank, n_g_rank, "pzdbc")
-
-            case (REAL_VALUES)
-!               call m_register_pdbc(H_omm, H_real, sc_desc)
-!               call m_register_pdbc(S_omm, S_real, sc_desc)
                call m_allocate(D_omm, n_g_rank, n_g_rank, "pddbc")
                call m_allocate(Coeff_omm, n_states, n_g_rank, "pddbc")
-               call m_allocate(T_omm, n_g_rank, n_g_rank, "pddbc")
-
+            case (REAL_VALUES)
+               call m_allocate(D_omm, n_g_rank, n_g_rank, "pddbc")
+               call m_allocate(Coeff_omm, n_states, n_g_rank, "pddbc")
             case DEFAULT
                call elsi_stop(" No mode has been chosen. "//&
                               " Please choose REAL_VALUES or COMPLEX_VALUES. ",&
@@ -277,15 +269,9 @@ subroutine elsi_allocate_matrices()
          end select
 
       case (PEXSI)
-         select case (mode)
-            case (REAL_VALUES)
-               ! Nothing to allocate here.
-            case DEFAULT
-               call elsi_stop(" No mode has been chosen. "//&
-                              " Please choose REAL_VALUES or COMPLEX_VALUES. ",&
-                              caller)
-         end select
-
+         call elsi_stop(" PEXSI not yet implemented. Exiting... ",caller)
+      case (CHESS)
+         call elsi_stop(" CHESS not yet implemented. Exiting... ",caller)
       case DEFAULT
          call elsi_stop(" No supported method has been chosen. "//&
                         " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
@@ -515,7 +501,7 @@ subroutine elsi_get_occupied_number(occ)
 end subroutine
 
 !>
-!!
+!!  This routine gets the density matrix.
 !!
 subroutine elsi_get_dm(D_out)
 
@@ -682,31 +668,32 @@ subroutine elsi_deallocate_matrices()
    implicit none
 
    ! Nullify pointers
-   if(associated(H_real))    nullify(H_real)
-   if(associated(H_complex)) nullify(H_complex)
-   if(associated(S_real))    nullify(S_real)
-   if(associated(S_complex)) nullify(S_complex)
+   if(associated(H_real))        nullify(H_real)
+   if(associated(H_complex))     nullify(H_complex)
+   if(associated(S_real))        nullify(S_real)
+   if(associated(S_complex))     nullify(S_complex)
  
    ! Free Memory
-   if(allocated(C_real))           deallocate(C_real)
-   if(allocated(C_complex))        deallocate(C_complex)
-   if(allocated(eigenvalues))      deallocate(eigenvalues)
-   if(allocated(D_elpa))           deallocate(D_elpa)
-   if(allocated(H_real_sparse))    deallocate(H_real_sparse)
-   if(allocated(S_real_sparse))    deallocate(S_real_sparse)
-   if(allocated(D_real_sparse))    deallocate(D_real_sparse)
-   if(allocated(ED_real_sparse))   deallocate(ED_real_sparse)
-   if(allocated(FD_real_sparse))   deallocate(FD_real_sparse)
-   if(allocated(sparse_index))     deallocate(sparse_index)
-   if(allocated(sparse_pointer))   deallocate(sparse_pointer)
-
-   if(method == LIBOMM) then
-      if(H_omm%is_initialized)     call m_deallocate(H_omm)
-      if(S_omm%is_initialized)     call m_deallocate(S_omm)
-      if(D_omm%is_initialized)     call m_deallocate(D_omm)
-      if(Coeff_omm%is_initialized) call m_deallocate(Coeff_omm)
-      if(T_omm%is_initialized)     call m_deallocate(T_omm)
-   endif
+   ! ELPA
+   if(allocated(C_real))         deallocate(C_real)
+   if(allocated(C_complex))      deallocate(C_complex)
+   if(allocated(eigenvalues))    deallocate(eigenvalues)
+   if(allocated(D_elpa))         deallocate(D_elpa)
+   ! PEXSI
+   if(allocated(H_real_sparse))  deallocate(H_real_sparse)
+   if(allocated(S_real_sparse))  deallocate(S_real_sparse)
+   if(allocated(D_real_sparse))  deallocate(D_real_sparse)
+   if(allocated(ED_real_sparse)) deallocate(ED_real_sparse)
+   if(allocated(FD_real_sparse)) deallocate(FD_real_sparse)
+   if(allocated(sparse_index))   deallocate(sparse_index)
+   if(allocated(sparse_pointer)) deallocate(sparse_pointer)
+   ! OMM
+   if(H_omm%is_initialized)      call m_deallocate(H_omm)
+   if(S_omm%is_initialized)      call m_deallocate(S_omm)
+   if(D_omm%is_initialized)      call m_deallocate(D_omm)
+   ! Coefficient matrix will only be deallocated when finalizing ELSI
+!   if(Coeff_omm%is_initialized)  call m_deallocate(Coeff_omm)
+   if(T_omm%is_initialized)      call m_deallocate(T_omm)
 
 end subroutine
 
@@ -722,6 +709,7 @@ subroutine elsi_finalize()
 
    call elsi_deallocate_matrices()
 
+   if(Coeff_omm%is_initialized) call m_deallocate(Coeff_omm)
    if(method == PEXSI) call f_ppexsi_plan_finalize(pexsi_plan, pexsi_info)
    
    call elsi_stop_total_time()
@@ -1039,8 +1027,6 @@ subroutine elsi_solve_evp_omm(cholesky)
    logical :: success
    character*40, parameter :: caller = "elsi_solve_evp_omm"
 
-   call elsi_statement_print(" OMM start ")
-
    call elsi_start_solve_evp_time()
 
    call elsi_set_omm_default_options()
@@ -1299,6 +1285,7 @@ subroutine elsi_dm_real(H_in, S_in, D_out, need_cholesky, occupation)
 
    real*8, target, intent(in) :: H_in(n_l_rows,n_l_cols) !< Hamiltonian
    real*8, target, intent(in) :: S_in(n_l_rows,n_l_cols) !< Overlap
+
    real*8, intent(out) :: D_out(n_l_rows,n_l_cols)       !< Density matrix
    logical, intent(inout) :: need_cholesky               !< Cholesky factorize overlap?
    real*8,  intent(in), optional :: occupation(n_states) !< Occupation number
@@ -1314,7 +1301,6 @@ subroutine elsi_dm_real(H_in, S_in, D_out, need_cholesky, occupation)
    ! Set Hamiltonian and overlap matrices
    call elsi_set_hamiltonian(H_in)
    call elsi_set_overlap(S_in)
-   call elsi_statement_print(" Matrices values set. ")
 
    ! Solve eigenvalue problem
    select case (method)
