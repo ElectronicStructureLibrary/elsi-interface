@@ -29,55 +29,54 @@
 
 module ELSI_MPI_TOOLS
 
-  use iso_c_binding
+   use iso_c_binding
+   use ELSI_DIMENSIONS
+   use MatrixSwitch
 
-  use ELSI_DIMENSIONS
-  use MatrixSwitch
+   implicit none
+   private
 
-  implicit none
-  private
+   !> Calculate the local matrix dimensions based on the BLACS grid
+   integer, external :: numroc
 
-  !>Calculates the local matrix dimensions based on the BLACS grid
-  integer, external :: numroc
+   public :: elsi_init_mpi
+   public :: elsi_init_blacs 
+   public :: elsi_set_mpi
+   public :: elsi_set_blacs 
+   public :: elsi_get_global_row
+   public :: elsi_get_global_col
+   public :: elsi_get_global_dimensions
+   public :: elsi_get_local_dimensions
+   public :: elsi_get_processor_grid
+   public :: elsi_get_myid
+   public :: elsi_finalize_mpi
+   public :: elsi_finalize_blacs
+   public :: elsi_value_print
+   public :: elsi_vector_print
+   public :: elsi_matrix_print
+   public :: elsi_statement_print
+   public :: elsi_allocate
 
-  public :: elsi_init_mpi
-  public :: elsi_init_blacs 
-  public :: elsi_set_mpi
-  public :: elsi_set_blacs 
-  public :: elsi_get_global_row
-  public :: elsi_get_global_col
-  public :: elsi_get_global_dimensions
-  public :: elsi_get_local_dimensions
-  public :: elsi_get_processor_grid
-  public :: elsi_get_myid
-  public :: elsi_finalize_mpi
-  public :: elsi_finalize_blacs
-  public :: elsi_value_print
-  public :: elsi_vector_print
-  public :: elsi_matrix_print
-  public :: elsi_statement_print
-  public :: elsi_allocate
+   interface elsi_vector_print
+      module procedure elsi_int_vector_print, &
+                       elsi_real_vector_print
+   end interface
 
-  interface elsi_vector_print
-     module procedure elsi_int_vector_print, &
-                      elsi_real_vector_print
-  end interface
+   interface elsi_value_print
+      module procedure elsi_int_value_print, &
+                       elsi_real_value_print
+   end interface
 
-  interface elsi_value_print
-     module procedure elsi_int_value_print, &
-                      elsi_real_value_print
-  end interface
+   interface elsi_allocate
+      module procedure elsi_allocate_real_vector, &
+                       elsi_allocate_real_matrix, &
+                       elsi_allocate_int_vector, &
+                       elsi_allocate_int_matrix, &
+                       elsi_allocate_complex_vector, &
+                       elsi_allocate_complex_matrix
+   end interface
 
-  interface elsi_allocate
-     module procedure elsi_allocate_real_vector, &
-                      elsi_allocate_real_matrix, &
-                      elsi_allocate_int_vector, &
-                      elsi_allocate_int_matrix, &
-                      elsi_allocate_complex_vector, &
-                      elsi_allocate_complex_matrix
-  end interface
-
-  contains
+   contains
 
 !>
 !! Initialize MPI.
@@ -269,47 +268,41 @@ end subroutine
 !>
 !! Set BLACS grid from external.
 !!
-subroutine elsi_set_blacs(blacs_ctxt_in, blacs_order_in, n_b_rows_in, n_b_cols_in, &
-                          n_p_rows_in, n_p_cols_in, my_p_row_in, my_p_col_in, n_l_rows_in, &
-                          n_l_cols_in, sc_desc_in, mpi_comm_row_in, mpi_comm_col_in)
+subroutine elsi_set_blacs(blacs_ctxt_in, n_b_rows_in, n_b_cols_in, n_p_rows_in, &
+                          n_p_cols_in, mpi_comm_row_in, mpi_comm_col_in)
 
    implicit none
    include "mpif.h"
 
    integer, intent(in) :: blacs_ctxt_in             !< BLACS context
-   character(1), intent(in) :: blacs_order_in       !< 'r': row major; 'c': column major
    integer, intent(in) :: n_b_rows_in               !< Block size
    integer, intent(in) :: n_b_cols_in               !< Block size
    integer, intent(in) :: n_p_rows_in               !< Number of processes in row
    integer, intent(in) :: n_p_cols_in               !< Number of processes in column
-   integer, intent(in) :: my_p_row_in               !< process row position
-   integer, intent(in) :: my_p_col_in               !< process column position
-   integer, intent(in) :: n_l_rows_in               !< Number of local rows
-   integer, intent(in) :: n_l_cols_in               !< Number of local columns
-   integer, intent(in) :: sc_desc_in(9)             !< Descriptor of Hamiltonian/overlap
    integer, intent(in), optional :: mpi_comm_row_in !< row communicatior for ELPA
    integer, intent(in), optional :: mpi_comm_col_in !< column communicatior for ELPA
+
+   integer :: blacs_info
 
    external_blacs = .true.
    blacs_is_setup = .true.
 
    blacs_ctxt = blacs_ctxt_in 
-   n_b_rows   = n_b_rows_in
-   n_b_cols   = n_b_cols_in
-   n_p_rows   = n_p_rows_in 
-   n_p_cols   = n_p_cols_in
-   my_p_row   = my_p_row_in
-   my_p_col   = my_p_col_in
-   n_l_rows   = n_l_rows_in
-   n_l_cols   = n_l_cols_in
-   sc_desc    = sc_desc_in
+   n_b_rows = n_b_rows_in
+   n_b_cols = n_b_cols_in
+   n_p_rows = n_p_rows_in 
+   n_p_cols = n_p_cols_in
+   call blacs_pcoord(blacs_ctxt,myid,my_p_row,my_p_col)
+   n_l_rows = numroc(n_g_rank,n_b_rows,my_p_row,0,n_p_rows)
+   n_l_cols = numroc(n_g_rank,n_b_cols,my_p_col,0,n_p_cols)
+   call descinit(sc_desc,n_g_rank,n_g_rank,n_b_rows,n_b_cols,0,0,&
+                 blacs_ctxt,MAX(1,n_l_rows),blacs_info)
 
    mpi_comm_row = mpi_comm_row_in
    mpi_comm_col = mpi_comm_col_in
 
    if(method == LIBOMM) then
-      call ms_scalapack_setup(myid, n_procs, n_p_rows, blacs_order_in, &
-                              n_b_rows, icontxt=blacs_ctxt)
+      call ms_scalapack_setup(myid,n_procs,n_p_rows,'r',n_b_rows,icontxt=blacs_ctxt)
    endif
 
 end subroutine

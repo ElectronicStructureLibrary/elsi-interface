@@ -29,50 +29,50 @@
 
 module ELSI_TIMERS
 
-  use iso_c_binding
-  use ELSI_DIMENSIONS
+   use iso_c_binding
+   use ELSI_DIMENSIONS
 
-  implicit none
-  private
+   implicit none
+   private
 
-  logical:: total_time = .false.
-  real*8 :: walltime_total  
-  real*8 :: walltime_total_start  
+   logical:: total_time = .false.
+   real*8 :: walltime_total  
+   real*8 :: walltime_total_start  
 
-  logical:: read_time = .false.
-  real*8 :: walltime_read_evp  
-  real*8 :: walltime_read_evp_start  
+   logical:: read_time = .false.
+   real*8 :: walltime_read_evp  
+   real*8 :: walltime_read_evp_start  
   
-  logical:: write_time = .false.
-  real*8 :: walltime_write_evp  
-  real*8 :: walltime_write_evp_start  
+   logical:: write_time = .false.
+   real*8 :: walltime_write_evp  
+   real*8 :: walltime_write_evp_start  
 
-  logical:: solve_time = .false.
-  real*8 :: walltime_solve_evp  
-  real*8 :: walltime_solve_evp_start
+   logical:: solve_time = .false.
+   real*8 :: walltime_solve_evp  
+   real*8 :: walltime_solve_evp_start
 
-  logical:: dist_pexsi_time = .false.
-  real*8 :: walltime_dist_pexsi  
-  real*8 :: walltime_dist_pexsi_start   
+   logical:: dist_pexsi_time = .false.
+   real*8 :: walltime_dist_pexsi  
+   real*8 :: walltime_dist_pexsi_start   
   
-  integer :: clock_rate
-  integer :: clock_max
+   integer :: clock_rate
+   integer :: clock_max
 
-  public :: elsi_init_timers 
-  public :: elsi_print_setup 
-  public :: elsi_print_timers 
-  public :: elsi_start_total_time 
-  public :: elsi_stop_total_time
-  public :: elsi_start_read_evp_time
-  public :: elsi_stop_read_evp_time
-  public :: elsi_start_write_evp_time
-  public :: elsi_stop_write_evp_time
-  public :: elsi_start_solve_evp_time
-  public :: elsi_stop_solve_evp_time
-  public :: elsi_start_dist_pexsi_time
-  public :: elsi_stop_dist_pexsi_time
+   public :: elsi_init_timers 
+   public :: elsi_print_setup 
+   public :: elsi_print_timers 
+   public :: elsi_start_total_time 
+   public :: elsi_stop_total_time
+   public :: elsi_start_read_evp_time
+   public :: elsi_stop_read_evp_time
+   public :: elsi_start_write_evp_time
+   public :: elsi_stop_write_evp_time
+   public :: elsi_start_solve_evp_time
+   public :: elsi_stop_solve_evp_time
+   public :: elsi_start_dist_pexsi_time
+   public :: elsi_stop_dist_pexsi_time
 
-contains
+   contains
 
 !>
 !!  This routine sets all timers to zero.
