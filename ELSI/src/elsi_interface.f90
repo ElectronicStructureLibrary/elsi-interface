@@ -93,8 +93,9 @@ module ELSI
    integer, allocatable :: sparse_pointer(:)
 
    !< From ELSI_DIMENSIONS
-   public :: ELPA, LIBOMM, PEXSI, CHESS
+   public :: AUTO, ELPA, LIBOMM, PEXSI, CHESS
    public :: REAL_VALUES, COMPLEX_VALUES
+   public :: BLOCK_CYCLIC
 
    ! From ELSI_MPI_TOOLS
    ! In use
@@ -109,7 +110,6 @@ module ELSI
    ! Public routines
    ! In use
    public :: elsi_init           !< Initialize
-   public :: elsi_set_method     !< Set method
    public :: elsi_customize_elpa !< Override ELPA default
    public :: elsi_customize_omm  !< Override OMM default
    public :: elsi_ev_real        !< Compute eigenvalues and eigenvectors
@@ -121,6 +121,7 @@ module ELSI
    ! Legacy
    public :: elsi_init_problem
    public :: elsi_init_problem_from_file
+   public :: elsi_set_method
    public :: elsi_set_mode
    public :: elsi_allocate_matrices
    public :: elsi_deallocate_matrices
@@ -188,10 +189,12 @@ subroutine elsi_init(solver, matrix_format, matrix_size, number_of_states)
 
    implicit none
 
-   integer, intent(in) :: solver           !< ELPA,LIBOMM,PEXSI,CHESS,...
+   integer, intent(in) :: solver           !< AUTO,ELPA,LIBOMM,PEXSI,CHESS,...
    integer, intent(in) :: matrix_format    !< BLOCK_CYCLIC,...
    integer, intent(in) :: matrix_size      !< Global dimension of matrix
    integer, intent(in) :: number_of_states !< Number of states
+
+   if(solver == 0) stop
 
    call elsi_set_method(solver)
    call elsi_set_storage(matrix_format)
@@ -211,7 +214,7 @@ subroutine elsi_set_method(i_method)
 
    implicit none
 
-   integer, intent(in) :: i_method !< ELPA,OMM,PEXSI,CHESS,...
+   integer, intent(in) :: i_method !< AUTO,ELPA,OMM,PEXSI,CHESS,...
    
    method = i_method
 

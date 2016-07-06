@@ -137,7 +137,7 @@ module ELSI_DIMENSIONS
 
   !> Method names
   enum, bind( C )
-    enumerator :: ELPA, LIBOMM, PEXSI, CHESS
+    enumerator :: AUTO, ELPA, LIBOMM, PEXSI, CHESS
   end enum
 
   !> Mode
@@ -197,7 +197,7 @@ subroutine elsi_stop(message, caller)
                & myid, trim(caller), trim(message)
          write(*,'(A)') trim(string_message)
       endif
-      call MPI_BARRIER(mpi_comm_global,mpierr)
+      call MPI_BARRIER(mpi_comm_global, mpierr)
    enddo
 
    if(n_procs > 1) then
@@ -413,7 +413,7 @@ subroutine elsi_set_omm_default_options()
    nk_times_nspin = 1
    !< Combined k_point spin index
    i_k_spin = 1
-   omm_verbose = .True.
+   omm_verbose = .False.
    do_dealloc = .False.
 
    call elsi_print_omm_options()
