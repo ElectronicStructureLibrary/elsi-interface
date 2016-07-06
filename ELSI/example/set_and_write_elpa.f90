@@ -123,7 +123,7 @@ program set_and_write
   call elsi_init_problem(matrixsize, blocksize, blocksize)
   
   ! Forth Set the parallel distribution
-  call elsi_set_blacs(blacs_ctxt, blocksize, blocksize, n_process_rows, &
+  call elsi_set_blacs(blacs_ctxt, 'R', blocksize, blocksize, n_process_rows, &
         n_process_cols, my_process_row, my_process_col, n_rows, n_cols, &
         sc_desc, mpi_comm_row, mpi_comm_col)
   

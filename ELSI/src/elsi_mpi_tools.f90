@@ -222,7 +222,7 @@ subroutine elsi_init_blacs()
       external_blacs = .False.
       blacs_is_setup = .True.
      
-      ! Define blockcyclic setup
+      ! Block-cyclic setup
       do n_p_cols = NINT(SQRT(REAL(n_procs))),n_procs,1
          if(mod(n_procs,n_p_cols) == 0 ) exit
       enddo
@@ -264,33 +264,31 @@ subroutine elsi_init_blacs()
       endif
    endif
 
-   ! Debug
-   !call elsi_variable_status()
-
 end subroutine
 
 !>
 !! Set BLACS grid from external.
 !!
-subroutine elsi_set_blacs(blacs_ctxt_in, n_b_rows_in, n_b_cols_in, n_p_rows_in, &
-                          n_p_cols_in, my_p_row_in, my_p_col_in, n_l_rows_in, &
+subroutine elsi_set_blacs(blacs_ctxt_in, blacs_order_in, n_b_rows_in, n_b_cols_in, &
+                          n_p_rows_in, n_p_cols_in, my_p_row_in, my_p_col_in, n_l_rows_in, &
                           n_l_cols_in, sc_desc_in, mpi_comm_row_in, mpi_comm_col_in)
 
    implicit none
    include "mpif.h"
 
-   integer, intent(in) :: blacs_ctxt_in   !< local blacs context
-   integer, intent(in) :: n_b_rows_in     !< Block size
-   integer, intent(in) :: n_b_cols_in     !< Block size
-   integer, intent(in) :: n_p_rows_in     !< Number of processes in row
-   integer, intent(in) :: n_p_cols_in     !< Number of processes in column
-   integer, intent(in) :: my_p_row_in     !< process row    position
-   integer, intent(in) :: my_p_col_in     !< process column position
-   integer, intent(in) :: n_l_rows_in     !< Number of local rows
-   integer, intent(in) :: n_l_cols_in     !< Number of local columns
-   integer, intent(in) :: sc_desc_in(9)   !< local blacs context
-   integer, intent(in), optional :: mpi_comm_row_in !< row    communicatior
-   integer, intent(in), optional :: mpi_comm_col_in !< column communicatior
+   integer, intent(in) :: blacs_ctxt_in             !< BLACS context
+   character(1), intent(in) :: blacs_order_in       !< 'r': row major; 'c': column major
+   integer, intent(in) :: n_b_rows_in               !< Block size
+   integer, intent(in) :: n_b_cols_in               !< Block size
+   integer, intent(in) :: n_p_rows_in               !< Number of processes in row
+   integer, intent(in) :: n_p_cols_in               !< Number of processes in column
+   integer, intent(in) :: my_p_row_in               !< process row position
+   integer, intent(in) :: my_p_col_in               !< process column position
+   integer, intent(in) :: n_l_rows_in               !< Number of local rows
+   integer, intent(in) :: n_l_cols_in               !< Number of local columns
+   integer, intent(in) :: sc_desc_in(9)             !< Descriptor of Hamiltonian/overlap
+   integer, intent(in), optional :: mpi_comm_row_in !< row communicatior for ELPA
+   integer, intent(in), optional :: mpi_comm_col_in !< column communicatior for ELPA
 
    external_blacs = .true.
    blacs_is_setup = .true.
@@ -310,7 +308,8 @@ subroutine elsi_set_blacs(blacs_ctxt_in, n_b_rows_in, n_b_cols_in, n_p_rows_in, 
    mpi_comm_col = mpi_comm_col_in
 
    if(method == LIBOMM) then
-      call ms_scalapack_setup(myid, n_procs, n_p_rows, "r", n_b_rows, icontxt=blacs_ctxt)
+      call ms_scalapack_setup(myid, n_procs, n_p_rows, blacs_order_in, &
+                              n_b_rows, icontxt=blacs_ctxt)
    endif
 
 end subroutine

@@ -110,23 +110,23 @@ module ELSI
    ! In use
    public :: elsi_init           !< Initialize
    public :: elsi_set_method     !< Set method
-   public :: elsi_set_mode       !< Set mode
    public :: elsi_customize_elpa !< Override ELPA default
+   public :: elsi_customize_omm  !< Override OMM default
    public :: elsi_ev_real        !< Compute eigenvalues and eigenvectors
    public :: elsi_ev_complex     !< Compute eigenvalues and eigenvectors
    public :: elsi_dm_real        !< Compute density matrix
    public :: elsi_dm_complex     !< Compute density matrix
-   ! Under test
-   public :: elsi_ev_real_ms
+   public :: elsi_ev_real_ms     !< MatrixSwitch version
+   public :: elsi_finalize       !< Clean memory and print timings
    ! Legacy
    public :: elsi_init_problem
    public :: elsi_init_problem_from_file
-   public :: elsi_allocate_matrices   !< Initialize matrices
-   public :: elsi_deallocate_matrices !< Cleanup memory
-   public :: elsi_set_hamiltonian     !< Set Hamilitonian
-   public :: elsi_set_overlap         !< Set overlap
-   public :: elsi_solve_evp           !< Solve eigenvalue problem
-   public :: elsi_finalize            !< Finalize and cleanup ELSI
+   public :: elsi_set_mode
+   public :: elsi_allocate_matrices
+   public :: elsi_deallocate_matrices
+   public :: elsi_set_hamiltonian
+   public :: elsi_set_overlap
+   public :: elsi_solve_evp
    public :: elsi_set_hamiltonian_element
    public :: elsi_symmetrize_hamiltonian
    public :: elsi_get_hamiltonian
@@ -184,15 +184,17 @@ contains
 !!  This routine initializes ELSI with global matrix size, 
 !!  number of states, and method.
 !!
-subroutine elsi_init(solver, matrix_size, number_of_states)
+subroutine elsi_init(solver, matrix_format, matrix_size, number_of_states)
 
    implicit none
 
-   integer, intent(in) :: solver           !< ELPA,LIBOMM,PEXSI,CHESS
+   integer, intent(in) :: solver           !< ELPA,LIBOMM,PEXSI,CHESS,...
+   integer, intent(in) :: matrix_format    !< BLOCK_CYCLIC,...
    integer, intent(in) :: matrix_size      !< Global dimension of matrix
    integer, intent(in) :: number_of_states !< Number of states
 
    call elsi_set_method(solver)
+   call elsi_set_storage(matrix_format)
 
    n_g_rank = matrix_size
    n_states = number_of_states
@@ -209,7 +211,7 @@ subroutine elsi_set_method(i_method)
 
    implicit none
 
-   integer, intent(in) :: i_method !< ELPA,OMM,PEXSI,CHESS
+   integer, intent(in) :: i_method !< ELPA,OMM,PEXSI,CHESS,...
    
    method = i_method
 
@@ -227,6 +229,19 @@ subroutine elsi_set_mode(i_mode)
    mode = i_mode
 
 end subroutine 
+
+!>
+!!  This routine sets the matrix storage format.
+!!
+subroutine elsi_set_storage(i_storage)
+
+   implicit none
+
+   integer, intent(in) :: i_storage !< BLOCK_CYCLIC,...
+
+   storage = i_storage
+
+end subroutine
 
 !>
 !!  This routine prepares the matrices.
@@ -981,6 +996,8 @@ subroutine elsi_solve_evp_elpa(cholesky)
       call elsi_to_original_ev()
    endif
 
+   if(myid == 0) print *, SUM(eigenvalues(1:n_states))
+
    call MPI_BARRIER(mpi_comm_global,mpierr)
    call elsi_stop_solve_evp_time()
 
@@ -1066,6 +1083,8 @@ subroutine elsi_solve_evp_omm(cholesky)
                   scale_kinetic, omm_flavour, nk_times_nspin, i_k_spin, min_tol, &
                   omm_verbose, do_dealloc, "pddbc", "lap", myid)
    end select
+
+   if(myid == 0) print *, total_energy 
 
    call MPI_BARRIER(mpi_comm_global,mpierr)
    call elsi_stop_solve_evp_time()

@@ -40,6 +40,9 @@ module ELSI_DIMENSIONS
   !> Real or complex data (REAL_VALUES=1,COMPLEX_VALUES=2)
   integer :: mode = -1
 
+  !> Matrix storage format
+  integer :: storage = -1
+
   !> Global matrix dimension
   integer :: n_g_rank
   
@@ -137,9 +140,15 @@ module ELSI_DIMENSIONS
     enumerator :: ELPA, LIBOMM, PEXSI, CHESS
   end enum
 
+  !> Mode
   enum, bind( C )
     enumerator :: REAL_VALUES, COMPLEX_VALUES
-  end enum   
+  end enum
+
+  !> Storage formats
+  enum, bind( C )
+    enumerator :: BLOCK_CYCLIC
+  end enum
 
 contains
 
