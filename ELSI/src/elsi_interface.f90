@@ -999,7 +999,7 @@ subroutine elsi_solve_evp_elpa(cholesky)
       call elsi_to_original_ev()
    endif
 
-   if(myid == 0) print *, SUM(eigenvalues(1:n_states))
+   if(myid == 0) print *, " Energy: ", SUM(eigenvalues(1:n_states))
 
    call MPI_BARRIER(mpi_comm_global,mpierr)
    call elsi_stop_solve_evp_time()
@@ -1017,7 +1017,7 @@ subroutine elsi_customize_elpa(elpa_solver)
 
    character*40, parameter :: caller = "elsi_customize_elpa"
 
-   if(method == 0) then
+   if(method == ELPA) then
       if(elpa_solver == 1) then
          elpa_one_always = .true.
          elpa_two_always = .false.
@@ -1049,7 +1049,10 @@ subroutine elsi_solve_evp_omm(cholesky)
 
    call elsi_start_solve_evp_time()
 
-   call elsi_set_omm_default_options()
+   if(.not.omm_customized) then
+      call elsi_set_omm_default_options()
+      call elsi_print_omm_options()
+   endif
 
    if(cholesky) then
       new_overlap = .true.
@@ -1087,7 +1090,7 @@ subroutine elsi_solve_evp_omm(cholesky)
                   omm_verbose, do_dealloc, "pddbc", "lap", myid)
    end select
 
-   if(myid == 0) print *, total_energy 
+   if(myid == 0) print *, " Energy: ", total_energy
 
    call MPI_BARRIER(mpi_comm_global,mpierr)
    call elsi_stop_solve_evp_time()
@@ -1114,23 +1117,29 @@ subroutine elsi_customize_omm(scale_kinetic_in,calc_ed_in,eta_in,&
 
    character*40, parameter :: caller = "elsi_customize_omm"
 
-   if(method == 1) then
+   if(method == LIBOMM) then
+      ! Set default settings
+      call elsi_set_omm_default_options()
+
       ! Scaling of kinetic energy matrix
-      scale_kinetic = scale_kinetic_in
+      if(present(scale_kinetic_in)) scale_kinetic = scale_kinetic_in
       ! Calculate energy weigthed density matrix?
-      calc_ed = calc_ed_in
+      if(present(calc_ed_in)) calc_ed = calc_ed_in
       ! Eigenspectrum shift parameter
-      eta = eta_in
+      if(present(eta_in)) eta = eta_in
       ! Tolerance for minimization
-      min_tol = min_tol_in
+      if(present(min_tol_in)) min_tol = min_tol_in
       ! n_k_points * n_spin
-      nk_times_nspin = nk_times_nspin_in
+      if(present(nk_times_nspin_in)) nk_times_nspin = nk_times_nspin_in
       ! Index
-      i_k_spin = i_k_spin_in
+      if(present(i_k_spin_in)) i_k_spin = i_k_spin_in
       ! OMM output?
-      omm_verbose = omm_verbose_in
+      if(present(omm_verbose_in)) omm_verbose = omm_verbose_in
       ! Deallocate internal storage?
-      do_dealloc = do_dealloc_in
+      if(present(do_dealloc_in)) do_dealloc = do_dealloc_in
+
+      omm_customized = .true.
+      call elsi_print_omm_options()
    else
       call elsi_stop(" The chosen method is not OMM. Exiting... ", caller)
    endif

@@ -95,6 +95,7 @@ module ELSI_DIMENSIONS
   logical :: elpa_two_always = .false.
 
   !> OMM
+  logical :: omm_customized = .false.
   logical :: new_overlap
   logical :: C_matrix_initialized
   !< Total energy value
@@ -408,15 +409,13 @@ subroutine elsi_set_omm_default_options()
    !< Eigenspectrum shift parameter
    eta = 0d0
    !< Tolerance for minimization
-   min_tol = 1.0d-9
+   min_tol = 1.0d-12
    !< n_k_points * n_spin
    nk_times_nspin = 1
    !< Combined k_point spin index
    i_k_spin = 1
    omm_verbose = .False.
    do_dealloc = .False.
-
-   call elsi_print_omm_options()
 
 end subroutine
 
