@@ -98,12 +98,10 @@ module ELSI
    public :: BLOCK_CYCLIC
 
    ! From ELSI_MPI_TOOLS
-   ! In use
    public :: elsi_init_mpi
    public :: elsi_init_blacs
    public :: elsi_set_mpi
    public :: elsi_set_blacs
-   ! Legacy
    public :: elsi_get_global_row
    public :: elsi_get_global_col
 
@@ -519,6 +517,34 @@ subroutine elsi_get_occupied_number(occ)
 end subroutine
 
 !>
+!!  This routine gets the energy.
+!!
+subroutine elsi_get_energy(energy_out)
+
+   implicit none
+
+   real*8, intent(out) :: energy_out
+
+   character*40, parameter :: caller = "elsi_get_energy"
+
+   select case (method)
+      case (ELPA)
+         energy_out = SUM(eigenvalues(1:n_states))
+      case (LIBOMM)
+         energy_out = total_energy
+      case (PEXSI)
+         call elsi_stop(" PEXSI: not yet implemented! Exiting... ",caller)
+      case (CHESS)
+         call elsi_stop(" CHESS: not yet implemented! Exiting... ",caller)
+      case DEFAULT
+         call elsi_stop(" No supported method has been chosen. "//&
+                        " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
+                        " Exiting... ",caller)
+   end select
+
+end subroutine
+
+!>
 !!  This routine gets the density matrix.
 !!
 subroutine elsi_get_dm(D_out)
@@ -563,6 +589,9 @@ subroutine elsi_compute_dm_elpa(D_out,occ)
 
    integer, allocatable :: local_col(:)
    integer :: i_col, i
+   integer :: l_row, l_col ! Local index
+   integer :: g_row, g_col !< Global index
+
 
    character*40, parameter :: caller = "elsi_compute_dm"
 
@@ -649,6 +678,25 @@ subroutine elsi_compute_dm_elpa(D_out,occ)
          deallocate(factor)
          if(allocated(tmp_real))    deallocate(tmp_real)
          if(allocated(tmp_complex)) deallocate(tmp_complex)
+
+         ! Now D_out is an upper triangle matrix
+         ! Set D_out to full
+         call elsi_allocate(tmp_real,n_l_rows,n_l_cols,"tmp_real",caller)
+         tmp_real = D_out
+
+         call pdtran(n_g_rank,n_g_rank,1.d0,tmp_real,1,1,sc_desc,1.d0,D_out,1,1,sc_desc)
+
+         deallocate(tmp_real)
+
+         do l_row = 1,n_l_rows
+            call elsi_get_global_row(g_row,l_row)
+            do l_col = l_row,n_l_cols
+               call elsi_get_global_col(g_col,l_col)
+               if(g_row == g_col) then
+                  D_out(l_row,l_col) = 0.5d0 * D_out(l_row,l_col)
+               endif
+            enddo
+         enddo
 
       case (LIBOMM)
          call elsi_stop(" LIBOMM does not compute density matrix from eigenvectors! "//&
@@ -988,8 +1036,6 @@ subroutine elsi_solve_evp_elpa(cholesky)
       call elsi_to_original_ev()
    endif
 
-   if(myid == 0) print *, " Energy: ", SUM(eigenvalues(1:n_states))
-
    call MPI_BARRIER(mpi_comm_global,mpierr)
    call elsi_stop_solve_evp_time()
 
@@ -1078,8 +1124,6 @@ subroutine elsi_solve_evp_omm(cholesky)
                   scale_kinetic, omm_flavour, nk_times_nspin, i_k_spin, min_tol, &
                   omm_verbose, do_dealloc, "pddbc", "lap", myid)
    end select
-
-   if(myid == 0) print *, " Energy: ", total_energy
 
    call MPI_BARRIER(mpi_comm_global,mpierr)
    call elsi_stop_solve_evp_time()
@@ -1299,14 +1343,14 @@ end subroutine
 !>
 !!  This routine computes density matrix.
 !!
-subroutine elsi_dm_real(H_in, S_in, D_out, need_cholesky, occupation)
+subroutine elsi_dm_real(H_in, S_in, D_out, energy_out, need_cholesky, occupation)
 
    implicit none
 
    real*8, target, intent(in) :: H_in(n_l_rows,n_l_cols) !< Hamiltonian
    real*8, target, intent(in) :: S_in(n_l_rows,n_l_cols) !< Overlap
-
    real*8, intent(out) :: D_out(n_l_rows,n_l_cols)       !< Density matrix
+   real*8, intent(out) :: energy_out                     !< Energy
    logical, intent(inout) :: need_cholesky               !< Cholesky factorize overlap?
    real*8,  intent(in), optional :: occupation(n_states) !< Occupation number
 
@@ -1329,9 +1373,11 @@ subroutine elsi_dm_real(H_in, S_in, D_out, need_cholesky, occupation)
          call elsi_solve_evp_elpa(need_cholesky)
          call elsi_allocate(D_elpa, n_l_rows, n_l_cols, "D_elpa", caller)
          call elsi_compute_dm_elpa(D_out, occupation)
+         call elsi_get_energy(energy_out)
       case (LIBOMM)
          call elsi_solve_evp_omm(need_cholesky)
          call elsi_get_dm(D_out)
+         call elsi_get_energy(energy_out)
       case (PEXSI)
          call elsi_stop(" PEXSI not yet implemented. Exiting... ",caller)
       case (CHESS)
@@ -1352,13 +1398,14 @@ end subroutine
 !>
 !!  This routine computes density matrix.
 !!
-subroutine elsi_dm_complex(H_in, S_in, D_out, need_cholesky, occupation)
+subroutine elsi_dm_complex(H_in, S_in, D_out, energy_out, need_cholesky, occupation)
 
    implicit none
 
    complex*16, target, intent(in) :: H_in(n_l_rows,n_l_cols) !< Hamiltonian
    complex*16, target, intent(in) :: S_in(n_l_rows,n_l_cols) !< Overlap
    real*8, intent(out) :: D_out(n_l_rows,n_l_cols)           !< Density matrix
+   real*8, intent(out) :: energy_out                         !< Energy
    logical, intent(inout) :: need_cholesky                   !< Cholesky factorize overlap?
    real*8,  intent(in), optional :: occupation(n_states)     !< Occupation number
 
@@ -1381,9 +1428,11 @@ subroutine elsi_dm_complex(H_in, S_in, D_out, need_cholesky, occupation)
          call elsi_solve_evp_elpa(need_cholesky)
          call elsi_allocate(D_elpa, n_l_rows, n_l_cols, "D_elpa", caller)
          call elsi_compute_dm_elpa(D_out, occupation)
+         call elsi_get_energy(energy_out)
       case (LIBOMM)
          call elsi_solve_evp_omm(need_cholesky)
          call elsi_get_dm(D_out)
+         call elsi_get_energy(energy_out)
       case (PEXSI)
          call elsi_stop(" PEXSI not yet implemented. Exiting... ",caller)
       case (CHESS)
