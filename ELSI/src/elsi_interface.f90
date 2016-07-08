@@ -508,7 +508,7 @@ subroutine elsi_get_occupied_number(occ)
 
    integer :: occupied, i
 
-   do i = 1,n_states,1
+   do i = 1,n_states
       if(occ(i) > 0d0) then
          occupied = i
       endif
@@ -561,29 +561,19 @@ subroutine elsi_compute_dm_elpa(D_out,occ)
    complex*16, allocatable :: tmp_complex(:,:) !< Complex eigenvectors, temporary
    real*8, allocatable :: factor(:) !< Factor to construct density matrix
 
-   ! This part should be moved into elsi_mpi_tools.f90
-   integer, allocatable :: local_row(:)
    integer, allocatable :: local_col(:)
-   integer :: i_col, i_row, i
+   integer :: i_col, i
 
    character*40, parameter :: caller = "elsi_compute_dm"
 
    select case (method)
       case (ELPA)
-         ! Mapping of global rows/cols to local
-         call elsi_allocate(local_row,n_g_rank,"local_row",caller)
+         ! Map global columns to local
          call elsi_allocate(local_col,n_g_rank,"local_col",caller)
-         local_row = 0
-         local_col = 0
 
-         i_row = 0 ! local row counter
          i_col = 0 ! local column counter
 
-         do i = 1,n_g_rank,1
-            if(MOD((i-1)/n_b_rows,n_p_rows) == my_p_row) then
-               i_row = i_row+1
-               local_row(i) = i_row
-            endif
+         do i = 1,n_g_rank
             if(MOD((i-1)/n_b_cols,n_p_cols) == my_p_col) then
                i_col = i_col+1
                local_col(i) = i_col
@@ -600,13 +590,13 @@ subroutine elsi_compute_dm_elpa(D_out,occ)
                call elsi_allocate(factor,n_states,"factor",caller)
                factor = 0d0
 
-               do i = 1,n_states,1
+               do i = 1,n_states
                   if(occ(i) > 0d0) then
                      factor(i) = sqrt(occ(i))
                   endif
                enddo
 
-               do i = 1,n_states,1
+               do i = 1,n_states
                   if(factor(i) > 0d0) then
                      if(local_col(i) > 0) then
                         tmp_real(:,local_col(i)) = tmp_real(:,local_col(i)) * factor(i)
@@ -631,13 +621,13 @@ subroutine elsi_compute_dm_elpa(D_out,occ)
                call elsi_allocate(factor,n_states,"factor",caller)
                factor = 0d0
 
-               do i = 1,n_states,1
+               do i = 1,n_states
                   if(occ(i) > 0d0) then
                      factor(i) = sqrt(occ(i))
                   endif
                enddo
 
-               do i = 1,n_states,1
+               do i = 1,n_states
                   if(factor(i) > 0d0) then
                      if(local_col(i) > 0) then
                         tmp_complex(:,local_col(i)) = tmp_complex(:,local_col(i)) * factor(i)
@@ -655,7 +645,6 @@ subroutine elsi_compute_dm_elpa(D_out,occ)
 
          end select
 
-         deallocate(local_row)
          deallocate(local_col)
          deallocate(factor)
          if(allocated(tmp_real))    deallocate(tmp_real)
