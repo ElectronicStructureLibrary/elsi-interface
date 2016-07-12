@@ -107,15 +107,16 @@ module ELSI
 
    ! Public routines
    ! In use
-   public :: elsi_init           !< Initialize
-   public :: elsi_customize_elpa !< Override ELPA default
-   public :: elsi_customize_omm  !< Override OMM default
-   public :: elsi_ev_real        !< Compute eigenvalues and eigenvectors
-   public :: elsi_ev_complex     !< Compute eigenvalues and eigenvectors
-   public :: elsi_dm_real        !< Compute density matrix
-   public :: elsi_dm_complex     !< Compute density matrix
-   public :: elsi_ev_real_ms     !< MatrixSwitch version
-   public :: elsi_finalize       !< Clean memory and print timings
+   public :: elsi_init            !< Initialize
+   public :: elsi_customize_elpa  !< Override ELPA default
+   public :: elsi_customize_omm   !< Override OMM default
+   public :: elsi_customize_pexsi !< Override PEXSI default
+   public :: elsi_ev_real         !< Compute eigenvalues and eigenvectors
+   public :: elsi_ev_complex      !< Compute eigenvalues and eigenvectors
+   public :: elsi_dm_real         !< Compute density matrix
+   public :: elsi_dm_complex      !< Compute density matrix
+   public :: elsi_ev_real_ms      !< MatrixSwitch version
+   public :: elsi_finalize        !< Clean memory and print timings
    ! Legacy
    public :: elsi_init_problem
    public :: elsi_init_problem_from_file
@@ -1175,6 +1176,122 @@ subroutine elsi_customize_omm(scale_kinetic_in,calc_ed_in,eta_in,&
       call elsi_print_omm_options()
    else
       call elsi_stop(" The chosen method is not OMM. Exiting... ", caller)
+   endif
+
+end subroutine
+
+!>
+!!  This routine interfaces to PEXSI.
+!!
+subroutine elsi_solve_evp_pexsi()
+
+   implicit none
+   include "mpif.h"
+
+   character*40, parameter :: caller = "elsi_solve_evp_pexsi"
+
+   call elsi_start_solve_evp_time()
+
+   if(.not.pexsi_customized) then
+      call elsi_set_pexsi_default_options()
+      call elsi_print_pexsi_options()
+   endif
+
+   call MPI_BARRIER(mpi_comm_global,mpierr)
+   call elsi_stop_solve_evp_time()
+
+end subroutine
+
+!>
+!!  This routine overrides PEXSI default settings.
+!!
+subroutine elsi_customize_pexsi(temperature_in, gap_in, delta_E_in, n_poles_in, &
+                                is_inertia_count_in, max_iteration_in, mu_min0_in, &
+                                mu_max0_in, mu0_in, mu_inertia_tolerance_in, &
+                                mu_inertia_expansion_in, mu_safeguard_in, &
+                                n_electron_tolerance_in, matrix_type_in, &
+                                is_symbolic_factorize_in, ordering_in, &
+                                row_ordering_in, np_symbolic_factorize_in, &
+                                symmetric_in, transpose_in, verbosity_in)
+
+   implicit none
+
+   real(c_double), intent(in), optional :: temperature_in
+   real(c_double), intent(in), optional :: gap_in
+   real(c_double), intent(in), optional :: delta_E_in
+   integer(c_int), intent(in), optional :: n_poles_in
+   integer(c_int), intent(in), optional :: is_inertia_count_in
+   integer(c_int), intent(in), optional :: max_iteration_in
+   real(c_double), intent(in), optional :: mu_min0_in
+   real(c_double), intent(in), optional :: mu_max0_in
+   real(c_double), intent(in), optional :: mu0_in
+   real(c_double), intent(in), optional :: mu_inertia_tolerance_in
+   real(c_double), intent(in), optional :: mu_inertia_expansion_in
+   real(c_double), intent(in), optional :: mu_safeguard_in
+   real(c_double), intent(in), optional :: n_electron_tolerance_in
+   integer(c_int), intent(in), optional :: matrix_type_in
+   integer(c_int), intent(in), optional :: is_symbolic_factorize_in
+   integer(c_int), intent(in), optional :: ordering_in
+   integer(c_int), intent(in), optional :: row_ordering_in
+   integer(c_int), intent(in), optional :: np_symbolic_factorize_in
+   integer(c_int), intent(in), optional :: symmetric_in
+   integer(c_int), intent(in), optional :: transpose_in
+   integer(c_int), intent(in), optional :: verbosity_in
+
+   character*40, parameter :: caller = "elsi_customize_pexsi"
+
+   if(method == PEXSI) then
+      ! Set default settings
+      call elsi_set_pexsi_default_options()
+
+      !TODO: comments here
+      if(present(temperature_in)) &
+         pexsi_options%temperature = temperature_in
+      if(present(gap_in)) &
+         pexsi_options%gap = gap_in
+      if(present(delta_E_in)) &
+         pexsi_options%deltaE = delta_E_in
+      if(present(n_poles_in)) &
+         pexsi_options%numPole = n_poles_in
+      if(present(is_inertia_count_in)) &
+         pexsi_options%isInertiaCount = is_inertia_count_in
+      if(present(max_iteration_in)) &
+         pexsi_options%maxPEXSIIter = max_iteration_in
+      if(present(mu_min0_in)) &
+         pexsi_options%muMin0 = mu_min0_in
+      if(present(mu_max0_in)) &
+         pexsi_options%muMax0 = mu_max0_in
+      if(present(mu0_in)) &
+         pexsi_options%mu0 = mu0_in
+      if(present(mu_inertia_tolerance_in)) &
+         pexsi_options%muInertiaTolerance = mu_inertia_tolerance_in
+      if(present(mu_inertia_expansion_in)) &
+         pexsi_options%muInertiaExpansion = mu_inertia_expansion_in
+      if(present(mu_safeguard_in)) &
+         pexsi_options%muPEXSISafeGuard = mu_safeguard_in
+      if(present(n_electron_tolerance_in)) &
+         pexsi_options%numElectronPEXSITolerance = n_electron_tolerance_in
+      if(present(matrix_type_in)) &
+         pexsi_options%matrixType = matrix_type_in
+      if(present(is_symbolic_factorize_in)) &
+         pexsi_options%isSymbolicFactorize = is_symbolic_factorize_in
+      if(present(ordering_in)) &
+         pexsi_options%ordering = ordering_in
+      if(present(row_ordering_in)) &
+         pexsi_options%rowOrdering = row_ordering_in
+      if(present(np_symbolic_factorize_in)) &
+         pexsi_options%npSymbFact = np_symbolic_factorize_in
+      if(present(symmetric_in)) &
+         pexsi_options%symmetric = symmetric_in
+      if(present(transpose_in)) &
+         pexsi_options%transpose = transpose_in
+      if(present(verbosity_in)) &
+         pexsi_options%verbosity = verbosity_in
+
+      pexsi_customized = .true.
+      call elsi_print_pexsi_options()
+   else
+      call elsi_stop(" The chosen method is not PEXSI. Exiting... ", caller)
    endif
 
 end subroutine

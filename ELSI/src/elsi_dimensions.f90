@@ -34,13 +34,13 @@ module ELSI_DIMENSIONS
 
   implicit none
   
-  !> Solver (ELPA=0,LIBOMM=1,PEXSI=2,CHESS=3)
+  !> Solver (AUTO=0,ELPA=1,LIBOMM=2,PEXSI=3,CHESS=4)
   integer :: method = -1
 
-  !> Real or complex data (REAL_VALUES=1,COMPLEX_VALUES=2)
+  !> Real or complex data (REAL_VALUES=0,COMPLEX_VALUES=1)
   integer :: mode = -1
 
-  !> Matrix storage format
+  !> Matrix storage format (BLOCK_CYCLIC=0)
   integer :: storage = -1
 
   !> Global matrix dimension
@@ -71,18 +71,18 @@ module ELSI_DIMENSIONS
   integer :: sc_desc(9)
   integer :: mpi_comm_row
   integer :: mpi_comm_col
-  integer :: my_p_row       !< Process row position
-  integer :: my_p_col       !< Process column position
+  integer :: my_p_row !< Process row position
+  integer :: my_p_col !< Process column position
   integer :: blacs_info
-  logical :: external_blacs = .false.
+  logical :: external_blacs = .true.
   logical :: blacs_is_setup = .false.
 
   !> HDF5
   integer :: h5err
 
   !> Sparse matrix information
-  integer :: n_g_nonzero    !< Number of nonzero elements of the global matrix
-  integer :: n_l_nonzero    !< Number of nonzero elements of the local matrix
+  integer :: n_g_nonzero !< Number of nonzero elements of the global matrix
+  integer :: n_l_nonzero !< Number of nonzero elements of the local matrix
 
   !> Overlap
   logical :: overlap_is_unity = .false.
@@ -96,45 +96,39 @@ module ELSI_DIMENSIONS
 
   !> OMM
   logical :: omm_customized = .false.
-  logical :: new_overlap
+  logical :: new_overlap         !< New overlap matrix provided?
   logical :: C_matrix_initialized
-  !< Total energy value
-  real*8  :: total_energy
+  real*8  :: total_energy        !< Total energy value
   !< How to perform the calculation
   !! 0 = Basic
   !! 1 = Cholesky factorisation of S requested
   !! 2 = Cholesky already performed, U is provided in S
   !! 3 = Use preconditioning based on the energy density
   integer :: omm_flavour = -1
-  !< Scaling of the kinetic energy matrix
-  real*8 :: scale_kinetic
-  !< Calculate the energy weighted density matrix
-  logical :: calc_ed = .False.
-  !< Eigenspectrum shift parameter
-  real*8 :: eta
-  !< Tolerance for minimization
-  real*8 :: min_tol
-  !< n_k_points * n_spin
-  integer :: nk_times_nspin = -1
-  !< Combined k_point spin index
-  integer :: i_k_spin = -1
-  logical :: omm_verbose
-  logical :: do_dealloc
+  real*8  :: scale_kinetic       !< Scaling of the kinetic energy matrix
+  logical :: calc_ed = .False.   !< Calculate energy weighted density matrix?
+  real*8  :: eta                 !< Eigenspectrum shift parameter
+  real*8  :: min_tol             !< Tolerance for minimization
+  integer :: nk_times_nspin = -1 !< n_k_points * n_spin
+  integer :: i_k_spin = -1       !< Combined k_point spin index
+  logical :: omm_verbose         !< Output level
+  logical :: do_dealloc          !< Deallocate internal storage?
 
   !> PEXSI
-  integer(c_intptr_t)   :: pexsi_plan
-  type(f_ppexsi_options):: pexsi_options
-  integer(c_int)        :: pexsi_info
-  integer(c_int)        :: pexsi_output_file_index
-  real(c_double)        :: mu_pexsi
-  real(c_double)        :: n_electrons_pexsi
-  real(c_double)        :: mu_min_inertia
-  real(c_double)        :: mu_max_inertia
-  integer(c_int)        :: n_total_inertia_iter
-  integer(c_int)        :: n_total_pexsi_iter
-  real(c_double)        :: e_tot_h
-  real(c_double)        :: e_tot_s
-  real(c_double)        :: f_tot
+  logical                :: pexsi_customized = .false.
+  integer(c_intptr_t)    :: pexsi_plan
+  type(f_ppexsi_options) :: pexsi_options
+  integer(c_int)         :: pexsi_info
+  integer(c_int)         :: pexsi_output_file_index
+  real(c_double)         :: mu_pexsi
+  real(c_double)         :: n_electrons_pexsi
+  real(c_double)         :: mu_min_inertia
+  real(c_double)         :: mu_max_inertia
+  integer(c_int)         :: n_total_inertia_iter
+  integer(c_int)         :: n_total_pexsi_iter
+  real(c_double)         :: e_tot_h
+  real(c_double)         :: e_tot_s
+  real(c_double)         :: f_tot
 
   !> Method names
   enum, bind( C )
@@ -163,7 +157,6 @@ subroutine elsi_print(message)
    character(len=*), intent(in) :: message
 
    character(LEN=4096) :: string_message
-
    integer :: i_task
 
    do i_task = 0, n_procs - 1
@@ -176,7 +169,7 @@ subroutine elsi_print(message)
       call MPI_BARRIER(mpi_comm_global,mpierr)
    enddo
 
-end subroutine 
+end subroutine
 
 !>
 !! Clean shutdown in case of error.
@@ -204,7 +197,7 @@ subroutine elsi_stop(message, caller)
    if(n_procs > 1) then
       call MPI_Abort(mpi_comm_global, 0, mpierr)
    endif
-     
+ 
    stop
 
 end subroutine
@@ -219,7 +212,6 @@ subroutine elsi_variable_status()
 
    character(LEN=4096) :: string_message
    integer :: i_task
-
 
    if(myid == 0) then
       write(string_message, "(1X,'*** Proc',I5,&
@@ -276,47 +268,19 @@ subroutine elsi_variable_status()
 
       call MPI_BARRIER(mpi_comm_global, mpierr)
    enddo
-     
+
 end subroutine
 
 !>
-!! Set PEXSI variables to ELSI default. 
+!! Set PEXSI variables to ELSI default.
 !!
 subroutine elsi_set_pexsi_default_options()
 
    implicit none
-
    include "mpif.h"
 
    ! Use the PEXSI Default options
    call f_ppexsi_set_default_options(pexsi_options)
-
-   ! But do some modification to be more secure in convergence:
-
-   ! Initial guess of lower bound for mu 
-   pexsi_options%muMin0   = -0.5d0
-   ! Initial guess of upper bound for mu
-   pexsi_options%muMax0   = 0.5d0 
-   ! Initial guess for mu (for the solver) (AG) 
-   pexsi_options%mu0      = 0.0d0
-   ! An upper bound for the spectral radius of S−1H
-   pexsi_options%deltaE   = 20d0 
-   ! Number of terms in the pole expansion
-   pexsi_options%numPole  = 40
-   ! Temperature, in the same unit as H
-   pexsi_options%temperature = 0.0095 ! 3000K   
-   ! Safe guard criterion in terms of the chemical potential to 
-   ! reinvoke the inertia counting procedure
-   pexsi_options%muPEXSISafeGuard = 0.2d0
-   ! Stopping criterion of the PEXSI iteration in terms of the number of
-   ! electrons compared to numElectronExact
-   pexsi_options%numElectronPEXSITolerance = 1d-3
-   ! Output 
-   pexsi_options%verbosity = 1
-   ! Maximum number of Iterations
-   pexsi_options%maxPEXSIIter = 10
-
-   call elsi_print_pexsi_options()
 
 end subroutine
 
