@@ -1200,6 +1200,8 @@ subroutine elsi_solve_evp_pexsi()
       call elsi_print_pexsi_options()
    endif
 
+   call elsi_stop(" PEXSI: not yet implemented! Exiting... ",caller)
+
    call MPI_BARRIER(mpi_comm_global,mpierr)
    call elsi_stop_solve_evp_time()
 
@@ -2419,8 +2421,7 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
 
    call elsi_statement_print("Redistribution of H and S for PEXSI Started")
 
-   ! Caution: only n_g_nonzero is meaningful, 
-   ! n_l_nonzero refers to wrong distribution
+   ! Caution: only n_g_nonzero is meaningful, n_l_nonzero refers to wrong distribution
    call elsi_compute_N_nonzero(H_external,n_l_rows_external, n_l_cols_external)
    n_l_nonzero = -1
 
@@ -2432,13 +2433,12 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
    if((n_p_rows_external == 1 .or. n_p_cols_external == 1) &
       .and. n_procs /= 1) then
       if(myid == 0) &
-      print *, "We encountered an scalapack bug when working "//&
-      "with prime process numbers and using pdtran to transform a matrix "  //&
-      "to a different blacs transcriptor. We stop here and wait for a "     //&
-      "scalapack patch. While this setup is an inefficient corner case, "   //&
-      "restart your calculation choosing a process number which in a "      //&
-      "square number in best case for optimal performance and refrain from "//&
-      "using prime numbers."
+      print *, "ELSI has encountered a ScaLAPACK bug when working " //&
+      "with prime process numbers and using pdtran to transform a matrix " //&
+      "to a different BLACS descriptor. ELSI stops here and waits for a " //&
+      "ScaLAPACK patch. While this setup is an inefficient corner case, " //&
+      "try to restart your calculation using a square number of processes " //&
+      "for optimal performance and refrain from using prime numbers."
       call MPI_ABORT(mpi_comm_external)
       stop
    endif
@@ -2487,7 +2487,7 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
                sc_desc_external, 0d0, buffer, 1, 1, sc_desc_buffer)
 
    ! Calculate number of nonzero elements on this process
-   ! Here we set no the meaningful n_l_nonzero
+   ! Set meaningful n_l_nonzero here
    call elsi_allocate(n_l_nonzero_column, n_g_rank, &
                       "n_l_nonzero_column", caller)
    blacs_col_offset = 1 + my_p_col_external * n_b_buffer_cols
@@ -2496,9 +2496,6 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
    pexsi_col_offset = 1 + myid * n_l_cols_g
    n_l_nonzero = &
    sum(n_l_nonzero_column(pexsi_col_offset:pexsi_col_offset + n_l_cols - 1))
-
-   !call elsi_vector_print(n_l_nonzero_column, n_g_rank, "n_l_nonzero_column")
-   !call elsi_value_print(n_l_nonzero, "n_l_nonzero")
 
    call elsi_allocate(H_real_sparse, n_l_nonzero, "H_real_sparse", caller)
    call elsi_allocate(sparse_index, n_l_nonzero, "sparse_index", caller)
@@ -2519,17 +2516,11 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
                           buffer_sparse_pointer)
    deallocate(buffer)
 
-   !call elsi_vector_print(buffer_sparse, n_buffer_nonzero, "Hamiltonian sparse")
-   !call elsi_vector_print(buffer_sparse_index, n_buffer_nonzero, "Hamiltonian sparse index")
-   !call elsi_vector_print(buffer_sparse_pointer, n_b_buffer_cols+1, "Hamiltonian sparse pointer")
-
    do i_proc = 0, n_p_cols_external - 1
    
       n_buffer_bcast_nonzero = n_buffer_nonzero
 
       id_sent = i_proc
-
-      !call elsi_value_print(id_sent,"id sent")
 
       call MPI_Bcast(n_buffer_bcast_nonzero, 1, MPI_INT, id_sent, &
                      mpi_comm_external, mpierr)
@@ -2560,9 +2551,6 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
       call MPI_Bcast(buffer_bcast_sparse_pointer, n_b_buffer_cols + 1, &
                      MPI_INT, id_sent, mpi_comm_external, mpierr)  
  
-      !call elsi_vector_print(buffer_bcast_sparse_pointer, n_b_buffer_cols+1,&
-      !      "Hamiltonian sparse pointer bcast")
-
       blacs_col_offset = 1 + i_proc * n_b_buffer_cols
       pexsi_col_offset = 1 + myid * n_l_cols_g
       my_col_offset    = 1 + pexsi_col_offset - blacs_col_offset
@@ -2573,31 +2561,22 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
          if(i_col > 0 .and. i_col <= n_b_buffer_cols) then
          
             ! Get the global column
-            !print *, "process ", myid, " pexsi_col_offset ", pexsi_col_offset
             g_column = i_col + blacs_col_offset - 1
-            !print *, "process ", myid, " g_column ", g_column
          
             ! Get the offset in the buffer for this column
             offset_B = buffer_bcast_sparse_pointer(i_col)
-            !print *, "process ", myid, " offset_B ", offset_B
 
             ! How many elements are in this column
             n_elements = buffer_bcast_sparse_pointer(i_col+1) &
                          - buffer_bcast_sparse_pointer(i_col)
-            !print *, "process ", myid, " n_elements ", n_elements
 
             ! Local offset
             l_col = i_col - my_col_offset + 1
-            !print *, "process ", myid, " l_col ", l_col
          
             offset = sum(n_l_nonzero_column(pexsi_col_offset:g_column-1)) + 1
-            !print *, "process ", myid, " offset ", offset
          
             ! Populate sparse matrix
             sparse_pointer(l_col) = offset
-            !print *, "process ", myid, " filling ", offset, " to ", &
-            !   offset+n_elements-1, " from ", offset_B, " to ", &
-            !   offset_B+n_elements-1 
 
             H_real_sparse(offset:offset+n_elements-1) = &
             buffer_bcast_sparse(offset_B:offset_B+n_elements-1)
@@ -2605,7 +2584,6 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
             buffer_bcast_sparse_index(offset_B:offset_B+n_elements-1)
 
         endif
-
      enddo
       
      deallocate(buffer_bcast_sparse)
@@ -2616,8 +2594,6 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
 
      ! Last element in sparse pointer is n_l_nonzero + 1
      sparse_pointer(n_l_cols + 1) = n_l_nonzero + 1
-
-     !call elsi_stop("Stop here","dense_to_pexsi")
 
      ! The Overlap Matrix
      call elsi_allocate(buffer, n_l_buffer_rows, n_b_buffer_cols, &
@@ -2696,7 +2672,6 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
               buffer_bcast_sparse(offset_B:offset_B+n_elements-1)
 
            endif
-
         enddo
        
         deallocate(buffer_bcast_sparse)
@@ -2710,12 +2685,11 @@ subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
    deallocate(buffer_sparse_pointer)
    deallocate(n_l_nonzero_column)
 
-   ! TODO Check if overlap is unity
    overlap_is_unity = .False.
    
    call elsi_stop_dist_pexsi_time()
    
-   call elsi_statement_print("Redistribution of H and S for PEXSI Done")
+   call elsi_statement_print(" Matrix redistribution finished: block-cyclic => ccs-pexsi. ")
 
 end subroutine
 
