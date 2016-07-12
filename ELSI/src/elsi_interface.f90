@@ -256,15 +256,16 @@ subroutine elsi_allocate_matrices()
 
    select case (method)
       case (ELPA)
-         call elsi_allocate(eigenvalues,n_g_rank,"eigenvalues",caller)
+         if(.not.allocated(eigenvalues)) &
+            call elsi_allocate(eigenvalues,n_g_rank,"eigenvalues",caller)
 
          select case (mode)
             case (COMPLEX_VALUES)
-               call elsi_allocate(C_complex, n_l_rows, n_l_cols,&
-                                  "C_complex", caller)
+               if(.not.allocated(C_complex)) &
+                  call elsi_allocate(C_complex,n_l_rows,n_l_cols,"C_complex",caller)
             case (REAL_VALUES)
-               call elsi_allocate(C_real, n_l_rows, n_l_cols,&
-                                  "C_real", caller)
+               if(.not.allocated(C_real)) &
+                  call elsi_allocate(C_real,n_l_rows,n_l_cols,"C_real",caller)
             case DEFAULT
                call elsi_stop(" No mode has been chosen. "//&
                               " Please choose REAL_VALUES or COMPLEX_VALUES. ",&
@@ -274,11 +275,15 @@ subroutine elsi_allocate_matrices()
       case (LIBOMM)
          select case (mode)
             case (COMPLEX_VALUES)
-               call m_allocate(D_omm, n_g_rank, n_g_rank, "pddbc")
-               call m_allocate(Coeff_omm, n_states, n_g_rank, "pddbc")
+               if(.not.D_omm%is_initialized) &
+                  call m_allocate(D_omm,n_g_rank,n_g_rank,"pddbc")
+               if(.not.Coeff_omm%is_initialized) &
+                  call m_allocate(Coeff_omm,n_states,n_g_rank,"pddbc")
             case (REAL_VALUES)
-               call m_allocate(D_omm, n_g_rank, n_g_rank, "pddbc")
-               call m_allocate(Coeff_omm, n_states, n_g_rank, "pddbc")
+               if(.not.D_omm%is_initialized) &
+                  call m_allocate(D_omm,n_g_rank,n_g_rank,"pddbc")
+               if(.not.Coeff_omm%is_initialized) &
+                  call m_allocate(Coeff_omm,n_states,n_g_rank,"pddbc")
             case DEFAULT
                call elsi_stop(" No mode has been chosen. "//&
                               " Please choose REAL_VALUES or COMPLEX_VALUES. ",&
@@ -747,8 +752,7 @@ subroutine elsi_deallocate_matrices()
    if(H_omm%is_initialized)      call m_deallocate(H_omm)
    if(S_omm%is_initialized)      call m_deallocate(S_omm)
    if(D_omm%is_initialized)      call m_deallocate(D_omm)
-   ! Coefficient matrix will only be deallocated when finalizing ELSI
-!   if(Coeff_omm%is_initialized)  call m_deallocate(Coeff_omm)
+   if(Coeff_omm%is_initialized)  call m_deallocate(Coeff_omm)
    if(T_omm%is_initialized)      call m_deallocate(T_omm)
 
 end subroutine
@@ -765,7 +769,6 @@ subroutine elsi_finalize()
 
    call elsi_deallocate_matrices()
 
-   if(Coeff_omm%is_initialized) call m_deallocate(Coeff_omm)
    if(method == PEXSI) call f_ppexsi_plan_finalize(pexsi_plan, pexsi_info)
    
    call elsi_stop_total_time()
@@ -1329,9 +1332,6 @@ subroutine elsi_ev_real(H_in, S_in, e_val_out, e_vec_out, need_cholesky)
          call elsi_get_eigenvalues(e_val_out)
          call elsi_get_eigenvectors(e_vec_out)
 
-         ! Deallocate
-         call elsi_deallocate_matrices()
-
       case (LIBOMM)
          call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors. "//&
                         " Choose ELPA if necessary. Exiting... ",caller)
@@ -1379,9 +1379,6 @@ subroutine elsi_ev_real_ms(H_ms, S_ms, e_val_out, C_ms, need_cholesky)
          call elsi_solve_evp_elpa(need_cholesky)
          call elsi_get_eigenvalues(e_val_out)
          call elsi_get_eigenvectors(C_ms%dval)
-
-         ! Deallocate
-         call elsi_deallocate_matrices()
 
       case (LIBOMM)
          call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors. "//&
@@ -1434,9 +1431,6 @@ subroutine elsi_ev_complex(H_in, S_in, e_val_out, e_vec_out, need_cholesky)
          call elsi_solve_evp(need_cholesky)
          call elsi_get_eigenvalues(e_val_out)
          call elsi_get_eigenvectors(e_vec_out)
-
-         ! Deallocate
-         call elsi_deallocate_matrices()
 
       case (LIBOMM)
          call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors. "//&
@@ -1505,9 +1499,6 @@ subroutine elsi_dm_real(H_in, S_in, D_out, energy_out, need_cholesky, occupation
                         " Exiting... ",caller)
    end select
 
-   ! Deallocate
-   call elsi_deallocate_matrices()
-
    need_cholesky = .false.
 
 end subroutine
@@ -1559,9 +1550,6 @@ subroutine elsi_dm_complex(H_in, S_in, D_out, energy_out, need_cholesky, occupat
                         " Please choose ELPA to compute eigenpairs. "//&
                         " Exiting... ",caller)
    end select
-
-   ! Deallocate
-   call elsi_deallocate_matrices()
 
    need_cholesky = .false.
 
