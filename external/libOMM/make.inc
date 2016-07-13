@@ -1,10 +1,12 @@
-SHELL     = /bin/sh
-OPTS      = $(FFLAGS_O)
-FPPFLAGS  = -DCONV -DPSP
+SHELL = /bin/sh
+OPTS  = $(FFLAGS_O)
 
 ifeq ($(strip $(XLF)),yes)
   XLFPP = -WF,
 endif
+
+FPPFLAGS  = ${XLFPP}-DCONV
+FPPFLAGS += ${XLFPP}-DPSP
 
 ifeq ($(strip $(MPI)),yes)
   FPPFLAGS += ${XLFPP}-DMPI
