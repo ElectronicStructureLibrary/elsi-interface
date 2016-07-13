@@ -70,10 +70,12 @@ SUPERLU_INCLUDE = -I/gpfs/mira-home/wzvyu/SuperLU_DIST_4.3/SRC
 ELPA  = -L$(ELPA_DIR)/lib -lelpa \
         -I$(ELPA_DIR)/include/elpa/modules
 
-OMM   = -I$(libOMM_DIR)/src \
-        -I$(libOMM_DIR)/src/MatrixSwitch-0.1.2/src \
-        -L$(libOMM_DIR)/src -lOMM \
-        -L$(libOMM_DIR)/src/MatrixSwitch-0.1.2/src -lmatrixswitch
+OMM   = -I$(libOMM_DIR)/build_libOMM/inlcude \
+        -I$(libOMM_DIR)/build_MatrixSwitch/include \
+        -I$(libOMM_DIR)/build_psp/include \
+        -L$(libOMM_DIR)/build_libOMM/lib -lOMM \
+        -L$(libOMM_DIR)/build_MatrixSwitch/lib -lMatrixSwitch \
+        -L$(libOMM_DIR)/build_psp/lib -lpspblas
 
 PEXSI = -I$(PEXSI_DIR)/include \
         -I$(PEXSI_DIR)/include/pexsi \

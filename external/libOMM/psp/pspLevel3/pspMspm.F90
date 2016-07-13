@@ -1205,8 +1205,8 @@ contains
        open(newunit=log_unit,file='MatrixSwitch.log',status='replace')
        log_start=.true.
     end if
-    write(log_unit,'(a)'), 'FATAL ERROR in matrix_switch!'
-    write(log_unit,'(a)'), message
+    write(log_unit,'(a)') 'FATAL ERROR in matrix_switch!'
+    write(log_unit,'(a)') message
     close(log_unit)
     stop
 

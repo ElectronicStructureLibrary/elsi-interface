@@ -1274,8 +1274,8 @@ subroutine die(message)
 
   !**********************************************!
 
-  write(log_unit,'(a)'), 'FATAL ERROR in libOMM!'
-  if (present(message)) write(log_unit,'(a)'), message
+  write(log_unit,'(a)') 'FATAL ERROR in libOMM!'
+  if (present(message)) write(log_unit,'(a)') message
   close(log_unit)
   stop
 

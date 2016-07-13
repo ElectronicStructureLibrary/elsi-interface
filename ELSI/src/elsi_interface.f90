@@ -106,7 +106,6 @@ module ELSI
    public :: elsi_get_global_col
 
    ! Public routines
-   ! In use
    public :: elsi_init            !< Initialize
    public :: elsi_customize_elpa  !< Override ELPA default
    public :: elsi_customize_omm   !< Override OMM default
@@ -117,7 +116,8 @@ module ELSI
    public :: elsi_dm_complex      !< Compute density matrix
    public :: elsi_ev_real_ms      !< MatrixSwitch version
    public :: elsi_finalize        !< Clean memory and print timings
-   ! Legacy
+!========================================
+! Legacy
    public :: elsi_init_problem
    public :: elsi_init_problem_from_file
    public :: elsi_set_method
@@ -136,8 +136,8 @@ module ELSI
    public :: elsi_write_evp
    public :: elsi_read_evp
    public :: scalapack_dense_to_pexsi_sparse
+!========================================
 
-   ! In use
    interface elsi_set_hamiltonian
       module procedure elsi_set_real_hamiltonian,&
                        elsi_set_complex_hamiltonian
@@ -153,7 +153,8 @@ module ELSI
                        elsi_get_complex_eigenvectors
    end interface
 
-   ! Legacy
+!========================================
+! Legacy
    interface elsi_set_hamiltonian_element
       module procedure elsi_set_real_hamiltonian_element,&
                        elsi_set_complex_hamiltonian_element
@@ -173,12 +174,13 @@ module ELSI
       module procedure elsi_get_real_overlap,&
                        elsi_get_complex_overlap
    end interface
+!========================================
 
 contains
 
-!========
-! In use
-!========
+!===============
+! ELSI routines
+!===============
 
 !>
 !!  This routine initializes ELSI with global matrix size, 
@@ -256,16 +258,24 @@ subroutine elsi_allocate_matrices()
 
    select case (method)
       case (ELPA)
-         if(.not.allocated(eigenvalues)) &
+         if(.not.allocated(eigenvalues)) then
             call elsi_allocate(eigenvalues,n_g_rank,"eigenvalues",caller)
-
+         else
+            eigenvalues = 0d0
+         endif
          select case (mode)
             case (COMPLEX_VALUES)
-               if(.not.allocated(C_complex)) &
+               if(.not.allocated(C_complex)) then
                   call elsi_allocate(C_complex,n_l_rows,n_l_cols,"C_complex",caller)
+               else
+                  C_complex = CMPLX(0d0,0d0)
+               endif
             case (REAL_VALUES)
-               if(.not.allocated(C_real)) &
+               if(.not.allocated(C_real)) then
                   call elsi_allocate(C_real,n_l_rows,n_l_cols,"C_real",caller)
+               else
+                  C_real = 0d0
+               endif
             case DEFAULT
                call elsi_stop(" No mode has been chosen. "//&
                               " Please choose REAL_VALUES or COMPLEX_VALUES. ",&
@@ -418,6 +428,125 @@ subroutine elsi_set_complex_overlap(S_in)
 end subroutine
 
 !>
+!!  This routine gets the energy.
+!!
+subroutine elsi_get_energy(energy_out)
+
+   implicit none
+
+   real*8, intent(out) :: energy_out
+
+   character*40, parameter :: caller = "elsi_get_energy"
+
+   select case (method)
+      case (ELPA)
+         energy_out = SUM(eigenvalues(1:n_states))
+      case (LIBOMM)
+         energy_out = total_energy
+      case (PEXSI)
+         call elsi_stop(" PEXSI: not yet implemented! Exiting... ",caller)
+      case (CHESS)
+         call elsi_stop(" CHESS: not yet implemented! Exiting... ",caller)
+      case DEFAULT
+         call elsi_stop(" No supported method has been chosen. "//&
+                        " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
+                        " Exiting... ",caller)
+   end select
+
+end subroutine
+
+!>
+!!  This routine gets the density matrix.
+!!
+subroutine elsi_get_dm(D_out)
+
+   implicit none
+
+   real*8, intent(out) :: D_out(n_l_rows,n_l_cols) !< Density matrix
+
+   character*40, parameter :: caller = "elsi_get_dm"
+
+   select case (method)
+      case (ELPA)
+         call elsi_stop(" ELPA needs to compute density matrix from eigenvectors. "//&
+                        " Exiting... ",caller)
+      case (LIBOMM)
+         D_out = D_omm%dval
+      case (PEXSI)
+         call elsi_stop(" PEXSI: not yet implemented! Exiting... ",caller)
+      case (CHESS)
+         call elsi_stop(" CHESS: not yet implemented! Exiting... ",caller)
+      case DEFAULT
+         call elsi_stop(" No supported method has been chosen. "//&
+                        " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
+                        " Exiting... ",caller)
+   end select
+
+end subroutine
+
+!>
+!!  This routine deallocates the matrices.
+!!
+subroutine elsi_deallocate_matrices()
+
+   implicit none
+
+   ! Nullify pointers
+   if(associated(H_real))        nullify(H_real)
+   if(associated(H_complex))     nullify(H_complex)
+   if(associated(S_real))        nullify(S_real)
+   if(associated(S_complex))     nullify(S_complex)
+ 
+   ! Free Memory
+   ! ELPA
+   if(allocated(C_real))         deallocate(C_real)
+   if(allocated(C_complex))      deallocate(C_complex)
+   if(allocated(eigenvalues))    deallocate(eigenvalues)
+   if(allocated(D_elpa))         deallocate(D_elpa)
+   ! PEXSI
+   if(allocated(H_real_sparse))  deallocate(H_real_sparse)
+   if(allocated(S_real_sparse))  deallocate(S_real_sparse)
+   if(allocated(D_real_sparse))  deallocate(D_real_sparse)
+   if(allocated(ED_real_sparse)) deallocate(ED_real_sparse)
+   if(allocated(FD_real_sparse)) deallocate(FD_real_sparse)
+   if(allocated(sparse_index))   deallocate(sparse_index)
+   if(allocated(sparse_pointer)) deallocate(sparse_pointer)
+   ! OMM
+   if(H_omm%is_initialized)      call m_deallocate(H_omm)
+   if(S_omm%is_initialized)      call m_deallocate(S_omm)
+   if(D_omm%is_initialized)      call m_deallocate(D_omm)
+   if(Coeff_omm%is_initialized)  call m_deallocate(Coeff_omm)
+   if(T_omm%is_initialized)      call m_deallocate(T_omm)
+
+end subroutine
+
+!>
+!!  This routine finalizes ELSI.
+!!
+subroutine elsi_finalize()
+
+   implicit none
+   include "mpif.h"
+
+   call MPI_BARRIER(mpi_comm_global, mpierr)
+
+   call elsi_deallocate_matrices()
+
+   if(method == PEXSI) call f_ppexsi_plan_finalize(pexsi_plan, pexsi_info)
+   
+   call elsi_stop_total_time()
+   call elsi_print_timers()
+
+   if(.not.external_blacs) call elsi_finalize_blacs()
+   if(.not.external_mpi)   call elsi_finalize_mpi()
+
+end subroutine
+
+!========================
+! ELSI routines for ELPA
+!========================
+
+!>
 !!  This routine gets the eigenvalues.
 !!
 subroutine elsi_get_eigenvalues(e_val_out)
@@ -519,63 +648,6 @@ subroutine elsi_get_occupied_number(occ)
    enddo
 
    n_states = occupied
-
-end subroutine
-
-!>
-!!  This routine gets the energy.
-!!
-subroutine elsi_get_energy(energy_out)
-
-   implicit none
-
-   real*8, intent(out) :: energy_out
-
-   character*40, parameter :: caller = "elsi_get_energy"
-
-   select case (method)
-      case (ELPA)
-         energy_out = SUM(eigenvalues(1:n_states))
-      case (LIBOMM)
-         energy_out = total_energy
-      case (PEXSI)
-         call elsi_stop(" PEXSI: not yet implemented! Exiting... ",caller)
-      case (CHESS)
-         call elsi_stop(" CHESS: not yet implemented! Exiting... ",caller)
-      case DEFAULT
-         call elsi_stop(" No supported method has been chosen. "//&
-                        " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
-                        " Exiting... ",caller)
-   end select
-
-end subroutine
-
-!>
-!!  This routine gets the density matrix.
-!!
-subroutine elsi_get_dm(D_out)
-
-   implicit none
-
-   real*8, intent(out) :: D_out(n_l_rows,n_l_cols) !< Density matrix
-
-   character*40, parameter :: caller = "elsi_get_dm"
-
-   select case (method)
-      case (ELPA)
-         call elsi_stop(" ELPA needs to compute density matrix from eigenvectors. "//&
-                        " Exiting... ",caller)
-      case (LIBOMM)
-         D_out = D_omm%dval
-      case (PEXSI)
-         call elsi_stop(" PEXSI: not yet implemented! Exiting... ",caller)
-      case (CHESS)
-         call elsi_stop(" CHESS: not yet implemented! Exiting... ",caller)
-      case DEFAULT
-         call elsi_stop(" No supported method has been chosen. "//&
-                        " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
-                        " Exiting... ",caller)
-   end select
 
 end subroutine
 
@@ -718,64 +790,6 @@ subroutine elsi_compute_dm_elpa(D_out,occ)
                         " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
                         " Exiting... ",caller)
    end select
-
-end subroutine
-
-!>
-!!  This routine deallocates the matrices.
-!!
-subroutine elsi_deallocate_matrices()
-
-   implicit none
-
-   ! Nullify pointers
-   if(associated(H_real))        nullify(H_real)
-   if(associated(H_complex))     nullify(H_complex)
-   if(associated(S_real))        nullify(S_real)
-   if(associated(S_complex))     nullify(S_complex)
- 
-   ! Free Memory
-   ! ELPA
-   if(allocated(C_real))         deallocate(C_real)
-   if(allocated(C_complex))      deallocate(C_complex)
-   if(allocated(eigenvalues))    deallocate(eigenvalues)
-   if(allocated(D_elpa))         deallocate(D_elpa)
-   ! PEXSI
-   if(allocated(H_real_sparse))  deallocate(H_real_sparse)
-   if(allocated(S_real_sparse))  deallocate(S_real_sparse)
-   if(allocated(D_real_sparse))  deallocate(D_real_sparse)
-   if(allocated(ED_real_sparse)) deallocate(ED_real_sparse)
-   if(allocated(FD_real_sparse)) deallocate(FD_real_sparse)
-   if(allocated(sparse_index))   deallocate(sparse_index)
-   if(allocated(sparse_pointer)) deallocate(sparse_pointer)
-   ! OMM
-   if(H_omm%is_initialized)      call m_deallocate(H_omm)
-   if(S_omm%is_initialized)      call m_deallocate(S_omm)
-   if(D_omm%is_initialized)      call m_deallocate(D_omm)
-   if(Coeff_omm%is_initialized)  call m_deallocate(Coeff_omm)
-   if(T_omm%is_initialized)      call m_deallocate(T_omm)
-
-end subroutine
-
-!>
-!!  This routine finalizes ELSI.
-!!
-subroutine elsi_finalize()
-
-   implicit none
-   include "mpif.h"
-
-   call MPI_BARRIER(mpi_comm_global, mpierr)
-
-   call elsi_deallocate_matrices()
-
-   if(method == PEXSI) call f_ppexsi_plan_finalize(pexsi_plan, pexsi_info)
-   
-   call elsi_stop_total_time()
-   call elsi_print_timers()
-
-   if(.not.external_blacs) call elsi_finalize_blacs()
-   if(.not.external_mpi)   call elsi_finalize_mpi()
 
 end subroutine
 
@@ -1073,6 +1087,10 @@ subroutine elsi_customize_elpa(elpa_solver)
 
 end subroutine
 
+!=======================
+! ELSI routines for OMM
+!=======================
+
 !>
 !!  This routine interfaces to libOMM.
 !!
@@ -1182,6 +1200,10 @@ subroutine elsi_customize_omm(scale_kinetic_in,calc_ed_in,eta_in,&
    endif
 
 end subroutine
+
+!=========================
+! ELSI routines for PEXSI
+!=========================
 
 !>
 !!  This routine interfaces to PEXSI.
@@ -1300,6 +1322,10 @@ subroutine elsi_customize_pexsi(temperature_in, gap_in, delta_E_in, n_poles_in, 
    endif
 
 end subroutine
+
+!======================
+! ELSI solver routines
+!======================
 
 !>
 !!  This routine computes eigenvalues and eigenvectors.
@@ -1557,9 +1583,9 @@ subroutine elsi_dm_complex(H_in, S_in, D_out, energy_out, need_cholesky, occupat
 
 end subroutine
 
-!==============================================
-! Legecy: the following part is no longer used.
-!==============================================
+!==========================================
+! Legecy: no longer used; will be removed.
+!==========================================
 
 !>
 !!  This routine sets the matrix dimensions.
@@ -2129,7 +2155,6 @@ subroutine elsi_read_evp(file_name)
          stop
    end select
 
-   ! TODO Check if overlap is unity
    overlap_is_unity = .False.
    
    call hdf5_close_group(group_id)
@@ -2304,7 +2329,6 @@ subroutine elsi_solve_evp(cholesky)
          if(.not. allocated(FD_real_sparse)) allocate(FD_real_sparse(n_l_nonzero))
 
          ! Set the default options
-         ! TODO: User interface is missing
          call elsi_set_pexsi_default_options()
 
          ! Load sparse matrices for PEXSI
