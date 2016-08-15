@@ -40,9 +40,10 @@ module ELSI_MPI_TOOLS
    integer, external :: numroc
 
    public :: elsi_init_mpi
-   public :: elsi_init_blacs 
+   public :: elsi_init_blacs
+   public :: elsi_init_blacs_pexsi
    public :: elsi_set_mpi
-   public :: elsi_set_blacs 
+   public :: elsi_set_blacs
    public :: elsi_get_global_row
    public :: elsi_get_global_col
    public :: elsi_get_global_dimensions
@@ -76,7 +77,7 @@ module ELSI_MPI_TOOLS
                        elsi_allocate_complex_matrix
    end interface
 
-   contains
+contains
 
 !>
 !! Initialize MPI.
@@ -261,6 +262,72 @@ subroutine elsi_init_blacs()
          call ms_scalapack_setup(myid, n_procs, n_p_rows, 'c', &
                                  n_b_rows, icontxt=blacs_ctxt)
       endif
+   endif
+
+end subroutine
+
+!>
+!! Set up BLACS grid for PEXSI.
+!!
+subroutine elsi_init_blacs_pexsi()
+
+   implicit none
+   include "mpif.h"
+
+   if(method == PEXSI) then
+
+      ! Find balancing between expansion parallel and matrix inversion parallel
+      if(mod(n_procs,40) == 0 .and. n_procs >= 640) then
+         n_p_rows_pexsi = 40
+      else if (mod(n_procs,20) == 0 .and. n_procs >= 320) then
+         n_p_rows_pexsi = 20
+      else if (mod(n_procs,10) == 0 .and. n_procs >= 90) then
+         n_p_rows_pexsi = 10
+      else if (mod(n_procs,5) == 0 .and. n_procs >= 20) then
+         n_p_rows_pexsi = 5
+      else if (mod(n_procs,4) == 0 .and. n_procs >= 16) then
+         n_p_rows_pexsi = 4
+      else if (mod(n_procs,2) == 0 .and. n_procs >= 2) then
+         n_p_rows_pexsi = 2
+      else
+         n_p_rows_pexsi = 1
+      endif
+
+      n_p_cols_pexsi = n_procs/n_p_rows_pexsi
+
+      ! position in process grid must not be used
+      my_p_col_pexsi = -1
+      my_p_row_pexsi = -1
+
+      ! PEXSI needs a pure block distribution
+      n_b_rows_pexsi = n_g_rank
+
+      ! The last process takes all remaining columns
+      n_b_cols_pexsi = FLOOR(1d0*n_g_rank/n_procs)
+      if(myid == n_procs-1) then
+         n_b_cols_pexsi = n_g_rank - (n_procs-1) * n_b_cols_pexsi
+      endif
+
+      n_l_rows_pexsi = n_b_rows_pexsi
+      n_l_cols_pexsi = n_b_cols_pexsi
+
+      ! Each master process for each pole should write an output 
+      if(mod(myid,n_p_cols_pexsi*n_p_rows_pexsi) == 0) then
+         pexsi_output_file_index = myid/(n_p_cols_pexsi*n_p_rows_pexsi)
+      else
+         pexsi_output_file_index = -1
+      endif
+
+      pexsi_plan = f_ppexsi_plan_initialize(mpi_comm_global,n_p_rows_pexsi,&
+                   n_p_cols_pexsi,pexsi_output_file_index,pexsi_info)
+
+      if(pexsi_info /= 0) then
+         call elsi_stop(" PEXSI plan initialization failed. Exiting... ", &
+                        "elsi_init_blacs_pexsi")
+      endif
+
+      blacs_is_setup = .True.
+
    endif
 
 end subroutine

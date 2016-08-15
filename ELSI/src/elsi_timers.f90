@@ -36,32 +36,36 @@ module ELSI_TIMERS
    private
 
    logical:: total_time = .false.
-   real*8 :: walltime_total  
-   real*8 :: walltime_total_start  
+   real*8 :: walltime_total
+   real*8 :: walltime_total_start
 
    logical:: read_time = .false.
-   real*8 :: walltime_read_evp  
-   real*8 :: walltime_read_evp_start  
-  
+   real*8 :: walltime_read_evp
+   real*8 :: walltime_read_evp_start
+
    logical:: write_time = .false.
-   real*8 :: walltime_write_evp  
-   real*8 :: walltime_write_evp_start  
+   real*8 :: walltime_write_evp
+   real*8 :: walltime_write_evp_start
 
    logical:: solve_time = .false.
-   real*8 :: walltime_solve_evp  
+   real*8 :: walltime_solve_evp
    real*8 :: walltime_solve_evp_start
 
-   logical:: dist_pexsi_time = .false.
-   real*8 :: walltime_dist_pexsi  
-   real*8 :: walltime_dist_pexsi_start   
+   logical:: bc_to_ccs_time = .false.
+   real*8 :: walltime_bc_to_ccs
+   real*8 :: walltime_bc_to_ccs_start
   
+   logical:: ccs_to_bc_time = .false.
+   real*8 :: walltime_ccs_to_bc
+   real*8 :: walltime_ccs_to_bc_start
+
    integer :: clock_rate
    integer :: clock_max
 
-   public :: elsi_init_timers 
-   public :: elsi_print_setup 
-   public :: elsi_print_timers 
-   public :: elsi_start_total_time 
+   public :: elsi_init_timers
+   public :: elsi_print_setup
+   public :: elsi_print_timers
+   public :: elsi_start_total_time
    public :: elsi_stop_total_time
    public :: elsi_start_read_evp_time
    public :: elsi_stop_read_evp_time
@@ -69,10 +73,12 @@ module ELSI_TIMERS
    public :: elsi_stop_write_evp_time
    public :: elsi_start_solve_evp_time
    public :: elsi_stop_solve_evp_time
-   public :: elsi_start_dist_pexsi_time
-   public :: elsi_stop_dist_pexsi_time
+   public :: elsi_start_bc_to_ccs_time
+   public :: elsi_stop_bc_to_ccs_time
+   public :: elsi_start_ccs_to_bc_time
+   public :: elsi_stop_ccs_to_bc_time
 
-   contains
+contains
 
 !>
 !!  This routine sets all timers to zero.
@@ -89,14 +95,17 @@ subroutine elsi_init_timers()
    walltime_read_evp        = 0d0 
    walltime_read_evp_start  = 0d0
    
-   walltime_write_evp        = 0d0 
-   walltime_write_evp_start  = 0d0
+   walltime_write_evp       = 0d0 
+   walltime_write_evp_start = 0d0
 
-   walltime_solve_evp        = 0d0
-   walltime_solve_evp_start  = 0d0
+   walltime_solve_evp       = 0d0
+   walltime_solve_evp_start = 0d0
 
-   walltime_dist_pexsi        = 0d0
-   walltime_dist_pexsi_start  = 0d0
+   walltime_bc_to_ccs       = 0d0
+   walltime_bc_to_ccs_start = 0d0
+
+   walltime_ccs_to_bc       = 0d0
+   walltime_ccs_to_bc_start = 0d0
 
    call system_clock(initial_time, clock_rate, clock_max)
 
@@ -190,20 +199,24 @@ subroutine elsi_print_timers()
        write(*,"('| Timings:                                              ')")
        write(*,"('|-------------------------------------------------------')")
        if(read_time) then
-          write(*,"('| Reading the Eigenvalue problem :',F13.3,' s')")&
+          write(*,"('| Reading the Eigenvalue problem  :',F13.3,' s')")&
                 walltime_read_evp
        endif
        if(write_time) then
-          write(*,"('| Writing the Eigenvalue problem :',F13.3,' s')")&
+          write(*,"('| Writing the Eigenvalue problem  :',F13.3,' s')")&
                 walltime_write_evp
        endif
-       if(dist_pexsi_time) then
-          write(*,"('| Distributing to PEXSI          :',F13.3,' s')")&
-                walltime_dist_pexsi
+       if(bc_to_ccs_time) then
+          write(*,"('| Block-cyclic to distributed CCS :',F13.3,' s')")&
+                walltime_bc_to_ccs
        endif
        if(solve_time) then
-          write(*,"('| Solving the Eigenvalue problem :',F13.3,' s')")&
+          write(*,"('| Solving the Eigenvalue problem  :',F13.3,' s')")&
                 walltime_solve_evp
+       endif
+       if(ccs_to_bc_time) then
+          write(*,"('| Distributed CCS to block-cyclic :',F13.3,' s')")&
+                walltime_ccs_to_bc
        endif
        if(total_time) then
           write(*,"('|-------------------------------------------------------')")
@@ -315,24 +328,45 @@ subroutine elsi_stop_solve_evp_time()
 
 end subroutine
 
-subroutine elsi_start_dist_pexsi_time()
+subroutine elsi_start_bc_to_ccs_time()
 
    implicit none
    
-   dist_pexsi_time = .true. 
-   call elsi_get_time(walltime_dist_pexsi_start)
+   bc_to_ccs_time = .true.
+   call elsi_get_time(walltime_bc_to_ccs_start)
 
 end subroutine
 
-subroutine elsi_stop_dist_pexsi_time()
+subroutine elsi_stop_bc_to_ccs_time()
 
    implicit none
 
    real*8 :: stop_time
    
    call elsi_get_time(stop_time)
-   walltime_dist_pexsi = walltime_dist_pexsi &
-     + stop_time - walltime_dist_pexsi_start
+   walltime_bc_to_ccs = walltime_bc_to_ccs &
+     + stop_time - walltime_bc_to_ccs_start
+
+end subroutine
+
+subroutine elsi_start_ccs_to_bc_time()
+
+   implicit none
+
+   ccs_to_bc_time = .true.
+   call elsi_get_time(walltime_ccs_to_bc_start)
+
+end subroutine
+
+subroutine elsi_stop_ccs_to_bc_time()
+
+   implicit none
+
+   real*8 :: stop_time
+
+   call elsi_get_time(stop_time)
+   walltime_ccs_to_bc = walltime_ccs_to_bc &
+     + stop_time - walltime_ccs_to_bc_start
 
 end subroutine
 

@@ -76,6 +76,15 @@ module ELSI_DIMENSIONS
   integer :: blacs_info
   logical :: external_blacs = .true.
   logical :: blacs_is_setup = .false.
+  ! PEXSI uses another BLACS setup
+  integer :: my_p_row_pexsi
+  integer :: my_p_col_pexsi
+  integer :: n_b_rows_pexsi
+  integer :: n_b_cols_pexsi
+  integer :: n_p_rows_pexsi
+  integer :: n_p_cols_pexsi
+  integer :: n_l_rows_pexsi
+  integer :: n_l_cols_pexsi
 
   !> HDF5
   integer :: h5err
@@ -162,8 +171,7 @@ subroutine elsi_print(message)
    do i_task = 0, n_procs - 1
       if(myid == i_task) then
          write(string_message, "(1X,'*** Proc',I5,': ',A)") &
-               & myid, trim(message)
-
+               myid, trim(message)
          write(*,'(A)') trim(string_message)
       endif
       call MPI_BARRIER(mpi_comm_global,mpierr)
@@ -188,7 +196,7 @@ subroutine elsi_stop(message, caller)
    do i_task = 0, n_procs - 1
       if(myid == i_task) then
          write(string_message, "(1X,'*** Proc',I5,' in ',A,': ',A)") &
-               & myid, trim(caller), trim(message)
+               myid, trim(caller), trim(message)
          write(*,'(A)') trim(string_message)
       endif
       call MPI_BARRIER(mpi_comm_global, mpierr)
@@ -215,33 +223,33 @@ subroutine elsi_variable_status()
 
    if(myid == 0) then
       write(string_message, "(1X,'*** Proc',I5,&
-            &' : Matrixsize global ',I5,' x ',I5)")&
-            & myid, n_g_rank, n_g_rank
+            ' : Matrixsize global ',I5,' x ',I5)")&
+            myid, n_g_rank, n_g_rank
       write(*,'(A)') trim(string_message)
 
       write(string_message, "(1X,'*** Proc',I5,&
-            &' : Non_zero elements global ',I16)")&
-            & myid, n_g_nonzero
+            ' : Non_zero elements global ',I16)")&
+            myid, n_g_nonzero
       write(*,'(A)') trim(string_message)
         
       write(string_message, "(1X,'*** Proc',I5,&
-            &' : Processgrid global ',I5,' x ',I5)")&
-            & myid, n_p_rows, n_p_cols
+            ' : Processgrid global ',I5,' x ',I5)")&
+            myid, n_p_rows, n_p_cols
       write(*,'(A)') trim(string_message)
 
       write(string_message, "(1X,'*** Proc',I5,&
-            &' : Number of Electrons ',F10.2)")&
-            & myid, n_electrons
+            ' : Number of Electrons ',F10.2)")&
+            myid, n_electrons
       write(*,'(A)') trim(string_message)
         
       write(string_message, "(1X,'*** Proc',I5,&
-            &' : Number of States ',I10)") &
-            & myid, n_states
+            ' : Number of States ',I10)") &
+            myid, n_states
       write(*,'(A)') trim(string_message)
 
       write(string_message, "(1X,'*** Proc',I5,&
-            &' : Overlap is Unity ? ',L2)") &
-            & myid, overlap_is_unity
+            ' : Overlap is Unity ? ',L2)") &
+            myid, overlap_is_unity
       write(*,'(A)') trim(string_message)
    endif
 
@@ -250,18 +258,18 @@ subroutine elsi_variable_status()
    do i_task = 0, n_procs
       if(i_task == myid) then
          write(string_message, "(1X,'*** Proc',I5,&
-               &' : Matrixsize local ',I5,' x ',I5)") &
-               & myid, n_l_rows, n_l_cols
+               ' : Matrixsize local ',I5,' x ',I5)") &
+               myid, n_l_rows, n_l_cols
          write(*,'(A)') trim(string_message)
          
          write(string_message, "(1X,'*** Proc',I5,&
-               &' : Blocksize global ',I5,' x ',I5)") &
-               & myid, n_b_rows, n_b_cols
+               ' : Blocksize global ',I5,' x ',I5)") &
+               myid, n_b_rows, n_b_cols
          write(*,'(A)') trim(string_message)
 
          write(string_message, "(1X,'*** Proc',I5,&
-               &' : Non_zero elements local ',I16)")&
-               & myid, n_l_nonzero
+               ' : Non_zero elements local ',I16)")&
+               myid, n_l_nonzero
          write(*,'(A)') trim(string_message)
 
       endif
@@ -292,60 +300,60 @@ subroutine elsi_print_pexsi_options()
    character(LEN=4096) :: string_message
 
    if(myid == 0) then
-      write(string_message, "(1X,'Temperature (H) ',F10.4)") &
-            & pexsi_options%temperature
+      write(string_message, "(1X,'  | Temperature (H) ',F10.4)") &
+            pexsi_options%temperature
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,'Spectral Gap (H) ',F10.4)") &
-            & pexsi_options%gap
+      write(string_message, "(1X,'  | Spectral Gap (H) ',F10.4)") &
+            pexsi_options%gap
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,'Delta E (H) ',F10.4)") &
-            & pexsi_options%deltaE
+      write(string_message, "(1X,'  | Delta E (H) ',F10.4)") &
+            pexsi_options%deltaE
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,'Number of Poles ',I5)") &
-            & pexsi_options%numPole
+      write(string_message, "(1X,'  | Number of Poles ',I5)") &
+            pexsi_options%numPole
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,'Use inertial count ',I2)") &
-            & pexsi_options%isInertiaCount
+      write(string_message, "(1X,'  | Use inertial count ',I2)") &
+            pexsi_options%isInertiaCount
       write(*,'(A)') trim(string_message)
       
-      write(string_message, "(1X,'Max Pexsi Iterations ',I5)") &
-            & pexsi_options%maxPEXSIIter
+      write(string_message, "(1X,'  | Max Pexsi Iterations ',I5)") &
+            pexsi_options%maxPEXSIIter
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,'Minimal Mu (H) ',F10.4)") &
-            & pexsi_options%muMin0
+      write(string_message, "(1X,'  | Minimal Mu (H) ',F10.4)") &
+            pexsi_options%muMin0
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,'Maximal Mu (H) ',F10.4)") &
-            & pexsi_options%muMax0
+      write(string_message, "(1X,'  | Maximal Mu (H) ',F10.4)") &
+            pexsi_options%muMax0
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,'Start Mu (H) ',F10.4)") &
-            & pexsi_options%mu0
+      write(string_message, "(1X,'  | Start Mu (H) ',F10.4)") &
+            pexsi_options%mu0
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,'Tolerance Mu (H) ',E10.1)") &
-            & pexsi_options%muInertiaTolerance
+      write(string_message, "(1X,'  | Tolerance Mu (H) ',E10.1)") &
+            pexsi_options%muInertiaTolerance
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,'Expansion Mu (H) ',F10.4)") &
-            & pexsi_options%muInertiaExpansion
+      write(string_message, "(1X,'  | Expansion Mu (H) ',F10.4)") &
+            pexsi_options%muInertiaExpansion
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,'Safe guard Mu (H) ',F10.4)") &
-            & pexsi_options%muPexsiSafeGuard
+      write(string_message, "(1X,'  | Safe guard Mu (H) ',F10.4)") &
+            pexsi_options%muPexsiSafeGuard
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,'Tolerance Electrons (H) ',E10.1)") &
-            & pexsi_options%numElectronPEXSITolerance
+      write(string_message, "(1X,'  | Tolerance Electrons (H) ',E10.1)") &
+            pexsi_options%numElectronPEXSITolerance
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,'Sparcity ',F7.3)") &
-            & (1d0 * n_g_nonzero / n_g_rank) / n_g_rank
+      write(string_message, "(1X,'  | Sparcity ',F7.3)") &
+            (1d0 * n_g_nonzero / n_g_rank) / n_g_rank
       write(*,'(A)') trim(string_message)
 
    endif
