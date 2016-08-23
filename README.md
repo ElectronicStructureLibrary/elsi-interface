@@ -1,4 +1,4 @@
-ABOUT ELSI
+**ABOUT ELSI**
 
 ELSI provides and enhances open-source software library solutions for 
 electronic structure theory with unified application programming interface.
@@ -6,7 +6,7 @@ electronic structure theory with unified application programming interface.
 ELSI focuses particularly on methods that solve or circumvent eigenvalue
 problems in the self-consistent field cycle of density-functional theory.
 
-REQUIREMENTS:
+**REQUIREMENTS**
 
   * Fortran90, C, C++
   * MPI
@@ -14,7 +14,7 @@ REQUIREMENTS:
   * ParMetis 4.0.3
   * SuperLU_DIST 4.3
 
-OPTIONAL:
+**OPTIONAL**
   * Automake
   * Autoconf
   * Cmake
