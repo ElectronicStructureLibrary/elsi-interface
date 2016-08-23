@@ -25,10 +25,10 @@ src/elsi_mpi_tools.o: src/elsi_mpi_tools.f90 src/elsi_dimensions.o
 src/elsi_hdf5_tools.o: src/elsi_hdf5_tools.f90 src/elsi_dimensions.o
 	$(MPIFC) $(FFLAGS_I) -o $@ -c $^ $(HDF5) $(PEXSI)
 
-src/elsi_matrix_conversion.o: src/elsi_matrix_conversion.f90 
+src/elsi_matrix_conversion.o: src/elsi_matrix_conversion.f90 src/elsi_dimensions.o
 	$(MPIFC) $(FFLAGS_I) -o $@ -c $< $(HDF5) $(PEXSI)
 
-src/elsi_timers.o: src/elsi_timers.f90 
+src/elsi_timers.o: src/elsi_timers.f90 src/elsi_dimensions.o
 	$(MPIFC) $(FFLAGS_I) -o $@ -c $< $(PEXSI)
 
 src/elsi_dimensions.o: src/elsi_dimensions.f90 
