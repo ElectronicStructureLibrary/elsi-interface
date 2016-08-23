@@ -3,20 +3,21 @@
 !    The ELPA library was originally created by the ELPA consortium,
 !    consisting of the following organizations:
 !
-!    - Rechenzentrum Garching der Max-Planck-Gesellschaft (RZG),
+!    - Max Planck Computing and Data Facility (MPCDF), formerly known as
+!      Rechenzentrum Garching der Max-Planck-Gesellschaft (RZG),
 !    - Bergische Universität Wuppertal, Lehrstuhl für angewandte
 !      Informatik,
 !    - Technische Universität München, Lehrstuhl für Informatik mit
 !      Schwerpunkt Wissenschaftliches Rechnen ,
 !    - Fritz-Haber-Institut, Berlin, Abt. Theorie,
-!    - Max-Plack-Institut für Mathematik in den Naturwissenschaftrn,
+!    - Max-Plack-Institut für Mathematik in den Naturwissenschaften,
 !      Leipzig, Abt. Komplexe Strukutren in Biologie und Kognition,
 !      and
 !    - IBM Deutschland GmbH
 !
 !
 !    More information can be found here:
-!    http://elpa.rzg.mpg.de/
+!    http://elpa.mpcdf.mpg.de/
 !
 !    ELPA is free software: you can redistribute it and/or modify
 !    it under the terms of the version 3 of the license of the
@@ -57,15 +58,15 @@ module real_bgq_kernel
   public double_hh_trafo_bgq
 contains
   subroutine double_hh_trafo_bgq(q, hh, nb, nq, ldq, ldh)
-
+    use precision
     implicit none
 
-    integer, intent(in) :: nb, nq, ldq, ldh
-    real*8, intent(inout) :: q(ldq,*)
-    real*8, intent(in) :: hh(ldh,*)
+    integer(kind=ik), intent(in) :: nb, nq, ldq, ldh
+    real(kind=rk8), intent(inout) :: q(ldq,*)
+    real(kind=rk8), intent(in)    :: hh(ldh,*)
 
-    real*8 s
-    integer i
+    real(kind=rk8)                :: s
+    integer(kind=ik)             :: i
 
     ! Safety only:
 
@@ -107,15 +108,14 @@ contains
   ! --------------------------------------------------------------------------------------------------
 
   subroutine hh_trafo_kernel_24_bgq(q, hh, nb, ldq, ldh, s)
-
+    use precision
+    use elpa_mpi
     implicit none
 
-    include 'mpif.h'
+    integer(kind=ik), intent(in) :: nb, ldq, ldh
 
-    integer, intent(in) :: nb, ldq, ldh
-
-    real*8, intent(inout)::q(ldq,*)
-    real*8, intent(in)::hh(ldh,*), s
+    real(kind=rk8), intent(inout) :: q(ldq,*)
+    real(kind=rk8), intent(in)    :: hh(ldh,*), s
 
     VECTOR(REAL(8))::QPX_x1, QPX_x2, QPX_x3, QPX_x4, QPX_x5, QPX_x6
     VECTOR(REAL(8))::QPX_y1, QPX_y2, QPX_y3, QPX_y4, QPX_y5, QPX_y6
@@ -315,15 +315,14 @@ contains
   ! --------------------------------------------------------------------------------------------------
 
   subroutine hh_trafo_kernel_16_bgq(q, hh, nb, ldq, ldh, s)
-
+    use precision
+    use elpa_mpi
     implicit none
 
-    include 'mpif.h'
+    integer(kind=ik), intent(in) :: nb, ldq, ldh
 
-    integer, intent(in) :: nb, ldq, ldh
-
-    real*8, intent(inout)::q(ldq,*)
-    real*8, intent(in)::hh(ldh,*), s
+    real(kind=rk8), intent(inout) :: q(ldq,*)
+    real(kind=rk8), intent(in)    :: hh(ldh,*), s
 
     VECTOR(REAL(8))::QPX_x1, QPX_x2, QPX_x3, QPX_x4
     VECTOR(REAL(8))::QPX_y1, QPX_y2, QPX_y3, QPX_y4
@@ -473,20 +472,19 @@ contains
   ! --------------------------------------------------------------------------------------------------
 
   subroutine hh_trafo_kernel_8_bgq(q, hh, nb, ldq, ldh, s)
-
+    use precision
+    use elpa_mpi
     implicit none
 
-    include 'mpif.h'
+    integer(kind=ik), intent(in) :: nb, ldq, ldh
 
-    integer, intent(in) :: nb, ldq, ldh
-
-    real*8, intent(inout)::q(ldq,*)
-    real*8, intent(in)::hh(ldh,*), s
-
+    real(kind=rk8), intent(inout) :: q(ldq,*)
+    real(kind=rk8), intent(in)    :: hh(ldh,*), s
+    integer(kind=ik)             :: i
     VECTOR(REAL(8))::QPX_x1, QPX_x2, QPX_y1, QPX_y2
     VECTOR(REAL(8))::QPX_q1, QPX_q2
     VECTOR(REAL(8))::QPX_h1, QPX_h2, QPX_tau1, QPX_tau2, QPX_s
-    integer i
+
 
     call alignx(32,q)
 
@@ -580,20 +578,18 @@ contains
   ! --------------------------------------------------------------------------------------------------
 
   subroutine hh_trafo_kernel_4_bgq(q, hh, nb, ldq, ldh, s)
-
+    use precision
+    use elpa_mpi
     implicit none
 
-    include 'mpif.h'
+    integer(kind=ik), intent(in) :: nb, ldq, ldh
 
-    integer, intent(in) :: nb, ldq, ldh
-
-    real*8, intent(inout)::q(ldq,*)
-    real*8, intent(in)::hh(ldh,*), s
-
+    real(kind=rk8), intent(inout) :: q(ldq,*)
+    real(kind=rk8), intent(in)    :: hh(ldh,*), s
+    integer(kind=ik)             :: i
     VECTOR(REAL(8))::QPX_x1, QPX_y1
     VECTOR(REAL(8))::QPX_q1
     VECTOR(REAL(8))::QPX_h1, QPX_h2, QPX_tau1, QPX_tau2, QPX_s
-    integer i
 
     call alignx(32,q)
 

@@ -43,7 +43,7 @@ CPP_LIB          = -lstdc++ -lmpi #-lmpi_cxx
                   # -lmkl_intel_lp64 -lmkl_sequential -lmkl_core \
                   # -lpthread -lm
 #DSUPERLU_LIB     = ${DSUPERLU_DIR}/lib/libsuperlu_dist_4.3.a
-SCALAPACK_LIB    = $(SCALAPACK) $(LAPACK) $(BLAS)
+SCALAPACK_LIB    = $(SCALAPACK_LDFLAGS)
 PEXSI_LIB        = ${PEXSI_DIR}/lib/libpexsi.a
 
 # Graph partitioning libraries

@@ -4,17 +4,13 @@ export
 all: elpa omm pexsi elsi
 
 elpa:
-	$(info IMPORTANT: ELPA in ELSI is being updated.)
-	$(info Please download and install ELPA (http://elpa.rzg.mpg.de/), then link it to ELSI using make.sys.)
-	$(error ELPA not found.)
-
-#	@echo ==========================
-#	@echo = Start building ELPA... =
-#	@echo ==========================
-#	cd $(ELPA_DIR) && ${MAKE} -f Makefile.elsi; ${MAKE} -f Makefile.elsi install
-#	@echo ===================
-#	@echo = ELPA installed. =
-#	@echo ===================
+	@echo ==========================
+	@echo = Start building ELPA... =
+	@echo ==========================
+	cd $(ELPA_DIR) && ${MAKE} -f Makefile.elsi; ${MAKE} -f Makefile.elsi install
+	@echo ===================
+	@echo = ELPA installed. =
+	@echo ===================
 
 omm:
 	@echo ============================

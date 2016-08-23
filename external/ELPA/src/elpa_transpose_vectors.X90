@@ -1,9 +1,75 @@
+#if 0
+!    This file is part of ELPA.
+!
+!    The ELPA library was originally created by the ELPA consortium,
+!    consisting of the following organizations:
+!
+!    - Max Planck Computing and Data Facility (MPCDF), formerly known as
+!      Rechenzentrum Garching der Max-Planck-Gesellschaft (RZG),
+!    - Bergische Universität Wuppertal, Lehrstuhl für angewandte
+!      Informatik,
+!    - Technische Universität München, Lehrstuhl für Informatik mit
+!      Schwerpunkt Wissenschaftliches Rechnen ,
+!    - Fritz-Haber-Institut, Berlin, Abt. Theorie,
+!    - Max-Plack-Institut für Mathematik in den Naturwissenschaften,
+!      Leipzig, Abt. Komplexe Strukutren in Biologie und Kognition,
+!      and
+!    - IBM Deutschland GmbH
+!
+!
+!    More information can be found here:
+!    http://elpa.mpcdf.mpg.de/
+!
+!    ELPA is free software: you can redistribute it and/or modify
+!    it under the terms of the version 3 of the license of the
+!    GNU Lesser General Public License as published by the Free
+!    Software Foundation.
+!
+!    ELPA is distributed in the hope that it will be useful,
+!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!    GNU Lesser General Public License for more details.
+!
+!    You should have received a copy of the GNU Lesser General Public License
+!    along with ELPA.  If not, see <http://www.gnu.org/licenses/>
+!
+!    ELPA reflects a substantial effort on the part of the original
+!    ELPA consortium, and we ask you to respect the spirit of the
+!    license that we chose: i.e., please contribute any changes you
+!    may have back to the original ELPA library distribution, and keep
+!    any derivatives of ELPA under the same license that we chose for
+!    the original distribution, the GNU Lesser General Public License.
+!
+! Copyright of the original code rests with the authors inside the ELPA
+! consortium. The copyright of any additional modifications shall rest
+! with their original authors, but shall adhere to the licensing terms
+! distributed along with the original code in the file "COPYING".
+! Author: Andreas Marek, MPCDF
+#endif
+
+#ifndef ELSI_INSTALLER
+#include "config-f90.h"
+#endif
+
 #if REALCASE==1
-subroutine elpa_transpose_vectors_real(vmat_s,ld_s,comm_s,vmat_t,ld_t,comm_t,nvs,nvr,nvc,nblk)
+
+#ifdef DOUBLE_PRECISION_REAL
+subroutine elpa_transpose_vectors_real_double(vmat_s,ld_s,comm_s,vmat_t,ld_t,comm_t,nvs,nvr,nvc,nblk)
+#else
+subroutine elpa_transpose_vectors_real_single(vmat_s,ld_s,comm_s,vmat_t,ld_t,comm_t,nvs,nvr,nvc,nblk)
 #endif
+
+#endif /* REALCASE == 1 */
+
 #if COMPLEXCASE==1
-subroutine elpa_transpose_vectors_complex(vmat_s,ld_s,comm_s,vmat_t,ld_t,comm_t,nvs,nvr,nvc,nblk)
+
+#ifdef DOUBLE_PRECISION_COMPLEX
+subroutine elpa_transpose_vectors_complex_double(vmat_s,ld_s,comm_s,vmat_t,ld_t,comm_t,nvs,nvr,nvc,nblk)
+#else
+subroutine elpa_transpose_vectors_complex_single(vmat_s,ld_s,comm_s,vmat_t,ld_t,comm_t,nvs,nvr,nvc,nblk)
 #endif
+
+#endif /* COMPLEXCASE == 1 */
 
 !-------------------------------------------------------------------------------
 ! This routine transposes an array of vectors which are distributed in
@@ -25,26 +91,48 @@ subroutine elpa_transpose_vectors_complex(vmat_s,ld_s,comm_s,vmat_t,ld_t,comm_t,
 ! nblk      block size of block cyclic distribution
 !
 !-------------------------------------------------------------------------------
-
+    use precision
+#ifdef HAVE_DETAILED_TIMINGS
+    use timings
+#endif
 !   use ELPA1 ! for least_common_multiple
 #ifdef WITH_OPENMP
    use omp_lib
 #endif
 
+   use elpa_mpi
+
    implicit none
 
-   include 'mpif.h'
 
-   integer, intent(in)              :: ld_s, comm_s, ld_t, comm_t, nvs, nvr, nvc, nblk
-   DATATYPE*BYTESIZE, intent(in)    :: vmat_s(ld_s,nvc)
-   DATATYPE*BYTESIZE, intent(inout) :: vmat_t(ld_t,nvc)
 
-   DATATYPE*BYTESIZE, allocatable   :: aux(:)
-   integer                          :: myps, mypt, nps, npt
-   integer                          :: n, lc, k, i, ips, ipt, ns, nl, mpierr
-   integer                          :: lcm_s_t, nblks_tot, nblks_comm, nblks_skip
-   integer                          :: auxstride
+   integer(kind=ik), intent(in)              :: ld_s, comm_s, ld_t, comm_t, nvs, nvr, nvc, nblk
+   DATATYPE, intent(in)                      :: vmat_s(ld_s,nvc)
+   DATATYPE, intent(inout)                   :: vmat_t(ld_t,nvc)
 
+   DATATYPE, allocatable                     :: aux(:)
+   integer(kind=ik)                          :: myps, mypt, nps, npt
+   integer(kind=ik)                          :: n, lc, k, i, ips, ipt, ns, nl, mpierr
+   integer(kind=ik)                          :: lcm_s_t, nblks_tot, nblks_comm, nblks_skip
+   integer(kind=ik)                          :: auxstride
+
+#ifdef HAVE_DETAILED_TIMINGS
+#if COMPLEXCASE == 1
+#ifdef DOUBLE_PRECISION_COMPLEX
+   call timer%start("elpa_transpose_vectors_complex_double")
+#else
+   call timer%start("elpa_transpose_vectors_complex_single")
+#endif
+
+#else
+#ifdef DOUBLE_PRECISION_REAL
+   call timer%start("elpa_transpose_vectors_real_double")
+#else
+   call timer%start("elpa_transpose_vectors_real_single")
+#endif
+
+#endif
+#endif
    call mpi_comm_rank(comm_s,myps,mpierr)
    call mpi_comm_size(comm_s,nps ,mpierr)
    call mpi_comm_rank(comm_t,mypt,mpierr)
@@ -102,13 +190,32 @@ subroutine elpa_transpose_vectors_complex(vmat_s,ld_s,comm_s,vmat_t,ld_t,comm_t,
          !$omp barrier
          !$omp master
 #endif
+
+#ifdef WITH_MPI
+
 #if COMPLEXCASE==1
-         call MPI_Bcast(aux,nblks_comm*nblk*nvc,MPI_DOUBLE_COMPLEX,ips,comm_s,mpierr)
-#endif
+
+#ifdef DOUBLE_PRECISION_COMPLEX
+         call MPI_Bcast(aux, nblks_comm*nblk*nvc, MPI_DOUBLE_COMPLEX, ips, comm_s, mpierr)
+#else
+         call MPI_Bcast(aux, nblks_comm*nblk*nvc, MPI_COMPLEX, ips, comm_s, mpierr)
+
+#endif /* DOUBLE_PRECISION_COMPLEX */
+
+#endif /* COMPLEXCASE==1 */
 
 #if REALCASE==1
-         call MPI_Bcast(aux,nblks_comm*nblk*nvc,MPI_REAL8,ips,comm_s,mpierr)
+
+#ifdef DOUBLE_PRECISION_REAL
+         call MPI_Bcast(aux, nblks_comm*nblk*nvc, MPI_REAL8, ips, comm_s, mpierr)
+#else
+         call MPI_Bcast(aux, nblks_comm*nblk*nvc, MPI_REAL4, ips, comm_s, mpierr)
 #endif
+
+#endif /* REALCASE == 1 */
+
+#endif /* WITH_MPI */
+
 #ifdef WITH_OPENMP
          !$omp end master
          !$omp barrier
@@ -133,6 +240,22 @@ subroutine elpa_transpose_vectors_complex(vmat_s,ld_s,comm_s,vmat_t,ld_t,comm_t,
    !$omp end parallel
 #endif
    deallocate(aux)
+#ifdef HAVE_DETAILED_TIMINGS
+#if COMPLEXCASE == 1
+#ifdef DOUBLE_PRECISION_COMPLEX
+   call timer%stop("elpa_transpose_vectors_complex_double")
+#else
+   call timer%stop("elpa_transpose_vectors_complex_single")
+#endif
 
+#else
+#ifdef DOUBLE_PRECISION_REAL
+   call timer%stop("elpa_transpose_vectors_real_double")
+#else
+   call timer%stop("elpa_transpose_vectors_real_single")
+#endif
+#endif
+
+#endif
 end subroutine
 

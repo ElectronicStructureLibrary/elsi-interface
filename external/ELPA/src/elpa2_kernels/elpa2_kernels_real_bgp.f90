@@ -1,26 +1,27 @@
 !    This file is part of ELPA.
 !
-!    The ELPA library was originally created by the ELPA consortium, 
+!    The ELPA library was originally created by the ELPA consortium,
 !    consisting of the following organizations:
 !
-!    - Rechenzentrum Garching der Max-Planck-Gesellschaft (RZG), 
+!    - Max Planck Computing and Data Facility (MPCDF), formerly known as
+!      Rechenzentrum Garching der Max-Planck-Gesellschaft (RZG),
 !    - Bergische Universität Wuppertal, Lehrstuhl für angewandte
 !      Informatik,
 !    - Technische Universität München, Lehrstuhl für Informatik mit
-!      Schwerpunkt Wissenschaftliches Rechnen , 
-!    - Fritz-Haber-Institut, Berlin, Abt. Theorie, 
-!    - Max-Plack-Institut für Mathematik in den Naturwissenschaftrn, 
-!      Leipzig, Abt. Komplexe Strukutren in Biologie und Kognition, 
-!      and  
+!      Schwerpunkt Wissenschaftliches Rechnen ,
+!    - Fritz-Haber-Institut, Berlin, Abt. Theorie,
+!    - Max-Plack-Institut für Mathematik in den Naturwissenschaften,
+!      Leipzig, Abt. Komplexe Strukutren in Biologie und Kognition,
+!      and
 !    - IBM Deutschland GmbH
 !
 !
 !    More information can be found here:
-!    http://elpa.rzg.mpg.de/
+!    http://elpa.mpcdf.mpg.de/
 !
 !    ELPA is free software: you can redistribute it and/or modify
-!    it under the terms of the version 3 of the license of the 
-!    GNU Lesser General Public License as published by the Free 
+!    it under the terms of the version 3 of the license of the
+!    GNU Lesser General Public License as published by the Free
 !    Software Foundation.
 !
 !    ELPA is distributed in the hope that it will be useful,
@@ -44,7 +45,7 @@
 ! This file contains the compute intensive kernels for the Householder transformations.
 !
 ! *** Special IBM BlueGene/P version with BlueGene assembler instructions in Fortran ***
-! 
+!
 ! Copyright of the original code rests with the authors inside the ELPA
 ! consortium. The copyright of any additional modifications shall rest
 ! with their original authors, but shall adhere to the licensing terms
@@ -52,20 +53,21 @@
 !
 ! --------------------------------------------------------------------------------------------------
 !module real_bgp_kernel
-  
+
 !  private
 !  public double_hh_trafo_bgp
 !contains
   subroutine double_hh_trafo_bgp(q, hh, nb, nq, ldq, ldh)
+    use precision
 
     implicit none
 
-    integer, intent(in) :: nb, nq, ldq, ldh
-    real*8, intent(inout) :: q(ldq,*)
-    real*8, intent(in) :: hh(ldh,*)
+    integer(kind=ik), intent(in) :: nb, nq, ldq, ldh
+    real(kind=rk8), intent(inout) :: q(ldq,*)
+    real(kind=rk8), intent(in)    :: hh(ldh,*)
 
-    real*8 s
-    integer i
+    real(kind=rk8)                :: s
+    integer(kind=ik)             :: i
 
     ! Safety only:
 
@@ -107,18 +109,18 @@
 
   subroutine hh_trafo_kernel_10_bgp(q, hh, nb, ldq, ldh, s)
 
-
+    use precision
+    use elpa_mpi
     implicit none
 
-    include 'mpif.h'
 
-    integer, intent(in) :: nb, ldq, ldh
-    complex*16, intent(inout) :: q(ldq/2,*)
-    real*8, intent(in) :: hh(ldh,*), s
+    integer(kind=ik), intent(in)    :: nb, ldq, ldh
+    complex(kind=ck), intent(inout) :: q(ldq/2,*)
+    real(kind=rk8), intent(in)       :: hh(ldh,*), s
 
-    complex*16 x1, x2, x3, x4, x5, y1, y2, y3, y4, y5, q1, q2, q3, q4, q5, p1, p2, p3, p4, p5
-    real*8 h1, h2
-    integer i
+    complex(kind=ck)                :: x1, x2, x3, x4, x5, y1, y2, y3, y4, y5, q1, q2, q3, q4, q5, p1, p2, p3, p4, p5
+    real(kind=rk8)                   :: h1, h2
+    integer(kind=ik)                :: i
 
     !   complex*16 loadfp, fxcpmadd, fxpmul, fpadd, a, b
     !   real*8 x
@@ -384,18 +386,18 @@
 
   subroutine hh_trafo_kernel_8_bgp(q, hh, nb, ldq, ldh, s)
 
-
+    use precision
+    use elpa_mpi
     implicit none
 
-    include 'mpif.h'
 
-    integer, intent(in) :: nb, ldq, ldh
-    complex*16, intent(inout) :: q(ldq/2,*)
-    real*8, intent(in) :: hh(ldh,*), s
+    integer(kind=ik), intent(in)    :: nb, ldq, ldh
+    complex(kind=ck), intent(inout) :: q(ldq/2,*)
+    real(kind=rk8), intent(in)       :: hh(ldh,*), s
 
-    complex*16 x1, x2, x3, x4, y1, y2, y3, y4, q1, q2, q3, q4, p1, p2, p3, p4
-    real*8 h1, h2
-    integer i
+    complex(kind=ck)                :: x1, x2, x3, x4, y1, y2, y3, y4, q1, q2, q3, q4, p1, p2, p3, p4
+    real(kind=rk8)                   :: h1, h2
+    integer(kind=ik)                :: i
 
     !   complex*16 loadfp, fxcpmadd, fxpmul, fpadd, a, b
     !   real*8 x
@@ -626,18 +628,18 @@
 
   subroutine hh_trafo_kernel_4_bgp(q, hh, nb, ldq, ldh, s)
 
-
+    use precision
+    use elpa_mpi
     implicit none
 
-    include 'mpif.h'
 
-    integer, intent(in) :: nb, ldq, ldh
-    complex*16, intent(inout) :: q(ldq/2,*)
-    real*8, intent(in) :: hh(ldh,*), s
+    integer(kind=ik), intent(in)    :: nb, ldq, ldh
+    complex(kind=ck), intent(inout) :: q(ldq/2,*)
+    real(kind=rk8), intent(in)       :: hh(ldh,*), s
 
-    complex*16 x1, x2, y1, y2, q1, q2, p1, p2
-    real*8 h1, h2
-    integer i
+    complex(kind=ck)                :: x1, x2, y1, y2, q1, q2, p1, p2
+    real(kind=rk8)                   :: h1, h2
+    integer(kind=ik)                :: i
 
     !   complex*16 loadfp, fxcpmadd, fxpmul, fpadd, a, b
     !   real*8 x
