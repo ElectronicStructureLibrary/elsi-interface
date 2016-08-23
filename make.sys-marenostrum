@@ -8,12 +8,11 @@ ARCH      = ar
 ARCHFLAGS = cr
 RANLIB    = ranlib
 
-BLAS      = -L${MKLROOT}/lib/intel64 -lmkl_blas95_lp64 \
-            -lmkl_intel_lp64 -lmkl_sequential -lmkl_core \
-            -lpthread -lm
-LAPACK    = -L${MKLROOT}/lib/intel64 -lmkl_lapack95_lp64
-SCALAPACK = -L${MKLROOT}/lib/intel64 -lmkl_scalapack_lp64 \
-            -lmkl_blacs_intelmpi_lp64
+SCALAPACK_LDFLAGS = -L/opt/intel/mkl/lib/intel64 -lmkl_scalapack_lp64 \
+                    -lmkl_blacs_intelmpi_lp64 -lmkl_lapack95_lp64 \
+                    -lmkl_blas95_lp64 -lmkl_intel_lp64 \
+                    -lmkl_sequential -lmkl_core -lpthread -lm
+SCALAPACK_FCFLAGS = -I/opt/intel/mkl/include/intel64/lp64
 
 THIS_DIR  = $(shell pwd)
 
@@ -33,9 +32,6 @@ HDF5 = -I/gpfs/apps/MN3/HDF5/1.8.15p1/static/include \
 ELPA_DIR   = $(THIS_DIR)/external/ELPA
 FFLAGS_E   = -O3 -fpe0 -fpp -I$(ELPA_DIR)
 CFLAGS_E   = -O3 -mavx -funsafe-loop-optimizations \
-             -funsafe-math-optimizations -ftree-vect-loop-version \
-             -ftree-vectorize
-CXXFLAGS_E = -O3 -mavx -funsafe-loop-optimizations \
              -funsafe-math-optimizations -ftree-vect-loop-version \
              -ftree-vectorize
 
@@ -68,10 +64,12 @@ SUPERLU_INCLUDE = -I$(SUPERLU_INCLUDE_DIR)
 ELPA  = -L$(ELPA_DIR)/lib -lelpa \
         -I$(ELPA_DIR)/include/elpa/modules
 
-OMM   = -I$(libOMM_DIR)/src \
-        -I$(libOMM_DIR)/src/MatrixSwitch-0.1.2/src \
-        -L$(libOMM_DIR)/src -lOMM \
-        -L$(libOMM_DIR)/src/MatrixSwitch-0.1.2/src -lmatrixswitch
+OMM   = -I$(libOMM_DIR)/build_libOMM/inlcude \
+        -I$(libOMM_DIR)/build_MatrixSwitch/include \
+        -I$(libOMM_DIR)/build_psp/include \
+        -L$(libOMM_DIR)/build_libOMM/lib -lOMM \
+        -L$(libOMM_DIR)/build_MatrixSwitch/lib -lMatrixSwitch \
+        -L$(libOMM_DIR)/build_psp/lib -lpspblas
 
 PEXSI = -I$(PEXSI_DIR)/include \
         -I$(PEXSI_DIR)/include/pexsi \

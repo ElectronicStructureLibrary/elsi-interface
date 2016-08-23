@@ -8,12 +8,11 @@ ARCH      = ar
 ARCHFLAGS = cr
 RANLIB    = ranlib
 
-BLAS      = -L${MKLROOT}/lib/intel64 -lmkl_blas95_lp64 \
-            -lmkl_intel_lp64 -lmkl_sequential -lmkl_core \
-            -lpthread -lm
-LAPACK    = -L${MKLROOT}/lib/intel64 -lmkl_lapack95_lp64
-SCALAPACK = -L${MKLROOT}/lib/intel64 -lmkl_scalapack_lp64 \
-            -lmkl_blacs_intelmpi_lp64
+SCALAPACK_LDFLAGS = -L/opt/intel/mkl/lib/intel64 -lmkl_scalapack_lp64 \
+                    -lmkl_blacs_intelmpi_lp64 -lmkl_lapack95_lp64 \
+                    -lmkl_blas95_lp64 -lmkl_intel_lp64 \
+                    -lmkl_sequential -lmkl_core -lpthread -lm
+SCALAPACK_FCFLAGS = -I/opt/intel/mkl/include/intel64/lp64
 
 THIS_DIR  = $(shell pwd)
 
@@ -27,11 +26,8 @@ HDF5     = -L$(HDF5_HOME)/lib -I$(HDF5_HOME)/include \
 # ====== ELPA ======
 
 ELPA_DIR   = $(THIS_DIR)/external/ELPA
-FFLAGS_E   = -O3 -fpe0 -fpp -I$(ELPA_DIR)
+FFLAGS_E   = -O3 -fpe0 -fpp
 CFLAGS_E   = -O3 -mavx -funsafe-loop-optimizations \
-             -funsafe-math-optimizations -ftree-vect-loop-version \
-             -ftree-vectorize
-CXXFLAGS_E = -O3 -mavx -funsafe-loop-optimizations \
              -funsafe-math-optimizations -ftree-vect-loop-version \
              -ftree-vectorize
 
@@ -62,7 +58,7 @@ SUPERLU_INCLUDE = -I/home/wy29/yu/SuperLU_DIST_4.3/SRC
 # ====== LINK ======
 
 ELPA  = -L$(ELPA_DIR)/lib -lelpa \
-        -I$(ELPA_DIR)/include/elpa/modules
+        -I$(ELPA_DIR)/include
 
 OMM   = -I$(libOMM_DIR)/build_libOMM/inlcude \
         -I$(libOMM_DIR)/build_MatrixSwitch/include \

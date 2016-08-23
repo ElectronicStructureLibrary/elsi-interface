@@ -9,14 +9,17 @@ ARCH      = ar
 ARCHFLAGS = cr
 RANLIB    = ranlib
 
-BLAS      = -L/soft/libraries/essl/current/essl/5.1/lib64 -lesslsmpbg \
-            -Wl,--allow-multiple-definition\
-            -L${IBM_MAIN_DIR}/xlf/bg/14.1/bglib64 -lxlf90_r -lxlopt \
-            -lxlfmath -lxl -ldl\
-            -L${IBM_MAIN_DIR}/xlsmp/bg/3.1/bglib64 -lxlsmp\
-            -L${IBM_MAIN_DIR}/xlmass/bg/7.3/bglib64 -lmass
-LAPACK    = -L/soft/libraries/alcf/current/xl/LAPACK/lib -llapack 
-SCALAPACK = -L/soft/libraries/alcf/current/xl/SCALAPACK/lib -lscalapack
+SCALAPACK_LDFLAGS =
+SCALAPACK_FCFLAGS =
+
+#BLAS      = -L/soft/libraries/essl/current/essl/5.1/lib64 -lesslsmpbg \
+#            -Wl,--allow-multiple-definition\
+#            -L${IBM_MAIN_DIR}/xlf/bg/14.1/bglib64 -lxlf90_r -lxlopt \
+#            -lxlfmath -lxl -ldl\
+#            -L${IBM_MAIN_DIR}/xlsmp/bg/3.1/bglib64 -lxlsmp\
+#            -L${IBM_MAIN_DIR}/xlmass/bg/7.3/bglib64 -lmass
+#LAPACK    = -L/soft/libraries/alcf/current/xl/LAPACK/lib -llapack 
+#SCALAPACK = -L/soft/libraries/alcf/current/xl/SCALAPACK/lib -lscalapack
 
 THIS_DIR  = $(shell pwd)
 
@@ -39,7 +42,6 @@ HDF5      = -I$(HDF5_HOME)/include \
 ELPA_DIR   = $(THIS_DIR)/external/ELPA
 FFLAGS_E   = ${FFLAGS_I} -I$(ELPA_DIR)
 CFLAGS_E   = -O3
-CXXFLAGS_E = -O3
 
 ARCHITECTURE = BlueGeneQ
 OPENMP = no

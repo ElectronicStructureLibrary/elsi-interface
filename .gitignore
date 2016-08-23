@@ -3,3 +3,5 @@ make.sys
 *.mod
 ELSI/bin
 external/PEXSI/fortran
+external/ELPA/.gitignore
+external/ELPA/.gitlab-ci.yml

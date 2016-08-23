@@ -1,6 +1,11 @@
+# PLEASE USE ELSI INSTALLER !!
+# Please "cd ../.." and refer to INSTALL, make.sys, Makefile.elsi
+# What follows is the original ELPA installation guide, for reference only !!
+
+
 # Installation guide #
 
-## Preamle ##
+## Preamble ##
 
 This file provides documentation on how to build the *ELPA* library in **version ELPA-2016.05.003**.
 Although most of the documentation is generic to any *ELPA* release, some configure options
