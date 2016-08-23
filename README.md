@@ -1,3 +1,9 @@
+ELSI provides and enhances open-source software library solutions for 
+electronic structure theory with unified application programming interface.
+
+ELSI focuses particularly on methods that solve or circumvent eigenvalue
+problems in the self-consistent field cycle of density-functional theory.
+
 Requirements:
 
   * Fortran90, C, C++
