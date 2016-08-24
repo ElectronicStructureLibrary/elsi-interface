@@ -625,7 +625,6 @@ subroutine elsi_compute_dm_elpa(D_out,occ)
    integer :: l_row, l_col ! Local index
    integer :: g_row, g_col !< Global index
 
-
    character*40, parameter :: caller = "elsi_compute_dm"
 
    select case (method)
@@ -1161,294 +1160,6 @@ end subroutine
 !=========================
 
 !>
-!!  This routine transforms the Hamiltonian and overlap matrices from
-!!  block-cyclic format to distributed CCS format used by PEXSI.
-!!
-subroutine elsi_bc_to_ccs_pexsi(H_in,S_in)
-
-   implicit none
-   include "mpif.h"
-
-   real*8, intent(in) :: H_in(n_l_rows,n_l_cols) !< Hamiltonian
-   real*8, intent(in) :: S_in(n_l_rows,n_l_cols) !< Overlap
-
-   ! External
-   integer, external :: numroc
-
-   ! Local variables and buffers
-   real*8,  allocatable :: buffer(:,:)
-   integer :: n_buffer_nonzero
-   integer :: n_buffer_bcast_nonzero
-   integer :: id_sent
-   real*8,  allocatable :: buffer_sparse(:)
-   integer, allocatable :: buffer_sparse_index(:)
-   integer, allocatable :: buffer_sparse_pointer(:)
-   real*8,  allocatable :: buffer_bcast_sparse(:)
-   integer, allocatable :: buffer_bcast_sparse_index(:)
-   integer, allocatable :: buffer_bcast_sparse_pointer(:)
-   integer :: sc_desc_buffer(9)
-   integer :: n_l_buffer_rows
-   integer :: n_l_buffer_cols
-   integer :: n_b_buffer_rows
-   integer :: n_b_buffer_cols
-   integer :: n_l_cols_g
-   integer :: n_cols_add
-   integer :: blacs_col_offset
-   integer :: pexsi_col_offset
-   integer :: my_col_offset
-   integer :: g_column
-   integer :: offset_B
-   integer :: offset
-   integer :: n_elements
-   integer :: i_proc, i_col, id, l_col
-   integer, allocatable :: n_l_nonzero_column(:)
-
-   character*100, parameter :: caller = "elsi_bc_to_ccs_pexsi()"
-
-   call elsi_start_bc_to_ccs_time()
-
-   call elsi_statement_print(" ELSI matrix conversion: block-cyclic ==> CCS ")
-
-   ! Caution: only n_g_nonzero is meaningful here
-   ! n_l_nonzero refers to wrong distribution
-   call elsi_compute_N_nonzero(H_in,n_l_rows,n_l_cols)
-   n_l_nonzero = -1
-
-   if((n_p_rows == 1 .or. n_p_cols == 1) .and. n_procs /= 1) then
-      if(myid == 0) &
-      print *, "ELSI has encountered a ScaLAPACK bug when working " //&
-      "with prime process numbers and using pdtran to transform a matrix " //&
-      "to a different BLACS descriptor. ELSI stops here and waits for a " //&
-      "ScaLAPACK patch. While this setup is an inefficient corner case, " //&
-      "try to restart your calculation using a square number of processes " //&
-      "for optimal performance and refrain from using prime numbers."
-      call MPI_ABORT(mpi_comm_global)
-      stop
-   endif
-
-   call mpi_comm_split(mpi_comm_global,my_p_col,my_p_row,mpi_comm_row,mpierr)
-   call mpi_comm_split(mpi_comm_global,my_p_row,my_p_col,mpi_comm_col,mpierr)
-
-   ! Determine dimensions of buffer for transformation to PEXSI layout
-   n_b_buffer_rows = n_g_rank
-   n_b_buffer_cols = CEILING(1d0*n_g_rank / n_p_cols)
-   n_l_buffer_rows = n_g_rank
-   n_l_buffer_cols = numroc(n_g_rank,n_b_buffer_cols,my_p_col,0,n_p_cols)
-
-   ! Setup new descriptor for buffer based on the new dimensions
-   call descinit(sc_desc_buffer,n_g_rank,n_g_rank,n_b_buffer_rows,n_b_buffer_cols,&
-                 0,0,blacs_ctxt,n_l_buffer_rows,blacs_info)
-
-   ! PEXSI setup
-   n_l_rows_pexsi = n_g_rank
-   n_l_cols_g = FLOOR(1d0*n_g_rank / n_procs)
-   n_cols_add = n_g_rank - n_l_cols_g * n_procs
-
-   if(myid == n_procs - 1) then
-      n_l_cols_pexsi = n_l_cols_g + n_cols_add
-   else
-      n_l_cols_pexsi = n_l_cols_g
-   endif
-
-   ! PEXSI setup
-   n_l_rows_pexsi = n_g_rank
-   n_l_cols_g = FLOOR(1d0*n_g_rank / n_procs)
-   n_cols_add = n_g_rank - n_l_cols_g * n_procs
-
-   if(myid == n_procs - 1) then
-      n_l_cols_pexsi = n_l_cols_g + n_cols_add
-   else
-      n_l_cols_pexsi = n_l_cols_g
-   endif
-
-   ! The Hamiltonian
-   call elsi_allocate(buffer,n_l_buffer_rows,n_l_buffer_cols,"buffer",caller)
-   call pdtran(n_g_rank,n_g_rank,1d0,H_in,1,1,sc_desc,0d0,buffer,1,1,sc_desc_buffer)
-
-   ! Calculate number of nonzero elements on this process
-   ! Set meaningful n_l_nonzero here
-   call elsi_allocate(n_l_nonzero_column,n_g_rank,"n_l_nonzero_column",caller)
-   blacs_col_offset = 1 + my_p_col * n_b_buffer_cols
-   call elsi_get_n_nonzero_column(buffer,n_l_buffer_rows,n_l_buffer_cols,&
-                                  blacs_col_offset,n_l_nonzero_column)
-   pexsi_col_offset = 1 + myid * n_l_cols_g
-   n_l_nonzero = &
-   sum(n_l_nonzero_column(pexsi_col_offset:pexsi_col_offset + n_l_cols_pexsi - 1))
-
-   call elsi_allocate(H_real_sparse,n_l_nonzero,"H_real_sparse",caller)
-   call elsi_allocate(sparse_index,n_l_nonzero,"sparse_index",caller)
-   call elsi_allocate(sparse_pointer,n_l_cols_pexsi+1,"sparse_pointer",caller)
-   sparse_index = -1
-   sparse_pointer = -1
-
-   call elsi_get_local_N_nonzero(buffer,n_l_buffer_rows,n_b_buffer_cols,n_buffer_nonzero)
-
-   call elsi_allocate(buffer_sparse,n_buffer_nonzero,"buffer_sparse",caller)
-   call elsi_allocate(buffer_sparse_index,n_buffer_nonzero,"buffer_sparse_index",caller)
-   call elsi_allocate(buffer_sparse_pointer,n_b_buffer_cols+1,"buffer_sparse_pointer",caller)
-   call elsi_dense_to_ccs(buffer,n_l_buffer_rows,n_l_buffer_cols,buffer_sparse,&
-                          n_buffer_nonzero,buffer_sparse_index,buffer_sparse_pointer)
-   deallocate(buffer)
-
-   do i_proc = 0, n_p_cols - 1
-
-      n_buffer_bcast_nonzero = n_buffer_nonzero
-
-      id_sent = i_proc
-
-      call MPI_Bcast(n_buffer_bcast_nonzero,1,MPI_INT,id_sent,mpi_comm_global,mpierr)
-
-      call elsi_allocate(buffer_bcast_sparse,n_buffer_bcast_nonzero,"buffer_bcast_spase",caller)
-      call elsi_allocate(buffer_bcast_sparse_index,n_buffer_bcast_nonzero,"buffer_bcast_sparse_index",caller)
-      call elsi_allocate(buffer_bcast_sparse_pointer,n_b_buffer_cols+1,"buffer_bcast_sparse_pointer",caller)
-
-      if(myid == id_sent) then
-         buffer_bcast_sparse         = buffer_sparse
-         buffer_bcast_sparse_index   = buffer_sparse_index
-         buffer_bcast_sparse_pointer = buffer_sparse_pointer
-      else
-         buffer_bcast_sparse         = 0
-         buffer_bcast_sparse_index   = 0
-         buffer_bcast_sparse_pointer = 0
-      endif
-
-      ! However, no inter BLACS is possible so we have to do some by hand
-      ! communication and broadcast the results over all the processes
-      call MPI_Bcast(buffer_bcast_sparse,n_buffer_bcast_nonzero,MPI_DOUBLE,id_sent,mpi_comm_global,mpierr)
-      call MPI_Bcast(buffer_bcast_sparse_index,n_buffer_bcast_nonzero,MPI_INT,id_sent,mpi_comm_global,mpierr)
-      call MPI_Bcast(buffer_bcast_sparse_pointer,n_b_buffer_cols+1,MPI_INT,id_sent,mpi_comm_global,mpierr)
-
-      blacs_col_offset = 1 + i_proc * n_b_buffer_cols
-      pexsi_col_offset = 1 + myid * n_l_cols_g
-      my_col_offset    = 1 + pexsi_col_offset - blacs_col_offset
-
-      ! Fill elements from buffer
-      do i_col = my_col_offset, my_col_offset + n_l_cols_pexsi - 1
-
-         if(i_col > 0 .and. i_col <= n_b_buffer_cols) then
-
-            ! Get the global column
-            g_column = i_col + blacs_col_offset - 1
-
-            ! Get the offset in the buffer for this column
-            offset_B = buffer_bcast_sparse_pointer(i_col)
-
-            ! How many elements are in this column
-            n_elements = buffer_bcast_sparse_pointer(i_col+1) &
-                         - buffer_bcast_sparse_pointer(i_col)
-
-            ! Local offset
-            l_col = i_col - my_col_offset + 1
-
-            offset = sum(n_l_nonzero_column(pexsi_col_offset:g_column-1)) + 1
-
-            ! Populate sparse matrix
-            sparse_pointer(l_col) = offset
-
-            H_real_sparse(offset:offset+n_elements-1) = &
-            buffer_bcast_sparse(offset_B:offset_B+n_elements-1)
-            sparse_index(offset:offset+n_elements-1) = &
-            buffer_bcast_sparse_index(offset_B:offset_B+n_elements-1)
-
-        endif
-     enddo
-
-     deallocate(buffer_bcast_sparse)
-     deallocate(buffer_bcast_sparse_index)
-     deallocate(buffer_bcast_sparse_pointer)
-
-  enddo
-
-  ! Last element in sparse pointer is n_l_nonzero + 1
-  sparse_pointer(n_l_cols_pexsi + 1) = n_l_nonzero + 1
-
-  ! The Overlap Matrix
-  call elsi_allocate(buffer,n_l_buffer_rows,n_l_buffer_cols,"buffer",caller)
-  buffer = 0d0
-  call pdtran(n_g_rank,n_g_rank,1d0,S_in,1,1,sc_desc,0d0,buffer,1,1,sc_desc_buffer)
-
-  call elsi_allocate(S_real_sparse,n_l_nonzero,"S_real_sparse",caller)
-  call elsi_dense_to_ccs_by_pattern(buffer,n_l_buffer_rows,n_l_buffer_cols,buffer_sparse,&
-                                    n_buffer_nonzero,buffer_sparse_index,buffer_sparse_pointer)
-  deallocate(buffer)
-
-  do i_proc = 0, n_p_cols - 1
-
-     n_buffer_bcast_nonzero = n_buffer_nonzero
-
-     id_sent = i_proc
-
-     call MPI_Bcast(n_buffer_bcast_nonzero,1,MPI_INT,id_sent,mpi_comm_global,mpierr)
-
-     call elsi_allocate(buffer_bcast_sparse,n_buffer_bcast_nonzero,"buffer_bcast_sparse",caller)
-     call elsi_allocate(buffer_bcast_sparse_index,n_buffer_bcast_nonzero,"buffer_bcast_sparse_index",caller)
-     call elsi_allocate(buffer_bcast_sparse_pointer,n_b_buffer_cols+1,"buffer_bcast_sparse_pointer",caller)
-
-     if(myid == id_sent) then
-        buffer_bcast_sparse         = buffer_sparse
-        buffer_bcast_sparse_index   = buffer_sparse_index
-        buffer_bcast_sparse_pointer = buffer_sparse_pointer
-     else
-        buffer_bcast_sparse         = 0
-        buffer_bcast_sparse_index   = 0
-        buffer_bcast_sparse_pointer = 0
-     endif
-
-     ! However, no inter BLACS is possible so we have to do some by hand
-     ! communication and broadcast the results over all the processes
-     call MPI_Bcast(buffer_bcast_sparse,n_buffer_bcast_nonzero,MPI_DOUBLE,id_sent,mpi_comm_global,mpierr)
-     call MPI_Bcast(buffer_bcast_sparse_index,n_buffer_bcast_nonzero,MPI_INT,id_sent,mpi_comm_global,mpierr)
-     call MPI_Bcast(buffer_bcast_sparse_pointer,n_b_buffer_cols+1,MPI_INT,id_sent,mpi_comm_global,mpierr)
-
-     blacs_col_offset = 1 + i_proc * n_b_buffer_cols
-     pexsi_col_offset = 1 + myid * n_l_cols_g
-     my_col_offset    = 1 + pexsi_col_offset - blacs_col_offset
-
-     ! Fill elements from buffer
-     do i_col = my_col_offset, my_col_offset + n_l_cols_pexsi - 1
-
-        if(i_col > 0 .and. i_col <= n_b_buffer_cols) then
-
-           ! Get the global column
-           g_column = i_col + blacs_col_offset - 1
-
-           ! Get the offset in the buffer for this column
-           offset_B = buffer_bcast_sparse_pointer(i_col)
-
-           ! How many elements are in this column
-           n_elements = buffer_bcast_sparse_pointer(i_col+1) - buffer_bcast_sparse_pointer(i_col)
-
-           ! Local offset
-           l_col = i_col - my_col_offset + 1
-
-           ! Populate sparse matrix
-           offset = sparse_pointer(l_col)
-           S_real_sparse(offset:offset+n_elements-1) = &
-           buffer_bcast_sparse(offset_B:offset_B+n_elements-1)
-
-        endif
-     enddo
-
-     deallocate(buffer_bcast_sparse)
-     deallocate(buffer_bcast_sparse_index)
-     deallocate(buffer_bcast_sparse_pointer)
-
-   enddo
-
-   deallocate(buffer_sparse)
-   deallocate(buffer_sparse_index)
-   deallocate(buffer_sparse_pointer)
-   deallocate(n_l_nonzero_column)
-
-   overlap_is_unity = .False.
-
-   call elsi_stop_bc_to_ccs_time()
-
-   call elsi_statement_print(" ELSI matrix conversion done ")
-
-end subroutine
-
-!>
 !!  This routine interfaces to PEXSI.
 !!
 subroutine elsi_solve_evp_pexsi()
@@ -1470,13 +1181,10 @@ subroutine elsi_solve_evp_pexsi()
    if(.not.allocated(FD_real_sparse)) allocate(FD_real_sparse(n_l_nonzero))
 
    ! Load sparse matrices for PEXSI
-   call elsi_statement_print(" Load PEXSI sparce matrices ")
-
    if(overlap_is_unity) then
       call f_ppexsi_load_real_symmetric_hs_matrix(pexsi_plan,pexsi_options,&
               n_g_rank,n_g_nonzero,n_l_nonzero,n_l_cols,sparse_pointer,&
               sparse_index,H_real_sparse,1,S_real_sparse,pexsi_info)
-
    else
       call f_ppexsi_load_real_symmetric_hs_matrix(pexsi_plan,pexsi_options,&
               n_g_rank,n_g_nonzero,n_l_nonzero,n_l_cols,sparse_pointer,&
@@ -1499,8 +1207,6 @@ subroutine elsi_solve_evp_pexsi()
    endif
 
    ! Get the results
-   call elsi_statement_print(" Fetch density matrix ")
-
    call f_ppexsi_retrieve_real_symmetric_dft_matrix(pexsi_plan,D_real_sparse,&
            ED_real_sparse,FD_real_sparse,e_tot_H,e_tot_S,f_tot,pexsi_info)
 
@@ -1669,54 +1375,6 @@ subroutine elsi_ev_real(H_in, S_in, e_val_out, e_vec_out, need_cholesky)
 
 end subroutine
 
-subroutine elsi_ev_real_ms(H_ms, S_ms, e_val_out, C_ms, need_cholesky)
-   implicit none
-
-   type(matrix) :: H_ms                       !< Hamiltonian
-   type(matrix) :: S_ms                       !< Overlap
-   real*8, intent(out) :: e_val_out(n_states) !< Eigenvalues
-   type(matrix) :: C_ms                       !< Eigenvectors
-   logical, intent(inout) :: need_cholesky    !< Cholesky factorize overlap?
-
-   character*40, parameter :: caller = "elsi_ev_real"
-
-   ! Here the only supported method is ELPA
-   select case (method)
-      case (ELPA)
-         ! REAL case
-         call elsi_set_mode(REAL_VALUES)
-
-         ! Allocate matrices
-         call elsi_allocate_matrices()
-
-         ! Set Hamiltonian and Overlap matrices
-         call elsi_set_hamiltonian(H_ms%dval)
-         call elsi_set_overlap(S_ms%dval)
-
-         ! Solve eigenvalue problem
-         call elsi_solve_evp_elpa(need_cholesky)
-         call elsi_get_eigenvalues(e_val_out)
-         call elsi_get_eigenvectors(C_ms%dval)
-
-      case (LIBOMM)
-         call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors. "//&
-                        " Choose ELPA if necessary. Exiting... ",caller)
-      case (PEXSI)
-         call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors. "//&
-                        " Choose ELPA if necessary. Exiting... ",caller)
-      case (CHESS)
-         call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors. "//&
-                        " Choose ELPA if necessary. Exiting... ",caller)
-      case DEFAULT
-         call elsi_stop(" No supported method has been chosen. "//&
-                        " Please choose ELPA to compute eigenpairs. "//&
-                        " Exiting... ",caller)
-   end select
-
-   need_cholesky = .false.
-
-end subroutine
-
 !>
 !!  This routine computes eigenvalues and eigenvectors.
 !!
@@ -1813,7 +1471,7 @@ subroutine elsi_dm_real(H_in, S_in, D_out, energy_out, need_cholesky, occupation
          call elsi_get_energy(energy_out)
       case (PEXSI)
          ! Convert block-cyclic matrices to CCS format
-         call elsi_bc_to_ccs_pexsi(H_in,S_in)
+!         call elsi_bc_to_ccs_pexsi(H_in,S_in)
 
          call elsi_solve_evp_pexsi()
 !         call elsi_get_dm(D_out)
@@ -1859,16 +1517,30 @@ subroutine elsi_dm_complex(H_in, S_in, D_out, energy_out, need_cholesky, occupat
    ! Solve eigenvalue problem
    select case (method)
       case (ELPA)
+         ! Set Hamiltonian and overlap matrices
+         call elsi_set_hamiltonian(H_in)
+         call elsi_set_overlap(S_in)
+
          call elsi_get_occupied_number(occupation)
          call elsi_solve_evp_elpa(need_cholesky)
-         call elsi_allocate(D_elpa, n_l_rows, n_l_cols, "D_elpa", caller)
-         call elsi_compute_dm_elpa(D_out, occupation)
+         call elsi_allocate(D_elpa,n_l_rows,n_l_cols,"D_elpa",caller)
+         call elsi_compute_dm_elpa(D_out,occupation)
          call elsi_get_energy(energy_out)
       case (LIBOMM)
+         ! Set Hamiltonian and overlap matrices
+         call elsi_set_hamiltonian(H_in)
+         call elsi_set_overlap(S_in)
+
          call elsi_solve_evp_omm(need_cholesky)
          call elsi_get_dm(D_out)
          call elsi_get_energy(energy_out)
       case (PEXSI)
+         ! Convert block-cyclic matrices to CCS format
+!         call elsi_bc_to_ccs_pexsi(H_in,S_in)
+
+!         call elsi_solve_evp_pexsi()
+!         call elsi_get_dm(D_out)
+!         call elsi_get_energy(energy_out)
          call elsi_stop(" PEXSI not yet implemented. Exiting... ",caller)
       case (CHESS)
          call elsi_stop(" CHESS not yet implemented. Exiting... ",caller)

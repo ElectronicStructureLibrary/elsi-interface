@@ -24,7 +24,7 @@
 !OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 !>
-!! This module contains wrapper functions to the MPI library 
+!! This module contains wrapper functions to the MPI library.
 !!
 
 module ELSI_MPI_TOOLS
