@@ -17,5 +17,5 @@ problems in the self-consistent field cycle of density-functional theory.
 **OPTIONAL**
   * Automake
   * Autoconf
-  * Cmake
-  * HDF5 (to be removed)
+  * Libtool
+  * M4
