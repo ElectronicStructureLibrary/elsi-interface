@@ -34,7 +34,6 @@ module ELSI
    use ELSI_DIMENSIONS
    use ELSI_TIMERS
    use ELSI_MPI_TOOLS
-   use ELSI_HDF5_TOOLS
    use ELSI_MATRIX_CONVERSION
    use ELPA1
    use ELPA2
@@ -116,27 +115,6 @@ module ELSI
    public :: elsi_dm_complex      !< Compute density matrix
    public :: elsi_ev_real_ms      !< MatrixSwitch version
    public :: elsi_finalize        !< Clean memory and print timings
-!========================================
-! Legacy
-   public :: elsi_init_problem
-   public :: elsi_init_problem_from_file
-   public :: elsi_set_method
-   public :: elsi_set_mode
-   public :: elsi_allocate_matrices
-   public :: elsi_deallocate_matrices
-   public :: elsi_set_hamiltonian
-   public :: elsi_set_overlap
-   public :: elsi_solve_evp
-   public :: elsi_set_hamiltonian_element
-   public :: elsi_symmetrize_hamiltonian
-   public :: elsi_get_hamiltonian
-   public :: elsi_set_overlap_element
-   public :: elsi_symmetrize_overlap
-   public :: elsi_get_overlap
-   public :: elsi_write_evp
-   public :: elsi_read_evp
-   public :: scalapack_dense_to_pexsi_sparse
-!========================================
 
    interface elsi_set_hamiltonian
       module procedure elsi_set_real_hamiltonian,&
@@ -152,29 +130,6 @@ module ELSI
       module procedure elsi_get_real_eigenvectors,&
                        elsi_get_complex_eigenvectors
    end interface
-
-!========================================
-! Legacy
-   interface elsi_set_hamiltonian_element
-      module procedure elsi_set_real_hamiltonian_element,&
-                       elsi_set_complex_hamiltonian_element
-   end interface
-
-   interface elsi_get_hamiltonian
-      module procedure elsi_get_real_hamiltonian,&
-                       elsi_get_complex_hamiltonian
-   end interface
-
-   interface elsi_set_overlap_element
-      module procedure elsi_set_real_overlap_element,&
-                       elsi_set_complex_overlap_element
-   end interface
-
-   interface elsi_get_overlap
-      module procedure elsi_get_real_overlap,&
-                       elsi_get_complex_overlap
-   end interface
-!========================================
 
 contains
 
@@ -1791,7 +1746,7 @@ subroutine elsi_ev_complex(H_in, S_in, e_val_out, e_vec_out, need_cholesky)
          call elsi_set_overlap(S_in)
 
          ! Solve eigenvalue problem
-         call elsi_solve_evp(need_cholesky)
+         call elsi_solve_evp_elpa(need_cholesky)
          call elsi_get_eigenvalues(e_val_out)
          call elsi_get_eigenvectors(e_vec_out)
 
@@ -1924,217 +1879,6 @@ subroutine elsi_dm_complex(H_in, S_in, D_out, energy_out, need_cholesky, occupat
    end select
 
    need_cholesky = .false.
-
-end subroutine
-
-!==========================================
-! Legacy: no longer used; will be removed.
-!==========================================
-
-!>
-!!  This routine sets the matrix dimensions.
-!!
-subroutine elsi_init_problem(matrixsize, block_rows, block_cols)
-
-   implicit none
-
-   integer :: matrixsize  !< Global dimension of matrix
-   integer :: block_rows  !< Block rows of matrix
-   integer :: block_cols  !< Block cols of matrix
-
-end subroutine
-
-!>
-!!  This routine sets the element (i_row,i_col) in real hamiltonian matrix.
-!!
-subroutine elsi_set_real_hamiltonian_element(element,i_row,i_col)
-
-   implicit none
-
-   integer :: i_row   !< Row position
-   integer :: i_col   !< Col position
-   real*8  :: element !< Value 
-
-end subroutine
-
-!>
-!!  This routine sets the element (i_row, i_col) in the complex
-!!  hamiltonian matrix.
-!!
-subroutine elsi_set_complex_hamiltonian_element(element,i_row,i_col)
-
-   implicit none
-
-   integer, intent(in)     :: i_row   !< Row position
-   integer, intent(in)     :: i_col   !< Col position
-   complex*16, intent(in)  :: element !< Value
-
-end subroutine
-
-!>
-!!  This routine sets the element (i_row, i_col) in the real
-!!  overlap matrix.
-!!
-subroutine elsi_set_real_overlap_element(element,i_row,i_col)
-
-   implicit none
-
-   integer :: i_row   !< Row position
-   integer :: i_col   !< Col position
-   real*8  :: element !< Value
-
-end subroutine
-
-!>
-!!  This routine symmetrizes an upper or lower triangle hamiltonian.
-!!
-subroutine elsi_symmetrize_hamiltonian()
-
-  implicit none
-
-end subroutine 
-
-!>
-!!  This routine symmetrizes an upper or lower triangle overlap.
-!!
-subroutine elsi_symmetrize_overlap()
-
-  implicit none
-
-end subroutine 
-
-!>
-!!  This routine sets one element (i_row, i_col) of the complex overlap matrix.
-!!
-subroutine elsi_set_complex_overlap_element(element,i_row,i_col)
-
-   implicit none
-
-   integer    :: i_row   !< Row position
-   integer    :: i_col   !< Col position
-   complex*16 :: element !< Value
-
-end subroutine
-
-!>
-!!  This routine gets the real hamiltonian matrix.
-!!
-subroutine elsi_get_real_hamiltonian(h,n_rows,n_cols)
-
-   implicit none
-
-   integer :: n_rows !< Number of rows
-   integer :: n_cols !< Number of cols
-   real*8  :: h(n_rows,n_cols) !< Hamiltonian
-
-end subroutine
-
-!>
-!!  This routine gets the complex hamiltonian matrix.
-!!
-subroutine elsi_get_complex_hamiltonian(h,n_rows,n_cols)
-
-   implicit none
-
-   integer :: n_rows !< Number of rows
-   integer :: n_cols !< Number of cols
-   complex*16 :: h(n_rows,n_cols) !< Hamiltonian
-
-end subroutine
-
-!>
-!!  This routine gets the real overlap matrix.
-!!
-subroutine elsi_get_real_overlap(s,n_rows,n_cols)
-
-   implicit none
-
-   integer :: n_rows !< Number of rows
-   integer :: n_cols !< Number of cols
-   real*8  :: s(n_rows,n_cols) !< Overlap
-
-end subroutine
-
-!>
-!!  This routine gets the complex overlap matrix.
-!!
-subroutine elsi_get_complex_overlap(s,n_rows,n_cols)
-
-   implicit none
-
-   integer :: n_rows !< Number of rows
-   integer :: n_cols !< Number of cols
-   complex*16 :: s(n_rows,n_cols) !< Overlap
-
-end subroutine
-
-!>
-!!  This routine writes the complete eigenvalue problem into a file.
-!!
-subroutine elsi_write_evp(file_name)
-
-   implicit none
-   include "mpif.h"
-
-   character(len=*) :: file_name !< File name where to write
-
-end subroutine
-
-!>
-!!  This routine reads the eigenvalue problem from a file.
-!!
-subroutine elsi_read_evp(file_name)
-
-   implicit none
-   include "mpif.h"
-   
-   character(len=*) :: file_name !< File to open
-
-end subroutine
-
-!>
-!!  This routine sets the method of choice for solving the eigenvalue problem.
-!!
-subroutine elsi_init_problem_from_file(file_name, block_rows, block_cols)
-
-   implicit none
-   include "mpif.h"
-
-   character(len=*) :: file_name !< File to open
-   integer :: block_rows  !< Block rows of matrix
-   integer :: block_cols  !< Block cols of matrix
-
-end subroutine
-
-!>
-!!  This routine interfaces to the eigenvalue solvers.
-!!
-subroutine elsi_solve_evp(cholesky)
-
-   implicit none
-   include "mpif.h"
-
-   logical :: cholesky !< If .True. factorize Overlap
-
-end subroutine
-
-!>
-!!  This routine transforms the eigenvalue problem from scalapack dense to pexsi sparse
-!!
-subroutine scalapack_dense_to_pexsi_sparse(H_external, S_external, &
-           n_l_rows_external, n_l_cols_external, mpi_comm_external, &
-           blacs_ctxt_external, sc_desc_external)
-
-   implicit none
-   include "mpif.h"
-
-   integer :: n_l_rows_external
-   integer :: n_l_cols_external
-   real*8  :: H_external(n_l_rows_external, n_l_cols_external) 
-   real*8  :: S_external(n_l_rows_external, n_l_cols_external) 
-   integer :: mpi_comm_external
-   integer :: blacs_ctxt_external
-   integer :: sc_desc_external(9)
 
 end subroutine
 

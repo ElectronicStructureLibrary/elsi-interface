@@ -86,9 +86,6 @@ module ELSI_DIMENSIONS
   integer :: n_l_rows_pexsi
   integer :: n_l_cols_pexsi
 
-  !> HDF5
-  integer :: h5err
-
   !> Sparse matrix information
   integer :: n_g_nonzero !< Number of nonzero elements of the global matrix
   integer :: n_l_nonzero !< Number of nonzero elements of the local matrix

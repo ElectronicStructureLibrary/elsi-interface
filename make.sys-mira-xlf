@@ -31,12 +31,6 @@ FFLAGS_I += -qarch=qp -qtune=qp
 FFLAGS_I += -qsimd=auto -qhot=level=1 -qprefetch -qunroll=yes
 FFLAGS_I += -qreport -qsource -qlistopt -qlist -qessl
  
-HDF5_HOME = /gpfs/mira-home/blange/devel/HDF5
-HDF5      = -I$(HDF5_HOME)/include \
-            -L$(HDF5_HOME)/lib \
-            -Wl,-rpath -Wl,$(HDF5_HOME)/lib \
-            -lhdf5_fortran -lhdf5hl_fortran -lhdf5
-
 # ====== ELPA ======
 
 ELPA_DIR   = $(THIS_DIR)/external/ELPA

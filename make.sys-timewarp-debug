@@ -20,9 +20,6 @@ THIS_DIR  = $(shell pwd)
 
 FFLAGS_I = -O0 -g -traceback -check bounds -check uninit -ip -lstdc++ 
 
-HDF5     = -L$(HDF5_HOME)/lib -I$(HDF5_HOME)/include \
-           -lhdf5_fortran -lhdf5hl_fortran -lhdf5
-
 # ====== ELPA ======
 
 ELPA_DIR   = $(THIS_DIR)/external/ELPA

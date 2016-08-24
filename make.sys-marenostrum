@@ -20,13 +20,6 @@ THIS_DIR  = $(shell pwd)
 
 FFLAGS_I = -O3 -ip -lstdc++ 
 
-HDF5 = -I/gpfs/apps/MN3/HDF5/1.8.15p1/static/include \
-       -L/gpfs/apps/MN3/HDF5/1.8.15p1/static/lib \
-       -lhdf5_hl_fortran -lhdf5_hl_f90cstub -lhdf5_fortran -lhdf5_f90cstub\
-       -lhdf5_hl -lhdf5 -lz -lm \
-       -I/gpfs/apps/MN3/SZIP/2.1/include \
-       -L/gpfs/apps/MN3/SZIP/2.1/lib -lsz
-
 # ====== ELPA ======
 
 ELPA_DIR   = $(THIS_DIR)/external/ELPA
