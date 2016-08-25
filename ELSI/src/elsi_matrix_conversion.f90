@@ -29,27 +29,95 @@
 
 module ELSI_MATRIX_CONVERSION
 
-  use iso_c_binding
-  use ELSI_DIMENSIONS
+   use iso_c_binding
+   use ELSI_DIMENSIONS
 
-  implicit none
-  private
+   implicit none
+   private
 
-  !< Internal Storage
-  real*8 :: threshhold = 1.0d-12  !< threshhold to define numerical zero
+   !< Internal Storage
+   real*8 :: threshhold = 1.0d-12  !< threshhold to define numerical zero
 
-  public :: elsi_compute_n_nonzero
-  public :: elsi_get_local_n_nonzero
-  public :: elsi_get_n_nonzero_column
-  public :: elsi_bc_to_ccs
-  public :: elsi_bc_to_ccs_by_pattern
-  public :: elsi_ccs_to_bc
+   public :: elsi_get_global_id
+   public :: elsi_get_global_col
+   public :: elsi_get_global_row
+   public :: elsi_compute_n_nonzero
+   public :: elsi_get_local_n_nonzero
+   public :: elsi_get_n_nonzero_column
+   public :: elsi_bc_to_ccs
+   public :: elsi_bc_to_ccs_by_pattern
+   public :: elsi_ccs_to_bc
 
-  contains
+contains
+
+!> 
+!! Computes global row index based on local row index.
+!!
+subroutine elsi_get_global_row(global_idx, local_idx)
+
+   implicit none
+
+   integer, intent(out) :: global_idx!< Global index 
+   integer, intent(in) :: local_idx !< Local index
+
+   integer :: block !< local block 
+   integer :: idx !< local index in block
+
+   block = FLOOR(1d0 * (local_idx - 1) / n_b_rows)
+   idx = local_idx - block * n_b_rows
+
+   global_idx = my_p_row * n_b_rows + block * n_b_rows * n_p_rows + idx
+
+end subroutine
+
+!> 
+!! Computes global column index based on local column index.
+!!
+subroutine elsi_get_global_col(global_idx, local_idx)
+
+   implicit none
+
+   integer, intent(out) :: global_idx !< global index
+   integer, intent(in) :: local_idx !< local index
+
+   integer :: block !< local block
+   integer :: idx !< local index in block
+
+   block = FLOOR(1d0 * (local_idx - 1) / n_b_cols)
+   idx = local_idx - block * n_b_cols
+
+   global_idx = my_p_col * n_b_cols + block * n_b_cols * n_p_cols + idx
+
+end subroutine
+
+!>
+!! Computes global id in one direction (row or column)
+!! based on local id, block size, and process id.
+!!
+subroutine elsi_get_global_id(local_id, global_blk, pid, np, global_id)
+
+   implicit none
+
+   integer, intent(in) :: local_id !< Local id in the direction of interest
+   integer, intent(in) :: global_blk !< Global block size in the direction of interest
+   integer, intent(in) :: pid !< Process id in the direction of interest
+   integer, intent(in) :: np !< Number of processes in the direction of interest
+   integer, intent(out) :: global_id !< Global id in the direction of interest
+
+   integer :: block
+   integer :: idx
+
+   block = FLOOR(1d0 * (local_id - 1) / global_blk)
+   idx = local_id - block * global_blk
+
+   global_id = pid * global_blk + block * global_blk * np + idx
+
+end subroutine
 
 !>
 !!  This routine computes the number of non_zero elements column-wise for
 !!  the full matrix and returns a vector of dimension n_g_rank.
+!!
 subroutine elsi_get_n_nonzero_column(matrix, n_rows, n_cols, l_offset, n_nonzero)
    implicit none
    include 'mpif.h'

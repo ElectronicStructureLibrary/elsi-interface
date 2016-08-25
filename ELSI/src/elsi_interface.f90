@@ -97,12 +97,8 @@ module ELSI
    public :: BLOCK_CYCLIC
 
    ! From ELSI_MPI_TOOLS
-   public :: elsi_init_mpi
-   public :: elsi_init_blacs
    public :: elsi_set_mpi
    public :: elsi_set_blacs
-   public :: elsi_get_global_row
-   public :: elsi_get_global_col
 
    ! Public routines
    public :: elsi_init            !< Initialize
@@ -113,7 +109,6 @@ module ELSI
    public :: elsi_ev_complex      !< Compute eigenvalues and eigenvectors
    public :: elsi_dm_real         !< Compute density matrix
    public :: elsi_dm_complex      !< Compute density matrix
-   public :: elsi_ev_real_ms      !< MatrixSwitch version
    public :: elsi_finalize        !< Clean memory and print timings
 
    interface elsi_set_hamiltonian
@@ -491,9 +486,6 @@ subroutine elsi_finalize()
    
    call elsi_stop_total_time()
    call elsi_print_timers()
-
-   if(.not.external_blacs) call elsi_finalize_blacs()
-   if(.not.external_mpi)   call elsi_finalize_mpi()
 
 end subroutine
 
