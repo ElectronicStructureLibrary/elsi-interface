@@ -76,20 +76,24 @@ module ELSI
    type(Matrix) :: T_omm
 
    ! PESXI
-   !< Sparse Hamiltonian
-   real*8,  allocatable :: H_real_sparse(:)
-   !< Sparse overlap
-   real*8,  allocatable :: S_real_sparse(:)
+   !< Sparse real Hamiltonian
+   real*8, allocatable :: H_real_pexsi(:)
+   !< Sparse complex Hamiltonian
+   complex*16, allocatable :: H_complex_pexsi(:)
+   !< Sparse real overlap
+   real*8, allocatable :: S_real_pexsi(:)
+   !< Sparse complex overlap
+   complex*16, allocatable :: S_complex_pexsi(:)
    !< Sparse density matrix
-   real*8,  allocatable :: D_real_sparse(:)
+   real*8, allocatable :: D_pexsi(:)
    !< Sparse energy density matrix
-   real*8,  allocatable :: ED_real_sparse(:)
+   real*8, allocatable :: ED_pexsi(:)
    !< Sparse free energy density matrix
-   real*8,  allocatable :: FD_real_sparse(:)
-   !< Sparse index array
-   integer, allocatable :: sparse_index(:)
-   !< Sparse pointer array
-   integer, allocatable :: sparse_pointer(:)
+   real*8, allocatable :: FD_pexsi(:)
+   !< Row index in CCS format
+   integer, allocatable :: row_ind_pexsi(:)
+   !< Column pointer in CCS format
+   integer, allocatable :: col_ptr_pexsi(:)
 
    !< From ELSI_DIMENSIONS
    public :: AUTO, ELPA, LIBOMM, PEXSI, CHESS
@@ -442,31 +446,31 @@ subroutine elsi_deallocate_matrices()
    implicit none
 
    ! Nullify pointers
-   if(associated(H_real))        nullify(H_real)
-   if(associated(H_complex))     nullify(H_complex)
-   if(associated(S_real))        nullify(S_real)
-   if(associated(S_complex))     nullify(S_complex)
+   if(associated(H_real))       nullify(H_real)
+   if(associated(H_complex))    nullify(H_complex)
+   if(associated(S_real))       nullify(S_real)
+   if(associated(S_complex))    nullify(S_complex)
  
    ! Free Memory
    ! ELPA
-   if(allocated(C_real))         deallocate(C_real)
-   if(allocated(C_complex))      deallocate(C_complex)
-   if(allocated(eigenvalues))    deallocate(eigenvalues)
-   if(allocated(D_elpa))         deallocate(D_elpa)
+   if(allocated(C_real))        deallocate(C_real)
+   if(allocated(C_complex))     deallocate(C_complex)
+   if(allocated(eigenvalues))   deallocate(eigenvalues)
+   if(allocated(D_elpa))        deallocate(D_elpa)
    ! PEXSI
-   if(allocated(H_real_sparse))  deallocate(H_real_sparse)
-   if(allocated(S_real_sparse))  deallocate(S_real_sparse)
-   if(allocated(D_real_sparse))  deallocate(D_real_sparse)
-   if(allocated(ED_real_sparse)) deallocate(ED_real_sparse)
-   if(allocated(FD_real_sparse)) deallocate(FD_real_sparse)
-   if(allocated(sparse_index))   deallocate(sparse_index)
-   if(allocated(sparse_pointer)) deallocate(sparse_pointer)
+   if(allocated(H_real_pexsi))  deallocate(H_real_pexsi)
+   if(allocated(S_real_pexsi))  deallocate(S_real_pexsi)
+   if(allocated(D_pexsi))       deallocate(D_pexsi)
+   if(allocated(ED_pexsi))      deallocate(ED_pexsi)
+   if(allocated(FD_pexsi))      deallocate(FD_pexsi)
+   if(allocated(row_ind_pexsi)) deallocate(row_ind_pexsi)
+   if(allocated(col_ptr_pexsi)) deallocate(col_ptr_pexsi)
    ! OMM
-   if(H_omm%is_initialized)      call m_deallocate(H_omm)
-   if(S_omm%is_initialized)      call m_deallocate(S_omm)
-   if(D_omm%is_initialized)      call m_deallocate(D_omm)
-   if(Coeff_omm%is_initialized)  call m_deallocate(Coeff_omm)
-   if(T_omm%is_initialized)      call m_deallocate(T_omm)
+   if(H_omm%is_initialized)     call m_deallocate(H_omm)
+   if(S_omm%is_initialized)     call m_deallocate(S_omm)
+   if(D_omm%is_initialized)     call m_deallocate(D_omm)
+   if(Coeff_omm%is_initialized) call m_deallocate(Coeff_omm)
+   if(T_omm%is_initialized)     call m_deallocate(T_omm)
 
 end subroutine
 
@@ -1152,6 +1156,60 @@ end subroutine
 !=========================
 
 !>
+!!  This routine converts Halmitonian and overlap matrix stored in
+!!  2D block-cyclic distributed dense format to 1D block distributed
+!!  sparse CCS format, which can be used as input by PEXSI.
+!!
+subroutine elsi_2dbc_to_1dcss_pexsi(H_in, S_in, cholesky)
+
+   implicit none
+   include 'mpif.h'
+
+   real*8, intent(in) :: H_in(n_l_rows,n_l_cols)
+   real*8, intent(in) :: S_in(n_l_rows,n_l_cols)
+   logical, intent(in) :: cholesky
+
+   real*8 :: matrix_aux(n_l_rows_pexsi, n_l_cols_pexsi)
+
+   call elsi_start_2dbc_to_1dccs_time()
+   call elsi_statement_print(" Matrix conversion: 2D block-cyclic dense ==> 1D CCS sparse")
+
+   if(cholesky) then ! Number of non-zeros, row index, column pointer unknown
+      ! Compute n_l_nonzero and n_g_nonzero
+      call elsi_get_global_n_nonzero(H_in,n_l_rows,n_l_cols)
+
+      ! Transform Hamiltonian
+      call elsi_statement_print(" 2dbc to 1db H")
+      call elsi_2dbc_to_1db(H_in, matrix_aux)
+      call elsi_statement_print(" dense to sparse H")
+      call elsi_dense_to_ccs(matrix_aux, n_l_rows_pexsi, n_l_cols_pexsi, &
+                             n_l_nonzero, H_real_pexsi, row_ind_pexsi, col_ptr_pexsi)
+
+      ! Transform overlap
+      call elsi_statement_print(" 2dbc to 1db S")
+      call elsi_2dbc_to_1db(S_in, matrix_aux)
+      call elsi_statement_print(" dense to sparse S")
+      call elsi_dense_to_ccs_by_pattern(matrix_aux, n_l_rows_pexsi, n_l_cols_pexsi, &
+                                        n_l_nonzero, row_ind_pexsi, col_ptr_pexsi, S_real_pexsi)
+
+   else ! Number of non-zeros, row index, column pointer known
+      ! Transform Hamiltonian
+      call elsi_2dbc_to_1db(H_in, matrix_aux)
+      call elsi_dense_to_ccs_by_pattern(matrix_aux, n_l_rows_pexsi, n_l_cols_pexsi, &
+                                        n_l_nonzero, row_ind_pexsi, col_ptr_pexsi, H_real_pexsi)
+
+      ! Transform overlap
+      call elsi_2dbc_to_1db(S_in, matrix_aux)
+      call elsi_dense_to_ccs_by_pattern(matrix_aux, n_l_rows_pexsi, n_l_cols_pexsi, &
+                                        n_l_nonzero, row_ind_pexsi, col_ptr_pexsi, S_real_pexsi)
+   endif
+
+   call elsi_stop_2dbc_to_1dccs_time()
+   call elsi_statement_print(" Matrix conversion done ")
+
+end subroutine
+
+!>
 !!  This routine interfaces to PEXSI.
 !!
 subroutine elsi_solve_evp_pexsi()
@@ -1168,19 +1226,19 @@ subroutine elsi_solve_evp_pexsi()
       call elsi_print_pexsi_options()
    endif
 
-   if(.not.allocated(D_real_sparse))  allocate(D_real_sparse(n_l_nonzero))
-   if(.not.allocated(ED_real_sparse)) allocate(ED_real_sparse(n_l_nonzero))
-   if(.not.allocated(FD_real_sparse)) allocate(FD_real_sparse(n_l_nonzero))
+   if(.not.allocated(D_pexsi))  allocate(D_pexsi(n_l_nonzero))
+   if(.not.allocated(ED_pexsi)) allocate(ED_pexsi(n_l_nonzero))
+   if(.not.allocated(FD_pexsi)) allocate(FD_pexsi(n_l_nonzero))
 
    ! Load sparse matrices for PEXSI
    if(overlap_is_unity) then
       call f_ppexsi_load_real_symmetric_hs_matrix(pexsi_plan,pexsi_options,&
-              n_g_rank,n_g_nonzero,n_l_nonzero,n_l_cols,sparse_pointer,&
-              sparse_index,H_real_sparse,1,S_real_sparse,pexsi_info)
+              n_g_rank,n_g_nonzero,n_l_nonzero,n_l_cols,col_ptr_pexsi,&
+              row_ind_pexsi,H_real_pexsi,1,S_real_pexsi,pexsi_info)
    else
       call f_ppexsi_load_real_symmetric_hs_matrix(pexsi_plan,pexsi_options,&
-              n_g_rank,n_g_nonzero,n_l_nonzero,n_l_cols,sparse_pointer,&
-              sparse_index,H_real_sparse,0,S_real_sparse,pexsi_info)
+              n_g_rank,n_g_nonzero,n_l_nonzero,n_l_cols,col_ptr_pexsi,&
+              row_ind_pexsi,H_real_pexsi,0,S_real_pexsi,pexsi_info)
    endif
 
    if(pexsi_info /= 0) then
@@ -1199,8 +1257,8 @@ subroutine elsi_solve_evp_pexsi()
    endif
 
    ! Get the results
-   call f_ppexsi_retrieve_real_symmetric_dft_matrix(pexsi_plan,D_real_sparse,&
-           ED_real_sparse,FD_real_sparse,e_tot_H,e_tot_S,f_tot,pexsi_info)
+   call f_ppexsi_retrieve_real_symmetric_dft_matrix(pexsi_plan,D_pexsi,ED_pexsi,FD_pexsi,&
+                                                    e_tot_H,e_tot_S,f_tot,pexsi_info)
 
    if(pexsi_info /= 0) then
       call elsi_stop(" PEXSI not able to retrieve solution. Exiting... ",caller)
@@ -1462,10 +1520,20 @@ subroutine elsi_dm_real(H_in, S_in, D_out, energy_out, need_cholesky, occupation
          call elsi_get_dm(D_out)
          call elsi_get_energy(energy_out)
       case (PEXSI)
-         ! Convert block-cyclic matrices to CCS format
-!         call elsi_bc_to_ccs_pexsi(H_in,S_in)
+         ! PEXSI may use different process grid to achieve
+         ! the efficient 2-level parallelization
+         call elsi_init_pexsi()
+         call elsi_statement_print(" Process grid set up for PEXSI")
+
+         ! Convert 2D block-cyclic dense Hamiltonian and overlap
+         ! matrices to 1D block CCS sparse format
+         call elsi_2dbc_to_1dcss_pexsi(H_in,S_in,need_cholesky)
+         call elsi_statement_print(" Matrix conversion finished")
 
          call elsi_solve_evp_pexsi()
+
+         ! Convert 1D block CCS sparse density matrix to 2D
+         ! block-cyclic dense format
 !         call elsi_get_dm(D_out)
          call elsi_get_energy(energy_out)
       case (CHESS)
@@ -1527,12 +1595,6 @@ subroutine elsi_dm_complex(H_in, S_in, D_out, energy_out, need_cholesky, occupat
          call elsi_get_dm(D_out)
          call elsi_get_energy(energy_out)
       case (PEXSI)
-         ! Convert block-cyclic matrices to CCS format
-!         call elsi_bc_to_ccs_pexsi(H_in,S_in)
-
-!         call elsi_solve_evp_pexsi()
-!         call elsi_get_dm(D_out)
-!         call elsi_get_energy(energy_out)
          call elsi_stop(" PEXSI not yet implemented. Exiting... ",caller)
       case (CHESS)
          call elsi_stop(" CHESS not yet implemented. Exiting... ",caller)

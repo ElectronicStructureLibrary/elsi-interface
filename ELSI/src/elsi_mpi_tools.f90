@@ -100,19 +100,18 @@ subroutine elsi_init_pexsi()
    include "mpif.h"
 
    if(method == PEXSI) then
-
       ! Find balancing between expansion parallel and matrix inversion parallel
       if(mod(n_procs,40) == 0 .and. n_procs >= 640) then
          n_p_rows_pexsi = 40
-      else if (mod(n_procs,20) == 0 .and. n_procs >= 320) then
+      elseif(mod(n_procs,20) == 0 .and. n_procs >= 320) then
          n_p_rows_pexsi = 20
-      else if (mod(n_procs,10) == 0 .and. n_procs >= 90) then
+      elseif(mod(n_procs,10) == 0 .and. n_procs >= 90) then
          n_p_rows_pexsi = 10
-      else if (mod(n_procs,5) == 0 .and. n_procs >= 20) then
+      elseif(mod(n_procs,5) == 0 .and. n_procs >= 20) then
          n_p_rows_pexsi = 5
-      else if (mod(n_procs,4) == 0 .and. n_procs >= 16) then
+      elseif(mod(n_procs,4) == 0 .and. n_procs >= 16) then
          n_p_rows_pexsi = 4
-      else if (mod(n_procs,2) == 0 .and. n_procs >= 2) then
+      elseif(mod(n_procs,2) == 0 .and. n_procs >= 2) then
          n_p_rows_pexsi = 2
       else
          n_p_rows_pexsi = 1
@@ -136,10 +135,9 @@ subroutine elsi_init_pexsi()
       n_l_rows_pexsi = n_b_rows_pexsi
       n_l_cols_pexsi = n_b_cols_pexsi
 
-      ! TODO: doublecheck this
-      ! Each master process for each pole should write an output 
-      if(mod(myid,n_p_cols_pexsi*n_p_rows_pexsi) == 0) then
-         pexsi_output_file_index = myid/(n_p_cols_pexsi*n_p_rows_pexsi)
+      ! Only master process outputs
+      if(myid == 0) then
+         pexsi_output_file_index = 0
       else
          pexsi_output_file_index = -1
       endif
@@ -151,7 +149,6 @@ subroutine elsi_init_pexsi()
          call elsi_stop(" PEXSI plan initialization failed. Exiting... ", &
                         "elsi_init_pexsi")
       endif
-
    endif
 
 end subroutine
@@ -220,7 +217,7 @@ subroutine elsi_matrix_print(matrix, n_rows, n_cols, matrixname)
             enddo
          enddo
       endif
-      call MPI_Barrier(mpi_comm_global, mpierr)
+      call MPI_Barrier(mpi_comm_global,mpierr)
    enddo 
 
 end subroutine
