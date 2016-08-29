@@ -10,31 +10,31 @@ A) Install from zero: if you do not have any part of the ELSI package
    Edit this file to match your platform/environment.
 
 1.1) GLOBAL
-   Set the compilers, archive tools, and the installation path of linear
-   algebra libraries. These will be used during the whole installation.
+   Set compilers, archive tools, and installation path of linear algebra
+   libraries, which will be used during the whole installation.
 
 1.2) ELSI
-   Set the Fortran compiler flags and the installation path of HDF5.
+   Set Fortran compiler flags.
 
 1.3) ELPA
-   Set the compiler flags, choose appropriate ELPA2 kernels according
-   to the system, and switch on/off OpenMP.
+   Set compiler flags, choose ELPA2 kernels, switch on/off OpenMP.
 
 1.4) libOMM
-   Set the Fortran compiler flags and switch on/off MPI, LAPACK, and 
-   ScaLAPACK.
+   Set Fortran compiler flags, switch on/off MPI, LAPACK, and ScaLAPACK.
 
 1.5) PEXSI
-   Set the compiler flags and the installation path ParMetis/SuperLU_DIST.
+   Set compiler flags and installation paths of ParMetis/SuperLU_DIST.
 
 1.6) LINK
-   Since you do not have ELPA, libOMM, or PEXSI, please use the default 
-   settings in this part.
+   Since you do not have ELPA, libOMM, or PEXSI installed, please use
+   the default settings here.
 
 2) Make sure your "make.sys" is correctly configured.
 
    Run "make -f Makefile.elsi" to build ELPA, libOMM, PEXSI, and the
-   ELSI interface. "make -j -f Makefile.elsi" will build ELSI in parallel.
+   ELSI interface.
+
+   Run "make -j -f Makefile.elsi" to build ELSI in parallel.
 
 3) To install ELSI as a library, run "make -f Makefile.elsi install".
 

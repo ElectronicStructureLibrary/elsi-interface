@@ -375,6 +375,7 @@ subroutine elsi_2dbc_to_1db(matrix_in, matrix_out)
             if(local_row_id == 0) local_row_id = n_l_rows
             local_col_id = FLOOR(1d0*(i_val-1)/n_l_rows)+1
 
+            ! TODO: this can be simplified due to symmetry!
             val_send_buffer(send_count(i_proc+1)+1+offset) = matrix_in(local_row_id,local_col_id)
 
             ! Pack global 1d id
@@ -413,10 +414,10 @@ subroutine elsi_2dbc_to_1db(matrix_in, matrix_out)
                       mpi_comm_global, mpierr)
 
    ! Unpack data
-   do i_val = 1,n_l_rows_pexsi*n_l_cols*pexsi
+   do i_val = 1,n_l_rows_pexsi*n_l_cols_pexsi
       ! Compute global 2d id
-      global_col_id = FLOOR(1d0*(global_pos(i_val)-1)/n_g_rank)
-      global_row_id = MOD(global_pos(i_val),n_g_rank)
+      global_col_id = FLOOR(1d0*(pos_recv_buffer(i_val)-1)/n_g_rank)+1
+      global_row_id = MOD(pos_recv_buffer(i_val),n_g_rank)
       if(global_row_id == 0) global_row_id = n_g_rank
 
       ! Compute local 2d id
@@ -424,7 +425,7 @@ subroutine elsi_2dbc_to_1db(matrix_in, matrix_out)
       local_row_id = global_row_id
 
       ! Put value to correct position
-      matrix_out(local_row_id, local_col_id) = val_recv_buffer(i_val)
+      matrix_out(local_row_id,local_col_id) = val_recv_buffer(i_val)
    enddo
 
 end subroutine
