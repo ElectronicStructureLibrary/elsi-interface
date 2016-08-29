@@ -173,9 +173,9 @@ subroutine elsi_get_global_n_nonzero(matrix, n_rows, n_cols)
    implicit none
    include 'mpif.h'
 
+   real*8, intent(in) :: matrix(n_rows,n_cols) !< Local matrix
    integer, intent(in) :: n_rows !< Number of rows
    integer, intent(in) :: n_cols !< Number of columns
-   real*8,  intent(in) :: matrix(n_rows,n_cols) !< Local matrix
 
    ! Set the number of non-zero elements in the local matrix
    call elsi_get_local_n_nonzero(matrix, n_rows, n_cols, n_l_nonzero)
@@ -205,7 +205,6 @@ subroutine elsi_dense_to_ccs(matrix, n_rows, n_cols, nnz, val, row_ind, col_ptr)
    integer :: i_col !< Column counter
    integer :: i_val !< Value counter
    logical :: new_col !< Enter a new column?
-   integer :: indexshift
 
    character*40, parameter :: caller = "elsi_dense_to_ccs"
 

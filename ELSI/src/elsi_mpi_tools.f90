@@ -59,11 +59,11 @@ module ELSI_MPI_TOOLS
    end interface
 
    interface elsi_allocate
-      module procedure elsi_allocate_real_vector, &
-                       elsi_allocate_real_matrix, &
-                       elsi_allocate_int_vector, &
-                       elsi_allocate_int_matrix, &
+      module procedure elsi_allocate_int_vector, &
+                       elsi_allocate_real_vector, &
                        elsi_allocate_complex_vector, &
+                       elsi_allocate_int_matrix, &
+                       elsi_allocate_real_matrix, &
                        elsi_allocate_complex_matrix
    end interface
 
@@ -117,6 +117,10 @@ subroutine elsi_init_pexsi()
          n_p_rows_pexsi = 1
       endif
 
+      ! FIXME: test
+      n_p_rows_pexsi = 1
+      ! end
+
       n_p_cols_pexsi = n_procs/n_p_rows_pexsi
 
       ! position in process grid must not be used
@@ -142,6 +146,11 @@ subroutine elsi_init_pexsi()
          pexsi_output_file_index = -1
       endif
 
+      ! FIXME: test
+      pexsi_output_file_index = myid
+      ! end
+      
+
       pexsi_plan = f_ppexsi_plan_initialize(mpi_comm_global,n_p_rows_pexsi,&
                       n_p_cols_pexsi,pexsi_output_file_index,pexsi_info)
 
@@ -149,6 +158,8 @@ subroutine elsi_init_pexsi()
          call elsi_stop(" PEXSI plan initialization failed. Exiting... ", &
                         "elsi_init_pexsi")
       endif
+
+      call elsi_statement_print(" Process grid set up for PEXSI")
    endif
 
 end subroutine
