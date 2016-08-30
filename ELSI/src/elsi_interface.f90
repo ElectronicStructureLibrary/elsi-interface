@@ -1198,19 +1198,18 @@ subroutine elsi_2dbc_to_1dcss_pexsi(H_in, S_in, cholesky)
                                         n_l_nonzero,row_ind_pexsi,col_ptr_pexsi,S_real_pexsi)
 
    else ! Number of non-zeros, row index, column pointer known
-      ! Transform Hamiltonian
+      ! Transform Hamiltonian: 2D block-cyclic dense ==> 1D block dense ==> 1D block sparse CCS
       call elsi_2dbc_to_1db(H_in,matrix_aux)
       call elsi_dense_to_ccs_by_pattern(matrix_aux,n_l_rows_pexsi,n_l_cols_pexsi,&
                                         n_l_nonzero,row_ind_pexsi,col_ptr_pexsi,H_real_pexsi)
 
-      ! Transform overlap
+      ! Transform overlap: 2D block-cyclic dense ==> 1D block dense ==> 1D block sparse CCS
       call elsi_2dbc_to_1db(S_in,matrix_aux)
       call elsi_dense_to_ccs_by_pattern(matrix_aux,n_l_rows_pexsi,n_l_cols_pexsi,&
                                         n_l_nonzero,row_ind_pexsi,col_ptr_pexsi,S_real_pexsi)
    endif
 
    call elsi_stop_2dbc_to_1dccs_time()
-   call elsi_statement_print(" Matrix conversion done ")
 
 end subroutine
 

@@ -99,6 +99,8 @@ subroutine elsi_init_pexsi()
    implicit none
    include "mpif.h"
 
+   character*40, parameter :: caller = "elsi_init_pexsi"
+
    if(method == PEXSI) then
       ! Find balancing between expansion parallel and matrix inversion parallel
       if(mod(n_procs,40) == 0 .and. n_procs >= 640) then
@@ -117,10 +119,6 @@ subroutine elsi_init_pexsi()
          n_p_rows_pexsi = 1
       endif
 
-      ! FIXME: test
-      n_p_rows_pexsi = 1
-      ! end
-
       n_p_cols_pexsi = n_procs/n_p_rows_pexsi
 
       ! position in process grid must not be used
@@ -133,7 +131,7 @@ subroutine elsi_init_pexsi()
       ! The last process holds all remaining columns
       n_b_cols_pexsi = FLOOR(1d0*n_g_rank/n_procs)
       if(myid == n_procs-1) then
-         n_b_cols_pexsi = n_g_rank - (n_procs-1) * n_b_cols_pexsi
+         n_b_cols_pexsi = n_g_rank-(n_procs-1)*n_b_cols_pexsi
       endif
 
       n_l_rows_pexsi = n_b_rows_pexsi
@@ -146,20 +144,14 @@ subroutine elsi_init_pexsi()
          pexsi_output_file_index = -1
       endif
 
-      ! FIXME: test
-      pexsi_output_file_index = myid
-      ! end
-      
-
       pexsi_plan = f_ppexsi_plan_initialize(mpi_comm_global,n_p_rows_pexsi,&
                       n_p_cols_pexsi,pexsi_output_file_index,pexsi_info)
 
-      if(pexsi_info /= 0) then
-         call elsi_stop(" PEXSI plan initialization failed. Exiting... ", &
-                        "elsi_init_pexsi")
-      endif
+      if(pexsi_info /= 0) &
+         call elsi_stop(" PEXSI plan initialization failed. Exiting... ",caller)
 
-      call elsi_statement_print(" Process grid set up for PEXSI")
+      if(n_p_rows_pexsi /= n_p_rows .or. n_p_cols_pexsi /= n_p_cols) &
+         call elsi_statement_print(" Process grid set up for PEXSI")
    endif
 
 end subroutine
