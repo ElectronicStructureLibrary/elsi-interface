@@ -399,6 +399,10 @@ subroutine elsi_get_energy(energy_out)
          energy_out = total_energy
       case (PEXSI)
          energy_out = e_tot_H
+         if(myid == 0) then
+            write(*,*) " PEXSI: S*EDM = ", e_tot_S
+            write(*,*) " PEXSI: E_free = ", f_tot
+         endif
       case (CHESS)
          call elsi_stop(" CHESS: not yet implemented! Exiting... ",caller)
       case DEFAULT
@@ -406,6 +410,8 @@ subroutine elsi_get_energy(energy_out)
                         " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
                         " Exiting... ",caller)
    end select
+
+   if(myid == 0) write(*,*) " E = ", energy_out
 
 end subroutine
 
@@ -1225,6 +1231,9 @@ subroutine elsi_solve_evp_pexsi()
 
    call elsi_start_solve_evp_time()
 
+   ! TODO: number of electrons should be set elsewhere, systematically
+   n_electrons = n_states*2d0
+
    if(.not.pexsi_customized) then
       call elsi_set_pexsi_default_options()
       call elsi_print_pexsi_options()
@@ -1274,12 +1283,6 @@ subroutine elsi_solve_evp_pexsi()
       call elsi_stop(" PEXSI not able to retrieve solution. Exiting... ",caller)
    endif
 
-   if(myid == 0) then
-      write(*,*) "Total energy (H*DM)  = ", e_tot_H
-      write(*,*) "Total energy (S*EDM) = ", e_tot_S
-      write(*,*) "Total free energy    = ", f_tot
-   endif
-
    call MPI_BARRIER(mpi_comm_global,mpierr)
    call elsi_stop_solve_evp_time()
 
@@ -1327,47 +1330,119 @@ subroutine elsi_customize_pexsi(temperature_in, gap_in, delta_E_in, n_poles_in, 
       ! Set default settings
       call elsi_set_pexsi_default_options()
 
-      !TODO: comments here
+      ! Temperature, in the same unit as H
+      ! default: 0.0019 = 300K
       if(present(temperature_in)) &
          pexsi_options%temperature = temperature_in
+
+      ! Spectral gap, can be set to 0 in most cases (default)
       if(present(gap_in)) &
          pexsi_options%gap = gap_in
+
+      ! Upper bound for the spectral radius of S^(-1)H
+      ! default: 10
       if(present(delta_E_in)) &
          pexsi_options%deltaE = delta_E_in
+
+      ! Number of poles
+      ! default: 40
       if(present(n_poles_in)) &
          pexsi_options%numPole = n_poles_in
+
+      ! Whether inertia counting is used at the very beginning
+      ! default: 1
       if(present(is_inertia_count_in)) &
          pexsi_options%isInertiaCount = is_inertia_count_in
+
+      ! Maximum number of PEXSI iterations after each inertia
+      ! counting procedure
+      ! default: 3
       if(present(max_iteration_in)) &
          pexsi_options%maxPEXSIIter = max_iteration_in
+
+      ! Initial guess of lower bound for mu
+      ! default: -10.0
       if(present(mu_min0_in)) &
          pexsi_options%muMin0 = mu_min0_in
+
+      ! Initial guess of upper bound for mu
+      ! default: 10.0
       if(present(mu_max0_in)) &
          pexsi_options%muMax0 = mu_max0_in
+
+      ! Initial guess of mu
+      ! default: 0.0
       if(present(mu0_in)) &
          pexsi_options%mu0 = mu0_in
+
+      ! Stopping criterion in terms of the chemical potential
+      ! for the inertia counting procedure
+      ! default: 0.05
       if(present(mu_inertia_tolerance_in)) &
          pexsi_options%muInertiaTolerance = mu_inertia_tolerance_in
+
+      ! If the chemical potential is not in the initial interval,
+      ! the interval is expanded by this value
+      ! default: 0.3
       if(present(mu_inertia_expansion_in)) &
          pexsi_options%muInertiaExpansion = mu_inertia_expansion_in
+
+      ! Safeguard criterion in terms of the chemical potential to
+      ! reinvoke the inertia counting procedure
+      ! default: 0.05
       if(present(mu_safeguard_in)) &
          pexsi_options%muPEXSISafeGuard = mu_safeguard_in
+
+      ! Stopping criterion of the PEXSI iteration in terms of the
+      ! number of electrons compared to the exact number
+      ! default: 0.01
       if(present(n_electron_tolerance_in)) &
          pexsi_options%numElectronPEXSITolerance = n_electron_tolerance_in
+
+      ! Type of input H and S matrices
+      ! 0: real symmetric (default)
+      ! 1: general complex
       if(present(matrix_type_in)) &
          pexsi_options%matrixType = matrix_type_in
+
+      ! Whether to perform symbolic factorization
+      ! default: 1
       if(present(is_symbolic_factorize_in)) &
          pexsi_options%isSymbolicFactorize = is_symbolic_factorize_in
+
+      ! Ordering strategy for factorization and selected inversion
+      ! 0: parallel ordering using ParMETIS
+      ! 1: sequential ordering using METIS
+      ! 2: multiple minimum degree ordering
       if(present(ordering_in)) &
          pexsi_options%ordering = ordering_in
+
+      ! Row permutation strategy for factorization and selected inversion
+      ! 0: no row permutation
+      ! 1: make diagonal entry larger than off diagonal
       if(present(row_ordering_in)) &
          pexsi_options%rowOrdering = row_ordering_in
+
+      ! Number of processors for ParMETIS, only used if ordering=0
       if(present(np_symbolic_factorize_in)) &
          pexsi_options%npSymbFact = np_symbolic_factorize_in
+
+      ! Matrix structure
+      ! 0: unsymmetric
+      ! 1: symmetric (default)
       if(present(symmetric_in)) &
          pexsi_options%symmetric = symmetric_in
+
+      ! Transpose
+      ! 0: factor non transposed matrix (default)
+      ! 1: factor transposed matrix
       if(present(transpose_in)) &
          pexsi_options%transpose = transpose_in
+
+      ! Level of output information
+      ! 0: no output
+      ! 1: basic output (default)
+      ! 2: detailed output
       if(present(verbosity_in)) &
          pexsi_options%verbosity = verbosity_in
 
