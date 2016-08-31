@@ -42,7 +42,6 @@ module ELSI_MATRIX_CONVERSION
    public :: elsi_get_global_row
    public :: elsi_get_global_n_nonzero
    public :: elsi_get_local_n_nonzero
-   public :: elsi_get_n_nonzero_column
    public :: elsi_dense_to_ccs
    public :: elsi_dense_to_ccs_by_pattern
    public :: elsi_ccs_to_dense
@@ -87,52 +86,6 @@ subroutine elsi_get_global_col(global_idx, local_idx)
    idx = local_idx-block*n_b_cols
 
    global_idx = my_p_col*n_b_cols+block*n_b_cols*n_p_cols+idx
-
-end subroutine
-
-!>
-!!  This routine computes the number of non_zero elements column-wise for
-!!  the full matrix and returns a vector of dimension n_g_rank.
-!!
-subroutine elsi_get_n_nonzero_column(matrix, n_rows, n_cols, l_offset, n_nonzero)
-
-   implicit none
-   include 'mpif.h'
-
-   real*8, intent(in) :: matrix(n_rows,n_cols) !< Local matrix
-   integer, intent(in) :: n_rows !< Local rows
-   integer, intent(in) :: n_cols !< Local cols
-   integer, intent(in) :: l_offset !< Offset in global array
-   integer, intent(out) :: n_nonzero(n_g_rank)
-
-   integer, allocatable :: buffer(:) !< MPI buffer
-   integer :: i_col !< Column counter
-   integer :: nnz_in_col !< Non-zero element in column counter
-   integer :: send_n_elements !< Number of elements to send by MPI
-   integer, parameter :: max_len = 1e6
-
-   n_nonzero = 0
-
-   do i_col = 1, n_cols
-      call elsi_get_local_n_nonzero(matrix(:,i_col), n_rows, 1, nnz_in_col)
-      n_nonzero(l_offset+i_col-1) = nnz_in_col
-   enddo
-
-   allocate(buffer(min(n_g_rank,max_len)))
-
-   do i_col = 1,n_g_rank,max_len
-      if(n_g_rank-i_col+1 < max_len) then
-         send_n_elements = n_g_rank-i_col+1
-      else
-         send_n_elements = max_len
-      endif
-
-      call MPI_AllReduce(n_nonzero(i_col), buffer, send_n_elements, MPI_INTEGER, &
-                         MPI_SUM, mpi_comm_global, mpierr)
-      n_nonzero(i_col:i_col-1+send_n_elements) = buffer(1:send_n_elements)
-   enddo
-
-   deallocate(buffer)
 
 end subroutine
 
@@ -311,6 +264,9 @@ subroutine elsi_2dbc_to_1db(matrix_in, matrix_out)
    real*8, intent(in) :: matrix_in(n_l_rows,n_l_cols)
    real*8, intent(out) :: matrix_out(n_l_rows_pexsi, n_l_cols_pexsi)
 
+   integer :: nnz_local1 !< Local number of nonzeros before redistribution
+   integer :: nnz_local2 !< Local number of nonzeros after redistribution
+
    integer :: i_row !< Row counter
    integer :: i_col !< Col counter
    integer :: i_val !< Value counter
@@ -320,23 +276,21 @@ subroutine elsi_2dbc_to_1db(matrix_in, matrix_out)
    integer :: local_col_id !< Local column id in 1D block distribution
    integer :: local_row_id !< Local row id in 1D block distribution
 
-   integer :: dest(n_l_rows*n_l_cols) !< Destination of each element
-   integer :: global_pos(n_l_rows*n_l_cols) !< Global 1d id of each element
+   integer, allocatable :: dest(:) !< Destination of each element
 
    ! For the meaning of each array here, see documentation of MPI_Alltoallv
-   real*8 :: val_send_buffer(n_l_rows*n_l_cols) !< Send buffer for value
-   integer :: pos_send_buffer(n_l_rows*n_l_cols) !< Send buffer for global 1D id
+   real*8, allocatable :: val_send_buffer(:) !< Send buffer for value
+   integer, allocatable :: pos_send_buffer(:) !< Send buffer for global 1D id
    integer :: send_count(n_procs) !< Number of elements to send to each processor
    integer :: send_displ(n_procs) !< Displacement from which to take the outgoing data
    integer :: send_displ_aux !< Auxiliary variable used to set displacement
 
-   real*8 :: val_recv_buffer(n_l_rows_pexsi*n_l_cols_pexsi) !< Receive buffer for value
-   integer :: pos_recv_buffer(n_l_rows_pexsi*n_l_cols_pexsi) !< Receive buffer for global 1D id
+   real*8, allocatable :: val_recv_buffer(:) !< Receive buffer for value
+   integer, allocatable :: pos_recv_buffer(:) !< Receive buffer for global 1D id
    integer :: recv_count(n_procs) !< Number of elements to receive from each processor
    integer :: recv_displ(n_procs) !< Displacement at which to place the incoming data
    integer :: recv_displ_aux !< Auxiliary variable used to set displacement
 
-   integer :: offset
    integer :: mpierr
 
    character*40, parameter :: caller = "elsi_2dbc_to_1db_pexsi"
@@ -346,50 +300,50 @@ subroutine elsi_2dbc_to_1db(matrix_in, matrix_out)
    recv_count = 0
    recv_displ = 0
 
+   call elsi_get_local_n_nonzero(matrix_in,n_l_rows,n_l_cols,nnz_local1)
+
+   call elsi_allocate(dest,nnz_local1,"dest",caller)
+   call elsi_allocate(val_send_buffer,nnz_local1,"val_send_buffer",caller)
+   call elsi_allocate(pos_send_buffer,nnz_local1,"pos_send_buffer",caller)
+
+   i_val = 0
    ! Compute destination and global 1D id
    do i_col = 1, n_l_cols
-      call elsi_get_global_col(global_col_id,i_col)
       do i_row = 1, n_l_rows
-         call elsi_get_global_row(global_row_id,i_row)
-         i_val = i_row+n_l_rows*(i_col-1)
+         if(abs(matrix_in(i_row,i_col)) > threshold) then
+            i_val = i_val+1
+            call elsi_get_global_col(global_col_id,i_col)
+            call elsi_get_global_row(global_row_id,i_row)
 
-         ! Compute destination to send the element
-         dest(i_val) = FLOOR(1d0*(global_col_id-1)/FLOOR(1d0*n_g_rank/n_procs))
-         ! The last process may take more
-         if(dest(i_val) > (n_procs-1)) dest(i_val) = n_procs-1
+            ! Compute destination
+            dest(i_val) = FLOOR(1d0*(global_col_id-1)/FLOOR(1d0*n_g_rank/n_procs))
+            ! The last process may take more
+            if(dest(i_val) > (n_procs-1)) dest(i_val) = n_procs-1
 
-         ! Compute the global 1d id of the element
-         global_pos(i_val) = (global_col_id-1)*n_g_rank+global_row_id
+            ! Compute the global id
+            ! Pack global id and data into buffers
+            pos_send_buffer(i_val) = (global_col_id-1)*n_g_rank+global_row_id
+            val_send_buffer(i_val) = matrix_in(i_row,i_col)
+        endif
      enddo
    enddo
 
-   offset = 0
-
-   ! Pack all data into send buffers, in the order of receiver
+   ! Set send_count
    do i_proc = 0, n_procs-1
-      do i_val = 1, n_l_cols*n_l_rows
+      do i_val = 1, nnz_local1
          if(dest(i_val) == i_proc) then
-            ! Pack value
-            local_row_id = mod(i_val,n_l_rows)
-            if(local_row_id == 0) local_row_id = n_l_rows
-            local_col_id = FLOOR(1d0*(i_val-1)/n_l_rows)+1
-
-            ! TODO: this can be simplified due to symmetry!
-            val_send_buffer(send_count(i_proc+1)+1+offset) = matrix_in(local_row_id,local_col_id)
-
-            ! Pack global 1d id
-            pos_send_buffer(send_count(i_proc+1)+1+offset) = global_pos(i_val)
-
-            ! Set send_count
             send_count(i_proc+1) = send_count(i_proc+1)+1
          endif
       enddo
-      offset = offset+send_count(i_proc+1)
    enddo
+
+   deallocate(dest)
 
    ! Set recv_count
    call MPI_Alltoall(send_count, 1, mpi_integer, recv_count, &
                      1, mpi_integer, mpi_comm_global, mpierr)
+
+   nnz_local2 = sum(recv_count,1)
 
    ! Set send and receive displacement
    send_displ_aux = 0
@@ -403,6 +357,9 @@ subroutine elsi_2dbc_to_1db(matrix_in, matrix_out)
       recv_displ_aux = recv_displ_aux+recv_count(i_proc+1)
    enddo
 
+   call elsi_allocate(val_recv_buffer,nnz_local2,"val_recv_buffer",caller)
+   call elsi_allocate(pos_recv_buffer,nnz_local2,"pos_recv_buffer",caller)
+
    ! Send and receive the packed data
    call MPI_Alltoallv(val_send_buffer, send_count, send_displ, mpi_real8, &
                       val_recv_buffer, recv_count, recv_displ, mpi_real8, &
@@ -412,8 +369,13 @@ subroutine elsi_2dbc_to_1db(matrix_in, matrix_out)
                       pos_recv_buffer, recv_count, recv_displ, mpi_integer, &
                       mpi_comm_global, mpierr)
 
+   deallocate(val_send_buffer)
+   deallocate(pos_send_buffer)
+
+   matrix_out = 0d0
+
    ! Unpack data
-   do i_val = 1,n_l_rows_pexsi*n_l_cols_pexsi
+   do i_val = 1,nnz_local2
       ! Compute global 2d id
       global_col_id = FLOOR(1d0*(pos_recv_buffer(i_val)-1)/n_g_rank)+1
       global_row_id = MOD(pos_recv_buffer(i_val),n_g_rank)
@@ -426,6 +388,9 @@ subroutine elsi_2dbc_to_1db(matrix_in, matrix_out)
       ! Put value to correct position
       matrix_out(local_row_id,local_col_id) = val_recv_buffer(i_val)
    enddo
+
+   deallocate(val_recv_buffer)
+   deallocate(pos_recv_buffer)
 
 end subroutine
 
