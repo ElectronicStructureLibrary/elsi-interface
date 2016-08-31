@@ -36,8 +36,6 @@ module ELSI_MATRIX_CONVERSION
    implicit none
    private
 
-   real*8, parameter :: threshold = 1.0d-12 !< Threshold to define numerical zero.
-
    public :: elsi_get_global_col
    public :: elsi_get_global_row
    public :: elsi_get_global_n_nonzero
@@ -254,7 +252,7 @@ end subroutine
 !!  This routine converts the distribution of a dense matrix from
 !!  2D block-cyclic to 1D block. The converted 1D dense matrix can
 !!  be easily converted to 1D block distributed sparse CCS format
-!!  used in PEXSI by "elsi_bc_to_ccs".
+!!  used in PEXSI.
 !!
 subroutine elsi_2dbc_to_1db(matrix_in, matrix_out)
 

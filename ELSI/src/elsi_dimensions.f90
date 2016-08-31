@@ -76,7 +76,7 @@ module ELSI_DIMENSIONS
   integer :: blacs_info
   logical :: external_blacs = .true.
   logical :: blacs_is_setup = .false.
-  ! PEXSI uses another BLACS setup
+  ! PEXSI may use another BLACS setup
   integer :: my_p_row_pexsi
   integer :: my_p_col_pexsi
   integer :: n_b_rows_pexsi
@@ -89,6 +89,7 @@ module ELSI_DIMENSIONS
   !> Sparse matrix information
   integer :: n_g_nonzero !< Number of nonzero elements of the global matrix
   integer :: n_l_nonzero !< Number of nonzero elements of the local matrix
+  real*8, parameter :: threshold = 1.0d-15 !< Threshold to define numerical zero
 
   !> Overlap
   logical :: overlap_is_unity = .false.

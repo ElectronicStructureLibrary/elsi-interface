@@ -1166,7 +1166,7 @@ end subroutine
 !!  2D block-cyclic distributed dense format to 1D block distributed
 !!  sparse CCS format, which can be used as input by PEXSI.
 !!
-subroutine elsi_2dbc_to_1dcss_pexsi(H_in, S_in, cholesky)
+subroutine elsi_2dbcd_to_1dbccs_hs_pexsi(H_in, S_in, cholesky)
 
    implicit none
    include 'mpif.h'
@@ -1175,45 +1175,189 @@ subroutine elsi_2dbc_to_1dcss_pexsi(H_in, S_in, cholesky)
    real*8, intent(in) :: S_in(n_l_rows,n_l_cols)
    logical, intent(in) :: cholesky
 
+   integer :: nnz_aux !< Local number of nonzeros before redistribution
+   integer :: i_row !< Row counter
+   integer :: i_col !< Col counter
+   integer :: i_val !< Value counter
+   integer :: i_proc !< Process counter
+   integer :: global_col_id !< Global column id
+   integer :: global_row_id !< Global row id
+   integer :: local_col_id !< Local column id in 1D block distribution
+   integer :: local_row_id !< Local row id in 1D block distribution
+   integer :: mpierr
+
+   integer, allocatable :: dest(:) !< Destination of each element
    real*8 :: matrix_aux(n_l_rows_pexsi,n_l_cols_pexsi)
 
-   character*40, parameter :: caller = "elsi_2dbc_to_1dcss_pexsi"
+   ! For the meaning of each array here, see documentation of MPI_Alltoallv
+   real*8, allocatable :: h_val_send_buffer(:) !< Send buffer for Hamiltonian
+   real*8, allocatable :: s_val_send_buffer(:) !< Send buffer for overlap
+   integer, allocatable :: pos_send_buffer(:) !< Send buffer for global 1D id
+   integer :: send_count(n_procs) !< Number of elements to send to each processor
+   integer :: send_displ(n_procs) !< Displacement from which to take the outgoing data
+   integer :: send_displ_aux !< Auxiliary variable used to set displacement
+
+   real*8, allocatable :: h_val_recv_buffer(:) !< Receive buffer for Hamiltonian
+   real*8, allocatable :: s_val_recv_buffer(:) !< Receive buffer for overlap
+   integer, allocatable :: pos_recv_buffer(:) !< Receive buffer for global 1D id
+   integer :: recv_count(n_procs) !< Number of elements to receive from each processor
+   integer :: recv_displ(n_procs) !< Displacement at which to place the incoming data
+   integer :: recv_displ_aux !< Auxiliary variable used to set displacement
+
+   character*40, parameter :: caller = "elsi_2dbcd_to_1dbccs_hs_pexsi"
 
    call elsi_start_2dbc_to_1dccs_time()
-   call elsi_statement_print(" Matrix conversion: 2D block-cyclic dense ==> 1D CCS sparse")
+   call elsi_statement_print(" Matrix conversion: 2D block-cyclic dense ==> 1D block CCS sparse")
 
-   if(cholesky) then ! Number of non-zeros, row index, column pointer unknown
-      ! Transform Hamiltonian: 2D block-cyclic dense ==> 1D block dense
-      call elsi_2dbc_to_1db(H_in,matrix_aux)
-      ! Compute n_l_nonzero and n_g_nonzero
-      call elsi_get_global_n_nonzero(matrix_aux,n_l_rows_pexsi,n_l_cols_pexsi)
+   send_count = 0
+   send_displ = 0
+   recv_count = 0
+   recv_displ = 0
 
-      ! Allocate PEXSI matrices
+   call elsi_get_local_n_nonzero(H_in,n_l_rows,n_l_cols,nnz_aux)
+
+   call elsi_allocate(dest,nnz_aux,"dest",caller)
+   call elsi_allocate(h_val_send_buffer,nnz_aux,"h_val_send_buffer",caller)
+   call elsi_allocate(s_val_send_buffer,nnz_aux,"s_val_send_buffer",caller)
+   call elsi_allocate(pos_send_buffer,nnz_aux,"pos_send_buffer",caller)
+
+   i_val = 0
+   ! Compute destination and global 1D id
+   do i_col = 1, n_l_cols
+      do i_row = 1, n_l_rows
+         if(abs(H_in(i_row,i_col)) > threshold) then
+            i_val = i_val+1
+            call elsi_get_global_col(global_col_id,i_col)
+            call elsi_get_global_row(global_row_id,i_row)
+
+            ! Compute destination
+            dest(i_val) = FLOOR(1d0*(global_col_id-1)/FLOOR(1d0*n_g_rank/n_procs))
+            ! The last process may take more
+            if(dest(i_val) > (n_procs-1)) dest(i_val) = n_procs-1
+
+            ! Compute the global id
+            ! Pack global id and data into buffers
+            pos_send_buffer(i_val) = (global_col_id-1)*n_g_rank+global_row_id
+            h_val_send_buffer(i_val) = H_in(i_row,i_col)
+            s_val_send_buffer(i_val) = S_in(i_row,i_col)
+        endif
+     enddo
+   enddo
+
+   ! Set send_count
+   do i_proc = 0, n_procs-1
+      do i_val = 1, nnz_aux
+         if(dest(i_val) == i_proc) then
+            send_count(i_proc+1) = send_count(i_proc+1)+1
+         endif
+      enddo
+   enddo
+
+   deallocate(dest)
+
+   ! Set recv_count
+   call MPI_Alltoall(send_count, 1, mpi_integer, recv_count, &
+                     1, mpi_integer, mpi_comm_global, mpierr)
+
+   if(cholesky) then
+      ! Set local/global number of nonzero
+      n_l_nonzero = sum(recv_count,1)
+      call MPI_Allreduce(n_l_nonzero, n_g_nonzero, 1, mpi_integer, mpi_sum, &
+                         mpi_comm_global, mpierr)
+   endif
+
+   ! Set send and receive displacement
+   send_displ_aux = 0
+   recv_displ_aux = 0
+
+   do i_proc = 0, n_procs-1
+      send_displ(i_proc+1) = send_displ_aux
+      send_displ_aux = send_displ_aux+send_count(i_proc+1)
+
+      recv_displ(i_proc+1) = recv_displ_aux
+      recv_displ_aux = recv_displ_aux+recv_count(i_proc+1)
+   enddo
+
+   call elsi_allocate(h_val_recv_buffer,n_l_nonzero,"h_val_recv_buffer",caller)
+   call elsi_allocate(s_val_recv_buffer,n_l_nonzero,"s_val_recv_buffer",caller)
+   call elsi_allocate(pos_recv_buffer,n_l_nonzero,"pos_recv_buffer",caller)
+
+   ! Send and receive the packed data
+   call MPI_Alltoallv(h_val_send_buffer, send_count, send_displ, mpi_real8, &
+                      h_val_recv_buffer, recv_count, recv_displ, mpi_real8, &
+                      mpi_comm_global, mpierr)
+
+   call MPI_Alltoallv(s_val_send_buffer, send_count, send_displ, mpi_real8, &
+                      s_val_recv_buffer, recv_count, recv_displ, mpi_real8, &
+                      mpi_comm_global, mpierr)
+
+   call MPI_Alltoallv(pos_send_buffer, send_count, send_displ, mpi_integer, &
+                      pos_recv_buffer, recv_count, recv_displ, mpi_integer, &
+                      mpi_comm_global, mpierr)
+
+   deallocate(h_val_send_buffer)
+   deallocate(s_val_send_buffer)
+   deallocate(pos_send_buffer)
+
+   matrix_aux = 0d0
+
+   ! Unpack Hamiltonian
+   do i_val = 1,n_l_nonzero
+      ! Compute global 2d id
+      global_col_id = FLOOR(1d0*(pos_recv_buffer(i_val)-1)/n_g_rank)+1
+      global_row_id = MOD(pos_recv_buffer(i_val),n_g_rank)
+      if(global_row_id == 0) global_row_id = n_g_rank
+
+      ! Compute local 2d id
+      local_col_id = global_col_id-myid*FLOOR(1d0*n_g_rank/n_procs)
+      local_row_id = global_row_id
+
+      ! Put value to correct position
+      matrix_aux(local_row_id,local_col_id) = h_val_recv_buffer(i_val)
+   enddo
+
+   deallocate(h_val_recv_buffer)
+
+   ! Allocate PEXSI matrices
+   if(cholesky) then
       call elsi_allocate(H_real_pexsi,n_l_nonzero,"H_real_pexsi",caller)
       call elsi_allocate(S_real_pexsi,n_l_nonzero,"S_real_pexsi",caller)
       call elsi_allocate(row_ind_pexsi,n_l_nonzero,"row_ind_pexsi",caller)
       call elsi_allocate(col_ptr_pexsi,(n_l_cols_pexsi+1),"col_ptr_pexsi",caller)
+   endif
 
-      ! Transform Hamiltonian: 1D block dense ==> 1D block sparse CCS
+   ! Transform Hamiltonian: 1D block dense ==> 1D block sparse CCS
+   if(cholesky) then
       call elsi_dense_to_ccs(matrix_aux,n_l_rows_pexsi,n_l_cols_pexsi,&
                              n_l_nonzero,H_real_pexsi,row_ind_pexsi,col_ptr_pexsi)
-
-      ! Transform overlap: 2D block-cyclic dense ==> 1D block dense ==> 1D block sparse CCS
-      call elsi_2dbc_to_1db(S_in,matrix_aux)
-      call elsi_dense_to_ccs_by_pattern(matrix_aux,n_l_rows_pexsi,n_l_cols_pexsi,&
-                                        n_l_nonzero,row_ind_pexsi,col_ptr_pexsi,S_real_pexsi)
-
-   else ! Number of non-zeros, row index, column pointer known
-      ! Transform Hamiltonian: 2D block-cyclic dense ==> 1D block dense ==> 1D block sparse CCS
-      call elsi_2dbc_to_1db(H_in,matrix_aux)
+   else
       call elsi_dense_to_ccs_by_pattern(matrix_aux,n_l_rows_pexsi,n_l_cols_pexsi,&
                                         n_l_nonzero,row_ind_pexsi,col_ptr_pexsi,H_real_pexsi)
-
-      ! Transform overlap: 2D block-cyclic dense ==> 1D block dense ==> 1D block sparse CCS
-      call elsi_2dbc_to_1db(S_in,matrix_aux)
-      call elsi_dense_to_ccs_by_pattern(matrix_aux,n_l_rows_pexsi,n_l_cols_pexsi,&
-                                        n_l_nonzero,row_ind_pexsi,col_ptr_pexsi,S_real_pexsi)
    endif
+
+   matrix_aux = 0d0
+
+   ! Unpack overlap
+   do i_val = 1,n_l_nonzero
+      ! Compute global 2d id
+      global_col_id = FLOOR(1d0*(pos_recv_buffer(i_val)-1)/n_g_rank)+1
+      global_row_id = MOD(pos_recv_buffer(i_val),n_g_rank)
+      if(global_row_id == 0) global_row_id = n_g_rank
+
+      ! Compute local 2d id
+      local_col_id = global_col_id-myid*FLOOR(1d0*n_g_rank/n_procs)
+      local_row_id = global_row_id
+
+      ! Put value to correct position
+      matrix_aux(local_row_id,local_col_id) = s_val_recv_buffer(i_val)
+   enddo
+
+   deallocate(s_val_recv_buffer)
+   deallocate(pos_recv_buffer)
+
+   ! Transform overlap: 1D block dense ==> 1D block sparse CCS
+   call elsi_dense_to_ccs_by_pattern(matrix_aux,n_l_rows_pexsi,n_l_cols_pexsi,&
+                                     n_l_nonzero,row_ind_pexsi,col_ptr_pexsi,S_real_pexsi)
 
    call elsi_stop_2dbc_to_1dccs_time()
 
@@ -1611,7 +1755,7 @@ subroutine elsi_dm_real(H_in, S_in, D_out, energy_out, need_cholesky, occupation
 
          ! Convert 2D block-cyclic dense Hamiltonian and overlap
          ! matrices to 1D block CCS sparse format
-         call elsi_2dbc_to_1dcss_pexsi(H_in,S_in,need_cholesky)
+         call elsi_2dbcd_to_1dbccs_hs_pexsi(H_in,S_in,need_cholesky)
 
          call elsi_solve_evp_pexsi()
 
