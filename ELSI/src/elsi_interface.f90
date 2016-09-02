@@ -140,14 +140,16 @@ contains
 !!  This routine initializes ELSI with global matrix size, 
 !!  number of states, and method.
 !!
-subroutine elsi_init(solver, matrix_format, matrix_size, number_of_states)
+subroutine elsi_init(solver, matrix_format, matrix_size, &
+                     n_electrons_in, n_states_in)
 
    implicit none
 
-   integer, intent(in) :: solver           !< AUTO,ELPA,LIBOMM,PEXSI,CHESS,...
-   integer, intent(in) :: matrix_format    !< BLOCK_CYCLIC,...
-   integer, intent(in) :: matrix_size      !< Global dimension of matrix
-   integer, intent(in) :: number_of_states !< Number of states
+   integer, intent(in) :: solver        !< AUTO,ELPA,LIBOMM,PEXSI,CHESS,...
+   integer, intent(in) :: matrix_format !< BLOCK_CYCLIC,...
+   integer, intent(in) :: matrix_size   !< Global dimension of matrix
+   real*8, intent(in) :: n_electrons_in !< Number of electrons
+   integer, intent(in) :: n_states_in   !< Number of states
 
    if(solver == 0) stop
 
@@ -155,7 +157,8 @@ subroutine elsi_init(solver, matrix_format, matrix_size, number_of_states)
    call elsi_set_storage(matrix_format)
 
    n_g_rank = matrix_size
-   n_states = number_of_states
+   n_electrons = n_electrons_in
+   n_states = n_states_in
 
    call elsi_init_timers()
    call elsi_start_total_time()
@@ -596,15 +599,18 @@ subroutine elsi_get_occupied_number(occ)
 
    real*8, intent(in) :: occ(n_states)
 
-   integer :: occupied, i
+   integer :: counter, i
 
+   counter = 0
    do i = 1,n_states
       if(occ(i) > 0d0) then
-         occupied = i
+         counter = counter+1
       endif
    enddo
 
-   n_states = occupied
+   ! TODO: Clarify n_states, n_occupied_states, and n_empty_states
+   n_states = counter
+   n_occupied_states = counter
 
 end subroutine
 
@@ -1374,9 +1380,6 @@ subroutine elsi_solve_evp_pexsi()
    character*40, parameter :: caller = "elsi_solve_evp_pexsi"
 
    call elsi_start_solve_evp_time()
-
-   ! TODO: number of electrons should be set elsewhere, systematically
-   n_electrons = n_states*2d0
 
    if(.not.pexsi_customized) then
       call elsi_set_pexsi_default_options()

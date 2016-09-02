@@ -96,6 +96,7 @@ module ELSI_DIMENSIONS
 
   real*8 :: n_electrons
   integer :: n_states
+  integer :: n_occupied_states
 
   !> ELPA
   logical :: elpa_one_always = .false.
