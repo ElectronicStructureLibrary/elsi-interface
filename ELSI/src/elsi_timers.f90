@@ -131,24 +131,24 @@ subroutine elsi_print_timers()
       write(*,"('|-------------------------------------------------------')")
       write(*,"('| Final ELSI Output:                                    ')")
       write(*,"('|-------------------------------------------------------')")
-      write(*,"('| ELSI worked on a eigenvalue problem with dimensions   ')")
-      write(*,"('| Rank                           : ',I13)") n_g_rank
+      write(*,"('| Eigenvalue problem size             : ',I13)") n_g_rank
       if(method == PEXSI) then
-         write(*,"('| Non zero elements                   : ',I13)") n_g_nonzero
+         write(*,"('| Non zero elements                   : ',I13)") &
+               n_g_nonzero
          write(*,"('| Sparcity                            : ',F13.3)") &
-               (1d0 * n_g_nonzero / n_g_rank) / n_g_rank
+               (1d0*n_g_nonzero/n_g_rank)/n_g_rank
          write(*,"('| Number of electrons                 : ',F13.3)") &
                n_electrons
       endif
-      write(*,"('| Number of states (occupied + empty) : ',I13)") n_states
-      if (method == ELPA) then
-      write(*,"('| Method:                             : ',A13)") "ELPA"
-      end if
+      write(*,"('| Number of states                    : ',I13)") n_states
+      if(method == ELPA) then
+         write(*,"('| Method:                             : ',A13)") "ELPA"
+      endif
       if(method == LIBOMM) then
-         write(*,"('| Method:                          : ',A13)") "libOMM"
+         write(*,"('| Method:                             : ',A13)") "libOMM"
       endif
       if(method == PEXSI) then
-         write(*,"('| Method:                          : ',A13)") "PEXSI"
+         write(*,"('| Method:                             : ',A13)") "PEXSI"
       endif
     endif
 
@@ -157,20 +157,23 @@ subroutine elsi_print_timers()
        write(*,"('| Timings:                                              ')")
        write(*,"('|-------------------------------------------------------')")
        if(bc2d_to_ccs1d_time) then
-          write(*,"('| 2D Block-cyclic dense to 1D distributed CCS sparse :',F13.3,' s')")&
+          write(*,"('| Converting 2D Block-cyclic dense to 1D block CCS :')")
+          write(*,"('|                                    : ',F13.3,' s')") &
                 walltime_2dbc_to_1dccs
        endif
        if(solve_time) then
-          write(*,"('| Solving the Eigenvalue problem :',F13.3,' s')")&
+          write(*,"('| Solving the eigenvalue problem                   :')")
+          write(*,"('|                                    : ',F13.3,' s')") &
                 walltime_solve_evp
        endif
        if(ccs1d_to_bc2d_time) then
-          write(*,"('| 1D Distributed CCS sparse to 2D block-cyclic dense :',F13.3,' s')")&
+          write(*,"('| Converting 1D block CCS to 2D block-cyclic dense :')")
+          write(*,"('|                                    : ',F13.3,' s')") &
                 walltime_1dccs_to_2dbc
        endif
        if(total_time) then
           write(*,"('|-------------------------------------------------------')")
-          write(*,"('| Total Time :',F13.3,' s')")&
+          write(*,"('| Total                                            :',F13.3,' s')")&
                 walltime_total
        endif
        write(*,"('|-------------------------------------------------------')")

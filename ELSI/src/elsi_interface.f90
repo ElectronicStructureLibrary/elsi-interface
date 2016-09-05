@@ -434,9 +434,11 @@ subroutine elsi_get_dm(D_out)
          call elsi_stop(" ELPA needs to compute density matrix from eigenvectors. "//&
                         " Exiting... ",caller)
       case (LIBOMM)
-         D_out = D_omm%dval
+         ! Note that here the convention of density matrix used in OMM is changed
+         ! to the one used in ELPA and PEXSI.
+         D_out = 2d0*D_omm%dval
       case (PEXSI)
-         call elsi_stop(" PEXSI: not yet implemented! Exiting... ",caller)
+         call elsi_1dbccs_to_2dbcd_dm_pexsi(D_out)
       case (CHESS)
          call elsi_stop(" CHESS: not yet implemented! Exiting... ",caller)
       case DEFAULT
@@ -1172,14 +1174,13 @@ end subroutine
 !!  2D block-cyclic distributed dense format to 1D block distributed
 !!  sparse CCS format, which can be used as input by PEXSI.
 !!
-subroutine elsi_2dbcd_to_1dbccs_hs_pexsi(H_in, S_in, cholesky)
+subroutine elsi_2dbcd_to_1dbccs_hs_pexsi(H_in, S_in)
 
    implicit none
    include 'mpif.h'
 
    real*8, intent(in) :: H_in(n_l_rows,n_l_cols)
    real*8, intent(in) :: S_in(n_l_rows,n_l_cols)
-   logical, intent(in) :: cholesky
 
    integer :: nnz_aux !< Local number of nonzeros before redistribution
    integer :: i_row !< Row counter
@@ -1265,12 +1266,10 @@ subroutine elsi_2dbcd_to_1dbccs_hs_pexsi(H_in, S_in, cholesky)
    call MPI_Alltoall(send_count, 1, mpi_integer, recv_count, &
                      1, mpi_integer, mpi_comm_global, mpierr)
 
-   if(cholesky) then
-      ! Set local/global number of nonzero
-      n_l_nonzero = sum(recv_count,1)
-      call MPI_Allreduce(n_l_nonzero, n_g_nonzero, 1, mpi_integer, mpi_sum, &
-                         mpi_comm_global, mpierr)
-   endif
+   ! Set local/global number of nonzero
+   n_l_nonzero = sum(recv_count,1)
+   call MPI_Allreduce(n_l_nonzero, n_g_nonzero, 1, mpi_integer, mpi_sum, &
+                      mpi_comm_global, mpierr)
 
    ! Set send and receive displacement
    send_displ_aux = 0
@@ -1305,6 +1304,7 @@ subroutine elsi_2dbcd_to_1dbccs_hs_pexsi(H_in, S_in, cholesky)
    deallocate(s_val_send_buffer)
    deallocate(pos_send_buffer)
 
+   ! TODO: double check the new algorithm and get rid of matrix_aux
    matrix_aux = 0d0
 
    ! Unpack Hamiltonian
@@ -1325,21 +1325,14 @@ subroutine elsi_2dbcd_to_1dbccs_hs_pexsi(H_in, S_in, cholesky)
    deallocate(h_val_recv_buffer)
 
    ! Allocate PEXSI matrices
-   if(cholesky) then
-      call elsi_allocate(H_real_pexsi,n_l_nonzero,"H_real_pexsi",caller)
-      call elsi_allocate(S_real_pexsi,n_l_nonzero,"S_real_pexsi",caller)
-      call elsi_allocate(row_ind_pexsi,n_l_nonzero,"row_ind_pexsi",caller)
-      call elsi_allocate(col_ptr_pexsi,(n_l_cols_pexsi+1),"col_ptr_pexsi",caller)
-   endif
+   call elsi_allocate(H_real_pexsi,n_l_nonzero,"H_real_pexsi",caller)
+   call elsi_allocate(S_real_pexsi,n_l_nonzero,"S_real_pexsi",caller)
+   call elsi_allocate(row_ind_pexsi,n_l_nonzero,"row_ind_pexsi",caller)
+   call elsi_allocate(col_ptr_pexsi,(n_l_cols_pexsi+1),"col_ptr_pexsi",caller)
 
    ! Transform Hamiltonian: 1D block dense ==> 1D block sparse CCS
-   if(cholesky) then
-      call elsi_dense_to_ccs(matrix_aux,n_l_rows_pexsi,n_l_cols_pexsi,&
-                             n_l_nonzero,H_real_pexsi,row_ind_pexsi,col_ptr_pexsi)
-   else
-      call elsi_dense_to_ccs_by_pattern(matrix_aux,n_l_rows_pexsi,n_l_cols_pexsi,&
-                                        n_l_nonzero,row_ind_pexsi,col_ptr_pexsi,H_real_pexsi)
-   endif
+   call elsi_dense_to_ccs(matrix_aux,n_l_rows_pexsi,n_l_cols_pexsi,&
+                          n_l_nonzero,H_real_pexsi,row_ind_pexsi,col_ptr_pexsi)
 
    matrix_aux = 0d0
 
@@ -1366,6 +1359,157 @@ subroutine elsi_2dbcd_to_1dbccs_hs_pexsi(H_in, S_in, cholesky)
                                      n_l_nonzero,row_ind_pexsi,col_ptr_pexsi,S_real_pexsi)
 
    call elsi_stop_2dbc_to_1dccs_time()
+
+end subroutine
+
+!>
+!!  This routine converts density matrix computed by PEXSI and stored
+!!  in 1D block distributed sparse CCS format to 2D block-cyclic
+!!  distributed dense format.
+subroutine elsi_1dbccs_to_2dbcd_dm_pexsi(D_out)
+
+   implicit none
+   include "mpif.h"
+
+   real*8, intent(out) :: D_out(n_l_rows,n_l_cols) !< Density matrix
+
+   integer :: nnz_aux !< Local number of nonzeros after redistribution
+   integer :: i_row !< Row counter
+   integer :: i_col !< Col counter
+   integer :: i_val !< Value counter
+   integer :: j_val !< Value counter
+   integer :: i_proc !< Process counter
+   integer :: global_col_id !< Global column id
+   integer :: global_row_id !< Global row id
+   integer :: local_col_id !< Local column id in 1D block distribution
+   integer :: local_row_id !< Local row id in 1D block distribution
+   integer :: proc_col_id !< Column id in process grid
+   integer :: proc_row_id !< Row id in process grid
+   integer :: mpierr
+
+   integer, allocatable :: dest(:) !< Destination of each element
+   integer, allocatable :: global_id(:) !< Global 1d id
+
+   ! For the meaning of each array here, see documentation of MPI_Alltoallv
+   real*8, allocatable :: val_send_buffer(:) !< Send buffer for value
+   integer, allocatable :: pos_send_buffer(:) !< Send buffer for global 1D id
+   integer :: send_count(n_procs) !< Number of elements to send to each processor
+   integer :: send_displ(n_procs) !< Displacement from which to take the outgoing data
+   integer :: send_displ_aux !< Auxiliary variable used to set displacement
+
+   real*8, allocatable :: val_recv_buffer(:) !< Receive buffer for value
+   integer, allocatable :: pos_recv_buffer(:) !< Receive buffer for global 1D id
+   integer :: recv_count(n_procs) !< Number of elements to receive from each processor
+   integer :: recv_displ(n_procs) !< Displacement at which to place the incoming data
+   integer :: recv_displ_aux !< Auxiliary variable used to set displacement
+
+   character*40, parameter :: caller = "elsi_1dbccs_to_2dbcd_dm_pexsi"
+
+   call elsi_start_1dccs_to_2dbc_time()
+   call elsi_statement_print(" Matrix conversion: 1D block CCS sparse ==> 2D block-cyclic dense")
+
+   send_count = 0
+   send_displ = 0
+   recv_count = 0
+   recv_displ = 0
+
+   call elsi_allocate(global_id,n_l_nonzero,"global_id",caller)
+   call elsi_allocate(dest,n_l_nonzero,"dest",caller)
+   call elsi_allocate(val_send_buffer,n_l_nonzero,"val_send_buffer",caller)
+   call elsi_allocate(pos_send_buffer,n_l_nonzero,"pos_send_buffer",caller)
+
+   i_col = 0
+   ! Compute destination and global 1D id
+   do i_val = 1, n_l_nonzero
+      if(i_val == col_ptr_pexsi(i_col+1) .and. i_col /= n_l_cols_pexsi) then
+         i_col = i_col+1
+      endif
+      i_row = row_ind_pexsi(i_val)
+
+      ! Compute global id
+      global_row_id = i_row
+      global_col_id = i_col+myid*FLOOR(1d0*n_g_rank/n_procs)
+      global_id(i_val) = (global_col_id-1)*n_g_rank+global_row_id
+
+      ! Compute destination
+      proc_row_id = mod((global_row_id-1)/n_b_rows,n_p_rows)
+      proc_col_id = mod((global_col_id-1)/n_b_cols,n_p_cols)
+      dest(i_val) = proc_col_id+proc_row_id*n_p_rows
+   enddo
+
+   j_val = 0
+
+   ! Set send_count
+   do i_proc = 0, n_procs-1
+      do i_val = 1, n_l_nonzero
+         if(dest(i_val) == i_proc) then
+            j_val = j_val+1
+            val_send_buffer(j_val) = D_pexsi(i_val)
+            pos_send_buffer(j_val) = global_id(i_val)
+            send_count(i_proc+1) = send_count(i_proc+1)+1
+         endif
+      enddo
+   enddo
+
+   deallocate(global_id)
+   deallocate(dest)
+
+   ! Set recv_count
+   call MPI_Alltoall(send_count, 1, mpi_integer, recv_count, &
+                     1, mpi_integer, mpi_comm_global, mpierr)
+
+   nnz_aux = sum(recv_count,1)
+
+   ! Set send and receive displacement
+   send_displ_aux = 0
+   recv_displ_aux = 0
+
+   do i_proc = 0, n_procs-1
+      send_displ(i_proc+1) = send_displ_aux
+      send_displ_aux = send_displ_aux+send_count(i_proc+1)
+
+      recv_displ(i_proc+1) = recv_displ_aux
+      recv_displ_aux = recv_displ_aux+recv_count(i_proc+1)
+   enddo
+
+   call elsi_allocate(val_recv_buffer,nnz_aux,"val_recv_buffer",caller)
+   call elsi_allocate(pos_recv_buffer,nnz_aux,"pos_recv_buffer",caller)
+
+   ! Send and receive the packed data
+   call MPI_Alltoallv(val_send_buffer, send_count, send_displ, mpi_real8, &
+                      val_recv_buffer, recv_count, recv_displ, mpi_real8, &
+                      mpi_comm_global, mpierr)
+
+   call MPI_Alltoallv(pos_send_buffer, send_count, send_displ, mpi_integer, &
+                      pos_recv_buffer, recv_count, recv_displ, mpi_integer, &
+                      mpi_comm_global, mpierr)
+
+   deallocate(val_send_buffer)
+   deallocate(pos_send_buffer)
+
+   D_out = 0d0
+
+   ! Unpack Hamiltonian
+   do i_val = 1,nnz_aux
+      ! Compute global 2d id
+      global_col_id = FLOOR(1d0*(pos_recv_buffer(i_val)-1)/n_g_rank)+1
+      global_row_id = MOD(pos_recv_buffer(i_val),n_g_rank)
+      if(global_row_id == 0) global_row_id = n_g_rank
+
+      ! Compute local 2d id
+      local_row_id = FLOOR(1d0*(global_row_id-1)/(n_p_rows*n_b_rows))*n_b_rows&
+                     +MOD((global_row_id-1),n_b_rows)+1
+      local_col_id = FLOOR(1d0*(global_col_id-1)/(n_p_cols*n_b_cols))*n_b_cols&
+                     +MOD((global_col_id-1),n_b_cols)+1
+
+      ! Put value to correct position
+      D_out(local_row_id,local_col_id) = val_recv_buffer(i_val)
+   enddo
+
+   deallocate(val_recv_buffer)
+   deallocate(pos_recv_buffer)
+
+   call elsi_stop_1dccs_to_2dbc_time()
 
 end subroutine
 
@@ -1758,13 +1902,13 @@ subroutine elsi_dm_real(H_in, S_in, D_out, energy_out, need_cholesky, occupation
 
          ! Convert 2D block-cyclic dense Hamiltonian and overlap
          ! matrices to 1D block CCS sparse format
-         call elsi_2dbcd_to_1dbccs_hs_pexsi(H_in,S_in,need_cholesky)
+         call elsi_2dbcd_to_1dbccs_hs_pexsi(H_in,S_in)
 
          call elsi_solve_evp_pexsi()
 
          ! Convert 1D block CCS sparse density matrix to 2D
          ! block-cyclic dense format
-!         call elsi_get_dm(D_out)
+         call elsi_get_dm(D_out)
          call elsi_get_energy(energy_out)
       case (CHESS)
          call elsi_stop(" CHESS not yet implemented. Exiting... ",caller)
