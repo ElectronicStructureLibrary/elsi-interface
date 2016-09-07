@@ -157,23 +157,23 @@ subroutine elsi_print_timers()
        write(*,"('| Timings:                                              ')")
        write(*,"('|-------------------------------------------------------')")
        if(bc2d_to_ccs1d_time) then
-          write(*,"('| Converting 2D Block-cyclic dense to 1D block CCS :')")
+          write(*,"('| Converting 2D Block-cyclic dense to 1D block CCS')")
           write(*,"('|                                    : ',F13.3,' s')") &
                 walltime_2dbc_to_1dccs
        endif
        if(solve_time) then
-          write(*,"('| Solving the eigenvalue problem                   :')")
+          write(*,"('| Solving the eigenvalue problem')")
           write(*,"('|                                    : ',F13.3,' s')") &
                 walltime_solve_evp
        endif
        if(ccs1d_to_bc2d_time) then
-          write(*,"('| Converting 1D block CCS to 2D block-cyclic dense :')")
+          write(*,"('| Converting 1D block CCS to 2D block-cyclic dense')")
           write(*,"('|                                    : ',F13.3,' s')") &
                 walltime_1dccs_to_2dbc
        endif
        if(total_time) then
           write(*,"('|-------------------------------------------------------')")
-          write(*,"('| Total                                            :',F13.3,' s')")&
+          write(*,"('| Total                              :',F13.3,' s')")&
                 walltime_total
        endif
        write(*,"('|-------------------------------------------------------')")

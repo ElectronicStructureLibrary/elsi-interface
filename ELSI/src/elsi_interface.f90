@@ -393,13 +393,16 @@ subroutine elsi_get_energy(energy_out)
 
    real*8, intent(out) :: energy_out
 
+   ! Only spin-nonpolarized case is supported now.
+   real*8, parameter :: n_spin = 2d0
+
    character*40, parameter :: caller = "elsi_get_energy"
 
    select case (method)
       case (ELPA)
-         energy_out = SUM(eigenvalues(1:n_states))
+         energy_out = n_spin*SUM(eigenvalues(1:n_states))
       case (LIBOMM)
-         energy_out = total_energy
+         energy_out = n_spin*total_energy
       case (PEXSI)
          energy_out = e_tot_H
          if(myid == 0) then
