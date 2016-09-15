@@ -161,7 +161,6 @@ contains
      n_states = n_states_in
 
      call elsi_init_timers()
-     call elsi_start_total_time()
 
   end subroutine ! elsi_init
 
@@ -502,7 +501,6 @@ contains
 
      if(method == PEXSI) call f_ppexsi_plan_finalize(pexsi_plan, pexsi_info)
    
-     call elsi_stop_total_time()
      call elsi_print_timers()
 
   end subroutine ! elsi_finalize
