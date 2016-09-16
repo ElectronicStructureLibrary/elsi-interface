@@ -1897,7 +1897,11 @@ contains
 
            call elsi_get_occupied_number(occupation)
            call elsi_solve_evp_elpa(need_cholesky)
-           call elsi_allocate(D_elpa, n_l_rows, n_l_cols, "D_elpa", caller)
+
+           if(.not.allocated(D_elpa)) then
+              call elsi_allocate(D_elpa, n_l_rows, n_l_cols, "D_elpa", caller)
+           endif
+
            call elsi_compute_dm_elpa(D_out, occupation)
            call elsi_get_energy(energy_out)
         case (LIBOMM)
@@ -1970,7 +1974,11 @@ contains
 
            call elsi_get_occupied_number(occupation)
            call elsi_solve_evp_elpa(need_cholesky)
-           call elsi_allocate(D_elpa, n_l_rows, n_l_cols, "D_elpa", caller)
+
+           if(.not.allocated(D_elpa)) then
+              call elsi_allocate(D_elpa, n_l_rows, n_l_cols, "D_elpa", caller)
+           endif
+
            call elsi_compute_dm_elpa(D_out, occupation)
            call elsi_get_energy(energy_out)
         case (LIBOMM)
