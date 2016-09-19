@@ -627,6 +627,8 @@ contains
      implicit none
 
      real*8, intent(out) :: D_out(n_l_rows, n_l_cols) !< Density matrix
+     real*8  :: D_out_tmp(n_l_rows, n_l_cols)         !< Density matrix from imaginary 
+                                                      !< part of complex eigenvectors
      real*8, intent(in)  :: occ(n_states)             !< Occupation number
 
      real*8, allocatable     :: tmp_real(:,:)    !< Real eigenvectors, temporary
@@ -714,11 +716,18 @@ contains
 
                  ! Compute density matrix
                  D_out = 0d0
+                 D_out_tmp = 0d0
 
                  ! D_out = tmp_complex*tmp_complex' A' here means transpose of A
-                 call pzherk('U', 'N', n_g_rank, n_states, (1.d0, 0.d0), &
-                             tmp_complex, 1, 1, sc_desc, (0.d0, 0.d0), D_out, 1, 1, sc_desc)
+                 !call pzherk('U', 'N', n_g_rank, n_states, (1.d0, 0.d0), &
+                 !            tmp_complex, 1, 1, sc_desc, (0.d0, 0.d0), D_out_tmp, 1, 1, sc_desc)
 
+                 call pdsyrk('U', 'N', n_g_rank, n_states, 1.d0,&
+                             real(tmp_complex), 1, 1, sc_desc, 0.d0, D_out, 1, 1, sc_desc)
+                 call pdsyrk('U', 'N', n_g_rank, n_states, 1.d0,&
+                             aimag(tmp_complex), 1, 1, sc_desc, 0.d0, D_out_tmp, 1, 1, sc_desc)
+
+                 D_out = D_out + D_out_tmp
            end select
 
            deallocate(local_col)
