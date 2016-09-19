@@ -55,15 +55,14 @@ module ELSI_DIMENSIONS
   integer :: n_p_cols
   
   !> Local matrix size
-  integer :: n_l_rows !< Number of rows on this process
-  integer :: n_l_cols !< Number of columns on this process
+  integer :: n_l_rows
+  integer :: n_l_cols
 
   !> MPI
   integer :: myid
-  integer :: n_procs         !< Number of MPI processes
-  integer :: mpi_comm_global !< Global MPI communicator
+  integer :: n_procs
+  integer :: mpi_comm_global
   integer :: mpierr
-  logical :: external_mpi = .true.
   logical :: mpi_is_setup = .false.
 
   !> BLACS
@@ -71,10 +70,9 @@ module ELSI_DIMENSIONS
   integer :: sc_desc(9)
   integer :: mpi_comm_row
   integer :: mpi_comm_col
-  integer :: my_p_row !< Process row position
-  integer :: my_p_col !< Process column position
+  integer :: my_p_row
+  integer :: my_p_col
   integer :: blacs_info
-  logical :: external_blacs = .true.
   logical :: blacs_is_setup = .false.
   ! PEXSI may use another BLACS setup
   integer :: my_p_row_pexsi
@@ -87,8 +85,8 @@ module ELSI_DIMENSIONS
   integer :: n_l_cols_pexsi
 
   !> Sparse matrix information
-  integer :: n_g_nonzero !< Number of nonzero elements of the global matrix
-  integer :: n_l_nonzero !< Number of nonzero elements of the local matrix
+  integer :: n_g_nonzero
+  integer :: n_l_nonzero
   real*8, parameter :: threshold = 1.0d-15 !< Threshold to define numerical zero
 
   !> Overlap
@@ -104,9 +102,9 @@ module ELSI_DIMENSIONS
 
   !> OMM
   logical :: omm_customized = .false.
-  logical :: new_overlap         !< New overlap matrix provided?
+  logical :: new_overlap
   logical :: C_matrix_initialized
-  real*8  :: total_energy        !< Total energy value
+  real*8  :: total_energy
   !< How to perform the calculation
   !! 0 = Basic
   !! 1 = Cholesky factorisation of S requested

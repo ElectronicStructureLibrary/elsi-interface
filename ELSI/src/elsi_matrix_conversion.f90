@@ -31,7 +31,7 @@ module ELSI_MATRIX_CONVERSION
 
    use iso_c_binding
    use ELSI_DIMENSIONS
-   use ELSI_MPI_TOOLS
+   use ELSI_UTILS
 
    implicit none
    private

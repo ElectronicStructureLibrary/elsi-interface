@@ -24,10 +24,11 @@
 !OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 !>
-!! This module contains wrapper functions to the MPI library.
+!! This module contains utilities for ELSI, including array allocations and
+!! printings for debugging.
 !!
 
-module ELSI_MPI_TOOLS
+module ELSI_UTILS
 
    use iso_c_binding
    use ELSI_DIMENSIONS
@@ -36,12 +37,6 @@ module ELSI_MPI_TOOLS
    implicit none
    private
 
-   !> Calculate the local matrix dimensions based on the BLACS grid
-   integer, external :: numroc
-
-   public :: elsi_init_pexsi
-   public :: elsi_set_mpi
-   public :: elsi_set_blacs
    public :: elsi_value_print
    public :: elsi_vector_print
    public :: elsi_matrix_print
@@ -68,135 +63,6 @@ module ELSI_MPI_TOOLS
    end interface
 
 contains
-
-!>
-!! Set MPI.
-!!
-subroutine elsi_set_mpi(mpi_comm_global_in, n_procs_in, myid_in)
-
-   implicit none
-   include 'mpif.h'
-
-   integer,intent(in) :: myid_in            !< local process id
-   integer,intent(in) :: n_procs_in         !< number of mpi processes
-   integer,intent(in) :: mpi_comm_global_in !< global mpi communicator
-
-   ! MPI Initialization
-
-   external_mpi = .True.
-   mpi_is_setup = .True.
-   mpi_comm_global = mpi_comm_global_in
-   n_procs         = n_procs_in
-   myid            = myid_in
-
-end subroutine
-
-!>
-!! PEXSI processor grid setup.
-!!
-subroutine elsi_init_pexsi()
-
-   implicit none
-   include "mpif.h"
-
-   character*40, parameter :: caller = "elsi_init_pexsi"
-
-   if(method == PEXSI) then
-      ! Find balancing between expansion parallel and matrix inversion parallel
-      if(mod(n_procs,40) == 0 .and. n_procs >= 640) then
-         n_p_rows_pexsi = 40
-      elseif(mod(n_procs,20) == 0 .and. n_procs >= 320) then
-         n_p_rows_pexsi = 20
-      elseif(mod(n_procs,10) == 0 .and. n_procs >= 90) then
-         n_p_rows_pexsi = 10
-      elseif(mod(n_procs,5) == 0 .and. n_procs >= 20) then
-         n_p_rows_pexsi = 5
-      elseif(mod(n_procs,4) == 0 .and. n_procs >= 16) then
-         n_p_rows_pexsi = 4
-      elseif(mod(n_procs,2) == 0 .and. n_procs >= 2) then
-         n_p_rows_pexsi = 2
-      else
-         n_p_rows_pexsi = 1
-      endif
-
-      n_p_cols_pexsi = n_procs/n_p_rows_pexsi
-
-      ! position in process grid must not be used
-      my_p_col_pexsi = -1
-      my_p_row_pexsi = -1
-
-      ! PEXSI needs a pure block distribution
-      n_b_rows_pexsi = n_g_rank
-
-      ! The last process holds all remaining columns
-      n_b_cols_pexsi = FLOOR(1d0*n_g_rank/n_procs)
-      if(myid == n_procs-1) then
-         n_b_cols_pexsi = n_g_rank-(n_procs-1)*n_b_cols_pexsi
-      endif
-
-      n_l_rows_pexsi = n_b_rows_pexsi
-      n_l_cols_pexsi = n_b_cols_pexsi
-
-      ! Only master process outputs
-      if(myid == 0) then
-         pexsi_output_file_index = 0
-      else
-         pexsi_output_file_index = -1
-      endif
-
-      pexsi_plan = f_ppexsi_plan_initialize(mpi_comm_global,n_p_rows_pexsi,&
-                      n_p_cols_pexsi,pexsi_output_file_index,pexsi_info)
-
-      if(pexsi_info /= 0) &
-         call elsi_stop(" PEXSI plan initialization failed. Exiting... ",caller)
-
-      if(n_p_rows_pexsi /= n_p_rows .or. n_p_cols_pexsi /= n_p_cols) &
-         call elsi_statement_print(" Process grid set up for PEXSI")
-   endif
-
-end subroutine
-
-!>
-!! Set BLACS. 
-!!
-subroutine elsi_set_blacs(blacs_ctxt_in, n_b_rows_in, n_b_cols_in, n_p_rows_in, &
-                          n_p_cols_in, mpi_comm_row_in, mpi_comm_col_in)
-
-   implicit none
-   include "mpif.h"
-
-   integer, intent(in) :: blacs_ctxt_in             !< BLACS context
-   integer, intent(in) :: n_b_rows_in               !< Block size
-   integer, intent(in) :: n_b_cols_in               !< Block size
-   integer, intent(in) :: n_p_rows_in               !< Number of processes in row
-   integer, intent(in) :: n_p_cols_in               !< Number of processes in column
-   integer, intent(in), optional :: mpi_comm_row_in !< row communicatior for ELPA
-   integer, intent(in), optional :: mpi_comm_col_in !< column communicatior for ELPA
-
-   integer :: blacs_info
-
-   external_blacs = .true.
-   blacs_is_setup = .true.
-
-   blacs_ctxt = blacs_ctxt_in 
-   n_b_rows = n_b_rows_in
-   n_b_cols = n_b_cols_in
-   n_p_rows = n_p_rows_in 
-   n_p_cols = n_p_cols_in
-   call blacs_pcoord(blacs_ctxt,myid,my_p_row,my_p_col)
-   n_l_rows = numroc(n_g_rank,n_b_rows,my_p_row,0,n_p_rows)
-   n_l_cols = numroc(n_g_rank,n_b_cols,my_p_col,0,n_p_cols)
-   call descinit(sc_desc,n_g_rank,n_g_rank,n_b_rows,n_b_cols,0,0,&
-                 blacs_ctxt,MAX(1,n_l_rows),blacs_info)
-
-   mpi_comm_row = mpi_comm_row_in
-   mpi_comm_col = mpi_comm_col_in
-
-   if(method == LIBOMM) then
-      call ms_scalapack_setup(myid,n_procs,n_p_rows,'r',n_b_rows,icontxt=blacs_ctxt)
-   endif
-
-end subroutine
 
 subroutine elsi_matrix_print(matrix, n_rows, n_cols, matrixname)
 
@@ -507,4 +373,4 @@ subroutine elsi_allocate_complex_matrix(matrix, n_rows, n_cols, matrixname, call
 
 end subroutine
 
-end module ELSI_MPI_TOOLS
+end module ELSI_UTILS
