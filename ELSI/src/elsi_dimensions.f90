@@ -43,8 +43,8 @@ module ELSI_DIMENSIONS
   !> Matrix storage format (BLOCK_CYCLIC=0)
   integer :: storage = -1
 
-  !> Global matrix dimension
-  integer :: n_g_rank
+  !> Global matrix size
+  integer :: n_g_size
   
   !> Block size in case of block-cyclic distribution
   integer :: n_b_rows
@@ -154,60 +154,6 @@ module ELSI_DIMENSIONS
 contains
 
 !>
-!! Print a message on every process.
-!!
-subroutine elsi_print(message)
-   
-   implicit none
-
-   character(len=*), intent(in) :: message
-
-   character(LEN=4096) :: string_message
-   integer :: i_task
-
-   do i_task = 0, n_procs - 1
-      if(myid == i_task) then
-         write(string_message, "(1X,'*** Proc',I5,': ',A)") &
-               myid, trim(message)
-         write(*,'(A)') trim(string_message)
-      endif
-      call MPI_BARRIER(mpi_comm_global,mpierr)
-   enddo
-
-end subroutine
-
-!>
-!! Clean shutdown in case of error.
-!!
-subroutine elsi_stop(message, caller)
-
-   implicit none
-   include "mpif.h"
-
-   character(len=*), intent(in) :: message
-   character(len=*), intent(in) :: caller
-
-   character(LEN=4096) :: string_message
-   integer :: i_task
-
-   do i_task = 0, n_procs - 1
-      if(myid == i_task) then
-         write(string_message, "(1X,'*** Proc',I5,' in ',A,': ',A)") &
-               myid, trim(caller), trim(message)
-         write(*,'(A)') trim(string_message)
-      endif
-      call MPI_BARRIER(mpi_comm_global, mpierr)
-   enddo
-
-   if(n_procs > 1) then
-      call MPI_Abort(mpi_comm_global, 0, mpierr)
-   endif
- 
-   stop
-
-end subroutine
-
-!>
 !! Set PEXSI variables to ELSI default.
 !!
 subroutine elsi_set_pexsi_default_options()
@@ -281,7 +227,7 @@ subroutine elsi_print_pexsi_options()
       write(*,'(A)') trim(string_message)
 
       write(string_message, "(1X,'  | Sparcity ',F7.3)") &
-            (1d0 * n_g_nonzero / n_g_rank) / n_g_rank
+            (1d0 * n_g_nonzero / n_g_size) / n_g_size
       write(*,'(A)') trim(string_message)
 
    endif
@@ -357,27 +303,6 @@ subroutine elsi_print_omm_options()
 
    endif
 
-end subroutine
-
-subroutine elsi_sparse_ham_status(H_real_sparse)
-
-   implicit none
-   include "mpif.h"
-
-   character(LEN=4096) :: string_message
-   integer :: i_task
-   real*8, intent(in) :: H_real_sparse(n_l_nonzero)
-
-   do i_task = 0, n_procs
-      if(i_task == myid) then
-         write(string_message, "(1X,'*** Proc',I5, ' : local H ')") i_task 
-         write(*,'(A)') trim(string_message)
-         print *,H_real_sparse(1:10)
-      endif
-
-      call MPI_BARRIER(mpi_comm_global, mpierr)
-   enddo
- 
 end subroutine
 
 end module ELSI_DIMENSIONS

@@ -93,12 +93,12 @@ subroutine elsi_print_timers()
       write(*,"('  |-------------------------------------------------------')")
       write(*,"('  | Final ELSI Output:                                    ')")
       write(*,"('  |-------------------------------------------------------')")
-      write(*,"('  | Eigenvalue problem size             : ',I13)") n_g_rank
+      write(*,"('  | Eigenvalue problem size             : ',I13)") n_g_size
       if(method == PEXSI) then
          write(*,"('  | Non zero elements                   : ',I13)") &
                n_g_nonzero
          write(*,"('  | Sparcity                            : ',F13.3)") &
-               (1d0*n_g_nonzero/n_g_rank)/n_g_rank
+               (1d0*n_g_nonzero/n_g_size)/n_g_size
       endif
       write(*,"('  | Number of electrons                 : ',F13.1)") n_electrons
       write(*,"('  | Number of states                    : ',I13)") n_states

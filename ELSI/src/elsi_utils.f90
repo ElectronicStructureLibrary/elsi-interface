@@ -42,6 +42,7 @@ module ELSI_UTILS
    public :: elsi_matrix_print
    public :: elsi_statement_print
    public :: elsi_allocate
+   public :: elsi_stop
 
    interface elsi_vector_print
       module procedure elsi_int_vector_print, &
@@ -370,6 +371,37 @@ subroutine elsi_allocate_complex_matrix(matrix, n_rows, n_cols, matrixname, call
    endif
 
    matrix = CMPLX(0d0,0d0) 
+
+end subroutine
+
+!>
+!! Clean shutdown in case of error.
+!!
+subroutine elsi_stop(message, caller)
+
+   implicit none
+   include "mpif.h"
+
+   character(len=*), intent(in) :: message
+   character(len=*), intent(in) :: caller
+
+   character(LEN=4096) :: string_message
+   integer :: i_task
+
+   do i_task = 0, n_procs - 1
+      if(myid == i_task) then
+         write(string_message, "(1X,'*** Proc',I5,' in ',A,': ',A)") &
+               myid, trim(caller), trim(message)
+         write(*,'(A)') trim(string_message)
+      endif
+      call MPI_BARRIER(mpi_comm_global, mpierr)
+   enddo
+
+   if(n_procs > 1) then
+      call MPI_Abort(mpi_comm_global, 0, mpierr)
+   endif
+
+   stop
 
 end subroutine
 

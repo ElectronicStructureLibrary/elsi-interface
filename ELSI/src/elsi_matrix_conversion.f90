@@ -314,13 +314,13 @@ subroutine elsi_2dbc_to_1db(matrix_in, matrix_out)
             call elsi_get_global_row(global_row_id,i_row)
 
             ! Compute destination
-            dest(i_val) = FLOOR(1d0*(global_col_id-1)/FLOOR(1d0*n_g_rank/n_procs))
+            dest(i_val) = FLOOR(1d0*(global_col_id-1)/FLOOR(1d0*n_g_size/n_procs))
             ! The last process may take more
             if(dest(i_val) > (n_procs-1)) dest(i_val) = n_procs-1
 
             ! Compute the global id
             ! Pack global id and data into buffers
-            pos_send_buffer(i_val) = (global_col_id-1)*n_g_rank+global_row_id
+            pos_send_buffer(i_val) = (global_col_id-1)*n_g_size+global_row_id
             val_send_buffer(i_val) = matrix_in(i_row,i_col)
         endif
      enddo
@@ -375,12 +375,12 @@ subroutine elsi_2dbc_to_1db(matrix_in, matrix_out)
    ! Unpack data
    do i_val = 1,nnz_local2
       ! Compute global 2d id
-      global_col_id = FLOOR(1d0*(pos_recv_buffer(i_val)-1)/n_g_rank)+1
-      global_row_id = MOD(pos_recv_buffer(i_val),n_g_rank)
-      if(global_row_id == 0) global_row_id = n_g_rank
+      global_col_id = FLOOR(1d0*(pos_recv_buffer(i_val)-1)/n_g_size)+1
+      global_row_id = MOD(pos_recv_buffer(i_val),n_g_size)
+      if(global_row_id == 0) global_row_id = n_g_size
 
       ! Compute local 2d id
-      local_col_id = global_col_id-myid*FLOOR(1d0*n_g_rank/n_procs)
+      local_col_id = global_col_id-myid*FLOOR(1d0*n_g_size/n_procs)
       local_row_id = global_row_id
 
       ! Put value to correct position

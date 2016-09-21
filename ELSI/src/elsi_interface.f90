@@ -156,7 +156,7 @@ contains
      call elsi_set_method(solver)
      call elsi_set_storage(matrix_format)
 
-     n_g_rank = matrix_size
+     n_g_size = matrix_size
      n_electrons = n_electrons_in
      n_states = n_states_in
 
@@ -240,6 +240,7 @@ contains
      integer, intent(in), optional :: mpi_comm_col_in !< column communicatior for ELPA
 
      integer :: blacs_info
+     character*40, parameter :: caller = "elsi_set_blacs"
 
      blacs_is_setup = .true.
 
@@ -249,9 +250,10 @@ contains
      n_p_rows = n_p_rows_in
      n_p_cols = n_p_cols_in
      call blacs_pcoord(blacs_ctxt,myid,my_p_row,my_p_col)
-     n_l_rows = numroc(n_g_rank,n_b_rows,my_p_row,0,n_p_rows)
-     n_l_cols = numroc(n_g_rank,n_b_cols,my_p_col,0,n_p_cols)
-     call descinit(sc_desc,n_g_rank,n_g_rank,n_b_rows,n_b_cols,0,0,&
+     n_l_rows = numroc(n_g_size,n_b_rows,my_p_row,0,n_p_rows)
+     n_l_cols = numroc(n_g_size,n_b_cols,my_p_col,0,n_p_cols)
+
+     call descinit(sc_desc,n_g_size,n_g_size,n_b_rows,n_b_cols,0,0,&
                    blacs_ctxt,MAX(1,n_l_rows),blacs_info)
 
      mpi_comm_row = mpi_comm_row_in
@@ -275,7 +277,7 @@ contains
      select case (method)
         case (ELPA)
            if(.not.allocated(eigenvalues)) then
-              call elsi_allocate(eigenvalues, n_g_rank, "eigenvalues", caller)
+              call elsi_allocate(eigenvalues, n_g_size, "eigenvalues", caller)
            else
               eigenvalues = 0d0
            endif
@@ -302,14 +304,14 @@ contains
            select case (mode)
               case (COMPLEX_VALUES)
                  if(.not.D_omm%is_initialized) &
-                    call m_allocate(D_omm, n_g_rank, n_g_rank, "pddbc")
+                    call m_allocate(D_omm, n_g_size, n_g_size, "pddbc")
                  if(.not.Coeff_omm%is_initialized) &
-                    call m_allocate(Coeff_omm, n_states, n_g_rank, "pddbc")
+                    call m_allocate(Coeff_omm, n_states, n_g_size, "pddbc")
               case (REAL_VALUES)
                  if(.not.D_omm%is_initialized) &
-                    call m_allocate(D_omm, n_g_rank, n_g_rank, "pddbc")
+                    call m_allocate(D_omm, n_g_size, n_g_size, "pddbc")
                  if(.not.Coeff_omm%is_initialized) &
-                    call m_allocate(Coeff_omm, n_states, n_g_rank, "pddbc")
+                    call m_allocate(Coeff_omm, n_states, n_g_size, "pddbc")
               case DEFAULT
                  call elsi_stop(" No mode has been chosen. "//&
                                 " Please choose REAL_VALUES or COMPLEX_VALUES. ",&
@@ -685,13 +687,15 @@ contains
      implicit none
 
      real*8, intent(out) :: D_out(n_l_rows, n_l_cols) !< Density matrix
-     real*8  :: D_out_tmp(n_l_rows, n_l_cols)         !< Density matrix from imaginary 
-                                                      !< part of complex eigenvectors
      real*8, intent(in)  :: occ(n_states)             !< Occupation number
 
      real*8, allocatable     :: tmp_real(:,:)    !< Real eigenvectors, temporary
      complex*16, allocatable :: tmp_complex(:,:) !< Complex eigenvectors, temporary
-     real*8, allocatable     :: factor(:)        !< Factor to construct density matrix
+
+     real*8 :: D_out_tmp(n_l_rows, n_l_cols) !< Density matrix from imaginary 
+                                             !< part of complex eigenvectors
+
+     real*8, allocatable :: factor(:) !< Factor to construct density matrix
 
      integer, allocatable :: local_col(:)
      integer :: i_col, i
@@ -703,11 +707,11 @@ contains
      select case (method)
         case (ELPA)
            ! Map global columns to local
-           call elsi_allocate(local_col, n_g_rank, "local_col", caller)
+           call elsi_allocate(local_col, n_g_size, "local_col", caller)
 
            i_col = 0 ! local column counter
 
-           do i = 1, n_g_rank
+           do i = 1, n_g_size
               if(MOD((i-1)/n_b_cols, n_p_cols) == my_p_col) then
                  i_col = i_col + 1
                  local_col(i) = i_col
@@ -744,7 +748,7 @@ contains
                  D_out = 0d0
 
                  ! D_out = tmp_real*tmp_real'    A' here means the tranpose of A
-                 call pdsyrk('U', 'N', n_g_rank, n_states, 1.d0,&
+                 call pdsyrk('U', 'N', n_g_size, n_states, 1.d0, &
                              tmp_real, 1, 1, sc_desc, 0.d0, D_out, 1, 1, sc_desc)
 
               case (COMPLEX_VALUES)
@@ -777,12 +781,12 @@ contains
                  D_out_tmp = 0d0
 
                  ! D_out = tmp_complex*tmp_complex' A' here means transpose of A
-                 !call pzherk('U', 'N', n_g_rank, n_states, (1.d0, 0.d0), &
+                 !call pzherk('U', 'N', n_g_size, n_states, (1.d0, 0.d0), &
                  !            tmp_complex, 1, 1, sc_desc, (0.d0, 0.d0), D_out_tmp, 1, 1, sc_desc)
 
-                 call pdsyrk('U', 'N', n_g_rank, n_states, 1.d0,&
+                 call pdsyrk('U', 'N', n_g_size, n_states, 1.d0, &
                              real(tmp_complex), 1, 1, sc_desc, 0.d0, D_out, 1, 1, sc_desc)
-                 call pdsyrk('U', 'N', n_g_rank, n_states, 1.d0,&
+                 call pdsyrk('U', 'N', n_g_size, n_states, 1.d0, &
                              aimag(tmp_complex), 1, 1, sc_desc, 0.d0, D_out_tmp, 1, 1, sc_desc)
 
                  D_out = D_out + D_out_tmp
@@ -800,7 +804,7 @@ contains
 
            ! D_out = D_out + tmp_real' = D_out + D_out'   A' here means
            ! transpose of A
-           call pdtran(n_g_rank, n_g_rank, 1.d0, tmp_real, 1, 1, sc_desc, 1.d0, D_out, 1, 1, sc_desc)
+           call pdtran(n_g_size, n_g_size, 1.d0, tmp_real, 1, 1, sc_desc, 1.d0, D_out, 1, 1, sc_desc)
 
            deallocate(tmp_real)
 
@@ -863,7 +867,7 @@ contains
                  if(cholesky) then
                     call elsi_statement_print(" Starting Cholesty decomposition")
                     ! Compute S = (U^T)U, U -> S
-                    success = elpa_cholesky_complex_double(n_g_rank, S_complex, n_l_rows, &
+                    success = elpa_cholesky_complex_double(n_g_size, S_complex, n_l_rows, &
                                           n_b_rows, n_l_cols, mpi_comm_row, &
                                           mpi_comm_col, .False.)
                     if(.not.success) then
@@ -871,7 +875,7 @@ contains
                     endif
 
                     ! compute U^-1 -> S
-                    success =  elpa_invert_trm_complex_double(n_g_rank, S_complex, n_l_rows, &
+                    success =  elpa_invert_trm_complex_double(n_g_size, S_complex, n_l_rows, &
                                             n_b_rows, n_l_cols, mpi_comm_row, &
                                             mpi_comm_col, .False.)
                     if(.not.success) then
@@ -881,19 +885,19 @@ contains
 
                  ! compute H(U^-1) -> buff
                  ! buffer_complex = H_complex * S_complex
-                 call pzgemm('N','N', n_g_rank, n_g_rank, n_g_rank, 1.0d0, &
+                 call pzgemm('N','N', n_g_size, n_g_size, n_g_size, 1.0d0, &
                              H_complex, 1, 1, sc_desc, S_complex, 1, 1, sc_desc, &
                              0.0d0, buffer_complex, 1, 1, sc_desc)
 
                  ! compute ((U^-1)^T)H by (H(U^-1))^T -> H
                  ! H_complex = (buffer_complex)^T
-                 call pztranc(n_g_rank, n_g_rank, 1.d0, buffer_complex, 1, 1, &
+                 call pztranc(n_g_size, n_g_size, 1.d0, buffer_complex, 1, 1, &
                               sc_desc, 0.d0, H_complex, 1, 1, sc_desc)
 
                  ! compute ((U^-1)^T)H(U^-1) -> H
                  buffer_complex = H_complex
                  ! H_complex = buffer_complex * S_complex
-                 call pzgemm('N','N', n_g_rank, n_g_rank, n_g_rank, 1.0d0, &
+                 call pzgemm('N','N', n_g_size, n_g_size, n_g_size, 1.0d0, &
                              buffer_complex, 1, 1, sc_desc, S_complex, 1, 1, &
                              sc_desc, 0.0d0, H_complex, 1, 1, sc_desc)
 
@@ -904,7 +908,7 @@ contains
                  if(cholesky) then
                     call elsi_statement_print(" Starting Cholesty decomposition")
                     ! Compute S = (U^T)U, U -> S
-                    success = elpa_cholesky_real_double(n_g_rank, S_real, n_l_rows, &
+                    success = elpa_cholesky_real_double(n_g_size, S_real, n_l_rows, &
                                        n_b_rows, n_l_cols, mpi_comm_row, &
                                        mpi_comm_col, .False.)
                     if(.not.success) then
@@ -912,7 +916,7 @@ contains
                     endif
 
                     ! compute U^-1 -> S
-                    success = elpa_invert_trm_real_double(n_g_rank, S_real, n_l_rows, &
+                    success = elpa_invert_trm_real_double(n_g_size, S_real, n_l_rows, &
                                          n_b_rows, n_l_cols, mpi_comm_row, &
                                          mpi_comm_col, .False.)
                     if(.not.success) then
@@ -922,19 +926,19 @@ contains
 
                  ! compute H(U^-1) -> buff
                  ! buffer_real = H_real * S_real
-                 call pdgemm('N','N', n_g_rank, n_g_rank, n_g_rank, 1.0d0, &
+                 call pdgemm('N','N', n_g_size, n_g_size, n_g_size, 1.0d0, &
                              H_real, 1, 1, sc_desc, S_real, 1, 1, sc_desc, &
                              0.0d0, buffer_real, 1, 1, sc_desc)
 
                  ! compute ((U^-1)^T)H by (H(U^-1))^T -> H
                  ! H_real = (buffer_real)^T
-                 call pdtran(n_g_rank, n_g_rank, 1.d0, buffer_real, 1, 1, &
+                 call pdtran(n_g_size, n_g_size, 1.d0, buffer_real, 1, 1, &
                              sc_desc, 0.d0, H_real, 1, 1, sc_desc)
 
                  ! compute ((U^-1)^T)H(U^-1) -> H
                  buffer_real = H_real
                  ! H_real = buffer_real * S_real
-                 call pdgemm('N','N', n_g_rank, n_g_rank, n_g_rank, 1.0d0, &
+                 call pdgemm('N','N', n_g_size, n_g_size, n_g_size, 1.0d0, &
                              buffer_real, 1, 1, sc_desc, S_real, 1, 1, &
                              sc_desc, 0.0d0, H_real, 1, 1, sc_desc)
            end select
@@ -978,7 +982,7 @@ contains
                  buffer_complex = C_complex
 
                  ! C_complex = S_complex * buffer_complex
-                 call pzgemm('N', 'N', n_g_rank, n_states, n_g_rank, &
+                 call pzgemm('N', 'N', n_g_size, n_states, n_g_size, &
                              1.0d0, S_complex, 1, 1, sc_desc, buffer_complex, 1, 1, &
                              sc_desc, 0.0d0, C_complex, 1, 1, sc_desc)
 
@@ -990,15 +994,15 @@ contains
                  buffer_real = C_real
 
                  ! method (a)
-!                call pdtran(n_g_rank, n_g_rank, 1.d0, S_real, 1, 1, sc_desc, &
+!                call pdtran(n_g_size, n_g_size, 1.d0, S_real, 1, 1, sc_desc, &
 !                            0.d0, H_real, 1, 1, sc_desc)
-!                call mult_at_b_real('L', 'N', n_g_rank, n_states, H_real, &
+!                call mult_at_b_real('L', 'N', n_g_size, n_states, H_real, &
 !                                    n_l_rows, buffer_real, n_l_rows, n_b_rows, &
 !                                    mpi_comm_row, mpi_comm_col, C_real, n_l_rows)
 
                  ! method (b)
                  ! C_real = S_real * buffer_real
-                 call pdgemm('N', 'N', n_g_rank, n_states, n_g_rank, &
+                 call pdgemm('N', 'N', n_g_size, n_states, n_g_size, &
                              1.0d0, S_real, 1, 1, sc_desc, buffer_real , 1, 1, &
                              sc_desc, 0.0d0, C_real, 1, 1, sc_desc)
            end select
@@ -1048,7 +1052,7 @@ contains
         two_step_solver = .false.
      elseif(elpa_two_always) then
         two_step_solver = .true.
-     elseif(n_g_rank < 256) then
+     elseif(n_g_size < 256) then
         two_step_solver = .false.
      else
         two_step_solver = .true.
@@ -1065,12 +1069,12 @@ contains
         call elsi_statement_print(" Starting ELPA 2-stage solver")
         select case (mode)
            case (COMPLEX_VALUES)
-              success = solve_evp_complex_2stage_double(n_g_rank, n_states, &
+              success = solve_evp_complex_2stage_double(n_g_size, n_states, &
                            H_complex, n_l_rows, eigenvalues, &
                            C_complex, n_l_rows, n_b_rows, n_l_cols, &
                            mpi_comm_row, mpi_comm_col, mpi_comm_global)
            case (REAL_VALUES)
-              success = solve_evp_real_2stage_double(n_g_rank, n_states, H_real, &
+              success = solve_evp_real_2stage_double(n_g_size, n_states, H_real, &
                            n_l_rows, eigenvalues, C_real, n_l_rows, &
                            n_b_rows, n_l_cols, mpi_comm_row, mpi_comm_col, &
                            mpi_comm_global)
@@ -1079,11 +1083,11 @@ contains
         call elsi_statement_print(" Starting ELPA 1-stage solver")
         select case (mode)
            case (COMPLEX_VALUES)
-              success = solve_evp_complex_1stage_double(n_g_rank, n_states, H_complex, &
+              success = solve_evp_complex_1stage_double(n_g_size, n_states, H_complex, &
                            n_l_rows, eigenvalues, C_complex, n_l_rows, &
                            n_b_rows, n_l_cols, mpi_comm_row, mpi_comm_col)
            case (REAL_VALUES)
-              success = solve_evp_real_1stage_double(n_g_rank, n_states, H_real, &
+              success = solve_evp_real_1stage_double(n_g_size, n_states, H_real, &
                            n_l_rows, eigenvalues, C_real, n_l_rows, &
                            n_b_rows, n_l_cols, mpi_comm_row, mpi_comm_col)
         end select
@@ -1165,11 +1169,11 @@ contains
         select case (mode)
            case (COMPLEX_VALUES)
               ! Compute S = (U^T)U, U -> S
-              success = elpa_cholesky_complex_double(n_g_rank, S_omm%zval, n_l_rows, n_b_rows, n_l_cols, &
+              success = elpa_cholesky_complex_double(n_g_size, S_omm%zval, n_l_rows, n_b_rows, n_l_cols, &
                                     mpi_comm_row, mpi_comm_col, .false.)
            case (REAL_VALUES)
               ! Compute S = (U^T)U, U -> S
-              success = elpa_cholesky_real_double(n_g_rank, S_omm%dval, n_l_rows, n_b_rows, n_l_cols, &
+              success = elpa_cholesky_real_double(n_g_size, S_omm%dval, n_l_rows, n_b_rows, n_l_cols, &
                                  mpi_comm_row, mpi_comm_col, .false.)
         end select
      else
@@ -1182,12 +1186,12 @@ contains
 
      select case (mode)
         case (COMPLEX_VALUES)
-           call omm(n_g_rank, n_states, H_omm, S_omm, new_overlap, total_energy, &
+           call omm(n_g_size, n_states, H_omm, S_omm, new_overlap, total_energy, &
                     D_omm, calc_ED, eta, Coeff_omm, C_matrix_initialized, T_omm, &
                     scale_kinetic, omm_flavour, nk_times_nspin, i_k_spin, min_tol, &
                     omm_verbose, do_dealloc, "pzdbc", "lap", myid)
         case (REAL_VALUES)
-           call omm(n_g_rank, n_states, H_omm, S_omm, new_overlap, total_energy, &
+           call omm(n_g_size, n_states, H_omm, S_omm, new_overlap, total_energy, &
                     D_omm, calc_ED, eta, Coeff_omm, C_matrix_initialized, T_omm, &
                     scale_kinetic, omm_flavour, nk_times_nspin, i_k_spin, min_tol, &
                     omm_verbose, do_dealloc, "pddbc", "lap", myid)
@@ -1286,12 +1290,12 @@ subroutine elsi_init_pexsi()
       my_p_row_pexsi = -1
 
       ! PEXSI needs a pure block distribution
-      n_b_rows_pexsi = n_g_rank
+      n_b_rows_pexsi = n_g_size
 
       ! The last process holds all remaining columns
-      n_b_cols_pexsi = FLOOR(1d0*n_g_rank/n_procs)
+      n_b_cols_pexsi = FLOOR(1d0*n_g_size/n_procs)
       if(myid == n_procs-1) then
-         n_b_cols_pexsi = n_g_rank-(n_procs-1)*n_b_cols_pexsi
+         n_b_cols_pexsi = n_g_size-(n_procs-1)*n_b_cols_pexsi
       endif
 
       n_l_rows_pexsi = n_b_rows_pexsi
@@ -1385,13 +1389,13 @@ end subroutine
               call elsi_get_global_row(global_row_id, i_row)
 
               ! Compute destination
-              dest(i_val) = FLOOR(1d0*(global_col_id-1)/FLOOR(1d0*n_g_rank/n_procs))
+              dest(i_val) = FLOOR(1d0*(global_col_id-1)/FLOOR(1d0*n_g_size/n_procs))
               ! The last process may take more
               if(dest(i_val) > (n_procs-1)) dest(i_val) = n_procs-1
 
               ! Compute the global id
               ! Pack global id and data into buffers
-              pos_send_buffer(i_val) = (global_col_id-1)*n_g_rank+global_row_id
+              pos_send_buffer(i_val) = (global_col_id-1)*n_g_size+global_row_id
               h_val_send_buffer(i_val) = H_in(i_row, i_col)
               s_val_send_buffer(i_val) = S_in(i_row, i_col)
           endif
@@ -1457,12 +1461,12 @@ end subroutine
      ! Unpack Hamiltonian
      do i_val = 1, n_l_nonzero
         ! Compute global 2d id
-        global_col_id = FLOOR(1d0*(pos_recv_buffer(i_val)-1)/n_g_rank)+1
-        global_row_id = MOD(pos_recv_buffer(i_val), n_g_rank)
-        if(global_row_id == 0) global_row_id = n_g_rank
+        global_col_id = FLOOR(1d0*(pos_recv_buffer(i_val)-1)/n_g_size)+1
+        global_row_id = MOD(pos_recv_buffer(i_val), n_g_size)
+        if(global_row_id == 0) global_row_id = n_g_size
 
         ! Compute local 2d id
-        local_col_id = global_col_id-myid*FLOOR(1d0*n_g_rank/n_procs)
+        local_col_id = global_col_id-myid*FLOOR(1d0*n_g_size/n_procs)
         local_row_id = global_row_id
 
         ! Put value to correct position
@@ -1486,12 +1490,12 @@ end subroutine
      ! Unpack overlap
      do i_val = 1, n_l_nonzero
         ! Compute global 2d id
-        global_col_id = FLOOR(1d0*(pos_recv_buffer(i_val)-1)/n_g_rank)+1
-        global_row_id = MOD(pos_recv_buffer(i_val), n_g_rank)
-        if(global_row_id == 0) global_row_id = n_g_rank
+        global_col_id = FLOOR(1d0*(pos_recv_buffer(i_val)-1)/n_g_size)+1
+        global_row_id = MOD(pos_recv_buffer(i_val), n_g_size)
+        if(global_row_id == 0) global_row_id = n_g_size
 
         ! Compute local 2d id
-        local_col_id = global_col_id-myid*FLOOR(1d0*n_g_rank/n_procs)
+        local_col_id = global_col_id-myid*FLOOR(1d0*n_g_size/n_procs)
         local_row_id = global_row_id
 
         ! Put value to correct position
@@ -1575,8 +1579,8 @@ end subroutine
 
         ! Compute global id
         global_row_id = i_row
-        global_col_id = i_col+myid*FLOOR(1d0*n_g_rank/n_procs)
-        global_id(i_val) = (global_col_id-1)*n_g_rank+global_row_id
+        global_col_id = i_col+myid*FLOOR(1d0*n_g_size/n_procs)
+        global_id(i_val) = (global_col_id-1)*n_g_size+global_row_id
 
         ! Compute destination
         proc_row_id = mod((global_row_id-1)/n_b_rows, n_p_rows)
@@ -1639,9 +1643,9 @@ end subroutine
      ! Unpack Hamiltonian
      do i_val = 1, nnz_aux
         ! Compute global 2d id
-        global_col_id = FLOOR(1d0*(pos_recv_buffer(i_val)-1)/n_g_rank)+1
-        global_row_id = MOD(pos_recv_buffer(i_val), n_g_rank)
-        if(global_row_id == 0) global_row_id = n_g_rank
+        global_col_id = FLOOR(1d0*(pos_recv_buffer(i_val)-1)/n_g_size)+1
+        global_row_id = MOD(pos_recv_buffer(i_val), n_g_size)
+        if(global_row_id == 0) global_row_id = n_g_size
 
         ! Compute local 2d id
         local_row_id = FLOOR(1d0*(global_row_id-1)/(n_p_rows*n_b_rows))*n_b_rows&
@@ -1690,11 +1694,11 @@ end subroutine
      ! Load sparse matrices for PEXSI
      if(overlap_is_unity) then
         call f_ppexsi_load_real_symmetric_hs_matrix(pexsi_plan, pexsi_options,&
-                n_g_rank, n_g_nonzero, n_l_nonzero, n_l_cols_pexsi, col_ptr_pexsi,&
+                n_g_size, n_g_nonzero, n_l_nonzero, n_l_cols_pexsi, col_ptr_pexsi,&
                 row_ind_pexsi, H_real_pexsi, 1, S_real_pexsi, pexsi_info)
      else
         call f_ppexsi_load_real_symmetric_hs_matrix(pexsi_plan, pexsi_options,&
-                n_g_rank, n_g_nonzero, n_l_nonzero, n_l_cols_pexsi, col_ptr_pexsi,&
+                n_g_size, n_g_nonzero, n_l_nonzero, n_l_cols_pexsi, col_ptr_pexsi,&
                 row_ind_pexsi, H_real_pexsi, 0, S_real_pexsi, pexsi_info)
      endif
 
