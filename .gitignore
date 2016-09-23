@@ -3,6 +3,8 @@ make.sys
 *.mod
 *.tmp
 ELSI/bin
+ELSI/doc/html
+ELSI/doc/latex
 external/PEXSI/fortran
 external/ELPA/.gitignore
 external/ELPA/.gitlab-ci.yml
