@@ -102,6 +102,8 @@ module ELSI
 
    ! Public routines
    public :: elsi_init            !< Initialize
+   public :: elsi_set_method      !< Select solver
+   public :: elsi_set_storage     !< Select matrix storage format
    public :: elsi_set_mpi         !< Set MPI from calling code
    public :: elsi_set_blacs       !< Set BLACS from calling code
    public :: elsi_customize_elpa  !< Override ELPA default
@@ -448,27 +450,36 @@ contains
 !>
 !!  This routine gets the energy.
 !!
-  subroutine elsi_get_energy(energy_out)
+  subroutine elsi_get_energy(energy_out, occ)
 
      implicit none
 
      real*8, intent(out) :: energy_out
+     real*8, intent(in), optional :: occ(n_states)
 
      ! Only spin-nonpolarized case is supported now.
      real*8, parameter :: n_spin = 2d0
 
+     integer :: i_state
      character*40, parameter :: caller = "elsi_get_energy"
 
      select case (method)
         case (ELPA)
-           energy_out = n_spin*SUM(eigenvalues(1:n_states))
+           if(present(occ)) then
+              energy_out = 0d0
+              do i_state =1,n_states
+                 energy_out = energy_out+occ(i_state)*eigenvalues(i_state)
+              enddo
+           else
+              energy_out = n_spin*SUM(eigenvalues(1:n_states))
+           endif
         case (LIBOMM)
            energy_out = n_spin*total_energy
         case (PEXSI)
            energy_out = e_tot_H
            if(myid == 0) then
-              write(*,*) " PEXSI: S*EDM = ", e_tot_S
-              write(*,*) " PEXSI: E_free = ", f_tot
+              write(*,"(A,F15.5,A)") "  PEXSI: S*EDM = ", e_tot_S, " Ha"
+              write(*,"(A,F15.5,A)") "  PEXSI: E_free = ", f_tot, " Ha"
            endif
         case (CHESS)
            call elsi_stop(" CHESS: not yet implemented! Exiting... ", caller)
@@ -478,7 +489,7 @@ contains
                           " Exiting... ", caller)
      end select
 
-     if(myid == 0) write(*,*) " E = ", energy_out
+     if(myid == 0) write(*,"(A,F15.5,A)") "  E = ", energy_out, " Ha"
 
   end subroutine ! elsi_get_energy
 
@@ -668,7 +679,7 @@ contains
 
      counter = 0
      do i = 1, n_states
-        if(occ(i) > 0d0) then
+        if(occ(i) > threshold) then
            counter = counter + 1
         endif
      enddo
@@ -2041,7 +2052,7 @@ end subroutine
            endif
 
            call elsi_compute_dm_elpa(D_out, occupation)
-           call elsi_get_energy(energy_out)
+           call elsi_get_energy(energy_out, occupation)
         case (LIBOMM)
            ! Set Hamiltonian and overlap matrices
            call elsi_set_hamiltonian(H_in)
@@ -2118,7 +2129,7 @@ end subroutine
            endif
 
            call elsi_compute_dm_elpa(D_out, occupation)
-           call elsi_get_energy(energy_out)
+           call elsi_get_energy(energy_out, occupation)
         case (LIBOMM)
            ! Set Hamiltonian and overlap matrices
            call elsi_set_hamiltonian(H_in)

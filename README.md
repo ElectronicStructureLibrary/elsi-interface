@@ -10,7 +10,7 @@ problems in the self-consistent field cycle of density-functional theory.
 
   * Fortran90, C, C++
   * MPI
-  * Mathematical Libraries (MKL, ESSL, NetLib, ...)
+  * Linear algebra libraries (MKL, ESSL, NetLib, ...)
   * ParMetis 4.0.3
   * SuperLU_DIST 4.3
 
