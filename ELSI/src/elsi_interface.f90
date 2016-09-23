@@ -62,6 +62,8 @@ module ELSI
    complex*16, allocatable :: C_complex(:,:)
    !< Density matrix
    real*8, allocatable     :: D_elpa(:,:)
+   !< Occupation numbers used by ELPA to construct density matrix
+   real*8, allocatable     :: occ_elpa(:)
 
    ! OMM
    !< Hamiltonian
@@ -450,12 +452,11 @@ contains
 !>
 !!  This routine gets the energy.
 !!
-  subroutine elsi_get_energy(energy_out, occ)
+  subroutine elsi_get_energy(energy_out)
 
      implicit none
 
      real*8, intent(out) :: energy_out
-     real*8, intent(in), optional :: occ(n_states)
 
      ! Only spin-nonpolarized case is supported now.
      real*8, parameter :: n_spin = 2d0
@@ -465,14 +466,10 @@ contains
 
      select case (method)
         case (ELPA)
-           if(present(occ)) then
-              energy_out = 0d0
-              do i_state =1,n_states
-                 energy_out = energy_out+occ(i_state)*eigenvalues(i_state)
-              enddo
-           else
-              energy_out = n_spin*SUM(eigenvalues(1:n_states))
-           endif
+           energy_out = 0d0
+           do i_state =1,n_states
+              energy_out = energy_out+occ_elpa(i_state)*eigenvalues(i_state)
+           enddo
         case (LIBOMM)
            energy_out = n_spin*total_energy
         case (PEXSI)
@@ -543,6 +540,7 @@ contains
      if(allocated(C_complex))     deallocate(C_complex)
      if(allocated(eigenvalues))   deallocate(eigenvalues)
      if(allocated(D_elpa))        deallocate(D_elpa)
+     if(allocated(occ_elpa))      deallocate(occ_elpa)
      ! PEXSI
      if(allocated(H_real_pexsi))  deallocate(H_real_pexsi)
      if(allocated(S_real_pexsi))  deallocate(S_real_pexsi)
@@ -667,38 +665,34 @@ contains
   end subroutine ! elsi_get_complex_eigenvectors
 
 !>
-!!  This routine gets the number of occupied states from occupation numbers.
+!!  This routine computes the occupation numbers using eigenvalues
+!!  and eigenvectors from ELPA.
 !!
-  subroutine elsi_get_occupied_number(occ)
+  subroutine elsi_compute_occ_elpa()
 
      implicit none
 
-     real*8, intent(in) :: occ(n_states)
+     character*40, parameter :: caller = "elsi_compute_occ_elpa"
 
-     integer :: counter, i
+     if(.not.allocated(occ_elpa)) then
+         call elsi_allocate(occ_elpa, n_states, "occ_elpa", caller)
+     endif
 
-     counter = 0
-     do i = 1, n_states
-        if(occ(i) > threshold) then
-           counter = counter + 1
-        endif
-     enddo
+     ! TODO: Better scheme to determine occupation numbers
+     ! Assume no fractional occupation numbers here
+     occ_elpa(1:n_states) = 2d0
+     if(mod(nint(n_electrons),2) /= 0) occ_elpa(n_states) = 1d0
 
-     ! TODO: Clarify n_states, n_occupied_states, and n_empty_states
-     n_states = counter
-     n_occupied_states = counter
-
-  end subroutine ! elsi_get_occupied_number
+  end subroutine ! elsi_compute_occ_elpa
 
 !>
 !!  This routine constructs the density matrix using eigenvectors from ELPA.
 !!
-  subroutine elsi_compute_dm_elpa(D_out, occ)
+  subroutine elsi_compute_dm_elpa(D_out)
 
      implicit none
 
      real*8, intent(out) :: D_out(n_l_rows, n_l_cols) !< Density matrix
-     real*8, intent(in)  :: occ(n_states)             !< Occupation number
 
      real*8, allocatable     :: tmp_real(:,:)    !< Real eigenvectors, temporary
      complex*16, allocatable :: tmp_complex(:,:) !< Complex eigenvectors, temporary
@@ -717,6 +711,10 @@ contains
 
      select case (method)
         case (ELPA)
+           if(.not.allocated(D_elpa)) then
+              call elsi_allocate(D_elpa, n_l_rows, n_l_cols, "D_elpa", caller)
+           endif
+
            ! Map global columns to local
            call elsi_allocate(local_col, n_g_size, "local_col", caller)
 
@@ -740,8 +738,8 @@ contains
                  factor = 0d0
 
                  do i = 1, n_states
-                    if(occ(i) > 0d0) then
-                       factor(i) = sqrt(occ(i))
+                    if(occ_elpa(i) > 0d0) then
+                       factor(i) = sqrt(occ_elpa(i))
                     endif
                  enddo
 
@@ -772,8 +770,8 @@ contains
                  factor = 0d0
 
                  do i = 1, n_states
-                    if(occ(i) > 0d0) then
-                       factor(i) = sqrt(occ(i))
+                    if(occ_elpa(i) > 0d0) then
+                       factor(i) = sqrt(occ_elpa(i))
                     endif
                  enddo
 
@@ -2018,7 +2016,7 @@ end subroutine
 !>
 !!  This routine computes density matrix.
 !!
-  subroutine elsi_dm_real(H_in, S_in, D_out, energy_out, need_cholesky, occupation)
+  subroutine elsi_dm_real(H_in, S_in, D_out, energy_out, need_cholesky)
 
      implicit none
 
@@ -2027,9 +2025,11 @@ end subroutine
      real*8, intent(out) :: D_out(n_l_rows,n_l_cols)       !< Density matrix
      real*8, intent(out) :: energy_out                     !< Energy
      logical, intent(inout) :: need_cholesky               !< Cholesky factorize overlap?
-     real*8,  intent(in), optional :: occupation(n_states) !< Occupation number
 
      character*40, parameter :: caller = "elsi_dm_real"
+
+     ! Set number of states
+     n_states = nint(n_electrons/2d0)
 
      ! REAL case
      call elsi_set_mode(REAL_VALUES)
@@ -2044,16 +2044,19 @@ end subroutine
            call elsi_set_hamiltonian(H_in)
            call elsi_set_overlap(S_in)
 
-           call elsi_get_occupied_number(occupation)
            call elsi_solve_evp_elpa(need_cholesky)
 
-           if(.not.allocated(D_elpa)) then
-              call elsi_allocate(D_elpa, n_l_rows, n_l_cols, "D_elpa", caller)
+           call elsi_compute_occ_elpa()
+           call elsi_compute_dm_elpa(D_out)
+           call elsi_get_energy(energy_out)
+        case (LIBOMM)
+           if(mod(nint(n_electrons),2) /= 0) then
+              call elsi_stop(" The current implementation of OMM does not"//&
+                             " work with fractional occupation numbers. This"//&
+                             " means number of electrons in non-spin-polarized"//&
+                             " system cannot be odd. Exiting... ", caller)
            endif
 
-           call elsi_compute_dm_elpa(D_out, occupation)
-           call elsi_get_energy(energy_out, occupation)
-        case (LIBOMM)
            ! Set Hamiltonian and overlap matrices
            call elsi_set_hamiltonian(H_in)
            call elsi_set_overlap(S_in)
@@ -2080,7 +2083,6 @@ end subroutine
            call elsi_stop(" CHESS not yet implemented. Exiting... ", caller)
         case default
            call elsi_stop(" No supported method has been chosen. "//&
-                          " Please choose ELPA to compute eigenpairs. "//&
                           " Exiting... ", caller)
      end select
 
@@ -2091,7 +2093,7 @@ end subroutine
 !>
 !!  This routine computes density matrix.
 !!
-  subroutine elsi_dm_complex(H_in, S_in, D_out, energy_out, need_cholesky, occupation)
+  subroutine elsi_dm_complex(H_in, S_in, D_out, energy_out, need_cholesky)
 
      implicit none
 
@@ -2100,9 +2102,11 @@ end subroutine
      real*8, intent(out) :: D_out(n_l_rows, n_l_cols)           !< Density matrix
      real*8, intent(out) :: energy_out                          !< Energy
      logical, intent(inout) :: need_cholesky                    !< Cholesky factorize overlap?
-     real*8,  intent(in), optional :: occupation(n_states)      !< Occupation number
 
      character*40, parameter :: caller = "elsi_dm_complex"
+
+     ! Set number of states
+     n_states = nint(n_electrons/2d0)
 
      ! COMPLEX case
      call elsi_set_mode(COMPLEX_VALUES)
@@ -2121,16 +2125,19 @@ end subroutine
            call elsi_set_hamiltonian(H_in)
            call elsi_set_overlap(S_in)
 
-           call elsi_get_occupied_number(occupation)
            call elsi_solve_evp_elpa(need_cholesky)
 
-           if(.not.allocated(D_elpa)) then
-              call elsi_allocate(D_elpa, n_l_rows, n_l_cols, "D_elpa", caller)
+           call elsi_compute_occ_elpa()
+           call elsi_compute_dm_elpa(D_out)
+           call elsi_get_energy(energy_out)
+        case (LIBOMM)
+           if(mod(nint(n_electrons),2) /= 0) then
+              call elsi_stop(" The current implementation of OMM does not"//&
+                             " with fractional occupation numbers. This"//&
+                             " means number of electrons in non-spin-polarized"//&
+                             " system cannot be odd. Exiting... ", caller)
            endif
 
-           call elsi_compute_dm_elpa(D_out, occupation)
-           call elsi_get_energy(energy_out, occupation)
-        case (LIBOMM)
            ! Set Hamiltonian and overlap matrices
            call elsi_set_hamiltonian(H_in)
            call elsi_set_overlap(S_in)
@@ -2144,7 +2151,6 @@ end subroutine
            call elsi_stop(" CHESS not yet implemented. Exiting... ", caller)
         case default
            call elsi_stop(" No supported method has been chosen. "//&
-                          " Please choose ELPA to compute eigenpairs. "//&
                           " Exiting... ", caller)
      end select
 
