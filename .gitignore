@@ -1,6 +1,7 @@
 make.sys
 *.[oaxd]
 *.mod
+*.tmp
 ELSI/bin
 external/PEXSI/fortran
 external/ELPA/.gitignore
