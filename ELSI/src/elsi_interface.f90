@@ -674,14 +674,13 @@ contains
 
      character*40, parameter :: caller = "elsi_compute_occ_elpa"
 
-     if(.not.allocated(occ_elpa)) then
-         call elsi_allocate(occ_elpa, n_states, "occ_elpa", caller)
-     endif
+!     if(.not.allocated(occ_elpa)) then
+!         call elsi_allocate(occ_elpa, n_states, "occ_elpa", caller)
+!     endif
 
-     ! TODO: Better scheme to determine occupation numbers
-     ! Assume no fractional occupation numbers here
-     occ_elpa(1:n_states) = 2d0
-     if(mod(nint(n_electrons),2) /= 0) occ_elpa(n_states) = 1d0
+     ! TODO: Determine chemical potential and occupation numbers
+     call elsi_stop(" Chemical potential and occupation numbers to be implemented. "//&
+                    " Exiting... ", caller)
 
   end subroutine ! elsi_compute_occ_elpa
 
@@ -2133,7 +2132,7 @@ end subroutine
         case (LIBOMM)
            if(mod(nint(n_electrons),2) /= 0) then
               call elsi_stop(" The current implementation of OMM does not"//&
-                             " with fractional occupation numbers. This"//&
+                             " work with fractional occupation numbers. This"//&
                              " means number of electrons in non-spin-polarized"//&
                              " system cannot be odd. Exiting... ", caller)
            endif
