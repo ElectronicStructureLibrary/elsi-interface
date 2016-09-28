@@ -92,13 +92,17 @@ module ELSI_DIMENSIONS
   !> Overlap
   logical :: overlap_is_unity = .false.
 
-  real*8 :: n_electrons
+  !> Physics
+  real*8  :: n_electrons
   integer :: n_states
   integer :: n_occupied_states
+  real*8, parameter :: hartree = 27.211386 !< Source: Codata 2015
 
   !> ELPA
   logical :: elpa_one_always = .false.
   logical :: elpa_two_always = .false.
+  integer :: broadening_type = -1
+  real*8  :: broadening_width
 
   !> OMM
   logical :: omm_customized = .false.
@@ -138,17 +142,22 @@ module ELSI_DIMENSIONS
 
   !> Method names
   enum, bind( C )
-    enumerator :: AUTO, ELPA, LIBOMM, PEXSI, CHESS
+     enumerator :: AUTO, ELPA, LIBOMM, PEXSI, CHESS
   end enum
 
   !> Mode
   enum, bind( C )
-    enumerator :: REAL_VALUES, COMPLEX_VALUES
+     enumerator :: REAL_VALUES, COMPLEX_VALUES
   end enum
 
   !> Storage formats
   enum, bind( C )
-    enumerator :: BLOCK_CYCLIC
+     enumerator :: BLOCK_CYCLIC
+  end enum
+
+  !> Broadening type (used if ELPA is chosen to compute density matrix)
+  enum, bind( C )
+     enumerator :: GAUSSIAN, FERMI
   end enum
 
 contains

@@ -101,6 +101,7 @@ module ELSI
    public :: AUTO, ELPA, LIBOMM, PEXSI, CHESS
    public :: REAL_VALUES, COMPLEX_VALUES
    public :: BLOCK_CYCLIC
+   public :: GAUSSIAN, FERMI
 
    ! Public routines
    public :: elsi_init            !< Initialize
@@ -325,11 +326,11 @@ contains
         case (PEXSI)
            ! Nothing to be done here
         case (CHESS)
-           call elsi_stop(" CHESS not yet implemented. Exiting... ", caller)
+           call elsi_stop(" CHESS not yet implemented. Exiting...", caller)
         case DEFAULT
            call elsi_stop(" No supported method has been chosen. "//&
                           " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
-                          " Exiting... ", caller)
+                          " Exiting...", caller)
      end select
   end subroutine ! elsi_allocate_matrices
 
@@ -350,13 +351,13 @@ contains
         case (LIBOMM)
            call m_register_pdbc(H_omm, H_in, sc_desc)
         case (PEXSI)
-           call elsi_stop(" PEXSI not yet implemented. Exiting... ", caller)
+           call elsi_stop(" PEXSI not yet implemented. Exiting...", caller)
         case (CHESS)
-           call elsi_stop(" CHESS not yet implemented. Exiting... ", caller)
+           call elsi_stop(" CHESS not yet implemented. Exiting...", caller)
         case DEFAULT
            call elsi_stop(" No supported method has been chosen. "//&
                           " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
-                          " Exiting... ", caller)
+                          " Exiting...", caller)
      end select
 
   end subroutine ! elsi_set_real_hamiltonian
@@ -378,13 +379,13 @@ contains
         case (LIBOMM)
            call m_register_pdbc(H_omm, H_in, sc_desc)
         case (PEXSI)
-           call elsi_stop(" PEXSI not yet implemented. Exiting... ", caller)
+           call elsi_stop(" PEXSI not yet implemented. Exiting...", caller)
         case (CHESS)
-           call elsi_stop(" CHESS not yet implemented. Exiting... ", caller)
+           call elsi_stop(" CHESS not yet implemented. Exiting...", caller)
         case DEFAULT
            call elsi_stop(" No supported method has been chosen. "//&
                           " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
-                          " Exiting... ", caller)
+                          " Exiting...", caller)
      end select
 
   end subroutine ! elsi_set_complex_hamiltonian
@@ -406,13 +407,13 @@ contains
         case (LIBOMM)
            call m_register_pdbc(S_omm, S_in, sc_desc)
         case (PEXSI)
-           call elsi_stop(" PEXSI not yet implemented. Exiting... ", caller)
+           call elsi_stop(" PEXSI not yet implemented. Exiting...", caller)
         case (CHESS)
-           call elsi_stop(" CHESS not yet implemented. Exiting... ", caller)
+           call elsi_stop(" CHESS not yet implemented. Exiting...", caller)
         case DEFAULT
            call elsi_stop(" No supported method has been chosen. "//&
                           " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
-                          " Exiting... ", caller)
+                          " Exiting...", caller)
      end select
 
      overlap_is_unity = .false.
@@ -436,13 +437,13 @@ contains
         case (LIBOMM)
            call m_register_pdbc(S_omm, S_in, sc_desc)
         case (PEXSI)
-           call elsi_stop(" PEXSI not yet implemented. Exiting... ", caller)
+           call elsi_stop(" PEXSI not yet implemented. Exiting...", caller)
         case (CHESS)
-           call elsi_stop(" CHESS not yet implemented. Exiting... ", caller)
+           call elsi_stop(" CHESS not yet implemented. Exiting...", caller)
         case DEFAULT
            call elsi_stop(" No supported method has been chosen. "//&
                           " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
-                          " Exiting... ", caller)
+                          " Exiting...", caller)
      end select
 
      overlap_is_unity = .false.
@@ -474,19 +475,18 @@ contains
            energy_out = n_spin*total_energy
         case (PEXSI)
            energy_out = e_tot_H
-           if(myid == 0) then
-              write(*,"(A,F15.5,A)") "  PEXSI: S*EDM = ", e_tot_S, " Ha"
-              write(*,"(A,F15.5,A)") "  PEXSI: E_free = ", f_tot, " Ha"
-           endif
         case (CHESS)
-           call elsi_stop(" CHESS: not yet implemented! Exiting... ", caller)
+           call elsi_stop(" CHESS: not yet implemented! Exiting...", caller)
         case DEFAULT
            call elsi_stop(" No supported method has been chosen. "//&
                           " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
-                          " Exiting... ", caller)
+                          " Exiting...", caller)
      end select
 
-     if(myid == 0) write(*,"(A,F15.5,A)") "  E = ", energy_out, " Ha"
+     if(myid == 0) then
+        write(*,"(A,F15.5,A)") "  | Energy = ", energy_out, " Ha"
+        write(*,"(A,F15.5,A)") "  |        = ", energy_out*hartree, " eV"
+     endif
 
   end subroutine ! elsi_get_energy
 
@@ -504,7 +504,7 @@ contains
      select case (method)
         case (ELPA)
            call elsi_stop(" ELPA needs to compute density matrix from eigenvectors. "//&
-                          " Exiting... ", caller)
+                          " Exiting...", caller)
         case (LIBOMM)
            ! Note that here the convention of density matrix used in OMM is changed
            ! to the one used in ELPA and PEXSI.
@@ -512,11 +512,11 @@ contains
         case (PEXSI)
            call elsi_1dbccs_to_2dbcd_dm_pexsi(D_out)
         case (CHESS)
-           call elsi_stop(" CHESS: not yet implemented! Exiting... ", caller)
+           call elsi_stop(" CHESS: not yet implemented! Exiting...", caller)
         case DEFAULT
            call elsi_stop(" No supported method has been chosen. "//&
                           " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
-                          " Exiting... ", caller)
+                          " Exiting...", caller)
      end select
 
   end subroutine ! elsi_get_dm
@@ -603,7 +603,7 @@ contains
         case DEFAULT
            call elsi_stop(" No supported method has been chosen. "//&
                           " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
-                          " Exiting... ", caller)
+                          " Exiting...", caller)
      end select
 
   end subroutine ! elsi_get_eigenvalues
@@ -631,7 +631,7 @@ contains
         case DEFAULT
            call elsi_stop(" No supported method has been chosen. "//&
                           " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
-                          " Exiting... ", caller)
+                          " Exiting...", caller)
      end select
 
   end subroutine ! elsi_get_real_eigenvectors
@@ -659,30 +659,187 @@ contains
         case DEFAULT
            call elsi_stop(" No supported method has been chosen. "//&
                           " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
-                          " Exiting... ", caller)
+                          " Exiting...", caller)
      end select
 
   end subroutine ! elsi_get_complex_eigenvectors
 
 !>
-!!  This routine computes the occupation numbers using eigenvalues
-!!  and eigenvectors from ELPA.
+!!  This routine computes the chemical potential and occupation numbers
+!!  from eigenvalues and eigenvectors.
 !!
   subroutine elsi_compute_occ_elpa()
 
      implicit none
 
+     real*8 :: mu
+     real*8 :: e_low
+     real*8 :: e_high
+     real*8 :: mu_lower
+     real*8 :: mu_upper
+     real*8 :: diff_ne_lower
+     real*8 :: diff_ne_upper
+
+     integer :: i_state
+     integer :: n_steps
+     integer, parameter :: max_steps = 200
+
      character*40, parameter :: caller = "elsi_compute_occ_elpa"
 
-!     if(.not.allocated(occ_elpa)) then
-!         call elsi_allocate(occ_elpa, n_states, "occ_elpa", caller)
-!     endif
+     ! Determine the smallest and largest eivenvalues
+     e_low = eigenvalues(1)
+     e_high = eigenvalues(n_states)
 
-     ! TODO: Determine chemical potential and occupation numbers
-     call elsi_stop(" Chemical potential and occupation numbers to be implemented. "//&
-                    " Exiting... ", caller)
+     do i_state = 1,n_states
+        if(eigenvalues(i_state) < e_low) e_low = eigenvalues(i_state)
+        if(eigenvalues(i_state) > e_high) e_high = eigenvalues(i_state)
+     enddo
+
+     ! Determine the upper and lower bounds for chemical potential
+     mu_lower = e_low
+
+     if(e_low == e_high) then
+        mu_upper = 0.0
+     else
+        mu_upper = e_high
+     endif
+
+     if(.not.allocated(occ_elpa)) then
+         call elsi_allocate(occ_elpa, n_states, "occ_elpa", caller)
+     endif
+
+     occ_elpa = 0d0
+
+     ! Compute the difference of number of electrons
+     call elsi_get_ne(mu_lower, diff_ne_lower)
+     call elsi_get_ne(mu_upper, diff_ne_upper)
+
+     ! If diff_ne_lower*diff_ne_upper > 0, it means that the solution is
+     ! not in this interval.
+     ! Enlarge the interval towards both sides, then recheck the condition.
+     n_steps = 0
+     do while(diff_ne_lower*diff_ne_upper > 0)
+        n_steps = n_steps+1
+        if(n_steps > max_steps) &
+           call elsi_stop(" Chemical potential not found in 200 iterations! "//&
+                          " Exiting...", caller)
+
+        mu_lower = mu_lower-0.5d0*abs(e_high-e_low)
+        mu_upper = mu_upper+0.5d0*abs(e_high-e_low)
+
+        call elsi_get_ne(mu_lower, diff_ne_lower)
+        call elsi_get_ne(mu_upper, diff_ne_upper)
+     enddo
+
+     ! At this point we should have the correct interval for chemical potential.
+     ! Use simple bifurcation algorithm to find the solution.
+     call elsi_get_mu(mu_lower, mu_upper, mu)
 
   end subroutine ! elsi_compute_occ_elpa
+
+!>
+!!  This routine computes the number of electrons using a given chemical potential,
+!!  and returns the difference in number of electrons. The occupation numbers will
+!!  be updated as well.
+!!
+  subroutine elsi_get_ne(mu_in, diff_ne_out)
+
+     implicit none
+
+     real*8,  intent(in)  :: mu_in       !< Input chemical potential
+     real*8,  intent(out) :: diff_ne_out !< Difference in number of electrons
+
+     real*8 :: invert_width
+     real*8, parameter :: spin = 2d0 !< Non spin-polarized case supported only
+     integer :: i_state
+
+     character*40, parameter :: caller = "elsi_get_ne"
+
+     diff_ne_out = -n_electrons
+
+     select case (broadening_type)
+        case(GAUSSIAN)
+           invert_width = 1d0/broadening_width
+
+           do i_state = 1,n_states
+              occ_elpa(i_state) = spin*0.5d0*(1-erf((eigenvalues(i_state)-mu_in)*invert_width))
+              diff_ne_out = diff_ne_out+occ_elpa(i_state)
+           enddo
+        case(FERMI)
+           call elsi_stop(" Fermi broadening not yet implemented. Exiting...", caller)
+        case DEFAULT
+           call elsi_stop(" No supperted broadening type has been chosen. Exiting...", caller)
+     end select
+
+  end subroutine ! elsi_get_ne
+
+!>
+!!  This routine computes the chemical potential using bifurcation algorithm.
+!!
+  subroutine elsi_get_mu(mu_lower_in, mu_upper_in, mu_out)
+
+     implicit none
+
+     real*8, intent(in)  :: mu_lower_in !< Lower bound of chemical potential
+     real*8, intent(in)  :: mu_upper_in !< Upper bound of chemical potential
+     real*8, intent(out) :: mu_out      !< Solution of chemical potential
+
+     real*8  :: mu_left
+     real*8  :: mu_right
+     real*8  :: mu_mid
+     real*8  :: diff_left
+     real*8  :: diff_right
+     real*8  :: diff_mid
+     logical :: found_mu
+     integer :: n_steps
+     integer, parameter :: max_steps = 200
+     real*8, parameter  :: tolerance = 1d-10
+
+     character*40, parameter :: caller = "elsi_get_mu"
+
+     n_steps = 0
+     found_mu = .false.
+
+     mu_left = mu_lower_in
+     mu_right = mu_upper_in
+
+     do while(.not. found_mu)
+        call elsi_get_ne(mu_left, diff_left)
+        call elsi_get_ne(mu_right, diff_right)
+
+        if(abs(diff_left) < tolerance) then
+           mu_out = mu_left
+           found_mu = .true.
+        elseif(abs(diff_right) < tolerance) then
+           mu_out = mu_right
+           found_mu = .true.
+        else
+           mu_mid = 0.5d0*(mu_left+mu_right)
+
+           n_steps = n_steps+1
+           if(n_steps > max_steps) &
+              call elsi_stop(" Chemical potential not found in 200 iterations! "//&
+                             " Exiting...", caller)
+
+           call elsi_get_ne(mu_mid, diff_mid)
+
+           if(abs(diff_mid) < tolerance) then
+              mu_out = mu_mid
+              found_mu = .true.
+           elseif(diff_mid < 0) then
+              mu_left = mu_mid
+           elseif(diff_mid > 0) then
+              mu_right = mu_mid
+           endif
+        endif
+     enddo
+
+     if(myid == 0) then
+        write(*,"(A,F15.5,A)") "  | Chemical potential = ", mu_out, " Ha"
+        write(*,"(A,F15.5,A)") "  |                    = ", mu_out*hartree, " eV"
+     endif
+
+  end subroutine ! elsi_get_mu
 
 !>
 !!  This routine constructs the density matrix using eigenvectors from ELPA.
@@ -828,17 +985,17 @@ contains
 
         case (LIBOMM)
            call elsi_stop(" LIBOMM does not compute density matrix from eigenvectors! "//&
-                          " Exiting... ", caller)
+                          " Exiting...", caller)
         case (PEXSI)
            call elsi_stop(" PEXSI does not compute density matrix from eigenvectors! "//&
-                          " Exiting... ", caller)
+                          " Exiting...", caller)
         case (CHESS)
            call elsi_stop(" CHESS does not compute density matrix from eigenvectors! "//&
-                          " Exiting... ", caller)
+                          " Exiting...", caller)
         case DEFAULT
            call elsi_stop(" No supported method has been chosen. "//&
                           " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
-                          " Exiting... ", caller)
+                          " Exiting...", caller)
      end select
 
   end subroutine ! elsi_compute_dm_elpa
@@ -958,7 +1115,7 @@ contains
         case DEFAULT
            call elsi_stop(" No supported method has been chosen. "//&
                           " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
-                          " Exiting... ", caller)
+                          " Exiting...", caller)
      end select
 
      if(allocated(buffer_real))    deallocate(buffer_real)
@@ -1140,7 +1297,7 @@ contains
            elpa_two_always = .false.
         endif
      else
-        call elsi_stop(" The chosen method is not ELPA. Exiting... ", caller)
+        call elsi_stop(" The chosen method is not ELPA. Exiting...", caller)
      endif
 
   end subroutine ! elsi_customize_elpa
@@ -1254,7 +1411,7 @@ contains
         omm_customized = .true.
         call elsi_print_omm_options()
      else
-        call elsi_stop(" The chosen method is not OMM. Exiting... ", caller)
+        call elsi_stop(" The chosen method is not OMM. Exiting...", caller)
      endif
 
   end subroutine ! elsi_customize_omm
@@ -1320,7 +1477,7 @@ subroutine elsi_init_pexsi()
                       n_p_cols_pexsi,pexsi_output_file_index,pexsi_info)
 
       if(pexsi_info /= 0) &
-         call elsi_stop(" PEXSI plan initialization failed. Exiting... ",caller)
+         call elsi_stop(" PEXSI plan initialization failed. Exiting...",caller)
 
       if(n_p_rows_pexsi /= n_p_rows .or. n_p_cols_pexsi /= n_p_cols) &
          call elsi_statement_print(" Process grid set up for PEXSI")
@@ -1711,7 +1868,7 @@ end subroutine
      endif
 
      if(pexsi_info /= 0) then
-        call elsi_stop(" PEXSI not able to load H/S matrix. Exiting... ", caller)
+        call elsi_stop(" PEXSI not able to load H/S matrix. Exiting...", caller)
      endif
 
      ! Solve the eigenvalue problem
@@ -1722,7 +1879,7 @@ end subroutine
                               n_total_inertia_iter, n_total_pexsi_iter, pexsi_info)
          
      if(pexsi_info /= 0) then
-        call elsi_stop(" PEXSI DFT Driver not able to solve problem. Exiting... ", caller)
+        call elsi_stop(" PEXSI DFT Driver not able to solve problem. Exiting...", caller)
      endif
 
      ! Get the results
@@ -1730,7 +1887,7 @@ end subroutine
                                                       e_tot_H, e_tot_S, f_tot, pexsi_info)
 
      if(pexsi_info /= 0) then
-        call elsi_stop(" PEXSI not able to retrieve solution. Exiting... ", caller)
+        call elsi_stop(" PEXSI not able to retrieve solution. Exiting...", caller)
      endif
 
      call MPI_BARRIER(mpi_comm_global, mpierr)
@@ -1899,7 +2056,7 @@ end subroutine
         pexsi_customized = .true.
         call elsi_print_pexsi_options()
      else
-        call elsi_stop(" The chosen method is not PEXSI. Exiting... ", caller)
+        call elsi_stop(" The chosen method is not PEXSI. Exiting...", caller)
      endif
 
   end subroutine ! elsi_customize_pexsi
@@ -1915,11 +2072,11 @@ end subroutine
 
      implicit none
 
-     real*8, target, intent(in) :: H_in(n_l_rows,n_l_cols) !< Hamiltonian
-     real*8, target, intent(in) :: S_in(n_l_rows,n_l_cols) !< Overlap
-     real*8, intent(out) :: e_val_out(n_states)            !< Eigenvalues
-     real*8, intent(out) :: e_vec_out(n_l_rows,n_l_cols)   !< Eigenvectors
-     logical, intent(inout) :: need_cholesky               !< Cholesky factorize overlap?
+     real*8, target, intent(in) :: H_in(n_l_rows,n_l_cols)      !< Hamiltonian
+     real*8, target, intent(in) :: S_in(n_l_rows,n_l_cols)      !< Overlap
+     real*8, intent(out)        :: e_val_out(n_states)          !< Eigenvalues
+     real*8, intent(out)        :: e_vec_out(n_l_rows,n_l_cols) !< Eigenvectors
+     logical, intent(inout)     :: need_cholesky                !< Cholesky factorize overlap?
 
      character*40, parameter :: caller = "elsi_ev_real"
 
@@ -1943,17 +2100,17 @@ end subroutine
 
         case (LIBOMM)
            call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors. "//&
-                          " Choose ELPA if necessary. Exiting... ", caller)
+                          " Choose ELPA if necessary. Exiting...", caller)
         case (PEXSI)
            call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors. "//&
-                          " Choose ELPA if necessary. Exiting... ", caller)
+                          " Choose ELPA if necessary. Exiting...", caller)
         case (CHESS)
            call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors. "//&
-                          " Choose ELPA if necessary. Exiting... ", caller)
+                          " Choose ELPA if necessary. Exiting...", caller)
         case DEFAULT
            call elsi_stop(" No supported method has been chosen. "//&
                           " Please choose ELPA to compute eigenpairs. "//&
-                          " Exiting... ", caller)
+                          " Exiting...", caller)
      end select
 
      need_cholesky = .false.
@@ -1967,11 +2124,11 @@ end subroutine
 
      implicit none
 
-     complex*16, target, intent(in) :: H_in(n_l_rows,n_l_cols) !< Hamiltonian
-     complex*16, target, intent(in) :: S_in(n_l_rows,n_l_cols) !< Overlap
-     real*8, intent(out)     :: e_val_out(n_states)            !< Eigenvalues
-     complex*16, intent(out) :: e_vec_out(n_l_rows,n_l_cols)   !< Eigenvectors
-     logical, intent(inout)  :: need_cholesky                  !< Cholesky factorize Overlap?
+     complex*16, target, intent(in) :: H_in(n_l_rows,n_l_cols)      !< Hamiltonian
+     complex*16, target, intent(in) :: S_in(n_l_rows,n_l_cols)      !< Overlap
+     real*8, intent(out)            :: e_val_out(n_states)          !< Eigenvalues
+     complex*16, intent(out)        :: e_vec_out(n_l_rows,n_l_cols) !< Eigenvectors
+     logical, intent(inout)         :: need_cholesky                !< Cholesky factorize Overlap?
 
      character*40, parameter :: caller = "elsi_ev_complex"
 
@@ -1995,17 +2152,17 @@ end subroutine
 
         case (LIBOMM)
            call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors. "//&
-                          " Choose ELPA if necessary. Exiting... ", caller)
+                          " Choose ELPA if necessary. Exiting...", caller)
         case (PEXSI)
            call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors. "//&
-                          " Choose ELPA if necessary. Exiting... ", caller)
+                          " Choose ELPA if necessary. Exiting...", caller)
         case (CHESS)
            call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors. "//&
-                          " Choose ELPA if necessary. Exiting... ", caller)
+                          " Choose ELPA if necessary. Exiting...", caller)
         case DEFAULT
            call elsi_stop(" No supported method has been chosen. "//&
                           " Please choose ELPA to compute eigenpairs. "//&
-                          " Exiting... ", caller)
+                          " Exiting...", caller)
      end select
 
      need_cholesky = .false.
@@ -2015,20 +2172,20 @@ end subroutine
 !>
 !!  This routine computes density matrix.
 !!
-  subroutine elsi_dm_real(H_in, S_in, D_out, energy_out, need_cholesky)
+  subroutine elsi_dm_real(H_in, S_in, D_out, energy_out, &
+                          need_cholesky, broadening_in, width_in)
 
      implicit none
 
-     real*8, target, intent(in) :: H_in(n_l_rows,n_l_cols) !< Hamiltonian
-     real*8, target, intent(in) :: S_in(n_l_rows,n_l_cols) !< Overlap
-     real*8, intent(out) :: D_out(n_l_rows,n_l_cols)       !< Density matrix
-     real*8, intent(out) :: energy_out                     !< Energy
-     logical, intent(inout) :: need_cholesky               !< Cholesky factorize overlap?
+     real*8,  target, intent(in)   :: H_in(n_l_rows,n_l_cols)  !< Hamiltonian
+     real*8,  target, intent(in)   :: S_in(n_l_rows,n_l_cols)  !< Overlap
+     real*8,  intent(out)          :: D_out(n_l_rows,n_l_cols) !< Density matrix
+     real*8,  intent(out)          :: energy_out               !< Energy
+     logical, intent(inout)        :: need_cholesky            !< Cholesky factorize overlap?
+     integer, intent(in), optional :: broadening_in            !< (For ELPA) Occupation broadening scheme
+     real*8,  intent(in), optional :: width_in                 !< (For ELPA) Occupation broadening width
 
      character*40, parameter :: caller = "elsi_dm_real"
-
-     ! Set number of states
-     n_states = nint(n_electrons/2d0)
 
      ! REAL case
      call elsi_set_mode(REAL_VALUES)
@@ -2039,6 +2196,19 @@ end subroutine
      ! Solve eigenvalue problem
      select case (method)
         case (ELPA)
+           if(present(broadening_in)) then
+              if(present(width_in)) then
+                 broadening_type = broadening_in
+                 broadening_width = width_in
+              else
+                 call elsi_stop(" ELPA is chosen to compute density matrix. "//&
+                                " Please specify broadening width! Exiting...", caller)
+              endif
+           else
+              call elsi_stop(" ELPA is chosen to compute density matrix. "//&
+                             " Please specify broadening type! Exiting...", caller)
+           endif
+
            ! Set Hamiltonian and overlap matrices
            call elsi_set_hamiltonian(H_in)
            call elsi_set_overlap(S_in)
@@ -2053,8 +2223,11 @@ end subroutine
               call elsi_stop(" The current implementation of OMM does not"//&
                              " work with fractional occupation numbers. This"//&
                              " means number of electrons in non-spin-polarized"//&
-                             " system cannot be odd. Exiting... ", caller)
+                             " system cannot be odd. Exiting...", caller)
            endif
+
+           ! Set number of states to number of occupied states for OMM
+           n_states = nint(n_electrons/2d0)
 
            ! Set Hamiltonian and overlap matrices
            call elsi_set_hamiltonian(H_in)
@@ -2079,10 +2252,10 @@ end subroutine
            call elsi_get_dm(D_out)
            call elsi_get_energy(energy_out)
         case (CHESS)
-           call elsi_stop(" CHESS not yet implemented. Exiting... ", caller)
+           call elsi_stop(" CHESS not yet implemented. Exiting...", caller)
         case default
            call elsi_stop(" No supported method has been chosen. "//&
-                          " Exiting... ", caller)
+                          " Exiting...", caller)
      end select
 
      need_cholesky = .false.
@@ -2092,20 +2265,20 @@ end subroutine
 !>
 !!  This routine computes density matrix.
 !!
-  subroutine elsi_dm_complex(H_in, S_in, D_out, energy_out, need_cholesky)
+  subroutine elsi_dm_complex(H_in, S_in, D_out, energy_out, &
+                             need_cholesky, broadening_in, width_in)
 
      implicit none
 
-     complex*16, target, intent(in) :: H_in(n_l_rows, n_l_cols) !< Hamiltonian
-     complex*16, target, intent(in) :: S_in(n_l_rows, n_l_cols) !< Overlap
-     real*8, intent(out) :: D_out(n_l_rows, n_l_cols)           !< Density matrix
-     real*8, intent(out) :: energy_out                          !< Energy
-     logical, intent(inout) :: need_cholesky                    !< Cholesky factorize overlap?
+     complex*16, target, intent(in) :: H_in(n_l_rows, n_l_cols)  !< Hamiltonian
+     complex*16, target, intent(in) :: S_in(n_l_rows, n_l_cols)  !< Overlap
+     real*8, intent(out)            :: D_out(n_l_rows, n_l_cols) !< Density matrix
+     real*8, intent(out)            :: energy_out                !< Energy
+     logical, intent(inout)         :: need_cholesky             !< Cholesky factorize overlap?
+     integer, intent(in), optional  :: broadening_in             !< (For ELPA) Occupation broadening scheme
+     real*8, intent(in), optional   :: width_in                  !< (For ELPA) Occupation broadening width
 
      character*40, parameter :: caller = "elsi_dm_complex"
-
-     ! Set number of states
-     n_states = nint(n_electrons/2d0)
 
      ! COMPLEX case
      call elsi_set_mode(COMPLEX_VALUES)
@@ -2120,6 +2293,19 @@ end subroutine
      ! Solve eigenvalue problem
      select case (method)
         case (ELPA)
+           if(present(broadening_in)) then
+              if(present(width_in)) then
+                 broadening_type = broadening_in
+                 broadening_width = width_in
+              else
+                 call elsi_stop(" ELPA is chosen to compute density matrix. "//&
+                                " Please specify broadening width! Exiting...", caller)
+              endif
+           else
+              call elsi_stop(" ELPA is chosen to compute density matrix. "//&
+                             " Please specify broadening type! Exiting...", caller)
+           endif
+
            ! Set Hamiltonian and overlap matrices
            call elsi_set_hamiltonian(H_in)
            call elsi_set_overlap(S_in)
@@ -2134,8 +2320,11 @@ end subroutine
               call elsi_stop(" The current implementation of OMM does not"//&
                              " work with fractional occupation numbers. This"//&
                              " means number of electrons in non-spin-polarized"//&
-                             " system cannot be odd. Exiting... ", caller)
+                             " system cannot be odd. Exiting...", caller)
            endif
+
+           ! Set number of states to number of occupied states for OMM
+           n_states = nint(n_electrons/2d0)
 
            ! Set Hamiltonian and overlap matrices
            call elsi_set_hamiltonian(H_in)
@@ -2145,12 +2334,12 @@ end subroutine
            call elsi_get_dm(D_out)
            call elsi_get_energy(energy_out)
         case (PEXSI)
-           call elsi_stop(" PEXSI not yet implemented. Exiting... ", caller)
+           call elsi_stop(" PEXSI not yet implemented. Exiting...", caller)
         case (CHESS)
-           call elsi_stop(" CHESS not yet implemented. Exiting... ", caller)
+           call elsi_stop(" CHESS not yet implemented. Exiting...", caller)
         case default
            call elsi_stop(" No supported method has been chosen. "//&
-                          " Exiting... ", caller)
+                          " Exiting...", caller)
      end select
 
      need_cholesky = .false.

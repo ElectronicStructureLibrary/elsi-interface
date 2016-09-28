@@ -38,15 +38,15 @@ elsi:
 	@echo = Start building ELSI... =
 	@echo ==========================
 	cd ELSI && ${MAKE} -f Makefile.elsi
-	@echo ===================
-	@echo = ELSI installed. =
-	@echo ===================
+	@echo ===============================
+	@echo = ELSI compiled successfully. =
+	@echo ===============================
 
 install:
 	cd ELSI && ${MAKE} -f Makefile.elsi install
-	@echo =========================
-	@echo = ELSI library created. =
-	@echo =========================
+	@echo ======================================
+	@echo = ELSI library created successfully. =
+	@echo ======================================
 
 check:
 	cd ELSI && ${MAKE} -f Makefile.elsi check
