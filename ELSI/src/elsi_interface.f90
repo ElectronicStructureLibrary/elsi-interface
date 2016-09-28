@@ -156,14 +156,18 @@ contains
      real*8, intent(in)  :: n_electrons_in !< Number of electrons
      integer, intent(in) :: n_states_in    !< Number of states
 
-     if(solver == 0) stop
-
      call elsi_set_method(solver)
      call elsi_set_storage(matrix_format)
 
      n_g_size = matrix_size
      n_electrons = n_electrons_in
-     n_states = n_states_in
+
+     if(solver == 2) then
+        ! Set number of occupied states for OMM
+        n_states = nint(n_electrons/2d0)
+     else
+        n_states = n_states_in
+     endif
 
      call elsi_init_timers()
 
@@ -2239,9 +2243,6 @@ end subroutine
                              " system cannot be odd. Exiting...", caller)
            endif
 
-           ! Set number of states to number of occupied states for OMM
-           n_states = nint(n_electrons/2d0)
-
            ! Set Hamiltonian and overlap matrices
            call elsi_set_hamiltonian(H_in)
            call elsi_set_overlap(S_in)
@@ -2328,6 +2329,7 @@ end subroutine
            call elsi_compute_occ_elpa()
            call elsi_compute_dm_elpa(D_out)
            call elsi_get_energy(energy_out)
+
         case (LIBOMM)
            if(mod(nint(n_electrons),2) /= 0) then
               call elsi_stop(" The current implementation of OMM does not"//&
@@ -2335,9 +2337,6 @@ end subroutine
                              " means number of electrons in non-spin-polarized"//&
                              " system cannot be odd. Exiting...", caller)
            endif
-
-           ! Set number of states to number of occupied states for OMM
-           n_states = nint(n_electrons/2d0)
 
            ! Set Hamiltonian and overlap matrices
            call elsi_set_hamiltonian(H_in)
