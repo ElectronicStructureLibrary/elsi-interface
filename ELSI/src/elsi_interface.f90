@@ -750,23 +750,35 @@ contains
      real*8,  intent(out) :: diff_ne_out !< Difference in number of electrons
 
      real*8 :: invert_width !< 1/broadening_width
+     real*8 :: max_exp !< Maximum possible exponent
+     real*8 :: this_exp !< Exponent in this step
      real*8, parameter :: n_spin = 2d0 !< Non spin-polarized case supported only
      integer :: i_state !< State index
 
      character*40, parameter :: caller = "elsi_get_ne"
 
+     invert_width = 1d0/broadening_width
      diff_ne_out = -n_electrons
 
      select case (broadening_type)
         case(GAUSSIAN)
-           invert_width = 1d0/broadening_width
-
            do i_state = 1,n_states
               occ_elpa(i_state) = n_spin*0.5d0*(1-erf((eigenvalues(i_state)-mu_in)*invert_width))
               diff_ne_out = diff_ne_out+occ_elpa(i_state)
            enddo
+
         case(FERMI)
-           call elsi_stop(" Fermi broadening not yet implemented. Exiting...", caller)
+           max_exp = maxexponent(mu_in)*log(2d0)
+           do i_state = 1,n_states
+              this_exp = (eigenvalues(i_state)-mu_in)*invert_width
+              if(this_exp < max_exp) then
+                 occ_elpa(i_state) = n_spin/(1+exp(this_exp))
+                 diff_ne_out = diff_ne_out+occ_elpa(i_state)
+              else ! Exponent in this step is larger than the largest possible exponent
+                 occ_elpa(i_state) = 0d0
+              endif
+           enddo
+
         case DEFAULT
            call elsi_stop(" No supperted broadening type has been chosen. Exiting...", caller)
      end select
