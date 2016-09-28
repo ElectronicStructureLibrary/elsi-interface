@@ -65,6 +65,9 @@ module ELSI_UTILS
 
 contains
 
+!>
+!! This routine prints a real matrix.
+!!
 subroutine elsi_matrix_print(matrix, n_rows, n_cols, matrixname)
 
    implicit none
@@ -92,6 +95,9 @@ subroutine elsi_matrix_print(matrix, n_rows, n_cols, matrixname)
 
 end subroutine
 
+!>
+!! This routine prints an integer vector.
+!!
 subroutine elsi_int_vector_print(vector, n_dim, vectorname)
 
    implicit none
@@ -116,6 +122,9 @@ subroutine elsi_int_vector_print(vector, n_dim, vectorname)
 
 end subroutine
 
+!>
+!! This routine prints an integer value.
+!!
 subroutine elsi_int_value_print(val, valname)
 
    implicit none
@@ -136,6 +145,9 @@ subroutine elsi_int_value_print(val, valname)
 
 end subroutine
 
+!>
+!! This routine prints a real value.
+!!
 subroutine elsi_real_value_print(val, valname)
 
    implicit none
@@ -156,6 +168,9 @@ subroutine elsi_real_value_print(val, valname)
 
 end subroutine
 
+!>
+!! This routine prints a real vector.
+!!
 subroutine elsi_real_vector_print(vector, n_dim, vectorname)
 
    implicit none
@@ -180,6 +195,9 @@ subroutine elsi_real_vector_print(vector, n_dim, vectorname)
 
 end subroutine
 
+!>
+!! This routine prints a statement.
+!!
 subroutine elsi_statement_print(message)
 
    implicit none
@@ -191,6 +209,9 @@ subroutine elsi_statement_print(message)
 
 end subroutine
 
+!>
+!! This routine allocates a real vector.
+!!
 subroutine elsi_allocate_real_vector(vector, n_elements, vectorname, caller)
 
    implicit none
@@ -221,6 +242,9 @@ subroutine elsi_allocate_real_vector(vector, n_elements, vectorname, caller)
 
 end subroutine
 
+!>
+!! This routine allocates an integer vector.
+!!
 subroutine elsi_allocate_int_vector(vector, n_elements, vectorname, caller)
 
    implicit none
@@ -251,6 +275,9 @@ subroutine elsi_allocate_int_vector(vector, n_elements, vectorname, caller)
 
 end subroutine
 
+!>
+!! This routine allocates a complex vector.
+!!
 subroutine elsi_allocate_complex_vector(vector, n_elements, vectorname, caller)
 
    implicit none
@@ -281,6 +308,9 @@ subroutine elsi_allocate_complex_vector(vector, n_elements, vectorname, caller)
 
 end subroutine
 
+!>
+!! This routine allocates a real matrix.
+!!
 subroutine elsi_allocate_real_matrix(matrix, n_rows, n_cols, matrixname, caller)
 
    implicit none
@@ -312,6 +342,9 @@ subroutine elsi_allocate_real_matrix(matrix, n_rows, n_cols, matrixname, caller)
 
 end subroutine
 
+!>
+!! This routine allocates an integer matrix.
+!!
 subroutine elsi_allocate_int_matrix(matrix, n_rows, n_cols, matrixname, caller)
 
    implicit none
@@ -343,6 +376,9 @@ subroutine elsi_allocate_int_matrix(matrix, n_rows, n_cols, matrixname, caller)
 
 end subroutine
 
+!>
+!! This routine allocates a complex matrix.
+!!
 subroutine elsi_allocate_complex_matrix(matrix, n_rows, n_cols, matrixname, caller)
 
    implicit none

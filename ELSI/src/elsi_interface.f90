@@ -23,7 +23,7 @@
 !OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 !OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-!> ELSI Interchange
+!>
 !! This module provides routines for setting up and solving or circumventing
 !! an eigenvalue problem using ELPA, libOMM, PEXSI, or CheSS.
 !!
@@ -142,8 +142,8 @@ contains
 !===============
 
 !>
-!!  This routine initializes ELSI with global matrix size, 
-!!  number of states, and method.
+!! This routine initializes ELSI with global matrix size, 
+!! number of states, and method.
 !!
   subroutine elsi_init(solver, matrix_format, matrix_size, &
                        n_electrons_in, n_states_in)
@@ -170,7 +170,7 @@ contains
   end subroutine ! elsi_init
 
 !>
-!!  This routine sets the method.
+!! This routine sets the method.
 !!
   subroutine elsi_set_method(i_method)
 
@@ -183,7 +183,7 @@ contains
   end subroutine ! elsi_set_method
 
 !>
-!!  This routine sets the mode (real or complex).
+!! This routine sets the mode (real or complex).
 !!
   subroutine elsi_set_mode(i_mode)
 
@@ -196,7 +196,7 @@ contains
   end subroutine ! elsi_set_mode
 
 !>
-!!  This routine sets the matrix storage format.
+!! This routine sets the matrix storage format.
 !!
   subroutine elsi_set_storage(i_storage)
 
@@ -271,7 +271,7 @@ contains
   end subroutine
 
 !>
-!!  This routine prepares the matrices.
+!! This routine prepares the matrices.
 !!
   subroutine elsi_allocate_matrices()
 
@@ -335,7 +335,7 @@ contains
   end subroutine ! elsi_allocate_matrices
 
 !>
-!!  This routine sets the real hamiltonian matrix.
+!! This routine sets the real hamiltonian matrix.
 !!
   subroutine elsi_set_real_hamiltonian(H_in)
 
@@ -363,7 +363,7 @@ contains
   end subroutine ! elsi_set_real_hamiltonian
 
 !>
-!!  This routine sets the complex hamiltonian matrix.
+!! This routine sets the complex hamiltonian matrix.
 !!
   subroutine elsi_set_complex_hamiltonian(H_in)
 
@@ -391,7 +391,7 @@ contains
   end subroutine ! elsi_set_complex_hamiltonian
 
 !>
-!!  This routine sets the real overlap matrix.
+!! This routine sets the real overlap matrix.
 !!
   subroutine elsi_set_real_overlap(S_in)
 
@@ -421,7 +421,7 @@ contains
   end subroutine ! elsi_set_real_overlap
 
 !>
-!!  This routine sets the complex overlap matrix.
+!! This routine sets the complex overlap matrix.
 !!
   subroutine elsi_set_complex_overlap(S_in)
 
@@ -451,13 +451,13 @@ contains
   end subroutine ! elsi_set_complex_overlap
 
 !>
-!!  This routine gets the energy.
+!! This routine gets the energy.
 !!
   subroutine elsi_get_energy(energy_out)
 
      implicit none
 
-     real*8, intent(out) :: energy_out
+     real*8, intent(out) :: energy_out !< Energy of the system
 
      ! Only spin-nonpolarized case is supported now.
      real*8, parameter :: n_spin = 2d0
@@ -491,7 +491,7 @@ contains
   end subroutine ! elsi_get_energy
 
 !>
-!!  This routine gets the density matrix.
+!! This routine gets the density matrix.
 !!
   subroutine elsi_get_dm(D_out)
 
@@ -522,7 +522,7 @@ contains
   end subroutine ! elsi_get_dm
 
 !>
-!!  This routine deallocates the matrices.
+!! This routine deallocates the matrices.
 !!
   subroutine elsi_deallocate_matrices()
 
@@ -559,7 +559,7 @@ contains
   end subroutine ! elsi_deallocate_matrices
 
 !>
-!!  This routine finalizes ELSI.
+!! This routine finalizes ELSI.
 !!
   subroutine elsi_finalize()
 
@@ -581,7 +581,7 @@ contains
 !========================
 
 !>
-!!  This routine gets the eigenvalues.
+!! This routine gets the eigenvalues.
 !!
   subroutine elsi_get_eigenvalues(e_val_out)
 
@@ -609,7 +609,7 @@ contains
   end subroutine ! elsi_get_eigenvalues
 
 !>
-!!  This routine gets the eigenvectors.
+!! This routine gets the eigenvectors.
 !!
   subroutine elsi_get_real_eigenvectors(e_vec_out)
 
@@ -637,7 +637,7 @@ contains
   end subroutine ! elsi_get_real_eigenvectors
 
 !>
-!!  This routine gets the eigenvectors.
+!! This routine gets the eigenvectors.
 !!
   subroutine elsi_get_complex_eigenvectors(e_vec_out)
 
@@ -665,24 +665,24 @@ contains
   end subroutine ! elsi_get_complex_eigenvectors
 
 !>
-!!  This routine computes the chemical potential and occupation numbers
-!!  from eigenvalues and eigenvectors.
+!! This routine computes the chemical potential and occupation numbers
+!! from eigenvalues and eigenvectors.
 !!
   subroutine elsi_compute_occ_elpa()
 
      implicit none
 
-     real*8 :: mu
-     real*8 :: e_low
-     real*8 :: e_high
-     real*8 :: mu_lower
-     real*8 :: mu_upper
-     real*8 :: diff_ne_lower
-     real*8 :: diff_ne_upper
+     real*8 :: mu !< Chemical potential
+     real*8 :: e_low !< Lowest eigenvalue
+     real*8 :: e_high !< Highest eigenvalue
+     real*8 :: mu_lower !< Lower bound of chemical potential
+     real*8 :: mu_upper !< Upper bound of chemical potential
+     real*8 :: diff_ne_lower !< Difference in number of electrons on lower bound
+     real*8 :: diff_ne_upper !< Difference in number of electrons on upper bound
 
-     integer :: i_state
-     integer :: n_steps
-     integer, parameter :: max_steps = 200
+     integer :: i_state !< State index
+     integer :: n_steps !< Number of steps to find chemical potential interval
+     integer, parameter :: max_steps = 200 !< Maximum number of steps
 
      character*40, parameter :: caller = "elsi_compute_occ_elpa"
 
@@ -738,9 +738,9 @@ contains
   end subroutine ! elsi_compute_occ_elpa
 
 !>
-!!  This routine computes the number of electrons using a given chemical potential,
-!!  and returns the difference in number of electrons. The occupation numbers will
-!!  be updated as well.
+!! This routine computes the number of electrons using a given chemical potential,
+!! and returns the difference in number of electrons. The occupation numbers will
+!! be updated as well.
 !!
   subroutine elsi_get_ne(mu_in, diff_ne_out)
 
@@ -749,9 +749,9 @@ contains
      real*8,  intent(in)  :: mu_in       !< Input chemical potential
      real*8,  intent(out) :: diff_ne_out !< Difference in number of electrons
 
-     real*8 :: invert_width
-     real*8, parameter :: spin = 2d0 !< Non spin-polarized case supported only
-     integer :: i_state
+     real*8 :: invert_width !< 1/broadening_width
+     real*8, parameter :: n_spin = 2d0 !< Non spin-polarized case supported only
+     integer :: i_state !< State index
 
      character*40, parameter :: caller = "elsi_get_ne"
 
@@ -762,7 +762,7 @@ contains
            invert_width = 1d0/broadening_width
 
            do i_state = 1,n_states
-              occ_elpa(i_state) = spin*0.5d0*(1-erf((eigenvalues(i_state)-mu_in)*invert_width))
+              occ_elpa(i_state) = n_spin*0.5d0*(1-erf((eigenvalues(i_state)-mu_in)*invert_width))
               diff_ne_out = diff_ne_out+occ_elpa(i_state)
            enddo
         case(FERMI)
@@ -774,7 +774,7 @@ contains
   end subroutine ! elsi_get_ne
 
 !>
-!!  This routine computes the chemical potential using bifurcation algorithm.
+!! This routine computes the chemical potential using bifurcation algorithm.
 !!
   subroutine elsi_get_mu(mu_lower_in, mu_upper_in, mu_out)
 
@@ -784,16 +784,16 @@ contains
      real*8, intent(in)  :: mu_upper_in !< Upper bound of chemical potential
      real*8, intent(out) :: mu_out      !< Solution of chemical potential
 
-     real*8  :: mu_left
-     real*8  :: mu_right
-     real*8  :: mu_mid
-     real*8  :: diff_left
-     real*8  :: diff_right
-     real*8  :: diff_mid
-     logical :: found_mu
-     integer :: n_steps
-     integer, parameter :: max_steps = 200
-     real*8, parameter  :: tolerance = 1d-10
+     real*8  :: mu_left !< Left bound of chemical potential interval
+     real*8  :: mu_right !< Right bound of chemical potential interval
+     real*8  :: mu_mid !< Middle point of chemical potential interval
+     real*8  :: diff_left !< Difference in number of electrons on left bound
+     real*8  :: diff_right !< Difference in number of electrons on right bound
+     real*8  :: diff_mid !< Difference in number of electrons on middle point
+     logical :: found_mu !< Is chemical potential found?
+     integer :: n_steps !< Number of steps to find chemical potential
+     integer, parameter :: max_steps = 200 !< Maximum number of steps to find chemical potential
+     real*8, parameter  :: tolerance = 1d-10 !< Tolerance of the inaccuracy of number of electrons
 
      character*40, parameter :: caller = "elsi_get_mu"
 
@@ -842,7 +842,7 @@ contains
   end subroutine ! elsi_get_mu
 
 !>
-!!  This routine constructs the density matrix using eigenvectors from ELPA.
+!! This routine constructs the density matrix using eigenvectors from ELPA.
 !!
   subroutine elsi_compute_dm_elpa(D_out)
 
@@ -860,7 +860,7 @@ contains
 
      integer, allocatable :: local_col(:)
      integer :: i_col, i
-     integer :: l_row, l_col ! Local index
+     integer :: l_row, l_col !< Local index
      integer :: g_row, g_col !< Global index
 
      character*40, parameter :: caller = "elsi_compute_dm"
@@ -1014,7 +1014,7 @@ contains
 !!
   subroutine elsi_to_standard_evp(cholesky)
 
-     logical, intent(in) :: cholesky                 !< If .True. factorize Overlap
+     logical, intent(in) :: cholesky !< If .True. factorize Overlap
 
      logical :: success                              !< Success flag
      real*8,     allocatable :: buffer_real (:,:)    !< Real valued matrix buffer
@@ -1188,7 +1188,7 @@ contains
   end subroutine ! elsi_to_original_ev
 
 !>
-!!  This routine interfaces to ELPA.
+!! This routine interfaces to ELPA.
 !!
   subroutine elsi_solve_evp_elpa(cholesky)
 
@@ -1275,13 +1275,13 @@ contains
   end subroutine ! elsi_solve_evp_elpa
 
 !>
-!!  This routine overrides ELPA default settings.
+!! This routine overrides ELPA default settings.
 !!
   subroutine elsi_customize_elpa(elpa_solver)
 
      implicit none
 
-     integer, intent(in) :: elpa_solver
+     integer, intent(in) :: elpa_solver !< Always use 1-stage or 2-stage solver
 
      character*40, parameter :: caller = "elsi_customize_elpa"
 
@@ -1307,7 +1307,7 @@ contains
 !=======================
 
 !>
-!!  This routine interfaces to libOMM.
+!! This routine interfaces to libOMM.
 !!
   subroutine elsi_solve_evp_omm(cholesky)
 
@@ -1368,7 +1368,7 @@ contains
   end subroutine ! elsi_solve_evp_omm
 
 !>
-!!  This routine overrides libOMM default settings.
+!! This routine overrides libOMM default settings.
 !!
   subroutine elsi_customize_omm(scale_kinetic_in, calc_ed_in, eta_in,&
                                 min_tol_in, nk_times_nspin_in, i_k_spin_in,&
@@ -1486,17 +1486,17 @@ subroutine elsi_init_pexsi()
 end subroutine
 
 !>
-!!  This routine converts Halmitonian and overlap matrix stored in
-!!  2D block-cyclic distributed dense format to 1D block distributed
-!!  sparse CCS format, which can be used as input by PEXSI.
+!! This routine converts Halmitonian and overlap matrix stored in
+!! 2D block-cyclic distributed dense format to 1D block distributed
+!! sparse CCS format, which can be used as input by PEXSI.
 !!
   subroutine elsi_2dbcd_to_1dbccs_hs_pexsi(H_in, S_in)
 
      implicit none
      include 'mpif.h'
 
-     real*8, intent(in) :: H_in(n_l_rows,n_l_cols)
-     real*8, intent(in) :: S_in(n_l_rows,n_l_cols)
+     real*8, intent(in) :: H_in(n_l_rows,n_l_cols) !< Hamiltonian matrix to be converted
+     real*8, intent(in) :: S_in(n_l_rows,n_l_cols) !< Overlap matrix to be converted
 
      integer :: nnz_aux !< Local number of nonzeros before redistribution
      integer :: i_row !< Row counter
@@ -1679,15 +1679,16 @@ end subroutine
   end subroutine ! elsi_2dbcd_to_1dbccs_hs_pexsi
 
 !>
-!!  This routine converts density matrix computed by PEXSI and stored
-!!  in 1D block distributed sparse CCS format to 2D block-cyclic
-!!  distributed dense format.
+!! This routine converts density matrix computed by PEXSI and stored
+!! in 1D block distributed sparse CCS format to 2D block-cyclic
+!! distributed dense format.
+!!
   subroutine elsi_1dbccs_to_2dbcd_dm_pexsi(D_out)
 
      implicit none
      include "mpif.h"
 
-     real*8, intent(out) :: D_out(n_l_rows,n_l_cols) !< Density matrix
+     real*8, intent(out) :: D_out(n_l_rows,n_l_cols) !< Density matrix to be converted
 
      integer :: nnz_aux       !< Local number of nonzeros after redistribution
      integer :: i_row         !< Row counter
@@ -1830,7 +1831,7 @@ end subroutine
   end subroutine ! elsi_1dbccs_to_2dbcd_dm_pexsi
 
 !>
-!!  This routine interfaces to PEXSI.
+!! This routine interfaces to PEXSI.
 !!
   subroutine elsi_solve_evp_pexsi()
 
@@ -1896,7 +1897,7 @@ end subroutine
   end subroutine ! elsi_solve_evp_pexsi
 
 !>
-!!  This routine overrides PEXSI default settings.
+!! This routine overrides PEXSI default settings.
 !!
   subroutine elsi_customize_pexsi(temperature_in, gap_in, delta_E_in, n_poles_in, &
                                   is_inertia_count_in, max_iteration_in, mu_min0_in, &
@@ -2066,7 +2067,7 @@ end subroutine
 !======================
 
 !>
-!!  This routine computes eigenvalues and eigenvectors.
+!! This routine computes eigenvalues and eigenvectors.
 !!
   subroutine elsi_ev_real(H_in, S_in, e_val_out, e_vec_out, need_cholesky)
 
@@ -2118,7 +2119,7 @@ end subroutine
   end subroutine ! elsi_ev_real
 
 !>
-!!  This routine computes eigenvalues and eigenvectors.
+!! This routine computes eigenvalues and eigenvectors.
 !!
   subroutine elsi_ev_complex(H_in, S_in, e_val_out, e_vec_out, need_cholesky)
 
@@ -2170,7 +2171,7 @@ end subroutine
   end subroutine ! elsi_ev_complex
 
 !>
-!!  This routine computes density matrix.
+!! This routine computes density matrix.
 !!
   subroutine elsi_dm_real(H_in, S_in, D_out, energy_out, &
                           need_cholesky, broadening_in, width_in)
@@ -2263,7 +2264,7 @@ end subroutine
   end subroutine ! elsi_dm_real
 
 !>
-!!  This routine computes density matrix.
+!! This routine computes density matrix.
 !!
   subroutine elsi_dm_complex(H_in, S_in, D_out, energy_out, &
                              need_cholesky, broadening_in, width_in)

@@ -59,7 +59,7 @@ module ELSI_TIMERS
 contains
 
 !>
-!!  This routine sets all timers to zero.
+!! This routine sets all timers to zero.
 !!
 subroutine elsi_init_timers()
 
@@ -81,7 +81,7 @@ subroutine elsi_init_timers()
 end subroutine
 
 !>
-!!  This routine prints the timing results.
+!! This routine prints the timing results.
 !!
 subroutine elsi_print_timers()
 
@@ -117,7 +117,7 @@ subroutine elsi_print_timers()
 end subroutine
 
 !>
-!!  This routine gets the current wallclock time.
+!! This routine gets the current wallclock time.
 !!
 subroutine elsi_get_time(wtime)
 
@@ -132,6 +132,9 @@ subroutine elsi_get_time(wtime)
 
 end subroutine
 
+!>
+!! This routine starts solve_evp timer.
+!!
 subroutine elsi_start_solve_evp_time()
 
    implicit none
@@ -140,6 +143,9 @@ subroutine elsi_start_solve_evp_time()
 
 end subroutine
 
+!>
+!! This routine ends solve_evp timer.
+!!
 subroutine elsi_stop_solve_evp_time()
 
    implicit none
@@ -154,6 +160,9 @@ subroutine elsi_stop_solve_evp_time()
 
 end subroutine
 
+!>
+!! This routine starts 2dbc_to_1dccs timer.
+!!
 subroutine elsi_start_2dbc_to_1dccs_time()
 
    implicit none
@@ -162,6 +171,9 @@ subroutine elsi_start_2dbc_to_1dccs_time()
 
 end subroutine
 
+!>
+!! This routine ends 2dbc_to_1dccs timer.
+!!
 subroutine elsi_stop_2dbc_to_1dccs_time()
 
    implicit none
@@ -176,6 +188,9 @@ subroutine elsi_stop_2dbc_to_1dccs_time()
 
 end subroutine
 
+!>
+!! This routine starts 1dccs_to_2dbc timer.
+!!
 subroutine elsi_start_1dccs_to_2dbc_time()
 
    implicit none
@@ -184,6 +199,9 @@ subroutine elsi_start_1dccs_to_2dbc_time()
 
 end subroutine
 
+!>
+!! This routine ends 1dccs_to_2dbc timer.
+!!
 subroutine elsi_stop_1dccs_to_2dbc_time()
 
    implicit none

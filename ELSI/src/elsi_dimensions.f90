@@ -85,31 +85,31 @@ module ELSI_DIMENSIONS
   integer :: n_l_cols_pexsi
 
   !> Sparse matrix information
-  integer :: n_g_nonzero
-  integer :: n_l_nonzero
+  integer :: n_g_nonzero !< Global number of nonzeros
+  integer :: n_l_nonzero !< Local number of nonzeros
   real*8, parameter :: threshold = 1.0d-15 !< Threshold to define numerical zero
 
   !> Overlap
-  logical :: overlap_is_unity = .false.
+  logical :: overlap_is_unity = .false. !< Is overlap matrix unity?
 
   !> Physics
-  real*8  :: n_electrons
-  integer :: n_states
-  integer :: n_occupied_states
-  real*8, parameter :: hartree = 27.211386 !< Source: Codata 2015
+  real*8  :: n_electrons !< Number of electrons in system
+  integer :: n_states !< Number of total states
+  integer :: n_occupied_states !< Number of occupied states
+  real*8, parameter :: hartree = 27.211386 !< Hartree to eV (source: Codata 2015)
 
   !> ELPA
-  logical :: elpa_one_always = .false.
-  logical :: elpa_two_always = .false.
-  integer :: broadening_type = -1
-  real*8  :: broadening_width
+  logical :: elpa_one_always = .false. !< Always use 1-stage solver
+  logical :: elpa_two_always = .false. !< Always use 2-stage solver
+  integer :: broadening_type = -1 !< Broadening scheme used to find occupation numbers
+  real*8  :: broadening_width !< Broadening width used to find occupation numbers
 
   !> OMM
-  logical :: omm_customized = .false.
-  logical :: new_overlap
-  logical :: C_matrix_initialized
-  real*8  :: total_energy
-  !< How to perform the calculation
+  logical :: omm_customized = .false. !< Has elsi_customize_omm been called?
+  logical :: new_overlap !< Is a new overlap matrix provided?
+  logical :: C_matrix_initialized !< Is coefficient matrix initialized?
+  real*8  :: total_energy !< Energy of the system
+  !> How to perform the calculation
   !! 0 = Basic
   !! 1 = Cholesky factorisation of S requested
   !! 2 = Cholesky already performed, U is provided in S
@@ -175,6 +175,9 @@ subroutine elsi_set_pexsi_default_options()
 
 end subroutine
 
+!>
+!! Print PEXSI settings.
+!!
 subroutine elsi_print_pexsi_options()
 
    implicit none
@@ -274,6 +277,9 @@ subroutine elsi_set_omm_default_options()
 
 end subroutine
 
+!>
+!! Print OMM settings.
+!!
 subroutine elsi_print_omm_options()
 
    implicit none
