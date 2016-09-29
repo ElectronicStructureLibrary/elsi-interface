@@ -285,24 +285,18 @@ contains
 
      select case (method)
         case (ELPA)
-           if(.not.allocated(eigenvalues)) then
+           if(.not.allocated(eigenvalues)) &
               call elsi_allocate(eigenvalues, n_g_size, "eigenvalues", caller)
-           else
-              eigenvalues = 0d0
-           endif
+           eigenvalues = 0d0
            select case (mode)
               case (COMPLEX_VALUES)
-                 if(.not.allocated(C_complex)) then
+                 if(.not.allocated(C_complex)) &
                     call elsi_allocate(C_complex, n_l_rows, n_l_cols, "C_complex", caller)
-                 else
-                    C_complex = CMPLX(0d0, 0d0)
-                 endif
+                 C_complex = CMPLX(0d0, 0d0)
               case (REAL_VALUES)
-                 if(.not.allocated(C_real)) then
+                 if(.not.allocated(C_real)) &
                     call elsi_allocate(C_real, n_l_rows, n_l_cols, "C_real", caller)
-                 else
-                    C_real = 0d0
-                 endif
+                 C_real = 0d0
               case DEFAULT
                  call elsi_stop(" No mode has been chosen. "//&
                                 " Please choose REAL_VALUES or COMPLEX_VALUES. ",&
@@ -708,10 +702,8 @@ contains
         mu_upper = e_high
      endif
 
-     if(.not.allocated(occ_elpa)) then
+     if(.not.allocated(occ_elpa)) &
          call elsi_allocate(occ_elpa, n_states, "occ_elpa", caller)
-     endif
-
      occ_elpa = 0d0
 
      ! Compute the difference of number of electrons
@@ -883,9 +875,9 @@ contains
 
      select case (method)
         case (ELPA)
-           if(.not.allocated(D_elpa)) then
+           if(.not.allocated(D_elpa)) &
               call elsi_allocate(D_elpa, n_l_rows, n_l_cols, "D_elpa", caller)
-           endif
+           D_elpa = 0d0
 
            ! Map global columns to local
            call elsi_allocate(local_col, n_g_size, "local_col", caller)
@@ -1657,14 +1649,21 @@ end subroutine
      deallocate(h_val_recv_buffer)
 
      ! Allocate PEXSI matrices
-     if(.not. allocated(H_real_pexsi)) &
+     if(.not.allocated(H_real_pexsi)) &
         call elsi_allocate(H_real_pexsi, n_l_nonzero, "H_real_pexsi", caller)
-     if(.not. allocated(S_real_pexsi)) &
+     H_real_pexsi = 0d0
+
+     if(.not.allocated(S_real_pexsi)) &
         call elsi_allocate(S_real_pexsi, n_l_nonzero, "S_real_pexsi", caller)
-     if(.not. allocated(row_ind_pexsi)) &
+     S_real_pexsi = 0d0
+
+     if(.not.allocated(row_ind_pexsi)) &
         call elsi_allocate(row_ind_pexsi, n_l_nonzero, "row_ind_pexsi", caller)
-     if(.not. allocated(col_ptr_pexsi)) &
+     row_ind_pexsi = 0
+
+     if(.not.allocated(col_ptr_pexsi)) &
         call elsi_allocate(col_ptr_pexsi, (n_l_cols_pexsi+1), "col_ptr_pexsi", caller)
+     col_ptr_pexsi = 0
 
      ! Transform Hamiltonian: 1D block dense ==> 1D block sparse CCS
      call elsi_dense_to_ccs(matrix_aux, n_l_rows_pexsi, n_l_cols_pexsi,&
@@ -1691,8 +1690,8 @@ end subroutine
      deallocate(pos_recv_buffer)
 
      ! Transform overlap: 1D block dense ==> 1D block sparse CCS
-     call elsi_dense_to_ccs_by_pattern(matrix_aux, n_l_rows_pexsi, n_l_cols_pexsi,&
-                                     n_l_nonzero, row_ind_pexsi, col_ptr_pexsi, S_real_pexsi)
+     call elsi_dense_to_ccs_by_pattern(matrix_aux, n_l_rows_pexsi, n_l_cols_pexsi, &
+                                       n_l_nonzero, row_ind_pexsi, col_ptr_pexsi, S_real_pexsi)
 
      call elsi_stop_2dbc_to_1dccs_time()
 
@@ -1867,15 +1866,17 @@ end subroutine
         call elsi_print_pexsi_options()
      endif
 
-     if(.not.allocated(D_pexsi)) then
+     if(.not.allocated(D_pexsi)) &
         call elsi_allocate(D_pexsi, n_l_nonzero, "D_pexsi", caller)
-     endif
-     if(.not.allocated(ED_pexsi)) then 
+     D_pexsi = 0d0
+
+     if(.not.allocated(ED_pexsi)) & 
         call elsi_allocate(ED_pexsi, n_l_nonzero, "ED_pexsi", caller)
-     endif
-     if(.not.allocated(FD_pexsi)) then 
+     ED_pexsi = 0d0
+
+     if(.not.allocated(FD_pexsi)) &
         call elsi_allocate(FD_pexsi, n_l_nonzero, "FD_pexsi", caller)
-     endif
+     FD_pexsi = 0d0
 
      ! Load sparse matrices for PEXSI
      if(overlap_is_unity) then

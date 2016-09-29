@@ -237,11 +237,6 @@ subroutine elsi_print_pexsi_options()
       write(string_message, "(1X,'  | Tolerance Electrons (H) ',E10.1)") &
             pexsi_options%numElectronPEXSITolerance
       write(*,'(A)') trim(string_message)
-
-      write(string_message, "(1X,'  | Sparcity ',F7.3)") &
-            (1d0 * n_g_nonzero / n_g_size) / n_g_size
-      write(*,'(A)') trim(string_message)
-
    endif
 
 end subroutine
