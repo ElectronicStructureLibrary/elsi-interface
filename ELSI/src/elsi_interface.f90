@@ -736,7 +736,7 @@ contains
      enddo
 
      ! At this point we should have the correct interval for chemical potential.
-     ! Use simple bifurcation algorithm to find the solution.
+     ! Use simple bisection algorithm to find the solution.
      call elsi_get_mu(mu_lower, mu_upper, mu)
 
   end subroutine ! elsi_compute_occ_elpa
@@ -790,7 +790,7 @@ contains
   end subroutine ! elsi_get_ne
 
 !>
-!! This routine computes the chemical potential using bifurcation algorithm.
+!! This routine computes the chemical potential using bisection algorithm.
 !!
   subroutine elsi_get_mu(mu_lower_in, mu_upper_in, mu_out)
 
@@ -1657,10 +1657,14 @@ end subroutine
      deallocate(h_val_recv_buffer)
 
      ! Allocate PEXSI matrices
-     call elsi_allocate(H_real_pexsi, n_l_nonzero, "H_real_pexsi", caller)
-     call elsi_allocate(S_real_pexsi, n_l_nonzero, "S_real_pexsi", caller)
-     call elsi_allocate(row_ind_pexsi, n_l_nonzero, "row_ind_pexsi", caller)
-     call elsi_allocate(col_ptr_pexsi, (n_l_cols_pexsi+1), "col_ptr_pexsi", caller)
+     if(.not. allocated(H_real_pexsi)) &
+        call elsi_allocate(H_real_pexsi, n_l_nonzero, "H_real_pexsi", caller)
+     if(.not. allocated(S_real_pexsi)) &
+        call elsi_allocate(S_real_pexsi, n_l_nonzero, "S_real_pexsi", caller)
+     if(.not. allocated(row_ind_pexsi)) &
+        call elsi_allocate(row_ind_pexsi, n_l_nonzero, "row_ind_pexsi", caller)
+     if(.not. allocated(col_ptr_pexsi)) &
+        call elsi_allocate(col_ptr_pexsi, (n_l_cols_pexsi+1), "col_ptr_pexsi", caller)
 
      ! Transform Hamiltonian: 1D block dense ==> 1D block sparse CCS
      call elsi_dense_to_ccs(matrix_aux, n_l_rows_pexsi, n_l_cols_pexsi,&
