@@ -85,8 +85,9 @@ module ELSI_DIMENSIONS
   integer :: n_l_cols_pexsi
 
   !> Sparse matrix information
-  integer :: n_g_nonzero !< Global number of nonzeros
-  integer :: n_l_nonzero !< Local number of nonzeros
+  integer :: nnz_g !< Global number of nonzeros
+  integer :: nnz_l !< Local number of nonzeros
+  integer :: nnz_l_pexsi !< Local number of nonzeros in PEXSI distribution
   real*8, parameter :: threshold = 1.0d-15 !< Threshold to define numerical zero
 
   !> Overlap

@@ -38,8 +38,8 @@ module ELSI_MATRIX_CONVERSION
 
    public :: elsi_get_global_col
    public :: elsi_get_global_row
-   public :: elsi_get_global_n_nonzero
-   public :: elsi_get_local_n_nonzero
+   public :: elsi_get_global_nnz
+   public :: elsi_get_local_nnz
    public :: elsi_dense_to_ccs
    public :: elsi_dense_to_ccs_by_pattern
    public :: elsi_ccs_to_dense
@@ -90,7 +90,7 @@ end subroutine
 !>
 !! This routine computes the (local) number of non_zero elements.
 !!
-subroutine elsi_get_local_n_nonzero(matrix, n_rows, n_cols, n_nonzero)
+subroutine elsi_get_local_nnz(matrix, n_rows, n_cols, nnz)
 
    implicit none
    include 'mpif.h'
@@ -98,18 +98,18 @@ subroutine elsi_get_local_n_nonzero(matrix, n_rows, n_cols, n_nonzero)
    real*8,  intent(in)  :: matrix(n_rows,n_cols) !< Local matrix
    integer, intent(in)  :: n_rows                !< Local rows
    integer, intent(in)  :: n_cols                !< Local cols
-   integer, intent(out) :: n_nonzero             !< Number of non-zero elements
+   integer, intent(out) :: nnz                   !< Number of non-zero elements
 
    integer :: i_row !< Row counter
    integer :: i_col !< Column counter
-   integer :: i_nonzero !< Non-zero element counter
+   integer :: i_nz !< Non-zero element counter
 
-   n_nonzero = 0
+   nnz = 0
 
    do i_col = 1, n_cols
       do i_row = 1, n_rows
          if(abs(matrix(i_row,i_col)) > threshold) then
-            n_nonzero = n_nonzero+1
+            nnz = nnz+1
          endif
       enddo
    enddo
@@ -119,7 +119,7 @@ end subroutine
 !>
 !! This routine computes the (global) number of non_zero elements.
 !!
-subroutine elsi_get_global_n_nonzero(matrix, n_rows, n_cols)
+subroutine elsi_get_global_nnz(matrix, n_rows, n_cols)
 
    implicit none
    include 'mpif.h'
@@ -129,10 +129,10 @@ subroutine elsi_get_global_n_nonzero(matrix, n_rows, n_cols)
    integer, intent(in) :: n_cols                !< Number of columns
 
    ! Set the number of non-zero elements in the local matrix
-   call elsi_get_local_n_nonzero(matrix, n_rows, n_cols, n_l_nonzero)
+   call elsi_get_local_nnz(matrix, n_rows, n_cols, nnz_l)
 
    ! Set the number of non_zero elements in the global matrix
-   call MPI_ALLREDUCE(n_l_nonzero, n_g_nonzero, 1, mpi_integer, mpi_sum, &
+   call MPI_ALLREDUCE(nnz_l, nnz_g, 1, mpi_integer, mpi_sum, &
                       mpi_comm_global, mpierr)
 
 end subroutine
@@ -298,7 +298,7 @@ subroutine elsi_2dbc_to_1db(matrix_in, matrix_out)
    recv_count = 0
    recv_displ = 0
 
-   call elsi_get_local_n_nonzero(matrix_in,n_l_rows,n_l_cols,nnz_local1)
+   call elsi_get_local_nnz(matrix_in,n_l_rows,n_l_cols,nnz_local1)
 
    call elsi_allocate(dest,nnz_local1,"dest",caller)
    call elsi_allocate(val_send_buffer,nnz_local1,"val_send_buffer",caller)

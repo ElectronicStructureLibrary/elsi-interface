@@ -1506,7 +1506,6 @@ end subroutine
      real*8, intent(in) :: H_in(n_l_rows,n_l_cols) !< Hamiltonian matrix to be converted
      real*8, intent(in) :: S_in(n_l_rows,n_l_cols) !< Overlap matrix to be converted
 
-     integer :: nnz_aux !< Local number of nonzeros before redistribution
      integer :: i_row !< Row counter
      integer :: i_col !< Col counter
      integer :: i_val !< Value counter
@@ -1545,12 +1544,12 @@ end subroutine
      recv_count = 0
      recv_displ = 0
 
-     call elsi_get_local_n_nonzero(H_in, n_l_rows, n_l_cols, nnz_aux)
+     call elsi_get_local_nnz(H_in, n_l_rows, n_l_cols, nnz_l)
 
-     call elsi_allocate(dest, nnz_aux, "dest", caller)
-     call elsi_allocate(h_val_send_buffer, nnz_aux, "h_val_send_buffer", caller)
-     call elsi_allocate(s_val_send_buffer, nnz_aux, "s_val_send_buffer", caller)
-     call elsi_allocate(pos_send_buffer, nnz_aux, "pos_send_buffer", caller)
+     call elsi_allocate(dest, nnz_l, "dest", caller)
+     call elsi_allocate(h_val_send_buffer, nnz_l, "h_val_send_buffer", caller)
+     call elsi_allocate(s_val_send_buffer, nnz_l, "s_val_send_buffer", caller)
+     call elsi_allocate(pos_send_buffer, nnz_l, "pos_send_buffer", caller)
 
      i_val = 0
      ! Compute destination and global 1D id
@@ -1577,7 +1576,7 @@ end subroutine
 
      ! Set send_count
      do i_proc = 0, n_procs-1
-        do i_val = 1, nnz_aux
+        do i_val = 1, nnz_l
            if(dest(i_val) == i_proc) then
               send_count(i_proc+1) = send_count(i_proc+1)+1
            endif
@@ -1591,8 +1590,8 @@ end subroutine
                        1, mpi_integer, mpi_comm_global, mpierr)
 
      ! Set local/global number of nonzero
-     n_l_nonzero = sum(recv_count, 1)
-     call MPI_Allreduce(n_l_nonzero, n_g_nonzero, 1, mpi_integer, mpi_sum, &
+     nnz_l_pexsi = sum(recv_count, 1)
+     call MPI_Allreduce(nnz_l_pexsi, nnz_g, 1, mpi_integer, mpi_sum, &
                         mpi_comm_global, mpierr)
 
      ! Set send and receive displacement
@@ -1607,9 +1606,9 @@ end subroutine
         recv_displ_aux = recv_displ_aux + recv_count(i_proc+1)
      enddo
 
-     call elsi_allocate(h_val_recv_buffer, n_l_nonzero, "h_val_recv_buffer", caller)
-     call elsi_allocate(s_val_recv_buffer, n_l_nonzero, "s_val_recv_buffer", caller)
-     call elsi_allocate(pos_recv_buffer, n_l_nonzero, "pos_recv_buffer", caller)
+     call elsi_allocate(h_val_recv_buffer, nnz_l_pexsi, "h_val_recv_buffer", caller)
+     call elsi_allocate(s_val_recv_buffer, nnz_l_pexsi, "s_val_recv_buffer", caller)
+     call elsi_allocate(pos_recv_buffer, nnz_l_pexsi, "pos_recv_buffer", caller)
 
      ! Send and receive the packed data
      call MPI_Alltoallv(h_val_send_buffer, send_count, send_displ, mpi_real8, &
@@ -1632,7 +1631,7 @@ end subroutine
      matrix_aux = 0d0
 
      ! Unpack Hamiltonian
-     do i_val = 1, n_l_nonzero
+     do i_val = 1, nnz_l_pexsi
         ! Compute global 2d id
         global_col_id = FLOOR(1d0*(pos_recv_buffer(i_val)-1)/n_g_size)+1
         global_row_id = MOD(pos_recv_buffer(i_val), n_g_size)
@@ -1650,15 +1649,15 @@ end subroutine
 
      ! Allocate PEXSI matrices
      if(.not.allocated(H_real_pexsi)) &
-        call elsi_allocate(H_real_pexsi, n_l_nonzero, "H_real_pexsi", caller)
+        call elsi_allocate(H_real_pexsi, nnz_l_pexsi, "H_real_pexsi", caller)
      H_real_pexsi = 0d0
 
      if(.not.allocated(S_real_pexsi)) &
-        call elsi_allocate(S_real_pexsi, n_l_nonzero, "S_real_pexsi", caller)
+        call elsi_allocate(S_real_pexsi, nnz_l_pexsi, "S_real_pexsi", caller)
      S_real_pexsi = 0d0
 
      if(.not.allocated(row_ind_pexsi)) &
-        call elsi_allocate(row_ind_pexsi, n_l_nonzero, "row_ind_pexsi", caller)
+        call elsi_allocate(row_ind_pexsi, nnz_l_pexsi, "row_ind_pexsi", caller)
      row_ind_pexsi = 0
 
      if(.not.allocated(col_ptr_pexsi)) &
@@ -1666,13 +1665,13 @@ end subroutine
      col_ptr_pexsi = 0
 
      ! Transform Hamiltonian: 1D block dense ==> 1D block sparse CCS
-     call elsi_dense_to_ccs(matrix_aux, n_l_rows_pexsi, n_l_cols_pexsi,&
-                            n_l_nonzero, H_real_pexsi, row_ind_pexsi, col_ptr_pexsi)
+     call elsi_dense_to_ccs(matrix_aux, n_l_rows_pexsi, n_l_cols_pexsi, &
+                            nnz_l_pexsi, H_real_pexsi, row_ind_pexsi, col_ptr_pexsi)
 
      matrix_aux = 0d0
 
      ! Unpack overlap
-     do i_val = 1, n_l_nonzero
+     do i_val = 1, nnz_l_pexsi
         ! Compute global 2d id
         global_col_id = FLOOR(1d0*(pos_recv_buffer(i_val)-1)/n_g_size)+1
         global_row_id = MOD(pos_recv_buffer(i_val), n_g_size)
@@ -1691,7 +1690,7 @@ end subroutine
 
      ! Transform overlap: 1D block dense ==> 1D block sparse CCS
      call elsi_dense_to_ccs_by_pattern(matrix_aux, n_l_rows_pexsi, n_l_cols_pexsi, &
-                                       n_l_nonzero, row_ind_pexsi, col_ptr_pexsi, S_real_pexsi)
+                                       nnz_l_pexsi, row_ind_pexsi, col_ptr_pexsi, S_real_pexsi)
 
      call elsi_stop_2dbc_to_1dccs_time()
 
@@ -1709,7 +1708,6 @@ end subroutine
 
      real*8, intent(out) :: D_out(n_l_rows,n_l_cols) !< Density matrix to be converted
 
-     integer :: nnz_aux       !< Local number of nonzeros after redistribution
      integer :: i_row         !< Row counter
      integer :: i_col         !< Col counter
      integer :: i_val         !< Value counter
@@ -1749,14 +1747,14 @@ end subroutine
      recv_count = 0
      recv_displ = 0
 
-     call elsi_allocate(global_id, n_l_nonzero, "global_id", caller)
-     call elsi_allocate(dest, n_l_nonzero, "dest", caller)
-     call elsi_allocate(val_send_buffer, n_l_nonzero, "val_send_buffer", caller)
-     call elsi_allocate(pos_send_buffer, n_l_nonzero, "pos_send_buffer", caller)
+     call elsi_allocate(global_id, nnz_l_pexsi, "global_id", caller)
+     call elsi_allocate(dest, nnz_l_pexsi, "dest", caller)
+     call elsi_allocate(val_send_buffer, nnz_l_pexsi, "val_send_buffer", caller)
+     call elsi_allocate(pos_send_buffer, nnz_l_pexsi, "pos_send_buffer", caller)
 
      i_col = 0
      ! Compute destination and global 1D id
-     do i_val = 1, n_l_nonzero
+     do i_val = 1, nnz_l_pexsi
         if(i_val == col_ptr_pexsi(i_col+1) .and. i_col /= n_l_cols_pexsi) then
            i_col = i_col+1
         endif
@@ -1768,16 +1766,16 @@ end subroutine
         global_id(i_val) = (global_col_id-1)*n_g_size+global_row_id
 
         ! Compute destination
-        proc_row_id = mod((global_row_id-1)/n_b_rows, n_p_rows)
-        proc_col_id = mod((global_col_id-1)/n_b_cols, n_p_cols)
-        dest(i_val) = proc_col_id+proc_row_id*n_p_rows
+        proc_row_id = MOD(FLOOR(1d0*(global_row_id-1)/n_b_rows), n_p_rows)
+        proc_col_id = MOD(FLOOR(1d0*(global_col_id-1)/n_b_cols), n_p_cols)
+        dest(i_val) = proc_col_id+proc_row_id*n_p_cols
      enddo
 
      j_val = 0
 
      ! Set send_count
      do i_proc = 0, n_procs-1
-        do i_val = 1, n_l_nonzero
+        do i_val = 1, nnz_l_pexsi
            if(dest(i_val) == i_proc) then
               j_val = j_val+1
               val_send_buffer(j_val) = D_pexsi(i_val)
@@ -1794,7 +1792,7 @@ end subroutine
      call MPI_Alltoall(send_count, 1, mpi_integer, recv_count, &
                        1, mpi_integer, mpi_comm_global, mpierr)
 
-     nnz_aux = sum(recv_count,1)
+     nnz_l = sum(recv_count,1)
 
      ! Set send and receive displacement
      send_displ_aux = 0
@@ -1808,8 +1806,8 @@ end subroutine
         recv_displ_aux = recv_displ_aux+recv_count(i_proc+1)
      enddo
 
-     call elsi_allocate(val_recv_buffer, nnz_aux, "val_recv_buffer", caller)
-     call elsi_allocate(pos_recv_buffer, nnz_aux, "pos_recv_buffer", caller)
+     call elsi_allocate(val_recv_buffer, nnz_l, "val_recv_buffer", caller)
+     call elsi_allocate(pos_recv_buffer, nnz_l, "pos_recv_buffer", caller)
 
      ! Send and receive the packed data
      call MPI_Alltoallv(val_send_buffer, send_count, send_displ, mpi_real8, &
@@ -1825,8 +1823,8 @@ end subroutine
 
      D_out = 0d0
 
-     ! Unpack Hamiltonian
-     do i_val = 1, nnz_aux
+     ! Unpack density matrix
+     do i_val = 1, nnz_l
         ! Compute global 2d id
         global_col_id = FLOOR(1d0*(pos_recv_buffer(i_val)-1)/n_g_size)+1
         global_row_id = MOD(pos_recv_buffer(i_val), n_g_size)
@@ -1867,25 +1865,25 @@ end subroutine
      endif
 
      if(.not.allocated(D_pexsi)) &
-        call elsi_allocate(D_pexsi, n_l_nonzero, "D_pexsi", caller)
+        call elsi_allocate(D_pexsi, nnz_l_pexsi, "D_pexsi", caller)
      D_pexsi = 0d0
 
      if(.not.allocated(ED_pexsi)) & 
-        call elsi_allocate(ED_pexsi, n_l_nonzero, "ED_pexsi", caller)
+        call elsi_allocate(ED_pexsi, nnz_l_pexsi, "ED_pexsi", caller)
      ED_pexsi = 0d0
 
      if(.not.allocated(FD_pexsi)) &
-        call elsi_allocate(FD_pexsi, n_l_nonzero, "FD_pexsi", caller)
+        call elsi_allocate(FD_pexsi, nnz_l_pexsi, "FD_pexsi", caller)
      FD_pexsi = 0d0
 
      ! Load sparse matrices for PEXSI
      if(overlap_is_unity) then
         call f_ppexsi_load_real_symmetric_hs_matrix(pexsi_plan, pexsi_options,&
-                n_g_size, n_g_nonzero, n_l_nonzero, n_l_cols_pexsi, col_ptr_pexsi,&
+                n_g_size, nnz_g, nnz_l_pexsi, n_l_cols_pexsi, col_ptr_pexsi,&
                 row_ind_pexsi, H_real_pexsi, 1, S_real_pexsi, pexsi_info)
      else
         call f_ppexsi_load_real_symmetric_hs_matrix(pexsi_plan, pexsi_options,&
-                n_g_size, n_g_nonzero, n_l_nonzero, n_l_cols_pexsi, col_ptr_pexsi,&
+                n_g_size, nnz_g, nnz_l_pexsi, n_l_cols_pexsi, col_ptr_pexsi,&
                 row_ind_pexsi, H_real_pexsi, 0, S_real_pexsi, pexsi_info)
      endif
 
@@ -2256,6 +2254,11 @@ end subroutine
            call elsi_get_dm(D_out)
            call elsi_get_energy(energy_out)
         case (PEXSI)
+           if(n_g_size < n_procs) then
+              call elsi_stop(" The (global) size of matrix is too small for"//&
+                             " this number of processes. Exiting...", caller)
+           endif
+
            ! PEXSI may use different process grid to achieve
            ! the efficient 2-level parallelization
            call elsi_init_pexsi()
@@ -2351,6 +2354,11 @@ end subroutine
            call elsi_get_dm(D_out)
            call elsi_get_energy(energy_out)
         case (PEXSI)
+           if(n_g_size < n_procs) then
+              call elsi_stop(" The (global) size of matrix is too small for"//&
+                             " this number of processes. Exiting...", caller)
+           endif
+
            call elsi_stop(" PEXSI not yet implemented. Exiting...", caller)
         case (CHESS)
            call elsi_stop(" CHESS not yet implemented. Exiting...", caller)
