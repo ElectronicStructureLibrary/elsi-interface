@@ -187,55 +187,57 @@ subroutine elsi_print_pexsi_options()
    character(LEN=4096) :: string_message
 
    if(myid == 0) then
-      write(string_message, "(1X,'  | Temperature (H) ',F10.4)") &
+      write(*,"(A)") "  PEXSI settings used in ELSI (in the same unit of Hamiltonian):"
+
+      write(string_message, "(1X,' | Temperature ',F10.4)") &
             pexsi_options%temperature
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,'  | Spectral Gap (H) ',F10.4)") &
+      write(string_message, "(1X,' | Spectral Gap ',F10.4)") &
             pexsi_options%gap
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,'  | Delta E (H) ',F10.4)") &
+      write(string_message, "(1X,' | Delta E ',F10.4)") &
             pexsi_options%deltaE
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,'  | Number of Poles ',I5)") &
+      write(string_message, "(1X,' | Number of Poles ',I5)") &
             pexsi_options%numPole
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,'  | Use inertial count ',I2)") &
+      write(string_message, "(1X,' | Use Inertia Count ',I2)") &
             pexsi_options%isInertiaCount
       write(*,'(A)') trim(string_message)
       
-      write(string_message, "(1X,'  | Max Pexsi Iterations ',I5)") &
+      write(string_message, "(1X,' | Max Pexsi Iterations ',I5)") &
             pexsi_options%maxPEXSIIter
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,'  | Minimal Mu (H) ',F10.4)") &
+      write(string_message, "(1X,' | Minimal Mu ',F10.4)") &
             pexsi_options%muMin0
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,'  | Maximal Mu (H) ',F10.4)") &
+      write(string_message, "(1X,' | Maximal Mu ',F10.4)") &
             pexsi_options%muMax0
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,'  | Start Mu (H) ',F10.4)") &
+      write(string_message, "(1X,' | Start Mu ',F10.4)") &
             pexsi_options%mu0
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,'  | Tolerance Mu (H) ',E10.1)") &
+      write(string_message, "(1X,' | Tolerance Mu ',E10.1)") &
             pexsi_options%muInertiaTolerance
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,'  | Expansion Mu (H) ',F10.4)") &
+      write(string_message, "(1X,' | Expansion Mu ',F10.4)") &
             pexsi_options%muInertiaExpansion
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,'  | Safe guard Mu (H) ',F10.4)") &
+      write(string_message, "(1X,' | Safeguard Mu ',F10.4)") &
             pexsi_options%muPexsiSafeGuard
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,'  | Tolerance Electrons (H) ',E10.1)") &
+      write(string_message, "(1X,' | Tolerance Electrons ',E10.1)") &
             pexsi_options%numElectronPEXSITolerance
       write(*,'(A)') trim(string_message)
    endif
@@ -284,34 +286,34 @@ subroutine elsi_print_omm_options()
    character(LEN=4096) :: string_message
 
    if(myid == 0) then
+      write(*,"(A)") "  OMM settings used in ELSI: "
 
-      write(string_message, "(1X,'  | Eta (H) ',F10.4)") eta
+      write(string_message, "(1X,' | Eta (H) ',F10.4)") eta
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,'  | Kinetic scaling (H) ',F10.4)") scale_kinetic
+      write(string_message, "(1X,' | Kinetic scaling (H) ',F10.4)") scale_kinetic
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,'  | Tolerance (H) ',E10.1)") min_tol
+      write(string_message, "(1X,' | Tolerance (H) ',E10.1)") min_tol
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,'  | OMM Flavour ',I1)") omm_flavour
+      write(string_message, "(1X,' | OMM Flavour ',I1)") omm_flavour
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,'  | Energy weighted densigy matrix? ',L1)") calc_ed
+      write(string_message, "(1X,' | Energy weighted densigy matrix? ',L1)") calc_ed
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,'  | Verbose? ',L1)") omm_verbose
+      write(string_message, "(1X,' | Verbose? ',L1)") omm_verbose
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,'  | Dealloc?  ',L1)") do_dealloc
+      write(string_message, "(1X,' | Dealloc?  ',L1)") do_dealloc
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,'  | k points x spin ',I1)") nk_times_nspin
+      write(string_message, "(1X,' | k points x spin ',I1)") nk_times_nspin
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,'  | index ',I1)") i_k_spin
+      write(string_message, "(1X,' | index ',I1)") i_k_spin
       write(*,'(A)') trim(string_message)
-
    endif
 
 end subroutine
