@@ -1853,6 +1853,8 @@ end subroutine
      implicit none
      include "mpif.h"
 
+     real*8, save :: this_pexsi_tol = 1d-2
+
      character*40, parameter :: caller = "elsi_solve_evp_pexsi"
 
      call elsi_start_solve_evp_time()
@@ -1860,6 +1862,14 @@ end subroutine
      if(.not.pexsi_customized) then
         call elsi_set_pexsi_default_options()
         call elsi_print_pexsi_options()
+     endif
+
+     if(small_pexsi_tol) then
+        pexsi_options%numElectronPEXSITolerance = this_pexsi_tol
+        if(myid == 0) then
+           write(*,"(A,E10.1)") "  | Current tolerance of number of electrons: ", &
+                 this_pexsi_tol
+        endif
      endif
 
      if(.not.allocated(D_pexsi)) &
@@ -1885,9 +1895,8 @@ end subroutine
                 row_ind_pexsi, H_real_pexsi, 0, S_real_pexsi, pexsi_info)
      endif
 
-     if(pexsi_info /= 0) then
+     if(pexsi_info /= 0) &
         call elsi_stop(" PEXSI not able to load H/S matrix. Exiting...", caller)
-     endif
 
      ! Solve the eigenvalue problem
      call elsi_statement_print(" Launch PEXSI DFT driver ")
@@ -1896,17 +1905,23 @@ end subroutine
                               n_electrons_pexsi, mu_min_inertia, mu_max_inertia,&
                               n_total_inertia_iter, n_total_pexsi_iter, pexsi_info)
          
-     if(pexsi_info /= 0) then
+     if(pexsi_info /= 0) &
         call elsi_stop(" PEXSI DFT Driver not able to solve problem. Exiting...", caller)
+
+     if(abs(n_electrons-n_electrons_pexsi) < this_pexsi_tol) then
+        if(1d-1*this_pexsi_tol > final_pexsi_tol) then
+           this_pexsi_tol = 1d-1*this_pexsi_tol
+        else
+           this_pexsi_tol = final_pexsi_tol
+        endif
      endif
 
      ! Get the results
      call f_ppexsi_retrieve_real_symmetric_dft_matrix(pexsi_plan, D_pexsi, ED_pexsi, FD_pexsi,&
                                                       e_tot_H, e_tot_S, f_tot, pexsi_info)
 
-     if(pexsi_info /= 0) then
+     if(pexsi_info /= 0) &
         call elsi_stop(" PEXSI not able to retrieve solution. Exiting...", caller)
-     endif
 
      call MPI_BARRIER(mpi_comm_global, mpierr)
      call elsi_stop_solve_evp_time()
@@ -2021,8 +2036,13 @@ end subroutine
         ! Stopping criterion of the PEXSI iteration in terms of the
         ! number of electrons compared to the exact number
         ! default: 0.01
-        if(present(n_electron_tolerance_in)) &
+        if(present(n_electron_tolerance_in)) then
            pexsi_options%numElectronPEXSITolerance = n_electron_tolerance_in
+           if(n_electron_tolerance_in < 1d-2) then
+              small_pexsi_tol = .true.
+              final_pexsi_tol = n_electron_tolerance_in
+           endif
+        endif
 
         ! Type of input H and S matrices
         ! 0: real symmetric (default)

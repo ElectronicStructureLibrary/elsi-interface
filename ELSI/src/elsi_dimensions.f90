@@ -127,6 +127,8 @@ module ELSI_DIMENSIONS
 
   !> PEXSI
   logical                :: pexsi_customized = .false.
+  logical                :: small_pexsi_tol = .false.
+  real(c_double)         :: final_pexsi_tol = 1d-2
   integer(c_intptr_t)    :: pexsi_plan
   type(f_ppexsi_options) :: pexsi_options
   integer(c_int)         :: pexsi_info
@@ -173,6 +175,9 @@ subroutine elsi_set_pexsi_default_options()
 
    ! Use the PEXSI Default options
    call f_ppexsi_set_default_options(pexsi_options)
+
+   ! Use 1 process in ParMETIS for symbolic factorization
+   pexsi_options%npSymbFact = 1
 
 end subroutine
 
