@@ -193,51 +193,43 @@ subroutine elsi_print_pexsi_options()
             pexsi_options%temperature
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,' | Spectral Gap ',F10.4)") &
+      write(string_message, "(1X,' | Spectral gap ',F10.4)") &
             pexsi_options%gap
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,' | Delta E ',F10.4)") &
-            pexsi_options%deltaE
-      write(*,'(A)') trim(string_message)
-
-      write(string_message, "(1X,' | Number of Poles ',I5)") &
+      write(string_message, "(1X,' | Number of poles ',I5)") &
             pexsi_options%numPole
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,' | Use Inertia Count ',I2)") &
+      write(string_message, "(1X,' | Use inertia count? ',I2)") &
             pexsi_options%isInertiaCount
       write(*,'(A)') trim(string_message)
       
-      write(string_message, "(1X,' | Max Pexsi Iterations ',I5)") &
+      write(string_message, "(1X,' | Max PEXSI iterations ',I5)") &
             pexsi_options%maxPEXSIIter
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,' | Minimal Mu ',F10.4)") &
+      write(string_message, "(1X,' | Lower bound of chemical potential ',F10.4)") &
             pexsi_options%muMin0
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,' | Maximal Mu ',F10.4)") &
+      write(string_message, "(1X,' | Upper bound of chemical potential ',F10.4)") &
             pexsi_options%muMax0
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,' | Start Mu ',F10.4)") &
+      write(string_message, "(1X,' | Initial guess of chemical potential ',F10.4)") &
             pexsi_options%mu0
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,' | Tolerance Mu ',E10.1)") &
+      write(string_message, "(1X,' | Tolerance of chemical potential ',E10.1)") &
             pexsi_options%muInertiaTolerance
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,' | Expansion Mu ',F10.4)") &
-            pexsi_options%muInertiaExpansion
-      write(*,'(A)') trim(string_message)
-
-      write(string_message, "(1X,' | Safeguard Mu ',F10.4)") &
+      write(string_message, "(1X,' | Safeguard of chemical potential ',F10.4)") &
             pexsi_options%muPexsiSafeGuard
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,' | Tolerance Electrons ',E10.1)") &
+      write(string_message, "(1X,' | Tolerance of number of electrons ',E10.1)") &
             pexsi_options%numElectronPEXSITolerance
       write(*,'(A)') trim(string_message)
    endif
@@ -301,9 +293,6 @@ subroutine elsi_print_omm_options()
       write(*,'(A)') trim(string_message)
 
       write(string_message, "(1X,' | Energy weighted densigy matrix? ',L1)") calc_ed
-      write(*,'(A)') trim(string_message)
-
-      write(string_message, "(1X,' | Verbose? ',L1)") omm_verbose
       write(*,'(A)') trim(string_message)
 
       write(string_message, "(1X,' | Dealloc?  ',L1)") do_dealloc

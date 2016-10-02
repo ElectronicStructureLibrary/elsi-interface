@@ -568,8 +568,6 @@ contains
 
      call elsi_deallocate_matrices()
 
-     if(method == PEXSI) call f_ppexsi_plan_finalize(pexsi_plan, pexsi_info)
-   
      call elsi_print_timers()
 
   end subroutine ! elsi_finalize
@@ -1919,8 +1917,8 @@ end subroutine
 !! This routine overrides PEXSI default settings.
 !!
   subroutine elsi_customize_pexsi(temperature_in, gap_in, delta_E_in, n_poles_in, &
-                                  is_inertia_count_in, max_iteration_in, mu_min0_in, &
-                                  mu_max0_in, mu0_in, mu_inertia_tolerance_in, &
+                                  is_inertia_count_in, max_iteration_in, mu_min_in, &
+                                  mu_max_in, mu0_in, mu_inertia_tolerance_in, &
                                   mu_inertia_expansion_in, mu_safeguard_in, &
                                   n_electron_tolerance_in, matrix_type_in, &
                                   is_symbolic_factorize_in, ordering_in, &
@@ -1935,8 +1933,8 @@ end subroutine
      integer(c_int), intent(in), optional :: n_poles_in
      integer(c_int), intent(in), optional :: is_inertia_count_in
      integer(c_int), intent(in), optional :: max_iteration_in
-     real(c_double), intent(in), optional :: mu_min0_in
-     real(c_double), intent(in), optional :: mu_max0_in
+     real(c_double), intent(in), optional :: mu_min_in
+     real(c_double), intent(in), optional :: mu_max_in
      real(c_double), intent(in), optional :: mu0_in
      real(c_double), intent(in), optional :: mu_inertia_tolerance_in
      real(c_double), intent(in), optional :: mu_inertia_expansion_in
@@ -1989,13 +1987,13 @@ end subroutine
 
         ! Initial guess of lower bound for mu
         ! default: -10.0
-        if(present(mu_min0_in)) &
-           pexsi_options%muMin0 = mu_min0_in
+        if(present(mu_min_in)) &
+           pexsi_options%muMin0 = mu_min_in
 
         ! Initial guess of upper bound for mu
         ! default: 10.0
-        if(present(mu_max0_in)) &
-           pexsi_options%muMax0 = mu_max0_in
+        if(present(mu_max_in)) &
+           pexsi_options%muMax0 = mu_max_in
 
         ! Initial guess of mu
         ! default: 0.0
@@ -2238,6 +2236,7 @@ end subroutine
            call elsi_compute_occ_elpa()
            call elsi_compute_dm_elpa(D_out)
            call elsi_get_energy(energy_out)
+
         case (LIBOMM)
            if(mod(nint(n_electrons),2) /= 0) then
               call elsi_stop(" The current implementation of OMM does not"//&
@@ -2253,6 +2252,7 @@ end subroutine
            call elsi_solve_evp_omm(need_cholesky)
            call elsi_get_dm(D_out)
            call elsi_get_energy(energy_out)
+
         case (PEXSI)
            if(n_g_size < n_procs) then
               call elsi_stop(" The (global) size of matrix is too small for"//&
@@ -2273,6 +2273,9 @@ end subroutine
            ! block-cyclic dense format
            call elsi_get_dm(D_out)
            call elsi_get_energy(energy_out)
+
+           call f_ppexsi_plan_finalize(pexsi_plan, pexsi_info)
+
         case (CHESS)
            call elsi_stop(" CHESS not yet implemented. Exiting...", caller)
         case default
@@ -2353,6 +2356,7 @@ end subroutine
            call elsi_solve_evp_omm(need_cholesky)
            call elsi_get_dm(D_out)
            call elsi_get_energy(energy_out)
+
         case (PEXSI)
            if(n_g_size < n_procs) then
               call elsi_stop(" The (global) size of matrix is too small for"//&
@@ -2360,6 +2364,7 @@ end subroutine
            endif
 
            call elsi_stop(" PEXSI not yet implemented. Exiting...", caller)
+
         case (CHESS)
            call elsi_stop(" CHESS not yet implemented. Exiting...", caller)
         case default
