@@ -1437,22 +1437,21 @@ subroutine elsi_init_pexsi()
    character*40, parameter :: caller = "elsi_init_pexsi"
 
    if(method == PEXSI) then
-      ! Find balancing between expansion parallel and matrix inversion parallel
-      if(mod(n_procs,40) == 0 .and. n_procs >= 640) then
-         n_p_rows_pexsi = 40
-      elseif(mod(n_procs,20) == 0 .and. n_procs >= 320) then
-         n_p_rows_pexsi = 20
-      elseif(mod(n_procs,10) == 0 .and. n_procs >= 90) then
-         n_p_rows_pexsi = 10
-      elseif(mod(n_procs,5) == 0 .and. n_procs >= 20) then
-         n_p_rows_pexsi = 5
-      elseif(mod(n_procs,4) == 0 .and. n_procs >= 16) then
-         n_p_rows_pexsi = 4
-      elseif(mod(n_procs,2) == 0 .and. n_procs >= 2) then
-         n_p_rows_pexsi = 2
-      else
+!      if(mod(n_procs,40) == 0 .and. n_procs >= 640) then
+!         n_p_rows_pexsi = 40
+!      elseif(mod(n_procs,20) == 0 .and. n_procs >= 320) then
+!         n_p_rows_pexsi = 20
+!      elseif(mod(n_procs,10) == 0 .and. n_procs >= 90) then
+!         n_p_rows_pexsi = 10
+!      elseif(mod(n_procs,5) == 0 .and. n_procs >= 20) then
+!         n_p_rows_pexsi = 5
+!      elseif(mod(n_procs,4) == 0 .and. n_procs >= 16) then
+!         n_p_rows_pexsi = 4
+!      elseif(mod(n_procs,2) == 0 .and. n_procs >= 2) then
+!         n_p_rows_pexsi = 2
+!      else
          n_p_rows_pexsi = 1
-      endif
+!      endif
 
       n_p_cols_pexsi = n_procs/n_p_rows_pexsi
 
@@ -2293,6 +2292,14 @@ end subroutine
            ! block-cyclic dense format
            call elsi_get_dm(D_out)
            call elsi_get_energy(energy_out)
+
+           if(allocated(H_real_pexsi))  deallocate(H_real_pexsi)
+           if(allocated(S_real_pexsi))  deallocate(S_real_pexsi)
+           if(allocated(D_pexsi))       deallocate(D_pexsi)
+           if(allocated(ED_pexsi))      deallocate(ED_pexsi)
+           if(allocated(FD_pexsi))      deallocate(FD_pexsi)
+           if(allocated(row_ind_pexsi)) deallocate(row_ind_pexsi)
+           if(allocated(col_ptr_pexsi)) deallocate(col_ptr_pexsi)
 
            call f_ppexsi_plan_finalize(pexsi_plan, pexsi_info)
 
