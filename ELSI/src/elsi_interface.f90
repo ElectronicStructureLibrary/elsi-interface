@@ -678,7 +678,7 @@ contains
 
      integer :: i_state !< State index
      integer :: n_steps !< Number of steps to find chemical potential interval
-     integer, parameter :: max_steps = 200 !< Maximum number of steps
+     integer, parameter :: max_steps = 100 !< Maximum number of steps
 
      character*40, parameter :: caller = "elsi_compute_occ_elpa"
 
@@ -715,7 +715,7 @@ contains
      do while(diff_ne_lower*diff_ne_upper > 0)
         n_steps = n_steps+1
         if(n_steps > max_steps) &
-           call elsi_stop(" Chemical potential not found in 200 iterations! "//&
+           call elsi_stop(" Chemical potential not found in 100 iterations! "//&
                           " Exiting...", caller)
 
         mu_lower = mu_lower-0.5d0*abs(e_high-e_low)
@@ -798,8 +798,7 @@ contains
      real*8  :: diff_mid !< Difference in number of electrons on middle point
      logical :: found_mu !< Is chemical potential found?
      integer :: n_steps !< Number of steps to find chemical potential
-     integer, parameter :: max_steps = 200 !< Maximum number of steps to find chemical potential
-     real*8, parameter  :: tolerance = 1d-10 !< Tolerance of the inaccuracy of number of electrons
+     integer, parameter :: max_steps = 100 !< Maximum number of steps to find chemical potential
 
      character*40, parameter :: caller = "elsi_get_mu"
 
@@ -813,10 +812,10 @@ contains
         call elsi_get_ne(mu_left, diff_left)
         call elsi_get_ne(mu_right, diff_right)
 
-        if(abs(diff_left) < tolerance) then
+        if(abs(diff_left) < occ_tolerance) then
            mu_out = mu_left
            found_mu = .true.
-        elseif(abs(diff_right) < tolerance) then
+        elseif(abs(diff_right) < occ_tolerance) then
            mu_out = mu_right
            found_mu = .true.
         else
@@ -824,12 +823,12 @@ contains
 
            n_steps = n_steps+1
            if(n_steps > max_steps) &
-              call elsi_stop(" Chemical potential not found in 200 iterations! "//&
+              call elsi_stop(" Chemical potential not found in 100 iterations! "//&
                              " Exiting...", caller)
 
            call elsi_get_ne(mu_mid, diff_mid)
 
-           if(abs(diff_mid) < tolerance) then
+           if(abs(diff_mid) < occ_tolerance) then
               mu_out = mu_mid
               found_mu = .true.
            elseif(diff_mid < 0) then

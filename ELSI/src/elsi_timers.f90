@@ -98,18 +98,18 @@ subroutine elsi_print_timers()
          write(*,"('  | Non zero elements                   : ',I13)") &
                nnz_g
          write(*,"('  | Sparsity                            : ',F13.3)") &
-               (1d0*nnz_g/n_g_size)/n_g_size
+               1d0-(1d0*nnz_g/n_g_size)/n_g_size
       endif
       write(*,"('  | Number of electrons                 : ',F13.1)") n_electrons
       write(*,"('  | Number of states                    : ',I13)") n_states
       if(method == ELPA) then
-         write(*,"('  | Method:                             : ',A13)") "ELPA"
+         write(*,"('  | Method                              : ',A13)") "ELPA"
       endif
       if(method == LIBOMM) then
-         write(*,"('  | Method:                             : ',A13)") "libOMM"
+         write(*,"('  | Method                              : ',A13)") "libOMM"
       endif
       if(method == PEXSI) then
-         write(*,"('  | Method:                             : ',A13)") "PEXSI"
+         write(*,"('  | Method                              : ',A13)") "PEXSI"
       endif
       write(*,"('  |-------------------------------------------------------')")
    endif

@@ -104,6 +104,8 @@ module ELSI_DIMENSIONS
   logical :: elpa_two_always = .false. !< Always use 2-stage solver
   integer :: broadening_type = -1 !< Broadening scheme used to find occupation numbers
   real*8  :: broadening_width !< Broadening width used to find occupation numbers
+  real*8  :: occ_tolerance = 1d-10 !< Maximum allowed difference between actual number of
+                                   !! electrons and the number computed by ELSI
 
   !> OMM
   logical :: omm_customized = .false. !< Has elsi_customize_omm been called?
