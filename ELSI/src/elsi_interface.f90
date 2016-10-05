@@ -1289,8 +1289,6 @@ contains
 
      integer, intent(in) :: elpa_solver !< Always use 1-stage or 2-stage solver
 
-     character*40, parameter :: caller = "elsi_customize_elpa"
-
      if(method == ELPA) then
         if(elpa_solver == 1) then
            elpa_one_always = .true.
@@ -1303,7 +1301,8 @@ contains
            elpa_two_always = .false.
         endif
      else
-        call elsi_stop(" The chosen method is not ELPA. Exiting...", caller)
+        call elsi_statement_print(" The chosen method is not ELPA."//&
+                                  " Ignore elsi_customize_elpa call.")
      endif
 
   end subroutine ! elsi_customize_elpa
@@ -1391,8 +1390,6 @@ contains
      logical, intent(in), optional :: omm_verbose_in
      logical, intent(in), optional :: do_dealloc_in
 
-     character*40, parameter :: caller = "elsi_customize_omm"
-
      if(method == LIBOMM) then
         ! Set default settings
         call elsi_set_omm_default_options()
@@ -1417,7 +1414,8 @@ contains
         omm_customized = .true.
         call elsi_print_omm_options()
      else
-        call elsi_stop(" The chosen method is not OMM. Exiting...", caller)
+        call elsi_statement_print(" The chosen method is not OMM."//&
+                                  " Ignore elsi_customize_omm call.")
      endif
 
   end subroutine ! elsi_customize_omm
@@ -1963,8 +1961,6 @@ end subroutine
      integer(c_int), intent(in), optional :: transpose_in
      integer(c_int), intent(in), optional :: verbosity_in
 
-     character*40, parameter :: caller = "elsi_customize_pexsi"
-
      if(method == PEXSI) then
         ! Set default settings
         call elsi_set_pexsi_default_options()
@@ -2093,7 +2089,8 @@ end subroutine
         pexsi_customized = .true.
         call elsi_print_pexsi_options()
      else
-        call elsi_stop(" The chosen method is not PEXSI. Exiting...", caller)
+        call elsi_statement_print(" The chosen method is not PEXSI."//&
+                                  " Ignore elsi_customize_pexsi call.")
      endif
 
   end subroutine ! elsi_customize_pexsi
