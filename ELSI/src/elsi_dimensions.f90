@@ -109,6 +109,8 @@ module ELSI_DIMENSIONS
 
   !> OMM
   logical :: omm_customized = .false. !< Has elsi_customize_omm been called?
+  logical :: small_omm_tol = .false. !< Is user-specified OMM tolerance smaller than default?
+  real*8  :: final_omm_tol = 1d-8
   logical :: new_overlap !< Is a new overlap matrix provided?
   logical :: C_matrix_initialized !< Is coefficient matrix initialized?
   real*8  :: total_energy !< Energy of the system
@@ -119,7 +121,7 @@ module ELSI_DIMENSIONS
   !! 3 = Use preconditioning based on the energy density
   integer :: omm_flavour = -1
   real*8  :: scale_kinetic       !< Scaling of the kinetic energy matrix
-  logical :: calc_ed = .False.   !< Calculate energy weighted density matrix?
+  logical :: calc_ed = .false.   !< Calculate energy weighted density matrix?
   real*8  :: eta                 !< Eigenspectrum shift parameter
   real*8  :: min_tol             !< Tolerance for minimization
   integer :: nk_times_nspin = -1 !< n_k_points * n_spin
@@ -128,8 +130,8 @@ module ELSI_DIMENSIONS
   logical :: do_dealloc          !< Deallocate internal storage?
 
   !> PEXSI
-  logical                :: pexsi_customized = .false.
-  logical                :: small_pexsi_tol = .false.
+  logical                :: pexsi_customized = .false. !< Has elsi_customize_pexsi been called?
+  logical                :: small_pexsi_tol = .false. !< Is user-specified PEXSI tolerance smaller than default?
   real(c_double)         :: final_pexsi_tol = 1d-2
   integer(c_intptr_t)    :: pexsi_plan
   type(f_ppexsi_options) :: pexsi_options
@@ -264,13 +266,13 @@ subroutine elsi_set_omm_default_options()
    !< Eigenspectrum shift parameter
    eta = 0d0
    !< Tolerance for minimization
-   min_tol = 1.0d-12
+   min_tol = 1.0d-8
    !< n_k_points * n_spin
    nk_times_nspin = 1
    !< Combined k_point spin index
    i_k_spin = 1
-   omm_verbose = .False.
-   do_dealloc = .False.
+   omm_verbose = .true.
+   do_dealloc = .false.
 
 end subroutine
 

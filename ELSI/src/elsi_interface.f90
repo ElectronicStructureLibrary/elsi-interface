@@ -1019,7 +1019,7 @@ contains
 !!
   subroutine elsi_to_standard_evp(cholesky)
 
-     logical, intent(in) :: cholesky !< If .True. factorize Overlap
+     logical, intent(in) :: cholesky !< If .true. factorize Overlap
 
      logical :: success                              !< Success flag
      real*8,     allocatable :: buffer_real (:,:)    !< Real valued matrix buffer
@@ -1039,7 +1039,7 @@ contains
                     ! Compute S = (U^T)U, U -> S
                     success = elpa_cholesky_complex_double(n_g_size, S_complex, n_l_rows, &
                                           n_b_rows, n_l_cols, mpi_comm_row, &
-                                          mpi_comm_col, .False.)
+                                          mpi_comm_col, .false.)
                     if(.not.success) then
                        call elsi_stop("Cholesky decomposition failed.", caller)
                     endif
@@ -1047,7 +1047,7 @@ contains
                     ! compute U^-1 -> S
                     success =  elpa_invert_trm_complex_double(n_g_size, S_complex, n_l_rows, &
                                             n_b_rows, n_l_cols, mpi_comm_row, &
-                                            mpi_comm_col, .False.)
+                                            mpi_comm_col, .false.)
                     if(.not.success) then
                        call elsi_stop("Matrix invertion failed.", caller)
                     endif
@@ -1080,7 +1080,7 @@ contains
                     ! Compute S = (U^T)U, U -> S
                     success = elpa_cholesky_real_double(n_g_size, S_real, n_l_rows, &
                                        n_b_rows, n_l_cols, mpi_comm_row, &
-                                       mpi_comm_col, .False.)
+                                       mpi_comm_col, .false.)
                     if(.not.success) then
                        call elsi_stop("Cholesky decomposition failed.", caller)
                     endif
@@ -1088,7 +1088,7 @@ contains
                     ! compute U^-1 -> S
                     success = elpa_invert_trm_real_double(n_g_size, S_real, n_l_rows, &
                                          n_b_rows, n_l_cols, mpi_comm_row, &
-                                         mpi_comm_col, .False.)
+                                         mpi_comm_col, .false.)
                     if(.not.success) then
                        call elsi_stop("Matrix invertion failed.", caller)
                     endif
@@ -1320,6 +1320,8 @@ contains
 
      logical, intent(in) :: cholesky !< Cholesky factorize overlap?
 
+     real*8, save :: this_omm_tol = 1d-8
+
      logical :: success
      character*40, parameter :: caller = "elsi_solve_evp_omm"
 
@@ -1328,6 +1330,13 @@ contains
      if(.not.omm_customized) then
         call elsi_set_omm_default_options()
         call elsi_print_omm_options()
+     endif
+
+     if(small_omm_tol) then
+        min_tol = this_omm_tol
+        if(myid == 0) &
+           write(*,"(A,E10.1)") "  | Current tolerance of minimization: ", &
+                 this_omm_tol
      endif
 
      if(cholesky) then
@@ -1366,6 +1375,14 @@ contains
                     omm_verbose, do_dealloc, "pddbc", "lap", myid)
      end select
 
+     if(small_omm_tol) then
+        if(1d-1*this_omm_tol > final_omm_tol) then
+           this_omm_tol = 1d-1*this_omm_tol
+        else
+           this_omm_tol = final_omm_tol
+        endif
+     endif
+
      call MPI_BARRIER(mpi_comm_global, mpierr)
      call elsi_stop_solve_evp_time()
 
@@ -1400,7 +1417,13 @@ contains
         ! Eigenspectrum shift parameter
         if(present(eta_in)) eta = eta_in
         ! Tolerance for minimization
-        if(present(min_tol_in)) min_tol = min_tol_in
+        if(present(min_tol_in)) then
+           min_tol = min_tol_in
+           if(min_tol_in < 1d-8) then
+              small_omm_tol = .true.
+              final_omm_tol = min_tol_in
+           endif
+        endif
         ! n_k_points * n_spin
         if(present(nk_times_nspin_in)) nk_times_nspin = nk_times_nspin_in
         ! Index
@@ -1862,10 +1885,9 @@ end subroutine
 
      if(small_pexsi_tol) then
         pexsi_options%numElectronPEXSITolerance = this_pexsi_tol
-        if(myid == 0) then
+        if(myid == 0) &
            write(*,"(A,E10.1)") "  | Current tolerance of number of electrons: ", &
                  this_pexsi_tol
-        endif
      endif
 
      if(.not.allocated(D_pexsi)) &
@@ -1904,11 +1926,13 @@ end subroutine
      if(pexsi_info /= 0) &
         call elsi_stop(" PEXSI DFT Driver not able to solve problem. Exiting...", caller)
 
-     if(abs(n_electrons-n_electrons_pexsi) < this_pexsi_tol) then
-        if(1d-1*this_pexsi_tol > final_pexsi_tol) then
-           this_pexsi_tol = 1d-1*this_pexsi_tol
-        else
-           this_pexsi_tol = final_pexsi_tol
+     if(small_pexsi_tol) then
+        if(abs(n_electrons-n_electrons_pexsi) < this_pexsi_tol) then
+           if(1d-1*this_pexsi_tol > final_pexsi_tol) then
+              this_pexsi_tol = 1d-1*this_pexsi_tol
+           else
+              this_pexsi_tol = final_pexsi_tol
+           endif
         endif
      endif
 
