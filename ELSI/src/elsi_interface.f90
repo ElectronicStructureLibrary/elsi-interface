@@ -1449,66 +1449,72 @@ contains
 !>
 !! PEXSI processor grid setup.
 !!
-subroutine elsi_init_pexsi()
+  subroutine elsi_init_pexsi()
 
-   implicit none
-   include "mpif.h"
+     implicit none
+     include "mpif.h"
 
-   character*40, parameter :: caller = "elsi_init_pexsi"
+     character*40, parameter :: caller = "elsi_init_pexsi"
 
-   if(method == PEXSI) then
-!      if(mod(n_procs,40) == 0 .and. n_procs >= 640) then
-!         n_p_rows_pexsi = 40
-!      elseif(mod(n_procs,20) == 0 .and. n_procs >= 320) then
-!         n_p_rows_pexsi = 20
-!      elseif(mod(n_procs,10) == 0 .and. n_procs >= 90) then
-!         n_p_rows_pexsi = 10
-!      elseif(mod(n_procs,5) == 0 .and. n_procs >= 20) then
-!         n_p_rows_pexsi = 5
-!      elseif(mod(n_procs,4) == 0 .and. n_procs >= 16) then
-!         n_p_rows_pexsi = 4
-!      elseif(mod(n_procs,2) == 0 .and. n_procs >= 2) then
-!         n_p_rows_pexsi = 2
-!      else
-         n_p_rows_pexsi = 1
-!      endif
+     if(.not.pexsi_customized) then
+        call elsi_set_pexsi_default_options()
+        call elsi_print_pexsi_options()
+     endif
 
-      n_p_cols_pexsi = n_procs/n_p_rows_pexsi
+     if(method == PEXSI) then
+        if(mod(n_procs,pexsi_options%numPole) == 0) then
+           call elsi_statement_print(" PEXSI parallel over poles.")
+           n_procs_inv_pexsi = n_procs/pexsi_options%numPole
+           if(myid == 0) &
+              write(*,"(A,I13)") "  | Number of MPI tasks per pole: ", &
+                    n_procs_inv_pexsi
+        else
+           call elsi_statement_print(" PEXSI not parallel over poles. Better"//&
+                                     " performance is expected with pole"//&
+                                     " parallelization. Try to make number"//&
+                                     " of CPUs a multiple of number of poles.")
+           n_procs_inv_pexsi = n_procs
+        endif
 
-      ! position in process grid must not be used
-      my_p_col_pexsi = -1
-      my_p_row_pexsi = -1
+        ! Set square-like process grid for inversion
+        do n_p_rows_pexsi = NINT(SQRT(REAL(n_procs_inv_pexsi))),2,-1
+           if(mod(n_procs_inv_pexsi,n_p_rows_pexsi) == 0) exit
+        enddo
 
-      ! PEXSI needs a pure block distribution
-      n_b_rows_pexsi = n_g_size
+        n_p_cols_pexsi = n_procs_inv_pexsi/n_p_rows_pexsi
 
-      ! The last process holds all remaining columns
-      n_b_cols_pexsi = FLOOR(1d0*n_g_size/n_procs)
-      if(myid == n_procs-1) then
-         n_b_cols_pexsi = n_g_size-(n_procs-1)*n_b_cols_pexsi
-      endif
+        ! position in process grid must not be used
+        my_p_col_pexsi = -1
+        my_p_row_pexsi = -1
 
-      n_l_rows_pexsi = n_b_rows_pexsi
-      n_l_cols_pexsi = n_b_cols_pexsi
+        ! PEXSI needs a pure block distribution
+        n_b_rows_pexsi = n_g_size
 
-      ! Only master process outputs
-      if(myid == 0) then
-         pexsi_output_file_index = 0
-      else
-         pexsi_output_file_index = -1
-      endif
+        ! The last process holds all remaining columns
+        n_b_cols_pexsi = FLOOR(1d0*n_g_size/n_procs)
+        if(myid == n_procs-1) then
+           n_b_cols_pexsi = n_g_size-(n_procs-1)*n_b_cols_pexsi
+        endif
 
-      pexsi_plan = f_ppexsi_plan_initialize(mpi_comm_global,n_p_rows_pexsi,&
-                      n_p_cols_pexsi,pexsi_output_file_index,pexsi_info)
+        n_l_rows_pexsi = n_b_rows_pexsi
+        n_l_cols_pexsi = n_b_cols_pexsi
 
-      if(pexsi_info /= 0) &
-         call elsi_stop(" PEXSI plan initialization failed. Exiting...",caller)
+        ! Only master process outputs
+        if(myid == 0) then
+           pexsi_output_file_index = 0
+        else
+           pexsi_output_file_index = -1
+        endif
 
-      if(n_p_rows_pexsi /= n_p_rows .or. n_p_cols_pexsi /= n_p_cols) &
-         call elsi_statement_print(" Process grid set up for PEXSI")
-   endif
+        pexsi_plan = f_ppexsi_plan_initialize(mpi_comm_global,n_p_rows_pexsi,&
+                        n_p_cols_pexsi,pexsi_output_file_index,pexsi_info)
 
-end subroutine
+        if(pexsi_info /= 0) &
+           call elsi_stop(" PEXSI plan initialization failed. Exiting...",caller)
+
+     endif
+
+  end subroutine ! elsi_init_pexsi
 
 !>
 !! This routine converts Halmitonian and overlap matrix stored in
@@ -1877,11 +1883,6 @@ end subroutine
      character*40, parameter :: caller = "elsi_solve_evp_pexsi"
 
      call elsi_start_solve_evp_time()
-
-     if(.not.pexsi_customized) then
-        call elsi_set_pexsi_default_options()
-        call elsi_print_pexsi_options()
-     endif
 
      if(small_pexsi_tol) then
         pexsi_options%numElectronPEXSITolerance = this_pexsi_tol

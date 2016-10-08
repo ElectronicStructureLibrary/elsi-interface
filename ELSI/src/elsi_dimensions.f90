@@ -83,6 +83,7 @@ module ELSI_DIMENSIONS
   integer :: n_p_cols_pexsi
   integer :: n_l_rows_pexsi
   integer :: n_l_cols_pexsi
+  integer :: n_procs_inv_pexsi
 
   !> Sparse matrix information
   integer :: nnz_g !< Global number of nonzeros
