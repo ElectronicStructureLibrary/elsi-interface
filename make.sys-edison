@@ -27,10 +27,6 @@ OPENMP = no
 libOMM_DIR = $(THIS_DIR)/external/libOMM
 FFLAGS_O   = -fast -no-ipo -mkl=cluster
 
-MPI  = yes
-LAP  = yes
-SLAP = yes
-
 # ====== PEXSI ======
 
 PEXSI_DIR  = $(THIS_DIR)/external/PEXSI

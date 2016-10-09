@@ -11,7 +11,7 @@ A) Install from zero: if you do not have any part of the ELSI package
 
 1.1) GLOBAL
    Set compilers, archive tools, and installation path of linear algebra
-   libraries, which will be used during the whole installation.
+   library, which will be used during the whole installation.
 
 1.2) ELSI
    Set Fortran compiler flags.
@@ -20,7 +20,7 @@ A) Install from zero: if you do not have any part of the ELSI package
    Set compiler flags, choose ELPA2 kernels, switch on/off OpenMP.
 
 1.4) libOMM
-   Set Fortran compiler flags, switch on/off MPI, LAPACK, and ScaLAPACK.
+   Set Fortran compiler flags.
 
 1.5) PEXSI
    Set compiler flags and installation paths of ParMetis/SuperLU_DIST.

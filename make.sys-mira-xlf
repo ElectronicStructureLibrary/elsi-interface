@@ -45,10 +45,6 @@ OPENMP = no
 libOMM_DIR = $(THIS_DIR)/external/libOMM
 FFLAGS_O   = ${FFLAGS_I}
 
-MPI  = yes
-LAP  = yes
-SLAP = yes
-
 # ====== PEXSI ======
 
 PEXSI_DIR  = $(THIS_DIR)/external/PEXSI

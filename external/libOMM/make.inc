@@ -7,16 +7,9 @@ endif
 
 FPPFLAGS  = ${XLFPP}-DCONV
 FPPFLAGS += ${XLFPP}-DPSP
-
-ifeq ($(strip $(MPI)),yes)
-  FPPFLAGS += ${XLFPP}-DMPI
-endif
-ifeq ($(strip $(LAP)),yes)
-  FPPFLAGS += ${XLFPP}-DLAP
-endif
-ifeq ($(strip $(SLAP)),yes)
-  FPPFLAGS += ${XLFPP}-DSLAP
-endif
+FPPFLAGS += ${XLFPP}-DMPI
+FPPFLAGS += ${XLFPP}-DLAP
+FPPFLAGS += ${XLFPP}-DSLAP
 
 PSPLIBNAME = libpspblas.a
 PSPBUILDPATH = $(ROOTDIR)/build_psp
