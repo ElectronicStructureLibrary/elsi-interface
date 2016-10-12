@@ -258,7 +258,7 @@ elpa_pdlarfb.o: ./src/elpa_qr/elpa_pdlarfb.F90 qr_utils.o elpa1.o
 qr_utils.o: ./src/elpa_qr/qr_utils.F90 elpa1_compute_private.o
 	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
 
-elpa_qrkernels.o: ./src/elpa_qr/elpa_qrkernels.F90
+elpa_qrkernels.o: ./src/elpa_qr/elpa_qrkernels.F90 mod_precision.o
 	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
 
 elpa_c_interface.o: ./src/elpa_c_interface.F90 elpa2.o elpa1.o
@@ -266,8 +266,8 @@ elpa_c_interface.o: ./src/elpa_c_interface.F90 elpa2.o elpa1.o
 
 clean:
 	rm -f *.o *.mod test_*.x
+	rm -rf lib bin include
 	rm -f libelpa.a 
-	rm -rf ./lib ./bin ./include
 
 install:
 	$(ARCH) $(ARCHFLAGS) libelpa.a *.o

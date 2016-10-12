@@ -1,30 +1,28 @@
+LIBS = $(ELPA_LIB) $(OMM_LIB) $(PEXSI_LIB) $(SCALAPACK_FCFLAGS) $(SCALAPACK_LDFLAGS)
+
 all: elsi_interface.o
 
 elsi_interface.o: src/elsi_interface.f90 elsi_utils.o elsi_matrix_conversion.o elsi_timers.o elsi_dimensions.o
-	$(MPIFC) $(FFLAGS_I) -c $< $(ELPA_LIB) $(OMM_LIB) $(PEXSI_LIB) $(SCALAPACK_LDFLAGS)
+	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
 
 elsi_utils.o: src/elsi_utils.f90 elsi_dimensions.o
-	$(MPIFC) $(FFLAGS_I) -c $< $(OMM_LIB) $(PEXSI_LIB) $(SCALAPACK_LDFLAGS)
+	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
 
 elsi_matrix_conversion.o: src/elsi_matrix_conversion.f90 elsi_utils.o elsi_dimensions.o
-	$(MPIFC) $(FFLAGS_I) -c $< $(PEXSI_LIB)
+	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
 
 elsi_timers.o: src/elsi_timers.f90 elsi_dimensions.o
-	$(MPIFC) $(FFLAGS_I) -c $< $(PEXSI_LIB)
+	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
 
 elsi_dimensions.o: src/elsi_dimensions.f90 
-	$(MPIFC) $(FFLAGS_I) -c $< $(PEXSI_LIB)
+	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
 
 clean:
-	rm -rf `find . -name "*.o"`
-	rm -rf `find . -name "*.mod"`
-	rm -rf `find . -name "*.x"`
-	rm -rf lib 
-	rm -rf include 
-	rm -f src/libelsi.a
+	rm -f *.o *.mod *.x *.a
+	rm -rf lib include bin
 
 install:
-	$(ARCH) $(ARCHFLAGS)  libelsi.a elsi*.o
+	$(ARCH) $(ARCHFLAGS) libelsi.a elsi*.o
 	$(RANLIB) libelsi.a
 	mkdir -p lib
 	cp libelsi.a lib/.
