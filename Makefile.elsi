@@ -1,9 +1,11 @@
 include make.sys
 
+# Default archive tools
 ARCH      ?= ar
 ARCHFLAGS ?= cr
 RANLIB    ?= ranlib
 
+# Default external libraries
 ELPA_DIR  ?= $(THIS_DIR)/EXTERNAL/ELPA
 ELPA_LIB  ?= -L$(ELPA_DIR)/lib -lelpa \
              -I$(ELPA_DIR)/include
@@ -24,7 +26,38 @@ PEXSI_LIB ?= -I$(PEXSI_DIR)/include \
 
 export
 
-all: elpa omm pexsi elsi
+# Use precompiled library if provided in make.sys
+ifeq ($(strip $(USER_ELPA)),yes)
+  $(info =============================)
+  $(info = Using user-provided ELPA. =)
+  $(info =============================)
+else
+  ALL_OBJ += elpa
+  CLEAN_OBJ += cleanelpa
+endif
+
+ifeq ($(strip $(USER_OMM)),yes)
+  $(info ===============================)
+  $(info = Using user-provided libOMM. =)
+  $(info ===============================)
+else
+  ALL_OBJ += omm
+  CLEAN_OBJ += cleanomm
+endif
+
+ifeq ($(strip $(USER_PEXSI)),yes)
+  $(info ==============================)
+  $(info = Using user-provided PEXSI. =)
+  $(info ==============================)
+else
+  ALL_OBJ += pexsi
+  CLEAN_OBJ += cleanpexsi
+endif
+
+ALL_OBJ += elsi
+CLEAN_OBJ += cleanelsi
+
+all: $(ALL_OBJ)
 
 elpa:
 	@echo ==========================
@@ -74,18 +107,33 @@ install:
 check:
 	cd ELSI && ${MAKE} -f Makefile.elsi check
 
-clean: cleanelpa cleanomm cleanpexsi cleanelsi
+clean: $(CLEAN_OBJ)
 
 cleanelsi:
+	@echo ====================
+	@echo = Removing ELSI... =
+	@echo ====================
 	cd ELSI && ${MAKE} -f Makefile.elsi clean
+	@echo =========
+	@echo = Done. =
+	@echo =========
 
 cleanelpa:
+	@echo ====================
+	@echo = Removing ELPA... =
+	@echo ====================
 	cd $(ELPA_DIR) && ${MAKE} -f Makefile.elsi clean
 
 cleanomm:
+	@echo ======================
+	@echo = Removing libOMM... =
+	@echo ======================
 	cd $(OMM_DIR) && ${MAKE} -f Makefile.elsi clean
 
 cleanpexsi:
+	@echo =====================
+	@echo = Removing PEXSI... =
+	@echo =====================
 	cd $(PEXSI_DIR)/src && ${MAKE} -f Makefile.elsi cleanall
 	cd $(PEXSI_DIR)/fortran && ${MAKE} -f Makefile.elsi cleanall
 	rm -f $(PEXSI_DIR)/include/f_ppexsi_interface.mod
