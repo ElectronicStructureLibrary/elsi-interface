@@ -21,7 +21,6 @@ clean:
 	rm -rf `find . -name "*.x"`
 	rm -rf lib 
 	rm -rf include 
-	rm -rf bin
 	rm -f src/libelsi.a
 
 install:
@@ -31,6 +30,5 @@ install:
 	cp libelsi.a lib/.
 	mkdir -p include
 	cp *.mod include/.
-	mkdir -p bin
 
 check:

@@ -7,7 +7,7 @@ elpa:
 	@echo ==========================
 	@echo = Start building ELPA... =
 	@echo ==========================
-	cd $(ELPA_DIR) && ${MAKE} -f Makefile.elsi; ${MAKE} -f Makefile.elsi install
+	cd $(THIS_DIR)/external/ELPA && ${MAKE} -f Makefile.elsi; ${MAKE} -f Makefile.elsi install
 	@echo ===================
 	@echo = ELPA installed. =
 	@echo ===================
@@ -16,7 +16,7 @@ omm:
 	@echo ============================
 	@echo = Start building libOMM... =
 	@echo ============================
-	cd $(libOMM_DIR) && ${MAKE} -f Makefile.elsi
+	cd $(THIS_DIR)/external/libOMM && ${MAKE} -f Makefile.elsi
 	@echo =====================
 	@echo = libOMM installed. =
 	@echo =====================
@@ -25,10 +25,10 @@ pexsi:
 	@echo ===========================
 	@echo = Start building PEXSI... =
 	@echo ===========================
-	cd $(PEXSI_DIR) && mkdir -p lib
-	cd $(PEXSI_DIR)/src && ${MAKE} -f Makefile.elsi 
-	-cp $(PEXSI_DIR)/src/f_ppexsi_interface.mod $(PEXSI_DIR)/include
-	cd $(PEXSI_DIR)/fortran && ${MAKE} -f Makefile.elsi
+	cd $(THIS_DIR)/external/PEXSI && mkdir -p lib
+	cd $(THIS_DIR)/external/PEXSI/src && ${MAKE} -f Makefile.elsi 
+	-cp $(THIS_DIR)/external/PEXSI/src/f_ppexsi_interface.mod $(THIS_DIR)/external/PEXSI/include
+	cd $(THIS_DIR)/external/PEXSI/fortran && ${MAKE} -f Makefile.elsi
 	@echo ====================
 	@echo = PEXSI installed. =
 	@echo ====================
@@ -57,13 +57,13 @@ cleanelsi:
 	cd ELSI && ${MAKE} -f Makefile.elsi clean
 
 cleanelpa:
-	cd $(ELPA_DIR) && ${MAKE} -f Makefile.elsi clean
+	cd $(THIS_DIR)/external/ELPA && ${MAKE} -f Makefile.elsi clean
 
 cleanomm:
-	cd $(libOMM_DIR) && ${MAKE} -f Makefile.elsi clean
+	cd $(THIS_DIR)/external/libOMM && ${MAKE} -f Makefile.elsi clean
 
 cleanpexsi:
-	cd $(PEXSI_DIR)/src && ${MAKE} -f Makefile.elsi cleanall
-	cd $(PEXSI_DIR)/fortran && ${MAKE} -f Makefile.elsi cleanall
-	rm -f $(PEXSI_DIR)/include/f_ppexsi_interface.mod
-	rm -f $(PEXSI_DIR)/src/f_ppexsi_interface.mod
+	cd $(THIS_DIR)/external/PEXSI/src && ${MAKE} -f Makefile.elsi cleanall
+	cd $(THIS_DIR)/external/PEXSI/fortran && ${MAKE} -f Makefile.elsi cleanall
+	rm -f $(THIS_DIR)/external/PEXSI/include/f_ppexsi_interface.mod
+	rm -f $(THIS_DIR)/external/PEXSI/src/f_ppexsi_interface.mod

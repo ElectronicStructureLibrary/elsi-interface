@@ -1,2 +1,0 @@
-
-SUBDIRS = PEXSI libOMM ELPA  
