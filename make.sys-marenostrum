@@ -14,31 +14,26 @@ SCALAPACK_LDFLAGS = -L/opt/intel/mkl/lib/intel64 -lmkl_scalapack_lp64 \
                     -lmkl_sequential -lmkl_core -lpthread -lm
 SCALAPACK_FCFLAGS = -I/opt/intel/mkl/include/intel64/lp64
 
-THIS_DIR  = $(shell pwd)
-
 # ====== ELSI ======
 
 FFLAGS_I = -O3 -ip -lstdc++ 
 
 # ====== ELPA ======
 
-ELPA_DIR   = $(THIS_DIR)/external/ELPA
-FFLAGS_E   = -O3 -fpe0 -fpp -I$(ELPA_DIR)
-CFLAGS_E   = -O3 -mavx -funsafe-loop-optimizations \
-             -funsafe-math-optimizations -ftree-vect-loop-version \
-             -ftree-vectorize
+FFLAGS_E = -O3 -fpe0 -fpp -I$(ELPA_DIR)
+CFLAGS_E = -O3 -mavx -funsafe-loop-optimizations \
+           -funsafe-math-optimizations -ftree-vect-loop-version \
+           -ftree-vectorize
 
 ARCHITECTURE = Generic
 OPENMP = no
 
 # ====== libOMM ======
 
-libOMM_DIR = $(THIS_DIR)/external/libOMM
-FFLAGS_O   = -O3
+FFLAGS_O = -O3
 
 # ====== PEXSI ======
 
-PEXSI_DIR  = $(THIS_DIR)/external/PEXSI
 CXXFLAGS_P = -O3 -w
 CFLAGS_P   = -O3 -w
 FFLAGS_P   = -O3 -w
@@ -49,6 +44,11 @@ SUPERLU_LIB     = -L$(SUPERLU_LIB_DIR) -lsuperlu
 SUPERLU_INCLUDE = -I$(SUPERLU_INCLUDE_DIR)
 
 # ====== LINK ======
+
+THIS_DIR   = $(shell pwd)
+ELPA_DIR   = $(THIS_DIR)/external/ELPA
+libOMM_DIR = $(THIS_DIR)/external/libOMM
+PEXSI_DIR  = $(THIS_DIR)/external/PEXSI
 
 ELPA  = -L$(ELPA_DIR)/lib -lelpa \
         -I$(ELPA_DIR)/include/elpa/modules

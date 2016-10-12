@@ -21,8 +21,6 @@ SCALAPACK_FCFLAGS =
 #LAPACK    = -L/soft/libraries/alcf/current/xl/LAPACK/lib -llapack 
 #SCALAPACK = -L/soft/libraries/alcf/current/xl/SCALAPACK/lib -lscalapack
 
-THIS_DIR  = $(shell pwd)
-
 # ====== ELSI ======
 
 FFLAGS_I = -g -O3 -qstrict -qmaxmem=-1 -qsmp=noomp
@@ -33,21 +31,18 @@ FFLAGS_I += -qreport -qsource -qlistopt -qlist -qessl
  
 # ====== ELPA ======
 
-ELPA_DIR   = $(THIS_DIR)/external/ELPA
-FFLAGS_E   = ${FFLAGS_I} -I$(ELPA_DIR)
-CFLAGS_E   = -O3
+FFLAGS_E = ${FFLAGS_I} -I$(ELPA_DIR)
+CFLAGS_E = -O3
 
 ARCHITECTURE = BlueGeneQ
 OPENMP = no
 
 # ====== libOMM ======
 
-libOMM_DIR = $(THIS_DIR)/external/libOMM
-FFLAGS_O   = ${FFLAGS_I}
+FFLAGS_O = ${FFLAGS_I}
 
 # ====== PEXSI ======
 
-PEXSI_DIR  = $(THIS_DIR)/external/PEXSI
 CXXFLAGS_P = ${CXXFLAGS_E} -w
 CFLAGS_P   = ${CFLAGS_E} -w
 FFLAGS_P   = ${FFLAGS_I} -w
@@ -58,6 +53,11 @@ SUPERLU_LIB     = -L/gpfs/mira-home/wzvyu/SuperLU_DIST_4.3/lib -lsuperlu
 SUPERLU_INCLUDE = -I/gpfs/mira-home/wzvyu/SuperLU_DIST_4.3/SRC
 
 # ====== LINK ======
+
+THIS_DIR   = $(shell pwd)
+ELPA_DIR   = $(THIS_DIR)/external/ELPA
+libOMM_DIR = $(THIS_DIR)/external/libOMM
+PEXSI_DIR  = $(THIS_DIR)/external/PEXSI
 
 ELPA  = -L$(ELPA_DIR)/lib -lelpa \
         -I$(ELPA_DIR)/include/elpa/modules

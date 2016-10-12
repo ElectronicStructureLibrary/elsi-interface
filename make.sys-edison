@@ -8,28 +8,23 @@ ARCH      = ar
 ARCHFLAGS = cr
 RANLIB    = ranlib
 
-THIS_DIR  = /global/homes/v/vwzyu/elsi-devel
-
 # ====== ELSI ======
 
-FFLAGS_I  = -fast -no-ipo -mkl=cluster -lstdc++ 
+FFLAGS_I = -fast -no-ipo -mkl=cluster -lstdc++ 
 
 # ====== ELPA ======
 
-ELPA_DIR   = $(THIS_DIR)/external/ELPA
-FFLAGS_E   = -fast -no-ipo -mkl=cluster
+FFLAGS_E = -fast -no-ipo -mkl=cluster
 
 ARCHITECTURE = Generic
 OPENMP = no
 
 # ====== libOMM ======
 
-libOMM_DIR = $(THIS_DIR)/external/libOMM
 FFLAGS_O   = -fast -no-ipo -mkl=cluster
 
 # ====== PEXSI ======
 
-PEXSI_DIR  = $(THIS_DIR)/external/PEXSI
 CXXFLAGS_P = -fast -no-ipo -mkl=cluster
 CFLAGS_P   = -fast -no-ipo -mkl=cluster
 FFLAGS_P   = -fast -no-ipo -mkl=cluster
@@ -40,6 +35,11 @@ SUPERLU_LIB     = -L/global/homes/v/vwzyu/SuperLU_DIST_4.3/lib -lsuperlu_dist_4.
 SUPERLU_INCLUDE = -I/global/homes/v/vwzyu/SuperLU_DIST_4.3/SRC
 
 # ====== LINK ======
+
+THIS_DIR   = /global/homes/v/vwzyu/elsi-devel
+ELPA_DIR   = $(THIS_DIR)/external/ELPA
+libOMM_DIR = $(THIS_DIR)/external/libOMM
+PEXSI_DIR  = $(THIS_DIR)/external/PEXSI
 
 ELPA  = -L$(ELPA_DIR)/lib -lelpa \
         -I$(ELPA_DIR)/include

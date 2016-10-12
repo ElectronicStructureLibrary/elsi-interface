@@ -14,34 +14,29 @@ SCALAPACK_LDFLAGS = -L/opt/intel/mkl/lib/intel64 -lmkl_scalapack_lp64 \
                     -lmkl_sequential -lmkl_core -lpthread -lm
 SCALAPACK_FCFLAGS = -I/opt/intel/mkl/include/intel64/lp64
 
-THIS_DIR  = $(shell pwd)
-
 # ====== ELSI ======
 
-FFLAGS_I  = -O3 -ip -lstdc++ 
+FFLAGS_I = -O3 -ip -lstdc++ 
 
 # ====== ELPA ======
 
-ELPA_DIR   = $(THIS_DIR)/external/ELPA
-FFLAGS_E   = -O3 -fpe0 -fpp
-CFLAGS_E   = -O3 -mavx -funsafe-loop-optimizations \
-             -funsafe-math-optimizations -ftree-vect-loop-version \
-             -ftree-vectorize
+FFLAGS_E = -O3 -fpe0 -fpp
+CFLAGS_E = -O3 -mavx -funsafe-loop-optimizations \
+           -funsafe-math-optimizations -ftree-vect-loop-version \
+           -ftree-vectorize
 
 ARCHITECTURE = Generic
 OPENMP = no
 
 # ====== libOMM ======
 
-libOMM_DIR = $(THIS_DIR)/external/libOMM
-FFLAGS_O   = -O3
+FFLAGS_O = -O3
 
 # ====== PEXSI ======
 
-PEXSI_DIR  = $(THIS_DIR)/external/PEXSI
-CXXFLAGS_P = -O3 -w
-CFLAGS_P   = -O3 -w
-FFLAGS_P   = -O3 -w
+CXXFLAGS_P = -O3
+CFLAGS_P   = -O3
+FFLAGS_P   = -O3
 
 METIS_LIB       = -L/home/wy29/yu/parmetis-4.0.3/build/Linux-x86_64/libmetis -lmetis
 PARMETIS_LIB    = -L/home/wy29/yu/parmetis-4.0.3/build/Linux-x86_64/libparmetis -lparmetis
@@ -50,17 +45,22 @@ SUPERLU_INCLUDE = -I/home/wy29/yu/SuperLU_DIST_4.3/SRC
 
 # ====== LINK ======
 
-ELPA  = -L$(ELPA_DIR)/lib -lelpa \
-        -I$(ELPA_DIR)/include
+THIS_DIR = /home/wy29/elsi-devel
 
-OMM   = -I$(libOMM_DIR)/build_libOMM/inlcude \
-        -I$(libOMM_DIR)/build_MatrixSwitch/include \
-        -I$(libOMM_DIR)/build_psp/include \
-        -L$(libOMM_DIR)/build_libOMM/lib -lOMM \
-        -L$(libOMM_DIR)/build_MatrixSwitch/lib -lMatrixSwitch \
-        -L$(libOMM_DIR)/build_psp/lib -lpspblas
+#ELPA = -L/home/wy29/ELPA/elpa_gpu/lib -lelpa\
+#       -I/home/wy29/ELPA/elpa_gpu/include/elpa-2016.05.003/modules
 
-PEXSI = -I$(PEXSI_DIR)/include \
-        -I$(PEXSI_DIR)/include/pexsi \
-        -I$(PEXSI_DIR)/external/include \
-        -L$(PEXSI_DIR)/lib -lpexsi $(SUPERLU_LIB) $(PARMETIS_LIB) $(METIS_LIB)
+ELPA  = -L$(THIS_DIR)/external/ELPA/lib -lelpa \
+        -I$(THIS_DIR)/external/ELPA/include
+
+OMM   = -I$(THIS_DIR)/external/libOMM/build_libOMM/inlcude \
+        -I$(THIS_DIR)/external/libOMM/build_MatrixSwitch/include \
+        -I$(THIS_DIR)/external/libOMM/build_psp/include \
+        -L$(THIS_DIR)/external/libOMM/build_libOMM/lib -lOMM \
+        -L$(THIS_DIR)/external/libOMM/build_MatrixSwitch/lib -lMatrixSwitch \
+        -L$(THIS_DIR)/external/libOMM/build_psp/lib -lpspblas
+
+PEXSI = -I$(THIS_DIR)/external/PEXSI/include \
+        -I$(THIS_DIR)/external/PEXSI/include/pexsi \
+        -L$(THIS_DIR)/external/PEXSI/lib -lpexsi \
+        $(SUPERLU_LIB) $(PARMETIS_LIB) $(METIS_LIB)
