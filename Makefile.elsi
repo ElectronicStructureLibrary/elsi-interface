@@ -1,4 +1,27 @@
 include make.sys
+
+ARCH      ?= ar
+ARCHFLAGS ?= cr
+RANLIB    ?= ranlib
+
+ELPA_DIR  ?= $(THIS_DIR)/EXTERNAL/ELPA
+ELPA_LIB  ?= -L$(ELPA_DIR)/lib -lelpa \
+             -I$(ELPA_DIR)/include
+
+OMM_DIR   ?= $(THIS_DIR)/EXTERNAL/libOMM
+OMM_LIB   ?= -I$(OMM_DIR)/build_libOMM/inlcude \
+             -I$(OMM_DIR)/build_MatrixSwitch/include \
+             -I$(OMM_DIR)/build_psp/include \
+             -L$(OMM_DIR)/build_libOMM/lib -lOMM \
+             -L$(OMM_DIR)/build_MatrixSwitch/lib -lMatrixSwitch \
+             -L$(OMM_DIR)/build_psp/lib -lpspblas
+
+PEXSI_DIR ?= $(THIS_DIR)/EXTERNAL/PEXSI
+PEXSI_LIB ?= -I$(PEXSI_DIR)/include \
+             -I$(PEXSI_DIR)/include/pexsi \
+             -L$(PEXSI_DIR)/lib -lpexsi \
+             $(SUPERLU_LIB) $(PARMETIS_LIB) $(METIS_LIB)
+
 export
 
 all: elpa omm pexsi elsi
@@ -7,7 +30,7 @@ elpa:
 	@echo ==========================
 	@echo = Start building ELPA... =
 	@echo ==========================
-	cd $(THIS_DIR)/external/ELPA && ${MAKE} -f Makefile.elsi; ${MAKE} -f Makefile.elsi install
+	cd $(ELPA_DIR) && ${MAKE} -f Makefile.elsi; ${MAKE} -f Makefile.elsi install
 	@echo ===================
 	@echo = ELPA installed. =
 	@echo ===================
@@ -16,7 +39,7 @@ omm:
 	@echo ============================
 	@echo = Start building libOMM... =
 	@echo ============================
-	cd $(THIS_DIR)/external/libOMM && ${MAKE} -f Makefile.elsi
+	cd $(OMM_DIR) && ${MAKE} -f Makefile.elsi
 	@echo =====================
 	@echo = libOMM installed. =
 	@echo =====================
@@ -25,10 +48,10 @@ pexsi:
 	@echo ===========================
 	@echo = Start building PEXSI... =
 	@echo ===========================
-	cd $(THIS_DIR)/external/PEXSI && mkdir -p lib
-	cd $(THIS_DIR)/external/PEXSI/src && ${MAKE} -f Makefile.elsi 
-	-cp $(THIS_DIR)/external/PEXSI/src/f_ppexsi_interface.mod $(THIS_DIR)/external/PEXSI/include
-	cd $(THIS_DIR)/external/PEXSI/fortran && ${MAKE} -f Makefile.elsi
+	cd $(PEXSI_DIR) && mkdir -p lib
+	cd $(PEXSI_DIR)/src && ${MAKE} -f Makefile.elsi 
+	-cp $(PEXSI_DIR)/src/f_ppexsi_interface.mod $(PEXSI_DIR)/include
+	cd $(PEXSI_DIR)/fortran && ${MAKE} -f Makefile.elsi
 	@echo ====================
 	@echo = PEXSI installed. =
 	@echo ====================
@@ -57,13 +80,13 @@ cleanelsi:
 	cd ELSI && ${MAKE} -f Makefile.elsi clean
 
 cleanelpa:
-	cd $(THIS_DIR)/external/ELPA && ${MAKE} -f Makefile.elsi clean
+	cd $(ELPA_DIR) && ${MAKE} -f Makefile.elsi clean
 
 cleanomm:
-	cd $(THIS_DIR)/external/libOMM && ${MAKE} -f Makefile.elsi clean
+	cd $(OMM_DIR) && ${MAKE} -f Makefile.elsi clean
 
 cleanpexsi:
-	cd $(THIS_DIR)/external/PEXSI/src && ${MAKE} -f Makefile.elsi cleanall
-	cd $(THIS_DIR)/external/PEXSI/fortran && ${MAKE} -f Makefile.elsi cleanall
-	rm -f $(THIS_DIR)/external/PEXSI/include/f_ppexsi_interface.mod
-	rm -f $(THIS_DIR)/external/PEXSI/src/f_ppexsi_interface.mod
+	cd $(PEXSI_DIR)/src && ${MAKE} -f Makefile.elsi cleanall
+	cd $(PEXSI_DIR)/fortran && ${MAKE} -f Makefile.elsi cleanall
+	rm -f $(PEXSI_DIR)/include/f_ppexsi_interface.mod
+	rm -f $(PEXSI_DIR)/src/f_ppexsi_interface.mod

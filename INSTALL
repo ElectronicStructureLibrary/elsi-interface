@@ -6,28 +6,30 @@ A) Install from zero: if you do not have any part of the ELSI package
    installed before, you may choose this way to build everything for you.
 #########################################################################
 
-1) Variables in the file "make.sys" control the process of installation.
-   Edit this file to match your platform/environment.
+1) The installation of ELSI is controlled by a "make.sys" file. Examples
+   can be found in "./SYS". Copy one of them to the root directory of
+   ELSI, then modify it to match your own system.
 
-1.1) GLOBAL
-   Set compilers, archive tools, and installation path of linear algebra
-   library, which will be used during the whole installation.
+   Keywords in "make.sys" are organized in the following blocks:
 
-1.2) ELSI
-   Set Fortran compiler flags.
+   1.1) GLOBAL
+      Set compilers, archive tools, and installation path of linear algebra
+      library, which will be used during the whole installation.
 
-1.3) ELPA
-   Set compiler flags, choose ELPA2 kernels, switch on/off OpenMP.
+   1.2) ELSI
+      Set Fortran compiler flags.
 
-1.4) libOMM
-   Set Fortran compiler flags.
+   1.3) ELPA
+      Set compiler flags, choose ELPA2 kernels, switch on/off OpenMP.
 
-1.5) PEXSI
-   Set compiler flags and installation paths of ParMetis/SuperLU_DIST.
+   1.4) libOMM
+      Set Fortran compiler flags.
 
-1.6) LINK
-   Since you do not have ELPA, libOMM, or PEXSI installed, please use
-   the default settings here.
+   1.5) PEXSI
+      Set compiler flags and installation paths of ParMetis/SuperLU_DIST.
+
+   1.6) LINK
+      Leave it blank, since you do not have ELPA, libOMM, or PEXSI installed.
 
 2) Make sure your "make.sys" is correctly configured.
 
@@ -52,15 +54,17 @@ B) If you already have some libraries of ELSI installed, you may choose
 
 1) Edit the file "make.sys".
 
-1.1) LINK
-   Set the directory and include/lib path of ELPA. Use the default
-   settings for libOMM and PEXSI.
+   1.1) GLOBAL & ELSI & libOMM & PEXSI
+      Same as described in A).
 
-1.2) GLOBAL & ELSI & libOMM & PEXSI
-   Same as described in A).
+   1.2) ELPA
+      Do nothing.
 
-1.3) ELPA
-   Do nothing.
+   1.3) LINK
+      Set the include/lib path of ELPA, e.g.
+
+      ELPA_DIR = /PATH/TO/ELPA
+      ELPA_LIB = -L/PATH/TO/ELPA/lib -lelpa -I/PATH/TO/ELPA
 
 2) Make sure your "make.sys" is correctly configured.
 

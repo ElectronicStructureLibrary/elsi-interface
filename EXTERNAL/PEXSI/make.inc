@@ -16,16 +16,14 @@ CP      = cp
 RM      = rm
 RMFLAGS = -f
 
-PEXSI_DIR = ${THIS_DIR}/external/PEXSI
-
 # Includes
-PEXSI_INCLUDE = -I${THIS_DIR}/external/PEXSI/include
+PEXSI_INCLUDE = -I${PEXSI_DIR}/include
 INCLUDES      = ${PEXSI_INCLUDE} ${SUPERLU_INCLUDE}
 
 # Libraries
 CPP_LIB       = -lstdc++ -lmpi #-lmpi_cxx
 SCALAPACK_LIB = $(SCALAPACK_LDFLAGS)
-PEXSI_LIB     = ${THIS_DIR}/external/PEXSI/lib/libpexsi.a
+PEXSI_LIB     = ${PEXSI_DIR}/lib/libpexsi.a
 
 # Different compiling and linking options
 ifeq (${COMPILE_MODE}, release)

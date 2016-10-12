@@ -5,6 +5,4 @@ make.sys
 ELSI/bin
 ELSI/doc/html
 ELSI/doc/latex
-external/PEXSI/fortran
-external/ELPA/.gitignore
-external/ELPA/.gitlab-ci.yml
+EXTERNAL/PEXSI/fortran

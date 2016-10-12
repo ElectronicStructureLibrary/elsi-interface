@@ -1,12 +1,10 @@
 # ====== GLOBAL ======
 
+THIS_DIR = $(shell pwd)
+
 MPIFC  = mpiifort
 MPICC  = mpicc
 MPICXX = mpicxx
-
-ARCH      = ar
-ARCHFLAGS = cr
-RANLIB    = ranlib
 
 SCALAPACK_LDFLAGS = -L/opt/intel/mkl/lib/intel64 -lmkl_scalapack_lp64 \
                     -lmkl_blacs_intelmpi_lp64 -lmkl_lapack95_lp64 \
@@ -34,9 +32,9 @@ FFLAGS_O = -O3
 
 # ====== PEXSI ======
 
-CXXFLAGS_P = -O3 -w
-CFLAGS_P   = -O3 -w
-FFLAGS_P   = -O3 -w
+CXXFLAGS_P = -O3
+CFLAGS_P   = -O3
+FFLAGS_P   = -O3
 
 METIS_LIB       = -L$(METIS_LIB_DIR) -lmetis
 PARMETIS_LIB    = -L$(PARMETIS_LIB_DIR) -lparmetis
@@ -44,23 +42,3 @@ SUPERLU_LIB     = -L$(SUPERLU_LIB_DIR) -lsuperlu
 SUPERLU_INCLUDE = -I$(SUPERLU_INCLUDE_DIR)
 
 # ====== LINK ======
-
-THIS_DIR   = $(shell pwd)
-ELPA_DIR   = $(THIS_DIR)/external/ELPA
-libOMM_DIR = $(THIS_DIR)/external/libOMM
-PEXSI_DIR  = $(THIS_DIR)/external/PEXSI
-
-ELPA  = -L$(ELPA_DIR)/lib -lelpa \
-        -I$(ELPA_DIR)/include/elpa/modules
-
-OMM   = -I$(libOMM_DIR)/build_libOMM/inlcude \
-        -I$(libOMM_DIR)/build_MatrixSwitch/include \
-        -I$(libOMM_DIR)/build_psp/include \
-        -L$(libOMM_DIR)/build_libOMM/lib -lOMM \
-        -L$(libOMM_DIR)/build_MatrixSwitch/lib -lMatrixSwitch \
-        -L$(libOMM_DIR)/build_psp/lib -lpspblas
-
-PEXSI = -I$(PEXSI_DIR)/include \
-        -I$(PEXSI_DIR)/include/pexsi \
-        -I$(PEXSI_DIR)/external/include \
-        -L$(PEXSI_DIR)/lib -lpexsi $(SUPERLU_LIB) $(PARMETIS_LIB) $(METIS_LIB)

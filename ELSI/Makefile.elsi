@@ -1,19 +1,19 @@
 all: elsi_interface.o
 
 elsi_interface.o: src/elsi_interface.f90 elsi_utils.o elsi_matrix_conversion.o elsi_timers.o elsi_dimensions.o
-	$(MPIFC) $(FFLAGS_I) -c $< $(ELPA) $(OMM) $(PEXSI) $(SCALAPACK_LDFLAGS)
+	$(MPIFC) $(FFLAGS_I) -c $< $(ELPA_LIB) $(OMM_LIB) $(PEXSI_LIB) $(SCALAPACK_LDFLAGS)
 
 elsi_utils.o: src/elsi_utils.f90 elsi_dimensions.o
-	$(MPIFC) $(FFLAGS_I) -c $< $(OMM) $(PEXSI) $(SCALAPACK_LDFLAGS)
+	$(MPIFC) $(FFLAGS_I) -c $< $(OMM_LIB) $(PEXSI_LIB) $(SCALAPACK_LDFLAGS)
 
 elsi_matrix_conversion.o: src/elsi_matrix_conversion.f90 elsi_utils.o elsi_dimensions.o
-	$(MPIFC) $(FFLAGS_I) -c $< $(PEXSI)
+	$(MPIFC) $(FFLAGS_I) -c $< $(PEXSI_LIB)
 
 elsi_timers.o: src/elsi_timers.f90 elsi_dimensions.o
-	$(MPIFC) $(FFLAGS_I) -c $< $(PEXSI)
+	$(MPIFC) $(FFLAGS_I) -c $< $(PEXSI_LIB)
 
 elsi_dimensions.o: src/elsi_dimensions.f90 
-	$(MPIFC) $(FFLAGS_I) -c $< $(PEXSI)
+	$(MPIFC) $(FFLAGS_I) -c $< $(PEXSI_LIB)
 
 clean:
 	rm -rf `find . -name "*.o"`

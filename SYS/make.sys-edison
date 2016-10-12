@@ -1,0 +1,35 @@
+# ====== GLOBAL ======
+
+THIS_DIR = /global/homes/v/vwzyu/elsi-devel
+
+MPIFC  = ftn
+MPICC  = cc
+MPICXX = CC
+
+# ====== ELSI ======
+
+FFLAGS_I = -fast -no-ipo -mkl=cluster -lstdc++ 
+
+# ====== ELPA ======
+
+FFLAGS_E = -fast -no-ipo -mkl=cluster
+
+ARCHITECTURE = Generic
+OPENMP = no
+
+# ====== libOMM ======
+
+FFLAGS_O   = -fast -no-ipo -mkl=cluster
+
+# ====== PEXSI ======
+
+CXXFLAGS_P = -fast -no-ipo -mkl=cluster
+CFLAGS_P   = -fast -no-ipo -mkl=cluster
+FFLAGS_P   = -fast -no-ipo -mkl=cluster
+
+METIS_LIB       = -L/global/homes/v/vwzyu/parmetis-4.0.3/lib -lmetis
+PARMETIS_LIB    = -L/global/homes/v/vwzyu/parmetis-4.0.3/lib -lparmetis
+SUPERLU_LIB     = -L/global/homes/v/vwzyu/SuperLU_DIST_4.3/lib -lsuperlu_dist_4.3
+SUPERLU_INCLUDE = -I/global/homes/v/vwzyu/SuperLU_DIST_4.3/SRC
+
+# ====== LINK ======

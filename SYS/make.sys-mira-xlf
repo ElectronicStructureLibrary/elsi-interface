@@ -1,13 +1,11 @@
 # ====== GLOBAL ======
 
+THIS_DIR = $(shell pwd)
+
 MPIFC  = mpixlf95_r
 MPICC  = mpixlc_r
 MPICXX = mpixlcxx_r
 XLF    = yes
-
-ARCH      = ar
-ARCHFLAGS = cr
-RANLIB    = ranlib
 
 SCALAPACK_LDFLAGS =
 SCALAPACK_FCFLAGS =
@@ -43,9 +41,9 @@ FFLAGS_O = ${FFLAGS_I}
 
 # ====== PEXSI ======
 
-CXXFLAGS_P = ${CXXFLAGS_E} -w
-CFLAGS_P   = ${CFLAGS_E} -w
-FFLAGS_P   = ${FFLAGS_I} -w
+CXXFLAGS_P = ${CXXFLAGS_E}
+CFLAGS_P   = ${CFLAGS_E}
+FFLAGS_P   = ${FFLAGS_I}
 
 METIS_LIB       = -L/gpfs/mira-home/wzvyu/parmetis-4.0.3/build/Linux-ppc64/libmetis -lmetis
 PARMETIS_LIB    = -L/gpfs/mira-home/wzvyu/parmetis-4.0.3/build/Linux-ppc64/libparmetis -lparmetis
@@ -53,23 +51,3 @@ SUPERLU_LIB     = -L/gpfs/mira-home/wzvyu/SuperLU_DIST_4.3/lib -lsuperlu
 SUPERLU_INCLUDE = -I/gpfs/mira-home/wzvyu/SuperLU_DIST_4.3/SRC
 
 # ====== LINK ======
-
-THIS_DIR   = $(shell pwd)
-ELPA_DIR   = $(THIS_DIR)/external/ELPA
-libOMM_DIR = $(THIS_DIR)/external/libOMM
-PEXSI_DIR  = $(THIS_DIR)/external/PEXSI
-
-ELPA  = -L$(ELPA_DIR)/lib -lelpa \
-        -I$(ELPA_DIR)/include/elpa/modules
-
-OMM   = -I$(libOMM_DIR)/build_libOMM/inlcude \
-        -I$(libOMM_DIR)/build_MatrixSwitch/include \
-        -I$(libOMM_DIR)/build_psp/include \
-        -L$(libOMM_DIR)/build_libOMM/lib -lOMM \
-        -L$(libOMM_DIR)/build_MatrixSwitch/lib -lMatrixSwitch \
-        -L$(libOMM_DIR)/build_psp/lib -lpspblas
-
-PEXSI = -I$(PEXSI_DIR)/include \
-        -I$(PEXSI_DIR)/include/pexsi \
-        -I$(PEXSI_DIR)/external/include \
-        -L$(PEXSI_DIR)/lib -lpexsi $(SUPERLU_LIB) $(PARMETIS_LIB) $(METIS_LIB)
