@@ -108,7 +108,7 @@ subroutine elsi_get_local_nnz(matrix, n_rows, n_cols, nnz)
 
    do i_col = 1, n_cols
       do i_row = 1, n_rows
-         if(abs(matrix(i_row,i_col)) > threshold) then
+         if(abs(matrix(i_row,i_col)) > zero_threshold) then
             nnz = nnz+1
          endif
       enddo
@@ -164,7 +164,7 @@ subroutine elsi_dense_to_ccs(matrix, n_rows, n_cols, nnz, val, row_ind, col_ptr)
    do i_col = 1, n_cols
       new_col = .true.
       do i_row = 1, n_rows
-         if(abs(matrix(i_row,i_col)) > threshold) then
+         if(abs(matrix(i_row,i_col)) > zero_threshold) then
             i_val = i_val+1
             if(new_col) then
                col_ptr(i_col) = i_val
@@ -308,7 +308,7 @@ subroutine elsi_2dbc_to_1db(matrix_in, matrix_out)
    ! Compute destination and global 1D id
    do i_col = 1, n_l_cols
       do i_row = 1, n_l_rows
-         if(abs(matrix_in(i_row,i_col)) > threshold) then
+         if(abs(matrix_in(i_row,i_col)) > zero_threshold) then
             i_val = i_val+1
             call elsi_get_global_col(global_col_id,i_col)
             call elsi_get_global_row(global_row_id,i_row)

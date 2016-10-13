@@ -89,7 +89,7 @@ module ELSI_DIMENSIONS
   integer :: nnz_g !< Global number of nonzeros
   integer :: nnz_l !< Local number of nonzeros
   integer :: nnz_l_pexsi !< Local number of nonzeros in PEXSI distribution
-  real*8, parameter :: threshold = 1.0d-15 !< Threshold to define numerical zero
+  real*8, parameter :: zero_threshold = 1d-13 !< Threshold to define numerical zero
 
   !> Overlap
   logical :: overlap_is_unity = .false. !< Is overlap matrix unity?
@@ -267,7 +267,7 @@ subroutine elsi_set_omm_default_options()
    !< Eigenspectrum shift parameter
    eta = 0d0
    !< Tolerance for minimization
-   min_tol = 1.0d-8
+   min_tol = 1d-8
    !< n_k_points * n_spin
    nk_times_nspin = 1
    !< Combined k_point spin index

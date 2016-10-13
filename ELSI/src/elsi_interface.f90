@@ -1578,7 +1578,7 @@ contains
      ! Compute destination and global 1D id
      do i_col = 1, n_l_cols
         do i_row = 1, n_l_rows
-           if(abs(H_in(i_row, i_col)) > threshold) then
+           if(abs(H_in(i_row, i_col)) > zero_threshold) then
               i_val = i_val + 1
               call elsi_get_global_col(global_col_id, i_col)
               call elsi_get_global_row(global_row_id, i_row)
