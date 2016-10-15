@@ -174,148 +174,148 @@ contains
 !>
 !! Set PEXSI variables to ELSI default.
 !!
-  subroutine elsi_set_pexsi_default_options()
+subroutine elsi_set_pexsi_default_options()
 
-     implicit none
-     include "mpif.h"
+   implicit none
+   include "mpif.h"
 
-     ! Use the PEXSI Default options
-     call f_ppexsi_set_default_options(pexsi_options)
+   ! Use the PEXSI Default options
+   call f_ppexsi_set_default_options(pexsi_options)
 
-     ! Use 1 process in ParMETIS for symbolic factorization
-     pexsi_options%npSymbFact = 1
+   ! Use 1 process in ParMETIS for symbolic factorization
+   pexsi_options%npSymbFact = 1
 
-  end subroutine
+end subroutine
 
 !>
 !! Print PEXSI settings.
 !!
-  subroutine elsi_print_pexsi_options()
+subroutine elsi_print_pexsi_options()
 
-     implicit none
-     include "mpif.h"
+   implicit none
+   include "mpif.h"
 
-     character(LEN=4096) :: string_message
+   character(LEN=4096) :: string_message
 
-     if(myid == 0) then
-        write(*,"(A)") "  PEXSI settings used in ELSI (in the same unit of Hamiltonian):"
+   if(myid == 0) then
+      write(*,"(A)") "  PEXSI settings used in ELSI (in the same unit of Hamiltonian):"
 
-        write(string_message, "(1X,' | Temperature ',F10.4)") &
-              pexsi_options%temperature
-        write(*,'(A)') trim(string_message)
+      write(string_message, "(1X,' | Temperature ',F10.4)") &
+            pexsi_options%temperature
+      write(*,'(A)') trim(string_message)
 
-        write(string_message, "(1X,' | Spectral gap ',F10.4)") &
-              pexsi_options%gap
-        write(*,'(A)') trim(string_message)
+      write(string_message, "(1X,' | Spectral gap ',F10.4)") &
+            pexsi_options%gap
+      write(*,'(A)') trim(string_message)
 
-        write(string_message, "(1X,' | Number of poles ',I5)") &
-              pexsi_options%numPole
-        write(*,'(A)') trim(string_message)
+      write(string_message, "(1X,' | Number of poles ',I5)") &
+            pexsi_options%numPole
+      write(*,'(A)') trim(string_message)
 
-        write(string_message, "(1X,' | Use inertia count? ',I2)") &
-              pexsi_options%isInertiaCount
-        write(*,'(A)') trim(string_message)
-      
-        write(string_message, "(1X,' | Max PEXSI iterations ',I5)") &
-              pexsi_options%maxPEXSIIter
-        write(*,'(A)') trim(string_message)
+      write(string_message, "(1X,' | Use inertia count? ',I2)") &
+            pexsi_options%isInertiaCount
+      write(*,'(A)') trim(string_message)
+    
+      write(string_message, "(1X,' | Max PEXSI iterations ',I5)") &
+            pexsi_options%maxPEXSIIter
+      write(*,'(A)') trim(string_message)
 
-        write(string_message, "(1X,' | Lower bound of chemical potential ',F10.4)") &
-              pexsi_options%muMin0
-        write(*,'(A)') trim(string_message)
+      write(string_message, "(1X,' | Lower bound of chemical potential ',F10.4)") &
+            pexsi_options%muMin0
+      write(*,'(A)') trim(string_message)
 
-        write(string_message, "(1X,' | Upper bound of chemical potential ',F10.4)") &
-              pexsi_options%muMax0
-        write(*,'(A)') trim(string_message)
+      write(string_message, "(1X,' | Upper bound of chemical potential ',F10.4)") &
+            pexsi_options%muMax0
+      write(*,'(A)') trim(string_message)
 
-        write(string_message, "(1X,' | Initial guess of chemical potential ',F10.4)") &
-              pexsi_options%mu0
-        write(*,'(A)') trim(string_message)
+      write(string_message, "(1X,' | Initial guess of chemical potential ',F10.4)") &
+            pexsi_options%mu0
+      write(*,'(A)') trim(string_message)
 
-        write(string_message, "(1X,' | Tolerance of chemical potential ',E10.1)") &
-              pexsi_options%muInertiaTolerance
-        write(*,'(A)') trim(string_message)
+      write(string_message, "(1X,' | Tolerance of chemical potential ',E10.1)") &
+            pexsi_options%muInertiaTolerance
+      write(*,'(A)') trim(string_message)
 
-        write(string_message, "(1X,' | Safeguard of chemical potential ',F10.4)") &
-              pexsi_options%muPexsiSafeGuard
-        write(*,'(A)') trim(string_message)
+      write(string_message, "(1X,' | Safeguard of chemical potential ',F10.4)") &
+            pexsi_options%muPexsiSafeGuard
+      write(*,'(A)') trim(string_message)
 
-        write(string_message, "(1X,' | Tolerance of number of electrons ',E10.1)") &
-              pexsi_options%numElectronPEXSITolerance
-        write(*,'(A)') trim(string_message)
-     endif
+      write(string_message, "(1X,' | Tolerance of number of electrons ',E10.1)") &
+            pexsi_options%numElectronPEXSITolerance
+      write(*,'(A)') trim(string_message)
+   endif
 
-  end subroutine
+end subroutine
 
 !>
 !! Set OMM variables to ELSI default.
 !!
-  subroutine elsi_set_omm_default_options()
+subroutine elsi_set_omm_default_options()
 
-     implicit none
-     include "mpif.h"
+   implicit none
+   include "mpif.h"
 
-     !< How do we perform the calculation
-     !! 0 = Basic
-     !! 1 = Cholesky factorisation of S requested
-     !! 2 = Cholesky already performed, U is provided in S
-     !! 3 = Use preconditioning based on the energy density
-     omm_flavour = 2
-     !< Scaling of the kinetic energy matrix
-     scale_kinetic = 5d0
-     !< Calculate the energy weighted density matrix
-     calc_ed = .false.
-     !< Eigenspectrum shift parameter
-     eta = 0d0
-     !< Tolerance for minimization
-     min_tol = 1d-8
-     !< n_k_points * n_spin
-     nk_times_nspin = 1
-     !< Combined k_point spin index
-     i_k_spin = 1
-     omm_verbose = .true.
-     do_dealloc = .false.
+   !< How do we perform the calculation
+   !! 0 = Basic
+   !! 1 = Cholesky factorisation of S requested
+   !! 2 = Cholesky already performed, U is provided in S
+   !! 3 = Use preconditioning based on the energy density
+   omm_flavour = 2
+   !< Scaling of the kinetic energy matrix
+   scale_kinetic = 5d0
+   !< Calculate the energy weighted density matrix
+   calc_ed = .false.
+   !< Eigenspectrum shift parameter
+   eta = 0d0
+   !< Tolerance for minimization
+   min_tol = 1d-8
+   !< n_k_points * n_spin
+   nk_times_nspin = 1
+   !< Combined k_point spin index
+   i_k_spin = 1
+   omm_verbose = .true.
+   do_dealloc = .false.
 
-  end subroutine
+end subroutine
 
 !>
 !! Print OMM settings.
 !!
-  subroutine elsi_print_omm_options()
+subroutine elsi_print_omm_options()
 
-     implicit none
-     include "mpif.h"
+   implicit none
+   include "mpif.h"
 
-     character(LEN=4096) :: string_message
+   character(LEN=4096) :: string_message
 
-     if(myid == 0) then
-        write(*,"(A)") "  OMM settings used in ELSI: "
+   if(myid == 0) then
+      write(*,"(A)") "  OMM settings used in ELSI: "
 
-        write(string_message, "(1X,' | Eta (H) ',F10.4)") eta
-        write(*,'(A)') trim(string_message)
+      write(string_message, "(1X,' | Eta (H) ',F10.4)") eta
+      write(*,'(A)') trim(string_message)
 
-        write(string_message, "(1X,' | Kinetic scaling (H) ',F10.4)") scale_kinetic
-        write(*,'(A)') trim(string_message)
+      write(string_message, "(1X,' | Kinetic scaling (H) ',F10.4)") scale_kinetic
+      write(*,'(A)') trim(string_message)
 
-        write(string_message, "(1X,' | Tolerance (H) ',E10.1)") min_tol
-        write(*,'(A)') trim(string_message)
+      write(string_message, "(1X,' | Tolerance (H) ',E10.1)") min_tol
+      write(*,'(A)') trim(string_message)
 
-        write(string_message, "(1X,' | OMM Flavour ',I1)") omm_flavour
-        write(*,'(A)') trim(string_message)
+      write(string_message, "(1X,' | OMM Flavour ',I1)") omm_flavour
+      write(*,'(A)') trim(string_message)
 
-        write(string_message, "(1X,' | Energy weighted densigy matrix? ',L1)") calc_ed
-        write(*,'(A)') trim(string_message)
+      write(string_message, "(1X,' | Energy weighted densigy matrix? ',L1)") calc_ed
+      write(*,'(A)') trim(string_message)
 
-        write(string_message, "(1X,' | Dealloc?  ',L1)") do_dealloc
-        write(*,'(A)') trim(string_message)
+      write(string_message, "(1X,' | Dealloc?  ',L1)") do_dealloc
+      write(*,'(A)') trim(string_message)
 
-        write(string_message, "(1X,' | k points x spin ',I1)") nk_times_nspin
-        write(*,'(A)') trim(string_message)
+      write(string_message, "(1X,' | k points x spin ',I1)") nk_times_nspin
+      write(*,'(A)') trim(string_message)
 
-        write(string_message, "(1X,' | index ',I1)") i_k_spin
-        write(*,'(A)') trim(string_message)
-     endif
+      write(string_message, "(1X,' | index ',I1)") i_k_spin
+      write(*,'(A)') trim(string_message)
+   endif
 
-  end subroutine
+end subroutine
 
 end module ELSI_DIMENSIONS

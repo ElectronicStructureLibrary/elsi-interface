@@ -112,6 +112,8 @@ subroutine elsi_print_timers()
          write(*,"('  | Method                              : ',A13)") "PEXSI"
       endif
       write(*,"('  |-------------------------------------------------------')")
+      write(*,"('  | ELSI Project (c)  elsi-interchange.org                ')")
+      write(*,"('  |-------------------------------------------------------')")
    endif
 
 end subroutine
@@ -123,7 +125,7 @@ subroutine elsi_get_time(wtime)
 
    implicit none
    real*8, intent(out) :: wtime
-   
+ 
    integer :: tics
 
    call system_clock(tics)
