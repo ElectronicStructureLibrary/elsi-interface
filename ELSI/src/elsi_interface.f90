@@ -1347,12 +1347,12 @@ contains
         select case (mode)
            case (COMPLEX_VALUES)
               ! Compute S = (U^T)U, U -> S
-              success = elpa_cholesky_complex_double(n_g_size, S_omm%zval, n_l_rows, n_b_rows, n_l_cols, &
-                                    mpi_comm_row, mpi_comm_col, .false.)
+              success = elpa_cholesky_complex_double(n_g_size, S_omm%zval, n_l_rows, n_b_rows, &
+                                                     n_l_cols, mpi_comm_row, mpi_comm_col, .false.)
            case (REAL_VALUES)
               ! Compute S = (U^T)U, U -> S
-              success = elpa_cholesky_real_double(n_g_size, S_omm%dval, n_l_rows, n_b_rows, n_l_cols, &
-                                 mpi_comm_row, mpi_comm_col, .false.)
+              success = elpa_cholesky_real_double(n_g_size, S_omm%dval, n_l_rows, n_b_rows, &
+                                                  n_l_cols, mpi_comm_row, mpi_comm_col, .false.)
         end select
      else
         new_overlap = .false.
@@ -1464,24 +1464,21 @@ contains
      if(method == PEXSI) then
         if(mod(n_procs,pexsi_options%numPole) == 0) then
            call elsi_statement_print(" PEXSI parallel over poles.")
-           n_procs_inv_pexsi = n_procs/pexsi_options%numPole
            if(myid == 0) &
               write(*,"(A,I13)") "  | Number of MPI tasks per pole: ", &
-                    n_procs_inv_pexsi
+                    n_procs/pexsi_options%numPole
         else
-           call elsi_statement_print(" PEXSI not parallel over poles. Better"//&
-                                     " performance is expected with pole"//&
-                                     " parallelization. Try to make number"//&
-                                     " of CPUs a multiple of number of poles.")
-           n_procs_inv_pexsi = n_procs
+           call elsi_statement_print(" PEXSI not parallel over poles.")
+           call elsi_statement_print(" High performance is expected with pole parallelization.")
+           call elsi_statement_print(" Make number of CPUs a multiple of number of poles if possible.")
         endif
 
         ! Set square-like process grid for inversion
-        do n_p_rows_pexsi = NINT(SQRT(REAL(n_procs_inv_pexsi))),2,-1
-           if(mod(n_procs_inv_pexsi,n_p_rows_pexsi) == 0) exit
+        do n_p_rows_pexsi = NINT(SQRT(REAL(n_procs))),2,-1
+           if(mod(n_procs,n_p_rows_pexsi) == 0) exit
         enddo
 
-        n_p_cols_pexsi = n_procs_inv_pexsi/n_p_rows_pexsi
+        n_p_cols_pexsi = n_procs/n_p_rows_pexsi
 
         ! position in process grid must not be used
         my_p_col_pexsi = -1
