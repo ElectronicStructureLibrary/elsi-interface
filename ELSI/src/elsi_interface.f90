@@ -1463,22 +1463,23 @@ contains
 
      if(method == PEXSI) then
         if(mod(n_procs,pexsi_options%numPole) == 0) then
+           n_p_per_pole_pexsi = n_procs/pexsi_options%numPole
            call elsi_statement_print(" PEXSI parallel over poles.")
            if(myid == 0) &
               write(*,"(A,I13)") "  | Number of MPI tasks per pole: ", &
-                    n_procs/pexsi_options%numPole
+                    n_p_per_pole_pexsi
         else
            call elsi_statement_print(" PEXSI not parallel over poles.")
-           call elsi_statement_print(" High performance is expected with pole parallelization.")
-           call elsi_statement_print(" Make number of CPUs a multiple of number of poles if possible.")
+           call elsi_statement_print(" High performance is expected with number of"//&
+                                     " MPI tasks being a multiple of number of poles.")
         endif
 
-        ! Set square-like process grid for inversion
-        do n_p_rows_pexsi = NINT(SQRT(REAL(n_procs))),2,-1
-           if(mod(n_procs,n_p_rows_pexsi) == 0) exit
+        ! Set square-like process grid for selected inversion of each pole
+        do n_p_rows_pexsi = NINT(SQRT(REAL(n_p_per_pole_pexsi))),2,-1
+           if(mod(n_p_per_pole_pexsi,n_p_rows_pexsi) == 0) exit
         enddo
 
-        n_p_cols_pexsi = n_procs/n_p_rows_pexsi
+        n_p_cols_pexsi = n_p_per_pole_pexsi/n_p_rows_pexsi
 
         ! position in process grid must not be used
         my_p_col_pexsi = -1
@@ -1503,8 +1504,12 @@ contains
            pexsi_output_file_index = -1
         endif
 
-        pexsi_plan = f_ppexsi_plan_initialize(mpi_comm_global,n_p_rows_pexsi,&
-                        n_p_cols_pexsi,pexsi_output_file_index,pexsi_info)
+! FIXME: PEXSI 2-level parallelism
+!        pexsi_plan = f_ppexsi_plan_initialize(mpi_comm_global,n_p_rows_pexsi,&
+!                        n_p_cols_pexsi,pexsi_output_file_index,pexsi_info)
+
+        pexsi_plan = f_ppexsi_plan_initialize(mpi_comm_global,1,1,&
+                                              pexsi_output_file_index,pexsi_info)
 
         if(pexsi_info /= 0) &
            call elsi_stop(" PEXSI plan initialization failed. Exiting...",caller)
@@ -1902,12 +1907,12 @@ contains
 
      ! Load sparse matrices for PEXSI
      if(overlap_is_unity) then
-        call f_ppexsi_load_real_symmetric_hs_matrix(pexsi_plan, pexsi_options,&
-                n_g_size, nnz_g, nnz_l_pexsi, n_l_cols_pexsi, col_ptr_pexsi,&
+        call f_ppexsi_load_real_symmetric_hs_matrix(pexsi_plan, pexsi_options, &
+                n_g_size, nnz_g, nnz_l_pexsi, n_l_cols_pexsi, col_ptr_pexsi, &
                 row_ind_pexsi, H_real_pexsi, 1, S_real_pexsi, pexsi_info)
      else
-        call f_ppexsi_load_real_symmetric_hs_matrix(pexsi_plan, pexsi_options,&
-                n_g_size, nnz_g, nnz_l_pexsi, n_l_cols_pexsi, col_ptr_pexsi,&
+        call f_ppexsi_load_real_symmetric_hs_matrix(pexsi_plan, pexsi_options, &
+                n_g_size, nnz_g, nnz_l_pexsi, n_l_cols_pexsi, col_ptr_pexsi, &
                 row_ind_pexsi, H_real_pexsi, 0, S_real_pexsi, pexsi_info)
      endif
 
@@ -1917,8 +1922,8 @@ contains
      ! Solve the eigenvalue problem
      call elsi_statement_print(" Launch PEXSI DFT driver ")
 
-     call f_ppexsi_dft_driver(pexsi_plan, pexsi_options, n_electrons, mu_pexsi,&
-                              n_electrons_pexsi, mu_min_inertia, mu_max_inertia,&
+     call f_ppexsi_dft_driver(pexsi_plan, pexsi_options, n_electrons, mu_pexsi, &
+                              n_electrons_pexsi, mu_min_inertia, mu_max_inertia, &
                               n_total_inertia_iter, n_total_pexsi_iter, pexsi_info)
          
      if(pexsi_info /= 0) &
@@ -1935,7 +1940,7 @@ contains
      endif
 
      ! Get the results
-     call f_ppexsi_retrieve_real_symmetric_dft_matrix(pexsi_plan, D_pexsi, ED_pexsi, FD_pexsi,&
+     call f_ppexsi_retrieve_real_symmetric_dft_matrix(pexsi_plan, D_pexsi, ED_pexsi, FD_pexsi, &
                                                       e_tot_H, e_tot_S, f_tot, pexsi_info)
 
      if(pexsi_info /= 0) &
