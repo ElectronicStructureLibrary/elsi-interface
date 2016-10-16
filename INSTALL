@@ -7,7 +7,7 @@ A) Install from zero: if you do not have any part of the ELSI package
 #########################################################################
 
 1) The installation of ELSI is controlled by a "make.sys" file. Examples
-   can be found in "./SYS". Copy one of them to the root directory of
+   can be found in "./MAKE_SYS". Copy one of them to the root directory of
    ELSI, then modify it to match your own system.
 
    Keywords in "make.sys" are organized in the following blocks:
