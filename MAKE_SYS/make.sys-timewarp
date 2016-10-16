@@ -43,6 +43,7 @@ SUPERLU_INCLUDE = -I/home/wy29/yu/SuperLU_DIST_4.3/SRC
 
 # ====== LINK ======
 
-#ELPA_DIR = /home/wy29/ELPA/elpa_gpu
-#ELPA_LIB = -L$(ELPA_DIR)/lib -lelpa\
-#           -I$(ELPA_DIR)/include/elpa-2016.05.003/modules
+#USER_ELPA = yes
+#ELPA_DIR  = /home/wy29/ELPA/elpa_gpu
+#ELPA_LIB  = -L$(ELPA_DIR)/lib -lelpa\
+#            -I$(ELPA_DIR)/include/elpa-2016.05.003/modules
