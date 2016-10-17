@@ -204,8 +204,13 @@ subroutine elsi_statement_print(message)
 
    character(len=*), intent(in) :: message
 
-   if(myid == 0) print *, trim(message)
-   call MPI_Barrier(mpi_comm_global,mpierr)
+   character(len=4096) :: string_message
+   integer :: i_task
+
+   if(myid == 0) then
+      write(string_message, '(A)') trim(message)
+      write(*,'(A)') trim(string_message)
+   endif
 
 end subroutine
 
@@ -421,7 +426,7 @@ subroutine elsi_stop(message, caller)
    character(len=*), intent(in) :: message
    character(len=*), intent(in) :: caller
 
-   character(LEN=4096) :: string_message
+   character(len=4096) :: string_message
    integer :: i_task
 
    do i_task = 0, n_procs - 1

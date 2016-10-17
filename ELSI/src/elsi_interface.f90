@@ -43,6 +43,9 @@ module ELSI
    implicit none
    private
 
+   ! ELSI
+   integer, save :: n_elsi_calls = 0
+
    ! Pointers
    !< Real Hamiltonian
    real*8, pointer     :: H_real(:,:)
@@ -567,6 +570,8 @@ contains
      call MPI_BARRIER(mpi_comm_global, mpierr)
 
      call elsi_deallocate_matrices()
+
+     n_elsi_calls = 0
 
      call elsi_print_timers()
 
@@ -1466,10 +1471,14 @@ contains
               write(*,"(A,I13)") "  | Number of MPI tasks per pole: ", &
                     n_p_per_pole_pexsi
         else
-           call elsi_statement_print(" PEXSI not parallel over poles.")
-           call elsi_statement_print(" High performance is expected with number of"//&
-                                     " MPI tasks being a multiple of number of poles.")
+           n_p_per_pole_pexsi = n_procs
+           call elsi_statement_print(" PEXSI not parallel over poles. High performance"//&
+                                     " is expected with number of MPI tasks being a"//&
+                                     " multiple of number of poles.")
         endif
+
+        ! FIXME: PEXSI 2-level parallelism doesn't work
+        n_p_per_pole_pexsi = n_procs
 
         ! Set square-like process grid for selected inversion of each pole
         do n_p_rows_pexsi = NINT(SQRT(REAL(n_p_per_pole_pexsi))),2,-1
@@ -1501,12 +1510,8 @@ contains
            pexsi_output_file_index = -1
         endif
 
-! FIXME: PEXSI 2-level parallelism
-!        pexsi_plan = f_ppexsi_plan_initialize(mpi_comm_global,n_p_rows_pexsi,&
-!                        n_p_cols_pexsi,pexsi_output_file_index,pexsi_info)
-
-        pexsi_plan = f_ppexsi_plan_initialize(mpi_comm_global,1,1,&
-                                              pexsi_output_file_index,pexsi_info)
+        pexsi_plan = f_ppexsi_plan_initialize(mpi_comm_global,n_p_rows_pexsi,&
+                        n_p_cols_pexsi,pexsi_output_file_index,pexsi_info)
 
         if(pexsi_info /= 0) &
            call elsi_stop(" PEXSI plan initialization failed. Exiting...",caller)
@@ -2125,7 +2130,7 @@ contains
 !>
 !! This routine computes eigenvalues and eigenvectors.
 !!
-  subroutine elsi_ev_real(H_in, S_in, e_val_out, e_vec_out, need_cholesky)
+  subroutine elsi_ev_real(H_in, S_in, e_val_out, e_vec_out)
 
      implicit none
 
@@ -2133,9 +2138,19 @@ contains
      real*8, target, intent(in) :: S_in(n_l_rows,n_l_cols)      !< Overlap
      real*8, intent(out)        :: e_val_out(n_states)          !< Eigenvalues
      real*8, intent(out)        :: e_vec_out(n_l_rows,n_l_cols) !< Eigenvectors
-     logical, intent(inout)     :: need_cholesky                !< Cholesky factorize overlap?
 
+     logical :: need_cholesky ! Cholesky factorize overlap?
      character*40, parameter :: caller = "elsi_ev_real"
+
+     ! Update counter
+     n_elsi_call = n_elsi_call+1
+
+     ! Chelesky factorization only once
+     if(n_elsi_call == 1) then
+        need_cholesky = .true.
+     else
+        need_cholesky = .false.
+     endif
 
      ! Here the only supported method is ELPA
      select case (method)
@@ -2170,14 +2185,12 @@ contains
                           " Exiting...", caller)
      end select
 
-     need_cholesky = .false.
-
   end subroutine ! elsi_ev_real
 
 !>
 !! This routine computes eigenvalues and eigenvectors.
 !!
-  subroutine elsi_ev_complex(H_in, S_in, e_val_out, e_vec_out, need_cholesky)
+  subroutine elsi_ev_complex(H_in, S_in, e_val_out, e_vec_out)
 
      implicit none
 
@@ -2185,9 +2198,19 @@ contains
      complex*16, target, intent(in) :: S_in(n_l_rows,n_l_cols)      !< Overlap
      real*8, intent(out)            :: e_val_out(n_states)          !< Eigenvalues
      complex*16, intent(out)        :: e_vec_out(n_l_rows,n_l_cols) !< Eigenvectors
-     logical, intent(inout)         :: need_cholesky                !< Cholesky factorize Overlap?
 
+     logical :: need_cholesky ! Cholesky factorize overlap?
      character*40, parameter :: caller = "elsi_ev_complex"
+
+     ! Update counter
+     n_elsi_call = n_elsi_call+1
+
+     ! Chelesky factorization only once
+     if(n_elsi_call == 1) then
+        need_cholesky = .true.
+     else
+        need_cholesky = .false.
+     endif
 
      ! Here the only supported method is ELPA
      select case (method)
@@ -2222,15 +2245,12 @@ contains
                           " Exiting...", caller)
      end select
 
-     need_cholesky = .false.
-
   end subroutine ! elsi_ev_complex
 
 !>
 !! This routine computes density matrix.
 !!
-  subroutine elsi_dm_real(H_in, S_in, D_out, energy_out, &
-                          need_cholesky, broadening_in, width_in)
+  subroutine elsi_dm_real(H_in, S_in, D_out, energy_out, broadening_in, width_in)
 
      implicit none
 
@@ -2238,11 +2258,21 @@ contains
      real*8,  target, intent(in)   :: S_in(n_l_rows,n_l_cols)  !< Overlap
      real*8,  intent(out)          :: D_out(n_l_rows,n_l_cols) !< Density matrix
      real*8,  intent(out)          :: energy_out               !< Energy
-     logical, intent(inout)        :: need_cholesky            !< Cholesky factorize overlap?
      integer, intent(in), optional :: broadening_in            !< (For ELPA) Occupation broadening scheme
      real*8,  intent(in), optional :: width_in                 !< (For ELPA) Occupation broadening width
 
+     logical :: need_cholesky ! Cholesky factorize overlap?
      character*40, parameter :: caller = "elsi_dm_real"
+
+     ! Update counter
+     n_elsi_call = n_elsi_call+1
+
+     ! Chelesky factorization only once
+     if(n_elsi_call == 1) then
+        need_cholesky = .true.
+     else
+        need_cholesky = .false.
+     endif
 
      ! REAL case
      call elsi_set_mode(REAL_VALUES)
@@ -2330,15 +2360,12 @@ contains
                           " Exiting...", caller)
      end select
 
-     need_cholesky = .false.
-
   end subroutine ! elsi_dm_real
 
 !>
 !! This routine computes density matrix.
 !!
-  subroutine elsi_dm_complex(H_in, S_in, D_out, energy_out, &
-                             need_cholesky, broadening_in, width_in)
+  subroutine elsi_dm_complex(H_in, S_in, D_out, energy_out, broadening_in, width_in)
 
      implicit none
 
@@ -2346,11 +2373,24 @@ contains
      complex*16, target, intent(in) :: S_in(n_l_rows, n_l_cols)  !< Overlap
      real*8, intent(out)            :: D_out(n_l_rows, n_l_cols) !< Density matrix
      real*8, intent(out)            :: energy_out                !< Energy
-     logical, intent(inout)         :: need_cholesky             !< Cholesky factorize overlap?
      integer, intent(in), optional  :: broadening_in             !< (For ELPA) Occupation broadening scheme
      real*8, intent(in), optional   :: width_in                  !< (For ELPA) Occupation broadening width
 
+     logical :: need_cholesky ! Cholesky factorize overlap?
      character*40, parameter :: caller = "elsi_dm_complex"
+
+     call elsi_stop(" ELSI density matrix solver for complex case not yet available."//&
+                    " Exiting...", caller)
+
+     ! Update counter
+     n_elsi_call = n_elsi_call+1
+
+     ! Chelesky factorization only once
+     if(n_elsi_call == 1) then
+        need_cholesky = .true.
+     else
+        need_cholesky = .false.
+     endif
 
      ! COMPLEX case
      call elsi_set_mode(COMPLEX_VALUES)
@@ -2418,8 +2458,6 @@ contains
            call elsi_stop(" No supported method has been chosen. "//&
                           " Exiting...", caller)
      end select
-
-     need_cholesky = .false.
 
   end subroutine ! elsi_dm_complex
 
