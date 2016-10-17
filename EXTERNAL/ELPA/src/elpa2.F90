@@ -289,8 +289,8 @@ contains
         useGPU = .true.
       endif
       if (nblk .ne. 128) then
-        print *,"At the moment GPU version needs blocksize 128"
-        error stop
+        print *, "At the moment GPU version needs blocksize 128"
+        stop
       endif
 
       ! set the neccessary parameters
@@ -957,8 +957,8 @@ function solve_evp_complex_2stage_single(na, nev, a, lda, ev, q, ldq, nblk, &
         useGPU=.true.
       endif
       if (nblk .ne. 128) then
-        print *,"At the moment GPU version needs blocksize 128"
-        error stop
+        print *, "At the moment GPU version needs blocksize 128"
+        stop
       endif
 
       ! set the neccessary parameters
