@@ -1391,12 +1391,13 @@ contains
 !>
 !! This routine overrides libOMM default settings.
 !!
-  subroutine elsi_customize_omm(scale_kinetic_in, calc_ed_in, eta_in,&
-                                min_tol_in, nk_times_nspin_in, i_k_spin_in,&
+  subroutine elsi_customize_omm(n_elpa_steps_in, scale_kinetic_in, calc_ed_in, &
+                                eta_in, min_tol_in, nk_times_nspin_in, i_k_spin_in, &
                                 omm_verbose_in, do_dealloc_in)
 
      implicit none
 
+     integer, intent(in), optional :: n_elpa_steps_in
      real*8,  intent(in), optional :: scale_kinetic_in
      logical, intent(in), optional :: calc_ed_in
      real*8,  intent(in), optional :: eta_in
@@ -1410,6 +1411,8 @@ contains
         ! Set default settings
         call elsi_set_omm_default_options()
 
+        ! Number of ELPA steps
+        if(present(n_elpa_steps_in)) n_elpa_steps = n_elpa_steps_in
         ! Scaling of kinetic energy matrix
         if(present(scale_kinetic_in)) scale_kinetic = scale_kinetic_in
         ! Calculate energy weigthed density matrix?
@@ -1424,14 +1427,8 @@ contains
               final_omm_tol = min_tol_in
            endif
         endif
-        ! n_k_points * n_spin
-        if(present(nk_times_nspin_in)) nk_times_nspin = nk_times_nspin_in
-        ! Index
-        if(present(i_k_spin_in)) i_k_spin = i_k_spin_in
         ! OMM output?
         if(present(omm_verbose_in)) omm_verbose = omm_verbose_in
-        ! Deallocate internal storage?
-        if(present(do_dealloc_in)) do_dealloc = do_dealloc_in
 
         omm_customized = .true.
         call elsi_print_omm_options()

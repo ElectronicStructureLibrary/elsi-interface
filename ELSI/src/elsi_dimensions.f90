@@ -113,6 +113,7 @@ module ELSI_DIMENSIONS
    logical :: omm_customized = .false. !< Has elsi_customize_omm been called?
    logical :: small_omm_tol = .false. !< Is user-specified OMM tolerance smaller than default?
    real*8  :: final_omm_tol = 1d-8
+   integer :: n_elpa_steps !< Use ELPA eigenvectors as initial guess for OMM
    logical :: new_overlap !< Is a new overlap matrix provided?
    logical :: C_matrix_initialized !< Is coefficient matrix initialized?
    real*8  :: total_energy !< Energy of the system
@@ -255,6 +256,8 @@ subroutine elsi_set_omm_default_options()
    implicit none
    include "mpif.h"
 
+   !< How many steps of ELPA to run before OMM
+   n_elpa_steps = 3
    !< How do we perform the calculation
    !! 0 = Basic
    !! 1 = Cholesky factorisation of S requested
@@ -291,6 +294,9 @@ subroutine elsi_print_omm_options()
    if(myid == 0) then
       write(*,"(A)") "  OMM settings used in ELSI: "
 
+      write(string_message, "(1X,' | ELPA steps before OMM ',I1)") n_elpa_steps
+      write(*,'(A)') trim(string_message)
+
       write(string_message, "(1X,' | Eta (H) ',F10.4)") eta
       write(*,'(A)') trim(string_message)
 
@@ -304,15 +310,6 @@ subroutine elsi_print_omm_options()
       write(*,'(A)') trim(string_message)
 
       write(string_message, "(1X,' | Energy weighted densigy matrix? ',L1)") calc_ed
-      write(*,'(A)') trim(string_message)
-
-      write(string_message, "(1X,' | Dealloc?  ',L1)") do_dealloc
-      write(*,'(A)') trim(string_message)
-
-      write(string_message, "(1X,' | k points x spin ',I1)") nk_times_nspin
-      write(*,'(A)') trim(string_message)
-
-      write(string_message, "(1X,' | index ',I1)") i_k_spin
       write(*,'(A)') trim(string_message)
    endif
 
