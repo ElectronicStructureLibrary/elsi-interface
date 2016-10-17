@@ -2143,10 +2143,10 @@ contains
      character*40, parameter :: caller = "elsi_ev_real"
 
      ! Update counter
-     n_elsi_call = n_elsi_call+1
+     n_elsi_calls = n_elsi_calls+1
 
      ! Chelesky factorization only once
-     if(n_elsi_call == 1) then
+     if(n_elsi_calls == 1) then
         need_cholesky = .true.
      else
         need_cholesky = .false.
@@ -2203,10 +2203,10 @@ contains
      character*40, parameter :: caller = "elsi_ev_complex"
 
      ! Update counter
-     n_elsi_call = n_elsi_call+1
+     n_elsi_calls = n_elsi_calls+1
 
      ! Chelesky factorization only once
-     if(n_elsi_call == 1) then
+     if(n_elsi_calls == 1) then
         need_cholesky = .true.
      else
         need_cholesky = .false.
@@ -2265,10 +2265,10 @@ contains
      character*40, parameter :: caller = "elsi_dm_real"
 
      ! Update counter
-     n_elsi_call = n_elsi_call+1
+     n_elsi_calls = n_elsi_calls+1
 
      ! Chelesky factorization only once
-     if(n_elsi_call == 1) then
+     if(n_elsi_calls == 1) then
         need_cholesky = .true.
      else
         need_cholesky = .false.
@@ -2383,10 +2383,10 @@ contains
                     " Exiting...", caller)
 
      ! Update counter
-     n_elsi_call = n_elsi_call+1
+     n_elsi_calls = n_elsi_calls+1
 
      ! Chelesky factorization only once
-     if(n_elsi_call == 1) then
+     if(n_elsi_calls == 1) then
         need_cholesky = .true.
      else
         need_cholesky = .false.
