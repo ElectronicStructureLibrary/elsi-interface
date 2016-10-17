@@ -88,7 +88,7 @@ endif
 TEST_SHARED_O = util.o blacs_infrastructure.o check_correctnes.o prepare_matrix.o read_input_parameters.o setup_mpi.o
 COMPUTE_MODULES_O = aligned_mem.o mod_compute_hh_trafo_complex.o mod_compute_hh_trafo_real.o mod_pack_unpack_complex.o mod_pack_unpack_real.o mod_single_hh_trafo_real.o
 ELPA_QR_O = elpa_pdgeqrf.o elpa_pdlarfb.o elpa_qrkernels.o qr_utils.o
-ELPA1_O = elpa1.o elpa_utilities.o elpa1_auxiliary.o elpa1_compute_private.o
+ELPA1_O = elpa1.o elpa_utilities.o elpa1_auxiliary.o elpa1_compute_private.o mod_precision.o
 ELPA2_O = elpa2.o elpa2_utilities.o elpa2_compute.o $(COMPUTE_MODULES_O) $(ELPA2_KERNELS_O)
 
 all: $(TEST_PROGRAMS) elpa_c_interface.o

@@ -73,10 +73,10 @@ module mod_setup_mpi
       call mpi_init_thread(required_mpi_thread_level,     &
                            provided_mpi_thread_level, mpierr)
 
-      if (required_mpi_thread_level .ne. provided_mpi_thread_level) then
-        write(error_unit,*) "MPI ERROR: MPI_THREAD_MULTIPLE is not provided on this system"
-        write(error_unit,*) "           only ", mpi_thread_level_name(provided_mpi_thread_level), " is available"
-        call exit(77)
+      if(required_mpi_thread_level .ne. provided_mpi_thread_level) then
+         write(error_unit,*) "MPI ERROR: MPI_THREAD_MULTIPLE is not provided on this system"
+         write(error_unit,*) "           only ", mpi_thread_level_name(provided_mpi_thread_level), " is available"
+         call exit(77)
       endif
 
 #endif
@@ -85,8 +85,9 @@ module mod_setup_mpi
       call mpi_comm_size(mpi_comm_world,nprocs,mpierr)
 
 #ifdef WITH_MPI
-      if (nprocs <= 1) then
-        error stop "The test programs must be run with more than 1 task to ensure that usage with MPI is actually tested"
+      if(nprocs <= 1) then
+         write(error_unit,*) "This test program must be run with more than 1 task to test MPI"
+         stop
       endif
 #endif
 
