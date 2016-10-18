@@ -2031,8 +2031,11 @@ contains
 
         ! Initial guess of mu
         ! default: 0.0
-        if(present(mu0_in)) &
-           pexsi_options%mu0 = mu0_in
+        ! From the second step, initial guess is from previous step
+        if(n_elsi_calls == 0) then
+           if(present(mu0_in)) &
+              pexsi_options%mu0 = mu0_in
+        endif
 
         ! Stopping criterion in terms of the chemical potential
         ! for the inertia counting procedure

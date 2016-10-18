@@ -140,7 +140,7 @@ module ELSI_DIMENSIONS
    type(f_ppexsi_options) :: pexsi_options
    integer(c_int)         :: pexsi_info
    integer(c_int)         :: pexsi_output_file_index
-   real(c_double)         :: mu_pexsi
+   real(c_double)         :: mu_pexsi = 0d0
    real(c_double)         :: n_electrons_pexsi
    real(c_double)         :: mu_min_inertia
    real(c_double)         :: mu_max_inertia
@@ -183,6 +183,8 @@ subroutine elsi_set_pexsi_default_options()
    ! Use the PEXSI Default options
    call f_ppexsi_set_default_options(pexsi_options)
 
+   ! Use chemical potential in previous step as initial guess
+   pexsi_options%mu0 = mu_pexsi
    ! Use 1 process in ParMETIS for symbolic factorization
    pexsi_options%npSymbFact = 1
 
