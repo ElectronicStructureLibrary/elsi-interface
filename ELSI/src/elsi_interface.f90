@@ -1022,13 +1022,12 @@ contains
 !!
 !! On exit, (U^-1) is stored in S, to be used for back-transformation
 !!
-  subroutine elsi_to_standard_evp(cholesky)
+  subroutine elsi_to_standard_evp()
 
-     logical, intent(in) :: cholesky !< If .true. factorize Overlap
 
-     logical :: success                              !< Success flag
-     real*8,     allocatable :: buffer_real (:,:)    !< Real valued matrix buffer
-     complex*16, allocatable :: buffer_complex (:,:) !< Complex valued matrix buffer
+     logical :: success
+     real*8, allocatable :: buffer_real (:,:)
+     complex*16, allocatable :: buffer_complex (:,:)
 
      character*40, parameter :: caller = "elsi_to_standard_evp"
 
@@ -1039,20 +1038,18 @@ contains
                  call elsi_allocate(buffer_complex, n_l_rows, n_l_cols, &
                                     "buffer_complex", caller)
 
-                 if(cholesky) then
+                 if(n_elsi_calls == 1) then
                     call elsi_statement_print(" Starting Cholesty decomposition")
                     ! Compute S = (U^T)U, U -> S
                     success = elpa_cholesky_complex_double(n_g_size, S_complex, n_l_rows, &
-                                          n_b_rows, n_l_cols, mpi_comm_row, &
-                                          mpi_comm_col, .false.)
+                                 n_b_rows, n_l_cols, mpi_comm_row, mpi_comm_col, .false.)
                     if(.not.success) then
                        call elsi_stop("Cholesky decomposition failed.", caller)
                     endif
 
                     ! compute U^-1 -> S
-                    success =  elpa_invert_trm_complex_double(n_g_size, S_complex, n_l_rows, &
-                                            n_b_rows, n_l_cols, mpi_comm_row, &
-                                            mpi_comm_col, .false.)
+                    success = elpa_invert_trm_complex_double(n_g_size, S_complex, n_l_rows, &
+                                 n_b_rows, n_l_cols, mpi_comm_row, mpi_comm_col, .false.)
                     if(.not.success) then
                        call elsi_stop("Matrix invertion failed.", caller)
                     endif
@@ -1080,20 +1077,18 @@ contains
                  call elsi_allocate(buffer_real, n_l_rows, n_l_cols, &
                                     "buffer_real", caller)
 
-                 if(cholesky) then
+                 if(n_elsi_calls == 1) then
                     call elsi_statement_print(" Starting Cholesty decomposition")
                     ! Compute S = (U^T)U, U -> S
                     success = elpa_cholesky_real_double(n_g_size, S_real, n_l_rows, &
-                                       n_b_rows, n_l_cols, mpi_comm_row, &
-                                       mpi_comm_col, .false.)
+                                 n_b_rows, n_l_cols, mpi_comm_row, mpi_comm_col, .false.)
                     if(.not.success) then
                        call elsi_stop("Cholesky decomposition failed.", caller)
                     endif
 
                     ! compute U^-1 -> S
                     success = elpa_invert_trm_real_double(n_g_size, S_real, n_l_rows, &
-                                         n_b_rows, n_l_cols, mpi_comm_row, &
-                                         mpi_comm_col, .false.)
+                                 n_b_rows, n_l_cols, mpi_comm_row, mpi_comm_col, .false.)
                     if(.not.success) then
                        call elsi_stop("Matrix invertion failed.", caller)
                     endif
@@ -1141,8 +1136,8 @@ contains
 !!
   subroutine elsi_to_original_ev()
 
-     real*8, allocatable     :: buffer_real(:,:)     !< Real valued matrix buffer
-     complex*16, allocatable :: buffer_complex (:,:) !< Complex valued matrix buffer
+     real*8, allocatable :: buffer_real(:,:)
+     complex*16, allocatable :: buffer_complex(:,:)
 
      character*40, parameter :: caller = "elsi_to_original_ev"
 
@@ -1200,12 +1195,10 @@ contains
 !>
 !! This routine interfaces to ELPA.
 !!
-  subroutine elsi_solve_evp_elpa(cholesky)
+  subroutine elsi_solve_evp_elpa()
 
      implicit none
      include "mpif.h"
-
-     logical, intent(in) :: cholesky !< Cholesky factorize overlap?
 
      logical :: success
      logical :: two_step_solver
@@ -1236,7 +1229,7 @@ contains
      ! Transform to standard form
      if(.not. overlap_is_unity) then
         call elsi_statement_print(" Tansforming to standard evp")
-        call elsi_to_standard_evp(cholesky)
+        call elsi_to_standard_evp()
      endif
 
      ! Solve evp, return eigenvalues and eigenvectors
@@ -1244,27 +1237,25 @@ contains
         call elsi_statement_print(" Starting ELPA 2-stage solver")
         select case (mode)
            case (COMPLEX_VALUES)
-              success = solve_evp_complex_2stage_double(n_g_size, n_states, &
-                           H_complex, n_l_rows, eigenvalues, &
-                           C_complex, n_l_rows, n_b_rows, n_l_cols, &
-                           mpi_comm_row, mpi_comm_col, mpi_comm_global)
+              success = solve_evp_complex_2stage_double(n_g_size, n_states, H_complex, &
+                           n_l_rows, eigenvalues, C_complex, n_l_rows, n_b_rows, &
+                           n_l_cols, mpi_comm_row, mpi_comm_col, mpi_comm_global)
            case (REAL_VALUES)
               success = solve_evp_real_2stage_double(n_g_size, n_states, H_real, &
-                           n_l_rows, eigenvalues, C_real, n_l_rows, &
-                           n_b_rows, n_l_cols, mpi_comm_row, mpi_comm_col, &
-                           mpi_comm_global)
+                           n_l_rows, eigenvalues, C_real, n_l_rows, n_b_rows, &
+                           n_l_cols, mpi_comm_row, mpi_comm_col, mpi_comm_global)
         end select
      else ! 1-stage solver
         call elsi_statement_print(" Starting ELPA 1-stage solver")
         select case (mode)
            case (COMPLEX_VALUES)
               success = solve_evp_complex_1stage_double(n_g_size, n_states, H_complex, &
-                           n_l_rows, eigenvalues, C_complex, n_l_rows, &
-                           n_b_rows, n_l_cols, mpi_comm_row, mpi_comm_col)
+                           n_l_rows, eigenvalues, C_complex, n_l_rows, n_b_rows, &
+                           n_l_cols, mpi_comm_row, mpi_comm_col)
            case (REAL_VALUES)
               success = solve_evp_real_1stage_double(n_g_size, n_states, H_real, &
-                           n_l_rows, eigenvalues, C_real, n_l_rows, &
-                           n_b_rows, n_l_cols, mpi_comm_row, mpi_comm_col)
+                           n_l_rows, eigenvalues, C_real, n_l_rows, n_b_rows, &
+                           n_l_cols, mpi_comm_row, mpi_comm_col)
         end select
      endif
 
@@ -1318,24 +1309,17 @@ contains
 !>
 !! This routine interfaces to libOMM.
 !!
-  subroutine elsi_solve_evp_omm(cholesky)
+  subroutine elsi_solve_evp_omm()
 
      implicit none
      include "mpif.h"
 
-     logical, intent(in) :: cholesky !< Cholesky factorize overlap?
-
      real*8, save :: this_omm_tol = 1d-8
-
+     logical, save :: first_call = .true.
      logical :: success
      character*40, parameter :: caller = "elsi_solve_evp_omm"
 
      call elsi_start_solve_evp_time()
-
-     if(.not.omm_customized) then
-        call elsi_set_omm_default_options()
-        call elsi_print_omm_options()
-     endif
 
      if(small_omm_tol) then
         min_tol = this_omm_tol
@@ -1344,10 +1328,8 @@ contains
                  this_omm_tol
      endif
 
-     if(cholesky) then
-        new_overlap = .true.
+     if(n_elsi_calls == 1) then
         C_matrix_initialized = .false.
-
         ! Cholesky
         select case (mode)
            case (COMPLEX_VALUES)
@@ -1360,8 +1342,25 @@ contains
                                                   n_l_cols, mpi_comm_row, mpi_comm_col, .false.)
         end select
      else
-        new_overlap = .false.
         C_matrix_initialized = .true.
+     endif
+
+     if(first_call) then
+        new_overlap = .true.
+     else
+        new_overlap = .false.
+     endif
+
+     if(n_elpa_steps > 0 .and. n_elsi_calls == n_elpa_steps+1) then
+        ! Invert U^(-1), which is used in ELPA cholesky and stored in S, to get U for OMM
+        select case (mode)
+           case (COMPLEX_VALUES)
+              success = elpa_invert_trm_complex_double(n_g_size, S_omm%zval, n_l_rows, n_b_rows, &
+                                                       n_l_cols, mpi_comm_row, mpi_comm_col, .false.)
+           case (REAL_VALUES)
+              success = elpa_invert_trm_real_double(n_g_size, S_omm%dval, n_l_rows, n_b_rows, &
+                                                    n_l_cols, mpi_comm_row, mpi_comm_col, .false.)
+        end select
      endif
 
      ! Shift eigenvalue spectrum
@@ -1387,6 +1386,8 @@ contains
            this_omm_tol = final_omm_tol
         endif
      endif
+
+     first_call = .false.
 
      call MPI_BARRIER(mpi_comm_global, mpierr)
      call elsi_stop_solve_evp_time()
@@ -1457,11 +1458,6 @@ contains
      include "mpif.h"
 
      character*40, parameter :: caller = "elsi_init_pexsi"
-
-     if(.not.pexsi_customized) then
-        call elsi_set_pexsi_default_options()
-        call elsi_print_pexsi_options()
-     endif
 
      if(method == PEXSI) then
         if(mod(n_procs,pexsi_options%numPole) == 0) then
@@ -2139,18 +2135,10 @@ contains
      real*8, intent(out)        :: e_val_out(n_states)          !< Eigenvalues
      real*8, intent(out)        :: e_vec_out(n_l_rows,n_l_cols) !< Eigenvectors
 
-     logical :: need_cholesky ! Cholesky factorize overlap?
      character*40, parameter :: caller = "elsi_ev_real"
 
      ! Update counter
      n_elsi_calls = n_elsi_calls+1
-
-     ! Chelesky factorization only once
-     if(n_elsi_calls == 1) then
-        need_cholesky = .true.
-     else
-        need_cholesky = .false.
-     endif
 
      ! Here the only supported method is ELPA
      select case (method)
@@ -2166,7 +2154,7 @@ contains
            call elsi_set_overlap(S_in)
 
            ! Solve eigenvalue problem
-           call elsi_solve_evp_elpa(need_cholesky)
+           call elsi_solve_evp_elpa()
            call elsi_get_eigenvalues(e_val_out)
            call elsi_get_eigenvectors(e_vec_out)
 
@@ -2199,18 +2187,10 @@ contains
      real*8, intent(out)            :: e_val_out(n_states)          !< Eigenvalues
      complex*16, intent(out)        :: e_vec_out(n_l_rows,n_l_cols) !< Eigenvectors
 
-     logical :: need_cholesky ! Cholesky factorize overlap?
      character*40, parameter :: caller = "elsi_ev_complex"
 
      ! Update counter
      n_elsi_calls = n_elsi_calls+1
-
-     ! Chelesky factorization only once
-     if(n_elsi_calls == 1) then
-        need_cholesky = .true.
-     else
-        need_cholesky = .false.
-     endif
 
      ! Here the only supported method is ELPA
      select case (method)
@@ -2226,7 +2206,7 @@ contains
            call elsi_set_overlap(S_in)
 
            ! Solve eigenvalue problem
-           call elsi_solve_evp_elpa(need_cholesky)
+           call elsi_solve_evp_elpa()
            call elsi_get_eigenvalues(e_val_out)
            call elsi_get_eigenvectors(e_vec_out)
 
@@ -2261,18 +2241,10 @@ contains
      integer, intent(in), optional :: broadening_in            !< (For ELPA) Occupation broadening scheme
      real*8,  intent(in), optional :: width_in                 !< (For ELPA) Occupation broadening width
 
-     logical :: need_cholesky ! Cholesky factorize overlap?
      character*40, parameter :: caller = "elsi_dm_real"
 
      ! Update counter
      n_elsi_calls = n_elsi_calls+1
-
-     ! Chelesky factorization only once
-     if(n_elsi_calls == 1) then
-        need_cholesky = .true.
-     else
-        need_cholesky = .false.
-     endif
 
      ! REAL case
      call elsi_set_mode(REAL_VALUES)
@@ -2300,7 +2272,7 @@ contains
            call elsi_set_hamiltonian(H_in)
            call elsi_set_overlap(S_in)
 
-           call elsi_solve_evp_elpa(need_cholesky)
+           call elsi_solve_evp_elpa()
 
            call elsi_compute_occ_elpa()
            call elsi_compute_dm_elpa(D_out)
@@ -2314,18 +2286,71 @@ contains
                              " system cannot be odd. Exiting...", caller)
            endif
 
-           ! Set Hamiltonian and overlap matrices
-           call elsi_set_hamiltonian(H_in)
-           call elsi_set_overlap(S_in)
+           if(.not.omm_customized) then
+              call elsi_set_omm_default_options()
+              call elsi_print_omm_options()
+           endif
 
-           call elsi_solve_evp_omm(need_cholesky)
-           call elsi_get_dm(D_out)
-           call elsi_get_energy(energy_out)
+           if(n_elsi_calls .le. n_elpa_steps) then ! Compute OMM initial guess by ELPA
+              call elsi_set_method(ELPA)
+              ! Broadening type and width are not critical here
+              broadening_type = 0 ! Gaussian
+              broadening_width = 0.01
+
+              ! Allocate ELPA matrices
+              call elsi_allocate_matrices()
+
+              ! Set Hamiltonian and overlap matrices
+              call elsi_set_hamiltonian(H_in)
+              call elsi_set_overlap(S_in)
+
+              ! Solve by ELPA
+              call elsi_solve_evp_elpa()
+              call elsi_compute_occ_elpa()
+              call elsi_compute_dm_elpa(D_out)
+              call elsi_get_energy(energy_out)
+
+              ! Switch back to OMM here to guarantee elsi_customize_omm
+              call elsi_set_method(LIBOMM)
+
+           else ! ELPA is done
+              ! Set Hamiltonian and overlap matrices
+              call elsi_set_hamiltonian(H_in)
+              call elsi_set_overlap(S_in)
+
+              ! Initialize coefficient matrix with ELPA eigenvectors if possible
+              if(n_elpa_steps > 0 .and. n_elsi_calls == n_elpa_steps+1) then
+                 ! H_real is used for temporary storage here
+                 H_real = C_real
+                 ! OMM coefficient matrix is the transpose of ELPA eigenvectors
+                 call pdtran(n_g_size,n_g_size,1d0,H_real,1,1,sc_desc,0d0,C_real,1,1,sc_desc)
+
+                 Coeff_omm%dval(1:Coeff_omm%iaux2(1),1:Coeff_omm%iaux2(2)) = &
+                    C_real(1:Coeff_omm%iaux2(1),1:Coeff_omm%iaux2(2))
+
+                 ! ELPA matrices are no longer needed at this point
+                 if(allocated(C_real))      deallocate(C_real)
+                 if(allocated(eigenvalues)) deallocate(eigenvalues)
+                 if(allocated(D_elpa))      deallocate(D_elpa)
+                 if(allocated(occ_elpa))    deallocate(occ_elpa)
+              endif
+
+              ! Continue the computation using OMM
+              call elsi_solve_evp_omm()
+
+              call elsi_get_dm(D_out)
+              call elsi_get_energy(energy_out)
+           endif
 
         case (PEXSI)
            if(n_g_size < n_procs) then
               call elsi_stop(" The (global) size of matrix is too small for"//&
                              " this number of processes. Exiting...", caller)
+           endif
+
+           if(.not.pexsi_customized) then
+              call elsi_set_pexsi_default_options()
+              call elsi_print_pexsi_options()
            endif
 
            ! PEXSI may use different process grid to achieve
@@ -2376,7 +2401,6 @@ contains
      integer, intent(in), optional  :: broadening_in             !< (For ELPA) Occupation broadening scheme
      real*8, intent(in), optional   :: width_in                  !< (For ELPA) Occupation broadening width
 
-     logical :: need_cholesky ! Cholesky factorize overlap?
      character*40, parameter :: caller = "elsi_dm_complex"
 
      call elsi_stop(" ELSI density matrix solver for complex case not yet available."//&
@@ -2384,13 +2408,6 @@ contains
 
      ! Update counter
      n_elsi_calls = n_elsi_calls+1
-
-     ! Chelesky factorization only once
-     if(n_elsi_calls == 1) then
-        need_cholesky = .true.
-     else
-        need_cholesky = .false.
-     endif
 
      ! COMPLEX case
      call elsi_set_mode(COMPLEX_VALUES)
@@ -2422,7 +2439,7 @@ contains
            call elsi_set_hamiltonian(H_in)
            call elsi_set_overlap(S_in)
 
-           call elsi_solve_evp_elpa(need_cholesky)
+           call elsi_solve_evp_elpa()
 
            call elsi_compute_occ_elpa()
            call elsi_compute_dm_elpa(D_out)
@@ -2436,11 +2453,16 @@ contains
                              " system cannot be odd. Exiting...", caller)
            endif
 
+           if(.not.omm_customized) then
+              call elsi_set_omm_default_options()
+              call elsi_print_omm_options()
+           endif
+
            ! Set Hamiltonian and overlap matrices
            call elsi_set_hamiltonian(H_in)
            call elsi_set_overlap(S_in)
 
-           call elsi_solve_evp_omm(need_cholesky)
+           call elsi_solve_evp_omm()
            call elsi_get_dm(D_out)
            call elsi_get_energy(energy_out)
 
@@ -2448,6 +2470,11 @@ contains
            if(n_g_size < n_procs) then
               call elsi_stop(" The (global) size of matrix is too small for"//&
                              " this number of processes. Exiting...", caller)
+           endif
+
+           if(.not.pexsi_customized) then
+              call elsi_set_pexsi_default_options()
+              call elsi_print_pexsi_options()
            endif
 
            call elsi_stop(" PEXSI not yet implemented. Exiting...", caller)

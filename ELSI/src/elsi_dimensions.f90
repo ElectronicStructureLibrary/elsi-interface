@@ -257,7 +257,7 @@ subroutine elsi_set_omm_default_options()
    include "mpif.h"
 
    !< How many steps of ELPA to run before OMM
-   n_elpa_steps = 3
+   n_elpa_steps = 0
    !< How do we perform the calculation
    !! 0 = Basic
    !! 1 = Cholesky factorisation of S requested
