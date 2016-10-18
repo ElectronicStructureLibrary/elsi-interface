@@ -112,7 +112,7 @@ module ELSI_DIMENSIONS
    !> OMM
    logical :: omm_customized = .false. !< Has elsi_customize_omm been called?
    logical :: small_omm_tol = .false. !< Is user-specified OMM tolerance smaller than default?
-   real*8  :: final_omm_tol = 1d-8
+   real*8  :: final_omm_tol = 1d-8 !< Default final OMM tolerance
    integer :: n_elpa_steps !< Use ELPA eigenvectors as initial guess for OMM
    logical :: new_overlap !< Is a new overlap matrix provided?
    logical :: C_matrix_initialized !< Is coefficient matrix initialized?
@@ -135,15 +135,16 @@ module ELSI_DIMENSIONS
    !> PEXSI
    logical                :: pexsi_customized = .false. !< Has elsi_customize_pexsi been called?
    logical                :: small_pexsi_tol = .false. !< Is user-specified PEXSI tolerance smaller than default?
-   real(c_double)         :: final_pexsi_tol = 1d-2
+   real(c_double)         :: final_pexsi_tol = 1d-2 !< Default final PEXSI tolerance
+   integer(c_int)         :: n_inertia_steps !< Number of steps to perform inertia counting
    integer(c_intptr_t)    :: pexsi_plan
    type(f_ppexsi_options) :: pexsi_options
    integer(c_int)         :: pexsi_info
    integer(c_int)         :: pexsi_output_file_index
-   real(c_double)         :: mu_pexsi = 0d0
-   real(c_double)         :: n_electrons_pexsi
-   real(c_double)         :: mu_min_inertia
-   real(c_double)         :: mu_max_inertia
+   real(c_double)         :: mu_pexsi = 0d0 !< Chemical potential computed by PEXSI
+   real(c_double)         :: n_electrons_pexsi !< Number of electrons computed by PEXSI
+   real(c_double)         :: mu_min_inertia 
+   real(c_double)         :: mu_max_inertia 
    integer(c_int)         :: n_total_inertia_iter
    integer(c_int)         :: n_total_pexsi_iter
    real(c_double)         :: e_tot_h
@@ -183,6 +184,8 @@ subroutine elsi_set_pexsi_default_options()
    ! Use the PEXSI Default options
    call f_ppexsi_set_default_options(pexsi_options)
 
+   ! How many steps to perform inertia counting?
+   n_inertia_steps = 3
    ! Use chemical potential in previous step as initial guess
    pexsi_options%mu0 = mu_pexsi
    ! Use 1 process in ParMETIS for symbolic factorization
@@ -203,6 +206,10 @@ subroutine elsi_print_pexsi_options()
    if(myid == 0) then
       write(*,"(A)") "  PEXSI settings used in ELSI (in the same unit of Hamiltonian):"
 
+      write(string_message, "(1X,' | Inertia counting steps ',I5)") &
+            n_inertia_steps
+      write(*,'(A)') trim(string_message)
+
       write(string_message, "(1X,' | Temperature ',F10.4)") &
             pexsi_options%temperature
       write(*,'(A)') trim(string_message)
@@ -215,10 +222,6 @@ subroutine elsi_print_pexsi_options()
             pexsi_options%numPole
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,' | Use inertia count? ',I2)") &
-            pexsi_options%isInertiaCount
-      write(*,'(A)') trim(string_message)
-    
       write(string_message, "(1X,' | Max PEXSI iterations ',I5)") &
             pexsi_options%maxPEXSIIter
       write(*,'(A)') trim(string_message)
@@ -278,7 +281,9 @@ subroutine elsi_set_omm_default_options()
    nk_times_nspin = 1
    !< Combined k_point spin index
    i_k_spin = 1
+   !< Output level?
    omm_verbose = .true.
+   !< Deallocate temporary arrays?
    do_dealloc = .false.
 
 end subroutine

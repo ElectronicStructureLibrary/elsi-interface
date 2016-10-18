@@ -1039,19 +1039,19 @@ contains
                                     "buffer_complex", caller)
 
                  if(n_elsi_calls == 1) then
-                    call elsi_statement_print(" Starting Cholesty decomposition")
+                    call elsi_statement_print("  Starting Cholesty decomposition")
                     ! Compute S = (U^T)U, U -> S
                     success = elpa_cholesky_complex_double(n_g_size, S_complex, n_l_rows, &
                                  n_b_rows, n_l_cols, mpi_comm_row, mpi_comm_col, .false.)
                     if(.not.success) then
-                       call elsi_stop("Cholesky decomposition failed.", caller)
+                       call elsi_stop(" Cholesky decomposition failed.", caller)
                     endif
 
                     ! compute U^-1 -> S
                     success = elpa_invert_trm_complex_double(n_g_size, S_complex, n_l_rows, &
                                  n_b_rows, n_l_cols, mpi_comm_row, mpi_comm_col, .false.)
                     if(.not.success) then
-                       call elsi_stop("Matrix invertion failed.", caller)
+                       call elsi_stop(" Matrix invertion failed.", caller)
                     endif
                  endif
 
@@ -1078,19 +1078,19 @@ contains
                                     "buffer_real", caller)
 
                  if(n_elsi_calls == 1) then
-                    call elsi_statement_print(" Starting Cholesty decomposition")
+                    call elsi_statement_print("  Starting Cholesty decomposition")
                     ! Compute S = (U^T)U, U -> S
                     success = elpa_cholesky_real_double(n_g_size, S_real, n_l_rows, &
                                  n_b_rows, n_l_cols, mpi_comm_row, mpi_comm_col, .false.)
                     if(.not.success) then
-                       call elsi_stop("Cholesky decomposition failed.", caller)
+                       call elsi_stop(" Cholesky decomposition failed.", caller)
                     endif
 
                     ! compute U^-1 -> S
                     success = elpa_invert_trm_real_double(n_g_size, S_real, n_l_rows, &
                                  n_b_rows, n_l_cols, mpi_comm_row, mpi_comm_col, .false.)
                     if(.not.success) then
-                       call elsi_stop("Matrix invertion failed.", caller)
+                       call elsi_stop(" Matrix invertion failed.", caller)
                     endif
                  endif
 
@@ -1228,13 +1228,13 @@ contains
 
      ! Transform to standard form
      if(.not. overlap_is_unity) then
-        call elsi_statement_print(" Tansforming to standard evp")
+        call elsi_statement_print("  Tansforming to standard evp")
         call elsi_to_standard_evp()
      endif
 
      ! Solve evp, return eigenvalues and eigenvectors
      if(two_step_solver) then ! 2-stage solver
-        call elsi_statement_print(" Starting ELPA 2-stage solver")
+        call elsi_statement_print("  Starting ELPA 2-stage solver")
         select case (mode)
            case (COMPLEX_VALUES)
               success = solve_evp_complex_2stage_double(n_g_size, n_states, H_complex, &
@@ -1246,7 +1246,7 @@ contains
                            n_l_cols, mpi_comm_row, mpi_comm_col, mpi_comm_global)
         end select
      else ! 1-stage solver
-        call elsi_statement_print(" Starting ELPA 1-stage solver")
+        call elsi_statement_print("  Starting ELPA 1-stage solver")
         select case (mode)
            case (COMPLEX_VALUES)
               success = solve_evp_complex_1stage_double(n_g_size, n_states, H_complex, &
@@ -1266,7 +1266,7 @@ contains
 
      ! Back-transform eigenvectors
      if(.not. overlap_is_unity) then
-        call elsi_statement_print(" Transforming to original eigenvectors")
+        call elsi_statement_print("  Transforming to original eigenvectors")
         call elsi_to_original_ev()
      endif
 
@@ -1296,7 +1296,7 @@ contains
            elpa_two_always = .false.
         endif
      else
-        call elsi_statement_print(" The chosen method is not ELPA."//&
+        call elsi_statement_print("  The chosen method is not ELPA."//&
                                   " Ignore elsi_customize_elpa call.")
      endif
 
@@ -1439,7 +1439,7 @@ contains
         omm_customized = .true.
         call elsi_print_omm_options()
      else
-        call elsi_statement_print(" The chosen method is not OMM."//&
+        call elsi_statement_print("  The chosen method is not OMM."//&
                                   " Ignore elsi_customize_omm call.")
      endif
 
@@ -1462,13 +1462,13 @@ contains
      if(method == PEXSI) then
         if(mod(n_procs,pexsi_options%numPole) == 0) then
            n_p_per_pole_pexsi = n_procs/pexsi_options%numPole
-           call elsi_statement_print(" PEXSI parallel over poles.")
+           call elsi_statement_print("  PEXSI parallel over poles.")
            if(myid == 0) &
               write(*,"(A,I13)") "  | Number of MPI tasks per pole: ", &
                     n_p_per_pole_pexsi
         else
            n_p_per_pole_pexsi = n_procs
-           call elsi_statement_print(" PEXSI not parallel over poles. High performance"//&
+           call elsi_statement_print("  PEXSI not parallel over poles. High performance"//&
                                      " is expected with number of MPI tasks being a"//&
                                      " multiple of number of poles.")
         endif
@@ -1560,7 +1560,7 @@ contains
      character*40, parameter :: caller = "elsi_2dbcd_to_1dbccs_hs_pexsi"
 
      call elsi_start_2dbc_to_1dccs_time()
-     call elsi_statement_print(" Matrix conversion: 2D block-cyclic dense ==> 1D block CCS sparse")
+     call elsi_statement_print("  Matrix conversion: 2D block-cyclic dense ==> 1D block CCS sparse")
 
      send_count = 0
      send_displ = 0
@@ -1763,7 +1763,7 @@ contains
      character*40, parameter :: caller = "elsi_1dbccs_to_2dbcd_dm_pexsi"
 
      call elsi_start_1dccs_to_2dbc_time()
-     call elsi_statement_print(" Matrix conversion: 1D block CCS sparse ==> 2D block-cyclic dense")
+     call elsi_statement_print("  Matrix conversion: 1D block CCS sparse ==> 2D block-cyclic dense")
 
      send_count = 0
      send_displ = 0
@@ -1917,8 +1917,15 @@ contains
      if(pexsi_info /= 0) &
         call elsi_stop(" PEXSI not able to load H/S matrix. Exiting...", caller)
 
+     ! Inertia counting is only performed in the first few steps
+     if(n_elsi_calls > n_inertia_steps) then
+        pexsi_options%isInertiaCount = 0
+     else
+        pexsi_options%isInertiaCount = 1
+     endif
+
      ! Solve the eigenvalue problem
-     call elsi_statement_print(" Launch PEXSI DFT driver ")
+     call elsi_statement_print("  Launch PEXSI DFT driver ")
 
      call f_ppexsi_dft_driver(pexsi_plan, pexsi_options, n_electrons, mu_pexsi, &
                               n_electrons_pexsi, mu_min_inertia, mu_max_inertia, &
@@ -1953,7 +1960,7 @@ contains
 !! This routine overrides PEXSI default settings.
 !!
   subroutine elsi_customize_pexsi(temperature_in, gap_in, delta_E_in, n_poles_in, &
-                                  is_inertia_count_in, max_iteration_in, mu_min_in, &
+                                  n_inertia_steps_in, max_iteration_in, mu_min_in, &
                                   mu_max_in, mu0_in, mu_inertia_tolerance_in, &
                                   mu_inertia_expansion_in, mu_safeguard_in, &
                                   n_electron_tolerance_in, matrix_type_in, &
@@ -1967,7 +1974,7 @@ contains
      real(c_double), intent(in), optional :: gap_in
      real(c_double), intent(in), optional :: delta_E_in
      integer(c_int), intent(in), optional :: n_poles_in
-     integer(c_int), intent(in), optional :: is_inertia_count_in
+     integer(c_int), intent(in), optional :: n_inertia_steps_in
      integer(c_int), intent(in), optional :: max_iteration_in
      real(c_double), intent(in), optional :: mu_min_in
      real(c_double), intent(in), optional :: mu_max_in
@@ -2008,16 +2015,24 @@ contains
         if(present(n_poles_in)) &
            pexsi_options%numPole = n_poles_in
 
-        ! Whether inertia counting is used at the very beginning
-        ! default: 1
-        if(present(is_inertia_count_in)) &
-           pexsi_options%isInertiaCount = is_inertia_count_in
+        ! Number of steps to perform inertia counting
+        ! default: 3
+        if(present(n_inertia_steps_in)) &
+           n_inertia_steps = n_inertia_steps_in
 
         ! Maximum number of PEXSI iterations after each inertia
         ! counting procedure
         ! default: 3
         if(present(max_iteration_in)) &
            pexsi_options%maxPEXSIIter = max_iteration_in
+
+        ! From the second step, initial guess of mu is from previous step
+        if(n_elsi_calls == 0) then
+           ! Initial guess of mu
+           ! default: 0.0
+           if(present(mu0_in)) &
+              pexsi_options%mu0 = mu0_in
+        endif
 
         ! Initial guess of lower bound for mu
         ! default: -10.0
@@ -2028,14 +2043,6 @@ contains
         ! default: 10.0
         if(present(mu_max_in)) &
            pexsi_options%muMax0 = mu_max_in
-
-        ! Initial guess of mu
-        ! default: 0.0
-        ! From the second step, initial guess is from previous step
-        if(n_elsi_calls == 0) then
-           if(present(mu0_in)) &
-              pexsi_options%mu0 = mu0_in
-        endif
 
         ! Stopping criterion in terms of the chemical potential
         ! for the inertia counting procedure
@@ -2116,7 +2123,7 @@ contains
         pexsi_customized = .true.
         call elsi_print_pexsi_options()
      else
-        call elsi_statement_print(" The chosen method is not PEXSI."//&
+        call elsi_statement_print("  The chosen method is not PEXSI."//&
                                   " Ignore elsi_customize_pexsi call.")
      endif
 
@@ -2162,17 +2169,17 @@ contains
            call elsi_get_eigenvectors(e_vec_out)
 
         case (LIBOMM)
-           call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors. "//&
+           call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
                           " Choose ELPA if necessary. Exiting...", caller)
         case (PEXSI)
-           call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors. "//&
+           call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
                           " Choose ELPA if necessary. Exiting...", caller)
         case (CHESS)
-           call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors. "//&
+           call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
                           " Choose ELPA if necessary. Exiting...", caller)
         case DEFAULT
-           call elsi_stop(" No supported method has been chosen. "//&
-                          " Please choose ELPA to compute eigenpairs. "//&
+           call elsi_stop(" No supported method has been chosen."//&
+                          " Please choose ELPA to compute eigenpairs."//&
                           " Exiting...", caller)
      end select
 
@@ -2214,17 +2221,17 @@ contains
            call elsi_get_eigenvectors(e_vec_out)
 
         case (LIBOMM)
-           call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors. "//&
+           call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
                           " Choose ELPA if necessary. Exiting...", caller)
         case (PEXSI)
-           call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors. "//&
+           call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
                           " Choose ELPA if necessary. Exiting...", caller)
         case (CHESS)
-           call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors. "//&
+           call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
                           " Choose ELPA if necessary. Exiting...", caller)
         case DEFAULT
-           call elsi_stop(" No supported method has been chosen. "//&
-                          " Please choose ELPA to compute eigenpairs. "//&
+           call elsi_stop(" No supported method has been chosen."//&
+                          " Please choose ELPA to compute eigenpairs."//&
                           " Exiting...", caller)
      end select
 
@@ -2263,11 +2270,11 @@ contains
                  broadening_type = broadening_in
                  broadening_width = width_in
               else
-                 call elsi_stop(" ELPA is chosen to compute density matrix. "//&
+                 call elsi_stop(" ELPA is chosen to compute density matrix."//&
                                 " Please specify broadening width! Exiting...", caller)
               endif
            else
-              call elsi_stop(" ELPA is chosen to compute density matrix. "//&
+              call elsi_stop(" ELPA is chosen to compute density matrix."//&
                              " Please specify broadening type! Exiting...", caller)
            endif
 
@@ -2384,7 +2391,7 @@ contains
         case (CHESS)
            call elsi_stop(" CHESS not yet implemented. Exiting...", caller)
         case default
-           call elsi_stop(" No supported method has been chosen. "//&
+           call elsi_stop(" No supported method has been chosen."//&
                           " Exiting...", caller)
      end select
 
@@ -2430,11 +2437,11 @@ contains
                  broadening_type = broadening_in
                  broadening_width = width_in
               else
-                 call elsi_stop(" ELPA is chosen to compute density matrix. "//&
+                 call elsi_stop(" ELPA is chosen to compute density matrix."//&
                                 " Please specify broadening width! Exiting...", caller)
               endif
            else
-              call elsi_stop(" ELPA is chosen to compute density matrix. "//&
+              call elsi_stop(" ELPA is chosen to compute density matrix."//&
                              " Please specify broadening type! Exiting...", caller)
            endif
 
@@ -2485,7 +2492,7 @@ contains
         case (CHESS)
            call elsi_stop(" CHESS not yet implemented. Exiting...", caller)
         case default
-           call elsi_stop(" No supported method has been chosen. "//&
+           call elsi_stop(" No supported method has been chosen."//&
                           " Exiting...", caller)
      end select
 
