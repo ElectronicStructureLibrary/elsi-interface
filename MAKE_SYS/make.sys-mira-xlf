@@ -1,11 +1,21 @@
-# ====== GLOBAL ======
+# DO READ ../INSTALL CAREFULLY!
 
-THIS_DIR = $(shell pwd)
+# ====== ELSI ======
+
+THIS_DIR = -L/gpfs/mira-home/wzvyu/elsi-interface
 
 MPIFC  = mpixlf95_r
 MPICC  = mpixlc_r
 MPICXX = mpixlcxx_r
 XLF    = yes
+
+FFLAGS   = -g -O3 -qstrict -qmaxmem=-1 -qsmp=noomp
+FFLAGS  += -qxlf90=autodealloc -qfree=f90
+FFLAGS  += -qarch=qp -qtune=qp
+FFLAGS  += -qsimd=auto -qhot=level=1 -qprefetch -qunroll=yes
+FFLAGS  += -qreport -qsource -qlistopt -qlist -qessl
+CFLAGS   = -O3
+CXXFLAGS = -O3
 
 SCALAPACK_LDFLAGS =
 SCALAPACK_FCFLAGS =
@@ -19,35 +29,16 @@ SCALAPACK_FCFLAGS =
 #LAPACK    = -L/soft/libraries/alcf/current/xl/LAPACK/lib -llapack 
 #SCALAPACK = -L/soft/libraries/alcf/current/xl/SCALAPACK/lib -lscalapack
 
-# ====== ELSI ======
-
-FFLAGS_I = -g -O3 -qstrict -qmaxmem=-1 -qsmp=noomp
-FFLAGS_I += -qxlf90=autodealloc -qfree=f90
-FFLAGS_I += -qarch=qp -qtune=qp
-FFLAGS_I += -qsimd=auto -qhot=level=1 -qprefetch -qunroll=yes
-FFLAGS_I += -qreport -qsource -qlistopt -qlist -qessl
- 
 # ====== ELPA ======
 
-FFLAGS_E = ${FFLAGS_I} -I$(ELPA_DIR)
-CFLAGS_E = -O3
+FFLAGS_E = ${FFLAGS_I} -I$(THIS_DIR)/EXTERNAL/ELPA/
 
 ARCHITECTURE = BlueGeneQ
 OPENMP = no
 
-# ====== libOMM ======
-
-FFLAGS_O = ${FFLAGS_I}
-
 # ====== PEXSI ======
-
-CXXFLAGS_P = ${CXXFLAGS_E}
-CFLAGS_P   = ${CFLAGS_E}
-FFLAGS_P   = ${FFLAGS_I}
 
 METIS_LIB       = -L/gpfs/mira-home/wzvyu/parmetis-4.0.3/build/Linux-ppc64/libmetis -lmetis
 PARMETIS_LIB    = -L/gpfs/mira-home/wzvyu/parmetis-4.0.3/build/Linux-ppc64/libparmetis -lparmetis
 SUPERLU_LIB     = -L/gpfs/mira-home/wzvyu/SuperLU_DIST_4.3/lib -lsuperlu
 SUPERLU_INCLUDE = -I/gpfs/mira-home/wzvyu/SuperLU_DIST_4.3/SRC
-
-# ====== LINK ======

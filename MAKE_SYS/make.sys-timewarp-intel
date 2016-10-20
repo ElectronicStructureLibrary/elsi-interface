@@ -1,45 +1,33 @@
-# ====== GLOBAL ======
+# DO READ ../INSTALL CAREFULLY!
 
-THIS_DIR = /home/wy29/elsi-devel
+# ====== ELSI ======
+
+THIS_DIR = /home/wy29/elsi-interface
 
 MPIFC  = mpiifort
 MPICC  = mpiicc
 MPICXX = mpiicpc
 
+FFLAGS   = -O3
+CFLAGS   = -O3
+CXXFLAGS = -O3
+
 SCALAPACK_LDFLAGS = -L/opt/intel/mkl/lib/intel64 -lmkl_scalapack_lp64 \
-                    -lmkl_blacs_intelmpi_lp64 -lmkl_lapack95_lp64 \
-                    -lmkl_blas95_lp64 -lmkl_intel_lp64 \
+                    -lmkl_blacs_intelmpi_lp64 -lmkl_intel_lp64 \
                     -lmkl_sequential -lmkl_core -lpthread -lm
 SCALAPACK_FCFLAGS = -I/opt/intel/mkl/include/intel64/lp64
 
-# ====== ELSI ======
-
-FFLAGS_I = -O3 -ip -lstdc++ 
-
-# ====== ELPA ======
-
-FFLAGS_E = -O3 -fpe0 -fpp
-CFLAGS_E = -O3 -mavx -funsafe-loop-optimizations \
-           -funsafe-math-optimizations -ftree-vect-loop-version \
-           -ftree-vectorize
-
-ARCHITECTURE = Generic
-OPENMP = no
-
-# ====== libOMM ======
-
-FFLAGS_O = -O3
-
 # ====== PEXSI ======
-
-CXXFLAGS_P = -O3
-CFLAGS_P   = -O3
-FFLAGS_P   = -O3
 
 METIS_LIB       = -L/home/wy29/yu/parmetis-4.0.3/build/Linux-x86_64/libmetis -lmetis
 PARMETIS_LIB    = -L/home/wy29/yu/parmetis-4.0.3/build/Linux-x86_64/libparmetis -lparmetis
 SUPERLU_LIB     = -L/home/wy29/yu/SuperLU_DIST_4.3/lib -lsuperlu
 SUPERLU_INCLUDE = -I/home/wy29/yu/SuperLU_DIST_4.3/SRC
+
+# ====== ELPA ======
+
+ARCHITECTURE = Generic
+OPENMP = no
 
 # ====== LINK ======
 
