@@ -1,77 +1,143 @@
+===================
 HOW TO INSTALL ELSI
 ===================
 
-#########################################################################
-A) Install from zero: if you do not have any part of the ELSI package 
-   installed before, you may choose this way to build everything for you.
-#########################################################################
+==========================================================================
+A) BASIC
+
+   Install solver libraries ELPA, libOMM, PEXSI using ELSI installer, then
+   compile ELSI interface software.
+
+   Snapshots of ELPA, libOMM, PEXSI in ELSI package will be used.
+==========================================================================
 
 1) The installation of ELSI is controlled by a "make.sys" file. Examples
    can be found in "./MAKE_SYS". Copy one of them to the root directory of
    ELSI, then modify it to match your own system.
 
-   Keywords in "make.sys" are organized in the following blocks:
+   One simple ELSI "make.sys" file includes the following keywords:
 
-   1.1) GLOBAL
-      Set compilers, archive tools, and installation path of linear algebra
-      library, which will be used during the whole installation.
+      THIS_DIR          =  # the path of ELSI root directory
 
-   1.2) ELSI
-      Set Fortran compiler flags.
+      MPIFC             =  # MPI Fortran compiler
+      MPICC             =  # MPI C compiler
+      MPICXX            =  # MPI C++ compiler
 
-   1.3) ELPA
-      Set compiler flags, choose ELPA2 kernels, switch on/off OpenMP.
+      FFLAGS            =  # Fortran compiler flags
+      CFLAGS            =  # C compiler flags
+      CXXFLAGS          =  # C++ compiler flags
 
-   1.4) libOMM
-      Set Fortran compiler flags.
+      SCALAPACK_FCFLAGS =  # ScaLAPACK compiler flags
+      SCALAPACK_LDFLAGS =  # ScaLAPACK linker flags
 
-   1.5) PEXSI
-      Set compiler flags and installation paths of ParMetis/SuperLU_DIST.
+      METIS_LIB         =  # Metis/Parmetis/SuperLU libraries needed by PEXSI
+      PARMETIS_LIB      =
+      SUPERLU_LIB       =
+      SUPERLU_INCLUDE   =
 
-   1.6) LINK
-      Leave it blank, since you do not have ELPA, libOMM, or PEXSI installed.
-
-2) Make sure your "make.sys" is correctly configured.
-
-   Run "make -f Makefile.elsi" to build ELPA, libOMM, PEXSI, and the
-   ELSI interface.
-
-   Run "make -j -f Makefile.elsi" to build ELSI in parallel.
-
-3) To install ELSI as a library, run "make -f Makefile.elsi install".
-
-4) Run "make -f Makefile.elsi check" to perform the regression test.
-   (not yet functional)
-
-#######################################################################
-B) If you already have some libraries of ELSI installed, you may choose
-   to just build what you need.
-#######################################################################
-
-   E.g. you have ELPA on your system. You still need to build libOMM, 
-   PEXSI, and the ELSI interface. The process of installation could be 
-   as follows:
-
-1) Edit the file "make.sys".
-
-   1.1) GLOBAL & ELSI & libOMM & PEXSI
-      Same as described in A).
-
-   1.2) ELPA
-      Do nothing.
-
-   1.3) LINK
-      Set the include/lib path of ELPA, e.g.
-
-      ELPA_DIR = /PATH/TO/ELPA
-      ELPA_LIB = -L/PATH/TO/ELPA/lib -lelpa -I/PATH/TO/ELPA
+      ARCHITECTURE      =  # Use ELPA kernels written for specific architectures
+      OPENMP            =  # Enable OpenMP support to ELPA
 
 2) Make sure your "make.sys" is correctly configured.
 
-   Run "make -f Makefile.elsi {omm|pexsi|elsi}" to build OMM, PEXSI, 
-   and the ELSI interface one by one.
+   To build ELPA, libOMM, PEXSI, and ELSI interface, type
 
-3) To install ELSI as a library, run "make -f Makefile.elsi install".
+      "make -f Makefile.elsi"
 
-4) Run "make -f Makefile.elsi check" to perform the regression test.
-   (not yet functional)
+3) To create ELSI library "libelsi.a", type
+
+      "make -f Makefile.elsi install"
+
+==========================================================================
+B) ADVANCE I
+
+   More settings.
+==========================================================================
+
+1) Archive tools and flags can be modified by
+
+      ARCH      =  # Default: ar
+      ARCHFLAGS =  # Default: cr
+      RANLIB    =  # Default: ranlib
+
+2) Compiler flags for each library (E for ELPA, O for libOMM, P for PEXSI,
+   and I for ELSI interface) can be set separately by
+
+      FFLAGS_I   =  # Default: $(FFLAGS)
+      FFLAGS_E   =  # Default: $(FFLAGS)
+      CFLAGS_E   =  # Default: $(CFLAGS)
+      FFLAGS_O   =  # Default: $(FFLAGS)
+      FFLAGS_P   =  # Default: $(FFLAGS)
+      CFLAGS_P   =  # Default: $(CFLAGS)
+      CXXFLAGS_P =  # Default: $(CXXFLAGS)
+
+==========================================================================
+C) ADVANCE II
+
+   Build ELSI interface with pre-compiled solver libraries.
+==========================================================================
+
+   E.g. ELPA is pre-installed on the system. Install libOMM and PEXSI using
+   ELSI installer, then compile ELSI interface with libOMM, PEXSI, and the
+   pre-installed ELPA.
+
+   Snapshot of ELPA in ELSI package will not be built in this case.
+
+1) Add the following keywords to "make.sys":
+
+      USER_ELPA = yes
+      ELPA_DIR  = /PATH/TO/ELPA
+      ELPA_LIB  = -L/PATH/TO/ELPA/lib -lelpa -I/PATH/TO/ELPA/include
+
+2) To build libOMM, PEXSI, and ELSI interface, type
+
+      "make -f Makefile.elsi"
+
+3) To create ELSI library "libelsi.a", type
+
+      "make -f Makefile.elsi install"
+
+4) Pre-installed libOMM and PEXSI are supported by:
+
+      USER_OMM = yes
+      OMM_DIR  = /PATH/TO/OMM
+      OMM_LIB  = -L/PATH/TO/OMM/lib -lomm -I/PATH/TO/OMM/include
+
+   and
+
+      USER_PEXSI = yes
+      PEXSI_DIR  = /PATH/TO/PEXSI
+      PEXSI_LIB  = -L/PATH/TO/PEXSI/lib -lpexsi -I//PATH/TO/PEXSI/include
+
+==========================================================================
+D) ADVANCE III
+
+   Disable solver library in ELSI.
+==========================================================================
+
+   ELPA, as a traditional eigensolver, cannot be disabled in ELSI. LibOMM
+   and PEXSI, on the other hand, can be disabled for special purposes such
+   as testing or debugging.
+
+1) Add the following keywords to "make.sys":
+
+      DISABLE_OMM   = yes  # Disable libOMM
+      DISABLE_PEXSI = yes  # Disable PEXSI
+
+2) To build whatever are not disabled, type
+
+      "make -f Makefile.elsi"
+
+3) To create ELSI library "libelsi.a", type
+
+      "make -f Makefile.elsi install"
+
+==========================================================================
+D) TROUBLE SHOOTING
+
+   For comments, feedback, ideas, ..., please email elsi-team@duke.edu
+
+   http://www.elsi-interchange.org
+
+   Copyright (c) 2016, ELSI consortium. All rights reserved.
+==========================================================================
