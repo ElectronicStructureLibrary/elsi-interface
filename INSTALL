@@ -13,7 +13,7 @@ A) BASIC
 
 1) The installation of ELSI is controlled by a "make.sys" file. Examples
    can be found in "./MAKE_SYS". Copy one of them to the root directory of
-   ELSI, then modify it to match your own system.
+   ELSI, then modify it to match the system.
 
    One simple ELSI "make.sys" file includes the following keywords:
 
@@ -38,13 +38,13 @@ A) BASIC
       ARCHITECTURE      =  # Use ELPA kernels written for specific architectures
       OPENMP            =  # Enable OpenMP support to ELPA
 
-2) Make sure your "make.sys" is correctly configured.
+2) Make sure the "make.sys" file is correctly configured.
 
    To build ELPA, libOMM, PEXSI, and ELSI interface, type
 
       "make -f Makefile.elsi"
 
-3) To create ELSI library "libelsi.a", type
+3) To create ELSI library, type
 
       "make -f Makefile.elsi install"
 
@@ -93,7 +93,7 @@ C) ADVANCE II
 
       "make -f Makefile.elsi"
 
-3) To create ELSI library "libelsi.a", type
+3) To create ELSI library, type
 
       "make -f Makefile.elsi install"
 
@@ -128,12 +128,12 @@ D) ADVANCE III
 
       "make -f Makefile.elsi"
 
-3) To create ELSI library "libelsi.a", type
+3) To create ELSI library, type
 
       "make -f Makefile.elsi install"
 
 ==========================================================================
-D) TROUBLE SHOOTING
+E) TROUBLE SHOOTING
 
    For comments, feedback, ideas, ..., please email elsi-team@duke.edu
 
