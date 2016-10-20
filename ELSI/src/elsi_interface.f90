@@ -2330,15 +2330,17 @@ contains
 
               ! Initialize coefficient matrix with ELPA eigenvectors if possible
               if(n_elpa_steps > 0 .and. n_elsi_calls == n_elpa_steps+1) then
-                 ! H_real is used for temporary storage here
-                 H_real = C_real
+                 ! D_elpa is used for temporary storage here
+                 D_elpa = C_real
                  ! OMM coefficient matrix is the transpose of ELPA eigenvectors
-                 call pdtran(n_g_size,n_g_size,1d0,H_real,1,1,sc_desc,0d0,C_real,1,1,sc_desc)
+                 call pdtran(n_g_size,n_g_size,1d0,D_elpa,1,1,sc_desc,0d0,C_real,1,1,sc_desc)
 
                  Coeff_omm%dval(1:Coeff_omm%iaux2(1),1:Coeff_omm%iaux2(2)) = &
                     C_real(1:Coeff_omm%iaux2(1),1:Coeff_omm%iaux2(2))
 
                  ! ELPA matrices are no longer needed at this point
+                 if(associated(H_real))     nullify(H_real)
+                 if(associated(S_real))     nullify(S_real)
                  if(allocated(C_real))      deallocate(C_real)
                  if(allocated(eigenvalues)) deallocate(eigenvalues)
                  if(allocated(D_elpa))      deallocate(D_elpa)
