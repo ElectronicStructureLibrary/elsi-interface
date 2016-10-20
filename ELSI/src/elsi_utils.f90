@@ -32,7 +32,6 @@ module ELSI_UTILS
 
    use iso_c_binding
    use ELSI_DIMENSIONS
-   use MatrixSwitch
 
    implicit none
    private
