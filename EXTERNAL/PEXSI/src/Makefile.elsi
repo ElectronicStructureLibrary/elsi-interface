@@ -32,15 +32,10 @@ ${PEXSI_LIB}: ${OBJS}
 	$(AR) $(ARFLAGS) $(PEXSI_LIB) ${OBJS} 
 	$(RANLIB) $(PEXSI_LIB)
 
-#	$(RANLIB) $(shell basename $@ .a)_${SUFFIX}.a
-#ifeq (${MODE},release)
-#ifneq ($(USE_TAU),1)
-#	${CP} $(shell basename $@ .a)_${SUFFIX}.a ${PEXSI_LIB}
-#endif
-#endif
-
 clean:
 	${RM} -f ${OBJS} ${DEPS} *.d.*
 
 cleanall:
 	${RM} -f ${OBJS} ${DEPS} ${PEXSI_DIR}/lib/libpexsi.a *.d.*
+	${RM} -f ${PEXSI_DIR}/include/f_ppexsi_interface.mod
+	${RM} -f ${PEXSI_DIR}/src/f_ppexsi_interface.mod

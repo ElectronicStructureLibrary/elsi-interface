@@ -96,6 +96,10 @@ elpa:
 	@echo = Start building ELPA... =
 	@echo ==========================
 	cd $(ELPA_DIR) && ${MAKE} -f Makefile.elsi; ${MAKE} -f Makefile.elsi install
+	mkdir -p ${THIS_DIR}/EXTERNAL/include
+	mkdir -p ${THIS_DIR}/EXTERNAL/lib
+	cp ${ELPA_DIR}/lib/libelpa.a ${THIS_DIR}/EXTERNAL/lib/.
+	cp ${ELPA_DIR}/include/*.mod ${THIS_DIR}/EXTERNAL/include/.
 	@echo ===================
 	@echo = ELPA installed. =
 	@echo ===================
@@ -105,6 +109,14 @@ omm:
 	@echo = Start building libOMM... =
 	@echo ============================
 	cd $(OMM_DIR) && ${MAKE} -f Makefile.elsi
+	mkdir -p ${THIS_DIR}/EXTERNAL/include
+	mkdir -p ${THIS_DIR}/EXTERNAL/lib
+	cp ${OMM_DIR}/build_libOMM/lib/libOMM.a ${THIS_DIR}/EXTERNAL/lib/.
+	cp ${OMM_DIR}/build_MatrixSwitch/lib/libMatrixSwitch.a ${THIS_DIR}/EXTERNAL/lib/.
+	cp ${OMM_DIR}/build_psp/lib/libpspblas.a ${THIS_DIR}/EXTERNAL/lib/.
+	cp ${OMM_DIR}/build_psp/include/*.mod ${THIS_DIR}/EXTERNAL/include/.
+	cp ${OMM_DIR}/build_MatrixSwitch/include/*.mod ${THIS_DIR}/EXTERNAL/include/.
+	cp ${OMM_DIR}/build_libOMM/include/*.mod ${THIS_DIR}/EXTERNAL/include/.
 	@echo =====================
 	@echo = libOMM installed. =
 	@echo =====================
@@ -115,8 +127,12 @@ pexsi:
 	@echo ===========================
 	cd $(PEXSI_DIR) && mkdir -p lib
 	cd $(PEXSI_DIR)/src && ${MAKE} -f Makefile.elsi 
-	-cp $(PEXSI_DIR)/src/f_ppexsi_interface.mod $(PEXSI_DIR)/include
+	cp $(PEXSI_DIR)/src/f_ppexsi_interface.mod $(PEXSI_DIR)/include
 	cd $(PEXSI_DIR)/fortran && ${MAKE} -f Makefile.elsi
+	mkdir -p ${THIS_DIR}/EXTERNAL/include
+	mkdir -p ${THIS_DIR}/EXTERNAL/lib
+	cp ${PEXSI_DIR}/lib/libpexsi.a ${THIS_DIR}/EXTERNAL/lib/.
+	cp ${PEXSI_DIR}/include/*.mod ${THIS_DIR}/EXTERNAL/include/.
 	@echo ====================
 	@echo = PEXSI installed. =
 	@echo ====================
@@ -137,7 +153,10 @@ install:
 	@echo ======================================
 
 check:
-	cd ELSI && ${MAKE} -f Makefile.elsi check
+	@echo ======================================
+	@echo = ELSI test suite not yet available. =
+	@echo ======================================
+#	cd ELSI && ${MAKE} -f Makefile.elsi check
 
 clean: $(CLEAN_OBJ)
 
@@ -146,6 +165,8 @@ cleanelsi:
 	@echo = Removing ELSI... =
 	@echo ====================
 	cd ELSI && ${MAKE} -f Makefile.elsi clean
+	rm -rf ${THIS_DIR}/EXTERNAL/include
+	rm -rf ${THIS_DIR}/EXTERNAL/lib
 	@echo =========
 	@echo = Done. =
 	@echo =========
@@ -168,5 +189,3 @@ cleanpexsi:
 	@echo =====================
 	cd $(PEXSI_DIR)/src && ${MAKE} -f Makefile.elsi cleanall
 	cd $(PEXSI_DIR)/fortran && ${MAKE} -f Makefile.elsi cleanall
-	rm -f $(PEXSI_DIR)/include/f_ppexsi_interface.mod
-	rm -f $(PEXSI_DIR)/src/f_ppexsi_interface.mod
