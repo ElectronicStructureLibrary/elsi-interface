@@ -1,3 +1,11 @@
+ELSI: ELectronic Structure Infrastructure
+=========================================
+
+For full documentation, please see
+
+http://www.elsi-interchange.org
+
+
 **ABOUT ELSI**
 
 ELSI provides and enhances open-source software library solutions for 
@@ -14,16 +22,12 @@ problems in the self-consistent field cycle of density-functional theory.
   * ParMetis 4.0.3
   * SuperLU_DIST 4.3
 
-**OPTIONAL**
-  * Automake
-  * Autoconf
-  * Libtool
-  * M4
+**INSTALLATION**
 
-**INSTALL**
+  * Edit `make.sys` to customize the compilation
+  * `make -f Makefile.elsi`
+  * Please refer to the `INSTALL` document for the installation process and all configurable settings
 
-  Installation guide can be found in the `INSTALL` file.
+**USAGE**
 
-**USER GUIDE**
-
-  A quick user guide is available in the `USER_GUIDE` file.
+  * Please refer to the `USER_GUIDE` document, where a quick start guide is available
