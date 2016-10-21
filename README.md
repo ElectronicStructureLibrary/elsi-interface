@@ -1,5 +1,4 @@
-ELSI: ELectronic Structure Infrastructure
-=========================================
+**ELSI** (**EL**ectronic **S**tructure **I**nfrastructure)
 
 http://www.elsi-interchange.org
 
