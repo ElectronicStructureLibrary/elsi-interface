@@ -1,18 +1,13 @@
 ELSI: ELectronic Structure Infrastructure
 =========================================
 
-For full documentation, please see
-
 http://www.elsi-interchange.org
-
 
 **ABOUT ELSI**
 
-ELSI provides and enhances open-source software library solutions for 
-electronic structure theory with unified application programming interface.
+ELSI provides and enhances open-source software library solutions for electronic structure theory with unified application programming interface.
 
-ELSI focuses particularly on methods that solve or circumvent eigenvalue
-problems in the self-consistent field cycle of density-functional theory.
+ELSI focuses particularly on methods that solve or circumvent eigenvalue problems in the self-consistent field cycle of density-functional theory.
 
 **REQUIREMENTS**
 
