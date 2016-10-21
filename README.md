@@ -21,7 +21,9 @@ problems in the self-consistent field cycle of density-functional theory.
   * M4
 
 **INSTALL**
+
   Installation guide can be found in the `INSTALL` file.
 
 **USER GUIDE**
+
   A quick user guide is available in the `USER_GUIDE` file.
