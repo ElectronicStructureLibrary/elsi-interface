@@ -1,0 +1,168 @@
+====================================
+HOW TO USE ELSI IN A FORTRAN PROGRAM
+====================================
+
+==========================
+A) QUICK PROGRAMMING GUIDE
+==========================
+
+   After ELSI is built successfully, it can be used in a Fortran program by putting
+
+      USE ELSI
+
+   statement into the source code.
+
+   NOTE: C/C++ interface is not yet available, but will be.
+
+   Before calling ELSI to treat the Kohn-Sham eigenvalue problem, MPI and BLACS
+   environment should be setup by the electronic structure code.
+
+   ELSI currently does NOT support a serial run.
+
+   The typical workflow of ELSI with in an electronic structure code is:
+
+==================
+1) Initialize ELSI
+==================
+
+   For efficiency, this should be done once, BERORE the SCF loop begins.
+
+*  call elsi_init(solver, storage, size, n_electrons, n_states)
+
+   solver:           [integer] [in]  Available choices are ELPA (1), LIBOMM (2),
+                                     and PEXSI (3).
+
+   storage:          [integer] [in]  BLOCK_CYCLIC (0) is supported. More is coming.
+
+   size:             [integer] [in]  Global size of the Hamiltonian matrix.
+
+   n_electrons:      [real*8]  [in]  Number of electrons.
+
+   n_states:         [integer] [in]  Number of states. For ELPA, this can be larger
+                                     than the number of occupied states. For libOMM,
+                                     this must be exactly the number of OCCUPIED 
+                                     states. PEXSI does not use n_states.
+
+===============================================
+2) Set up MPI and BLACS infrastructure for ELSI
+===============================================
+
+*  call elsi_set_mpi(mpi_comm_world, n_proc, myid)
+
+   mpi_comm_world:   [integer] [in]  Global MPI communicator.
+
+   n_proc:           [integer] [in]  Number of processors.
+
+   myid:             [integer] [in]  MPI rank of each processor.
+
+*  call elsi_set_blacs(blacs_ctxt, n_b_row, n_b_col, n_proc_rows, n_proc_col, &
+                       mpi_comm_row, mpi_comm_col)
+
+   blacs_ctxt:       [integer] [in]  BLACS context.
+
+   n_b_row:          [integer] [in]  Block size in row direction.
+
+   n_b_col:          [integer] [in]  Block size in column direction.
+
+   n_proc_row:       [integer] [in]  Number of processors in row.
+
+   n_proc_col:       [integer] [in]  Number of processors in column.
+
+   mpi_comm_row:     [integer] [in]  OPTIONAL. MPI communicator for processor row.
+                                     Only needed for ELPA.
+
+   mpi_comm_column:  [integer] [in]  OPTIONAL. MPI communicator for processor column.
+                                     Only needed for ELPA.
+
+============================================================
+3) Treat the Kohn-Sham eigenvalue problem using ELSI solvers
+============================================================
+
+   This should be done WITHIN the SCF loops.
+
+   Customize routines are all OPTIONAL. ELSI sets reasonable default parameters for
+   each solver. However, these default settings do not always guarantee the best
+   performance. Every single technical parameter within each solver is accessible
+   to advanced users by using the customize routines, i.e. elsi_customize_elpa,
+   elsi_customize_omm, and elsi_customize_pexsi.
+
+*  call elsi_customize_{elpa|omm|pexxi}(keyword=choice)
+
+   Launch either ELSI eigenvalue solver, or ELSI density matrix solver.
+
+*  call elsi_ev_real(H, S, e_val, e_vec)
+
+   H:                [real*8]  [in]  Hamiltonian matrix.
+
+   S:                [real*8]  [in]  Overlap matrix.
+
+   e_val:            [real*8] [out]  Eigenvalues.
+
+   e_vec:            [real*8] [out]  Eigenvectors.
+
+*  call elsi_dm_real(H, S, D, energy, broadening_type, broadening_width)
+
+   H:                [real*8]  [in]  Hamiltonian matrix.
+
+   S:                [real*8]  [in]  Overlap matrix.
+
+   D:                [real*8] [out]  Density matrix.
+
+   energy:           [real*8] [out]  Energy.
+
+   broadening_type:  [integer] [in]  OPTIONAL. Gaussian (0) and Fermi (1) schemes are
+                                     supported. Only needed for ELPA.
+
+   broadening_width: [real*8]  [in]  OPTIONAL. Broadening width. Only needed for ELPA.
+
+================
+4) Finalize ELSI
+================
+
+   This should be done once, AFTER the SCF cycle converges.
+
+*  call elsi_finalize()
+
+====================
+B) COMPILATION GUIDE
+====================
+
+   At compile time, the include/library path of ELSI is needed.
+
+   A typical setup in the Makefile would be
+
+      ELSI = -I${ELSI_HOME}/ELSI/include \
+             -L${ELSI_HOME}/ELSI/lib -lelsi \
+             -I${ELSI_HOME}/EXTERNAL/include \
+             -L${ELSI_HOME}/EXTERNAL/lib -lpexsi \
+             -L${ELSI_HOME}/EXTERNAL/lib -lelpa \
+             -L${ELSI_HOME}/EXTERNAL/lib -lOMM -lMatrixSwitch -lpspblas \
+             -L${SUPERLU_HOME}/lib -lsuperlu \
+             -L${PARMETIS_HOME}/lib -lparmetis -lmetis \
+             -lstdc++ -Wl,--allow-multiple-definition
+
+   NOTE: If any pre-compiled solver library (ELPA, libOMM, or PEXSI) is used in
+         ELSI instead of the built-in version, or any solver library is disabled
+         in ELSI, the path needs to be modifie accordingly.
+
+   Then add ${ELSI} to the compiler/linker flags.
+
+====================
+C) BEYOND THIS GUIDE
+====================
+
+   Usage of ELSI solvers for complex problems are work-in-progress and EXPERIMENTAL,
+   with k-point and spin parallel treatment being supported soon.
+
+   Documentation of each module, subroutine, and function in ELSI interface can be
+   generated using Doxygen in ./ELSI/doc directory.
+
+===================
+D) TROUBLE SHOOTING
+===================
+
+   For comments, feedback, ideas, ..., please email elsi-team@duke.edu
+
+   http://www.elsi-interchange.org
+
+   Copyright (c) 2016, ELSI consortium. All rights reserved.
