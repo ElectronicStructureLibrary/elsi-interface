@@ -112,7 +112,7 @@ module ELSI_DIMENSIONS
    !> OMM
    logical :: omm_customized = .false. !< Has elsi_customize_omm been called?
    logical :: small_omm_tol = .false. !< Is user-specified OMM tolerance smaller than default?
-   real*8  :: final_omm_tol = 1d-8 !< Default final OMM tolerance
+   real*8  :: final_omm_tol = 1d-9 !< Default final OMM tolerance
    integer :: n_elpa_steps !< Use ELPA eigenvectors as initial guess for OMM
    logical :: new_overlap !< Is a new overlap matrix provided?
    logical :: C_matrix_initialized !< Is coefficient matrix initialized?
@@ -262,7 +262,7 @@ subroutine elsi_set_omm_default_options()
    include "mpif.h"
 
    !< How many steps of ELPA to run before OMM
-   n_elpa_steps = 0
+   n_elpa_steps = 3
    !< How do we perform the calculation
    !! 0 = Basic
    !! 1 = Cholesky factorisation of S requested
@@ -276,7 +276,7 @@ subroutine elsi_set_omm_default_options()
    !< Eigenspectrum shift parameter
    eta = 0d0
    !< Tolerance for minimization
-   min_tol = 1d-8
+   min_tol = 1d-9
    !< n_k_points * n_spin
    nk_times_nspin = 1
    !< Combined k_point spin index

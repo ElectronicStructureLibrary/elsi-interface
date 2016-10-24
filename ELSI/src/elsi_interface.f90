@@ -1314,7 +1314,7 @@ contains
      implicit none
      include "mpif.h"
 
-     real*8, save :: this_omm_tol = 1d-8
+     real*8, save :: this_omm_tol = 1d-9
      logical, save :: first_call = .true.
      logical :: success
      character*40, parameter :: caller = "elsi_solve_evp_omm"
@@ -1398,8 +1398,7 @@ contains
 !! This routine overrides libOMM default settings.
 !!
   subroutine elsi_customize_omm(n_elpa_steps_in, scale_kinetic_in, calc_ed_in, &
-                                eta_in, min_tol_in, nk_times_nspin_in, i_k_spin_in, &
-                                omm_verbose_in, do_dealloc_in)
+                                eta_in, min_tol_in)
 
      implicit none
 
@@ -1408,10 +1407,6 @@ contains
      logical, intent(in), optional :: calc_ed_in
      real*8,  intent(in), optional :: eta_in
      real*8,  intent(in), optional :: min_tol_in
-     integer, intent(in), optional :: nk_times_nspin_in
-     integer, intent(in), optional :: i_k_spin_in
-     logical, intent(in), optional :: omm_verbose_in
-     logical, intent(in), optional :: do_dealloc_in
 
      if(method == LIBOMM) then
         ! Set default settings
@@ -1428,13 +1423,11 @@ contains
         ! Tolerance for minimization
         if(present(min_tol_in)) then
            min_tol = min_tol_in
-           if(min_tol_in < 1d-8) then
+           if(min_tol_in < 1d-9) then
               small_omm_tol = .true.
               final_omm_tol = min_tol_in
            endif
         endif
-        ! OMM output?
-        if(present(omm_verbose_in)) omm_verbose = omm_verbose_in
 
         omm_customized = .true.
         call elsi_print_omm_options()
