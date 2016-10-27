@@ -25,3 +25,7 @@ ELSI focuses particularly on methods that solve or circumvent eigenvalue problem
 **USAGE**
 
   * Please refer to the `USER_GUIDE` document, where a quick start guide is available
+
+**CONTACT**
+
+  * Email: elsi-team@duke.edu
