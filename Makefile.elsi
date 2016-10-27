@@ -11,12 +11,8 @@ ELPA_LIB  ?= -L$(ELPA_DIR)/lib -lelpa \
              -I$(ELPA_DIR)/include
 
 OMM_DIR   ?= $(THIS_DIR)/EXTERNAL/libOMM
-OMM_LIB   ?= -I$(OMM_DIR)/build_libOMM/inlcude \
-             -I$(OMM_DIR)/build_MatrixSwitch/include \
-             -I$(OMM_DIR)/build_psp/include \
-             -L$(OMM_DIR)/build_libOMM/lib -lOMM \
-             -L$(OMM_DIR)/build_MatrixSwitch/lib -lMatrixSwitch \
-             -L$(OMM_DIR)/build_psp/lib -lpspblas
+OMM_LIB   ?= -I$(OMM_DIR)/include \
+             -L$(OMM_DIR)/lib -lOMM -lMatrixSwitch -lpspblas
 
 PEXSI_DIR ?= $(THIS_DIR)/EXTERNAL/PEXSI
 PEXSI_LIB ?= -I$(PEXSI_DIR)/include \
@@ -84,12 +80,9 @@ else
 endif
 endif
 
-ALL_OBJ += elsi
-CLEAN_OBJ += cleanelsi
-
 LIBS += $(SCALAPACK_FCFLAGS) $(SCALAPACK_LDFLAGS)
 
-all: $(ALL_OBJ)
+all: $(ALL_OBJ) elsi
 
 elpa:
 	@echo ==========================
@@ -108,15 +101,11 @@ omm:
 	@echo ============================
 	@echo = Start building libOMM... =
 	@echo ============================
-	cd $(OMM_DIR) && ${MAKE} -f Makefile.elsi
+	cd $(OMM_DIR) && ${MAKE} -f Makefile.elsi; ${MAKE} -f Makefile.elsi install
 	mkdir -p ${THIS_DIR}/EXTERNAL/include
 	mkdir -p ${THIS_DIR}/EXTERNAL/lib
-	cp ${OMM_DIR}/build_libOMM/lib/libOMM.a ${THIS_DIR}/EXTERNAL/lib/.
-	cp ${OMM_DIR}/build_MatrixSwitch/lib/libMatrixSwitch.a ${THIS_DIR}/EXTERNAL/lib/.
-	cp ${OMM_DIR}/build_psp/lib/libpspblas.a ${THIS_DIR}/EXTERNAL/lib/.
-	cp ${OMM_DIR}/build_psp/include/*.mod ${THIS_DIR}/EXTERNAL/include/.
-	cp ${OMM_DIR}/build_MatrixSwitch/include/*.mod ${THIS_DIR}/EXTERNAL/include/.
-	cp ${OMM_DIR}/build_libOMM/include/*.mod ${THIS_DIR}/EXTERNAL/include/.
+	cp ${OMM_DIR}/lib/*.a ${THIS_DIR}/EXTERNAL/lib/.
+	cp ${OMM_DIR}/include/*.mod ${THIS_DIR}/EXTERNAL/include/.
 	@echo =====================
 	@echo = libOMM installed. =
 	@echo =====================
@@ -137,7 +126,7 @@ pexsi:
 	@echo = PEXSI installed. =
 	@echo ====================
 
-elsi:
+elsi: $(ALL_OBJ)
 	@echo ==========================
 	@echo = Start building ELSI... =
 	@echo ==========================
@@ -158,7 +147,7 @@ check:
 	@echo ======================================
 #	cd ELSI && ${MAKE} -f Makefile.elsi check
 
-clean: $(CLEAN_OBJ)
+clean: $(CLEAN_OBJ) cleanelsi
 
 cleanelsi:
 	@echo ====================

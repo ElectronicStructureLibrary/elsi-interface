@@ -1,63 +1,99 @@
-all : libs tests
+# libOMM Makefile modified for ELSI installer.
+# Source code is NOT modified.
+# Victor Yu, ELSI team.
 
-libs : psp_lib MatrixSwitch_lib libOMM_lib
+include make.inc
 
-tests : psp_test MatrixSwitch_examples libOMM_examples
+PSPOBJ = pspBLAS.o pspMPI.o pspVariable.o pspUtility.o pspLevel1.o pspLevel2.o pspLevel3.o pspGemm.o pspMspm.o pspSpmm.o
+MSOBJ = MatrixSwitch.o MatrixSwitch_wrapper_params.o MatrixSwitch_wrapper.o
+OMMOBJ = omm_params.o omm_rand.o omm_quartic.o omm_ops.o omm.o omm_wrappers.o omm_callback.o
 
-clean : clean_libs clean_tests
-	rm -rf build_*
+all: psp_lib MatrixSwitch_lib libOMM_lib
 
-clean_libs : clean_psp clean_MatrixSwitch clean_libOMM
+psp_lib: libpspblas.a
 
-clean_tests : clean_psp_test clean_MatrixSwitch_examples clean_libOMM_examples
+libpspblas.a: $(PSPOBJ)
+	$(ARCH) $(ARCHFLAGS) $@ $(PSPOBJ)
+	$(RANLIB) $@
 
-psp_lib :
-	cd psp; \
-	make -f Makefile.elsi; \
-	make -f Makefile.elsi install
+pspBLAS.o: ./psp/pspBLAS.F90 pspMPI.o pspVariable.o pspUtility.o pspLevel1.o pspLevel2.o pspLevel3.o pspGemm.o pspMspm.o pspSpmm.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
 
-MatrixSwitch_lib : psp_lib
-	cd MatrixSwitch/src; \
-	make -f Makefile.elsi; \
-	make -f Makefile.elsi install
+pspMPI.o: ./psp/pspMPI/pspMPI.F90
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
 
-libOMM_lib : MatrixSwitch_lib psp_lib
-	cd libOMM/src; \
-	make -f Makefile.elsi; \
-	make -f Makefile.elsi install
+pspVariable.o: ./psp/pspVariable/pspVariable.F90 pspMPI.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
 
-psp_test : psp_lib
-	cd psp/test; \
-	make -f Makefile.elsi
+pspUtility.o: ./psp/pspUtility/pspUtility.F90 pspMPI.o pspVariable.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
 
-MatrixSwitch_examples : MatrixSwitch_lib
-	cd MatrixSwitch/examples; \
-	make -f Makefile.elsi
+pspLevel1.o: ./psp/pspLevel1/pspLevel1.F90 pspMPI.o pspVariable.o pspUtility.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
 
-libOMM_examples : libOMM_lib
-	cd libOMM/examples; \
-	make -f Makefile.elsi
+pspLevel2.o: ./psp/pspLevel2/pspLevel2.F90 pspMPI.o pspVariable.o pspUtility.o pspLevel1.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
 
-clean_psp :
-	cd psp; \
-	make -f Makefile.elsi clean
+pspGemm.o: ./psp/pspLevel3/pspGemm.F90 pspMPI.o pspVariable.o pspUtility.o pspLevel1.o pspLevel2.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
 
-clean_MatrixSwitch :
-	cd MatrixSwitch/src; \
-	make -f Makefile.elsi clean
+pspMspm.o: ./psp/pspLevel3/pspMspm.F90 pspMPI.o pspVariable.o pspUtility.o pspLevel1.o pspLevel2.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
 
-clean_libOMM :
-	cd libOMM/src; \
-	make -f Makefile.elsi clean
+pspSpmm.o: ./psp/pspLevel3/pspSpmm.F90 pspMPI.o pspVariable.o pspUtility.o pspLevel1.o pspLevel2.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
 
-clean_psp_test :
-	cd psp/test; \
-	make -f Makefile.elsi clean
+pspLevel3.o: ./psp/pspLevel3/pspLevel3.F90 pspMPI.o pspVariable.o pspUtility.o pspLevel1.o pspLevel2.o pspGemm.o pspMspm.o pspSpmm.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
 
-clean_MatrixSwitch_examples :
-	cd MatrixSwitch/examples; \
-	make -f Makefile.elsi clean
+MatrixSwitch_lib: libMatrixSwitch.a psp_lib
 
-clean_libOMM_examples :
-	cd libOMM/examples; \
-	make -f Makefile.elsi clean
+libMatrixSwitch.a: $(MSOBJ)
+	$(ARCH) $(ARCHFLAGS) $@ $(MSOBJ)
+	$(RANLIB) $@
+
+MatrixSwitch.o: ./MatrixSwitch/src/MatrixSwitch.F90 pspBLAS.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
+
+MatrixSwitch_wrapper_params.o: ./MatrixSwitch/src/MatrixSwitch_wrapper_params.F90 MatrixSwitch.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
+
+MatrixSwitch_wrapper.o: ./MatrixSwitch/src/MatrixSwitch_wrapper.F90 MatrixSwitch_wrapper_params.o MatrixSwitch.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
+
+libOMM_lib: libOMM.a MatrixSwitch_lib psp_lib
+
+libOMM.a: $(OMMOBJ)
+	$(ARCH) $(ARCHFLAGS) $@ $(OMMOBJ)
+	$(RANLIB) $@
+
+omm_params.o: ./libOMM/src/omm_params.F90
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
+
+omm_rand.o: ./libOMM/src/omm_rand.F90 omm_params.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
+
+omm_quartic.o: ./libOMM/src/omm_quartic.F90 omm_params.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
+
+omm_ops.o: ./libOMM/src/omm_ops.F90 omm_params.o MatrixSwitch.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
+
+omm.o: ./libOMM/src/omm.F90 omm_ops.o omm_rand.o MatrixSwitch.o pspBLAS.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
+
+omm_wrappers.o: ./libOMM/src/omm_wrappers.F90 omm_params.o MatrixSwitch.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
+
+omm_callback.o: ./libOMM/src/omm_callback.F90 omm_ops.o omm_rand.o MatrixSwitch.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
+
+install:
+	mkdir -p ./lib
+	cp *.a ./lib/.
+	mkdir -p ./include
+	cp *.mod ./include/.
+
+clean:
+	rm -f *.o *.mod *.a
+	rm -rf lib include
