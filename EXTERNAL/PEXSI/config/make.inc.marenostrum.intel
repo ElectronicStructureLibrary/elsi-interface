@@ -3,10 +3,11 @@ COMPILE_MODE     = release
 USE_PROFILE      = 0
 PAR_ND_LIBRARY   = ptscotch
 SEQ_ND_LIBRARY   = scotch
+USE_SYMPACK      = 0
 
 # Different compiling and linking options.
 # Marenostrum machine in Barcelona. IBM machine
-SUFFIX       = mn_v0.9.2
+SUFFIX       = mn_v0.10.0
 
 # Compiler and tools
 ################################################################
@@ -33,7 +34,7 @@ PEXSI_DIR     = $(HOME)/pexsi
 PEXSI_BUILD_DIR = $(PEXSI_DIR)/build
 
 # Required libraries directories
-DSUPERLU_DIR  = $(HOME)/Software/SuperLU_DIST_4.3
+DSUPERLU_DIR  = $(HOME)/Software/SuperLU_DIST_5.1.2
 PARMETIS_DIR  = $(HOME)/Software/parmetis-4.0.2/build/Linux-x86_64
 SCOTCH_DIR    = $(HOME)/Software/scotch_6.0.0
 
@@ -50,7 +51,7 @@ SCALAPACK_LIB    =-Wl,-rpath,/apps/INTEL/mkl/lib/intel64/ -L/apps/INTEL/mkl/lib/
 METIS_LIB        = -L${PARMETIS_DIR}/libmetis -lmetis
 PARMETIS_LIB     = -L${PARMETIS_DIR}/libparmetis -lparmetis
 SCOTCH_LIB       = -L${SCOTCH_DIR}/lib -lptscotchparmetis -lptscotch -lptscotcherr -lscotch
-DSUPERLU_LIB     = ${DSUPERLU_DIR}/lib/libsuperlu_dist_4.3.a
+DSUPERLU_LIB     = ${DSUPERLU_DIR}/lib/libsuperlu_dist_5.1.2.a
 PEXSI_LIB        = ${PEXSI_DIR}/src/libpexsi_${SUFFIX}.a
 
 # Different compiling and linking options.
@@ -80,11 +81,19 @@ ifeq (${USE_PROFILE}, 1)
 endif
 
 LIBS  = ${PEXSI_LIB} ${DSUPERLU_LIB} ${PAR_ND_LIB} ${SEQ_ND_LIB} ${SCALAPACK_LIB} ${BLACS_LIB} ${FORTRAN_LIB}
-
-
 COMPILE_DEF  += -DAdd_
-
 CPPFLAG = -std=c++11
+
+ifeq (${USE_SYMPACK}, 1)
+  #symPACK related definitions
+  SYMPACK_DIR = ${HOME}/sympack_install
+  include ${SYMPACK_DIR}/include/sympack.mak
+  INCLUDES += ${SYMPACK_INCLUDE} 
+  LIBS+= ${SYMPACK_LIB} ${LAPACK_LIB} ${BLAS_LIB} ${GFORTRAN_LIB}
+  COMPILE_DEF  += -DWITH_SYMPACK
+  CPPFLAG += -std=c++11
+endif
+
 
 CFLAGS       = ${COMPILE_FLAG} ${PROFILE_FLAG} ${INCLUDES} -std=c99
 FFLAGS       = ${COMPILE_FLAG} ${PROFILE_FLAG} ${INCLUDES}

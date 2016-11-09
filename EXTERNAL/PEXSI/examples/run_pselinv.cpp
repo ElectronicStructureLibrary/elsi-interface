@@ -47,7 +47,7 @@ such enhancements or derivative works thereof, in binary and source code form.
 
 #include "pexsi/timer.h"
 
-#define _MYCOMPLEX_
+//#define _MYCOMPLEX_
 
 #ifdef _MYCOMPLEX_
 #define MYSCALAR Complex
@@ -58,6 +58,8 @@ such enhancements or derivative works thereof, in binary and source code form.
 
 using namespace PEXSI;
 using namespace std;
+
+
 
 void Usage(){
   std::cout << "Usage" << std::endl << "run_pselinv -T [isText] -F [doFacto -E [doTriSolve] -Sinv [doSelInv]]  -H <Hfile> -S [Sfile] -colperm [colperm] -r [nprow] -c [npcol] -npsymbfact [npsymbfact] -P [maxpipelinedepth] -SinvBcast [doSelInvBcast] -SinvPipeline [doSelInvPipeline] -SinvHybrid [doSelInvHybrid] -rshift [real shift] -ishift [imaginary shift] -ToDist [doToDist] -Diag [doDiag]" << std::endl;
@@ -76,12 +78,13 @@ int main(int argc, char **argv)
 #endif
 
   MPI_Init( &argc, &argv );
+
+
   int mpirank, mpisize;
   MPI_Comm_rank( MPI_COMM_WORLD, &mpirank );
   MPI_Comm_size( MPI_COMM_WORLD, &mpisize );
 
-
-  try{
+    try{
     MPI_Comm world_comm;
 
     // *********************************************************************
@@ -100,11 +103,11 @@ int main(int argc, char **argv)
         nprow= atoi(options["-r"].c_str());
         npcol= atoi(options["-c"].c_str());
         if(nprow*npcol > mpisize){
-          throw std::runtime_error("The number of used processors cannot be higher than the total number of available processors." );
+          ErrorHandling("The number of used processors cannot be higher than the total number of available processors." );
         } 
       }
       else{
-        throw std::runtime_error( "When using -r option, -c also needs to be provided." );
+        ErrorHandling( "When using -r option, -c also needs to be provided." );
       }
     }
     else if( options.find("-c") != options.end() ){
@@ -112,11 +115,11 @@ int main(int argc, char **argv)
         nprow= atoi(options["-r"].c_str());
         npcol= atoi(options["-c"].c_str());
         if(nprow*npcol > mpisize){
-          throw std::runtime_error("The number of used processors cannot be higher than the total number of available processors." );
+          ErrorHandling("The number of used processors cannot be higher than the total number of available processors." );
         } 
       }
       else{
-        throw std::runtime_error( "When using -c option, -r also needs to be provided." );
+        ErrorHandling( "When using -c option, -r also needs to be provided." );
       }
     }
 
@@ -143,7 +146,7 @@ int main(int argc, char **argv)
 
 
       //if( mpisize != nprow * npcol || nprow != npcol ){
-      //  throw std::runtime_error( "nprow == npcol is assumed in this test routine." );
+      //  ErrorHandling( "nprow == npcol is assumed in this test routine." );
       //}
 
       if( mpirank == 0 )
@@ -191,7 +194,7 @@ int main(int argc, char **argv)
         Hfile = options["-H"];
       }
       else{
-        throw std::logic_error("Hfile must be provided.");
+        ErrorHandling("Hfile must be provided.");
       }
 
       if( options.find("-S") != options.end() ){ 
@@ -265,13 +268,7 @@ int main(int argc, char **argv)
       // *********************************************************************
 
       // Setup grid.
-#ifdef SWAP_ROWS_COLS
-      SuperLUGrid<MYSCALAR> g( world_comm, npcol, nprow );
-      //SuperLUGrid<MYSCALAR> g( world_comm, nprow, npcol );
-#else
       SuperLUGrid<MYSCALAR> g( world_comm, nprow, npcol );
-#endif
-      //      SuperLUGrid<Complex> g1( world_comm, nprow, npcol );
 
       int      m, n;
       DistSparseMatrix<MYSCALAR>  AMat;
@@ -497,7 +494,9 @@ int main(int argc, char **argv)
           PSelInvOptions selInvOpt;
           selInvOpt.maxPipelineDepth = maxPipelineDepth;
 
-          PMlocPtr = new PMatrix<MYSCALAR>( &g1, &super, &selInvOpt, &luOpt  );
+          FactorizationOptions factOpt;
+          factOpt.ColPerm = ColPerm;
+          PMlocPtr = new PMatrix<MYSCALAR>( &g1, &super, &selInvOpt, &factOpt  );
           PMatrix<MYSCALAR> & PMloc = *PMlocPtr;
 
           luMat.LUstructToPMatrix( PMloc );
@@ -524,10 +523,10 @@ int main(int argc, char **argv)
           GetTime( timeTotalOffsetSta );
 
           if(doSelInv>1){
-                PMatrix<MYSCALAR> PMlocIt = PMloc;
+            PMatrix<MYSCALAR> PMlocIt = PMloc;
             for(int i=1; i<= doSelInv; ++i )
             {
-                PMlocIt.CopyLU(PMloc);
+              PMlocIt.CopyLU(PMloc);
 
               double timeTotalOffsetEnd = 0;
               GetTime( timeTotalOffsetEnd );
@@ -671,7 +670,7 @@ int main(int argc, char **argv)
                 statusOFS << std::endl << "Diagonal (pipeline) of inverse in natural order: " << std::endl << diag << std::endl;
                 ofstream ofs("diag");
                 if( !ofs.good() ) 
-                  throw std::runtime_error("file cannot be opened.");
+                  ErrorHandling("file cannot be opened.");
                 serialize( diag, ofs, NO_MASK );
                 ofs.close();
               }
@@ -764,6 +763,7 @@ int main(int argc, char **argv)
       //      commOFS.close();
       //#endif
 
+
       statusOFS.close();
     }
   }
@@ -771,9 +771,6 @@ int main(int argc, char **argv)
   {
     std::cerr << "Processor " << mpirank << " caught exception with message: "
       << e.what() << std::endl;
-#ifndef _RELEASE_
-    DumpCallStack();
-#endif
   }
 
   MPI_Finalize();

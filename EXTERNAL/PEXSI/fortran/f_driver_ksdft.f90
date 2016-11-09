@@ -42,6 +42,7 @@
 !> @file f_driver_ksdft.f90
 !> @brief FORTRAN version of the driver for solving KSDFT.
 !> @date 2014-04-02
+!> @date 2016-09-10 Compatible with the interface at version 0.10.0
 program f_driver_ksdft
 use f_ppexsi_interface
 use iso_c_binding
@@ -80,9 +81,9 @@ call mpi_comm_size( MPI_COMM_WORLD, mpisize, ierr )
 
 Hfile            = "lap2dr.matrix"
 
-! Only use 4 processors in this example
-nprow = 2
-npcol = 2
+! Only use 1 processors in this example
+nprow = 1
+npcol = 1
 
 ! Split the processors to read matrix
 if( mpirank < nprow * npcol ) then
@@ -169,7 +170,7 @@ options%temperature = 0.019d0   ! 3000 K
 options%muPEXSISafeGuard = 0.2d0
 options%numElectronPEXSITolerance = 1d-3
 
-call f_ppexsi_load_real_symmetric_hs_matrix(&
+call f_ppexsi_load_real_hs_matrix(&
       plan,&       
       options,&
       nrows,&
@@ -218,7 +219,7 @@ if( mpirank == 0 ) then
 endif
 
 if( isProcRead == 1 ) then
-  call f_ppexsi_retrieve_real_symmetric_dft_matrix(&
+  call f_ppexsi_retrieve_real_dft_matrix(&
     plan,&
     DMnzvalLocal,&
     EDMnzvalLocal,&

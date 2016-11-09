@@ -42,7 +42,8 @@
 !> @file f_driver_pselinv_real.f90
 !> @brief FORTRAN version of the driver for using PSelInv for real symmetric
 !> matrices.
-!> @date 2014-04-01
+!> @date 2014-04-01 Original version
+!> @date 2016-09-10 Compatible with the interface at version 0.10.0
 program f_driver_pselinv_real
 use f_ppexsi_interface
 use iso_c_binding
@@ -139,7 +140,7 @@ if( mpirank .eq. 0 ) then
   write(*,*) "Finish initializing the PPEXSI plan" 
 endif
 
-call f_ppexsi_load_real_symmetric_hs_matrix(&
+call f_ppexsi_load_real_hs_matrix(&
       plan,&       
       options,&
       nrows,&

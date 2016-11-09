@@ -40,13 +40,11 @@ royalty-free perpetual license to install, use, modify, prepare derivative
 works, incorporate into other computer software, distribute, and sublicense
 such enhancements or derivative works thereof, in binary and source code form.
  */
-/// @file run_ksdft.cpp
-/// @brief Similar to driver_ksdft_2 but test the CPP interface
-/// directly.
+/// @file run_fermi.cpp
+/// @brief Calculate the Fermi operator given real symmetric H and S matrices.
 ///
-/// This can be used to test the correctness of new CPP implementation
-/// without going through the interfaces.
-/// @date 2015-12-07. Initial revision. Derived from run_ppexsi.cpp
+/// @date 2016-09-04  Original version.
+
 #include "ppexsi.hpp"
 #include "c_pexsi_interface.h"
 
@@ -56,7 +54,7 @@ using namespace std;
 
 void Usage(){
   std::cout 
-    << "run_ksdft" << std::endl;
+    << "run_fermi" << std::endl;
 }
 
 int main(int argc, char **argv) 
@@ -69,22 +67,14 @@ int main(int argc, char **argv)
   // PEXSI parameters
   int           isSIdentity;                  
 
-
   double        numElectronExact;
 
-  double        muPEXSI;
-  double        numElectronPEXSI;
-  double        muMinInertia;
-  double        muMaxInertia;
-  int           numTotalInertiaIter;
-  int           numTotalPEXSIIter;
   int           numColLocal;
 
   char*         Hfile;
   char*         Sfile;
   int           isFormatted;
 
-  PPEXSIPlan    plan;
   PPEXSIOptions options;
 
   int           nprow, npcol;
@@ -92,19 +82,14 @@ int main(int argc, char **argv)
   int           isProcRead;
   int           outputFileIndex;
 
+  Real          numElectron;
+  Real          numElectronDrvMu;
 
-  //	if( argc < 25 || argc%2 == 0 ) {
-  //		if( mpirank == 0 ) Usage();
-  //		MPI_Finalize();
-  //		return 0;
-  //	}
-
+  std::string colPerm;
 
   try{
     // *********************************************************************
     // Input parameter
-    // 
-    // FIXME: Currently hard coded
     // *********************************************************************
 
     numElectronExact    = 12.0;
@@ -114,6 +99,7 @@ int main(int argc, char **argv)
     Sfile               = "";
     isFormatted         = 1;
     isSIdentity         = 1;
+    colPerm             = "PARMETIS";
 
     /* Split the processors to read matrix */
     if( mpirank < nprow * npcol )
@@ -187,7 +173,7 @@ int main(int argc, char **argv)
     PPEXSISetDefaultOptions( &options );
     options.muMin0 = 0.0;
     options.muMax0 = 0.5;
-    options.mu0    = 0.0;
+    options.mu0    = +2.55555567e-01;
     options.npSymbFact = 1;
     options.ordering = 0;
     options.isInertiaCount = 1;
@@ -196,7 +182,6 @@ int main(int argc, char **argv)
     options.deltaE   = 20.0;
     options.numPole  = 40;
     options.temperature  = 0.0019; // 300K
-    //  options.muInertiaTolerance = 0.0019;
     options.muPEXSISafeGuard  = 0.2; 
     options.numElectronPEXSITolerance = 0.001;
     options.isSymbolicFactorize = 1;
@@ -214,43 +199,60 @@ int main(int argc, char **argv)
         SMat.nzvalLocal.Data(),
         options.verbosity );
 
-    // PEXSI Solve
-    pexsi.DFTDriver2(
-        numElectronExact,
+    if( mpirank == 0 ){
+      printf("After loading the matrix.\n");
+    }
+
+    if( options.matrixType == 0 ){
+      pexsi.SymbolicFactorizeRealSymmetricMatrix( 
+          colPerm, 
+          1,
+          options.verbosity );
+
+      pexsi.SymbolicFactorizeComplexSymmetricMatrix( 
+          colPerm, 
+          1,
+          options.verbosity );
+    }
+
+
+    // Inertia counting
+    Int numShift = options.numPole;
+    std::vector<double> shiftVec( numShift );
+    for( Int i = 0; i < numShift; i++ ){
+      shiftVec[i] = options.muMin0 + 
+        ( options.muMax0 - options.muMin0 ) / numShift * i;
+    }
+    std::vector<double> inertiaVec( numShift );
+    pexsi.CalculateNegativeInertiaReal(
+        shiftVec,
+        inertiaVec,
+        options.verbosity );
+
+    if( mpirank == 0 ){
+      for( Int i = 0; i < numShift; i++ )
+        printf( "Shift = %25.15f  inertia = %25.1f\n", 
+            shiftVec[i], inertiaVec[i] );
+    }
+
+    // Compute Fermi operator
+    pexsi.CalculateFermiOperatorReal(
+        options.numPole,
         options.temperature,
         options.gap,
         options.deltaE,
-        options.numPole,
-        options.isInertiaCount,
-        options.muMin0,
-        options.muMax0,
         options.mu0,
-        options.muInertiaTolerance,
-        options.muInertiaExpansion,
+        numElectronExact, 
         options.numElectronPEXSITolerance,
-        options.matrixType,
-        options.isSymbolicFactorize,
-        options.ordering,
-        options.npSymbFact,
         options.verbosity,
-        muPEXSI,
-        numElectronPEXSI,
-        muMinInertia,
-        muMaxInertia,
-        numTotalInertiaIter );
+        numElectron,
+        numElectronDrvMu );
 
-    // Retrieve data
-    if( isProcRead == 1 ){
-
-      if( mpirank == 0 ){
-        printf("Output from the main program\n");
-        printf("Total energy (H*DM)         = %15.5f\n", pexsi.TotalEnergyH());
-        printf("Total energy (S*EDM)        = %15.5f\n", pexsi.TotalEnergyS());
-        printf("Total free energy           = %15.5f\n", pexsi.TotalFreeEnergy());
-      }
+    if( mpirank == 0 ){
+      printf("numElectron       = %25.15f\n", numElectron);
+      printf("numElectronDrvMu  = %25.15f\n", numElectronDrvMu);
     }
 
-    // No need for clean up
   }
   catch( std::exception& e )
   {

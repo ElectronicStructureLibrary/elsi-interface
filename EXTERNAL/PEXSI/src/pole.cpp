@@ -2,44 +2,44 @@
    Copyright (c) 2012 The Regents of the University of California,
    through Lawrence Berkeley National Laboratory.  
 
-   Author: Lin Lin
+Author: Lin Lin
 
-   This file is part of PEXSI. All rights reserved.
+This file is part of PEXSI. All rights reserved.
 
-   Redistribution and use in source and binary forms, with or without
-   modification, are permitted provided that the following conditions are met:
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
 
-   (1) Redistributions of source code must retain the above copyright notice, this
-   list of conditions and the following disclaimer.
-   (2) Redistributions in binary form must reproduce the above copyright notice,
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.
-   (3) Neither the name of the University of California, Lawrence Berkeley
-   National Laboratory, U.S. Dept. of Energy nor the names of its contributors may
-   be used to endorse or promote products derived from this software without
-   specific prior written permission.
+(1) Redistributions of source code must retain the above copyright notice, this
+list of conditions and the following disclaimer.
+(2) Redistributions in binary form must reproduce the above copyright notice,
+this list of conditions and the following disclaimer in the documentation
+and/or other materials provided with the distribution.
+(3) Neither the name of the University of California, Lawrence Berkeley
+National Laboratory, U.S. Dept. of Energy nor the names of its contributors may
+be used to endorse or promote products derived from this software without
+specific prior written permission.
 
-   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-   ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-   WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-   DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
-   ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-   (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-   LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-   ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-   You are under no obligation whatsoever to provide any bug fixes, patches, or
-   upgrades to the features, functionality or performance of the source code
-   ("Enhancements") to anyone; however, if you choose to make your Enhancements
-   available either publicly, or directly to Lawrence Berkeley National
-   Laboratory, without imposing a separate written license agreement for such
-   Enhancements, then you hereby grant the following license: a non-exclusive,
-   royalty-free perpetual license to install, use, modify, prepare derivative
-   works, incorporate into other computer software, distribute, and sublicense
-   such enhancements or derivative works thereof, in binary and source code form.
-*/
+You are under no obligation whatsoever to provide any bug fixes, patches, or
+upgrades to the features, functionality or performance of the source code
+("Enhancements") to anyone; however, if you choose to make your Enhancements
+available either publicly, or directly to Lawrence Berkeley National
+Laboratory, without imposing a separate written license agreement for such
+Enhancements, then you hereby grant the following license: a non-exclusive,
+royalty-free perpetual license to install, use, modify, prepare derivative
+works, incorporate into other computer software, distribute, and sublicense
+such enhancements or derivative works thereof, in binary and source code form.
+ */
 /// @file pole.cpp
 /// @brief Implementation of the pole expansion subroutines.
 /// @date 2011-11-15 Original version.
@@ -74,15 +74,15 @@ Complex fd(Complex z, double beta, double mu){
 // fdDrvMu(z) = beta * 2.0 * exp(beta*z)/(1+exp(beta*z))^2
 Complex fdDrvMu(Complex z, double beta, double mu){
   Complex val, ez;
-	val = fd( z, beta, mu ) * beta;
+  val = fd( z, beta, mu ) * beta;
   /* LL: VERY IMPORTANT TO AVOID OVERFLOW/UNDERFLOW! */
   if( z.real() >= 0 ){
     ez = exp(-beta*z);
-		val *= 1.0 / ( 1.0 + ez );
+    val *= 1.0 / ( 1.0 + ez );
   }
   else{
     ez = exp(beta* z);
-		val *= ez / ( 1.0 + ez );
+    val *= ez / ( 1.0 + ez );
   }
   return val;
 }
@@ -91,15 +91,15 @@ Complex fdDrvMu(Complex z, double beta, double mu){
 // fdDrvT(z) = beta^2 * 2.0 * exp(beta*z) * z /(1+exp(beta*z))^2
 Complex fdDrvT(Complex z, double beta, double mu){
   Complex val, ez;
-	val = fd( z, beta, mu ) * beta * beta * z;
+  val = fd( z, beta, mu ) * beta * beta * z;
   /* LL: VERY IMPORTANT TO AVOID OVERFLOW/UNDERFLOW! */
   if( z.real() >= 0 ){
     ez = exp(-beta*z);
-		val *= 1.0 / ( 1.0 + ez );
+    val *= 1.0 / ( 1.0 + ez );
   }
   else{
     ez = exp(beta* z);
-		val *= ez / ( 1.0 + ez );
+    val *= ez / ( 1.0 + ez );
   }
   return val;
 }
@@ -138,38 +138,38 @@ Complex hmz(Complex z, double beta, double mu){
 
 
 /*********************************************************************
-   ELLIPKKP Computes the complete elliptic integral of the first kind,
-   with complement.
+  ELLIPKKP Computes the complete elliptic integral of the first kind,
+  with complement.
 
-   Input parameters:
-     L             
+  Input parameters:
+  L             
 
-   Output parameters
-     K, Kp
+  Output parameters
+  K, Kp
 
-   K is the value of the complete elliptic integral of the first kind,
-   evaluated at M=exp(-2*pi*L), 0 < L < Inf. Kp is the result for
-   complementary parameter, which is useful when M < EPS.  Even when M
-   < 1e-6, the built-in ELLIPKE of MATLAB can lose digits of accuracy
-   for KP.
+  K is the value of the complete elliptic integral of the first kind,
+  evaluated at M=exp(-2*pi*L), 0 < L < Inf. Kp is the result for
+  complementary parameter, which is useful when M < EPS.  Even when M
+  < 1e-6, the built-in ELLIPKE of MATLAB can lose digits of accuracy
+  for KP.
 
-   Recall that the elliptic modulus k is related to the parameter
-   M by M = k^2.
+  Recall that the elliptic modulus k is related to the parameter
+  M by M = k^2.
 
-   ELLIPKKP uses the method of the arithmetic-geometric mean described
-   in 17.6 of M. Abramowitz and I.A. Stegun, "Handbook of Mathematical
-   Functions," Dover, 1965.  Same method as in ELLIPKE, only
-   interchanging 1 and 1-m to find KP.
+  ELLIPKKP uses the method of the arithmetic-geometric mean described
+  in 17.6 of M. Abramowitz and I.A. Stegun, "Handbook of Mathematical
+  Functions," Dover, 1965.  Same method as in ELLIPKE, only
+  interchanging 1 and 1-m to find KP.
 
-   When m=exp(-2*pi*L) is extremely small, use O(m) approximations.  
+  When m=exp(-2*pi*L) is extremely small, use O(m) approximations.  
 
-   Originally written by Toby Driscoll in 1999.
+  Originally written by Toby Driscoll in 1999.
 
-   Rewritten in C++ by 
-   Lin Lin
-   Computer Research Division, Lawrence Berkeley National Lab
-   Last modified:  10-24-2012
-*********************************************************************/
+  Rewritten in C++ by 
+  Lin Lin
+  Computer Research Division, Lawrence Berkeley National Lab
+  Last modified:  10-24-2012
+ *********************************************************************/
 void ellipkkp(double* K, double* Kp, double *pL){
   double pi, m, a0, b0, s0, a1, b1, c1, w1;
   double mm, eps = 1e-15;
@@ -188,9 +188,9 @@ void ellipkkp(double* K, double* Kp, double *pL){
   }
 
   m = exp(-2*pi*L);
-  
+
   /* Calculate K */
- 
+
   a0 = 1.0;
   b0 = sqrt(1.0 - m);
   s0 = m;
@@ -206,7 +206,7 @@ void ellipkkp(double* K, double* Kp, double *pL){
     a0 = a1;
     b0 = b1;
   }
-  
+
   *K = pi / (2.0 * a1);
 
   /* Calculate Kp */
@@ -233,10 +233,10 @@ void ellipkkp(double* K, double* Kp, double *pL){
   ELLIPJC Calculates Jacobi elliptic functions for complex argument.
 
   Input parameters:
-    u, L             
+  u, L             
 
   Output parameters
-    sn, cn, dn
+  sn, cn, dn
 
   [sn,cn,dn] are the values of the Jacobi elliptic functions
   evaluated at complex argument U and parameter M=exp(-2*pi*L), 0 < L
@@ -255,19 +255,19 @@ void ellipkkp(double* K, double* Kp, double *pL){
   formulas from Gradshteyn & Ryzhik, 5th ed., and Abramowitz
   & Stegun.  
 
-  NOTE:  When calling this function outside *flag = 0
-         *flag = 1 is only for recursive use.
+NOTE:  When calling this function outside *flag = 0
+ *flag = 1 is only for recursive use.
 
-  Originally written by Toby Driscoll in 1999.
+ Originally written by Toby Driscoll in 1999.
 
-  Rewritten in C++ by 
-  Lin Lin
-  Computer Research Division, Lawrence Berkeley National Lab
-  Last modified:  10-24-2012
-*********************************************************************/
+ Rewritten in C++ by 
+ Lin Lin
+ Computer Research Division, Lawrence Berkeley National Lab
+ Last modified:  10-24-2012
+ *********************************************************************/
 void ellipjc(Complex* psn, Complex* pcn,
-	     Complex* pdn, Complex* pu, 
-	     double *pL, int *flag) {
+    Complex* pdn, Complex* pu, 
+    double *pL, int *flag) {
 
   double K, Kp; 
   double L = (*pL);
@@ -277,7 +277,7 @@ void ellipjc(Complex* psn, Complex* pcn,
   double x, kappa, mu;
   int high;
   int ione = 1;
- 
+
   /* C complex numbers */
   Complex sinu, cosu;
   Complex u;
@@ -300,7 +300,7 @@ void ellipjc(Complex* psn, Complex* pcn,
     m = L;
   }
 
-  
+
   /* Case 1 : m is already small */
   if( m < 4.0 * eps ){
     sinu = sin(u);
@@ -309,7 +309,7 @@ void ellipjc(Complex* psn, Complex* pcn,
     *psn = sinu + m/4.0 * (sinu * cosu - u) * cosu;
 
     *pcn = cosu + m/4.0 * (-sinu * cosu + u) * sinu;
-    
+
     *pdn = 1.0 +  m/4.0 * (cosu * cosu - sinu * sinu - 1.0); 
 
   }
@@ -326,7 +326,7 @@ void ellipjc(Complex* psn, Complex* pcn,
     /* Call ellipjc recursively */
     ellipjc(&sn1, &cn1, &dn1, &v, &mu, &ione);
     denom = 1.0 + kappa * sn1 * sn1;
-    
+
     *psn = (1.0+kappa) * sn1 / denom;
     *pcn = cn1 * dn1 / denom; 
     *pdn = (1.0-kappa*sn1*sn1) / denom;
@@ -382,11 +382,8 @@ void ellipjc(Complex* psn, Complex* pcn,
 /// is the eigenvalue set of Hamiltonian.
 /// @param[in] mu Chemical potential.
 int GetPoleFunc(Complex (*func)(Complex, double, double),
-	      Complex* zshift, Complex* zweight, int* Npole,
-	      double* temp, double* gap, double* deltaE, double* mu){
-#ifndef _RELEASE_
-	PushCallStack("GetPoleFunc");
-#endif
+    Complex* zshift, Complex* zweight, int* Npole,
+    double* temp, double* gap, double* deltaE, double* mu){
   double beta;
   double M, mshift, m2, M2, kr, L, K, Kp, coef;
   Complex t, sn, cn, dn, z, dzdt, zsq, funczsq;
@@ -398,7 +395,7 @@ int GetPoleFunc(Complex (*func)(Complex, double, double),
     fprintf(stderr, "Npole has to be an even number!\n");
     return 1;
   } 
-  
+
   Npolehalf   = (*Npole) / 2;
   M           = *deltaE;
   mshift      = pow((pi/beta), 2.0);
@@ -412,42 +409,39 @@ int GetPoleFunc(Complex (*func)(Complex, double, double),
   for( j = 0; j < Npolehalf; j++){
     t   = (-K + (0.5 + j) / Npolehalf * 2.0 * K) + Z_I * 0.5 * Kp;
     ellipjc(&sn, &cn, &dn, &t, &L, &flag);
-   
+
     z    = sqrt(m2*M2) * (1.0/kr + sn) / (1.0/kr-sn) - mshift;
 
     /* General formula for zshift and zweight
      *
-       zshift(j)  = zsqrt(j) + mu;
-       zweight(j) = 2*K*sqrt(m2*M2)/(kr*pi*Npolehalf) / 
-                    zsqrt(j) * dzdt(j) * func(zsqrt(j)); 
-    */
+     zshift(j)  = zsqrt(j) + mu;
+     zweight(j) = 2*K*sqrt(m2*M2)/(kr*pi*Npolehalf) / 
+     zsqrt(j) * dzdt(j) * func(zsqrt(j)); 
+     */
 
     dzdt = cn * dn / ((1.0/kr-sn) * (1.0/kr-sn));   
-    
+
     coef = 2.0 * K * sqrt(m2*M2) / (kr*pi*Npolehalf);
-    
-    
+
+
     /* The first Npolehalf poles */
     zsq     = sqrt(z);
-    
+
     funczsq = (*func)(zsq, beta, *mu);
-    
+
     zshift[j]  = (*mu) + zsq;
     zweight[j] = funczsq * dzdt / zsq * coef;
 
     /* The second Npolehalf poles */
     zsq  = -sqrt(z);
-    
+
     funczsq = (*func)(zsq, beta, *mu);
-    
+
     zshift[j+Npolehalf]  = (*mu) + zsq;
     zweight[j+Npolehalf] = funczsq * dzdt / zsq * coef;
 
   }
 
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
   return 0;
 }
 
@@ -482,12 +476,9 @@ int GetPoleFunc(Complex (*func)(Complex, double, double),
 /// @param[in] mu Chemical potential.
 /// @param[in] dmu Update of chemical potential. 
 int GetPoleUpdateFunc(Complex (*func)(Complex, double, double),
-	      Complex* zshift, Complex* zweight, int* Npole,
-	      double* temp, double* gap, double* deltaE, double* mu, 
-        double* dmu){
-#ifndef _RELEASE_
-	PushCallStack("GetPoleUpdateFunc");
-#endif
+    Complex* zshift, Complex* zweight, int* Npole,
+    double* temp, double* gap, double* deltaE, double* mu, 
+    double* dmu){
   double beta;
   double M, mshift, m2, M2, kr, L, K, Kp, coef;
   Complex t, sn, cn, dn, z, dzdt, zsq, funczsq, zsqweight;
@@ -499,7 +490,7 @@ int GetPoleUpdateFunc(Complex (*func)(Complex, double, double),
     fprintf(stderr, "Npole has to be an even number!\n");
     return 1;
   } 
-  
+
   Npolehalf   = (*Npole) / 2;
   M           = *deltaE;
   mshift      = pow((pi/beta), 2.0);
@@ -513,28 +504,28 @@ int GetPoleUpdateFunc(Complex (*func)(Complex, double, double),
   for( j = 0; j < Npolehalf; j++){
     t   = (-K + (0.5 + j) / Npolehalf * 2.0 * K) + Z_I * 0.5 * Kp;
     ellipjc(&sn, &cn, &dn, &t, &L, &flag);
-   
+
     z    = sqrt(m2*M2) * (1.0/kr + sn) / (1.0/kr-sn) - mshift;
 
     /* General formula for zshift and zweight
      *
-       zshift(j)  = zsqrt(j) + mu;
-       zweight(j) = 2*K*sqrt(m2*M2)/(kr*pi*Npolehalf) / 
-                    zsqrt(j) * dzdt(j) * func(zsqrt(j)); 
-    */
+     zshift(j)  = zsqrt(j) + mu;
+     zweight(j) = 2*K*sqrt(m2*M2)/(kr*pi*Npolehalf) / 
+     zsqrt(j) * dzdt(j) * func(zsqrt(j)); 
+     */
 
     dzdt = cn * dn / ((1.0/kr-sn) * (1.0/kr-sn));   
-    
+
     coef = 2.0 * K * sqrt(m2*M2) / (kr*pi*Npolehalf);
-    
-    
+
+
     /* The first Npolehalf poles */
     /* dmu reflects the update of weight */
     zsq     = sqrt(z);
     zsqweight = sqrt(z)- (*dmu);
-    
+
     funczsq = (*func)(zsqweight, beta, *mu);
-    
+
     zshift[j]  = (*mu) + zsq;
     zweight[j] = funczsq * dzdt / zsq * coef;
 
@@ -542,17 +533,14 @@ int GetPoleUpdateFunc(Complex (*func)(Complex, double, double),
     /* dmu reflects the update of weight */
     zsq  = -sqrt(z);
     zsqweight  = -sqrt(z) - (*dmu);
-    
+
     funczsq = (*func)(zsqweight, beta, *mu);
-    
+
     zshift[j+Npolehalf]  = (*mu) + zsq;
     zweight[j+Npolehalf] = funczsq * dzdt / zsq * coef;
 
   }
 
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
   return 0;
 }
 
@@ -561,61 +549,61 @@ int GetPoleUpdateFunc(Complex (*func)(Complex, double, double),
 // Wrapper function
 
 int GetPoleDensity(Complex* zshift, Complex* zweight, 
-	     int Npole, double temp, double gap, double deltaE,
-	     double mu){
-	return GetPoleFunc(&fd, zshift,  zweight,
-			&Npole, &temp, &gap, &deltaE, &mu);
+    int Npole, double temp, double gap, double deltaE,
+    double mu){
+  return GetPoleFunc(&fd, zshift,  zweight,
+      &Npole, &temp, &gap, &deltaE, &mu);
 }
 
 int GetPoleDensityDrvMu(Complex* zshift, Complex* zweight, 
-	     int Npole, double temp, double gap, double deltaE,
-	     double mu){
-	return GetPoleFunc(&fdDrvMu, zshift,  zweight,
-			&Npole, &temp, &gap, &deltaE, &mu);
+    int Npole, double temp, double gap, double deltaE,
+    double mu){
+  return GetPoleFunc(&fdDrvMu, zshift,  zweight,
+      &Npole, &temp, &gap, &deltaE, &mu);
 }
 
 int GetPoleDensityDrvT(Complex* zshift, Complex* zweight, 
-	     int Npole, double temp, double gap, double deltaE,
-	     double mu){
-	return GetPoleFunc(&fdDrvT, zshift,  zweight,
-			&Npole, &temp, &gap, &deltaE, &mu);
+    int Npole, double temp, double gap, double deltaE,
+    double mu){
+  return GetPoleFunc(&fdDrvT, zshift,  zweight,
+      &Npole, &temp, &gap, &deltaE, &mu);
 }
 
 
 int GetPoleHelmholtz(Complex* zshift, Complex* zweight, 
-	     int Npole, double temp, double gap, double deltaE,
-	     double mu){
-	return GetPoleFunc(&hmz, zshift,  zweight,
-			&Npole, &temp, &gap, &deltaE, &mu);
+    int Npole, double temp, double gap, double deltaE,
+    double mu){
+  return GetPoleFunc(&hmz, zshift,  zweight,
+      &Npole, &temp, &gap, &deltaE, &mu);
 }
 
 int GetPoleForce(Complex* zshift, Complex* zweight, 
-	     int Npole, double temp, double gap, double deltaE,
-	     double mu){
-	return GetPoleFunc(&egy, zshift,  zweight,
-			&Npole, &temp, &gap, &deltaE, &mu);
+    int Npole, double temp, double gap, double deltaE,
+    double mu){
+  return GetPoleFunc(&egy, zshift,  zweight,
+      &Npole, &temp, &gap, &deltaE, &mu);
 }
 
 // Wrapper for updating formula for the pole weights
 int GetPoleDensityUpdate(Complex* zshift, Complex* zweight, 
-	     int Npole, double temp, double gap, double deltaE,
-	     double mu, double dmu){
-	return GetPoleUpdateFunc(&fd, zshift,  zweight,
-			&Npole, &temp, &gap, &deltaE, &mu, &dmu);
+    int Npole, double temp, double gap, double deltaE,
+    double mu, double dmu){
+  return GetPoleUpdateFunc(&fd, zshift,  zweight,
+      &Npole, &temp, &gap, &deltaE, &mu, &dmu);
 }
 
 int GetPoleHelmholtzUpdate(Complex* zshift, Complex* zweight, 
-	     int Npole, double temp, double gap, double deltaE,
-	     double mu, double dmu){
-	return GetPoleUpdateFunc(&hmz, zshift,  zweight,
-			&Npole, &temp, &gap, &deltaE, &mu, &dmu);
+    int Npole, double temp, double gap, double deltaE,
+    double mu, double dmu){
+  return GetPoleUpdateFunc(&hmz, zshift,  zweight,
+      &Npole, &temp, &gap, &deltaE, &mu, &dmu);
 }
 
 int GetPoleForceUpdate(Complex* zshift, Complex* zweight, 
-	     int Npole, double temp, double gap, double deltaE,
-	     double mu, double dmu){
-	return GetPoleUpdateFunc(&egy, zshift,  zweight,
-			&Npole, &temp, &gap, &deltaE, &mu, &dmu);
+    int Npole, double temp, double gap, double deltaE,
+    double mu, double dmu){
+  return GetPoleUpdateFunc(&egy, zshift,  zweight,
+      &Npole, &temp, &gap, &deltaE, &mu, &dmu);
 }
 
 

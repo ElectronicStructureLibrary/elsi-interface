@@ -7,3 +7,5 @@ TODO List   {#pageTODO}
   related calculations.
 - Option to not to use the history of the inertia counting?
 - Document for the DFTDriver2 routine
+- Simplify interface to LoadRealMatrix and LoadComplexMatrix. Instead of
+  distinguish symmetric and unsymmetric case.

@@ -47,6 +47,7 @@
  *
  *
  * @date 2015-01-13 Original version.
+ * @date 2016-09-10 Compatible with the interface at version 0.10.0
  */
 #include  <stdio.h>
 #include  <stdlib.h>
@@ -138,7 +139,7 @@ int main(int argc, char **argv)
       mpirank, 
       &info );
 
-  PPEXSILoadRealUnsymmetricHSMatrix( 
+  PPEXSILoadRealHSMatrix( 
       plan, 
       options,
       nrows,

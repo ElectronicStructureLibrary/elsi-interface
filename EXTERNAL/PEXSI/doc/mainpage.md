@@ -1,7 +1,7 @@
 Main Page           {#mainpage}
 =========
 
-**Welcome to the documentation of %PEXSI (current version: v0.9.2)**
+**Welcome to the documentation of %PEXSI (current version: v0.10.0)**
 
 - @subpage pageIntro
   - @ref pageOverview
@@ -9,6 +9,7 @@ Main Page           {#mainpage}
   - @ref pageLicense
   - @ref pageReference
   - @ref pageChangeLog
+  - @ref pageImportantChange
 - @subpage pageDownload
 - @subpage pageInstall
   - @ref pageDependency
@@ -21,6 +22,7 @@ Main Page           {#mainpage}
   - @ref pagePselinvComplexUnsymmetric
   - @ref pageDFT1
   - @ref pageDFT2
+  - @ref pageFermiComplex
 - @subpage pageCoreFunction
   - @ref pageBasicCore
   - @ref pageDataType

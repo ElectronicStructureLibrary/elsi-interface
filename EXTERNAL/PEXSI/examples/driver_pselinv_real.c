@@ -49,10 +49,12 @@
  * @date 2013-11-10 Original version.
  * @date 2014-01-26 Change the interface.
  * @date 2014-04-01 Compatible with the interface at version 0.7.0.
+ * @date 2016-09-10 Compatible with the interface at version 0.10.0
  */
 #include  <stdio.h>
 #include  <stdlib.h>
 #include  "c_pexsi_interface.h"
+#include  <omp.h>
 
 int main(int argc, char **argv) 
 {
@@ -72,19 +74,33 @@ int main(int argc, char **argv)
   int           i, j, irow, jcol;
   int           numColLocalFirst, firstCol;
 
+  double tsymfact1, tsymfact2, tinvert1, tinvert2;
+
+  #ifdef WITH_SYMPACK
+  symPACK_Init(&argc, &argv);
+  #else
   MPI_Init( &argc, &argv );
+  #endif
+
   MPI_Comm_rank( MPI_COMM_WORLD, &mpirank );
   MPI_Comm_size( MPI_COMM_WORLD, &mpisize );
+
+#if defined(PROFILE) || defined(PMPI)
+  TAU_PROFILE_INIT(argc, argv);
+  TAU_PROFILE_SET_CONTEXT(MPI_COMM_WORLD);
+#endif
+
 
 
   /* Below is the data used for the toy g20 matrix */
 
-  nprow               = 1;
-  npcol               = mpisize;
-  //npcol               = 1;
-  //nprow               = mpisize;
+  npcol               = 1;
+  nprow               = mpisize;
   Rfile               = "lap2dr.matrix";
+  //Rfile               = "laplace128full.csr";
 
+  if (argc > 1)
+      Rfile = argv[1];
 
   /* Read the matrix */
   ReadDistSparseMatrixFormattedHeadInterface(
@@ -127,6 +143,10 @@ int main(int argc, char **argv)
   PPEXSIOptions  options;
   PPEXSISetDefaultOptions( &options );
   options.npSymbFact = 1;
+  options.solver = 0;
+  #ifdef WITH_SYMPACK
+  options.solver = 1;
+  #endif
   options.ordering = 0;
   options.verbosity = 1;
 
@@ -139,7 +159,7 @@ int main(int argc, char **argv)
       mpirank, 
       &info );
 
-  PPEXSILoadRealSymmetricHSMatrix( 
+  PPEXSILoadRealHSMatrix( 
       plan, 
       options,
       nrows,
@@ -153,12 +173,20 @@ int main(int argc, char **argv)
       NULL,  // S is identity
       &info );
 
-  PPEXSISymbolicFactorizeRealSymmetricMatrix( 
+  if (mpirank == 0)
+    tsymfact1 = omp_get_wtime();
+  
+
+   PPEXSISymbolicFactorizeRealSymmetricMatrix( 
       plan,
       options,
       &info );
-
-
+   
+   if (mpirank == 0)
+    tsymfact2 = omp_get_wtime();
+    
+   if (mpirank == 0)
+    tinvert1 = omp_get_wtime();
 
   PPEXSISelInvRealSymmetricMatrix (
       plan,
@@ -166,6 +194,9 @@ int main(int argc, char **argv)
       AnzvalLocal,
       AinvnzvalLocal,
       &info );
+
+    if (mpirank == 0)
+        tinvert2 = omp_get_wtime();
 
 
 
@@ -177,7 +208,6 @@ int main(int argc, char **argv)
     MPI_Finalize();
     return info;
   }
-
 
 
   /* The first processor output the diagonal elements in natural order
@@ -209,7 +239,11 @@ int main(int argc, char **argv)
     printf("\nAll calculation is finished. Exit the program.\n");
   }
 
-
+  if (mpirank == 0)
+  {
+    printf("Time needed for symb. fact. : %e \n", tsymfact2-tsymfact1);
+    printf("Time needed for sel. invers.: %e \n", tinvert2-tinvert1);
+  }
 
   /* Deallocate memory */
   free( colptrLocal );
@@ -218,7 +252,11 @@ int main(int argc, char **argv)
   free( AinvnzvalLocal );
 
   
+  #ifdef WITH_SYMPACK
+  symPACK_Finalize();
+  #else
   MPI_Finalize();
+  #endif
 
   return 0;
 }

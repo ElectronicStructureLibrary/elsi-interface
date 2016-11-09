@@ -2,44 +2,44 @@
    Copyright (c) 2012 The Regents of the University of California,
    through Lawrence Berkeley National Laboratory.  
 
-   Authors: Lin Lin and Mathias Jacquelin
+Authors: Lin Lin and Mathias Jacquelin
 
-   This file is part of PEXSI. All rights reserved.
+This file is part of PEXSI. All rights reserved.
 
-   Redistribution and use in source and binary forms, with or without
-   modification, are permitted provided that the following conditions are met:
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
 
-   (1) Redistributions of source code must retain the above copyright notice, this
-   list of conditions and the following disclaimer.
-   (2) Redistributions in binary form must reproduce the above copyright notice,
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.
-   (3) Neither the name of the University of California, Lawrence Berkeley
-   National Laboratory, U.S. Dept. of Energy nor the names of its contributors may
-   be used to endorse or promote products derived from this software without
-   specific prior written permission.
+(1) Redistributions of source code must retain the above copyright notice, this
+list of conditions and the following disclaimer.
+(2) Redistributions in binary form must reproduce the above copyright notice,
+this list of conditions and the following disclaimer in the documentation
+and/or other materials provided with the distribution.
+(3) Neither the name of the University of California, Lawrence Berkeley
+National Laboratory, U.S. Dept. of Energy nor the names of its contributors may
+be used to endorse or promote products derived from this software without
+specific prior written permission.
 
-   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-   ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-   WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-   DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
-   ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-   (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-   LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-   ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-   You are under no obligation whatsoever to provide any bug fixes, patches, or
-   upgrades to the features, functionality or performance of the source code
-   ("Enhancements") to anyone; however, if you choose to make your Enhancements
-   available either publicly, or directly to Lawrence Berkeley National
-   Laboratory, without imposing a separate written license agreement for such
-   Enhancements, then you hereby grant the following license: a non-exclusive,
-   royalty-free perpetual license to install, use, modify, prepare derivative
-   works, incorporate into other computer software, distribute, and sublicense
-   such enhancements or derivative works thereof, in binary and source code form.
-*/
+You are under no obligation whatsoever to provide any bug fixes, patches, or
+upgrades to the features, functionality or performance of the source code
+("Enhancements") to anyone; however, if you choose to make your Enhancements
+available either publicly, or directly to Lawrence Berkeley National
+Laboratory, without imposing a separate written license agreement for such
+Enhancements, then you hereby grant the following license: a non-exclusive,
+royalty-free perpetual license to install, use, modify, prepare derivative
+works, incorporate into other computer software, distribute, and sublicense
+such enhancements or derivative works thereof, in binary and source code form.
+ */
 /// @file run_pselinv.cpp
 /// @brief Test for the interface of SuperLU_DIST and SelInv.
 /// @date 2013-04-15
@@ -100,11 +100,11 @@ int main(int argc, char **argv)
         nprow= atoi(options["-r"].c_str());
         npcol= atoi(options["-c"].c_str());
         if(nprow*npcol > mpisize){
-          throw std::runtime_error("The number of used processors cannot be higher than the total number of available processors." );
+          ErrorHandling("The number of used processors cannot be higher than the total number of available processors." );
         } 
       }
       else{
-        throw std::runtime_error( "When using -r option, -c also needs to be provided." );
+        ErrorHandling( "When using -r option, -c also needs to be provided." );
       }
     }
     else if( options.find("-c") != options.end() ){
@@ -112,11 +112,11 @@ int main(int argc, char **argv)
         nprow= atoi(options["-r"].c_str());
         npcol= atoi(options["-c"].c_str());
         if(nprow*npcol > mpisize){
-          throw std::runtime_error("The number of used processors cannot be higher than the total number of available processors." );
+          ErrorHandling("The number of used processors cannot be higher than the total number of available processors." );
         } 
       }
       else{
-        throw std::runtime_error( "When using -c option, -r also needs to be provided." );
+        ErrorHandling( "When using -c option, -r also needs to be provided." );
       }
     }
 
@@ -142,7 +142,7 @@ int main(int argc, char **argv)
 #endif
 
       //if( mpisize != nprow * npcol || nprow != npcol ){
-      //  throw std::runtime_error( "nprow == npcol is assumed in this test routine." );
+      //  ErrorHandling( "nprow == npcol is assumed in this test routine." );
       //}
 
       if( mpirank == 0 )
@@ -181,10 +181,10 @@ int main(int argc, char **argv)
 
       for(int r=0;r<1;++r){
 
-//if(mpirank==15){i
-//gdb_lock();
-//}
-        
+        //if(mpirank==15){i
+        //gdb_lock();
+        //}
+
         //bcastUTree2->AllocRecvBuffer();
         if(myRow==0){
           redDTree->SetLocalBuffer(buffer.Data());
@@ -195,7 +195,7 @@ int main(int argc, char **argv)
         //Initialize the tree
         //redDTree->AllocRecvBuffers();
         //Post All Recv requests;
- //       redDTree->PostRecv();
+        //       redDTree->PostRecv();
 
 
 
@@ -209,17 +209,17 @@ int main(int argc, char **argv)
 
         //root dumps the results
         //if(myRow == 0){
-          statusOFS<<"DEBUG"<<endl;
-          MYSCALAR * res = redDTree->GetLocalBuffer();
-          for(int i =0;i<nprow;++i){
-            for(int j =0;j<nprow;++j){
-              statusOFS<<res[j*nprow+i]<<" ";
-            }
-            statusOFS<<endl;
+        statusOFS<<"DEBUG"<<endl;
+        MYSCALAR * res = redDTree->GetLocalBuffer();
+        for(int i =0;i<nprow;++i){
+          for(int j =0;j<nprow;++j){
+            statusOFS<<res[j*nprow+i]<<" ";
           }
           statusOFS<<endl;
-          redDTree->SetLocalBuffer(buffer.Data());
-          statusOFS<<buffer<<endl;
+        }
+        statusOFS<<endl;
+        redDTree->SetLocalBuffer(buffer.Data());
+        statusOFS<<buffer<<endl;
         //}
 
         redDTree->CleanupBuffers();
@@ -301,9 +301,6 @@ int main(int argc, char **argv)
   {
     std::cerr << "Processor " << mpirank << " caught exception with message: "
       << e.what() << std::endl;
-#ifndef _RELEASE_
-    DumpCallStack();
-#endif
   }
 
   MPI_Finalize();

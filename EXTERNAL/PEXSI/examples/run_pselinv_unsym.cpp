@@ -100,11 +100,11 @@ int main(int argc, char **argv)
         nprow= atoi(options["-r"].c_str());
         npcol= atoi(options["-c"].c_str());
         if(nprow*npcol > mpisize){
-          throw std::runtime_error("The number of used processors cannot be higher than the total number of available processors." );
+          ErrorHandling("The number of used processors cannot be higher than the total number of available processors." );
         } 
       }
       else{
-        throw std::runtime_error( "When using -r option, -c also needs to be provided." );
+        ErrorHandling( "When using -r option, -c also needs to be provided." );
       }
     }
     else if( options.find("-c") != options.end() ){
@@ -112,11 +112,11 @@ int main(int argc, char **argv)
         nprow= atoi(options["-r"].c_str());
         npcol= atoi(options["-c"].c_str());
         if(nprow*npcol > mpisize){
-          throw std::runtime_error("The number of used processors cannot be higher than the total number of available processors." );
+          ErrorHandling("The number of used processors cannot be higher than the total number of available processors." );
         } 
       }
       else{
-        throw std::runtime_error( "When using -c option, -r also needs to be provided." );
+        ErrorHandling( "When using -c option, -r also needs to be provided." );
       }
     }
 
@@ -149,7 +149,7 @@ int main(int argc, char **argv)
 
 
       //if( mpisize != nprow * npcol || nprow != npcol ){
-      //  throw std::runtime_error( "nprow == npcol is assumed in this test routine." );
+      //  ErrorHandling( "nprow == npcol is assumed in this test routine." );
       //}
 
       if( mpirank == 0 )
@@ -204,7 +204,7 @@ int main(int argc, char **argv)
         Hfile = options["-H"];
       }
       else{
-        throw std::logic_error("Hfile must be provided.");
+        ErrorHandling("Hfile must be provided.");
       }
 
       if( options.find("-S") != options.end() ){ 
@@ -538,10 +538,13 @@ int main(int argc, char **argv)
       luOpt.ColPerm = ColPerm;
       luOpt.RowPerm = RowPerm;
       luOpt.Equil = Equil;
-
       luOpt.numProcSymbFact = numProcSymbFact;
-      luOpt.Symmetric = isSym;
-      luOpt.Transpose = transpose;
+
+      FactorizationOptions factOpt;
+      factOpt.ColPerm = ColPerm;
+      factOpt.RowPerm = RowPerm;
+      factOpt.Symmetric = isSym;
+      factOpt.Transpose = transpose;
 
 
       //Initialize SuperLU data structures
@@ -594,17 +597,17 @@ int main(int argc, char **argv)
         if( mpirank == 0 )
           cout << "Time for distribution is " << timeEnd - timeSta << " sec" << endl; 
 
-//        {
-//          SuperNodeType * pSuper = new SuperNodeType();
-//          pLuMat->SymbolicToSuperNode( *pSuper );
-//          GridType * pGrid = new GridType(world_comm,nprow,npcol);
-//          PMatrix<MYSCALAR> * pMat = PMatrix<MYSCALAR>::Create(pGrid,pSuper, &luOpt);
-//          pLuMat->LUstructToPMatrix( *pMat );
-//          pMat->DumpLU();
-//          delete pMat;
-//          delete pGrid;
-//          delete pSuper;
-//        }
+        //        {
+        //          SuperNodeType * pSuper = new SuperNodeType();
+        //          pLuMat->SymbolicToSuperNode( *pSuper );
+        //          GridType * pGrid = new GridType(world_comm,nprow,npcol);
+        //          PMatrix<MYSCALAR> * pMat = PMatrix<MYSCALAR>::Create(pGrid,pSuper, &luOpt);
+        //          pLuMat->LUstructToPMatrix( *pMat );
+        //          pMat->DumpLU();
+        //          delete pMat;
+        //          delete pGrid;
+        //          delete pSuper;
+        //        }
 
         GetTime( timeSta );
         pLuMat->NumericalFactorize();
@@ -678,7 +681,7 @@ int main(int argc, char **argv)
           selInvOpt.maxPipelineDepth = maxPipelineDepth;
 
 
-          PMatrix<MYSCALAR> * pMat = PMatrix<MYSCALAR>::Create(pGrid,pSuper, &selInvOpt, &luOpt);
+          PMatrix<MYSCALAR> * pMat = PMatrix<MYSCALAR>::Create(pGrid,pSuper, &selInvOpt, &factOpt);
 
           //            {
           //              SuperLUMatrix<MYSCALAR> * pLuMat2 = new SuperLUMatrix<MYSCALAR>(*pLuGrid, luOpt);
@@ -739,7 +742,7 @@ int main(int argc, char **argv)
 
 
             DistSparseMatrix<MYSCALAR> * Aptr;
-            if(luOpt.Symmetric==0 && luOpt.Transpose==0){
+            if(factOpt.Symmetric==0 && factOpt.Transpose==0){
               Aptr = new DistSparseMatrix<MYSCALAR>();
               //compute the transpose
               CSCToCSR(AMat,*Aptr);
@@ -748,15 +751,15 @@ int main(int argc, char **argv)
               Aptr = &AMat;
             }
 
-              GetTime( timeSta );
-              pMat->PMatrixToDistSparseMatrix( *Aptr, Ainv );
-              GetTime( timeEnd );
+            GetTime( timeSta );
+            pMat->PMatrixToDistSparseMatrix( *Aptr, Ainv );
+            GetTime( timeEnd );
 
-              traceLocal = ZERO<MYSCALAR>();
-              traceLocal = blas::Dotu( Aptr->nnzLocal, Ainv.nzvalLocal.Data(), 1,
-                  Aptr->nzvalLocal.Data(), 1 );
+            traceLocal = ZERO<MYSCALAR>();
+            traceLocal = blas::Dotu( Aptr->nnzLocal, Ainv.nzvalLocal.Data(), 1,
+                Aptr->nzvalLocal.Data(), 1 );
 
-            if(luOpt.Symmetric==0 && luOpt.Transpose==0){
+            if(factOpt.Symmetric==0 && factOpt.Transpose==0){
               delete Aptr;
             }
 
@@ -781,45 +784,45 @@ int main(int argc, char **argv)
 #endif
             }
 
-if( doDiag ){
-            NumVec<MYSCALAR> diag;
+            if( doDiag ){
+              NumVec<MYSCALAR> diag;
 
-            GetTime( timeSta );
-            pMat->GetDiagonal( diag );
-            GetTime( timeEnd );
-
-
-            if( mpirank == 0 )
-              cout << "Time for getting the diagonal is " << timeEnd  - timeSta << endl;
+              GetTime( timeSta );
+              pMat->GetDiagonal( diag );
+              GetTime( timeEnd );
 
 
-            NumVec<MYSCALAR> diagDistSparse;
-            GetTime( timeSta );
-            GetDiagonal( Ainv, diagDistSparse );
-            GetTime( timeEnd );
-            if( mpirank == 0 )
-              cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
+              if( mpirank == 0 )
+                cout << "Time for getting the diagonal is " << timeEnd  - timeSta << endl;
 
-            if( mpirank == 0 ){
-              statusOFS << std::endl << "Diagonal of inverse from DistSparseMatrix format: " << std::endl << diagDistSparse << std::endl;
-              Real diffNorm = 0.0;;
-              for( Int i = 0; i < diag.m(); i++ ){
-                diffNorm += pow( std::abs( diag(i) - diagDistSparse(i) ), 2.0 );
+
+              NumVec<MYSCALAR> diagDistSparse;
+              GetTime( timeSta );
+              GetDiagonal( Ainv, diagDistSparse );
+              GetTime( timeEnd );
+              if( mpirank == 0 )
+                cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
+
+              if( mpirank == 0 ){
+                statusOFS << std::endl << "Diagonal of inverse from DistSparseMatrix format: " << std::endl << diagDistSparse << std::endl;
+                Real diffNorm = 0.0;;
+                for( Int i = 0; i < diag.m(); i++ ){
+                  diffNorm += pow( std::abs( diag(i) - diagDistSparse(i) ), 2.0 );
+                }
+                diffNorm = std::sqrt( diffNorm );
+                cout << std::endl << "||diag - diagDistSparse||_2 = " << diffNorm << std::endl;
               }
-              diffNorm = std::sqrt( diffNorm );
-              cout << std::endl << "||diag - diagDistSparse||_2 = " << diffNorm << std::endl;
-            }
 
 
-            if( mpirank == 0 ){
-              statusOFS << std::endl << "Diagonal of inverse in natural order: " << std::endl << diag << std::endl;
-              ofstream ofs("diag");
-              if( !ofs.good() ) 
-                throw std::runtime_error("file cannot be opened.");
-              serialize( diag, ofs, NO_MASK );
-              ofs.close();
+              if( mpirank == 0 ){
+                statusOFS << std::endl << "Diagonal of inverse in natural order: " << std::endl << diag << std::endl;
+                ofstream ofs("diag");
+                if( !ofs.good() ) 
+                  ErrorHandling("file cannot be opened.");
+                serialize( diag, ofs, NO_MASK );
+                ofs.close();
+              }
             }
-          }
 
 
           }
@@ -838,7 +841,7 @@ if( doDiag ){
               statusOFS << std::endl << "Diagonal (pipeline) of inverse in natural order: " << std::endl << diag << std::endl;
               ofstream ofs("diag");
               if( !ofs.good() ) 
-                throw std::runtime_error("file cannot be opened.");
+                ErrorHandling("file cannot be opened.");
               serialize( diag, ofs, NO_MASK );
               ofs.close();
             }
@@ -873,9 +876,6 @@ if( doDiag ){
   {
     std::cerr << "Processor " << mpirank << " caught exception with message: "
       << e.what() << std::endl;
-#ifndef _RELEASE_
-    DumpCallStack();
-#endif
   }
 
   MPI_Finalize();

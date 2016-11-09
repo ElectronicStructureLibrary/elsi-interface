@@ -1898,13 +1898,15 @@ contains
 
      ! Load sparse matrices for PEXSI
      if(overlap_is_unity) then
-        call f_ppexsi_load_real_symmetric_hs_matrix(pexsi_plan, pexsi_options, &
-                n_g_size, nnz_g, nnz_l_pexsi, n_l_cols_pexsi, col_ptr_pexsi, &
-                row_ind_pexsi, H_real_pexsi, 1, S_real_pexsi, pexsi_info)
+        call f_ppexsi_load_real_hs_matrix(pexsi_plan, pexsi_options, n_g_size, &
+                                          nnz_g, nnz_l_pexsi, n_l_cols_pexsi, &
+                                          col_ptr_pexsi, row_ind_pexsi, H_real_pexsi, &
+                                          1, S_real_pexsi, pexsi_info)
      else
-        call f_ppexsi_load_real_symmetric_hs_matrix(pexsi_plan, pexsi_options, &
-                n_g_size, nnz_g, nnz_l_pexsi, n_l_cols_pexsi, col_ptr_pexsi, &
-                row_ind_pexsi, H_real_pexsi, 0, S_real_pexsi, pexsi_info)
+        call f_ppexsi_load_real_hs_matrix(pexsi_plan, pexsi_options, n_g_size, &
+                                          nnz_g, nnz_l_pexsi, n_l_cols_pexsi, &
+                                          col_ptr_pexsi, row_ind_pexsi, H_real_pexsi, &
+                                          0, S_real_pexsi, pexsi_info)
      endif
 
      if(pexsi_info /= 0) &
@@ -1938,8 +1940,8 @@ contains
      endif
 
      ! Get the results
-     call f_ppexsi_retrieve_real_symmetric_dft_matrix(pexsi_plan, D_pexsi, ED_pexsi, FD_pexsi, &
-                                                      e_tot_H, e_tot_S, f_tot, pexsi_info)
+     call f_ppexsi_retrieve_real_dft_matrix(pexsi_plan, D_pexsi, ED_pexsi, FD_pexsi, &
+                                            e_tot_H, e_tot_S, f_tot, pexsi_info)
 
      if(pexsi_info /= 0) &
         call elsi_stop(" PEXSI not able to retrieve solution. Exiting...", caller)

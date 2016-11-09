@@ -813,7 +813,7 @@ call f_ppexsi_set_default_options(&
   options )
 
 ! Load the matrix into the internal data structure 
-call f_ppexsi_load_real_symmetric_hs_matrix(&
+call f_ppexsi_load_real_hs_matrix(&
       plan,&       
       options,&
       nrows,&

@@ -6,6 +6,7 @@ Introduction      {#pageIntro}
 - @subpage pageLicense
 - @subpage pageReference
 - @subpage pageChangeLog
+- @subpage pageImportantChange
 
 <!-- ************************************************************ -->
 @page pageOverview Overview
@@ -129,18 +130,28 @@ demonstrating efficient and accurate ab initio materials simulation on
 massively parallel machines, and can regularly handle systems with
 10,000 to 100,000 electrons. 
 
-L. Lin, A. Garcia, G. Huhs and C. Yang, <a
-href="http://dx.doi.org/10.1088/0953-8984/26/30/305503">SIESTA-PEXSI: Massively parallel
-method for efficient and accurate ab initio materials simulation without
-matrix diagonalization</a>, J. Phys. Condens.  Matter 26, 305503, 2014.
+- SIESTA
 
-Download link for SIESTA-PEXSI:
-http://departments.icmab.es/leem/siesta/CodeAccess/Code/siesta-pexsi/siesta-pexsi.html
+    - Download link for SIESTA-PEXSI:
+      http://departments.icmab.es/leem/siesta/CodeAccess/Code/siesta-pexsi/siesta-pexsi.html
 
+- CP2K
 
-%PEXSI has also been recently integrated with CP2K.
+    - Tutorials for compiling CP2K-PEXSI: http://www.cp2k.org/howto:compile
 
-Tutorials for compiling CP2K-PEXSI: http://www.cp2k.org/howto:compile
+- BigDFT
+
+- Quantumwise ATK
+
+    - User manual: http://docs.quantumwise.com/manuals/Types/PEXSISolver/PEXSISolver.html
+
+- Electronic Structure Infrastructure (ELSI) Project
+
+    - http://www.elsi-interchange.org/webpage/
+
+    - In the future, the support of %PEXSI for electronic structure
+      software packages will be provided mainly through the ELSI
+      project.
 
 
 <!-- ************************************************************ -->
@@ -216,35 +227,31 @@ If you use %PEXSI for electronic structure calculation in general,
 }
 @endverbatim
 
-<!--If you use %PEXSI for selected inversion,-->
-<!--**please cite the following paper.**-->
-<!---->
-<!--@verbatim-->
-<!--@Article{TOMS2014,-->
-<!--  Title                    = {PSelInv--A Distributed Memory Parallel Algorithm for Selected Inversion: the Symmetric Case},-->
-<!--  Author                   = {Jacquelin, Mathias and Lin, Lin and Yang, Chao},-->
-<!--  Journal                  = {arXiv preprint arXiv:1404.0447},-->
-<!--  Year                     = {2014}-->
-<!--}-->
-<!--@endverbatim-->
+If you use %PEXSI for selected inversion, **please also cite the following paper.**
+
+@verbatim
+@Article{TOMS2016,
+  Title                    = {{PSelInv}--A distributed memory parallel algorithm for selected inversion: the symmetric case},
+  Author                   = {Jacquelin, M. and Lin, L. and Yang, C.},
+  Journal                  = {ACM Trans. Math. Software},
+  Year                     = {2016},
+  Volume                   = {in press}
+}
+@endverbatim
 
 
-**More references:**
+**More references on method development:**
 
 M. Jacquelin, L. Lin, N. Wichmann and C. Yang,  
 Enhancing the scalability and load balancing of the parallel
 selected inversion algorithm via tree-based asynchronous
-communication, submitted [<a
+communication, , IEEE IPDPS, 192, 2016 [<a
 href="http://arxiv.org/abs/1504.04714">arXiv</a>]
 
 L. Lin, A. Garcia, G. Huhs and C. Yang, SIESTA-PEXSI: Massively parallel
 method for efficient and accurate ab initio materials simulation without
 matrix diagonalization, J. Phys. Condens.  Matter 26, 305503, 2014 [<a
 href="http://dx.doi.org/10.1088/0953-8984/26/30/305503">journal</a>]
-
-M. Jacquelin, L. Lin and C. Yang, PSelInv -- A Distributed Memory
-Parallel Algorithm for Selected Inversion : the Symmetric Case, to appear in ACM Trans. Math. Software 
-[<a href="http://arxiv.org/abs/1404.0447">arXiv</a>]
 
 L. Lin, M. Chen, C. Yang and L. He, Accelerating atomic
 orbital-based electronic structure calculation via pole expansion
@@ -272,13 +279,60 @@ L. Lin, J. Lu, L. Ying and W. E, Pole-based approximation of the
 Fermi-Dirac function, Chin. Ann. Math. 30B, 729, 2009 
 [<a href="http://dx.doi.org/10.1007/s11401-009-0201-7">journal</a>]
 
+**Some references on applications of %PEXSI**
+
+W. Hu, L. Lin, C. Yang, J. Dai and J. Yang, Edge-modified phosphorene
+nanoflake heterojunctions as highly efficient solar cells, Nano Lett. 16
+1675, 2016 
+
+W. Hu, L. Lin and C. Yang, DGDFT: A massively parallel method for large
+scale density functional theory calculations, J. Chem. Phys. 143,
+124110, 2015
+
+W. Hu, L. Lin and C. Yang, Edge reconstruction in armchair phosphorene
+nanoribbons revealed by discontinuous Galerkin density functional
+theory, Phys. Chem. Chem. Phys. 17, 31397, 2015
+
+W. Hu, L. Lin, C. Yang and J. Yang, Electronic structure of large-scale
+graphene nanoflakes, J. Chem. Phys. 141, 214704, 2014 
+
 
 <!-- ************************************************************ -->
 @page pageChangeLog Change Log
 
-- v0.9.2 (2/29/2016) **Beta version**
-    - **v0.9.2 contains major changes to SuperLU_DIST v4.3 and new DFTDriver. Use with care.**
+- v0.10.0 (11/6/2016) **Beta version**
+    - **v0.10.0 contains major updates with new functionalities for unsymmetric matrices, integration with SuperLU_DIST v5.1.2 and with symPACK v0.1.0 for factorization. Use with care.**
 
+    - Combine LoadRealSymmetricMatrix / LoadRealUnsymmetricMatrix into
+      one single function LoadRealMatrix. Similar change for
+      LoadComplexMatrix. The driver routines and output are updated as
+      well.
+
+    - Updated makefile (contributed by Patrick Seewald)
+
+    - Compatible with SuperLU_DIST_v5.1.2
+
+    - Replace the debugging with PushCallStack / PopCallStack debugging by
+      Google's coredumper.
+
+    - A number of new example driver rouintes in examples/ and fortran/ 
+
+    - Experimental feature: Add CalculateFermiOperatorComplex function.
+      The implementation corresponds to CalculateFermiOperatorReal, but
+      is applicable to the case when H and S are complex Hermitian
+      matrices. This feature will facilitates the future integration
+      with the Electronic Structure Infrastructure (ELSI) project.
+
+    - Experimental feature: integration with symPACK for LDLT
+      factorization.
+
+    - Bug fix: Initialization variable pstat in interface with
+      SuperLU_DIST
+    
+    - Bug fix: Add (void*) in MPI_Allgather of sparseA.nnzLocal in
+      utility_impl.hpp.
+
+- v0.9.2 (2/29/2016) 
     - Add support for SuperLU_DIST v4.3. Starting from v0.9.2, the
       SuperLU_DIST v3.3 version is **NO LONGER SUPPORTED**.
 
@@ -293,11 +347,11 @@ Fermi-Dirac function, Chin. Ann. Math. 30B, 729, 2009
     
     - Bug fix: Mathjax is upgraded to v2.6 to support chrome rendering.
 
-    - Experimental feature: Add DFTDriver2 which allows only one PEXSI
+    - Add DFTDriver2 which allows only one PEXSI
       iteration per SCF iteration. This requires a careful setup of the
       inertia counting procedure.
 
-    - Experimental feature: In DFTDriver2, the muMinInertia and
+    - In DFTDriver2, the muMinInertia and
       muMaxInertia are updated to avoid the true chemical potential to
       be at the edge of an interval.
 
@@ -384,4 +438,27 @@ Fermi-Dirac function, Chin. Ann. Math. 30B, 729, 2009
   - Estimate the density of state profile via inertia counting.
   - Compute the density of states and local density of states.
 
+
+<!-- ************************************************************ -->
+@page pageImportantChange Important interface changes in v0.10.0
+
+- For C users
+
+  - PPEXSILoadRealSymmetricHSMatrix and PPEXSILoadRealUnsymmetricHSMatrix are combined into
+ PPEXSILoadRealHSMatrix
+
+  - PPEXSIRetrieveRealSymmetricDFTMatrix is now PPEXSIRetrieveRealDFTMatrix
+
+  - For more info see c_pexsi_interface.h
+
+- For FORTRAN users
+
+  - Similar to the C routines, the new routines are
+    f_ppexsi_load_real_hs_matrix and f_ppexsi_retrieve_real_dft_matrix.
+
+  - For more info see f_interface.f90
+
+- Several more "expert user" interface routines added. See c_pexsi_interface.h for more details.
+
+- NOTE: PEXSI v0.10.0 only supports SuperLU_DIST v5.1.2 or higher version. 
 

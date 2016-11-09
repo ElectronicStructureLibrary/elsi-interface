@@ -1,51 +1,52 @@
 /*
-	 Copyright (c) 2012 The Regents of the University of California,
-	 through Lawrence Berkeley National Laboratory.  
+   Copyright (c) 2012 The Regents of the University of California,
+   through Lawrence Berkeley National Laboratory.  
 
-   Author: Lin Lin
-	 
-   This file is part of PEXSI. All rights reserved.
+Author: Lin Lin
 
-	 Redistribution and use in source and binary forms, with or without
-	 modification, are permitted provided that the following conditions are met:
+This file is part of PEXSI. All rights reserved.
 
-	 (1) Redistributions of source code must retain the above copyright notice, this
-	 list of conditions and the following disclaimer.
-	 (2) Redistributions in binary form must reproduce the above copyright notice,
-	 this list of conditions and the following disclaimer in the documentation
-	 and/or other materials provided with the distribution.
-	 (3) Neither the name of the University of California, Lawrence Berkeley
-	 National Laboratory, U.S. Dept. of Energy nor the names of its contributors may
-	 be used to endorse or promote products derived from this software without
-	 specific prior written permission.
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
 
-	 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-	 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-	 WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-	 DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
-	 ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-	 (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-	 LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-	 ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-	 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-	 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+(1) Redistributions of source code must retain the above copyright notice, this
+list of conditions and the following disclaimer.
+(2) Redistributions in binary form must reproduce the above copyright notice,
+this list of conditions and the following disclaimer in the documentation
+and/or other materials provided with the distribution.
+(3) Neither the name of the University of California, Lawrence Berkeley
+National Laboratory, U.S. Dept. of Energy nor the names of its contributors may
+be used to endorse or promote products derived from this software without
+specific prior written permission.
 
-	 You are under no obligation whatsoever to provide any bug fixes, patches, or
-	 upgrades to the features, functionality or performance of the source code
-	 ("Enhancements") to anyone; however, if you choose to make your Enhancements
-	 available either publicly, or directly to Lawrence Berkeley National
-	 Laboratory, without imposing a separate written license agreement for such
-	 Enhancements, then you hereby grant the following license: a non-exclusive,
-	 royalty-free perpetual license to install, use, modify, prepare derivative
-	 works, incorporate into other computer software, distribute, and sublicense
-	 such enhancements or derivative works thereof, in binary and source code form.
-*/
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+You are under no obligation whatsoever to provide any bug fixes, patches, or
+upgrades to the features, functionality or performance of the source code
+("Enhancements") to anyone; however, if you choose to make your Enhancements
+available either publicly, or directly to Lawrence Berkeley National
+Laboratory, without imposing a separate written license agreement for such
+Enhancements, then you hereby grant the following license: a non-exclusive,
+royalty-free perpetual license to install, use, modify, prepare derivative
+works, incorporate into other computer software, distribute, and sublicense
+such enhancements or derivative works thereof, in binary and source code form.
+ */
 /// @file environment.hpp
 /// @brief Environmental variables.
 /// @date 2012-08-10
 #ifndef _PEXSI_ENVIRONMENT_HPP_
 #define _PEXSI_ENVIRONMENT_HPP_
 
+// Include mpi.h moved here by ELSI team
 #include <mpi.h>
 
 // STL libraries
@@ -77,6 +78,12 @@
 #include <stdint.h>
 
 // MPI
+//#include <mpi.h>
+
+// Google coredumper for debugging
+#ifdef COREDUMPER
+#define _COREDUMPER_
+#endif
 
 
 // *********************************************************************
@@ -208,9 +215,27 @@ namespace PEXSI{
 
 
   inline void gdb_lock(){
+    static volatile int count=0;
+    static volatile int enabled=0;
+    count++;
+      pid_t pid = getpid();
+//      std::cout<<pid<<" is locked "<<count<<std::endl;
+      statusOFS<<pid<<" is locked "<<count<<std::endl;
     volatile int lock = 1;
-    statusOFS<<"LOCKED"<<std::endl;
+    while (lock == 1 && enabled == 1){ }
+//      std::cout<<pid<<" is unlocked "<<count<<std::endl;
+      statusOFS<<pid<<" is unlocked "<<count<<std::endl;
+  }
+
+
+
+
+  inline void gdb_truelock(){
+      pid_t pid = getpid();
+      std::cout<<pid<<" is locked "<<std::endl;
+    volatile int lock = 1;
     while (lock == 1){ }
+      std::cout<<pid<<" is unlocked "<<std::endl;
   }
 
 
@@ -219,76 +244,72 @@ namespace PEXSI{
 
 
 
-#ifndef _RELEASE_
-  void PushCallStack( std::string s );
-  void PopCallStack();
-  void DumpCallStack();
-#endif // ifndef _RELEASE_
+void ErrorHandling( const char * msg );
 
-  // We define an output stream that does nothing. This is done so that the 
-  // root process can be used to print data to a file's ostream while all other 
-  // processes use a null ostream. 
-  struct NullStream : std::ostream
-  {            
-    struct NullStreamBuffer : std::streambuf
-    {
-      Int overflow( Int c ) { return traits_type::not_eof(c); }
-    } nullStreamBuffer_;
-
-    NullStream() 
-      : std::ios(&nullStreamBuffer_), std::ostream(&nullStreamBuffer_)
-      { }
-  };  
-
-  /////////////////////////////////////////////
-
-  class ExceptionTracer
+// We define an output stream that does nothing. This is done so that the 
+// root process can be used to print data to a file's ostream while all other 
+// processes use a null ostream. 
+struct NullStream : std::ostream
+{            
+  struct NullStreamBuffer : std::streambuf
   {
-  public:
-    ExceptionTracer()
+    Int overflow( Int c ) { return traits_type::not_eof(c); }
+  } nullStreamBuffer_;
+
+  NullStream() 
+    : std::ios(&nullStreamBuffer_), std::ostream(&nullStreamBuffer_)
+    { }
+};  
+
+/////////////////////////////////////////////
+
+class ExceptionTracer
+{
+public:
+  ExceptionTracer()
+  {
+    void * array[25];
+    int nSize = backtrace(array, 25);
+    char ** symbols = backtrace_symbols(array, nSize);
+
+    for (int i = 0; i < nSize; i++)
     {
-      void * array[25];
-      int nSize = backtrace(array, 25);
-      char ** symbols = backtrace_symbols(array, nSize);
-
-      for (int i = 0; i < nSize; i++)
-      {
-	std::cout << symbols[i] << std::endl;
-      }
-
-      free(symbols);
+      std::cout << symbols[i] << std::endl;
     }
-  };
 
-  // *********************************************************************
-  // Global utility functions 
-  // These utility functions do not depend on local definitions
-  // *********************************************************************
-  // Return the closest integer to a real number
-	inline Int iround(Real a){ 
-		Int b = 0;
-		if(a>0) b = (a-Int(a)<0.5)?Int(a):(Int(a)+1);
-		else b = (Int(a)-a<0.5)?Int(a):(Int(a)-1);
-		return b; 
-	}
+    free(symbols);
+  }
+};
 
-  // Read the options from command line
-	inline void OptionsCreate(Int argc, char** argv, std::map<std::string,std::string>& options){
-		options.clear();
-		for(Int k=1; k<argc; k=k+2) {
-			options[ std::string(argv[k]) ] = std::string(argv[k+1]);
-		}
-	}
+// *********************************************************************
+// Global utility functions 
+// These utility functions do not depend on local definitions
+// *********************************************************************
+// Return the closest integer to a real number
+inline Int iround(Real a){ 
+  Int b = 0;
+  if(a>0) b = (a-Int(a)<0.5)?Int(a):(Int(a)+1);
+  else b = (Int(a)-a<0.5)?Int(a):(Int(a)-1);
+  return b; 
+}
 
-	// Size information.
-	// Like sstm.str().length() but without making the copy
-	inline Int Size( std::stringstream& sstm ){
-		Int length;
-		sstm.seekg (0, std::ios::end);
-		length = sstm.tellg();
-		sstm.seekg (0, std::ios::beg);
-		return length;
-	}
+// Read the options from command line
+inline void OptionsCreate(Int argc, char** argv, std::map<std::string,std::string>& options){
+  options.clear();
+  for(Int k=1; k<argc; k=k+2) {
+    options[ std::string(argv[k]) ] = std::string(argv[k+1]);
+  }
+}
+
+// Size information.
+// Like sstm.str().length() but without making the copy
+inline Int Size( std::stringstream& sstm ){
+  Int length;
+  sstm.seekg (0, std::ios::end);
+  length = sstm.tellg();
+  sstm.seekg (0, std::ios::beg);
+  return length;
+}
 
 
 } // namespace PEXSI

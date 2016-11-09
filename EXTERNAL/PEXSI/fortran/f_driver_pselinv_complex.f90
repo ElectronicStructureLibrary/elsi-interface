@@ -42,7 +42,8 @@
 !> @file f_driver_pselinv_complex.f90
 !> @brief FORTRAN version of the driver for using PSelInv for complex symmetric
 !> matrices.
-!> @date 2014-04-01
+!> @date 2014-04-01 Original version
+!> @date 2016-09-10 Compatible with the interface at version 0.10.0
 program f_driver_pselinv_complex
 use f_ppexsi_interface
 use iso_c_binding
@@ -150,7 +151,7 @@ call f_ppexsi_set_default_options(&
 
 
 ! This is just to load the pattern for symbolic factorization
-call f_ppexsi_load_real_symmetric_hs_matrix(&
+call f_ppexsi_load_complex_hs_matrix(&
       plan,&       
       options,&
       nrows,&
@@ -159,7 +160,7 @@ call f_ppexsi_load_real_symmetric_hs_matrix(&
       numColLocal,&
       colptrLocal,& 
       rowindLocal,&
-      RnzvalLocal,&
+      AnzvalLocal,&
       1,&
       SnzvalLocal,&
       info ) 

@@ -49,155 +49,125 @@ such enhancements or derivative works thereof, in binary and source code form.
 
 namespace  PEXSI{
 
-  template <class F> NumTns<F>::NumTns(Int m, Int n, Int p): m_(m), n_(n), p_(p), owndata_(true) {
+template <class F> NumTns<F>::NumTns(Int m, Int n, Int p): m_(m), n_(n), p_(p), owndata_(true) {
+  if(m_>0 && n_>0 && p_>0) { data_ = new F[m_*n_*p_]; if( data_ == NULL ) {
+    ErrorHandling("Cannot allocate memory.");}
+  } else data_=NULL;
+}
+
+template <class F> NumTns<F>::NumTns(Int m, Int n, Int p, bool owndata, F* data): m_(m), n_(n), p_(p), owndata_(owndata) {
+  if(owndata_) {
     if(m_>0 && n_>0 && p_>0) { data_ = new F[m_*n_*p_]; if( data_ == NULL ) {
-#ifdef USE_ABORT
-      abort();
-#endif
-      throw std::runtime_error("Cannot allocate memory.");}
+      ErrorHandling("Cannot allocate memory.");}
+    } else data_=NULL;
+    if(m_>0 && n_>0 && p_>0) { for(Int i=0; i<m_*n_*p_; i++) data_[i] = data[i]; }
+  } else {
+    data_ = data;
+  }
+}
+
+template <class F> NumTns<F>::NumTns(const NumTns<F>& C): m_(C.m_), n_(C.n_), p_(C.p_), owndata_(C.owndata_) {
+  if(owndata_) {
+    if(m_>0 && n_>0 && p_>0) { data_ = new F[m_*n_*p_]; 
+      if( data_ == NULL ) {
+        ErrorHandling("Cannot allocate memory.");} 
+    } else data_=NULL;
+
+    if(m_>0 && n_>0 && p_>0) { for(Int i=0; i<m_*n_*p_; i++) data_[i] = C.data_[i]; }
+  } else {
+    data_ = C.data_;
+  }
+}
+
+template <class F> NumTns<F>::~NumTns() { 
+  if(owndata_) { 
+    if(m_>0 && n_>0 && p_>0) { delete[] data_; data_ = NULL; } 
+  }
+}
+
+template <class F> NumTns<F>& NumTns<F>::operator=(const NumTns<F>& C) {
+  if(owndata_) { 
+    if(m_>0 && n_>0 && p_>0) { delete[] data_; data_ = NULL; } 
+  }
+  m_ = C.m_; n_=C.n_; p_=C.p_; owndata_=C.owndata_;
+  if(owndata_) {
+    if(m_>0 && n_>0 && p_>0) { data_ = new F[m_*n_*p_]; if( data_ == NULL ) {
+      ErrorHandling("Cannot allocate memory.");} } else data_=NULL;
+    if(m_>0 && n_>0 && p_>0) { for(Int i=0; i<m_*n_*p_; i++) data_[i] = C.data_[i]; }
+  } else {
+    data_ = C.data_;
+  }
+  return *this;
+}
+
+template <class F> void NumTns<F>::Resize(Int m, Int n, Int p)  {
+  if( owndata_ == false ){
+    ErrorHandling("Tensor being resized must own data.");
+  }
+  if(m_!=m || n_!=n || p_!=p) {
+    if(m_>0 && n_>0 && p_>0) { delete[] data_; data_ = NULL; } 
+    m_ = m; n_ = n; p_=p;
+    if(m_>0 && n_>0 && p_>0) { data_ = new F[m_*n_*p_]; if( data_ == NULL ) {
+      ErrorHandling("Cannot allocate memory.");}
     } else data_=NULL;
   }
+}
 
-  template <class F> NumTns<F>::NumTns(Int m, Int n, Int p, bool owndata, F* data): m_(m), n_(n), p_(p), owndata_(owndata) {
-    if(owndata_) {
-      if(m_>0 && n_>0 && p_>0) { data_ = new F[m_*n_*p_]; if( data_ == NULL ) {
-#ifdef USE_ABORT
-        abort();
-#endif
-        throw std::runtime_error("Cannot allocate memory.");}
-      } else data_=NULL;
-      if(m_>0 && n_>0 && p_>0) { for(Int i=0; i<m_*n_*p_; i++) data_[i] = data[i]; }
-    } else {
-      data_ = data;
-    }
+template <class F> const F& NumTns<F>::operator()(Int i, Int j, Int k) const  {
+  if( i < 0 || i >= m_ ||
+      j < 0 || j >= n_ ||
+      k < 0 || k >= p_ ) {
+    ErrorHandling( "Index is out of bound." );
+  }
+  return data_[i+j*m_+k*m_*n_];
+}
+
+template <class F> F& NumTns<F>::operator()(Int i, Int j, Int k)  {
+  if( i < 0 || i >= m_ ||
+      j < 0 || j >= n_ ||
+      k < 0 || k >= p_ ) {
+    ErrorHandling( "Index is out of bound." );
+  }
+  return data_[i+j*m_+k*m_*n_];
+}
+
+
+template <class F> F* NumTns<F>::MatData (Int j) const {
+  if( j < 0 || j >= p_ ) {
+    ErrorHandling( "Index is out of bound." );
+  }
+  return &(data_[j*m_*n_]);
+};
+
+template <class F> F* NumTns<F>::VecData (Int j, Int k) const {
+  if( j < 0 || j >= n_ ||
+      k < 0 || k >= p_ ) {
+    ErrorHandling( "Index is out of bound." );
   }
 
-  template <class F> NumTns<F>::NumTns(const NumTns<F>& C): m_(C.m_), n_(C.n_), p_(C.p_), owndata_(C.owndata_) {
-    if(owndata_) {
-      if(m_>0 && n_>0 && p_>0) { data_ = new F[m_*n_*p_]; 
-        if( data_ == NULL ) {
-#ifdef USE_ABORT
-          abort();
-#endif
-          throw std::runtime_error("Cannot allocate memory.");} 
-      } else data_=NULL;
+  return &(data_[k*m_*n_+j*m_]);
+};
 
-      if(m_>0 && n_>0 && p_>0) { for(Int i=0; i<m_*n_*p_; i++) data_[i] = C.data_[i]; }
-    } else {
-      data_ = C.data_;
-    }
-  }
+template <class F> inline void SetValue(NumTns<F>& T, F val)
+{
+  F *ptr = T.data_;
+  for(Int i=0; i < T.m() * T.n() * T.p(); i++) *(ptr++) = val; 
 
-  template <class F> NumTns<F>::~NumTns() { 
-    if(owndata_) { 
-      if(m_>0 && n_>0 && p_>0) { delete[] data_; data_ = NULL; } 
-    }
-  }
-
-  template <class F> NumTns<F>& NumTns<F>::operator=(const NumTns<F>& C) {
-    if(owndata_) { 
-      if(m_>0 && n_>0 && p_>0) { delete[] data_; data_ = NULL; } 
-    }
-    m_ = C.m_; n_=C.n_; p_=C.p_; owndata_=C.owndata_;
-    if(owndata_) {
-      if(m_>0 && n_>0 && p_>0) { data_ = new F[m_*n_*p_]; if( data_ == NULL ) {
-#ifdef USE_ABORT
-        abort();
-#endif
-        throw std::runtime_error("Cannot allocate memory.");} } else data_=NULL;
-      if(m_>0 && n_>0 && p_>0) { for(Int i=0; i<m_*n_*p_; i++) data_[i] = C.data_[i]; }
-    } else {
-      data_ = C.data_;
-    }
-    return *this;
-  }
-
-  template <class F> void NumTns<F>::Resize(Int m, Int n, Int p)  {
-    if( owndata_ == false ){
-#ifdef USE_ABORT
-      abort();
-#endif
-      throw std::logic_error("Tensor being resized must own data.");
-    }
-    if(m_!=m || n_!=n || p_!=p) {
-      if(m_>0 && n_>0 && p_>0) { delete[] data_; data_ = NULL; } 
-      m_ = m; n_ = n; p_=p;
-      if(m_>0 && n_>0 && p_>0) { data_ = new F[m_*n_*p_]; if( data_ == NULL ) {
-#ifdef USE_ABORT
-        abort();
-#endif
-        throw std::runtime_error("Cannot allocate memory.");}
-      } else data_=NULL;
-    }
-  }
-
-  template <class F> const F& NumTns<F>::operator()(Int i, Int j, Int k) const  {
-    if( i < 0 || i >= m_ ||
-        j < 0 || j >= n_ ||
-        k < 0 || k >= p_ ) {
-#ifdef USE_ABORT
-      abort();
-#endif
-      throw std::logic_error( "Index is out of bound." );
-    }
-    return data_[i+j*m_+k*m_*n_];
-  }
-
-  template <class F> F& NumTns<F>::operator()(Int i, Int j, Int k)  {
-    if( i < 0 || i >= m_ ||
-        j < 0 || j >= n_ ||
-        k < 0 || k >= p_ ) {
-#ifdef USE_ABORT
-      abort();
-#endif
-      throw std::logic_error( "Index is out of bound." );
-    }
-    return data_[i+j*m_+k*m_*n_];
-  }
-
-
-  template <class F> F* NumTns<F>::MatData (Int j) const {
-    if( j < 0 || j >= p_ ) {
-#ifdef USE_ABORT
-      abort();
-#endif
-      throw std::logic_error( "Index is out of bound." );
-    }
-    return &(data_[j*m_*n_]);
-  };
-
-  template <class F> F* NumTns<F>::VecData (Int j, Int k) const {
-    if( j < 0 || j >= n_ ||
-        k < 0 || k >= p_ ) {
-#ifdef USE_ABORT
-      abort();
-#endif
-      throw std::logic_error( "Index is out of bound." );
-    }
-
-    return &(data_[k*m_*n_+j*m_]);
-  };
-
-  template <class F> inline void SetValue(NumTns<F>& T, F val)
-  {
-    F *ptr = T.data_;
-    for(Int i=0; i < T.m() * T.n() * T.p(); i++) *(ptr++) = val; 
-
-    return;
-  }
+  return;
+}
 
 
 
-  template <class F> inline Real Energy(const NumTns<F>& T)
-  {
-    Real sum = 0;
+template <class F> inline Real Energy(const NumTns<F>& T)
+{
+  Real sum = 0;
 
-    F *ptr = T.Data();
-    for(Int i=0; i < T.m() * T.n() * T.p(); i++) 
-      sum += abs(ptr[i]) * abs(ptr[i]);
+  F *ptr = T.Data();
+  for(Int i=0; i < T.m() * T.n() * T.p(); i++) 
+    sum += abs(ptr[i]) * abs(ptr[i]);
 
-    return sum;
-  }
+  return sum;
+}
 
 } // namespace PEXSI
 

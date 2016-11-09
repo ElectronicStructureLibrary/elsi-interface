@@ -49,250 +49,168 @@ such enhancements or derivative works thereof, in binary and source code form.
 
 namespace  PEXSI{
 
-  // Templated form of numerical vectors
-  //
-  // The main advantage of this portable NumVec structure is that it can
-  // either own (owndata == true) or view (owndata == false) a piece of
-  // data.
+// Templated form of numerical vectors
+//
+// The main advantage of this portable NumVec structure is that it can
+// either own (owndata == true) or view (owndata == false) a piece of
+// data.
 
-  template <class F> NumVec<F>::NumVec	() : m_(0), owndata_(true), data_(NULL), bufsize_(0)
-  {
-#ifndef _RELEASE_
-    PushCallStack("NumVec<F>::NumVec");
-#endif  // ifndef _RELEASE_
-    m_ = 0;
-#ifndef _RELEASE_
-    PopCallStack();
-#endif  // ifndef _RELEASE_
-  } 		// -----  end of method NumVec<F>::NumVec  ----- 
+template <class F> NumVec<F>::NumVec	() : m_(0), owndata_(true), data_(NULL), bufsize_(0)
+{
+  m_ = 0;
+} 		// -----  end of method NumVec<F>::NumVec  ----- 
 
 
-  template <class F> NumVec<F>::NumVec	( Int m ) : m_(m), owndata_(true), data_(NULL), bufsize_(0)
-  {
-#ifndef _RELEASE_
-    PushCallStack("NumVec<F>::NumVec");
-#endif  // ifndef _RELEASE_
+template <class F> NumVec<F>::NumVec	( Int m ) : m_(m), owndata_(true), data_(NULL), bufsize_(0)
+{
 
+  this->allocate();
+
+} 		// -----  end of method NumVec<F>::NumVec  ----- 
+
+template <class F> NumVec<F>::NumVec	( Int m, bool owndata, F* data ) : m_(m), owndata_(owndata), data_(NULL), bufsize_(0)
+{
+
+  this->allocate(data);
+
+} 		// -----  end of method NumVec<F>::NumVec  ----- 
+
+template <class F> NumVec<F>::NumVec	( const NumVec<F>& C ) : m_(C.m_), owndata_(C.owndata_), data_(NULL), bufsize_(0)
+{
+  this->allocate(C.data_);
+} 		// -----  end of method NumVec<F>::NumVec  ----- 
+
+
+template < class F > NumVec<F>::~NumVec	(  )
+{
+  this->deallocate();
+
+} 		// -----  end of method NumVec<F>::~NumVec  ----- 
+
+
+template < class F > inline NumVec<F>& NumVec<F>::operator =	( const NumVec& C  )
+{
+  this->deallocate();
+  m_ = C.m_;
+  owndata_ = C.owndata_;
+  this->allocate(C.data_);
+
+  return *this;
+} 		// -----  end of method NumVec<F>::operator=  ----- 
+
+
+template < class F > inline void NumVec<F>::Resize	( const Int m )
+{
+  if( owndata_ == false ){
+    ErrorHandling("Vector being resized must own data.");
+  }
+  if(m > bufsize_) {
+    this->deallocate();
+    m_ = m;
     this->allocate();
+  }
+  else{
+    m_ = m;
+  }
+  return ;
+} 		// -----  end of method NumVec<F>::Resize  ----- 
 
-#ifndef _RELEASE_
-    PopCallStack();
-#endif  // ifndef _RELEASE_
-  } 		// -----  end of method NumVec<F>::NumVec  ----- 
-
-  template <class F> NumVec<F>::NumVec	( Int m, bool owndata, F* data ) : m_(m), owndata_(owndata), data_(NULL), bufsize_(0)
-  {
-#ifndef _RELEASE_
-    PushCallStack("NumVec<F>::NumVec");
-#endif  // ifndef _RELEASE_
-
-    this->allocate(data);
-
-#ifndef _RELEASE_
-    PopCallStack();
-#endif  // ifndef _RELEASE_
-  } 		// -----  end of method NumVec<F>::NumVec  ----- 
-
-  template <class F> NumVec<F>::NumVec	( const NumVec<F>& C ) : m_(C.m_), owndata_(C.owndata_), data_(NULL), bufsize_(0)
-  {
-#ifndef _RELEASE_
-    PushCallStack("NumVec<F>::NumVec");
-#endif  // ifndef _RELEASE_
-    this->allocate(C.data_);
-#ifndef _RELEASE_
-    PopCallStack();
-#endif  // ifndef _RELEASE_
-  } 		// -----  end of method NumVec<F>::NumVec  ----- 
-
-
-  template < class F > NumVec<F>::~NumVec	(  )
-  {
-#ifndef _RELEASE_
-    PushCallStack("NumVec<F>::~NumVec");
-#endif  // ifndef _RELEASE_
+template < class F > inline void NumVec<F>::Clear	( )
+{
+  if( owndata_ == false ){
+    data_ = NULL;
+  }
+  else{
     this->deallocate();
-#ifndef _RELEASE_
-    PopCallStack();
-#endif  // ifndef _RELEASE_
-
-  } 		// -----  end of method NumVec<F>::~NumVec  ----- 
-
-
-  template < class F > inline NumVec<F>& NumVec<F>::operator =	( const NumVec& C  )
-  {
-#ifndef _RELEASE_
-    PushCallStack("NumVec<F>::operator=");
-#endif  // ifndef _RELEASE_
-    this->deallocate();
-    m_ = C.m_;
-    owndata_ = C.owndata_;
-    this->allocate(C.data_);
-#ifndef _RELEASE_
-    PopCallStack();
-#endif  // ifndef _RELEASE_
-
-    return *this;
-  } 		// -----  end of method NumVec<F>::operator=  ----- 
-
-
-  template < class F > inline void NumVec<F>::Resize	( const Int m )
-  {
-#ifndef _RELEASE_
-    PushCallStack("NumVec<F>::Resize");
-#endif  // ifndef _RELEASE_
-    if( owndata_ == false ){
-#ifdef USE_ABORT
-      abort();
-#endif
-      throw std::logic_error("Vector being resized must own data.");
-    }
-    if(m > bufsize_) {
-      this->deallocate();
-      m_ = m;
-      this->allocate();
-    }
-    else{
-      m_ = m;
-    }
-#ifndef _RELEASE_
-    PopCallStack();
-#endif  // ifndef _RELEASE_
-    return ;
-  } 		// -----  end of method NumVec<F>::Resize  ----- 
-
-  template < class F > inline void NumVec<F>::Clear	( )
-  {
-#ifndef _RELEASE_
-    PushCallStack("NumVec<F>::Clear");
-#endif  // ifndef _RELEASE_
-    if( owndata_ == false ){
-      data_ = NULL;
-    }
-    else{
-      this->deallocate();
-    }
-#ifndef _RELEASE_
-    PopCallStack();
-#endif  // ifndef _RELEASE_
-    return ;
-  } 		// -----  end of method NumVec<F>::Clear  ----- 
+  }
+  return ;
+} 		// -----  end of method NumVec<F>::Clear  ----- 
 
 
 
-  template <class F> inline F& NumVec<F>::operator()	( Int i )
-  {
-#ifndef _RELEASE_
-    PushCallStack("NumVec<F>::operator()");
-    if( i < 0 || i >= m_ ){
-#ifdef USE_ABORT
-      abort();
-#endif
-      throw std::logic_error( "Index is out of bound." );
-    }
-    PopCallStack();
-#endif  // ifndef _RELEASE_
-    return data_[i];
+template <class F> inline F& NumVec<F>::operator()	( Int i )
+{
+  if( i < 0 || i >= m_ ){
+    ErrorHandling( "Index is out of bound." );
+  }
+  return data_[i];
 
-  } 		// -----  end of method NumVec<F>::operator()  ----- 
+} 		// -----  end of method NumVec<F>::operator()  ----- 
 
 
-  template <class F>
-    inline const F&
-    NumVec<F>::operator()	( Int i ) const
-    {
-#ifndef _RELEASE_
-      PushCallStack("NumVec<F>::operator()");
-      if( i < 0 || i >= m_ ){
-#ifdef USE_ABORT
-        abort();
-#endif
-        throw std::logic_error( "Index is out of bound." );
-      }
-      PopCallStack();
-#endif  // ifndef _RELEASE_
-      return data_[i];
+template <class F>
+inline const F&
+NumVec<F>::operator()	( Int i ) const
+{
+  if( i < 0 || i >= m_ ){
+    ErrorHandling( "Index is out of bound." );
+  }
+  return data_[i];
 
-    } 		// -----  end of method NumVec<F>::operator()  ----- 
+} 		// -----  end of method NumVec<F>::operator()  ----- 
 
 
-  template <class F> inline F& NumVec<F>::operator[]	( Int i )
-  {
-#ifndef _RELEASE_
-    PushCallStack("NumVec<F>::operator[]");
-    if( i < 0 || i >= m_ ){
-#ifdef USE_ABORT
-      abort();
-#endif
-      throw std::logic_error( "Index is out of bound." );
-    }
-    PopCallStack();
-#endif  // ifndef _RELEASE_
-    return data_[i];
-  } 		// -----  end of method NumVec<F>::operator[]  ----- 
+template <class F> inline F& NumVec<F>::operator[]	( Int i )
+{
+  if( i < 0 || i >= m_ ){
+    ErrorHandling( "Index is out of bound." );
+  }
+  return data_[i];
+} 		// -----  end of method NumVec<F>::operator[]  ----- 
 
 
-  template <class F> inline const F& NumVec<F>::operator[]	( Int i ) const
-  {
-#ifndef _RELEASE_
-    PushCallStack("NumVec<F>::operator[]");
-    if( i < 0 || i >= m_ ){
-#ifdef USE_ABORT
-      abort();
-#endif
-      throw std::logic_error( "Index is out of bound." );
-    }
-    PopCallStack();
-#endif  // ifndef _RELEASE_
-    return data_[i];
+template <class F> inline const F& NumVec<F>::operator[]	( Int i ) const
+{
+  if( i < 0 || i >= m_ ){
+    ErrorHandling( "Index is out of bound." );
+  }
+  return data_[i];
 
-  } 		// -----  end of method NumVec<F>::operator[]  ----- 
+} 		// -----  end of method NumVec<F>::operator[]  ----- 
 
-  template <class F> inline void NumVec<F>::allocate(F* data) {
-    if(owndata_) {
-      if(m_>0) { 
-        data_ = new F[m_]; 
-        if( data_ == NULL ) {
-#ifdef USE_ABORT
-          abort();
-#endif
-          throw std::runtime_error("Cannot allocate memory.");
-        }
-      } 
-      else{
-       data_=NULL;
-      }
-      if(data!=NULL){
-        std::copy(data,data+m_,data_);
+template <class F> inline void NumVec<F>::allocate(F* data) {
+  if(owndata_) {
+    if(m_>0) { 
+      data_ = new F[m_]; 
+      if( data_ == NULL ) {
+        ErrorHandling("Cannot allocate memory.");
       }
     } 
-    else {
-      data_ = data;
+    else{
+      data_=NULL;
     }
-    bufsize_ = m_;
-  } 		// -----  end of method NumVec<F>::allocate  ----- 
-
-  template <class F> inline void NumVec<F>::deallocate() {
-    if(owndata_) {
-      if(bufsize_>0) { delete[] data_; data_ = NULL; bufsize_=0; m_=0; }
+    if(data!=NULL){
+      std::copy(data,data+m_,data_);
     }
-  } 		// -----  end of method NumVec<F>::deallocate  ----- 
-
-
-
-
-  template <class F> inline void SetValue( NumVec<F>& vec, F val )
-  {
-    std::fill(vec.Data(),vec.Data()+vec.m(),val);
+  } 
+  else {
+    data_ = data;
   }
+  bufsize_ = m_;
+} 		// -----  end of method NumVec<F>::allocate  ----- 
 
-  template <class F> inline Real Energy( const NumVec<F>& vec )
-  {
-    Real sum = 0;
-    for(Int i=0; i<vec.m(); i++){
-      sum += std::abs(vec(i)*vec(i));
-    }
-    return sum;
-  }  
+template <class F> inline void NumVec<F>::deallocate() {
+  if(owndata_) {
+    if(bufsize_>0) { delete[] data_; data_ = NULL; bufsize_=0; m_=0; }
+  }
+} 		// -----  end of method NumVec<F>::deallocate  ----- 
+
+
+
+
+template <class F> inline void SetValue( NumVec<F>& vec, F val )
+{
+  std::fill(vec.Data(),vec.Data()+vec.m(),val);
+}
+
+template <class F> inline Real Energy( const NumVec<F>& vec )
+{
+  Real sum = 0;
+  for(Int i=0; i<vec.m(); i++){
+    sum += std::abs(vec(i)*vec(i));
+  }
+  return sum;
+}  
 
 
 } // namespace PEXSI

@@ -2,44 +2,44 @@
    Copyright (c) 2012 The Regents of the University of California,
    through Lawrence Berkeley National Laboratory.  
 
-   Author: Lin Lin
+Author: Lin Lin
 
-   This file is part of PEXSI. All rights reserved.
+This file is part of PEXSI. All rights reserved.
 
-   Redistribution and use in source and binary forms, with or without
-   modification, are permitted provided that the following conditions are met:
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
 
-   (1) Redistributions of source code must retain the above copyright notice, this
-   list of conditions and the following disclaimer.
-   (2) Redistributions in binary form must reproduce the above copyright notice,
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.
-   (3) Neither the name of the University of California, Lawrence Berkeley
-   National Laboratory, U.S. Dept. of Energy nor the names of its contributors may
-   be used to endorse or promote products derived from this software without
-   specific prior written permission.
+(1) Redistributions of source code must retain the above copyright notice, this
+list of conditions and the following disclaimer.
+(2) Redistributions in binary form must reproduce the above copyright notice,
+this list of conditions and the following disclaimer in the documentation
+and/or other materials provided with the distribution.
+(3) Neither the name of the University of California, Lawrence Berkeley
+National Laboratory, U.S. Dept. of Energy nor the names of its contributors may
+be used to endorse or promote products derived from this software without
+specific prior written permission.
 
-   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-   ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-   WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-   DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
-   ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-   (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-   LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-   ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-   You are under no obligation whatsoever to provide any bug fixes, patches, or
-   upgrades to the features, functionality or performance of the source code
-   ("Enhancements") to anyone; however, if you choose to make your Enhancements
-   available either publicly, or directly to Lawrence Berkeley National
-   Laboratory, without imposing a separate written license agreement for such
-   Enhancements, then you hereby grant the following license: a non-exclusive,
-   royalty-free perpetual license to install, use, modify, prepare derivative
-   works, incorporate into other computer software, distribute, and sublicense
-   such enhancements or derivative works thereof, in binary and source code form.
-*/
+You are under no obligation whatsoever to provide any bug fixes, patches, or
+upgrades to the features, functionality or performance of the source code
+("Enhancements") to anyone; however, if you choose to make your Enhancements
+available either publicly, or directly to Lawrence Berkeley National
+Laboratory, without imposing a separate written license agreement for such
+Enhancements, then you hereby grant the following license: a non-exclusive,
+royalty-free perpetual license to install, use, modify, prepare derivative
+works, incorporate into other computer software, distribute, and sublicense
+such enhancements or derivative works thereof, in binary and source code form.
+ */
 /// @file interface.cpp
 /// @brief Interface subroutines of PPEXSI that can be called by both C and FORTRAN.
 ///
@@ -61,193 +61,184 @@ using namespace PEXSI;
 
 extern "C"
 void ReadDistSparseMatrixFormattedHeadInterface (
-		char*    filename,
-		int*     size,
-		int*     nnz,
-		int*     nnzLocal,
-		int*     numColLocal,
-		MPI_Comm comm )
+    char*    filename,
+    int*     size,
+    int*     nnz,
+    int*     nnzLocal,
+    int*     numColLocal,
+    MPI_Comm comm )
 {
   Int mpirank;  MPI_Comm_rank(comm, &mpirank);
   Int mpisize;  MPI_Comm_size(comm, &mpisize);
-	std::ifstream fin;
-	if( mpirank == 0 ){
-		fin.open(filename);
-		if( !fin.good() ){
-			#ifdef USE_ABORT
-abort();
-#endif
-throw std::logic_error( "File cannot be openeded!" );
-		}
-		Int dummy;
-		fin >> *size >> dummy;
-		fin >> *nnz >> dummy;
-	}
-	
-	MPI_Bcast( &(*size), 1, MPI_INT, 0, comm);
-	MPI_Bcast( &(*nnz),  1, MPI_INT, 0, comm);
+  std::ifstream fin;
+  if( mpirank == 0 ){
+    fin.open(filename);
+    if( !fin.good() ){
+      ErrorHandling( "File cannot be openeded!" );
+    }
+    Int dummy;
+    fin >> *size >> dummy;
+    fin >> *nnz >> dummy;
+  }
 
-	IntNumVec  colptr(*size+1);
-	if( mpirank == 0 ){
-		Int* ptr = colptr.Data();
-		for( Int i = 0; i < *size+1; i++ )
-			fin >> *(ptr++);
-	}
+  MPI_Bcast( &(*size), 1, MPI_INT, 0, comm);
+  MPI_Bcast( &(*nnz),  1, MPI_INT, 0, comm);
 
-	MPI_Bcast(colptr.Data(), *size+1, MPI_INT, 0, comm);
+  IntNumVec  colptr(*size+1);
+  if( mpirank == 0 ){
+    Int* ptr = colptr.Data();
+    for( Int i = 0; i < *size+1; i++ )
+      fin >> *(ptr++);
+  }
 
-	// Compute the number of columns on each processor
-	IntNumVec numColLocalVec(mpisize);
-	Int numColFirst;
-	numColFirst = *size / mpisize;
+  MPI_Bcast(colptr.Data(), *size+1, MPI_INT, 0, comm);
+
+  // Compute the number of columns on each processor
+  IntNumVec numColLocalVec(mpisize);
+  Int numColFirst;
+  numColFirst = *size / mpisize;
   SetValue( numColLocalVec, numColFirst );
   numColLocalVec[mpisize-1] = *size - numColFirst * (mpisize-1);  
-	// Modify the last entry	
+  // Modify the last entry	
 
-	*numColLocal = numColLocalVec[mpirank];
+  *numColLocal = numColLocalVec[mpirank];
 
-	*nnzLocal = colptr[mpirank * numColFirst + (*numColLocal)] - 
-		colptr[mpirank * numColFirst];
-	
-	// Close the file
-	if( mpirank == 0 ){
+  *nnzLocal = colptr[mpirank * numColFirst + (*numColLocal)] - 
+    colptr[mpirank * numColFirst];
+
+  // Close the file
+  if( mpirank == 0 ){
     fin.close();
-	}
+  }
 
-	return;
+  return;
 }  
 // -----  end of function ReadDistSparseMatrixFormattedHeadInterface
 
 
 extern "C"
 void ReadDistSparseMatrixFormattedInterface(
-		char*     filename,
-		int       size,
-		int       nnz,
-		int       nnzLocal,
-		int       numColLocal,
-		int*      colptrLocal,
-		int*      rowindLocal,
-		double*   nzvalLocal,
-		MPI_Comm  comm )
+    char*     filename,
+    int       size,
+    int       nnz,
+    int       nnzLocal,
+    int       numColLocal,
+    int*      colptrLocal,
+    int*      rowindLocal,
+    double*   nzvalLocal,
+    MPI_Comm  comm )
 {
-	DistSparseMatrix<Real> A;
-	ReadDistSparseMatrixFormatted( filename, A, comm );
-	iA( size == A.size );
-	iA( nnz  == A.nnz  );
-	iA( nnzLocal == A.nnzLocal );
-	iA( numColLocal + 1 == A.colptrLocal.m() );
-	
-	blas::Copy( numColLocal+1, A.colptrLocal.Data(), 1,
-			colptrLocal, 1 );
+  DistSparseMatrix<Real> A;
+  ReadDistSparseMatrixFormatted( filename, A, comm );
+  iA( size == A.size );
+  iA( nnz  == A.nnz  );
+  iA( nnzLocal == A.nnzLocal );
+  iA( numColLocal + 1 == A.colptrLocal.m() );
 
-	blas::Copy( nnzLocal, A.rowindLocal.Data(), 1,
-			rowindLocal, 1 );
+  blas::Copy( numColLocal+1, A.colptrLocal.Data(), 1,
+      colptrLocal, 1 );
 
-	blas::Copy( nnzLocal, A.nzvalLocal.Data(), 1,
-			nzvalLocal, 1 );
+  blas::Copy( nnzLocal, A.rowindLocal.Data(), 1,
+      rowindLocal, 1 );
 
-	return;
+  blas::Copy( nnzLocal, A.nzvalLocal.Data(), 1,
+      nzvalLocal, 1 );
+
+  return;
 }  
 // -----  end of function ReadDistSparseMatrixFormattedInterface  
 
 
 extern "C"
 void ReadDistSparseMatrixHeadInterface (
-		char*    filename,
-		int*     size,
-		int*     nnz,
-		int*     nnzLocal,
-		int*     numColLocal,
-		MPI_Comm comm )
+    char*    filename,
+    int*     size,
+    int*     nnz,
+    int*     nnzLocal,
+    int*     numColLocal,
+    MPI_Comm comm )
 {
   Int mpirank;  MPI_Comm_rank(comm, &mpirank);
   Int mpisize;  MPI_Comm_size(comm, &mpisize);
-	std::ifstream fin;
-	if( mpirank == 0 ){
-		fin.open(filename);
-		if( !fin.good() ){
-			#ifdef USE_ABORT
-abort();
-#endif
-throw std::logic_error( "File cannot be openeded!" );
-		}
-		fin.read((char*)size, sizeof(int));
-		fin.read((char*)nnz,  sizeof(int));
-	}
-	
-	MPI_Bcast( &(*size), 1, MPI_INT, 0, comm);
-	MPI_Bcast( &(*nnz),  1, MPI_INT, 0, comm);
+  std::ifstream fin;
+  if( mpirank == 0 ){
+    fin.open(filename);
+    if( !fin.good() ){
+      ErrorHandling( "File cannot be openeded!" );
+    }
+    fin.read((char*)size, sizeof(int));
+    fin.read((char*)nnz,  sizeof(int));
+  }
 
-	IntNumVec  colptr(*size+1);
-	if( mpirank == 0 ){
-		Int tmp;
-		fin.read((char*)&tmp, sizeof(int));  
+  MPI_Bcast( &(*size), 1, MPI_INT, 0, comm);
+  MPI_Bcast( &(*nnz),  1, MPI_INT, 0, comm);
 
-		if( tmp != (*size)+1 ){
-			#ifdef USE_ABORT
-abort();
-#endif
-throw std::logic_error( "colptr is not of the right size." );
-		}
+  IntNumVec  colptr(*size+1);
+  if( mpirank == 0 ){
+    Int tmp;
+    fin.read((char*)&tmp, sizeof(int));  
 
-		Int* ptr = colptr.Data();
-		fin.read((char*)ptr, (*size+1) * sizeof(int));  
-	}
+    if( tmp != (*size)+1 ){
+      ErrorHandling( "colptr is not of the right size." );
+    }
 
-	MPI_Bcast(colptr.Data(), *size+1, MPI_INT, 0, comm);
+    Int* ptr = colptr.Data();
+    fin.read((char*)ptr, (*size+1) * sizeof(int));  
+  }
 
-	// Compute the number of columns on each processor
-	IntNumVec numColLocalVec(mpisize);
-	Int numColFirst;
-	numColFirst = *size / mpisize;
+  MPI_Bcast(colptr.Data(), *size+1, MPI_INT, 0, comm);
+
+  // Compute the number of columns on each processor
+  IntNumVec numColLocalVec(mpisize);
+  Int numColFirst;
+  numColFirst = *size / mpisize;
   SetValue( numColLocalVec, numColFirst );
   numColLocalVec[mpisize-1] = *size - numColFirst * (mpisize-1);  
-	// Modify the last entry	
+  // Modify the last entry	
 
-	*numColLocal = numColLocalVec[mpirank];
+  *numColLocal = numColLocalVec[mpirank];
 
-	*nnzLocal = colptr[mpirank * numColFirst + (*numColLocal)] - 
-		colptr[mpirank * numColFirst];
-	
-	// Close the file
-	if( mpirank == 0 ){
+  *nnzLocal = colptr[mpirank * numColFirst + (*numColLocal)] - 
+    colptr[mpirank * numColFirst];
+
+  // Close the file
+  if( mpirank == 0 ){
     fin.close();
-	}
+  }
 
-	return;
+  return;
 }  
 // -----  end of function ReadDistSparseMatrixHeadInterface
 
 extern "C"
 void ParaReadDistSparseMatrixInterface(
-		char*     filename,
-		int       size,
-		int       nnz,
-		int       nnzLocal,
-		int       numColLocal,
-		int*      colptrLocal,
-		int*      rowindLocal,
-		double*   nzvalLocal,
-		MPI_Comm  comm )
+    char*     filename,
+    int       size,
+    int       nnz,
+    int       nnzLocal,
+    int       numColLocal,
+    int*      colptrLocal,
+    int*      rowindLocal,
+    double*   nzvalLocal,
+    MPI_Comm  comm )
 {
-	DistSparseMatrix<Real> A;
-	ParaReadDistSparseMatrix( filename, A, comm );
-	iA( size == A.size );
-	iA( nnz  == A.nnz  );
-	iA( nnzLocal == A.nnzLocal );
-	iA( numColLocal + 1 == A.colptrLocal.m() );
-	
-	blas::Copy( numColLocal+1, A.colptrLocal.Data(), 1,
-			colptrLocal, 1 );
+  DistSparseMatrix<Real> A;
+  ParaReadDistSparseMatrix( filename, A, comm );
+  iA( size == A.size );
+  iA( nnz  == A.nnz  );
+  iA( nnzLocal == A.nnzLocal );
+  iA( numColLocal + 1 == A.colptrLocal.m() );
 
-	blas::Copy( nnzLocal, A.rowindLocal.Data(), 1,
-			rowindLocal, 1 );
+  blas::Copy( numColLocal+1, A.colptrLocal.Data(), 1,
+      colptrLocal, 1 );
 
-	blas::Copy( nnzLocal, A.nzvalLocal.Data(), 1,
-			nzvalLocal, 1 );
+  blas::Copy( nnzLocal, A.rowindLocal.Data(), 1,
+      rowindLocal, 1 );
 
-	return;
+  blas::Copy( nnzLocal, A.nzvalLocal.Data(), 1,
+      nzvalLocal, 1 );
+
+  return;
 }  
 // -----  end of function ReadDistSparseMatrixFormattedInterface  
 
@@ -274,6 +265,7 @@ void PPEXSISetDefaultOptions(
   options->numElectronPEXSITolerance = 0.01;
   options->matrixType            = 0;
   options->isSymbolicFactorize   = 1;
+  options->solver                = 0;
   options->ordering              = 0;
   options->rowOrdering           = 0;
   options->npSymbFact            = 1;
@@ -301,22 +293,19 @@ PPEXSIPlan PPEXSIPlanInitialize(
   try{
     ptrData = new PPEXSIData( comm, numProcRow, numProcCol, outputFileIndex );
   }
-	catch( std::exception& e )
-	{
-		statusOFS << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
-			<< std::endl << e.what() << std::endl;
-		*info = 1;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
-	}
+  catch( std::exception& e )
+  {
+    statusOFS << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
+      << std::endl << e.what() << std::endl;
+    *info = 1;
+  }
 
   return reinterpret_cast<PPEXSIPlan>(ptrData);
 }   // -----  end of function PPEXSIPlanInitialize  ----- 
 
 
 extern "C"
-void PPEXSILoadRealSymmetricHSMatrix(
+void PPEXSILoadRealHSMatrix(
     PPEXSIPlan    plan,
     PPEXSIOptions options,
     int           nrows,                        
@@ -337,7 +326,7 @@ void PPEXSILoadRealSymmetricHSMatrix(
 
   try{
     reinterpret_cast<PPEXSIData*>(plan)->
-      LoadRealSymmetricMatrix(
+      LoadRealMatrix(
           nrows,                        
           nnz,                          
           nnzLocal,                     
@@ -347,25 +336,25 @@ void PPEXSILoadRealSymmetricHSMatrix(
           HnzvalLocal,                  
           isSIdentity,                  
           SnzvalLocal,
+          options.solver,
           options.verbosity );
   }
-	catch( std::exception& e )
-	{
-		statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+  catch( std::exception& e )
+  {
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
       << " caught exception with message: "
-			<< std::endl << e.what() << std::endl;
-		*info = 1;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
-	}
+      << std::endl << e.what() << std::endl;
+    *info = 1;
+  }
 
   return;
-}   // -----  end of function PPEXSILoadRealSymmetricHSMatrix  ----- 
+}   // -----  end of function PPEXSILoadRealHSMatrix  ----- 
+
+
 
 
 extern "C"
-void PPEXSILoadRealUnsymmetricHSMatrix(
+void PPEXSILoadComplexHSMatrix(
     PPEXSIPlan    plan,
     PPEXSIOptions options,
     int           nrows,                        
@@ -386,33 +375,29 @@ void PPEXSILoadRealUnsymmetricHSMatrix(
 
   try{
     reinterpret_cast<PPEXSIData*>(plan)->
-      LoadRealUnsymmetricMatrix(
+      LoadComplexMatrix(
           nrows,                        
           nnz,                          
           nnzLocal,                     
           numColLocal,                  
           colptrLocal,                  
           rowindLocal,                  
-          HnzvalLocal,                  
+          reinterpret_cast<Complex*>(HnzvalLocal), 
           isSIdentity,                  
-          SnzvalLocal,
+          reinterpret_cast<Complex*>(SnzvalLocal),
+          options.solver,
           options.verbosity );
   }
-	catch( std::exception& e )
-	{
-		statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+  catch( std::exception& e )
+  {
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
       << " caught exception with message: "
-			<< std::endl << e.what() << std::endl;
-		*info = 1;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
-	}
+      << std::endl << e.what() << std::endl;
+    *info = 1;
+  }
 
   return;
-}   // -----  end of function PPEXSILoadRealUnsymmetricHSMatrix  ----- 
-
-
+}   // -----  end of function PPEXSILoadComplexHSMatrix  ----- 
 
 
 
@@ -424,42 +409,77 @@ void PPEXSISymbolicFactorizeRealSymmetricMatrix(
   const GridType* gridPole = 
     reinterpret_cast<PPEXSIData*>(plan)->GridPole();
 
+
+
   *info = 0;
 
   try{
     std::string colPerm;
-    switch (options.ordering){
+    switch (options.solver){
       case 0:
-        colPerm = "PARMETIS";
+        {
+          //Handle SuperLU ordering options
+          switch (options.ordering){
+            case 0:
+              colPerm = "PARMETIS";
+              break;
+            case 1:
+              colPerm = "METIS_AT_PLUS_A";
+              break;
+            case 2:
+              colPerm = "MMD_AT_PLUS_A";
+              break;
+            default:
+              ErrorHandling("Unsupported ordering strategy.");
+              break;
+          }
+        }
         break;
+#ifdef WITH_SYMPACK
       case 1:
-        colPerm = "METIS_AT_PLUS_A";
+        {
+          //Handle symPACK ordering options
+          switch (options.ordering){
+            case 0:
+              colPerm = "PARMETIS";
+              break;
+            case 1:
+              colPerm = "METIS";
+              break;
+            case 2:
+              colPerm = "MMD";
+              break;
+            case 3:
+              colPerm = "AMD";
+              break;
+            default:
+              ErrorHandling("Unsupported ordering strategy.");
+              break;
+          }
+        }
         break;
-      case 2:
-        colPerm = "MMD_AT_PLUS_A";
-        break;
+#endif
       default:
-        throw std::logic_error("Unsupported ordering strategy.");
+        ErrorHandling("Unsupported solver.");
+        break;
     }
 
     reinterpret_cast<PPEXSIData*>(plan)->
       SymbolicFactorizeRealSymmetricMatrix(
+          options.solver,
           colPerm,
           options.npSymbFact,
           options.verbosity );
   }
-	catch( std::exception& e )
-	{
-		statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+  catch( std::exception& e )
+  {
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
       << " caught exception with message: "
-			<< std::endl << e.what() << std::endl;
-		*info = 1;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
-	}
+      << std::endl << e.what() << std::endl;
+    *info = 1;
+  }
 
-	return ;
+  return ;
 }		// -----  end of function PPEXSISymbolicFactorizeRealSymmetricMatrix  ----- 
 
 extern "C"
@@ -486,7 +506,7 @@ void PPEXSISymbolicFactorizeRealUnsymmetricMatrix(
         colPerm = "MMD_AT_PLUS_A";
         break;
       default:
-        throw std::logic_error("Unsupported ordering strategy.");
+        ErrorHandling("Unsupported ordering strategy.");
     }
 
 
@@ -499,13 +519,14 @@ void PPEXSISymbolicFactorizeRealUnsymmetricMatrix(
         rowPerm = "LargeDiag";
         break;
       default:
-        throw std::logic_error("Unsupported row ordering strategy.");
+        ErrorHandling("Unsupported row ordering strategy.");
     }
 
 
 
     reinterpret_cast<PPEXSIData*>(plan)->
       SymbolicFactorizeRealUnsymmetricMatrix(
+          options.solver,
           colPerm,
           rowPerm,
           options.npSymbFact,
@@ -513,18 +534,15 @@ void PPEXSISymbolicFactorizeRealUnsymmetricMatrix(
           AnzvalLocal,
           options.verbosity );
   }
-	catch( std::exception& e )
-	{
-		statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+  catch( std::exception& e )
+  {
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
       << " caught exception with message: "
-			<< std::endl << e.what() << std::endl;
-		*info = 1;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
-	}
+      << std::endl << e.what() << std::endl;
+    *info = 1;
+  }
 
-	return ;
+  return ;
 }		// -----  end of function PPEXSISymbolicFactorizeRealUnsymmetricMatrix  ----- 
 
 
@@ -541,38 +559,72 @@ void PPEXSISymbolicFactorizeComplexSymmetricMatrix(
 
   try{
     std::string colPerm;
-    switch (options.ordering){
+    switch (options.solver){
       case 0:
-        colPerm = "PARMETIS";
+        {
+          //Handle SuperLU ordering options
+          switch (options.ordering){
+            case 0:
+              colPerm = "PARMETIS";
+              break;
+            case 1:
+              colPerm = "METIS_AT_PLUS_A";
+              break;
+            case 2:
+              colPerm = "MMD_AT_PLUS_A";
+              break;
+            default:
+              ErrorHandling("Unsupported ordering strategy.");
+              break;
+          }
+        }
         break;
+#ifdef WITH_SYMPACK
       case 1:
-        colPerm = "METIS_AT_PLUS_A";
+        {
+          //Handle symPACK ordering options
+          switch (options.ordering){
+            case 0:
+              colPerm = "PARMETIS";
+              break;
+            case 1:
+              colPerm = "METIS";
+              break;
+            case 2:
+              colPerm = "MMD";
+              break;
+            case 3:
+              colPerm = "AMD";
+              break;
+            default:
+              ErrorHandling("Unsupported ordering strategy.");
+              break;
+          }
+        }
         break;
-      case 2:
-        colPerm = "MMD_AT_PLUS_A";
-        break;
+#endif
       default:
-        throw std::logic_error("Unsupported ordering strategy.");
+        ErrorHandling("Unsupported solver.");
+        break;
     }
+
 
     reinterpret_cast<PPEXSIData*>(plan)->
       SymbolicFactorizeComplexSymmetricMatrix(
+          options.solver,
           colPerm,
           options.npSymbFact,
           options.verbosity );
   }
-	catch( std::exception& e )
-	{
-		statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+  catch( std::exception& e )
+  {
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
       << " caught exception with message: "
-			<< std::endl << e.what() << std::endl;
-		*info = 1;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
-	}
+      << std::endl << e.what() << std::endl;
+    *info = 1;
+  }
 
-	return ;
+  return ;
 }		// -----  end of function PPEXSISymbolicFactorizeRealSymmetricMatrix  ----- 
 
 extern "C"
@@ -599,7 +651,7 @@ void PPEXSISymbolicFactorizeComplexUnsymmetricMatrix(
         colPerm = "MMD_AT_PLUS_A";
         break;
       default:
-        throw std::logic_error("Unsupported ordering strategy.");
+        ErrorHandling("Unsupported ordering strategy.");
     }
 
     std::string rowPerm;
@@ -611,12 +663,13 @@ void PPEXSISymbolicFactorizeComplexUnsymmetricMatrix(
         rowPerm = "LargeDiag";
         break;
       default:
-        throw std::logic_error("Unsupported row ordering strategy.");
+        ErrorHandling("Unsupported row ordering strategy.");
     }
 
 
     reinterpret_cast<PPEXSIData*>(plan)->
       SymbolicFactorizeComplexUnsymmetricMatrix(
+          options.solver,
           colPerm,
           rowPerm,
           options.npSymbFact,
@@ -624,24 +677,21 @@ void PPEXSISymbolicFactorizeComplexUnsymmetricMatrix(
           AnzvalLocal,
           options.verbosity );
   }
-	catch( std::exception& e )
-	{
-		statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+  catch( std::exception& e )
+  {
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
       << " caught exception with message: "
-			<< std::endl << e.what() << std::endl;
-		*info = 1;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
-	}
+      << std::endl << e.what() << std::endl;
+    *info = 1;
+  }
 
-	return ;
+  return ;
 }		// -----  end of function PPEXSISymbolicFactorizeRealUnsymmetricMatrix  ----- 
 
 
 
 extern "C"
-void PPEXSIInertiaCountRealSymmetricMatrix(
+void PPEXSIInertiaCountRealMatrix(
     /* Input parameters */
     PPEXSIPlan        plan,
     PPEXSIOptions     options,
@@ -667,28 +717,27 @@ void PPEXSIInertiaCountRealSymmetricMatrix(
       CalculateNegativeInertiaReal(
           shiftVec,
           inertiaVec,
+          options.solver,
           options.verbosity );
 
     for( Int i = 0; i < numShift; i++ ){
       inertiaList[i] = inertiaVec[i];
     }
   }
-	catch( std::exception& e )
-	{
-		statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+  catch( std::exception& e )
+  {
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
       << " caught exception with message: "
-			<< std::endl << e.what() << std::endl;
-		*info = 1;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
-	}
+      << std::endl << e.what() << std::endl;
+    *info = 1;
+  }
 
-	return ;
-}		// -----  end of function PPEXSIInertiaCountRealSymmetricMatrix  ----- 
+  return ;
+}		// -----  end of function PPEXSIInertiaCountRealMatrix  ----- 
+
 
 extern "C"
-void PPEXSIInertiaCountRealUnsymmetricMatrix(
+void PPEXSIInertiaCountComplexMatrix(
     /* Input parameters */
     PPEXSIPlan        plan,
     PPEXSIOptions     options,
@@ -711,28 +760,27 @@ void PPEXSIInertiaCountRealUnsymmetricMatrix(
     }
 
     reinterpret_cast<PPEXSIData*>(plan)->
-      CalculateNegativeInertiaReal(
+      CalculateNegativeInertiaComplex(
           shiftVec,
           inertiaVec,
+          options.solver,
           options.verbosity );
 
     for( Int i = 0; i < numShift; i++ ){
       inertiaList[i] = inertiaVec[i];
     }
   }
-	catch( std::exception& e )
-	{
-		statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+  catch( std::exception& e )
+  {
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
       << " caught exception with message: "
-			<< std::endl << e.what() << std::endl;
-		*info = 1;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
-	}
+      << std::endl << e.what() << std::endl;
+    *info = 1;
+  }
 
-	return ;
-}		// -----  end of function PPEXSIInertiaCountRealUnsymmetricMatrix  ----- 
+  return ;
+}		// -----  end of function PPEXSIInertiaCountComplexMatrix  ----- 
+
 
 
 extern "C"
@@ -758,24 +806,60 @@ void PPEXSICalculateFermiOperatorReal(
         mu,
         numElectronExact,
         options.numElectronPEXSITolerance,
+          options.solver,
         options.verbosity,
         *numElectronPEXSI,
         *numElectronDrvMuPEXSI );
   }
-	catch( std::exception& e )
-	{
-		statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+  catch( std::exception& e )
+  {
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
       << " caught exception with message: "
-			<< std::endl << e.what() << std::endl;
-		*info = 1;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
-	}
+      << std::endl << e.what() << std::endl;
+    *info = 1;
+  }
 
-	return ;
+  return ;
 }		// -----  end of function PPEXSICalculateFermiOperatorReal  ----- 
 
+extern "C"
+void PPEXSICalculateFermiOperatorComplex(
+    PPEXSIPlan        plan,
+    PPEXSIOptions     options,
+    double            mu,
+    double            numElectronExact,
+    double*           numElectronPEXSI,
+    double*           numElectronDrvMuPEXSI,
+    int*              info )
+{
+  *info = 0;
+  const GridType* gridPole = 
+    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
+
+  try{
+    reinterpret_cast<PPEXSIData*>(plan)->CalculateFermiOperatorComplex(
+        options.numPole,
+        options.temperature,
+        options.gap,
+        options.deltaE,
+        mu,
+        numElectronExact,
+        options.numElectronPEXSITolerance,
+          options.solver,
+        options.verbosity,
+        *numElectronPEXSI,
+        *numElectronDrvMuPEXSI );
+  }
+  catch( std::exception& e )
+  {
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+      << " caught exception with message: "
+      << std::endl << e.what() << std::endl;
+    *info = 1;
+  }
+
+  return ;
+}		// -----  end of function PPEXSICalculateFermiOperatorComplex   ----- 
 
 
 extern "C"
@@ -792,22 +876,20 @@ void PPEXSISelInvRealSymmetricMatrix (
 
   try{
     reinterpret_cast<PPEXSIData*>(plan)->SelInvRealSymmetricMatrix(
+          options.solver,
         AnzvalLocal,
         options.verbosity,
         AinvnzvalLocal );
   }
-	catch( std::exception& e )
-	{
-		statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+  catch( std::exception& e )
+  {
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
       << " caught exception with message: "
-			<< std::endl << e.what() << std::endl;
-		*info = 1;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
-	}
+      << std::endl << e.what() << std::endl;
+    *info = 1;
+  }
 
-	return ;
+  return ;
 }		// -----  end of function PPEXSISelInvRealSymmetricMatrix  ----- 
 
 extern "C"
@@ -824,22 +906,20 @@ void PPEXSISelInvRealUnsymmetricMatrix (
 
   try{
     reinterpret_cast<PPEXSIData*>(plan)->SelInvRealUnsymmetricMatrix(
+          options.solver,
         AnzvalLocal,
         options.verbosity,
         AinvnzvalLocal );
   }
-	catch( std::exception& e )
-	{
-		statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+  catch( std::exception& e )
+  {
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
       << " caught exception with message: "
-			<< std::endl << e.what() << std::endl;
-		*info = 1;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
-	}
+      << std::endl << e.what() << std::endl;
+    *info = 1;
+  }
 
-	return ;
+  return ;
 }		// -----  end of function PPEXSISelInvRealUnsymmetricMatrix  ----- 
 
 extern "C"
@@ -856,22 +936,20 @@ void PPEXSISelInvComplexSymmetricMatrix (
 
   try{
     reinterpret_cast<PPEXSIData*>(plan)->SelInvComplexSymmetricMatrix(
+          options.solver,
         AnzvalLocal,
         options.verbosity,
         AinvnzvalLocal );
   }
-	catch( std::exception& e )
-	{
-		statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+  catch( std::exception& e )
+  {
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
       << " caught exception with message: "
-			<< std::endl << e.what() << std::endl;
-		*info = 1;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
-	}
+      << std::endl << e.what() << std::endl;
+    *info = 1;
+  }
 
-	return ;
+  return ;
 }		// -----  end of function PPEXSISelInvComplexSymmetricMatrix  ----- 
 
 extern "C"
@@ -888,22 +966,20 @@ void PPEXSISelInvComplexUnsymmetricMatrix (
 
   try{
     reinterpret_cast<PPEXSIData*>(plan)->SelInvComplexUnsymmetricMatrix(
+          options.solver,
         AnzvalLocal,
         options.verbosity,
         AinvnzvalLocal );
   }
-	catch( std::exception& e )
-	{
-		statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+  catch( std::exception& e )
+  {
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
       << " caught exception with message: "
-			<< std::endl << e.what() << std::endl;
-		*info = 1;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
-	}
+      << std::endl << e.what() << std::endl;
+    *info = 1;
+  }
 
-	return ;
+  return ;
 }		// -----  end of function PPEXSISelInvComplexUnsymmetricMatrix  ----- 
 
 
@@ -914,17 +990,17 @@ void PPEXSIDFTDriver(
     PPEXSIOptions     options,
     double            numElectronExact,
     /* Output parameters */
-		double*           muPEXSI,                   
-		double*           numElectronPEXSI,         
+    double*           muPEXSI,                   
+    double*           numElectronPEXSI,         
     double*           muMinInertia,              
-		double*           muMaxInertia,             
-		int*              numTotalInertiaIter,   
-		int*              numTotalPEXSIIter,   
+    double*           muMaxInertia,             
+    int*              numTotalInertiaIter,   
+    int*              numTotalPEXSIIter,   
     int*              info ){
   *info = 0;
   const GridType* gridPole = 
     reinterpret_cast<PPEXSIData*>(plan)->GridPole();
-  
+
   try{
     reinterpret_cast<PPEXSIData*>(plan)->DFTDriver(
         numElectronExact,
@@ -943,6 +1019,7 @@ void PPEXSIDFTDriver(
         options.numElectronPEXSITolerance,
         options.matrixType,
         options.isSymbolicFactorize,
+        options.solver,
         options.ordering,
         options.npSymbFact,
         options.verbosity,
@@ -953,16 +1030,13 @@ void PPEXSIDFTDriver(
         *numTotalInertiaIter,
         *numTotalPEXSIIter );
   }
-	catch( std::exception& e )
-	{
-		statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+  catch( std::exception& e )
+  {
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
       << " caught exception with message: "
-			<< std::endl << e.what() << std::endl;
-		*info = 1;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
-	}
+      << std::endl << e.what() << std::endl;
+    *info = 1;
+  }
   return;
 }   // -----  end of function PPEXSIDFTDriver  ----- 
 
@@ -973,16 +1047,16 @@ void PPEXSIDFTDriver2(
     PPEXSIOptions     options,
     double            numElectronExact,
     /* Output parameters */
-		double*           muPEXSI,                   
-		double*           numElectronPEXSI,         
+    double*           muPEXSI,                   
+    double*           numElectronPEXSI,         
     double*           muMinInertia,              
-		double*           muMaxInertia,             
-		int*              numTotalInertiaIter,   
+    double*           muMaxInertia,             
+    int*              numTotalInertiaIter,   
     int*              info ){
   *info = 0;
   const GridType* gridPole = 
     reinterpret_cast<PPEXSIData*>(plan)->GridPole();
-  
+
   try{
     reinterpret_cast<PPEXSIData*>(plan)->DFTDriver2(
         numElectronExact,
@@ -999,6 +1073,7 @@ void PPEXSIDFTDriver2(
         options.numElectronPEXSITolerance,
         options.matrixType,
         options.isSymbolicFactorize,
+        options.solver,
         options.ordering,
         options.npSymbFact,
         options.verbosity,
@@ -1008,27 +1083,24 @@ void PPEXSIDFTDriver2(
         *muMaxInertia,
         *numTotalInertiaIter );
   }
-	catch( std::exception& e )
-	{
-		statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+  catch( std::exception& e )
+  {
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
       << " caught exception with message: "
-			<< std::endl << e.what() << std::endl;
-		*info = 1;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
-	}
+      << std::endl << e.what() << std::endl;
+    *info = 1;
+  }
   return;
 }   // -----  end of function PPEXSIDFTDriver2  ----- 
 
 
 
 extern "C"
-void PPEXSIRetrieveRealSymmetricDFTMatrix(
+void PPEXSIRetrieveRealDFTMatrix(
     PPEXSIPlan        plan,
-		double*      DMnzvalLocal,
-		double*     EDMnzvalLocal,
-		double*     FDMnzvalLocal,
+    double*      DMnzvalLocal,
+    double*     EDMnzvalLocal,
+    double*     FDMnzvalLocal,
     double*     totalEnergyH,
     double*     totalEnergyS,
     double*     totalFreeEnergy,
@@ -1037,7 +1109,7 @@ void PPEXSIRetrieveRealSymmetricDFTMatrix(
   const GridType* gridPole = 
     reinterpret_cast<PPEXSIData*>(plan)->GridPole();
   PPEXSIData* ptrData = reinterpret_cast<PPEXSIData*>(plan);
-  
+
   try{
     Int nnzLocal = ptrData->RhoRealMat().nnzLocal;
 
@@ -1056,19 +1128,60 @@ void PPEXSIRetrieveRealSymmetricDFTMatrix(
 
     *totalFreeEnergy = ptrData->TotalFreeEnergy();
   }
-	catch( std::exception& e ) {
-		statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+  catch( std::exception& e ) {
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
       << " caught exception with message: "
-			<< std::endl << e.what() << std::endl;
-		*info = 1;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
-	}
+      << std::endl << e.what() << std::endl;
+    *info = 1;
+  }
   return;
-}   // -----  end of function PPEXSIRetrieveRealSymmetricDFTMatrix  ----- 
+}   // -----  end of function PPEXSIRetrieveRealDFTMatrix  ----- 
 
 
+extern "C"
+void PPEXSIRetrieveComplexDFTMatrix(
+    PPEXSIPlan        plan,
+    double*      DMnzvalLocal,
+    double*     EDMnzvalLocal,
+    double*     FDMnzvalLocal,
+    double*     totalEnergyH,
+    double*     totalEnergyS,
+    double*     totalFreeEnergy,
+    int*              info ){
+  *info = 0;
+  const GridType* gridPole = 
+    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
+  PPEXSIData* ptrData = reinterpret_cast<PPEXSIData*>(plan);
+
+  try{
+    Int nnzLocal = ptrData->RhoComplexMat().nnzLocal;
+
+    blas::Copy( 2*nnzLocal, 
+        reinterpret_cast<double*>(ptrData->RhoComplexMat().nzvalLocal.Data()), 1,
+        DMnzvalLocal, 1 );
+
+    blas::Copy( 2*nnzLocal, 
+        reinterpret_cast<double*>(ptrData->EnergyDensityComplexMat().nzvalLocal.Data()), 1,
+        EDMnzvalLocal, 1 );
+
+    blas::Copy( 2*nnzLocal, 
+        reinterpret_cast<double*>(ptrData->FreeEnergyDensityComplexMat().nzvalLocal.Data()), 1,
+        FDMnzvalLocal, 1 );
+
+    *totalEnergyH = ptrData->TotalEnergyH();
+
+    *totalEnergyS = ptrData->TotalEnergyS();
+
+    *totalFreeEnergy = ptrData->TotalFreeEnergy();
+  }
+  catch( std::exception& e ) {
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+      << " caught exception with message: "
+      << std::endl << e.what() << std::endl;
+    *info = 1;
+  }
+  return;
+}   // -----  end of function PPEXSIRetrieveComplexDFTMatrix  ----- 
 
 extern "C"
 void PPEXSIPlanFinalize( 
@@ -1078,20 +1191,17 @@ void PPEXSIPlanFinalize(
   *info = 0;
   const GridType* gridPole = 
     reinterpret_cast<PPEXSIData*>(plan)->GridPole();
-  
+
   try{
     delete reinterpret_cast<PPEXSIData*>(plan);
   }
-	catch( std::exception& e )
-	{
-		statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+  catch( std::exception& e )
+  {
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
       << " caught exception with message: "
-			<< std::endl << e.what() << std::endl;
-		*info = 1;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
-	}
+      << std::endl << e.what() << std::endl;
+    *info = 1;
+  }
   return;
 }   // -----  end of function PPEXSIPlanFinalize  ----- 
 
@@ -1104,7 +1214,7 @@ void PPEXSIGetPoleDM(
     double        gap,
     double        deltaE,
     double        mu ){
-  
+
   CpxNumVec zshiftVec(Npole), zweightVec(Npole);
 
   GetPoleDensity( zshiftVec.Data(), zweightVec.Data(),
@@ -1130,7 +1240,7 @@ void PPEXSIGetPoleEDM(
     double        gap,
     double        deltaE,
     double        mu ){
-  
+
   CpxNumVec zshiftVec(Npole), zweightVec(Npole);
 
   GetPoleForce( zshiftVec.Data(), zweightVec.Data(),
@@ -1156,7 +1266,7 @@ void PPEXSIGetPoleFDM(
     double        gap,
     double        deltaE,
     double        mu ){
-  
+
   CpxNumVec zshiftVec(Npole), zweightVec(Npole);
 
   GetPoleHelmholtz( zshiftVec.Data(), zweightVec.Data(),
@@ -1196,104 +1306,104 @@ void PPEXSIGetPoleFDM(
 extern "C" 
 MPI_Comm f2c_comm(MPI_Fint* Fcomm)
 {
-	return MPI_Comm_f2c((*Fcomm));
+  return MPI_Comm_f2c((*Fcomm));
 }  // -----  end of function f2c_comm ----- 
 
 
 /// @brief FORTRAN interface for @ref ReadDistSparseMatrixFormattedHeadInterface.
 extern "C"
 void f_read_distsparsematrix_formatted_head (
-		char*    filename,
-		int*     size,
-		int*     nnz,
-		int*     nnzLocal,
-		int*     numColLocal,
-		MPI_Fint* Fcomm )
+    char*    filename,
+    int*     size,
+    int*     nnz,
+    int*     nnzLocal,
+    int*     numColLocal,
+    MPI_Fint* Fcomm )
 {
   ReadDistSparseMatrixFormattedHeadInterface(
-			filename,
-			size,
-			nnz,
-			nnzLocal,
-			numColLocal,
-			f2c_comm( Fcomm ) );
+      filename,
+      size,
+      nnz,
+      nnzLocal,
+      numColLocal,
+      f2c_comm( Fcomm ) );
 
-	return;
+  return;
 }  // -----  end of function f_read_distsparsematrix_formatted_head  
 
 
 /// @brief FORTRAN interface for @ref ReadDistSparseMatrixFormattedInterface.
 extern "C"
 void f_read_distsparsematrix_formatted (
-		char*    filename,
-		int      size,
-		int      nnz,
-		int      nnzLocal,
-		int      numColLocal,
-		int*     colptrLocal,
-		int*     rowindLocal,
-		double*  nzvalLocal,
+    char*    filename,
+    int      size,
+    int      nnz,
+    int      nnzLocal,
+    int      numColLocal,
+    int*     colptrLocal,
+    int*     rowindLocal,
+    double*  nzvalLocal,
     MPI_Fint* Fcomm )
 {
-	ReadDistSparseMatrixFormattedInterface(
-			filename,
-			size,
-			nnz,
-			nnzLocal,
-			numColLocal,
-			colptrLocal,
-			rowindLocal,
-			nzvalLocal,
-			f2c_comm( Fcomm ) );
-	return;
+  ReadDistSparseMatrixFormattedInterface(
+      filename,
+      size,
+      nnz,
+      nnzLocal,
+      numColLocal,
+      colptrLocal,
+      rowindLocal,
+      nzvalLocal,
+      f2c_comm( Fcomm ) );
+  return;
 } // -----  end of function f_read_distsparsematrix_formatted  ----- 
 
 /// @brief FORTRAN interface for @ref ReadDistSparseMatrixHeadInterface.
 extern "C"
 void f_read_distsparsematrix_head (
-		char*    filename,
-		int*     size,
-		int*     nnz,
-		int*     nnzLocal,
-		int*     numColLocal,
-		MPI_Fint* Fcomm )
+    char*    filename,
+    int*     size,
+    int*     nnz,
+    int*     nnzLocal,
+    int*     numColLocal,
+    MPI_Fint* Fcomm )
 {
   ReadDistSparseMatrixHeadInterface(
-			filename,
-			size,
-			nnz,
-			nnzLocal,
-			numColLocal,
-			f2c_comm( Fcomm ) );
+      filename,
+      size,
+      nnz,
+      nnzLocal,
+      numColLocal,
+      f2c_comm( Fcomm ) );
 
-	return;
+  return;
 }  // -----  end of function f_read_distsparsematrix_head  
 
 
 /// @brief FORTRAN interface for @ref ParaReadDistSparseMatrixInterface.
 extern "C"
 void f_para_read_distsparsematrix (
-		char*    filename,
-		int      size,
-		int      nnz,
-		int      nnzLocal,
-		int      numColLocal,
-		int*     colptrLocal,
-		int*     rowindLocal,
-		double*  nzvalLocal,
-		MPI_Fint* Fcomm )
+    char*    filename,
+    int      size,
+    int      nnz,
+    int      nnzLocal,
+    int      numColLocal,
+    int*     colptrLocal,
+    int*     rowindLocal,
+    double*  nzvalLocal,
+    MPI_Fint* Fcomm )
 {
-	ParaReadDistSparseMatrixInterface(
-			filename,
-			size,
-			nnz,
-			nnzLocal,
-			numColLocal,
-			colptrLocal,
-			rowindLocal,
-			nzvalLocal,
-			f2c_comm( Fcomm ) );
-	return;
+  ParaReadDistSparseMatrixInterface(
+      filename,
+      size,
+      nnz,
+      nnzLocal,
+      numColLocal,
+      colptrLocal,
+      rowindLocal,
+      nzvalLocal,
+      f2c_comm( Fcomm ) );
+  return;
 } // -----  end of function f_para_read_distsparsematrix  ----- 
 
 

@@ -21,7 +21,7 @@ PEXSI_INCLUDE = -I${PEXSI_DIR}/include
 INCLUDES      = ${PEXSI_INCLUDE} ${SUPERLU_INCLUDE}
 
 # Libraries
-CPP_LIB       = -lstdc++ -lmpi #-lmpi_cxx
+CPP_LIB       = -lstdc++ -lmpi
 SCALAPACK_LIB = $(SCALAPACK_LDFLAGS)
 PEXSI_LIB     = ${PEXSI_DIR}/lib/libpexsi.a
 

@@ -50,6 +50,7 @@
  * @date 2014-03-07
  * @date 2014-04-01  Compatible with v0.7.0 new interface.
  * @date 2015-05-14  Compatible with v0.8.0 new interface.
+ * @date 2016-09-10  Compatible with the interface at version 0.10.0
  */
 #include  <stdio.h>
 #include  <stdlib.h>
@@ -261,7 +262,7 @@ int main(int argc, char **argv)
   options.muMin0 = 0.0;
   options.muMax0 = 0.5;
   options.mu0    = 0.0;
-  options.npSymbFact = 4;
+  options.npSymbFact = 1;
   options.ordering = 0;
   options.isInertiaCount = 1;
   options.maxPEXSIIter   = 1;
@@ -290,7 +291,7 @@ int main(int argc, char **argv)
       outputFileIndex, 
       &info );
 
-  PPEXSILoadRealSymmetricHSMatrix( 
+  PPEXSILoadRealHSMatrix( 
       plan, 
       options,
       nrows,
@@ -328,7 +329,7 @@ int main(int argc, char **argv)
 
 
   if( isProcRead == 1 ){
-    PPEXSIRetrieveRealSymmetricDFTMatrix(
+    PPEXSIRetrieveRealDFTMatrix(
         plan,
         DMnzvalLocal,
         EDMnzvalLocal,
@@ -353,7 +354,7 @@ int main(int argc, char **argv)
       printf("again without symbolic factorization or inertia counting.\n");
     }
 
-    PPEXSILoadRealSymmetricHSMatrix( 
+    PPEXSILoadRealHSMatrix( 
         plan, 
         options,
         nrows,
@@ -397,7 +398,7 @@ int main(int argc, char **argv)
     }
 
     if( isProcRead == 1 ){
-      PPEXSIRetrieveRealSymmetricDFTMatrix(
+      PPEXSIRetrieveRealDFTMatrix(
           plan,
           DMnzvalLocal,
           EDMnzvalLocal,

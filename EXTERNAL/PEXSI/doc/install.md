@@ -18,6 +18,10 @@ and ParMETIS for the parallel fill-in reducing reordering.  It is also
 possible to use PT-Scotch for the reordering.  But we recommend to first
 download ParMETIS.
 
+@attention **The installation procedure and dependencies of every version of the %PEXSI
+package may be different. Please follow the documentation of the version
+of the %PEXSI package you are working with 
+(provided in the @ref pageDownload page)**
 
 Build ParMETIS
 --------------
@@ -47,12 +51,12 @@ fine.
 Build SuperLU_DIST
 ------------------
 
-**SuperLU_DIST v4.3 starting from %PEXSI v0.9.2**
+**SuperLU_DIST v5.1.2 starting from %PEXSI v0.10.0**
 
 
-Download SuperLU_DIST (latest version 4.3) from
+Download SuperLU_DIST (latest version 5.1.2) from
 
-http://crd-legacy.lbl.gov/~xiaoye/SuperLU/superlu_dist_4.3.tar.gz
+http://crd-legacy.lbl.gov/~xiaoye/SuperLU/superlu_dist_5.1.2.tar.gz
 
 Follow the installation step to install SuperLU_DIST.
 
@@ -60,12 +64,12 @@ Follow the installation step to install SuperLU_DIST.
 to build SuperLU_DIST with -O2 option than the more aggresive
 optimization options provided by vendors.
 
-@attention In SuperLU_DIST v4.3, some functions conflict when both real
+@attention In SuperLU_DIST v5.1.2, some functions conflict when both real
 and complex arithmetic factorization is needed. This can be temporarily
 solved by adding  `-Wl,--allow-multiple-definition` in the linking
 option.
 
-@attention In SuperLU_DIST v4.3, there could be some excessive outputs.
+@attention In SuperLU_DIST v5.1.2, there could be some excessive outputs.
 This can be removed by going to the SRC/ directory of superlu, and
 comment out the line starting with `printf(".. dQuery_Space` in
 dmemory_dist.c. Do the same thing for the line starting with
@@ -75,12 +79,6 @@ dmemory_dist.c. Do the same thing for the line starting with
 factorization cannot be too large when PARMETIS is used together with
 SuperLU. The exact number of processors for symbolic factorization is
 unfortunately a **magic parameter**.  See @ref pageFAQ.
-
-**SuperLU_DIST v3.3 for %PEXSI v0.9.0 and before**
-
-Download SuperLU_DIST (latest version 3.3) from
-
-http://crd-legacy.lbl.gov/~xiaoye/SuperLU/superlu_dist_3.3.tar.gz
 
 
 (Optional) Build PT-Scotch
@@ -106,6 +104,61 @@ PT-Scotch is also METIS-Compatible.  See the following section in
 INSTALL.TXT for more information.
 
     2.9) MeTiS compatibility library
+
+(Optional) Build symPACK
+--------------------------
+**symPACK** is a sparse symmetric matrix direct linear solver 
+which can be optionally used with %PEXSI. 
+More information can be found at [http://www.sympack.org/](http://www.sympack.org/).
+
+To use **symPACK**, first, download the package as follows:
+
+
+    git clone git@bitbucket.org:berkeleylab/sympack.git  /path/to/sympack
+
+
+Several environment variables can be optionally set before configuring the build:
+
+- `METIS_DIR` = Installation directory for **MeTiS**
+
+- `PARMETIS_DIR` = Installation directory for **ParMETIS**
+
+- `SCOTCH_DIR` = Installation directory for **SCOTCH** and **PT-SCOTCH**
+
+Then, create a build directory, enter that directory and type:
+
+
+    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/path/to/install/sympack
+    ...OPTIONS... /path/to/sympack
+
+
+The `...OPTIONS...` can be one of the following:
+
+* `-DENABLE_METIS=ON|OFF`   to make **MeTiS** ordering available in **symPACK** (`METIS_DIR` must be set in the environment)
+
+* `-DENABLE_PARMETIS=ON|OFF`   to make **ParMETIS** ordering available in **symPACK** (`PARMETIS_DIR` must be set in the environment, `METIS_DIR` is required as well)
+
+* `-DENABLE_SCOTCH=ON|OFF`   to make **SCOTCH** / **PT-SCOTCH** orderings available in **symPACK** (`SCOTCH_DIR` must be set in the environment)
+
+
+
+Some platforms have preconfigured toolchain files which can be used by adding the following option to the `cmake` command:
+
+    -DCMAKE_TOOLCHAIN_FILE=/path/to/sympack/toolchains/edison.cmake     
+    (To build on NERSC Edison for instance)
+
+
+A sample toolchain file can be found in `/path/to/sympack/toolchains/build_config.cmake` and customized for the target platform.
+
+
+The `cmake` command will configure the build process, which can now start by typing:
+
+    make
+    make install
+
+Additionally, a standalone driver for **symPACK** can be built by typing `make examples`
+
+
 
 <!-- ************************************************************ -->
 @page pageBuild Build %PEXSI
@@ -138,6 +191,12 @@ Edit the compiler options, for instance
     FC           = ftn
     LOADER       = CC
 
+
+The `USE_SYMPACK` option can be set to use the symPACK solver in
+%PEXSI. It is set to 0 by default. When set to 1, the `SYMPACK_DIR` variable
+must be pointing to symPACK's installation directory.
+
+
 @note 
 
 - Starting from %PEXSI v0.8.0, `-std=c++11` is required in
@@ -155,11 +214,17 @@ compiling flag `-DRELEASE`.  The `debug` mode introduces tracing of call
 stacks at all levels of functions, and may significantly slow down the
 code.  For production runs, use `release` mode.
 
-- The `USE_PROFILE` options is for internal test purpose. Usually
+- The `USE_PROFILE` option is for internal test purpose. Usually
 set this to 0.
+
 
 Build the %PEXSI library
 ------------------------
+
+@attention **The installation procedure and dependencies of every version of the %PEXSI
+package may be different. Please follow the documentation of the version
+of the %PEXSI package you are working with 
+(provided in the @ref pageDownload page)**
 
 If make.inc is configured correctly,
     
@@ -167,14 +232,22 @@ If make.inc is configured correctly,
     make install
 
 Should build the %PEXSI library under the `build` directory ready to be
-used in an external package.  If
+used in an external package.  If the FORTRAN interface is needed, type
+
+    make finstall
+
+If
 examples are needed (not necessary if you use %PEXSI in an external
 package), type 
 
-    make all
+    make examples
 
 which will generate C examples in `examples/` directory and FORTRAN examples in
 `fortran/` directory, respectively.
+
+    make all
+
+will make the library and the examples.
 
 For more information on the examples, see @ref pageTutorial.
 

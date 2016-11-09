@@ -47,6 +47,7 @@
  *
  *
  * @date 2015-01-13 Original version.
+ * @date 2016-09-10 Compatible with the interface at version 0.10.0
  */
 #include  <stdio.h>
 #include  <stdlib.h>
@@ -67,8 +68,9 @@ int main(int argc, char **argv)
   double*       AinvnzvalLocal;
   int           nprow, npcol;
   int           info;
-  char*         Rfile = "lap2dr.matrix";   /* Real part */
-  char*         Ifile = "lap2di.matrix";   /* Imag part */
+//  char*         Rfile = "lap2dr.matrix";   /* Real part */
+//  char*         Ifile = "lap2di.matrix";   /* Imag part */
+  char*         Rfile = "big.unsym.matrix";   /* Real part */
 
   int           i, j, irow, jcol;
   int           numColLocalFirst, firstCol;
@@ -123,23 +125,25 @@ int main(int argc, char **argv)
       MPI_COMM_WORLD );
 
   /* Read the imag part of the matrix. The sparsity must be the same as
-   * that in the real part of the matrix */
-  ReadDistSparseMatrixFormattedInterface(
-      Ifile,
-      nrows,
-      nnz,
-      nnzLocal,
-      numColLocal,
-      colptrLocal,
-      rowindLocal,
-      InzvalLocal,
-      MPI_COMM_WORLD );
+   * that in the real part of the matrix. This is optional */
+//  ReadDistSparseMatrixFormattedInterface(
+//      Ifile,
+//      nrows,
+//      nnz,
+//      nnzLocal,
+//      numColLocal,
+//      colptrLocal,
+//      rowindLocal,
+//      InzvalLocal,
+//      MPI_COMM_WORLD );
 
 
   /* Form the input matrix A */
   for( i = 0; i < nnzLocal; i++ ){
     AnzvalLocal[2*i]   = RnzvalLocal[i];
-    AnzvalLocal[2*i+1] = InzvalLocal[i];
+//    AnzvalLocal[2*i+1] = InzvalLocal[i];
+    // Hard code the imaginary part
+    AnzvalLocal[2*i+1] = 0.0;
   }
 
 
@@ -163,8 +167,7 @@ int main(int argc, char **argv)
       mpirank, 
       &info );
 
-  // For complex matrices, this is just to load a pattern
-  PPEXSILoadRealUnsymmetricHSMatrix( 
+  PPEXSILoadComplexHSMatrix( 
       plan, 
       options,
       nrows,

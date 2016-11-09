@@ -47,6 +47,7 @@
 #ifndef _PEXSI_TIMER_H_
 #define _PEXSI_TIMER_H_
 
+#ifdef __cplusplus
 #define VAL(str) #str
 #define TOSTRING(str) VAL(str)
 
@@ -99,8 +100,15 @@ void CTF_set_context(MPI_Comm ctxt);
 
 #define TAU_PROFILE_TIMER(ARG1, ARG2, ARG3, ARG4)                 
 
-#define TAU_PROFILE_INIT(argc, argv)                              \
-  CTF_set_main_args(argc, argv);
+#ifdef __cplusplus
+extern "C"{
+#endif
+void TAU_PROFILE_INIT(int argc, char ** argv);
+void TAU_PROFILE_SET_CONTEXT(MPI_Comm comm);
+#ifdef __cplusplus
+}
+#endif
+
 
 #define TAU_PROFILE_SET_NODE(ARG)
 
@@ -110,9 +118,7 @@ void CTF_set_context(MPI_Comm ctxt);
 #define TAU_PROFILE_STOP(ARG)                                     \
  __CTF_timer##ARG.stop();
 
-#define TAU_PROFILE_SET_CONTEXT(ARG)                              \
-  if (ARG==0) CTF_set_context(MPI_COMM_WORLD);                    \
-  else CTF_set_context((MPI_Comm)ARG);
+
 #endif
 
 #ifdef PMPI
@@ -183,5 +189,6 @@ void CTF_set_context(MPI_Comm ctxt);
               __t.stop(); }
 #endif
 
+#endif
 #endif //_PEXSI_TIMER_H_
 

@@ -2,44 +2,44 @@
    Copyright (c) 2012 The Regents of the University of California,
    through Lawrence Berkeley National Laboratory.  
 
-   Author: Lin Lin
-	 
-   This file is part of PEXSI. All rights reserved.
+Author: Lin Lin
 
-   Redistribution and use in source and binary forms, with or without
-   modification, are permitted provided that the following conditions are met:
+This file is part of PEXSI. All rights reserved.
 
-   (1) Redistributions of source code must retain the above copyright notice, this
-   list of conditions and the following disclaimer.
-   (2) Redistributions in binary form must reproduce the above copyright notice,
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.
-   (3) Neither the name of the University of California, Lawrence Berkeley
-   National Laboratory, U.S. Dept. of Energy nor the names of its contributors may
-   be used to endorse or promote products derived from this software without
-   specific prior written permission.
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
 
-   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-   ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-   WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-   DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
-   ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-   (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-   LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-   ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+(1) Redistributions of source code must retain the above copyright notice, this
+list of conditions and the following disclaimer.
+(2) Redistributions in binary form must reproduce the above copyright notice,
+this list of conditions and the following disclaimer in the documentation
+and/or other materials provided with the distribution.
+(3) Neither the name of the University of California, Lawrence Berkeley
+National Laboratory, U.S. Dept. of Energy nor the names of its contributors may
+be used to endorse or promote products derived from this software without
+specific prior written permission.
 
-   You are under no obligation whatsoever to provide any bug fixes, patches, or
-   upgrades to the features, functionality or performance of the source code
-   ("Enhancements") to anyone; however, if you choose to make your Enhancements
-   available either publicly, or directly to Lawrence Berkeley National
-   Laboratory, without imposing a separate written license agreement for such
-   Enhancements, then you hereby grant the following license: a non-exclusive,
-   royalty-free perpetual license to install, use, modify, prepare derivative
-   works, incorporate into other computer software, distribute, and sublicense
-   such enhancements or derivative works thereof, in binary and source code form.
-*/
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+You are under no obligation whatsoever to provide any bug fixes, patches, or
+upgrades to the features, functionality or performance of the source code
+("Enhancements") to anyone; however, if you choose to make your Enhancements
+available either publicly, or directly to Lawrence Berkeley National
+Laboratory, without imposing a separate written license agreement for such
+Enhancements, then you hereby grant the following license: a non-exclusive,
+royalty-free perpetual license to install, use, modify, prepare derivative
+works, incorporate into other computer software, distribute, and sublicense
+such enhancements or derivative works thereof, in binary and source code form.
+ */
 /// @file ppexsi_real_old.cpp
 /// @brief Real arithmetic routines related to SuperLU_DIST.
 /// 
@@ -63,25 +63,22 @@
 extern "C"{
 void
 pdsymbfact(superlu_options_t *options, SuperMatrix *A, 
-		ScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
-		LUstruct_t *LUstruct, SuperLUStat_t *stat, int *numProcSymbFact,
-		int *info, double *totalMemory, double *maxMemory );
+    ScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
+    LUstruct_t *LUstruct, SuperLUStat_t *stat, int *numProcSymbFact,
+    int *info, double *totalMemory, double *maxMemory );
 }
 
 
 namespace PEXSI{
 
 void PPEXSIData::CalculateNegativeInertiaReal(
-		const std::vector<Real>&       shiftVec, 
-		std::vector<Real>&             inertiaVec,
-		const DistSparseMatrix<Real>&  HMat,
-		const DistSparseMatrix<Real>&  SMat,
-		std::string                    ColPerm,
-		Int                            numProcSymbFact
+    const std::vector<Real>&       shiftVec, 
+    std::vector<Real>&             inertiaVec,
+    const DistSparseMatrix<Real>&  HMat,
+    const DistSparseMatrix<Real>&  SMat,
+    std::string                    ColPerm,
+    Int                            numProcSymbFact
     ){
-#ifndef _RELEASE_
-  PushCallStack("PPEXSIData::CalculateNegativeInertiaReal");
-#endif
 
   // *********************************************************************
   // Initialize
@@ -352,10 +349,7 @@ void PPEXSIData::CalculateNegativeInertiaReal(
         if( info ){
           std::ostringstream msg;
           msg << "Numerical factorization error, info =  " << info << std::endl;
-          #ifdef USE_ABORT
-abort();
-#endif
-throw std::runtime_error( msg.str().c_str() );
+          ErrorHandling( msg.str().c_str() );
         }
       }
 #if ( _DEBUGlevel_ >= 1 )
@@ -408,10 +402,7 @@ throw std::runtime_error( msg.str().c_str() );
                   << "blockIdx  = " << blockIdx << std::endl
                   << "numRow    = " << numRow 
                   << ", numCol = " << numCol << std::endl;
-                #ifdef USE_ABORT
-abort();
-#endif
-throw std::runtime_error( msg.str().c_str() );
+                ErrorHandling( msg.str().c_str() );
               }
               NumMat<Real>  nzval( numRow, numCol );
 
@@ -448,9 +439,6 @@ throw std::runtime_error( msg.str().c_str() );
   superlu_gridexit(grid);
   delete grid;
 
-#ifndef _RELEASE_
-  PopCallStack();
-#endif
 
   return ;
 } 		// -----  end of method PPEXSIData::CalculateNegativeInertiaReal ----- 
@@ -488,10 +476,7 @@ throw std::runtime_error( msg.str().c_str() );
 //
 //	try{
 //		if( mpisize != nprow * npcol ){
-//			#ifdef USE_ABORT
-abort();
-#endif
-throw std::runtime_error( " mpisize != nprow * npcol ." );
+ErrorHandling( " mpisize != nprow * npcol ." );
 //		}
 //
 //    SuperMatrix         A;
@@ -538,10 +523,7 @@ throw std::runtime_error( " mpisize != nprow * npcol ." );
 //        options.ColPerm           = MMD_AT_PLUS_A;
 //				break;
 //			default:
-//				#ifdef USE_ABORT
-abort();
-#endif
-throw std::logic_error("Unsupported ordering strategy.");
+ErrorHandling("Unsupported ordering strategy.");
 //		}
 //
 //
@@ -639,10 +621,7 @@ throw std::logic_error("Unsupported ordering strategy.");
 //      if( info ){
 //        std::ostringstream msg;
 //        msg << "Numerical factorization error, info =  " << info << std::endl;
-//        #ifdef USE_ABORT
-abort();
-#endif
-throw std::runtime_error( msg.str().c_str() );
+ErrorHandling( msg.str().c_str() );
 //      }
 //    }
 //#if ( _DEBUGlevel_ >= 1 )
@@ -720,9 +699,6 @@ throw std::runtime_error( msg.str().c_str() );
 ////		std::cerr  << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
 ////			<< std::endl << e.what() << std::endl;
 //		*info = 1;
-//#ifndef _RELEASE_
-//		DumpCallStack();
-//#endif
 //	}
 //	
 //	// Synchronize the info among all processors. 

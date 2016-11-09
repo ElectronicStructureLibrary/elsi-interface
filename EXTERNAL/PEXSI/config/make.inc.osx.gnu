@@ -3,9 +3,10 @@ COMPILE_MODE     = release
 USE_PROFILE      = 0
 PAR_ND_LIBRARY   = ptscotch
 SEQ_ND_LIBRARY   = scotch
+USE_SYMPACK      = 0
 
 # Different compiling and linking options.
-SUFFIX       = osx_v0.9.2
+SUFFIX       = osx_v0.10.0
 
 #compiler, options and tools
 ################################################################
@@ -33,8 +34,8 @@ PEXSI_DIR     = $(HOME)/Projects/pexsi
 PEXSI_BUILD_DIR = $(PEXSI_DIR)/build
 
 # Required libraries directories
-DSUPERLU_DIR  = $(HOME)/Documents/Software/SuperLU_DIST_4.3
-METIS_DIR     = $(HOME)/Software/metis-5.1.0/build_release
+DSUPERLU_DIR  = $(HOME)/Documents/Software/SuperLU_DIST_5.1.2
+METIS_DIR     = $(HOME)/Software/metis-5.1.2/build_release
 PARMETIS_DIR  = $(HOME)/Software/parmetis-4.0.2/build/Darwin-x86_64
 PTSCOTCH_DIR  = $(HOME)/Software/scotch_6.0.0
 
@@ -57,7 +58,7 @@ CPP_LIB          = -lstdc++ -lmpi -lmpi_cxx
 GFORTRAN_LIB     = /usr/local/lib/libgfortran.dylib 
 LAPACK_LIB       = -llapack
 BLAS_LIB         = -lblas
-DSUPERLU_LIB     = ${DSUPERLU_DIR}/build_release/libsuperlu_dist_4.3.a
+DSUPERLU_LIB     = ${DSUPERLU_DIR}/build_release/libsuperlu_dist_5.1.2.a
 PEXSI_LIB        = ${PEXSI_DIR}/src/libpexsi_${SUFFIX}.a
 
 
@@ -79,11 +80,21 @@ LIBS  = ${PEXSI_LIB} ${DSUPERLU_LIB} ${PAR_ND_LIB} ${SEQ_ND_LIB} ${LAPACK_LIB} $
 COMPILE_DEF += -DAdd_ -std=c++11
 
 LIBS  = ${PEXSI_LIB} ${DSUPERLU_LIB} ${PAR_ND_LIB} ${SEQ_ND_LIB} ${LAPACK_LIB} ${BLAS_LIB} ${GFORTRAN_LIB}
-
-
 COMPILE_DEF  += -DAdd_
-
 CPPFLAG = -std=c++11
+
+
+ifeq (${USE_SYMPACK}, 1)
+  #symPACK related definitions
+  SYMPACK_DIR = ${HOME}/sympack_install
+  include ${SYMPACK_DIR}/include/sympack.mak
+  INCLUDES += ${SYMPACK_INCLUDE} 
+  LIBS+= ${SYMPACK_LIB} ${LAPACK_LIB} ${BLAS_LIB} ${GFORTRAN_LIB}
+  COMPILE_DEF  += -DWITH_SYMPACK
+  CPPFLAG += -std=c++11
+endif
+
+
 
 CFLAGS       = ${COMPILE_FLAG} ${PROFILE_FLAG} ${INCLUDES} -std=c99
 FFLAGS       = ${COMPILE_FLAG} ${PROFILE_FLAG} ${INCLUDES}

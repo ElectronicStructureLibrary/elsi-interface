@@ -2,7 +2,7 @@
    Copyright (c) 2012 The Regents of the University of California,
    through Lawrence Berkeley National Laboratory.  
 
-Author: Lin Lin
+Author: Mathias Jacquelin and Lin Lin
 
 This file is part of PEXSI. All rights reserved.
 
@@ -40,51 +40,38 @@ royalty-free perpetual license to install, use, modify, prepare derivative
 works, incorporate into other computer software, distribute, and sublicense
 such enhancements or derivative works thereof, in binary and source code form.
  */
-#include "pexsi/environment.hpp"
-#include <deque>
-#ifdef _COREDUMPER_
-#include <google/coredumper.h>
-//#include <cerrno>
-//#include <string.h>
-//#include <stdio.h>
-#endif
+/// @file ngchol_interf.hpp
+/// @brief Interface with symPACK
+/// @date 2014-07-08 Original version
+#ifndef _PEXSI_symPACK_INTERF_HPP_
+#define _PEXSI_symPACK_INTERF_HPP_
+
+// Interface with symPACK
+#include "sympack.hpp"
+
+// Interface with PSelInv
+#include "pexsi/pselinv.hpp"
 
 namespace PEXSI{
 
-// *********************************************************************
-// IO
-// *********************************************************************
-std::ofstream  statusOFS;
+template<typename T> class PMatrix;
 
-#ifdef GEMM_PROFILE
-std::ofstream  statOFS;
-std::deque<int > gemm_stat;
-#endif
+/// @brief Converts the symPACK supernodal structure to PMatrix
+/// SuperNodeType structure.
+template<typename T> void symPACKMatrixToSuperNode( 
+    symPACK::symPACKMatrix<T>& SMat,
+    SuperNodeType& super );
 
-#if defined(COMM_PROFILE) || defined(COMM_PROFILE_BCAST)
-std::ofstream  commOFS;
-std::deque<int > comm_stat;
-#endif
+/// @brief Converts a matrix of symPACK type to PMatrix.
+template<typename T> 
+  void symPACKMatrixToPMatrix( 
+      symPACK::symPACKMatrix<T>& SMat,
+      PMatrix<T>& PMat );
 
-
-// *********************************************************************
-// Error handling
-// *********************************************************************
-void ErrorHandling( const char * msg ){
-#ifdef _COREDUMPER_
-  int mpirank, mpisize;
-  MPI_Comm_rank( MPI_COMM_WORLD, &mpirank );
-  MPI_Comm_size( MPI_COMM_WORLD, &mpisize );
-  char filename[100];
-  sprintf(filename, "core_%d_%d", mpirank, mpisize);
-
-  if( WriteCoreDump(filename) ==0 ) {   
-    statusOFS << "success: WriteCoreDump to " << filename << std::endl;
-  } else {  
-    statusOFS << "failed:  WriteCoreDump to " << filename << std::endl;
-  }     
-#endif // #ifdef _COREDUMPER_
-  throw std::runtime_error( msg );
+template<typename T> void PMatrixLtoU( PMatrix<T>& PMat );
 }
 
-} // namespace PEXSI
+#include "sympack_interf_impl.hpp"
+
+#endif //_PEXSI_symPACK_INTERF_HPP_
+

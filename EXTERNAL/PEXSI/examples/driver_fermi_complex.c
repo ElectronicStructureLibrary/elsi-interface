@@ -41,16 +41,17 @@
    such enhancements or derivative works thereof, in binary and source code form.
 */
 /**
- * @file driver_ksdft_2.c
- * @brief Example for using the new driver interface for performing KSDFT
- * calculations.
+ * @file driver_fermi_complex.c
+ * @brief Example for using the driver interface for performing inertia
+ * counting and evaluating the Fermi operator with complex Hermitian
+ * matrices.
  *
- * This file is eventually going to be merged with the driver_ksdft.c
+ * Note: This routine is different from driver_ksdft.c in the sense that
+ * it cannot perform searching for mu. However, the routines contained
+ * in this file should provide sufficient information for implementing
+ * such procedure, such as to be developed in the ELSI interface.
  *
- * @date 2015-11-25  Test for DFTDriver2 with updating strategy of pole
- * expansion
- * @date 2016-09-10 Compatible with the interface at version 0.10.0
- *
+ * @date 2016-09-10  Original version.
  */
 #include  <stdio.h>
 #include  <stdlib.h>
@@ -65,6 +66,8 @@ int main(int argc, char **argv)
   int           numColLocal;                  
   int*          colptrLocal;                  
   int*          rowindLocal;                  
+  double*       RnzvalLocal;                  
+  double*       InzvalLocal;                  
   double*       HnzvalLocal;                  
   int           isSIdentity;                  
   double*       SnzvalLocal;                  
@@ -72,7 +75,10 @@ int main(int argc, char **argv)
   double*       DMnzvalLocal;
   double*       EDMnzvalLocal;
   double*       FDMnzvalLocal;
-  double*       localDOSnzvalLocal;  
+
+  int           numShift;
+  double*       shiftVec;
+  double*       inertiaVec;
 
   double        Energy;
   double        eta;
@@ -80,7 +86,8 @@ int main(int argc, char **argv)
   double        numElectronExact;
 
   double        muPEXSI;
-  double        numElectronPEXSI;
+  double        numElectron;
+  double        numElectronDrvMu;
   double        muMinInertia;
   double        muMaxInertia;
   int           numTotalInertiaIter;
@@ -90,7 +97,8 @@ int main(int argc, char **argv)
   double        totalEnergyS;
   double        totalFreeEnergy;
   
-  char*         Hfile;
+  char*         HfileR;
+  char*         HfileI;
   char*         Sfile;
   int           isFormatted;
 
@@ -117,7 +125,8 @@ int main(int argc, char **argv)
   numElectronExact    = 12.0;
   nprow               = 1;
   npcol               = 1;
-  Hfile               = "lap2dr.matrix";
+  HfileR              = "lap2dc_real.matrix";
+  HfileI              = "lap2dc_imag.matrix";
   Sfile               = "";
   isFormatted         = 1;
   isSIdentity         = 1;
@@ -160,22 +169,22 @@ int main(int argc, char **argv)
     /* Read the matrix head for allocating memory */
     if( isFormatted == 1 ){
       ReadDistSparseMatrixFormattedHeadInterface(
-          Hfile,
+          HfileR,
           &nrows,
           &nnz,
           &nnzLocal,
           &numColLocal,
           readComm );
     }
-    else{
-      ReadDistSparseMatrixHeadInterface(
-          Hfile,
-          &nrows,
-          &nnz,
-          &nnzLocal,
-          &numColLocal,
-          readComm );
-    }
+//    else{
+//      ReadDistSparseMatrixHeadInterface(
+//          HfileRj,
+//          &nrows,
+//          &nnz,
+//          &nnzLocal,
+//          &numColLocal,
+//          readComm );
+//    }
     
     if( mpirank == 0 ){
       printf("On processor 0...\n");
@@ -189,79 +198,99 @@ int main(int argc, char **argv)
     /* Allocate memory visible to processors in the group of readComm */
     colptrLocal             = (int*) malloc( sizeof(int) * (numColLocal+1) );
     rowindLocal             = (int*) malloc( sizeof(int) * nnzLocal );
-    HnzvalLocal             = (double*) malloc( sizeof(double) * nnzLocal );
-    SnzvalLocal             = (double*) malloc( sizeof(double) * nnzLocal );
-    DMnzvalLocal            = (double*) malloc( sizeof(double) * nnzLocal );
-    EDMnzvalLocal           = (double*) malloc( sizeof(double) * nnzLocal );
-    FDMnzvalLocal           = (double*) malloc( sizeof(double) * nnzLocal );
-    localDOSnzvalLocal      = (double*) malloc( sizeof(double) * nnzLocal );
+    RnzvalLocal             = (double*) malloc( sizeof(double) * nnzLocal );
+    InzvalLocal             = (double*) malloc( sizeof(double) * nnzLocal );
+    HnzvalLocal             = (double*) malloc( sizeof(double) * nnzLocal * 2 );
+    SnzvalLocal             = (double*) malloc( sizeof(double) * nnzLocal * 2 );
+    DMnzvalLocal            = (double*) malloc( sizeof(double) * nnzLocal * 2 );
+    EDMnzvalLocal           = (double*) malloc( sizeof(double) * nnzLocal * 2 );
+    FDMnzvalLocal           = (double*) malloc( sizeof(double) * nnzLocal * 2 );
+
+    numShift = options.numPole;
+    shiftVec                = (double*) malloc( sizeof(double) * numShift );
+    inertiaVec              = (double*) malloc( sizeof(double) * numShift );
 
     /* Actually read the matrix */
     if( isFormatted == 1 ){
       ReadDistSparseMatrixFormattedInterface(
-          Hfile,
+          HfileR,
           nrows,
           nnz,
           nnzLocal,
           numColLocal,
           colptrLocal,
           rowindLocal,
-          HnzvalLocal,
+          RnzvalLocal,
           readComm );
-    }
-    else{
-      ParaReadDistSparseMatrixInterface(
-          Hfile,
+      
+      ReadDistSparseMatrixFormattedInterface(
+          HfileI,
           nrows,
           nnz,
           nnzLocal,
           numColLocal,
           colptrLocal,
           rowindLocal,
-          HnzvalLocal,
+          InzvalLocal,
           readComm );
-    }
 
-    if( isSIdentity == 0 ){
-      if( isFormatted == 1 ){
-        ReadDistSparseMatrixFormattedInterface(
-            Hfile,
-            nrows,
-            nnz,
-            nnzLocal,
-            numColLocal,
-            colptrLocal,
-            rowindLocal,
-            SnzvalLocal,
-            readComm );
+      for( i = 0; i < nnzLocal; i++ ){
+        HnzvalLocal[2*i]   = RnzvalLocal[i];
+        HnzvalLocal[2*i+1] = InzvalLocal[i];
       }
-      else{
-        ParaReadDistSparseMatrixInterface(
-            Hfile,
-            nrows,
-            nnz,
-            nnzLocal,
-            numColLocal,
-            colptrLocal,
-            rowindLocal,
-            SnzvalLocal,
-            readComm );
-      }
+
     }
+//    else{
+//      ParaReadDistSparseMatrixInterface(
+//          Hfile,
+//          nrows,
+//          nnz,
+//          nnzLocal,
+//          numColLocal,
+//          colptrLocal,
+//          rowindLocal,
+//          HnzvalLocal,
+//          readComm );
+//    }
+
+//    if( isSIdentity == 0 ){
+//      if( isFormatted == 1 ){
+//        ReadDistSparseMatrixFormattedInterface(
+//            Hfile,
+//            nrows,
+//            nnz,
+//            nnzLocal,
+//            numColLocal,
+//            colptrLocal,
+//            rowindLocal,
+//            SnzvalLocal,
+//            readComm );
+//      }
+//      else{
+//        ParaReadDistSparseMatrixInterface(
+//            Hfile,
+//            nrows,
+//            nnz,
+//            nnzLocal,
+//            numColLocal,
+//            colptrLocal,
+//            rowindLocal,
+//            SnzvalLocal,
+//            readComm );
+//      }
+//    }
     
     if( mpirank == 0 ){ 
       printf("Finish reading the matrix.\n");
     }
   }
 
-  /* Call the PEXSI interface */
-
-  /* Step 1. Initialize PEXSI */
+  /* Initialize PEXSI */
 
   PPEXSISetDefaultOptions( &options );
   options.muMin0 = 0.0;
   options.muMax0 = 0.5;
-  options.mu0    = 0.0;
+  options.mu0    = 0.270;
   options.npSymbFact = 1;
   options.ordering = 0;
   options.isInertiaCount = 1;
@@ -270,7 +299,6 @@ int main(int argc, char **argv)
   options.deltaE   = 20.0;
   options.numPole  = 40;
   options.temperature  = 0.0019; // 300K
-  options.muInertiaTolerance = 0.0120;
   options.muPEXSISafeGuard  = 0.2; 
   options.numElectronPEXSITolerance = 0.001;
   options.isSymbolicFactorize = 1;
@@ -292,7 +320,7 @@ int main(int argc, char **argv)
       outputFileIndex, 
       &info );
 
-  PPEXSILoadRealHSMatrix( 
+  PPEXSILoadComplexHSMatrix( 
       plan, 
       options,
       nrows,
@@ -306,18 +334,59 @@ int main(int argc, char **argv)
       SnzvalLocal,
       &info );
 
-  /* Step 2. PEXSI Solve */
+  /* Symbolic factorization */
 
-  PPEXSIDFTDriver2(
+  // No permutation
+  options.rowOrdering = 0;
+  PPEXSISymbolicFactorizeComplexSymmetricMatrix( 
       plan,
       options,
-      numElectronExact,
-      &muPEXSI,                   
-      &numElectronPEXSI,         
-      &muMinInertia,              
-      &muMaxInertia,             
-      &numTotalInertiaIter,   
       &info );
+
+  // Can change row ordering optionally now.
+  // options.rowOrdering = 1;
+  PPEXSISymbolicFactorizeComplexUnsymmetricMatrix( 
+      plan,
+      options,
+      HnzvalLocal,
+      &info );
+
+  /* Inertia counting */
+  numShift = options.numPole;
+  for( i = 0; i < numShift; i++ ){
+    shiftVec[i] = options.muMin0 + 
+      ( options.muMax0 - options.muMin0 ) / numShift * (double)i;
+  }
+
+
+  PPEXSIInertiaCountComplexMatrix( 
+      plan,
+      options,
+      numShift,
+      shiftVec,
+      inertiaVec,
+      &info );
+
+  if( mpirank == 0 ){
+    for( i = 0; i < numShift; i++ )
+      printf( "Shift = %25.15f  inertia = %25.1f\n", 
+          shiftVec[i], inertiaVec[i] );
+  }
+
+  /* Evaluate the Fermi operator */
+  PPEXSICalculateFermiOperatorComplex(
+      plan,
+      options,
+      options.mu0,
+      numElectronExact,
+      &numElectron,
+      &numElectronDrvMu,
+      &info );
+
+  if( mpirank == 0 ){
+    printf("numElectron       = %25.15f\n", numElectron);
+    printf("numElectronDrvMu  = %25.15f\n", numElectronDrvMu);
+  }
 
   if( info != 0 ){
     if( mpirank == 0 ){
@@ -327,9 +396,10 @@ int main(int argc, char **argv)
     return info;
   }
 
+  /* Retrieve matrix and energy */
 
   if( isProcRead == 1 ){
-    PPEXSIRetrieveRealDFTMatrix(
+    PPEXSIRetrieveComplexDFTMatrix(
         plan,
         DMnzvalLocal,
         EDMnzvalLocal,
@@ -347,76 +417,7 @@ int main(int argc, char **argv)
     }
   }
 
-  /* Step 3. Solve the problem once again without symbolic factorization */
-  {
-    if( mpirank == 0 ){
-      printf("To test the correctness of the program, solve the problem \n");
-      printf("again without symbolic factorization or inertia counting.\n");
-    }
-
-    PPEXSILoadRealHSMatrix( 
-        plan, 
-        options,
-        nrows,
-        nnz,
-        nnzLocal,
-        numColLocal,
-        colptrLocal,
-        rowindLocal,
-        HnzvalLocal,
-        isSIdentity,
-        SnzvalLocal,
-        &info );
-
-    // No symbolic factorization
-    options.muMin0 = muMinInertia;
-    options.muMax0 = muMaxInertia;
-    options.isInertiaCount = 0;
-    options.isSymbolicFactorize = 0;
-    // Reuse previous mu to start
-    options.mu0 = muPEXSI;
-
-    PPEXSIDFTDriver2(
-        plan,
-        options,
-        numElectronExact,
-        &muPEXSI,                   
-        &numElectronPEXSI,         
-        &muMinInertia,              
-        &muMaxInertia,             
-        &numTotalInertiaIter,   
-        &info );
-
-
-    if( info != 0 ){
-      if( mpirank == 0 ){
-        printf("PEXSI solve routine gives info = %d. Exit now.\n", info );
-      }
-      MPI_Finalize();
-      return info;
-    }
-
-    if( isProcRead == 1 ){
-      PPEXSIRetrieveRealDFTMatrix(
-          plan,
-          DMnzvalLocal,
-          EDMnzvalLocal,
-          FDMnzvalLocal,
-          &totalEnergyH,
-          &totalEnergyS,
-          &totalFreeEnergy,
-          &info );
-
-      if( mpirank == 0 ){
-        printf("Output from the main program\n");
-        printf("Total energy (H*DM)         = %15.5f\n", totalEnergyH);
-        printf("Total energy (S*EDM)        = %15.5f\n", totalEnergyS);
-        printf("Total free energy           = %15.5f\n", totalFreeEnergy);
-      }
-    }
-  }
-
-  /* Step 4. Clean up */
+  /* Clean up */
 
   PPEXSIPlanFinalize( 
       plan,
@@ -430,12 +431,15 @@ int main(int argc, char **argv)
   if( isProcRead == 1 ){
     free( colptrLocal );
     free( rowindLocal );
+    free( RnzvalLocal );
+    free( InzvalLocal );
     free( HnzvalLocal );
     free( SnzvalLocal );
     free( DMnzvalLocal );
     free( EDMnzvalLocal );
     free( FDMnzvalLocal );
-    free( localDOSnzvalLocal );
+    free( shiftVec );
+    free( inertiaVec );
   }
 
   

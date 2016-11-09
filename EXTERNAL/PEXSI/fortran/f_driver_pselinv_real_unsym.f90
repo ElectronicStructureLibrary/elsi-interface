@@ -42,7 +42,8 @@
 !> @file f_driver_pselinv_real_unsym.f90
 !> @brief FORTRAN version of the driver for using PSelInv for real unsymmetric
 !> matrices.
-!> @date 2015-01-21
+!> @date 2015-01-21 Original version
+!> @date 2016-09-10 Compatible with the interface at version 0.10.0
 program f_driver_pselinv_real_unsym
 use f_ppexsi_interface
 use iso_c_binding
@@ -131,7 +132,7 @@ call f_ppexsi_set_default_options(&
   options )
 
 
-call f_ppexsi_load_real_unsymmetric_hs_matrix(&
+call f_ppexsi_load_real_hs_matrix(&
       plan,&       
       options,&
       nrows,&

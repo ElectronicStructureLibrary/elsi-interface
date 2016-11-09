@@ -4,16 +4,14 @@ SRCS_C   = pdsymbfact.c pzsymbfact.c get_perm_c_parmetis.c
 SRCS_CPP = interface.cpp ppexsi.cpp pole.cpp TreeBcast.cpp \
            superlu_dist_internal_complex.cpp superlu_dist_internal_real.cpp \
            mpi_interf.cpp lapack.cpp blas.cpp utility.cpp global.cpp timer.cpp
-SRCS_F90 = f_interface.f90
 
-OBJS     = ${SRCS_CPP:.cpp=.o} ${SRCS_C:.c=.o} ${SRCS_F90:.f90=.o} 
-DEPS     = ${SRCS_CPP:.cpp=.d} ${SRCS_C:.c=.d} ${SRCS_F90:.f90=.d}
+OBJS = ${SRCS_CPP:.cpp=.o} ${SRCS_C:.c=.o} ${SRCS_F90:.f90=.o}
+DEPS = ${SRCS_CPP:.cpp=.d} ${SRCS_C:.c=.d} ${SRCS_F90:.f90=.d}
 
-# Compilation replacement rules
 %.o: %.c
-	${CC} -c ${CFLAGS} ${CCDEFS} $< 
+	${CC} -c ${CFLAGS} ${CCDEFS} $<
 %.o: %.cpp
-	${CXX} -c $< ${CXXFLAGS} ${CPPDEFS} 
+	${CXX} -c $< ${CXXFLAGS} ${CPPDEFS}
 %.o: %.f
 	${FC} -c ${FFLAGS} $<
 %.o: %.F
@@ -23,13 +21,12 @@ DEPS     = ${SRCS_CPP:.cpp=.d} ${SRCS_C:.c=.d} ${SRCS_F90:.f90=.d}
 %.o: %.F90
 	${FC} -c ${FFLAGS} $<
 
-all: ${PEXSI_LIB} 
+all: ${PEXSI_LIB}
 
 -include ${DEPS}
 
-#libpexsi.a: ${OBJS}
 ${PEXSI_LIB}: ${OBJS}
-	$(AR) $(ARFLAGS) $(PEXSI_LIB) ${OBJS} 
+	$(AR) $(ARFLAGS) $(PEXSI_LIB) ${OBJS}
 	$(RANLIB) $(PEXSI_LIB)
 
 clean:
@@ -37,5 +34,3 @@ clean:
 
 cleanall:
 	${RM} -f ${OBJS} ${DEPS} ${PEXSI_DIR}/lib/libpexsi.a *.d.*
-	${RM} -f ${PEXSI_DIR}/include/f_ppexsi_interface.mod
-	${RM} -f ${PEXSI_DIR}/src/f_ppexsi_interface.mod

@@ -249,6 +249,15 @@ typedef struct {
      * @brief  Whether to construct PSelInv communication pattern.
      */ 
     int           isConstructCommPattern;
+
+    /** 
+     * @brief  Solver used to do the factorization prior to the selected
+     * inversion.  
+     * - = 0   : SuperLU_DIST.
+     * - = 1   : symPACK (For symmetric matrices only).
+     */ 
+    int           solver;
+
     /** 
      * @brief  Ordering strategy for factorization and selected
      * inversion.  
@@ -354,8 +363,9 @@ PPEXSIPlan PPEXSIPlanInitialize(
 
 
 /**
- * @brief Load the real symmetric H and S matrices into the %PEXSI
- * internal data structure.
+ * @brief Load the real H and S matrices into the %PEXSI
+ * internal data structure. H and S can be either real symmetric or real
+ * unsymmetric.
  *
  * @note Only input from the processors associated with the first pole
  * is required. The information will be broadcast to the other
@@ -382,7 +392,7 @@ PPEXSIPlan PPEXSIPlanInitialize(
  * - = 0: successful exit.  
  * - > 0: unsuccessful.
  */
-void PPEXSILoadRealSymmetricHSMatrix(
+void PPEXSILoadRealHSMatrix(
     PPEXSIPlan    plan,
     PPEXSIOptions options,
     int           nrows,                        
@@ -395,6 +405,51 @@ void PPEXSILoadRealSymmetricHSMatrix(
     int           isSIdentity,                  
     double*       SnzvalLocal,
     int*          info );
+
+/**
+ * @brief Load the complex H and S matrices into the %PEXSI internal
+ * data structure. H and S can be either complex symmetric or complex unsymmetric.
+ *
+ * @note Only input from the processors associated with the first pole
+ * is required. The information will be broadcast to the other
+ * processors in the communicator.
+ *
+ * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
+ * data structure.
+ * @param[in] options (global) Other input parameters for the DFT driver.  
+ * @param[in] nrows (global) Number of rows and columns of the matrix.
+ * @param[in] nnz (global) Total number of nonzeros of H.
+ * @param[in] nnzLocal (local) Number of local nonzeros of H.
+ * @param[in] numColLocal (local) Number of local columns for H.
+ * @param[in] colptrLocal (local) Dimension: numColLocal+1. Local column
+ * pointer in CSC format.
+ * @param[in] rowindLocal (local) Dimension: nnzLocal. Local row index
+ * pointer in CSC format.
+ * @param[in] HnzvalLocal (local) Dimension: 2*nnzLocal. Local nonzero
+ * values of H in CSC format. 
+ * @param[in] isSIdentity (global) Whether S is an identity matrix. 
+ * If so, the variable SnzvalLocal is omitted.
+ * @param[in] SnzvalLocal (local) Dimension: 2*nnzLocal. Local nonzero
+ * value of S in CSC format.
+ * @param[out] info (local) whether the current processor returns the correct information.
+ * - = 0: successful exit.  
+ * - > 0: unsuccessful.
+ */
+void PPEXSILoadComplexHSMatrix(
+    PPEXSIPlan    plan,
+    PPEXSIOptions options,
+    int           nrows,                        
+    int           nnz,                          
+    int           nnzLocal,                     
+    int           numColLocal,                  
+    int*          colptrLocal,                  
+    int*          rowindLocal,                  
+    double*       HnzvalLocal,                  
+    int           isSIdentity,                  
+    double*       SnzvalLocal,
+    int*          info );
+
+
 
 /**
  * @brief Separately perform symbolic factorization to prepare
@@ -430,7 +485,7 @@ void PPEXSISymbolicFactorizeComplexSymmetricMatrix(
 
 
 /**
- * @brief Directly compute the negative inertia at a set of shifts.
+ * @brief Directly compute the negative inertia at a set of shifts for real matrices.
  *
  * This can be used as an "expert" interface for solving KSDFT with
  * user-implemented heuristics strategies.
@@ -450,7 +505,38 @@ void PPEXSISymbolicFactorizeComplexSymmetricMatrix(
  * - = 0: successful exit.  
  * - > 0: unsuccessful.
  */
-void PPEXSIInertiaCountRealSymmetricMatrix(
+void PPEXSIInertiaCountRealMatrix(
+    /* Input parameters */
+    PPEXSIPlan        plan,
+    PPEXSIOptions     options,
+    int               numShift,
+    double*           shiftList,
+    /* Output parameters */
+    double*           inertiaList,
+    int*              info );
+
+/**
+ * @brief Directly compute the negative inertia at a set of shifts for complex matrices.
+ *
+ * This can be used as an "expert" interface for solving KSDFT with
+ * user-implemented heuristics strategies.
+ *
+ * @note Only input from the processors associated with the first pole
+ * is required. The information will be broadcast to the other
+ * processors in the communicator.
+ *
+ * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
+ * data structure.
+ * @param[in] options (global) Other input parameters for the DFT driver.  
+ * @param[in] numShift (global) Number of shifts.
+ * @param[in] shiftList (global) The list of shifts. Size: numShift
+ * @param[out] inertiaList (global) The list of inertia counts (in
+ * double precision but are of integer values). Size: numShift
+ * @param[out] info (local) whether the current processor returns the correct information.
+ * - = 0: successful exit.  
+ * - > 0: unsuccessful.
+ */
+void PPEXSIInertiaCountComplexMatrix(
     /* Input parameters */
     PPEXSIPlan        plan,
     PPEXSIOptions     options,
@@ -461,55 +547,6 @@ void PPEXSIInertiaCountRealSymmetricMatrix(
     int*              info );
 
 
-
-
-
-
-
-
-
-/**
- * @brief Load the real unsymmetric H and S matrices into the %PEXSI
- * internal data structure.
- *
- * @note Only input from the processors associated with the first pole
- * is required. The information will be broadcast to the other
- * processors in the communicator.
- *
- * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
- * data structure.
- * @param[in] options (global) Other input parameters for the DFT driver.  
- * @param[in] nrows (global) Number of rows and columns of the matrix.
- * @param[in] nnz (global) Total number of nonzeros of H.
- * @param[in] nnzLocal (local) Number of local nonzeros of H.
- * @param[in] numColLocal (local) Number of local columns for H.
- * @param[in] colptrLocal (local) Dimension: numColLocal+1. Local column
- * pointer in CSC format.
- * @param[in] rowindLocal (local) Dimension: nnzLocal. Local row index
- * pointer in CSC format.
- * @param[in] HnzvalLocal (local) Dimension: nnzLocal. Local nonzero
- * values of H in CSC format.
- * @param[in] isSIdentity (global) Whether S is an identity matrix. 
- * If so, the variable SnzvalLocal is omitted.
- * @param[in] SnzvalLocal (local) Dimension: nnzLocal. Local nonzero
- * value of S in CSC format.
- * @param[out] info (local) whether the current processor returns the correct information.
- * - = 0: successful exit.  
- * - > 0: unsuccessful.
- */
-void PPEXSILoadRealUnsymmetricHSMatrix(
-    PPEXSIPlan    plan,
-    PPEXSIOptions options,
-    int           nrows,                        
-    int           nnz,                          
-    int           nnzLocal,                     
-    int           numColLocal,                  
-    int*          colptrLocal,                  
-    int*          rowindLocal,                  
-    double*       HnzvalLocal,                  
-    int           isSIdentity,                  
-    double*       SnzvalLocal,
-    int*          info );
 
 /**
  * @brief Separately perform symbolic factorization to prepare
@@ -647,6 +684,73 @@ void PPEXSIInertiaCountRealUnsymmetricMatrix(
  * - > 0: unsuccessful.
  */
 void PPEXSICalculateFermiOperatorReal(
+    PPEXSIPlan        plan,
+    PPEXSIOptions     options,
+    double            mu,
+    double            numElectronExact,
+    double*           numElectronPEXSI,
+    double*           numElectronDrvMuPEXSI,
+    int*              info );
+
+
+/**
+ * @brief Compute the density matrices and number of electrons for a
+ * given chemical potential. Here H and S are complex Hermitian matrices
+ * (even though S is real in electronic structure calculation)
+ * 
+ * This can be used as an "expert" interface for solving KSDFT with
+ * user-implemented heuristics strategies.
+ *
+ * **Input/Output**
+ *
+ * The input parameter options are controlled through the structure
+ * PPEXSIOptions.  The default value can be obtained through
+ * PPEXSISetDefaultOptions.
+
+ * The input H and S matrices should be given by loading functions
+ * (currently it is PPEXSILoadRealSymmetricHSMatrix).  The output
+ * matrices should be obtained from retrieving functions (currently it
+ * is PPEXSIRetrieveRealSymmetricDFTMatrix).
+ *
+ *
+ * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
+ * data structure.
+ * @param[in] numElectronExact (global) Exact number of electrons, i.e.
+ * \f$N_e(\mu_{\mathrm{exact}})\f$.
+ * @param[in] options (global) Other input parameters for the DFT driver.  
+ * @param[out]  DMnzvalLocal (local)  Dimension: nnzLocal.  Nonzero value
+ * of density matrix in CSC format.
+ * @param[out] EDMnzvalLocal (local)  Dimension: nnzLocal.  Nonzero
+ * value of energy density matrix in CSC format.
+ * @param[out] FDMnzvalLocal (local)  Dimension: nnzLocal.  Nonzero
+ * value of free energy density matrix in CSC format.
+ * @param[out] muPEXSI      (global) Chemical potential after the last
+ * iteration.
+ * - In the case that convergence is reached within maxPEXSIIter steps, the
+ * value of muPEXSI is the last mu used to achieve accuracy within
+ * numElectronPEXSITolerance.
+ * - In the case that convergence is not reached within maxPEXSIIter steps,
+ * and the update from Newton's iteration does not exceed
+ * muPEXSISafeGuard, the value of muPEXSI is the last mu plus the update
+ * from Newton's iteration.
+ * @param[out] numElectronPEXSI (global) Number of electrons
+ * evaluated at the last step.  
+ * **Note** In the case that convergence is not reached within maxPEXSIIter steps,
+ * and numElectron does not correspond to the number of electrons
+ * evaluated at muPEXSI.
+ * @param[out] muMinInertia (global) Lower bound for mu after the last
+ * inertia count procedure.
+ * @param[out] muMaxInertia (global) Upper bound for mu after the last
+ * inertia count procedure.
+ * @param[out] numTotalInertiaIter (global) Number of total inertia
+ * counting procedure.
+ * @param[out] numTotalPEXSIIter (global) Number of total %PEXSI
+ * evaluation procedure.
+ * @param[out] info (local) whether the current processor returns the correct information.
+ * - = 0: successful exit.  
+ * - > 0: unsuccessful.
+ */
+void PPEXSICalculateFermiOperatorComplex(
     PPEXSIPlan        plan,
     PPEXSIOptions     options,
     double            mu,
@@ -935,10 +1039,7 @@ void PPEXSIDFTDriver2(
     int*              info );
 
 /**
- * @brief Retrieve the output matrices after running PPEXSIDFTDriver.
-
- *
- * The output matrices are of real arithmetic.
+ * @brief Retrieve the output matrices after running PPEXSIDFTDriver for real input matrices.
  *
  * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
  * data structure.
@@ -952,7 +1053,7 @@ void PPEXSIDFTDriver2(
  * - = 0: successful exit.  
  * - > 0: unsuccessful.
  */
-void PPEXSIRetrieveRealSymmetricDFTMatrix(
+void PPEXSIRetrieveRealDFTMatrix(
     PPEXSIPlan        plan,
 		double*      DMnzvalLocal,
 		double*     EDMnzvalLocal,
@@ -963,6 +1064,30 @@ void PPEXSIRetrieveRealSymmetricDFTMatrix(
     int*              info );
 
 
+/**
+ * @brief Retrieve the output matrices after running PPEXSIDFTDriver for complex input matrices.
+ *
+ * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
+ * data structure.
+ * @param[out]  DMnzvalLocal (local)  Dimension: 2*nnzLocal.  Nonzero value
+ * of density matrix in CSC format.
+ * @param[out] EDMnzvalLocal (local)  Dimension: 2*nnzLocal.  Nonzero
+ * value of energy density matrix in CSC format.
+ * @param[out] FDMnzvalLocal (local)  Dimension: 2*nnzLocal.  Nonzero
+ * value of free energy density matrix in CSC format.
+ * @param[out] info (local) whether the current processor returns the correct information.
+ * - = 0: successful exit.  
+ * - > 0: unsuccessful.
+ */
+void PPEXSIRetrieveComplexDFTMatrix(
+    PPEXSIPlan        plan,
+		double*      DMnzvalLocal,
+		double*     EDMnzvalLocal,
+		double*     FDMnzvalLocal,
+    double*     totalEnergyH,
+    double*     totalEnergyS,
+    double*     totalFreeEnergy,
+    int*              info );
 
 
 /**

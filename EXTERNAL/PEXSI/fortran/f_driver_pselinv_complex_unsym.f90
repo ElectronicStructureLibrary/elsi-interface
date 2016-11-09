@@ -42,7 +42,8 @@
 !> @file f_driver_pselinv_complex_unsym.f90
 !> @brief FORTRAN version of the driver for using PSelInv for complex unsymmetric
 !> matrices.
-!> @date 2015-01-21
+!> @date 2015-01-21 Original version
+!> @date 2016-09-10 Compatible with the interface at version 0.10.0
 program f_driver_pselinv_complex_unsym
 use f_ppexsi_interface
 use iso_c_binding
@@ -70,8 +71,9 @@ call mpi_init( ierr )
 call mpi_comm_rank( MPI_COMM_WORLD, mpirank, ierr )
 call mpi_comm_size( MPI_COMM_WORLD, mpisize, ierr )
 
-Rfile            = "lap2dr.matrix"
-Ifile            = "lap2di.matrix"
+! Rfile            = "lap2dr.matrix"
+! Ifile            = "lap2di.matrix"
+Rfile            = "big.unsym.matrix"
 
 nprow = 1
 npcol = 1
@@ -113,21 +115,22 @@ call f_read_distsparsematrix_formatted (&
   MPI_COMM_WORLD )
 
 ! Read the imag part of the matrix 
-call f_read_distsparsematrix_formatted (&
-  trim(Ifile)//char(0),&
-  nrows,&
-  nnz,&
-  nnzLocal,&
-  numColLocal,&
-  colptrLocal,&
-  rowindLocal,&
-  InzvalLocal,&
-  MPI_COMM_WORLD )
+! call f_read_distsparsematrix_formatted (&
+  ! trim(Ifile)//char(0),&
+  ! nrows,&
+  ! nnz,&
+  ! nnzLocal,&
+  ! numColLocal,&
+  ! colptrLocal,&
+  ! rowindLocal,&
+  ! InzvalLocal,&
+  ! MPI_COMM_WORLD )
 
 ! Form the matrix
 do i = 1, nnzLocal
   AnzvalLocal(2*i-1) = RnzvalLocal(i)
-  AnzvalLocal(2*i)   = InzvalLocal(i)
+  AnzvalLocal(2*i) = 0.0;
+  ! AnzvalLocal(2*i)   = InzvalLocal(i)
 enddo
 
 ! Each processor outputs information
@@ -150,7 +153,7 @@ call f_ppexsi_set_default_options(&
 
 
 ! This is just to load the pattern for symbolic factorization
-call f_ppexsi_load_real_unsymmetric_hs_matrix(&
+call f_ppexsi_load_complex_hs_matrix(&
       plan,&       
       options,&
       nrows,&
@@ -159,7 +162,7 @@ call f_ppexsi_load_real_unsymmetric_hs_matrix(&
       numColLocal,&
       colptrLocal,& 
       rowindLocal,&
-      RnzvalLocal,&
+      AnzvalLocal,&
       1,&
       SnzvalLocal,&
       info ) 

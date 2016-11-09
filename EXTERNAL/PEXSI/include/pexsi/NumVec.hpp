@@ -49,73 +49,73 @@ such enhancements or derivative works thereof, in binary and source code form.
 #include "pexsi/environment.hpp"
 
 namespace  PEXSI{
-  /// @class NumVec
+/// @class NumVec
+///
+/// @brief Numerical vector.
+/// 
+/// NumVec is a portable encapsulation of a pointer to represent a 1D
+/// vector. The main difference between NumVec<F> and std::vector<F> is
+/// that NumVec<F> allows the vector to not owning the data, by
+/// specifying (owndata_ == false).
+template <class F> class NumVec
+{
+protected:
+
+  /// @brief Helper function allocating the memory pointed by the data_ attribute
+  inline void allocate(F* data=NULL);
+
+  /// @brief Helper function freeing memory pointed by the data_ attribute
+  inline void deallocate();
+
+  /// @brief The size of the vector.
+  Int  m_;                                
   ///
-  /// @brief Numerical vector.
-  /// 
-  /// NumVec is a portable encapsulation of a pointer to represent a 1D
-  /// vector. The main difference between NumVec<F> and std::vector<F> is
-  /// that NumVec<F> allows the vector to not owning the data, by
-  /// specifying (owndata_ == false).
-  template <class F> class NumVec
-  {
-    protected:
+  /// @brief Whether it owns the data.
+  bool owndata_;                          
 
-      /// @brief Helper function allocating the memory pointed by the data_ attribute
-      inline void allocate(F* data=NULL);
+  /// @brief The pointer for the actual data.
+  F* data_;
 
-      /// @brief Helper function freeing memory pointed by the data_ attribute
-      inline void deallocate();
+  /// @brief The actual storage space allocated                          
+  Int bufsize_;
+public:
+  NumVec();
+  NumVec(Int m);
+  NumVec(Int m, bool owndata, F* data);
+  NumVec(const NumVec& C);
+  ~NumVec();
 
-      /// @brief The size of the vector.
-      Int  m_;                                
-      ///
-      /// @brief Whether it owns the data.
-      bool owndata_;                          
+  NumVec& operator=(const NumVec& C);
 
-      /// @brief The pointer for the actual data.
-      F* data_;
+  void Resize ( Int m );
+  void Clear();
 
-      /// @brief The actual storage space allocated                          
-      Int bufsize_;
-    public:
-      NumVec();
-      NumVec(Int m);
-      NumVec(Int m, bool owndata, F* data);
-      NumVec(const NumVec& C);
-      ~NumVec();
+  const F& operator()(Int i) const;  
+  F& operator()(Int i);  
+  const F& operator[](Int i) const;
+  F& operator[](Int i);
 
-      NumVec& operator=(const NumVec& C);
+  bool IsOwnData() const { return owndata_; }
+  F*   Data() const { return data_; }
+  Int  m () const { return m_; }
+  Int ByteSize() const { return m_*sizeof(F);}
+};
 
-      void Resize ( Int m );
-      void Clear();
-
-      const F& operator()(Int i) const;  
-      F& operator()(Int i);  
-      const F& operator[](Int i) const;
-      F& operator[](Int i);
-
-      bool IsOwnData() const { return owndata_; }
-      F*   Data() const { return data_; }
-      Int  m () const { return m_; }
-      Int ByteSize() const { return m_*sizeof(F);}
-  };
-
-  // Commonly used
-  typedef NumVec<bool>       BolNumVec;
-  typedef NumVec<Int>        IntNumVec;
-  typedef NumVec<Real>       DblNumVec;
-  typedef NumVec<Complex>    CpxNumVec;
+// Commonly used
+typedef NumVec<bool>       BolNumVec;
+typedef NumVec<Int>        IntNumVec;
+typedef NumVec<Real>       DblNumVec;
+typedef NumVec<Complex>    CpxNumVec;
 
 
-  // *********************************************************************
-  // Utility functions
-  // *********************************************************************
-  /// @brief SetValue sets a numerical vector to a constant val.
-  template <class F> inline void SetValue( NumVec<F>& vec, F val );
+// *********************************************************************
+// Utility functions
+// *********************************************************************
+/// @brief SetValue sets a numerical vector to a constant val.
+template <class F> inline void SetValue( NumVec<F>& vec, F val );
 
-  /// @brief Energy computes the L2 norm of a vector.
-  template <class F> inline Real Energy( const NumVec<F>& vec );
+/// @brief Energy computes the L2 norm of a vector.
+template <class F> inline Real Energy( const NumVec<F>& vec );
 
 
 } // namespace PEXSI

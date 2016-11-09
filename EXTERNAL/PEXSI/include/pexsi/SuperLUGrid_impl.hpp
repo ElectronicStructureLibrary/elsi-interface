@@ -53,196 +53,148 @@ namespace PEXSI{
 
 
 
-  inline SuperLUGrid<Real>::SuperLUGrid	( MPI_Comm comm, Int nprow, Int npcol )
-  {
-#ifndef _RELEASE_
-    PushCallStack("SuperLUGrid::SuperLUGrid");
-#endif
-    ptrData = new RealGridData;
-    if( ptrData == NULL ){
-#ifdef USE_ABORT
-      abort();
-#endif
-      throw std::runtime_error( "SuperLUGrid cannot be allocated." );
-    }
-    ptrData->GridInit(comm, nprow, npcol);	
+inline SuperLUGrid<Real>::SuperLUGrid	( MPI_Comm comm, Int nprow, Int npcol )
+{
+  ptrData = new RealGridData;
+  if( ptrData == NULL ){
+    ErrorHandling( "SuperLUGrid cannot be allocated." );
+  }
+  ptrData->GridInit(comm, nprow, npcol);	
 
-#ifndef _RELEASE_
-    PopCallStack();
-#endif
 
-    return ;
-  } 		// -----  end of method SuperLUGrid::SuperLUGrid  ----- 
+  return ;
+} 		// -----  end of method SuperLUGrid::SuperLUGrid  ----- 
 
-  inline SuperLUGrid<Real>::~SuperLUGrid	(  )
-  {
-#ifndef _RELEASE_
-    PushCallStack("SuperLUGrid::~SuperLUGrid");
-#endif
-    // NOTE (07/21/2013): Since superlu_gridinit gets a copy of the
-    // communicator, it is legal to call superlu_gridexit even if
-    // grid->comm is a copy of MPI_COMM_WORLD.
+inline SuperLUGrid<Real>::~SuperLUGrid	(  )
+{
+  // NOTE (07/21/2013): Since superlu_gridinit gets a copy of the
+  // communicator, it is legal to call superlu_gridexit even if
+  // grid->comm is a copy of MPI_COMM_WORLD.
 
-    ptrData->GridExit();	
+  ptrData->GridExit();	
 
-    delete ptrData;
+  delete ptrData;
 
-#ifndef _RELEASE_
-    PopCallStack();
-#endif
-    return ;
-  } 		// -----  end of method SuperLUGrid::~SuperLUGrid  ----- 
+  return ;
+} 		// -----  end of method SuperLUGrid::~SuperLUGrid  ----- 
 
 
 
 
 
 
-  inline SuperLUGrid<Real>::SuperLUGrid(const SuperLUGrid<Real> & g)
-  {
-#ifndef _RELEASE_
-    PushCallStack("SuperLUGrid::SuperLUGrid");
-#endif
+inline SuperLUGrid<Real>::SuperLUGrid(const SuperLUGrid<Real> & g)
+{
 
-    if(g.ptrData == NULL){
-      throw std::runtime_error( "Original SuperLUGrid not allocated." );
-    }
+  if(g.ptrData == NULL){
+    ErrorHandling( "Original SuperLUGrid not allocated." );
+  }
 
-    ptrData = new RealGridData(*g.ptrData);
-    if( ptrData == NULL ){
-#ifdef USE_ABORT
-      abort();
-#endif
-      throw std::runtime_error( "SuperLUGrid cannot be allocated." );
-    }
-
-#ifndef _RELEASE_
-    PopCallStack();
-#endif
-
-    return ;
-  } 		// -----  end of method SuperLUGrid::SuperLUGrid  ----- 
-
-  inline SuperLUGrid<Real> & SuperLUGrid<Real>::operator = (const SuperLUGrid<Real> & g){
-
-    if(&g!=this){
-      if(this->ptrData!=NULL){
-        ptrData->GridExit();
-        delete ptrData;
-      }
-
-    if(g.ptrData == NULL){
-      throw std::runtime_error( "Original SuperLUGrid not allocated." );
-    }
-    else{
-        ptrData = new RealGridData(*g.ptrData);
-        if( ptrData == NULL ){
-          throw std::runtime_error( "SuperLUGrid cannot be allocated." );
-        }
-      }
-    }
-
-    return *this;
+  ptrData = new RealGridData(*g.ptrData);
+  if( ptrData == NULL ){
+    ErrorHandling( "SuperLUGrid cannot be allocated." );
   }
 
 
+  return ;
+} 		// -----  end of method SuperLUGrid::SuperLUGrid  ----- 
 
+inline SuperLUGrid<Real> & SuperLUGrid<Real>::operator = (const SuperLUGrid<Real> & g){
 
-
-
-
-
-
-
-
-  inline SuperLUGrid<Complex>::SuperLUGrid	( MPI_Comm comm, Int nprow, Int npcol )
-  {
-#ifndef _RELEASE_
-    PushCallStack("SuperLUGrid::SuperLUGrid");
-#endif
-    ptrData = new ComplexGridData;
-    if( ptrData == NULL ){
-#ifdef USE_ABORT
-      abort();
-#endif
-      throw std::runtime_error( "SuperLUGrid cannot be allocated." );
+  if(&g!=this){
+    if(this->ptrData!=NULL){
+      ptrData->GridExit();
+      delete ptrData;
     }
-    ptrData->GridInit(comm, nprow, npcol);	
-
-#ifndef _RELEASE_
-    PopCallStack();
-#endif
-
-    return ;
-  } 		// -----  end of method SuperLUGrid::SuperLUGrid  ----- 
-
-
-  inline SuperLUGrid<Complex>::~SuperLUGrid	(  )
-  {
-#ifndef _RELEASE_
-    PushCallStack("SuperLUGrid::~SuperLUGrid");
-#endif
-    // NOTE (07/21/2013): Since superlu_gridinit gets a copy of the
-    // communicator, it is legal to call superlu_gridexit even if
-    // grid->comm is a copy of MPI_COMM_WORLD.
-
-    ptrData->GridExit();	
-
-    delete ptrData;
-
-#ifndef _RELEASE_
-    PopCallStack();
-#endif
-    return ;
-  } 		// -----  end of method SuperLUGrid::~SuperLUGrid  ----- 
-
-
-  inline SuperLUGrid<Complex>::SuperLUGrid(const SuperLUGrid<Complex> & g)
-  {
-#ifndef _RELEASE_
-    PushCallStack("SuperLUGrid::SuperLUGrid");
-#endif
 
     if(g.ptrData == NULL){
-      throw std::runtime_error( "Original SuperLUGrid not allocated." );
-    }
-
-    ptrData = new ComplexGridData(*g.ptrData);
-    if( ptrData == NULL ){
-#ifdef USE_ABORT
-      abort();
-#endif
-      throw std::runtime_error( "SuperLUGrid cannot be allocated." );
-    }
-
-#ifndef _RELEASE_
-    PopCallStack();
-#endif
-
-    return ;
-  } 		// -----  end of method SuperLUGrid::SuperLUGrid  ----- 
-
-  inline SuperLUGrid<Complex> & SuperLUGrid<Complex>::operator = (const SuperLUGrid<Complex> & g){
-
-    if(&g!=this){
-      if(this->ptrData!=NULL){
-        ptrData->GridExit();
-        delete ptrData;
-      }
-
-    if(g.ptrData == NULL){
-      throw std::runtime_error( "Original SuperLUGrid not allocated." );
+      ErrorHandling( "Original SuperLUGrid not allocated." );
     }
     else{
-        ptrData = new ComplexGridData(*g.ptrData);
-        if( ptrData == NULL ){
-          throw std::runtime_error( "SuperLUGrid cannot be allocated." );
-        }
+      ptrData = new RealGridData(*g.ptrData);
+      if( ptrData == NULL ){
+        ErrorHandling( "SuperLUGrid cannot be allocated." );
       }
     }
-
-    return *this;
   }
+
+  return *this;
+}
+
+
+
+
+
+
+
+
+
+
+
+inline SuperLUGrid<Complex>::SuperLUGrid	( MPI_Comm comm, Int nprow, Int npcol )
+{
+  ptrData = new ComplexGridData;
+  if( ptrData == NULL ){
+    ErrorHandling( "SuperLUGrid cannot be allocated." );
+  }
+  ptrData->GridInit(comm, nprow, npcol);	
+
+
+  return ;
+} 		// -----  end of method SuperLUGrid::SuperLUGrid  ----- 
+
+
+inline SuperLUGrid<Complex>::~SuperLUGrid	(  )
+{
+  // NOTE (07/21/2013): Since superlu_gridinit gets a copy of the
+  // communicator, it is legal to call superlu_gridexit even if
+  // grid->comm is a copy of MPI_COMM_WORLD.
+
+  ptrData->GridExit();	
+
+  delete ptrData;
+
+  return ;
+} 		// -----  end of method SuperLUGrid::~SuperLUGrid  ----- 
+
+
+inline SuperLUGrid<Complex>::SuperLUGrid(const SuperLUGrid<Complex> & g)
+{
+
+  if(g.ptrData == NULL){
+    ErrorHandling( "Original SuperLUGrid not allocated." );
+  }
+
+  ptrData = new ComplexGridData(*g.ptrData);
+  if( ptrData == NULL ){
+    ErrorHandling( "SuperLUGrid cannot be allocated." );
+  }
+
+
+  return ;
+} 		// -----  end of method SuperLUGrid::SuperLUGrid  ----- 
+
+inline SuperLUGrid<Complex> & SuperLUGrid<Complex>::operator = (const SuperLUGrid<Complex> & g){
+
+  if(&g!=this){
+    if(this->ptrData!=NULL){
+      ptrData->GridExit();
+      delete ptrData;
+    }
+
+    if(g.ptrData == NULL){
+      ErrorHandling( "Original SuperLUGrid not allocated." );
+    }
+    else{
+      ptrData = new ComplexGridData(*g.ptrData);
+      if( ptrData == NULL ){
+        ErrorHandling( "SuperLUGrid cannot be allocated." );
+      }
+    }
+  }
+
+  return *this;
+}
 
 
 

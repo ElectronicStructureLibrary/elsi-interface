@@ -8,6 +8,7 @@ Tutorial              {#pageTutorial}
 - @subpage pagePselinvComplexUnsymmetric
 - @subpage pageDFT1
 - @subpage pageDFT2
+- @subpage pageFermiComplex
 
 <!-- ************************************************************ -->
 @page pagePEXSIPlan Using plans and generating log files
@@ -105,7 +106,7 @@ be used as follows. This assumes that the size of `MPI_COMM_WORLD` is
 
 
   /* Load the matrix into the internal data structure */
-  PPEXSILoadRealSymmetricHSMatrix( 
+  PPEXSILoadRealHSMatrix( 
       plan, 
       options,
       nrows,
@@ -203,7 +204,7 @@ be used as follows. This assumes that the size of `MPI_COMM_WORLD` is
   
 
   /* Load the matrix into the internal data structure */
-  PPEXSILoadRealUnsymmetricHSMatrix( 
+  PPEXSILoadRealHSMatrix( 
       plan, 
       options,
       nrows,
@@ -327,7 +328,7 @@ Here is the structure of the code using the simple driver routine.
   options.numElectronPEXSITolerance = 0.001;
 
   /* Load the matrix into the internal data structure */
-  PPEXSILoadRealSymmetricHSMatrix( 
+  PPEXSILoadRealHSMatrix( 
       plan, 
       options,
       nrows,
@@ -356,7 +357,7 @@ Here is the structure of the code using the simple driver routine.
 
   /* Retrieve the density matrix and other quantities from the plan */
 
-  PPEXSIRetrieveRealSymmetricDFTMatrix(
+  PPEXSIRetrieveRealDFTMatrix(
       plan,
       DMnzvalLocal,
       EDMnzvalLocal,
@@ -395,7 +396,7 @@ Here is the structure of the code using the simple driver routine.
   /* Update and obtain another set of H and S */
 
   /* Solve the problem once again without symbolic factorization */
-  PPEXSILoadRealSymmetricHSMatrix( 
+  PPEXSILoadRealHSMatrix( 
       plan, 
       options,
       nrows,
@@ -445,3 +446,16 @@ should be relatively easy to dig into the driver routine, and only use
 @ref PEXSI::PPEXSIData::CalculateFermiOperatorReal "CalculateFermiOperatorReal" 
 (for one-shot %PEXSI calculation) to improve heuristics and extend the
 functionalities.
+
+
+
+<!-- ************************************************************ -->
+@page pageFermiComplex Parallel computation of the Fermi operator for complex Hermitian matrices
+
+The PPEXSIDFTDriver routine and PPEXSIDFTDriver2 routines are standalone
+routines for solving the density matrix with the capability of finding
+the chemical potential effectively. This can be used for \f$\Gamma\f$
+point calculation. For electronic structure calculations with k-points,
+multiple Hamiltonian operators may be needed to compute the number of
+electrons. The %PEXSI package provides expert level routines for such
+purpose.  See driver_fermi_complex.c for an example of the components.

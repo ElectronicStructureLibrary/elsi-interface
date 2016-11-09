@@ -49,199 +49,167 @@ such enhancements or derivative works thereof, in binary and source code form.
 
 namespace  PEXSI{
 
-  template <class F> inline void NumMat<F>::allocate(F* data) {
-    if(owndata_) {
-      if(m_>0 && n_>0) { data_ = new F[m_*n_]; if( data_ == NULL ) {
-#ifdef USE_ABORT
-        abort();
-#endif
-        throw std::runtime_error("Cannot allocate memory.");}
-      } else data_=NULL;
-      if(data!=NULL){std::copy(data,data+m_*n_,data_);}
-    } else {
-      data_ = data;
-    }
-    bufsize_=m_*n_;
+template <class F> inline void NumMat<F>::allocate(F* data) {
+  if(owndata_) {
+    if(m_>0 && n_>0) { data_ = new F[m_*n_]; if( data_ == NULL ) {
+      ErrorHandling("Cannot allocate memory.");}
+    } else data_=NULL;
+    if(data!=NULL){std::copy(data,data+m_*n_,data_);}
+  } else {
+    data_ = data;
   }
-  template <class F> inline void NumMat<F>::deallocate(){
-    if(owndata_) {
-      if(bufsize_>0) { delete[] data_; data_ = NULL; bufsize_ = 0; m_=0; n_=0; }
-    }
+  bufsize_=m_*n_;
+}
+template <class F> inline void NumMat<F>::deallocate(){
+  if(owndata_) {
+    if(bufsize_>0) { delete[] data_; data_ = NULL; bufsize_ = 0; m_=0; n_=0; }
+  }
+}
+
+template <class F> NumMat<F>::NumMat(Int m, Int n): m_(m), n_(n), owndata_(true) {
+  this->allocate();
+}
+
+template <class F> NumMat<F>::NumMat(Int m, Int n, bool owndata, F* data): m_(m), n_(n), owndata_(owndata) {
+  this->allocate(data);
+}
+
+template <class F> NumMat<F>::NumMat(const NumMat& C): m_(C.m_), n_(C.n_), owndata_(C.owndata_) {
+  this->allocate(C.data_);
+}
+
+template <class F> NumMat<F>::~NumMat() {
+  this->deallocate();
+}
+
+template <class F> NumMat<F>& NumMat<F>::Copy(const NumMat<F>& C) {
+  this->deallocate();
+  m_ = C.m_; n_=C.n_; owndata_=C.owndata_;
+  this->allocate(C.data_);
+  return *this;
+}
+
+template <class F> NumMat<F>& NumMat<F>::operator=(const NumMat<F>& C) {
+  this->deallocate();
+  m_ = C.m_; n_=C.n_; owndata_=C.owndata_;
+  this->allocate(C.data_);
+  return *this;
+}
+
+template <class F> void NumMat<F>::Resize(Int m, Int n)  {
+  if( owndata_ == false ){
+    ErrorHandling("Matrix being resized must own data.");
   }
 
-  template <class F> NumMat<F>::NumMat(Int m, Int n): m_(m), n_(n), owndata_(true) {
+  if(m*n > bufsize_) {
+    this->deallocate();
+    m_ = m; n_ = n;
     this->allocate();
   }
+  else{
+    m_ = m; n_ = n;
+  }
+}
 
-  template <class F> NumMat<F>::NumMat(Int m, Int n, bool owndata, F* data): m_(m), n_(n), owndata_(owndata) {
-    this->allocate(data);
+template <class F> void NumMat<F>::Clear()  {
+  if( owndata_ == false ){
+    ErrorHandling("Matrix being cleared must own data.");
   }
 
-  template <class F> NumMat<F>::NumMat(const NumMat& C): m_(C.m_), n_(C.n_), owndata_(C.owndata_) {
-    this->allocate(C.data_);
+  this->deallocate();
+  m_ = 0; n_ = 0;
+  bufsize_=0;
+}
+
+
+
+
+
+template <class F> const F& NumMat<F>::operator()(Int i, Int j) const  { 
+  if( i < 0 || i >= m_ ||
+      j < 0 || j >= n_ ) {
+    ErrorHandling( "Index is out of bound." );
+  }
+  return data_[i+j*m_];
+}
+
+template <class F> F& NumMat<F>::operator()(Int i, Int j)  { 
+  if( i < 0 || i >= m_ ||
+      j < 0 || j >= n_ ) {
+    ErrorHandling( "Index is out of bound." );
+  }
+  return data_[i+j*m_];
+}
+
+template <class F> F* NumMat<F>::VecData(Int j)  const 
+{ 
+  if( j < 0 || j >= n_ ) {
+    ErrorHandling( "Index is out of bound." );
+  }
+  return &(data_[j*m_]); 
+}
+
+
+template <class F> inline void SetValue(NumMat<F>& M, F val)
+{
+  std::fill(M.Data(),M.Data()+M.m()*M.n(),val);
+}
+
+template <class F> inline Real Energy(const NumMat<F>& M)
+{
+  Real sum = 0;
+  F *ptr = M.Data();
+  for (Int i=0; i < M.m()*M.n(); i++) 
+    sum += abs(ptr[i]) * abs(ptr[i]);
+  return sum;
+}
+
+
+template <class F> inline void
+Transpose ( const NumMat<F>& A, NumMat<F>& B )
+{
+  if( A.m() != B.n() || A.n() != B.m() ){
+    B.Resize( A.n(), A.m() );
   }
 
-  template <class F> NumMat<F>::~NumMat() {
-    this->deallocate();
-  }
+  F* Adata = A.Data();
+  F* Bdata = B.Data();
+  Int m = A.m(), n = A.n();
 
-  template <class F> NumMat<F>& NumMat<F>::Copy(const NumMat<F>& C) {
-    this->deallocate();
-    m_ = C.m_; n_=C.n_; owndata_=C.owndata_;
-    this->allocate(C.data_);
-    return *this;
-  }
-
-  template <class F> NumMat<F>& NumMat<F>::operator=(const NumMat<F>& C) {
-    this->deallocate();
-    m_ = C.m_; n_=C.n_; owndata_=C.owndata_;
-    this->allocate(C.data_);
-    return *this;
-  }
-
-  template <class F> void NumMat<F>::Resize(Int m, Int n)  {
-    if( owndata_ == false ){
-#ifdef USE_ABORT
-      abort();
-#endif
-      throw std::logic_error("Matrix being resized must own data.");
+  for( Int i = 0; i < m; i++ ){
+    for( Int j = 0; j < n; j++ ){
+//      Bdata[ j + n*i ] = F(std::conj(Adata[ i + j*m ]));
+      Bdata[ j + n*i ] = Adata[ i + j*m ];
     }
-
-    if(m*n > bufsize_) {
-      this->deallocate();
-      m_ = m; n_ = n;
-      this->allocate();
-    }
-    else{
-      m_ = m; n_ = n;
-    }
-  }
-
-  template <class F> void NumMat<F>::Clear()  {
-    if( owndata_ == false ){
-#ifdef USE_ABORT
-      abort();
-#endif
-      throw std::logic_error("Matrix being cleared must own data.");
-    }
-
-      this->deallocate();
-      m_ = 0; n_ = 0;
-      bufsize_=0;
   }
 
 
+  return ;
+}		// -----  end of function Transpose  ----- 
 
-
-
-  template <class F> const F& NumMat<F>::operator()(Int i, Int j) const  { 
-    if( i < 0 || i >= m_ ||
-        j < 0 || j >= n_ ) {
-#ifdef USE_ABORT
-      abort();
-#endif
-      throw std::logic_error( "Index is out of bound." );
-    }
-    return data_[i+j*m_];
+template <class F> inline void
+Symmetrize( NumMat<F>& A )
+{
+  if( A.m() != A.n() ){
+    ErrorHandling( "The matrix to be symmetrized should be a square matrix." );
   }
 
-  template <class F> F& NumMat<F>::operator()(Int i, Int j)  { 
-    if( i < 0 || i >= m_ ||
-        j < 0 || j >= n_ ) {
-#ifdef USE_ABORT
-      abort();
-#endif
-      throw std::logic_error( "Index is out of bound." );
-    }
-    return data_[i+j*m_];
-  }
+  NumMat<F> B;
+  Transpose( A, B );
 
-  template <class F> F* NumMat<F>::VecData(Int j)  const 
-  { 
-    if( j < 0 || j >= n_ ) {
-#ifdef USE_ABORT
-      abort();
-#endif
-      throw std::logic_error( "Index is out of bound." );
-    }
-    return &(data_[j*m_]); 
+  F* Adata = A.Data();
+  F* Bdata = B.Data();
+
+  F  half = (F) 0.5;
+
+  for( Int i = 0; i < A.m() * A.n(); i++ ){
+    *Adata = half * (*Adata + *Bdata);
+    Adata++; Bdata++;
   }
 
 
-  template <class F> inline void SetValue(NumMat<F>& M, F val)
-  {
-    std::fill(M.Data(),M.Data()+M.m()*M.n(),val);
-  }
-
-  template <class F> inline Real Energy(const NumMat<F>& M)
-  {
-    Real sum = 0;
-    F *ptr = M.Data();
-    for (Int i=0; i < M.m()*M.n(); i++) 
-      sum += abs(ptr[i]) * abs(ptr[i]);
-    return sum;
-  }
-
-
-  template <class F> inline void
-    Transpose ( const NumMat<F>& A, NumMat<F>& B )
-    {
-#ifndef _RELEASE_
-      PushCallStack("Transpose");
-#endif
-      if( A.m() != B.n() || A.n() != B.m() ){
-        B.Resize( A.n(), A.m() );
-      }
-
-      F* Adata = A.Data();
-      F* Bdata = B.Data();
-      Int m = A.m(), n = A.n();
-
-      for( Int i = 0; i < m; i++ ){
-        for( Int j = 0; j < n; j++ ){
-          Bdata[ j + n*i ] = Adata[ i + j*m ];
-        }
-      }
-
-#ifndef _RELEASE_
-      PopCallStack();
-#endif
-
-      return ;
-    }		// -----  end of function Transpose  ----- 
-
-  template <class F> inline void
-    Symmetrize( NumMat<F>& A )
-    {
-#ifndef _RELEASE_
-      PushCallStack("Symmetrize");
-#endif
-      if( A.m() != A.n() ){
-#ifdef USE_ABORT
-        abort();
-#endif
-        throw std::logic_error( "The matrix to be symmetrized should be a square matrix." );
-      }
-
-      NumMat<F> B;
-      Transpose( A, B );
-
-      F* Adata = A.Data();
-      F* Bdata = B.Data();
-
-      F  half = (F) 0.5;
-
-      for( Int i = 0; i < A.m() * A.n(); i++ ){
-        *Adata = half * (*Adata + *Bdata);
-        Adata++; Bdata++;
-      }
-
-#ifndef _RELEASE_
-      PopCallStack();
-#endif
-
-      return ;
-    }		// -----  end of function Symmetrize ----- 
+  return ;
+}		// -----  end of function Symmetrize ----- 
 
 
 } // namespace PEXSI

@@ -62,77 +62,77 @@ class RealGridInfo;
 class ComplexGridInfo;
 
 class ComplexGridData{
-  public:
-    ComplexGridInfo * info_;
-  public:
+public:
+  ComplexGridInfo * info_;
+public:
 
-    ComplexGridData();
-    ~ComplexGridData();
-    ComplexGridData(const ComplexGridData & g);
-    ComplexGridData & operator = (const ComplexGridData & g);
+  ComplexGridData();
+  ~ComplexGridData();
+  ComplexGridData(const ComplexGridData & g);
+  ComplexGridData & operator = (const ComplexGridData & g);
 
-    void GridInit( MPI_Comm comm, Int nprow, Int npcol );
-    void GridExit(  );
+  void GridInit( MPI_Comm comm, Int nprow, Int npcol );
+  void GridExit(  );
 };
 
 
 class RealGridData{
-  public:
-    RealGridInfo * info_;
-  public:
+public:
+  RealGridInfo * info_;
+public:
 
-    RealGridData();
-    ~RealGridData();
-    RealGridData(const RealGridData & g);
-    RealGridData & operator = (const RealGridData & g);
+  RealGridData();
+  ~RealGridData();
+  RealGridData(const RealGridData & g);
+  RealGridData & operator = (const RealGridData & g);
 
-    void GridInit( MPI_Comm comm, Int nprow, Int npcol );
-    void GridExit(  );
+  void GridInit( MPI_Comm comm, Int nprow, Int npcol );
+  void GridExit(  );
 };
 
 
 
 
-  /// @class SuperLUGrid
-  /// @brief A thin interface for the gridinfo_t structure in SuperLU.
-  template< typename T > class SuperLUGrid{
-    /// @brief SuperLUMatrix can have access to the grid information.
-    public:
-    void *        ptrData;
-    public:
-    SuperLUGrid( MPI_Comm comm, int nprow, int npcol ){};
-    ~SuperLUGrid(){};
+/// @class SuperLUGrid
+/// @brief A thin interface for the gridinfo_t structure in SuperLU.
+template< typename T > class SuperLUGrid{
+  /// @brief SuperLUMatrix can have access to the grid information.
+public:
+  void *        ptrData;
+public:
+  SuperLUGrid( MPI_Comm comm, int nprow, int npcol ){};
+  ~SuperLUGrid(){};
 
-    SuperLUGrid(const SuperLUGrid & g){};
-    SuperLUGrid & operator = (const SuperLUGrid & g){};
-  };
-
-
-  template< > class SuperLUGrid<Real>{
-    /// @brief SuperLUMatrix can have access to the grid information.
-    public:
-    RealGridData*        ptrData;
-    public:
-    SuperLUGrid( MPI_Comm comm, int nprow, int npcol );
-    ~SuperLUGrid();
-
-    SuperLUGrid(const SuperLUGrid & g);
-    SuperLUGrid & operator = (const SuperLUGrid & g);
-  };
+  SuperLUGrid(const SuperLUGrid & g){};
+  SuperLUGrid & operator = (const SuperLUGrid & g){};
+};
 
 
-  template< > class SuperLUGrid<Complex>{
-    /// @brief SuperLUMatrix can have access to the grid information.
-    public:
-    ComplexGridData*        ptrData;
-    public:
-    SuperLUGrid( MPI_Comm comm, int nprow, int npcol );
-    ~SuperLUGrid();
+template< > class SuperLUGrid<Real>{
+  /// @brief SuperLUMatrix can have access to the grid information.
+public:
+  RealGridData*        ptrData;
+public:
+  SuperLUGrid( MPI_Comm comm, int nprow, int npcol );
+  ~SuperLUGrid();
+
+  SuperLUGrid(const SuperLUGrid & g);
+  SuperLUGrid & operator = (const SuperLUGrid & g);
+};
 
 
-    SuperLUGrid(const SuperLUGrid & g);
-    SuperLUGrid & operator = (const SuperLUGrid & g);
-  };
+template< > class SuperLUGrid<Complex>{
+  /// @brief SuperLUMatrix can have access to the grid information.
+public:
+  ComplexGridData*        ptrData;
+public:
+  SuperLUGrid( MPI_Comm comm, int nprow, int npcol );
+  ~SuperLUGrid();
+
+
+  SuperLUGrid(const SuperLUGrid & g);
+  SuperLUGrid & operator = (const SuperLUGrid & g);
+};
 
 }
 

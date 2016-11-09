@@ -149,11 +149,11 @@ int main(int argc, char **argv)
     //        nprow= atoi(options["-r"].c_str());
     //        npcol= atoi(options["-c"].c_str());
     //        if(nprow*npcol > mpisize){
-    //          throw std::runtime_error("The number of used processors cannot be higher than the total number of available processors." );
+    //          ErrorHandling("The number of used processors cannot be higher than the total number of available processors." );
     //        } 
     //      }
     //      else{
-    //        throw std::runtime_error( "When using -r option, -c also needs to be provided." );
+    //        ErrorHandling( "When using -r option, -c also needs to be provided." );
     //      }
     //    }
     //    else if( options.find("-c") != options.end() ){
@@ -161,11 +161,11 @@ int main(int argc, char **argv)
     //        nprow= atoi(options["-r"].c_str());
     //        npcol= atoi(options["-c"].c_str());
     //        if(nprow*npcol > mpisize){
-    //          throw std::runtime_error("The number of used processors cannot be higher than the total number of available processors." );
+    //          ErrorHandling("The number of used processors cannot be higher than the total number of available processors." );
     //        } 
     //      }
     //      else{
-    //        throw std::runtime_error( "When using -c option, -r also needs to be provided." );
+    //        ErrorHandling( "When using -c option, -r also needs to be provided." );
     //      }
     //    }
 
@@ -185,7 +185,7 @@ int main(int argc, char **argv)
       statusOFS.open( ss.str().c_str() );
 
       //if( mpisize != nprow * npcol || nprow != npcol ){
-      //  throw std::runtime_error( "nprow == npcol is assumed in this test routine." );
+      //  ErrorHandling( "nprow == npcol is assumed in this test routine." );
       //}
 
       if( mpirank == 0 )
@@ -235,7 +235,7 @@ int main(int argc, char **argv)
         Hfile = options["-H"];
       }
       else{
-        throw std::logic_error("Hfile must be provided.");
+        ErrorHandling("Hfile must be provided.");
       }
 
       if( options.find("-S") != options.end() ){ 
@@ -991,9 +991,6 @@ int main(int argc, char **argv)
   {
     std::cerr << "Processor " << mpirank << " caught exception with message: "
       << e.what() << std::endl;
-#ifndef _RELEASE_
-    DumpCallStack();
-#endif
   }
 
   MPI_Finalize();
