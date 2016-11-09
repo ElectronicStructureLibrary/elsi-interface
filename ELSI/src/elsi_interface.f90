@@ -103,7 +103,7 @@ module ELSI
    !< From ELSI_DIMENSIONS
    public :: AUTO, ELPA, LIBOMM, PEXSI, CHESS
    public :: REAL_VALUES, COMPLEX_VALUES
-   public :: BLOCK_CYCLIC
+   public :: DENSE, CCS, CSC, CRS, CSR
    public :: GAUSSIAN, FERMI
 
    ! Public routines
@@ -154,7 +154,7 @@ contains
      implicit none
 
      integer, intent(in) :: solver         !< AUTO,ELPA,LIBOMM,PEXSI,CHESS,...
-     integer, intent(in) :: matrix_format  !< BLOCK_CYCLIC,...
+     integer, intent(in) :: matrix_format  !< DENSE,CCS,CSC,CRS,CSR,...
      integer, intent(in) :: matrix_size    !< Global dimension of matrix
      real*8, intent(in)  :: n_electrons_in !< Number of electrons
      integer, intent(in) :: n_states_in    !< Number of states
@@ -209,7 +209,7 @@ contains
 
      implicit none
 
-     integer, intent(in) :: i_storage !< BLOCK_CYCLIC,...
+     integer, intent(in) :: i_storage !< DENSE,CCS,CSC,CRS,CSR,...
 
      storage = i_storage
 

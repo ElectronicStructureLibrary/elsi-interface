@@ -40,7 +40,7 @@ module ELSI_DIMENSIONS
    !> Real or complex data (REAL_VALUES=0,COMPLEX_VALUES=1)
    integer :: mode = -1
 
-   !> Matrix storage format (BLOCK_CYCLIC=0)
+   !> Matrix storage format (DENSE=0,CCS=1,CSC=2,CRS=3,CSR=4)
    integer :: storage = -1
 
    !> Global matrix size
@@ -163,7 +163,7 @@ module ELSI_DIMENSIONS
 
    !> Storage formats
    enum, bind( C )
-      enumerator :: BLOCK_CYCLIC
+      enumerator :: DENSE, CCS, CSC, CRS, CSR
    end enum
 
    !> Broadening type (used if ELPA is chosen to compute density matrix)
