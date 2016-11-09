@@ -22,5 +22,5 @@ OPENMP = no
 
 METIS_LIB       = -L/home/vwzyu/parmetis-4.0.3/lib -lmetis
 PARMETIS_LIB    = -L/home/vwzyu/parmetis-4.0.3/lib -lparmetis
-SUPERLU_LIB     = -L/home/vwzyu/SuperLU_DIST_4.3/lib -lsuperlu_dist_4.3
-SUPERLU_INCLUDE = -I/home/vwzyu/SuperLU_DIST_4.3/SRC
+SUPERLU_LIB     = -L/home/vwzyu/SuperLU_DIST_5.1.2/lib -lsuperlu_dist_5.1.2
+SUPERLU_INCLUDE = -I/home/vwzyu/SuperLU_DIST_5.1.2/SRC

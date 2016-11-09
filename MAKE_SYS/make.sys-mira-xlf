@@ -40,5 +40,5 @@ OPENMP = no
 
 METIS_LIB       = -L/gpfs/mira-home/wzvyu/parmetis-4.0.3/build/Linux-ppc64/libmetis -lmetis
 PARMETIS_LIB    = -L/gpfs/mira-home/wzvyu/parmetis-4.0.3/build/Linux-ppc64/libparmetis -lparmetis
-SUPERLU_LIB     = -L/gpfs/mira-home/wzvyu/SuperLU_DIST_4.3/lib -lsuperlu
-SUPERLU_INCLUDE = -I/gpfs/mira-home/wzvyu/SuperLU_DIST_4.3/SRC
+SUPERLU_LIB     = -L/gpfs/mira-home/wzvyu/SuperLU_DIST_5.1.2/lib -lsuperlu
+SUPERLU_INCLUDE = -I/gpfs/mira-home/wzvyu/SuperLU_DIST_5.1.2/SRC

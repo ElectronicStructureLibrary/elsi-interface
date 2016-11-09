@@ -21,8 +21,8 @@ SCALAPACK_FCFLAGS = -I/opt/intel/mkl/include/intel64/lp64
 
 METIS_LIB       = -L/home/wy29/yu/parmetis-4.0.3/build/Linux-x86_64/libmetis -lmetis
 PARMETIS_LIB    = -L/home/wy29/yu/parmetis-4.0.3/build/Linux-x86_64/libparmetis -lparmetis
-SUPERLU_LIB     = -L/home/wy29/yu/SuperLU_DIST_4.3/lib -lsuperlu
-SUPERLU_INCLUDE = -I/home/wy29/yu/SuperLU_DIST_4.3/SRC
+SUPERLU_LIB     = -L/home/wy29/yu/SuperLU_DIST_5.1.2/lib -lsuperlu_dist_5.1.2
+SUPERLU_INCLUDE = -I/home/wy29/yu/SuperLU_DIST_5.1.2/SRC
 
 # ====== ELPA ======
 

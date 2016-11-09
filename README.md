@@ -14,7 +14,7 @@ ELSI focuses particularly on methods that solve or circumvent eigenvalue problem
   * MPI
   * Linear algebra libraries (MKL, ESSL, NetLib, ...)
   * ParMetis 4.0.3
-  * SuperLU_DIST 4.3
+  * SuperLU_DIST 5.1.2
 
 **INSTALLATION**
 
