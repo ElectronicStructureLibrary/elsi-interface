@@ -73,4 +73,5 @@ cleanall:
               f_driver_pselinv_complex \
               f_driver_pselinv_complex_unsym \
               f_driver_pselinv_real \
-              f_driver_pselinv_real_unsym
+              f_driver_pselinv_real_unsym \
+              ${PEXSI_DIR}/include/f_ppexsi_interface.mod
