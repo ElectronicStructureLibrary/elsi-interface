@@ -12,55 +12,55 @@ DEPS = ${SRCS_CPP:.cpp=.d} ${SRCS_C:.c=.d}
 EXES = ${SRCS_CPP:.cpp=} ${SRCS_C:.c=}
 
 %.o: %.c
-	${CC} -c ${CFLAGS} ${CCDEFS} $< 
+	${MPICC} -c ${CFLAGS_P} ${CCDEFS} $< 
 %.o: %.cpp
-	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 
+	${MPICXX} -c ${CXXFLAGS_P} ${CPPDEFS} $< 
 %.o: %.f
-	${FC} -c ${FFLAGS} $<
+	${MPIFC} -c ${FFLAGS_P} $<
 %.o: %.F
-	${FC} -c ${FFLAGS} $<
+	${MPIFC} -c ${FFLAGS_P} $<
 
 all: f_driver_ksdft f_driver_pselinv_real f_driver_pselinv_complex \
  	f_driver_pselinv_real_unsym f_driver_pselinv_complex_unsym
 
 f_driver_ksdft: f_interface.o f_driver_ksdft.o ${PEXSI_LIB}
-	($(FC) -o $@_${SUFFIX} f_driver_ksdft.o  $(FLOADOPTS) )
+	($(MPIFC) -o $@ f_driver_ksdft.o  $(FLOADOPTS) )
 
 f_driver_ksdft.o: f_driver_ksdft.f90
-	  ${FC} -c ${FFLAGS} $<
+	  ${MPIFC} -c ${FFLAGS_P} $<
 
 f_driver_pselinv_real: f_interface.o f_driver_pselinv_real.o ${PEXSI_LIB}
-	($(FC) -o $@_${SUFFIX} f_driver_pselinv_real.o  $(FLOADOPTS) )
+	($(MPIFC) -o $@ f_driver_pselinv_real.o  $(FLOADOPTS) )
 
 f_driver_pselinv_real.o: f_driver_pselinv_real.f90
-	  ${FC} -c ${FFLAGS} $<
+	  ${MPIFC} -c ${FFLAGS_P} $<
 
 f_driver_pselinv_complex: f_interface.o f_driver_pselinv_complex.o ${PEXSI_LIB}
-	($(FC) -o $@_${SUFFIX} f_driver_pselinv_complex.o  $(FLOADOPTS) )
+	($(MPIFC) -o $@ f_driver_pselinv_complex.o  $(FLOADOPTS) )
 
 f_driver_pselinv_complex.o: f_driver_pselinv_complex.f90
-	  ${FC} -c ${FFLAGS} $<
+	  ${MPIFC} -c ${FFLAGS_P} $<
 
 f_driver_pselinv_real_unsym: f_interface.o f_driver_pselinv_real_unsym.o ${PEXSI_LIB}
-	($(FC) -o $@_${SUFFIX} f_driver_pselinv_real_unsym.o  $(FLOADOPTS) )
+	($(MPIFC) -o $@ f_driver_pselinv_real_unsym.o  $(FLOADOPTS) )
 
 f_driver_pselinv_real_unsym.o: f_driver_pselinv_real_unsym.f90
-	  ${FC} -c ${FFLAGS} $<
+	  ${MPIFC} -c ${FFLAGS_P} $<
 
 f_driver_pselinv_complex_unsym: f_interface.o f_driver_pselinv_complex_unsym.o ${PEXSI_LIB}
-	($(FC) -o $@_${SUFFIX} f_driver_pselinv_complex_unsym.o  $(FLOADOPTS) )
+	($(MPIFC) -o $@ f_driver_pselinv_complex_unsym.o  $(FLOADOPTS) )
 
 f_driver_pselinv_complex_unsym.o: f_driver_pselinv_complex_unsym.f90
-	  ${FC} -c ${FFLAGS} $<
+	  ${MPIFC} -c ${FFLAGS_P} $<
 
 f_interface.o: f_interface.f90
-	  ${FC} -c ${FFLAGS} $<
+	  ${MPIFC} -c ${FFLAGS_P} $<
 
 f_ppexsi_old: f_ppexsi_old.o ${PEXSI_LIB}
-	  ($(FC) -o $@_${SUFFIX} f_ppexsi_old.o  $(FLOADOPTS) )
+	  ($(MPIFC) -o $@ f_ppexsi_old.o  $(FLOADOPTS) )
 
 f_ppexsi_old.o: f_ppexsi_old.f90
-	  ${FC} -c ${FFLAGS} $<
+	  ${MPIFC} -c ${FFLAGS_P} $<
 
 -include ${DEPS}
 

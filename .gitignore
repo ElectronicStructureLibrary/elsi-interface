@@ -5,8 +5,8 @@ make.sys
 ELSI/bin
 ELSI/doc/html
 ELSI/doc/latex
-EXTERNAL/PEXSI/fortran/f_driver_ksdft_
-EXTERNAL/PEXSI/fortran/f_driver_pselinv_complex_
-EXTERNAL/PEXSI/fortran/f_driver_pselinv_complex_unsym_
-EXTERNAL/PEXSI/fortran/f_driver_pselinv_real_
-EXTERNAL/PEXSI/fortran/f_driver_pselinv_real_unsym_
+EXTERNAL/PEXSI/fortran/f_driver_ksdft
+EXTERNAL/PEXSI/fortran/f_driver_pselinv_complex
+EXTERNAL/PEXSI/fortran/f_driver_pselinv_complex_unsym
+EXTERNAL/PEXSI/fortran/f_driver_pselinv_real
+EXTERNAL/PEXSI/fortran/f_driver_pselinv_real_unsym
