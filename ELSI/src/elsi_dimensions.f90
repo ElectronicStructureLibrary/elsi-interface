@@ -111,8 +111,6 @@ module ELSI_DIMENSIONS
 
    !> OMM
    logical :: omm_customized = .false. !< Has elsi_customize_omm been called?
-   logical :: small_omm_tol = .false. !< Is user-specified OMM tolerance smaller than default?
-   real*8  :: final_omm_tol = 1d-9 !< Default final OMM tolerance
    integer :: n_elpa_steps !< Use ELPA eigenvectors as initial guess for OMM
    logical :: new_overlap !< Is a new overlap matrix provided?
    logical :: C_matrix_initialized !< Is coefficient matrix initialized?

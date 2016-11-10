@@ -2,6 +2,7 @@ make.sys
 *.[oaxd]
 *.mod
 *.tmp
+*.swp
 ELSI/bin
 ELSI/doc/html
 ELSI/doc/latex

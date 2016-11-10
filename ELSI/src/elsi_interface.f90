@@ -1314,19 +1314,11 @@ contains
      implicit none
      include "mpif.h"
 
-     real*8, save :: this_omm_tol = 1d-9
      logical, save :: first_call = .true.
      logical :: success
      character*40, parameter :: caller = "elsi_solve_evp_omm"
 
      call elsi_start_solve_evp_time()
-
-     if(small_omm_tol) then
-        min_tol = this_omm_tol
-        if(myid == 0) &
-           write(*,"(A,E10.1)") "  | Current tolerance of minimization: ", &
-                 this_omm_tol
-     endif
 
      if(n_elsi_calls == 1) then
         C_matrix_initialized = .false.
@@ -1379,14 +1371,6 @@ contains
                     omm_verbose, do_dealloc, "pddbc", "lap", myid)
      end select
 
-     if(small_omm_tol) then
-        if(1d-1*this_omm_tol > final_omm_tol) then
-           this_omm_tol = 1d-1*this_omm_tol
-        else
-           this_omm_tol = final_omm_tol
-        endif
-     endif
-
      first_call = .false.
 
      call MPI_BARRIER(mpi_comm_global, mpierr)
@@ -1421,13 +1405,7 @@ contains
         ! Eigenspectrum shift parameter
         if(present(eta_in)) eta = eta_in
         ! Tolerance for minimization
-        if(present(min_tol_in)) then
-           min_tol = min_tol_in
-           if(min_tol_in < 1d-9) then
-              small_omm_tol = .true.
-              final_omm_tol = min_tol_in
-           endif
-        endif
+        if(present(min_tol_in)) min_tol = min_tol_in
 
         omm_customized = .true.
         call elsi_print_omm_options()
