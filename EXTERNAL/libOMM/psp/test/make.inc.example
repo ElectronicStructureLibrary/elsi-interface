@@ -1,3 +1,0 @@
-BLASLIB = -lblas
-LAPLIB  = -llapack
-SLAPLIB = -lscalapack
