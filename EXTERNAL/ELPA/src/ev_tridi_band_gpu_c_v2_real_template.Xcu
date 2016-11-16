@@ -52,7 +52,10 @@
 #include <stdio.h>
 #include <cuda_runtime.h>
 #include <stdlib.h>
+
+#ifndef ELSI_INSTALLER
 #include "config-f90.h"
+#endif
 
 #if 0
 static __device__ __forceinline__ cuDoubleComplex  shfl_xor_complex(cuDoubleComplex r, int mask)

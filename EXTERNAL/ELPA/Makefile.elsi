@@ -8,6 +8,11 @@ FFLAGS_E += $(SCALAPACK_FCFLAGS)
 FPP += $(XLFPP)-DELSI_INSTALLER $(XLFPP)-DWITH_MPI $(XLFPP)-DWITH_ONE_SPECIFIC_REAL_KERNEL $(XLFPP)-DWITH_ONE_SPECIFIC_COMPLEX_KERNEL
 
 TEST_PROGRAMS = test_real.x test_complex.x test_real2.x test_complex2.x
+
+ifeq ($(strip $(ARCHITECTURE)),GPU)
+  TEST_PROGRAMS = test_real.x test_complex.x test_real2_gpu.x test_complex2_gpu.x
+  FPP += $(XLFPP)-DWITH_GPU_VERSION
+endif
 ifeq ($(strip $(ARCHITECTURE)),Generic)
   ELPA2_KERNELS_O ?= elpa2_kernels_real.o elpa2_kernels_complex.o
   FPP += $(XLFPP)-DWITH_REAL_GENERIC_KERNEL $(XLFPP)-DWITH_COMPLEX_GENERIC_KERNEL
@@ -68,11 +73,13 @@ ifeq ($(strip $(ARCHITECTURE)),AVX2)
     FPP += $(XLFPP)-DWITH_COMPLEX_AVX2_BLOCK2_KERNEL
   endif
 endif
-ifeq ($(strip $(ELPA2_KERNELS_O)),)
-  $(info Please check your choice for ARCHITECTURE: $(strip $(ARCHITECTURE)).)
-  $(info Often, generic kernels and mpi-only may be a good first step,)
-  $(info but considering your specific computer platform may make a big difference.)
-  $(error Invalid choice for ARCHITECTURE.)
+ifneq ($(strip $(ARCHITECTURE)),GPU)
+  ifeq ($(strip $(ELPA2_KERNELS_O)),)
+    $(info Please check your choice for ARCHITECTURE.)
+    $(info Often, generic kernels and mpi-only may be a good first step,)
+    $(info but considering your specific computer platform may make a big difference.)
+    $(error Invalid choice for ARCHITECTURE.)
+  endif
 endif
 
 ifeq ($(strip $(OPENMP)),yes)
@@ -104,6 +111,12 @@ test_real2.x: test_real2.o $(ELPA1_O) $(ELPA2_O) $(ELPA_QR_O) $(TEST_SHARED_O) i
 
 test_complex2.x: test_complex2.o $(ELPA1_O) $(ELPA2_O) $(ELPA_QR_O) $(TEST_SHARED_O) interface_c_kernel.o interface_cuda.o mod_cuda.o check_for_gpu.o mod_pack_unpack_real_gpu.o
 	$(MPIFC) $(FFLAGS_E) -o $@ $^ $(SCALAPACK_LDFLAGS)
+
+test_real2_gpu.x: test_real2.o $(ELPA1_O) $(ELPA2_O) $(ELPA_QR_O) $(TEST_SHARED_O) interface_c_kernel.o interface_cuda.o mod_cuda.o check_for_gpu.o mod_pack_unpack_real_gpu.o cudaFunctions.o cuUtils.o ev_tridi_band_gpu_c_v2.o
+	$(MPIFC) $(FFLAGS_E) -o $@ $^ $(SCALAPACK_LDFLAGS) $(CUDA)
+
+test_complex2_gpu.x: test_complex2.o $(ELPA1_O) $(ELPA2_O) $(ELPA_QR_O) $(TEST_SHARED_O) interface_c_kernel.o interface_cuda.o mod_cuda.o check_for_gpu.o mod_pack_unpack_real_gpu.o cudaFunctions.o cuUtils.o ev_tridi_band_gpu_c_v2.o
+	$(MPIFC) $(FFLAGS_E) -o $@ $^ $(SCALAPACK_LDFLAGS) $(CUDA)
 
 test_real.o: ./test/Fortran/test_real.F90 elpa1.o $(TEST_SHARED_O)
 	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
@@ -263,6 +276,15 @@ elpa_qrkernels.o: ./src/elpa_qr/elpa_qrkernels.F90 mod_precision.o
 
 elpa_c_interface.o: ./src/elpa_c_interface.F90 elpa2.o elpa1.o elpa1_auxiliary.o
 	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
+
+cudaFunctions.o: ./src/cudaFunctions.cu
+	$(NVCC) $(NVCCFLAGS) $(FPP) -c $< $(CUDA)
+
+cuUtils.o: ./src/cuUtils.cu
+	$(NVCC) $(NVCCFLAGS) $(FPP) -c $< $(CUDA)
+
+ev_tridi_band_gpu_c_v2.o: ./src/ev_tridi_band_gpu_c_v2.cu
+	$(NVCC) $(NVCCFLAGS) $(FPP) -c $< $(CUDA)
 
 clean:
 	rm -f *.o *.mod test_*.x

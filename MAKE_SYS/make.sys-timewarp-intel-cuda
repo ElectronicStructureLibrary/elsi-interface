@@ -26,5 +26,9 @@ SUPERLU_INCLUDE = -I/home/wy29/yu/SuperLU_DIST_5.1.2/SRC
 
 # ====== ELPA ======
 
-ARCHITECTURE = Generic
+ARCHITECTURE = GPU
+NVCC = nvcc
+NVCCFLAGS = -arch sm_35 -O3
+CUDA = -I/opt/cuda/7.0/include -L/opt/cuda/7.0/lib64 -lcudart -lcublas
+
 OPENMP = no

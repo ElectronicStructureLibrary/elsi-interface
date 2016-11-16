@@ -48,7 +48,9 @@
 // This file was originally written by NVIDIA
 // and re-written by A. Marek, MPCDF
 
+#ifndef ELSI_INSTALLER
 #include "config-f90.h"
+#endif
 
 // The real part
 #define DOUBLE_PRECISION_REAL 1

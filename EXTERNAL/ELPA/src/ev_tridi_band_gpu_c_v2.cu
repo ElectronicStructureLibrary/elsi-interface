@@ -53,7 +53,10 @@
 #include <cuda_runtime.h>
 #include <stdlib.h>
 #include <cuComplex.h>
+
+#ifndef ELSI_INSTALLER
 #include "config-f90.h"
+#endif
 
 //the complex part
 #define DOUBLE_PRECISION_COMPLEX 1

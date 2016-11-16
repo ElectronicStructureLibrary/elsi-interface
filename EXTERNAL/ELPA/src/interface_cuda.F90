@@ -506,7 +506,7 @@ contains
     logical                       :: success
 
 #ifdef WITH_GPU_VERSION
-    success = cuda_getdevicecount_c(int(n, kind=c_int)) /=0
+    success = cuda_getdevicecount_c(n) /=0
 #else
     success = .true.
     n     = 0

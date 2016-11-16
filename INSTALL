@@ -36,7 +36,7 @@ A) BASIC
       SUPERLU_INCLUDE   =
 
       ARCHITECTURE      =  # Use ELPA kernels written for specific architectures
-      OPENMP            =  # Enable OpenMP support to ELPA
+      OPENMP            =  # Enable OpenMP support in ELPA
 
 2) Make sure the "make.sys" file is correctly configured.
 
@@ -135,7 +135,7 @@ D) ADVANCE III
 ==========================================================================
 E) TROUBLE SHOOTING
 
-   For comments, feedback, ideas, ..., please email elsi-team@duke.edu
+   For comments, feedback, ideas, ... please email elsi-team@duke.edu
 
    http://www.elsi-interchange.org
 

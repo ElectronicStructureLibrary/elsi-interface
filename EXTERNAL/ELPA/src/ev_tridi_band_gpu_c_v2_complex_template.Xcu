@@ -53,7 +53,11 @@
 #include <cuda_runtime.h>
 #include <stdlib.h>
 #include <cuComplex.h>
+
+#ifndef ELSI_INSTALLER
 #include "config-f90.h"
+#endif
+
 // ===========================================================================================================
 // Important:   due to the use of warp shuffling, the C version of the backtransformation kernel only works on
 //              devices with compute capability 3.x; for older devices, please use the Fortran kernel version

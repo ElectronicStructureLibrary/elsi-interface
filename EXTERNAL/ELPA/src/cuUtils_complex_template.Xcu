@@ -52,7 +52,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <cuComplex.h>
+
+#ifndef ELSI_INSTALLER
 #include "config-f90.h"
+#endif
+
 // Reset a reduction block
 // Limitation: the thread-block size must be a divider of the reduction block's size
 #ifdef DOUBLE_PRECISION_COMPLEX
