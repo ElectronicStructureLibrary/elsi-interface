@@ -149,7 +149,7 @@ contains
 !! number of states, and method.
 !!
   subroutine elsi_init(solver, matrix_format, matrix_size, &
-                       n_electrons_in, n_states_in, is_overlap_unity_in)
+                       n_electrons_in, n_states_in, is_overlap_unit_in)
 
      implicit none
 
@@ -158,7 +158,7 @@ contains
      integer, intent(in) :: matrix_size    !< Global dimension of matrix
      real*8, intent(in)  :: n_electrons_in !< Number of electrons
      integer, intent(in) :: n_states_in    !< Number of states
-     logical, intent(in), optional :: is_overlap_unity_in !< Is overlap unity?
+     logical, intent(in), optional :: is_overlap_unit_in !< Is overlap unit?
 
      call elsi_set_method(solver)
      call elsi_set_storage(matrix_format)
@@ -173,8 +173,8 @@ contains
         n_states = n_states_in
      endif
 
-     if(present(is_overlap_unity_in)) then
-        overlap_is_unity = is_overlap_unity_in
+     if(present(is_overlap_unit_in)) then
+        overlap_is_unit = is_overlap_unit_in
      endif
 
      call elsi_init_timers()
@@ -1239,7 +1239,7 @@ contains
      endif
 
      ! Transform to standard form
-     if(.not. overlap_is_unity) then
+     if(.not. overlap_is_unit) then
         call elsi_statement_print("  Tansforming to standard evp")
         call elsi_to_standard_evp()
      endif
@@ -1277,7 +1277,7 @@ contains
      endif
 
      ! Back-transform eigenvectors
-     if(.not. overlap_is_unity) then
+     if(.not. overlap_is_unit) then
         call elsi_statement_print("  Transforming to original eigenvectors")
         call elsi_to_original_ev()
      endif
@@ -1890,7 +1890,7 @@ contains
      FD_pexsi = 0d0
 
      ! Load sparse matrices for PEXSI
-     if(overlap_is_unity) then
+     if(overlap_is_unit) then
         call f_ppexsi_load_real_hs_matrix(pexsi_plan, pexsi_options, n_g_size, &
                                           nnz_g, nnz_l_pexsi, n_l_cols_pexsi, &
                                           col_ptr_pexsi, row_ind_pexsi, H_real_pexsi, &
@@ -2278,8 +2278,8 @@ contains
            call elsi_get_energy(energy_out)
 
         case (LIBOMM)
-           if(overlap_is_unity) then
-              call elsi_stop(" Unity overlap in OMM not yet implemented."//&
+           if(overlap_is_unit) then
+              call elsi_stop(" Unit overlap in OMM not yet implemented."//&
                              " Exiting...", caller)
            endif
 
@@ -2452,8 +2452,8 @@ contains
            call elsi_get_energy(energy_out)
 
         case (LIBOMM)
-           if(overlap_is_unity) then
-              call elsi_stop(" Unity overlap in OMM not yet implemented."//&
+           if(overlap_is_unit) then
+              call elsi_stop(" Unit overlap in OMM not yet implemented."//&
                              " Exiting...", caller)
            endif
 

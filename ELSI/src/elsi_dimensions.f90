@@ -93,7 +93,7 @@ module ELSI_DIMENSIONS
    real*8, parameter :: zero_threshold = 1d-13 !< Threshold to define numerical zero
 
    !> Overlap
-   logical :: overlap_is_unity = .false. !< Is overlap matrix unity?
+   logical :: overlap_is_unit = .false. !< Is overlap matrix unit?
 
    !> Physics
    real*8  :: n_electrons !< Number of electrons in system
