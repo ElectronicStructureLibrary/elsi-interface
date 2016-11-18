@@ -149,7 +149,7 @@ contains
 !! number of states, and method.
 !!
   subroutine elsi_init(solver, matrix_format, matrix_size, &
-                       n_electrons_in, n_states_in)
+                       n_electrons_in, n_states_in, is_overlap_unity_in)
 
      implicit none
 
@@ -158,6 +158,7 @@ contains
      integer, intent(in) :: matrix_size    !< Global dimension of matrix
      real*8, intent(in)  :: n_electrons_in !< Number of electrons
      integer, intent(in) :: n_states_in    !< Number of states
+     logical, intent(in), optional :: is_overlap_unity_in !< Is overlap unity?
 
      call elsi_set_method(solver)
      call elsi_set_storage(matrix_format)
@@ -170,6 +171,10 @@ contains
         n_states = nint(n_electrons/2d0)
      else
         n_states = n_states_in
+     endif
+
+     if(present(is_overlap_unity_in)) then
+        overlap_is_unity = is_overlap_unity_in
      endif
 
      call elsi_init_timers()
@@ -288,17 +293,20 @@ contains
 
      select case (method)
         case (ELPA)
-           if(.not.allocated(eigenvalues)) &
+           if(.not.allocated(eigenvalues)) then
               call elsi_allocate(eigenvalues, n_g_size, "eigenvalues", caller)
+           endif
            eigenvalues = 0d0
            select case (mode)
               case (COMPLEX_VALUES)
-                 if(.not.allocated(C_complex)) &
+                 if(.not.allocated(C_complex)) then
                     call elsi_allocate(C_complex, n_l_rows, n_l_cols, "C_complex", caller)
+                 endif
                  C_complex = CMPLX(0d0, 0d0)
               case (REAL_VALUES)
-                 if(.not.allocated(C_real)) &
+                 if(.not.allocated(C_real)) then
                     call elsi_allocate(C_real, n_l_rows, n_l_cols, "C_real", caller)
+                 endif
                  C_real = 0d0
               case DEFAULT
                  call elsi_stop(" No mode has been chosen. "//&
@@ -309,15 +317,19 @@ contains
         case (LIBOMM)
            select case (mode)
               case (COMPLEX_VALUES)
-                 if(.not.D_omm%is_initialized) &
+                 if(.not.D_omm%is_initialized) then
                     call m_allocate(D_omm, n_g_size, n_g_size, "pddbc")
-                 if(.not.Coeff_omm%is_initialized) &
+                 endif
+                 if(.not.Coeff_omm%is_initialized) then
                     call m_allocate(Coeff_omm, n_states, n_g_size, "pddbc")
+                 endif
               case (REAL_VALUES)
-                 if(.not.D_omm%is_initialized) &
+                 if(.not.D_omm%is_initialized) then
                     call m_allocate(D_omm, n_g_size, n_g_size, "pddbc")
-                 if(.not.Coeff_omm%is_initialized) &
+                 endif
+                 if(.not.Coeff_omm%is_initialized) then
                     call m_allocate(Coeff_omm, n_states, n_g_size, "pddbc")
+                 endif
               case DEFAULT
                  call elsi_stop(" No mode has been chosen. "//&
                                 " Please choose REAL_VALUES or COMPLEX_VALUES. ",&
@@ -417,8 +429,6 @@ contains
                           " Exiting...", caller)
      end select
 
-     overlap_is_unity = .false.
-
   end subroutine ! elsi_set_real_overlap
 
 !>
@@ -446,8 +456,6 @@ contains
                           " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
                           " Exiting...", caller)
      end select
-
-     overlap_is_unity = .false.
 
   end subroutine ! elsi_set_complex_overlap
 
@@ -705,8 +713,9 @@ contains
         mu_upper = e_high
      endif
 
-     if(.not.allocated(occ_elpa)) &
+     if(.not.allocated(occ_elpa)) then
          call elsi_allocate(occ_elpa, n_states, "occ_elpa", caller)
+     endif
      occ_elpa = 0d0
 
      ! Compute the difference of number of electrons
@@ -719,9 +728,10 @@ contains
      n_steps = 0
      do while(diff_ne_lower*diff_ne_upper > 0)
         n_steps = n_steps+1
-        if(n_steps > max_steps) &
+        if(n_steps > max_steps) then
            call elsi_stop(" Chemical potential not found in 100 iterations! "//&
                           " Exiting...", caller)
+        endif
 
         mu_lower = mu_lower-0.5d0*abs(e_high-e_low)
         mu_upper = mu_upper+0.5d0*abs(e_high-e_low)
@@ -827,9 +837,10 @@ contains
            mu_mid = 0.5d0*(mu_left+mu_right)
 
            n_steps = n_steps+1
-           if(n_steps > max_steps) &
+           if(n_steps > max_steps) then
               call elsi_stop(" Chemical potential not found in 100 iterations! "//&
                              " Exiting...", caller)
+           endif
 
            call elsi_get_ne(mu_mid, diff_mid)
 
@@ -877,8 +888,9 @@ contains
 
      select case (method)
         case (ELPA)
-           if(.not.allocated(D_elpa)) &
+           if(.not.allocated(D_elpa)) then
               call elsi_allocate(D_elpa, n_l_rows, n_l_cols, "D_elpa", caller)
+           endif
            D_elpa = 0d0
 
            ! Map global columns to local
@@ -922,7 +934,7 @@ contains
                  ! Compute density matrix
                  D_out = 0d0
 
-                 ! D_out = tmp_real*tmp_real'    A' here means the tranpose of A
+                 ! D_out = tmp_real*tmp_real^T
                  call pdsyrk('U', 'N', n_g_size, n_states, 1.d0, &
                              tmp_real, 1, 1, sc_desc, 0.d0, D_out, 1, 1, sc_desc)
 
@@ -1862,16 +1874,19 @@ contains
                  this_pexsi_tol
      endif
 
-     if(.not.allocated(D_pexsi)) &
+     if(.not.allocated(D_pexsi)) then
         call elsi_allocate(D_pexsi, nnz_l_pexsi, "D_pexsi", caller)
+     endif
      D_pexsi = 0d0
 
-     if(.not.allocated(ED_pexsi)) & 
+     if(.not.allocated(ED_pexsi)) then
         call elsi_allocate(ED_pexsi, nnz_l_pexsi, "ED_pexsi", caller)
+     endif
      ED_pexsi = 0d0
 
-     if(.not.allocated(FD_pexsi)) &
+     if(.not.allocated(FD_pexsi)) then
         call elsi_allocate(FD_pexsi, nnz_l_pexsi, "FD_pexsi", caller)
+     endif
      FD_pexsi = 0d0
 
      ! Load sparse matrices for PEXSI
@@ -1921,8 +1936,9 @@ contains
      call f_ppexsi_retrieve_real_dft_matrix(pexsi_plan, D_pexsi, ED_pexsi, FD_pexsi, &
                                             e_tot_H, e_tot_S, f_tot, pexsi_info)
 
-     if(pexsi_info /= 0) &
+     if(pexsi_info /= 0) then
         call elsi_stop(" PEXSI not able to retrieve solution. Exiting...", caller)
+     endif
 
      call MPI_BARRIER(mpi_comm_global, mpierr)
      call elsi_stop_solve_evp_time()
@@ -2262,6 +2278,11 @@ contains
            call elsi_get_energy(energy_out)
 
         case (LIBOMM)
+           if(overlap_is_unity) then
+              call elsi_stop(" Unity overlap in OMM not yet implemented."//&
+                             " Exiting...", caller)
+           endif
+
            if(mod(nint(n_electrons),2) /= 0) then
               call elsi_stop(" The current implementation of OMM does not"//&
                              " work with fractional occupation numbers. This"//&
@@ -2431,6 +2452,11 @@ contains
            call elsi_get_energy(energy_out)
 
         case (LIBOMM)
+           if(overlap_is_unity) then
+              call elsi_stop(" Unity overlap in OMM not yet implemented."//&
+                             " Exiting...", caller)
+           endif
+
            if(mod(nint(n_electrons),2) /= 0) then
               call elsi_stop(" The current implementation of OMM does not"//&
                              " work with fractional occupation numbers. This"//&
