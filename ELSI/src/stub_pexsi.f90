@@ -34,9 +34,9 @@ module f_ppexsi_interface
 
    public :: f_ppexsi_set_default_options
    public :: f_ppexsi_plan_initialize
-   public :: f_ppexsi_load_real_symmetric_hs_matrix
+   public :: f_ppexsi_load_real_hs_matrix
    public :: f_ppexsi_dft_driver
-   public :: f_ppexsi_retrieve_real_symmetric_dft_matrix
+   public :: f_ppexsi_retrieve_real_dft_matrix
    public :: f_ppexsi_plan_finalize
 
    type, bind(C) :: f_ppexsi_options
@@ -89,7 +89,7 @@ function f_ppexsi_plan_initialize(fcomm,numProcRow,numProcCol,outputFileIndex,in
 
 end function
 
-subroutine f_ppexsi_load_real_symmetric_hs_matrix(plan,options,nrows,nnz,nnzLocal,&
+subroutine f_ppexsi_load_real_hs_matrix(plan,options,nrows,nnz,nnzLocal,&
               numColLocal,colptrLocal,rowindLocal,HnzvalLocal,isSIdentity,&
               SnzvalLocal,info)
 
@@ -128,7 +128,7 @@ subroutine f_ppexsi_dft_driver(plan,options,numElectronExact,muPEXSI,&
 
 end subroutine
 
-subroutine f_ppexsi_retrieve_real_symmetric_dft_matrix(plan,DMnzvalLocal,&
+subroutine f_ppexsi_retrieve_real_dft_matrix(plan,DMnzvalLocal,&
               EDMnzvalLocal,FDMnzvalLocal,totalEnergyH,totalEnergyS,&
               totalFreeEnergy,info)
 
