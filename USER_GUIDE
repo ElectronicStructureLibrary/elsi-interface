@@ -32,7 +32,8 @@ A) QUICK PROGRAMMING GUIDE
    solver:           [integer] [in]  Available choices are ELPA (1), LIBOMM (2),
                                      and PEXSI (3).
 
-   storage:          [integer] [in]  BLOCK_CYCLIC (0) is supported. More is coming.
+   storage:          [integer] [in]  Only DENSE (0) is supported. More formats will
+                                     be supported in the future.
 
    size:             [integer] [in]  Global size of the Hamiltonian matrix.
 
@@ -42,6 +43,8 @@ A) QUICK PROGRAMMING GUIDE
                                      than the number of occupied states. For libOMM,
                                      this must be exactly the number of OCCUPIED 
                                      states. PEXSI does not use n_states.
+
+   overlap_unity:    [logical] [in]  OPTIONAL. Is overlap matrix unity?
 
 ===============================================
 2) Set up MPI and BLACS infrastructure for ELSI
