@@ -101,10 +101,10 @@ module ELSI
    integer, allocatable :: col_ptr_pexsi(:)
 
    !< From ELSI_DIMENSIONS
-   public :: AUTO, ELPA, LIBOMM, PEXSI, CHESS
-   public :: REAL_VALUES, COMPLEX_VALUES
-   public :: DENSE, CCS, CSC, CRS, CSR
-   public :: GAUSSIAN, FERMI
+   public :: AUTO, ELPA, LIBOMM, PEXSI, CHESS   !< Solvers
+   public :: REAL_VALUES, COMPLEX_VALUES        !< Real or complex
+   public :: DENSE, CCS, CSC, CRS, CSR          !< Storage formats
+   public :: GAUSSIAN, FERMI, METHFESSEL_PAXTON !< Broadening schemes
 
    ! Public routines
    public :: elsi_init            !< Initialize
@@ -112,6 +112,7 @@ module ELSI
    public :: elsi_set_storage     !< Select matrix storage format
    public :: elsi_set_mpi         !< Set MPI from calling code
    public :: elsi_set_blacs       !< Set BLACS from calling code
+   public :: elsi_customize       !< Override ELSI default
    public :: elsi_customize_elpa  !< Override ELPA default
    public :: elsi_customize_omm   !< Override OMM default
    public :: elsi_customize_pexsi !< Override PEXSI default
@@ -148,17 +149,16 @@ contains
 !! This routine initializes ELSI with global matrix size, 
 !! number of states, and method.
 !!
-  subroutine elsi_init(solver, matrix_format, matrix_size, &
-                       n_electrons_in, n_states_in, is_overlap_unit_in)
+  subroutine elsi_init(solver,matrix_format,matrix_size,&
+                       n_electrons_in,n_states_in)
 
      implicit none
 
      integer, intent(in) :: solver         !< AUTO,ELPA,LIBOMM,PEXSI,CHESS,...
      integer, intent(in) :: matrix_format  !< DENSE,CCS,CSC,CRS,CSR,...
      integer, intent(in) :: matrix_size    !< Global dimension of matrix
-     real*8, intent(in)  :: n_electrons_in !< Number of electrons
+     real*8,  intent(in) :: n_electrons_in !< Number of electrons
      integer, intent(in) :: n_states_in    !< Number of states
-     logical, intent(in), optional :: is_overlap_unit_in !< Is overlap unit?
 
      call elsi_set_method(solver)
      call elsi_set_storage(matrix_format)
@@ -171,10 +171,6 @@ contains
         n_states = nint(n_electrons/2d0)
      else
         n_states = n_states_in
-     endif
-
-     if(present(is_overlap_unit_in)) then
-        overlap_is_unit = is_overlap_unit_in
      endif
 
      call elsi_init_timers()
@@ -221,9 +217,33 @@ contains
   end subroutine ! elsi_set_storage
 
 !>
+!! This routine overrides ELSI default settings.
+!!
+  subroutine elsi_customize(overlap_is_unit_in,hartree_in,&
+                            zero_threshold_in,mu_accuracy_in)
+
+     implicit none
+
+     logical, intent(in), optional :: overlap_is_unit_in
+     real*8,  intent(in), optional :: hartree_in
+     real*8,  intent(in), optional :: zero_threshold_in
+     real*8,  intent(in), optional :: mu_accuracy_in
+
+     ! Is the overlap matrix unit? [Default: .false.]
+     if(present(overlap_is_unit_in)) overlap_is_unit = overlap_is_unit_in
+     ! User-defined value for Hartree [Default: 27.211386, Codata 2015]
+     if(present(hartree_in)) hartree = hartree_in
+     ! Threshold to define numerical zero [Default: 1d-13]
+     if(present(zero_threshold_in)) zero_threshold = zero_threshold_in
+     ! Accuracy for chemical potential determination [Default: 1d-10]
+     if(present(mu_accuracy_in)) occ_tolerance = mu_accuracy_in
+
+  end subroutine ! elsi_customize
+
+!>
 !! Set MPI.
 !!
-  subroutine elsi_set_mpi(mpi_comm_global_in, n_procs_in, myid_in)
+  subroutine elsi_set_mpi(mpi_comm_global_in,n_procs_in,myid_in)
 
      implicit none
      include 'mpif.h'
@@ -242,8 +262,8 @@ contains
 !>
 !! Set BLACS.
 !!
-  subroutine elsi_set_blacs(blacs_ctxt_in, n_b_rows_in, n_b_cols_in, n_p_rows_in, &
-                            n_p_cols_in, mpi_comm_row_in, mpi_comm_col_in)
+  subroutine elsi_set_blacs(blacs_ctxt_in,n_b_rows_in,n_b_cols_in,n_p_rows_in,&
+                            n_p_cols_in,mpi_comm_row_in,mpi_comm_col_in)
 
      implicit none
      include "mpif.h"
@@ -751,7 +771,7 @@ contains
 !! and returns the difference in number of electrons. The occupation numbers will
 !! be updated as well.
 !!
-  subroutine elsi_get_ne(mu_in, diff_ne_out)
+  subroutine elsi_get_ne(mu_in,diff_ne_out)
 
      implicit none
 
@@ -797,7 +817,7 @@ contains
 !>
 !! This routine computes the chemical potential using bisection algorithm.
 !!
-  subroutine elsi_get_mu(mu_lower_in, mu_upper_in, mu_out)
+  subroutine elsi_get_mu(mu_lower_in,mu_upper_in,mu_out)
 
      implicit none
 
@@ -1393,8 +1413,8 @@ contains
 !>
 !! This routine overrides libOMM default settings.
 !!
-  subroutine elsi_customize_omm(n_elpa_steps_in, scale_kinetic_in, calc_ed_in, &
-                                eta_in, min_tol_in)
+  subroutine elsi_customize_omm(n_elpa_steps_in,scale_kinetic_in,calc_ed_in,&
+                                eta_in,min_tol_in)
 
      implicit none
 
@@ -1504,7 +1524,7 @@ contains
 !! 2D block-cyclic distributed dense format to 1D block distributed
 !! sparse CCS format, which can be used as input by PEXSI.
 !!
-  subroutine elsi_2dbcd_to_1dbccs_hs_pexsi(H_in, S_in)
+  subroutine elsi_2dbcd_to_1dbccs_hs_pexsi(H_in,S_in)
 
      implicit none
      include 'mpif.h'
@@ -1948,14 +1968,14 @@ contains
 !>
 !! This routine overrides PEXSI default settings.
 !!
-  subroutine elsi_customize_pexsi(temperature_in, gap_in, delta_E_in, n_poles_in, &
-                                  n_inertia_steps_in, max_iteration_in, mu_min_in, &
-                                  mu_max_in, mu0_in, mu_inertia_tolerance_in, &
-                                  mu_inertia_expansion_in, mu_safeguard_in, &
-                                  n_electron_tolerance_in, matrix_type_in, &
-                                  is_symbolic_factorize_in, ordering_in, &
-                                  row_ordering_in, np_symbolic_factorize_in, &
-                                  symmetric_in, transpose_in, verbosity_in)
+  subroutine elsi_customize_pexsi(temperature_in,gap_in,delta_E_in,n_poles_in,&
+                                  n_inertia_steps_in,max_iteration_in,mu_min_in,&
+                                  mu_max_in,mu0_in,mu_inertia_tolerance_in,&
+                                  mu_inertia_expansion_in,mu_safeguard_in,&
+                                  n_electron_tolerance_in,matrix_type_in,&
+                                  is_symbolic_factorize_in,ordering_in,&
+                                  row_ordering_in,np_symbolic_factorize_in,&
+                                  symmetric_in,transpose_in,verbosity_in)
 
      implicit none
 
@@ -2125,7 +2145,7 @@ contains
 !>
 !! This routine computes eigenvalues and eigenvectors.
 !!
-  subroutine elsi_ev_real(H_in, S_in, e_val_out, e_vec_out)
+  subroutine elsi_ev_real(H_in,S_in,e_val_out,e_vec_out)
 
      implicit none
 
@@ -2177,7 +2197,7 @@ contains
 !>
 !! This routine computes eigenvalues and eigenvectors.
 !!
-  subroutine elsi_ev_complex(H_in, S_in, e_val_out, e_vec_out)
+  subroutine elsi_ev_complex(H_in,S_in,e_val_out,e_vec_out)
 
      implicit none
 
@@ -2229,7 +2249,7 @@ contains
 !>
 !! This routine computes density matrix.
 !!
-  subroutine elsi_dm_real(H_in, S_in, D_out, energy_out, broadening_in, width_in)
+  subroutine elsi_dm_real(H_in,S_in,D_out,energy_out,broadening_in,width_in)
 
      implicit none
 
@@ -2396,7 +2416,7 @@ contains
 !>
 !! This routine computes density matrix.
 !!
-  subroutine elsi_dm_complex(H_in, S_in, D_out, energy_out, broadening_in, width_in)
+  subroutine elsi_dm_complex(H_in,S_in,D_out,energy_out,broadening_in,width_in)
 
      implicit none
 

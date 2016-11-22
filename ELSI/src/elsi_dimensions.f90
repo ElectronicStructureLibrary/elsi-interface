@@ -90,45 +90,44 @@ module ELSI_DIMENSIONS
    integer :: nnz_g !< Global number of nonzeros
    integer :: nnz_l !< Local number of nonzeros
    integer :: nnz_l_pexsi !< Local number of nonzeros in PEXSI distribution
-   real*8, parameter :: zero_threshold = 1d-13 !< Threshold to define numerical zero
+   real*8  :: zero_threshold = 1d-13 !< Threshold to define numerical zero
 
    !> Overlap
    logical :: overlap_is_unit = .false. !< Is overlap matrix unit?
 
    !> Physics
-   real*8  :: n_electrons !< Number of electrons in system
-   integer :: n_states !< Number of total states
-   integer :: n_occupied_states !< Number of occupied states
-   real*8, parameter :: hartree = 27.211386 !< Hartree to eV (source: Codata 2015)
+   real*8  :: n_electrons         !< Number of electrons in system
+   integer :: n_states            !< Number of total states
+   integer :: n_occupied_states   !< Number of occupied states
+   real*8  :: hartree = 27.211386 !< Hartree to eV (source: Codata 2015)
 
    !> ELPA
    logical :: elpa_one_always = .false. !< Always use 1-stage solver
    logical :: elpa_two_always = .false. !< Always use 2-stage solver
-   integer :: broadening_type = -1 !< Broadening scheme used to find occupation numbers
-   real*8  :: broadening_width !< Broadening width used to find occupation numbers
-   real*8  :: occ_tolerance = 1d-10 !< Maximum allowed difference between actual number of
-                                    !! electrons and the number computed by ELSI
+   integer :: broadening_type = -1      !< Broadening scheme for occupation numbers
+   real*8  :: broadening_width          !< Broadening width for occupation numbers
+   real*8  :: occ_tolerance = 1d-10     !< Maximum allowed difference between actual number
+                                        !! of electrons and the number computed by ELSI
 
    !> OMM
    logical :: omm_customized = .false. !< Has elsi_customize_omm been called?
-   integer :: n_elpa_steps !< Use ELPA eigenvectors as initial guess for OMM
-   logical :: new_overlap !< Is a new overlap matrix provided?
+   integer :: n_elpa_steps         !< Use ELPA eigenvectors as initial guess
+   logical :: new_overlap          !< Is a new overlap matrix provided?
    logical :: C_matrix_initialized !< Is coefficient matrix initialized?
-   real*8  :: total_energy !< Energy of the system
-   !> How to perform the calculation
-   !! 0 = Basic
-   !! 1 = Cholesky factorisation of S requested
-   !! 2 = Cholesky already performed, U is provided in S
-   !! 3 = Use preconditioning based on the energy density
-   integer :: omm_flavour = -1
-   real*8  :: scale_kinetic       !< Scaling of the kinetic energy matrix
-   logical :: calc_ed = .false.   !< Calculate energy weighted density matrix?
-   real*8  :: eta                 !< Eigenspectrum shift parameter
-   real*8  :: min_tol             !< Tolerance for minimization
-   integer :: nk_times_nspin = -1 !< n_k_points * n_spin
-   integer :: i_k_spin = -1       !< Combined k_point spin index
-   logical :: omm_verbose         !< Output level
-   logical :: do_dealloc          !< Deallocate internal storage?
+   real*8  :: total_energy         !< Energy of the system
+   integer :: omm_flavour = -1     !< How to perform the calculation
+                                   !! 0 = Basic
+                                   !! 1 = Cholesky factorisation
+                                   !! 2 = Cholesky already performed
+                                   !! 3 = Preconditioning
+   real*8  :: scale_kinetic        !< Scaling of the kinetic energy matrix
+   logical :: calc_ed = .false.    !< Calculate energy weighted density matrix?
+   real*8  :: eta                  !< Eigenspectrum shift parameter
+   real*8  :: min_tol              !< Tolerance for minimization
+   integer :: nk_times_nspin = -1  !< n_k_points * n_spin
+   integer :: i_k_spin = -1        !< Combined k_point spin index
+   logical :: omm_verbose          !< Output level
+   logical :: do_dealloc           !< Deallocate internal storage?
 
    !> PEXSI
    logical                :: pexsi_customized = .false. !< Has elsi_customize_pexsi been called?
@@ -166,7 +165,7 @@ module ELSI_DIMENSIONS
 
    !> Broadening type (used if ELPA is chosen to compute density matrix)
    enum, bind( C )
-      enumerator :: GAUSSIAN, FERMI
+      enumerator :: GAUSSIAN, FERMI, METHFESSEL_PAXTON
    end enum
 
 contains
