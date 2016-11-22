@@ -93,7 +93,6 @@ end subroutine
 subroutine elsi_get_local_nnz(matrix, n_rows, n_cols, nnz)
 
    implicit none
-   include 'mpif.h'
 
    real*8,  intent(in)  :: matrix(n_rows,n_cols) !< Local matrix
    integer, intent(in)  :: n_rows                !< Local rows
@@ -122,7 +121,7 @@ end subroutine
 subroutine elsi_get_global_nnz(matrix, n_rows, n_cols)
 
    implicit none
-   include 'mpif.h'
+   include "mpif.h"
 
    real*8,  intent(in) :: matrix(n_rows,n_cols) !< Local matrix
    integer, intent(in) :: n_rows                !< Number of rows
@@ -257,7 +256,7 @@ end subroutine
 subroutine elsi_2dbc_to_1db(matrix_in, matrix_out)
 
    implicit none
-   include 'mpif.h'
+   include "mpif.h"
 
    real*8, intent(in)  :: matrix_in(n_l_rows,n_l_cols)
    real*8, intent(out) :: matrix_out(n_l_rows_pexsi, n_l_cols_pexsi)

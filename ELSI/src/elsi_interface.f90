@@ -246,7 +246,7 @@ contains
   subroutine elsi_set_mpi(mpi_comm_global_in,n_procs_in,myid_in)
 
      implicit none
-     include 'mpif.h'
+     include "mpif.h"
 
      integer, intent(in) :: myid_in            !< local process id
      integer, intent(in) :: n_procs_in         !< number of mpi processes
@@ -266,7 +266,6 @@ contains
                             n_p_cols_in,mpi_comm_row_in,mpi_comm_col_in)
 
      implicit none
-     include "mpif.h"
 
      integer, intent(in) :: blacs_ctxt_in             !< BLACS context
      integer, intent(in) :: n_b_rows_in               !< Block size
@@ -1458,7 +1457,6 @@ contains
   subroutine elsi_init_pexsi()
 
      implicit none
-     include "mpif.h"
 
      character*40, parameter :: caller = "elsi_init_pexsi"
 
@@ -1527,7 +1525,7 @@ contains
   subroutine elsi_2dbcd_to_1dbccs_hs_pexsi(H_in,S_in)
 
      implicit none
-     include 'mpif.h'
+     include "mpif.h"
 
      real*8, intent(in) :: H_in(n_l_rows,n_l_cols) !< Hamiltonian matrix to be converted
      real*8, intent(in) :: S_in(n_l_rows,n_l_cols) !< Overlap matrix to be converted

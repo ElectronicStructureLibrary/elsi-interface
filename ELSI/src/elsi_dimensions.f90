@@ -176,7 +176,6 @@ contains
 subroutine elsi_set_pexsi_default_options()
 
    implicit none
-   include "mpif.h"
 
    ! Use the PEXSI Default options
    call f_ppexsi_set_default_options(pexsi_options)
@@ -196,7 +195,6 @@ end subroutine
 subroutine elsi_print_pexsi_options()
 
    implicit none
-   include "mpif.h"
 
    character(LEN=4096) :: string_message
 
@@ -256,7 +254,6 @@ end subroutine
 subroutine elsi_set_omm_default_options()
 
    implicit none
-   include "mpif.h"
 
    !< How many steps of ELPA to run before OMM
    n_elpa_steps = 3
@@ -291,7 +288,6 @@ end subroutine
 subroutine elsi_print_omm_options()
 
    implicit none
-   include "mpif.h"
 
    character(LEN=4096) :: string_message
 
