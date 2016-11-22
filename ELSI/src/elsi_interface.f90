@@ -987,13 +987,13 @@ contains
                  D_out_tmp = 0d0
 
                  ! D_out = tmp_complex*tmp_complex' A' here means transpose of A
-                 !call pzherk('U', 'N', n_g_size, n_states, (1.d0, 0.d0), &
-                 !            tmp_complex, 1, 1, sc_desc, (0.d0, 0.d0), D_out_tmp, 1, 1, sc_desc)
+                 !call pzherk('U','N',n_g_size,n_states,(1d0,0d0),tmp_complex,1,1,sc_desc,&
+                 !            (0d0,0d0),D_out_tmp,1,1,sc_desc)
 
-                 call pdsyrk('U', 'N', n_g_size, n_states, 1.d0, &
-                             real(tmp_complex), 1, 1, sc_desc, 0.d0, D_out, 1, 1, sc_desc)
-                 call pdsyrk('U', 'N', n_g_size, n_states, 1.d0, &
-                             aimag(tmp_complex), 1, 1, sc_desc, 0.d0, D_out_tmp, 1, 1, sc_desc)
+                 call pdsyrk('U','N',n_g_size,n_states,1d0,real(tmp_complex),1,1,sc_desc,&
+                             0d0,D_out,1,1,sc_desc)
+                 call pdsyrk('U','N',n_g_size,n_states,1d0,aimag(tmp_complex),1,1,sc_desc,&
+                             0d0,D_out_tmp,1,1,sc_desc)
 
                  D_out = D_out + D_out_tmp
            end select
@@ -1066,21 +1066,20 @@ contains
         case (ELPA)
            select case (mode)
               case (COMPLEX_VALUES)
-                 call elsi_allocate(buffer_complex, n_l_rows, n_l_cols, &
-                                    "buffer_complex", caller)
+                 call elsi_allocate(buffer_complex,n_l_rows,n_l_cols,"temp",caller)
 
                  if(n_elsi_calls == 1) then
                     call elsi_statement_print("  Starting Cholesty decomposition")
                     ! Compute S = (U^T)U, U -> S
-                    success = elpa_cholesky_complex_double(n_g_size, S_complex, n_l_rows, &
-                                 n_b_rows, n_l_cols, mpi_comm_row, mpi_comm_col, .false.)
+                    success = elpa_cholesky_complex_double(n_g_size,S_complex,n_l_rows,&
+                                 n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col,.false.)
                     if(.not.success) then
-                       call elsi_stop(" Cholesky decomposition failed.", caller)
+                       call elsi_stop(" Cholesky decomposition failed.",caller)
                     endif
 
                     ! compute U^-1 -> S
-                    success = elpa_invert_trm_complex_double(n_g_size, S_complex, n_l_rows, &
-                                 n_b_rows, n_l_cols, mpi_comm_row, mpi_comm_col, .false.)
+                    success = elpa_invert_trm_complex_double(n_g_size,S_complex,n_l_rows,&
+                                 n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col,.false.)
                     if(.not.success) then
                        call elsi_stop(" Matrix invertion failed.", caller)
                     endif
@@ -1088,70 +1087,67 @@ contains
 
                  ! compute H(U^-1) -> buff
                  ! buffer_complex = H_complex * S_complex
-                 call pzgemm('N','N', n_g_size, n_g_size, n_g_size, 1.0d0, &
-                             H_complex, 1, 1, sc_desc, S_complex, 1, 1, sc_desc, &
-                             0.0d0, buffer_complex, 1, 1, sc_desc)
+                 call pzgemm('C','N',n_g_size,n_g_size,n_g_size,(1d0,0d0),&
+                             S_complex,1,1,sc_desc,H_complex,1,1,sc_desc,&
+                             (0d0,0d0),buffer_complex,1,1,sc_desc)
 
                  ! compute ((U^-1)^T)H by (H(U^-1))^T -> H
                  ! H_complex = (buffer_complex)^T
-                 call pztranc(n_g_size, n_g_size, 1.d0, buffer_complex, 1, 1, &
-                              sc_desc, 0.d0, H_complex, 1, 1, sc_desc)
+                 call pztranc(n_g_size,n_g_size,(1d0,0d0),buffer_complex,1,1,&
+                              sc_desc,(0d0,0d0),H_complex,1,1,sc_desc)
 
                  ! compute ((U^-1)^T)H(U^-1) -> H
                  buffer_complex = H_complex
                  ! H_complex = buffer_complex * S_complex
-                 call pzgemm('N','N', n_g_size, n_g_size, n_g_size, 1.0d0, &
-                             buffer_complex, 1, 1, sc_desc, S_complex, 1, 1, &
-                             sc_desc, 0.0d0, H_complex, 1, 1, sc_desc)
+                 call pzgemm('C','N',n_g_size,n_g_size,n_g_size,(1d0,0d0),&
+                             S_complex,1,1,sc_desc,buffer_complex,1,1,&
+                             sc_desc,(0d0,0d0),H_complex,1,1,sc_desc)
 
               case (REAL_VALUES)
-                 call elsi_allocate(buffer_real, n_l_rows, n_l_cols, &
-                                    "buffer_real", caller)
+                 call elsi_allocate(buffer_real,n_l_rows,n_l_cols,"temp",caller)
 
                  if(n_elsi_calls == 1) then
                     call elsi_statement_print("  Starting Cholesty decomposition")
                     ! Compute S = (U^T)U, U -> S
-                    success = elpa_cholesky_real_double(n_g_size, S_real, n_l_rows, &
-                                 n_b_rows, n_l_cols, mpi_comm_row, mpi_comm_col, .false.)
+                    success = elpa_cholesky_real_double(n_g_size,S_real,n_l_rows,&
+                                 n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col,.false.)
                     if(.not.success) then
-                       call elsi_stop(" Cholesky decomposition failed.", caller)
+                       call elsi_stop(" Cholesky decomposition failed.",caller)
                     endif
 
                     ! compute U^-1 -> S
-                    success = elpa_invert_trm_real_double(n_g_size, S_real, n_l_rows, &
-                                 n_b_rows, n_l_cols, mpi_comm_row, mpi_comm_col, .false.)
+                    success = elpa_invert_trm_real_double(n_g_size,S_real,n_l_rows,&
+                                 n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col,.false.)
                     if(.not.success) then
-                       call elsi_stop(" Matrix invertion failed.", caller)
+                       call elsi_stop(" Matrix invertion failed.",caller)
                     endif
                  endif
 
                  ! compute H(U^-1) -> buff
                  ! buffer_real = H_real * S_real
-                 call pdgemm('N','N', n_g_size, n_g_size, n_g_size, 1.0d0, &
-                             H_real, 1, 1, sc_desc, S_real, 1, 1, sc_desc, &
-                             0.0d0, buffer_real, 1, 1, sc_desc)
+                 call pdgemm('N','N',n_g_size,n_g_size,n_g_size,1d0,H_real,1,1,&
+                             sc_desc,S_real,1,1,sc_desc,0d0,buffer_real,1,1,sc_desc)
 
                  ! compute ((U^-1)^T)H by (H(U^-1))^T -> H
                  ! H_real = (buffer_real)^T
-                 call pdtran(n_g_size, n_g_size, 1.d0, buffer_real, 1, 1, &
-                             sc_desc, 0.d0, H_real, 1, 1, sc_desc)
+                 call pdtran(n_g_size,n_g_size,1d0,buffer_real,1,1,sc_desc,0d0,&
+                             H_real,1,1,sc_desc)
 
                  ! compute ((U^-1)^T)H(U^-1) -> H
                  buffer_real = H_real
                  ! H_real = buffer_real * S_real
-                 call pdgemm('N','N', n_g_size, n_g_size, n_g_size, 1.0d0, &
-                             buffer_real, 1, 1, sc_desc, S_real, 1, 1, &
-                             sc_desc, 0.0d0, H_real, 1, 1, sc_desc)
+                 call pdgemm('N','N',n_g_size,n_g_size,n_g_size,1d0,buffer_real,&
+                             1,1,sc_desc,S_real,1,1,sc_desc,0d0,H_real,1,1,sc_desc)
            end select
 
         case (LIBOMM)
-           call elsi_stop(" OMM does not need to transform evp. Exiting...", caller)
+           call elsi_stop(" OMM does not need to transform evp. Exiting...",caller)
         case (PEXSI)
-           call elsi_stop(" PEXSI does not need to transform evp. Exiting...", caller)
+           call elsi_stop(" PEXSI does not need to transform evp. Exiting...",caller)
         case DEFAULT
            call elsi_stop(" No supported method has been chosen. "//&
                           " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
-                          " Exiting...", caller)
+                          " Exiting...",caller)
      end select
 
      if(allocated(buffer_real))    deallocate(buffer_real)
@@ -1179,19 +1175,19 @@ contains
                  ! (U^-1) is stored in S_complex after
                  ! elsi_to_standard_evp
                  ! vectors_complex = S_complex * vectors_complex
-                 call elsi_allocate(buffer_complex, n_l_rows, n_l_cols, "temp", caller)
+                 call elsi_allocate(buffer_complex,n_l_rows,n_l_cols,"temp",caller)
                  buffer_complex = C_complex
 
                  ! C_complex = S_complex * buffer_complex
-                 call pzgemm('N', 'N', n_g_size, n_states, n_g_size, &
-                             1.0d0, S_complex, 1, 1, sc_desc, buffer_complex, 1, 1, &
-                             sc_desc, 0.0d0, C_complex, 1, 1, sc_desc)
+                 call pzgemm('N','N',n_g_size,n_states,n_g_size,(1d0,0d0),S_complex,&
+                             1,1,sc_desc,buffer_complex,1,1,sc_desc,(0d0,0d0),&
+                             C_complex,1,1,sc_desc)
 
               case (REAL_VALUES)
                  ! (U^-1) is stored in S_real after
                  ! elsi_to_standard_evp
                  ! C_real = S_real * C_real
-                 call elsi_allocate(buffer_real, n_l_rows, n_l_cols, "temp", caller)
+                 call elsi_allocate(buffer_real,n_l_rows,n_l_cols,"temp",caller)
                  buffer_real = C_real
 
                  ! method (a)
@@ -1203,19 +1199,18 @@ contains
 
                  ! method (b)
                  ! C_real = S_real * buffer_real
-                 call pdgemm('N', 'N', n_g_size, n_states, n_g_size, &
-                             1.0d0, S_real, 1, 1, sc_desc, buffer_real , 1, 1, &
-                             sc_desc, 0.0d0, C_real, 1, 1, sc_desc)
+                 call pdgemm('N','N',n_g_size,n_states,n_g_size,1d0,S_real,1,1,&
+                             sc_desc,buffer_real,1,1,sc_desc,0d0,C_real,1,1,sc_desc)
            end select
 
         case (LIBOMM)
-           call elsi_stop(" OMM does not have eigenvectors. Exiting...", caller)
+           call elsi_stop(" OMM does not have eigenvectors. Exiting...",caller)
         case (PEXSI)
-           call elsi_stop(" PEXSI does not have eigenvectors. Exiting...", caller)
+           call elsi_stop(" PEXSI does not have eigenvectors. Exiting...",caller)
         case DEFAULT
            call elsi_stop(" No supported method has been chosen. "//&
                           " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
-                          " Exiting...", caller)
+                          " Exiting...",caller)
      end select
 
      if(allocated(buffer_real))    deallocate(buffer_real)
