@@ -1233,14 +1233,6 @@ contains
 
      call elsi_start_solve_evp_time()
 
-     if(mode == REAL_VALUES .and. .not. associated(H_real)) then
-        call elsi_stop(" Hamiltonian not found. Exiting...", caller)
-     endif
-
-     if(mode == COMPLEX_VALUES .and. .not. associated(H_complex)) then
-        call elsi_stop(" Hamiltonian not found. Exiting...", caller)
-     endif
-
      ! Choose 1-stage or 2-stage solver
      if(elpa_one_always) then
         two_step_solver = .false.
@@ -1566,9 +1558,11 @@ contains
      call elsi_get_local_nnz(H_in, n_l_rows, n_l_cols, nnz_l)
 
      call elsi_allocate(dest, nnz_l, "dest", caller)
-     call elsi_allocate(h_val_send_buffer, nnz_l, "h_val_send_buffer", caller)
-     call elsi_allocate(s_val_send_buffer, nnz_l, "s_val_send_buffer", caller)
      call elsi_allocate(pos_send_buffer, nnz_l, "pos_send_buffer", caller)
+     call elsi_allocate(h_val_send_buffer, nnz_l, "h_val_send_buffer", caller)
+     if(.not. overlap_is_unit) then
+        call elsi_allocate(s_val_send_buffer, nnz_l, "s_val_send_buffer", caller)
+     endif
 
      i_val = 0
      ! Compute destination and global 1D id
@@ -1588,7 +1582,9 @@ contains
               ! Pack global id and data into buffers
               pos_send_buffer(i_val) = (global_col_id-1)*n_g_size+global_row_id
               h_val_send_buffer(i_val) = H_in(i_row, i_col)
-              s_val_send_buffer(i_val) = S_in(i_row, i_col)
+              if(.not. overlap_is_unit) then
+                 s_val_send_buffer(i_val) = S_in(i_row, i_col)
+              endif
           endif
        enddo
      enddo
@@ -1625,26 +1621,32 @@ contains
         recv_displ_aux = recv_displ_aux + recv_count(i_proc+1)
      enddo
 
-     call elsi_allocate(h_val_recv_buffer, nnz_l_pexsi, "h_val_recv_buffer", caller)
-     call elsi_allocate(s_val_recv_buffer, nnz_l_pexsi, "s_val_recv_buffer", caller)
      call elsi_allocate(pos_recv_buffer, nnz_l_pexsi, "pos_recv_buffer", caller)
+     call elsi_allocate(h_val_recv_buffer, nnz_l_pexsi, "h_val_recv_buffer", caller)
+     if(.not. overlap_is_unit) then
+        call elsi_allocate(s_val_recv_buffer, nnz_l_pexsi, "s_val_recv_buffer", caller)
+     endif
 
      ! Send and receive the packed data
      call MPI_Alltoallv(h_val_send_buffer, send_count, send_displ, mpi_real8, &
                         h_val_recv_buffer, recv_count, recv_displ, mpi_real8, &
                         mpi_comm_global, mpierr)
 
-     call MPI_Alltoallv(s_val_send_buffer, send_count, send_displ, mpi_real8, &
-                        s_val_recv_buffer, recv_count, recv_displ, mpi_real8, &
-                        mpi_comm_global, mpierr)
+     if(.not. overlap_is_unit) then
+        call MPI_Alltoallv(s_val_send_buffer, send_count, send_displ, mpi_real8, &
+                           s_val_recv_buffer, recv_count, recv_displ, mpi_real8, &
+                           mpi_comm_global, mpierr)
+     endif
 
      call MPI_Alltoallv(pos_send_buffer, send_count, send_displ, mpi_integer, &
                         pos_recv_buffer, recv_count, recv_displ, mpi_integer, &
                         mpi_comm_global, mpierr)
 
-     deallocate(h_val_send_buffer)
-     deallocate(s_val_send_buffer)
      deallocate(pos_send_buffer)
+     deallocate(h_val_send_buffer)
+     if(.not. overlap_is_unit) then
+        deallocate(s_val_send_buffer)
+     endif
 
      ! TODO: double check the new algorithm and get rid of matrix_aux
      matrix_aux = 0d0
@@ -1671,9 +1673,11 @@ contains
         call elsi_allocate(H_real_pexsi, nnz_l_pexsi, "H_real_pexsi", caller)
      H_real_pexsi = 0d0
 
-     if(.not.allocated(S_real_pexsi)) &
-        call elsi_allocate(S_real_pexsi, nnz_l_pexsi, "S_real_pexsi", caller)
-     S_real_pexsi = 0d0
+     if(.not. overlap_is_unit) then
+        if(.not.allocated(S_real_pexsi)) &
+           call elsi_allocate(S_real_pexsi, nnz_l_pexsi, "S_real_pexsi", caller)
+        S_real_pexsi = 0d0
+     endif
 
      if(.not.allocated(row_ind_pexsi)) &
         call elsi_allocate(row_ind_pexsi, nnz_l_pexsi, "row_ind_pexsi", caller)
@@ -1689,27 +1693,30 @@ contains
 
      matrix_aux = 0d0
 
-     ! Unpack overlap
-     do i_val = 1, nnz_l_pexsi
-        ! Compute global 2d id
-        global_col_id = FLOOR(1d0*(pos_recv_buffer(i_val)-1)/n_g_size)+1
-        global_row_id = MOD(pos_recv_buffer(i_val), n_g_size)
-        if(global_row_id == 0) global_row_id = n_g_size
+     if(.not. overlap_is_unit) then
+        ! Unpack overlap
+        do i_val = 1, nnz_l_pexsi
+           ! Compute global 2d id
+           global_col_id = FLOOR(1d0*(pos_recv_buffer(i_val)-1)/n_g_size)+1
+           global_row_id = MOD(pos_recv_buffer(i_val), n_g_size)
+           if(global_row_id == 0) global_row_id = n_g_size
 
-        ! Compute local 2d id
-        local_col_id = global_col_id-myid*FLOOR(1d0*n_g_size/n_procs)
-        local_row_id = global_row_id
+           ! Compute local 2d id
+           local_col_id = global_col_id-myid*FLOOR(1d0*n_g_size/n_procs)
+           local_row_id = global_row_id
 
-        ! Put value to correct position
-        matrix_aux(local_row_id, local_col_id) = s_val_recv_buffer(i_val)
-     enddo
+           ! Put value to correct position
+           matrix_aux(local_row_id, local_col_id) = s_val_recv_buffer(i_val)
+        enddo
 
-     deallocate(s_val_recv_buffer)
+        deallocate(s_val_recv_buffer)
+
+        ! Transform overlap: 1D block dense ==> 1D block sparse CCS
+        call elsi_dense_to_ccs_by_pattern(matrix_aux, n_l_rows_pexsi, n_l_cols_pexsi, &
+                                          nnz_l_pexsi, row_ind_pexsi, col_ptr_pexsi, S_real_pexsi)
+     endif
+
      deallocate(pos_recv_buffer)
-
-     ! Transform overlap: 1D block dense ==> 1D block sparse CCS
-     call elsi_dense_to_ccs_by_pattern(matrix_aux, n_l_rows_pexsi, n_l_cols_pexsi, &
-                                       nnz_l_pexsi, row_ind_pexsi, col_ptr_pexsi, S_real_pexsi)
 
      call elsi_stop_2dbc_to_1dccs_time()
 
@@ -2163,7 +2170,9 @@ contains
 
            ! Set Hamiltonian and Overlap matrices
            call elsi_set_hamiltonian(H_in)
-           call elsi_set_overlap(S_in)
+           if(.not. overlap_is_unit) then
+              call elsi_set_overlap(S_in)
+           endif
 
            ! Solve eigenvalue problem
            call elsi_solve_evp_elpa()
@@ -2215,7 +2224,9 @@ contains
 
            ! Set Hamiltonian and Overlap matrices
            call elsi_set_hamiltonian(H_in)
-           call elsi_set_overlap(S_in)
+           if(.not. overlap_is_unit) then
+              call elsi_set_overlap(S_in)
+           endif
 
            ! Solve eigenvalue problem
            call elsi_solve_evp_elpa()
@@ -2282,7 +2293,9 @@ contains
 
            ! Set Hamiltonian and overlap matrices
            call elsi_set_hamiltonian(H_in)
-           call elsi_set_overlap(S_in)
+           if(.not. overlap_is_unit) then
+              call elsi_set_overlap(S_in)
+           endif
 
            call elsi_solve_evp_elpa()
 
@@ -2319,7 +2332,9 @@ contains
 
               ! Set Hamiltonian and overlap matrices
               call elsi_set_hamiltonian(H_in)
-              call elsi_set_overlap(S_in)
+              if(.not. overlap_is_unit) then
+                 call elsi_set_overlap(S_in)
+              endif
 
               ! Solve by ELPA
               call elsi_solve_evp_elpa()
@@ -2333,7 +2348,9 @@ contains
            else ! ELPA is done
               ! Set Hamiltonian and overlap matrices
               call elsi_set_hamiltonian(H_in)
-              call elsi_set_overlap(S_in)
+              if(.not. overlap_is_unit) then
+                 call elsi_set_overlap(S_in)
+              endif
 
               ! Initialize coefficient matrix with ELPA eigenvectors if possible
               if(n_elpa_steps > 0 .and. n_elsi_calls == n_elpa_steps+1) then
@@ -2434,10 +2451,6 @@ contains
      ! Allocation of matrices
      call elsi_allocate_matrices()
 
-     ! Set Hamiltonian and Overlap matrices
-     call elsi_set_hamiltonian(H_in)
-     call elsi_set_overlap(S_in)
-
      ! Solve eigenvalue problem
      select case (method)
         case (ELPA)
@@ -2456,7 +2469,9 @@ contains
 
            ! Set Hamiltonian and overlap matrices
            call elsi_set_hamiltonian(H_in)
-           call elsi_set_overlap(S_in)
+           if(.not. overlap_is_unit) then
+              call elsi_set_overlap(S_in)
+           endif
 
            call elsi_solve_evp_elpa()
 
@@ -2484,7 +2499,9 @@ contains
 
            ! Set Hamiltonian and overlap matrices
            call elsi_set_hamiltonian(H_in)
-           call elsi_set_overlap(S_in)
+           if(.not. overlap_is_unit) then
+              call elsi_set_overlap(S_in)
+           endif
 
            call elsi_solve_evp_omm()
            call elsi_get_dm(D_out)
