@@ -131,7 +131,7 @@ subroutine elsi_get_global_nnz(matrix, n_rows, n_cols)
    call elsi_get_local_nnz(matrix, n_rows, n_cols, nnz_l)
 
    ! Set the number of non_zero elements in the global matrix
-   call MPI_ALLREDUCE(nnz_l, nnz_g, 1, mpi_integer, mpi_sum, &
+   call MPI_Allreduce(nnz_l, nnz_g, 1, mpi_integer, mpi_sum, &
                       mpi_comm_global, mpierr)
 
 end subroutine

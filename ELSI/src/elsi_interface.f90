@@ -219,8 +219,8 @@ contains
 !>
 !! This routine overrides ELSI default settings.
 !!
-  subroutine elsi_customize(overlap_is_unit_in,hartree_in,&
-                            zero_threshold_in,mu_accuracy_in)
+  subroutine elsi_customize(overlap_is_unit_in,hartree_in,zero_threshold_in,&
+                            mu_accuracy_in,singularity_tolerance_in)
 
      implicit none
 
@@ -228,15 +228,24 @@ contains
      real*8,  intent(in), optional :: hartree_in
      real*8,  intent(in), optional :: zero_threshold_in
      real*8,  intent(in), optional :: mu_accuracy_in
+     real*8,  intent(in), optional :: singularity_tolerance_in
 
      ! Is the overlap matrix unit? [Default: .false.]
-     if(present(overlap_is_unit_in)) overlap_is_unit = overlap_is_unit_in
+     if(present(overlap_is_unit_in)) &
+        overlap_is_unit = overlap_is_unit_in
      ! User-defined value for Hartree [Default: 27.211386, Codata 2015]
-     if(present(hartree_in)) hartree = hartree_in
+     if(present(hartree_in)) &
+        hartree = hartree_in
      ! Threshold to define numerical zero [Default: 1d-13]
-     if(present(zero_threshold_in)) zero_threshold = zero_threshold_in
+     if(present(zero_threshold_in)) &
+        zero_threshold = zero_threshold_in
      ! Accuracy for chemical potential determination [Default: 1d-10]
-     if(present(mu_accuracy_in)) occ_tolerance = mu_accuracy_in
+     if(present(mu_accuracy_in)) &
+        occ_tolerance = mu_accuracy_in
+     ! Eigenfunctions of overlap matrix with eigenvalues smaller than
+     ! this value will be removed to avoid singularity [Default: 1d-5]
+     if(present(singularity_tolerance_in)) &
+        singularity_tolerance = singularity_tolerance_in
 
   end subroutine ! elsi_customize
 
@@ -594,7 +603,7 @@ contains
      implicit none
      include "mpif.h"
 
-     call MPI_BARRIER(mpi_comm_global, mpierr)
+     call MPI_Barrier(mpi_comm_global, mpierr)
 
      call elsi_deallocate_matrices()
 
@@ -1057,8 +1066,8 @@ contains
 
 
      logical :: success
-     real*8, allocatable :: buffer_real (:,:)
-     complex*16, allocatable :: buffer_complex (:,:)
+     real*8, allocatable :: buffer_real(:,:)
+     complex*16, allocatable :: buffer_complex(:,:)
 
      character*40, parameter :: caller = "elsi_to_standard_evp"
 
@@ -1066,6 +1075,7 @@ contains
         case (ELPA)
            select case (mode)
               case (COMPLEX_VALUES)
+                 ! TODO: Check singularity
                  call elsi_allocate(buffer_complex,n_l_rows,n_l_cols,"temp",caller)
 
                  if(n_elsi_calls == 1) then
@@ -1288,7 +1298,7 @@ contains
         call elsi_to_original_ev()
      endif
 
-     call MPI_BARRIER(mpi_comm_global, mpierr)
+     call MPI_Barrier(mpi_comm_global, mpierr)
      call elsi_stop_solve_evp_time()
 
   end subroutine ! elsi_solve_evp_elpa
@@ -1391,7 +1401,7 @@ contains
 
      first_call = .false.
 
-     call MPI_BARRIER(mpi_comm_global, mpierr)
+     call MPI_Barrier(mpi_comm_global, mpierr)
      call elsi_stop_solve_evp_time()
 
   end subroutine ! elsi_solve_evp_omm
@@ -1960,7 +1970,7 @@ contains
         call elsi_stop(" PEXSI not able to retrieve solution. Exiting...", caller)
      endif
 
-     call MPI_BARRIER(mpi_comm_global, mpierr)
+     call MPI_Barrier(mpi_comm_global, mpierr)
      call elsi_stop_solve_evp_time()
 
   end subroutine ! elsi_solve_evp_pexsi

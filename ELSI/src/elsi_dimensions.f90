@@ -87,13 +87,17 @@ module ELSI_DIMENSIONS
    integer :: n_p_per_pole_pexsi
 
    !> Sparse matrix information
-   integer :: nnz_g !< Global number of nonzeros
-   integer :: nnz_l !< Local number of nonzeros
-   integer :: nnz_l_pexsi !< Local number of nonzeros in PEXSI distribution
+   integer :: nnz_g                  !< Global number of nonzeros
+   integer :: nnz_l                  !< Local number of nonzeros
+   integer :: nnz_l_pexsi            !< Local number of nonzeros in PEXSI distribution
    real*8  :: zero_threshold = 1d-13 !< Threshold to define numerical zero
 
    !> Overlap
-   logical :: overlap_is_unit = .false. !< Is overlap matrix unit?
+   logical :: overlap_is_unit = .false.     !< Is overlap matrix unit?
+   logical :: overlap_is_singular = .false. !< Is overlap matrix singular?
+   real*8  :: singularity_tolerance = 1d-5  !< Eigenfunctions of overlap matrix with
+                                            !! eigenvalues smaller than this value
+                                            !! will be removed to avoid singularity
 
    !> Physics
    real*8  :: n_electrons         !< Number of electrons in system
@@ -111,35 +115,35 @@ module ELSI_DIMENSIONS
 
    !> OMM
    logical :: omm_customized = .false. !< Has elsi_customize_omm been called?
-   integer :: n_elpa_steps         !< Use ELPA eigenvectors as initial guess
-   logical :: new_overlap          !< Is a new overlap matrix provided?
-   logical :: C_matrix_initialized !< Is coefficient matrix initialized?
-   real*8  :: total_energy         !< Energy of the system
-   integer :: omm_flavour = -1     !< How to perform the calculation
-                                   !! 0 = Basic
-                                   !! 1 = Cholesky factorisation
-                                   !! 2 = Cholesky already performed
-                                   !! 3 = Preconditioning
-   real*8  :: scale_kinetic        !< Scaling of the kinetic energy matrix
-   logical :: calc_ed = .false.    !< Calculate energy weighted density matrix?
-   real*8  :: eta                  !< Eigenspectrum shift parameter
-   real*8  :: min_tol              !< Tolerance for minimization
-   integer :: nk_times_nspin = -1  !< n_k_points * n_spin
-   integer :: i_k_spin = -1        !< Combined k_point spin index
-   logical :: omm_verbose          !< Output level
-   logical :: do_dealloc           !< Deallocate internal storage?
+   integer :: n_elpa_steps             !< Use ELPA eigenvectors as initial guess
+   logical :: new_overlap              !< Is a new overlap matrix provided?
+   logical :: C_matrix_initialized     !< Is coefficient matrix initialized?
+   real*8  :: total_energy             !< Energy of the system
+   integer :: omm_flavour = -1         !< How to perform the calculation
+                                       !! 0 = Basic
+                                       !! 1 = Cholesky factorisation
+                                       !! 2 = Cholesky already performed
+                                       !! 3 = Preconditioning
+   real*8  :: scale_kinetic            !< Scaling of the kinetic energy matrix
+   logical :: calc_ed = .false.        !< Calculate energy weighted density matrix?
+   real*8  :: eta                      !< Eigenspectrum shift parameter
+   real*8  :: min_tol                  !< Tolerance for minimization
+   integer :: nk_times_nspin = -1      !< n_k_points * n_spin
+   integer :: i_k_spin = -1            !< Combined k_point spin index
+   logical :: omm_verbose              !< Output level
+   logical :: do_dealloc               !< Deallocate internal storage?
 
    !> PEXSI
    logical                :: pexsi_customized = .false. !< Has elsi_customize_pexsi been called?
-   logical                :: small_pexsi_tol = .false. !< Is user-specified PEXSI tolerance smaller than default?
-   real(c_double)         :: final_pexsi_tol = 1d-2 !< Default final PEXSI tolerance
-   integer(c_int)         :: n_inertia_steps !< Number of steps to perform inertia counting
+   logical                :: small_pexsi_tol = .false.  !< Is user-defined tolerance smaller than default?
+   real(c_double)         :: final_pexsi_tol = 1d-2     !< Default final PEXSI tolerance
+   integer(c_int)         :: n_inertia_steps            !< Number of steps to perform inertia counting
    integer(c_intptr_t)    :: pexsi_plan
    type(f_ppexsi_options) :: pexsi_options
    integer(c_int)         :: pexsi_info
    integer(c_int)         :: pexsi_output_file_index
-   real(c_double)         :: mu_pexsi = 0d0 !< Chemical potential computed by PEXSI
-   real(c_double)         :: n_electrons_pexsi !< Number of electrons computed by PEXSI
+   real(c_double)         :: mu_pexsi = 0d0             !< Chemical potential computed by PEXSI
+   real(c_double)         :: n_electrons_pexsi          !< Number of electrons computed by PEXSI
    real(c_double)         :: mu_min_inertia 
    real(c_double)         :: mu_max_inertia 
    integer(c_int)         :: n_total_inertia_iter

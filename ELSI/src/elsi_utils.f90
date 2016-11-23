@@ -434,11 +434,11 @@ subroutine elsi_stop(message, caller)
                myid, trim(caller), trim(message)
          write(*,'(A)') trim(string_message)
       endif
-      call MPI_BARRIER(mpi_comm_global, mpierr)
+      call MPI_Barrier(mpi_comm_global,mpierr)
    enddo
 
    if(n_procs > 1) then
-      call MPI_Abort(mpi_comm_global, 0, mpierr)
+      call MPI_Abort(mpi_comm_global,0,mpierr)
    endif
 
    stop
