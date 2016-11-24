@@ -164,6 +164,7 @@ contains
      call elsi_set_storage(matrix_format)
 
      n_g_size = matrix_size
+     n_nonsingular = matrix_size
      n_electrons = n_electrons_in
 
      if(solver == 2) then
@@ -800,7 +801,8 @@ contains
      select case (broadening_type)
         case(GAUSSIAN)
            do i_state = 1,n_states
-              occ_elpa(i_state) = n_spin*0.5d0*(1-erf((eigenvalues(i_state)-mu_in)*invert_width))
+              occ_elpa(i_state) = &
+                 n_spin*0.5d0*(1-erf((eigenvalues(i_state)-mu_in)*invert_width))
               diff_ne_out = diff_ne_out+occ_elpa(i_state)
            enddo
 
@@ -817,7 +819,8 @@ contains
            enddo
 
         case DEFAULT
-           call elsi_stop(" No supperted broadening type has been chosen. Exiting...", caller)
+           call elsi_stop(" No supperted broadening type has been chosen. "//&
+                          " Exiting...", caller)
      end select
 
   end subroutine ! elsi_get_ne
@@ -841,7 +844,7 @@ contains
      real*8  :: diff_mid !< Difference in number of electrons on middle point
      logical :: found_mu !< Is chemical potential found?
      integer :: n_steps !< Number of steps to find chemical potential
-     integer, parameter :: max_steps = 100 !< Maximum number of steps to find chemical potential
+     integer, parameter :: max_steps = 100 !< Maximum steps to find chemical potential
 
      character*40, parameter :: caller = "elsi_get_mu"
 
@@ -851,7 +854,7 @@ contains
      mu_left = mu_lower_in
      mu_right = mu_upper_in
 
-     do while(.not. found_mu)
+     do while(.not.found_mu)
         call elsi_get_ne(mu_left, diff_left)
         call elsi_get_ne(mu_right, diff_right)
 
@@ -917,18 +920,18 @@ contains
      select case (method)
         case (ELPA)
            if(.not.allocated(D_elpa)) then
-              call elsi_allocate(D_elpa, n_l_rows, n_l_cols, "D_elpa", caller)
+              call elsi_allocate(D_elpa,n_l_rows,n_l_cols,"D_elpa",caller)
            endif
            D_elpa = 0d0
 
            ! Map global columns to local
-           call elsi_allocate(local_col, n_g_size, "local_col", caller)
+           call elsi_allocate(local_col,n_g_size,"local_col",caller)
 
            i_col = 0 ! local column counter
 
-           do i = 1, n_g_size
-              if(MOD((i-1)/n_b_cols, n_p_cols) == my_p_col) then
-                 i_col = i_col + 1
+           do i = 1,n_g_size
+              if(MOD((i-1)/n_b_cols,n_p_cols) == my_p_col) then
+                 i_col = i_col+1
                  local_col(i) = i_col
               endif
            enddo
@@ -936,26 +939,26 @@ contains
            select case (mode)
               case (REAL_VALUES)
                  ! Get eigenvectors into tmp_real
-                 call elsi_allocate(tmp_real, n_l_rows, n_l_cols, "tmp_real", caller)
+                 call elsi_allocate(tmp_real,n_l_rows,n_l_cols,"tmp_real",caller)
                  call elsi_get_eigenvectors(tmp_real)
 
                  ! Compute the factors used to construct density matrix
-                 call elsi_allocate(factor, n_states, "factor", caller)
+                 call elsi_allocate(factor,n_states,"factor",caller)
                  factor = 0d0
 
-                 do i = 1, n_states
+                 do i = 1,n_states
                     if(occ_elpa(i) > 0d0) then
-                       factor(i) = sqrt(occ_elpa(i))
+                       factor(i) = SQRT(occ_elpa(i))
                     endif
                  enddo
 
-                 do i = 1, n_states
+                 do i = 1,n_states
                     if(factor(i) > 0d0) then
                        if(local_col(i) > 0) then
-                          tmp_real(:, local_col(i)) = tmp_real(:, local_col(i)) * factor(i)
+                          tmp_real(:,local_col(i)) = tmp_real(:,local_col(i))*factor(i)
                        endif
                     elseif(local_col(i) .ne. 0) then
-                       tmp_real(:, local_col(i)) = 0d0
+                       tmp_real(:,local_col(i)) = 0d0
                     endif
                  enddo
 
@@ -963,31 +966,31 @@ contains
                  D_out = 0d0
 
                  ! D_out = tmp_real*tmp_real^T
-                 call pdsyrk('U', 'N', n_g_size, n_states, 1.d0, &
-                             tmp_real, 1, 1, sc_desc, 0.d0, D_out, 1, 1, sc_desc)
+                 call pdsyrk('U','N',n_g_size,n_states,1d0,tmp_real,1,1,sc_desc,&
+                             0d0,D_out,1,1,sc_desc)
 
               case (COMPLEX_VALUES)
                  ! Get eigenvectors into tmp_complex
-                 call elsi_allocate(tmp_complex, n_l_rows, n_l_cols, "tmp_complex", caller)
+                 call elsi_allocate(tmp_complex,n_l_rows,n_l_cols,"tmp_complex",caller)
                  call elsi_get_eigenvectors(tmp_complex)
 
                  ! Compute the factors used to construct density matrix
-                 call elsi_allocate(factor, n_states, "factor", caller)
+                 call elsi_allocate(factor,n_states,"factor",caller)
                  factor = 0d0
 
-                 do i = 1, n_states
+                 do i = 1,n_states
                     if(occ_elpa(i) > 0d0) then
-                       factor(i) = sqrt(occ_elpa(i))
+                       factor(i) = SQRT(occ_elpa(i))
                     endif
                  enddo
 
-                 do i = 1, n_states
+                 do i = 1,n_states
                     if(factor(i) > 0d0) then
                        if(local_col(i) > 0) then
-                          tmp_complex(:, local_col(i)) = tmp_complex(:, local_col(i)) * factor(i)
+                          tmp_complex(:,local_col(i)) = tmp_complex(:,local_col(i))*factor(i)
                        endif
                     elseif(local_col(i) .ne. 0) then
-                       tmp_complex(:, local_col(i)) = 0d0
+                       tmp_complex(:,local_col(i)) = 0d0
                     endif
                  enddo
 
@@ -1004,7 +1007,7 @@ contains
                  call pdsyrk('U','N',n_g_size,n_states,1d0,aimag(tmp_complex),1,1,sc_desc,&
                              0d0,D_out_tmp,1,1,sc_desc)
 
-                 D_out = D_out + D_out_tmp
+                 D_out = D_out+D_out_tmp
            end select
 
            deallocate(local_col)
@@ -1014,38 +1017,37 @@ contains
 
            ! Now D_out is an upper triangle matrix
            ! Set D_out to full
-           call elsi_allocate(tmp_real, n_l_rows, n_l_cols, "tmp_real", caller)
+           call elsi_allocate(tmp_real,n_l_rows,n_l_cols,"tmp_real",caller)
            tmp_real = D_out
 
-           ! D_out = D_out + tmp_real' = D_out + D_out'   A' here means
-           ! transpose of A
-           call pdtran(n_g_size, n_g_size, 1.d0, tmp_real, 1, 1, sc_desc, 1.d0, D_out, 1, 1, sc_desc)
+           ! D_out = D_out + tmp_real' = D_out + D_out'
+           call pdtran(n_g_size,n_g_size,1d0,tmp_real,1,1,sc_desc,1d0,D_out,1,1,sc_desc)
 
            deallocate(tmp_real)
 
-           do l_row = 1, n_l_rows
-              call elsi_get_global_row(g_row, l_row)
-              do l_col = l_row, n_l_cols
-                 call elsi_get_global_col(g_col, l_col)
+           do l_row = 1,n_l_rows
+              call elsi_get_global_row(g_row,l_row)
+              do l_col = l_row,n_l_cols
+                 call elsi_get_global_col(g_col,l_col)
                  if(g_row == g_col) then
-                    D_out(l_row, l_col) = 0.5d0 * D_out(l_row, l_col)
+                    D_out(l_row,l_col) = 0.5d0*D_out(l_row,l_col)
                  endif
               enddo
            enddo
 
         case (LIBOMM)
            call elsi_stop(" LIBOMM does not compute density matrix from eigenvectors! "//&
-                          " Exiting...", caller)
+                          " Exiting...",caller)
         case (PEXSI)
            call elsi_stop(" PEXSI does not compute density matrix from eigenvectors! "//&
-                          " Exiting...", caller)
+                          " Exiting...",caller)
         case (CHESS)
            call elsi_stop(" CHESS does not compute density matrix from eigenvectors! "//&
-                          " Exiting...", caller)
+                          " Exiting...",caller)
         case DEFAULT
            call elsi_stop(" No supported method has been chosen. "//&
                           " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
-                          " Exiting...", caller)
+                          " Exiting...",caller)
      end select
 
   end subroutine ! elsi_compute_dm_elpa
@@ -1065,9 +1067,13 @@ contains
   subroutine elsi_to_standard_evp()
 
 
-     logical :: success
+     real*8 :: ev_sqrt
+     real*8, allocatable :: ev_overlap(:)
      real*8, allocatable :: buffer_real(:,:)
      complex*16, allocatable :: buffer_complex(:,:)
+     integer, allocatable :: local_col(:)
+     integer :: i,i_col
+     logical :: success
 
      character*40, parameter :: caller = "elsi_to_standard_evp"
 
@@ -1117,37 +1123,132 @@ contains
                  call elsi_allocate(buffer_real,n_l_rows,n_l_cols,"temp",caller)
 
                  if(n_elsi_calls == 1) then
-                    call elsi_statement_print("  Starting Cholesty decomposition")
-                    ! Compute S = (U^T)U, U -> S
-                    success = elpa_cholesky_real_double(n_g_size,S_real,n_l_rows,&
-                                 n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col,.false.)
+                    ! Check if overlap matrix is singular
+                    call elsi_statement_print("  Checking singularity for overlap matrix")
+
+                    ! Use buffer_real to store overlap matrix, otherwise it will be
+                    ! destroyed by eigenvalue calculation
+                    ! The nonsingular eigenvalues must be the first ones, so find
+                    ! eigenvalues of negative overlap matrix
+                    buffer_real = -S_real
+
+                    call elsi_allocate(ev_overlap,n_g_size,"ev_overlap",caller)
+
+                    ! Always use ELPA 2-stage solver here
+                    success = solve_evp_real_2stage_double(n_g_size,n_g_size,buffer_real,&
+                                 n_l_rows,ev_overlap,C_real,n_l_rows,n_b_rows,n_l_cols,&
+                                 mpi_comm_row,mpi_comm_col,mpi_comm_global)
+
                     if(.not.success) then
-                       call elsi_stop(" Cholesky decomposition failed.",caller)
+                       call elsi_stop(" ELPA failed when solving eigenvalue problem. "//&
+                                      " Exiting...", caller)
                     endif
 
-                    ! compute U^-1 -> S
-                    success = elpa_invert_trm_real_double(n_g_size,S_real,n_l_rows,&
-                                 n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col,.false.)
-                    if(.not.success) then
-                       call elsi_stop(" Matrix invertion failed.",caller)
-                    endif
-                 endif
+                    ! Invert signs of eigenvalues
+                    ev_overlap = -ev_overlap
 
-                 ! compute H(U^-1) -> buff
-                 ! buffer_real = H_real * S_real
-                 call pdgemm('N','N',n_g_size,n_g_size,n_g_size,1d0,H_real,1,1,&
-                             sc_desc,S_real,1,1,sc_desc,0d0,buffer_real,1,1,sc_desc)
+                    ! Get the number of nonsingular eigenvalues
+                    do i = 1,n_g_size
+                       if(ev_overlap(i) < singularity_tolerance) exit
+                    enddo
+                    n_nonsingular = i-1
 
-                 ! compute ((U^-1)^T)H by (H(U^-1))^T -> H
-                 ! H_real = (buffer_real)^T
-                 call pdtran(n_g_size,n_g_size,1d0,buffer_real,1,1,sc_desc,0d0,&
-                             H_real,1,1,sc_desc)
+                    ! Stop if n_states is larger that n_nonsingular
+                    if(n_nonsingular < n_states) then ! Too singular to continue
+                       call elsi_stop(" Overlap matrix is singular. The number of"//&
+                                      " basis functions after removing singularity"//&
+                                      " is smaller than the number of states. Try to"//&
+                                      " a) decrease the size of basis set, or b)"//&
+                                      " decrease the number of states, or c) increase"//&
+                                      " the tolerance of basis singularity."//&
+                                      " Exiting...",caller)
+                    elseif(n_nonsingular < n_g_size) then ! Singular
+                       overlap_is_singular = .true.
 
-                 ! compute ((U^-1)^T)H(U^-1) -> H
-                 buffer_real = H_real
-                 ! H_real = buffer_real * S_real
-                 call pdgemm('N','N',n_g_size,n_g_size,n_g_size,1d0,buffer_real,&
-                             1,1,sc_desc,S_real,1,1,sc_desc,0d0,H_real,1,1,sc_desc)
+                       call elsi_statement_print("  Overlap matrix is singular. This"//&
+                                                 " may mean that a very large basis"//&
+                                                 " set is in use. The calculation"//&
+                                                 " will continue. However, please"//&
+                                                 " note that running with a near-"//&
+                                                 " singular basis set may lead to"//&
+                                                 " completely wrong numerical results.")
+
+                       if(myid == 0) then
+                          write(*,"(A,I13)") "  | Number of basis functions reduced to: ",&
+                                             n_nonsingular
+                       endif
+
+                       call elsi_statement_print("  Using scaled eigenvectors of"//&
+                                                 " overlap matrix for transformation")
+
+                       ! Overlap matrix is overwritten with scaled eigenvectors
+                       ! Map global columns to local
+                       call elsi_allocate(local_col,n_g_size,"local_col",caller)
+
+                       i_col = 0 ! local column counter
+                       do i = 1,n_g_size
+                          if(MOD((i-1)/n_b_cols,n_p_cols) == my_p_col) then
+                             i_col = i_col+1
+                             local_col(i) = i_col
+                          endif
+                       enddo
+
+                       ! Scale eigenvectors
+                       do i = 1,n_nonsingular
+                          ev_sqrt = SQRT(ev_overlap(i))
+                          if(local_col(i) == 0) cycle
+                          S_real(:,local_col(i)) = C_real(:,local_col(i))/ev_sqrt
+                       enddo
+
+                    else ! Nonsingular
+                       overlap_is_singular = .false.
+
+                       call elsi_statement_print("  Overlap matrix is nonsingular")
+                       call elsi_statement_print("  Starting Cholesty decomposition")
+
+                       ! Compute S = (U^T)U, U -> S
+                       success = elpa_cholesky_real_double(n_g_size,S_real,n_l_rows,&
+                                    n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col,.false.)
+                       if(.not.success) then
+                          call elsi_stop(" Cholesky decomposition failed.",caller)
+                       endif
+
+                       ! compute U^-1 -> S
+                       success = elpa_invert_trm_real_double(n_g_size,S_real,n_l_rows,&
+                                    n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col,.false.)
+                       if(.not.success) then
+                          call elsi_stop(" Matrix invertion failed.",caller)
+                       endif
+                    endif ! Singular overlap?
+                 endif ! First call?
+
+                 if(overlap_is_singular) then ! Use scaled eigenvectors
+                    ! buffer_real = H_real * S_real
+                    call pdgemm('N','N',n_g_size,n_nonsingular,n_g_size,1d0,H_real,1,&
+                                1,sc_desc,S_real,1,1,sc_desc,0d0,buffer_real,1,1,sc_desc)
+
+                    ! H_real = (S_real)^T * buffer_real
+                    call pdgemm('T','N',n_nonsingular,n_nonsingular,n_g_size,1d0,S_real,&
+                                1,1,sc_desc,buffer_real,1,1,sc_desc,0d0,H_real,1,1,sc_desc)
+
+                 else ! Use Cholesky
+                    ! compute H(U^-1) -> buff
+                    ! buffer_real = H_real * S_real
+                    call pdgemm('N','N',n_g_size,n_g_size,n_g_size,1d0,H_real,1,1,&
+                                sc_desc,S_real,1,1,sc_desc,0d0,buffer_real,1,1,sc_desc)
+
+                    ! compute ((U^-1)^T)H by (H(U^-1))^T -> H
+                    ! H_real = (buffer_real)^T
+                    call pdtran(n_g_size,n_g_size,1d0,buffer_real,1,1,sc_desc,0d0,&
+                                H_real,1,1,sc_desc)
+
+                    ! compute ((U^-1)^T)H(U^-1) -> H
+                    buffer_real = H_real
+                    ! H_real = buffer_real * S_real
+                    call pdgemm('N','N',n_g_size,n_g_size,n_g_size,1d0,buffer_real,&
+                                1,1,sc_desc,S_real,1,1,sc_desc,0d0,H_real,1,1,sc_desc)
+                endif
+
            end select
 
         case (LIBOMM)
@@ -1160,6 +1261,7 @@ contains
                           " Exiting...",caller)
      end select
 
+     if(allocated(ev_overlap))     deallocate(ev_overlap)
      if(allocated(buffer_real))    deallocate(buffer_real)
      if(allocated(buffer_complex)) deallocate(buffer_complex)
 
@@ -1182,8 +1284,9 @@ contains
         case (ELPA)
            select case (mode)
               case (COMPLEX_VALUES)
-                 ! (U^-1) is stored in S_complex after
-                 ! elsi_to_standard_evp
+                 ! TODO: Singular case
+
+                 ! (U^-1) is stored in S_complex after elsi_to_standard_evp
                  ! vectors_complex = S_complex * vectors_complex
                  call elsi_allocate(buffer_complex,n_l_rows,n_l_cols,"temp",caller)
                  buffer_complex = C_complex
@@ -1194,23 +1297,20 @@ contains
                              C_complex,1,1,sc_desc)
 
               case (REAL_VALUES)
-                 ! (U^-1) is stored in S_real after
-                 ! elsi_to_standard_evp
-                 ! C_real = S_real * C_real
                  call elsi_allocate(buffer_real,n_l_rows,n_l_cols,"temp",caller)
                  buffer_real = C_real
 
-                 ! method (a)
-!                call pdtran(n_g_size, n_g_size, 1.d0, S_real, 1, 1, sc_desc, &
-!                            0.d0, H_real, 1, 1, sc_desc)
-!                call mult_at_b_real('L', 'N', n_g_size, n_states, H_real, &
-!                                    n_l_rows, buffer_real, n_l_rows, n_b_rows, &
-!                                    mpi_comm_row, mpi_comm_col, C_real, n_l_rows)
+                 if(overlap_is_singular) then
+                    ! Transform matrix is stored in S_real after elsi_to_standard_evp
+                    call pdgemm('N','N',n_g_size,n_g_size,n_nonsingular,1d0,S_real,1,&
+                                1,sc_desc,buffer_real,1,1,sc_desc,0d0,C_real,1,1,sc_desc)
+                 else ! Nonsingular, use Cholesky
+                    ! (U^-1) is stored in S_real after elsi_to_standard_evp
+                    ! C_real = S_real * C_real = S_real * buffer_real
+                    call pdgemm('N','N',n_g_size,n_states,n_g_size,1d0,S_real,1,1,&
+                                sc_desc,buffer_real,1,1,sc_desc,0d0,C_real,1,1,sc_desc)
+                 endif
 
-                 ! method (b)
-                 ! C_real = S_real * buffer_real
-                 call pdgemm('N','N',n_g_size,n_states,n_g_size,1d0,S_real,1,1,&
-                             sc_desc,buffer_real,1,1,sc_desc,0d0,C_real,1,1,sc_desc)
            end select
 
         case (LIBOMM)
@@ -1255,7 +1355,7 @@ contains
      endif
 
      ! Transform to standard form
-     if(.not. overlap_is_unit) then
+     if(.not.overlap_is_unit) then
         call elsi_statement_print("  Tansforming to standard evp")
         call elsi_to_standard_evp()
      endif
@@ -1265,40 +1365,40 @@ contains
         call elsi_statement_print("  Starting ELPA 2-stage solver")
         select case (mode)
            case (COMPLEX_VALUES)
-              success = solve_evp_complex_2stage_double(n_g_size, n_states, H_complex, &
-                           n_l_rows, eigenvalues, C_complex, n_l_rows, n_b_rows, &
-                           n_l_cols, mpi_comm_row, mpi_comm_col, mpi_comm_global)
+              success = solve_evp_complex_2stage_double(n_nonsingular,n_states,&
+                           H_complex,n_l_rows,eigenvalues,C_complex,n_l_rows,n_b_rows,&
+                           n_l_cols,mpi_comm_row,mpi_comm_col,mpi_comm_global)
            case (REAL_VALUES)
-              success = solve_evp_real_2stage_double(n_g_size, n_states, H_real, &
-                           n_l_rows, eigenvalues, C_real, n_l_rows, n_b_rows, &
-                           n_l_cols, mpi_comm_row, mpi_comm_col, mpi_comm_global)
+              success = solve_evp_real_2stage_double(n_nonsingular,n_states,H_real,&
+                           n_l_rows,eigenvalues,C_real,n_l_rows,n_b_rows,&
+                           n_l_cols,mpi_comm_row,mpi_comm_col,mpi_comm_global)
         end select
      else ! 1-stage solver
         call elsi_statement_print("  Starting ELPA 1-stage solver")
         select case (mode)
            case (COMPLEX_VALUES)
-              success = solve_evp_complex_1stage_double(n_g_size, n_states, H_complex, &
-                           n_l_rows, eigenvalues, C_complex, n_l_rows, n_b_rows, &
-                           n_l_cols, mpi_comm_row, mpi_comm_col)
+              success = solve_evp_complex_1stage_double(n_nonsingular,n_states,&
+                           H_complex,n_l_rows,eigenvalues,C_complex,n_l_rows,&
+                           n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col)
            case (REAL_VALUES)
-              success = solve_evp_real_1stage_double(n_g_size, n_states, H_real, &
-                           n_l_rows, eigenvalues, C_real, n_l_rows, n_b_rows, &
-                           n_l_cols, mpi_comm_row, mpi_comm_col)
+              success = solve_evp_real_1stage_double(n_nonsingular,n_states,H_real,&
+                           n_l_rows,eigenvalues,C_real,n_l_rows,n_b_rows,n_l_cols,&
+                           mpi_comm_row,mpi_comm_col)
         end select
      endif
 
-     if(.not. success) then
+     if(.not.success) then
         call elsi_stop(" ELPA failed when solving eigenvalue problem. "//&
-                       " Exiting...", caller)
+                       " Exiting...",caller)
      endif
 
      ! Back-transform eigenvectors
-     if(.not. overlap_is_unit) then
+     if(.not.overlap_is_unit) then
         call elsi_statement_print("  Transforming to original eigenvectors")
         call elsi_to_original_ev()
      endif
 
-     call MPI_Barrier(mpi_comm_global, mpierr)
+     call MPI_Barrier(mpi_comm_global,mpierr)
      call elsi_stop_solve_evp_time()
 
   end subroutine ! elsi_solve_evp_elpa
@@ -1346,6 +1446,11 @@ contains
      logical :: success
      character*40, parameter :: caller = "elsi_solve_evp_omm"
 
+     if(overlap_is_singular) then
+        call elsi_stop(" libOMM cannot treat singular overlap matrix yet. "//&
+                       " Exiting...", caller)
+     endif
+
      call elsi_start_solve_evp_time()
 
      if(n_elsi_calls == 1) then
@@ -1354,12 +1459,12 @@ contains
         select case (mode)
            case (COMPLEX_VALUES)
               ! Compute S = (U^T)U, U -> S
-              success = elpa_cholesky_complex_double(n_g_size, S_omm%zval, n_l_rows, n_b_rows, &
-                                                     n_l_cols, mpi_comm_row, mpi_comm_col, .false.)
+              success = elpa_cholesky_complex_double(n_g_size,S_omm%zval,n_l_rows,&
+                           n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col,.false.)
            case (REAL_VALUES)
               ! Compute S = (U^T)U, U -> S
-              success = elpa_cholesky_real_double(n_g_size, S_omm%dval, n_l_rows, n_b_rows, &
-                                                  n_l_cols, mpi_comm_row, mpi_comm_col, .false.)
+              success = elpa_cholesky_real_double(n_g_size,S_omm%dval,n_l_rows,&
+                           n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col,.false.)
         end select
      else
         C_matrix_initialized = .true.
@@ -1375,11 +1480,11 @@ contains
         ! Invert U^(-1), which is used in ELPA cholesky and stored in S, to get U for OMM
         select case (mode)
            case (COMPLEX_VALUES)
-              success = elpa_invert_trm_complex_double(n_g_size, S_omm%zval, n_l_rows, n_b_rows, &
-                                                       n_l_cols, mpi_comm_row, mpi_comm_col, .false.)
+              success = elpa_invert_trm_complex_double(n_g_size,S_omm%zval,n_l_rows,&
+                           n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col,.false.)
            case (REAL_VALUES)
-              success = elpa_invert_trm_real_double(n_g_size, S_omm%dval, n_l_rows, n_b_rows, &
-                                                    n_l_cols, mpi_comm_row, mpi_comm_col, .false.)
+              success = elpa_invert_trm_real_double(n_g_size,S_omm%dval,n_l_rows,&
+                           n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col,.false.)
         end select
      endif
 
@@ -1388,20 +1493,20 @@ contains
 
      select case (mode)
         case (COMPLEX_VALUES)
-           call omm(n_g_size, n_states, H_omm, S_omm, new_overlap, total_energy, &
-                    D_omm, calc_ED, eta, Coeff_omm, C_matrix_initialized, T_omm, &
-                    scale_kinetic, omm_flavour, nk_times_nspin, i_k_spin, min_tol, &
-                    omm_verbose, do_dealloc, "pzdbc", "lap", myid)
+           call omm(n_g_size,n_states,H_omm,S_omm,new_overlap,total_energy,D_omm,&
+                    calc_ED,eta,Coeff_omm,C_matrix_initialized,T_omm,scale_kinetic,&
+                    omm_flavour,nk_times_nspin,i_k_spin,min_tol,omm_verbose,&
+                    do_dealloc,"pzdbc","lap",myid)
         case (REAL_VALUES)
-           call omm(n_g_size, n_states, H_omm, S_omm, new_overlap, total_energy, &
-                    D_omm, calc_ED, eta, Coeff_omm, C_matrix_initialized, T_omm, &
-                    scale_kinetic, omm_flavour, nk_times_nspin, i_k_spin, min_tol, &
-                    omm_verbose, do_dealloc, "pddbc", "lap", myid)
+           call omm(n_g_size,n_states,H_omm,S_omm,new_overlap,total_energy,D_omm,&
+                    calc_ED,eta,Coeff_omm,C_matrix_initialized,T_omm,scale_kinetic,&
+                    omm_flavour,nk_times_nspin,i_k_spin,min_tol,omm_verbose,&
+                    do_dealloc,"pddbc","lap",myid)
      end select
 
      first_call = .false.
 
-     call MPI_Barrier(mpi_comm_global, mpierr)
+     call MPI_Barrier(mpi_comm_global,mpierr)
      call elsi_stop_solve_evp_time()
 
   end subroutine ! elsi_solve_evp_omm
@@ -1570,7 +1675,7 @@ contains
      call elsi_allocate(dest, nnz_l, "dest", caller)
      call elsi_allocate(pos_send_buffer, nnz_l, "pos_send_buffer", caller)
      call elsi_allocate(h_val_send_buffer, nnz_l, "h_val_send_buffer", caller)
-     if(.not. overlap_is_unit) then
+     if(.not.overlap_is_unit) then
         call elsi_allocate(s_val_send_buffer, nnz_l, "s_val_send_buffer", caller)
      endif
 
@@ -1592,7 +1697,7 @@ contains
               ! Pack global id and data into buffers
               pos_send_buffer(i_val) = (global_col_id-1)*n_g_size+global_row_id
               h_val_send_buffer(i_val) = H_in(i_row, i_col)
-              if(.not. overlap_is_unit) then
+              if(.not.overlap_is_unit) then
                  s_val_send_buffer(i_val) = S_in(i_row, i_col)
               endif
           endif
@@ -1633,7 +1738,7 @@ contains
 
      call elsi_allocate(pos_recv_buffer, nnz_l_pexsi, "pos_recv_buffer", caller)
      call elsi_allocate(h_val_recv_buffer, nnz_l_pexsi, "h_val_recv_buffer", caller)
-     if(.not. overlap_is_unit) then
+     if(.not.overlap_is_unit) then
         call elsi_allocate(s_val_recv_buffer, nnz_l_pexsi, "s_val_recv_buffer", caller)
      endif
 
@@ -1642,7 +1747,7 @@ contains
                         h_val_recv_buffer, recv_count, recv_displ, mpi_real8, &
                         mpi_comm_global, mpierr)
 
-     if(.not. overlap_is_unit) then
+     if(.not.overlap_is_unit) then
         call MPI_Alltoallv(s_val_send_buffer, send_count, send_displ, mpi_real8, &
                            s_val_recv_buffer, recv_count, recv_displ, mpi_real8, &
                            mpi_comm_global, mpierr)
@@ -1654,7 +1759,7 @@ contains
 
      deallocate(pos_send_buffer)
      deallocate(h_val_send_buffer)
-     if(.not. overlap_is_unit) then
+     if(.not.overlap_is_unit) then
         deallocate(s_val_send_buffer)
      endif
 
@@ -1683,7 +1788,7 @@ contains
         call elsi_allocate(H_real_pexsi, nnz_l_pexsi, "H_real_pexsi", caller)
      H_real_pexsi = 0d0
 
-     if(.not. overlap_is_unit) then
+     if(.not.overlap_is_unit) then
         if(.not.allocated(S_real_pexsi)) &
            call elsi_allocate(S_real_pexsi, nnz_l_pexsi, "S_real_pexsi", caller)
         S_real_pexsi = 0d0
@@ -1703,7 +1808,7 @@ contains
 
      matrix_aux = 0d0
 
-     if(.not. overlap_is_unit) then
+     if(.not.overlap_is_unit) then
         ! Unpack overlap
         do i_val = 1, nnz_l_pexsi
            ! Compute global 2d id
@@ -1900,40 +2005,40 @@ contains
      if(small_pexsi_tol) then
         pexsi_options%numElectronPEXSITolerance = this_pexsi_tol
         if(myid == 0) &
-           write(*,"(A,E10.1)") "  | Current tolerance of number of electrons: ", &
+           write(*,"(A,E10.1)") "  | Current tolerance of number of electrons: ",&
                  this_pexsi_tol
      endif
 
      if(.not.allocated(D_pexsi)) then
-        call elsi_allocate(D_pexsi, nnz_l_pexsi, "D_pexsi", caller)
+        call elsi_allocate(D_pexsi,nnz_l_pexsi,"D_pexsi",caller)
      endif
      D_pexsi = 0d0
 
      if(.not.allocated(ED_pexsi)) then
-        call elsi_allocate(ED_pexsi, nnz_l_pexsi, "ED_pexsi", caller)
+        call elsi_allocate(ED_pexsi,nnz_l_pexsi,"ED_pexsi",caller)
      endif
      ED_pexsi = 0d0
 
      if(.not.allocated(FD_pexsi)) then
-        call elsi_allocate(FD_pexsi, nnz_l_pexsi, "FD_pexsi", caller)
+        call elsi_allocate(FD_pexsi,nnz_l_pexsi,"FD_pexsi",caller)
      endif
      FD_pexsi = 0d0
 
      ! Load sparse matrices for PEXSI
      if(overlap_is_unit) then
-        call f_ppexsi_load_real_hs_matrix(pexsi_plan, pexsi_options, n_g_size, &
-                                          nnz_g, nnz_l_pexsi, n_l_cols_pexsi, &
-                                          col_ptr_pexsi, row_ind_pexsi, H_real_pexsi, &
-                                          1, S_real_pexsi, pexsi_info)
+        call f_ppexsi_load_real_hs_matrix(pexsi_plan,pexsi_options,n_g_size,nnz_g,&
+                                          nnz_l_pexsi,n_l_cols_pexsi,col_ptr_pexsi,&
+                                          row_ind_pexsi,H_real_pexsi,1,S_real_pexsi,&
+                                          pexsi_info)
      else
-        call f_ppexsi_load_real_hs_matrix(pexsi_plan, pexsi_options, n_g_size, &
-                                          nnz_g, nnz_l_pexsi, n_l_cols_pexsi, &
-                                          col_ptr_pexsi, row_ind_pexsi, H_real_pexsi, &
-                                          0, S_real_pexsi, pexsi_info)
+        call f_ppexsi_load_real_hs_matrix(pexsi_plan,pexsi_options,n_g_size,nnz_g,&
+                                          nnz_l_pexsi,n_l_cols_pexsi,col_ptr_pexsi,&
+                                          row_ind_pexsi,H_real_pexsi,0,S_real_pexsi,&
+                                          pexsi_info)
      endif
 
      if(pexsi_info /= 0) &
-        call elsi_stop(" PEXSI not able to load H/S matrix. Exiting...", caller)
+        call elsi_stop(" PEXSI not able to load H/S matrix. Exiting...",caller)
 
      ! Inertia counting is only performed in the first few steps
      if(n_elsi_calls > n_inertia_steps) then
@@ -1943,14 +2048,14 @@ contains
      endif
 
      ! Solve the eigenvalue problem
-     call elsi_statement_print("  Launch PEXSI DFT driver ")
+     call elsi_statement_print("  Launch PEXSI DFT driver")
 
-     call f_ppexsi_dft_driver(pexsi_plan, pexsi_options, n_electrons, mu_pexsi, &
-                              n_electrons_pexsi, mu_min_inertia, mu_max_inertia, &
-                              n_total_inertia_iter, n_total_pexsi_iter, pexsi_info)
+     call f_ppexsi_dft_driver(pexsi_plan,pexsi_options,n_electrons,mu_pexsi,&
+                              n_electrons_pexsi,mu_min_inertia,mu_max_inertia,&
+                              n_total_inertia_iter,n_total_pexsi_iter,pexsi_info)
          
      if(pexsi_info /= 0) &
-        call elsi_stop(" PEXSI DFT Driver not able to solve problem. Exiting...", caller)
+        call elsi_stop(" PEXSI DFT Driver not able to solve problem. Exiting...",caller)
 
      if(small_pexsi_tol) then
         if(abs(n_electrons-n_electrons_pexsi) < this_pexsi_tol) then
@@ -1963,14 +2068,14 @@ contains
      endif
 
      ! Get the results
-     call f_ppexsi_retrieve_real_dft_matrix(pexsi_plan, D_pexsi, ED_pexsi, FD_pexsi, &
-                                            e_tot_H, e_tot_S, f_tot, pexsi_info)
+     call f_ppexsi_retrieve_real_dft_matrix(pexsi_plan,D_pexsi,ED_pexsi,FD_pexsi,&
+                                            e_tot_H,e_tot_S,f_tot,pexsi_info)
 
      if(pexsi_info /= 0) then
-        call elsi_stop(" PEXSI not able to retrieve solution. Exiting...", caller)
+        call elsi_stop(" PEXSI not able to retrieve solution. Exiting...",caller)
      endif
 
-     call MPI_Barrier(mpi_comm_global, mpierr)
+     call MPI_Barrier(mpi_comm_global,mpierr)
      call elsi_stop_solve_evp_time()
 
   end subroutine ! elsi_solve_evp_pexsi
@@ -2180,7 +2285,7 @@ contains
 
            ! Set Hamiltonian and Overlap matrices
            call elsi_set_hamiltonian(H_in)
-           if(.not. overlap_is_unit) then
+           if(.not.overlap_is_unit) then
               call elsi_set_overlap(S_in)
            endif
 
@@ -2191,17 +2296,17 @@ contains
 
         case (LIBOMM)
            call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
-                          " Choose ELPA if necessary. Exiting...", caller)
+                          " Choose ELPA if necessary. Exiting...",caller)
         case (PEXSI)
            call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
-                          " Choose ELPA if necessary. Exiting...", caller)
+                          " Choose ELPA if necessary. Exiting...",caller)
         case (CHESS)
            call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
-                          " Choose ELPA if necessary. Exiting...", caller)
+                          " Choose ELPA if necessary. Exiting...",caller)
         case DEFAULT
            call elsi_stop(" No supported method has been chosen."//&
                           " Please choose ELPA to compute eigenpairs."//&
-                          " Exiting...", caller)
+                          " Exiting...",caller)
      end select
 
   end subroutine ! elsi_ev_real
@@ -2234,7 +2339,7 @@ contains
 
            ! Set Hamiltonian and Overlap matrices
            call elsi_set_hamiltonian(H_in)
-           if(.not. overlap_is_unit) then
+           if(.not.overlap_is_unit) then
               call elsi_set_overlap(S_in)
            endif
 
@@ -2245,17 +2350,17 @@ contains
 
         case (LIBOMM)
            call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
-                          " Choose ELPA if necessary. Exiting...", caller)
+                          " Choose ELPA if necessary. Exiting...",caller)
         case (PEXSI)
            call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
-                          " Choose ELPA if necessary. Exiting...", caller)
+                          " Choose ELPA if necessary. Exiting...",caller)
         case (CHESS)
            call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
-                          " Choose ELPA if necessary. Exiting...", caller)
+                          " Choose ELPA if necessary. Exiting...",caller)
         case DEFAULT
            call elsi_stop(" No supported method has been chosen."//&
                           " Please choose ELPA to compute eigenpairs."//&
-                          " Exiting...", caller)
+                          " Exiting...",caller)
      end select
 
   end subroutine ! elsi_ev_complex
@@ -2294,16 +2399,16 @@ contains
                  broadening_width = width_in
               else
                  call elsi_stop(" ELPA is chosen to compute density matrix."//&
-                                " Please specify broadening width! Exiting...", caller)
+                                " Please specify broadening width! Exiting...",caller)
               endif
            else
               call elsi_stop(" ELPA is chosen to compute density matrix."//&
-                             " Please specify broadening type! Exiting...", caller)
+                             " Please specify broadening type! Exiting...",caller)
            endif
 
            ! Set Hamiltonian and overlap matrices
            call elsi_set_hamiltonian(H_in)
-           if(.not. overlap_is_unit) then
+           if(.not.overlap_is_unit) then
               call elsi_set_overlap(S_in)
            endif
 
@@ -2316,14 +2421,14 @@ contains
         case (LIBOMM)
            if(overlap_is_unit) then
               call elsi_stop(" Unit overlap in OMM not yet implemented."//&
-                             " Exiting...", caller)
+                             " Exiting...",caller)
            endif
 
            if(mod(nint(n_electrons),2) /= 0) then
               call elsi_stop(" The current implementation of OMM does not"//&
                              " work with fractional occupation numbers. This"//&
                              " means number of electrons in non-spin-polarized"//&
-                             " system cannot be odd. Exiting...", caller)
+                             " system cannot be odd. Exiting...",caller)
            endif
 
            if(.not.omm_customized) then
@@ -2342,7 +2447,7 @@ contains
 
               ! Set Hamiltonian and overlap matrices
               call elsi_set_hamiltonian(H_in)
-              if(.not. overlap_is_unit) then
+              if(.not.overlap_is_unit) then
                  call elsi_set_overlap(S_in)
               endif
 
@@ -2358,7 +2463,7 @@ contains
            else ! ELPA is done
               ! Set Hamiltonian and overlap matrices
               call elsi_set_hamiltonian(H_in)
-              if(.not. overlap_is_unit) then
+              if(.not.overlap_is_unit) then
                  call elsi_set_overlap(S_in)
               endif
 
@@ -2391,7 +2496,7 @@ contains
         case (PEXSI)
            if(n_g_size < n_procs) then
               call elsi_stop(" The (global) size of matrix is too small for"//&
-                             " this number of processes. Exiting...", caller)
+                             " this number of processes. Exiting...",caller)
            endif
 
            if(.not.pexsi_customized) then
@@ -2405,7 +2510,7 @@ contains
 
            ! Convert 2D block-cyclic dense Hamiltonian and overlap
            ! matrices to 1D block CCS sparse format
-           call elsi_2dbcd_to_1dbccs_hs_pexsi(H_in, S_in)
+           call elsi_2dbcd_to_1dbccs_hs_pexsi(H_in,S_in)
 
            call elsi_solve_evp_pexsi()
 
@@ -2425,10 +2530,10 @@ contains
            call f_ppexsi_plan_finalize(pexsi_plan, pexsi_info)
 
         case (CHESS)
-           call elsi_stop(" CHESS not yet implemented. Exiting...", caller)
+           call elsi_stop(" CHESS not yet implemented. Exiting...",caller)
         case default
            call elsi_stop(" No supported method has been chosen."//&
-                          " Exiting...", caller)
+                          " Exiting...",caller)
      end select
 
   end subroutine ! elsi_dm_real
@@ -2440,17 +2545,17 @@ contains
 
      implicit none
 
-     complex*16, target, intent(in) :: H_in(n_l_rows, n_l_cols)  !< Hamiltonian
-     complex*16, target, intent(in) :: S_in(n_l_rows, n_l_cols)  !< Overlap
-     real*8, intent(out)            :: D_out(n_l_rows, n_l_cols) !< Density matrix
-     real*8, intent(out)            :: energy_out                !< Energy
-     integer, intent(in), optional  :: broadening_in             !< (For ELPA) Occupation broadening scheme
-     real*8, intent(in), optional   :: width_in                  !< (For ELPA) Occupation broadening width
+     complex*16, target, intent(in) :: H_in(n_l_rows,n_l_cols)  !< Hamiltonian
+     complex*16, target, intent(in) :: S_in(n_l_rows,n_l_cols)  !< Overlap
+     real*8, intent(out)            :: D_out(n_l_rows,n_l_cols) !< Density matrix
+     real*8, intent(out)            :: energy_out               !< Energy
+     integer, intent(in), optional  :: broadening_in            !< (For ELPA) Occupation broadening scheme
+     real*8, intent(in), optional   :: width_in                 !< (For ELPA) Occupation broadening width
 
      character*40, parameter :: caller = "elsi_dm_complex"
 
      call elsi_stop(" ELSI density matrix solver for complex case not yet available."//&
-                    " Exiting...", caller)
+                    " Exiting...",caller)
 
      ! Update counter
      n_elsi_calls = n_elsi_calls+1
@@ -2470,16 +2575,16 @@ contains
                  broadening_width = width_in
               else
                  call elsi_stop(" ELPA is chosen to compute density matrix."//&
-                                " Please specify broadening width! Exiting...", caller)
+                                " Please specify broadening width! Exiting...",caller)
               endif
            else
               call elsi_stop(" ELPA is chosen to compute density matrix."//&
-                             " Please specify broadening type! Exiting...", caller)
+                             " Please specify broadening type! Exiting...",caller)
            endif
 
            ! Set Hamiltonian and overlap matrices
            call elsi_set_hamiltonian(H_in)
-           if(.not. overlap_is_unit) then
+           if(.not.overlap_is_unit) then
               call elsi_set_overlap(S_in)
            endif
 
@@ -2492,14 +2597,14 @@ contains
         case (LIBOMM)
            if(overlap_is_unit) then
               call elsi_stop(" Unit overlap in OMM not yet implemented."//&
-                             " Exiting...", caller)
+                             " Exiting...",caller)
            endif
 
            if(mod(nint(n_electrons),2) /= 0) then
               call elsi_stop(" The current implementation of OMM does not"//&
                              " work with fractional occupation numbers. This"//&
                              " means number of electrons in non-spin-polarized"//&
-                             " system cannot be odd. Exiting...", caller)
+                             " system cannot be odd. Exiting...",caller)
            endif
 
            if(.not.omm_customized) then
@@ -2509,7 +2614,7 @@ contains
 
            ! Set Hamiltonian and overlap matrices
            call elsi_set_hamiltonian(H_in)
-           if(.not. overlap_is_unit) then
+           if(.not.overlap_is_unit) then
               call elsi_set_overlap(S_in)
            endif
 
@@ -2520,7 +2625,7 @@ contains
         case (PEXSI)
            if(n_g_size < n_procs) then
               call elsi_stop(" The (global) size of matrix is too small for"//&
-                             " this number of processes. Exiting...", caller)
+                             " this number of processes. Exiting...",caller)
            endif
 
            if(.not.pexsi_customized) then
@@ -2528,13 +2633,13 @@ contains
               call elsi_print_pexsi_options()
            endif
 
-           call elsi_stop(" PEXSI not yet implemented. Exiting...", caller)
+           call elsi_stop(" PEXSI not yet implemented. Exiting...",caller)
 
         case (CHESS)
-           call elsi_stop(" CHESS not yet implemented. Exiting...", caller)
+           call elsi_stop(" CHESS not yet implemented. Exiting...",caller)
         case default
            call elsi_stop(" No supported method has been chosen."//&
-                          " Exiting...", caller)
+                          " Exiting...",caller)
      end select
 
   end subroutine ! elsi_dm_complex
