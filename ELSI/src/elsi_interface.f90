@@ -1699,9 +1699,6 @@ contains
                                      " multiple of number of poles.")
         endif
 
-        ! FIXME: PEXSI 2-level parallelism doesn't work
-        n_p_per_pole_pexsi = n_procs
-
         ! Set square-like process grid for selected inversion of each pole
         do n_p_rows_pexsi = NINT(SQRT(REAL(n_p_per_pole_pexsi))),2,-1
            if(mod(n_p_per_pole_pexsi,n_p_rows_pexsi) == 0) exit
@@ -1709,17 +1706,17 @@ contains
 
         n_p_cols_pexsi = n_p_per_pole_pexsi/n_p_rows_pexsi
 
-        ! position in process grid must not be used
-        my_p_col_pexsi = -1
-        my_p_row_pexsi = -1
+        ! PEXSI process grid
+        my_p_col_pexsi = mod(myid,n_p_per_pole_pexsi)
+        my_p_row_pexsi = myid/n_p_per_pole_pexsi
 
-        ! PEXSI needs a pure block distribution
+        ! PEXSI uses a pure block distribution in the first process row
         n_b_rows_pexsi = n_g_size
 
         ! The last process holds all remaining columns
-        n_b_cols_pexsi = FLOOR(1d0*n_g_size/n_procs)
-        if(myid == n_procs-1) then
-           n_b_cols_pexsi = n_g_size-(n_procs-1)*n_b_cols_pexsi
+        n_b_cols_pexsi = FLOOR(1d0*n_g_size/n_p_per_pole_pexsi)
+        if(my_p_col_pexsi == n_p_per_pole_pexsi-1) then
+           n_b_cols_pexsi = n_g_size-(n_p_per_pole_pexsi-1)*n_b_cols_pexsi
         endif
 
         n_l_rows_pexsi = n_b_rows_pexsi
@@ -1763,6 +1760,8 @@ contains
      integer :: global_row_id !< Global row id
      integer :: local_col_id !< Local column id in 1D block distribution
      integer :: local_row_id !< Local row id in 1D block distribution
+     integer :: nnz_l_tmp
+     integer :: mpi_comm_aux_pexsi
      integer :: mpierr
 
      integer, allocatable :: dest(:) !< Destination of each element
@@ -1812,9 +1811,9 @@ contains
               call elsi_get_global_row(global_row_id, i_row)
 
               ! Compute destination
-              dest(i_val) = FLOOR(1d0*(global_col_id-1)/FLOOR(1d0*n_g_size/n_procs))
+              dest(i_val) = FLOOR(1d0*(global_col_id-1)/FLOOR(1d0*n_g_size/n_p_per_pole_pexsi))
               ! The last process may take more
-              if(dest(i_val) > (n_procs-1)) dest(i_val) = n_procs-1
+              if(dest(i_val) > (n_p_per_pole_pexsi-1)) dest(i_val) = n_p_per_pole_pexsi-1
 
               ! Compute the global id
               ! Pack global id and data into buffers
@@ -1846,6 +1845,18 @@ contains
      nnz_l_pexsi = sum(recv_count, 1)
      call MPI_Allreduce(nnz_l_pexsi, nnz_g, 1, mpi_integer, mpi_sum, &
                         mpi_comm_global, mpierr)
+
+     ! At this point only processes in the first row in PEXSI process gird
+     ! have correct nnz_l_pexsi
+     if(n_p_per_pole_pexsi < n_procs) then
+        call MPI_Comm_split(mpi_comm_global, my_p_col_pexsi, my_p_row_pexsi, &
+                            mpi_comm_aux_pexsi, mpierr)
+
+        call MPI_Allreduce(nnz_l_pexsi, nnz_l_tmp, 1, mpi_integer, mpi_sum, &
+                           mpi_comm_aux_pexsi, mpierr)
+
+        nnz_l_pexsi = nnz_l_tmp
+     endif
 
      ! Set send and receive displacement
      send_displ_aux = 0
@@ -1889,20 +1900,22 @@ contains
      ! TODO: double check the new algorithm and get rid of matrix_aux
      matrix_aux = 0d0
 
-     ! Unpack Hamiltonian
-     do i_val = 1, nnz_l_pexsi
-        ! Compute global 2d id
-        global_col_id = FLOOR(1d0*(pos_recv_buffer(i_val)-1)/n_g_size)+1
-        global_row_id = MOD(pos_recv_buffer(i_val), n_g_size)
-        if(global_row_id == 0) global_row_id = n_g_size
+     ! Unpack Hamiltonian on the first process row in PEXSI process grid
+     if(my_p_row_pexsi == 0) then
+        do i_val = 1, nnz_l_pexsi
+           ! Compute global 2d id
+           global_col_id = FLOOR(1d0*(pos_recv_buffer(i_val)-1)/n_g_size)+1
+           global_row_id = MOD(pos_recv_buffer(i_val), n_g_size)
+           if(global_row_id == 0) global_row_id = n_g_size
 
-        ! Compute local 2d id
-        local_col_id = global_col_id-myid*FLOOR(1d0*n_g_size/n_procs)
-        local_row_id = global_row_id
+           ! Compute local 2d id
+           local_col_id = global_col_id-myid*FLOOR(1d0*n_g_size/n_p_per_pole_pexsi)
+           local_row_id = global_row_id
 
-        ! Put value to correct position
-        matrix_aux(local_row_id, local_col_id) = h_val_recv_buffer(i_val)
-     enddo
+           ! Put value to correct position
+           matrix_aux(local_row_id,local_col_id) = h_val_recv_buffer(i_val)
+        enddo
+     endif
 
      deallocate(h_val_recv_buffer)
 
@@ -1926,32 +1939,38 @@ contains
      col_ptr_pexsi = 0
 
      ! Transform Hamiltonian: 1D block dense ==> 1D block sparse CCS
-     call elsi_dense_to_ccs(matrix_aux, n_l_rows_pexsi, n_l_cols_pexsi, &
-                            nnz_l_pexsi, H_real_pexsi, row_ind_pexsi, col_ptr_pexsi)
+     if(my_p_row_pexsi == 0) then
+        call elsi_dense_to_ccs(matrix_aux, n_l_rows_pexsi, n_l_cols_pexsi, &
+                               nnz_l_pexsi, H_real_pexsi, row_ind_pexsi, col_ptr_pexsi)
+     endif
 
      matrix_aux = 0d0
 
      if(.not.overlap_is_unit) then
-        ! Unpack overlap
-        do i_val = 1, nnz_l_pexsi
-           ! Compute global 2d id
-           global_col_id = FLOOR(1d0*(pos_recv_buffer(i_val)-1)/n_g_size)+1
-           global_row_id = MOD(pos_recv_buffer(i_val), n_g_size)
-           if(global_row_id == 0) global_row_id = n_g_size
+        ! Unpack overlap on the first process row in PEXSI process grid
+        if(my_p_row_pexsi == 0) then
+           do i_val = 1, nnz_l_pexsi
+              ! Compute global 2d id
+              global_col_id = FLOOR(1d0*(pos_recv_buffer(i_val)-1)/n_g_size)+1
+              global_row_id = MOD(pos_recv_buffer(i_val), n_g_size)
+              if(global_row_id == 0) global_row_id = n_g_size
 
-           ! Compute local 2d id
-           local_col_id = global_col_id-myid*FLOOR(1d0*n_g_size/n_procs)
-           local_row_id = global_row_id
+              ! Compute local 2d id
+              local_col_id = global_col_id-myid*FLOOR(1d0*n_g_size/n_p_per_pole_pexsi)
+              local_row_id = global_row_id
 
-           ! Put value to correct position
-           matrix_aux(local_row_id, local_col_id) = s_val_recv_buffer(i_val)
-        enddo
+              ! Put value to correct position
+              matrix_aux(local_row_id,local_col_id) = s_val_recv_buffer(i_val)
+           enddo
+        endif
 
         deallocate(s_val_recv_buffer)
 
-        ! Transform overlap: 1D block dense ==> 1D block sparse CCS
-        call elsi_dense_to_ccs_by_pattern(matrix_aux, n_l_rows_pexsi, n_l_cols_pexsi, &
-                                          nnz_l_pexsi, row_ind_pexsi, col_ptr_pexsi, S_real_pexsi)
+        if(my_p_row_pexsi == 0) then
+           ! Transform overlap: 1D block dense ==> 1D block sparse CCS
+           call elsi_dense_to_ccs_by_pattern(matrix_aux, n_l_rows_pexsi, n_l_cols_pexsi, &
+                                             nnz_l_pexsi, row_ind_pexsi, col_ptr_pexsi, S_real_pexsi)
+        endif
      endif
 
      deallocate(pos_recv_buffer)
@@ -2005,6 +2024,9 @@ contains
 
      call elsi_start_1dccs_to_2dbc_time()
      call elsi_statement_print("  Matrix conversion: 1D block CCS sparse ==> 2D block-cyclic dense")
+
+     !TODO: every process row in PEXSI process grid has the same density matrix
+     !      density matrix conversion needs update
 
      send_count = 0
      send_displ = 0
@@ -2617,11 +2639,6 @@ contains
            endif
 
         case (PEXSI)
-           if(n_g_size < n_procs) then
-              call elsi_stop(" The (global) size of matrix is too small for"//&
-                             " this number of processes. Exiting...",caller)
-           endif
-
            if(.not.pexsi_customized) then
               call elsi_set_pexsi_default_options()
               call elsi_print_pexsi_options()
@@ -2630,6 +2647,11 @@ contains
            ! PEXSI may use different process grid to achieve
            ! the efficient 2-level parallelization
            call elsi_init_pexsi()
+
+           if(n_g_size < n_p_per_pole_pexsi) then
+              call elsi_stop(" The (global) size of matrix is too small for"//&
+                             " this number of processes. Exiting...",caller)
+           endif
 
            ! Convert 2D block-cyclic dense Hamiltonian and overlap
            ! matrices to 1D block CCS sparse format
@@ -2746,7 +2768,7 @@ contains
            call elsi_get_energy(energy_out)
 
         case (PEXSI)
-           if(n_g_size < n_procs) then
+           if(n_g_size < n_p_per_pole_pexsi) then
               call elsi_stop(" The (global) size of matrix is too small for"//&
                              " this number of processes. Exiting...",caller)
            endif
