@@ -146,26 +146,28 @@ contains
 !===============
 
 !>
-!! This routine initializes ELSI with global matrix size, 
-!! number of states, and method.
+!! This routine initializes ELSI with solver, parallelism, matrix format,
+!! global matrix size, number of electrons, and number of states.
 !!
-  subroutine elsi_init(solver,matrix_format,matrix_size,&
+  subroutine elsi_init(solver,parallel_mode,matrix_format,matrix_size,&
                        n_electrons_in,n_states_in)
 
      implicit none
 
-     integer, intent(in) :: solver         !< AUTO,ELPA,LIBOMM,PEXSI,CHESS,...
-     integer, intent(in) :: matrix_format  !< DENSE,CCS,CSC,CRS,CSR,...
+     integer, intent(in) :: solver         !< AUTO,ELPA,LIBOMM,PEXSI,CHESS
+     integer, intent(in) :: parallel_mode  !< SERIAL,PARALLEL
+     integer, intent(in) :: matrix_format  !< DENSE,CCS,CSC,CRS,CSR
      integer, intent(in) :: matrix_size    !< Global dimension of matrix
      real*8,  intent(in) :: n_electrons_in !< Number of electrons
      integer, intent(in) :: n_states_in    !< Number of states
 
-     call elsi_set_method(solver)
-     call elsi_set_storage(matrix_format)
-
      n_g_size = matrix_size
      n_nonsingular = matrix_size
      n_electrons = n_electrons_in
+
+     call elsi_set_method(solver)
+     call elsi_set_storage(matrix_format)
+     call elsi_set_parallel(parallel_mode)
 
      if(solver == 2) then
         ! Set number of occupied states for OMM
@@ -216,6 +218,26 @@ contains
      storage = i_storage
 
   end subroutine ! elsi_set_storage
+
+!>
+!! This routine sets the parallel mode.
+!!
+  subroutine elsi_set_parallel(i_parallel)
+
+     implicit none
+
+     integer, intent(in) :: i_parallel !< SERIAL,PARALLEL
+
+     parallelism = i_parallel
+
+     if(i_parallel == 0) then ! Serial version
+        n_l_rows = n_g_size
+        n_l_cols = n_g_size
+        n_b_rows = n_g_size
+        n_b_cols = n_g_size
+     endif
+
+  end subroutine ! elsi_set_parallel
 
 !>
 !! This routine overrides ELSI default settings.

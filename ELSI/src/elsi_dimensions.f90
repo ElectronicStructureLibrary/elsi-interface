@@ -43,6 +43,9 @@ module ELSI_DIMENSIONS
    !> Matrix storage format (DENSE=0,CCS=1,CSC=2,CRS=3,CSR=4)
    integer :: storage = -1
 
+   !> Parallel mode (SERIAL=0,PARALLEL=1)
+   integer :: parallelism = -1
+
    !> Global matrix size
    integer :: n_g_size
   
@@ -158,7 +161,7 @@ module ELSI_DIMENSIONS
       enumerator :: AUTO, ELPA, LIBOMM, PEXSI, CHESS
    end enum
 
-   !> Mode
+   !> Real or complex data
    enum, bind( C )
       enumerator :: REAL_VALUES, COMPLEX_VALUES
    end enum
@@ -166,6 +169,11 @@ module ELSI_DIMENSIONS
    !> Storage formats
    enum, bind( C )
       enumerator :: DENSE, CCS, CSC, CRS, CSR
+   end enum
+
+   !> Parallel modes
+   enum, bind( C )
+      enumerator :: SERIAL, PARALLEL
    end enum
 
    !> Broadening type (used if ELPA is chosen to compute density matrix)
