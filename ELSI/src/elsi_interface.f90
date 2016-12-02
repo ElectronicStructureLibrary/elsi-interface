@@ -2025,54 +2025,53 @@ contains
      call elsi_start_1dccs_to_2dbc_time()
      call elsi_statement_print("  Matrix conversion: 1D block CCS sparse ==> 2D block-cyclic dense")
 
-     !TODO: every process row in PEXSI process grid has the same density matrix
-     !      density matrix conversion needs update
-
      send_count = 0
      send_displ = 0
      recv_count = 0
      recv_displ = 0
 
-     call elsi_allocate(global_id, nnz_l_pexsi, "global_id", caller)
-     call elsi_allocate(dest, nnz_l_pexsi, "dest", caller)
-     call elsi_allocate(val_send_buffer, nnz_l_pexsi, "val_send_buffer", caller)
-     call elsi_allocate(pos_send_buffer, nnz_l_pexsi, "pos_send_buffer", caller)
+     if(my_p_row_pexsi == 0) then
+        call elsi_allocate(global_id, nnz_l_pexsi, "global_id", caller)
+        call elsi_allocate(dest, nnz_l_pexsi, "dest", caller)
+        call elsi_allocate(val_send_buffer, nnz_l_pexsi, "val_send_buffer", caller)
+        call elsi_allocate(pos_send_buffer, nnz_l_pexsi, "pos_send_buffer", caller)
 
-     i_col = 0
-     ! Compute destination and global 1D id
-     do i_val = 1, nnz_l_pexsi
-        if(i_val == col_ptr_pexsi(i_col+1) .and. i_col /= n_l_cols_pexsi) then
-           i_col = i_col+1
-        endif
-        i_row = row_ind_pexsi(i_val)
-
-        ! Compute global id
-        global_row_id = i_row
-        global_col_id = i_col+myid*FLOOR(1d0*n_g_size/n_procs)
-        global_id(i_val) = (global_col_id-1)*n_g_size+global_row_id
-
-        ! Compute destination
-        proc_row_id = MOD(FLOOR(1d0*(global_row_id-1)/n_b_rows), n_p_rows)
-        proc_col_id = MOD(FLOOR(1d0*(global_col_id-1)/n_b_cols), n_p_cols)
-        dest(i_val) = proc_col_id+proc_row_id*n_p_cols
-     enddo
-
-     j_val = 0
-
-     ! Set send_count
-     do i_proc = 0, n_procs-1
+        i_col = 0
+        ! Compute destination and global 1D id
         do i_val = 1, nnz_l_pexsi
-           if(dest(i_val) == i_proc) then
-              j_val = j_val+1
-              val_send_buffer(j_val) = D_pexsi(i_val)
-              pos_send_buffer(j_val) = global_id(i_val)
-              send_count(i_proc+1) = send_count(i_proc+1)+1
+           if(i_val == col_ptr_pexsi(i_col+1) .and. i_col /= n_l_cols_pexsi) then
+              i_col = i_col+1
            endif
-        enddo
-     enddo
+           i_row = row_ind_pexsi(i_val)
 
-     deallocate(global_id)
-     deallocate(dest)
+           ! Compute global id
+           global_row_id = i_row
+           global_col_id = i_col+myid*FLOOR(1d0*n_g_size/n_p_per_pole_pexsi)
+           global_id(i_val) = (global_col_id-1)*n_g_size+global_row_id
+
+           ! Compute destination
+           proc_row_id = MOD(FLOOR(1d0*(global_row_id-1)/n_b_rows), n_p_rows)
+           proc_col_id = MOD(FLOOR(1d0*(global_col_id-1)/n_b_cols), n_p_cols)
+           dest(i_val) = proc_col_id+proc_row_id*n_p_cols
+        enddo
+
+        j_val = 0
+
+        ! Set send_count
+        do i_proc = 0, n_procs-1
+           do i_val = 1, nnz_l_pexsi
+              if(dest(i_val) == i_proc) then
+                 j_val = j_val+1
+                 val_send_buffer(j_val) = D_pexsi(i_val)
+                 pos_send_buffer(j_val) = global_id(i_val)
+                 send_count(i_proc+1) = send_count(i_proc+1)+1
+              endif
+           enddo
+        enddo
+
+        deallocate(global_id)
+        deallocate(dest)
+     endif
 
      ! Set recv_count
      call MPI_Alltoall(send_count, 1, mpi_integer, recv_count, &
@@ -2104,8 +2103,10 @@ contains
                         pos_recv_buffer, recv_count, recv_displ, mpi_integer, &
                         mpi_comm_global, mpierr)
 
-     deallocate(val_send_buffer)
-     deallocate(pos_send_buffer)
+     if(my_p_row_pexsi == 0) then
+        deallocate(val_send_buffer)
+        deallocate(pos_send_buffer)
+     endif
 
      D_out = 0d0
 
