@@ -1343,10 +1343,10 @@ subroutine die(message)
   !**********************************************!
 
   open(newunit=err_unit,file='libOMM.err',status='replace')
-  write(err_unit,'(a)'), 'FATAL ERROR in libOMM!'
-  if (present(message)) write(err_unit,'(a)'), message
+  write(err_unit,'(a)') 'FATAL ERROR in libOMM!'
+  if (present(message)) write(err_unit,'(a)') message
 #ifdef MPI
-  write(err_unit,'(a,1x,i5)'), 'MPI rank:', mpi_rank
+  write(err_unit,'(a,1x,i5)') 'MPI rank:', mpi_rank
 #endif
   close(err_unit)
   stop

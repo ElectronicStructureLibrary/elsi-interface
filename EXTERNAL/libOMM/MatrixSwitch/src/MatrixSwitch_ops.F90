@@ -170,10 +170,10 @@ contains
     !**********************************************!
 
     open(newunit=err_unit,file='MatrixSwitch.err',status='replace')
-    write(err_unit,'(a)'), 'FATAL ERROR in matrix_switch!'
-    if (present(message)) write(err_unit,'(a)'), message
+    write(err_unit,'(a)') 'FATAL ERROR in matrix_switch!'
+    if (present(message)) write(err_unit,'(a)') message
 #ifdef MPI
-    write(err_unit,'(a,1x,i5)'), 'MPI rank:', ms_mpi_rank
+    write(err_unit,'(a,1x,i5)') 'MPI rank:', ms_mpi_rank
 #endif
     close(err_unit)
     stop
