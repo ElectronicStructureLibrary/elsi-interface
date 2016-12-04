@@ -627,7 +627,7 @@ contains
   ! set matrix element                             !
   ! C_ij := alpha                                  !
   !================================================!
-  subroutine m_dset_element(C,i,j,alpha,label)
+  subroutine m_dset_element(C,i,j,alpha,beta,label)
     implicit none
 
     !**** INPUT ***********************************!
@@ -638,16 +638,17 @@ contains
     integer, intent(in) :: j ! column index of element
 
     real(dp), intent(in) :: alpha ! scalar alpha
+    real(dp), intent(in) :: beta ! scalar beta
 
     character(*), intent(in) :: C ! matrix C
 
     !**********************************************!
 
-    call m_set_element_orig(ms_matrices(ms_lookup(C)),i,j,alpha,label)
+    call m_set_element_orig(ms_matrices(ms_lookup(C)),i,j,alpha,beta,label)
 
   end subroutine m_dset_element
 
-  subroutine m_zset_element(C,i,j,alpha,label)
+  subroutine m_zset_element(C,i,j,alpha,beta,label)
     implicit none
 
     !**** INPUT ***********************************!
@@ -658,12 +659,13 @@ contains
     integer, intent(in) :: j ! column index of element
 
     complex(dp), intent(in) :: alpha ! scalar alpha
+    complex(dp), intent(in) :: beta ! scalar beta
 
     character(*), intent(in) :: C ! matrix C
 
     !**********************************************!
 
-    call m_set_element_orig(ms_matrices(ms_lookup(C)),i,j,alpha,label)
+    call m_set_element_orig(ms_matrices(ms_lookup(C)),i,j,alpha,beta,label)
 
   end subroutine m_zset_element
 

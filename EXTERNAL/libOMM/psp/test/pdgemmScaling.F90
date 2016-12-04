@@ -1,4 +1,4 @@
-! This code test the pdgemm in scalapack
+! This code test the pdgemm in pspBLAS
 
 program pdgemmScaling
   use pspBLAS
@@ -27,7 +27,7 @@ program pdgemmScaling
 
   real(dp) :: he, se, t0, t1, mm_err, err
   real(dp), allocatable :: H(:,:), S(:,:), D(:,:), DD(:,:), Ht(:,:), St(:,:)
-  real    :: dtime
+  real(dp)    :: dtime, alpha, beta
   integer*4 timeArray(3)    ! Holds the hour, minute, and second
 
   type(psp_matrix_spm) :: Hsp, Ssp, Dsp, Htsp, Stsp ! sparse matrices in pspBLAS
@@ -53,8 +53,8 @@ program pdgemmScaling
   nprow=INT(sqrt(DBLE(mpi_size)))
   npcol=nprow
   order='r' ! important TODO: check how to adapt to different orders
-  bs_def_row=10
-  bs_def_col=10
+  bs_def_row=100
+  bs_def_col=100
 
   ! initialize information in scalapack
   call blacs_get(-1,0,icontxt)
@@ -63,7 +63,7 @@ program pdgemmScaling
   call blacs_gridinfo(icontxt,nprow,npcol,iprow,ipcol)
 
   ! initialized grid information in pspBLAS
-  call psp_gridinit(mpi_size,nprow,order,bs_def_row,bs_def_col,icontxt)
+  call psp_gridinit_2D(mpi_size,nprow,order,bs_def_row,bs_def_col,icontxt)
   !**********************************************!
   ! open files for read and write
 
@@ -71,6 +71,7 @@ program pdgemmScaling
   open(13,file='dgemm.txt',action='write',position='append')
   open(14,file='dspmm.txt',action='write',position='append')
   open(15,file='dmspm.txt',action='write',position='append')
+  open(16,file='dspmspm.txt',action='write',position='append')
 5 format (a,i4,a,f16.10,a,f16.10)
 
   !*************************************************************************!
@@ -81,9 +82,13 @@ program pdgemmScaling
 
   if (.true.) then
      ! random matrices
-     m=832 ! global matrix size
-     n=797
-     k=820
+     m=1000 ! global matrix size
+     n=1020
+     k=833
+
+     alpha = 1.5_dp
+     beta = 0.5_dp
+
      H_dim(1)=numroc(m,bs_def_row,iprow,0,nprow) ! use 'numroc' to compute the size of a local matrix, row
      H_dim(2)=numroc(k,bs_def_col,ipcol,0,npcol) ! use 'numroc' to compute the size of a local matrix, column
      call descinit(desc_H,m,k,bs_def_row,bs_def_col,0,0,icontxt,H_dim(1),info) ! initialize the descriptor of the global matrix H
@@ -125,30 +130,65 @@ program pdgemmScaling
 
      call RANDOM_NUMBER(S)
      call RANDOM_NUMBER(St)
+
   end if
 
   !***********************************
   ! initialize and assign distributed sparse matrices in pspBLAS
 
-  ! test 'coo' format
-  spm_storage='coo' ! specify storage format, 'coo' or 'csc'
+  if (.false.) then
+     ! test 'coo' format
+     spm_storage='coo' ! specify storage format, 'coo' or 'csc'
 
-  ! first method to generate a sparse matrix: thresholding a dense matrix in MatrixSwitch
-  thre = 0.0_dp
-  call psp_den2sp_m(H,desc_H,Hsp,spm_storage,thre)
-  call psp_den2sp_m(S,desc_S,Ssp,spm_storage,thre)
-  call psp_den2sp_m(Ht,desc_Ht,Htsp,spm_storage,thre)
-  call psp_den2sp_m(St,desc_St,Stsp,spm_storage,thre)
+     ! first method to generate a sparse matrix: thresholding a dense matrix in MatrixSwitch
+     thre = 0.99_dp
+     call psp_den2sp_m(H,desc_H,Hsp,spm_storage,thre)
+     call psp_den2sp_m(S,desc_S,Ssp,spm_storage,thre)
+     call psp_den2sp_m(Ht,desc_Ht,Htsp,spm_storage,thre)
+     call psp_den2sp_m(St,desc_St,Stsp,spm_storage,thre)
 
-  ! second method to generate a sparse matrix: use the information of the Sparse Triplet (ST) format
-  allocate(idx1(Hsp%nnz))
-  allocate(idx2(Hsp%nnz))
-  allocate(val(Hsp%nnz))
-  idx1=Hsp%row_ind ! row indices
-  idx2=Hsp%col_ind ! column indices if 'coo', or pointers to position in row indices if 'csc'
-  val=Hsp%dval     ! nonzero entries
-  desc_Hsp=Hsp%desc ! use the same descriptor as the one in Scalapack or MatrixSwitch
-  call psp_register_spm(Hsp,idx1,idx2,val,desc_Hsp,spm_storage,H_dim,nprow,npcol) ! assign a sparse matrix
+     ! convert the sparse matrix back to dense and use them as comparison
+     call psp_sp2den_m(Hsp,H,desc_H)
+     call psp_sp2den_m(Ssp,S,desc_S)
+     call psp_sp2den_m(Htsp,Ht,desc_Ht)
+     call psp_sp2den_m(Stsp,St,desc_St)
+
+     ! second method to generate a sparse matrix: use the information of the Sparse Triplet (ST) format (in this example, it's coo)
+     allocate(idx1(Hsp%nnz))
+     allocate(idx2(Hsp%nnz))
+     allocate(val(Hsp%nnz))
+     idx1=Hsp%row_ind ! row indices
+     idx2=Hsp%col_ind ! column indices if 'coo', or pointers to position in row indices if 'csc'
+     val=Hsp%dval     ! nonzero entries
+     desc_Hsp=Hsp%desc ! use the same descriptor as the one in Scalapack or MatrixSwitch
+     call psp_register_spm(Hsp,idx1,idx2,val,desc_Hsp,spm_storage,H_dim,nprow,npcol) ! assign a sparse matrix
+  else
+     ! test 'csc' format
+     spm_storage='csc' ! specify storage format, 'coo' or 'csc'
+
+     ! first method to generate a sparse matrix: thresholding a dense matrix in MatrixSwitch
+     thre = 0.8_dp
+     call psp_den2sp_m(H,desc_H,Hsp,spm_storage,thre)
+     call psp_den2sp_m(S,desc_S,Ssp,spm_storage,thre)
+     call psp_den2sp_m(Ht,desc_Ht,Htsp,spm_storage,thre)
+     call psp_den2sp_m(St,desc_St,Stsp,spm_storage,thre)
+
+     ! convert the sparse matrix back to dense and use them as comparison
+     call psp_sp2den_m(Hsp,H,desc_H)
+     call psp_sp2den_m(Ssp,S,desc_S)
+     call psp_sp2den_m(Htsp,Ht,desc_Ht)
+     call psp_sp2den_m(Stsp,St,desc_St)
+
+     ! second method to generate a sparse matrix: use the information of the Sparse Triplet (ST) format (in this example, it's csc)
+     allocate(idx1(Hsp%nnz))
+     allocate(idx2(Hsp%loc_dim2+1))
+     allocate(val(Hsp%nnz))
+     idx1=Hsp%row_ind ! row indices
+     idx2=Hsp%col_ptr ! column indices if 'coo', or pointers to position in row indices if 'csc'
+     val=Hsp%dval     ! nonzero entries
+     desc_Hsp=Hsp%desc ! use the same descriptor as the one in Scalapack or MatrixSwitch
+     call psp_register_spm(Hsp,idx1,idx2,val,desc_Hsp,spm_storage,H_dim,nprow,npcol) ! assign a sparse matrix
+  end if
 
   if (MPI_rank==0) print *, 'process grid', nprow, npcol
   if (MPI_rank==0) print *, 'block size', bs_def_row, bs_def_col
@@ -157,7 +197,7 @@ program pdgemmScaling
   if (mpi_rank==0) print *,  'Begin n n'
   t0 = MPI_Wtime()
   do i=1,niter
-     call pdgemm('n','n',m,n,k,1.0_dp,H,1,1,desc_H,S,1,1,desc_S,1.0_dp,D,1,1,desc_D)
+     call pdgemm('n','n',m,n,k,alpha,H,1,1,desc_H,S,1,1,desc_S,beta,D,1,1,desc_D)
   enddo
   t1 = MPI_Wtime()
   dtime=(t1-t0)/DBLE(niter)
@@ -167,7 +207,7 @@ program pdgemmScaling
   DD=0.0_dp
   t0 = MPI_Wtime()
   do i=1,niter
-     call psp_gemm(m,n,k,H,'n',S,'n',DD,1.0_dp,1.0_dp)
+     call psp_gemm(m,n,k,H,'n',S,'n',DD,alpha,beta)
   enddo
   t1 = MPI_Wtime()
   dtime=(t1-t0)/DBLE(niter)
@@ -177,13 +217,10 @@ program pdgemmScaling
   if (mpi_rank==0) print *, 'time of psp_gemm = n n ', dtime, 'error of psp_gemm: n n ', err
   if (mpi_rank==0)  write(13,5) 'n  ', mpi_size, ' type   nn   time  ', dtime, '  err  ', err
 
-  ! format conversion
-  call psp_coo2csc(Hsp)
-  call psp_coo2csc(Htsp)
   DD=0.0_dp
   t0 = MPI_Wtime()
   do i=1,niter
-     call psp_gespmm(m,n,k,Hsp,'n',S,'n',DD,1.0_dp,1.0_dp)
+     call psp_gespmm(m,n,k,Hsp,'n',S,'n',DD,alpha,beta)
   enddo
   t1 = MPI_Wtime()
   dtime=(t1-t0)/DBLE(niter)
@@ -193,14 +230,10 @@ program pdgemmScaling
   if (mpi_rank==0) print *, 'time of psp_gespmm = n n ', dtime, 'error of psp_gespmm: n n ', err
   if (mpi_rank==0)  write(14,5) 'n  ', mpi_size, ' type   nn   time  ', dtime, '  err  ', err
 
-  ! format conversion
-  call psp_coo2csc(Ssp)
-  call psp_coo2csc(Stsp)
   DD=0.0_dp
-  !call m_set(Dms,'general',0.0_dp,0.0_dp) ! Dms%zval(i,j)=0.0_dp
   t0 = MPI_Wtime()
   do i=1,niter
-     call psp_gemspm(m,n,k,H,'n',Ssp,'n',DD,1.0_dp,1.0_dp)
+     call psp_gemspm(m,n,k,H,'n',Ssp,'n',DD,alpha,beta)
   enddo
   t1 = MPI_Wtime()
   dtime=(t1-t0)/DBLE(niter)
@@ -210,23 +243,38 @@ program pdgemmScaling
   if (mpi_rank==0) print *, 'time psp_gemspm = n n ', dtime, 'error of psp_gemspm: n n ', err
   if (mpi_rank==0)  write(15,5) 'n  ', mpi_size, ' type   nn   time  ', dtime, '  err  ', err
 
+  ! initialize the sparse solution
+  call psp_spm_zeros(Dsp,m,n,spm_storage,.true.) ! need to initialize a sparse matrix before we use it
+  t0 = MPI_Wtime()
+  do i=1,niter
+     call psp_gespmspm(m,n,k,Hsp,'n',Ssp,'n',Dsp,alpha,beta)
+  enddo
+  t1 = MPI_Wtime()
+  dtime=(t1-t0)/DBLE(niter)
+  ! sparse to dense
+  call psp_sp2den_m(Dsp,DD,desc_D)
+  mm_err=MAXVAL(abs(D-DD))
+  err=0.0_dp
+  call MPI_REDUCE(mm_err, err, 1, MPI_DOUBLE, MPI_SUM, 0, mpi_comm_world, mpi_err)
+  if (mpi_rank==0) print *, 'time of psp_gespmspm = n n ', dtime, 'error of psp_gespmspm: n n ', err
+  if (mpi_rank==0)  write(16,5) 'n  ', mpi_size, ' type   nn   time  ', dtime, '  err  ', err
+
   !************************************************************************!
   if (mpi_rank==0) print *,  'Begin n t'
   D=0.0_dp
   t0=MPI_Wtime()
   do i=1,niter
-     call pdgemm('n','t',m,n,k,1.0_dp,H,1,1,desc_H,St,1,1,desc_St,1.0_dp,D,1,1,desc_D)
+     call pdgemm('n','t',m,n,k,alpha,H,1,1,desc_H,St,1,1,desc_St,beta,D,1,1,desc_D)
   enddo
   t1 = MPI_Wtime()
   dtime=(t1-t0)/DBLE(niter)
   if (mpi_rank==0) print *, 'time of Scalapack = n t ', dtime
   if (mpi_rank==0)  write(11,5) 'n  ', mpi_size, ' type   nt   time  ', dtime, '  err  ', err
 
-
   DD=0.0_dp
   t0 = MPI_Wtime()
   do i=1,niter
-     call psp_gemm(m,n,k,H,'n',St,'t',DD,1.0_dp,1.0_dp)
+     call psp_gemm(m,n,k,H,'n',St,'t',DD,alpha,beta)
   enddo
   t1 = MPI_Wtime()
   dtime=(t1-t0)/DBLE(niter)
@@ -236,11 +284,10 @@ program pdgemmScaling
   if (mpi_rank==0) print *, 'time of psp_gemm = n t ', dtime, 'error of psp_gemm: n t ', err
   if (mpi_rank==0)  write(13,5) 'n  ', mpi_size, ' type   nt   time  ', dtime, '  err  ', err
 
-
   DD=0.0_dp
   t0 = MPI_Wtime()
   do i=1,niter
-     call psp_gespmm(m,n,k,Hsp,'n',St,'t',DD,1.0_dp,1.0_dp)
+     call psp_gespmm(m,n,k,Hsp,'n',St,'t',DD,alpha,beta)
   enddo
   t1 = MPI_Wtime()
   dtime=(t1-t0)/DBLE(niter)
@@ -253,7 +300,7 @@ program pdgemmScaling
   DD=0.0_dp
   t0 = MPI_Wtime()
   do i=1,niter
-     call psp_gemspm(m,n,k,H,'n',Stsp,'t',DD,1.0_dp,1.0_dp)
+     call psp_gemspm(m,n,k,H,'n',Stsp,'t',DD,alpha,beta)
   enddo
   t1 = MPI_Wtime()
   dtime=(t1-t0)/DBLE(niter)
@@ -263,13 +310,29 @@ program pdgemmScaling
   if (mpi_rank==0) print *, 'time psp_gemspm = n t ', dtime, 'error of psp_gemspm: n t ', err
   if (mpi_rank==0)  write(15,5) 'n  ', mpi_size, ' type   nt   time  ', dtime, '  err  ', err
 
+  ! initialize the sparse solution
+  call psp_spm_zeros(Dsp,m,n,spm_storage,.true.) ! need to initialize a sparse matrix before we use it
+  t0 = MPI_Wtime()
+  do i=1,niter
+     call psp_gespmspm(m,n,k,Hsp,'n',Stsp,'t',Dsp,alpha,beta)
+  enddo
+  t1 = MPI_Wtime()
+  dtime=(t1-t0)/DBLE(niter)
+  ! sparse to dense
+  call psp_sp2den_m(Dsp,DD,desc_D)
+  mm_err=MAXVAL(abs(D-DD))
+  err=0.0_dp
+  call MPI_REDUCE(mm_err, err, 1, MPI_DOUBLE, MPI_SUM, 0, mpi_comm_world, mpi_err)
+  if (mpi_rank==0) print *, 'time of psp_gespmspm = n t ', dtime, 'error of psp_gespmspm: n t ', err
+  if (mpi_rank==0)  write(16,5) 'n  ', mpi_size, ' type   nt   time  ', dtime, '  err  ', err
+
 
   !************************************************************************!
   if (mpi_rank==0) print *,  'Begin t n'
   D=0.0_dp
   t0 = MPI_Wtime()
   do i=1,niter
-     call pdgemm('t','n',m,n,k,1.0_dp,Ht,1,1,desc_Ht,S,1,1,desc_S,1.0_dp,D,1,1,desc_D)
+     call pdgemm('t','n',m,n,k,alpha,Ht,1,1,desc_Ht,S,1,1,desc_S,beta,D,1,1,desc_D)
   enddo
   t1 = MPI_Wtime()
   dtime=(t1-t0)/DBLE(niter)
@@ -279,7 +342,7 @@ program pdgemmScaling
   DD=0.0_dp
   t0 = MPI_Wtime()
   do i=1,niter
-     call psp_gemm(m,n,k,Ht,'t',S,'n',DD,1.0_dp,1.0_dp)
+     call psp_gemm(m,n,k,Ht,'t',S,'n',DD,alpha,beta)
   enddo
   t1 = MPI_Wtime()
   dtime=(t1-t0)/DBLE(niter)
@@ -292,7 +355,7 @@ program pdgemmScaling
   DD=0.0_dp
   t0 = MPI_Wtime()
   do i=1,niter
-     call psp_gespmm(m,n,k,Htsp,'t',S,'n',DD,1.0_dp,1.0_dp)
+     call psp_gespmm(m,n,k,Htsp,'t',S,'n',DD,alpha,beta)
   enddo
   t1 = MPI_Wtime()
   dtime=(t1-t0)/DBLE(niter)
@@ -303,10 +366,9 @@ program pdgemmScaling
   if (mpi_rank==0)  write(14,5) 'n  ', mpi_size, ' type   tn   time  ', dtime, '  err  ', err
 
   DD=0.0_dp
-  !call m_set(Dms,'general',0.0_dp,0.0_dp) ! Dms%zval(i,j)=0.0_dp
   t0 = MPI_Wtime()
   do i=1,niter
-     call psp_gemspm(m,n,k,Ht,'t',Ssp,'n',DD,1.0_dp,1.0_dp)
+     call psp_gemspm(m,n,k,Ht,'t',Ssp,'n',DD,alpha,beta)
   enddo
   t1 = MPI_Wtime()
   dtime=(t1-t0)/DBLE(niter)
@@ -316,13 +378,29 @@ program pdgemmScaling
   if (mpi_rank==0) print *, 'time psp_gemspm = t n ', dtime, 'error of psp_gemspm: t n ', err
   if (mpi_rank==0)  write(15,5) 'n  ', mpi_size, ' type   tn   time  ', dtime, '  err  ', err
 
+  ! initialize the sparse solution
+  call psp_spm_zeros(Dsp,m,n,spm_storage,.true.) ! need to initialize a sparse matrix before we use it
+  t0 = MPI_Wtime()
+  do i=1,niter
+     call psp_gespmspm(m,n,k,Htsp,'t',Ssp,'n',Dsp,alpha,beta)
+  enddo
+  t1 = MPI_Wtime()
+  dtime=(t1-t0)/DBLE(niter)
+  ! sparse to dense
+  call psp_sp2den_m(Dsp,DD,desc_D)
+  mm_err=MAXVAL(abs(D-DD))
+  err=0.0_dp
+  call MPI_REDUCE(mm_err, err, 1, MPI_DOUBLE, MPI_SUM, 0, mpi_comm_world, mpi_err)
+  if (mpi_rank==0) print *, 'time of psp_gespmspm = t n ', dtime, 'error of psp_gespmspm: t n ', err
+  if (mpi_rank==0)  write(16,5) 'n  ', mpi_size, ' type   tn   time  ', dtime, '  err  ', err
+
 
   !************************************************************************!
   if (mpi_rank==0) print *,  'Begin t t'
   D=0.0_dp
   t0 = MPI_Wtime()
   do i=1,niter
-     call pdgemm('t','t',m,n,k,1.0_dp,Ht,1,1,desc_Ht,St,1,1,desc_St,1.0_dp,D,1,1,desc_D)
+     call pdgemm('t','t',m,n,k,alpha,Ht,1,1,desc_Ht,St,1,1,desc_St,beta,D,1,1,desc_D)
   enddo
   t1 = MPI_Wtime()
   dtime=(t1-t0)/DBLE(niter)
@@ -332,7 +410,7 @@ program pdgemmScaling
   DD=0.0_dp
   t0 = MPI_Wtime()
   do i=1,niter
-     call psp_gemm(m,n,k,Ht,'t',St,'t',DD,1.0_dp,1.0_dp)
+     call psp_gemm(m,n,k,Ht,'t',St,'t',DD,alpha,beta)
   enddo
   t1 = MPI_Wtime()
   dtime=(t1-t0)/DBLE(niter)
@@ -345,7 +423,7 @@ program pdgemmScaling
   DD=0.0_dp
   t0 = MPI_Wtime()
   do i=1,niter
-     call psp_gespmm(m,n,k,Htsp,'t',St,'t',DD,1.0_dp,1.0_dp)
+     call psp_gespmm(m,n,k,Htsp,'t',St,'t',DD,alpha,beta)
   enddo
   t1 = MPI_Wtime()
   dtime=(t1-t0)/DBLE(niter)
@@ -356,10 +434,9 @@ program pdgemmScaling
   if (mpi_rank==0)  write(14,5) 'n  ', mpi_size, ' type   tt   time  ', dtime, '  err  ', err
 
   DD=0.0_dp
-  !call m_set(Dms,'general',0.0_dp,0.0_dp) ! Dms%zval(i,j)=0.0_dp
   t0 = MPI_Wtime()
   do i=1,niter
-     call psp_gemspm(m,n,k,Ht,'t',Stsp,'t',DD,1.0_dp,1.0_dp)
+     call psp_gemspm(m,n,k,Ht,'t',Stsp,'t',DD,alpha,beta)
   enddo
   t1 = MPI_Wtime()
   dtime=(t1-t0)/DBLE(niter)
@@ -373,11 +450,19 @@ program pdgemmScaling
   close(13)
   close(14)
   close(15)
+  close(16)
 
   deallocate(D)
   deallocate(DD)
   deallocate(S)
+  deallocate(St)
   deallocate(H)
+  deallocate(Ht)
+  call psp_deallocate_spm(Hsp)
+  call psp_deallocate_spm(Ssp)
+  call psp_deallocate_spm(Htsp)
+  call psp_deallocate_spm(Stsp)
+  call psp_deallocate_spm(Dsp)
 
   call mpi_finalize(mpi_err)
 

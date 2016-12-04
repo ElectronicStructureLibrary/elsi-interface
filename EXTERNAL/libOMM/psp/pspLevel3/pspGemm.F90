@@ -216,12 +216,12 @@ contains
     integer :: psp_mpi_comm_cart, psp_mpi_comm_row, psp_mpi_comm_col
 
 
-    common /coeff/ psp_mpi_comm_world, psp_mpi_size, psp_nprow, psp_npcol
-    common /coeff/ psp_bs_def_row, psp_bs_def_col
-    common /coeff/ psp_update_rank ! In SUMMA paper for C=A*B, C is computed by rank psp_update_rank=1 local update
-    common /coeff/ psp_bs_num
-    common /coeff/ psp_icontxt ! BLACS context handle used by psp
-    common /coeff/ psp_mpi_comm_cart, psp_mpi_comm_row, psp_mpi_comm_col
+    common /psp_grid2D/ psp_mpi_comm_world, psp_mpi_size, psp_nprow, psp_npcol
+    common /psp_grid2D/ psp_bs_def_row, psp_bs_def_col
+    common /psp_grid2D/ psp_update_rank ! In SUMMA paper for C=A*B, C is computed by rank psp_update_rank=1 local update
+    common /psp_grid2D/ psp_bs_num
+    common /psp_grid2D/ psp_icontxt ! BLACS context handle used by psp
+    common /psp_grid2D/ psp_mpi_comm_cart, psp_mpi_comm_row, psp_mpi_comm_col
 #endif
 
     !**********************************************!
@@ -340,12 +340,12 @@ contains
     integer :: psp_mpi_comm_cart, psp_mpi_comm_row, psp_mpi_comm_col
 
 
-    common /coeff/ psp_mpi_comm_world, psp_mpi_size, psp_nprow, psp_npcol
-    common /coeff/ psp_bs_def_row, psp_bs_def_col
-    common /coeff/ psp_update_rank ! In SUMMA for C=A*B, C is computed by rank psp_update_rank=1 local update
-    common /coeff/ psp_bs_num
-    common /coeff/ psp_icontxt ! BLACS context handle used by psp
-    common /coeff/ psp_mpi_comm_cart, psp_mpi_comm_row, psp_mpi_comm_col
+    common /psp_grid2D/ psp_mpi_comm_world, psp_mpi_size, psp_nprow, psp_npcol
+    common /psp_grid2D/ psp_bs_def_row, psp_bs_def_col
+    common /psp_grid2D/ psp_update_rank ! In SUMMA for C=A*B, C is computed by rank psp_update_rank=1 local update
+    common /psp_grid2D/ psp_bs_num
+    common /psp_grid2D/ psp_icontxt ! BLACS context handle used by psp
+    common /psp_grid2D/ psp_mpi_comm_cart, psp_mpi_comm_row, psp_mpi_comm_col
 #endif
 
     !**********************************************!
@@ -461,12 +461,12 @@ contains
     integer :: psp_mpi_comm_cart, psp_mpi_comm_row, psp_mpi_comm_col
 
 
-    common /coeff/ psp_mpi_comm_world, psp_mpi_size, psp_nprow, psp_npcol
-    common /coeff/ psp_bs_def_row, psp_bs_def_col
-    common /coeff/ psp_update_rank ! In SUMMA for C=A*B, C is computed by rank psp_update_rank=1 local update
-    common /coeff/ psp_bs_num
-    common /coeff/ psp_icontxt ! BLACS context handle used by psp
-    common /coeff/ psp_mpi_comm_cart, psp_mpi_comm_row, psp_mpi_comm_col
+    common /psp_grid2D/ psp_mpi_comm_world, psp_mpi_size, psp_nprow, psp_npcol
+    common /psp_grid2D/ psp_bs_def_row, psp_bs_def_col
+    common /psp_grid2D/ psp_update_rank ! In SUMMA for C=A*B, C is computed by rank psp_update_rank=1 local update
+    common /psp_grid2D/ psp_bs_num
+    common /psp_grid2D/ psp_icontxt ! BLACS context handle used by psp
+    common /psp_grid2D/ psp_mpi_comm_cart, psp_mpi_comm_row, psp_mpi_comm_col
 #endif
 
     !**********************************************!
@@ -580,12 +580,12 @@ contains
     integer :: psp_mpi_comm_cart, psp_mpi_comm_row, psp_mpi_comm_col
 
 
-    common /coeff/ psp_mpi_comm_world, psp_mpi_size, psp_nprow, psp_npcol
-    common /coeff/ psp_bs_def_row, psp_bs_def_col
-    common /coeff/ psp_update_rank ! In SUMMA for C=A*B, C is computed by rank psp_update_rank=1 local update
-    common /coeff/ psp_bs_num
-    common /coeff/ psp_icontxt ! BLACS context handle used by psp
-    common /coeff/ psp_mpi_comm_cart, psp_mpi_comm_row, psp_mpi_comm_col
+    common /psp_grid2D/ psp_mpi_comm_world, psp_mpi_size, psp_nprow, psp_npcol
+    common /psp_grid2D/ psp_bs_def_row, psp_bs_def_col
+    common /psp_grid2D/ psp_update_rank ! In SUMMA for C=A*B, C is computed by rank psp_update_rank=1 local update
+    common /psp_grid2D/ psp_bs_num
+    common /psp_grid2D/ psp_icontxt ! BLACS context handle used by psp
+    common /psp_grid2D/ psp_mpi_comm_cart, psp_mpi_comm_row, psp_mpi_comm_col
 #endif
 
     !**********************************************!
@@ -684,12 +684,12 @@ contains
     integer :: psp_mpi_comm_cart, psp_mpi_comm_row, psp_mpi_comm_col
 
 
-    common /coeff/ psp_mpi_comm_world, psp_mpi_size, psp_nprow, psp_npcol
-    common /coeff/ psp_bs_def_row, psp_bs_def_col
-    common /coeff/ psp_update_rank ! In SUMMA for C=A*B, C is computed by rank psp_update_rank=1 local update
-    common /coeff/ psp_bs_num
-    common /coeff/ psp_icontxt ! BLACS context handle used by psp
-    common /coeff/ psp_mpi_comm_cart, psp_mpi_comm_row, psp_mpi_comm_col
+    common /psp_grid2D/ psp_mpi_comm_world, psp_mpi_size, psp_nprow, psp_npcol
+    common /psp_grid2D/ psp_bs_def_row, psp_bs_def_col
+    common /psp_grid2D/ psp_update_rank ! In SUMMA for C=A*B, C is computed by rank psp_update_rank=1 local update
+    common /psp_grid2D/ psp_bs_num
+    common /psp_grid2D/ psp_icontxt ! BLACS context handle used by psp
+    common /psp_grid2D/ psp_mpi_comm_cart, psp_mpi_comm_row, psp_mpi_comm_col
 #endif
 
     !**********************************************!
@@ -809,12 +809,12 @@ contains
     integer :: psp_mpi_comm_cart, psp_mpi_comm_row, psp_mpi_comm_col
 
 
-    common /coeff/ psp_mpi_comm_world, psp_mpi_size, psp_nprow, psp_npcol
-    common /coeff/ psp_bs_def_row, psp_bs_def_col
-    common /coeff/ psp_update_rank ! In SUMMA for C=A*B, C is computed by rank psp_update_rank=1 local update
-    common /coeff/ psp_bs_num
-    common /coeff/ psp_icontxt ! BLACS context handle used by psp
-    common /coeff/ psp_mpi_comm_cart, psp_mpi_comm_row, psp_mpi_comm_col
+    common /psp_grid2D/ psp_mpi_comm_world, psp_mpi_size, psp_nprow, psp_npcol
+    common /psp_grid2D/ psp_bs_def_row, psp_bs_def_col
+    common /psp_grid2D/ psp_update_rank ! In SUMMA for C=A*B, C is computed by rank psp_update_rank=1 local update
+    common /psp_grid2D/ psp_bs_num
+    common /psp_grid2D/ psp_icontxt ! BLACS context handle used by psp
+    common /psp_grid2D/ psp_mpi_comm_cart, psp_mpi_comm_row, psp_mpi_comm_col
 #endif
 
     !**********************************************!
@@ -931,12 +931,12 @@ contains
     integer :: psp_mpi_comm_cart, psp_mpi_comm_row, psp_mpi_comm_col
 
 
-    common /coeff/ psp_mpi_comm_world, psp_mpi_size, psp_nprow, psp_npcol
-    common /coeff/ psp_bs_def_row, psp_bs_def_col
-    common /coeff/ psp_update_rank ! In SUMMA for C=A*B, C is computed by rank psp_update_rank=1 local update
-    common /coeff/ psp_bs_num
-    common /coeff/ psp_icontxt ! BLACS context handle used by psp
-    common /coeff/ psp_mpi_comm_cart, psp_mpi_comm_row, psp_mpi_comm_col
+    common /psp_grid2D/ psp_mpi_comm_world, psp_mpi_size, psp_nprow, psp_npcol
+    common /psp_grid2D/ psp_bs_def_row, psp_bs_def_col
+    common /psp_grid2D/ psp_update_rank ! In SUMMA for C=A*B, C is computed by rank psp_update_rank=1 local update
+    common /psp_grid2D/ psp_bs_num
+    common /psp_grid2D/ psp_icontxt ! BLACS context handle used by psp
+    common /psp_grid2D/ psp_mpi_comm_cart, psp_mpi_comm_row, psp_mpi_comm_col
 #endif
 
     !**********************************************!
@@ -1052,12 +1052,12 @@ contains
     integer :: psp_mpi_comm_cart, psp_mpi_comm_row, psp_mpi_comm_col
 
 
-    common /coeff/ psp_mpi_comm_world, psp_mpi_size, psp_nprow, psp_npcol
-    common /coeff/ psp_bs_def_row, psp_bs_def_col
-    common /coeff/ psp_update_rank ! In SUMMA for C=A*B, C is computed by rank psp_update_rank=1 local update
-    common /coeff/ psp_bs_num
-    common /coeff/ psp_icontxt ! BLACS context handle used by psp
-    common /coeff/ psp_mpi_comm_cart, psp_mpi_comm_row, psp_mpi_comm_col
+    common /psp_grid2D/ psp_mpi_comm_world, psp_mpi_size, psp_nprow, psp_npcol
+    common /psp_grid2D/ psp_bs_def_row, psp_bs_def_col
+    common /psp_grid2D/ psp_update_rank ! In SUMMA for C=A*B, C is computed by rank psp_update_rank=1 local update
+    common /psp_grid2D/ psp_bs_num
+    common /psp_grid2D/ psp_icontxt ! BLACS context handle used by psp
+    common /psp_grid2D/ psp_mpi_comm_cart, psp_mpi_comm_row, psp_mpi_comm_col
 #endif
 
     !**********************************************!
@@ -1164,8 +1164,8 @@ contains
        open(newunit=log_unit,file='MatrixSwitch.log',status='replace')
        log_start=.true.
     end if
-    write(log_unit,'(a)') 'FATAL ERROR in matrix_switch!'
-    write(log_unit,'(a)') message
+    write(log_unit,'(a)'), 'FATAL ERROR in matrix_switch!'
+    write(log_unit,'(a)'), message
     close(log_unit)
     stop
 

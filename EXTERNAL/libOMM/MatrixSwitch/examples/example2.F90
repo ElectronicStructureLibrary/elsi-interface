@@ -76,7 +76,7 @@ program example2
     rn=mod(4.2_dp*rn2,1.0_dp)
     rn2=mod(4.2_dp*rn,1.0_dp)
     el=cmplx(rn,rn2)
-    call m_set_element(A,i,j,el)
+    call m_set_element(A,i,j,el,cmplx_0)
     rn=mod(4.2_dp*rn2,1.0_dp)
     rn2=mod(4.2_dp*rn,1.0_dp)
     el=cmplx(rn,rn2)

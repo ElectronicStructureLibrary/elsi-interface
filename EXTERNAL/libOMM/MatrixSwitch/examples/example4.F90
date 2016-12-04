@@ -74,7 +74,7 @@ program example4
 
   allocate(bs_list(4))
   bs_list(:)=(/8,3,15,4/)
-  call ms_scalapack_setup(mpi_rank,mpi_size,1,'c',1,bs_list,icontxt)
+  call ms_scalapack_setup(1,'c',1,bs_list,icontxt)
 
   m_storage='pzdbc'
   m_operation='lap'
@@ -100,7 +100,7 @@ program example4
     rn=mod(4.2_dp*rn2,1.0_dp)
     rn2=mod(4.2_dp*rn,1.0_dp)
     el=cmplx(rn,rn2)
-    call m_set_element(A,i,j,el)
+    call m_set_element(A,i,j,el,cmplx_0)
     rn=mod(4.2_dp*rn2,1.0_dp)
     rn2=mod(4.2_dp*rn,1.0_dp)
     el=cmplx(rn,rn2)

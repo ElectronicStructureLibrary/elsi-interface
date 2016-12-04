@@ -12,7 +12,7 @@ ELPA_LIB  ?= -L$(ELPA_DIR)/lib -lelpa \
 
 OMM_DIR   ?= $(THIS_DIR)/EXTERNAL/libOMM
 OMM_LIB   ?= -I$(OMM_DIR)/include \
-             -L$(OMM_DIR)/lib -lOMM -lMatrixSwitch -lpspblas
+             -L$(OMM_DIR)/lib -lOMM -lMatrixSwitch -lpspblas -ltomato
 
 PEXSI_DIR ?= $(THIS_DIR)/EXTERNAL/PEXSI
 PEXSI_LIB ?= -I$(PEXSI_DIR)/include \

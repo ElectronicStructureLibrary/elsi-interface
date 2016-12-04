@@ -268,6 +268,8 @@ subroutine m_dfactorize(C,label)
       else
         if (label .eq. 'lap') then
           ot=1
+        else
+          call die('m_dfactorize: invalid implementation')
         end if
       end if
   else if ((C%str_type .eq. 'dbc') .and. &
@@ -279,6 +281,10 @@ subroutine m_dfactorize(C,label)
           ot=2
         else if (label .eq. 'psp') then
           ot=2
+        else if (label .eq. 't1D') then
+          ot=2
+        else
+          call die('m_dfactorize: invalid implementation')
         end if
       end if
   else
@@ -331,6 +337,8 @@ subroutine m_zfactorize(C,label)
       else
         if (label .eq. 'lap') then
           ot=1
+        else
+          call die('m_zfactorize: invalid implementation')
         end if
       end if
   else if ((C%str_type .eq. 'dbc') .and. &
@@ -342,6 +350,10 @@ subroutine m_zfactorize(C,label)
           ot=2
         else if (label .eq. 'psp') then
           ot=2
+        else if (label .eq. 't1D') then
+          ot=2
+        else
+          call die('m_zfactorize: invalid implementation')
         end if
       end if
   else
@@ -436,6 +448,8 @@ subroutine m_dreduce(A,C,label)
       else
         if (label .eq. 'lap') then
           ot=1
+        else
+          call die('m_dreduce: invalid implementation')
         end if
       end if
   else if ((C%str_type .eq. 'dbc') .and. &
@@ -447,6 +461,10 @@ subroutine m_dreduce(A,C,label)
           ot=2
         else if (label .eq. 'psp') then
           ot=2
+        else if (label .eq. 't1D') then
+          ot=2
+        else
+          call die('m_dreduce: invalid implementation')
         end if
       end if
   else
@@ -483,14 +501,14 @@ subroutine m_dreduce(A,C,label)
       ! Fill in missing triangle of C.
       do i = 1, C%dim1
           do j = 1, i-1
-              call m_set_element(C, i, j, 0.0_dp, label)
+              call m_set_element(C, i, j, 0.0_dp, 0.0_dp, label)
           end do
       end do
       write(m_storage,'(a1,a1,a3)') c1, c2, C%str_type
       call m_allocate(work1,C%dim1,C%dim2,m_storage)
       call m_add(C,'t',work1,1.0_dp,0.0_dp,label)
       do i = 1, work1%dim1
-          call m_set_element(work1, i, i, 0.0_dp, label)
+          call m_set_element(work1, i, i, 0.0_dp, 0.0_dp, label)
       end do
       call m_add(work1,'n',C,1.0_dp,1.0_dp)
       call m_deallocate(work1)
@@ -537,6 +555,8 @@ subroutine m_zreduce(A,C,label)
       else
         if (label .eq. 'lap') then
           ot=1
+        else
+          call die('m_zreduce: invalid implementation')
         end if
       end if
   else if ((C%str_type .eq. 'dbc') .and. &
@@ -548,6 +568,10 @@ subroutine m_zreduce(A,C,label)
           ot=2
         else if (label .eq. 'psp') then
           ot=2
+        else if (label .eq. 't1D') then
+          ot=2
+        else
+          call die('m_zreduce: invalid implementation')
         end if
       end if
   else
@@ -584,14 +608,14 @@ subroutine m_zreduce(A,C,label)
       ! Fill in missing triangle of C.
       do i = 1, C%dim1
           do j = 1, i-1
-              call m_set_element(C, i, j, 0.0_dp, label)
+              call m_set_element(C, i, j, 0.0_dp, 0.0_dp, label)
           end do
       end do
       write(m_storage,'(a1,a1,a3)') c1, c2, C%str_type
       call m_allocate(work1,C%dim1,C%dim2,m_storage)
       call m_add(C,'c',work1,1.0_dp,0.0_dp,label)
       do i = 1, work1%dim1
-          call m_set_element(work1, i, i, 0.0_dp, label)
+          call m_set_element(work1, i, i, 0.0_dp, 0.0_dp, label)
       end do
       call m_add(work1,'n',C,1.0_dp,1.0_dp)
       call m_deallocate(work1)
@@ -661,6 +685,8 @@ subroutine m_dtransform(A,C,label)
       else
         if (label .eq. 'lap') then
           ot=1
+        else
+          call die('m_dtransform: invalid implementation')
         end if
       end if
   else if ((C%str_type .eq. 'dbc') .and. &
@@ -672,6 +698,10 @@ subroutine m_dtransform(A,C,label)
           ot=2
         else if (label .eq. 'psp') then
           ot=2
+        else if (label .eq. 't1D') then
+          ot=2
+        else
+          call die('m_dtransform: invalid implementation')
         end if
       end if
   else
@@ -723,6 +753,8 @@ subroutine m_ztransform(A,C,label)
       else
         if (label .eq. 'lap') then
           ot=1
+        else
+          call die('m_ztransform: invalid implementation')
         end if
       end if
   else if ((C%str_type .eq. 'dbc') .and. &
@@ -734,6 +766,10 @@ subroutine m_ztransform(A,C,label)
           ot=2
         else if (label .eq. 'psp') then
           ot=2
+        else if (label .eq. 't1D') then
+          ot=2
+        else
+          call die('m_ztransform: invalid implementation')
         end if
       end if
   else
@@ -816,6 +852,8 @@ subroutine m_dback_transform(A,C,label)
       else
         if (label .eq. 'lap') then
           ot=1
+        else
+          call die('m_dback_transform: invalid implementation')
         end if
       end if
   else if ((C%str_type .eq. 'dbc') .and. &
@@ -827,6 +865,10 @@ subroutine m_dback_transform(A,C,label)
           ot=2
         else if (label .eq. 'psp') then
           ot=2
+        else if (label .eq. 't1D') then
+          ot=2
+        else
+          call die('m_dback_transform: invalid implementation')
         end if
       end if
   else
@@ -878,6 +920,8 @@ subroutine m_zback_transform(A,C,label)
       else
         if (label .eq. 'lap') then
           ot=1
+        else
+          call die('m_zback_transform: invalid implementation')
         end if
       end if
   else if ((C%str_type .eq. 'dbc') .and. &
@@ -889,6 +933,10 @@ subroutine m_zback_transform(A,C,label)
           ot=2
         else if (label .eq. 'psp') then
           ot=2
+        else if (label .eq. 't1D') then
+          ot=2
+        else
+          call die('m_zback_transform: invalid implementation')
         end if
       end if
   else
@@ -979,6 +1027,10 @@ subroutine m_dinverse(C,label)
       else
         if (label .eq. 'lap') then
           ot=1
+        else if (label .eq. 'ref') then
+          ot=1
+        else
+          call die('m_dinverse: invalid implementation')
         end if
       end if
   else if ((C%str_type .eq. 'dbc') .and. &
@@ -990,6 +1042,10 @@ subroutine m_dinverse(C,label)
           ot=2
         else if (label .eq. 'psp') then
           ot=2
+        else if (label .eq. 't1D') then
+          ot=2
+        else
+          call die('m_dinverse: invalid implementation')
         end if
       end if
   else
@@ -1085,6 +1141,10 @@ subroutine m_zinverse(C,label)
       else
         if (label .eq. 'lap') then
           ot=1
+        else if (label .eq. 'ref') then
+          ot=1
+        else
+          call die('m_zinverse: invalid implementation')
         end if
       end if
   else if ((C%str_type .eq. 'dbc') .and. &
@@ -1096,6 +1156,10 @@ subroutine m_zinverse(C,label)
           ot=2
         else if (label .eq. 'psp') then
           ot=2
+        else if (label .eq. 't1D') then
+          ot=2
+        else
+          call die('m_zinverse: invalid implementation')
         end if
       end if
   else
@@ -1272,11 +1336,19 @@ subroutine die(message)
 
   character(*), intent(in), optional :: message
 
+  !**** INTERNAL ********************************!
+
+  integer :: err_unit
+
   !**********************************************!
 
-  write(log_unit,'(a)') 'FATAL ERROR in libOMM!'
-  if (present(message)) write(log_unit,'(a)') message
-  close(log_unit)
+  open(newunit=err_unit,file='libOMM.err',status='replace')
+  write(err_unit,'(a)'), 'FATAL ERROR in libOMM!'
+  if (present(message)) write(err_unit,'(a)'), message
+#ifdef MPI
+  write(err_unit,'(a,1x,i5)'), 'MPI rank:', mpi_rank
+#endif
+  close(err_unit)
   stop
 
 end subroutine die

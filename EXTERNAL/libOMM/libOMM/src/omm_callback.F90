@@ -1,8 +1,11 @@
 subroutine omm_callback(m,n,H,S,new_S,e_min,D_min,calc_ED,eta,C_min,init_C,T,scale_T,flavour,np,ip,cg_tol,long_out,dealloc,&
-                        m_storage,m_operation,mpi_rank)
+                        m_storage,m_operation)
   use omm_ops
   use MatrixSwitch
   use omm_rand
+#ifdef MPI
+  use MatrixSwitch_ops, only : ms_mpi_size, ms_mpi_rank
+#endif
 
   implicit none
 
@@ -26,7 +29,6 @@ subroutine omm_callback(m,n,H,S,new_S,e_min,D_min,calc_ED,eta,C_min,init_C,T,sca
                                  ! 3 for preconditioning, S provided (T optional)
   integer, intent(in) :: np ! (number of spin points)*(number of k points)
   integer, intent(in) :: ip ! spin+k point identifier (from 1 to np)
-  integer, intent(in) :: mpi_rank ! MPI process rank (0 for serial)
 
   real(dp), intent(in) :: eta ! eigenspectrum shift parameter
   real(dp), intent(in) :: cg_tol ! convergence tolerance of CG minimization (if negative, default of 1.0d-9 is used)
@@ -109,6 +111,14 @@ subroutine omm_callback(m,n,H,S,new_S,e_min,D_min,calc_ED,eta,C_min,init_C,T,sca
   type(matrix), allocatable, save :: CD(:) ! C*D matrix (n x m) for each value of ip
 
   !**********************************************!
+
+#ifdef MPI
+  mpi_size=ms_mpi_size
+  mpi_rank=ms_mpi_rank
+#else
+  mpi_size=1
+  mpi_rank=0
+#endif
 
   if (log_start) then
     open(newunit=log_unit,file='libOMM.log',position='append')
@@ -322,7 +332,7 @@ subroutine omm_callback(m,n,H,S,new_S,e_min,D_min,calc_ED,eta,C_min,init_C,T,sca
         !cmplx_el=cmplx(sign(0.5_dp*rn(1),rn(2)-0.5_dp),&
         !               sign(0.5_dp*rn(3),rn(4)-0.5_dp),dp)
         el=sign(0.5_dp*rn(1),rn(2)-0.5_dp)
-        call m_set_element(C_min,j,i,el,m_operation)
+        call m_set_element(C_min,j,i,el,0.0_dp,m_operation)
       end do
     end do
     call m_scale(C_min,1.0d-2/sqrt(real(m,dp)),m_operation)
@@ -401,16 +411,16 @@ subroutine omm_callback(m,n,H,S,new_S,e_min,D_min,calc_ED,eta,C_min,init_C,T,sca
   ! this is the main loop of the CG algorithm. We perform a series of line minimizations, with the
   ! gradient G at each new step being modified to obtain the search direction D
   if (mpi_rank==0) then
-    write(log_unit,'(a)') '+---------------------------------------------+'
+    write(log_unit,'(a)'), '+---------------------------------------------+'
     if (use_Cholesky) then
-      write(log_unit,'(a)') '| libOMM (Cholesky factorization)             |'
+      write(log_unit,'(a)'), '| libOMM (Cholesky factorization)             |'
     else if (use_precon) then
-      write(log_unit,'(a)') '| libOMM (preconditioning)                    |'
+      write(log_unit,'(a)'), '| libOMM (preconditioning)                    |'
     else
-      write(log_unit,'(a)') '| libOMM                                      |'
+      write(log_unit,'(a)'), '| libOMM                                      |'
     end if
-    write(log_unit,'(a)') '+---------------------------------------------+'
-    if (long_out) write(log_unit,'(a)') '|             e_min            e_diff         |'
+    write(log_unit,'(a)'), '+---------------------------------------------+'
+    if (long_out) write(log_unit,'(a)'), '|             e_min            e_diff         |'
   end if
   icg=0
   do i=1,n_step_max
@@ -450,7 +460,7 @@ subroutine omm_callback(m,n,H,S,new_S,e_min,D_min,calc_ED,eta,C_min,init_C,T,sca
       ! matrix; the only known cure, unfortunately, is to scale down the entire matrix, thus returning to
       ! a safe region of the coeffs. space.
       if (ls_fail) then
-        if (mpi_rank==0) write(log_unit,'(a)') '| WARNING: Rescaling coefficients!            |'
+        if (mpi_rank==0) write(log_unit,'(a)'), '| WARNING: Rescaling coefficients!            |'
         e_min=3.0*e_min
         if (use_Cholesky) then
           call m_scale(C_Chl(ip),0.5_dp,m_operation)
@@ -481,7 +491,7 @@ subroutine omm_callback(m,n,H,S,new_S,e_min,D_min,calc_ED,eta,C_min,init_C,T,sca
         call m_add(SWdd,'n',SW(ip),x_min(ip)**2,1.0_dp,m_operation)
       end if
       e_diff=2.0_dp*abs((e_min-e_min_old)/(e_min+e_min_old))
-      if ((mpi_rank==0) .and. long_out) write(log_unit,'(a,2(1x,i5),2(1x,es15.7e3),1x,a)') '|', i, j, e_min, e_diff, '|'
+      if ((mpi_rank==0) .and. long_out) write(log_unit,'(a,2(1x,i5),2(1x,es15.7e3),1x,a)'), '|', i, j, e_min, e_diff, '|'
       icg=icg+1
       if (e_diff<=cg_tol_internal) then
         conv=.true.
@@ -531,9 +541,9 @@ subroutine omm_callback(m,n,H,S,new_S,e_min,D_min,calc_ED,eta,C_min,init_C,T,sca
     if (conv) exit
   end do
   if (i>n_step_max) then
-    if (mpi_rank==0) write(log_unit,'(a)') '| WARNING: OMM failed to converge!            |'
+    if (mpi_rank==0) write(log_unit,'(a)'), '| WARNING: OMM failed to converge!            |'
   end if
-  if ((mpi_rank==0) .and. long_out) write(log_unit,'(a)') '+---------------------------------------------+'
+  if ((mpi_rank==0) .and. long_out) write(log_unit,'(a)'), '+---------------------------------------------+'
 
   if (work1%is_initialized) call m_deallocate(work1)
   if (HG%is_initialized) call m_deallocate(HG)
@@ -565,9 +575,9 @@ subroutine omm_callback(m,n,H,S,new_S,e_min,D_min,calc_ED,eta,C_min,init_C,T,sca
   ! solution
   call mm_trace(QW(ip),SW(ip),TrQS,m_operation)
   if (mpi_rank==0) then
-    write(log_unit,'(a,i5,a)')    '| minim: icg           = ', icg, '                |'
-    write(log_unit,'(a,f13.7,a)') '| minim: Tr[(2*I-S)*S] = ', TrQS, '        |'
-    write(log_unit,'(a)')       '+---------------------------------------------+'
+    write(log_unit,'(a,i5,a)'),    '| minim: icg           = ', icg, '                |'
+    write(log_unit,'(a,f13.7,a)'), '| minim: Tr[(2*I-S)*S] = ', TrQS, '        |'
+    write(log_unit,'(a)'),       '+---------------------------------------------+'
   end if
 
   e_min=e_min+TrQS*eta

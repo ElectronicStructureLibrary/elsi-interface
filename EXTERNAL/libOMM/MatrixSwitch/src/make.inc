@@ -1,6 +1,0 @@
-ROOTDIR = ../..
-include $(dir $(lastword $(MAKEFILE_LIST)))/$(ROOTDIR)/make.inc
-
-LIBNAME = $(MSLIBNAME)
-BUILDPATH = $(MSBUILDPATH)
-PSPINCLUDEPATH = $(PSPBUILDPATH)/include

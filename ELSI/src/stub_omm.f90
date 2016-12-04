@@ -211,13 +211,11 @@ subroutine omm(m,n,H,S,new_S,e_min,D_min,calc_ED,eta,C_min,init_C,&
 
 end subroutine
 
-subroutine ms_scalapack_setup(mpi_rank,mpi_size,nprow,order,bs_def,bs_list,icontxt)
+subroutine ms_scalapack_setup(nprow,order,bs_def,bs_list,icontxt)
 
    implicit none
 
    character(1) :: order
-   integer :: mpi_rank
-   integer :: mpi_size
    integer :: nprow
    integer :: bs_def
    integer, optional :: bs_list(:)

@@ -1,5 +1,5 @@
 subroutine omm_sdden_ref(m,n,H_vals,S_present,S_vals,new_S,e_min,D_min_vals,calc_ED,eta,C_min_vals,init_C,T_present,T_vals,scale_T,&
-               flavour,np,ip,cg_tol,long_out,dealloc,mpi_rank)
+               flavour,np,ip,cg_tol,long_out,dealloc)
   use omm_params, only : dp
   use MatrixSwitch
 #ifdef CBIND
@@ -37,7 +37,6 @@ subroutine omm_sdden_ref(m,n,H_vals,S_present,S_vals,new_S,e_min,D_min_vals,calc
                                  ! 3 for preconditioning, S provided (T optional)
   integer, intent(in) :: np ! (number of spin points)*(number of k points)
   integer, intent(in) :: ip ! spin+k point identifier (from 1 to np)
-  integer, intent(in) :: mpi_rank ! MPI process rank (0 for serial)
 
   real(dp), intent(in) :: eta ! eigenspectrum shift parameter
   real(dp), intent(in) :: cg_tol ! convergence tolerance of CG minimization (if negative, default of 1.0d-9 is used)
@@ -84,10 +83,10 @@ subroutine omm_sdden_ref(m,n,H_vals,S_present,S_vals,new_S,e_min,D_min_vals,calc
   long_out_conv=long_out
   dealloc_conv=dealloc
   call omm(m,n,H,S,new_S_conv,e_min,D_min,calc_ED_conv,eta,C_min,init_C_conv,T,scale_T,flavour,np,ip,cg_tol,long_out_conv,&
-           dealloc_conv,m_storage,m_operation,mpi_rank)
+           dealloc_conv,m_storage,m_operation)
 #else
   call omm(m,n,H,S,new_S,e_min,D_min,calc_ED,eta,C_min,init_C,T,scale_T,flavour,np,ip,cg_tol,long_out,dealloc,m_storage,&
-           m_operation,mpi_rank)
+           m_operation)
 #endif
 
   if (T_present) call m_deallocate(T)
@@ -99,7 +98,7 @@ subroutine omm_sdden_ref(m,n,H_vals,S_present,S_vals,new_S,e_min,D_min_vals,calc
 end subroutine omm_sdden_ref
 
 subroutine omm_szden_ref(m,n,H_vals,S_present,S_vals,new_S,e_min,D_min_vals,calc_ED,eta,C_min_vals,init_C,T_present,T_vals,&
-               scale_T,flavour,np,ip,cg_tol,long_out,dealloc,mpi_rank)
+               scale_T,flavour,np,ip,cg_tol,long_out,dealloc)
   use omm_params, only : dp
   use MatrixSwitch
 #ifdef CBIND
@@ -137,7 +136,6 @@ subroutine omm_szden_ref(m,n,H_vals,S_present,S_vals,new_S,e_min,D_min_vals,calc
                                  ! 3 for preconditioning, S provided (T optional)
   integer, intent(in) :: np ! (number of spin points)*(number of k points)
   integer, intent(in) :: ip ! spin+k point identifier (from 1 to np)
-  integer, intent(in) :: mpi_rank ! MPI process rank (0 for serial)
 
   real(dp), intent(in) :: eta ! eigenspectrum shift parameter
   real(dp), intent(in) :: cg_tol ! convergence tolerance of CG minimization (if negative, default of 1.0d-9 is used)
@@ -184,10 +182,10 @@ subroutine omm_szden_ref(m,n,H_vals,S_present,S_vals,new_S,e_min,D_min_vals,calc
   long_out_conv=long_out
   dealloc_conv=dealloc
   call omm(m,n,H,S,new_S_conv,e_min,D_min,calc_ED_conv,eta,C_min,init_C_conv,T,scale_T,flavour,np,ip,cg_tol,long_out_conv,&
-           dealloc_conv,m_storage,m_operation,mpi_rank)
+           dealloc_conv,m_storage,m_operation)
 #else
   call omm(m,n,H,S,new_S,e_min,D_min,calc_ED,eta,C_min,init_C,T,scale_T,flavour,np,ip,cg_tol,long_out,dealloc,m_storage,&
-           m_operation,mpi_rank)
+           m_operation)
 #endif
 
   if (T_present) call m_deallocate(T)
@@ -199,7 +197,7 @@ subroutine omm_szden_ref(m,n,H_vals,S_present,S_vals,new_S,e_min,D_min_vals,calc
 end subroutine omm_szden_ref
 
 subroutine omm_sdden_lap(m,n,H_vals,S_present,S_vals,new_S,e_min,D_min_vals,calc_ED,eta,C_min_vals,init_C,T_present,T_vals,&
-               scale_T,flavour,np,ip,cg_tol,long_out,dealloc,mpi_rank)
+               scale_T,flavour,np,ip,cg_tol,long_out,dealloc)
   use omm_params, only : dp
   use MatrixSwitch
 #ifdef CBIND
@@ -237,7 +235,6 @@ subroutine omm_sdden_lap(m,n,H_vals,S_present,S_vals,new_S,e_min,D_min_vals,calc
                                  ! 3 for preconditioning, S provided (T optional)
   integer, intent(in) :: np ! (number of spin points)*(number of k points)
   integer, intent(in) :: ip ! spin+k point identifier (from 1 to np)
-  integer, intent(in) :: mpi_rank ! MPI process rank (0 for serial)
 
   real(dp), intent(in) :: eta ! eigenspectrum shift parameter
   real(dp), intent(in) :: cg_tol ! convergence tolerance of CG minimization (if negative, default of 1.0d-9 is used)
@@ -284,10 +281,10 @@ subroutine omm_sdden_lap(m,n,H_vals,S_present,S_vals,new_S,e_min,D_min_vals,calc
   long_out_conv=long_out
   dealloc_conv=dealloc
   call omm(m,n,H,S,new_S_conv,e_min,D_min,calc_ED_conv,eta,C_min,init_C_conv,T,scale_T,flavour,np,ip,cg_tol,long_out_conv,&
-           dealloc_conv,m_storage,m_operation,mpi_rank)
+           dealloc_conv,m_storage,m_operation)
 #else
   call omm(m,n,H,S,new_S,e_min,D_min,calc_ED,eta,C_min,init_C,T,scale_T,flavour,np,ip,cg_tol,long_out,dealloc,m_storage,&
-           m_operation,mpi_rank)
+           m_operation)
 #endif
 
   if (T_present) call m_deallocate(T)
@@ -299,7 +296,7 @@ subroutine omm_sdden_lap(m,n,H_vals,S_present,S_vals,new_S,e_min,D_min_vals,calc
 end subroutine omm_sdden_lap
 
 subroutine omm_szden_lap(m,n,H_vals,S_present,S_vals,new_S,e_min,D_min_vals,calc_ED,eta,C_min_vals,init_C,T_present,T_vals,&
-               scale_T,flavour,np,ip,cg_tol,long_out,dealloc,mpi_rank)
+               scale_T,flavour,np,ip,cg_tol,long_out,dealloc)
   use omm_params, only : dp
   use MatrixSwitch
 #ifdef CBIND
@@ -337,7 +334,6 @@ subroutine omm_szden_lap(m,n,H_vals,S_present,S_vals,new_S,e_min,D_min_vals,calc
                                  ! 3 for preconditioning, S provided (T optional)
   integer, intent(in) :: np ! (number of spin points)*(number of k points)
   integer, intent(in) :: ip ! spin+k point identifier (from 1 to np)
-  integer, intent(in) :: mpi_rank ! MPI process rank (0 for serial)
 
   real(dp), intent(in) :: eta ! eigenspectrum shift parameter
   real(dp), intent(in) :: cg_tol ! convergence tolerance of CG minimization (if negative, default of 1.0d-9 is used)
@@ -384,10 +380,10 @@ subroutine omm_szden_lap(m,n,H_vals,S_present,S_vals,new_S,e_min,D_min_vals,calc
   long_out_conv=long_out
   dealloc_conv=dealloc
   call omm(m,n,H,S,new_S_conv,e_min,D_min,calc_ED_conv,eta,C_min,init_C_conv,T,scale_T,flavour,np,ip,cg_tol,long_out_conv,&
-           dealloc_conv,m_storage,m_operation,mpi_rank)
+           dealloc_conv,m_storage,m_operation)
 #else
   call omm(m,n,H,S,new_S,e_min,D_min,calc_ED,eta,C_min,init_C,T,scale_T,flavour,np,ip,cg_tol,long_out,dealloc,m_storage,&
-           m_operation,mpi_rank)
+           m_operation)
 #endif
 
   if (T_present) call m_deallocate(T)
@@ -401,7 +397,7 @@ end subroutine omm_szden_lap
 #ifdef MPI
 subroutine omm_pddbc_lap(m,n,H_dim,H_vals,desc_H,S_present,S_dim,S_vals,desc_S,new_S,e_min,D_min_dim,D_min_vals,desc_D_min,&
                calc_ED,eta,C_min_dim,C_min_vals,desc_C_min,init_C,T_present,T_dim,T_vals,desc_T,scale_T,flavour,np,ip,cg_tol,&
-               long_out,dealloc,mpi_rank,mpi_size,nprow,order,bs_def,icontxt)
+               long_out,dealloc,nprow,order,bs_def,icontxt)
   use omm_params, only : dp, ms_scalapack_running
   use MatrixSwitch
 #ifdef CBIND
@@ -446,8 +442,6 @@ subroutine omm_pddbc_lap(m,n,H_dim,H_vals,desc_H,S_present,S_dim,S_vals,desc_S,n
                                  ! 3 for preconditioning, S provided (T optional)
   integer, intent(in) :: np ! (number of spin points)*(number of k points)
   integer, intent(in) :: ip ! spin+k point identifier (from 1 to np)
-  integer, intent(in) :: mpi_rank ! MPI process rank (0 for serial)
-  integer, intent(in) :: mpi_size ! total number of MPI processes for the processor grid
   integer, intent(in) :: nprow ! number of rows in the processor grid
   integer, intent(in) :: bs_def ! default block size
   integer, intent(in) :: icontxt ! existing BLACS context handle
@@ -491,7 +485,7 @@ subroutine omm_pddbc_lap(m,n,H_dim,H_vals,desc_H,S_present,S_dim,S_vals,desc_S,n
   m_operation='lap'
 
   if (.not. ms_scalapack_running) then
-    call ms_scalapack_setup(mpi_rank,mpi_size,nprow,order,bs_def,icontxt=icontxt)
+    call ms_scalapack_setup(nprow,order,bs_def,icontxt=icontxt)
     ms_scalapack_running=.true.
   end if
 
@@ -508,10 +502,10 @@ subroutine omm_pddbc_lap(m,n,H_dim,H_vals,desc_H,S_present,S_dim,S_vals,desc_S,n
   long_out_conv=long_out
   dealloc_conv=dealloc
   call omm(m,n,H,S,new_S_conv,e_min,D_min,calc_ED_conv,eta,C_min,init_C_conv,T,scale_T,flavour,np,ip,cg_tol,long_out_conv,&
-           dealloc_conv,m_storage,m_operation,mpi_rank)
+           dealloc_conv,m_storage,m_operation)
 #else
   call omm(m,n,H,S,new_S,e_min,D_min,calc_ED,eta,C_min,init_C,T,scale_T,flavour,np,ip,cg_tol,long_out,dealloc,m_storage,&
-           m_operation,mpi_rank)
+           m_operation)
 #endif
 
   if (T_present) call m_deallocate(T)
@@ -524,7 +518,7 @@ end subroutine omm_pddbc_lap
 
 subroutine omm_pzdbc_lap(m,n,H_dim,H_vals,desc_H,S_present,S_dim,S_vals,desc_S,new_S,e_min,D_min_dim,D_min_vals,desc_D_min,&
                calc_ED,eta,C_min_dim,C_min_vals,desc_C_min,init_C,T_present,T_dim,T_vals,desc_T,scale_T,flavour,np,ip,cg_tol,&
-               long_out,dealloc,mpi_rank,mpi_size,nprow,order,bs_def,icontxt)
+               long_out,dealloc,nprow,order,bs_def,icontxt)
   use omm_params, only : dp, ms_scalapack_running
   use MatrixSwitch
 #ifdef CBIND
@@ -569,8 +563,6 @@ subroutine omm_pzdbc_lap(m,n,H_dim,H_vals,desc_H,S_present,S_dim,S_vals,desc_S,n
                                  ! 3 for preconditioning, S provided (T optional)
   integer, intent(in) :: np ! (number of spin points)*(number of k points)
   integer, intent(in) :: ip ! spin+k point identifier (from 1 to np)
-  integer, intent(in) :: mpi_rank ! MPI process rank (0 for serial)
-  integer, intent(in) :: mpi_size ! total number of MPI processes for the processor grid
   integer, intent(in) :: nprow ! number of rows in the processor grid
   integer, intent(in) :: bs_def ! default block size
   integer, intent(in) :: icontxt ! existing BLACS context handle
@@ -614,7 +606,7 @@ subroutine omm_pzdbc_lap(m,n,H_dim,H_vals,desc_H,S_present,S_dim,S_vals,desc_S,n
   m_operation='lap'
 
   if (.not. ms_scalapack_running) then
-    call ms_scalapack_setup(mpi_rank,mpi_size,nprow,order,bs_def,icontxt=icontxt)
+    call ms_scalapack_setup(nprow,order,bs_def,icontxt=icontxt)
     ms_scalapack_running=.true.
   end if
 
@@ -631,10 +623,10 @@ subroutine omm_pzdbc_lap(m,n,H_dim,H_vals,desc_H,S_present,S_dim,S_vals,desc_S,n
   long_out_conv=long_out
   dealloc_conv=dealloc
   call omm(m,n,H,S,new_S_conv,e_min,D_min,calc_ED_conv,eta,C_min,init_C_conv,T,scale_T,flavour,np,ip,cg_tol,long_out_conv,&
-           dealloc_conv,m_storage,m_operation,mpi_rank)
+           dealloc_conv,m_storage,m_operation)
 #else
   call omm(m,n,H,S,new_S,e_min,D_min,calc_ED,eta,C_min,init_C,T,scale_T,flavour,np,ip,cg_tol,long_out,dealloc,m_storage,&
-           m_operation,mpi_rank)
+           m_operation)
 #endif
 
   if (T_present) call m_deallocate(T)
@@ -649,7 +641,7 @@ end subroutine omm_pzdbc_lap
 #ifdef PSP
 subroutine omm_pddbc2pdcsc_psp(m,n,H_dim,H_vals,desc_H,S_present,S_dim,S_vals,desc_S,new_S,e_min,D_min_dim,D_min_vals,desc_D_min,&
                calc_ED,eta,C_min_dim,C_min_vals,desc_C_min,init_C,T_present,T_dim,T_vals,desc_T,scale_T,flavour,np,ip,cg_tol,&
-               long_out,dealloc,mpi_rank,mpi_size,nprow,order,bs_def,icontxt)
+               long_out,dealloc,nprow,order,bs_def,icontxt)
   use omm_params, only : dp, ms_scalapack_running
   use MatrixSwitch
 #ifdef CBIND
@@ -694,8 +686,6 @@ subroutine omm_pddbc2pdcsc_psp(m,n,H_dim,H_vals,desc_H,S_present,S_dim,S_vals,de
                                  ! 3 for preconditioning, S provided (T optional)
   integer, intent(in) :: np ! (number of spin points)*(number of k points)
   integer, intent(in) :: ip ! spin+k point identifier (from 1 to np)
-  integer, intent(in) :: mpi_rank ! MPI process rank (0 for serial)
-  integer, intent(in) :: mpi_size ! total number of MPI processes for the processor grid
   integer, intent(in) :: nprow ! number of rows in the processor grid
   integer, intent(in) :: bs_def ! default block size
   integer, intent(in) :: icontxt ! existing BLACS context handle
@@ -739,7 +729,7 @@ subroutine omm_pddbc2pdcsc_psp(m,n,H_dim,H_vals,desc_H,S_present,S_dim,S_vals,de
   m_operation='psp'
 
   if (.not. ms_scalapack_running) then
-    call ms_scalapack_setup(mpi_rank,mpi_size,nprow,order,bs_def,icontxt=icontxt)
+    call ms_scalapack_setup(nprow,order,bs_def,icontxt=icontxt)
     ms_scalapack_running=.true.
   end if
 
@@ -756,10 +746,10 @@ subroutine omm_pddbc2pdcsc_psp(m,n,H_dim,H_vals,desc_H,S_present,S_dim,S_vals,de
   long_out_conv=long_out
   dealloc_conv=dealloc
   call omm(m,n,H,S,new_S_conv,e_min,D_min,calc_ED_conv,eta,C_min,init_C_conv,T,scale_T,flavour,np,ip,cg_tol,long_out_conv,&
-           dealloc_conv,m_storage,m_operation,mpi_rank)
+           dealloc_conv,m_storage,m_operation)
 #else
   call omm(m,n,H,S,new_S,e_min,D_min,calc_ED,eta,C_min,init_C,T,scale_T,flavour,np,ip,cg_tol,long_out,dealloc,m_storage,&
-           m_operation,mpi_rank)
+           m_operation)
 #endif
 
   if (T_present) call m_deallocate(T)
@@ -772,7 +762,7 @@ end subroutine omm_pddbc2pdcsc_psp
 
 subroutine omm_pzdbc2pzcsc_psp(m,n,H_dim,H_vals,desc_H,S_present,S_dim,S_vals,desc_S,new_S,e_min,D_min_dim,D_min_vals,desc_D_min,&
                calc_ED,eta,C_min_dim,C_min_vals,desc_C_min,init_C,T_present,T_dim,T_vals,desc_T,scale_T,flavour,np,ip,cg_tol,&
-               long_out,dealloc,mpi_rank,mpi_size,nprow,order,bs_def,icontxt)
+               long_out,dealloc,nprow,order,bs_def,icontxt)
   use omm_params, only : dp, ms_scalapack_running
   use MatrixSwitch
 #ifdef CBIND
@@ -817,8 +807,6 @@ subroutine omm_pzdbc2pzcsc_psp(m,n,H_dim,H_vals,desc_H,S_present,S_dim,S_vals,de
                                  ! 3 for preconditioning, S provided (T optional)
   integer, intent(in) :: np ! (number of spin points)*(number of k points)
   integer, intent(in) :: ip ! spin+k point identifier (from 1 to np)
-  integer, intent(in) :: mpi_rank ! MPI process rank (0 for serial)
-  integer, intent(in) :: mpi_size ! total number of MPI processes for the processor grid
   integer, intent(in) :: nprow ! number of rows in the processor grid
   integer, intent(in) :: bs_def ! default block size
   integer, intent(in) :: icontxt ! existing BLACS context handle
@@ -862,7 +850,7 @@ subroutine omm_pzdbc2pzcsc_psp(m,n,H_dim,H_vals,desc_H,S_present,S_dim,S_vals,de
   m_operation='psp'
 
   if (.not. ms_scalapack_running) then
-    call ms_scalapack_setup(mpi_rank,mpi_size,nprow,order,bs_def,icontxt=icontxt)
+    call ms_scalapack_setup(nprow,order,bs_def,icontxt=icontxt)
     ms_scalapack_running=.true.
   end if
 
@@ -879,10 +867,10 @@ subroutine omm_pzdbc2pzcsc_psp(m,n,H_dim,H_vals,desc_H,S_present,S_dim,S_vals,de
   long_out_conv=long_out
   dealloc_conv=dealloc
   call omm(m,n,H,S,new_S_conv,e_min,D_min,calc_ED_conv,eta,C_min,init_C_conv,T,scale_T,flavour,np,ip,cg_tol,long_out_conv,&
-           dealloc_conv,m_storage,m_operation,mpi_rank)
+           dealloc_conv,m_storage,m_operation)
 #else
   call omm(m,n,H,S,new_S,e_min,D_min,calc_ED,eta,C_min,init_C,T,scale_T,flavour,np,ip,cg_tol,long_out,dealloc,m_storage,&
-           m_operation,mpi_rank)
+           m_operation)
 #endif
 
   if (T_present) call m_deallocate(T)

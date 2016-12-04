@@ -72,7 +72,7 @@ program example1
   do i=1,N
   do j=1,M
     rn=mod(4.2_dp*rn,1.0_dp)
-    call m_set_element(A,i,j,rn)
+    call m_set_element(A,i,j,rn,0.0_dp)
     rn=mod(4.2_dp*rn,1.0_dp)
     MyMatrix(i,j)=rn
   end do

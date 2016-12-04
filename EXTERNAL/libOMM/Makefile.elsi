@@ -1,14 +1,16 @@
 # libOMM Makefile modified for ELSI installer.
 # Source code is NOT modified.
 # Victor Yu, ELSI team.
+# Dec 3, 2016
 
 include make.inc
 
-PSPOBJ = pspBLAS.o pspMPI.o pspVariable.o pspUtility.o pspLevel1.o pspLevel2.o pspLevel3.o pspGemm.o pspMspm.o pspSpmm.o
-MSOBJ = MatrixSwitch.o MatrixSwitch_wrapper_params.o MatrixSwitch_wrapper.o
+PSPOBJ = pspBLAS.o pspMPI.o pspBasicTool.o pspListTool.o psp_spBLAS_Level1.o psp_spBLAS_Level2.o psp_spBLAS_Level3.o psp_spBLAS.o pspMat.o pspNode.o psp_dList.o psp_zList.o pspListType.o pspVariable.o pspUtility.o pspLevel1.o pspLevel2.o pspLevel3.o pspGemm.o pspMspm.o pspSpmm.o pspMatSum.o pspSpmSpm_nn.o pspSpmSpm_nt.o pspSpmSpm_tn.o pspSpmSpm_tt.o pspSpmSpm.o pspMspm_nn.o pspMspm_nt.o pspMspm_tn.o pspMspm_tt.o pspSpmm_nn.o pspSpmm_nt.o pspSpmm_tn.o pspSpmm_tt.o
+MSOBJ = MatrixSwitch_ops.o MatrixSwitch_mm_multiply.o MatrixSwitch_m_add.o MatrixSwitch_m_set.o MatrixSwitch_m_copy.o MatrixSwitch_m_register.o MatrixSwitch.o MatrixSwitch_wrapper_params.o MatrixSwitch_wrapper.o
 OMMOBJ = omm_params.o omm_rand.o omm_quartic.o omm_ops.o omm.o omm_wrappers.o omm_callback.o
+TOMOBJ = tomato_TB.o
 
-all: psp_lib MatrixSwitch_lib libOMM_lib
+all: psp_lib MatrixSwitch_lib libOMM_lib tomato_lib
 
 psp_lib: libpspblas.a
 
@@ -19,13 +21,46 @@ libpspblas.a: $(PSPOBJ)
 pspBLAS.o: ./psp/pspBLAS.F90 pspMPI.o pspVariable.o pspUtility.o pspLevel1.o pspLevel2.o pspLevel3.o pspGemm.o pspMspm.o pspSpmm.o
 	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
 
-pspMPI.o: ./psp/pspMPI/pspMPI.F90
+pspMPI.o: ./psp/pspMPI/pspMPI.F90 pspUtility.o
 	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
 
-pspVariable.o: ./psp/pspVariable/pspVariable.F90 pspMPI.o
+pspBasicTool.o: ./psp/pspUtility/pspBasicTool.F90 pspVariable.o
 	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
 
-pspUtility.o: ./psp/pspUtility/pspUtility.F90 pspMPI.o pspVariable.o
+pspListTool.o: ./psp/pspUtility/pspListTool.F90 pspBasicTool.o pspVariable.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
+
+psp_spBLAS_Level1.o: ./psp/pspUtility/psp_spBLAS_Level1.F90 pspVariable.o pspBasicTool.o pspListTool.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
+
+psp_spBLAS_Level2.o: ./psp/pspUtility/psp_spBLAS_Level2.F90 pspVariable.o pspBasicTool.o pspListTool.o psp_spBLAS_Level1.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
+
+psp_spBLAS_Level3.o: ./psp/pspUtility/psp_spBLAS_Level3.F90 pspVariable.o pspBasicTool.o pspListTool.o psp_spBLAS_Level1.o psp_spBLAS_Level2.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
+
+psp_spBLAS.o: ./psp/pspUtility/psp_spBLAS.F90 psp_spBLAS_Level1.o psp_spBLAS_Level2.o psp_spBLAS_Level3.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
+
+pspMat.o: ./psp/pspVariable/pspMat.F90 pspListType.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
+
+pspNode.o: ./psp/pspVariable/pspNode.F90
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
+
+psp_dList.o: ./psp/pspVariable/psp_dList.F90 pspNode.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
+
+psp_zList.o: ./psp/pspVariable/psp_zList.F90 pspNode.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
+
+pspListType.o: ./psp/pspVariable/pspListType.F90 psp_dList.o psp_zList.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
+
+pspVariable.o: ./psp/pspVariable/pspVariable.F90 pspMat.o pspListType.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
+
+pspUtility.o: ./psp/pspUtility/pspUtility.F90 pspVariable.o pspBasicTool.o pspListTool.o psp_spBLAS.o
 	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
 
 pspLevel1.o: ./psp/pspLevel1/pspLevel1.F90 pspMPI.o pspVariable.o pspUtility.o
@@ -34,16 +69,58 @@ pspLevel1.o: ./psp/pspLevel1/pspLevel1.F90 pspMPI.o pspVariable.o pspUtility.o
 pspLevel2.o: ./psp/pspLevel2/pspLevel2.F90 pspMPI.o pspVariable.o pspUtility.o pspLevel1.o
 	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
 
+pspMatSum.o: ./psp/pspLevel3/pspMatSum.F90 pspVariable.o pspUtility.o pspMPI.o pspLevel1.o pspLevel2.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
+
+pspSpmSpm_nn.o: ./psp/pspLevel3/pspSpmSpm_nn.F90 pspVariable.o pspUtility.o pspMPI.o pspLevel1.o pspLevel2.o pspMatSum.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
+
+pspSpmSpm_nt.o: ./psp/pspLevel3/pspSpmSpm_nt.F90 pspVariable.o pspUtility.o pspMPI.o pspLevel1.o pspLevel2.o pspMatSum.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
+
+pspSpmSpm_tn.o: ./psp/pspLevel3/pspSpmSpm_tn.F90 pspVariable.o pspUtility.o pspMPI.o pspLevel1.o pspLevel2.o pspMatSum.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
+
+pspSpmSpm_tt.o: ./psp/pspLevel3/pspSpmSpm_tt.F90 pspVariable.o pspUtility.o pspMPI.o pspLevel1.o pspLevel2.o pspMatSum.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
+
+pspSpmSpm.o: ./psp/pspLevel3/pspSpmSpm.F90 pspVariable.o pspUtility.o pspMPI.o pspLevel1.o pspLevel2.o pspMatSum.o pspSpmSpm_nn.o pspSpmSpm_nt.o pspSpmSpm_tn.o pspSpmSpm_tt.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
+
 pspGemm.o: ./psp/pspLevel3/pspGemm.F90 pspMPI.o pspVariable.o pspUtility.o pspLevel1.o pspLevel2.o
 	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
 
-pspMspm.o: ./psp/pspLevel3/pspMspm.F90 pspMPI.o pspVariable.o pspUtility.o pspLevel1.o pspLevel2.o
+pspMspm_nn.o: ./psp/pspLevel3/pspMspm_nn.F90 pspMPI.o pspVariable.o pspUtility.o pspLevel1.o pspLevel2.o
 	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
 
-pspSpmm.o: ./psp/pspLevel3/pspSpmm.F90 pspMPI.o pspVariable.o pspUtility.o pspLevel1.o pspLevel2.o
+pspMspm_nt.o: ./psp/pspLevel3/pspMspm_nt.F90 pspMPI.o pspVariable.o pspUtility.o pspLevel1.o pspLevel2.o
 	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
 
-pspLevel3.o: ./psp/pspLevel3/pspLevel3.F90 pspMPI.o pspVariable.o pspUtility.o pspLevel1.o pspLevel2.o pspGemm.o pspMspm.o pspSpmm.o
+pspMspm_tn.o: ./psp/pspLevel3/pspMspm_tn.F90 pspMPI.o pspVariable.o pspUtility.o pspLevel1.o pspLevel2.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
+
+pspMspm_tt.o: ./psp/pspLevel3/pspMspm_tt.F90 pspMPI.o pspVariable.o pspUtility.o pspLevel1.o pspLevel2.o pspMspm_nt.o pspMspm_tn.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
+
+pspMspm.o: ./psp/pspLevel3/pspMspm.F90 pspMPI.o pspVariable.o pspUtility.o pspLevel1.o pspLevel2.o pspMspm_nn.o pspMspm_nt.o pspMspm_tn.o pspMspm_tt.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
+
+pspSpmm_nn.o: ./psp/pspLevel3/pspSpmm_nn.F90 pspMPI.o pspVariable.o pspUtility.o pspLevel1.o pspLevel2.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
+
+pspSpmm_nt.o: ./psp/pspLevel3/pspSpmm_nt.F90 pspMPI.o pspVariable.o pspUtility.o pspLevel1.o pspLevel2.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
+
+pspSpmm_tn.o: ./psp/pspLevel3/pspSpmm_tn.F90 pspMPI.o pspVariable.o pspUtility.o pspLevel1.o pspLevel2.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
+
+pspSpmm_tt.o: ./psp/pspLevel3/pspSpmm_tt.F90 pspMPI.o pspVariable.o pspUtility.o pspLevel1.o pspLevel2.o pspSpmm_nt.o pspSpmm_tn.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
+
+pspSpmm.o: ./psp/pspLevel3/pspSpmm.F90 pspMPI.o pspVariable.o pspUtility.o pspLevel1.o pspLevel2.o pspSpmm_nn.o pspSpmm_nt.o pspSpmm_tn.o pspSpmm_tt.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
+
+pspLevel3.o: ./psp/pspLevel3/pspLevel3.F90 pspMatSum.o pspGemm.o pspMspm.o pspSpmm.o pspSpmSpm.o
 	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
 
 MatrixSwitch_lib: libMatrixSwitch.a psp_lib
@@ -52,7 +129,25 @@ libMatrixSwitch.a: $(MSOBJ)
 	$(ARCH) $(ARCHFLAGS) $@ $(MSOBJ)
 	$(RANLIB) $@
 
-MatrixSwitch.o: ./MatrixSwitch/src/MatrixSwitch.F90 pspBLAS.o
+MatrixSwitch_ops.o: ./MatrixSwitch/src/MatrixSwitch_ops.F90 pspBLAS.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
+
+MatrixSwitch_mm_multiply.o: ./MatrixSwitch/src/MatrixSwitch_mm_multiply.F90 MatrixSwitch_ops.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
+
+MatrixSwitch_m_add.o: ./MatrixSwitch/src/MatrixSwitch_m_add.F90 MatrixSwitch_ops.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
+
+MatrixSwitch_m_set.o: ./MatrixSwitch/src/MatrixSwitch_m_set.F90 MatrixSwitch_ops.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
+
+MatrixSwitch_m_copy.o: ./MatrixSwitch/src/MatrixSwitch_m_copy.F90 MatrixSwitch_ops.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
+
+MatrixSwitch_m_register.o: ./MatrixSwitch/src/MatrixSwitch_m_register.F90 MatrixSwitch_ops.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
+
+MatrixSwitch.o: ./MatrixSwitch/src/MatrixSwitch.F90 MatrixSwitch_ops.o MatrixSwitch_mm_multiply.o MatrixSwitch_m_add.o MatrixSwitch_m_set.o MatrixSwitch_m_copy.o MatrixSwitch_m_register.o pspBLAS.o
 	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
 
 MatrixSwitch_wrapper_params.o: ./MatrixSwitch/src/MatrixSwitch_wrapper_params.F90 MatrixSwitch.o
@@ -79,13 +174,22 @@ omm_quartic.o: ./libOMM/src/omm_quartic.F90 omm_params.o
 omm_ops.o: ./libOMM/src/omm_ops.F90 omm_params.o MatrixSwitch.o
 	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
 
-omm.o: ./libOMM/src/omm.F90 omm_ops.o omm_rand.o MatrixSwitch.o pspBLAS.o
+omm.o: ./libOMM/src/omm.F90 omm_ops.o omm_rand.o MatrixSwitch.o pspBLAS.o MatrixSwitch_ops.o
 	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
 
 omm_wrappers.o: ./libOMM/src/omm_wrappers.F90 omm_params.o MatrixSwitch.o
 	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
 
-omm_callback.o: ./libOMM/src/omm_callback.F90 omm_ops.o omm_rand.o MatrixSwitch.o
+omm_callback.o: ./libOMM/src/omm_callback.F90 omm_ops.o omm_rand.o MatrixSwitch.o MatrixSwitch_ops.o
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
+
+tomato_lib: libtomato.a MatrixSwitch_lib
+
+libtomato.a: $(TOMOBJ)
+	$(ARCH) $(ARCHFLAGS) $@ $(TOMOBJ)
+	$(RANLIB) $@
+
+tomato_TB.o: ./tomato/src/tomato_TB.F90 MatrixSwitch.o MatrixSwitch_ops.o
 	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
 
 install:

@@ -328,7 +328,7 @@ contains
      mpi_comm_col = mpi_comm_col_in
 
      if(method == LIBOMM) then
-        call ms_scalapack_setup(myid,n_procs,n_p_rows,'r',n_b_rows,icontxt=blacs_ctxt)
+        call ms_scalapack_setup(n_p_rows,'r',n_b_rows,icontxt=blacs_ctxt)
      endif
   
   end subroutine

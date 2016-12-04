@@ -16,7 +16,10 @@ complex(dp), parameter :: cmplx_0=(0.0_dp,0.0_dp)
 
 logical, save :: ms_scalapack_running=.false.
 
-integer :: log_unit
+integer, save :: log_unit
+
+integer, save :: mpi_size
+integer, save :: mpi_rank
 
 integer, parameter :: i64 = selected_int_kind(18)
 
