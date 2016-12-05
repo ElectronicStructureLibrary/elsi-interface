@@ -1212,28 +1212,20 @@ contains
                                 H_complex,1,1,sc_desc,S_complex,1,1,sc_desc,(0d0,0d0),&
                                 buffer_complex,1,1,sc_desc)
 
-                    ! H_complex = (S_complex)^T * buffer_complex
+                    ! H_complex = (S_complex)^* * buffer_complex
                     call pzgemm('C','N',n_nonsingular,n_nonsingular,n_g_size,(1d0,0d0),&
                                 S_complex,1,1,sc_desc,buffer_complex,1,1,sc_desc,&
                                 (0d0,0d0),H_complex,1,1,sc_desc)
 
                  else ! Use cholesky
-                    ! compute H(U^-1) -> buff
                     ! buffer_complex = H_complex * S_complex
-                    call pzgemm('C','N',n_g_size,n_g_size,n_g_size,(1d0,0d0),&
-                                S_complex,1,1,sc_desc,H_complex,1,1,sc_desc,&
+                    call pzgemm('N','N',n_g_size,n_g_size,n_g_size,(1d0,0d0),&
+                                H_complex,1,1,sc_desc,S_complex,1,1,sc_desc,&
                                 (0d0,0d0),buffer_complex,1,1,sc_desc)
 
-                    ! compute ((U^-1)^T)H by (H(U^-1))^T -> H
-                    ! H_complex = (buffer_complex)^T
-                    call pztranc(n_g_size,n_g_size,(1d0,0d0),buffer_complex,1,1,&
-                                 sc_desc,(0d0,0d0),H_complex,1,1,sc_desc)
-
-                    ! compute ((U^-1)^T)H(U^-1) -> H
-                    buffer_complex = H_complex
-                    ! H_complex = buffer_complex * S_complex
+                    ! H_complex = (buffer_complex)^* * S_complex
                     call pzgemm('C','N',n_g_size,n_g_size,n_g_size,(1d0,0d0),&
-                                S_complex,1,1,sc_desc,buffer_complex,1,1,&
+                                buffer_complex,1,1,sc_desc,S_complex,1,1,&
                                 sc_desc,(0d0,0d0),H_complex,1,1,sc_desc)
                  endif
 
@@ -1350,20 +1342,12 @@ contains
                                 1,1,sc_desc,buffer_real,1,1,sc_desc,0d0,H_real,1,1,sc_desc)
 
                  else ! Use Cholesky
-                    ! compute H(U^-1) -> buff
                     ! buffer_real = H_real * S_real
                     call pdgemm('N','N',n_g_size,n_g_size,n_g_size,1d0,H_real,1,1,&
                                 sc_desc,S_real,1,1,sc_desc,0d0,buffer_real,1,1,sc_desc)
 
-                    ! compute ((U^-1)^T)H by (H(U^-1))^T -> H
-                    ! H_real = (buffer_real)^T
-                    call pdtran(n_g_size,n_g_size,1d0,buffer_real,1,1,sc_desc,0d0,&
-                                H_real,1,1,sc_desc)
-
-                    ! compute ((U^-1)^T)H(U^-1) -> H
-                    buffer_real = H_real
-                    ! H_real = buffer_real * S_real
-                    call pdgemm('N','N',n_g_size,n_g_size,n_g_size,1d0,buffer_real,&
+                    ! H_real = (buffer_real)*T * S_real
+                    call pdgemm('T','N',n_g_size,n_g_size,n_g_size,1d0,buffer_real,&
                                 1,1,sc_desc,S_real,1,1,sc_desc,0d0,H_real,1,1,sc_desc)
                  endif
 
