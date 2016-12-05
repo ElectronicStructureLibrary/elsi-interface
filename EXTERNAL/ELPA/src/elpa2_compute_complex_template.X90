@@ -3346,7 +3346,7 @@
 #ifdef DOUBLE_PRECISION_COMPLEX
         num =  (stripe_width*a_dim2*stripe_count)*size_of_double_complex_datatype
         if (na_rows * na_cols .lt. stripe_width*a_dim2*stripe_count) then
-          print *,"trans_ev_tridi_to_band_complex aIntern_dev ",na_rows * na_cols, stripe_width*a_dim2*stripe_count
+!          print *,"trans_ev_tridi_to_band_complex aIntern_dev ",na_rows * na_cols, stripe_width*a_dim2*stripe_count
           !      stop
         endif
 
@@ -3354,24 +3354,24 @@
 #else
         num =  (stripe_width*a_dim2*stripe_count)*size_of_single_complex_datatype
         if (na_rows * na_cols .lt. stripe_width*a_dim2*stripe_count) then
-          print *,"trans_ev_tridi_to_band_complex aIntern_dev ",na_rows * na_cols, stripe_width*a_dim2*stripe_count
+!          print *,"trans_ev_tridi_to_band_complex aIntern_dev ",na_rows * na_cols, stripe_width*a_dim2*stripe_count
           !      stop
         endif
 
         successCUDA = cuda_malloc(aIntern_dev, stripe_width*a_dim2*stripe_count*size_of_single_complex_datatype)
 #endif
         if (.not.(successCUDA)) then
-          print *,"trans_ev_tridi_to_band_complex: error in cudaMalloc "
+!          print *,"trans_ev_tridi_to_band_complex: error in cudaMalloc "
           stop
         endif
 
         if (num .gt. na_rows * na_cols) then
-          print *,"trans_ev_tridi_to_band_complex aIntern_dev 1",num, na_rows * na_cols
+!          print *,"trans_ev_tridi_to_band_complex aIntern_dev 1",num, na_rows * na_cols
           !      stop
         endif
         successCUDA = cuda_memset(aIntern_dev , 0, num)
         if (.not.(successCUDA)) then
-          print *,"trans_ev_tridi_to_band_complex: error in cudaMemset "
+!          print *,"trans_ev_tridi_to_band_complex: error in cudaMemset "
           stop
         endif
 #ifdef DOUBLE_PRECISION_COMPLEX
