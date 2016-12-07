@@ -34,7 +34,7 @@ LDFLAGS    ?= $(FFLAGS_I)
 export
 
 # Use precompiled library if provided in make.sys
-# Use stubs if libOMM or PEXSI is disabled in make.sys
+# Use stubs if PEXSI is disabled in make.sys
 ifeq ($(strip $(USER_ELPA)),yes)
   $(info =============================)
   $(info = Using user-provided ELPA. =)
@@ -52,16 +52,9 @@ ifeq ($(strip $(USER_OMM)),yes)
   $(info ===============================)
   LIBS += $(OMM_LIB)
 else
-ifeq ($(strip $(DISABLE_OMM)),yes)
-  $(info ============================)
-  $(info = LibOMM disabled by user. =)
-  $(info ============================)
-  STUBS += stub_omm.o
-else
   ALL_OBJ += omm
   CLEAN_OBJ += cleanomm
   LIBS += $(OMM_LIB)
-endif
 endif
 
 ifeq ($(strip $(USER_PEXSI)),yes)
@@ -70,10 +63,10 @@ ifeq ($(strip $(USER_PEXSI)),yes)
   $(info ==============================)
   LIBS += $(PEXSI_LIB)
 else
-ifeq ($(strip $(DISABLE_PEXSI)),yes)
-  $(info ===========================)
-  $(info = PEXSI disabled by user. =)
-  $(info ===========================)
+ifeq ($(strip $(DISABLE_C++)),yes)
+  $(info ===================================================)
+  $(info = PEXSI disabled by user's choice of DISABLE_C++. =)
+  $(info ===================================================)
   STUBS += stub_pexsi.o
 else
   ALL_OBJ += pexsi

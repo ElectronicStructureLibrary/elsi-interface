@@ -48,6 +48,15 @@ A) BASIC
 
       "make -f Makefile.elsi install"
 
+4) Optional. The correctness of installation can be checked together with
+   the "tomato-seed" data files. Set the following keyword in make.sys:
+
+      TOMATO_SEED =  # Path to tomato_seed
+
+   Then, type
+
+      "make -f Makefile.elsi check"
+
 ==========================================================================
 B) ADVANCE I
 
@@ -70,6 +79,11 @@ B) ADVANCE I
       FFLAGS_P   =  # Default: $(FFLAGS)
       CFLAGS_P   =  # Default: $(CFLAGS)
       CXXFLAGS_P =  # Default: $(CXXFLAGS)
+
+3) Linker and link flags for ELSI test programs can be set by
+
+      LINKER  =  # Default: $(MPIFC)
+      LDFLAGS =  # Default: $(FFLAGS)
 
 ==========================================================================
 C) ADVANCE II
@@ -112,19 +126,17 @@ C) ADVANCE II
 ==========================================================================
 D) ADVANCE III
 
-   Disable solver library in ELSI.
+   Disable C++ code in ELSI.
 ==========================================================================
 
-   ELPA, as a traditional eigensolver, cannot be disabled in ELSI. LibOMM
-   and PEXSI, on the other hand, can be disabled for special purposes such
-   as testing or debugging.
+   For special purposes such as testing or debugging, the C++ code in ELSI
+   (mainly PEXSI) can be disabled to perform a pure Fortran compilation.
 
-1) Add the following keywords to "make.sys":
+1) Add the following keyword to "make.sys":
 
-      DISABLE_OMM   = yes  # Disable libOMM
-      DISABLE_PEXSI = yes  # Disable PEXSI
+      DISABLE_C++ = yes  # Disable C++ code
 
-2) To build whatever are not disabled, type
+2) To build ELSI, type
 
       "make -f Makefile.elsi"
 

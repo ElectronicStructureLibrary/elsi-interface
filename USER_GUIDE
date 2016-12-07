@@ -27,13 +27,15 @@ A) QUICK PROGRAMMING GUIDE
 
    For efficiency, this should be done once, BERORE the SCF loop begins.
 
-*  call elsi_init(solver, storage, size, n_electrons, n_states)
+*  call elsi_init(solver, parallelism, storage, size, n_electrons, n_states)
 
    solver:           [integer] [in]  Available choices are ELPA (1), LIBOMM (2),
                                      and PEXSI (3).
 
-   storage:          [integer] [in]  Only DENSE (0) is supported. More formats will
-                                     be supported in the future.
+   parallelism:      [integer] [in]  Only PARALLEL (1) is supported now.
+
+   storage:          [integer] [in]  Only DENSE (0) is supported. More formats are
+                                     coming in the future.
 
    size:             [integer] [in]  Global size of the Hamiltonian matrix.
 
@@ -50,9 +52,9 @@ A) QUICK PROGRAMMING GUIDE
 2) Set up MPI and BLACS infrastructure for ELSI
 ===============================================
 
-*  call elsi_set_mpi(mpi_comm_world, n_proc, myid)
+*  call elsi_set_mpi(elsi_mpi_comm, n_proc, myid)
 
-   mpi_comm_world:   [integer] [in]  Global MPI communicator.
+   elsi_mpi_comm:    [integer] [in]  Global MPI communicator used in ELSI.
 
    n_proc:           [integer] [in]  Number of processors.
 
@@ -71,11 +73,11 @@ A) QUICK PROGRAMMING GUIDE
 
    n_proc_col:       [integer] [in]  Number of processors in column.
 
-   mpi_comm_row:     [integer] [in]  OPTIONAL. MPI communicator for processor row.
-                                     Only needed for ELPA.
+   mpi_comm_row:     [integer] [in]  MPI communicator for processor row.
+                                     Needed for ELPA and libOMM.
 
-   mpi_comm_column:  [integer] [in]  OPTIONAL. MPI communicator for processor column.
-                                     Only needed for ELPA.
+   mpi_comm_column:  [integer] [in]  MPI communicator for processor column.
+                                     Needed for ELPA and libOMM.
 
 ============================================================
 3) Treat the Kohn-Sham eigenvalue problem using ELSI solvers
@@ -134,21 +136,24 @@ B) COMPILATION GUIDE
 
    A typical setup in the Makefile would be
 
-      ELSI = -I${ELSI_HOME}/ELSI/include \
-             -L${ELSI_HOME}/ELSI/lib -lelsi \
-             -I${ELSI_HOME}/EXTERNAL/include \
-             -L${ELSI_HOME}/EXTERNAL/lib -lpexsi \
-             -L${ELSI_HOME}/EXTERNAL/lib -lelpa \
-             -L${ELSI_HOME}/EXTERNAL/lib -lOMM -lMatrixSwitch -lpspblas \
-             -L${SUPERLU_HOME}/lib -lsuperlu \
-             -L${PARMETIS_HOME}/lib -lparmetis -lmetis \
-             -lstdc++ -Wl,--allow-multiple-definition
+      ELSI_INCLUDE = -I${ELSI_HOME}/ELSI/include \
+                     -I${ELSI_HOME}/EXTERNAL/include
+
+      ELSI_LIB = -L${ELSI_HOME}/ELSI/lib -lelsi \
+                 -L${ELSI_HOME}/EXTERNAL/lib -lpexsi \
+                 -L${ELSI_HOME}/EXTERNAL/lib -lelpa \
+                 -L${ELSI_HOME}/EXTERNAL/lib -lOMM -lMatrixSwitch -lpspblas \
+                 -L${SUPERLU_HOME}/lib -lsuperlu \
+                 -L${PARMETIS_HOME}/lib -lparmetis -lmetis
 
    NOTE: If any pre-compiled solver library (ELPA, libOMM, or PEXSI) is used in
          ELSI instead of the built-in version, or any solver library is disabled
          in ELSI, the path needs to be modifie accordingly.
 
-   Then add ${ELSI} to the compiler/linker flags.
+   Then add ${ELSI_INCLUDE}/${ELSI_LIB} to the compiler/linker flags.
+
+   NOTE: -Wl,--allow-multiple-definition and -lstdc++ might be necessary in the
+         final link. 
 
 ====================
 C) BEYOND THIS GUIDE
