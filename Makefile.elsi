@@ -20,14 +20,16 @@ PEXSI_LIB ?= -I$(PEXSI_DIR)/include \
              -L$(PEXSI_DIR)/lib -lpexsi \
              $(SUPERLU_LIB) $(PARMETIS_LIB) $(METIS_LIB)
 
-# Compiler flags
-FFLAGS_I   ?= $(FFLAGS)
-FFLAGS_E   ?= $(FFLAGS)
-CFLAGS_E   ?= $(CFLAGS)
-FFLAGS_O   ?= $(FFLAGS)
-FFLAGS_P   ?= $(FFLAGS)
-CFLAGS_P   ?= $(CFLAGS)
-CXXFLAGS_P ?= $(CXXFLAGS)
+# Compiler settings
+FFLAGS_I   ?= $(FFLAGS) $(SCALAPACK_FCFLAGS)
+FFLAGS_E   ?= $(FFLAGS) $(SCALAPACK_FCFLAGS)
+CFLAGS_E   ?= $(CFLAGS) $(SCALAPACK_FCFLAGS)
+FFLAGS_O   ?= $(FFLAGS) $(SCALAPACK_FCFLAGS)
+FFLAGS_P   ?= $(FFLAGS) $(SCALAPACK_FCFLAGS)
+CFLAGS_P   ?= $(CFLAGS) $(SCALAPACK_FCFLAGS)
+CXXFLAGS_P ?= $(CXXFLAGS) $(SCALAPACK_FCFLAGS)
+LINKER     ?= $(MPIFC)
+LDFLAGS    ?= $(FFLAGS_I)
 
 export
 
@@ -79,8 +81,6 @@ else
   LIBS += $(PEXSI_LIB)
 endif
 endif
-
-LIBS += $(SCALAPACK_FCFLAGS) $(SCALAPACK_LDFLAGS)
 
 all: $(ALL_OBJ) elsi
 
@@ -145,7 +145,7 @@ check:
 	@echo ======================================
 	@echo = ELSI test suite not yet available. =
 	@echo ======================================
-#	cd ELSI && ${MAKE} -f Makefile.elsi check
+	cd ELSI && ${MAKE} -f Makefile.elsi check
 
 clean: $(CLEAN_OBJ) cleanelsi
 

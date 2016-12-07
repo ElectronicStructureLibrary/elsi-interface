@@ -1,0 +1,19 @@
+ELSI_LIB = -L$(THIS_DIR)/ELSI/lib -lelsi
+ELSI_MOD = -I$(THIS_DIR)/ELSI/include
+
+all: test_ev_real.x test_dm_real.x
+
+test_dm_real.x: test_dm_real.o
+	$(LINKER) $(LDFLAGS) -o $@ $^ $(ELSI_LIB) $(LIBS) $(SCALAPACK_LDFLAGS)
+
+test_ev_real.x: test_ev_real.o
+	$(LINKER) $(LDFLAGS) -o $@ $^ $(ELSI_LIB) $(LIBS) $(SCALAPACK_LDFLAGS)
+
+test_dm_real.o: test_dm_real.f90
+	$(MPIFC) $(FFLAGS_I) -c $< $(ELSI_MOD) $(LIBS)
+
+test_ev_real.o: test_ev_real.f90
+	$(MPIFC) $(FFLAGS_I) -c $< $(ELSI_MOD) $(LIBS)
+
+clean:
+	rm -f *.o *.x *log*

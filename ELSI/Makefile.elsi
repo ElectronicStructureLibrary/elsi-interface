@@ -24,6 +24,7 @@ stub_pexsi.o: src/stub_pexsi.f90
 clean:
 	rm -f *.o *.mod *.x *.a
 	rm -rf lib include bin
+	cd test && ${MAKE} -f Makefile.elsi clean
 
 install:
 	$(ARCH) $(ARCHFLAGS) libelsi.a *.o
@@ -34,3 +35,4 @@ install:
 	cp *.mod include/.
 
 check:
+	cd test && ${MAKE} -f Makefile.elsi && chmod u+x ./make_check.sh && ./make_check.sh $(TOMATO_SEED)
