@@ -7,25 +7,27 @@ THIS_DIR = /home/wy29/elsi-interface
 MPIFC  = mpiifort
 MPICC  = mpiicc
 MPICXX = mpiicpc
+LINKER = mpiifort
 
 FFLAGS   = -O3
 CFLAGS   = -O3
 CXXFLAGS = -O3
+LDFLAGS  = -O3 -Wl,--allow-multiple-definition -lstdc++
 
 SCALAPACK_LDFLAGS = -L/opt/intel/mkl/lib/intel64 -lmkl_scalapack_lp64 \
                     -lmkl_blacs_intelmpi_lp64 -lmkl_intel_lp64 \
                     -lmkl_sequential -lmkl_core -lpthread -lm
 SCALAPACK_FCFLAGS = -I/opt/intel/mkl/include/intel64/lp64
 
-# ====== PEXSI ======
+TOMATO_SEED = /home/wy29/tomato_seed
 
+# ====== PEXSI ======
 METIS_LIB       = -L/home/wy29/yu/parmetis-4.0.3/build/Linux-x86_64/libmetis -lmetis
 PARMETIS_LIB    = -L/home/wy29/yu/parmetis-4.0.3/build/Linux-x86_64/libparmetis -lparmetis
 SUPERLU_LIB     = -L/home/wy29/yu/SuperLU_DIST_5.1.2/lib -lsuperlu_dist_5.1.2
 SUPERLU_INCLUDE = -I/home/wy29/yu/SuperLU_DIST_5.1.2/SRC
 
 # ====== ELPA ======
-
 ARCHITECTURE = GPU
 NVCC = nvcc
 NVCCFLAGS = -arch sm_35 -O3

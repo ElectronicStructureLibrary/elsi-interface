@@ -53,6 +53,10 @@ A) BASIC
 
       TOMATO_SEED =  # Path to tomato_seed
 
+   The following linker flags might be necessary for creating executables:
+
+      LDFLAGS = -Wl,--allow-multiple-definition -lstdc++
+
    Then, type
 
       "make -f Makefile.elsi check"

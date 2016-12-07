@@ -46,8 +46,6 @@ A) QUICK PROGRAMMING GUIDE
                                      this must be exactly the number of OCCUPIED 
                                      states. PEXSI does not use n_states.
 
-   overlap_unity:    [logical] [in]  OPTIONAL. Is overlap matrix unity?
-
 ===============================================
 2) Set up MPI and BLACS infrastructure for ELSI
 ===============================================
@@ -159,8 +157,8 @@ B) COMPILATION GUIDE
 C) BEYOND THIS GUIDE
 ====================
 
-   Usage of ELSI solvers for complex problems are work-in-progress and EXPERIMENTAL,
-   with k-point and spin parallel treatment being supported soon.
+   Usage of ELSI density matrix solver for complex problems are work-in-progress and
+   EXPERIMENTAL, with k-point and spin parallel treatment being supported soon.
 
    Documentation of each module, subroutine, and function in ELSI interface can be
    generated using Doxygen in ./ELSI/doc directory.
