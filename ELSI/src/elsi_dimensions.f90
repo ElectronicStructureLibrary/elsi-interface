@@ -96,12 +96,13 @@ module ELSI_DIMENSIONS
    real*8  :: zero_threshold = 1d-13 !< Threshold to define numerical zero
 
    !> Overlap
-   logical :: overlap_is_unit = .false.     !< Is overlap matrix unit?
-   logical :: overlap_is_singular = .false. !< Is overlap matrix singular?
-   real*8  :: singularity_tolerance = 1d-5  !< Eigenfunctions of overlap matrix with
-                                            !! eigenvalues smaller than this value
-                                            !! will be removed to avoid singularity
-   integer :: n_nonsingular                 !! Number of nonsingular basis functions
+   logical :: overlap_is_unit = .false.      !< Is overlap matrix unit?
+   logical :: overlap_is_singular = .false.  !< Is overlap matrix singular?
+   logical :: no_singularity_check = .false. !< Disable checking for singular overlap?
+   real*8  :: singularity_tolerance = 1d-5   !< Eigenfunctions of overlap matrix with
+                                             !! eigenvalues smaller than this value
+                                             !! will be removed to avoid singularity
+   integer :: n_nonsingular                  !! Number of nonsingular basis functions
 
    !> Physics
    real*8  :: n_electrons         !< Number of electrons in system
@@ -305,24 +306,30 @@ subroutine elsi_print_omm_options()
    character(LEN=4096) :: string_message
 
    if(myid == 0) then
-      write(*,"(A)") "  OMM settings used in ELSI: "
+      write(*,"(A)") "  libOMM settings used in ELSI (in the same unit of Hamiltonian):"
 
-      write(string_message, "(1X,' | ELPA steps before OMM ',I1)") n_elpa_steps
+      write(string_message, "(1X,' | ELPA steps before OMM ',I2)") &
+            n_elpa_steps
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,' | Eta (H) ',F10.4)") eta
+      write(string_message, "(1X,' | Eigenspectrum shift parameter ',F10.4)") &
+            eta
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,' | Kinetic scaling (H) ',F10.4)") scale_kinetic
+      write(string_message, "(1X,' | Scaling of kinetic energy matrix ',F10.4)") &
+            scale_kinetic
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,' | Tolerance (H) ',E10.1)") min_tol
+      write(string_message, "(1X,' | Tolerance of minimization ',E10.1)") &
+            min_tol
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,' | OMM Flavour ',I1)") omm_flavour
+      write(string_message, "(1X,' | OMM Flavour ',I1)") &
+            omm_flavour
       write(*,'(A)') trim(string_message)
 
-      write(string_message, "(1X,' | Energy weighted densigy matrix? ',L1)") calc_ed
+      write(string_message, "(1X,' | Compute energy weighted densigy matrix? ',L1)") &
+            calc_ed
       write(*,'(A)') trim(string_message)
    endif
 
