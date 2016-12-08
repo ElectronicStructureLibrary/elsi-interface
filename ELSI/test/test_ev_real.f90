@@ -27,7 +27,7 @@
 !! This program tests ELSI eigensolver elsi_ev_real.
 !!
 
-program test1
+program test_ev_real
 
    use ELSI
    use MatrixSwitch

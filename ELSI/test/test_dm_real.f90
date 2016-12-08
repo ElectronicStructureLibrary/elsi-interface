@@ -27,7 +27,7 @@
 !! This program tests ELSI density matrix solver elsi_dm_real.
 !!
 
-program test1
+program test_dm_real
 
    use ELSI
    use MatrixSwitch
@@ -177,7 +177,7 @@ program test1
    endif
 
    ! Disable ELPA if using libOMM
-   if(solver == 2) call elsi_customize_omm(n_elpa_steps_in=0)
+   if(solver == 2) call elsi_customize_omm(n_elpa_steps_omm=0)
 
    t1 = MPI_Wtime()
 
