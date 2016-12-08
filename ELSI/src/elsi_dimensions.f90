@@ -102,7 +102,8 @@ module ELSI_DIMENSIONS
    real*8  :: singularity_tolerance = 1d-5   !< Eigenfunctions of overlap matrix with
                                              !! eigenvalues smaller than this value
                                              !! will be removed to avoid singularity
-   integer :: n_nonsingular                  !! Number of nonsingular basis functions
+   logical :: stop_singularity = .false.     !< Always stop if overlap is singular?
+   integer :: n_nonsingular                  !< Number of nonsingular basis functions
 
    !> Physics
    real*8  :: n_electrons         !< Number of electrons in system

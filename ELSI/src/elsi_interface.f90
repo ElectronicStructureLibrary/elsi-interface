@@ -243,7 +243,8 @@ contains
 !! This routine overrides ELSI default settings.
 !!
   subroutine elsi_customize(unit_overlap,hartree_to_ev,numerical_zero,mu_accuracy,&
-                            no_check_singularity,singularity_threshold)
+                            no_check_singularity,singularity_threshold,&
+                            force_stop_singularity)
 
      implicit none
 
@@ -253,6 +254,7 @@ contains
      real*8,  intent(in), optional :: mu_accuracy
      logical, intent(in), optional :: no_check_singularity
      real*8,  intent(in), optional :: singularity_threshold
+     logical, intent(in), optional :: force_stop_singularity
 
      ! Is the overlap matrix unit? [Default: .false.]
      if(present(unit_overlap)) &
@@ -273,6 +275,9 @@ contains
      ! this value will be removed to avoid singularity [Default: 1d-5]
      if(present(singularity_threshold)) &
         singularity_tolerance = singularity_threshold
+     ! Always stop if overlap is singular? [Default: .false.]
+     if(present(force_stop_singularity)) &
+        stop_singularity = force_stop_singularity
 
   end subroutine ! elsi_customize
 
@@ -1154,6 +1159,17 @@ contains
                        elseif(n_nonsingular < n_g_size) then ! Singular
                           overlap_is_singular = .true.
 
+                          if(stop_singularity) then
+                             call elsi_stop(" Overlap matrix is singular. This may mean"//&
+                                            " that a very large basis set is in use."//&
+                                            " Running with a near-singular basis set"//&
+                                            " may lead to completely wrong numerical"//&
+                                            " resutls. The calculation stops here,"//&
+                                            " because 'force_stop_singularity' is"//&
+                                            " set to .true. in elsi_customize."//&
+                                            " Exiting...",caller)
+                          endif
+
                           call elsi_statement_print("  Overlap matrix is singular. This"//&
                                                     " may mean that a very large basis"//&
                                                     " set is in use. The calculation"//&
@@ -1300,6 +1316,17 @@ contains
                                          " Exiting...",caller)
                        elseif(n_nonsingular < n_g_size) then ! Singular
                           overlap_is_singular = .true.
+
+                          if(stop_singularity) then
+                             call elsi_stop(" Overlap matrix is singular. This may mean"//&
+                                            " that a very large basis set is in use."//&
+                                            " Running with a near-singular basis set"//&
+                                            " may lead to completely wrong numerical"//&
+                                            " resutls. The calculation stops here,"//&
+                                            " because 'force_stop_singularity' is"//&
+                                            " set to .true. in elsi_customize."//&
+                                            " Exiting...",caller)
+                          endif
 
                           call elsi_statement_print("  Overlap matrix is singular. This"//&
                                                     " may mean that a very large basis"//&
