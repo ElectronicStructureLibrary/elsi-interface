@@ -135,9 +135,9 @@ install:
 	@echo ======================================
 
 check:
-	@echo ======================================
-	@echo = ELSI test suite not yet available. =
-	@echo ======================================
+	@echo ================================
+	@echo = Running ELSI test programs.. =
+	@echo ================================
 	cd ELSI && ${MAKE} -f Makefile.elsi check
 
 clean: $(CLEAN_OBJ) cleanelsi
