@@ -1127,25 +1127,18 @@ contains
 
                        call elsi_allocate(ev_overlap,n_g_size,"ev_overlap",caller)
 
-                       ! Always use ELPA 2-stage solver here
-                       success = solve_evp_complex_2stage_double(n_g_size,n_g_size,&
-                                    buffer_complex,n_l_rows,ev_overlap,C_complex,&
-                                    n_l_rows,n_b_rows,n_l_cols,mpi_comm_row,&
-                                    mpi_comm_col,mpi_comm_global)
+                       ! Use customized ELPA 2-stage solver to check overlap singularity
+                       ! Eigenvectors computed only for singular overlap matrix
+                       success = check_eval_complex(n_g_size,n_g_size,buffer_complex,&
+                                                    n_l_rows,ev_overlap,C_complex,n_l_rows,&
+                                                    n_b_rows,n_l_cols,mpi_comm_row,&
+                                                    mpi_comm_col,mpi_comm_global,&
+                                                    singularity_tolerance,n_nonsingular)
 
                        if(.not.success) then
                           call elsi_stop(" ELPA failed when solving eigenvalue problem. "//&
                                          " Exiting...", caller)
                        endif
-
-                       ! Invert signs of eigenvalues
-                       ev_overlap = -ev_overlap
-
-                       ! Get the number of nonsingular eigenvalues
-                       do i = 1,n_g_size
-                          if(ev_overlap(i) < singularity_tolerance) exit
-                       enddo
-                       n_nonsingular = i-1
 
                        ! Stop if n_states is larger that n_nonsingular
                        if(n_nonsingular < n_states) then ! Too singular to continue
