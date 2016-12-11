@@ -139,6 +139,9 @@ check:
 	@echo = Running ELSI test programs.. =
 	@echo ================================
 	cd ELSI && ${MAKE} -f Makefile.elsi check
+	@echo ================================
+	@echo = ELSI test programs finished. =
+	@echo ================================
 
 clean: $(CLEAN_OBJ) cleanelsi
 

@@ -1,30 +1,41 @@
-all: elsi_interface.o
+all: test_ev_real.x test_dm_real.x
 
-elsi_interface.o: src/elsi_interface.f90 elsi_utils.o elsi_matrix_conversion.o elsi_timers.o elsi_dimensions.o $(STUBS)
+test_dm_real.x: test_dm_real.o elsi_interface.o elsi_utils.o elsi_matrix_conversion.o elsi_timers.o elsi_dimensions.o $(STUBS)
+	$(LINKER) $(LDFLAGS) -o $@ $^ $(LIBS) $(SCALAPACK_LDFLAGS)
+
+test_ev_real.x: test_ev_real.o elsi_interface.o elsi_utils.o elsi_matrix_conversion.o elsi_timers.o elsi_dimensions.o $(STUBS)
+	$(LINKER) $(LDFLAGS) -o $@ $^ $(LIBS) $(SCALAPACK_LDFLAGS)
+
+test_dm_real.o: ./test/test_dm_real.f90 elsi_interface.o
 	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
 
-elsi_matrix_conversion.o: src/elsi_matrix_conversion.f90 elsi_utils.o elsi_dimensions.o $(STUBS)
+test_ev_real.o: ./test/test_ev_real.f90 elsi_interface.o
 	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
 
-elsi_utils.o: src/elsi_utils.f90 elsi_dimensions.o $(STUBS)
+elsi_interface.o: ./src/elsi_interface.f90 elsi_utils.o elsi_matrix_conversion.o elsi_timers.o elsi_dimensions.o $(STUBS)
 	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
 
-elsi_timers.o: src/elsi_timers.f90 elsi_dimensions.o $(STUBS)
+elsi_matrix_conversion.o: ./src/elsi_matrix_conversion.f90 elsi_utils.o elsi_dimensions.o $(STUBS)
 	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
 
-elsi_dimensions.o: src/elsi_dimensions.f90 $(STUBS)
+elsi_utils.o: ./src/elsi_utils.f90 elsi_dimensions.o $(STUBS)
 	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
 
-stub_omm.o: src/stub_omm.f90
+elsi_timers.o: ./src/elsi_timers.f90 elsi_dimensions.o $(STUBS)
+	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
+
+elsi_dimensions.o: ./src/elsi_dimensions.f90 $(STUBS)
+	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
+
+stub_omm.o:./ src/stub_omm.f90
 	$(MPIFC) -c $<
 
-stub_pexsi.o: src/stub_pexsi.f90
+stub_pexsi.o: ./src/stub_pexsi.f90
 	$(MPIFC) -c $<
 
 clean:
-	rm -f *.o *.mod *.x *.a
+	rm -f *.o *.mod *.x *.a *log*
 	rm -rf lib include bin
-	cd test && ${MAKE} -f Makefile.elsi clean
 
 install:
 	$(ARCH) $(ARCHFLAGS) libelsi.a *.o
@@ -33,6 +44,8 @@ install:
 	cp libelsi.a lib/.
 	mkdir -p include
 	cp *.mod include/.
+	mkdir -p bin
+	cp *.x bin/.
 
 check:
-	cd test && ${MAKE} -f Makefile.elsi && chmod u+x ./make_check.sh && ./make_check.sh $(TOMATO_SEED)
+	chmod u+x ./make_check.sh && ./make_check.sh $(TOMATO_SEED)
