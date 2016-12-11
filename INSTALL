@@ -44,11 +44,7 @@ A) BASIC
 
       "make -f Makefile.elsi"
 
-3) To create ELSI library, type
-
-      "make -f Makefile.elsi install"
-
-4) Optional. The correctness of installation can be checked together with
+3) Optional. The correctness of installation can be checked together with
    the "tomato-seed" data files. Set the following keyword in make.sys:
 
       TOMATO_SEED =  # Path to tomato_seed
@@ -60,6 +56,10 @@ A) BASIC
    Then, type
 
       "make -f Makefile.elsi check"
+
+4) To create ELSI library, type
+
+      "make -f Makefile.elsi install"
 
 ==========================================================================
 B) ADVANCE I
