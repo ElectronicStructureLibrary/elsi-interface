@@ -1,10 +1,10 @@
 all: test_ev_real.x test_dm_real.x
 
 test_dm_real.x: test_dm_real.o elsi_interface.o elsi_utils.o elsi_matrix_conversion.o elsi_timers.o elsi_dimensions.o $(STUBS)
-	$(LINKER) $(LDFLAGS) -o $@ $^ $(LIBS) $(SCALAPACK_LDFLAGS)
+	$(LINKER) $(LDFLAGS) $(CUDA) -o $@ $^ $(LIBS) $(SCALAPACK_LDFLAGS)
 
 test_ev_real.x: test_ev_real.o elsi_interface.o elsi_utils.o elsi_matrix_conversion.o elsi_timers.o elsi_dimensions.o $(STUBS)
-	$(LINKER) $(LDFLAGS) -o $@ $^ $(LIBS) $(SCALAPACK_LDFLAGS)
+	$(LINKER) $(LDFLAGS) $(CUDA) -o $@ $^ $(LIBS) $(SCALAPACK_LDFLAGS)
 
 test_dm_real.o: ./test/test_dm_real.f90 elsi_interface.o
 	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
