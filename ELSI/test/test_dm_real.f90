@@ -48,10 +48,9 @@ program test_dm_real
    integer :: n_basis,n_states
    integer :: matrix_size,supercell(3)
    integer :: solver
-   integer :: broaden
 
    real*8 :: n_electrons,frac_occ,sparsity,orb_r_cut
-   real*8 :: k_point(3),broaden_width
+   real*8 :: k_point(3)
    real*8 :: e_test,e_ref
    real*8 :: t1,t2
 
@@ -161,8 +160,6 @@ program test_dm_real
 
    ! Initialize ELSI
    n_electrons = 2d0*n_states
-   broaden = 0 ! Gaussian broadening scheme for ELPA
-   broaden_width = 1d-3 ! broadening width
 
    call elsi_init(solver,1,0,matrix_size,n_electrons,n_states)
    call elsi_set_mpi(mpi_comm_global,n_proc,myid)
@@ -181,7 +178,7 @@ program test_dm_real
 
    t1 = MPI_Wtime()
 
-   call elsi_dm_real(H%dval,S%dval,D%dval,e_test,broaden,broaden_width)
+   call elsi_dm_real(H%dval,S%dval,D%dval,e_test)
 
    t2 = MPI_Wtime()
 

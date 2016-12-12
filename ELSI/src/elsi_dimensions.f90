@@ -114,13 +114,12 @@ module ELSI_DIMENSIONS
    !> ELPA
    logical :: elpa_one_always = .false. !< Always use 1-stage solver
    logical :: elpa_two_always = .false. !< Always use 2-stage solver
-   integer :: broadening_type = -1      !< Broadening scheme for occupation numbers
-   real*8  :: broadening_width          !< Broadening width for occupation numbers
+   integer :: broaden_method = 0        !< Broadening scheme for occupation numbers
+   real*8  :: broaden_width = 1d-2      !< Broadening width for occupation numbers
    real*8  :: occ_tolerance = 1d-10     !< Maximum allowed difference between actual number
                                         !! of electrons and the number computed by ELSI
 
    !> OMM
-   logical :: omm_customized = .false. !< Has elsi_customize_omm been called?
    integer :: n_elpa_steps             !< Use ELPA eigenvectors as initial guess
    logical :: new_overlap              !< Is a new overlap matrix provided?
    logical :: C_matrix_initialized     !< Is coefficient matrix initialized?
@@ -140,7 +139,6 @@ module ELSI_DIMENSIONS
    logical :: do_dealloc               !< Deallocate internal storage?
 
    !> PEXSI
-   logical                :: pexsi_customized = .false. !< Has elsi_customize_pexsi been called?
    logical                :: small_pexsi_tol = .false.  !< Is user-defined tolerance smaller than default?
    real(c_double)         :: final_pexsi_tol = 1d-2     !< Default final PEXSI tolerance
    integer(c_int)         :: n_inertia_steps            !< Number of steps to perform inertia counting
