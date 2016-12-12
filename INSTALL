@@ -27,6 +27,7 @@ A) BASIC
       CFLAGS            =  # C compiler flags
       CXXFLAGS          =  # C++ compiler flags
 
+      CXX_LDFLAGS       =  # C++ linker flags, e.g. -stdc++
       SCALAPACK_FCFLAGS =  # ScaLAPACK compiler flags
       SCALAPACK_LDFLAGS =  # ScaLAPACK linker flags
 
@@ -47,11 +48,11 @@ A) BASIC
 3) Optional. The correctness of installation can be checked together with
    the "tomato-seed" data files. Set the following keyword in make.sys:
 
-      TOMATO_SEED =  # Path to tomato_seed
+      TOMATO_SEED = # Path to tomato_seed
 
    The following linker flags might be necessary for creating executables:
 
-      LDFLAGS = -Wl,--allow-multiple-definition -lstdc++
+      LDFLAGS = -Wl,--allow-multiple-definition
 
    Then, type
 

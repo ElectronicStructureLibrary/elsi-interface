@@ -1,18 +1,24 @@
+# VERIFIED: DEC 12, 2016
 # DO READ ../INSTALL CAREFULLY!
 
 # ====== ELSI ======
 
-THIS_DIR = /global/homes/v/vwzyu/elsi-devel
+THIS_DIR = /global/homes/v/vwzyu/elsi-interface
 
 MPIFC  = ftn
 MPICC  = cc
 MPICXX = CC
+LINKER = ftn
 
-FFLAGS   = -fast -no-ipo -mkl=cluster
-CFLAGS   = -fast -no-ipo -mkl=cluster
-CXXFLAGS = -fast -no-ipo -mkl=cluster
+FFLAGS   = -fast -no-ipo
+CFLAGS   = -fast -no-ipo
+CXXFLAGS = -fast -no-ipo
+LDFLAGS  = -fast -no-ipo -Wl,--allow-multiple-definition
 
-FFLAGS_I = -fast -no-ipo -mkl=cluster -lstdc++
+CXX_LDFLAGS       = -lstdc++
+SCALAPACK_LDFLAGS = -mkl=cluster
+
+TOMATO_SEED = /global/homes/v/vwzyu/tomato-seed
 
 # ====== ELPA ======
 

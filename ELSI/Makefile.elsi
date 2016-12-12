@@ -1,10 +1,10 @@
 all: test_ev_real.x test_dm_real.x
 
 test_dm_real.x: test_dm_real.o elsi_interface.o elsi_utils.o elsi_matrix_conversion.o elsi_timers.o elsi_dimensions.o $(STUBS)
-	$(LINKER) $(LDFLAGS) $(CUDA) -o $@ $^ $(LIBS) $(SCALAPACK_LDFLAGS)
+	$(LINKER) $(LDFLAGS) -o $@ $^ $(CUDA) $(LIBS) $(SCALAPACK_LDFLAGS) $(CXX_LDFLAGS)
 
 test_ev_real.x: test_ev_real.o elsi_interface.o elsi_utils.o elsi_matrix_conversion.o elsi_timers.o elsi_dimensions.o $(STUBS)
-	$(LINKER) $(LDFLAGS) $(CUDA) -o $@ $^ $(LIBS) $(SCALAPACK_LDFLAGS)
+	$(LINKER) $(LDFLAGS) -o $@ $^ $(CUDA) $(LIBS) $(SCALAPACK_LDFLAGS) $(CXX_LDFLAGS)
 
 test_dm_real.o: ./test/test_dm_real.f90 elsi_interface.o
 	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
@@ -27,7 +27,7 @@ elsi_timers.o: ./src/elsi_timers.f90 elsi_dimensions.o $(STUBS)
 elsi_dimensions.o: ./src/elsi_dimensions.f90 $(STUBS)
 	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
 
-stub_omm.o:./ src/stub_omm.f90
+stub_omm.o: ./ src/stub_omm.f90
 	$(MPIFC) -c $<
 
 stub_pexsi.o: ./src/stub_pexsi.f90
