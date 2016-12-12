@@ -293,7 +293,7 @@ contains
         useGPU = .true.
       endif
       if (nblk .ne. 128) then
-        print *, "At the moment GPU version needs blocksize 128"
+        print *, "*ERROR: At the moment GPU version needs blocksize 128."
         stop
       endif
 
@@ -426,7 +426,7 @@ contains
 
      ! Backtransform stage 2
      if (my_prow==0 .and. my_pcol==0) then
-         if (useGPU) print *,"GPU has been used for this ELPA2."
+         if (useGPU) print *,"  GPU has been used for this ELPA2"
      endif
 
      ttt0 = MPI_Wtime()
@@ -648,7 +648,7 @@ contains
         useGPU = .true.
       endif
       if (nblk .ne. 128) then
-        print *,"At the moment GPU version needs blocksize 128"
+        print *,"*ERROR: At the moment GPU version needs blocksize 128"
         error stop
       endif
     ! some temporarilly checks until single precision works with all kernels
@@ -782,7 +782,7 @@ contains
 
      ! Backtransform stage 2
      if (my_prow==0 .and. my_pcol==0) then
-         if (useGPU) print *,"GPU has been used for this ELPA2."
+         if (useGPU) print *,"  GPU has been used for this ELPA2"
      endif
 
      ttt0 = MPI_Wtime()
@@ -961,7 +961,7 @@ function solve_evp_complex_2stage_single(na, nev, a, lda, ev, q, ldq, nblk, &
         useGPU=.true.
       endif
       if (nblk .ne. 128) then
-        print *, "At the moment GPU version needs blocksize 128"
+        print *, "*ERROR: At the moment GPU version needs blocksize 128"
         stop
       endif
 
@@ -1280,7 +1280,7 @@ function solve_evp_complex_2stage_single(na, nev, a, lda, ev, q, ldq, nblk, &
         useGPU=.true.
       endif
       if (nblk .ne. 128) then
-        print *,"At the moment GPU version needs blocksize 128"
+        print *,"*ERROR: At the moment GPU version needs blocksize 128"
         error stop
       endif
 

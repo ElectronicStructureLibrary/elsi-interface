@@ -1,5 +1,3 @@
-#include make.sys
-
 ifeq ($(strip $(XLF)),yes)
   XLFPP = -WF,
 endif
@@ -7,10 +5,7 @@ endif
 FFLAGS_E += $(SCALAPACK_FCFLAGS)
 FPP += $(XLFPP)-DELSI_INSTALLER $(XLFPP)-DWITH_MPI $(XLFPP)-DWITH_ONE_SPECIFIC_REAL_KERNEL $(XLFPP)-DWITH_ONE_SPECIFIC_COMPLEX_KERNEL -I.
 
-TEST_PROGRAMS = test_real.x test_complex.x test_real2.x test_complex2.x
-
 ifeq ($(strip $(ARCHITECTURE)),GPU)
-  TEST_PROGRAMS = test_real.x test_complex.x test_real2_gpu.x test_complex2_gpu.x
   FPP += $(XLFPP)-DWITH_GPU_VERSION
 endif
 ifeq ($(strip $(ARCHITECTURE)),Generic)
@@ -84,7 +79,6 @@ endif
 
 ifeq ($(strip $(OPENMP)),yes)
   $(error OpenMP: not yet available.)
-#  FFLAGS_E += -openmp -lstdc++
 else
   ifneq ($(strip $(OPENMP)),no)
     $(info Please set OPENMP to yes/no.)
@@ -92,43 +86,19 @@ else
   endif
 endif
 
-TEST_SHARED_O = util.o blacs_infrastructure.o check_correctnes.o prepare_matrix.o read_input_parameters.o setup_mpi.o
-COMPUTE_MODULES_O = aligned_mem.o mod_compute_hh_trafo_complex.o mod_compute_hh_trafo_real.o mod_pack_unpack_complex.o mod_pack_unpack_real.o mod_single_hh_trafo_real.o
+COMPUTE_MODULES_O = aligned_mem.o mod_compute_hh_trafo_complex.o mod_compute_hh_trafo_real.o mod_pack_unpack_complex.o mod_pack_unpack_real.o mod_single_hh_trafo_real.o mod_fortran_interfaces.o interface_c_kernel.o interface_cuda.o mod_cuda.o mod_pack_unpack_real_gpu.o check_for_gpu.o mod_mpi.o mod_precision.o
 ELPA_QR_O = elpa_pdgeqrf.o elpa_pdlarfb.o elpa_qrkernels.o qr_utils.o
-ELPA1_O = elpa1.o elpa_utilities.o elpa1_auxiliary.o elpa1_compute_private.o mod_precision.o
-ELPA2_O = elpa2.o elpa2_utilities.o elpa2_compute.o $(COMPUTE_MODULES_O) $(ELPA2_KERNELS_O)
+ELPA1_O = elpa1.o elpa_utilities.o elpa1_auxiliary.o elpa1_compute_private.o
+ELPA2_O = elpa2.o elpa2_utilities.o elpa2_compute.o
+GPU_O = cudaFunctions.o cuUtils.o ev_tridi_band_gpu_c_v2.o
 
-all: $(TEST_PROGRAMS) elpa_c_interface.o
+ALL_OBJECTS = $(ELPA1_O) $(ELPA2_O) $(ELPA2_KERNELS_O) $(ELPA_QR_O) $(COMPUTE_MODULES_O)
 
-test_real.x: test_real.o $(ELPA1_O) $(TEST_SHARED_O)
-	$(MPIFC) $(FFLAGS_E) -o $@ $^ $(SCALAPACK_LDFLAGS)
+ifeq ($(strip $(ARCHITECTURE)),GPU)
+  ALL_OBJECTS += $(GPU_O)
+endif
 
-test_complex.x: test_complex.o $(ELPA1_O) $(TEST_SHARED_O)
-	$(MPIFC) $(FFLAGS_E) -o $@ $^ $(SCALAPACK_LDFLAGS)
-
-test_real2.x: test_real2.o $(ELPA1_O) $(ELPA2_O) $(ELPA_QR_O) $(TEST_SHARED_O) interface_c_kernel.o interface_cuda.o mod_cuda.o check_for_gpu.o mod_pack_unpack_real_gpu.o
-	$(MPIFC) $(FFLAGS_E) -o $@ $^ $(SCALAPACK_LDFLAGS)
-
-test_complex2.x: test_complex2.o $(ELPA1_O) $(ELPA2_O) $(ELPA_QR_O) $(TEST_SHARED_O) interface_c_kernel.o interface_cuda.o mod_cuda.o check_for_gpu.o mod_pack_unpack_real_gpu.o
-	$(MPIFC) $(FFLAGS_E) -o $@ $^ $(SCALAPACK_LDFLAGS)
-
-test_real2_gpu.x: test_real2.o $(ELPA1_O) $(ELPA2_O) $(ELPA_QR_O) $(TEST_SHARED_O) interface_c_kernel.o interface_cuda.o mod_cuda.o check_for_gpu.o mod_pack_unpack_real_gpu.o cudaFunctions.o cuUtils.o ev_tridi_band_gpu_c_v2.o
-	$(MPIFC) $(FFLAGS_E) -o $@ $^ $(SCALAPACK_LDFLAGS) $(CUDA)
-
-test_complex2_gpu.x: test_complex2.o $(ELPA1_O) $(ELPA2_O) $(ELPA_QR_O) $(TEST_SHARED_O) interface_c_kernel.o interface_cuda.o mod_cuda.o check_for_gpu.o mod_pack_unpack_real_gpu.o cudaFunctions.o cuUtils.o ev_tridi_band_gpu_c_v2.o
-	$(MPIFC) $(FFLAGS_E) -o $@ $^ $(SCALAPACK_LDFLAGS) $(CUDA)
-
-test_real.o: ./test/Fortran/test_real.F90 elpa1.o $(TEST_SHARED_O)
-	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
-
-test_complex.o: ./test/Fortran/test_complex.F90 elpa1.o $(TEST_SHARED_O)
-	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
-
-test_real2.o: ./test/Fortran/test_real2.F90 elpa2.o $(TEST_SHARED_O)
-	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
-
-test_complex2.o: ./test/Fortran/test_complex2.F90 elpa2.o $(TEST_SHARED_O)
-	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
+all: $(ALL_OBJECTS)
 
 elpa1.o: ./src/elpa1.F90 elpa_utilities.o elpa1_auxiliary.o elpa1_compute_private.o mod_mpi.o mod_precision.o
 	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
@@ -181,27 +151,6 @@ mod_pack_unpack_real_gpu.o: ./src/mod_pack_unpack_real_gpu.F90 interface_c_kerne
 check_for_gpu.o: ./src/check_for_gpu.F90 mod_cuda.o mod_precision.o mod_mpi.o
 	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
 
-#ftimings.o : ./src/ftimings/ftimings.F90 ftimings_type.o ftimings_value.o
-#	$(MPIFC) $(FFLAGS_E) -c $<
-
-#ftimings_type.o : ./src/ftimings/ftimings_type.F90
-#	$(MPIFC) $(FFLAGS_E) -c $<
-
-#ftimings_value.o : ./src/ftimings/ftimings_value.F90
-#	$(MPIFC) $(FFLAGS_E) -c $<
-
-#time.o : ./src/ftimings/time.c
-#	$(MPICC) $(CFLAGS_E) -c $<
-
-#highwater_mark.o : ./src/ftimings/highwater_mark.c
-#	$(MPICC) $(CFLAGS_E) -c $<
-
-#virtual_memory.o : ./src/ftimings/virtual_memory.c
-#	$(MPICC) $(CFLAGS_E) -c $<
-
-#resident_set_size.o : ./src/ftimings/resident_set_size.c
-#	$(MPICC) $(CFLAGS_E) -c $<
-
 elpa2_kernels_real.o : ./src/elpa2_kernels/elpa2_kernels_real.F90 mod_precision.o
 	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
 
@@ -238,28 +187,7 @@ elpa2_utilities.o: ./src/elpa2_utilities.F90 elpa_utilities.o mod_precision.o
 mod_precision.o: ./src/mod_precision.F90
 	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
 
-util.o: ./test/shared/util.F90 mod_mpi.o mod_precision.o
-	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
-
 mod_mpi.o: ./src/mod_mpi.F90
-	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
-
-blacs_infrastructure.o: ./test/shared/blacs_infrastructure.F90 mod_mpi.o elpa_utilities.o mod_precision.o
-	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
-
-check_correctnes.o: ./test/shared/check_correctnes.F90 mod_precision.o mod_mpi.o
-	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
-
-read_input_parameters.o: ./test/shared/read_input_parameters.F90 mod_output_types.o mod_precision.o elpa_utilities.o
-	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
-
-mod_output_types.o: ./test/shared/mod_output_types.F90
-	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
-
-setup_mpi.o: ./test/shared/setup_mpi.F90 util.o elpa_utilities.o mod_precision.o
-	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
-
-prepare_matrix.o: ./test/shared/prepare_matrix.F90 mod_precision.o elpa_utilities.o
 	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
 
 elpa_pdgeqrf.o: ./src/elpa_qr/elpa_pdgeqrf.F90 elpa_pdlarfb.o qr_utils.o elpa_qrkernels.o mod_precision.o
@@ -274,9 +202,6 @@ qr_utils.o: ./src/elpa_qr/qr_utils.F90 elpa1_compute_private.o mod_precision.o
 elpa_qrkernels.o: ./src/elpa_qr/elpa_qrkernels.F90 mod_precision.o
 	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
 
-elpa_c_interface.o: ./src/elpa_c_interface.F90 elpa2.o elpa1.o elpa1_auxiliary.o
-	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
-
 cudaFunctions.o: ./src/cudaFunctions.cu
 	$(NVCC) $(NVCCFLAGS) $(FPP) -c $< $(CUDA)
 
@@ -287,9 +212,8 @@ ev_tridi_band_gpu_c_v2.o: ./src/ev_tridi_band_gpu_c_v2.cu
 	$(NVCC) $(NVCCFLAGS) $(FPP) -c $< $(CUDA)
 
 clean:
-	rm -f *.o *.mod test_*.x
-	rm -rf lib bin include
-	rm -f libelpa.a 
+	rm -f *.o *.mod libelpa.a
+	rm -rf lib include
 
 install:
 	$(ARCH) $(ARCHFLAGS) libelpa.a *.o
@@ -298,5 +222,3 @@ install:
 	cp libelpa.a ./lib/.
 	mkdir -p ./include
 	cp *.mod ./include/.
-	mkdir -p ./bin
-	cp test_*.x ./bin/.
