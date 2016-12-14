@@ -536,11 +536,15 @@ contains
           if (present(threshold_is_soft) .and. (threshold_is_soft)) then
              call die('m_copy: soft thresholding not yet implemented')
           else
+#ifdef PSP
              if (A%is_real) then
                 call m_register_pdsp_thre(m_name,A%dval,A%iaux1,'coo',threshold)
              else
                 call m_register_pzsp_thre(m_name,A%zval,A%iaux1,'coo',threshold)
              end if
+#else
+             call die('mm_dmultiply: compile with pspBLAS')
+#endif
           end if
        end if
     case (17)
@@ -550,11 +554,15 @@ contains
           if (present(threshold_is_soft) .and. (threshold_is_soft)) then
              call die('m_copy: soft thresholding not yet implemented')
           else
+#ifdef PSP
              if (A%is_real) then
                 call m_register_pdsp_thre(m_name,A%dval,A%iaux1,'csc',threshold)
              else
                 call m_register_pzsp_thre(m_name,A%zval,A%iaux1,'csc',threshold)
              end if
+#else
+             call die('mm_dmultiply: compile with pspBLAS')
+#endif
           end if
        end if
     end select
@@ -2997,8 +3005,8 @@ contains
   !================================================!
   ! implementation: ScaLAPACK                      !
   !================================================!
-#ifdef MPI
-  subroutine ms_scalapack_setup(nprow,order,bs_def,bs_list,icontxt)
+#if defined(MPI) && defined(SLAP)
+  subroutine ms_scalapack_setup(mpi_comm,nprow,order,bs_def,bs_list,icontxt)
     implicit none
     include 'mpif.h'
 
@@ -3006,6 +3014,7 @@ contains
 
     character(1), intent(in) :: order ! ordering of processor grid: 'r/R' or other for row-major, 'c/C' for column-major
 
+    integer, intent(in) :: mpi_comm ! MPI communicator
     integer, intent(in) :: nprow ! number of rows in the processor grid
     integer, intent(in) :: bs_def ! default block size
     ! This is a list of exceptions to the default block size for specific matrix dimension sizes. The list has to be formatted as:
@@ -3023,11 +3032,12 @@ contains
 
     !**********************************************!
 
-    ms_mpi_comm=mpi_comm_world
+    ms_mpi_comm=mpi_comm
     call mpi_comm_size(ms_mpi_comm,ms_mpi_size,mpi_err)
     call mpi_comm_rank(ms_mpi_comm,ms_mpi_rank,mpi_err)
     ms_lap_nprow=nprow
     ms_lap_npcol=ms_mpi_size/nprow
+    if (ms_lap_nprow*ms_lap_npcol/=ms_mpi_size) call die('ms_scalapack_setup: invalid nprow')
     ms_lap_order=order
     ms_lap_bs_def=bs_def
     if (present(bs_list)) then
@@ -3043,13 +3053,13 @@ contains
     if (present(icontxt)) then
        ms_lap_icontxt=icontxt
     else
-       call blacs_get(-1,0,ms_lap_icontxt)
+       ms_lap_icontxt=ms_mpi_comm
        call blacs_gridinit(ms_lap_icontxt,ms_lap_order,ms_lap_nprow,ms_lap_npcol)
     end if
 
 #ifdef PSP
     ! initialized grid information in pspBLAS
-    call psp_gridinit_2D(ms_mpi_size,ms_lap_nprow,ms_lap_order,ms_lap_bs_def,ms_lap_bs_def,ms_lap_icontxt)
+    call psp_gridinit_2D(ms_mpi_comm,ms_mpi_size,ms_lap_nprow,ms_lap_order,ms_lap_bs_def,ms_lap_bs_def,ms_lap_icontxt)
 #endif
 
   end subroutine ms_scalapack_setup
@@ -3094,7 +3104,7 @@ contains
     end do
     A%iaux2(1)=numroc(A%dim1,bs1,k,0,ms_lap_nprow)
     A%iaux2(2)=numroc(A%dim2,bs2,l,0,ms_lap_npcol)
-    call descinit(A%iaux1,A%dim1,A%dim2,bs1,bs2,0,0,ms_lap_icontxt,MAX(1,A%iaux2(1)),info)
+    call descinit(A%iaux1,A%dim1,A%dim2,bs1,bs2,0,0,ms_lap_icontxt,A%iaux2(1),info)
     if (info/=0) call die('ms_scalapack_allocate: error in descinit')
     if (A%is_real) then
        allocate(A%dval(A%iaux2(1),A%iaux2(2)))

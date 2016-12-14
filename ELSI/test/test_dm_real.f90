@@ -124,7 +124,7 @@ program test_dm_real
    ! Set up BLACS
    BLACS_CTXT = mpi_comm_global
    call BLACS_Gridinit(BLACS_CTXT,'r',nprow,npcol)
-   call ms_scalapack_setup(nprow,'r',blk,icontxt=BLACS_CTXT)
+   call ms_scalapack_setup(mpi_comm_global,nprow,'r',blk,icontxt=BLACS_CTXT)
 
    ! Set up row/col communicators for ELPA solver and Cholesky factorization
    call BLACS_Gridinfo(BLACS_CTXT,nprow,npcol,myprow,mypcol)

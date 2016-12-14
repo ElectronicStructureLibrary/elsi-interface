@@ -1161,13 +1161,13 @@ contains
   !================================================!
   ! initialize 2D grid topology for psp            !
   !================================================!
-  subroutine psp_gridinit_2D(mpi_size,nprow,order,bs_def_row,bs_def_col,icontxt)
+  subroutine psp_gridinit_2D(mpi_comm_in,mpi_size,nprow,order,bs_def_row,bs_def_col,icontxt)
     implicit none
 
     !**** INPUT ***********************************!
 
     character(1), intent(in) :: order ! ordering of processor grid: 'r/R' or other for row-major, 'c/C' for column-major
-    !integer, intent(in) :: mpi_comm_world
+    integer, intent(in) :: mpi_comm_in
     integer, intent(in) :: mpi_size ! total number of MPI processes for the processor grid
     integer, intent(in) :: nprow ! number of rows in the processor grid
     integer, intent(in) :: bs_def_row ! default block size in row
@@ -1206,7 +1206,7 @@ contains
 
     !**********************************************!
 
-    psp_mpi_comm_world=mpi_comm_world
+    psp_mpi_comm_world=mpi_comm_in
     psp_mpi_size=mpi_size
     psp_nprow=nprow
     psp_npcol=mpi_size/nprow
@@ -1222,7 +1222,7 @@ contains
     if (present(icontxt)) then
        psp_icontxt=icontxt
     else
-       call blacs_get(-1,0,psp_icontxt)
+       psp_icontxt=psp_mpi_comm_world
        call blacs_gridinit(psp_icontxt,psp_proc_order,psp_nprow,psp_npcol)
     end if
 
@@ -1246,13 +1246,13 @@ contains
   !================================================!
   ! initialize grid topology for psp               !
   !================================================!
-  subroutine psp_gridinit_3D(mpi_size,nprow,npcol,nplay,order,bs_def_row,bs_def_col,icontxt)
+  subroutine psp_gridinit_3D(mpi_comm_in,mpi_size,nprow,npcol,nplay,order,bs_def_row,bs_def_col,icontxt)
     implicit none
 
     !**** INPUT ***********************************!
 
     character(1), intent(in) :: order ! ordering of processor grid: 'r/R' or other for row-major, 'c/C' for column-major
-    !integer, intent(in) :: mpi_comm_world
+    integer, intent(in) :: mpi_comm_in
     integer, intent(in) :: mpi_size ! total number of MPI processes for the processor grid
     integer, intent(in) :: nprow ! number of rows in the processor grid
     integer, intent(in) :: npcol ! number of columns in the processor grid
@@ -1297,7 +1297,7 @@ contains
 
     !**********************************************!
 
-    psp_mpi_comm_world=mpi_comm_world
+    psp_mpi_comm_world=mpi_comm_in
     psp_mpi_size=mpi_size
     psp_nprow=nprow
     psp_npcol=npcol
@@ -1314,7 +1314,7 @@ contains
     if (present(icontxt)) then
        psp_icontxt=icontxt
     else
-       call blacs_get(-1,0,psp_icontxt)
+       psp_icontxt=psp_mpi_comm_world
     end if
 
     ! generate sub-topology for row and column boardcasting

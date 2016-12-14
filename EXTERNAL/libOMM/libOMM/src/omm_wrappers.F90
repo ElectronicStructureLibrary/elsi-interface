@@ -405,6 +405,7 @@ subroutine omm_pddbc_lap(m,n,H_dim,H_vals,desc_H,S_present,S_dim,S_vals,desc_S,n
 #endif
 
   implicit none
+  include 'mpif.h'
 
   !**** INPUT ***********************************!
 
@@ -485,7 +486,7 @@ subroutine omm_pddbc_lap(m,n,H_dim,H_vals,desc_H,S_present,S_dim,S_vals,desc_S,n
   m_operation='lap'
 
   if (.not. ms_scalapack_running) then
-    call ms_scalapack_setup(nprow,order,bs_def,icontxt=icontxt)
+    call ms_scalapack_setup(mpi_comm_world,nprow,order,bs_def,icontxt=icontxt)
     ms_scalapack_running=.true.
   end if
 
@@ -526,6 +527,7 @@ subroutine omm_pzdbc_lap(m,n,H_dim,H_vals,desc_H,S_present,S_dim,S_vals,desc_S,n
 #endif
 
   implicit none
+  include 'mpif.h'
 
   !**** INPUT ***********************************!
 
@@ -606,7 +608,7 @@ subroutine omm_pzdbc_lap(m,n,H_dim,H_vals,desc_H,S_present,S_dim,S_vals,desc_S,n
   m_operation='lap'
 
   if (.not. ms_scalapack_running) then
-    call ms_scalapack_setup(nprow,order,bs_def,icontxt=icontxt)
+    call ms_scalapack_setup(mpi_comm_world,nprow,order,bs_def,icontxt=icontxt)
     ms_scalapack_running=.true.
   end if
 
@@ -649,6 +651,7 @@ subroutine omm_pddbc2pdcsc_psp(m,n,H_dim,H_vals,desc_H,S_present,S_dim,S_vals,de
 #endif
 
   implicit none
+  include 'mpif.h'
 
   !**** INPUT ***********************************!
 
@@ -729,7 +732,7 @@ subroutine omm_pddbc2pdcsc_psp(m,n,H_dim,H_vals,desc_H,S_present,S_dim,S_vals,de
   m_operation='psp'
 
   if (.not. ms_scalapack_running) then
-    call ms_scalapack_setup(nprow,order,bs_def,icontxt=icontxt)
+    call ms_scalapack_setup(mpi_comm_world,nprow,order,bs_def,icontxt=icontxt)
     ms_scalapack_running=.true.
   end if
 
@@ -770,6 +773,7 @@ subroutine omm_pzdbc2pzcsc_psp(m,n,H_dim,H_vals,desc_H,S_present,S_dim,S_vals,de
 #endif
 
   implicit none
+  include 'mpif.h'
 
   !**** INPUT ***********************************!
 
@@ -850,7 +854,7 @@ subroutine omm_pzdbc2pzcsc_psp(m,n,H_dim,H_vals,desc_H,S_present,S_dim,S_vals,de
   m_operation='psp'
 
   if (.not. ms_scalapack_running) then
-    call ms_scalapack_setup(nprow,order,bs_def,icontxt=icontxt)
+    call ms_scalapack_setup(mpi_comm_world,nprow,order,bs_def,icontxt=icontxt)
     ms_scalapack_running=.true.
   end if
 

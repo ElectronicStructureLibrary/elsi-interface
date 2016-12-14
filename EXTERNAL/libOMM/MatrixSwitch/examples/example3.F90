@@ -72,7 +72,7 @@ program example3
 
   allocate(bs_list(4))
   bs_list(:)=(/8,3,15,4/)
-  call ms_scalapack_setup(1,'c',1,bs_list,icontxt)
+  call ms_scalapack_setup(mpi_comm_world,1,'c',1,bs_list,icontxt)
 
   m_storage='pddbc'
   m_operation='lap'

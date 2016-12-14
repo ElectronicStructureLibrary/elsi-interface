@@ -95,7 +95,7 @@ program testMPI
   call blacs_gridinfo(icontxt,nprow,npcol,iprow,ipcol)
 
   ! initialized grid information in pspBLAS
-  call psp_gridinit_2D(mpi_size,nprow,order,bs_def_row,bs_def_col,icontxt)
+  call psp_gridinit_2D(mpi_comm_world,mpi_size,nprow,order,bs_def_row,bs_def_col,icontxt)
 
   !*************************************************************************!
   ! generate test matrices

@@ -352,7 +352,8 @@ subroutine elsi_set_blacs(blacs_ctxt_in,n_b_rows_in,n_b_cols_in,n_p_rows_in,&
    mpi_comm_col = mpi_comm_col_in
 
    if(method == LIBOMM) then
-      call ms_scalapack_setup(n_p_rows,'r',n_b_rows,icontxt=blacs_ctxt)
+      call ms_scalapack_setup(mpi_comm_global,n_p_rows,'r',n_b_rows,&
+                              icontxt=blacs_ctxt)
    endif
   
 end subroutine
