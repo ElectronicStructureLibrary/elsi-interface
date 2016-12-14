@@ -3104,7 +3104,7 @@ contains
     end do
     A%iaux2(1)=numroc(A%dim1,bs1,k,0,ms_lap_nprow)
     A%iaux2(2)=numroc(A%dim2,bs2,l,0,ms_lap_npcol)
-    call descinit(A%iaux1,A%dim1,A%dim2,bs1,bs2,0,0,ms_lap_icontxt,A%iaux2(1),info)
+    call descinit(A%iaux1,A%dim1,A%dim2,bs1,bs2,0,0,ms_lap_icontxt,MAX(1,A%iaux2(1)),info)
     if (info/=0) call die('ms_scalapack_allocate: error in descinit')
     if (A%is_real) then
        allocate(A%dval(A%iaux2(1),A%iaux2(2)))
