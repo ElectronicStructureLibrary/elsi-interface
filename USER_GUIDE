@@ -113,11 +113,6 @@ A) QUICK PROGRAMMING GUIDE
 
    energy:           [real*8] [out]  Energy.
 
-   broadening_type:  [integer] [in]  OPTIONAL. Gaussian (0) and Fermi (1) schemes are
-                                     supported. Only needed for ELPA.
-
-   broadening_width: [real*8]  [in]  OPTIONAL. Broadening width. Only needed for ELPA.
-
 ================
 4) Finalize ELSI
 ================
