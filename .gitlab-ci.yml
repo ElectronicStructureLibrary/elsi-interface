@@ -9,9 +9,9 @@ before_script:
   - module load cuda-7.0
   - module list
 
-intel-j8-generic:
+intel-j8-gpu:
   script:
-    - cp ./MAKE_SYS/make.sys-timewarp-intel ./make.sys
+    - cp ./MAKE_SYS/make.sys-timewarp-intel-cuda ./make.sys
     - make -j 8 -f Makefile.elsi clean
     - make -j 8 -f Makefile.elsi
     - make -j 8 -f Makefile.elsi check
@@ -25,9 +25,9 @@ intel-j1-generic:
     - make -f Makefile.elsi check
     - make -f Makefile.elsi install
 
-intel-j8-gpu:
+intel-j8-generic:
   script:
-    - cp ./MAKE_SYS/make.sys-timewarp-intel-cuda ./make.sys
+    - cp ./MAKE_SYS/make.sys-timewarp-intel ./make.sys
     - make -j 8 -f Makefile.elsi clean
     - make -j 8 -f Makefile.elsi
     - make -j 8 -f Makefile.elsi check
