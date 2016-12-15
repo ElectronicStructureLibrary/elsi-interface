@@ -173,7 +173,7 @@ module ELSI_DIMENSIONS
 
    !> Parallel modes
    enum, bind( C )
-      enumerator :: SERIAL, PARALLEL
+      enumerator :: SINGLE_PROC, MULTI_PROC
    end enum
 
    !> Broadening type (used if ELPA is chosen to compute density matrix)

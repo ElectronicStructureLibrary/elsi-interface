@@ -100,12 +100,6 @@ module ELSI
    !< Column pointer in CCS format
    integer, allocatable :: col_ptr_pexsi(:)
 
-   !< From ELSI_DIMENSIONS
-   public :: AUTO, ELPA, LIBOMM, PEXSI, CHESS   !< Solvers
-   public :: REAL_VALUES, COMPLEX_VALUES        !< Real or complex
-   public :: DENSE, CCS, CSC, CRS, CSR          !< Storage formats
-   public :: GAUSSIAN, FERMI, METHFESSEL_PAXTON !< Broadening schemes
-
    ! Public routines
    public :: elsi_init            !< Initialize
    public :: elsi_set_method      !< Select solver
@@ -220,7 +214,7 @@ subroutine elsi_set_storage(i_storage)
 
    implicit none
 
-   integer, intent(in) :: i_storage !< DENSE,CCS,CSC,CRS,CSR,...
+   integer, intent(in) :: i_storage !< DENSE,CCS,CSC,CRS,CSR
 
    storage = i_storage
 
@@ -233,11 +227,11 @@ subroutine elsi_set_parallel(i_parallel)
 
    implicit none
 
-   integer, intent(in) :: i_parallel !< SERIAL,PARALLEL
+   integer, intent(in) :: i_parallel !< SINGLE_PROC,MULTI_PROC
 
    parallelism = i_parallel
 
-   if(i_parallel == 0) then ! Serial version
+   if(i_parallel == 0) then ! SINGLE_PROC
       n_l_rows = n_g_size
       n_l_cols = n_g_size
       n_b_rows = n_g_size
@@ -307,10 +301,12 @@ subroutine elsi_set_mpi(mpi_comm_global_in,n_procs_in,myid_in)
    integer, intent(in) :: n_procs_in         !< number of mpi processes
    integer, intent(in) :: mpi_comm_global_in !< global mpi communicator
 
-   mpi_is_setup    = .true.
-   mpi_comm_global = mpi_comm_global_in
-   n_procs         = n_procs_in
-   myid            = myid_in
+   if(parallelism == 1) then ! MULTI_PROC
+      mpi_comm_global = mpi_comm_global_in
+      n_procs = n_procs_in
+      myid = myid_in
+      mpi_is_setup = .true.
+   endif
 
 end subroutine
 
@@ -333,28 +329,30 @@ subroutine elsi_set_blacs(blacs_ctxt_in,n_b_rows_in,n_b_cols_in,n_p_rows_in,&
    integer :: blacs_info
    character*40, parameter :: caller = "elsi_set_blacs"
 
-   blacs_is_setup = .true.
+   if(parallelism == 1) then ! MULTI_PROC
+      blacs_ctxt = blacs_ctxt_in
+      n_b_rows = n_b_rows_in
+      n_b_cols = n_b_cols_in
+      n_p_rows = n_p_rows_in
+      n_p_cols = n_p_cols_in
+      call blacs_pcoord(blacs_ctxt,myid,my_p_row,my_p_col)
+      n_l_rows = numroc(n_g_size,n_b_rows,my_p_row,0,n_p_rows)
+      n_l_cols = numroc(n_g_size,n_b_cols,my_p_col,0,n_p_cols)
 
-   blacs_ctxt = blacs_ctxt_in
-   n_b_rows = n_b_rows_in
-   n_b_cols = n_b_cols_in
-   n_p_rows = n_p_rows_in
-   n_p_cols = n_p_cols_in
-   call blacs_pcoord(blacs_ctxt,myid,my_p_row,my_p_col)
-   n_l_rows = numroc(n_g_size,n_b_rows,my_p_row,0,n_p_rows)
-   n_l_cols = numroc(n_g_size,n_b_cols,my_p_col,0,n_p_cols)
+      call descinit(sc_desc,n_g_size,n_g_size,n_b_rows,n_b_cols,0,0,&
+                    blacs_ctxt,MAX(1,n_l_rows),blacs_info)
 
-   call descinit(sc_desc,n_g_size,n_g_size,n_b_rows,n_b_cols,0,0,&
-                 blacs_ctxt,MAX(1,n_l_rows),blacs_info)
+      mpi_comm_row = mpi_comm_row_in
+      mpi_comm_col = mpi_comm_col_in
 
-   mpi_comm_row = mpi_comm_row_in
-   mpi_comm_col = mpi_comm_col_in
+      if(method == LIBOMM) then
+         call ms_scalapack_setup(mpi_comm_global,n_p_rows,'r',n_b_rows,&
+                                 icontxt=blacs_ctxt)
+      endif
 
-   if(method == LIBOMM) then
-      call ms_scalapack_setup(mpi_comm_global,n_p_rows,'r',n_b_rows,&
-                              icontxt=blacs_ctxt)
+      blacs_is_setup = .true.
    endif
-  
+
 end subroutine
 
 !>
