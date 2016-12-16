@@ -647,11 +647,11 @@ subroutine elsi_finalize()
 
    implicit none
    include "mpif.h"
-   if (parallelism==0) then
-      call MPI_Barrier(mpi_comm_self, mpierr)
-   else
-      call MPI_Barrier(mpi_comm_global, mpierr)
-   end if
+
+   if(parallelism == 1) then
+      call MPI_Barrier(mpi_comm_global,mpierr)
+   endif
+
    call elsi_deallocate_matrices()
    call elsi_print_timers()
 
@@ -2484,11 +2484,12 @@ subroutine elsi_ev_real(H_in,S_in,e_val_out,e_vec_out)
          endif
 
          ! Solve eigenvalue problem
-         if(parallelism==0)then 
+         if(parallelism == 0) then ! Single-proc
             call elsi_solve_evp_elpa_sp()
-         else 
+         else  ! Multi-proc
             call elsi_solve_evp_elpa()
-         end if
+         endif
+
          call elsi_get_eigenvalues(e_val_out)
          call elsi_get_eigenvectors(e_vec_out)
 
@@ -2542,12 +2543,12 @@ subroutine elsi_ev_complex(H_in,S_in,e_val_out,e_vec_out)
          endif
 
          ! Solve eigenvalue problem
-         if (parallelism==0) then  !Serial version
+         if(parallelism==0) then ! Single-proc
             call elsi_solve_evp_elpa_sp()
-         else
+         else ! Multi-proc
             call elsi_solve_evp_elpa()
-         end if
-          
+         endif
+
          call elsi_get_eigenvalues(e_val_out)
          call elsi_get_eigenvectors(e_vec_out)
 
@@ -3097,6 +3098,5 @@ subroutine elsi_solve_evp_elpa_sp()
    call elsi_stop_solve_evp_time()
 
 end subroutine
-
 
 end module ELSI

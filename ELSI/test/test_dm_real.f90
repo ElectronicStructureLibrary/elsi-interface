@@ -24,9 +24,8 @@
 !OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 !>
-!! This program tests ELSI density matrix solver elsi_dm_real.
+!! This program tests ELSI density matrix solver elsi_dm_real (multi-processor).
 !!
-
 program test_dm_real
 
    use ELSI
@@ -119,6 +118,7 @@ program test_dm_real
          write(*,'("  ##  Testing elsi_dm_real + PEXSI              ##")')
          e_ref = e_pexsi
       endif
+      write(*,'("  ##  (Multi-processor version)                 ##")')
    endif
 
    ! Set up BLACS

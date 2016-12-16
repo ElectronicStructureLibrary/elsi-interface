@@ -24,9 +24,8 @@
 !OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 !>
-!! This program tests ELSI eigensolver elsi_ev_real.
+!! This program tests ELSI eigensolver elsi_ev_real (multi-processor).
 !!
-
 program test_ev_real
 
    use ELSI
@@ -56,7 +55,7 @@ program test_ev_real
    real*8 :: t1,t2
    real*8, allocatable :: e_val(:)
 
-   ! VY: Reference values from calculations on Dec 7, 2016
+   ! VY: Reference value from calculations on Dec 7, 2016
    real*8, parameter :: e_elpa  = -126.817462901819d0
 
    type(matrix) :: H,S,e_vec
@@ -109,18 +108,12 @@ program test_ev_real
       write(*,'("  ################################################")')
       write(*,'("  ##             ELSI TEST PROGRAMS             ##")')
       write(*,'("  ################################################")')
-      if(solver == 1) then
-         write(*,'("  ##  Testing elsi_ev_real + ELPA               ##")')
-         e_ref = e_elpa
-      else
-         write(*,'("  ##  Eigenvalue/eigenvector can be computed    ##")')
-         write(*,'("  ##  only by ELPA. Please choose ELPA to test  ##")')
-         write(*,'("  ##  ELSI eigensolver.                         ##")')
-         write(*,'("  ################################################")')
-         call MPI_Abort(mpi_comm_global,0,mpierr)
-         stop
-      endif
+      write(*,'("  ##  Testing elsi_ev_real + ELPA               ##")')
+      write(*,'("  ##  (Multi-processor version)                 ##")')
    endif
+
+   solver = 1
+   e_ref = e_elpa
 
    ! Set up BLACS
    BLACS_CTXT = mpi_comm_global
@@ -186,7 +179,7 @@ program test_ev_real
    if(myid == 0) then
       write(*,'("  ################################################")')
       write(*,'("  ##  Done. Time:",F23.3,"s       ##")') t2-t1
-      if(ABS(e_test-e_ref) < 1d-6) then
+      if(ABS(e_test-e_ref) < 1d-8) then
          write(*,'("  ##  Passed.                                   ##")')
       else
          write(*,'("  ##  Failed!!                                  ##")')
