@@ -647,8 +647,11 @@ subroutine elsi_finalize()
 
    implicit none
    include "mpif.h"
-
-   call MPI_Barrier(mpi_comm_global, mpierr)
+   if (parallelism==0) then
+      call MPI_Barrier(mpi_comm_self, mpierr)
+   else
+      call MPI_Barrier(mpi_comm_global, mpierr)
+   end if
    call elsi_deallocate_matrices()
    call elsi_print_timers()
 
@@ -2481,7 +2484,11 @@ subroutine elsi_ev_real(H_in,S_in,e_val_out,e_vec_out)
          endif
 
          ! Solve eigenvalue problem
-         call elsi_solve_evp_elpa()
+         if(parallelism==0)then 
+            call elsi_solve_evp_elpa_sp()
+         else 
+            call elsi_solve_evp_elpa()
+         end if
          call elsi_get_eigenvalues(e_val_out)
          call elsi_get_eigenvectors(e_vec_out)
 
@@ -2535,7 +2542,12 @@ subroutine elsi_ev_complex(H_in,S_in,e_val_out,e_vec_out)
          endif
 
          ! Solve eigenvalue problem
-         call elsi_solve_evp_elpa()
+         if (parallelism==0) then  !Serial version
+            call elsi_solve_evp_elpa_sp()
+         else
+            call elsi_solve_evp_elpa()
+         end if
+          
          call elsi_get_eigenvalues(e_val_out)
          call elsi_get_eigenvectors(e_vec_out)
 
@@ -2789,5 +2801,302 @@ subroutine elsi_dm_complex(H_in,S_in,D_out,energy_out)
    end select
 
 end subroutine
+
+
+!=============WM:The following subroutines are just used in Serial version=====================================
+!> 
+!! This routine transforms a generalized eigenvalue problem (Ac = Bcv)
+!! to standard form (A'c' = c'v)
+!!
+!! Starting from Hv = eSv, we first perform a Cholesky decomposition of S
+!! S = (U^T)U, resulting in Hv = e(U^T)Uv
+!!
+!! Using 1=U^-1U we define a new standard eigenvalue problem by
+!! H(U^-1)(Uv) = e(U^T)(Uv) => ((U^-1)^T)H(U^-1)(Uv) = e(Uv)
+!!
+!! On exit, (U^-1) is stored in S, to be used for back-transformation
+!!
+subroutine elsi_to_standard_evp_sp()
+
+   implicit none
+   include 'mpif.h'
+   real*8, allocatable :: buffer_real(:,:)
+   complex*16, allocatable :: buffer_complex(:,:)
+   logical :: success
+   integer :: nblk=128
+   integer :: n,nwork
+
+   character*40, parameter :: caller = "elsi_to_standard_evp_sp"
+
+   select case (method)
+      case (ELPA)
+         select case (mode)
+            case (COMPLEX_VALUES)
+!               if(n_elsi_calls == 1) then
+!                  if(.not.no_singularity_check) then
+!                     call elsi_check_singularity()
+!                  endif
+!
+!                  if(n_nonsingular == n_g_size) then ! Not singular
+                     overlap_is_singular = .false.
+
+                     call elsi_statement_print("  Starting Cholesty decomposition")
+
+                     ! Compute S = (U^T)U, U -> S
+                     success = elpa_cholesky_complex_double(n_g_size,S_complex,n_l_rows,&
+                                  n_b_rows,n_l_cols,mpi_comm_self,mpi_comm_self,.false.)
+                     if(.not.success) then
+                        call elsi_stop(" Cholesky decomposition failed.",caller)
+                     endif
+
+                     ! compute U^-1 -> S
+                     success = elpa_invert_trm_complex_double(n_g_size,S_complex,n_l_rows,&
+                                  n_b_rows,n_l_cols,mpi_comm_self,mpi_comm_self,.false.)
+                     if(.not.success) then
+                        call elsi_stop(" Matrix invertion failed.", caller)
+                     endif
+!                  endif
+!               endif ! n_elsi_calls == 1
+!               overlap_is_singular=.false.
+               call elsi_allocate(buffer_complex,n_l_rows,n_l_cols,"temp",caller)
+
+!               if(overlap_is_singular) then ! Use scaled eigenvectors
+!                  ! buffer_complex = H_complex * S_complex
+!                  call zgemm('N','N',n_g_size,n_nonsingular,n_g_size,(1d0,0d0),&
+!                              H_complex(1,1),n_g_size,S_complex(1,1),n_g_size,(0d0,0d0),&
+!                              buffer_complex(1,1),n_g_size)
+!
+!                  ! H_complex = (S_complex)^* * buffer_complex
+!                  call zgemm('C','N',n_nonsingular,n_nonsingular,n_g_size,(1d0,0d0),&
+!                              S_complex(1,1),n_g_size,buffer_complex(1,1),n_g_size,&
+!                              (0d0,0d0),H_complex(1,1),n_g_size)
+
+!               else ! Use cholesky
+                  ! buffer_complex = H_complex * S_complex
+                  call zgemm('N','N',n_g_size,n_g_size,n_g_size,(1d0,0d0),&
+                              H_complex(1,1),n_g_size,S_complex(1,1),n_g_size,&
+                              (0d0,0d0),buffer_complex(1,1),n_g_size)
+
+                  ! H_complex = (buffer_complex)^* * S_complex
+                  call zgemm('C','N',n_g_size,n_g_size,n_g_size,(1d0,0d0),&
+                              buffer_complex(1,1),n_g_size,S_complex(1,1),&
+                              n_g_size,(0d0,0d0),H_complex(1,1),n_g_size)
+!               endif
+
+            case (REAL_VALUES)
+!               if(n_elsi_calls == 1) then
+!                  if(.not.no_singularity_check) then
+!                     call elsi_check_singularity()
+!                  endif
+
+!                  if(n_nonsingular == n_g_size) then ! Not singular
+                     overlap_is_singular = .false.
+
+                     call elsi_statement_print("  Starting Cholesty decomposition")
+
+                     ! Compute S = (U^T)U, U -> S
+                     success = elpa_cholesky_real_double(n_g_size,S_real,n_l_rows,&
+                                  n_b_rows,n_l_cols,mpi_comm_self,mpi_comm_self,.false.)
+                     if(.not.success) then
+                        call elsi_stop(" Cholesky decomposition failed.",caller)
+                     endif
+
+                     ! compute U^-1 -> S
+                     success = elpa_invert_trm_real_double(n_g_size,S_real,n_l_rows,&
+                                  n_b_rows,n_l_cols,mpi_comm_self,mpi_comm_self,.false.)
+                     if(.not.success) then
+                        call elsi_stop(" Matrix invertion failed.",caller)
+                     endif
+!                  endif
+!               endif ! n_elsi_calls == 1
+
+               call elsi_allocate(buffer_real,n_l_rows,n_l_cols,"temp",caller)
+
+!               if(overlap_is_singular) then ! Use scaled eigenvectors
+!                  ! buffer_real = H_real * S_real
+!                  call pdgemm('N','N',n_g_size,n_nonsingular,n_g_size,1d0,H_real,1,&
+!                              1,sc_desc,S_real,1,1,sc_desc,0d0,buffer_real,1,1,sc_desc)
+!
+!                  ! H_real = (S_real)^T * buffer_real
+!                  call pdgemm('T','N',n_nonsingular,n_nonsingular,n_g_size,1d0,S_real,&
+!                              1,1,sc_desc,buffer_real,1,1,sc_desc,0d0,H_real,1,1,sc_desc)
+!
+!               else ! Use Cholesky
+
+
+                  ! buffer_real = H_real * S_real
+!                  call dgemm('N','N',n_g_size,n_g_size,n_g_size,1d0,H_real(1,1),&
+!                             n_g_size,S_real(1,1),n_g_size,0d0,buffer_real(1,1),n_g_size)
+                 do n=1,n_g_size,nblk
+                   nwork = nblk
+                   if(n+nwork-1 > n_g_size) nwork=n_g_size-n+1
+                   call dgemm('N','N',n+nwork-1,nwork,n+nwork-1,1.d0,H_real(1,1),&
+                        n_g_size,S_real(1,n),n_g_size,0.d0,buffer_real(1,n),n_g_size) 
+                 end do
+                  ! H_real = (buffer_real)*T * S_real
+!                  call dgemm('T','N',n_g_size,n_g_size,n_g_size,1d0,buffer_real(1,1),&
+!                              n_g_size,S_real(1,1),n_g_size,0d0,H_real(1,1),n_g_size)
+                 do n=1,n_g_size,nblk
+                   nwork=nblk
+                   if (n+nwork-1>n_g_size) nwork=n_g_size-n+1
+                   call dgemm('T','N',nwork,n_g_size-n+1,n+nwork-1,1.d0,S_real(1,n),n_g_size, &
+                        buffer_real(1,n),n_g_size,0.0d0,H_real(n,n),n_g_size)
+                 end do
+
+!               endif
+
+         end select
+
+      case (LIBOMM)
+         call elsi_stop(" libOMM does not need to transform evp. Exiting...",caller)
+      case (PEXSI)
+         call elsi_stop(" PEXSI does not need to transform evp. Exiting...",caller)
+      case DEFAULT
+         call elsi_stop(" No supported method has been chosen. "//&
+                        " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
+                        " Exiting...",caller)
+   end select
+
+   if(allocated(buffer_real))    deallocate(buffer_real)
+   if(allocated(buffer_complex)) deallocate(buffer_complex)
+
+end subroutine
+
+subroutine elsi_to_original_ev_sp()
+
+   implicit none
+
+   real*8, allocatable :: buffer_real(:,:)
+   complex*16, allocatable :: buffer_complex(:,:)
+
+   character*40, parameter :: caller = "elsi_to_original_ev_sp"
+
+   select case (method)
+      case (ELPA)
+         select case (mode)
+            case (COMPLEX_VALUES)
+               call elsi_allocate(buffer_complex,n_l_rows,n_l_cols,"temp",caller)
+               buffer_complex = C_complex
+
+               if(overlap_is_singular) then
+                  ! Transform matrix is stored in S_complex after elsi_to_standard_evp
+                  call zgemm('N','N',n_g_size,n_states,n_nonsingular,(1d0,0d0),&
+                              S_complex(1,1),n_g_size,buffer_complex(1,1),n_g_size,&
+                              (0d0,0d0),C_complex(1,1),n_g_size)
+               else ! Nonsingular, use Cholesky
+                  ! (U^-1) is stored in S_complex after elsi_to_standard_evp
+                  ! C_complex = S_complex * C_complex = S_complex * buffer_complex
+                  call zgemm('N','N',n_g_size,n_states,n_g_size,(1d0,0d0),S_complex(1,1),&
+                              n_g_size,buffer_complex(1,1),n_g_size,(0d0,0d0),&
+                              C_complex(1,1),n_g_size)
+               endif
+
+            case (REAL_VALUES)
+               call elsi_allocate(buffer_real,n_l_rows,n_l_cols,"temp",caller)
+               buffer_real = C_real
+
+               if(overlap_is_singular) then
+                  ! Transform matrix is stored in S_real after elsi_to_standard_evp
+                  call dgemm('N','N',n_g_size,n_states,n_nonsingular,1d0,S_real(1,1),&
+                              n_g_size,buffer_real(1,1),n_g_size,0d0,C_real(1,1),n_g_size)
+               else ! Nonsingular, use Cholesky
+                  ! (U^-1) is stored in S_real after elsi_to_standard_evp
+                  ! C_real = S_real * C_real = S_real * buffer_real
+                  call dgemm('N','N',n_g_size,n_states,n_g_size,1d0,S_real(1,1),&
+                              n_g_size,buffer_real(1,1),n_g_size,0d0,C_real(1,1),n_g_size)
+               endif
+
+         end select
+
+      case (LIBOMM)
+         call elsi_stop(" libOMM does not have eigenvectors. Exiting...",caller)
+      case (PEXSI)
+         call elsi_stop(" PEXSI does not have eigenvectors. Exiting...",caller)
+      case DEFAULT
+         call elsi_stop(" No supported method has been chosen. "//&
+                        " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
+                        " Exiting...",caller)
+   end select
+
+   if(allocated(buffer_real))    deallocate(buffer_real)
+   if(allocated(buffer_complex)) deallocate(buffer_complex)
+
+end subroutine
+
+!>
+!! This routine interfaces to ELPA.
+!!
+subroutine elsi_solve_evp_elpa_sp()
+
+   implicit none
+   include "mpif.h"
+
+   logical :: success
+   logical :: two_step_solver
+
+   character*40, parameter :: caller = "elsi_solve_evp_elpa_sp"
+
+   call elsi_start_solve_evp_time()
+
+   ! Choose 1-stage or 2-stage solver
+   if(elpa_one_always) then
+      two_step_solver = .false.
+   elseif(elpa_two_always) then
+      two_step_solver = .true.
+   elseif(n_g_size < 256) then
+      two_step_solver = .false.
+   else
+      two_step_solver = .true.
+   endif
+
+   ! Transform to standard form
+   if(.not.overlap_is_unit) then
+      call elsi_statement_print("  Tansforming to standard evp")
+      call elsi_to_standard_evp_sp()
+   endif
+
+   ! Solve evp, return eigenvalues and eigenvectors
+   if(two_step_solver) then ! 2-stage solver
+      call elsi_statement_print("  Starting ELPA 2-stage solver")
+      select case (mode)
+         case (COMPLEX_VALUES)
+            success = solve_evp_complex_2stage_double(n_nonsingular,n_states,&
+                         H_complex,n_l_rows,eigenvalues,C_complex,n_l_rows,n_b_rows,&
+                         n_l_cols,mpi_comm_self,mpi_comm_self,mpi_comm_self)
+         case (REAL_VALUES)
+            success = solve_evp_real_2stage_double(n_nonsingular,n_states,H_real,&
+                         n_l_rows,eigenvalues,C_real,n_l_rows,n_b_rows,&
+                         n_l_cols,mpi_comm_self,mpi_comm_self,mpi_comm_self)
+      end select
+   else ! 1-stage solver
+      call elsi_statement_print("  Starting ELPA 1-stage solver")
+      select case (mode)
+         case (COMPLEX_VALUES)
+            success = solve_evp_complex_1stage_double(n_nonsingular,n_states,&
+                         H_complex,n_l_rows,eigenvalues,C_complex,n_l_rows,&
+                         n_b_rows,n_l_cols,mpi_comm_self,mpi_comm_self)
+         case (REAL_VALUES)
+            success = solve_evp_real_1stage_double(n_nonsingular,n_states,H_real,&
+                         n_l_rows,eigenvalues,C_real,n_l_rows,n_b_rows,n_l_cols,&
+                         mpi_comm_self,mpi_comm_self)
+      end select
+   endif
+
+   if(.not.success) then
+      call elsi_stop(" ELPA failed when solving eigenvalue problem. "//&
+                     " Exiting...",caller)
+   endif
+
+   ! Back-transform eigenvectors
+   if(.not.overlap_is_unit) then
+      call elsi_statement_print("  Transforming to original eigenvectors")
+      call elsi_to_original_ev_sp()
+   endif
+
+   call MPI_Barrier(mpi_comm_self,mpierr)
+   call elsi_stop_solve_evp_time()
+
+end subroutine
+
 
 end module ELSI
