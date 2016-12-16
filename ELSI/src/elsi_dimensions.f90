@@ -31,9 +31,67 @@ module ELSI_DIMENSIONS
 
    use iso_c_binding
    use f_ppexsi_interface
+   use MatrixSwitch
 
    implicit none
-  
+
+! ========= MATRIX =========  
+   ! Pointers
+   !< Real Hamiltonian
+   real*8, pointer     :: H_real(:,:)
+   !< Complex Hamiltonian
+   complex*16, pointer :: H_complex(:,:)
+   !< Real overlap
+   real*8, pointer     :: S_real(:,:)
+   !< Complex overlap
+   complex*16, pointer :: S_complex(:,:)
+
+   ! ELPA
+   !< Eigenvalues
+   real*8, allocatable     :: eigenvalues(:)
+   !< Real eigenvectors
+   real*8, allocatable     :: C_real(:,:)
+   !< Complex eigenvectors
+   complex*16, allocatable :: C_complex(:,:)
+   !< Density matrix
+   real*8, allocatable     :: D_elpa(:,:)
+   !< Occupation numbers used by ELPA to construct density matrix
+   real*8, allocatable     :: occ_elpa(:)
+
+   ! libOMM
+   !< Hamiltonian
+   type(Matrix) :: H_omm
+   !< Overlap
+   type(Matrix) :: S_omm
+   !< Coefficient matrix
+   type(Matrix) :: Coeff_omm
+   !< Density matrix
+   type(Matrix) :: D_omm
+   !< Kinetic energy density matrix
+   type(Matrix) :: T_omm
+
+   ! PESXI
+   !< Sparse real Hamiltonian
+   real*8, allocatable :: H_real_pexsi(:)
+   !< Sparse complex Hamiltonian
+   complex*16, allocatable :: H_complex_pexsi(:)
+   !< Sparse real overlap
+   real*8, allocatable :: S_real_pexsi(:)
+   !< Sparse complex overlap
+   complex*16, allocatable :: S_complex_pexsi(:)
+   !< Sparse density matrix
+   real*8, allocatable :: D_pexsi(:)
+   !< Sparse energy density matrix
+   real*8, allocatable :: ED_pexsi(:)
+   !< Sparse free energy density matrix
+   real*8, allocatable :: FD_pexsi(:)
+   !< Row index in CCS format
+   integer, allocatable :: row_ind_pexsi(:)
+   !< Column pointer in CCS format
+   integer, allocatable :: col_ptr_pexsi(:)
+
+! ========= PARAMETER =========  
+
    !> Solver (AUTO=0,ELPA=1,LIBOMM=2,PEXSI=3,CHESS=4)
    integer :: method = -1
 
@@ -45,6 +103,9 @@ module ELSI_DIMENSIONS
 
    !> Parallel mode (SERIAL=0,PARALLEL=1)
    integer :: parallelism = -1
+
+   !> Number of ELSI being called
+   integer :: n_elsi_calls
 
    !> Global matrix size
    integer :: n_g_size
@@ -156,6 +217,8 @@ module ELSI_DIMENSIONS
    real(c_double)         :: e_tot_s
    real(c_double)         :: f_tot
 
+! ========= ALIAS =========  
+
    !> Method names
    enum, bind( C )
       enumerator :: AUTO, ELPA, LIBOMM, PEXSI, CHESS
@@ -180,158 +243,5 @@ module ELSI_DIMENSIONS
    enum, bind( C )
       enumerator :: GAUSSIAN, FERMI, METHFESSEL_PAXTON
    end enum
-
-contains
-
-!>
-!! Set PEXSI variables to ELSI default.
-!!
-subroutine elsi_set_pexsi_default_options()
-
-   implicit none
-
-   ! Use the PEXSI Default options
-   call f_ppexsi_set_default_options(pexsi_options)
-
-   ! How many steps to perform inertia counting?
-   n_inertia_steps = 3
-   ! Use chemical potential in previous step as initial guess
-   pexsi_options%mu0 = mu_pexsi
-   ! Use 1 process in ParMETIS for symbolic factorization
-   pexsi_options%npSymbFact = 1
-
-end subroutine
-
-!>
-!! Print PEXSI settings.
-!!
-subroutine elsi_print_pexsi_options()
-
-   implicit none
-
-   character(LEN=4096) :: string_message
-
-   if(myid == 0) then
-      write(*,"(A)") "  PEXSI settings used in ELSI (in the same unit of Hamiltonian):"
-
-      write(string_message, "(1X,' | Inertia counting steps ',I5)") &
-            n_inertia_steps
-      write(*,'(A)') trim(string_message)
-
-      write(string_message, "(1X,' | Temperature ',F10.4)") &
-            pexsi_options%temperature
-      write(*,'(A)') trim(string_message)
-
-      write(string_message, "(1X,' | Spectral gap ',F10.4)") &
-            pexsi_options%gap
-      write(*,'(A)') trim(string_message)
-
-      write(string_message, "(1X,' | Number of poles ',I5)") &
-            pexsi_options%numPole
-      write(*,'(A)') trim(string_message)
-
-      write(string_message, "(1X,' | Max PEXSI iterations ',I5)") &
-            pexsi_options%maxPEXSIIter
-      write(*,'(A)') trim(string_message)
-
-      write(string_message, "(1X,' | Lower bound of chemical potential ',F10.4)") &
-            pexsi_options%muMin0
-      write(*,'(A)') trim(string_message)
-
-      write(string_message, "(1X,' | Upper bound of chemical potential ',F10.4)") &
-            pexsi_options%muMax0
-      write(*,'(A)') trim(string_message)
-
-      write(string_message, "(1X,' | Initial guess of chemical potential ',F10.4)") &
-            pexsi_options%mu0
-      write(*,'(A)') trim(string_message)
-
-      write(string_message, "(1X,' | Tolerance of chemical potential ',E10.1)") &
-            pexsi_options%muInertiaTolerance
-      write(*,'(A)') trim(string_message)
-
-      write(string_message, "(1X,' | Safeguard of chemical potential ',F10.4)") &
-            pexsi_options%muPexsiSafeGuard
-      write(*,'(A)') trim(string_message)
-
-      write(string_message, "(1X,' | Tolerance of number of electrons ',E10.1)") &
-            pexsi_options%numElectronPEXSITolerance
-      write(*,'(A)') trim(string_message)
-   endif
-
-end subroutine
-
-!>
-!! Set OMM variables to ELSI default.
-!!
-subroutine elsi_set_omm_default_options()
-
-   implicit none
-
-   !< How many steps of ELPA to run before OMM
-   n_elpa_steps = 3
-   !< How do we perform the calculation
-   !! 0 = Basic
-   !! 1 = Cholesky factorisation of S requested
-   !! 2 = Cholesky already performed, U is provided in S
-   !! 3 = Use preconditioning based on the energy density
-   omm_flavour = 2
-   !< Scaling of the kinetic energy matrix
-   scale_kinetic = 5d0
-   !< Calculate the energy weighted density matrix
-   calc_ed = .false.
-   !< Eigenspectrum shift parameter
-   eta = 0d0
-   !< Tolerance for minimization
-   min_tol = 1d-9
-   !< n_k_points * n_spin
-   nk_times_nspin = 1
-   !< Combined k_point spin index
-   i_k_spin = 1
-   !< Output level?
-   omm_verbose = .true.
-   !< Deallocate temporary arrays?
-   do_dealloc = .false.
-
-end subroutine
-
-!>
-!! Print OMM settings.
-!!
-subroutine elsi_print_omm_options()
-
-   implicit none
-
-   character(LEN=4096) :: string_message
-
-   if(myid == 0) then
-      write(*,"(A)") "  libOMM settings used in ELSI (in the same unit of Hamiltonian):"
-
-      write(string_message, "(1X,' | ELPA steps before OMM ',I2)") &
-            n_elpa_steps
-      write(*,'(A)') trim(string_message)
-
-      write(string_message, "(1X,' | Eigenspectrum shift parameter ',F10.4)") &
-            eta
-      write(*,'(A)') trim(string_message)
-
-      write(string_message, "(1X,' | Scaling of kinetic energy matrix ',F10.4)") &
-            scale_kinetic
-      write(*,'(A)') trim(string_message)
-
-      write(string_message, "(1X,' | Tolerance of minimization ',E10.1)") &
-            min_tol
-      write(*,'(A)') trim(string_message)
-
-      write(string_message, "(1X,' | OMM Flavour ',I1)") &
-            omm_flavour
-      write(*,'(A)') trim(string_message)
-
-      write(string_message, "(1X,' | Compute energy weighted densigy matrix? ',L1)") &
-            calc_ed
-      write(*,'(A)') trim(string_message)
-   endif
-
-end subroutine
 
 end module ELSI_DIMENSIONS
