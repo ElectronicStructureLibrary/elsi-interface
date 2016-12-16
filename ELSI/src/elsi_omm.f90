@@ -122,43 +122,6 @@ subroutine elsi_solve_evp_omm()
 
 end subroutine ! elsi_solve_evp_omm
 
-!>
-!! This routine overrides libOMM default settings.
-!!
-subroutine elsi_customize_omm(n_elpa_steps_omm,scale_kinetic_energy,calculate_ed,&
-                              eigenspectrum_shift,omm_tolerance)
-
-   implicit none
-
-   integer, intent(in), optional :: n_elpa_steps_omm
-   real*8,  intent(in), optional :: scale_kinetic_energy
-   logical, intent(in), optional :: calculate_ed
-   real*8,  intent(in), optional :: eigenspectrum_shift
-   real*8,  intent(in), optional :: omm_tolerance
-
-   ! Number of ELPA steps
-   if(present(n_elpa_steps_omm)) &
-      n_elpa_steps = n_elpa_steps_omm
-   ! Scaling of kinetic energy matrix
-   if(present(scale_kinetic_energy)) &
-      scale_kinetic = scale_kinetic_energy
-   ! Calculate energy weigthed density matrix?
-   if(present(calculate_ed)) &
-      calc_ed = calculate_ed
-   ! Eigenspectrum shift parameter
-   if(present(eigenspectrum_shift)) &
-      eta = eigenspectrum_shift
-   ! Tolerance for minimization
-   if(present(omm_tolerance)) &
-      min_tol = omm_tolerance
-
-   if(method .ne. LIBOMM) then
-      call elsi_statement_print("  The chosen method is not libOMM."//&
-                                " Ignore elsi_customize_omm call.")
-   endif
-
-end subroutine
-
 !> 
 !! Set OMM variables to ELSI default.
 !! 

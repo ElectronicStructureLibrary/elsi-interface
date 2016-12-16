@@ -62,9 +62,20 @@ module ELSI
 
 contains
 
-!============
-! ELSI tools
-!============
+!=====================
+! ELSI tools:
+!
+!   elsi_init
+!   elsi_set_method
+!   elsi_set_mode
+!   elsi_set_storage
+!   elsi_set_parallel
+!   elsi_set_mpi
+!   elsi_set_blacs
+!   elsi_get_energy
+!   elsi_get_dm
+!   elsi_finalize   
+!=====================
 
 !>
 !! This routine initializes ELSI with solver, parallelism, matrix format,
@@ -166,56 +177,6 @@ subroutine elsi_set_parallel(i_parallel)
       n_b_rows = n_g_size
       n_b_cols = n_g_size
    endif
-
-end subroutine
-
-!>
-!! This routine overrides ELSI default settings.
-!!
-subroutine elsi_customize(unit_overlap,hartree_to_ev,numerical_zero,mu_accuracy,&
-                          no_check_singularity,singularity_threshold,&
-                          force_stop_singularity,broadening_scheme,broadening_width)
-
-   implicit none
-
-   logical, intent(in), optional :: unit_overlap
-   real*8,  intent(in), optional :: hartree_to_ev
-   real*8,  intent(in), optional :: numerical_zero
-   real*8,  intent(in), optional :: mu_accuracy
-   logical, intent(in), optional :: no_check_singularity
-   real*8,  intent(in), optional :: singularity_threshold
-   logical, intent(in), optional :: force_stop_singularity
-   integer, intent(in), optional :: broadening_scheme
-   real*8,  intent(in), optional :: broadening_width
-
-   ! Is the overlap matrix unit? [Default: .false.]
-   if(present(unit_overlap)) &
-      overlap_is_unit = unit_overlap
-   ! User-defined value for Hartree [Default: 27.211386, Codata 2015]
-   if(present(hartree_to_ev)) &
-      hartree = hartree_to_ev
-   ! Threshold to define numerical zero [Default: 1d-13]
-   if(present(numerical_zero)) &
-      zero_threshold = numerical_zero
-   ! Accuracy for chemical potential determination [Default: 1d-10]
-   if(present(mu_accuracy)) &
-      occ_tolerance = mu_accuracy
-   ! Disable checking for overlap singularity? [Default: .false.]
-   if(present(no_check_singularity)) &
-      no_singularity_check = no_check_singularity
-   ! Eigenfunctions of overlap matrix with eigenvalues smaller than
-   ! this value will be removed to avoid singularity [Default: 1d-5]
-   if(present(singularity_threshold)) &
-      singularity_tolerance = singularity_threshold
-   ! Always stop if overlap is singular? [Default: .false.]
-   if(present(force_stop_singularity)) &
-      stop_singularity = force_stop_singularity
-   ! Broadening scheme to compute Fermi level [Default: GAUSSIAN]
-   if(present(broadening_scheme)) &
-      broaden_method = broadening_scheme
-   ! Broadening width to compute Fermi level [Default: 1d-2]
-   if(present(broadening_width)) &
-      broaden_width = broadening_width
 
 end subroutine
 
@@ -374,9 +335,280 @@ subroutine elsi_finalize()
 
 end subroutine
 
-!==============
+!=========================
+! ELSI customize routines
+!
+!   elsi_customize
+!   elsi_customize_omm
+!   elsi_customize_pexsi
+!   elsi_customize_elpa
+!=========================
+
+!>
+!! This routine overrides ELSI default settings.
+!!
+subroutine elsi_customize(unit_overlap,hartree_to_ev,numerical_zero,mu_accuracy,&
+                          no_check_singularity,singularity_threshold,&
+                          force_stop_singularity,broadening_scheme,broadening_width)
+
+   implicit none
+
+   logical, intent(in), optional :: unit_overlap
+   real*8,  intent(in), optional :: hartree_to_ev
+   real*8,  intent(in), optional :: numerical_zero
+   real*8,  intent(in), optional :: mu_accuracy
+   logical, intent(in), optional :: no_check_singularity
+   real*8,  intent(in), optional :: singularity_threshold
+   logical, intent(in), optional :: force_stop_singularity
+   integer, intent(in), optional :: broadening_scheme
+   real*8,  intent(in), optional :: broadening_width
+
+   ! Is the overlap matrix unit? [Default: .false.]
+   if(present(unit_overlap)) &
+      overlap_is_unit = unit_overlap
+   ! User-defined value for Hartree [Default: 27.211386, Codata 2015]
+   if(present(hartree_to_ev)) &
+      hartree = hartree_to_ev
+   ! Threshold to define numerical zero [Default: 1d-13]
+   if(present(numerical_zero)) &
+      zero_threshold = numerical_zero
+   ! Accuracy for chemical potential determination [Default: 1d-10]
+   if(present(mu_accuracy)) &
+      occ_tolerance = mu_accuracy
+   ! Disable checking for overlap singularity? [Default: .false.]
+   if(present(no_check_singularity)) &
+      no_singularity_check = no_check_singularity
+   ! Eigenfunctions of overlap matrix with eigenvalues smaller than
+   ! this value will be removed to avoid singularity [Default: 1d-5]
+   if(present(singularity_threshold)) &
+      singularity_tolerance = singularity_threshold
+   ! Always stop if overlap is singular? [Default: .false.]
+   if(present(force_stop_singularity)) &
+      stop_singularity = force_stop_singularity
+   ! Broadening scheme to compute Fermi level [Default: GAUSSIAN]
+   if(present(broadening_scheme)) &
+      broaden_method = broadening_scheme
+   ! Broadening width to compute Fermi level [Default: 1d-2]
+   if(present(broadening_width)) &
+      broaden_width = broadening_width
+
+end subroutine
+
+!>
+!! This routine overrides libOMM default settings.
+!!
+subroutine elsi_customize_omm(n_elpa_steps_omm,scale_kinetic_energy,calculate_ed,&
+                              eigenspectrum_shift,omm_tolerance)
+
+   implicit none
+
+   integer, intent(in), optional :: n_elpa_steps_omm
+   real*8,  intent(in), optional :: scale_kinetic_energy
+   logical, intent(in), optional :: calculate_ed
+   real*8,  intent(in), optional :: eigenspectrum_shift
+   real*8,  intent(in), optional :: omm_tolerance
+
+   ! Number of ELPA steps
+   if(present(n_elpa_steps_omm)) &
+      n_elpa_steps = n_elpa_steps_omm
+   ! Scaling of kinetic energy matrix
+   if(present(scale_kinetic_energy)) &
+      scale_kinetic = scale_kinetic_energy
+   ! Calculate energy weigthed density matrix?
+   if(present(calculate_ed)) &
+      calc_ed = calculate_ed
+   ! Eigenspectrum shift parameter
+   if(present(eigenspectrum_shift)) &
+      eta = eigenspectrum_shift
+   ! Tolerance for minimization
+   if(present(omm_tolerance)) &
+      min_tol = omm_tolerance
+
+   if(method .ne. LIBOMM) then
+      call elsi_statement_print("  The chosen method is not libOMM."//&
+                                " Ignore elsi_customize_omm call.")
+   endif
+
+end subroutine
+
+!>
+!! This routine overrides PEXSI default settings.
+!!
+subroutine elsi_customize_pexsi(temperature,gap,delta_E,n_poles,n_inertia_steps_pexsi,&
+                                max_iteration,mu_min,mu_max,mu0,mu_inertia_tolerance,&
+                                mu_inertia_expansion,mu_safeguard,n_electron_accuracy,&
+                                matrix_type,is_symbolic_factorize,ordering,&
+                                np_symbolic_factorize,verbosity)
+
+   implicit none
+
+   real(c_double), intent(in), optional :: temperature
+   real(c_double), intent(in), optional :: gap
+   real(c_double), intent(in), optional :: delta_E
+   integer(c_int), intent(in), optional :: n_poles
+   integer(c_int), intent(in), optional :: n_inertia_steps_pexsi
+   integer(c_int), intent(in), optional :: max_iteration
+   real(c_double), intent(in), optional :: mu_min
+   real(c_double), intent(in), optional :: mu_max
+   real(c_double), intent(in), optional :: mu0
+   real(c_double), intent(in), optional :: mu_inertia_tolerance
+   real(c_double), intent(in), optional :: mu_inertia_expansion
+   real(c_double), intent(in), optional :: mu_safeguard
+   real(c_double), intent(in), optional :: n_electron_accuracy
+   integer(c_int), intent(in), optional :: matrix_type
+   integer(c_int), intent(in), optional :: is_symbolic_factorize
+   integer(c_int), intent(in), optional :: ordering
+   integer(c_int), intent(in), optional :: np_symbolic_factorize
+   integer(c_int), intent(in), optional :: verbosity
+
+   ! Temperature, in the same unit as H
+   ! default: 0.0019 = 300K
+   if(present(temperature)) &
+      pexsi_options%temperature = temperature
+
+   ! Spectral gap, can be set to 0 in most cases (default)
+   if(present(gap)) &
+      pexsi_options%gap = gap
+
+   ! Upper bound for the spectral radius of S^(-1)H
+   ! default: 10
+   if(present(delta_E)) &
+      pexsi_options%deltaE = delta_E
+
+   ! Number of poles
+   ! default: 40
+   if(present(n_poles)) &
+      pexsi_options%numPole = n_poles
+
+   ! Number of steps to perform inertia counting
+   ! default: 3
+   if(present(n_inertia_steps_pexsi)) &
+      n_inertia_steps = n_inertia_steps_pexsi
+
+   ! Maximum number of PEXSI iterations after each inertia
+   ! counting procedure
+   ! default: 3
+   if(present(max_iteration)) &
+      pexsi_options%maxPEXSIIter = max_iteration
+
+   ! From the second step, initial guess of mu is from previous step
+   if(n_elsi_calls == 0) then
+      ! Initial guess of mu
+      ! default: 0.0
+      if(present(mu0)) &
+         pexsi_options%mu0 = mu0
+   endif
+
+   ! Initial guess of lower bound for mu
+   ! default: -10.0
+   if(present(mu_min)) &
+      pexsi_options%muMin0 = mu_min
+
+   ! Initial guess of upper bound for mu
+   ! default: 10.0
+   if(present(mu_max)) &
+      pexsi_options%muMax0 = mu_max
+
+   ! Stopping criterion in terms of the chemical potential
+   ! for the inertia counting procedure
+   ! default: 0.05
+   if(present(mu_inertia_tolerance)) &
+      pexsi_options%muInertiaTolerance = mu_inertia_tolerance
+
+   ! If the chemical potential is not in the initial interval,
+   ! the interval is expanded by this value
+   ! default: 0.3
+   if(present(mu_inertia_expansion)) &
+      pexsi_options%muInertiaExpansion = mu_inertia_expansion
+
+   ! Safeguard criterion in terms of the chemical potential to
+   ! reinvoke the inertia counting procedure
+   ! default: 0.05
+   if(present(mu_safeguard)) &
+      pexsi_options%muPEXSISafeGuard = mu_safeguard
+
+   ! Stopping criterion of the PEXSI iteration in terms of the
+   ! number of electrons compared to the exact number
+   ! default: 0.01
+   if(present(n_electron_accuracy)) then
+      pexsi_options%numElectronPEXSITolerance = n_electron_accuracy
+      if(n_electron_accuracy < 1d-2) then
+         small_pexsi_tol = .true.
+         final_pexsi_tol = n_electron_accuracy
+      endif
+   endif
+
+   ! Type of input H and S matrices
+   ! 0: real symmetric (default)
+   ! 1: general complex
+   if(present(matrix_type)) &
+      pexsi_options%matrixType = matrix_type
+
+   ! Whether to perform symbolic factorization
+   ! default: 1
+   if(present(is_symbolic_factorize)) &
+      pexsi_options%isSymbolicFactorize = is_symbolic_factorize
+
+   ! Ordering strategy for factorization and selected inversion
+   ! 0: parallel ordering using ParMETIS
+   ! 1: sequential ordering using METIS
+   ! 2: multiple minimum degree ordering
+   if(present(ordering)) &
+      pexsi_options%ordering = ordering
+
+   ! Number of processors for ParMETIS, only used if ordering=0
+   if(present(np_symbolic_factorize)) &
+      pexsi_options%npSymbFact = np_symbolic_factorize
+
+   ! Level of output information
+   ! 0: no output
+   ! 1: basic output (default)
+   ! 2: detailed output
+   if(present(verbosity)) &
+      pexsi_options%verbosity = verbosity
+
+   if(method .ne. PEXSI) then
+      call elsi_statement_print("  The chosen method is not PEXSI."//&
+                                " Ignore elsi_customize_pexsi call.")
+   endif
+
+end subroutine
+
+!>
+!! This routine overrides ELPA default settings.
+!!
+subroutine elsi_customize_elpa(elpa_solver)
+
+   implicit none
+
+   integer, intent(in) :: elpa_solver !< Always use 1-stage or 2-stage solver
+
+   if(elpa_solver == 1) then
+      elpa_one_always = .true.
+      elpa_two_always = .false.
+   elseif(elpa_solver == 2) then
+      elpa_one_always = .false.
+      elpa_two_always = .true.
+   else
+      elpa_one_always = .false.
+      elpa_two_always = .false.
+   endif
+
+   if(method .ne. ELPA) then
+      call elsi_statement_print("  The chosen method is not ELPA."//&
+                                " Ignore elsi_customize_elpa call.")
+   endif
+
+end subroutine
+
+!===================
 ! ELSI solvers
-!==============
+!
+!   elsi_ev_real
+!   elsi_ev_complex
+!   elsi_dm_real
+!   elsi_dm_complex
+!===================
 
 !>
 !! This routine computes eigenvalues and eigenvectors.

@@ -989,33 +989,6 @@ subroutine elsi_solve_evp_elpa()
 
 end subroutine
 
-!>
-!! This routine overrides ELPA default settings.
-!!
-subroutine elsi_customize_elpa(elpa_solver)
-
-   implicit none
-
-   integer, intent(in) :: elpa_solver !< Always use 1-stage or 2-stage solver
-
-   if(elpa_solver == 1) then
-      elpa_one_always = .true.
-      elpa_two_always = .false.
-   elseif(elpa_solver == 2) then
-      elpa_one_always = .false.
-      elpa_two_always = .true.
-   else
-      elpa_one_always = .false.
-      elpa_two_always = .false.
-   endif
-
-   if(method .ne. ELPA) then
-      call elsi_statement_print("  The chosen method is not ELPA."//&
-                                " Ignore elsi_customize_elpa call.")
-   endif
-
-end subroutine
-
 !> 
 !! This routine transforms a generalized eigenvalue problem (Ac = Bcv)
 !! to standard form (A'c' = c'v)
