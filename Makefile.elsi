@@ -6,6 +6,8 @@ ARCHFLAGS ?= cr
 RANLIB    ?= ranlib
 
 # Default external libraries
+THIS_DIR  ?= $(shell pwd)
+
 ELPA_DIR  ?= $(THIS_DIR)/EXTERNAL/ELPA
 ELPA_LIB  ?= -L$(ELPA_DIR)/lib -lelpa \
              -I$(ELPA_DIR)/include

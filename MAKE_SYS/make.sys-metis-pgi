@@ -1,25 +1,26 @@
+# VERIFIED: DEC 16, 2016
 # DO READ ../INSTALL CAREFULLY!
 
 # ====== ELSI ======
-
-THIS_DIR = /home/vwzyu/elsi-interface
-
 MPIFC  = ftn
 MPICC  = cc
 MPICXX = CC
+LINKER = ftn
 
 FFLAGS   = -O3
 CFLAGS   = -O3
 CXXFLAGS = -O3
+LDFLAGS  = -O3 -Wl,--allow-multiple-definition
+
+CXX_LDFLAGS = -lstdc++
+
+TOMATO_SEED = /home/wy29/tomato_seed
 
 # ====== ELPA ======
-
-FFLAGS_E = -O3 -I$(THIS_DIR)/EXTERNAL/ELPA/
 ARCHITECTURE = Generic
 OPENMP = no
 
 # ====== PEXSI ======
-
 METIS_LIB       = -L/home/vwzyu/parmetis-4.0.3/lib -lmetis
 PARMETIS_LIB    = -L/home/vwzyu/parmetis-4.0.3/lib -lparmetis
 SUPERLU_LIB     = -L/home/vwzyu/SuperLU_DIST_5.1.2/lib -lsuperlu_dist_5.1.2

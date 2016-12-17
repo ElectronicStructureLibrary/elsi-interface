@@ -17,8 +17,6 @@ A) BASIC
 
    One simple ELSI "make.sys" file includes the following keywords:
 
-      THIS_DIR          =  # the path of ELSI root directory
-
       MPIFC             =  # MPI Fortran compiler
       MPICC             =  # MPI C compiler
       MPICXX            =  # MPI C++ compiler

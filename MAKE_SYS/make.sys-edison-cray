@@ -1,10 +1,7 @@
-# VERIFIED: DEC 12, 2016
+# VERIFIED: DEC 16, 2016
 # DO READ ../INSTALL CAREFULLY!
 
 # ====== ELSI ======
-
-THIS_DIR = /global/homes/v/vwzyu/elsi-interface
-
 MPIFC  = ftn
 MPICC  = cc
 MPICXX = CC
@@ -21,12 +18,10 @@ SCALAPACK_LDFLAGS = -mkl=cluster
 TOMATO_SEED = /global/homes/v/vwzyu/tomato-seed
 
 # ====== ELPA ======
-
 ARCHITECTURE = Generic
 OPENMP = no
 
 # ====== PEXSI ======
-
 METIS_LIB       = -L/global/homes/v/vwzyu/parmetis-4.0.3/lib -lmetis
 PARMETIS_LIB    = -L/global/homes/v/vwzyu/parmetis-4.0.3/lib -lparmetis
 SUPERLU_LIB     = -L/global/homes/v/vwzyu/SuperLU_DIST_5.1.2/lib -lsuperlu_dist_5.1.2

@@ -1,9 +1,6 @@
 # DO READ ../INSTALL CAREFULLY!
 
 # ====== ELSIL ======
-
-THIS_DIR = /PATH/TO/ELSI/DIRECTORY
-
 MPIFC  = mpiifort
 MPICC  = mpicc
 MPICXX = mpicxx
@@ -20,12 +17,10 @@ SCALAPACK_LDFLAGS = -L/opt/intel/mkl/lib/intel64 -lmkl_scalapack_lp64 \
 SCALAPACK_FCFLAGS = -I/opt/intel/mkl/include/intel64/lp64
 
 # ====== ELPA ======
-
 ARCHITECTURE = Generic
 OPENMP = no
 
 # ====== PEXSI ======
-
 METIS_LIB       = -L$(METIS_LIB_DIR) -lmetis
 PARMETIS_LIB    = -L$(PARMETIS_LIB_DIR) -lparmetis
 SUPERLU_LIB     = -L$(SUPERLU_LIB_DIR) -lsuperlu

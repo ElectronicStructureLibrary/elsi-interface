@@ -1,10 +1,7 @@
-# VERIFIED: DEC 12, 2016
+# VERIFIED: DEC 16, 2016
 # DO READ ../INSTALL CAREFULLY!
 
 # ====== ELSI ======
-
-THIS_DIR = /home/wy29/elsi-interface
-
 MPIFC  = mpiifort
 MPICC  = mpiicc
 MPICXX = mpiicpc
