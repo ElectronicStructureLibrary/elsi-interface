@@ -39,4 +39,4 @@ clean:
 	${RM} -f ${OBJS} ${DEPS} *.d.*
 
 cleanall:
-	${RM} -f ${OBJS} ${DEPS} ${PEXSI_DIR}/lib/libpexsi.a *.d.*
+	${RM} -f ${OBJS} ${DEPS} ${PEXSI_DIR}/lib/libpexsi.a *.d.* *.mod

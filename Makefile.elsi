@@ -174,4 +174,3 @@ cleanpexsi:
 	@echo = Removing PEXSI... =
 	@echo =====================
 	cd $(PEXSI_DIR)/src && ${MAKE} -f Makefile.elsi cleanall
-	cd $(PEXSI_DIR)/fortran && ${MAKE} -f Makefile.elsi cleanall
