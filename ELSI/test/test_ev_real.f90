@@ -109,7 +109,11 @@ program test_ev_real
       write(*,'("  ##             ELSI TEST PROGRAMS             ##")')
       write(*,'("  ################################################")')
       write(*,'("  ##  Testing elsi_ev_real + ELPA               ##")')
-      write(*,'("  ##  (Multi-processor version)                 ##")')
+      if(n_proc == 1) then
+         write(*,'("  ##  (Single-processor version)                ##")')
+      else
+         write(*,'("  ##  (Multi-processor version)                 ##")')
+      endif
    endif
 
    solver = 1
@@ -155,9 +159,13 @@ program test_ev_real
    ! Initialize ELSI
    n_electrons = 2d0*n_states
 
-   call elsi_init(solver,1,0,matrix_size,n_electrons,n_states)
-   call elsi_set_mpi(mpi_comm_global,n_proc,myid)
-   call elsi_set_blacs(BLACS_CTXT,blk,blk,nprow,npcol,mpi_comm_row,mpi_comm_col)
+   if(n_proc == 1) then
+      call elsi_init(solver,0,0,matrix_size,n_electrons,n_states)
+   else
+      call elsi_init(solver,1,0,matrix_size,n_electrons,n_states)
+      call elsi_set_mpi(mpi_comm_global,n_proc,myid)
+      call elsi_set_blacs(BLACS_CTXT,blk,blk,nprow,npcol,mpi_comm_row,mpi_comm_col)
+   endif
 
    ! Solve problem
    call m_allocate(e_vec,matrix_size,matrix_size,m_storage)
