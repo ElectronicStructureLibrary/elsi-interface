@@ -9,7 +9,7 @@ LINKER = ftn
 
 FFLAGS   = -fast -no-ipo
 CFLAGS   = -fast -no-ipo
-CXXFLAGS = -fast -no-ipo
+CXXFLAGS = -fast -no-ipo -std=c++11
 LDFLAGS  = -fast -no-ipo -Wl,--allow-multiple-definition
 
 CXX_LDFLAGS       = -lstdc++
