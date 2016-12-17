@@ -111,8 +111,7 @@ pexsi:
 	@echo ===========================
 	cd $(PEXSI_DIR) && mkdir -p lib
 	cd $(PEXSI_DIR)/src && ${MAKE} -f Makefile.elsi 
-	cd $(PEXSI_DIR)/fortran && ${MAKE} -f Makefile.elsi
-	cp ${PEXSI_DIR}/fortran/f_ppexsi_interface.mod ${PEXSI_DIR}/include
+	cp ${PEXSI_DIR}/src/f_ppexsi_interface.mod ${PEXSI_DIR}/include
 	mkdir -p ${THIS_DIR}/EXTERNAL/include
 	mkdir -p ${THIS_DIR}/EXTERNAL/lib
 	cp ${PEXSI_DIR}/include/*.mod ${THIS_DIR}/EXTERNAL/include/.
