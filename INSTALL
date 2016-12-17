@@ -137,7 +137,7 @@ D) ADVANCE III
 
 1) Add the following keyword to "make.sys":
 
-      DISABLE_C++ = yes  # Disable C++ code
+      DISABLE_CXX = yes  # Disable C++ code
 
 2) To build ELSI, type
 

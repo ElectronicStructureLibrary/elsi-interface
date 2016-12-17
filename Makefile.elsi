@@ -65,9 +65,9 @@ ifeq ($(strip $(USER_PEXSI)),yes)
   $(info ==============================)
   LIBS += $(PEXSI_LIB)
 else
-ifeq ($(strip $(DISABLE_C++)),yes)
+ifeq ($(strip $(DISABLE_CXX)),yes)
   $(info ===================================================)
-  $(info = PEXSI disabled by user's choice of DISABLE_C++. =)
+  $(info = PEXSI disabled by user's choice of DISABLE_CXX. =)
   $(info ===================================================)
   STUBS += stub_pexsi.o
 else
