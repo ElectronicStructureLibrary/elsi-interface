@@ -1,7 +1,6 @@
 # DO READ ../INSTALL CAREFULLY!
 
 # ====== ELSI ======
-
 MPIFC  = mpixlf95_r
 MPICC  = mpixlc_r
 MPICXX = mpixlcxx_r
@@ -19,14 +18,10 @@ SCALAPACK_LDFLAGS =
 SCALAPACK_FCFLAGS =
 
 # ====== ELPA ======
-
-FFLAGS_E = ${FFLAGS_I}
-
 ARCHITECTURE = BlueGeneQ
 OPENMP = no
 
 # ====== PEXSI ======
-
 METIS_LIB       = -L/gpfs/mira-home/wzvyu/parmetis-4.0.3/build/Linux-ppc64/libmetis -lmetis
 PARMETIS_LIB    = -L/gpfs/mira-home/wzvyu/parmetis-4.0.3/build/Linux-ppc64/libparmetis -lparmetis
 SUPERLU_LIB     = -L/gpfs/mira-home/wzvyu/SuperLU_DIST_5.1.2/lib -lsuperlu

@@ -1,0 +1,29 @@
+# VERIFIED: DEC 17, 2016
+# DO READ ../INSTALL CAREFULLY!
+
+# ====== ELSI ======
+MPIFC  = ftn
+MPICC  = cc
+MPICXX = CC
+LINKER = ftn
+
+FFLAGS   = -O3
+CFLAGS   = -O3
+CXXFLAGS = -O3 --c++11
+LDFLAGS  = -O3 -Wl,--allow-multiple-definition
+
+CXX_LDFLAGS = -lstdc++
+
+TOMATO_SEED = /ccs/home/vwzyu/tomato_seed
+
+# ====== ELPA ======
+ARCHITECTURE = GPU
+NVCC = nvcc
+NVCCFLAGS = -arch sm_35 -O3
+CUDA = -lcudart -lcublas
+
+# ====== PEXSI ======
+METIS_LIB       = -L/ccs/home/vwzyu/parmetis-4.0.3/build/Linux-x86_64/libmetis -lmetis
+PARMETIS_LIB    = -L/ccs/home/vwzyu/parmetis-4.0.3/build/Linux-x86_64/libparmetis -lparmetis
+SUPERLU_LIB     = -L/ccs/home/vwzyu/SuperLU_DIST_5.1.2/lib -lsuperlu_dist
+SUPERLU_INCLUDE = -I/ccs/home/vwzyu/SuperLU_DIST_5.1.2/SRC
