@@ -15,14 +15,12 @@ LDFLAGS  = -fast -no-ipo -Wl,--allow-multiple-definition
 CXX_LDFLAGS       = -lstdc++
 SCALAPACK_LDFLAGS = -mkl=cluster
 
-TOMATO_SEED = /global/homes/v/vwzyu/tomato-seed
-
 # ====== ELPA ======
 ARCHITECTURE = Generic
 OPENMP = no
 
 # ====== PEXSI ======
-METIS_LIB       = -L/global/homes/v/vwzyu/parmetis-4.0.3/lib -lmetis
-PARMETIS_LIB    = -L/global/homes/v/vwzyu/parmetis-4.0.3/lib -lparmetis
-SUPERLU_LIB     = -L/global/homes/v/vwzyu/SuperLU_DIST_5.1.2/lib -lsuperlu_dist_5.1.2
-SUPERLU_INCLUDE = -I/global/homes/v/vwzyu/SuperLU_DIST_5.1.2/SRC
+METIS_LIB       = -L/home/wzvyu/parmetis-4.0.3/build/Linux-x86_64/libmetis -lmetis
+PARMETIS_LIB    = -L/home/wzvyu/parmetis-4.0.3/build/Linux-x86_64/libparmetis -lparmetis
+SUPERLU_LIB     = -L/home/wzvyu/SuperLU_DIST_5.1.2/lib -lsuperlu_dist
+SUPERLU_INCLUDE = -I/home/wzvyu/SuperLU_DIST_5.1.2/SRC
