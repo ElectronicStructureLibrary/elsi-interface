@@ -842,15 +842,17 @@ subroutine elsi_dm_real(H_in,S_in,D_out,energy_out)
          ! the efficient 2-level parallelization
          call elsi_init_pexsi()
 
-         if(n_g_size < n_p_per_pole_pexsi) then
+         if(n_g_size < n_procs) then
             call elsi_stop(" The (global) size of matrix is too small for"//&
                            " this number of processes. Exiting...",caller)
          endif
 
          ! Convert 2D block-cyclic dense Hamiltonian and overlap
          ! matrices to 1D block CCS sparse format
+!DEVEL
+!         call elsi_2dbcd_to_1dbccs_hs_pexsi_v1(H_in,S_in)
          call elsi_2dbcd_to_1dbccs_hs_pexsi(H_in,S_in)
-
+!DEVEL
          call elsi_solve_evp_pexsi()
 
          ! Convert 1D block CCS sparse density matrix to 2D
