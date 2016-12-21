@@ -453,16 +453,18 @@ subroutine elsi_blacs_to_pexsi_hs_v2(H_in,S_in)
 
    integer :: i_row !< Row counter
    integer :: i_col !< Col counter
-   integer :: i_val !< Value counter
+   integer :: i_val,j_val !< Value counter
    integer :: i_proc !< Process counter
    integer :: global_col_id !< Global column id
    integer :: global_row_id !< Global row id
    integer :: local_col_id !< Local column id in 1D block distribution
    integer :: local_row_id !< Local row id in 1D block distribution
    integer :: mpierr
+   integer :: tmp_int
+   integer :: min_pos,min_id
+   real*8 :: tmp_real
 
    integer, allocatable :: dest(:) !< Destination of each element
-   real*8 :: matrix_aux(n_l_rows_pexsi,n_l_cols_pexsi)
 
    ! For the meaning of each array here, see documentation of MPI_Alltoallv
    real*8, allocatable  :: h_val_send_buffer(:) !< Send buffer for Hamiltonian
@@ -572,24 +574,30 @@ subroutine elsi_blacs_to_pexsi_hs_v2(H_in,S_in)
    deallocate(h_val_send_buffer)
    deallocate(s_val_send_buffer)
 
-   matrix_aux = 0d0
-
    ! Unpack Hamiltonian
-   do i_val = 1, nnz_l_pexsi
-      ! Compute global 2d id
-      global_col_id = FLOOR(1d0*(pos_recv_buffer(i_val)-1)/n_g_size)+1
-      global_row_id = MOD(pos_recv_buffer(i_val),n_g_size)
-      if(global_row_id == 0) global_row_id = n_g_size
+   do i_val = 1,nnz_l_pexsi
+      min_pos = n_g_size*n_g_size+1
+      min_id = 0
 
-      ! Compute local 2d id
-      local_col_id = global_col_id-myid*FLOOR(1d0*n_g_size/n_p_per_pole_pexsi)
-      local_row_id = global_row_id
+      do j_val = i_val,nnz_l_pexsi
+         if(pos_recv_buffer(j_val) < min_pos) then
+            min_pos = pos_recv_buffer(j_val)
+            min_id = j_val
+         endif
+      enddo
 
-      ! Put value to correct position
-      matrix_aux(local_row_id,local_col_id) = h_val_recv_buffer(i_val)
+      tmp_int = pos_recv_buffer(i_val)
+      pos_recv_buffer(i_val) = pos_recv_buffer(min_id)
+      pos_recv_buffer(min_id) = tmp_int
+
+      tmp_real = h_val_recv_buffer(i_val)
+      h_val_recv_buffer(i_val) = h_val_recv_buffer(min_id)
+      h_val_recv_buffer(min_id) = tmp_real
+
+      tmp_real = s_val_recv_buffer(i_val)
+      s_val_recv_buffer(i_val) = s_val_recv_buffer(min_id)
+      s_val_recv_buffer(min_id) = tmp_real
    enddo
-
-   deallocate(h_val_recv_buffer)
 
    ! Allocate PEXSI matrices
    if(.not.allocated(H_real_pexsi)) &
@@ -608,33 +616,24 @@ subroutine elsi_blacs_to_pexsi_hs_v2(H_in,S_in)
       call elsi_allocate(col_ptr_pexsi,(n_l_cols_pexsi+1),"col_ptr_pexsi",caller)
    col_ptr_pexsi = 0
 
-   ! Transform Hamiltonian
-   call elsi_dense_to_ccs(matrix_aux,n_l_rows_pexsi,n_l_cols_pexsi,&
-                          nnz_l_pexsi,H_real_pexsi,row_ind_pexsi,col_ptr_pexsi)
+   H_real_pexsi = h_val_recv_buffer
+   S_real_pexsi = s_val_recv_buffer
 
-   matrix_aux = 0d0
-
-   ! Unpack overlap on the first process row in PEXSI process grid
-   do i_val = 1, nnz_l_pexsi
-      ! Compute global 2d id
-      global_col_id = FLOOR(1d0*(pos_recv_buffer(i_val)-1)/n_g_size)+1
-      global_row_id = MOD(pos_recv_buffer(i_val),n_g_size)
-      if(global_row_id == 0) global_row_id = n_g_size
-
-      ! Compute local 2d id
-      local_col_id = global_col_id-myid*FLOOR(1d0*n_g_size/n_p_per_pole_pexsi)
-      local_row_id = global_row_id
-
-      ! Put value to correct position
-      matrix_aux(local_row_id,local_col_id) = s_val_recv_buffer(i_val)
+   ! Compute row index and column pointer
+   i_col = (pos_recv_buffer(1)-1)/n_g_size
+   do i_val = 1,nnz_l_pexsi
+      row_ind_pexsi(i_val) = MOD(pos_recv_buffer(i_val),n_g_size)
+      if(row_ind_pexsi(i_val) == 0) row_ind_pexsi(i_val) = n_g_size
+      if(FLOOR(1d0*(pos_recv_buffer(i_val)-1)/n_g_size)+1 > i_col) then
+         i_col = i_col+1
+         col_ptr_pexsi(i_col-(pos_recv_buffer(1)-1)/n_g_size) = i_val
+      endif
    enddo
 
+   col_ptr_pexsi(n_l_cols_pexsi+1) = nnz_l_pexsi+1
+
+   deallocate(h_val_recv_buffer)
    deallocate(s_val_recv_buffer)
-
-   ! Transform overlap
-   call elsi_dense_to_ccs_by_pattern(matrix_aux,n_l_rows_pexsi,n_l_cols_pexsi,&
-                                     nnz_l_pexsi,row_ind_pexsi,col_ptr_pexsi,S_real_pexsi)
-
    deallocate(pos_recv_buffer)
 
    call elsi_stop_blacs_to_pexsi_time()
