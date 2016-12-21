@@ -63,7 +63,7 @@ subroutine elsi_init_pexsi()
    character*40, parameter :: caller = "elsi_init_pexsi"
 
    if(method == PEXSI) then
-      if(mod(n_procs,pexsi_options%numPole) == 0) then
+      if(MOD(n_procs,pexsi_options%numPole) == 0) then
          n_p_per_pole_pexsi = n_procs/pexsi_options%numPole
          call elsi_statement_print("  PEXSI parallel over poles.")
          write(info_str,"(A,I13)") "  | Number of MPI tasks per pole: ", &
@@ -78,13 +78,13 @@ subroutine elsi_init_pexsi()
 
       ! Set square-like process grid for selected inversion of each pole
       do n_p_rows_pexsi = NINT(SQRT(REAL(n_p_per_pole_pexsi))),2,-1
-         if(mod(n_p_per_pole_pexsi,n_p_rows_pexsi) == 0) exit
+         if(MOD(n_p_per_pole_pexsi,n_p_rows_pexsi) == 0) exit
       enddo
 
       n_p_cols_pexsi = n_p_per_pole_pexsi/n_p_rows_pexsi
 
       ! PEXSI process grid
-      my_p_col_pexsi = mod(myid,n_p_per_pole_pexsi)
+      my_p_col_pexsi = MOD(myid,n_p_per_pole_pexsi)
       my_p_row_pexsi = myid/n_p_per_pole_pexsi
 
       ! PEXSI uses a pure block distribution in the first process row
@@ -160,6 +160,9 @@ subroutine elsi_blacs_to_pexsi_hs(H_in,S_in)
    integer :: recv_displ_aux      !< Auxiliary variable used to set displacement
 
    character*40, parameter :: caller = "elsi_blacs_to_pexsi_hs"
+
+   ! if(overlap_is_unit) in this subroutine has been removed.
+   ! TODO: use elsi_blacs_to_pexsi_h for identity overlap case.
 
    call elsi_start_blacs_to_pexsi_time()
    call elsi_statement_print("  Matrix conversion: BLACS ==> PEXSI")
@@ -392,11 +395,12 @@ subroutine elsi_pexsi_to_blacs_dm(D_out)
    recv_count = 0
    recv_displ = 0
 
+   call elsi_allocate(val_send_buffer,nnz_l_pexsi,"val_send_buffer",caller)
+   call elsi_allocate(pos_send_buffer,nnz_l_pexsi,"pos_send_buffer",caller)
+
    if(my_p_row_pexsi == 0) then
       call elsi_allocate(global_id,nnz_l_pexsi,"global_id",caller)
       call elsi_allocate(dest,nnz_l_pexsi,"dest",caller)
-      call elsi_allocate(val_send_buffer,nnz_l_pexsi,"val_send_buffer",caller)
-      call elsi_allocate(pos_send_buffer,nnz_l_pexsi,"pos_send_buffer",caller)
 
       i_col = 0
       ! Compute destination and global 1D id
@@ -439,7 +443,7 @@ subroutine elsi_pexsi_to_blacs_dm(D_out)
    call MPI_Alltoall(send_count,1,mpi_integer,recv_count,&
                      1,mpi_integer,mpi_comm_global,mpierr)
 
-   nnz_l = sum(recv_count,1)
+   nnz_l = SUM(recv_count,1)
 
    ! Set send and receive displacement
    send_displ_aux = 0
@@ -684,11 +688,14 @@ subroutine elsi_blacs_to_pexsi_hs_v1(H_in,S_in)
    integer :: global_row_id !< Global row id
    integer :: local_col_id !< Local column id in 1D block distribution
    integer :: local_row_id !< Local row id in 1D block distribution
+   integer :: d1,d2,d11,d12,d21,d22
+   integer :: this_n_cols
    integer :: mpierr
    integer :: tmp_int
    integer :: min_pos,min_id
    integer :: nnz_l_pexsi_aux,nnz_l_tmp,mpi_comm_aux_pexsi
    integer, allocatable :: dest(:) !< Destination of each element
+   integer, allocatable :: locat(:) !< Location of each global column
    real*8 :: tmp_real
 
    ! For the meaning of each array here, see documentation of MPI_Alltoallv
@@ -716,22 +723,50 @@ subroutine elsi_blacs_to_pexsi_hs_v1(H_in,S_in)
 
    call elsi_get_local_nnz(H_in,n_l_rows,n_l_cols,nnz_l)
 
+   call elsi_allocate(locat,n_g_size,"locat",caller)
    call elsi_allocate(dest,nnz_l,"dest",caller)
    call elsi_allocate(pos_send_buffer,nnz_l,"pos_send_buffer",caller)
    call elsi_allocate(h_val_send_buffer,nnz_l,"h_val_send_buffer",caller)
    call elsi_allocate(s_val_send_buffer,nnz_l,"s_val_send_buffer",caller)
 
+   ! Compute d1,d2,d11,d12,d21,d22 (need explanation)
+   d1  = FLOOR(1d0*n_g_size/n_p_per_pole_pexsi)
+   d2  = n_g_size-(n_p_per_pole_pexsi-1)*d1
+   d11 = FLOOR(1d0*d1/pexsi_options%numPole)
+   d12 = d1-(pexsi_options%numPole-1)*d11
+   d21 = FLOOR(1d0*d2/pexsi_options%numPole)
+   d22 = d2-(pexsi_options%numPole-1)*d21
+
    i_val = 0
+   do i_proc = 0,n_procs-1
+      if(i_proc < (n_procs-pexsi_options%numPole)) then
+         if(MOD((i_proc+1),pexsi_options%numPole) == 0) then
+            this_n_cols = d12
+         else
+            this_n_cols = d11
+         endif
+      else
+         if(MOD((i_proc+1),pexsi_options%numPole) == 0) then
+            this_n_cols = d22
+         else
+            this_n_cols = d21
+         endif
+      endif
+
+      locat(i_val+1:i_val+this_n_cols) = i_proc
+      i_val = i_val+this_n_cols
+   enddo
 
    ! Compute destination and global 1D id
+   i_val = 0
    do i_col = 1,n_l_cols
       do i_row = 1,n_l_rows
-         if(abs(H_in(i_row,i_col)) > zero_threshold) then
+         if(ABS(H_in(i_row,i_col)) > zero_threshold) then
             i_val = i_val+1
             call elsi_get_global_col(global_col_id,i_col)
             call elsi_get_global_row(global_row_id,i_row)
             ! Compute destination
-            dest(i_val) = FLOOR(1d0*(global_col_id-1)/FLOOR(1d0*n_g_size/n_procs))
+            dest(i_val) = locat(global_col_id)
             ! The last process may take more
             if(dest(i_val) > (n_procs-1)) dest(i_val) = n_procs-1
             ! Compute the global id
@@ -759,7 +794,7 @@ subroutine elsi_blacs_to_pexsi_hs_v1(H_in,S_in)
                      1,mpi_integer,mpi_comm_global,mpierr)
 
    ! Set local/global number of nonzero
-   nnz_l_pexsi_aux = sum(recv_count,1)
+   nnz_l_pexsi_aux = SUM(recv_count,1)
    call MPI_Allreduce(nnz_l_pexsi_aux,nnz_g,1,mpi_integer,mpi_sum,&
                       mpi_comm_global,mpierr)
 
@@ -824,7 +859,7 @@ subroutine elsi_blacs_to_pexsi_hs_v1(H_in,S_in)
       call MPI_Alltoall(send_count,1,mpi_integer,recv_count,&
                         1,mpi_integer,mpi_comm_global,mpierr)
 
-      nnz_l_pexsi = sum(recv_count,1)
+      nnz_l_pexsi = SUM(recv_count,1)
 
       ! At this point only processes in the first row in PEXSI process gird
       ! have correct nnz_l_pexsi
