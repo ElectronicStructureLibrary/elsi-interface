@@ -169,23 +169,21 @@ subroutine elsi_blacs_to_pexsi_hs(H_in,S_in)
    recv_count = 0
    recv_displ = 0
 
-   call elsi_get_local_nnz(H_in, n_l_rows, n_l_cols, nnz_l)
+   call elsi_get_local_nnz(H_in,n_l_rows,n_l_cols,nnz_l)
 
-   call elsi_allocate(dest, nnz_l, "dest", caller)
-   call elsi_allocate(pos_send_buffer, nnz_l, "pos_send_buffer", caller)
-   call elsi_allocate(h_val_send_buffer, nnz_l, "h_val_send_buffer", caller)
-   if(.not.overlap_is_unit) then
-      call elsi_allocate(s_val_send_buffer, nnz_l, "s_val_send_buffer", caller)
-   endif
+   call elsi_allocate(dest,nnz_l,"dest",caller)
+   call elsi_allocate(pos_send_buffer,nnz_l,"pos_send_buffer",caller)
+   call elsi_allocate(h_val_send_buffer,nnz_l,"h_val_send_buffer",caller)
+   call elsi_allocate(s_val_send_buffer,nnz_l,"s_val_send_buffer",caller)
 
    i_val = 0
    ! Compute destination and global 1D id
-   do i_col = 1, n_l_cols
-      do i_row = 1, n_l_rows
-         if(abs(H_in(i_row, i_col)) > zero_threshold) then
-            i_val = i_val + 1
-            call elsi_get_global_col(global_col_id, i_col)
-            call elsi_get_global_row(global_row_id, i_row)
+   do i_col = 1,n_l_cols
+      do i_row = 1,n_l_rows
+         if(ABS(H_in(i_row, i_col)) > zero_threshold) then
+            i_val = i_val+1
+            call elsi_get_global_col(global_col_id,i_col)
+            call elsi_get_global_row(global_row_id,i_row)
 
             ! Compute destination
             dest(i_val) = FLOOR(1d0*(global_col_id-1)/FLOOR(1d0*n_g_size/n_p_per_pole_pexsi))
@@ -195,17 +193,15 @@ subroutine elsi_blacs_to_pexsi_hs(H_in,S_in)
             ! Compute the global id
             ! Pack global id and data into buffers
             pos_send_buffer(i_val) = (global_col_id-1)*n_g_size+global_row_id
-            h_val_send_buffer(i_val) = H_in(i_row, i_col)
-            if(.not.overlap_is_unit) then
-               s_val_send_buffer(i_val) = S_in(i_row, i_col)
-            endif
+            h_val_send_buffer(i_val) = H_in(i_row,i_col)
+            s_val_send_buffer(i_val) = S_in(i_row,i_col)
         endif
      enddo
    enddo
 
    ! Set send_count
-   do i_proc = 0, n_procs-1
-      do i_val = 1, nnz_l
+   do i_proc = 0,n_procs-1
+      do i_val = 1,nnz_l
          if(dest(i_val) == i_proc) then
             send_count(i_proc+1) = send_count(i_proc+1)+1
          endif
@@ -215,22 +211,22 @@ subroutine elsi_blacs_to_pexsi_hs(H_in,S_in)
    deallocate(dest)
 
    ! Set recv_count
-   call MPI_Alltoall(send_count, 1, mpi_integer, recv_count, &
-                     1, mpi_integer, mpi_comm_global, mpierr)
+   call MPI_Alltoall(send_count,1,mpi_integer,recv_count,&
+                     1,mpi_integer,mpi_comm_global,mpierr)
 
    ! Set local/global number of nonzero
-   nnz_l_pexsi = sum(recv_count, 1)
-   call MPI_Allreduce(nnz_l_pexsi, nnz_g, 1, mpi_integer, mpi_sum, &
-                      mpi_comm_global, mpierr)
+   nnz_l_pexsi = SUM(recv_count,1)
+   call MPI_Allreduce(nnz_l_pexsi,nnz_g,1,mpi_integer,mpi_sum,&
+                      mpi_comm_global,mpierr)
 
    ! At this point only processes in the first row in PEXSI process gird
    ! have correct nnz_l_pexsi
    if(n_p_per_pole_pexsi < n_procs) then
-      call MPI_Comm_split(mpi_comm_global, my_p_col_pexsi, my_p_row_pexsi, &
-                          mpi_comm_aux_pexsi, mpierr)
+      call MPI_Comm_split(mpi_comm_global,my_p_col_pexsi,my_p_row_pexsi,&
+                          mpi_comm_aux_pexsi,mpierr)
 
-      call MPI_Allreduce(nnz_l_pexsi, nnz_l_tmp, 1, mpi_integer, mpi_sum, &
-                         mpi_comm_aux_pexsi, mpierr)
+      call MPI_Allreduce(nnz_l_pexsi,nnz_l_tmp,1,mpi_integer,mpi_sum,&
+                         mpi_comm_aux_pexsi,mpierr)
 
       nnz_l_pexsi = nnz_l_tmp
    endif
@@ -239,42 +235,35 @@ subroutine elsi_blacs_to_pexsi_hs(H_in,S_in)
    send_displ_aux = 0
    recv_displ_aux = 0
 
-   do i_proc = 0, n_procs-1
+   do i_proc = 0,n_procs-1
       send_displ(i_proc+1) = send_displ_aux
-      send_displ_aux = send_displ_aux + send_count(i_proc+1)
+      send_displ_aux = send_displ_aux+send_count(i_proc+1)
 
       recv_displ(i_proc+1) = recv_displ_aux
-      recv_displ_aux = recv_displ_aux + recv_count(i_proc+1)
+      recv_displ_aux = recv_displ_aux+recv_count(i_proc+1)
    enddo
 
-   call elsi_allocate(pos_recv_buffer, nnz_l_pexsi, "pos_recv_buffer", caller)
-   call elsi_allocate(h_val_recv_buffer, nnz_l_pexsi, "h_val_recv_buffer", caller)
-   if(.not.overlap_is_unit) then
-      call elsi_allocate(s_val_recv_buffer, nnz_l_pexsi, "s_val_recv_buffer", caller)
-   endif
+   call elsi_allocate(pos_recv_buffer,nnz_l_pexsi,"pos_recv_buffer",caller)
+   call elsi_allocate(h_val_recv_buffer,nnz_l_pexsi,"h_val_recv_buffer",caller)
+   call elsi_allocate(s_val_recv_buffer,nnz_l_pexsi,"s_val_recv_buffer",caller)
 
    ! Send and receive the packed data
-   call MPI_Alltoallv(h_val_send_buffer, send_count, send_displ, mpi_real8, &
-                      h_val_recv_buffer, recv_count, recv_displ, mpi_real8, &
-                      mpi_comm_global, mpierr)
+   call MPI_Alltoallv(h_val_send_buffer,send_count,send_displ,mpi_real8,&
+                      h_val_recv_buffer,recv_count,recv_displ,mpi_real8,&
+                      mpi_comm_global,mpierr)
 
-   if(.not.overlap_is_unit) then
-      call MPI_Alltoallv(s_val_send_buffer, send_count, send_displ, mpi_real8, &
-                         s_val_recv_buffer, recv_count, recv_displ, mpi_real8, &
-                         mpi_comm_global, mpierr)
-   endif
+   call MPI_Alltoallv(s_val_send_buffer,send_count,send_displ,mpi_real8,&
+                      s_val_recv_buffer,recv_count,recv_displ,mpi_real8,&
+                      mpi_comm_global,mpierr)
 
-   call MPI_Alltoallv(pos_send_buffer, send_count, send_displ, mpi_integer, &
-                      pos_recv_buffer, recv_count, recv_displ, mpi_integer, &
-                      mpi_comm_global, mpierr)
+   call MPI_Alltoallv(pos_send_buffer,send_count,send_displ,mpi_integer,&
+                      pos_recv_buffer,recv_count,recv_displ,mpi_integer,&
+                      mpi_comm_global,mpierr)
 
    deallocate(pos_send_buffer)
    deallocate(h_val_send_buffer)
-   if(.not.overlap_is_unit) then
-      deallocate(s_val_send_buffer)
-   endif
+   deallocate(s_val_send_buffer)
 
-   ! TODO: double check the new algorithm and get rid of matrix_aux
    matrix_aux = 0d0
 
    ! Unpack Hamiltonian on the first process row in PEXSI process grid
@@ -282,7 +271,7 @@ subroutine elsi_blacs_to_pexsi_hs(H_in,S_in)
       do i_val = 1, nnz_l_pexsi
          ! Compute global 2d id
          global_col_id = FLOOR(1d0*(pos_recv_buffer(i_val)-1)/n_g_size)+1
-         global_row_id = MOD(pos_recv_buffer(i_val), n_g_size)
+         global_row_id = MOD(pos_recv_buffer(i_val),n_g_size)
          if(global_row_id == 0) global_row_id = n_g_size
 
          ! Compute local 2d id
@@ -298,56 +287,52 @@ subroutine elsi_blacs_to_pexsi_hs(H_in,S_in)
 
    ! Allocate PEXSI matrices
    if(.not.allocated(H_real_pexsi)) &
-      call elsi_allocate(H_real_pexsi, nnz_l_pexsi, "H_real_pexsi", caller)
+      call elsi_allocate(H_real_pexsi,nnz_l_pexsi,"H_real_pexsi",caller)
    H_real_pexsi = 0d0
 
-   if(.not.overlap_is_unit) then
-      if(.not.allocated(S_real_pexsi)) &
-         call elsi_allocate(S_real_pexsi, nnz_l_pexsi, "S_real_pexsi", caller)
-      S_real_pexsi = 0d0
-   endif
+   if(.not.allocated(S_real_pexsi)) &
+      call elsi_allocate(S_real_pexsi,nnz_l_pexsi,"S_real_pexsi",caller)
+   S_real_pexsi = 0d0
 
    if(.not.allocated(row_ind_pexsi)) &
-      call elsi_allocate(row_ind_pexsi, nnz_l_pexsi, "row_ind_pexsi", caller)
+      call elsi_allocate(row_ind_pexsi,nnz_l_pexsi,"row_ind_pexsi",caller)
    row_ind_pexsi = 0
 
    if(.not.allocated(col_ptr_pexsi)) &
-      call elsi_allocate(col_ptr_pexsi, (n_l_cols_pexsi+1), "col_ptr_pexsi", caller)
+      call elsi_allocate(col_ptr_pexsi,(n_l_cols_pexsi+1),"col_ptr_pexsi",caller)
    col_ptr_pexsi = 0
 
-   ! Transform Hamiltonian: 1D block dense ==> 1D block sparse CCS
+   ! Transform Hamiltonian
    if(my_p_row_pexsi == 0) then
-      call elsi_dense_to_ccs(matrix_aux, n_l_rows_pexsi, n_l_cols_pexsi, &
-                             nnz_l_pexsi, H_real_pexsi, row_ind_pexsi, col_ptr_pexsi)
+      call elsi_dense_to_ccs(matrix_aux,n_l_rows_pexsi,n_l_cols_pexsi,&
+                             nnz_l_pexsi,H_real_pexsi,row_ind_pexsi,col_ptr_pexsi)
    endif
 
    matrix_aux = 0d0
 
-   if(.not.overlap_is_unit) then
-      ! Unpack overlap on the first process row in PEXSI process grid
-      if(my_p_row_pexsi == 0) then
-         do i_val = 1, nnz_l_pexsi
-            ! Compute global 2d id
-            global_col_id = FLOOR(1d0*(pos_recv_buffer(i_val)-1)/n_g_size)+1
-            global_row_id = MOD(pos_recv_buffer(i_val), n_g_size)
-            if(global_row_id == 0) global_row_id = n_g_size
+   ! Unpack overlap on the first process row in PEXSI process grid
+   if(my_p_row_pexsi == 0) then
+      do i_val = 1, nnz_l_pexsi
+         ! Compute global 2d id
+         global_col_id = FLOOR(1d0*(pos_recv_buffer(i_val)-1)/n_g_size)+1
+         global_row_id = MOD(pos_recv_buffer(i_val),n_g_size)
+         if(global_row_id == 0) global_row_id = n_g_size
 
-            ! Compute local 2d id
-            local_col_id = global_col_id-myid*FLOOR(1d0*n_g_size/n_p_per_pole_pexsi)
-            local_row_id = global_row_id
+         ! Compute local 2d id
+         local_col_id = global_col_id-myid*FLOOR(1d0*n_g_size/n_p_per_pole_pexsi)
+         local_row_id = global_row_id
 
-            ! Put value to correct position
-            matrix_aux(local_row_id,local_col_id) = s_val_recv_buffer(i_val)
-         enddo
-      endif
+         ! Put value to correct position
+         matrix_aux(local_row_id,local_col_id) = s_val_recv_buffer(i_val)
+      enddo
+   endif
 
-      deallocate(s_val_recv_buffer)
+   deallocate(s_val_recv_buffer)
 
-      if(my_p_row_pexsi == 0) then
-         ! Transform overlap: 1D block dense ==> 1D block sparse CCS
-         call elsi_dense_to_ccs_by_pattern(matrix_aux, n_l_rows_pexsi, n_l_cols_pexsi, &
-                                           nnz_l_pexsi, row_ind_pexsi, col_ptr_pexsi, S_real_pexsi)
-      endif
+   ! Transform overlap
+   if(my_p_row_pexsi == 0) then
+      call elsi_dense_to_ccs_by_pattern(matrix_aux,n_l_rows_pexsi,n_l_cols_pexsi,&
+                                        nnz_l_pexsi,row_ind_pexsi,col_ptr_pexsi,S_real_pexsi)
    endif
 
    deallocate(pos_recv_buffer)
@@ -408,14 +393,14 @@ subroutine elsi_pexsi_to_blacs_dm(D_out)
    recv_displ = 0
 
    if(my_p_row_pexsi == 0) then
-      call elsi_allocate(global_id, nnz_l_pexsi, "global_id", caller)
-      call elsi_allocate(dest, nnz_l_pexsi, "dest", caller)
-      call elsi_allocate(val_send_buffer, nnz_l_pexsi, "val_send_buffer", caller)
-      call elsi_allocate(pos_send_buffer, nnz_l_pexsi, "pos_send_buffer", caller)
+      call elsi_allocate(global_id,nnz_l_pexsi,"global_id",caller)
+      call elsi_allocate(dest,nnz_l_pexsi,"dest",caller)
+      call elsi_allocate(val_send_buffer,nnz_l_pexsi,"val_send_buffer",caller)
+      call elsi_allocate(pos_send_buffer,nnz_l_pexsi,"pos_send_buffer",caller)
 
       i_col = 0
       ! Compute destination and global 1D id
-      do i_val = 1, nnz_l_pexsi
+      do i_val = 1,nnz_l_pexsi
          if(i_val == col_ptr_pexsi(i_col+1) .and. i_col /= n_l_cols_pexsi) then
             i_col = i_col+1
          endif
@@ -427,16 +412,16 @@ subroutine elsi_pexsi_to_blacs_dm(D_out)
          global_id(i_val) = (global_col_id-1)*n_g_size+global_row_id
 
          ! Compute destination
-         proc_row_id = MOD(FLOOR(1d0*(global_row_id-1)/n_b_rows), n_p_rows)
-         proc_col_id = MOD(FLOOR(1d0*(global_col_id-1)/n_b_cols), n_p_cols)
+         proc_row_id = MOD(FLOOR(1d0*(global_row_id-1)/n_b_rows),n_p_rows)
+         proc_col_id = MOD(FLOOR(1d0*(global_col_id-1)/n_b_cols),n_p_cols)
          dest(i_val) = proc_col_id+proc_row_id*n_p_cols
       enddo
 
       j_val = 0
 
       ! Set send_count
-      do i_proc = 0, n_procs-1
-         do i_val = 1, nnz_l_pexsi
+      do i_proc = 0,n_procs-1
+         do i_val = 1,nnz_l_pexsi
             if(dest(i_val) == i_proc) then
                j_val = j_val+1
                val_send_buffer(j_val) = D_pexsi(i_val)
@@ -451,8 +436,8 @@ subroutine elsi_pexsi_to_blacs_dm(D_out)
    endif
 
    ! Set recv_count
-   call MPI_Alltoall(send_count, 1, mpi_integer, recv_count, &
-                     1, mpi_integer, mpi_comm_global, mpierr)
+   call MPI_Alltoall(send_count,1,mpi_integer,recv_count,&
+                     1,mpi_integer,mpi_comm_global,mpierr)
 
    nnz_l = sum(recv_count,1)
 
@@ -468,17 +453,17 @@ subroutine elsi_pexsi_to_blacs_dm(D_out)
       recv_displ_aux = recv_displ_aux+recv_count(i_proc+1)
    enddo
 
-   call elsi_allocate(val_recv_buffer, nnz_l, "val_recv_buffer", caller)
-   call elsi_allocate(pos_recv_buffer, nnz_l, "pos_recv_buffer", caller)
+   call elsi_allocate(val_recv_buffer,nnz_l,"val_recv_buffer",caller)
+   call elsi_allocate(pos_recv_buffer,nnz_l,"pos_recv_buffer",caller)
 
    ! Send and receive the packed data
-   call MPI_Alltoallv(val_send_buffer, send_count, send_displ, mpi_real8, &
-                      val_recv_buffer, recv_count, recv_displ, mpi_real8, &
-                      mpi_comm_global, mpierr)
+   call MPI_Alltoallv(val_send_buffer,send_count,send_displ,mpi_real8,&
+                      val_recv_buffer,recv_count,recv_displ,mpi_real8,&
+                      mpi_comm_global,mpierr)
 
-   call MPI_Alltoallv(pos_send_buffer, send_count, send_displ, mpi_integer, &
-                      pos_recv_buffer, recv_count, recv_displ, mpi_integer, &
-                      mpi_comm_global, mpierr)
+   call MPI_Alltoallv(pos_send_buffer,send_count,send_displ,mpi_integer,&
+                      pos_recv_buffer,recv_count,recv_displ,mpi_integer,&
+                      mpi_comm_global,mpierr)
 
    if(my_p_row_pexsi == 0) then
       deallocate(val_send_buffer)
@@ -488,20 +473,20 @@ subroutine elsi_pexsi_to_blacs_dm(D_out)
    D_out = 0d0
 
    ! Unpack density matrix
-   do i_val = 1, nnz_l
+   do i_val = 1,nnz_l
       ! Compute global 2d id
       global_col_id = FLOOR(1d0*(pos_recv_buffer(i_val)-1)/n_g_size)+1
-      global_row_id = MOD(pos_recv_buffer(i_val), n_g_size)
+      global_row_id = MOD(pos_recv_buffer(i_val),n_g_size)
       if(global_row_id == 0) global_row_id = n_g_size
 
       ! Compute local 2d id
       local_row_id = FLOOR(1d0*(global_row_id-1)/(n_p_rows*n_b_rows))*n_b_rows&
-                     +MOD((global_row_id-1), n_b_rows)+1
+                     +MOD((global_row_id-1),n_b_rows)+1
       local_col_id = FLOOR(1d0*(global_col_id-1)/(n_p_cols*n_b_cols))*n_b_cols&
-                     +MOD((global_col_id-1), n_b_cols)+1
+                     +MOD((global_col_id-1),n_b_cols)+1
 
       ! Put value to correct position
-      D_out(local_row_id, local_col_id) = val_recv_buffer(i_val)
+      D_out(local_row_id,local_col_id) = val_recv_buffer(i_val)
    enddo
 
    deallocate(val_recv_buffer)
