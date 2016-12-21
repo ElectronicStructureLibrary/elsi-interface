@@ -842,21 +842,19 @@ subroutine elsi_dm_real(H_in,S_in,D_out,energy_out)
          endif
 
       case (PEXSI)
+         if(n_g_size < n_procs) then
+            call elsi_stop(" The (global) size of matrix is too small for"//&
+                           " this number of processes. Exiting...",caller)
+         endif
+
          call elsi_print_pexsi_options()
 
          ! PEXSI may use different process grid to achieve
          ! the efficient 2-level parallelization
          call elsi_init_pexsi()
 
-         if(n_g_size < n_procs) then
-            call elsi_stop(" The (global) size of matrix is too small for"//&
-                           " this number of processes. Exiting...",caller)
-         endif
-
-         ! Convert 2D block-cyclic dense Hamiltonian and overlap
-         ! matrices to 1D block CCS sparse format
-!         call elsi_blacs_to_pexsi_hs_v1(H_in,S_in)
-         call elsi_blacs_to_pexsi_hs(H_in,S_in)
+         ! Convert matrix format and distribution from BLACS to PEXSI
+         call elsi_blacs_to_pexsi(H_in,S_in)
 
          call elsi_solve_evp_pexsi()
 
@@ -951,15 +949,7 @@ subroutine elsi_dm_complex(H_in,S_in,D_out,energy_out)
          call elsi_get_energy(energy_out)
 
       case (PEXSI)
-         if(n_g_size < n_p_per_pole_pexsi) then
-            call elsi_stop(" The (global) size of matrix is too small for"//&
-                           " this number of processes. Exiting...",caller)
-         endif
-
-         call elsi_print_pexsi_options()
-
          call elsi_stop(" PEXSI not yet implemented. Exiting...",caller)
-
       case (CHESS)
          call elsi_stop(" CHESS not yet implemented. Exiting...",caller)
       case default

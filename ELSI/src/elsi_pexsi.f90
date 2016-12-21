@@ -39,12 +39,11 @@ module ELSI_PEXSI
    private
 
    public :: elsi_init_pexsi
-   public :: elsi_blacs_to_pexsi_hs
+   public :: elsi_blacs_to_pexsi
    public :: elsi_pexsi_to_blacs_dm
    public :: elsi_solve_evp_pexsi
    public :: elsi_set_pexsi_default_options
    public :: elsi_print_pexsi_options
-   public :: elsi_blacs_to_pexsi_hs_v1
 
 contains
 
@@ -69,11 +68,13 @@ subroutine elsi_init_pexsi()
          write(info_str,"(A,I13)") "  | Number of MPI tasks per pole: ", &
             n_p_per_pole_pexsi
          call elsi_statement_print(info_str)
+         pole_parallelism = .true.
       else
          n_p_per_pole_pexsi = n_procs
          call elsi_statement_print("  PEXSI not parallel over poles. High performance"//&
                                    " is expected with number of MPI tasks being a"//&
                                    " multiple of number of poles.")
+         pole_parallelism = .false.
       endif
 
       ! Set square-like process grid for selected inversion of each pole
@@ -117,11 +118,332 @@ subroutine elsi_init_pexsi()
 end subroutine
 
 !>
+!! This routine is a driver to convert matrix format and distribution
+!! from BLACS to PEXSI.
+!!
+subroutine elsi_blacs_to_pexsi(H_in,S_in)
+
+   implicit none
+
+   include "mpif.h"
+
+   real*8, intent(in) :: H_in(n_l_rows,n_l_cols) !< Hamiltonian matrix to be converted
+   real*8, intent(in) :: S_in(n_l_rows,n_l_cols) !< Overlap matrix to be converted
+
+   if(overlap_is_unit) then
+!TODO
+      if(pole_parallelism) then
+!         call elsi_blacs_to_pexsi_h_v1(H_in,S_in)
+      else
+!         call elsi_blacs_to_pexsi_h_v2(H_in,S_in)
+      endif
+   else
+      if(pole_parallelism) then
+         call elsi_blacs_to_pexsi_hs_v1(H_in,S_in)
+      else
+         call elsi_blacs_to_pexsi_hs_v2(H_in,S_in)
+      endif
+   endif
+
+end subroutine
+
+!>
 !! This routine converts Halmitonian and overlap matrix stored in
 !! 2D block-cyclic distributed dense format to 1D block distributed
 !! sparse CCS format, which can be used as input by PEXSI.
 !!
-subroutine elsi_blacs_to_pexsi_hs(H_in,S_in)
+!! Usage:
+!!
+!! * PEXSI pole parallelism MUST be available. Data redistributed on
+!!   the processors corresponding to the first pole.
+!!
+!! * Overlap is NOT an identity matrix. Both Hamiltonian and overlap
+!!   are considered.
+!!
+!! * See also elsi_blacs_to_pexsi_hs_v2, elsi_blacs_to_pexsi_h_v1,
+!!   elsi_blacs_to_pexsi_h_v2.
+!!
+subroutine elsi_blacs_to_pexsi_hs_v1(H_in,S_in)
+
+   implicit none
+
+   include "mpif.h"
+
+   real*8, intent(in) :: H_in(n_l_rows,n_l_cols) !< Hamiltonian matrix to be converted
+   real*8, intent(in) :: S_in(n_l_rows,n_l_cols) !< Overlap matrix to be converted
+   integer :: i_row !< Row counter
+   integer :: i_col !< Col counter
+   integer :: i_val,j_val !< Value counter
+   integer :: i_proc !< Process counter
+   integer :: global_col_id !< Global column id
+   integer :: global_row_id !< Global row id
+   integer :: local_col_id !< Local column id in 1D block distribution
+   integer :: local_row_id !< Local row id in 1D block distribution
+   integer :: d1,d2,d11,d12,d21,d22 !< Number of columns in the intermediate stage
+   integer :: this_n_cols
+   integer :: mpierr
+   integer :: tmp_int
+   integer :: min_pos,min_id
+   integer :: nnz_l_pexsi_aux,nnz_l_tmp,mpi_comm_aux_pexsi
+   integer, allocatable :: dest(:) !< Destination of each element
+   integer, allocatable :: locat(:) !< Location of each global column
+   real*8 :: tmp_real
+
+   ! For the meaning of each array here, see documentation of MPI_Alltoallv
+   real*8, allocatable  :: h_val_send_buffer(:) !< Send buffer for Hamiltonian
+   real*8, allocatable  :: s_val_send_buffer(:) !< Send buffer for overlap
+   integer, allocatable :: pos_send_buffer(:)   !< Send buffer for global 1D id
+   integer :: send_count(n_procs) !< Number of elements to send to each processor
+   integer :: send_displ(n_procs) !< Displacement from which to take the outgoing data
+   integer :: send_displ_aux      !< Auxiliary variable used to set displacement
+   real*8, allocatable  :: h_val_recv_buffer(:) !< Receive buffer for Hamiltonian
+   real*8, allocatable  :: s_val_recv_buffer(:) !< Receive buffer for overlap
+   integer, allocatable :: pos_recv_buffer(:)   !< Receive buffer for global 1D id
+   integer :: recv_count(n_procs) !< Number of elements to receive from each processor
+   integer :: recv_displ(n_procs) !< Displacement at which to place the incoming data
+   integer :: recv_displ_aux      !< Auxiliary variable used to set displacement
+   character*40, parameter :: caller = "elsi_blacs_to_pexsi_hs_v1"
+
+   call elsi_start_blacs_to_pexsi_time()
+   call elsi_statement_print("  Matrix conversion: BLACS ==> PEXSI")
+
+   send_count = 0
+   send_displ = 0
+   recv_count = 0
+   recv_displ = 0
+
+   call elsi_get_local_nnz(H_in,n_l_rows,n_l_cols,nnz_l)
+
+   call elsi_allocate(locat,n_g_size,"locat",caller)
+   call elsi_allocate(dest,nnz_l,"dest",caller)
+   call elsi_allocate(pos_send_buffer,nnz_l,"pos_send_buffer",caller)
+   call elsi_allocate(h_val_send_buffer,nnz_l,"h_val_send_buffer",caller)
+   call elsi_allocate(s_val_send_buffer,nnz_l,"s_val_send_buffer",caller)
+
+   ! Compute d1,d2,d11,d12,d21,d22 (need explanation)
+   d1  = FLOOR(1d0*n_g_size/n_p_per_pole_pexsi)
+   d2  = n_g_size-(n_p_per_pole_pexsi-1)*d1
+   d11 = FLOOR(1d0*d1/pexsi_options%numPole)
+   d12 = d1-(pexsi_options%numPole-1)*d11
+   d21 = FLOOR(1d0*d2/pexsi_options%numPole)
+   d22 = d2-(pexsi_options%numPole-1)*d21
+
+   i_val = 0
+   do i_proc = 0,n_procs-1
+      if(i_proc < (n_procs-pexsi_options%numPole)) then
+         if(MOD((i_proc+1),pexsi_options%numPole) == 0) then
+            this_n_cols = d12
+         else
+            this_n_cols = d11
+         endif
+      else
+         if(MOD((i_proc+1),pexsi_options%numPole) == 0) then
+            this_n_cols = d22
+         else
+            this_n_cols = d21
+         endif
+      endif
+
+      locat(i_val+1:i_val+this_n_cols) = i_proc
+      i_val = i_val+this_n_cols
+   enddo
+
+   ! Compute destination and global 1D id
+   i_val = 0
+   do i_col = 1,n_l_cols
+      do i_row = 1,n_l_rows
+         if(ABS(H_in(i_row,i_col)) > zero_threshold) then
+            i_val = i_val+1
+            call elsi_get_global_col(global_col_id,i_col)
+            call elsi_get_global_row(global_row_id,i_row)
+            ! Compute destination
+            dest(i_val) = locat(global_col_id)
+            ! The last process may take more
+            if(dest(i_val) > (n_procs-1)) dest(i_val) = n_procs-1
+            ! Compute the global id
+            ! Pack global id and data into buffers
+            pos_send_buffer(i_val) = (global_col_id-1)*n_g_size+global_row_id
+            h_val_send_buffer(i_val) = H_in(i_row,i_col)
+            s_val_send_buffer(i_val) = S_in(i_row,i_col)
+         endif
+      enddo
+   enddo
+
+   ! 1st round of alltoall
+   ! Set send_count
+   do i_proc = 0,n_procs-1
+      do i_val = 1,nnz_l
+         if(dest(i_val) == i_proc) then
+            send_count(i_proc+1) = send_count(i_proc+1)+1
+         endif
+      enddo
+   enddo
+
+   deallocate(dest)
+
+   ! Set recv_count
+   call MPI_Alltoall(send_count,1,mpi_integer,recv_count,&
+                     1,mpi_integer,mpi_comm_global,mpierr)
+
+   ! Set local/global number of nonzero
+   nnz_l_pexsi_aux = SUM(recv_count,1)
+   call MPI_Allreduce(nnz_l_pexsi_aux,nnz_g,1,mpi_integer,mpi_sum,&
+                      mpi_comm_global,mpierr)
+
+   ! Set send and receive displacement
+   send_displ_aux = 0
+   recv_displ_aux = 0
+   do i_proc = 0,n_procs-1
+      send_displ(i_proc+1) = send_displ_aux
+      send_displ_aux = send_displ_aux+send_count(i_proc+1)
+      recv_displ(i_proc+1) = recv_displ_aux
+      recv_displ_aux = recv_displ_aux+recv_count(i_proc+1)
+   enddo
+
+   call elsi_allocate(pos_recv_buffer,nnz_l_pexsi_aux,"pos_recv_buffer",caller)
+   call elsi_allocate(h_val_recv_buffer,nnz_l_pexsi_aux,"h_val_recv_buffer",caller)
+   call elsi_allocate(s_val_recv_buffer,nnz_l_pexsi_aux,"s_val_recv_buffer",caller)
+
+   ! Send and receive the packed data
+   call MPI_Alltoallv(h_val_send_buffer,send_count,send_displ,mpi_real8,&
+                      h_val_recv_buffer,recv_count,recv_displ,mpi_real8,&
+                      mpi_comm_global,mpierr)
+   call MPI_Alltoallv(s_val_send_buffer,send_count,send_displ,mpi_real8,&
+                      s_val_recv_buffer,recv_count,recv_displ,mpi_real8,&
+                      mpi_comm_global,mpierr)
+   call MPI_Alltoallv(pos_send_buffer,send_count,send_displ,mpi_integer,&
+                      pos_recv_buffer,recv_count,recv_displ,mpi_integer,&
+                      mpi_comm_global,mpierr)
+
+   deallocate(pos_send_buffer)
+   deallocate(h_val_send_buffer)
+   deallocate(s_val_send_buffer)
+
+   ! Unpack and reorder
+   do i_val = 1,nnz_l_pexsi_aux
+      min_pos = n_g_size*n_g_size+1
+      min_id = 0
+
+      do j_val = i_val,nnz_l_pexsi_aux
+         if(pos_recv_buffer(j_val) < min_pos) then
+            min_pos = pos_recv_buffer(j_val)
+            min_id = j_val
+         endif
+      enddo
+
+      tmp_int = pos_recv_buffer(i_val)
+      pos_recv_buffer(i_val) = pos_recv_buffer(min_id)
+      pos_recv_buffer(min_id) = tmp_int
+      tmp_real = h_val_recv_buffer(i_val)
+      h_val_recv_buffer(i_val) = h_val_recv_buffer(min_id)
+      h_val_recv_buffer(min_id) = tmp_real
+      tmp_real = s_val_recv_buffer(i_val)
+      s_val_recv_buffer(i_val) = s_val_recv_buffer(min_id)
+      s_val_recv_buffer(min_id) = tmp_real
+   enddo
+
+   ! 2nd round of alltoall
+   ! Set send_count, all data sent to the first pole
+   send_count = 0
+   send_count(myid/pexsi_options%numPole+1) = nnz_l_pexsi_aux
+
+   ! Set recv_count
+   call MPI_Alltoall(send_count,1,mpi_integer,recv_count,&
+                     1,mpi_integer,mpi_comm_global,mpierr)
+
+   nnz_l_pexsi = SUM(recv_count,1)
+
+   ! At this point only the first pole knows nnz_l_pexsi
+   call MPI_Comm_split(mpi_comm_global,my_p_col_pexsi,my_p_row_pexsi,&
+                       mpi_comm_aux_pexsi,mpierr)
+
+   call MPI_Allreduce(nnz_l_pexsi,nnz_l_tmp,1,mpi_integer,mpi_sum,&
+                      mpi_comm_aux_pexsi,mpierr)
+
+   nnz_l_pexsi = nnz_l_tmp
+
+   ! Set send and receive displacement
+   send_displ_aux = 0
+   recv_displ_aux = 0
+   do i_proc = 0,n_procs-1
+      send_displ(i_proc+1) = send_displ_aux
+      send_displ_aux = send_displ_aux+send_count(i_proc+1)
+      recv_displ(i_proc+1) = recv_displ_aux
+      recv_displ_aux = recv_displ_aux+recv_count(i_proc+1)
+   enddo
+
+   ! Allocate PEXSI matrices
+   if(.not.allocated(H_real_pexsi)) &
+      call elsi_allocate(H_real_pexsi,nnz_l_pexsi,"H_real_pexsi",caller)
+   H_real_pexsi = 0d0
+
+   if(.not.allocated(S_real_pexsi)) &
+      call elsi_allocate(S_real_pexsi,nnz_l_pexsi,"S_real_pexsi",caller)
+   S_real_pexsi = 0d0
+
+   if(.not.allocated(row_ind_pexsi)) &
+      call elsi_allocate(row_ind_pexsi,nnz_l_pexsi,"row_ind_pexsi",caller)
+   row_ind_pexsi = 0
+
+   if(.not.allocated(col_ptr_pexsi)) &
+      call elsi_allocate(col_ptr_pexsi,(n_l_cols_pexsi+1),"col_ptr_pexsi",caller)
+   col_ptr_pexsi = 0
+
+   call elsi_allocate(pos_send_buffer,nnz_l_pexsi,"pos_send_buffer",caller)
+
+   call MPI_Alltoallv(h_val_recv_buffer,send_count,send_displ,mpi_real8,&
+                      H_real_pexsi,recv_count,recv_displ,mpi_real8,&
+                      mpi_comm_global,mpierr)
+   call MPI_Alltoallv(s_val_recv_buffer,send_count,send_displ,mpi_real8,&
+                      S_real_pexsi,recv_count,recv_displ,mpi_real8,&
+                      mpi_comm_global,mpierr)
+   call MPI_Alltoallv(pos_recv_buffer,send_count,send_displ,mpi_integer,&
+                      pos_send_buffer,recv_count,recv_displ,mpi_integer,&
+                      mpi_comm_global,mpierr)
+
+   deallocate(h_val_recv_buffer)
+   deallocate(s_val_recv_buffer)
+   deallocate(pos_recv_buffer)
+
+   ! Only the first pole computes row index and column pointer
+   if(my_p_row_pexsi == 0) then
+      ! Compute row index and column pointer
+      i_col = (pos_send_buffer(1)-1)/n_g_size
+      do i_val = 1,nnz_l_pexsi
+         row_ind_pexsi(i_val) = MOD(pos_send_buffer(i_val),n_g_size)
+         if(row_ind_pexsi(i_val) == 0) row_ind_pexsi(i_val) = n_g_size
+         if(FLOOR(1d0*(pos_send_buffer(i_val)-1)/n_g_size)+1 > i_col) then
+            i_col = i_col+1
+            col_ptr_pexsi(i_col-(pos_send_buffer(1)-1)/n_g_size) = i_val
+         endif
+      enddo
+
+      col_ptr_pexsi(n_l_cols_pexsi+1) = nnz_l_pexsi+1
+   endif
+
+   deallocate(pos_send_buffer)
+
+   call elsi_stop_blacs_to_pexsi_time()
+
+end subroutine
+
+!>
+!! This routine converts Halmitonian and overlap matrix stored in
+!! 2D block-cyclic distributed dense format to 1D block distributed
+!! sparse CCS format, which can be used as input by PEXSI.
+!!
+!! Usage:
+!!
+!! * PEXSI pole parallelism NOT available. Data will be redistributed
+!!   on all processors.
+!!
+!! * Overlap is NOT an identity matrix. Both Hamiltonian and overlap
+!!   are considered.
+!!
+!! * See also elsi_blacs_to_pexsi_hs_v1, elsi_blacs_to_pexsi_h_v1,
+!!   elsi_blacs_to_pexsi_h_v2.
+!!
+subroutine elsi_blacs_to_pexsi_hs_v2(H_in,S_in)
 
    implicit none
    include "mpif.h"
@@ -137,8 +459,6 @@ subroutine elsi_blacs_to_pexsi_hs(H_in,S_in)
    integer :: global_row_id !< Global row id
    integer :: local_col_id !< Local column id in 1D block distribution
    integer :: local_row_id !< Local row id in 1D block distribution
-   integer :: nnz_l_tmp
-   integer :: mpi_comm_aux_pexsi
    integer :: mpierr
 
    integer, allocatable :: dest(:) !< Destination of each element
@@ -159,10 +479,7 @@ subroutine elsi_blacs_to_pexsi_hs(H_in,S_in)
    integer :: recv_displ(n_procs) !< Displacement at which to place the incoming data
    integer :: recv_displ_aux      !< Auxiliary variable used to set displacement
 
-   character*40, parameter :: caller = "elsi_blacs_to_pexsi_hs"
-
-   ! if(overlap_is_unit) in this subroutine has been removed.
-   ! TODO: use elsi_blacs_to_pexsi_h for identity overlap case.
+   character*40, parameter :: caller = "elsi_blacs_to_pexsi_hs_v2"
 
    call elsi_start_blacs_to_pexsi_time()
    call elsi_statement_print("  Matrix conversion: BLACS ==> PEXSI")
@@ -189,9 +506,9 @@ subroutine elsi_blacs_to_pexsi_hs(H_in,S_in)
             call elsi_get_global_row(global_row_id,i_row)
 
             ! Compute destination
-            dest(i_val) = FLOOR(1d0*(global_col_id-1)/FLOOR(1d0*n_g_size/n_p_per_pole_pexsi))
+            dest(i_val) = FLOOR(1d0*(global_col_id-1)/FLOOR(1d0*n_g_size/n_procs))
             ! The last process may take more
-            if(dest(i_val) > (n_p_per_pole_pexsi-1)) dest(i_val) = n_p_per_pole_pexsi-1
+            if(dest(i_val) > (n_procs-1)) dest(i_val) = n_procs-1
 
             ! Compute the global id
             ! Pack global id and data into buffers
@@ -221,18 +538,6 @@ subroutine elsi_blacs_to_pexsi_hs(H_in,S_in)
    nnz_l_pexsi = SUM(recv_count,1)
    call MPI_Allreduce(nnz_l_pexsi,nnz_g,1,mpi_integer,mpi_sum,&
                       mpi_comm_global,mpierr)
-
-   ! At this point only processes in the first row in PEXSI process gird
-   ! have correct nnz_l_pexsi
-   if(n_p_per_pole_pexsi < n_procs) then
-      call MPI_Comm_split(mpi_comm_global,my_p_col_pexsi,my_p_row_pexsi,&
-                          mpi_comm_aux_pexsi,mpierr)
-
-      call MPI_Allreduce(nnz_l_pexsi,nnz_l_tmp,1,mpi_integer,mpi_sum,&
-                         mpi_comm_aux_pexsi,mpierr)
-
-      nnz_l_pexsi = nnz_l_tmp
-   endif
 
    ! Set send and receive displacement
    send_displ_aux = 0
@@ -269,22 +574,20 @@ subroutine elsi_blacs_to_pexsi_hs(H_in,S_in)
 
    matrix_aux = 0d0
 
-   ! Unpack Hamiltonian on the first process row in PEXSI process grid
-   if(my_p_row_pexsi == 0) then
-      do i_val = 1, nnz_l_pexsi
-         ! Compute global 2d id
-         global_col_id = FLOOR(1d0*(pos_recv_buffer(i_val)-1)/n_g_size)+1
-         global_row_id = MOD(pos_recv_buffer(i_val),n_g_size)
-         if(global_row_id == 0) global_row_id = n_g_size
+   ! Unpack Hamiltonian
+   do i_val = 1, nnz_l_pexsi
+      ! Compute global 2d id
+      global_col_id = FLOOR(1d0*(pos_recv_buffer(i_val)-1)/n_g_size)+1
+      global_row_id = MOD(pos_recv_buffer(i_val),n_g_size)
+      if(global_row_id == 0) global_row_id = n_g_size
 
-         ! Compute local 2d id
-         local_col_id = global_col_id-myid*FLOOR(1d0*n_g_size/n_p_per_pole_pexsi)
-         local_row_id = global_row_id
+      ! Compute local 2d id
+      local_col_id = global_col_id-myid*FLOOR(1d0*n_g_size/n_p_per_pole_pexsi)
+      local_row_id = global_row_id
 
-         ! Put value to correct position
-         matrix_aux(local_row_id,local_col_id) = h_val_recv_buffer(i_val)
-      enddo
-   endif
+      ! Put value to correct position
+      matrix_aux(local_row_id,local_col_id) = h_val_recv_buffer(i_val)
+   enddo
 
    deallocate(h_val_recv_buffer)
 
@@ -306,37 +609,31 @@ subroutine elsi_blacs_to_pexsi_hs(H_in,S_in)
    col_ptr_pexsi = 0
 
    ! Transform Hamiltonian
-   if(my_p_row_pexsi == 0) then
-      call elsi_dense_to_ccs(matrix_aux,n_l_rows_pexsi,n_l_cols_pexsi,&
-                             nnz_l_pexsi,H_real_pexsi,row_ind_pexsi,col_ptr_pexsi)
-   endif
+   call elsi_dense_to_ccs(matrix_aux,n_l_rows_pexsi,n_l_cols_pexsi,&
+                          nnz_l_pexsi,H_real_pexsi,row_ind_pexsi,col_ptr_pexsi)
 
    matrix_aux = 0d0
 
    ! Unpack overlap on the first process row in PEXSI process grid
-   if(my_p_row_pexsi == 0) then
-      do i_val = 1, nnz_l_pexsi
-         ! Compute global 2d id
-         global_col_id = FLOOR(1d0*(pos_recv_buffer(i_val)-1)/n_g_size)+1
-         global_row_id = MOD(pos_recv_buffer(i_val),n_g_size)
-         if(global_row_id == 0) global_row_id = n_g_size
+   do i_val = 1, nnz_l_pexsi
+      ! Compute global 2d id
+      global_col_id = FLOOR(1d0*(pos_recv_buffer(i_val)-1)/n_g_size)+1
+      global_row_id = MOD(pos_recv_buffer(i_val),n_g_size)
+      if(global_row_id == 0) global_row_id = n_g_size
 
-         ! Compute local 2d id
-         local_col_id = global_col_id-myid*FLOOR(1d0*n_g_size/n_p_per_pole_pexsi)
-         local_row_id = global_row_id
+      ! Compute local 2d id
+      local_col_id = global_col_id-myid*FLOOR(1d0*n_g_size/n_p_per_pole_pexsi)
+      local_row_id = global_row_id
 
-         ! Put value to correct position
-         matrix_aux(local_row_id,local_col_id) = s_val_recv_buffer(i_val)
-      enddo
-   endif
+      ! Put value to correct position
+      matrix_aux(local_row_id,local_col_id) = s_val_recv_buffer(i_val)
+   enddo
 
    deallocate(s_val_recv_buffer)
 
    ! Transform overlap
-   if(my_p_row_pexsi == 0) then
-      call elsi_dense_to_ccs_by_pattern(matrix_aux,n_l_rows_pexsi,n_l_cols_pexsi,&
-                                        nnz_l_pexsi,row_ind_pexsi,col_ptr_pexsi,S_real_pexsi)
-   endif
+   call elsi_dense_to_ccs_by_pattern(matrix_aux,n_l_rows_pexsi,n_l_cols_pexsi,&
+                                     nnz_l_pexsi,row_ind_pexsi,col_ptr_pexsi,S_real_pexsi)
 
    deallocate(pos_recv_buffer)
 
@@ -668,279 +965,6 @@ subroutine elsi_print_pexsi_options()
    write(info_str,"(1X,' | Tolerance of number of electrons ',E10.1)") &
       pexsi_options%numElectronPEXSITolerance
    call elsi_statement_print(info_str)
-
-end subroutine
-
-!=== DEVELOPMENT ===
-subroutine elsi_blacs_to_pexsi_hs_v1(H_in,S_in)
-
-   implicit none
-
-   include "mpif.h"
-
-   real*8, intent(in) :: H_in(n_l_rows,n_l_cols) !< Hamiltonian matrix to be converted
-   real*8, intent(in) :: S_in(n_l_rows,n_l_cols) !< Overlap matrix to be converted
-   integer :: i_row !< Row counter
-   integer :: i_col !< Col counter
-   integer :: i_val,j_val !< Value counter
-   integer :: i_proc !< Process counter
-   integer :: global_col_id !< Global column id
-   integer :: global_row_id !< Global row id
-   integer :: local_col_id !< Local column id in 1D block distribution
-   integer :: local_row_id !< Local row id in 1D block distribution
-   integer :: d1,d2,d11,d12,d21,d22
-   integer :: this_n_cols
-   integer :: mpierr
-   integer :: tmp_int
-   integer :: min_pos,min_id
-   integer :: nnz_l_pexsi_aux,nnz_l_tmp,mpi_comm_aux_pexsi
-   integer, allocatable :: dest(:) !< Destination of each element
-   integer, allocatable :: locat(:) !< Location of each global column
-   real*8 :: tmp_real
-
-   ! For the meaning of each array here, see documentation of MPI_Alltoallv
-   real*8, allocatable  :: h_val_send_buffer(:) !< Send buffer for Hamiltonian
-   real*8, allocatable  :: s_val_send_buffer(:) !< Send buffer for overlap
-   integer, allocatable :: pos_send_buffer(:)   !< Send buffer for global 1D id
-   integer :: send_count(n_procs) !< Number of elements to send to each processor
-   integer :: send_displ(n_procs) !< Displacement from which to take the outgoing data
-   integer :: send_displ_aux      !< Auxiliary variable used to set displacement
-   real*8, allocatable  :: h_val_recv_buffer(:) !< Receive buffer for Hamiltonian
-   real*8, allocatable  :: s_val_recv_buffer(:) !< Receive buffer for overlap
-   integer, allocatable :: pos_recv_buffer(:)   !< Receive buffer for global 1D id
-   integer :: recv_count(n_procs) !< Number of elements to receive from each processor
-   integer :: recv_displ(n_procs) !< Displacement at which to place the incoming data
-   integer :: recv_displ_aux      !< Auxiliary variable used to set displacement
-   character*40, parameter :: caller = "elsi_blacs_to_pexsi_hs_v1"
-
-   call elsi_start_blacs_to_pexsi_time()
-   call elsi_statement_print("  Matrix conversion: BLACS ==> PEXSI")
-
-   send_count = 0
-   send_displ = 0
-   recv_count = 0
-   recv_displ = 0
-
-   call elsi_get_local_nnz(H_in,n_l_rows,n_l_cols,nnz_l)
-
-   call elsi_allocate(locat,n_g_size,"locat",caller)
-   call elsi_allocate(dest,nnz_l,"dest",caller)
-   call elsi_allocate(pos_send_buffer,nnz_l,"pos_send_buffer",caller)
-   call elsi_allocate(h_val_send_buffer,nnz_l,"h_val_send_buffer",caller)
-   call elsi_allocate(s_val_send_buffer,nnz_l,"s_val_send_buffer",caller)
-
-   ! Compute d1,d2,d11,d12,d21,d22 (need explanation)
-   d1  = FLOOR(1d0*n_g_size/n_p_per_pole_pexsi)
-   d2  = n_g_size-(n_p_per_pole_pexsi-1)*d1
-   d11 = FLOOR(1d0*d1/pexsi_options%numPole)
-   d12 = d1-(pexsi_options%numPole-1)*d11
-   d21 = FLOOR(1d0*d2/pexsi_options%numPole)
-   d22 = d2-(pexsi_options%numPole-1)*d21
-
-   i_val = 0
-   do i_proc = 0,n_procs-1
-      if(i_proc < (n_procs-pexsi_options%numPole)) then
-         if(MOD((i_proc+1),pexsi_options%numPole) == 0) then
-            this_n_cols = d12
-         else
-            this_n_cols = d11
-         endif
-      else
-         if(MOD((i_proc+1),pexsi_options%numPole) == 0) then
-            this_n_cols = d22
-         else
-            this_n_cols = d21
-         endif
-      endif
-
-      locat(i_val+1:i_val+this_n_cols) = i_proc
-      i_val = i_val+this_n_cols
-   enddo
-
-   ! Compute destination and global 1D id
-   i_val = 0
-   do i_col = 1,n_l_cols
-      do i_row = 1,n_l_rows
-         if(ABS(H_in(i_row,i_col)) > zero_threshold) then
-            i_val = i_val+1
-            call elsi_get_global_col(global_col_id,i_col)
-            call elsi_get_global_row(global_row_id,i_row)
-            ! Compute destination
-            dest(i_val) = locat(global_col_id)
-            ! The last process may take more
-            if(dest(i_val) > (n_procs-1)) dest(i_val) = n_procs-1
-            ! Compute the global id
-            ! Pack global id and data into buffers
-            pos_send_buffer(i_val) = (global_col_id-1)*n_g_size+global_row_id
-            h_val_send_buffer(i_val) = H_in(i_row,i_col)
-            s_val_send_buffer(i_val) = S_in(i_row,i_col)
-         endif
-      enddo
-   enddo
-
-   ! Set send_count
-   do i_proc = 0,n_procs-1
-      do i_val = 1,nnz_l
-         if(dest(i_val) == i_proc) then
-            send_count(i_proc+1) = send_count(i_proc+1)+1
-         endif
-      enddo
-   enddo
-
-   deallocate(dest)
-
-   ! Set recv_count
-   call MPI_Alltoall(send_count,1,mpi_integer,recv_count,&
-                     1,mpi_integer,mpi_comm_global,mpierr)
-
-   ! Set local/global number of nonzero
-   nnz_l_pexsi_aux = SUM(recv_count,1)
-   call MPI_Allreduce(nnz_l_pexsi_aux,nnz_g,1,mpi_integer,mpi_sum,&
-                      mpi_comm_global,mpierr)
-
-   ! Set send and receive displacement
-   send_displ_aux = 0
-   recv_displ_aux = 0
-   do i_proc = 0,n_procs-1
-      send_displ(i_proc+1) = send_displ_aux
-      send_displ_aux = send_displ_aux+send_count(i_proc+1)
-      recv_displ(i_proc+1) = recv_displ_aux
-      recv_displ_aux = recv_displ_aux+recv_count(i_proc+1)
-   enddo
-
-   call elsi_allocate(pos_recv_buffer,nnz_l_pexsi_aux,"pos_recv_buffer",caller)
-   call elsi_allocate(h_val_recv_buffer,nnz_l_pexsi_aux,"h_val_recv_buffer",caller)
-   call elsi_allocate(s_val_recv_buffer,nnz_l_pexsi_aux,"s_val_recv_buffer",caller)
-
-   ! Send and receive the packed data
-   call MPI_Alltoallv(h_val_send_buffer,send_count,send_displ,mpi_real8,&
-                      h_val_recv_buffer,recv_count,recv_displ,mpi_real8,&
-                      mpi_comm_global,mpierr)
-   call MPI_Alltoallv(s_val_send_buffer,send_count,send_displ,mpi_real8,&
-                      s_val_recv_buffer,recv_count,recv_displ,mpi_real8,&
-                      mpi_comm_global,mpierr)
-   call MPI_Alltoallv(pos_send_buffer,send_count,send_displ,mpi_integer,&
-                      pos_recv_buffer,recv_count,recv_displ,mpi_integer,&
-                      mpi_comm_global,mpierr)
-
-   deallocate(pos_send_buffer)
-   deallocate(h_val_send_buffer)
-   deallocate(s_val_send_buffer)
-
-   ! Unpack Hamiltonian
-   do i_val = 1,nnz_l_pexsi_aux
-      min_pos = n_g_size*n_g_size+1
-      min_id = 0
-
-      do j_val = i_val,nnz_l_pexsi_aux
-         if(pos_recv_buffer(j_val) < min_pos) then
-            min_pos = pos_recv_buffer(j_val)
-            min_id = j_val
-         endif
-      enddo
-
-      tmp_int = pos_recv_buffer(i_val)
-      pos_recv_buffer(i_val) = pos_recv_buffer(min_id)
-      pos_recv_buffer(min_id) = tmp_int
-      tmp_real = h_val_recv_buffer(i_val)
-      h_val_recv_buffer(i_val) = h_val_recv_buffer(min_id)
-      h_val_recv_buffer(min_id) = tmp_real
-      tmp_real = s_val_recv_buffer(i_val)
-      s_val_recv_buffer(i_val) = s_val_recv_buffer(min_id)
-      s_val_recv_buffer(min_id) = tmp_real
-   enddo
-
-   if(n_p_per_pole_pexsi < n_procs) then
-      ! Set send_count
-      send_count = 0
-      send_count(myid/pexsi_options%numPole+1) = nnz_l_pexsi_aux
-
-      ! Set recv_count
-      call MPI_Alltoall(send_count,1,mpi_integer,recv_count,&
-                        1,mpi_integer,mpi_comm_global,mpierr)
-
-      nnz_l_pexsi = SUM(recv_count,1)
-
-      ! At this point only processes in the first row in PEXSI process gird
-      ! have correct nnz_l_pexsi
-      call MPI_Comm_split(mpi_comm_global,my_p_col_pexsi,my_p_row_pexsi,&
-                          mpi_comm_aux_pexsi,mpierr)
-
-      call MPI_Allreduce(nnz_l_pexsi,nnz_l_tmp,1,mpi_integer,mpi_sum,&
-                         mpi_comm_aux_pexsi,mpierr)
-
-      nnz_l_pexsi = nnz_l_tmp
-
-      ! Set send and receive displacement
-      send_displ_aux = 0
-      recv_displ_aux = 0
-      do i_proc = 0,n_procs-1
-         send_displ(i_proc+1) = send_displ_aux
-         send_displ_aux = send_displ_aux+send_count(i_proc+1)
-         recv_displ(i_proc+1) = recv_displ_aux
-         recv_displ_aux = recv_displ_aux+recv_count(i_proc+1)
-      enddo
-   else
-      nnz_l_pexsi = nnz_l_pexsi_aux
-   endif
-
-   ! Allocate PEXSI matrices
-   if(.not.allocated(H_real_pexsi)) &
-      call elsi_allocate(H_real_pexsi,nnz_l_pexsi,"H_real_pexsi",caller)
-   H_real_pexsi = 0d0
-
-   if(.not.allocated(S_real_pexsi)) &
-      call elsi_allocate(S_real_pexsi,nnz_l_pexsi,"S_real_pexsi",caller)
-   S_real_pexsi = 0d0
-
-   if(.not.allocated(row_ind_pexsi)) &
-      call elsi_allocate(row_ind_pexsi,nnz_l_pexsi,"row_ind_pexsi",caller)
-   row_ind_pexsi = 0
-
-   if(.not.allocated(col_ptr_pexsi)) &
-      call elsi_allocate(col_ptr_pexsi,(n_l_cols_pexsi+1),"col_ptr_pexsi",caller)
-   col_ptr_pexsi = 0
-
-   call elsi_allocate(pos_send_buffer,nnz_l_pexsi,"pos_send_buffer",caller)
-
-   if(n_p_per_pole_pexsi < n_procs) then
-      call MPI_Alltoallv(h_val_recv_buffer,send_count,send_displ,mpi_real8,&
-                         H_real_pexsi,recv_count,recv_displ,mpi_real8,&
-                         mpi_comm_global,mpierr)
-      call MPI_Alltoallv(s_val_recv_buffer,send_count,send_displ,mpi_real8,&
-                         S_real_pexsi,recv_count,recv_displ,mpi_real8,&
-                         mpi_comm_global,mpierr)
-      call MPI_Alltoallv(pos_recv_buffer,send_count,send_displ,mpi_integer,&
-                         pos_send_buffer,recv_count,recv_displ,mpi_integer,&
-                         mpi_comm_global,mpierr)
-   else
-      H_real_pexsi = h_val_recv_buffer
-      S_real_pexsi = s_val_recv_buffer
-      pos_send_buffer = pos_recv_buffer
-   endif
-
-   deallocate(h_val_recv_buffer)
-   deallocate(s_val_recv_buffer)
-   deallocate(pos_recv_buffer)
-
-   if(my_p_row_pexsi == 0) then
-      ! Compute row index and column pointer
-      i_col = (pos_send_buffer(1)-1)/n_g_size
-      do i_val = 1,nnz_l_pexsi
-         row_ind_pexsi(i_val) = MOD(pos_send_buffer(i_val),n_g_size)
-         if(row_ind_pexsi(i_val) == 0) row_ind_pexsi(i_val) = n_g_size
-         if(FLOOR(1d0*(pos_send_buffer(i_val)-1)/n_g_size)+1 > i_col) then
-            i_col = i_col+1   
-            col_ptr_pexsi(i_col-(pos_send_buffer(1)-1)/n_g_size) = i_val
-         endif
-      enddo
-
-      col_ptr_pexsi(n_l_cols_pexsi+1) = nnz_l_pexsi+1
-   endif
-
-   deallocate(pos_send_buffer)
-
-   call elsi_stop_blacs_to_pexsi_time()
 
 end subroutine
 

@@ -203,6 +203,7 @@ module ELSI_DIMENSIONS
    logical :: do_dealloc               !< Deallocate internal storage?
 
    !> PEXSI
+   logical                :: pole_parallelism = .true.  !< Use PEXSI pole parallelism?
    logical                :: small_pexsi_tol = .false.  !< Is user-defined tolerance smaller than default?
    real(c_double)         :: final_pexsi_tol = 1d-2     !< Default final PEXSI tolerance
    integer(c_int)         :: n_inertia_steps            !< Number of steps to perform inertia counting
