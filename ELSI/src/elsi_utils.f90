@@ -39,9 +39,6 @@ module ELSI_UTILS
 
    public :: elsi_set_hamiltonian
    public :: elsi_set_overlap
-   public :: elsi_value_print
-   public :: elsi_vector_print
-   public :: elsi_matrix_print
    public :: elsi_statement_print
    public :: elsi_allocate
    public :: elsi_allocate_matrices
@@ -58,16 +55,6 @@ module ELSI_UTILS
                        elsi_set_complex_overlap
    end interface
 
-   interface elsi_vector_print
-      module procedure elsi_int_vector_print, &
-                       elsi_real_vector_print
-   end interface
-
-   interface elsi_value_print
-      module procedure elsi_int_value_print, &
-                       elsi_real_value_print
-   end interface
-
    interface elsi_allocate
       module procedure elsi_allocate_int_vector, &
                        elsi_allocate_real_vector, &
@@ -80,136 +67,6 @@ module ELSI_UTILS
 contains
 
 !>
-!! This routine prints a real matrix.
-!!
-subroutine elsi_matrix_print(matrix,n_rows,n_cols,matrixname)
-
-   implicit none
-
-   integer, intent(in) :: n_rows
-   integer, intent(in) :: n_cols
-   real*8, intent(in) :: matrix(n_rows,n_cols) 
-   character(len=*), intent(in) :: matrixname 
-
-   integer :: id, i_row, i_col
-   
-   if(myid == 0) print *, trim(matrixname)
-
-   do id = 0, n_procs - 1
-      if(myid == id) then
-         do i_row = 1, n_rows
-            do i_col = 1, n_cols
-               write(*,"(A,I6,A,I6,A,I6,A,F13.6)") " Process ",id,&
-               " Row ",i_row," Col ",i_col," Value ",matrix(i_row,i_col)
-            enddo
-         enddo
-      endif
-      call MPI_Barrier(mpi_comm_global,mpierr)
-   enddo 
-
-end subroutine
-
-!>
-!! This routine prints an integer vector.
-!!
-subroutine elsi_int_vector_print(vector,n_dim,vectorname)
-
-   implicit none
-
-   integer, intent(in) :: n_dim
-   integer, intent(in) :: vector(n_dim)
-   character(len=*), intent(in) :: vectorname
-
-   integer :: id,i_dim
-
-   if(myid == 0) print *, trim(vectorname)
-
-   do id = 0,n_procs-1
-      if(myid == id) then
-         do i_dim = 1,n_dim
-            write(*,"(A,I6,A,I10,A,I13)") " Process ",id,&
-            " Entry ",i_dim," Value ",vector(i_dim)
-         enddo
-      endif
-      call MPI_Barrier(mpi_comm_global,mpierr)
-   enddo
-
-end subroutine
-
-!>
-!! This routine prints an integer value.
-!!
-subroutine elsi_int_value_print(val,valname)
-
-   implicit none
-
-   integer :: val
-   character(len=*), intent(in) :: valname
-
-   integer :: id
-
-   if(myid == 0) print *, trim(valname)
-
-   do id = 0,n_procs-1
-      if(myid == id) then
-         write(*,"(A,I6,A,I13)") " Process ",id," Value ",val
-      endif
-      call MPI_Barrier(mpi_comm_global,mpierr)
-   enddo
-
-end subroutine
-
-!>
-!! This routine prints a real value.
-!!
-subroutine elsi_real_value_print(val,valname)
-
-   implicit none
-
-   real*8 :: val
-   character(len=*), intent(in) :: valname
-
-   integer :: id
-
-   if(myid == 0) print *, trim(valname)
-
-   do id = 0,n_procs-1
-      if(myid == id) then
-         write(*,"(A,I4,A,F13.6)") " Process ",id," Value ",val
-      endif
-      call MPI_Barrier(mpi_comm_global,mpierr)
-   enddo
-
-end subroutine
-
-!>
-!! This routine prints a real vector.
-!!
-subroutine elsi_real_vector_print(vector,n_dim,vectorname)
-
-   implicit none
-
-   integer, intent(in) :: n_dim
-   real*8, intent(in) :: vector(n_dim)
-   character(len=*), intent(in) :: vectorname
-
-   integer :: id,i_dim
-
-   if(myid == 0) print *, trim(vectorname)
-
-   do id = 0,n_procs-1
-      if(myid == id) then
-         do i_dim = 1,n_dim
-            write(*,"(A,I6,A,I10,A,F13.6)") " Process ",id, &
-            " Entry ",i_dim," Value ",vector(i_dim)
-         enddo
-      endif
-      call MPI_Barrier(mpi_comm_global,mpierr)
-   enddo
-
-end subroutine
-
-!>
 !! This routine prints a statement.
 !!
 subroutine elsi_statement_print(message)
@@ -218,12 +75,10 @@ subroutine elsi_statement_print(message)
 
    character(len=*), intent(in) :: message
 
-   character(len=4096) :: string_message
-   integer :: i_task
-
-   if(myid == 0) then
-      write(string_message, '(A)') trim(message)
-      write(*,'(A)') trim(string_message)
+   if(print_info) then
+      if(myid == 0) then
+         write(*,'(A)') trim(message)
+      endif
    endif
 
 end subroutine
@@ -241,7 +96,6 @@ subroutine elsi_allocate_real_vector(vector,n_elements,vectorname,caller)
    character(len=*), intent(in) :: caller
 
    integer :: error
-   integer :: id
 
    character*200 :: message
 
@@ -252,8 +106,8 @@ subroutine elsi_allocate_real_vector(vector,n_elements,vectorname,caller)
    allocate(vector(n_elements),stat=error)
 
    if(error > 0) then 
-      write(message,"(A,A,A,F10.3,A)") "Insufficient memory to allocate ", &
-            trim(vectorname), ", ", memory, " MB needed."
+      write(message,"(A,A,A,F10.3,A)") "Insufficient memory to allocate ",&
+            trim(vectorname),",",memory," MB needed."
       call elsi_stop(message,caller)
    endif
 
@@ -274,7 +128,6 @@ subroutine elsi_allocate_int_vector(vector,n_elements,vectorname,caller)
    character(len=*), intent(in) :: caller
 
    integer :: error
-   integer :: id
 
    character*200 :: message
 
@@ -285,8 +138,8 @@ subroutine elsi_allocate_int_vector(vector,n_elements,vectorname,caller)
    allocate(vector(n_elements),stat=error)
 
    if(error > 0) then 
-      write(message,"(A,A,A,F10.3,A)") "Insufficient memory to allocate ", &
-            trim(vectorname), ", ", memory, " MB needed."
+      write(message,"(A,A,A,F10.3,A)") "Insufficient memory to allocate ",&
+            trim(vectorname),",",memory," MB needed."
       call elsi_stop(message,caller)
    endif
 
@@ -307,7 +160,6 @@ subroutine elsi_allocate_complex_vector(vector,n_elements,vectorname,caller)
    character(len=*), intent(in) :: caller
 
    integer :: error
-   integer :: id
 
    character*200 :: message
 
@@ -318,8 +170,8 @@ subroutine elsi_allocate_complex_vector(vector,n_elements,vectorname,caller)
    allocate(vector(n_elements),stat=error)
 
    if(error > 0) then
-      write(message,"(A,A,A,F10.3,A)") "Insufficient memory to allocate ", &
-            trim(vectorname), ", ", memory, " MB needed."
+      write(message,"(A,A,A,F10.3,A)") "Insufficient memory to allocate ",&
+            trim(vectorname),",",memory," MB needed."
       call elsi_stop(message,caller)
    endif
 
@@ -341,7 +193,6 @@ subroutine elsi_allocate_real_matrix(matrix,n_rows,n_cols,matrixname,caller)
    character(len=*), intent(in) :: caller
 
    integer :: error
-   integer :: id
 
    character*200 :: message
 
@@ -352,8 +203,8 @@ subroutine elsi_allocate_real_matrix(matrix,n_rows,n_cols,matrixname,caller)
    allocate(matrix(n_rows,n_cols),stat=error)
 
    if(error > 0) then 
-      write(message,"(A,A,A,F10.3,A)") "Insufficient memory to allocate ", &
-            trim(matrixname), ", ", memory, " MB needed."
+      write(message,"(A,A,A,F10.3,A)") "Insufficient memory to allocate ",&
+            trim(matrixname),",",memory," MB needed."
       call elsi_stop(message,caller)
    endif
 
@@ -375,7 +226,6 @@ subroutine elsi_allocate_int_matrix(matrix,n_rows,n_cols,matrixname,caller)
    character(len=*), intent(in) :: caller
 
    integer :: error
-   integer :: id
 
    character*200 :: message
 
@@ -386,8 +236,8 @@ subroutine elsi_allocate_int_matrix(matrix,n_rows,n_cols,matrixname,caller)
    allocate(matrix(n_rows,n_cols),stat=error)
 
    if(error > 0) then 
-      write(message,"(A,A,A,F10.3,A)") "Insufficient memory to allocate ", &
-            trim(matrixname), ", ", memory, " MB needed."
+      write(message,"(A,A,A,F10.3,A)") "Insufficient memory to allocate ",&
+            trim(matrixname),",",memory," MB needed."
       call elsi_stop(message,caller)
    endif
 
@@ -409,7 +259,6 @@ subroutine elsi_allocate_complex_matrix(matrix,n_rows,n_cols,matrixname,caller)
    character(len=*), intent(in) :: caller
 
    integer :: error
-   integer :: id
 
    character*200 :: message
 
@@ -420,8 +269,8 @@ subroutine elsi_allocate_complex_matrix(matrix,n_rows,n_cols,matrixname,caller)
    allocate(matrix(n_rows,n_cols),stat=error)
 
    if(error > 0) then 
-      write(message,"(A,A,A,F10.3,A)") "Insufficient memory to allocate ", &
-            trim(matrixname), ", ", memory, " MB needed."
+      write(message,"(A,A,A,F10.3,A)") "Insufficient memory to allocate ",&
+            trim(matrixname),",",memory," MB needed."
       call elsi_stop(message,caller)
    endif
 
@@ -445,8 +294,8 @@ subroutine elsi_stop(message,caller)
 
    do i_task = 0, n_procs - 1
       if(myid == i_task) then
-         write(string_message, "(1X,'*** Proc',I5,' in ',A,': ',A)") &
-               myid, trim(caller), trim(message)
+         write(string_message,"(1X,'*** Proc',I5,' in ',A,': ',A)")&
+               myid,trim(caller),trim(message)
          write(*,'(A)') trim(string_message)
       endif
       call MPI_Barrier(mpi_comm_global,mpierr)

@@ -27,10 +27,10 @@ elsi_pexsi.o: ./src/elsi_pexsi.f90 elsi_utils.o elsi_matrix_conversion.o elsi_ti
 elsi_matrix_conversion.o: ./src/elsi_matrix_conversion.f90 elsi_utils.o elsi_dimensions.o $(STUBS)
 	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
 
-elsi_utils.o: ./src/elsi_utils.f90 elsi_dimensions.o $(STUBS)
+elsi_timers.o: ./src/elsi_timers.f90 elsi_dimensions.o elsi_utils.o $(STUBS)
 	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
 
-elsi_timers.o: ./src/elsi_timers.f90 elsi_dimensions.o $(STUBS)
+elsi_utils.o: ./src/elsi_utils.f90 elsi_dimensions.o $(STUBS)
 	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
 
 elsi_dimensions.o: ./src/elsi_dimensions.f90 $(STUBS)

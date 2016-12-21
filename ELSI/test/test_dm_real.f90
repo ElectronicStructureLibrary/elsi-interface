@@ -170,7 +170,6 @@ program test_dm_real
 
    if(myid == 0) then
       write(*,'("  ##  Solving Kohn-Sham problem..               ##")')
-      write(*,'("  ################################################")')
    endif
 
    ! Disable ELPA if using libOMM

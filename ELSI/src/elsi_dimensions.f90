@@ -104,6 +104,9 @@ module ELSI_DIMENSIONS
    !> Parallel mode (SERIAL=0,PARALLEL=1)
    integer :: parallelism = -1
 
+   !> Print detailed ELSI info?
+   logical :: print_info = .false.
+
    !> Number of ELSI being called
    integer :: n_elsi_calls
 

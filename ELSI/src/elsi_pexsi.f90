@@ -36,6 +36,15 @@ module ELSI_PEXSI
    use f_ppexsi_interface
 
    implicit none
+   private
+
+   public :: elsi_init_pexsi
+   public :: elsi_blacs_to_pexsi_hs
+   public :: elsi_pexsi_to_blacs_dm
+   public :: elsi_solve_evp_pexsi
+   public :: elsi_set_pexsi_default_options
+   public :: elsi_print_pexsi_options
+   public :: elsi_blacs_to_pexsi_hs_v1
 
 contains
 
@@ -50,15 +59,16 @@ subroutine elsi_init_pexsi()
 
    implicit none
 
+   character*200 :: info_str
    character*40, parameter :: caller = "elsi_init_pexsi"
 
    if(method == PEXSI) then
       if(mod(n_procs,pexsi_options%numPole) == 0) then
          n_p_per_pole_pexsi = n_procs/pexsi_options%numPole
          call elsi_statement_print("  PEXSI parallel over poles.")
-         if(myid == 0) &
-            write(*,"(A,I13)") "  | Number of MPI tasks per pole: ", &
-                  n_p_per_pole_pexsi
+         write(info_str,"(A,I13)") "  | Number of MPI tasks per pole: ", &
+            n_p_per_pole_pexsi
+         call elsi_statement_print(info_str)
       else
          n_p_per_pole_pexsi = n_procs
          call elsi_statement_print("  PEXSI not parallel over poles. High performance"//&
@@ -111,7 +121,7 @@ end subroutine
 !! 2D block-cyclic distributed dense format to 1D block distributed
 !! sparse CCS format, which can be used as input by PEXSI.
 !!
-subroutine elsi_2dbcd_to_1dbccs_hs_pexsi(H_in,S_in)
+subroutine elsi_blacs_to_pexsi_hs(H_in,S_in)
 
    implicit none
    include "mpif.h"
@@ -132,7 +142,7 @@ subroutine elsi_2dbcd_to_1dbccs_hs_pexsi(H_in,S_in)
    integer :: mpierr
 
    integer, allocatable :: dest(:) !< Destination of each element
-   real*8 :: matrix_aux(n_l_rows_pexsi, n_l_cols_pexsi)
+   real*8 :: matrix_aux(n_l_rows_pexsi,n_l_cols_pexsi)
 
    ! For the meaning of each array here, see documentation of MPI_Alltoallv
    real*8, allocatable  :: h_val_send_buffer(:) !< Send buffer for Hamiltonian
@@ -149,10 +159,10 @@ subroutine elsi_2dbcd_to_1dbccs_hs_pexsi(H_in,S_in)
    integer :: recv_displ(n_procs) !< Displacement at which to place the incoming data
    integer :: recv_displ_aux      !< Auxiliary variable used to set displacement
 
-   character*40, parameter :: caller = "elsi_2dbcd_to_1dbccs_hs_pexsi"
+   character*40, parameter :: caller = "elsi_blacs_to_pexsi_hs"
 
-   call elsi_start_2dbc_to_1dccs_time()
-   call elsi_statement_print("  Matrix conversion: 2D block-cyclic dense ==> 1D block CCS sparse")
+   call elsi_start_blacs_to_pexsi_time()
+   call elsi_statement_print("  Matrix conversion: BLACS ==> PEXSI")
 
    send_count = 0
    send_displ = 0
@@ -342,7 +352,7 @@ subroutine elsi_2dbcd_to_1dbccs_hs_pexsi(H_in,S_in)
 
    deallocate(pos_recv_buffer)
 
-   call elsi_stop_2dbc_to_1dccs_time()
+   call elsi_stop_blacs_to_pexsi_time()
 
 end subroutine
 
@@ -351,7 +361,7 @@ end subroutine
 !! in 1D block distributed sparse CCS format to 2D block-cyclic
 !! distributed dense format.
 !!
-subroutine elsi_1dbccs_to_2dbcd_dm_pexsi(D_out)
+subroutine elsi_pexsi_to_blacs_dm(D_out)
 
    implicit none
    include "mpif.h"
@@ -387,10 +397,10 @@ subroutine elsi_1dbccs_to_2dbcd_dm_pexsi(D_out)
    integer :: recv_displ(n_procs) !< Displacement at which to place the incoming data
    integer :: recv_displ_aux      !< Auxiliary variable used to set displacement
 
-   character*40, parameter :: caller = "elsi_1dbccs_to_2dbcd_dm_pexsi"
+   character*40, parameter :: caller = "elsi_pexsi_to_blacs_dm"
 
-   call elsi_start_1dccs_to_2dbc_time()
-   call elsi_statement_print("  Matrix conversion: 1D block CCS sparse ==> 2D block-cyclic dense")
+   call elsi_start_pexsi_to_blacs_time()
+   call elsi_statement_print("  Matrix conversion: PEXSI ==> BLACS")
 
    send_count = 0
    send_displ = 0
@@ -497,7 +507,7 @@ subroutine elsi_1dbccs_to_2dbcd_dm_pexsi(D_out)
    deallocate(val_recv_buffer)
    deallocate(pos_recv_buffer)
 
-   call elsi_stop_1dccs_to_2dbc_time()
+   call elsi_stop_pexsi_to_blacs_time()
 
 end subroutine
 
@@ -511,15 +521,17 @@ subroutine elsi_solve_evp_pexsi()
 
    real*8, save :: this_pexsi_tol = 1d-2
 
+   character*200 :: info_str
    character*40, parameter :: caller = "elsi_solve_evp_pexsi"
 
    call elsi_start_solve_evp_time()
 
    if(small_pexsi_tol) then
       pexsi_options%numElectronPEXSITolerance = this_pexsi_tol
-      if(myid == 0) &
-         write(*,"(A,E10.1)") "  | Current tolerance of number of electrons: ",&
-               this_pexsi_tol
+
+      write(info_str,"(A,E10.1)") "  | Current tolerance of number of electrons: ",&
+         this_pexsi_tol
+      call elsi_statement_print(info_str)
    endif
 
    if(.not.allocated(D_pexsi)) then
@@ -619,60 +631,59 @@ subroutine elsi_print_pexsi_options()
 
    implicit none
 
-   character(LEN=4096) :: string_message
+   character*200 :: info_str
 
-   if(myid == 0) then
-      write(*,"(A)") "  PEXSI settings used in ELSI (in the same unit of Hamiltonian):"
+   write(info_str,"(A)") "  PEXSI settings (in the same unit of Hamiltonian):"
+   call elsi_statement_print(info_str)
 
-      write(string_message, "(1X,' | Inertia counting steps ',I5)") &
-            n_inertia_steps
-      write(*,'(A)') trim(string_message)
+   write(info_str,"(1X,' | Inertia counting steps ',I5)") &
+      n_inertia_steps
+   call elsi_statement_print(info_str)
 
-      write(string_message, "(1X,' | Temperature ',F10.4)") &
-            pexsi_options%temperature
-      write(*,'(A)') trim(string_message)
+   write(info_str,"(1X,' | Temperature ',F10.4)") &
+      pexsi_options%temperature
+   call elsi_statement_print(info_str)
 
-      write(string_message, "(1X,' | Spectral gap ',F10.4)") &
-            pexsi_options%gap
-      write(*,'(A)') trim(string_message)
+   write(info_str,"(1X,' | Spectral gap ',F10.4)") &
+      pexsi_options%gap
+   call elsi_statement_print(info_str)
 
-      write(string_message, "(1X,' | Number of poles ',I5)") &
-            pexsi_options%numPole
-      write(*,'(A)') trim(string_message)
+   write(info_str,"(1X,' | Number of poles ',I5)") &
+      pexsi_options%numPole
+   call elsi_statement_print(info_str)
 
-      write(string_message, "(1X,' | Max PEXSI iterations ',I5)") &
-            pexsi_options%maxPEXSIIter
-      write(*,'(A)') trim(string_message)
+   write(info_str,"(1X,' | Max PEXSI iterations ',I5)") &
+      pexsi_options%maxPEXSIIter
+   call elsi_statement_print(info_str)
 
-      write(string_message, "(1X,' | Lower bound of chemical potential ',F10.4)") &
-            pexsi_options%muMin0
-      write(*,'(A)') trim(string_message)
+   write(info_str,"(1X,' | Lower bound of chemical potential ',F10.4)") &
+      pexsi_options%muMin0
+   call elsi_statement_print(info_str)
 
-      write(string_message, "(1X,' | Upper bound of chemical potential ',F10.4)") &
-            pexsi_options%muMax0
-      write(*,'(A)') trim(string_message)
+   write(info_str,"(1X,' | Upper bound of chemical potential ',F10.4)") &
+      pexsi_options%muMax0
+   call elsi_statement_print(info_str)
 
-      write(string_message, "(1X,' | Initial guess of chemical potential ',F10.4)") &
-            pexsi_options%mu0
-      write(*,'(A)') trim(string_message)
+   write(info_str,"(1X,' | Initial guess of chemical potential ',F10.4)") &
+      pexsi_options%mu0
+   call elsi_statement_print(info_str)
 
-      write(string_message, "(1X,' | Tolerance of chemical potential ',E10.1)") &
-            pexsi_options%muInertiaTolerance
-      write(*,'(A)') trim(string_message)
+   write(info_str,"(1X,' | Tolerance of chemical potential ',E10.1)") &
+      pexsi_options%muInertiaTolerance
+   call elsi_statement_print(info_str)
 
-      write(string_message, "(1X,' | Safeguard of chemical potential ',F10.4)") &
-            pexsi_options%muPexsiSafeGuard
-      write(*,'(A)') trim(string_message)
+   write(info_str,"(1X,' | Safeguard of chemical potential ',F10.4)") &
+      pexsi_options%muPexsiSafeGuard
+   call elsi_statement_print(info_str)
 
-      write(string_message, "(1X,' | Tolerance of number of electrons ',E10.1)") &
-            pexsi_options%numElectronPEXSITolerance
-      write(*,'(A)') trim(string_message)
-   endif
+   write(info_str,"(1X,' | Tolerance of number of electrons ',E10.1)") &
+      pexsi_options%numElectronPEXSITolerance
+   call elsi_statement_print(info_str)
 
 end subroutine
 
 !=== DEVELOPMENT ===
-subroutine elsi_2dbcd_to_1dbccs_hs_pexsi_v1(H_in,S_in)
+subroutine elsi_blacs_to_pexsi_hs_v1(H_in,S_in)
 
    implicit none
 
@@ -708,10 +719,10 @@ subroutine elsi_2dbcd_to_1dbccs_hs_pexsi_v1(H_in,S_in)
    integer :: recv_count(n_procs) !< Number of elements to receive from each processor
    integer :: recv_displ(n_procs) !< Displacement at which to place the incoming data
    integer :: recv_displ_aux      !< Auxiliary variable used to set displacement
-   character*40, parameter :: caller = "elsi_2dbcd_to_1dbccs_hs_pexsi"
+   character*40, parameter :: caller = "elsi_blacs_to_pexsi_hs_v1"
 
-   call elsi_start_2dbc_to_1dccs_time()
-   call elsi_statement_print("  Matrix conversion: 2D block-cyclic dense ==> 1D block CCS sparse")
+   call elsi_start_blacs_to_pexsi_time()
+   call elsi_statement_print("  Matrix conversion: BLACS ==> PEXSI")
 
    send_count = 0
    send_displ = 0
@@ -909,7 +920,7 @@ subroutine elsi_2dbcd_to_1dbccs_hs_pexsi_v1(H_in,S_in)
 
    deallocate(pos_send_buffer)
 
-   call elsi_stop_2dbc_to_1dccs_time()
+   call elsi_stop_blacs_to_pexsi_time()
 
 end subroutine
 

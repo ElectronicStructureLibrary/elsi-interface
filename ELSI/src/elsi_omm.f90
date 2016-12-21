@@ -36,6 +36,11 @@ module ELSI_OMM
    use MatrixSwitch
 
    implicit none
+   private
+
+   public :: elsi_solve_evp_omm
+   public :: elsi_set_omm_default_options
+   public :: elsi_print_omm_options
 
 contains
 
@@ -163,35 +168,28 @@ subroutine elsi_print_omm_options()
 
    implicit none
 
-   character(LEN=4096) :: string_message
+   character*200 :: info_str
 
-   if(myid == 0) then
-      write(*,"(A)") "  libOMM settings used in ELSI (in the same unit of Hamiltonian):"
+   write(info_str,"(A)") "  libOMM settings (in the same unit of Hamiltonian):"
+   call elsi_statement_print(info_str)
 
-      write(string_message, "(1X,' | ELPA steps before OMM ',I2)") &
-            n_elpa_steps
-      write(*,'(A)') trim(string_message)
+   write(info_str,"(1X,' | ELPA steps before OMM ',I2)") n_elpa_steps
+   call elsi_statement_print(info_str)
 
-      write(string_message, "(1X,' | Eigenspectrum shift parameter ',F10.4)") &
-            eta
-      write(*,'(A)') trim(string_message)
+   write(info_str,"(1X,' | Eigenspectrum shift parameter ',F10.4)") eta
+   call elsi_statement_print(info_str)
 
-      write(string_message, "(1X,' | Scaling of kinetic energy matrix ',F10.4)") &
-            scale_kinetic
-      write(*,'(A)') trim(string_message)
+   write(info_str,"(1X,' | Scaling of kinetic energy matrix ',F10.4)") scale_kinetic
+   call elsi_statement_print(info_str)
 
-      write(string_message, "(1X,' | Tolerance of minimization ',E10.1)") &
-            min_tol
-      write(*,'(A)') trim(string_message)
+   write(info_str,"(1X,' | Tolerance of minimization ',E10.1)") min_tol
+   call elsi_statement_print(info_str)
 
-      write(string_message, "(1X,' | OMM Flavour ',I1)") &
-            omm_flavour
-      write(*,'(A)') trim(string_message)
+   write(info_str,"(1X,' | OMM Flavour ',I1)") omm_flavour
+   call elsi_statement_print(info_str)
 
-      write(string_message, "(1X,' | Compute energy weighted densigy matrix? ',L1)") &
-            calc_ed
-      write(*,'(A)') trim(string_message)
-   endif
+   write(info_str,"(1X,' | Compute energy weighted densigy matrix? ',L1)") calc_ed
+   call elsi_statement_print(info_str)
 
 end subroutine
 

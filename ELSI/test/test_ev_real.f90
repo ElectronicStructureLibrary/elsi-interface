@@ -173,7 +173,6 @@ program test_ev_real
 
    if(myid == 0) then
       write(*,'("  ##  Solving Kohn-Sham problem..               ##")')
-      write(*,'("  ################################################")')
    endif
 
    t1 = MPI_Wtime()

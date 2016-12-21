@@ -37,6 +37,14 @@ module ELSI_ELPA
    use ELPA2
 
    implicit none
+   private
+
+   public :: elsi_get_eigenvalues
+   public :: elsi_get_eigenvectors
+   public :: elsi_compute_occ_elpa
+   public :: elsi_compute_dm_elpa
+   public :: elsi_solve_evp_elpa
+   public :: elsi_solve_evp_elpa_sp
 
    interface elsi_get_eigenvectors
       module procedure elsi_get_real_eigenvectors,&
@@ -277,6 +285,7 @@ subroutine elsi_get_mu(mu_lower_in,mu_upper_in,mu_out)
    integer :: n_steps !< Number of steps to find chemical potential
    integer, parameter :: max_steps = 100 !< Maximum steps to find chemical potential
 
+   character*200 :: info_str
    character*40, parameter :: caller = "elsi_get_mu"
 
    n_steps = 0
@@ -317,10 +326,10 @@ subroutine elsi_get_mu(mu_lower_in,mu_upper_in,mu_out)
       endif
    enddo
 
-   if(myid == 0) then
-      write(*,"(A,F15.5,A)") "  | Chemical potential = ", mu_out, " Ha"
-      write(*,"(A,F15.5,A)") "  |                    = ", mu_out*hartree, " eV"
-   endif
+   write(info_str,"(A,F15.5,A)") "  | Chemical potential = ", mu_out, " Ha"
+   call elsi_statement_print(info_str)
+   write(info_str,"(A,F15.5,A)") "  |                    = ", mu_out*hartree, " eV"
+   call elsi_statement_print(info_str)
 
 end subroutine
 
@@ -644,6 +653,7 @@ subroutine elsi_check_singularity()
    integer :: i,i_col
    logical :: success
 
+   character*200 :: info_str
    character*40, parameter :: caller = "elsi_check_singularity"
 
    select case (method)
@@ -707,10 +717,9 @@ subroutine elsi_check_singularity()
                                             "singular basis set may lead to"//&
                                             " completely wrong numerical results.")
 
-                  if(myid == 0) then
-                     write(*,"(A,I13)") "  | Number of basis functions reduced to: ",&
-                                        n_nonsingular
-                  endif
+                  write(info_str,"(A,I13)") "  | Number of basis functions reduced to: ",&
+                     n_nonsingular
+                  call elsi_statement_print(info_str)
 
                   call elsi_statement_print("  Using scaled eigenvectors of"//&
                                             " overlap matrix for transformation")
@@ -796,10 +805,9 @@ subroutine elsi_check_singularity()
                                             "singular basis set may lead to"//&
                                             " completely wrong numerical results.")
 
-                  if(myid == 0) then
-                     write(*,"(A,I13)") "  | Number of basis functions reduced to: ",&
-                                        n_nonsingular
-                  endif
+                  write(info_str,"(A,I13)") "  | Number of basis functions reduced to: ",&
+                     n_nonsingular
+                  call elsi_statement_print(info_str)
 
                   call elsi_statement_print("  Using scaled eigenvectors of"//&
                                             " overlap matrix for transformation")
@@ -942,7 +950,7 @@ subroutine elsi_solve_evp_elpa()
 
    ! Transform to standard form
    if(.not.overlap_is_unit) then
-      call elsi_statement_print("  Tansforming to standard evp")
+      call elsi_statement_print("  Transforming to standard evp")
       call elsi_to_standard_evp()
    endif
 
@@ -989,8 +997,6 @@ subroutine elsi_solve_evp_elpa()
 
 end subroutine
 
-
-!=============WM:The following subroutines are just used in Serial version=====================================
 !> 
 !! This routine transforms a generalized eigenvalue problem (Ac = Bcv)
 !! to standard form (A'c' = c'v)
@@ -1238,7 +1244,7 @@ subroutine elsi_solve_evp_elpa_sp()
 
    ! Transform to standard form
    if(.not.overlap_is_unit) then
-      call elsi_statement_print("  Tansforming to standard evp")
+      call elsi_statement_print("  Transforming to standard evp")
       call elsi_to_standard_evp_sp()
    endif
 
@@ -1307,6 +1313,7 @@ subroutine elsi_check_singularity_sp()
    integer :: i,i_col
    logical :: success
 
+   character*200 :: info_str
    character*40, parameter :: caller = "elsi_check_singularity_sp"
 
    select case (method)
@@ -1370,10 +1377,9 @@ subroutine elsi_check_singularity_sp()
                                             "singular basis set may lead to"//&
                                             " completely wrong numerical results.")
 
-                  if(myid == 0) then
-                     write(*,"(A,I13)") "  | Number of basis functions reduced to: ",&
-                                        n_nonsingular
-                  endif
+                  write(info_str,"(A,I13)") "  | Number of basis functions reduced to: ",&
+                     n_nonsingular
+                  call elsi_statement_print(info_str)
 
                   call elsi_statement_print("  Using scaled eigenvectors of"//&
                                             " overlap matrix for transformation")
@@ -1452,10 +1458,9 @@ subroutine elsi_check_singularity_sp()
                                             "singular basis set may lead to"//&
                                             " completely wrong numerical results.")
 
-                  if(myid == 0) then
-                     write(*,"(A,I13)") "  | Number of basis functions reduced to: ",&
-                                        n_nonsingular
-                  endif
+                  write(info_str,"(A,I13)") "  | Number of basis functions reduced to: ",&
+                     n_nonsingular
+                  call elsi_statement_print(info_str)
 
                   call elsi_statement_print("  Using scaled eigenvectors of"//&
                                             " overlap matrix for transformation")
@@ -1495,6 +1500,5 @@ subroutine elsi_check_singularity_sp()
    if(allocated(buffer_complex)) deallocate(buffer_complex)
 
 end subroutine
-
 
 end module 

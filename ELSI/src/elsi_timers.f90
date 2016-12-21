@@ -31,18 +31,19 @@ module ELSI_TIMERS
 
    use iso_c_binding
    use ELSI_DIMENSIONS
+   use ELSI_UTILS
 
    implicit none
    private
 
-   real*8  :: walltime_solve_evp
-   real*8  :: walltime_solve_evp_start
+   real*8 :: walltime_solve_evp
+   real*8 :: walltime_solve_evp_start
 
-   real*8  :: walltime_2dbc_to_1dccs
-   real*8  :: walltime_2dbc_to_1dccs_start
+   real*8 :: walltime_blacs_to_pexsi
+   real*8 :: walltime_blacs_to_pexsi_start
   
-   real*8  :: walltime_1dccs_to_2dbc
-   real*8  :: walltime_1dccs_to_2dbc_start
+   real*8 :: walltime_pexsi_to_blacs
+   real*8 :: walltime_pexsi_to_blacs_start
 
    integer :: clock_rate
    integer :: clock_max
@@ -51,10 +52,10 @@ module ELSI_TIMERS
    public :: elsi_print_timers
    public :: elsi_start_solve_evp_time
    public :: elsi_stop_solve_evp_time
-   public :: elsi_start_2dbc_to_1dccs_time
-   public :: elsi_stop_2dbc_to_1dccs_time
-   public :: elsi_start_1dccs_to_2dbc_time
-   public :: elsi_stop_1dccs_to_2dbc_time
+   public :: elsi_start_blacs_to_pexsi_time
+   public :: elsi_stop_blacs_to_pexsi_time
+   public :: elsi_start_pexsi_to_blacs_time
+   public :: elsi_stop_pexsi_to_blacs_time
 
 contains
 
@@ -70,11 +71,11 @@ subroutine elsi_init_timers()
    walltime_solve_evp       = 0d0
    walltime_solve_evp_start = 0d0
 
-   walltime_2dbc_to_1dccs       = 0d0
-   walltime_2dbc_to_1dccs_start = 0d0
+   walltime_blacs_to_pexsi       = 0d0
+   walltime_blacs_to_pexsi_start = 0d0
 
-   walltime_1dccs_to_2dbc       = 0d0
-   walltime_1dccs_to_2dbc_start = 0d0
+   walltime_pexsi_to_blacs       = 0d0
+   walltime_pexsi_to_blacs_start = 0d0
 
    call system_clock(initial_time, clock_rate, clock_max)
 
@@ -89,31 +90,33 @@ subroutine elsi_print_timers()
 
    integer :: i_proc
 
-   if(myid == 0) then
-      write(*,"('  |-------------------------------------------------------')")
-      write(*,"('  | Final ELSI Output:                                    ')")
-      write(*,"('  |-------------------------------------------------------')")
-      write(*,"('  | Eigenvalue problem size             : ',I13)") n_g_size
-      if(method == PEXSI) then
-         write(*,"('  | Non zero elements                   : ',I13)") &
-               nnz_g
-         write(*,"('  | Sparsity                            : ',F13.3)") &
-               1d0-(1d0*nnz_g/n_g_size)/n_g_size
+   if(print_info) then
+      if(myid == 0) then
+         write(*,"('  |-------------------------------------------------------')")
+         write(*,"('  | Final ELSI Output:                                    ')")
+         write(*,"('  |-------------------------------------------------------')")
+         write(*,"('  | Eigenvalue problem size             : ',I13)") n_g_size
+         if(method == PEXSI) then
+            write(*,"('  | Non zero elements                   : ',I13)") &
+                  nnz_g
+            write(*,"('  | Sparsity                            : ',F13.3)") &
+                  1d0-(1d0*nnz_g/n_g_size)/n_g_size
+         endif
+         write(*,"('  | Number of electrons                 : ',F13.1)") n_electrons
+         write(*,"('  | Number of states                    : ',I13)") n_states
+         if(method == ELPA) then
+            write(*,"('  | Method                              : ',A13)") "ELPA"
+         endif
+         if(method == LIBOMM) then
+            write(*,"('  | Method                              : ',A13)") "libOMM"
+         endif
+         if(method == PEXSI) then
+            write(*,"('  | Method                              : ',A13)") "PEXSI"
+         endif
+         write(*,"('  |-------------------------------------------------------')")
+         write(*,"('  | ELSI Project (c)  elsi-interchange.org                ')")
+         write(*,"('  |-------------------------------------------------------')")
       endif
-      write(*,"('  | Number of electrons                 : ',F13.1)") n_electrons
-      write(*,"('  | Number of states                    : ',I13)") n_states
-      if(method == ELPA) then
-         write(*,"('  | Method                              : ',A13)") "ELPA"
-      endif
-      if(method == LIBOMM) then
-         write(*,"('  | Method                              : ',A13)") "libOMM"
-      endif
-      if(method == PEXSI) then
-         write(*,"('  | Method                              : ',A13)") "PEXSI"
-      endif
-      write(*,"('  |-------------------------------------------------------')")
-      write(*,"('  | ELSI Project (c)  elsi-interchange.org                ')")
-      write(*,"('  |-------------------------------------------------------')")
    endif
 
 end subroutine
@@ -130,7 +133,7 @@ subroutine elsi_get_time(wtime)
 
    call system_clock(tics)
 
-   wtime = 1d0 * tics / clock_rate
+   wtime = 1d0*tics/clock_rate
 
 end subroutine
 
@@ -153,68 +156,74 @@ subroutine elsi_stop_solve_evp_time()
    implicit none
 
    real*8 :: stop_time
-   
-   call elsi_get_time(stop_time)
-   walltime_solve_evp = stop_time - walltime_solve_evp_start
+   character*200 :: info_str
 
-   if(myid == 0) write(*,"('  | ELSI solver finished in ',F13.3,' s')") &
-                       walltime_solve_evp
+   call elsi_get_time(stop_time)
+   walltime_solve_evp = stop_time-walltime_solve_evp_start
+
+   write(info_str,"('  | ELSI solver finished in ',F13.3,' s')") &
+      walltime_solve_evp
+   call elsi_statement_print(info_str)
 
 end subroutine
 
 !>
-!! This routine starts 2dbc_to_1dccs timer.
+!! This routine starts blacs_to_pexsi timer.
 !!
-subroutine elsi_start_2dbc_to_1dccs_time()
+subroutine elsi_start_blacs_to_pexsi_time()
 
    implicit none
    
-   call elsi_get_time(walltime_2dbc_to_1dccs_start)
+   call elsi_get_time(walltime_blacs_to_pexsi_start)
 
 end subroutine
 
 !>
-!! This routine ends 2dbc_to_1dccs timer.
+!! This routine ends blacs_to_pexsi timer.
 !!
-subroutine elsi_stop_2dbc_to_1dccs_time()
+subroutine elsi_stop_blacs_to_pexsi_time()
 
    implicit none
 
    real*8 :: stop_time
-   
-   call elsi_get_time(stop_time)
-   walltime_2dbc_to_1dccs = stop_time - walltime_2dbc_to_1dccs_start
+   character*200 :: info_str
 
-   if(myid == 0) write(*,"('  | ELSI matrix conversion done in ',F13.3,' s')") &
-                       walltime_2dbc_to_1dccs
+   call elsi_get_time(stop_time)
+   walltime_blacs_to_pexsi = stop_time-walltime_blacs_to_pexsi_start
+
+   write(info_str,"('  | ELSI matrix conversion done in ',F13.3,' s')") &
+      walltime_blacs_to_pexsi
+   call elsi_statement_print(info_str)
 
 end subroutine
 
 !>
-!! This routine starts 1dccs_to_2dbc timer.
+!! This routine starts pexsi_to_blacs timer.
 !!
-subroutine elsi_start_1dccs_to_2dbc_time()
+subroutine elsi_start_pexsi_to_blacs_time()
 
    implicit none
 
-   call elsi_get_time(walltime_1dccs_to_2dbc_start)
+   call elsi_get_time(walltime_pexsi_to_blacs_start)
 
 end subroutine
 
 !>
-!! This routine ends 1dccs_to_2dbc timer.
+!! This routine ends pexsi_to_blacs timer.
 !!
-subroutine elsi_stop_1dccs_to_2dbc_time()
+subroutine elsi_stop_pexsi_to_blacs_time()
 
    implicit none
 
    real*8 :: stop_time
+   character*200 :: info_str
 
    call elsi_get_time(stop_time)
-   walltime_1dccs_to_2dbc = stop_time - walltime_1dccs_to_2dbc_start
+   walltime_pexsi_to_blacs = stop_time-walltime_pexsi_to_blacs_start
 
-   if(myid == 0) write(*,"('  | ELSI matrix conversion done in ',F13.3,' s')") &
-                       walltime_1dccs_to_2dbc
+   write(info_str,"('  | ELSI matrix conversion done in ',F13.3,' s')") &
+      walltime_pexsi_to_blacs
+   call elsi_statement_print(info_str)
 
 end subroutine
 

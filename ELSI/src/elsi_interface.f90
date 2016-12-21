@@ -258,6 +258,8 @@ subroutine elsi_get_energy(energy_out)
    real*8, parameter :: n_spin = 2d0
 
    integer :: i_state
+
+   character*200 :: info_str
    character*40, parameter :: caller = "elsi_get_energy"
 
    select case (method)
@@ -278,10 +280,10 @@ subroutine elsi_get_energy(energy_out)
                         " Exiting...", caller)
    end select
 
-   if(myid == 0) then
-      write(*,"(A,F15.5,A)") "  | Energy = ", energy_out, " Ha"
-      write(*,"(A,F15.5,A)") "  |        = ", energy_out*hartree, " eV"
-   endif
+   write(info_str,"(A,F15.5,A)") "  | Energy = ", energy_out, " Ha"
+   call elsi_statement_print(info_str)
+   write(info_str,"(A,F15.5,A)") "  |        = ", energy_out*hartree, " eV"
+   call elsi_statement_print(info_str)
 
 end subroutine
 
@@ -305,7 +307,7 @@ subroutine elsi_get_dm(D_out)
          ! changed to the one used in ELPA and PEXSI.
          D_out = 2d0*D_omm%dval
       case (PEXSI)
-         call elsi_1dbccs_to_2dbcd_dm_pexsi(D_out)
+         call elsi_pexsi_to_blacs_dm(D_out)
       case (CHESS)
          call elsi_stop(" CHESS: not yet implemented! Exiting...", caller)
       case DEFAULT
@@ -347,12 +349,13 @@ end subroutine
 !>
 !! This routine overrides ELSI default settings.
 !!
-subroutine elsi_customize(unit_overlap,hartree_to_ev,numerical_zero,mu_accuracy,&
-                          no_check_singularity,singularity_threshold,&
+subroutine elsi_customize(print_detail,unit_overlap,hartree_to_ev,numerical_zero,&
+                          mu_accuracy,no_check_singularity,singularity_threshold,&
                           force_stop_singularity,broadening_scheme,broadening_width)
 
    implicit none
 
+   logical, intent(in), optional :: print_detail
    logical, intent(in), optional :: unit_overlap
    real*8,  intent(in), optional :: hartree_to_ev
    real*8,  intent(in), optional :: numerical_zero
@@ -363,6 +366,9 @@ subroutine elsi_customize(unit_overlap,hartree_to_ev,numerical_zero,mu_accuracy,
    integer, intent(in), optional :: broadening_scheme
    real*8,  intent(in), optional :: broadening_width
 
+   ! Print detailed ELSI information? [Default: .false.]
+   if(present(print_detail)) &
+      print_info = print_detail
    ! Is the overlap matrix unit? [Default: .false.]
    if(present(unit_overlap)) &
       overlap_is_unit = unit_overlap
@@ -849,10 +855,9 @@ subroutine elsi_dm_real(H_in,S_in,D_out,energy_out)
 
          ! Convert 2D block-cyclic dense Hamiltonian and overlap
          ! matrices to 1D block CCS sparse format
-!DEVEL
-!         call elsi_2dbcd_to_1dbccs_hs_pexsi_v1(H_in,S_in)
-         call elsi_2dbcd_to_1dbccs_hs_pexsi(H_in,S_in)
-!DEVEL
+!         call elsi_blacs_to_pexsi_hs_v1(H_in,S_in)
+         call elsi_blacs_to_pexsi_hs(H_in,S_in)
+
          call elsi_solve_evp_pexsi()
 
          ! Convert 1D block CCS sparse density matrix to 2D
