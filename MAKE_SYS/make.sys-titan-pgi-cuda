@@ -1,4 +1,4 @@
-# VERIFIED: DEC 17, 2016
+# VERIFIED: DEC 22, 2016
 # DO READ ../INSTALL CAREFULLY!
 
 # ====== ELSI ======
@@ -7,12 +7,9 @@ MPICC  = cc
 MPICXX = CC
 LINKER = ftn
 
-FFLAGS   = -O3
-CFLAGS   = -O3
-CXXFLAGS = -O3 --c++11
-LDFLAGS  = -O3 -Wl,--allow-multiple-definition
-
+CXXFLAGS    = --c++11
 CXX_LDFLAGS = -lstdc++
+LDFLAGS     = -Wl,--allow-multiple-definition
 
 TOMATO_SEED = /ccs/home/vwzyu/tomato_seed
 
