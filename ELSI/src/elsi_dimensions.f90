@@ -206,7 +206,6 @@ module ELSI_DIMENSIONS
    logical                :: pole_parallelism = .true.  !< Use PEXSI pole parallelism?
    logical                :: small_pexsi_tol = .false.  !< Is user-defined tolerance smaller than default?
    real(c_double)         :: final_pexsi_tol = 1d-2     !< Default final PEXSI tolerance
-   integer(c_int)         :: n_inertia_steps            !< Number of steps to perform inertia counting
    integer(c_intptr_t)    :: pexsi_plan
    type(f_ppexsi_options) :: pexsi_options
    integer(c_int)         :: pexsi_info
@@ -225,27 +224,27 @@ module ELSI_DIMENSIONS
 
    !> Method names
    enum, bind( C )
-      enumerator :: AUTO, ELPA, LIBOMM, PEXSI, CHESS
+      ENUMERATOR :: AUTO, ELPA, LIBOMM, PEXSI, CHESS
    end enum
 
    !> Real or complex data
    enum, bind( C )
-      enumerator :: REAL_VALUES, COMPLEX_VALUES
+      ENUMERATOR :: REAL_VALUES, COMPLEX_VALUES
    end enum
 
    !> Storage formats
    enum, bind( C )
-      enumerator :: DENSE, CCS, CSC, CRS, CSR
+      ENUMERATOR :: DENSE, CCS, CSC, CRS, CSR
    end enum
 
    !> Parallel modes
    enum, bind( C )
-      enumerator :: SINGLE_PROC, MULTI_PROC
+      ENUMERATOR :: SINGLE_PROC, MULTI_PROC
    end enum
 
    !> Broadening type (used if ELPA is chosen to compute density matrix)
    enum, bind( C )
-      enumerator :: GAUSSIAN, FERMI, METHFESSEL_PAXTON
+      ENUMERATOR :: GAUSSIAN, FERMI, METHFESSEL_PAXTON
    end enum
 
 end module ELSI_DIMENSIONS

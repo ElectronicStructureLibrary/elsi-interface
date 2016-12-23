@@ -103,7 +103,7 @@ subroutine elsi_init(solver,parallel_mode,matrix_format,matrix_size,&
 
    if(solver == 2) then
       ! Set number of occupied states for libOMM
-      n_states = nint(n_electrons/2d0)
+      n_states = NINT(n_electrons/2d0)
       ! Set libOMM default settings
       call elsi_set_omm_default_options()
    else
@@ -273,16 +273,16 @@ subroutine elsi_get_energy(energy_out)
       case (PEXSI)
          energy_out = e_tot_H
       case (CHESS)
-         call elsi_stop(" CHESS: not yet implemented! Exiting...", caller)
+         call elsi_stop(" CHESS: not yet implemented! Exiting...",caller)
       case DEFAULT
          call elsi_stop(" No supported method has been chosen. "//&
                         " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
-                        " Exiting...", caller)
+                        " Exiting...",caller)
    end select
 
-   write(info_str,"(A,F15.5,A)") "  | Energy = ", energy_out, " Ha"
+   write(info_str,"(A,F15.5,A)") "  | Energy = ",energy_out," Ha"
    call elsi_statement_print(info_str)
-   write(info_str,"(A,F15.5,A)") "  |        = ", energy_out*hartree, " eV"
+   write(info_str,"(A,F15.5,A)") "  |        = ",energy_out*hartree," eV"
    call elsi_statement_print(info_str)
 
 end subroutine
@@ -294,14 +294,14 @@ subroutine elsi_get_dm(D_out)
 
    implicit none
 
-   real*8, intent(out) :: D_out(n_l_rows, n_l_cols) !< Density matrix
+   real*8, intent(out) :: D_out(n_l_rows,n_l_cols) !< Density matrix
 
    character*40, parameter :: caller = "elsi_get_dm"
 
    select case (method)
       case (ELPA)
          call elsi_stop(" ELPA needs to compute density matrix from eigenvectors. "//&
-                        " Exiting...", caller)
+                        " Exiting...",caller)
       case (LIBOMM)
          ! Note that here the convention of density matrix used in libOMM is
          ! changed to the one used in ELPA and PEXSI.
@@ -309,11 +309,11 @@ subroutine elsi_get_dm(D_out)
       case (PEXSI)
          call elsi_pexsi_to_blacs_dm(D_out)
       case (CHESS)
-         call elsi_stop(" CHESS: not yet implemented! Exiting...", caller)
+         call elsi_stop(" CHESS: not yet implemented! Exiting...",caller)
       case DEFAULT
          call elsi_stop(" No supported method has been chosen. "//&
                         " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
-                        " Exiting...", caller)
+                        " Exiting...",caller)
    end select
 
 end subroutine
@@ -367,35 +367,35 @@ subroutine elsi_customize(print_detail,unit_overlap,hartree_to_ev,numerical_zero
    real*8,  intent(in), optional :: broadening_width
 
    ! Print detailed ELSI information? [Default: .false.]
-   if(present(print_detail)) &
+   if(PRESENT(print_detail)) &
       print_info = print_detail
    ! Is the overlap matrix unit? [Default: .false.]
-   if(present(unit_overlap)) &
+   if(PRESENT(unit_overlap)) &
       overlap_is_unit = unit_overlap
    ! User-defined value for Hartree [Default: 27.211386, Codata 2015]
-   if(present(hartree_to_ev)) &
+   if(PRESENT(hartree_to_ev)) &
       hartree = hartree_to_ev
    ! Threshold to define numerical zero [Default: 1d-13]
-   if(present(numerical_zero)) &
+   if(PRESENT(numerical_zero)) &
       zero_threshold = numerical_zero
    ! Accuracy for chemical potential determination [Default: 1d-10]
-   if(present(mu_accuracy)) &
+   if(PRESENT(mu_accuracy)) &
       occ_tolerance = mu_accuracy
    ! Disable checking for overlap singularity? [Default: .false.]
-   if(present(no_check_singularity)) &
+   if(PRESENT(no_check_singularity)) &
       no_singularity_check = no_check_singularity
    ! Eigenfunctions of overlap matrix with eigenvalues smaller than
    ! this value will be removed to avoid singularity [Default: 1d-5]
-   if(present(singularity_threshold)) &
+   if(PRESENT(singularity_threshold)) &
       singularity_tolerance = singularity_threshold
    ! Always stop if overlap is singular? [Default: .false.]
-   if(present(force_stop_singularity)) &
+   if(PRESENT(force_stop_singularity)) &
       stop_singularity = force_stop_singularity
    ! Broadening scheme to compute Fermi level [Default: GAUSSIAN]
-   if(present(broadening_scheme)) &
+   if(PRESENT(broadening_scheme)) &
       broaden_method = broadening_scheme
    ! Broadening width to compute Fermi level [Default: 1d-2]
-   if(present(broadening_width)) &
+   if(PRESENT(broadening_width)) &
       broaden_width = broadening_width
 
 end subroutine
@@ -415,19 +415,19 @@ subroutine elsi_customize_omm(n_elpa_steps_omm,scale_kinetic_energy,calculate_ed
    real*8,  intent(in), optional :: omm_tolerance
 
    ! Number of ELPA steps
-   if(present(n_elpa_steps_omm)) &
+   if(PRESENT(n_elpa_steps_omm)) &
       n_elpa_steps = n_elpa_steps_omm
    ! Scaling of kinetic energy matrix
-   if(present(scale_kinetic_energy)) &
+   if(PRESENT(scale_kinetic_energy)) &
       scale_kinetic = scale_kinetic_energy
    ! Calculate energy weigthed density matrix?
-   if(present(calculate_ed)) &
+   if(PRESENT(calculate_ed)) &
       calc_ed = calculate_ed
    ! Eigenspectrum shift parameter
-   if(present(eigenspectrum_shift)) &
+   if(PRESENT(eigenspectrum_shift)) &
       eta = eigenspectrum_shift
    ! Tolerance for minimization
-   if(present(omm_tolerance)) &
+   if(PRESENT(omm_tolerance)) &
       min_tol = omm_tolerance
 
    if(method .ne. LIBOMM) then
@@ -440,8 +440,8 @@ end subroutine
 !>
 !! This routine overrides PEXSI default settings.
 !!
-subroutine elsi_customize_pexsi(temperature,gap,delta_E,n_poles,n_inertia_steps_pexsi,&
-                                max_iteration,mu_min,mu_max,mu0,mu_inertia_tolerance,&
+subroutine elsi_customize_pexsi(temperature,gap,delta_E,n_poles,max_iteration,&
+                                mu_min,mu_max,mu0,mu_inertia_tolerance,&
                                 mu_inertia_expansion,mu_safeguard,n_electron_accuracy,&
                                 matrix_type,is_symbolic_factorize,ordering,&
                                 np_symbolic_factorize,verbosity)
@@ -452,7 +452,6 @@ subroutine elsi_customize_pexsi(temperature,gap,delta_E,n_poles,n_inertia_steps_
    real(c_double), intent(in), optional :: gap
    real(c_double), intent(in), optional :: delta_E
    integer(c_int), intent(in), optional :: n_poles
-   integer(c_int), intent(in), optional :: n_inertia_steps_pexsi
    integer(c_int), intent(in), optional :: max_iteration
    real(c_double), intent(in), optional :: mu_min
    real(c_double), intent(in), optional :: mu_max
@@ -469,74 +468,69 @@ subroutine elsi_customize_pexsi(temperature,gap,delta_E,n_poles,n_inertia_steps_
 
    ! Temperature, in the same unit as H
    ! default: 0.0019 = 300K
-   if(present(temperature)) &
+   if(PRESENT(temperature)) &
       pexsi_options%temperature = temperature
 
    ! Spectral gap, can be set to 0 in most cases (default)
-   if(present(gap)) &
+   if(PRESENT(gap)) &
       pexsi_options%gap = gap
 
    ! Upper bound for the spectral radius of S^(-1)H
    ! default: 10
-   if(present(delta_E)) &
+   if(PRESENT(delta_E)) &
       pexsi_options%deltaE = delta_E
 
    ! Number of poles
    ! default: 40
-   if(present(n_poles)) &
+   if(PRESENT(n_poles)) &
       pexsi_options%numPole = n_poles
-
-   ! Number of steps to perform inertia counting
-   ! default: 3
-   if(present(n_inertia_steps_pexsi)) &
-      n_inertia_steps = n_inertia_steps_pexsi
 
    ! Maximum number of PEXSI iterations after each inertia
    ! counting procedure
    ! default: 3
-   if(present(max_iteration)) &
+   if(PRESENT(max_iteration)) &
       pexsi_options%maxPEXSIIter = max_iteration
 
    ! From the second step, initial guess of mu is from previous step
    if(n_elsi_calls == 0) then
       ! Initial guess of mu
       ! default: 0.0
-      if(present(mu0)) &
+      if(PRESENT(mu0)) &
          pexsi_options%mu0 = mu0
    endif
 
    ! Initial guess of lower bound for mu
    ! default: -10.0
-   if(present(mu_min)) &
+   if(PRESENT(mu_min)) &
       pexsi_options%muMin0 = mu_min
 
    ! Initial guess of upper bound for mu
    ! default: 10.0
-   if(present(mu_max)) &
+   if(PRESENT(mu_max)) &
       pexsi_options%muMax0 = mu_max
 
    ! Stopping criterion in terms of the chemical potential
    ! for the inertia counting procedure
    ! default: 0.05
-   if(present(mu_inertia_tolerance)) &
+   if(PRESENT(mu_inertia_tolerance)) &
       pexsi_options%muInertiaTolerance = mu_inertia_tolerance
 
    ! If the chemical potential is not in the initial interval,
    ! the interval is expanded by this value
    ! default: 0.3
-   if(present(mu_inertia_expansion)) &
+   if(PRESENT(mu_inertia_expansion)) &
       pexsi_options%muInertiaExpansion = mu_inertia_expansion
 
    ! Safeguard criterion in terms of the chemical potential to
    ! reinvoke the inertia counting procedure
    ! default: 0.05
-   if(present(mu_safeguard)) &
+   if(PRESENT(mu_safeguard)) &
       pexsi_options%muPEXSISafeGuard = mu_safeguard
 
    ! Stopping criterion of the PEXSI iteration in terms of the
    ! number of electrons compared to the exact number
    ! default: 0.01
-   if(present(n_electron_accuracy)) then
+   if(PRESENT(n_electron_accuracy)) then
       pexsi_options%numElectronPEXSITolerance = n_electron_accuracy
       if(n_electron_accuracy < 1d-2) then
          small_pexsi_tol = .true.
@@ -547,30 +541,30 @@ subroutine elsi_customize_pexsi(temperature,gap,delta_E,n_poles,n_inertia_steps_
    ! Type of input H and S matrices
    ! 0: real symmetric (default)
    ! 1: general complex
-   if(present(matrix_type)) &
+   if(PRESENT(matrix_type)) &
       pexsi_options%matrixType = matrix_type
 
    ! Whether to perform symbolic factorization
    ! default: 1
-   if(present(is_symbolic_factorize)) &
+   if(PRESENT(is_symbolic_factorize)) &
       pexsi_options%isSymbolicFactorize = is_symbolic_factorize
 
    ! Ordering strategy for factorization and selected inversion
    ! 0: parallel ordering using ParMETIS
    ! 1: sequential ordering using METIS
    ! 2: multiple minimum degree ordering
-   if(present(ordering)) &
+   if(PRESENT(ordering)) &
       pexsi_options%ordering = ordering
 
    ! Number of processors for ParMETIS, only used if ordering=0
-   if(present(np_symbolic_factorize)) &
+   if(PRESENT(np_symbolic_factorize)) &
       pexsi_options%npSymbFact = np_symbolic_factorize
 
    ! Level of output information
    ! 0: no output
    ! 1: basic output (default)
    ! 2: detailed output
-   if(present(verbosity)) &
+   if(PRESENT(verbosity)) &
       pexsi_options%verbosity = verbosity
 
    if(method .ne. PEXSI) then
@@ -778,7 +772,7 @@ subroutine elsi_dm_real(H_in,S_in,D_out,energy_out)
                            " Exiting...",caller)
          endif
 
-         if(mod(nint(n_electrons),2) /= 0) then
+         if(MOD(NINT(n_electrons),2) /= 0) then
             call elsi_stop(" The current implementation of libOMM does not"//&
                            " work with fractional occupation numbers. This"//&
                            " means number of electrons in non-spin-polarized"//&
@@ -826,12 +820,12 @@ subroutine elsi_dm_real(H_in,S_in,D_out,energy_out)
                   C_real(1:Coeff_omm%iaux2(1),1:Coeff_omm%iaux2(2))
 
                ! ELPA matrices are no longer needed at this point
-               if(associated(H_real))     nullify(H_real)
-               if(associated(S_real))     nullify(S_real)
-               if(allocated(C_real))      deallocate(C_real)
-               if(allocated(eigenvalues)) deallocate(eigenvalues)
-               if(allocated(D_elpa))      deallocate(D_elpa)
-               if(allocated(occ_elpa))    deallocate(occ_elpa)
+               if(ASSOCIATED(H_real))     nullify(H_real)
+               if(ASSOCIATED(S_real))     nullify(S_real)
+               if(ALLOCATED(C_real))      deallocate(C_real)
+               if(ALLOCATED(eigenvalues)) deallocate(eigenvalues)
+               if(ALLOCATED(D_elpa))      deallocate(D_elpa)
+               if(ALLOCATED(occ_elpa))    deallocate(occ_elpa)
             endif
 
             ! Continue the computation using libOMM
@@ -863,15 +857,15 @@ subroutine elsi_dm_real(H_in,S_in,D_out,energy_out)
          call elsi_get_dm(D_out)
          call elsi_get_energy(energy_out)
 
-         if(allocated(H_real_pexsi))  deallocate(H_real_pexsi)
-         if(allocated(S_real_pexsi))  deallocate(S_real_pexsi)
-         if(allocated(D_pexsi))       deallocate(D_pexsi)
-         if(allocated(ED_pexsi))      deallocate(ED_pexsi)
-         if(allocated(FD_pexsi))      deallocate(FD_pexsi)
-         if(allocated(row_ind_pexsi)) deallocate(row_ind_pexsi)
-         if(allocated(col_ptr_pexsi)) deallocate(col_ptr_pexsi)
+         if(ALLOCATED(H_real_pexsi))  deallocate(H_real_pexsi)
+         if(ALLOCATED(S_real_pexsi))  deallocate(S_real_pexsi)
+         if(ALLOCATED(D_pexsi))       deallocate(D_pexsi)
+         if(ALLOCATED(ED_pexsi))      deallocate(ED_pexsi)
+         if(ALLOCATED(FD_pexsi))      deallocate(FD_pexsi)
+         if(ALLOCATED(row_ind_pexsi)) deallocate(row_ind_pexsi)
+         if(ALLOCATED(col_ptr_pexsi)) deallocate(col_ptr_pexsi)
 
-         call f_ppexsi_plan_finalize(pexsi_plan, pexsi_info)
+         call f_ppexsi_plan_finalize(pexsi_plan,pexsi_info)
 
       case (CHESS)
          call elsi_stop(" CHESS not yet implemented. Exiting...",caller)
@@ -929,7 +923,7 @@ subroutine elsi_dm_complex(H_in,S_in,D_out,energy_out)
                            " Exiting...",caller)
          endif
 
-         if(mod(nint(n_electrons),2) /= 0) then
+         if(MOD(NINT(n_electrons),2) /= 0) then
             call elsi_stop(" The current implementation of libOMM does not"//&
                            " work with fractional occupation numbers. This"//&
                            " means number of electrons in non-spin-polarized"//&

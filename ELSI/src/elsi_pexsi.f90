@@ -321,22 +321,16 @@ subroutine elsi_blacs_to_pexsi_hs_v1(H_in,S_in)
 
    ! Unpack and reorder
    do i_val = 1,nnz_l_pexsi_aux
-      min_pos = n_g_size*n_g_size+1
-      min_id = 0
-
-      do j_val = i_val,nnz_l_pexsi_aux
-         if(pos_recv_buffer(j_val) < min_pos) then
-            min_pos = pos_recv_buffer(j_val)
-            min_id = j_val
-         endif
-      enddo
+      min_id = MINLOC(pos_recv_buffer(i_val:nnz_l_pexsi_aux),1)+i_val-1
 
       tmp_int = pos_recv_buffer(i_val)
       pos_recv_buffer(i_val) = pos_recv_buffer(min_id)
       pos_recv_buffer(min_id) = tmp_int
+
       tmp_real = h_val_recv_buffer(i_val)
       h_val_recv_buffer(i_val) = h_val_recv_buffer(min_id)
       h_val_recv_buffer(min_id) = tmp_real
+
       tmp_real = s_val_recv_buffer(i_val)
       s_val_recv_buffer(i_val) = s_val_recv_buffer(min_id)
       s_val_recv_buffer(min_id) = tmp_real
@@ -373,19 +367,19 @@ subroutine elsi_blacs_to_pexsi_hs_v1(H_in,S_in)
    enddo
 
    ! Allocate PEXSI matrices
-   if(.not.allocated(H_real_pexsi)) &
+   if(.not.ALLOCATED(H_real_pexsi)) &
       call elsi_allocate(H_real_pexsi,nnz_l_pexsi,"H_real_pexsi",caller)
    H_real_pexsi = 0d0
 
-   if(.not.allocated(S_real_pexsi)) &
+   if(.not.ALLOCATED(S_real_pexsi)) &
       call elsi_allocate(S_real_pexsi,nnz_l_pexsi,"S_real_pexsi",caller)
    S_real_pexsi = 0d0
 
-   if(.not.allocated(row_ind_pexsi)) &
+   if(.not.ALLOCATED(row_ind_pexsi)) &
       call elsi_allocate(row_ind_pexsi,nnz_l_pexsi,"row_ind_pexsi",caller)
    row_ind_pexsi = 0
 
-   if(.not.allocated(col_ptr_pexsi)) &
+   if(.not.ALLOCATED(col_ptr_pexsi)) &
       call elsi_allocate(col_ptr_pexsi,(n_l_cols_pexsi+1),"col_ptr_pexsi",caller)
    col_ptr_pexsi = 0
 
@@ -576,15 +570,7 @@ subroutine elsi_blacs_to_pexsi_hs_v2(H_in,S_in)
 
    ! Unpack Hamiltonian
    do i_val = 1,nnz_l_pexsi
-      min_pos = n_g_size*n_g_size+1
-      min_id = 0
-
-      do j_val = i_val,nnz_l_pexsi
-         if(pos_recv_buffer(j_val) < min_pos) then
-            min_pos = pos_recv_buffer(j_val)
-            min_id = j_val
-         endif
-      enddo
+      min_id = MINLOC(pos_recv_buffer(i_val:nnz_l_pexsi),1)+i_val-1
 
       tmp_int = pos_recv_buffer(i_val)
       pos_recv_buffer(i_val) = pos_recv_buffer(min_id)
@@ -600,19 +586,19 @@ subroutine elsi_blacs_to_pexsi_hs_v2(H_in,S_in)
    enddo
 
    ! Allocate PEXSI matrices
-   if(.not.allocated(H_real_pexsi)) &
+   if(.not.ALLOCATED(H_real_pexsi)) &
       call elsi_allocate(H_real_pexsi,nnz_l_pexsi,"H_real_pexsi",caller)
    H_real_pexsi = 0d0
 
-   if(.not.allocated(S_real_pexsi)) &
+   if(.not.ALLOCATED(S_real_pexsi)) &
       call elsi_allocate(S_real_pexsi,nnz_l_pexsi,"S_real_pexsi",caller)
    S_real_pexsi = 0d0
 
-   if(.not.allocated(row_ind_pexsi)) &
+   if(.not.ALLOCATED(row_ind_pexsi)) &
       call elsi_allocate(row_ind_pexsi,nnz_l_pexsi,"row_ind_pexsi",caller)
    row_ind_pexsi = 0
 
-   if(.not.allocated(col_ptr_pexsi)) &
+   if(.not.ALLOCATED(col_ptr_pexsi)) &
       call elsi_allocate(col_ptr_pexsi,(n_l_cols_pexsi+1),"col_ptr_pexsi",caller)
    col_ptr_pexsi = 0
 
@@ -819,17 +805,17 @@ subroutine elsi_solve_evp_pexsi()
       call elsi_statement_print(info_str)
    endif
 
-   if(.not.allocated(D_pexsi)) then
+   if(.not.ALLOCATED(D_pexsi)) then
       call elsi_allocate(D_pexsi,nnz_l_pexsi,"D_pexsi",caller)
    endif
    D_pexsi = 0d0
 
-   if(.not.allocated(ED_pexsi)) then
+   if(.not.ALLOCATED(ED_pexsi)) then
       call elsi_allocate(ED_pexsi,nnz_l_pexsi,"ED_pexsi",caller)
    endif
    ED_pexsi = 0d0
 
-   if(.not.allocated(FD_pexsi)) then
+   if(.not.ALLOCATED(FD_pexsi)) then
       call elsi_allocate(FD_pexsi,nnz_l_pexsi,"FD_pexsi",caller)
    endif
    FD_pexsi = 0d0
@@ -850,16 +836,14 @@ subroutine elsi_solve_evp_pexsi()
    if(pexsi_info /= 0) &
       call elsi_stop(" PEXSI not able to load H/S matrix. Exiting...",caller)
 
-   ! Inertia counting is only performed in the first few steps
-   if(n_elsi_calls > n_inertia_steps) then
-      pexsi_options%isInertiaCount = 0
-   else
-      pexsi_options%isInertiaCount = 1
+   if(pexsi_options%isInertiaCount == 0) then
+      call elsi_statement_print("  PEXSI inertia counting skipped")
    endif
 
    ! Solve the eigenvalue problem
    call elsi_statement_print("  Launch PEXSI DFT driver")
 
+   ! TODO: replace by parts of the driver
    call f_ppexsi_dft_driver(pexsi_plan,pexsi_options,n_electrons,mu_pexsi,&
                             n_electrons_pexsi,mu_min_inertia,mu_max_inertia,&
                             n_total_inertia_iter,n_total_pexsi_iter,pexsi_info)
@@ -867,8 +851,18 @@ subroutine elsi_solve_evp_pexsi()
    if(pexsi_info /= 0) &
       call elsi_stop(" PEXSI DFT Driver not able to solve problem. Exiting...",caller)
 
+   ! Turn off inertia counting if chemical potential does not change a lot
+   if(ABS(mu_pexsi-pexsi_options%mu0) > 5d-3) then
+      pexsi_options%isInertiaCount = 1
+   else
+      pexsi_options%isInertiaCount = 0
+   endif
+
+   ! Use chemical potential in this step as initial guess for next step
+   pexsi_options%mu0 = mu_pexsi
+
    if(small_pexsi_tol) then
-      if(abs(n_electrons-n_electrons_pexsi) < this_pexsi_tol) then
+      if(ABS(n_electrons-n_electrons_pexsi) < this_pexsi_tol) then
          if(1d-1*this_pexsi_tol > final_pexsi_tol) then
             this_pexsi_tol = 1d-1*this_pexsi_tol
          else
@@ -900,10 +894,6 @@ subroutine elsi_set_pexsi_default_options()
    ! Use the PEXSI Default options
    call f_ppexsi_set_default_options(pexsi_options)
 
-   ! How many steps to perform inertia counting?
-   n_inertia_steps = 3
-   ! Use chemical potential in previous step as initial guess
-   pexsi_options%mu0 = mu_pexsi
    ! Use 1 process in ParMETIS for symbolic factorization
    pexsi_options%npSymbFact = 1
 
@@ -919,10 +909,6 @@ subroutine elsi_print_pexsi_options()
    character*200 :: info_str
 
    write(info_str,"(A)") "  PEXSI settings (in the same unit of Hamiltonian):"
-   call elsi_statement_print(info_str)
-
-   write(info_str,"(1X,' | Inertia counting steps ',I5)") &
-      n_inertia_steps
    call elsi_statement_print(info_str)
 
    write(info_str,"(1X,' | Temperature ',F10.4)") &

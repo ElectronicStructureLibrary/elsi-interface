@@ -77,7 +77,7 @@ subroutine elsi_statement_print(message)
 
    if(print_info) then
       if(myid == 0) then
-         write(*,'(A)') trim(message)
+         write(*,'(A)') TRIM(message)
       endif
    endif
 
@@ -107,7 +107,7 @@ subroutine elsi_allocate_real_vector(vector,n_elements,vectorname,caller)
 
    if(error > 0) then 
       write(message,"(A,A,A,F10.3,A)") "Insufficient memory to allocate ",&
-            trim(vectorname),",",memory," MB needed."
+            TRIM(vectorname),",",memory," MB needed."
       call elsi_stop(message,caller)
    endif
 
@@ -139,7 +139,7 @@ subroutine elsi_allocate_int_vector(vector,n_elements,vectorname,caller)
 
    if(error > 0) then 
       write(message,"(A,A,A,F10.3,A)") "Insufficient memory to allocate ",&
-            trim(vectorname),",",memory," MB needed."
+            TRIM(vectorname),",",memory," MB needed."
       call elsi_stop(message,caller)
    endif
 
@@ -171,7 +171,7 @@ subroutine elsi_allocate_complex_vector(vector,n_elements,vectorname,caller)
 
    if(error > 0) then
       write(message,"(A,A,A,F10.3,A)") "Insufficient memory to allocate ",&
-            trim(vectorname),",",memory," MB needed."
+            TRIM(vectorname),",",memory," MB needed."
       call elsi_stop(message,caller)
    endif
 
@@ -204,7 +204,7 @@ subroutine elsi_allocate_real_matrix(matrix,n_rows,n_cols,matrixname,caller)
 
    if(error > 0) then 
       write(message,"(A,A,A,F10.3,A)") "Insufficient memory to allocate ",&
-            trim(matrixname),",",memory," MB needed."
+            TRIM(matrixname),",",memory," MB needed."
       call elsi_stop(message,caller)
    endif
 
@@ -237,7 +237,7 @@ subroutine elsi_allocate_int_matrix(matrix,n_rows,n_cols,matrixname,caller)
 
    if(error > 0) then 
       write(message,"(A,A,A,F10.3,A)") "Insufficient memory to allocate ",&
-            trim(matrixname),",",memory," MB needed."
+            TRIM(matrixname),",",memory," MB needed."
       call elsi_stop(message,caller)
    endif
 
@@ -270,7 +270,7 @@ subroutine elsi_allocate_complex_matrix(matrix,n_rows,n_cols,matrixname,caller)
 
    if(error > 0) then 
       write(message,"(A,A,A,F10.3,A)") "Insufficient memory to allocate ",&
-            trim(matrixname),",",memory," MB needed."
+            TRIM(matrixname),",",memory," MB needed."
       call elsi_stop(message,caller)
    endif
 
@@ -295,8 +295,8 @@ subroutine elsi_stop(message,caller)
    do i_task = 0, n_procs - 1
       if(myid == i_task) then
          write(string_message,"(1X,'*** Proc',I5,' in ',A,': ',A)")&
-               myid,trim(caller),trim(message)
-         write(*,'(A)') trim(string_message)
+               myid,TRIM(caller),TRIM(message)
+         write(*,'(A)') TRIM(string_message)
       endif
       call MPI_Barrier(mpi_comm_global,mpierr)
    enddo
@@ -320,18 +320,18 @@ subroutine elsi_allocate_matrices()
 
    select case (method)
       case (ELPA)
-         if(.not.allocated(eigenvalues)) then
+         if(.not.ALLOCATED(eigenvalues)) then
             call elsi_allocate(eigenvalues,n_g_size,"eigenvalues",caller)
          endif
          eigenvalues = 0d0
          select case (mode)
             case (COMPLEX_VALUES)
-               if(.not.allocated(C_complex)) then
+               if(.not.ALLOCATED(C_complex)) then
                   call elsi_allocate(C_complex,n_l_rows,n_l_cols,"C_complex",caller)
                endif
                C_complex = CMPLX(0d0,0d0)
             case (REAL_VALUES)
-               if(.not.allocated(C_real)) then
+               if(.not.ALLOCATED(C_real)) then
                   call elsi_allocate(C_real,n_l_rows,n_l_cols,"C_real",caller)
                endif
                C_real = 0d0
@@ -494,26 +494,26 @@ subroutine elsi_deallocate_matrices()
    implicit none
 
    ! Nullify pointers
-   if(associated(H_real))       nullify(H_real)
-   if(associated(H_complex))    nullify(H_complex)
-   if(associated(S_real))       nullify(S_real)
-   if(associated(S_complex))    nullify(S_complex)
+   if(ASSOCIATED(H_real))       nullify(H_real)
+   if(ASSOCIATED(H_complex))    nullify(H_complex)
+   if(ASSOCIATED(S_real))       nullify(S_real)
+   if(ASSOCIATED(S_complex))    nullify(S_complex)
 
    ! Free Memory
    ! ELPA
-   if(allocated(C_real))        deallocate(C_real)
-   if(allocated(C_complex))     deallocate(C_complex)
-   if(allocated(eigenvalues))   deallocate(eigenvalues)
-   if(allocated(D_elpa))        deallocate(D_elpa)
-   if(allocated(occ_elpa))      deallocate(occ_elpa)
+   if(ALLOCATED(C_real))        deallocate(C_real)
+   if(ALLOCATED(C_complex))     deallocate(C_complex)
+   if(ALLOCATED(eigenvalues))   deallocate(eigenvalues)
+   if(ALLOCATED(D_elpa))        deallocate(D_elpa)
+   if(ALLOCATED(occ_elpa))      deallocate(occ_elpa)
    ! PEXSI
-   if(allocated(H_real_pexsi))  deallocate(H_real_pexsi)
-   if(allocated(S_real_pexsi))  deallocate(S_real_pexsi)
-   if(allocated(D_pexsi))       deallocate(D_pexsi)
-   if(allocated(ED_pexsi))      deallocate(ED_pexsi)
-   if(allocated(FD_pexsi))      deallocate(FD_pexsi)
-   if(allocated(row_ind_pexsi)) deallocate(row_ind_pexsi)
-   if(allocated(col_ptr_pexsi)) deallocate(col_ptr_pexsi)
+   if(ALLOCATED(H_real_pexsi))  deallocate(H_real_pexsi)
+   if(ALLOCATED(S_real_pexsi))  deallocate(S_real_pexsi)
+   if(ALLOCATED(D_pexsi))       deallocate(D_pexsi)
+   if(ALLOCATED(ED_pexsi))      deallocate(ED_pexsi)
+   if(ALLOCATED(FD_pexsi))      deallocate(FD_pexsi)
+   if(ALLOCATED(row_ind_pexsi)) deallocate(row_ind_pexsi)
+   if(ALLOCATED(col_ptr_pexsi)) deallocate(col_ptr_pexsi)
    ! libOMM
    if(H_omm%is_initialized)     call m_deallocate(H_omm)
    if(S_omm%is_initialized)     call m_deallocate(S_omm)

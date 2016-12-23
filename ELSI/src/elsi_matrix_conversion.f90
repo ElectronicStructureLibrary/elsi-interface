@@ -106,7 +106,7 @@ subroutine elsi_get_local_nnz(matrix,n_rows,n_cols,nnz)
 
    do i_col = 1,n_cols
       do i_row = 1,n_rows
-         if(abs(matrix(i_row,i_col)) > zero_threshold) then
+         if(ABS(matrix(i_row,i_col)) > zero_threshold) then
             nnz = nnz+1
          endif
       enddo
@@ -162,7 +162,7 @@ subroutine elsi_dense_to_ccs(matrix,n_rows,n_cols,nnz,val,row_ind,col_ptr)
    do i_col = 1,n_cols
       new_col = .true.
       do i_row = 1,n_rows
-         if(abs(matrix(i_row,i_col)) > zero_threshold) then
+         if(ABS(matrix(i_row,i_col)) > zero_threshold) then
             i_val = i_val+1
             if(new_col) then
                col_ptr(i_col) = i_val

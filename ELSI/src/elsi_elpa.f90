@@ -1029,7 +1029,7 @@ subroutine elsi_to_standard_evp_sp()
                   if(.not.no_singularity_check) then
                      call elsi_check_singularity_sp()
                   endif
-!
+
                   if(n_nonsingular == n_g_size) then ! Not singular
                      overlap_is_singular = .false.
 
@@ -1050,7 +1050,7 @@ subroutine elsi_to_standard_evp_sp()
                      endif
                   endif
 !               endif ! n_elsi_calls == 1
-!               overlap_is_singular=.false.
+
                call elsi_allocate(buffer_complex,n_l_rows,n_l_cols,"temp",caller)
 
                if(overlap_is_singular) then ! Use scaled eigenvectors
@@ -1115,7 +1115,6 @@ subroutine elsi_to_standard_evp_sp()
                               n_g_size,buffer_real(1,1),n_g_size,0d0,H_real(1,1),n_g_size)
 
                else ! Use Cholesky
-
 
                  ! buffer_real = H_real * S_real
 !                  call dgemm('N','N',n_g_size,n_g_size,n_g_size,1d0,H_real(1,1),&
