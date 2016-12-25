@@ -216,6 +216,7 @@ subroutine elsi_set_blacs(blacs_ctxt_in,n_b_rows_in,n_b_cols_in,n_p_rows_in,&
    integer, intent(in), optional :: mpi_comm_row_in !< row communicatior for ELPA
    integer, intent(in), optional :: mpi_comm_col_in !< column communicatior for ELPA
 
+   integer :: i,i_row,i_col
    integer :: blacs_info
    character*40, parameter :: caller = "elsi_set_blacs"
 
@@ -234,6 +235,24 @@ subroutine elsi_set_blacs(blacs_ctxt_in,n_b_rows_in,n_b_cols_in,n_p_rows_in,&
 
       mpi_comm_row = mpi_comm_row_in
       mpi_comm_col = mpi_comm_col_in
+
+      ! Compute global-local mapping
+      call elsi_allocate(local_row,n_g_size,"local_row",caller)
+      call elsi_allocate(local_col,n_g_size,"local_col",caller)
+
+      i_row = 0
+      i_col = 0
+
+      do i = 1,n_g_size
+         if(MOD((i-1)/n_b_rows,n_p_rows) == my_p_row) then
+            i_row = i_row+1
+            local_row(i) = i_row
+         endif
+         if(MOD((i-1)/n_b_cols,n_p_cols) == my_p_col) then
+            i_col = i_col+1
+            local_col(i) = i_col
+         endif
+      enddo
 
       if(method == LIBOMM) then
          call ms_scalapack_setup(mpi_comm_global,n_p_rows,'r',n_b_rows,&

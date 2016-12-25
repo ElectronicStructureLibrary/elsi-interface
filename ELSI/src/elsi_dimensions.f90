@@ -90,6 +90,10 @@ module ELSI_DIMENSIONS
    !< Column pointer in CCS format
    integer, allocatable :: col_ptr_pexsi(:)
 
+   ! BLACS
+   integer, allocatable :: local_row(:)
+   integer, allocatable :: local_col(:)
+
 ! ========= PARAMETER =========  
 
    !> Solver (AUTO=0,ELPA=1,LIBOMM=2,PEXSI=3,CHESS=4)
@@ -183,35 +187,35 @@ module ELSI_DIMENSIONS
    real*8  :: occ_tolerance = 1d-10     !< Maximum allowed difference between actual number
                                         !! of electrons and the number computed by ELSI
 
-   !> OMM
-   integer :: n_elpa_steps             !< Use ELPA eigenvectors as initial guess
-   logical :: new_overlap              !< Is a new overlap matrix provided?
-   logical :: C_matrix_initialized     !< Is coefficient matrix initialized?
-   real*8  :: total_energy             !< Energy of the system
-   integer :: omm_flavour = -1         !< How to perform the calculation
-                                       !! 0 = Basic
-                                       !! 1 = Cholesky factorisation
-                                       !! 2 = Cholesky already performed
-                                       !! 3 = Preconditioning
-   real*8  :: scale_kinetic            !< Scaling of the kinetic energy matrix
-   logical :: calc_ed = .false.        !< Calculate energy weighted density matrix?
-   real*8  :: eta                      !< Eigenspectrum shift parameter
-   real*8  :: min_tol                  !< Tolerance for minimization
-   integer :: nk_times_nspin = -1      !< n_k_points * n_spin
-   integer :: i_k_spin = -1            !< Combined k_point spin index
-   logical :: omm_verbose              !< Output level
-   logical :: do_dealloc               !< Deallocate internal storage?
+   !> libOMM
+   integer :: n_elpa_steps         !< Use ELPA eigenvectors as initial guess
+   logical :: new_overlap          !< Is a new overlap matrix provided?
+   logical :: C_matrix_initialized !< Is coefficient matrix initialized?
+   real*8  :: total_energy         !< Energy of the system
+   integer :: omm_flavour = -1     !< How to perform the calculation
+                                   !! 0 = Basic
+                                   !! 1 = Cholesky factorisation
+                                   !! 2 = Cholesky already performed
+                                   !! 3 = Preconditioning
+   real*8  :: scale_kinetic        !< Scaling of the kinetic energy matrix
+   logical :: calc_ed = .false.    !< Calculate energy weighted density matrix?
+   real*8  :: eta                  !< Eigenspectrum shift parameter
+   real*8  :: min_tol              !< Tolerance for minimization
+   integer :: nk_times_nspin = -1  !< n_k_points * n_spin
+   integer :: i_k_spin = -1        !< Combined k_point spin index
+   logical :: omm_verbose          !< Output level
+   logical :: do_dealloc           !< Deallocate internal storage?
 
    !> PEXSI
-   logical                :: pole_parallelism = .true.  !< Use PEXSI pole parallelism?
-   logical                :: small_pexsi_tol = .false.  !< Is user-defined tolerance smaller than default?
-   real(c_double)         :: final_pexsi_tol = 1d-2     !< Default final PEXSI tolerance
+   logical                :: pole_parallelism = .true. !< Use PEXSI pole parallelism?
+   logical                :: small_pexsi_tol = .false. !< Is user-defined tolerance smaller than default?
+   real(c_double)         :: final_pexsi_tol = 1d-2    !< Default final PEXSI tolerance
    integer(c_intptr_t)    :: pexsi_plan
    type(f_ppexsi_options) :: pexsi_options
    integer(c_int)         :: pexsi_info
    integer(c_int)         :: pexsi_output_file_index
-   real(c_double)         :: mu_pexsi = 0d0             !< Chemical potential computed by PEXSI
-   real(c_double)         :: n_electrons_pexsi          !< Number of electrons computed by PEXSI
+   real(c_double)         :: mu_pexsi = 0d0            !< Chemical potential computed by PEXSI
+   real(c_double)         :: n_electrons_pexsi         !< Number of electrons computed by PEXSI
    real(c_double)         :: mu_min_inertia 
    real(c_double)         :: mu_max_inertia 
    integer(c_int)         :: n_total_inertia_iter

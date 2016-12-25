@@ -500,6 +500,9 @@ subroutine elsi_deallocate_matrices()
    if(ASSOCIATED(S_complex))    nullify(S_complex)
 
    ! Free Memory
+   ! BLACS
+   if(ALLOCATED(local_row))     deallocate(local_row)
+   if(ALLOCATED(local_col))     deallocate(local_col)
    ! ELPA
    if(ALLOCATED(C_real))        deallocate(C_real)
    if(ALLOCATED(C_complex))     deallocate(C_complex)

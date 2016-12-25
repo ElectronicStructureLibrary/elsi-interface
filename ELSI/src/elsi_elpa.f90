@@ -340,20 +340,17 @@ subroutine elsi_compute_dm_elpa(D_out)
 
    implicit none
 
-   real*8, intent(out) :: D_out(n_l_rows, n_l_cols) !< Density matrix
+   real*8, intent(out) :: D_out(n_l_rows,n_l_cols) !< Density matrix
 
    real*8, allocatable     :: tmp_real(:,:)    !< Real eigenvectors, temporary
    complex*16, allocatable :: tmp_complex(:,:) !< Complex eigenvectors, temporary
 
-   real*8 :: D_out_tmp(n_l_rows, n_l_cols) !< Density matrix from imaginary 
-                                           !< part of complex eigenvectors
+   real*8 :: D_out_tmp(n_l_rows,n_l_cols) !< Density matrix from imaginary 
+                                          !< part of complex eigenvectors
 
    real*8, allocatable :: factor(:) !< Factor to construct density matrix
 
-   integer, allocatable :: local_col(:)
-   integer :: i_col, i
-   integer :: l_row, l_col !< Local index
-   integer :: g_row, g_col !< Global index
+   integer :: i,i_col,i_row
 
    character*40, parameter :: caller = "elsi_compute_dm"
 
@@ -363,18 +360,6 @@ subroutine elsi_compute_dm_elpa(D_out)
             call elsi_allocate(D_elpa,n_l_rows,n_l_cols,"D_elpa",caller)
          endif
          D_elpa = 0d0
-
-         ! Map global columns to local
-         call elsi_allocate(local_col,n_g_size,"local_col",caller)
-
-         i_col = 0 ! local column counter
-
-         do i = 1,n_g_size
-            if(MOD((i-1)/n_b_cols,n_p_cols) == my_p_col) then
-               i_col = i_col+1
-               local_col(i) = i_col
-            endif
-         enddo
 
          select case (mode)
             case (REAL_VALUES)
@@ -450,7 +435,6 @@ subroutine elsi_compute_dm_elpa(D_out)
                D_out = D_out+D_out_tmp
          end select
 
-         deallocate(local_col)
          deallocate(factor)
          if(allocated(tmp_real))    deallocate(tmp_real)
          if(allocated(tmp_complex)) deallocate(tmp_complex)
@@ -458,22 +442,20 @@ subroutine elsi_compute_dm_elpa(D_out)
          ! Now D_out is an upper triangle matrix
          ! Set D_out to full
          call elsi_allocate(tmp_real,n_l_rows,n_l_cols,"tmp_real",caller)
-         tmp_real = D_out
 
-         ! D_out = D_out + tmp_real' = D_out + D_out'
-         call pdtran(n_g_size,n_g_size,1d0,tmp_real,1,1,sc_desc,1d0,D_out,1,1,sc_desc)
+         call pdtran(n_g_size,n_g_size,1d0,D_out,1,1,sc_desc,0d0,tmp_real,1,1,sc_desc)
 
-         deallocate(tmp_real)
-
-         do l_row = 1,n_l_rows
-            call elsi_get_global_row(g_row,l_row)
-            do l_col = l_row,n_l_cols
-               call elsi_get_global_col(g_col,l_col)
-               if(g_row == g_col) then
-                  D_out(l_row,l_col) = 0.5d0*D_out(l_row,l_col)
+         do i_col = 1,n_g_size-1
+            if(local_col(i_col) == 0) cycle
+            do i_row = i_col+1,n_g_size
+               if(local_row(i_row) > 0) then
+                  D_out(local_row(i_row),local_col(i_col)) = &
+                     tmp_real(local_row(i_row),local_col(i_col))
                endif
             enddo
          enddo
+
+         deallocate(tmp_real)
 
       case (LIBOMM)
          call elsi_stop(" LIBOMM does not compute density matrix from eigenvectors! "//&
@@ -508,6 +490,7 @@ subroutine elsi_to_standard_evp()
 
    implicit none
 
+   integer :: i_row,i_col
    real*8, allocatable :: buffer_real(:,:)
    complex*16, allocatable :: buffer_complex(:,:)
    logical :: success
@@ -558,15 +541,40 @@ subroutine elsi_to_standard_evp()
                               (0d0,0d0),H_complex,1,1,sc_desc)
 
                else ! Use cholesky
-                  ! buffer_complex = H_complex * S_complex
-                  call pzgemm('N','N',n_g_size,n_g_size,n_g_size,(1d0,0d0),&
-                              H_complex,1,1,sc_desc,S_complex,1,1,sc_desc,&
-                              (0d0,0d0),buffer_complex,1,1,sc_desc)
+                  success = elpa_mult_ah_b_complex_double('U','L',n_g_size,n_g_size,&
+                               S_complex,n_l_rows,n_l_cols,H_complex,n_l_rows,n_l_cols,&
+                               n_b_rows,mpi_comm_row,mpi_comm_col,buffer_complex,&
+                               n_l_rows,n_l_cols)
 
-                  ! H_complex = (buffer_complex)^* * S_complex
-                  call pzgemm('C','N',n_g_size,n_g_size,n_g_size,(1d0,0d0),&
-                              buffer_complex,1,1,sc_desc,S_complex,1,1,&
-                              sc_desc,(0d0,0d0),H_complex,1,1,sc_desc)
+                  call pztranc(n_g_size,n_g_size,(1d0,0d0),buffer_complex,1,1,sc_desc,&
+                               (0d0,0d0),H_complex,1,1,sc_desc)
+
+                  buffer_complex = H_complex
+
+                  success = elpa_mult_ah_b_complex_double('U','U',n_g_size,n_g_size,&
+                               S_complex,n_l_rows,n_l_cols,buffer_complex,n_l_rows,&
+                               n_l_cols,n_b_rows,mpi_comm_row,mpi_comm_col,H_complex,&
+                               n_l_rows,n_l_cols)
+
+                  call pztranc(n_g_size,n_g_size,(1d0,0d0),H_complex,1,1,sc_desc,&
+                               (0d0,0d0),buffer_complex,1,1,sc_desc)
+
+                  ! Set the lower part from the upper
+                  do i_col = 1,n_g_size-1
+                     if(local_col(i_col) == 0) cycle
+                     do i_row = i_col+1,n_g_size
+                        if(local_row(i_row) > 0) then
+                           H_complex(local_row(i_row),local_col(i_col)) = &
+                              buffer_complex(local_row(i_row),local_col(i_col))
+                        endif
+                     enddo
+                  enddo
+
+                  do i_col=1,n_g_size
+                     if(local_col(i_col) == 0 .or. local_row(i_col) == 0) cycle
+                     H_complex(local_row(i_col),local_col(i_col)) = &
+                        DBLE(H_complex(local_row(i_col),local_col(i_col)))
+                  enddo
                endif
 
             case (REAL_VALUES)
@@ -608,13 +616,34 @@ subroutine elsi_to_standard_evp()
                               1,1,sc_desc,buffer_real,1,1,sc_desc,0d0,H_real,1,1,sc_desc)
 
                else ! Use Cholesky
-                  ! buffer_real = H_real * S_real
-                  call pdgemm('N','N',n_g_size,n_g_size,n_g_size,1d0,H_real,1,1,&
-                              sc_desc,S_real,1,1,sc_desc,0d0,buffer_real,1,1,sc_desc)
+                  success = elpa_mult_at_b_real_double('U','L',n_g_size,n_g_size,&
+                               S_real,n_l_rows,n_l_cols,H_real,n_l_rows,n_l_cols,&
+                               n_b_rows,mpi_comm_row,mpi_comm_col,buffer_real,&
+                               n_l_rows,n_l_cols)
 
-                  ! H_real = (buffer_real)*T * S_real
-                  call pdgemm('T','N',n_g_size,n_g_size,n_g_size,1d0,buffer_real,&
-                              1,1,sc_desc,S_real,1,1,sc_desc,0d0,H_real,1,1,sc_desc)
+                  call pdtran(n_g_size,n_g_size,1d0,buffer_real,1,1,sc_desc,0d0,&
+                              H_real,1,1,sc_desc)
+
+                  buffer_real = H_real
+
+                  success = elpa_mult_at_b_real_double('U','U',n_g_size,n_g_size,&
+                               S_real,n_l_rows,n_l_cols,buffer_real,n_l_rows,n_l_cols,&
+                               n_b_rows,mpi_comm_row,mpi_comm_col,H_real,n_l_rows,&
+                               n_l_cols)
+
+                  call pdtran(n_g_size,n_g_size,1d0,H_real,1,1,sc_desc,0d0,buffer_real,&
+                              1,1,sc_desc)
+
+                  ! Set the lower part from the upper
+                  do i_col = 1,n_g_size-1
+                     if(local_col(i_col) == 0) cycle
+                     do i_row = i_col+1,n_g_size
+                        if(local_row(i_row) > 0) then
+                           H_real(local_row(i_row),local_col(i_col)) = &
+                              buffer_real(local_row(i_row),local_col(i_col))
+                        endif
+                     enddo
+                  enddo
                endif
 
          end select
@@ -649,8 +678,7 @@ subroutine elsi_check_singularity()
    real*8, allocatable :: ev_overlap(:)
    real*8, allocatable :: buffer_real(:,:)
    complex*16, allocatable :: buffer_complex(:,:)
-   integer, allocatable :: local_col(:)
-   integer :: i,i_col
+   integer :: i
    logical :: success
 
    character*200 :: info_str
@@ -725,18 +753,6 @@ subroutine elsi_check_singularity()
                                             " overlap matrix for transformation")
 
                   ! Overlap matrix is overwritten with scaled eigenvectors
-                  ! Map global columns to local
-                  call elsi_allocate(local_col,n_g_size,"local_col",caller)
-
-                  i_col = 0 ! local column counter
-                  do i = 1,n_g_size
-                     if(MOD((i-1)/n_b_cols,n_p_cols) == my_p_col) then
-                        i_col = i_col+1
-                        local_col(i) = i_col
-                     endif
-                  enddo
-
-                  ! Scale eigenvectors
                   do i = 1,n_nonsingular
                      ev_sqrt = SQRT(ev_overlap(i))
                      if(local_col(i) == 0) cycle
@@ -813,18 +829,6 @@ subroutine elsi_check_singularity()
                                             " overlap matrix for transformation")
 
                   ! Overlap matrix is overwritten with scaled eigenvectors
-                  ! Map global columns to local
-                  call elsi_allocate(local_col,n_g_size,"local_col",caller)
-
-                  i_col = 0 ! local column counter
-                  do i = 1,n_g_size
-                     if(MOD((i-1)/n_b_cols,n_p_cols) == my_p_col) then
-                        i_col = i_col+1
-                        local_col(i) = i_col
-                     endif
-                  enddo
-
-                  ! Scale eigenvectors
                   do i = 1,n_nonsingular
                      ev_sqrt = SQRT(ev_overlap(i))
                      if(local_col(i) == 0) cycle
@@ -849,7 +853,6 @@ subroutine elsi_check_singularity()
    end select ! select method
 
    if(allocated(ev_overlap))     deallocate(ev_overlap)
-   if(allocated(local_col))      deallocate(local_col)
    if(allocated(buffer_real))    deallocate(buffer_real)
    if(allocated(buffer_complex)) deallocate(buffer_complex)
 
@@ -865,6 +868,7 @@ subroutine elsi_to_original_ev()
 
    implicit none
 
+   logical :: success
    real*8, allocatable :: buffer_real(:,:)
    complex*16, allocatable :: buffer_complex(:,:)
 
@@ -885,9 +889,13 @@ subroutine elsi_to_original_ev()
                else ! Nonsingular, use Cholesky
                   ! (U^-1) is stored in S_complex after elsi_to_standard_evp
                   ! C_complex = S_complex * C_complex = S_complex * buffer_complex
-                  call pzgemm('N','N',n_g_size,n_states,n_g_size,(1d0,0d0),S_complex,&
-                              1,1,sc_desc,buffer_complex,1,1,sc_desc,(0d0,0d0),&
-                              C_complex,1,1,sc_desc)
+                  call pztranc(n_g_size,n_g_size,(1d0,0d0),S_complex,1,1,sc_desc,&
+                               (0d0,0d0),H_complex,1,1,sc_desc)
+
+                  success = elpa_mult_ah_b_complex_double('L','N',n_g_size,n_g_size,&
+                               H_complex,n_l_rows,n_l_cols,buffer_complex,n_l_rows,&
+                               n_l_cols,n_b_rows,mpi_comm_row,mpi_comm_col,C_complex,&
+                               n_l_rows,n_l_cols)
                endif
 
             case (REAL_VALUES)
@@ -901,8 +909,11 @@ subroutine elsi_to_original_ev()
                else ! Nonsingular, use Cholesky
                   ! (U^-1) is stored in S_real after elsi_to_standard_evp
                   ! C_real = S_real * C_real = S_real * buffer_real
-                  call pdgemm('N','N',n_g_size,n_states,n_g_size,1d0,S_real,1,1,&
-                              sc_desc,buffer_real,1,1,sc_desc,0d0,C_real,1,1,sc_desc)
+                  call pdtran(n_g_size,n_g_size,1d0,S_real,1,1,sc_desc,0d0,H_real,1,1,sc_desc)
+
+                  success = elpa_mult_at_b_real_double('L','N',n_g_size,n_g_size,H_real,&
+                               n_l_rows,n_l_cols,buffer_real,n_l_rows,n_l_cols,n_b_rows,&
+                               mpi_comm_row,mpi_comm_col,C_real,n_l_rows,n_l_cols)
                endif
 
          end select
@@ -1285,7 +1296,6 @@ subroutine elsi_solve_evp_elpa_sp()
       call elsi_to_original_ev_sp()
    endif
 
-   call MPI_Barrier(mpi_comm_self,mpierr)
    call elsi_stop_solve_evp_time()
 
 end subroutine
@@ -1308,7 +1318,6 @@ subroutine elsi_check_singularity_sp()
    real*8, allocatable :: ev_overlap(:)
    real*8, allocatable :: buffer_real(:,:)
    complex*16, allocatable :: buffer_complex(:,:)
-   integer, allocatable :: local_col(:)
    integer :: i,i_col
    logical :: success
 
@@ -1384,14 +1393,8 @@ subroutine elsi_check_singularity_sp()
                                             " overlap matrix for transformation")
 
                   ! Overlap matrix is overwritten with scaled eigenvectors
-                  ! Map global columns to local
-                  call elsi_allocate(local_col,n_g_size,"local_col",caller)
-
-
-                  ! Scale eigenvectors
                   do i = 1,n_nonsingular
                      ev_sqrt = SQRT(ev_overlap(i))
-                     !if(local_col(i) == 0) cycle
                      S_complex(:,i) = C_complex(:,i)/ev_sqrt
                   enddo
 
@@ -1465,14 +1468,8 @@ subroutine elsi_check_singularity_sp()
                                             " overlap matrix for transformation")
 
                   ! Overlap matrix is overwritten with scaled eigenvectors
-                  ! Map global columns to local
-                  call elsi_allocate(local_col,n_g_size,"local_col",caller)
-
-
-                  ! Scale eigenvectors
                   do i = 1,n_nonsingular
                      ev_sqrt = SQRT(ev_overlap(i))
-                 !    if(local_col(i) == 0) cycle
                      S_real(:,i) = C_real(:,i)/ev_sqrt
                   enddo
 
@@ -1494,7 +1491,6 @@ subroutine elsi_check_singularity_sp()
    end select ! select method
 
    if(allocated(ev_overlap))     deallocate(ev_overlap)
-   if(allocated(local_col))      deallocate(local_col)
    if(allocated(buffer_real))    deallocate(buffer_real)
    if(allocated(buffer_complex)) deallocate(buffer_complex)
 
