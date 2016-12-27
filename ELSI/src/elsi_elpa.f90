@@ -72,15 +72,15 @@ subroutine elsi_get_eigenvalues(e_val_out)
       case (ELPA)
          e_val_out(1:n_states) = eigenvalues(1:n_states)
       case (LIBOMM)
-         call elsi_stop(" libOMM does not compute eigenvalues! Exiting...", caller)
+         call elsi_stop(" libOMM does not compute eigenvalues! Exiting...",caller)
       case (PEXSI)
-         call elsi_stop(" PEXSI does not compute eigenvalues! Exiting...", caller)
+         call elsi_stop(" PEXSI does not compute eigenvalues! Exiting...",caller)
       case (CHESS)
-         call elsi_stop(" CHESS does not compute eigenvalues! Exiting...", caller)
+         call elsi_stop(" CHESS does not compute eigenvalues! Exiting...",caller)
       case DEFAULT
          call elsi_stop(" No supported method has been chosen. "//&
                         " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
-                        " Exiting...", caller)
+                        " Exiting...",caller)
    end select
 
 end subroutine
@@ -92,7 +92,7 @@ subroutine elsi_get_real_eigenvectors(e_vec_out)
 
    implicit none
 
-   real*8, intent(out) :: e_vec_out(n_l_rows, n_l_cols) !< Eigenvectors
+   real*8, intent(out) :: e_vec_out(n_l_rows,n_l_cols) !< Eigenvectors
 
    character*40, parameter :: caller = "elsi_get_real_eigenvectors"
 
@@ -100,15 +100,15 @@ subroutine elsi_get_real_eigenvectors(e_vec_out)
       case (ELPA)
          e_vec_out = C_real
       case (LIBOMM)
-         call elsi_stop(" libOMM does not compute eigenvectors! Exiting...", caller)
+         call elsi_stop(" libOMM does not compute eigenvectors! Exiting...",caller)
       case (PEXSI)
-         call elsi_stop(" PEXSI does not compute eigenvectors! Exiting...", caller)
+         call elsi_stop(" PEXSI does not compute eigenvectors! Exiting...",caller)
       case (CHESS)
-         call elsi_stop(" CHESS does not compute eigenvectors! Exiting...", caller)
+         call elsi_stop(" CHESS does not compute eigenvectors! Exiting...",caller)
       case DEFAULT
          call elsi_stop(" No supported method has been chosen. "//&
                         " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
-                        " Exiting...", caller)
+                        " Exiting...",caller)
    end select
 
 end subroutine
@@ -120,7 +120,7 @@ subroutine elsi_get_complex_eigenvectors(e_vec_out)
 
    implicit none
 
-   complex*16, intent(out) :: e_vec_out(n_l_rows, n_l_cols) !< Eigenvectors
+   complex*16, intent(out) :: e_vec_out(n_l_rows,n_l_cols) !< Eigenvectors
 
    character*40, parameter :: caller = "elsi_get_complex_eigenvectors"
 
@@ -128,15 +128,15 @@ subroutine elsi_get_complex_eigenvectors(e_vec_out)
       case (ELPA)
          e_vec_out = C_complex
       case (LIBOMM)
-         call elsi_stop(" libOMM does not compute eigenvectors! Exiting...", caller)
+         call elsi_stop(" libOMM does not compute eigenvectors! Exiting...",caller)
       case (PEXSI)
-         call elsi_stop(" PEXSI does not compute eigenvectors! Exiting...", caller)
+         call elsi_stop(" PEXSI does not compute eigenvectors! Exiting...",caller)
       case (CHESS)
-         call elsi_stop(" CHESS does not compute eigenvectors! Exiting...", caller)
+         call elsi_stop(" CHESS does not compute eigenvectors! Exiting...",caller)
       case DEFAULT
          call elsi_stop(" No supported method has been chosen. "//&
                         " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
-                        " Exiting...", caller)
+                        " Exiting...",caller)
    end select
 
 end subroutine
@@ -181,14 +181,14 @@ subroutine elsi_compute_occ_elpa()
       mu_upper = e_high
    endif
 
-   if(.not.allocated(occ_elpa)) then
-       call elsi_allocate(occ_elpa, n_states, "occ_elpa", caller)
+   if(.not.ALLOCATED(occ_elpa)) then
+       call elsi_allocate(occ_elpa,n_states,"occ_elpa",caller)
    endif
    occ_elpa = 0d0
 
    ! Compute the difference of number of electrons
-   call elsi_get_ne(mu_lower, diff_ne_lower)
-   call elsi_get_ne(mu_upper, diff_ne_upper)
+   call elsi_get_ne(mu_lower,diff_ne_lower)
+   call elsi_get_ne(mu_upper,diff_ne_upper)
 
    ! If diff_ne_lower*diff_ne_upper > 0, it means that the solution is
    ! not in this interval.
@@ -198,19 +198,19 @@ subroutine elsi_compute_occ_elpa()
       n_steps = n_steps+1
       if(n_steps > max_steps) then
          call elsi_stop(" Chemical potential not found in 100 iterations! "//&
-                        " Exiting...", caller)
+                        " Exiting...",caller)
       endif
 
-      mu_lower = mu_lower-0.5d0*abs(e_high-e_low)
-      mu_upper = mu_upper+0.5d0*abs(e_high-e_low)
+      mu_lower = mu_lower-0.5d0*ABS(e_high-e_low)
+      mu_upper = mu_upper+0.5d0*ABS(e_high-e_low)
 
-      call elsi_get_ne(mu_lower, diff_ne_lower)
-      call elsi_get_ne(mu_upper, diff_ne_upper)
+      call elsi_get_ne(mu_lower,diff_ne_lower)
+      call elsi_get_ne(mu_upper,diff_ne_upper)
    enddo
 
    ! At this point we should have the correct interval for chemical potential.
    ! Use simple bisection algorithm to find the solution.
-   call elsi_get_mu(mu_lower, mu_upper, mu)
+   call elsi_get_mu(mu_lower,mu_upper,mu)
 
 end subroutine
 
@@ -241,16 +241,16 @@ subroutine elsi_get_ne(mu_in,diff_ne_out)
       case(GAUSSIAN)
          do i_state = 1,n_states
             occ_elpa(i_state) = &
-               n_spin*0.5d0*(1-erf((eigenvalues(i_state)-mu_in)*invert_width))
+               n_spin*0.5d0*(1-ERF((eigenvalues(i_state)-mu_in)*invert_width))
             diff_ne_out = diff_ne_out+occ_elpa(i_state)
          enddo
 
       case(FERMI)
-         max_exp = maxexponent(mu_in)*log(2d0)
+         max_exp = MAXEXPONENT(mu_in)*LOG(2d0)
          do i_state = 1,n_states
             this_exp = (eigenvalues(i_state)-mu_in)*invert_width
             if(this_exp < max_exp) then
-               occ_elpa(i_state) = n_spin/(1+exp(this_exp))
+               occ_elpa(i_state) = n_spin/(1+EXP(this_exp))
                diff_ne_out = diff_ne_out+occ_elpa(i_state)
             else ! Exponent in this step is larger than the largest possible exponent
                occ_elpa(i_state) = 0d0
@@ -259,7 +259,7 @@ subroutine elsi_get_ne(mu_in,diff_ne_out)
 
       case DEFAULT
          call elsi_stop(" No supperted broadening scheme has been chosen. "//&
-                        " Exiting...", caller)
+                        " Exiting...",caller)
    end select
 
 end subroutine
@@ -295,13 +295,13 @@ subroutine elsi_get_mu(mu_lower_in,mu_upper_in,mu_out)
    mu_right = mu_upper_in
 
    do while(.not.found_mu)
-      call elsi_get_ne(mu_left, diff_left)
-      call elsi_get_ne(mu_right, diff_right)
+      call elsi_get_ne(mu_left,diff_left)
+      call elsi_get_ne(mu_right,diff_right)
 
-      if(abs(diff_left) < occ_tolerance) then
+      if(ABS(diff_left) < occ_tolerance) then
          mu_out = mu_left
          found_mu = .true.
-      elseif(abs(diff_right) < occ_tolerance) then
+      elseif(ABS(diff_right) < occ_tolerance) then
          mu_out = mu_right
          found_mu = .true.
       else
@@ -310,12 +310,12 @@ subroutine elsi_get_mu(mu_lower_in,mu_upper_in,mu_out)
          n_steps = n_steps+1
          if(n_steps > max_steps) then
             call elsi_stop(" Chemical potential not found in 100 iterations! "//&
-                           " Exiting...", caller)
+                           " Exiting...",caller)
          endif
 
-         call elsi_get_ne(mu_mid, diff_mid)
+         call elsi_get_ne(mu_mid,diff_mid)
 
-         if(abs(diff_mid) < occ_tolerance) then
+         if(ABS(diff_mid) < occ_tolerance) then
             mu_out = mu_mid
             found_mu = .true.
          elseif(diff_mid < 0) then
@@ -326,9 +326,9 @@ subroutine elsi_get_mu(mu_lower_in,mu_upper_in,mu_out)
       endif
    enddo
 
-   write(info_str,"(A,F15.5,A)") "  | Chemical potential = ", mu_out, " Ha"
+   write(info_str,"(A,F15.5,A)") "  | Chemical potential = ",mu_out," Ha"
    call elsi_statement_print(info_str)
-   write(info_str,"(A,F15.5,A)") "  |                    = ", mu_out*hartree, " eV"
+   write(info_str,"(A,F15.5,A)") "  |                    = ",mu_out*hartree," eV"
    call elsi_statement_print(info_str)
 
 end subroutine
@@ -356,7 +356,7 @@ subroutine elsi_compute_dm_elpa(D_out)
 
    select case (method)
       case (ELPA)
-         if(.not.allocated(D_elpa)) then
+         if(.not.ALLOCATED(D_elpa)) then
             call elsi_allocate(D_elpa,n_l_rows,n_l_cols,"D_elpa",caller)
          endif
          D_elpa = 0d0
@@ -427,17 +427,17 @@ subroutine elsi_compute_dm_elpa(D_out)
                !call pzherk('U','N',n_g_size,n_states,(1d0,0d0),tmp_complex,1,1,sc_desc,&
                !            (0d0,0d0),D_out_tmp,1,1,sc_desc)
 
-               call pdsyrk('U','N',n_g_size,n_states,1d0,real(tmp_complex),1,1,sc_desc,&
+               call pdsyrk('U','N',n_g_size,n_states,1d0,REAL(tmp_complex),1,1,sc_desc,&
                            0d0,D_out,1,1,sc_desc)
-               call pdsyrk('U','N',n_g_size,n_states,1d0,aimag(tmp_complex),1,1,sc_desc,&
+               call pdsyrk('U','N',n_g_size,n_states,1d0,AIMAG(tmp_complex),1,1,sc_desc,&
                            0d0,D_out_tmp,1,1,sc_desc)
 
                D_out = D_out+D_out_tmp
          end select
 
          deallocate(factor)
-         if(allocated(tmp_real))    deallocate(tmp_real)
-         if(allocated(tmp_complex)) deallocate(tmp_complex)
+         if(ALLOCATED(tmp_real))    deallocate(tmp_real)
+         if(ALLOCATED(tmp_complex)) deallocate(tmp_complex)
 
          ! Now D_out is an upper triangle matrix
          ! Set D_out to full
@@ -658,8 +658,8 @@ subroutine elsi_to_standard_evp()
                         " Exiting...",caller)
    end select
 
-   if(allocated(buffer_real))    deallocate(buffer_real)
-   if(allocated(buffer_complex)) deallocate(buffer_complex)
+   if(ALLOCATED(buffer_real))    deallocate(buffer_real)
+   if(ALLOCATED(buffer_complex)) deallocate(buffer_complex)
 
 end subroutine
 
@@ -852,9 +852,9 @@ subroutine elsi_check_singularity()
                         " Exiting...",caller)
    end select ! select method
 
-   if(allocated(ev_overlap))     deallocate(ev_overlap)
-   if(allocated(buffer_real))    deallocate(buffer_real)
-   if(allocated(buffer_complex)) deallocate(buffer_complex)
+   if(ALLOCATED(ev_overlap))     deallocate(ev_overlap)
+   if(ALLOCATED(buffer_real))    deallocate(buffer_real)
+   if(ALLOCATED(buffer_complex)) deallocate(buffer_complex)
 
 end subroutine
 
@@ -928,8 +928,8 @@ subroutine elsi_to_original_ev()
                         " Exiting...",caller)
    end select
 
-   if(allocated(buffer_real))    deallocate(buffer_real)
-   if(allocated(buffer_complex)) deallocate(buffer_complex)
+   if(ALLOCATED(buffer_real))    deallocate(buffer_real)
+   if(ALLOCATED(buffer_complex)) deallocate(buffer_complex)
 
 end subroutine
 
@@ -1160,8 +1160,8 @@ subroutine elsi_to_standard_evp_sp()
                         " Exiting...",caller)
    end select
 
-   if(allocated(buffer_real))    deallocate(buffer_real)
-   if(allocated(buffer_complex)) deallocate(buffer_complex)
+   if(ALLOCATED(buffer_real))    deallocate(buffer_real)
+   if(ALLOCATED(buffer_complex)) deallocate(buffer_complex)
 
 end subroutine
 
@@ -1221,8 +1221,8 @@ subroutine elsi_to_original_ev_sp()
                         " Exiting...",caller)
    end select
 
-   if(allocated(buffer_real))    deallocate(buffer_real)
-   if(allocated(buffer_complex)) deallocate(buffer_complex)
+   if(ALLOCATED(buffer_real))    deallocate(buffer_real)
+   if(ALLOCATED(buffer_complex)) deallocate(buffer_complex)
 
 end subroutine
 
@@ -1490,9 +1490,9 @@ subroutine elsi_check_singularity_sp()
                         " Exiting...",caller)
    end select ! select method
 
-   if(allocated(ev_overlap))     deallocate(ev_overlap)
-   if(allocated(buffer_real))    deallocate(buffer_real)
-   if(allocated(buffer_complex)) deallocate(buffer_complex)
+   if(ALLOCATED(ev_overlap))     deallocate(ev_overlap)
+   if(ALLOCATED(buffer_real))    deallocate(buffer_real)
+   if(ALLOCATED(buffer_complex)) deallocate(buffer_complex)
 
 end subroutine
 
