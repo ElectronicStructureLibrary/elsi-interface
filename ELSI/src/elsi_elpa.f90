@@ -892,7 +892,7 @@ subroutine elsi_to_original_ev()
                   call pztranc(n_g_size,n_g_size,(1d0,0d0),S_complex,1,1,sc_desc,&
                                (0d0,0d0),H_complex,1,1,sc_desc)
 
-                  success = elpa_mult_ah_b_complex_double('L','N',n_g_size,n_g_size,&
+                  success = elpa_mult_ah_b_complex_double('L','N',n_g_size,n_states,&
                                H_complex,n_l_rows,n_l_cols,buffer_complex,n_l_rows,&
                                n_l_cols,n_b_rows,mpi_comm_row,mpi_comm_col,C_complex,&
                                n_l_rows,n_l_cols)
@@ -911,7 +911,7 @@ subroutine elsi_to_original_ev()
                   ! C_real = S_real * C_real = S_real * buffer_real
                   call pdtran(n_g_size,n_g_size,1d0,S_real,1,1,sc_desc,0d0,H_real,1,1,sc_desc)
 
-                  success = elpa_mult_at_b_real_double('L','N',n_g_size,n_g_size,H_real,&
+                  success = elpa_mult_at_b_real_double('L','N',n_g_size,n_states,H_real,&
                                n_l_rows,n_l_cols,buffer_real,n_l_rows,n_l_cols,n_b_rows,&
                                mpi_comm_row,mpi_comm_col,C_real,n_l_rows,n_l_cols)
                endif

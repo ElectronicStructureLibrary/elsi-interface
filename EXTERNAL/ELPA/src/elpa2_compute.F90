@@ -49,9 +49,7 @@
 ! consortium. The copyright of any additional modifications shall rest
 ! with their original authors, but shall adhere to the licensing terms
 ! distributed along with the original code in the file "COPYING".
-
-
-
+!
 ! ELPA2 -- 2-stage solver for ELPA
 !
 ! Copyright of the original code rests with the authors inside the ELPA
@@ -59,17 +57,11 @@
 ! with their original authors, but shall adhere to the licensing terms
 ! distributed along with the original code in the file "COPYING".
 
-#ifndef ELSI_INSTALLER
-#include "config-f90.h"
-#endif
-
 module ELPA2_compute
-
-! Version 1.1.2, 2011-02-21
 
   use ELPA_utilities
   USE ELPA1_compute
-  use elpa1, only : elpa_print_times, time_evp_back, time_evp_fwd, time_evp_solve
+  use elpa1, only : elpa_print_times,time_evp_back,time_evp_fwd,time_evp_solve
   use elpa2_utilities
   use elpa_pdgeqrf
   use precision
@@ -78,42 +70,30 @@ module ELPA2_compute
 
   implicit none
 
-  PRIVATE ! By default, all routines contained are private
+  private
 
   public :: bandred_real_double
   public :: tridiag_band_real_double
   public :: trans_ev_tridi_to_band_real_double
   public :: trans_ev_band_to_full_real_double
 
-#ifdef WANT_SINGLE_PRECISION_REAL
-  public :: bandred_real_single
-  public :: tridiag_band_real_single
-  public :: trans_ev_tridi_to_band_real_single
-  public :: trans_ev_band_to_full_real_single
-#endif
-
   public :: bandred_complex_double
   public :: tridiag_band_complex_double
   public :: trans_ev_tridi_to_band_complex_double
   public :: trans_ev_band_to_full_complex_double
 
-#ifdef WANT_SINGLE_PRECISION_COMPLEX
-  public :: bandred_complex_single
-  public :: tridiag_band_complex_single
-  public :: trans_ev_tridi_to_band_complex_single
-  public :: trans_ev_band_to_full_complex_single
-#endif
   public :: band_band_real_double
   public :: divide_band
 
-  integer(kind=ik), public :: which_qr_decomposition = 1     ! defines, which QR-decomposition algorithm will be used
-                                                    ! 0 for unblocked
-                                                    ! 1 for blocked (maxrank: nblk)
-  contains
+  integer(kind=ik), public :: which_qr_decomposition = 1
+  ! defines, which QR-decomposition algorithm will be used
+  ! 0 for unblocked
+  ! 1 for blocked (maxrank: nblk)
 
-! real double precision first
+contains
+
+! real double
 #define DOUBLE_PRECISION_REAL 1
-
 #define REAL_DATATYPE rk8
 #define BYTESIZE 8
 #define REALCASE 1
@@ -123,23 +103,8 @@ module ELPA2_compute
 #undef BYTESIZE
 #undef REALCASE
 
-! single precision
-#ifdef WANT_SINGLE_PRECISION_REAL
-
-#undef DOUBLE_PRECISION_REAL
-#define REAL_DATATYPE rk4
-#define BYTESIZE 4
-#define REALCASE 1
-#include "redist_band.X90"
-#undef REAL_DATATYPE
-#undef BYTESIZE
-#undef REALCASE
-
-#endif
-
 ! double precision
 #define DOUBLE_PRECISION_COMPLEX 1
-
 #define COMPLEX_DATATYPE ck8
 #define BYTESIZE 16
 #define COMPLEXCASE 1
@@ -149,67 +114,20 @@ module ELPA2_compute
 #undef COMPLEXCASE
 #undef DOUBLE_PRECISION_COMPLEX
 
-#ifdef WANT_SINGLE_PRECISION_COMPLEX
-
-#undef DOUBLE_PRECISION_COMPLEX
-#undef DOUBLE_PRECISION_REAL
-#define COMPLEX_DATATYPE ck4
-#define COMPLEXCASE 1
-#include "redist_band.X90"
-#undef COMPLEX_DATATYPE
-#undef BYTESIZE
-#undef COMPLEXCASE
-
-#endif /* WANT_SINGLE_PRECISION_COMPLEX */
-
-
-
-! real double precision
+! real double
 #define DOUBLE_PRECISION_REAL 1
 #define REAL_DATATYPE rk8
-
 #include "elpa2_compute_real_template.X90"
-
 #undef DOUBLE_PRECISION_REAL
 #undef REAL_DATATYPE
 
-! real single precision
-#if defined(WANT_SINGLE_PRECISION_REAL)
-
-#undef DOUBLE_PRECISION_REAL
-#define REAL_DATATYPE rk4
-
-#include "elpa2_compute_real_template.X90"
-
-#undef DOUBLE_PRECISION_REAL
-#undef REAL_DATATYPE
-
-#endif /* WANT_SINGLE_PRECISION_REAL */
-
-! complex double precision
+! complex double
 #define DOUBLE_PRECISION_COMPLEX 1
 #define REAL_DATATYPE rk8
 #define COMPLEX_DATATYPE ck8
 #include "elpa2_compute_complex_template.X90"
-
 #undef DOUBLE_PRECISION_COMPLEX
 #undef REAL_DATATYPE
 #undef COMPLEX_DATATYPE
-
-
-! complex single precision
-#if defined(WANT_SINGLE_PRECISION_COMPLEX)
-
-#undef DOUBLE_PRECISION_COMPLEX
-#define REAL_DATATYPE rk4
-#define COMPLEX_DATATYPE ck4
-
-#include "elpa2_compute_complex_template.X90"
-
-#undef DOUBLE_PRECISION_COMPLEX
-#undef COMPLEX_DATATYPE
-#undef REAL_DATATYPE
-
-#endif /* WANT_SINGLE_PRECISION_COMPLEX */
 
 end module ELPA2_compute
