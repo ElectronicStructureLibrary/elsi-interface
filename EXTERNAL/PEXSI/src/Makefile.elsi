@@ -32,7 +32,7 @@ all: ${PEXSI_LIB}
 -include ${DEPS}
 
 ${PEXSI_LIB}: ${OBJS}
-	$(AR) $(ARFLAGS) $(PEXSI_LIB) ${OBJS}
+	$(ARCHIVE) $(ARCHIVEFLAGS) $(PEXSI_LIB) ${OBJS}
 	$(RANLIB) $(PEXSI_LIB)
 
 clean:

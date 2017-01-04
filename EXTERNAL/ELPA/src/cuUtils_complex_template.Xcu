@@ -45,17 +45,11 @@
 //
 // --------------------------------------------------------------------------------------------------
 //
-// This file was originally written by NVIDIA
-// and re-written by A. Marek, MPCDF
 
 #include <cuda_runtime.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <cuComplex.h>
-
-#ifndef ELSI_INSTALLER
-#include "config-f90.h"
-#endif
 
 // Reset a reduction block
 // Limitation: the thread-block size must be a divider of the reduction block's size
@@ -699,4 +693,3 @@ extern "C" void launch_compute_kernel_reduce_1_single( cuFloatComplex* a_dev, in
         }
 
 }
-

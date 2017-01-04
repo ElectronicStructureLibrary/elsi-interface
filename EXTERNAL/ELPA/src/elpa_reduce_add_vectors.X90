@@ -40,30 +40,17 @@
 !    any derivatives of ELPA under the same license that we chose for
 !    the original distribution, the GNU Lesser General Public License.
 !
-! Author: Andreas Marek, MPCDF
-#endif
-
-#ifndef ELSI_INSTALLER
-#include "config-f90.h"
 #endif
 
 #if REALCASE==1
 
-#ifdef DOUBLE_PRECISION_REAL
 subroutine elpa_reduce_add_vectors_real_double(vmat_s,ld_s,comm_s,vmat_t,ld_t,comm_t,nvr,nvc,nblk)
-#else
-subroutine elpa_reduce_add_vectors_real_single(vmat_s,ld_s,comm_s,vmat_t,ld_t,comm_t,nvr,nvc,nblk)
-#endif
 
 #endif /* REALCASE == 1 */
 
 #if COMPLEXCASE==1
 
-#ifdef DOUBLE_PRECISION_COMPLEX
 subroutine elpa_reduce_add_vectors_complex_double(vmat_s,ld_s,comm_s,vmat_t,ld_t,comm_t,nvr,nvc,nblk)
-#else
-subroutine elpa_reduce_add_vectors_complex_single(vmat_s,ld_s,comm_s,vmat_t,ld_t,comm_t,nvr,nvc,nblk)
-#endif
 
 #endif /* COMPLEXCASE == 1 */
 
@@ -89,16 +76,12 @@ subroutine elpa_reduce_add_vectors_complex_single(vmat_s,ld_s,comm_s,vmat_t,ld_t
 !-------------------------------------------------------------------------------
 
    use precision
-!   use ELPA1 ! for least_common_multiple
 #ifdef WITH_OPENMP
    use omp_lib
 #endif
    use elpa_mpi
-#ifdef HAVE_DETAILED_TIMINGS
-   use timings
-#endif
-   implicit none
 
+   implicit none
 
    integer(kind=ik), intent(in)              :: ld_s, comm_s, ld_t, comm_t, nvr, nvc, nblk
    DATATYPE, intent(in)                      :: vmat_s(ld_s,nvc)
@@ -109,23 +92,7 @@ subroutine elpa_reduce_add_vectors_complex_single(vmat_s,ld_s,comm_s,vmat_t,ld_t
    integer(kind=ik)                          :: n, lc, k, i, ips, ipt, ns, nl, mpierr
    integer(kind=ik)                          :: lcm_s_t, nblks_tot
    integer(kind=ik)                          :: auxstride, tylerk, error_unit
-#ifdef HAVE_DETAILED_TIMINGS
-#if COMPLEXCASE == 1
-#ifdef DOUBLE_PRECISION_COMPLEX
-   call timer%start("elpa_reduce_add_vectors_complex_double")
-#else
-   call timer%start("elpa_reduce_add_vectors_complex_single")
-#endif
 
-#else
-#ifdef DOUBLE_PRECISION_REAL
-   call timer%start("elpa_reduce_add_vectors_double")
-#else
-   call timer%start("elpa_reduce_add_vectors_single")
-#endif
-
-#endif
-#endif
    call mpi_comm_rank(comm_s,myps,mpierr)
    call mpi_comm_size(comm_s,nps ,mpierr)
    call mpi_comm_rank(comm_t,mypt,mpierr)
@@ -180,21 +147,13 @@ subroutine elpa_reduce_add_vectors_complex_single(vmat_s,ld_s,comm_s,vmat_t,ld_t
 
 #if REALCASE==1
 
-#ifdef DOUBLE_PRECISION_REAL
          if(k>0) call mpi_reduce(aux1, aux2, k, MPI_REAL8, MPI_SUM, ipt, comm_t, mpierr)
-#else
-         if(k>0) call mpi_reduce(aux1, aux2, k, MPI_REAL4, MPI_SUM, ipt, comm_t, mpierr)
-#endif
 
 #endif /* REALCASE==1 */
 
 #if COMPLEXCASE==1
 
-#ifdef DOUBLE_PRECISION_COMPLEX
          if(k>0) call mpi_reduce(aux1, aux2, k, MPI_DOUBLE_COMPLEX, MPI_SUM, ipt, comm_t, mpierr)
-#else
-         if(k>0) call mpi_reduce(aux1, aux2, k, MPI_COMPLEX, MPI_SUM, ipt, comm_t, mpierr)
-#endif
 
 #endif /* COMPLEXCASE == 1 */
 
@@ -231,24 +190,5 @@ subroutine elpa_reduce_add_vectors_complex_single(vmat_s,ld_s,comm_s,vmat_t,ld_t
 
    deallocate(aux1)
    deallocate(aux2)
-#ifdef HAVE_DETAILED_TIMINGS
-#if COMPLEXCASE == 1
-#ifdef DOUBLE_PRECISION_COMPLEX
-   call timer%stop("elpa_reduce_add_vectors_complex_double")
-#else
-   call timer%stop("elpa_reduce_add_vectors_complex_single")
-#endif
-
-#else
-#ifdef DOUBLE_PRECISION_REAL
-   call timer%stop("elpa_reduce_add_vectors_double")
-#else
-   call timer%stop("elpa_reduce_add_vectors_single")
-#endif
-
-#endif
-#endif
 
 end subroutine
-
-

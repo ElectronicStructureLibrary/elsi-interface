@@ -1,4 +1,4 @@
-# VERIFIED: DEC 19, 2016
+# VERIFIED: JAN 3, 2017
 # DO READ ../INSTALL CAREFULLY!
 
 # ====== ELSI ======
@@ -18,7 +18,10 @@ SCALAPACK_LDFLAGS = -mkl=cluster
 TOMATO_SEED = /global/homes/v/vwzyu/tomato-seed
 
 # ====== ELPA ======
-ARCHITECTURE = Generic
+ARCHITECTURE  = AVX
+BLOCK_REAL    = 2
+BLOCK_COMPLEX = 1
+
 OPENMP = no
 
 # ====== PEXSI ======

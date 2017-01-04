@@ -45,34 +45,13 @@
 //
 // --------------------------------------------------------------------------------------------------
 //
-// This file was originally written by NVIDIA
-// and re-written by A. Marek, MPCDF
 
-#ifndef ELSI_INSTALLER
-#include "config-f90.h"
-#endif
-
-// The real part
+// real
 #define DOUBLE_PRECISION_REAL 1
 #include "cuUtils_real_template.Xcu"
 #undef DOUBLE_PRECISION_REAL
 
-#if WANT_SINGLE_PRECISION_REAL
-
-#undef DOUBLE_PRECISION_REAL
-#include "cuUtils_real_template.Xcu"
-
-#endif
-
-// The complex part
+// complex
 #define DOUBLE_PRECISION_COMPLEX 1
 #include "cuUtils_complex_template.Xcu"
 #undef DOUBLE_PRECISION_COMPLEX
-
-#if WANT_SINGLE_PRECISION_COMPLEX
-
-#undef DOUBLE_PRECISION_COMPLEX
-#include "cuUtils_complex_template.Xcu"
-
-#endif
-

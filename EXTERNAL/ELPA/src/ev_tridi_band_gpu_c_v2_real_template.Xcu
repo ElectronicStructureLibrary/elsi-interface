@@ -45,39 +45,10 @@
 //
 // --------------------------------------------------------------------------------------------------
 //
-// This file was originally written by NVIDIA
-// and re-written by A. Marek, MPCDF
-
 
 #include <stdio.h>
 #include <cuda_runtime.h>
 #include <stdlib.h>
-
-#ifndef ELSI_INSTALLER
-#include "config-f90.h"
-#endif
-
-#if 0
-static __device__ __forceinline__ cuDoubleComplex  shfl_xor_complex(cuDoubleComplex r, int mask)
-{
-    double real = cuCreal(r) ;
-    double imag =  cuCimag(r);
-
-
-    int hr = __shfl_xor(__double2hiint(real), mask);
-    int lr = __shfl_xor(__double2loint(real), mask);
-
-    int hi = __shfl_xor(__double2hiint(imag), mask);
-    int li = __shfl_xor(__double2loint(imag), mask);
-
-
-
-    real =      __hiloint2double(hr, lr);
-    imag = __hiloint2double(hi, li);
-    return       make_cuDoubleComplex(real, imag);
-
-}
-#endif
 
 //#ifndef ALREADY_DEFINED_SYNC
 //// Synchronization wrapper, removing explicit synchronization when the thread-block is at most 32 threads (1 warp) in size
@@ -352,4 +323,3 @@ __global__ void __launch_bounds__(128) compute_hh_trafo_c_kernel_single(float * 
             printf("Error: please use a power-of-2 SCALAPACK block size which is between 1 and 128.\n");
     }
 }
-

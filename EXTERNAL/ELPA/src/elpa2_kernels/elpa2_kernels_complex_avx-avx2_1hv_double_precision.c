@@ -60,10 +60,6 @@
 // Adapted for building a shared-library by Andreas Marek, MPCDF (andreas.marek@mpcdf.mpg.de)
 // --------------------------------------------------------------------------------------------------
 
-#ifndef ELSI_INSTALLER
-#include "config-f90.h"
-#endif
-
 #include <complex.h>
 #include <x86intrin.h>
 

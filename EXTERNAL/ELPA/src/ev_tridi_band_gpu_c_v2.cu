@@ -45,37 +45,18 @@
 //
 // --------------------------------------------------------------------------------------------------
 //
-// This file was originally written by NVIDIA
-// and re-written by A. Marek, MPCDF
-
 
 #include <stdio.h>
 #include <cuda_runtime.h>
 #include <stdlib.h>
 #include <cuComplex.h>
 
-#ifndef ELSI_INSTALLER
-#include "config-f90.h"
-#endif
-
-//the complex part
+// complex
 #define DOUBLE_PRECISION_COMPLEX 1
 #include "ev_tridi_band_gpu_c_v2_complex_template.Xcu"
 #undef DOUBLE_PRECISION_COMPLEX
 
-#ifdef WANT_SINGLE_PRECISION_COMPLEX
-#undef DOUBLE_PRECISION_COMPLEX
-#include "ev_tridi_band_gpu_c_v2_complex_template.Xcu"
-#endif
-
-
-//the real part
+// real
 #define DOUBLE_PRECISION_REAL 1
 #include "ev_tridi_band_gpu_c_v2_real_template.Xcu"
 #undef DOUBLE_PRECISION_REAL
-
-#ifdef WANT_SINGLE_PRECISION_REAL
-#undef DOUBLE_PRECISION_REAL
-#include "ev_tridi_band_gpu_c_v2_real_template.Xcu"
-#endif
-

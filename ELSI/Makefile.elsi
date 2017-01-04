@@ -47,7 +47,7 @@ clean:
 	rm -rf lib include bin
 
 install:
-	$(AR) $(ARFLAGS) libelsi.a *.o
+	$(ARCHIVE) $(ARCHIVEFLAGS) libelsi.a *.o
 	$(RANLIB) libelsi.a
 	mkdir -p lib
 	cp libelsi.a lib/.

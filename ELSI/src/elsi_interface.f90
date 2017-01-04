@@ -183,18 +183,19 @@ end subroutine
 !>
 !! Set MPI.
 !!
-subroutine elsi_set_mpi(mpi_comm_global_in,n_procs_in,myid_in)
+subroutine elsi_set_mpi(mpi_comm_global_in)
 
    implicit none
+   include "mpif.h"
 
-   integer, intent(in) :: myid_in            !< local process id
-   integer, intent(in) :: n_procs_in         !< number of mpi processes
    integer, intent(in) :: mpi_comm_global_in !< global mpi communicator
 
    if(parallelism == 1) then ! MULTI_PROC
       mpi_comm_global = mpi_comm_global_in
-      n_procs = n_procs_in
-      myid = myid_in
+
+      call MPI_Comm_rank(mpi_comm_global,myid,mpierr)
+      call MPI_Comm_size(mpi_comm_global,n_procs,mpierr)
+
       mpi_is_setup = .true.
    endif
 
@@ -203,21 +204,20 @@ end subroutine
 !>
 !! Set BLACS.
 !!
-subroutine elsi_set_blacs(blacs_ctxt_in,n_b_rows_in,n_b_cols_in,n_p_rows_in,&
-                          n_p_cols_in,mpi_comm_row_in,mpi_comm_col_in)
+subroutine elsi_set_blacs(blacs_ctxt_in,n_b_rows_in,n_b_cols_in,&
+                          n_p_rows_in,n_p_cols_in)
 
    implicit none
 
-   integer, intent(in) :: blacs_ctxt_in             !< BLACS context
-   integer, intent(in) :: n_b_rows_in               !< Block size
-   integer, intent(in) :: n_b_cols_in               !< Block size
-   integer, intent(in) :: n_p_rows_in               !< Number of processes in row
-   integer, intent(in) :: n_p_cols_in               !< Number of processes in column
-   integer, intent(in), optional :: mpi_comm_row_in !< row communicatior for ELPA
-   integer, intent(in), optional :: mpi_comm_col_in !< column communicatior for ELPA
+   integer, intent(in) :: blacs_ctxt_in !< BLACS context
+   integer, intent(in) :: n_b_rows_in   !< Block size
+   integer, intent(in) :: n_b_cols_in   !< Block size
+   integer, intent(in) :: n_p_rows_in   !< Number of processes in row
+   integer, intent(in) :: n_p_cols_in   !< Number of processes in column
 
    integer :: i,i_row,i_col
    integer :: blacs_info
+
    character*40, parameter :: caller = "elsi_set_blacs"
 
    if(parallelism == 1) then ! MULTI_PROC
@@ -233,8 +233,8 @@ subroutine elsi_set_blacs(blacs_ctxt_in,n_b_rows_in,n_b_cols_in,n_p_rows_in,&
       call descinit(sc_desc,n_g_size,n_g_size,n_b_rows,n_b_cols,0,0,&
                     blacs_ctxt,MAX(1,n_l_rows),blacs_info)
 
-      mpi_comm_row = mpi_comm_row_in
-      mpi_comm_col = mpi_comm_col_in
+      call elsi_get_elpa_comms(mpi_comm_global,my_p_row,my_p_col,&
+                               mpi_comm_row,mpi_comm_col)
 
       ! Compute global-local mapping
       call elsi_allocate(local_row,n_g_size,"local_row",caller)
@@ -275,10 +275,9 @@ subroutine elsi_get_energy(energy_out)
 
    ! Only spin-nonpolarized case is supported now.
    real*8, parameter :: n_spin = 2d0
-
    integer :: i_state
-
    character*200 :: info_str
+
    character*40, parameter :: caller = "elsi_get_energy"
 
    select case (method)

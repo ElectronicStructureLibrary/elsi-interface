@@ -40,32 +40,105 @@
 !    the original distribution, the GNU Lesser General Public License.
 !
 !
-! ELPA1 -- Faster replacements for ScaLAPACK symmetric eigenvalue routines
-!
-! Copyright of the original code rests with the authors inside the ELPA
-! consortium. The copyright of any additional modifications shall rest
-! with their original authors, but shall adhere to the licensing terms
-! distributed along with the original code in the file "COPYING".
-
-
-
-! ELPA2 -- 2-stage solver for ELPA
-!
 ! Copyright of the original code rests with the authors inside the ELPA
 ! consortium. The copyright of any additional modifications shall rest
 ! with their original authors, but shall adhere to the licensing terms
 ! distributed along with the original code in the file "COPYING".
 !
-! This file was written by A. Marek, MPCDF
+! Author: Andreas Marek, MPCDF
 
-#include "config-f90.h"
-
-module timings
-  use ftimings
+module ELPA_utilities
 
   implicit none
 
-  type(timer_t) :: timer
+  private
 
+  public :: debug_messages_via_environment_variable,pcol,prow,error_unit
+  public :: map_global_array_index_to_local_index
 
-end module timings
+  integer, parameter :: error_unit = 0
+
+contains
+
+  function debug_messages_via_environment_variable() result(isSet)
+
+    use precision
+
+    implicit none
+
+    logical :: isSet
+
+    isSet = .false.
+
+  end function debug_messages_via_environment_variable
+
+  !Processor col for global col number
+  pure function pcol(i,nblk,np_cols) result(col)
+
+    use precision
+
+    implicit none
+
+    integer(kind=ik), intent(in) :: i,nblk,np_cols
+    integer(kind=ik)             :: col
+
+    col = MOD((i-1)/nblk,np_cols)
+
+  end function
+
+  !Processor row for global row number
+  pure function prow(i,nblk,np_rows) result(row)
+
+    use precision
+
+    implicit none
+
+    integer(kind=ik), intent(in) :: i,nblk,np_rows
+    integer(kind=ik)             :: row
+
+    row = MOD((i-1)/nblk,np_rows)
+
+  end function
+
+  function map_global_array_index_to_local_index(iGLobal,jGlobal,iLocal,jLocal,nblk,np_rows,np_cols,my_prow,my_pcol) &
+    result(possible)
+
+    use precision
+
+    implicit none
+
+    integer(kind=ik)              :: pi, pj, li, lj, xi, xj
+    integer(kind=ik), intent(in)  :: iGlobal, jGlobal, nblk, np_rows, np_cols, my_prow, my_pcol
+    integer(kind=ik), intent(out) :: iLocal, jLocal
+    logical                       :: possible
+
+    possible = .true.
+    iLocal = 0
+    jLocal = 0
+
+    pi = prow(iGlobal,nblk,np_rows)
+
+    if(my_prow .ne. pi) then
+       possible = .false.
+       return
+    endif
+
+    pj = pcol(jGlobal,nblk,np_cols)
+
+    if(my_pcol .ne. pj) then
+       possible = .false.
+       return
+    endif
+
+    li = (iGlobal-1)/(np_rows*nblk) ! block number for rows
+    lj = (jGlobal-1)/(np_cols*nblk) ! block number for columns
+
+    xi = mod((iGlobal-1),nblk)+1    ! offset in block li
+    xj = mod((jGlobal-1),nblk)+1    ! offset in block lj
+
+    iLocal = li*nblk+xi
+    jLocal = lj*nblk+xj
+
+  end function
+
+end module ELPA_utilities

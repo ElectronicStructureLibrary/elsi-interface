@@ -60,10 +60,6 @@
 // Adapted for building a shared-library by Andreas Marek, MPCDF (andreas.marek@mpcdf.mpg.de)
 // --------------------------------------------------------------------------------------------------
 
-#ifndef ELSI_INSTALLER
-#include "config-f90.h"
-#endif
-
 #include <x86intrin.h>
 
 #define __forceinline __attribute__((always_inline)) static
@@ -1320,4 +1316,3 @@ __forceinline void hh_trafo_kernel_4_AVX_4hv_double(double* q, double* hh, int n
 #endif
 	_mm256_store_pd(&q[(nb+2)*ldq],q1);
 }
-

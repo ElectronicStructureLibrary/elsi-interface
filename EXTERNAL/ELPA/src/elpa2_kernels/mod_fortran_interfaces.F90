@@ -1,7 +1,3 @@
-#ifndef ELSI_INSTALLER
-#include "config-f90.h"
-#endif
-
 module kernel_interfaces
 
   implicit none

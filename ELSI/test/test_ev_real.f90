@@ -40,7 +40,7 @@ program test_ev_real
    character(128) :: arg1
    character(128) :: arg2
 
-   integer :: n_proc,nprow,npcol,myid,myprow,mypcol
+   integer :: n_proc,nprow,npcol,myid
    integer :: mpi_comm_global,mpi_comm_row,mpi_comm_col,mpierr
    integer :: blk
    integer :: BLACS_CTXT
@@ -124,11 +124,6 @@ program test_ev_real
    call BLACS_Gridinit(BLACS_CTXT,'r',nprow,npcol)
    call ms_scalapack_setup(mpi_comm_global,nprow,'r',blk,icontxt=BLACS_CTXT)
 
-   ! Set up row/col communicators for ELPA solver and Cholesky factorization
-   call BLACS_Gridinfo(BLACS_CTXT,nprow,npcol,myprow,mypcol)
-   call MPI_Comm_split(mpi_comm_global,mypcol,myprow,mpi_comm_row,mpierr)
-   call MPI_Comm_split(mpi_comm_global,myprow,mypcol,mpi_comm_col,mpierr)
-
    ! Set parameters
    m_storage = 'pddbc'
    m_operation = 'lap'
@@ -163,8 +158,8 @@ program test_ev_real
       call elsi_init(solver,0,0,matrix_size,n_electrons,n_states)
    else
       call elsi_init(solver,1,0,matrix_size,n_electrons,n_states)
-      call elsi_set_mpi(mpi_comm_global,n_proc,myid)
-      call elsi_set_blacs(BLACS_CTXT,blk,blk,nprow,npcol,mpi_comm_row,mpi_comm_col)
+      call elsi_set_mpi(mpi_comm_global)
+      call elsi_set_blacs(BLACS_CTXT,blk,blk,nprow,npcol)
    endif
 
    ! Solve problem

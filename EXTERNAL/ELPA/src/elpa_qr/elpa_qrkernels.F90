@@ -40,23 +40,8 @@
 !    the original distribution, the GNU Lesser General Public License.
 !
 
-#ifndef ELSI_INSTALLER
-#include "config-f90.h"
-#endif
-
 #define DOUBLE_PRECISION_REAL 1
 #define REAL_DATATYPE rk8
 #include "elpa_qrkernels.X90"
 #undef DOUBLE_PRECISION_REAL
 #undef REAL_DATATYPE
-
-#ifdef WANT_SINGLE_PRECISION_REAL
-
-#undef DOUBLE_PRECISION_REAL
-#define REAL_DATATYPE rk4
-#include "elpa_qrkernels.X90"
-#undef DOUBLE_PRECISION_REAL
-#undef REAL_DATATYPE
-
-#endif /* WANT_SINGLE_PRECISION_REAL */
-

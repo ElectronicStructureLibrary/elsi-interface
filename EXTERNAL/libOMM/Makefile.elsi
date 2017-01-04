@@ -15,7 +15,7 @@ all: psp_lib MatrixSwitch_lib libOMM_lib tomato_lib
 psp_lib: libpspblas.a
 
 libpspblas.a: $(PSPOBJ)
-	$(AR) $(ARFLAGS) $@ $(PSPOBJ)
+	$(ARCHIVE) $(ARCHIVEFLAGS) $@ $(PSPOBJ)
 	$(RANLIB) $@
 
 pspBLAS.o: ./psp/pspBLAS.F90 pspMPI.o pspVariable.o pspUtility.o pspLevel1.o pspLevel2.o pspLevel3.o pspGemm.o pspMspm.o pspSpmm.o
@@ -126,7 +126,7 @@ pspLevel3.o: ./psp/pspLevel3/pspLevel3.F90 pspMatSum.o pspGemm.o pspMspm.o pspSp
 MatrixSwitch_lib: libMatrixSwitch.a psp_lib
 
 libMatrixSwitch.a: $(MSOBJ)
-	$(AR) $(ARFLAGS) $@ $(MSOBJ)
+	$(ARCHIVE) $(ARCHIVEFLAGS) $@ $(MSOBJ)
 	$(RANLIB) $@
 
 MatrixSwitch_ops.o: ./MatrixSwitch/src/MatrixSwitch_ops.F90 pspBLAS.o
@@ -159,7 +159,7 @@ MatrixSwitch_wrapper.o: ./MatrixSwitch/src/MatrixSwitch_wrapper.F90 MatrixSwitch
 libOMM_lib: libOMM.a MatrixSwitch_lib psp_lib
 
 libOMM.a: $(OMMOBJ)
-	$(AR) $(ARFLAGS) $@ $(OMMOBJ)
+	$(ARCHIVE) $(ARCHIVEFLAGS) $@ $(OMMOBJ)
 	$(RANLIB) $@
 
 omm_params.o: ./libOMM/src/omm_params.F90
@@ -186,7 +186,7 @@ omm_callback.o: ./libOMM/src/omm_callback.F90 omm_ops.o omm_rand.o MatrixSwitch.
 tomato_lib: libtomato.a MatrixSwitch_lib
 
 libtomato.a: $(TOMOBJ)
-	$(AR) $(ARFLAGS) $@ $(TOMOBJ)
+	$(ARCHIVE) $(ARCHIVEFLAGS) $@ $(TOMOBJ)
 	$(RANLIB) $@
 
 tomato_TB.o: ./tomato/src/tomato_TB.F90 MatrixSwitch.o MatrixSwitch_ops.o

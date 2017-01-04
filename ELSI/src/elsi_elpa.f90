@@ -39,6 +39,7 @@ module ELSI_ELPA
    implicit none
    private
 
+   public :: elsi_get_elpa_comms
    public :: elsi_get_eigenvalues
    public :: elsi_get_eigenvectors
    public :: elsi_compute_occ_elpa
@@ -56,6 +57,25 @@ contains
 !========================
 ! ELSI routines for ELPA
 !========================
+
+!>
+!! This routine gets the row and column communicators for ELPA.
+!!
+subroutine elsi_get_elpa_comms(mpi_comm_global_in,my_p_row_in,my_p_col_in,&
+                               mpi_comm_row_out,mpi_comm_col_out)
+
+   implicit none
+
+   integer, intent(in)  :: mpi_comm_global_in
+   integer, intent(in)  :: my_p_row_in,my_p_col_in
+   integer, intent(out) :: mpi_comm_row_out,mpi_comm_col_out
+
+   logical :: success
+
+   success = get_elpa_communicators(mpi_comm_global_in,my_p_row_in,my_p_col_in,&
+                                    mpi_comm_row_out,mpi_comm_col_out)
+
+end subroutine
 
 !>
 !! This routine gets the eigenvalues.

@@ -181,7 +181,6 @@ subroutine elsi_blacs_to_pexsi_hs_v1(H_in,S_in)
    integer :: local_row_id !< Local row id in 1D block distribution
    integer :: d1,d2,d11,d12,d21,d22 !< Number of columns in the intermediate stage
    integer :: this_n_cols
-   integer :: mpierr
    integer :: tmp_int
    integer :: min_pos,min_id
    integer :: nnz_l_pexsi_aux,nnz_l_tmp,mpi_comm_aux_pexsi
@@ -453,7 +452,6 @@ subroutine elsi_blacs_to_pexsi_hs_v2(H_in,S_in)
    integer :: global_row_id !< Global row id
    integer :: local_col_id !< Local column id in 1D block distribution
    integer :: local_row_id !< Local row id in 1D block distribution
-   integer :: mpierr
    integer :: tmp_int
    integer :: min_pos,min_id
    real*8 :: tmp_real
@@ -649,7 +647,6 @@ subroutine elsi_pexsi_to_blacs_dm(D_out)
    integer :: local_row_id  !< Local row id in 1D block distribution
    integer :: proc_col_id   !< Column id in process grid
    integer :: proc_row_id   !< Row id in process grid
-   integer :: mpierr
 
    integer, allocatable :: dest(:)      !< Destination of each element
    integer, allocatable :: global_id(:) !< Global 1d id
