@@ -50,16 +50,11 @@ A) QUICK PROGRAMMING GUIDE
 2) Set up MPI and BLACS infrastructure for ELSI
 ===============================================
 
-*  call elsi_set_mpi(elsi_mpi_comm, n_proc, myid)
+*  call elsi_set_mpi(elsi_mpi_comm)
 
    elsi_mpi_comm:    [integer] [in]  Global MPI communicator used in ELSI.
 
-   n_proc:           [integer] [in]  Number of processors.
-
-   myid:             [integer] [in]  MPI rank of each processor.
-
-*  call elsi_set_blacs(blacs_ctxt, n_b_row, n_b_col, n_proc_rows, n_proc_col, &
-                       mpi_comm_row, mpi_comm_col)
+*  call elsi_set_blacs(blacs_ctxt, n_b_row, n_b_col, n_proc_rows, n_proc_col)
 
    blacs_ctxt:       [integer] [in]  BLACS context.
 
@@ -70,12 +65,6 @@ A) QUICK PROGRAMMING GUIDE
    n_proc_row:       [integer] [in]  Number of processors in row.
 
    n_proc_col:       [integer] [in]  Number of processors in column.
-
-   mpi_comm_row:     [integer] [in]  MPI communicator for processor row.
-                                     Needed for ELPA and libOMM.
-
-   mpi_comm_column:  [integer] [in]  MPI communicator for processor column.
-                                     Needed for ELPA and libOMM.
 
 ============================================================
 3) Treat the Kohn-Sham eigenvalue problem using ELSI solvers
