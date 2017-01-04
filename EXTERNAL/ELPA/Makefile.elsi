@@ -216,7 +216,7 @@ clean:
 	rm -rf lib include
 
 install:
-	$(ARCH) $(ARCHFLAGS) libelpa.a *.o
+	$(AR) $(ARFLAGS) libelpa.a *.o
 	$(RANLIB) libelpa.a
 	mkdir -p ./lib
 	cp libelpa.a ./lib/.

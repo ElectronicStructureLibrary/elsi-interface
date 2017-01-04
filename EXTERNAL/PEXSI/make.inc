@@ -8,10 +8,6 @@ CXX     = $(MPICXX)
 FC      = $(MPIFC)
 LOADER  = $(MPICXX)
 
-AR      = $(ARCH)
-ARFLAGS = $(ARCHFLAGS)
-RANLIB  = ranlib
-
 CP      = cp
 RM      = rm
 RMFLAGS = -f
@@ -28,7 +24,7 @@ PEXSI_LIB     = ${PEXSI_DIR}/lib/libpexsi.a
 # Different compiling and linking options
 ifeq (${COMPILE_MODE}, release)
   COMPILE_DEF  = -DRELEASE
-  COMPILE_FLAG = -O3 -w -g
+  COMPILE_FLAG = -O3
 endif
 
 PAR_ND_LIB = ${PARMETIS_LIB}

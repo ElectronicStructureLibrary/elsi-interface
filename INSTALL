@@ -68,9 +68,9 @@ B) ADVANCE I
 
 1) Archive tools and flags can be modified by
 
-      ARCH      =  # Default: ar
-      ARCHFLAGS =  # Default: cr
-      RANLIB    =  # Default: ranlib
+      AR      =  # Default: ar
+      ARFLAGS =  # Default: cr
+      RANLIB  =  # Default: ranlib
 
 2) Compiler flags for each library (E for ELPA, O for libOMM, P for PEXSI,
    and I for ELSI interface) can be set separately by

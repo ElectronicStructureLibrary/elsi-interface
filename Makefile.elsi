@@ -1,9 +1,9 @@
 include make.sys
 
 # Default archive tools
-ARCH      ?= ar
-ARCHFLAGS ?= cr
-RANLIB    ?= ranlib
+AR      ?= ar
+ARFLAGS ?= cr
+RANLIB  ?= ranlib
 
 # Default external libraries
 THIS_DIR  ?= $(shell pwd)
