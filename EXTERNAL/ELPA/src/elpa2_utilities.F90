@@ -46,9 +46,7 @@
 ! consortium. The copyright of any additional modifications shall rest
 ! with their original authors, but shall adhere to the licensing terms
 ! distributed along with the original code in the file "COPYING".
-
-
-
+!
 ! ELPA2 -- 2-stage solver for ELPA
 !
 ! Copyright of the original code rests with the authors inside the ELPA
@@ -56,39 +54,48 @@
 ! with their original authors, but shall adhere to the licensing terms
 ! distributed along with the original code in the file "COPYING".
 
-#ifndef ELSI_INSTALLER
-#include "config-f90.h"
-#endif
-
 #include <elpa/elpa_kernel_constants.h>
 
 module ELPA2_utilities
+
   use ELPA_utilities
   use precision
+
   implicit none
 
-  PRIVATE ! By default, all routines contained are private
-
-  ! The following routines are public:
+  private
 
   public :: get_actual_real_kernel_name, get_actual_complex_kernel_name
-  public :: REAL_ELPA_KERNEL_GENERIC, REAL_ELPA_KERNEL_GENERIC_SIMPLE, &
-            REAL_ELPA_KERNEL_BGP, REAL_ELPA_KERNEL_BGQ,                &
-            REAL_ELPA_KERNEL_SSE, REAL_ELPA_KERNEL_SSE_BLOCK2,         &
-            REAL_ELPA_KERNEL_SSE_BLOCK4, REAL_ELPA_KERNEL_SSE_BLOCK6,  &
-            REAL_ELPA_KERNEL_AVX_BLOCK2,                               &
-            REAL_ELPA_KERNEL_AVX_BLOCK4, REAL_ELPA_KERNEL_AVX_BLOCK6,  &
-            REAL_ELPA_KERNEL_AVX2_BLOCK2,                              &
-            REAL_ELPA_KERNEL_AVX2_BLOCK4, REAL_ELPA_KERNEL_AVX2_BLOCK6, &
-            REAL_ELPA_KERNEL_GPU,  DEFAULT_REAL_ELPA_KERNEL
+  public :: REAL_ELPA_KERNEL_GENERIC, &
+            REAL_ELPA_KERNEL_GENERIC_SIMPLE, &
+            REAL_ELPA_KERNEL_BGP, &
+            REAL_ELPA_KERNEL_BGQ, &
+            REAL_ELPA_KERNEL_SSE, &
+            REAL_ELPA_KERNEL_SSE_BLOCK2, &
+            REAL_ELPA_KERNEL_SSE_BLOCK4, &
+            REAL_ELPA_KERNEL_SSE_BLOCK6, &
+            REAL_ELPA_KERNEL_AVX_BLOCK2, &
+            REAL_ELPA_KERNEL_AVX_BLOCK4, &
+            REAL_ELPA_KERNEL_AVX_BLOCK6, &
+            REAL_ELPA_KERNEL_AVX2_BLOCK2, &
+            REAL_ELPA_KERNEL_AVX2_BLOCK4, &
+            REAL_ELPA_KERNEL_AVX2_BLOCK6, &
+            REAL_ELPA_KERNEL_GPU, &
+            DEFAULT_REAL_ELPA_KERNEL
 
-  public :: COMPLEX_ELPA_KERNEL_GENERIC, COMPLEX_ELPA_KERNEL_GENERIC_SIMPLE, &
-            COMPLEX_ELPA_KERNEL_BGP, COMPLEX_ELPA_KERNEL_BGQ,                &
-            COMPLEX_ELPA_KERNEL_SSE, COMPLEX_ELPA_KERNEL_SSE_BLOCK1,         &
-            COMPLEX_ELPA_KERNEL_SSE_BLOCK2,                                  &
-            COMPLEX_ELPA_KERNEL_AVX_BLOCK1,COMPLEX_ELPA_KERNEL_AVX_BLOCK2,   &
-            COMPLEX_ELPA_KERNEL_AVX2_BLOCK1,COMPLEX_ELPA_KERNEL_AVX2_BLOCK2, &
-            COMPLEX_ELPA_KERNEL_GPU,  DEFAULT_COMPLEX_ELPA_KERNEL
+  public :: COMPLEX_ELPA_KERNEL_GENERIC, &
+            COMPLEX_ELPA_KERNEL_GENERIC_SIMPLE, &
+            COMPLEX_ELPA_KERNEL_BGP, &
+            COMPLEX_ELPA_KERNEL_BGQ, &
+            COMPLEX_ELPA_KERNEL_SSE, &
+            COMPLEX_ELPA_KERNEL_SSE_BLOCK1, &
+            COMPLEX_ELPA_KERNEL_SSE_BLOCK2, &
+            COMPLEX_ELPA_KERNEL_AVX_BLOCK1, &
+            COMPLEX_ELPA_KERNEL_AVX_BLOCK2, &
+            COMPLEX_ELPA_KERNEL_AVX2_BLOCK1, &
+            COMPLEX_ELPA_KERNEL_AVX2_BLOCK2, &
+            COMPLEX_ELPA_KERNEL_GPU, &
+            DEFAULT_COMPLEX_ELPA_KERNEL
 
   public :: REAL_ELPA_KERNEL_NAMES, COMPLEX_ELPA_KERNEL_NAMES
 
@@ -118,7 +125,7 @@ module ELPA2_utilities
   integer, parameter :: REAL_ELPA_KERNEL_AVX2_BLOCK2     = ELPA2_REAL_KERNEL_AVX2_BLOCK2
   integer, parameter :: REAL_ELPA_KERNEL_AVX2_BLOCK4     = ELPA2_REAL_KERNEL_AVX2_BLOCK4
   integer, parameter :: REAL_ELPA_KERNEL_AVX2_BLOCK6     = ELPA2_REAL_KERNEL_AVX2_BLOCK6
-  integer(kind=ik), parameter :: REAL_ELPA_KERNEL_GPU    = ELPA2_REAL_KERNEL_GPU
+  integer, parameter :: REAL_ELPA_KERNEL_GPU             = ELPA2_REAL_KERNEL_GPU
 
 #if defined(WITH_REAL_AVX_BLOCK2_KERNEL)
 
@@ -180,10 +187,10 @@ module ELPA2_utilities
 #endif /*  #if defined(WITH_REAL_AVX2_BLOCK2_KERNEL) || defined(WITH_REAL_AVX2_BLOCK4_KERNEL) || defined(WITH_REAL_AVX2_BLOCK6_KERNEL) */
 
 #ifdef WITH_REAL_BGP_KERNEL
-  integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_AVX_BGP
+  integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_BGP
 #endif
 #ifdef WITH_REAL_BGQ_KERNEL
-  integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_AVX_BGQ
+  integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_BGQ
 #endif
 #ifdef WITH_GPU_VERSION
   integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_GPU
@@ -251,10 +258,10 @@ module ELPA2_utilities
 
 
 #ifdef WITH_REAL_BGP_KERNEL
-  integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_AVX_BGP
+  integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_BGP
 #endif
 #ifdef WITH_REAL_BGQ_KERNEL
-  integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_AVX_BGQ
+  integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_BGQ
 #endif
 #ifdef WITH_GPU_VERSION
   integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_GPU
@@ -568,17 +575,10 @@ module ELPA2_utilities
 !******
   contains
     subroutine print_available_real_kernels
-#ifdef HAVE_DETAILED_TIMINGS
-      use timings
-#endif
       use precision
       implicit none
 
       integer(kind=ik) :: i
-
-#ifdef HAVE_DETAILED_TIMINGS
-      call timer%start("print_available_real_kernels")
-#endif
 
       do i=1, number_of_real_kernels
         if (AVAILABLE_REAL_ELPA_KERNELS(i) .eq. 1) then
@@ -589,23 +589,12 @@ module ELPA2_utilities
       write(*,*) " At the moment the following kernel would be choosen:"
       write(*,*) get_actual_real_kernel_name()
 
-#ifdef HAVE_DETAILED_TIMINGS
-      call timer%stop("print_available_real_kernels")
-#endif
-
     end subroutine print_available_real_kernels
 
     subroutine query_available_real_kernels
-#ifdef HAVE_DETAILED_TIMINGS
-      use timings
-#endif
       implicit none
 
       integer :: i
-
-#ifdef HAVE_DETAILED_TIMINGS
-      call timer%start("query_available_real_kernels")
-#endif
 
       do i=1, number_of_real_kernels
         if (AVAILABLE_REAL_ELPA_KERNELS(i) .eq. 1) then
@@ -616,23 +605,13 @@ module ELPA2_utilities
       write(error_unit,*) " At the moment the following kernel would be choosen:"
       write(error_unit,*) get_actual_real_kernel_name()
 
-#ifdef HAVE_DETAILED_TIMINGS
-      call timer%stop("query_available_real_kernels")
-#endif
-
     end subroutine query_available_real_kernels
 
     subroutine print_available_complex_kernels
-#ifdef HAVE_DETAILED_TIMINGS
-      use timings
-#endif
       use precision
       implicit none
 
       integer(kind=ik) :: i
-#ifdef HAVE_DETAILED_TIMINGS
-      call timer%start("print_available_complex_kernels")
-#endif
 
       do i=1, number_of_complex_kernels
         if (AVAILABLE_COMPLEX_ELPA_KERNELS(i) .eq. 1) then
@@ -643,23 +622,13 @@ module ELPA2_utilities
       write(*,*) " At the moment the following kernel would be choosen:"
       write(*,*) get_actual_complex_kernel_name()
 
-#ifdef HAVE_DETAILED_TIMINGS
-      call timer%stop("print_available_complex_kernels")
-#endif
-
     end subroutine print_available_complex_kernels
 
     subroutine query_available_complex_kernels
-#ifdef HAVE_DETAILED_TIMINGS
-      use timings
-#endif
 
       implicit none
 
       integer :: i
-#ifdef HAVE_DETAILED_TIMINGS
-      call timer%start("query_available_complex_kernels")
-#endif
 
       do i=1, number_of_complex_kernels
         if (AVAILABLE_COMPLEX_ELPA_KERNELS(i) .eq. 1) then
@@ -670,197 +639,97 @@ module ELPA2_utilities
       write(error_unit,*) " At the moment the following kernel would be choosen:"
       write(error_unit,*) get_actual_complex_kernel_name()
 
-#ifdef HAVE_DETAILED_TIMINGS
-      call timer%stop("query_available_complex_kernels")
-#endif
-
     end subroutine query_available_complex_kernels
 
     function get_actual_real_kernel() result(actual_kernel)
-#ifdef HAVE_DETAILED_TIMINGS
-      use timings
-#endif
       use precision
       implicit none
 
       integer(kind=ik) :: actual_kernel
 
-#ifdef HAVE_DETAILED_TIMINGS
-      call timer%start("get_actual_real_kernel")
-#endif
-
-
       ! if kernel is not choosen via api
       ! check whether set by environment variable
       actual_kernel = real_kernel_via_environment_variable()
 
-!#ifdef WITH_GPU_VERSION
-!      actual_kernel = REAL_ELPA_KERNEL_GPU
-!#endif
       if (actual_kernel .eq. 0) then
         ! if not then set default kernel
         actual_kernel = DEFAULT_REAL_ELPA_KERNEL
       endif
 
-!#ifdef WITH_GPU_VERSION
-!      if (actual_kernel .ne. REAL_ELPA_KERNEL_GPU) then
-!        print *,"if build with GPU you cannot choose another real kernel"
-!        stop
-!      endif
-!#endif
-
-#ifdef HAVE_DETAILED_TIMINGS
-      call timer%stop("get_actual_real_kernel")
-#endif
-
     end function get_actual_real_kernel
 
     function get_actual_real_kernel_name() result(actual_kernel_name)
-#ifdef HAVE_DETAILED_TIMINGS
-      use timings
-#endif
       use precision
       implicit none
 
       character(35)    :: actual_kernel_name
       integer(kind=ik) :: actual_kernel
 
-#ifdef HAVE_DETAILED_TIMINGS
-      call timer%start("get_actual_real_kernel_name")
-#endif
-
       actual_kernel = get_actual_real_kernel()
       actual_kernel_name = REAL_ELPA_KERNEL_NAMES(actual_kernel)
-
-#ifdef HAVE_DETAILED_TIMINGS
-      call timer%stop("get_actual_real_kernel_name")
-#endif
 
     end function get_actual_real_kernel_name
 
     function get_actual_complex_kernel() result(actual_kernel)
-#ifdef HAVE_DETAILED_TIMINGS
-      use timings
-#endif
       use precision
       implicit none
       integer(kind=ik) :: actual_kernel
-
-#ifdef HAVE_DETAILED_TIMINGS
-      call timer%start("get_actual_complex_kernel")
-#endif
-
 
      ! if kernel is not choosen via api
      ! check whether set by environment variable
      actual_kernel = complex_kernel_via_environment_variable()
 
-!#ifdef WITH_GPU_VERSION
-!     actual_kernel = COMPLEX_ELPA_KERNEL_GPU
-!#endif
      if (actual_kernel .eq. 0) then
        ! if not then set default kernel
        actual_kernel = DEFAULT_COMPLEX_ELPA_KERNEL
      endif
 
-!#ifdef WITH_GPU_VERSION
-!      if (actual_kernel .ne. COMPLEX_ELPA_KERNEL_GPU) then
-!        print *,"if build with GPU you cannot choose another complex kernel"
-!        stop
-!      endif
-!#endif
-
-
-#ifdef HAVE_DETAILED_TIMINGS
-     call timer%stop("get_actual_complex_kernel")
-#endif
-
    end function get_actual_complex_kernel
 
    function get_actual_complex_kernel_name() result(actual_kernel_name)
-#ifdef HAVE_DETAILED_TIMINGS
-     use timings
-#endif
      use precision
      implicit none
      character(35)    :: actual_kernel_name
      integer(kind=ik) :: actual_kernel
 
-#ifdef HAVE_DETAILED_TIMINGS
-     call timer%start("get_actual_complex_kernel_name")
-#endif
-
      actual_kernel = get_actual_complex_kernel()
      actual_kernel_name = COMPLEX_ELPA_KERNEL_NAMES(actual_kernel)
-
-#ifdef HAVE_DETAILED_TIMINGS
-     call timer%stop("get_actual_complex_kernel_name")
-#endif
 
    end function get_actual_complex_kernel_name
 
    function check_allowed_real_kernels(THIS_REAL_ELPA_KERNEL) result(err)
-#ifdef HAVE_DETAILED_TIMINGS
-     use timings
-#endif
      use precision
      implicit none
      integer(kind=ik), intent(in) :: THIS_REAL_ELPA_KERNEL
      logical                      :: err
 
-#ifdef HAVE_DETAILED_TIMINGS
-     call timer%start("check_allowed_real_kernels")
-#endif
      err = .false.
 
      if (AVAILABLE_REAL_ELPA_KERNELS(THIS_REAL_ELPA_KERNEL) .ne. 1) err=.true.
 
-#ifdef HAVE_DETAILED_TIMINGS
-     call timer%stop("check_allowed_real_kernels")
-#endif
-
    end function check_allowed_real_kernels
 
    function check_allowed_complex_kernels(THIS_COMPLEX_ELPA_KERNEL) result(err)
-#ifdef HAVE_DETAILED_TIMINGS
-     use timings
-#endif
      use precision
      implicit none
      integer(kind=ik), intent(in) :: THIS_COMPLEX_ELPA_KERNEL
      logical                      :: err
-#ifdef HAVE_DETAILED_TIMINGS
-     call timer%start("check_allowed_complex_kernels")
-#endif
+
      err = .false.
 
      if (AVAILABLE_COMPLEX_ELPA_KERNELS(THIS_COMPLEX_ELPA_KERNEL) .ne. 1) err=.true.
 
-#ifdef HAVE_DETAILED_TIMINGS
-     call timer%stop("check_allowed_complex_kernels")
-#endif
-
    end function check_allowed_complex_kernels
 
    function qr_decomposition_via_environment_variable(useQR) result(isSet)
-#ifdef HAVE_DETAILED_TIMINGS
-     use timings
-#endif
      use precision
      implicit none
      logical, intent(out) :: useQR
      logical              :: isSet
      CHARACTER(len=255)   :: ELPA_QR_DECOMPOSITION
 
-#ifdef HAVE_DETAILED_TIMINGS
-     call timer%start("qr_decomposition_via_environment_variable")
-#endif
-
      isSet = .false.
 
-#if defined(HAVE_ENVIRONMENT_CHECKING)
-     call get_environment_variable("ELPA_QR_DECOMPOSITION",ELPA_QR_DECOMPOSITION)
-#endif
      if (trim(ELPA_QR_DECOMPOSITION) .eq. "yes") then
        useQR = .true.
        isSet = .true.
@@ -870,29 +739,15 @@ module ELPA2_utilities
        isSet = .true.
      endif
 
-#ifdef HAVE_DETAILED_TIMINGS
-     call timer%stop("qr_decomposition_via_environment_variable")
-#endif
-
    end function qr_decomposition_via_environment_variable
 
    function real_kernel_via_environment_variable() result(kernel)
-#ifdef HAVE_DETAILED_TIMINGS
-     use timings
-#endif
      use precision
      implicit none
      integer(kind=ik)   :: kernel
      CHARACTER(len=255) :: REAL_KERNEL_ENVIRONMENT
      integer(kind=ik)   :: i
 
-#ifdef HAVE_DETAILED_TIMINGS
-     call timer%start("real_kernel_via_environment_variable")
-#endif
-
-#if defined(HAVE_ENVIRONMENT_CHECKING)
-     call get_environment_variable("REAL_ELPA_KERNEL",REAL_KERNEL_ENVIRONMENT)
-#endif
      do i=1,size(REAL_ELPA_KERNEL_NAMES(:))
        !     if (trim(dummy_char) .eq. trim(REAL_ELPA_KERNEL_NAMES(i))) then
        if (trim(REAL_KERNEL_ENVIRONMENT) .eq. trim(REAL_ELPA_KERNEL_NAMES(i))) then
@@ -903,30 +758,15 @@ module ELPA2_utilities
        endif
      enddo
 
-#ifdef HAVE_DETAILED_TIMINGS
-     call timer%stop("real_kernel_via_environment_variable")
-#endif
-
    end function real_kernel_via_environment_variable
 
    function complex_kernel_via_environment_variable() result(kernel)
-#ifdef HAVE_DETAILED_TIMINGS
-     use timings
-#endif
      use precision
      implicit none
      integer :: kernel
 
      CHARACTER(len=255) :: COMPLEX_KERNEL_ENVIRONMENT
      integer(kind=ik)   :: i
-
-#ifdef HAVE_DETAILED_TIMINGS
-     call timer%start("complex_kernel_via_environment_variable")
-#endif
-
-#if defined(HAVE_ENVIRONMENT_CHECKING)
-     call get_environment_variable("COMPLEX_ELPA_KERNEL",COMPLEX_KERNEL_ENVIRONMENT)
-#endif
 
      do i=1,size(COMPLEX_ELPA_KERNEL_NAMES(:))
        if (trim(COMPLEX_ELPA_KERNEL_NAMES(i)) .eq. trim(COMPLEX_KERNEL_ENVIRONMENT)) then
@@ -937,11 +777,6 @@ module ELPA2_utilities
        endif
      enddo
 
-#ifdef HAVE_DETAILED_TIMINGS
-     call timer%stop("complex_kernel_via_environment_variable")
-#endif
-
    end function
-!-------------------------------------------------------------------------------
 
 end module ELPA2_utilities

@@ -118,10 +118,10 @@ elpa2_compute.o: ./src/elpa2_compute.F90 aligned_mem.o mod_compute_hh_trafo_comp
 aligned_mem.o: ./src/aligned_mem.F90
 	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
 
-mod_compute_hh_trafo_complex.o: ./src/mod_compute_hh_trafo_complex.F90 elpa2_kernels_complex.o elpa2_utilities.o interface_c_kernel.o interface_cuda.o mod_cuda.o mod_fortran_interfaces.o mod_mpi.o mod_precision.o
+mod_compute_hh_trafo_complex.o: ./src/mod_compute_hh_trafo_complex.F90 $(ELPA2_KERNELS_O) elpa2_utilities.o interface_c_kernel.o interface_cuda.o mod_cuda.o mod_fortran_interfaces.o mod_mpi.o mod_precision.o
 	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
 
-mod_compute_hh_trafo_real.o: ./src/mod_compute_hh_trafo_real.F90 mod_single_hh_trafo_real.o elpa2_kernels_real.o elpa2_utilities.o interface_c_kernel.o interface_cuda.o mod_cuda.o mod_fortran_interfaces.o mod_mpi.o mod_precision.o
+mod_compute_hh_trafo_real.o: ./src/mod_compute_hh_trafo_real.F90 mod_single_hh_trafo_real.o $(ELPA2_KERNELS_O) elpa2_utilities.o interface_c_kernel.o interface_cuda.o mod_cuda.o mod_fortran_interfaces.o mod_mpi.o mod_precision.o
 	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
 
 mod_fortran_interfaces.o: ./src/elpa2_kernels/mod_fortran_interfaces.F90

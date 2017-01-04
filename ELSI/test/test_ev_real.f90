@@ -102,7 +102,7 @@ program test_ev_real
    nprow = n_proc/npcol
 
    ! Set block size
-   blk = 32
+   blk = 128
 
    if(myid == 0) then
       write(*,'("  ################################################")')

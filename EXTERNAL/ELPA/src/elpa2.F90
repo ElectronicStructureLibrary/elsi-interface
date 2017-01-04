@@ -166,6 +166,8 @@ function solve_evp_real_2stage_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
    useQRActual = .false.
    useGPU      = .false.
 
+   THIS_REAL_ELPA_KERNEL = get_actual_real_kernel()
+
    if(THIS_REAL_ELPA_KERNEL .eq. REAL_ELPA_KERNEL_GPU) then
       if(check_for_gpu(my_pe,numberOfGPUDevices,wantDebug=wantDebug)) then
          useGPU = .true.
@@ -194,7 +196,7 @@ function solve_evp_real_2stage_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
       nbw = (63/nblk+1)*nblk
    endif
 
-   num_blocks = (na-1)/nbw + 1
+   num_blocks = (na-1)/nbw+1
 
    allocate(tmat(nbw,nbw,num_blocks),stat=istat)
    if(istat .ne. 0) then
@@ -249,10 +251,6 @@ function solve_evp_real_2stage_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
    deallocate(hh_trans_real)
 
    ! Backtransform stage 2
-   if(my_prow==0 .and. my_pcol==0) then
-      if(useGPU) print *,"  GPU has been used for this ELPA2"
-   endif
-
    ttt0 = MPI_Wtime()
    call trans_ev_band_to_full_real_double(na,nev,nblk,nbw,a,a_dev,lda,tmat,tmat_dev,q,&
                                           q_dev,ldq,matrixCols,num_blocks,mpi_comm_rows,&
@@ -261,6 +259,10 @@ function solve_evp_real_2stage_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
 !   if(my_prow==0 .and. my_pcol==0) print *,"  Time band ==> full:",ttt1-ttt0
 
    deallocate(tmat)
+
+   if(my_prow==0 .and. my_pcol==0) then
+      if(useGPU) print *,"  GPU has been used for this ELPA2"
+   endif
 
 end function solve_evp_real_2stage_double
 
@@ -342,6 +344,8 @@ function solve_evp_complex_2stage_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
    wantDebug = .false.
    success   = .true.
 
+   THIS_COMPLEX_ELPA_KERNEL = get_actual_complex_kernel()
+
    if(THIS_COMPLEX_ELPA_KERNEL .eq. COMPLEX_ELPA_KERNEL_GPU) then
       if(check_for_gpu(my_pe, numberOfGPUDevices, wantDebug=wantDebug)) then
          useGPU=.true.
@@ -362,7 +366,7 @@ function solve_evp_complex_2stage_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
    ! Choose bandwidth, must be a multiple of nblk, set to a value >= 32
    nbw = (31/nblk+1)*nblk
 
-   num_blocks = (na-1)/nbw + 1
+   num_blocks = (na-1)/nbw+1
 
    allocate(tmat(nbw,nbw,num_blocks),stat=istat)
    if(istat .ne. 0) then
@@ -440,6 +444,10 @@ function solve_evp_complex_2stage_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
 
    deallocate(tmat)
 
+   if(my_prow==0 .and. my_pcol==0) then
+      if(useGPU) print *,"  GPU has been used for this ELPA2"
+   endif
+
 end function solve_evp_complex_2stage_double
 
 ! Added by Victor Yu from ELSI team
@@ -493,6 +501,8 @@ function check_eval_real(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,mpi_comm_rows,&
    wantDebug   = .false.
    useQRActual = .false.
    useGPU      = .false.
+
+   THIS_REAL_ELPA_KERNEL = get_actual_real_kernel()
 
    if(THIS_REAL_ELPA_KERNEL .eq. REAL_ELPA_KERNEL_GPU) then
       if(check_for_gpu(my_pe,numberOfGPUDevices,wantDebug=wantDebug)) then
@@ -583,6 +593,10 @@ function check_eval_real(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,mpi_comm_rows,&
       deallocate(tmat)
    endif
 
+   if(my_prow==0 .and. my_pcol==0) then
+      if(useGPU) print *,"  GPU has been used for this ELPA2"
+   endif
+
 end function
 
 function check_eval_complex(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,mpi_comm_rows,&
@@ -630,6 +644,8 @@ function check_eval_complex(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,mpi_comm_rows,
    success   = .true.
    useGPU    = .false.
    wantDebug = .false.
+
+   THIS_COMPLEX_ELPA_KERNEL = get_actual_complex_kernel()
 
    if(THIS_COMPLEX_ELPA_KERNEL .eq. COMPLEX_ELPA_KERNEL_GPU) then
       if(check_for_gpu(my_pe,numberOfGPUDevices,wantDebug=wantDebug)) then
@@ -726,6 +742,10 @@ function check_eval_complex(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,mpi_comm_rows,
    else
       deallocate(hh_trans_complex)
       deallocate(tmat)
+   endif
+
+   if(my_prow==0 .and. my_pcol==0) then
+      if(useGPU) print *,"  GPU has been used for this ELPA2"
    endif
 
 end function
