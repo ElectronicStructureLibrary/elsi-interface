@@ -59,11 +59,7 @@
 
 #define errormessage(x, ...) do { fprintf(stderr, "%s:%d " x, __FILE__, __LINE__, __VA_ARGS__ ); } while (0)
 
-#ifdef DEBUG_CUDA
-#define debugmessage(x, ...) do { fprintf(stderr, "%s:%d " x, __FILE__, __LINE__, __VA_ARGS__ ); } while (0)
-#else
 #define debugmessage(x, ...)
-#endif
 
 #ifdef WITH_GPU_VERSION
 extern "C" {
@@ -101,9 +97,6 @@ extern "C" {
   int cudaMallocFromC(intptr_t *a, size_t width_height) {
 
     cudaError_t cuerr = cudaMalloc((void **) a, width_height);
-#ifdef DEBUG_CUDA
-    printf("Malloc pointer address: %p \n", *a);
-#endif
     if (cuerr != cudaSuccess) {
       errormessage("Error in cudaMalloc: %s\n",cudaGetErrorString(cuerr));
       return 0;
@@ -111,9 +104,6 @@ extern "C" {
     return 1;
   }
   int cudaFreeFromC(intptr_t *a) {
-#ifdef DEBUG_CUDA
-    printf("Free pointer address: %p \n", a);
-#endif
     cudaError_t cuerr = cudaFree(a);
 
     if (cuerr != cudaSuccess) {

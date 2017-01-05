@@ -110,321 +110,135 @@ module ELPA2_utilities
 
   public :: qr_decomposition_via_environment_variable
 
-  integer, parameter :: number_of_real_kernels           = ELPA2_NUMBER_OF_REAL_KERNELS
-  integer, parameter :: REAL_ELPA_KERNEL_GENERIC         = ELPA2_REAL_KERNEL_GENERIC
-  integer, parameter :: REAL_ELPA_KERNEL_GENERIC_SIMPLE  = ELPA2_REAL_KERNEL_GENERIC_SIMPLE
-  integer, parameter :: REAL_ELPA_KERNEL_BGP             = ELPA2_REAL_KERNEL_BGP
-  integer, parameter :: REAL_ELPA_KERNEL_BGQ             = ELPA2_REAL_KERNEL_BGQ
-  integer, parameter :: REAL_ELPA_KERNEL_SSE             = ELPA2_REAL_KERNEL_SSE
-  integer, parameter :: REAL_ELPA_KERNEL_SSE_BLOCK2      = ELPA2_REAL_KERNEL_SSE_BLOCK2
-  integer, parameter :: REAL_ELPA_KERNEL_SSE_BLOCK4      = ELPA2_REAL_KERNEL_SSE_BLOCK4
-  integer, parameter :: REAL_ELPA_KERNEL_SSE_BLOCK6      = ELPA2_REAL_KERNEL_SSE_BLOCK6
-  integer, parameter :: REAL_ELPA_KERNEL_AVX_BLOCK2      = ELPA2_REAL_KERNEL_AVX_BLOCK2
-  integer, parameter :: REAL_ELPA_KERNEL_AVX_BLOCK4      = ELPA2_REAL_KERNEL_AVX_BLOCK4
-  integer, parameter :: REAL_ELPA_KERNEL_AVX_BLOCK6      = ELPA2_REAL_KERNEL_AVX_BLOCK6
-  integer, parameter :: REAL_ELPA_KERNEL_AVX2_BLOCK2     = ELPA2_REAL_KERNEL_AVX2_BLOCK2
-  integer, parameter :: REAL_ELPA_KERNEL_AVX2_BLOCK4     = ELPA2_REAL_KERNEL_AVX2_BLOCK4
-  integer, parameter :: REAL_ELPA_KERNEL_AVX2_BLOCK6     = ELPA2_REAL_KERNEL_AVX2_BLOCK6
-  integer, parameter :: REAL_ELPA_KERNEL_GPU             = ELPA2_REAL_KERNEL_GPU
-
-#if defined(WITH_REAL_AVX_BLOCK2_KERNEL)
-
-#ifndef WITH_ONE_SPECIFIC_REAL_KERNEL
-  integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_GENERIC
-#else /* WITH_ONE_SPECIFIC_REAL_KERNEL */
+  integer, parameter :: number_of_real_kernels          = ELPA2_NUMBER_OF_REAL_KERNELS
+  integer, parameter :: REAL_ELPA_KERNEL_GENERIC        = ELPA2_REAL_KERNEL_GENERIC
+  integer, parameter :: REAL_ELPA_KERNEL_GENERIC_SIMPLE = ELPA2_REAL_KERNEL_GENERIC_SIMPLE
+  integer, parameter :: REAL_ELPA_KERNEL_BGP            = ELPA2_REAL_KERNEL_BGP
+  integer, parameter :: REAL_ELPA_KERNEL_BGQ            = ELPA2_REAL_KERNEL_BGQ
+  integer, parameter :: REAL_ELPA_KERNEL_SSE            = ELPA2_REAL_KERNEL_SSE
+  integer, parameter :: REAL_ELPA_KERNEL_SSE_BLOCK2     = ELPA2_REAL_KERNEL_SSE_BLOCK2
+  integer, parameter :: REAL_ELPA_KERNEL_SSE_BLOCK4     = ELPA2_REAL_KERNEL_SSE_BLOCK4
+  integer, parameter :: REAL_ELPA_KERNEL_SSE_BLOCK6     = ELPA2_REAL_KERNEL_SSE_BLOCK6
+  integer, parameter :: REAL_ELPA_KERNEL_AVX_BLOCK2     = ELPA2_REAL_KERNEL_AVX_BLOCK2
+  integer, parameter :: REAL_ELPA_KERNEL_AVX_BLOCK4     = ELPA2_REAL_KERNEL_AVX_BLOCK4
+  integer, parameter :: REAL_ELPA_KERNEL_AVX_BLOCK6     = ELPA2_REAL_KERNEL_AVX_BLOCK6
+  integer, parameter :: REAL_ELPA_KERNEL_AVX2_BLOCK2    = ELPA2_REAL_KERNEL_AVX2_BLOCK2
+  integer, parameter :: REAL_ELPA_KERNEL_AVX2_BLOCK4    = ELPA2_REAL_KERNEL_AVX2_BLOCK4
+  integer, parameter :: REAL_ELPA_KERNEL_AVX2_BLOCK6    = ELPA2_REAL_KERNEL_AVX2_BLOCK6
+  integer, parameter :: REAL_ELPA_KERNEL_GPU            = ELPA2_REAL_KERNEL_GPU
 
 #ifdef WITH_REAL_GENERIC_KERNEL
   integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_GENERIC
 #endif
-#ifdef WITH_REAL_GENERIC_SIMPLE_KERNEL
-  integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_GENERIC_SIMPLE
-#endif
-#ifdef WITH_REAL_SSE_ASSEMBLY_KERNEL
-  integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_SSE
-#endif
-#if defined(WITH_REAL_SSE_BLOCK2_KERNEL) || defined(WITH_REAL_SSE_BLOCK4_KERNEL) || defined(WITH_REAL_SSE_BLOCK6_KERNEL)
 
-#ifdef WITH_REAL_SSE_BLOCK6_KERNEL
-  integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_SSE_BLOCK6
-#else
-
-#ifdef WITH_REAL_SSE_BLOCK4_KERNEL
-  integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_SSE_BLOCK4
-#else
-#ifdef WITH_REAL_SSE_BLOCK2_KERNEL
-  integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_SSE_BLOCK2
-#endif
-#endif
-#endif
-#endif /*  #if defined(WITH_REAL_SSE_BLOCK2_KERNEL) || defined(WITH_REAL_SSE_BLOCK4_KERNEL) || defined(WITH_REAL_SSE_BLOCK6_KERNEL) */
-
-#if defined(WITH_REAL_AVX_BLOCK2_KERNEL) || defined(WITH_REAL_AVX_BLOCK4_KERNEL) || defined(WITH_REAL_AVX_BLOCK6_KERNEL)
-#ifdef WITH_REAL_AVX_BLOCK6_KERNEL
-  integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_AVX_BLOCK6
-#else
-#ifdef WITH_REAL_AVX_BLOCK4_KERNEL
-  integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_AVX_BLOCK4
-#else
-#ifdef WITH_REAL_AVX_BLOCK2_KERNEL
-  integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_AVX_BLOCK2
-#endif
-#endif
-#endif
-#endif /*  #if defined(WITH_REAL_AVX_BLOCK2_KERNEL) || defined(WITH_REAL_AVX_BLOCK4_KERNEL) || defined(WITH_REAL_AVX_BLOCK6_KERNEL) */
-
-#if defined(WITH_REAL_AVX2_BLOCK2_KERNEL) || defined(WITH_REAL_AVX2_BLOCK4_KERNEL) || defined(WITH_REAL_AVX2_BLOCK6_KERNEL)
-#ifdef WITH_REAL_AVX2_BLOCK6_KERNEL
-  integer, parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_AVX2_BLOCK6
-#else
-#ifdef WITH_REAL_AVX2_BLOCK4_KERNEL
-  integer, parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_AVX2_BLOCK4
-#else
-#ifdef WITH_REAL_AVX2_BLOCK2_KERNEL
-  integer, parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_AVX2_BLOCK2
-#endif
-#endif
-#endif
-#endif /*  #if defined(WITH_REAL_AVX2_BLOCK2_KERNEL) || defined(WITH_REAL_AVX2_BLOCK4_KERNEL) || defined(WITH_REAL_AVX2_BLOCK6_KERNEL) */
-
-#ifdef WITH_REAL_BGP_KERNEL
-  integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_BGP
-#endif
-#ifdef WITH_REAL_BGQ_KERNEL
-  integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_BGQ
-#endif
-#ifdef WITH_GPU_VERSION
-  integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_GPU
-#endif
-
-#endif /* WITH_ONE_SPECIFIC_REAL_KERNEL */
-
-#else /* WITH_REAL_AVX_BLOCK2_KERNEL */
-
-#ifndef WITH_ONE_SPECIFIC_REAL_KERNEL
-  integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_GENERIC
-#else /* WITH_ONE_SPECIFIC_REAL_KERNEL */
-
-#ifdef WITH_REAL_GENERIC_KERNEL
-  integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_GENERIC
-#endif
-#ifdef WITH_REAL_GENERIC_SIMPLE_KERNEL
-  integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_GENERIC_SIMPLE
-#endif
 #ifdef WITH_REAL_SSE_ASSEMBLY_KERNEL
   integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_SSE
 #endif
 
-#if defined(WITH_REAL_SSE_BLOCK2_KERNEL) || defined(WITH_REAL_SSE_BLOCK4_KERNEL) || defined(WITH_REAL_SSE_BLOCK6_KERNEL)
-#ifdef WITH_REAL_SSE_BLOCK6_KERNEL
-  integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_SSE_BLOCK6
-#else
-#ifdef WITH_REAL_SSE_BLOCK4_KERNEL
-  integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_SSE_BLOCK4
-#else
-#ifdef WITH_REAL_SSE_BLOCK2_KERNEL
-  integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_SSE_BLOCK2
-#endif
-#endif
-#endif
-#endif /*  #if defined(WITH_REAL_SSE_BLOCK2_KERNEL) || defined(WITH_REAL_SSE_BLOCK4_KERNEL) || defined(WITH_REAL_SSE_BLOCK6_KERNEL) */
-
-#if defined(WITH_REAL_AVX_BLOCK2_KERNEL) || defined(WITH_REAL_AVX_BLOCK4_KERNEL) || defined(WITH_REAL_AVX_BLOCK6_KERNEL)
 #ifdef WITH_REAL_AVX_BLOCK6_KERNEL
   integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_AVX_BLOCK6
-#else
+#endif
+
 #ifdef WITH_REAL_AVX_BLOCK4_KERNEL
   integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_AVX_BLOCK4
-#else
+#endif
+
 #ifdef WITH_REAL_AVX_BLOCK2_KERNEL
   integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_AVX_BLOCK2
 #endif
-#endif
-#endif
-#endif /*  #if defined(WITH_REAL_AVX_BLOCK2_KERNEL) || defined(WITH_REAL_AVX_BLOCK4_KERNEL) || defined(WITH_REAL_AVX_BLOCK6_KERNEL) */
 
-#if defined(WITH_REAL_AVX2_BLOCK2_KERNEL) || defined(WITH_REAL_AVX2_BLOCK4_KERNEL) || defined(WITH_REAL_AVX2_BLOCK6_KERNEL)
 #ifdef WITH_REAL_AVX2_BLOCK6_KERNEL
   integer, parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_AVX2_BLOCK6
-#else
+#endif
+
 #ifdef WITH_REAL_AVX2_BLOCK4_KERNEL
   integer, parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_AVX2_BLOCK4
-#else
+#endif
+
 #ifdef WITH_REAL_AVX2_BLOCK2_KERNEL
   integer, parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_AVX2_BLOCK2
 #endif
-#endif
-#endif
-#endif /*  #if defined(WITH_REAL_AVX2_BLOCK2_KERNEL) || defined(WITH_REAL_AVX2_BLOCK4_KERNEL) || defined(WITH_REAL_AVX2_BLOCK6_KERNEL) */
 
-
-#ifdef WITH_REAL_BGP_KERNEL
-  integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_BGP
-#endif
 #ifdef WITH_REAL_BGQ_KERNEL
   integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_BGQ
 #endif
+
 #ifdef WITH_GPU_VERSION
   integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_GPU
 #endif
-
-#endif  /* WITH_ONE_SPECIFIC_REAL_KERNEL */
-
-#endif /* WITH_REAL_AVX_BLOCK2_KERNEL */
 
   character(35), parameter, dimension(number_of_real_kernels) :: &
-  REAL_ELPA_KERNEL_NAMES =    (/"REAL_ELPA_KERNEL_GENERIC         ", &
-                                "REAL_ELPA_KERNEL_GENERIC_SIMPLE  ", &
-                                "REAL_ELPA_KERNEL_BGP             ", &
-                                "REAL_ELPA_KERNEL_BGQ             ", &
-                                "REAL_ELPA_KERNEL_SSE             ", &
-                                "REAL_ELPA_KERNEL_SSE_BLOCK2      ", &
-                                "REAL_ELPA_KERNEL_SSE_BLOCK4      ", &
-                                "REAL_ELPA_KERNEL_SSE_BLOCK6      ", &
-                                "REAL_ELPA_KERNEL_AVX_BLOCK2      ", &
-                                "REAL_ELPA_KERNEL_AVX_BLOCK4      ", &
-                                "REAL_ELPA_KERNEL_AVX_BLOCK6      ", &
-                                "REAL_ELPA_KERNEL_AVX2_BLOCK2     ", &
-                                "REAL_ELPA_KERNEL_AVX2_BLOCK4     ", &
-                                "REAL_ELPA_KERNEL_AVX2_BLOCK6     ", &
-                                "REAL_ELPA_KERNEL_GPU             "/)
+  REAL_ELPA_KERNEL_NAMES = (/"REAL_ELPA_KERNEL_GENERIC       ", &
+                             "REAL_ELPA_KERNEL_GENERIC_SIMPLE", &
+                             "REAL_ELPA_KERNEL_BGP           ", &
+                             "REAL_ELPA_KERNEL_BGQ           ", &
+                             "REAL_ELPA_KERNEL_SSE           ", &
+                             "REAL_ELPA_KERNEL_SSE_BLOCK2    ", &
+                             "REAL_ELPA_KERNEL_SSE_BLOCK4    ", &
+                             "REAL_ELPA_KERNEL_SSE_BLOCK6    ", &
+                             "REAL_ELPA_KERNEL_AVX_BLOCK2    ", &
+                             "REAL_ELPA_KERNEL_AVX_BLOCK4    ", &
+                             "REAL_ELPA_KERNEL_AVX_BLOCK6    ", &
+                             "REAL_ELPA_KERNEL_AVX2_BLOCK2   ", &
+                             "REAL_ELPA_KERNEL_AVX2_BLOCK4   ", &
+                             "REAL_ELPA_KERNEL_AVX2_BLOCK6   ", &
+                             "REAL_ELPA_KERNEL_GPU           "/)
 
-  integer, parameter :: number_of_complex_kernels           = ELPA2_NUMBER_OF_COMPLEX_KERNELS
-  integer, parameter :: COMPLEX_ELPA_KERNEL_GENERIC         = ELPA2_COMPLEX_KERNEL_GENERIC
-  integer, parameter :: COMPLEX_ELPA_KERNEL_GENERIC_SIMPLE  = ELPA2_COMPLEX_KERNEL_GENERIC_SIMPLE
-  integer, parameter :: COMPLEX_ELPA_KERNEL_BGP             = ELPA2_COMPLEX_KERNEL_BGP
-  integer, parameter :: COMPLEX_ELPA_KERNEL_BGQ             = ELPA2_COMPLEX_KERNEL_BGQ
-  integer, parameter :: COMPLEX_ELPA_KERNEL_SSE             = ELPA2_COMPLEX_KERNEL_SSE
-  integer, parameter :: COMPLEX_ELPA_KERNEL_SSE_BLOCK1      = ELPA2_COMPLEX_KERNEL_SSE_BLOCK1
-  integer, parameter :: COMPLEX_ELPA_KERNEL_SSE_BLOCK2      = ELPA2_COMPLEX_KERNEL_SSE_BLOCK2
-  integer, parameter :: COMPLEX_ELPA_KERNEL_AVX_BLOCK1      = ELPA2_COMPLEX_KERNEL_AVX_BLOCK1
-  integer, parameter :: COMPLEX_ELPA_KERNEL_AVX_BLOCK2      = ELPA2_COMPLEX_KERNEL_AVX_BLOCK2
-  integer, parameter :: COMPLEX_ELPA_KERNEL_AVX2_BLOCK1     = ELPA2_COMPLEX_KERNEL_AVX2_BLOCK1
-  integer, parameter :: COMPLEX_ELPA_KERNEL_AVX2_BLOCK2     = ELPA2_COMPLEX_KERNEL_AVX2_BLOCK2
-  integer(kind=ik), parameter :: COMPLEX_ELPA_KERNEL_GPU    = ELPA2_COMPLEX_KERNEL_GPU
+  integer, parameter :: number_of_complex_kernels          = ELPA2_NUMBER_OF_COMPLEX_KERNELS
+  integer, parameter :: COMPLEX_ELPA_KERNEL_GENERIC        = ELPA2_COMPLEX_KERNEL_GENERIC
+  integer, parameter :: COMPLEX_ELPA_KERNEL_GENERIC_SIMPLE = ELPA2_COMPLEX_KERNEL_GENERIC_SIMPLE
+  integer, parameter :: COMPLEX_ELPA_KERNEL_BGP            = ELPA2_COMPLEX_KERNEL_BGP
+  integer, parameter :: COMPLEX_ELPA_KERNEL_BGQ            = ELPA2_COMPLEX_KERNEL_BGQ
+  integer, parameter :: COMPLEX_ELPA_KERNEL_SSE            = ELPA2_COMPLEX_KERNEL_SSE
+  integer, parameter :: COMPLEX_ELPA_KERNEL_SSE_BLOCK1     = ELPA2_COMPLEX_KERNEL_SSE_BLOCK1
+  integer, parameter :: COMPLEX_ELPA_KERNEL_SSE_BLOCK2     = ELPA2_COMPLEX_KERNEL_SSE_BLOCK2
+  integer, parameter :: COMPLEX_ELPA_KERNEL_AVX_BLOCK1     = ELPA2_COMPLEX_KERNEL_AVX_BLOCK1
+  integer, parameter :: COMPLEX_ELPA_KERNEL_AVX_BLOCK2     = ELPA2_COMPLEX_KERNEL_AVX_BLOCK2
+  integer, parameter :: COMPLEX_ELPA_KERNEL_AVX2_BLOCK1    = ELPA2_COMPLEX_KERNEL_AVX2_BLOCK1
+  integer, parameter :: COMPLEX_ELPA_KERNEL_AVX2_BLOCK2    = ELPA2_COMPLEX_KERNEL_AVX2_BLOCK2
+  integer(kind=ik), parameter :: COMPLEX_ELPA_KERNEL_GPU   = ELPA2_COMPLEX_KERNEL_GPU
 
-#if defined(WITH_COMPLEX_AVX_BLOCK1_KERNEL)
-
-#ifndef WITH_ONE_SPECIFIC_COMPLEX_KERNEL
-  integer(kind=ik), parameter :: DEFAULT_COMPLEX_ELPA_KERNEL = COMPLEX_ELPA_KERNEL_GENERIC
-#else /* WITH_ONE_SPECIFIC_COMPLEX_KERNEL */
-
-! go through all kernels and set them
 #ifdef WITH_COMPLEX_GENERIC_KERNEL
   integer(kind=ik), parameter :: DEFAULT_COMPLEX_ELPA_KERNEL = COMPLEX_ELPA_KERNEL_GENERIC
 #endif
-#ifdef WITH_COMPLEX_GENERIC_SIMPLE_KERNEL
-  integer(kind=ik), parameter :: DEFAULT_COMPLEX_ELPA_KERNEL = COMPLEX_ELPA_KERNEL_GENERIC_SIMPLE
-#endif
+
 #ifdef WITH_COMPLEX_SSE_ASSEMBLY_KERNEL
   integer(kind=ik), parameter :: DEFAULT_COMPLEX_ELPA_KERNEL = COMPLEX_ELPA_KERNEL_SSE
 #endif
 
-#if defined(WITH_COMPLEX_SSE_BLOCK1_KERNEL) || defined(WITH_COMPLEX_SSE_BLOCK2_KERNEL)
-#ifdef WITH_COMPLEX_SSE_BLOCK2_KERNEL
-  integer(kind=ik), parameter :: DEFAULT_COMPLEX_ELPA_KERNEL = COMPLEX_ELPA_KERNEL_SSE_BLOCK2
-#else
-#ifdef WITH_COMPLEX_SSE_BLOCK1_KERNEL
-  integer(kind=ik), parameter :: DEFAULT_COMPLEX_ELPA_KERNEL = COMPLEX_ELPA_KERNEL_SSE_BLOCK1
-#endif
-#endif
-#endif /* defined(WITH_COMPLEXL_SSE_BLOCK1_KERNEL) || defined(WITH_COMPLEX_SSE_BLOCK2_KERNEL) */
-
-#if defined(WITH_COMPLEX_AVX_BLOCK1_KERNEL) || defined(WITH_COMPLEX_AVX_BLOCK2_KERNEL)
 #ifdef WITH_COMPLEX_AVX_BLOCK2_KERNEL
   integer(kind=ik), parameter :: DEFAULT_COMPLEX_ELPA_KERNEL = COMPLEX_ELPA_KERNEL_AVX_BLOCK2
-#else
+#endif
+
 #ifdef WITH_COMPLEX_AVX_BLOCK1_KERNEL
   integer(kind=ik), parameter :: DEFAULT_COMPLEX_ELPA_KERNEL = COMPLEX_ELPA_KERNEL_AVX_BLOCK1
 #endif
-#endif
-#endif /* defined(WITH_COMPLEX_AVX_BLOCK1_KERNEL) || defined(WITH_COMPLEX_AVX_BLOCK2_KERNEL) */
 
-#if defined(WITH_COMPLEX_AVX2_BLOCK1_KERNEL) || defined(WITH_COMPLEX_AVX2_BLOCK2_KERNEL)
 #ifdef WITH_COMPLEX_AVX2_BLOCK2_KERNEL
   integer, parameter :: DEFAULT_COMPLEX_ELPA_KERNEL = COMPLEX_ELPA_KERNEL_AVX2_BLOCK2
-#else
+#endif
+
 #ifdef WITH_COMPLEX_AVX2_BLOCK1_KERNEL
   integer, parameter :: DEFAULT_COMPLEX_ELPA_KERNEL = COMPLEX_ELPA_KERNEL_AVX2_BLOCK1
 #endif
-#endif
-#endif /* defined(WITH_COMPLEX_AVX2_BLOCK1_KERNEL) || defined(WITH_COMPLEX_AVX2_BLOCK2_KERNEL) */
-
 
 #ifdef WITH_GPU_VERSION
   integer(kind=ik), parameter :: DEFAULT_COMPLEX_ELPA_KERNEL = COMPLEX_ELPA_KERNEL_GPU
 #endif
-
-#endif /* WITH_ONE_SPECIFIC_COMPLEX_KERNEL */
-
-#else /* WITH_COMPLEX_AVX_BLOCK1_KERNEL */
-
-#ifndef WITH_ONE_SPECIFIC_COMPLEX_KERNEL
-  integer(kind=ik), parameter :: DEFAULT_COMPLEX_ELPA_KERNEL = COMPLEX_ELPA_KERNEL_GENERIC
-
-#else /* WITH_ONE_SPECIFIC_COMPLEX_KERNEL */
-
-! go through all kernels and set them
-#ifdef WITH_COMPLEX_GENERIC_KERNEL
-  integer(kind=ik), parameter :: DEFAULT_COMPLEX_ELPA_KERNEL = COMPLEX_ELPA_KERNEL_GENERIC
-#endif
-#ifdef WITH_COMPLEX_GENERIC_SIMPLE_KERNEL
-  integer(kind=ik), parameter :: DEFAULT_COMPLEX_ELPA_KERNEL = COMPLEX_ELPA_KERNEL_GENERIC_SIMPLE
-#endif
-#ifdef WITH_COMPLEX_SSE_ASSEMBLY_KERNEL
-  integer(kind=ik), parameter :: DEFAULT_COMPLEX_ELPA_KERNEL = COMPLEX_ELPA_KERNEL_SSE
-#endif
-
-#if defined(WITH_COMPLEX_SSE_BLOCK1_KERNEL) || defined(WITH_COMPLEX_SSE_BLOCK2_KERNEL)
-#ifdef WITH_COMPLEX_SSE_BLOCK2_KERNEL
-  integer(kind=ik), parameter :: DEFAULT_COMPLEX_ELPA_KERNEL = COMPLEX_ELPA_KERNEL_SSE_BLOCK2
-#else
-#ifdef WITH_COMPLEX_SSE_BLOCK1_KERNEL
-  integer(kind=ik), parameter :: DEFAULT_COMPLEX_ELPA_KERNEL = COMPLEX_ELPA_KERNEL_SSE_BLOCK1
-#endif
-#endif
-#endif /* defined(WITH_COMPLEXL_SSE_BLOCK1_KERNEL) || defined(WITH_COMPLEX_SSE_BLOCK2_KERNEL) */
-
-#if defined(WITH_COMPLEX_AVX_BLOCK1_KERNEL) || defined(WITH_COMPLEX_AVX_BLOCK2_KERNEL)
-#ifdef WITH_COMPLEX_AVX_BLOCK2_KERNEL
-  integer(kind=ik), parameter :: DEFAULT_COMPLEX_ELPA_KERNEL = COMPLEX_ELPA_KERNEL_AVX_BLOCK2
-#else
-#ifdef WITH_COMPLEX_AVX_BLOCK1_KERNEL
-  integer(kind=ik), parameter :: DEFAULT_COMPLEX_ELPA_KERNEL = COMPLEX_ELPA_KERNEL_AVX_BLOCK1
-#endif
-#endif
-#endif /* defined(WITH_COMPLEX_AVX_BLOCK1_KERNEL) || defined(WITH_COMPLEX_AVX_BLOCK2_KERNEL) */
-
-#if defined(WITH_COMPLEX_AVX2_BLOCK1_KERNEL) || defined(WITH_COMPLEX_AVX2_BLOCK2_KERNEL)
-#ifdef WITH_COMPLEX_AVX2_BLOCK2_KERNEL
-  integer, parameter :: DEFAULT_COMPLEX_ELPA_KERNEL = COMPLEX_ELPA_KERNEL_AVX2_BLOCK2
-#else
-#ifdef WITH_COMPLEX_AVX2_BLOCK1_KERNEL
-  integer, parameter :: DEFAULT_COMPLEX_ELPA_KERNEL = COMPLEX_ELPA_KERNEL_AVX2_BLOCK1
-#endif
-#endif
-#endif /* defined(WITH_COMPLEX_AVX2_BLOCK1_KERNEL) || defined(WITH_COMPLEX_AVX2_BLOCK2_KERNEL) */
-
-#ifdef WITH_GPU_VERSION
-  integer(kind=ik), parameter :: DEFAULT_COMPLEX_ELPA_KERNEL = COMPLEX_ELPA_KERNEL_GPU
-#endif
-
-#endif /* WITH_ONE_SPECIFIC_COMPLEX_KERNEL */
-
-#endif /* WITH_COMPLEX_AVX_BLOCK1_KERNEL */
 
   character(35), parameter, dimension(number_of_complex_kernels) :: &
-  COMPLEX_ELPA_KERNEL_NAMES = (/"COMPLEX_ELPA_KERNEL_GENERIC         ", &
-                                "COMPLEX_ELPA_KERNEL_GENERIC_SIMPLE  ", &
-                                "COMPLEX_ELPA_KERNEL_BGP             ", &
-                                "COMPLEX_ELPA_KERNEL_BGQ             ", &
-                                "COMPLEX_ELPA_KERNEL_SSE             ", &
-                                "COMPLEX_ELPA_KERNEL_SSE_BLOCK1      ", &
-                                "COMPLEX_ELPA_KERNEL_SSE_BLOCK2      ", &
-                                "COMPLEX_ELPA_KERNEL_AVX_BLOCK1      ", &
-                                "COMPLEX_ELPA_KERNEL_AVX_BLOCK2      ", &
-                                "COMPLEX_ELPA_KERNEL_AVX2_BLOCK1     ", &
-                                "COMPLEX_ELPA_KERNEL_AVX2_BLOCK2     ", &
-                                "COMPLEX_ELPA_KERNEL_GPU             "/)
+  COMPLEX_ELPA_KERNEL_NAMES = (/"COMPLEX_ELPA_KERNEL_GENERIC       ", &
+                                "COMPLEX_ELPA_KERNEL_GENERIC_SIMPLE", &
+                                "COMPLEX_ELPA_KERNEL_BGP           ", &
+                                "COMPLEX_ELPA_KERNEL_BGQ           ", &
+                                "COMPLEX_ELPA_KERNEL_SSE           ", &
+                                "COMPLEX_ELPA_KERNEL_SSE_BLOCK1    ", &
+                                "COMPLEX_ELPA_KERNEL_SSE_BLOCK2    ", &
+                                "COMPLEX_ELPA_KERNEL_AVX_BLOCK1    ", &
+                                "COMPLEX_ELPA_KERNEL_AVX_BLOCK2    ", &
+                                "COMPLEX_ELPA_KERNEL_AVX2_BLOCK1   ", &
+                                "COMPLEX_ELPA_KERNEL_AVX2_BLOCK2   ", &
+                                "COMPLEX_ELPA_KERNEL_GPU           "/)
 
   integer(kind=ik), parameter                           ::             &
            AVAILABLE_REAL_ELPA_KERNELS(number_of_real_kernels) =       &
@@ -572,7 +386,6 @@ module ELPA2_utilities
 #endif
                                                                /)
 
-!******
   contains
     subroutine print_available_real_kernels
       use precision

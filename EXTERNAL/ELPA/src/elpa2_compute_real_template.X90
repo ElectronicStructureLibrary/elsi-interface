@@ -101,9 +101,6 @@
       use cuda_functions
       use iso_c_binding
       use elpa1_compute
-#ifdef HAVE_DETAILED_TIMINGS
-      use timings
-#endif
 #ifdef WITH_OPENMP
       use omp_lib
 #endif
@@ -111,11 +108,7 @@
       implicit none
 
       integer(kind=ik)                      :: na, lda, nblk, nbw, matrixCols, numBlocks, mpi_comm_rows, mpi_comm_cols
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE
       real(kind=REAL_DATATYPE)              :: a(lda,*), tmat(nbw,nbw,*)
-#else
-      real(kind=REAL_DATATYPE)              :: a(lda,matrixCols), tmat(nbw,nbw,numBlocks)
-#endif
       real(kind=REAL_DATATYPE)              :: eps
       logical, intent(in)                   :: useGPU
 
@@ -157,13 +150,6 @@
       integer(kind=ik)                      :: mystart, myend, m_way, n_way, work_per_thread, m_id, n_id, n_threads, &
                                                ii, pp, transformChunkSize
 
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-      call timer%start("bandred_real_double")
-#else
-      call timer%start("bandred_real_single")
-#endif
-#endif
       call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
       call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
       call mpi_comm_rank(mpi_comm_cols,my_pcol,mpierr)
@@ -233,32 +219,15 @@
           vmrCols = na
 #ifdef DOUBLE_PRECISION_REAL
 
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE_QR
           call qr_pdgeqrf_2dcomm_double(a, lda, matrixCols, vmrCPU, max(l_rows,1), vmrCols, tauvector(1), na, tmat(1,1,1), &
                                  nbw, nbw, dwork_size, 1, -1, na, nbw, nblk, nblk, na, na, 1, 0, PQRPARAM(1:11), &
                                  mpi_comm_rows, mpi_comm_cols, blockheuristic)
 
-#else
-          call qr_pdgeqrf_2dcomm_double(a(1:lda,1:matrixCols), matrixCols, lda, vmrCPU(1:max(l_rows,1),1:vmrCols), max(l_rows,1), &
-                                 vmrCols, tauvector(1:na), na, tmat(1:nbw,1:nbw,1), nbw, &
-                                 nbw, dwork_size(1:1), 1, -1, na, nbw, nblk, nblk, na, na, 1, 0, PQRPARAM(1:11), &
-                                 mpi_comm_rows, mpi_comm_cols, blockheuristic)
-#endif
-
 #else /* DOUBLE_PRECISION_REAL */
 
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE_QR
           call qr_pdgeqrf_2dcomm_single(a, lda, matrixCols, vmrCPU, max(l_rows,1), vmrCols, tauvector(1), na, tmat(1,1,1), &
                                  nbw, nbw, dwork_size, 1, -1, na, nbw, nblk, nblk, na, na, 1, 0, PQRPARAM(1:11), &
                                  mpi_comm_rows, mpi_comm_cols, blockheuristic)
-
-#else
-          call qr_pdgeqrf_2dcomm_single(a(1:lda,1:matrixCols), matrixCols, lda, vmrCPU(1:max(l_rows,1),1:vmrCols), max(l_rows,1), &
-                                 vmrCols, tauvector(1:na), na, tmat(1:nbw,1:nbw,1), nbw, &
-                                 nbw, dwork_size(1:1), 1, -1, na, nbw, nblk, nblk, na, na, 1, 0, PQRPARAM(1:11), &
-                                 mpi_comm_rows, mpi_comm_cols, blockheuristic)
-#endif
-
 
 #endif /* DOUBLE_PRECISION_REAL */
           work_size = dwork_size(1)
@@ -510,7 +479,6 @@
             vmrCols = 2*n_cols
 #ifdef DOUBLE_PRECISION_REAL
 
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE_QR
             call qr_pdgeqrf_2dcomm_double(a, lda, matrixCols, vmrCPU, max(l_rows,1), vmrCols, tauvector(1), &
                                    na, tmat(1,1,istep), nbw, nbw, work_blocked, work_size,        &
                                      work_size, na, n_cols, nblk, nblk,        &
@@ -518,36 +486,14 @@
                                      0, PQRPARAM(1:11), mpi_comm_rows, mpi_comm_cols,&
                                      blockheuristic)
 
-#else
-            call qr_pdgeqrf_2dcomm_double(a(1:lda,1:matrixCols), lda, matrixCols, vmrCPU(1:max(l_rows,1),1:vmrCols) ,   &
-                                    max(l_rows,1), vmrCols, tauvector(1:na), na, &
-                                     tmat(1:nbw,1:nbw,istep), nbw, nbw, work_blocked(1:work_size), work_size, &
-                                     work_size, na, n_cols, nblk, nblk,        &
-                                     istep*nbw+n_cols-nbw, istep*nbw+n_cols, 1,&
-                                     0, PQRPARAM(1:11), mpi_comm_rows, mpi_comm_cols,&
-                                     blockheuristic)
-#endif
-
 #else /* DOUBLE_PRECISION_REAL */
 
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE_QR
             call qr_pdgeqrf_2dcomm_single(a, lda, matrixCols, vmrCPU, max(l_rows,1), vmrCols, tauvector(1), &
                                    na, tmat(1,1,istep), nbw, nbw, work_blocked, work_size,        &
                                      work_size, na, n_cols, nblk, nblk,        &
                                      istep*nbw+n_cols-nbw, istep*nbw+n_cols, 1,&
                                      0, PQRPARAM(1:11), mpi_comm_rows, mpi_comm_cols,&
                                      blockheuristic)
-
-#else
-            call qr_pdgeqrf_2dcomm_single(a(1:lda,1:matrixCols), lda, matrixCols, vmrCPU(1:max(l_rows,1),1:vmrCols) ,   &
-                                    max(l_rows,1), vmrCols, tauvector(1:na), na, &
-                                     tmat(1:nbw,1:nbw,istep), nbw, nbw, work_blocked(1:work_size), work_size, &
-                                     work_size, na, n_cols, nblk, nblk,        &
-                                     istep*nbw+n_cols-nbw, istep*nbw+n_cols, 1,&
-                                     0, PQRPARAM(1:11), mpi_comm_rows, mpi_comm_cols,&
-                                     blockheuristic)
-#endif
-
 
 #endif /* DOUBLE_PRECISION_REAL */
           endif
@@ -1544,14 +1490,6 @@
        endif
      endif
 
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-     call timer%stop("bandred_real_double")
-#else
-     call timer%stop("bandred_real_single")
-#endif
-#endif
-
 #ifdef DOUBLE_PRECISION_REAL
    end subroutine bandred_real_double ! slower for gpu on 10000 10000 ???
 #else
@@ -1568,29 +1506,12 @@
     !  On entry, only the upper half of A needs to be set
     !  On exit, the complete matrix is set
     !-------------------------------------------------------------------------------
-#ifdef HAVE_DETAILED_TIMINGS
-      use timings
-#endif
       use precision
       implicit none
       integer(kind=ik)             :: n, lda, ldb, comm
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE
       real(kind=REAL_DATATYPE)     :: a(lda,*)
-#else
-      real(kind=REAL_DATATYPE)     :: a(lda,ldb)
-#endif
       integer(kind=ik)             :: i, nc, mpierr
       real(kind=REAL_DATATYPE)     :: h1(n*n), h2(n*n)
-
-#ifdef HAVE_DETAILED_TIMINGS
-
-#ifdef DOUBLE_PRECISION_REAL
-      call timer%start("symm_matrix_allreduce_double")
-#else
-      call timer%start("symm_matrix_allreduce_single")
-#endif
-
-#endif
 
       nc = 0
       do i=1,n
@@ -1630,16 +1551,6 @@
 !        a(i,1:i-1) = a(1:i-1,i)
 !        nc = nc+i
 !      enddo
-
-#ifdef HAVE_DETAILED_TIMINGS
-
-#ifdef DOUBLE_PRECISION_REAL
-      call timer%stop("symm_matrix_allreduce_double")
-#else
-      call timer%stop("symm_matrix_allreduce_single")
-#endif
-
-#endif
 
 #ifdef DOUBLE_PRECISION_REAL
     end subroutine symm_matrix_allreduce_double
@@ -1687,9 +1598,6 @@
     !              MPI-Communicators for rows/columns
     !
     !-------------------------------------------------------------------------------
-#ifdef HAVE_DETAILED_TIMINGS
-      use timings
-#endif
       use precision
       use cuda_functions
       use iso_c_binding
@@ -1697,11 +1605,7 @@
       implicit none
 
       integer(kind=ik)                       :: na, nqc, lda, ldq, nblk, nbw, matrixCols, numBlocks, mpi_comm_rows, mpi_comm_cols
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE
       real(kind=REAL_DATATYPE)               :: a(lda,*), q(ldq,*), tmat(nbw,nbw,*)
-#else
-      real(kind=REAL_DATATYPE)               :: a(lda,matrixCols), q(ldq,matrixCols), tmat(nbw, nbw, numBlocks)
-#endif
 
       integer(kind=C_intptr_T)               :: a_dev ! passed from bandred_real at the moment not used since copied in bandred_real
 
@@ -1728,13 +1632,6 @@
       character(200)                         :: errorMessage
       logical                                :: successCUDA
 
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-      call timer%start("trans_ev_band_to_full_real_double")
-#else
-      call timer%start("trans_ev_band_to_full_real_single")
-#endif
-#endif
       call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
       call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
       call mpi_comm_rank(mpi_comm_cols,my_pcol,mpierr)
@@ -2361,14 +2258,6 @@
 
       endif
 
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-      call timer%stop("trans_ev_band_to_full_real_double")
-#else
-      call timer%stop("trans_ev_band_to_full_real_single")
-#endif
-#endif
-
 #ifdef DOUBLE_PRECISION_REAL
     end subroutine trans_ev_band_to_full_real_double
 #else
@@ -2407,18 +2296,11 @@
     !  mpi_comm
     !              MPI-Communicator for the total processor set
     !-------------------------------------------------------------------------------
-#ifdef HAVE_DETAILED_TIMINGS
-      use timings
-#endif
       use precision
       implicit none
 
       integer(kind=ik), intent(in)             ::  na, nb, nblk, lda, matrixCols, mpi_comm_rows, mpi_comm_cols, mpi_comm
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE
       real(kind=REAL_DATATYPE), intent(in)     :: a(lda,*)
-#else
-      real(kind=REAL_DATATYPE), intent(in)     :: a(lda,matrixCols)
-#endif
       real(kind=REAL_DATATYPE), intent(out)    :: d(na), e(na) ! set only on PE 0
       real(kind=REAL_DATATYPE), intent(out), &
           allocatable                          :: hh_trans_real(:,:)
@@ -2455,13 +2337,6 @@
       integer(kind=ik)                         :: startAddr
 #endif
 
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-      call timer%start("tridiag_band_real_double")
-#else
-      call timer%start("tridiag_band_real_single")
-#endif
-#endif
       call mpi_comm_rank(mpi_comm,my_pe,mpierr)
       call mpi_comm_size(mpi_comm,n_pes,mpierr)
 
@@ -2846,13 +2721,6 @@
             ! is completed by the next thread.
             ! After the first iteration it is also the place to exchange the last row
             ! with MPI calls
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-            call timer%start("OpenMP parallel_double")
-#else
-            call timer%start("OpenMP parallel_single")
-#endif
-#endif
 
 !$omp parallel do private(my_thread, my_block_s, my_block_e, iblk, ns, ne, hv, tau, &
 !$omp&                    nc, nr, hs, hd, vnorm2, hf, x, h, i), schedule(static,1), num_threads(max_threads)
@@ -2981,15 +2849,6 @@
 
             enddo ! my_thread
 !$omp end parallel do
-
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-            call timer%stop("OpenMP parallel_double")
-#else
-            call timer%stop("OpenMP parallel_single")
-#endif
-
-#endif
 
             if (iter==1) then
               ! We are at the end of the first block
@@ -3473,14 +3332,6 @@
          stop
        endif
 
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-      call timer%stop("tridiag_band_real_double")
-#else
-      call timer%stop("tridiag_band_real_single")
-#endif
-#endif
-
 #ifdef DOUBLE_PRECISION_REAL
     end subroutine tridiag_band_real_double
 #else
@@ -3522,9 +3373,6 @@
     !              MPI-Communicators for rows/columns/both
     !
     !-------------------------------------------------------------------------------
-#ifdef HAVE_DETAILED_TIMINGS
-      use timings
-#endif
       use cuda_functions
       use precision
       use pack_unpack_real
@@ -3536,13 +3384,8 @@
 
       integer(kind=ik), intent(in)             :: THIS_REAL_ELPA_KERNEL
       integer(kind=ik), intent(in)             :: na, nev, nblk, nbw, ldq, matrixCols, mpi_comm_rows, mpi_comm_cols
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE
       real(kind=REAL_DATATYPE)                 :: q(ldq,*)
-#else
-      real(kind=REAL_DATATYPE)                 :: q(ldq,matrixCols)
-#endif
       integer(kind=c_intptr_t)                 :: q_dev
-
 
       real(kind=REAL_DATATYPE), intent(in)     :: hh_trans_real(:,:)
       integer(kind=ik)                         :: np_rows, my_prow, np_cols, my_pcol
@@ -3638,15 +3481,6 @@
       logical                                  :: successCUDA
 #ifndef WITH_MPI
       integer(kind=ik)                         :: j1
-#endif
-
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-      call timer%start("trans_ev_tridi_to_band_real_double")
-#else
-      call timer%start("trans_ev_tridi_to_band_real_single")
-#endif
-
 #endif
 
 #ifdef WITH_GPU_VERSION
@@ -3863,13 +3697,6 @@
       ! Please note about the OMP usage below:
       ! This is not for speed, but because we want the matrix a in the memory and
       ! in the cache of the correct thread (if possible)
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-      call timer%start("OpenMP parallel_double")
-#else
-      call timer%start("OpenMP parallel_single")
-#endif
-#endif
       !$omp parallel do private(my_thread), schedule(static, 1)
       do my_thread = 1, max_threads
 #ifdef DOUBLE_PRECISION_REAL
@@ -3880,13 +3707,6 @@
       enddo
       !$omp end parallel do
 
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-      call timer%stop("OpenMP parallel_double")
-#else
-      call timer%stop("OpenMP parallel_single")
-#endif
-#endif
 #endif /* WITH_OPENMP */
 
       do ip = np_rows-1, 0, -1
@@ -3915,14 +3735,6 @@
 
 #endif /* WITH_MPI */
 
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-              call timer%start("OpenMP parallel_double")
-#else
-              call timer%start("OpenMP parallel_single")
-#endif
-#endif /* HAVE_DETAILED_TIMINGS */
-
 !$omp parallel do private(my_thread), schedule(static, 1)
               do my_thread = 1, max_threads
 #ifdef DOUBLE_PRECISION_REAL
@@ -3934,14 +3746,6 @@
 #endif
               enddo
 !$omp end parallel do
-
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-              call timer%stop("OpenMP parallel_double")
-#else
-              call timer%stop("OpenMP parallel_single")
-#endif
-#endif /* HAVE_DETAILED_TIMINGS */
 
 #else /* WITH_OPENMP */
 
@@ -3999,14 +3803,6 @@
 
 #ifdef WITH_OPENMP
 
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-              call timer%start("OpenMP parallel_double")
-#else
-              call timer%start("OpenMP parallel_single")
-#endif
-#endif /* HAVE_DETAILED_TIMINGS */
-
               if (useGPU) then
                 print *,"trans_ev_tridi_to_band_real: not yet implemented"
                 stop
@@ -4022,14 +3818,6 @@
 #endif
               enddo
 !$omp end parallel do
-
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-              call timer%stop("OpenMP parallel_double")
-#else
-              call timer%stop("OpenMP parallel_single")
-#endif
-#endif /* HAVE_DETAILED_TIMINGS */
 
 #else /* WITH_OPENMP */
 
@@ -4122,14 +3910,6 @@
 
 #endif /* WITH_MPI */
 
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-              call timer%start("OpenMP parallel_double")
-#else
-              call timer%start("OpenMP parallel_single")
-#endif
-#endif /* HAVE_DETAILED_TIMINGS */
-
 !$omp parallel do private(my_thread), schedule(static, 1)
               do my_thread = 1, max_threads
 #ifdef DOUBLE_PRECISION_REAL
@@ -4141,13 +3921,6 @@
 #endif
               enddo
 !$omp end parallel do
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-              call timer%stop("OpenMP parallel_double")
-#else
-              call timer%stop("OpenMP parallel_single")
-#endif
-#endif
 
 #else /* WITH_OPENMP */
 
@@ -4632,14 +4405,6 @@
               call MPI_Wait(bottom_recv_request(i), my_MPI_STATUS, mpierr)
 #endif
 
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-              call timer%start("OpenMP parallel_double")
-#else
-              call timer%start("OpenMP parallel_single")
-#endif
-#endif /* HAVE_DETAILED_TIMINGS */
-
 !$omp parallel do private(my_thread, n_off, b_len, b_off), schedule(static, 1)
               do my_thread = 1, max_threads
                 n_off = current_local_n+a_off
@@ -4649,13 +4414,6 @@
                   reshape(bottom_border_recv_buffer(b_off+1:b_off+b_len,i), (/ csw, nbw /))
               enddo
 !$omp end parallel do
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-              call timer%stop("OpenMP parallel_double")
-#else
-              call timer%stop("OpenMP parallel_single")
-#endif
-#endif /* HAVE_DETAILED_TIMINGS */
 
 #else /* WITH_OPENMP */
 
@@ -4780,14 +4538,6 @@
            !compute
 #ifdef WITH_OPENMP
 
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-           call timer%start("OpenMP parallel_double")
-#else
-           call timer%start("OpenMP parallel_single")
-#endif
-#endif /* HAVE_DETAILED_TIMINGS */
-
            if (useGPU) then
              print *,"trans_ev_tridi_to_band_real: not yet implemented"
              stop
@@ -4821,13 +4571,6 @@
 !                                         THIS_REAL_ELPA_KERNEL)
            enddo
 !$omp end parallel do
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-           call timer%stop("OpenMP parallel_double")
-#else
-           call timer%stop("OpenMP parallel_single")
-#endif
-#endif /* HAVE_DETAILED_TIMINGS */
 
 #else /* WITH_OPENMP */
 
@@ -4930,13 +4673,6 @@
            print *,"trans_ev_tridi_to_band_real: not yet implemented"
            stop
          endif
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-         call timer%start("OpenMP parallel_double")
-#else
-         call timer%start("OpenMP parallel_single")
-#endif
-#endif /* HAVE_DETAILED_TIMINGS */
 
 !$omp parallel do private(my_thread, b_len, b_off), schedule(static, 1)
         do my_thread = 1, max_threads
@@ -4959,13 +4695,6 @@
 !                                    THIS_REAL_ELPA_KERNEL)
         enddo
 !$omp end parallel do
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-        call timer%stop("OpenMP parallel_double")
-#else
-        call timer%stop("OpenMP parallel_single")
-#endif
-#endif /* HAVE_DETAILED_TIMINGS */
 
         !send_b
 #ifdef WITH_MPI
@@ -5063,14 +4792,6 @@
           stop
         endif
 
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-        call timer%start("OpenMP parallel_double")
-#else
-        call timer%start("OpenMP parallel_single")
-#endif
-#endif /* HAVE_DETAILED_TIMINGS */
-
 !$omp parallel do private(my_thread), schedule(static, 1)
         do my_thread = 1, max_threads
 #ifdef DOUBLE_PRECISION_REAL
@@ -5094,13 +4815,6 @@
 !                                      THIS_REAL_ELPA_KERNEL)
         enddo
 !$omp end parallel do
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-        call timer%stop("OpenMP parallel_double")
-#else
-        call timer%stop("OpenMP parallel_single")
-#endif
-#endif /* HAVE_DETAILED_TIMINGS */
 
 #else /* WITH_OPENMP */
 
@@ -5164,14 +4878,6 @@
            stop
          endif
 
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-        call timer%start("OpenMP parallel_double")
-#else
-        call timer%start("OpenMP parallel_single")
-#endif
-#endif /* HAVE_DETAILED_TIMINGS */
-
 !$omp parallel do private(my_thread, b_len, b_off), schedule(static, 1)
         do my_thread = 1, max_threads
           if (top_msg_length>0) then
@@ -5198,13 +4904,6 @@
 !                                                      0, top_msg_length, i, my_thread, thread_width, THIS_REAL_ELPA_KERNEL)
         enddo
 !$omp end parallel do
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-        call timer%stop("OpenMP parallel_double")
-#else
-        call timer%stop("OpenMP parallel_single")
-#endif
-#endif /* HAVE_DETAILED_TIMINGS */
 
 #else /* WITH_OPENMP */
 
@@ -5657,14 +5356,6 @@
         stop
       endif
 
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-      call timer%start("OpenMP parallel_double")
-#else
-      call timer%start("OpenMP parallel_single")
-#endif
-#endif /* HAVE_DETAILED_TIMINGS */
-
  !$omp parallel do private(my_thread, i, j), schedule(static, 1)
       do my_thread = 1, max_threads
         do i = 1, stripe_count
@@ -5715,14 +5406,6 @@
 #endif /* WITH_OPENMP */
 
 #ifdef WITH_OPENMP
-
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-         call timer%stop("OpenMP parallel_double")
-#else
-         call timer%stop("OpenMP parallel_single")
-#endif
-#endif /* HAVE_DETAILED_TIMINGS */
 
 #endif /* WITH_OPENMP */
          a_off = 0
@@ -5932,14 +5615,6 @@
        endif
      endif ! useGPU
 
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-     call timer%stop("trans_ev_tridi_to_band_real_double")
-#else
-     call timer%stop("trans_ev_tridi_to_band_real_single")
-#endif
-#endif /* HAVE_DETAILED_TIMINGS */
-
      return
 
 #ifdef DOUBLE_PRECISION_REAL
@@ -5950,9 +5625,6 @@
 
 #ifndef ALREADY_DEFINED_WORKLOAD
     subroutine determine_workload(na, nb, nprocs, limits)
-#ifdef HAVE_DETAILED_TIMINGS
-      use timings
-#endif
       use precision
       implicit none
 
@@ -5961,15 +5633,8 @@
 
       integer(kind=ik)              :: i
 
-#ifdef HAVE_DETAILED_TIMINGS
-      call timer%start("determine_workload")
-#endif
-
       if (na <= 0) then
         limits(:) = 0
-#ifdef HAVE_DETAILED_TIMINGS
-        call timer%stop("determine_workload")
-#endif
         return
       endif
 
@@ -5984,9 +5649,6 @@
          enddo
       endif
 
-#ifdef HAVE_DETAILED_TIMINGS
-      call timer%stop("determine_workload")
-#endif
     end subroutine
 
     !---------------------------------------------------------------------------------------------------
@@ -5994,9 +5656,6 @@
     ! Proc n works on blocks block_limits(n)+1 .. block_limits(n+1)
 
     subroutine divide_band(nblocks_total, n_pes, block_limits)
-#ifdef HAVE_DETAILED_TIMINGS
-      use timings
-#endif
       use precision
       implicit none
       integer(kind=ik), intent(in)  :: nblocks_total ! total number of blocks in band
@@ -6004,10 +5663,6 @@
       integer(kind=ik), intent(out) :: block_limits(0:n_pes)
 
       integer(kind=ik)              :: n, nblocks, nblocks_left
-
-#ifdef HAVE_DETAILED_TIMINGS
-      call timer%start("divide_band")
-#endif
 
       block_limits(0) = 0
       if (nblocks_total < n_pes) then
@@ -6028,10 +5683,6 @@
           endif
         enddo
       endif
-
-#ifdef HAVE_DETAILED_TIMINGS
-      call timer%stop("divide_band")
-#endif
 
     end subroutine
 #define ALREADY_DEFINED_WORKLOAD 1
@@ -6070,9 +5721,6 @@
     !  mpi_comm
     !              MPI-Communicator for the total processor set
     !-------------------------------------------------------------------------------
-#ifdef HAVE_DETAILED_TIMINGS
-      use timings
-#endif
       use precision
       implicit none
 
@@ -6102,30 +5750,6 @@
       integer(kind=ik)                         :: j, nc, nr, ns, ne, iblk
       integer(kind=ik)                         :: istat
       character(200)                           :: errorMessage
-
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-      call timer%start("band_band_real_double")
-#else
-      call timer%start("band_band_real_single")
-#endif
-#endif
-!      if (na .lt. 2*nb) then
-!        print *,"na lt 2*nb ",na,2*nb
-!        stop
-!      endif
-!      if (na .lt. 2*nb2) then
-!        print *,"na lt 2*nb2 ",na,2*nb2
-!        stop
-!      endif
-!      if (na .lt. nbCol) then
-!        print *,"na lt nbCol ",na,nbCol
-!        stop
-!      endif
-!      if (na .lt. nb2Col) then
-!        print *,"na lt nb2Col ",na,nb2Col
-!        stop
-!      endif
 
       call mpi_comm_rank(mpi_comm,my_pe,mpierr)
       call mpi_comm_size(mpi_comm,n_pes,mpierr)
@@ -6498,14 +6122,6 @@
           stop
         endif
 
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-        call timer%stop("band_band_real_double")
-#else
-        call timer%stop("band_band_real_single")
-#endif
-#endif
-
     end subroutine
 
 #ifdef DOUBLE_PRECISION_REAL
@@ -6514,9 +6130,6 @@
     subroutine wy_gen_single(n, nb, W, Y, tau, mem, lda)
 #endif
 
-#ifdef HAVE_DETAILED_TIMINGS
-   use timings
-#endif
       use precision
       implicit none
       integer(kind=ik), intent(in)            :: n		!length of householder-vectors
@@ -6529,14 +6142,6 @@
 
       integer(kind=ik)             :: i
 
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-   call timer%start("wy_gen_double")
-#else
-   call timer%start("wy_gen_single")
-#endif
-#endif
-
    W(1:n,1) = tau(1)*Y(1:n,1)
    do i=2,nb
      W(1:n,i) = tau(i)*Y(1:n,i)
@@ -6548,13 +6153,6 @@
      call SGEMV('N', n, i-1, -1.0_rk4, W, lda, mem, 1, 1.0_rk4, W(1,i),1)
 #endif
    enddo
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-   call timer%stop("wy_gen_double")
-#else
-   call timer%stop("wy_gen_single")
-#endif
-#endif
     end subroutine
 
 #ifdef DOUBLE_PRECISION_REAL
@@ -6563,9 +6161,6 @@
     subroutine wy_left_single(n, m, nb, A, lda, W, Y, mem, lda2)
 #endif
 
-#ifdef HAVE_DETAILED_TIMINGS
-      use timings
-#endif
       use precision
       implicit none
       integer(kind=ik), intent(in)            :: n		!width of the matrix A
@@ -6578,14 +6173,6 @@
       real(kind=REAL_DATATYPE), intent(in)    :: Y(m,nb)	!blocked transformation matrix Y
       real(kind=REAL_DATATYPE), intent(inout) :: mem(n,nb)	!memory for a temporary matrix of size n x nb
 
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-   call timer%start("wy_left_double")
-#else
-   call timer%start("wy_left_single")
-#endif
-#endif
-
 #ifdef DOUBLE_PRECISION_REAL
    call DGEMM('T', 'N', nb, n, m, 1.0_rk8, W, lda2, A, lda, 0.0_rk8, mem, nb)
    call DGEMM('N', 'N', m, n, nb, -1.0_rk8, Y, lda2, mem, nb, 1.0_rk8, A, lda)
@@ -6594,13 +6181,6 @@
    call SGEMM('N', 'N', m, n, nb, -1.0_rk4, Y, lda2, mem, nb, 1.0_rk4, A, lda)
 #endif
 
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-   call timer%stop("wy_left_double")
-#else
-   call timer%stop("wy_left_single")
-#endif
-#endif
     end subroutine
 
 #ifdef DOUBLE_PRECISION_REAL
@@ -6609,9 +6189,6 @@
    subroutine wy_right_single(n, m, nb, A, lda, W, Y, mem, lda2)
 #endif
 
-#ifdef HAVE_DETAILED_TIMINGS
-      use timings
-#endif
       use precision
       implicit none
       integer(kind=ik), intent(in)            :: n		!height of the matrix A
@@ -6624,29 +6201,12 @@
       real(kind=REAL_DATATYPE), intent(in)    :: Y(m,nb)	!blocked transformation matrix Y
       real(kind=REAL_DATATYPE), intent(inout) :: mem(n,nb)	!memory for a temporary matrix of size n x nb
 
-
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-   call timer%start("wy_right_double")
-#else
-   call timer%start("wy_right_single")
-#endif
-#endif
-
 #ifdef DOUBLE_PRECISION_REAL
    call DGEMM('N', 'N', n, nb, m, 1.0_rk8, A, lda, W, lda2, 0.0_rk8, mem, n)
    call DGEMM('N', 'T', n, m, nb, -1.0_rk8, mem, n, Y, lda2, 1.0_rk8, A, lda)
 #else
    call SGEMM('N', 'N', n, nb, m, 1.0_rk4, A, lda, W, lda2, 0.0_rk4, mem, n)
    call SGEMM('N', 'T', n, m, nb, -1.0_rk4, mem, n, Y, lda2, 1.0_rk4, A, lda)
-#endif
-
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-   call timer%stop("wy_right_double")
-#else
-   call timer%stop("wy_right_single")
-#endif
 #endif
 
     end subroutine
@@ -6657,9 +6217,6 @@
     subroutine wy_symm_single(n, nb, A, lda, W, Y, mem, mem2, lda2)
 #endif
 
-#ifdef HAVE_DETAILED_TIMINGS
-      use timings
-#endif
       use precision
       implicit none
       integer(kind=ik), intent(in)            :: n		!width/heigth of the matrix A; length of matrix W and Y
@@ -6672,14 +6229,6 @@
       real(kind=REAL_DATATYPE)                :: mem(n,nb)	!memory for a temporary matrix of size n x nb
       real(kind=REAL_DATATYPE)                :: mem2(nb,nb)	!memory for a temporary matrix of size nb x nb
 
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-   call timer%start("wy_symm_double")
-#else
-   call timer%start("wy_symm_single")
-#endif
-#endif
-
 #ifdef DOUBLE_PRECISION_REAL
    call DSYMM('L', 'L', n, nb, 1.0_rk8, A, lda, W, lda2, 0.0_rk8, mem, n)
    call DGEMM('T', 'N', nb, nb, n, 1.0_rk8, mem, n, W, lda2, 0.0_rk8, mem2, nb)
@@ -6690,14 +6239,6 @@
    call SGEMM('T', 'N', nb, nb, n, 1.0_rk4, mem, n, W, lda2, 0.0_rk4, mem2, nb)
    call SGEMM('N', 'N', n, nb, nb, -0.5_rk4, Y, lda2, mem2, nb, 1.0_rk4, mem, n)
    call SSYR2K('L', 'N', n, nb, -1.0_rk4, Y, lda2, mem, n, 1.0_rk4, A, lda)
-#endif
-
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-   call timer%stop("wy_symm_double")
-#else
-   call timer%stop("wy_symm_single")
-#endif
 #endif
 
     end subroutine

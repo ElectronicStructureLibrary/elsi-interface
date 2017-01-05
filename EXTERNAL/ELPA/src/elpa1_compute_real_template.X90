@@ -86,19 +86,12 @@
     !  tau(na)     Factors for the Householder vectors (returned), needed for back transformation
     !
     !-------------------------------------------------------------------------------
-#ifdef HAVE_DETAILED_TIMINGS
-      use timings
-#endif
       use precision
       implicit none
 
       integer(kind=ik)            :: na, lda, nblk, matrixCols, mpi_comm_rows, mpi_comm_cols
       real(kind=REAL_DATATYPE)               :: d(na), e(na), tau(na)
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE
       real(kind=REAL_DATATYPE)               :: a(lda,*)
-#else
-      real(kind=REAL_DATATYPE)               :: a(lda,matrixCols)
-#endif
 
       integer(kind=ik), parameter :: max_stored_rows = 32
 
@@ -121,14 +114,6 @@
 #endif
       integer(kind=ik)            :: istat
       character(200)              :: errorMessage
-
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-      call timer%start("tridiag_real_double")
-#else
-      call timer%start("tridiag_real_single")
-#endif
-#endif
 
       call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
       call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
@@ -348,14 +333,6 @@
 
 #ifdef WITH_OPENMP
 
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-           call timer%start("OpenMP parallel_double")
-#else
-           call timer%start("OpenMP parallel_single")
-#endif
-#endif
-
 !$OMP PARALLEL PRIVATE(my_thread,n_threads,n_iter,i,lcs,lce,j,lrs,lre)
 
            my_thread = omp_get_thread_num()
@@ -437,13 +414,6 @@
            enddo
 #ifdef WITH_OPENMP
 !$OMP END PARALLEL
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-           call timer%stop("OpenMP parallel_double")
-#else
-           call timer%stop("OpenMP parallel_single")
-#endif
-#endif
            do i=0,max_threads-1
              uc(1:l_cols) = uc(1:l_cols) + uc_p(1:l_cols,i)
              ur(1:l_rows) = ur(1:l_rows) + ur_p(1:l_rows,i)
@@ -638,14 +608,6 @@
         stop
       endif
 
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-      call timer%stop("tridiag_real_double")
-#else
-      call timer%stop("tridiag_real_single")
-#endif
-#endif
-
 #ifdef DOUBLE_PRECISION_REAL
     end subroutine tridiag_real_double
 #else
@@ -689,19 +651,12 @@
     !              MPI-Communicators for rows/columns
     !
     !-------------------------------------------------------------------------------
-#ifdef HAVE_DETAILED_TIMINGS
-      use timings
-#endif
       use precision
       implicit none
 
       integer(kind=ik)           :: na, nqc, lda, ldq, nblk, matrixCols, mpi_comm_rows, mpi_comm_cols
       real(kind=REAL_DATATYPE)              :: tau(na)
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE
       real(kind=REAL_DATATYPE)              :: a(lda,*), q(ldq,*)
-#else
-      real(kind=REAL_DATATYPE)              :: a(lda,matrixCols), q(ldq,matrixCols)
-#endif
 
       integer(kind=ik)           :: max_stored_rows
 
@@ -714,13 +669,6 @@
       real(kind=REAL_DATATYPE), allocatable :: tmat(:,:), h1(:), h2(:)
       integer(kind=ik)           :: istat
       character(200)             :: errorMessage
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-      call timer%start("trans_ev_real_double")
-#else
-      call timer%start("trans_ev_real_single")
-#endif
-#endif
 
       call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
       call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
@@ -971,19 +919,6 @@
         stop
       endif
 
-!      if (useGPU) then
-!        q = q_dev
-!	deallocate(q_dev, tmp_dev, hvm_dev, tmat_dev)
-!      endif
-
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-      call timer%stop("trans_ev_real_double")
-#else
-      call timer%stop("trans_ev_real_single")
-#endif
-#endif
-
 #ifdef DOUBLE_PRECISION_REAL
     end subroutine trans_ev_real_double
 #else
@@ -998,19 +933,12 @@
                                            mpi_comm_cols, wantDebug, success )
 #endif
 
-#ifdef HAVE_DETAILED_TIMINGS
-      use timings
-#endif
       use precision
       implicit none
 
       integer(kind=ik)              :: na, nev, ldq, nblk, matrixCols, mpi_comm_rows, mpi_comm_cols
       real(kind=REAL_DATATYPE)                 :: d(na), e(na)
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE
       real(kind=REAL_DATATYPE)                 :: q(ldq,*)
-#else
-      real(kind=REAL_DATATYPE)                 :: q(ldq,matrixCols)
-#endif
 
       integer(kind=ik)              :: i, j, n, np, nc, nev1, l_cols, l_rows
       integer(kind=ik)              :: my_prow, my_pcol, np_rows, np_cols, mpierr
@@ -1021,14 +949,6 @@
       logical, intent(out)          :: success
       integer(kind=ik)              :: istat
       character(200)                :: errorMessage
-
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-      call timer%start("solve_tridi_double")
-#else
-      call timer%start("solve_tridi_single")
-#endif
-#endif
 
       call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
       call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
@@ -1064,14 +984,6 @@
         ! Scalapack supports it but delivers no results for these columns,
         ! which is rather annoying
         if (nc==0) then
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-          call timer%stop("solve_tridi_double")
-#else
-          call timer%stop("solve_tridi_single")
-#endif
-
-#endif
           if (wantDebug) write(error_unit,*) 'ELPA1_solve_tridi: ERROR: Problem contains processor column with zero width'
           success = .false.
           return
@@ -1104,13 +1016,6 @@
                         matrixCols, mpi_comm_rows, wantDebug, success)
 #endif
       if (.not.(success)) then
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-        call timer%stop("solve_tridi_double")
-#else
-        call timer%stop("solve_tridi_single")
-#endif
-#endif
         return
       endif
       ! If there is only 1 processor column, we are done
@@ -1122,13 +1027,6 @@
           stop
         endif
 
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-        call timer%stop("solve_tridi_double")
-#else
-        call timer%stop("solve_tridi_single")
-#endif
-#endif
         return
       endif
 
@@ -1193,14 +1091,6 @@
       call merge_recursive_single(0, np_cols, wantDebug, success)
 #endif
       if (.not.(success)) then
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-        call timer%stop("solve_tridi_double")
-#else
-        call timer%stop("solve_tridi_single")
-#endif
-
-#endif
         return
       endif
 
@@ -1210,14 +1100,6 @@
         stop
       endif
 
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-      call timer%stop("solve_tridi_double")
-#else
-      call timer%stop("solve_tridi_single")
-#endif
-
-#endif
       return
 
       contains
@@ -1367,19 +1249,12 @@
    ! Solves the symmetric, tridiagonal eigenvalue problem on one processor column
    ! with the divide and conquer method.
    ! Works best if the number of processor rows is a power of 2!
-#ifdef HAVE_DETAILED_TIMINGS
-      use timings
-#endif
       use precision
       implicit none
 
       integer(kind=ik)              :: na, nev, nqoff, ldq, nblk, matrixCols, mpi_comm_rows
       real(kind=REAL_DATATYPE)                 :: d(na), e(na)
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE
       real(kind=REAL_DATATYPE)                 :: q(ldq,*)
-#else
-      real(kind=REAL_DATATYPE)                 :: q(ldq,matrixCols)
-#endif
 
       integer(kind=ik), parameter   :: min_submatrix_size = 16 ! Minimum size of the submatrices to be used
 
@@ -1393,14 +1268,6 @@
       logical, intent(out)          :: success
       integer(kind=ik)              :: istat
       character(200)                :: errorMessage
-
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-      call timer%start("solve_tridi_col_double")
-#else
-      call timer%start("solve_tridi_col_single")
-#endif
-#endif
 
       call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
       call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
@@ -1609,14 +1476,6 @@
         stop
       endif
 
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-      call timer%stop("solve_tridi_col_double")
-#else
-      call timer%stop("solve_tridi_col_single")
-#endif
-#endif
-
 #ifdef DOUBLE_PRECISION_REAL
     end subroutine solve_tridi_col_double
 #else
@@ -1631,9 +1490,6 @@
 
    ! Solves the symmetric, tridiagonal eigenvalue problem on a single processor.
    ! Takes precautions if DSTEDC fails or if the eigenvalues are not ordered correctly.
-#ifdef HAVE_DETAILED_TIMINGS
-     use timings
-#endif
      use precision
      implicit none
 
@@ -1650,14 +1506,6 @@
      logical, intent(out)          :: success
       integer(kind=ik)             :: istat
       character(200)               :: errorMessage
-
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-     call timer%start("solve_tridi_single_double")
-#else
-     call timer%start("solve_tridi_single_single")
-#endif
-#endif
 
      success = .true.
      allocate(ds(nlen), es(nlen), stat=istat, errmsg=errorMessage)
@@ -1759,46 +1607,12 @@
 
        endif
      enddo
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-     call timer%stop("solve_tridi_single_double")
-#else
-     call timer%stop("solve_tridi_single_single")
-#endif
-#endif
 
 #ifdef DOUBLE_PRECISION_REAL
     end subroutine solve_tridi_single_problem_double
 #else
     end subroutine solve_tridi_single_problem_single
 #endif
-
-!! RJ: Doesn't work !!!!
-!
-!subroutine merge_systems_single( na, nm, d, e, q, ldq )
-!
-!   implicit none
-!   integer  na, nm, ldq
-!   real*8 d(na), e, q(ldq,*)
-!
-!   integer, allocatable :: l_col(:), p_col(:), l_col_out(:), p_col_out(:)
-!   integer :: i
-!
-!   allocate(l_col(na), p_col(na), l_col_out(na), p_col_out(na))
-!   do i = 1,na
-!      l_col(i) = i
-!      p_col(i) = 0
-!      l_col_out(i) = i
-!      p_col_out(i) = 0
-!   enddo
-!
-!   call merge_systems( na, nm, d, e, q, ldq, 0, 16, mpi_comm_self, mpi_comm_self, &
-!                       l_col, p_col, l_col_out, p_col_out, 0, 1)
-!
-!   deallocate(l_col, p_col, l_col_out, p_col_out)
-!
-!end subroutine merge_systems_single
-
 
 #ifdef DOUBLE_PRECISION_REAL
     subroutine merge_systems_double( na, nm, d, e, q, ldq, nqoff, nblk, matrixCols, mpi_comm_rows, mpi_comm_cols, &
@@ -1808,9 +1622,6 @@
                           l_col, p_col, l_col_out, p_col_out, npc_0, npc_n, wantDebug, success)
 #endif
 
-#ifdef HAVE_DETAILED_TIMINGS
-      use timings
-#endif
       use precision
       implicit none
 
@@ -1818,11 +1629,7 @@
                                        mpi_comm_cols, npc_0, npc_n
       integer(kind=ik)              :: l_col(na), p_col(na), l_col_out(na), p_col_out(na)
       real(kind=REAL_DATATYPE)                 :: d(na), e
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE
       real(kind=REAL_DATATYPE)                 :: q(ldq,*)
-#else
-      real(kind=REAL_DATATYPE)                 :: q(ldq,matrixCols)
-#endif
 
       integer(kind=ik), parameter   :: max_strip=128
 #ifdef DOUBLE_PRECISION_REAL
@@ -1872,13 +1679,6 @@
       endif
 #endif
 
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-      call timer%start("merge_systems_double")
-#else
-      call timer%start("merge_systems_single")
-#endif
-#endif
       success = .true.
 
       call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
@@ -1888,13 +1688,6 @@
       ! If my processor column isn't in the requested set, do nothing
 
       if (my_pcol<npc_0 .or. my_pcol>=npc_0+npc_n) then
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-        call timer%stop("merge_systems_double")
-#else
-        call timer%stop("merge_systems_single")
-#endif
-#endif
         return
       endif
       ! Determine number of "next" and "prev" column for ring sends
@@ -1916,13 +1709,6 @@
       call check_monotony_single(nm,d,'Input1',wantDebug, success)
 #endif
       if (.not.(success)) then
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-        call timer%stop("merge_systems_double")
-#else
-        call timer%stop("merge_systems_single")
-#endif
-#endif
         return
       endif
 #ifdef DOUBLE_PRECISION_REAL
@@ -1931,13 +1717,6 @@
       call check_monotony_single(na-nm,d(nm+1),'Input2',wantDebug, success)
 #endif
       if (.not.(success)) then
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-        call timer%stop("merge_systems_double")
-#else
-        call timer%stop("merge_systems_single")
-#endif
-#endif
         return
       endif
       ! Get global number of processors and my processor number.
@@ -2046,14 +1825,6 @@
         call resort_ev_double(idx, na)
 #else
         call resort_ev_single(idx, na)
-#endif
-
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-        call timer%stop("merge_systems_double")
-#else
-        call timer%stop("merge_systems_single")
-#endif
 #endif
 
         return
@@ -2178,13 +1949,6 @@
       call check_monotony_single(na1,d1,'Sorted1', wantDebug, success)
 #endif
       if (.not.(success)) then
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-        call timer%stop("merge_systems_double")
-#else
-        call timer%stop("merge_systems_single")
-#endif
-#endif
         return
       endif
 #ifdef DOUBLE_PRECISION_REAL
@@ -2193,13 +1957,6 @@
       call check_monotony_single(na2,d2,'Sorted2', wantDebug, success)
 #endif
       if (.not.(success)) then
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-        call timer%stop("merge_systems_double")
-#else
-        call timer%stop("merge_systems_single")
-#endif
-#endif
         return
       endif
 
@@ -2268,14 +2025,6 @@
         info = 0
 #ifdef WITH_OPENMP
 
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-        call timer%start("OpenMP parallel_double")
-#else
-        call timer%start("OpenMP parallel_single")
-#endif
-#endif
-
 !$OMP PARALLEL PRIVATE(i,my_thread,delta,s,info,j)
         my_thread = omp_get_thread_num()
 !$OMP DO
@@ -2328,14 +2077,6 @@
 #ifdef WITH_OPENMP
 !$OMP END PARALLEL
 
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-        call timer%stop("OpenMP parallel_double")
-#else
-        call timer%stop("OpenMP parallel_single")
-#endif
-#endif
-
         do i = 0, max_threads-1
           z(1:na1) = z(1:na1)*z_p(1:na1,i)
         enddo
@@ -2366,14 +2107,6 @@
 
 #ifdef WITH_OPENMP
 
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-        call timer%start("OpenMP parallel_double")
-#else
-        call timer%start("OpenMP parallel_single")
-#endif
-#endif
-
 !$OMP PARALLEL DO PRIVATE(i) SHARED(na1, my_proc, n_procs,  &
 !$OMP d1,dbase, ddiff, z, ev_scale) &
 !$OMP DEFAULT(NONE)
@@ -2396,14 +2129,6 @@
         enddo
 #ifdef WITH_OPENMP
 !$OMP END PARALLEL DO
-
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-        call timer%stop("OpenMP parallel_double")
-#else
-        call timer%stop("OpenMP parallel_single")
-#endif
-#endif
 
 #endif
 
@@ -2434,13 +2159,6 @@
 #endif
 
         if (.not.(success)) then
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-          call timer%stop("merge_systems_double")
-#else
-          call timer%stop("merge_systems_single")
-#endif
-#endif
           return
         endif
         ! Eigenvector calculations
@@ -2690,15 +2408,6 @@
         stop
       endif
 #endif
-
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-      call timer%stop("merge_systems_double")
-#else
-      call timer%stop("merge_systems_single")
-#endif
-#endif
-
 
       return
 
@@ -3224,9 +2933,6 @@
     !         The computed lambda_I, the I-th updated eigenvalue.
     !-------------------------------------------------------------------------------
 
-#ifdef HAVE_DETAILED_TIMINGS
-      use timings
-#endif
       use precision
       implicit none
 
@@ -3241,13 +2947,6 @@
 
       ! Upper and lower bound of the shifted solution interval are a and b
 
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-      call timer%start("solve_secular_equation_double")
-#else
-      call timer%start("solve_secular_equation_single")
-#endif
-#endif
       if (i==n) then
 
        ! Special case: Last eigenvalue
@@ -3325,13 +3024,6 @@
 
       dlam = x + dshift
       delta(:) = delta(:) - x
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_REAL
-      call  timer%stop("solve_secular_equation_double")
-#else
-      call  timer%stop("solve_secular_equation_single")
-#endif
-#endif
 
 #ifdef DOUBLE_PRECISION_REAL
     end subroutine solve_secular_equation_double

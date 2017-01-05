@@ -96,9 +96,6 @@
       !              Factors for the Householder vectors (returned), needed for back transformation
       !
       !-------------------------------------------------------------------------------
-#ifdef HAVE_DETAILED_TIMINGS
-      use timings
-#endif
       use precision
       use cuda_functions
       use iso_c_binding
@@ -108,11 +105,7 @@
       logical, intent(in)                         :: useGPU
 
       integer(kind=ik)                            :: na, lda, nblk, nbw, matrixCols, numBlocks, mpi_comm_rows, mpi_comm_cols
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE
       complex(kind=COMPLEX_DATATYPE)              :: a(lda,*), tmat(nbw,nbw,*)
-#else
-      complex(kind=COMPLEX_DATATYPE)              :: a(lda,matrixCols), tmat(nbw,nbw,numBlocks)
-#endif
 
 #ifdef DOUBLE_PRECISION_COMPLEX
       complex(kind=COMPLEX_DATATYPE), parameter   :: CZERO = (0.0_rk8, 0.0_rk8), CONE = (1.0_rk8, 0.0_rk8)
@@ -143,13 +136,7 @@
       character(200)                              :: errorMessage
       integer(kind=ik)                            :: istat
       logical                                     :: successCUDA
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_COMPLEX
-      call timer%start("bandred_complex_double")
-#else
-      call timer%start("bandred_complex_single")
-#endif
-#endif
+
       call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
       call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
       call mpi_comm_rank(mpi_comm_cols,my_pcol,mpierr)
@@ -1107,14 +1094,6 @@
          endif
        endif ! use GPU
 
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_COMPLEX
-       call timer%stop("bandred_complex_double")
-#else
-       call timer%stop("bandred_complex_single")
-#endif
-#endif
-
 #ifdef DOUBLE_PRECISION_COMPLEX
      end subroutine bandred_complex_double
 #else
@@ -1130,9 +1109,6 @@
      !  herm_matrix_allreduce: Does an mpi_allreduce for a hermitian matrix A.
      !  On entry, only the upper half of A needs to be set
      !  On exit, the complete matrix is set
-#ifdef HAVE_DETAILED_TIMINGS
-       use timings
-#endif
 
       use precision
       implicit none
@@ -1141,14 +1117,6 @@
 
       integer(kind=ik)               :: i, nc, mpierr
       complex(kind=COMPLEX_DATATYPE) :: h1(n*n), h2(n*n)
-
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_COMPLEX
-       call timer%start("herm_matrix_allreduce_double")
-#else
-       call timer%start("herm_matrix_allreduce_single")
-#endif
-#endif
 
        nc = 0
        do i=1,n
@@ -1183,21 +1151,6 @@
 
 
 #endif /* WITH_MPI */
-
-!       nc = 0
-!       do i=1,n
-!         a(1:i,i) = h2(nc+1:nc+i)
-!         a(i,1:i-1) = conjg(a(1:i-1,i))
-!         nc = nc+i
-!       enddo
-
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_COMPLEX
-       call timer%stop("herm_matrix_allreduce_double")
-#else
-       call timer%stop("herm_matrix_allreduce_single")
-#endif
-#endif
 
 #ifdef DOUBLE_PRECISION_COMPLEX
      end subroutine herm_matrix_allreduce_double
@@ -1246,9 +1199,6 @@
        !              MPI-Communicators for rows/columns
        !
        !-------------------------------------------------------------------------------
-#ifdef HAVE_DETAILED_TIMINGS
-       use timings
-#endif
        use cuda_functions
        use iso_c_binding
        use precision
@@ -1258,11 +1208,7 @@
        logical, intent(in)                         :: useGPU
        integer(kind=ik)                            :: na, nqc, lda, ldq, nblk, nbw, matrixCols, numBlocks, &
                                                       mpi_comm_rows, mpi_comm_cols
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE
       complex(kind=COMPLEX_DATATYPE)               :: a(lda,*), q(ldq,*), tmat(nbw,nbw,*)
-#else
-      complex(kind=COMPLEX_DATATYPE)               :: a(lda,matrixCols), q(ldq,matrixCols), tmat(nbw, nbw, numBlocks)
-#endif
 
 #ifdef DOUBLE_PRECISION_COMPLEX
        complex(kind=COMPLEX_DATATYPE), parameter   :: CZERO = (0.0_rk8,0.0_rk8), CONE = (1.0_rk8,0.0_rk8)
@@ -1284,13 +1230,6 @@
        character(200)                              :: errorMessage
        logical                                     :: successCUDA
 
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_COMPLEX
-       call timer%start("trans_ev_band_to_full_complex_double")
-#else
-       call timer%start("trans_ev_band_to_full_complex_single")
-#endif
-#endif
        call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
        call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
        call mpi_comm_rank(mpi_comm_cols,my_pcol,mpierr)
@@ -1678,13 +1617,6 @@
          !print *,"trans_ev_band_to_full_complex: error when deallocating tmat_temp "//errorMessage
          !endif
        endif ! use GPU
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_COMPLEX
-       call timer%stop("trans_ev_band_to_full_complex_double")
-#else
-       call timer%stop("trans_ev_band_to_full_complex_single")
-#endif
-#endif
 
 #ifdef DOUBLE_PRECISION_COMPLEX
      end subroutine trans_ev_band_to_full_complex_double
@@ -1725,9 +1657,6 @@
       !  mpi_comm
       !              MPI-Communicator for the total processor set
       !-------------------------------------------------------------------------------
-#ifdef HAVE_DETAILED_TIMINGS
-      use timings
-#endif
       use precision
       implicit none
 
@@ -1737,11 +1666,7 @@
       !#endif
 
       integer(kind=ik), intent(in)                 ::  na, nb, nblk, lda, matrixCols, mpi_comm_rows, mpi_comm_cols, mpi_comm
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE
       complex(kind=COMPLEX_DATATYPE),intent(in)    :: a(lda,*)
-#else
-      complex(kind=COMPLEX_DATATYPE), intent(in)   :: a(lda,matrixCols)
-#endif
       real(kind=REAL_DATATYPE), intent(out)        :: d(na), e(na) ! set only on PE 0
       complex(kind=COMPLEX_DATATYPE), intent(inout), &
           allocatable                              :: hh_trans_complex(:,:)
@@ -1778,13 +1703,6 @@
 !   ! dummies for calling redist_band
 !   real*8                   :: r_a(1,1), r_ab(1,1)
 
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_COMPLEX
-      call timer%start("tridiag_band_complex_double")
-#else
-      call timer%start("tridiag_band_complex_single")
-#endif
-#endif
       call mpi_comm_rank(mpi_comm,my_pe,mpierr)
       call mpi_comm_size(mpi_comm,n_pes,mpierr)
 
@@ -2199,13 +2117,6 @@
           ! is completed by the next thread.
           ! After the first iteration it is also the place to exchange the last row
           ! with MPI calls
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_COMPLEX
-          call timer%start("OpenMP parallel_double")
-#else
-          call timer%start("OpenMP parallel_single")
-#endif
-#endif
 
 !$omp parallel do private(my_thread, my_block_s, my_block_e, iblk, ns, ne, hv, tau, &
 !$omp&                    nc, nr, hs, hd, vnorm2, hf, x, h, i), schedule(static,1), num_threads(max_threads)
@@ -2336,13 +2247,6 @@
 
           enddo ! my_thread
 !$omp end parallel do
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_COMPLEX
-          call timer%stop("OpenMP parallel_double")
-#else
-          call timer%stop("OpenMP parallel_single")
-#endif
-#endif
 
           if (iter==1) then
             ! We are at the end of the first block
@@ -2911,84 +2815,6 @@
         stop
       endif
 
-      !#ifdef WITH_GPU_VERSION
-      !     istat = cuda_free(ab_dev)
-      !     if (istat .ne. 0) then
-      !       print *,"error in cudaFree"
-      !       stop
-      !     endif
-      !
-      !     istat = cuda_free(hv_new_dev)
-      !     if (istat .ne. 0) then
-      !       print *,"error in cudaFree"
-      !       stop
-      !     endif
-      !
-      !     istat = cuda_free(hs_dev)
-      !     if (istat .ne. 0) then
-      !       print *,"error in cudaFree"
-      !       stop
-      !     endif
-      !
-      !     istat = cuda_free(h_dev)
-      !     if (istat .ne. 0) then
-      !       print *,"error in cudaFree"
-      !       stop
-      !     endif
-      !
-      !     istat = cuda_free(tau_new_dev)
-      !     if (istat .ne. 0) then
-      !       print *,"error in cudaFree"
-      !       stop
-      !     endif
-      !
-      !     istat = cuda_free(x_dev)
-      !     if (istat .ne. 0) then
-      !       print *,"error in cudaFree"
-      !       stop
-      !     endif
-      !
-      !#endif
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_COMPLEX
-     call timer%stop("tridiag_band_complex_double")
-#else
-     call timer%stop("tridiag_band_complex_single")
-#endif
-#endif
-
-     !#ifdef WITH_GPU_VERSION
-     !   contains
-     !
-     !     subroutine dot_product_kernel(nr,tau_new)
-     !       implicit none
-     !       integer, intent(in)    :: nr
-     !       complex*16, intent(in) :: tau_new
-     !
-     !       call launch_dot_product_kernel( hs_dev,hv_new_dev,tau_new,x_dev,h_dev,hv_dev, nr )
-     !     end subroutine
-     !
-     !     subroutine dot_product_kernel_1( nb , nr , ns)
-     !       implicit none
-     !       integer, intent(in) ::  nb, nr, ns
-     !
-     !       call launch_dot_product_kernel_1(ab_dev,hs_dev, hv_new_dev,x_dev,h_dev,hv_dev,nb , nr, ns)
-     !     end subroutine
-     !
-     !     subroutine double_hh_transform_1( nb , ns)
-     !       implicit none
-     !       integer, intent(in) ::  nb, ns
-     !
-     !       call launch_double_hh_transform_1(ab_dev,hs_dev,hv_dev,nb , ns)
-     !     end subroutine
-     !
-     !     subroutine double_hh_transform_2( ns,nc, nb)
-     !       implicit none
-     !       integer, intent(in) ::  nc, ns, nb
-     !
-     !       call launch_double_hh_transform_2(ab_dev,hd_dev,hv_dev,nc , ns, nb)
-     !     end subroutine
-     !#endif
 #ifdef DOUBLE_PRECISION_COMPLEX
     end subroutine tridiag_band_complex_double ! has to be checked for GPU
 #else
@@ -3031,9 +2857,6 @@
       !              MPI-Communicators for rows/columns/both
       !
       !-------------------------------------------------------------------------------
-#ifdef HAVE_DETAILED_TIMINGS
-      use timings
-#endif
       use pack_unpack_complex
       use compute_hh_trafo_complex
       use precision
@@ -3044,11 +2867,7 @@
       logical, intent(in)                         :: useGPU
       integer(kind=ik), intent(in)                :: THIS_COMPLEX_ELPA_KERNEL
       integer(kind=ik), intent(in)                :: na, nev, nblk, nbw, ldq, matrixCols, mpi_comm_rows, mpi_comm_cols
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE
       complex(kind=COMPLEX_DATATYPE)              :: q(ldq,*)
-#else
-      complex(kind=COMPLEX_DATATYPE)              :: q(ldq,matrixCols)
-#endif
       complex(kind=COMPLEX_DATATYPE)              :: hh_trans_complex(:,:)
       integer(kind=ik)                            :: np_rows, my_prow, np_cols, my_pcol
       integer(kind=ik)                            :: tmp
@@ -3149,14 +2968,6 @@
       logical                                     :: success
 #ifndef WITH_MPI
       integer(kind=ik)                            :: j1
-#endif
-
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_COMPLEX
-      call timer%start("trans_ev_tridi_to_band_complex_double")
-#else
-      call timer%start("trans_ev_tridi_to_band_complex_single")
-#endif
 #endif
 
       if (useGPU) then
@@ -3428,13 +3239,6 @@
       ! Please note about the OMP usage below:
       ! This is not for speed, but because we want the matrix a in the memory and
       ! in the cache of the correct thread (if possible)
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_COMPLEX
-      call timer%start("OpenMP parallel_double")
-#else
-      call timer%start("OpenMP parallel_single")
-#endif
-#endif /* HAVE_DETAILED_TIMINGS */
 
 !$omp parallel do private(my_thread), schedule(static, 1)
       do my_thread = 1, max_threads
@@ -3445,13 +3249,6 @@
 #endif
       enddo
 !$omp end parallel do
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_COMPLEX
-      call timer%stop("OpenMP parallel_double")
-#else
-      call timer%stop("OpenMP parallel_single")
-#endif
-#endif /* HAVE_DETAILED_TIMINGS */
 
 #endif /* WITH_OPENMP */
 
@@ -3529,14 +3326,6 @@
                 stop
               endif
 
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_COMPLEX
-              call timer%start("OpenMP parallel_double")
-#else
-              call timer%start("OpenMP parallel_single")
-#endif
-#endif /* HAVE_DETAILED_TIMINGS */
-
 !$omp parallel do private(my_thread), schedule(static, 1)
               do my_thread = 1, max_threads
 #ifdef DOUBLE_PRECISION_COMPLEX
@@ -3548,13 +3337,6 @@
 #endif
               enddo
 !$omp end parallel do
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_COMPLEX
-              call timer%stop("OpenMP parallel_double")
-#else
-              call timer%stop("OpenMP parallel_single")
-#endif
-#endif /* HAVE_DETAILED_TIMINGS */
 
 #else /* WITH_OPENMP */
 
@@ -3583,14 +3365,6 @@
 
 #ifdef WITH_OPENMP
 
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_COMPLEX
-              call timer%start("OpenMP parallel_double")
-#else
-              call timer%start("OpenMP parallel_single")
-#endif
-#endif /* HAVE_DETAILED_TIMINGS */
-
 !$omp parallel do private(my_thread), schedule(static, 1)
               do my_thread = 1, max_threads
 #ifdef DOUBLE_PRECISION_COMPLEX
@@ -3602,13 +3376,6 @@
 #endif
               enddo
 !$omp end parallel do
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_COMPLEX
-              call timer%stop("OpenMP parallel_double")
-#else
-              call timer%stop("OpenMP parallel_single")
-#endif
-#endif /* HAVE_DETAILED_TIMINGS */
 
 #else /* WITH_OPENMP */
 
@@ -3733,14 +3500,6 @@
                 stop
               endif
 
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_COMPLEX
-              call timer%start("OpenMP parallel_double")
-#else
-              call timer%start("OpenMP parallel_single")
-#endif
-#endif /* HAVE_DETAILED_TIMINGS */
-
 !$omp parallel do private(my_thread), schedule(static, 1)
               do my_thread = 1, max_threads
 #ifdef DOUBLE_PRECISION_COMPLEX
@@ -3752,13 +3511,6 @@
 #endif
               enddo
 !$omp end parallel do
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_COMPLEX
-              call timer%stop("OpenMP parallel_double")
-#else
-              call timer%stop("OpenMP parallel_single")
-#endif
-#endif /* HAVE_DETAILED_TIMINGS */
 
 #else /* WITH_OPENMP */
 
@@ -4256,14 +4008,6 @@
                   stop
                 endif
 
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_COMPLEX
-                call timer%start("OpenMP parallel_double")
-#else
-                call timer%start("OpenMP parallel_single")
-#endif
-#endif /* HAVE_DETAILED_TIMINGS */
-
 !$omp parallel do private(my_thread, n_off, b_len, b_off), schedule(static, 1)
                 do my_thread = 1, max_threads
                   n_off = current_local_n+a_off
@@ -4273,13 +4017,6 @@
                      reshape(bottom_border_recv_buffer(b_off+1:b_off+b_len,i), (/ csw, nbw /))
                 enddo
 !$omp end parallel do
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_COMPLEX
-                call timer%stop("OpenMP parallel_double")
-#else
-                call timer%stop("OpenMP parallel_single")
-#endif
-#endif /* HAVE_DETAILED_TIMINGS */
 
 #else /* WITH_OPENMP */
 
@@ -4415,13 +4152,6 @@
                   print *,"trans_ev_tridi_to_band_complex: not yet implemented"
                   stop
                 endif
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_COMPLEX
-                call timer%start("OpenMP parallel_double")
-#else
-                call timer%start("OpenMP parallel_single")
-#endif
-#endif /* HAVE_DETAILED_TIMINGS */
 
 !$omp parallel do private(my_thread, n_off, b_len, b_off), schedule(static, 1)
                 do my_thread = 1, max_threads
@@ -4446,13 +4176,6 @@
 #endif
                 enddo
 !$omp end parallel do
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_COMPLEX
-                call timer%stop("OpenMP parallel_double")
-#else
-                call timer%stop("OpenMP parallel_single")
-#endif
-#endif /* HAVE_DETAILED_TIMINGS */
 
 #else /* WITH_OPENMP */
                 if (useGPU) then
@@ -4591,13 +4314,6 @@
                 print *,"trans_ev_tridi_to_band_complex: not yet implemented"
                 stop
               endif
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_COMPLEX
-              call timer%start("OpenMP parallel_double")
-#else
-              call timer%start("OpenMP parallel_single")
-#endif
-#endif /* HAVE_DETAILED_TIMINGS */
 
 !$omp parallel do private(my_thread, b_len, b_off), schedule(static, 1)
               do my_thread = 1, max_threads
@@ -4615,13 +4331,6 @@
 #endif
               enddo
 !$omp end parallel do
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_COMPLEX
-              call timer%stop("OpenMP parallel_double")
-#else
-              call timer%stop("OpenMP parallel_single")
-#endif
-#endif  /* HAVE_DETAILED_TIMINGS */
 
 #else /* WITH_OPENMP */
 
@@ -4765,14 +4474,6 @@
                 stop
               endif
 
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_COMPLEX
-              call timer%start("OpenMP parallel_double")
-#else
-              call timer%start("OpenMP parallel_single")
-#endif
-#endif /* HAVE_DETAILED_TIMINGS */
-
 !$omp parallel do private(my_thread), schedule(static, 1)
               do my_thread = 1, max_threads
 #ifdef DOUBLE_PRECISION_COMPLEX
@@ -4790,13 +4491,6 @@
 #endif
               enddo
 !$omp end parallel do
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_COMPLEX
-              call timer%stop("OpenMP parallel_double")
-#else
-              call timer%stop("OpenMP parallel_single")
-#endif
-#endif /* HAVE_DETAILED_TIMINGS */
 
 #else /* WITH_OPENMP */
 
@@ -4881,14 +4575,6 @@
               !compute
 #ifdef WITH_OPENMP
 
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_COMPLEX
-              call timer%start("OpenMP parallel_double")
-#else
-              call timer%start("OpenMP parallel_single")
-#endif
-#endif /* HAVE_DETAILED_TIMINGS */
-
 !$omp parallel do private(my_thread, b_len, b_off), schedule(static, 1)
               do my_thread = 1, max_threads
                 if (top_msg_length>0) then
@@ -4912,13 +4598,6 @@
 #endif
               enddo
 !$omp end parallel do
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_COMPLEX
-              call timer%stop("OpenMP parallel_double")
-#else
-              call timer%stop("OpenMP parallel_single")
-#endif
-#endif /* HAVE_DETAILED_TIMINGS */
 
 #else /* WITH_OPENMP */
 
@@ -5360,14 +5039,6 @@
           if (a_off + next_local_n + nbw > a_dim2) then
 #ifdef WITH_OPENMP
 
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_COMPLEX
-            call timer%start("OpenMP parallel_double")
-#else
-            call timer%start("OpenMP parallel_single")
-#endif
-#endif
-
 !$omp parallel do private(my_thread, i, j), schedule(static, 1)
             do my_thread = 1, max_threads
               do i = 1, stripe_count
@@ -5376,13 +5047,6 @@
                 enddo
               enddo
             enddo
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_COMPLEX
-            call timer%stop("OpenMP parallel_double")
-#else
-            call timer%stop("OpenMP parallel_single")
-#endif
-#endif
 
 #else /*WITH_OPENMP */
             do i = 1, stripe_count
@@ -5613,13 +5277,6 @@
           endif
 
         endif ! useGPU
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_COMPLEX
-        call timer%stop("trans_ev_tridi_to_band_complex_double")
-#else
-        call timer%stop("trans_ev_tridi_to_band_complex_single")
-#endif
-#endif
        return
        contains
 #ifdef DOUBLE_PRECISION_COMPLEX
@@ -5817,4 +5474,3 @@
       n_times =n_times +1
     end subroutine
 end subroutine
-

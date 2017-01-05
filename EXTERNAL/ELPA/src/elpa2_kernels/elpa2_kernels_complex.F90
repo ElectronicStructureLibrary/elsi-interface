@@ -66,13 +66,8 @@ module complex_generic_kernel
     implicit none
 
     integer(kind=ik), intent(in)    :: nb, nq, ldq
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE
     complex(kind=ck8), intent(inout) :: q(ldq,*)
     complex(kind=ck8), intent(in)    :: hh(*)
-#else
-    complex(kind=ck8), intent(inout) :: q(1:ldq,1:nb)
-    complex(kind=ck8), intent(in)    :: hh(1:nb)
-#endif
 
     integer(kind=ik)                :: i
 
@@ -85,27 +80,15 @@ module complex_generic_kernel
     ! Always a multiple of 4 Q-rows is transformed, even if nq is smaller
 
     do i=1,nq-8,12
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE
        call hh_trafo_complex_kernel_12_double(q(i,1),hh, nb, ldq)
-#else
-       call hh_trafo_complex_kernel_12_double(q(i:ldq,1:nb),hh(1:nb), nb, ldq)
-#endif
     enddo
 
     ! i > nq-8 now, i.e. at most 8 rows remain
 
     if(nq-i+1 > 4) then
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE
        call hh_trafo_complex_kernel_8_double(q(i,1),hh, nb, ldq)
-#else
-       call hh_trafo_complex_kernel_8_double(q(i:ldq,1:nb),hh(1:nb), nb, ldq)
-#endif
     else if(nq-i+1 > 0) then
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE
        call hh_trafo_complex_kernel_4_double(q(i,1),hh, nb, ldq)
-#else
-       call hh_trafo_complex_kernel_4_double(q(i:ldq,1:nb),hh(1:nb), nb, ldq)
-#endif
     endif
   end subroutine single_hh_trafo_complex_generic_double
 
@@ -114,13 +97,8 @@ module complex_generic_kernel
     implicit none
 
     integer(kind=ik), intent(in)    :: nb, nq, ldq, ldh
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE
     complex(kind=ck8), intent(inout) :: q(ldq,*)
     complex(kind=ck8), intent(in)    :: hh(ldh,*)
-#else
-    complex(kind=ck8), intent(inout) :: q(1:ldq,1:nb+1)
-    complex(kind=ck8), intent(in)    :: hh(1:ldh,1:2)
-#endif
     complex(kind=ck8)                :: s
 
     integer(kind=ik)                 :: i
@@ -140,11 +118,7 @@ module complex_generic_kernel
     ! Always a multiple of 4 Q-rows is transformed, even if nq is smaller
 
     do i=1,nq,4
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE
        call hh_trafo_complex_kernel_4_2hv_double(q(i,1),hh, nb, ldq, ldh, s)
-#else
-       call hh_trafo_complex_kernel_4_2hv_double(q(i:ldq,1:nb+1),hh(1:ldh,1:2), nb, ldq, ldh, s)
-#endif
     enddo
 
   end subroutine double_hh_trafo_complex_generic_double
@@ -154,13 +128,8 @@ module complex_generic_kernel
     implicit none
 
     integer(kind=ik), intent(in)    :: nb, ldq
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE
     complex(kind=ck8), intent(inout) :: q(ldq,*)
     complex(kind=ck8), intent(in)    :: hh(*)
-#else
-    complex(kind=ck8), intent(inout) :: q(:,:)
-    complex(kind=ck8), intent(in)    :: hh(1:nb)
-#endif
     complex(kind=ck8)                :: x1, x2, x3, x4, x5, x6, x7, x8, x9, xa, xb, xc
     complex(kind=ck8)                :: h1, tau1
     integer(kind=ik)                :: i
@@ -248,13 +217,8 @@ module complex_generic_kernel
     implicit none
 
     integer(kind=ik), intent(in)    :: nb, ldq
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE
     complex(kind=ck8), intent(inout) :: q(ldq,*)
     complex(kind=ck8), intent(in)    :: hh(*)
-#else
-    complex(kind=ck8), intent(inout) :: q(:,:)
-    complex(kind=ck8), intent(in)    :: hh(1:nb)
-#endif
     complex(kind=ck8)                :: x1, x2, x3, x4, x5, x6, x7, x8
     complex(kind=ck8)                :: h1, tau1
     integer(kind=ik)                :: i
@@ -322,13 +286,8 @@ module complex_generic_kernel
     implicit none
 
     integer(kind=ik), intent(in)    :: nb, ldq
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE
     complex(kind=ck8), intent(inout) :: q(ldq,*)
     complex(kind=ck8), intent(in)    :: hh(*)
-#else
-    complex(kind=ck8), intent(inout) :: q(:,:)
-    complex(kind=ck8), intent(in)    :: hh(1:nb)
-#endif
     complex(kind=ck8)                :: x1, x2, x3, x4
     complex(kind=ck8)                :: h1, tau1
     integer(kind=ik)                :: i
@@ -378,13 +337,8 @@ module complex_generic_kernel
     implicit none
 
     integer(kind=ik), intent(in)    :: nb, ldq, ldh
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE
     complex(kind=ck8), intent(inout) :: q(ldq,*)
     complex(kind=ck8), intent(in)    :: hh(ldh,*)
-#else
-    complex(kind=ck8), intent(inout) :: q(:,:)
-    complex(kind=ck8), intent(in)    :: hh(1:ldh,1:2)
-#endif
     complex(kind=ck8), intent(in)    :: s
 
     complex(kind=ck8)                :: x1, x2, x3, x4, y1, y2, y3, y4
@@ -467,13 +421,8 @@ module complex_generic_kernel
     implicit none
 
     integer(kind=ik), intent(in)    :: nb, ldq, ldh
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE
     complex(kind=ck8), intent(inout) :: q(ldq,*)
     complex(kind=ck8), intent(in)    :: hh(ldh,*)
-#else
-    complex(kind=ck8), intent(inout) :: q(:,:)
-    complex(kind=ck8), intent(in)    :: hh(1:ldh,1:2)
-#endif
     complex(kind=ck8), intent(in)    :: s
 
     complex(kind=ck8)                :: x1, x2, x3, x4, x5, x6 ,x7, x8, y1, y2, y3, y4, y5, y6, y7, y8
@@ -601,13 +550,8 @@ module complex_generic_kernel
     implicit none
 
     integer(kind=ik), intent(in)    :: nb, ldq, ldh
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE
     complex(kind=ck8), intent(inout) :: q(ldq,*)
     complex(kind=ck8), intent(in)    :: hh(ldh,*)
-#else
-    complex(kind=ck8), intent(inout) :: q(:,:)
-    complex(kind=ck8), intent(in)    :: hh(1:ldh,1:2)
-#endif
     complex(kind=ck8), intent(in)    :: s
 
     complex(kind=ck8)                :: x1, x2, x3, x4, x5, x6 ,x7, x8, x9, x10, x11, x12, y1, y2, y3, y4, y5, y6, &

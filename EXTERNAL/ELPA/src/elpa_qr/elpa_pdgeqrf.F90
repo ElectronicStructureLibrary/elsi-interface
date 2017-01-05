@@ -76,14 +76,8 @@ module elpa_pdgeqrf
 
       ! input variables (global)
       integer(kind=ik)              :: n, mb, nb, rowidx, colidx, rev, trans, mpicomm_cols, mpicomm_rows
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE_QR
       integer(kind=ik)              :: PQRPARAM(*)
       real(kind=rk8)                 :: a(lda,*), v(ldv,*), tau(*), t(ldt,*), work(*)
-#else
-      integer(kind=ik)              :: PQRPARAM(1:11)
-      real(kind=rk8)                 :: a(1:lda,1:matrixCols), v(1:ldv,1:vmrCols), tau(1:lengthTau), &
-                                       t(1:ldt,1:colsT), work(1:workLength)
-#endif
       ! output variables (global)
       real(kind=rk8)                 :: blockheuristic(*)
 
@@ -116,13 +110,8 @@ module elpa_pdgeqrf
       call mpi_comm_rank(mpicomm_rows,mpirank_rows,mpierr)
       call mpi_comm_size(mpicomm_cols,mpiprocs_cols,mpierr)
 
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE_QR
       call qr_pdgeqrf_1dcomm_double(a,lda,v,ldv,tau,t,ldt,pdgeqrf_size(1),-1,m,total_cols,mb,rowidx,rowidx,rev,trans, &
                              PQRPARAM(4),mpicomm_rows,blockheuristic)
-#else
-      call qr_pdgeqrf_1dcomm_double(a,lda,v,ldv,tau,t,ldt,pdgeqrf_size(1),-1,m,total_cols,mb,rowidx,rowidx,rev,trans, &
-                             PQRPARAM(4:11),mpicomm_rows,blockheuristic)
-#endif
       call qr_pdgeqrf_pack_unpack_double(v,ldv,dbroadcast_size(1),-1,m,total_cols,mb,rowidx,rowidx,rev,0,mpicomm_rows)
       call qr_pdgeqrf_pack_unpack_tmatrix_double(tau,t,ldt,dtmat_bcast_size(1),-1,total_cols,0)
 
@@ -193,16 +182,9 @@ module elpa_pdgeqrf
           ! qr decomposition part
           tau(offset:offset+lcols-1) = 0.0_rk8
 
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE_QR
           call qr_pdgeqrf_1dcomm_double(a(1,offset),lda,v(1,voffset),ldv,tau(offset),t(voffset,voffset),ldt, &
                                  work(work_offset),lwork,m,lcols,mb,rowidx,idx,rev,trans,PQRPARAM(4), &
                                  mpicomm_rows,blockheuristic)
-
-#else
-          call qr_pdgeqrf_1dcomm_double(a(1,offset),lda,v(1,voffset),ldv,tau(offset),t(voffset,voffset),ldt, &
-                                 work(work_offset),lwork,m,lcols,mb,rowidx,idx,rev,trans,PQRPARAM(4:11), &
-                                 mpicomm_rows,blockheuristic)
-#endif
 
           ! pack broadcast buffer (v + tau)
           call qr_pdgeqrf_pack_unpack_double(v(1,voffset),ldv,work(broadcast_offset),lwork,m,lcols,mb,rowidx,&
@@ -348,13 +330,7 @@ module elpa_pdgeqrf
 
       ! input variables (global)
       integer(kind=ik)             :: m,n,mb,baseidx,rowidx,rev,trans,mpicomm
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE_QR
       integer(kind=ik)             :: PQRPARAM(*)
-
-#else
-      integer(kind=ik)             :: PQRPARAM(:)
-#endif
-      ! derived input variables
 
       ! derived further input variables from QR_PQRPARAM
       integer(kind=ik)             :: size1d,updatemode,tmerge
@@ -370,13 +346,8 @@ module elpa_pdgeqrf
       tmerge     = PQRPARAM(3)
 
       if (lwork .eq. -1) then
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE_QR
         call qr_pdgeqr2_1dcomm_double(a,lda,v,ldv,tau,t,ldt,pdgeqr2_size,-1, &
                                   m,size1d,mb,baseidx,baseidx,rev,trans,PQRPARAM(4),mpicomm,blockheuristic)
-#else
-        call qr_pdgeqr2_1dcomm_double(a,lda,v,ldv,tau,t,ldt,pdgeqr2_size,-1, &
-                                  m,size1d,mb,baseidx,baseidx,rev,trans,PQRPARAM(4:),mpicomm,blockheuristic)
-#endif
         ! reserve more space for incremental mode
         call qr_tmerge_pdlarfb_1dcomm_double(m,mb,n,n,n,v,ldv,t,ldt, &
                                          a,lda,baseidx,rev,updatemode,mpicomm,pdlarfb_size,-1)
@@ -395,14 +366,9 @@ module elpa_pdgeqrf
         idx = rowidx-current_block*size1d
         updatesize = n-(current_block+1)*size1d
         aoffset = 1+updatesize
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE_QR
         call qr_pdgeqr2_1dcomm_double(a(1,aoffset),lda,v(1,aoffset),ldv,tau(aoffset),t(aoffset,aoffset),ldt,work,lwork, &
                                 m,size1d,mb,baseidx,idx,1,trans,PQRPARAM(4),mpicomm,blockheuristic)
 
-#else
-        call qr_pdgeqr2_1dcomm_double(a(1,aoffset),lda,v(1,aoffset),ldv,tau(aoffset),t(aoffset,aoffset),ldt,work,lwork, &
-                                m,size1d,mb,baseidx,idx,1,trans,PQRPARAM(4:),mpicomm,blockheuristic)
-#endif
         if (updatemode .eq. ichar('M')) then
           ! full update + merging
           call qr_tmerge_pdlarfb_1dcomm_double(m,mb,updatesize,current_block*size1d,size1d, &
@@ -434,14 +400,9 @@ module elpa_pdgeqrf
       if (remainder .gt. 0) then
         aoffset = 1
         idx = rowidx-size1d*nr_blocks
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE_QR
         call qr_pdgeqr2_1dcomm_double(a(1,aoffset),lda,v,ldv,tau,t,ldt,work,lwork, &
                                   m,remainder,mb,baseidx,idx,1,trans,PQRPARAM(4),mpicomm,blockheuristic)
 
-#else
-        call qr_pdgeqr2_1dcomm_double(a(1,aoffset),lda,v,ldv,tau,t,ldt,work,lwork, &
-                                  m,remainder,mb,baseidx,idx,1,trans,PQRPARAM(4:),mpicomm,blockheuristic)
-#endif
         if ((updatemode .eq. ichar('I')) .or. (updatemode .eq. ichar('M'))) then
           ! final merging
           call qr_tmerge_pdlarfb_1dcomm_double(m,mb,0,size1d*nr_blocks,remainder, &
@@ -476,11 +437,7 @@ module elpa_pdgeqrf
 
       ! input variables (global)
       integer(kind=ik)              :: m,n,mb,baseidx,rowidx,rev,trans,mpicomm
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE_QR
       integer(kind=ik)              :: PQRPARAM(*)
-#else
-      integer(kind=ik)              :: PQRPARAM(:)
-#endif
       ! output variables (global)
       real(kind=rk8)                 :: blockheuristic(*)
 
@@ -511,19 +468,11 @@ module elpa_pdgeqrf
       if (lwork .eq. -1) then
         call qr_pdlarfg_1dcomm_double(a,incx,tau(1),pdlarfg_size(1),-1,n,rowidx,mb,hgmode,rev,mpicomm)
         call qr_pdlarfl_1dcomm_double(v,1,baseidx,a,lda,tau(1),pdlarf_size(1),-1,m,n,rowidx,mb,rev,mpicomm)
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE_QR
         call qr_pdlarfg2_1dcomm_ref_double(a,lda,tau,t,ldt,v,ldv,baseidx,pdlarfg2_size(1),-1,m,rowidx,mb,PQRPARAM, &
                                     rev,mpicomm,actualrank)
 
         call qr_pdlarfgk_1dcomm_double(a,lda,tau,t,ldt,v,ldv,baseidx,pdlarfgk_size(1),-1,m,n,rowidx,mb,PQRPARAM,rev,mpicomm,actualrank)
 
-#else
-        call qr_pdlarfg2_1dcomm_ref_double(a,lda,tau,t,ldt,v,ldv,baseidx,pdlarfg2_size(1),-1,m,rowidx,mb,PQRPARAM(:), &
-                                    rev,mpicomm,actualrank)
-
-        call qr_pdlarfgk_1dcomm_double(a,lda,tau,t,ldt,v,ldv,baseidx,pdlarfgk_size(1),-1,m,n, &
-            rowidx,mb,PQRPARAM(:),rev,mpicomm,actualrank)
-#endif
         call qr_pdlarfl2_tmatrix_1dcomm_double(v,ldv,baseidx,a,lda,t,ldt,pdlarfl2_size(1),-1,m,n,rowidx,mb,rev,mpicomm)
         pdlarft_size(1) = 0.0_rk8
         call qr_pdlarfb_1dcomm_double(m,mb,n,n,a,lda,v,ldv,tau,t,ldt,baseidx,rowidx,1,mpicomm,pdlarfb_size(1),-1)
@@ -567,27 +516,13 @@ module elpa_pdgeqrf
           actualrank = 1
 
         else if (rank .eq. 2) then
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE_QR
           call qr_pdlarfg2_1dcomm_ref_double(a(1,current_column),lda,tau(current_column), &
                                          t(current_column,current_column),ldt,v(1,current_column),ldv, &
                                         baseidx,work,lwork,m,idx,mb,PQRPARAM,1,mpicomm,actualrank)
-
-#else
-          call qr_pdlarfg2_1dcomm_ref_double(a(1,current_column),lda,tau(current_column), &
-                                         t(current_column,current_column),ldt,v(1,current_column),ldv, &
-                                        baseidx,work,lwork,m,idx,mb,PQRPARAM(:),1,mpicomm,actualrank)
-#endif
         else
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE_QR
           call qr_pdlarfgk_1dcomm_double(a(1,current_column),lda,tau(current_column), &
                                      t(current_column,current_column),ldt,v(1,current_column),ldv, &
                                      baseidx,work,lwork,m,rank,idx,mb,PQRPARAM,1,mpicomm,actualrank)
-
-#else
-          call qr_pdlarfgk_1dcomm_double(a(1,current_column),lda,tau(current_column), &
-                                     t(current_column,current_column),ldt,v(1,current_column),ldv, &
-                                     baseidx,work,lwork,m,rank,idx,mb,PQRPARAM(:),1,mpicomm,actualrank)
-#endif
         end if
 
         blockheuristic(actualrank) = blockheuristic(actualrank) + 1
@@ -819,11 +754,7 @@ module elpa_pdgeqrf
 
       ! input variables (global)
       integer(kind=ik)               :: m,idx,baseidx,mb,rev,mpicomm
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE_QR
       integer(kind=ik)               :: PQRPARAM(*)
-#else
-      integer(kind=ik)               :: PQRPARAM(:)
-#endif
       ! output variables (global)
       integer(kind=ik)               :: actualk
 
@@ -1227,11 +1158,7 @@ module elpa_pdgeqrf
 
       ! input variables (global)
       integer(kind=ik)    :: m,k,idx,baseidx,mb,rev,mpicomm
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE_QR
       integer(kind=ik)    ::PQRPARAM(*)
-#else
-      integer(kind=ik)    :: PQRPARAM(:)
-#endif
       ! output variables (global)
       integer(kind=ik)    :: actualk
 
@@ -1255,14 +1182,8 @@ module elpa_pdgeqrf
 
         call qr_pdlarfl_1dcomm_double(v,1,baseidx,a,lda,tau(1),pdlarf_size(1),-1,m,k,baseidx,mb,rev,mpicomm)
         call qr_pdlarfgk_1dcomm_seed_double(a,lda,baseidx,pdlarfgk_1dcomm_seed_size(1),-1,work,work,m,k,mb,mpicomm)
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE_QR
         !call qr_pdlarfgk_1dcomm_check_double(work,work,k,PQRPARAM,pdlarfgk_1dcomm_check_size(1),-1,actualk)
         call qr_pdlarfgk_1dcomm_check_improved_double(work,work,k,PQRPARAM,pdlarfgk_1dcomm_check_size(1),-1,actualk)
-
-#else
-        !call qr_pdlarfgk_1dcomm_check_double(work,work,k,PQRPARAM(:),pdlarfgk_1dcomm_check_size(1),-1,actualk)
-        call qr_pdlarfgk_1dcomm_check_improved_double(work,work,k,PQRPARAM(:),pdlarfgk_1dcomm_check_size(1),-1,actualk)
-#endif
         call qr_pdlarfgk_1dcomm_update_double(a,lda,baseidx,pdlarfgk_1dcomm_update_size(1),-1,work,work,k,k,1,work,m,mb,rev,mpicomm)
         work(1) = max(pdlarfg_size(1),pdlarf_size(1),pdlarfgk_1dcomm_seed_size(1),pdlarfgk_1dcomm_check_size(1), &
                         pdlarfgk_1dcomm_update_size(1)) + real(seedC_size + seedD_size, kind=rk8)
@@ -1271,15 +1192,8 @@ module elpa_pdgeqrf
 
       call qr_pdlarfgk_1dcomm_seed_double(a(1,1),lda,idx,work(work_offset),lwork,work(seedC_offset), &
           work(seedD_offset),m,k,mb,mpicomm)
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE_QR
       !call qr_pdlarfgk_1dcomm_check_double(work(seedC_offset),work(seedD_offset),k,PQRPARAM,work(work_offset),lwork,actualk)
       call qr_pdlarfgk_1dcomm_check_improved_double(work(seedC_offset),work(seedD_offset),k,PQRPARAM,work(work_offset),lwork,actualk)
-#else
-      !call qr_pdlarfgk_1dcomm_check_double(work(seedC_offset),work(seedD_offset),k,PQRPARAM(:),work(work_offset),lwork,actualk)
-      call qr_pdlarfgk_1dcomm_check_improved_double(work(seedC_offset),work(seedD_offset), &
-          k,PQRPARAM(:),work(work_offset),lwork,actualk)
-#endif
-      !print *,'possible rank:', actualk
 
       ! override useful for debugging
       !actualk = 1
@@ -1419,12 +1333,7 @@ module elpa_pdgeqrf
 
       ! input variables (global)
       integer(kind=ik)   :: k,lwork
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE_QR
       integer(kind=ik)   :: PQRPARAM(*)
-
-#else
-      integer(kind=ik)   :: PQRPARAM(:)
-#endif
       real(kind=rk8)      :: seedC(k,*),seedD(k,*),work(k,*)
 
       ! output variables (global)
@@ -1535,11 +1444,7 @@ module elpa_pdgeqrf
 
       ! input variables (global)
       integer(kind=ik)   :: k,lwork
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE_QR
       integer(kind=ik)   :: PQRPARAM(*)
-#else
-      integer(kind=ik)   :: PQRPARAM(:)
-#endif
       real(kind=rk8)      :: seedC(k,*),seedD(k,*),work(k,*)
 
       ! output variables (global)
@@ -2018,11 +1923,7 @@ module elpa_pdgeqrf
       INTEGER(kind=ik)  :: size2d,size1d,maxrank,eps,tmerge2d,tmerge1d
 
       ! output
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE_QR
       INTEGER(kind=ik)  :: PQRPARAM(*)
-#else
-      INTEGER(kind=ik)  :: PQRPARAM(1:11)
-#endif
 
       PQRPARAM(1) = size2d
       PQRPARAM(2) = ichar(update2d)

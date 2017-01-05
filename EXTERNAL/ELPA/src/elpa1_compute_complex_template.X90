@@ -86,19 +86,12 @@
     !  tau(na)     Factors for the Householder vectors (returned), needed for back transformation
     !
     !-------------------------------------------------------------------------------
-#ifdef HAVE_DETAILED_TIMINGS
-      use timings
-#endif
       use precision
       implicit none
 
       integer(kind=ik)              :: na, lda, nblk, matrixCols, mpi_comm_rows, mpi_comm_cols
       complex(kind=COMPLEX_DATATYPE)              :: tau(na)
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE
       complex(kind=COMPLEX_DATATYPE)              :: a(lda,*)
-#else
-      complex(kind=COMPLEX_DATATYPE)              :: a(lda,matrixCols)
-#endif
       real(kind=REAL_DATATYPE)                 :: d(na), e(na)
 
       integer(kind=ik), parameter   :: max_stored_rows = 32
@@ -128,14 +121,6 @@
       real(kind=REAL_DATATYPE), allocatable    :: tmpr(:)
       integer(kind=ik)              :: istat
       character(200)                :: errorMessage
-
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_COMPLEX
-      call timer%start("tridiag_complex_double")
-#else
-      call timer%start("tridiag_complex_single")
-#endif
-#endif
 
       call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
       call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
@@ -345,14 +330,6 @@
 
 #ifdef WITH_OPENMP
 
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_COMPLEX
-          call timer%start("OpenMP parallel_double")
-#else
-          call timer%start("OpenMP parallel_single")
-#endif
-#endif
-
 !$OMP PARALLEL PRIVATE(my_thread,n_threads,n_iter,i,lcs,lce,j,lrs,lre)
 
           my_thread = omp_get_thread_num()
@@ -407,13 +384,6 @@
 
 #ifdef WITH_OPENMP
 !$OMP END PARALLEL
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_COMPLEX
-          call timer%stop("OpenMP parallel_double")
-#else
-          call timer%stop("OpenMP parallel_single")
-#endif
-#endif
 
           do i=0,max_threads-1
             uc(1:l_cols) = uc(1:l_cols) + uc_p(1:l_cols,i)
@@ -625,14 +595,6 @@
        stop
       endif
 
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_COMPLEX
-      call timer%stop("tridiag_complex_double")
-#else
-      call timer%stop("tridiag_complex_single")
-#endif
-#endif
-
 #ifdef DOUBLE_PRECISION_COMPLEX
     end subroutine tridiag_complex_double
 #else
@@ -675,19 +637,12 @@
     !              MPI-Communicators for rows/columns
     !
     !-------------------------------------------------------------------------------
-#ifdef HAVE_DETAILED_TIMINGS
-      use timings
-#endif
       use precision
       implicit none
 
       integer(kind=ik)              ::  na, nqc, lda, ldq, nblk, matrixCols, mpi_comm_rows, mpi_comm_cols
       complex(kind=COMPLEX_DATATYPE)              ::  tau(na)
-#ifdef DESPERATELY_WANT_ASSUMED_SIZE
       complex(kind=COMPLEX_DATATYPE)              :: a(lda,*), q(ldq,*)
-#else
-      complex(kind=COMPLEX_DATATYPE)              ::  a(lda,matrixCols), q(ldq,matrixCols)
-#endif
       integer(kind=ik)              :: max_stored_rows
 #ifdef DOUBLE_PRECISION_COMPLEX
       complex(kind=ck8), parameter   :: CZERO = (0.0_rk8,0.0_rk8), CONE = (1.0_rk8,0.0_rk8)
@@ -703,13 +658,6 @@
       complex(kind=COMPLEX_DATATYPE), allocatable :: tmat(:,:), h1(:), h2(:)
       integer(kind=ik)              :: istat
       character(200)                :: errorMessage
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_COMPLEX
-      call timer%start("trans_ev_complex_double")
-#else
-      call timer%start("trans_ev_complex_single")
-#endif
-#endif
 
       call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
       call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
@@ -950,14 +898,6 @@
        stop
       endif
 
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_COMPLEX
-      call timer%stop("trans_ev_complex_double")
-#else
-      call timer%stop("trans_ev_complex_single")
-#endif
-#endif
-
 #ifdef DOUBLE_PRECISION_COMPLEX
     end subroutine trans_ev_complex_double
 #else
@@ -975,22 +915,13 @@
       ! It also hasn't the special handling for numbers < 1.d-300 or > 1.d150
       ! since this would be expensive for the parallel implementation.
       use precision
-#ifdef HAVE_DETAILED_TIMINGS
-      use timings
-#endif
       implicit none
       complex(kind=COMPLEX_DATATYPE), intent(inout) :: alpha
       real(kind=REAL_DATATYPE), intent(in)       :: xnorm_sq
       complex(kind=COMPLEX_DATATYPE), intent(out)   :: xf, tau
 
       real(kind=REAL_DATATYPE)                   :: ALPHR, ALPHI, BETA
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_COMPLEX
-      call timer%start("hh_transform_complex_double")
-#else
-      call timer%start("hh_transform_complex_single")
-#endif
-#endif
+
       ALPHR = real( ALPHA, kind=REAL_DATATYPE )
 #ifdef DOUBLE_PRECISION_COMPLEX
       ALPHI = DIMAG( ALPHA )
@@ -1036,14 +967,6 @@
 #endif
         ALPHA = BETA
       endif
-
-#ifdef HAVE_DETAILED_TIMINGS
-#ifdef DOUBLE_PRECISION_COMPLEX
-      call timer%stop("hh_transform_complex_double")
-#else
-      call timer%stop("hh_transform_complex_single")
-#endif
-#endif
 
 #ifdef DOUBLE_PRECISION_COMPLEX
     end subroutine hh_transform_complex_double
