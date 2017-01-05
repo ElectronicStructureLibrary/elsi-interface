@@ -34,9 +34,6 @@ A) BASIC
       SUPERLU_LIB       =
       SUPERLU_INCLUDE   =
 
-      ARCHITECTURE      =  # Use ELPA kernels written for specific architectures
-      OPENMP            =  # Enable OpenMP support in ELPA
-
 2) Make sure the "make.sys" file is correctly configured.
 
    To build ELPA, libOMM, PEXSI, and ELSI interface, type
@@ -66,13 +63,22 @@ B) ADVANCE I
    More settings.
 ==========================================================================
 
-1) Archive tools and flags can be modified by
+1) ELPA Kernels written for specific architectures
+
+      ARCHITECTURE =  # Default: Generic
+                      # Options: SSE
+                      #          AVX
+                      #          AVX2
+                      #          BGQ
+                      #          GPU
+
+2) Archive tools and flags can be modified by
 
       ARCHIVE      =  # Default: ar
       ARCHIVEFLAGS =  # Default: cr
       RANLIB       =  # Default: ranlib
 
-2) Compiler flags for each library (E for ELPA, O for libOMM, P for PEXSI,
+3) Compiler flags for each library (E for ELPA, O for libOMM, P for PEXSI,
    and I for ELSI interface) can be set separately by
 
       FFLAGS_I   =  # Default: $(FFLAGS)
@@ -83,7 +89,7 @@ B) ADVANCE I
       CFLAGS_P   =  # Default: $(CFLAGS)
       CXXFLAGS_P =  # Default: $(CXXFLAGS)
 
-3) Linker and link flags for ELSI test programs can be set by
+4) Linker and link flags for ELSI test programs can be set by
 
       LINKER  =  # Default: $(MPIFC)
       LDFLAGS =  # Default: $(FFLAGS)

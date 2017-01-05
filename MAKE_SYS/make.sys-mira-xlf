@@ -4,25 +4,27 @@
 MPIFC  = mpixlf95_r
 MPICC  = mpixlc_r
 MPICXX = mpixlcxx_r
+LINKER = mpixlf95_r
 XLF    = yes
 
-FFLAGS   = -g -O3 -qstrict -qmaxmem=-1 -qsmp=noomp
-FFLAGS  += -qxlf90=autodealloc -qfree=f90
-FFLAGS  += -qarch=qp -qtune=qp
-FFLAGS  += -qsimd=auto -qhot=level=1 -qprefetch -qunroll=yes
-FFLAGS  += -qreport -qsource -qlistopt -qlist -qessl
-CFLAGS   = -O3
-CXXFLAGS = -O3
+FFLAGS   = -O3 -qstrict -qmaxmem=-1 -qsmp=noomp -qxlf90=autodealloc -qfree=f90 -qarch=qp \
+           -qtune=qp -qsimd=auto -qhot=level=1 -qprefetch -qunroll=yes -qessl
+CFLAGS   = -O3 -qstrict -qmaxmem=-1 -qsmp=noomp -qarch=qp -qtune=qp -qsimd=auto \
+           -qhot=level=1 -qprefetch -qunroll=yes
+CXXFLAGS = -O3 -qstrict -qmaxmem=-1 -qsmp=noomp -qarch=qp -qtune=qp -qsimd=auto \
+           -qhot=level=1 -qprefetch -qunroll=yes
+LDFLAGS  =
+
+CXX_LDFLAGS = 
 
 SCALAPACK_LDFLAGS =
 SCALAPACK_FCFLAGS =
 
 # ====== ELPA ======
-ARCHITECTURE = BlueGeneQ
-OPENMP = no
+ARCHITECTURE = BGQ
 
 # ====== PEXSI ======
-METIS_LIB       = -L/gpfs/mira-home/wzvyu/parmetis-4.0.3/build/Linux-ppc64/libmetis -lmetis
-PARMETIS_LIB    = -L/gpfs/mira-home/wzvyu/parmetis-4.0.3/build/Linux-ppc64/libparmetis -lparmetis
-SUPERLU_LIB     = -L/gpfs/mira-home/wzvyu/SuperLU_DIST_5.1.2/lib -lsuperlu
-SUPERLU_INCLUDE = -I/gpfs/mira-home/wzvyu/SuperLU_DIST_5.1.2/SRC
+METIS_LIB       = -L/home/wzvyu/parmetis-4.0.3/build/Linux-ppc64/libmetis -lmetis
+PARMETIS_LIB    = -L/home/wzvyu/parmetis-4.0.3/build/Linux-ppc64/libparmetis -lparmetis
+SUPERLU_LIB     = -L/home/wzvyu/SuperLU_DIST_5.1.2/lib -lsuperlu_dist
+SUPERLU_INCLUDE = -I/home/wzvyu/SuperLU_DIST_5.1.2/SRC

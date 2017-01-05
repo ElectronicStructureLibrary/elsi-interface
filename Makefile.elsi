@@ -33,6 +33,10 @@ CXXFLAGS_P ?= $(CXXFLAGS) $(SCALAPACK_FCFLAGS)
 LINKER     ?= $(MPIFC)
 LDFLAGS    ?= $(FFLAGS_I)
 
+# Default architecture
+ARCHITECTURE ?= Generic
+OPENMP       ?= no
+
 export
 
 # Use precompiled library if provided in make.sys

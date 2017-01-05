@@ -9,6 +9,12 @@ ifeq ($(strip $(ARCHITECTURE)),GPU)
   FPP += $(XLFPP)-DWITH_GPU_VERSION
 endif
 ifeq ($(strip $(ARCHITECTURE)),Generic)
+  $(info =========================================)
+  $(info = Generic ELPA2 kernel has been chosen. =)
+  $(info = Often, this is a good first step.     =)
+  $(info = But considering the specific computer =)
+  $(info = platform may make a big difference.   =)
+  $(info =========================================)
   ELPA2_KERNELS_O ?= elpa2_kernels_real.o elpa2_kernels_complex.o
   FPP += $(XLFPP)-DWITH_REAL_GENERIC_KERNEL $(XLFPP)-DWITH_COMPLEX_GENERIC_KERNEL
 endif

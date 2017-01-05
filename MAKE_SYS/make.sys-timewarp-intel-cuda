@@ -1,4 +1,4 @@
-# VERIFIED: DEC 16, 2016
+# VERIFIED: JAN 4, 2017
 # DO READ ../INSTALL CAREFULLY!
 
 # ====== ELSI ======
@@ -33,5 +33,3 @@ ARCHITECTURE = GPU
 NVCC = nvcc
 NVCCFLAGS = -arch sm_35 -O3
 CUDA = -I/opt/cuda/7.0/include -L/opt/cuda/7.0/lib64 -lcudart -lcublas
-
-OPENMP = no
