@@ -37,6 +37,9 @@ LDFLAGS    ?= $(FFLAGS_I)
 ARCHITECTURE ?= Generic
 OPENMP       ?= no
 
+# Verification settings
+MPI_EXE      ?= mpirun
+
 export
 
 # Use precompiled library if provided in make.sys

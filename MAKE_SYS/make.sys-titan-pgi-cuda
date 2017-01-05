@@ -12,6 +12,7 @@ CXX_LDFLAGS = -lstdc++
 LDFLAGS     = -Wl,--allow-multiple-definition
 
 TOMATO_SEED = /ccs/home/vwzyu/tomato_seed
+MPI_EXEC = aprun
 
 # ====== ELPA ======
 ARCHITECTURE = GPU

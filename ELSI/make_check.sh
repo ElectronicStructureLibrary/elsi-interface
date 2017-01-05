@@ -1,7 +1,7 @@
 #!/bin/bash -l
 set -e # Stop on error
 
-mpirun -n 4 ./test_ev_real.x $1 1 > ev_real_elpa.log
+${MPI_EXEC} -n 4 ./test_ev_real.x $1 1 > ev_real_elpa.log
 if (! grep -q "Passed" <./ev_real_elpa.log); then
    echo "FAILED:  elsi_ev_real + ELPA (mp)"
    echo "See `pwd`/ev_real_elpa.log for details."
@@ -10,16 +10,18 @@ else
    rm ev_real_elpa.log
 fi
 
-mpirun -n 1 ./test_ev_real.x $1 1 > ev_real_elpa_sp.log
+${MPI_EXEC} -n 1 ./test_ev_real.x $1 1 > ev_real_elpa_sp.log
 if (! grep -q "Passed" <./ev_real_elpa_sp.log); then
    echo "FAILED:  elsi_ev_real + ELPA (sp)"
    echo "See `pwd`/ev_real_elpa_sp.log for details."
+   echo "If you are using the GPU-accelerated version of ELPA and the log file contains the error"
+   echo "'ELPA GPU version needs blocksize = 128', you may safely ignore the failure of this test."
 else
    echo "PASSED:  elsi_ev_real + ELPA (sp)"
    rm ev_real_elpa_sp.log
 fi
 
-mpirun -n 4 ./test_dm_real.x $1 1 > dm_real_elpa.log
+${MPI_EXEC} -n 4 ./test_dm_real.x $1 1 > dm_real_elpa.log
 if (! grep -q "Passed" <./dm_real_elpa.log); then
    echo "FAILED:  elsi_dm_real + ELPA"
    echo "See `pwd`/dm_real_elpa.log for details."
@@ -28,7 +30,7 @@ else
    rm dm_real_elpa.log
 fi
 
-mpirun -n 4 ./test_dm_real.x $1 2 > dm_real_libomm.log
+${MPI_EXEC} -n 4 ./test_dm_real.x $1 2 > dm_real_libomm.log
 if (! grep -q "Passed" <./dm_real_libomm.log); then
    echo "FAILED:  elsi_dm_real + libOMM"
    echo "See `pwd`/dm_real_libomm.log for details."
@@ -37,7 +39,7 @@ else
    rm dm_real_libomm.log libOMM.log
 fi
 
-mpirun -n 4 ./test_dm_real.x $1 3 > dm_real_pexsi.log
+${MPI_EXEC} -n 4 ./test_dm_real.x $1 3 > dm_real_pexsi.log
 if (! grep -q "Passed" <./dm_real_pexsi.log); then
    echo "FAILED:  elsi_dm_real + PEXSI"
    echo "See `pwd`/dm_real_pexsi.log for details."
