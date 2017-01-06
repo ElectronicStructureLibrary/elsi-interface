@@ -1,4 +1,4 @@
-# VERIFIED: JAN 4, 2017
+# VERIFIED: JAN 6, 2017
 # DO READ ../INSTALL CAREFULLY!
 
 # ====== ELSI ======
@@ -11,9 +11,6 @@ CXXFLAGS    = --c++11
 CXX_LDFLAGS = -lstdc++
 LDFLAGS     = -Wl,--allow-multiple-definition
 
-TOMATO_SEED = /ccs/home/vwzyu/tomato_seed
-MPI_EXEC = aprun
-
 # ====== ELPA ======
 ARCHITECTURE = GPU
 NVCC = nvcc
@@ -25,3 +22,7 @@ METIS_LIB       = -L/ccs/home/vwzyu/parmetis-4.0.3/build/Linux-x86_64/libmetis -
 PARMETIS_LIB    = -L/ccs/home/vwzyu/parmetis-4.0.3/build/Linux-x86_64/libparmetis -lparmetis
 SUPERLU_LIB     = -L/ccs/home/vwzyu/SuperLU_DIST_5.1.2/lib -lsuperlu_dist
 SUPERLU_INCLUDE = -I/ccs/home/vwzyu/SuperLU_DIST_5.1.2/SRC
+
+# ====== MAKE CHECK ======
+TOMATO_SEED = /ccs/home/vwzyu/tomato_seed
+MPI_EXEC    = aprun

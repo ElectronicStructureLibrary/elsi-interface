@@ -57,4 +57,4 @@ install:
 	cp *.x bin/.
 
 check:
-	chmod u+x ./make_check.sh && ./make_check.sh $(TOMATO_SEED)
+	chmod u+x ./make_check.sh && ./make_check.sh

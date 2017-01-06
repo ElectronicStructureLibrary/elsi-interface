@@ -1,7 +1,10 @@
 #!/bin/bash -l
+# VY: This is a simple bash script used for "make check"
+# More tests can be done by using test_ev_real.x and test_dm_real.x
+
 set -e # Stop on error
 
-${MPI_EXEC} -n 4 ./test_ev_real.x $1 1 > ev_real_elpa.log
+${MPI_EXEC} -n 4 ./test_ev_real.x ${TOMATO_SEED} 1 > ev_real_elpa.log
 if (! grep -q "Passed" <./ev_real_elpa.log); then
    echo "FAILED:  elsi_ev_real + ELPA (mp)"
    echo "See `pwd`/ev_real_elpa.log for details."
@@ -10,7 +13,7 @@ else
    rm ev_real_elpa.log
 fi
 
-${MPI_EXEC} -n 1 ./test_ev_real.x $1 1 > ev_real_elpa_sp.log
+${MPI_EXEC} -n 1 ./test_ev_real.x ${TOMATO_SEED} 1 > ev_real_elpa_sp.log
 if (! grep -q "Passed" <./ev_real_elpa_sp.log); then
    echo "FAILED:  elsi_ev_real + ELPA (sp)"
    echo "See `pwd`/ev_real_elpa_sp.log for details."
@@ -21,7 +24,7 @@ else
    rm ev_real_elpa_sp.log
 fi
 
-${MPI_EXEC} -n 4 ./test_dm_real.x $1 1 > dm_real_elpa.log
+${MPI_EXEC} -n 4 ./test_dm_real.x ${TOMATO_SEED} 1 > dm_real_elpa.log
 if (! grep -q "Passed" <./dm_real_elpa.log); then
    echo "FAILED:  elsi_dm_real + ELPA"
    echo "See `pwd`/dm_real_elpa.log for details."
@@ -30,7 +33,7 @@ else
    rm dm_real_elpa.log
 fi
 
-${MPI_EXEC} -n 4 ./test_dm_real.x $1 2 > dm_real_libomm.log
+${MPI_EXEC} -n 4 ./test_dm_real.x ${TOMATO_SEED} 2 > dm_real_libomm.log
 if (! grep -q "Passed" <./dm_real_libomm.log); then
    echo "FAILED:  elsi_dm_real + libOMM"
    echo "See `pwd`/dm_real_libomm.log for details."
@@ -39,7 +42,7 @@ else
    rm dm_real_libomm.log libOMM.log
 fi
 
-${MPI_EXEC} -n 4 ./test_dm_real.x $1 3 > dm_real_pexsi.log
+${MPI_EXEC} -n 4 ./test_dm_real.x ${TOMATO_SEED} 3 > dm_real_pexsi.log
 if (! grep -q "Passed" <./dm_real_pexsi.log); then
    echo "FAILED:  elsi_dm_real + PEXSI"
    echo "See `pwd`/dm_real_pexsi.log for details."

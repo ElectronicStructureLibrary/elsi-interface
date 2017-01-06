@@ -25,7 +25,7 @@ A) BASIC
       CFLAGS            =  # C compiler flags
       CXXFLAGS          =  # C++ compiler flags
 
-      CXX_LDFLAGS       =  # C++ linker flags, e.g. -stdc++
+      CXX_LDFLAGS       =  # C++ linker flags, e.g. -lstdc++
       SCALAPACK_FCFLAGS =  # ScaLAPACK compiler flags
       SCALAPACK_LDFLAGS =  # ScaLAPACK linker flags
 
@@ -48,6 +48,10 @@ A) BASIC
    The following linker flags might be necessary for creating executables:
 
       LDFLAGS = -Wl,--allow-multiple-definition
+
+   The MPI executable can be set by:
+
+      MPI_EXEC = # Default: mpirun
 
    Then, type
 

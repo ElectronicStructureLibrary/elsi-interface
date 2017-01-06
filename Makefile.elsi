@@ -38,7 +38,7 @@ ARCHITECTURE ?= Generic
 OPENMP       ?= no
 
 # Verification settings
-MPI_EXE      ?= mpirun
+MPI_EXEC ?= mpirun
 
 export
 
