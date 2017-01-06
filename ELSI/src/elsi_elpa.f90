@@ -1056,11 +1056,11 @@ subroutine elsi_to_standard_evp_sp()
       case (ELPA)
          select case (mode)
             case (COMPLEX_VALUES)
-!               if(n_elsi_calls == 1) then
+               if(n_elsi_calls == 1) then
                   if(.not.no_singularity_check) then
                      call elsi_check_singularity_sp()
                   endif
-
+               end if !n_elsi_calls == 1
                   if(n_nonsingular == n_g_size) then ! Not singular
                      overlap_is_singular = .false.
 
@@ -1108,11 +1108,11 @@ subroutine elsi_to_standard_evp_sp()
                endif
 
             case (REAL_VALUES)
-!               if(n_elsi_calls == 1) then
+               if(n_elsi_calls == 1) then
                   if(.not.no_singularity_check) then
                      call elsi_check_singularity_sp()
                   endif
-
+                end if !n_elsi_calls == 1
                   if(n_nonsingular == n_g_size) then ! Not singular
                      overlap_is_singular = .false.
 
@@ -1256,12 +1256,20 @@ subroutine elsi_solve_evp_elpa_sp()
 
    logical :: success
    logical :: two_step_solver
-
+   integer :: info
+   integer :: matixcols
+   real*8  :: b_time,e_time,t_time
+   real*8,allocatable :: d(:), e(:), tau(:)
+   real*8, allocatable :: buffer_real(:,:),evtmp(:,:)
+   complex*16,allocatable :: tau_c(:),buffer_complex(:,:)
    character*40, parameter :: caller = "elsi_solve_evp_elpa_sp"
 
+   matixcols=n_g_size
    call elsi_start_solve_evp_time()
-
+   allocate(d(n_g_size))
+   allocate(e(n_g_size))
    ! Choose 1-stage or 2-stage solver
+   !WM: The present 2-stage solver actrully is ELPA1+Lapack
    if(elpa_one_always) then
       two_step_solver = .false.
    elseif(elpa_two_always) then
@@ -1283,13 +1291,40 @@ subroutine elsi_solve_evp_elpa_sp()
       call elsi_statement_print("  Starting ELPA 2-stage solver")
       select case (mode)
          case (COMPLEX_VALUES)
-            success = solve_evp_complex_2stage_double(n_nonsingular,n_states,&
-                         H_complex,n_l_rows,eigenvalues,C_complex,n_l_rows,n_b_rows,&
-                         n_l_cols,mpi_comm_self,mpi_comm_self,mpi_comm_self)
+!            success = solve_evp_complex_2stage_double(n_nonsingular,n_states,&
+!                         H_complex,n_l_rows,eigenvalues,C_complex,n_l_rows,n_b_rows,&
+!                         n_l_cols,mpi_comm_self,mpi_comm_self,mpi_comm_self)
+            allocate(evtmp(n_g_size,n_g_size),tau_c(n_g_size),buffer_complex(n_g_size,n_g_size))
+            call ZHETRD('U', n_g_size, H_complex,n_g_size, d, e, tau_c,buffer_complex,size(buffer_complex), info)
+ 
+            success= elpa_solve_tridi_double(n_g_size, n_states, d, e,evtmp,n_g_size, 64,matixcols,&
+                  mpi_comm_self, mpi_comm_self,.false.)
+ 
+            eigenvalues(1:n_states) = d(1:n_states)
+            C_complex(1:n_g_size,1:n_states) = evtmp(1:n_g_size,1:n_states)
+            deallocate(evtmp)
+ 
+            call ZUNMTR('L', 'U', 'N', n_g_size,n_states,H_complex,n_g_size, tau_c, &
+                        C_complex,n_g_size, buffer_complex,size(buffer_complex),info)
+            deallocate(d,e,tau_c,buffer_complex)
          case (REAL_VALUES)
-            success = solve_evp_real_2stage_double(n_nonsingular,n_states,H_real,&
-                         n_l_rows,eigenvalues,C_real,n_l_rows,n_b_rows,&
-                         n_l_cols,mpi_comm_self,mpi_comm_self,mpi_comm_self)
+!            success = solve_evp_real_2stage_double(n_nonsingular,n_states,H_real,&
+!                         n_l_rows,eigenvalues,C_real,n_l_rows,n_b_rows,&
+!                         n_l_cols,mpi_comm_self,mpi_comm_self,mpi_comm_self)
+            allocate(tau(n_g_size))
+            allocate(buffer_real(n_g_size,n_g_size))
+            call DSYTRD('U', n_g_size,H_real, UBOUND(H_real,1), d, e, tau,buffer_real, size(buffer_real),info)
+ 
+            success=elpa_solve_tridi_double(n_g_size, n_states, d, e,buffer_real,UBOUND(buffer_real,1), 64,matixcols,&
+              mpi_comm_self, mpi_comm_self,.false.)
+ 
+            eigenvalues(1:n_states) = d(1:n_states)
+            C_real(1:n_g_size,1:n_states) =buffer_real(1:n_g_size,1:n_states)
+ 
+            call DORMTR('L', 'U', 'N', n_g_size, n_states, H_real,UBOUND(H_real,1), tau, &
+                C_real, UBOUND(C_real,1), buffer_real,size(buffer_real),info)
+
+           deallocate(d,e,tau,buffer_real)
       end select
    else ! 1-stage solver
       call elsi_statement_print("  Starting ELPA 1-stage solver")
