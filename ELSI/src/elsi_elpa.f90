@@ -968,6 +968,9 @@ subroutine elsi_solve_evp_elpa()
 
    call elsi_start_solve_evp_time()
 
+   ! Print ELPA timings or not
+   elpa_print_times = .false.
+
    ! Choose 1-stage or 2-stage solver
    if(elpa_one_always) then
       two_step_solver = .false.

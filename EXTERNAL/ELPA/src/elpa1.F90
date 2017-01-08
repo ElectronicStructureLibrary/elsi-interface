@@ -193,7 +193,6 @@ function solve_evp_real_1stage_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
    implicit none
 
    integer(kind=ik), intent(in) :: na,nev,lda,ldq,nblk,matrixCols,mpi_comm_rows,mpi_comm_cols
-!   real(kind=REAL_DATATYPE)     :: a(lda,matrixCols),ev(na),q(ldq,matrixCols)
    real(kind=rk8)               :: a(lda,*),ev(na),q(ldq,*)
 
    integer(kind=ik)             :: my_prow,my_pcol,mpierr
@@ -217,7 +216,7 @@ function solve_evp_real_1stage_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
    call tridiag_real_double(na,a,lda,nblk,matrixCols,mpi_comm_rows,mpi_comm_cols,ev,e,tau)
    ttt1 = MPI_Wtime()
    if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-      print *,"  Time full ==> tridiagonal    :",ttt1-ttt0
+      print *,"  | Time full ==> tridiagonal    :",ttt1-ttt0
 
    ttt0 = MPI_Wtime()
    call solve_tridi_double(na,nev,ev,e,q,ldq,nblk,matrixCols,mpi_comm_rows,&
@@ -225,13 +224,13 @@ function solve_evp_real_1stage_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
    if(.not.success) return
    ttt1 = MPI_Wtime()
    if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-      print *,"  Time solve tridiagonal       :",ttt1-ttt0
+      print *,"  | Time solve tridiagonal       :",ttt1-ttt0
 
    ttt0 = MPI_Wtime()
    call trans_ev_real_double(na,nev,a,lda,tau,q,ldq,nblk,matrixCols,mpi_comm_rows,mpi_comm_cols)
    ttt1 = MPI_Wtime()
    if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-      print *,"  Time ev tridiagonal ==> full :",ttt1-ttt0
+      print *,"  | Time ev tridiagonal ==> full :",ttt1-ttt0
 
    deallocate(e)
    deallocate(tau)
@@ -315,7 +314,7 @@ function solve_evp_complex_1stage_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
    call tridiag_complex_double(na,a,lda,nblk,matrixCols,mpi_comm_rows,mpi_comm_cols,ev,e,tau)
    ttt1 = MPI_Wtime()
    if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-      print *,"  Time full ==> tridiagonal    :",ttt1-ttt0
+      print *,"  | Time full ==> tridiagonal    :",ttt1-ttt0
 
    ttt0 = MPI_Wtime()
    call solve_tridi_double(na,nev,ev,e,q_real,l_rows,nblk,matrixCols,mpi_comm_rows,&
@@ -323,7 +322,7 @@ function solve_evp_complex_1stage_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
    if(.not.success) return
    ttt1 = MPI_Wtime()
    if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-      print *,"  Time solve tridiagonal       :",ttt1-ttt0
+      print *,"  | Time solve tridiagonal       :",ttt1-ttt0
 
    q(1:l_rows,1:l_cols_nev) = q_real(1:l_rows,1:l_cols_nev)
 
@@ -331,7 +330,7 @@ function solve_evp_complex_1stage_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
    call trans_ev_complex_double(na,nev,a,lda,tau,q,ldq,nblk,matrixCols,mpi_comm_rows,mpi_comm_cols)
    ttt1 = MPI_Wtime()
    if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-      print *,"  Time ev tridiagonal ==> full :",ttt1-ttt0
+      print *,"  | Time ev tridiagonal ==> full :",ttt1-ttt0
 
    deallocate(q_real)
    deallocate(e)

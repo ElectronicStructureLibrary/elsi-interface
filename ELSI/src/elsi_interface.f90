@@ -635,10 +635,10 @@ subroutine elsi_ev_real(H_in,S_in,e_val_out,e_vec_out)
 
    implicit none
 
-   real*8, target, intent(in) :: H_in(n_l_rows,n_l_cols)      !< Hamiltonian
-   real*8, target, intent(in) :: S_in(n_l_rows,n_l_cols)      !< Overlap
-   real*8, intent(out)        :: e_val_out(n_states)          !< Eigenvalues
-   real*8, intent(out)        :: e_vec_out(n_l_rows,n_l_cols) !< Eigenvectors
+   real*8, target      :: H_in(n_l_rows,*)      !< Hamiltonian
+   real*8, target      :: S_in(n_l_rows,*)      !< Overlap
+   real*8, intent(out) :: e_val_out(n_states)   !< Eigenvalues
+   real*8, intent(out) :: e_vec_out(n_l_rows,*) !< Eigenvectors
 
    character*40, parameter :: caller = "elsi_ev_real"
 
@@ -694,10 +694,10 @@ subroutine elsi_ev_complex(H_in,S_in,e_val_out,e_vec_out)
 
    implicit none
 
-   complex*16, target, intent(in) :: H_in(n_l_rows,n_l_cols)      !< Hamiltonian
-   complex*16, target, intent(in) :: S_in(n_l_rows,n_l_cols)      !< Overlap
-   real*8, intent(out)            :: e_val_out(n_states)          !< Eigenvalues
-   complex*16, intent(out)        :: e_vec_out(n_l_rows,n_l_cols) !< Eigenvectors
+   complex*16, target      :: H_in(n_l_rows,*)      !< Hamiltonian
+   complex*16, target      :: S_in(n_l_rows,*)      !< Overlap
+   real*8, intent(out)     :: e_val_out(n_states)   !< Eigenvalues
+   complex*16, intent(out) :: e_vec_out(n_l_rows,*) !< Eigenvectors
 
    character*40, parameter :: caller = "elsi_ev_complex"
 
@@ -753,10 +753,10 @@ subroutine elsi_dm_real(H_in,S_in,D_out,energy_out)
 
    implicit none
 
-   real*8,  target, intent(in)   :: H_in(n_l_rows,n_l_cols)  !< Hamiltonian
-   real*8,  target, intent(in)   :: S_in(n_l_rows,n_l_cols)  !< Overlap
-   real*8,  intent(out)          :: D_out(n_l_rows,n_l_cols) !< Density matrix
-   real*8,  intent(out)          :: energy_out               !< Energy
+   real*8, target      :: H_in(n_l_rows,*)  !< Hamiltonian
+   real*8, target      :: S_in(n_l_rows,*)  !< Overlap
+   real*8, intent(out) :: D_out(n_l_rows,*) !< Density matrix
+   real*8, intent(out) :: energy_out        !< Energy
 
    character*40, parameter :: caller = "elsi_dm_real"
 
@@ -785,11 +785,6 @@ subroutine elsi_dm_real(H_in,S_in,D_out,energy_out)
          call elsi_get_energy(energy_out)
 
       case (LIBOMM)
-         if(overlap_is_unit) then
-            call elsi_stop(" Unit overlap in libOMM not yet implemented."//&
-                           " Exiting...",caller)
-         endif
-
          if(MOD(NINT(n_electrons),2) /= 0) then
             call elsi_stop(" The current implementation of libOMM does not"//&
                            " work with fractional occupation numbers. This"//&
@@ -901,10 +896,10 @@ subroutine elsi_dm_complex(H_in,S_in,D_out,energy_out)
 
    implicit none
 
-   complex*16, target, intent(in) :: H_in(n_l_rows,n_l_cols)  !< Hamiltonian
-   complex*16, target, intent(in) :: S_in(n_l_rows,n_l_cols)  !< Overlap
-   real*8, intent(out)            :: D_out(n_l_rows,n_l_cols) !< Density matrix
-   real*8, intent(out)            :: energy_out               !< Energy
+   complex*16, target  :: H_in(n_l_rows,*)  !< Hamiltonian
+   complex*16, target  :: S_in(n_l_rows,*)  !< Overlap
+   real*8, intent(out) :: D_out(n_l_rows,*) !< Density matrix
+   real*8, intent(out) :: energy_out        !< Energy
 
    character*40, parameter :: caller = "elsi_dm_complex"
 
@@ -936,11 +931,6 @@ subroutine elsi_dm_complex(H_in,S_in,D_out,energy_out)
          call elsi_get_energy(energy_out)
 
       case (LIBOMM)
-         if(overlap_is_unit) then
-            call elsi_stop(" Unit overlap in libOMM not yet implemented."//&
-                           " Exiting...",caller)
-         endif
-
          if(MOD(NINT(n_electrons),2) /= 0) then
             call elsi_stop(" The current implementation of libOMM does not"//&
                            " work with fractional occupation numbers. This"//&
