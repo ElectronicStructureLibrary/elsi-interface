@@ -5134,8 +5134,6 @@
         if (ANY(result_send_request /= MPI_REQUEST_NULL)) write(error_unit,*) '*** ERROR result_send_request ***',my_prow,my_pcol
         if (ANY(result_recv_request /= MPI_REQUEST_NULL)) write(error_unit,*) '*** ERROR result_recv_request ***',my_prow,my_pcol
 #endif
-        if (my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-          write(error_unit,'(" Kernel time:",f10.3," MFlops: ",es12.5)') kernel_time, kernel_flops/kernel_time*1.d-6
 
         ! deallocate all working space
 

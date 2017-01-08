@@ -43,13 +43,6 @@
 !    the original distribution, the GNU Lesser General Public License.
 !
 !
-! ELPA1 -- Faster replacements for ScaLAPACK symmetric eigenvalue routines
-!
-! Copyright of the original code rests with the authors inside the ELPA
-! consortium. The copyright of any additional modifications shall rest
-! with their original authors, but shall adhere to the licensing terms
-! distributed along with the original code in the file "COPYING".
-!
 ! ELPA2 -- 2-stage solver for ELPA
 !
 ! Copyright of the original code rests with the authors inside the ELPA
@@ -59,8 +52,8 @@
 
 module ELPA2
 
+  use elpa1, only: elpa_print_times
   use elpa_utilities
-  use elpa1, only : elpa_print_times,time_evp_back,time_evp_fwd,time_evp_solve
   use elpa2_utilities
 
   implicit none
@@ -186,16 +179,14 @@ function solve_evp_real_2stage_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
    endif
 
    ! Choose bandwidth, must be a multiple of nblk, set to a value >= 32
-   ! On older systems (IBM Bluegene/P, Intel Nehalem) a value of 32 was optimal.
-   ! For Intel(R) Xeon(R) E5 v2 and v3, better use 64 instead of 32!
-   ! For IBM Bluegene/Q this is not clear at the moment. We have to keep an eye
-   ! on this and maybe allow a run-time optimization here
+   ! On old systems (IBM Bluegene/P, Intel Nehalem) a value of 32 was optimal.
+   ! For Intel(R) Xeon(R) E5 v2 and v3, better use 64.
+   ! For IBM Bluegene/Q this is not clear at the moment.
    if(useGPU) then
       nbw = nblk
    else
       nbw = (63/nblk+1)*nblk
    endif
-
    num_blocks = (na-1)/nbw+1
 
    allocate(tmat(nbw,nbw,num_blocks),stat=istat)
@@ -210,7 +201,8 @@ function solve_evp_real_2stage_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
                             mpi_comm_cols,tmat,tmat_dev,wantDebug,useGPU,success,useQRActual)
    if(.not.success) return
    ttt1 = MPI_Wtime()
-!   if(my_prow==0 .and. my_pcol==0) print *,"  Time full ==> band:",ttt1-ttt0
+   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
+      print *,"  Time full ==> band           :",ttt1-ttt0
 
    ! Reduction band -> tridiagonal
    allocate(e(na),stat=istat)
@@ -223,7 +215,8 @@ function solve_evp_real_2stage_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
    call tridiag_band_real_double(na,nbw,nblk,a,lda,ev,e,matrixCols,hh_trans_real,&
                                  mpi_comm_rows,mpi_comm_cols,mpi_comm_all)
    ttt1 = MPI_Wtime()
-!   if(my_prow==0 .and. my_pcol==0) print *,"  Time band ==> tridiagonal:",ttt1-ttt0
+   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
+      print *,"  Time band ==> tridiagonal    :",ttt1-ttt0
 
    call mpi_bcast(ev,na,MPI_REAL8,0,mpi_comm_all,mpierr)
    call mpi_bcast(e,na,MPI_REAL8,0,mpi_comm_all,mpierr)
@@ -234,7 +227,8 @@ function solve_evp_real_2stage_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
                            mpi_comm_cols,wantDebug,success)
    if(.not.success) return
    ttt1 = MPI_Wtime()
-!   if(my_prow==0 .and. my_pcol==0) print *,"  Time solve tridiagonal:",ttt1-ttt0
+   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
+      print *,"  Time solve tridiagonal       :",ttt1-ttt0
 
    deallocate(e)
 
@@ -245,7 +239,8 @@ function solve_evp_real_2stage_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
                                            wantDebug,useGPU,success,THIS_REAL_ELPA_KERNEL)
    if(.not.success) return
    ttt1 = MPI_Wtime()
-!   if(my_prow==0 .and. my_pcol==0) print *,"  Time tridiagonal ==> band:",ttt1-ttt0
+   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
+      print *,"  Time ev tridiagonal ==> band :",ttt1-ttt0
 
    ! We can now deallocate the stored householder vectors
    deallocate(hh_trans_real)
@@ -256,7 +251,8 @@ function solve_evp_real_2stage_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
                                           q_dev,ldq,matrixCols,num_blocks,mpi_comm_rows,&
                                           mpi_comm_cols,useGPU,useQRActual)
    ttt1 = MPI_Wtime()
-!   if(my_prow==0 .and. my_pcol==0) print *,"  Time band ==> full:",ttt1-ttt0
+   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
+      print *,"  Time ev band ==> full        :",ttt1-ttt0
 
    deallocate(tmat)
 
@@ -365,7 +361,6 @@ function solve_evp_complex_2stage_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
 
    ! Choose bandwidth, must be a multiple of nblk, set to a value >= 32
    nbw = (31/nblk+1)*nblk
-
    num_blocks = (na-1)/nbw+1
 
    allocate(tmat(nbw,nbw,num_blocks),stat=istat)
@@ -380,7 +375,8 @@ function solve_evp_complex_2stage_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
                                mpi_comm_cols,tmat,wantDebug,useGPU,success)
    if(.not.success) return
    ttt1 = MPI_Wtime()
-!   if(my_prow==0 .and. my_pcol==0) print *,"  Time full ==> band:",ttt1-ttt0
+   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
+      print *,"  Time full ==> band           :",ttt1-ttt0
 
    ! Reduction band -> tridiagonal
    allocate(e(na),stat=istat)
@@ -393,7 +389,8 @@ function solve_evp_complex_2stage_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
    call tridiag_band_complex_double(na,nbw,nblk,a,lda,ev,e,matrixCols,hh_trans_complex,&
                                     mpi_comm_rows,mpi_comm_cols,mpi_comm_all)
    ttt1 = MPI_Wtime()
-!   if(my_prow==0 .and. my_pcol==0) print *,"  Time band ==> tridiagonal:",ttt1-ttt0
+   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
+      print *,"  Time band ==> tridiagonal    :",ttt1-ttt0
 
    call mpi_bcast(ev,na,mpi_real8,0,mpi_comm_all,mpierr)
    call mpi_bcast(e,na,mpi_real8,0,mpi_comm_all,mpierr)
@@ -414,7 +411,8 @@ function solve_evp_complex_2stage_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
                            mpi_comm_rows,mpi_comm_cols,wantDebug,success)
    if(.not.success) return
    ttt1 = MPI_Wtime()
-!   if(my_prow==0 .and. my_pcol==0) print *,"  Time solve tridiagonal:",ttt1-ttt0
+   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
+      print *,"  Time solve tridiagonal       :",ttt1-ttt0
 
    q(1:l_rows,1:l_cols_nev) = q_real(1:l_rows,1:l_cols_nev)
 
@@ -429,7 +427,8 @@ function solve_evp_complex_2stage_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
                                               success,THIS_COMPLEX_ELPA_KERNEL)
    if(.not.success) return
    ttt1 = MPI_Wtime()
-!   if(my_prow==0 .and. my_pcol==0) print *,"  Time tridiagonal ==> band:",ttt1-ttt0
+   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
+      print *,"  Time ev tridiagonal ==> band :",ttt1-ttt0
 
    ! We can now deallocate the stored householder vectors
    deallocate(hh_trans_complex)
@@ -440,7 +439,8 @@ function solve_evp_complex_2stage_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
                                              matrixCols,num_blocks,mpi_comm_rows,&
                                              mpi_comm_cols,useGPU)
    ttt1 = MPI_Wtime()
-!   if(my_prow==0 .and. my_pcol==0) print *,"  Time band ==> full:",ttt1-ttt0
+   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
+      print *,"  Time ev band ==> full        :",ttt1-ttt0
 
    deallocate(tmat)
 
@@ -470,12 +470,12 @@ function check_eval_real(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,mpi_comm_rows,&
    integer(kind=ik), intent(in)  :: mpi_comm_rows,mpi_comm_cols,mpi_comm_all
    integer(kind=ik), intent(in)  :: nblk
    integer(kind=ik), intent(out) :: n_nonsing
-!   real(kind=rk8), intent(inout) :: a(lda,matrixCols),ev(na),q(ldq,matrixCols)
    real(kind=rk8), intent(inout) :: a(lda,*),ev(na),q(ldq,*)
    real(kind=rk8), intent(in)    :: singular_tol
 
    real(kind=rk8), allocatable   :: hh_trans_real(:,:)
    real(kind=rk8), allocatable   :: tmat(:,:,:),e(:),ev_tmp(:)
+   real(kind=c_double)           :: ttt0,ttt1
    logical                       :: useQRActual
    logical                       :: success
    logical                       :: wantDebug
@@ -528,7 +528,6 @@ function check_eval_real(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,mpi_comm_rows,&
    else
       nbw = (63/nblk+1)*nblk
    endif
-
    num_blocks = (na-1)/nbw+1
 
    allocate(tmat(nbw,nbw,num_blocks),stat=istat)
@@ -538,10 +537,14 @@ function check_eval_real(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,mpi_comm_rows,&
    endif
 
    ! Reduction full -> band
+   ttt0 = MPI_Wtime()
    call bandred_real_double(na,a,a_dev,lda,nblk,nbw,matrixCols,num_blocks,&
                             mpi_comm_rows,mpi_comm_cols,tmat,tmat_dev,wantDebug,&
                             useGPU,success,useQRActual)
    if(.not.success) return
+   ttt1 = MPI_Wtime()
+   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
+      print *,"  Time full ==> band            :",ttt1-ttt0
 
    ! Reduction band -> tridiagonal
    allocate(e(na),stat=istat)
@@ -550,17 +553,24 @@ function check_eval_real(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,mpi_comm_rows,&
       stop
    endif
 
-   ! Reduction band -> tridiagonal
+   ttt0 = MPI_Wtime()
    call tridiag_band_real_double(na,nbw,nblk,a,lda,ev,e,matrixCols,hh_trans_real,&
                                  mpi_comm_rows,mpi_comm_cols,mpi_comm_all)
+   ttt1 = MPI_Wtime()
+   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
+      print *,"  Time band ==> tridiagonal     :",ttt1-ttt0
 
    call mpi_bcast(ev,na,MPI_REAL8,0,mpi_comm_all,mpierr)
    call mpi_bcast(e,na,MPI_REAL8,0,mpi_comm_all,mpierr)
 
    ! Solve tridiagonal system
+   ttt0 = MPI_Wtime()
    call solve_tridi_double(na,nev,ev,e,q,ldq,nblk,matrixCols,mpi_comm_rows,&
                            mpi_comm_cols,wantDebug,success)
    if(.not.success) return
+   ttt1 = MPI_Wtime()
+   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
+      print *,"  Time solve tridiagonal        :",ttt1-ttt0
 
    deallocate(e)
 
@@ -575,17 +585,25 @@ function check_eval_real(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,mpi_comm_rows,&
 
    if(n_nonsing < na) then
       ! Back-transform 1
+      ttt0 = MPI_Wtime()
       call trans_ev_tridi_to_band_real_double(na,nev,nblk,nbw,q,q_dev,ldq,matrixCols,&
                                               hh_trans_real,mpi_comm_rows,mpi_comm_cols,&
                                               wantDebug,useGPU,success,THIS_REAL_ELPA_KERNEL)
       if(.not.success) return
+      ttt1 = MPI_Wtime()
+      if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
+         print *,"  Time ev tridiagonal ==> band  :",ttt1-ttt0
 
       deallocate(hh_trans_real)
 
       ! Back-transform 2
+      ttt0 = MPI_Wtime()
       call trans_ev_band_to_full_real_double(na,nev,nblk,nbw,a,a_dev,lda,tmat,tmat_dev,q,&
                                              q_dev,ldq,matrixCols,num_blocks,mpi_comm_rows,&
                                              mpi_comm_cols,useGPU,useQRActual)
+      ttt1 = MPI_Wtime()
+      if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
+         print *,"  Time ev band ==> full         :",ttt1-ttt0
 
       deallocate(tmat)
    else
@@ -615,7 +633,6 @@ function check_eval_complex(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,mpi_comm_rows,
    integer(kind=ik), intent(in)     :: na,nev,lda,ldq,nblk,matrixCols
    integer(kind=ik), intent(in)     :: mpi_comm_rows,mpi_comm_cols,mpi_comm_all
    integer(kind=ik), intent(out)    :: n_nonsing
-!   complex(kind=ck8), intent(inout) :: a(lda,matrixCols),q(ldq,matrixCols)
    complex(kind=ck8), intent(inout) :: a(lda,*),q(ldq,*)
    real(kind=rk8), intent(inout)    :: ev(na)
    real(kind=rk8), intent(in)       :: singular_tol
@@ -623,6 +640,7 @@ function check_eval_complex(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,mpi_comm_rows,
    complex(kind=ck8), allocatable   :: hh_trans_complex(:,:)
    complex(kind=ck8), allocatable   :: tmat(:,:,:)
    real(kind=rk8), allocatable      :: q_real(:,:),e(:)
+   real(kind=c_double)              :: ttt0,ttt1
    integer(kind=ik)                 :: my_prow,my_pcol,np_rows,np_cols,mpierr,my_pe,n_pes
    integer(kind=ik)                 :: l_cols,l_rows,l_cols_nev,nbw,num_blocks
    integer(kind=ik)                 :: THIS_COMPLEX_ELPA_KERNEL
@@ -677,9 +695,13 @@ function check_eval_complex(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,mpi_comm_rows,
    endif
 
    ! Reduction full -> band
+   ttt0 = MPI_Wtime()
    call bandred_complex_double(na,a,lda,nblk,nbw,matrixCols,num_blocks,mpi_comm_rows,&
                                mpi_comm_cols,tmat,wantDebug,useGPU,success)
    if(.not.success) return
+   ttt1 = MPI_Wtime()
+   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
+      print *,"  Time full ==> band            :",ttt1-ttt0
 
    ! Reduction band -> tridiagonal
    allocate(e(na),stat=istat)
@@ -688,8 +710,12 @@ function check_eval_complex(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,mpi_comm_rows,
       stop
    endif
 
+   ttt0 = MPI_Wtime()
    call tridiag_band_complex_double(na,nbw,nblk,a,lda,ev,e,matrixCols,hh_trans_complex,&
                                     mpi_comm_rows,mpi_comm_cols,mpi_comm_all)
+   ttt1 = MPI_Wtime()
+   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
+      print *,"  Time band ==> tridiagonal     :",ttt1-ttt0
 
    call mpi_bcast(ev,na,mpi_real8,0,mpi_comm_all,mpierr)
    call mpi_bcast(e,na,mpi_real8,0,mpi_comm_all,mpierr)
@@ -705,9 +731,13 @@ function check_eval_complex(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,mpi_comm_rows,
    endif
 
    ! Solve tridiagonal system
+   ttt0 = MPI_Wtime()
    call solve_tridi_double(na,nev,ev,e,q_real,ubound(q_real,dim=1),nblk,matrixCols,&
                            mpi_comm_rows,mpi_comm_cols,wantDebug,success)
    if(.not.success) return
+   ttt1 = MPI_Wtime()
+   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
+      print *,"  Time solve tridiagonal        :",ttt1-ttt0
 
    q(1:l_rows,1:l_cols_nev) = q_real(1:l_rows,1:l_cols_nev)
 
@@ -725,18 +755,26 @@ function check_eval_complex(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,mpi_comm_rows,
 
    if(n_nonsing < na) then
       ! Back-transform 1
+      ttt0 = MPI_Wtime()
       call trans_ev_tridi_to_band_complex_double(na,nev,nblk,nbw,q,ldq,matrixCols,&
                                                  hh_trans_complex,mpi_comm_rows,&
                                                  mpi_comm_cols,wantDebug,useGPU,&
                                                  success,THIS_COMPLEX_ELPA_KERNEL)
       if(.not.success) return
+      ttt1 = MPI_Wtime()
+      if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
+         print *,"  Time ev tridiagonal ==> band  :",ttt1-ttt0
 
       deallocate(hh_trans_complex)
 
       ! Back-transform 2
+      ttt0 = MPI_Wtime()
       call trans_ev_band_to_full_complex_double(na,nev,nblk,nbw,a,lda,tmat,q,ldq,&
                                                 matrixCols,num_blocks,mpi_comm_rows,&
                                                 mpi_comm_cols,useGPU)
+      ttt1 = MPI_Wtime()
+      if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
+         print *,"  Time ev band ==> full         :",ttt1-ttt0
 
       deallocate(tmat)
    else

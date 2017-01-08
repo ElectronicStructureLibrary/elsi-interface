@@ -1575,11 +1575,6 @@
           if (abs(d(i+1) - d(i)) / abs(d(i+1) + d(i)) > 1e-14_rk4) then
 #endif
             write(error_unit,'(a,i8,2g25.16)') '***WARNING: Monotony error dste**:',i+1,d(i),d(i+1)
-          else
-            write(error_unit,'(a,i8,2g25.16)') 'Info: Monotony error dste{dc,qr}:',i+1,d(i),d(i+1)
-            write(error_unit,'(a)') 'The eigenvalues from a lapack call are not sorted to machine precision.'
-            write(error_unit,'(a)') 'In this extent, this is completely harmless.'
-            write(error_unit,'(a)') 'Still, we keep this info message just in case.'
           end if
           allocate(qtmp(nlen), stat=istat, errmsg=errorMessage)
           if (istat .ne. 0) then
