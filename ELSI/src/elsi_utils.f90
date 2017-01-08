@@ -1,4 +1,4 @@
-!Copyright (c) 2016, ELSI consortium
+!Copyright (c) 2015-2017, ELSI consortium
 !All rights reserved.
 !
 !Redistribution and use in source and binary forms, with or without
@@ -96,18 +96,12 @@ subroutine elsi_allocate_real_vector(vector,n_elements,vectorname,caller)
    character(len=*), intent(in) :: caller
 
    integer :: error
-
    character*200 :: message
-
-   real*8 :: memory
-
-   memory = 8d0*n_elements/2d0**20
 
    allocate(vector(n_elements),stat=error)
 
    if(error > 0) then 
-      write(message,"(A,A,A,F10.3,A)") "Insufficient memory to allocate ",&
-            TRIM(vectorname),",",memory," MB needed."
+      write(message,"(A,A)") "Error in allocating ",TRIM(vectorname)
       call elsi_stop(message,caller)
    endif
 
@@ -128,18 +122,12 @@ subroutine elsi_allocate_int_vector(vector,n_elements,vectorname,caller)
    character(len=*), intent(in) :: caller
 
    integer :: error
-
    character*200 :: message
-
-   real*8 :: memory
-
-   memory = 4d0*n_elements/2d0**20
 
    allocate(vector(n_elements),stat=error)
 
    if(error > 0) then 
-      write(message,"(A,A,A,F10.3,A)") "Insufficient memory to allocate ",&
-            TRIM(vectorname),",",memory," MB needed."
+      write(message,"(A,A)") "Error in allocating ",TRIM(vectorname)
       call elsi_stop(message,caller)
    endif
 
@@ -160,18 +148,12 @@ subroutine elsi_allocate_complex_vector(vector,n_elements,vectorname,caller)
    character(len=*), intent(in) :: caller
 
    integer :: error
-
    character*200 :: message
-
-   real*8 :: memory
-
-   memory = 16d0*n_elements/2d0**20
 
    allocate(vector(n_elements),stat=error)
 
    if(error > 0) then
-      write(message,"(A,A,A,F10.3,A)") "Insufficient memory to allocate ",&
-            TRIM(vectorname),",",memory," MB needed."
+      write(message,"(A,A)") "Error in allocating ",TRIM(vectorname)
       call elsi_stop(message,caller)
    endif
 
@@ -193,18 +175,12 @@ subroutine elsi_allocate_real_matrix(matrix,n_rows,n_cols,matrixname,caller)
    character(len=*), intent(in) :: caller
 
    integer :: error
-
    character*200 :: message
-
-   real*8 :: memory
-
-   memory = 8d0*n_rows*n_cols/2d0**20
 
    allocate(matrix(n_rows,n_cols),stat=error)
 
    if(error > 0) then 
-      write(message,"(A,A,A,F10.3,A)") "Insufficient memory to allocate ",&
-            TRIM(matrixname),",",memory," MB needed."
+      write(message,"(A,A)") "Error in allocating ",TRIM(matrixname)
       call elsi_stop(message,caller)
    endif
 
@@ -226,18 +202,12 @@ subroutine elsi_allocate_int_matrix(matrix,n_rows,n_cols,matrixname,caller)
    character(len=*), intent(in) :: caller
 
    integer :: error
-
    character*200 :: message
-
-   real*8 :: memory
-
-   memory = 4d0*n_rows*n_cols/2d0**20
 
    allocate(matrix(n_rows,n_cols),stat=error)
 
    if(error > 0) then 
-      write(message,"(A,A,A,F10.3,A)") "Insufficient memory to allocate ",&
-            TRIM(matrixname),",",memory," MB needed."
+      write(message,"(A,A)") "Error in allocating ",TRIM(matrixname)
       call elsi_stop(message,caller)
    endif
 
@@ -259,18 +229,12 @@ subroutine elsi_allocate_complex_matrix(matrix,n_rows,n_cols,matrixname,caller)
    character(len=*), intent(in) :: caller
 
    integer :: error
-
    character*200 :: message
-
-   real*8 :: memory
-
-   memory = 16d0*n_rows*n_cols/2d0**20
 
    allocate(matrix(n_rows,n_cols),stat=error)
 
    if(error > 0) then 
-      write(message,"(A,A,A,F10.3,A)") "Insufficient memory to allocate ",&
-            TRIM(matrixname),",",memory," MB needed."
+      write(message,"(A,A)") "Error in allocating ",TRIM(matrixname)
       call elsi_stop(message,caller)
    endif
 
