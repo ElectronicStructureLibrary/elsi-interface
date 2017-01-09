@@ -376,11 +376,6 @@ subroutine elsi_compute_dm_elpa(D_out)
 
    select case (method)
       case (ELPA)
-         if(.not.ALLOCATED(D_elpa)) then
-            call elsi_allocate(D_elpa,n_l_rows,n_l_cols,"D_elpa",caller)
-         endif
-         D_elpa = 0d0
-
          select case (mode)
             case (REAL_VALUES)
                ! Get eigenvectors into tmp_real

@@ -53,8 +53,6 @@ module ELSI_DIMENSIONS
    real*8, allocatable     :: C_real(:,:)
    !< Complex eigenvectors
    complex*16, allocatable :: C_complex(:,:)
-   !< Density matrix
-   real*8, allocatable     :: D_elpa(:,:)
    !< Occupation numbers used by ELPA to construct density matrix
    real*8, allocatable     :: occ_elpa(:)
 

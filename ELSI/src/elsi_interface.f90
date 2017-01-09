@@ -635,10 +635,10 @@ subroutine elsi_ev_real(H_in,S_in,e_val_out,e_vec_out)
 
    implicit none
 
-   real*8, target      :: H_in(n_l_rows,*)      !< Hamiltonian
-   real*8, target      :: S_in(n_l_rows,*)      !< Overlap
-   real*8, intent(out) :: e_val_out(n_states)   !< Eigenvalues
-   real*8, intent(out) :: e_vec_out(n_l_rows,*) !< Eigenvectors
+   real*8, intent(inout) :: H_in(n_l_rows,*)      !< Hamiltonian
+   real*8, intent(inout) :: S_in(n_l_rows,*)      !< Overlap
+   real*8, intent(out)   :: e_val_out(n_states)   !< Eigenvalues
+   real*8, intent(out)   :: e_vec_out(n_l_rows,*) !< Eigenvectors
 
    character*40, parameter :: caller = "elsi_ev_real"
 
@@ -694,10 +694,10 @@ subroutine elsi_ev_complex(H_in,S_in,e_val_out,e_vec_out)
 
    implicit none
 
-   complex*16, target      :: H_in(n_l_rows,*)      !< Hamiltonian
-   complex*16, target      :: S_in(n_l_rows,*)      !< Overlap
-   real*8, intent(out)     :: e_val_out(n_states)   !< Eigenvalues
-   complex*16, intent(out) :: e_vec_out(n_l_rows,*) !< Eigenvectors
+   complex*16, intent(inout) :: H_in(n_l_rows,*)      !< Hamiltonian
+   complex*16, intent(inout) :: S_in(n_l_rows,*)      !< Overlap
+   real*8,     intent(out)   :: e_val_out(n_states)   !< Eigenvalues
+   complex*16, intent(out)   :: e_vec_out(n_l_rows,*) !< Eigenvectors
 
    character*40, parameter :: caller = "elsi_ev_complex"
 
@@ -753,10 +753,10 @@ subroutine elsi_dm_real(H_in,S_in,D_out,energy_out)
 
    implicit none
 
-   real*8, target      :: H_in(n_l_rows,*)  !< Hamiltonian
-   real*8, target      :: S_in(n_l_rows,*)  !< Overlap
-   real*8, intent(out) :: D_out(n_l_rows,*) !< Density matrix
-   real*8, intent(out) :: energy_out        !< Energy
+   real*8, intent(inout) :: H_in(n_l_rows,*)  !< Hamiltonian
+   real*8, intent(inout) :: S_in(n_l_rows,*)  !< Overlap
+   real*8, intent(out)   :: D_out(n_l_rows,*) !< Density matrix
+   real*8, intent(out)   :: energy_out        !< Energy
 
    character*40, parameter :: caller = "elsi_dm_real"
 
@@ -824,10 +824,10 @@ subroutine elsi_dm_real(H_in,S_in,D_out,energy_out)
 
             ! Initialize coefficient matrix with ELPA eigenvectors if possible
             if(n_elpa_steps > 0 .and. n_elsi_calls == n_elpa_steps+1) then
-               ! D_elpa is used for temporary storage here
-               D_elpa = C_real
+               ! D_out is used for temporary storage here
+               D_out(1:n_l_rows,1:n_l_cols) = C_real(1:n_l_rows,1:n_l_cols)
                ! libOMM coefficient matrix is the transpose of ELPA eigenvectors
-               call pdtran(n_g_size,n_g_size,1d0,D_elpa,1,1,sc_desc,0d0,C_real,1,1,sc_desc)
+               call pdtran(n_g_size,n_g_size,1d0,D_out,1,1,sc_desc,0d0,C_real,1,1,sc_desc)
 
                Coeff_omm%dval(1:Coeff_omm%iaux2(1),1:Coeff_omm%iaux2(2)) = &
                   C_real(1:Coeff_omm%iaux2(1),1:Coeff_omm%iaux2(2))
@@ -837,7 +837,6 @@ subroutine elsi_dm_real(H_in,S_in,D_out,energy_out)
                if(ASSOCIATED(S_real))     nullify(S_real)
                if(ALLOCATED(C_real))      deallocate(C_real)
                if(ALLOCATED(eigenvalues)) deallocate(eigenvalues)
-               if(ALLOCATED(D_elpa))      deallocate(D_elpa)
                if(ALLOCATED(occ_elpa))    deallocate(occ_elpa)
             endif
 
@@ -896,10 +895,10 @@ subroutine elsi_dm_complex(H_in,S_in,D_out,energy_out)
 
    implicit none
 
-   complex*16, target  :: H_in(n_l_rows,*)  !< Hamiltonian
-   complex*16, target  :: S_in(n_l_rows,*)  !< Overlap
-   real*8, intent(out) :: D_out(n_l_rows,*) !< Density matrix
-   real*8, intent(out) :: energy_out        !< Energy
+   complex*16, intent(inout) :: H_in(n_l_rows,*)  !< Hamiltonian
+   complex*16, intent(inout) :: S_in(n_l_rows,*)  !< Overlap
+   real*8,     intent(out)   :: D_out(n_l_rows,*) !< Density matrix
+   real*8,     intent(out)   :: energy_out        !< Energy
 
    character*40, parameter :: caller = "elsi_dm_complex"
 

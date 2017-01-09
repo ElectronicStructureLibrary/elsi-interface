@@ -457,19 +457,16 @@ subroutine elsi_deallocate_matrices()
 
    implicit none
 
-   ! Nullify pointers
+   ! ELPA
    if(ASSOCIATED(H_real))       nullify(H_real)
    if(ASSOCIATED(H_complex))    nullify(H_complex)
    if(ASSOCIATED(S_real))       nullify(S_real)
    if(ASSOCIATED(S_complex))    nullify(S_complex)
-
-   ! Free Memory
-   ! ELPA
    if(ALLOCATED(C_real))        deallocate(C_real)
    if(ALLOCATED(C_complex))     deallocate(C_complex)
    if(ALLOCATED(eigenvalues))   deallocate(eigenvalues)
-   if(ALLOCATED(D_elpa))        deallocate(D_elpa)
    if(ALLOCATED(occ_elpa))      deallocate(occ_elpa)
+
    ! PEXSI
    if(ALLOCATED(H_real_pexsi))  deallocate(H_real_pexsi)
    if(ALLOCATED(S_real_pexsi))  deallocate(S_real_pexsi)
@@ -478,6 +475,7 @@ subroutine elsi_deallocate_matrices()
    if(ALLOCATED(FD_pexsi))      deallocate(FD_pexsi)
    if(ALLOCATED(row_ind_pexsi)) deallocate(row_ind_pexsi)
    if(ALLOCATED(col_ptr_pexsi)) deallocate(col_ptr_pexsi)
+
    ! libOMM
    if(H_omm%is_initialized)     call m_deallocate(H_omm)
    if(S_omm%is_initialized)     call m_deallocate(S_omm)
