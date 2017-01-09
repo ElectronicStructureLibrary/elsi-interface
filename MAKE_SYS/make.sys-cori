@@ -1,0 +1,29 @@
+# PLATFORM  : CORI @NERSC
+# COMPILERS : INTEL
+# VERIFIED  : JAN 9, 2017
+# DO READ ../INSTALL CAREFULLY!
+
+# ====== ELSI ======
+MPIFC  = ftn
+MPICC  = cc
+MPICXX = CC
+LINKER = ftn
+
+FFLAGS   = -fast -no-ipo
+CFLAGS   = -fast -no-ipo
+CXXFLAGS = -fast -no-ipo -std=c++11
+LDFLAGS  = -fast -no-ipo -Wl,--allow-multiple-definition
+
+CXX_LDFLAGS       = -lstdc++
+SCALAPACK_LDFLAGS = -mkl=cluster
+
+# ====== ELPA ======
+ARCHITECTURE  = AVX
+BLOCK_REAL    = 2
+BLOCK_COMPLEX = 1
+
+# ====== PEXSI ======
+METIS_LIB       = -L/global/homes/v/vwzyu/parmetis-4.0.3/build/Linux-x86_64/libmetis -lmetis
+PARMETIS_LIB    = -L/global/homes/v/vwzyu/parmetis-4.0.3/build/Linux-x86_64/libparmetis -lparmetis
+SUPERLU_LIB     = -L/global/homes/v/vwzyu/SuperLU_DIST_5.1.2/lib -lsuperlu_dist
+SUPERLU_INCLUDE = -I/global/homes/v/vwzyu/SuperLU_DIST_5.1.2/SRC

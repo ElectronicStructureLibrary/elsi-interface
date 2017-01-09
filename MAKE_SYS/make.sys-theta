@@ -1,4 +1,6 @@
-# VERIFIED: JAN 4, 2017
+# PLATFORM  : THETA @ALCF
+# COMPILERS : INTEL
+# VERIFIED  : JAN 9, 2017
 # DO READ ../INSTALL CAREFULLY!
 
 # ====== ELSI ======
@@ -16,7 +18,9 @@ CXX_LDFLAGS       = -lstdc++
 SCALAPACK_LDFLAGS = -mkl=cluster
 
 # ====== ELPA ======
-ARCHITECTURE = Generic
+ARCHITECTURE  = AVX
+BLOCK_REAL    = 2
+BLOCK_COMPLEX = 1
 
 # ====== PEXSI ======
 METIS_LIB       = -L/home/wzvyu/parmetis-4.0.3/build/Linux-x86_64/libmetis -lmetis
