@@ -524,7 +524,7 @@ subroutine elsi_to_standard_evp()
                   if(n_nonsingular == n_g_size) then ! Not singular
                      overlap_is_singular = .false.
 
-                     call elsi_statement_print("  Starting Cholesty decomposition")
+                     call elsi_statement_print("  Starting Cholesky decomposition")
 
                      ! Compute S = (U^T)U, U -> S
                      success = elpa_cholesky_complex_double(n_g_size,S_complex,n_l_rows,&
@@ -601,7 +601,7 @@ subroutine elsi_to_standard_evp()
                   if(n_nonsingular == n_g_size) then ! Not singular
                      overlap_is_singular = .false.
 
-                     call elsi_statement_print("  Starting Cholesty decomposition")
+                     call elsi_statement_print("  Starting Cholesky decomposition")
 
                      ! Compute S = (U^T)U, U -> S
                      success = elpa_cholesky_real_double(n_g_size,S_real,n_l_rows,&
@@ -1062,7 +1062,7 @@ subroutine elsi_to_standard_evp_sp()
                   if(n_nonsingular == n_g_size) then ! Not singular
                      overlap_is_singular = .false.
 
-                     call elsi_statement_print("  Starting Cholesty decomposition")
+                     call elsi_statement_print("  Starting Cholesky decomposition")
 
                      ! Compute S = (U^T)U, U -> S
                      success = elpa_cholesky_complex_double(n_g_size,S_complex,n_l_rows,&
@@ -1114,7 +1114,7 @@ subroutine elsi_to_standard_evp_sp()
                   if(n_nonsingular == n_g_size) then ! Not singular
                      overlap_is_singular = .false.
 
-                     call elsi_statement_print("  Starting Cholesty decomposition")
+                     call elsi_statement_print("  Starting Cholesky decomposition")
 
                      ! Compute S = (U^T)U, U -> S
                      success = elpa_cholesky_real_double(n_g_size,S_real,n_l_rows,&
