@@ -70,7 +70,7 @@ subroutine elsi_get_elpa_comms(mpi_comm_global_in,my_p_row_in,my_p_col_in,&
    integer, intent(in)  :: my_p_row_in,my_p_col_in
    integer, intent(out) :: mpi_comm_row_out,mpi_comm_col_out
 
-   logical :: success
+   integer :: success
 
    success = get_elpa_communicators(mpi_comm_global_in,my_p_row_in,my_p_col_in,&
                                     mpi_comm_row_out,mpi_comm_col_out)

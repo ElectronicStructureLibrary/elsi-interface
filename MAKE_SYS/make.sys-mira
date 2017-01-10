@@ -1,26 +1,33 @@
 # PLATFORM  : MIRA @ALCF
-# COMPILERS : IBM XL
+# COMPILERS : IBM XLF; GNU GCC/G++
+# VERIFIED  : JAN 10, 2017
 # DO READ ../INSTALL CAREFULLY!
 
 # ====== ELSI ======
 MPIFC  = mpixlf95_r
-MPICC  = mpixlc_r
-MPICXX = mpixlcxx_r
+MPICC  = mpicc
+MPICXX = mpicxx
 LINKER = mpixlf95_r
 XLF    = yes
 
-FFLAGS   = -O3 -qstrict -qmaxmem=-1 -qsmp=noomp -qxlf90=autodealloc -qfree=f90 -qarch=qp \
-           -qtune=qp -qsimd=auto -qhot=level=1 -qprefetch -qunroll=yes -qessl
-CFLAGS   = -O3 -qstrict -qmaxmem=-1 -qsmp=noomp -qarch=qp -qtune=qp -qsimd=auto \
-           -qhot=level=1 -qprefetch -qunroll=yes
-CXXFLAGS = -O3 -qstrict -qmaxmem=-1 -qsmp=noomp -qarch=qp -qtune=qp -qsimd=auto \
-           -qhot=level=1 -qprefetch -qunroll=yes
-LDFLAGS  =
+FFLAGS   = -O3 -qstrict -qmaxmem=-1 -qsmp=noomp -qxlf90=autodealloc \
+           -qfree=f90 -qarch=qp -qtune=qp -qsimd=auto -qhot=level=1 \
+           -qprefetch -qunroll=yes -qessl
+CFLAGS   = -O3 -funsafe-loop-optimizations -funsafe-math-optimizations \
+           -ftree-vect-loop-version -ftree-vectorize
+CXXFLAGS = -O3 -funsafe-loop-optimizations -funsafe-math-optimizations \
+           -ftree-vect-loop-version -ftree-vectorize -std=c++0x
+LDFLAGS  = -O3 -Wl,--allow-multiple-definition
 
-CXX_LDFLAGS = 
+CXX_LDFLAGS = -lstdc++
 
-SCALAPACK_LDFLAGS =
-SCALAPACK_FCFLAGS =
+SCALAPACK_LDFLAGS = -L/soft/libraries/alcf/current/xl/SCALAPACK/lib -lscalapack \
+                    -L/soft/libraries/alcf/current/xl/LAPACK/lib -llapack \
+                    -L/soft/libraries/essl/current/essl/5.1/lib64 -lesslsmpbg \
+                    -L${IBM_MAIN_DIR}/xlf/bg/14.1/bglib64 -lxlf90_r -lxlopt \
+                    -lxlfmath -lxl -ldl \
+                    -L${IBM_MAIN_DIR}/xlsmp/bg/3.1/bglib64 -lxlsmp \
+                    -L${IBM_MAIN_DIR}/xlmass/bg/7.3/bglib64 -lmass
 
 # ====== ELPA ======
 ARCHITECTURE = BGQ

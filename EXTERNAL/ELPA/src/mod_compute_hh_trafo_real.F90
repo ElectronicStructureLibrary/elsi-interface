@@ -77,14 +77,6 @@ module compute_hh_trafo_real
          use real_generic_simple_kernel !, only : double_hh_trafo_generic_simple
 #endif
 
-#if defined(WITH_REAL_BGP_KERNEL)
-         use real_bgp_kernel !, only : double_hh_trafo_bgp
-#endif
-
-#if defined(WITH_REAL_BGQ_KERNEL)
-         use real_bgq_kernel !, only : double_hh_trafo_bgq
-#endif
-
 #if defined(HAVE_AVX) || defined(HAVE_AVX2) || defined(HAVE_SSE_INTRINSICS) || defined(HAVE_SSE_ASSEMBLY)
          use kernel_interfaces
 #endif
@@ -286,26 +278,6 @@ module compute_hh_trafo_real
              endif
 #endif /* WITH_NO_SPECIFIC_REAL_KERNEL */
 #endif /* WITH_REAL_AVX_BLOCK2_KERNEL || WITH_REAL_AVX2_BLOCK2_KERNEL */
-
-#if defined(WITH_REAL_BGP_KERNEL)
-#if defined(WITH_NO_SPECIFIC_REAL_KERNEL)
-             if (THIS_REAL_ELPA_KERNEL .eq. REAL_ELPA_KERNEL_BGP) then
-#endif /* WITH_NO_SPECIFIC_REAL_KERNEL */
-               do j = ncols, 2, -2
-                 w(:,1) = bcast_buffer(1:nbw,j+off)
-                 w(:,2) = bcast_buffer(1:nbw,j+off-1)
-#ifdef WITH_OPENMP
-                 call double_hh_trafo_bgp_double(a(1,j+off+a_off-1,istripe,my_thread), w, nbw, nl, &
-                                          stripe_width, nbw)
-#else
-                 call double_hh_trafo_bgp_double(a(1,j+off+a_off-1,istripe), w, nbw, nl, &
-                                          stripe_width, nbw)
-#endif
-               enddo
-#if defined(WITH_NO_SPECIFIC_REAL_KERNEL)
-             endif
-#endif /* WITH_NO_SPECIFIC_REAL_KERNEL */
-#endif /* WITH_REAL_BGP_KERNEL */
 
 #if defined(WITH_REAL_BGQ_KERNEL)
 #if defined(WITH_NO_SPECIFIC_REAL_KERNEL)
