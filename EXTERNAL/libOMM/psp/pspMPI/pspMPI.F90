@@ -2,7 +2,7 @@ MODULE pspMPI
   use pspUtility
 
 #ifdef MPI
-  use mpi
+  include "mpif.h"
 #endif
 
   private

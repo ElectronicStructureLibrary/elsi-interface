@@ -29,7 +29,8 @@ program main
   !    ISBN: 1558603395,
   !    LC: QA76.642.P3.
   !
-  use mpi
+  include 'mpif.h'
+  !use mpi
 
   implicit none
 
@@ -115,7 +116,7 @@ subroutine ring_io ( p, id )
   !    ISBN: 1558603395,
   !    LC: QA76.642.P3.
   !
-  use mpi
+  include 'mpif.h'
 
   implicit none
 
