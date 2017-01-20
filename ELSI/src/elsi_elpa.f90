@@ -688,6 +688,7 @@ end subroutine
 !!
 subroutine elsi_check_singularity()
 
+   implicit none
 
    real*8 :: ev_sqrt
    real*8, allocatable :: ev_overlap(:)
