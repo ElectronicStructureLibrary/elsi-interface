@@ -107,6 +107,9 @@ subroutine elsi_solve_evp_omm()
       call m_add(S_omm,'N',H_omm,-eta,1d0,"lap")
    endif
 
+   ! Solve the eigenvalue problem
+   call elsi_statement_print("  Starting OMM density matrix solver")
+
    select case (mode)
       case (COMPLEX_VALUES)
          call omm(n_g_size,n_states,H_omm,S_omm,new_overlap,total_energy,D_omm,&

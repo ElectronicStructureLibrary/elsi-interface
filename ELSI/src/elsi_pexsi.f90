@@ -838,7 +838,7 @@ subroutine elsi_solve_evp_pexsi()
    endif
 
    ! Solve the eigenvalue problem
-   call elsi_statement_print("  Launch PEXSI DFT driver")
+   call elsi_statement_print("  Starting PEXSI DFT driver")
 
    ! TODO: replace by parts of the driver
    call f_ppexsi_dft_driver(pexsi_plan,pexsi_options,n_electrons,mu_pexsi,&
