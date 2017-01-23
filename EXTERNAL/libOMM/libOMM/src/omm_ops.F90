@@ -1,6 +1,15 @@
 module omm_ops
 use MatrixSwitch
 use omm_params
+use MatrixSwitch_ops, only: ms_lap_icontxt,&
+                            ms_mpi_rank,&
+                            ms_lap_nprow,&
+                            ms_lap_npcol,&
+                            ms_lap_bs_def,&
+                            ms_mpi_comm
+use ELPA1, only: get_elpa_communicators,&
+                 elpa_mult_at_b_real_double,&
+                 elpa_invert_trm_real_double
 
 implicit none
 
@@ -240,8 +249,6 @@ subroutine m_factorize(C,label)
 end subroutine m_factorize
 
 subroutine m_dfactorize(C,label)
-  use omm_params
-
   implicit none
 
   !**** INPUT ***********************************!
@@ -411,8 +418,6 @@ subroutine m_reduce(A,C,label)
 end subroutine m_reduce
 
 subroutine m_dreduce(A,C,label)
-  use omm_params
-
   implicit none
 
   !**** INPUT ***********************************!
@@ -435,6 +440,15 @@ subroutine m_dreduce(A,C,label)
 
   type(matrix) :: work1
 
+  ! VY: Added to use ELPA functions
+  !     Jan 22, 2017
+  logical :: success
+  integer :: i_row, i_col
+  integer :: comm_row, comm_col, mpierr
+  integer :: ms_lap_myprow, ms_lap_mypcol
+  integer :: local_row, local_col
+  integer, allocatable :: local_row_list(:), local_col_list(:)
+  integer, external :: numroc
   !**********************************************!
 
   if (.not. A%is_square) call die('m_zreduce: matrix A is not square')
@@ -486,32 +500,112 @@ subroutine m_dreduce(A,C,label)
 #endif
     case (2)
 #ifdef SLAP
-      call pdsygst(1,'u',C%dim1,C%dval,1,1,C%iaux1,A%dval,1,1,A%iaux1,scale_Cholesky,info)
-      if (info/=0) call die('m_dreduce: error in pdsygst')
-      if (C%is_serial) then
-        c1='s'
-      else
-        c1='p'
-      end if
-      if (C%is_real) then
-        c2='d'
-      else
-        c2='z'
-      end if
-      ! Fill in missing triangle of C.
-      do i = 1, C%dim1
-          do j = 1, i-1
-              call m_set_element(C, i, j, 0.0_dp, 0.0_dp, label)
-          end do
-      end do
-      write(m_storage,'(a1,a1,a3)') c1, c2, C%str_type
+!      call pdsygst(1,'u',C%dim1,C%dval,1,1,C%iaux1,A%dval,1,1,A%iaux1,scale_Cholesky,info)
+!      if (info/=0) call die('m_dreduce: error in pdsygst')
+!      if (C%is_serial) then
+!        c1='s'
+!      else
+!        c1='p'
+!      end if
+!      if (C%is_real) then
+!        c2='d'
+!      else
+!        c2='z'
+!      end if
+!      ! Fill in missing triangle of C.
+!      do i = 1, C%dim1
+!          do j = 1, i-1
+!              call m_set_element(C, i, j, 0.0_dp, 0.0_dp, label)
+!          end do
+!      end do
+!      write(m_storage,'(a1,a1,a3)') c1, c2, C%str_type
+!      call m_allocate(work1,C%dim1,C%dim2,m_storage)
+!      call m_add(C,'t',work1,1.0_dp,0.0_dp,label)
+!      do i = 1, work1%dim1
+!          call m_set_element(work1, i, i, 0.0_dp, 0.0_dp, label)
+!      end do
+!      call m_add(work1,'n',C,1.0_dp,1.0_dp)
+!      call m_deallocate(work1)
+
+! VY: Added ELPA functions for performance
+!     Jan 22, 2017
+
+      ! Get some BLACS information
+      call blacs_pcoord(ms_lap_icontxt,ms_mpi_rank,ms_lap_myprow,&
+                        ms_lap_mypcol)
+      local_row = numroc(C%dim1,ms_lap_bs_def,ms_lap_myprow,0,ms_lap_nprow)
+      local_col = numroc(C%dim1,ms_lap_bs_def,ms_lap_mypcol,0,ms_lap_npcol)
+
+      ! Get ELPA row and column communicators
+      success = get_elpa_communicators(ms_mpi_comm,ms_lap_myprow,&
+                                       ms_lap_mypcol,comm_row,comm_col)
+
+      ! Create a temporary array
+      write(m_storage,'(a1,a1,a3)') 'p','d',C%str_type
       call m_allocate(work1,C%dim1,C%dim2,m_storage)
-      call m_add(C,'t',work1,1.0_dp,0.0_dp,label)
-      do i = 1, work1%dim1
-          call m_set_element(work1, i, i, 0.0_dp, 0.0_dp, label)
-      end do
-      call m_add(work1,'n',C,1.0_dp,1.0_dp)
+
+      ! Do the work
+      success = elpa_mult_at_b_real_double('U','L',C%dim1,C%dim1,A%dval,&
+                                           local_row,local_col,C%dval,&
+                                           local_row,local_col,C%iaux1(5),&
+                                           comm_row,comm_col,work1%dval,&
+                                           local_row,local_col)
+
+      call pdtran(C%dim1,C%dim1,1d0,work1%dval,1,1,work1%iaux1,0d0,C%dval,&
+                  1,1,C%iaux1)
+
+      work1%dval = C%dval
+
+      success = elpa_mult_at_b_real_double('U','U',C%dim1,C%dim1,A%dval,&
+                                           local_row,local_col,work1%dval,&
+                                           local_row,local_col,C%iaux1(5),&
+                                           comm_row,comm_col,C%dval,&
+                                           local_row,local_col)
+
+      call pdtran(C%dim1,C%dim1,1d0,C%dval,1,1,C%iaux1,0d0,work1%dval,1,&
+                  1,work1%iaux1)
+
+      success = elpa_invert_trm_real_double(C%dim1,A%dval,local_row,&
+                                            C%iaux1(5),local_col,comm_row,&
+                                            comm_col,.false.)
+
+      call MPI_Comm_free(comm_row,mpierr)
+      call MPI_Comm_free(comm_col,mpierr)
+
+      ! Compute global-local mapping
+      allocate(local_row_list(C%dim1))
+      allocate(local_col_list(C%dim1))
+      local_row_list = 0
+      local_col_list = 0
+
+      i_row = 0
+      i_col = 0
+
+      do i = 1,C%dim1
+         if(MOD((i-1)/ms_lap_bs_def,ms_lap_nprow) == ms_lap_myprow) then
+            i_row = i_row+1
+            local_row_list(i) = i_row
+         endif
+         if(MOD((i-1)/ms_lap_bs_def,ms_lap_npcol) == ms_lap_mypcol) then
+            i_col = i_col+1
+            local_col_list(i) = i_col
+         endif
+      enddo
+
+      ! Set the lower part from the upper
+      do i_col = 1,C%dim1-1
+         if(local_col_list(i_col) == 0) cycle
+         do i_row = i_col+1,C%dim1
+            if(local_row_list(i_row) > 0) then
+               C%dval(local_row_list(i_row),local_col_list(i_col)) = &
+                  work1%dval(local_row_list(i_row),local_col_list(i_col))
+            endif
+         enddo
+      enddo
+
       call m_deallocate(work1)
+      deallocate(local_row_list)
+      deallocate(local_col_list)
 #else
       call die('m_dreduce: compile with ScaLAPACK')
 #endif
@@ -656,8 +750,6 @@ subroutine m_transform(A,C,label)
 end subroutine m_transform
 
 subroutine m_dtransform(A,C,label)
-  use omm_params
-
   implicit none
 
   !**** INPUT ***********************************!
@@ -823,8 +915,6 @@ subroutine m_back_transform(A,C,label)
 end subroutine m_back_transform
 
 subroutine m_dback_transform(A,C,label)
-  use omm_params
-
   implicit none
 
   !**** INPUT ***********************************!
@@ -986,8 +1076,6 @@ subroutine m_inverse(C,label)
 end subroutine m_inverse
 
 subroutine m_dinverse(C,label)
-  use omm_params
-
   implicit none
 
   !**** INPUT ***********************************!
@@ -1241,8 +1329,6 @@ subroutine calc_PW_precon(T,scale_T,P)
 end subroutine calc_PW_precon
 
 subroutine dcalc_PW_precon(T,scale_T,P)
-  use omm_params
-
   implicit none
 
   !**** INPUT ***********************************!
@@ -1288,8 +1374,6 @@ subroutine dcalc_PW_precon(T,scale_T,P)
 end subroutine dcalc_PW_precon
 
 subroutine zcalc_PW_precon(T,scale_T,P)
-  use omm_params
-
   implicit none
 
   !**** INPUT ***********************************!

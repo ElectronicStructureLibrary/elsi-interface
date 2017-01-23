@@ -56,7 +56,6 @@ subroutine elsi_solve_evp_omm()
    implicit none
    include "mpif.h"
 
-   logical, save :: first_call = .true.
    logical :: success
    character*40, parameter :: caller = "elsi_solve_evp_omm"
 
@@ -69,29 +68,37 @@ subroutine elsi_solve_evp_omm()
 
    if(n_elsi_calls == 1) then
       C_matrix_initialized = .false.
-      ! Cholesky
+      ! Cholesky factorization
       select case (mode)
          case (COMPLEX_VALUES)
             ! Compute S = (U^T)U, U -> S
             success = elpa_cholesky_complex_double(n_g_size,S_omm%zval,n_l_rows,&
                          n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col,.false.)
+
+            success = elpa_invert_trm_complex_double(n_g_size,S_omm%zval,n_l_rows,&
+                         n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col,.false.)
+
          case (REAL_VALUES)
             ! Compute S = (U^T)U, U -> S
             success = elpa_cholesky_real_double(n_g_size,S_omm%dval,n_l_rows,&
                          n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col,.false.)
+
+            success = elpa_invert_trm_real_double(n_g_size,S_omm%dval,n_l_rows,&
+                         n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col,.false.)
+
       end select
    else
       C_matrix_initialized = .true.
    endif
 
-   if(first_call) then
+   if(n_elsi_calls == n_elpa_steps+1) then
       new_overlap = .true.
    else
       new_overlap = .false.
    endif
 
-   if(n_elpa_steps > 0 .and. n_elsi_calls == n_elpa_steps+1) then
-      ! Invert U^(-1), which is used in ELPA cholesky and stored in S, to get U for OMM
+   if(n_elsi_calls > n_elpa_steps+1) then
+      ! Invert one more time
       select case (mode)
          case (COMPLEX_VALUES)
             success = elpa_invert_trm_complex_double(n_g_size,S_omm%zval,n_l_rows,&
@@ -122,8 +129,6 @@ subroutine elsi_solve_evp_omm()
                   omm_flavour,nk_times_nspin,i_k_spin,min_tol,omm_verbose,&
                   do_dealloc,"pddbc","lap",myid)
    end select
-
-   first_call = .false.
 
    call MPI_Barrier(mpi_comm_global,mpierr)
    call elsi_stop_solve_evp_time()

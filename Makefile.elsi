@@ -99,7 +99,7 @@ elpa:
 	@echo = ELPA installed. =
 	@echo ===================
 
-omm:
+omm: elpa
 	@echo ============================
 	@echo = Start building libOMM... =
 	@echo ============================

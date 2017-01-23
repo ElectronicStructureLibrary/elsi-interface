@@ -172,7 +172,7 @@ omm_quartic.o: ./libOMM/src/omm_quartic.F90 omm_params.o
 	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
 
 omm_ops.o: ./libOMM/src/omm_ops.F90 omm_params.o MatrixSwitch.o
-	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -I$(ELPA_DIR)/include -c $< -o $@
 
 omm.o: ./libOMM/src/omm.F90 omm_ops.o omm_rand.o MatrixSwitch.o pspBLAS.o MatrixSwitch_ops.o
 	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
