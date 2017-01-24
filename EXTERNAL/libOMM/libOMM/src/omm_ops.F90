@@ -443,6 +443,7 @@ subroutine m_dreduce(A,C,label)
   ! VY: Added to use ELPA functions
   !     Jan 22, 2017
   logical :: success
+  integer :: good
   integer :: i_row, i_col
   integer :: comm_row, comm_col, mpierr
   integer :: ms_lap_myprow, ms_lap_mypcol
@@ -537,8 +538,8 @@ subroutine m_dreduce(A,C,label)
       local_col = numroc(C%dim1,ms_lap_bs_def,ms_lap_mypcol,0,ms_lap_npcol)
 
       ! Get ELPA row and column communicators
-      success = get_elpa_communicators(ms_mpi_comm,ms_lap_myprow,&
-                                       ms_lap_mypcol,comm_row,comm_col)
+      good = get_elpa_communicators(ms_mpi_comm,ms_lap_myprow,&
+                                    ms_lap_mypcol,comm_row,comm_col)
 
       ! Create a temporary array
       write(m_storage,'(a1,a1,a3)') 'p','d',C%str_type
