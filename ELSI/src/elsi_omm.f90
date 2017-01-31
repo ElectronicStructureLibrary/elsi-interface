@@ -122,12 +122,12 @@ subroutine elsi_solve_evp_omm()
          call omm(n_g_size,n_states,H_omm,S_omm,new_overlap,total_energy,D_omm,&
                   calc_ED,eta,Coeff_omm,C_matrix_initialized,T_omm,scale_kinetic,&
                   omm_flavour,nk_times_nspin,i_k_spin,min_tol,omm_verbose,&
-                  do_dealloc,"pzdbc","lap",myid)
+                  do_dealloc,"pzdbc","lap")
       case (REAL_VALUES)
          call omm(n_g_size,n_states,H_omm,S_omm,new_overlap,total_energy,D_omm,&
                   calc_ED,eta,Coeff_omm,C_matrix_initialized,T_omm,scale_kinetic,&
                   omm_flavour,nk_times_nspin,i_k_spin,min_tol,omm_verbose,&
-                  do_dealloc,"pddbc","lap",myid)
+                  do_dealloc,"pddbc","lap")
    end select
 
    call MPI_Barrier(mpi_comm_global,mpierr)
@@ -187,16 +187,7 @@ subroutine elsi_print_omm_options()
    write(info_str,"(1X,' | Eigenspectrum shift parameter ',F10.4)") eta
    call elsi_statement_print(info_str)
 
-   write(info_str,"(1X,' | Scaling of kinetic energy matrix ',F10.4)") scale_kinetic
-   call elsi_statement_print(info_str)
-
    write(info_str,"(1X,' | Tolerance of minimization ',E10.1)") min_tol
-   call elsi_statement_print(info_str)
-
-   write(info_str,"(1X,' | OMM Flavour ',I1)") omm_flavour
-   call elsi_statement_print(info_str)
-
-   write(info_str,"(1X,' | Compute energy weighted densigy matrix? ',L1)") calc_ed
    call elsi_statement_print(info_str)
 
 end subroutine
