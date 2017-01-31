@@ -124,10 +124,17 @@ subroutine elsi_solve_evp_omm()
                   omm_flavour,nk_times_nspin,i_k_spin,min_tol,omm_verbose,&
                   do_dealloc,"pzdbc","lap")
       case (REAL_VALUES)
-         call omm(n_g_size,n_states,H_omm,S_omm,new_overlap,total_energy,D_omm,&
-                  calc_ED,eta,Coeff_omm,C_matrix_initialized,T_omm,scale_kinetic,&
-                  omm_flavour,nk_times_nspin,i_k_spin,min_tol,omm_verbose,&
-                  do_dealloc,"pddbc","lap")
+         if(use_psp) then
+            call omm(n_g_size,n_states,H_omm,S_omm,new_overlap,total_energy,D_omm,&
+                     calc_ED,eta,Coeff_omm,C_matrix_initialized,T_omm,scale_kinetic,&
+                     omm_flavour,nk_times_nspin,i_k_spin,min_tol,omm_verbose,&
+                     do_dealloc,"pddbc","psp")
+         else
+            call omm(n_g_size,n_states,H_omm,S_omm,new_overlap,total_energy,D_omm,&
+                     calc_ED,eta,Coeff_omm,C_matrix_initialized,T_omm,scale_kinetic,&
+                     omm_flavour,nk_times_nspin,i_k_spin,min_tol,omm_verbose,&
+                     do_dealloc,"pddbc","lap")
+         endif
    end select
 
    call MPI_Barrier(mpi_comm_global,mpierr)
@@ -166,6 +173,8 @@ subroutine elsi_set_omm_default_options()
    omm_verbose = .true.
    !< Deallocate temporary arrays?
    do_dealloc = .false.
+   !< Use pspBLAS sparse linear algebra?
+   use_psp = .false.
       
 end subroutine
 
@@ -188,6 +197,9 @@ subroutine elsi_print_omm_options()
    call elsi_statement_print(info_str)
 
    write(info_str,"(1X,' | Tolerance of minimization ',E10.1)") min_tol
+   call elsi_statement_print(info_str)
+
+   write(info_str,"(1X,' | Use pspBLAS for sparse linear algebra? ',L1)") use_psp
    call elsi_statement_print(info_str)
 
 end subroutine

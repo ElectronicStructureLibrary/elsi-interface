@@ -203,6 +203,7 @@ module ELSI_DIMENSIONS
    integer :: i_k_spin = -1        !< Combined k_point spin index
    logical :: omm_verbose          !< Output level
    logical :: do_dealloc           !< Deallocate internal storage?
+   logical :: use_psp = .false.    !< Use pspBLAS sparse linear algebra?
 
    !> PEXSI
    logical                :: pole_parallelism = .true. !< Use PEXSI pole parallelism?

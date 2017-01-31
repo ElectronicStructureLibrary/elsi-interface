@@ -215,14 +215,16 @@ contains
           nullify(m_name%iaux1)
        end if
     end if
-    if (associated(m_name%iaux2)) then
-       if (m_name%iaux2_is_allocated) then
-          deallocate(m_name%iaux2)
-          m_name%iaux2_is_allocated=.false.
-       else
-          nullify(m_name%iaux2)
-       end if
-    end if
+! VY: This piece of code does not work for unknown reason
+!     Jan 31, 2017
+!    if (associated(m_name%iaux2)) then
+!       if (m_name%iaux2_is_allocated) then
+!          deallocate(m_name%iaux2)
+!          m_name%iaux2_is_allocated=.false.
+!       else
+!          nullify(m_name%iaux2)
+!       end if
+!    end if
     if (associated(m_name%iaux3)) then
        if (m_name%iaux3_is_allocated) then
           deallocate(m_name%iaux3)

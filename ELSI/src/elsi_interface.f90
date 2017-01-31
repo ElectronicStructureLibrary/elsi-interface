@@ -421,13 +421,15 @@ end subroutine
 !>
 !! This routine overrides libOMM default settings.
 !!
-subroutine elsi_customize_omm(n_elpa_steps_omm,eigenspectrum_shift,omm_tolerance)
+subroutine elsi_customize_omm(n_elpa_steps_omm,eigenspectrum_shift,&
+                              omm_tolerance,use_pspblas)
 
    implicit none
 
    integer, intent(in), optional :: n_elpa_steps_omm
    real*8,  intent(in), optional :: eigenspectrum_shift
    real*8,  intent(in), optional :: omm_tolerance
+   logical, intent(in), optional :: use_pspblas
 
    ! Number of ELPA steps
    if(PRESENT(n_elpa_steps_omm)) &
@@ -438,6 +440,9 @@ subroutine elsi_customize_omm(n_elpa_steps_omm,eigenspectrum_shift,omm_tolerance
    ! Tolerance for minimization
    if(PRESENT(omm_tolerance)) &
       min_tol = omm_tolerance
+   ! Use pspBLAS sparse linear algebra?
+   if(PRESENT(use_pspblas)) &
+      use_psp = use_pspblas
 
    if(method .ne. LIBOMM) then
       call elsi_statement_print("  The chosen method is not libOMM."//&

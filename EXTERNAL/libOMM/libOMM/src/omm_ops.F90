@@ -450,6 +450,11 @@ subroutine m_dreduce(A,C,label)
   integer :: local_row, local_col
   integer, allocatable :: local_row_list(:), local_col_list(:)
   integer, external :: numroc
+
+  ! VY: Added to use pspBLAS
+  !     Jan 31, 2017
+  type(matrix) :: H_psp, S_psp
+
   !**********************************************!
 
   if (.not. A%is_square) call die('m_zreduce: matrix A is not square')
@@ -610,6 +615,25 @@ subroutine m_dreduce(A,C,label)
 #else
       call die('m_dreduce: compile with ScaLAPACK')
 #endif
+
+! VY: Added pspBLAS support
+!     Jan 31, 2017
+      if (label .eq. 'psp') then
+        ! Convert to sparse format
+        call m_register_psp_thre(H_psp,C%dval,C%iaux1,'csc',1d-13)
+        call m_register_psp_thre(S_psp,A%dval,A%iaux1,'csc',1d-13)
+
+        ! Save a copy of overlap for back-transformation
+        S_psp%dval  => A%dval
+        S_psp%iaux1 => A%iaux1
+
+        C = H_psp
+        A = S_psp
+
+        call m_deallocate(H_psp)
+        call m_deallocate(S_psp)
+      endif
+
   end select
 
 end subroutine m_dreduce
