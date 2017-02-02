@@ -840,13 +840,13 @@ subroutine elsi_solve_evp_pexsi()
    ! Solve the eigenvalue problem
    call elsi_statement_print("  Starting PEXSI DFT driver")
 
-   ! TODO: replace by parts of the driver
+   ! TODO: expand the driver with its components
    call f_ppexsi_dft_driver(pexsi_plan,pexsi_options,n_electrons,mu_pexsi,&
                             n_electrons_pexsi,mu_min_inertia,mu_max_inertia,&
                             n_total_inertia_iter,n_total_pexsi_iter,pexsi_info)
        
    if(pexsi_info /= 0) &
-      call elsi_stop(" PEXSI DFT Driver not able to solve problem. Exiting...",caller)
+      call elsi_stop(" PEXSI DFT driver not able to solve problem. Exiting...",caller)
 
    ! Turn off inertia counting if chemical potential does not change a lot
    if(ABS(mu_pexsi-pexsi_options%mu0) > 5d-3) then
