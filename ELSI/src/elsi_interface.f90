@@ -86,7 +86,7 @@ subroutine elsi_init(solver,parallel_mode,matrix_format,matrix_size,&
    implicit none
 
    integer, intent(in) :: solver         !< AUTO,ELPA,LIBOMM,PEXSI,CHESS
-   integer, intent(in) :: parallel_mode  !< SERIAL,PARALLEL
+   integer, intent(in) :: parallel_mode  !< SINGLE_PROC,MULTI_PROC
    integer, intent(in) :: matrix_format  !< DENSE,CCS,CSC,CRS,CSR
    integer, intent(in) :: matrix_size    !< Global dimension of matrix
    real*8,  intent(in) :: n_electrons_in !< Number of electrons

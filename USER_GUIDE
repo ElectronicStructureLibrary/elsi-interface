@@ -17,9 +17,7 @@ A) QUICK PROGRAMMING GUIDE
    Before calling ELSI to treat the Kohn-Sham eigenvalue problem, MPI and BLACS
    environment should be setup by the electronic structure code.
 
-   ELSI currently does NOT support a serial run.
-
-   The typical workflow of ELSI with in an electronic structure code is:
+   The typical workflow of ELSI within an electronic structure code is:
 
 ==================
 1) Initialize ELSI
@@ -32,7 +30,7 @@ A) QUICK PROGRAMMING GUIDE
    solver:           [integer] [in]  Available choices are ELPA (1), LIBOMM (2),
                                      and PEXSI (3).
 
-   parallelism:      [integer] [in]  Only PARALLEL (1) is supported now.
+   parallelism:      [integer] [in]  SINGLE_PROC (0) or MULTI_PROC(1).
 
    storage:          [integer] [in]  Only DENSE (0) is supported. More formats are
                                      coming in the future.
@@ -92,7 +90,7 @@ A) QUICK PROGRAMMING GUIDE
 
    e_vec:            [real*8] [out]  Eigenvectors.
 
-*  call elsi_dm_real(H, S, D, energy, broadening_type, broadening_width)
+*  call elsi_dm_real(H, S, D, energy)
 
    H:                [real*8]  [in]  Hamiltonian matrix.
 
@@ -122,9 +120,9 @@ B) COMPILATION GUIDE
                      -I${ELSI_HOME}/EXTERNAL/include
 
       ELSI_LIB = -L${ELSI_HOME}/ELSI/lib -lelsi \
-                 -L${ELSI_HOME}/EXTERNAL/lib -lpexsi \
-                 -L${ELSI_HOME}/EXTERNAL/lib -lelpa \
                  -L${ELSI_HOME}/EXTERNAL/lib -lOMM -lMatrixSwitch -lpspblas \
+                 -L${ELSI_HOME}/EXTERNAL/lib -lelpa \
+                 -L${ELSI_HOME}/EXTERNAL/lib -lpexsi \
                  -L${SUPERLU_HOME}/lib -lsuperlu \
                  -L${PARMETIS_HOME}/lib -lparmetis -lmetis
 

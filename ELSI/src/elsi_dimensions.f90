@@ -98,7 +98,7 @@ module ELSI_DIMENSIONS
    !> Matrix storage format (DENSE=0,CCS=1,CSC=2,CRS=3,CSR=4)
    integer :: storage = -1
 
-   !> Parallel mode (SERIAL=0,PARALLEL=1)
+   !> Parallel mode (SINGLE_PROC=0,MULTI_PROC=1)
    integer :: parallelism = -1
 
    !> Print detailed ELSI info?
