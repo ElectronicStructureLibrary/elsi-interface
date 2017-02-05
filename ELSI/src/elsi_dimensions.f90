@@ -35,64 +35,59 @@ module ELSI_DIMENSIONS
 
    implicit none
 
-! ========= MATRIX =========  
-   ! Pointers
-   !< Real Hamiltonian
-   real*8, pointer     :: H_real(:,:)
-   !< Complex Hamiltonian
-   complex*16, pointer :: H_complex(:,:)
-   !< Real overlap
-   real*8, pointer     :: S_real(:,:)
-   !< Complex overlap
-   complex*16, pointer :: S_complex(:,:)
+! ========= MATRIX =========
 
-   ! ELPA
-   !< Eigenvalues
-   real*8, allocatable     :: eigenvalues(:)
-   !< Real eigenvectors
-   real*8, allocatable     :: C_real(:,:)
-   !< Complex eigenvectors
-   complex*16, allocatable :: C_complex(:,:)
-   !< Occupation numbers used by ELPA to construct density matrix
-   real*8, allocatable     :: occ_elpa(:)
+   ! Pointers used when input format compatible with chosen solver
+   real*8,     pointer :: ham_real(:,:)         !< Real Hamiltonian
+   complex*16, pointer :: ham_complex(:,:)      !< Complex Hamiltonian
+   real*8,     pointer :: ovlp_real(:,:)        !< Real overlap
+   complex*16, pointer :: ovlp_complex(:,:)     !< Complex overlap
+   real*8,     pointer :: eval(:)               !< Eigenvalues
+   real*8,     pointer :: evec_real(:,:)        !< Real eigenvectors
+   complex*16, pointer :: evec_complex(:,:)     !< Complex eigenvectors
+   real*8,     pointer :: den_mat(:,:)          !< Density matrix
+   real*8,     pointer :: ham_real_ccs(:,:)     !< Real Hamiltonian
+   complex*16, pointer :: ham_complex_ccs(:,:)  !< Complex Hamiltonian
+   real*8,     pointer :: ovlp_real_ccs(:,:)    !< Real overlap
+   complex*16, pointer :: ovlp_complex_ccs(:,:) !< Complex overlap
+   real*8,     pointer :: den_mat_ccs(:,:)      !< Density matrix
+   integer,    pointer :: row_ind_ccs(:)        !< Row index
+   integer,    pointer :: col_ptr_ccs(:)        !< Column pointer
+
+   ! Allocatables used when input format incompatible with chosen solver
+   real*8,     allocatable :: ham_real_elpa(:,:)     !< Real Hamiltonian
+   complex*16, allocatable :: ham_complex_elpa(:,:)  !< Complex Hamiltonian
+   real*8,     allocatable :: ovlp_real_elpa(:,:)    !< Real overlap
+   complex*16, allocatable :: ovlp_complex_elpa(:,:) !< Complex overlap
+   real*8,     allocatable :: eval_elpa(:)           !< Eigenvalues
+   real*8,     allocatable :: evec_real_elpa(:,:)    !< Real eigenvectors
+   complex*16, allocatable :: evec_complex_elpa(:,:) !< Complex eigenvectors
+   real*8,     allocatable :: den_mat_elpa(:,:)      !< Density matrix
+   real*8,     allocatable :: occ_elpa(:)            !< Occupation numbers
 
    ! libOMM
-   !< Hamiltonian
-   type(Matrix) :: H_omm
-   !< Overlap
-   type(Matrix) :: S_omm
-   !< Coefficient matrix
-   type(Matrix) :: Coeff_omm
-   !< Density matrix
-   type(Matrix) :: D_omm
-   !< Kinetic energy density matrix
-   type(Matrix) :: T_omm
+   type(Matrix) :: ham_omm       !< Hamiltonian
+   type(Matrix) :: ovlp_omm      !< Overlap
+   type(Matrix) :: coeff_omm     !< Coefficient matrix
+   type(Matrix) :: den_mat_omm   !< Density matrix
+   type(Matrix) :: t_den_mat_omm !< Kinetic energy density matrix
 
    ! PESXI
-   !< Sparse real Hamiltonian
-   real*8, allocatable :: H_real_pexsi(:)
-   !< Sparse complex Hamiltonian
-   complex*16, allocatable :: H_complex_pexsi(:)
-   !< Sparse real overlap
-   real*8, allocatable :: S_real_pexsi(:)
-   !< Sparse complex overlap
-   complex*16, allocatable :: S_complex_pexsi(:)
-   !< Sparse density matrix
-   real*8, allocatable :: D_pexsi(:)
-   !< Sparse energy density matrix
-   real*8, allocatable :: ED_pexsi(:)
-   !< Sparse free energy density matrix
-   real*8, allocatable :: FD_pexsi(:)
-   !< Row index in CCS format
-   integer, allocatable :: row_ind_pexsi(:)
-   !< Column pointer in CCS format
-   integer, allocatable :: col_ptr_pexsi(:)
+   real*8,     allocatable :: ham_real_pexsi(:)     !< Sparse real Hamiltonian
+   complex*16, allocatable :: ham_complex_pexsi(:)  !< Sparse complex Hamiltonian
+   real*8,     allocatable :: ovlp_real_pexsi(:)    !< Sparse real overlap
+   complex*16, allocatable :: ovlp_complex_pexsi(:) !< Sparse complex overlap
+   real*8,     allocatable :: den_mat_pexsi(:)      !< Sparse density matrix
+   real*8,     allocatable :: e_den_mat_pexsi(:)    !< Sparse energy density matrix
+   real*8,     allocatable :: f_den_mat_pexsi(:)    !< Sparse free energy density matrix
+   integer,    allocatable :: row_ind_pexsi(:)      !< Row index
+   integer,    allocatable :: col_ptr_pexsi(:)      !< Column pointer
 
    ! BLACS
    integer, allocatable :: local_row(:)
    integer, allocatable :: local_col(:)
 
-! ========= PARAMETER =========  
+! ========= PARAMETER =========
 
    !> Solver (AUTO=0,ELPA=1,LIBOMM=2,PEXSI=3,CHESS=4)
    integer :: method = -1
@@ -188,7 +183,7 @@ module ELSI_DIMENSIONS
    !> libOMM
    integer :: n_elpa_steps         !< Use ELPA eigenvectors as initial guess
    logical :: new_overlap          !< Is a new overlap matrix provided?
-   logical :: C_matrix_initialized !< Is coefficient matrix initialized?
+   logical :: coeff_initialized    !< Is coefficient matrix initialized?
    real*8  :: total_energy         !< Energy of the system
    integer :: omm_flavour = -1     !< How to perform the calculation
                                    !! 0 = Basic
@@ -223,7 +218,7 @@ module ELSI_DIMENSIONS
    real(c_double)         :: e_tot_s
    real(c_double)         :: f_tot
 
-! ========= ALIAS =========  
+! ========= ALIAS =========
 
    !> Method names
    enum, bind( C )

@@ -67,28 +67,28 @@ subroutine elsi_solve_evp_omm()
    call elsi_start_solve_evp_time()
 
    if(n_elsi_calls == 1) then
-      C_matrix_initialized = .false.
+      coeff_initialized = .false.
       ! Cholesky factorization
       select case (mode)
          case (COMPLEX_VALUES)
             ! Compute S = (U^T)U, U -> S
-            success = elpa_cholesky_complex_double(n_g_size,S_omm%zval,n_l_rows,&
+            success = elpa_cholesky_complex_double(n_g_size,ovlp_omm%zval,n_l_rows,&
                          n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col,.false.)
 
-            success = elpa_invert_trm_complex_double(n_g_size,S_omm%zval,n_l_rows,&
+            success = elpa_invert_trm_complex_double(n_g_size,ovlp_omm%zval,n_l_rows,&
                          n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col,.false.)
 
          case (REAL_VALUES)
             ! Compute S = (U^T)U, U -> S
-            success = elpa_cholesky_real_double(n_g_size,S_omm%dval,n_l_rows,&
+            success = elpa_cholesky_real_double(n_g_size,ovlp_omm%dval,n_l_rows,&
                          n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col,.false.)
 
-            success = elpa_invert_trm_real_double(n_g_size,S_omm%dval,n_l_rows,&
+            success = elpa_invert_trm_real_double(n_g_size,ovlp_omm%dval,n_l_rows,&
                          n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col,.false.)
 
       end select
    else
-      C_matrix_initialized = .true.
+      coeff_initialized = .true.
    endif
 
    if(n_elsi_calls == n_elpa_steps+1) then
@@ -101,17 +101,17 @@ subroutine elsi_solve_evp_omm()
       ! Invert one more time
       select case (mode)
          case (COMPLEX_VALUES)
-            success = elpa_invert_trm_complex_double(n_g_size,S_omm%zval,n_l_rows,&
+            success = elpa_invert_trm_complex_double(n_g_size,ovlp_omm%zval,n_l_rows,&
                          n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col,.false.)
          case (REAL_VALUES)
-            success = elpa_invert_trm_real_double(n_g_size,S_omm%dval,n_l_rows,&
+            success = elpa_invert_trm_real_double(n_g_size,ovlp_omm%dval,n_l_rows,&
                          n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col,.false.)
       end select
    endif
 
    ! Shift eigenvalue spectrum
    if(eta .ne. 0d0) then
-      call m_add(S_omm,'N',H_omm,-eta,1d0,"lap")
+      call m_add(ovlp_omm,'N',ham_omm,-eta,1d0,"lap")
    endif
 
    ! Solve the eigenvalue problem
@@ -119,21 +119,23 @@ subroutine elsi_solve_evp_omm()
 
    select case (mode)
       case (COMPLEX_VALUES)
-         call omm(n_g_size,n_states,H_omm,S_omm,new_overlap,total_energy,D_omm,&
-                  calc_ED,eta,Coeff_omm,C_matrix_initialized,T_omm,scale_kinetic,&
-                  omm_flavour,nk_times_nspin,i_k_spin,min_tol,omm_verbose,&
+         call omm(n_g_size,n_states,ham_omm,ovlp_omm,new_overlap,total_energy,&
+                  den_mat_omm,calc_ED,eta,coeff_omm,coeff_initialized,t_den_mat_omm,&
+                  scale_kinetic,omm_flavour,nk_times_nspin,i_k_spin,min_tol,omm_verbose,&
                   do_dealloc,"pzdbc","lap")
+
       case (REAL_VALUES)
          if(use_psp) then
-            call omm(n_g_size,n_states,H_omm,S_omm,new_overlap,total_energy,D_omm,&
-                     calc_ED,eta,Coeff_omm,C_matrix_initialized,T_omm,scale_kinetic,&
-                     omm_flavour,nk_times_nspin,i_k_spin,min_tol,omm_verbose,&
-                     do_dealloc,"pddbc","psp")
+            call omm(n_g_size,n_states,ham_omm,ovlp_omm,new_overlap,total_energy,&
+                     den_mat_omm,calc_ED,eta,coeff_omm,coeff_initialized,t_den_mat_omm,&
+                     scale_kinetic,omm_flavour,nk_times_nspin,i_k_spin,min_tol,&
+                     omm_verbose,do_dealloc,"pddbc","psp")
+
          else
-            call omm(n_g_size,n_states,H_omm,S_omm,new_overlap,total_energy,D_omm,&
-                     calc_ED,eta,Coeff_omm,C_matrix_initialized,T_omm,scale_kinetic,&
-                     omm_flavour,nk_times_nspin,i_k_spin,min_tol,omm_verbose,&
-                     do_dealloc,"pddbc","lap")
+            call omm(n_g_size,n_states,ham_omm,ovlp_omm,new_overlap,total_energy,&
+                     den_mat_omm,calc_ED,eta,coeff_omm,coeff_initialized,t_den_mat_omm,&
+                     scale_kinetic,omm_flavour,nk_times_nspin,i_k_spin,min_tol,&
+                     omm_verbose,do_dealloc,"pddbc","lap")
          endif
    end select
 

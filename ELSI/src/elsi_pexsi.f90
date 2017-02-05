@@ -201,6 +201,7 @@ subroutine elsi_blacs_to_pexsi_hs_v1(H_in,S_in)
    integer :: recv_count(n_procs) !< Number of elements to receive from each processor
    integer :: recv_displ(n_procs) !< Displacement at which to place the incoming data
    integer :: recv_displ_aux      !< Auxiliary variable used to set displacement
+
    character*40, parameter :: caller = "elsi_blacs_to_pexsi_hs_v1"
 
    call elsi_start_blacs_to_pexsi_time()
@@ -366,13 +367,13 @@ subroutine elsi_blacs_to_pexsi_hs_v1(H_in,S_in)
    enddo
 
    ! Allocate PEXSI matrices
-   if(.not.ALLOCATED(H_real_pexsi)) &
-      call elsi_allocate(H_real_pexsi,nnz_l_pexsi,"H_real_pexsi",caller)
-   H_real_pexsi = 0d0
+   if(.not.ALLOCATED(ham_real_pexsi)) &
+      call elsi_allocate(ham_real_pexsi,nnz_l_pexsi,"ham_real_pexsi",caller)
+   ham_real_pexsi = 0d0
 
-   if(.not.ALLOCATED(S_real_pexsi)) &
-      call elsi_allocate(S_real_pexsi,nnz_l_pexsi,"S_real_pexsi",caller)
-   S_real_pexsi = 0d0
+   if(.not.ALLOCATED(ovlp_real_pexsi)) &
+      call elsi_allocate(ovlp_real_pexsi,nnz_l_pexsi,"ovlp_real_pexsi",caller)
+   ovlp_real_pexsi = 0d0
 
    if(.not.ALLOCATED(row_ind_pexsi)) &
       call elsi_allocate(row_ind_pexsi,nnz_l_pexsi,"row_ind_pexsi",caller)
@@ -385,10 +386,10 @@ subroutine elsi_blacs_to_pexsi_hs_v1(H_in,S_in)
    call elsi_allocate(pos_send_buffer,nnz_l_pexsi,"pos_send_buffer",caller)
 
    call MPI_Alltoallv(h_val_recv_buffer,send_count,send_displ,mpi_real8,&
-                      H_real_pexsi,recv_count,recv_displ,mpi_real8,&
+                      ham_real_pexsi,recv_count,recv_displ,mpi_real8,&
                       mpi_comm_global,mpierr)
    call MPI_Alltoallv(s_val_recv_buffer,send_count,send_displ,mpi_real8,&
-                      S_real_pexsi,recv_count,recv_displ,mpi_real8,&
+                      ovlp_real_pexsi,recv_count,recv_displ,mpi_real8,&
                       mpi_comm_global,mpierr)
    call MPI_Alltoallv(pos_recv_buffer,send_count,send_displ,mpi_integer,&
                       pos_send_buffer,recv_count,recv_displ,mpi_integer,&
@@ -584,13 +585,13 @@ subroutine elsi_blacs_to_pexsi_hs_v2(H_in,S_in)
    enddo
 
    ! Allocate PEXSI matrices
-   if(.not.ALLOCATED(H_real_pexsi)) &
-      call elsi_allocate(H_real_pexsi,nnz_l_pexsi,"H_real_pexsi",caller)
-   H_real_pexsi = 0d0
+   if(.not.ALLOCATED(ham_real_pexsi)) &
+      call elsi_allocate(ham_real_pexsi,nnz_l_pexsi,"ham_real_pexsi",caller)
+   ham_real_pexsi = 0d0
 
-   if(.not.ALLOCATED(S_real_pexsi)) &
-      call elsi_allocate(S_real_pexsi,nnz_l_pexsi,"S_real_pexsi",caller)
-   S_real_pexsi = 0d0
+   if(.not.ALLOCATED(ovlp_real_pexsi)) &
+      call elsi_allocate(ovlp_real_pexsi,nnz_l_pexsi,"ovlp_real_pexsi",caller)
+   ovlp_real_pexsi = 0d0
 
    if(.not.ALLOCATED(row_ind_pexsi)) &
       call elsi_allocate(row_ind_pexsi,nnz_l_pexsi,"row_ind_pexsi",caller)
@@ -600,8 +601,8 @@ subroutine elsi_blacs_to_pexsi_hs_v2(H_in,S_in)
       call elsi_allocate(col_ptr_pexsi,(n_l_cols_pexsi+1),"col_ptr_pexsi",caller)
    col_ptr_pexsi = 0
 
-   H_real_pexsi = h_val_recv_buffer
-   S_real_pexsi = s_val_recv_buffer
+   ham_real_pexsi = h_val_recv_buffer
+   ovlp_real_pexsi = s_val_recv_buffer
 
    ! Compute row index and column pointer
    i_col = (pos_recv_buffer(1)-1)/n_g_size
@@ -707,7 +708,7 @@ subroutine elsi_pexsi_to_blacs_dm(D_out)
          do i_val = 1,nnz_l_pexsi
             if(dest(i_val) == i_proc) then
                j_val = j_val+1
-               val_send_buffer(j_val) = D_pexsi(i_val)
+               val_send_buffer(j_val) = den_mat_pexsi(i_val)
                pos_send_buffer(j_val) = global_id(i_val)
                send_count(i_proc+1) = send_count(i_proc+1)+1
             endif
@@ -802,31 +803,31 @@ subroutine elsi_solve_evp_pexsi()
       call elsi_statement_print(info_str)
    endif
 
-   if(.not.ALLOCATED(D_pexsi)) then
-      call elsi_allocate(D_pexsi,nnz_l_pexsi,"D_pexsi",caller)
+   if(.not.ALLOCATED(den_mat_pexsi)) then
+      call elsi_allocate(den_mat_pexsi,nnz_l_pexsi,"den_mat_pexsi",caller)
    endif
-   D_pexsi = 0d0
+   den_mat_pexsi = 0d0
 
-   if(.not.ALLOCATED(ED_pexsi)) then
-      call elsi_allocate(ED_pexsi,nnz_l_pexsi,"ED_pexsi",caller)
+   if(.not.ALLOCATED(e_den_mat_pexsi)) then
+      call elsi_allocate(e_den_mat_pexsi,nnz_l_pexsi,"e_den_mat_pexsi",caller)
    endif
-   ED_pexsi = 0d0
+   e_den_mat_pexsi = 0d0
 
-   if(.not.ALLOCATED(FD_pexsi)) then
-      call elsi_allocate(FD_pexsi,nnz_l_pexsi,"FD_pexsi",caller)
+   if(.not.ALLOCATED(f_den_mat_pexsi)) then
+      call elsi_allocate(f_den_mat_pexsi,nnz_l_pexsi,"f_den_mat_pexsi",caller)
    endif
-   FD_pexsi = 0d0
+   f_den_mat_pexsi = 0d0
 
    ! Load sparse matrices for PEXSI
    if(overlap_is_unit) then
       call f_ppexsi_load_real_hs_matrix(pexsi_plan,pexsi_options,n_g_size,nnz_g,&
                                         nnz_l_pexsi,n_l_cols_pexsi,col_ptr_pexsi,&
-                                        row_ind_pexsi,H_real_pexsi,1,S_real_pexsi,&
+                                        row_ind_pexsi,ham_real_pexsi,1,ovlp_real_pexsi,&
                                         pexsi_info)
    else
       call f_ppexsi_load_real_hs_matrix(pexsi_plan,pexsi_options,n_g_size,nnz_g,&
                                         nnz_l_pexsi,n_l_cols_pexsi,col_ptr_pexsi,&
-                                        row_ind_pexsi,H_real_pexsi,0,S_real_pexsi,&
+                                        row_ind_pexsi,ham_real_pexsi,0,ovlp_real_pexsi,&
                                         pexsi_info)
    endif
 
@@ -838,7 +839,7 @@ subroutine elsi_solve_evp_pexsi()
    endif
 
    ! Solve the eigenvalue problem
-   call elsi_statement_print("  Starting PEXSI DFT driver")
+   call elsi_statement_print("  Starting PEXSI density matrix solver")
 
    ! TODO: expand the driver with its components
    call f_ppexsi_dft_driver(pexsi_plan,pexsi_options,n_electrons,mu_pexsi,&
@@ -869,8 +870,8 @@ subroutine elsi_solve_evp_pexsi()
    endif
 
    ! Get the results
-   call f_ppexsi_retrieve_real_dft_matrix(pexsi_plan,D_pexsi,ED_pexsi,FD_pexsi,&
-                                          e_tot_H,e_tot_S,f_tot,pexsi_info)
+   call f_ppexsi_retrieve_real_dft_matrix(pexsi_plan,den_mat_pexsi,e_den_mat_pexsi,&
+                                          f_den_mat_pexsi,e_tot_H,e_tot_S,f_tot,pexsi_info)
 
    if(pexsi_info /= 0) then
       call elsi_stop(" PEXSI not able to retrieve solution. Exiting...",caller)

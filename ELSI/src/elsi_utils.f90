@@ -39,10 +39,12 @@ module ELSI_UTILS
 
    public :: elsi_set_hamiltonian
    public :: elsi_set_overlap
+   public :: elsi_set_eigenvalue
+   public :: elsi_set_eigenvector
+   public :: elsi_set_density_matrix
    public :: elsi_statement_print
    public :: elsi_allocate
-   public :: elsi_allocate_matrices
-   public :: elsi_deallocate_matrices
+   public :: elsi_cleanup
    public :: elsi_stop
 
    interface elsi_set_hamiltonian
@@ -55,12 +57,17 @@ module ELSI_UTILS
                        elsi_set_complex_overlap
    end interface
 
+   interface elsi_set_eigenvector
+      module procedure elsi_set_real_eigenvector,&
+                       elsi_set_complex_eigenvector
+   end interface
+
    interface elsi_allocate
-      module procedure elsi_allocate_int_vector, &
-                       elsi_allocate_real_vector, &
-                       elsi_allocate_complex_vector, &
-                       elsi_allocate_int_matrix, &
-                       elsi_allocate_real_matrix, &
+      module procedure elsi_allocate_int_vector,&
+                       elsi_allocate_real_vector,&
+                       elsi_allocate_complex_vector,&
+                       elsi_allocate_int_matrix,&
+                       elsi_allocate_real_matrix,&
                        elsi_allocate_complex_matrix
    end interface
 
@@ -274,86 +281,21 @@ subroutine elsi_stop(message,caller)
 end subroutine
 
 !>
-!! This routine prepares the matrices.
-!!
-subroutine elsi_allocate_matrices()
-
-   implicit none
-
-   character*40, parameter :: caller = "elsi_allocate_matrices"
-
-   select case (method)
-      case (ELPA)
-         if(.not.ALLOCATED(eigenvalues)) then
-            call elsi_allocate(eigenvalues,n_g_size,"eigenvalues",caller)
-         endif
-         eigenvalues = 0d0
-         select case (mode)
-            case (COMPLEX_VALUES)
-               if(.not.ALLOCATED(C_complex)) then
-                  call elsi_allocate(C_complex,n_l_rows,n_l_cols,"C_complex",caller)
-               endif
-               C_complex = CMPLX(0d0,0d0)
-            case (REAL_VALUES)
-               if(.not.ALLOCATED(C_real)) then
-                  call elsi_allocate(C_real,n_l_rows,n_l_cols,"C_real",caller)
-               endif
-               C_real = 0d0
-            case DEFAULT
-               call elsi_stop(" No mode has been chosen. "//&
-                              " Please choose REAL_VALUES or COMPLEX_VALUES. ",&
-                              caller)
-         end select
-
-      case (LIBOMM)
-         select case (mode)
-            case (COMPLEX_VALUES)
-               if(.not.D_omm%is_initialized) then
-                  call m_allocate(D_omm,n_g_size,n_g_size,"pddbc")
-               endif
-               if(.not.Coeff_omm%is_initialized) then
-                  call m_allocate(Coeff_omm,n_states,n_g_size,"pddbc")
-               endif
-            case (REAL_VALUES)
-               if(.not.D_omm%is_initialized) then
-                  call m_allocate(D_omm,n_g_size,n_g_size,"pddbc")
-               endif
-               if(.not.Coeff_omm%is_initialized) then
-                  call m_allocate(Coeff_omm,n_states,n_g_size,"pddbc")
-               endif
-            case DEFAULT
-               call elsi_stop(" No mode has been chosen. "//&
-                              " Please choose REAL_VALUES or COMPLEX_VALUES. ",&
-                              caller)
-         end select
-
-      case (PEXSI)
-         ! Nothing to be done here
-      case (CHESS)
-         call elsi_stop(" CHESS not yet implemented. Exiting...",caller)
-      case DEFAULT
-         call elsi_stop(" No supported method has been chosen. "//&
-                        " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
-                        " Exiting...",caller)
-   end select
-end subroutine
-
-!>
 !! This routine sets the real hamiltonian matrix.
 !!
 subroutine elsi_set_real_hamiltonian(H_in)
 
    implicit none
 
-   real*8, target, intent(in) :: H_in(n_l_rows,n_l_cols) !< Hamiltonian
+   real*8, target :: H_in(n_l_rows,n_l_cols)
 
    character*40, parameter :: caller = "elsi_set_real_hamiltonian"
 
    select case (method)
       case (ELPA)
-         H_real => H_in
+         ham_real => H_in
       case (LIBOMM)
-         call m_register_pdbc(H_omm,H_in,sc_desc)
+         call m_register_pdbc(ham_omm,H_in,sc_desc)
       case (PEXSI)
          ! Nothing to be done here
       case (CHESS)
@@ -373,15 +315,15 @@ subroutine elsi_set_complex_hamiltonian(H_in)
 
    implicit none
 
-   complex*16, target, intent(in) :: H_in(n_l_rows,n_l_cols) !< Hamiltonian
+   complex*16, target :: H_in(n_l_rows,n_l_cols)
 
    character*40, parameter :: caller = "elsi_set_complex_hamiltonian"
 
    select case (method)
       case (ELPA)
-         H_complex => H_in
+         ham_complex => H_in
       case (LIBOMM)
-         call m_register_pdbc(H_omm,H_in,sc_desc)
+         call m_register_pdbc(ham_omm,H_in,sc_desc)
       case (PEXSI)
          ! Nothing to be done here
       case (CHESS)
@@ -401,15 +343,15 @@ subroutine elsi_set_real_overlap(S_in)
 
    implicit none
 
-   real*8, target, intent(in) :: S_in(n_l_rows,n_l_cols) !< Overlap
+   real*8, target :: S_in(n_l_rows,n_l_cols)
 
    character*40, parameter :: caller = "elsi_set_real_overlap"
 
    select case (method)
       case (ELPA)
-         S_real => S_in
+         ovlp_real => S_in
       case (LIBOMM)
-         call m_register_pdbc(S_omm,S_in,sc_desc)
+         call m_register_pdbc(ovlp_omm,S_in,sc_desc)
       case (PEXSI)
          ! Nothing to be done here
       case (CHESS)
@@ -429,15 +371,15 @@ subroutine elsi_set_complex_overlap(S_in)
 
    implicit none
 
-   complex*16, target, intent(in) :: S_in(n_l_rows,n_l_cols) !< Overlap
+   complex*16, target :: S_in(n_l_rows,n_l_cols)
 
    character*40, parameter :: caller = "elsi_set_complex_overlap"
 
    select case (method)
       case (ELPA)
-         S_complex => S_in
+         ovlp_complex => S_in
       case (LIBOMM)
-         call m_register_pdbc(S_omm,S_in,sc_desc)
+         call m_register_pdbc(ovlp_omm,S_in,sc_desc)
       case (PEXSI)
          ! Nothing to be done here
       case (CHESS)
@@ -451,37 +393,167 @@ subroutine elsi_set_complex_overlap(S_in)
 end subroutine
 
 !>
-!! This routine deallocates the matrices.
+!! This routine sets the eigenvalues.
 !!
-subroutine elsi_deallocate_matrices()
+subroutine elsi_set_eigenvalue(e_val_in)
 
    implicit none
 
+   real*8, target :: e_val_in(n_g_size)
+
+   character*40, parameter :: caller = "elsi_set_eigenvalue"
+
+   select case (method)
+      case (ELPA)
+         eval => e_val_in
+      case (LIBOMM)
+         ! Nothing to be done here
+      case (PEXSI)
+         ! Nothing to be done here
+      case (CHESS)
+         ! Nothing to be done here
+      case DEFAULT
+         call elsi_stop(" No supported method has been chosen. "//&
+                        " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
+                        " Exiting...",caller)
+   end select
+
+end subroutine
+
+!>
+!! This routine sets the real eigenvectors.
+!!
+subroutine elsi_set_real_eigenvector(e_vec_in)
+
+   implicit none
+   
+   real*8, target :: e_vec_in(n_l_rows,n_l_cols)
+
+   character*40, parameter :: caller = "elsi_set_real_eigenvector"
+
+   select case (method)
+      case (ELPA)
+         evec_real => e_vec_in
+      case (LIBOMM)
+         ! Nothing to be done here
+      case (PEXSI)
+         ! Nothing to be done here
+      case (CHESS)
+         ! Nothing to be done here
+      case DEFAULT
+         call elsi_stop(" No supported method has been chosen. "//&
+                        " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
+                        " Exiting...",caller)
+   end select
+
+end subroutine
+
+!>
+!! This routine sets the complex eigenvectors.
+!!
+subroutine elsi_set_complex_eigenvector(e_vec_in)
+
+   implicit none
+
+   complex*16, target :: e_vec_in(n_l_rows,n_l_cols)
+
+   character*40, parameter :: caller = "elsi_set_complex_eigenvector"
+
+   select case (method)
+      case (ELPA)
+         evec_complex => e_vec_in
+      case (LIBOMM)
+         ! Nothing to be done here
+      case (PEXSI)
+         ! Nothing to be done here
+      case (CHESS)
+         ! Nothing to be done here
+      case DEFAULT
+         call elsi_stop(" No supported method has been chosen. "//&
+                        " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
+                        " Exiting...",caller)
+   end select
+
+end subroutine
+
+!>
+!! This routine sets the density matrix.
+!!
+subroutine elsi_set_density_matrix(D_in)
+
+   implicit none
+
+   real*8, target :: D_in(n_l_rows,n_l_cols)
+
+   character*40, parameter :: caller = "elsi_set_density_matrix"
+
+   select case (method)
+      case (ELPA)
+         den_mat => D_in
+      case (LIBOMM)
+         call m_register_pdbc(den_mat_omm,D_in,sc_desc)
+      case (PEXSI)
+         ! Nothing to be done here
+      case (CHESS)
+         ! Nothing to be done here
+      case DEFAULT
+         call elsi_stop(" No supported method has been chosen. "//&
+                        " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
+                        " Exiting...",caller)
+   end select
+
+end subroutine
+
+!>
+!! This routine frees memory.
+!!
+subroutine elsi_cleanup()
+
+   implicit none
+
+   ! Nullify pointers
+   if(ASSOCIATED(ham_real))         nullify(ham_real)
+   if(ASSOCIATED(ham_complex))      nullify(ham_complex)
+   if(ASSOCIATED(ovlp_real))        nullify(ovlp_real)
+   if(ASSOCIATED(ovlp_complex))     nullify(ovlp_complex)
+   if(ASSOCIATED(evec_real))        nullify(evec_real)
+   if(ASSOCIATED(evec_complex))     nullify(evec_complex)
+   if(ASSOCIATED(eval))             nullify(eval)
+   if(ASSOCIATED(den_mat))          nullify(den_mat)
+   if(ASSOCIATED(ham_real_ccs))     nullify(ham_real_ccs)
+   if(ASSOCIATED(ham_complex_ccs))  nullify(ham_complex_ccs)
+   if(ASSOCIATED(ovlp_real_ccs))    nullify(ovlp_real_ccs)
+   if(ASSOCIATED(ovlp_complex_ccs)) nullify(ovlp_complex_ccs)
+   if(ASSOCIATED(den_mat_ccs))      nullify(den_mat_ccs)
+   if(ASSOCIATED(row_ind_ccs))      nullify(row_ind_ccs)
+   if(ASSOCIATED(col_ptr_ccs))      nullify(col_ptr_ccs)
+
    ! ELPA
-   if(ASSOCIATED(H_real))       nullify(H_real)
-   if(ASSOCIATED(H_complex))    nullify(H_complex)
-   if(ASSOCIATED(S_real))       nullify(S_real)
-   if(ASSOCIATED(S_complex))    nullify(S_complex)
-   if(ALLOCATED(C_real))        deallocate(C_real)
-   if(ALLOCATED(C_complex))     deallocate(C_complex)
-   if(ALLOCATED(eigenvalues))   deallocate(eigenvalues)
-   if(ALLOCATED(occ_elpa))      deallocate(occ_elpa)
+   if(ALLOCATED(ham_real_elpa))     deallocate(ham_real_elpa)
+   if(ALLOCATED(ham_complex_elpa))  deallocate(ham_complex_elpa)
+   if(ALLOCATED(ovlp_real_elpa))    deallocate(ovlp_real_elpa)
+   if(ALLOCATED(ovlp_complex_elpa)) deallocate(ovlp_complex_elpa)
+   if(ALLOCATED(evec_real_elpa))    deallocate(evec_real_elpa)
+   if(ALLOCATED(evec_complex_elpa)) deallocate(evec_complex_elpa)
+   if(ALLOCATED(eval_elpa))         deallocate(eval_elpa)
+   if(ALLOCATED(den_mat_elpa))      deallocate(den_mat_elpa)
+   if(ALLOCATED(occ_elpa))          deallocate(occ_elpa)
 
    ! PEXSI
-   if(ALLOCATED(H_real_pexsi))  deallocate(H_real_pexsi)
-   if(ALLOCATED(S_real_pexsi))  deallocate(S_real_pexsi)
-   if(ALLOCATED(D_pexsi))       deallocate(D_pexsi)
-   if(ALLOCATED(ED_pexsi))      deallocate(ED_pexsi)
-   if(ALLOCATED(FD_pexsi))      deallocate(FD_pexsi)
-   if(ALLOCATED(row_ind_pexsi)) deallocate(row_ind_pexsi)
-   if(ALLOCATED(col_ptr_pexsi)) deallocate(col_ptr_pexsi)
+   if(ALLOCATED(ham_real_pexsi))    deallocate(ham_real_pexsi)
+   if(ALLOCATED(ovlp_real_pexsi))   deallocate(ovlp_real_pexsi)
+   if(ALLOCATED(den_mat_pexsi))     deallocate(den_mat_pexsi)
+   if(ALLOCATED(e_den_mat_pexsi))   deallocate(e_den_mat_pexsi)
+   if(ALLOCATED(f_den_mat_pexsi))   deallocate(f_den_mat_pexsi)
+   if(ALLOCATED(row_ind_pexsi))     deallocate(row_ind_pexsi)
+   if(ALLOCATED(col_ptr_pexsi))     deallocate(col_ptr_pexsi)
 
    ! libOMM
-   if(H_omm%is_initialized)     call m_deallocate(H_omm)
-   if(S_omm%is_initialized)     call m_deallocate(S_omm)
-   if(D_omm%is_initialized)     call m_deallocate(D_omm)
-   if(Coeff_omm%is_initialized) call m_deallocate(Coeff_omm)
-   if(T_omm%is_initialized)     call m_deallocate(T_omm)
+   if(ham_omm%is_initialized)       call m_deallocate(ham_omm)
+   if(ovlp_omm%is_initialized)      call m_deallocate(ovlp_omm)
+   if(den_mat_omm%is_initialized)   call m_deallocate(den_mat_omm)
+   if(coeff_omm%is_initialized)     call m_deallocate(coeff_omm)
+   if(t_den_mat_omm%is_initialized) call m_deallocate(t_den_mat_omm)
 
 end subroutine
 

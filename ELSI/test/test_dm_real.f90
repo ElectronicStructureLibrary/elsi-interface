@@ -139,9 +139,9 @@ program test_dm_real
 
    t1 = MPI_Wtime()
 
-   call tomato_TB(arg1,'silicon',.false.,frac_occ,n_basis,&
-                  .false.,matrix_size,supercell,.false.,sparsity,orb_r_cut,&
-                  n_states,.true.,k_point,.true.,0d0,H,S,m_storage,.true.)
+   call tomato_TB(arg1,'silicon',.false.,frac_occ,n_basis,.false.,matrix_size,&
+                  supercell,.false.,sparsity,orb_r_cut,n_states,.true.,k_point,&
+                  .true.,0d0,H,S,m_storage,.true.)
 
    t2 = MPI_Wtime()
 
