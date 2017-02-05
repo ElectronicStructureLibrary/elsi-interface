@@ -434,7 +434,7 @@ subroutine elsi_to_standard_evp()
                      success = elpa_invert_trm_complex_double(n_g_size,ovlp_complex,n_l_rows,&
                                   n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col,.false.)
                      if(.not.success) then
-                        call elsi_stop(" Matrix invertion failed.", caller)
+                        call elsi_stop(" Matrix inversion failed.", caller)
                      endif
                   endif
                endif ! n_elsi_calls == 1
@@ -511,7 +511,7 @@ subroutine elsi_to_standard_evp()
                      success = elpa_invert_trm_real_double(n_g_size,ovlp_real,n_l_rows,&
                                   n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col,.false.)
                      if(.not.success) then
-                        call elsi_stop(" Matrix invertion failed.",caller)
+                        call elsi_stop(" Matrix inversion failed.",caller)
                      endif
                   endif
                endif ! n_elsi_calls == 1
@@ -972,7 +972,7 @@ subroutine elsi_to_standard_evp_sp()
                   success = elpa_invert_trm_complex_double(n_g_size,ovlp_complex,n_l_rows,&
                                n_b_rows,n_l_cols,mpi_comm_self,mpi_comm_self,.false.)
                   if(.not.success) then
-                     call elsi_stop(" Matrix invertion failed.", caller)
+                     call elsi_stop(" Matrix inversion failed.", caller)
                   endif
                endif
 !               endif ! n_elsi_calls == 1
@@ -1025,7 +1025,7 @@ subroutine elsi_to_standard_evp_sp()
                   success = elpa_invert_trm_real_double(n_g_size,ovlp_real,n_l_rows,&
                                n_b_rows,n_l_cols,mpi_comm_self,mpi_comm_self,.false.)
                   if(.not.success) then
-                     call elsi_stop(" Matrix invertion failed.",caller)
+                     call elsi_stop(" Matrix inversion failed.",caller)
                   endif
                endif
 !               endif ! n_elsi_calls == 1
