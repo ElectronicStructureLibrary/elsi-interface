@@ -1,6 +1,6 @@
 **ELSI** (**EL**ectronic **S**tructure **I**nfrastructure)
 
-http://www.elsi-interchange.org
+https://elsi-interchange.org
 
 **ABOUT ELSI**
 
