@@ -37,7 +37,7 @@ module ELSI_DIMENSIONS
 
 ! ========= MATRIX =========
 
-   ! Pointers used when input format compatible with chosen solver
+   !> Pointers used when input format compatible with chosen solver
    real*8,     pointer :: ham_real(:,:)         !< Real Hamiltonian
    complex*16, pointer :: ham_complex(:,:)      !< Complex Hamiltonian
    real*8,     pointer :: ovlp_real(:,:)        !< Real overlap
@@ -54,7 +54,7 @@ module ELSI_DIMENSIONS
    integer,    pointer :: row_ind_ccs(:)        !< Row index
    integer,    pointer :: col_ptr_ccs(:)        !< Column pointer
 
-   ! Allocatables used when input format incompatible with chosen solver
+   !> Allocatables used when input format incompatible with chosen solver
    real*8,     allocatable :: ham_real_elpa(:,:)     !< Real Hamiltonian
    complex*16, allocatable :: ham_complex_elpa(:,:)  !< Complex Hamiltonian
    real*8,     allocatable :: ovlp_real_elpa(:,:)    !< Real overlap
@@ -65,14 +65,14 @@ module ELSI_DIMENSIONS
    real*8,     allocatable :: den_mat_elpa(:,:)      !< Density matrix
    real*8,     allocatable :: occ_elpa(:)            !< Occupation numbers
 
-   ! libOMM
+   !> libOMM
    type(Matrix) :: ham_omm       !< Hamiltonian
    type(Matrix) :: ovlp_omm      !< Overlap
    type(Matrix) :: coeff_omm     !< Coefficient matrix
    type(Matrix) :: den_mat_omm   !< Density matrix
    type(Matrix) :: t_den_mat_omm !< Kinetic energy density matrix
 
-   ! PESXI
+   !> PESXI
    real*8,     allocatable :: ham_real_pexsi(:)     !< Sparse real Hamiltonian
    complex*16, allocatable :: ham_complex_pexsi(:)  !< Sparse complex Hamiltonian
    real*8,     allocatable :: ovlp_real_pexsi(:)    !< Sparse real overlap
@@ -83,7 +83,7 @@ module ELSI_DIMENSIONS
    integer,    allocatable :: row_ind_pexsi(:)      !< Row index
    integer,    allocatable :: col_ptr_pexsi(:)      !< Column pointer
 
-   ! BLACS
+   !> BLACS
    integer, allocatable :: local_row(:)
    integer, allocatable :: local_col(:)
 
@@ -139,7 +139,7 @@ module ELSI_DIMENSIONS
    integer :: blacs_info
    logical :: blacs_is_setup = .false.
 
-   ! PEXSI may use a different processor grid setup
+   !> PEXSI may use a different processor grid setup
    integer :: my_p_row_pexsi
    integer :: my_p_col_pexsi
    integer :: n_b_rows_pexsi

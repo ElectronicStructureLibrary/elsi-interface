@@ -80,7 +80,7 @@ subroutine elsi_statement_print(message)
 
    implicit none
 
-   character(len=*), intent(in) :: message
+   character(len=*), intent(in) :: message !< Message to print
 
    if(print_info) then
       if(myid == 0) then
@@ -97,10 +97,10 @@ subroutine elsi_allocate_real_vector(vector,n_elements,vectorname,caller)
 
    implicit none
 
-   real*8, allocatable, intent(inout) :: vector(:)
-   integer, intent(in) :: n_elements
-   character(len=*), intent(in) :: vectorname
-   character(len=*), intent(in) :: caller
+   real*8, allocatable, intent(inout) :: vector(:) !< Data
+   integer, intent(in) :: n_elements               !< Size
+   character(len=*), intent(in) :: vectorname      !< Name
+   character(len=*), intent(in) :: caller          !< Caller
 
    integer :: error
    character*200 :: message
@@ -123,10 +123,10 @@ subroutine elsi_allocate_int_vector(vector,n_elements,vectorname,caller)
 
    implicit none
 
-   integer, allocatable, intent(inout) :: vector(:)
-   integer, intent(in) :: n_elements
-   character(len=*), intent(in) :: vectorname
-   character(len=*), intent(in) :: caller
+   integer, allocatable, intent(inout) :: vector(:) !< Data
+   integer, intent(in) :: n_elements                !< Size
+   character(len=*), intent(in) :: vectorname       !< Name
+   character(len=*), intent(in) :: caller           !< Caller
 
    integer :: error
    character*200 :: message
@@ -149,10 +149,10 @@ subroutine elsi_allocate_complex_vector(vector,n_elements,vectorname,caller)
 
    implicit none
 
-   complex*16, allocatable, intent(inout) :: vector(:)
-   integer, intent(in) :: n_elements
-   character(len=*), intent(in) :: vectorname
-   character(len=*), intent(in) :: caller
+   complex*16, allocatable, intent(inout) :: vector(:) !< Data
+   integer, intent(in) :: n_elements                   !< Size
+   character(len=*), intent(in) :: vectorname          !< Name
+   character(len=*), intent(in) :: caller              !< Caller
 
    integer :: error
    character*200 :: message
@@ -175,11 +175,11 @@ subroutine elsi_allocate_real_matrix(matrix,n_rows,n_cols,matrixname,caller)
 
    implicit none
 
-   real*8, allocatable, intent(inout) :: matrix(:,:)
-   integer, intent(in) :: n_rows
-   integer, intent(in) :: n_cols
-   character(len=*), intent(in) :: matrixname
-   character(len=*), intent(in) :: caller
+   real*8, allocatable, intent(inout) :: matrix(:,:) !< Data
+   integer, intent(in) :: n_rows                     !< Size
+   integer, intent(in) :: n_cols                     !< Size
+   character(len=*), intent(in) :: matrixname        !< Name
+   character(len=*), intent(in) :: caller            !< Caller
 
    integer :: error
    character*200 :: message
@@ -202,11 +202,11 @@ subroutine elsi_allocate_int_matrix(matrix,n_rows,n_cols,matrixname,caller)
 
    implicit none
 
-   integer, allocatable, intent(inout) :: matrix(:,:)
-   integer, intent(in) :: n_rows
-   integer, intent(in) :: n_cols
-   character(len=*), intent(in) :: matrixname
-   character(len=*), intent(in) :: caller
+   integer, allocatable, intent(inout) :: matrix(:,:) !< Data
+   integer, intent(in) :: n_rows                      !< Size
+   integer, intent(in) :: n_cols                      !< Size
+   character(len=*), intent(in) :: matrixname         !< Name
+   character(len=*), intent(in) :: caller             !< Caller
 
    integer :: error
    character*200 :: message
@@ -229,11 +229,11 @@ subroutine elsi_allocate_complex_matrix(matrix,n_rows,n_cols,matrixname,caller)
 
    implicit none
 
-   complex*16, allocatable, intent(inout) :: matrix(:,:)
-   integer, intent(in) :: n_rows
-   integer, intent(in) :: n_cols
-   character(len=*), intent(in) :: matrixname
-   character(len=*), intent(in) :: caller
+   complex*16, allocatable, intent(inout) :: matrix(:,:) !< Data
+   integer, intent(in) :: n_rows                         !< Size
+   integer, intent(in) :: n_cols                         !< Size
+   character(len=*), intent(in) :: matrixname            !< Name
+   character(len=*), intent(in) :: caller                !< Caller
 
    integer :: error
    character*200 :: message
@@ -257,8 +257,8 @@ subroutine elsi_stop(message,caller)
    implicit none
    include "mpif.h"
 
-   character(len=*), intent(in) :: message
-   character(len=*), intent(in) :: caller
+   character(len=*), intent(in) :: message !< Error message
+   character(len=*), intent(in) :: caller  !< Caller
 
    character(len=4096) :: string_message
    integer :: i_task
@@ -287,7 +287,7 @@ subroutine elsi_set_real_hamiltonian(H_in)
 
    implicit none
 
-   real*8, target :: H_in(n_l_rows,n_l_cols)
+   real*8, target :: H_in(n_l_rows,n_l_cols) !< Real Hamiltonian matrix
 
    character*40, parameter :: caller = "elsi_set_real_hamiltonian"
 
@@ -315,7 +315,7 @@ subroutine elsi_set_complex_hamiltonian(H_in)
 
    implicit none
 
-   complex*16, target :: H_in(n_l_rows,n_l_cols)
+   complex*16, target :: H_in(n_l_rows,n_l_cols) !< Complex Hamiltonian matrix
 
    character*40, parameter :: caller = "elsi_set_complex_hamiltonian"
 
@@ -343,7 +343,7 @@ subroutine elsi_set_real_overlap(S_in)
 
    implicit none
 
-   real*8, target :: S_in(n_l_rows,n_l_cols)
+   real*8, target :: S_in(n_l_rows,n_l_cols) !< Real overlap matrix
 
    character*40, parameter :: caller = "elsi_set_real_overlap"
 
@@ -371,7 +371,7 @@ subroutine elsi_set_complex_overlap(S_in)
 
    implicit none
 
-   complex*16, target :: S_in(n_l_rows,n_l_cols)
+   complex*16, target :: S_in(n_l_rows,n_l_cols) !< Complex overlap matrix
 
    character*40, parameter :: caller = "elsi_set_complex_overlap"
 
@@ -399,7 +399,7 @@ subroutine elsi_set_eigenvalue(e_val_in)
 
    implicit none
 
-   real*8, target :: e_val_in(n_g_size)
+   real*8, target :: e_val_in(n_g_size)  !< Eigenvalues
 
    character*40, parameter :: caller = "elsi_set_eigenvalue"
 
@@ -427,7 +427,7 @@ subroutine elsi_set_real_eigenvector(e_vec_in)
 
    implicit none
    
-   real*8, target :: e_vec_in(n_l_rows,n_l_cols)
+   real*8, target :: e_vec_in(n_l_rows,n_l_cols) !< Real eigenvectors
 
    character*40, parameter :: caller = "elsi_set_real_eigenvector"
 
@@ -455,7 +455,7 @@ subroutine elsi_set_complex_eigenvector(e_vec_in)
 
    implicit none
 
-   complex*16, target :: e_vec_in(n_l_rows,n_l_cols)
+   complex*16, target :: e_vec_in(n_l_rows,n_l_cols) !< Complex eigenvectors
 
    character*40, parameter :: caller = "elsi_set_complex_eigenvector"
 
@@ -483,7 +483,7 @@ subroutine elsi_set_density_matrix(D_in)
 
    implicit none
 
-   real*8, target :: D_in(n_l_rows,n_l_cols)
+   real*8, target :: D_in(n_l_rows,n_l_cols) !< Density matrix
 
    character*40, parameter :: caller = "elsi_set_density_matrix"
 

@@ -59,9 +59,11 @@ subroutine elsi_get_elpa_comms(mpi_comm_global_in,my_p_row_in,my_p_col_in,&
 
    implicit none
 
-   integer, intent(in)  :: mpi_comm_global_in
-   integer, intent(in)  :: my_p_row_in,my_p_col_in
-   integer, intent(out) :: mpi_comm_row_out,mpi_comm_col_out
+   integer, intent(in)  :: mpi_comm_global_in !< Global MPI communicator
+   integer, intent(in)  :: my_p_row_in        !< Row position of each MPI task
+   integer, intent(in)  :: my_p_col_in        !< Column position of each MPI task
+   integer, intent(out) :: mpi_comm_row_out   !< Row MPI communicator
+   integer, intent(out) :: mpi_comm_col_out   !< Column MPI communicator
 
    integer :: success
 

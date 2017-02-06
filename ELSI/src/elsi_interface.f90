@@ -43,7 +43,7 @@ module ELSI
    implicit none
    private
 
-   ! Public routines
+   !> Public routines
    public :: elsi_init            !< Initialize
    public :: elsi_set_method      !< Select solver
    public :: elsi_set_mpi         !< Set MPI from calling code
@@ -336,16 +336,16 @@ subroutine elsi_customize(print_detail,unit_overlap,hartree_to_ev,numerical_zero
 
    implicit none
 
-   logical, intent(in), optional :: print_detail
-   logical, intent(in), optional :: unit_overlap
-   real*8,  intent(in), optional :: hartree_to_ev
-   real*8,  intent(in), optional :: numerical_zero
-   real*8,  intent(in), optional :: mu_accuracy
-   logical, intent(in), optional :: no_check_singularity
-   real*8,  intent(in), optional :: singularity_threshold
-   logical, intent(in), optional :: force_stop_singularity
-   integer, intent(in), optional :: broadening_scheme
-   real*8,  intent(in), optional :: broadening_width
+   logical, intent(in), optional :: print_detail           !< Print detailed info?
+   logical, intent(in), optional :: unit_overlap           !< Is overlap matrix unit?
+   real*8,  intent(in), optional :: hartree_to_ev          !< Conversion constant between Ha and eV
+   real*8,  intent(in), optional :: numerical_zero         !< Threshold to define "zero"
+   real*8,  intent(in), optional :: mu_accuracy            !< Tolerance in chemical potential determination
+   logical, intent(in), optional :: no_check_singularity   !< Do not perform singularity check of overlap
+   real*8,  intent(in), optional :: singularity_threshold  !< Tolerance of overlap singularity
+   logical, intent(in), optional :: force_stop_singularity !< Stop if overlap is singular
+   integer, intent(in), optional :: broadening_scheme      !< Broadening method in chemical potential determination
+   real*8,  intent(in), optional :: broadening_width       !< Broadening width in chemical potential determination
 
    ! Print detailed ELSI information? [Default: .false.]
    if(PRESENT(print_detail)) &
@@ -389,10 +389,10 @@ subroutine elsi_customize_omm(n_elpa_steps_omm,eigenspectrum_shift,&
 
    implicit none
 
-   integer, intent(in), optional :: n_elpa_steps_omm
-   real*8,  intent(in), optional :: eigenspectrum_shift
-   real*8,  intent(in), optional :: omm_tolerance
-   logical, intent(in), optional :: use_pspblas
+   integer, intent(in), optional :: n_elpa_steps_omm    !< Number of ELPA steps before libOMM
+   real*8,  intent(in), optional :: eigenspectrum_shift !< Eigenspectrum shift parameter
+   real*8,  intent(in), optional :: omm_tolerance       !< Tolerance of minimization
+   logical, intent(in), optional :: use_pspblas         !< Use pspBLAS sparse linear algebra?
 
    ! Number of ELPA steps
    if(PRESENT(n_elpa_steps_omm)) &
@@ -425,23 +425,23 @@ subroutine elsi_customize_pexsi(temperature,gap,delta_E,n_poles,max_iteration,&
 
    implicit none
 
-   real(c_double), intent(in), optional :: temperature
-   real(c_double), intent(in), optional :: gap
-   real(c_double), intent(in), optional :: delta_E
-   integer(c_int), intent(in), optional :: n_poles
-   integer(c_int), intent(in), optional :: max_iteration
-   real(c_double), intent(in), optional :: mu_min
-   real(c_double), intent(in), optional :: mu_max
-   real(c_double), intent(in), optional :: mu0
-   real(c_double), intent(in), optional :: mu_inertia_tolerance
-   real(c_double), intent(in), optional :: mu_inertia_expansion
-   real(c_double), intent(in), optional :: mu_safeguard
-   real(c_double), intent(in), optional :: n_electron_accuracy
-   integer(c_int), intent(in), optional :: matrix_type
-   integer(c_int), intent(in), optional :: is_symbolic_factorize
-   integer(c_int), intent(in), optional :: ordering
-   integer(c_int), intent(in), optional :: np_symbolic_factorize
-   integer(c_int), intent(in), optional :: verbosity
+   real(c_double), intent(in), optional :: temperature           !< Temperature, in the same unit as Hamiltonian
+   real(c_double), intent(in), optional :: gap                   !< Spectral gap, can be set to 0 in most cases
+   real(c_double), intent(in), optional :: delta_E               !< Upper bound for the spectral radius of S^(-1)H
+   integer(c_int), intent(in), optional :: n_poles               !< Number of poles
+   integer(c_int), intent(in), optional :: max_iteration         !< Maximum number of PEXSI iterations
+   real(c_double), intent(in), optional :: mu_min                !< Lower bound of chemical potential
+   real(c_double), intent(in), optional :: mu_max                !< Upper bound of chemical potential
+   real(c_double), intent(in), optional :: mu0                   !< Initial guess of chemical potential
+   real(c_double), intent(in), optional :: mu_inertia_tolerance  !< Tolerance of inertia counting
+   real(c_double), intent(in), optional :: mu_inertia_expansion  !< Expansion step size in inertia counting
+   real(c_double), intent(in), optional :: mu_safeguard          !< Safeguard to reinvoke inertia counting
+   real(c_double), intent(in), optional :: n_electron_accuracy   !< Accuracy of number of electrons
+   integer(c_int), intent(in), optional :: matrix_type           !< Type of input matrices
+   integer(c_int), intent(in), optional :: is_symbolic_factorize !< Perform symbolic factorization?
+   integer(c_int), intent(in), optional :: ordering              !< Ordering strategy for factorization and selected inversion
+   integer(c_int), intent(in), optional :: np_symbolic_factorize !< Number of processors for ParMETIS, only used if ordering=0
+   integer(c_int), intent(in), optional :: verbosity             !< Level of output info
 
    ! Temperature, in the same unit as H
    ! default: 0.0019 = 300K
