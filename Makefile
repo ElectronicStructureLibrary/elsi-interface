@@ -1,3 +1,8 @@
+###############################
+# TOP-LEVEL MAKEFILE FOR ELSI #
+###############################
+
+# A "make.sys" file is mandatory
 include make.sys
 
 # Default archive tools
@@ -6,21 +11,27 @@ ARCHIVEFLAGS ?= cr
 RANLIB       ?= ranlib
 
 # Default external libraries
-THIS_DIR  ?= $(shell pwd)
+THIS_DIR ?= $(shell pwd)
 
-ELPA_DIR  ?= $(THIS_DIR)/EXTERNAL/ELPA
-ELPA_LIB  ?= -L$(ELPA_DIR)/lib -lelpa \
-             -I$(ELPA_DIR)/include
+BIN_DIR   = $(THIS_DIR)/bin
+LIB_DIR   = $(THIS_DIR)/lib
+INC_DIR   = $(THIS_DIR)/include
+BUILD_DIR = $(THIS_DIR)/build
 
-OMM_DIR   ?= $(THIS_DIR)/EXTERNAL/libOMM
-OMM_LIB   ?= -I$(OMM_DIR)/include \
-             -L$(OMM_DIR)/lib -lOMM -lMatrixSwitch -lpspblas -ltomato
+ELSI_DIR  = $(THIS_DIR)/src/ELSI
 
-PEXSI_DIR ?= $(THIS_DIR)/EXTERNAL/PEXSI
-PEXSI_LIB ?= -I$(PEXSI_DIR)/include \
-             -I$(PEXSI_DIR)/include/pexsi \
-             -L$(PEXSI_DIR)/lib -lpexsi \
-             $(SUPERLU_LIB) $(PARMETIS_LIB) $(METIS_LIB)
+ELPA_DIR  = $(THIS_DIR)/src/ELPA
+ELPA_LIB  = -L$(LIB_DIR) -lelpa \
+            -I$(INC_DIR)
+
+OMM_DIR   = $(THIS_DIR)/src/libOMM
+OMM_LIB   = -I$(INC_DIR) \
+            -L$(LIB_DIR)/lib -lOMM -lMatrixSwitch -lpspblas -ltomato
+
+PEXSI_DIR = $(THIS_DIR)/src/PEXSI
+PEXSI_LIB = -I$(INC_DIR)/include \
+            -L$(LIB_DIR)/lib -lpexsi \
+            $(SUPERLU_LIB) $(PARMETIS_LIB) $(METIS_LIB)
 
 # Compiler settings
 FFLAGS_I   ?= $(FFLAGS) $(SCALAPACK_FCFLAGS)
@@ -33,45 +44,20 @@ CXXFLAGS_P ?= $(CXXFLAGS) $(SCALAPACK_FCFLAGS)
 LINKER     ?= $(MPIFC)
 LDFLAGS    ?= $(FFLAGS_I)
 
-# Default architecture
+# Default architecture settings
 ELPA2_KERNEL ?= Generic
 OPENMP       ?= no
 
-# Verification settings
+# Name of MPI executable
 MPI_EXEC ?= mpirun
 
 export
 
-# Use precompiled library if provided in make.sys
-# Use stubs if PEXSI is disabled in make.sys
-ifeq ($(strip $(USER_ELPA)),yes)
-  $(info =============================)
-  $(info = Using user-provided ELPA. =)
-  $(info =============================)
-  LIBS += $(ELPA_LIB)
-else
-  ALL_OBJ += elpa
-  CLEAN_OBJ += cleanelpa
-  LIBS += $(ELPA_LIB)
-endif
+# Use stub if PEXSI is disabled in make.sys
+ALL_OBJ   = elpa omm
+CLEAN_OBJ = cleanelpa cleanomm
+LIBS      = $(ELPA_LIB) $(OMM_LIB)
 
-ifeq ($(strip $(USER_OMM)),yes)
-  $(info ===============================)
-  $(info = Using user-provided libOMM. =)
-  $(info ===============================)
-  LIBS += $(OMM_LIB)
-else
-  ALL_OBJ += omm
-  CLEAN_OBJ += cleanomm
-  LIBS += $(OMM_LIB)
-endif
-
-ifeq ($(strip $(USER_PEXSI)),yes)
-  $(info ==============================)
-  $(info = Using user-provided PEXSI. =)
-  $(info ==============================)
-  LIBS += $(PEXSI_LIB)
-else
 ifeq ($(strip $(DISABLE_CXX)),yes)
   $(info ===================================================)
   $(info = PEXSI disabled by user's choice of DISABLE_CXX. =)
@@ -82,7 +68,6 @@ else
   CLEAN_OBJ += cleanpexsi
   LIBS += $(PEXSI_LIB)
 endif
-endif
 
 all: $(ALL_OBJ) elsi
 
@@ -90,11 +75,9 @@ elpa:
 	@echo ==========================
 	@echo = Start building ELPA... =
 	@echo ==========================
-	cd $(ELPA_DIR) && ${MAKE} -f Makefile.elsi; ${MAKE} -f Makefile.elsi install
-	mkdir -p ${THIS_DIR}/EXTERNAL/include
-	mkdir -p ${THIS_DIR}/EXTERNAL/lib
-	cp ${ELPA_DIR}/lib/libelpa.a ${THIS_DIR}/EXTERNAL/lib/.
-	cp ${ELPA_DIR}/include/*.mod ${THIS_DIR}/EXTERNAL/include/.
+	mkdir -p $(INC_DIR)
+	mkdir -p $(LIB_DIR)
+	cd $(ELPA_DIR) && $(MAKE) -f Makefile.elsi; $(MAKE) -f Makefile.elsi install
 	@echo ===================
 	@echo = ELPA installed. =
 	@echo ===================
@@ -103,11 +86,9 @@ omm: elpa
 	@echo ============================
 	@echo = Start building libOMM... =
 	@echo ============================
-	cd $(OMM_DIR) && ${MAKE} -f Makefile.elsi; ${MAKE} -f Makefile.elsi install
-	mkdir -p ${THIS_DIR}/EXTERNAL/include
-	mkdir -p ${THIS_DIR}/EXTERNAL/lib
-	cp ${OMM_DIR}/lib/*.a ${THIS_DIR}/EXTERNAL/lib/.
-	cp ${OMM_DIR}/include/*.mod ${THIS_DIR}/EXTERNAL/include/.
+	mkdir -p $(INC_DIR)
+	mkdir -p $(LIB_DIR)
+	cd $(OMM_DIR) && $(MAKE) -f Makefile.elsi; $(MAKE) -f Makefile.elsi install
 	@echo =====================
 	@echo = libOMM installed. =
 	@echo =====================
@@ -116,13 +97,9 @@ pexsi:
 	@echo ===========================
 	@echo = Start building PEXSI... =
 	@echo ===========================
-	cd $(PEXSI_DIR) && mkdir -p lib
-	cd $(PEXSI_DIR)/src && ${MAKE} -f Makefile.elsi 
-	cp ${PEXSI_DIR}/src/f_ppexsi_interface.mod ${PEXSI_DIR}/include
-	mkdir -p ${THIS_DIR}/EXTERNAL/include
-	mkdir -p ${THIS_DIR}/EXTERNAL/lib
-	cp ${PEXSI_DIR}/include/*.mod ${THIS_DIR}/EXTERNAL/include/.
-	cp ${PEXSI_DIR}/lib/libpexsi.a ${THIS_DIR}/EXTERNAL/lib/.
+	mkdir -p $(INC_DIR)
+	mkdir -p $(LIB_DIR)
+	cd $(PEXSI_DIR)/src && $(MAKE) -f Makefile.elsi; $(MAKE) -f Makefile.elsi install
 	@echo ====================
 	@echo = PEXSI installed. =
 	@echo ====================
@@ -131,13 +108,17 @@ elsi: $(ALL_OBJ)
 	@echo ==========================
 	@echo = Start building ELSI... =
 	@echo ==========================
-	cd ELSI && ${MAKE} -f Makefile.elsi
+	mkdir -p $(INC_DIR)
+	mkdir -p $(LIB_DIR)
+	mkdir -p $(BIN_DIR)
+	mkdir -p $(BUILD_DIR)
+	cd $(ELSI_DIR) && $(MAKE) -f Makefile.elsi
 	@echo ===============================
 	@echo = ELSI compiled successfully. =
 	@echo ===============================
 
 install:
-	cd ELSI && ${MAKE} -f Makefile.elsi install
+	cd $(ELSI_DIR) && $(MAKE) -f Makefile.elsi install
 	@echo ======================================
 	@echo = ELSI library created successfully. =
 	@echo ======================================
@@ -146,7 +127,7 @@ check:
 	@echo ================================
 	@echo = Running ELSI test programs.. =
 	@echo ================================
-	cd ELSI && ${MAKE} -f Makefile.elsi check
+	cd $(ELSI_DIR) && $(MAKE) -f Makefile.elsi check
 	@echo ================================
 	@echo = ELSI test programs finished. =
 	@echo ================================
@@ -157,9 +138,8 @@ cleanelsi:
 	@echo ====================
 	@echo = Removing ELSI... =
 	@echo ====================
-	cd ELSI && ${MAKE} -f Makefile.elsi clean
-	rm -rf ${THIS_DIR}/EXTERNAL/include
-	rm -rf ${THIS_DIR}/EXTERNAL/lib
+	cd $(ELSI_DIR) && $(MAKE) -f Makefile.elsi clean
+	rm -rf $(INC_DIR) $(LIB_DIR) $(BIN_DIR) $(BUILD_DIR)
 	@echo =========
 	@echo = Done. =
 	@echo =========
@@ -168,16 +148,16 @@ cleanelpa:
 	@echo ====================
 	@echo = Removing ELPA... =
 	@echo ====================
-	cd $(ELPA_DIR) && ${MAKE} -f Makefile.elsi clean
+	cd $(ELPA_DIR) && $(MAKE) -f Makefile.elsi clean
 
 cleanomm:
 	@echo ======================
 	@echo = Removing libOMM... =
 	@echo ======================
-	cd $(OMM_DIR) && ${MAKE} -f Makefile.elsi clean
+	cd $(OMM_DIR) && $(MAKE) -f Makefile.elsi clean
 
 cleanpexsi:
 	@echo =====================
 	@echo = Removing PEXSI... =
 	@echo =====================
-	cd $(PEXSI_DIR)/src && ${MAKE} -f Makefile.elsi cleanall
+	cd $(PEXSI_DIR)/src && $(MAKE) -f Makefile.elsi clean

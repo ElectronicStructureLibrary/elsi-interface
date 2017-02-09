@@ -36,25 +36,22 @@ elsi_utils.o: ./src/elsi_utils.f90 elsi_dimensions.o $(STUBS)
 elsi_dimensions.o: ./src/elsi_dimensions.f90 $(STUBS)
 	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
 
-stub_omm.o: ./ src/stub_omm.f90
-	$(MPIFC) -c $<
-
 stub_pexsi.o: ./src/stub_pexsi.f90
 	$(MPIFC) -c $<
 
 clean:
 	rm -f *.o *.mod *.x *.a *log*
-	rm -rf lib include bin
 
 install:
 	$(ARCHIVE) $(ARCHIVEFLAGS) libelsi.a *.o
 	$(RANLIB) libelsi.a
-	mkdir -p lib
-	cp libelsi.a lib/.
-	mkdir -p include
-	cp *.mod include/.
-	mkdir -p bin
-	cp *.x bin/.
+	mv *.o $(BUILD_DIR)
+	mv *.a $(BUILD_DIR)
+	mv *.mod $(BUILD_DIR)
+	mv *.x $(BUILD_DIR)
+	cp $(BUILD_DIR)/*.a $(LIB_DIR)
+	cp $(BUILD_DIR)/*.x $(BIN_DIR)
+	cp $(BUILD_DIR)/*.mod $(INC_DIR)
 
 check:
 	chmod u+x ./make_check.sh && ./make_check.sh

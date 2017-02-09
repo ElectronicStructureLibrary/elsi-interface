@@ -116,19 +116,21 @@ B) COMPILATION GUIDE
 
    A typical setup in the Makefile would be
 
-      ELSI_INCLUDE = -I${ELSI_HOME}/ELSI/include \
-                     -I${ELSI_HOME}/EXTERNAL/include
+      ELSI_INCLUDE = -I${ELSI_HOME}/include
 
       ELSI_LIB = -L${ELSI_HOME}/ELSI/lib -lelsi \
-                 -L${ELSI_HOME}/EXTERNAL/lib -lOMM -lMatrixSwitch -lpspblas \
-                 -L${ELSI_HOME}/EXTERNAL/lib -lelpa \
-                 -L${ELSI_HOME}/EXTERNAL/lib -lpexsi \
+                 -lOMM -lMatrixSwitch -lpspblas \
+                 -lelpa \
+                 -lpexsi \
                  -L${SUPERLU_HOME}/lib -lsuperlu \
                  -L${PARMETIS_HOME}/lib -lparmetis -lmetis
 
-   NOTE: If any pre-compiled solver library (ELPA, libOMM, or PEXSI) is used in
-         ELSI instead of the built-in version, or any solver library is disabled
-         in ELSI, the path needs to be modifie accordingly.
+   NOTE: If PEXSI is disabled by setting DISABLE_CXX = yes in the "make.sys" file,
+         the following ELSI_LIB should be use:
+
+      ELSI_LIB = -L${ELSI_HOME}/ELSI/lib -lelsi \
+                 -lOMM -lMatrixSwitch -lpspblas \
+                 -lelpa
 
    Then add ${ELSI_INCLUDE}/${ELSI_LIB} to the compiler/linker flags.
 
@@ -143,7 +145,7 @@ C) BEYOND THIS GUIDE
    EXPERIMENTAL, with k-point and spin parallel treatment being supported soon.
 
    Documentation of each module, subroutine, and function in ELSI interface can be
-   generated using Doxygen in ./ELSI/doc directory.
+   generated using Doxygen in ./src/ELSI/doc directory.
 
 ===================
 D) TROUBLE SHOOTING
@@ -151,6 +153,6 @@ D) TROUBLE SHOOTING
 
    For comments, feedback, ideas, ..., please email elsi-team@duke.edu
 
-   http://www.elsi-interchange.org
+   http://elsi-interchange.org
 
    Copyright (c) 2015-2017, ELSI consortium. All rights reserved.

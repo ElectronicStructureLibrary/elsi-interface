@@ -11,24 +11,24 @@ before_script:
 
 intel-j8-gpu:
   script:
-    - cp ./MAKE_SYS/make.sys-timewarp-gpu ./make.sys
-    - make -f Makefile.elsi clean
-    - make -j 8 -f Makefile.elsi
-    - make -f Makefile.elsi check
-    - make -f Makefile.elsi install
+    - cp ./make_sys/make.sys-timewarp-gpu ./make.sys
+    - make clean
+    - make -j 8
+    - make check
+    - make install
 
 intel-j1-generic:
   script:
-    - cp ./MAKE_SYS/make.sys-timewarp ./make.sys
-    - make -f Makefile.elsi clean
-    - make -f Makefile.elsi
-    - make -f Makefile.elsi check
-    - make -f Makefile.elsi install
+    - cp ./make_sys/make.sys-timewarp ./make.sys
+    - make clean
+    - make
+    - make check
+    - make install
 
 intel-j8-generic:
   script:
-    - cp ./MAKE_SYS/make.sys-timewarp ./make.sys
-    - make -f Makefile.elsi clean
-    - make -j 8 -f Makefile.elsi
-    - make -f Makefile.elsi check
-    - make -f Makefile.elsi install
+    - cp ./make_sys/make.sys-timewarp ./make.sys
+    - make clean
+    - make -j 8
+    - make check
+    - make install

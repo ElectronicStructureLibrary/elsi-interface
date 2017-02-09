@@ -1,12 +1,23 @@
 # libOMM Makefile modified for ELSI installer.
-# Source code is NOT modified.
 # Victor Yu, ELSI team.
-# Dec 3, 2016
+# Feb 8, 2017
 
-include make.inc
+ifeq ($(strip $(XLF)),yes)
+  XLFPP = -WF,
+endif
+
+FPPFLAGS  = $(XLFPP)-DCONV
+FPPFLAGS += $(XLFPP)-DPSP
+FPPFLAGS += $(XLFPP)-DMPI
+FPPFLAGS += $(XLFPP)-DLAP
+FPPFLAGS += $(XLFPP)-DSLAP
+
+BLASLIB = $(SCALAPACK_LDFLAGS)
+LAPLIB  = $(SCALAPACK_LDFLAGS)
+SLAPLIB = $(SCALAPACK_LDFLAGS)
 
 PSPOBJ = pspBLAS.o pspMPI.o pspBasicTool.o pspListTool.o psp_spBLAS_Level1.o psp_spBLAS_Level2.o psp_spBLAS_Level3.o psp_spBLAS.o pspMat.o pspNode.o psp_dList.o psp_zList.o pspListType.o pspVariable.o pspUtility.o pspLevel1.o pspLevel2.o pspLevel3.o pspGemm.o pspMspm.o pspSpmm.o pspMatSum.o pspSpmSpm_nn.o pspSpmSpm_nt.o pspSpmSpm_tn.o pspSpmSpm_tt.o pspSpmSpm.o pspMspm_nn.o pspMspm_nt.o pspMspm_tn.o pspMspm_tt.o pspSpmm_nn.o pspSpmm_nt.o pspSpmm_tn.o pspSpmm_tt.o
-MSOBJ = MatrixSwitch_ops.o MatrixSwitch_mm_multiply.o MatrixSwitch_m_add.o MatrixSwitch_m_set.o MatrixSwitch_m_copy.o MatrixSwitch_m_register.o MatrixSwitch.o MatrixSwitch_wrapper_params.o MatrixSwitch_wrapper.o
+MSOBJ  = MatrixSwitch_ops.o MatrixSwitch_mm_multiply.o MatrixSwitch_m_add.o MatrixSwitch_m_set.o MatrixSwitch_m_copy.o MatrixSwitch_m_register.o MatrixSwitch.o MatrixSwitch_wrapper_params.o MatrixSwitch_wrapper.o
 OMMOBJ = omm_params.o omm_rand.o omm_quartic.o omm_ops.o omm.o omm_wrappers.o omm_callback.o
 TOMOBJ = tomato_TB.o
 
@@ -172,7 +183,7 @@ omm_quartic.o: ./libOMM/src/omm_quartic.F90 omm_params.o
 	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
 
 omm_ops.o: ./libOMM/src/omm_ops.F90 omm_params.o MatrixSwitch.o
-	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -I$(ELPA_DIR)/include -c $< -o $@
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -I$(INC_DIR) -c $< -o $@
 
 omm.o: ./libOMM/src/omm.F90 omm_ops.o omm_rand.o MatrixSwitch.o pspBLAS.o MatrixSwitch_ops.o
 	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
@@ -193,11 +204,8 @@ tomato_TB.o: ./tomato/src/tomato_TB.F90 MatrixSwitch.o MatrixSwitch_ops.o
 	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
 
 install:
-	mkdir -p ./lib
-	cp *.a ./lib/.
-	mkdir -p ./include
-	cp *.mod ./include/.
+	cp *.a $(LIB_DIR)
+	cp *.mod $(INC_DIR)
 
 clean:
 	rm -f *.o *.mod *.a
-	rm -rf lib include

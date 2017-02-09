@@ -12,7 +12,7 @@ A) BASIC
 ==========================================================================
 
 1) The installation of ELSI is controlled by a "make.sys" file. Examples
-   can be found in "./MAKE_SYS". Copy one of them to the root directory of
+   can be found in "./make_sys". Copy one of them to the root directory of
    ELSI, then modify it to match the system.
 
    One simple ELSI "make.sys" file includes the following keywords:
@@ -38,7 +38,7 @@ A) BASIC
 
    To build ELPA, libOMM, PEXSI, and ELSI interface, type
 
-      "make -f Makefile.elsi"
+      "make"
 
 3) Optional. The correctness of installation can be checked together with
    the "tomato-seed" data files. Set the following keyword in make.sys:
@@ -55,11 +55,15 @@ A) BASIC
 
    Then, type
 
-      "make -f Makefile.elsi check"
+      "make check"
 
 4) To create ELSI library, type
 
-      "make -f Makefile.elsi install"
+      "make install"
+
+5) If the installation finishes without any fatal error, the library files
+   will be automatically put in "./lib"; module files in "./include"; and
+   executables in "./bin".
 
 ==========================================================================
 B) ADVANCE I
@@ -101,44 +105,6 @@ B) ADVANCE I
 ==========================================================================
 C) ADVANCE II
 
-   Build ELSI interface with pre-compiled solver libraries.
-==========================================================================
-
-   E.g. ELPA is pre-installed on the system. Install libOMM and PEXSI using
-   ELSI installer, then compile ELSI interface with libOMM, PEXSI, and the
-   pre-installed ELPA.
-
-   Snapshot of ELPA in ELSI package will not be built in this case.
-
-1) Add the following keywords to "make.sys":
-
-      USER_ELPA = yes
-      ELPA_DIR  = /PATH/TO/ELPA
-      ELPA_LIB  = -L/PATH/TO/ELPA/lib -lelpa -I/PATH/TO/ELPA/include
-
-2) To build libOMM, PEXSI, and ELSI interface, type
-
-      "make -f Makefile.elsi"
-
-3) To create ELSI library, type
-
-      "make -f Makefile.elsi install"
-
-4) Pre-installed libOMM and PEXSI are supported by:
-
-      USER_OMM = yes
-      OMM_DIR  = /PATH/TO/OMM
-      OMM_LIB  = -L/PATH/TO/OMM/lib -lomm -I/PATH/TO/OMM/include
-
-   and
-
-      USER_PEXSI = yes
-      PEXSI_DIR  = /PATH/TO/PEXSI
-      PEXSI_LIB  = -L/PATH/TO/PEXSI/lib -lpexsi -I//PATH/TO/PEXSI/include
-
-==========================================================================
-D) ADVANCE III
-
    Disable C++ code in ELSI.
 ==========================================================================
 
@@ -151,18 +117,18 @@ D) ADVANCE III
 
 2) To build ELSI, type
 
-      "make -f Makefile.elsi"
+      "make"
 
 3) To create ELSI library, type
 
-      "make -f Makefile.elsi install"
+      "make install"
 
 ==========================================================================
-E) TROUBLE SHOOTING
+D) TROUBLE SHOOTING
 
    For comments, feedback, ideas, ... please email elsi-team@duke.edu
 
-   http://www.elsi-interchange.org
+   http://elsi-interchange.org
 
    Copyright (c) 2015-2017, ELSI consortium. All rights reserved.
 ==========================================================================

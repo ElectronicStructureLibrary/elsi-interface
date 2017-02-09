@@ -3,11 +3,5 @@ make.sys
 *.mod
 *.tmp
 *.swp
-ELSI/bin
-ELSI/doc/html
-ELSI/doc/latex
-EXTERNAL/PEXSI/fortran/f_driver_ksdft
-EXTERNAL/PEXSI/fortran/f_driver_pselinv_complex
-EXTERNAL/PEXSI/fortran/f_driver_pselinv_complex_unsym
-EXTERNAL/PEXSI/fortran/f_driver_pselinv_real
-EXTERNAL/PEXSI/fortran/f_driver_pselinv_real_unsym
+src/ELSI/doc/html
+src/ELSI/doc/latex

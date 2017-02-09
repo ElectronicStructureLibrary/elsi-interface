@@ -1,3 +1,7 @@
+# ELPA Makefile developed for ELSI installer
+# Victor Yu @ELSI team
+# Feb 8, 2017
+
 ifeq ($(strip $(XLF)),yes)
   XLFPP = -WF,
 endif
@@ -224,7 +228,5 @@ clean:
 install:
 	$(ARCHIVE) $(ARCHIVEFLAGS) libelpa.a *.o
 	$(RANLIB) libelpa.a
-	mkdir -p ./lib
-	cp libelpa.a ./lib/.
-	mkdir -p ./include
-	cp *.mod ./include/.
+	cp libelpa.a $(LIB_DIR)
+	cp *.mod $(INC_DIR)
