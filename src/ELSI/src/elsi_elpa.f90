@@ -940,6 +940,7 @@ subroutine elsi_to_standard_evp_sp()
 
    implicit none
    include 'mpif.h'
+
    real*8, allocatable :: buffer_real(:,:)
    complex*16, allocatable :: buffer_complex(:,:)
    logical :: success
@@ -1243,7 +1244,6 @@ end subroutine
 subroutine elsi_check_singularity_sp()
 
    implicit none
-    
    include 'mpif.h'   
 
    real*8 :: ev_sqrt
