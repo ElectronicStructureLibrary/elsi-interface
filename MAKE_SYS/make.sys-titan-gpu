@@ -14,10 +14,10 @@ CXX_LDFLAGS = -lstdc++
 LDFLAGS     = -Wl,--allow-multiple-definition
 
 # ====== ELPA ======
-ARCHITECTURE = GPU
-NVCC = nvcc
-NVCCFLAGS = -arch sm_35 -O3
-CUDA = -lcudart -lcublas
+ELPA2_KERNEL = GPU
+NVCC         = nvcc
+NVCCFLAGS    = -arch sm_35 -O3
+CUDA         = -lcudart -lcublas
 
 # ====== PEXSI ======
 METIS_LIB       = -L/ccs/home/vwzyu/parmetis-4.0.3/build/Linux-x86_64/libmetis -lmetis

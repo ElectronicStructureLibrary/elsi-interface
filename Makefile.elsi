@@ -34,7 +34,7 @@ LINKER     ?= $(MPIFC)
 LDFLAGS    ?= $(FFLAGS_I)
 
 # Default architecture
-ARCHITECTURE ?= Generic
+ELPA2_KERNEL ?= Generic
 OPENMP       ?= no
 
 # Verification settings

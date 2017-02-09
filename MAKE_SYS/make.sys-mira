@@ -30,7 +30,7 @@ SCALAPACK_LDFLAGS = -L/soft/libraries/alcf/current/xl/SCALAPACK/lib -lscalapack 
                     -L${IBM_MAIN_DIR}/xlmass/bg/7.3/bglib64 -lmass
 
 # ====== ELPA ======
-ARCHITECTURE = BGQ
+ELPA2_KERNEL = BGQ
 
 # ====== PEXSI ======
 METIS_LIB       = -L/home/wzvyu/parmetis-4.0.3/build/Linux-ppc64/libmetis -lmetis

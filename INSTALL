@@ -69,7 +69,7 @@ B) ADVANCE I
 
 1) ELPA Kernels written for specific architectures
 
-      ARCHITECTURE =  # Default: Generic
+      ELPA2_KERNEL =  # Default: Generic
                       # Options: SSE
                       #          AVX
                       #          AVX2

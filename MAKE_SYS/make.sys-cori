@@ -18,7 +18,7 @@ CXX_LDFLAGS       = -lstdc++
 SCALAPACK_LDFLAGS = -mkl=cluster
 
 # ====== ELPA ======
-ARCHITECTURE  = AVX
+ELPA2_KERNEL  = AVX
 BLOCK_REAL    = 2
 BLOCK_COMPLEX = 1
 

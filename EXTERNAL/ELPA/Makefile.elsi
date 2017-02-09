@@ -5,10 +5,10 @@ endif
 FFLAGS_E += $(SCALAPACK_FCFLAGS) -I.
 FPP += $(XLFPP)-DWITH_MPI $(XLFPP)-DWITH_ONE_SPECIFIC_REAL_KERNEL $(XLFPP)-DWITH_ONE_SPECIFIC_COMPLEX_KERNEL
 
-ifeq ($(strip $(ARCHITECTURE)),GPU)
+ifeq ($(strip $(ELPA2_KERNEL)),GPU)
   FPP += $(XLFPP)-DWITH_GPU_VERSION
 endif
-ifeq ($(strip $(ARCHITECTURE)),Generic)
+ifeq ($(strip $(ELPA2_KERNEL)),Generic)
   $(info =========================================)
   $(info = Generic ELPA2 kernel has been chosen. =)
   $(info = Often, this is a good first step.     =)
@@ -18,15 +18,15 @@ ifeq ($(strip $(ARCHITECTURE)),Generic)
   ELPA2_KERNELS_O ?= elpa2_kernels_real.o elpa2_kernels_complex.o
   FPP += $(XLFPP)-DWITH_REAL_GENERIC_KERNEL $(XLFPP)-DWITH_COMPLEX_GENERIC_KERNEL
 endif
-ifeq ($(strip $(ARCHITECTURE)),BGQ)
+ifeq ($(strip $(ELPA2_KERNEL)),BGQ)
   ELPA2_KERNELS_O ?= elpa2_kernels_real_bgq.o elpa2_kernels_complex.o
   FPP += $(XLFPP)-DWITH_REAL_BGQ_KERNEL $(XLFPP)-DWITH_COMPLEX_GENERIC_KERNEL
 endif
-ifeq ($(strip $(ARCHITECTURE)),SSE)
+ifeq ($(strip $(ELPA2_KERNEL)),SSE)
   ELPA2_KERNELS_O ?= elpa2_kernels_asm_x86_64_double_precision.o
   FPP += $(XLFPP)-DHAVE_SSE_ASSEMBLY $(XLFPP)-DWITH_REAL_SSE_ASSEMBLY_KERNEL $(XLFPP)-DWITH_COMPLEX_SSE_ASSEMBLY_KERNEL
 endif
-ifeq ($(strip $(ARCHITECTURE)),AVX)
+ifeq ($(strip $(ELPA2_KERNEL)),AVX)
   ELPA2_KERNELS_O ?= elpa2_kernels_real_avx-avx2_2hv_double_precision.o elpa2_kernels_complex_avx-avx2_1hv_double_precision.o
   FPP += $(XLFPP)-DHAVE_AVX
   ifeq ($(strip $(BLOCK_REAL)),2)
@@ -50,7 +50,7 @@ ifeq ($(strip $(ARCHITECTURE)),AVX)
     FPP += $(XLFPP)-DWITH_COMPLEX_AVX_BLOCK2_KERNEL
   endif
 endif
-ifeq ($(strip $(ARCHITECTURE)),AVX2)
+ifeq ($(strip $(ELPA2_KERNEL)),AVX2)
   ELPA2_KERNELS_O ?= elpa2_kernels_real_avx-avx2_2hv_double_precision.o elpa2_kernels_complex_avx-avx2_1hv_double_precision.o
   FPP += $(XLFPP)-DHAVE_AVX2
   ifeq ($(strip $(BLOCK_REAL)),2)
@@ -74,12 +74,12 @@ ifeq ($(strip $(ARCHITECTURE)),AVX2)
     FPP += $(XLFPP)-DWITH_COMPLEX_AVX2_BLOCK2_KERNEL
   endif
 endif
-ifneq ($(strip $(ARCHITECTURE)),GPU)
+ifneq ($(strip $(ELPA2_KERNEL)),GPU)
   ifeq ($(strip $(ELPA2_KERNELS_O)),)
-    $(info Please check your choice for ARCHITECTURE.)
+    $(info Please check your choice for ELPA2_KERNEL.)
     $(info Often, generic kernels and mpi-only may be a good first step,)
     $(info but considering your specific computer platform may make a big difference.)
-    $(error Invalid choice for ARCHITECTURE.)
+    $(error Invalid choice for ELPA2_KERNEL.)
   endif
 endif
 
@@ -100,7 +100,7 @@ GPU_O = cudaFunctions.o cuUtils.o ev_tridi_band_gpu_c_v2.o
 
 ALL_OBJECTS = $(ELPA1_O) $(ELPA2_O) $(ELPA2_KERNELS_O) $(ELPA_QR_O) $(COMPUTE_MODULES_O)
 
-ifeq ($(strip $(ARCHITECTURE)),GPU)
+ifeq ($(strip $(ELPA2_KERNEL)),GPU)
   ALL_OBJECTS += $(GPU_O)
 endif
 
