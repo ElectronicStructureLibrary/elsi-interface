@@ -15,7 +15,7 @@ A) QUICK PROGRAMMING GUIDE
    NOTE: C/C++ interface is not yet available, but will be.
 
    Before calling ELSI to treat the Kohn-Sham eigenvalue problem, MPI and BLACS
-   environment should be setup by the electronic structure code.
+   environment should be set up by the electronic structure code.
 
    The typical workflow of ELSI within an electronic structure code is:
 
@@ -73,8 +73,8 @@ A) QUICK PROGRAMMING GUIDE
    Customize routines are all OPTIONAL. ELSI sets reasonable default parameters for
    each solver. However, these default settings do not always guarantee the best
    performance. Every single technical parameter within each solver is accessible
-   to advanced users by using the customize routines, i.e. elsi_customize_elpa,
-   elsi_customize_omm, and elsi_customize_pexsi.
+   to experienced users by using the customize routines, i.e. elsi_customize_elpa,
+   elsi_customize_omm, elsi_customize_pexsi, and elsi_customize.
 
 *  call elsi_customize_{elpa|omm|pexxi}(keyword=choice)
 
@@ -118,19 +118,16 @@ B) COMPILATION GUIDE
 
       ELSI_INCLUDE = -I${ELSI_HOME}/include
 
-      ELSI_LIB = -L${ELSI_HOME}/ELSI/lib -lelsi \
-                 -lOMM -lMatrixSwitch -lpspblas \
-                 -lelpa \
-                 -lpexsi \
+      ELSI_LIB = -L${ELSI_HOME}/lib -lelsi \
+                 -lOMM -lMatrixSwitch -lpspblas -lelpa -lpexsi \
                  -L${SUPERLU_HOME}/lib -lsuperlu \
                  -L${PARMETIS_HOME}/lib -lparmetis -lmetis
 
    NOTE: If PEXSI is disabled by setting DISABLE_CXX = yes in the "make.sys" file,
          the following ELSI_LIB should be use:
 
-      ELSI_LIB = -L${ELSI_HOME}/ELSI/lib -lelsi \
-                 -lOMM -lMatrixSwitch -lpspblas \
-                 -lelpa
+      ELSI_LIB = -L${ELSI_HOME}/lib -lelsi \
+                 -lOMM -lMatrixSwitch -lpspblas -lelpa
 
    Then add ${ELSI_INCLUDE}/${ELSI_LIB} to the compiler/linker flags.
 
@@ -142,7 +139,7 @@ C) BEYOND THIS GUIDE
 ====================
 
    Usage of ELSI density matrix solver for complex problems are work-in-progress and
-   EXPERIMENTAL, with k-point and spin parallel treatment being supported soon.
+   EXPERIMENTAL.
 
    Documentation of each module, subroutine, and function in ELSI interface can be
    generated using Doxygen in ./src/ELSI/doc directory.
