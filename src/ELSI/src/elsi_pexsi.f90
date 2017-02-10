@@ -137,8 +137,12 @@ subroutine elsi_blacs_to_pexsi(H_in,S_in)
       endif
    else
       if(pole_parallelism) then
-         call elsi_blacs_to_pexsi_hs_v1(H_in,S_in)
-      else
+         if(n_g_size < 46340) then ! kind=4 integer works
+            call elsi_blacs_to_pexsi_hs_v1(H_in,S_in)
+         else ! use kind=8 integer
+            call elsi_blacs_to_pexsi_hs_v3(H_in,S_in)
+         endif
+      else ! no pole parallelism
          call elsi_blacs_to_pexsi_hs_v2(H_in,S_in)
       endif
    endif
@@ -155,7 +159,11 @@ subroutine elsi_pexsi_to_blacs_dm(D_out)
 
    real*8, intent(out) :: D_out(n_l_rows,n_l_cols) !< Density matrix to be converted
 
-   call elsi_pexsi_to_blacs_dm_v1(D_out)
+   if(n_g_size < 46340) then ! kind=4 integer works
+      call elsi_pexsi_to_blacs_dm_v1(D_out)
+   else ! use kind=8 integer
+      call elsi_pexsi_to_blacs_dm_v3(D_out)
+   endif
 
 end subroutine
 
@@ -345,10 +353,6 @@ subroutine elsi_blacs_to_pexsi_hs_v1(H_in,S_in)
       s_val_recv_buffer(i_val) = s_val_recv_buffer(min_id)
       s_val_recv_buffer(min_id) = tmp_real
    enddo
-
-!DEBUG
-if(myid == 0) print *, "1D id:", pos_recv_buffer
-call elsi_stop("stop",caller)
 
    ! 2nd round of alltoall
    ! Set send_count, all data sent to the first pole
@@ -644,6 +648,9 @@ end subroutine
 !! sparse CCS format, which can be used as input by PEXSI.
 !!
 !! Usage:
+!!
+!! * The algorithm here is similar to "v1", however uses integer(kind=8)
+!!   to deal with large matrices.
 !!
 !! * PEXSI pole parallelism MUST be available. Data redistributed on
 !!   the processors corresponding to the first pole.
@@ -1100,6 +1107,12 @@ end subroutine
 !! This routine converts density matrix computed by PEXSI and stored
 !! in 1D block distributed sparse CCS format to 2D block-cyclic
 !! distributed dense format.
+!!
+!! * The algorithm here is similar to "v1", however uses integer(kind=8)
+!!   to deal with large matrices.
+!!
+!! * There is no "v2" for the PEXSI ==> BLACS redistribution. The name
+!!   "v3" corresponds to the BLACS ==> PEXSI redistribution.
 !!
 subroutine elsi_pexsi_to_blacs_dm_v3(D_out)
 
