@@ -38,21 +38,21 @@ module ELSI_DIMENSIONS
 ! ========= MATRIX =========
 
    !> Pointers used when input format compatible with chosen solver
-   real*8,     pointer :: ham_real(:,:)         !< Real Hamiltonian
-   complex*16, pointer :: ham_complex(:,:)      !< Complex Hamiltonian
-   real*8,     pointer :: ovlp_real(:,:)        !< Real overlap
-   complex*16, pointer :: ovlp_complex(:,:)     !< Complex overlap
-   real*8,     pointer :: eval(:)               !< Eigenvalues
-   real*8,     pointer :: evec_real(:,:)        !< Real eigenvectors
-   complex*16, pointer :: evec_complex(:,:)     !< Complex eigenvectors
-   real*8,     pointer :: den_mat(:,:)          !< Density matrix
-   real*8,     pointer :: ham_real_ccs(:,:)     !< Real Hamiltonian
-   complex*16, pointer :: ham_complex_ccs(:,:)  !< Complex Hamiltonian
-   real*8,     pointer :: ovlp_real_ccs(:,:)    !< Real overlap
-   complex*16, pointer :: ovlp_complex_ccs(:,:) !< Complex overlap
-   real*8,     pointer :: den_mat_ccs(:,:)      !< Density matrix
-   integer,    pointer :: row_ind_ccs(:)        !< Row index
-   integer,    pointer :: col_ptr_ccs(:)        !< Column pointer
+   real*8,     pointer :: ham_real(:,:)       !< Real Hamiltonian
+   complex*16, pointer :: ham_complex(:,:)    !< Complex Hamiltonian
+   real*8,     pointer :: ovlp_real(:,:)      !< Real overlap
+   complex*16, pointer :: ovlp_complex(:,:)   !< Complex overlap
+   real*8,     pointer :: eval(:)             !< Eigenvalues
+   real*8,     pointer :: evec_real(:,:)      !< Real eigenvectors
+   complex*16, pointer :: evec_complex(:,:)   !< Complex eigenvectors
+   real*8,     pointer :: den_mat(:,:)        !< Density matrix
+   real*8,     pointer :: ham_real_ccs(:)     !< Real Hamiltonian
+   complex*16, pointer :: ham_complex_ccs(:)  !< Complex Hamiltonian
+   real*8,     pointer :: ovlp_real_ccs(:)    !< Real overlap
+   complex*16, pointer :: ovlp_complex_ccs(:) !< Complex overlap
+   real*8,     pointer :: den_mat_ccs(:)      !< Density matrix
+   integer,    pointer :: row_ind_ccs(:)      !< Row index
+   integer,    pointer :: col_ptr_ccs(:)      !< Column pointer
 
    !> Allocatables used when input format incompatible with chosen solver
    real*8,     allocatable :: ham_real_elpa(:,:)     !< Real Hamiltonian
@@ -201,15 +201,17 @@ module ELSI_DIMENSIONS
    logical :: use_psp = .false.    !< Use pspBLAS sparse linear algebra?
 
    !> PEXSI
-   logical                :: pole_parallelism = .true. !< Use PEXSI pole parallelism?
-   logical                :: small_pexsi_tol = .false. !< Is user-defined tolerance smaller than default?
-   real(c_double)         :: final_pexsi_tol = 1d-2    !< Default final PEXSI tolerance
+   logical                :: pexsi_n_poles_set = .false.      !< Is number of PEXSI poles set by user?
+   logical                :: sparsity_pattern_ready = .false. !< Is sparsity pattern set by user?
+   logical                :: pole_parallelism = .true.        !< Use PEXSI pole parallelism?
+   logical                :: small_pexsi_tol = .false.        !< Is user-defined tolerance smaller than default?
+   real(c_double)         :: final_pexsi_tol = 1d-2           !< Default final PEXSI tolerance
    integer(c_intptr_t)    :: pexsi_plan
    type(f_ppexsi_options) :: pexsi_options
    integer(c_int)         :: pexsi_info
    integer(c_int)         :: pexsi_output_file_index
-   real(c_double)         :: mu_pexsi = 0d0            !< Chemical potential computed by PEXSI
-   real(c_double)         :: n_electrons_pexsi         !< Number of electrons computed by PEXSI
+   real(c_double)         :: mu_pexsi = 0d0                   !< Chemical potential computed by PEXSI
+   real(c_double)         :: n_electrons_pexsi                !< Number of electrons computed by PEXSI
    real(c_double)         :: mu_min_inertia 
    real(c_double)         :: mu_max_inertia 
    integer(c_int)         :: n_total_inertia_iter

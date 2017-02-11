@@ -61,6 +61,13 @@ subroutine elsi_init_pexsi()
    character*200 :: info_str
    character*40, parameter :: caller = "elsi_init_pexsi"
 
+   if(storage /= DENSE) then
+      if(.not.pexsi_n_poles_set) then
+         pexsi_options%numPole = n_procs
+         pexsi_n_poles_set = .true.
+      endif
+   endif
+
    if(method == PEXSI) then
       if(MOD(n_procs,pexsi_options%numPole) == 0) then
          n_p_per_pole_pexsi = n_procs/pexsi_options%numPole
@@ -1010,10 +1017,10 @@ subroutine elsi_pexsi_to_blacs_dm_v1(D_out)
       i_col = 0
       ! Compute destination and global 1D id
       do i_val = 1,nnz_l_pexsi
-         if(i_val == col_ptr_pexsi(i_col+1) .and. i_col /= n_l_cols_pexsi) then
+         if(i_val == col_ptr_ccs(i_col+1) .and. i_col /= n_l_cols_pexsi) then
             i_col = i_col+1
          endif
-         i_row = row_ind_pexsi(i_val)
+         i_row = row_ind_ccs(i_val)
 
          ! Compute global id
          global_row_id = i_row
@@ -1033,7 +1040,7 @@ subroutine elsi_pexsi_to_blacs_dm_v1(D_out)
          do i_val = 1,nnz_l_pexsi
             if(dest(i_val) == i_proc) then
                j_val = j_val+1
-               val_send_buffer(j_val) = den_mat_pexsi(i_val)
+               val_send_buffer(j_val) = den_mat_ccs(i_val)
                pos_send_buffer(j_val) = global_id(i_val)
                send_count(i_proc+1) = send_count(i_proc+1)+1
             endif
@@ -1172,10 +1179,10 @@ subroutine elsi_pexsi_to_blacs_dm_v3(D_out)
       i_col = 0
       ! Compute destination and global id
       do i_val = 1,nnz_l_pexsi
-         if(i_val == col_ptr_pexsi(i_col+1) .and. i_col /= n_l_cols_pexsi) then
+         if(i_val == col_ptr_ccs(i_col+1) .and. i_col /= n_l_cols_pexsi) then
             i_col = i_col+1
          endif
-         i_row = row_ind_pexsi(i_val)
+         i_row = row_ind_ccs(i_val)
 
          ! Compute global id
          global_row_id(i_val) = i_row
@@ -1194,7 +1201,7 @@ subroutine elsi_pexsi_to_blacs_dm_v3(D_out)
          do i_val = 1,nnz_l_pexsi
             if(dest(i_val) == i_proc) then
                j_val = j_val+1
-               val_send_buffer(j_val) = den_mat_pexsi(i_val)
+               val_send_buffer(j_val) = den_mat_ccs(i_val)
                row_send_buffer(j_val) = global_row_id(i_val)
                col_send_buffer(j_val) = global_col_id(i_val)
                send_count(i_proc+1) = send_count(i_proc+1)+1
@@ -1289,11 +1296,6 @@ subroutine elsi_solve_evp_pexsi()
       call elsi_statement_print(info_str)
    endif
 
-   if(.not.ALLOCATED(den_mat_pexsi)) then
-      call elsi_allocate(den_mat_pexsi,nnz_l_pexsi,"den_mat_pexsi",caller)
-   endif
-   den_mat_pexsi = 0d0
-
    if(.not.ALLOCATED(e_den_mat_pexsi)) then
       call elsi_allocate(e_den_mat_pexsi,nnz_l_pexsi,"e_den_mat_pexsi",caller)
    endif
@@ -1307,13 +1309,13 @@ subroutine elsi_solve_evp_pexsi()
    ! Load sparse matrices for PEXSI
    if(overlap_is_unit) then
       call f_ppexsi_load_real_hs_matrix(pexsi_plan,pexsi_options,n_g_size,nnz_g,&
-                                        nnz_l_pexsi,n_l_cols_pexsi,col_ptr_pexsi,&
-                                        row_ind_pexsi,ham_real_pexsi,1,ovlp_real_pexsi,&
+                                        nnz_l_pexsi,n_l_cols_pexsi,col_ptr_ccs,&
+                                        row_ind_ccs,ham_real_ccs,1,ovlp_real_ccs,&
                                         pexsi_info)
    else
       call f_ppexsi_load_real_hs_matrix(pexsi_plan,pexsi_options,n_g_size,nnz_g,&
-                                        nnz_l_pexsi,n_l_cols_pexsi,col_ptr_pexsi,&
-                                        row_ind_pexsi,ham_real_pexsi,0,ovlp_real_pexsi,&
+                                        nnz_l_pexsi,n_l_cols_pexsi,col_ptr_ccs,&
+                                        row_ind_ccs,ham_real_ccs,0,ovlp_real_ccs,&
                                         pexsi_info)
    endif
 
@@ -1327,7 +1329,6 @@ subroutine elsi_solve_evp_pexsi()
    ! Solve the eigenvalue problem
    call elsi_statement_print("  Starting PEXSI density matrix solver")
 
-   ! TODO: expand the driver with its components
    call f_ppexsi_dft_driver(pexsi_plan,pexsi_options,n_electrons,mu_pexsi,&
                             n_electrons_pexsi,mu_min_inertia,mu_max_inertia,&
                             n_total_inertia_iter,n_total_pexsi_iter,pexsi_info)
@@ -1356,7 +1357,7 @@ subroutine elsi_solve_evp_pexsi()
    endif
 
    ! Get the results
-   call f_ppexsi_retrieve_real_dft_matrix(pexsi_plan,den_mat_pexsi,e_den_mat_pexsi,&
+   call f_ppexsi_retrieve_real_dft_matrix(pexsi_plan,den_mat_ccs,e_den_mat_pexsi,&
                                           f_den_mat_pexsi,e_tot_H,e_tot_S,f_tot,pexsi_info)
 
    if(pexsi_info /= 0) then

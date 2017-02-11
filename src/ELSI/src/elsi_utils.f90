@@ -42,6 +42,11 @@ module ELSI_UTILS
    public :: elsi_set_eigenvalue
    public :: elsi_set_eigenvector
    public :: elsi_set_density_matrix
+   public :: elsi_set_row_ind
+   public :: elsi_set_col_ptr
+   public :: elsi_set_sparse_hamiltonian
+   public :: elsi_set_sparse_overlap
+   public :: elsi_set_sparse_density_matrix
    public :: elsi_statement_print
    public :: elsi_allocate
    public :: elsi_cleanup
@@ -53,9 +58,19 @@ module ELSI_UTILS
                        elsi_set_complex_hamiltonian
    end interface
 
+   interface elsi_set_sparse_hamiltonian
+      module procedure elsi_set_sparse_real_hamiltonian,&
+                       elsi_set_sparse_complex_hamiltonian
+   end interface
+
    interface elsi_set_overlap
       module procedure elsi_set_real_overlap,&
                        elsi_set_complex_overlap
+   end interface
+
+   interface elsi_set_sparse_overlap
+      module procedure elsi_set_sparse_real_overlap,&
+                       elsi_set_sparse_complex_overlap
    end interface
 
    interface elsi_set_eigenvector
@@ -338,6 +353,62 @@ subroutine elsi_set_complex_hamiltonian(H_in)
 end subroutine
 
 !>
+!! This routine sets the sparse real Hamiltonian matrix.
+!!
+subroutine elsi_set_sparse_real_hamiltonian(H_in)
+
+   implicit none
+
+   real*8, target :: H_in(nnz_l) !< Sparse real Hamiltonian matrix
+
+   character*40, parameter :: caller = "elsi_set_sparse_real_hamiltonian"
+
+   select case (method)
+      case (ELPA)
+         ! Nothing to be done here
+      case (LIBOMM)
+         ! Nothing to be done here
+      case (PEXSI)
+         ham_real_ccs => H_in
+      case (CHESS)
+         ! Nothing to be done here
+      case DEFAULT
+         call elsi_stop(" No supported solver has been chosen."//&
+                        " Please choose ELPA, LIBOMM, or PEXSI solver."//&
+                        " Exiting...",caller)
+   end select
+
+end subroutine
+
+!>
+!! This routine sets the sparse complex Hamiltonian matrix.
+!!
+subroutine elsi_set_sparse_complex_hamiltonian(H_in)
+
+   implicit none
+
+   complex*16, target :: H_in(nnz_l) !< Sparse complex Hamiltonian matrix
+
+   character*40, parameter :: caller = "elsi_set_sparse_complex_hamiltonian"
+
+   select case (method)
+      case (ELPA)
+         ! Nothing to be done here
+      case (LIBOMM)
+         ! Nothing to be done here
+      case (PEXSI)
+         ham_complex_ccs => H_in         
+      case (CHESS)
+         ! Nothing to be done here
+      case DEFAULT
+         call elsi_stop(" No supported solver has been chosen."//&
+                        " Please choose ELPA, LIBOMM, or PEXSI solver."//&
+                        " Exiting...",caller)
+   end select
+
+end subroutine
+
+!>
 !! This routine sets the real overlap matrix.
 !!
 subroutine elsi_set_real_overlap(S_in)
@@ -385,6 +456,62 @@ subroutine elsi_set_complex_overlap(S_in)
          ! Nothing to be done here
       case (CHESS)
          call elsi_stop(" CHESS not yet implemented. Exiting...",caller)
+      case DEFAULT
+         call elsi_stop(" No supported solver has been chosen."//&
+                        " Please choose ELPA, LIBOMM, or PEXSI solver."//&
+                        " Exiting...",caller)
+   end select
+
+end subroutine
+
+!>
+!! This routine sets the sparse real overlap matrix.
+!!
+subroutine elsi_set_sparse_real_overlap(S_in)
+
+   implicit none
+
+   real*8, target :: S_in(nnz_l) !< Sparse real overlap matrix
+
+   character*40, parameter :: caller = "elsi_set_sparse_real_overlap"
+
+   select case (method)
+      case (ELPA)
+         ! Nothing to be done here
+      case (LIBOMM)
+         ! Nothing to be done here
+      case (PEXSI)
+         ovlp_real_ccs => S_in
+      case (CHESS)
+         ! Nothing to be done here
+      case DEFAULT
+         call elsi_stop(" No supported solver has been chosen."//&
+                        " Please choose ELPA, LIBOMM, or PEXSI solver."//&
+                        " Exiting...",caller)
+   end select
+
+end subroutine
+
+!>
+!! This routine sets the sparse complex overlap matrix.
+!!
+subroutine elsi_set_sparse_complex_overlap(S_in)
+
+   implicit none
+
+   complex*16, target :: S_in(nnz_l) !< Sparse complex overlap matrix
+
+   character*40, parameter :: caller = "elsi_set_sparse_complex_overlap"
+
+   select case (method)
+      case (ELPA)
+         ! Nothing to be done here
+      case (LIBOMM)
+         ! Nothing to be done here
+      case (PEXSI)
+         ovlp_complex_ccs => S_in
+      case (CHESS)
+         ! Nothing to be done here
       case DEFAULT
          call elsi_stop(" No supported solver has been chosen."//&
                         " Please choose ELPA, LIBOMM, or PEXSI solver."//&
@@ -495,6 +622,90 @@ subroutine elsi_set_density_matrix(D_in)
          call m_register_pdbc(den_mat_omm,D_in,sc_desc)
       case (PEXSI)
          ! Nothing to be done here
+      case (CHESS)
+         ! Nothing to be done here
+      case DEFAULT
+         call elsi_stop(" No supported solver has been chosen."//&
+                        " Please choose ELPA, LIBOMM, or PEXSI solver."//&
+                        " Exiting...",caller)
+   end select
+
+end subroutine
+
+!>
+!! This routine sets the sparse density matrix.
+!!
+subroutine elsi_set_sparse_density_matrix(D_in)
+
+   implicit none
+
+   real*8, target :: D_in(nnz_l) !< Sparse density matrix
+
+   character*40, parameter :: caller = "elsi_set_sparse_density_matrix"
+
+   select case (method)
+      case (ELPA)
+         ! Nothing to be done here
+      case (LIBOMM)
+         ! Nothing to be done here
+      case (PEXSI)
+         den_mat_ccs => D_in
+      case (CHESS)
+         ! Nothing to be done here
+      case DEFAULT
+         call elsi_stop(" No supported solver has been chosen."//&
+                        " Please choose ELPA, LIBOMM, or PEXSI solver."//&
+                        " Exiting...",caller)
+   end select
+
+end subroutine
+
+!>
+!! This routine sets the row index.
+!!
+subroutine elsi_set_row_ind(row_ind_in)
+
+   implicit none
+
+   integer, target :: row_ind_in(nnz_l) !< Row index
+
+   character*40, parameter :: caller = "elsi_set_row_ind"
+
+   select case (method)
+      case (ELPA)
+         ! Nothing to be done here
+      case (LIBOMM)
+         ! Nothing to be done here
+      case (PEXSI)
+         row_ind_ccs => row_ind_in
+      case (CHESS)
+         ! Nothing to be done here
+      case DEFAULT
+         call elsi_stop(" No supported solver has been chosen."//&
+                        " Please choose ELPA, LIBOMM, or PEXSI solver."//&
+                        " Exiting...",caller)
+   end select
+
+end subroutine
+
+!>
+!! This routine sets the column pointer.
+!!
+subroutine elsi_set_col_ptr(col_ptr_in)
+
+   implicit none
+
+   integer, target :: col_ptr_in(nnz_l) !< Column pointer
+
+   character*40, parameter :: caller = "elsi_set_cplumn_pointer"
+
+   select case (method)
+      case (ELPA)
+         ! Nothing to be done here
+      case (LIBOMM)
+         ! Nothing to be done here
+      case (PEXSI)
+         col_ptr_ccs => col_ptr_in
       case (CHESS)
          ! Nothing to be done here
       case DEFAULT
@@ -625,7 +836,13 @@ subroutine elsi_check()
    endif
 
    ! The matrix format
-   if(storage < 0 .or. storage > 4) then
+   if(storage >0 .and. storage < 5) then ! Sparse foramt
+      if(.not.sparsity_pattern_ready) then
+         call elsi_stop(" A sparse format has been chosen."//&
+                        " Please set the sparsity pattern before calling the solver."//&
+                        " Exiting...",caller)
+      endif
+   else if(storage /= 0) then
       call elsi_stop(" No supported format has been chosen."//&
                      " Please choose DENSE, CCS, CSC, CRS, or CSR format."//&
                      " Exiting...",caller)

@@ -48,6 +48,7 @@ module ELSI
    public :: elsi_set_method      !< Select solver
    public :: elsi_set_mpi         !< Set MPI from calling code
    public :: elsi_set_blacs       !< Set BLACS from calling code
+   public :: elsi_set_sparsity    !< Set sparsity pattern from calling code
    public :: elsi_customize       !< Override ELSI default
    public :: elsi_customize_elpa  !< Override ELPA default
    public :: elsi_customize_omm   !< Override libOMM default
@@ -56,6 +57,7 @@ module ELSI
    public :: elsi_ev_complex      !< Compute eigenvalues and eigenvectors
    public :: elsi_dm_real         !< Compute density matrix
    public :: elsi_dm_complex      !< Compute density matrix
+   public :: elsi_dm_real_sparse  !< Compute density matrix
    public :: elsi_finalize        !< Clean memory and print timings
 
    integer, external :: numroc
@@ -264,6 +266,33 @@ subroutine elsi_set_blacs(blacs_ctxt_in,n_b_rows_in,n_b_cols_in,&
 end subroutine
 
 !>
+!! This routine sets the sparsity pattern.
+!!
+subroutine elsi_set_sparsity(nnz_g_in,nnz_l_in,nnz_l_cols_in,&
+                             row_ind_in,col_ptr_in)
+
+   implicit none
+
+   integer, intent(in) :: nnz_g_in      !< Global number of nonzeros
+   integer, intent(in) :: nnz_l_in      !< Local number of nonzeros
+   integer, intent(in) :: nnz_l_cols_in !< Local number of columns
+   integer, target     :: row_ind_in(*) !< Row index
+   integer, target     :: col_ptr_in(*) !< Column pointer
+
+   character*40, parameter :: caller = "elsi_set_sparsity"
+
+   nnz_g        = nnz_g_in
+   nnz_l        = nnz_l_in
+   nnz_l_pexsi  = nnz_l_cols_in
+
+   call elsi_set_row_ind(row_ind_in)
+   call elsi_set_col_ptr(col_ptr_in)
+
+   sparsity_pattern_ready = .true.
+
+end subroutine
+
+!>
 !! This routine gets the energy.
 !!
 subroutine elsi_get_energy(energy_out)
@@ -459,8 +488,10 @@ subroutine elsi_customize_pexsi(temperature,gap,delta_E,n_poles,max_iteration,&
 
    ! Number of poles
    ! default: 40
-   if(PRESENT(n_poles)) &
+   if(PRESENT(n_poles)) then
       pexsi_options%numPole = n_poles
+      pexsi_n_poles_set = .true.
+   endif
 
    ! Maximum number of PEXSI iterations after each inertia
    ! counting procedure
@@ -832,6 +863,19 @@ subroutine elsi_dm_real(H_in,S_in,D_out,energy_out)
          ! Convert matrix format and distribution from BLACS to PEXSI
          call elsi_blacs_to_pexsi(H_in,S_in)
 
+         ! Set matices
+         call elsi_set_sparse_hamiltonian(ham_real_pexsi)
+         if(.not.overlap_is_unit) then
+            call elsi_set_sparse_overlap(ovlp_real_pexsi)
+         endif
+         call elsi_set_row_ind(row_ind_pexsi)
+         call elsi_set_col_ptr(col_ptr_pexsi)
+         if(.not.ALLOCATED(den_mat_pexsi)) then
+            call elsi_allocate(den_mat_pexsi,nnz_l_pexsi,"den_mat_pexsi",caller)
+         endif
+         den_mat_pexsi = 0d0
+         call elsi_set_sparse_density_matrix(den_mat_pexsi)
+
          call elsi_solve_evp_pexsi()
 
          ! Convert 1D block CCS sparse density matrix to 2D
@@ -839,6 +883,11 @@ subroutine elsi_dm_real(H_in,S_in,D_out,energy_out)
          call elsi_pexsi_to_blacs_dm(D_out)
          call elsi_get_energy(energy_out)
 
+         if(ASSOCIATED(ham_real_ccs))   nullify(ham_real_ccs)
+         if(ASSOCIATED(ovlp_real_ccs))  nullify(ovlp_real_ccs)
+         if(ASSOCIATED(den_mat_ccs))    nullify(den_mat_ccs)
+         if(ASSOCIATED(row_ind_ccs))    nullify(row_ind_ccs)
+         if(ASSOCIATED(col_ptr_ccs))    nullify(col_ptr_ccs)
          if(ALLOCATED(ham_real_pexsi))  deallocate(ham_real_pexsi)
          if(ALLOCATED(ovlp_real_pexsi)) deallocate(ovlp_real_pexsi)
          if(ALLOCATED(den_mat_pexsi))   deallocate(den_mat_pexsi)
@@ -930,6 +979,64 @@ subroutine elsi_dm_complex(H_in,S_in,D_out,energy_out)
 
       case (PEXSI)
          call elsi_stop(" PEXSI not yet implemented. Exiting...",caller)
+      case (CHESS)
+         call elsi_stop(" CHESS not yet implemented. Exiting...",caller)
+      case default
+         call elsi_stop(" No supported solver has been chosen."//&
+                        " Exiting...",caller)
+   end select
+
+end subroutine
+
+!>
+!! This routine computes density matrix.
+!!
+subroutine elsi_dm_real_sparse(H_in,S_in,D_out,energy_out)
+
+   implicit none
+
+   real*8,  target      :: H_in(*)    !< Hamiltonian
+   real*8,  target      :: S_in(*)    !< Overlap
+   real*8,  target      :: D_out(*)   !< Density matrix
+   real*8,  intent(out) :: energy_out !< Energy
+
+   character*40, parameter :: caller = "elsi_dm_real_sparse"
+
+   ! Safety check
+   call elsi_check()
+
+   ! Update counter
+   n_elsi_calls = n_elsi_calls+1
+
+   ! REAL case
+   call elsi_set_mode(REAL_VALUES)
+
+   ! Solve eigenvalue problem
+   select case (method)
+      case (ELPA)
+         call elsi_stop(" ELPA cannot handle sparse matrices."//&
+                        " Exiting...",caller)
+      case (LIBOMM)
+         call elsi_stop(" libOMM cannot handle sparse matrices."//&
+                        " Exiting...",caller)
+      case (PEXSI)
+         call elsi_print_pexsi_options()
+
+         ! Set matrices
+         call elsi_set_sparse_hamiltonian(H_in)
+         if(.not.overlap_is_unit) then
+            call elsi_set_sparse_overlap(S_in)
+         endif
+         call elsi_set_sparse_density_matrix(D_out)
+
+         call elsi_init_pexsi()
+
+         call elsi_solve_evp_pexsi()
+
+         call elsi_get_energy(energy_out)
+
+         call f_ppexsi_plan_finalize(pexsi_plan,pexsi_info)
+
       case (CHESS)
          call elsi_stop(" CHESS not yet implemented. Exiting...",caller)
       case default
