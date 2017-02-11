@@ -60,7 +60,7 @@ subroutine elsi_solve_evp_omm()
    character*40, parameter :: caller = "elsi_solve_evp_omm"
 
    if(overlap_is_singular) then
-      call elsi_stop(" libOMM cannot treat singular overlap matrix yet. "//&
+      call elsi_stop(" libOMM cannot treat singular overlap matrix yet."//&
                      " Exiting...", caller)
    endif
 

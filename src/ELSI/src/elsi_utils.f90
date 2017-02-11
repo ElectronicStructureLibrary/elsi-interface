@@ -46,6 +46,7 @@ module ELSI_UTILS
    public :: elsi_allocate
    public :: elsi_cleanup
    public :: elsi_stop
+   public :: elsi_check
 
    interface elsi_set_hamiltonian
       module procedure elsi_set_real_hamiltonian,&
@@ -301,8 +302,8 @@ subroutine elsi_set_real_hamiltonian(H_in)
       case (CHESS)
          call elsi_stop(" CHESS not yet implemented. Exiting...",caller)
       case DEFAULT
-         call elsi_stop(" No supported method has been chosen. "//&
-                        " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
+         call elsi_stop(" No supported solver has been chosen."//&
+                        " Please choose ELPA, LIBOMM, or PEXSI solver."//&
                         " Exiting...",caller)
    end select
 
@@ -329,8 +330,8 @@ subroutine elsi_set_complex_hamiltonian(H_in)
       case (CHESS)
          call elsi_stop(" CHESS not yet implemented. Exiting...",caller)
       case DEFAULT
-         call elsi_stop(" No supported method has been chosen. "//&
-                        " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
+         call elsi_stop(" No supported solver has been chosen."//&
+                        " Please choose ELPA, LIBOMM, or PEXSI solver."//&
                         " Exiting...",caller)
    end select
 
@@ -357,8 +358,8 @@ subroutine elsi_set_real_overlap(S_in)
       case (CHESS)
          call elsi_stop(" CHESS not yet implemented. Exiting...",caller)
       case DEFAULT
-         call elsi_stop(" No supported method has been chosen. "//&
-                        " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
+         call elsi_stop(" No supported solver has been chosen."//&
+                        " Please choose ELPA, LIBOMM, or PEXSI solver."//&
                         " Exiting...",caller)
    end select
 
@@ -385,8 +386,8 @@ subroutine elsi_set_complex_overlap(S_in)
       case (CHESS)
          call elsi_stop(" CHESS not yet implemented. Exiting...",caller)
       case DEFAULT
-         call elsi_stop(" No supported method has been chosen. "//&
-                        " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
+         call elsi_stop(" No supported solver has been chosen."//&
+                        " Please choose ELPA, LIBOMM, or PEXSI solver."//&
                         " Exiting...",caller)
    end select
 
@@ -413,8 +414,8 @@ subroutine elsi_set_eigenvalue(e_val_in)
       case (CHESS)
          ! Nothing to be done here
       case DEFAULT
-         call elsi_stop(" No supported method has been chosen. "//&
-                        " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
+         call elsi_stop(" No supported solver has been chosen."//&
+                        " Please choose ELPA, LIBOMM, or PEXSI solver."//&
                         " Exiting...",caller)
    end select
 
@@ -441,8 +442,8 @@ subroutine elsi_set_real_eigenvector(e_vec_in)
       case (CHESS)
          ! Nothing to be done here
       case DEFAULT
-         call elsi_stop(" No supported method has been chosen. "//&
-                        " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
+         call elsi_stop(" No supported solver has been chosen."//&
+                        " Please choose ELPA, LIBOMM, or PEXSI solver."//&
                         " Exiting...",caller)
    end select
 
@@ -469,8 +470,8 @@ subroutine elsi_set_complex_eigenvector(e_vec_in)
       case (CHESS)
          ! Nothing to be done here
       case DEFAULT
-         call elsi_stop(" No supported method has been chosen. "//&
-                        " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
+         call elsi_stop(" No supported solver has been chosen."//&
+                        " Please choose ELPA, LIBOMM, or PEXSI solver."//&
                         " Exiting...",caller)
    end select
 
@@ -497,8 +498,8 @@ subroutine elsi_set_density_matrix(D_in)
       case (CHESS)
          ! Nothing to be done here
       case DEFAULT
-         call elsi_stop(" No supported method has been chosen. "//&
-                        " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
+         call elsi_stop(" No supported solver has been chosen."//&
+                        " Please choose ELPA, LIBOMM, or PEXSI solver."//&
                         " Exiting...",caller)
    end select
 
@@ -554,6 +555,81 @@ subroutine elsi_cleanup()
    if(den_mat_omm%is_initialized)   call m_deallocate(den_mat_omm)
    if(coeff_omm%is_initialized)     call m_deallocate(coeff_omm)
    if(t_den_mat_omm%is_initialized) call m_deallocate(t_den_mat_omm)
+
+end subroutine
+
+!>
+!! This routine guarantees that there are no mutually conflicting parameters.
+!!
+subroutine elsi_check()
+
+   implicit none
+
+   character*40, parameter :: caller = "elsi_check"
+
+   ! The solver
+   if(method == 0) then
+      call elsi_stop(" AUTO not yet available."//&
+                     " Please choose ELPA, LIBOMM, or PEXSI solver."//&
+                     " Exiting...",caller)
+   else if(method == 1) then
+      if(storage /= 0) then
+         call elsi_stop(" ELPA has been chosen as the solver."//&
+                        " Please choose DENSE matrix format."//&
+                        " Exiting...",caller)
+      endif
+   else if(method == 2) then
+      if(parallelism == 0) then
+         call elsi_stop(" libOMM has been chosen as the solver."//&
+                        " Please choose MULTI_PROC parallelism."//&
+                        " Exiting...",caller)
+      endif
+      if(storage /= 0) then
+         call elsi_stop(" libOMM has been chosen as the solver."//&
+                        " Please choose DENSE matrix format."//&
+                        " Exiting...",caller)
+      endif
+      if(MOD(NINT(n_electrons),2) /= 0) then
+         call elsi_stop(" libOMM has been chosen as the solver."//&
+                        " The current implementation of libOMM does not"//&
+                        " support fractional occupation numbers. This"//&
+                        " means number of electrons in non-spin-polarized"//&
+                        " system cannot be odd. Exiting...",caller)
+      endif
+   else if(method == 3) then
+      if(parallelism == 0) then
+         call elsi_stop(" PEXSI has been chosen as the solver."//&
+                        " Please choose MULTI_PROC parallelism."//&
+                        " Exiting...",caller)
+      endif
+      if(n_g_size < n_procs) then
+         call elsi_stop(" PEXSI has been chosen as the solver."//&
+                        " The (global) size of matrix is too small for"//&
+                        " this number of processes. Exiting...",caller)
+      endif
+   else if(method == 4) then
+      call elsi_stop(" CHESS not yet available. "//&
+                     " Please choose ELPA, LIBOMM, or PEXSI solver."//&
+                     " Exiting...",caller)
+   else
+      call elsi_stop(" No supported solver has been chosen."//&
+                     " Please choose ELPA, LIBOMM, or PEXSI solver."//&
+                     " Exiting...",caller)
+   endif
+
+   ! The parallelism
+   if(parallelism < 0 .or. parallelism > 1) then
+      call elsi_stop(" No supported parallelism has been chosen."//&
+                     " Please choose SINGLE_PROC or MULTI_PROC parallelism."//&
+                     " Exiting...",caller)
+   endif
+
+   ! The matrix format
+   if(storage < 0 .or. storage > 4) then
+      call elsi_stop(" No supported format has been chosen."//&
+                     " Please choose DENSE, CCS, CSC, CRS, or CSR format."//&
+                     " Exiting...",caller)
+   endif
 
 end subroutine
 

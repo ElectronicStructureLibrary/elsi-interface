@@ -177,7 +177,7 @@ subroutine elsi_dense_to_ccs(matrix,n_rows,n_cols,nnz,val,row_ind,col_ptr)
    col_ptr(n_cols+1) = i_val+1
 
    if(i_val /= nnz) then
-      call elsi_stop(" Number of nonzero differs. Exiting... ", caller)
+      call elsi_stop(" Number of nonzero differs. Exiting...", caller)
    endif
 
 end subroutine

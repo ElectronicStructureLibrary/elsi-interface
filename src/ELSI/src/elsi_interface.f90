@@ -292,8 +292,8 @@ subroutine elsi_get_energy(energy_out)
       case (CHESS)
          call elsi_stop(" CHESS: not yet implemented! Exiting...",caller)
       case DEFAULT
-         call elsi_stop(" No supported method has been chosen. "//&
-                        " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
+         call elsi_stop(" No supported solver has been chosen."//&
+                        " Please choose ELPA, LIBOMM, or PEXSI solver."//&
                         " Exiting...",caller)
    end select
 
@@ -601,6 +601,9 @@ subroutine elsi_ev_real(H_in,S_in,e_val_out,e_vec_out)
 
    character*40, parameter :: caller = "elsi_ev_real"
 
+   ! Safety check
+   call elsi_check()
+
    ! Update counter
    n_elsi_calls = n_elsi_calls+1
 
@@ -635,9 +638,9 @@ subroutine elsi_ev_real(H_in,S_in,e_val_out,e_vec_out)
          call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
                         " Choose ELPA if necessary. Exiting...",caller)
       case DEFAULT
-         call elsi_stop(" No supported method has been chosen."//&
-                        " Please choose ELPA to compute eigenpairs."//&
-                        " Exiting...",caller)
+         call elsi_stop(" No supported solver has been chosen."//&
+                        " Please choose ELPA solver to compute"//&
+                        " eigenvalues and eigenvectors. Exiting...",caller)
    end select
 
 end subroutine
@@ -655,6 +658,9 @@ subroutine elsi_ev_complex(H_in,S_in,e_val_out,e_vec_out)
    complex*16, target :: e_vec_out(n_l_rows,*) !< Eigenvectors
 
    character*40, parameter :: caller = "elsi_ev_complex"
+
+   ! Safety check
+   call elsi_check()
 
    ! Update counter
    n_elsi_calls = n_elsi_calls+1
@@ -690,9 +696,9 @@ subroutine elsi_ev_complex(H_in,S_in,e_val_out,e_vec_out)
          call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
                         " Choose ELPA if necessary. Exiting...",caller)
       case DEFAULT
-         call elsi_stop(" No supported method has been chosen."//&
-                        " Please choose ELPA to compute eigenpairs."//&
-                        " Exiting...",caller)
+         call elsi_stop(" No supported solver has been chosen."//&
+                        " Please choose ELPA solver to compute"//&
+                        " eigenvalues and eigenvectors. Exiting...",caller)
    end select
 
 end subroutine
@@ -710,6 +716,9 @@ subroutine elsi_dm_real(H_in,S_in,D_out,energy_out)
    real*8, intent(out) :: energy_out        !< Energy
 
    character*40, parameter :: caller = "elsi_dm_real"
+
+   ! Safety check
+   call elsi_check()
 
    ! Update counter
    n_elsi_calls = n_elsi_calls+1
@@ -743,13 +752,6 @@ subroutine elsi_dm_real(H_in,S_in,D_out,energy_out)
          call elsi_get_energy(energy_out)
 
       case (LIBOMM)
-         if(MOD(NINT(n_electrons),2) /= 0) then
-            call elsi_stop(" The current implementation of libOMM does not"//&
-                           " work with fractional occupation numbers. This"//&
-                           " means number of electrons in non-spin-polarized"//&
-                           " system cannot be odd. Exiting...",caller)
-         endif
-
          call elsi_print_omm_options()
 
          if(n_elsi_calls .le. n_elpa_steps) then ! Compute libOMM initial guess by ELPA
@@ -821,11 +823,6 @@ subroutine elsi_dm_real(H_in,S_in,D_out,energy_out)
          endif
 
       case (PEXSI)
-         if(n_g_size < n_procs) then
-            call elsi_stop(" The (global) size of matrix is too small for"//&
-                           " this number of processes. Exiting...",caller)
-         endif
-
          call elsi_print_pexsi_options()
 
          ! PEXSI may use different process grid to achieve
@@ -855,7 +852,7 @@ subroutine elsi_dm_real(H_in,S_in,D_out,energy_out)
       case (CHESS)
          call elsi_stop(" CHESS not yet implemented. Exiting...",caller)
       case default
-         call elsi_stop(" No supported method has been chosen."//&
+         call elsi_stop(" No supported solver has been chosen."//&
                         " Exiting...",caller)
    end select
 
@@ -877,6 +874,9 @@ subroutine elsi_dm_complex(H_in,S_in,D_out,energy_out)
 
    call elsi_stop(" ELSI density matrix solver for complex case not yet available."//&
                   " Exiting...",caller)
+
+   ! Safety check
+   call elsi_check()
 
    ! Update counter
    n_elsi_calls = n_elsi_calls+1
@@ -910,13 +910,6 @@ subroutine elsi_dm_complex(H_in,S_in,D_out,energy_out)
          call elsi_get_energy(energy_out)
 
       case (LIBOMM)
-         if(MOD(NINT(n_electrons),2) /= 0) then
-            call elsi_stop(" The current implementation of libOMM does not"//&
-                           " work with fractional occupation numbers. This"//&
-                           " means number of electrons in non-spin-polarized"//&
-                           " system cannot be odd. Exiting...",caller)
-         endif
-
          call elsi_print_omm_options()
 
          ! Set Hamiltonian and overlap matrices
@@ -940,7 +933,7 @@ subroutine elsi_dm_complex(H_in,S_in,D_out,energy_out)
       case (CHESS)
          call elsi_stop(" CHESS not yet implemented. Exiting...",caller)
       case default
-         call elsi_stop(" No supported method has been chosen."//&
+         call elsi_stop(" No supported solver has been chosen."//&
                         " Exiting...",caller)
    end select
 

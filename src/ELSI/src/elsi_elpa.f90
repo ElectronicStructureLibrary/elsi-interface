@@ -128,7 +128,7 @@ subroutine elsi_compute_occ_elpa()
    do while(diff_ne_lower*diff_ne_upper > 0)
       n_steps = n_steps+1
       if(n_steps > max_steps) then
-         call elsi_stop(" Chemical potential not found in 100 iterations! "//&
+         call elsi_stop(" Chemical potential not found in 100 iterations!"//&
                         " Exiting...",caller)
       endif
 
@@ -189,7 +189,8 @@ subroutine elsi_get_ne(mu_in,diff_ne_out)
          enddo
 
       case DEFAULT
-         call elsi_stop(" No supperted broadening scheme has been chosen. "//&
+         call elsi_stop(" No supperted broadening scheme has been chosen."//&
+                        " Please choose GAUSSIAN or FERMI broadening scheme."//&
                         " Exiting...",caller)
    end select
 
@@ -240,7 +241,7 @@ subroutine elsi_get_mu(mu_lower_in,mu_upper_in,mu_out)
 
          n_steps = n_steps+1
          if(n_steps > max_steps) then
-            call elsi_stop(" Chemical potential not found in 100 iterations! "//&
+            call elsi_stop(" Chemical potential not found in 100 iterations!"//&
                            " Exiting...",caller)
          endif
 
@@ -372,17 +373,17 @@ subroutine elsi_compute_dm_elpa()
          deallocate(tmp_real)
 
       case (LIBOMM)
-         call elsi_stop(" LIBOMM does not compute density matrix from eigenvectors! "//&
+         call elsi_stop(" LIBOMM does not compute density matrix from eigenvectors!"//&
                         " Exiting...",caller)
       case (PEXSI)
-         call elsi_stop(" PEXSI does not compute density matrix from eigenvectors! "//&
+         call elsi_stop(" PEXSI does not compute density matrix from eigenvectors!"//&
                         " Exiting...",caller)
       case (CHESS)
-         call elsi_stop(" CHESS does not compute density matrix from eigenvectors! "//&
+         call elsi_stop(" CHESS does not compute density matrix from eigenvectors!"//&
                         " Exiting...",caller)
       case DEFAULT
-         call elsi_stop(" No supported method has been chosen. "//&
-                        " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
+         call elsi_stop(" No supported solver has been chosen."//&
+                        " Please choose ELPA, LIBOMM, or PEXSI solver."//&
                         " Exiting...",caller)
    end select
 
@@ -567,8 +568,8 @@ subroutine elsi_to_standard_evp()
       case (PEXSI)
          call elsi_stop(" PEXSI does not need to transform evp. Exiting...",caller)
       case DEFAULT
-         call elsi_stop(" No supported method has been chosen. "//&
-                        " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
+         call elsi_stop(" No supported solver has been chosen."//&
+                        " Please choose ELPA, LIBOMM, or PEXSI solver."//&
                         " Exiting...",caller)
    end select
 
@@ -624,7 +625,7 @@ subroutine elsi_check_singularity()
                                             singularity_tolerance,n_nonsingular)
 
                if(.not.success) then
-                  call elsi_stop(" ELPA failed when solving eigenvalue problem. "//&
+                  call elsi_stop(" ELPA failed when solving eigenvalue problem."//&
                                  " Exiting...", caller)
                endif
 
@@ -700,7 +701,7 @@ subroutine elsi_check_singularity()
                                          singularity_tolerance,n_nonsingular)
 
                if(.not.success) then
-                  call elsi_stop(" ELPA failed when solving eigenvalue problem. "//&
+                  call elsi_stop(" ELPA failed when solving eigenvalue problem."//&
                                  " Exiting...", caller)
                endif
 
@@ -761,8 +762,8 @@ subroutine elsi_check_singularity()
       case (PEXSI)
          call elsi_stop(" PEXSI does not need to check for singularity. Exiting...",caller)
       case DEFAULT
-         call elsi_stop(" No supported method has been chosen. "//&
-                        " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
+         call elsi_stop(" No supported solver has been chosen."//&
+                        " Please choose ELPA, LIBOMM, or PEXSI solver."//&
                         " Exiting...",caller)
    end select ! select method
 
@@ -837,8 +838,8 @@ subroutine elsi_to_original_ev()
       case (PEXSI)
          call elsi_stop(" PEXSI does not have eigenvectors. Exiting...",caller)
       case DEFAULT
-         call elsi_stop(" No supported method has been chosen. "//&
-                        " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
+         call elsi_stop(" No supported solver has been chosen."//&
+                        " Please choose ELPA, LIBOMM, or PEXSI solver."//&
                         " Exiting...",caller)
    end select
 
@@ -909,7 +910,7 @@ subroutine elsi_solve_evp_elpa()
    endif
 
    if(.not.success) then
-      call elsi_stop(" ELPA failed when solving eigenvalue problem. "//&
+      call elsi_stop(" ELPA failed when solving eigenvalue problem."//&
                      " Exiting...",caller)
    endif
 
@@ -975,7 +976,7 @@ subroutine elsi_to_standard_evp_sp()
                   success = elpa_invert_trm_complex_double(n_g_size,ovlp_complex,n_l_rows,&
                                n_b_rows,n_l_cols,mpi_comm_self,mpi_comm_self,.false.)
                   if(.not.success) then
-                     call elsi_stop(" Matrix inversion failed.", caller)
+                     call elsi_stop(" Matrix inversion failed.",caller)
                   endif
                endif
 !               endif ! n_elsi_calls == 1
@@ -1069,8 +1070,8 @@ subroutine elsi_to_standard_evp_sp()
       case (PEXSI)
          call elsi_stop(" PEXSI does not need to transform evp. Exiting...",caller)
       case DEFAULT
-         call elsi_stop(" No supported method has been chosen. "//&
-                        " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
+         call elsi_stop(" No supported solver has been chosen."//&
+                        " Please choose ELPA, LIBOMM, or PEXSI solver."//&
                         " Exiting...",caller)
    end select
 
@@ -1130,8 +1131,8 @@ subroutine elsi_to_original_ev_sp()
       case (PEXSI)
          call elsi_stop(" PEXSI does not have eigenvectors. Exiting...",caller)
       case DEFAULT
-         call elsi_stop(" No supported method has been chosen. "//&
-                        " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
+         call elsi_stop(" No supported solver has been chosen."//&
+                        " Please choose ELPA, LIBOMM, or PEXSI solver."//&
                         " Exiting...",caller)
    end select
 
@@ -1219,7 +1220,7 @@ subroutine elsi_solve_evp_elpa_sp()
    deallocate(e)
 
    if(.not.success) then
-      call elsi_stop(" ELPA failed when solving eigenvalue problem. "//&
+      call elsi_stop(" ELPA failed when solving eigenvalue problem."//&
                      " Exiting...",caller)
    endif
 
@@ -1282,7 +1283,7 @@ subroutine elsi_check_singularity_sp()
                                             mpi_comm_self,singularity_tolerance,&
                                             n_nonsingular)
                if(.not.success) then
-                  call elsi_stop(" ELPA failed when solving eigenvalue problem. "//&
+                  call elsi_stop(" ELPA failed when solving eigenvalue problem."//&
                                  " Exiting...", caller)
                endif
 
@@ -1357,7 +1358,7 @@ subroutine elsi_check_singularity_sp()
                                          mpi_comm_self,singularity_tolerance,&
                                          n_nonsingular)
                if(.not.success) then
-                  call elsi_stop(" ELPA failed when solving eigenvalue problem. "//&
+                  call elsi_stop(" ELPA failed when solving eigenvalue problem."//&
                                  " Exiting...", caller)
                endif
 
@@ -1417,8 +1418,8 @@ subroutine elsi_check_singularity_sp()
       case (PEXSI)
          call elsi_stop(" PEXSI does not need to check for singularity. Exiting...",caller)
       case DEFAULT
-         call elsi_stop(" No supported method has been chosen. "//&
-                        " Please choose ELPA, LIBOMM, PEXSI, or CHESS. "//&
+         call elsi_stop(" No supported solver has been chosen."//&
+                        " Please choose ELPA, LIBOMM, or PEXSI solver."//&
                         " Exiting...",caller)
    end select ! select method
 
