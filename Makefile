@@ -51,6 +51,12 @@ OPENMP       ?= no
 # Name of MPI executable
 MPI_EXEC ?= mpirun
 
+# Create C interfaces
+C_INTERFACE ?= no
+ifeq ($(strip $(C_INTERFACE)),yes)
+  C_BINDING = elsi_c_interface.o
+endif
+
 export
 
 # Use stub if PEXSI is disabled in make.sys
