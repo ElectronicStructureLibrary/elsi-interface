@@ -12,6 +12,8 @@ FPPFLAGS += $(XLFPP)-DMPI
 FPPFLAGS += $(XLFPP)-DLAP
 FPPFLAGS += $(XLFPP)-DSLAP
 
+ELPA_INCLUDE = -I ../ELPA/
+
 BLASLIB = $(SCALAPACK_LDFLAGS)
 LAPLIB  = $(SCALAPACK_LDFLAGS)
 SLAPLIB = $(SCALAPACK_LDFLAGS)
@@ -186,13 +188,13 @@ omm_ops.o: ./libOMM/src/omm_ops.F90 omm_params.o MatrixSwitch.o
 	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -I$(INC_DIR) -c $< -o $@
 
 omm.o: ./libOMM/src/omm.F90 omm_ops.o omm_rand.o MatrixSwitch.o pspBLAS.o MatrixSwitch_ops.o
-	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -I$(INC_DIR) -c $< -o $@
 
 omm_wrappers.o: ./libOMM/src/omm_wrappers.F90 omm_params.o MatrixSwitch.o
 	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
 
 omm_callback.o: ./libOMM/src/omm_callback.F90 omm_ops.o omm_rand.o MatrixSwitch.o MatrixSwitch_ops.o
-	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
+	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -I$(INC_DIR) -c $< -o $@
 
 tomato_lib: libtomato.a MatrixSwitch_lib
 
