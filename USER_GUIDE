@@ -12,8 +12,6 @@ A) QUICK PROGRAMMING GUIDE
 
    statement into the source code.
 
-   NOTE: C/C++ interface is not yet available, but will be.
-
    Before calling ELSI to treat the Kohn-Sham eigenvalue problem, MPI and BLACS
    environment should be set up by the electronic structure code.
 
@@ -138,10 +136,16 @@ B) COMPILATION GUIDE
 C) BEYOND THIS GUIDE
 ====================
 
-   Usage of ELSI density matrix solver for complex problems are work-in-progress and
+*  Usage of ELSI density matrix solver for complex problems are work-in-progress and
    EXPERIMENTAL.
 
-   Documentation of each module, subroutine, and function in ELSI interface can be
+*  EXPERIMENTAL C interfaces can be built by setting
+
+      C_INTERFACE = yes
+
+   in the "make.sys" file.
+
+*  Documentation of each module, subroutine, and function in ELSI interface can be
    generated using Doxygen in ./src/ELSI/doc directory.
 
 ===================
