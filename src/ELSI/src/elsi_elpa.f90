@@ -863,7 +863,7 @@ subroutine elsi_solve_evp_elpa()
 
    character*40, parameter :: caller = "elsi_solve_evp_elpa"
 
-   elpa_print_times = .true.
+   elpa_print_times = .false.
 
    call elsi_start_solve_evp_time()
 
