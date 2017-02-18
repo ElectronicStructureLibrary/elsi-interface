@@ -41,6 +41,7 @@ stub_pexsi.o: ./src/stub_pexsi.f90
 
 elsi_c_interface.o: ./src/elsi_c_interface.f90 elsi_interface.o elsi_dimensions.o $(STUBS)
 	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
+	cp ./src/elsi.h $(INC_DIR)
 
 clean:
 	rm -f *.o *.mod *.x *.a *log*

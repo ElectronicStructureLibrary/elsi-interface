@@ -284,8 +284,8 @@ subroutine elsi_ev_complex_c_wrapper(H_in,S_in,e_val_out,e_vec_out)&
 
 end subroutine
 
-subroutine elsi_dm_real_c_wrapper(H_in,S_in,D_out,energy_out)&
-                                  bind(C,name="c_elsi_dm_real")
+function elsi_dm_real_c_wrapper(H_in,S_in,D_out) result(energy_out) &
+                                bind(C,name="c_elsi_dm_real")
 
    use, intrinsic :: iso_c_binding
    use ELSI
@@ -296,14 +296,14 @@ subroutine elsi_dm_real_c_wrapper(H_in,S_in,D_out,energy_out)&
    real(kind=c_double), intent(in)  :: H_in(n_l_rows,*)
    real(kind=c_double), intent(in)  :: S_in(n_l_rows,*)
    real(kind=c_double), intent(out) :: D_out(n_l_rows,*)
-   real(kind=c_double), intent(out) :: energy_out
+   real(kind=c_double)              :: energy_out
 
    call elsi_dm_real(H_in,S_in,D_out,energy_out)
 
-end subroutine
+end function
 
-subroutine elsi_dm_real_sparse_c_wrapper(H_in,S_in,D_out,energy_out)&
-                                         bind(C,name="c_elsi_dm_real_sparse")
+function elsi_dm_real_sparse_c_wrapper(H_in,S_in,D_out) result(energy_out) &
+                                       bind(C,name="c_elsi_dm_real_sparse")
 
    use, intrinsic :: iso_c_binding
    use ELSI
@@ -313,8 +313,8 @@ subroutine elsi_dm_real_sparse_c_wrapper(H_in,S_in,D_out,energy_out)&
    real(kind=c_double), intent(in)  :: H_in(*)
    real(kind=c_double), intent(in)  :: S_in(*)
    real(kind=c_double), intent(out) :: D_out(*)
-   real(kind=c_double), intent(out) :: energy_out
+   real(kind=c_double)              :: energy_out
 
    call elsi_dm_real_sparse(H_in,S_in,D_out,energy_out)
 
-end subroutine
+end function

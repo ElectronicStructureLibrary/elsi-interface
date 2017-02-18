@@ -5,3 +5,7 @@ make.sys
 *.swp
 src/ELSI/doc/html
 src/ELSI/doc/latex
+include
+lib
+bin
+build
