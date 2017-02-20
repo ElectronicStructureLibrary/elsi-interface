@@ -200,16 +200,16 @@ subroutine elsi_get_ne(mu_in,diff_ne_out)
 
       case(METHFESSEL_PAXTON_0)
          do i_state = 1,n_states
-            hermite_arg = (eval(i_state)-mu_in)*invert_width
-            occ_elpa(i_state) = 0.5d0*(1d0-ERF(hermite_arg))
+            occ_elpa(i_state) = &
+               n_spin*0.5d0*(1-ERF((eval(i_state)-mu_in)*invert_width))
             diff_ne_out = diff_ne_out+occ_elpa(i_state)
          enddo
 
       case(METHFESSEL_PAXTON_1)
          do i_state = 1,n_states
             hermite_arg = (eval(i_state)-mu_in)*invert_width
-            occ_elpa(i_state) = 0.5d0*(1d0-ERF(hermite_arg))-0.5d0*invert_sqrt_pi&
-                                *hermite_arg*EXP(-hermite_arg*hermite_arg)
+            occ_elpa(i_state) = n_spin*0.5d0*(1d0-ERF(hermite_arg))-0.5d0*&
+                                invert_sqrt_pi*hermite_arg*EXP(-hermite_arg*hermite_arg)
             diff_ne_out = diff_ne_out+occ_elpa(i_state)
          enddo
 
