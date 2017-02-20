@@ -363,8 +363,9 @@ end subroutine
 !! This routine overrides ELSI default settings.
 !!
 subroutine elsi_customize(print_detail,unit_overlap,hartree_to_ev,numerical_zero,&
-                          mu_accuracy,no_check_singularity,singularity_threshold,&
-                          force_stop_singularity,broadening_scheme,broadening_width)
+                          no_check_singularity,singularity_threshold,&
+                          force_stop_singularity,broadening_scheme,broadening_width&
+                          mu_accuracy,mu_max_steps)
 
    implicit none
 
@@ -372,12 +373,13 @@ subroutine elsi_customize(print_detail,unit_overlap,hartree_to_ev,numerical_zero
    logical, intent(in), optional :: unit_overlap           !< Is overlap matrix unit?
    real*8,  intent(in), optional :: hartree_to_ev          !< Conversion constant between Ha and eV
    real*8,  intent(in), optional :: numerical_zero         !< Threshold to define "zero"
-   real*8,  intent(in), optional :: mu_accuracy            !< Tolerance in chemical potential determination
    logical, intent(in), optional :: no_check_singularity   !< Do not perform singularity check of overlap
    real*8,  intent(in), optional :: singularity_threshold  !< Tolerance of overlap singularity
    logical, intent(in), optional :: force_stop_singularity !< Stop if overlap is singular
    integer, intent(in), optional :: broadening_scheme      !< Broadening method in chemical potential determination
    real*8,  intent(in), optional :: broadening_width       !< Broadening width in chemical potential determination
+   real*8,  intent(in), optional :: mu_accuracy            !< Tolerance in chemical potential determination
+   integer, intent(in), optional :: mu_max_steps           !< Maximum number of steps to find the chemical potential
 
    ! Print detailed ELSI information? [Default: .false.]
    if(PRESENT(print_detail)) &
@@ -391,9 +393,6 @@ subroutine elsi_customize(print_detail,unit_overlap,hartree_to_ev,numerical_zero
    ! Threshold to define numerical zero [Default: 1d-13]
    if(PRESENT(numerical_zero)) &
       zero_threshold = numerical_zero
-   ! Accuracy for chemical potential determination [Default: 1d-10]
-   if(PRESENT(mu_accuracy)) &
-      occ_tolerance = mu_accuracy
    ! Disable checking for overlap singularity? [Default: .false.]
    if(PRESENT(no_check_singularity)) &
       no_singularity_check = no_check_singularity
@@ -410,6 +409,12 @@ subroutine elsi_customize(print_detail,unit_overlap,hartree_to_ev,numerical_zero
    ! Broadening width to compute Fermi level [Default: 1d-2]
    if(PRESENT(broadening_width)) &
       broaden_width = broadening_width
+   ! Accuracy for chemical potential determination [Default: 1d-10]
+   if(PRESENT(mu_accuracy)) &
+      occ_tolerance = mu_accuracy
+   ! Maximum steps to determine the chemical potential [Default: 100]
+   if(PRESENT(mu_max_steps)) &
+      max_mu_steps = mu_max_steps
 
 end subroutine
 

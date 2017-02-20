@@ -181,6 +181,7 @@ module ELSI_DIMENSIONS
    real*8  :: broaden_width = 1d-2      !< Broadening width for occupation numbers
    real*8  :: occ_tolerance = 1d-10     !< Maximum allowed difference between actual number
                                         !! of electrons and the number computed by ELSI
+   integer :: max_mu_steps = 100        !< Maximum number of steps to find the chemical potential
 
    !> libOMM
    integer :: n_elpa_steps         !< Use ELPA eigenvectors as initial guess

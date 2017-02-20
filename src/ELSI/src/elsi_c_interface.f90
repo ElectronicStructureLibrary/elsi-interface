@@ -112,9 +112,10 @@ subroutine elsi_finalize_c_wrapper() bind(C,name="c_elsi_finalize")
 end subroutine
 
 subroutine elsi_customize_c_wrapper(print_detail,unit_overlap,hartree_to_ev,&
-                                    numerical_zero,mu_accuracy,no_check_singularity,&
+                                    numerical_zero,no_check_singularity,&
                                     singularity_threshold,force_stop_singularity,&
-                                    broadening_scheme,broadening_width)&
+                                    broadening_scheme,broadening_width,&
+                                    mu_accuracy,mu_max_steps)&
                                     bind(C,name="c_elsi_customize")
 
    use, intrinsic :: iso_c_binding
@@ -126,12 +127,13 @@ subroutine elsi_customize_c_wrapper(print_detail,unit_overlap,hartree_to_ev,&
    integer(kind=c_int), value, intent(in) :: unit_overlap
    real(kind=c_double), value, intent(in) :: hartree_to_ev
    real(kind=c_double), value, intent(in) :: numerical_zero
-   real(kind=c_double), value, intent(in) :: mu_accuracy
    integer(kind=c_int), value, intent(in) :: no_check_singularity
    real(kind=c_double), value, intent(in) :: singularity_threshold
    integer(kind=c_int), value, intent(in) :: force_stop_singularity
    integer(kind=c_int), value, intent(in) :: broadening_scheme
    real(kind=c_double), value, intent(in) :: broadening_width
+   real(kind=c_double), value, intent(in) :: mu_accuracy
+   integer(kind=c_int), value, intent(in) :: mu_max_steps
 
    logical :: print_detail_f
    logical :: unit_overlap_f
@@ -163,8 +165,9 @@ subroutine elsi_customize_c_wrapper(print_detail,unit_overlap,hartree_to_ev,&
    endif
 
    call elsi_customize(print_detail_f,unit_overlap_f,hartree_to_ev,numerical_zero,&
-                       mu_accuracy,no_check_singularity_f,singularity_threshold,&
-                       force_stop_singularity_f,broadening_scheme,broadening_width)
+                       no_check_singularity_f,singularity_threshold,&
+                       force_stop_singularity_f,broadening_scheme,broadening_width,&
+                       mu_accuracy,mu_max_steps)
 
 end subroutine
 

@@ -821,7 +821,7 @@ subroutine elsi_check()
                         " this number of processes. Exiting...",caller)
       endif
    else if(method == 4) then
-      call elsi_stop(" CHESS not yet available. "//&
+      call elsi_stop(" CheSS not yet available. "//&
                      " Please choose ELPA, LIBOMM, or PEXSI solver."//&
                      " Exiting...",caller)
    else

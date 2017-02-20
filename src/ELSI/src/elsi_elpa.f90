@@ -92,8 +92,8 @@ subroutine elsi_compute_occ_elpa()
 
    integer :: i_state !< State index
    integer :: n_steps !< Number of steps to find chemical potential interval
-   integer, parameter :: max_steps = 100 !< Maximum number of steps
 
+   character*200 :: info_str
    character*40, parameter :: caller = "elsi_compute_occ_elpa"
 
    ! Determine the smallest and largest eivenvalues
@@ -129,9 +129,10 @@ subroutine elsi_compute_occ_elpa()
    n_steps = 0
    do while(diff_ne_lower*diff_ne_upper > 0)
       n_steps = n_steps+1
-      if(n_steps > max_steps) then
-         call elsi_stop(" Chemical potential not found in 100 iterations!"//&
-                        " Exiting...",caller)
+      if(n_steps > max_mu_steps) then
+         write(info_str,"(A,I13,A)") " Chemical potential not found in ",&
+            max_mu_steps," iterations! Exiting..."
+         call elsi_stop(info_str,caller)
       endif
 
       mu_lower = mu_lower-0.5d0*ABS(e_high-e_low)
@@ -217,7 +218,6 @@ subroutine elsi_get_mu(mu_lower_in,mu_upper_in,mu_out)
    real*8  :: diff_mid !< Difference in number of electrons on middle point
    logical :: found_mu !< Is chemical potential found?
    integer :: n_steps !< Number of steps to find chemical potential
-   integer, parameter :: max_steps = 100 !< Maximum steps to find chemical potential
 
    character*200 :: info_str
    character*40, parameter :: caller = "elsi_get_mu"
@@ -242,9 +242,10 @@ subroutine elsi_get_mu(mu_lower_in,mu_upper_in,mu_out)
          mu_mid = 0.5d0*(mu_left+mu_right)
 
          n_steps = n_steps+1
-         if(n_steps > max_steps) then
-            call elsi_stop(" Chemical potential not found in 100 iterations!"//&
-                           " Exiting...",caller)
+         if(n_steps > max_mu_steps) then
+            write(info_str,"(A,I13,A)") " Chemical potential not found in ",&
+               max_mu_steps," iterations! Exiting..."
+            call elsi_stop(info_str,caller)
          endif
 
          call elsi_get_ne(mu_mid,diff_mid)

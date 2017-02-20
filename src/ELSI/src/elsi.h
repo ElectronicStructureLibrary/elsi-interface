@@ -25,12 +25,13 @@ void c_elsi_customize(int print_detail,
                       int unit_overlap,
                       double hartree_to_ev,
                       double numerical_zero,
-                      double mu_accuracy,
                       int no_check_singularity,
                       double singularity_threshold,
                       int force_stop_singularity,
                       int broadening_scheme,
-                      double broadening_width);
+                      double broadening_width,
+                      double mu_accuracy,
+                      int mu_max_steps);
 
 void c_elsi_customize_omm(int n_elpa_steps_omm,
                           double eigenspectrum_shift,

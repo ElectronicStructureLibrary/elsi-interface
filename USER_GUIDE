@@ -48,19 +48,19 @@ A) QUICK PROGRAMMING GUIDE
 
 *  call elsi_set_mpi(elsi_mpi_comm)
 
-   elsi_mpi_comm:    [integer] [in]  Global MPI communicator used in ELSI.
+   elsi_mpi_comm:    [integer] [in]  MPI communicator used in ELSI.
 
-*  call elsi_set_blacs(blacs_ctxt, n_b_row, n_b_col, n_proc_rows, n_proc_col)
+*  call elsi_set_blacs(blacs_ctxt, block_row, block_col, n_procs_row, n_procs_col)
 
    blacs_ctxt:       [integer] [in]  BLACS context.
 
-   n_b_row:          [integer] [in]  Block size in row direction.
+   block_row:        [integer] [in]  Block size in row direction.
 
-   n_b_col:          [integer] [in]  Block size in column direction.
+   block_col:        [integer] [in]  Block size in column direction.
 
-   n_proc_row:       [integer] [in]  Number of processors in row.
+   n_procs_row:      [integer] [in]  Number of processors in row.
 
-   n_proc_col:       [integer] [in]  Number of processors in column.
+   n_procs_col:      [integer] [in]  Number of processors in column.
 
 ============================================================
 3) Treat the Kohn-Sham eigenvalue problem using ELSI solvers
@@ -122,7 +122,7 @@ B) COMPILATION GUIDE
                  -L${PARMETIS_HOME}/lib -lparmetis -lmetis
 
    NOTE: If PEXSI is disabled by setting DISABLE_CXX = yes in the "make.sys" file,
-         the following ELSI_LIB should be use:
+         the following ELSI_LIB should be used:
 
       ELSI_LIB = -L${ELSI_HOME}/lib -lelsi \
                  -lOMM -lMatrixSwitch -lpspblas -lelpa
