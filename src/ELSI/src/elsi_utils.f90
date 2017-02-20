@@ -281,7 +281,7 @@ subroutine elsi_stop(message,caller)
    character(len=4096) :: string_message
    integer :: i_task
 
-   do i_task = 0, n_procs - 1
+   do i_task = 0,n_procs-1
       if(myid == i_task) then
          write(string_message,"(1X,'*** Proc',I5,' in ',A,': ',A)")&
                myid,TRIM(caller),TRIM(message)

@@ -12,7 +12,10 @@ test_dm_real.o: ./test/test_dm_real.f90 elsi_interface.o
 test_ev_real.o: ./test/test_ev_real.f90 elsi_interface.o
 	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
 
-elsi_interface.o: ./src/elsi_interface.f90 elsi_elpa.o elsi_omm.o elsi_pexsi.o elsi_utils.o elsi_matrix_conversion.o elsi_timers.o elsi_dimensions.o $(STUBS)
+elsi_interface.o: ./src/elsi_interface.f90 elsi_elpa.o elsi_omm.o elsi_pexsi.o elsi_chemical_potential.o elsi_utils.o elsi_matrix_conversion.o elsi_timers.o elsi_dimensions.o $(STUBS)
+	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
+
+elsi_chemical_potential.o: ./src/elsi_chemical_potential.f90 elsi_utils.o elsi_dimensions.o $(STUBS)
 	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
 
 elsi_elpa.o: ./src/elsi_elpa.f90 elsi_utils.o elsi_matrix_conversion.o elsi_timers.o elsi_dimensions.o $(STUBS)
