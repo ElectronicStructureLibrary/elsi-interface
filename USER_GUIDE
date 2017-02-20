@@ -74,7 +74,7 @@ A) QUICK PROGRAMMING GUIDE
    to experienced users by using the customize routines, i.e. elsi_customize_elpa,
    elsi_customize_omm, elsi_customize_pexsi, and elsi_customize.
 
-*  call elsi_customize_{elpa|omm|pexxi}(keyword=choice)
+*  call elsi_customize_{elpa|omm|pexxi}(keyword1=choice1, keyword2=choice2, ...)
 
    Launch either ELSI eigenvalue solver, or ELSI density matrix solver.
 
