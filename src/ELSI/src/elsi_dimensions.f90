@@ -247,7 +247,7 @@ module ELSI_DIMENSIONS
 
    !> Broadening type (used if ELPA is chosen to compute density matrix)
    enum, bind( C )
-      ENUMERATOR :: GAUSSIAN, FERMI, METHFESSEL_PAXTON
+      ENUMERATOR :: GAUSSIAN, FERMI, METHFESSEL_PAXTON_0, METHFESSEL_PAXTON_1
    end enum
 
 end module ELSI_DIMENSIONS

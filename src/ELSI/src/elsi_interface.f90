@@ -364,7 +364,7 @@ end subroutine
 !!
 subroutine elsi_customize(print_detail,unit_overlap,hartree_to_ev,numerical_zero,&
                           no_check_singularity,singularity_threshold,&
-                          force_stop_singularity,broadening_scheme,broadening_width&
+                          force_stop_singularity,broadening_scheme,broadening_width,&
                           mu_accuracy,mu_max_steps)
 
    implicit none

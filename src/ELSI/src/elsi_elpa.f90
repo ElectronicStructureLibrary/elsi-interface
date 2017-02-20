@@ -163,10 +163,17 @@ subroutine elsi_get_ne(mu_in,diff_ne_out)
    real*8 :: invert_width !< 1/broaden_width
    real*8 :: max_exp !< Maximum possible exponent
    real*8 :: this_exp !< Exponent in this step
+   real*8 :: hermite_arg !< Argument used in Methfessel-Paxton scheme
+   real*8, parameter :: invert_sqrt_pi = 0.564189583547756 !< Constant: 1/sqrt(pi)
    real*8, parameter :: n_spin = 2d0 !< Non spin-polarized case supported only
    integer :: i_state !< State index
 
    character*40, parameter :: caller = "elsi_get_ne"
+
+   if(broaden_width .le. 0d0) then
+      call elsi_stop(" Broadening width in chemical potential determination must"//&
+                     " be a positive number. Exiting...",caller)
+   endif
 
    invert_width = 1d0/broaden_width
    diff_ne_out = -n_electrons
@@ -191,9 +198,25 @@ subroutine elsi_get_ne(mu_in,diff_ne_out)
             endif
          enddo
 
+      case(METHFESSEL_PAXTON_0)
+         do i_state = 1,n_states
+            hermite_arg = (eval(i_state)-mu_in)*invert_width
+            occ_elpa(i_state) = 0.5d0*(1d0-ERF(hermite_arg))
+            diff_ne_out = diff_ne_out+occ_elpa(i_state)
+         enddo
+
+      case(METHFESSEL_PAXTON_1)
+         do i_state = 1,n_states
+            hermite_arg = (eval(i_state)-mu_in)*invert_width
+            occ_elpa(i_state) = 0.5d0*(1d0-ERF(hermite_arg))-0.5d0*invert_sqrt_pi&
+                                *hermite_arg*EXP(-hermite_arg*hermite_arg)
+            diff_ne_out = diff_ne_out+occ_elpa(i_state)
+         enddo
+
       case DEFAULT
          call elsi_stop(" No supperted broadening scheme has been chosen."//&
-                        " Please choose GAUSSIAN or FERMI broadening scheme."//&
+                        " Please choose GAUSSIAN, FERMI, METHFESSEL_PAXTON_0,"//&
+                        " or METHFESSEL_PAXTON_1 broadening scheme."//&
                         " Exiting...",caller)
    end select
 
