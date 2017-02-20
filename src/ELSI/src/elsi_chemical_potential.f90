@@ -38,7 +38,12 @@ module ELSI_MU
    private
 
    !> Public routines
-   public :: elsi_compute_mu_and_occ
+   public  :: elsi_compute_mu_and_occ
+
+   real*8  :: n_electron
+   integer :: n_state
+   integer :: n_spin
+   integer :: n_kpoint
 
 contains
 
@@ -46,16 +51,17 @@ contains
 !! This routine computes the chemical potential and occupation numbers
 !! from eigenvalues.
 !!
-subroutine elsi_compute_mu_and_occ(n_state,n_spin,n_kpoint,&
-                                   eigenvalues,occ_numbers,mu)
+subroutine elsi_compute_mu_and_occ(n_electron_in,n_state_in,n_spin_in,&
+                                   n_kpoint_in,eigenvalues,occ_numbers,mu)
 
    implicit none
 
-   integer, intent(in)  :: n_state
-   integer, intent(in)  :: n_spin
-   integer, intent(in)  :: n_kpoint
-   real*8,  intent(in)  :: eigenvalues(n_state,n_spin,n_kpoint)
-   real*8,  intent(out) :: occ_numbers(n_state,n_spin,n_kpoint)
+   integer, intent(in)  :: n_electron_in
+   integer, intent(in)  :: n_state_in
+   integer, intent(in)  :: n_spin_in
+   integer, intent(in)  :: n_kpoint_in
+   real*8,  intent(in)  :: eigenvalues(n_state_in,n_spin_in,n_kpoint_in)
+   real*8,  intent(out) :: occ_numbers(n_state_in,n_spin_in,n_kpoint_in)
    real*8,  intent(out) :: mu
 
    real*8 :: e_low         !< Lowest eigenvalue
@@ -72,6 +78,11 @@ subroutine elsi_compute_mu_and_occ(n_state,n_spin,n_kpoint,&
 
    character*200 :: info_str
    character*40, parameter :: caller = "elsi_compute_mu_and_occ"
+
+   n_electron = n_electron_in
+   n_state    = n_state_in
+   n_spin     = n_spin_in
+   n_kpoint   = n_kpoint_in
 
    ! Determine the smallest and largest eivenvalues
    e_low = eigenvalues(1,1,1)
@@ -102,10 +113,8 @@ subroutine elsi_compute_mu_and_occ(n_state,n_spin,n_kpoint,&
    occ_numbers = 0d0
 
    ! Compute the difference of number of electrons
-   call elsi_check_electrons(n_state,n_spin,n_kpoint,eigenvalues,&
-                             occ_numbers,mu_lower,diff_ne_lower)
-   call elsi_check_electrons(n_state,n_spin,n_kpoint,eigenvalues,&
-                             occ_numbers,mu_upper,diff_ne_upper)
+   call elsi_check_electrons(eigenvalues,occ_numbers,mu_lower,diff_ne_lower)
+   call elsi_check_electrons(eigenvalues,occ_numbers,mu_upper,diff_ne_upper)
 
    ! If diff_ne_lower*diff_ne_upper > 0, it means that the solution is
    ! not in this interval.
@@ -122,16 +131,13 @@ subroutine elsi_compute_mu_and_occ(n_state,n_spin,n_kpoint,&
       mu_lower = mu_lower-0.5d0*ABS(e_high-e_low)
       mu_upper = mu_upper+0.5d0*ABS(e_high-e_low)
 
-      call elsi_check_electrons(n_state,n_spin,n_kpoint,eigenvalues,&
-                                occ_numbers,mu_lower,diff_ne_lower)
-      call elsi_check_electrons(n_state,n_spin,n_kpoint,eigenvalues,&
-                                occ_numbers,mu_upper,diff_ne_upper)
+      call elsi_check_electrons(eigenvalues,occ_numbers,mu_lower,diff_ne_lower)
+      call elsi_check_electrons(eigenvalues,occ_numbers,mu_upper,diff_ne_upper)
    enddo
 
    ! At this point we should have the correct interval for chemical potential.
    ! Use simple bisection algorithm to find the solution.
-   call elsi_find_mu(n_state,n_spin,n_kpoint,eigenvalues,occ_numbers,&
-                     mu_lower,mu_upper,mu)
+   call elsi_find_mu(eigenvalues,occ_numbers,mu_lower,mu_upper,mu)
 
 end subroutine
 
@@ -140,14 +146,10 @@ end subroutine
 !! and returns the difference in number of electrons. The occupation numbers will
 !! be updated as well.
 !!
-subroutine elsi_check_electrons(n_state,n_spin,n_kpoint,eigenvalues,&
-                                occ_numbers,mu_in,diff_ne_out)
+subroutine elsi_check_electrons(eigenvalues,occ_numbers,mu_in,diff_ne_out)
 
    implicit none
 
-   integer, intent(in)  :: n_state
-   integer, intent(in)  :: n_spin
-   integer, intent(in)  :: n_kpoint
    real*8,  intent(in)  :: eigenvalues(n_state,n_spin,n_kpoint)
    real*8,  intent(out) :: occ_numbers(n_state,n_spin,n_kpoint)
    real*8,  intent(in)  :: mu_in       !< Input chemical potential
@@ -172,7 +174,7 @@ subroutine elsi_check_electrons(n_state,n_spin,n_kpoint,eigenvalues,&
    endif
 
    invert_width = 1d0/broaden_width
-   diff_ne_out = -n_electrons
+   diff_ne_out = -n_electron
 
    if(n_spin == 2) then
       spin = 1d0
@@ -250,14 +252,10 @@ end subroutine
 !>
 !! This routine computes the chemical potential using bisection algorithm.
 !!
-subroutine elsi_find_mu(n_state,n_spin,n_kpoint,eigenvalues,occ_numbers,&
-                        mu_lower_in,mu_upper_in,mu_out)
+subroutine elsi_find_mu(eigenvalues,occ_numbers,mu_lower_in,mu_upper_in,mu_out)
 
    implicit none
 
-   integer, intent(in)  :: n_state
-   integer, intent(in)  :: n_spin
-   integer, intent(in)  :: n_kpoint
    real*8,  intent(in)  :: eigenvalues(n_state,n_spin,n_kpoint)
    real*8,  intent(out) :: occ_numbers(n_state,n_spin,n_kpoint)
    real*8,  intent(in)  :: mu_lower_in !< Lower bound of chemical potential
@@ -283,10 +281,8 @@ subroutine elsi_find_mu(n_state,n_spin,n_kpoint,eigenvalues,occ_numbers,&
    mu_right = mu_upper_in
 
    do while(.not.found_mu)
-      call elsi_check_electrons(n_state,n_spin,n_kpoint,eigenvalues,&
-                                occ_numbers,mu_left,diff_left)
-      call elsi_check_electrons(n_state,n_spin,n_kpoint,eigenvalues,&
-                                occ_numbers,mu_right,diff_right)
+      call elsi_check_electrons(eigenvalues,occ_numbers,mu_left,diff_left)
+      call elsi_check_electrons(eigenvalues,occ_numbers,mu_right,diff_right)
 
       if(ABS(diff_left) < occ_tolerance) then
          mu_out = mu_left
@@ -304,8 +300,7 @@ subroutine elsi_find_mu(n_state,n_spin,n_kpoint,eigenvalues,occ_numbers,&
             call elsi_stop(info_str,caller)
          endif
 
-         call elsi_check_electrons(n_state,n_spin,n_kpoint,eigenvalues,&
-                                   occ_numbers,mu_mid,diff_mid)
+         call elsi_check_electrons(eigenvalues,occ_numbers,mu_mid,diff_mid)
 
          if(ABS(diff_mid) < occ_tolerance) then
             mu_out = mu_mid
