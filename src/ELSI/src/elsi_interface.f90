@@ -237,8 +237,7 @@ subroutine elsi_set_blacs(blacs_ctxt_in,n_b_rows_in,n_b_cols_in,&
       call descinit(sc_desc,n_g_size,n_g_size,n_b_rows,n_b_cols,0,0,&
                     blacs_ctxt,MAX(1,n_l_rows),blacs_info)
 
-      call elsi_get_elpa_comms(mpi_comm_global,my_p_row,my_p_col,&
-                               mpi_comm_row,mpi_comm_col)
+      call elsi_get_elpa_comms(mpi_comm_row,mpi_comm_col)
 
       ! Compute global-local mapping
       call elsi_allocate(local_row,n_g_size,"local_row",caller)

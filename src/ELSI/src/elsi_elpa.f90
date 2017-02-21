@@ -56,20 +56,16 @@ contains
 !>
 !! This routine gets the row and column communicators for ELPA.
 !!
-subroutine elsi_get_elpa_comms(mpi_comm_global_in,my_p_row_in,my_p_col_in,&
-                               mpi_comm_row_out,mpi_comm_col_out)
+subroutine elsi_get_elpa_comms(mpi_comm_row_out,mpi_comm_col_out)
 
    implicit none
 
-   integer, intent(in)  :: mpi_comm_global_in !< Global MPI communicator
-   integer, intent(in)  :: my_p_row_in        !< Row position of each MPI task
-   integer, intent(in)  :: my_p_col_in        !< Column position of each MPI task
    integer, intent(out) :: mpi_comm_row_out   !< Row MPI communicator
    integer, intent(out) :: mpi_comm_col_out   !< Column MPI communicator
 
    integer :: success
 
-   success = get_elpa_communicators(mpi_comm_global_in,my_p_row_in,my_p_col_in,&
+   success = get_elpa_communicators(mpi_comm_global,my_p_row,my_p_col,&
                                     mpi_comm_row_out,mpi_comm_col_out)
 
 end subroutine
