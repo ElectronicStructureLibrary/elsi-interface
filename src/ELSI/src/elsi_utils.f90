@@ -130,7 +130,7 @@ subroutine elsi_allocate_real_vector(vector,n_elements,vectorname,caller)
       call elsi_stop(message,caller)
    endif
 
-   vector = 0d0 
+   vector = 0.0d0 
 
 end subroutine
 
@@ -182,7 +182,7 @@ subroutine elsi_allocate_complex_vector(vector,n_elements,vectorname,caller)
       call elsi_stop(message,caller)
    endif
 
-   vector = CMPLX(0d0,0d0)
+   vector = CMPLX(0.0d0,0.0d0)
 
 end subroutine
 
@@ -209,7 +209,7 @@ subroutine elsi_allocate_real_matrix(matrix,n_rows,n_cols,matrixname,caller)
       call elsi_stop(message,caller)
    endif
 
-   matrix = 0d0 
+   matrix = 0.0d0 
 
 end subroutine
 
@@ -263,7 +263,7 @@ subroutine elsi_allocate_complex_matrix(matrix,n_rows,n_cols,matrixname,caller)
       call elsi_stop(message,caller)
    endif
 
-   matrix = CMPLX(0d0,0d0) 
+   matrix = CMPLX(0.0d0,0.0d0) 
 
 end subroutine
 

@@ -106,12 +106,12 @@ subroutine elsi_compute_mu_and_occ(n_electron_in,n_state_in,n_spin_in,n_kpoint_i
    mu_lower = e_low
 
    if(e_low == e_high) then
-      mu_upper = 0.0
+      mu_upper = 0.0d0
    else
       mu_upper = e_high
    endif
 
-   occ_numbers = 0d0
+   occ_numbers = 0.0d0
 
    ! Compute the difference of number of electrons
    call elsi_check_electrons(kpoint_weights,eigenvalues,occ_numbers,&
@@ -176,18 +176,18 @@ subroutine elsi_check_electrons(kpoint_weights,eigenvalues,occ_numbers,&
    real*8, parameter :: invert_sqrt_pi = 0.564189583547756 !< Constant: 1/sqrt(pi)
    character*40, parameter :: caller = "elsi_check_electrons"
 
-   if(broaden_width .le. 0d0) then
+   if(broaden_width .le. 0.0d0) then
       call elsi_stop(" Broadening width in chemical potential determination must"//&
                      " be a positive number. Exiting...",caller)
    endif
 
-   invert_width = 1d0/broaden_width
+   invert_width = 1.0d0/broaden_width
    diff_ne_out = -n_electron
 
    if(n_spin == 2) then
-      spin = 1d0
+      spin = 1.0d0
    else
-      spin = 2d0
+      spin = 2.0d0
    endif
 
    select case (broaden_method)
@@ -196,7 +196,7 @@ subroutine elsi_check_electrons(kpoint_weights,eigenvalues,occ_numbers,&
             do i_spin = 1,n_spin
                do i_state = 1,n_state
                   occ_numbers(i_state,i_spin,i_kpoint) = spin*0.5d0*&
-                     (1-ERF((eigenvalues(i_state,i_spin,i_kpoint)-mu_in)*invert_width))
+                     (1.0d0-ERF((eigenvalues(i_state,i_spin,i_kpoint)-mu_in)*invert_width))
 
                   diff_ne_out = diff_ne_out+&
                      occ_numbers(i_state,i_spin,i_kpoint)*kpoint_weights(i_kpoint)
@@ -205,7 +205,7 @@ subroutine elsi_check_electrons(kpoint_weights,eigenvalues,occ_numbers,&
          enddo
 
       case(FERMI)
-         max_exp = MAXEXPONENT(mu_in)*LOG(2d0)
+         max_exp = MAXEXPONENT(mu_in)*LOG(2.0d0)
 
          do i_kpoint = 1,n_kpoint
             do i_spin = 1,n_spin
@@ -213,12 +213,12 @@ subroutine elsi_check_electrons(kpoint_weights,eigenvalues,occ_numbers,&
                   this_exp = (eigenvalues(i_state,i_spin,i_kpoint)-mu_in)*invert_width
 
                   if(this_exp < max_exp) then
-                     occ_numbers(i_state,i_spin,i_kpoint) = spin/(1+EXP(this_exp))
+                     occ_numbers(i_state,i_spin,i_kpoint) = spin/(1.0d0+EXP(this_exp))
 
                      diff_ne_out = diff_ne_out+&
                         occ_numbers(i_state,i_spin,i_kpoint)*kpoint_weights(i_kpoint)
                   else ! Exponent in this step is larger than the largest possible exponent
-                     occ_numbers(i_state,i_spin,i_kpoint) = 0d0
+                     occ_numbers(i_state,i_spin,i_kpoint) = 0.0d0
                   endif
                enddo
             enddo
@@ -229,7 +229,7 @@ subroutine elsi_check_electrons(kpoint_weights,eigenvalues,occ_numbers,&
             do i_spin = 1,n_spin
                do i_state = 1,n_state
                   occ_numbers(i_state,i_spin,i_kpoint) = spin*0.5d0*&
-                     (1-ERF((eigenvalues(i_state,i_spin,i_kpoint)-mu_in)*invert_width))
+                     (1.0d0-ERF((eigenvalues(i_state,i_spin,i_kpoint)-mu_in)*invert_width))
 
                   diff_ne_out = diff_ne_out+&
                      occ_numbers(i_state,i_spin,i_kpoint)*kpoint_weights(i_kpoint)
@@ -243,7 +243,7 @@ subroutine elsi_check_electrons(kpoint_weights,eigenvalues,occ_numbers,&
                do i_state = 1,n_state
                   this_hermite = (eigenvalues(i_state,i_spin,i_kpoint)-mu_in)*invert_width
 
-                  occ_numbers(i_state,i_spin,i_kpoint) = spin*0.5d0*(1d0-ERF(this_hermite))&
+                  occ_numbers(i_state,i_spin,i_kpoint) = spin*0.5d0*(1.0d0-ERF(this_hermite))&
                      -0.5d0*invert_sqrt_pi*this_hermite*EXP(-this_hermite*this_hermite)
 
                   diff_ne_out = diff_ne_out+&

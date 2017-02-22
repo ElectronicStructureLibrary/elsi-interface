@@ -61,7 +61,7 @@ subroutine elsi_get_global_row(global_idx,local_idx)
    integer :: block !< Local block
    integer :: idx !< Local index in block
 
-   block = FLOOR(1d0*(local_idx-1)/n_b_rows)
+   block = FLOOR(1.0d0*(local_idx-1)/n_b_rows)
    idx = local_idx-block*n_b_rows
 
    global_idx = my_p_row*n_b_rows+block*n_b_rows*n_p_rows+idx
@@ -81,7 +81,7 @@ subroutine elsi_get_global_col(global_idx,local_idx)
    integer :: block !< Local block
    integer :: idx !< Local index in block
 
-   block = FLOOR(1d0*(local_idx-1)/n_b_cols)
+   block = FLOOR(1.0d0*(local_idx-1)/n_b_cols)
    idx = local_idx-block*n_b_cols
 
    global_idx = my_p_col*n_b_cols+block*n_b_cols*n_p_cols+idx
@@ -236,7 +236,7 @@ subroutine elsi_ccs_to_dense(matrix,n_rows,n_cols,val,nnz,row_ind,col_ptr)
    integer :: i_col !< Col counter
    integer :: i_val !< Value counter
 
-   matrix = 0d0
+   matrix = 0.0d0
    i_col = 0
    do i_val = 1,nnz
       if(i_val == col_ptr(i_col+1) .and. i_col /= n_cols) then

@@ -70,14 +70,14 @@ subroutine elsi_init_timers()
 
    integer :: initial_time
 
-   walltime_solve_evp       = 0d0
-   walltime_solve_evp_start = 0d0
+   walltime_solve_evp       = 0.0d0
+   walltime_solve_evp_start = 0.0d0
 
-   walltime_blacs_to_pexsi       = 0d0
-   walltime_blacs_to_pexsi_start = 0d0
+   walltime_blacs_to_pexsi       = 0.0d0
+   walltime_blacs_to_pexsi_start = 0.0d0
 
-   walltime_pexsi_to_blacs       = 0d0
-   walltime_pexsi_to_blacs_start = 0d0
+   walltime_pexsi_to_blacs       = 0.0d0
+   walltime_pexsi_to_blacs_start = 0.0d0
 
    call system_clock(initial_time, clock_rate, clock_max)
 
@@ -102,7 +102,7 @@ subroutine elsi_print_timers()
             write(*,"('  | Non zero elements                   : ',I13)") &
                   nnz_g
             write(*,"('  | Sparsity                            : ',F13.3)") &
-                  1d0-(1d0*nnz_g/n_g_size)/n_g_size
+                  1.0d0-(1.0d0*nnz_g/n_g_size)/n_g_size
          endif
          write(*,"('  | Number of electrons                 : ',F13.1)") n_electrons
          write(*,"('  | Number of states                    : ',I13)") n_states
@@ -135,7 +135,7 @@ subroutine elsi_get_time(wtime)
 
    call system_clock(tics)
 
-   wtime = 1d0*tics/clock_rate
+   wtime = 1.0d0*tics/clock_rate
 
 end subroutine
 

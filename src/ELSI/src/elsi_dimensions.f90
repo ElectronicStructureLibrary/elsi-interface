@@ -153,16 +153,16 @@ module ELSI_DIMENSIONS
    integer :: n_p_per_pole_pexsi
 
    !> Sparse matrix information
-   integer :: nnz_g                  !< Global number of nonzeros
-   integer :: nnz_l                  !< Local number of nonzeros
-   integer :: nnz_l_pexsi            !< Local number of nonzeros in PEXSI distribution
-   real*8  :: zero_threshold = 1d-13 !< Threshold to define numerical zero
+   integer :: nnz_g                    !< Global number of nonzeros
+   integer :: nnz_l                    !< Local number of nonzeros
+   integer :: nnz_l_pexsi              !< Local number of nonzeros in PEXSI distribution
+   real*8  :: zero_threshold = 1.0d-13 !< Threshold to define numerical zero
 
    !> Overlap
    logical :: overlap_is_unit = .false.      !< Is overlap matrix unit?
    logical :: overlap_is_singular = .false.  !< Is overlap matrix singular?
    logical :: no_singularity_check = .false. !< Disable checking for singular overlap?
-   real*8  :: singularity_tolerance = 1d-5   !< Eigenfunctions of overlap matrix with
+   real*8  :: singularity_tolerance = 1.0d-5 !< Eigenfunctions of overlap matrix with
                                              !! eigenvalues smaller than this value
                                              !! will be removed to avoid singularity
    logical :: stop_singularity = .false.     !< Always stop if overlap is singular?
@@ -178,8 +178,8 @@ module ELSI_DIMENSIONS
    logical :: elpa_one_always = .false. !< Always use 1-stage solver
    logical :: elpa_two_always = .false. !< Always use 2-stage solver
    integer :: broaden_method = 0        !< Broadening scheme for occupation numbers
-   real*8  :: broaden_width = 1d-2      !< Broadening width for occupation numbers
-   real*8  :: occ_tolerance = 1d-10     !< Maximum allowed difference between actual number
+   real*8  :: broaden_width = 1.0d-2    !< Broadening width for occupation numbers
+   real*8  :: occ_tolerance = 1.0d-10   !< Maximum allowed difference between actual number
                                         !! of electrons and the number computed by ELSI
    integer :: max_mu_steps = 100        !< Maximum number of steps to find the chemical potential
 
@@ -208,12 +208,12 @@ module ELSI_DIMENSIONS
    logical                :: sparsity_pattern_ready = .false. !< Is sparsity pattern set by user?
    logical                :: pole_parallelism = .true.        !< Use PEXSI pole parallelism?
    logical                :: small_pexsi_tol = .false.        !< Is user-defined tolerance smaller than default?
-   real(c_double)         :: final_pexsi_tol = 1d-2           !< Default final PEXSI tolerance
+   real(c_double)         :: final_pexsi_tol = 1.0d-2         !< Default final PEXSI tolerance
    integer(c_intptr_t)    :: pexsi_plan
    type(f_ppexsi_options) :: pexsi_options
    integer(c_int)         :: pexsi_info
    integer(c_int)         :: pexsi_output_file_index
-   real(c_double)         :: mu_pexsi = 0d0                   !< Chemical potential computed by PEXSI
+   real(c_double)         :: mu_pexsi = 0.0d0                 !< Chemical potential computed by PEXSI
    real(c_double)         :: n_electrons_pexsi                !< Number of electrons computed by PEXSI
    real(c_double)         :: mu_min_inertia 
    real(c_double)         :: mu_max_inertia 

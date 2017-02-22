@@ -107,7 +107,7 @@ subroutine elsi_init(solver,parallel_mode,matrix_format,matrix_size,&
 
    if(solver == 2) then
       ! Set number of occupied states for libOMM
-      n_states = NINT(n_electrons/2d0)
+      n_states = NINT(n_electrons/2.0d0)
       ! Set libOMM default settings
       call elsi_set_omm_default_options()
    else
@@ -304,7 +304,7 @@ subroutine elsi_get_energy(energy_out)
    real*8, intent(out) :: energy_out !< Energy of the system
 
    ! Only spin-nonpolarized case is supported now.
-   real*8, parameter :: n_spin = 2d0
+   real*8, parameter :: n_spin = 2.0d0
    integer :: i_state
    character*200 :: info_str
 
@@ -312,7 +312,7 @@ subroutine elsi_get_energy(energy_out)
 
    select case (method)
       case (ELPA)
-         energy_out = 0d0
+         energy_out = 0.0d0
          do i_state =1,n_states
             energy_out = energy_out+occ_elpa(i_state)*eval(i_state)
          enddo
@@ -547,7 +547,7 @@ subroutine elsi_customize_pexsi(temperature,gap,delta_E,n_poles,max_iteration,&
    ! default: 0.01
    if(PRESENT(n_electron_accuracy)) then
       pexsi_options%numElectronPEXSITolerance = n_electron_accuracy
-      if(n_electron_accuracy < 1d-2) then
+      if(n_electron_accuracy < 1.0d-2) then
          small_pexsi_tol = .true.
          final_pexsi_tol = n_electron_accuracy
       endif
@@ -838,7 +838,7 @@ subroutine elsi_dm_real(H_in,S_in,D_out,energy_out)
                ! D_out is used for temporary storage here
                D_out(1:n_l_rows,1:n_l_cols) = evec_real(1:n_l_rows,1:n_l_cols)
                ! libOMM coefficient matrix is the transpose of ELPA eigenvectors
-               call pdtran(n_g_size,n_g_size,1d0,D_out,1,1,sc_desc,0d0,evec_real,1,1,sc_desc)
+               call pdtran(n_g_size,n_g_size,1.0d0,D_out,1,1,sc_desc,0.0d0,evec_real,1,1,sc_desc)
 
                coeff_omm%dval(1:coeff_omm%iaux2(1),1:coeff_omm%iaux2(2)) = &
                   evec_real(1:coeff_omm%iaux2(1),1:coeff_omm%iaux2(2))
@@ -857,7 +857,7 @@ subroutine elsi_dm_real(H_in,S_in,D_out,energy_out)
             ! Continue the computation using libOMM
             call elsi_solve_evp_omm()
 
-            den_mat_omm%dval = 2d0*den_mat_omm%dval
+            den_mat_omm%dval = 2.0d0*den_mat_omm%dval
             call elsi_get_energy(energy_out)
          endif
 
@@ -881,7 +881,7 @@ subroutine elsi_dm_real(H_in,S_in,D_out,energy_out)
          if(.not.ALLOCATED(den_mat_pexsi)) then
             call elsi_allocate(den_mat_pexsi,nnz_l_pexsi,"den_mat_pexsi",caller)
          endif
-         den_mat_pexsi = 0d0
+         den_mat_pexsi = 0.0d0
          call elsi_set_sparse_density_matrix(den_mat_pexsi)
 
          call elsi_solve_evp_pexsi()
@@ -982,7 +982,7 @@ subroutine elsi_dm_complex(H_in,S_in,D_out,energy_out)
 
          call elsi_solve_evp_omm()
 
-         den_mat_omm%dval = 2d0*den_mat_omm%dval
+         den_mat_omm%dval = 2.0d0*den_mat_omm%dval
          call elsi_get_energy(energy_out)
 
       case (PEXSI)
