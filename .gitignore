@@ -3,6 +3,7 @@ make.sys
 *.mod
 *.tmp
 *.swp
+*.log
 src/ELSI/doc/html
 src/ELSI/doc/latex
 include
