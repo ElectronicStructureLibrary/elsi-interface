@@ -30,8 +30,8 @@ A) QUICK PROGRAMMING GUIDE
 
    parallelism:      [integer] [in]  SINGLE_PROC (0) or MULTI_PROC(1).
 
-   storage:          [integer] [in]  Only DENSE (0) is supported. More formats are
-                                     coming in the future.
+   storage:          [integer] [in]  Only BLACS_DENSE (0) is supported. More formats
+                                     are coming in the future.
 
    size:             [integer] [in]  Global size of the Hamiltonian matrix.
 
