@@ -780,73 +780,127 @@ subroutine elsi_check()
 
    character*40, parameter :: caller = "elsi_check"
 
-   ! The solver
-   if(method == 0) then
-      call elsi_stop(" AUTO not yet available."//&
-                     " Please choose ELPA, LIBOMM, or PEXSI solver."//&
-                     " Exiting...",caller)
-   else if(method == 1) then
-      if(storage /= 0) then
-         call elsi_stop(" ELPA has been chosen as the solver."//&
-                        " Please choose DENSE matrix format."//&
-                        " Exiting...",caller)
-      endif
-   else if(method == 2) then
-      if(parallelism == 0) then
-         call elsi_stop(" libOMM has been chosen as the solver."//&
-                        " Please choose MULTI_PROC parallelism."//&
-                        " Exiting...",caller)
-      endif
-      if(storage /= 0) then
-         call elsi_stop(" libOMM has been chosen as the solver."//&
-                        " Please choose DENSE matrix format."//&
-                        " Exiting...",caller)
-      endif
-      if(MOD(NINT(n_electrons),2) /= 0) then
-         call elsi_stop(" libOMM has been chosen as the solver."//&
-                        " The current implementation of libOMM does not"//&
-                        " support fractional occupation numbers. This"//&
-                        " means number of electrons in non-spin-polarized"//&
-                        " system cannot be odd. Exiting...",caller)
-      endif
-   else if(method == 3) then
-      if(parallelism == 0) then
-         call elsi_stop(" PEXSI has been chosen as the solver."//&
-                        " Please choose MULTI_PROC parallelism."//&
-                        " Exiting...",caller)
-      endif
-      if(n_g_size < n_procs) then
-         call elsi_stop(" PEXSI has been chosen as the solver."//&
-                        " The (global) size of matrix is too small for"//&
-                        " this number of processes. Exiting...",caller)
-      endif
-   else if(method == 4) then
-      call elsi_stop(" CheSS not yet available. "//&
-                     " Please choose ELPA, LIBOMM, or PEXSI solver."//&
-                     " Exiting...",caller)
-   else
+   ! General check of method, parallelism, storage
+   if(method < 0 .or. method > 4) then
       call elsi_stop(" No supported solver has been chosen."//&
                      " Please choose ELPA, LIBOMM, or PEXSI solver."//&
                      " Exiting...",caller)
    endif
 
-   ! The parallelism
    if(parallelism < 0 .or. parallelism > 1) then
       call elsi_stop(" No supported parallelism has been chosen."//&
                      " Please choose SINGLE_PROC or MULTI_PROC parallelism."//&
                      " Exiting...",caller)
    endif
 
-   ! The matrix format
-   if(storage >0 .and. storage < 5) then ! Sparse foramt
-      if(.not.sparsity_pattern_ready) then
-         call elsi_stop(" A sparse format has been chosen."//&
-                        " Please set the sparsity pattern before calling the solver."//&
+   if(storage < 0 .or. storage > 1) then
+      call elsi_stop(" No supported format has been chosen."//&
+                     " Please choose BLACS_DENSE or PEXSI_CSC format."//&
+                     " Exiting...",caller)
+   endif
+
+   ! Specific check for each solver
+   if(method == AUTO) then
+      call elsi_stop(" AUTO not yet available."//&
+                     " Please choose ELPA, LIBOMM, or PEXSI solver."//&
+                     " Exiting...",caller)
+
+   else if(method == ELPA) then
+      if(parallelism == MULTI_PROC) then
+         if(.not.mpi_is_setup) then
+            call elsi_stop(" MULTI_PROC parallelism requires MPI being"//&
+                           " set up before calling the solver."//&
+                           " Exiting...",caller)
+         endif
+
+         if(.not.blacs_is_setup) then
+            call elsi_stop(" MULTI_PROC parallelism requires BLACS being"//&
+                           " set up before calling the solver."//&
+                           " Exiting...",caller)
+         endif
+      endif
+
+      if(storage /= BLACS_DENSE) then
+         call elsi_stop(" ELPA has been chosen as the solver."//&
+                        " Please choose BLACS_DENSE matrix format."//&
                         " Exiting...",caller)
       endif
-   else if(storage /= 0) then
-      call elsi_stop(" No supported format has been chosen."//&
-                     " Please choose DENSE, CCS, CSC, CRS, or CSR format."//&
+
+   else if(method == LIBOMM) then
+      if(parallelism == MULTI_PROC) then
+         if(.not.mpi_is_setup) then
+            call elsi_stop(" MULTI_PROC parallelism requires MPI being"//&
+                           " set up before calling the solver."//&
+                           " Exiting...",caller)
+         endif
+
+         if(.not.blacs_is_setup) then
+            call elsi_stop(" MULTI_PROC parallelism requires BLACS being"//&
+                           " set up before calling the solver."//&
+                           " Exiting...",caller)
+         endif
+      else
+         call elsi_stop(" libOMM has been chosen as the solver."//&
+                        " Please choose MULTI_PROC parallelism."//&
+                        " Exiting...",caller)
+      endif
+
+      if(storage /= BLACS_DENSE) then
+         call elsi_stop(" libOMM has been chosen as the solver."//&
+                        " Please choose BLACS_DENSE matrix format."//&
+                        " Exiting...",caller)
+      endif
+
+!      if(MOD(NINT(n_electrons),2) /= 0) then
+!         call elsi_stop(" libOMM has been chosen as the solver."//&
+!                        " The current implementation of libOMM does"//&
+!                        " not support fractional occupation numbers."//&
+!                        " This means the number of electrons in a"//&
+!                        " non-spin-polarized system cannot be odd."//&
+!                        " Exiting...",caller)
+!      endif
+
+   else if(method == PEXSI) then
+      if(parallelism == MULTI_PROC) then
+         if(.not.mpi_is_setup) then
+            call elsi_stop(" MULTI_PROC parallelism requires MPI being"//&
+                           " set up before calling the solver."//&
+                           " Exiting...",caller)
+         endif
+      else
+         call elsi_stop(" PEXSI has been chosen as the solver."//&
+                        " Please choose MULTI_PROC parallelism."//&
+                        " Exiting...",caller)
+      endif
+
+      if(storage == BLACS_DENSE) then
+         if(.not.blacs_is_setup) then
+            call elsi_stop(" The BLACS_DENSE format has been chosen."//&
+                           " Please set up BLACS before calling the"//&
+                           " Solver. Exiting...",caller)
+         endif
+      else
+         if(.not.sparsity_pattern_ready) then
+            call elsi_stop(" The PEXSI_CSC format has been chosen."//&
+                           " Please set the sparsity pattern before"//&
+                           " calling the solver. Exiting...",caller)
+         endif
+      endif
+
+      if(n_g_size < n_procs) then
+         call elsi_stop(" PEXSI has been chosen as the solver."//&
+                        " The (global) size of matrix is too small for"//&
+                        " this number of processes. Exiting...",caller)
+      endif
+
+   else if(method == CHESS) then
+      call elsi_stop(" CheSS not yet available."//&
+                     " Please choose ELPA, LIBOMM, or PEXSI solver."//&
+                     " Exiting...",caller)
+
+   else
+      call elsi_stop(" No supported solver has been chosen."//&
+                     " Please choose ELPA, LIBOMM, or PEXSI solver."//&
                      " Exiting...",caller)
    endif
 

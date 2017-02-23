@@ -97,7 +97,7 @@ module ELSI_DIMENSIONS
    !> Real or complex data (REAL_VALUES=0,COMPLEX_VALUES=1)
    integer :: mode = -1
 
-   !> Matrix storage format (DENSE=0,CCS=1,CSC=2,CRS=3,CSR=4)
+   !> Matrix storage format (BLACS_DENSE=0,PEXSI_CSC=1)
    integer :: storage = -1
 
    !> Parallel mode (SINGLE_PROC=0,MULTI_PROC=1)
@@ -237,7 +237,7 @@ module ELSI_DIMENSIONS
 
    !> Storage formats
    enum, bind( C )
-      ENUMERATOR :: DENSE, CCS, CSC, CRS, CSR
+      ENUMERATOR :: BLACS_DENSE, PEXSI_CSC
    end enum
 
    !> Parallel modes

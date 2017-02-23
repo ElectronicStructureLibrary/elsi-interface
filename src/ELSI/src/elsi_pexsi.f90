@@ -63,7 +63,7 @@ subroutine elsi_init_pexsi()
    character*200 :: info_str
    character*40, parameter :: caller = "elsi_init_pexsi"
 
-   if(storage /= DENSE) then
+   if(storage /= BLACS_DENSE) then
       if(.not.pexsi_n_poles_set) then
          pexsi_options%numPole = n_procs
          pexsi_n_poles_set = .true.

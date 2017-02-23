@@ -92,7 +92,7 @@ subroutine elsi_init(solver,parallel_mode,matrix_format,matrix_size,&
 
    integer, intent(in) :: solver         !< AUTO,ELPA,LIBOMM,PEXSI,CHESS
    integer, intent(in) :: parallel_mode  !< SINGLE_PROC,MULTI_PROC
-   integer, intent(in) :: matrix_format  !< DENSE,CCS,CSC,CRS,CSR
+   integer, intent(in) :: matrix_format  !< BLACS_DENSE,PEXSI_CSC
    integer, intent(in) :: matrix_size    !< Global dimension of matrix
    real*8,  intent(in) :: n_electrons_in !< Number of electrons
    integer, intent(in) :: n_states_in    !< Number of states
@@ -105,7 +105,7 @@ subroutine elsi_init(solver,parallel_mode,matrix_format,matrix_size,&
    call elsi_set_storage(matrix_format)
    call elsi_set_parallel(parallel_mode)
 
-   if(solver == 2) then
+   if(solver == LIBOMM) then
       ! Set number of occupied states for libOMM
       n_states = NINT(n_electrons/2.0d0)
       ! Set libOMM default settings
@@ -114,7 +114,7 @@ subroutine elsi_init(solver,parallel_mode,matrix_format,matrix_size,&
       n_states = n_states_in
    endif
 
-   if(solver == 3) then
+   if(solver == PEXSI) then
       ! Set PEXSI default settings
       call elsi_set_pexsi_default_options()
    endif
@@ -158,7 +158,7 @@ subroutine elsi_set_storage(i_storage)
 
    implicit none
 
-   integer, intent(in) :: i_storage !< DENSE,CCS,CSC,CRS,CSR
+   integer, intent(in) :: i_storage !< BLACS_DENSE,PEXSI_CSC
 
    storage = i_storage
 
@@ -175,7 +175,7 @@ subroutine elsi_set_parallel(i_parallel)
 
    parallelism = i_parallel
 
-   if(i_parallel == 0) then ! SINGLE_PROC
+   if(i_parallel == SINGLE_PROC) then
       n_l_rows = n_g_size
       n_l_cols = n_g_size
       n_b_rows = n_g_size
@@ -194,7 +194,7 @@ subroutine elsi_set_mpi(mpi_comm_global_in)
 
    integer, intent(in) :: mpi_comm_global_in !< global mpi communicator
 
-   if(parallelism == 1) then ! MULTI_PROC
+   if(parallelism == MULTI_PROC) then
       mpi_comm_global = mpi_comm_global_in
 
       call MPI_Comm_rank(mpi_comm_global,myid,mpierr)
@@ -224,7 +224,7 @@ subroutine elsi_set_blacs(blacs_ctxt_in,n_b_rows_in,n_b_cols_in,&
 
    character*40, parameter :: caller = "elsi_set_blacs"
 
-   if(parallelism == 1) then ! MULTI_PROC
+   if(parallelism == MULTI_PROC) then
       blacs_ctxt = blacs_ctxt_in
       n_b_rows = n_b_rows_in
       n_b_cols = n_b_cols_in
@@ -661,7 +661,7 @@ subroutine elsi_ev_real(H_in,S_in,e_val_out,e_vec_out)
          call elsi_set_eigenvalue(e_val_out)
 
          ! Solve eigenvalue problem
-         if(parallelism == 0) then ! Single-proc
+         if(parallelism == SINGLE_PROC) then
             call elsi_solve_evp_elpa_sp()
          else  ! Multi-proc
             call elsi_solve_evp_elpa()
@@ -719,7 +719,7 @@ subroutine elsi_ev_complex(H_in,S_in,e_val_out,e_vec_out)
          call elsi_set_eigenvalue(e_val_out)
 
          ! Solve eigenvalue problem
-         if(parallelism==0) then ! Single-proc
+         if(parallelism == SINGLE_PROC) then
             call elsi_solve_evp_elpa_sp()
          else ! Multi-proc
             call elsi_solve_evp_elpa()
