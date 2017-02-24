@@ -1,6 +1,6 @@
 # PLATFORM  : EDISON @NERSC
 # COMPILERS : INTEL
-# VERIFIED  : JAN 9, 2017
+# VERIFIED  : FEB 24, 2017
 # DO READ ../INSTALL CAREFULLY!
 
 # ====== ELSI ======
@@ -12,7 +12,7 @@ LINKER = ftn
 FFLAGS   = -fast -no-ipo
 CFLAGS   = -fast -no-ipo
 CXXFLAGS = -fast -no-ipo -std=c++11
-LDFLAGS  = -fast -no-ipo -Wl,--allow-multiple-definition
+LDFLAGS  = -fast -no-ipo
 
 CXX_LDFLAGS       = -lstdc++
 SCALAPACK_LDFLAGS = -mkl=cluster

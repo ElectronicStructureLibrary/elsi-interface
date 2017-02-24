@@ -172,6 +172,9 @@ program test_ev_real
       write(*,'("  ##  Solving Kohn-Sham problem..               ##")')
    endif
 
+   ! Uncomment to get more output
+   ! call elsi_customize(print_detail=.true.)
+   
    t1 = MPI_Wtime()
 
    call elsi_ev_real(H%dval,S%dval,e_val,e_vec%dval)

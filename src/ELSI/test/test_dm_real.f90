@@ -172,6 +172,9 @@ program test_dm_real
    ! Disable ELPA if using libOMM
    if(solver == 2) call elsi_customize_omm(n_elpa_steps_omm=0)
 
+   ! Uncomment to get more output
+   ! call elsi_customize(print_detail=.true.)
+
    t1 = MPI_Wtime()
 
    call elsi_dm_real(H%dval,S%dval,D%dval,e_test)
