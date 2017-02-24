@@ -53,12 +53,12 @@ program test_ev_real
 
    real*8 :: n_electrons,frac_occ,sparsity,orb_r_cut
    real*8 :: k_point(3),broaden_width
-   real*8 :: e_test,e_ref
+   real*8 :: e_test,e_ref,e_tol
    real*8 :: t1,t2
    real*8, allocatable :: e_val(:)
 
-   ! VY: Reference value from calculations on Dec 7, 2016
-   real*8, parameter :: e_elpa  = -126.817462901819d0
+   ! VY: Reference value from calculations on Feb 24, 2016
+   real*8, parameter :: e_elpa  = -126.817462901838d0
 
    type(matrix) :: H,S,e_vec
 
@@ -120,6 +120,7 @@ program test_ev_real
 
    solver = 1
    e_ref = e_elpa
+   e_tol = 1d-10
 
    ! Set up BLACS
    BLACS_CTXT = mpi_comm_global
@@ -186,7 +187,7 @@ program test_ev_real
    if(myid == 0) then
       write(*,'("  ################################################")')
       write(*,'("  ##  Done. Time:",F23.3,"s       ##")') t2-t1
-      if(ABS(e_test-e_ref) < 1d-8) then
+      if(ABS(e_test-e_ref) < e_tol) then
          write(*,'("  ##  Passed.                                   ##")')
       else
          write(*,'("  ##  Failed!!                                  ##")')

@@ -480,7 +480,6 @@ subroutine elsi_customize_pexsi(temperature,gap,delta_E,n_poles,max_iteration,&
    integer(c_int), intent(in), optional :: verbosity             !< Level of output info
 
    ! Temperature, in the same unit as H
-   ! default: 0.0019 = 300K
    if(PRESENT(temperature)) &
       pexsi_options%temperature = temperature
 
@@ -891,21 +890,6 @@ subroutine elsi_dm_real(H_in,S_in,D_out,energy_out)
          call elsi_pexsi_to_blacs_dm(D_out)
          call elsi_get_energy(energy_out)
 
-         if(ASSOCIATED(ham_real_ccs))   nullify(ham_real_ccs)
-         if(ASSOCIATED(ovlp_real_ccs))  nullify(ovlp_real_ccs)
-         if(ASSOCIATED(den_mat_ccs))    nullify(den_mat_ccs)
-         if(ASSOCIATED(row_ind_ccs))    nullify(row_ind_ccs)
-         if(ASSOCIATED(col_ptr_ccs))    nullify(col_ptr_ccs)
-         if(ALLOCATED(ham_real_pexsi))  deallocate(ham_real_pexsi)
-         if(ALLOCATED(ovlp_real_pexsi)) deallocate(ovlp_real_pexsi)
-         if(ALLOCATED(den_mat_pexsi))   deallocate(den_mat_pexsi)
-         if(ALLOCATED(e_den_mat_pexsi)) deallocate(e_den_mat_pexsi)
-         if(ALLOCATED(f_den_mat_pexsi)) deallocate(f_den_mat_pexsi)
-         if(ALLOCATED(row_ind_pexsi))   deallocate(row_ind_pexsi)
-         if(ALLOCATED(col_ptr_pexsi))   deallocate(col_ptr_pexsi)
-
-         call f_ppexsi_plan_finalize(pexsi_plan,pexsi_info)
-
       case (CHESS)
          call elsi_stop(" CHESS not yet implemented. Exiting...",caller)
       case default
@@ -1042,8 +1026,6 @@ subroutine elsi_dm_real_sparse(H_in,S_in,D_out,energy_out)
          call elsi_solve_evp_pexsi()
 
          call elsi_get_energy(energy_out)
-
-         call f_ppexsi_plan_finalize(pexsi_plan,pexsi_info)
 
       case (CHESS)
          call elsi_stop(" CHESS not yet implemented. Exiting...",caller)

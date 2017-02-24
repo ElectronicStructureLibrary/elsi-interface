@@ -206,7 +206,6 @@ module ELSI_DIMENSIONS
    !> PEXSI
    logical                :: pexsi_n_poles_set = .false.      !< Is number of PEXSI poles set by user?
    logical                :: sparsity_pattern_ready = .false. !< Is sparsity pattern set by user?
-   logical                :: pole_parallelism = .true.        !< Use PEXSI pole parallelism?
    logical                :: small_pexsi_tol = .false.        !< Is user-defined tolerance smaller than default?
    real(c_double)         :: final_pexsi_tol = 1.0d-2         !< Default final PEXSI tolerance
    integer(c_intptr_t)    :: pexsi_plan

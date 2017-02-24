@@ -753,6 +753,13 @@ subroutine elsi_cleanup()
    if(ALLOCATED(den_mat_elpa))      deallocate(den_mat_elpa)
    if(ALLOCATED(occ_elpa))          deallocate(occ_elpa)
 
+   ! libOMM
+   if(ham_omm%is_initialized)       call m_deallocate(ham_omm)
+   if(ovlp_omm%is_initialized)      call m_deallocate(ovlp_omm)
+   if(den_mat_omm%is_initialized)   call m_deallocate(den_mat_omm)
+   if(coeff_omm%is_initialized)     call m_deallocate(coeff_omm)
+   if(t_den_mat_omm%is_initialized) call m_deallocate(t_den_mat_omm)
+
    ! PEXSI
    if(ALLOCATED(ham_real_pexsi))    deallocate(ham_real_pexsi)
    if(ALLOCATED(ovlp_real_pexsi))   deallocate(ovlp_real_pexsi)
@@ -762,12 +769,10 @@ subroutine elsi_cleanup()
    if(ALLOCATED(row_ind_pexsi))     deallocate(row_ind_pexsi)
    if(ALLOCATED(col_ptr_pexsi))     deallocate(col_ptr_pexsi)
 
-   ! libOMM
-   if(ham_omm%is_initialized)       call m_deallocate(ham_omm)
-   if(ovlp_omm%is_initialized)      call m_deallocate(ovlp_omm)
-   if(den_mat_omm%is_initialized)   call m_deallocate(den_mat_omm)
-   if(coeff_omm%is_initialized)     call m_deallocate(coeff_omm)
-   if(t_den_mat_omm%is_initialized) call m_deallocate(t_den_mat_omm)
+   ! PEXSI plan
+   if(method == PEXSI) then
+      call f_ppexsi_plan_finalize(pexsi_plan,pexsi_info)
+   endif
 
 end subroutine
 
@@ -897,7 +902,6 @@ subroutine elsi_check()
       call elsi_stop(" CheSS not yet available."//&
                      " Please choose ELPA, LIBOMM, or PEXSI solver."//&
                      " Exiting...",caller)
-
    else
       call elsi_stop(" No supported solver has been chosen."//&
                      " Please choose ELPA, LIBOMM, or PEXSI solver."//&

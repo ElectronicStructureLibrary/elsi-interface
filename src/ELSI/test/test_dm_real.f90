@@ -52,13 +52,16 @@ program test_dm_real
 
    real*8 :: n_electrons,frac_occ,sparsity,orb_r_cut
    real*8 :: k_point(3)
-   real*8 :: e_test,e_ref
+   real*8 :: e_test,e_ref,e_tol
    real*8 :: t1,t2
 
-   ! VY: Reference values from calculations on Dec 6, 2016
-   real*8, parameter :: e_elpa  = -126.817462901829d0
+   ! VY: Reference values from calculations on Feb 24, 2016
+   !     Note that PEXSI result is incorrect, since only 2 PEXSI
+   !     poles are used for this quick test. Accurate result can
+   !     be expected with at least 40 poles.
+   real*8, parameter :: e_elpa  = -126.817462901838d0
    real*8, parameter :: e_omm   = -126.817462499630d0
-   real*8, parameter :: e_pexsi = -126.817728720387d0
+   real*8, parameter :: e_pexsi = -1885.46836305848d0
 
    type(matrix) :: H,S,D
 
@@ -113,12 +116,20 @@ program test_dm_real
       if(solver == 1) then
          write(*,'("  ##  Testing elsi_dm_real + ELPA               ##")')
          e_ref = e_elpa
+         e_tol = 1d-10
       elseif(solver == 2) then
+         ! Note that the energy tolerance for libOMM is larger, due to the
+         ! random initial guess used in the code. In production calculations,
+         ! a much higher accuracy can be obtained by using ELPA eigenvectors
+         ! as the initial guess, or by completing the SCF cycle to make the
+         ! influence of the random initial guess fade away.
          write(*,'("  ##  Testing elsi_dm_real + libOMM             ##")')
          e_ref = e_omm
+         e_tol = 1d-6
       else
          write(*,'("  ##  Testing elsi_dm_real + PEXSI              ##")')
          e_ref = e_pexsi
+         e_tol = 1d-10
       endif
       write(*,'("  ##  (Multi-processor version)                 ##")')
    endif
@@ -172,8 +183,11 @@ program test_dm_real
    ! Disable ELPA if using libOMM
    if(solver == 2) call elsi_customize_omm(n_elpa_steps_omm=0)
 
+   ! Only 2 PEXSI poles for quick test
+   if(solver == 3) call elsi_customize_pexsi(n_poles=2)
+
    ! Uncomment to get more output
-   ! call elsi_customize(print_detail=.true.)
+   call elsi_customize(print_detail=.true.)
 
    t1 = MPI_Wtime()
 
@@ -184,7 +198,7 @@ program test_dm_real
    if(myid == 0) then
       write(*,'("  ################################################")')
       write(*,'("  ##  Done. Time:",F23.3,"s       ##")') t2-t1
-      if(ABS(e_test-e_ref) < 1d-6) then
+      if(ABS(e_test-e_ref) < e_tol) then
          write(*,'("  ##  Passed.                                   ##")')
       else
          write(*,'("  ##  Failed!!                                  ##")')
