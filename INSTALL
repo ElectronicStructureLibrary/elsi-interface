@@ -45,10 +45,6 @@ A) BASIC
 
       TOMATO_SEED = # Path to tomato_seed
 
-   The following linker flags might be necessary for creating executables:
-
-      LDFLAGS = -Wl,--allow-multiple-definition
-
    The MPI executable can be set by:
 
       MPI_EXEC = # Default: mpirun

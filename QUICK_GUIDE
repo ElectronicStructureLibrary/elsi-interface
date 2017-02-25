@@ -129,8 +129,7 @@ B) COMPILATION GUIDE
 
    Then add ${ELSI_INCLUDE}/${ELSI_LIB} to the compiler/linker flags.
 
-   NOTE: -Wl,--allow-multiple-definition and -lstdc++ might be necessary in the
-         final link. 
+   NOTE: C++ standard library (e.g. -lstdc++) should be available in the final link. 
 
 ====================
 C) BEYOND THIS GUIDE
