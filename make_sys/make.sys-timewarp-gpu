@@ -20,8 +20,6 @@ SCALAPACK_LDFLAGS = -L/opt/intel/mkl/lib/intel64 -lmkl_scalapack_lp64 \
                     -lmkl_blacs_intelmpi_lp64 -lmkl_intel_lp64 \
                     -lmkl_sequential -lmkl_core -lpthread -lm
 
-SCALAPACK_FCFLAGS = -I/opt/intel/mkl/include/intel64/lp64
-
 TOMATO_SEED = /home/wy29/tomato_seed
 
 # ====== PEXSI ======
