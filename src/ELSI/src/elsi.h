@@ -1,8 +1,10 @@
+#include <complex.h>
+
 void c_elsi_init(int solver,
                  int parallel_mode,
                  int matrix_format,
                  int matrix_size,
-                 int n_electrons_in,
+                 double n_electrons_in,
                  int n_states_in);
 
 void c_elsi_set_mpi(int mpi_comm_global_in);
