@@ -1,6 +1,6 @@
 # PLATFORM  : THETA @ALCF
 # COMPILERS : INTEL
-# VERIFIED  : JAN 9, 2017
+# VERIFIED  : FEB 28, 2017
 # DO READ ../INSTALL CAREFULLY!
 
 # ====== ELSI ======
@@ -27,3 +27,8 @@ METIS_LIB       = -L/home/wzvyu/parmetis-4.0.3/build/Linux-x86_64/libmetis -lmet
 PARMETIS_LIB    = -L/home/wzvyu/parmetis-4.0.3/build/Linux-x86_64/libparmetis -lparmetis
 SUPERLU_LIB     = -L/home/wzvyu/SuperLU_DIST_5.1.2/lib -lsuperlu_dist
 SUPERLU_INCLUDE = -I/home/wzvyu/SuperLU_DIST_5.1.2/SRC
+
+# ====== MAKE CHECK ======
+# Note:  you will need to request an interactive job to run "make check"
+TOMATO_SEED = /home/wzvyu/tomato-seed
+MPI_EXEC    = aprun
