@@ -4,11 +4,6 @@ HOW TO INSTALL ELSI
 
 ==========================================================================
 A) BASIC
-
-   Install solver libraries ELPA, libOMM, PEXSI using ELSI installer, then
-   compile ELSI interface software.
-
-   Snapshots of ELPA, libOMM, PEXSI in ELSI package will be used.
 ==========================================================================
 
 1) The installation of ELSI is controlled by a "make.sys" file. Examples
@@ -25,14 +20,13 @@ A) BASIC
       CFLAGS            =  # C compiler flags
       CXXFLAGS          =  # C++ compiler flags
 
-      CXX_LDFLAGS       =  # C++ linker flags, e.g. -lstdc++
-      SCALAPACK_FCFLAGS =  # ScaLAPACK compiler flags
-      SCALAPACK_LDFLAGS =  # ScaLAPACK linker flags
+      CXX_LDFLAGS       =  # C++ standard library, e.g. -lstdc++
+      SCALAPACK_LDFLAGS =  # ScaLAPACK libraries
 
-      METIS_LIB         =  # Metis/Parmetis/SuperLU libraries needed by PEXSI
-      PARMETIS_LIB      =
-      SUPERLU_LIB       =
-      SUPERLU_INCLUDE   =
+      METIS_LIB         =  # METIS library
+      PARMETIS_LIB      =  # ParMETIS library
+      SUPERLU_LIB       =  # SuperLU_DIST library
+      SUPERLU_INCLUDE   =  # SuperLU_DIST include path
 
 2) Make sure the "make.sys" file is correctly configured.
 
@@ -40,12 +34,12 @@ A) BASIC
 
       "make"
 
-3) Optional. The correctness of installation can be checked together with
-   the "tomato-seed" data files. Set the following keyword in make.sys:
+3) Optional. The correctness of compilation can be checked using the
+   "tomato-seed" data files. Set the following keyword in make.sys:
 
       TOMATO_SEED = # Path to tomato_seed
 
-   The MPI executable can be set by:
+   If not "mpirun", the name of MPI executable can be set by:
 
       MPI_EXEC = # Default: mpirun
 
@@ -62,60 +56,32 @@ A) BASIC
    executables in "./bin".
 
 ==========================================================================
-B) ADVANCE I
-
-   More settings.
+B) ELPA KERNELS
 ==========================================================================
 
-1) ELPA Kernels written for specific architectures
+   ELPA Kernels written for specific architectures:
 
       ELPA2_KERNEL =  # Default: Generic
                       # Options: SSE
                       #          AVX
-                      #          AVX2
                       #          BGQ
-                      #          GPU
-
-2) Archive tools and flags can be modified by
-
-      ARCHIVE      =  # Default: ar
-      ARCHIVEFLAGS =  # Default: cr
-      RANLIB       =  # Default: ranlib
-
-3) Compiler flags for each library (E for ELPA, O for libOMM, P for PEXSI,
-   and I for ELSI interface) can be set separately by
-
-      FFLAGS_I   =  # Default: $(FFLAGS)
-      FFLAGS_E   =  # Default: $(FFLAGS)
-      CFLAGS_E   =  # Default: $(CFLAGS)
-      FFLAGS_O   =  # Default: $(FFLAGS)
-      FFLAGS_P   =  # Default: $(FFLAGS)
-      CFLAGS_P   =  # Default: $(CFLAGS)
-      CXXFLAGS_P =  # Default: $(CXXFLAGS)
-
-4) Linker and link flags for ELSI test programs can be set by
-
-      LINKER  =  # Default: $(MPIFC)
-      LDFLAGS =  # Default: $(FFLAGS)
 
 ==========================================================================
-C) ADVANCE II
-
-   Disable C++ code in ELSI.
+C) EXTERNAL LIBRARIES
 ==========================================================================
 
-   For special purposes such as testing or debugging, the C++ code in ELSI
-   (mainly PEXSI) can be disabled to perform a pure Fortran compilation.
-
-1) Add the following keyword to "make.sys":
+   PEXSI, one of the solvers in ELSI, requires two pre-installed external
+   libraries, ParMETIS and SuperLU_DIST. If for any reason they are not
+   available, one temporary solution would be disabling PEXSI (written in
+   C++) by adding this keyword to make.sys:
 
       DISABLE_CXX = yes  # Disable C++ code
 
-2) To build ELSI, type
+   To build and install ELSI, type
 
       "make"
 
-3) To create ELSI library, type
+   and
 
       "make install"
 

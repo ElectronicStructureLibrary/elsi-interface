@@ -49,10 +49,9 @@ program test_ev_real
    integer :: n_basis,n_states
    integer :: matrix_size,supercell(3)
    integer :: solver
-   integer :: broaden
 
    real*8 :: n_electrons,frac_occ,sparsity,orb_r_cut
-   real*8 :: k_point(3),broaden_width
+   real*8 :: k_point(3)
    real*8 :: e_test,e_ref,e_tol
    real*8 :: t1,t2
    real*8, allocatable :: e_val(:)
