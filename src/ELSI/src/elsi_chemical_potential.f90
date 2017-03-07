@@ -294,7 +294,9 @@ subroutine elsi_find_mu(kpoint_weights,eigenvalues,occ_numbers,&
    mu_left = mu_lower_in
    mu_right = mu_upper_in
 
-   do while(.not.found_mu)
+   ! Exit loop if mu is found or the interval is too small
+   do while((.not.found_mu) .and. (ABS(mu_left-mu_right) > 1.0d-14) .and.&
+            (n_steps < max_mu_steps))
       call elsi_check_electrons(kpoint_weights,eigenvalues,occ_numbers,&
                                 mu_left,diff_left)
       call elsi_check_electrons(kpoint_weights,eigenvalues,occ_numbers,&
@@ -307,14 +309,9 @@ subroutine elsi_find_mu(kpoint_weights,eigenvalues,occ_numbers,&
          mu_out = mu_right
          found_mu = .true.
       else
-         mu_mid = 0.5d0*(mu_left+mu_right)
-
          n_steps = n_steps+1
-         if(n_steps > max_mu_steps) then
-            write(info_str,"(A,I13,A)") " Chemical potential not found in ",&
-               max_mu_steps," iterations! Exiting..."
-            call elsi_stop(info_str,caller)
-         endif
+
+         mu_mid = 0.5d0*(mu_left+mu_right)
 
          call elsi_check_electrons(kpoint_weights,eigenvalues,occ_numbers,&
                                    mu_mid,diff_mid)
@@ -330,6 +327,105 @@ subroutine elsi_find_mu(kpoint_weights,eigenvalues,occ_numbers,&
       endif
    enddo
 
+   ! Special treatment if mu does not reach the required accuracy
+   if(.not.found_mu) then
+      call elsi_statement_print("  Chemical potential cannot reach the"//&
+                                " required accuracy by bisection method")
+
+      call elsi_adjust_occ(kpoint_weights,eigenvalues,occ_numbers,diff_right)
+   endif
+
 end subroutine
 
-end module 
+!>
+!! This routine cancels the small error in number of electrons.
+!!
+subroutine elsi_adjust_occ(kpoint_weights,eigenvalues,occ_numbers,diff_ne)
+
+   implicit none
+
+   real*8,  intent(in)    :: kpoint_weights(n_kpoint)
+   real*8,  intent(in)    :: eigenvalues(n_state,n_spin,n_kpoint)
+   real*8,  intent(inout) :: occ_numbers(n_state,n_spin,n_kpoint)
+   real*8,  intent(inout) :: diff_ne !< Error in number of electrons before adjusting
+
+   real*8  :: tmp_real
+   integer :: tmp_int
+   integer :: min_id
+   integer :: i_state  !< State index
+   integer :: i_kpoint !< K-point index
+   integer :: i_spin   !< Spin index
+   integer :: i_val    !< Index for 1D array
+   integer :: n_total  !< Total number of states
+
+   real*8,  allocatable :: eval_aux(:) !< Aux 1D array
+   real*8,  allocatable :: occ_aux(:)  !< Aux 1D array
+   integer, allocatable :: idx_aux(:)  !< Aux 1D array
+
+   character*40, parameter :: caller = "elsi_adjust_occ"
+
+   n_total = n_state*n_spin*n_kpoint
+
+   call elsi_allocate(eval_aux,n_total,"eval_aux",caller)
+   call elsi_allocate(occ_aux,n_total,"occ_aux",caller)
+   call elsi_allocate(idx_aux,n_total,"idx_aux",caller)
+
+   ! Put eigenvalues and occupation numbers into 1D arrays
+   i_val = 0
+
+   do i_kpoint = 1,n_kpoint
+      do i_spin = 1,n_spin
+         do i_state = 1,n_state
+            i_val = i_val+1
+            eval_aux(i_val) = eigenvalues(i_state,i_spin,i_kpoint)
+            occ_aux(i_val)  = occ_numbers(i_state,i_spin,i_kpoint)
+            idx_aux(i_val)  = i_val
+         enddo
+      enddo
+   enddo
+
+   ! Sort eval_aux; move occ_aux and idx_aux accordingly
+   do i_val = 1,n_total
+      min_id = MINLOC(eval_aux(i_val:n_total),1)+i_val-1
+
+      tmp_int = idx_aux(i_val)
+      idx_aux(i_val) = idx_aux(min_id)
+      idx_aux(min_id) = tmp_int
+
+      tmp_real = eval_aux(i_val)
+      eval_aux(i_val) = eval_aux(min_id)
+      eval_aux(min_id) = tmp_real
+
+      tmp_real = occ_aux(i_val)
+      occ_aux(i_val) = occ_aux(min_id)
+      occ_aux(min_id) = tmp_real
+   enddo
+
+   deallocate(eval_aux)
+
+   do i_val = n_total,1,-1
+      if(occ_aux(i_val) > 0.0d0) then
+         if(occ_aux(i_val) > diff_ne) then
+            diff_ne = 0.0d0
+            occ_aux(i_val) = occ_aux(i_val)-diff_ne
+         else
+            diff_ne = diff_ne - occ_aux(i_val)
+            occ_aux(i_val) = 0.0d0
+         endif
+
+         i_kpoint = idx_aux(i_val)/(n_spin*n_state)
+         i_spin   = MOD((idx_aux(i_val)-1)/6,2)+1
+         i_state  = MOD(idx_aux(i_val)-1,n_state)+1
+
+         occ_numbers(i_kpoint,i_spin,i_state) = occ_aux(i_val)
+      endif
+
+      if(diff_ne < occ_tolerance) exit
+   enddo
+
+   deallocate(occ_aux)
+   deallocate(idx_aux)
+
+end subroutine
+
+end module

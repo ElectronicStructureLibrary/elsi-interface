@@ -113,9 +113,7 @@ end subroutine
 
 subroutine elsi_customize_c_wrapper(print_detail,unit_overlap,hartree_to_ev,&
                                     numerical_zero,no_check_singularity,&
-                                    singularity_threshold,force_stop_singularity,&
-                                    broadening_scheme,broadening_width,&
-                                    mu_accuracy,mu_max_steps)&
+                                    singularity_threshold,force_stop_singularity)&
                                     bind(C,name="c_elsi_customize")
 
    use, intrinsic :: iso_c_binding
@@ -130,10 +128,6 @@ subroutine elsi_customize_c_wrapper(print_detail,unit_overlap,hartree_to_ev,&
    integer(kind=c_int), value, intent(in) :: no_check_singularity
    real(kind=c_double), value, intent(in) :: singularity_threshold
    integer(kind=c_int), value, intent(in) :: force_stop_singularity
-   integer(kind=c_int), value, intent(in) :: broadening_scheme
-   real(kind=c_double), value, intent(in) :: broadening_width
-   real(kind=c_double), value, intent(in) :: mu_accuracy
-   integer(kind=c_int), value, intent(in) :: mu_max_steps
 
    logical :: print_detail_f
    logical :: unit_overlap_f
@@ -164,10 +158,28 @@ subroutine elsi_customize_c_wrapper(print_detail,unit_overlap,hartree_to_ev,&
       force_stop_singularity_f = .true.
    endif
 
-   call elsi_customize(print_detail_f,unit_overlap_f,hartree_to_ev,numerical_zero,&
-                       no_check_singularity_f,singularity_threshold,&
-                       force_stop_singularity_f,broadening_scheme,broadening_width,&
-                       mu_accuracy,mu_max_steps)
+   call elsi_customize(print_detail_f,unit_overlap_f,hartree_to_ev,&
+                       numerical_zero,no_check_singularity_f,&
+                       singularity_threshold,force_stop_singularity_f)
+
+end subroutine
+
+subroutine elsi_customize_mu_c_wrapper(broadening_scheme,broadening_width,&
+                                       mu_accuracy,mu_max_steps)&
+                                       bind(C,name="c_elsi_customize_mu")
+
+   use, intrinsic :: iso_c_binding
+   use ELSI
+
+   implicit none
+
+   integer(kind=c_int), value, intent(in) :: broadening_scheme
+   real(kind=c_double), value, intent(in) :: broadening_width
+   real(kind=c_double), value, intent(in) :: mu_accuracy
+   integer(kind=c_int), value, intent(in) :: mu_max_steps
+
+   call elsi_customize_mu(broadening_scheme,broadening_width,&
+                          mu_accuracy,mu_max_steps)
 
 end subroutine
 

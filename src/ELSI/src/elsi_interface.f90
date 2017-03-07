@@ -55,6 +55,7 @@ module ELSI
    public :: elsi_customize_elpa  !< Override ELPA default
    public :: elsi_customize_omm   !< Override libOMM default
    public :: elsi_customize_pexsi !< Override PEXSI default
+   public :: elsi_customize_mu    !< Override chemical potential determination
    public :: elsi_ev_real         !< Compute eigenvalues and eigenvectors
    public :: elsi_ev_complex      !< Compute eigenvalues and eigenvectors
    public :: elsi_dm_real         !< Compute density matrix
@@ -356,15 +357,15 @@ end subroutine
 !   elsi_customize_omm
 !   elsi_customize_pexsi
 !   elsi_customize_elpa
+!   elsi_customize_mu
 !=========================
 
 !>
 !! This routine overrides ELSI default settings.
 !!
-subroutine elsi_customize(print_detail,unit_overlap,hartree_to_ev,numerical_zero,&
-                          no_check_singularity,singularity_threshold,&
-                          force_stop_singularity,broadening_scheme,broadening_width,&
-                          mu_accuracy,mu_max_steps)
+subroutine elsi_customize(print_detail,unit_overlap,hartree_to_ev,&
+                          numerical_zero,no_check_singularity,&
+                          singularity_threshold,force_stop_singularity)
 
    implicit none
 
@@ -375,10 +376,6 @@ subroutine elsi_customize(print_detail,unit_overlap,hartree_to_ev,numerical_zero
    logical, intent(in), optional :: no_check_singularity   !< Do not perform singularity check of overlap
    real*8,  intent(in), optional :: singularity_threshold  !< Tolerance of overlap singularity
    logical, intent(in), optional :: force_stop_singularity !< Stop if overlap is singular
-   integer, intent(in), optional :: broadening_scheme      !< Broadening method in chemical potential determination
-   real*8,  intent(in), optional :: broadening_width       !< Broadening width in chemical potential determination
-   real*8,  intent(in), optional :: mu_accuracy            !< Tolerance in chemical potential determination
-   integer, intent(in), optional :: mu_max_steps           !< Maximum number of steps to find the chemical potential
 
    ! Print detailed ELSI information? [Default: .false.]
    if(PRESENT(print_detail)) &
@@ -402,18 +399,6 @@ subroutine elsi_customize(print_detail,unit_overlap,hartree_to_ev,numerical_zero
    ! Always stop if overlap is singular? [Default: .false.]
    if(PRESENT(force_stop_singularity)) &
       stop_singularity = force_stop_singularity
-   ! Broadening scheme to compute Fermi level [Default: GAUSSIAN]
-   if(PRESENT(broadening_scheme)) &
-      broaden_method = broadening_scheme
-   ! Broadening width to compute Fermi level [Default: 1d-2]
-   if(PRESENT(broadening_width)) &
-      broaden_width = broadening_width
-   ! Accuracy for chemical potential determination [Default: 1d-10]
-   if(PRESENT(mu_accuracy)) &
-      occ_tolerance = mu_accuracy
-   ! Maximum steps to determine the chemical potential [Default: 100]
-   if(PRESENT(mu_max_steps)) &
-      max_mu_steps = mu_max_steps
 
 end subroutine
 
@@ -612,6 +597,35 @@ subroutine elsi_customize_elpa(elpa_solver)
       call elsi_statement_print("  The chosen method is not ELPA."//&
                                 " Ignore elsi_customize_elpa call.")
    endif
+
+end subroutine
+
+!>
+!! This routine overrides ELSI default settings for the chemical potential
+!! determination module.
+!!
+subroutine elsi_customize_mu(broadening_scheme,broadening_width,&
+                             mu_accuracy,mu_max_steps)
+
+   implicit none
+
+   integer, intent(in), optional :: broadening_scheme !< Broadening method in chemical potential determination
+   real*8,  intent(in), optional :: broadening_width  !< Broadening width in chemical potential determination
+   real*8,  intent(in), optional :: mu_accuracy       !< Tolerance in chemical potential determination
+   integer, intent(in), optional :: mu_max_steps      !< Maximum number of steps to find the chemical potential
+
+   ! Broadening scheme to compute Fermi level [Default: GAUSSIAN]
+   if(PRESENT(broadening_scheme)) &
+      broaden_method = broadening_scheme
+   ! Broadening width to compute Fermi level [Default: 1d-2]
+   if(PRESENT(broadening_width)) &
+      broaden_width = broadening_width
+   ! Accuracy for chemical potential determination [Default: 1d-10]
+   if(PRESENT(mu_accuracy)) &
+      occ_tolerance = mu_accuracy
+   ! Maximum steps to determine the chemical potential [Default: 100]
+   if(PRESENT(mu_max_steps)) &
+      max_mu_steps = mu_max_steps
 
 end subroutine
 
