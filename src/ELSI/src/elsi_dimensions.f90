@@ -156,7 +156,7 @@ module ELSI_DIMENSIONS
    integer :: nnz_g                    !< Global number of nonzeros
    integer :: nnz_l                    !< Local number of nonzeros
    integer :: nnz_l_pexsi              !< Local number of nonzeros in PEXSI distribution
-   real*8  :: zero_threshold = 1.0d-13 !< Threshold to define numerical zero
+   real*8  :: zero_threshold = 1.0d-15 !< Threshold to define numerical zero
 
    !> Overlap
    logical :: overlap_is_unit = .false.      !< Is overlap matrix unit?
@@ -169,10 +169,10 @@ module ELSI_DIMENSIONS
    integer :: n_nonsingular                  !< Number of nonsingular basis functions
 
    !> Physics
-   real*8  :: n_electrons         !< Number of electrons in system
-   integer :: n_states            !< Number of total states
-   integer :: n_occupied_states   !< Number of occupied states
-   real*8  :: hartree = 27.211386 !< Hartree to eV (source: Codata 2015)
+   real*8  :: n_electrons           !< Number of electrons in system
+   integer :: n_states              !< Number of total states
+   integer :: n_occupied_states     !< Number of occupied states
+   real*8  :: hartree = 27.21138602 !< Hartree to eV (source: Codata 2015)
 
    !> ELPA
    logical :: elpa_one_always = .false. !< Always use 1-stage solver
