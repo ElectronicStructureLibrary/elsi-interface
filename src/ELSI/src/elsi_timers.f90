@@ -79,7 +79,7 @@ subroutine elsi_init_timers()
    walltime_pexsi_to_blacs       = 0.0d0
    walltime_pexsi_to_blacs_start = 0.0d0
 
-   call system_clock(initial_time, clock_rate, clock_max)
+   call system_clock(initial_time,clock_rate,clock_max)
 
 end subroutine
 

@@ -89,7 +89,7 @@ subroutine elsi_get_global_col(global_idx,local_idx)
 end subroutine
 
 !>
-!! This routine computes the (local) number of non_zero elements.
+!! This routine counts the local number of non_zero elements.
 !!
 subroutine elsi_get_local_nnz(matrix,n_rows,n_cols,nnz)
 
@@ -117,7 +117,7 @@ subroutine elsi_get_local_nnz(matrix,n_rows,n_cols,nnz)
 end subroutine
 
 !>
-!! This routine computes the (global) number of non_zero elements.
+!! This routine counts the global number of non_zero elements.
 !!
 subroutine elsi_get_global_nnz(matrix, n_rows, n_cols)
 
@@ -138,7 +138,7 @@ subroutine elsi_get_global_nnz(matrix, n_rows, n_cols)
 end subroutine
 
 !>
-!! This routine transforms a (local) dense matrix to sparse CCS format.
+!! This routine transforms a local dense matrix to sparse CCS format.
 !!
 subroutine elsi_dense_to_ccs(matrix,n_rows,n_cols,nnz,val,row_ind,col_ptr)
 
@@ -185,8 +185,8 @@ subroutine elsi_dense_to_ccs(matrix,n_rows,n_cols,nnz,val,row_ind,col_ptr)
 end subroutine
 
 !>
-!! This routine transforms a (local) dense matrix to sparse CCS
-!! format based on given col_ind and row_ptr.
+!! This routine transforms a local dense matrix to sparse CCS
+!! format based on given row_ind and col_ptr.
 !!
 subroutine elsi_dense_to_ccs_by_pattern(matrix,n_rows,n_cols,&
                                         nnz,row_ind,col_ptr,val)
@@ -206,7 +206,7 @@ subroutine elsi_dense_to_ccs_by_pattern(matrix,n_rows,n_cols,&
    integer :: i_val !< Value counter
 
    i_col = 0
-   do i_val = 1, nnz
+   do i_val = 1,nnz
       if(i_val == col_ptr(i_col+1) .and. i_col /= n_cols) then
          i_col = i_col+1
       endif
@@ -217,8 +217,8 @@ subroutine elsi_dense_to_ccs_by_pattern(matrix,n_rows,n_cols,&
 end subroutine
 
 !>
-!! This routine transforms a (local) sparse CCS matrix to dense
-!! format based on given col_ind and row_ptr.
+!! This routine transforms a local sparse CCS matrix to dense
+!! format based on given row_ind and col_ptr.
 !!
 subroutine elsi_ccs_to_dense(matrix,n_rows,n_cols,val,nnz,row_ind,col_ptr)
 
