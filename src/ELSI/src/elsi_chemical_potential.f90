@@ -417,7 +417,7 @@ subroutine elsi_adjust_occ(kpoint_weights,eigenvalues,occ_numbers,diff_ne)
          i_spin   = MOD((idx_aux(i_val)-1)/6,2)+1
          i_state  = MOD(idx_aux(i_val)-1,n_state)+1
 
-         occ_numbers(i_kpoint,i_spin,i_state) = occ_aux(i_val)
+         occ_numbers(i_state,i_spin,i_kpoint) = occ_aux(i_val)
       endif
 
       if(diff_ne < occ_tolerance) exit
