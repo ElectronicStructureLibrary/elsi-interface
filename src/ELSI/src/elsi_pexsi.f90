@@ -484,8 +484,7 @@ subroutine elsi_blacs_to_pexsi_hs_small(H_in,S_in)
          ! Compute row index and column pointer
          i_col = (pos_send_buffer(1)-1)/n_g_size
          do i_val = 1,nnz_l_pexsi
-            row_ind_pexsi(i_val) = MOD(pos_send_buffer(i_val),n_g_size)
-            if(row_ind_pexsi(i_val) == 0) row_ind_pexsi(i_val) = n_g_size
+            row_ind_pexsi(i_val) = MOD(pos_send_buffer(i_val)-1,n_g_size)+1
             if(FLOOR(1.0d0*(pos_send_buffer(i_val)-1)/n_g_size)+1 > i_col) then
                i_col = i_col+1
                col_ptr_pexsi(i_col-(pos_send_buffer(1)-1)/n_g_size) = i_val
@@ -1010,8 +1009,7 @@ subroutine elsi_pexsi_to_blacs_dm_small(D_out)
    do i_val = 1,nnz_l
       ! Compute global 2d id
       global_col_id = FLOOR(1.0d0*(pos_recv_buffer(i_val)-1)/n_g_size)+1
-      global_row_id = MOD(pos_recv_buffer(i_val),n_g_size)
-      if(global_row_id == 0) global_row_id = n_g_size
+      global_row_id = MOD(pos_recv_buffer(i_val)-1,n_g_size)+1
 
       ! Compute local 2d id
       local_row_id = FLOOR(1.0d0*(global_row_id-1)/(n_p_rows*n_b_rows))*n_b_rows&

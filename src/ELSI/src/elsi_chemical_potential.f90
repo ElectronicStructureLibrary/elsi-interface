@@ -294,9 +294,7 @@ subroutine elsi_find_mu(kpoint_weights,eigenvalues,occ_numbers,&
    mu_left = mu_lower_in
    mu_right = mu_upper_in
 
-   ! Exit loop if mu is found or the interval is too small
-   do while((.not.found_mu) .and. (ABS(mu_left-mu_right) > 1.0d-14) .and.&
-            (n_steps < max_mu_steps))
+   do while((.not.found_mu) .and. (n_steps < max_mu_steps))
       call elsi_check_electrons(kpoint_weights,eigenvalues,occ_numbers,&
                                 mu_left,diff_left)
       call elsi_check_electrons(kpoint_weights,eigenvalues,occ_numbers,&
@@ -329,8 +327,17 @@ subroutine elsi_find_mu(kpoint_weights,eigenvalues,occ_numbers,&
 
    ! Special treatment if mu does not reach the required accuracy
    if(.not.found_mu) then
+      ! Use the chemical potential of the right bound
+      call elsi_check_electrons(kpoint_weights,eigenvalues,occ_numbers,&
+                                mu_right,diff_right)
+
+      mu_out = mu_right
+
+      ! With adjusted occupation numbers
       call elsi_statement_print("  Chemical potential cannot reach the"//&
-                                " required accuracy by bisection method")
+                                " required accuracy by bisection method."//&
+                                " The error will be arbitrarily canceled"//&
+                                " in the following state(s):")
 
       call elsi_adjust_occ(kpoint_weights,eigenvalues,occ_numbers,diff_right)
    endif
@@ -361,6 +368,8 @@ subroutine elsi_adjust_occ(kpoint_weights,eigenvalues,occ_numbers,diff_ne)
    real*8,  allocatable :: eval_aux(:) !< Aux 1D array
    real*8,  allocatable :: occ_aux(:)  !< Aux 1D array
    integer, allocatable :: idx_aux(:)  !< Aux 1D array
+
+   character*200 :: info_str
 
    character*40, parameter :: caller = "elsi_adjust_occ"
 
@@ -405,22 +414,26 @@ subroutine elsi_adjust_occ(kpoint_weights,eigenvalues,occ_numbers,diff_ne)
 
    do i_val = n_total,1,-1
       if(occ_aux(i_val) > 0.0d0) then
-         if(occ_aux(i_val) > diff_ne) then
-            diff_ne = 0.0d0
-            occ_aux(i_val) = occ_aux(i_val)-diff_ne
-         else
-            diff_ne = diff_ne - occ_aux(i_val)
-            occ_aux(i_val) = 0.0d0
-         endif
-
-         i_kpoint = idx_aux(i_val)/(n_spin*n_state)
+         i_kpoint = (idx_aux(i_val)-1)/(n_spin*n_state)+1
          i_spin   = MOD((idx_aux(i_val)-1)/6,2)+1
          i_state  = MOD(idx_aux(i_val)-1,n_state)+1
+
+         write(info_str,"(A,I5,A,I5,A,I5)") "  | k-point ",i_kpoint,&
+               ", spin channel ",i_spin,", state ",i_state
+         call elsi_statement_print(info_str)
+
+         if(kpoint_weights(i_kpoint)*occ_aux(i_val) > diff_ne) then
+            occ_aux(i_val) = occ_aux(i_val)-diff_ne/kpoint_weights(i_kpoint)
+            diff_ne = 0.0d0
+         else
+            diff_ne = diff_ne-kpoint_weights(i_kpoint)*occ_aux(i_val)
+            occ_aux(i_val) = 0.0d0
+         endif
 
          occ_numbers(i_state,i_spin,i_kpoint) = occ_aux(i_val)
       endif
 
-      if(diff_ne < occ_tolerance) exit
+      if((diff_ne < occ_tolerance) .or. (diff_ne == 0.0d0)) exit
    enddo
 
    deallocate(occ_aux)
