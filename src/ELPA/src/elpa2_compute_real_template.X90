@@ -3483,6 +3483,8 @@
       integer(kind=ik)                         :: j1
 #endif
 
+      integer(kind=C_SIZE_T) :: aux_int
+
 #ifdef WITH_GPU_VERSION
       unpack_idx = 0
       row_group_size = 0
@@ -3601,7 +3603,9 @@
 #endif
 
 #ifdef WITH_OPENMP
-        if (posix_memalign(aIntern_ptr, 64_C_SIZE_T, int(stripe_width*a_dim2*stripe_count*max_threads*8,kind=C_SIZE_T)) /= 0) then
+        aux_int = int(stripe_width*a_dim2*stripe_count*max_threads*8,kind=C_SIZE_T)
+
+        if (posix_memalign(aIntern_ptr, 64_C_SIZE_T, aux_int) /= 0) then
           print *,"trans_ev_tridi_to_band_real: error when allocating aIntern"//errorMessage
           stop
         endif
@@ -3611,7 +3615,9 @@
 
         ! aIntern(:,:,:,:) should be set to 0 in a parallel region, not here!
 #else
-        if (posix_memalign(aIntern_ptr, 64_C_SIZE_T, int(stripe_width*a_dim2*stripe_count*8,kind=C_SIZE_T)) /= 0) then
+        aux_int = int(stripe_width*a_dim2*stripe_count*8,kind=C_SIZE_T)
+
+        if (posix_memalign(aIntern_ptr, 64_C_SIZE_T, aux_int) /= 0) then
           print *,"trans_ev_tridi_to_band_real: error when allocating aIntern"//errorMessage
           stop
         endif

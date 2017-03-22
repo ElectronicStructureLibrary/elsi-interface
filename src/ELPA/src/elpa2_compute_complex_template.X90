@@ -2970,6 +2970,8 @@
       integer(kind=ik)                            :: j1
 #endif
 
+      integer(kind=C_SIZE_T) :: aux_int
+
       if (useGPU) then
         n_times =0
         !    n_times_1 =0
@@ -3110,7 +3112,9 @@
       endif
 
       if (.not.(useGPU)) then
-         if (posix_memalign(aIntern_ptr, 64_C_SIZE_T, int(stripe_width*a_dim2*stripe_count*max_threads*16,kind=C_SIZE_T)) /= 0) then
+         aux_int = int(stripe_width*a_dim2*stripe_count*max_threads*16,kind=C_SIZE_T)
+
+         if (posix_memalign(aIntern_ptr, 64_C_SIZE_T, aux_int) /= 0) then
           print *,"trans_ev_tridi_to_band_complex: error allocating a "//errorMessage
           stop
         endif
@@ -3124,7 +3128,9 @@
 #else /* OpenMP */
 
       if (.not.(useGPU)) then
-        if (posix_memalign(aIntern_ptr, 64_C_SIZE_T, int(stripe_width*a_dim2*stripe_count*16,kind=C_SIZE_T)) /= 0) then
+        aux_int = int(stripe_width*a_dim2*stripe_count*16,kind=C_SIZE_T)
+
+        if (posix_memalign(aIntern_ptr, 64_C_SIZE_T, aux_int) /= 0) then
           print *,"trans_ev_tridi_to_band_complex: error allocating a "//errorMessage
           stop
         endif
