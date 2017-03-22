@@ -182,7 +182,7 @@ subroutine elsi_check_electrons(kpoint_weights,eigenvalues,occ_numbers,&
    endif
 
    invert_width = 1.0d0/broaden_width
-   diff_ne_out = -n_electron
+   diff_ne_out = 0.0d0
 
    if(n_spin == 2) then
       spin = 1.0d0
@@ -258,6 +258,8 @@ subroutine elsi_check_electrons(kpoint_weights,eigenvalues,occ_numbers,&
                         " or METHFESSEL_PAXTON_1 broadening scheme."//&
                         " Exiting...",caller)
    end select
+
+   diff_ne_out = diff_ne_out-n_electron
 
 end subroutine
 
