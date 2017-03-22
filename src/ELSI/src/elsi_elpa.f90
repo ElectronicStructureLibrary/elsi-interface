@@ -35,6 +35,7 @@ module ELSI_ELPA
    use ELSI_TIMERS
    use ELSI_UTILS
    use ELSI_MATRIX_CONVERSION
+   use ELSI_MU
    use ELPA1
    use ELPA2
 
@@ -78,212 +79,37 @@ subroutine elsi_compute_occ_elpa()
 
    implicit none
 
-   real*8 :: mu !< Chemical potential
-   real*8 :: e_low !< Lowest eigenvalue
-   real*8 :: e_high !< Highest eigenvalue
-   real*8 :: mu_lower !< Lower bound of chemical potential
-   real*8 :: mu_upper !< Upper bound of chemical potential
-   real*8 :: diff_ne_lower !< Difference in number of electrons on lower bound
-   real*8 :: diff_ne_upper !< Difference in number of electrons on upper bound
+   real*8 :: mu           !< Chemical potential
+   real*8 :: k_weights(1) !< Weights of k-points
 
-   integer :: i_state !< State index
-   integer :: n_steps !< Number of steps to find chemical potential interval
+   real*8, allocatable :: eval_aux(:,:,:)
+   real*8, allocatable :: occ_aux(:,:,:)
 
-   character*200 :: info_str
+   !< Currently this subroutine only supports 1 spin channel and 1 k-point
+   integer, parameter :: n_spin   = 1
+   integer, parameter :: n_kpoint = 1
+
    character*40, parameter :: caller = "elsi_compute_occ_elpa"
 
-   ! Determine the smallest and largest eivenvalues
-   e_low = eval(1)
-   e_high = eval(n_states)
-
-   do i_state = 1,n_states
-      if(eval(i_state) < e_low) e_low = eval(i_state)
-      if(eval(i_state) > e_high) e_high = eval(i_state)
-   enddo
-
-   ! Determine the upper and lower bounds for chemical potential
-   mu_lower = e_low
-
-   if(e_low == e_high) then
-      mu_upper = 0.0d0
-   else
-      mu_upper = e_high
-   endif
+   k_weights(1) = 1.0d0
 
    if(.not.ALLOCATED(occ_elpa)) then
        call elsi_allocate(occ_elpa,n_states,"occ_elpa",caller)
    endif
-   occ_elpa = 0.0d0
 
-   ! Compute the difference of number of electrons
-   call elsi_get_ne(mu_lower,diff_ne_lower)
-   call elsi_get_ne(mu_upper,diff_ne_upper)
+   call elsi_allocate(eval_aux,n_states,1,1,"eval_aux",caller)
+   call elsi_allocate(occ_aux,n_states,1,1,"occ_aux",caller)
 
-   ! If diff_ne_lower*diff_ne_upper > 0, it means that the solution is
-   ! not in this interval.
-   ! Enlarge the interval towards both sides, then recheck the condition.
-   n_steps = 0
-   do while(diff_ne_lower*diff_ne_upper > 0)
-      n_steps = n_steps+1
-      if(n_steps > max_mu_steps) then
-         write(info_str,"(A,I13,A)") " Chemical potential not found in ",&
-            max_mu_steps," iterations! Exiting..."
-         call elsi_stop(info_str,caller)
-      endif
+   eval_aux(:,1,1) = eval(:)
+   occ_aux = 0.0d0
 
-      mu_lower = mu_lower-0.5d0*ABS(e_high-e_low)
-      mu_upper = mu_upper+0.5d0*ABS(e_high-e_low)
+   call elsi_compute_mu_and_occ(n_electrons,n_states,n_spin,n_kpoint,&
+                                k_weights,eval_aux,occ_aux,mu)
 
-      call elsi_get_ne(mu_lower,diff_ne_lower)
-      call elsi_get_ne(mu_upper,diff_ne_upper)
-   enddo
+   occ_elpa(:) = occ_aux(:,1,1)
 
-   ! At this point we should have the correct interval for chemical potential.
-   ! Use simple bisection algorithm to find the solution.
-   call elsi_get_mu(mu_lower,mu_upper,mu)
-
-end subroutine
-
-!>
-!! This routine computes the number of electrons using a given chemical potential,
-!! and returns the difference in number of electrons. The occupation numbers will
-!! be updated as well.
-!!
-subroutine elsi_get_ne(mu_in,diff_ne_out)
-
-   implicit none
-
-   real*8,  intent(in)  :: mu_in       !< Input chemical potential
-   real*8,  intent(out) :: diff_ne_out !< Difference in number of electrons
-
-   real*8 :: invert_width !< 1/broaden_width
-   real*8 :: max_exp !< Maximum possible exponent
-   real*8 :: this_exp !< Exponent in this step
-   real*8 :: hermite_arg !< Argument used in Methfessel-Paxton scheme
-   real*8, parameter :: invert_sqrt_pi = 0.564189583547756 !< Constant: 1/sqrt(pi)
-   real*8, parameter :: n_spin = 2.0d0 !< Non spin-polarized case supported only
-   integer :: i_state !< State index
-
-   character*40, parameter :: caller = "elsi_get_ne"
-
-   if(broaden_width .le. 0.0d0) then
-      call elsi_stop(" Broadening width in chemical potential determination must"//&
-                     " be a positive number. Exiting...",caller)
-   endif
-
-   invert_width = 1.0d0/broaden_width
-   diff_ne_out = -n_electrons
-
-   select case (broaden_method)
-      case(GAUSSIAN)
-         do i_state = 1,n_states
-            occ_elpa(i_state) = &
-               n_spin*0.5d0*(1.0d0-ERF((eval(i_state)-mu_in)*invert_width))
-            diff_ne_out = diff_ne_out+occ_elpa(i_state)
-         enddo
-
-      case(FERMI)
-         max_exp = MAXEXPONENT(mu_in)*LOG(2.0d0)
-         do i_state = 1,n_states
-            this_exp = (eval(i_state)-mu_in)*invert_width
-            if(this_exp < max_exp) then
-               occ_elpa(i_state) = n_spin/(1.0d0+EXP(this_exp))
-               diff_ne_out = diff_ne_out+occ_elpa(i_state)
-            else ! Exponent in this step is larger than the largest possible exponent
-               occ_elpa(i_state) = 0.0d0
-            endif
-         enddo
-
-      case(METHFESSEL_PAXTON_0)
-         do i_state = 1,n_states
-            occ_elpa(i_state) = &
-               n_spin*0.5d0*(1-ERF((eval(i_state)-mu_in)*invert_width))
-            diff_ne_out = diff_ne_out+occ_elpa(i_state)
-         enddo
-
-      case(METHFESSEL_PAXTON_1)
-         do i_state = 1,n_states
-            hermite_arg = (eval(i_state)-mu_in)*invert_width
-            occ_elpa(i_state) = n_spin*0.5d0*(1.0d0-ERF(hermite_arg))-0.5d0*&
-                                invert_sqrt_pi*hermite_arg*EXP(-hermite_arg*hermite_arg)
-            diff_ne_out = diff_ne_out+occ_elpa(i_state)
-         enddo
-
-      case DEFAULT
-         call elsi_stop(" No supperted broadening scheme has been chosen."//&
-                        " Please choose GAUSSIAN, FERMI, METHFESSEL_PAXTON_0,"//&
-                        " or METHFESSEL_PAXTON_1 broadening scheme."//&
-                        " Exiting...",caller)
-   end select
-
-end subroutine
-
-!>
-!! This routine computes the chemical potential using bisection algorithm.
-!!
-subroutine elsi_get_mu(mu_lower_in,mu_upper_in,mu_out)
-
-   implicit none
-
-   real*8, intent(in)  :: mu_lower_in !< Lower bound of chemical potential
-   real*8, intent(in)  :: mu_upper_in !< Upper bound of chemical potential
-   real*8, intent(out) :: mu_out      !< Solution of chemical potential
-
-   real*8  :: mu_left !< Left bound of chemical potential interval
-   real*8  :: mu_right !< Right bound of chemical potential interval
-   real*8  :: mu_mid !< Middle point of chemical potential interval
-   real*8  :: diff_left !< Difference in number of electrons on left bound
-   real*8  :: diff_right !< Difference in number of electrons on right bound
-   real*8  :: diff_mid !< Difference in number of electrons on middle point
-   logical :: found_mu !< Is chemical potential found?
-   integer :: n_steps !< Number of steps to find chemical potential
-
-   character*200 :: info_str
-   character*40, parameter :: caller = "elsi_get_mu"
-
-   n_steps = 0
-   found_mu = .false.
-
-   mu_left = mu_lower_in
-   mu_right = mu_upper_in
-
-   do while(.not.found_mu)
-      call elsi_get_ne(mu_left,diff_left)
-      call elsi_get_ne(mu_right,diff_right)
-
-      if(ABS(diff_left) < occ_tolerance) then
-         mu_out = mu_left
-         found_mu = .true.
-      elseif(ABS(diff_right) < occ_tolerance) then
-         mu_out = mu_right
-         found_mu = .true.
-      else
-         mu_mid = 0.5d0*(mu_left+mu_right)
-
-         n_steps = n_steps+1
-         if(n_steps > max_mu_steps) then
-            write(info_str,"(A,I13,A)") " Chemical potential not found in ",&
-               max_mu_steps," iterations! Exiting..."
-            call elsi_stop(info_str,caller)
-         endif
-
-         call elsi_get_ne(mu_mid,diff_mid)
-
-         if(ABS(diff_mid) < occ_tolerance) then
-            mu_out = mu_mid
-            found_mu = .true.
-         elseif(diff_mid < 0) then
-            mu_left = mu_mid
-         elseif(diff_mid > 0) then
-            mu_right = mu_mid
-         endif
-      endif
-   enddo
-
-   write(info_str,"(A,F15.5,A)") "  | Chemical potential = ",mu_out," Ha"
-   call elsi_statement_print(info_str)
-   write(info_str,"(A,F15.5,A)") "  |                    = ",mu_out*hartree," eV"
-   call elsi_statement_print(info_str)
+   deallocate(eval_aux)
+   deallocate(occ_aux)
 
 end subroutine
 

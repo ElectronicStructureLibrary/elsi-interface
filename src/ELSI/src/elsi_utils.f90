@@ -81,12 +81,15 @@ module ELSI_UTILS
    end interface
 
    interface elsi_allocate
-      module procedure elsi_allocate_int_vector,&
-                       elsi_allocate_real_vector,&
-                       elsi_allocate_complex_vector,&
-                       elsi_allocate_int_matrix,&
-                       elsi_allocate_real_matrix,&
-                       elsi_allocate_complex_matrix
+      module procedure elsi_allocate_integer_1d,&
+                       elsi_allocate_integer_2d,&
+                       elsi_allocate_integer_3d,&
+                       elsi_allocate_real_1d,&
+                       elsi_allocate_real_2d,&
+                       elsi_allocate_real_3d,&
+                       elsi_allocate_complex_1d,&
+                       elsi_allocate_complex_2d,&
+                       elsi_allocate_complex_3d
    end interface
 
 contains
@@ -109,161 +112,245 @@ subroutine elsi_statement_print(message)
 end subroutine
 
 !>
-!! This routine allocates a real vector.
+!! This routine allocates a 1D array with real*8.
 !!
-subroutine elsi_allocate_real_vector(vector,n_elements,vectorname,caller)
+subroutine elsi_allocate_real_1d(array,dim1,arrayname,caller)
 
    implicit none
 
-   real*8, allocatable, intent(inout) :: vector(:) !< Data
-   integer, intent(in) :: n_elements               !< Size
-   character(len=*), intent(in) :: vectorname      !< Name
-   character(len=*), intent(in) :: caller          !< Caller
+   real*8, allocatable, intent(inout) :: array(:)  !< Data
+   integer,             intent(in)    :: dim1      !< Size
+   character(len=*),    intent(in)    :: arrayname !< Name
+   character(len=*),    intent(in)    :: caller    !< Caller
 
    integer :: error
    character*200 :: message
 
-   allocate(vector(n_elements),stat=error)
+   allocate(array(dim1),stat=error)
 
    if(error > 0) then 
-      write(message,"(A,A)") "Error in allocating ",TRIM(vectorname)
+      write(message,"(A,A)") "Error in allocating ",TRIM(arrayname)
       call elsi_stop(message,caller)
    endif
 
-   vector = 0.0d0 
+   array = 0.0d0
 
 end subroutine
 
 !>
-!! This routine allocates an integer vector.
+!! This routine allocates a 1D array with integer.
 !!
-subroutine elsi_allocate_int_vector(vector,n_elements,vectorname,caller)
+subroutine elsi_allocate_integer_1d(array,dim1,arrayname,caller)
 
    implicit none
 
-   integer, allocatable, intent(inout) :: vector(:) !< Data
-   integer, intent(in) :: n_elements                !< Size
-   character(len=*), intent(in) :: vectorname       !< Name
-   character(len=*), intent(in) :: caller           !< Caller
+   integer, allocatable, intent(inout) :: array(:)  !< Data
+   integer,             intent(in)     :: dim1      !< Size
+   character(len=*),    intent(in)     :: arrayname !< Name
+   character(len=*),    intent(in)     :: caller    !< Caller
 
    integer :: error
    character*200 :: message
 
-   allocate(vector(n_elements),stat=error)
-
-   if(error > 0) then 
-      write(message,"(A,A)") "Error in allocating ",TRIM(vectorname)
-      call elsi_stop(message,caller)
-   endif
-
-   vector = 0
-
-end subroutine
-
-!>
-!! This routine allocates a complex vector.
-!!
-subroutine elsi_allocate_complex_vector(vector,n_elements,vectorname,caller)
-
-   implicit none
-
-   complex*16, allocatable, intent(inout) :: vector(:) !< Data
-   integer, intent(in) :: n_elements                   !< Size
-   character(len=*), intent(in) :: vectorname          !< Name
-   character(len=*), intent(in) :: caller              !< Caller
-
-   integer :: error
-   character*200 :: message
-
-   allocate(vector(n_elements),stat=error)
+   allocate(array(dim1),stat=error)
 
    if(error > 0) then
-      write(message,"(A,A)") "Error in allocating ",TRIM(vectorname)
+      write(message,"(A,A)") "Error in allocating ",TRIM(arrayname)
       call elsi_stop(message,caller)
    endif
 
-   vector = CMPLX(0.0d0,0.0d0)
+   array = 0
 
 end subroutine
 
 !>
-!! This routine allocates a real matrix.
+!! This routine allocates a 1D array with complex*16.
 !!
-subroutine elsi_allocate_real_matrix(matrix,n_rows,n_cols,matrixname,caller)
+subroutine elsi_allocate_complex_1d(array,dim1,arrayname,caller)
 
    implicit none
 
-   real*8, allocatable, intent(inout) :: matrix(:,:) !< Data
-   integer, intent(in) :: n_rows                     !< Size
-   integer, intent(in) :: n_cols                     !< Size
-   character(len=*), intent(in) :: matrixname        !< Name
-   character(len=*), intent(in) :: caller            !< Caller
+   complex*16, allocatable, intent(inout) :: array(:)  !< Data
+   integer,                 intent(in)    :: dim1      !< Size
+   character(len=*),        intent(in)    :: arrayname !< Name
+   character(len=*),        intent(in)    :: caller    !< Caller
 
    integer :: error
    character*200 :: message
 
-   allocate(matrix(n_rows,n_cols),stat=error)
+   allocate(array(dim1),stat=error)
 
-   if(error > 0) then 
-      write(message,"(A,A)") "Error in allocating ",TRIM(matrixname)
+   if(error > 0) then
+      write(message,"(A,A)") "Error in allocating ",TRIM(arrayname)
       call elsi_stop(message,caller)
    endif
 
-   matrix = 0.0d0 
+   array = CMPLX(0.0d0,0.0d0)
 
 end subroutine
 
 !>
-!! This routine allocates an integer matrix.
+!! This routine allocates a 2D array of real*8.
 !!
-subroutine elsi_allocate_int_matrix(matrix,n_rows,n_cols,matrixname,caller)
+subroutine elsi_allocate_real_2d(array,dim1,dim2,arrayname,caller)
 
    implicit none
 
-   integer, allocatable, intent(inout) :: matrix(:,:) !< Data
-   integer, intent(in) :: n_rows                      !< Size
-   integer, intent(in) :: n_cols                      !< Size
-   character(len=*), intent(in) :: matrixname         !< Name
-   character(len=*), intent(in) :: caller             !< Caller
+   real*8, allocatable, intent(inout) :: array(:,:) !< Data
+   integer,             intent(in)    :: dim1       !< Size
+   integer,             intent(in)    :: dim2       !< Size
+   character(len=*),    intent(in)    :: arrayname  !< Name
+   character(len=*),    intent(in)    :: caller     !< Caller
 
    integer :: error
    character*200 :: message
 
-   allocate(matrix(n_rows,n_cols),stat=error)
+   allocate(array(dim1,dim2),stat=error)
 
-   if(error > 0) then 
-      write(message,"(A,A)") "Error in allocating ",TRIM(matrixname)
+   if(error > 0) then
+      write(message,"(A,A)") "Error in allocating ",TRIM(arrayname)
       call elsi_stop(message,caller)
    endif
 
-   matrix = 0 
+   array = 0.0d0
 
 end subroutine
 
 !>
-!! This routine allocates a complex matrix.
+!! This routine allocates a 2D array of integer.
 !!
-subroutine elsi_allocate_complex_matrix(matrix,n_rows,n_cols,matrixname,caller)
+subroutine elsi_allocate_integer_2d(array,dim1,dim2,arrayname,caller)
 
    implicit none
 
-   complex*16, allocatable, intent(inout) :: matrix(:,:) !< Data
-   integer, intent(in) :: n_rows                         !< Size
-   integer, intent(in) :: n_cols                         !< Size
-   character(len=*), intent(in) :: matrixname            !< Name
-   character(len=*), intent(in) :: caller                !< Caller
+   integer, allocatable, intent(inout) :: array(:,:) !< Data
+   integer,              intent(in)    :: dim1       !< Size
+   integer,              intent(in)    :: dim2       !< Size
+   character(len=*),     intent(in)    :: arrayname  !< Name
+   character(len=*),     intent(in)    :: caller     !< Caller
 
    integer :: error
    character*200 :: message
 
-   allocate(matrix(n_rows,n_cols),stat=error)
+   allocate(array(dim1,dim2),stat=error)
 
-   if(error > 0) then 
-      write(message,"(A,A)") "Error in allocating ",TRIM(matrixname)
+   if(error > 0) then
+      write(message,"(A,A)") "Error in allocating ",TRIM(arrayname)
       call elsi_stop(message,caller)
    endif
 
-   matrix = CMPLX(0.0d0,0.0d0) 
+   array = 0
+
+end subroutine
+
+!>
+!! This routine allocates a 2D array of complex*16.
+!!
+subroutine elsi_allocate_complex_2d(array,dim1,dim2,arrayname,caller)
+
+   implicit none
+
+   complex*16, allocatable, intent(inout) :: array(:,:) !< Data
+   integer,                 intent(in)    :: dim1       !< Size
+   integer,                 intent(in)    :: dim2       !< Size
+   character(len=*),        intent(in)    :: arrayname  !< Name
+   character(len=*),        intent(in)    :: caller     !< Caller
+
+   integer :: error
+   character*200 :: message
+
+   allocate(array(dim1,dim2),stat=error)
+
+   if(error > 0) then
+      write(message,"(A,A)") "Error in allocating ",TRIM(arrayname)
+      call elsi_stop(message,caller)
+   endif
+
+   array = CMPLX(0.0d0,0.0d0)
+
+end subroutine
+
+!>
+!! This routine allocates a 3D array of real*8.
+!!
+subroutine elsi_allocate_real_3d(array,dim1,dim2,dim3,arrayname,caller)
+
+   implicit none
+
+   real*8, allocatable, intent(inout) :: array(:,:,:) !< Data
+   integer,             intent(in)    :: dim1         !< Size
+   integer,             intent(in)    :: dim2         !< Size
+   integer,             intent(in)    :: dim3         !< Size
+   character(len=*),    intent(in)    :: arrayname    !< Name
+   character(len=*),    intent(in)    :: caller       !< Caller
+
+   integer :: error
+   character*200 :: message
+
+   allocate(array(dim1,dim2,dim3),stat=error)
+
+   if(error > 0) then
+      write(message,"(A,A)") "Error in allocating ",TRIM(arrayname)
+      call elsi_stop(message,caller)
+   endif
+
+   array = 0.0d0
+
+end subroutine
+
+!>
+!! This routine allocates a 3D array of integer.
+!!
+subroutine elsi_allocate_integer_3d(array,dim1,dim2,dim3,arrayname,caller)
+
+   implicit none
+   
+   integer, allocatable, intent(inout) :: array(:,:,:) !< Data
+   integer,              intent(in)    :: dim1         !< Size
+   integer,              intent(in)    :: dim2         !< Size
+   integer,              intent(in)    :: dim3         !< Size
+   character(len=*),     intent(in)    :: arrayname    !< Name
+   character(len=*),     intent(in)    :: caller       !< Caller
+   
+   integer :: error
+   character*200 :: message
+   
+   allocate(array(dim1,dim2,dim3),stat=error)
+         
+   if(error > 0) then
+      write(message,"(A,A)") "Error in allocating ",TRIM(arrayname)
+      call elsi_stop(message,caller)
+   endif
+
+   array = 0
+
+end subroutine
+
+!>
+!! This routine allocates a 3D array of complex*16.
+!!
+subroutine elsi_allocate_complex_3d(array,dim1,dim2,dim3,arrayname,caller)
+
+   implicit none
+   
+   complex*16, allocatable, intent(inout) :: array(:,:,:) !< Data
+   integer,                 intent(in)    :: dim1         !< Size
+   integer,                 intent(in)    :: dim2         !< Size
+   integer,                 intent(in)    :: dim3         !< Size
+   character(len=*),        intent(in)    :: arrayname    !< Name
+   character(len=*),        intent(in)    :: caller       !< Caller
+   
+   integer :: error
+   character*200 :: message
+   
+   allocate(array(dim1,dim2,dim3),stat=error)
+         
+   if(error > 0) then
+      write(message,"(A,A)") "Error in allocating ",TRIM(arrayname)
+      call elsi_stop(message,caller)
+   endif
+
+   array = CMPLX(0.0d0,0.0d0)
 
 end subroutine
 
