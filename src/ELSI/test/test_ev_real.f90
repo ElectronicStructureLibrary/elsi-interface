@@ -149,7 +149,7 @@ program test_ev_real
       write(*,'("  ##  Done. Time:",F23.3,"s       ##")') t2-t1
       write(*,'("  ##  System:                      Silicon      ##")')
       write(*,'("  ##  Matrix size:",I21,"         ##")') matrix_size
-      write(*,'("  ##  Sparsity:",F26.3,"%      ##")') 100d0*sparsity
+!      write(*,'("  ##  Sparsity:",F26.3,"%      ##")') 100d0*sparsity
       write(*,'("  ##  Number of electrons:",I12,"          ##")') 2*n_states
    endif
 
@@ -173,7 +173,7 @@ program test_ev_real
    endif
 
    ! Uncomment to get more output
-   ! call elsi_customize(print_detail=.true.)
+!   call elsi_customize(print_detail=.true.)
    
    t1 = MPI_Wtime()
 

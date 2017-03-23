@@ -100,7 +100,7 @@ subroutine elsi_compute_occ_elpa()
    call elsi_allocate(eval_aux,n_states,1,1,"eval_aux",caller)
    call elsi_allocate(occ_aux,n_states,1,1,"occ_aux",caller)
 
-   eval_aux(:,1,1) = eval(:)
+   eval_aux(1:n_states,1,1) = eval(1:n_states)
    occ_aux = 0.0d0
 
    call elsi_compute_mu_and_occ(n_electrons,n_states,n_spin,n_kpoint,&
