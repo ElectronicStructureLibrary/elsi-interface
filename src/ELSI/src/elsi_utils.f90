@@ -408,6 +408,8 @@ subroutine elsi_set_real_hamiltonian(H_in)
          ! Nothing to be done here
       case (CHESS)
          call elsi_stop(" CHESS not yet implemented. Exiting...",caller)
+      case (SIPS)
+         call elsi_stop(" SIPS not yet implemented. Exiting...",caller)
       case DEFAULT
          call elsi_stop(" No supported solver has been chosen."//&
                         " Please choose ELPA, LIBOMM, or PEXSI solver."//&
@@ -436,6 +438,8 @@ subroutine elsi_set_complex_hamiltonian(H_in)
          ! Nothing to be done here
       case (CHESS)
          call elsi_stop(" CHESS not yet implemented. Exiting...",caller)
+      case (SIPS)
+         call elsi_stop(" SIPS not yet implemented. Exiting...",caller)
       case DEFAULT
          call elsi_stop(" No supported solver has been chosen."//&
                         " Please choose ELPA, LIBOMM, or PEXSI solver."//&
@@ -463,7 +467,9 @@ subroutine elsi_set_sparse_real_hamiltonian(H_in)
       case (PEXSI)
          ham_real_ccs => H_in
       case (CHESS)
-         ! Nothing to be done here
+         call elsi_stop(" CHESS not yet implemented. Exiting...",caller)
+      case (SIPS)
+         call elsi_stop(" SIPS not yet implemented. Exiting...",caller)
       case DEFAULT
          call elsi_stop(" No supported solver has been chosen."//&
                         " Please choose ELPA, LIBOMM, or PEXSI solver."//&
@@ -491,7 +497,9 @@ subroutine elsi_set_sparse_complex_hamiltonian(H_in)
       case (PEXSI)
          ham_complex_ccs => H_in         
       case (CHESS)
-         ! Nothing to be done here
+         call elsi_stop(" CHESS not yet implemented. Exiting...",caller)
+      case (SIPS)
+         call elsi_stop(" SIPS not yet implemented. Exiting...",caller)
       case DEFAULT
          call elsi_stop(" No supported solver has been chosen."//&
                         " Please choose ELPA, LIBOMM, or PEXSI solver."//&
@@ -520,6 +528,8 @@ subroutine elsi_set_real_overlap(S_in)
          ! Nothing to be done here
       case (CHESS)
          call elsi_stop(" CHESS not yet implemented. Exiting...",caller)
+      case (SIPS)
+         call elsi_stop(" SIPS not yet implemented. Exiting...",caller)
       case DEFAULT
          call elsi_stop(" No supported solver has been chosen."//&
                         " Please choose ELPA, LIBOMM, or PEXSI solver."//&
@@ -548,6 +558,8 @@ subroutine elsi_set_complex_overlap(S_in)
          ! Nothing to be done here
       case (CHESS)
          call elsi_stop(" CHESS not yet implemented. Exiting...",caller)
+      case (SIPS)
+         call elsi_stop(" SIPS not yet implemented. Exiting...",caller)
       case DEFAULT
          call elsi_stop(" No supported solver has been chosen."//&
                         " Please choose ELPA, LIBOMM, or PEXSI solver."//&
@@ -575,7 +587,9 @@ subroutine elsi_set_sparse_real_overlap(S_in)
       case (PEXSI)
          ovlp_real_ccs => S_in
       case (CHESS)
-         ! Nothing to be done here
+         call elsi_stop(" CHESS not yet implemented. Exiting...",caller)
+      case (SIPS)
+         call elsi_stop(" SIPS not yet implemented. Exiting...",caller)
       case DEFAULT
          call elsi_stop(" No supported solver has been chosen."//&
                         " Please choose ELPA, LIBOMM, or PEXSI solver."//&
@@ -603,7 +617,9 @@ subroutine elsi_set_sparse_complex_overlap(S_in)
       case (PEXSI)
          ovlp_complex_ccs => S_in
       case (CHESS)
-         ! Nothing to be done here
+         call elsi_stop(" CHESS not yet implemented. Exiting...",caller)
+      case (SIPS)
+         call elsi_stop(" SIPS not yet implemented. Exiting...",caller)
       case DEFAULT
          call elsi_stop(" No supported solver has been chosen."//&
                         " Please choose ELPA, LIBOMM, or PEXSI solver."//&
@@ -631,7 +647,9 @@ subroutine elsi_set_eigenvalue(e_val_in)
       case (PEXSI)
          ! Nothing to be done here
       case (CHESS)
-         ! Nothing to be done here
+         call elsi_stop(" CHESS not yet implemented. Exiting...",caller)
+      case (SIPS)
+         call elsi_stop(" SIPS not yet implemented. Exiting...",caller)
       case DEFAULT
          call elsi_stop(" No supported solver has been chosen."//&
                         " Please choose ELPA, LIBOMM, or PEXSI solver."//&
@@ -659,7 +677,9 @@ subroutine elsi_set_real_eigenvector(e_vec_in)
       case (PEXSI)
          ! Nothing to be done here
       case (CHESS)
-         ! Nothing to be done here
+         call elsi_stop(" CHESS not yet implemented. Exiting...",caller)
+      case (SIPS)
+         call elsi_stop(" SIPS not yet implemented. Exiting...",caller)
       case DEFAULT
          call elsi_stop(" No supported solver has been chosen."//&
                         " Please choose ELPA, LIBOMM, or PEXSI solver."//&
@@ -687,7 +707,9 @@ subroutine elsi_set_complex_eigenvector(e_vec_in)
       case (PEXSI)
          ! Nothing to be done here
       case (CHESS)
-         ! Nothing to be done here
+         call elsi_stop(" CHESS not yet implemented. Exiting...",caller)
+      case (SIPS)
+         call elsi_stop(" SIPS not yet implemented. Exiting...",caller)
       case DEFAULT
          call elsi_stop(" No supported solver has been chosen."//&
                         " Please choose ELPA, LIBOMM, or PEXSI solver."//&
@@ -715,7 +737,9 @@ subroutine elsi_set_density_matrix(D_in)
       case (PEXSI)
          ! Nothing to be done here
       case (CHESS)
-         ! Nothing to be done here
+         call elsi_stop(" CHESS not yet implemented. Exiting...",caller)
+      case (SIPS)
+         call elsi_stop(" SIPS not yet implemented. Exiting...",caller)
       case DEFAULT
          call elsi_stop(" No supported solver has been chosen."//&
                         " Please choose ELPA, LIBOMM, or PEXSI solver."//&
@@ -743,7 +767,9 @@ subroutine elsi_set_sparse_density_matrix(D_in)
       case (PEXSI)
          den_mat_ccs => D_in
       case (CHESS)
-         ! Nothing to be done here
+         call elsi_stop(" CHESS not yet implemented. Exiting...",caller)
+      case (SIPS)
+         call elsi_stop(" SIPS not yet implemented. Exiting...",caller)
       case DEFAULT
          call elsi_stop(" No supported solver has been chosen."//&
                         " Please choose ELPA, LIBOMM, or PEXSI solver."//&
@@ -771,7 +797,9 @@ subroutine elsi_set_row_ind(row_ind_in)
       case (PEXSI)
          row_ind_ccs => row_ind_in
       case (CHESS)
-         ! Nothing to be done here
+         call elsi_stop(" CHESS not yet implemented. Exiting...",caller)
+      case (SIPS)
+         call elsi_stop(" SIPS not yet implemented. Exiting...",caller)
       case DEFAULT
          call elsi_stop(" No supported solver has been chosen."//&
                         " Please choose ELPA, LIBOMM, or PEXSI solver."//&
@@ -799,7 +827,9 @@ subroutine elsi_set_col_ptr(col_ptr_in)
       case (PEXSI)
          col_ptr_ccs => col_ptr_in
       case (CHESS)
-         ! Nothing to be done here
+         call elsi_stop(" CHESS not yet implemented. Exiting...",caller)
+      case (SIPS)
+         call elsi_stop(" SIPS not yet implemented. Exiting...",caller)
       case DEFAULT
          call elsi_stop(" No supported solver has been chosen."//&
                         " Please choose ELPA, LIBOMM, or PEXSI solver."//&
@@ -876,7 +906,7 @@ subroutine elsi_check()
    character*40, parameter :: caller = "elsi_check"
 
    ! General check of method, parallelism, storage
-   if(method < 0 .or. method > 4) then
+   if(method < 0 .or. method > 5) then
       call elsi_stop(" No supported solver has been chosen."//&
                      " Please choose ELPA, LIBOMM, or PEXSI solver."//&
                      " Exiting...",caller)
@@ -989,9 +1019,15 @@ subroutine elsi_check()
       endif
 
    else if(method == CHESS) then
-      call elsi_stop(" CheSS not yet available."//&
+      call elsi_stop(" CHESS not yet available."//&
                      " Please choose ELPA, LIBOMM, or PEXSI solver."//&
                      " Exiting...",caller)
+
+   else if(method == SIPS) then
+      call elsi_stop(" SIPS not yet available."//&
+                     " Please choose ELPA, LIBOMM, or PEXSI solver."//&
+                     " Exiting...",caller)
+
    else
       call elsi_stop(" No supported solver has been chosen."//&
                      " Please choose ELPA, LIBOMM, or PEXSI solver."//&

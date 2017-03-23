@@ -321,7 +321,9 @@ subroutine elsi_get_energy(energy_out)
       case (PEXSI)
          energy_out = e_tot_H
       case (CHESS)
-         call elsi_stop(" CHESS: not yet implemented! Exiting...",caller)
+         call elsi_stop(" CHESS not yet implemented. Exiting...",caller)
+      case (SIPS)
+         call elsi_stop(" SIPS not yet implemented. Exiting...",caller)
       case DEFAULT
          call elsi_stop(" No supported solver has been chosen."//&
                         " Please choose ELPA, LIBOMM, or PEXSI solver."//&
@@ -688,6 +690,8 @@ subroutine elsi_ev_real(H_in,S_in,e_val_out,e_vec_out)
       case (CHESS)
          call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
                         " Choose ELPA if necessary. Exiting...",caller)
+      case (SIPS)
+         call elsi_stop(" SIPS not yet implemented. Exiting...",caller)
       case DEFAULT
          call elsi_stop(" No supported solver has been chosen."//&
                         " Please choose ELPA solver to compute"//&
@@ -746,6 +750,8 @@ subroutine elsi_ev_complex(H_in,S_in,e_val_out,e_vec_out)
       case (CHESS)
          call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
                         " Choose ELPA if necessary. Exiting...",caller)
+      case (SIPS)
+         call elsi_stop(" SIPS not yet implemented. Exiting...",caller)
       case DEFAULT
          call elsi_stop(" No supported solver has been chosen."//&
                         " Please choose ELPA solver to compute"//&
@@ -905,6 +911,8 @@ subroutine elsi_dm_real(H_in,S_in,D_out,energy_out)
 
       case (CHESS)
          call elsi_stop(" CHESS not yet implemented. Exiting...",caller)
+      case (SIPS)
+         call elsi_stop(" SIPS not yet implemented. Exiting...",caller)
       case default
          call elsi_stop(" No supported solver has been chosen."//&
                         " Exiting...",caller)
@@ -986,6 +994,8 @@ subroutine elsi_dm_complex(H_in,S_in,D_out,energy_out)
          call elsi_stop(" PEXSI not yet implemented. Exiting...",caller)
       case (CHESS)
          call elsi_stop(" CHESS not yet implemented. Exiting...",caller)
+      case (SIPS)
+         call elsi_stop(" SIPS not yet implemented. Exiting...",caller)
       case default
          call elsi_stop(" No supported solver has been chosen."//&
                         " Exiting...",caller)
@@ -1042,6 +1052,8 @@ subroutine elsi_dm_real_sparse(H_in,S_in,D_out,energy_out)
 
       case (CHESS)
          call elsi_stop(" CHESS not yet implemented. Exiting...",caller)
+      case (SIPS)
+         call elsi_stop(" SIPS not yet implemented. Exiting...",caller)
       case default
          call elsi_stop(" No supported solver has been chosen."//&
                         " Exiting...",caller)

@@ -91,7 +91,7 @@ module ELSI_DIMENSIONS
 
 ! ========= PARAMETER =========
 
-   !> Solver (AUTO=0,ELPA=1,LIBOMM=2,PEXSI=3,CHESS=4)
+   !> Solver (AUTO=0,ELPA=1,LIBOMM=2,PEXSI=3,CHESS=4,SIPS=5)
    integer :: method = -1
 
    !> Real or complex data (REAL_VALUES=0,COMPLEX_VALUES=1)
@@ -226,7 +226,7 @@ module ELSI_DIMENSIONS
 
    !> Method names
    enum, bind( C )
-      ENUMERATOR :: AUTO, ELPA, LIBOMM, PEXSI, CHESS
+      ENUMERATOR :: AUTO, ELPA, LIBOMM, PEXSI, CHESS, SIPS
    end enum
 
    !> Real or complex data
