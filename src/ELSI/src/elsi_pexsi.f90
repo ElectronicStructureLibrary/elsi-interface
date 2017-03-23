@@ -28,13 +28,13 @@
 !>
 !! This module provides interfaces to PEXSI.
 !!
+
 module ELSI_PEXSI
 
    use iso_c_binding
    use ELSI_DIMENSIONS
    use ELSI_TIMERS
    use ELSI_UTILS
-   use ELSI_MATRIX_CONVERSION
    use f_ppexsi_interface
 
    implicit none

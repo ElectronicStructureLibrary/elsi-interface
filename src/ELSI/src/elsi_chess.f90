@@ -28,12 +28,12 @@
 !>
 !! This module provides interfaces to CheSS.
 !!
+
 module ELSI_CHESS
 
    use ELSI_DIMENSIONS
    use ELSI_TIMERS
    use ELSI_UTILS
-   use ELSI_MATRIX_CONVERSION
 
    implicit none
    private

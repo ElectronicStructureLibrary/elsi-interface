@@ -27,7 +27,7 @@
 
 !>
 !! This module provides routines for setting up and solving or circumventing
-!! an eigenvalue problem using ELPA, libOMM, PEXSI, or CheSS.
+!! an Kohn-Sham eigenvalue problem using ELPA, libOMM, PEXSI, CheSS, SIPs.
 !!
 
 module ELSI
@@ -36,7 +36,6 @@ module ELSI
    use ELSI_DIMENSIONS
    use ELSI_TIMERS
    use ELSI_UTILS
-   use ELSI_MATRIX_CONVERSION
    use ELSI_ELPA
    use ELSI_OMM
    use ELSI_PEXSI

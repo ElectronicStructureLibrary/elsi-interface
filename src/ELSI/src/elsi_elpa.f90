@@ -28,13 +28,13 @@
 !>
 !! This module provides interfaces to ELPA.
 !!
+
 module ELSI_ELPA
 
    use iso_c_binding
    use ELSI_DIMENSIONS
    use ELSI_TIMERS
    use ELSI_UTILS
-   use ELSI_MATRIX_CONVERSION
    use ELSI_MU
    use ELPA1
    use ELPA2

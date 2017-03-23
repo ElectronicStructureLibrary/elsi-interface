@@ -54,6 +54,9 @@ module ELSI_UTILS
    public :: elsi_cleanup
    public :: elsi_stop
    public :: elsi_check
+   public :: elsi_get_global_row
+   public :: elsi_get_global_col
+   public :: elsi_get_local_nnz
 
    interface elsi_set_hamiltonian
       module procedure elsi_set_real_hamiltonian,&
@@ -616,7 +619,7 @@ subroutine elsi_set_eigenvalue(e_val_in)
 
    implicit none
 
-   real*8, target :: e_val_in(n_g_size)  !< Eigenvalues
+   real*8, target :: e_val_in(n_g_size) !< Eigenvalues
 
    character*40, parameter :: caller = "elsi_set_eigenvalue"
 
@@ -994,6 +997,74 @@ subroutine elsi_check()
                      " Please choose ELPA, LIBOMM, or PEXSI solver."//&
                      " Exiting...",caller)
    endif
+
+end subroutine
+
+!> 
+!! This routine computes global row index based on local row index.
+!!
+subroutine elsi_get_global_row(global_idx,local_idx)
+
+   implicit none
+
+   integer, intent(in)  :: local_idx  !< Local index
+   integer, intent(out) :: global_idx !< Global index
+
+   integer :: block !< Local block
+   integer :: idx !< Local index in block
+
+   block = FLOOR(1.0d0*(local_idx-1)/n_b_rows)
+   idx = local_idx-block*n_b_rows
+
+   global_idx = my_p_row*n_b_rows+block*n_b_rows*n_p_rows+idx
+
+end subroutine
+
+!> 
+!! This routine computes global column index based on local column index.
+!!
+subroutine elsi_get_global_col(global_idx,local_idx)
+
+   implicit none
+
+   integer, intent(in)  :: local_idx  !< Local index
+   integer, intent(out) :: global_idx !< Global index
+
+   integer :: block !< Local block
+   integer :: idx !< Local index in block
+
+   block = FLOOR(1.0d0*(local_idx-1)/n_b_cols)
+   idx = local_idx-block*n_b_cols
+
+   global_idx = my_p_col*n_b_cols+block*n_b_cols*n_p_cols+idx
+
+end subroutine
+
+!>
+!! This routine counts the local number of non_zero elements.
+!!
+subroutine elsi_get_local_nnz(matrix,n_rows,n_cols,nnz)
+
+   implicit none
+
+   real*8,  intent(in)  :: matrix(n_rows,n_cols) !< Local matrix
+   integer, intent(in)  :: n_rows                !< Local rows
+   integer, intent(in)  :: n_cols                !< Local cols
+   integer, intent(out) :: nnz                   !< Number of non-zero
+
+   integer :: i_row !< Row counter
+   integer :: i_col !< Column counter
+   integer :: i_nz !< Non-zero element counter
+
+   nnz = 0
+
+   do i_col = 1,n_cols
+      do i_row = 1,n_rows
+         if(ABS(matrix(i_row,i_col)) > zero_threshold) then
+            nnz = nnz+1
+         endif
+      enddo
+   enddo
 
 end subroutine
 
