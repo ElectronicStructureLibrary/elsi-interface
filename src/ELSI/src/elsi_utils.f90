@@ -457,7 +457,7 @@ subroutine elsi_set_sparse_real_hamiltonian(H_in)
 
    implicit none
 
-   real*8, target :: H_in(nnz_l) !< Sparse real Hamiltonian matrix
+   real*8, target :: H_in(nnz_l_pexsi) !< Sparse real Hamiltonian matrix
 
    character*40, parameter :: caller = "elsi_set_sparse_real_hamiltonian"
 
@@ -487,7 +487,7 @@ subroutine elsi_set_sparse_complex_hamiltonian(H_in)
 
    implicit none
 
-   complex*16, target :: H_in(nnz_l) !< Sparse complex Hamiltonian matrix
+   complex*16, target :: H_in(nnz_l_pexsi) !< Sparse complex Hamiltonian matrix
 
    character*40, parameter :: caller = "elsi_set_sparse_complex_hamiltonian"
 
@@ -577,7 +577,7 @@ subroutine elsi_set_sparse_real_overlap(S_in)
 
    implicit none
 
-   real*8, target :: S_in(nnz_l) !< Sparse real overlap matrix
+   real*8, target :: S_in(nnz_l_pexsi) !< Sparse real overlap matrix
 
    character*40, parameter :: caller = "elsi_set_sparse_real_overlap"
 
@@ -607,7 +607,7 @@ subroutine elsi_set_sparse_complex_overlap(S_in)
 
    implicit none
 
-   complex*16, target :: S_in(nnz_l) !< Sparse complex overlap matrix
+   complex*16, target :: S_in(nnz_l_pexsi) !< Sparse complex overlap matrix
 
    character*40, parameter :: caller = "elsi_set_sparse_complex_overlap"
 
@@ -757,7 +757,7 @@ subroutine elsi_set_sparse_density_matrix(D_in)
 
    implicit none
 
-   real*8, target :: D_in(nnz_l) !< Sparse density matrix
+   real*8, target :: D_in(nnz_l_pexsi) !< Sparse density matrix
 
    character*40, parameter :: caller = "elsi_set_sparse_density_matrix"
 
@@ -787,7 +787,7 @@ subroutine elsi_set_row_ind(row_ind_in)
 
    implicit none
 
-   integer, target :: row_ind_in(nnz_l) !< Row index
+   integer, target :: row_ind_in(nnz_l_pexsi) !< Row index
 
    character*40, parameter :: caller = "elsi_set_row_ind"
 
@@ -817,7 +817,7 @@ subroutine elsi_set_col_ptr(col_ptr_in)
 
    implicit none
 
-   integer, target :: col_ptr_in(nnz_l) !< Column pointer
+   integer, target :: col_ptr_in(nnz_l_pexsi) !< Column pointer
 
    character*40, parameter :: caller = "elsi_set_cplumn_pointer"
 

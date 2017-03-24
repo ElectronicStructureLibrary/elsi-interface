@@ -1,5 +1,5 @@
 # PLATFORM  : TIMEWARP @DUKE
-# COMPILERS : INTEL + NVIDIA
+# COMPILERS : INTEL (DEBUG)
 # VERIFIED  : MAR 24, 2017
 # DO READ ../INSTALL CAREFULLY!
 
@@ -9,10 +9,10 @@ MPICC  = mpiicc
 MPICXX = mpiicpc
 LINKER = mpiifort
 
-FFLAGS   = -O3
-CFLAGS   = -O3
-CXXFLAGS = -O3 -std=c++11
-LDFLAGS  = -O3
+FFLAGS   = -O0 -xAVX -fp-model precise -check bounds -check uninit -check pointers -traceback -g -fpe0
+CFLAGS   = -O0
+CXXFLAGS = -O0 -std=c++11
+LDFLAGS  = -O0
 
 CXX_LDFLAGS = -lstdc++
 
@@ -27,9 +27,3 @@ METIS_LIB       = -L/home/wy29/yu/parmetis-4.0.3/build/Linux-x86_64/libmetis -lm
 PARMETIS_LIB    = -L/home/wy29/yu/parmetis-4.0.3/build/Linux-x86_64/libparmetis -lparmetis
 SUPERLU_LIB     = -L/home/wy29/yu/SuperLU_DIST_5.1.2/lib -lsuperlu_dist_5.1.2
 SUPERLU_INCLUDE = -I/home/wy29/yu/SuperLU_DIST_5.1.2/SRC
-
-# ====== ELPA ======
-ELPA2_KERNEL = GPU
-NVCC         = nvcc
-NVCCFLAGS    = -arch sm_35 -O3
-CUDA         = -I/opt/cuda/7.0/include -L/opt/cuda/7.0/lib64 -lcudart -lcublas

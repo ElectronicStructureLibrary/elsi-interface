@@ -283,9 +283,9 @@ subroutine elsi_set_sparsity(nnz_g_in,nnz_l_in,nnz_l_cols_in,&
 
    character*40, parameter :: caller = "elsi_set_sparsity"
 
-   nnz_g        = nnz_g_in
-   nnz_l        = nnz_l_in
-   nnz_l_pexsi  = nnz_l_cols_in
+   nnz_g          = nnz_g_in
+   nnz_l_pexsi    = nnz_l_in
+   n_l_cols_pexsi = nnz_l_cols_in
 
    call elsi_set_row_ind(row_ind_in)
    call elsi_set_col_ptr(col_ptr_in)
