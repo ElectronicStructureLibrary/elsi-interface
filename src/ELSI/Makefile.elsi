@@ -39,6 +39,9 @@ elsi_dimensions.o: ./src/elsi_dimensions.f90 $(STUBS)
 stub_pexsi.o: ./src/stub_pexsi.f90
 	$(MPIFC) -c $<
 
+stub_sips.o: ./src/stub_sips.f90
+	$(MPIFC) -c $<
+
 elsi_c_interface.o: ./src/elsi_c_interface.f90 elsi_interface.o elsi_dimensions.o $(STUBS)
 	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
 	cp ./src/elsi.h $(INC_DIR)

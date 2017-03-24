@@ -75,6 +75,12 @@ else
   LIBS += $(PEXSI_LIB)
 endif
 
+ifeq ($(strip $(ENABLE_SIPS)),yes)
+  LIBS += $(SIPS_LIB)
+else
+  STUBS += stub_sips.o
+endif
+
 all: $(ALL_OBJ) elsi
 
 elpa:

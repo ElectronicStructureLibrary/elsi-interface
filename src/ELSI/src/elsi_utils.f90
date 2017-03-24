@@ -35,6 +35,8 @@ module ELSI_UTILS
    use iso_c_binding
    use ELSI_DIMENSIONS
    use MatrixSwitch
+   use f_ppexsi_interface
+   use m_qetsc
 
    implicit none
    private
@@ -889,9 +891,19 @@ subroutine elsi_cleanup()
    if(ALLOCATED(row_ind_pexsi))     deallocate(row_ind_pexsi)
    if(ALLOCATED(col_ptr_pexsi))     deallocate(col_ptr_pexsi)
 
-   ! PEXSI plan
+   ! SIPs
+   if(ALLOCATED(inertias))          deallocate(inertias)
+   if(ALLOCATED(shifts))            deallocate(shifts)
+   if(ALLOCATED(slices))            deallocate(slices)
+
+   ! Finalize PEXSI plan
    if(method == PEXSI) then
       call f_ppexsi_plan_finalize(pexsi_plan,pexsi_info)
+   endif
+
+   ! Finalize QETSC
+   if(method == SIPS) then
+      call finalize_qetsc()
    endif
 
 end subroutine
