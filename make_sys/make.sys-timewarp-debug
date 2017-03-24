@@ -9,7 +9,7 @@ MPICC  = mpiicc
 MPICXX = mpiicpc
 LINKER = mpiifort
 
-FFLAGS   = -O0 -xAVX -fp-model precise -check bounds -check uninit -check pointers -traceback -g -fpe0
+FFLAGS   = -O0 -check bounds -check uninit -check pointers -traceback -g -fpe0
 CFLAGS   = -O0
 CXXFLAGS = -O0 -std=c++11
 LDFLAGS  = -O0
