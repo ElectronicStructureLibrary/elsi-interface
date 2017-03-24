@@ -156,28 +156,38 @@ subroutine elsi_set_omm_default_options()
    
    !< How many steps of ELPA to run before OMM
    n_elpa_steps = 3
+
    !< How do we perform the calculation
    !! 0 = Basic
    !! 1 = Cholesky factorisation of S requested
    !! 2 = Cholesky already performed, U is provided in S
    !! 3 = Use preconditioning based on the energy density
    omm_flavour = 2
+
    !< Scaling of the kinetic energy matrix
    scale_kinetic = 5.0d0
+
    !< Calculate the energy weighted density matrix
    calc_ed = .false.
+
    !< Eigenspectrum shift parameter
    eta = 0.0d0
+
    !< Tolerance for minimization
    min_tol = 1.0d-9
+
    !< n_k_points * n_spin
    nk_times_nspin = 1
+
    !< Combined k_point spin index
    i_k_spin = 1
+
    !< Output level?
    omm_verbose = .true.
+
    !< Deallocate temporary arrays?
    do_dealloc = .false.
+
    !< Use pspBLAS sparse linear algebra?
    use_psp = .false.
       
@@ -195,13 +205,13 @@ subroutine elsi_print_omm_options()
    write(info_str,"(A)") "  libOMM settings (in the same unit of Hamiltonian):"
    call elsi_statement_print(info_str)
 
-   write(info_str,"(1X,' | ELPA steps before OMM ',I2)") n_elpa_steps
+   write(info_str,"(1X,' | ELPA steps before using libOMM ',I2)") n_elpa_steps
    call elsi_statement_print(info_str)
 
    write(info_str,"(1X,' | Eigenspectrum shift parameter ',F10.4)") eta
    call elsi_statement_print(info_str)
 
-   write(info_str,"(1X,' | Tolerance of minimization ',E10.1)") min_tol
+   write(info_str,"(1X,' | Tolerance of OMM minimization ',E10.1)") min_tol
    call elsi_statement_print(info_str)
 
    write(info_str,"(1X,' | Use pspBLAS for sparse linear algebra? ',L1)") use_psp

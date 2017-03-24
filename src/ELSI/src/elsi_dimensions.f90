@@ -37,7 +37,7 @@ module ELSI_DIMENSIONS
 
    implicit none
 
-! ========= MATRIX =========
+! ========= ARRAYS =========
 
    !> Pointers used when input format compatible with chosen solver
    real*8,     pointer :: ham_real(:,:)       !< Real Hamiltonian
@@ -57,6 +57,7 @@ module ELSI_DIMENSIONS
    integer,    pointer :: col_ptr_ccs(:)      !< Column pointer
 
    !> Allocatables used when input format incompatible with chosen solver
+   !> ELPA
    real*8,     allocatable :: ham_real_elpa(:,:)     !< Real Hamiltonian
    complex*16, allocatable :: ham_complex_elpa(:,:)  !< Complex Hamiltonian
    real*8,     allocatable :: ovlp_real_elpa(:,:)    !< Real overlap
@@ -85,11 +86,16 @@ module ELSI_DIMENSIONS
    integer,    allocatable :: row_ind_pexsi(:)      !< Row index
    integer,    allocatable :: col_ptr_pexsi(:)      !< Column pointer
 
+   !> SIPs
+   real*8,  allocatable :: slices(:)   !< Slices
+   real*8,  allocatable :: shifts(:)   !< Shifts
+   integer, allocatable :: inertias(:) !< Inertia count at each shift
+
    !> BLACS
    integer, allocatable :: local_row(:)
    integer, allocatable :: local_col(:)
 
-! ========= PARAMETER =========
+! ========= PARAMETERS =========
 
    !> Solver (AUTO=0,ELPA=1,LIBOMM=2,PEXSI=3,CHESS=4,SIPS=5)
    integer :: method = -1
@@ -221,6 +227,26 @@ module ELSI_DIMENSIONS
    real(c_double)         :: e_tot_h
    real(c_double)         :: e_tot_s
    real(c_double)         :: f_tot
+
+   !> SIPs
+   integer :: n_p_per_slice_sips
+   integer :: n_inertia_steps    !< Number of inertia counting steps
+   integer :: n_solve_steps      !< Number of solution steps
+   integer :: slicing_method     !< Type of slices
+                                 !! 0 = Equally spaced subintervals
+                                 !! 1 = K-meaans after equally spaced subintervals
+                                 !! 2 = Equally populated subintervals
+                                 !! 3 = K-means after equally populated subintervals
+   integer :: inertia_option     !< Extra inertia computations before solve?
+                                 !! 0 = No
+                                 !! 1 = Yes
+   integer :: unbound            !< How to bound the left side of the interval
+                                 !! 0 = Bound interval
+                                 !! 1 = -infinity
+   integer :: n_slices           !< Number of slices
+   real*8  :: interval(2)        !< Global interval to search eigenvalues
+   real*8  :: slice_buffer       !< Small buffer to expand the eigenvalue interval
+                                 !! Smaller values improve performance if eigenvalue range known
 
 ! ========= ALIAS =========
 
