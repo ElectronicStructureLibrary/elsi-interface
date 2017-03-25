@@ -93,7 +93,7 @@ subroutine elsi_compute_occ_elpa()
 
    k_weights(1) = 1.0d0
 
-   if(.not.ALLOCATED(occ_elpa)) then
+   if(.not.allocated(occ_elpa)) then
        call elsi_allocate(occ_elpa,n_states,"occ_elpa",caller)
    endif
 
@@ -139,7 +139,7 @@ subroutine elsi_compute_dm_elpa()
 
          do i = 1,n_states
             if(occ_elpa(i) > 0.0d0) then
-               factor(i) = SQRT(occ_elpa(i))
+               factor(i) = sqrt(occ_elpa(i))
             endif
          enddo
 
@@ -171,7 +171,7 @@ subroutine elsi_compute_dm_elpa()
 
          do i = 1,n_states
             if(occ_elpa(i) > 0.0d0) then
-               factor(i) = SQRT(occ_elpa(i))
+               factor(i) = sqrt(occ_elpa(i))
             endif
          enddo
 
@@ -189,17 +189,17 @@ subroutine elsi_compute_dm_elpa()
          den_mat = 0.0d0
          call elsi_allocate(tmp_real,n_l_rows,n_l_cols,"tmp_real",caller)
 
-         call pdsyrk('U','N',n_g_size,n_states,1.0d0,REAL(tmp_complex),1,1,sc_desc,&
+         call pdsyrk('U','N',n_g_size,n_states,1.0d0,real(tmp_complex),1,1,sc_desc,&
                      0.0d0,den_mat,1,1,sc_desc)
-         call pdsyrk('U','N',n_g_size,n_states,1.0d0,AIMAG(tmp_complex),1,1,sc_desc,&
+         call pdsyrk('U','N',n_g_size,n_states,1.0d0,aimag(tmp_complex),1,1,sc_desc,&
                      0.0d0,tmp_real,1,1,sc_desc)
 
          den_mat = den_mat+tmp_real
    end select
 
    deallocate(factor)
-   if(ALLOCATED(tmp_real))    deallocate(tmp_real)
-   if(ALLOCATED(tmp_complex)) deallocate(tmp_complex)
+   if(allocated(tmp_real))    deallocate(tmp_real)
+   if(allocated(tmp_complex)) deallocate(tmp_complex)
 
    ! Set upper triangle matrix den_mat to full form
    call elsi_allocate(tmp_real,n_l_rows,n_l_cols,"tmp_real",caller)
@@ -317,7 +317,7 @@ subroutine elsi_to_standard_evp()
             do i_col=1,n_g_size
                if(local_col(i_col) == 0 .or. local_row(i_col) == 0) cycle
                ham_complex(local_row(i_col),local_col(i_col)) = &
-                  DBLE(ham_complex(local_row(i_col),local_col(i_col)))
+                  dble(ham_complex(local_row(i_col),local_col(i_col)))
             enddo
          endif
 
@@ -392,8 +392,8 @@ subroutine elsi_to_standard_evp()
 
    end select
 
-   if(ALLOCATED(buffer_real))    deallocate(buffer_real)
-   if(ALLOCATED(buffer_complex)) deallocate(buffer_complex)
+   if(allocated(buffer_real))    deallocate(buffer_real)
+   if(allocated(buffer_complex)) deallocate(buffer_complex)
 
 end subroutine
 
@@ -486,7 +486,7 @@ subroutine elsi_check_singularity()
 
             ! Overlap matrix is overwritten with scaled eigenvectors
             do i = 1,n_nonsingular
-               ev_sqrt = SQRT(ev_overlap(i))
+               ev_sqrt = sqrt(ev_overlap(i))
                if(local_col(i) == 0) cycle
                ovlp_complex(:,local_col(i)) = evec_complex(:,local_col(i))/ev_sqrt
             enddo
@@ -562,7 +562,7 @@ subroutine elsi_check_singularity()
 
             ! Overlap matrix is overwritten with scaled eigenvectors
             do i = 1,n_nonsingular
-               ev_sqrt = SQRT(ev_overlap(i))
+               ev_sqrt = sqrt(ev_overlap(i))
                if(local_col(i) == 0) cycle
                ovlp_real(:,local_col(i)) = evec_real(:,local_col(i))/ev_sqrt
             enddo
@@ -574,9 +574,9 @@ subroutine elsi_check_singularity()
 
    end select ! select mode
 
-   if(ALLOCATED(ev_overlap))     deallocate(ev_overlap)
-   if(ALLOCATED(buffer_real))    deallocate(buffer_real)
-   if(ALLOCATED(buffer_complex)) deallocate(buffer_complex)
+   if(allocated(ev_overlap))     deallocate(ev_overlap)
+   if(allocated(buffer_real))    deallocate(buffer_real)
+   if(allocated(buffer_complex)) deallocate(buffer_complex)
 
 end subroutine
 
@@ -638,8 +638,8 @@ subroutine elsi_to_original_ev()
 
    end select
 
-   if(ALLOCATED(buffer_real))    deallocate(buffer_real)
-   if(ALLOCATED(buffer_complex)) deallocate(buffer_complex)
+   if(allocated(buffer_real))    deallocate(buffer_real)
+   if(allocated(buffer_complex)) deallocate(buffer_complex)
 
 end subroutine
 
@@ -856,8 +856,8 @@ subroutine elsi_to_standard_evp_sp()
 
    end select
 
-   if(ALLOCATED(buffer_real))    deallocate(buffer_real)
-   if(ALLOCATED(buffer_complex)) deallocate(buffer_complex)
+   if(allocated(buffer_real))    deallocate(buffer_real)
+   if(allocated(buffer_complex)) deallocate(buffer_complex)
 
 end subroutine
 
@@ -905,8 +905,8 @@ subroutine elsi_to_original_ev_sp()
 
    end select
 
-   if(ALLOCATED(buffer_real))    deallocate(buffer_real)
-   if(ALLOCATED(buffer_complex)) deallocate(buffer_complex)
+   if(allocated(buffer_real))    deallocate(buffer_real)
+   if(allocated(buffer_complex)) deallocate(buffer_complex)
 
 end subroutine
 
@@ -947,7 +947,7 @@ subroutine elsi_solve_evp_elpa_sp()
          call elsi_allocate(buffer_complex,n_g_size,n_g_size,"buffer_complex",caller)
 
          call zhetrd('U',n_g_size,ham_complex,n_g_size,d,e,tau_complex,&
-                     buffer_complex,SIZE(buffer_complex),info)
+                     buffer_complex,size(buffer_complex),info)
  
          success = elpa_solve_tridi_double(n_g_size,n_states,d,e,buffer_real,&
                                            n_g_size,64,n_g_size,mpi_comm_self,&
@@ -957,7 +957,7 @@ subroutine elsi_solve_evp_elpa_sp()
          evec_complex(1:n_g_size,1:n_states) = buffer_real(1:n_g_size,1:n_states)
 
          call zunmtr('L','U','N',n_g_size,n_states,ham_complex,n_g_size,tau_complex,&
-                     evec_complex,n_g_size,buffer_complex,SIZE(buffer_complex),info)
+                     evec_complex,n_g_size,buffer_complex,size(buffer_complex),info)
 
          deallocate(tau_complex)
          deallocate(buffer_real)
@@ -968,7 +968,7 @@ subroutine elsi_solve_evp_elpa_sp()
          call elsi_allocate(buffer_real,n_g_size,n_g_size,"buffer_real",caller)
 
          call dsytrd('U',n_g_size,ham_real,n_g_size,d,e,tau_real,buffer_real,&
-                     SIZE(buffer_real),info)
+                     size(buffer_real),info)
 
          success = elpa_solve_tridi_double(n_g_size,n_states,d,e,buffer_real,&
                                            n_g_size,64,n_g_size,mpi_comm_self,&
@@ -978,7 +978,7 @@ subroutine elsi_solve_evp_elpa_sp()
          evec_real(1:n_g_size,1:n_states) = buffer_real(1:n_g_size,1:n_states)
  
          call dormtr('L','U','N',n_g_size,n_states,ham_real,n_g_size,tau_real,&
-                     evec_real,n_g_size,buffer_real,SIZE(buffer_real),info)
+                     evec_real,n_g_size,buffer_real,size(buffer_real),info)
 
          deallocate(tau_real)
          deallocate(buffer_real)
@@ -1094,7 +1094,7 @@ subroutine elsi_check_singularity_sp()
 
             ! Overlap matrix is overwritten with scaled eigenvectors
             do i = 1,n_nonsingular
-               ev_sqrt = SQRT(ev_overlap(i))
+               ev_sqrt = sqrt(ev_overlap(i))
                ovlp_complex(:,i) = evec_complex(:,i)/ev_sqrt
             enddo
 
@@ -1169,7 +1169,7 @@ subroutine elsi_check_singularity_sp()
 
             ! Overlap matrix is overwritten with scaled eigenvectors
             do i = 1,n_nonsingular
-               ev_sqrt = SQRT(ev_overlap(i))
+               ev_sqrt = sqrt(ev_overlap(i))
                ovlp_real(:,i) = evec_real(:,i)/ev_sqrt
             enddo
 
@@ -1180,9 +1180,9 @@ subroutine elsi_check_singularity_sp()
 
    end select ! select mode
 
-   if(ALLOCATED(ev_overlap))     deallocate(ev_overlap)
-   if(ALLOCATED(buffer_real))    deallocate(buffer_real)
-   if(ALLOCATED(buffer_complex)) deallocate(buffer_complex)
+   if(allocated(ev_overlap))     deallocate(ev_overlap)
+   if(allocated(buffer_real))    deallocate(buffer_real)
+   if(allocated(buffer_complex)) deallocate(buffer_complex)
 
 end subroutine
 

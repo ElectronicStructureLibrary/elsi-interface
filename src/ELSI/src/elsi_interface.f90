@@ -107,7 +107,7 @@ subroutine elsi_init(solver,parallel_mode,matrix_format,matrix_size,&
 
    if(solver == LIBOMM) then
       ! Set number of occupied states for libOMM
-      n_states = NINT(n_electrons/2.0d0)
+      n_states = nint(n_electrons/2.0d0)
       ! Set libOMM default settings
       call elsi_set_omm_default_options()
    else
@@ -235,7 +235,7 @@ subroutine elsi_set_blacs(blacs_ctxt_in,n_b_rows_in,n_b_cols_in,&
       n_l_cols = numroc(n_g_size,n_b_cols,my_p_col,0,n_p_cols)
 
       call descinit(sc_desc,n_g_size,n_g_size,n_b_rows,n_b_cols,0,0,&
-                    blacs_ctxt,MAX(1,n_l_rows),blacs_info)
+                    blacs_ctxt,max(1,n_l_rows),blacs_info)
 
       call elsi_get_elpa_comms(mpi_comm_row,mpi_comm_col)
 
@@ -247,11 +247,11 @@ subroutine elsi_set_blacs(blacs_ctxt_in,n_b_rows_in,n_b_cols_in,&
       i_col = 0
 
       do i = 1,n_g_size
-         if(MOD((i-1)/n_b_rows,n_p_rows) == my_p_row) then
+         if(mod((i-1)/n_b_rows,n_p_rows) == my_p_row) then
             i_row = i_row+1
             local_row(i) = i_row
          endif
-         if(MOD((i-1)/n_b_cols,n_p_cols) == my_p_col) then
+         if(mod((i-1)/n_b_cols,n_p_cols) == my_p_col) then
             i_col = i_col+1
             local_col(i) = i_col
          endif
@@ -379,26 +379,26 @@ subroutine elsi_customize(print_detail,unit_overlap,hartree_to_ev,&
    logical, intent(in), optional :: force_stop_singularity !< Stop if overlap is singular
 
    ! Print detailed ELSI information? [Default: .false.]
-   if(PRESENT(print_detail)) &
+   if(present(print_detail)) &
       print_info = print_detail
    ! Is the overlap matrix unit? [Default: .false.]
-   if(PRESENT(unit_overlap)) &
+   if(present(unit_overlap)) &
       overlap_is_unit = unit_overlap
    ! User-defined value for Hartree [Default: 27.211386, Codata 2015]
-   if(PRESENT(hartree_to_ev)) &
+   if(present(hartree_to_ev)) &
       hartree = hartree_to_ev
    ! Threshold to define numerical zero [Default: 1d-13]
-   if(PRESENT(numerical_zero)) &
+   if(present(numerical_zero)) &
       zero_threshold = numerical_zero
    ! Disable checking for overlap singularity? [Default: .false.]
-   if(PRESENT(no_check_singularity)) &
+   if(present(no_check_singularity)) &
       no_singularity_check = no_check_singularity
    ! Eigenfunctions of overlap matrix with eigenvalues smaller than
    ! this value will be removed to avoid singularity [Default: 1d-5]
-   if(PRESENT(singularity_threshold)) &
+   if(present(singularity_threshold)) &
       singularity_tolerance = singularity_threshold
    ! Always stop if overlap is singular? [Default: .false.]
-   if(PRESENT(force_stop_singularity)) &
+   if(present(force_stop_singularity)) &
       stop_singularity = force_stop_singularity
 
 end subroutine
@@ -417,16 +417,16 @@ subroutine elsi_customize_omm(n_elpa_steps_omm,eigenspectrum_shift,&
    logical, intent(in), optional :: use_pspblas         !< Use pspBLAS sparse linear algebra?
 
    ! Number of ELPA steps
-   if(PRESENT(n_elpa_steps_omm)) &
+   if(present(n_elpa_steps_omm)) &
       n_elpa_steps = n_elpa_steps_omm
    ! Eigenspectrum shift parameter
-   if(PRESENT(eigenspectrum_shift)) &
+   if(present(eigenspectrum_shift)) &
       eta = eigenspectrum_shift
    ! Tolerance for minimization
-   if(PRESENT(omm_tolerance)) &
+   if(present(omm_tolerance)) &
       min_tol = omm_tolerance
    ! Use pspBLAS sparse linear algebra?
-   if(PRESENT(use_pspblas)) &
+   if(present(use_pspblas)) &
       use_psp = use_pspblas
 
    if(method .ne. LIBOMM) then
@@ -466,21 +466,21 @@ subroutine elsi_customize_pexsi(temperature,gap,delta_E,n_poles,max_iteration,&
    integer(c_int), intent(in), optional :: verbosity             !< Level of output info
 
    ! Temperature, in the same unit as H
-   if(PRESENT(temperature)) &
+   if(present(temperature)) &
       pexsi_options%temperature = temperature
 
    ! Spectral gap, can be set to 0 in most cases (default)
-   if(PRESENT(gap)) &
+   if(present(gap)) &
       pexsi_options%gap = gap
 
    ! Upper bound for the spectral radius of S^(-1)H
    ! default: 10
-   if(PRESENT(delta_E)) &
+   if(present(delta_E)) &
       pexsi_options%deltaE = delta_E
 
    ! Number of poles
    ! default: 40
-   if(PRESENT(n_poles)) then
+   if(present(n_poles)) then
       pexsi_options%numPole = n_poles
       pexsi_n_poles_set = .true.
    endif
@@ -488,49 +488,49 @@ subroutine elsi_customize_pexsi(temperature,gap,delta_E,n_poles,max_iteration,&
    ! Maximum number of PEXSI iterations after each inertia
    ! counting procedure
    ! default: 3
-   if(PRESENT(max_iteration)) &
+   if(present(max_iteration)) &
       pexsi_options%maxPEXSIIter = max_iteration
 
    ! From the second step, initial guess of mu is from previous step
    if(n_elsi_calls == 0) then
       ! Initial guess of mu
       ! default: 0.0
-      if(PRESENT(mu0)) &
+      if(present(mu0)) &
          pexsi_options%mu0 = mu0
    endif
 
    ! Initial guess of lower bound for mu
    ! default: -10.0
-   if(PRESENT(mu_min)) &
+   if(present(mu_min)) &
       pexsi_options%muMin0 = mu_min
 
    ! Initial guess of upper bound for mu
    ! default: 10.0
-   if(PRESENT(mu_max)) &
+   if(present(mu_max)) &
       pexsi_options%muMax0 = mu_max
 
    ! Stopping criterion in terms of the chemical potential
    ! for the inertia counting procedure
    ! default: 0.05
-   if(PRESENT(mu_inertia_tolerance)) &
+   if(present(mu_inertia_tolerance)) &
       pexsi_options%muInertiaTolerance = mu_inertia_tolerance
 
    ! If the chemical potential is not in the initial interval,
    ! the interval is expanded by this value
    ! default: 0.3
-   if(PRESENT(mu_inertia_expansion)) &
+   if(present(mu_inertia_expansion)) &
       pexsi_options%muInertiaExpansion = mu_inertia_expansion
 
    ! Safeguard criterion in terms of the chemical potential to
    ! reinvoke the inertia counting procedure
    ! default: 0.05
-   if(PRESENT(mu_safeguard)) &
+   if(present(mu_safeguard)) &
       pexsi_options%muPEXSISafeGuard = mu_safeguard
 
    ! Stopping criterion of the PEXSI iteration in terms of the
    ! number of electrons compared to the exact number
    ! default: 0.01
-   if(PRESENT(n_electron_accuracy)) then
+   if(present(n_electron_accuracy)) then
       pexsi_options%numElectronPEXSITolerance = n_electron_accuracy
       if(n_electron_accuracy < 1.0d-2) then
          small_pexsi_tol = .true.
@@ -541,30 +541,30 @@ subroutine elsi_customize_pexsi(temperature,gap,delta_E,n_poles,max_iteration,&
    ! Type of input H and S matrices
    ! 0: real symmetric (default)
    ! 1: general complex
-   if(PRESENT(matrix_type)) &
+   if(present(matrix_type)) &
       pexsi_options%matrixType = matrix_type
 
    ! Whether to perform symbolic factorization
    ! default: 1
-   if(PRESENT(is_symbolic_factorize)) &
+   if(present(is_symbolic_factorize)) &
       pexsi_options%isSymbolicFactorize = is_symbolic_factorize
 
    ! Ordering strategy for factorization and selected inversion
    ! 0: parallel ordering using ParMETIS
    ! 1: sequential ordering using METIS
    ! 2: multiple minimum degree ordering
-   if(PRESENT(ordering)) &
+   if(present(ordering)) &
       pexsi_options%ordering = ordering
 
    ! Number of processors for ParMETIS, only used if ordering=0
-   if(PRESENT(np_symbolic_factorize)) &
+   if(present(np_symbolic_factorize)) &
       pexsi_options%npSymbFact = np_symbolic_factorize
 
    ! Level of output information
    ! 0: no output
    ! 1: basic output (default)
    ! 2: detailed output
-   if(PRESENT(verbosity)) &
+   if(present(verbosity)) &
       pexsi_options%verbosity = verbosity
 
    if(method .ne. PEXSI) then
@@ -616,16 +616,16 @@ subroutine elsi_customize_mu(broadening_scheme,broadening_width,&
    integer, intent(in), optional :: mu_max_steps      !< Maximum number of steps to find the chemical potential
 
    ! Broadening scheme to compute Fermi level [Default: GAUSSIAN]
-   if(PRESENT(broadening_scheme)) &
+   if(present(broadening_scheme)) &
       broaden_method = broadening_scheme
    ! Broadening width to compute Fermi level [Default: 1d-2]
-   if(PRESENT(broadening_width)) &
+   if(present(broadening_width)) &
       broaden_width = broadening_width
    ! Accuracy for chemical potential determination [Default: 1d-10]
-   if(PRESENT(mu_accuracy)) &
+   if(present(mu_accuracy)) &
       occ_tolerance = mu_accuracy
    ! Maximum steps to determine the chemical potential [Default: 100]
-   if(PRESENT(mu_max_steps)) &
+   if(present(mu_max_steps)) &
       max_mu_steps = mu_max_steps
 
 end subroutine
@@ -862,14 +862,14 @@ subroutine elsi_dm_real(H_in,S_in,D_out,energy_out)
                   evec_real(1:coeff_omm%iaux2(1),1:coeff_omm%iaux2(2))
 
                ! ELPA matrices are no longer needed
-               if(ASSOCIATED(ham_real))      nullify(ham_real)
-               if(ASSOCIATED(ovlp_real))     nullify(ovlp_real)
-               if(ASSOCIATED(evec_real))     nullify(evec_real)
-               if(ASSOCIATED(den_mat))       nullify(den_mat)
-               if(ASSOCIATED(eval))          nullify(eval)
-               if(ALLOCATED(evec_real_elpa)) deallocate(evec_real_elpa)
-               if(ALLOCATED(eval_elpa))      deallocate(eval_elpa)
-               if(ALLOCATED(occ_elpa))       deallocate(occ_elpa)
+               if(associated(ham_real))      nullify(ham_real)
+               if(associated(ovlp_real))     nullify(ovlp_real)
+               if(associated(evec_real))     nullify(evec_real)
+               if(associated(den_mat))       nullify(den_mat)
+               if(associated(eval))          nullify(eval)
+               if(allocated(evec_real_elpa)) deallocate(evec_real_elpa)
+               if(allocated(eval_elpa))      deallocate(eval_elpa)
+               if(allocated(occ_elpa))       deallocate(occ_elpa)
             endif
 
             ! Continue the computation using libOMM
@@ -896,7 +896,7 @@ subroutine elsi_dm_real(H_in,S_in,D_out,energy_out)
          endif
          call elsi_set_row_ind(row_ind_pexsi)
          call elsi_set_col_ptr(col_ptr_pexsi)
-         if(.not.ALLOCATED(den_mat_pexsi)) then
+         if(.not.allocated(den_mat_pexsi)) then
             call elsi_allocate(den_mat_pexsi,nnz_l_pexsi,"den_mat_pexsi",caller)
          endif
          den_mat_pexsi = 0.0d0

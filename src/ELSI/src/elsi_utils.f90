@@ -110,7 +110,7 @@ subroutine elsi_statement_print(message)
 
    if(print_info) then
       if(myid == 0) then
-         write(*,'(A)') TRIM(message)
+         write(*,'(A)') trim(message)
       endif
    endif
 
@@ -134,7 +134,7 @@ subroutine elsi_allocate_real_1d(array,dim1,arrayname,caller)
    allocate(array(dim1),stat=error)
 
    if(error > 0) then 
-      write(message,"(A,A)") "Error in allocating ",TRIM(arrayname)
+      write(message,"(A,A)") "Error in allocating ",trim(arrayname)
       call elsi_stop(message,caller)
    endif
 
@@ -160,7 +160,7 @@ subroutine elsi_allocate_integer_1d(array,dim1,arrayname,caller)
    allocate(array(dim1),stat=error)
 
    if(error > 0) then
-      write(message,"(A,A)") "Error in allocating ",TRIM(arrayname)
+      write(message,"(A,A)") "Error in allocating ",trim(arrayname)
       call elsi_stop(message,caller)
    endif
 
@@ -186,11 +186,11 @@ subroutine elsi_allocate_complex_1d(array,dim1,arrayname,caller)
    allocate(array(dim1),stat=error)
 
    if(error > 0) then
-      write(message,"(A,A)") "Error in allocating ",TRIM(arrayname)
+      write(message,"(A,A)") "Error in allocating ",trim(arrayname)
       call elsi_stop(message,caller)
    endif
 
-   array = CMPLX(0.0d0,0.0d0)
+   array = cmplx(0.0d0,0.0d0)
 
 end subroutine
 
@@ -213,7 +213,7 @@ subroutine elsi_allocate_real_2d(array,dim1,dim2,arrayname,caller)
    allocate(array(dim1,dim2),stat=error)
 
    if(error > 0) then
-      write(message,"(A,A)") "Error in allocating ",TRIM(arrayname)
+      write(message,"(A,A)") "Error in allocating ",trim(arrayname)
       call elsi_stop(message,caller)
    endif
 
@@ -240,7 +240,7 @@ subroutine elsi_allocate_integer_2d(array,dim1,dim2,arrayname,caller)
    allocate(array(dim1,dim2),stat=error)
 
    if(error > 0) then
-      write(message,"(A,A)") "Error in allocating ",TRIM(arrayname)
+      write(message,"(A,A)") "Error in allocating ",trim(arrayname)
       call elsi_stop(message,caller)
    endif
 
@@ -267,11 +267,11 @@ subroutine elsi_allocate_complex_2d(array,dim1,dim2,arrayname,caller)
    allocate(array(dim1,dim2),stat=error)
 
    if(error > 0) then
-      write(message,"(A,A)") "Error in allocating ",TRIM(arrayname)
+      write(message,"(A,A)") "Error in allocating ",trim(arrayname)
       call elsi_stop(message,caller)
    endif
 
-   array = CMPLX(0.0d0,0.0d0)
+   array = cmplx(0.0d0,0.0d0)
 
 end subroutine
 
@@ -295,7 +295,7 @@ subroutine elsi_allocate_real_3d(array,dim1,dim2,dim3,arrayname,caller)
    allocate(array(dim1,dim2,dim3),stat=error)
 
    if(error > 0) then
-      write(message,"(A,A)") "Error in allocating ",TRIM(arrayname)
+      write(message,"(A,A)") "Error in allocating ",trim(arrayname)
       call elsi_stop(message,caller)
    endif
 
@@ -323,7 +323,7 @@ subroutine elsi_allocate_integer_3d(array,dim1,dim2,dim3,arrayname,caller)
    allocate(array(dim1,dim2,dim3),stat=error)
          
    if(error > 0) then
-      write(message,"(A,A)") "Error in allocating ",TRIM(arrayname)
+      write(message,"(A,A)") "Error in allocating ",trim(arrayname)
       call elsi_stop(message,caller)
    endif
 
@@ -351,11 +351,11 @@ subroutine elsi_allocate_complex_3d(array,dim1,dim2,dim3,arrayname,caller)
    allocate(array(dim1,dim2,dim3),stat=error)
          
    if(error > 0) then
-      write(message,"(A,A)") "Error in allocating ",TRIM(arrayname)
+      write(message,"(A,A)") "Error in allocating ",trim(arrayname)
       call elsi_stop(message,caller)
    endif
 
-   array = CMPLX(0.0d0,0.0d0)
+   array = cmplx(0.0d0,0.0d0)
 
 end subroutine
 
@@ -376,8 +376,8 @@ subroutine elsi_stop(message,caller)
    do i_task = 0,n_procs-1
       if(myid == i_task) then
          write(string_message,"(1X,'*** Proc',I5,' in ',A,': ',A)")&
-               myid,TRIM(caller),TRIM(message)
-         write(*,'(A)') TRIM(string_message)
+               myid,trim(caller),trim(message)
+         write(*,'(A)') trim(string_message)
       endif
       call MPI_Barrier(mpi_comm_global,mpierr)
    enddo
@@ -848,32 +848,32 @@ subroutine elsi_cleanup()
    implicit none
 
    ! Nullify pointers
-   if(ASSOCIATED(ham_real))         nullify(ham_real)
-   if(ASSOCIATED(ham_complex))      nullify(ham_complex)
-   if(ASSOCIATED(ovlp_real))        nullify(ovlp_real)
-   if(ASSOCIATED(ovlp_complex))     nullify(ovlp_complex)
-   if(ASSOCIATED(evec_real))        nullify(evec_real)
-   if(ASSOCIATED(evec_complex))     nullify(evec_complex)
-   if(ASSOCIATED(eval))             nullify(eval)
-   if(ASSOCIATED(den_mat))          nullify(den_mat)
-   if(ASSOCIATED(ham_real_ccs))     nullify(ham_real_ccs)
-   if(ASSOCIATED(ham_complex_ccs))  nullify(ham_complex_ccs)
-   if(ASSOCIATED(ovlp_real_ccs))    nullify(ovlp_real_ccs)
-   if(ASSOCIATED(ovlp_complex_ccs)) nullify(ovlp_complex_ccs)
-   if(ASSOCIATED(den_mat_ccs))      nullify(den_mat_ccs)
-   if(ASSOCIATED(row_ind_ccs))      nullify(row_ind_ccs)
-   if(ASSOCIATED(col_ptr_ccs))      nullify(col_ptr_ccs)
+   if(associated(ham_real))         nullify(ham_real)
+   if(associated(ham_complex))      nullify(ham_complex)
+   if(associated(ovlp_real))        nullify(ovlp_real)
+   if(associated(ovlp_complex))     nullify(ovlp_complex)
+   if(associated(evec_real))        nullify(evec_real)
+   if(associated(evec_complex))     nullify(evec_complex)
+   if(associated(eval))             nullify(eval)
+   if(associated(den_mat))          nullify(den_mat)
+   if(associated(ham_real_ccs))     nullify(ham_real_ccs)
+   if(associated(ham_complex_ccs))  nullify(ham_complex_ccs)
+   if(associated(ovlp_real_ccs))    nullify(ovlp_real_ccs)
+   if(associated(ovlp_complex_ccs)) nullify(ovlp_complex_ccs)
+   if(associated(den_mat_ccs))      nullify(den_mat_ccs)
+   if(associated(row_ind_ccs))      nullify(row_ind_ccs)
+   if(associated(col_ptr_ccs))      nullify(col_ptr_ccs)
 
    ! ELPA
-   if(ALLOCATED(ham_real_elpa))     deallocate(ham_real_elpa)
-   if(ALLOCATED(ham_complex_elpa))  deallocate(ham_complex_elpa)
-   if(ALLOCATED(ovlp_real_elpa))    deallocate(ovlp_real_elpa)
-   if(ALLOCATED(ovlp_complex_elpa)) deallocate(ovlp_complex_elpa)
-   if(ALLOCATED(evec_real_elpa))    deallocate(evec_real_elpa)
-   if(ALLOCATED(evec_complex_elpa)) deallocate(evec_complex_elpa)
-   if(ALLOCATED(eval_elpa))         deallocate(eval_elpa)
-   if(ALLOCATED(den_mat_elpa))      deallocate(den_mat_elpa)
-   if(ALLOCATED(occ_elpa))          deallocate(occ_elpa)
+   if(allocated(ham_real_elpa))     deallocate(ham_real_elpa)
+   if(allocated(ham_complex_elpa))  deallocate(ham_complex_elpa)
+   if(allocated(ovlp_real_elpa))    deallocate(ovlp_real_elpa)
+   if(allocated(ovlp_complex_elpa)) deallocate(ovlp_complex_elpa)
+   if(allocated(evec_real_elpa))    deallocate(evec_real_elpa)
+   if(allocated(evec_complex_elpa)) deallocate(evec_complex_elpa)
+   if(allocated(eval_elpa))         deallocate(eval_elpa)
+   if(allocated(den_mat_elpa))      deallocate(den_mat_elpa)
+   if(allocated(occ_elpa))          deallocate(occ_elpa)
 
    ! libOMM
    if(ham_omm%is_initialized)       call m_deallocate(ham_omm)
@@ -883,18 +883,18 @@ subroutine elsi_cleanup()
    if(t_den_mat_omm%is_initialized) call m_deallocate(t_den_mat_omm)
 
    ! PEXSI
-   if(ALLOCATED(ham_real_pexsi))    deallocate(ham_real_pexsi)
-   if(ALLOCATED(ovlp_real_pexsi))   deallocate(ovlp_real_pexsi)
-   if(ALLOCATED(den_mat_pexsi))     deallocate(den_mat_pexsi)
-   if(ALLOCATED(e_den_mat_pexsi))   deallocate(e_den_mat_pexsi)
-   if(ALLOCATED(f_den_mat_pexsi))   deallocate(f_den_mat_pexsi)
-   if(ALLOCATED(row_ind_pexsi))     deallocate(row_ind_pexsi)
-   if(ALLOCATED(col_ptr_pexsi))     deallocate(col_ptr_pexsi)
+   if(allocated(ham_real_pexsi))    deallocate(ham_real_pexsi)
+   if(allocated(ovlp_real_pexsi))   deallocate(ovlp_real_pexsi)
+   if(allocated(den_mat_pexsi))     deallocate(den_mat_pexsi)
+   if(allocated(e_den_mat_pexsi))   deallocate(e_den_mat_pexsi)
+   if(allocated(f_den_mat_pexsi))   deallocate(f_den_mat_pexsi)
+   if(allocated(row_ind_pexsi))     deallocate(row_ind_pexsi)
+   if(allocated(col_ptr_pexsi))     deallocate(col_ptr_pexsi)
 
    ! SIPs
-   if(ALLOCATED(inertias))          deallocate(inertias)
-   if(ALLOCATED(shifts))            deallocate(shifts)
-   if(ALLOCATED(slices))            deallocate(slices)
+   if(allocated(inertias))          deallocate(inertias)
+   if(allocated(shifts))            deallocate(shifts)
+   if(allocated(slices))            deallocate(slices)
 
    ! Finalize PEXSI plan
    if(method == PEXSI) then
@@ -988,15 +988,6 @@ subroutine elsi_check()
                         " Exiting...",caller)
       endif
 
-!      if(MOD(NINT(n_electrons),2) /= 0) then
-!         call elsi_stop(" libOMM has been chosen as the solver."//&
-!                        " The current implementation of libOMM does"//&
-!                        " not support fractional occupation numbers."//&
-!                        " This means the number of electrons in a"//&
-!                        " non-spin-polarized system cannot be odd."//&
-!                        " Exiting...",caller)
-!      endif
-
    else if(method == PEXSI) then
       if(parallelism == MULTI_PROC) then
          if(.not.mpi_is_setup) then
@@ -1061,7 +1052,7 @@ subroutine elsi_get_global_row(global_idx,local_idx)
    integer :: block !< Local block
    integer :: idx !< Local index in block
 
-   block = FLOOR(1.0d0*(local_idx-1)/n_b_rows)
+   block = floor(1.0d0*(local_idx-1)/n_b_rows)
    idx = local_idx-block*n_b_rows
 
    global_idx = my_p_row*n_b_rows+block*n_b_rows*n_p_rows+idx
@@ -1081,7 +1072,7 @@ subroutine elsi_get_global_col(global_idx,local_idx)
    integer :: block !< Local block
    integer :: idx !< Local index in block
 
-   block = FLOOR(1.0d0*(local_idx-1)/n_b_cols)
+   block = floor(1.0d0*(local_idx-1)/n_b_cols)
    idx = local_idx-block*n_b_cols
 
    global_idx = my_p_col*n_b_cols+block*n_b_cols*n_p_cols+idx
@@ -1108,7 +1099,7 @@ subroutine elsi_get_local_nnz(matrix,n_rows,n_cols,nnz)
 
    do i_col = 1,n_cols
       do i_row = 1,n_rows
-         if(ABS(matrix(i_row,i_col)) > zero_threshold) then
+         if(abs(matrix(i_row,i_col)) > zero_threshold) then
             nnz = nnz+1
          endif
       enddo

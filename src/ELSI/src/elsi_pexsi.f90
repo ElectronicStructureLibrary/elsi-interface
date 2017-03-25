@@ -71,7 +71,7 @@ subroutine elsi_init_pexsi()
          endif
       endif
 
-      if(MOD(n_procs,pexsi_options%numPole) == 0) then
+      if(mod(n_procs,pexsi_options%numPole) == 0) then
          n_p_per_pole_pexsi = n_procs/pexsi_options%numPole
          call elsi_statement_print("  PEXSI parallel over poles.")
          write(info_str,"(A,I13)") "  | Number of MPI tasks per pole: ", &
@@ -86,21 +86,21 @@ subroutine elsi_init_pexsi()
       endif
 
       ! Set square-like process grid for selected inversion of each pole
-      do n_p_rows_pexsi = NINT(SQRT(REAL(n_p_per_pole_pexsi))),2,-1
-         if(MOD(n_p_per_pole_pexsi,n_p_rows_pexsi) == 0) exit
+      do n_p_rows_pexsi = nint(sqrt(real(n_p_per_pole_pexsi))),2,-1
+         if(mod(n_p_per_pole_pexsi,n_p_rows_pexsi) == 0) exit
       enddo
 
       n_p_cols_pexsi = n_p_per_pole_pexsi/n_p_rows_pexsi
 
       ! PEXSI process grid
-      my_p_col_pexsi = MOD(myid,n_p_per_pole_pexsi)
+      my_p_col_pexsi = mod(myid,n_p_per_pole_pexsi)
       my_p_row_pexsi = myid/n_p_per_pole_pexsi
 
       ! PEXSI uses a pure block distribution in the first process row
       n_b_rows_pexsi = n_g_size
 
       ! The last process holds all remaining columns
-      n_b_cols_pexsi = FLOOR(1.0d0*n_g_size/n_p_per_pole_pexsi)
+      n_b_cols_pexsi = floor(1.0d0*n_g_size/n_p_per_pole_pexsi)
       if(my_p_col_pexsi == n_p_per_pole_pexsi-1) then
          n_b_cols_pexsi = n_g_size-(n_p_per_pole_pexsi-1)*n_b_cols_pexsi
       endif
@@ -244,23 +244,23 @@ subroutine elsi_blacs_to_pexsi_hs_small(H_in,S_in)
    call elsi_allocate(h_val_send_buffer,nnz_l,"h_val_send_buffer",caller)
 
    ! Compute d1,d2,d11,d12,d21,d22 (need explanation)
-   d1  = FLOOR(1.0d0*n_g_size/n_p_per_pole_pexsi)
+   d1  = floor(1.0d0*n_g_size/n_p_per_pole_pexsi)
    d2  = n_g_size-(n_p_per_pole_pexsi-1)*d1
-   d11 = FLOOR(1.0d0*d1/pexsi_options%numPole)
+   d11 = floor(1.0d0*d1/pexsi_options%numPole)
    d12 = d1-(pexsi_options%numPole-1)*d11
-   d21 = FLOOR(1.0d0*d2/pexsi_options%numPole)
+   d21 = floor(1.0d0*d2/pexsi_options%numPole)
    d22 = d2-(pexsi_options%numPole-1)*d21
 
    i_val = 0
    do i_proc = 0,n_procs-1
       if(i_proc < (n_procs-pexsi_options%numPole)) then
-         if(MOD((i_proc+1),pexsi_options%numPole) == 0) then
+         if(mod((i_proc+1),pexsi_options%numPole) == 0) then
             this_n_cols = d12
          else
             this_n_cols = d11
          endif
       else
-         if(MOD((i_proc+1),pexsi_options%numPole) == 0) then
+         if(mod((i_proc+1),pexsi_options%numPole) == 0) then
             this_n_cols = d22
          else
             this_n_cols = d21
@@ -276,7 +276,7 @@ subroutine elsi_blacs_to_pexsi_hs_small(H_in,S_in)
       i_val = 0
       do i_col = 1,n_l_cols
          do i_row = 1,n_l_rows
-            if(ABS(S_in(i_row,i_col)) > zero_threshold) then
+            if(abs(S_in(i_row,i_col)) > zero_threshold) then
                i_val = i_val+1
                call elsi_get_global_col(global_col_id,i_col)
                call elsi_get_global_row(global_row_id,i_row)
@@ -296,7 +296,7 @@ subroutine elsi_blacs_to_pexsi_hs_small(H_in,S_in)
       i_val = 0
       do i_col = 1,n_l_cols
          do i_row = 1,n_l_rows
-            if(ABS(S_in(i_row,i_col)) > zero_threshold) then
+            if(abs(S_in(i_row,i_col)) > zero_threshold) then
                i_val = i_val+1
                call elsi_get_global_col(global_col_id,i_col)
                call elsi_get_global_row(global_row_id,i_row)
@@ -330,7 +330,7 @@ subroutine elsi_blacs_to_pexsi_hs_small(H_in,S_in)
                      1,mpi_integer,mpi_comm_global,mpierr)
 
    ! Set local/global number of nonzero
-   nnz_l_pexsi_aux = SUM(recv_count,1)
+   nnz_l_pexsi_aux = sum(recv_count,1)
    call MPI_Allreduce(nnz_l_pexsi_aux,nnz_g,1,mpi_integer,mpi_sum,&
                       mpi_comm_global,mpierr)
 
@@ -377,7 +377,7 @@ subroutine elsi_blacs_to_pexsi_hs_small(H_in,S_in)
    ! Unpack and reorder
    if(n_elsi_calls == 1) then
       do i_val = 1,nnz_l_pexsi_aux
-         min_id = MINLOC(pos_recv_buffer(i_val:nnz_l_pexsi_aux),1)+i_val-1
+         min_id = minloc(pos_recv_buffer(i_val:nnz_l_pexsi_aux),1)+i_val-1
 
          tmp_int = pos_recv_buffer(i_val)
          pos_recv_buffer(i_val) = pos_recv_buffer(min_id)
@@ -393,7 +393,7 @@ subroutine elsi_blacs_to_pexsi_hs_small(H_in,S_in)
       enddo
    else
       do i_val = 1,nnz_l_pexsi_aux
-         min_id = MINLOC(pos_recv_buffer(i_val:nnz_l_pexsi_aux),1)+i_val-1
+         min_id = minloc(pos_recv_buffer(i_val:nnz_l_pexsi_aux),1)+i_val-1
 
          tmp_int = pos_recv_buffer(i_val)
          pos_recv_buffer(i_val) = pos_recv_buffer(min_id)
@@ -415,7 +415,7 @@ subroutine elsi_blacs_to_pexsi_hs_small(H_in,S_in)
                      1,mpi_integer,mpi_comm_global,mpierr)
 
    if(n_elsi_calls == 1) then
-      nnz_l_pexsi = SUM(recv_count,1)
+      nnz_l_pexsi = sum(recv_count,1)
 
       ! At this point only the first pole knows nnz_l_pexsi
       call MPI_Comm_split(mpi_comm_global,my_p_col_pexsi,my_p_row_pexsi,&
@@ -439,17 +439,17 @@ subroutine elsi_blacs_to_pexsi_hs_small(H_in,S_in)
 
    ! Allocate PEXSI matrices
    ! Only the Hamiltonian needs to be reset everytime
-   if(.not.ALLOCATED(ham_real_pexsi)) &
+   if(.not.allocated(ham_real_pexsi)) &
       call elsi_allocate(ham_real_pexsi,nnz_l_pexsi,"ham_real_pexsi",caller)
    ham_real_pexsi = 0.0d0
 
-   if(.not.ALLOCATED(ovlp_real_pexsi)) &
+   if(.not.allocated(ovlp_real_pexsi)) &
       call elsi_allocate(ovlp_real_pexsi,nnz_l_pexsi,"ovlp_real_pexsi",caller)
 
-   if(.not.ALLOCATED(row_ind_pexsi)) &
+   if(.not.allocated(row_ind_pexsi)) &
       call elsi_allocate(row_ind_pexsi,nnz_l_pexsi,"row_ind_pexsi",caller)
 
-   if(.not.ALLOCATED(col_ptr_pexsi)) &
+   if(.not.allocated(col_ptr_pexsi)) &
       call elsi_allocate(col_ptr_pexsi,(n_l_cols_pexsi+1),"col_ptr_pexsi",caller)
 
    ! Send and receive the packed data
@@ -484,8 +484,8 @@ subroutine elsi_blacs_to_pexsi_hs_small(H_in,S_in)
          ! Compute row index and column pointer
          i_col = (pos_send_buffer(1)-1)/n_g_size
          do i_val = 1,nnz_l_pexsi
-            row_ind_pexsi(i_val) = MOD(pos_send_buffer(i_val)-1,n_g_size)+1
-            if(FLOOR(1.0d0*(pos_send_buffer(i_val)-1)/n_g_size)+1 > i_col) then
+            row_ind_pexsi(i_val) = mod(pos_send_buffer(i_val)-1,n_g_size)+1
+            if(floor(1.0d0*(pos_send_buffer(i_val)-1)/n_g_size)+1 > i_col) then
                i_col = i_col+1
                col_ptr_pexsi(i_col-(pos_send_buffer(1)-1)/n_g_size) = i_val
             endif
@@ -582,23 +582,23 @@ subroutine elsi_blacs_to_pexsi_hs_large(H_in,S_in)
    call elsi_allocate(h_val_send_buffer,nnz_l,"h_val_send_buffer",caller)
 
    ! Compute d1,d2,d11,d12,d21,d22 (need explanation)
-   d1  = FLOOR(1.0d0*n_g_size/n_p_per_pole_pexsi)
+   d1  = floor(1.0d0*n_g_size/n_p_per_pole_pexsi)
    d2  = n_g_size-(n_p_per_pole_pexsi-1)*d1
-   d11 = FLOOR(1.0d0*d1/pexsi_options%numPole)
+   d11 = floor(1.0d0*d1/pexsi_options%numPole)
    d12 = d1-(pexsi_options%numPole-1)*d11
-   d21 = FLOOR(1.0d0*d2/pexsi_options%numPole)
+   d21 = floor(1.0d0*d2/pexsi_options%numPole)
    d22 = d2-(pexsi_options%numPole-1)*d21
 
    i_val = 0
    do i_proc = 0,n_procs-1
       if(i_proc < (n_procs-pexsi_options%numPole)) then
-         if(MOD((i_proc+1),pexsi_options%numPole) == 0) then
+         if(mod((i_proc+1),pexsi_options%numPole) == 0) then
             this_n_cols = d12
          else
             this_n_cols = d11
          endif
       else
-         if(MOD((i_proc+1),pexsi_options%numPole) == 0) then
+         if(mod((i_proc+1),pexsi_options%numPole) == 0) then
             this_n_cols = d22
          else
             this_n_cols = d21
@@ -614,7 +614,7 @@ subroutine elsi_blacs_to_pexsi_hs_large(H_in,S_in)
       i_val = 0
       do i_col = 1,n_l_cols
          do i_row = 1,n_l_rows
-            if(ABS(S_in(i_row,i_col)) > zero_threshold) then
+            if(abs(S_in(i_row,i_col)) > zero_threshold) then
                i_val = i_val+1
                call elsi_get_global_col(global_col_id,i_col)
                call elsi_get_global_row(global_row_id,i_row)
@@ -634,7 +634,7 @@ subroutine elsi_blacs_to_pexsi_hs_large(H_in,S_in)
       i_val = 0
       do i_col = 1,n_l_cols
          do i_row = 1,n_l_rows
-            if(ABS(S_in(i_row,i_col)) > zero_threshold) then
+            if(abs(S_in(i_row,i_col)) > zero_threshold) then
                i_val = i_val+1
                call elsi_get_global_col(global_col_id,i_col)
                call elsi_get_global_row(global_row_id,i_row)
@@ -668,7 +668,7 @@ subroutine elsi_blacs_to_pexsi_hs_large(H_in,S_in)
                      1,mpi_integer,mpi_comm_global,mpierr)
 
    ! Set local/global number of nonzero
-   nnz_l_pexsi_aux = SUM(recv_count,1)
+   nnz_l_pexsi_aux = sum(recv_count,1)
    call MPI_Allreduce(nnz_l_pexsi_aux,nnz_g,1,mpi_integer,mpi_sum,&
                       mpi_comm_global,mpierr)
 
@@ -732,7 +732,7 @@ subroutine elsi_blacs_to_pexsi_hs_large(H_in,S_in)
    ! Reorder
    if(n_elsi_calls == 1) then
       do i_val = 1,nnz_l_pexsi_aux
-         min_id = MINLOC(global_id(i_val:nnz_l_pexsi_aux),1)+i_val-1
+         min_id = minloc(global_id(i_val:nnz_l_pexsi_aux),1)+i_val-1
 
          tmp_long = global_id(i_val)
          global_id(i_val) = global_id(min_id)
@@ -756,7 +756,7 @@ subroutine elsi_blacs_to_pexsi_hs_large(H_in,S_in)
       enddo
    else ! Row and column id not needed
       do i_val = 1,nnz_l_pexsi_aux
-         min_id = MINLOC(global_id(i_val:nnz_l_pexsi_aux),1)+i_val-1
+         min_id = minloc(global_id(i_val:nnz_l_pexsi_aux),1)+i_val-1
 
          tmp_long = global_id(i_val)
          global_id(i_val) = global_id(min_id)
@@ -780,7 +780,7 @@ subroutine elsi_blacs_to_pexsi_hs_large(H_in,S_in)
                      1,mpi_integer,mpi_comm_global,mpierr)
 
    if(n_elsi_calls == 1) then
-      nnz_l_pexsi = SUM(recv_count,1)
+      nnz_l_pexsi = sum(recv_count,1)
 
       ! At this point only the first pole knows nnz_l_pexsi
       call MPI_Comm_split(mpi_comm_global,my_p_col_pexsi,my_p_row_pexsi,&
@@ -804,17 +804,17 @@ subroutine elsi_blacs_to_pexsi_hs_large(H_in,S_in)
 
    ! Allocate PEXSI matrices
    ! Only the Hamiltonian needs to be reset everytime
-   if(.not.ALLOCATED(ham_real_pexsi)) &
+   if(.not.allocated(ham_real_pexsi)) &
       call elsi_allocate(ham_real_pexsi,nnz_l_pexsi,"ham_real_pexsi",caller)
    ham_real_pexsi = 0.0d0
 
-   if(.not.ALLOCATED(ovlp_real_pexsi)) &
+   if(.not.allocated(ovlp_real_pexsi)) &
       call elsi_allocate(ovlp_real_pexsi,nnz_l_pexsi,"ovlp_real_pexsi",caller)
 
-   if(.not.ALLOCATED(row_ind_pexsi)) &
+   if(.not.allocated(row_ind_pexsi)) &
       call elsi_allocate(row_ind_pexsi,nnz_l_pexsi,"row_ind_pexsi",caller)
 
-   if(.not.ALLOCATED(col_ptr_pexsi)) &
+   if(.not.allocated(col_ptr_pexsi)) &
       call elsi_allocate(col_ptr_pexsi,(n_l_cols_pexsi+1),"col_ptr_pexsi",caller)
 
    ! Send and receive the packed data
@@ -943,12 +943,12 @@ subroutine elsi_pexsi_to_blacs_dm_small(D_out)
 
          ! Compute global id
          global_row_id = i_row
-         global_col_id = i_col+myid*FLOOR(1.0d0*n_g_size/n_p_per_pole_pexsi)
+         global_col_id = i_col+myid*floor(1.0d0*n_g_size/n_p_per_pole_pexsi)
          global_id(i_val) = (global_col_id-1)*n_g_size+global_row_id
 
          ! Compute destination
-         proc_row_id = MOD(FLOOR(1.0d0*(global_row_id-1)/n_b_rows),n_p_rows)
-         proc_col_id = MOD(FLOOR(1.0d0*(global_col_id-1)/n_b_cols),n_p_cols)
+         proc_row_id = mod(floor(1.0d0*(global_row_id-1)/n_b_rows),n_p_rows)
+         proc_col_id = mod(floor(1.0d0*(global_col_id-1)/n_b_cols),n_p_cols)
          dest(i_val) = proc_col_id+proc_row_id*n_p_cols
       enddo
 
@@ -974,7 +974,7 @@ subroutine elsi_pexsi_to_blacs_dm_small(D_out)
    call MPI_Alltoall(send_count,1,mpi_integer,recv_count,&
                      1,mpi_integer,mpi_comm_global,mpierr)
 
-   nnz_l = SUM(recv_count,1)
+   nnz_l = sum(recv_count,1)
 
    ! Set send and receive displacement
    send_displ_aux = 0
@@ -1008,14 +1008,14 @@ subroutine elsi_pexsi_to_blacs_dm_small(D_out)
    ! Unpack density matrix
    do i_val = 1,nnz_l
       ! Compute global 2d id
-      global_col_id = FLOOR(1.0d0*(pos_recv_buffer(i_val)-1)/n_g_size)+1
-      global_row_id = MOD(pos_recv_buffer(i_val)-1,n_g_size)+1
+      global_col_id = floor(1.0d0*(pos_recv_buffer(i_val)-1)/n_g_size)+1
+      global_row_id = mod(pos_recv_buffer(i_val)-1,n_g_size)+1
 
       ! Compute local 2d id
-      local_row_id = FLOOR(1.0d0*(global_row_id-1)/(n_p_rows*n_b_rows))*n_b_rows&
-                     +MOD((global_row_id-1),n_b_rows)+1
-      local_col_id = FLOOR(1.0d0*(global_col_id-1)/(n_p_cols*n_b_cols))*n_b_cols&
-                     +MOD((global_col_id-1),n_b_cols)+1
+      local_row_id = floor(1.0d0*(global_row_id-1)/(n_p_rows*n_b_rows))*n_b_rows&
+                     +mod((global_row_id-1),n_b_rows)+1
+      local_col_id = floor(1.0d0*(global_col_id-1)/(n_p_cols*n_b_cols))*n_b_cols&
+                     +mod((global_col_id-1),n_b_cols)+1
 
       ! Put value to correct position
       D_out(local_row_id,local_col_id) = val_recv_buffer(i_val)
@@ -1100,11 +1100,11 @@ subroutine elsi_pexsi_to_blacs_dm_large(D_out)
 
          ! Compute global id
          global_row_id(i_val) = i_row
-         global_col_id(i_val) = i_col+myid*FLOOR(1.0d0*n_g_size/n_p_per_pole_pexsi)
+         global_col_id(i_val) = i_col+myid*floor(1.0d0*n_g_size/n_p_per_pole_pexsi)
 
          ! Compute destination
-         proc_row_id = MOD(FLOOR(1.0d0*(global_row_id(i_val)-1)/n_b_rows),n_p_rows)
-         proc_col_id = MOD(FLOOR(1.0d0*(global_col_id(i_val)-1)/n_b_cols),n_p_cols)
+         proc_row_id = mod(floor(1.0d0*(global_row_id(i_val)-1)/n_b_rows),n_p_rows)
+         proc_col_id = mod(floor(1.0d0*(global_col_id(i_val)-1)/n_b_cols),n_p_cols)
          dest(i_val) = proc_col_id+proc_row_id*n_p_cols
       enddo
 
@@ -1132,7 +1132,7 @@ subroutine elsi_pexsi_to_blacs_dm_large(D_out)
    call MPI_Alltoall(send_count,1,mpi_integer,recv_count,&
                      1,mpi_integer,mpi_comm_global,mpierr)
 
-   nnz_l = SUM(recv_count,1)
+   nnz_l = sum(recv_count,1)
 
    ! Set send and receive displacement
    send_displ_aux = 0
@@ -1170,10 +1170,10 @@ subroutine elsi_pexsi_to_blacs_dm_large(D_out)
    ! Unpack density matrix
    do i_val = 1,nnz_l
       ! Compute local 2d id
-      local_row_id = FLOOR(1.0d0*(row_recv_buffer(i_val)-1)/(n_p_rows*n_b_rows))*n_b_rows&
-                     +MOD((row_recv_buffer(i_val)-1),n_b_rows)+1
-      local_col_id = FLOOR(1.0d0*(col_recv_buffer(i_val)-1)/(n_p_cols*n_b_cols))*n_b_cols&
-                     +MOD((col_recv_buffer(i_val)-1),n_b_cols)+1
+      local_row_id = floor(1.0d0*(row_recv_buffer(i_val)-1)/(n_p_rows*n_b_rows))*n_b_rows&
+                     +mod((row_recv_buffer(i_val)-1),n_b_rows)+1
+      local_col_id = floor(1.0d0*(col_recv_buffer(i_val)-1)/(n_p_cols*n_b_cols))*n_b_cols&
+                     +mod((col_recv_buffer(i_val)-1),n_b_cols)+1
 
       ! Put value to correct position
       D_out(local_row_id,local_col_id) = val_recv_buffer(i_val)
@@ -1216,12 +1216,12 @@ subroutine elsi_solve_evp_pexsi()
       pexsi_options%isSymbolicFactorize = 0
    endif
 
-   if(.not.ALLOCATED(e_den_mat_pexsi)) then
+   if(.not.allocated(e_den_mat_pexsi)) then
       call elsi_allocate(e_den_mat_pexsi,nnz_l_pexsi,"e_den_mat_pexsi",caller)
    endif
    e_den_mat_pexsi = 0.0d0
 
-   if(.not.ALLOCATED(f_den_mat_pexsi)) then
+   if(.not.allocated(f_den_mat_pexsi)) then
       call elsi_allocate(f_den_mat_pexsi,nnz_l_pexsi,"f_den_mat_pexsi",caller)
    endif
    f_den_mat_pexsi = 0.0d0
@@ -1257,7 +1257,7 @@ subroutine elsi_solve_evp_pexsi()
       call elsi_stop(" PEXSI DFT driver not able to solve problem. Exiting...",caller)
 
    ! Turn off inertia counting if chemical potential does not change a lot
-   if(ABS(mu_pexsi-pexsi_options%mu0) > 5.0d-3) then
+   if(abs(mu_pexsi-pexsi_options%mu0) > 5.0d-3) then
       pexsi_options%isInertiaCount = 1
    else
       pexsi_options%isInertiaCount = 0
@@ -1267,7 +1267,7 @@ subroutine elsi_solve_evp_pexsi()
    pexsi_options%mu0 = mu_pexsi
 
    if(small_pexsi_tol) then
-      if(ABS(n_electrons-n_electrons_pexsi) < this_pexsi_tol) then
+      if(abs(n_electrons-n_electrons_pexsi) < this_pexsi_tol) then
          if(1.0d-1*this_pexsi_tol > final_pexsi_tol) then
             this_pexsi_tol = 1.0d-1*this_pexsi_tol
          else

@@ -51,8 +51,6 @@ contains
 ! ELSI routines for SIPs
 !=========================
 
-!TODO: set_ham, set_ovlp, update_ham
-
 !>
 !! This routine initializes SIPs solver.
 !!
@@ -62,14 +60,21 @@ subroutine elsi_init_sips()
 
    character*40, parameter :: caller = "elsi_init_sips"
 
-   call initialize_qetsc()
+   if(n_elsi_calls == 1) then
+      call initialize_qetsc()
+   endif
 
-   call elsi_allocate(slices,n_slices+1,"slices",caller)
-   call elsi_allocate(inertias,n_slices+1,"inertias",caller)
-   call elsi_allocate(shifts,n_slices+1,"shifts",caller)
+   if(.not.allocated(slices)) then
+      call elsi_allocate(slices,n_slices+1,"slices",caller)
+   endif
 
-   ! Initialize an eigenvalue problem
-   call set_eps(ham_sips,ovlp_sips)
+   if(.not.allocated(inertias)) then
+      call elsi_allocate(inertias,n_slices+1,"inertias",caller)
+   endif
+
+   if(.not.allocated(shifts)) then
+      call elsi_allocate(shifts,n_slices+1,"shifts",caller)
+   endif
 
 end subroutine
 
@@ -81,6 +86,9 @@ subroutine elsi_solve_evp_sips()
    implicit none
    include "mpif.h"
 
+   integer :: istart
+   integer :: iend
+
    character*200 :: info_str
    character*40, parameter :: caller = "elsi_solve_evp_sips"
 
@@ -89,13 +97,22 @@ subroutine elsi_solve_evp_sips()
    ! Solve the eigenvalue problem
    call elsi_statement_print("  Starting SIPs eigensolver")
 
+   ! Load H and S matrices
+   call load_elsi_ham(n_g_size,n_l_cols_pexsi,nnz_l_pexsi,row_ind_ccs,&
+                     col_ptr_ccs,ham_real_ccs,istart,iend)
+
+   call load_elsi_ovlp(istart,iend,n_l_cols_pexsi,nnz_l_pexsi,&
+                      row_ind_ccs,col_ptr_ccs,ovlp_real_ccs)
+
+   ! Initialize an eigenvalue problem
+   if(.not.overlap_is_unit) then
+      call set_eps(matH,matS)
+   else
+      call set_eps(matH)
+   endif
+
    ! Estimate the lower and upper bounds of eigenvalues
    interval = get_eps_interval()
-
-   ! Expand by a smaller buffer
-   ! Second SCF
-!   interval(1) = eval(1) - slice_buffer
-!   interval(2) = eval(n_states) + slice_buffer
 
    ! Compute slicing
    call compute_subintervals(n_slices,0,unbound,interval,&
@@ -123,12 +140,12 @@ subroutine elsi_solve_evp_sips()
    ! Get results
    eval = get_eps_eigenvalues(n_states)
 
-!DEBUG
-if(myid == 0) print *,eval
-!DEBUG
-
    call MPI_Barrier(mpi_comm_global,mpierr)
    call elsi_stop_solve_evp_time()
+
+   ! TEST
+   if(myid == 0) print *,eval
+   call elsi_stop("End testing SIPs solver. Exiting...",caller)
 
 end subroutine
 
@@ -161,7 +178,7 @@ subroutine elsi_set_sips_default_options()
    !< Number of slices
    n_p_per_slice_sips = 1
    do i = 1,5
-      if(MOD(n_procs,n_p_per_slice_sips) == 0) then
+      if(mod(n_procs,n_p_per_slice_sips) == 0) then
          n_slices = n_procs/n_p_per_slice_sips
       endif
       n_p_per_slice_sips = n_p_per_slice_sips*2

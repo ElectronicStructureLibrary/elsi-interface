@@ -252,27 +252,27 @@ module ELSI_DIMENSIONS
 
    !> Method names
    enum, bind( C )
-      ENUMERATOR :: AUTO, ELPA, LIBOMM, PEXSI, CHESS, SIPS
+      enumerator :: AUTO, ELPA, LIBOMM, PEXSI, CHESS, SIPS
    end enum
 
    !> Real or complex data
    enum, bind( C )
-      ENUMERATOR :: REAL_VALUES, COMPLEX_VALUES
+      enumerator :: REAL_VALUES, COMPLEX_VALUES
    end enum
 
    !> Storage formats
    enum, bind( C )
-      ENUMERATOR :: BLACS_DENSE, PEXSI_CSC
+      enumerator :: BLACS_DENSE, PEXSI_CSC
    end enum
 
    !> Parallel modes
    enum, bind( C )
-      ENUMERATOR :: SINGLE_PROC, MULTI_PROC
+      enumerator :: SINGLE_PROC, MULTI_PROC
    end enum
 
    !> Broadening type (used if ELPA is chosen to compute density matrix)
    enum, bind( C )
-      ENUMERATOR :: GAUSSIAN, FERMI, METHFESSEL_PAXTON_0, METHFESSEL_PAXTON_1
+      enumerator :: GAUSSIAN, FERMI, METHFESSEL_PAXTON_0, METHFESSEL_PAXTON_1
    end enum
 
 end module ELSI_DIMENSIONS
