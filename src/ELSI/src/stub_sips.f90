@@ -32,9 +32,22 @@ module m_qetsc
 
    implicit none
 
+   public :: initialize_qetsc
    public :: finalize_qetsc
+   public :: load_elsi_ham
+   public :: load_elsi_ovlp
 
 contains
+
+subroutine initialize_qetsc()
+
+   implicit none
+
+   write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
+   write(*,"(A)") " Exiting..."
+   stop
+
+end subroutine
 
 subroutine  finalize_qetsc()
 
@@ -45,5 +58,168 @@ subroutine  finalize_qetsc()
    stop
 
 end subroutine
+
+subroutine load_elsi_ham(global_size,local_size,local_nnz,col_idx,&
+                         row_ptr,ham_val,istart,iend)
+
+   implicit none
+
+   integer :: global_size
+   integer :: local_size
+   integer :: local_nnz
+   integer :: col_idx(local_nnz)
+   integer :: row_ptr(local_size+1)
+   real*8  :: ham_val(local_size+1)
+   integer :: istart
+   integer :: iend
+
+   write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
+   write(*,"(A)") " Exiting..."
+   stop
+
+end subroutine
+
+subroutine load_elsi_ovlp(istart,iend,local_size,local_nnz,&
+                          col_idx,row_ptr,ovlp_val)
+
+   implicit none
+
+   integer :: istart
+   integer :: iend
+   integer :: local_size
+   integer :: local_nnz
+   integer :: col_idx(local_nnz)
+   integer :: row_ptr(local_size+1)
+   real*8  :: ovlp_val(local_size+1)
+
+   write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
+   write(*,"(A)") " Exiting..."
+   stop
+
+end subroutine
+
+subroutine set_eps(eps_type)
+
+   implicit none
+
+   integer :: eps_type
+
+   write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
+   write(*,"(A)") " Exiting..."
+   stop
+
+end subroutine
+
+subroutine compute_subintervals(nsub,subtype,lefttype,interval,buffer,&
+                                subbuffer,subs,evals)
+
+   implicit none
+
+   integer          :: nsub
+   real*8           :: subs(nsub+1)
+   integer          :: subtype
+   integer          :: lefttype
+   real*8           :: interval(2)
+   real*8           :: buffer
+   real*8           :: subbuffer
+   real*8, optional :: evals(:)
+
+   write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
+   write(*,"(A)") " Exiting..."
+   stop
+
+end subroutine
+
+subroutine set_eps_subintervals(nslice,subs)
+
+   implicit none
+
+   integer :: nslice
+   real*8  :: subs(nslice+1)
+
+   write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
+   write(*,"(A)") " Exiting..."
+   stop
+
+end subroutine
+
+subroutine run_eps_inertias_check(unbound,nreq,nsub,subs,shifts,inertias,nsolve)
+
+   implicit none
+
+   integer :: unbound
+   integer :: nreq
+   integer :: nsub
+   real*8  :: subs(:)
+   real*8  :: shifts(:)
+   integer :: inertias(:)
+   integer :: nsolve
+
+   write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
+   write(*,"(A)") " Exiting..."
+   stop
+
+end subroutine
+
+subroutine inertias_to_eigenvalues(nshift,nreq,buffer,shifts,inertias,evals)
+
+   implicit none
+
+   integer :: nshift
+   integer :: nreq
+   real*8  :: buffer
+   real*8  :: shifts(nshift)
+   integer :: inertias(nshift)
+   real*8  :: evals(nreq)
+
+   write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
+   write(*,"(A)") " Exiting..."
+   stop
+
+end subroutine
+
+subroutine solve_eps_check(nreq,nsub,subs,nsolve)
+
+   implicit none
+
+   integer :: nreq
+   integer :: nsub
+   real*8  :: subs(nsub)
+   integer :: nsolve
+
+   write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
+   write(*,"(A)") " Exiting..."
+   stop
+
+end subroutine
+
+function get_eps_eigenvalues(nreq) result(eigs)
+
+   implicit none
+
+   integer :: nreq
+   real*8  :: eigs(nreq)
+
+   eigs = 0.0d0
+
+   write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
+   write(*,"(A)") " Exiting..."
+   stop
+
+end function
+
+function get_eps_interval() result(interval)
+
+   implicit none
+
+   real*8 :: interval(2)
+
+   interval = 0.0d0
+
+   write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
+   write(*,"(A)") " Exiting..."
+   stop
+
+end function
 
 end module

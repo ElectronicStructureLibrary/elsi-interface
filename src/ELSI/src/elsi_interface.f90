@@ -39,6 +39,7 @@ module ELSI
    use ELSI_ELPA
    use ELSI_OMM
    use ELSI_PEXSI
+   use ELSI_SIPS
    use MatrixSwitch
 
    implicit none
@@ -90,7 +91,7 @@ subroutine elsi_init(solver,parallel_mode,matrix_format,matrix_size,&
 
    implicit none
 
-   integer, intent(in) :: solver         !< AUTO,ELPA,LIBOMM,PEXSI,CHESS
+   integer, intent(in) :: solver         !< AUTO,ELPA,LIBOMM,PEXSI,CHESS,SIPS
    integer, intent(in) :: parallel_mode  !< SINGLE_PROC,MULTI_PROC
    integer, intent(in) :: matrix_format  !< BLACS_DENSE,PEXSI_CSC
    integer, intent(in) :: matrix_size    !< Global dimension of matrix
@@ -119,6 +120,11 @@ subroutine elsi_init(solver,parallel_mode,matrix_format,matrix_size,&
       call elsi_set_pexsi_default_options()
    endif
 
+   if(solver == SIPS) then
+      ! Set SIPs default settings
+      call elsi_set_sips_default_options()
+   endif
+
    n_elsi_calls = 0
 
    call elsi_init_timers()
@@ -132,7 +138,7 @@ subroutine elsi_set_method(i_method)
 
    implicit none
 
-   integer, intent(in) :: i_method !< AUTO,ELPA,LIBOMM,PEXSI,CHESS
+   integer, intent(in) :: i_method !< AUTO,ELPA,LIBOMM,PEXSI,CHESS,SIPS
    
    method = i_method
 
@@ -660,12 +666,12 @@ subroutine elsi_ev_real(H_in,S_in,e_val_out,e_vec_out)
    ! Update counter
    n_elsi_calls = n_elsi_calls+1
 
+   ! REAL case
+   call elsi_set_mode(REAL_VALUES)
+
    ! Here the only supported method is ELPA
    select case (method)
       case (ELPA)
-         ! REAL case
-         call elsi_set_mode(REAL_VALUES)
-
          ! Set matrices
          call elsi_set_hamiltonian(H_in)
          if(.not.overlap_is_unit) then
@@ -677,7 +683,7 @@ subroutine elsi_ev_real(H_in,S_in,e_val_out,e_vec_out)
          ! Solve eigenvalue problem
          if(parallelism == SINGLE_PROC) then
             call elsi_solve_evp_elpa_sp()
-         else  ! Multi-proc
+         else ! Multi-proc
             call elsi_solve_evp_elpa()
          endif
 
@@ -691,7 +697,26 @@ subroutine elsi_ev_real(H_in,S_in,e_val_out,e_vec_out)
          call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
                         " Choose ELPA if necessary. Exiting...",caller)
       case (SIPS)
-         call elsi_stop(" SIPS not yet implemented. Exiting...",caller)
+         call elsi_print_sips_options()
+
+         ! Initialize SIPs
+         call elsi_init_sips()
+
+         ! Convert matrix format and distribution from BLACS to SIPs
+         call elsi_blacs_to_sips(H_in,S_in)
+
+         ! Set matices
+         call elsi_set_sparse_hamiltonian(ham_real_sips)
+         if(.not.overlap_is_unit) then
+            call elsi_set_sparse_overlap(ovlp_real_sips)
+         endif
+         call elsi_set_row_ind(row_ind_sips)
+         call elsi_set_col_ptr(col_ptr_sips)
+
+         call elsi_solve_evp_sips()
+
+         call elsi_stop(" End testing SIPS solver. Exiting...",caller)
+
       case DEFAULT
          call elsi_stop(" No supported solver has been chosen."//&
                         " Please choose ELPA solver to compute"//&
@@ -720,12 +745,12 @@ subroutine elsi_ev_complex(H_in,S_in,e_val_out,e_vec_out)
    ! Update counter
    n_elsi_calls = n_elsi_calls+1
 
+   ! COMPLEX case
+   call elsi_set_mode(COMPLEX_VALUES)
+
    ! Here the only supported method is ELPA
    select case (method)
       case (ELPA)
-         ! COMPLEX case
-         call elsi_set_mode(COMPLEX_VALUES)
-
          ! Set matrices
          call elsi_set_hamiltonian(H_in)
          if(.not.overlap_is_unit) then

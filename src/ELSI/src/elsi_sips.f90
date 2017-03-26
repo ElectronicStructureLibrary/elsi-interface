@@ -35,7 +35,6 @@ module ELSI_SIPS
    use ELSI_TIMERS
    use ELSI_UTILS
    use m_qetsc
-   use m_qetsc_tools
 
    implicit none
    private
@@ -44,6 +43,7 @@ module ELSI_SIPS
    public :: elsi_solve_evp_sips
    public :: elsi_set_sips_default_options
    public :: elsi_print_sips_options
+   public :: elsi_blacs_to_sips
 
 contains
 
@@ -79,6 +79,33 @@ subroutine elsi_init_sips()
 end subroutine
 
 !>
+!! This routine is a driver to convert matrix format and distribution
+!! from BLACS to SIPs.
+!!
+subroutine elsi_blacs_to_sips(H_in,S_in)
+
+   implicit none
+
+   real*8, intent(in) :: H_in(n_l_rows,n_l_cols) !< Hamiltonian matrix to be converted
+   real*8, intent(in) :: S_in(n_l_rows,n_l_cols) !< Overlap matrix to be converted
+
+   character*40, parameter :: caller = "elsi_blacs_to_sips"
+
+   if(overlap_is_unit) then
+      !TODO
+      call elsi_stop(" SIPs with indentity overlap matrix not yet available."//&
+                     " Exiting...",caller)
+   else
+      if(n_g_size < 46340) then ! kind=4 integer works
+!         call elsi_blacs_to_sips_hs_small(H_in,S_in)
+      else ! use kind=8 integer
+!         call elsi_blacs_to_sips_hs_large(H_in,S_in)
+      endif
+   endif
+
+end subroutine
+
+!>
 !! This routine interfaces to SIPs via QETSC.
 !!
 subroutine elsi_solve_evp_sips()
@@ -98,44 +125,29 @@ subroutine elsi_solve_evp_sips()
    call elsi_statement_print("  Starting SIPs eigensolver")
 
    ! Load H and S matrices
-   call load_elsi_ham(n_g_size,n_l_cols_pexsi,nnz_l_pexsi,row_ind_ccs,&
-                     col_ptr_ccs,ham_real_ccs,istart,iend)
+   call load_elsi_ham(n_g_size,n_l_cols_sips,nnz_l_sips,row_ind_ccs,&
+                      col_ptr_ccs,ham_real_ccs,istart,iend)
 
-   call load_elsi_ovlp(istart,iend,n_l_cols_pexsi,nnz_l_pexsi,&
-                      row_ind_ccs,col_ptr_ccs,ovlp_real_ccs)
+   call load_elsi_ovlp(istart,iend,n_l_cols_sips,nnz_l_sips,&
+                       row_ind_ccs,col_ptr_ccs,ovlp_real_ccs)
 
    ! Initialize an eigenvalue problem
    if(.not.overlap_is_unit) then
-      call set_eps(matH,matS)
+      call set_eps(1)
    else
-      call set_eps(matH)
+      call set_eps(0)
    endif
 
    ! Estimate the lower and upper bounds of eigenvalues
    interval = get_eps_interval()
 
    ! Compute slicing
-   call compute_subintervals(n_slices,0,unbound,interval,&
+   call compute_subintervals(n_slices,slicing_method,unbound,interval,&
                              0.0d0,0.0d0,slices)
    call set_eps_subintervals(n_slices,slices)
 
-   if(inertia_option > 0 .and. n_slices > 1) then
-      ! Computes inertias at shifts
-      call run_eps_inertias_check(unbound,n_states,n_slices,slices,&
-                                  shifts,inertias,n_inertia_counts)
-
-      ! Computes estimated eigenvalues based on inertias
-      call inertias_to_eigenvalues(n_slices+1,n_states,slice_buffer,&
-                                   shifts,inertias,eval(1:n_states))
-
-      ! Compute slicing
-      call compute_subintervals(n_slices,subtype,unbound,interval,&
-                                0.0d0,0.0d0,slices,eval(1:n_states))
-      call set_eps_subintervals(n_slices,slices)
-   endif
-
    ! Solve eigenvalue problem
-   call solve_eps_check(n_states,n_slices,slices,n_solves)
+   call solve_eps_check(n_states,n_slices,slices,n_solve_steps)
 
    ! Get results
    eval = get_eps_eigenvalues(n_states)

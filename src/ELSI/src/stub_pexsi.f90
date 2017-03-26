@@ -89,6 +89,12 @@ function f_ppexsi_plan_initialize(fcomm,numProcRow,numProcCol,outputFileIndex,in
    integer(c_int) :: info
    integer(c_intptr_t) :: f_ppexsi_plan_initialize
 
+   f_ppexsi_plan_initialize = int(0,kind=c_intptr_t)
+
+   write(*,"(A)") " A PEXSI stub routine was called. Check ELSI installation."
+   write(*,"(A)") " Exiting..."
+   stop
+
 end function
 
 subroutine f_ppexsi_load_real_hs_matrix(plan,options,nrows,nnz,nnzLocal,&

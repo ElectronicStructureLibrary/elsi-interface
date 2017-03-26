@@ -87,9 +87,13 @@ module ELSI_DIMENSIONS
    integer,    allocatable :: col_ptr_pexsi(:)      !< Column pointer
 
    !> SIPs
-   real*8,  allocatable :: slices(:)   !< Slices
-   real*8,  allocatable :: shifts(:)   !< Shifts
-   integer, allocatable :: inertias(:) !< Inertia count at each shift
+   real*8,  allocatable :: ham_real_sips(:)  !< Sparse real Hamiltonian
+   real*8,  allocatable :: ovlp_real_sips(:) !< Sparse real overlap
+   integer, allocatable :: row_ind_sips(:)   !< Row index
+   integer, allocatable :: col_ptr_sips(:)   !< Column pointer
+   real*8,  allocatable :: slices(:)         !< Slices
+   real*8,  allocatable :: shifts(:)         !< Shifts
+   integer, allocatable :: inertias(:)       !< Inertia count at each shift
 
    !> BLACS
    integer, allocatable :: local_row(:)
@@ -147,21 +151,9 @@ module ELSI_DIMENSIONS
    integer :: blacs_info
    logical :: blacs_is_setup = .false.
 
-   !> PEXSI may use a different processor grid setup
-   integer :: my_p_row_pexsi
-   integer :: my_p_col_pexsi
-   integer :: n_b_rows_pexsi
-   integer :: n_b_cols_pexsi
-   integer :: n_p_rows_pexsi
-   integer :: n_p_cols_pexsi
-   integer :: n_l_rows_pexsi
-   integer :: n_l_cols_pexsi
-   integer :: n_p_per_pole_pexsi
-
    !> Sparse matrix information
    integer :: nnz_g                    !< Global number of nonzeros
    integer :: nnz_l                    !< Local number of nonzeros
-   integer :: nnz_l_pexsi              !< Local number of nonzeros in PEXSI distribution
    real*8  :: zero_threshold = 1.0d-15 !< Threshold to define numerical zero
 
    !> Overlap
@@ -210,16 +202,27 @@ module ELSI_DIMENSIONS
    logical :: use_psp = .false.    !< Use pspBLAS sparse linear algebra?
 
    !> PEXSI
-   logical                :: pexsi_n_poles_set = .false.      !< Is number of PEXSI poles set by user?
-   logical                :: sparsity_pattern_ready = .false. !< Is sparsity pattern set by user?
-   logical                :: small_pexsi_tol = .false.        !< Is user-defined tolerance smaller than default?
-   real(c_double)         :: final_pexsi_tol = 1.0d-2         !< Default final PEXSI tolerance
+   integer :: my_p_row_pexsi
+   integer :: my_p_col_pexsi
+   integer :: n_b_rows_pexsi
+   integer :: n_b_cols_pexsi
+   integer :: n_p_rows_pexsi
+   integer :: n_p_cols_pexsi
+   integer :: n_l_rows_pexsi
+   integer :: n_l_cols_pexsi
+   integer :: n_p_per_pole_pexsi               !< Number of processors per pole
+   integer :: nnz_l_pexsi                      !< Local number of nonzeros in PEXSI distribution
+   logical :: pexsi_n_poles_set = .false.      !< Is number of PEXSI poles set by user?
+   logical :: sparsity_pattern_ready = .false. !< Is sparsity pattern set by user?
+   logical :: small_pexsi_tol = .false.        !< Is user-defined tolerance smaller than default?
+
+   real(c_double)         :: final_pexsi_tol = 1.0d-2 !< Default final PEXSI tolerance
    integer(c_intptr_t)    :: pexsi_plan
    type(f_ppexsi_options) :: pexsi_options
    integer(c_int)         :: pexsi_info
    integer(c_int)         :: pexsi_output_file_index
-   real(c_double)         :: mu_pexsi = 0.0d0                 !< Chemical potential computed by PEXSI
-   real(c_double)         :: n_electrons_pexsi                !< Number of electrons computed by PEXSI
+   real(c_double)         :: mu_pexsi = 0.0d0         !< Chemical potential computed by PEXSI
+   real(c_double)         :: n_electrons_pexsi        !< Number of electrons computed by PEXSI
    real(c_double)         :: mu_min_inertia 
    real(c_double)         :: mu_max_inertia 
    integer(c_int)         :: n_total_inertia_iter
@@ -229,7 +232,16 @@ module ELSI_DIMENSIONS
    real(c_double)         :: f_tot
 
    !> SIPs
-   integer :: n_p_per_slice_sips
+   integer :: my_p_row_sips
+   integer :: my_p_col_sips
+   integer :: n_b_rows_sips
+   integer :: n_b_cols_sips
+   integer :: n_p_rows_sips
+   integer :: n_p_cols_sips
+   integer :: n_l_rows_sips
+   integer :: n_l_cols_sips
+   integer :: nnz_l_sips         !< Local number of nonzeros in SIPs distribution
+   integer :: n_p_per_slice_sips !< Number of processors per slice
    integer :: n_inertia_steps    !< Number of inertia counting steps
    integer :: n_solve_steps      !< Number of solution steps
    integer :: slicing_method     !< Type of slices
@@ -246,7 +258,6 @@ module ELSI_DIMENSIONS
    integer :: n_slices           !< Number of slices
    real*8  :: interval(2)        !< Global interval to search eigenvalues
    real*8  :: slice_buffer       !< Small buffer to expand the eigenvalue interval
-                                 !! Smaller values improve performance if eigenvalue range known
 
 ! ========= ALIAS =========
 
