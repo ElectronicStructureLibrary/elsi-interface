@@ -40,12 +40,14 @@ module ELSI_TIMERS
 
    real*8 :: walltime_solve_evp
    real*8 :: walltime_solve_evp_start
-
    real*8 :: walltime_blacs_to_pexsi
    real*8 :: walltime_blacs_to_pexsi_start
-  
    real*8 :: walltime_pexsi_to_blacs
    real*8 :: walltime_pexsi_to_blacs_start
+   real*8 :: walltime_blacs_to_sips
+   real*8 :: walltime_blacs_to_sips_start
+   real*8 :: walltime_sips_to_blacs
+   real*8 :: walltime_sips_to_blacs_start
 
    integer :: clock_rate
    integer :: clock_max
@@ -58,6 +60,10 @@ module ELSI_TIMERS
    public :: elsi_stop_blacs_to_pexsi_time
    public :: elsi_start_pexsi_to_blacs_time
    public :: elsi_stop_pexsi_to_blacs_time
+   public :: elsi_start_blacs_to_sips_time
+   public :: elsi_stop_blacs_to_sips_time
+   public :: elsi_start_sips_to_blacs_time
+   public :: elsi_stop_sips_to_blacs_time
 
 contains
 
@@ -70,14 +76,16 @@ subroutine elsi_init_timers()
 
    integer :: initial_time
 
-   walltime_solve_evp       = 0.0d0
-   walltime_solve_evp_start = 0.0d0
-
+   walltime_solve_evp            = 0.0d0
+   walltime_solve_evp_start      = 0.0d0
    walltime_blacs_to_pexsi       = 0.0d0
    walltime_blacs_to_pexsi_start = 0.0d0
-
    walltime_pexsi_to_blacs       = 0.0d0
    walltime_pexsi_to_blacs_start = 0.0d0
+   walltime_blacs_to_sips        = 0.0d0
+   walltime_blacs_to_sips_start  = 0.0d0
+   walltime_sips_to_blacs        = 0.0d0
+   walltime_sips_to_blacs_start  = 0.0d0
 
    call system_clock(initial_time,clock_rate,clock_max)
 
@@ -225,6 +233,66 @@ subroutine elsi_stop_pexsi_to_blacs_time()
 
    write(info_str,"('  | ELSI matrix conversion done in ',F13.3,' s')") &
       walltime_pexsi_to_blacs
+   call elsi_statement_print(info_str)
+
+end subroutine
+
+!>
+!! This routine starts blacs_to_sips timer.
+!!
+subroutine elsi_start_blacs_to_sips_time()
+
+   implicit none
+
+   call elsi_get_time(walltime_blacs_to_sips_start)
+
+end subroutine
+
+!>
+!! This routine ends blacs_to_sips timer.
+!!
+subroutine elsi_stop_blacs_to_sips_time()
+
+   implicit none
+
+   real*8 :: stop_time
+   character*200 :: info_str
+
+   call elsi_get_time(stop_time)
+   walltime_blacs_to_sips = stop_time-walltime_blacs_to_sips_start
+
+   write(info_str,"('  | ELSI matrix conversion done in ',F13.3,' s')") &
+      walltime_blacs_to_sips
+   call elsi_statement_print(info_str)
+
+end subroutine
+
+!>
+!! This routine starts sips_to_blacs timer.
+!!
+subroutine elsi_start_sips_to_blacs_time()
+
+   implicit none
+
+   call elsi_get_time(walltime_sips_to_blacs_start)
+
+end subroutine
+
+!>
+!! This routine ends sips_to_blacs timer.
+!!
+subroutine elsi_stop_sips_to_blacs_time()
+
+   implicit none
+
+   real*8 :: stop_time
+   character*200 :: info_str
+
+   call elsi_get_time(stop_time)
+   walltime_sips_to_blacs = stop_time-walltime_sips_to_blacs_start
+
+   write(info_str,"('  | ELSI matrix conversion done in ',F13.3,' s')") &
+      walltime_sips_to_blacs
    call elsi_statement_print(info_str)
 
 end subroutine
