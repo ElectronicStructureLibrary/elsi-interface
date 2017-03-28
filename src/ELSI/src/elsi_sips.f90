@@ -85,7 +85,7 @@ subroutine elsi_init_sips()
    ! The last process holds all remaining columns
    n_b_cols_sips = floor(1.0d0*n_g_size/n_procs)
    if(myid == n_procs-1) then
-      n_b_cols_sips = n_g_size-(n_p_per_slice_sips-1)*n_b_cols_sips
+      n_b_cols_sips = n_g_size-(n_procs-1)*n_b_cols_sips
    endif
 
    n_l_rows_sips = n_b_rows_sips
@@ -387,8 +387,6 @@ subroutine elsi_solve_evp_sips()
 
    ! Solve the eigenvalue problem
    call elsi_statement_print("  Starting SIPs eigensolver")
-
-print *,myid,":",n_l_cols_sips,nnz_l_sips
 
    ! Load H and S matrices
    call load_elsi_ham(n_g_size,n_l_cols_sips,nnz_l_sips,row_ind_ccs,&
