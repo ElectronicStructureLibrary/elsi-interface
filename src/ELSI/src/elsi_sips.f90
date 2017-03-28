@@ -58,11 +58,38 @@ subroutine elsi_init_sips()
 
    implicit none
 
+   integer :: i
+
    character*40, parameter :: caller = "elsi_init_sips"
 
    if(n_elsi_calls == 1) then
       call initialize_qetsc()
    endif
+
+   !< Number of slices
+   n_p_per_slice_sips = 1
+   n_slices = 1
+   do i = 1,5
+      if(mod(n_procs,n_p_per_slice_sips) == 0) then
+         n_slices = n_procs/n_p_per_slice_sips
+      endif
+
+      n_p_per_slice_sips = n_p_per_slice_sips*2
+   enddo
+
+   n_p_per_slice_sips = n_procs/n_slices
+
+   ! SIPs uses a pure block distribution
+   n_b_rows_sips = n_g_size
+
+   ! The last process holds all remaining columns
+   n_b_cols_sips = floor(1.0d0*n_g_size/n_procs)
+   if(myid == n_procs-1) then
+      n_b_cols_sips = n_g_size-(n_p_per_slice_sips-1)*n_b_cols_sips
+   endif
+
+   n_l_rows_sips = n_b_rows_sips
+   n_l_cols_sips = n_b_cols_sips
 
    if(.not.allocated(slices)) then
       call elsi_allocate(slices,n_slices+1,"slices",caller)
@@ -164,7 +191,6 @@ subroutine elsi_blacs_to_sips_hs_small(H_in,S_in)
    call elsi_allocate(dest,nnz_l,"dest",caller)
    call elsi_allocate(pos_send_buffer,nnz_l,"pos_send_buffer",caller)
    call elsi_allocate(h_val_send_buffer,nnz_l,"h_val_send_buffer",caller)
-
 
    ! Compute destination and global 1D id
    if(n_elsi_calls == 1) then
@@ -356,8 +382,13 @@ subroutine elsi_solve_evp_sips()
 
    call elsi_start_solve_evp_time()
 
+   write(info_str,"(1X,' | Number of slices ',I7)") n_slices
+   call elsi_statement_print(info_str)
+
    ! Solve the eigenvalue problem
    call elsi_statement_print("  Starting SIPs eigensolver")
+
+print *,myid,":",n_l_cols_sips,nnz_l_sips
 
    ! Load H and S matrices
    call load_elsi_ham(n_g_size,n_l_cols_sips,nnz_l_sips,row_ind_ccs,&
@@ -403,8 +434,6 @@ subroutine elsi_set_sips_default_options()
 
    implicit none
 
-   integer :: i
-
    !< Type of slices
    !! 0 = Equally spaced subintervals
    !! 1 = K-meaans after equally spaced subintervals
@@ -421,15 +450,6 @@ subroutine elsi_set_sips_default_options()
    !! 0 = Bounded
    !! 1 = -infinity
    unbound = 0
-
-   !< Number of slices
-   n_p_per_slice_sips = 1
-   do i = 1,5
-      if(mod(n_procs,n_p_per_slice_sips) == 0) then
-         n_slices = n_procs/n_p_per_slice_sips
-      endif
-      n_p_per_slice_sips = n_p_per_slice_sips*2
-   enddo
 
    !< Small buffer to expand the eigenvalue interval
    !! Smaller values improve performance if eigenvalue range known
@@ -456,9 +476,6 @@ subroutine elsi_print_sips_options()
    call elsi_statement_print(info_str)
 
    write(info_str,"(1X,' | Left bound ',I2)") unbound
-   call elsi_statement_print(info_str)
-
-   write(info_str,"(1X,' | Number of slices ',I7)") n_slices
    call elsi_statement_print(info_str)
 
    write(info_str,"(1X,' | Slice buffer ',F10.4)") slice_buffer

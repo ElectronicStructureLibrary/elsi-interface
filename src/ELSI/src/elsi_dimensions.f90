@@ -232,12 +232,8 @@ module ELSI_DIMENSIONS
    real(c_double)         :: f_tot
 
    !> SIPs
-   integer :: my_p_row_sips
-   integer :: my_p_col_sips
    integer :: n_b_rows_sips
    integer :: n_b_cols_sips
-   integer :: n_p_rows_sips
-   integer :: n_p_cols_sips
    integer :: n_l_rows_sips
    integer :: n_l_cols_sips
    integer :: nnz_l_sips         !< Local number of nonzeros in SIPs distribution
