@@ -72,12 +72,12 @@ program test_ev_real
       call GET_COMMAND_ARGUMENT(1,arg1)
       call GET_COMMAND_ARGUMENT(2,arg2)
       read(arg2,*) solver
-      if(solver < 1 .or. solver > 3) then
+      if((solver .ne. 1) .and. (solver .ne. 5)) then
          if(myid == 0) then
             write(*,'("  ################################################")')
             write(*,'("  ##  Wrong choice of solver!!                  ##")')
             write(*,'("  ##  Please choose:                            ##")')
-            write(*,'("  ##  ELPA = 1; libOMM = 2; PEXSI = 3           ##")')
+            write(*,'("  ##  ELPA = 1; SIPs = 5                        ##")')
             write(*,'("  ################################################")')
             call MPI_Abort(mpi_comm_global,0,mpierr)
             stop
@@ -89,7 +89,7 @@ program test_ev_real
          write(*,'("  ##  Wrong number of command line arguments!!  ##")')
          write(*,'("  ##  Arg#1: Path to Tomato seed folder.        ##")')
          write(*,'("  ##  Arg#2: Choice of solver.                  ##")')
-         write(*,'("  ##         (ELPA = 1; libOMM = 2; PEXSI = 3)  ##")')
+         write(*,'("  ##         (ELPA = 1; SIPs = 5)               ##")')
          write(*,'("  ################################################")')
          call MPI_Abort(mpi_comm_global,0,mpierr)
          stop
@@ -109,15 +109,19 @@ program test_ev_real
       write(*,'("  ################################################")')
       write(*,'("  ##             ELSI TEST PROGRAMS             ##")')
       write(*,'("  ################################################")')
-      write(*,'("  ##  Testing elsi_ev_real + ELPA               ##")')
-      if(n_proc == 1) then
-         write(*,'("  ##  (Single-processor version)                ##")')
-      else
+      if(solver == 1) then
+         write(*,'("  ##  Testing elsi_ev_real + ELPA               ##")')
+         if(n_proc == 1) then
+            write(*,'("  ##  (Single-processor version)                ##")')
+         else
+            write(*,'("  ##  (Multi-processor version)                 ##")')
+         endif
+      elseif(solver == 5) then
+         write(*,'("  ##  Testing elsi_ev_real + SIPs               ##")')
          write(*,'("  ##  (Multi-processor version)                 ##")')
       endif
    endif
 
-   solver = 1
    e_ref = e_elpa
    e_tol = 1d-10
 
@@ -149,7 +153,7 @@ program test_ev_real
       write(*,'("  ##  Done. Time:",F23.3,"s       ##")') t2-t1
       write(*,'("  ##  System:                      Silicon      ##")')
       write(*,'("  ##  Matrix size:",I21,"         ##")') matrix_size
-!      write(*,'("  ##  Sparsity:",F26.3,"%      ##")') 100d0*sparsity
+      write(*,'("  ##  Sparsity:",F26.3,"%      ##")') 100d0*sparsity
       write(*,'("  ##  Number of electrons:",I12,"          ##")') 2*n_states
    endif
 

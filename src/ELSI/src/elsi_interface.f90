@@ -717,8 +717,6 @@ subroutine elsi_ev_real(H_in,S_in,e_val_out,e_vec_out)
 
          call elsi_solve_evp_sips()
 
-         call elsi_stop(" End testing SIPS solver. Exiting...",caller)
-
       case DEFAULT
          call elsi_stop(" No supported solver has been chosen."//&
                         " Please choose ELPA solver to compute"//&

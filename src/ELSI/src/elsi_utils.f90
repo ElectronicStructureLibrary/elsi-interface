@@ -1027,9 +1027,8 @@ subroutine elsi_check()
                      " Exiting...",caller)
 
    else if(method == SIPS) then
-      call elsi_stop(" SIPS not yet available."//&
-                     " Please choose ELPA, LIBOMM, or PEXSI solver."//&
-                     " Exiting...",caller)
+      call elsi_statement_print(" ATTENTION! SIPS is EXPERIMENTAL and"//&
+                                " only for testing.")
 
    else
       call elsi_stop(" No supported solver has been chosen."//&
