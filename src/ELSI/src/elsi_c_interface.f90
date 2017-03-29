@@ -63,22 +63,17 @@ subroutine elsi_set_mpi_c_wrapper(mpi_comm_global_in) bind(C,name="c_elsi_set_mp
 
 end subroutine
 
-subroutine elsi_set_blacs_c_wrapper(blacs_ctxt_in,n_b_rows_in,n_b_cols_in,&
-              n_p_rows_in,n_p_cols_in) bind(C,name="c_elsi_set_blacs")
+subroutine elsi_set_blacs_c_wrapper(icontext,block_size) bind(C,name="c_elsi_set_blacs")
 
    use, intrinsic :: iso_c_binding
    use ELSI
 
    implicit none
 
-   integer(kind=c_int), value, intent(in) :: blacs_ctxt_in
-   integer(kind=c_int), value, intent(in) :: n_b_rows_in
-   integer(kind=c_int), value, intent(in) :: n_b_cols_in
-   integer(kind=c_int), value, intent(in) :: n_p_rows_in
-   integer(kind=c_int), value, intent(in) :: n_p_cols_in
+   integer(kind=c_int), value, intent(in) :: icontext
+   integer(kind=c_int), value, intent(in) :: block_size
 
-   call elsi_set_blacs(blacs_ctxt_in,n_b_rows_in,n_b_cols_in,&
-                       n_p_rows_in,n_p_cols_in)
+   call elsi_set_blacs(icontext,block_size)
 
 end subroutine
 

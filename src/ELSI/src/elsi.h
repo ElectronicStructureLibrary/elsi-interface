@@ -9,11 +9,8 @@ void c_elsi_init(int solver,
 
 void c_elsi_set_mpi(int mpi_comm_global_in);
 
-void c_elsi_set_blacs(int blacs_ctxt_in,
-                      int n_b_rows_in,
-                      int n_b_cols_in,
-                      int n_p_rows_in,
-                      int n_p_cols_in);
+void c_elsi_set_blacs(int icontext,
+                      int block_size);
 
 void c_elsi_finalize();
 

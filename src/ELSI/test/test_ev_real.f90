@@ -161,7 +161,7 @@ program test_ev_real
    else
       call elsi_init(solver,1,0,matrix_size,n_electrons,n_states)
       call elsi_set_mpi(mpi_comm_global)
-      call elsi_set_blacs(BLACS_CTXT,blk,blk,nprow,npcol)
+      call elsi_set_blacs(BLACS_CTXT,blk)
    endif
 
    ! Solve problem

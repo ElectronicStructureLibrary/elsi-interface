@@ -171,7 +171,7 @@ program test_dm_real
 
    call elsi_init(solver,1,0,matrix_size,n_electrons,n_states)
    call elsi_set_mpi(mpi_comm_global)
-   call elsi_set_blacs(BLACS_CTXT,blk,blk,nprow,npcol)
+   call elsi_set_blacs(BLACS_CTXT,blk)
 
    ! Solve problem
    call m_allocate(D,matrix_size,matrix_size,m_storage)

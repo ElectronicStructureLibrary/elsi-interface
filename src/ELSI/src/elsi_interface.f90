@@ -214,16 +214,12 @@ end subroutine
 !>
 !! Set BLACS.
 !!
-subroutine elsi_set_blacs(blacs_ctxt_in,n_b_rows_in,n_b_cols_in,&
-                          n_p_rows_in,n_p_cols_in)
+subroutine elsi_set_blacs(icontext,block_size)
 
    implicit none
 
-   integer, intent(in) :: blacs_ctxt_in !< BLACS context
-   integer, intent(in) :: n_b_rows_in   !< Block size
-   integer, intent(in) :: n_b_cols_in   !< Block size
-   integer, intent(in) :: n_p_rows_in   !< Number of processes in row
-   integer, intent(in) :: n_p_cols_in   !< Number of processes in column
+   integer, intent(in) :: icontext   !< BLACS context
+   integer, intent(in) :: block_size !< Block size
 
    integer :: i,i_row,i_col
    integer :: blacs_info
@@ -231,18 +227,22 @@ subroutine elsi_set_blacs(blacs_ctxt_in,n_b_rows_in,n_b_cols_in,&
    character*40, parameter :: caller = "elsi_set_blacs"
 
    if(parallelism == MULTI_PROC) then
-      blacs_ctxt = blacs_ctxt_in
-      n_b_rows = n_b_rows_in
-      n_b_cols = n_b_cols_in
-      n_p_rows = n_p_rows_in
-      n_p_cols = n_p_cols_in
-      call blacs_pcoord(blacs_ctxt,myid,my_p_row,my_p_col)
+      blacs_ctxt = icontext
+      n_b_rows = block_size
+      n_b_cols = block_size
+
+      ! Get processor grid information
+      call blacs_gridinfo(blacs_ctxt,n_p_rows,n_p_cols,my_p_row,my_p_col)
+
+      ! Get local size of matrix
       n_l_rows = numroc(n_g_size,n_b_rows,my_p_row,0,n_p_rows)
       n_l_cols = numroc(n_g_size,n_b_cols,my_p_col,0,n_p_cols)
 
+      ! Get BLACS descriptor
       call descinit(sc_desc,n_g_size,n_g_size,n_b_rows,n_b_cols,0,0,&
                     blacs_ctxt,max(1,n_l_rows),blacs_info)
 
+      ! Get ELPA communicators
       call elsi_get_elpa_comms(mpi_comm_row,mpi_comm_col)
 
       ! Compute global-local mapping
@@ -263,6 +263,7 @@ subroutine elsi_set_blacs(blacs_ctxt_in,n_b_rows_in,n_b_cols_in,&
          endif
       enddo
 
+      ! Set up MatrixSwitch
       if(method == LIBOMM) then
          call ms_scalapack_setup(mpi_comm_global,n_p_rows,'r',n_b_rows,&
                                  icontxt=blacs_ctxt)
