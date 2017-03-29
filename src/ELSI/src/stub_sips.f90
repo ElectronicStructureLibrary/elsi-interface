@@ -36,6 +36,14 @@ module m_qetsc
    public :: finalize_qetsc
    public :: load_elsi_ham
    public :: load_elsi_ovlp
+   public :: set_eps
+   public :: compute_subintervals
+   public :: set_eps_subintervals
+   public :: run_eps_inertias_check
+   public :: inertias_to_eigenvalues
+   public :: solve_eps_check
+   public :: get_eps_eigenvalues
+   public :: get_eps_interval
 
 contains
 
@@ -59,8 +67,7 @@ subroutine  finalize_qetsc()
 
 end subroutine
 
-subroutine load_elsi_ham(global_size,local_size,local_nnz,col_idx,&
-                         row_ptr,ham_val,istart,iend)
+subroutine load_elsi_ham(global_size,local_size,local_nnz,col_idx,row_ptr,ham_val)
 
    implicit none
 
@@ -70,8 +77,6 @@ subroutine load_elsi_ham(global_size,local_size,local_nnz,col_idx,&
    integer :: col_idx(local_nnz)
    integer :: row_ptr(local_size+1)
    real*8  :: ham_val(local_size+1)
-   integer :: istart
-   integer :: iend
 
    write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
    write(*,"(A)") " Exiting..."
@@ -79,13 +84,11 @@ subroutine load_elsi_ham(global_size,local_size,local_nnz,col_idx,&
 
 end subroutine
 
-subroutine load_elsi_ovlp(istart,iend,local_size,local_nnz,&
-                          col_idx,row_ptr,ovlp_val)
+subroutine load_elsi_ovlp(global_size,local_size,local_nnz,col_idx,row_ptr,ovlp_val)
 
    implicit none
 
-   integer :: istart
-   integer :: iend
+   integer :: global_size
    integer :: local_size
    integer :: local_nnz
    integer :: col_idx(local_nnz)

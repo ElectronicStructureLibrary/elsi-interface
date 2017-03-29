@@ -817,7 +817,7 @@ subroutine elsi_set_col_ptr(col_ptr_in)
 
    implicit none
 
-   integer, target :: col_ptr_in(nnz_l_pexsi) !< Column pointer
+   integer, target :: col_ptr_in(n_l_cols_pexsi+1) !< Column pointer
 
    character*40, parameter :: caller = "elsi_set_cplumn_pointer"
 

@@ -362,6 +362,10 @@ subroutine elsi_blacs_to_sips_hs_small(H_in,S_in)
 
    deallocate(pos_recv_buffer)
 
+   ! Dummy
+   nnz_l_pexsi = nnz_l_sips
+   n_l_cols_pexsi = n_l_cols_sips
+
    call elsi_stop_blacs_to_sips_time()
 
 end subroutine
@@ -390,10 +394,10 @@ subroutine elsi_solve_evp_sips()
 
    ! Load H and S matrices
    call load_elsi_ham(n_g_size,n_l_cols_sips,nnz_l_sips,row_ind_ccs,&
-                      col_ptr_ccs,ham_real_ccs,istart,iend)
+                      col_ptr_ccs,ham_real_ccs)
 
-   call load_elsi_ovlp(istart,iend,n_l_cols_sips,nnz_l_sips,&
-                       row_ind_ccs,col_ptr_ccs,ovlp_real_ccs)
+   call load_elsi_ovlp(n_g_size,n_l_cols_sips,nnz_l_sips,row_ind_ccs,&
+                       col_ptr_ccs,ovlp_real_ccs)
 
    ! Initialize an eigenvalue problem
    if(.not.overlap_is_unit) then
@@ -413,15 +417,11 @@ subroutine elsi_solve_evp_sips()
    ! Solve eigenvalue problem
    call solve_eps_check(n_states,n_slices,slices,n_solve_steps)
 
-   ! Get results
-   eval = get_eps_eigenvalues(n_states)
+   ! Get eigenvalues
+   eval(1:n_states) = get_eps_eigenvalues(n_states)
 
    call MPI_Barrier(mpi_comm_global,mpierr)
    call elsi_stop_solve_evp_time()
-
-   ! TEST
-   if(myid == 0) print *,eval
-   call elsi_stop("End testing SIPs solver. Exiting...",caller)
 
 end subroutine
 
