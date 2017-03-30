@@ -60,16 +60,8 @@ module ELPA2
 
   private
 
-  public :: solve_evp_real_2stage_double
-  public :: solve_evp_complex_2stage_double
-
-  interface solve_evp_real_2stage
-     module procedure solve_evp_real_2stage_double
-  end interface
-
-  interface solve_evp_complex_2stage
-     module procedure solve_evp_complex_2stage_double
-  end interface
+  public :: elpa_solve_evp_real_2stage_double
+  public :: elpa_solve_evp_complex_2stage_double
 
   ! Added by Victor Yu from ELSI team.
   ! Dec 6, 2016
@@ -112,9 +104,9 @@ contains
 !>  \result success          logical, false if error occured
 !-------------------------------------------------------------------------------
 
-function solve_evp_real_2stage_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
-                                      mpi_comm_rows,mpi_comm_cols,mpi_comm_all)&
-                                      result(success)
+function elpa_solve_evp_real_2stage_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
+                                           mpi_comm_rows,mpi_comm_cols,mpi_comm_all)&
+                                           result(success)
 
    use elpa1_compute
    use elpa2_compute
@@ -260,7 +252,7 @@ function solve_evp_real_2stage_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
       if(useGPU) print *,"  GPU has been used for this ELPA2"
    endif
 
-end function solve_evp_real_2stage_double
+end function
 
 !-------------------------------------------------------------------------------
 !>  \param na                Order of matrix a
@@ -296,9 +288,9 @@ end function solve_evp_real_2stage_double
 !>  \result success          logical, false if error occured
 !-------------------------------------------------------------------------------
 
-function solve_evp_complex_2stage_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
-                                         mpi_comm_rows,mpi_comm_cols,mpi_comm_all)&
-                                         result(success)
+function elpa_solve_evp_complex_2stage_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
+                                              mpi_comm_rows,mpi_comm_cols,mpi_comm_all)&
+                                              result(success)
 
    use elpa1_compute
    use elpa2_compute
@@ -448,7 +440,7 @@ function solve_evp_complex_2stage_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
       if(useGPU) print *,"  GPU has been used for this ELPA2"
    endif
 
-end function solve_evp_complex_2stage_double
+end function
 
 ! Added by Victor Yu from ELSI team
 ! Dec 6, 2016

@@ -7,7 +7,7 @@ use MatrixSwitch_ops, only: ms_lap_icontxt,&
                             ms_lap_npcol,&
                             ms_lap_bs_def,&
                             ms_mpi_comm
-use ELPA1, only: get_elpa_communicators,&
+use ELPA1, only: elpa_get_communicators,&
                  elpa_mult_at_b_real_double,&
                  elpa_invert_trm_real_double
 
@@ -543,7 +543,7 @@ subroutine m_dreduce(A,C,label)
       local_col = numroc(C%dim1,ms_lap_bs_def,ms_lap_mypcol,0,ms_lap_npcol)
 
       ! Get ELPA row and column communicators
-      good = get_elpa_communicators(ms_mpi_comm,ms_lap_myprow,&
+      good = elpa_get_communicators(ms_mpi_comm,ms_lap_myprow,&
                                     ms_lap_mypcol,comm_row,comm_col)
 
       ! Create a temporary array

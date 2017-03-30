@@ -58,58 +58,21 @@ module ELPA1
 
   private
 
-  public :: get_elpa_row_col_comms           !< old, deprecated interface: Sets MPI row/col communicators DO NOT USE
-  public :: get_elpa_communicators           !< Sets MPI row/col communicators
+  public :: elpa_get_communicators           !< Sets MPI row/col communicators
 
-  public :: solve_evp_real                   !< old, deprecated interface: Driver routine for real double-precision eigenvalue problem DO NOT USE
-  public :: solve_evp_real_1stage            !< Driver routine for real double-precision eigenvalue problem
-  public :: solve_evp_real_1stage_double     !< Driver routine for real double-precision eigenvalue problem
-  public :: solve_evp_complex                !< old, deprecated interface:  Driver routine for complex double-precision eigenvalue problem DO NOT USE
-  public :: solve_evp_complex_1stage         !< Driver routine for complex double-precision eigenvalue problem
-  public :: solve_evp_complex_1stage_double  !< Driver routine for complex double-precision eigenvalue problem
+  public :: elpa_solve_evp_real_1stage_double     !< Driver routine for real double-precision eigenvalue problem
+  public :: elpa_solve_evp_complex_1stage_double  !< Driver routine for complex double-precision eigenvalue problem
 
   ! imported from elpa1_auxilliary
   public :: elpa_mult_at_b_real_double       !< Multiply double-precision real matrices A**T * B
-  public :: mult_at_b_real                   !< old, deprecated interface to multiply double-precision real matrices A**T * B  DO NOT USE
-
   public :: elpa_mult_ah_b_complex_double    !< Multiply double-precision complex matrices A**H * B
-  public :: mult_ah_b_complex                !< old, deprecated interface to multiply double-preicion complex matrices A**H * B  DO NOT USE
-
   public :: elpa_invert_trm_real_double      !< Invert double-precision real triangular matrix
-  public :: invert_trm_real                  !< old, deprecated interface to invert double-precision real triangular matrix  DO NOT USE
-
   public :: elpa_invert_trm_complex_double   !< Invert double-precision complex triangular matrix
-  public :: invert_trm_complex               !< old, deprecated interface to invert double-precision complex triangular matrix  DO NOT USE
-
   public :: elpa_cholesky_real_double        !< Cholesky factorization of a double-precision real matrix
-  public :: cholesky_real                    !< old, deprecated interface to do Cholesky factorization of a double-precision real matrix  DO NOT USE
-
   public :: elpa_cholesky_complex_double     !< Cholesky factorization of a double-precision complex matrix
-  public :: cholesky_complex                 !< old, deprecated interface to do Cholesky factorization of a double-precision complex matrix  DO NOT USE
-
   public :: elpa_solve_tridi_double          !< Solve a double-precision tridiagonal eigensystem with divide and conquer method
 
   logical, public :: elpa_print_times = .false. !< Set elpa_print_times to .true. for explicit timing outputs
-
-  interface get_elpa_row_col_comms
-    module procedure get_elpa_communicators
-  end interface
-
-  interface solve_evp_real
-    module procedure solve_evp_real_1stage_double
-  end interface
-
-  interface solve_evp_real_1stage
-    module procedure solve_evp_real_1stage_double
-  end interface
-
-  interface solve_evp_complex
-    module procedure solve_evp_complex_1stage_double
-  end interface
-
-  interface solve_evp_complex_1stage
-    module procedure solve_evp_complex_1stage_double
-  end interface
 
 contains
 
@@ -127,7 +90,7 @@ contains
 !> \result mpierr            integer error value of mpi_comm_split function
 !-------------------------------------------------------------------------------
 
-function get_elpa_communicators(mpi_comm_global,my_prow,my_pcol,mpi_comm_rows,&
+function elpa_get_communicators(mpi_comm_global,my_prow,my_pcol,mpi_comm_rows,&
                                 mpi_comm_cols) result(mpierr)
 
    use precision
@@ -147,7 +110,7 @@ function get_elpa_communicators(mpi_comm_global,my_prow,my_pcol,mpi_comm_rows,&
    call mpi_comm_split(mpi_comm_global,my_pcol,my_prow,mpi_comm_rows,mpierr)
    call mpi_comm_split(mpi_comm_global,my_prow,my_pcol,mpi_comm_cols,mpierr)
 
-end function get_elpa_communicators
+end function
 
 !-------------------------------------------------------------------------------
 !> \param  na               Order of matrix a
@@ -183,8 +146,9 @@ end function get_elpa_communicators
 !>  \result                 success
 !-------------------------------------------------------------------------------
 
-function solve_evp_real_1stage_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
-                                      mpi_comm_rows,mpi_comm_cols) result(success)
+function elpa_solve_evp_real_1stage_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
+                                           mpi_comm_rows,mpi_comm_cols,mpi_comm_all)&
+                                           result(success)
    use precision
    use iso_c_binding
    use elpa_mpi
@@ -192,7 +156,8 @@ function solve_evp_real_1stage_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
 
    implicit none
 
-   integer(kind=ik), intent(in) :: na,nev,lda,ldq,nblk,matrixCols,mpi_comm_rows,mpi_comm_cols
+   integer(kind=ik), intent(in) :: na,nev,lda,ldq,nblk,matrixCols
+   integer(kind=ik), intent(in) :: mpi_comm_rows,mpi_comm_cols,mpi_comm_all
    real(kind=rk8)               :: a(lda,*),ev(na),q(ldq,*)
 
    integer(kind=ik)             :: my_prow,my_pcol,mpierr
@@ -235,7 +200,7 @@ function solve_evp_real_1stage_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
    deallocate(e)
    deallocate(tau)
 
-end function solve_evp_real_1stage_double
+end function
 
 !-------------------------------------------------------------------------------
 !> \param  na                   Order of matrix a
@@ -269,8 +234,9 @@ end function solve_evp_real_1stage_double
 !>  \result                     success
 !-------------------------------------------------------------------------------
 
-function solve_evp_complex_1stage_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
-                                         mpi_comm_rows,mpi_comm_cols) result(success)
+function elpa_solve_evp_complex_1stage_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
+                                              mpi_comm_rows,mpi_comm_cols,mpi_comm_all)&
+                                              result(success)
 
    use precision
    use iso_c_binding
@@ -280,7 +246,7 @@ function solve_evp_complex_1stage_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
    implicit none
 
    integer(kind=ik), intent(in) :: na,nev,lda,ldq,nblk,matrixCols
-   integer(kind=ik), intent(in) :: mpi_comm_rows,mpi_comm_cols
+   integer(kind=ik), intent(in) :: mpi_comm_rows,mpi_comm_cols,mpi_comm_all
    complex(kind=ck8)            :: a(lda,*),q(ldq,*)
    real(kind=rk8)               :: ev(na)
 
@@ -336,6 +302,6 @@ function solve_evp_complex_1stage_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
    deallocate(e)
    deallocate(tau)
 
-end function solve_evp_complex_1stage_double
+end function
 
 end module ELPA1

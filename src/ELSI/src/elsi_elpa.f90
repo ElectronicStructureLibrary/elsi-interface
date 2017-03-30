@@ -66,7 +66,7 @@ subroutine elsi_get_elpa_comms(mpi_comm_row_out,mpi_comm_col_out)
 
    integer :: success
 
-   success = get_elpa_communicators(mpi_comm_global,my_p_row,my_p_col,&
+   success = elpa_get_communicators(mpi_comm_global,my_p_row,my_p_col,&
                                     mpi_comm_row_out,mpi_comm_col_out)
 
 end subroutine
@@ -682,25 +682,25 @@ subroutine elsi_solve_evp_elpa()
       call elsi_statement_print("  Starting ELPA 2-stage solver")
       select case (mode)
          case (COMPLEX_VALUES)
-            success = solve_evp_complex_2stage_double(n_nonsingular,n_states,&
+            success = elpa_solve_evp_complex_2stage_double(n_nonsingular,n_states,&
                          ham_complex,n_l_rows,eval,evec_complex,n_l_rows,n_b_rows,&
                          n_l_cols,mpi_comm_row,mpi_comm_col,mpi_comm_global)
          case (REAL_VALUES)
-            success = solve_evp_real_2stage_double(n_nonsingular,n_states,ham_real,&
-                         n_l_rows,eval,evec_real,n_l_rows,n_b_rows,n_l_cols,&
-                         mpi_comm_row,mpi_comm_col,mpi_comm_global)
+            success = elpa_solve_evp_real_2stage_double(n_nonsingular,n_states,&
+                         ham_real,n_l_rows,eval,evec_real,n_l_rows,n_b_rows,&
+                         n_l_cols,mpi_comm_row,mpi_comm_col,mpi_comm_global)
       end select
    else ! 1-stage solver
       call elsi_statement_print("  Starting ELPA 1-stage solver")
       select case (mode)
          case (COMPLEX_VALUES)
-            success = solve_evp_complex_1stage_double(n_nonsingular,n_states,&
-                         ham_complex,n_l_rows,eval,evec_complex,n_l_rows,&
-                         n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col)
+            success = elpa_solve_evp_complex_1stage_double(n_nonsingular,n_states,&
+                         ham_complex,n_l_rows,eval,evec_complex,n_l_rows,n_b_rows,&
+                         n_l_cols,mpi_comm_row,mpi_comm_col,mpi_comm_global)
          case (REAL_VALUES)
-            success = solve_evp_real_1stage_double(n_nonsingular,n_states,ham_real,&
-                         n_l_rows,eval,evec_real,n_l_rows,n_b_rows,n_l_cols,&
-                         mpi_comm_row,mpi_comm_col)
+            success = elpa_solve_evp_real_1stage_double(n_nonsingular,n_states,&
+                         ham_real,n_l_rows,eval,evec_real,n_l_rows,n_b_rows,&
+                         n_l_cols,mpi_comm_row,mpi_comm_col,mpi_comm_global)
       end select
    endif
 
