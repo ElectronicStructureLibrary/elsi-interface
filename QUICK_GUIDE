@@ -50,17 +50,11 @@ A) QUICK PROGRAMMING GUIDE
 
    elsi_mpi_comm:    [integer] [in]  MPI communicator used in ELSI.
 
-*  call elsi_set_blacs(blacs_ctxt, block_row, block_col, n_procs_row, n_procs_col)
+*  call elsi_set_blacs(blacs_ctxt, block_size)
 
    blacs_ctxt:       [integer] [in]  BLACS context.
 
-   block_row:        [integer] [in]  Block size in row direction.
-
-   block_col:        [integer] [in]  Block size in column direction.
-
-   n_procs_row:      [integer] [in]  Number of processors in row.
-
-   n_procs_col:      [integer] [in]  Number of processors in column.
+   block_size:       [integer] [in]  Block size of 2D block-cyclic distribution.
 
 ============================================================
 3) Treat the Kohn-Sham eigenvalue problem using ELSI solvers
