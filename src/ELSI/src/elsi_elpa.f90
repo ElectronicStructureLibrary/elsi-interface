@@ -435,12 +435,10 @@ subroutine elsi_check_singularity()
 
          ! Use customized ELPA 2-stage solver to check overlap singularity
          ! Eigenvectors computed only for singular overlap matrix
-         success = check_eval_complex(n_g_size,n_g_size,buffer_complex,&
-                                      n_l_rows,ev_overlap,evec_complex,n_l_rows,&
-                                      n_b_rows,n_l_cols,mpi_comm_row,&
-                                      mpi_comm_col,mpi_comm_global,&
-                                      singularity_tolerance,n_nonsingular)
-
+         success = elpa_check_singularity_complex_double(n_g_size,n_g_size,&
+                      buffer_complex,n_l_rows,ev_overlap,evec_complex,n_l_rows,&
+                      n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col,&
+                      mpi_comm_global,singularity_tolerance,n_nonsingular)
          if(.not.success) then
             call elsi_stop(" ELPA failed when solving eigenvalue problem."//&
                            " Exiting...", caller)
@@ -512,11 +510,10 @@ subroutine elsi_check_singularity()
 
          ! Use customized ELPA 2-stage solver to check overlap singularity
          ! Eigenvectors computed only for singular overlap matrix
-         success = check_eval_real(n_g_size,n_g_size,buffer_real,n_l_rows,&
-                                   ev_overlap,evec_real,n_l_rows,n_b_rows,n_l_cols,&
-                                   mpi_comm_row,mpi_comm_col,mpi_comm_global,&
-                                   singularity_tolerance,n_nonsingular)
-
+         success = elpa_check_singularity_real_double(n_g_size,n_g_size,&
+                      buffer_real,n_l_rows,ev_overlap,evec_real,n_l_rows,&
+                      n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col,&
+                      mpi_comm_global,singularity_tolerance,n_nonsingular)
          if(.not.success) then
             call elsi_stop(" ELPA failed when solving eigenvalue problem."//&
                            " Exiting...", caller)
@@ -1043,12 +1040,10 @@ subroutine elsi_check_singularity_sp()
 
          ! Use customized ELPA 2-stage solver to check overlap singularity
          ! Eigenvectors computed only for singular overlap matrix
-         success = check_eval_complex(n_g_size,n_g_size,buffer_complex,&
-                                      n_l_rows,ev_overlap,evec_complex,&
-                                      n_l_rows,n_b_rows,n_l_cols,&
-                                      mpi_comm_self,mpi_comm_self,&
-                                      mpi_comm_self,singularity_tolerance,&
-                                      n_nonsingular)
+         success = elpa_check_singularity_complex_double(n_g_size,n_g_size,&
+                      buffer_complex,n_l_rows,ev_overlap,evec_complex,&
+                      n_l_rows,n_b_rows,n_l_cols,mpi_comm_self,mpi_comm_self,&
+                      mpi_comm_self,singularity_tolerance,n_nonsingular)
          if(.not.success) then
             call elsi_stop(" ELPA failed when solving eigenvalue problem."//&
                            " Exiting...", caller)
@@ -1119,11 +1114,10 @@ subroutine elsi_check_singularity_sp()
 
          ! Use customized ELPA 2-stage solver to check overlap singularity
          ! Eigenvectors computed only for singular overlap matrix
-         success = check_eval_real(n_g_size,n_g_size,buffer_real,n_l_rows,&
-                                   ev_overlap,evec_real,n_l_rows,n_b_rows,&
-                                   n_l_cols,mpi_comm_self,mpi_comm_self,&
-                                   mpi_comm_self,singularity_tolerance,&
-                                   n_nonsingular)
+         success = elpa_check_singularity_real_double(n_g_size,n_g_size,&
+                      buffer_real,n_l_rows,ev_overlap,evec_real,n_l_rows,&
+                      n_b_rows,n_l_cols,mpi_comm_self,mpi_comm_self,&
+                      mpi_comm_self,singularity_tolerance,n_nonsingular)
          if(.not.success) then
             call elsi_stop(" ELPA failed when solving eigenvalue problem."//&
                            " Exiting...", caller)

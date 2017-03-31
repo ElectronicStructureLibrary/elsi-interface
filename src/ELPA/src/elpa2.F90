@@ -62,11 +62,8 @@ module ELPA2
 
   public :: elpa_solve_evp_real_2stage_double
   public :: elpa_solve_evp_complex_2stage_double
-
-  ! Added by Victor Yu from ELSI team.
-  ! Dec 6, 2016
-  public :: check_eval_real
-  public :: check_eval_complex
+  public :: elpa_check_singularity_real_double
+  public :: elpa_check_singularity_complex_double
 
 contains
 
@@ -442,11 +439,9 @@ function elpa_solve_evp_complex_2stage_double(na,nev,a,lda,ev,q,ldq,nblk,matrixC
 
 end function
 
-! Added by Victor Yu from ELSI team
-! Dec 6, 2016
-function check_eval_real(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,mpi_comm_rows,&
-                         mpi_comm_cols,mpi_comm_all,singular_tol,n_nonsing)&
-                         result(success)
+function elpa_check_singularity_real_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
+            mpi_comm_rows,mpi_comm_cols,mpi_comm_all,singular_tol,n_nonsing)&
+            result(success)
 
    use elpa1_compute
    use elpa2_compute
@@ -609,8 +604,9 @@ function check_eval_real(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,mpi_comm_rows,&
 
 end function
 
-function check_eval_complex(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,mpi_comm_rows,&
-                            mpi_comm_cols,mpi_comm_all,singular_tol,n_nonsing) result(success)
+function elpa_check_singularity_complex_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
+            mpi_comm_rows,mpi_comm_cols,mpi_comm_all,singular_tol,n_nonsing)&
+            result(success)
 
    use elpa1_compute
    use elpa2_compute
