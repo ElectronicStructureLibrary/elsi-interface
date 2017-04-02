@@ -896,6 +896,9 @@ subroutine elsi_cleanup()
    if(allocated(shifts))            deallocate(shifts)
    if(allocated(slices))            deallocate(slices)
 
+   if(allocated(local_row))         deallocate(local_row)
+   if(allocated(local_col))         deallocate(local_col)
+
    ! Finalize PEXSI plan
    if(method == PEXSI) then
       call f_ppexsi_plan_finalize(pexsi_plan,pexsi_info)
