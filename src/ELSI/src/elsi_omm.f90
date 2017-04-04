@@ -72,7 +72,6 @@ subroutine elsi_solve_evp_omm()
    if(n_elsi_calls == 1) then
       coeff_initialized = .false.
 
-      call elsi_statement_print("  Starting Cholesky decomposition")
       call elsi_start_cholesky_time()
 
       ! Cholesky factorization

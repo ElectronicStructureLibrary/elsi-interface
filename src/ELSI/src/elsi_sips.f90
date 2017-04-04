@@ -175,8 +175,7 @@ subroutine elsi_blacs_to_sips_hs_small(H_in,S_in)
 
    character*40, parameter :: caller = "elsi_blacs_to_sips_hs_small"
 
-   call elsi_start_blacs_to_sips_time()
-   call elsi_statement_print("  Matrix conversion: BLACS ==> SIPS")
+   call elsi_start_redistribution_time()
 
    send_count = 0
    send_displ = 0
@@ -366,7 +365,7 @@ subroutine elsi_blacs_to_sips_hs_small(H_in,S_in)
    nnz_l_pexsi = nnz_l_sips
    n_l_cols_pexsi = n_l_cols_sips
 
-   call elsi_stop_blacs_to_sips_time()
+   call elsi_stop_redistribution_time()
 
 end subroutine
 
@@ -384,7 +383,7 @@ subroutine elsi_solve_evp_sips()
    character*200 :: info_str
    character*40, parameter :: caller = "elsi_solve_evp_sips"
 
-   call elsi_start_density_matrix_time()
+   call elsi_start_generalized_evp_time()
 
    write(info_str,"(1X,' | Number of slices ',I7)") n_slices
    call elsi_statement_print(info_str)
@@ -421,7 +420,7 @@ subroutine elsi_solve_evp_sips()
    eval(1:n_states) = get_eps_eigenvalues(n_states)
 
    call MPI_Barrier(mpi_comm_global,mpierr)
-   call elsi_stop_density_matrix_time()
+   call elsi_stop_generalized_evp_time()
 
 end subroutine
 

@@ -113,6 +113,11 @@ program test_dm_real
       write(*,'("  ################################")')
       write(*,'("  ##     ELSI TEST PROGRAMS     ##")')
       write(*,'("  ################################")')
+      write(*,*)
+      write(*,'("  This test program computes the density matrix")')
+      write(*,'("  from a Hamiltonian matrix and an overlap matrix")')
+      write(*,'("  generated on-the-fly.")')
+      write(*,*)
       if(solver == 1) then
          write(*,'("  Now testing  elsi_dm_real + ELPA")')
          e_ref = e_elpa
@@ -131,6 +136,7 @@ program test_dm_real
          e_ref = e_pexsi
          e_tol = 1d-10
       endif
+      write(*,*)
    endif
 
    ! Set up BLACS
@@ -146,11 +152,9 @@ program test_dm_real
    orb_r_cut = 0.5d0
    k_point(1:3) = (/0d0,0d0,0d0/)
 
-   ! Generate matrix
-   if(myid == 0) write(*,'("  Generating test matrix..")')
-
    t1 = MPI_Wtime()
 
+   ! Generate test matrices
    call tomato_TB(arg1,'silicon',.false.,frac_occ,n_basis,.false.,matrix_size,&
                   supercell,.false.,sparsity,orb_r_cut,n_states,.true.,k_point,&
                   .true.,0d0,H,S,m_storage,.true.)
@@ -158,7 +162,8 @@ program test_dm_real
    t2 = MPI_Wtime()
 
    if(myid == 0) then
-      write(*,'("  | Done. Time :",F10.3,"s")') t2-t1
+      write(*,'("  Finished test matrices generation")')
+      write(*,'("  | Time :",F10.3,"s")') t2-t1
    endif
 
    ! Initialize ELSI
@@ -171,18 +176,14 @@ program test_dm_real
    ! Solve problem
    call m_allocate(D,matrix_size,matrix_size,m_storage)
 
-   if(myid == 0) then
-      write(*,'("  Solving Kohn-Sham eigenproblem..")')
-   endif
-
    ! Disable ELPA if using libOMM
    if(solver == 2) call elsi_customize_omm(n_elpa_steps_omm=0)
 
    ! Only 2 PEXSI poles for quick test
    if(solver == 3) call elsi_customize_pexsi(n_poles=2)
 
-   ! Uncomment to get more output
-!   call elsi_customize(print_detail=.true.)
+   ! Get more output
+   call elsi_customize(print_detail=.true.)
 
    t1 = MPI_Wtime()
 
@@ -191,12 +192,15 @@ program test_dm_real
    t2 = MPI_Wtime()
 
    if(myid == 0) then
-      write(*,'("  | Done. Time :",F10.3,"s")') t2-t1
+      write(*,'("  Finished test program")')
+      write(*,'("  | Total computation time :",F10.3,"s")') t2-t1
+      write(*,*)
       if(ABS(e_test-e_ref) < e_tol) then
          write(*,'("  Passed.")')
       else
          write(*,'("  Failed!!")')
       endif
+      write(*,*)
    endif
 
    ! Finalize ELSI

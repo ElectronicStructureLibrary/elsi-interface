@@ -40,14 +40,8 @@ module ELSI_TIMERS
 
    real*8 :: t_generalized_evp
    real*8 :: t_generalized_evp_start
-   real*8 :: t_blacs_to_pexsi
-   real*8 :: t_blacs_to_pexsi_start
-   real*8 :: t_pexsi_to_blacs
-   real*8 :: t_pexsi_to_blacs_start
-   real*8 :: t_blacs_to_sips
-   real*8 :: t_blacs_to_sips_start
-   real*8 :: t_sips_to_blacs
-   real*8 :: t_sips_to_blacs_start
+   real*8 :: t_redistribution
+   real*8 :: t_redistribution_start
    real*8 :: t_transform_evp
    real*8 :: t_transform_evp_start
    real*8 :: t_back_transform_ev
@@ -68,14 +62,8 @@ module ELSI_TIMERS
    public :: elsi_final_print
    public :: elsi_start_generalized_evp_time
    public :: elsi_stop_generalized_evp_time
-   public :: elsi_start_blacs_to_pexsi_time
-   public :: elsi_stop_blacs_to_pexsi_time
-   public :: elsi_start_pexsi_to_blacs_time
-   public :: elsi_stop_pexsi_to_blacs_time
-   public :: elsi_start_blacs_to_sips_time
-   public :: elsi_stop_blacs_to_sips_time
-   public :: elsi_start_sips_to_blacs_time
-   public :: elsi_stop_sips_to_blacs_time
+   public :: elsi_start_redistribution_time
+   public :: elsi_stop_redistribution_time
    public :: elsi_start_transform_evp_time
    public :: elsi_stop_transform_evp_time
    public :: elsi_start_back_transform_ev_time
@@ -102,14 +90,8 @@ subroutine elsi_init_timers()
 
    t_generalized_evp         = 0.0d0
    t_generalized_evp_start   = 0.0d0
-   t_blacs_to_pexsi          = 0.0d0
-   t_blacs_to_pexsi_start    = 0.0d0
-   t_pexsi_to_blacs          = 0.0d0
-   t_pexsi_to_blacs_start    = 0.0d0
-   t_blacs_to_sips           = 0.0d0
-   t_blacs_to_sips_start     = 0.0d0
-   t_sips_to_blacs           = 0.0d0
-   t_sips_to_blacs_start     = 0.0d0
+   t_redistribution          = 0.0d0
+   t_redistribution_start    = 0.0d0
    t_transform_evp           = 0.0d0
    t_transform_evp_start     = 0.0d0
    t_back_transform_ev       = 0.0d0
@@ -134,6 +116,7 @@ subroutine elsi_final_print()
 
    implicit none
 
+   real*8  :: sparsity
    integer :: i_proc
 
    if(print_info) then
@@ -143,21 +126,22 @@ subroutine elsi_final_print()
          write(*,"('  |-----------------------------------------')")
          write(*,"('  | Eigenvalue problem size : ',I13)") n_g_size
          if(method == PEXSI) then
-            write(*,"('  | Non zero elements       : ',I13)") &
-                  nnz_g
-            write(*,"('  | Sparsity                : ',F13.3)") &
-                  1.0d0-(1.0d0*nnz_g/n_g_size)/n_g_size
+            write(*,"('  | Non zero elements       : ',I13)") nnz_g
+            sparsity = 1.0d0-(1.0d0*nnz_g/n_g_size)/n_g_size
+            write(*,"('  | Sparsity                : ',F13.3)") sparsity
          endif
          write(*,"('  | Number of electrons     : ',F13.1)") n_electrons
          write(*,"('  | Number of states        : ',I13)") n_states
          if(method == ELPA) then
             write(*,"('  | Method                  : ',A13)") "ELPA"
-         endif
-         if(method == LIBOMM) then
+         elseif(method == LIBOMM) then
             write(*,"('  | Method                  : ',A13)") "libOMM"
-         endif
-         if(method == PEXSI) then
+         elseif(method == PEXSI) then
             write(*,"('  | Method                  : ',A13)") "PEXSI"
+         elseif(method == CHESS) then
+            write(*,"('  | Method                  : ',A13)") "CheSS"
+         elseif(method == SIPS) then
+            write(*,"('  | Method                  : ',A13)") "SIPs"
          endif
          write(*,"('  |-----------------------------------------')")
          write(*,"('  | ELSI Project (c)  elsi-interchange.org')")
@@ -208,11 +192,11 @@ subroutine elsi_stop_generalized_evp_time()
    t_generalized_evp = stop_time-t_generalized_evp_start
 
    if(method == SIPS) then
-      write(info_str,"('  | Solution to generalized eigenproblem (SIPs) :',F10.3,' s')")&
-         t_generalized_evp
+      write(info_str,"('  Finished solving generalized eigenproblem')")
+      call elsi_statement_print(info_str)
+      write(info_str,"('  | Time :',F10.3,' s')") t_generalized_evp
+      call elsi_statement_print(info_str)
    endif
-
-   call elsi_statement_print(info_str)
 
 end subroutine
 
@@ -240,39 +224,28 @@ subroutine elsi_stop_density_matrix_time()
    call elsi_get_time(stop_time)
    t_density_matrix = stop_time-t_density_matrix_start
 
-   if(method == ELPA) then
-      write(info_str,"('  | Density matrix calculation                  :',F10.3,' s')")&
-         t_density_matrix
-   elseif(method == LIBOMM) then
-      write(info_str,"('  | Density matrix calculation (libOMM)         :',F10.3,' s')")&
-         t_density_matrix
-   elseif(method == PEXSI) then
-      write(info_str,"('  | Density matrix calculation (PEXSI)          :',F10.3,' s')")&
-         t_density_matrix
-   elseif(method == CHESS) then
-      write(info_str,"('  | Density matrix calculation (CheSS)          :',F10.3,' s')")&
-         t_density_matrix
-   endif
-
+   write(info_str,"('  Finished density matrix calculation')")
+   call elsi_statement_print(info_str)
+   write(info_str,"('  | Time :',F10.3,' s')") t_density_matrix
    call elsi_statement_print(info_str)
 
 end subroutine
 
 !>
-!! This routine starts blacs_to_pexsi timer.
+!! This routine starts redistribution timer.
 !!
-subroutine elsi_start_blacs_to_pexsi_time()
+subroutine elsi_start_redistribution_time()
 
    implicit none
    
-   call elsi_get_time(t_blacs_to_pexsi_start)
+   call elsi_get_time(t_redistribution_start)
 
 end subroutine
 
 !>
-!! This routine ends blacs_to_pexsi timer.
+!! This routine ends redistribution timer.
 !!
-subroutine elsi_stop_blacs_to_pexsi_time()
+subroutine elsi_stop_redistribution_time()
 
    implicit none
 
@@ -280,100 +253,11 @@ subroutine elsi_stop_blacs_to_pexsi_time()
    character*200 :: info_str
 
    call elsi_get_time(stop_time)
-   t_blacs_to_pexsi = stop_time-t_blacs_to_pexsi_start
+   t_redistribution = stop_time-t_redistribution_start
 
-   write(info_str,"('  | Matrix redistribution                       :',F10.3,' s')")&
-      t_blacs_to_pexsi
+   write(info_str,"('  Finished matrix redistribution')")
    call elsi_statement_print(info_str)
-
-end subroutine
-
-!>
-!! This routine starts pexsi_to_blacs timer.
-!!
-subroutine elsi_start_pexsi_to_blacs_time()
-
-   implicit none
-
-   call elsi_get_time(t_pexsi_to_blacs_start)
-
-end subroutine
-
-!>
-!! This routine ends pexsi_to_blacs timer.
-!!
-subroutine elsi_stop_pexsi_to_blacs_time()
-
-   implicit none
-
-   real*8 :: stop_time
-   character*200 :: info_str
-
-   call elsi_get_time(stop_time)
-   t_pexsi_to_blacs = stop_time-t_pexsi_to_blacs_start
-
-   write(info_str,"('  | Matrix redistribution                       :',F10.3,' s')")&
-      t_pexsi_to_blacs
-   call elsi_statement_print(info_str)
-
-end subroutine
-
-!>
-!! This routine starts blacs_to_sips timer.
-!!
-subroutine elsi_start_blacs_to_sips_time()
-
-   implicit none
-
-   call elsi_get_time(t_blacs_to_sips_start)
-
-end subroutine
-
-!>
-!! This routine ends blacs_to_sips timer.
-!!
-subroutine elsi_stop_blacs_to_sips_time()
-
-   implicit none
-
-   real*8 :: stop_time
-   character*200 :: info_str
-
-   call elsi_get_time(stop_time)
-   t_blacs_to_sips = stop_time-t_blacs_to_sips_start
-
-   write(info_str,"('  | Matrix redistribution                       :',F10.3,' s')")&
-      t_blacs_to_sips
-   call elsi_statement_print(info_str)
-
-end subroutine
-
-!>
-!! This routine starts sips_to_blacs timer.
-!!
-subroutine elsi_start_sips_to_blacs_time()
-
-   implicit none
-
-   call elsi_get_time(t_sips_to_blacs_start)
-
-end subroutine
-
-!>
-!! This routine ends sips_to_blacs timer.
-!!
-subroutine elsi_stop_sips_to_blacs_time()
-
-   implicit none
-
-   real*8 :: stop_time
-   character*200 :: info_str
-
-   call elsi_get_time(stop_time)
-   t_sips_to_blacs = stop_time-t_sips_to_blacs_start
-
-   write(info_str,"('  | Matrix redistribution                       :',F10.3,' s')")&
-      t_sips_to_blacs
+   write(info_str,"('  | Time :',F10.3,' s')") t_redistribution
    call elsi_statement_print(info_str)
 
 end subroutine
@@ -402,8 +286,9 @@ subroutine elsi_stop_transform_evp_time()
    call elsi_get_time(stop_time)
    t_transform_evp = stop_time-t_transform_evp_start
 
-   write(info_str,"('  | Transformation to standard eigenproblem     :',F10.3,' s')")&
-      t_transform_evp
+   write(info_str,"('  Finished transformation to standard eigenproblem')")
+   call elsi_statement_print(info_str)
+   write(info_str,"('  | Time :',F10.3,' s')") t_transform_evp
    call elsi_statement_print(info_str)
 
 end subroutine
@@ -432,8 +317,9 @@ subroutine elsi_stop_back_transform_ev_time()
    call elsi_get_time(stop_time)
    t_back_transform_ev = stop_time-t_back_transform_ev_start
 
-   write(info_str,"('  | Transformation to original eigenvectors     :',F10.3,' s')")&
-      t_back_transform_ev
+   write(info_str,"('  Finished back-transformation of eigenvectors')")
+   call elsi_statement_print(info_str)
+   write(info_str,"('  | Time :',F10.3,' s')") t_back_transform_ev
    call elsi_statement_print(info_str)
 
 end subroutine
@@ -462,8 +348,9 @@ subroutine elsi_stop_singularity_check_time()
    call elsi_get_time(stop_time)
    t_singularity_check = stop_time-t_singularity_check_start
 
-   write(info_str,"('  | Singularity check of overlap matrix         :',F10.3,' s')")&
-      t_singularity_check
+   write(info_str,"('  Finished singularity check of overlap matrix')")
+   call elsi_statement_print(info_str)
+   write(info_str,"('  | Time :',F10.3,' s')") t_singularity_check
    call elsi_statement_print(info_str)
 
 end subroutine
@@ -492,8 +379,9 @@ subroutine elsi_stop_standard_evp_time()
    call elsi_get_time(stop_time)
    t_standard_evp = stop_time-t_standard_evp_start
 
-   write(info_str,"('  | Solution to standard eigenproblem (ELPA)    :',F10.3,' s')")&
-      t_standard_evp
+   write(info_str,"('  Finished solving standard eigenproblem')")
+   call elsi_statement_print(info_str)
+   write(info_str,"('  | Time :',F10.3,' s')") t_standard_evp
    call elsi_statement_print(info_str)
 
 end subroutine
@@ -522,8 +410,9 @@ subroutine elsi_stop_cholesky_time()
    call elsi_get_time(stop_time)
    t_cholesky = stop_time-t_cholesky_start
 
-   write(info_str,"('  | Cholesky decomposition                      :',F10.3,' s')")&
-      t_cholesky
+   write(info_str,"('  Finished Cholesky decomposition')")
+   call elsi_statement_print(info_str)
+   write(info_str,"('  | Time :',F10.3,' s')") t_cholesky
    call elsi_statement_print(info_str)
 
 end subroutine

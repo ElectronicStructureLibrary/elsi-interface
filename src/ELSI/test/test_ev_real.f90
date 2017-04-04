@@ -109,11 +109,17 @@ program test_ev_real
       write(*,'("  ################################")')
       write(*,'("  ##     ELSI TEST PROGRAMS     ##")')
       write(*,'("  ################################")')
+      write(*,*)
+      write(*,'("  This test program solves a generalized eigenvalue")')
+      write(*,'("  problem of a Hamiltonian matrix and an overlap")')
+      write(*,'("  matrix generated on-the-fly.")')
+      write(*,*)
       if(solver == 1) then
          write(*,'("  Now testing  elsi_ev_real + ELPA")')
       elseif(solver == 5) then
          write(*,'("  Now testing  elsi_ev_real + SIPs")')
       endif
+      write(*,*)
    endif
 
    e_ref = e_elpa
@@ -132,11 +138,9 @@ program test_ev_real
    orb_r_cut = 0.5d0
    k_point(1:3) = (/0d0,0d0,0d0/)
 
-   ! Generate matrix
-   if(myid == 0) write(*,'("  Generating test matrix..")')
-
    t1 = MPI_Wtime()
 
+   ! Generate test matrices
    call tomato_TB(arg1,'silicon',.false.,frac_occ,n_basis,.false.,matrix_size,&
                   supercell,.false.,sparsity,orb_r_cut,n_states,.true.,k_point,&
                   .true.,0d0,H,S,m_storage,.true.)
@@ -144,7 +148,8 @@ program test_ev_real
    t2 = MPI_Wtime()
 
    if(myid == 0) then
-      write(*,'("  | Done. Time :",F10.3,"s")') t2-t1
+      write(*,'("  Finished test matrices generation")')
+      write(*,'("  | Time :",F10.3,"s")') t2-t1
    endif
 
    ! Initialize ELSI
@@ -162,12 +167,8 @@ program test_ev_real
    call m_allocate(e_vec,matrix_size,matrix_size,m_storage)
    allocate(e_val(matrix_size))
 
-   if(myid == 0) then
-      write(*,'("  Solving Kohn-Sham eigenproblem..")')
-   endif
-
-   ! Uncomment to get more output
-!   call elsi_customize(print_detail=.true.)
+   ! Get more output
+   call elsi_customize(print_detail=.true.)
    
    t1 = MPI_Wtime()
 
@@ -178,12 +179,15 @@ program test_ev_real
    e_test = 2d0*SUM(e_val(1:n_states))
 
    if(myid == 0) then
-      write(*,'("  | Done. Time :",F10.3,"s")') t2-t1
+      write(*,'("  Finished test program")')
+      write(*,'("  | Total computation time :",F10.3,"s")') t2-t1
+      write(*,*)
       if(ABS(e_test-e_ref) < e_tol) then
          write(*,'("  Passed.")')
       else
          write(*,'("  Failed!!")')
       endif
+      write(*,*)
    endif
 
    ! Finalize ELSI

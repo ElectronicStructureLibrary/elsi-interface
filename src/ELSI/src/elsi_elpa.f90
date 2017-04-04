@@ -259,8 +259,6 @@ subroutine elsi_to_standard_evp()
 
                overlap_is_singular = .false.
 
-               call elsi_statement_print("  Starting Cholesky decomposition")
-
                ! Compute S = (U^T)U, U -> S
                success = elpa_cholesky_complex_double(n_g_size,ovlp_complex,n_l_rows,&
                             n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col,.false.)
@@ -343,8 +341,6 @@ subroutine elsi_to_standard_evp()
                call elsi_start_cholesky_time()
 
                overlap_is_singular = .false.
-
-               call elsi_statement_print("  Starting Cholesky decomposition")
 
                ! Compute S = (U^T)U, U -> S
                success = elpa_cholesky_real_double(n_g_size,ovlp_real,n_l_rows,&
@@ -444,9 +440,6 @@ subroutine elsi_check_singularity()
       case (COMPLEX_VALUES)
          call elsi_allocate(buffer_complex,n_l_rows,n_l_cols,"temp",caller)
 
-         ! Check if overlap matrix is singular
-         call elsi_statement_print("  Checking singularity for overlap matrix")
-
          ! Use buffer_complex to store overlap matrix, otherwise it will
          ! be destroyed by eigenvalue calculation
          ! The nonsingular eigenvalues must be the first ones, so find
@@ -518,9 +511,6 @@ subroutine elsi_check_singularity()
 
       case (REAL_VALUES)
          call elsi_allocate(buffer_real,n_l_rows,n_l_cols,"temp",caller)
-
-         ! Check if overlap matrix is singular
-         call elsi_statement_print("  Checking singularity for overlap matrix")
 
          ! Use buffer_real to store overlap matrix, otherwise it will be
          ! destroyed by eigenvalue calculation
@@ -696,7 +686,6 @@ subroutine elsi_solve_evp_elpa()
 
    ! Transform to standard form
    if(.not.overlap_is_unit) then
-      call elsi_statement_print("  Transforming to standard evp")
       call elsi_to_standard_evp()
    endif
 
@@ -704,7 +693,7 @@ subroutine elsi_solve_evp_elpa()
 
    ! Solve evp, return eigenvalues and eigenvectors
    if(two_step_solver) then ! 2-stage solver
-      call elsi_statement_print("  Starting ELPA 2-stage solver")
+      call elsi_statement_print("  Starting ELPA 2-stage eigensolver")
       select case (mode)
          case (COMPLEX_VALUES)
             success = elpa_solve_evp_complex_2stage_double(n_nonsingular,n_states,&
@@ -716,7 +705,7 @@ subroutine elsi_solve_evp_elpa()
                          n_l_cols,mpi_comm_row,mpi_comm_col,mpi_comm_global)
       end select
    else ! 1-stage solver
-      call elsi_statement_print("  Starting ELPA 1-stage solver")
+      call elsi_statement_print("  Starting ELPA 1-stage eigensolver")
       select case (mode)
          case (COMPLEX_VALUES)
             success = elpa_solve_evp_complex_1stage_double(n_nonsingular,n_states,&
@@ -738,7 +727,6 @@ subroutine elsi_solve_evp_elpa()
 
    ! Back-transform eigenvectors
    if(.not.overlap_is_unit) then
-      call elsi_statement_print("  Transforming to original eigenvectors")
       call elsi_to_original_ev()
    endif
 
@@ -783,8 +771,6 @@ subroutine elsi_to_standard_evp_sp()
             call elsi_start_cholesky_time()
 
             overlap_is_singular = .false.
-
-            call elsi_statement_print("  Starting Cholesky decomposition")
 
             ! Compute S = (U^T)U, U -> S
             success = elpa_cholesky_complex_double(n_g_size,ovlp_complex,n_l_rows,&
@@ -843,8 +829,6 @@ subroutine elsi_to_standard_evp_sp()
             call elsi_start_cholesky_time()
 
             overlap_is_singular = .false.
-
-            call elsi_statement_print("  Starting Cholesky decomposition")
 
             ! Compute S = (U^T)U, U -> S
             success = elpa_cholesky_real_double(n_g_size,ovlp_real,n_l_rows,&
@@ -977,12 +961,11 @@ subroutine elsi_solve_evp_elpa_sp()
 
    ! Transform to standard form
    if(.not.overlap_is_unit) then
-      call elsi_statement_print("  Transforming to standard evp")
       call elsi_to_standard_evp_sp()
    endif
 
    ! Solve evp, return eigenvalues and eigenvectors
-   call elsi_statement_print("  Starting ELSI eigensolver")
+   call elsi_statement_print("  Starting ELPA eigensolver")
 
    call elsi_start_standard_evp_time()
 
@@ -1043,7 +1026,6 @@ subroutine elsi_solve_evp_elpa_sp()
 
    ! Back-transform eigenvectors
    if(.not.overlap_is_unit) then
-      call elsi_statement_print("  Transforming to original eigenvectors")
       call elsi_to_original_ev_sp()
    endif
 
@@ -1077,9 +1059,6 @@ subroutine elsi_check_singularity_sp()
    select case (mode)
       case (COMPLEX_VALUES)
          call elsi_allocate(buffer_complex,n_l_rows,n_l_cols,"temp",caller)
-
-         ! Check if overlap matrix is singular
-         call elsi_statement_print("  Checking singularity for overlap matrix")
 
          ! Use buffer_complex to store overlap matrix, otherwise it will
          ! be destroyed by eigenvalue calculation
@@ -1151,9 +1130,6 @@ subroutine elsi_check_singularity_sp()
 
       case (REAL_VALUES)
          call elsi_allocate(buffer_real,n_l_rows,n_l_cols,"temp",caller)
-
-         ! Check if overlap matrix is singular
-         call elsi_statement_print("  Checking singularity for overlap matrix")
 
          ! Use buffer_real to store overlap matrix, otherwise it will be
          ! destroyed by eigenvalue calculation

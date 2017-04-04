@@ -225,8 +225,7 @@ subroutine elsi_blacs_to_pexsi_hs_small(H_in,S_in)
 
    character*40, parameter :: caller = "elsi_blacs_to_pexsi_hs_small"
 
-   call elsi_start_blacs_to_pexsi_time()
-   call elsi_statement_print("  Matrix conversion: BLACS ==> PEXSI")
+   call elsi_start_redistribution_time()
 
    send_count = 0
    send_displ = 0
@@ -497,7 +496,7 @@ subroutine elsi_blacs_to_pexsi_hs_small(H_in,S_in)
       deallocate(pos_send_buffer)
    endif
 
-   call elsi_stop_blacs_to_pexsi_time()
+   call elsi_stop_redistribution_time()
 
 end subroutine
 
@@ -562,8 +561,7 @@ subroutine elsi_blacs_to_pexsi_hs_large(H_in,S_in)
 
    character*40, parameter :: caller = "elsi_blacs_to_pexsi_hs_large"
 
-   call elsi_start_blacs_to_pexsi_time()
-   call elsi_statement_print("  Matrix conversion: BLACS ==> PEXSI")
+   call elsi_start_redistribution_time()
 
    send_count = 0
    send_displ = 0
@@ -872,7 +870,7 @@ subroutine elsi_blacs_to_pexsi_hs_large(H_in,S_in)
       deallocate(col_send_buffer)
    endif
 
-   call elsi_stop_blacs_to_pexsi_time()
+   call elsi_stop_redistribution_time()
 
 end subroutine
 
@@ -918,8 +916,7 @@ subroutine elsi_pexsi_to_blacs_dm_small(D_out)
 
    character*40, parameter :: caller = "elsi_pexsi_to_blacs_dm_small"
 
-   call elsi_start_pexsi_to_blacs_time()
-   call elsi_statement_print("  Matrix conversion: PEXSI ==> BLACS")
+   call elsi_start_redistribution_time()
 
    send_count = 0
    send_displ = 0
@@ -1024,7 +1021,7 @@ subroutine elsi_pexsi_to_blacs_dm_small(D_out)
    deallocate(val_recv_buffer)
    deallocate(pos_recv_buffer)
 
-   call elsi_stop_pexsi_to_blacs_time()
+   call elsi_stop_redistribution_time()
 
 end subroutine
 
@@ -1073,8 +1070,7 @@ subroutine elsi_pexsi_to_blacs_dm_large(D_out)
 
    character*40, parameter :: caller = "elsi_pexsi_to_blacs_dm_large"
 
-   call elsi_start_pexsi_to_blacs_time()
-   call elsi_statement_print("  Matrix conversion: PEXSI ==> BLACS")
+   call elsi_start_redistribution_time()
 
    send_count = 0
    send_displ = 0
@@ -1183,7 +1179,7 @@ subroutine elsi_pexsi_to_blacs_dm_large(D_out)
    deallocate(row_recv_buffer)
    deallocate(col_recv_buffer)
 
-   call elsi_stop_pexsi_to_blacs_time()
+   call elsi_stop_redistribution_time()
 
 end subroutine
 

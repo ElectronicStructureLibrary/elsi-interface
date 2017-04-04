@@ -4,6 +4,7 @@ make.sys
 *.tmp
 *.swp
 *.log
+logPEXSI*
 src/ELSI/doc/html
 src/ELSI/doc/latex
 include
