@@ -1200,7 +1200,7 @@ subroutine elsi_solve_evp_pexsi()
    character*200 :: info_str
    character*40, parameter :: caller = "elsi_solve_evp_pexsi"
 
-   call elsi_start_solve_evp_time()
+   call elsi_start_density_matrix_time()
 
    if(small_pexsi_tol) then
       pexsi_options%numElectronPEXSITolerance = this_pexsi_tol
@@ -1285,7 +1285,7 @@ subroutine elsi_solve_evp_pexsi()
    endif
 
    call MPI_Barrier(mpi_comm_global,mpierr)
-   call elsi_stop_solve_evp_time()
+   call elsi_stop_density_matrix_time()
 
 end subroutine
 

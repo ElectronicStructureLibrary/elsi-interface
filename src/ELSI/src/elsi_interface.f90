@@ -352,7 +352,7 @@ subroutine elsi_finalize()
    implicit none
 
    call elsi_cleanup()
-   call elsi_print_timers()
+   call elsi_final_print()
 
    n_elsi_calls = 0
 

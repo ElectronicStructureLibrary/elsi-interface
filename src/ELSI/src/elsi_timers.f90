@@ -38,24 +38,36 @@ module ELSI_TIMERS
    implicit none
    private
 
-   real*8 :: walltime_solve_evp
-   real*8 :: walltime_solve_evp_start
-   real*8 :: walltime_blacs_to_pexsi
-   real*8 :: walltime_blacs_to_pexsi_start
-   real*8 :: walltime_pexsi_to_blacs
-   real*8 :: walltime_pexsi_to_blacs_start
-   real*8 :: walltime_blacs_to_sips
-   real*8 :: walltime_blacs_to_sips_start
-   real*8 :: walltime_sips_to_blacs
-   real*8 :: walltime_sips_to_blacs_start
+   real*8 :: t_generalized_evp
+   real*8 :: t_generalized_evp_start
+   real*8 :: t_blacs_to_pexsi
+   real*8 :: t_blacs_to_pexsi_start
+   real*8 :: t_pexsi_to_blacs
+   real*8 :: t_pexsi_to_blacs_start
+   real*8 :: t_blacs_to_sips
+   real*8 :: t_blacs_to_sips_start
+   real*8 :: t_sips_to_blacs
+   real*8 :: t_sips_to_blacs_start
+   real*8 :: t_transform_evp
+   real*8 :: t_transform_evp_start
+   real*8 :: t_back_transform_ev
+   real*8 :: t_back_transform_ev_start
+   real*8 :: t_singularity_check
+   real*8 :: t_singularity_check_start
+   real*8 :: t_standard_evp
+   real*8 :: t_standard_evp_start
+   real*8 :: t_density_matrix
+   real*8 :: t_density_matrix_start
+   real*8 :: t_cholesky
+   real*8 :: t_cholesky_start
 
    integer :: clock_rate
    integer :: clock_max
 
    public :: elsi_init_timers
-   public :: elsi_print_timers
-   public :: elsi_start_solve_evp_time
-   public :: elsi_stop_solve_evp_time
+   public :: elsi_final_print
+   public :: elsi_start_generalized_evp_time
+   public :: elsi_stop_generalized_evp_time
    public :: elsi_start_blacs_to_pexsi_time
    public :: elsi_stop_blacs_to_pexsi_time
    public :: elsi_start_pexsi_to_blacs_time
@@ -64,6 +76,18 @@ module ELSI_TIMERS
    public :: elsi_stop_blacs_to_sips_time
    public :: elsi_start_sips_to_blacs_time
    public :: elsi_stop_sips_to_blacs_time
+   public :: elsi_start_transform_evp_time
+   public :: elsi_stop_transform_evp_time
+   public :: elsi_start_back_transform_ev_time
+   public :: elsi_stop_back_transform_ev_time
+   public :: elsi_start_singularity_check_time
+   public :: elsi_stop_singularity_check_time
+   public :: elsi_start_standard_evp_time
+   public :: elsi_stop_standard_evp_time
+   public :: elsi_start_density_matrix_time
+   public :: elsi_stop_density_matrix_time
+   public :: elsi_start_cholesky_time
+   public :: elsi_stop_cholesky_time
 
 contains
 
@@ -76,25 +100,37 @@ subroutine elsi_init_timers()
 
    integer :: initial_time
 
-   walltime_solve_evp            = 0.0d0
-   walltime_solve_evp_start      = 0.0d0
-   walltime_blacs_to_pexsi       = 0.0d0
-   walltime_blacs_to_pexsi_start = 0.0d0
-   walltime_pexsi_to_blacs       = 0.0d0
-   walltime_pexsi_to_blacs_start = 0.0d0
-   walltime_blacs_to_sips        = 0.0d0
-   walltime_blacs_to_sips_start  = 0.0d0
-   walltime_sips_to_blacs        = 0.0d0
-   walltime_sips_to_blacs_start  = 0.0d0
+   t_generalized_evp         = 0.0d0
+   t_generalized_evp_start   = 0.0d0
+   t_blacs_to_pexsi          = 0.0d0
+   t_blacs_to_pexsi_start    = 0.0d0
+   t_pexsi_to_blacs          = 0.0d0
+   t_pexsi_to_blacs_start    = 0.0d0
+   t_blacs_to_sips           = 0.0d0
+   t_blacs_to_sips_start     = 0.0d0
+   t_sips_to_blacs           = 0.0d0
+   t_sips_to_blacs_start     = 0.0d0
+   t_transform_evp           = 0.0d0
+   t_transform_evp_start     = 0.0d0
+   t_back_transform_ev       = 0.0d0
+   t_back_transform_ev_start = 0.0d0
+   t_singularity_check       = 0.0d0
+   t_singularity_check_start = 0.0d0
+   t_standard_evp            = 0.0d0
+   t_standard_evp_start      = 0.0d0
+   t_density_matrix          = 0.0d0
+   t_density_matrix_start    = 0.0d0
+   t_cholesky                = 0.0d0
+   t_cholesky_start          = 0.0d0
 
    call system_clock(initial_time,clock_rate,clock_max)
 
 end subroutine
 
 !>
-!! This routine prints the timing results.
+!! This routine prints a final output.
 !!
-subroutine elsi_print_timers()
+subroutine elsi_final_print()
 
    implicit none
 
@@ -102,30 +138,30 @@ subroutine elsi_print_timers()
 
    if(print_info) then
       if(myid == 0) then
-         write(*,"('  |-------------------------------------------------------')")
-         write(*,"('  | Final ELSI Output:                                    ')")
-         write(*,"('  |-------------------------------------------------------')")
-         write(*,"('  | Eigenvalue problem size             : ',I13)") n_g_size
+         write(*,"('  |-----------------------------------------')")
+         write(*,"('  | Final ELSI Output:')")
+         write(*,"('  |-----------------------------------------')")
+         write(*,"('  | Eigenvalue problem size : ',I13)") n_g_size
          if(method == PEXSI) then
-            write(*,"('  | Non zero elements                   : ',I13)") &
+            write(*,"('  | Non zero elements       : ',I13)") &
                   nnz_g
-            write(*,"('  | Sparsity                            : ',F13.3)") &
+            write(*,"('  | Sparsity                : ',F13.3)") &
                   1.0d0-(1.0d0*nnz_g/n_g_size)/n_g_size
          endif
-         write(*,"('  | Number of electrons                 : ',F13.1)") n_electrons
-         write(*,"('  | Number of states                    : ',I13)") n_states
+         write(*,"('  | Number of electrons     : ',F13.1)") n_electrons
+         write(*,"('  | Number of states        : ',I13)") n_states
          if(method == ELPA) then
-            write(*,"('  | Method                              : ',A13)") "ELPA"
+            write(*,"('  | Method                  : ',A13)") "ELPA"
          endif
          if(method == LIBOMM) then
-            write(*,"('  | Method                              : ',A13)") "libOMM"
+            write(*,"('  | Method                  : ',A13)") "libOMM"
          endif
          if(method == PEXSI) then
-            write(*,"('  | Method                              : ',A13)") "PEXSI"
+            write(*,"('  | Method                  : ',A13)") "PEXSI"
          endif
-         write(*,"('  |-------------------------------------------------------')")
-         write(*,"('  | ELSI Project (c)  elsi-interchange.org                ')")
-         write(*,"('  |-------------------------------------------------------')")
+         write(*,"('  |-----------------------------------------')")
+         write(*,"('  | ELSI Project (c)  elsi-interchange.org')")
+         write(*,"('  |-----------------------------------------')")
       endif
    endif
 
@@ -148,20 +184,20 @@ subroutine elsi_get_time(wtime)
 end subroutine
 
 !>
-!! This routine starts solve_evp timer.
+!! This routine starts generalized_evp timer.
 !!
-subroutine elsi_start_solve_evp_time()
+subroutine elsi_start_generalized_evp_time()
 
    implicit none
    
-   call elsi_get_time(walltime_solve_evp_start)
+   call elsi_get_time(t_generalized_evp_start)
 
 end subroutine
 
 !>
-!! This routine ends solve_evp timer.
+!! This routine ends generalized_evp timer.
 !!
-subroutine elsi_stop_solve_evp_time()
+subroutine elsi_stop_generalized_evp_time()
 
    implicit none
 
@@ -169,10 +205,55 @@ subroutine elsi_stop_solve_evp_time()
    character*200 :: info_str
 
    call elsi_get_time(stop_time)
-   walltime_solve_evp = stop_time-walltime_solve_evp_start
+   t_generalized_evp = stop_time-t_generalized_evp_start
 
-   write(info_str,"('  | ELSI solver finished in ',F13.3,' s')") &
-      walltime_solve_evp
+   if(method == SIPS) then
+      write(info_str,"('  | Solution to generalized eigenproblem (SIPs) :',F10.3,' s')")&
+         t_generalized_evp
+   endif
+
+   call elsi_statement_print(info_str)
+
+end subroutine
+
+!>
+!! This routine starts density_matrix timer.
+!!
+subroutine elsi_start_density_matrix_time()
+
+   implicit none
+
+   call elsi_get_time(t_density_matrix_start)
+
+end subroutine
+
+!>
+!! This routine ends density_matrix timer.
+!!
+subroutine elsi_stop_density_matrix_time()
+
+   implicit none
+
+   real*8 :: stop_time
+   character*200 :: info_str
+
+   call elsi_get_time(stop_time)
+   t_density_matrix = stop_time-t_density_matrix_start
+
+   if(method == ELPA) then
+      write(info_str,"('  | Density matrix calculation                  :',F10.3,' s')")&
+         t_density_matrix
+   elseif(method == LIBOMM) then
+      write(info_str,"('  | Density matrix calculation (libOMM)         :',F10.3,' s')")&
+         t_density_matrix
+   elseif(method == PEXSI) then
+      write(info_str,"('  | Density matrix calculation (PEXSI)          :',F10.3,' s')")&
+         t_density_matrix
+   elseif(method == CHESS) then
+      write(info_str,"('  | Density matrix calculation (CheSS)          :',F10.3,' s')")&
+         t_density_matrix
+   endif
+
    call elsi_statement_print(info_str)
 
 end subroutine
@@ -184,7 +265,7 @@ subroutine elsi_start_blacs_to_pexsi_time()
 
    implicit none
    
-   call elsi_get_time(walltime_blacs_to_pexsi_start)
+   call elsi_get_time(t_blacs_to_pexsi_start)
 
 end subroutine
 
@@ -199,10 +280,10 @@ subroutine elsi_stop_blacs_to_pexsi_time()
    character*200 :: info_str
 
    call elsi_get_time(stop_time)
-   walltime_blacs_to_pexsi = stop_time-walltime_blacs_to_pexsi_start
+   t_blacs_to_pexsi = stop_time-t_blacs_to_pexsi_start
 
-   write(info_str,"('  | ELSI matrix conversion done in ',F13.3,' s')") &
-      walltime_blacs_to_pexsi
+   write(info_str,"('  | Matrix redistribution                       :',F10.3,' s')")&
+      t_blacs_to_pexsi
    call elsi_statement_print(info_str)
 
 end subroutine
@@ -214,7 +295,7 @@ subroutine elsi_start_pexsi_to_blacs_time()
 
    implicit none
 
-   call elsi_get_time(walltime_pexsi_to_blacs_start)
+   call elsi_get_time(t_pexsi_to_blacs_start)
 
 end subroutine
 
@@ -229,10 +310,10 @@ subroutine elsi_stop_pexsi_to_blacs_time()
    character*200 :: info_str
 
    call elsi_get_time(stop_time)
-   walltime_pexsi_to_blacs = stop_time-walltime_pexsi_to_blacs_start
+   t_pexsi_to_blacs = stop_time-t_pexsi_to_blacs_start
 
-   write(info_str,"('  | ELSI matrix conversion done in ',F13.3,' s')") &
-      walltime_pexsi_to_blacs
+   write(info_str,"('  | Matrix redistribution                       :',F10.3,' s')")&
+      t_pexsi_to_blacs
    call elsi_statement_print(info_str)
 
 end subroutine
@@ -244,7 +325,7 @@ subroutine elsi_start_blacs_to_sips_time()
 
    implicit none
 
-   call elsi_get_time(walltime_blacs_to_sips_start)
+   call elsi_get_time(t_blacs_to_sips_start)
 
 end subroutine
 
@@ -259,10 +340,10 @@ subroutine elsi_stop_blacs_to_sips_time()
    character*200 :: info_str
 
    call elsi_get_time(stop_time)
-   walltime_blacs_to_sips = stop_time-walltime_blacs_to_sips_start
+   t_blacs_to_sips = stop_time-t_blacs_to_sips_start
 
-   write(info_str,"('  | ELSI matrix conversion done in ',F13.3,' s')") &
-      walltime_blacs_to_sips
+   write(info_str,"('  | Matrix redistribution                       :',F10.3,' s')")&
+      t_blacs_to_sips
    call elsi_statement_print(info_str)
 
 end subroutine
@@ -274,7 +355,7 @@ subroutine elsi_start_sips_to_blacs_time()
 
    implicit none
 
-   call elsi_get_time(walltime_sips_to_blacs_start)
+   call elsi_get_time(t_sips_to_blacs_start)
 
 end subroutine
 
@@ -289,10 +370,160 @@ subroutine elsi_stop_sips_to_blacs_time()
    character*200 :: info_str
 
    call elsi_get_time(stop_time)
-   walltime_sips_to_blacs = stop_time-walltime_sips_to_blacs_start
+   t_sips_to_blacs = stop_time-t_sips_to_blacs_start
 
-   write(info_str,"('  | ELSI matrix conversion done in ',F13.3,' s')") &
-      walltime_sips_to_blacs
+   write(info_str,"('  | Matrix redistribution                       :',F10.3,' s')")&
+      t_sips_to_blacs
+   call elsi_statement_print(info_str)
+
+end subroutine
+
+!>
+!! This routine starts transform_evp timer.
+!!
+subroutine elsi_start_transform_evp_time()
+
+   implicit none
+
+   call elsi_get_time(t_transform_evp_start)
+
+end subroutine
+
+!>
+!! This routine ends transform_evp timer.
+!!
+subroutine elsi_stop_transform_evp_time()
+
+   implicit none
+
+   real*8 :: stop_time
+   character*200 :: info_str
+
+   call elsi_get_time(stop_time)
+   t_transform_evp = stop_time-t_transform_evp_start
+
+   write(info_str,"('  | Transformation to standard eigenproblem     :',F10.3,' s')")&
+      t_transform_evp
+   call elsi_statement_print(info_str)
+
+end subroutine
+
+!>
+!! This routine starts back_transform_ev timer.
+!!
+subroutine elsi_start_back_transform_ev_time()
+
+   implicit none
+
+   call elsi_get_time(t_back_transform_ev_start)
+
+end subroutine
+
+!>
+!! This routine ends back_transform_ev timer.
+!!
+subroutine elsi_stop_back_transform_ev_time()
+
+   implicit none
+
+   real*8 :: stop_time
+   character*200 :: info_str
+
+   call elsi_get_time(stop_time)
+   t_back_transform_ev = stop_time-t_back_transform_ev_start
+
+   write(info_str,"('  | Transformation to original eigenvectors     :',F10.3,' s')")&
+      t_back_transform_ev
+   call elsi_statement_print(info_str)
+
+end subroutine
+
+!>
+!! This routine starts singularity_check timer.
+!!
+subroutine elsi_start_singularity_check_time()
+
+   implicit none
+
+   call elsi_get_time(t_singularity_check_start)
+
+end subroutine
+
+!>
+!! This routine ends singularity_check timer.
+!!
+subroutine elsi_stop_singularity_check_time()
+
+   implicit none
+
+   real*8 :: stop_time
+   character*200 :: info_str
+
+   call elsi_get_time(stop_time)
+   t_singularity_check = stop_time-t_singularity_check_start
+
+   write(info_str,"('  | Singularity check of overlap matrix         :',F10.3,' s')")&
+      t_singularity_check
+   call elsi_statement_print(info_str)
+
+end subroutine
+
+!>
+!! This routine starts standard_evp timer.
+!!
+subroutine elsi_start_standard_evp_time()
+
+   implicit none
+
+   call elsi_get_time(t_standard_evp_start)
+
+end subroutine
+
+!>
+!! This routine ends standard_evp timer.
+!!
+subroutine elsi_stop_standard_evp_time()
+
+   implicit none
+
+   real*8 :: stop_time
+   character*200 :: info_str
+
+   call elsi_get_time(stop_time)
+   t_standard_evp = stop_time-t_standard_evp_start
+
+   write(info_str,"('  | Solution to standard eigenproblem (ELPA)    :',F10.3,' s')")&
+      t_standard_evp
+   call elsi_statement_print(info_str)
+
+end subroutine
+
+!>
+!! This routine starts cholesky timer.
+!!
+subroutine elsi_start_cholesky_time()
+
+   implicit none
+
+   call elsi_get_time(t_cholesky_start)
+
+end subroutine
+
+!>
+!! This routine ends cholesky timer.
+!!
+subroutine elsi_stop_cholesky_time()
+
+   implicit none
+
+   real*8 :: stop_time
+   character*200 :: info_str
+
+   call elsi_get_time(stop_time)
+   t_cholesky = stop_time-t_cholesky_start
+
+   write(info_str,"('  | Cholesky decomposition                      :',F10.3,' s')")&
+      t_cholesky
    call elsi_statement_print(info_str)
 
 end subroutine

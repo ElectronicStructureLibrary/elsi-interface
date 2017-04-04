@@ -59,13 +59,13 @@ subroutine elsi_solve_evp_chess()
    character*200 :: info_str
    character*40, parameter :: caller = "elsi_solve_evp_chess"
 
-   call elsi_start_solve_evp_time()
+   call elsi_start_density_matrix_time()
 
    ! Solve the eigenvalue problem
    call elsi_statement_print("  Starting CheSS density matrix solver")
 
    call MPI_Barrier(mpi_comm_global,mpierr)
-   call elsi_stop_solve_evp_time()
+   call elsi_stop_density_matrix_time()
 
 end subroutine
 

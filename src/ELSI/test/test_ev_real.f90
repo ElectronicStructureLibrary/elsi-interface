@@ -106,19 +106,13 @@ program test_ev_real
    blk = 128
 
    if(myid == 0) then
-      write(*,'("  ################################################")')
-      write(*,'("  ##             ELSI TEST PROGRAMS             ##")')
-      write(*,'("  ################################################")')
+      write(*,'("  ################################")')
+      write(*,'("  ##     ELSI TEST PROGRAMS     ##")')
+      write(*,'("  ################################")')
       if(solver == 1) then
-         write(*,'("  ##  Testing elsi_ev_real + ELPA               ##")')
-         if(n_proc == 1) then
-            write(*,'("  ##  (Single-processor version)                ##")')
-         else
-            write(*,'("  ##  (Multi-processor version)                 ##")')
-         endif
+         write(*,'("  Now testing  elsi_ev_real + ELPA")')
       elseif(solver == 5) then
-         write(*,'("  ##  Testing elsi_ev_real + SIPs               ##")')
-         write(*,'("  ##  (Multi-processor version)                 ##")')
+         write(*,'("  Now testing  elsi_ev_real + SIPs")')
       endif
    endif
 
@@ -139,7 +133,7 @@ program test_ev_real
    k_point(1:3) = (/0d0,0d0,0d0/)
 
    ! Generate matrix
-   if(myid == 0) write(*,'("  ##  Generating test matrix..                  ##")')
+   if(myid == 0) write(*,'("  Generating test matrix..")')
 
    t1 = MPI_Wtime()
 
@@ -150,11 +144,7 @@ program test_ev_real
    t2 = MPI_Wtime()
 
    if(myid == 0) then
-      write(*,'("  ##  Done. Time:",F23.3,"s       ##")') t2-t1
-      write(*,'("  ##  System:                      Silicon      ##")')
-      write(*,'("  ##  Matrix size:",I21,"         ##")') matrix_size
-      write(*,'("  ##  Sparsity:",F26.3,"%      ##")') 100d0*sparsity
-      write(*,'("  ##  Number of electrons:",I12,"          ##")') 2*n_states
+      write(*,'("  | Done. Time :",F10.3,"s")') t2-t1
    endif
 
    ! Initialize ELSI
@@ -173,7 +163,7 @@ program test_ev_real
    allocate(e_val(matrix_size))
 
    if(myid == 0) then
-      write(*,'("  ##  Solving Kohn-Sham problem..               ##")')
+      write(*,'("  Solving Kohn-Sham eigenproblem..")')
    endif
 
    ! Uncomment to get more output
@@ -188,14 +178,12 @@ program test_ev_real
    e_test = 2d0*SUM(e_val(1:n_states))
 
    if(myid == 0) then
-      write(*,'("  ################################################")')
-      write(*,'("  ##  Done. Time:",F23.3,"s       ##")') t2-t1
+      write(*,'("  | Done. Time :",F10.3,"s")') t2-t1
       if(ABS(e_test-e_ref) < e_tol) then
-         write(*,'("  ##  Passed.                                   ##")')
+         write(*,'("  Passed.")')
       else
-         write(*,'("  ##  Failed!!                                  ##")')
+         write(*,'("  Failed!!")')
       endif
-      write(*,'("  ################################################")')
    endif
 
    ! Finalize ELSI

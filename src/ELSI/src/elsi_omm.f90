@@ -67,10 +67,14 @@ subroutine elsi_solve_evp_omm()
                      " Exiting...", caller)
    endif
 
-   call elsi_start_solve_evp_time()
+   call elsi_start_density_matrix_time()
 
    if(n_elsi_calls == 1) then
       coeff_initialized = .false.
+
+      call elsi_statement_print("  Starting Cholesky decomposition")
+      call elsi_start_cholesky_time()
+
       ! Cholesky factorization
       select case (mode)
          case (COMPLEX_VALUES)
@@ -90,6 +94,8 @@ subroutine elsi_solve_evp_omm()
                          n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col,.false.)
 
       end select
+
+      call elsi_stop_cholesky_time()
    else
       coeff_initialized = .true.
    endif
@@ -143,7 +149,7 @@ subroutine elsi_solve_evp_omm()
    end select
 
    call MPI_Barrier(mpi_comm_global,mpierr)
-   call elsi_stop_solve_evp_time()
+   call elsi_stop_density_matrix_time()
 
 end subroutine ! elsi_solve_evp_omm
 

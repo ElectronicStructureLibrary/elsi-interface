@@ -384,7 +384,7 @@ subroutine elsi_solve_evp_sips()
    character*200 :: info_str
    character*40, parameter :: caller = "elsi_solve_evp_sips"
 
-   call elsi_start_solve_evp_time()
+   call elsi_start_density_matrix_time()
 
    write(info_str,"(1X,' | Number of slices ',I7)") n_slices
    call elsi_statement_print(info_str)
@@ -421,7 +421,7 @@ subroutine elsi_solve_evp_sips()
    eval(1:n_states) = get_eps_eigenvalues(n_states)
 
    call MPI_Barrier(mpi_comm_global,mpierr)
-   call elsi_stop_solve_evp_time()
+   call elsi_stop_density_matrix_time()
 
 end subroutine
 

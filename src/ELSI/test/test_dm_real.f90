@@ -110,11 +110,11 @@ program test_dm_real
    blk = 128
 
    if(myid == 0) then
-      write(*,'("  ################################################")')
-      write(*,'("  ##             ELSI TEST PROGRAMS             ##")')
-      write(*,'("  ################################################")')
+      write(*,'("  ################################")')
+      write(*,'("  ##     ELSI TEST PROGRAMS     ##")')
+      write(*,'("  ################################")')
       if(solver == 1) then
-         write(*,'("  ##  Testing elsi_dm_real + ELPA               ##")')
+         write(*,'("  Now testing  elsi_dm_real + ELPA")')
          e_ref = e_elpa
          e_tol = 1d-10
       elseif(solver == 2) then
@@ -123,15 +123,14 @@ program test_dm_real
          ! a much higher accuracy can be obtained by using ELPA eigenvectors
          ! as the initial guess, or by completing the SCF cycle to make the
          ! influence of the random initial guess fade away.
-         write(*,'("  ##  Testing elsi_dm_real + libOMM             ##")')
+         write(*,'("  Now testing  elsi_dm_real + libOMM")')
          e_ref = e_omm
          e_tol = 1d-6
       else
-         write(*,'("  ##  Testing elsi_dm_real + PEXSI              ##")')
+         write(*,'("  Now testing  elsi_dm_real + PEXSI")')
          e_ref = e_pexsi
          e_tol = 1d-10
       endif
-      write(*,'("  ##  (Multi-processor version)                 ##")')
    endif
 
    ! Set up BLACS
@@ -148,7 +147,7 @@ program test_dm_real
    k_point(1:3) = (/0d0,0d0,0d0/)
 
    ! Generate matrix
-   if(myid == 0) write(*,'("  ##  Generating test matrix..                  ##")')
+   if(myid == 0) write(*,'("  Generating test matrix..")')
 
    t1 = MPI_Wtime()
 
@@ -159,11 +158,7 @@ program test_dm_real
    t2 = MPI_Wtime()
 
    if(myid == 0) then
-      write(*,'("  ##  Done. Time:",F23.3,"s       ##")') t2-t1
-      write(*,'("  ##  System:                      Silicon      ##")')
-      write(*,'("  ##  Matrix size:",I21,"         ##")') matrix_size
-      write(*,'("  ##  Sparsity:",F26.3,"%      ##")') 100d0*sparsity
-      write(*,'("  ##  Number of electrons:",I12,"          ##")') 2*n_states
+      write(*,'("  | Done. Time :",F10.3,"s")') t2-t1
    endif
 
    ! Initialize ELSI
@@ -177,7 +172,7 @@ program test_dm_real
    call m_allocate(D,matrix_size,matrix_size,m_storage)
 
    if(myid == 0) then
-      write(*,'("  ##  Solving Kohn-Sham problem..               ##")')
+      write(*,'("  Solving Kohn-Sham eigenproblem..")')
    endif
 
    ! Disable ELPA if using libOMM
@@ -196,14 +191,12 @@ program test_dm_real
    t2 = MPI_Wtime()
 
    if(myid == 0) then
-      write(*,'("  ################################################")')
-      write(*,'("  ##  Done. Time:",F23.3,"s       ##")') t2-t1
+      write(*,'("  | Done. Time :",F10.3,"s")') t2-t1
       if(ABS(e_test-e_ref) < e_tol) then
-         write(*,'("  ##  Passed.                                   ##")')
+         write(*,'("  Passed.")')
       else
-         write(*,'("  ##  Failed!!                                  ##")')
+         write(*,'("  Failed!!")')
       endif
-      write(*,'("  ################################################")')
    endif
 
    ! Finalize ELSI

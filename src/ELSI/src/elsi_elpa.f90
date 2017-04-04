@@ -127,6 +127,8 @@ subroutine elsi_compute_dm_elpa()
 
    character*40, parameter :: caller = "elsi_compute_dm"
 
+   call elsi_start_density_matrix_time()
+
    select case (mode)
       case (REAL_VALUES)
          ! Get eigenvectors into tmp_real
@@ -218,6 +220,8 @@ subroutine elsi_compute_dm_elpa()
 
    deallocate(tmp_real)
 
+   call elsi_stop_density_matrix_time()
+
 end subroutine
 
 !> 
@@ -251,6 +255,8 @@ subroutine elsi_to_standard_evp()
             endif
 
             if(n_nonsingular == n_g_size) then ! Not singular
+               call elsi_start_cholesky_time()
+
                overlap_is_singular = .false.
 
                call elsi_statement_print("  Starting Cholesky decomposition")
@@ -268,8 +274,12 @@ subroutine elsi_to_standard_evp()
                if(.not.success) then
                   call elsi_stop(" Matrix inversion failed.", caller)
                endif
+
+               call elsi_stop_cholesky_time()
             endif
          endif ! n_elsi_calls == 1
+
+         call elsi_start_transform_evp_time()
 
          call elsi_allocate(buffer_complex,n_l_rows,n_l_cols,"temp",caller)
 
@@ -321,6 +331,8 @@ subroutine elsi_to_standard_evp()
             enddo
          endif
 
+         call elsi_stop_transform_evp_time()
+
       case (REAL_VALUES)
          if(n_elsi_calls == 1) then
             if(.not.no_singularity_check) then
@@ -328,6 +340,8 @@ subroutine elsi_to_standard_evp()
             endif
 
             if(n_nonsingular == n_g_size) then ! Not singular
+               call elsi_start_cholesky_time()
+
                overlap_is_singular = .false.
 
                call elsi_statement_print("  Starting Cholesky decomposition")
@@ -345,8 +359,12 @@ subroutine elsi_to_standard_evp()
                if(.not.success) then
                   call elsi_stop(" Matrix inversion failed.",caller)
                endif
+
+               call elsi_stop_cholesky_time()
             endif
          endif ! n_elsi_calls == 1
+
+         call elsi_start_transform_evp_time()
 
          call elsi_allocate(buffer_real,n_l_rows,n_l_cols,"temp",caller)
 
@@ -390,6 +408,8 @@ subroutine elsi_to_standard_evp()
             enddo
          endif
 
+         call elsi_stop_transform_evp_time()
+
    end select
 
    if(allocated(buffer_real))    deallocate(buffer_real)
@@ -417,6 +437,8 @@ subroutine elsi_check_singularity()
 
    character*200 :: info_str
    character*40, parameter :: caller = "elsi_check_singularity"
+
+   call elsi_start_singularity_check_time()
 
    select case (mode)
       case (COMPLEX_VALUES)
@@ -575,6 +597,8 @@ subroutine elsi_check_singularity()
    if(allocated(buffer_real))    deallocate(buffer_real)
    if(allocated(buffer_complex)) deallocate(buffer_complex)
 
+   call elsi_stop_singularity_check_time()
+
 end subroutine
 
 !> 
@@ -592,6 +616,8 @@ subroutine elsi_to_original_ev()
    complex*16, allocatable :: buffer_complex(:,:)
 
    character*40, parameter :: caller = "elsi_to_original_ev"
+
+   call elsi_start_back_transform_ev_time()
 
    select case (mode)
       case (COMPLEX_VALUES)
@@ -638,6 +664,8 @@ subroutine elsi_to_original_ev()
    if(allocated(buffer_real))    deallocate(buffer_real)
    if(allocated(buffer_complex)) deallocate(buffer_complex)
 
+   call elsi_stop_back_transform_ev_time()
+
 end subroutine
 
 !>
@@ -655,8 +683,6 @@ subroutine elsi_solve_evp_elpa()
 
    elpa_print_times = .false.
 
-   call elsi_start_solve_evp_time()
-
    ! Choose 1-stage or 2-stage solver
    if(elpa_one_always) then
       two_step_solver = .false.
@@ -673,6 +699,8 @@ subroutine elsi_solve_evp_elpa()
       call elsi_statement_print("  Transforming to standard evp")
       call elsi_to_standard_evp()
    endif
+
+   call elsi_start_standard_evp_time()
 
    ! Solve evp, return eigenvalues and eigenvectors
    if(two_step_solver) then ! 2-stage solver
@@ -701,6 +729,8 @@ subroutine elsi_solve_evp_elpa()
       end select
    endif
 
+   call elsi_stop_standard_evp_time()
+
    if(.not.success) then
       call elsi_stop(" ELPA failed when solving eigenvalue problem."//&
                      " Exiting...",caller)
@@ -713,7 +743,6 @@ subroutine elsi_solve_evp_elpa()
    endif
 
    call MPI_Barrier(mpi_comm_global,mpierr)
-   call elsi_stop_solve_evp_time()
 
 end subroutine
 
@@ -751,6 +780,8 @@ subroutine elsi_to_standard_evp_sp()
          endif ! n_elsi_calls == 1
 
          if(n_nonsingular == n_g_size) then ! Not singular
+            call elsi_start_cholesky_time()
+
             overlap_is_singular = .false.
 
             call elsi_statement_print("  Starting Cholesky decomposition")
@@ -768,7 +799,11 @@ subroutine elsi_to_standard_evp_sp()
             if(.not.success) then
                call elsi_stop(" Matrix inversion failed.",caller)
             endif
+
+            call elsi_stop_cholesky_time()
          endif
+
+         call elsi_start_transform_evp_time()
 
          call elsi_allocate(buffer_complex,n_l_rows,n_l_cols,"temp",caller)
 
@@ -795,6 +830,8 @@ subroutine elsi_to_standard_evp_sp()
                        n_g_size,(0.0d0,0.0d0),ham_complex(1,1),n_g_size)
          endif
 
+         call elsi_stop_transform_evp_time()
+
       case (REAL_VALUES)
          if(n_elsi_calls == 1) then
             if(.not.no_singularity_check) then
@@ -803,6 +840,8 @@ subroutine elsi_to_standard_evp_sp()
          endif ! n_elsi_calls == 1
 
          if(n_nonsingular == n_g_size) then ! Not singular
+            call elsi_start_cholesky_time()
+
             overlap_is_singular = .false.
 
             call elsi_statement_print("  Starting Cholesky decomposition")
@@ -820,7 +859,11 @@ subroutine elsi_to_standard_evp_sp()
             if(.not.success) then
                call elsi_stop(" Matrix inversion failed.",caller)
             endif
+
+            call elsi_stop_cholesky_time()
          endif
+
+         call elsi_start_transform_evp_time()
 
          call elsi_allocate(buffer_real,n_l_rows,n_l_cols,"temp",caller)
 
@@ -851,6 +894,8 @@ subroutine elsi_to_standard_evp_sp()
            enddo
         endif
 
+        call elsi_stop_transform_evp_time()
+
    end select
 
    if(allocated(buffer_real))    deallocate(buffer_real)
@@ -866,6 +911,8 @@ subroutine elsi_to_original_ev_sp()
    complex*16, allocatable :: buffer_complex(:,:)
 
    character*40, parameter :: caller = "elsi_to_original_ev_sp"
+
+   call elsi_start_back_transform_ev_time()
 
    select case (mode)
       case (COMPLEX_VALUES)
@@ -905,6 +952,8 @@ subroutine elsi_to_original_ev_sp()
    if(allocated(buffer_real))    deallocate(buffer_real)
    if(allocated(buffer_complex)) deallocate(buffer_complex)
 
+   call elsi_stop_back_transform_ev_time()
+
 end subroutine
 
 !>
@@ -923,8 +972,6 @@ subroutine elsi_solve_evp_elpa_sp()
 
    character*40, parameter :: caller = "elsi_solve_evp_elpa_sp"
 
-   call elsi_start_solve_evp_time()
-
    call elsi_allocate(d,n_g_size,"d",caller)
    call elsi_allocate(e,n_g_size,"e",caller)
 
@@ -936,6 +983,8 @@ subroutine elsi_solve_evp_elpa_sp()
 
    ! Solve evp, return eigenvalues and eigenvectors
    call elsi_statement_print("  Starting ELSI eigensolver")
+
+   call elsi_start_standard_evp_time()
 
    select case (mode)
       case (COMPLEX_VALUES)
@@ -982,6 +1031,8 @@ subroutine elsi_solve_evp_elpa_sp()
 
    end select
 
+   call elsi_stop_standard_evp_time()
+
    deallocate(d)
    deallocate(e)
 
@@ -995,8 +1046,6 @@ subroutine elsi_solve_evp_elpa_sp()
       call elsi_statement_print("  Transforming to original eigenvectors")
       call elsi_to_original_ev_sp()
    endif
-
-   call elsi_stop_solve_evp_time()
 
 end subroutine
 
@@ -1022,6 +1071,8 @@ subroutine elsi_check_singularity_sp()
 
    character*200 :: info_str
    character*40, parameter :: caller = "elsi_check_singularity_sp"
+
+   call elsi_start_singularity_check_time()
 
    select case (mode)
       case (COMPLEX_VALUES)
@@ -1177,6 +1228,8 @@ subroutine elsi_check_singularity_sp()
    if(allocated(ev_overlap))     deallocate(ev_overlap)
    if(allocated(buffer_real))    deallocate(buffer_real)
    if(allocated(buffer_complex)) deallocate(buffer_complex)
+
+   call elsi_stop_singularity_check_time()
 
 end subroutine
 
