@@ -43,7 +43,7 @@ program test_ev_real
    character(128) :: arg2
 
    integer :: n_proc,nprow,npcol,myid
-   integer :: mpi_comm_global,mpi_comm_row,mpi_comm_col,mpierr
+   integer :: mpi_comm_global,mpierr
    integer :: blk
    integer :: BLACS_CTXT
    integer :: n_basis,n_states
@@ -56,7 +56,7 @@ program test_ev_real
    real*8 :: t1,t2
    real*8, allocatable :: e_val(:)
 
-   ! VY: Reference value from calculations on Feb 24, 2016
+   ! VY: Reference value from calculations on Apr 5, 2017.
    real*8, parameter :: e_elpa  = -126.817462901838d0
 
    type(matrix) :: H,S,e_vec

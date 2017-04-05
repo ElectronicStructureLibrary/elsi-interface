@@ -41,7 +41,7 @@ program test_standard_ev_real
    character(128) :: arg3
 
    integer :: n_proc,nprow,npcol,myid,myprow,mypcol
-   integer :: mpi_comm_global,mpi_comm_row,mpi_comm_col,mpierr
+   integer :: mpi_comm_global,mpierr
    integer :: blk
    integer :: BLACS_CTXT
    integer :: sc_desc(9)

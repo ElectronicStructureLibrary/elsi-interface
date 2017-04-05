@@ -43,7 +43,7 @@ program test_dm_real
    character(128) :: arg2
 
    integer :: n_proc,nprow,npcol,myid
-   integer :: mpi_comm_global,mpi_comm_row,mpi_comm_col,mpierr
+   integer :: mpi_comm_global,mpierr
    integer :: blk
    integer :: BLACS_CTXT
    integer :: n_basis,n_states
@@ -55,7 +55,7 @@ program test_dm_real
    real*8 :: e_test,e_ref,e_tol
    real*8 :: t1,t2
 
-   ! VY: Reference values from calculations on Feb 24, 2016
+   ! VY: Reference values from calculations on Apr 5, 2017.
    !     Note that PEXSI result is incorrect, since only 2 PEXSI
    !     poles are used for this quick test. Accurate result can
    !     be expected with at least 40 poles.
