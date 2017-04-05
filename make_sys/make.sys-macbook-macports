@@ -1,0 +1,37 @@
+# PLATFORM  : MACBOOK PRO @ WILL'S APARTMENT
+# COMPILERS : GFORTRAN + MPICH (VIA MACPORTS)
+# VERIFIED  : APR 4, 2017
+# DO READ ../INSTALL CAREFULLY!
+
+# Note:  To sidestep the ar executable distributed with xcode, I had to follow the advice from 
+# http://stackoverflow.com/questions/4929255/building-static-libraries-on-mac-using-cmake-and-gcc
+# and run 'sudo port install autogen autoconf automake nano libtool libsdl patchutils subversion wget gmake'
+
+# ====== ELSI ======
+MPIFC  = mpif90-mpich-mp
+MPICC  = mpicc-mpich-mp
+MPICXX = mpic++-mpich-mp
+LINKER = mpif90-mpich-mp
+
+FFLAGS   = -O3 -ffree-line-length-none
+CFLAGS   = -O3
+CXXFLAGS = -O3 -std=c++11
+LDFLAGS  = -O3
+
+CXX_LDFLAGS = -lstdc++
+
+SCALAPACK_LDFLAGS = -L/opt/local/lib -lscalapack -llapack -lblas
+
+# ====== MAKE CHECK ======
+TOMATO_SEED = /Users/wph/opt/ELSI/tomato-seed
+MPI_EXEC    = mpirun-mpich-mp
+
+# ====== PEXSI ======
+DISABLE_CXX       = no
+METIS_LIB         = -L/Users/wph/opt/ParMETIS/4.0.3/build/Darwin-x86_64/libmetis -lmetis
+PARMETIS_LIB      = -L/Users/wph/opt/ParMETIS/4.0.3/build/Darwin-x86_64/libparmetis -lparmetis
+SUPERLU_LIB       = -L/Users/wph/opt/SuperLU/5.1.3/lib -lsuperlu_dist
+SUPERLU_INCLUDE   = -I/Users/wph/opt/SuperLU/5.1.3/SRC
+
+# ====== ELPA ======
+ELPA2_KERNEL = Generic
