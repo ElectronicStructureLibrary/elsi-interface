@@ -28,7 +28,7 @@
 !>
 !! This program tests ELSI eigensolver.
 !!
-program test_ev_real
+program test_generalized_ev_real
 
    use ELSI
    use MatrixSwitch ! Only for test matrices generation
@@ -105,12 +105,10 @@ program test_ev_real
          write(*,'("  This test program performs the following computational steps:")')
          write(*,*)
          write(*,'("  1) Generates Hamiltonian and overlap matrices;")')
-         write(*,'("  2) Checks the singularity of the overlap matrix by computing")')
-         write(*,'("     all its eigenvalues;")')
-         write(*,'("  3) Transforms the generalized eigenproblem to the standard")')
-         write(*,'("     form by using Cholesky factorization;")')
-         write(*,'("  4) Solves the standard eigenproblem;")')
-         write(*,'("  5) Back-transforms the eigenvectors to the generalized problem;")')
+         write(*,'("  2) Transforms the generalized eigenproblem to the standard form")')
+         write(*,'("     by using Cholesky factorization;")')
+         write(*,'("  3) Solves the standard eigenproblem;")')
+         write(*,'("  4) Back-transforms the eigenvectors to the generalized problem;")')
          write(*,*)
          write(*,'("  Now start testing  elsi_ev_real + ELPA")')
       elseif(solver == 5) then
@@ -182,6 +180,7 @@ program test_ev_real
 
    ! Customize ELSI
    call elsi_customize(print_detail=.true.)
+   call elsi_customize(no_check_singularity=.true.)
    
    t1 = MPI_Wtime()
 

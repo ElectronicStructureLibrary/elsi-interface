@@ -26,12 +26,12 @@
 ! EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 !>
-!! This program tests ELSI density matrix solver elsi_dm_real (multi-processor).
+!! This program tests ELSI density matrix solver.
 !!
 program test_dm_real
 
    use ELSI
-   use MatrixSwitch
+   use MatrixSwitch ! Only for test matrices generation
 
    implicit none
 
@@ -100,44 +100,62 @@ program test_dm_real
       endif
    endif
 
-   ! Set up square-like grid
-   do npcol = NINT(SQRT(REAL(n_proc))),2,-1
-      if(MOD(n_proc,npcol) == 0) exit
-   enddo
-   nprow = n_proc/npcol
-
-   ! Set block size
-   blk = 128
-
    if(myid == 0) then
       write(*,'("  ################################")')
       write(*,'("  ##     ELSI TEST PROGRAMS     ##")')
       write(*,'("  ################################")')
       write(*,*)
-      write(*,'("  This test program computes the density matrix")')
-      write(*,'("  from a Hamiltonian matrix and an overlap matrix")')
-      write(*,'("  generated on-the-fly.")')
-      write(*,*)
       if(solver == 1) then
-         write(*,'("  Now testing  elsi_dm_real + ELPA")')
+         write(*,'("  This test program performs the following computational steps:")')
+         write(*,*)
+         write(*,'("  1) Generates Hamiltonian and overlap matrices;")')
+         write(*,'("  2) Transforms the generalized eigenproblem to the standard")')
+         write(*,'("     form by using Cholesky factorization;")')
+         write(*,'("  3) Solves the standard eigenproblem;")')
+         write(*,'("  4) Back-transforms the eigenvectors to the generalized problem;")')
+         write(*,'("  5) Constructs the density matrix from the eigen-solutions.")')
+         write(*,*)
+         write(*,'("  Now start testing  elsi_dm_real + ELPA")')
          e_ref = e_elpa
          e_tol = 1d-10
       elseif(solver == 2) then
+         write(*,'("  This test program performs the following computational steps:")')
+         write(*,*)
+         write(*,'("  1) Generates Hamiltonian and overlap matrices;")')
+         write(*,'("  2) Computes the Cholesky factorization of the overlap matrix;")')
+         write(*,'("  3) Computes the density matrix with orbital minimization method.")')
+         write(*,*)
+         write(*,'("  Now start testing  elsi_dm_real + libOMM")')
          ! Note that the energy tolerance for libOMM is larger, due to the
          ! random initial guess used in the code. In production calculations,
          ! a much higher accuracy can be obtained by using ELPA eigenvectors
          ! as the initial guess, or by completing the SCF cycle to make the
          ! influence of the random initial guess fade away.
-         write(*,'("  Now testing  elsi_dm_real + libOMM")')
          e_ref = e_omm
          e_tol = 1d-6
       else
-         write(*,'("  Now testing  elsi_dm_real + PEXSI")')
+         write(*,'("  This test program performs the following computational steps:")')
+         write(*,*)
+         write(*,'("  1) Generates Hamiltonian and overlap matrices;")')
+         write(*,'("  2) Converts the matrices to 1D block distributed CSC format;")')
+         write(*,'("  3) Computes the density matrix with pole expansion and selected")')
+         write(*,'("     inversion method.")')
+         write(*,*)
+         write(*,'("  Now start testing  elsi_dm_real + PEXSI")')
          e_ref = e_pexsi
          e_tol = 1d-10
       endif
       write(*,*)
    endif
+
+   ! Set up square-like processor grid
+   do npcol = nint(sqrt(real(n_proc))),2,-1
+      if(mod(n_proc,npcol) == 0) exit
+   enddo
+   nprow = n_proc/npcol
+
+   ! Set block size
+   blk = 128
 
    ! Set up BLACS
    BLACS_CTXT = mpi_comm_global
@@ -182,8 +200,9 @@ program test_dm_real
    ! Only 2 PEXSI poles for quick test
    if(solver == 3) call elsi_customize_pexsi(n_poles=2)
 
-   ! Get more output
+   ! Customize ELSI
    call elsi_customize(print_detail=.true.)
+   call elsi_customize(no_check_singularity=.true.)
 
    t1 = MPI_Wtime()
 
@@ -195,7 +214,7 @@ program test_dm_real
       write(*,'("  Finished test program")')
       write(*,'("  | Total computation time :",F10.3,"s")') t2-t1
       write(*,*)
-      if(ABS(e_test-e_ref) < e_tol) then
+      if(abs(e_test-e_ref) < e_tol) then
          write(*,'("  Passed.")')
       else
          write(*,'("  Failed!!")')
