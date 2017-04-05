@@ -1010,18 +1010,18 @@ subroutine elsi_check()
                            " Please set up BLACS before calling the"//&
                            " Solver. Exiting...",caller)
          endif
-
-         if(n_g_size < n_procs) then
-            call elsi_stop(" PEXSI has been chosen as the solver."//&
-                           " The size of matrix is too small for this"//&
-                           " number of processes. Exiting...",caller)
-         endif
       else
          if(.not.sparsity_pattern_ready) then
             call elsi_stop(" The PEXSI_CSC format has been chosen."//&
                            " Please set the sparsity pattern before"//&
                            " calling the solver. Exiting...",caller)
          endif
+      endif
+
+      if(n_g_size < n_p_per_pole_pexsi) then
+         call elsi_stop(" PEXSI has been chosen as the solver."//&
+                        " The size of matrix is too small for this"//&
+                        " number of processes. Exiting...",caller)
       endif
 
    else if(method == CHESS) then

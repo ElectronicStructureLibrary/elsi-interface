@@ -251,24 +251,58 @@ subroutine elsi_blacs_to_pexsi_hs_small(H_in,S_in)
    d22 = d2-(pexsi_options%numPole-1)*d21
 
    i_val = 0
-   do i_proc = 0,n_procs-1
-      if(i_proc < (n_procs-pexsi_options%numPole)) then
+
+   if(d11 > 0) then
+      do i_proc = 0,n_procs-pexsi_options%numPole-1
          if(mod((i_proc+1),pexsi_options%numPole) == 0) then
             this_n_cols = d12
          else
             this_n_cols = d11
          endif
-      else
+
+         locat(i_val+1:i_val+this_n_cols) = i_proc
+         i_val = i_val+this_n_cols
+      enddo
+   else
+      do i_proc = 0,n_procs-pexsi_options%numPole-1
+         if(1+mod(i_proc,pexsi_options%numPole) .le. d1) then
+            this_n_cols = 1
+         else
+            this_n_cols = 0
+         endif
+
+         if(this_n_cols /= 0) then
+            locat(i_val+1:i_val+this_n_cols) = i_proc
+            i_val = i_val+this_n_cols
+         endif
+      enddo
+   endif
+
+   if(d21 > 0) then
+      do i_proc = n_procs-pexsi_options%numPole,n_procs-1
          if(mod((i_proc+1),pexsi_options%numPole) == 0) then
             this_n_cols = d22
          else
             this_n_cols = d21
          endif
-      endif
 
-      locat(i_val+1:i_val+this_n_cols) = i_proc
-      i_val = i_val+this_n_cols
-   enddo
+         locat(i_val+1:i_val+this_n_cols) = i_proc
+         i_val = i_val+this_n_cols
+      enddo
+   else
+      do i_proc = n_procs-pexsi_options%numPole,n_procs-1
+         if(1+mod(i_proc,pexsi_options%numPole) .le. d2) then
+            this_n_cols = 1
+         else
+            this_n_cols = 0
+         endif
+
+         if(this_n_cols /= 0) then
+            locat(i_val+1:i_val+this_n_cols) = i_proc
+            i_val = i_val+this_n_cols
+         endif
+      enddo
+   endif
 
    ! Compute destination and global 1D id
    if(n_elsi_calls == 1) then
@@ -588,24 +622,58 @@ subroutine elsi_blacs_to_pexsi_hs_large(H_in,S_in)
    d22 = d2-(pexsi_options%numPole-1)*d21
 
    i_val = 0
-   do i_proc = 0,n_procs-1
-      if(i_proc < (n_procs-pexsi_options%numPole)) then
+
+   if(d11 > 0) then
+      do i_proc = 0,n_procs-pexsi_options%numPole-1
          if(mod((i_proc+1),pexsi_options%numPole) == 0) then
             this_n_cols = d12
          else
             this_n_cols = d11
          endif
-      else
+
+         locat(i_val+1:i_val+this_n_cols) = i_proc
+         i_val = i_val+this_n_cols
+      enddo
+   else
+      do i_proc = 0,n_procs-pexsi_options%numPole-1
+         if(1+mod(i_proc,pexsi_options%numPole) .le. d1) then
+            this_n_cols = 1
+         else
+            this_n_cols = 0
+         endif
+
+         if(this_n_cols /= 0) then
+            locat(i_val+1:i_val+this_n_cols) = i_proc
+            i_val = i_val+this_n_cols
+         endif
+      enddo
+   endif
+
+   if(d21 > 0) then
+      do i_proc = n_procs-pexsi_options%numPole,n_procs-1
          if(mod((i_proc+1),pexsi_options%numPole) == 0) then
             this_n_cols = d22
          else
             this_n_cols = d21
          endif
-      endif
 
-      locat(i_val+1:i_val+this_n_cols) = i_proc
-      i_val = i_val+this_n_cols
-   enddo
+         locat(i_val+1:i_val+this_n_cols) = i_proc
+         i_val = i_val+this_n_cols
+      enddo
+   else
+      do i_proc = n_procs-pexsi_options%numPole,n_procs-1
+         if(1+mod(i_proc,pexsi_options%numPole) .le. d2) then
+            this_n_cols = 1
+         else
+            this_n_cols = 0
+         endif
+
+         if(this_n_cols /= 0) then
+            locat(i_val+1:i_val+this_n_cols) = i_proc
+            i_val = i_val+this_n_cols
+         endif
+      enddo
+   endif
 
    ! Compute destination and global id
    if(n_elsi_calls == 1) then
@@ -1030,7 +1098,7 @@ end subroutine
 !! in 1D block distributed sparse CCS format to 2D block-cyclic
 !! distributed dense format.
 !!
-!! * Integer(kind=8) is used to deal with large matrices.
+!! * 2D index is used to deal with large matrices.
 !!
 subroutine elsi_pexsi_to_blacs_dm_large(D_out)
 
