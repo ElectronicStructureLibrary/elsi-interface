@@ -28,38 +28,35 @@
 !>
 !! This program tests ELSI eigensolver.
 !!
-program test_ev_real
+program test_standard_ev_real
 
    use ELSI
-   use MatrixSwitch ! Only for test matrices generation
 
    implicit none
 
    include "mpif.h"
 
-   character(5) :: m_storage
-   character(3) :: m_operation
    character(128) :: arg1
    character(128) :: arg2
+   character(128) :: arg3
 
-   integer :: n_proc,nprow,npcol,myid
+   integer :: n_proc,nprow,npcol,myid,myprow,mypcol
    integer :: mpi_comm_global,mpi_comm_row,mpi_comm_col,mpierr
    integer :: blk
    integer :: BLACS_CTXT
-   integer :: n_basis,n_states
-   integer :: matrix_size,supercell(3)
+   integer :: sc_desc(9)
+   integer :: info
+   integer :: matrix_size
+   integer :: n_states
    integer :: solver
+   integer :: local_row,local_col,ldm
+   integer :: n
+   integer, allocatable :: seed(:)
+   integer, external :: numroc
 
-   real*8 :: n_electrons,frac_occ,sparsity,orb_r_cut
-   real*8 :: k_point(3)
-   real*8 :: e_test,e_ref,e_tol
    real*8 :: t1,t2
+   real*8, allocatable :: mat_a(:,:),mat_b(:,:),mat_tmp(:,:),e_vec(:,:)
    real*8, allocatable :: e_val(:)
-
-   ! VY: Reference value from calculations on Feb 24, 2016
-   real*8, parameter :: e_elpa  = -126.817462901838d0
-
-   type(matrix) :: H,S,e_vec
 
    ! Initialize MPI
    call MPI_Init(mpierr)
@@ -68,10 +65,22 @@ program test_ev_real
    call MPI_Comm_rank(mpi_comm_global,myid,mpierr)
 
    ! Read command line arguments
-   if(COMMAND_ARGUMENT_COUNT() == 2) then
+   if(COMMAND_ARGUMENT_COUNT() == 3) then
       call GET_COMMAND_ARGUMENT(1,arg1)
       call GET_COMMAND_ARGUMENT(2,arg2)
-      read(arg2,*) solver
+      call GET_COMMAND_ARGUMENT(3,arg3)
+
+      read(arg1,*) matrix_size
+      if(matrix_size .le. 0) then
+         matrix_size = 1000
+      endif
+
+      read(arg2,*) n_states
+      if((n_states < 0) .or. n_states > matrix_size) then
+         n_states = matrix_size
+      endif
+
+      read(arg3,*) solver
       if((solver .ne. 1) .and. (solver .ne. 5)) then
          if(myid == 0) then
             write(*,'("  ################################################")')
@@ -87,8 +96,9 @@ program test_ev_real
       if(myid == 0) then
          write(*,'("  ################################################")')
          write(*,'("  ##  Wrong number of command line arguments!!  ##")')
-         write(*,'("  ##  Arg#1: Path to Tomato seed folder.        ##")')
-         write(*,'("  ##  Arg#2: Choice of solver.                  ##")')
+         write(*,'("  ##  Arg#1: Size of test matrix.               ##")')
+         write(*,'("  ##  Arg#2: Number of eigenvectors to compute. ##")')
+         write(*,'("  ##  Arg#3: Choice of solver.                  ##")')
          write(*,'("  ##         (ELPA = 1; SIPs = 5)               ##")')
          write(*,'("  ################################################")')
          call MPI_Abort(mpi_comm_global,0,mpierr)
@@ -101,33 +111,19 @@ program test_ev_real
       write(*,'("  ##     ELSI TEST PROGRAMS     ##")')
       write(*,'("  ################################")')
       write(*,*)
+      write(*,'("  This test program performs the following computational steps:")')
+      write(*,*)
+      write(*,'("  1) Generates a random square matrix;")')
+      write(*,'("  2) Symmetrize the random matrix;")')
+      write(*,'("  3) Computes its eigenvalues and eigenvectors.")')
+      write(*,*)
       if(solver == 1) then
-         write(*,'("  This test program performs the following computational steps:")')
-         write(*,*)
-         write(*,'("  1) Generates Hamiltonian and overlap matrices;")')
-         write(*,'("  2) Checks the singularity of the overlap matrix by computing")')
-         write(*,'("     all its eigenvalues;")')
-         write(*,'("  3) Transforms the generalized eigenproblem to the standard")')
-         write(*,'("     form by using Cholesky factorization;")')
-         write(*,'("  4) Solves the standard eigenproblem;")')
-         write(*,'("  5) Back-transforms the eigenvectors to the generalized problem;")')
-         write(*,*)
          write(*,'("  Now start testing  elsi_ev_real + ELPA")')
       elseif(solver == 5) then
-         write(*,'("  This test program performs the following computational steps:")')
-         write(*,*)
-         write(*,'("  1) Generates Hamiltonian and overlap matrices;")')
-         write(*,'("  2) Converts the matrices to 1D block distributed CSC format;")')
-         write(*,'("  3) Solves the generalized eigenproblem with shift-and-invert")')
-         write(*,'("     parallel spectral transformation.")')
-         write(*,*)
          write(*,'("  Now start testing  elsi_ev_real + SIPs")')
       endif
       write(*,*)
    endif
-
-   e_ref = e_elpa
-   e_tol = 1d-10
 
    ! Set up square-like processor grid
    do npcol = nint(sqrt(real(n_proc))),2,-1
@@ -136,80 +132,79 @@ program test_ev_real
    nprow = n_proc/npcol
 
    ! Set block size
-   blk = 128
+   blk = 32
 
    ! Set up BLACS
    BLACS_CTXT = mpi_comm_global
+
    call BLACS_Gridinit(BLACS_CTXT,'r',nprow,npcol)
-   call ms_scalapack_setup(mpi_comm_global,nprow,'r',blk,icontxt=BLACS_CTXT)
+   call BLACS_Gridinfo(BLACS_CTXT,nprow,npcol,myprow,mypcol)
 
-   ! Set parameters
-   m_storage = 'pddbc'
-   m_operation = 'lap'
-   n_basis = 22
-   supercell = (/3,3,3/)
-   orb_r_cut = 0.5d0
-   k_point(1:3) = (/0d0,0d0,0d0/)
+   local_row = numroc(matrix_size,blk,myprow,0,nprow)
+   local_col = numroc(matrix_size,blk,mypcol,0,npcol)
 
-   t1 = MPI_Wtime()
+   ldm = max(local_row,1)
 
-   ! Generate test matrices
-   call tomato_TB(arg1,'silicon',.false.,frac_occ,n_basis,.false.,matrix_size,&
-                  supercell,.false.,sparsity,orb_r_cut,n_states,.true.,k_point,&
-                  .true.,0d0,H,S,m_storage,.true.)
+   call descinit(sc_desc,matrix_size,matrix_size,blk,blk,&
+                 0,0,BLACS_CTXT,ldm,info)
 
-   t2 = MPI_Wtime()
+   ! Generate a random matrix
+   call random_seed(size=n)
+
+   allocate(seed(n))
+   allocate(mat_a(local_row,local_col))
+   allocate(mat_tmp(local_row,local_col))
+
+   seed = myid
+
+   call random_seed(put=seed)
+   call random_number(mat_a)
+
+   ! Symmetrize test matrix
+   mat_tmp = mat_a
+
+   call pdtran(matrix_size,matrix_size,1.0d0,mat_tmp,1,1,&
+               sc_desc,1.0d0,mat_a,1,1,sc_desc)
+
+   deallocate(mat_tmp)
 
    if(myid == 0) then
       write(*,'("  Finished test matrices generation")')
-      write(*,'("  | Time :",F10.3,"s")') t2-t1
    endif
 
    ! Initialize ELSI
-   n_electrons = 2d0*n_states
+   call elsi_init(solver,1,0,matrix_size,0.0d0,n_states)
+   call elsi_set_mpi(mpi_comm_global)
+   call elsi_set_blacs(BLACS_CTXT,blk)
 
-   if(n_proc == 1) then
-      call elsi_init(solver,0,0,matrix_size,n_electrons,n_states)
-   else
-      call elsi_init(solver,1,0,matrix_size,n_electrons,n_states)
-      call elsi_set_mpi(mpi_comm_global)
-      call elsi_set_blacs(BLACS_CTXT,blk)
-   endif
-
-   ! Solve problem
-   call m_allocate(e_vec,matrix_size,matrix_size,m_storage)
+   allocate(mat_b(1,1)) ! Dummy allocation
+   allocate(e_vec(local_row,local_col))
    allocate(e_val(matrix_size))
 
    ! Customize ELSI
    call elsi_customize(print_detail=.true.)
+   call elsi_customize(unit_overlap=.true.)
    
    t1 = MPI_Wtime()
 
-   call elsi_ev_real(H%dval,S%dval,e_val,e_vec%dval)
+   ! Solve problem
+   call elsi_ev_real(mat_a,mat_b,e_val,e_vec)
 
    t2 = MPI_Wtime()
-
-   e_test = 2d0*sum(e_val(1:n_states))
 
    if(myid == 0) then
       write(*,'("  Finished test program")')
       write(*,'("  | Total computation time :",F10.3,"s")') t2-t1
-      write(*,*)
-      if(abs(e_test-e_ref) < e_tol) then
-         write(*,'("  Passed.")')
-      else
-         write(*,'("  Failed!!")')
-      endif
       write(*,*)
    endif
 
    ! Finalize ELSI
    call elsi_finalize()
 
-   call m_deallocate(H)
-   call m_deallocate(S)
-   call m_deallocate(e_vec)
+   deallocate(mat_a)
+   deallocate(mat_b)
    deallocate(e_val)
+   deallocate(e_vec)
 
    call MPI_Finalize(mpierr)
 
