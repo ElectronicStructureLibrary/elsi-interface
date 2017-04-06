@@ -1,6 +1,6 @@
-# PEXSI Makefile modified for ELSI installer.
+# PEXSI Makefile designed for ELSI installer.
 # Victor Yu, ELSI team.
-# Feb 8, 2017
+# Apr 6, 2017
 
 include ../make.inc
 
@@ -34,7 +34,7 @@ $(PEXSI_LIB): $(OBJS)
 	$(ARCHIVE) $(ARCHIVEFLAGS) $(PEXSI_LIB) $(OBJS)
 	$(RANLIB) $(PEXSI_LIB)
 
-install:
+install: $(PEXSI_LIB)
 	cp *.a $(LIB_DIR)
 	cp *.mod $(INC_DIR)
 

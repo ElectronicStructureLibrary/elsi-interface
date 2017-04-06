@@ -89,7 +89,7 @@ elpa:
 	@echo ==========================
 	mkdir -p $(INC_DIR)
 	mkdir -p $(LIB_DIR)
-	cd $(ELPA_DIR) && $(MAKE) -f Makefile.elsi; $(MAKE) -f Makefile.elsi install
+	cd $(ELPA_DIR) && $(MAKE) -f Makefile.elsi install
 	@echo ===================
 	@echo = ELPA installed. =
 	@echo ===================
@@ -100,7 +100,7 @@ omm: elpa
 	@echo ============================
 	mkdir -p $(INC_DIR)
 	mkdir -p $(LIB_DIR)
-	cd $(OMM_DIR) && $(MAKE) -f Makefile.elsi; $(MAKE) -f Makefile.elsi install
+	cd $(OMM_DIR) && $(MAKE) -f Makefile.elsi install
 	@echo =====================
 	@echo = libOMM installed. =
 	@echo =====================
@@ -111,7 +111,7 @@ pexsi:
 	@echo ===========================
 	mkdir -p $(INC_DIR)
 	mkdir -p $(LIB_DIR)
-	cd $(PEXSI_DIR)/src && $(MAKE) -f Makefile.elsi; $(MAKE) -f Makefile.elsi install
+	cd $(PEXSI_DIR)/src && $(MAKE) -f Makefile.elsi install
 	@echo ====================
 	@echo = PEXSI installed. =
 	@echo ====================

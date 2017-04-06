@@ -1,6 +1,6 @@
-# libOMM Makefile modified for ELSI installer.
+# libOMM Makefile designed for ELSI installer.
 # Victor Yu, ELSI team.
-# Feb 8, 2017
+# Apr 6, 2017
 
 ifeq ($(strip $(XLF)),yes)
   XLFPP = -WF,
@@ -203,7 +203,7 @@ libtomato.a: $(TOMOBJ)
 tomato_TB.o: ./tomato/src/tomato_TB.F90 MatrixSwitch.o MatrixSwitch_ops.o
 	$(MPIFC) $(FFLAGS_O) $(FPPFLAGS) -c $< -o $@
 
-install:
+install: psp_lib MatrixSwitch_lib libOMM_lib tomato_lib
 	cp *.a $(LIB_DIR)
 	cp *.mod $(INC_DIR)
 
