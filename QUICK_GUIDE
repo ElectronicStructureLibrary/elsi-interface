@@ -132,12 +132,6 @@ C) BEYOND THIS GUIDE
 *  Usage of ELSI density matrix solver for complex problems are work-in-progress and
    EXPERIMENTAL.
 
-*  EXPERIMENTAL C interfaces can be built by setting
-
-      C_INTERFACE = yes
-
-   in the "make.sys" file.
-
 *  Documentation of each module, subroutine, and function in ELSI interface can be
    generated using Doxygen in ./src/ELSI/doc directory.
 
