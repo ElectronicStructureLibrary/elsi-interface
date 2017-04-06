@@ -1,5 +1,7 @@
 #include <complex.h>
 
+extern "C" {
+
 void c_elsi_init(int solver,
                  int parallel_mode,
                  int matrix_format,
@@ -63,10 +65,10 @@ void c_elsi_ev_real(double *H_in,
                     double *e_val_out,
                     double *e_vec_out);
 
-void c_elsi_ev_complex(double complex *H_in,
-                       double complex *S_in,
+void c_elsi_ev_complex(double _Complex *H_in,
+                       double _Complex *S_in,
                        double *e_val_out,
-                       double complex *e_vec_out);
+                       double _Complex *e_vec_out);
 
 double c_elsi_dm_real(double *H_in,
                       double *S_in,
@@ -75,3 +77,5 @@ double c_elsi_dm_real(double *H_in,
 double c_elsi_dm_real_sparse(double *H_in,
                              double *S_in,
                              double *D_out);
+
+}
