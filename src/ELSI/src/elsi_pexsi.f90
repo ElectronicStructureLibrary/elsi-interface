@@ -1341,8 +1341,10 @@ subroutine elsi_solve_evp_pexsi()
    endif
 
    ! Get the results
-   call f_ppexsi_retrieve_real_dft_matrix(pexsi_plan,den_mat_ccs,e_den_mat_pexsi,&
-                                          f_den_mat_pexsi,e_tot_H,e_tot_S,f_tot,pexsi_info)
+   if(my_p_row_pexsi == 0) then
+      call f_ppexsi_retrieve_real_dft_matrix(pexsi_plan,den_mat_ccs,&
+              e_den_mat_pexsi,f_den_mat_pexsi,e_tot_H,e_tot_S,f_tot,pexsi_info)
+   endif
 
    if(pexsi_info /= 0) then
       call elsi_stop(" PEXSI not able to retrieve solution. Exiting...",caller)
