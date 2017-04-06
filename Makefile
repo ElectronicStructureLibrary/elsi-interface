@@ -52,7 +52,7 @@ OPENMP       ?= no
 MPI_EXEC ?= mpirun
 
 # Create C interfaces
-C_INTERFACE ?= no
+C_INTERFACE ?= yes
 ifeq ($(strip $(C_INTERFACE)),yes)
   C_BINDING = elsi_c_interface.o
 endif
