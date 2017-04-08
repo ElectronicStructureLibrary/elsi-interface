@@ -906,7 +906,7 @@ subroutine elsi_cleanup()
 
    ! Finalize QETSC
    if(method == SIPS) then
-      call finalize_qetsc()
+      call finalize_sips()
    endif
 
 end subroutine

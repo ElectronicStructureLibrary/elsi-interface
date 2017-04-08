@@ -63,7 +63,7 @@ subroutine elsi_init_sips()
    character*40, parameter :: caller = "elsi_init_sips"
 
    if(n_elsi_calls == 1) then
-      call initialize_qetsc()
+      call init_sips()
    endif
 
    !< Number of slices
@@ -392,32 +392,31 @@ subroutine elsi_solve_evp_sips()
    call elsi_statement_print("  Starting SIPs eigensolver")
 
    ! Load H and S matrices
-   call load_elsi_ham(n_g_size,n_l_cols_sips,nnz_l_sips,row_ind_ccs,&
+   call sips_load_ham(n_g_size,n_l_cols_sips,nnz_l_sips,row_ind_ccs,&
                       col_ptr_ccs,ham_real_ccs)
 
-   call load_elsi_ovlp(n_g_size,n_l_cols_sips,nnz_l_sips,row_ind_ccs,&
+   call sips_load_ovlp(n_g_size,n_l_cols_sips,nnz_l_sips,row_ind_ccs,&
                        col_ptr_ccs,ovlp_real_ccs)
 
    ! Initialize an eigenvalue problem
    if(.not.overlap_is_unit) then
-      call set_eps(1)
+      call sips_set_evp(1)
    else
-      call set_eps(0)
+      call sips_set_evp(0)
    endif
 
    ! Estimate the lower and upper bounds of eigenvalues
-   interval = get_eps_interval()
+   call sips_get_interval(interval)
 
    ! Compute slicing
-   call compute_subintervals(n_slices,slicing_method,unbound,interval,&
-                             0.0d0,0.0d0,slices)
-   call set_eps_subintervals(n_slices,slices)
+   call sips_get_slicing(n_slices,slicing_method,unbound,interval,&
+                         0.0d0,0.0d0,slices,n_states,eval)
 
    ! Solve eigenvalue problem
-   call solve_eps_check(n_states,n_slices,slices,n_solve_steps)
+   call sips_solve_evp(n_states,n_slices,slices,n_solve_steps)
 
    ! Get eigenvalues
-   eval(1:n_states) = get_eps_eigenvalues(n_states)
+   call sips_get_eigenvalues(eval(1:n_states),n_states)
 
    call MPI_Barrier(mpi_comm_global,mpierr)
    call elsi_stop_generalized_evp_time()

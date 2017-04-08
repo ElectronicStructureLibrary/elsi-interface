@@ -32,22 +32,19 @@ module m_qetsc
 
    implicit none
 
-   public :: initialize_qetsc
-   public :: finalize_qetsc
-   public :: load_elsi_ham
-   public :: load_elsi_ovlp
-   public :: set_eps
-   public :: compute_subintervals
-   public :: set_eps_subintervals
-   public :: run_eps_inertias_check
-   public :: inertias_to_eigenvalues
-   public :: solve_eps_check
-   public :: get_eps_eigenvalues
-   public :: get_eps_interval
+   public :: init_sips
+   public :: finalize_sips
+   public :: sips_load_ham
+   public :: sips_load_ovlp
+   public :: sips_set_evp
+   public :: sips_get_interval
+   public :: sips_get_slicing
+   public :: sips_solve_evp
+   public :: sips_get_eigenvalues
 
 contains
 
-subroutine initialize_qetsc()
+subroutine init_sips()
 
    implicit none
 
@@ -57,7 +54,7 @@ subroutine initialize_qetsc()
 
 end subroutine
 
-subroutine  finalize_qetsc()
+subroutine  finalize_sips()
 
    implicit none
 
@@ -67,7 +64,7 @@ subroutine  finalize_qetsc()
 
 end subroutine
 
-subroutine load_elsi_ham(global_size,local_size,local_nnz,col_idx,row_ptr,ham_val)
+subroutine sips_load_ham(global_size,local_size,local_nnz,col_idx,row_ptr,ham_val)
 
    implicit none
 
@@ -84,7 +81,7 @@ subroutine load_elsi_ham(global_size,local_size,local_nnz,col_idx,row_ptr,ham_va
 
 end subroutine
 
-subroutine load_elsi_ovlp(global_size,local_size,local_nnz,col_idx,row_ptr,ovlp_val)
+subroutine sips_load_ovlp(global_size,local_size,local_nnz,col_idx,row_ptr,ovlp_val)
 
    implicit none
 
@@ -101,7 +98,7 @@ subroutine load_elsi_ovlp(global_size,local_size,local_nnz,col_idx,row_ptr,ovlp_
 
 end subroutine
 
-subroutine set_eps(eps_type)
+subroutine sips_set_evp(eps_type)
 
    implicit none
 
@@ -113,8 +110,8 @@ subroutine set_eps(eps_type)
 
 end subroutine
 
-subroutine compute_subintervals(nsub,subtype,lefttype,interval,buffer,&
-                                subbuffer,subs,evals)
+subroutine sips_get_slicing(nsub,subtype,lefttype,interval,buffer,&
+                            subbuffer,subs,n,evals)
 
    implicit none
 
@@ -125,6 +122,7 @@ subroutine compute_subintervals(nsub,subtype,lefttype,interval,buffer,&
    real*8           :: interval(2)
    real*8           :: buffer
    real*8           :: subbuffer
+   integer          :: n
    real*8, optional :: evals(:)
 
    write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
@@ -133,55 +131,7 @@ subroutine compute_subintervals(nsub,subtype,lefttype,interval,buffer,&
 
 end subroutine
 
-subroutine set_eps_subintervals(nslice,subs)
-
-   implicit none
-
-   integer :: nslice
-   real*8  :: subs(nslice+1)
-
-   write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
-   write(*,"(A)") " Exiting..."
-   stop
-
-end subroutine
-
-subroutine run_eps_inertias_check(unbound,nreq,nsub,subs,shifts,inertias,nsolve)
-
-   implicit none
-
-   integer :: unbound
-   integer :: nreq
-   integer :: nsub
-   real*8  :: subs(:)
-   real*8  :: shifts(:)
-   integer :: inertias(:)
-   integer :: nsolve
-
-   write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
-   write(*,"(A)") " Exiting..."
-   stop
-
-end subroutine
-
-subroutine inertias_to_eigenvalues(nshift,nreq,buffer,shifts,inertias,evals)
-
-   implicit none
-
-   integer :: nshift
-   integer :: nreq
-   real*8  :: buffer
-   real*8  :: shifts(nshift)
-   integer :: inertias(nshift)
-   real*8  :: evals(nreq)
-
-   write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
-   write(*,"(A)") " Exiting..."
-   stop
-
-end subroutine
-
-subroutine solve_eps_check(nreq,nsub,subs,nsolve)
+subroutine sips_solve_evp(nreq,nsub,subs,nsolve)
 
    implicit none
 
@@ -196,7 +146,7 @@ subroutine solve_eps_check(nreq,nsub,subs,nsolve)
 
 end subroutine
 
-function get_eps_eigenvalues(nreq) result(eigs)
+subroutine sips_get_eigenvalues(eigs,nreq)
 
    implicit none
 
@@ -209,9 +159,9 @@ function get_eps_eigenvalues(nreq) result(eigs)
    write(*,"(A)") " Exiting..."
    stop
 
-end function
+end subroutine
 
-function get_eps_interval() result(interval)
+subroutine sips_get_interval(interval)
 
    implicit none
 
@@ -223,6 +173,6 @@ function get_eps_interval() result(interval)
    write(*,"(A)") " Exiting..."
    stop
 
-end function
+end subroutine
 
 end module
