@@ -120,7 +120,7 @@ subroutine elsi_blacs_to_sips(H_in,S_in)
 
    if(overlap_is_unit) then
       !TODO
-      call elsi_stop(" SIPs with indentity overlap matrix not yet available."//&
+      call elsi_stop(" SIPs with identity overlap matrix not yet available."//&
                      " Exiting...",caller)
    else
       if(n_g_size < 46340) then ! kind=4 integer works

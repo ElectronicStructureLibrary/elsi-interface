@@ -64,25 +64,25 @@ subroutine elsi_init_pexsi()
    character*40, parameter :: caller = "elsi_init_pexsi"
 
    if(n_elsi_calls == 1) then
-      if(storage /= BLACS_DENSE) then
-         if(.not.pexsi_n_poles_set) then
-            pexsi_options%numPole = n_procs
-            pexsi_n_poles_set = .true.
-         endif
-      endif
-
       if(mod(n_procs,pexsi_options%numPole) == 0) then
          n_p_per_pole_pexsi = n_procs/pexsi_options%numPole
+
          call elsi_statement_print("  PEXSI parallel over poles.")
-         write(info_str,"(A,I13)") "  | Number of MPI tasks per pole: ", &
+         write(info_str,"(A,I13)") "  | Number of MPI tasks per pole: ",&
             n_p_per_pole_pexsi
          call elsi_statement_print(info_str)
       else
-         call elsi_stop("  PEXSI not parallel over poles. High performance"//&
-                        " of PEXSI is expected only if the number of MPI tasks"//&
-                        " is a multiple of the number of PEXSI poles. Please"//&
-                        " adjust either the number of MPI tasks, or the number"//&
-                        " of PEXSI poles. Exiting...",caller)
+         n_p_per_pole_pexsi = n_procs
+
+         call elsi_statement_print("  PEXSI not parallel over poles."//&
+                                   " High performance of PEXSI is expected"//&
+                                   " if the number of MPI tasks is a"//&
+                                   " multiple of the number of PEXSI poles.")
+
+         if(storage == BLACS_DENSE) then
+            call elsi_stop("  Please adjust either the number of MPI tasks,"//&
+                           " or the number of poles. Exiting...",caller)
+         endif
       endif
 
       ! Set square-like process grid for selected inversion of each pole
@@ -140,7 +140,7 @@ subroutine elsi_blacs_to_pexsi(H_in,S_in)
 
    if(overlap_is_unit) then
       !TODO
-      call elsi_stop(" PEXSI with indentity overlap matrix not yet available."//&
+      call elsi_stop(" PEXSI with identity overlap matrix not yet available."//&
                      " Exiting...",caller)
    else
       if(n_g_size < 46340) then ! kind=4 integer works

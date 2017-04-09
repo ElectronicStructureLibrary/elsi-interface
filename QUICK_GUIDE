@@ -1,12 +1,12 @@
-====================================
-HOW TO USE ELSI IN A FORTRAN PROGRAM
-====================================
+===================================
+HOW TO USE ELSI IN FORTRAN PROGRAMS
+===================================
 
 ==========================
 A) QUICK PROGRAMMING GUIDE
 ==========================
 
-   After ELSI is built successfully, it can be used in a Fortran program by putting
+   After successful installation, ELSI can be used in Fortran programs by putting
 
       USE ELSI
 
@@ -62,11 +62,11 @@ A) QUICK PROGRAMMING GUIDE
 
    This should be done WITHIN the SCF loops.
 
-   Customize routines are all OPTIONAL. ELSI sets reasonable default parameters for
-   each solver. However, these default settings do not always guarantee the best
-   performance. Every single technical parameter within each solver is accessible
-   to experienced users by using the customize routines, i.e. elsi_customize_elpa,
-   elsi_customize_omm, elsi_customize_pexsi, and elsi_customize.
+   Customize routines are all OPTIONAL. ELSI sets reasonable default parameters
+   for each solver. However, these default settings do not always guarantee the
+   best performance. Every technical parameter is accessible to experienced users
+   by using the customize routines, i.e. elsi_customize_elpa, elsi_customize_omm,
+   elsi_customize_pexsi, and elsi_customize.
 
 *  call elsi_customize_{elpa|omm|pexxi}(keyword1=choice1, keyword2=choice2, ...)
 
@@ -96,7 +96,7 @@ A) QUICK PROGRAMMING GUIDE
 4) Finalize ELSI
 ================
 
-   This should be done once, AFTER the SCF cycle converges.
+   This should be done once, AFTER the convergence of SCF cycle.
 
 *  call elsi_finalize()
 
@@ -129,7 +129,7 @@ B) COMPILATION GUIDE
 C) BEYOND THIS GUIDE
 ====================
 
-*  Usage of ELSI density matrix solver for complex problems are work-in-progress and
+*  Usage of ELSI density matrix solver for complex problems is work-in-progress and
    EXPERIMENTAL.
 
 *  Documentation of each module, subroutine, and function in ELSI interface can be
@@ -143,4 +143,4 @@ D) TROUBLE SHOOTING
 
    http://elsi-interchange.org
 
-   Copyright (c) 2015-2017, ELSI consortium. All rights reserved.
+   Copyright (c) 2015-2017, ELSI team. All rights reserved.

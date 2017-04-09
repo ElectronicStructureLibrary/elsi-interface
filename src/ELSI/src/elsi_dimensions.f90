@@ -212,7 +212,6 @@ module ELSI_DIMENSIONS
    integer :: n_l_cols_pexsi
    integer :: n_p_per_pole_pexsi               !< Number of processors per pole
    integer :: nnz_l_pexsi                      !< Local number of nonzeros in PEXSI distribution
-   logical :: pexsi_n_poles_set = .false.      !< Is number of PEXSI poles set by user?
    logical :: sparsity_pattern_ready = .false. !< Is sparsity pattern set by user?
    logical :: small_pexsi_tol = .false.        !< Is user-defined tolerance smaller than default?
 

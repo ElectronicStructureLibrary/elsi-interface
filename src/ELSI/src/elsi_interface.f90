@@ -487,10 +487,8 @@ subroutine elsi_customize_pexsi(temperature,gap,delta_E,n_poles,max_iteration,&
 
    ! Number of poles
    ! default: 40
-   if(present(n_poles)) then
+   if(present(n_poles)) &
       pexsi_options%numPole = n_poles
-      pexsi_n_poles_set = .true.
-   endif
 
    ! Maximum number of PEXSI iterations after each inertia
    ! counting procedure

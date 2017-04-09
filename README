@@ -2,7 +2,7 @@
   ELSI - ELectronic Structure Infrastructure
 
   Authors : ELSI team
-  Version : 2017.03
+  Version : 2017.04
 ==============================================
 
 ============================================================================
@@ -61,4 +61,4 @@
   Detailed instructions on using ELSI software are documented in the file
   "QUICK_GUIDE". Some related topics can be found in the ELSI GitLab wiki.
 
-  Copyright (c) 2015-2017, ELSI consortium. All rights reserved.
+  Copyright (c) 2015-2017, ELSI team. All rights reserved.
