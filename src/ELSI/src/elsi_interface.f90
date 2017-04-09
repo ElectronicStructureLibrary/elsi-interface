@@ -337,11 +337,6 @@ subroutine elsi_get_energy(energy_out)
                         " Exiting...",caller)
    end select
 
-   write(info_str,"(A,F15.5,A)") "  | Energy = ",energy_out," Ha"
-   call elsi_statement_print(info_str)
-   write(info_str,"(A,F15.5,A)") "  |        = ",energy_out*hartree," eV"
-   call elsi_statement_print(info_str)
-
 end subroutine
 
 !>
@@ -371,15 +366,14 @@ end subroutine
 !>
 !! This routine overrides ELSI default settings.
 !!
-subroutine elsi_customize(print_detail,unit_overlap,hartree_to_ev,&
-                          numerical_zero,no_check_singularity,&
-                          singularity_threshold,force_stop_singularity)
+subroutine elsi_customize(print_detail,unit_overlap,numerical_zero,&
+                          no_check_singularity,singularity_threshold,&
+                          force_stop_singularity)
 
    implicit none
 
    logical, intent(in), optional :: print_detail           !< Print detailed info?
    logical, intent(in), optional :: unit_overlap           !< Is overlap matrix unit?
-   real*8,  intent(in), optional :: hartree_to_ev          !< Conversion constant between Ha and eV
    real*8,  intent(in), optional :: numerical_zero         !< Threshold to define "zero"
    logical, intent(in), optional :: no_check_singularity   !< Do not perform singularity check of overlap
    real*8,  intent(in), optional :: singularity_threshold  !< Tolerance of overlap singularity
@@ -391,9 +385,6 @@ subroutine elsi_customize(print_detail,unit_overlap,hartree_to_ev,&
    ! Is the overlap matrix unit? [Default: .false.]
    if(present(unit_overlap)) &
       overlap_is_unit = unit_overlap
-   ! User-defined value for Hartree [Default: 27.211386, Codata 2015]
-   if(present(hartree_to_ev)) &
-      hartree = hartree_to_ev
    ! Threshold to define numerical zero [Default: 1d-13]
    if(present(numerical_zero)) &
       zero_threshold = numerical_zero

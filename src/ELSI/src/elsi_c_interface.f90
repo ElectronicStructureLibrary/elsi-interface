@@ -106,9 +106,9 @@ subroutine elsi_finalize_c_wrapper() bind(C,name="c_elsi_finalize")
 
 end subroutine
 
-subroutine elsi_customize_c_wrapper(print_detail,unit_overlap,hartree_to_ev,&
-                                    numerical_zero,no_check_singularity,&
-                                    singularity_threshold,force_stop_singularity)&
+subroutine elsi_customize_c_wrapper(print_detail,unit_overlap,numerical_zero,&
+                                    no_check_singularity,singularity_threshold,&
+                                    force_stop_singularity)&
                                     bind(C,name="c_elsi_customize")
 
    use, intrinsic :: iso_c_binding
@@ -118,7 +118,6 @@ subroutine elsi_customize_c_wrapper(print_detail,unit_overlap,hartree_to_ev,&
 
    integer(kind=c_int), value, intent(in) :: print_detail
    integer(kind=c_int), value, intent(in) :: unit_overlap
-   real(kind=c_double), value, intent(in) :: hartree_to_ev
    real(kind=c_double), value, intent(in) :: numerical_zero
    integer(kind=c_int), value, intent(in) :: no_check_singularity
    real(kind=c_double), value, intent(in) :: singularity_threshold
@@ -153,9 +152,9 @@ subroutine elsi_customize_c_wrapper(print_detail,unit_overlap,hartree_to_ev,&
       force_stop_singularity_f = .true.
    endif
 
-   call elsi_customize(print_detail_f,unit_overlap_f,hartree_to_ev,&
-                       numerical_zero,no_check_singularity_f,&
-                       singularity_threshold,force_stop_singularity_f)
+   call elsi_customize(print_detail_f,unit_overlap_f,numerical_zero,&
+                       no_check_singularity_f,singularity_threshold,&
+                       force_stop_singularity_f)
 
 end subroutine
 

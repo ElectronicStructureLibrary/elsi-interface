@@ -55,7 +55,6 @@ void c_elsi_set_sparsity(int nnz_g_in,
 
 void c_elsi_customize(int print_detail,
                       int unit_overlap,
-                      double hartree_to_ev,
                       double numerical_zero,
                       int no_check_singularity,
                       double singularity_threshold,
