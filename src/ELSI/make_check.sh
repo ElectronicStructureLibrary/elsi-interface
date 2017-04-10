@@ -2,87 +2,144 @@
 # VY: This is a simple bash script used for "make check"
 # More tests can be done by using test_ev_real.x and test_dm_real.x
 
+rm ev_real_elpa.log 2> /dev/null
+rm ev_real_elpa_sp.log 2> /dev/null
+rm dm_real_elpa.log 2> /dev/null
+rm dm_real_libomm.log libOMM.log 2> /dev/null
+rm dm_real_pexsi.log logPEXSI0 2> /dev/null
 set -e # Stop on error
 
+RED_ALART="false"
 echo
-${MPI_EXEC} -n 4 ./test_ev_real.x ${TOMATO_SEED} 1 > ev_real_elpa.log
+echo "Test program output may be found in $PWD"
+
+echo
+echo -n "Running the 'elsi_ev_real + ELPA (mp)' test"
+${MPI_EXEC} -n 4 ./test_ev_real.x ${TOMATO_SEED} 1 > ev_real_elpa.log &
+PID=$!
+while kill -0 $PID 2>/dev/null; do
+    sleep 1
+    echo -n '.'
+done
+
 if (! grep -q "Passed" <./ev_real_elpa.log); then
    tput setaf 5
-   echo "FAILED:  elsi_ev_real + ELPA (mp)"
+   RED_ALART="true"
+   echo " FAILED!"
    tput sgr0
    echo "See `pwd`/ev_real_elpa.log for details."
 else
    tput setaf 10
-   echo "PASSED:  elsi_ev_real + ELPA (mp)"
+   echo " PASSED!"
    tput sgr0
-   rm ev_real_elpa.log
 fi
 
 if [ "$ELPA2_KERNEL" != "GPU" ]
 then
    echo
-   ${MPI_EXEC} -n 1 ./test_ev_real.x ${TOMATO_SEED} 1 > ev_real_elpa_sp.log
+   echo -n "Running the 'elsi_ev_real + ELPA (sp)' test"
+   ${MPI_EXEC} -n 1 ./test_ev_real.x ${TOMATO_SEED} 1 > ev_real_elpa_sp.log &
+   PID=$!
+   while kill -0 $PID 2>/dev/null; do
+      sleep 1
+      echo -n '.'
+   done
+
    if (! grep -q "Passed" <./ev_real_elpa_sp.log); then
       tput setaf 5
-      echo "FAILED:  elsi_ev_real + ELPA (sp)"
+      RED_ALART="true"
+      echo " FAILED!"
       tput sgr0
       echo "See `pwd`/ev_real_elpa_sp.log for details."
    else
       tput setaf 10
-      echo "PASSED:  elsi_ev_real + ELPA (sp)"
+      echo " PASSED!"
       tput sgr0
-      rm ev_real_elpa_sp.log
    fi
 fi
 
 echo
-${MPI_EXEC} -n 4 ./test_dm_real.x ${TOMATO_SEED} 1 > dm_real_elpa.log
+echo -n "Running the 'elsi_dm_real + ELPA' test"
+${MPI_EXEC} -n 4 ./test_dm_real.x ${TOMATO_SEED} 1 > dm_real_elpa.log &
+PID=$!
+while kill -0 $PID 2>/dev/null; do
+    sleep 1
+    echo -n '.'
+done
+
 if (! grep -q "Passed" <./dm_real_elpa.log); then
    tput setaf 5
-   echo "FAILED:  elsi_dm_real + ELPA"
+   RED_ALART="true"
+   echo " FAILED!"
    tput sgr0
    echo "See `pwd`/dm_real_elpa.log for details."
 else
    tput setaf 10
-   echo "PASSED:  elsi_dm_real + ELPA"
+   echo " PASSED!"
    tput sgr0
-   rm dm_real_elpa.log
 fi
 
 echo
-${MPI_EXEC} -n 4 ./test_dm_real.x ${TOMATO_SEED} 2 > dm_real_libomm.log
+echo -n "Running the 'elsi_dm_real + libOMM' test"
+${MPI_EXEC} -n 4 ./test_dm_real.x ${TOMATO_SEED} 2 > dm_real_libomm.log &
+PID=$!
+while kill -0 $PID 2>/dev/null; do
+   sleep 1
+   echo -n '.'
+done
+
 if (! grep -q "Passed" <./dm_real_libomm.log); then
    tput setaf 5
-   echo "FAILED:  elsi_dm_real + libOMM"
+   RED_ALART="true"
+   echo " FAILED!"
    tput sgr0
    echo "See `pwd`/dm_real_libomm.log for details."
 else
    tput setaf 10
-   echo "PASSED:  elsi_dm_real + libOMM"
+   echo " PASSED!"
    tput sgr0
-   rm dm_real_libomm.log libOMM.log
 fi
 
 echo
 if [ "$DISABLE_CXX" != "yes" ]
 then
-   ${MPI_EXEC} -n 4 ./test_dm_real.x ${TOMATO_SEED} 3 > dm_real_pexsi.log
+   echo -n "Running the 'elsi_dm_real + PEXSI' test"
+   ${MPI_EXEC} -n 4 ./test_dm_real.x ${TOMATO_SEED} 3 > dm_real_pexsi.log &
+   PID=$!
+   while kill -0 $PID 2>/dev/null; do
+      sleep 1
+      echo -n '.'
+   done
+
    if (! grep -q "Passed" <./dm_real_pexsi.log); then
       tput setaf 5
-      echo "FAILED:  elsi_dm_real + PEXSI"
+      RED_ALART="true"
+      echo " FAILED!"
       tput sgr0
       echo "See `pwd`/dm_real_pexsi.log for details."
    else
       tput setaf 10
-      echo "PASSED:  elsi_dm_real + PEXSI"
+      echo " PASSED!"
       tput sgr0
-      rm dm_real_pexsi.log logPEXSI0
    fi
 else
    tput setaf 5
    echo "PEXSI has been disabled because ELSI is compiled without C++ support."
    echo "Please recompile ELSI with C++ support to enable PEXSI, or continue"
    echo "using ELSI without PEXSI."
+   tput sgr0
+fi
+
+echo
+# WHY AM I YELLING?
+if [ "$RED_ALART" = "true" ] 
+then
+   tput setaf 5
+   echo "MAKE CHECK FAILED, CHECK YOUR COMPILATION SETTINGS!"
+   tput sgr0
+else
+   tput setaf 10
+   echo "MAKE CHECK PASSED, YOU'RE GOOD TO GO!"
    tput sgr0
 fi
 
