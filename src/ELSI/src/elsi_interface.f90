@@ -437,8 +437,8 @@ end subroutine
 !>
 !! This routine overrides PEXSI default settings.
 !!
-subroutine elsi_customize_pexsi(temperature,gap,delta_E,n_poles,max_iteration,&
-                                mu_min,mu_max,mu0,mu_inertia_tolerance,&
+subroutine elsi_customize_pexsi(temperature,gap,delta_E,n_poles,n_procs_per_pole,&
+                                max_iteration,mu_min,mu_max,mu0,mu_inertia_tolerance,&
                                 mu_inertia_expansion,mu_safeguard,n_electron_accuracy,&
                                 matrix_type,is_symbolic_factorize,ordering,&
                                 np_symbolic_factorize,verbosity)
@@ -449,6 +449,7 @@ subroutine elsi_customize_pexsi(temperature,gap,delta_E,n_poles,max_iteration,&
    real(c_double), intent(in), optional :: gap                   !< Spectral gap, can be set to 0 in most cases
    real(c_double), intent(in), optional :: delta_E               !< Upper bound for the spectral radius of S^(-1)H
    integer(c_int), intent(in), optional :: n_poles               !< Number of poles
+   integer(c_int), intent(in), optional :: n_procs_per_pole      !< Number of processors for one pole
    integer(c_int), intent(in), optional :: max_iteration         !< Maximum number of PEXSI iterations
    real(c_double), intent(in), optional :: mu_min                !< Lower bound of chemical potential
    real(c_double), intent(in), optional :: mu_max                !< Upper bound of chemical potential
@@ -462,6 +463,8 @@ subroutine elsi_customize_pexsi(temperature,gap,delta_E,n_poles,max_iteration,&
    integer(c_int), intent(in), optional :: ordering              !< Ordering strategy for factorization and selected inversion
    integer(c_int), intent(in), optional :: np_symbolic_factorize !< Number of processors for ParMETIS, only used if ordering=0
    integer(c_int), intent(in), optional :: verbosity             !< Level of output info
+
+   character*40, parameter :: caller = "elsi_customize_pexsi"
 
    ! Temperature, in the same unit as H
    if(present(temperature)) &
@@ -480,6 +483,19 @@ subroutine elsi_customize_pexsi(temperature,gap,delta_E,n_poles,max_iteration,&
    ! default: 40
    if(present(n_poles)) &
       pexsi_options%numPole = n_poles
+
+   ! Number of processors for one pole
+   ! default: decided from n_procs and n_poles
+   if(present(n_procs_per_pole)) then
+      if((mod(n_procs,n_procs_per_pole) == 0) .and. (storage .ne. 0)) then
+         n_p_per_pole_pexsi = n_procs_per_pole
+         n_p_per_pole_ready = .true.
+      else
+         call elsi_stop("  The total number of MPI tasks must be a"//&
+                        " multiple of the number of MPI tasks per"//&
+                        " pole. Exiting...",caller)
+      endif
+   endif
 
    ! Maximum number of PEXSI iterations after each inertia
    ! counting procedure

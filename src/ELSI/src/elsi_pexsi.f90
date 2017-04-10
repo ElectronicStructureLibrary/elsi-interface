@@ -64,24 +64,21 @@ subroutine elsi_init_pexsi()
    character*40, parameter :: caller = "elsi_init_pexsi"
 
    if(n_elsi_calls == 1) then
-      if(mod(n_procs,pexsi_options%numPole) == 0) then
-         n_p_per_pole_pexsi = n_procs/pexsi_options%numPole
+      if(.not.n_p_per_pole_ready) then
+         if(mod(n_procs,pexsi_options%numPole) == 0) then
+            n_p_per_pole_pexsi = n_procs/pexsi_options%numPole
 
-         call elsi_statement_print("  PEXSI parallel over poles.")
-         write(info_str,"(A,I13)") "  | Number of MPI tasks per pole: ",&
-            n_p_per_pole_pexsi
-         call elsi_statement_print(info_str)
-      else
-         n_p_per_pole_pexsi = n_procs
-
-         call elsi_statement_print("  PEXSI not parallel over poles."//&
-                                   " High performance of PEXSI is expected"//&
-                                   " if the number of MPI tasks is a"//&
-                                   " multiple of the number of PEXSI poles.")
-
-         if(storage == BLACS_DENSE) then
-            call elsi_stop("  Please adjust either the number of MPI tasks,"//&
-                           " or the number of poles. Exiting...",caller)
+            call elsi_statement_print("  PEXSI parallel over poles.")
+            write(info_str,"(A,I13)") "  | Number of MPI tasks per pole: ",&
+               n_p_per_pole_pexsi
+            call elsi_statement_print(info_str)
+         else
+            call elsi_stop("  PEXSI not parallel over poles. High"//&
+                           " performance of PEXSI is expected if the"//&
+                           " number of MPI tasks is a multiple of"//&
+                           " the number of PEXSI poles. Please adjust"//&
+                           " either the number of MPI tasks, or the"//&
+                           " number of poles. Exiting...",caller)
          endif
       endif
 

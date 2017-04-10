@@ -29,8 +29,8 @@
 !! This file contains the C interfaces of ELSI.
 !!
 
-subroutine elsi_init_c_wrapper(solver,parallel_mode,matrix_format,matrix_size,&
-                               n_electrons_in,n_states_in)&
+subroutine elsi_init_c_wrapper(solver,parallel_mode,matrix_format,&
+                               matrix_size,n_electrons_in,n_states_in)&
                                bind(C,name="c_elsi_init")
 
    use, intrinsic :: iso_c_binding
@@ -45,8 +45,8 @@ subroutine elsi_init_c_wrapper(solver,parallel_mode,matrix_format,matrix_size,&
    real(kind=c_double), value, intent(in) :: n_electrons_in
    integer(kind=c_int), value, intent(in) :: n_states_in
 
-   call elsi_init(solver,parallel_mode,matrix_format,matrix_size,&
-                  n_electrons_in,n_states_in)
+   call elsi_init(solver,parallel_mode,matrix_format,&
+                  matrix_size,n_electrons_in,n_states_in)
 
 end subroutine
 
@@ -205,11 +205,12 @@ subroutine elsi_customize_omm_c_wrapper(n_elpa_steps_omm,eigenspectrum_shift,&
 end subroutine
 
 subroutine elsi_customize_pexsi_c_wrapper(temperature,gap,delta_E,n_poles,&
-                                          max_iteration,mu_min,mu_max,mu0,&
-                                          mu_inertia_tolerance,mu_inertia_expansion,&
-                                          mu_safeguard,n_electron_accuracy,&
-                                          matrix_type,is_symbolic_factorize,&
-                                          ordering,np_symbolic_factorize,verbosity)&
+                                          n_procs_per_pole,max_iteration,mu_min,&
+                                          mu_max,mu0,mu_inertia_tolerance,&
+                                          mu_inertia_expansion,mu_safeguard,&
+                                          n_electron_accuracy,matrix_type,&
+                                          is_symbolic_factorize,ordering,&
+                                          np_symbolic_factorize,verbosity)&
                                           bind(C,name="c_elsi_customize_pexsi")
 
    use, intrinsic :: iso_c_binding
@@ -221,6 +222,7 @@ subroutine elsi_customize_pexsi_c_wrapper(temperature,gap,delta_E,n_poles,&
    real(c_double), value, intent(in) :: gap
    real(c_double), value, intent(in) :: delta_E
    integer(c_int), value, intent(in) :: n_poles
+   integer(c_int), value, intent(in) :: n_procs_per_pole
    integer(c_int), value, intent(in) :: max_iteration
    real(c_double), value, intent(in) :: mu_min
    real(c_double), value, intent(in) :: mu_max
@@ -235,11 +237,10 @@ subroutine elsi_customize_pexsi_c_wrapper(temperature,gap,delta_E,n_poles,&
    integer(c_int), value, intent(in) :: np_symbolic_factorize
    integer(c_int), value, intent(in) :: verbosity
 
-   call elsi_customize_pexsi(temperature,gap,delta_E,n_poles,max_iteration,mu_min,&
-                             mu_max,mu0,mu_inertia_tolerance,mu_inertia_expansion,&
-                             mu_safeguard,n_electron_accuracy,matrix_type,&
-                             is_symbolic_factorize,ordering,np_symbolic_factorize,&
-                             verbosity)
+   call elsi_customize_pexsi(temperature,gap,delta_E,n_poles,n_procs_per_pole,&
+           max_iteration,mu_min,mu_max,mu0,mu_inertia_tolerance,mu_inertia_expansion,&
+           mu_safeguard,n_electron_accuracy,matrix_type,is_symbolic_factorize,&
+           ordering,np_symbolic_factorize,verbosity)
 
 end subroutine
 
