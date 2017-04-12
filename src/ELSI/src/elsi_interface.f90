@@ -61,6 +61,7 @@ module ELSI
    public :: elsi_dm_real         !< Compute density matrix
    public :: elsi_dm_complex      !< Compute density matrix
    public :: elsi_dm_real_sparse  !< Compute density matrix
+   public :: elsi_collect_pexsi   !< Collect additional PEXSI results
    public :: elsi_finalize        !< Clean memory and print timings
 
    integer, external :: numroc
@@ -361,6 +362,7 @@ end subroutine
 !   elsi_customize_pexsi
 !   elsi_customize_elpa
 !   elsi_customize_mu
+!   elsi_collect_pexsi
 !=========================
 
 !>
@@ -639,6 +641,24 @@ subroutine elsi_customize_mu(broadening_scheme,broadening_width,&
    ! Maximum steps to determine the chemical potential [Default: 100]
    if(present(mu_max_steps)) &
       max_mu_steps = mu_max_steps
+
+end subroutine
+
+!>
+!! This routine collects results (other than density matrix)
+!! after a PEXSI calculation.
+!!
+subroutine elsi_collect_pexsi(mu,edm,fdm)
+
+   implicit none
+
+   real*8, intent(out) :: mu               !< Chemical potential
+   real*8, intent(out) :: edm(nnz_l_pexsi) !< Energy density matrix
+   real*8, intent(out) :: fdm(nnz_l_pexsi) !< Free energy density matrix
+
+   mu  = mu_pexsi
+   edm = e_den_mat_pexsi
+   fdm = f_den_mat_pexsi
 
 end subroutine
 

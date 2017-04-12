@@ -109,6 +109,10 @@ double c_elsi_dm_real_sparse(double *H_in,
                              double *S_in,
                              double *D_out);
 
+void c_elsi_collect_pexsi(double *mu_out,
+                          double *edm_out,
+                          double *fdm_out);
+
 #ifdef __cplusplus
 }
 #endif

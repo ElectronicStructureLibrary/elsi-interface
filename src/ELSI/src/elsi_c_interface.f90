@@ -328,3 +328,19 @@ function elsi_dm_real_sparse_c_wrapper(H_in,S_in,D_out) result(energy_out) &
    call elsi_dm_real_sparse(H_in,S_in,D_out,energy_out)
 
 end function
+
+subroutine elsi_collect_pexsi_c_wrapper(mu_out,edm_out,fdm_out) &
+                                        bind(C,name="c_elsi_collect_pexsi")
+
+   use, intrinsic :: iso_c_binding
+   use ELSI
+
+   implicit none
+
+   real(kind=c_double), intent(out) :: mu_out
+   real(kind=c_double), intent(out) :: edm_out(*)
+   real(kind=c_double), intent(out) :: fdm_out(*)
+
+   call elsi_collect_pexsi(mu_out,edm_out,fdm_out)
+
+end subroutine
