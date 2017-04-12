@@ -39,14 +39,59 @@
 !    any derivatives of ELPA under the same license that we chose for
 !    the original distribution, the GNU Lesser General Public License.
 !
-! Author: Andreas Marek, MPCDF
+!
+! ELPA1 -- Faster replacements for ScaLAPACK symmetric eigenvalue routines
+!
+! Copyright of the original code rests with the authors inside the ELPA
+! consortium. The copyright of any additional modifications shall rest
+! with their original authors, but shall adhere to the licensing terms
+! distributed along with the original code in the file "COPYING".
 
-module elpa_mpi
 
+
+! ELPA2 -- 2-stage solver for ELPA
+!
+! Copyright of the original code rests with the authors inside the ELPA
+! consortium. The copyright of any additional modifications shall rest
+! with their original authors, but shall adhere to the licensing terms
+! distributed along with the original code in the file "COPYING".
+
+module ELPA1_utilities
+  use ELPA_utilities
+  use precision
   implicit none
 
-  include 'mpif.h'
+  PRIVATE ! By default, all routines contained are private
 
-  public
+  ! The following routines are public:
+  public :: gpu_usage_via_environment_variable
+ !******
+  contains
 
-end module
+   function gpu_usage_via_environment_variable() result(useGPU)
+#ifdef HAVE_DETAILED_TIMINGS
+     use timings
+#else
+     use timings_dummy
+#endif
+     use precision
+     implicit none
+     logical            :: useGPU
+     CHARACTER(len=255) :: ELPA_USE_GPU_ENVIRONMENT
+
+     call timer%start("gpu_usage_via_environment_variable")
+
+     useGPU = .false.
+#if defined(HAVE_ENVIRONMENT_CHECKING)
+     call get_environment_variable("ELPA_USE_GPU",ELPA_USE_GPU_ENVIRONMENT)
+#endif
+     if (trim(ELPA_USE_GPU_ENVIRONMENT) .eq. "YES" .or. trim(ELPA_USE_GPU_ENVIRONMENT) .eq. "yes") then
+       useGPU = .true.
+     endif
+
+     call timer%stop("gpu_usage_via_environment_variable")
+
+   end function gpu_usage_via_environment_variable
+!-------------------------------------------------------------------------------
+
+end module ELPA1_utilities

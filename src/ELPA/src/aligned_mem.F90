@@ -1,4 +1,3 @@
-#if 0
 !    This file is part of ELPA.
 !
 !    The ELPA library was originally created by the ELPA consortium,
@@ -16,9 +15,6 @@
 !      and
 !    - IBM Deutschland GmbH
 !
-!    This particular source code file contains additions, changes and
-!    enhancements authored by Intel Corporation which is not part of
-!    the ELPA consortium.
 !
 !    More information can be found here:
 !    http://elpa.mpcdf.mpg.de/
@@ -43,19 +39,25 @@
 !    any derivatives of ELPA under the same license that we chose for
 !    the original distribution, the GNU Lesser General Public License.
 !
-!
-! ELPA1 -- Faster replacements for ScaLAPACK symmetric eigenvalue routines
-!
-! Copyright of the original code rests with the authors inside the ELPA
-! consortium. The copyright of any additional modifications shall rest
-! with their original authors, but shall adhere to the licensing terms
-! distributed along with the original code in the file "COPYING".
-#endif
+! Author: Lorenz Huedepohl, MPCDF
 
-#include "precision_macros_complex.h"
+module aligned_mem
+  use, intrinsic :: iso_c_binding
 
-#include "elpa1_tridiag_complex_template.X90"
-#include "elpa1_trans_ev_complex_template.X90"
-#include "elpa1_tools_complex_template.X90"
+  interface
+    function posix_memalign(memptr, alignment, size) result(error) bind(C, name="posix_memalign")
+      import c_int, c_size_t, c_ptr
+      integer(kind=c_int) :: error
+      type(c_ptr), intent(inout) :: memptr
+      integer(kind=c_size_t), intent(in), value :: alignment, size
+    end function
+  end interface
 
-#define ALREADY_DEFINED 1
+  interface
+    subroutine free(ptr) bind(C, name="free")
+      import c_ptr
+      type(c_ptr), value :: ptr
+    end subroutine
+  end interface
+
+end module

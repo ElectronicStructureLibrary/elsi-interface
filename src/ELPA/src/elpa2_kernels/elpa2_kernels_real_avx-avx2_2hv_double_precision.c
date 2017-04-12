@@ -966,3 +966,4 @@ void double_hh_trafo_real_avx_avx2_2hv_double(double* q, double* hh, int* pnb, i
 	_mm256_store_pd(&q[nb*ldq],q1);
 #endif
 }
+

@@ -3,7 +3,8 @@
 !    The ELPA library was originally created by the ELPA consortium,
 !    consisting of the following organizations:
 !
-!    - Rechenzentrum Garching der Max-Planck-Gesellschaft (RZG),
+!    - Max Planck Computing and Data Facility (MPCDF), formerly known as
+!      Rechenzentrum Garching der Max-Planck-Gesellschaft (RZG),
 !    - Bergische Universität Wuppertal, Lehrstuhl für angewandte
 !      Informatik,
 !    - Technische Universität München, Lehrstuhl für Informatik mit
@@ -16,7 +17,7 @@
 !
 !
 !    More information can be found here:
-!    http://elpa.rzg.mpg.de/
+!    http://elpa.mpcdf.mpg.de/
 !
 !    ELPA is free software: you can redistribute it and/or modify
 !    it under the terms of the version 3 of the license of the
@@ -38,19 +39,10 @@
 !    any derivatives of ELPA under the same license that we chose for
 !    the original distribution, the GNU Lesser General Public License.
 !
-! This file was written by A. Marek, MPCDF
+! Author: Andreas Marek, MPCDF
 
-module precision
-
-  use iso_c_binding, only : C_FLOAT, C_DOUBLE, C_INT32_T, C_INT64_T, C_FLOAT
-
+module elpa_mpi
   implicit none
-
-  integer, parameter :: rk8 = C_DOUBLE
-  integer, parameter :: rk4 = C_FLOAT
-  integer, parameter :: ck8 = C_DOUBLE
-  integer, parameter :: ck4 = C_FLOAT
-  integer, parameter :: ik  = C_INT32_T
-  integer, parameter :: lik = C_INT64_T
-
-end module precision
+  include 'mpif.h'
+  public
+end module

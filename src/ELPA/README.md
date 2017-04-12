@@ -2,7 +2,7 @@
 
 ## Current Release ##
 
-The current release is ELPA 2016.05.003
+The current release is ELPA 2016.11.001
 
 ## About *ELPA*
 
@@ -97,5 +97,3 @@ It has been, and is, a tremendous effort to develop and maintain the
 
 Thus every effort and help to improve the *ELPA* library is higly appreciated.
 For details please see the CONTRIBUTING document.
-
-

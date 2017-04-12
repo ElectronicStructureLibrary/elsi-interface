@@ -3,8 +3,7 @@
 !    The ELPA library was originally created by the ELPA consortium,
 !    consisting of the following organizations:
 !
-!    - Max Planck Computing and Data Facility (MPCDF), formerly known as
-!      Rechenzentrum Garching der Max-Planck-Gesellschaft (RZG),
+!    - Rechenzentrum Garching der Max-Planck-Gesellschaft (RZG),
 !    - Bergische Universität Wuppertal, Lehrstuhl für angewandte
 !      Informatik,
 !    - Technische Universität München, Lehrstuhl für Informatik mit
@@ -17,7 +16,7 @@
 !
 !
 !    More information can be found here:
-!    http://elpa.mpcdf.mpg.de/
+!    http://elpa.rzg.mpg.de/
 !
 !    ELPA is free software: you can redistribute it and/or modify
 !    it under the terms of the version 3 of the license of the
@@ -39,26 +38,16 @@
 !    any derivatives of ELPA under the same license that we chose for
 !    the original distribution, the GNU Lesser General Public License.
 !
-! Author: Lorenz Huedepohl, MPCDF
+! This file was written by A. Marek, MPCDF
 
-module aligned_mem
+module precision
+  use iso_c_binding, only : C_FLOAT, C_DOUBLE, C_INT32_T, C_INT64_T, C_FLOAT
 
-  use, intrinsic :: iso_c_binding
-
-  interface
-    function posix_memalign(memptr, alignment, size) result(error) bind(C, name="posix_memalign")
-      import c_int, c_size_t, c_ptr
-      integer(kind=c_int) :: error
-      type(c_ptr), intent(inout) :: memptr
-      integer(kind=c_size_t), intent(in), value :: alignment, size
-    end function
-  end interface
-
-  interface
-    subroutine free(ptr) bind(C, name="free")
-      import c_ptr
-      type(c_ptr), value :: ptr
-    end subroutine
-  end interface
-
-end module
+  implicit none
+  integer, parameter :: rk8  = C_DOUBLE
+  integer, parameter :: rk4  = C_FLOAT
+  integer, parameter :: ck8  = C_DOUBLE
+  integer, parameter :: ck4  = C_FLOAT
+  integer, parameter :: ik  = C_INT32_T
+  integer, parameter :: lik = C_INT64_T
+end module precision

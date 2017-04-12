@@ -1,13 +1,13 @@
 # ELPA Makefile designed for ELSI installer
-# Victor Yu @ELSI team
-# Apr 6, 2017
+# ELSI team
+# Apr 11, 2017
 
 ifeq ($(strip $(XLF)),yes)
   XLFPP = -WF,
 endif
 
 FFLAGS_E += $(SCALAPACK_FCFLAGS) -I.
-FPP += $(XLFPP)-DWITH_MPI $(XLFPP)-DWITH_ONE_SPECIFIC_REAL_KERNEL $(XLFPP)-DWITH_ONE_SPECIFIC_COMPLEX_KERNEL
+FPP += $(XLFPP)-DWITH_MPI $(XLFPP)-DUSE_ASSUMED_SIZE $(XLFPP)-DWITH_ONE_SPECIFIC_REAL_KERNEL $(XLFPP)-DWITH_ONE_SPECIFIC_COMPLEX_KERNEL
 
 ifeq ($(strip $(ELPA2_KERNEL)),GPU)
   FPP += $(XLFPP)-DWITH_GPU_VERSION
@@ -56,7 +56,7 @@ ifeq ($(strip $(ELPA2_KERNEL)),AVX)
 endif
 ifeq ($(strip $(ELPA2_KERNEL)),AVX2)
   ELPA2_KERNELS_O ?= elpa2_kernels_real_avx-avx2_2hv_double_precision.o elpa2_kernels_complex_avx-avx2_1hv_double_precision.o
-  FPP += $(XLFPP)-DHAVE_AVX2
+  FPP += $(XLFPP)-DHAVE_AVX $(XLFPP)-DHAVE_AVX2
   ifeq ($(strip $(BLOCK_REAL)),2)
     ELPA2_KERNELS_O +=
     FPP += $(XLFPP)-DWITH_REAL_AVX2_BLOCK2_KERNEL
@@ -96,57 +96,53 @@ else
   endif
 endif
 
-COMPUTE_MODULES_O = aligned_mem.o mod_compute_hh_trafo_complex.o mod_compute_hh_trafo_real.o mod_pack_unpack_complex.o mod_pack_unpack_real.o mod_single_hh_trafo_real.o mod_fortran_interfaces.o interface_c_kernel.o interface_cuda.o mod_cuda.o mod_pack_unpack_real_gpu.o check_for_gpu.o mod_mpi.o mod_precision.o
-ELPA_QR_O = elpa_pdgeqrf.o elpa_pdlarfb.o elpa_qrkernels.o qr_utils.o
-ELPA1_O = elpa1.o elpa_utilities.o elpa1_auxiliary.o elpa1_compute_private.o
-ELPA2_O = elpa2.o elpa2_utilities.o elpa2_compute.o
-GPU_O = cudaFunctions.o cuUtils.o ev_tridi_band_gpu_c_v2.o
 
-ALL_OBJECTS = $(ELPA1_O) $(ELPA2_O) $(ELPA2_KERNELS_O) $(ELPA_QR_O) $(COMPUTE_MODULES_O)
+ALL_OBJECTS = $(ELPA2_KERNELS_O) aligned_mem.o check_for_gpu.o elpa1_auxiliary.o elpa1_compute_private.o elpa1.o elpa1_utilities.o elpa2_compute.o elpa2.o elpa2_utilities.o elpa_pdgeqrf.o elpa_pdlarfb.o elpa_qrkernels.o elpa_utilities.o interface_c_kernel.o mod_compute_hh_trafo_complex.o mod_compute_hh_trafo_real.o mod_cuda.o mod_fortran_interfaces.o mod_mpi.o mod_pack_unpack_complex.o mod_pack_unpack_real_gpu.o mod_pack_unpack_real.o mod_precision.o mod_single_hh_trafo_real.o qr_utils.o timer_dummy.o
+GPU_OBJECTS = cudaFunctions.o cuUtils.o ev_tridi_band_gpu_c_v2.o
 
 ifeq ($(strip $(ELPA2_KERNEL)),GPU)
-  ALL_OBJECTS += $(GPU_O)
+  ALL_OBJECTS += $(GPU_OBJECTS)
 endif
 
 all: $(ALL_OBJECTS)
 
-elpa1.o: ./src/elpa1.F90 elpa_utilities.o elpa1_auxiliary.o elpa1_compute_private.o mod_mpi.o mod_precision.o
+elpa1.o: ./src/elpa1.F90 elpa_utilities.o elpa1_utilities.o elpa1_auxiliary.o elpa1_compute_private.o mod_mpi.o check_for_gpu.o mod_cuda.o
 	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
 
-elpa1_auxiliary.o: ./src/elpa1_auxiliary.F90 elpa1_compute_private.o elpa_utilities.o mod_mpi.o mod_precision.o
+elpa1_auxiliary.o: ./src/elpa1_auxiliary.F90 elpa_utilities.o elpa1_compute_private.o elpa_utilities.o mod_mpi.o mod_precision.o
 	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
 
-elpa1_compute_private.o: ./src/elpa1_compute_private.F90 mod_mpi.o elpa_utilities.o
+elpa1_compute_private.o: ./src/elpa1_compute_private.F90 mod_mpi.o elpa_utilities.o timer_dummy.o mod_cuda.o mod_precision.o
 	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
 
-elpa2.o: ./src/elpa2.F90 elpa1.o elpa_utilities.o elpa2_utilities.o elpa1_compute_private.o elpa2_compute.o elpa_pdgeqrf.o $(ELPA2_KERNELS_O) check_for_gpu.o mod_mpi.o mod_cuda.o mod_precision.o
+elpa1_utilities.o: ./src/elpa1_utilities.F90 elpa_utilities.o mod_precision.o timer_dummy.o
+	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
+
+elpa2.o: ./src/elpa2.F90 elpa1.o elpa_utilities.o elpa2_utilities.o elpa1_compute_private.o elpa2_compute.o check_for_gpu.o mod_mpi.o mod_cuda.o
 	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
 
 elpa2_compute.o: ./src/elpa2_compute.F90 aligned_mem.o mod_compute_hh_trafo_complex.o mod_compute_hh_trafo_real.o mod_pack_unpack_complex.o mod_pack_unpack_real.o mod_pack_unpack_real_gpu.o elpa_pdgeqrf.o elpa1.o elpa2_utilities.o elpa1_compute_private.o mod_mpi.o mod_precision.o elpa_utilities.o mod_cuda.o
 	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
 
-aligned_mem.o: ./src/aligned_mem.f90
+aligned_mem.o: ./src/aligned_mem.F90
 	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
 
-mod_compute_hh_trafo_complex.o: ./src/mod_compute_hh_trafo_complex.F90 $(ELPA2_KERNELS_O) elpa2_utilities.o interface_c_kernel.o interface_cuda.o mod_cuda.o mod_fortran_interfaces.o mod_mpi.o mod_precision.o
+mod_compute_hh_trafo_complex.o: ./src/mod_compute_hh_trafo_complex.F90 mod_single_hh_trafo_real.o $(ELPA2_KERNELS_O) elpa2_utilities.o interface_c_kernel.o mod_cuda.o mod_fortran_interfaces.o mod_mpi.o mod_precision.o
 	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
 
-mod_compute_hh_trafo_real.o: ./src/mod_compute_hh_trafo_real.F90 mod_single_hh_trafo_real.o $(ELPA2_KERNELS_O) elpa2_utilities.o interface_c_kernel.o interface_cuda.o mod_cuda.o mod_fortran_interfaces.o mod_mpi.o mod_precision.o
+mod_compute_hh_trafo_real.o: ./src/mod_compute_hh_trafo_real.F90 mod_single_hh_trafo_real.o $(ELPA2_KERNELS_O) elpa2_utilities.o interface_c_kernel.o mod_cuda.o mod_fortran_interfaces.o mod_mpi.o mod_precision.o
 	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
 
 mod_fortran_interfaces.o: ./src/elpa2_kernels/mod_fortran_interfaces.F90
 	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
 
+mod_single_hh_trafo_real.o: ./src/elpa2_kernels/mod_single_hh_trafo_real.F90 mod_precision.o
+	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
+
 interface_c_kernel.o: ./src/interface_c_kernel.F90 mod_precision.o
 	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
 
-interface_cuda.o: ./src/interface_cuda.F90 mod_precision.o
-	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
-
 mod_cuda.o: ./src/mod_cuda.F90 mod_precision.o
-	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
-
-mod_single_hh_trafo_real.o: ./src/elpa2_kernels/mod_single_hh_trafo_real.F90 mod_precision.o
 	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
 
 mod_pack_unpack_complex.o: ./src/mod_pack_unpack_complex.F90 mod_precision.o
@@ -155,10 +151,10 @@ mod_pack_unpack_complex.o: ./src/mod_pack_unpack_complex.F90 mod_precision.o
 mod_pack_unpack_real.o: ./src/mod_pack_unpack_real.F90 mod_precision.o
 	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
 
-mod_pack_unpack_real_gpu.o: ./src/mod_pack_unpack_real_gpu.f90 interface_c_kernel.o mod_precision.o mod_cuda.o
+mod_pack_unpack_real_gpu.o: ./src/mod_pack_unpack_real_gpu.F90 interface_c_kernel.o mod_precision.o mod_cuda.o
 	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
 
-check_for_gpu.o: ./src/check_for_gpu.f90 mod_cuda.o mod_precision.o mod_mpi.o
+check_for_gpu.o: ./src/check_for_gpu.F90 mod_cuda.o mod_precision.o mod_mpi.o
 	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
 
 elpa2_kernels_real.o : ./src/elpa2_kernels/elpa2_kernels_real.F90 mod_precision.o
@@ -188,25 +184,28 @@ elpa2_kernels_asm_x86_64_double_precision.o : ./src/elpa2_kernels/elpa2_kernels_
 elpa2_kernels_real_bgq.o : ./src/elpa2_kernels/elpa2_kernels_real_bgq.f90 mod_precision.o mod_mpi.o
 	$(MPIFC) $(FFLAGS_E) -c $<
 
-elpa_utilities.o: ./src/elpa_utilities.f90 mod_precision.o
+elpa_utilities.o: ./src/elpa_utilities.F90 mod_precision.o
 	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
 
 elpa2_utilities.o: ./src/elpa2_utilities.F90 elpa_utilities.o mod_precision.o
 	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
 
-mod_precision.o: ./src/mod_precision.f90
+mod_precision.o: ./src/mod_precision.F90
 	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
 
-mod_mpi.o: ./src/mod_mpi.f90
+mod_mpi.o: ./src/mod_mpi.F90
 	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
 
-elpa_pdgeqrf.o: ./src/elpa_qr/elpa_pdgeqrf.F90 elpa_pdlarfb.o qr_utils.o elpa_qrkernels.o mod_precision.o
+timer_dummy.o: ./src/timer_dummy.F90
 	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
 
-elpa_pdlarfb.o: ./src/elpa_qr/elpa_pdlarfb.F90 qr_utils.o elpa1.o mod_precision.o
+elpa_pdgeqrf.o: ./src/elpa_qr/elpa_pdgeqrf.F90 elpa_utilities.o elpa1_compute_private.o elpa_pdlarfb.o qr_utils.o mod_mpi.o mod_precision.o elpa1.o
 	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
 
-qr_utils.o: ./src/elpa_qr/qr_utils.f90 elpa1_compute_private.o mod_precision.o
+elpa_pdlarfb.o: ./src/elpa_qr/elpa_pdlarfb.F90 elpa1_compute_private.o qr_utils.o elpa1.o mod_precision.o mod_mpi.o
+	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
+
+qr_utils.o: ./src/elpa_qr/qr_utils.F90 elpa1_compute_private.o mod_precision.o elpa_utilities.o mod_mpi.o
 	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
 
 elpa_qrkernels.o: ./src/elpa_qr/elpa_qrkernels.F90 mod_precision.o

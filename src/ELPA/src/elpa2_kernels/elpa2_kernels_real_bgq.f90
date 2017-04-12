@@ -52,20 +52,21 @@
 ! distributed along with the original code in the file "COPYING".
 !
 ! --------------------------------------------------------------------------------------------------
+module real_bgq_kernel
 
-  subroutine double_hh_trafo_bgq_double(q, hh, nb, nq, ldq, ldh)
-
+  private
+  public double_hh_trafo_bgq
+contains
+  subroutine double_hh_trafo_bgq(q, hh, nb, nq, ldq, ldh)
     use precision
-    use iso_c_binding
-
     implicit none
 
-    integer(kind=ik), intent(in)  :: nb, nq, ldq, ldh
+    integer(kind=ik), intent(in) :: nb, nq, ldq, ldh
     real(kind=rk8), intent(inout) :: q(ldq,*)
     real(kind=rk8), intent(in)    :: hh(ldh,*)
 
     real(kind=rk8)                :: s
-    integer(kind=ik)              :: i
+    integer(kind=ik)             :: i
 
     ! Safety only:
 
@@ -99,17 +100,16 @@
        call hh_trafo_kernel_4_bgq(q(i  ,1), hh, nb, ldq, ldh, s)
     endif
 
-  end subroutine double_hh_trafo_bgq_double
+  end subroutine double_hh_trafo_bgq
+
 
   ! --------------------------------------------------------------------------------------------------
   ! The following kernels perform the Householder transformation on Q for 24/16/8/4 rows.
   ! --------------------------------------------------------------------------------------------------
 
   subroutine hh_trafo_kernel_24_bgq(q, hh, nb, ldq, ldh, s)
-
     use precision
     use elpa_mpi
-
     implicit none
 
     integer(kind=ik), intent(in) :: nb, ldq, ldh
@@ -121,7 +121,6 @@
     VECTOR(REAL(8))::QPX_y1, QPX_y2, QPX_y3, QPX_y4, QPX_y5, QPX_y6
     VECTOR(REAL(8))::QPX_q1, QPX_q2, QPX_q3, QPX_q4, QPX_q5, QPX_q6
     VECTOR(REAL(8))::QPX_h1, QPX_h2, QPX_tau1, QPX_tau2, QPX_s
-
     integer i
 
     call alignx(32,q)
@@ -316,13 +315,12 @@
   ! --------------------------------------------------------------------------------------------------
 
   subroutine hh_trafo_kernel_16_bgq(q, hh, nb, ldq, ldh, s)
-
     use precision
     use elpa_mpi
-
     implicit none
 
-    integer(kind=ik), intent(in)  :: nb, ldq, ldh
+    integer(kind=ik), intent(in) :: nb, ldq, ldh
+
     real(kind=rk8), intent(inout) :: q(ldq,*)
     real(kind=rk8), intent(in)    :: hh(ldh,*), s
 
@@ -330,7 +328,6 @@
     VECTOR(REAL(8))::QPX_y1, QPX_y2, QPX_y3, QPX_y4
     VECTOR(REAL(8))::QPX_q1, QPX_q2, QPX_q3, QPX_q4
     VECTOR(REAL(8))::QPX_h1, QPX_h2, QPX_tau1, QPX_tau2, QPX_s
-
     integer i
 
     call alignx(32,q)
@@ -475,21 +472,19 @@
   ! --------------------------------------------------------------------------------------------------
 
   subroutine hh_trafo_kernel_8_bgq(q, hh, nb, ldq, ldh, s)
-
     use precision
     use elpa_mpi
-
     implicit none
 
-    integer(kind=ik), intent(in)  :: nb, ldq, ldh
+    integer(kind=ik), intent(in) :: nb, ldq, ldh
+
     real(kind=rk8), intent(inout) :: q(ldq,*)
     real(kind=rk8), intent(in)    :: hh(ldh,*), s
-
     integer(kind=ik)             :: i
-
     VECTOR(REAL(8))::QPX_x1, QPX_x2, QPX_y1, QPX_y2
     VECTOR(REAL(8))::QPX_q1, QPX_q2
     VECTOR(REAL(8))::QPX_h1, QPX_h2, QPX_tau1, QPX_tau2, QPX_s
+
 
     call alignx(32,q)
 
@@ -583,18 +578,15 @@
   ! --------------------------------------------------------------------------------------------------
 
   subroutine hh_trafo_kernel_4_bgq(q, hh, nb, ldq, ldh, s)
-
     use precision
     use elpa_mpi
-
     implicit none
 
-    integer(kind=ik), intent(in)  :: nb, ldq, ldh
+    integer(kind=ik), intent(in) :: nb, ldq, ldh
+
     real(kind=rk8), intent(inout) :: q(ldq,*)
     real(kind=rk8), intent(in)    :: hh(ldh,*), s
-
-    integer(kind=ik)              :: i
-
+    integer(kind=ik)             :: i
     VECTOR(REAL(8))::QPX_x1, QPX_y1
     VECTOR(REAL(8))::QPX_q1
     VECTOR(REAL(8))::QPX_h1, QPX_h2, QPX_tau1, QPX_tau2, QPX_s
@@ -662,3 +654,5 @@
     call VEC_ST(QPX_q1, 0, q(1,nb+1))
 
   end subroutine hh_trafo_kernel_4_bgq
+end module real_bgq_kernel
+! --------------------------------------------------------------------------------------------------

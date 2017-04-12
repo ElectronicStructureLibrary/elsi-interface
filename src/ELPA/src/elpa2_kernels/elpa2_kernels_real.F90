@@ -53,326 +53,45 @@
 ! distributed along with the original code in the file "COPYING".
 !
 ! --------------------------------------------------------------------------------------------------
-
+#ifdef USE_ASSUMED_SIZE
 #define PACK_REAL_TO_COMPLEX
-
-  ! the intel compiler creates a temp copy of array q!
-  ! this should be prevented if possible without using assumed size arrays
-  subroutine double_hh_trafo_generic_double(q, hh, nb, nq, ldq, ldh)
-    use precision
-    use iso_c_binding
-    implicit none
-
-    integer(kind=ik), intent(in)      :: nb, nq, ldq, ldh
-    real(kind=rk8), intent(inout)      :: q(ldq,*)
-    real(kind=rk8), intent(in)         :: hh(ldh,*)
-
-    real(kind=rk8)                     :: s
-    integer(kind=ik)                  :: i
-
-!    equivalence(q(1,1),q_complex(1,1))
-
-    ! Safety only:
-    if(mod(ldq,4) /= 0) STOP 'double_hh_trafo: ldq not divisible by 4!'
-
-    ! Calculate dot product of the two Householder vectors
-
-    s = hh(2,2)*1.0
-    do i=3,nb
-       s = s+hh(i,2)*hh(i-1,1)
-    enddo
-
-    ! Always a multiple of 4 Q-rows is transformed, even if nq is smaller
-
-    do i=1,nq-8,12
-       call hh_trafo_kernel_12_generic_double(q(i,1),hh, nb, ldq, ldh, s)
-    enddo
-
-    ! i > nq-8 now, i.e. at most 8 rows remain
-
-    if(nq-i+1 > 4) then
-       call hh_trafo_kernel_8_generic_double(q(i,1),hh, nb, ldq, ldh, s)
-
-    else if(nq-i+1 > 0) then
-       call hh_trafo_kernel_4_generic_double(q(i,1),hh, nb, ldq, ldh, s)
-
-    endif
-  end subroutine double_hh_trafo_generic_double
-
-  ! --------------------------------------------------------------------------------------------------
-  ! The following kernels perform the Householder transformation on Q for 12/8/4 rows.
-  ! Please note that Q is declared complex*16 here.
-  ! This is a hint for compilers that packed arithmetic can be used for Q
-  ! (relevant for Intel SSE and BlueGene double hummer CPUs).
-  ! --------------------------------------------------------------------------------------------------
-
-  subroutine hh_trafo_kernel_12_generic_double(q, hh, nb, ldq, ldh, s)
-    use precision
-    implicit none
-
-    integer(kind=ik), intent(in)    :: nb, ldq, ldh
-    complex(kind=ck8), intent(inout) :: q(ldq/2,*)
-    real(kind=rk8), intent(in)       :: hh(ldh,*)
-    real(kind=rk8), intent(in)       :: s
-
-    complex(kind=ck8)                :: x1, x2, x3, x4, x5, x6, y1, y2, y3, y4, y5, y6
-    real(kind=rk8)                   :: h1, h2, tau1, tau2
-    integer(kind=ik)                :: i
-
-    x1  = q(1,2)
-    x2  = q(2,2)
-    x3  = q(3,2)
-    x4  = q(4,2)
-    x5  = q(5,2)
-    x6  = q(6,2)
-
-    y1  = q(1 ,1) + q(1, 2)*hh(2,2)
-    y2  = q(2 ,1) + q(2, 2)*hh(2,2)
-    y3  = q(3 ,1) + q(3, 2)*hh(2,2)
-    y4  = q(4 ,1) + q(4, 2)*hh(2,2)
-    y5  = q(5 ,1) + q(5, 2)*hh(2,2)
-    y6  = q(6 ,1) + q(6, 2)*hh(2,2)
-
-#if defined(SSE_ALIGNED)
-    !DEC$ VECTOR ALIGNED
-#endif
-    do i=3,nb
-       h1  = hh(i-1,1)
-       h2  = hh(i,2)
-       x1  = x1 + q(1, i)*h1
-       y1  = y1 + q(1, i)*h2
-       x2  = x2 + q(2, i)*h1
-       y2  = y2 + q(2, i)*h2
-       x3  = x3 + q(3, i)*h1
-       y3  = y3 + q(3, i)*h2
-       x4  = x4 + q(4, i)*h1
-       y4  = y4 + q(4, i)*h2
-       x5  = x5 + q(5, i)*h1
-       y5  = y5 + q(5, i)*h2
-       x6  = x6 + q(6, i)*h1
-       y6  = y6 + q(6, i)*h2
-    enddo
-
-    x1  = x1  + q(1,nb+1)*hh(nb,1)
-    x2  = x2  + q(2,nb+1)*hh(nb,1)
-    x3  = x3  + q(3,nb+1)*hh(nb,1)
-    x4  = x4  + q(4,nb+1)*hh(nb,1)
-    x5  = x5  + q(5,nb+1)*hh(nb,1)
-    x6  = x6  + q(6,nb+1)*hh(nb,1)
-
-    tau1 = hh(1,1)
-    tau2 = hh(1,2)
-
-    h1  = -tau1
-    x1  = x1 *h1
-    x2  = x2 *h1
-    x3  = x3 *h1
-    x4  = x4 *h1
-    x5  = x5 *h1
-    x6  = x6 *h1
-
-    h1  = -tau2
-    h2  = -tau2*s
-    y1  = y1 *h1 + x1 *h2
-    y2  = y2 *h1 + x2 *h2
-    y3  = y3 *h1 + x3 *h2
-    y4  = y4 *h1 + x4 *h2
-    y5  = y5 *h1 + x5 *h2
-    y6  = y6 *h1 + x6 *h2
-
-    q(1,1)  = q(1, 1) + y1
-    q(2,1)  = q(2, 1) + y2
-    q(3,1)  = q(3, 1) + y3
-    q(4,1)  = q(4, 1) + y4
-    q(5,1)  = q(5, 1) + y5
-    q(6,1)  = q(6, 1) + y6
-
-    q(1, 2) = q(1, 2) + x1  + y1 *hh(2,2)
-    q(2, 2) = q(2, 2) + x2  + y2 *hh(2,2)
-    q(3, 2) = q(3, 2) + x3  + y3 *hh(2,2)
-    q(4, 2) = q(4, 2) + x4  + y4 *hh(2,2)
-    q(5, 2) = q(5, 2) + x5  + y5 *hh(2,2)
-    q(6, 2) = q(6, 2) + x6  + y6 *hh(2,2)
-
-#if defined(SSE_ALIGNED)
-    !DEC$ VECTOR ALIGNED
-#endif
-    do i=3,nb
-       h1 = hh(i-1,1)
-       h2 = hh(i,2)
-       q(1, i) = q(1,i)  + x1 *h1 + y1 *h2
-       q(2, i) = q(2,i)  + x2 *h1 + y2 *h2
-       q(3, i) = q(3,i)  + x3 *h1 + y3 *h2
-       q(4, i) = q(4,i)  + x4 *h1 + y4 *h2
-       q(5, i) = q(5,i)  + x5 *h1 + y5 *h2
-       q(6, i) = q(6,i)  + x6 *h1 + y6 *h2
-    enddo
-
-    q(1, nb+1) = q(1, nb+1) + x1 *hh(nb,1)
-    q(2, nb+1) = q(2, nb+1) + x2 *hh(nb,1)
-    q(3, nb+1) = q(3, nb+1) + x3 *hh(nb,1)
-    q(4, nb+1) = q(4, nb+1) + x4 *hh(nb,1)
-    q(5, nb+1) = q(5, nb+1) + x5 *hh(nb,1)
-    q(6, nb+1) = q(6, nb+1) + x6 *hh(nb,1)
-
-  end subroutine hh_trafo_kernel_12_generic_double
-
-  ! --------------------------------------------------------------------------------------------------
-
-  subroutine hh_trafo_kernel_8_generic_double(q, hh, nb, ldq, ldh, s)
-    use precision
-    implicit none
-
-    integer(kind=ik), intent(in)     :: nb, ldq, ldh
-    complex(kind=ck8), intent(inout)  :: q(ldq/2,*)
-    real(kind=rk8), intent(in)        :: hh(ldh,*)
-    real(kind=rk8), intent(in)        :: s
-    complex(kind=ck8)                 :: x1, x2, x3, x4, y1, y2, y3, y4
-    real(kind=rk8)                    :: h1, h2, tau1, tau2
-    integer(kind=ik)                 :: i
-
-    x1 = q(1,2)
-    x2 = q(2,2)
-    x3 = q(3,2)
-    x4 = q(4,2)
-
-    y1 = q(1,1) + q(1,2)*hh(2,2)
-    y2 = q(2,1) + q(2,2)*hh(2,2)
-    y3 = q(3,1) + q(3,2)*hh(2,2)
-    y4 = q(4,1) + q(4,2)*hh(2,2)
-
-#if defined(SSE_ALIGNED)
-    !DEC$ VECTOR ALIGNED
+#else
+#undef PACK_REAL_TO_COMPLEX
 #endif
 
-    do i=3,nb
-       h1 = hh(i-1,1)
-       h2 = hh(i,2)
-       x1 = x1 + q(1,i)*h1
-       y1 = y1 + q(1,i)*h2
-       x2 = x2 + q(2,i)*h1
-       y2 = y2 + q(2,i)*h2
-       x3 = x3 + q(3,i)*h1
-       y3 = y3 + q(3,i)*h2
-       x4 = x4 + q(4,i)*h1
-       y4 = y4 + q(4,i)*h2
-    enddo
+#ifndef USE_ASSUMED_SIZE
+module real_generic_kernel
 
-    x1 = x1 + q(1,nb+1)*hh(nb,1)
-    x2 = x2 + q(2,nb+1)*hh(nb,1)
-    x3 = x3 + q(3,nb+1)*hh(nb,1)
-    x4 = x4 + q(4,nb+1)*hh(nb,1)
+  private
+  public double_hh_trafo_generic_double
 
-    tau1 = hh(1,1)
-    tau2 = hh(1,2)
-
-    h1 = -tau1
-    x1 = x1*h1
-    x2 = x2*h1
-    x3 = x3*h1
-    x4 = x4*h1
-
-    h1 = -tau2
-    h2 = -tau2*s
-    y1 = y1*h1 + x1*h2
-    y2 = y2*h1 + x2*h2
-    y3 = y3*h1 + x3*h2
-    y4 = y4*h1 + x4*h2
-
-    q(1,1) = q(1,1) + y1
-    q(2,1) = q(2,1) + y2
-    q(3,1) = q(3,1) + y3
-    q(4,1) = q(4,1) + y4
-
-    q(1,2) = q(1,2) + x1 + y1*hh(2,2)
-    q(2,2) = q(2,2) + x2 + y2*hh(2,2)
-    q(3,2) = q(3,2) + x3 + y3*hh(2,2)
-    q(4,2) = q(4,2) + x4 + y4*hh(2,2)
-
-#if defined(SSE_ALIGNED)
-    !DEC$ VECTOR ALIGNED
+#ifdef WANT_SINGLE_PRECISION_REAL
+  public double_hh_trafo_generic_single
 #endif
-    do i=3,nb
-       h1 = hh(i-1,1)
-       h2 = hh(i,2)
-       q(1,i) = q(1,i) + x1*h1 + y1*h2
-       q(2,i) = q(2,i) + x2*h1 + y2*h2
-       q(3,i) = q(3,i) + x3*h1 + y3*h2
-       q(4,i) = q(4,i) + x4*h1 + y4*h2
-    enddo
 
-    q(1,nb+1) = q(1,nb+1) + x1*hh(nb,1)
-    q(2,nb+1) = q(2,nb+1) + x2*hh(nb,1)
-    q(3,nb+1) = q(3,nb+1) + x3*hh(nb,1)
-    q(4,nb+1) = q(4,nb+1) + x4*hh(nb,1)
-
-  end subroutine hh_trafo_kernel_8_generic_double
-
-  ! --------------------------------------------------------------------------------------------------
-
-  subroutine hh_trafo_kernel_4_generic_double(q, hh, nb, ldq, ldh, s)
-    use precision
-    implicit none
-
-    integer(kind=ik), intent(in)    :: nb, ldq, ldh
-    complex(kind=ck8), intent(inout) :: q(ldq/2,*)
-    real(kind=rk8), intent(in)       :: hh(ldh,*)
-    real(kind=rk8), intent(in)       :: s
-
-    complex(kind=ck8)                :: x1, x2, y1, y2
-    real(kind=rk8)                   :: h1, h2, tau1, tau2
-    integer(kind=ik)                :: i
-
-    x1 = q(1,2)
-    x2 = q(2,2)
-
-    y1 = q(1,1) + q(1,2)*hh(2,2)
-    y2 = q(2,1) + q(2,2)*hh(2,2)
-
-#if defined(SSE_ALIGNED)
-    !DEC$ VECTOR ALIGNED
+  contains
 #endif
-    do i=3,nb
-       h1 = hh(i-1,1)
-       h2 = hh(i,2)
-       x1 = x1 + q(1,i)*h1
-       y1 = y1 + q(1,i)*h2
-       x2 = x2 + q(2,i)*h1
-       y2 = y2 + q(2,i)*h2
-    enddo
 
-    x1 = x1 + q(1,nb+1)*hh(nb,1)
-    x2 = x2 + q(2,nb+1)*hh(nb,1)
+#define DOUBLE_PRECISION_REAL 1
+#define REAL_DATATYPE rk8
+#define COMPLEX_DATATYPE ck8
+#include "elpa2_kernels_real_template.X90"
+#undef DOUBLE_PRECISION_REAL
+#undef REAL_DATATYPE
+#undef COMPLEX_DATATYPE
 
-    tau1 = hh(1,1)
-    tau2 = hh(1,2)
 
-    h1 = -tau1
-    x1 = x1*h1
-    x2 = x2*h1
-
-    h1 = -tau2
-    h2 = -tau2*s
-    y1 = y1*h1 + x1*h2
-    y2 = y2*h1 + x2*h2
-
-    q(1,1) = q(1,1) + y1
-    q(2,1) = q(2,1) + y2
-
-    q(1,2) = q(1,2) + x1 + y1*hh(2,2)
-    q(2,2) = q(2,2) + x2 + y2*hh(2,2)
-
-#if defined(SSE_ALIGNED)
-    !DEC$ VECTOR ALIGNED
+#ifdef WANT_SINGLE_PRECISION_REAL
+#undef DOUBLE_PRECISION_REAL
+#define REAL_DATATYPE rk4
+#define COMPLEX_DATATYPE ck4
+#include "elpa2_kernels_real_template.X90"
+#undef DOUBLE_PRECISION_REAL
+#undef REAL_DATATYPE
+#undef COMPLEX_DATATYPE
 #endif
-    do i=3,nb
-       h1 = hh(i-1,1)
-       h2 = hh(i,2)
-       q(1,i) = q(1,i) + x1*h1 + y1*h2
-       q(2,i) = q(2,i) + x2*h1 + y2*h2
-    enddo
 
-    q(1,nb+1) = q(1,nb+1) + x1*hh(nb,1)
-    q(2,nb+1) = q(2,nb+1) + x2*hh(nb,1)
-
-  end subroutine hh_trafo_kernel_4_generic_double
+#ifndef USE_ASSUMED_SIZE
+end module real_generic_kernel
+#endif
+! --------------------------------------------------------------------------------------------------

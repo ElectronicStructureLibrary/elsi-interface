@@ -45,12 +45,14 @@
 //
 // --------------------------------------------------------------------------------------------------
 //
+// This file was originally written by NVIDIA
+// and re-written by A. Marek, MPCDF
+
 
 #include <stdio.h>
 #include <cuda_runtime.h>
 #include <stdlib.h>
 #include <cuComplex.h>
-
 // ===========================================================================================================
 // Important:   due to the use of warp shuffling, the C version of the backtransformation kernel only works on
 //              devices with compute capability 3.x; for older devices, please use the Fortran kernel version
@@ -654,3 +656,5 @@ extern "C" void launch_compute_hh_trafo_c_kernel_complex_single( cuFloatComplex*
 
 
 }
+
+

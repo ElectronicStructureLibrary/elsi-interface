@@ -50,19 +50,22 @@
 ! with their original authors, but shall adhere to the licensing terms
 ! distributed along with the original code in the file "COPYING".
 
-module ELPA1_compute
-
+!> \brief Fortran module which contains the source of ELPA 1stage
+module ELPA1_COMPUTE
   use elpa_utilities
+#ifdef HAVE_DETAILED_TIMINGS
+  use timings
+#endif
   use elpa_mpi
-
   implicit none
 
-  private
+  PRIVATE ! set default to private
 
-  public :: tridiag_real_double
+  public :: tridiag_real_double               ! Transform real symmetric matrix to tridiagonal form
   public :: tridiag_real
-  public :: trans_ev_real_double
+  public :: trans_ev_real_double              ! Transform real eigenvectors of a tridiagonal matrix back
   public :: trans_ev_real
+
   public :: solve_tridi_double
 
   interface tridiag_real
@@ -73,9 +76,15 @@ module ELPA1_compute
     module procedure trans_ev_real_double
   end interface
 
-  public :: tridiag_complex_double
+#ifdef WANT_SINGLE_PRECISION_REAL
+  public :: tridiag_real_single        ! Transform real single-precision symmetric matrix to tridiagonal form
+  public :: trans_ev_real_single       ! Transform real  single-precision eigenvectors of a tridiagonal matrix back
+  public :: solve_tridi_single
+#endif
+
+  public :: tridiag_complex_double            ! Transform complex hermitian matrix to tridiagonal form
   public :: tridiag_complex
-  public :: trans_ev_complex_double
+  public :: trans_ev_complex_double           ! Transform eigenvectors of a tridiagonal matrix back
   public :: trans_ev_complex
 
   interface tridiag_complex
@@ -86,8 +95,10 @@ module ELPA1_compute
     module procedure trans_ev_complex_double
   end interface
 
-  public :: local_index           ! Get local index of a block cyclic distributed matrix
-  public :: least_common_multiple ! Get least common multiple
+#ifdef WANT_SINGLE_PRECISION_COMPLEX
+  public :: tridiag_complex_single     ! Transform complex single-precision hermitian matrix to tridiagonal form
+  public :: trans_ev_complex_single    ! Transform complex single-precision eigenvectors of a tridiagonal matrix back
+#endif
 
   public :: hh_transform_real_double
   public :: hh_transform_real
@@ -108,6 +119,12 @@ module ELPA1_compute
     module procedure elpa_transpose_vectors_real_double
   end interface
 
+#ifdef WANT_SINGLE_PRECISION_REAL
+  public :: hh_transform_real_single
+  public :: elpa_reduce_add_vectors_real_single
+  public :: elpa_transpose_vectors_real_single
+#endif
+
   public :: hh_transform_complex_double
   public :: hh_transform_complex
   public :: elpa_reduce_add_vectors_complex_double
@@ -127,10 +144,17 @@ module ELPA1_compute
     module procedure elpa_transpose_vectors_complex_double
   end interface
 
+#ifdef WANT_SINGLE_PRECISION_COMPLEX
+  public :: hh_transform_complex_single
+  public :: elpa_reduce_add_vectors_complex_single
+  public :: elpa_transpose_vectors_complex_single
+#endif
+
   contains
 
-! real double
+! real double precision first
 #define DOUBLE_PRECISION_REAL 1
+
 #define DATATYPE REAL(kind=rk8)
 #define BYTESIZE 8
 #define REALCASE 1
@@ -141,8 +165,24 @@ module ELPA1_compute
 #undef BYTESIZE
 #undef REALCASE
 
-! complex double
+! single precision
+#ifdef WANT_SINGLE_PRECISION_REAL
+
+#undef DOUBLE_PRECISION_REAL
+#define DATATYPE REAL(kind=rk4)
+#define BYTESIZE 4
+#define REALCASE 1
+#include "elpa_transpose_vectors.X90"
+#include "elpa_reduce_add_vectors.X90"
+#undef DATATYPE
+#undef BYTESIZE
+#undef REALCASE
+
+#endif
+
+! double precision
 #define DOUBLE_PRECISION_COMPLEX 1
+
 #define DATATYPE COMPLEX(kind=ck8)
 #define BYTESIZE 16
 #define COMPLEXCASE 1
@@ -153,20 +193,66 @@ module ELPA1_compute
 #undef COMPLEXCASE
 #undef DOUBLE_PRECISION_COMPLEX
 
-! real double
+#ifdef WANT_SINGLE_PRECISION_COMPLEX
+
+#undef DOUBLE_PRECISION_COMPLEX
+#undef DOUBLE_PRECISION_REAL
+#define DATATYPE COMPLEX(kind=ck4)
+#define COMPLEXCASE 1
+#include "elpa_transpose_vectors.X90"
+#include "elpa_reduce_add_vectors.X90"
+#undef DATATYPE
+#undef BYTESIZE
+#undef COMPLEXCASE
+
+#endif /* WANT_SINGLE_PRECISION_COMPLEX */
+
+! real double precision
 #define DOUBLE_PRECISION_REAL 1
 #define REAL_DATATYPE rk8
+
 #include "elpa1_compute_real_template.X90"
+
 #undef DOUBLE_PRECISION_REAL
 #undef REAL_DATATYPE
 
-! complex double
+! real single precision
+#if defined(WANT_SINGLE_PRECISION_REAL)
+
+#undef DOUBLE_PRECISION_REAL
+#define REAL_DATATYPE rk4
+
+#include "elpa1_compute_real_template.X90"
+
+#undef DOUBLE_PRECISION_REAL
+#undef REAL_DATATYPE
+
+#endif /* WANT_SINGLE_PRECISION_REAL */
+
+! complex double precision
 #define DOUBLE_PRECISION_COMPLEX 1
 #define REAL_DATATYPE rk8
 #define COMPLEX_DATATYPE ck8
 #include "elpa1_compute_complex_template.X90"
+
 #undef DOUBLE_PRECISION_COMPLEX
 #undef REAL_DATATYPE
 #undef COMPLEX_DATATYPE
+
+
+! complex single precision
+#if defined(WANT_SINGLE_PRECISION_COMPLEX)
+
+#undef DOUBLE_PRECISION_COMPLEX
+#define REAL_DATATYPE rk4
+#define COMPLEX_DATATYPE ck4
+
+#include "elpa1_compute_complex_template.X90"
+
+#undef DOUBLE_PRECISION_COMPLEX
+#undef COMPLEX_DATATYPE
+#undef REAL_DATATYPE
+
+#endif /* WANT_SINGLE_PRECISION_COMPLEX */
 
 end module ELPA1_compute

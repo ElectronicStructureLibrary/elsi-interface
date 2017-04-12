@@ -52,7 +52,7 @@ program test_dm_real_sparse
    real*8 :: t1,t2
    real*8, allocatable :: H(:),S(:),D(:)
 
-   ! NOTE: The energy computed by PEXSI, e_test, is only accurate  if using
+   ! NOTE: The energy computed by PEXSI, e_test, is only accurate if using
    !       enough poles. In this test program, the number of poles is set to
    !       half of the number of MPI tasks. Therefore, converged result is
    !       expected with at least 80 MPI tasks, i.e. 40 PEXSI poles.

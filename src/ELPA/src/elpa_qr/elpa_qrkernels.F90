@@ -45,3 +45,14 @@
 #include "elpa_qrkernels.X90"
 #undef DOUBLE_PRECISION_REAL
 #undef REAL_DATATYPE
+
+#ifdef WANT_SINGLE_PRECISION_REAL
+
+#undef DOUBLE_PRECISION_REAL
+#define REAL_DATATYPE rk4
+#include "elpa_qrkernels.X90"
+#undef DOUBLE_PRECISION_REAL
+#undef REAL_DATATYPE
+
+#endif /* WANT_SINGLE_PRECISION_REAL */
+
