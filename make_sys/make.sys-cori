@@ -1,6 +1,6 @@
 # PLATFORM  : CORI @NERSC
 # COMPILERS : INTEL
-# VERIFIED  : APR 1, 2017
+# VERIFIED  : APR 12, 2017
 # DO READ ../INSTALL CAREFULLY!
 
 # ====== ELSI ======
@@ -9,16 +9,16 @@ MPICC  = cc
 MPICXX = CC
 LINKER = ftn
 
-FFLAGS   = -fast -no-ipo
-CFLAGS   = -fast -no-ipo
-CXXFLAGS = -fast -no-ipo -std=c++11
-LDFLAGS  = -fast -no-ipo
+FFLAGS   = -fast -no-ipo -xMIC-AVX512 -fp-model precise
+CFLAGS   = -fast -no-ipo -xMIC-AVX512 -fp-model precise
+CXXFLAGS = -fast -no-ipo -xMIC-AVX512 -fp-model precise -std=c++11
+LDFLAGS  = -fast -no-ipo -xMIC-AVX512 -fp-model precise
 
 CXX_LDFLAGS       = -lstdc++
 SCALAPACK_LDFLAGS = -mkl=cluster
 
 # ====== ELPA ======
-ELPA2_KERNEL  = AVX
+ELPA2_KERNEL  = AVX2
 BLOCK_REAL    = 2
 BLOCK_COMPLEX = 1
 
