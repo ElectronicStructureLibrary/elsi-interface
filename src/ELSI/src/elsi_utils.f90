@@ -1054,7 +1054,7 @@ subroutine elsi_get_global_row(global_idx,local_idx)
    integer :: block !< Local block
    integer :: idx !< Local index in block
 
-   block = floor(1.0d0*(local_idx-1)/n_b_rows)
+   block = (local_idx-1)/n_b_rows
    idx = local_idx-block*n_b_rows
 
    global_idx = my_p_row*n_b_rows+block*n_b_rows*n_p_rows+idx
@@ -1074,7 +1074,7 @@ subroutine elsi_get_global_col(global_idx,local_idx)
    integer :: block !< Local block
    integer :: idx !< Local index in block
 
-   block = floor(1.0d0*(local_idx-1)/n_b_cols)
+   block = (local_idx-1)/n_b_cols
    idx = local_idx-block*n_b_cols
 
    global_idx = my_p_col*n_b_cols+block*n_b_cols*n_p_cols+idx

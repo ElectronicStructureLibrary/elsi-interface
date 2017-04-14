@@ -83,7 +83,7 @@ subroutine elsi_init_sips()
    n_b_rows_sips = n_g_size
 
    ! The last process holds all remaining columns
-   n_b_cols_sips = floor(1.0d0*n_g_size/n_procs)
+   n_b_cols_sips = n_g_size/n_procs
    if(myid == n_procs-1) then
       n_b_cols_sips = n_g_size-(n_procs-1)*n_b_cols_sips
    endif
@@ -201,7 +201,7 @@ subroutine elsi_blacs_to_sips_hs_small(H_in,S_in)
                call elsi_get_global_col(global_col_id,i_col)
                call elsi_get_global_row(global_row_id,i_row)
                ! Compute destination
-               dest(i_val) = floor(1d0*(global_col_id-1)/floor(1d0*n_g_size/n_procs))
+               dest(i_val) = (global_col_id-1)/(n_g_size/n_procs)
                ! The last process may take more
                if(dest(i_val) > (n_procs-1)) dest(i_val) = n_procs-1
                ! Compute the global id
@@ -221,7 +221,7 @@ subroutine elsi_blacs_to_sips_hs_small(H_in,S_in)
                call elsi_get_global_col(global_col_id,i_col)
                call elsi_get_global_row(global_row_id,i_row)
                ! Compute destination
-               dest(i_val) = floor(1d0*(global_col_id-1)/floor(1d0*n_g_size/n_procs))
+               dest(i_val) = (global_col_id-1)/(n_g_size/n_procs)
                ! The last process may take more
                if(dest(i_val) > (n_procs-1)) dest(i_val) = n_procs-1
                ! Compute the global id
@@ -350,7 +350,7 @@ subroutine elsi_blacs_to_sips_hs_small(H_in,S_in)
       i_col = (pos_recv_buffer(1)-1)/n_g_size
       do i_val = 1,nnz_l_sips
          row_ind_sips(i_val) = mod(pos_recv_buffer(i_val)-1,n_g_size)+1
-         if(floor(1d0*(pos_recv_buffer(i_val)-1)/n_g_size)+1 > i_col) then
+         if((pos_recv_buffer(i_val)-1)/n_g_size+1 > i_col) then
             i_col = i_col+1
             col_ptr_sips(i_col-(pos_recv_buffer(1)-1)/n_g_size) = i_val
          endif

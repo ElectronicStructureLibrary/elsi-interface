@@ -97,7 +97,7 @@ subroutine elsi_init_pexsi()
       n_b_rows_pexsi = n_g_size
 
       ! The last process holds all remaining columns
-      n_b_cols_pexsi = floor(1.0d0*n_g_size/n_p_per_pole_pexsi)
+      n_b_cols_pexsi = n_g_size/n_p_per_pole_pexsi
       if(my_p_col_pexsi == n_p_per_pole_pexsi-1) then
          n_b_cols_pexsi = n_g_size-(n_p_per_pole_pexsi-1)*n_b_cols_pexsi
       endif
@@ -240,11 +240,11 @@ subroutine elsi_blacs_to_pexsi_hs_small(H_in,S_in)
    call elsi_allocate(h_val_send_buffer,nnz_l,"h_val_send_buffer",caller)
 
    ! Compute d1,d2,d11,d12,d21,d22 (need explanation)
-   d1  = floor(1.0d0*n_g_size/n_p_per_pole_pexsi)
+   d1  = n_g_size/n_p_per_pole_pexsi
    d2  = n_g_size-(n_p_per_pole_pexsi-1)*d1
-   d11 = floor(1.0d0*d1/pexsi_options%numPole)
+   d11 = d1/pexsi_options%numPole
    d12 = d1-(pexsi_options%numPole-1)*d11
-   d21 = floor(1.0d0*d2/pexsi_options%numPole)
+   d21 = d2/pexsi_options%numPole
    d22 = d2-(pexsi_options%numPole-1)*d21
 
    i_val = 0
@@ -515,7 +515,7 @@ subroutine elsi_blacs_to_pexsi_hs_small(H_in,S_in)
          i_col = (pos_send_buffer(1)-1)/n_g_size
          do i_val = 1,nnz_l_pexsi
             row_ind_pexsi(i_val) = mod(pos_send_buffer(i_val)-1,n_g_size)+1
-            if(floor(1.0d0*(pos_send_buffer(i_val)-1)/n_g_size)+1 > i_col) then
+            if((pos_send_buffer(i_val)-1)/n_g_size+1 > i_col) then
                i_col = i_col+1
                col_ptr_pexsi(i_col-(pos_send_buffer(1)-1)/n_g_size) = i_val
             endif
@@ -611,11 +611,11 @@ subroutine elsi_blacs_to_pexsi_hs_large(H_in,S_in)
    call elsi_allocate(h_val_send_buffer,nnz_l,"h_val_send_buffer",caller)
 
    ! Compute d1,d2,d11,d12,d21,d22 (need explanation)
-   d1  = floor(1.0d0*n_g_size/n_p_per_pole_pexsi)
+   d1  = n_g_size/n_p_per_pole_pexsi
    d2  = n_g_size-(n_p_per_pole_pexsi-1)*d1
-   d11 = floor(1.0d0*d1/pexsi_options%numPole)
+   d11 = d1/pexsi_options%numPole
    d12 = d1-(pexsi_options%numPole-1)*d11
-   d21 = floor(1.0d0*d2/pexsi_options%numPole)
+   d21 = d2/pexsi_options%numPole
    d22 = d2-(pexsi_options%numPole-1)*d21
 
    i_val = 0
@@ -1005,12 +1005,12 @@ subroutine elsi_pexsi_to_blacs_dm_small(D_out)
 
          ! Compute global id
          global_row_id = i_row
-         global_col_id = i_col+myid*floor(1.0d0*n_g_size/n_p_per_pole_pexsi)
+         global_col_id = i_col+myid*(n_g_size/n_p_per_pole_pexsi)
          global_id(i_val) = (global_col_id-1)*n_g_size+global_row_id
 
          ! Compute destination
-         proc_row_id = mod(floor(1.0d0*(global_row_id-1)/n_b_rows),n_p_rows)
-         proc_col_id = mod(floor(1.0d0*(global_col_id-1)/n_b_cols),n_p_cols)
+         proc_row_id = mod((global_row_id-1)/n_b_rows,n_p_rows)
+         proc_col_id = mod((global_col_id-1)/n_b_cols,n_p_cols)
          dest(i_val) = proc_col_id+proc_row_id*n_p_cols
       enddo
 
@@ -1042,7 +1042,7 @@ subroutine elsi_pexsi_to_blacs_dm_small(D_out)
    send_displ_aux = 0
    recv_displ_aux = 0
 
-   do i_proc = 0, n_procs-1
+   do i_proc = 0,n_procs-1
       send_displ(i_proc+1) = send_displ_aux
       send_displ_aux = send_displ_aux+send_count(i_proc+1)
 
@@ -1070,13 +1070,13 @@ subroutine elsi_pexsi_to_blacs_dm_small(D_out)
    ! Unpack density matrix
    do i_val = 1,nnz_l
       ! Compute global 2d id
-      global_col_id = floor(1.0d0*(pos_recv_buffer(i_val)-1)/n_g_size)+1
+      global_col_id = (pos_recv_buffer(i_val)-1)/n_g_size+1
       global_row_id = mod(pos_recv_buffer(i_val)-1,n_g_size)+1
 
       ! Compute local 2d id
-      local_row_id = floor(1.0d0*(global_row_id-1)/(n_p_rows*n_b_rows))*n_b_rows&
+      local_row_id = (global_row_id-1)/(n_p_rows*n_b_rows)*n_b_rows&
                      +mod((global_row_id-1),n_b_rows)+1
-      local_col_id = floor(1.0d0*(global_col_id-1)/(n_p_cols*n_b_cols))*n_b_cols&
+      local_col_id = (global_col_id-1)/(n_p_cols*n_b_cols)*n_b_cols&
                      +mod((global_col_id-1),n_b_cols)+1
 
       ! Put value to correct position
@@ -1161,11 +1161,11 @@ subroutine elsi_pexsi_to_blacs_dm_large(D_out)
 
          ! Compute global id
          global_row_id(i_val) = i_row
-         global_col_id(i_val) = i_col+myid*floor(1.0d0*n_g_size/n_p_per_pole_pexsi)
+         global_col_id(i_val) = i_col+myid*(n_g_size/n_p_per_pole_pexsi)
 
          ! Compute destination
-         proc_row_id = mod(floor(1.0d0*(global_row_id(i_val)-1)/n_b_rows),n_p_rows)
-         proc_col_id = mod(floor(1.0d0*(global_col_id(i_val)-1)/n_b_cols),n_p_cols)
+         proc_row_id = mod((global_row_id(i_val)-1)/n_b_rows,n_p_rows)
+         proc_col_id = mod((global_col_id(i_val)-1)/n_b_cols,n_p_cols)
          dest(i_val) = proc_col_id+proc_row_id*n_p_cols
       enddo
 
@@ -1231,9 +1231,9 @@ subroutine elsi_pexsi_to_blacs_dm_large(D_out)
    ! Unpack density matrix
    do i_val = 1,nnz_l
       ! Compute local 2d id
-      local_row_id = floor(1.0d0*(row_recv_buffer(i_val)-1)/(n_p_rows*n_b_rows))*n_b_rows&
+      local_row_id = (row_recv_buffer(i_val)-1)/(n_p_rows*n_b_rows)*n_b_rows&
                      +mod((row_recv_buffer(i_val)-1),n_b_rows)+1
-      local_col_id = floor(1.0d0*(col_recv_buffer(i_val)-1)/(n_p_cols*n_b_cols))*n_b_cols&
+      local_col_id = (col_recv_buffer(i_val)-1)/(n_p_cols*n_b_cols)*n_b_cols&
                      +mod((col_recv_buffer(i_val)-1),n_b_cols)+1
 
       ! Put value to correct position
