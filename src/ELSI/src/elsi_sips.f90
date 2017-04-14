@@ -159,7 +159,7 @@ subroutine elsi_blacs_to_sips_hs_small(H_in,S_in)
    real*8 :: tmp_real
    integer, allocatable :: dest(:) !< Destination of each element
 
-   ! For the meaning of each array here, see documentation of MPI_Alltoallv
+   ! See documentation of MPI_Alltoallv
    real*8, allocatable  :: h_val_send_buffer(:) !< Send buffer for Hamiltonian
    real*8, allocatable  :: s_val_send_buffer(:) !< Send buffer for overlap
    integer, allocatable :: pos_send_buffer(:)   !< Send buffer for global 1D id

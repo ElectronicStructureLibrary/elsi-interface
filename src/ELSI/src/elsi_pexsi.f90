@@ -159,7 +159,7 @@ subroutine elsi_pexsi_to_blacs_dm(D_out)
 
    real*8, intent(out) :: D_out(n_l_rows,n_l_cols) !< Density matrix to be converted
 
-   if(n_g_size < 46340) then ! kind=4 integer works
+   if(n_g_size < 46340) then
       call elsi_pexsi_to_blacs_dm_small(D_out)
    else ! use kind=8 integer
       call elsi_pexsi_to_blacs_dm_large(D_out)
@@ -201,12 +201,12 @@ subroutine elsi_blacs_to_pexsi_hs_small(H_in,S_in)
    integer :: this_n_cols
    integer :: tmp_int
    integer :: min_pos,min_id
-   integer :: nnz_l_pexsi_aux,nnz_l_tmp,mpi_comm_aux_pexsi
+   integer :: nnz_l_pexsi_aux,mpi_comm_aux_pexsi
    integer, allocatable :: dest(:) !< Destination of each element
    integer, allocatable :: locat(:) !< Location of each global column
    real*8 :: tmp_real
 
-   ! For the meaning of each array here, see documentation of MPI_Alltoallv
+   ! See documentation of MPI_Alltoallv
    real*8, allocatable  :: h_val_send_buffer(:) !< Send buffer for Hamiltonian
    real*8, allocatable  :: s_val_send_buffer(:) !< Send buffer for overlap
    integer, allocatable :: pos_send_buffer(:)   !< Send buffer for global 1D id
@@ -319,6 +319,8 @@ subroutine elsi_blacs_to_pexsi_hs_small(H_in,S_in)
                pos_send_buffer(i_val) = (global_col_id-1)*n_g_size+global_row_id
                h_val_send_buffer(i_val) = H_in(i_row,i_col)
                s_val_send_buffer(i_val) = S_in(i_row,i_col)
+               ! Set send_count
+               send_count(dest(i_val)+1) = send_count(dest(i_val)+1)+1
             endif
          enddo
       enddo
@@ -338,20 +340,12 @@ subroutine elsi_blacs_to_pexsi_hs_small(H_in,S_in)
                ! Pack global id and data into buffers
                pos_send_buffer(i_val) = (global_col_id-1)*n_g_size+global_row_id
                h_val_send_buffer(i_val) = H_in(i_row,i_col)
+               ! Set send_count
+               send_count(dest(i_val)+1) = send_count(dest(i_val)+1)+1
             endif
          enddo
       enddo
    endif
-
-   ! 1st round of alltoall
-   ! Set send_count
-   do i_proc = 0,n_procs-1
-      do i_val = 1,nnz_l
-         if(dest(i_val) == i_proc) then
-            send_count(i_proc+1) = send_count(i_proc+1)+1
-         endif
-      enddo
-   enddo
 
    deallocate(dest)
 
@@ -435,7 +429,6 @@ subroutine elsi_blacs_to_pexsi_hs_small(H_in,S_in)
       enddo
    endif
 
-   ! 2nd round of alltoall
    ! Set send_count, all data sent to the first pole
    send_count = 0
    send_count(myid/pexsi_options%numPole+1) = nnz_l_pexsi_aux
@@ -451,10 +444,7 @@ subroutine elsi_blacs_to_pexsi_hs_small(H_in,S_in)
       call MPI_Comm_split(mpi_comm_global,my_p_col_pexsi,my_p_row_pexsi,&
                           mpi_comm_aux_pexsi,mpierr)
 
-      call MPI_Allreduce(nnz_l_pexsi,nnz_l_tmp,1,mpi_integer,mpi_sum,&
-                         mpi_comm_aux_pexsi,mpierr)
-
-      nnz_l_pexsi = nnz_l_tmp
+      call MPI_Bcast(nnz_l_pexsi,1,mpi_integer,0,mpi_comm_aux_pexsi,mpierr)
    endif
 
    ! Set send and receive displacement
@@ -566,14 +556,14 @@ subroutine elsi_blacs_to_pexsi_hs_large(H_in,S_in)
    integer :: d1,d2,d11,d12,d21,d22 !< Number of columns in the intermediate stage
    integer :: this_n_cols
    integer :: min_pos,min_id
-   integer :: nnz_l_pexsi_aux,nnz_l_tmp,mpi_comm_aux_pexsi
+   integer :: nnz_l_pexsi_aux,mpi_comm_aux_pexsi
    integer :: tmp_int
    integer(kind=8) :: tmp_long
    integer, allocatable :: dest(:) !< Destination of each element
    integer, allocatable :: locat(:) !< Location of each global column
    real*8 :: tmp_real
 
-   ! For the meaning of each array here, see documentation of MPI_Alltoallv
+   ! See documentation of MPI_Alltoallv
    real*8, allocatable  :: h_val_send_buffer(:) !< Send buffer for Hamiltonian
    real*8, allocatable  :: s_val_send_buffer(:) !< Send buffer for overlap
    integer, allocatable :: row_send_buffer(:)   !< Send buffer for global row id
@@ -690,6 +680,8 @@ subroutine elsi_blacs_to_pexsi_hs_large(H_in,S_in)
                col_send_buffer(i_val) = global_col_id
                h_val_send_buffer(i_val) = H_in(i_row,i_col)
                s_val_send_buffer(i_val) = S_in(i_row,i_col)
+               ! Set send_count
+               send_count(dest(i_val)+1) = send_count(dest(i_val)+1)+1
             endif
          enddo
       enddo
@@ -709,20 +701,12 @@ subroutine elsi_blacs_to_pexsi_hs_large(H_in,S_in)
                row_send_buffer(i_val) = global_row_id
                col_send_buffer(i_val) = global_col_id
                h_val_send_buffer(i_val) = H_in(i_row,i_col)
+              ! Set send_count
+               send_count(dest(i_val)+1) = send_count(dest(i_val)+1)+1
             endif
          enddo
       enddo
    endif
-
-   ! 1st round of alltoall
-   ! Set send_count
-   do i_proc = 0,n_procs-1
-      do i_val = 1,nnz_l
-         if(dest(i_val) == i_proc) then
-            send_count(i_proc+1) = send_count(i_proc+1)+1
-         endif
-      enddo
-   enddo
 
    deallocate(dest)
 
@@ -833,7 +817,6 @@ subroutine elsi_blacs_to_pexsi_hs_large(H_in,S_in)
 
    deallocate(global_id)
 
-   ! 2nd round of alltoall
    ! Set send_count, all data sent to the first pole
    send_count = 0
    send_count(myid/pexsi_options%numPole+1) = nnz_l_pexsi_aux
@@ -849,10 +832,7 @@ subroutine elsi_blacs_to_pexsi_hs_large(H_in,S_in)
       call MPI_Comm_split(mpi_comm_global,my_p_col_pexsi,my_p_row_pexsi,&
                           mpi_comm_aux_pexsi,mpierr)
 
-      call MPI_Allreduce(nnz_l_pexsi,nnz_l_tmp,1,mpi_integer,mpi_sum,&
-                         mpi_comm_aux_pexsi,mpierr)
-
-      nnz_l_pexsi = nnz_l_tmp
+      call MPI_Bcast(nnz_l_pexsi,1,mpi_integer,0,mpi_comm_aux_pexsi,mpierr)
    endif
 
    ! Set send and receive displacement
@@ -966,7 +946,7 @@ subroutine elsi_pexsi_to_blacs_dm_small(D_out)
    integer, allocatable :: dest(:)      !< Destination of each element
    integer, allocatable :: global_id(:) !< Global 1d id
 
-   ! For the meaning of each array here, see documentation of MPI_Alltoallv
+   ! See documentation of MPI_Alltoallv
    real*8, allocatable :: val_send_buffer(:)  !< Send buffer for value
    integer, allocatable :: pos_send_buffer(:) !< Send buffer for global 1D id
    integer :: send_count(n_procs) !< Number of elements to send to each processor
@@ -1118,7 +1098,7 @@ subroutine elsi_pexsi_to_blacs_dm_large(D_out)
    integer, allocatable :: global_row_id(:) !< Global row id
    integer, allocatable :: dest(:)          !< Destination of each element
 
-   ! For the meaning of each array here, see documentation of MPI_Alltoallv
+   ! See documentation of MPI_Alltoallv
    real*8, allocatable :: val_send_buffer(:)  !< Send buffer for value
    integer, allocatable :: row_send_buffer(:) !< Send buffer for global row id
    integer, allocatable :: col_send_buffer(:) !< Send buffer for global column id
