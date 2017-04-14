@@ -1030,19 +1030,23 @@ subroutine elsi_pexsi_to_blacs_dm_small(D_out)
       recv_displ_aux = recv_displ_aux+recv_count(i_proc+1)
    enddo
 
-   call elsi_allocate(val_recv_buffer,nnz_l,"val_recv_buffer",caller)
-   call elsi_allocate(pos_recv_buffer,nnz_l,"pos_recv_buffer",caller)
-
    ! Send and receive the packed data
+   ! Value
+   call elsi_allocate(val_recv_buffer,nnz_l,"val_recv_buffer",caller)
+
    call MPI_Alltoallv(val_send_buffer,send_count,send_displ,mpi_real8,&
                       val_recv_buffer,recv_count,recv_displ,mpi_real8,&
                       mpi_comm_global,mpierr)
+
+   deallocate(val_send_buffer)
+
+   ! Position
+   call elsi_allocate(pos_recv_buffer,nnz_l,"pos_recv_buffer",caller)
 
    call MPI_Alltoallv(pos_send_buffer,send_count,send_displ,mpi_integer,&
                       pos_recv_buffer,recv_count,recv_displ,mpi_integer,&
                       mpi_comm_global,mpierr)
 
-   deallocate(val_send_buffer)
    deallocate(pos_send_buffer)
 
    D_out = 0.0d0
@@ -1187,23 +1191,32 @@ subroutine elsi_pexsi_to_blacs_dm_large(D_out)
       recv_displ_aux = recv_displ_aux+recv_count(i_proc+1)
    enddo
 
-   call elsi_allocate(val_recv_buffer,nnz_l,"val_recv_buffer",caller)
-   call elsi_allocate(row_recv_buffer,nnz_l,"row_recv_buffer",caller)
-   call elsi_allocate(col_recv_buffer,nnz_l,"col_recv_buffer",caller)
-
    ! Send and receive the packed data
+   ! Value
+   call elsi_allocate(val_recv_buffer,nnz_l,"val_recv_buffer",caller)
+
    call MPI_Alltoallv(val_send_buffer,send_count,send_displ,mpi_real8,&
                       val_recv_buffer,recv_count,recv_displ,mpi_real8,&
                       mpi_comm_global,mpierr)
+
+   deallocate(val_send_buffer)
+
+   ! Row index
+   call elsi_allocate(row_recv_buffer,nnz_l,"row_recv_buffer",caller)
+
    call MPI_Alltoallv(row_send_buffer,send_count,send_displ,mpi_integer,&
                       row_recv_buffer,recv_count,recv_displ,mpi_integer,&
                       mpi_comm_global,mpierr)
+
+   deallocate(row_send_buffer)
+
+   ! Column index
+   call elsi_allocate(col_recv_buffer,nnz_l,"col_recv_buffer",caller)
+
    call MPI_Alltoallv(col_send_buffer,send_count,send_displ,mpi_integer,&
                       col_recv_buffer,recv_count,recv_displ,mpi_integer,&
                       mpi_comm_global,mpierr)
 
-   deallocate(val_send_buffer)
-   deallocate(row_send_buffer)
    deallocate(col_send_buffer)
 
    D_out = 0.0d0
