@@ -130,6 +130,7 @@ elsi: $(ALL_OBJ)
 	@echo ===============================
 
 install:
+	rm -f $(ELSI_DIR)/*log*
 	cd $(ELSI_DIR) && $(MAKE) -f Makefile.elsi install
 	@echo ======================================
 	@echo = ELSI library created successfully. =
