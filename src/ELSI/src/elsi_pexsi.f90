@@ -207,27 +207,22 @@ subroutine elsi_blacs_to_pexsi_hs_small(H_in,S_in)
    real*8 :: tmp_real
 
    ! See documentation of MPI_Alltoallv
-   real*8, allocatable  :: h_val_send_buffer(:) !< Send buffer for Hamiltonian
-   real*8, allocatable  :: s_val_send_buffer(:) !< Send buffer for overlap
-   integer, allocatable :: pos_send_buffer(:)   !< Send buffer for global 1D id
-   integer :: send_count(n_procs) !< Number of elements to send to each processor
-   integer :: send_displ(n_procs) !< Displacement from which to take the outgoing data
-   integer :: send_displ_aux      !< Auxiliary variable used to set displacement
-   real*8, allocatable  :: h_val_recv_buffer(:) !< Receive buffer for Hamiltonian
-   real*8, allocatable  :: s_val_recv_buffer(:) !< Receive buffer for overlap
-   integer, allocatable :: pos_recv_buffer(:)   !< Receive buffer for global 1D id
-   integer :: recv_count(n_procs) !< Number of elements to receive from each processor
-   integer :: recv_displ(n_procs) !< Displacement at which to place the incoming data
-   integer :: recv_displ_aux      !< Auxiliary variable used to set displacement
+   real*8,  allocatable :: h_val_send_buffer(:) !< Send buffer for Hamiltonian
+   real*8,  allocatable :: s_val_send_buffer(:) !< Send buffer for overlap
+   integer, allocatable :: pos_send_buffer(:) !< Send buffer for global 1D id
+   integer, allocatable :: send_count(:) !< Number of elements to send to each processor
+   integer, allocatable :: send_displ(:) !< Displacement from which to take the outgoing data
+   real*8,  allocatable :: h_val_recv_buffer(:) !< Receive buffer for Hamiltonian
+   real*8,  allocatable :: s_val_recv_buffer(:) !< Receive buffer for overlap
+   integer, allocatable :: pos_recv_buffer(:) !< Receive buffer for global 1D id
+   integer, allocatable :: recv_count(:) !< Number of elements to receive from each processor
+   integer, allocatable :: recv_displ(:) !< Displacement at which to place the incoming data
+   integer :: send_displ_aux !< Auxiliary variable used to set displacement
+   integer :: recv_displ_aux !< Auxiliary variable used to set displacement
 
    character*40, parameter :: caller = "elsi_blacs_to_pexsi_hs_small"
 
    call elsi_start_redistribution_time()
-
-   send_count = 0
-   send_displ = 0
-   recv_count = 0
-   recv_displ = 0
 
    if(n_elsi_calls == 1) then
       call elsi_get_local_nnz(S_in,n_l_rows,n_l_cols,nnz_l)
@@ -301,6 +296,8 @@ subroutine elsi_blacs_to_pexsi_hs_small(H_in,S_in)
       enddo
    endif
 
+   call elsi_allocate(send_count,n_procs,"send_count",caller)
+
    ! Compute destination and global 1D id
    if(n_elsi_calls == 1) then
       i_val = 0
@@ -349,6 +346,8 @@ subroutine elsi_blacs_to_pexsi_hs_small(H_in,S_in)
 
    deallocate(dest)
 
+   call elsi_allocate(recv_count,n_procs,"recv_count",caller)
+
    ! Set recv_count
    call MPI_Alltoall(send_count,1,mpi_integer,recv_count,&
                      1,mpi_integer,mpi_comm_global,mpierr)
@@ -359,8 +358,12 @@ subroutine elsi_blacs_to_pexsi_hs_small(H_in,S_in)
                       mpi_comm_global,mpierr)
 
    ! Set send and receive displacement
+   call elsi_allocate(send_displ,n_procs,"send_displ",caller)
+   call elsi_allocate(recv_displ,n_procs,"recv_displ",caller)
+
    send_displ_aux = 0
    recv_displ_aux = 0
+
    do i_proc = 0,n_procs-1
       send_displ(i_proc+1) = send_displ_aux
       send_displ_aux = send_displ_aux+send_count(i_proc+1)
@@ -450,6 +453,7 @@ subroutine elsi_blacs_to_pexsi_hs_small(H_in,S_in)
    ! Set send and receive displacement
    send_displ_aux = 0
    recv_displ_aux = 0
+
    do i_proc = 0,n_procs-1
       send_displ(i_proc+1) = send_displ_aux
       send_displ_aux = send_displ_aux+send_count(i_proc+1)
@@ -497,6 +501,10 @@ subroutine elsi_blacs_to_pexsi_hs_small(H_in,S_in)
                       mpi_comm_global,mpierr)
 
    deallocate(h_val_recv_buffer)
+   deallocate(send_count)
+   deallocate(recv_count)
+   deallocate(send_displ)
+   deallocate(recv_displ)
 
    ! Only the first pole computes row index and column pointer
    if(n_elsi_calls == 1) then
@@ -564,30 +572,25 @@ subroutine elsi_blacs_to_pexsi_hs_large(H_in,S_in)
    real*8 :: tmp_real
 
    ! See documentation of MPI_Alltoallv
-   real*8, allocatable  :: h_val_send_buffer(:) !< Send buffer for Hamiltonian
-   real*8, allocatable  :: s_val_send_buffer(:) !< Send buffer for overlap
-   integer, allocatable :: row_send_buffer(:)   !< Send buffer for global row id
-   integer, allocatable :: col_send_buffer(:)   !< Send buffer for global column id
-   integer :: send_count(n_procs) !< Number of elements to send to each processor
-   integer :: send_displ(n_procs) !< Displacement from which to take the outgoing data
-   integer :: send_displ_aux      !< Auxiliary variable used to set displacement
-   real*8, allocatable  :: h_val_recv_buffer(:) !< Receive buffer for Hamiltonian
-   real*8, allocatable  :: s_val_recv_buffer(:) !< Receive buffer for overlap
-   integer, allocatable :: row_recv_buffer(:)   !< Receive buffer for global row id
-   integer, allocatable :: col_recv_buffer(:)   !< Receive buffer for global column id
-   integer :: recv_count(n_procs) !< Number of elements to receive from each processor
-   integer :: recv_displ(n_procs) !< Displacement at which to place the incoming data
-   integer :: recv_displ_aux      !< Auxiliary variable used to set displacement
+   real*8,  allocatable :: h_val_send_buffer(:) !< Send buffer for Hamiltonian
+   real*8,  allocatable :: s_val_send_buffer(:) !< Send buffer for overlap
+   integer, allocatable :: row_send_buffer(:) !< Send buffer for global row id
+   integer, allocatable :: col_send_buffer(:) !< Send buffer for global column id
+   integer, allocatable :: send_count(:) !< Number of elements to send to each processor
+   integer, allocatable :: send_displ(:) !< Displacement from which to take the outgoing data
+   real*8,  allocatable :: h_val_recv_buffer(:) !< Receive buffer for Hamiltonian
+   real*8,  allocatable :: s_val_recv_buffer(:) !< Receive buffer for overlap
+   integer, allocatable :: row_recv_buffer(:) !< Receive buffer for global row id
+   integer, allocatable :: col_recv_buffer(:) !< Receive buffer for global column id
+   integer, allocatable :: recv_count(:) !< Number of elements to receive from each processor
+   integer, allocatable :: recv_displ(:) !< Displacement at which to place the incoming data
+   integer :: recv_displ_aux !< Auxiliary variable used to set displacement
+   integer :: send_displ_aux !< Auxiliary variable used to set displacement
    integer(kind=8), allocatable :: global_id(:) !< Global 1D id
 
    character*40, parameter :: caller = "elsi_blacs_to_pexsi_hs_large"
 
    call elsi_start_redistribution_time()
-
-   send_count = 0
-   send_displ = 0
-   recv_count = 0
-   recv_displ = 0
 
    if(n_elsi_calls == 1) then
       call elsi_get_local_nnz(S_in,n_l_rows,n_l_cols,nnz_l)
@@ -662,6 +665,8 @@ subroutine elsi_blacs_to_pexsi_hs_large(H_in,S_in)
       enddo
    endif
 
+   call elsi_allocate(send_count,n_procs,"send_count",caller)
+
    ! Compute destination and global id
    if(n_elsi_calls == 1) then
       i_val = 0
@@ -710,6 +715,8 @@ subroutine elsi_blacs_to_pexsi_hs_large(H_in,S_in)
 
    deallocate(dest)
 
+   call elsi_allocate(recv_count,n_procs,"recv_count",caller)
+
    ! Set recv_count
    call MPI_Alltoall(send_count,1,mpi_integer,recv_count,&
                      1,mpi_integer,mpi_comm_global,mpierr)
@@ -720,8 +727,12 @@ subroutine elsi_blacs_to_pexsi_hs_large(H_in,S_in)
                       mpi_comm_global,mpierr)
 
    ! Set send and receive displacement
+   call elsi_allocate(send_displ,n_procs,"send_displ",caller)
+   call elsi_allocate(recv_displ,n_procs,"recv_displ",caller)
+
    send_displ_aux = 0
    recv_displ_aux = 0
+
    do i_proc = 0,n_procs-1
       send_displ(i_proc+1) = send_displ_aux
       send_displ_aux = send_displ_aux+send_count(i_proc+1)
@@ -838,6 +849,7 @@ subroutine elsi_blacs_to_pexsi_hs_large(H_in,S_in)
    ! Set send and receive displacement
    send_displ_aux = 0
    recv_displ_aux = 0
+
    do i_proc = 0,n_procs-1
       send_displ(i_proc+1) = send_displ_aux
       send_displ_aux = send_displ_aux+send_count(i_proc+1)
@@ -894,6 +906,10 @@ subroutine elsi_blacs_to_pexsi_hs_large(H_in,S_in)
                       mpi_comm_global,mpierr)
 
    deallocate(h_val_recv_buffer)
+   deallocate(send_count)
+   deallocate(recv_count)
+   deallocate(send_displ)
+   deallocate(recv_displ)
 
    ! Only the first pole computes row index and column pointer
    if(n_elsi_calls == 1) then
@@ -947,29 +963,24 @@ subroutine elsi_pexsi_to_blacs_dm_small(D_out)
    integer, allocatable :: global_id(:) !< Global 1d id
 
    ! See documentation of MPI_Alltoallv
-   real*8, allocatable :: val_send_buffer(:)  !< Send buffer for value
+   real*8,  allocatable :: val_send_buffer(:) !< Send buffer for value
    integer, allocatable :: pos_send_buffer(:) !< Send buffer for global 1D id
-   integer :: send_count(n_procs) !< Number of elements to send to each processor
-   integer :: send_displ(n_procs) !< Displacement from which to take the outgoing data
-   integer :: send_displ_aux      !< Auxiliary variable used to set displacement
-
-   real*8, allocatable  :: val_recv_buffer(:) !< Receive buffer for value
+   integer, allocatable :: send_count(:) !< Number of elements to send to each processor
+   integer, allocatable :: send_displ(:) !< Displacement from which to take the outgoing data
+   real*8,  allocatable :: val_recv_buffer(:) !< Receive buffer for value
    integer, allocatable :: pos_recv_buffer(:) !< Receive buffer for global 1D id
-   integer :: recv_count(n_procs) !< Number of elements to receive from each processor
-   integer :: recv_displ(n_procs) !< Displacement at which to place the incoming data
-   integer :: recv_displ_aux      !< Auxiliary variable used to set displacement
+   integer, allocatable :: recv_count(:) !< Number of elements to receive from each processor
+   integer, allocatable :: recv_displ(:) !< Displacement at which to place the incoming data
+   integer :: send_displ_aux !< Auxiliary variable used to set displacement
+   integer :: recv_displ_aux !< Auxiliary variable used to set displacement
 
    character*40, parameter :: caller = "elsi_pexsi_to_blacs_dm_small"
 
    call elsi_start_redistribution_time()
 
-   send_count = 0
-   send_displ = 0
-   recv_count = 0
-   recv_displ = 0
-
    call elsi_allocate(val_send_buffer,nnz_l_pexsi,"val_send_buffer",caller)
    call elsi_allocate(pos_send_buffer,nnz_l_pexsi,"pos_send_buffer",caller)
+   call elsi_allocate(send_count,n_procs,"send_count",caller)
 
    if(my_p_row_pexsi == 0) then
       call elsi_allocate(global_id,nnz_l_pexsi,"global_id",caller)
@@ -1012,6 +1023,8 @@ subroutine elsi_pexsi_to_blacs_dm_small(D_out)
       deallocate(dest)
    endif
 
+   call elsi_allocate(recv_count,n_procs,"recv_count",caller)
+
    ! Set recv_count
    call MPI_Alltoall(send_count,1,mpi_integer,recv_count,&
                      1,mpi_integer,mpi_comm_global,mpierr)
@@ -1019,6 +1032,9 @@ subroutine elsi_pexsi_to_blacs_dm_small(D_out)
    nnz_l = sum(recv_count,1)
 
    ! Set send and receive displacement
+   call elsi_allocate(send_displ,n_procs,"send_displ",caller)
+   call elsi_allocate(recv_displ,n_procs,"recv_displ",caller)
+
    send_displ_aux = 0
    recv_displ_aux = 0
 
@@ -1048,6 +1064,10 @@ subroutine elsi_pexsi_to_blacs_dm_small(D_out)
                       mpi_comm_global,mpierr)
 
    deallocate(pos_send_buffer)
+   deallocate(send_count)
+   deallocate(recv_count)
+   deallocate(send_displ)
+   deallocate(recv_displ)
 
    D_out = 0.0d0
 
@@ -1103,32 +1123,27 @@ subroutine elsi_pexsi_to_blacs_dm_large(D_out)
    integer, allocatable :: dest(:)          !< Destination of each element
 
    ! See documentation of MPI_Alltoallv
-   real*8, allocatable :: val_send_buffer(:)  !< Send buffer for value
+   real*8,  allocatable :: val_send_buffer(:)  !< Send buffer for value
    integer, allocatable :: row_send_buffer(:) !< Send buffer for global row id
    integer, allocatable :: col_send_buffer(:) !< Send buffer for global column id
-   integer :: send_count(n_procs) !< Number of elements to send to each processor
-   integer :: send_displ(n_procs) !< Displacement from which to take the outgoing data
-   integer :: send_displ_aux      !< Auxiliary variable used to set displacement
-
-   real*8, allocatable  :: val_recv_buffer(:) !< Receive buffer for value
+   integer, allocatable :: send_count(:) !< Number of elements to send to each processor
+   integer, allocatable :: send_displ(:) !< Displacement from which to take the outgoing data
+   real*8,  allocatable :: val_recv_buffer(:) !< Receive buffer for value
    integer, allocatable :: row_recv_buffer(:) !< Receive buffer for global row id
    integer, allocatable :: col_recv_buffer(:) !< Receive buffer for global column id
-   integer :: recv_count(n_procs) !< Number of elements to receive from each processor
-   integer :: recv_displ(n_procs) !< Displacement at which to place the incoming data
-   integer :: recv_displ_aux      !< Auxiliary variable used to set displacement
+   integer, allocatable :: recv_count(:) !< Number of elements to receive from each processor
+   integer, allocatable :: recv_displ(:) !< Displacement at which to place the incoming data
+   integer :: send_displ_aux !< Auxiliary variable used to set displacement
+   integer :: recv_displ_aux !< Auxiliary variable used to set displacement
 
    character*40, parameter :: caller = "elsi_pexsi_to_blacs_dm_large"
 
    call elsi_start_redistribution_time()
 
-   send_count = 0
-   send_displ = 0
-   recv_count = 0
-   recv_displ = 0
-
    call elsi_allocate(val_send_buffer,nnz_l_pexsi,"val_send_buffer",caller)
    call elsi_allocate(row_send_buffer,nnz_l_pexsi,"row_send_buffer",caller)
    call elsi_allocate(col_send_buffer,nnz_l_pexsi,"col_send_buffer",caller)
+   call elsi_allocate(send_count,n_procs,"send_count",caller)
 
    if(my_p_row_pexsi == 0) then
       call elsi_allocate(global_row_id,nnz_l_pexsi,"global_row_id",caller)
@@ -1173,6 +1188,8 @@ subroutine elsi_pexsi_to_blacs_dm_large(D_out)
       deallocate(dest)
    endif
 
+   call elsi_allocate(recv_count,n_procs,"recv_count",caller)
+
    ! Set recv_count
    call MPI_Alltoall(send_count,1,mpi_integer,recv_count,&
                      1,mpi_integer,mpi_comm_global,mpierr)
@@ -1180,6 +1197,9 @@ subroutine elsi_pexsi_to_blacs_dm_large(D_out)
    nnz_l = sum(recv_count,1)
 
    ! Set send and receive displacement
+   call elsi_allocate(send_displ,n_procs,"send_displ",caller)
+   call elsi_allocate(recv_displ,n_procs,"recv_displ",caller)
+
    send_displ_aux = 0
    recv_displ_aux = 0
 
@@ -1218,6 +1238,10 @@ subroutine elsi_pexsi_to_blacs_dm_large(D_out)
                       mpi_comm_global,mpierr)
 
    deallocate(col_send_buffer)
+   deallocate(send_count)
+   deallocate(recv_count)
+   deallocate(send_displ)
+   deallocate(recv_displ)
 
    D_out = 0.0d0
 
