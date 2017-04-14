@@ -364,11 +364,11 @@ subroutine elsi_blacs_to_pexsi_hs_small(H_in,S_in)
    send_displ_aux = 0
    recv_displ_aux = 0
 
-   do i_proc = 1,n_procs
-      send_displ(i_proc) = send_displ_aux
-      send_displ_aux = send_displ_aux+send_count(i_proc)
-      recv_displ(i_proc) = recv_displ_aux
-      recv_displ_aux = recv_displ_aux+recv_count(i_proc)
+   do i_proc = 0,n_procs-1
+      send_displ(i_proc+1) = send_displ_aux
+      send_displ_aux = send_displ_aux+send_count(i_proc+1)
+      recv_displ(i_proc+1) = recv_displ_aux
+      recv_displ_aux = recv_displ_aux+recv_count(i_proc+1)
    enddo
 
    ! Send and receive the packed data
@@ -454,11 +454,11 @@ subroutine elsi_blacs_to_pexsi_hs_small(H_in,S_in)
    send_displ_aux = 0
    recv_displ_aux = 0
 
-   do i_proc = 1,n_procs
-      send_displ(i_proc) = send_displ_aux
-      send_displ_aux = send_displ_aux+send_count(i_proc)
-      recv_displ(i_proc) = recv_displ_aux
-      recv_displ_aux = recv_displ_aux+recv_count(i_proc)
+   do i_proc = 0,n_procs-1
+      send_displ(i_proc+1) = send_displ_aux
+      send_displ_aux = send_displ_aux+send_count(i_proc+1)
+      recv_displ(i_proc+1) = recv_displ_aux
+      recv_displ_aux = recv_displ_aux+recv_count(i_proc+1)
    enddo
 
    ! Allocate PEXSI matrices
@@ -523,15 +523,6 @@ subroutine elsi_blacs_to_pexsi_hs_small(H_in,S_in)
       endif
 
       deallocate(pos_send_buffer)
-   endif
-
-   ! Broadcast col_ptr_ccs and row_ind_ccs
-   ! Not necessary for PEXSI, but for back-conversion of density matrix
-   if(n_elsi_calls == 1) then
-      call MPI_Bcast(col_ptr_pexsi,n_l_cols_pexsi+1,mpi_integer,0,&
-                     mpi_comm_aux_pexsi,mpierr)
-      call MPI_Bcast(row_ind_pexsi,nnz_l_pexsi,mpi_integer,0,&
-                     mpi_comm_aux_pexsi,mpierr)
    endif
 
    call elsi_stop_redistribution_time()
@@ -742,11 +733,11 @@ subroutine elsi_blacs_to_pexsi_hs_large(H_in,S_in)
    send_displ_aux = 0
    recv_displ_aux = 0
 
-   do i_proc = 1,n_procs
-      send_displ(i_proc) = send_displ_aux
-      send_displ_aux = send_displ_aux+send_count(i_proc)
-      recv_displ(i_proc) = recv_displ_aux
-      recv_displ_aux = recv_displ_aux+recv_count(i_proc)
+   do i_proc = 0,n_procs-1
+      send_displ(i_proc+1) = send_displ_aux
+      send_displ_aux = send_displ_aux+send_count(i_proc+1)
+      recv_displ(i_proc+1) = recv_displ_aux
+      recv_displ_aux = recv_displ_aux+recv_count(i_proc+1)
    enddo
 
    ! Send and receive the packed data
@@ -859,11 +850,11 @@ subroutine elsi_blacs_to_pexsi_hs_large(H_in,S_in)
    send_displ_aux = 0
    recv_displ_aux = 0
 
-   do i_proc = 1,n_procs
-      send_displ(i_proc) = send_displ_aux
-      send_displ_aux = send_displ_aux+send_count(i_proc)
-      recv_displ(i_proc) = recv_displ_aux
-      recv_displ_aux = recv_displ_aux+recv_count(i_proc)
+   do i_proc = 0,n_procs-1
+      send_displ(i_proc+1) = send_displ_aux
+      send_displ_aux = send_displ_aux+send_count(i_proc+1)
+      recv_displ(i_proc+1) = recv_displ_aux
+      recv_displ_aux = recv_displ_aux+recv_count(i_proc+1)
    enddo
 
    ! Allocate PEXSI matrices
@@ -940,15 +931,6 @@ subroutine elsi_blacs_to_pexsi_hs_large(H_in,S_in)
       deallocate(col_send_buffer)
    endif
 
-   ! Broadcast col_ptr_ccs and row_ind_ccs
-   ! Not necessary for PEXSI, but for back-conversion of density matrix
-   if(n_elsi_calls == 1) then
-      call MPI_Bcast(col_ptr_pexsi,n_l_cols_pexsi+1,mpi_integer,0,&
-                     mpi_comm_aux_pexsi,mpierr)
-      call MPI_Bcast(row_ind_pexsi,nnz_l_pexsi,mpi_integer,0,&
-                     mpi_comm_aux_pexsi,mpierr)
-   endif
-
    call elsi_stop_redistribution_time()
 
 end subroutine
@@ -976,11 +958,6 @@ subroutine elsi_pexsi_to_blacs_dm_small(D_out)
    integer :: local_row_id  !< Local row id in 1D block distribution
    integer :: proc_col_id   !< Column id in process grid
    integer :: proc_row_id   !< Row id in process grid
-   integer :: n_col_per_pole
-   integer :: start_col
-   integer :: end_col
-   integer :: offset
-   integer :: buffer_size
 
    integer, allocatable :: dest(:)      !< Destination of each element
    integer, allocatable :: global_id(:) !< Global 1d id
@@ -1001,73 +978,58 @@ subroutine elsi_pexsi_to_blacs_dm_small(D_out)
 
    call elsi_start_redistribution_time()
 
-   call elsi_allocate(global_id,nnz_l_pexsi,"global_id",caller)
-   call elsi_allocate(dest,nnz_l_pexsi,"dest",caller)
-
-   ! Compute destination and global 1D id
-   n_col_per_pole = n_g_size/pexsi_options%numPole
-
-   if(n_col_per_pole == 0) then
-      n_col_per_pole = 1
-   endif
-
-   start_col   = my_p_row_pexsi*n_col_per_pole
-   end_col     = (my_p_row_pexsi+1)*n_col_per_pole+1
-   i_col       = 0
-   buffer_size = 0
-   offset      = mod(myid,n_p_per_pole_pexsi)*n_g_size/n_p_per_pole_pexsi
-
-   do i_val = 1,nnz_l_pexsi
-      if(i_val == col_ptr_ccs(i_col+1) .and. i_col /= n_l_cols_pexsi) then
-         i_col = i_col+1
-      endif
-      i_row = row_ind_ccs(i_val)
-
-      ! Compute global id
-      global_row_id = i_row
-      global_col_id = i_col+offset
-
-      ! Compute destination
-      if(global_col_id > start_col .and. global_col_id < end_col) then
-         global_id(i_val) = (global_col_id-1)*n_g_size+global_row_id
-
-         proc_row_id = mod((global_row_id-1)/n_b_rows,n_p_rows)
-         proc_col_id = mod((global_col_id-1)/n_b_cols,n_p_cols)
-
-         dest(i_val) = proc_col_id+proc_row_id*n_p_cols
-
-         buffer_size = buffer_size+1
-      else
-         dest(i_val) = -1
-      endif
-   enddo
-
    call elsi_allocate(val_send_buffer,nnz_l_pexsi,"val_send_buffer",caller)
    call elsi_allocate(pos_send_buffer,nnz_l_pexsi,"pos_send_buffer",caller)
    call elsi_allocate(send_count,n_procs,"send_count",caller)
 
-   j_val = 0
+   if(my_p_row_pexsi == 0) then
+      call elsi_allocate(global_id,nnz_l_pexsi,"global_id",caller)
+      call elsi_allocate(dest,nnz_l_pexsi,"dest",caller)
 
-   ! Set send_count
-   do i_proc = 1,n_procs
+      i_col = 0
+      ! Compute destination and global 1D id
       do i_val = 1,nnz_l_pexsi
-         if(dest(i_val) == i_proc-1) then
-            j_val = j_val+1
-            val_send_buffer(j_val) = den_mat_ccs(i_val)
-            pos_send_buffer(j_val) = global_id(i_val)
-            send_count(i_proc)   = send_count(i_proc)+1
+         if(i_val == col_ptr_ccs(i_col+1) .and. i_col /= n_l_cols_pexsi) then
+            i_col = i_col+1
          endif
-      enddo
-   enddo
+         i_row = row_ind_ccs(i_val)
 
-   deallocate(global_id)
-   deallocate(dest)
+         ! Compute global id
+         global_row_id = i_row
+         global_col_id = i_col+myid*(n_g_size/n_p_per_pole_pexsi)
+         global_id(i_val) = (global_col_id-1)*n_g_size+global_row_id
+
+         ! Compute destination
+         proc_row_id = mod((global_row_id-1)/n_b_rows,n_p_rows)
+         proc_col_id = mod((global_col_id-1)/n_b_cols,n_p_cols)
+         dest(i_val) = proc_col_id+proc_row_id*n_p_cols
+      enddo
+
+      j_val = 0
+
+      ! Set send_count
+      do i_proc = 0,n_procs-1
+         do i_val = 1,nnz_l_pexsi
+            if(dest(i_val) == i_proc) then
+               j_val = j_val+1
+               val_send_buffer(j_val) = den_mat_ccs(i_val)
+               pos_send_buffer(j_val) = global_id(i_val)
+               send_count(i_proc+1) = send_count(i_proc+1)+1
+            endif
+         enddo
+      enddo
+
+      deallocate(global_id)
+      deallocate(dest)
+   endif
 
    call elsi_allocate(recv_count,n_procs,"recv_count",caller)
 
    ! Set recv_count
    call MPI_Alltoall(send_count,1,mpi_integer,recv_count,&
                      1,mpi_integer,mpi_comm_global,mpierr)
+
+   nnz_l = sum(recv_count,1)
 
    ! Set send and receive displacement
    call elsi_allocate(send_displ,n_procs,"send_displ",caller)
@@ -1076,12 +1038,12 @@ subroutine elsi_pexsi_to_blacs_dm_small(D_out)
    send_displ_aux = 0
    recv_displ_aux = 0
 
-   do i_proc = 1,n_procs
-      send_displ(i_proc) = send_displ_aux
-      send_displ_aux = send_displ_aux+send_count(i_proc)
+   do i_proc = 0,n_procs-1
+      send_displ(i_proc+1) = send_displ_aux
+      send_displ_aux = send_displ_aux+send_count(i_proc+1)
 
-      recv_displ(i_proc) = recv_displ_aux
-      recv_displ_aux = recv_displ_aux+recv_count(i_proc)
+      recv_displ(i_proc+1) = recv_displ_aux
+      recv_displ_aux = recv_displ_aux+recv_count(i_proc+1)
    enddo
 
    ! Send and receive the packed data
@@ -1155,11 +1117,6 @@ subroutine elsi_pexsi_to_blacs_dm_large(D_out)
    integer :: local_row_id  !< Local row id in 1D block distribution
    integer :: proc_col_id   !< Column id in process grid
    integer :: proc_row_id   !< Row id in process grid
-   integer :: n_col_per_pole
-   integer :: start_col
-   integer :: end_col
-   integer :: offset
-   integer :: buffer_size
 
    integer, allocatable :: global_col_id(:) !< Global column id
    integer, allocatable :: global_row_id(:) !< Global row id
@@ -1183,75 +1140,61 @@ subroutine elsi_pexsi_to_blacs_dm_large(D_out)
 
    call elsi_start_redistribution_time()
 
-   call elsi_allocate(global_row_id,nnz_l_pexsi,"global_row_id",caller)
-   call elsi_allocate(global_col_id,nnz_l_pexsi,"global_col_id",caller)
-   call elsi_allocate(dest,nnz_l_pexsi,"dest",caller)
-
-   ! Compute destination and global id
-   n_col_per_pole = n_g_size/pexsi_options%numPole
-
-   if(n_col_per_pole == 0) then
-      n_col_per_pole = 1
-   endif
-
-   start_col   = my_p_row_pexsi*n_col_per_pole
-   end_col     = (my_p_row_pexsi+1)*n_col_per_pole+1
-   offset      = mod(myid,n_p_per_pole_pexsi)*(n_g_size/n_p_per_pole_pexsi)
-   i_col       = 0
-   buffer_size = 0
-
-   do i_val = 1,nnz_l_pexsi
-      if(i_val == col_ptr_ccs(i_col+1) .and. i_col /= n_l_cols_pexsi) then
-         i_col = i_col+1
-      endif
-      i_row = row_ind_ccs(i_val)
-
-      ! Compute global id
-      global_row_id(i_val) = i_row
-      global_col_id(i_val) = i_col+offset
-
-      ! Compute destination
-      if(global_col_id(i_val) > start_col .and. global_col_id(i_val) < end_col) then
-         proc_row_id = mod((global_row_id(i_val)-1)/n_b_rows,n_p_rows)
-         proc_col_id = mod((global_col_id(i_val)-1)/n_b_cols,n_p_cols)
-
-         dest(i_val) = proc_col_id+proc_row_id*n_p_cols
-
-         buffer_size = buffer_size+1
-      else
-         dest(i_val) = -1
-      endif
-   enddo
-
-   j_val = 0
-
    call elsi_allocate(val_send_buffer,nnz_l_pexsi,"val_send_buffer",caller)
    call elsi_allocate(row_send_buffer,nnz_l_pexsi,"row_send_buffer",caller)
    call elsi_allocate(col_send_buffer,nnz_l_pexsi,"col_send_buffer",caller)
    call elsi_allocate(send_count,n_procs,"send_count",caller)
 
-   ! Set send_count
-   do i_proc = 1,n_procs
-      do i_val = 1,nnz_l_pexsi
-         if(dest(i_val) == i_proc-1) then
-            j_val = j_val+1
-            val_send_buffer(j_val) = den_mat_ccs(i_val)
-            row_send_buffer(j_val) = global_row_id(i_val)
-            col_send_buffer(j_val) = global_col_id(i_val)
-            send_count(i_proc) = send_count(i_proc)+1
-         endif
-      enddo
-   enddo
+   if(my_p_row_pexsi == 0) then
+      call elsi_allocate(global_row_id,nnz_l_pexsi,"global_row_id",caller)
+      call elsi_allocate(global_col_id,nnz_l_pexsi,"global_col_id",caller)
+      call elsi_allocate(dest,nnz_l_pexsi,"dest",caller)
 
-   deallocate(global_row_id)
-   deallocate(global_col_id)
-   deallocate(dest)
+      i_col = 0
+      ! Compute destination and global id
+      do i_val = 1,nnz_l_pexsi
+         if(i_val == col_ptr_ccs(i_col+1) .and. i_col /= n_l_cols_pexsi) then
+            i_col = i_col+1
+         endif
+         i_row = row_ind_ccs(i_val)
+
+         ! Compute global id
+         global_row_id(i_val) = i_row
+         global_col_id(i_val) = i_col+myid*(n_g_size/n_p_per_pole_pexsi)
+
+         ! Compute destination
+         proc_row_id = mod((global_row_id(i_val)-1)/n_b_rows,n_p_rows)
+         proc_col_id = mod((global_col_id(i_val)-1)/n_b_cols,n_p_cols)
+         dest(i_val) = proc_col_id+proc_row_id*n_p_cols
+      enddo
+
+      j_val = 0
+
+      ! Set send_count
+      do i_proc = 0,n_procs-1
+         do i_val = 1,nnz_l_pexsi
+            if(dest(i_val) == i_proc) then
+               j_val = j_val+1
+               val_send_buffer(j_val) = den_mat_ccs(i_val)
+               row_send_buffer(j_val) = global_row_id(i_val)
+               col_send_buffer(j_val) = global_col_id(i_val)
+               send_count(i_proc+1) = send_count(i_proc+1)+1
+            endif
+         enddo
+      enddo
+
+      deallocate(global_row_id)
+      deallocate(global_col_id)
+      deallocate(dest)
+   endif
 
    call elsi_allocate(recv_count,n_procs,"recv_count",caller)
 
    ! Set recv_count
    call MPI_Alltoall(send_count,1,mpi_integer,recv_count,&
                      1,mpi_integer,mpi_comm_global,mpierr)
+
+   nnz_l = sum(recv_count,1)
 
    ! Set send and receive displacement
    call elsi_allocate(send_displ,n_procs,"send_displ",caller)
@@ -1260,12 +1203,12 @@ subroutine elsi_pexsi_to_blacs_dm_large(D_out)
    send_displ_aux = 0
    recv_displ_aux = 0
 
-   do i_proc = 1,n_procs
-      send_displ(i_proc) = send_displ_aux
-      send_displ_aux = send_displ_aux+send_count(i_proc)
+   do i_proc = 0, n_procs-1
+      send_displ(i_proc+1) = send_displ_aux
+      send_displ_aux = send_displ_aux+send_count(i_proc+1)
 
-      recv_displ(i_proc) = recv_displ_aux
-      recv_displ_aux = recv_displ_aux+recv_count(i_proc)
+      recv_displ(i_proc+1) = recv_displ_aux
+      recv_displ_aux = recv_displ_aux+recv_count(i_proc+1)
    enddo
 
    ! Send and receive the packed data
