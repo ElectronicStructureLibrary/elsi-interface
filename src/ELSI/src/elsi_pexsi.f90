@@ -364,11 +364,11 @@ subroutine elsi_blacs_to_pexsi_hs_small(H_in,S_in)
    send_displ_aux = 0
    recv_displ_aux = 0
 
-   do i_proc = 0,n_procs-1
-      send_displ(i_proc+1) = send_displ_aux
-      send_displ_aux = send_displ_aux+send_count(i_proc+1)
-      recv_displ(i_proc+1) = recv_displ_aux
-      recv_displ_aux = recv_displ_aux+recv_count(i_proc+1)
+   do i_proc = 1,n_procs
+      send_displ(i_proc) = send_displ_aux
+      send_displ_aux = send_displ_aux+send_count(i_proc)
+      recv_displ(i_proc) = recv_displ_aux
+      recv_displ_aux = recv_displ_aux+recv_count(i_proc)
    enddo
 
    ! Send and receive the packed data
@@ -454,11 +454,11 @@ subroutine elsi_blacs_to_pexsi_hs_small(H_in,S_in)
    send_displ_aux = 0
    recv_displ_aux = 0
 
-   do i_proc = 0,n_procs-1
-      send_displ(i_proc+1) = send_displ_aux
-      send_displ_aux = send_displ_aux+send_count(i_proc+1)
-      recv_displ(i_proc+1) = recv_displ_aux
-      recv_displ_aux = recv_displ_aux+recv_count(i_proc+1)
+   do i_proc = 1,n_procs
+      send_displ(i_proc) = send_displ_aux
+      send_displ_aux = send_displ_aux+send_count(i_proc)
+      recv_displ(i_proc) = recv_displ_aux
+      recv_displ_aux = recv_displ_aux+recv_count(i_proc)
    enddo
 
    ! Allocate PEXSI matrices
@@ -733,11 +733,11 @@ subroutine elsi_blacs_to_pexsi_hs_large(H_in,S_in)
    send_displ_aux = 0
    recv_displ_aux = 0
 
-   do i_proc = 0,n_procs-1
-      send_displ(i_proc+1) = send_displ_aux
-      send_displ_aux = send_displ_aux+send_count(i_proc+1)
-      recv_displ(i_proc+1) = recv_displ_aux
-      recv_displ_aux = recv_displ_aux+recv_count(i_proc+1)
+   do i_proc = 1,n_procs
+      send_displ(i_proc) = send_displ_aux
+      send_displ_aux = send_displ_aux+send_count(i_proc)
+      recv_displ(i_proc) = recv_displ_aux
+      recv_displ_aux = recv_displ_aux+recv_count(i_proc)
    enddo
 
    ! Send and receive the packed data
@@ -850,11 +850,11 @@ subroutine elsi_blacs_to_pexsi_hs_large(H_in,S_in)
    send_displ_aux = 0
    recv_displ_aux = 0
 
-   do i_proc = 0,n_procs-1
-      send_displ(i_proc+1) = send_displ_aux
-      send_displ_aux = send_displ_aux+send_count(i_proc+1)
-      recv_displ(i_proc+1) = recv_displ_aux
-      recv_displ_aux = recv_displ_aux+recv_count(i_proc+1)
+   do i_proc = 1,n_procs
+      send_displ(i_proc) = send_displ_aux
+      send_displ_aux = send_displ_aux+send_count(i_proc)
+      recv_displ(i_proc) = recv_displ_aux
+      recv_displ_aux = recv_displ_aux+recv_count(i_proc)
    enddo
 
    ! Allocate PEXSI matrices
@@ -951,6 +951,7 @@ subroutine elsi_pexsi_to_blacs_dm_small(D_out)
    integer :: i_col         !< Col counter
    integer :: i_val         !< Value counter
    integer :: j_val         !< Value counter
+   integer :: k_val         !< Value counter
    integer :: i_proc        !< Process counter
    integer :: global_col_id !< Global column id
    integer :: global_row_id !< Global row id
@@ -1006,15 +1007,23 @@ subroutine elsi_pexsi_to_blacs_dm_small(D_out)
       enddo
 
       j_val = 0
+      k_val = nnz_l_pexsi+1
 
       ! Set send_count
-      do i_proc = 0,n_procs-1
+      do i_proc = 1,n_procs/2
          do i_val = 1,nnz_l_pexsi
-            if(dest(i_val) == i_proc) then
+            if(dest(i_val) == i_proc-1) then
                j_val = j_val+1
                val_send_buffer(j_val) = den_mat_ccs(i_val)
                pos_send_buffer(j_val) = global_id(i_val)
-               send_count(i_proc+1) = send_count(i_proc+1)+1
+               send_count(i_proc) = send_count(i_proc)+1
+            endif
+            if(dest(i_val) == n_procs-i_proc) then
+               k_val = k_val-1
+               val_send_buffer(k_val) = den_mat_ccs(i_val)
+               pos_send_buffer(k_val) = global_id(i_val)
+               send_count(n_procs+1-i_proc) = &
+                  send_count(n_procs+1-i_proc)+1
             endif
          enddo
       enddo
@@ -1038,12 +1047,12 @@ subroutine elsi_pexsi_to_blacs_dm_small(D_out)
    send_displ_aux = 0
    recv_displ_aux = 0
 
-   do i_proc = 0,n_procs-1
-      send_displ(i_proc+1) = send_displ_aux
-      send_displ_aux = send_displ_aux+send_count(i_proc+1)
+   do i_proc = 1,n_procs
+      send_displ(i_proc) = send_displ_aux
+      send_displ_aux = send_displ_aux+send_count(i_proc)
 
-      recv_displ(i_proc+1) = recv_displ_aux
-      recv_displ_aux = recv_displ_aux+recv_count(i_proc+1)
+      recv_displ(i_proc) = recv_displ_aux
+      recv_displ_aux = recv_displ_aux+recv_count(i_proc)
    enddo
 
    ! Send and receive the packed data
@@ -1112,6 +1121,7 @@ subroutine elsi_pexsi_to_blacs_dm_large(D_out)
    integer :: i_col         !< Col counter
    integer :: i_val         !< Value counter
    integer :: j_val         !< Value counter
+   integer :: k_val         !< Value counter
    integer :: i_proc        !< Process counter
    integer :: local_col_id  !< Local column id in 1D block distribution
    integer :: local_row_id  !< Local row id in 1D block distribution
@@ -1169,16 +1179,25 @@ subroutine elsi_pexsi_to_blacs_dm_large(D_out)
       enddo
 
       j_val = 0
+      k_val = nnz_l_pexsi+1
 
       ! Set send_count
-      do i_proc = 0,n_procs-1
+      do i_proc = 1,n_procs/2
          do i_val = 1,nnz_l_pexsi
-            if(dest(i_val) == i_proc) then
+            if(dest(i_val) == i_proc-1) then
                j_val = j_val+1
                val_send_buffer(j_val) = den_mat_ccs(i_val)
                row_send_buffer(j_val) = global_row_id(i_val)
                col_send_buffer(j_val) = global_col_id(i_val)
-               send_count(i_proc+1) = send_count(i_proc+1)+1
+               send_count(i_proc) = send_count(i_proc)+1
+            endif
+            if(dest(i_val) == n_procs-i_proc) then
+               k_val = k_val-1
+               val_send_buffer(k_val) = den_mat_ccs(i_val)
+               row_send_buffer(k_val) = global_row_id(i_val)
+               col_send_buffer(k_val) = global_col_id(i_val)
+               send_count(n_procs+1-i_proc) = &
+                  send_count(n_procs+1-i_proc)+1
             endif
          enddo
       enddo
@@ -1203,12 +1222,12 @@ subroutine elsi_pexsi_to_blacs_dm_large(D_out)
    send_displ_aux = 0
    recv_displ_aux = 0
 
-   do i_proc = 0, n_procs-1
-      send_displ(i_proc+1) = send_displ_aux
-      send_displ_aux = send_displ_aux+send_count(i_proc+1)
+   do i_proc = 1,n_procs
+      send_displ(i_proc) = send_displ_aux
+      send_displ_aux = send_displ_aux+send_count(i_proc)
 
-      recv_displ(i_proc+1) = recv_displ_aux
-      recv_displ_aux = recv_displ_aux+recv_count(i_proc+1)
+      recv_displ(i_proc) = recv_displ_aux
+      recv_displ_aux = recv_displ_aux+recv_count(i_proc)
    enddo
 
    ! Send and receive the packed data
