@@ -69,11 +69,12 @@ module ELSI_DIMENSIONS
    real*8,     allocatable :: occ_elpa(:)            !< Occupation numbers
 
    !> libOMM
-   type(Matrix) :: ham_omm       !< Hamiltonian
-   type(Matrix) :: ovlp_omm      !< Overlap
-   type(Matrix) :: coeff_omm     !< Coefficient matrix
-   type(Matrix) :: den_mat_omm   !< Density matrix
-   type(Matrix) :: t_den_mat_omm !< Kinetic energy density matrix
+   type(Matrix)            :: ham_omm            !< Hamiltonian
+   type(Matrix)            :: ovlp_omm           !< Overlap
+   type(Matrix)            :: coeff_omm          !< Coefficient matrix
+   type(Matrix)            :: den_mat_omm        !< Density matrix
+   type(Matrix)            :: t_den_mat_omm      !< Kinetic energy density matrix
+   real*8,     allocatable :: ovlp_real_omm(:,:) !< Copy of overlap matrix
 
    !> PESXI
    real*8,     allocatable :: ham_real_pexsi(:)     !< Sparse real Hamiltonian
@@ -87,17 +88,17 @@ module ELSI_DIMENSIONS
    integer,    allocatable :: col_ptr_pexsi(:)      !< Column pointer
 
    !> SIPs
-   real*8,  allocatable :: ham_real_sips(:)  !< Sparse real Hamiltonian
-   real*8,  allocatable :: ovlp_real_sips(:) !< Sparse real overlap
-   integer, allocatable :: row_ind_sips(:)   !< Row index
-   integer, allocatable :: col_ptr_sips(:)   !< Column pointer
-   real*8,  allocatable :: slices(:)         !< Slices
-   real*8,  allocatable :: shifts(:)         !< Shifts
-   integer, allocatable :: inertias(:)       !< Inertia count at each shift
+   real*8,     allocatable :: ham_real_sips(:)  !< Sparse real Hamiltonian
+   real*8,     allocatable :: ovlp_real_sips(:) !< Sparse real overlap
+   integer,    allocatable :: row_ind_sips(:)   !< Row index
+   integer,    allocatable :: col_ptr_sips(:)   !< Column pointer
+   real*8,     allocatable :: slices(:)         !< Slices
+   real*8,     allocatable :: shifts(:)         !< Shifts
+   integer,    allocatable :: inertias(:)       !< Inertia count at each shift
 
    !> BLACS
-   integer, allocatable :: local_row(:)
-   integer, allocatable :: local_col(:)
+   integer,    allocatable :: local_row(:)
+   integer,    allocatable :: local_col(:)
 
 ! ========= PARAMETERS =========
 
@@ -177,7 +178,7 @@ module ELSI_DIMENSIONS
    logical :: elpa_two_always = .false. !< Always use 2-stage solver
    integer :: broaden_method = 0        !< Broadening scheme for occupation numbers
    real*8  :: broaden_width = 1.0d-2    !< Broadening width for occupation numbers
-   real*8  :: occ_tolerance = 1.0d-10   !< Maximum allowed difference between actual number
+   real*8  :: occ_tolerance = 1.0d-13   !< Maximum allowed difference between actual number
                                         !! of electrons and the number computed by ELSI
    integer :: max_mu_steps = 100        !< Maximum number of steps to find the chemical potential
 
@@ -186,7 +187,7 @@ module ELSI_DIMENSIONS
    logical :: new_overlap          !< Is a new overlap matrix provided?
    logical :: coeff_initialized    !< Is coefficient matrix initialized?
    real*8  :: total_energy         !< Energy of the system
-   integer :: omm_flavour = -1     !< How to perform the calculation
+   integer :: omm_flavor = -1      !< How to perform the calculation
                                    !! 0 = Basic
                                    !! 1 = Cholesky factorisation
                                    !! 2 = Cholesky already performed

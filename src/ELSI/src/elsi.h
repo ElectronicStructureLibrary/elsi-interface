@@ -66,9 +66,11 @@ void c_elsi_customize_mu(int broadening_scheme,
                          int mu_max_steps);
 
 void c_elsi_customize_omm(int n_elpa_steps_omm,
-                          double eigenspectrum_shift,
+                          int omm_method,
+                          double eigen_shift,
                           double omm_tolerance,
-                          int use_pspblas);
+                          int use_pspblas,
+                          int omm_output);
 
 void c_elsi_customize_pexsi(double temperature,
                             double gap,

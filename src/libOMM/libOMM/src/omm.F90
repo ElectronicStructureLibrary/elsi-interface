@@ -110,6 +110,8 @@ subroutine omm(m,n,H,S,new_S,e_min,D_min,calc_ED,eta,C_min,init_C,T,scale_T,flav
   mpi_rank=0
 #endif
 
+  conv = .false.
+
   if (log_start) then
     open(newunit=log_unit,file='libOMM.log',position='append')
   else

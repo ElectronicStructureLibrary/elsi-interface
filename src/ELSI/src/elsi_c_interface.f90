@@ -177,8 +177,8 @@ subroutine elsi_customize_mu_c_wrapper(broadening_scheme,broadening_width,&
 
 end subroutine
 
-subroutine elsi_customize_omm_c_wrapper(n_elpa_steps_omm,eigenspectrum_shift,&
-                                        omm_tolerance,use_pspblas)&
+subroutine elsi_customize_omm_c_wrapper(n_elpa_steps_omm,omm_method,eigen_shift,&
+                                        omm_tolerance,use_pspblas,omm_output)&
                                         bind(C,name="c_elsi_customize_omm")
 
    use, intrinsic :: iso_c_binding
@@ -187,11 +187,14 @@ subroutine elsi_customize_omm_c_wrapper(n_elpa_steps_omm,eigenspectrum_shift,&
    implicit none
 
    integer(kind=c_int), value, intent(in) :: n_elpa_steps_omm
-   real(kind=c_double), value, intent(in) :: eigenspectrum_shift
+   integer(kind=c_int), value, intent(in) :: omm_method
+   real(kind=c_double), value, intent(in) :: eigen_shift
    real(kind=c_double), value, intent(in) :: omm_tolerance
    integer(kind=c_int), value, intent(in) :: use_pspblas
+   integer(kind=c_int), value, intent(in) :: omm_output
 
    logical :: use_pspblas_f
+   logical :: omm_output_f
 
    if(use_pspblas == 0) then
       use_pspblas_f = .false.
@@ -199,8 +202,14 @@ subroutine elsi_customize_omm_c_wrapper(n_elpa_steps_omm,eigenspectrum_shift,&
       use_pspblas_f = .true.
    endif
 
-   call elsi_customize_omm(n_elpa_steps_omm,eigenspectrum_shift,&
-                           omm_tolerance,use_pspblas_f)
+   if(omm_output == 0) then
+      omm_output_f = .false.
+   else
+      omm_output_f = .true.
+   endif
+
+   call elsi_customize_omm(n_elpa_steps_omm,omm_method,eigen_shift,&
+                           omm_tolerance,use_pspblas_f,omm_output_f)
 
 end subroutine
 

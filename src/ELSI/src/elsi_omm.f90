@@ -64,37 +64,59 @@ subroutine elsi_solve_evp_omm()
 
    if(overlap_is_singular) then
       call elsi_stop(" libOMM cannot treat singular overlap matrix yet."//&
-                     " Exiting...", caller)
+                     " Exiting...",caller)
+   endif
+
+   if((omm_flavor /= 0) .and. (omm_flavor /= 2)) then
+      call elsi_stop(" libOMM supports flavor = 0 or 2. Exiting...",caller)
    endif
 
    call elsi_start_density_matrix_time()
 
+   if(.not.overlap_is_unit) then
+      if(omm_flavor == 2) then
+         if(n_elsi_calls == 1) then
+            call elsi_start_cholesky_time()
+
+            ! Cholesky factorization
+            select case (mode)
+               case (COMPLEX_VALUES)
+                  ! Compute S = (U^T)U, U -> S
+                  success = elpa_cholesky_complex_double(n_g_size,ovlp_omm%zval,n_l_rows,&
+                               n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col,.false.)
+
+                  success = elpa_invert_trm_complex_double(n_g_size,ovlp_omm%zval,n_l_rows,&
+                               n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col,.false.)
+
+               case (REAL_VALUES)
+                  ! Compute S = (U^T)U, U -> S
+                  success = elpa_cholesky_real_double(n_g_size,ovlp_omm%dval,n_l_rows,&
+                               n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col,.false.)
+
+                  success = elpa_invert_trm_real_double(n_g_size,ovlp_omm%dval,n_l_rows,&
+                               n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col,.false.)
+
+            end select
+
+            call elsi_stop_cholesky_time()
+         endif
+
+         if(n_elsi_calls > n_elpa_steps+1) then
+            ! Invert one more time
+            select case (mode)
+               case (COMPLEX_VALUES)
+                  success = elpa_invert_trm_complex_double(n_g_size,ovlp_omm%zval,n_l_rows,&
+                               n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col,.false.)
+               case (REAL_VALUES)
+                  success = elpa_invert_trm_real_double(n_g_size,ovlp_omm%dval,n_l_rows,&
+                               n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col,.false.)
+            end select
+         endif
+      endif ! omm_flavor == 2
+   endif ! .not.overlap_is_unit
+
    if(n_elsi_calls == 1) then
       coeff_initialized = .false.
-
-      call elsi_start_cholesky_time()
-
-      ! Cholesky factorization
-      select case (mode)
-         case (COMPLEX_VALUES)
-            ! Compute S = (U^T)U, U -> S
-            success = elpa_cholesky_complex_double(n_g_size,ovlp_omm%zval,n_l_rows,&
-                         n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col,.false.)
-
-            success = elpa_invert_trm_complex_double(n_g_size,ovlp_omm%zval,n_l_rows,&
-                         n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col,.false.)
-
-         case (REAL_VALUES)
-            ! Compute S = (U^T)U, U -> S
-            success = elpa_cholesky_real_double(n_g_size,ovlp_omm%dval,n_l_rows,&
-                         n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col,.false.)
-
-            success = elpa_invert_trm_real_double(n_g_size,ovlp_omm%dval,n_l_rows,&
-                         n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col,.false.)
-
-      end select
-
-      call elsi_stop_cholesky_time()
    else
       coeff_initialized = .true.
    endif
@@ -103,18 +125,6 @@ subroutine elsi_solve_evp_omm()
       new_overlap = .true.
    else
       new_overlap = .false.
-   endif
-
-   if(n_elsi_calls > n_elpa_steps+1) then
-      ! Invert one more time
-      select case (mode)
-         case (COMPLEX_VALUES)
-            success = elpa_invert_trm_complex_double(n_g_size,ovlp_omm%zval,n_l_rows,&
-                         n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col,.false.)
-         case (REAL_VALUES)
-            success = elpa_invert_trm_real_double(n_g_size,ovlp_omm%dval,n_l_rows,&
-                         n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col,.false.)
-      end select
    endif
 
    ! Shift eigenvalue spectrum
@@ -128,21 +138,21 @@ subroutine elsi_solve_evp_omm()
    select case (mode)
       case (COMPLEX_VALUES)
          call omm(n_g_size,n_states,ham_omm,ovlp_omm,new_overlap,total_energy,&
-                  den_mat_omm,calc_ED,eta,coeff_omm,coeff_initialized,t_den_mat_omm,&
-                  scale_kinetic,omm_flavour,nk_times_nspin,i_k_spin,min_tol,omm_verbose,&
+                  den_mat_omm,calc_ed,eta,coeff_omm,coeff_initialized,t_den_mat_omm,&
+                  scale_kinetic,omm_flavor,nk_times_nspin,i_k_spin,min_tol,omm_verbose,&
                   do_dealloc,"pzdbc","lap")
 
       case (REAL_VALUES)
          if(use_psp) then
             call omm(n_g_size,n_states,ham_omm,ovlp_omm,new_overlap,total_energy,&
-                     den_mat_omm,calc_ED,eta,coeff_omm,coeff_initialized,t_den_mat_omm,&
-                     scale_kinetic,omm_flavour,nk_times_nspin,i_k_spin,min_tol,&
+                     den_mat_omm,calc_ed,eta,coeff_omm,coeff_initialized,t_den_mat_omm,&
+                     scale_kinetic,omm_flavor,nk_times_nspin,i_k_spin,min_tol,&
                      omm_verbose,do_dealloc,"pddbc","psp")
 
          else
             call omm(n_g_size,n_states,ham_omm,ovlp_omm,new_overlap,total_energy,&
-                     den_mat_omm,calc_ED,eta,coeff_omm,coeff_initialized,t_den_mat_omm,&
-                     scale_kinetic,omm_flavour,nk_times_nspin,i_k_spin,min_tol,&
+                     den_mat_omm,calc_ed,eta,coeff_omm,coeff_initialized,t_den_mat_omm,&
+                     scale_kinetic,omm_flavor,nk_times_nspin,i_k_spin,min_tol,&
                      omm_verbose,do_dealloc,"pddbc","lap")
          endif
    end select
@@ -150,7 +160,7 @@ subroutine elsi_solve_evp_omm()
    call MPI_Barrier(mpi_comm_global,mpierr)
    call elsi_stop_density_matrix_time()
 
-end subroutine ! elsi_solve_evp_omm
+end subroutine
 
 !> 
 !! Set OMM variables to ELSI default.
@@ -167,12 +177,12 @@ subroutine elsi_set_omm_default_options()
    !! 1 = Cholesky factorisation of S requested
    !! 2 = Cholesky already performed, U is provided in S
    !! 3 = Use preconditioning based on the energy density
-   omm_flavour = 2
+   omm_flavor = 2
 
-   !< Scaling of the kinetic energy matrix
+   !< How to scale the kinetic energy matrix
    scale_kinetic = 5.0d0
 
-   !< Calculate the energy weighted density matrix
+   !< Calculate the energy density matrix
    calc_ed = .false.
 
    !< Eigenspectrum shift parameter
@@ -211,6 +221,9 @@ subroutine elsi_print_omm_options()
    call elsi_statement_print(info_str)
 
    write(info_str,"(1X,' | ELPA steps before using libOMM ',I2)") n_elpa_steps
+   call elsi_statement_print(info_str)
+
+   write(info_str,"(1X,' | OMM flavor ',I2)") omm_flavor
    call elsi_statement_print(info_str)
 
    write(info_str,"(1X,' | Eigenspectrum shift parameter ',F10.4)") eta
