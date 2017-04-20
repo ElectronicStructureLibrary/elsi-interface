@@ -173,14 +173,17 @@ module ELSI_DIMENSIONS
    integer :: n_occupied_states     !< Number of occupied states
    real*8  :: hartree = 27.21138602 !< Hartree to eV (source: Codata 2015)
 
-   !> ELPA
-   logical :: elpa_one_always = .false. !< Always use 1-stage solver
-   logical :: elpa_two_always = .false. !< Always use 2-stage solver
+   !> Chemical potential
    integer :: broaden_method = 0        !< Broadening scheme for occupation numbers
    real*8  :: broaden_width = 1.0d-2    !< Broadening width for occupation numbers
    real*8  :: occ_tolerance = 1.0d-13   !< Maximum allowed difference between actual number
                                         !! of electrons and the number computed by ELSI
    integer :: max_mu_steps = 100        !< Maximum number of steps to find the chemical potential
+   real*8  :: spin_degen = 0.0d0        !< Spin degeneracy
+
+   !> ELPA
+   logical :: elpa_one_always = .false. !< Always use 1-stage solver
+   logical :: elpa_two_always = .false. !< Always use 2-stage solver
 
    !> libOMM
    integer :: n_elpa_steps         !< Use ELPA eigenvectors as initial guess

@@ -163,7 +163,6 @@ subroutine elsi_check_electrons(kpoint_weights,eigenvalues,occ_numbers,&
    real*8,  intent(in)  :: mu_in       !< Input chemical potential
    real*8,  intent(out) :: diff_ne_out !< Difference in number of electrons
 
-   real*8  :: spin         !< Spin degeneracy
    real*8  :: invert_width !< 1/broaden_width
    integer :: n_steps      !< Number of steps to find chemical potential interval
    real*8  :: max_exp      !< Maximum possible exponent
@@ -184,10 +183,12 @@ subroutine elsi_check_electrons(kpoint_weights,eigenvalues,occ_numbers,&
    invert_width = 1.0d0/broaden_width
    diff_ne_out = 0.0d0
 
-   if(n_spin == 2) then
-      spin = 1.0d0
-   else
-      spin = 2.0d0
+   if((spin_degen /= 1.0d0) .and. (spin_degen /= 2.0d0)) then ! Not set by user
+      if(n_spin == 2) then
+         spin_degen = 1.0d0
+      else
+         spin_degen = 2.0d0
+      endif
    endif
 
    select case (broaden_method)
@@ -195,7 +196,7 @@ subroutine elsi_check_electrons(kpoint_weights,eigenvalues,occ_numbers,&
          do i_kpoint = 1,n_kpoint
             do i_spin = 1,n_spin
                do i_state = 1,n_state
-                  occ_numbers(i_state,i_spin,i_kpoint) = spin*0.5d0*&
+                  occ_numbers(i_state,i_spin,i_kpoint) = spin_degen*0.5d0*&
                      (1.0d0-ERF((eigenvalues(i_state,i_spin,i_kpoint)-mu_in)*invert_width))
 
                   diff_ne_out = diff_ne_out+&
@@ -213,7 +214,7 @@ subroutine elsi_check_electrons(kpoint_weights,eigenvalues,occ_numbers,&
                   this_exp = (eigenvalues(i_state,i_spin,i_kpoint)-mu_in)*invert_width
 
                   if(this_exp < max_exp) then
-                     occ_numbers(i_state,i_spin,i_kpoint) = spin/(1.0d0+EXP(this_exp))
+                     occ_numbers(i_state,i_spin,i_kpoint) = spin_degen/(1.0d0+EXP(this_exp))
 
                      diff_ne_out = diff_ne_out+&
                         occ_numbers(i_state,i_spin,i_kpoint)*kpoint_weights(i_kpoint)
@@ -228,7 +229,7 @@ subroutine elsi_check_electrons(kpoint_weights,eigenvalues,occ_numbers,&
          do i_kpoint = 1,n_kpoint
             do i_spin = 1,n_spin
                do i_state = 1,n_state
-                  occ_numbers(i_state,i_spin,i_kpoint) = spin*0.5d0*&
+                  occ_numbers(i_state,i_spin,i_kpoint) = spin_degen*0.5d0*&
                      (1.0d0-ERF((eigenvalues(i_state,i_spin,i_kpoint)-mu_in)*invert_width))
 
                   diff_ne_out = diff_ne_out+&
@@ -243,8 +244,9 @@ subroutine elsi_check_electrons(kpoint_weights,eigenvalues,occ_numbers,&
                do i_state = 1,n_state
                   this_hermite = (eigenvalues(i_state,i_spin,i_kpoint)-mu_in)*invert_width
 
-                  occ_numbers(i_state,i_spin,i_kpoint) = spin*0.5d0*(1.0d0-ERF(this_hermite))&
-                     -0.5d0*invert_sqrt_pi*this_hermite*EXP(-this_hermite*this_hermite)
+                  occ_numbers(i_state,i_spin,i_kpoint) = spin_degen*0.5d0*&
+                     (1.0d0-ERF(this_hermite))-0.5d0*invert_sqrt_pi*this_hermite*&
+                     EXP(-this_hermite*this_hermite)
 
                   diff_ne_out = diff_ne_out+&
                      occ_numbers(i_state,i_spin,i_kpoint)*kpoint_weights(i_kpoint)

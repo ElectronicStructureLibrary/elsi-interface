@@ -50,7 +50,7 @@ module ELSI
    public :: elsi_set_method      !< Select solver
    public :: elsi_set_mpi         !< Set MPI from calling code
    public :: elsi_set_blacs       !< Set BLACS from calling code
-   public :: elsi_set_sparsity    !< Set sparsity pattern from calling code
+   public :: elsi_set_csc         !< Set CSC sparsity pattern from calling code
    public :: elsi_customize       !< Override ELSI default
    public :: elsi_customize_elpa  !< Override ELPA default
    public :: elsi_customize_omm   !< Override libOMM default
@@ -78,7 +78,7 @@ contains
 !   elsi_set_parallel
 !   elsi_set_mpi
 !   elsi_set_blacs
-!   elsi_set_sparsity
+!   elsi_set_csc
 !   elsi_get_energy
 !   elsi_finalize   
 !=====================
@@ -278,8 +278,8 @@ end subroutine
 !>
 !! This routine sets the sparsity pattern.
 !!
-subroutine elsi_set_sparsity(nnz_g_in,nnz_l_in,nnz_l_cols_in,&
-                             row_ind_in,col_ptr_in)
+subroutine elsi_set_csc(nnz_g_in,nnz_l_in,nnz_l_cols_in,&
+                        row_ind_in,col_ptr_in)
 
    implicit none
 
@@ -289,7 +289,7 @@ subroutine elsi_set_sparsity(nnz_g_in,nnz_l_in,nnz_l_cols_in,&
    integer, target     :: row_ind_in(*) !< Row index
    integer, target     :: col_ptr_in(*) !< Column pointer
 
-   character*40, parameter :: caller = "elsi_set_sparsity"
+   character*40, parameter :: caller = "elsi_set_csc"
 
    nnz_g          = nnz_g_in
    nnz_l_pexsi    = nnz_l_in
@@ -628,7 +628,7 @@ end subroutine
 !! determination module.
 !!
 subroutine elsi_customize_mu(broadening_scheme,broadening_width,&
-                             mu_accuracy,mu_max_steps)
+                             mu_accuracy,mu_max_steps,spin_degeneracy)
 
    implicit none
 
@@ -636,6 +636,7 @@ subroutine elsi_customize_mu(broadening_scheme,broadening_width,&
    real*8,  intent(in), optional :: broadening_width  !< Broadening width in chemical potential determination
    real*8,  intent(in), optional :: mu_accuracy       !< Tolerance in chemical potential determination
    integer, intent(in), optional :: mu_max_steps      !< Maximum number of steps to find the chemical potential
+   real*8,  intent(in), optional :: spin_degeneracy   !< Spin degeneracy
 
    ! Broadening scheme to compute Fermi level [Default: GAUSSIAN]
    if(present(broadening_scheme)) &
@@ -649,6 +650,9 @@ subroutine elsi_customize_mu(broadening_scheme,broadening_width,&
    ! Maximum steps to determine the chemical potential [Default: 100]
    if(present(mu_max_steps)) &
       max_mu_steps = mu_max_steps
+   ! Spin degeneracy [Default: 2d0/n_spin]
+   if(present(spin_degeneracy)) &
+      spin_degen = spin_degeneracy
 
 end subroutine
 

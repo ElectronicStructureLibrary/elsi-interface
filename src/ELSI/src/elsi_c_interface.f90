@@ -77,8 +77,8 @@ subroutine elsi_set_blacs_c_wrapper(icontext,block_size) bind(C,name="c_elsi_set
 
 end subroutine
 
-subroutine elsi_set_sparsity_c_wrapper(nnz_g_in,nnz_l_in,nnz_l_cols_in,row_ind_in,&
-                                       col_ptr_in) bind(C,name="c_elsi_set_sparsity")
+subroutine elsi_set_csc_c_wrapper(nnz_g_in,nnz_l_in,nnz_l_cols_in,row_ind_in,&
+                                  col_ptr_in) bind(C,name="c_elsi_set_csc")
 
    use, intrinsic :: iso_c_binding
    use ELSI
@@ -91,7 +91,7 @@ subroutine elsi_set_sparsity_c_wrapper(nnz_g_in,nnz_l_in,nnz_l_cols_in,row_ind_i
    integer(kind=c_int), intent(in)        :: row_ind_in(*)
    integer(kind=c_int), intent(in)        :: col_ptr_in(*)
 
-   call elsi_set_sparsity(nnz_g_in,nnz_l_in,nnz_l_cols_in,row_ind_in,col_ptr_in)
+   call elsi_set_csc(nnz_g_in,nnz_l_in,nnz_l_cols_in,row_ind_in,col_ptr_in)
 
 end subroutine
 
@@ -159,7 +159,7 @@ subroutine elsi_customize_c_wrapper(print_detail,unit_overlap,numerical_zero,&
 end subroutine
 
 subroutine elsi_customize_mu_c_wrapper(broadening_scheme,broadening_width,&
-                                       mu_accuracy,mu_max_steps)&
+                                       mu_accuracy,mu_max_steps,spin_degeneracy)&
                                        bind(C,name="c_elsi_customize_mu")
 
    use, intrinsic :: iso_c_binding
@@ -171,9 +171,10 @@ subroutine elsi_customize_mu_c_wrapper(broadening_scheme,broadening_width,&
    real(kind=c_double), value, intent(in) :: broadening_width
    real(kind=c_double), value, intent(in) :: mu_accuracy
    integer(kind=c_int), value, intent(in) :: mu_max_steps
+   real(kind=c_double), value, intent(in) :: spin_degeneracy
 
    call elsi_customize_mu(broadening_scheme,broadening_width,&
-                          mu_accuracy,mu_max_steps)
+                          mu_accuracy,mu_max_steps,spin_degeneracy)
 
 end subroutine
 
