@@ -34,7 +34,7 @@ else
    tput sgr0
 fi
 
-if [ "$ELPA2_KERNEL" != "GPU" ]
+if [ "$ELPA_GPU" != "yes" ]
 then
    echo
    echo -n "Running the 'elsi_ev_real + ELPA (sp)' test"
