@@ -221,13 +221,13 @@ elpa_qrkernels.o: ./src/elpa_qr/elpa_qrkernels.F90 mod_precision.o
 	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
 
 cudaFunctions.o: ./src/cudaFunctions.cu
-	$(NVCC) $(NVCCFLAGS) $(FPP) -c $< $(CUDA)
+	$(NVCC) $(NVCCFLAGS) $(FPP) $(CUDA_INCLUDE) -c $<
 
 cuUtils.o: ./src/cuUtils.cu
-	$(NVCC) $(NVCCFLAGS) $(FPP) -c $< $(CUDA)
+	$(NVCC) $(NVCCFLAGS) $(FPP) $(CUDA_INCLUDE) -c $<
 
 ev_tridi_band_gpu_c_v2.o: ./src/ev_tridi_band_gpu_c_v2.cu
-	$(NVCC) $(NVCCFLAGS) $(FPP) -c $< $(CUDA)
+	$(NVCC) $(NVCCFLAGS) $(FPP) $(CUDA_INCLUDE) -c $<
 
 clean:
 	rm -f *.o *.mod libelpa.a

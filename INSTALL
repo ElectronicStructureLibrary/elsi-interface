@@ -37,11 +37,11 @@ A) BASIC
 3) Optional. The correctness of compilation can be checked using the
    "tomato-seed" data files. Set the following keyword in make.sys:
 
-      TOMATO_SEED = # Path to tomato_seed
+      TOMATO_SEED =  # Path to tomato_seed
 
    If not "mpirun", the name of MPI executable can be set by:
 
-      MPI_EXEC = # Default: mpirun
+      MPI_EXEC =  # Default: mpirun
 
    Then, type
 
@@ -56,15 +56,26 @@ A) BASIC
    executables in "./bin".
 
 ==========================================================================
-B) ELPA KERNELS
+B) ELPA SPECIFIC ARCHITECTURES
 ==========================================================================
 
-   ELPA Kernels written for specific architectures:
+   To enable GPU acceleration of the 1st and 5th steps of ELPA 2-stage
+   solver, set
+
+      ELPA_GPU     =  yes  # Default: no
+      NVCC         =  NVIDIA CUDA C compiler
+      NVCCFLAGS    =  NVIDIA CUDA C compiler flags
+      CUDA_LIB     =  NVIDIA cuBLAS and CUDA runtime libraries
+      CUDA_INCLUDE =  NVIDIA CUDA include path
+
+   Available ELPA kernels (4th step of ELPA 2-stage solver) for specific
+   architectures are:
 
       ELPA2_KERNEL =  # Default: Generic
                       # Options: SSE
                       #          AVX
                       #          BGQ
+                      #          GPU
 
 ==========================================================================
 C) EXTERNAL LIBRARIES
@@ -75,7 +86,7 @@ C) EXTERNAL LIBRARIES
    available, one temporary solution would be disabling PEXSI (written in
    C++) by adding this keyword to make.sys:
 
-      DISABLE_CXX = yes  # Disable C++ code
+      DISABLE_CXX =  yes  # Default: no
 
    To build and install ELSI, type
 
