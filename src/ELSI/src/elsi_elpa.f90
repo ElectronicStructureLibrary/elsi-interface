@@ -270,7 +270,7 @@ subroutine elsi_to_standard_evp()
                success = elpa_invert_trm_complex_double(n_g_size,ovlp_complex,n_l_rows,&
                             n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col,.false.)
                if(.not.success) then
-                  call elsi_stop(" Matrix inversion failed.", caller)
+                  call elsi_stop(" Matrix inversion failed.",caller)
                endif
 
                call elsi_stop_cholesky_time()
@@ -456,7 +456,7 @@ subroutine elsi_check_singularity()
                       mpi_comm_global,singularity_tolerance,n_nonsingular)
          if(.not.success) then
             call elsi_stop(" ELPA failed when solving eigenvalue problem."//&
-                           " Exiting...", caller)
+                           " Exiting...",caller)
          endif
 
          ! Stop if n_states is larger that n_nonsingular
@@ -528,7 +528,7 @@ subroutine elsi_check_singularity()
                       mpi_comm_global,singularity_tolerance,n_nonsingular)
          if(.not.success) then
             call elsi_stop(" ELPA failed when solving eigenvalue problem."//&
-                           " Exiting...", caller)
+                           " Exiting...",caller)
          endif
 
          ! Stop if n_states is larger that n_nonsingular
@@ -1076,7 +1076,7 @@ subroutine elsi_check_singularity_sp()
                       mpi_comm_self,singularity_tolerance,n_nonsingular)
          if(.not.success) then
             call elsi_stop(" ELPA failed when solving eigenvalue problem."//&
-                           " Exiting...", caller)
+                           " Exiting...",caller)
          endif
 
          ! Stop if n_states is larger that n_nonsingular
@@ -1147,7 +1147,7 @@ subroutine elsi_check_singularity_sp()
                       mpi_comm_self,singularity_tolerance,n_nonsingular)
          if(.not.success) then
             call elsi_stop(" ELPA failed when solving eigenvalue problem."//&
-                           " Exiting...", caller)
+                           " Exiting...",caller)
          endif
 
          ! Stop if n_states is larger that n_nonsingular

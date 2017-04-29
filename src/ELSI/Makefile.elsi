@@ -1,19 +1,19 @@
 all: test_ev_real.x test_dm_real.x test_generalized_ev_real.x test_standard_ev_real.x test_dm_real_sparse.x $(C_BINDING)
 
 test_dm_real.x: test_dm_real.o elsi_interface.o elsi_elpa.o elsi_omm.o elsi_pexsi.o elsi_sips.o elsi_mu.o elsi_utils.o elsi_timers.o elsi_dimensions.o $(STUBS)
-	$(LINKER) $(LDFLAGS) -o $@ $^ $(CUDA) $(LIBS) $(SCALAPACK_LDFLAGS) $(CXX_LDFLAGS)
+	$(LINKER) $(LDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LDFLAGS) $(CXX_LDFLAGS)
 
 test_ev_real.x: test_ev_real.o elsi_interface.o elsi_elpa.o elsi_omm.o elsi_pexsi.o elsi_sips.o elsi_mu.o elsi_utils.o elsi_timers.o elsi_dimensions.o $(STUBS)
-	$(LINKER) $(LDFLAGS) -o $@ $^ $(CUDA) $(LIBS) $(SCALAPACK_LDFLAGS) $(CXX_LDFLAGS)
+	$(LINKER) $(LDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LDFLAGS) $(CXX_LDFLAGS)
 
 test_generalized_ev_real.x: test_generalized_ev_real.o elsi_interface.o elsi_elpa.o elsi_omm.o elsi_pexsi.o elsi_sips.o elsi_mu.o elsi_utils.o elsi_timers.o elsi_dimensions.o $(STUBS)
-	$(LINKER) $(LDFLAGS) -o $@ $^ $(CUDA) $(LIBS) $(SCALAPACK_LDFLAGS) $(CXX_LDFLAGS)
+	$(LINKER) $(LDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LDFLAGS) $(CXX_LDFLAGS)
 
 test_standard_ev_real.x: test_standard_ev_real.o elsi_interface.o elsi_elpa.o elsi_omm.o elsi_pexsi.o elsi_sips.o elsi_mu.o elsi_utils.o elsi_timers.o elsi_dimensions.o $(STUBS)
-	$(LINKER) $(LDFLAGS) -o $@ $^ $(CUDA) $(LIBS) $(SCALAPACK_LDFLAGS) $(CXX_LDFLAGS)
+	$(LINKER) $(LDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LDFLAGS) $(CXX_LDFLAGS)
 
 test_dm_real_sparse.x: test_dm_real_sparse.o elsi_interface.o elsi_elpa.o elsi_omm.o elsi_pexsi.o elsi_sips.o elsi_mu.o elsi_utils.o elsi_timers.o elsi_dimensions.o $(STUBS)
-	$(LINKER) $(LDFLAGS) -o $@ $^ $(CUDA) $(LIBS) $(SCALAPACK_LDFLAGS) $(CXX_LDFLAGS)
+	$(LINKER) $(LDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LDFLAGS) $(CXX_LDFLAGS)
 
 test_dm_real.o: ./test/test_dm_real.f90 elsi_interface.o
 	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)

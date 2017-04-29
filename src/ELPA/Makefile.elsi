@@ -9,8 +9,17 @@ endif
 FFLAGS_E += $(SCALAPACK_FCFLAGS) -I.
 FPP += $(XLFPP)-DWITH_MPI $(XLFPP)-DUSE_ASSUMED_SIZE $(XLFPP)-DWITH_ONE_SPECIFIC_REAL_KERNEL $(XLFPP)-DWITH_ONE_SPECIFIC_COMPLEX_KERNEL
 
-ifeq ($(strip $(ELPA2_KERNEL)),GPU)
+ifeq ($(strip $(ELPA_GPU)),no)
+  ifeq ($(strip $(ELPA2_KERNEL)),GPU)
+    $(info ELPA_GPU must be yes to use ELPA2 GPU kernel.)
+    $(error Incompatible choices for ELPA_GPU and ELPA2_KERNEL.)
+  endif
+else
   FPP += $(XLFPP)-DWITH_GPU_VERSION
+endif
+
+ifeq ($(strip $(ELPA2_KERNEL)),GPU)
+  FPP += $(XLFPP)-DWITH_REAL_GPU_KERNEL $(XLFPP)-DWITH_COMPLEX_GPU_KERNEL
 endif
 ifeq ($(strip $(ELPA2_KERNEL)),Generic)
   $(info =========================================)
@@ -87,12 +96,12 @@ ifneq ($(strip $(ELPA2_KERNEL)),GPU)
   endif
 endif
 
-ifeq ($(strip $(OPENMP)),yes)
+ifeq ($(strip $(ELPA_OMP)),yes)
   $(error OpenMP: not yet available.)
 else
-  ifneq ($(strip $(OPENMP)),no)
-    $(info Please set OPENMP to yes/no.)
-    $(error Invalid choice for OPENMP.)
+  ifneq ($(strip $(ELPA_OMP)),no)
+    $(info Please set ELPA_OMP to yes/no.)
+    $(error Invalid choice for ELPA_OMP.)
   endif
 endif
 
@@ -100,7 +109,7 @@ endif
 ALL_OBJECTS = $(ELPA2_KERNELS_O) aligned_mem.o check_for_gpu.o elpa1_auxiliary.o elpa1_compute_private.o elpa1.o elpa1_utilities.o elpa2_compute.o elpa2.o elpa2_utilities.o elpa_pdgeqrf.o elpa_pdlarfb.o elpa_qrkernels.o elpa_utilities.o interface_c_kernel.o mod_compute_hh_trafo_complex.o mod_compute_hh_trafo_real.o mod_cuda.o mod_fortran_interfaces.o mod_mpi.o mod_pack_unpack_complex.o mod_pack_unpack_real_gpu.o mod_pack_unpack_real.o mod_precision.o mod_single_hh_trafo_real.o qr_utils.o timer_dummy.o
 GPU_OBJECTS = cudaFunctions.o cuUtils.o ev_tridi_band_gpu_c_v2.o
 
-ifeq ($(strip $(ELPA2_KERNEL)),GPU)
+ifeq ($(strip $(ELPA_GPU)),yes)
   ALL_OBJECTS += $(GPU_OBJECTS)
 endif
 
@@ -212,13 +221,13 @@ elpa_qrkernels.o: ./src/elpa_qr/elpa_qrkernels.F90 mod_precision.o
 	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
 
 cudaFunctions.o: ./src/cudaFunctions.cu
-	$(NVCC) $(NVCCFLAGS) $(FPP) -c $< $(CUDA)
+	$(NVCC) $(NVCCFLAGS) $(FPP) $(CUDA_INCLUDE) -c $<
 
 cuUtils.o: ./src/cuUtils.cu
-	$(NVCC) $(NVCCFLAGS) $(FPP) -c $< $(CUDA)
+	$(NVCC) $(NVCCFLAGS) $(FPP) $(CUDA_INCLUDE) -c $<
 
 ev_tridi_band_gpu_c_v2.o: ./src/ev_tridi_band_gpu_c_v2.cu
-	$(NVCC) $(NVCCFLAGS) $(FPP) -c $< $(CUDA)
+	$(NVCC) $(NVCCFLAGS) $(FPP) $(CUDA_INCLUDE) -c $<
 
 clean:
 	rm -f *.o *.mod libelpa.a

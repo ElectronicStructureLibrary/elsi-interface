@@ -50,7 +50,7 @@ module ELSI
    public :: elsi_set_method      !< Select solver
    public :: elsi_set_mpi         !< Set MPI from calling code
    public :: elsi_set_blacs       !< Set BLACS from calling code
-   public :: elsi_set_sparsity    !< Set sparsity pattern from calling code
+   public :: elsi_set_csc         !< Set CSC sparsity pattern from calling code
    public :: elsi_customize       !< Override ELSI default
    public :: elsi_customize_elpa  !< Override ELPA default
    public :: elsi_customize_omm   !< Override libOMM default
@@ -78,7 +78,7 @@ contains
 !   elsi_set_parallel
 !   elsi_set_mpi
 !   elsi_set_blacs
-!   elsi_set_sparsity
+!   elsi_set_csc
 !   elsi_get_energy
 !   elsi_finalize   
 !=====================
@@ -278,8 +278,8 @@ end subroutine
 !>
 !! This routine sets the sparsity pattern.
 !!
-subroutine elsi_set_sparsity(nnz_g_in,nnz_l_in,nnz_l_cols_in,&
-                             row_ind_in,col_ptr_in)
+subroutine elsi_set_csc(nnz_g_in,nnz_l_in,nnz_l_cols_in,&
+                        row_ind_in,col_ptr_in)
 
    implicit none
 
@@ -289,7 +289,7 @@ subroutine elsi_set_sparsity(nnz_g_in,nnz_l_in,nnz_l_cols_in,&
    integer, target     :: row_ind_in(*) !< Row index
    integer, target     :: col_ptr_in(*) !< Column pointer
 
-   character*40, parameter :: caller = "elsi_set_sparsity"
+   character*40, parameter :: caller = "elsi_set_csc"
 
    nnz_g          = nnz_g_in
    nnz_l_pexsi    = nnz_l_in
@@ -406,28 +406,36 @@ end subroutine
 !>
 !! This routine overrides libOMM default settings.
 !!
-subroutine elsi_customize_omm(n_elpa_steps_omm,eigenspectrum_shift,&
-                              omm_tolerance,use_pspblas)
+subroutine elsi_customize_omm(n_elpa_steps_omm,omm_method,eigen_shift,&
+                              omm_tolerance,use_pspblas,omm_output)
 
    implicit none
 
-   integer, intent(in), optional :: n_elpa_steps_omm    !< Number of ELPA steps before libOMM
-   real*8,  intent(in), optional :: eigenspectrum_shift !< Eigenspectrum shift parameter
-   real*8,  intent(in), optional :: omm_tolerance       !< Tolerance of minimization
-   logical, intent(in), optional :: use_pspblas         !< Use pspBLAS sparse linear algebra?
+   integer, intent(in), optional :: n_elpa_steps_omm !< Number of ELPA steps before libOMM
+   integer, intent(in), optional :: omm_method       !< How to perform orbital minimization
+   real*8,  intent(in), optional :: eigen_shift      !< Eigenspectrum shift parameter
+   real*8,  intent(in), optional :: omm_tolerance    !< Tolerance of minimization
+   logical, intent(in), optional :: use_pspblas      !< Use pspBLAS sparse linear algebra?
+   logical, intent(in), optional :: omm_output       !< Output details?
 
    ! Number of ELPA steps
    if(present(n_elpa_steps_omm)) &
       n_elpa_steps = n_elpa_steps_omm
+   ! How to perform orbital minimization?
+   if(present(omm_method)) &
+      omm_flavor = omm_method
    ! Eigenspectrum shift parameter
-   if(present(eigenspectrum_shift)) &
-      eta = eigenspectrum_shift
+   if(present(eigen_shift)) &
+      eta = eigen_shift
    ! Tolerance for minimization
    if(present(omm_tolerance)) &
       min_tol = omm_tolerance
    ! Use pspBLAS sparse linear algebra?
    if(present(use_pspblas)) &
       use_psp = use_pspblas
+   ! Output details?
+   if(present(omm_output)) &
+      omm_verbose = omm_output
 
    if(method .ne. LIBOMM) then
       call elsi_statement_print("  The chosen method is not libOMM."//&
@@ -620,7 +628,7 @@ end subroutine
 !! determination module.
 !!
 subroutine elsi_customize_mu(broadening_scheme,broadening_width,&
-                             mu_accuracy,mu_max_steps)
+                             mu_accuracy,mu_max_steps,spin_degeneracy)
 
    implicit none
 
@@ -628,6 +636,7 @@ subroutine elsi_customize_mu(broadening_scheme,broadening_width,&
    real*8,  intent(in), optional :: broadening_width  !< Broadening width in chemical potential determination
    real*8,  intent(in), optional :: mu_accuracy       !< Tolerance in chemical potential determination
    integer, intent(in), optional :: mu_max_steps      !< Maximum number of steps to find the chemical potential
+   real*8,  intent(in), optional :: spin_degeneracy   !< Spin degeneracy
 
    ! Broadening scheme to compute Fermi level [Default: GAUSSIAN]
    if(present(broadening_scheme)) &
@@ -641,6 +650,9 @@ subroutine elsi_customize_mu(broadening_scheme,broadening_width,&
    ! Maximum steps to determine the chemical potential [Default: 100]
    if(present(mu_max_steps)) &
       max_mu_steps = mu_max_steps
+   ! Spin degeneracy [Default: 2d0/n_spin]
+   if(present(spin_degeneracy)) &
+      spin_degen = spin_degeneracy
 
 end subroutine
 
@@ -861,7 +873,14 @@ subroutine elsi_dm_real(H_in,S_in,D_out,energy_out)
       case (LIBOMM)
          call elsi_print_omm_options()
 
-         if(n_elsi_calls .le. n_elpa_steps) then ! Compute libOMM initial guess by ELPA
+         if(n_elsi_calls .le. n_elpa_steps) then
+            if((n_elsi_calls == 1) .and. (omm_flavor == 0)) then
+               ! Overlap will be destroyed by Cholesky
+               call elsi_allocate(ovlp_real_omm,n_l_rows,n_l_cols,"ovlp_real_omm",caller)
+               ovlp_real_omm(1:n_l_rows,1:n_l_cols) = S_in(1:n_l_rows,1:n_l_cols)
+            endif
+
+            ! Compute libOMM initial guess by ELPA
             call elsi_set_method(ELPA)
 
             ! Set matrices
@@ -890,6 +909,12 @@ subroutine elsi_dm_real(H_in,S_in,D_out,energy_out)
             call elsi_set_method(LIBOMM)
 
          else ! ELPA is done
+            if(allocated(ovlp_real_omm)) then
+               ! Retrieve overlap matrix that has been destroyed by Cholesky
+               S_in(1:n_l_rows,1:n_l_cols) = ovlp_real_omm(1:n_l_rows,1:n_l_cols)
+               deallocate(ovlp_real_omm)
+            endif
+
             ! Set matrices
             call elsi_set_hamiltonian(H_in)
             if(.not.overlap_is_unit) then

@@ -47,7 +47,7 @@ void c_elsi_set_blacs(int icontext,
 
 void c_elsi_finalize();
 
-void c_elsi_set_sparsity(int nnz_g_in,
+void c_elsi_set_csc(int nnz_g_in,
                          int nnz_l_in,
                          int nnz_l_cols_in,
                          int* row_ind_in,
@@ -63,12 +63,15 @@ void c_elsi_customize(int print_detail,
 void c_elsi_customize_mu(int broadening_scheme,
                          double broadening_width,
                          double mu_accuracy,
-                         int mu_max_steps);
+                         int mu_max_steps,
+                         double spin_degeneracy);
 
 void c_elsi_customize_omm(int n_elpa_steps_omm,
-                          double eigenspectrum_shift,
+                          int omm_method,
+                          double eigen_shift,
                           double omm_tolerance,
-                          int use_pspblas);
+                          int use_pspblas,
+                          int omm_output);
 
 void c_elsi_customize_pexsi(double temperature,
                             double gap,

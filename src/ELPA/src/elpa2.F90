@@ -404,22 +404,18 @@ module ELPA2
 #define DOUBLE_PRECISION_REAL
 
 #ifdef DOUBLE_PRECISION_REAL
-  function solve_evp_real_2stage_double(na, nev, a, lda, ev, q, ldq, nblk,        &
-                               matrixCols,                               &
-                                 mpi_comm_rows, mpi_comm_cols,           &
-                                 mpi_comm_all, THIS_REAL_ELPA_KERNEL_API,&
-                                 useQR, useGPU) result(success)
+function solve_evp_real_2stage_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
+            mpi_comm_rows,mpi_comm_cols,mpi_comm_all,THIS_REAL_ELPA_KERNEL_API,&
+            useQR,useGPU) result(success)
 #else
-  function solve_evp_real_2stage_single(na, nev, a, lda, ev, q, ldq, nblk,        &
-                               matrixCols,                               &
-                                 mpi_comm_rows, mpi_comm_cols,           &
-                                 mpi_comm_all, THIS_REAL_ELPA_KERNEL_API,&
-                                 useQR, useGPU) result(success)
+function solve_evp_real_2stage_single(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
+            mpi_comm_rows,mpi_comm_cols,mpi_comm_all,THIS_REAL_ELPA_KERNEL_API,&
+            useQR,useGPU) result(success)
 #endif
 
 
 #ifdef HAVE_DETAILED_TIMINGS
-    use timings
+   use timings
 #endif
    use elpa1_utilities, only : gpu_usage_via_environment_variable
    use elpa1_compute
@@ -428,7 +424,9 @@ module ELPA2
    use cuda_functions
    use mod_check_for_gpu
    use iso_c_binding
+
    implicit none
+
    logical, intent(in), optional             :: useQR, useGPU
    logical                                   :: useQRActual, useQREnvironment
    integer(kind=c_int), intent(in), optional :: THIS_REAL_ELPA_KERNEL_API
@@ -456,7 +454,7 @@ module ELPA2
    logical                                   :: wantDebug
    integer(kind=c_int)                       :: istat
    character(200)                            :: errorMessage
-   logical                                   :: do_useGPU
+   logical                                   :: do_useGPU, do_useGPU_4
    integer(kind=c_int)                       :: numberOfGPUDevices
 
 #ifdef HAVE_DETAILED_TIMINGS
@@ -468,7 +466,6 @@ module ELPA2
 #endif
     call mpi_comm_rank(mpi_comm_all,my_pe,mpierr)
     call mpi_comm_size(mpi_comm_all,n_pes,mpierr)
-
     call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
     call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
     call mpi_comm_rank(mpi_comm_cols,my_pcol,mpierr)
@@ -481,25 +478,32 @@ module ELPA2
     success     = .true.
     useQRActual = .false.
     do_useGPU   = .false.
+    do_useGPU_4 = .false.
 
     THIS_REAL_ELPA_KERNEL = get_actual_real_kernel()
 
     if(THIS_REAL_ELPA_KERNEL .eq. REAL_ELPA_KERNEL_GPU) then
-       if(check_for_gpu(my_pe,numberOfGPUDevices,wantDebug=wantDebug)) then
-          do_useGPU = .true.
-       endif
        if(nblk .ne. 128) then
-          print *, " ERROR: ELPA GPU version needs blocksize = 128. Exiting.."
+          print *, " ERROR: ELPA2 GPU kernel requires blocksize = 128. Exiting.."
           stop
        endif
 
-       ! Set GPU/CUDA parameters
-       cudaMemcpyHostToDevice   = cuda_memcpyHostToDevice()
-       cudaMemcpyDeviceToHost   = cuda_memcpyDeviceToHost()
-       cudaMemcpyDeviceToDevice = cuda_memcpyDeviceToDevice()
-       cudaHostRegisterPortable = cuda_hostRegisterPortable()
-       cudaHostRegisterMapped   = cuda_hostRegisterMapped()
+       ! 4th step
+       do_useGPU_4 = .true.
     endif
+
+#ifdef WITH_GPU_VERSION
+    if(check_for_gpu(my_pe,numberOfGPUDevices,wantDebug=wantDebug)) then
+       do_useGPU = .true.
+    endif
+
+    ! Set GPU/CUDA parameters
+    cudaMemcpyHostToDevice   = cuda_memcpyHostToDevice()
+    cudaMemcpyDeviceToHost   = cuda_memcpyDeviceToHost()
+    cudaMemcpyDeviceToDevice = cuda_memcpyDeviceToDevice()
+    cudaHostRegisterPortable = cuda_hostRegisterPortable()
+    cudaHostRegisterMapped   = cuda_hostRegisterMapped()
+#endif
 
     ! Bandwidth must be a multiple of nblk
     ! Set to a value >= 32
@@ -510,141 +514,142 @@ module ELPA2
     endif
     num_blocks = (na-1)/nbw+1
 
-    allocate(tmat(nbw,nbw,num_blocks), stat=istat, errmsg=errorMessage)
-    if (istat .ne. 0) then
-      print *,"solve_evp_real_2stage: error when allocating tmat "//errorMessage
-      stop
+    allocate(tmat(nbw,nbw,num_blocks),stat=istat,errmsg=errorMessage)
+    if(istat .ne. 0) then
+       print *,"solve_evp_real_2stage: error when allocating tmat "//errorMessage
+       stop
     endif
 
     ! Reduction full -> band
     ttt0 = MPI_Wtime()
 #ifdef DOUBLE_PRECISION_REAL
-    call bandred_real_double(na, a, a_dev, lda, nblk, nbw, matrixCols, num_blocks, mpi_comm_rows, mpi_comm_cols, &
-        tmat, tmat_dev, wantDebug, do_useGPU, success, useQRActual)
+    call bandred_real_double(na,a,a_dev,lda,nblk,nbw,matrixCols,num_blocks,&
+            mpi_comm_rows,mpi_comm_cols,tmat,tmat_dev,wantDebug,do_useGPU,success,useQRActual)
 #else
-    call bandred_real_single(na, a, a_dev, lda, nblk, nbw, matrixCols, num_blocks, mpi_comm_rows, mpi_comm_cols, &
-        tmat, tmat_dev, wantDebug, do_useGPU, success, useQRActual)
+    call bandred_real_single(na,a,a_dev,lda,nblk,nbw,matrixCols,num_blocks,&
+            mpi_comm_rows,mpi_comm_cols,tmat,tmat_dev,wantDebug,do_useGPU,success,useQRActual)
 #endif
-    if (.not.(success)) return
+    if(.not.(success)) return
     ttt1 = MPI_Wtime()
-    if (my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
+    if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
        print *,"  | Time full ==> band            :",ttt1-ttt0
 
-     ! Reduction band -> tridiagonal
-     allocate(e(na), stat=istat, errmsg=errorMessage)
-     if (istat .ne. 0) then
+    ! Reduction band -> tridiagonal
+    allocate(e(na),stat=istat,errmsg=errorMessage)
+    if(istat .ne. 0) then
        print *,"solve_evp_real_2stage: error when allocating e "//errorMessage
        stop
-     endif
+    endif
 
-     ttt0 = MPI_Wtime()
+    ttt0 = MPI_Wtime()
 #ifdef DOUBLE_PRECISION_REAL
-     call tridiag_band_real_double(na, nbw, nblk, a, lda, ev, e, matrixCols, hh_trans_real, &
-                          mpi_comm_rows, mpi_comm_cols, mpi_comm_all)
+    call tridiag_band_real_double(na,nbw,nblk,a,lda,ev,e,matrixCols,hh_trans_real,&
+            mpi_comm_rows,mpi_comm_cols,mpi_comm_all)
 #else
-     call tridiag_band_real_single(na, nbw, nblk, a, lda, ev, e, matrixCols, hh_trans_real, &
-                          mpi_comm_rows, mpi_comm_cols, mpi_comm_all)
+    call tridiag_band_real_single(na,nbw,nblk,a,lda,ev,e,matrixCols,hh_trans_real,&
+            mpi_comm_rows,mpi_comm_cols,mpi_comm_all)
 #endif
-
-     ttt1 = MPI_Wtime()
-     if (my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
+    ttt1 = MPI_Wtime()
+    if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
        print *,"  | Time band ==> tridiagonal     :",ttt1-ttt0
 
 #ifdef WITH_MPI
 #ifdef HAVE_DETAILED_TIMINGS
-     call timer%start("mpi_communication")
+    call timer%start("mpi_communication")
 #endif
 #ifdef DOUBLE_PRECISION_REAL
-     call mpi_bcast(ev,na,MPI_REAL8,0,mpi_comm_all,mpierr)
-     call mpi_bcast(e,na,MPI_REAL8,0,mpi_comm_all,mpierr)
+    call mpi_bcast(ev,na,MPI_REAL8,0,mpi_comm_all,mpierr)
+    call mpi_bcast(e,na,MPI_REAL8,0,mpi_comm_all,mpierr)
 #else
-     call mpi_bcast(ev,na,MPI_REAL4,0,mpi_comm_all,mpierr)
-     call mpi_bcast(e,na,MPI_REAL4,0,mpi_comm_all,mpierr)
+    call mpi_bcast(ev,na,MPI_REAL4,0,mpi_comm_all,mpierr)
+    call mpi_bcast(e,na,MPI_REAL4,0,mpi_comm_all,mpierr)
 #endif
 #ifdef HAVE_DETAILED_TIMINGS
-     call timer%stop("mpi_communication")
+    call timer%stop("mpi_communication")
 #endif
 #endif /* WITH_MPI */
 
-     ! Solve tridiagonal system
-     ttt0 = MPI_Wtime()
+    ! Solve tridiagonal system
+    ttt0 = MPI_Wtime()
 #ifdef DOUBLE_PRECISION_REAL
-     call solve_tridi_double(na, nev, ev, e, q, ldq, nblk, matrixCols, mpi_comm_rows,  &
-                      mpi_comm_cols, wantDebug, success)
+    call solve_tridi_double(na,nev,ev,e,q,ldq,nblk,matrixCols,mpi_comm_rows,&
+            mpi_comm_cols,wantDebug,success)
 #else
-     call solve_tridi_single(na, nev, ev, e, q, ldq, nblk, matrixCols, mpi_comm_rows,  &
-                      mpi_comm_cols, wantDebug, success)
+    call solve_tridi_single(na,nev,ev,e,q,ldq,nblk,matrixCols,mpi_comm_rows,&
+            mpi_comm_cols,wantDebug,success)
 #endif
-     if (.not.(success)) return
-     ttt1 = MPI_Wtime()
-     if (my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
+    if(.not.(success)) return
+    ttt1 = MPI_Wtime()
+    if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
        print *,"  | Time solve tridiagonal        :",ttt1-ttt0
 
-     deallocate(e, stat=istat, errmsg=errorMessage)
-     if (istat .ne. 0) then
+    deallocate(e,stat=istat,errmsg=errorMessage)
+    if(istat .ne. 0) then
        print *,"solve_evp_real_2stage: error when deallocating e "//errorMessage
        stop
-     endif
-     ! Backtransform stage 1
+    endif
 
-     ttt0 = MPI_Wtime()
+    ! Backtransform stage 1
+    ttt0 = MPI_Wtime()
 #ifdef DOUBLE_PRECISION_REAL
-     call trans_ev_tridi_to_band_real_double(na, nev, nblk, nbw, q, q_dev, ldq, matrixCols, hh_trans_real, &
-         mpi_comm_rows, mpi_comm_cols, wantDebug, do_useGPU, success,      &
-                                    THIS_REAL_ELPA_KERNEL)
+    call trans_ev_tridi_to_band_real_double(na,nev,nblk,nbw,q,q_dev,ldq,matrixCols,hh_trans_real,&
+            mpi_comm_rows,mpi_comm_cols,wantDebug,do_useGPU_4,success,THIS_REAL_ELPA_KERNEL)
 #else
-     call trans_ev_tridi_to_band_real_single(na, nev, nblk, nbw, q, q_dev, ldq, matrixCols, hh_trans_real, &
-         mpi_comm_rows, mpi_comm_cols, wantDebug, do_useGPU, success,      &
-                                    THIS_REAL_ELPA_KERNEL)
+    call trans_ev_tridi_to_band_real_single(na,nev,nblk,nbw,q,q_dev,ldq,matrixCols,hh_trans_real,&
+            mpi_comm_rows,mpi_comm_cols,wantDebug,do_useGPU_4,success,THIS_REAL_ELPA_KERNEL)
 #endif
 
-     if (.not.(success)) return
-     ttt1 = MPI_Wtime()
-     if (my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-         print *,"  | Time ev tridiagonal ==> band  :",ttt1-ttt0
+    if(.not.(success)) return
+    ttt1 = MPI_Wtime()
+    if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
+       print *,"  | Time ev tridiagonal ==> band  :",ttt1-ttt0
 
-     ! We can now deallocate the stored householder vectors
-     deallocate(hh_trans_real, stat=istat, errmsg=errorMessage)
-     if (istat .ne. 0) then
+    ! We can now deallocate the stored householder vectors
+    deallocate(hh_trans_real,stat=istat,errmsg=errorMessage)
+    if(istat .ne. 0) then
        print *,"solve_evp_real_2stage: error when deallocating hh_trans_real "//errorMessage
        stop
-     endif
+    endif
 
-     ! Backtransform stage 2
-     ttt0 = MPI_Wtime()
+    ! Backtransform stage 2
+    ttt0 = MPI_Wtime()
 #ifdef DOUBLE_PRECISION_REAL
-     call trans_ev_band_to_full_real_double(na, nev, nblk, nbw, a, a_dev, lda, tmat, tmat_dev, q, q_dev, ldq, &
-                                            matrixCols, num_blocks, mpi_comm_rows, &
-                                            mpi_comm_cols, do_useGPU, useQRActual)
+    call trans_ev_band_to_full_real_double(na,nev,nblk,nbw,a,a_dev,lda,tmat,tmat_dev,q,q_dev,ldq,&
+            matrixCols,num_blocks,mpi_comm_rows,mpi_comm_cols,do_useGPU,useQRActual)
 #else
-     call trans_ev_band_to_full_real_single(na, nev, nblk, nbw, a, a_dev, lda, tmat, tmat_dev, q, q_dev, ldq, &
-                                            matrixCols, num_blocks, mpi_comm_rows, &
-                                            mpi_comm_cols, do_useGPU, useQRActual)
+    call trans_ev_band_to_full_real_single(na,nev,nblk,nbw,a,a_dev,lda,tmat,tmat_dev,q,q_dev,ldq,&
+            matrixCols,num_blocks,mpi_comm_rows,mpi_comm_cols,do_useGPU,useQRActual)
 #endif
 
-     ttt1 = MPI_Wtime()
-     if (my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-         print *,"  | Time ev band ==> full         :",ttt1-ttt0
+    ttt1 = MPI_Wtime()
+    if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
+       print *,"  | Time ev band ==> full         :",ttt1-ttt0
 
-     deallocate(tmat, stat=istat, errmsg=errorMessage)
-     if (istat .ne. 0) then
+    deallocate(tmat,stat=istat,errmsg=errorMessage)
+    if(istat .ne. 0) then
        print *,"solve_evp_real_2stage: error when deallocating tmat"//errorMessage
        stop
-     endif
+    endif
 
 #ifdef HAVE_DETAILED_TIMINGS
-     call timer%stop("solve_evp_real_2stage_double")
+    call timer%stop("solve_evp_real_2stage_double")
 #endif
-1    format(a,f10.3)
+1   format(a,f10.3)
 
-   if(my_prow==0 .and. my_pcol==0) then
-      if(do_useGPU) print *,"  GPU has been used for this ELPA2"
-   endif
+    if(my_prow==0 .and. my_pcol==0) then
+       if(do_useGPU) then
+          if(do_useGPU_4) then
+             print *,"  GPU has been used for the 1st, 4th, 5th steps of ELPA2"
+          else
+             print *,"  GPU has been used for the 1st, 5th steps of ELPA2"
+          endif
+       endif
+    endif
 
 #ifdef DOUBLE_PRECISION_REAL
-   end function solve_evp_real_2stage_double
+end function solve_evp_real_2stage_double
 #else
-   end function solve_evp_real_2stage_single
+end function solve_evp_real_2stage_single
 #endif
 
 #ifdef WANT_SINGLE_PRECISION_REAL
@@ -1076,53 +1081,55 @@ module ELPA2
 #define DOUBLE_PRECISION_COMPLEX 1
 
 #ifdef DOUBLE_PRECISION_COMPLEX
-function solve_evp_complex_2stage_double(na, nev, a, lda, ev, q, ldq, nblk, &
-                                  matrixCols, mpi_comm_rows, mpi_comm_cols,      &
-                                    mpi_comm_all, THIS_COMPLEX_ELPA_KERNEL_API, useGPU) result(success)
+function solve_evp_complex_2stage_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
+            mpi_comm_rows,mpi_comm_cols,mpi_comm_all,THIS_COMPLEX_ELPA_KERNEL_API,&
+            useGPU) result(success)
 #else
-function solve_evp_complex_2stage_single(na, nev, a, lda, ev, q, ldq, nblk, &
-                                  matrixCols, mpi_comm_rows, mpi_comm_cols,      &
-                                    mpi_comm_all, THIS_COMPLEX_ELPA_KERNEL_API, useGPU) result(success)
+function solve_evp_complex_2stage_single(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
+            mpi_comm_rows,mpi_comm_cols,mpi_comm_all,THIS_COMPLEX_ELPA_KERNEL_API,&
+            useGPU) result(success)
 #endif
 
 
 #ifdef HAVE_DETAILED_TIMINGS
-   use timings
+    use timings
 #endif
-   use elpa1_utilities, only : gpu_usage_via_environment_variable
+    use elpa1_utilities, only : gpu_usage_via_environment_variable
 
-   use elpa1_compute
-   use elpa2_compute
-   use elpa_mpi
-   use cuda_functions
-   use mod_check_for_gpu
-   use iso_c_binding
-   implicit none
-   logical, intent(in), optional             :: useGPU
-   integer(kind=c_int), intent(in), optional :: THIS_COMPLEX_ELPA_KERNEL_API
-   integer(kind=c_int)                       :: THIS_COMPLEX_ELPA_KERNEL
-   integer(kind=c_int), intent(in)           :: na, nev, lda, ldq, nblk, matrixCols, mpi_comm_rows, mpi_comm_cols, mpi_comm_all
-   real(kind=c_double), intent(inout)        :: ev(na)
+    use elpa1_compute
+    use elpa2_compute
+    use elpa_mpi
+    use cuda_functions
+    use mod_check_for_gpu
+    use iso_c_binding
+
+    implicit none
+
+    logical, intent(in), optional             :: useGPU
+    integer(kind=c_int), intent(in), optional :: THIS_COMPLEX_ELPA_KERNEL_API
+    integer(kind=c_int)                       :: THIS_COMPLEX_ELPA_KERNEL
+    integer(kind=c_int), intent(in)           :: na, nev, lda, ldq, nblk, matrixCols, mpi_comm_rows, mpi_comm_cols, mpi_comm_all
+    real(kind=c_double), intent(inout)        :: ev(na)
 #ifdef USE_ASSUMED_SIZE
-   complex(kind=c_double), intent(inout)     :: a(lda,*), q(ldq,*)
+    complex(kind=c_double), intent(inout)     :: a(lda,*), q(ldq,*)
 #else
-   complex(kind=c_double), intent(inout)     :: a(lda,matrixCols), q(ldq,matrixCols)
+    complex(kind=c_double), intent(inout)     :: a(lda,matrixCols), q(ldq,matrixCols)
 #endif
-   complex(kind=c_double), allocatable       :: hh_trans_complex(:,:)
+    complex(kind=c_double), allocatable       :: hh_trans_complex(:,:)
 
-   integer(kind=c_int)                       :: my_prow, my_pcol, np_rows, np_cols, mpierr, my_pe, n_pes
-   integer(kind=c_int)                       :: l_cols, l_rows, l_cols_nev, nbw, num_blocks
-   complex(kind=c_double), allocatable       :: tmat(:,:,:)
-   real(kind=c_double), allocatable          :: q_real(:,:), e(:)
-   real(kind=c_double)                       :: ttt0, ttt1, ttts  ! MPI_WTIME always needs double
-   integer(kind=c_int)                       :: i
+    integer(kind=c_int)                       :: my_prow, my_pcol, np_rows, np_cols, mpierr, my_pe, n_pes
+    integer(kind=c_int)                       :: l_cols, l_rows, l_cols_nev, nbw, num_blocks
+    complex(kind=c_double), allocatable       :: tmat(:,:,:)
+    real(kind=c_double), allocatable          :: q_real(:,:), e(:)
+    real(kind=c_double)                       :: ttt0, ttt1, ttts  ! MPI_WTIME always needs double
+    integer(kind=c_int)                       :: i
 
-   logical                                   :: success, wantDebug
-   logical, save                             :: firstCall = .true.
-   integer(kind=c_int)                       :: istat
-   character(200)                            :: errorMessage
-   logical                                   :: do_useGPU
-   integer(kind=c_int)                       :: numberOfGPUDevices
+    logical                                   :: success, wantDebug
+    logical, save                             :: firstCall = .true.
+    integer(kind=c_int)                       :: istat
+    character(200)                            :: errorMessage
+    logical                                   :: do_useGPU, do_useGPU_4
+    integer(kind=c_int)                       :: numberOfGPUDevices
 
 #ifdef HAVE_DETAILED_TIMINGS
     call timer%start("solve_evp_complex_2stage_double")
@@ -1132,7 +1139,6 @@ function solve_evp_complex_2stage_single(na, nev, a, lda, ev, q, ldq, nblk, &
 #endif
     call mpi_comm_rank(mpi_comm_all,my_pe,mpierr)
     call mpi_comm_size(mpi_comm_all,n_pes,mpierr)
-
     call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
     call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
     call mpi_comm_rank(mpi_comm_cols,my_pcol,mpierr)
@@ -1141,172 +1147,172 @@ function solve_evp_complex_2stage_single(na, nev, a, lda, ev, q, ldq, nblk, &
     call timer%stop("mpi_communication")
 #endif
 
-    do_useGPU = .false.
-    wantDebug = .false.
-    success   = .true.
+    do_useGPU   = .false.
+    do_useGPU_4 = .false.
+    wantDebug   = .false.
+    success     = .true.
 
-   THIS_COMPLEX_ELPA_KERNEL = get_actual_complex_kernel()
+    THIS_COMPLEX_ELPA_KERNEL = get_actual_complex_kernel()
 
-   if(THIS_COMPLEX_ELPA_KERNEL .eq. COMPLEX_ELPA_KERNEL_GPU) then
-      if(check_for_gpu(my_pe,numberOfGPUDevices,wantDebug=wantDebug)) then
-         do_useGPU=.true.
-      endif
-      if(nblk .ne. 128) then
-         print *, " ERROR: ELPA GPU version needs blocksize = 128. Exiting.."
-         stop
-      endif
+    if(THIS_COMPLEX_ELPA_KERNEL .eq. COMPLEX_ELPA_KERNEL_GPU) then
+       if(nblk .ne. 128) then
+          print *, " ERROR: ELPA2 GPU kernel requires blocksize = 128. Exiting.."
+          stop
+       endif
 
-      ! Set GPU/CUDA parameters
-      cudaMemcpyHostToDevice   = cuda_memcpyHostToDevice()
-      cudaMemcpyDeviceToHost   = cuda_memcpyDeviceToHost()
-      cudaMemcpyDeviceToDevice = cuda_memcpyDeviceToDevice()
-      cudaHostRegisterPortable = cuda_hostRegisterPortable()
-      cudaHostRegisterMapped   = cuda_hostRegisterMapped()
-   endif
+       ! 4th step
+       do_useGPU_4 = .true.
+    endif
+
+#ifdef WITH_GPU_VERSION
+    if(check_for_gpu(my_pe,numberOfGPUDevices,wantDebug=wantDebug)) then
+       do_useGPU = .true.
+    endif
+
+    ! Set GPU/CUDA parameters
+    cudaMemcpyHostToDevice   = cuda_memcpyHostToDevice()
+    cudaMemcpyDeviceToHost   = cuda_memcpyDeviceToHost()
+    cudaMemcpyDeviceToDevice = cuda_memcpyDeviceToDevice()
+    cudaHostRegisterPortable = cuda_hostRegisterPortable()
+    cudaHostRegisterMapped   = cuda_hostRegisterMapped()
+#endif
 
     ! Choose bandwidth, must be a multiple of nblk, set to a value >= 32
     nbw = (31/nblk+1)*nblk
-
     num_blocks = (na-1)/nbw + 1
 
-    allocate(tmat(nbw,nbw,num_blocks), stat=istat, errmsg=errorMessage)
-    if (istat .ne. 0) then
-      print *,"solve_evp_complex_2stage: error when allocating tmat"//errorMessage
-      stop
+    allocate(tmat(nbw,nbw,num_blocks),stat=istat,errmsg=errorMessage)
+    if(istat .ne. 0) then
+       print *,"solve_evp_complex_2stage: error when allocating tmat"//errorMessage
+       stop
     endif
 
     ! Reduction full -> band
     ttt0 = MPI_Wtime()
 #ifdef DOUBLE_PRECISION_COMPLEX
-    call bandred_complex_double(na, a, lda, nblk, nbw, matrixCols, num_blocks, mpi_comm_rows, mpi_comm_cols, &
-        tmat, wantDebug, do_useGPU, success)
+    call bandred_complex_double(na,a,lda,nblk,nbw,matrixCols,num_blocks,&
+            mpi_comm_rows,mpi_comm_cols,tmat,wantDebug,do_useGPU,success)
 #else
-    call bandred_complex_single(na, a, lda, nblk, nbw, matrixCols, num_blocks, mpi_comm_rows, mpi_comm_cols, &
-        tmat, wantDebug, do_useGPU, success)
+    call bandred_complex_single(na,a,lda,nblk,nbw,matrixCols,num_blocks,&
+            mpi_comm_rows,mpi_comm_cols,tmat,wantDebug,do_useGPU,success)
 #endif
-    if (.not.(success)) then
-
+    if(.not.(success)) then
 #ifdef HAVE_DETAILED_TIMINGS
-      call timer%stop("solve_evp_complex_2stage_double")
+       call timer%stop("solve_evp_complex_2stage_double")
 #endif
-      return
+       return
     endif
     ttt1 = MPI_Wtime()
-    if (my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-      print *,"  | Time full ==> band            :",ttt1-ttt0
+    if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
+       print *,"  | Time full ==> band            :",ttt1-ttt0
 
     ! Reduction band -> tridiagonal
-    allocate(e(na), stat=istat, errmsg=errorMessage)
-    if (istat .ne. 0) then
-      print *,"solve_evp_complex_2stage: error when allocating e"//errorMessage
-      stop
+    allocate(e(na),stat=istat,errmsg=errorMessage)
+    if(istat .ne. 0) then
+       print *,"solve_evp_complex_2stage: error when allocating e"//errorMessage
+       stop
     endif
 
     ttt0 = MPI_Wtime()
 #ifdef DOUBLE_PRECISION_COMPLEX
-   call tridiag_band_complex_double(na, nbw, nblk, a, lda, ev, e, matrixCols, hh_trans_complex, &
-                             mpi_comm_rows, mpi_comm_cols, mpi_comm_all)
+    call tridiag_band_complex_double(na,nbw,nblk,a,lda,ev,e,matrixCols,hh_trans_complex,&
+            mpi_comm_rows,mpi_comm_cols,mpi_comm_all)
 #else
-   call tridiag_band_complex_single(na, nbw, nblk, a, lda, ev, e, matrixCols, hh_trans_complex, &
-                             mpi_comm_rows, mpi_comm_cols, mpi_comm_all)
+    call tridiag_band_complex_single(na,nbw,nblk,a,lda,ev,e,matrixCols,hh_trans_complex,&
+            mpi_comm_rows,mpi_comm_cols,mpi_comm_all)
 #endif
 
     ttt1 = MPI_Wtime()
-    if (my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-      print *,"  | Time band ==> tridiagonal     :",ttt1-ttt0
+    if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
+       print *,"  | Time band ==> tridiagonal     :",ttt1-ttt0
 
 #ifdef WITH_MPI
 #ifdef HAVE_DETAILED_TIMINGS
     call timer%start("mpi_communication")
 #endif
 #ifdef DOUBLE_PRECISION_COMPLEX
-    call mpi_bcast(ev, na, mpi_real8, 0, mpi_comm_all, mpierr)
-    call mpi_bcast(e, na, mpi_real8, 0, mpi_comm_all, mpierr)
+    call mpi_bcast(ev,na,mpi_real8,0,mpi_comm_all,mpierr)
+    call mpi_bcast(e,na,mpi_real8,0,mpi_comm_all,mpierr)
 #else
-    call mpi_bcast(ev, na, mpi_real4, 0, mpi_comm_all, mpierr)
-    call mpi_bcast(e, na, mpi_real4, 0, mpi_comm_all, mpierr)
+    call mpi_bcast(ev,na,mpi_real4,0,mpi_comm_all,mpierr)
+    call mpi_bcast(e,na,mpi_real4,0,mpi_comm_all,mpierr)
 #endif
 #ifdef HAVE_DETAILED_TIMINGS
     call timer%stop("mpi_communication")
 #endif
 #endif /* WITH_MPI */
 
-    l_rows = local_index(na, my_prow, np_rows, nblk, -1) ! Local rows of a and q
-    l_cols = local_index(na, my_pcol, np_cols, nblk, -1) ! Local columns of q
-    l_cols_nev = local_index(nev, my_pcol, np_cols, nblk, -1) ! Local columns corresponding to nev
+    l_rows = local_index(na,my_prow,np_rows,nblk,-1) ! Local rows of a and q
+    l_cols = local_index(na,my_pcol,np_cols,nblk,-1) ! Local columns of q
+    l_cols_nev = local_index(nev,my_pcol,np_cols,nblk,-1) ! Local columns corresponding to nev
 
-    allocate(q_real(l_rows,l_cols), stat=istat, errmsg=errorMessage)
-    if (istat .ne. 0) then
-      print *,"solve_evp_complex_2stage: error when allocating q_real"//errorMessage
-      stop
+    allocate(q_real(l_rows,l_cols),stat=istat,errmsg=errorMessage)
+    if(istat .ne. 0) then
+       print *,"solve_evp_complex_2stage: error when allocating q_real"//errorMessage
+       stop
     endif
 
     ! Solve tridiagonal system
     ttt0 = MPI_Wtime()
 #ifdef DOUBLE_PRECISION_COMPLEX
-    call solve_tridi_double(na, nev, ev, e, q_real, ubound(q_real,dim=1), nblk, matrixCols, &
-                     mpi_comm_rows, mpi_comm_cols, wantDebug, success)
+    call solve_tridi_double(na,nev,ev,e,q_real,ubound(q_real,dim=1),nblk,matrixCols,&
+            mpi_comm_rows,mpi_comm_cols,wantDebug,success)
 #else
-    call solve_tridi_single(na, nev, ev, e, q_real, ubound(q_real,dim=1), nblk, matrixCols, &
-                     mpi_comm_rows, mpi_comm_cols, wantDebug, success)
+    call solve_tridi_single(na,nev,ev,e,q_real,ubound(q_real,dim=1),nblk,matrixCols,&
+            mpi_comm_rows,mpi_comm_cols,wantDebug,success)
 #endif
-    if (.not.(success)) return
+    if(.not.(success)) return
 
     ttt1 = MPI_Wtime()
-    if (my_prow==0 .and. my_pcol==0 .and. elpa_print_times)  &
-      print *,"  | Time solve tridiagonal        :",ttt1-ttt0
+    if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times)  &
+       print *,"  | Time solve tridiagonal        :",ttt1-ttt0
 
     q(1:l_rows,1:l_cols_nev) = q_real(1:l_rows,1:l_cols_nev)
 
-    deallocate(e, q_real, stat=istat, errmsg=errorMessage)
-    if (istat .ne. 0) then
-      print *,"solve_evp_complex_2stage: error when deallocating e, q_real"//errorMessage
-      stop
+    deallocate(e,q_real,stat=istat,errmsg=errorMessage)
+    if(istat .ne. 0) then
+       print *,"solve_evp_complex_2stage: error when deallocating e, q_real"//errorMessage
+       stop
     endif
 
     ! Backtransform stage 1
-
     ttt0 = MPI_Wtime()
 #ifdef DOUBLE_PRECISION_COMPLEX
-    call trans_ev_tridi_to_band_complex_double(na, nev, nblk, nbw, q, ldq,  &
-                                       matrixCols, hh_trans_complex, &
-                                       mpi_comm_rows, mpi_comm_cols, &
-                                       wantDebug, do_useGPU, success,THIS_COMPLEX_ELPA_KERNEL)
+    call trans_ev_tridi_to_band_complex_double(na,nev,nblk,nbw,q,ldq,matrixCols,hh_trans_complex,&
+            mpi_comm_rows,mpi_comm_cols,wantDebug,do_useGPU_4,success,THIS_COMPLEX_ELPA_KERNEL)
 #else
-    call trans_ev_tridi_to_band_complex_single(na, nev, nblk, nbw, q, ldq,  &
-                                       matrixCols, hh_trans_complex, &
-                                       mpi_comm_rows, mpi_comm_cols, &
-                                       wantDebug, do_useGPU, success,THIS_COMPLEX_ELPA_KERNEL)
+    call trans_ev_tridi_to_band_complex_single(na,nev,nblk,nbw,q,ldq,matrixCols,hh_trans_complex,&
+            mpi_comm_rows,mpi_comm_cols,wantDebug,do_useGPU_4,success,THIS_COMPLEX_ELPA_KERNEL)
 #endif
-    if (.not.(success)) return
+    if(.not.(success)) return
     ttt1 = MPI_Wtime()
-    if (my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-         print *,"  | Time ev tridiagonal ==> band  :",ttt1-ttt0
+    if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
+       print *,"  | Time ev tridiagonal ==> band  :",ttt1-ttt0
 
     ! We can now deallocate the stored householder vectors
-    deallocate(hh_trans_complex, stat=istat, errmsg=errorMessage)
-    if (istat .ne. 0) then
-      print *,"solve_evp_complex_2stage: error when deallocating hh_trans_complex"//errorMessage
-      stop
+    deallocate(hh_trans_complex,stat=istat,errmsg=errorMessage)
+    if(istat .ne. 0) then
+       print *,"solve_evp_complex_2stage: error when deallocating hh_trans_complex"//errorMessage
+       stop
     endif
 
     ! Backtransform stage 2
     ttt0 = MPI_Wtime()
 #ifdef DOUBLE_PRECISION_COMPLEX
-   call trans_ev_band_to_full_complex_double(na, nev, nblk, nbw, a, lda, tmat, q, ldq, matrixCols, num_blocks, &
-       mpi_comm_rows, mpi_comm_cols, do_useGPU)
+    call trans_ev_band_to_full_complex_double(na,nev,nblk,nbw,a,lda,tmat,q,ldq,matrixCols,num_blocks,&
+            mpi_comm_rows,mpi_comm_cols,do_useGPU)
 #else
-   call trans_ev_band_to_full_complex_single(na, nev, nblk, nbw, a, lda, tmat, q, ldq, matrixCols, num_blocks, &
-       mpi_comm_rows, mpi_comm_cols, do_useGPU)
+    call trans_ev_band_to_full_complex_single(na,nev,nblk,nbw,a,lda,tmat,q,ldq,matrixCols,num_blocks,&
+            mpi_comm_rows,mpi_comm_cols,do_useGPU)
 #endif
     ttt1 = MPI_Wtime()
-    if (my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-         print *,"  | Time ev band ==> full         :",ttt1-ttt0
+    if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
+       print *,"  | Time ev band ==> full         :",ttt1-ttt0
 
-    deallocate(tmat, stat=istat, errmsg=errorMessage)
-    if (istat .ne. 0) then
-      print *,"solve_evp_complex_2stage: error when deallocating tmat "//errorMessage
-      stop
+    deallocate(tmat,stat=istat,errmsg=errorMessage)
+    if(istat .ne. 0) then
+       print *,"solve_evp_complex_2stage: error when deallocating tmat "//errorMessage
+       stop
     endif
 
 #ifdef HAVE_DETAILED_TIMINGS
@@ -1315,9 +1321,15 @@ function solve_evp_complex_2stage_single(na, nev, a, lda, ev, q, ldq, nblk, &
 
 1   format(a,f10.3)
 
-   if(my_prow==0 .and. my_pcol==0) then
-      if(do_useGPU) print *,"  GPU has been used for this ELPA2"
-   endif
+    if(my_prow==0 .and. my_pcol==0) then
+       if(do_useGPU) then
+          if(do_useGPU_4) then
+             print *,"  GPU has been used for the 1st, 4th, 5th steps of ELPA2"
+          else
+             print *,"  GPU has been used for the 1st, 5th steps of ELPA2"
+          endif
+       endif
+    endif
 
 #ifdef DOUBLE_PRECISION_COMPLEX
 end function solve_evp_complex_2stage_double
@@ -1715,13 +1727,12 @@ function elpa_check_singularity_real_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCol
    logical                            :: success
    logical                            :: wantDebug
    integer(kind=c_int)                :: istat
-   logical                            :: do_useGPU
+   logical                            :: do_useGPU,do_useGPU_4
    logical                            :: useQRActual
    integer(kind=c_int)                :: numberOfGPUDevices
 
    call mpi_comm_rank(mpi_comm_all,my_pe,mpierr)
    call mpi_comm_size(mpi_comm_all,n_pes,mpierr)
-
    call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
    call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
    call mpi_comm_rank(mpi_comm_cols,my_pcol,mpierr)
@@ -1731,33 +1742,32 @@ function elpa_check_singularity_real_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCol
    wantDebug   = .false.
    useQRActual = .false.
    do_useGPU   = .false.
+   do_useGPU_4 = .false.
 
    THIS_REAL_ELPA_KERNEL = get_actual_real_kernel()
 
    if(THIS_REAL_ELPA_KERNEL .eq. REAL_ELPA_KERNEL_GPU) then
-      if(check_for_gpu(my_pe,numberOfGPUDevices,wantDebug=wantDebug)) then
-         do_useGPU = .true.
-      endif
       if(nblk .ne. 128) then
-         print *, " ERROR: ELPA GPU version needs blocksize = 128. Exiting.."
+         print *, " ERROR: ELPA2 GPU kernel requires blocksize = 128. Exiting.."
          stop
       endif
 
-      ! Set GPU/CUDA parameters
-      cudaMemcpyHostToDevice   = cuda_memcpyHostToDevice()
-      cudaMemcpyDeviceToHost   = cuda_memcpyDeviceToHost()
-      cudaMemcpyDeviceToDevice = cuda_memcpyDeviceToDevice()
-      cudaHostRegisterPortable = cuda_hostRegisterPortable()
-      cudaHostRegisterMapped   = cuda_hostRegisterMapped()
+      ! 4th step
+      do_useGPU_4 = .true.
    endif
 
-   if(do_useGPU) then
-      if(nblk .ne. 128) then
-         print *, " ERROR: ELPA GPU version needs blocksize = 128. Exiting.."
-         success = .false.
-         stop
-      endif
+#ifdef WITH_GPU_VERSION
+   if(check_for_gpu(my_pe,numberOfGPUDevices,wantDebug=wantDebug)) then
+      do_useGPU = .true.
    endif
+
+   ! Set GPU/CUDA parameters
+   cudaMemcpyHostToDevice   = cuda_memcpyHostToDevice()
+   cudaMemcpyDeviceToHost   = cuda_memcpyDeviceToHost()
+   cudaMemcpyDeviceToDevice = cuda_memcpyDeviceToDevice()
+   cudaHostRegisterPortable = cuda_hostRegisterPortable()
+   cudaHostRegisterMapped   = cuda_hostRegisterMapped()
+#endif
 
    ! Bandwidth must be a multiple of nblk
    ! Set to a value >= 32
@@ -1826,7 +1836,7 @@ function elpa_check_singularity_real_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCol
       ttt0 = MPI_Wtime()
       call trans_ev_tridi_to_band_real_double(na,nev,nblk,nbw,q,q_dev,ldq,matrixCols,&
                                               hh_trans_real,mpi_comm_rows,mpi_comm_cols,&
-                                              wantDebug,do_useGPU,success,THIS_REAL_ELPA_KERNEL)
+                                              wantDebug,do_useGPU_4,success,THIS_REAL_ELPA_KERNEL)
       if(.not.success) return
       ttt1 = MPI_Wtime()
       if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
@@ -1850,7 +1860,13 @@ function elpa_check_singularity_real_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCol
    endif
 
    if(my_prow==0 .and. my_pcol==0) then
-      if(do_useGPU) print *,"  GPU has been used for this ELPA2"
+      if(do_useGPU) then
+         if(do_useGPU_4) then
+            print *,"  GPU has been used for the 1st, 4th, 5th steps of ELPA2"
+         else
+            print *,"  GPU has been used for the 1st, 5th steps of ELPA2"
+         endif
+      endif
    endif
 
 end function
@@ -1888,44 +1904,48 @@ function elpa_check_singularity_complex_double(na,nev,a,lda,ev,q,ldq,nblk,matrix
    integer(kind=c_int)                   :: i
    logical                               :: success,wantDebug
    integer(kind=c_int)                   :: istat
-   logical                               :: do_useGPU
+   logical                               :: do_useGPU,do_useGPU_4
    integer(kind=c_int)                   :: numberOfGPUDevices
 
    call mpi_comm_rank(mpi_comm_all,my_pe,mpierr)
    call mpi_comm_size(mpi_comm_all,n_pes,mpierr)
-
    call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
    call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
    call mpi_comm_rank(mpi_comm_cols,my_pcol,mpierr)
    call mpi_comm_size(mpi_comm_cols,np_cols,mpierr)
 
-   success     = .true.
    do_useGPU   = .false.
+   do_useGPU_4 = .false.
    wantDebug   = .false.
+   success     = .true.
 
    THIS_COMPLEX_ELPA_KERNEL = get_actual_complex_kernel()
 
    if(THIS_COMPLEX_ELPA_KERNEL .eq. COMPLEX_ELPA_KERNEL_GPU) then
-      if(check_for_gpu(my_pe,numberOfGPUDevices,wantDebug=wantDebug)) then
-         do_useGPU=.true.
-      endif
       if(nblk .ne. 128) then
-         print *, " ERROR: ELPA GPU version needs blocksize = 128. Exiting.."
+         print *, " ERROR: ELPA2 GPU kernel requires blocksize = 128. Exiting.."
          stop
       endif
-
-      ! Set GPU/CUDA parameters
-      cudaMemcpyHostToDevice   = cuda_memcpyHostToDevice()
-      cudaMemcpyDeviceToHost   = cuda_memcpyDeviceToHost()
-      cudaMemcpyDeviceToDevice = cuda_memcpyDeviceToDevice()
-      cudaHostRegisterPortable = cuda_hostRegisterPortable()
-      cudaHostRegisterMapped   = cuda_hostRegisterMapped()
+      ! 4th step
+      do_useGPU_4 = .true.
    endif
+
+#ifdef WITH_GPU_VERSION
+   if(check_for_gpu(my_pe,numberOfGPUDevices,wantDebug=wantDebug)) then
+      do_useGPU = .true.
+   endif
+
+   ! Set GPU/CUDA parameters
+   cudaMemcpyHostToDevice   = cuda_memcpyHostToDevice()
+   cudaMemcpyDeviceToHost   = cuda_memcpyDeviceToHost()
+   cudaMemcpyDeviceToDevice = cuda_memcpyDeviceToDevice()
+   cudaHostRegisterPortable = cuda_hostRegisterPortable()
+   cudaHostRegisterMapped   = cuda_hostRegisterMapped()
+#endif
 
    ! Bandwidth must be a multiple of nblk
    ! Set to a value >= 32
    nbw = (31/nblk+1)*nblk
-
    num_blocks = (na-1)/nbw+1
 
    allocate(tmat(nbw,nbw,num_blocks),stat=istat)
@@ -1998,7 +2018,7 @@ function elpa_check_singularity_complex_double(na,nev,a,lda,ev,q,ldq,nblk,matrix
       ttt0 = MPI_Wtime()
       call trans_ev_tridi_to_band_complex_double(na,nev,nblk,nbw,q,ldq,matrixCols,&
                                                  hh_trans_complex,mpi_comm_rows,&
-                                                 mpi_comm_cols,wantDebug,do_useGPU,&
+                                                 mpi_comm_cols,wantDebug,do_useGPU_4,&
                                                  success,THIS_COMPLEX_ELPA_KERNEL)
       if(.not.success) return
       ttt1 = MPI_Wtime()
@@ -2023,7 +2043,13 @@ function elpa_check_singularity_complex_double(na,nev,a,lda,ev,q,ldq,nblk,matrix
    endif
 
    if(my_prow==0 .and. my_pcol==0) then
-      if(do_useGPU) print *,"  GPU has been used for this ELPA2"
+      if(do_useGPU) then
+         if(do_useGPU_4) then
+            print *,"  GPU has been used for the 1st, 4th, 5th steps of ELPA2"
+         else
+            print *,"  GPU has been used for the 1st, 5th steps of ELPA2"
+         endif
+      endif
    endif
 
 end function

@@ -1,6 +1,6 @@
 # PLATFORM  : TIMEWARP @DUKE
 # COMPILERS : INTEL + NVIDIA
-# VERIFIED  : APR 12, 2017
+# VERIFIED  : APR 27, 2017
 # DO READ ../INSTALL CAREFULLY!
 
 # ====== ELSI ======
@@ -29,7 +29,8 @@ SUPERLU_LIB     = -L/home/wy29/yu/SuperLU_DIST_5.1.2/lib -lsuperlu_dist_5.1.2
 SUPERLU_INCLUDE = -I/home/wy29/yu/SuperLU_DIST_5.1.2/SRC
 
 # ====== ELPA ======
-ELPA2_KERNEL = GPU
+ELPA_GPU     = yes
 NVCC         = nvcc
 NVCCFLAGS    = -arch sm_35 -O3
-CUDA         = -I/opt/cuda/7.0/include -L/opt/cuda/7.0/lib64 -lcudart -lcublas
+CUDA_LIB     = -L/opt/cuda/7.0/lib64 -lcudart -lcublas
+CUDA_INCLUDE = -I/opt/cuda/7.0/include

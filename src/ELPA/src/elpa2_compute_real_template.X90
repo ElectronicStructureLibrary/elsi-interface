@@ -3193,7 +3193,6 @@
         endif
 
         ! "row_group" and "row_group_dev" are needed for GPU optimizations
-print *, "XXXXXXXXXX", l_nev
         allocate(row_group(l_nev, nblk), stat=istat, errmsg=errorMessage)
         if (istat .ne. 0) then
           print *,"trans_ev_tridi_to_band_real: error when allocating row_group"//errorMessage

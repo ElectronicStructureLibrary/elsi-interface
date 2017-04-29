@@ -1455,6 +1455,10 @@ subroutine elsi_print_pexsi_options()
       pexsi_options%numElectronPEXSITolerance
    call elsi_statement_print(info_str)
 
+   write(info_str,"(1X,' | Number of processors for symbolic factorization ',I5)") &
+      pexsi_options%npSymbFact
+   call elsi_statement_print(info_str)
+
 end subroutine
 
 end module ELSI_PEXSI

@@ -181,7 +181,7 @@ module ELPA2_utilities
 #ifdef WITH_REAL_BGQ_KERNEL
   integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_AVX_BGQ
 #endif
-#ifdef WITH_GPU_VERSION
+#ifdef WITH_REAL_GPU_KERNEL
   integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_GPU
 #endif
 
@@ -252,7 +252,7 @@ module ELPA2_utilities
 #ifdef WITH_REAL_BGQ_KERNEL
   integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_AVX_BGQ
 #endif
-#ifdef WITH_GPU_VERSION
+#ifdef WITH_REAL_GPU_KERNEL
   integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_GPU
 #endif
 
@@ -339,7 +339,7 @@ module ELPA2_utilities
 #endif /* defined(WITH_COMPLEX_AVX2_BLOCK1_KERNEL) || defined(WITH_COMPLEX_AVX2_BLOCK2_KERNEL) */
 
 
-#ifdef WITH_GPU_VERSION
+#ifdef WITH_COMPLEX_GPU_KERNEL
   integer(kind=ik), parameter :: DEFAULT_COMPLEX_ELPA_KERNEL = COMPLEX_ELPA_KERNEL_GPU
 #endif
 
@@ -393,7 +393,7 @@ module ELPA2_utilities
 #endif
 #endif /* defined(WITH_COMPLEX_AVX2_BLOCK1_KERNEL) || defined(WITH_COMPLEX_AVX2_BLOCK2_KERNEL) */
 
-#ifdef WITH_GPU_VERSION
+#ifdef WITH_COMPLEX_GPU_KERNEL
   integer(kind=ik), parameter :: DEFAULT_COMPLEX_ELPA_KERNEL = COMPLEX_ELPA_KERNEL_GPU
 #endif
 
@@ -489,7 +489,7 @@ module ELPA2_utilities
 #else
                                                                ,0      &
 #endif
-#ifdef WITH_GPU_VERSION
+#ifdef WITH_REAL_GPU_KERNEL
                                                                  ,1    &
 #else
                                                                  ,0    &
@@ -554,7 +554,7 @@ module ELPA2_utilities
 #else
                                                            ,0             &
 #endif
-#ifdef WITH_GPU_VERSION
+#ifdef WITH_COMPLEX_GPU_KERNEL
                                                              ,1           &
 #else
                                                              ,0           &

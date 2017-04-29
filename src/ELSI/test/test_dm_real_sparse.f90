@@ -180,7 +180,7 @@ program test_dm_real_sparse
 
    call elsi_init(solver,1,1,matrix_size,n_electrons,n_states)
    call elsi_set_mpi(mpi_comm_global)
-   call elsi_set_sparsity(global_nnz,local_nnz,local_col,row_idx,col_ptr)
+   call elsi_set_csc(global_nnz,local_nnz,local_col,row_idx,col_ptr)
 
    ! Only 2 PEXSI poles for quick test
    call elsi_customize_pexsi(temperature=4d-4,&

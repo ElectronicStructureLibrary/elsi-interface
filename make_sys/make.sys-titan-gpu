@@ -1,6 +1,6 @@
 # PLATFORM  : TITAN @OLCF
 # COMPILERS : PGI + NVIDIA
-# VERIFIED  : APR 12, 2017
+# VERIFIED  : APR 27, 2017
 # DO READ ../INSTALL CAREFULLY!
 
 # ====== ELSI ======
@@ -14,10 +14,10 @@ CXX_LDFLAGS = -lstdc++
 LDFLAGS     = -Wl,--allow-multiple-definition
 
 # ====== ELPA ======
-ELPA2_KERNEL = GPU
-NVCC         = nvcc
-NVCCFLAGS    = -arch sm_35 -O3
-CUDA         = -lcudart -lcublas
+ELPA_GPU  = yes
+NVCC      = nvcc
+NVCCFLAGS = -arch sm_35 -O3
+CUDA_LIB  = -lcudart -lcublas
 
 # ====== PEXSI ======
 METIS_LIB       = -L/ccs/home/vwzyu/parmetis-4.0.3/build/Linux-x86_64/libmetis -lmetis

@@ -44,7 +44,9 @@ DISABLE_CXX  = yes
 #SUPERLU_INCLUDE = -I/home/whuhn/opt/SuperLU_DIST/5.1.2/SRC
 
 # ====== ELPA ======
-ELPA2_KERNEL = GPU
+ELPA_GPU     = yes
+#ELPA2_KERNEL = GPU
 NVCC         = ${CUDA_ROOT}/bin/nvcc
 NVCCFLAGS    = -ccbin=icpc -O3 -c -m64 -arch=sm_60
-CUDA         = -L${CUDA_ROOT}/lib64 -lcudart -lcublas
+CUDA_LIB     = -L${CUDA_ROOT}/lib64 -lcudart -lcublas
+CUDA_INCLUDE = -I${CUDA_ROOT}/include
