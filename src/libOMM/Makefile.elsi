@@ -21,6 +21,8 @@ MSOBJ  = MatrixSwitch_ops.o MatrixSwitch_mm_multiply.o MatrixSwitch_m_add.o Matr
 OMMOBJ = omm_params.o omm_rand.o omm_quartic.o omm_ops.o omm.o omm_wrappers.o omm_callback.o
 TOMOBJ = tomato_TB.o
 
+.PHONY: all psp_lib MatrixSwitch_lib libOMM_lib tomato_lib install clean
+
 all: psp_lib MatrixSwitch_lib libOMM_lib tomato_lib
 
 psp_lib: libpspblas.a

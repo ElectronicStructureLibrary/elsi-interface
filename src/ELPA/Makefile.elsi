@@ -113,6 +113,8 @@ ifeq ($(strip $(ELPA_GPU)),yes)
   ALL_OBJECTS += $(GPU_OBJECTS)
 endif
 
+.PHONY: all clean install
+
 all: $(ALL_OBJECTS)
 
 elpa1.o: ./src/elpa1.F90 elpa_utilities.o elpa1_utilities.o elpa1_auxiliary.o elpa1_compute_private.o mod_mpi.o check_for_gpu.o mod_cuda.o

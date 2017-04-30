@@ -82,6 +82,8 @@ else
   STUBS += stub_sips.o
 endif
 
+.PHONY: all elpa omm pexsi elsi install check clean cleanelsi cleanelpa cleanomm cleanpexsi
+
 all: $(ALL_OBJ) elsi
 
 elpa:

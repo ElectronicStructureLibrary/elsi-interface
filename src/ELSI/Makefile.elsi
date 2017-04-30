@@ -67,6 +67,8 @@ elsi_c_interface.o: ./src/elsi_c_interface.f90 elsi_interface.o elsi_dimensions.
 	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
 	cp ./src/elsi.h $(INC_DIR)
 
+.PHONY: clean install check
+
 clean:
 	rm -f *.o *.mod *.x *.a *log*
 
