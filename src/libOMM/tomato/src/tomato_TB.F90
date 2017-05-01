@@ -1,3 +1,80 @@
+! Wrapper around tomato_TB for the real case to eliminate the usage of the type(matrix) data type.
+! This is needed for interoperability between languages.
+! There is currently a matrix copy in this subroutine that can likely be eliminated.
+subroutine tomato_TB_real(template_basedir,system_label,&
+                          switch1,frac_occ,num_orbs_per_atom,&
+                          switch2,num_orbs,num_cells_dir,&
+                          switch3,sparsity,orb_r_cut,&
+                          num_occ_states,&
+                          gamma_point,k_point,&
+                          defect,defect_perturbation,&
+                          H_dval,S_dval,m_storage,&
+                          build_matrix)
+  use MatrixSwitch
+
+  implicit none
+
+  !**** PARAMS **********************************!
+
+  integer, parameter :: dp=selected_real_kind(15,300)
+
+  !**** INPUT ***********************************!
+
+  character(5), intent(in) :: m_storage
+  character(*), intent(in) :: template_basedir
+  character(*), intent(in) :: system_label
+
+  logical, intent(in) :: switch1
+  logical, intent(in) :: switch2
+  logical, intent(in) :: switch3
+  logical, intent(in) :: gamma_point
+  logical, intent(in) :: build_matrix
+  logical, intent(in) :: defect
+
+  real(dp), intent(in) :: defect_perturbation
+
+  !**** OUTPUT **********************************!
+
+  integer, intent(out) :: num_occ_states
+
+  !**** INOUT ***********************************!
+
+  integer, intent(inout) :: num_orbs_per_atom
+  integer, intent(inout) :: num_orbs
+  integer, intent(inout) :: num_cells_dir(3)
+
+  real(dp), intent(inout) :: frac_occ
+  real(dp), intent(inout) :: sparsity
+  real(dp), intent(inout) :: orb_r_cut
+  real(dp), intent(inout) :: k_point(3)
+
+  real*8,   intent(out)   :: H_dval(:,:)
+  real*8,   intent(out)   :: S_dval(:,:)
+
+  !**** VARIABLES *******************************!
+
+  type(matrix)            :: H
+  type(matrix)            :: S
+
+  call tomato_TB(template_basedir,system_label,&
+                 switch1,frac_occ,num_orbs_per_atom,&
+                 switch2,num_orbs,num_cells_dir,&
+                 switch3,sparsity,orb_r_cut,&
+                 num_occ_states,&
+                 gamma_point,k_point,&
+                 defect,defect_perturbation,&
+                 H,S,m_storage,&
+                 build_matrix)
+
+  H_dval = H%dval
+  S_dval = S%dval
+
+  call m_deallocate(S)
+  call m_deallocate(H)
+
+end subroutine tomato_TB_real
+
+
 subroutine tomato_TB(template_basedir,system_label,&
                      switch1,frac_occ,num_orbs_per_atom,&
                      switch2,num_orbs,num_cells_dir,&
