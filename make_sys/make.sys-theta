@@ -1,6 +1,6 @@
 # PLATFORM  : THETA @ALCF
 # COMPILERS : INTEL
-# VERIFIED  : FEB 28, 2017
+# VERIFIED  : APR 28, 2017
 # DO READ ../INSTALL CAREFULLY!
 
 # ====== ELSI ======
@@ -9,18 +9,16 @@ MPICC  = cc
 MPICXX = CC
 LINKER = ftn
 
-FFLAGS   = -fast -no-ipo
-CFLAGS   = -fast -no-ipo
-CXXFLAGS = -fast -no-ipo -std=c++11
-LDFLAGS  = -fast -no-ipo -Wl,--allow-multiple-definition
+FFLAGS   = -fast -no-ipo -xMIC-AVX512 -fp-model precise
+CFLAGS   = -fast -no-ipo -xMIC-AVX512 -fp-model precise
+CXXFLAGS = -fast -no-ipo -xMIC-AVX512 -fp-model precise -std=c++11
+LDFLAGS  = -fast -no-ipo -xMIC-AVX512 -fp-model precise
 
 CXX_LDFLAGS       = -lstdc++
 SCALAPACK_LDFLAGS = -mkl=cluster
 
 # ====== ELPA ======
-ELPA2_KERNEL  = AVX
-BLOCK_REAL    = 2
-BLOCK_COMPLEX = 1
+ELPA2_KERNEL = AVX2
 
 # ====== PEXSI ======
 METIS_LIB       = -L/home/wzvyu/parmetis-4.0.3/build/Linux-x86_64/libmetis -lmetis

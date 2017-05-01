@@ -751,6 +751,7 @@ subroutine elsi_ev_real(H_in,S_in,e_val_out,e_vec_out)
          call elsi_set_row_ind(row_ind_sips)
          call elsi_set_col_ptr(col_ptr_sips)
          call elsi_set_eigenvalue(e_val_out)
+         call elsi_set_eigenvector(e_vec_out)
 
          call elsi_solve_evp_sips()
 

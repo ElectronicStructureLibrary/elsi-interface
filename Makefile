@@ -45,9 +45,11 @@ LINKER     ?= $(MPIFC)
 LDFLAGS    ?= $(FFLAGS_I)
 
 # Default architecture settings
-ELPA_OMP     ?= no
-ELPA_GPU     ?= no
-ELPA2_KERNEL ?= Generic
+ELPA_OMP      ?= no
+ELPA_GPU      ?= no
+ELPA2_KERNEL  ?= Generic
+BLOCK_REAL    ?= 2
+BLOCK_COMPLEX ?= 1
 
 # Name of MPI executable
 MPI_EXEC ?= mpirun

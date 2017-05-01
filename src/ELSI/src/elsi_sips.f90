@@ -66,11 +66,13 @@ subroutine elsi_init_sips()
       call init_sips()
    endif
 
-   !< Number of slices
+   ! Number of slices
    n_p_per_slice_sips = 1
    n_slices = 1
+   ! n_p_per_slice_sips cannot be larger than 16
    do i = 1,5
-      if(mod(n_procs,n_p_per_slice_sips) == 0) then
+      if((mod(n_procs,n_p_per_slice_sips) == 0) .and. &
+         (n_procs/n_p_per_slice_sips .le. n_states)) then
          n_slices = n_procs/n_p_per_slice_sips
       endif
 
@@ -119,7 +121,6 @@ subroutine elsi_blacs_to_sips(H_in,S_in)
    character*40, parameter :: caller = "elsi_blacs_to_sips"
 
    if(overlap_is_unit) then
-      !TODO
       call elsi_stop(" SIPs with identity overlap matrix not yet available."//&
                      " Exiting...",caller)
    else
@@ -162,25 +163,20 @@ subroutine elsi_blacs_to_sips_hs_small(H_in,S_in)
    ! See documentation of MPI_Alltoallv
    real*8, allocatable  :: h_val_send_buffer(:) !< Send buffer for Hamiltonian
    real*8, allocatable  :: s_val_send_buffer(:) !< Send buffer for overlap
-   integer, allocatable :: pos_send_buffer(:)   !< Send buffer for global 1D id
-   integer :: send_count(n_procs) !< Number of elements to send to each processor
-   integer :: send_displ(n_procs) !< Displacement from which to take the outgoing data
-   integer :: send_displ_aux      !< Auxiliary variable used to set displacement 
+   integer, allocatable :: pos_send_buffer(:) !< Send buffer for global 1D id
+   integer, allocatable :: send_count(:) !< Number of elements to send to each processor
+   integer, allocatable :: send_displ(:) !< Displacement from which to take the outgoing data
    real*8, allocatable  :: h_val_recv_buffer(:) !< Receive buffer for Hamiltonian
    real*8, allocatable  :: s_val_recv_buffer(:) !< Receive buffer for overlap
-   integer, allocatable :: pos_recv_buffer(:)   !< Receive buffer for global 1D id
-   integer :: recv_count(n_procs) !< Number of elements to receive from each processor
-   integer :: recv_displ(n_procs) !< Displacement at which to place the incoming data
-   integer :: recv_displ_aux      !< Auxiliary variable used to set displacement
+   integer, allocatable :: pos_recv_buffer(:) !< Receive buffer for global 1D id
+   integer, allocatable :: recv_count(:) !< Number of elements to receive from each processor
+   integer, allocatable :: recv_displ(:) !< Displacement at which to place the incoming data
+   integer :: send_displ_aux !< Auxiliary variable used to set displacement 
+   integer :: recv_displ_aux !< Auxiliary variable used to set displacement
 
    character*40, parameter :: caller = "elsi_blacs_to_sips_hs_small"
 
    call elsi_start_redistribution_time()
-
-   send_count = 0
-   send_displ = 0
-   recv_count = 0
-   recv_displ = 0
 
    if(n_elsi_calls == 1) then
       call elsi_get_local_nnz(H_in,n_l_rows,n_l_cols,nnz_l)
@@ -190,13 +186,14 @@ subroutine elsi_blacs_to_sips_hs_small(H_in,S_in)
    call elsi_allocate(dest,nnz_l,"dest",caller)
    call elsi_allocate(pos_send_buffer,nnz_l,"pos_send_buffer",caller)
    call elsi_allocate(h_val_send_buffer,nnz_l,"h_val_send_buffer",caller)
+   call elsi_allocate(send_count,n_procs,"send_count",caller)
 
    ! Compute destination and global 1D id
    if(n_elsi_calls == 1) then
       i_val = 0
       do i_col = 1,n_l_cols
          do i_row = 1,n_l_rows
-            if(abs(H_in(i_row, i_col)) > zero_threshold) then
+            if(abs(S_in(i_row, i_col)) > zero_threshold) then
                i_val = i_val+1
                call elsi_get_global_col(global_col_id,i_col)
                call elsi_get_global_row(global_row_id,i_row)
@@ -209,6 +206,8 @@ subroutine elsi_blacs_to_sips_hs_small(H_in,S_in)
                pos_send_buffer(i_val) = (global_col_id-1)*n_g_size+global_row_id
                h_val_send_buffer(i_val) = H_in(i_row,i_col)
                s_val_send_buffer(i_val) = S_in(i_row,i_col)
+               ! Set send_count
+               send_count(dest(i_val)+1) = send_count(dest(i_val)+1)+1
            endif
         enddo
       enddo
@@ -216,7 +215,7 @@ subroutine elsi_blacs_to_sips_hs_small(H_in,S_in)
       i_val = 0
       do i_col = 1,n_l_cols
          do i_row = 1,n_l_rows
-            if(abs(H_in(i_row, i_col)) > zero_threshold) then
+            if(abs(S_in(i_row, i_col)) > zero_threshold) then
                i_val = i_val+1
                call elsi_get_global_col(global_col_id,i_col)
                call elsi_get_global_row(global_row_id,i_row)
@@ -228,21 +227,16 @@ subroutine elsi_blacs_to_sips_hs_small(H_in,S_in)
                ! Pack global id and data into buffers
                pos_send_buffer(i_val) = (global_col_id-1)*n_g_size+global_row_id
                h_val_send_buffer(i_val) = H_in(i_row,i_col)
+               ! Set send_count
+               send_count(dest(i_val)+1) = send_count(dest(i_val)+1)+1
            endif
         enddo
       enddo
    endif
 
-   ! Set send_count
-   do i_proc = 0,n_procs-1
-      do i_val = 1,nnz_l
-         if(dest(i_val) == i_proc) then
-            send_count(i_proc+1) = send_count(i_proc+1)+1
-         endif
-      enddo
-   enddo
-
    deallocate(dest)
+
+   call elsi_allocate(recv_count,n_procs,"recv_count",caller)
 
    ! Set recv_count
    call MPI_Alltoall(send_count,1,mpi_integer,recv_count,&
@@ -254,8 +248,12 @@ subroutine elsi_blacs_to_sips_hs_small(H_in,S_in)
                       mpi_comm_global,mpierr)
 
    ! Set send and receive displacement
+   call elsi_allocate(send_displ,n_procs,"send_displ",caller)
+   call elsi_allocate(recv_displ,n_procs,"recv_displ",caller)
+
    send_displ_aux = 0
    recv_displ_aux = 0
+
    do i_proc = 0,n_procs-1
       send_displ(i_proc+1) = send_displ_aux
       send_displ_aux = send_displ_aux+send_count(i_proc+1)
@@ -292,6 +290,11 @@ subroutine elsi_blacs_to_sips_hs_small(H_in,S_in)
 
       deallocate(s_val_send_buffer)
    endif
+
+   deallocate(send_count)
+   deallocate(recv_count)
+   deallocate(send_displ)
+   deallocate(recv_displ)
 
    ! Unpack and reorder
    if(n_elsi_calls == 1) then
@@ -340,10 +343,12 @@ subroutine elsi_blacs_to_sips_hs_small(H_in,S_in)
       call elsi_allocate(col_ptr_sips,(n_l_cols_sips+1),"col_ptr_sips",caller)
 
    ham_real_sips = h_val_recv_buffer
-   ovlp_real_sips = s_val_recv_buffer
-
    deallocate(h_val_recv_buffer)
-   deallocate(s_val_recv_buffer)
+
+   if(n_elsi_calls == 1) then
+      ovlp_real_sips = s_val_recv_buffer
+      deallocate(s_val_recv_buffer)
+   endif
 
    ! Compute row index and column pointer
    if(n_elsi_calls == 1) then
@@ -377,8 +382,14 @@ subroutine elsi_solve_evp_sips()
    implicit none
    include "mpif.h"
 
-   integer :: istart
-   integer :: iend
+   integer :: i_state
+   integer :: i_row
+   integer :: i_row2
+   integer :: i_col
+   integer :: g_row
+   integer :: g_row2
+   integer :: this_p_col
+   real*8, allocatable :: tmp_real(:)
 
    character*200 :: info_str
    character*40, parameter :: caller = "elsi_solve_evp_sips"
@@ -416,7 +427,39 @@ subroutine elsi_solve_evp_sips()
    call sips_solve_evp(n_states,n_slices,slices,n_solve_steps)
 
    ! Get eigenvalues
-   call sips_get_eigenvalues(eval(1:n_states),n_states)
+   call sips_get_eigenvalues(n_states,eval(1:n_states))
+
+   ! Get and distribute eigenvectors
+   call elsi_allocate(tmp_real,n_g_size,"tmp_real",caller)
+
+   evec_real = 0.0d0
+
+   do i_state = 1,n_states
+      call sips_get_eigenvectors(n_g_size,i_state,tmp_real)
+
+      this_p_col = mod((i_state-1)/n_b_cols,n_procs)
+
+      if(my_p_col == this_p_col) then
+         i_col = (i_state-1)/(n_p_cols*n_b_cols)*n_b_cols&
+                 +mod((i_state-1),n_b_cols)+1
+
+         do i_row = 1,n_l_rows,n_b_rows
+            i_row2 = i_row+n_b_rows-1
+
+            call elsi_get_global_row(g_row,i_row)
+            call elsi_get_global_row(g_row2,i_row2)
+
+            if(g_row2 > n_g_size) then
+               g_row2 = n_g_size
+               i_row2 = i_row+g_row2-g_row
+            endif
+
+            evec_real(i_row:i_row2,i_col) = tmp_real(g_row:g_row2)
+         enddo
+      endif
+   enddo
+
+   deallocate(tmp_real)
 
    call MPI_Barrier(mpi_comm_global,mpierr)
    call elsi_stop_generalized_evp_time()

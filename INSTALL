@@ -68,12 +68,13 @@ B) ELPA SPECIFIC ARCHITECTURES
       CUDA_LIB     =  NVIDIA cuBLAS and CUDA runtime libraries
       CUDA_INCLUDE =  NVIDIA CUDA include path
 
-   Available ELPA kernels (4th step of ELPA 2-stage solver) for specific
+   Available kernels (4th step of ELPA 2-stage solver) for specific
    architectures are:
 
       ELPA2_KERNEL =  # Default: Generic
                       # Options: SSE
                       #          AVX
+                      #          AVX2
                       #          BGQ
                       #          GPU
 
