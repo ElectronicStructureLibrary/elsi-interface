@@ -687,7 +687,7 @@ subroutine elsi_set_real_eigenvector(e_vec_in)
       case (CHESS)
          call elsi_stop(" CHESS not yet implemented. Exiting...",caller)
       case (SIPS)
-         call elsi_stop(" SIPS not yet implemented. Exiting...",caller)
+         evec_real => e_vec_in
       case DEFAULT
          call elsi_stop(" No supported solver has been chosen."//&
                         " Please choose ELPA, LIBOMM, or PEXSI solver."//&
@@ -1036,8 +1036,7 @@ subroutine elsi_check()
                      " Exiting...",caller)
 
    else if(method == SIPS) then
-      call elsi_statement_print(" ATTENTION! SIPS is EXPERIMENTAL and"//&
-                                " only for testing.")
+      call elsi_statement_print("  ATTENTION! SIPS is EXPERIMENTAL."
 
    else
       call elsi_stop(" No supported solver has been chosen."//&
