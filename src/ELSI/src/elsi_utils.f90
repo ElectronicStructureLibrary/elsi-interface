@@ -373,18 +373,24 @@ subroutine elsi_stop(message,caller)
    character(len=4096) :: string_message
    integer :: i_task
 
-   do i_task = 0,n_procs-1
-      if(myid == i_task) then
-         write(string_message,"(1X,'*** Proc',I5,' in ',A,': ',A)")&
-               myid,trim(caller),trim(message)
-         write(*,'(A)') trim(string_message)
-      endif
-      call MPI_Barrier(mpi_comm_global,mpierr)
-   enddo
+   if (mpi_is_setup) then
+      do i_task = 0,n_procs-1
+         if(myid == i_task) then
+            write(string_message,"(1X,'*** Proc',I5,' in ',A,': ',A)")&
+                  myid,trim(caller),trim(message)
+            write(*,'(A)') trim(string_message)
+         endif
+         call MPI_Barrier(mpi_comm_global,mpierr)
+      enddo
 
-   if(n_procs > 1) then
-      call MPI_Abort(mpi_comm_global,0,mpierr)
-   endif
+      if(n_procs > 1) then
+         call MPI_Abort(mpi_comm_global,0,mpierr)
+      endif
+   else
+      write(string_message,"(1X,'*** Proc  N/A',' in ',A,': ',A)")&
+            trim(caller),trim(message)
+      write(*,'(A)') trim(string_message)
+   end if
 
    stop
 
