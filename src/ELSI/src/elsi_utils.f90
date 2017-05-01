@@ -1036,7 +1036,7 @@ subroutine elsi_check()
                      " Exiting...",caller)
 
    else if(method == SIPS) then
-      call elsi_statement_print("  ATTENTION! SIPS is EXPERIMENTAL."
+      call elsi_statement_print("  ATTENTION! SIPS is EXPERIMENTAL.")
 
    else
       call elsi_stop(" No supported solver has been chosen."//&
