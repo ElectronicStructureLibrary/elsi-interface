@@ -146,14 +146,26 @@ subroutine sips_solve_evp(nreq,nsub,subs,nsolve)
 
 end subroutine
 
-subroutine sips_get_eigenvalues(eigs,nreq)
+subroutine sips_get_eigenvalues(nreq,eigs)
 
    implicit none
 
    integer :: nreq
    real*8  :: eigs(nreq)
 
-   eigs = 0.0d0
+   write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
+   write(*,"(A)") " Exiting..."
+   stop
+
+end subroutine
+
+subroutine sips_get_eigenvectors(n_basis,idx,evec)
+
+   implicit none
+
+   integer :: n_basis
+   integer :: idx
+   real*8  :: evec(n_basis)
 
    write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
    write(*,"(A)") " Exiting..."
@@ -166,8 +178,6 @@ subroutine sips_get_interval(interval)
    implicit none
 
    real*8 :: interval(2)
-
-   interval = 0.0d0
 
    write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
    write(*,"(A)") " Exiting..."
