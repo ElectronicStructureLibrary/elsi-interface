@@ -228,24 +228,24 @@ subroutine elsi_customize_pexsi_c_wrapper(temperature,gap,delta_E,n_poles,&
 
    implicit none
 
-   real(c_double), value, intent(in) :: temperature
-   real(c_double), value, intent(in) :: gap
-   real(c_double), value, intent(in) :: delta_E
-   integer(c_int), value, intent(in) :: n_poles
-   integer(c_int), value, intent(in) :: n_procs_per_pole
-   integer(c_int), value, intent(in) :: max_iteration
-   real(c_double), value, intent(in) :: mu_min
-   real(c_double), value, intent(in) :: mu_max
-   real(c_double), value, intent(in) :: mu0
-   real(c_double), value, intent(in) :: mu_inertia_tolerance
-   real(c_double), value, intent(in) :: mu_inertia_expansion
-   real(c_double), value, intent(in) :: mu_safeguard
-   real(c_double), value, intent(in) :: n_electron_accuracy
-   integer(c_int), value, intent(in) :: matrix_type
-   integer(c_int), value, intent(in) :: is_symbolic_factorize
-   integer(c_int), value, intent(in) :: ordering
-   integer(c_int), value, intent(in) :: np_symbolic_factorize
-   integer(c_int), value, intent(in) :: verbosity
+   real(kind=c_double), value, intent(in) :: temperature
+   real(kind=c_double), value, intent(in) :: gap
+   real(kind=c_double), value, intent(in) :: delta_E
+   integer(kind=c_int), value, intent(in) :: n_poles
+   integer(kind=c_int), value, intent(in) :: n_procs_per_pole
+   integer(kind=c_int), value, intent(in) :: max_iteration
+   real(kind=c_double), value, intent(in) :: mu_min
+   real(kind=c_double), value, intent(in) :: mu_max
+   real(kind=c_double), value, intent(in) :: mu0
+   real(kind=c_double), value, intent(in) :: mu_inertia_tolerance
+   real(kind=c_double), value, intent(in) :: mu_inertia_expansion
+   real(kind=c_double), value, intent(in) :: mu_safeguard
+   real(kind=c_double), value, intent(in) :: n_electron_accuracy
+   integer(kind=c_int), value, intent(in) :: matrix_type
+   integer(kind=c_int), value, intent(in) :: is_symbolic_factorize
+   integer(kind=c_int), value, intent(in) :: ordering
+   integer(kind=c_int), value, intent(in) :: np_symbolic_factorize
+   integer(kind=c_int), value, intent(in) :: verbosity
 
    call elsi_customize_pexsi(temperature,gap,delta_E,n_poles,n_procs_per_pole,&
            max_iteration,mu_min,mu_max,mu0,mu_inertia_tolerance,mu_inertia_expansion,&
@@ -262,7 +262,7 @@ subroutine elsi_customize_elpa_c_wrapper(elpa_solver)&
 
    implicit none
 
-   integer(c_int), value, intent(in) :: elpa_solver
+   integer(kind=c_int), value, intent(in) :: elpa_solver
 
    call elsi_customize_elpa(elpa_solver)
 
