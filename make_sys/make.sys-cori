@@ -18,9 +18,7 @@ CXX_LDFLAGS       = -lstdc++
 SCALAPACK_LDFLAGS = -mkl=cluster
 
 # ====== ELPA ======
-ELPA2_KERNEL  = AVX2
-BLOCK_REAL    = 2
-BLOCK_COMPLEX = 1
+ELPA2_KERNEL = AVX2
 
 # ====== PEXSI ======
 METIS_LIB       = -L/global/homes/v/vwzyu/parmetis-4.0.3/build/Linux-x86_64/libmetis -lmetis
