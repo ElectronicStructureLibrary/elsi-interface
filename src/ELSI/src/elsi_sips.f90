@@ -66,11 +66,13 @@ subroutine elsi_init_sips()
       call init_sips()
    endif
 
-   !< Number of slices
+   ! Number of slices
    n_p_per_slice_sips = 1
    n_slices = 1
+   ! n_p_per_slice_sips cannot be larger than 16
    do i = 1,5
-      if(mod(n_procs,n_p_per_slice_sips) == 0) then
+      if((mod(n_procs,n_p_per_slice_sips) == 0) .and. &
+         (n_procs/n_p_per_slice_sips .le. n_states)) then
          n_slices = n_procs/n_p_per_slice_sips
       endif
 

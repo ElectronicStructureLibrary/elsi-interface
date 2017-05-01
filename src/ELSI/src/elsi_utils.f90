@@ -1038,6 +1038,12 @@ subroutine elsi_check()
    else if(method == SIPS) then
       call elsi_statement_print("  ATTENTION! SIPS is EXPERIMENTAL.")
 
+      if(n_g_size < n_procs) then
+         call elsi_stop(" SIPs has been chosen as the solver."//&
+                        " The size of matrix is too small for this"//&
+                        " number of processes. Exiting...",caller)
+      endif
+
    else
       call elsi_stop(" No supported solver has been chosen."//&
                      " Please choose ELPA, LIBOMM, or PEXSI solver."//&
