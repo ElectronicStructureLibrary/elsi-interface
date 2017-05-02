@@ -74,6 +74,7 @@ module MatrixSwitch
 #ifdef MPI
   public :: m_register_pdbc
   public :: ms_scalapack_setup
+  public :: ms_scalapack_setup_no_opt
   public :: ms_lap_icontxt
 #endif
 #ifdef PSP
@@ -3008,6 +3009,37 @@ contains
   ! implementation: ScaLAPACK                      !
   !================================================!
 #if defined(MPI) && defined(SLAP)
+  ! The following is a wrapper around ms_scalapack_setup without optional variables
+  ! This is done by using *_present variables to mimic "present" built-in
+  ! This is needed for language interoperability
+  subroutine ms_scalapack_setup_no_opt(mpi_comm,nprow,order,bs_def,bs_list_present,bs_list,icontxt_present,icontxt)
+    implicit none
+
+    character(1), intent(in) :: order 
+    integer, intent(in) :: mpi_comm
+    integer, intent(in) :: nprow 
+    integer, intent(in) :: bs_def 
+    logical, intent(in) :: bs_list_present
+    integer, intent(in) :: bs_list(:)
+    logical, intent(in) :: icontxt_present
+    integer, intent(in) :: icontxt
+
+    if (bs_list_present) then
+      if (icontxt_present) then
+        call ms_scalapack_setup(mpi_comm,nprow,order,bs_def,bs_list=bs_list,icontxt=icontxt)
+      else
+        call ms_scalapack_setup(mpi_comm,nprow,order,bs_def,bs_list=bs_list)
+      end if
+    else
+      if (icontxt_present) then
+        call ms_scalapack_setup(mpi_comm,nprow,order,bs_def,icontxt=icontxt)
+      else
+        call ms_scalapack_setup(mpi_comm,nprow,order,bs_def)
+      end if
+    end if
+
+  end subroutine ms_scalapack_setup_no_opt
+
   subroutine ms_scalapack_setup(mpi_comm,nprow,order,bs_def,bs_list,icontxt)
     implicit none
     include 'mpif.h'
