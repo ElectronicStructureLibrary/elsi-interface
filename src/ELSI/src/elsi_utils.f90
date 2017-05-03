@@ -32,8 +32,8 @@
 
 module ELSI_UTILS
 
-   use elsi_precision, only : dp
    use iso_c_binding
+   use ELSI_PRECISION, only : dp
    use ELSI_DIMENSIONS
    use MatrixSwitch
    use f_ppexsi_interface
@@ -125,9 +125,9 @@ subroutine elsi_allocate_real_1d(array,dim1,arrayname,caller)
    implicit none
 
    real(kind=dp), allocatable, intent(inout) :: array(:)  !< Data
-   integer,             intent(in)    :: dim1      !< Size
-   character(len=*),    intent(in)    :: arrayname !< Name
-   character(len=*),    intent(in)    :: caller    !< Caller
+   integer,                    intent(in)    :: dim1      !< Size
+   character(len=*),           intent(in)    :: arrayname !< Name
+   character(len=*),           intent(in)    :: caller    !< Caller
 
    integer :: error
    character*200 :: message
@@ -151,9 +151,9 @@ subroutine elsi_allocate_integer_1d(array,dim1,arrayname,caller)
    implicit none
 
    integer, allocatable, intent(inout) :: array(:)  !< Data
-   integer,             intent(in)     :: dim1      !< Size
-   character(len=*),    intent(in)     :: arrayname !< Name
-   character(len=*),    intent(in)     :: caller    !< Caller
+   integer,              intent(in)    :: dim1      !< Size
+   character(len=*),     intent(in)    :: arrayname !< Name
+   character(len=*),     intent(in)    :: caller    !< Caller
 
    integer :: error
    character*200 :: message
@@ -177,9 +177,9 @@ subroutine elsi_allocate_complex_1d(array,dim1,arrayname,caller)
    implicit none
 
    complex(kind=dp), allocatable, intent(inout) :: array(:)  !< Data
-   integer,                 intent(in)    :: dim1      !< Size
-   character(len=*),        intent(in)    :: arrayname !< Name
-   character(len=*),        intent(in)    :: caller    !< Caller
+   integer,                       intent(in)    :: dim1      !< Size
+   character(len=*),              intent(in)    :: arrayname !< Name
+   character(len=*),              intent(in)    :: caller    !< Caller
 
    integer :: error
    character*200 :: message
@@ -203,10 +203,10 @@ subroutine elsi_allocate_real_2d(array,dim1,dim2,arrayname,caller)
    implicit none
 
    real(kind=dp), allocatable, intent(inout) :: array(:,:) !< Data
-   integer,             intent(in)    :: dim1       !< Size
-   integer,             intent(in)    :: dim2       !< Size
-   character(len=*),    intent(in)    :: arrayname  !< Name
-   character(len=*),    intent(in)    :: caller     !< Caller
+   integer,                    intent(in)    :: dim1       !< Size
+   integer,                    intent(in)    :: dim2       !< Size
+   character(len=*),           intent(in)    :: arrayname  !< Name
+   character(len=*),           intent(in)    :: caller     !< Caller
 
    integer :: error
    character*200 :: message
@@ -257,10 +257,10 @@ subroutine elsi_allocate_complex_2d(array,dim1,dim2,arrayname,caller)
    implicit none
 
    complex(kind=dp), allocatable, intent(inout) :: array(:,:) !< Data
-   integer,                 intent(in)    :: dim1       !< Size
-   integer,                 intent(in)    :: dim2       !< Size
-   character(len=*),        intent(in)    :: arrayname  !< Name
-   character(len=*),        intent(in)    :: caller     !< Caller
+   integer,                       intent(in)    :: dim1       !< Size
+   integer,                       intent(in)    :: dim2       !< Size
+   character(len=*),              intent(in)    :: arrayname  !< Name
+   character(len=*),              intent(in)    :: caller     !< Caller
 
    integer :: error
    character*200 :: message
@@ -284,11 +284,11 @@ subroutine elsi_allocate_real_3d(array,dim1,dim2,dim3,arrayname,caller)
    implicit none
 
    real(kind=dp), allocatable, intent(inout) :: array(:,:,:) !< Data
-   integer,             intent(in)    :: dim1         !< Size
-   integer,             intent(in)    :: dim2         !< Size
-   integer,             intent(in)    :: dim3         !< Size
-   character(len=*),    intent(in)    :: arrayname    !< Name
-   character(len=*),    intent(in)    :: caller       !< Caller
+   integer,                    intent(in)    :: dim1         !< Size
+   integer,                    intent(in)    :: dim2         !< Size
+   integer,                    intent(in)    :: dim3         !< Size
+   character(len=*),           intent(in)    :: arrayname    !< Name
+   character(len=*),           intent(in)    :: caller       !< Caller
 
    integer :: error
    character*200 :: message
@@ -340,11 +340,11 @@ subroutine elsi_allocate_complex_3d(array,dim1,dim2,dim3,arrayname,caller)
    implicit none
    
    complex(kind=dp), allocatable, intent(inout) :: array(:,:,:) !< Data
-   integer,                 intent(in)    :: dim1         !< Size
-   integer,                 intent(in)    :: dim2         !< Size
-   integer,                 intent(in)    :: dim3         !< Size
-   character(len=*),        intent(in)    :: arrayname    !< Name
-   character(len=*),        intent(in)    :: caller       !< Caller
+   integer,                       intent(in)    :: dim1         !< Size
+   integer,                       intent(in)    :: dim2         !< Size
+   integer,                       intent(in)    :: dim3         !< Size
+   character(len=*),              intent(in)    :: arrayname    !< Name
+   character(len=*),              intent(in)    :: caller       !< Caller
    
    integer :: error
    character*200 :: message
@@ -1100,10 +1100,10 @@ subroutine elsi_get_local_nnz(matrix,n_rows,n_cols,nnz)
 
    implicit none
 
-   real(kind=dp),  intent(in)  :: matrix(n_rows,n_cols) !< Local matrix
-   integer, intent(in)  :: n_rows                !< Local rows
-   integer, intent(in)  :: n_cols                !< Local cols
-   integer, intent(out) :: nnz                   !< Number of non-zero
+   real(kind=dp), intent(in)  :: matrix(n_rows,n_cols) !< Local matrix
+   integer,       intent(in)  :: n_rows                !< Local rows
+   integer,       intent(in)  :: n_cols                !< Local cols
+   integer,       intent(out) :: nnz                   !< Number of non-zero
 
    integer :: i_row !< Row counter
    integer :: i_col !< Column counter

@@ -31,7 +31,7 @@
 
 module ELSI_SIPS
 
-   use elsi_precision, only : dp
+   use ELSI_PRECISION, only : dp
    use ELSI_DIMENSIONS
    use ELSI_TIMERS
    use ELSI_UTILS

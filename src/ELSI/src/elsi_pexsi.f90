@@ -31,8 +31,8 @@
 
 module ELSI_PEXSI
 
-   use elsi_precision, only : dp
    use iso_c_binding
+   use ELSI_PRECISION, only : dp
    use ELSI_DIMENSIONS
    use ELSI_TIMERS
    use ELSI_UTILS
@@ -190,6 +190,7 @@ subroutine elsi_blacs_to_pexsi_hs_small(H_in,S_in)
 
    real(kind=dp), intent(in) :: H_in(n_l_rows,n_l_cols) !< Hamiltonian matrix to be converted
    real(kind=dp), intent(in) :: S_in(n_l_rows,n_l_cols) !< Overlap matrix to be converted
+
    integer :: i_row !< Row counter
    integer :: i_col !< Col counter
    integer :: i_val,j_val !< Value counter
@@ -208,13 +209,13 @@ subroutine elsi_blacs_to_pexsi_hs_small(H_in,S_in)
    real(kind=dp) :: tmp_real
 
    ! See documentation of MPI_Alltoallv
-   real(kind=dp),  allocatable :: h_val_send_buffer(:) !< Send buffer for Hamiltonian
-   real(kind=dp),  allocatable :: s_val_send_buffer(:) !< Send buffer for overlap
+   real(kind=dp), allocatable :: h_val_send_buffer(:) !< Send buffer for Hamiltonian
+   real(kind=dp), allocatable :: s_val_send_buffer(:) !< Send buffer for overlap
    integer, allocatable :: pos_send_buffer(:) !< Send buffer for global 1D id
    integer, allocatable :: send_count(:) !< Number of elements to send to each processor
    integer, allocatable :: send_displ(:) !< Displacement from which to take the outgoing data
-   real(kind=dp),  allocatable :: h_val_recv_buffer(:) !< Receive buffer for Hamiltonian
-   real(kind=dp),  allocatable :: s_val_recv_buffer(:) !< Receive buffer for overlap
+   real(kind=dp), allocatable :: h_val_recv_buffer(:) !< Receive buffer for Hamiltonian
+   real(kind=dp), allocatable :: s_val_recv_buffer(:) !< Receive buffer for overlap
    integer, allocatable :: pos_recv_buffer(:) !< Receive buffer for global 1D id
    integer, allocatable :: recv_count(:) !< Number of elements to receive from each processor
    integer, allocatable :: recv_displ(:) !< Displacement at which to place the incoming data
@@ -554,6 +555,7 @@ subroutine elsi_blacs_to_pexsi_hs_large(H_in,S_in)
 
    real(kind=dp), intent(in) :: H_in(n_l_rows,n_l_cols) !< Hamiltonian matrix to be converted
    real(kind=dp), intent(in) :: S_in(n_l_rows,n_l_cols) !< Overlap matrix to be converted
+
    integer :: i_row !< Row counter
    integer :: i_col !< Col counter
    integer :: i_val,j_val !< Value counter
@@ -573,14 +575,14 @@ subroutine elsi_blacs_to_pexsi_hs_large(H_in,S_in)
    real(kind=dp) :: tmp_real
 
    ! See documentation of MPI_Alltoallv
-   real(kind=dp),  allocatable :: h_val_send_buffer(:) !< Send buffer for Hamiltonian
-   real(kind=dp),  allocatable :: s_val_send_buffer(:) !< Send buffer for overlap
+   real(kind=dp), allocatable :: h_val_send_buffer(:) !< Send buffer for Hamiltonian
+   real(kind=dp), allocatable :: s_val_send_buffer(:) !< Send buffer for overlap
    integer, allocatable :: row_send_buffer(:) !< Send buffer for global row id
    integer, allocatable :: col_send_buffer(:) !< Send buffer for global column id
    integer, allocatable :: send_count(:) !< Number of elements to send to each processor
    integer, allocatable :: send_displ(:) !< Displacement from which to take the outgoing data
-   real(kind=dp),  allocatable :: h_val_recv_buffer(:) !< Receive buffer for Hamiltonian
-   real(kind=dp),  allocatable :: s_val_recv_buffer(:) !< Receive buffer for overlap
+   real(kind=dp), allocatable :: h_val_recv_buffer(:) !< Receive buffer for Hamiltonian
+   real(kind=dp), allocatable :: s_val_recv_buffer(:) !< Receive buffer for overlap
    integer, allocatable :: row_recv_buffer(:) !< Receive buffer for global row id
    integer, allocatable :: col_recv_buffer(:) !< Receive buffer for global column id
    integer, allocatable :: recv_count(:) !< Number of elements to receive from each processor
@@ -965,11 +967,11 @@ subroutine elsi_pexsi_to_blacs_dm_small(D_out)
    integer, allocatable :: global_id(:) !< Global 1d id
 
    ! See documentation of MPI_Alltoallv
-   real(kind=dp),  allocatable :: val_send_buffer(:) !< Send buffer for value
+   real(kind=dp), allocatable :: val_send_buffer(:) !< Send buffer for value
    integer, allocatable :: pos_send_buffer(:) !< Send buffer for global 1D id
    integer, allocatable :: send_count(:) !< Number of elements to send to each processor
    integer, allocatable :: send_displ(:) !< Displacement from which to take the outgoing data
-   real(kind=dp),  allocatable :: val_recv_buffer(:) !< Receive buffer for value
+   real(kind=dp), allocatable :: val_recv_buffer(:) !< Receive buffer for value
    integer, allocatable :: pos_recv_buffer(:) !< Receive buffer for global 1D id
    integer, allocatable :: recv_count(:) !< Number of elements to receive from each processor
    integer, allocatable :: recv_displ(:) !< Displacement at which to place the incoming data
@@ -1134,12 +1136,12 @@ subroutine elsi_pexsi_to_blacs_dm_large(D_out)
    integer, allocatable :: dest(:)          !< Destination of each element
 
    ! See documentation of MPI_Alltoallv
-   real(kind=dp),  allocatable :: val_send_buffer(:)  !< Send buffer for value
+   real(kind=dp), allocatable :: val_send_buffer(:)  !< Send buffer for value
    integer, allocatable :: row_send_buffer(:) !< Send buffer for global row id
    integer, allocatable :: col_send_buffer(:) !< Send buffer for global column id
    integer, allocatable :: send_count(:) !< Number of elements to send to each processor
    integer, allocatable :: send_displ(:) !< Displacement from which to take the outgoing data
-   real(kind=dp),  allocatable :: val_recv_buffer(:) !< Receive buffer for value
+   real(kind=dp), allocatable :: val_recv_buffer(:) !< Receive buffer for value
    integer, allocatable :: row_recv_buffer(:) !< Receive buffer for global row id
    integer, allocatable :: col_recv_buffer(:) !< Receive buffer for global column id
    integer, allocatable :: recv_count(:) !< Number of elements to receive from each processor

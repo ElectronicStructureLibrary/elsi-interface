@@ -31,8 +31,8 @@
 
 module ELSI_TIMERS
 
-   use elsi_precision, only : dp
    use iso_c_binding
+   use ELSI_PRECISION, only : dp
    use ELSI_DIMENSIONS
    use ELSI_UTILS
 

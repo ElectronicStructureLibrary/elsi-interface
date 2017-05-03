@@ -32,6 +32,7 @@
 module ELSI_OMM
 
    use iso_c_binding
+   use ELSI_PRECISION, only : dp
    use ELSI_DIMENSIONS
    use ELSI_TIMERS
    use ELSI_UTILS
@@ -240,95 +241,79 @@ subroutine elsi_print_omm_options()
 
 end subroutine
 
-! The following is a wrapper around ms_scalapack_setup without optional variables
-! This is done by using *_present variables to mimic "present" built-in
-! This is needed for language interoperability
-subroutine ms_scalapack_setup_no_opt(mpi_comm,nprow,order,bs_def,bs_list_present,bs_list,icontxt_present,icontxt)
+!> The following is a wrapper around ms_scalapack_setup without optional variables
+!! This is done by using *_present variables to mimic "present" built-in
+!! This is needed for language interoperability
+subroutine ms_scalapack_setup_no_opt(mpi_comm,nprow,order,bs_def,bs_list_present,&
+                                     bs_list,icontxt_present,icontxt)
+
   implicit none
 
   character(1), intent(in) :: order 
-  integer, intent(in) :: mpi_comm
-  integer, intent(in) :: nprow 
-  integer, intent(in) :: bs_def 
-  logical, intent(in) :: bs_list_present
-  integer, intent(in) :: bs_list(:)
-  logical, intent(in) :: icontxt_present
-  integer, intent(in) :: icontxt
+  integer, intent(in)      :: mpi_comm
+  integer, intent(in)      :: nprow 
+  integer, intent(in)      :: bs_def 
+  logical, intent(in)      :: bs_list_present
+  integer, intent(in)      :: bs_list(:)
+  logical, intent(in)      :: icontxt_present
+  integer, intent(in)      :: icontxt
 
-  if (bs_list_present) then
-    if (icontxt_present) then
-      call ms_scalapack_setup(mpi_comm,nprow,order,bs_def,bs_list=bs_list,icontxt=icontxt)
-    else
-      call ms_scalapack_setup(mpi_comm,nprow,order,bs_def,bs_list=bs_list)
-    end if
+  if(bs_list_present) then
+     if(icontxt_present) then
+        call ms_scalapack_setup(mpi_comm,nprow,order,bs_def,&
+                                bs_list=bs_list,icontxt=icontxt)
+     else
+        call ms_scalapack_setup(mpi_comm,nprow,order,bs_def,bs_list=bs_list)
+     endif
   else
-    if (icontxt_present) then
-      call ms_scalapack_setup(mpi_comm,nprow,order,bs_def,icontxt=icontxt)
-    else
-      call ms_scalapack_setup(mpi_comm,nprow,order,bs_def)
-    end if
-  end if
+     if(icontxt_present) then
+        call ms_scalapack_setup(mpi_comm,nprow,order,bs_def,icontxt=icontxt)
+     else
+        call ms_scalapack_setup(mpi_comm,nprow,order,bs_def)
+     endif
+  endif
 
-end subroutine ms_scalapack_setup_no_opt
+end subroutine
 
-! Wrapper around tomato_TB to return array dimension, but no matrix data.
-! This is needed for interoperability between languages.
+!> Wrapper around tomato_TB to return array dimension, but no matrix data.
+!! This is needed for interoperability between languages.
 subroutine tomato_TB_get_dims(template_basedir,system_label,&
-                          switch1,frac_occ,num_orbs_per_atom,&
-                          switch2,num_orbs,num_cells_dir,&
-                          switch3,sparsity,orb_r_cut,&
-                          num_occ_states,&
-                          gamma_point,k_point,&
-                          defect,defect_perturbation,&
-                          n_rows_H, n_cols_H, n_rows_S, n_cols_S,&
-                          m_storage, build_matrix)
-  use MatrixSwitch
+                              switch1,frac_occ,num_orbs_per_atom,&
+                              switch2,num_orbs,num_cells_dir,&
+                              switch3,sparsity,orb_r_cut,&
+                              num_occ_states,&
+                              gamma_point,k_point,&
+                              defect,defect_perturbation,&
+                              n_rows_H, n_cols_H, n_rows_S, n_cols_S,&
+                              m_storage, build_matrix)
 
   implicit none
 
-  !**** PARAMS **********************************!
+  character(5),  intent(in)    :: m_storage
+  character(*),  intent(in)    :: template_basedir
+  character(*),  intent(in)    :: system_label
+  logical,       intent(in)    :: switch1
+  logical,       intent(in)    :: switch2
+  logical,       intent(in)    :: switch3
+  logical,       intent(in)    :: gamma_point
+  logical,       intent(in)    :: build_matrix
+  logical,       intent(in)    :: defect
+  real(kind=dp), intent(in)    :: defect_perturbation
+  integer,       intent(out)   :: n_rows_H
+  integer,       intent(out)   :: n_cols_H
+  integer,       intent(out)   :: n_rows_S
+  integer,       intent(out)   :: n_cols_S
+  integer,       intent(out)   :: num_occ_states
+  integer,       intent(inout) :: num_orbs_per_atom
+  integer,       intent(inout) :: num_orbs
+  integer,       intent(inout) :: num_cells_dir(3)
+  real(kind=dp), intent(inout) :: frac_occ
+  real(kind=dp), intent(inout) :: sparsity
+  real(kind=dp), intent(inout) :: orb_r_cut
+  real(kind=dp), intent(inout) :: k_point(3)
 
-  integer, parameter :: dp=selected_real_kind(15,300)
-
-  !**** INPUT ***********************************!
-
-  character(5), intent(in) :: m_storage
-  character(*), intent(in) :: template_basedir
-  character(*), intent(in) :: system_label
-
-  logical, intent(in) :: switch1
-  logical, intent(in) :: switch2
-  logical, intent(in) :: switch3
-  logical, intent(in) :: gamma_point
-  logical, intent(in) :: build_matrix
-  logical, intent(in) :: defect
-
-  real(dp), intent(in) :: defect_perturbation
-
-  integer, intent(out) :: n_rows_H
-  integer, intent(out) :: n_cols_H
-  integer, intent(out) :: n_rows_S
-  integer, intent(out) :: n_cols_S
-
-  !**** OUTPUT **********************************!
-
-  integer, intent(out) :: num_occ_states
-
-  !**** INOUT ***********************************!
-
-  integer, intent(inout) :: num_orbs_per_atom
-  integer, intent(inout) :: num_orbs
-  integer, intent(inout) :: num_cells_dir(3)
-
-  real(dp), intent(inout) :: frac_occ
-  real(dp), intent(inout) :: sparsity
-  real(dp), intent(inout) :: orb_r_cut
-  real(dp), intent(inout) :: k_point(3)
-
-  !**** VARIABLES *******************************!
-
-  type(matrix)            :: H
-  type(matrix)            :: S
+  type(matrix) :: H
+  type(matrix) :: S
 
   call tomato_TB(template_basedir,system_label,&
                  switch1,frac_occ,num_orbs_per_atom,&
@@ -348,11 +333,13 @@ subroutine tomato_TB_get_dims(template_basedir,system_label,&
   call m_deallocate(S)
   call m_deallocate(H)
 
-end subroutine tomato_TB_get_dims
+end subroutine
 
-! Wrapper around tomato_TB for the real case to eliminate the usage of the type(matrix) data type.
-! This is needed for interoperability between languages.
-! There is currently a matrix copy in this subroutine that can likely be eliminated.
+!> Wrapper around tomato_TB for the real case to eliminate the
+!! usage of the type(matrix) data type.
+!! This is needed for interoperability between languages.
+!! There is currently a matrix copy in this subroutine that can
+!! likely be eliminated.
 subroutine tomato_TB_real(template_basedir,system_label,&
                           switch1,frac_occ,num_orbs_per_atom,&
                           switch2,num_orbs,num_cells_dir,&
@@ -363,56 +350,36 @@ subroutine tomato_TB_real(template_basedir,system_label,&
                           n_rows_H,n_cols_H,H_dval,&
                           n_rows_S,n_cols_S,S_dval,&
                           m_storage,build_matrix)
-  use MatrixSwitch
 
   implicit none
 
-  !**** PARAMS **********************************!
+  character(5),  intent(in)    :: m_storage
+  character(*),  intent(in)    :: template_basedir
+  character(*),  intent(in)    :: system_label
+  logical,       intent(in)    :: switch1
+  logical,       intent(in)    :: switch2
+  logical,       intent(in)    :: switch3
+  logical,       intent(in)    :: gamma_point
+  logical,       intent(in)    :: build_matrix
+  logical,       intent(in)    :: defect
+  real(kind=dp), intent(in)    :: defect_perturbation
+  integer,       intent(in)    :: n_rows_H 
+  integer,       intent(in)    :: n_cols_H
+  integer,       intent(in)    :: n_rows_S
+  integer,       intent(in)    :: n_cols_S
+  integer,       intent(out)   :: num_occ_states
+  real(kind=dp), intent(out)   :: H_dval(n_rows_H,n_cols_H)
+  real(kind=dp), intent(out)   :: S_dval(n_rows_S,n_cols_S)
+  integer,       intent(inout) :: num_orbs_per_atom
+  integer,       intent(inout) :: num_orbs
+  integer,       intent(inout) :: num_cells_dir(3)
+  real(kind=dp), intent(inout) :: frac_occ
+  real(kind=dp), intent(inout) :: sparsity
+  real(kind=dp), intent(inout) :: orb_r_cut
+  real(kind=dp), intent(inout) :: k_point(3)
 
-  integer, parameter :: dp=selected_real_kind(15,300)
-
-  !**** INPUT ***********************************!
-
-  character(5), intent(in) :: m_storage
-  character(*), intent(in) :: template_basedir
-  character(*), intent(in) :: system_label
-
-  logical, intent(in) :: switch1
-  logical, intent(in) :: switch2
-  logical, intent(in) :: switch3
-  logical, intent(in) :: gamma_point
-  logical, intent(in) :: build_matrix
-  logical, intent(in) :: defect
-
-  real(dp), intent(in) :: defect_perturbation
-
-  integer, intent(in) :: n_rows_H 
-  integer, intent(in) :: n_cols_H
-  integer, intent(in) :: n_rows_S
-  integer, intent(in) :: n_cols_S
-
-  !**** OUTPUT **********************************!
-
-  integer, intent(out) :: num_occ_states
-
-  !**** INOUT ***********************************!
-
-  integer, intent(inout) :: num_orbs_per_atom
-  integer, intent(inout) :: num_orbs
-  integer, intent(inout) :: num_cells_dir(3)
-
-  real(dp), intent(inout) :: frac_occ
-  real(dp), intent(inout) :: sparsity
-  real(dp), intent(inout) :: orb_r_cut
-  real(dp), intent(inout) :: k_point(3)
-
-  real(dp), intent(out)   :: H_dval(n_rows_H,n_cols_H)
-  real(dp), intent(out)   :: S_dval(n_rows_S,n_cols_S)
-
-  !**** VARIABLES *******************************!
-
-  type(matrix)            :: H
-  type(matrix)            :: S
+  type(matrix) :: H
+  type(matrix) :: S
 
   call tomato_TB(template_basedir,system_label,&
                  switch1,frac_occ,num_orbs_per_atom,&
@@ -430,6 +397,6 @@ subroutine tomato_TB_real(template_basedir,system_label,&
   call m_deallocate(S)
   call m_deallocate(H)
 
-end subroutine tomato_TB_real
+end subroutine
 
 end module ELSI_OMM

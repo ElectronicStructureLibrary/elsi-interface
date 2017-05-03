@@ -30,7 +30,7 @@
 !!
 program test_standard_ev_real
 
-   use elsi_precision , only : dp 
+   use ELSI_PRECISION, only : dp
    use ELSI
 
    implicit none

@@ -30,7 +30,7 @@
 !!
 program test_dm_real_sparse
 
-   use elsi_precision, only : dp
+   use ELSI_PRECISION, only : dp
    use ELSI
 
    implicit none

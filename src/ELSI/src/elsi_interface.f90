@@ -32,8 +32,8 @@
 
 module ELSI
 
-   use elsi_precision, only: dp
    use iso_c_binding
+   use ELSI_PRECISION, only : dp
    use ELSI_DIMENSIONS
    use ELSI_TIMERS
    use ELSI_UTILS
@@ -93,12 +93,12 @@ subroutine elsi_init(solver,parallel_mode,matrix_format,matrix_size,&
 
    implicit none
 
-   integer, intent(in) :: solver         !< AUTO,ELPA,LIBOMM,PEXSI,CHESS,SIPS
-   integer, intent(in) :: parallel_mode  !< SINGLE_PROC,MULTI_PROC
-   integer, intent(in) :: matrix_format  !< BLACS_DENSE,PEXSI_CSC
-   integer, intent(in) :: matrix_size    !< Global dimension of matrix
-   real(kind=dp),  intent(in) :: n_electrons_in !< Number of electrons
-   integer, intent(in) :: n_states_in    !< Number of states
+   integer, intent(in)       :: solver         !< AUTO,ELPA,LIBOMM,PEXSI,CHESS,SIPS
+   integer, intent(in)       :: parallel_mode  !< SINGLE_PROC,MULTI_PROC
+   integer, intent(in)       :: matrix_format  !< BLACS_DENSE,PEXSI_CSC
+   integer, intent(in)       :: matrix_size    !< Global dimension of matrix
+   real(kind=dp), intent(in) :: n_electrons_in !< Number of electrons
+   integer, intent(in)       :: n_states_in    !< Number of states
 
    n_g_size = matrix_size
    n_nonsingular = matrix_size
@@ -375,12 +375,12 @@ subroutine elsi_customize(print_detail,unit_overlap,numerical_zero,&
 
    implicit none
 
-   logical, intent(in), optional :: print_detail           !< Print detailed info?
-   logical, intent(in), optional :: unit_overlap           !< Is overlap matrix unit?
-   real(kind=dp),  intent(in), optional :: numerical_zero         !< Threshold to define "zero"
-   logical, intent(in), optional :: no_check_singularity   !< Do not perform singularity check of overlap
-   real(kind=dp),  intent(in), optional :: singularity_threshold  !< Tolerance of overlap singularity
-   logical, intent(in), optional :: force_stop_singularity !< Stop if overlap is singular
+   logical,       intent(in), optional :: print_detail           !< Print detailed info?
+   logical,       intent(in), optional :: unit_overlap           !< Is overlap matrix unit?
+   real(kind=dp), intent(in), optional :: numerical_zero         !< Threshold to define "zero"
+   logical,       intent(in), optional :: no_check_singularity   !< Do not perform singularity check of overlap
+   real(kind=dp), intent(in), optional :: singularity_threshold  !< Tolerance of overlap singularity
+   logical,       intent(in), optional :: force_stop_singularity !< Stop if overlap is singular
 
    ! Print detailed ELSI information? [Default: .false.]
    if(present(print_detail)) &
@@ -412,12 +412,12 @@ subroutine elsi_customize_omm(n_elpa_steps_omm,omm_method,eigen_shift,&
 
    implicit none
 
-   integer, intent(in), optional :: n_elpa_steps_omm !< Number of ELPA steps before libOMM
-   integer, intent(in), optional :: omm_method       !< How to perform orbital minimization
-   real(kind=dp),  intent(in), optional :: eigen_shift      !< Eigenspectrum shift parameter
-   real(kind=dp),  intent(in), optional :: omm_tolerance    !< Tolerance of minimization
-   logical, intent(in), optional :: use_pspblas      !< Use pspBLAS sparse linear algebra?
-   logical, intent(in), optional :: omm_output       !< Output details?
+   integer,       intent(in), optional :: n_elpa_steps_omm !< Number of ELPA steps before libOMM
+   integer,       intent(in), optional :: omm_method       !< How to perform orbital minimization
+   real(kind=dp), intent(in), optional :: eigen_shift      !< Eigenspectrum shift parameter
+   real(kind=dp), intent(in), optional :: omm_tolerance    !< Tolerance of minimization
+   logical,       intent(in), optional :: use_pspblas      !< Use pspBLAS sparse linear algebra?
+   logical,       intent(in), optional :: omm_output       !< Output details?
 
    ! Number of ELPA steps
    if(present(n_elpa_steps_omm)) &
@@ -633,11 +633,11 @@ subroutine elsi_customize_mu(broadening_scheme,broadening_width,&
 
    implicit none
 
-   integer, intent(in), optional :: broadening_scheme !< Broadening method in chemical potential determination
-   real(kind=dp),  intent(in), optional :: broadening_width  !< Broadening width in chemical potential determination
-   real(kind=dp),  intent(in), optional :: mu_accuracy       !< Tolerance in chemical potential determination
-   integer, intent(in), optional :: mu_max_steps      !< Maximum number of steps to find the chemical potential
-   real(kind=dp),  intent(in), optional :: spin_degeneracy   !< Spin degeneracy
+   integer,       intent(in), optional :: broadening_scheme !< Broadening method in chemical potential determination
+   real(kind=dp), intent(in), optional :: broadening_width  !< Broadening width in chemical potential determination
+   real(kind=dp), intent(in), optional :: mu_accuracy       !< Tolerance in chemical potential determination
+   integer,       intent(in), optional :: mu_max_steps      !< Maximum number of steps to find the chemical potential
+   real(kind=dp), intent(in), optional :: spin_degeneracy   !< Spin degeneracy
 
    ! Broadening scheme to compute Fermi level [Default: GAUSSIAN]
    if(present(broadening_scheme)) &
@@ -1004,10 +1004,10 @@ subroutine elsi_dm_complex(H_in,S_in,D_out,energy_out)
 
    implicit none
 
-   complex(kind=dp), target  :: H_in(n_l_rows,*)  !< Hamiltonian
-   complex(kind=dp), target  :: S_in(n_l_rows,*)  !< Overlap
-   real(kind=dp),     target  :: D_out(n_l_rows,*) !< Density matrix
-   real(kind=dp), intent(out) :: energy_out        !< Energy
+   complex(kind=dp), target      :: H_in(n_l_rows,*)  !< Hamiltonian
+   complex(kind=dp), target      :: S_in(n_l_rows,*)  !< Overlap
+   real(kind=dp),    target      :: D_out(n_l_rows,*) !< Density matrix
+   real(kind=dp),    intent(out) :: energy_out        !< Energy
 
    character*40, parameter :: caller = "elsi_dm_complex"
 
@@ -1087,10 +1087,10 @@ subroutine elsi_dm_real_sparse(H_in,S_in,D_out,energy_out)
 
    implicit none
 
-   real(kind=dp),  target      :: H_in(*)    !< Hamiltonian
-   real(kind=dp),  target      :: S_in(*)    !< Overlap
-   real(kind=dp),  target      :: D_out(*)   !< Density matrix
-   real(kind=dp),  intent(out) :: energy_out !< Energy
+   real(kind=dp), target      :: H_in(*)    !< Hamiltonian
+   real(kind=dp), target      :: S_in(*)    !< Overlap
+   real(kind=dp), target      :: D_out(*)   !< Density matrix
+   real(kind=dp), intent(out) :: energy_out !< Energy
 
    character*40, parameter :: caller = "elsi_dm_real_sparse"
 

@@ -31,8 +31,8 @@
 
 module ELSI_ELPA
 
-   use elsi_precision, only : dp
    use iso_c_binding
+   use ELSI_PRECISION, only : dp
    use ELSI_DIMENSIONS
    use ELSI_TIMERS
    use ELSI_UTILS
@@ -62,8 +62,8 @@ subroutine elsi_get_elpa_comms(mpi_comm_row_out,mpi_comm_col_out)
 
    implicit none
 
-   integer, intent(out) :: mpi_comm_row_out   !< Row MPI communicator
-   integer, intent(out) :: mpi_comm_col_out   !< Column MPI communicator
+   integer, intent(out) :: mpi_comm_row_out !< Row MPI communicator
+   integer, intent(out) :: mpi_comm_col_out !< Column MPI communicator
 
    integer :: success
 

@@ -1,3 +1,5 @@
-module elsi_precision
+module ELSI_PRECISION
+
   integer, parameter :: dp = selected_real_kind(15,100) ! 64-bit real
-end module elsi_precision
+
+end module ELSI_PRECISION
