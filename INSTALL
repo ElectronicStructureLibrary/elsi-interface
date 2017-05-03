@@ -34,8 +34,12 @@ A) BASIC
 
       "make"
 
-3) Optional. The correctness of compilation can be checked using the
-   "tomato-seed" data files. Set the following keyword in make.sys:
+3) (Optional, but highly recommended) The correctness of compilation can 
+   be checked using the "tomato-seed" data files.  Due to the size of the 
+   seed files, we do not include them as part of the default ELSI distribution, 
+   but they may be obtained from the ELSI gitlab as part of the "tomato-seed" 
+   sub-project.
+   Set the following keyword in make.sys:
 
       TOMATO_SEED =  # Path to tomato_seed
 
