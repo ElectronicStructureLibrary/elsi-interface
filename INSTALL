@@ -34,11 +34,11 @@ A) BASIC
 
       "make"
 
-3) (Optional, but highly recommended) The correctness of compilation can 
-   be checked using the "tomato-seed" data files.  Due to the size of the 
-   seed files, we do not include them as part of the default ELSI distribution, 
-   but they may be obtained from the ELSI gitlab as part of the "tomato-seed" 
-   sub-project.
+3) (Optional, but highly recommended) The correctness of compilation can
+   be checked using the "tomato-seed" data files.  Due to the size of the
+   files, they are not included here as part of the ELSI distribution, but
+   may be obtained from ELSI GitLab by cloning the "tomato-seed" project.
+
    Set the following keyword in make.sys:
 
       TOMATO_SEED =  # Path to tomato_seed
@@ -102,7 +102,15 @@ C) EXTERNAL LIBRARIES
       "make install"
 
 ==========================================================================
-D) TROUBLE SHOOTING
+D) BEYOND THIS GUIDE
+==========================================================================
+
+   More information, including a User's Guide in PDF format, is available
+   on the wiki pages of the ELSI GitLab.
+
+==========================================================================
+E) TROUBLE SHOOTING
+==========================================================================
 
    For comments, feedback, ideas, ... please email elsi-team@duke.edu
 

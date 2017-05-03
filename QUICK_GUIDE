@@ -135,6 +135,9 @@ C) BEYOND THIS GUIDE
 *  Documentation of each module, subroutine, and function in ELSI interface can be
    generated using Doxygen in ./src/ELSI/doc directory.
 
+*  More information, including a User's Guide in PDF format, is available on the wiki
+   on the wiki pages of the ELSI GitLab.
+
 ===================
 D) TROUBLE SHOOTING
 ===================
