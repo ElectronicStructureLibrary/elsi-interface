@@ -128,8 +128,8 @@ subroutine elsi_solve_evp_omm()
    endif
 
    ! Shift eigenvalue spectrum
-   if(eta .ne. 0.0d0) then
-      call m_add(ovlp_omm,'N',ham_omm,-eta,1.0d0,"lap")
+   if(eta .ne. 0.0_dp) then
+      call m_add(ovlp_omm,'N',ham_omm,-eta,1.0_dp,"lap")
    endif
 
    ! Solve the eigenvalue problem
@@ -180,16 +180,16 @@ subroutine elsi_set_omm_default_options()
    omm_flavor = 2
 
    !< How to scale the kinetic energy matrix
-   scale_kinetic = 5.0d0
+   scale_kinetic = 5.0_dp
 
    !< Calculate the energy density matrix
    calc_ed = .false.
 
    !< Eigenspectrum shift parameter
-   eta = 0.0d0
+   eta = 0.0_dp
 
    !< Tolerance for minimization
-   min_tol = 1.0d-9
+   min_tol = 1.0e-9_dp
 
    !< n_k_points * n_spin
    nk_times_nspin = 1

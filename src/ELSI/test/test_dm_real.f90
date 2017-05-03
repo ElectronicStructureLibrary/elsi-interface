@@ -30,6 +30,7 @@
 !!
 program test_dm_real
 
+   use elsi_precision, only : dp
    use ELSI
    use MatrixSwitch ! Only for test matrices generation
 
@@ -50,18 +51,18 @@ program test_dm_real
    integer :: matrix_size,supercell(3)
    integer :: solver
 
-   real*8 :: n_electrons,frac_occ,sparsity,orb_r_cut
-   real*8 :: k_point(3)
-   real*8 :: e_test,e_ref,e_tol
-   real*8 :: t1,t2
+   real(kind=dp) :: n_electrons,frac_occ,sparsity,orb_r_cut
+   real(kind=dp) :: k_point(3)
+   real(kind=dp) :: e_test,e_ref,e_tol
+   real(kind=dp) :: t1,t2
 
    ! VY: Reference values from calculations on Apr 5, 2017.
    !     Note that PEXSI result is incorrect, since only 2 PEXSI
    !     poles are used for this quick test. Accurate result can
    !     be expected with at least 40 poles.
-   real*8, parameter :: e_elpa  = -126.817462901838d0
-   real*8, parameter :: e_omm   = -126.817462499630d0
-   real*8, parameter :: e_pexsi = -1885.46836305848d0
+   real(kind=dp), parameter :: e_elpa  = -126.817462901838_dp
+   real(kind=dp), parameter :: e_omm   = -126.817462499630_dp
+   real(kind=dp), parameter :: e_pexsi = -1885.46836305848_dp
 
    type(matrix) :: H,S,D
 
@@ -117,7 +118,7 @@ program test_dm_real
          write(*,*)
          write(*,'("  Now start testing  elsi_dm_real + ELPA")')
          e_ref = e_elpa
-         e_tol = 1d-10
+         e_tol = 1.0e-10_dp
       elseif(solver == 2) then
          write(*,'("  This test program performs the following computational steps:")')
          write(*,*)
@@ -132,7 +133,7 @@ program test_dm_real
          ! as the initial guess, or by completing the SCF cycle to make the
          ! influence of the random initial guess fade away.
          e_ref = e_omm
-         e_tol = 1d-6
+         e_tol = 1.0e-6_dp
       else
          write(*,'("  This test program performs the following computational steps:")')
          write(*,*)
@@ -143,7 +144,7 @@ program test_dm_real
          write(*,*)
          write(*,'("  Now start testing  elsi_dm_real + PEXSI")')
          e_ref = e_pexsi
-         e_tol = 1d-10
+         e_tol = 1.0e-10_dp
       endif
       write(*,*)
    endif
@@ -167,15 +168,15 @@ program test_dm_real
    m_operation = 'lap'
    n_basis = 22
    supercell = (/3,3,3/)
-   orb_r_cut = 0.5d0
-   k_point(1:3) = (/0d0,0d0,0d0/)
+   orb_r_cut = 0.5_dp
+   k_point(1:3) = (/0.0_dp,0.0_dp,0.0_dp/)
 
    t1 = MPI_Wtime()
 
    ! Generate test matrices
    call tomato_TB(arg1,'silicon',.false.,frac_occ,n_basis,.false.,matrix_size,&
                   supercell,.false.,sparsity,orb_r_cut,n_states,.true.,k_point,&
-                  .true.,0d0,H,S,m_storage,.true.)
+                  .true.,0.0_dp,H,S,m_storage,.true.)
 
    t2 = MPI_Wtime()
 
@@ -185,7 +186,7 @@ program test_dm_real
    endif
 
    ! Initialize ELSI
-   n_electrons = 2d0*n_states
+   n_electrons = 2.0_dp*n_states
 
    call elsi_init(solver,1,0,matrix_size,n_electrons,n_states)
    call elsi_set_mpi(mpi_comm_global)

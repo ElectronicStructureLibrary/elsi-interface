@@ -32,6 +32,7 @@
 
 module ELSI_UTILS
 
+   use elsi_precision, only : dp
    use iso_c_binding
    use ELSI_DIMENSIONS
    use MatrixSwitch
@@ -117,13 +118,13 @@ subroutine elsi_statement_print(message)
 end subroutine
 
 !>
-!! This routine allocates a 1D array with real*8.
+!! This routine allocates a 1D array with real(kind=dp).
 !!
 subroutine elsi_allocate_real_1d(array,dim1,arrayname,caller)
 
    implicit none
 
-   real*8, allocatable, intent(inout) :: array(:)  !< Data
+   real(kind=dp), allocatable, intent(inout) :: array(:)  !< Data
    integer,             intent(in)    :: dim1      !< Size
    character(len=*),    intent(in)    :: arrayname !< Name
    character(len=*),    intent(in)    :: caller    !< Caller
@@ -138,7 +139,7 @@ subroutine elsi_allocate_real_1d(array,dim1,arrayname,caller)
       call elsi_stop(message,caller)
    endif
 
-   array = 0.0d0
+   array = 0.0_dp
 
 end subroutine
 
@@ -169,13 +170,13 @@ subroutine elsi_allocate_integer_1d(array,dim1,arrayname,caller)
 end subroutine
 
 !>
-!! This routine allocates a 1D array with complex*16.
+!! This routine allocates a 1D array with complex(kind=dp).
 !!
 subroutine elsi_allocate_complex_1d(array,dim1,arrayname,caller)
 
    implicit none
 
-   complex*16, allocatable, intent(inout) :: array(:)  !< Data
+   complex(kind=dp), allocatable, intent(inout) :: array(:)  !< Data
    integer,                 intent(in)    :: dim1      !< Size
    character(len=*),        intent(in)    :: arrayname !< Name
    character(len=*),        intent(in)    :: caller    !< Caller
@@ -190,18 +191,18 @@ subroutine elsi_allocate_complex_1d(array,dim1,arrayname,caller)
       call elsi_stop(message,caller)
    endif
 
-   array = cmplx(0.0d0,0.0d0)
+   array = cmplx(0.0_dp,0.0_dp)
 
 end subroutine
 
 !>
-!! This routine allocates a 2D array of real*8.
+!! This routine allocates a 2D array of real(kind=dp).
 !!
 subroutine elsi_allocate_real_2d(array,dim1,dim2,arrayname,caller)
 
    implicit none
 
-   real*8, allocatable, intent(inout) :: array(:,:) !< Data
+   real(kind=dp), allocatable, intent(inout) :: array(:,:) !< Data
    integer,             intent(in)    :: dim1       !< Size
    integer,             intent(in)    :: dim2       !< Size
    character(len=*),    intent(in)    :: arrayname  !< Name
@@ -217,7 +218,7 @@ subroutine elsi_allocate_real_2d(array,dim1,dim2,arrayname,caller)
       call elsi_stop(message,caller)
    endif
 
-   array = 0.0d0
+   array = 0.0_dp
 
 end subroutine
 
@@ -249,13 +250,13 @@ subroutine elsi_allocate_integer_2d(array,dim1,dim2,arrayname,caller)
 end subroutine
 
 !>
-!! This routine allocates a 2D array of complex*16.
+!! This routine allocates a 2D array of complex(kind=dp).
 !!
 subroutine elsi_allocate_complex_2d(array,dim1,dim2,arrayname,caller)
 
    implicit none
 
-   complex*16, allocatable, intent(inout) :: array(:,:) !< Data
+   complex(kind=dp), allocatable, intent(inout) :: array(:,:) !< Data
    integer,                 intent(in)    :: dim1       !< Size
    integer,                 intent(in)    :: dim2       !< Size
    character(len=*),        intent(in)    :: arrayname  !< Name
@@ -271,18 +272,18 @@ subroutine elsi_allocate_complex_2d(array,dim1,dim2,arrayname,caller)
       call elsi_stop(message,caller)
    endif
 
-   array = cmplx(0.0d0,0.0d0)
+   array = cmplx(0.0_dp,0.0_dp)
 
 end subroutine
 
 !>
-!! This routine allocates a 3D array of real*8.
+!! This routine allocates a 3D array of real(kind=dp).
 !!
 subroutine elsi_allocate_real_3d(array,dim1,dim2,dim3,arrayname,caller)
 
    implicit none
 
-   real*8, allocatable, intent(inout) :: array(:,:,:) !< Data
+   real(kind=dp), allocatable, intent(inout) :: array(:,:,:) !< Data
    integer,             intent(in)    :: dim1         !< Size
    integer,             intent(in)    :: dim2         !< Size
    integer,             intent(in)    :: dim3         !< Size
@@ -299,7 +300,7 @@ subroutine elsi_allocate_real_3d(array,dim1,dim2,dim3,arrayname,caller)
       call elsi_stop(message,caller)
    endif
 
-   array = 0.0d0
+   array = 0.0_dp
 
 end subroutine
 
@@ -332,13 +333,13 @@ subroutine elsi_allocate_integer_3d(array,dim1,dim2,dim3,arrayname,caller)
 end subroutine
 
 !>
-!! This routine allocates a 3D array of complex*16.
+!! This routine allocates a 3D array of complex(kind=dp).
 !!
 subroutine elsi_allocate_complex_3d(array,dim1,dim2,dim3,arrayname,caller)
 
    implicit none
    
-   complex*16, allocatable, intent(inout) :: array(:,:,:) !< Data
+   complex(kind=dp), allocatable, intent(inout) :: array(:,:,:) !< Data
    integer,                 intent(in)    :: dim1         !< Size
    integer,                 intent(in)    :: dim2         !< Size
    integer,                 intent(in)    :: dim3         !< Size
@@ -355,7 +356,7 @@ subroutine elsi_allocate_complex_3d(array,dim1,dim2,dim3,arrayname,caller)
       call elsi_stop(message,caller)
    endif
 
-   array = cmplx(0.0d0,0.0d0)
+   array = cmplx(0.0_dp,0.0_dp)
 
 end subroutine
 
@@ -403,7 +404,7 @@ subroutine elsi_set_real_hamiltonian(H_in)
 
    implicit none
 
-   real*8, target :: H_in(n_l_rows,n_l_cols) !< Real Hamiltonian matrix
+   real(kind=dp), target :: H_in(n_l_rows,n_l_cols) !< Real Hamiltonian matrix
 
    character*40, parameter :: caller = "elsi_set_real_hamiltonian"
 
@@ -433,7 +434,7 @@ subroutine elsi_set_complex_hamiltonian(H_in)
 
    implicit none
 
-   complex*16, target :: H_in(n_l_rows,n_l_cols) !< Complex Hamiltonian matrix
+   complex(kind=dp), target :: H_in(n_l_rows,n_l_cols) !< Complex Hamiltonian matrix
 
    character*40, parameter :: caller = "elsi_set_complex_hamiltonian"
 
@@ -463,7 +464,7 @@ subroutine elsi_set_sparse_real_hamiltonian(H_in)
 
    implicit none
 
-   real*8, target :: H_in(nnz_l_pexsi) !< Sparse real Hamiltonian matrix
+   real(kind=dp), target :: H_in(nnz_l_pexsi) !< Sparse real Hamiltonian matrix
 
    character*40, parameter :: caller = "elsi_set_sparse_real_hamiltonian"
 
@@ -493,7 +494,7 @@ subroutine elsi_set_sparse_complex_hamiltonian(H_in)
 
    implicit none
 
-   complex*16, target :: H_in(nnz_l_pexsi) !< Sparse complex Hamiltonian matrix
+   complex(kind=dp), target :: H_in(nnz_l_pexsi) !< Sparse complex Hamiltonian matrix
 
    character*40, parameter :: caller = "elsi_set_sparse_complex_hamiltonian"
 
@@ -523,7 +524,7 @@ subroutine elsi_set_real_overlap(S_in)
 
    implicit none
 
-   real*8, target :: S_in(n_l_rows,n_l_cols) !< Real overlap matrix
+   real(kind=dp), target :: S_in(n_l_rows,n_l_cols) !< Real overlap matrix
 
    character*40, parameter :: caller = "elsi_set_real_overlap"
 
@@ -553,7 +554,7 @@ subroutine elsi_set_complex_overlap(S_in)
 
    implicit none
 
-   complex*16, target :: S_in(n_l_rows,n_l_cols) !< Complex overlap matrix
+   complex(kind=dp), target :: S_in(n_l_rows,n_l_cols) !< Complex overlap matrix
 
    character*40, parameter :: caller = "elsi_set_complex_overlap"
 
@@ -583,7 +584,7 @@ subroutine elsi_set_sparse_real_overlap(S_in)
 
    implicit none
 
-   real*8, target :: S_in(nnz_l_pexsi) !< Sparse real overlap matrix
+   real(kind=dp), target :: S_in(nnz_l_pexsi) !< Sparse real overlap matrix
 
    character*40, parameter :: caller = "elsi_set_sparse_real_overlap"
 
@@ -613,7 +614,7 @@ subroutine elsi_set_sparse_complex_overlap(S_in)
 
    implicit none
 
-   complex*16, target :: S_in(nnz_l_pexsi) !< Sparse complex overlap matrix
+   complex(kind=dp), target :: S_in(nnz_l_pexsi) !< Sparse complex overlap matrix
 
    character*40, parameter :: caller = "elsi_set_sparse_complex_overlap"
 
@@ -643,7 +644,7 @@ subroutine elsi_set_eigenvalue(e_val_in)
 
    implicit none
 
-   real*8, target :: e_val_in(n_g_size) !< Eigenvalues
+   real(kind=dp), target :: e_val_in(n_g_size) !< Eigenvalues
 
    character*40, parameter :: caller = "elsi_set_eigenvalue"
 
@@ -673,7 +674,7 @@ subroutine elsi_set_real_eigenvector(e_vec_in)
 
    implicit none
    
-   real*8, target :: e_vec_in(n_l_rows,n_l_cols) !< Real eigenvectors
+   real(kind=dp), target :: e_vec_in(n_l_rows,n_l_cols) !< Real eigenvectors
 
    character*40, parameter :: caller = "elsi_set_real_eigenvector"
 
@@ -703,7 +704,7 @@ subroutine elsi_set_complex_eigenvector(e_vec_in)
 
    implicit none
 
-   complex*16, target :: e_vec_in(n_l_rows,n_l_cols) !< Complex eigenvectors
+   complex(kind=dp), target :: e_vec_in(n_l_rows,n_l_cols) !< Complex eigenvectors
 
    character*40, parameter :: caller = "elsi_set_complex_eigenvector"
 
@@ -733,7 +734,7 @@ subroutine elsi_set_density_matrix(D_in)
 
    implicit none
 
-   real*8, target :: D_in(n_l_rows,n_l_cols) !< Density matrix
+   real(kind=dp), target :: D_in(n_l_rows,n_l_cols) !< Density matrix
 
    character*40, parameter :: caller = "elsi_set_density_matrix"
 
@@ -763,7 +764,7 @@ subroutine elsi_set_sparse_density_matrix(D_in)
 
    implicit none
 
-   real*8, target :: D_in(nnz_l_pexsi) !< Sparse density matrix
+   real(kind=dp), target :: D_in(nnz_l_pexsi) !< Sparse density matrix
 
    character*40, parameter :: caller = "elsi_set_sparse_density_matrix"
 
@@ -1099,7 +1100,7 @@ subroutine elsi_get_local_nnz(matrix,n_rows,n_cols,nnz)
 
    implicit none
 
-   real*8,  intent(in)  :: matrix(n_rows,n_cols) !< Local matrix
+   real(kind=dp),  intent(in)  :: matrix(n_rows,n_cols) !< Local matrix
    integer, intent(in)  :: n_rows                !< Local rows
    integer, intent(in)  :: n_cols                !< Local cols
    integer, intent(out) :: nnz                   !< Number of non-zero

@@ -32,6 +32,7 @@
 
 module ELSI
 
+   use elsi_precision, only: dp
    use iso_c_binding
    use ELSI_DIMENSIONS
    use ELSI_TIMERS
@@ -96,7 +97,7 @@ subroutine elsi_init(solver,parallel_mode,matrix_format,matrix_size,&
    integer, intent(in) :: parallel_mode  !< SINGLE_PROC,MULTI_PROC
    integer, intent(in) :: matrix_format  !< BLACS_DENSE,PEXSI_CSC
    integer, intent(in) :: matrix_size    !< Global dimension of matrix
-   real*8,  intent(in) :: n_electrons_in !< Number of electrons
+   real(kind=dp),  intent(in) :: n_electrons_in !< Number of electrons
    integer, intent(in) :: n_states_in    !< Number of states
 
    n_g_size = matrix_size
@@ -109,7 +110,7 @@ subroutine elsi_init(solver,parallel_mode,matrix_format,matrix_size,&
 
    if(solver == LIBOMM) then
       ! Set number of occupied states for libOMM
-      n_states = nint(n_electrons/2.0d0)
+      n_states = nint(n_electrons/2.0_dp)
       ! Set libOMM default settings
       call elsi_set_omm_default_options()
    else
@@ -309,10 +310,10 @@ subroutine elsi_get_energy(energy_out)
 
    implicit none
 
-   real*8, intent(out) :: energy_out !< Energy of the system
+   real(kind=dp), intent(out) :: energy_out !< Energy of the system
 
    ! Only spin-nonpolarized case is supported now.
-   real*8, parameter :: n_spin = 2.0d0
+   real(kind=dp), parameter :: n_spin = 2.0_dp
    integer :: i_state
    character*200 :: info_str
 
@@ -320,7 +321,7 @@ subroutine elsi_get_energy(energy_out)
 
    select case (method)
       case (ELPA)
-         energy_out = 0.0d0
+         energy_out = 0.0_dp
          do i_state =1,n_states
             energy_out = energy_out+occ_elpa(i_state)*eval(i_state)
          enddo
@@ -376,9 +377,9 @@ subroutine elsi_customize(print_detail,unit_overlap,numerical_zero,&
 
    logical, intent(in), optional :: print_detail           !< Print detailed info?
    logical, intent(in), optional :: unit_overlap           !< Is overlap matrix unit?
-   real*8,  intent(in), optional :: numerical_zero         !< Threshold to define "zero"
+   real(kind=dp),  intent(in), optional :: numerical_zero         !< Threshold to define "zero"
    logical, intent(in), optional :: no_check_singularity   !< Do not perform singularity check of overlap
-   real*8,  intent(in), optional :: singularity_threshold  !< Tolerance of overlap singularity
+   real(kind=dp),  intent(in), optional :: singularity_threshold  !< Tolerance of overlap singularity
    logical, intent(in), optional :: force_stop_singularity !< Stop if overlap is singular
 
    ! Print detailed ELSI information? [Default: .false.]
@@ -387,14 +388,14 @@ subroutine elsi_customize(print_detail,unit_overlap,numerical_zero,&
    ! Is the overlap matrix unit? [Default: .false.]
    if(present(unit_overlap)) &
       overlap_is_unit = unit_overlap
-   ! Threshold to define numerical zero [Default: 1d-13]
+   ! Threshold to define numerical zero [Default: 1e-13_dp]
    if(present(numerical_zero)) &
       zero_threshold = numerical_zero
    ! Disable checking for overlap singularity? [Default: .false.]
    if(present(no_check_singularity)) &
       no_singularity_check = no_check_singularity
    ! Eigenfunctions of overlap matrix with eigenvalues smaller than
-   ! this value will be removed to avoid singularity [Default: 1d-5]
+   ! this value will be removed to avoid singularity [Default: 1e-5_dp]
    if(present(singularity_threshold)) &
       singularity_tolerance = singularity_threshold
    ! Always stop if overlap is singular? [Default: .false.]
@@ -413,8 +414,8 @@ subroutine elsi_customize_omm(n_elpa_steps_omm,omm_method,eigen_shift,&
 
    integer, intent(in), optional :: n_elpa_steps_omm !< Number of ELPA steps before libOMM
    integer, intent(in), optional :: omm_method       !< How to perform orbital minimization
-   real*8,  intent(in), optional :: eigen_shift      !< Eigenspectrum shift parameter
-   real*8,  intent(in), optional :: omm_tolerance    !< Tolerance of minimization
+   real(kind=dp),  intent(in), optional :: eigen_shift      !< Eigenspectrum shift parameter
+   real(kind=dp),  intent(in), optional :: omm_tolerance    !< Tolerance of minimization
    logical, intent(in), optional :: use_pspblas      !< Use pspBLAS sparse linear algebra?
    logical, intent(in), optional :: omm_output       !< Output details?
 
@@ -554,7 +555,7 @@ subroutine elsi_customize_pexsi(temperature,gap,delta_E,n_poles,n_procs_per_pole
    ! default: 0.01
    if(present(n_electron_accuracy)) then
       pexsi_options%numElectronPEXSITolerance = n_electron_accuracy
-      if(n_electron_accuracy < 1.0d-2) then
+      if(n_electron_accuracy < 1.0e-2_dp) then
          small_pexsi_tol = .true.
          final_pexsi_tol = n_electron_accuracy
       endif
@@ -633,24 +634,24 @@ subroutine elsi_customize_mu(broadening_scheme,broadening_width,&
    implicit none
 
    integer, intent(in), optional :: broadening_scheme !< Broadening method in chemical potential determination
-   real*8,  intent(in), optional :: broadening_width  !< Broadening width in chemical potential determination
-   real*8,  intent(in), optional :: mu_accuracy       !< Tolerance in chemical potential determination
+   real(kind=dp),  intent(in), optional :: broadening_width  !< Broadening width in chemical potential determination
+   real(kind=dp),  intent(in), optional :: mu_accuracy       !< Tolerance in chemical potential determination
    integer, intent(in), optional :: mu_max_steps      !< Maximum number of steps to find the chemical potential
-   real*8,  intent(in), optional :: spin_degeneracy   !< Spin degeneracy
+   real(kind=dp),  intent(in), optional :: spin_degeneracy   !< Spin degeneracy
 
    ! Broadening scheme to compute Fermi level [Default: GAUSSIAN]
    if(present(broadening_scheme)) &
       broaden_method = broadening_scheme
-   ! Broadening width to compute Fermi level [Default: 1d-2]
+   ! Broadening width to compute Fermi level [Default: 1e-2_dp]
    if(present(broadening_width)) &
       broaden_width = broadening_width
-   ! Accuracy for chemical potential determination [Default: 1d-10]
+   ! Accuracy for chemical potential determination [Default: 1e-10_dp]
    if(present(mu_accuracy)) &
       occ_tolerance = mu_accuracy
    ! Maximum steps to determine the chemical potential [Default: 100]
    if(present(mu_max_steps)) &
       max_mu_steps = mu_max_steps
-   ! Spin degeneracy [Default: 2d0/n_spin]
+   ! Spin degeneracy [Default: 2.0_dp/n_spin]
    if(present(spin_degeneracy)) &
       spin_degen = spin_degeneracy
 
@@ -664,9 +665,9 @@ subroutine elsi_collect_pexsi(mu,edm,fdm)
 
    implicit none
 
-   real*8, intent(out) :: mu               !< Chemical potential
-   real*8, intent(out) :: edm(nnz_l_pexsi) !< Energy density matrix
-   real*8, intent(out) :: fdm(nnz_l_pexsi) !< Free energy density matrix
+   real(kind=dp), intent(out) :: mu               !< Chemical potential
+   real(kind=dp), intent(out) :: edm(nnz_l_pexsi) !< Energy density matrix
+   real(kind=dp), intent(out) :: fdm(nnz_l_pexsi) !< Free energy density matrix
 
    mu  = mu_pexsi
    edm = e_den_mat_pexsi
@@ -691,10 +692,10 @@ subroutine elsi_ev_real(H_in,S_in,e_val_out,e_vec_out)
 
    implicit none
 
-   real*8, target :: H_in(n_l_rows,*)      !< Hamiltonian
-   real*8, target :: S_in(n_l_rows,*)      !< Overlap
-   real*8, target :: e_val_out(n_g_size)   !< Eigenvalues
-   real*8, target :: e_vec_out(n_l_rows,*) !< Eigenvectors
+   real(kind=dp), target :: H_in(n_l_rows,*)      !< Hamiltonian
+   real(kind=dp), target :: S_in(n_l_rows,*)      !< Overlap
+   real(kind=dp), target :: e_val_out(n_g_size)   !< Eigenvalues
+   real(kind=dp), target :: e_vec_out(n_l_rows,*) !< Eigenvectors
 
    character*40, parameter :: caller = "elsi_ev_real"
 
@@ -770,10 +771,10 @@ subroutine elsi_ev_complex(H_in,S_in,e_val_out,e_vec_out)
 
    implicit none
 
-   complex*16, target :: H_in(n_l_rows,*)      !< Hamiltonian
-   complex*16, target :: S_in(n_l_rows,*)      !< Overlap
-   real*8,     target :: e_val_out(n_g_size)   !< Eigenvalues
-   complex*16, target :: e_vec_out(n_l_rows,*) !< Eigenvectors
+   complex(kind=dp), target :: H_in(n_l_rows,*)      !< Hamiltonian
+   complex(kind=dp), target :: S_in(n_l_rows,*)      !< Overlap
+   real(kind=dp),    target :: e_val_out(n_g_size)   !< Eigenvalues
+   complex(kind=dp), target :: e_vec_out(n_l_rows,*) !< Eigenvectors
 
    character*40, parameter :: caller = "elsi_ev_complex"
 
@@ -830,10 +831,10 @@ subroutine elsi_dm_real(H_in,S_in,D_out,energy_out)
 
    implicit none
 
-   real*8, target      :: H_in(n_l_rows,*)  !< Hamiltonian
-   real*8, target      :: S_in(n_l_rows,*)  !< Overlap
-   real*8, target      :: D_out(n_l_rows,*) !< Density matrix
-   real*8, intent(out) :: energy_out        !< Energy
+   real(kind=dp), target      :: H_in(n_l_rows,*)  !< Hamiltonian
+   real(kind=dp), target      :: S_in(n_l_rows,*)  !< Overlap
+   real(kind=dp), target      :: D_out(n_l_rows,*) !< Density matrix
+   real(kind=dp), intent(out) :: energy_out        !< Energy
 
    character*40, parameter :: caller = "elsi_dm_real"
 
@@ -932,7 +933,7 @@ subroutine elsi_dm_real(H_in,S_in,D_out,energy_out)
                ! D_out is used for temporary storage here
                D_out(1:n_l_rows,1:n_l_cols) = evec_real(1:n_l_rows,1:n_l_cols)
                ! libOMM coefficient matrix is the transpose of ELPA eigenvectors
-               call pdtran(n_g_size,n_g_size,1.0d0,D_out,1,1,sc_desc,0.0d0,evec_real,1,1,sc_desc)
+               call pdtran(n_g_size,n_g_size,1.0_dp,D_out,1,1,sc_desc,0.0_dp,evec_real,1,1,sc_desc)
 
                coeff_omm%dval(1:coeff_omm%iaux2(1),1:coeff_omm%iaux2(2)) = &
                   evec_real(1:coeff_omm%iaux2(1),1:coeff_omm%iaux2(2))
@@ -951,7 +952,7 @@ subroutine elsi_dm_real(H_in,S_in,D_out,energy_out)
             ! Continue the computation using libOMM
             call elsi_solve_evp_omm()
 
-            den_mat_omm%dval = 2.0d0*den_mat_omm%dval
+            den_mat_omm%dval = 2.0_dp*den_mat_omm%dval
             call elsi_get_energy(energy_out)
          endif
 
@@ -975,7 +976,7 @@ subroutine elsi_dm_real(H_in,S_in,D_out,energy_out)
          if(.not.allocated(den_mat_pexsi)) then
             call elsi_allocate(den_mat_pexsi,nnz_l_pexsi,"den_mat_pexsi",caller)
          endif
-         den_mat_pexsi = 0.0d0
+         den_mat_pexsi = 0.0_dp
          call elsi_set_sparse_density_matrix(den_mat_pexsi)
 
          call elsi_solve_evp_pexsi()
@@ -1003,10 +1004,10 @@ subroutine elsi_dm_complex(H_in,S_in,D_out,energy_out)
 
    implicit none
 
-   complex*16, target  :: H_in(n_l_rows,*)  !< Hamiltonian
-   complex*16, target  :: S_in(n_l_rows,*)  !< Overlap
-   real*8,     target  :: D_out(n_l_rows,*) !< Density matrix
-   real*8, intent(out) :: energy_out        !< Energy
+   complex(kind=dp), target  :: H_in(n_l_rows,*)  !< Hamiltonian
+   complex(kind=dp), target  :: S_in(n_l_rows,*)  !< Overlap
+   real(kind=dp),     target  :: D_out(n_l_rows,*) !< Density matrix
+   real(kind=dp), intent(out) :: energy_out        !< Energy
 
    character*40, parameter :: caller = "elsi_dm_complex"
 
@@ -1063,7 +1064,7 @@ subroutine elsi_dm_complex(H_in,S_in,D_out,energy_out)
 
          call elsi_solve_evp_omm()
 
-         den_mat_omm%dval = 2.0d0*den_mat_omm%dval
+         den_mat_omm%dval = 2.0_dp*den_mat_omm%dval
          call elsi_get_energy(energy_out)
 
       case (PEXSI)
@@ -1086,10 +1087,10 @@ subroutine elsi_dm_real_sparse(H_in,S_in,D_out,energy_out)
 
    implicit none
 
-   real*8,  target      :: H_in(*)    !< Hamiltonian
-   real*8,  target      :: S_in(*)    !< Overlap
-   real*8,  target      :: D_out(*)   !< Density matrix
-   real*8,  intent(out) :: energy_out !< Energy
+   real(kind=dp),  target      :: H_in(*)    !< Hamiltonian
+   real(kind=dp),  target      :: S_in(*)    !< Overlap
+   real(kind=dp),  target      :: D_out(*)   !< Density matrix
+   real(kind=dp),  intent(out) :: energy_out !< Energy
 
    character*40, parameter :: caller = "elsi_dm_real_sparse"
 

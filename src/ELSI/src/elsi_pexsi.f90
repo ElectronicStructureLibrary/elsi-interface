@@ -31,6 +31,7 @@
 
 module ELSI_PEXSI
 
+   use elsi_precision, only : dp
    use iso_c_binding
    use ELSI_DIMENSIONS
    use ELSI_TIMERS
@@ -130,8 +131,8 @@ subroutine elsi_blacs_to_pexsi(H_in,S_in)
 
    implicit none
 
-   real*8, intent(in) :: H_in(n_l_rows,n_l_cols) !< Hamiltonian matrix to be converted
-   real*8, intent(in) :: S_in(n_l_rows,n_l_cols) !< Overlap matrix to be converted
+   real(kind=dp), intent(in) :: H_in(n_l_rows,n_l_cols) !< Hamiltonian matrix to be converted
+   real(kind=dp), intent(in) :: S_in(n_l_rows,n_l_cols) !< Overlap matrix to be converted
 
    character*40, parameter :: caller = "elsi_blacs_to_pexsi"
 
@@ -157,7 +158,7 @@ subroutine elsi_pexsi_to_blacs_dm(D_out)
 
    implicit none
 
-   real*8, intent(out) :: D_out(n_l_rows,n_l_cols) !< Density matrix to be converted
+   real(kind=dp), intent(out) :: D_out(n_l_rows,n_l_cols) !< Density matrix to be converted
 
    if(n_g_size < 46340) then
       call elsi_pexsi_to_blacs_dm_small(D_out)
@@ -187,8 +188,8 @@ subroutine elsi_blacs_to_pexsi_hs_small(H_in,S_in)
    implicit none
    include "mpif.h"
 
-   real*8, intent(in) :: H_in(n_l_rows,n_l_cols) !< Hamiltonian matrix to be converted
-   real*8, intent(in) :: S_in(n_l_rows,n_l_cols) !< Overlap matrix to be converted
+   real(kind=dp), intent(in) :: H_in(n_l_rows,n_l_cols) !< Hamiltonian matrix to be converted
+   real(kind=dp), intent(in) :: S_in(n_l_rows,n_l_cols) !< Overlap matrix to be converted
    integer :: i_row !< Row counter
    integer :: i_col !< Col counter
    integer :: i_val,j_val !< Value counter
@@ -204,16 +205,16 @@ subroutine elsi_blacs_to_pexsi_hs_small(H_in,S_in)
    integer :: nnz_l_pexsi_aux,mpi_comm_aux_pexsi
    integer, allocatable :: dest(:) !< Destination of each element
    integer, allocatable :: locat(:) !< Location of each global column
-   real*8 :: tmp_real
+   real(kind=dp) :: tmp_real
 
    ! See documentation of MPI_Alltoallv
-   real*8,  allocatable :: h_val_send_buffer(:) !< Send buffer for Hamiltonian
-   real*8,  allocatable :: s_val_send_buffer(:) !< Send buffer for overlap
+   real(kind=dp),  allocatable :: h_val_send_buffer(:) !< Send buffer for Hamiltonian
+   real(kind=dp),  allocatable :: s_val_send_buffer(:) !< Send buffer for overlap
    integer, allocatable :: pos_send_buffer(:) !< Send buffer for global 1D id
    integer, allocatable :: send_count(:) !< Number of elements to send to each processor
    integer, allocatable :: send_displ(:) !< Displacement from which to take the outgoing data
-   real*8,  allocatable :: h_val_recv_buffer(:) !< Receive buffer for Hamiltonian
-   real*8,  allocatable :: s_val_recv_buffer(:) !< Receive buffer for overlap
+   real(kind=dp),  allocatable :: h_val_recv_buffer(:) !< Receive buffer for Hamiltonian
+   real(kind=dp),  allocatable :: s_val_recv_buffer(:) !< Receive buffer for overlap
    integer, allocatable :: pos_recv_buffer(:) !< Receive buffer for global 1D id
    integer, allocatable :: recv_count(:) !< Number of elements to receive from each processor
    integer, allocatable :: recv_displ(:) !< Displacement at which to place the incoming data
@@ -465,7 +466,7 @@ subroutine elsi_blacs_to_pexsi_hs_small(H_in,S_in)
    ! Only the Hamiltonian needs to be reset everytime
    if(.not.allocated(ham_real_pexsi)) &
       call elsi_allocate(ham_real_pexsi,nnz_l_pexsi,"ham_real_pexsi",caller)
-   ham_real_pexsi = 0.0d0
+   ham_real_pexsi = 0.0_dp
 
    if(.not.allocated(ovlp_real_pexsi)) &
       call elsi_allocate(ovlp_real_pexsi,nnz_l_pexsi,"ovlp_real_pexsi",caller)
@@ -551,8 +552,8 @@ subroutine elsi_blacs_to_pexsi_hs_large(H_in,S_in)
    implicit none
    include "mpif.h"
 
-   real*8, intent(in) :: H_in(n_l_rows,n_l_cols) !< Hamiltonian matrix to be converted
-   real*8, intent(in) :: S_in(n_l_rows,n_l_cols) !< Overlap matrix to be converted
+   real(kind=dp), intent(in) :: H_in(n_l_rows,n_l_cols) !< Hamiltonian matrix to be converted
+   real(kind=dp), intent(in) :: S_in(n_l_rows,n_l_cols) !< Overlap matrix to be converted
    integer :: i_row !< Row counter
    integer :: i_col !< Col counter
    integer :: i_val,j_val !< Value counter
@@ -569,17 +570,17 @@ subroutine elsi_blacs_to_pexsi_hs_large(H_in,S_in)
    integer(kind=8) :: tmp_long
    integer, allocatable :: dest(:) !< Destination of each element
    integer, allocatable :: locat(:) !< Location of each global column
-   real*8 :: tmp_real
+   real(kind=dp) :: tmp_real
 
    ! See documentation of MPI_Alltoallv
-   real*8,  allocatable :: h_val_send_buffer(:) !< Send buffer for Hamiltonian
-   real*8,  allocatable :: s_val_send_buffer(:) !< Send buffer for overlap
+   real(kind=dp),  allocatable :: h_val_send_buffer(:) !< Send buffer for Hamiltonian
+   real(kind=dp),  allocatable :: s_val_send_buffer(:) !< Send buffer for overlap
    integer, allocatable :: row_send_buffer(:) !< Send buffer for global row id
    integer, allocatable :: col_send_buffer(:) !< Send buffer for global column id
    integer, allocatable :: send_count(:) !< Number of elements to send to each processor
    integer, allocatable :: send_displ(:) !< Displacement from which to take the outgoing data
-   real*8,  allocatable :: h_val_recv_buffer(:) !< Receive buffer for Hamiltonian
-   real*8,  allocatable :: s_val_recv_buffer(:) !< Receive buffer for overlap
+   real(kind=dp),  allocatable :: h_val_recv_buffer(:) !< Receive buffer for Hamiltonian
+   real(kind=dp),  allocatable :: s_val_recv_buffer(:) !< Receive buffer for overlap
    integer, allocatable :: row_recv_buffer(:) !< Receive buffer for global row id
    integer, allocatable :: col_recv_buffer(:) !< Receive buffer for global column id
    integer, allocatable :: recv_count(:) !< Number of elements to receive from each processor
@@ -861,7 +862,7 @@ subroutine elsi_blacs_to_pexsi_hs_large(H_in,S_in)
    ! Only the Hamiltonian needs to be reset everytime
    if(.not.allocated(ham_real_pexsi)) &
       call elsi_allocate(ham_real_pexsi,nnz_l_pexsi,"ham_real_pexsi",caller)
-   ham_real_pexsi = 0.0d0
+   ham_real_pexsi = 0.0_dp
 
    if(.not.allocated(ovlp_real_pexsi)) &
       call elsi_allocate(ovlp_real_pexsi,nnz_l_pexsi,"ovlp_real_pexsi",caller)
@@ -945,7 +946,7 @@ subroutine elsi_pexsi_to_blacs_dm_small(D_out)
    implicit none
    include "mpif.h"
 
-   real*8, intent(out) :: D_out(n_l_rows,n_l_cols) !< Density matrix to be converted
+   real(kind=dp), intent(out) :: D_out(n_l_rows,n_l_cols) !< Density matrix to be converted
 
    integer :: i_row         !< Row counter
    integer :: i_col         !< Col counter
@@ -964,11 +965,11 @@ subroutine elsi_pexsi_to_blacs_dm_small(D_out)
    integer, allocatable :: global_id(:) !< Global 1d id
 
    ! See documentation of MPI_Alltoallv
-   real*8,  allocatable :: val_send_buffer(:) !< Send buffer for value
+   real(kind=dp),  allocatable :: val_send_buffer(:) !< Send buffer for value
    integer, allocatable :: pos_send_buffer(:) !< Send buffer for global 1D id
    integer, allocatable :: send_count(:) !< Number of elements to send to each processor
    integer, allocatable :: send_displ(:) !< Displacement from which to take the outgoing data
-   real*8,  allocatable :: val_recv_buffer(:) !< Receive buffer for value
+   real(kind=dp),  allocatable :: val_recv_buffer(:) !< Receive buffer for value
    integer, allocatable :: pos_recv_buffer(:) !< Receive buffer for global 1D id
    integer, allocatable :: recv_count(:) !< Number of elements to receive from each processor
    integer, allocatable :: recv_displ(:) !< Displacement at which to place the incoming data
@@ -1078,7 +1079,7 @@ subroutine elsi_pexsi_to_blacs_dm_small(D_out)
    deallocate(send_displ)
    deallocate(recv_displ)
 
-   D_out = 0.0d0
+   D_out = 0.0_dp
 
    ! Unpack density matrix
    do i_val = 1,nnz_l
@@ -1115,7 +1116,7 @@ subroutine elsi_pexsi_to_blacs_dm_large(D_out)
    implicit none
    include "mpif.h"
 
-   real*8, intent(out) :: D_out(n_l_rows,n_l_cols) !< Density matrix to be converted
+   real(kind=dp), intent(out) :: D_out(n_l_rows,n_l_cols) !< Density matrix to be converted
 
    integer :: i_row         !< Row counter
    integer :: i_col         !< Col counter
@@ -1133,12 +1134,12 @@ subroutine elsi_pexsi_to_blacs_dm_large(D_out)
    integer, allocatable :: dest(:)          !< Destination of each element
 
    ! See documentation of MPI_Alltoallv
-   real*8,  allocatable :: val_send_buffer(:)  !< Send buffer for value
+   real(kind=dp),  allocatable :: val_send_buffer(:)  !< Send buffer for value
    integer, allocatable :: row_send_buffer(:) !< Send buffer for global row id
    integer, allocatable :: col_send_buffer(:) !< Send buffer for global column id
    integer, allocatable :: send_count(:) !< Number of elements to send to each processor
    integer, allocatable :: send_displ(:) !< Displacement from which to take the outgoing data
-   real*8,  allocatable :: val_recv_buffer(:) !< Receive buffer for value
+   real(kind=dp),  allocatable :: val_recv_buffer(:) !< Receive buffer for value
    integer, allocatable :: row_recv_buffer(:) !< Receive buffer for global row id
    integer, allocatable :: col_recv_buffer(:) !< Receive buffer for global column id
    integer, allocatable :: recv_count(:) !< Number of elements to receive from each processor
@@ -1262,7 +1263,7 @@ subroutine elsi_pexsi_to_blacs_dm_large(D_out)
    deallocate(send_displ)
    deallocate(recv_displ)
 
-   D_out = 0.0d0
+   D_out = 0.0_dp
 
    ! Unpack density matrix
    do i_val = 1,nnz_l
@@ -1292,7 +1293,7 @@ subroutine elsi_solve_evp_pexsi()
    implicit none
    include "mpif.h"
 
-   real*8, save :: this_pexsi_tol = 1.0d-2
+   real(kind=dp), save :: this_pexsi_tol = 1.0e-2_dp
 
    character*200 :: info_str
    character*40, parameter :: caller = "elsi_solve_evp_pexsi"
@@ -1316,12 +1317,12 @@ subroutine elsi_solve_evp_pexsi()
    if(.not.allocated(e_den_mat_pexsi)) then
       call elsi_allocate(e_den_mat_pexsi,nnz_l_pexsi,"e_den_mat_pexsi",caller)
    endif
-   e_den_mat_pexsi = 0.0d0
+   e_den_mat_pexsi = 0.0_dp
 
    if(.not.allocated(f_den_mat_pexsi)) then
       call elsi_allocate(f_den_mat_pexsi,nnz_l_pexsi,"f_den_mat_pexsi",caller)
    endif
-   f_den_mat_pexsi = 0.0d0
+   f_den_mat_pexsi = 0.0_dp
 
    ! Load sparse matrices for PEXSI
    if(overlap_is_unit) then
@@ -1354,7 +1355,7 @@ subroutine elsi_solve_evp_pexsi()
       call elsi_stop(" PEXSI DFT driver not able to solve problem. Exiting...",caller)
 
    ! Turn off inertia counting if chemical potential does not change a lot
-   if(abs(mu_pexsi-pexsi_options%mu0) > 5.0d-3) then
+   if(abs(mu_pexsi-pexsi_options%mu0) > 5.0e-3_dp) then
       pexsi_options%isInertiaCount = 1
    else
       pexsi_options%isInertiaCount = 0
@@ -1365,8 +1366,8 @@ subroutine elsi_solve_evp_pexsi()
 
    if(small_pexsi_tol) then
       if(abs(n_electrons-n_electrons_pexsi) < this_pexsi_tol) then
-         if(1.0d-1*this_pexsi_tol > final_pexsi_tol) then
-            this_pexsi_tol = 1.0d-1*this_pexsi_tol
+         if(1.0e-1_dp*this_pexsi_tol > final_pexsi_tol) then
+            this_pexsi_tol = 1.0e-1_dp*this_pexsi_tol
          else
             this_pexsi_tol = final_pexsi_tol
          endif

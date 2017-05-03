@@ -30,6 +30,7 @@
 !!
 program test_standard_ev_real
 
+   use elsi_precision , only : dp 
    use ELSI
 
    implicit none
@@ -54,9 +55,9 @@ program test_standard_ev_real
    integer, allocatable :: seed(:)
    integer, external :: numroc
 
-   real*8 :: t1,t2
-   real*8, allocatable :: mat_a(:,:),mat_b(:,:),mat_tmp(:,:),e_vec(:,:)
-   real*8, allocatable :: e_val(:)
+   real(kind=dp) :: t1,t2
+   real(kind=dp), allocatable :: mat_a(:,:),mat_b(:,:),mat_tmp(:,:),e_vec(:,:)
+   real(kind=dp), allocatable :: e_val(:)
 
    ! Initialize MPI
    call MPI_Init(mpierr)
@@ -163,8 +164,8 @@ program test_standard_ev_real
    ! Symmetrize test matrix
    mat_tmp = mat_a
 
-   call pdtran(matrix_size,matrix_size,1.0d0,mat_tmp,1,1,&
-               sc_desc,1.0d0,mat_a,1,1,sc_desc)
+   call pdtran(matrix_size,matrix_size,1.0_dp,mat_tmp,1,1,&
+               sc_desc,1.0_dp,mat_a,1,1,sc_desc)
 
    deallocate(mat_tmp)
 
@@ -173,7 +174,7 @@ program test_standard_ev_real
    endif
 
    ! Initialize ELSI
-   call elsi_init(solver,1,0,matrix_size,0.0d0,n_states)
+   call elsi_init(solver,1,0,matrix_size,0.0_dp,n_states)
    call elsi_set_mpi(mpi_comm_global)
    call elsi_set_blacs(BLACS_CTXT,blk)
 

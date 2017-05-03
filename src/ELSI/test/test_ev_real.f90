@@ -30,6 +30,7 @@
 !!
 program test_ev_real
 
+   use elsi_precision, only : dp
    use ELSI
    use MatrixSwitch ! Only for test matrices generation
 
@@ -50,14 +51,14 @@ program test_ev_real
    integer :: matrix_size,supercell(3)
    integer :: solver
 
-   real*8 :: n_electrons,frac_occ,sparsity,orb_r_cut
-   real*8 :: k_point(3)
-   real*8 :: e_test,e_ref,e_tol
-   real*8 :: t1,t2
-   real*8, allocatable :: e_val(:)
+   real(kind=dp) :: n_electrons,frac_occ,sparsity,orb_r_cut
+   real(kind=dp) :: k_point(3)
+   real(kind=dp) :: e_test,e_ref,e_tol
+   real(kind=dp) :: t1,t2
+   real(kind=dp), allocatable :: e_val(:)
 
    ! VY: Reference value from calculations on Apr 5, 2017.
-   real*8, parameter :: e_elpa  = -126.817462901838d0
+   real(kind=dp), parameter :: e_elpa  = -126.817462901838_dp
 
    type(matrix) :: H,S,e_vec
 
@@ -127,7 +128,7 @@ program test_ev_real
    endif
 
    e_ref = e_elpa
-   e_tol = 1d-10
+   e_tol = 1e-10_dp
 
    ! Set up square-like processor grid
    do npcol = nint(sqrt(real(n_proc))),2,-1
@@ -148,15 +149,15 @@ program test_ev_real
    m_operation = 'lap'
    n_basis = 22
    supercell = (/3,3,3/)
-   orb_r_cut = 0.5d0
-   k_point(1:3) = (/0d0,0d0,0d0/)
+   orb_r_cut = 0.5_dp
+   k_point(1:3) = (/0.0_dp,0.0_dp,0.0_dp/)
 
    t1 = MPI_Wtime()
 
    ! Generate test matrices
    call tomato_TB(arg1,'silicon',.false.,frac_occ,n_basis,.false.,matrix_size,&
                   supercell,.false.,sparsity,orb_r_cut,n_states,.true.,k_point,&
-                  .true.,0d0,H,S,m_storage,.true.)
+                  .true.,0.0_dp,H,S,m_storage,.true.)
 
    t2 = MPI_Wtime()
 
@@ -166,7 +167,7 @@ program test_ev_real
    endif
 
    ! Initialize ELSI
-   n_electrons = 2d0*n_states
+   n_electrons = 2.0_dp*n_states
 
    if(n_proc == 1) then
       call elsi_init(solver,0,0,matrix_size,n_electrons,n_states)
@@ -189,7 +190,7 @@ program test_ev_real
 
    t2 = MPI_Wtime()
 
-   e_test = 2d0*sum(e_val(1:n_states))
+   e_test = 2.0_dp*sum(e_val(1:n_states))
 
    if(myid == 0) then
       write(*,'("  Finished test program")')

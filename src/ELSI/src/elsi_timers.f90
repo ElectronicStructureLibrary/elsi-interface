@@ -31,6 +31,7 @@
 
 module ELSI_TIMERS
 
+   use elsi_precision, only : dp
    use iso_c_binding
    use ELSI_DIMENSIONS
    use ELSI_UTILS
@@ -38,22 +39,22 @@ module ELSI_TIMERS
    implicit none
    private
 
-   real*8 :: t_generalized_evp
-   real*8 :: t_generalized_evp_start
-   real*8 :: t_redistribution
-   real*8 :: t_redistribution_start
-   real*8 :: t_transform_evp
-   real*8 :: t_transform_evp_start
-   real*8 :: t_back_transform_ev
-   real*8 :: t_back_transform_ev_start
-   real*8 :: t_singularity_check
-   real*8 :: t_singularity_check_start
-   real*8 :: t_standard_evp
-   real*8 :: t_standard_evp_start
-   real*8 :: t_density_matrix
-   real*8 :: t_density_matrix_start
-   real*8 :: t_cholesky
-   real*8 :: t_cholesky_start
+   real(kind=dp) :: t_generalized_evp
+   real(kind=dp) :: t_generalized_evp_start
+   real(kind=dp) :: t_redistribution
+   real(kind=dp) :: t_redistribution_start
+   real(kind=dp) :: t_transform_evp
+   real(kind=dp) :: t_transform_evp_start
+   real(kind=dp) :: t_back_transform_ev
+   real(kind=dp) :: t_back_transform_ev_start
+   real(kind=dp) :: t_singularity_check
+   real(kind=dp) :: t_singularity_check_start
+   real(kind=dp) :: t_standard_evp
+   real(kind=dp) :: t_standard_evp_start
+   real(kind=dp) :: t_density_matrix
+   real(kind=dp) :: t_density_matrix_start
+   real(kind=dp) :: t_cholesky
+   real(kind=dp) :: t_cholesky_start
 
    integer :: clock_rate
    integer :: clock_max
@@ -88,22 +89,22 @@ subroutine elsi_init_timers()
 
    integer :: initial_time
 
-   t_generalized_evp         = 0.0d0
-   t_generalized_evp_start   = 0.0d0
-   t_redistribution          = 0.0d0
-   t_redistribution_start    = 0.0d0
-   t_transform_evp           = 0.0d0
-   t_transform_evp_start     = 0.0d0
-   t_back_transform_ev       = 0.0d0
-   t_back_transform_ev_start = 0.0d0
-   t_singularity_check       = 0.0d0
-   t_singularity_check_start = 0.0d0
-   t_standard_evp            = 0.0d0
-   t_standard_evp_start      = 0.0d0
-   t_density_matrix          = 0.0d0
-   t_density_matrix_start    = 0.0d0
-   t_cholesky                = 0.0d0
-   t_cholesky_start          = 0.0d0
+   t_generalized_evp         = 0.0_dp
+   t_generalized_evp_start   = 0.0_dp
+   t_redistribution          = 0.0_dp
+   t_redistribution_start    = 0.0_dp
+   t_transform_evp           = 0.0_dp
+   t_transform_evp_start     = 0.0_dp
+   t_back_transform_ev       = 0.0_dp
+   t_back_transform_ev_start = 0.0_dp
+   t_singularity_check       = 0.0_dp
+   t_singularity_check_start = 0.0_dp
+   t_standard_evp            = 0.0_dp
+   t_standard_evp_start      = 0.0_dp
+   t_density_matrix          = 0.0_dp
+   t_density_matrix_start    = 0.0_dp
+   t_cholesky                = 0.0_dp
+   t_cholesky_start          = 0.0_dp
 
    call system_clock(initial_time,clock_rate,clock_max)
 
@@ -116,7 +117,7 @@ subroutine elsi_final_print()
 
    implicit none
 
-   real*8  :: sparsity
+   real(kind=dp)  :: sparsity
    integer :: i_proc
 
    if(print_info) then
@@ -127,7 +128,7 @@ subroutine elsi_final_print()
          write(*,"('  | Eigenvalue problem size : ',I13)") n_g_size
          if(method == PEXSI) then
             write(*,"('  | Non zero elements       : ',I13)") nnz_g
-            sparsity = 1.0d0-(1.0d0*nnz_g/n_g_size)/n_g_size
+            sparsity = 1.0_dp-(1.0_dp*nnz_g/n_g_size)/n_g_size
             write(*,"('  | Sparsity                : ',F13.3)") sparsity
          endif
          write(*,"('  | Number of electrons     : ',F13.1)") n_electrons
@@ -157,13 +158,13 @@ end subroutine
 subroutine elsi_get_time(wtime)
 
    implicit none
-   real*8, intent(out) :: wtime
+   real(kind=dp), intent(out) :: wtime
  
    integer :: tics
 
    call system_clock(tics)
 
-   wtime = 1.0d0*tics/clock_rate
+   wtime = 1.0_dp*tics/clock_rate
 
 end subroutine
 
@@ -185,7 +186,7 @@ subroutine elsi_stop_generalized_evp_time()
 
    implicit none
 
-   real*8 :: stop_time
+   real(kind=dp) :: stop_time
    character*200 :: info_str
 
    call elsi_get_time(stop_time)
@@ -218,7 +219,7 @@ subroutine elsi_stop_density_matrix_time()
 
    implicit none
 
-   real*8 :: stop_time
+   real(kind=dp) :: stop_time
    character*200 :: info_str
 
    call elsi_get_time(stop_time)
@@ -249,7 +250,7 @@ subroutine elsi_stop_redistribution_time()
 
    implicit none
 
-   real*8 :: stop_time
+   real(kind=dp) :: stop_time
    character*200 :: info_str
 
    call elsi_get_time(stop_time)
@@ -280,7 +281,7 @@ subroutine elsi_stop_transform_evp_time()
 
    implicit none
 
-   real*8 :: stop_time
+   real(kind=dp) :: stop_time
    character*200 :: info_str
 
    call elsi_get_time(stop_time)
@@ -311,7 +312,7 @@ subroutine elsi_stop_back_transform_ev_time()
 
    implicit none
 
-   real*8 :: stop_time
+   real(kind=dp) :: stop_time
    character*200 :: info_str
 
    call elsi_get_time(stop_time)
@@ -342,7 +343,7 @@ subroutine elsi_stop_singularity_check_time()
 
    implicit none
 
-   real*8 :: stop_time
+   real(kind=dp) :: stop_time
    character*200 :: info_str
 
    call elsi_get_time(stop_time)
@@ -373,7 +374,7 @@ subroutine elsi_stop_standard_evp_time()
 
    implicit none
 
-   real*8 :: stop_time
+   real(kind=dp) :: stop_time
    character*200 :: info_str
 
    call elsi_get_time(stop_time)
@@ -404,7 +405,7 @@ subroutine elsi_stop_cholesky_time()
 
    implicit none
 
-   real*8 :: stop_time
+   real(kind=dp) :: stop_time
    character*200 :: info_str
 
    call elsi_get_time(stop_time)

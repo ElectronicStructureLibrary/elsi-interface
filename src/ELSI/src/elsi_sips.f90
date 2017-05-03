@@ -31,6 +31,7 @@
 
 module ELSI_SIPS
 
+   use elsi_precision, only : dp
    use ELSI_DIMENSIONS
    use ELSI_TIMERS
    use ELSI_UTILS
@@ -115,8 +116,8 @@ subroutine elsi_blacs_to_sips(H_in,S_in)
 
    implicit none
 
-   real*8, intent(in) :: H_in(n_l_rows,n_l_cols) !< Hamiltonian matrix to be converted
-   real*8, intent(in) :: S_in(n_l_rows,n_l_cols) !< Overlap matrix to be converted
+   real(kind=dp), intent(in) :: H_in(n_l_rows,n_l_cols) !< Hamiltonian matrix to be converted
+   real(kind=dp), intent(in) :: S_in(n_l_rows,n_l_cols) !< Overlap matrix to be converted
 
    character*40, parameter :: caller = "elsi_blacs_to_sips"
 
@@ -144,8 +145,8 @@ subroutine elsi_blacs_to_sips_hs_small(H_in,S_in)
 
    include "mpif.h"
 
-   real*8, intent(in) :: H_in(n_l_rows,n_l_cols) !< Hamiltonian matrix to be converted
-   real*8, intent(in) :: S_in(n_l_rows,n_l_cols) !< Overlap matrix to be converted
+   real(kind=dp), intent(in) :: H_in(n_l_rows,n_l_cols) !< Hamiltonian matrix to be converted
+   real(kind=dp), intent(in) :: S_in(n_l_rows,n_l_cols) !< Overlap matrix to be converted
 
    integer :: i_row !< Row counter
    integer :: i_col !< Col counter
@@ -157,17 +158,17 @@ subroutine elsi_blacs_to_sips_hs_small(H_in,S_in)
    integer :: local_row_id !< Local row id in 1D block distribution
    integer :: tmp_int
    integer :: min_pos,min_id
-   real*8 :: tmp_real
+   real(kind=dp) :: tmp_real
    integer, allocatable :: dest(:) !< Destination of each element
 
    ! See documentation of MPI_Alltoallv
-   real*8, allocatable  :: h_val_send_buffer(:) !< Send buffer for Hamiltonian
-   real*8, allocatable  :: s_val_send_buffer(:) !< Send buffer for overlap
+   real(kind=dp), allocatable  :: h_val_send_buffer(:) !< Send buffer for Hamiltonian
+   real(kind=dp), allocatable  :: s_val_send_buffer(:) !< Send buffer for overlap
    integer, allocatable :: pos_send_buffer(:) !< Send buffer for global 1D id
    integer, allocatable :: send_count(:) !< Number of elements to send to each processor
    integer, allocatable :: send_displ(:) !< Displacement from which to take the outgoing data
-   real*8, allocatable  :: h_val_recv_buffer(:) !< Receive buffer for Hamiltonian
-   real*8, allocatable  :: s_val_recv_buffer(:) !< Receive buffer for overlap
+   real(kind=dp), allocatable  :: h_val_recv_buffer(:) !< Receive buffer for Hamiltonian
+   real(kind=dp), allocatable  :: s_val_recv_buffer(:) !< Receive buffer for overlap
    integer, allocatable :: pos_recv_buffer(:) !< Receive buffer for global 1D id
    integer, allocatable :: recv_count(:) !< Number of elements to receive from each processor
    integer, allocatable :: recv_displ(:) !< Displacement at which to place the incoming data
@@ -331,7 +332,7 @@ subroutine elsi_blacs_to_sips_hs_small(H_in,S_in)
    ! Only the Hamiltonian needs to be reset everytime
    if(.not.allocated(ham_real_sips)) &
       call elsi_allocate(ham_real_sips,nnz_l_sips,"ham_real_sips",caller)
-   ham_real_sips = 0d0
+   ham_real_sips = 0.0_dp
 
    if(.not.allocated(ovlp_real_sips)) &
       call elsi_allocate(ovlp_real_sips,nnz_l_sips,"ovlp_real_sips",caller)
@@ -389,7 +390,7 @@ subroutine elsi_solve_evp_sips()
    integer :: g_row
    integer :: g_row2
    integer :: this_p_col
-   real*8, allocatable :: tmp_real(:)
+   real(kind=dp), allocatable :: tmp_real(:)
 
    character*200 :: info_str
    character*40, parameter :: caller = "elsi_solve_evp_sips"
@@ -421,7 +422,7 @@ subroutine elsi_solve_evp_sips()
 
    ! Compute slicing
    call sips_get_slicing(n_slices,slicing_method,unbound,interval,&
-                         0.0d0,0.0d0,slices,n_states,eval)
+                         0.0_dp,0.0_dp,slices,n_states,eval)
 
    ! Solve eigenvalue problem
    call sips_solve_evp(n_states,n_slices,slices,n_solve_steps)
@@ -432,7 +433,7 @@ subroutine elsi_solve_evp_sips()
    ! Get and distribute eigenvectors
    call elsi_allocate(tmp_real,n_g_size,"tmp_real",caller)
 
-   evec_real = 0.0d0
+   evec_real = 0.0_dp
 
    do i_state = 1,n_states
       call sips_get_eigenvectors(n_g_size,i_state,tmp_real)
@@ -492,7 +493,7 @@ subroutine elsi_set_sips_default_options()
 
    !< Small buffer to expand the eigenvalue interval
    !! Smaller values improve performance if eigenvalue range known
-   slice_buffer = 0.1d0
+   slice_buffer = 0.1_dp
 
 end subroutine
 
