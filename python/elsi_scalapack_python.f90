@@ -14,7 +14,8 @@ subroutine blacs_gridinit_py_wrapper(icontxt_in, order, nprow, npcol, icontxt_ou
 end subroutine blacs_gridinit_py_wrapper
 
 subroutine ms_scalapack_setup_py_wrapper(mpi_comm,nprow,order,bs_def,bs_list_present,bs_list,icontxt_present,icontxt,size_bs_list)
-  use MatrixSwitch
+
+  use elsi_omm, only : ms_scalapack_setup_no_opt
 
   implicit none
 

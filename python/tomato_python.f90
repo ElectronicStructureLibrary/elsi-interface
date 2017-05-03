@@ -13,6 +13,7 @@ subroutine tomato_tb_real_py_wrapper(template_basedir,system_label,&
                                      n_rows_H_dval, n_cols_H_dval, &
                                      n_rows_S_dval, n_cols_S_dval )
 
+  use elsi_omm, only : tomato_tb_real 
   implicit none
 
   ! Array dimensions hidden by f2py
@@ -94,6 +95,8 @@ subroutine tomato_tb_get_dims_py_wrapper(template_basedir,system_label,&
                                          orb_r_cut_out, &
                                          n_rows_H_dval, n_cols_H_dval, &
                                          n_rows_S_dval, n_cols_S_dval )
+
+  use elsi_omm, only : tomato_tb_get_dims 
 
   implicit none
 

@@ -15,10 +15,10 @@ SCALAPACK_LDFLAGS = -L/opt/local/lib -lscalapack -llapack -lblas
 all:  elsi_python.so tomato_python.so elsi_scalapack_python.so
 
 elsi_python.so: elsi_python.f90
-	$(F2PY) --f90exec=$(MPIFC) --f90flags="$(FFLAGS)" -m elsi_python -c elsi_python.f90 -I$(ELSI_DIR)/include $(SUPERLU_INCLUDE) $(SCALAPACK_FCFLAGS) -L$(ELSI_DIR)/lib -lelsi -lelpa -lOMM -lMatrixSwitch -lpspblas $(SCALAPACK_LDFLAGS)
+	$(F2PY) --f90exec=$(MPIFC) --f90flags="$(FFLAGS)" -m elsi_python -c elsi_python.f90 -I$(ELSI_DIR)/include $(SUPERLU_INCLUDE) $(SCALAPACK_FCFLAGS) -L$(ELSI_DIR)/lib -lelsi -lelpa -lOMM -lMatrixSwitch -lpspblas -ltomato $(SCALAPACK_LDFLAGS)
 
 tomato_python.so: tomato_python.f90
-	$(F2PY) --f90exec=$(MPIFC) --f90flags="$(FFLAGS)" -m tomato_python -c tomato_python.f90 -L$(ELSI_DIR)/lib -lMatrixSwitch -lpspblas -ltomato $(SCALAPACK_LDFLAGS)
+	$(F2PY) --f90exec=$(MPIFC) --f90flags="$(FFLAGS)" -m tomato_python -c tomato_python.f90 -I$(ELSI_DIR)/include -L$(ELSI_DIR)/lib -lMatrixSwitch -lpspblas -ltomato $(SCALAPACK_LDFLAGS)
 
 elsi_scalapack_python.so: elsi_scalapack_python.f90
 	$(F2PY) --f90exec=$(MPIFC) --f90flags="$(FFLAGS)" -m elsi_scalapack_python -c elsi_scalapack_python.f90 -I$(ELSI_DIR)/include -L$(ELSI_DIR)/lib -lMatrixSwitch -lpspblas $(SCALAPACK_LDFLAGS)
