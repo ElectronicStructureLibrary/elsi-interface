@@ -12,11 +12,10 @@ RMFLAGS = -f
 
 # Includes
 PEXSI_INCLUDE = -I$(PEXSI_DIR)/include
-INCLUDES      = $(PEXSI_INCLUDE) $(SUPERLU_INCLUDE)
+INCLUDES      = $(PEXSI_INCLUDE) $(SUPERLU_INC)
 
 # Libraries
 CPP_LIB       = $(CXX_LDFLAGS)
-SCALAPACK_LIB = $(SCALAPACK_LDFLAGS)
 PEXSI_LIB     = $(PEXSI_DIR)/src/libpexsi.a
 
 # Different compiling and linking options

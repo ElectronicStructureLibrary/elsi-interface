@@ -19,21 +19,21 @@ CXXFLAGS = -O3 -funsafe-loop-optimizations -funsafe-math-optimizations \
            -ftree-vect-loop-version -ftree-vectorize -std=c++0x
 LDFLAGS  = -O3 -Wl,--allow-multiple-definition
 
-CXX_LDFLAGS = -lstdc++
+CXX_LIB = -lstdc++
 
-SCALAPACK_LDFLAGS = -L/soft/libraries/alcf/current/xl/SCALAPACK/lib -lscalapack \
-                    -L/soft/libraries/alcf/current/xl/LAPACK/lib -llapack \
-                    -L/soft/libraries/essl/current/essl/5.1/lib64 -lesslsmpbg \
-                    -L${IBM_MAIN_DIR}/xlf/bg/14.1/bglib64 -lxlf90_r -lxlopt \
-                    -lxlfmath -lxl -ldl \
-                    -L${IBM_MAIN_DIR}/xlsmp/bg/3.1/bglib64 -lxlsmp \
-                    -L${IBM_MAIN_DIR}/xlmass/bg/7.3/bglib64 -lmass
+SCALAPACK_LIB = -L/soft/libraries/alcf/current/xl/SCALAPACK/lib -lscalapack \
+                -L/soft/libraries/alcf/current/xl/LAPACK/lib -llapack \
+                -L/soft/libraries/essl/current/essl/5.1/lib64 -lesslsmpbg \
+                -L${IBM_MAIN_DIR}/xlf/bg/14.1/bglib64 -lxlf90_r -lxlopt \
+                -lxlfmath -lxl -ldl \
+                -L${IBM_MAIN_DIR}/xlsmp/bg/3.1/bglib64 -lxlsmp \
+                -L${IBM_MAIN_DIR}/xlmass/bg/7.3/bglib64 -lmass
 
 # ====== ELPA ======
 ELPA2_KERNEL = BGQ
 
 # ====== PEXSI ======
-METIS_LIB       = -L/home/wzvyu/parmetis-4.0.3/build/Linux-ppc64/libmetis -lmetis
-PARMETIS_LIB    = -L/home/wzvyu/parmetis-4.0.3/build/Linux-ppc64/libparmetis -lparmetis
-SUPERLU_LIB     = -L/home/wzvyu/SuperLU_DIST_5.1.2/lib -lsuperlu_dist
-SUPERLU_INCLUDE = -I/home/wzvyu/SuperLU_DIST_5.1.2/SRC
+METIS_LIB    = -L/home/wzvyu/parmetis-4.0.3/build/Linux-ppc64/libmetis -lmetis
+PARMETIS_LIB = -L/home/wzvyu/parmetis-4.0.3/build/Linux-ppc64/libparmetis -lparmetis
+SUPERLU_LIB  = -L/home/wzvyu/SuperLU_DIST_5.1.2/lib -lsuperlu_dist
+SUPERLU_INC  = -I/home/wzvyu/SuperLU_DIST_5.1.2/SRC

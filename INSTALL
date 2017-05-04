@@ -12,21 +12,21 @@ A) BASIC
 
    One simple ELSI "make.sys" file includes the following keywords:
 
-      MPIFC             =  # MPI Fortran compiler
-      MPICC             =  # MPI C compiler
-      MPICXX            =  # MPI C++ compiler
+      MPIFC         =  # MPI Fortran compiler
+      MPICC         =  # MPI C compiler
+      MPICXX        =  # MPI C++ compiler
 
-      FFLAGS            =  # Fortran compiler flags
-      CFLAGS            =  # C compiler flags
-      CXXFLAGS          =  # C++ compiler flags
+      FFLAGS        =  # Fortran compiler flags
+      CFLAGS        =  # C compiler flags
+      CXXFLAGS      =  # C++ compiler flags
 
-      CXX_LDFLAGS       =  # C++ standard library, e.g. -lstdc++
-      SCALAPACK_LDFLAGS =  # ScaLAPACK libraries
+      CXX_LIB       =  # C++ standard library, e.g. -lstdc++
+      SCALAPACK_LIB =  # ScaLAPACK libraries
 
-      METIS_LIB         =  # METIS library
-      PARMETIS_LIB      =  # ParMETIS library
-      SUPERLU_LIB       =  # SuperLU_DIST library
-      SUPERLU_INCLUDE   =  # SuperLU_DIST include path
+      METIS_LIB     =  # METIS library
+      PARMETIS_LIB  =  # ParMETIS library
+      SUPERLU_LIB   =  # SuperLU_DIST library
+      SUPERLU_INC   =  # SuperLU_DIST include path
 
 2) Make sure the "make.sys" file is correctly configured.
 
@@ -66,11 +66,11 @@ B) ELPA SPECIFIC ARCHITECTURES
    To enable GPU acceleration of the 1st and 5th steps of ELPA 2-stage
    solver, set
 
-      ELPA_GPU     =  yes  # Default: no
-      NVCC         =  NVIDIA CUDA C compiler
-      NVCCFLAGS    =  NVIDIA CUDA C compiler flags
-      CUDA_LIB     =  NVIDIA cuBLAS and CUDA runtime libraries
-      CUDA_INCLUDE =  NVIDIA CUDA include path
+      ELPA_GPU  =  yes  # Default: no
+      NVCC      =  NVIDIA CUDA C compiler
+      NVCCFLAGS =  NVIDIA CUDA C compiler flags
+      CUDA_LIB  =  NVIDIA cuBLAS and CUDA runtime libraries
+      CUDA_INC  =  NVIDIA CUDA include path
 
    Available kernels (4th step of ELPA 2-stage solver) for specific
    architectures are:

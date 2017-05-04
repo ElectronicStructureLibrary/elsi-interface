@@ -14,23 +14,23 @@ CFLAGS   = -O3
 CXXFLAGS = -O3 -std=c++11
 LDFLAGS  = -O3
 
-CXX_LDFLAGS = -lstdc++
+CXX_LIB = -lstdc++
 
-SCALAPACK_LDFLAGS = -L/opt/intel/mkl/lib/intel64 -lmkl_scalapack_lp64 \
-                    -lmkl_blacs_intelmpi_lp64 -lmkl_intel_lp64 \
-                    -lmkl_sequential -lmkl_core -lpthread -lm
+SCALAPACK_LIB = -L/opt/intel/mkl/lib/intel64 -lmkl_scalapack_lp64 \
+                -lmkl_blacs_intelmpi_lp64 -lmkl_intel_lp64 \
+                -lmkl_sequential -lmkl_core -lpthread -lm
 
 TOMATO_SEED = /home/wy29/tomato_seed
 
 # ====== PEXSI ======
-METIS_LIB       = -L/home/wy29/yu/parmetis-4.0.3/build/Linux-x86_64/libmetis -lmetis
-PARMETIS_LIB    = -L/home/wy29/yu/parmetis-4.0.3/build/Linux-x86_64/libparmetis -lparmetis
-SUPERLU_LIB     = -L/home/wy29/yu/SuperLU_DIST_5.1.2/lib -lsuperlu_dist_5.1.2
-SUPERLU_INCLUDE = -I/home/wy29/yu/SuperLU_DIST_5.1.2/SRC
+METIS_LIB    = -L/home/wy29/yu/parmetis-4.0.3/build/Linux-x86_64/libmetis -lmetis
+PARMETIS_LIB = -L/home/wy29/yu/parmetis-4.0.3/build/Linux-x86_64/libparmetis -lparmetis
+SUPERLU_LIB  = -L/home/wy29/yu/SuperLU_DIST_5.1.2/lib -lsuperlu_dist_5.1.2
+SUPERLU_INC  = -I/home/wy29/yu/SuperLU_DIST_5.1.2/SRC
 
 # ====== ELPA ======
-ELPA_GPU     = yes
-NVCC         = nvcc
-NVCCFLAGS    = -arch sm_35 -O3
-CUDA_LIB     = -L/opt/cuda/7.0/lib64 -lcudart -lcublas
-CUDA_INCLUDE = -I/opt/cuda/7.0/include
+ELPA_GPU  = yes
+NVCC      = nvcc
+NVCCFLAGS = -arch sm_35 -O3
+CUDA_LIB  = -L/opt/cuda/7.0/lib64 -lcudart -lcublas
+CUDA_INC  = -I/opt/cuda/7.0/include
