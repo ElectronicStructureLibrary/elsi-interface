@@ -1,10 +1,10 @@
 module MatrixSwitch
   use MatrixSwitch_ops
-  use MatrixSwitch_mm_multiply
-  use MatrixSwitch_m_add
-  use MatrixSwitch_m_set
-  use MatrixSwitch_m_copy
-  use MatrixSwitch_m_register
+  use ms_mm_multiply
+  use ms_m_add
+  use ms_m_set
+  use ms_m_copy
+  use ms_m_register
 #ifdef PSP
   use pspBLAS
 #endif

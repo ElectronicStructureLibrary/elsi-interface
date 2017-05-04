@@ -1,4 +1,4 @@
-module MatrixSwitch_m_add
+module ms_m_add
   use MatrixSwitch_ops
 
   implicit none
@@ -335,4 +335,4 @@ contains
 
   end subroutine m_add_szcsrszdenref
 
-end module MatrixSwitch_m_add
+end module ms_m_add

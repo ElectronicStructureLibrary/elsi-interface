@@ -1,4 +1,4 @@
-module MatrixSwitch_m_register
+module ms_m_register
   use MatrixSwitch_ops
 
   implicit none
@@ -434,4 +434,4 @@ contains
   end subroutine m_register_pzsp_st
 #endif
 
-end module MatrixSwitch_m_register
+end module ms_m_register

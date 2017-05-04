@@ -1,4 +1,4 @@
-module MatrixSwitch_mm_multiply
+module ms_mm_multiply
   use MatrixSwitch_ops
 
   implicit none
@@ -1745,4 +1745,4 @@ contains
   end subroutine mm_multiply_pzdbcpzdbcpzcsct1D
 #endif
 
-end module MatrixSwitch_mm_multiply
+end module ms_mm_multiply
