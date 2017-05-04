@@ -1,7 +1,7 @@
 F2PY     = f2py-2.7
 MPIFC    = mpif90-mpich-mp
 FFLAGS   = -O3 -ffree-line-length-none 
-ELSI_DIR = ..
+ELSI_DIR = ../../..
 
 #METIS_LIB       = -L/home/wph6/opt/ParMETIS/4.0.3/build/Linux-x86_64/libmetis -lmetis
 #PARMETIS_LIB    = -L/home/wph6/opt/ParMETIS/4.0.3/build/Linux-x86_64/libparmetis -lparmetis

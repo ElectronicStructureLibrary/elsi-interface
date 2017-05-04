@@ -154,57 +154,57 @@ module ELSI_DIMENSIONS
    logical :: blacs_is_setup = .false.
 
    !> Sparse matrix information
-   integer :: nnz_g                              !< Global number of nonzeros
-   integer :: nnz_l                              !< Local number of nonzeros
-   real(kind=dp)  :: zero_threshold = 1.0e-15_dp !< Threshold to define numerical zero
+   integer :: nnz_g                             !< Global number of nonzeros
+   integer :: nnz_l                             !< Local number of nonzeros
+   real(kind=dp) :: zero_threshold = 1.0e-15_dp !< Threshold to define numerical zero
 
    !> Overlap
-   logical :: overlap_is_unit = .false.                !< Is overlap matrix unit?
-   logical :: overlap_is_singular = .false.            !< Is overlap matrix singular?
-   logical :: no_singularity_check = .false.           !< Disable checking for singular overlap?
-   real(kind=dp)  :: singularity_tolerance = 1.0e-5_dp !< Eigenfunctions of overlap matrix with
-                                                       !! eigenvalues smaller than this value
-                                                       !! will be removed to avoid singularity
-   logical :: stop_singularity = .false.               !< Always stop if overlap is singular?
-   integer :: n_nonsingular                            !< Number of nonsingular basis functions
+   logical :: overlap_is_unit = .false.               !< Is overlap matrix unit?
+   logical :: overlap_is_singular = .false.           !< Is overlap matrix singular?
+   logical :: no_singularity_check = .false.          !< Disable checking for singular overlap?
+   real(kind=dp) :: singularity_tolerance = 1.0e-5_dp !< Eigenfunctions of overlap matrix with
+                                                      !! eigenvalues smaller than this value
+                                                      !! will be removed to avoid singularity
+   logical :: stop_singularity = .false.              !< Always stop if overlap is singular?
+   integer :: n_nonsingular                           !< Number of nonsingular basis functions
 
    !> Physics
-   real(kind=dp)  :: n_electrons              !< Number of electrons in system
-   integer :: n_states                        !< Number of total states
-   integer :: n_occupied_states               !< Number of occupied states
-   real(kind=dp)  :: hartree = 27.21138602_dp !< Hartree to eV (source: Codata 2015)
+   real(kind=dp) :: n_electrons              !< Number of electrons in system
+   integer :: n_states                       !< Number of total states
+   integer :: n_occupied_states              !< Number of occupied states
+   real(kind=dp) :: hartree = 27.21138602_dp !< Hartree to eV (source: Codata 2015)
 
    !> Chemical potential
-   integer :: broaden_method = 0                !< Broadening scheme for occupation numbers
-   real(kind=dp)  :: broaden_width = 1.0e-2_dp  !< Broadening width for occupation numbers
-   real(kind=dp)  :: occ_tolerance = 1.0e-13_dp !< Maximum allowed difference between actual number
-                                                !! of electrons and the number computed by ELSI
-   integer :: max_mu_steps = 100                !< Maximum number of steps to find the chemical potential
-   real(kind=dp)  :: spin_degen = 0.0_dp        !< Spin degeneracy
+   integer :: broaden_method = 0               !< Broadening scheme for occupation numbers
+   real(kind=dp) :: broaden_width = 1.0e-2_dp  !< Broadening width for occupation numbers
+   real(kind=dp) :: occ_tolerance = 1.0e-13_dp !< Maximum allowed difference between actual number
+                                               !! of electrons and the number computed by ELSI
+   integer :: max_mu_steps = 100               !< Maximum number of steps to find the chemical potential
+   real(kind=dp) :: spin_degen = 0.0_dp        !< Spin degeneracy
 
    !> ELPA
    logical :: elpa_one_always = .false. !< Always use 1-stage solver
    logical :: elpa_two_always = .false. !< Always use 2-stage solver
 
    !> libOMM
-   integer :: n_elpa_steps         !< Use ELPA eigenvectors as initial guess
-   logical :: new_overlap          !< Is a new overlap matrix provided?
-   logical :: coeff_initialized    !< Is coefficient matrix initialized?
-   real(kind=dp)  :: total_energy  !< Energy of the system
-   integer :: omm_flavor = -1      !< How to perform the calculation
-                                   !! 0 = Basic
-                                   !! 1 = Cholesky factorisation
-                                   !! 2 = Cholesky already performed
-                                   !! 3 = Preconditioning
-   real(kind=dp)  :: scale_kinetic !< Scaling of the kinetic energy matrix
-   logical :: calc_ed = .false.    !< Calculate energy weighted density matrix?
-   real(kind=dp)  :: eta           !< Eigenspectrum shift parameter
-   real(kind=dp)  :: min_tol       !< Tolerance for minimization
-   integer :: nk_times_nspin = -1  !< n_k_points * n_spin
-   integer :: i_k_spin = -1        !< Combined k_point spin index
-   logical :: omm_verbose          !< Output level
-   logical :: do_dealloc           !< Deallocate internal storage?
-   logical :: use_psp = .false.    !< Use pspBLAS sparse linear algebra?
+   integer :: n_elpa_steps        !< Use ELPA eigenvectors as initial guess
+   logical :: new_overlap         !< Is a new overlap matrix provided?
+   logical :: coeff_initialized   !< Is coefficient matrix initialized?
+   real(kind=dp) :: total_energy  !< Energy of the system
+   integer :: omm_flavor = -1     !< How to perform the calculation
+                                  !! 0 = Basic
+                                  !! 1 = Cholesky factorisation
+                                  !! 2 = Cholesky already performed
+                                  !! 3 = Preconditioning
+   real(kind=dp) :: scale_kinetic !< Scaling of the kinetic energy matrix
+   logical :: calc_ed = .false.   !< Calculate energy weighted density matrix?
+   real(kind=dp) :: eta           !< Eigenspectrum shift parameter
+   real(kind=dp) :: min_tol       !< Tolerance for minimization
+   integer :: nk_times_nspin = -1 !< n_k_points * n_spin
+   integer :: i_k_spin = -1       !< Combined k_point spin index
+   logical :: omm_verbose         !< Output level
+   logical :: do_dealloc          !< Deallocate internal storage?
+   logical :: use_psp = .false.   !< Use pspBLAS sparse linear algebra?
 
    !> PEXSI
    integer :: my_p_row_pexsi

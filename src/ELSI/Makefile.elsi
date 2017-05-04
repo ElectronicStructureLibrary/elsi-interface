@@ -63,9 +63,9 @@ stub_pexsi.o: ./src/stub_pexsi.f90
 stub_sips.o: ./src/stub_sips.f90 elsi_precision.o
 	$(MPIFC) $(FFLAGS_I) -c $<
 
-elsi_c_interface.o: ./src/elsi_c_interface.f90 elsi_interface.o elsi_dimensions.o $(STUBS)
+elsi_c_interface.o: ./c_binding/elsi_c_interface.f90 elsi_interface.o elsi_dimensions.o $(STUBS)
 	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
-	cp ./src/elsi.h $(INC_DIR)
+	cp ./c_binding/elsi.h $(INC_DIR)
 
 elsi_precision.o: ./src/elsi_precision.f90
 	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)

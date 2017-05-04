@@ -31,7 +31,6 @@
 
 module ELSI_CHESS
 
-   use ELSI_PRECISION, only : dp
    use ELSI_DIMENSIONS
    use ELSI_TIMERS
    use ELSI_UTILS
