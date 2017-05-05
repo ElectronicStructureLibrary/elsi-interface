@@ -29,9 +29,9 @@
 !! This module contains constant values and choices for runtime parameters to be reused throughout ELSI.
 !!
 
-module elsi_constants
+module ELSI_CONSTANTS
 
-   use elsi_precision, only : dp
+   use ELSI_PRECISION, only : dp
 
    real(kind=dp), parameter :: INVERT_SQRT_PI = 0.564189583547756_dp !< Constant: 1/sqrt(pi)
 
@@ -62,4 +62,4 @@ module elsi_constants
       enumerator :: GAUSSIAN, FERMI, METHFESSEL_PAXTON_0, METHFESSEL_PAXTON_1
    end enum
 
-end module elsi_constants
+end module ELSI_CONSTANTS

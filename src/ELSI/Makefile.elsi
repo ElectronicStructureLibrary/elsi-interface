@@ -1,71 +1,71 @@
 all: test_ev_real.x test_dm_real.x test_generalized_ev_real.x test_standard_ev_real.x test_dm_real_sparse.x $(C_BINDING)
 
 test_dm_real.x: test_dm_real.o elsi_interface.o elsi_elpa.o elsi_omm.o elsi_pexsi.o elsi_sips.o elsi_mu.o elsi_utils.o elsi_timers.o elsi_dimensions.o elsi_precision.o $(STUBS)
-	$(LINKER) $(LDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LDFLAGS) $(CXX_LDFLAGS)
+	$(LINKER) $(LDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
 
 test_ev_real.x: test_ev_real.o elsi_interface.o elsi_elpa.o elsi_omm.o elsi_pexsi.o elsi_sips.o elsi_mu.o elsi_utils.o elsi_timers.o elsi_dimensions.o elsi_precision.o $(STUBS)
-	$(LINKER) $(LDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LDFLAGS) $(CXX_LDFLAGS)
+	$(LINKER) $(LDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
 
 test_generalized_ev_real.x: test_generalized_ev_real.o elsi_interface.o elsi_elpa.o elsi_omm.o elsi_pexsi.o elsi_sips.o elsi_mu.o elsi_utils.o elsi_timers.o elsi_dimensions.o elsi_precision.o $(STUBS)
-	$(LINKER) $(LDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LDFLAGS) $(CXX_LDFLAGS)
+	$(LINKER) $(LDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
 
 test_standard_ev_real.x: test_standard_ev_real.o elsi_interface.o elsi_elpa.o elsi_omm.o elsi_pexsi.o elsi_sips.o elsi_mu.o elsi_utils.o elsi_timers.o elsi_dimensions.o elsi_precision.o $(STUBS)
-	$(LINKER) $(LDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LDFLAGS) $(CXX_LDFLAGS)
+	$(LINKER) $(LDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
 
 test_dm_real_sparse.x: test_dm_real_sparse.o elsi_interface.o elsi_elpa.o elsi_omm.o elsi_pexsi.o elsi_sips.o elsi_mu.o elsi_utils.o elsi_timers.o elsi_dimensions.o elsi_precision.o $(STUBS)
-	$(LINKER) $(LDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LDFLAGS) $(CXX_LDFLAGS)
+	$(LINKER) $(LDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
 
 test_dm_real.o: ./test/test_dm_real.f90 elsi_interface.o elsi_precision.o
-	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
+	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
 test_ev_real.o: ./test/test_ev_real.f90 elsi_interface.o elsi_precision.o
-	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
+	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
 test_generalized_ev_real.o: ./test/test_generalized_ev_real.f90 elsi_interface.o elsi_precision.o
-	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
+	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
 test_standard_ev_real.o: ./test/test_standard_ev_real.f90 elsi_interface.o elsi_precision.o
-	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
+	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
 test_dm_real_sparse.o: ./test/test_dm_real_sparse.f90 elsi_interface.o elsi_precision.o
-	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
+	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
 elsi_interface.o: ./src/elsi_interface.f90 elsi_elpa.o elsi_omm.o elsi_pexsi.o elsi_sips.o elsi_mu.o elsi_utils.o elsi_timers.o elsi_dimensions.o $(STUBS)
-	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
+	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
 elsi_mu.o: ./src/elsi_mu.f90 elsi_utils.o elsi_dimensions.o elsi_constants.o elsi_precision.o $(STUBS)
-	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
+	$(MPIFC) $(FFLAGS_I) -c $< $(INC)
 
 elsi_elpa.o: ./src/elsi_elpa.f90 elsi_mu.o elsi_utils.o elsi_timers.o elsi_dimensions.o  elsi_constants.o elsi_precision.o $(STUBS)
-	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
+	$(MPIFC) $(FFLAGS_I) -c $< $(INCS)
 
 elsi_omm.o: ./src/elsi_omm.f90 elsi_utils.o elsi_timers.o elsi_constants.o elsi_dimensions.o $(STUBS)
-	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
+	$(MPIFC) $(FFLAGS_I) -c $< $(INCS)
 
 elsi_pexsi.o: ./src/elsi_pexsi.f90 elsi_utils.o elsi_timers.o elsi_dimensions.o elsi_constants.o elsi_precision.o $(STUBS)
-	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
+	$(MPIFC) $(FFLAGS_I) -c $< $(INCS)
 
 elsi_sips.o: ./src/elsi_sips.f90  elsi_utils.o elsi_timers.o elsi_dimensions.o elsi_precision.o $(STUBS)
-	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
+	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
 elsi_timers.o: ./src/elsi_timers.f90 elsi_dimensions.o elsi_utils.o elsi_constants.o elsi_precision.o $(STUBS)
-	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
+	$(MPIFC) $(FFLAGS_I) -c $< $(INCS)
 
 elsi_utils.o: ./src/elsi_utils.f90 elsi_dimensions.o elsi_constants.o elsi_precision.o $(STUBS)
-	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
+	$(MPIFC) $(FFLAGS_I) -c $< $(INCS)
 
 elsi_dimensions.o: ./src/elsi_dimensions.f90 elsi_constants.o elsi_precision.o $(STUBS)
-	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
+	$(MPIFC) $(FFLAGS_I) -c $< $(INCS)
 
 stub_pexsi.o: ./src/stub_pexsi.f90
-	$(MPIFC) $(FFLAGS_I) -c $<
+	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
 stub_sips.o: ./src/stub_sips.f90 elsi_precision.o
-	$(MPIFC) $(FFLAGS_I) -c $<
+	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
-elsi_c_interface.o: ./src/elsi_c_interface.f90 elsi_interface.o elsi_constants.o elsi_dimensions.o $(STUBS)
-	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
-	cp ./src/elsi.h $(INC_DIR)
+elsi_c_interface.o: ./c_binding/elsi_c_interface.f90 elsi_interface.o elsi_constants.o elsi_dimensions.o $(STUBS)
+	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
+	cp ./c_binding/elsi.h $(INC_DIR)
 
 elsi_constants.o: ./src/elsi_constants.f90 elsi_precision.o
 	$(MPIFC) $(FFLAGS_I) -c $<

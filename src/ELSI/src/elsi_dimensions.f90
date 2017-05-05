@@ -31,8 +31,8 @@
 
 module ELSI_DIMENSIONS
 
-   use elsi_precision, only : dp
    use iso_c_binding
+   use ELSI_PRECISION, only : dp
    use f_ppexsi_interface
    use MatrixSwitch
 
@@ -41,33 +41,33 @@ module ELSI_DIMENSIONS
 ! ========= ARRAYS =========
 
    !> Pointers used when input format compatible with chosen solver
-   real(kind=dp),     pointer :: ham_real(:,:)       !< Real Hamiltonian
-   complex(kind=dp),  pointer :: ham_complex(:,:)    !< Complex Hamiltonian
-   real(kind=dp),     pointer :: ovlp_real(:,:)      !< Real overlap
-   complex(kind=dp),  pointer :: ovlp_complex(:,:)   !< Complex overlap
-   real(kind=dp),     pointer :: eval(:)             !< Eigenvalues
-   real(kind=dp),     pointer :: evec_real(:,:)      !< Real eigenvectors
-   complex(kind=dp),  pointer :: evec_complex(:,:)   !< Complex eigenvectors
-   real(kind=dp),     pointer :: den_mat(:,:)        !< Density matrix
-   real(kind=dp),     pointer :: ham_real_ccs(:)     !< Real Hamiltonian
-   complex(kind=dp),  pointer :: ham_complex_ccs(:)  !< Complex Hamiltonian
-   real(kind=dp),     pointer :: ovlp_real_ccs(:)    !< Real overlap
-   complex(kind=dp),  pointer :: ovlp_complex_ccs(:) !< Complex overlap
-   real(kind=dp),     pointer :: den_mat_ccs(:)      !< Density matrix
-   integer,           pointer :: row_ind_ccs(:)      !< Row index
-   integer,           pointer :: col_ptr_ccs(:)      !< Column pointer
+   real(kind=dp),    pointer :: ham_real(:,:)       !< Real Hamiltonian
+   complex(kind=dp), pointer :: ham_complex(:,:)    !< Complex Hamiltonian
+   real(kind=dp),    pointer :: ovlp_real(:,:)      !< Real overlap
+   complex(kind=dp), pointer :: ovlp_complex(:,:)   !< Complex overlap
+   real(kind=dp),    pointer :: eval(:)             !< Eigenvalues
+   real(kind=dp),    pointer :: evec_real(:,:)      !< Real eigenvectors
+   complex(kind=dp), pointer :: evec_complex(:,:)   !< Complex eigenvectors
+   real(kind=dp),    pointer :: den_mat(:,:)        !< Density matrix
+   real(kind=dp),    pointer :: ham_real_ccs(:)     !< Real Hamiltonian
+   complex(kind=dp), pointer :: ham_complex_ccs(:)  !< Complex Hamiltonian
+   real(kind=dp),    pointer :: ovlp_real_ccs(:)    !< Real overlap
+   complex(kind=dp), pointer :: ovlp_complex_ccs(:) !< Complex overlap
+   real(kind=dp),    pointer :: den_mat_ccs(:)      !< Density matrix
+   integer,          pointer :: row_ind_ccs(:)      !< Row index
+   integer,          pointer :: col_ptr_ccs(:)      !< Column pointer
 
    !> Allocatables used when input format incompatible with chosen solver
    !> ELPA
-   real(kind=dp),     allocatable :: ham_real_elpa(:,:)     !< Real Hamiltonian
-   complex(kind=dp),  allocatable :: ham_complex_elpa(:,:)  !< Complex Hamiltonian
-   real(kind=dp),     allocatable :: ovlp_real_elpa(:,:)    !< Real overlap
-   complex(kind=dp),  allocatable :: ovlp_complex_elpa(:,:) !< Complex overlap
-   real(kind=dp),     allocatable :: eval_elpa(:)           !< Eigenvalues
-   real(kind=dp),     allocatable :: evec_real_elpa(:,:)    !< Real eigenvectors
-   complex(kind=dp),  allocatable :: evec_complex_elpa(:,:) !< Complex eigenvectors
-   real(kind=dp),     allocatable :: den_mat_elpa(:,:)      !< Density matrix
-   real(kind=dp),     allocatable :: occ_elpa(:)            !< Occupation numbers
+   real(kind=dp),    allocatable :: ham_real_elpa(:,:)     !< Real Hamiltonian
+   complex(kind=dp), allocatable :: ham_complex_elpa(:,:)  !< Complex Hamiltonian
+   real(kind=dp),    allocatable :: ovlp_real_elpa(:,:)    !< Real overlap
+   complex(kind=dp), allocatable :: ovlp_complex_elpa(:,:) !< Complex overlap
+   real(kind=dp),    allocatable :: eval_elpa(:)           !< Eigenvalues
+   real(kind=dp),    allocatable :: evec_real_elpa(:,:)    !< Real eigenvectors
+   complex(kind=dp), allocatable :: evec_complex_elpa(:,:) !< Complex eigenvectors
+   real(kind=dp),    allocatable :: den_mat_elpa(:,:)      !< Density matrix
+   real(kind=dp),    allocatable :: occ_elpa(:)            !< Occupation numbers
 
    !> libOMM
    type(Matrix)               :: ham_omm            !< Hamiltonian
@@ -78,41 +78,41 @@ module ELSI_DIMENSIONS
    real(kind=dp), allocatable :: ovlp_real_omm(:,:) !< Copy of overlap matrix
 
    !> PESXI
-   real(kind=dp),     allocatable :: ham_real_pexsi(:)     !< Sparse real Hamiltonian
-   complex(kind=dp),  allocatable :: ham_complex_pexsi(:)  !< Sparse complex Hamiltonian
-   real(kind=dp),     allocatable :: ovlp_real_pexsi(:)    !< Sparse real overlap
-   complex(kind=dp),  allocatable :: ovlp_complex_pexsi(:) !< Sparse complex overlap
-   real(kind=dp),     allocatable :: den_mat_pexsi(:)      !< Sparse density matrix
-   real(kind=dp),     allocatable :: e_den_mat_pexsi(:)    !< Sparse energy density matrix
-   real(kind=dp),     allocatable :: f_den_mat_pexsi(:)    !< Sparse free energy density matrix
-   integer,           allocatable :: row_ind_pexsi(:)      !< Row index
-   integer,           allocatable :: col_ptr_pexsi(:)      !< Column pointer
+   real(kind=dp),    allocatable :: ham_real_pexsi(:)     !< Sparse real Hamiltonian
+   complex(kind=dp), allocatable :: ham_complex_pexsi(:)  !< Sparse complex Hamiltonian
+   real(kind=dp),    allocatable :: ovlp_real_pexsi(:)    !< Sparse real overlap
+   complex(kind=dp), allocatable :: ovlp_complex_pexsi(:) !< Sparse complex overlap
+   real(kind=dp),    allocatable :: den_mat_pexsi(:)      !< Sparse density matrix
+   real(kind=dp),    allocatable :: e_den_mat_pexsi(:)    !< Sparse energy density matrix
+   real(kind=dp),    allocatable :: f_den_mat_pexsi(:)    !< Sparse free energy density matrix
+   integer,          allocatable :: row_ind_pexsi(:)      !< Row index
+   integer,          allocatable :: col_ptr_pexsi(:)      !< Column pointer
 
    !> SIPs
-   real(kind=dp),     allocatable :: ham_real_sips(:)  !< Sparse real Hamiltonian
-   real(kind=dp),     allocatable :: ovlp_real_sips(:) !< Sparse real overlap
-   integer,           allocatable :: row_ind_sips(:)   !< Row index
-   integer,           allocatable :: col_ptr_sips(:)   !< Column pointer
-   real(kind=dp),     allocatable :: slices(:)         !< Slices
-   real(kind=dp),     allocatable :: shifts(:)         !< Shifts
-   integer,           allocatable :: inertias(:)       !< Inertia count at each shift
+   real(kind=dp), allocatable :: ham_real_sips(:)  !< Sparse real Hamiltonian
+   real(kind=dp), allocatable :: ovlp_real_sips(:) !< Sparse real overlap
+   integer,       allocatable :: row_ind_sips(:)   !< Row index
+   integer,       allocatable :: col_ptr_sips(:)   !< Column pointer
+   real(kind=dp), allocatable :: slices(:)         !< Slices
+   real(kind=dp), allocatable :: shifts(:)         !< Shifts
+   integer,       allocatable :: inertias(:)       !< Inertia count at each shift
 
    !> BLACS
-   integer,    allocatable :: local_row(:)
-   integer,    allocatable :: local_col(:)
+   integer, allocatable :: local_row(:)
+   integer, allocatable :: local_col(:)
 
 ! ========= PARAMETERS =========
 
-   !> Solver (see elsi_constants module for appropriate values)
+   !> Solver (see ELSI_CONSTANTS module for appropriate values)
    integer :: method = -1
 
-   !> Real or complex data (see elsi_constants module for appropriate values)
+   !> Real or complex data (see ELSI_CONSTANTS module for appropriate values)
    integer :: mode = -1
 
-   !> Matrix storage format (see elsi_constants module for appropriate values)
+   !> Matrix storage format (see ELSI_CONSTANTS module for appropriate values)
    integer :: storage = -1
 
-   !> Parallel mode (see elsi_constants module for appropriate values)
+   !> Parallel mode (see ELSI_CONSTANTS module for appropriate values)
    integer :: parallelism = -1
 
    !> Print detailed ELSI info?
@@ -154,57 +154,57 @@ module ELSI_DIMENSIONS
    logical :: blacs_is_setup = .false.
 
    !> Sparse matrix information
-   integer :: nnz_g                              !< Global number of nonzeros
-   integer :: nnz_l                              !< Local number of nonzeros
-   real(kind=dp)  :: zero_threshold = 1.0e-15_dp !< Threshold to define numerical zero
+   integer :: nnz_g                             !< Global number of nonzeros
+   integer :: nnz_l                             !< Local number of nonzeros
+   real(kind=dp) :: zero_threshold = 1.0e-15_dp !< Threshold to define numerical zero
 
    !> Overlap
-   logical :: overlap_is_unit = .false.                !< Is overlap matrix unit?
-   logical :: overlap_is_singular = .false.            !< Is overlap matrix singular?
-   logical :: no_singularity_check = .false.           !< Disable checking for singular overlap?
-   real(kind=dp)  :: singularity_tolerance = 1.0e-5_dp !< Eigenfunctions of overlap matrix with
-                                                       !! eigenvalues smaller than this value
-                                                       !! will be removed to avoid singularity
-   logical :: stop_singularity = .false.               !< Always stop if overlap is singular?
-   integer :: n_nonsingular                            !< Number of nonsingular basis functions
+   logical :: overlap_is_unit = .false.               !< Is overlap matrix unit?
+   logical :: overlap_is_singular = .false.           !< Is overlap matrix singular?
+   logical :: no_singularity_check = .false.          !< Disable checking for singular overlap?
+   real(kind=dp) :: singularity_tolerance = 1.0e-5_dp !< Eigenfunctions of overlap matrix with
+                                                      !! eigenvalues smaller than this value
+                                                      !! will be removed to avoid singularity
+   logical :: stop_singularity = .false.              !< Always stop if overlap is singular?
+   integer :: n_nonsingular                           !< Number of nonsingular basis functions
 
    !> Physics
-   real(kind=dp)  :: n_electrons              !< Number of electrons in system
-   integer :: n_states                        !< Number of total states
-   integer :: n_occupied_states               !< Number of occupied states
-   real(kind=dp)  :: hartree = 27.21138602_dp !< Hartree to eV (source: Codata 2015)
+   real(kind=dp) :: n_electrons              !< Number of electrons in system
+   integer :: n_states                       !< Number of total states
+   integer :: n_occupied_states              !< Number of occupied states
+   real(kind=dp) :: hartree = 27.21138602_dp !< Hartree to eV (source: Codata 2015)
 
    !> Chemical potential
-   integer :: broaden_method = 0                !< Broadening scheme for occupation numbers
-   real(kind=dp)  :: broaden_width = 1.0e-2_dp  !< Broadening width for occupation numbers
-   real(kind=dp)  :: occ_tolerance = 1.0e-13_dp !< Maximum allowed difference between actual number
-                                                !! of electrons and the number computed by ELSI
-   integer :: max_mu_steps = 100                !< Maximum number of steps to find the chemical potential
-   real(kind=dp)  :: spin_degen = 0.0_dp        !< Spin degeneracy
+   integer :: broaden_method = 0               !< Broadening scheme for occupation numbers
+   real(kind=dp) :: broaden_width = 1.0e-2_dp  !< Broadening width for occupation numbers
+   real(kind=dp) :: occ_tolerance = 1.0e-13_dp !< Maximum allowed difference between actual number
+                                               !! of electrons and the number computed by ELSI
+   integer :: max_mu_steps = 100               !< Maximum number of steps to find the chemical potential
+   real(kind=dp) :: spin_degen = 0.0_dp        !< Spin degeneracy
 
    !> ELPA
    logical :: elpa_one_always = .false. !< Always use 1-stage solver
    logical :: elpa_two_always = .false. !< Always use 2-stage solver
 
    !> libOMM
-   integer :: n_elpa_steps         !< Use ELPA eigenvectors as initial guess
-   logical :: new_overlap          !< Is a new overlap matrix provided?
-   logical :: coeff_initialized    !< Is coefficient matrix initialized?
-   real(kind=dp)  :: total_energy         !< Energy of the system
-   integer :: omm_flavor = -1      !< How to perform the calculation
-                                   !! 0 = Basic
-                                   !! 1 = Cholesky factorisation
-                                   !! 2 = Cholesky already performed
-                                   !! 3 = Preconditioning
-   real(kind=dp)  :: scale_kinetic        !< Scaling of the kinetic energy matrix
-   logical :: calc_ed = .false.    !< Calculate energy weighted density matrix?
-   real(kind=dp)  :: eta                  !< Eigenspectrum shift parameter
-   real(kind=dp)  :: min_tol              !< Tolerance for minimization
-   integer :: nk_times_nspin = -1  !< n_k_points * n_spin
-   integer :: i_k_spin = -1        !< Combined k_point spin index
-   logical :: omm_verbose          !< Output level
-   logical :: do_dealloc           !< Deallocate internal storage?
-   logical :: use_psp = .false.    !< Use pspBLAS sparse linear algebra?
+   integer :: n_elpa_steps        !< Use ELPA eigenvectors as initial guess
+   logical :: new_overlap         !< Is a new overlap matrix provided?
+   logical :: coeff_initialized   !< Is coefficient matrix initialized?
+   real(kind=dp) :: total_energy  !< Energy of the system
+   integer :: omm_flavor = -1     !< How to perform the calculation
+                                  !! 0 = Basic
+                                  !! 1 = Cholesky factorisation
+                                  !! 2 = Cholesky already performed
+                                  !! 3 = Preconditioning
+   real(kind=dp) :: scale_kinetic !< Scaling of the kinetic energy matrix
+   logical :: calc_ed = .false.   !< Calculate energy weighted density matrix?
+   real(kind=dp) :: eta           !< Eigenspectrum shift parameter
+   real(kind=dp) :: min_tol       !< Tolerance for minimization
+   integer :: nk_times_nspin = -1 !< n_k_points * n_spin
+   integer :: i_k_spin = -1       !< Combined k_point spin index
+   logical :: omm_verbose         !< Output level
+   logical :: do_dealloc          !< Deallocate internal storage?
+   logical :: use_psp = .false.   !< Use pspBLAS sparse linear algebra?
 
    !> PEXSI
    integer :: my_p_row_pexsi
@@ -226,8 +226,8 @@ module ELSI_DIMENSIONS
    type(f_ppexsi_options) :: pexsi_options
    integer(c_int)         :: pexsi_info
    integer(c_int)         :: pexsi_output_file_index
-   real(c_double)         :: mu_pexsi = 0.0_dp        !< Chemical potential computed by PEXSI
-   real(c_double)         :: n_electrons_pexsi        !< Number of electrons computed by PEXSI
+   real(c_double)         :: mu_pexsi = 0.0_dp !< Chemical potential computed by PEXSI
+   real(c_double)         :: n_electrons_pexsi !< Number of electrons computed by PEXSI
    real(c_double)         :: mu_min_inertia 
    real(c_double)         :: mu_max_inertia 
    integer(c_int)         :: n_total_inertia_iter
@@ -257,7 +257,7 @@ module ELSI_DIMENSIONS
                                  !! 0 = Bound interval
                                  !! 1 = -infinity
    integer :: n_slices           !< Number of slices
-   real(kind=dp)  :: interval(2)        !< Global interval to search eigenvalues
-   real(kind=dp)  :: slice_buffer       !< Small buffer to expand the eigenvalue interval
+   real(kind=dp) :: interval(2)  !< Global interval to search eigenvalues
+   real(kind=dp) :: slice_buffer !< Small buffer to expand the eigenvalue interval
 
 end module ELSI_DIMENSIONS

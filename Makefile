@@ -5,42 +5,64 @@
 # A "make.sys" file is mandatory
 include make.sys
 
+# Pre-compiled external libraries
+ifneq ($(strip $(EXTERNAL_ELPA)),yes)
+  ALL_OBJ += elpa
+  CLEAN_OBJ += cleanelpa
+  ELPA_OMM = elpa
+endif
+
+ifneq ($(strip $(EXTERNAL_OMM)),yes)
+  ALL_OBJ += omm
+  CLEAN_OBJ += cleanomm
+endif
+
+ifneq ($(strip $(EXTERNAL_PEXSI)),yes)
+  ifneq ($(strip $(DISABLE_CXX)),yes)
+    ALL_OBJ += pexsi
+    CLEAN_OBJ += cleanpexsi
+  else
+    $(info ==================================)
+    $(info = PEXSI disabled by DISABLE_CXX. =)
+    $(info ==================================)
+    STUBS += stub_pexsi.o
+  endif
+endif
+
 # Default archive tools
 ARCHIVE      ?= ar
 ARCHIVEFLAGS ?= cr
 RANLIB       ?= ranlib
 
 # Default external libraries
-THIS_DIR ?= $(shell pwd)
+THIS_DIR   = $(shell pwd)
+ELSI_DIR   = $(THIS_DIR)/src/ELSI
 
-BIN_DIR   = $(THIS_DIR)/bin
-LIB_DIR   = $(THIS_DIR)/lib
-INC_DIR   = $(THIS_DIR)/include
-BUILD_DIR = $(THIS_DIR)/build
+BIN_DIR    = $(THIS_DIR)/bin
+LIB_DIR    = $(THIS_DIR)/lib
+INC_DIR    = $(THIS_DIR)/include
+BUILD_DIR  = $(THIS_DIR)/build
 
-ELSI_DIR  = $(THIS_DIR)/src/ELSI
+ELPA_DIR  ?= $(THIS_DIR)/src/ELPA
+ELPA_INC  ?= -I$(INC_DIR)
+ELPA_LIB  ?= -L$(LIB_DIR) -lelpa
 
-ELPA_DIR  = $(THIS_DIR)/src/ELPA
-ELPA_LIB  = -L$(LIB_DIR) -lelpa \
-            -I$(INC_DIR)
+OMM_DIR   ?= $(THIS_DIR)/src/libOMM
+OMM_INC   ?= -I$(INC_DIR)
+OMM_LIB   ?= -L$(LIB_DIR) -lOMM -lMatrixSwitch -lpspblas -ltomato
 
-OMM_DIR   = $(THIS_DIR)/src/libOMM
-OMM_LIB   = -I$(INC_DIR) \
-            -L$(LIB_DIR)/lib -lOMM -lMatrixSwitch -lpspblas -ltomato
+PEXSI_DIR ?= $(THIS_DIR)/src/PEXSI
+PEXSI_INC ?= -I$(INC_DIR)
+PEXSI_LIB ?= -L$(LIB_DIR) -lpexsi $(SUPERLU_LIB) $(PARMETIS_LIB) $(METIS_LIB)
 
-PEXSI_DIR = $(THIS_DIR)/src/PEXSI
-PEXSI_LIB = -I$(INC_DIR)/include \
-            -L$(LIB_DIR)/lib -lpexsi \
-            $(SUPERLU_LIB) $(PARMETIS_LIB) $(METIS_LIB)
-
-# Compiler settings
-FFLAGS_I   ?= $(FFLAGS) $(SCALAPACK_FCFLAGS)
-FFLAGS_E   ?= $(FFLAGS) $(SCALAPACK_FCFLAGS)
-CFLAGS_E   ?= $(CFLAGS) $(SCALAPACK_FCFLAGS)
-FFLAGS_O   ?= $(FFLAGS) $(SCALAPACK_FCFLAGS)
-FFLAGS_P   ?= $(FFLAGS) $(SCALAPACK_FCFLAGS)
-CFLAGS_P   ?= $(CFLAGS) $(SCALAPACK_FCFLAGS)
-CXXFLAGS_P ?= $(CXXFLAGS) $(SCALAPACK_FCFLAGS)
+# Default compiler settings
+FFLAGS_I   ?= $(FFLAGS) $(SCALAPACK_INC)
+FFLAGS_E   ?= $(FFLAGS) $(SCALAPACK_INC)
+CFLAGS_E   ?= $(CFLAGS) $(SCALAPACK_INC)
+FFLAGS_O   ?= $(FFLAGS) $(SCALAPACK_INC)
+FFLAGS_P   ?= $(FFLAGS) $(SCALAPACK_INC)
+CFLAGS_P   ?= $(CFLAGS) $(SCALAPACK_INC)
+CXXFLAGS_P ?= $(CXXFLAGS) $(SCALAPACK_INC)
 LINKER     ?= $(MPIFC)
 LDFLAGS    ?= $(FFLAGS_I)
 
@@ -62,24 +84,17 @@ endif
 
 export
 
-# Use stub if PEXSI is disabled in make.sys
-ALL_OBJ   = elpa omm
-CLEAN_OBJ = cleanelpa cleanomm
-LIBS      = $(ELPA_LIB) $(OMM_LIB)
+LIBS = $(ELPA_LIB) $(OMM_LIB)
+INCS = $(ELPA_INC) $(OMM_INC)
 
-ifeq ($(strip $(DISABLE_CXX)),yes)
-  $(info ===================================================)
-  $(info = PEXSI disabled by user's choice of DISABLE_CXX. =)
-  $(info ===================================================)
-  STUBS += stub_pexsi.o
-else
-  ALL_OBJ += pexsi
-  CLEAN_OBJ += cleanpexsi
+ifneq ($(strip $(DISABLE_CXX)),yes)
   LIBS += $(PEXSI_LIB)
+  INCS += $(PEXSI_INC)
 endif
 
 ifeq ($(strip $(ENABLE_SIPS)),yes)
   LIBS += $(SIPS_LIB)
+  INCS += $(SIPS_INC)
 else
   STUBS += stub_sips.o
 endif
@@ -99,7 +114,7 @@ elpa:
 	@echo = ELPA installed. =
 	@echo ===================
 
-omm: elpa
+omm: $(ELPA_OMM)
 	@echo ============================
 	@echo = Start building libOMM... =
 	@echo ============================

@@ -30,7 +30,7 @@
 !!
 program test_dm_real
 
-   use elsi_precision, only : dp
+   use ELSI_PRECISION, only : dp
    use ELSI
    use MatrixSwitch ! Only for test matrices generation
 

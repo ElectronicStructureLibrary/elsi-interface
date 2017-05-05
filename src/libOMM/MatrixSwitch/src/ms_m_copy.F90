@@ -1,4 +1,4 @@
-module MatrixSwitch_m_copy
+module ms_m_copy
   use MatrixSwitch_ops
 
   implicit none
@@ -1171,4 +1171,4 @@ contains
 
   end subroutine m_copy_scooscsrref
 
-end module MatrixSwitch_m_copy
+end module ms_m_copy

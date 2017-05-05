@@ -24,12 +24,12 @@ CFLAGS   = -O3
 CXXFLAGS = -O3 -std=c++11
 LDFLAGS  = ${FFLAGS}
 
-CXX_LDFLAGS = -lstdc++
+CXX_LIB = -lstdc++
 
-SCALAPACK_LDFLAGS = -L${MKLROOT}/lib/intel64 -lmkl_intel_lp64 \
-                    -lmkl_sequential -lmkl_core -lmkl_scalapack_lp64 \
-                    -lmkl_blacs_intelmpi_lp64
-SCALAPACK_FCFLAGS = -I${MKLROOT}/include/intel64/lp64
+SCALAPACK_LIB = -L${MKLROOT}/lib/intel64 -lmkl_intel_lp64 \
+                -lmkl_sequential -lmkl_core -lmkl_scalapack_lp64 \
+                -lmkl_blacs_intelmpi_lp64
+SCALAPACK_INC = -I${MKLROOT}/include/intel64/lp64
 
 # ====== REGRESSION TESTS ======
 MPI_EXEC     = mpiexec.hydra
@@ -38,15 +38,15 @@ TOMATO_SEED  = /home/whuhn/opt/ELSI/tomato-seed
 # ====== PEXSI ======
 DISABLE_CXX  = yes
 #DISABLE_CXX  = no
-#METIS_LIB       = -L/home/whuhn/opt/ParMETIS/4.0.3/build/Linux-x86_64/libmetis -lmetis
-#PARMETIS_LIB    = -L/home/whuhn/opt/ParMETIS/4.0.3/build/Linux-x86_64/libparmetis -lparmetis
-#SUPERLU_LIB     = -L/home/whuhn/opt/SuperLU_DIST/5.1.2/lib -lsuperlu_dist
-#SUPERLU_INCLUDE = -I/home/whuhn/opt/SuperLU_DIST/5.1.2/SRC
+#METIS_LIB    = -L/home/whuhn/opt/ParMETIS/4.0.3/build/Linux-x86_64/libmetis -lmetis
+#PARMETIS_LIB = -L/home/whuhn/opt/ParMETIS/4.0.3/build/Linux-x86_64/libparmetis -lparmetis
+#SUPERLU_LIB  = -L/home/whuhn/opt/SuperLU_DIST/5.1.2/lib -lsuperlu_dist
+#SUPERLU_INC  = -I/home/whuhn/opt/SuperLU_DIST/5.1.2/SRC
 
 # ====== ELPA ======
-ELPA_GPU     = yes
 #ELPA2_KERNEL = GPU
-NVCC         = ${CUDA_ROOT}/bin/nvcc
-NVCCFLAGS    = -ccbin=icpc -O3 -c -m64 -arch=sm_60
-CUDA_LIB     = -L${CUDA_ROOT}/lib64 -lcudart -lcublas
-CUDA_INCLUDE = -I${CUDA_ROOT}/include
+ELPA_GPU  = yes
+NVCC      = ${CUDA_ROOT}/bin/nvcc
+NVCCFLAGS = -ccbin=icpc -O3 -c -m64 -arch=sm_60
+CUDA_LIB  = -L${CUDA_ROOT}/lib64 -lcudart -lcublas
+CUDA_INC  = -I${CUDA_ROOT}/include

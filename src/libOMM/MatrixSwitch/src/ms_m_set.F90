@@ -1,4 +1,4 @@
-module MatrixSwitch_m_set
+module ms_m_set
   use MatrixSwitch_ops
 
   implicit none
@@ -125,4 +125,4 @@ contains
 
   end subroutine m_set_szdenref
 
-end module MatrixSwitch_m_set
+end module ms_m_set

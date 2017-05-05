@@ -14,17 +14,17 @@ CFLAGS   = -fast -no-ipo -xMIC-AVX512 -fp-model precise
 CXXFLAGS = -fast -no-ipo -xMIC-AVX512 -fp-model precise -std=c++11
 LDFLAGS  = -fast -no-ipo -xMIC-AVX512 -fp-model precise
 
-CXX_LDFLAGS       = -lstdc++
-SCALAPACK_LDFLAGS = -mkl=cluster
+CXX_LIB = -lstdc++
+SCALAPACK_LIB = -mkl=cluster
 
 # ====== ELPA ======
 ELPA2_KERNEL = AVX2
 
 # ====== PEXSI ======
-METIS_LIB       = -L/home/wzvyu/parmetis-4.0.3/build/Linux-x86_64/libmetis -lmetis
-PARMETIS_LIB    = -L/home/wzvyu/parmetis-4.0.3/build/Linux-x86_64/libparmetis -lparmetis
-SUPERLU_LIB     = -L/home/wzvyu/SuperLU_DIST_5.1.2/lib -lsuperlu_dist
-SUPERLU_INCLUDE = -I/home/wzvyu/SuperLU_DIST_5.1.2/SRC
+METIS_LIB    = -L/home/wzvyu/parmetis-4.0.3/build/Linux-x86_64/libmetis -lmetis
+PARMETIS_LIB = -L/home/wzvyu/parmetis-4.0.3/build/Linux-x86_64/libparmetis -lparmetis
+SUPERLU_LIB  = -L/home/wzvyu/SuperLU_DIST_5.1.2/lib -lsuperlu_dist
+SUPERLU_INC  = -I/home/wzvyu/SuperLU_DIST_5.1.2/SRC
 
 # ====== MAKE CHECK ======
 # Note:  you will need to request an interactive job to run "make check"
