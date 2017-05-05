@@ -189,7 +189,11 @@ subroutine elsi_set_matrix_data_type(i_matrix_data_type)
 
    character*40, parameter :: caller = "elsi_set_matrix_data_type"
 
-   if(i_matrix_data_type < 0 .or. i_matrix_data_type.ge.  N_MATRIX_DATA_TYPES) then
+   ! We allow ELSI to internally "unset" the matrix data type to avoid unintentional retention of internal state
+   ! This is done because, right now, the user does not directly specify the matrix data type, they do so indirectly 
+   ! by calling different "solve" functions
+   ! If matrix_data_type ever becomes a user-specified variable, the ability to unset it should be removed.
+   if((i_matrix_data_type .ne. UNSET) .and. (i_matrix_data_type < 0 .or. i_matrix_data_type .ge. N_MATRIX_DATA_TYPES)) then
       call elsi_stop(" An unsupported matrix data type has been chosen."//&
                      " Please consult the ELSI documentation for supported choices."//&
                      " Exiting...",caller)
@@ -838,6 +842,9 @@ subroutine elsi_ev_real(H_in,S_in,e_val_out,e_vec_out)
                         " eigenvalues and eigenvectors. Exiting...",caller)
    end select
 
+   ! Unset the matrix data type to avoid unintentional retention of state
+   call elsi_set_matrix_data_type(UNSET)
+
 end subroutine
 
 !>
@@ -897,6 +904,9 @@ subroutine elsi_ev_complex(H_in,S_in,e_val_out,e_vec_out)
                         " Please choose ELPA solver to compute"//&
                         " eigenvalues and eigenvectors. Exiting...",caller)
    end select
+
+   ! Unset the matrix data type to avoid unintentional retention of state
+   call elsi_set_matrix_data_type(UNSET)
 
 end subroutine
 
@@ -1071,6 +1081,9 @@ subroutine elsi_dm_real(H_in,S_in,D_out,energy_out)
                         " Exiting...",caller)
    end select
 
+   ! Unset the matrix data type to avoid unintentional retention of state
+   call elsi_set_matrix_data_type(UNSET)
+
 end subroutine
 
 !>
@@ -1154,6 +1167,9 @@ subroutine elsi_dm_complex(H_in,S_in,D_out,energy_out)
                         " Exiting...",caller)
    end select
 
+   ! Unset the matrix data type to avoid unintentional retention of state
+   call elsi_set_matrix_data_type(UNSET)
+
 end subroutine
 
 !>
@@ -1211,6 +1227,9 @@ subroutine elsi_dm_real_sparse(H_in,S_in,D_out,energy_out)
          call elsi_stop(" No supported solver has been chosen."//&
                         " Exiting...",caller)
    end select
+
+   ! Unset the matrix data type to avoid unintentional retention of state
+   call elsi_set_matrix_data_type(UNSET)
 
 end subroutine
 

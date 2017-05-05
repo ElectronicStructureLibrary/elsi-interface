@@ -33,6 +33,7 @@ module ELSI_DIMENSIONS
 
    use iso_c_binding
    use ELSI_PRECISION, only : dp
+   use ELSI_CONSTANTS, only : UNSET
    use f_ppexsi_interface
    use MatrixSwitch
 
@@ -104,16 +105,16 @@ module ELSI_DIMENSIONS
 ! ========= PARAMETERS =========
 
    !> Solver (see ELSI_CONSTANTS module for appropriate values)
-   integer :: solver = -1
+   integer :: solver = UNSET
 
    !> Real or complex data (see ELSI_CONSTANTS module for appropriate values)
-   integer :: matrix_data_type = -1
+   integer :: matrix_data_type = UNSET
 
    !> Matrix storage format (see ELSI_CONSTANTS module for appropriate values)
-   integer :: matrix_storage_format = -1
+   integer :: matrix_storage_format = UNSET
 
    !> Parallel mode (see ELSI_CONSTANTS module for appropriate values)
-   integer :: parallel_mode = -1
+   integer :: parallel_mode = UNSET
 
    !> Print detailed ELSI info?
    logical :: print_info = .false.

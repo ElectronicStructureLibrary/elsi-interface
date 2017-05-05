@@ -934,25 +934,41 @@ subroutine elsi_check(caller)
    character(len=*),              intent(in)    :: caller     !< Caller
 
    ! General check of solver, matrix data type, matrix storage format, parallel mode
-   if(solver < 0 .or. solver .ge. N_SOLVERS) then
+   if(solver .eq. UNSET) then
+      call elsi_stop(" The solver has not been set (or has become unset)."//&
+                     " Please consult the ELSI documentation for supported choices."//&
+                     " Exiting...",caller)
+   else if(solver < 0 .or. solver .ge. N_SOLVERS) then
       call elsi_stop(" An unsupported solver has been chosen."//&
                      " Please consult the ELSI documentation for supported choices."//&
                      " Exiting...",caller)
    endif
 
-   if(matrix_data_type < 0 .or. matrix_data_type.ge.  N_MATRIX_DATA_TYPES) then
+   if(matrix_data_type .eq. UNSET) then
+      call elsi_stop(" The matrix data type has not been set (or has become unset)."//&
+                     " Please consult the ELSI documentation for supported choices."//&
+                     " Exiting...",caller)
+   else if(matrix_data_type < 0 .or. matrix_data_type.ge.  N_MATRIX_DATA_TYPES) then
       call elsi_stop(" An unsupported matrix data type has been chosen."//&
                      " Please consult the ELSI documentation for supported choices."//&
                      " Exiting...",caller)
    endif
 
-   if(matrix_storage_format < 0 .or. matrix_storage_format .ge.  N_MATRIX_STORAGE_FORMATS) then
+   if(matrix_storage_format .eq. UNSET) then
+      call elsi_stop(" The matrix storage format has not been set (or has become unset)."//&
+                     " Please consult the ELSI documentation for supported choices."//&
+                     " Exiting...",caller)
+   else if(matrix_storage_format < 0 .or. matrix_storage_format .ge.  N_MATRIX_STORAGE_FORMATS) then
       call elsi_stop(" An unsupported matrix storage format has been chosen."//&
                      " Please consult the ELSI documentation for supported choices."//&
                      " Exiting...",caller)
    endif
 
-   if(parallel_mode < 0 .or. parallel_mode .ge. N_PARALLEL_MODES) then
+   if(parallel_mode .eq. UNSET) then
+      call elsi_stop(" The parallel mode has not been set (or has become unset)."//&
+                     " Please consult the ELSI documentation for supported choices."//&
+                     " Exiting...",caller)
+   else if(parallel_mode < 0  .or. parallel_mode .ge. N_PARALLEL_MODES) then
       call elsi_stop(" An unsupported parallel mode has been chosen."//&
                      " Please consult the ELSI documentation for supported choices."//&
                      " Exiting...",caller)

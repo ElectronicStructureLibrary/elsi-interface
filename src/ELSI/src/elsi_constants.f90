@@ -37,6 +37,8 @@ module ELSI_CONSTANTS
 
 ! ========= ALIAS =========
 
+   integer, parameter :: UNSET = -1
+
    integer, parameter :: N_SOLVERS = 6
    !> Solvers (AUTO=0, ELPA=1, LIBOMM=2, PEXSI=3, CHESS=4, SIPS=5)
    enum, bind( C )
