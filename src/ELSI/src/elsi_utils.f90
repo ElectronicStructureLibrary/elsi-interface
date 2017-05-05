@@ -33,6 +33,7 @@
 module ELSI_UTILS
 
    use elsi_precision, only : dp
+   use elsi_constants, only : AUTO, ELPA, LIBOMM, PEXSI, CHESS, SIPS, BLACS_DENSE, MULTI_PROC
    use iso_c_binding
    use ELSI_DIMENSIONS
    use MatrixSwitch

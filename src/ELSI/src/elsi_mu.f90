@@ -31,7 +31,8 @@
 
 module ELSI_MU
 
-   use elsi_precision, only: dp
+   use elsi_precision, only : dp
+   use elsi_constants, only : INVERT_SQRT_PI, GAUSSIAN, FERMI, METHFESSEL_PAXTON_0, METHFESSEL_PAXTON_1
    use ELSI_DIMENSIONS
    use ELSI_UTILS
 
@@ -173,7 +174,6 @@ subroutine elsi_check_electrons(kpoint_weights,eigenvalues,occ_numbers,&
    integer :: i_kpoint     !< K-point index
    integer :: i_spin       !< Spin index
 
-   real(kind=dp), parameter :: invert_sqrt_pi = 0.564189583547756_dp !< Constant: 1/sqrt(pi)
    character*40, parameter :: caller = "elsi_check_electrons"
 
    if(broaden_width .le. 0.0_dp) then

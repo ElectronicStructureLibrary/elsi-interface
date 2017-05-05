@@ -32,6 +32,7 @@
 module ELSI_PEXSI
 
    use elsi_precision, only : dp
+   use elsi_constants, only : BLACS_DENSE
    use iso_c_binding
    use ELSI_DIMENSIONS
    use ELSI_TIMERS

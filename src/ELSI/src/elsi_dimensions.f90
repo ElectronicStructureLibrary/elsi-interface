@@ -103,16 +103,16 @@ module ELSI_DIMENSIONS
 
 ! ========= PARAMETERS =========
 
-   !> Solver (AUTO=0,ELPA=1,LIBOMM=2,PEXSI=3,CHESS=4,SIPS=5)
+   !> Solver (see elsi_constants module for appropriate values)
    integer :: method = -1
 
-   !> Real or complex data (REAL_VALUES=0,COMPLEX_VALUES=1)
+   !> Real or complex data (see elsi_constants module for appropriate values)
    integer :: mode = -1
 
-   !> Matrix storage format (BLACS_DENSE=0,PEXSI_CSC=1)
+   !> Matrix storage format (see elsi_constants module for appropriate values)
    integer :: storage = -1
 
-   !> Parallel mode (SINGLE_PROC=0,MULTI_PROC=1)
+   !> Parallel mode (see elsi_constants module for appropriate values)
    integer :: parallelism = -1
 
    !> Print detailed ELSI info?
@@ -259,32 +259,5 @@ module ELSI_DIMENSIONS
    integer :: n_slices           !< Number of slices
    real(kind=dp)  :: interval(2)        !< Global interval to search eigenvalues
    real(kind=dp)  :: slice_buffer       !< Small buffer to expand the eigenvalue interval
-
-! ========= ALIAS =========
-
-   !> Method names
-   enum, bind( C )
-      enumerator :: AUTO, ELPA, LIBOMM, PEXSI, CHESS, SIPS
-   end enum
-
-   !> Real or complex data
-   enum, bind( C )
-      enumerator :: REAL_VALUES, COMPLEX_VALUES
-   end enum
-
-   !> Storage formats
-   enum, bind( C )
-      enumerator :: BLACS_DENSE, PEXSI_CSC
-   end enum
-
-   !> Parallel modes
-   enum, bind( C )
-      enumerator :: SINGLE_PROC, MULTI_PROC
-   end enum
-
-   !> Broadening type (used if ELPA is chosen to compute density matrix)
-   enum, bind( C )
-      enumerator :: GAUSSIAN, FERMI, METHFESSEL_PAXTON_0, METHFESSEL_PAXTON_1
-   end enum
 
 end module ELSI_DIMENSIONS

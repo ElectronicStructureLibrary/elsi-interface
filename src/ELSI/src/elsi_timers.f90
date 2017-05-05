@@ -32,6 +32,7 @@
 module ELSI_TIMERS
 
    use elsi_precision, only : dp
+   use elsi_constants, only : ELPA, LIBOMM, PEXSI, CHESS, SIPS
    use iso_c_binding
    use ELSI_DIMENSIONS
    use ELSI_UTILS

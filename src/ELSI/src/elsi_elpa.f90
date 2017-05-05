@@ -32,6 +32,7 @@
 module ELSI_ELPA
 
    use elsi_precision, only : dp
+   use elsi_constants, only : REAL_VALUES, COMPLEX_VALUES
    use iso_c_binding
    use ELSI_DIMENSIONS
    use ELSI_TIMERS

@@ -33,6 +33,8 @@
 module ELSI
 
    use elsi_precision, only: dp
+   use elsi_constants, only: ELPA, LIBOMM, PEXSI, CHESS, SIPS, REAL_VALUES, COMPLEX_VALUES, &
+                             BLACS_DENSE, PEXSI_CSC, SINGLE_PROC, MULTI_PROC
    use iso_c_binding
    use ELSI_DIMENSIONS
    use ELSI_TIMERS
@@ -93,9 +95,9 @@ subroutine elsi_init(solver,parallel_mode,matrix_format,matrix_size,&
 
    implicit none
 
-   integer, intent(in) :: solver         !< AUTO,ELPA,LIBOMM,PEXSI,CHESS,SIPS
-   integer, intent(in) :: parallel_mode  !< SINGLE_PROC,MULTI_PROC
-   integer, intent(in) :: matrix_format  !< BLACS_DENSE,PEXSI_CSC
+   integer, intent(in) :: solver         !< Solver (see elsi_constants module for appropriate values)
+   integer, intent(in) :: parallel_mode  !< Parallel mode (see elsi_constants module for appropriate values)
+   integer, intent(in) :: matrix_format  !< Matrix storage format (see elsi_constants module for appropriate values)
    integer, intent(in) :: matrix_size    !< Global dimension of matrix
    real(kind=dp),  intent(in) :: n_electrons_in !< Number of electrons
    integer, intent(in) :: n_states_in    !< Number of states
@@ -140,7 +142,7 @@ subroutine elsi_set_method(i_method)
 
    implicit none
 
-   integer, intent(in) :: i_method !< AUTO,ELPA,LIBOMM,PEXSI,CHESS,SIPS
+   integer, intent(in) :: i_method !< Solver (see elsi_constants module for appropriate values)
    
    method = i_method
 
@@ -153,7 +155,7 @@ subroutine elsi_set_mode(i_mode)
 
    implicit none
 
-   integer, intent(in) :: i_mode !< REAL_VALUES,COMPLEX_VALUES
+   integer, intent(in) :: i_mode !< Real or complex data (see elsi_constants module for appropriate values)
 
    mode = i_mode
 
@@ -166,7 +168,7 @@ subroutine elsi_set_storage(i_storage)
 
    implicit none
 
-   integer, intent(in) :: i_storage !< BLACS_DENSE,PEXSI_CSC
+   integer, intent(in) :: i_storage !< Matrix storage format (see elsi_constants module for appropriate values)
 
    storage = i_storage
 
@@ -179,7 +181,7 @@ subroutine elsi_set_parallel(i_parallel)
 
    implicit none
 
-   integer, intent(in) :: i_parallel !< SINGLE_PROC,MULTI_PROC
+   integer, intent(in) :: i_parallel !< Parallel mode (see elsi_constants module for appropriate values)
 
    parallelism = i_parallel
 

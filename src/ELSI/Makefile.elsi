@@ -33,28 +33,28 @@ test_dm_real_sparse.o: ./test/test_dm_real_sparse.f90 elsi_interface.o elsi_prec
 elsi_interface.o: ./src/elsi_interface.f90 elsi_elpa.o elsi_omm.o elsi_pexsi.o elsi_sips.o elsi_mu.o elsi_utils.o elsi_timers.o elsi_dimensions.o $(STUBS)
 	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
 
-elsi_mu.o: ./src/elsi_mu.f90 elsi_utils.o elsi_dimensions.o elsi_precision.o $(STUBS)
+elsi_mu.o: ./src/elsi_mu.f90 elsi_utils.o elsi_dimensions.o elsi_constants.o elsi_precision.o $(STUBS)
 	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
 
-elsi_elpa.o: ./src/elsi_elpa.f90 elsi_mu.o elsi_utils.o elsi_timers.o elsi_dimensions.o elsi_precision.o $(STUBS)
+elsi_elpa.o: ./src/elsi_elpa.f90 elsi_mu.o elsi_utils.o elsi_timers.o elsi_dimensions.o  elsi_constants.o elsi_precision.o $(STUBS)
 	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
 
-elsi_omm.o: ./src/elsi_omm.f90 elsi_utils.o elsi_timers.o elsi_dimensions.o $(STUBS)
+elsi_omm.o: ./src/elsi_omm.f90 elsi_utils.o elsi_timers.o elsi_constants.o elsi_dimensions.o $(STUBS)
 	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
 
-elsi_pexsi.o: ./src/elsi_pexsi.f90 elsi_utils.o elsi_timers.o elsi_dimensions.o elsi_precision.o $(STUBS)
+elsi_pexsi.o: ./src/elsi_pexsi.f90 elsi_utils.o elsi_timers.o elsi_dimensions.o elsi_constants.o elsi_precision.o $(STUBS)
 	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
 
 elsi_sips.o: ./src/elsi_sips.f90  elsi_utils.o elsi_timers.o elsi_dimensions.o elsi_precision.o $(STUBS)
 	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
 
-elsi_timers.o: ./src/elsi_timers.f90 elsi_dimensions.o elsi_utils.o elsi_precision.o $(STUBS)
+elsi_timers.o: ./src/elsi_timers.f90 elsi_dimensions.o elsi_utils.o elsi_constants.o elsi_precision.o $(STUBS)
 	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
 
-elsi_utils.o: ./src/elsi_utils.f90 elsi_dimensions.o elsi_precision.o $(STUBS)
+elsi_utils.o: ./src/elsi_utils.f90 elsi_dimensions.o elsi_constants.o elsi_precision.o $(STUBS)
 	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
 
-elsi_dimensions.o: ./src/elsi_dimensions.f90 elsi_precision.o $(STUBS)
+elsi_dimensions.o: ./src/elsi_dimensions.f90 elsi_constants.o elsi_precision.o $(STUBS)
 	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
 
 stub_pexsi.o: ./src/stub_pexsi.f90
@@ -63,12 +63,15 @@ stub_pexsi.o: ./src/stub_pexsi.f90
 stub_sips.o: ./src/stub_sips.f90 elsi_precision.o
 	$(MPIFC) $(FFLAGS_I) -c $<
 
-elsi_c_interface.o: ./src/elsi_c_interface.f90 elsi_interface.o elsi_dimensions.o $(STUBS)
+elsi_c_interface.o: ./src/elsi_c_interface.f90 elsi_interface.o elsi_constants.o elsi_dimensions.o $(STUBS)
 	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
 	cp ./src/elsi.h $(INC_DIR)
 
+elsi_constants.o: ./src/elsi_constants.f90 elsi_precision.o
+	$(MPIFC) $(FFLAGS_I) -c $<
+
 elsi_precision.o: ./src/elsi_precision.f90
-	$(MPIFC) $(FFLAGS_I) -c $< $(LIBS)
+	$(MPIFC) $(FFLAGS_I) -c $<
 
 .PHONY: clean install check
 
