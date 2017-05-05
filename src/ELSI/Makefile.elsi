@@ -34,7 +34,7 @@ elsi_interface.o: ./src/elsi_interface.f90 elsi_elpa.o elsi_omm.o elsi_pexsi.o e
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
 elsi_mu.o: ./src/elsi_mu.f90 elsi_utils.o elsi_dimensions.o elsi_constants.o elsi_precision.o $(STUBS)
-	$(MPIFC) $(FFLAGS_I) -c $< $(INC)
+	$(MPIFC) $(FFLAGS_I) -c $< $(INCS)
 
 elsi_elpa.o: ./src/elsi_elpa.f90 elsi_mu.o elsi_utils.o elsi_timers.o elsi_dimensions.o  elsi_constants.o elsi_precision.o $(STUBS)
 	$(MPIFC) $(FFLAGS_I) -c $< $(INCS)
