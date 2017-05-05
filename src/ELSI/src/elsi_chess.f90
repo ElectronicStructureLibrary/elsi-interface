@@ -76,6 +76,8 @@ subroutine elsi_set_chess_default_options()
 
    implicit none
 
+   character*40, parameter :: caller = "elsi_set_chess_default_options"
+
 end subroutine
 
 !>
@@ -86,6 +88,7 @@ subroutine elsi_print_chess_options()
    implicit none
 
    character*200 :: info_str
+   character*40, parameter :: caller = "elsi_print_chess_options"
 
 end subroutine
 

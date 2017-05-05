@@ -474,6 +474,8 @@ subroutine elsi_set_sips_default_options()
 
    implicit none
 
+   character*40, parameter :: caller = "elsi_set_sips_default_options"
+
    !< Type of slices
    !! 0 = Equally spaced subintervals
    !! 1 = K-meaans after equally spaced subintervals
@@ -505,6 +507,7 @@ subroutine elsi_print_sips_options()
    implicit none
 
    character*200 :: info_str
+   character*40, parameter :: caller = "elsi_print_sips_options"
 
    write(info_str,"(A)") "  SIPs settings:"
    call elsi_statement_print(info_str)

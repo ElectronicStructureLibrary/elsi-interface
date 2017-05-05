@@ -90,6 +90,8 @@ subroutine elsi_init_timers()
 
    integer :: initial_time
 
+   character*40, parameter :: caller = "elsi_init_timers"
+
    t_generalized_evp         = 0.0_dp
    t_generalized_evp_start   = 0.0_dp
    t_redistribution          = 0.0_dp
@@ -120,6 +122,8 @@ subroutine elsi_final_print()
 
    real(kind=dp)  :: sparsity
    integer :: i_proc
+
+   character*40, parameter :: caller = "elsi_final_print"
 
    if(print_info) then
       if(myid == 0) then
@@ -163,6 +167,8 @@ subroutine elsi_get_time(wtime)
  
    integer :: tics
 
+   character*40, parameter :: caller = "elsi_get_time"
+
    call system_clock(tics)
 
    wtime = 1.0_dp*tics/clock_rate
@@ -175,6 +181,8 @@ end subroutine
 subroutine elsi_start_generalized_evp_time()
 
    implicit none
+
+   character*40, parameter :: caller = "elsi_start_generalized_evp_time"
    
    call elsi_get_time(t_generalized_evp_start)
 
@@ -188,7 +196,9 @@ subroutine elsi_stop_generalized_evp_time()
    implicit none
 
    real(kind=dp) :: stop_time
+
    character*200 :: info_str
+   character*40, parameter :: caller = "elsi_stop_generalized_evp_time"
 
    call elsi_get_time(stop_time)
    t_generalized_evp = stop_time-t_generalized_evp_start
@@ -221,7 +231,9 @@ subroutine elsi_stop_density_matrix_time()
    implicit none
 
    real(kind=dp) :: stop_time
+
    character*200 :: info_str
+   character*40, parameter :: caller = "elsi_stop_density_matrix_time"
 
    call elsi_get_time(stop_time)
    t_density_matrix = stop_time-t_density_matrix_start
@@ -239,6 +251,8 @@ end subroutine
 subroutine elsi_start_redistribution_time()
 
    implicit none
+
+   character*40, parameter :: caller = "elsi_start_redistribution_time"
    
    call elsi_get_time(t_redistribution_start)
 
@@ -252,7 +266,9 @@ subroutine elsi_stop_redistribution_time()
    implicit none
 
    real(kind=dp) :: stop_time
+
    character*200 :: info_str
+   character*40, parameter :: caller = "elsi_stop_redistribution_time"
 
    call elsi_get_time(stop_time)
    t_redistribution = stop_time-t_redistribution_start
@@ -271,6 +287,8 @@ subroutine elsi_start_transform_evp_time()
 
    implicit none
 
+   character*40, parameter :: caller = "elsi_start_transform_evp_time"
+
    call elsi_get_time(t_transform_evp_start)
 
 end subroutine
@@ -283,7 +301,9 @@ subroutine elsi_stop_transform_evp_time()
    implicit none
 
    real(kind=dp) :: stop_time
+
    character*200 :: info_str
+   character*40, parameter :: caller = "elsi_stop_transform_evp_time"
 
    call elsi_get_time(stop_time)
    t_transform_evp = stop_time-t_transform_evp_start
@@ -302,6 +322,8 @@ subroutine elsi_start_back_transform_ev_time()
 
    implicit none
 
+   character*40, parameter :: caller = "elsi_start_back_transform_ev_time"
+
    call elsi_get_time(t_back_transform_ev_start)
 
 end subroutine
@@ -314,7 +336,9 @@ subroutine elsi_stop_back_transform_ev_time()
    implicit none
 
    real(kind=dp) :: stop_time
+
    character*200 :: info_str
+   character*40, parameter :: caller = "elsi_stop_back_transform_ev_time"
 
    call elsi_get_time(stop_time)
    t_back_transform_ev = stop_time-t_back_transform_ev_start
@@ -333,6 +357,8 @@ subroutine elsi_start_singularity_check_time()
 
    implicit none
 
+   character*40, parameter :: caller = "elsi_start_singularity_check_time"
+
    call elsi_get_time(t_singularity_check_start)
 
 end subroutine
@@ -345,7 +371,9 @@ subroutine elsi_stop_singularity_check_time()
    implicit none
 
    real(kind=dp) :: stop_time
+
    character*200 :: info_str
+   character*40, parameter :: caller = "elsi_stop_singularity_check_time"
 
    call elsi_get_time(stop_time)
    t_singularity_check = stop_time-t_singularity_check_start
@@ -364,6 +392,8 @@ subroutine elsi_start_standard_evp_time()
 
    implicit none
 
+   character*40, parameter :: caller = "elsi_start_standard_evp_time"
+
    call elsi_get_time(t_standard_evp_start)
 
 end subroutine
@@ -376,7 +406,9 @@ subroutine elsi_stop_standard_evp_time()
    implicit none
 
    real(kind=dp) :: stop_time
+
    character*200 :: info_str
+   character*40, parameter :: caller = "elsi_stop_standard_evp_time"
 
    call elsi_get_time(stop_time)
    t_standard_evp = stop_time-t_standard_evp_start
@@ -395,6 +427,8 @@ subroutine elsi_start_cholesky_time()
 
    implicit none
 
+   character*40, parameter :: caller = "elsi_start_cholesky_time"
+
    call elsi_get_time(t_cholesky_start)
 
 end subroutine
@@ -407,7 +441,9 @@ subroutine elsi_stop_cholesky_time()
    implicit none
 
    real(kind=dp) :: stop_time
+
    character*200 :: info_str
+   character*40, parameter :: caller = "elsi_stop_cholesky_time"
 
    call elsi_get_time(stop_time)
    t_cholesky = stop_time-t_cholesky_start

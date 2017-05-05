@@ -68,6 +68,8 @@ subroutine elsi_get_elpa_comms(mpi_comm_row_out,mpi_comm_col_out)
 
    integer :: success
 
+   character*40, parameter :: caller = "elsi_get_elpa_comms"
+
    success = elpa_get_communicators(mpi_comm_global,my_p_row,my_p_col,&
                                     mpi_comm_row_out,mpi_comm_col_out)
 
@@ -127,7 +129,7 @@ subroutine elsi_compute_dm_elpa()
    real(kind=dp), allocatable :: factor(:) !< Factor to construct density matrix
    integer :: i,i_col,i_row
 
-   character*40, parameter :: caller = "elsi_compute_dm"
+   character*40, parameter :: caller = "elsi_compute_dm_elpa"
 
    call elsi_start_density_matrix_time()
 

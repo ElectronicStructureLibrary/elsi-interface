@@ -35,7 +35,9 @@ module ELSI
    use iso_c_binding
    use ELSI_PRECISION, only: dp
    use ELSI_CONSTANTS, only: ELPA, LIBOMM, PEXSI, CHESS, SIPS, REAL_VALUES, COMPLEX_VALUES, &
-                             SINGLE_PROC, MULTI_PROC
+                             SINGLE_PROC, MULTI_PROC, &
+                             N_SOLVERS, N_MATRIX_DATA_TYPES, N_MATRIX_STORAGE_FORMATS, N_PARALLEL_MODES, &
+                             N_BROADENING_SCHEMES
    use ELSI_DIMENSIONS
    use ELSI_TIMERS
    use ELSI_UTILS
@@ -103,6 +105,8 @@ subroutine elsi_init(i_solver,i_parallel_mode,i_matrix_storage_format,matrix_siz
    real(kind=dp),  intent(in) :: n_electrons_in    !< Number of electrons
    integer, intent(in) :: n_states_in              !< Number of states
 
+   character*40, parameter :: caller = "elsi_init"
+
    n_g_size = matrix_size
    n_nonsingular = matrix_size
    n_electrons = n_electrons_in
@@ -134,10 +138,12 @@ subroutine elsi_init(i_solver,i_parallel_mode,i_matrix_storage_format,matrix_siz
 
    call elsi_init_timers()
 
+   ! WPH:  We should call elsi_check(caller) here, but the matrix data type has not been set yet
+
 end subroutine
 
 !>
-!! This routine sets the solver.  This is a deprecated function; use elsi_set_solver isntead
+!! This routine sets the solver.  This is a deprecated function; use elsi_set_solver instead
 !!
 subroutine elsi_set_method(i_method)
 
@@ -145,6 +151,8 @@ subroutine elsi_set_method(i_method)
 
    integer, intent(in) :: i_method !< Solver (see ELSI_CONSTANTS module for appropriate values)
    
+   character*40, parameter :: caller = "elsi_set_method"
+
    call elsi_set_solver(i_method)
 
 end subroutine
@@ -157,7 +165,15 @@ subroutine elsi_set_solver(i_solver)
    implicit none
 
    integer, intent(in) :: i_solver !< Solver (see ELSI_CONSTANTS module for appropriate values)
-   
+
+   character*40, parameter :: caller = "elsi_set_solver"
+
+   if(i_solver < 0 .or. i_solver .ge. N_SOLVERS) then
+      call elsi_stop(" An unsupported solver has been chosen."//&
+                     " Please consult the ELSI documentation for supported choices."//&
+                     " Exiting...",caller)
+   endif
+
    solver = i_solver
 
 end subroutine
@@ -170,6 +186,14 @@ subroutine elsi_set_matrix_data_type(i_matrix_data_type)
    implicit none
 
    integer, intent(in) :: i_matrix_data_type !< Real or complex data (see ELSI_CONSTANTS module for appropriate values)
+
+   character*40, parameter :: caller = "elsi_set_matrix_data_type"
+
+   if(i_matrix_data_type < 0 .or. i_matrix_data_type.ge.  N_MATRIX_DATA_TYPES) then
+      call elsi_stop(" An unsupported matrix data type has been chosen."//&
+                     " Please consult the ELSI documentation for supported choices."//&
+                     " Exiting...",caller)
+   endif
 
    matrix_data_type = i_matrix_data_type
 
@@ -184,6 +208,14 @@ subroutine elsi_set_matrix_storage_format(i_matrix_storage_format)
 
    integer, intent(in) :: i_matrix_storage_format !< Matrix storage format (see ELSI_CONSTANTS module for appropriate values)
 
+   character*40, parameter :: caller = "elsi_set_matrix_storage_format"
+
+   if(i_matrix_storage_format < 0 .or. i_matrix_storage_format .ge.  N_MATRIX_STORAGE_FORMATS) then
+      call elsi_stop(" An unsupported matrix storage format has been chosen."//&
+                     " Please consult the ELSI documentation for supported choices."//&
+                     " Exiting...",caller)
+   endif
+
    matrix_storage_format = i_matrix_storage_format
 
 end subroutine
@@ -196,6 +228,14 @@ subroutine elsi_set_parallel_mode(i_parallel_mode)
    implicit none
 
    integer, intent(in) :: i_parallel_mode !< Parallel mode (see ELSI_CONSTANTS module for appropriate values)
+
+   character*40, parameter :: caller = "elsi_set_parallel_mode"
+
+   if(i_parallel_mode < 0 .or. i_parallel_mode .ge. N_PARALLEL_MODES) then
+      call elsi_stop(" An unsupported parallel mode has been chosen."//&
+                     " Please consult the ELSI documentation for supported choices."//&
+                     " Exiting...",caller)
+   endif
 
    parallel_mode = i_parallel_mode
 
@@ -217,6 +257,8 @@ subroutine elsi_set_mpi(mpi_comm_global_in)
    include "mpif.h"
 
    integer, intent(in) :: mpi_comm_global_in !< global mpi communicator
+
+   character*40, parameter :: caller = "elsi_set_mpi"
 
    if(parallel_mode == MULTI_PROC) then
       mpi_comm_global = mpi_comm_global_in
@@ -331,8 +373,8 @@ subroutine elsi_get_energy(energy_out)
    ! Only spin-nonpolarized case is supported now.
    real(kind=dp), parameter :: n_spin = 2.0_dp
    integer :: i_state
-   character*200 :: info_str
 
+   character*200 :: info_str
    character*40, parameter :: caller = "elsi_get_energy"
 
    select case (solver)
@@ -363,6 +405,8 @@ end subroutine
 subroutine elsi_finalize()
 
    implicit none
+
+   character*40, parameter :: caller = "elsi_finalize"
 
    call elsi_cleanup()
    call elsi_final_print()
@@ -397,6 +441,8 @@ subroutine elsi_customize(print_detail,unit_overlap,numerical_zero,&
    logical,       intent(in), optional :: no_check_singularity   !< Do not perform singularity check of overlap
    real(kind=dp), intent(in), optional :: singularity_threshold  !< Tolerance of overlap singularity
    logical,       intent(in), optional :: force_stop_singularity !< Stop if overlap is singular
+
+   character*40, parameter :: caller = "elsi_customize"
 
    ! Print detailed ELSI information? [Default: .false.]
    if(present(print_detail)) &
@@ -434,6 +480,8 @@ subroutine elsi_customize_omm(n_elpa_steps_omm,omm_method,eigen_shift,&
    real(kind=dp), intent(in), optional :: omm_tolerance    !< Tolerance of minimization
    logical,       intent(in), optional :: use_pspblas      !< Use pspBLAS sparse linear algebra?
    logical,       intent(in), optional :: omm_output       !< Output details?
+
+   character*40, parameter :: caller = "elsi_customize_omm"
 
    ! Number of ELPA steps
    if(present(n_elpa_steps_omm)) &
@@ -622,6 +670,8 @@ subroutine elsi_customize_elpa(elpa_solver)
 
    integer, intent(in) :: elpa_solver !< Always use 1-stage or 2-stage solver
 
+   character*40, parameter :: caller = "elsi_customize_elpa"
+
    if(elpa_solver == 1) then
       elpa_one_always = .true.
       elpa_two_always = .false.
@@ -655,9 +705,17 @@ subroutine elsi_customize_mu(i_broadening_scheme,i_broadening_width,&
    integer,       intent(in), optional :: mu_max_steps          !< Maximum number of steps to find the chemical potential
    real(kind=dp), intent(in), optional :: spin_degeneracy       !< Spin degeneracy
 
+   character*40, parameter :: caller = "elsi_customize_mu"
+
    ! Broadening scheme to compute Fermi level [Default: GAUSSIAN]
-   if(present(i_broadening_scheme)) &
+   if(present(i_broadening_scheme)) then
+      if(i_broadening_scheme < 0 .or. i_broadening_scheme .ge. N_BROADENING_SCHEMES) then
+         call elsi_stop(" An unsupported broadening scheme has been chosen."//&
+                        " Please consult the ELSI documentation for supported choices."//&
+                        " Exiting...",caller)
+      endif
       broadening_scheme = i_broadening_scheme
+   end if
    ! Broadening width to compute Fermi level [Default: 1e-2_dp]
    if(present(i_broadening_width)) &
       broadening_width = i_broadening_width
@@ -684,6 +742,8 @@ subroutine elsi_collect_pexsi(mu,edm,fdm)
    real(kind=dp), intent(out) :: mu               !< Chemical potential
    real(kind=dp), intent(out) :: edm(nnz_l_pexsi) !< Energy density matrix
    real(kind=dp), intent(out) :: fdm(nnz_l_pexsi) !< Free energy density matrix
+
+   character*40, parameter :: caller = "elsi_collect_pexsi"
 
    mu  = mu_pexsi
    edm = e_den_mat_pexsi
@@ -715,14 +775,14 @@ subroutine elsi_ev_real(H_in,S_in,e_val_out,e_vec_out)
 
    character*40, parameter :: caller = "elsi_ev_real"
 
-   ! Safety check
-   call elsi_check()
-
    ! Update counter
    n_elsi_calls = n_elsi_calls+1
 
    ! REAL case
    call elsi_set_matrix_data_type(REAL_VALUES)
+
+   ! Safety check
+   call elsi_check( caller )
 
    ! Here the only supported solver is ELPA
    select case (solver)
@@ -794,14 +854,14 @@ subroutine elsi_ev_complex(H_in,S_in,e_val_out,e_vec_out)
 
    character*40, parameter :: caller = "elsi_ev_complex"
 
-   ! Safety check
-   call elsi_check()
-
    ! Update counter
    n_elsi_calls = n_elsi_calls+1
 
    ! COMPLEX case
    call elsi_set_matrix_data_type(COMPLEX_VALUES)
+
+   ! Safety check
+   call elsi_check( caller )
 
    ! Here the only supported solver is ELPA
    select case (solver)
@@ -854,14 +914,14 @@ subroutine elsi_dm_real(H_in,S_in,D_out,energy_out)
 
    character*40, parameter :: caller = "elsi_dm_real"
 
-   ! Safety check
-   call elsi_check()
-
    ! Update counter
    n_elsi_calls = n_elsi_calls+1
 
    ! REAL case
    call elsi_set_matrix_data_type(REAL_VALUES)
+
+   ! Safety check
+   call elsi_check( caller )
 
    ! Solve eigenvalue problem
    select case (solver)
@@ -1030,14 +1090,14 @@ subroutine elsi_dm_complex(H_in,S_in,D_out,energy_out)
    call elsi_stop(" ELSI density matrix solver for complex case not yet available."//&
                   " Exiting...",caller)
 
-   ! Safety check
-   call elsi_check()
-
    ! Update counter
    n_elsi_calls = n_elsi_calls+1
 
    ! COMPLEX case
    call elsi_set_matrix_data_type(COMPLEX_VALUES)
+
+   ! Safety check
+   call elsi_check( caller )
 
    ! Solve eigenvalue problem
    select case (solver)
@@ -1110,14 +1170,14 @@ subroutine elsi_dm_real_sparse(H_in,S_in,D_out,energy_out)
 
    character*40, parameter :: caller = "elsi_dm_real_sparse"
 
-   ! Safety check
-   call elsi_check()
-
    ! Update counter
    n_elsi_calls = n_elsi_calls+1
 
    ! REAL case
    call elsi_set_matrix_data_type(REAL_VALUES)
+
+   ! Safety check
+   call elsi_check( caller )
 
    ! Solve eigenvalue problem
    select case (solver)

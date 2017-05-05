@@ -161,6 +161,8 @@ subroutine elsi_pexsi_to_blacs_dm(D_out)
 
    real(kind=dp), intent(out) :: D_out(n_l_rows,n_l_cols) !< Density matrix to be converted
 
+   character*40, parameter :: caller = "elsi_pexsi_to_blacs_dm"
+
    if(n_g_size < 46340) then
       call elsi_pexsi_to_blacs_dm_small(D_out)
    else ! use kind=8 integer
@@ -1415,6 +1417,7 @@ subroutine elsi_print_pexsi_options()
    implicit none
 
    character*200 :: info_str
+   character*40, parameter :: caller = "elsi_print_pexsi_options"
 
    write(info_str,"(A)") "  PEXSI settings (in the same unit of Hamiltonian):"
    call elsi_statement_print(info_str)

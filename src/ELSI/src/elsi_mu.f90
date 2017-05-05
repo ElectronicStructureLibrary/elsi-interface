@@ -375,7 +375,6 @@ subroutine elsi_adjust_occ(kpoint_weights,eigenvalues,occ_numbers,diff_ne)
    integer,       allocatable :: idx_aux(:)  !< Aux 1D array
 
    character*200 :: info_str
-
    character*40, parameter :: caller = "elsi_adjust_occ"
 
    n_total = n_state*n_spin*n_kpoint

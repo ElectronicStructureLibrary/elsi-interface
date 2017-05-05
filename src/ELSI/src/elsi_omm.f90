@@ -65,6 +65,7 @@ subroutine elsi_solve_evp_omm()
    include "mpif.h"
 
    logical :: success
+
    character*40, parameter :: caller = "elsi_solve_evp_omm"
 
    if(overlap_is_singular) then
@@ -174,6 +175,8 @@ subroutine elsi_set_omm_default_options()
    
    implicit none
    
+   character*40, parameter :: caller = "elsi_set_omm_default_options"
+
    !< How many steps of ELPA to run before OMM
    n_elpa_steps = 3
 
@@ -221,6 +224,7 @@ subroutine elsi_print_omm_options()
    implicit none
 
    character*200 :: info_str
+   character*40, parameter :: caller = "elsi_print_omm_options"
 
    write(info_str,"(A)") "  libOMM settings (in the same unit of Hamiltonian):"
    call elsi_statement_print(info_str)
@@ -258,6 +262,8 @@ subroutine ms_scalapack_setup_no_opt(mpi_comm,nprow,order,bs_def,bs_list_present
   integer, intent(in)      :: bs_list(:)
   logical, intent(in)      :: icontxt_present
   integer, intent(in)      :: icontxt
+
+  character*40, parameter :: caller = "ms_scalapack_setup_no_opt"
 
   if(bs_list_present) then
      if(icontxt_present) then
@@ -315,6 +321,8 @@ subroutine tomato_TB_get_dims(template_basedir,system_label,&
 
   type(matrix) :: H
   type(matrix) :: S
+
+  character*40, parameter :: caller = "tomato_TB_get_dims"
 
   call tomato_TB(template_basedir,system_label,&
                  switch1,frac_occ,num_orbs_per_atom,&
@@ -381,6 +389,8 @@ subroutine tomato_TB_real(template_basedir,system_label,&
 
   type(matrix) :: H
   type(matrix) :: S
+
+  character*40, parameter :: caller = "tomato_TB_real"
 
   call tomato_TB(template_basedir,system_label,&
                  switch1,frac_occ,num_orbs_per_atom,&

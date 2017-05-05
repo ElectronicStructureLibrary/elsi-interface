@@ -34,7 +34,8 @@ module ELSI_UTILS
 
    use iso_c_binding
    use ELSI_PRECISION, only : dp
-   use ELSI_CONSTANTS, only : AUTO, ELPA, LIBOMM, PEXSI, CHESS, SIPS, BLACS_DENSE, MULTI_PROC
+   use ELSI_CONSTANTS, only : AUTO, ELPA, LIBOMM, PEXSI, CHESS, SIPS, BLACS_DENSE, MULTI_PROC, &
+                              N_SOLVERS, N_MATRIX_DATA_TYPES, N_MATRIX_STORAGE_FORMATS, N_PARALLEL_MODES
    use ELSI_DIMENSIONS
    use MatrixSwitch
    use f_ppexsi_interface
@@ -109,6 +110,8 @@ subroutine elsi_statement_print(message)
    implicit none
 
    character(len=*), intent(in) :: message !< Message to print
+
+   ! WPH:  Should this be able to take caller as an optional argument?
 
    if(print_info) then
       if(myid == 0) then
@@ -855,6 +858,8 @@ subroutine elsi_cleanup()
 
    implicit none
 
+   character*40, parameter :: caller = "elsi_cleanup"
+
    ! Nullify pointers
    if(associated(ham_real))         nullify(ham_real)
    if(associated(ham_complex))      nullify(ham_complex)
@@ -922,35 +927,43 @@ end subroutine
 !>
 !! This routine guarantees that there are no mutually conflicting parameters.
 !!
-subroutine elsi_check()
+subroutine elsi_check(caller)
 
    implicit none
+   
+   character(len=*),              intent(in)    :: caller     !< Caller
 
-   character*40, parameter :: caller = "elsi_check"
-
-   ! General check of solver, parallel mode, matrix storage format
-   if(solver < 0 .or. solver > 5) then
-      call elsi_stop(" No supported solver has been chosen."//&
-                     " Please choose ELPA, LIBOMM, or PEXSI solver."//&
+   ! General check of solver, matrix data type, matrix storage format, parallel mode
+   if(solver < 0 .or. solver .ge. N_SOLVERS) then
+      call elsi_stop(" An unsupported solver has been chosen."//&
+                     " Please consult the ELSI documentation for supported choices."//&
                      " Exiting...",caller)
    endif
 
-   if(parallel_mode < 0 .or. parallel_mode > 1) then
-      call elsi_stop(" No supported parallel mode has been chosen."//&
-                     " Please choose either SINGLE_PROC or MULTI_PROC parallel mode."//&
+   if(matrix_data_type < 0 .or. matrix_data_type.ge.  N_MATRIX_DATA_TYPES) then
+      call elsi_stop(" An unsupported matrix data type has been chosen."//&
+                     " Please consult the ELSI documentation for supported choices."//&
                      " Exiting...",caller)
    endif
 
-   if(matrix_storage_format < 0 .or. matrix_storage_format > 1) then
-      call elsi_stop(" No supported matrix storage format has been chosen."//&
-                     " Please choose BLACS_DENSE or PEXSI_CSC format."//&
+   if(matrix_storage_format < 0 .or. matrix_storage_format .ge.  N_MATRIX_STORAGE_FORMATS) then
+      call elsi_stop(" An unsupported matrix storage format has been chosen."//&
+                     " Please consult the ELSI documentation for supported choices."//&
                      " Exiting...",caller)
    endif
+
+   if(parallel_mode < 0 .or. parallel_mode .ge. N_PARALLEL_MODES) then
+      call elsi_stop(" An unsupported parallel mode has been chosen."//&
+                     " Please consult the ELSI documentation for supported choices."//&
+                     " Exiting...",caller)
+   endif
+
+   ! WPH:  Check for broadening?
 
    ! Specific check for each solver
    if(solver == AUTO) then
       call elsi_stop(" AUTO not yet available."//&
-                     " Please choose ELPA, LIBOMM, or PEXSI solver."//&
+                     " Please consult the ELSI documentation for supported choices."//&
                      " Exiting...",caller)
 
    else if(solver == ELPA) then
@@ -970,7 +983,7 @@ subroutine elsi_check()
 
       if(matrix_storage_format /= BLACS_DENSE) then
          call elsi_stop(" ELPA has been chosen as the solver."//&
-                        " Please choose BLACS_DENSE matrix format."//&
+                        " Please choose BLACS_DENSE matrix storage format."//&
                         " Exiting...",caller)
       endif
 
@@ -995,7 +1008,7 @@ subroutine elsi_check()
 
       if(matrix_storage_format /= BLACS_DENSE) then
          call elsi_stop(" libOMM has been chosen as the solver."//&
-                        " Please choose BLACS_DENSE matrix format."//&
+                        " Please choose BLACS_DENSE matrix storage format."//&
                         " Exiting...",caller)
       endif
 
@@ -1016,7 +1029,7 @@ subroutine elsi_check()
          if(.not.blacs_is_setup) then
             call elsi_stop(" The BLACS_DENSE format has been chosen."//&
                            " Please set up BLACS before calling the"//&
-                           " Solver. Exiting...",caller)
+                           " solver. Exiting...",caller)
          endif
       else
          if(.not.sparsity_pattern_ready) then
@@ -1034,7 +1047,7 @@ subroutine elsi_check()
 
    else if(solver == CHESS) then
       call elsi_stop(" CHESS not yet available."//&
-                     " Please choose ELPA, LIBOMM, or PEXSI solver."//&
+                     " Please consult the ELSI documentation for supported choices."//&
                      " Exiting...",caller)
 
    else if(solver == SIPS) then
@@ -1048,7 +1061,7 @@ subroutine elsi_check()
 
    else
       call elsi_stop(" No supported solver has been chosen."//&
-                     " Please choose ELPA, LIBOMM, or PEXSI solver."//&
+                     " Please consult the ELSI documentation for supported choices."//&
                      " Exiting...",caller)
    endif
 
@@ -1066,6 +1079,8 @@ subroutine elsi_get_global_row(global_idx,local_idx)
 
    integer :: block !< Local block
    integer :: idx !< Local index in block
+
+   character*40, parameter :: caller = "elsi_get_global_row"
 
    block = (local_idx-1)/n_b_rows
    idx = local_idx-block*n_b_rows
@@ -1086,6 +1101,8 @@ subroutine elsi_get_global_col(global_idx,local_idx)
 
    integer :: block !< Local block
    integer :: idx !< Local index in block
+
+   character*40, parameter :: caller = "elsi_get_global_col"
 
    block = (local_idx-1)/n_b_cols
    idx = local_idx-block*n_b_cols
@@ -1109,6 +1126,8 @@ subroutine elsi_get_local_nnz(matrix,n_rows,n_cols,nnz)
    integer :: i_row !< Row counter
    integer :: i_col !< Column counter
    integer :: i_nz !< Non-zero element counter
+
+   character*40, parameter :: caller = "elsi_get_local_nnz"
 
    nnz = 0
 
