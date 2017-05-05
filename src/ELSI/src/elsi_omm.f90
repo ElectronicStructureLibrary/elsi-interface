@@ -84,7 +84,7 @@ subroutine elsi_solve_evp_omm()
             call elsi_start_cholesky_time()
 
             ! Cholesky factorization
-            select case (mode)
+            select case (matrix_data_type)
                case (COMPLEX_VALUES)
                   ! Compute S = (U^T)U, U -> S
                   success = elpa_cholesky_complex_double(n_g_size,ovlp_omm%zval,n_l_rows,&
@@ -108,7 +108,7 @@ subroutine elsi_solve_evp_omm()
 
          if(n_elsi_calls > n_elpa_steps+1) then
             ! Invert one more time
-            select case (mode)
+            select case (matrix_data_type)
                case (COMPLEX_VALUES)
                   success = elpa_invert_trm_complex_double(n_g_size,ovlp_omm%zval,n_l_rows,&
                                n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col,.false.)
@@ -140,7 +140,7 @@ subroutine elsi_solve_evp_omm()
    ! Solve the eigenvalue problem
    call elsi_statement_print("  Starting OMM density matrix solver")
 
-   select case (mode)
+   select case (matrix_data_type)
       case (COMPLEX_VALUES)
          call omm(n_g_size,n_states,ham_omm,ovlp_omm,new_overlap,total_energy,&
                   den_mat_omm,calc_ed,eta,coeff_omm,coeff_initialized,t_den_mat_omm,&

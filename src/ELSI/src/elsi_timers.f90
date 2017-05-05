@@ -127,22 +127,22 @@ subroutine elsi_final_print()
          write(*,"('  | Final ELSI Output:')")
          write(*,"('  |-----------------------------------------')")
          write(*,"('  | Eigenvalue problem size : ',I13)") n_g_size
-         if(method == PEXSI) then
+         if(solver == PEXSI) then
             write(*,"('  | Non zero elements       : ',I13)") nnz_g
             sparsity = 1.0_dp-(1.0_dp*nnz_g/n_g_size)/n_g_size
             write(*,"('  | Sparsity                : ',F13.3)") sparsity
          endif
          write(*,"('  | Number of electrons     : ',F13.1)") n_electrons
          write(*,"('  | Number of states        : ',I13)") n_states
-         if(method == ELPA) then
+         if(solver == ELPA) then
             write(*,"('  | Method                  : ',A13)") "ELPA"
-         elseif(method == LIBOMM) then
+         elseif(solver == LIBOMM) then
             write(*,"('  | Method                  : ',A13)") "libOMM"
-         elseif(method == PEXSI) then
+         elseif(solver == PEXSI) then
             write(*,"('  | Method                  : ',A13)") "PEXSI"
-         elseif(method == CHESS) then
+         elseif(solver == CHESS) then
             write(*,"('  | Method                  : ',A13)") "CheSS"
-         elseif(method == SIPS) then
+         elseif(solver == SIPS) then
             write(*,"('  | Method                  : ',A13)") "SIPs"
          endif
          write(*,"('  |-----------------------------------------')")
@@ -193,7 +193,7 @@ subroutine elsi_stop_generalized_evp_time()
    call elsi_get_time(stop_time)
    t_generalized_evp = stop_time-t_generalized_evp_start
 
-   if(method == SIPS) then
+   if(solver == SIPS) then
       write(info_str,"('  Finished solving generalized eigenproblem')")
       call elsi_statement_print(info_str)
       write(info_str,"('  | Time :',F10.3,' s')") t_generalized_evp

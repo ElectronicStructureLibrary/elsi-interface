@@ -1378,7 +1378,7 @@ subroutine elsi_solve_evp_pexsi()
    endif
 
    ! Get the results
-   if((my_p_row_pexsi == 0) .or. (storage == BLACS_DENSE)) then
+   if((my_p_row_pexsi == 0) .or. (matrix_storage_format == BLACS_DENSE)) then
       call f_ppexsi_retrieve_real_dft_matrix(pexsi_plan,den_mat_ccs,&
               e_den_mat_pexsi,f_den_mat_pexsi,e_tot_H,e_tot_S,f_tot,pexsi_info)
    endif

@@ -409,7 +409,7 @@ subroutine elsi_set_real_hamiltonian(H_in)
 
    character*40, parameter :: caller = "elsi_set_real_hamiltonian"
 
-   select case (method)
+   select case (solver)
       case (ELPA)
          ham_real => H_in
       case (LIBOMM)
@@ -439,7 +439,7 @@ subroutine elsi_set_complex_hamiltonian(H_in)
 
    character*40, parameter :: caller = "elsi_set_complex_hamiltonian"
 
-   select case (method)
+   select case (solver)
       case (ELPA)
          ham_complex => H_in
       case (LIBOMM)
@@ -469,7 +469,7 @@ subroutine elsi_set_sparse_real_hamiltonian(H_in)
 
    character*40, parameter :: caller = "elsi_set_sparse_real_hamiltonian"
 
-   select case (method)
+   select case (solver)
       case (ELPA)
          ! Nothing to be done here
       case (LIBOMM)
@@ -499,7 +499,7 @@ subroutine elsi_set_sparse_complex_hamiltonian(H_in)
 
    character*40, parameter :: caller = "elsi_set_sparse_complex_hamiltonian"
 
-   select case (method)
+   select case (solver)
       case (ELPA)
          ! Nothing to be done here
       case (LIBOMM)
@@ -529,7 +529,7 @@ subroutine elsi_set_real_overlap(S_in)
 
    character*40, parameter :: caller = "elsi_set_real_overlap"
 
-   select case (method)
+   select case (solver)
       case (ELPA)
          ovlp_real => S_in
       case (LIBOMM)
@@ -559,7 +559,7 @@ subroutine elsi_set_complex_overlap(S_in)
 
    character*40, parameter :: caller = "elsi_set_complex_overlap"
 
-   select case (method)
+   select case (solver)
       case (ELPA)
          ovlp_complex => S_in
       case (LIBOMM)
@@ -589,7 +589,7 @@ subroutine elsi_set_sparse_real_overlap(S_in)
 
    character*40, parameter :: caller = "elsi_set_sparse_real_overlap"
 
-   select case (method)
+   select case (solver)
       case (ELPA)
          ! Nothing to be done here
       case (LIBOMM)
@@ -619,7 +619,7 @@ subroutine elsi_set_sparse_complex_overlap(S_in)
 
    character*40, parameter :: caller = "elsi_set_sparse_complex_overlap"
 
-   select case (method)
+   select case (solver)
       case (ELPA)
          ! Nothing to be done here
       case (LIBOMM)
@@ -649,7 +649,7 @@ subroutine elsi_set_eigenvalue(e_val_in)
 
    character*40, parameter :: caller = "elsi_set_eigenvalue"
 
-   select case (method)
+   select case (solver)
       case (ELPA)
          eval => e_val_in
       case (LIBOMM)
@@ -679,7 +679,7 @@ subroutine elsi_set_real_eigenvector(e_vec_in)
 
    character*40, parameter :: caller = "elsi_set_real_eigenvector"
 
-   select case (method)
+   select case (solver)
       case (ELPA)
          evec_real => e_vec_in
       case (LIBOMM)
@@ -709,7 +709,7 @@ subroutine elsi_set_complex_eigenvector(e_vec_in)
 
    character*40, parameter :: caller = "elsi_set_complex_eigenvector"
 
-   select case (method)
+   select case (solver)
       case (ELPA)
          evec_complex => e_vec_in
       case (LIBOMM)
@@ -739,7 +739,7 @@ subroutine elsi_set_density_matrix(D_in)
 
    character*40, parameter :: caller = "elsi_set_density_matrix"
 
-   select case (method)
+   select case (solver)
       case (ELPA)
          den_mat => D_in
       case (LIBOMM)
@@ -769,7 +769,7 @@ subroutine elsi_set_sparse_density_matrix(D_in)
 
    character*40, parameter :: caller = "elsi_set_sparse_density_matrix"
 
-   select case (method)
+   select case (solver)
       case (ELPA)
          ! Nothing to be done here
       case (LIBOMM)
@@ -799,7 +799,7 @@ subroutine elsi_set_row_ind(row_ind_in)
 
    character*40, parameter :: caller = "elsi_set_row_ind"
 
-   select case (method)
+   select case (solver)
       case (ELPA)
          ! Nothing to be done here
       case (LIBOMM)
@@ -829,7 +829,7 @@ subroutine elsi_set_col_ptr(col_ptr_in)
 
    character*40, parameter :: caller = "elsi_set_cplumn_pointer"
 
-   select case (method)
+   select case (solver)
       case (ELPA)
          ! Nothing to be done here
       case (LIBOMM)
@@ -908,12 +908,12 @@ subroutine elsi_cleanup()
    if(allocated(local_col))         deallocate(local_col)
 
    ! Finalize PEXSI plan
-   if(method == PEXSI) then
+   if(solver == PEXSI) then
       call f_ppexsi_plan_finalize(pexsi_plan,pexsi_info)
    endif
 
    ! Finalize QETSC
-   if(method == SIPS) then
+   if(solver == SIPS) then
       call finalize_sips()
    endif
 
@@ -928,91 +928,91 @@ subroutine elsi_check()
 
    character*40, parameter :: caller = "elsi_check"
 
-   ! General check of method, parallelism, storage
-   if(method < 0 .or. method > 5) then
+   ! General check of solver, parallel mode, matrix storage format
+   if(solver < 0 .or. solver > 5) then
       call elsi_stop(" No supported solver has been chosen."//&
                      " Please choose ELPA, LIBOMM, or PEXSI solver."//&
                      " Exiting...",caller)
    endif
 
-   if(parallelism < 0 .or. parallelism > 1) then
-      call elsi_stop(" No supported parallelism has been chosen."//&
-                     " Please choose SINGLE_PROC or MULTI_PROC parallelism."//&
+   if(parallel_mode < 0 .or. parallel_mode > 1) then
+      call elsi_stop(" No supported parallel mode has been chosen."//&
+                     " Please choose either SINGLE_PROC or MULTI_PROC parallel mode."//&
                      " Exiting...",caller)
    endif
 
-   if(storage < 0 .or. storage > 1) then
-      call elsi_stop(" No supported format has been chosen."//&
+   if(matrix_storage_format < 0 .or. matrix_storage_format > 1) then
+      call elsi_stop(" No supported matrix storage format has been chosen."//&
                      " Please choose BLACS_DENSE or PEXSI_CSC format."//&
                      " Exiting...",caller)
    endif
 
    ! Specific check for each solver
-   if(method == AUTO) then
+   if(solver == AUTO) then
       call elsi_stop(" AUTO not yet available."//&
                      " Please choose ELPA, LIBOMM, or PEXSI solver."//&
                      " Exiting...",caller)
 
-   else if(method == ELPA) then
-      if(parallelism == MULTI_PROC) then
+   else if(solver == ELPA) then
+      if(parallel_mode == MULTI_PROC) then
          if(.not.mpi_is_setup) then
-            call elsi_stop(" MULTI_PROC parallelism requires MPI being"//&
+            call elsi_stop(" MULTI_PROC parallel mode requires MPI being"//&
                            " set up before calling the solver."//&
                            " Exiting...",caller)
          endif
 
          if(.not.blacs_is_setup) then
-            call elsi_stop(" MULTI_PROC parallelism requires BLACS being"//&
+            call elsi_stop(" MULTI_PROC parallel mode requires BLACS being"//&
                            " set up before calling the solver."//&
                            " Exiting...",caller)
          endif
       endif
 
-      if(storage /= BLACS_DENSE) then
+      if(matrix_storage_format /= BLACS_DENSE) then
          call elsi_stop(" ELPA has been chosen as the solver."//&
                         " Please choose BLACS_DENSE matrix format."//&
                         " Exiting...",caller)
       endif
 
-   else if(method == LIBOMM) then
-      if(parallelism == MULTI_PROC) then
+   else if(solver == LIBOMM) then
+      if(parallel_mode == MULTI_PROC) then
          if(.not.mpi_is_setup) then
-            call elsi_stop(" MULTI_PROC parallelism requires MPI being"//&
+            call elsi_stop(" MULTI_PROC parallel mode requires MPI being"//&
                            " set up before calling the solver."//&
                            " Exiting...",caller)
          endif
 
          if(.not.blacs_is_setup) then
-            call elsi_stop(" MULTI_PROC parallelism requires BLACS being"//&
+            call elsi_stop(" MULTI_PROC parallel mode requires BLACS being"//&
                            " set up before calling the solver."//&
                            " Exiting...",caller)
          endif
       else
          call elsi_stop(" libOMM has been chosen as the solver."//&
-                        " Please choose MULTI_PROC parallelism."//&
+                        " Please choose MULTI_PROC parallel mode."//&
                         " Exiting...",caller)
       endif
 
-      if(storage /= BLACS_DENSE) then
+      if(matrix_storage_format /= BLACS_DENSE) then
          call elsi_stop(" libOMM has been chosen as the solver."//&
                         " Please choose BLACS_DENSE matrix format."//&
                         " Exiting...",caller)
       endif
 
-   else if(method == PEXSI) then
-      if(parallelism == MULTI_PROC) then
+   else if(solver == PEXSI) then
+      if(parallel_mode == MULTI_PROC) then
          if(.not.mpi_is_setup) then
-            call elsi_stop(" MULTI_PROC parallelism requires MPI being"//&
+            call elsi_stop(" MULTI_PROC parallel mode requires MPI being"//&
                            " set up before calling the solver."//&
                            " Exiting...",caller)
          endif
       else
          call elsi_stop(" PEXSI has been chosen as the solver."//&
-                        " Please choose MULTI_PROC parallelism."//&
+                        " Please choose MULTI_PROC parallel mode."//&
                         " Exiting...",caller)
       endif
 
-      if(storage == BLACS_DENSE) then
+      if(matrix_storage_format == BLACS_DENSE) then
          if(.not.blacs_is_setup) then
             call elsi_stop(" The BLACS_DENSE format has been chosen."//&
                            " Please set up BLACS before calling the"//&
@@ -1032,12 +1032,12 @@ subroutine elsi_check()
                         " number of processes. Exiting...",caller)
       endif
 
-   else if(method == CHESS) then
+   else if(solver == CHESS) then
       call elsi_stop(" CHESS not yet available."//&
                      " Please choose ELPA, LIBOMM, or PEXSI solver."//&
                      " Exiting...",caller)
 
-   else if(method == SIPS) then
+   else if(solver == SIPS) then
       call elsi_statement_print("  ATTENTION! SIPS is EXPERIMENTAL.")
 
       if(n_g_size < n_procs) then

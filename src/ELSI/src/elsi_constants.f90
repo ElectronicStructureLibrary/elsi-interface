@@ -37,27 +37,32 @@ module ELSI_CONSTANTS
 
 ! ========= ALIAS =========
 
-   !> Solvers (AUTO=0,ELPA=1,LIBOMM=2,PEXSI=3,CHESS=4,SIPS=5)
+   integer, parameter :: N_SOLVERS = 6
+   !> Solvers (AUTO=0, ELPA=1, LIBOMM=2, PEXSI=3, CHESS=4, SIPS=5)
    enum, bind( C )
       enumerator :: AUTO, ELPA, LIBOMM, PEXSI, CHESS, SIPS
    end enum
 
-   !> Real or complex data (REAL_VALUES=0,COMPLEX_VALUES=1)
+   integer, parameter :: N_MATRIX_DATA_TYPES = 2
+   !> Matrix data types, i.e. real or complex (REAL_VALUES=0, COMPLEX_VALUES=1)
    enum, bind( C )
       enumerator :: REAL_VALUES, COMPLEX_VALUES
    end enum
 
-   !> Matrix storage format (BLACS_DENSE=0,PEXSI_CSC=1)
+   integer, parameter :: N_MATRIX_STORAGE_FORMATS = 2
+   !> Matrix storage format (BLACS_DENSE=0, PEXSI_CSC=1)
    enum, bind( C )
       enumerator :: BLACS_DENSE, PEXSI_CSC
    end enum
 
-   !> Parallel mode (SINGLE_PROC=0,MULTI_PROC=1)
+   integer, parameter :: N_PARALLEL_MODES = 2
+   !> Parallel modes (SINGLE_PROC=0, MULTI_PROC=1)
    enum, bind( C )
       enumerator :: SINGLE_PROC, MULTI_PROC
    end enum
 
-   !> Broadening type (used if ELPA is chosen to compute density matrix)
+   integer, parameter :: N_BROADENING_SCHEMES = 4
+   !> Broadening schemes (used if ELPA is chosen to compute density matrix)
    enum, bind( C )
       enumerator :: GAUSSIAN, FERMI, METHFESSEL_PAXTON_0, METHFESSEL_PAXTON_1
    end enum

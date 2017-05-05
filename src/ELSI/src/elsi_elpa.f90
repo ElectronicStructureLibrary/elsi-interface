@@ -131,7 +131,7 @@ subroutine elsi_compute_dm_elpa()
 
    call elsi_start_density_matrix_time()
 
-   select case (mode)
+   select case (matrix_data_type)
       case (REAL_VALUES)
          ! Get eigenvectors into tmp_real
          call elsi_allocate(tmp_real,n_l_rows,n_l_cols,"tmp_real",caller)
@@ -249,7 +249,7 @@ subroutine elsi_to_standard_evp()
 
    character*40, parameter :: caller = "elsi_to_standard_evp"
 
-   select case (mode)
+   select case (matrix_data_type)
       case (COMPLEX_VALUES)
          if(n_elsi_calls == 1) then
             if(.not.no_singularity_check) then
@@ -438,7 +438,7 @@ subroutine elsi_check_singularity()
 
    call elsi_start_singularity_check_time()
 
-   select case (mode)
+   select case (matrix_data_type)
       case (COMPLEX_VALUES)
          call elsi_allocate(buffer_complex,n_l_rows,n_l_cols,"temp",caller)
 
@@ -583,7 +583,7 @@ subroutine elsi_check_singularity()
             call elsi_statement_print("  Overlap matrix is nonsingular")
          endif ! Singular overlap?
 
-   end select ! select mode
+   end select ! select matrix_data_type
 
    if(allocated(ev_overlap))     deallocate(ev_overlap)
    if(allocated(buffer_real))    deallocate(buffer_real)
@@ -611,7 +611,7 @@ subroutine elsi_to_original_ev()
 
    call elsi_start_back_transform_ev_time()
 
-   select case (mode)
+   select case (matrix_data_type)
       case (COMPLEX_VALUES)
          call elsi_allocate(buffer_complex,n_l_rows,n_l_cols,"temp",caller)
          buffer_complex = evec_complex
@@ -696,7 +696,7 @@ subroutine elsi_solve_evp_elpa()
    ! Solve evp, return eigenvalues and eigenvectors
    if(two_step_solver) then ! 2-stage solver
       call elsi_statement_print("  Starting ELPA 2-stage eigensolver")
-      select case (mode)
+      select case (matrix_data_type)
          case (COMPLEX_VALUES)
             success = elpa_solve_evp_complex_2stage_double(n_nonsingular,n_states,&
                          ham_complex,n_l_rows,eval,evec_complex,n_l_rows,n_b_rows,&
@@ -708,7 +708,7 @@ subroutine elsi_solve_evp_elpa()
       end select
    else ! 1-stage solver
       call elsi_statement_print("  Starting ELPA 1-stage eigensolver")
-      select case (mode)
+      select case (matrix_data_type)
          case (COMPLEX_VALUES)
             success = elpa_solve_evp_complex_1stage_double(n_nonsingular,n_states,&
                          ham_complex,n_l_rows,eval,evec_complex,n_l_rows,n_b_rows,&
@@ -761,7 +761,7 @@ subroutine elsi_to_standard_evp_sp()
 
    character*40, parameter :: caller = "elsi_to_standard_evp_sp"
 
-   select case (mode)
+   select case (matrix_data_type)
       case (COMPLEX_VALUES)
          if(n_elsi_calls == 1) then
             if(.not.no_singularity_check) then
@@ -900,7 +900,7 @@ subroutine elsi_to_original_ev_sp()
 
    call elsi_start_back_transform_ev_time()
 
-   select case (mode)
+   select case (matrix_data_type)
       case (COMPLEX_VALUES)
          call elsi_allocate(buffer_complex,n_l_rows,n_l_cols,"temp",caller)
          buffer_complex = evec_complex
@@ -971,7 +971,7 @@ subroutine elsi_solve_evp_elpa_sp()
 
    call elsi_start_standard_evp_time()
 
-   select case (mode)
+   select case (matrix_data_type)
       case (COMPLEX_VALUES)
          call elsi_allocate(tau_complex,n_g_size,"tau_complex",caller)
          call elsi_allocate(buffer_real,n_g_size,n_g_size,"buffer_real",caller)
@@ -1058,7 +1058,7 @@ subroutine elsi_check_singularity_sp()
 
    call elsi_start_singularity_check_time()
 
-   select case (mode)
+   select case (matrix_data_type)
       case (COMPLEX_VALUES)
          call elsi_allocate(buffer_complex,n_l_rows,n_l_cols,"temp",caller)
 
@@ -1201,7 +1201,7 @@ subroutine elsi_check_singularity_sp()
             call elsi_statement_print("  Overlap matrix is nonsingular")
          endif ! Singular overlap?
 
-   end select ! select mode
+   end select ! select matrix_data_type
 
    if(allocated(ev_overlap))     deallocate(ev_overlap)
    if(allocated(buffer_real))    deallocate(buffer_real)

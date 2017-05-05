@@ -35,7 +35,7 @@ module ELSI
    use iso_c_binding
    use ELSI_PRECISION, only: dp
    use ELSI_CONSTANTS, only: ELPA, LIBOMM, PEXSI, CHESS, SIPS, REAL_VALUES, COMPLEX_VALUES, &
-                             BLACS_DENSE, PEXSI_CSC, SINGLE_PROC, MULTI_PROC
+                             SINGLE_PROC, MULTI_PROC
    use ELSI_DIMENSIONS
    use ELSI_TIMERS
    use ELSI_UTILS
@@ -50,7 +50,8 @@ module ELSI
 
    !> Public routines
    public :: elsi_init            !< Initialize
-   public :: elsi_set_method      !< Select solver
+   public :: elsi_set_method      !< Old version of elsi_set_solver (deprecated, do not use)
+   public :: elsi_set_solver      !< Select solver
    public :: elsi_set_mpi         !< Set MPI from calling code
    public :: elsi_set_blacs       !< Set BLACS from calling code
    public :: elsi_set_csc         !< Set CSC sparsity pattern from calling code
@@ -75,10 +76,10 @@ contains
 ! ELSI tools:
 !
 !   elsi_init
-!   elsi_set_method
-!   elsi_set_mode
-!   elsi_set_storage
-!   elsi_set_parallel
+!   elsi_set_solver
+!   elsi_set_matrix_data_type
+!   elsi_set_matrix_storage_format
+!   elsi_set_parallel_mode
 !   elsi_set_mpi
 !   elsi_set_blacs
 !   elsi_set_csc
@@ -87,28 +88,28 @@ contains
 !=====================
 
 !>
-!! This routine initializes ELSI with solver, parallelism, matrix format,
+!! This routine initializes ELSI with the solver, parallel mode, matrix storage format,
 !! global matrix size, number of electrons, and number of states.
 !!
-subroutine elsi_init(solver,parallel_mode,matrix_format,matrix_size,&
+subroutine elsi_init(i_solver,i_parallel_mode,i_matrix_storage_format,matrix_size,&
                      n_electrons_in,n_states_in)
 
    implicit none
 
-   integer, intent(in) :: solver         !< Solver (see ELSI_CONSTANTS module for appropriate values)
-   integer, intent(in) :: parallel_mode  !< Parallel mode (see ELSI_CONSTANTS module for appropriate values)
-   integer, intent(in) :: matrix_format  !< Matrix storage format (see ELSI_CONSTANTS module for appropriate values)
-   integer, intent(in) :: matrix_size    !< Global dimension of matrix
-   real(kind=dp),  intent(in) :: n_electrons_in !< Number of electrons
-   integer, intent(in) :: n_states_in    !< Number of states
+   integer, intent(in) :: i_solver                 !< Solver (see ELSI_CONSTANTS module for appropriate values)
+   integer, intent(in) :: i_parallel_mode          !< Parallel mode (see ELSI_CONSTANTS module for appropriate values)
+   integer, intent(in) :: i_matrix_storage_format  !< Matrix storage format (see ELSI_CONSTANTS module for appropriate values)
+   integer, intent(in) :: matrix_size              !< Global dimension of matrix
+   real(kind=dp),  intent(in) :: n_electrons_in    !< Number of electrons
+   integer, intent(in) :: n_states_in              !< Number of states
 
    n_g_size = matrix_size
    n_nonsingular = matrix_size
    n_electrons = n_electrons_in
 
-   call elsi_set_method(solver)
-   call elsi_set_storage(matrix_format)
-   call elsi_set_parallel(parallel_mode)
+   call elsi_set_solver(i_solver)
+   call elsi_set_matrix_storage_format(i_matrix_storage_format)
+   call elsi_set_parallel_mode(i_parallel_mode)
 
    if(solver == LIBOMM) then
       ! Set number of occupied states for libOMM
@@ -136,7 +137,7 @@ subroutine elsi_init(solver,parallel_mode,matrix_format,matrix_size,&
 end subroutine
 
 !>
-!! This routine sets the method.
+!! This routine sets the solver.  This is a deprecated function; use elsi_set_solver isntead
 !!
 subroutine elsi_set_method(i_method)
 
@@ -144,48 +145,61 @@ subroutine elsi_set_method(i_method)
 
    integer, intent(in) :: i_method !< Solver (see ELSI_CONSTANTS module for appropriate values)
    
-   method = i_method
+   call elsi_set_solver(i_method)
 
 end subroutine
 
 !>
-!! This routine sets the mode (real or complex).
+!! This routine sets the solver.
 !!
-subroutine elsi_set_mode(i_mode)
+subroutine elsi_set_solver(i_solver)
 
    implicit none
 
-   integer, intent(in) :: i_mode !< Real or complex data (see ELSI_CONSTANTS module for appropriate values)
+   integer, intent(in) :: i_solver !< Solver (see ELSI_CONSTANTS module for appropriate values)
+   
+   solver = i_solver
 
-   mode = i_mode
+end subroutine
+
+!>
+!! This routine sets the matrix data type (real or complex).
+!!
+subroutine elsi_set_matrix_data_type(i_matrix_data_type)
+
+   implicit none
+
+   integer, intent(in) :: i_matrix_data_type !< Real or complex data (see ELSI_CONSTANTS module for appropriate values)
+
+   matrix_data_type = i_matrix_data_type
 
 end subroutine
 
 !>
 !! This routine sets the matrix storage format.
 !!
-subroutine elsi_set_storage(i_storage)
+subroutine elsi_set_matrix_storage_format(i_matrix_storage_format)
 
    implicit none
 
-   integer, intent(in) :: i_storage !< Matrix storage format (see ELSI_CONSTANTS module for appropriate values)
+   integer, intent(in) :: i_matrix_storage_format !< Matrix storage format (see ELSI_CONSTANTS module for appropriate values)
 
-   storage = i_storage
+   matrix_storage_format = i_matrix_storage_format
 
 end subroutine
 
 !>
 !! This routine sets the parallel mode.
 !!
-subroutine elsi_set_parallel(i_parallel)
+subroutine elsi_set_parallel_mode(i_parallel_mode)
 
    implicit none
 
-   integer, intent(in) :: i_parallel !< Parallel mode (see ELSI_CONSTANTS module for appropriate values)
+   integer, intent(in) :: i_parallel_mode !< Parallel mode (see ELSI_CONSTANTS module for appropriate values)
 
-   parallelism = i_parallel
+   parallel_mode = i_parallel_mode
 
-   if(i_parallel == SINGLE_PROC) then
+   if(i_parallel_mode == SINGLE_PROC) then
       n_l_rows = n_g_size
       n_l_cols = n_g_size
       n_b_rows = n_g_size
@@ -204,7 +218,7 @@ subroutine elsi_set_mpi(mpi_comm_global_in)
 
    integer, intent(in) :: mpi_comm_global_in !< global mpi communicator
 
-   if(parallelism == MULTI_PROC) then
+   if(parallel_mode == MULTI_PROC) then
       mpi_comm_global = mpi_comm_global_in
 
       call MPI_Comm_rank(mpi_comm_global,myid,mpierr)
@@ -230,7 +244,7 @@ subroutine elsi_set_blacs(icontext,block_size)
 
    character*40, parameter :: caller = "elsi_set_blacs"
 
-   if(parallelism == MULTI_PROC) then
+   if(parallel_mode == MULTI_PROC) then
       blacs_ctxt = icontext
       n_b_rows = block_size
       n_b_cols = block_size
@@ -268,7 +282,7 @@ subroutine elsi_set_blacs(icontext,block_size)
       enddo
 
       ! Set up MatrixSwitch
-      if(method == LIBOMM) then
+      if(solver == LIBOMM) then
          call ms_scalapack_setup(mpi_comm_global,n_p_rows,'r',n_b_rows,&
                                  icontxt=blacs_ctxt)
       endif
@@ -321,7 +335,7 @@ subroutine elsi_get_energy(energy_out)
 
    character*40, parameter :: caller = "elsi_get_energy"
 
-   select case (method)
+   select case (solver)
       case (ELPA)
          energy_out = 0.0_dp
          do i_state =1,n_states
@@ -440,8 +454,8 @@ subroutine elsi_customize_omm(n_elpa_steps_omm,omm_method,eigen_shift,&
    if(present(omm_output)) &
       omm_verbose = omm_output
 
-   if(method .ne. LIBOMM) then
-      call elsi_statement_print("  The chosen method is not libOMM."//&
+   if(solver .ne. LIBOMM) then
+      call elsi_statement_print("  The chosen solver is not libOMM."//&
                                 " Ignore elsi_customize_omm call.")
    endif
 
@@ -500,7 +514,7 @@ subroutine elsi_customize_pexsi(temperature,gap,delta_E,n_poles,n_procs_per_pole
    ! Number of processors for one pole
    ! default: decided from n_procs and n_poles
    if(present(n_procs_per_pole)) then
-      if((mod(n_procs,n_procs_per_pole) == 0) .and. (storage .ne. 0)) then
+      if((mod(n_procs,n_procs_per_pole) == 0) .and. (matrix_storage_format .ne. 0)) then
          n_p_per_pole_pexsi = n_procs_per_pole
          n_p_per_pole_ready = .true.
       else
@@ -592,8 +606,8 @@ subroutine elsi_customize_pexsi(temperature,gap,delta_E,n_poles,n_procs_per_pole
    if(present(verbosity)) &
       pexsi_options%verbosity = verbosity
 
-   if(method .ne. PEXSI) then
-      call elsi_statement_print("  The chosen method is not PEXSI."//&
+   if(solver .ne. PEXSI) then
+      call elsi_statement_print("  The chosen solver is not PEXSI."//&
                                 " Ignore elsi_customize_pexsi call.")
    endif
 
@@ -619,8 +633,8 @@ subroutine elsi_customize_elpa(elpa_solver)
       elpa_two_always = .false.
    endif
 
-   if(method .ne. ELPA) then
-      call elsi_statement_print("  The chosen method is not ELPA."//&
+   if(solver .ne. ELPA) then
+      call elsi_statement_print("  The chosen solver is not ELPA."//&
                                 " Ignore elsi_customize_elpa call.")
    endif
 
@@ -630,23 +644,23 @@ end subroutine
 !! This routine overrides ELSI default settings for the chemical potential
 !! determination module.
 !!
-subroutine elsi_customize_mu(broadening_scheme,broadening_width,&
+subroutine elsi_customize_mu(i_broadening_scheme,i_broadening_width,&
                              mu_accuracy,mu_max_steps,spin_degeneracy)
 
    implicit none
 
-   integer,       intent(in), optional :: broadening_scheme !< Broadening method in chemical potential determination
-   real(kind=dp), intent(in), optional :: broadening_width  !< Broadening width in chemical potential determination
-   real(kind=dp), intent(in), optional :: mu_accuracy       !< Tolerance in chemical potential determination
-   integer,       intent(in), optional :: mu_max_steps      !< Maximum number of steps to find the chemical potential
-   real(kind=dp), intent(in), optional :: spin_degeneracy   !< Spin degeneracy
+   integer,       intent(in), optional :: i_broadening_scheme !< Broadening scheme in chemical potential determination
+   real(kind=dp), intent(in), optional :: i_broadening_width  !< Broadening width in chemical potential determination
+   real(kind=dp), intent(in), optional :: mu_accuracy           !< Tolerance in chemical potential determination
+   integer,       intent(in), optional :: mu_max_steps          !< Maximum number of steps to find the chemical potential
+   real(kind=dp), intent(in), optional :: spin_degeneracy       !< Spin degeneracy
 
    ! Broadening scheme to compute Fermi level [Default: GAUSSIAN]
-   if(present(broadening_scheme)) &
-      broaden_method = broadening_scheme
+   if(present(i_broadening_scheme)) &
+      broadening_scheme = i_broadening_scheme
    ! Broadening width to compute Fermi level [Default: 1e-2_dp]
-   if(present(broadening_width)) &
-      broaden_width = broadening_width
+   if(present(i_broadening_width)) &
+      broadening_width = i_broadening_width
    ! Accuracy for chemical potential determination [Default: 1e-10_dp]
    if(present(mu_accuracy)) &
       occ_tolerance = mu_accuracy
@@ -708,10 +722,10 @@ subroutine elsi_ev_real(H_in,S_in,e_val_out,e_vec_out)
    n_elsi_calls = n_elsi_calls+1
 
    ! REAL case
-   call elsi_set_mode(REAL_VALUES)
+   call elsi_set_matrix_data_type(REAL_VALUES)
 
-   ! Here the only supported method is ELPA
-   select case (method)
+   ! Here the only supported solver is ELPA
+   select case (solver)
       case (ELPA)
          ! Set matrices
          call elsi_set_hamiltonian(H_in)
@@ -722,7 +736,7 @@ subroutine elsi_ev_real(H_in,S_in,e_val_out,e_vec_out)
          call elsi_set_eigenvalue(e_val_out)
 
          ! Solve eigenvalue problem
-         if(parallelism == SINGLE_PROC) then
+         if(parallel_mode == SINGLE_PROC) then
             call elsi_solve_evp_elpa_sp()
          else ! Multi-proc
             call elsi_solve_evp_elpa()
@@ -787,10 +801,10 @@ subroutine elsi_ev_complex(H_in,S_in,e_val_out,e_vec_out)
    n_elsi_calls = n_elsi_calls+1
 
    ! COMPLEX case
-   call elsi_set_mode(COMPLEX_VALUES)
+   call elsi_set_matrix_data_type(COMPLEX_VALUES)
 
-   ! Here the only supported method is ELPA
-   select case (method)
+   ! Here the only supported solver is ELPA
+   select case (solver)
       case (ELPA)
          ! Set matrices
          call elsi_set_hamiltonian(H_in)
@@ -801,7 +815,7 @@ subroutine elsi_ev_complex(H_in,S_in,e_val_out,e_vec_out)
          call elsi_set_eigenvalue(e_val_out)
 
          ! Solve eigenvalue problem
-         if(parallelism == SINGLE_PROC) then
+         if(parallel_mode == SINGLE_PROC) then
             call elsi_solve_evp_elpa_sp()
          else ! Multi-proc
             call elsi_solve_evp_elpa()
@@ -847,10 +861,10 @@ subroutine elsi_dm_real(H_in,S_in,D_out,energy_out)
    n_elsi_calls = n_elsi_calls+1
 
    ! REAL case
-   call elsi_set_mode(REAL_VALUES)
+   call elsi_set_matrix_data_type(REAL_VALUES)
 
    ! Solve eigenvalue problem
-   select case (method)
+   select case (solver)
       case (ELPA)
          ! Set matrices
          if(.not.allocated(eval_elpa)) then
@@ -885,7 +899,7 @@ subroutine elsi_dm_real(H_in,S_in,D_out,energy_out)
             endif
 
             ! Compute libOMM initial guess by ELPA
-            call elsi_set_method(ELPA)
+            call elsi_set_solver(ELPA)
 
             ! Set matrices
             if(.not.allocated(eval_elpa)) then
@@ -910,7 +924,7 @@ subroutine elsi_dm_real(H_in,S_in,D_out,energy_out)
             call elsi_get_energy(energy_out)
 
             ! Switch back to libOMM here to guarantee elsi_customize_omm
-            call elsi_set_method(LIBOMM)
+            call elsi_set_solver(LIBOMM)
 
          else ! ELPA is done
             if(allocated(ovlp_real_omm)) then
@@ -1023,10 +1037,10 @@ subroutine elsi_dm_complex(H_in,S_in,D_out,energy_out)
    n_elsi_calls = n_elsi_calls+1
 
    ! COMPLEX case
-   call elsi_set_mode(COMPLEX_VALUES)
+   call elsi_set_matrix_data_type(COMPLEX_VALUES)
 
    ! Solve eigenvalue problem
-   select case (method)
+   select case (solver)
       case (ELPA)
          ! Set matrices
          if(.not.allocated(eval_elpa)) then
@@ -1103,10 +1117,10 @@ subroutine elsi_dm_real_sparse(H_in,S_in,D_out,energy_out)
    n_elsi_calls = n_elsi_calls+1
 
    ! REAL case
-   call elsi_set_mode(REAL_VALUES)
+   call elsi_set_matrix_data_type(REAL_VALUES)
 
    ! Solve eigenvalue problem
-   select case (method)
+   select case (solver)
       case (ELPA)
          call elsi_stop(" ELPA cannot handle sparse matrices."//&
                         " Exiting...",caller)

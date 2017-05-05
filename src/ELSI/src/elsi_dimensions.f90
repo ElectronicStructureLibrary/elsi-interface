@@ -104,16 +104,16 @@ module ELSI_DIMENSIONS
 ! ========= PARAMETERS =========
 
    !> Solver (see ELSI_CONSTANTS module for appropriate values)
-   integer :: method = -1
+   integer :: solver = -1
 
    !> Real or complex data (see ELSI_CONSTANTS module for appropriate values)
-   integer :: mode = -1
+   integer :: matrix_data_type = -1
 
    !> Matrix storage format (see ELSI_CONSTANTS module for appropriate values)
-   integer :: storage = -1
+   integer :: matrix_storage_format = -1
 
    !> Parallel mode (see ELSI_CONSTANTS module for appropriate values)
-   integer :: parallelism = -1
+   integer :: parallel_mode = -1
 
    !> Print detailed ELSI info?
    logical :: print_info = .false.
@@ -175,12 +175,12 @@ module ELSI_DIMENSIONS
    real(kind=dp) :: hartree = 27.21138602_dp !< Hartree to eV (source: Codata 2015)
 
    !> Chemical potential
-   integer :: broaden_method = 0               !< Broadening scheme for occupation numbers
-   real(kind=dp) :: broaden_width = 1.0e-2_dp  !< Broadening width for occupation numbers
-   real(kind=dp) :: occ_tolerance = 1.0e-13_dp !< Maximum allowed difference between actual number
-                                               !! of electrons and the number computed by ELSI
-   integer :: max_mu_steps = 100               !< Maximum number of steps to find the chemical potential
-   real(kind=dp) :: spin_degen = 0.0_dp        !< Spin degeneracy
+   integer :: broadening_scheme = 0               !< Broadening scheme for occupation numbers
+   real(kind=dp) :: broadening_width = 1.0e-2_dp  !< Broadening width for occupation numbers
+   real(kind=dp) :: occ_tolerance = 1.0e-13_dp    !< Maximum allowed difference between actual number
+                                                  !! of electrons and the number computed by ELSI
+   integer :: max_mu_steps = 100                  !< Maximum number of steps to find the chemical potential
+   real(kind=dp) :: spin_degen = 0.0_dp           !< Spin degeneracy
 
    !> ELPA
    logical :: elpa_one_always = .false. !< Always use 1-stage solver
