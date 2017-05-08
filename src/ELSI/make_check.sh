@@ -1,4 +1,4 @@
-#!/bin/bash -l
+#!/bin/bash
 # VY: This is a simple bash script used for "make check"
 # More tests can be done by using test_ev_real.x and test_dm_real.x
 

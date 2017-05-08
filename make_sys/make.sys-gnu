@@ -1,18 +1,18 @@
 # PLATFORM  : TIMEWARP @DUKE
-# COMPILERS : INTEL (DEBUG)
+# COMPILERS : GNU
 # VERIFIED  : MAY 8, 2017
 # DO READ ../INSTALL CAREFULLY!
 
 # ====== ELSI ======
-MPIFC  = mpiifort
-MPICC  = mpiicc
-MPICXX = mpiicpc
-LINKER = mpiifort
+MPIFC  = mpif90
+MPICC  = mpicc
+MPICXX = mpicxx
+LINKER = mpif90
 
-FFLAGS   = -O0 -check bounds -check uninit -check pointers -traceback -g -fpe0
-CFLAGS   = -O0
-CXXFLAGS = -O0 -std=c++11
-LDFLAGS  = -O0
+FFLAGS   = -O3 -ffree-line-length-none
+CFLAGS   = -O3
+CXXFLAGS = -O3 -std=c++11
+LDFLAGS  = -O3
 
 CXX_LIB = -lstdc++
 
