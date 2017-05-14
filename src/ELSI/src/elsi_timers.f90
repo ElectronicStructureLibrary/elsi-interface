@@ -28,37 +28,19 @@
 !>
 !! This module provides timers for ELSI.
 !!
-
 module ELSI_TIMERS
 
    use iso_c_binding
-   use ELSI_PRECISION, only : dp
-   use ELSI_CONSTANTS, only : ELPA, LIBOMM, PEXSI, CHESS, SIPS
-   use ELSI_DIMENSIONS
+   use ELSI_PRECISION, only: r8,i4
+   use ELSI_CONSTANTS, only: ELPA,LIBOMM,PEXSI,CHESS,SIPS
+   use ELSI_DIMENSIONS, only: elsi_handle,print_info
    use ELSI_UTILS
 
    implicit none
    private
 
-   real(kind=dp) :: t_generalized_evp
-   real(kind=dp) :: t_generalized_evp_start
-   real(kind=dp) :: t_redistribution
-   real(kind=dp) :: t_redistribution_start
-   real(kind=dp) :: t_transform_evp
-   real(kind=dp) :: t_transform_evp_start
-   real(kind=dp) :: t_back_transform_ev
-   real(kind=dp) :: t_back_transform_ev_start
-   real(kind=dp) :: t_singularity_check
-   real(kind=dp) :: t_singularity_check_start
-   real(kind=dp) :: t_standard_evp
-   real(kind=dp) :: t_standard_evp_start
-   real(kind=dp) :: t_density_matrix
-   real(kind=dp) :: t_density_matrix_start
-   real(kind=dp) :: t_cholesky
-   real(kind=dp) :: t_cholesky_start
-
-   integer :: clock_rate
-   integer :: clock_max
+   integer(kind=i4) :: clock_rate
+   integer(kind=i4) :: clock_max
 
    public :: elsi_init_timers
    public :: elsi_final_print
@@ -84,30 +66,32 @@ contains
 !>
 !! This routine sets all timers to zero.
 !!
-subroutine elsi_init_timers()
+subroutine elsi_init_timers(elsi_h)
 
    implicit none
 
-   integer :: initial_time
+   type(elsi_handle), intent(inout) :: elsi_h
+
+   integer(kind=i4) :: initial_time
 
    character*40, parameter :: caller = "elsi_init_timers"
 
-   t_generalized_evp         = 0.0_dp
-   t_generalized_evp_start   = 0.0_dp
-   t_redistribution          = 0.0_dp
-   t_redistribution_start    = 0.0_dp
-   t_transform_evp           = 0.0_dp
-   t_transform_evp_start     = 0.0_dp
-   t_back_transform_ev       = 0.0_dp
-   t_back_transform_ev_start = 0.0_dp
-   t_singularity_check       = 0.0_dp
-   t_singularity_check_start = 0.0_dp
-   t_standard_evp            = 0.0_dp
-   t_standard_evp_start      = 0.0_dp
-   t_density_matrix          = 0.0_dp
-   t_density_matrix_start    = 0.0_dp
-   t_cholesky                = 0.0_dp
-   t_cholesky_start          = 0.0_dp
+   elsi_h%t_generalized_evp         = 0.0_r8
+   elsi_h%t_generalized_evp_start   = 0.0_r8
+   elsi_h%t_redistribution          = 0.0_r8
+   elsi_h%t_redistribution_start    = 0.0_r8
+   elsi_h%t_transform_evp           = 0.0_r8
+   elsi_h%t_transform_evp_start     = 0.0_r8
+   elsi_h%t_back_transform_ev       = 0.0_r8
+   elsi_h%t_back_transform_ev_start = 0.0_r8
+   elsi_h%t_singularity_check       = 0.0_r8
+   elsi_h%t_singularity_check_start = 0.0_r8
+   elsi_h%t_standard_evp            = 0.0_r8
+   elsi_h%t_standard_evp_start      = 0.0_r8
+   elsi_h%t_density_matrix          = 0.0_r8
+   elsi_h%t_density_matrix_start    = 0.0_r8
+   elsi_h%t_cholesky                = 0.0_r8
+   elsi_h%t_cholesky_start          = 0.0_r8
 
    call system_clock(initial_time,clock_rate,clock_max)
 
@@ -116,37 +100,39 @@ end subroutine
 !>
 !! This routine prints a final output.
 !!
-subroutine elsi_final_print()
+subroutine elsi_final_print(elsi_h)
 
    implicit none
 
-   real(kind=dp)  :: sparsity
-   integer :: i_proc
+   type(elsi_handle), intent(in) :: elsi_h
+
+   real(kind=r8)    :: sparsity
+   integer(kind=i4) :: i_proc
 
    character*40, parameter :: caller = "elsi_final_print"
 
    if(print_info) then
-      if(myid == 0) then
+      if(elsi_h%myid == 0) then
          write(*,"('  |-----------------------------------------')")
          write(*,"('  | Final ELSI Output:')")
          write(*,"('  |-----------------------------------------')")
-         write(*,"('  | Eigenvalue problem size : ',I13)") n_g_size
-         if(solver == PEXSI) then
-            write(*,"('  | Non zero elements       : ',I13)") nnz_g
-            sparsity = 1.0_dp-(1.0_dp*nnz_g/n_g_size)/n_g_size
+         write(*,"('  | Eigenvalue problem size : ',I13)") elsi_h%n_g_size
+         if(elsi_h%solver == PEXSI) then
+            write(*,"('  | Non zero elements       : ',I13)") elsi_h%nnz_g
+            sparsity = 1.0_r8-(1.0_r8*elsi_h%nnz_g/elsi_h%n_g_size)/elsi_h%n_g_size
             write(*,"('  | Sparsity                : ',F13.3)") sparsity
          endif
-         write(*,"('  | Number of electrons     : ',F13.1)") n_electrons
-         write(*,"('  | Number of states        : ',I13)") n_states
-         if(solver == ELPA) then
+         write(*,"('  | Number of electrons     : ',F13.1)") elsi_h%n_electrons
+         write(*,"('  | Number of states        : ',I13)") elsi_h%n_states
+         if(elsi_h%solver == ELPA) then
             write(*,"('  | Method                  : ',A13)") "ELPA"
-         elseif(solver == LIBOMM) then
+         elseif(elsi_h%solver == LIBOMM) then
             write(*,"('  | Method                  : ',A13)") "libOMM"
-         elseif(solver == PEXSI) then
+         elseif(elsi_h%solver == PEXSI) then
             write(*,"('  | Method                  : ',A13)") "PEXSI"
-         elseif(solver == CHESS) then
+         elseif(elsi_h%solver == CHESS) then
             write(*,"('  | Method                  : ',A13)") "CheSS"
-         elseif(solver == SIPS) then
+         elseif(elsi_h%solver == SIPS) then
             write(*,"('  | Method                  : ',A13)") "SIPs"
          endif
          write(*,"('  |-----------------------------------------')")
@@ -163,295 +149,320 @@ end subroutine
 subroutine elsi_get_time(wtime)
 
    implicit none
-   real(kind=dp), intent(out) :: wtime
+
+   real(kind=r8), intent(out) :: wtime
  
-   integer :: tics
+   integer(kind=i4) :: tics
 
    character*40, parameter :: caller = "elsi_get_time"
 
    call system_clock(tics)
 
-   wtime = 1.0_dp*tics/clock_rate
+   wtime = 1.0_r8*tics/clock_rate
 
 end subroutine
 
 !>
 !! This routine starts generalized_evp timer.
 !!
-subroutine elsi_start_generalized_evp_time()
+subroutine elsi_start_generalized_evp_time(elsi_h)
 
    implicit none
 
+   type(elsi_handle), intent(inout) :: elsi_h
+
    character*40, parameter :: caller = "elsi_start_generalized_evp_time"
    
-   call elsi_get_time(t_generalized_evp_start)
+   call elsi_get_time(elsi_h%t_generalized_evp_start)
 
 end subroutine
 
 !>
 !! This routine ends generalized_evp timer.
 !!
-subroutine elsi_stop_generalized_evp_time()
+subroutine elsi_stop_generalized_evp_time(elsi_h)
 
    implicit none
 
-   real(kind=dp) :: stop_time
+   type(elsi_handle), intent(inout) :: elsi_h
 
+   real(kind=r8) :: stop_time
    character*200 :: info_str
    character*40, parameter :: caller = "elsi_stop_generalized_evp_time"
 
    call elsi_get_time(stop_time)
-   t_generalized_evp = stop_time-t_generalized_evp_start
+   elsi_h%t_generalized_evp = stop_time-elsi_h%t_generalized_evp_start
 
-   if(solver == SIPS) then
-      write(info_str,"('  Finished solving generalized eigenproblem')")
-      call elsi_statement_print(info_str)
-      write(info_str,"('  | Time :',F10.3,' s')") t_generalized_evp
-      call elsi_statement_print(info_str)
-   endif
+   write(info_str,"('  Finished solving generalized eigenproblem')")
+   call elsi_statement_print(info_str,elsi_h)
+   write(info_str,"('  | Time :',F10.3,' s')") elsi_h%t_generalized_evp
+   call elsi_statement_print(info_str,elsi_h)
 
 end subroutine
 
 !>
 !! This routine starts density_matrix timer.
 !!
-subroutine elsi_start_density_matrix_time()
+subroutine elsi_start_density_matrix_time(elsi_h)
 
    implicit none
 
-   call elsi_get_time(t_density_matrix_start)
+   type(elsi_handle), intent(inout) :: elsi_h
+
+   character*40, parameter :: caller = "elsi_start_density_matrix_time"
+
+   call elsi_get_time(elsi_h%t_density_matrix_start)
 
 end subroutine
 
 !>
 !! This routine ends density_matrix timer.
 !!
-subroutine elsi_stop_density_matrix_time()
+subroutine elsi_stop_density_matrix_time(elsi_h)
 
    implicit none
 
-   real(kind=dp) :: stop_time
+   type(elsi_handle), intent(inout) :: elsi_h
 
+   real(kind=r8) :: stop_time
    character*200 :: info_str
    character*40, parameter :: caller = "elsi_stop_density_matrix_time"
 
    call elsi_get_time(stop_time)
-   t_density_matrix = stop_time-t_density_matrix_start
+   elsi_h%t_density_matrix = stop_time-elsi_h%t_density_matrix_start
 
    write(info_str,"('  Finished density matrix calculation')")
-   call elsi_statement_print(info_str)
-   write(info_str,"('  | Time :',F10.3,' s')") t_density_matrix
-   call elsi_statement_print(info_str)
+   call elsi_statement_print(info_str,elsi_h)
+   write(info_str,"('  | Time :',F10.3,' s')") elsi_h%t_density_matrix
+   call elsi_statement_print(info_str,elsi_h)
 
 end subroutine
 
 !>
 !! This routine starts redistribution timer.
 !!
-subroutine elsi_start_redistribution_time()
+subroutine elsi_start_redistribution_time(elsi_h)
 
    implicit none
 
+   type(elsi_handle), intent(inout) :: elsi_h
+
    character*40, parameter :: caller = "elsi_start_redistribution_time"
    
-   call elsi_get_time(t_redistribution_start)
+   call elsi_get_time(elsi_h%t_redistribution_start)
 
 end subroutine
 
 !>
 !! This routine ends redistribution timer.
 !!
-subroutine elsi_stop_redistribution_time()
+subroutine elsi_stop_redistribution_time(elsi_h)
 
    implicit none
 
-   real(kind=dp) :: stop_time
+   type(elsi_handle), intent(inout) :: elsi_h
 
+   real(kind=r8) :: stop_time
    character*200 :: info_str
    character*40, parameter :: caller = "elsi_stop_redistribution_time"
 
    call elsi_get_time(stop_time)
-   t_redistribution = stop_time-t_redistribution_start
+   elsi_h%t_redistribution = stop_time-elsi_h%t_redistribution_start
 
    write(info_str,"('  Finished matrix redistribution')")
-   call elsi_statement_print(info_str)
-   write(info_str,"('  | Time :',F10.3,' s')") t_redistribution
-   call elsi_statement_print(info_str)
+   call elsi_statement_print(info_str,elsi_h)
+   write(info_str,"('  | Time :',F10.3,' s')") elsi_h%t_redistribution
+   call elsi_statement_print(info_str,elsi_h)
 
 end subroutine
 
 !>
 !! This routine starts transform_evp timer.
 !!
-subroutine elsi_start_transform_evp_time()
+subroutine elsi_start_transform_evp_time(elsi_h)
 
    implicit none
 
+   type(elsi_handle), intent(inout) :: elsi_h
+
    character*40, parameter :: caller = "elsi_start_transform_evp_time"
 
-   call elsi_get_time(t_transform_evp_start)
+   call elsi_get_time(elsi_h%t_transform_evp_start)
 
 end subroutine
 
 !>
 !! This routine ends transform_evp timer.
 !!
-subroutine elsi_stop_transform_evp_time()
+subroutine elsi_stop_transform_evp_time(elsi_h)
 
    implicit none
 
-   real(kind=dp) :: stop_time
+   type(elsi_handle), intent(inout) :: elsi_h
 
+   real(kind=r8) :: stop_time
    character*200 :: info_str
    character*40, parameter :: caller = "elsi_stop_transform_evp_time"
 
    call elsi_get_time(stop_time)
-   t_transform_evp = stop_time-t_transform_evp_start
+   elsi_h%t_transform_evp = stop_time-elsi_h%t_transform_evp_start
 
    write(info_str,"('  Finished transformation to standard eigenproblem')")
-   call elsi_statement_print(info_str)
-   write(info_str,"('  | Time :',F10.3,' s')") t_transform_evp
-   call elsi_statement_print(info_str)
+   call elsi_statement_print(info_str,elsi_h)
+   write(info_str,"('  | Time :',F10.3,' s')") elsi_h%t_transform_evp
+   call elsi_statement_print(info_str,elsi_h)
 
 end subroutine
 
 !>
 !! This routine starts back_transform_ev timer.
 !!
-subroutine elsi_start_back_transform_ev_time()
+subroutine elsi_start_back_transform_ev_time(elsi_h)
 
    implicit none
 
+   type(elsi_handle), intent(inout) :: elsi_h
+
    character*40, parameter :: caller = "elsi_start_back_transform_ev_time"
 
-   call elsi_get_time(t_back_transform_ev_start)
+   call elsi_get_time(elsi_h%t_back_transform_ev_start)
 
 end subroutine
 
 !>
 !! This routine ends back_transform_ev timer.
 !!
-subroutine elsi_stop_back_transform_ev_time()
+subroutine elsi_stop_back_transform_ev_time(elsi_h)
 
    implicit none
 
-   real(kind=dp) :: stop_time
+   type(elsi_handle), intent(inout) :: elsi_h
 
+   real(kind=r8) :: stop_time
    character*200 :: info_str
    character*40, parameter :: caller = "elsi_stop_back_transform_ev_time"
 
    call elsi_get_time(stop_time)
-   t_back_transform_ev = stop_time-t_back_transform_ev_start
+   elsi_h%t_back_transform_ev = stop_time-elsi_h%t_back_transform_ev_start
 
    write(info_str,"('  Finished back-transformation of eigenvectors')")
-   call elsi_statement_print(info_str)
-   write(info_str,"('  | Time :',F10.3,' s')") t_back_transform_ev
-   call elsi_statement_print(info_str)
+   call elsi_statement_print(info_str,elsi_h)
+   write(info_str,"('  | Time :',F10.3,' s')") elsi_h%t_back_transform_ev
+   call elsi_statement_print(info_str,elsi_h)
 
 end subroutine
 
 !>
 !! This routine starts singularity_check timer.
 !!
-subroutine elsi_start_singularity_check_time()
+subroutine elsi_start_singularity_check_time(elsi_h)
 
    implicit none
 
+   type(elsi_handle), intent(inout) :: elsi_h
+
    character*40, parameter :: caller = "elsi_start_singularity_check_time"
 
-   call elsi_get_time(t_singularity_check_start)
+   call elsi_get_time(elsi_h%t_singularity_check_start)
 
 end subroutine
 
 !>
 !! This routine ends singularity_check timer.
 !!
-subroutine elsi_stop_singularity_check_time()
+subroutine elsi_stop_singularity_check_time(elsi_h)
 
    implicit none
 
-   real(kind=dp) :: stop_time
+   type(elsi_handle), intent(inout) :: elsi_h
 
+   real(kind=r8) :: stop_time
    character*200 :: info_str
    character*40, parameter :: caller = "elsi_stop_singularity_check_time"
 
    call elsi_get_time(stop_time)
-   t_singularity_check = stop_time-t_singularity_check_start
+   elsi_h%t_singularity_check = stop_time-elsi_h%t_singularity_check_start
 
    write(info_str,"('  Finished singularity check of overlap matrix')")
-   call elsi_statement_print(info_str)
-   write(info_str,"('  | Time :',F10.3,' s')") t_singularity_check
-   call elsi_statement_print(info_str)
+   call elsi_statement_print(info_str,elsi_h)
+   write(info_str,"('  | Time :',F10.3,' s')") elsi_h%t_singularity_check
+   call elsi_statement_print(info_str,elsi_h)
 
 end subroutine
 
 !>
 !! This routine starts standard_evp timer.
 !!
-subroutine elsi_start_standard_evp_time()
+subroutine elsi_start_standard_evp_time(elsi_h)
 
    implicit none
 
+   type(elsi_handle), intent(inout) :: elsi_h
+
    character*40, parameter :: caller = "elsi_start_standard_evp_time"
 
-   call elsi_get_time(t_standard_evp_start)
+   call elsi_get_time(elsi_h%t_standard_evp_start)
 
 end subroutine
 
 !>
 !! This routine ends standard_evp timer.
 !!
-subroutine elsi_stop_standard_evp_time()
+subroutine elsi_stop_standard_evp_time(elsi_h)
 
    implicit none
 
-   real(kind=dp) :: stop_time
+   type(elsi_handle), intent(inout) :: elsi_h
 
+   real(kind=r8) :: stop_time
    character*200 :: info_str
    character*40, parameter :: caller = "elsi_stop_standard_evp_time"
 
    call elsi_get_time(stop_time)
-   t_standard_evp = stop_time-t_standard_evp_start
+   elsi_h%t_standard_evp = stop_time-elsi_h%t_standard_evp_start
 
    write(info_str,"('  Finished solving standard eigenproblem')")
-   call elsi_statement_print(info_str)
-   write(info_str,"('  | Time :',F10.3,' s')") t_standard_evp
-   call elsi_statement_print(info_str)
+   call elsi_statement_print(info_str,elsi_h)
+   write(info_str,"('  | Time :',F10.3,' s')") elsi_h%t_standard_evp
+   call elsi_statement_print(info_str,elsi_h)
 
 end subroutine
 
 !>
 !! This routine starts cholesky timer.
 !!
-subroutine elsi_start_cholesky_time()
+subroutine elsi_start_cholesky_time(elsi_h)
 
    implicit none
 
+   type(elsi_handle), intent(inout) :: elsi_h
+
    character*40, parameter :: caller = "elsi_start_cholesky_time"
 
-   call elsi_get_time(t_cholesky_start)
+   call elsi_get_time(elsi_h%t_cholesky_start)
 
 end subroutine
 
 !>
 !! This routine ends cholesky timer.
 !!
-subroutine elsi_stop_cholesky_time()
+subroutine elsi_stop_cholesky_time(elsi_h)
 
    implicit none
 
-   real(kind=dp) :: stop_time
+   type(elsi_handle), intent(inout) :: elsi_h
 
+   real(kind=r8) :: stop_time
    character*200 :: info_str
    character*40, parameter :: caller = "elsi_stop_cholesky_time"
 
    call elsi_get_time(stop_time)
-   t_cholesky = stop_time-t_cholesky_start
+   elsi_h%t_cholesky = stop_time-elsi_h%t_cholesky_start
 
    write(info_str,"('  Finished Cholesky decomposition')")
-   call elsi_statement_print(info_str)
-   write(info_str,"('  | Time :',F10.3,' s')") t_cholesky
-   call elsi_statement_print(info_str)
+   call elsi_statement_print(info_str,elsi_h)
+   write(info_str,"('  | Time :',F10.3,' s')") elsi_h%t_cholesky
+   call elsi_statement_print(info_str,elsi_h)
 
 end subroutine
 

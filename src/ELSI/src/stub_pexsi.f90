@@ -25,12 +25,14 @@
 ! NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 ! EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-! This module is only compiled when the actual PEXSI is not available, to make
-! the PEXSI part of ELSI compile.
+!>
+!! This module is only compiled when the actual PEXSI is not available,
+!! to make the PEXSI part of ELSI compile.
 
 module f_ppexsi_interface
 
    use iso_c_binding
+   use ELSI_PRECISION, only: r8,i4
 
    implicit none
 
@@ -42,28 +44,28 @@ module f_ppexsi_interface
    public :: f_ppexsi_plan_finalize
 
    type, bind(C) :: f_ppexsi_options
-      real(c_double) :: temperature
-      real(c_double) :: gap
-      real(c_double) :: deltaE
-      integer(c_int) :: numPole
-      integer(c_int) :: isInertiaCount
-      integer(c_int) :: maxPEXSIIter
-      real(c_double) :: muMin0
-      real(c_double) :: muMax0
-      real(c_double) :: mu0
-      real(c_double) :: muInertiaTolerance
-      real(c_double) :: muInertiaExpansion
-      real(c_double) :: muPEXSISafeGuard
-      real(c_double) :: numElectronPEXSITolerance
-      integer(c_int) :: matrixType
-      integer(c_int) :: isSymbolicFactorize
-      integer(c_int) :: isConstructCommPattern
-      integer(c_int) :: ordering
-      integer(c_int) :: rowOrdering
-      integer(c_int) :: npSymbFact
-      integer(c_int) :: symmetric
-      integer(c_int) :: transpose
-      integer(c_int) :: verbosity
+      real(kind=r8)    :: temperature
+      real(kind=r8)    :: gap
+      real(kind=r8)    :: deltaE
+      integer(kind=i4) :: numPole
+      integer(kind=i4) :: isInertiaCount
+      integer(kind=i4) :: maxPEXSIIter
+      real(kind=r8)    :: muMin0
+      real(kind=r8)    :: muMax0
+      real(kind=r8)    :: mu0
+      real(kind=r8)    :: muInertiaTolerance
+      real(kind=r8)    :: muInertiaExpansion
+      real(kind=r8)    :: muPEXSISafeGuard
+      real(kind=r8)    :: numElectronPEXSITolerance
+      integer(kind=i4) :: matrixType
+      integer(kind=i4) :: isSymbolicFactorize
+      integer(kind=i4) :: isConstructCommPattern
+      integer(kind=i4) :: ordering
+      integer(kind=i4) :: rowOrdering
+      integer(kind=i4) :: npSymbFact
+      integer(kind=i4) :: symmetric
+      integer(kind=i4) :: transpose
+      integer(kind=i4) :: verbosity
    end type f_ppexsi_options
 
 contains
@@ -84,10 +86,10 @@ function f_ppexsi_plan_initialize(fcomm,numProcRow,numProcCol,outputFileIndex,in
 
    implicit none
 
-   integer :: fcomm
-   integer(c_int) :: numProcRow, numProcCol,outputFileIndex
-   integer(c_int) :: info
-   integer(c_intptr_t) :: f_ppexsi_plan_initialize
+   integer                  :: fcomm
+   integer(kind=i4)         :: numProcRow,numProcCol,outputFileIndex
+   integer(kind=i4)         :: info
+   integer(kind=c_intptr_t) :: f_ppexsi_plan_initialize
 
    f_ppexsi_plan_initialize = int(0,kind=c_intptr_t)
 
@@ -103,12 +105,12 @@ subroutine f_ppexsi_load_real_hs_matrix(plan,options,nrows,nnz,nnzLocal,&
 
    implicit none
 
-   integer(c_intptr_t) :: plan
-   type(f_ppexsi_options) :: options
-   integer(c_int) :: nrows,nnz,nnzLocal,numColLocal,isSIdentity
-   integer(c_int) :: colptrLocal(*),rowindLocal(*)
-   real(c_double) :: HnzvalLocal(*),SnzvalLocal(*)
-   integer(c_int) :: info
+   integer(kind=c_intptr_t) :: plan
+   type(f_ppexsi_options)   :: options
+   integer(kind=i4)         :: nrows,nnz,nnzLocal,numColLocal,isSIdentity
+   integer(kind=i4)         :: colptrLocal(*),rowindLocal(*)
+   real(kind=r8)            :: HnzvalLocal(*),SnzvalLocal(*)
+   integer(kind=i4)         :: info
 
    write(*,"(A)") " A PEXSI stub routine was called. Check ELSI installation."
    write(*,"(A)") " Exiting..."
@@ -122,13 +124,13 @@ subroutine f_ppexsi_dft_driver(plan,options,numElectronExact,muPEXSI,&
 
    implicit none
 
-   integer(c_intptr_t) :: plan
-   type(f_ppexsi_options) :: options
-   real(c_double) :: numElectronExact
-   real(c_double) :: muPEXSI,numElectronPEXSI
-   real(c_double) :: muMinInertia,muMaxInertia
-   integer(c_int) :: numTotalInertiaIter,numTotalPEXSIIter
-   integer(c_int) :: info
+   integer(kind=c_intptr_t) :: plan
+   type(f_ppexsi_options)   :: options
+   real(kind=r8)            :: numElectronExact
+   real(kind=r8)            :: muPEXSI,numElectronPEXSI
+   real(kind=r8)            :: muMinInertia,muMaxInertia
+   integer(kind=i4)         :: numTotalInertiaIter,numTotalPEXSIIter
+   integer(kind=i4)         :: info
 
    write(*,"(A)") " A PEXSI stub routine was called. Check ELSI installation."
    write(*,"(A)") " Exiting..."
@@ -142,10 +144,10 @@ subroutine f_ppexsi_retrieve_real_dft_matrix(plan,DMnzvalLocal,&
 
    implicit none
 
-   integer(c_intptr_t) :: plan
-   real(c_double) :: DMnzvalLocal(*),EDMnzvalLocal(*),FDMnzvalLocal(*)
-   real(c_double) :: totalEnergyH,totalEnergyS,totalFreeEnergy
-   integer(c_int) :: info
+   integer(kind=c_intptr_t) :: plan
+   real(kind=r8)            :: DMnzvalLocal(*),EDMnzvalLocal(*),FDMnzvalLocal(*)
+   real(kind=r8)            :: totalEnergyH,totalEnergyS,totalFreeEnergy
+   integer(kind=i4)         :: info
 
    write(*,"(A)") " A PEXSI stub routine was called. Check ELSI installation."
    write(*,"(A)") " Exiting..."
@@ -158,8 +160,8 @@ subroutine f_ppexsi_plan_finalize(plan,info)
 
    implicit none
 
-   integer(c_intptr_t) :: plan
-   integer(c_int) :: info
+   integer(kind=c_intptr_t) :: plan
+   integer(kind=i4)         :: info
 
    write(*,"(A)") " A PEXSI stub routine was called. Check ELSI installation."
    write(*,"(A)") " Exiting..."

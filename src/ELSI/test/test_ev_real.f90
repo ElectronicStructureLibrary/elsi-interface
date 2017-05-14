@@ -30,7 +30,7 @@
 !!
 program test_ev_real
 
-   use ELSI_PRECISION, only : dp
+   use ELSI_PRECISION, only: r8,i4
    use ELSI
    use MatrixSwitch ! Only for test matrices generation
 
@@ -43,24 +43,28 @@ program test_ev_real
    character(128) :: arg1
    character(128) :: arg2
 
-   integer :: n_proc,nprow,npcol,myid
-   integer :: mpi_comm_global,mpierr
-   integer :: blk
-   integer :: BLACS_CTXT
-   integer :: n_basis,n_states
-   integer :: matrix_size,supercell(3)
-   integer :: solver
+   integer(kind=i4) :: n_proc,nprow,npcol,myid,myprow,mypcol
+   integer(kind=i4) :: mpi_comm_global,mpierr
+   integer(kind=i4) :: blk
+   integer(kind=i4) :: BLACS_CTXT
+   integer(kind=i4) :: n_basis,n_states
+   integer(kind=i4) :: matrix_size,l_rows,l_cols,supercell(3)
+   integer(kind=i4) :: solver
 
-   real(kind=dp) :: n_electrons,frac_occ,sparsity,orb_r_cut
-   real(kind=dp) :: k_point(3)
-   real(kind=dp) :: e_test,e_ref,e_tol
-   real(kind=dp) :: t1,t2
-   real(kind=dp), allocatable :: e_val(:)
+   real(kind=r8) :: n_electrons,frac_occ,sparsity,orb_r_cut
+   real(kind=r8) :: k_point(3)
+   real(kind=r8) :: e_test,e_ref
+   real(kind=r8) :: t1,t2
+   real(kind=r8), allocatable :: ham(:,:),ovlp(:,:),e_val(:),e_vec(:,:)
 
-   ! VY: Reference value from calculations on Apr 5, 2017.
-   real(kind=dp), parameter :: e_elpa  = -126.817462901838_dp
+   type(matrix)      :: H,S
+   type(elsi_handle) :: elsi_h
 
-   type(matrix) :: H,S,e_vec
+   ! VY: Reference value from calculations on May 7, 2017.
+   real(kind=r8), parameter :: e_elpa = -126.817462901838_r8
+   real(kind=r8), parameter :: e_tol  = 1e-10_r8
+
+   integer(kind=i4), external :: numroc
 
    ! Initialize MPI
    call MPI_Init(mpierr)
@@ -128,7 +132,6 @@ program test_ev_real
    endif
 
    e_ref = e_elpa
-   e_tol = 1e-10_dp
 
    ! Set up square-like processor grid
    do npcol = nint(sqrt(real(n_proc))),2,-1
@@ -137,11 +140,13 @@ program test_ev_real
    nprow = n_proc/npcol
 
    ! Set block size
-   blk = 128
+   blk = 32
 
    ! Set up BLACS
    BLACS_CTXT = mpi_comm_global
    call BLACS_Gridinit(BLACS_CTXT,'r',nprow,npcol)
+   call BLACS_Gridinfo(BLACS_CTXT,nprow,npcol,myprow,mypcol)
+
    call ms_scalapack_setup(mpi_comm_global,nprow,'r',blk,icontxt=BLACS_CTXT)
 
    ! Set parameters
@@ -149,52 +154,74 @@ program test_ev_real
    m_operation = 'lap'
    n_basis = 22
    supercell = (/3,3,3/)
-   orb_r_cut = 0.5_dp
-   k_point(1:3) = (/0.0_dp,0.0_dp,0.0_dp/)
+   orb_r_cut = 0.5_r8
+   k_point(1:3) = (/0.0_r8,0.0_r8,0.0_r8/)
 
    t1 = MPI_Wtime()
 
    ! Generate test matrices
    call tomato_TB(arg1,'silicon',.false.,frac_occ,n_basis,.false.,matrix_size,&
                   supercell,.false.,sparsity,orb_r_cut,n_states,.true.,k_point,&
-                  .true.,0.0_dp,H,S,m_storage,.true.)
+                  .true.,0.0_r8,H,S,m_storage,.true.)
 
    t2 = MPI_Wtime()
 
    if(myid == 0) then
       write(*,'("  Finished test matrices generation")')
       write(*,'("  | Time :",F10.3,"s")') t2-t1
+      write(*,*)
    endif
 
-   ! Initialize ELSI
-   n_electrons = 2.0_dp*n_states
+   l_rows = numroc(matrix_size,blk,myprow,0,nprow)
+   l_cols = numroc(matrix_size,blk,mypcol,0,npcol)
 
-   if(n_proc == 1) then
-      call elsi_init(solver,0,0,matrix_size,n_electrons,n_states)
-   else
-      call elsi_init(solver,1,0,matrix_size,n_electrons,n_states)
-      call elsi_set_mpi(mpi_comm_global)
-      call elsi_set_blacs(BLACS_CTXT,blk)
-   endif
-
-   ! Solve problem
-   call m_allocate(e_vec,matrix_size,matrix_size,m_storage)
+   allocate(ham(l_rows,l_cols))
+   allocate(ovlp(l_rows,l_cols))
+   allocate(e_vec(l_rows,l_cols))
    allocate(e_val(matrix_size))
 
+   ! Initialize ELSI
+   n_electrons = 2.0_r8*n_states
+
+   call elsi_init(elsi_h,solver,1,0,matrix_size,n_electrons,n_states)
+   call elsi_set_mpi(elsi_h,mpi_comm_global)
+   call elsi_set_blacs(elsi_h,BLACS_CTXT,blk)
+
    ! Customize ELSI
-   call elsi_customize(print_detail=.true.)
+   call elsi_customize(elsi_h,print_detail=.true.)
    
+   ham = H%dval
+   ovlp = S%dval
+
    t1 = MPI_Wtime()
 
-   call elsi_ev_real(H%dval,S%dval,e_val,e_vec%dval)
+   ! Solve (pseudo SCF 1)
+   call elsi_ev_real(elsi_h,ham,ovlp,e_val,e_vec)
 
    t2 = MPI_Wtime()
 
-   e_test = 2.0_dp*sum(e_val(1:n_states))
+   if(myid == 0) then
+      write(*,'("  Finished SCF #1")')
+      write(*,'("  | Time :",F10.3,"s")') t2-t1
+      write(*,*)
+   endif
+
+   ham = H%dval
+
+   t1 = MPI_Wtime()
+
+   ! Solve (pseudo SCF 2, with the same H)
+   call elsi_ev_real(elsi_h,ham,ovlp,e_val,e_vec)
+
+   t2 = MPI_Wtime()
+
+   e_test = 2.0_r8*sum(e_val(1:n_states))
 
    if(myid == 0) then
+      write(*,'("  Finished SCF #2")')
+      write(*,'("  | Time :",F10.3,"s")') t2-t1
+      write(*,*)
       write(*,'("  Finished test program")')
-      write(*,'("  | Total computation time :",F10.3,"s")') t2-t1
       write(*,*)
       if(abs(e_test-e_ref) < e_tol) then
          write(*,'("  Passed.")')
@@ -205,11 +232,13 @@ program test_ev_real
    endif
 
    ! Finalize ELSI
-   call elsi_finalize()
+   call elsi_finalize(elsi_h)
 
    call m_deallocate(H)
    call m_deallocate(S)
-   call m_deallocate(e_vec)
+   deallocate(ham)
+   deallocate(ovlp)
+   deallocate(e_vec)
    deallocate(e_val)
 
    call MPI_Finalize(mpierr)

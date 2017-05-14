@@ -25,21 +25,17 @@
 ! NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 ! EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-!> 
-!! This module contains choices for precision of primitives.  Note that changing
-!! values in this module is NOT sufficient to convert the ELSI interface to single 
-!! (or half) precision, as we explicitly use double precision (Sca)LAPACK calls 
-!! throughout the ELSI interface 
+!>
+!! This module provides choices of precisions.
 !!
-
 module ELSI_PRECISION
 
-  use iso_c_binding, only: c_float, c_double, c_int32_t, c_int64_t
+  use iso_c_binding, only: c_float,c_double,c_int32_t,c_int64_t
 
   implicit none
 
-  integer, parameter :: sp = c_float
-  integer, parameter :: dp = c_double
+  integer, parameter :: r4 = c_float
+  integer, parameter :: r8 = c_double
   integer, parameter :: i4 = c_int32_t
   integer, parameter :: i8 = c_int64_t
 

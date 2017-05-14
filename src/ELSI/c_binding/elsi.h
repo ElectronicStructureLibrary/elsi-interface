@@ -27,55 +27,71 @@
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#ifndef ELSI_H_INCLUDED
+#define ELSI_H_INCLUDED
+
 #include <complex.h>
+
+#define DECLARE_HANDLE(name) struct name##__ { int unused; }; \
+                             typedef struct name##__ *name
+
+DECLARE_HANDLE(elsi_handle);
 
 #ifdef __cplusplus
 extern "C"{
 #endif
 
-void c_elsi_init(int solver,
+void c_elsi_init(elsi_handle *handle_c,
+                 int solver,
                  int parallel_mode,
-                 int matrix_format,
+                 int matrix_storage_format,
                  int matrix_size,
-                 double n_electrons_in,
-                 int n_states_in);
+                 double n_electrons,
+                 int n_states);
 
-void c_elsi_set_mpi(int mpi_comm_global_in);
+void c_elsi_set_mpi(elsi_handle handle_c,
+                    int mpi_comm);
 
-void c_elsi_set_blacs(int icontext,
+void c_elsi_set_blacs(elsi_handle handle_c,
+                      int blacs_ctxt,
                       int block_size);
 
-void c_elsi_finalize();
+void c_elsi_finalize(elsi_handle handle_c);
 
-void c_elsi_set_csc(int nnz_g_in,
-                         int nnz_l_in,
-                         int nnz_l_cols_in,
-                         int* row_ind_in,
-                         int* col_ptr_in);
+void c_elsi_set_csc(elsi_handle handle_c,
+                    int nnz,
+                    int nnz_l,
+                    int n_l_cols,
+                    int* row_ind,
+                    int* col_ptr);
 
-void c_elsi_customize(int print_detail,
-                      int unit_overlap,
-                      double numerical_zero,
-                      int no_check_singularity,
-                      double singularity_threshold,
-                      int force_stop_singularity);
+void c_elsi_customize(elsi_handle handle_c,
+                      int print_detail,
+                      int overlap_is_unit,
+                      double zero_threshold,
+                      int no_singularity_check,
+                      double singularity_tolerance,
+                      int stop_singularity);
 
-void c_elsi_customize_mu(int broadening_scheme,
+void c_elsi_customize_mu(elsi_handle handle_c,
+                         int broadening_scheme,
                          double broadening_width,
-                         double mu_accuracy,
+                         double occ_accuracy,
                          int mu_max_steps,
                          double spin_degeneracy);
 
-void c_elsi_customize_omm(int n_elpa_steps_omm,
-                          int omm_method,
+void c_elsi_customize_omm(elsi_handle handle_c,
+                          int n_elpa_steps,
+                          int omm_flavor,
                           double eigen_shift,
                           double omm_tolerance,
                           int use_pspblas,
                           int omm_output);
 
-void c_elsi_customize_pexsi(double temperature,
+void c_elsi_customize_pexsi(elsi_handle handle_c,
+                            double temperature,
                             double gap,
-                            double delta_E,
+                            double delta_e,
                             int n_poles,
                             int n_procs_per_pole,
                             int max_iteration,
@@ -92,30 +108,38 @@ void c_elsi_customize_pexsi(double temperature,
                             int np_symbolic_factorize,
                             int verbosity);
 
-void c_elsi_customize_elpa(int elpa_solver);
+void c_elsi_customize_elpa(elsi_handle handle_c,
+                           int elpa_solver);
 
-void c_elsi_ev_real(double *H_in,
-                    double *S_in,
-                    double *e_val_out,
-                    double *e_vec_out);
+void c_elsi_ev_real(elsi_handle handle_c,
+                    double *H,
+                    double *S,
+                    double *e_val,
+                    double *e_vec);
 
-void c_elsi_ev_complex(double _Complex *H_in,
-                       double _Complex *S_in,
-                       double *e_val_out,
-                       double _Complex *e_vec_out);
+void c_elsi_ev_complex(elsi_handle handle_c,
+                       double _Complex *H,
+                       double _Complex *S,
+                       double *e_val,
+                       double _Complex *e_vec);
 
-double c_elsi_dm_real(double *H_in,
-                      double *S_in,
-                      double *D_out);
+double c_elsi_dm_real(elsi_handle handle_c,
+                      double *H,
+                      double *S,
+                      double *D);
 
-double c_elsi_dm_real_sparse(double *H_in,
-                             double *S_in,
-                             double *D_out);
+double c_elsi_dm_real_sparse(elsi_handle handle_c,
+                             double *H,
+                             double *S,
+                             double *D);
 
-void c_elsi_collect_pexsi(double *mu_out,
-                          double *edm_out,
-                          double *fdm_out);
+void c_elsi_collect_pexsi(elsi_handle handle_c,
+                          double *mu,
+                          double *edm,
+                          double *fdm);
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif

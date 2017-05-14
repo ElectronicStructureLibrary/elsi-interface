@@ -3,7 +3,6 @@
 # More tests can be done by using test_ev_real.x and test_dm_real.x
 
 rm ev_real_elpa.log 2> /dev/null
-rm ev_real_elpa_sp.log 2> /dev/null
 rm dm_real_elpa.log 2> /dev/null
 rm dm_real_libomm.log libOMM.log 2> /dev/null
 rm dm_real_pexsi.log logPEXSI0 2> /dev/null
@@ -14,7 +13,7 @@ echo
 echo "Test program output may be found in $PWD"
 
 echo
-echo -n "Running the 'elsi_ev_real + ELPA (mp)' test"
+echo -n "Running the 'elsi_ev_real + ELPA' test"
 ${MPI_EXEC} -n 4 ./test_ev_real.x ${TOMATO_SEED} 1 > ev_real_elpa.log &
 PID=$!
 while kill -0 $PID 2>/dev/null; do
@@ -32,30 +31,6 @@ else
    tput setaf 10
    echo " PASSED!"
    tput sgr0
-fi
-
-if [ "$ELPA_GPU" != "yes" ]
-then
-   echo
-   echo -n "Running the 'elsi_ev_real + ELPA (sp)' test"
-   ${MPI_EXEC} -n 1 ./test_ev_real.x ${TOMATO_SEED} 1 > ev_real_elpa_sp.log &
-   PID=$!
-   while kill -0 $PID 2>/dev/null; do
-      sleep 1
-      echo -n '.'
-   done
-
-   if (! grep -q "Passed" <./ev_real_elpa_sp.log); then
-      tput setaf 5
-      RED_ALART="true"
-      echo " FAILED!"
-      tput sgr0
-      echo "See `pwd`/ev_real_elpa_sp.log for details."
-   else
-      tput setaf 10
-      echo " PASSED!"
-      tput sgr0
-   fi
 fi
 
 echo

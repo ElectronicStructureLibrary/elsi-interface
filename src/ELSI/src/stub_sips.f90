@@ -30,9 +30,10 @@
 
 module m_qetsc
 
-   use ELSI_PRECISION, only : dp
+   use ELSI_PRECISION, only: r8,i4
 
    implicit none
+   private
 
    public :: init_sips
    public :: finalize_sips
@@ -43,6 +44,7 @@ module m_qetsc
    public :: sips_get_slicing
    public :: sips_solve_evp
    public :: sips_get_eigenvalues
+   public :: sips_get_eigenvectors
 
 contains
 
@@ -70,12 +72,12 @@ subroutine sips_load_ham(global_size,local_size,local_nnz,col_idx,row_ptr,ham_va
 
    implicit none
 
-   integer       :: global_size
-   integer       :: local_size
-   integer       :: local_nnz
-   integer       :: col_idx(local_nnz)
-   integer       :: row_ptr(local_size+1)
-   real(kind=dp) :: ham_val(local_size+1)
+   integer(kind=i4) :: global_size
+   integer(kind=i4) :: local_size
+   integer(kind=i4) :: local_nnz
+   integer(kind=i4) :: col_idx(local_nnz)
+   integer(kind=i4) :: row_ptr(local_size+1)
+   real(kind=r8)    :: ham_val(local_size+1)
 
    write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
    write(*,"(A)") " Exiting..."
@@ -87,12 +89,12 @@ subroutine sips_load_ovlp(global_size,local_size,local_nnz,col_idx,row_ptr,ovlp_
 
    implicit none
 
-   integer       :: global_size
-   integer       :: local_size
-   integer       :: local_nnz
-   integer       :: col_idx(local_nnz)
-   integer       :: row_ptr(local_size+1)
-   real(kind=dp) :: ovlp_val(local_size+1)
+   integer(kind=i4) :: global_size
+   integer(kind=i4) :: local_size
+   integer(kind=i4) :: local_nnz
+   integer(kind=i4) :: col_idx(local_nnz)
+   integer(kind=i4) :: row_ptr(local_size+1)
+   real(kind=r8)    :: ovlp_val(local_size+1)
 
    write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
    write(*,"(A)") " Exiting..."
@@ -104,7 +106,7 @@ subroutine sips_set_evp(eps_type)
 
    implicit none
 
-   integer :: eps_type
+   integer(kind=i4) :: eps_type
 
    write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
    write(*,"(A)") " Exiting..."
@@ -117,15 +119,15 @@ subroutine sips_get_slicing(nsub,subtype,lefttype,interval,buffer,&
 
    implicit none
 
-   integer                 :: nsub
-   real(kind=dp)           :: subs(nsub+1)
-   integer                 :: subtype
-   integer                 :: lefttype
-   real(kind=dp)           :: interval(2)
-   real(kind=dp)           :: buffer
-   real(kind=dp)           :: subbuffer
-   integer                 :: n
-   real(kind=dp), optional :: evals(:)
+   integer(kind=i4)        :: nsub
+   real(kind=r8)           :: subs(nsub+1)
+   integer(kind=i4)        :: subtype
+   integer(kind=i4)        :: lefttype
+   real(kind=r8)           :: interval(2)
+   real(kind=r8)           :: buffer
+   real(kind=r8)           :: subbuffer
+   integer(kind=i4)        :: n
+   real(kind=r8), optional :: evals(:)
 
    write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
    write(*,"(A)") " Exiting..."
@@ -137,10 +139,10 @@ subroutine sips_solve_evp(nreq,nsub,subs,nsolve)
 
    implicit none
 
-   integer       :: nreq
-   integer       :: nsub
-   real(kind=dp) :: subs(nsub)
-   integer       :: nsolve
+   integer(kind=i4) :: nreq
+   integer(kind=i4) :: nsub
+   real(kind=r8)    :: subs(nsub)
+   integer(kind=i4) :: nsolve
 
    write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
    write(*,"(A)") " Exiting..."
@@ -152,8 +154,8 @@ subroutine sips_get_eigenvalues(nreq,eigs)
 
    implicit none
 
-   integer       :: nreq
-   real(kind=dp) :: eigs(nreq)
+   integer(kind=i4) :: nreq
+   real(kind=r8)    :: eigs(nreq)
 
    write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
    write(*,"(A)") " Exiting..."
@@ -165,9 +167,9 @@ subroutine sips_get_eigenvectors(n_basis,idx,evec)
 
    implicit none
 
-   integer       :: n_basis
-   integer       :: idx
-   real(kind=dp) :: evec(n_basis)
+   integer(kind=i4) :: n_basis
+   integer(kind=i4) :: idx
+   real(kind=r8)    :: evec(n_basis)
 
    write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
    write(*,"(A)") " Exiting..."
@@ -179,7 +181,7 @@ subroutine sips_get_interval(interval)
 
    implicit none
 
-   real(kind=dp) :: interval(2)
+   real(kind=r8) :: interval(2)
 
    write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
    write(*,"(A)") " Exiting..."

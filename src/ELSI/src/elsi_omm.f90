@@ -28,17 +28,16 @@
 !>
 !! This module provides interfaces to libOMM.
 !!
-
 module ELSI_OMM
 
    use iso_c_binding
-   use ELSI_PRECISION, only : dp
-   use ELSI_CONSTANTS, only : REAL_VALUES, COMPLEX_VALUES
-   use ELSI_DIMENSIONS
+   use ELSI_PRECISION, only: r8,i4
+   use ELSI_CONSTANTS, only: REAL_VALUES,COMPLEX_VALUES
+   use ELSI_DIMENSIONS, only: elsi_handle
    use ELSI_TIMERS
    use ELSI_UTILS
    use ELPA1
-   use MatrixSwitch
+   use MatrixSwitch, only: m_add,m_deallocate,ms_scalapack_setup,matrix
 
    implicit none
    private
@@ -59,190 +58,207 @@ contains
 !>
 !! This routine interfaces to libOMM.
 !!
-subroutine elsi_solve_evp_omm()
+subroutine elsi_solve_evp_omm(elsi_h)
 
    implicit none
    include "mpif.h"
 
+   type(elsi_handle), intent(inout) :: elsi_h
+
    logical :: success
+   integer(kind=i4) :: mpierr
 
    character*40, parameter :: caller = "elsi_solve_evp_omm"
 
-   if(overlap_is_singular) then
+   if(elsi_h%overlap_is_singular) then
       call elsi_stop(" libOMM cannot treat singular overlap matrix yet."//&
-                     " Exiting...",caller)
+                     " Exiting...",elsi_h,caller)
    endif
 
-   if((omm_flavor /= 0) .and. (omm_flavor /= 2)) then
-      call elsi_stop(" libOMM supports flavor = 0 or 2. Exiting...",caller)
+   ! Move to elsi_check?
+   if((elsi_h%omm_flavor /= 0) .and. (elsi_h%omm_flavor /= 2)) then
+      call elsi_stop(" libOMM supports flavor = 0 or 2. Exiting...",elsi_h,caller)
    endif
 
-   call elsi_start_density_matrix_time()
+   call elsi_start_density_matrix_time(elsi_h)
 
-   if(.not.overlap_is_unit) then
-      if(omm_flavor == 2) then
-         if(n_elsi_calls == 1) then
-            call elsi_start_cholesky_time()
+   if(.not. elsi_h%overlap_is_unit) then
+      if(elsi_h%omm_flavor == 2) then
+         if(elsi_h%n_elsi_calls == 1) then
+            call elsi_start_cholesky_time(elsi_h)
 
             ! Cholesky factorization
-            select case (matrix_data_type)
+            select case (elsi_h%matrix_data_type)
                case (COMPLEX_VALUES)
                   ! Compute S = (U^T)U, U -> S
-                  success = elpa_cholesky_complex_double(n_g_size,ovlp_omm%zval,n_l_rows,&
-                               n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col,.false.)
+                  success = elpa_cholesky_complex_double(elsi_h%n_g_size,elsi_h%ovlp_omm%zval,&
+                               elsi_h%n_l_rows,elsi_h%n_b_rows,elsi_h%n_l_cols,elsi_h%mpi_comm_row,&
+                               elsi_h%mpi_comm_col,.false.)
 
-                  success = elpa_invert_trm_complex_double(n_g_size,ovlp_omm%zval,n_l_rows,&
-                               n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col,.false.)
+                  success = elpa_invert_trm_complex_double(elsi_h%n_g_size,elsi_h%ovlp_omm%zval,&
+                               elsi_h%n_l_rows,elsi_h%n_b_rows,elsi_h%n_l_cols,elsi_h%mpi_comm_row,&
+                               elsi_h%mpi_comm_col,.false.)
 
                case (REAL_VALUES)
                   ! Compute S = (U^T)U, U -> S
-                  success = elpa_cholesky_real_double(n_g_size,ovlp_omm%dval,n_l_rows,&
-                               n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col,.false.)
+                  success = elpa_cholesky_real_double(elsi_h%n_g_size,elsi_h%ovlp_omm%dval,&
+                               elsi_h%n_l_rows,elsi_h%n_b_rows,elsi_h%n_l_cols,elsi_h%mpi_comm_row,&
+                               elsi_h%mpi_comm_col,.false.)
 
-                  success = elpa_invert_trm_real_double(n_g_size,ovlp_omm%dval,n_l_rows,&
-                               n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col,.false.)
+                  success = elpa_invert_trm_real_double(elsi_h%n_g_size,elsi_h%ovlp_omm%dval,&
+                               elsi_h%n_l_rows,elsi_h%n_b_rows,elsi_h%n_l_cols,elsi_h%mpi_comm_row,&
+                               elsi_h%mpi_comm_col,.false.)
 
             end select
 
-            call elsi_stop_cholesky_time()
+            call elsi_stop_cholesky_time(elsi_h)
          endif
 
-         if(n_elsi_calls > n_elpa_steps+1) then
+         if(elsi_h%n_elsi_calls > elsi_h%n_elpa_steps+1) then
             ! Invert one more time
-            select case (matrix_data_type)
+            select case (elsi_h%matrix_data_type)
                case (COMPLEX_VALUES)
-                  success = elpa_invert_trm_complex_double(n_g_size,ovlp_omm%zval,n_l_rows,&
-                               n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col,.false.)
+                  success = elpa_invert_trm_complex_double(elsi_h%n_g_size,elsi_h%ovlp_omm%zval,&
+                               elsi_h%n_l_rows,elsi_h%n_b_rows,elsi_h%n_l_cols,elsi_h%mpi_comm_row,&
+                               elsi_h%mpi_comm_col,.false.)
                case (REAL_VALUES)
-                  success = elpa_invert_trm_real_double(n_g_size,ovlp_omm%dval,n_l_rows,&
-                               n_b_rows,n_l_cols,mpi_comm_row,mpi_comm_col,.false.)
+                  success = elpa_invert_trm_real_double(elsi_h%n_g_size,elsi_h%ovlp_omm%dval,&
+                               elsi_h%n_l_rows,elsi_h%n_b_rows,elsi_h%n_l_cols,elsi_h%mpi_comm_row,&
+                               elsi_h%mpi_comm_col,.false.)
             end select
          endif
       endif ! omm_flavor == 2
    endif ! .not.overlap_is_unit
 
-   if(n_elsi_calls == 1) then
-      coeff_initialized = .false.
+   if(elsi_h%n_elsi_calls == 1) then
+      elsi_h%coeff_initialized = .false.
    else
-      coeff_initialized = .true.
+      elsi_h%coeff_initialized = .true.
    endif
 
-   if(n_elsi_calls == n_elpa_steps+1) then
-      new_overlap = .true.
+   if(elsi_h%n_elsi_calls == elsi_h%n_elpa_steps+1) then
+      elsi_h%new_overlap = .true.
    else
-      new_overlap = .false.
+      elsi_h%new_overlap = .false.
    endif
 
    ! Shift eigenvalue spectrum
-   if(eta .ne. 0.0_dp) then
-      call m_add(ovlp_omm,'N',ham_omm,-eta,1.0_dp,"lap")
+   if(elsi_h%eta .ne. 0.0_r8) then
+      call m_add(elsi_h%ovlp_omm,'N',elsi_h%ham_omm,-elsi_h%eta,1.0_r8,"lap")
    endif
 
    ! Solve the eigenvalue problem
-   call elsi_statement_print("  Starting OMM density matrix solver")
+   call elsi_statement_print("  Starting OMM density matrix solver",elsi_h)
 
-   select case (matrix_data_type)
+   select case (elsi_h%matrix_data_type)
       case (COMPLEX_VALUES)
-         call omm(n_g_size,n_states,ham_omm,ovlp_omm,new_overlap,total_energy,&
-                  den_mat_omm,calc_ed,eta,coeff_omm,coeff_initialized,t_den_mat_omm,&
-                  scale_kinetic,omm_flavor,nk_times_nspin,i_k_spin,min_tol,omm_verbose,&
-                  do_dealloc,"pzdbc","lap")
+         call omm(elsi_h%n_g_size,elsi_h%n_states,elsi_h%ham_omm,elsi_h%ovlp_omm,&
+                  elsi_h%new_overlap,elsi_h%total_energy,elsi_h%den_mat_omm,elsi_h%calc_ed,&
+                  elsi_h%eta,elsi_h%coeff_omm,elsi_h%coeff_initialized,elsi_h%t_den_mat_omm,&
+                  elsi_h%scale_kinetic,elsi_h%omm_flavor,elsi_h%nk_times_nspin,elsi_h%i_k_spin,&
+                  elsi_h%min_tol,elsi_h%omm_verbose,elsi_h%do_dealloc,"pzdbc","lap")
 
       case (REAL_VALUES)
-         if(use_psp) then
-            call omm(n_g_size,n_states,ham_omm,ovlp_omm,new_overlap,total_energy,&
-                     den_mat_omm,calc_ed,eta,coeff_omm,coeff_initialized,t_den_mat_omm,&
-                     scale_kinetic,omm_flavor,nk_times_nspin,i_k_spin,min_tol,&
-                     omm_verbose,do_dealloc,"pddbc","psp")
+         if(elsi_h%use_psp) then
+            call omm(elsi_h%n_g_size,elsi_h%n_states,elsi_h%ham_omm,elsi_h%ovlp_omm,&
+                     elsi_h%new_overlap,elsi_h%total_energy,elsi_h%den_mat_omm,elsi_h%calc_ed,&
+                     elsi_h%eta,elsi_h%coeff_omm,elsi_h%coeff_initialized,elsi_h%t_den_mat_omm,&
+                     elsi_h%scale_kinetic,elsi_h%omm_flavor,elsi_h%nk_times_nspin,elsi_h%i_k_spin,&
+                     elsi_h%min_tol,elsi_h%omm_verbose,elsi_h%do_dealloc,"pddbc","psp")
 
          else
-            call omm(n_g_size,n_states,ham_omm,ovlp_omm,new_overlap,total_energy,&
-                     den_mat_omm,calc_ed,eta,coeff_omm,coeff_initialized,t_den_mat_omm,&
-                     scale_kinetic,omm_flavor,nk_times_nspin,i_k_spin,min_tol,&
-                     omm_verbose,do_dealloc,"pddbc","lap")
+            call omm(elsi_h%n_g_size,elsi_h%n_states,elsi_h%ham_omm,elsi_h%ovlp_omm,&
+                     elsi_h%new_overlap,elsi_h%total_energy,elsi_h%den_mat_omm,elsi_h%calc_ed,&
+                     elsi_h%eta,elsi_h%coeff_omm,elsi_h%coeff_initialized,elsi_h%t_den_mat_omm,&
+                     elsi_h%scale_kinetic,elsi_h%omm_flavor,elsi_h%nk_times_nspin,elsi_h%i_k_spin,&
+                     elsi_h%min_tol,elsi_h%omm_verbose,elsi_h%do_dealloc,"pddbc","lap")
          endif
    end select
 
-   call MPI_Barrier(mpi_comm_global,mpierr)
-   call elsi_stop_density_matrix_time()
+   call MPI_Barrier(elsi_h%mpi_comm,mpierr)
+   call elsi_stop_density_matrix_time(elsi_h)
 
 end subroutine
 
 !> 
 !! Set OMM variables to ELSI default.
 !! 
-subroutine elsi_set_omm_default_options()
+subroutine elsi_set_omm_default_options(elsi_h)
    
    implicit none
-   
+
+   type(elsi_handle), intent(inout) :: elsi_h
+
    character*40, parameter :: caller = "elsi_set_omm_default_options"
 
    !< How many steps of ELPA to run before OMM
-   n_elpa_steps = 3
+   elsi_h%n_elpa_steps = 3
 
    !< How do we perform the calculation
    !! 0 = Basic
    !! 1 = Cholesky factorisation of S requested
    !! 2 = Cholesky already performed, U is provided in S
    !! 3 = Use preconditioning based on the energy density
-   omm_flavor = 2
+   elsi_h%omm_flavor = 2
 
    !< How to scale the kinetic energy matrix
-   scale_kinetic = 5.0_dp
+   elsi_h%scale_kinetic = 5.0_r8
 
    !< Calculate the energy density matrix
-   calc_ed = .false.
+   elsi_h%calc_ed = .false.
 
    !< Eigenspectrum shift parameter
-   eta = 0.0_dp
+   elsi_h%eta = 0.0_r8
 
    !< Tolerance for minimization
-   min_tol = 1.0e-9_dp
+   elsi_h%min_tol = 1.0e-9_r8
 
    !< n_k_points * n_spin
-   nk_times_nspin = 1
+   elsi_h%nk_times_nspin = 1
 
    !< Combined k_point spin index
-   i_k_spin = 1
+   elsi_h%i_k_spin = 1
 
    !< Output level?
-   omm_verbose = .true.
+   elsi_h%omm_verbose = .true.
 
    !< Deallocate temporary arrays?
-   do_dealloc = .false.
+   elsi_h%do_dealloc = .false.
 
    !< Use pspBLAS sparse linear algebra?
-   use_psp = .false.
+   elsi_h%use_psp = .false.
       
 end subroutine
 
 !>
 !! Print OMM settings.
 !!          
-subroutine elsi_print_omm_options()
+subroutine elsi_print_omm_options(elsi_h)
 
    implicit none
+
+   type(elsi_handle), intent(in) :: elsi_h
 
    character*200 :: info_str
    character*40, parameter :: caller = "elsi_print_omm_options"
 
    write(info_str,"(A)") "  libOMM settings (in the same unit of Hamiltonian):"
-   call elsi_statement_print(info_str)
+   call elsi_statement_print(info_str,elsi_h)
 
-   write(info_str,"(1X,' | ELPA steps before using libOMM ',I2)") n_elpa_steps
-   call elsi_statement_print(info_str)
+   write(info_str,"(1X,' | ELPA steps before using libOMM ',I2)") elsi_h%n_elpa_steps
+   call elsi_statement_print(info_str,elsi_h)
 
-   write(info_str,"(1X,' | OMM flavor ',I2)") omm_flavor
-   call elsi_statement_print(info_str)
+   write(info_str,"(1X,' | OMM flavor ',I2)") elsi_h%omm_flavor
+   call elsi_statement_print(info_str,elsi_h)
 
-   write(info_str,"(1X,' | Eigenspectrum shift parameter ',F10.4)") eta
-   call elsi_statement_print(info_str)
+   write(info_str,"(1X,' | Eigenspectrum shift parameter ',F10.4)") elsi_h%eta
+   call elsi_statement_print(info_str,elsi_h)
 
-   write(info_str,"(1X,' | Tolerance of OMM minimization ',E10.1)") min_tol
-   call elsi_statement_print(info_str)
+   write(info_str,"(1X,' | Tolerance of OMM minimization ',E10.1)") elsi_h%min_tol
+   call elsi_statement_print(info_str,elsi_h)
 
-   write(info_str,"(1X,' | Use pspBLAS for sparse linear algebra? ',L1)") use_psp
-   call elsi_statement_print(info_str)
+   write(info_str,"(1X,' | Use pspBLAS for sparse linear algebra? ',L1)") elsi_h%use_psp
+   call elsi_statement_print(info_str,elsi_h)
 
 end subroutine
 
@@ -252,33 +268,33 @@ end subroutine
 subroutine ms_scalapack_setup_no_opt(mpi_comm,nprow,order,bs_def,bs_list_present,&
                                      bs_list,icontxt_present,icontxt)
 
-  implicit none
+   implicit none
 
-  character(1), intent(in) :: order 
-  integer, intent(in)      :: mpi_comm
-  integer, intent(in)      :: nprow 
-  integer, intent(in)      :: bs_def 
-  logical, intent(in)      :: bs_list_present
-  integer, intent(in)      :: bs_list(:)
-  logical, intent(in)      :: icontxt_present
-  integer, intent(in)      :: icontxt
+   character(1),     intent(in) :: order
+   integer(kind=i4), intent(in) :: mpi_comm
+   integer(kind=i4), intent(in) :: nprow
+   integer(kind=i4), intent(in) :: bs_def
+   logical,          intent(in) :: bs_list_present
+   integer(kind=i4), intent(in) :: bs_list(:)
+   logical,          intent(in) :: icontxt_present
+   integer(kind=i4), intent(in) :: icontxt
 
-  character*40, parameter :: caller = "ms_scalapack_setup_no_opt"
+   character*40, parameter :: caller = "ms_scalapack_setup_no_opt"
 
-  if(bs_list_present) then
-     if(icontxt_present) then
-        call ms_scalapack_setup(mpi_comm,nprow,order,bs_def,&
-                                bs_list=bs_list,icontxt=icontxt)
-     else
-        call ms_scalapack_setup(mpi_comm,nprow,order,bs_def,bs_list=bs_list)
-     endif
-  else
-     if(icontxt_present) then
-        call ms_scalapack_setup(mpi_comm,nprow,order,bs_def,icontxt=icontxt)
-     else
-        call ms_scalapack_setup(mpi_comm,nprow,order,bs_def)
-     endif
-  endif
+   if(bs_list_present) then
+      if(icontxt_present) then
+         call ms_scalapack_setup(mpi_comm,nprow,order,bs_def,&
+                                 bs_list=bs_list,icontxt=icontxt)
+      else
+         call ms_scalapack_setup(mpi_comm,nprow,order,bs_def,bs_list=bs_list)
+      endif
+   else
+      if(icontxt_present) then
+         call ms_scalapack_setup(mpi_comm,nprow,order,bs_def,icontxt=icontxt)
+      else
+         call ms_scalapack_setup(mpi_comm,nprow,order,bs_def)
+      endif
+   endif
 
 end subroutine
 
@@ -294,53 +310,53 @@ subroutine tomato_TB_get_dims(template_basedir,system_label,&
                               n_rows_H, n_cols_H, n_rows_S, n_cols_S,&
                               m_storage, build_matrix)
 
-  implicit none
+   implicit none
 
-  character(5),  intent(in)    :: m_storage
-  character(*),  intent(in)    :: template_basedir
-  character(*),  intent(in)    :: system_label
-  logical,       intent(in)    :: switch1
-  logical,       intent(in)    :: switch2
-  logical,       intent(in)    :: switch3
-  logical,       intent(in)    :: gamma_point
-  logical,       intent(in)    :: build_matrix
-  logical,       intent(in)    :: defect
-  real(kind=dp), intent(in)    :: defect_perturbation
-  integer,       intent(out)   :: n_rows_H
-  integer,       intent(out)   :: n_cols_H
-  integer,       intent(out)   :: n_rows_S
-  integer,       intent(out)   :: n_cols_S
-  integer,       intent(out)   :: num_occ_states
-  integer,       intent(inout) :: num_orbs_per_atom
-  integer,       intent(inout) :: num_orbs
-  integer,       intent(inout) :: num_cells_dir(3)
-  real(kind=dp), intent(inout) :: frac_occ
-  real(kind=dp), intent(inout) :: sparsity
-  real(kind=dp), intent(inout) :: orb_r_cut
-  real(kind=dp), intent(inout) :: k_point(3)
+   character(5),     intent(in)    :: m_storage
+   character(*),     intent(in)    :: template_basedir
+   character(*),     intent(in)    :: system_label
+   logical,          intent(in)    :: switch1
+   logical,          intent(in)    :: switch2
+   logical,          intent(in)    :: switch3
+   logical,          intent(in)    :: gamma_point
+   logical,          intent(in)    :: build_matrix
+   logical,          intent(in)    :: defect
+   real(kind=r8),    intent(in)    :: defect_perturbation
+   integer(kind=i4), intent(out)   :: n_rows_H
+   integer(kind=i4), intent(out)   :: n_cols_H
+   integer(kind=i4), intent(out)   :: n_rows_S
+   integer(kind=i4), intent(out)   :: n_cols_S
+   integer(kind=i4), intent(out)   :: num_occ_states
+   integer(kind=i4), intent(inout) :: num_orbs_per_atom
+   integer(kind=i4), intent(inout) :: num_orbs
+   integer(kind=i4), intent(inout) :: num_cells_dir(3)
+   real(kind=r8),    intent(inout) :: frac_occ
+   real(kind=r8),    intent(inout) :: sparsity
+   real(kind=r8),    intent(inout) :: orb_r_cut
+   real(kind=r8),    intent(inout) :: k_point(3)
 
-  type(matrix) :: H
-  type(matrix) :: S
+   type(matrix) :: H
+   type(matrix) :: S
 
-  character*40, parameter :: caller = "tomato_TB_get_dims"
+   character*40, parameter :: caller = "tomato_TB_get_dims"
 
-  call tomato_TB(template_basedir,system_label,&
-                 switch1,frac_occ,num_orbs_per_atom,&
-                 switch2,num_orbs,num_cells_dir,&
-                 switch3,sparsity,orb_r_cut,&
-                 num_occ_states,&
-                 gamma_point,k_point,&
-                 defect,defect_perturbation,&
-                 H,S,m_storage,&
-                 build_matrix)
+   call tomato_TB(template_basedir,system_label,&
+                  switch1,frac_occ,num_orbs_per_atom,&
+                  switch2,num_orbs,num_cells_dir,&
+                  switch3,sparsity,orb_r_cut,&
+                  num_occ_states,&
+                  gamma_point,k_point,&
+                  defect,defect_perturbation,&
+                  H,S,m_storage,&
+                  build_matrix)
 
-  n_rows_H = H%dim1
-  n_cols_H = H%dim2
-  n_rows_S = S%dim1
-  n_cols_S = S%dim2
+   n_rows_H = H%dim1
+   n_cols_H = H%dim2
+   n_rows_S = S%dim1
+   n_cols_S = S%dim2
 
-  call m_deallocate(S)
-  call m_deallocate(H)
+   call m_deallocate(S)
+   call m_deallocate(H)
 
 end subroutine
 
@@ -360,53 +376,53 @@ subroutine tomato_TB_real(template_basedir,system_label,&
                           n_rows_S,n_cols_S,S_dval,&
                           m_storage,build_matrix)
 
-  implicit none
+   implicit none
 
-  character(5),  intent(in)    :: m_storage
-  character(*),  intent(in)    :: template_basedir
-  character(*),  intent(in)    :: system_label
-  logical,       intent(in)    :: switch1
-  logical,       intent(in)    :: switch2
-  logical,       intent(in)    :: switch3
-  logical,       intent(in)    :: gamma_point
-  logical,       intent(in)    :: build_matrix
-  logical,       intent(in)    :: defect
-  real(kind=dp), intent(in)    :: defect_perturbation
-  integer,       intent(in)    :: n_rows_H 
-  integer,       intent(in)    :: n_cols_H
-  integer,       intent(in)    :: n_rows_S
-  integer,       intent(in)    :: n_cols_S
-  integer,       intent(out)   :: num_occ_states
-  real(kind=dp), intent(out)   :: H_dval(n_rows_H,n_cols_H)
-  real(kind=dp), intent(out)   :: S_dval(n_rows_S,n_cols_S)
-  integer,       intent(inout) :: num_orbs_per_atom
-  integer,       intent(inout) :: num_orbs
-  integer,       intent(inout) :: num_cells_dir(3)
-  real(kind=dp), intent(inout) :: frac_occ
-  real(kind=dp), intent(inout) :: sparsity
-  real(kind=dp), intent(inout) :: orb_r_cut
-  real(kind=dp), intent(inout) :: k_point(3)
+   character(5),     intent(in)    :: m_storage
+   character(*),     intent(in)    :: template_basedir
+   character(*),     intent(in)    :: system_label
+   logical,          intent(in)    :: switch1
+   logical,          intent(in)    :: switch2
+   logical,          intent(in)    :: switch3
+   logical,          intent(in)    :: gamma_point
+   logical,          intent(in)    :: build_matrix
+   logical,          intent(in)    :: defect
+   real(kind=r8),    intent(in)    :: defect_perturbation
+   integer(kind=i4), intent(in)    :: n_rows_H 
+   integer(kind=i4), intent(in)    :: n_cols_H
+   integer(kind=i4), intent(in)    :: n_rows_S
+   integer(kind=i4), intent(in)    :: n_cols_S
+   integer(kind=i4), intent(out)   :: num_occ_states
+   real(kind=r8),    intent(out)   :: H_dval(n_rows_H,n_cols_H)
+   real(kind=r8),    intent(out)   :: S_dval(n_rows_S,n_cols_S)
+   integer(kind=i4), intent(inout) :: num_orbs_per_atom
+   integer(kind=i4), intent(inout) :: num_orbs
+   integer(kind=i4), intent(inout) :: num_cells_dir(3)
+   real(kind=r8),    intent(inout) :: frac_occ
+   real(kind=r8),    intent(inout) :: sparsity
+   real(kind=r8),    intent(inout) :: orb_r_cut
+   real(kind=r8),    intent(inout) :: k_point(3)
 
-  type(matrix) :: H
-  type(matrix) :: S
+   type(matrix) :: H
+   type(matrix) :: S
 
-  character*40, parameter :: caller = "tomato_TB_real"
+   character*40, parameter :: caller = "tomato_TB_real"
 
-  call tomato_TB(template_basedir,system_label,&
-                 switch1,frac_occ,num_orbs_per_atom,&
-                 switch2,num_orbs,num_cells_dir,&
-                 switch3,sparsity,orb_r_cut,&
-                 num_occ_states,&
-                 gamma_point,k_point,&
-                 defect,defect_perturbation,&
-                 H,S,m_storage,&
-                 build_matrix)
+   call tomato_TB(template_basedir,system_label,&
+                  switch1,frac_occ,num_orbs_per_atom,&
+                  switch2,num_orbs,num_cells_dir,&
+                  switch3,sparsity,orb_r_cut,&
+                  num_occ_states,&
+                  gamma_point,k_point,&
+                  defect,defect_perturbation,&
+                  H,S,m_storage,&
+                  build_matrix)
 
-  H_dval = H%dval
-  S_dval = S%dval
+   H_dval = H%dval
+   S_dval = S%dval
 
-  call m_deallocate(S)
-  call m_deallocate(H)
+   call m_deallocate(S)
+   call m_deallocate(H)
 
 end subroutine
 

@@ -30,7 +30,7 @@
 !!
 program test_dm_real_sparse
 
-   use ELSI_PRECISION, only : dp
+   use ELSI_PRECISION, only: r8,i4
    use ELSI
 
    implicit none
@@ -39,19 +39,21 @@ program test_dm_real_sparse
 
    character(128) :: arg1
 
-   integer :: n_proc,myid
-   integer :: mpi_comm_global,mpierr
-   integer :: matrix_size
-   integer :: n_states
-   integer :: solver
-   integer :: global_nnz,local_nnz,local_col
-   integer :: n_pexsi_poles
-   integer, allocatable :: row_idx(:),col_ptr(:)
+   integer(kind=i4) :: n_proc,myid
+   integer(kind=i4) :: mpi_comm_global,mpierr
+   integer(kind=i4) :: matrix_size
+   integer(kind=i4) :: n_states
+   integer(kind=i4) :: solver
+   integer(kind=i4) :: global_nnz,local_nnz,local_col
+   integer(kind=i4) :: n_pexsi_poles
+   integer(kind=i4), allocatable :: row_idx(:),col_ptr(:)
 
-   real(kind=dp) :: n_electrons
-   real(kind=dp) :: e_test
-   real(kind=dp) :: t1,t2
-   real(kind=dp), allocatable :: H(:),S(:),D(:)
+   real(kind=r8) :: n_electrons
+   real(kind=r8) :: e_test
+   real(kind=r8) :: t1,t2
+   real(kind=r8), allocatable :: H(:),S(:),D(:)
+
+   type(elsi_handle) :: elsi_h
 
    ! NOTE: The energy computed by PEXSI, e_test, is only accurate if using
    !       enough poles. In this test program, the number of poles is set to
@@ -127,46 +129,46 @@ program test_dm_real_sparse
    if(myid == 0) then
       row_idx = (/1,2,4,6,7,9,1,2,4,6,7,9,3,8,1,2,4,6,7,9,5,10/)
       col_ptr = (/1,7,13,15,21,23/)
-      H = (/  -0.388670241778891_dp,-4.311480451396187e-2_dp,   -0.172349864644966_dp,&
-              -0.412610292189610_dp,   -0.143358918306738_dp,    0.170711531858969_dp,&
-           -4.311480451396187e-2_dp,    0.409475020776789_dp,-3.277717121147698e-2_dp,&
-              -0.143358918306738_dp,-6.487842673409908e-3_dp, 4.623415594693785e-2_dp,&
-               0.819652099421313_dp,    0.140028009400052_dp,   -0.172349864644966_dp,&
-           -3.277717121147698e-2_dp,    0.622390391755544_dp,   -0.170711531858969_dp,&
-           -4.623415594693791e-2_dp,   -0.257530556898739_dp,    0.819652099421314_dp,&
-               0.140028009400052_dp/)
-      S = (/   0.999983934950546_dp, 4.016953945433239e-5_dp,-4.480947479392433e-6_dp,&
-               0.773518727907150_dp,   -0.228105494172661_dp,   -0.444961515210702_dp,&
-            4.016953945433239e-5_dp,    0.999915572079161_dp, 1.859665487610805e-5_dp,&
-              -0.228105494172661_dp,    0.477261561338787_dp,   -0.413062386431313_dp,&
-               0.999999144962076_dp,    0.582454761626444_dp,-4.480947479392433e-6_dp,&
-            1.859665487610805e-5_dp,     1.00000367037239_dp,    0.444961515210702_dp,&
-               0.413062386431313_dp, 1.260959980250462e-2_dp,    0.999999144962076_dp,&
-               0.582454761626444_dp/)
+      H = (/  -0.388670241778891_r8,-4.311480451396187e-2_r8,   -0.172349864644966_r8,&
+              -0.412610292189610_r8,   -0.143358918306738_r8,    0.170711531858969_r8,&
+           -4.311480451396187e-2_r8,    0.409475020776789_r8,-3.277717121147698e-2_r8,&
+              -0.143358918306738_r8,-6.487842673409908e-3_r8, 4.623415594693785e-2_r8,&
+               0.819652099421313_r8,    0.140028009400052_r8,   -0.172349864644966_r8,&
+           -3.277717121147698e-2_r8,    0.622390391755544_r8,   -0.170711531858969_r8,&
+           -4.623415594693791e-2_r8,   -0.257530556898739_r8,    0.819652099421314_r8,&
+               0.140028009400052_r8/)
+      S = (/   0.999983934950546_r8, 4.016953945433239e-5_r8,-4.480947479392433e-6_r8,&
+               0.773518727907150_r8,   -0.228105494172661_r8,   -0.444961515210702_r8,&
+            4.016953945433239e-5_r8,    0.999915572079161_r8, 1.859665487610805e-5_r8,&
+              -0.228105494172661_r8,    0.477261561338787_r8,   -0.413062386431313_r8,&
+               0.999999144962076_r8,    0.582454761626444_r8,-4.480947479392433e-6_r8,&
+            1.859665487610805e-5_r8,     1.00000367037239_r8,    0.444961515210702_r8,&
+               0.413062386431313_r8, 1.260959980250462e-2_r8,    0.999999144962076_r8,&
+               0.582454761626444_r8/)
    elseif(myid == 1) then
       row_idx = (/1,2,4,6,7,9,1,2,4,6,7,9,3,8,1,2,4,6,7,9,5,10/)
       col_ptr = (/1,7,13,15,21,23/)
-      H = (/  -0.412610292189610_dp,   -0.143358918306738_dp,   -0.170711531858969_dp,&
-              -0.388670241778891_dp,-4.311480451396186e-2_dp,    0.172349864644966_dp,&
-              -0.143358918306738_dp,-6.487842673409908e-3_dp,-4.623415594693791e-2_dp,&
-           -4.311480451396186e-2_dp,    0.409475020776790_dp, 3.277717121147693e-2_dp,&
-               0.140028009400052_dp,    0.819652099421313_dp,    0.170711531858969_dp,&
-            4.623415594693785e-2_dp,   -0.257530556898739_dp,    0.172349864644966_dp,&
-            3.277717121147693e-2_dp,    0.622390391755544_dp,    0.140028009400052_dp,&
-               0.819652099421314_dp/)
-      S = (/   0.773518727907150_dp,   -0.228105494172661_dp,    0.444961515210702_dp,&
-               0.999983934950546_dp, 4.016953945417670e-5_dp, 4.480947479398607e-6_dp,&
-              -0.228105494172661_dp,    0.477261561338787_dp,    0.413062386431313_dp,&
-            4.016953945417670e-5_dp,    0.999915572079161_dp,-1.859665487617809e-5_dp,&
-               0.582454761626444_dp,    0.999999144962076_dp,   -0.444961515210702_dp,&
-              -0.413062386431313_dp, 1.260959980250462e-2_dp, 4.480947479398607e-6_dp,&
-           -1.859665487617809e-5_dp,     1.00000367037239_dp,    0.582454761626444_dp,&
-               0.999999144962076_dp/)
+      H = (/  -0.412610292189610_r8,   -0.143358918306738_r8,   -0.170711531858969_r8,&
+              -0.388670241778891_r8,-4.311480451396186e-2_r8,    0.172349864644966_r8,&
+              -0.143358918306738_r8,-6.487842673409908e-3_r8,-4.623415594693791e-2_r8,&
+           -4.311480451396186e-2_r8,    0.409475020776790_r8, 3.277717121147693e-2_r8,&
+               0.140028009400052_r8,    0.819652099421313_r8,    0.170711531858969_r8,&
+            4.623415594693785e-2_r8,   -0.257530556898739_r8,    0.172349864644966_r8,&
+            3.277717121147693e-2_r8,    0.622390391755544_r8,    0.140028009400052_r8,&
+               0.819652099421314_r8/)
+      S = (/   0.773518727907150_r8,   -0.228105494172661_r8,    0.444961515210702_r8,&
+               0.999983934950546_r8, 4.016953945417670e-5_r8, 4.480947479398607e-6_r8,&
+              -0.228105494172661_r8,    0.477261561338787_r8,    0.413062386431313_r8,&
+            4.016953945417670e-5_r8,    0.999915572079161_r8,-1.859665487617809e-5_r8,&
+               0.582454761626444_r8,    0.999999144962076_r8,   -0.444961515210702_r8,&
+              -0.413062386431313_r8, 1.260959980250462e-2_r8, 4.480947479398607e-6_r8,&
+           -1.859665487617809e-5_r8,     1.00000367037239_r8,    0.582454761626444_r8,&
+               0.999999144962076_r8/)
    else
       row_idx = 0
       col_ptr = 0
-      H = 0.0_dp
-      S = 0.0_dp
+      H = 0.0_r8
+      S = 0.0_r8
    endif
 
    if(myid == 0) then
@@ -175,30 +177,31 @@ program test_dm_real_sparse
 
    ! Initialize ELSI
    matrix_size = 10
-   n_electrons = 2.0_dp
+   n_electrons = 2.0_r8
    n_states = 1
    n_pexsi_poles = n_proc/2
 
-   call elsi_init(solver,1,1,matrix_size,n_electrons,n_states)
-   call elsi_set_mpi(mpi_comm_global)
-   call elsi_set_csc(global_nnz,local_nnz,local_col,row_idx,col_ptr)
+   call elsi_init(elsi_h,solver,1,1,matrix_size,n_electrons,n_states)
+   call elsi_set_mpi(elsi_h,mpi_comm_global)
+   call elsi_set_csc(elsi_h,global_nnz,local_nnz,local_col,row_idx,col_ptr)
 
    ! Only 2 PEXSI poles for quick test
-   call elsi_customize_pexsi(temperature=4e-4_dp,&
+   call elsi_customize_pexsi(elsi_h,&
+                             temperature=4e-4_r8,&
                              n_poles=n_pexsi_poles,&
                              max_iteration=1,&
-                             mu_min=-2.0_dp,&
-                             mu_max=2.0_dp,&
-                             mu_inertia_expansion=1.0_dp,&
-                             n_electron_accuracy=1e-5_dp)
+                             mu_min=-2.0_r8,&
+                             mu_max=2.0_r8,&
+                             mu_inertia_expansion=1.0_r8,&
+                             n_electron_accuracy=1e-5_r8)
 
    ! Customize ELSI
-   call elsi_customize(print_detail=.true.)
+   call elsi_customize(elsi_h,print_detail=.true.)
 
    t1 = MPI_Wtime()
 
    ! Solve problem
-   call elsi_dm_real_sparse(H,S,D,e_test)
+   call elsi_dm_real_sparse(elsi_h,H,S,D,e_test)
 
    t2 = MPI_Wtime()
 
@@ -209,7 +212,7 @@ program test_dm_real_sparse
    endif
 
    ! Finalize ELSI
-   call elsi_finalize()
+   call elsi_finalize(elsi_h)
 
    deallocate(H)
    deallocate(S)

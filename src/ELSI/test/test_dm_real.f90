@@ -30,7 +30,7 @@
 !!
 program test_dm_real
 
-   use ELSI_PRECISION, only : dp
+   use ELSI_PRECISION, only: r8,i4
    use ELSI
    use MatrixSwitch ! Only for test matrices generation
 
@@ -43,28 +43,33 @@ program test_dm_real
    character(128) :: arg1
    character(128) :: arg2
 
-   integer :: n_proc,nprow,npcol,myid
-   integer :: mpi_comm_global,mpierr
-   integer :: blk
-   integer :: BLACS_CTXT
-   integer :: n_basis,n_states
-   integer :: matrix_size,supercell(3)
-   integer :: solver
+   integer(kind=i4) :: n_proc,nprow,npcol,myid,myprow,mypcol
+   integer(kind=i4) :: mpi_comm_global,mpierr
+   integer(kind=i4) :: blk
+   integer(kind=i4) :: BLACS_CTXT
+   integer(kind=i4) :: n_basis,n_states
+   integer(kind=i4) :: matrix_size,l_rows,l_cols,supercell(3)
+   integer(kind=i4) :: solver
 
-   real(kind=dp) :: n_electrons,frac_occ,sparsity,orb_r_cut
-   real(kind=dp) :: k_point(3)
-   real(kind=dp) :: e_test,e_ref,e_tol
-   real(kind=dp) :: t1,t2
+   real(kind=r8) :: n_electrons,frac_occ,sparsity,orb_r_cut
+   real(kind=r8) :: k_point(3)
+   real(kind=r8) :: e_test,e_ref
+   real(kind=r8) :: t1,t2
+   real(kind=r8), allocatable :: ham(:,:),ovlp(:,:),dm(:,:)
 
-   ! VY: Reference values from calculations on Apr 5, 2017.
+   type(matrix)      :: H,S
+   type(elsi_handle) :: elsi_h
+
+   integer(kind=i4), external :: numroc
+
+   ! VY: Reference values from calculations on May 7, 2017.
    !     Note that PEXSI result is incorrect, since only 2 PEXSI
    !     poles are used for this quick test. Accurate result can
    !     be expected with at least 40 poles.
-   real(kind=dp), parameter :: e_elpa  = -126.817462901838_dp
-   real(kind=dp), parameter :: e_omm   = -126.817462499630_dp
-   real(kind=dp), parameter :: e_pexsi = -1885.46836305848_dp
-
-   type(matrix) :: H,S,D
+   real(kind=r8), parameter :: e_elpa  = -126.817462901838_r8
+   real(kind=r8), parameter :: e_omm   = -126.817462901838_r8
+   real(kind=r8), parameter :: e_pexsi = -1885.46836305848_r8
+   real(kind=r8), parameter :: e_tol   = 1.0e-10_r8
 
    ! Initialize MPI
    call MPI_Init(mpierr)
@@ -118,7 +123,6 @@ program test_dm_real
          write(*,*)
          write(*,'("  Now start testing  elsi_dm_real + ELPA")')
          e_ref = e_elpa
-         e_tol = 1.0e-10_dp
       elseif(solver == 2) then
          write(*,'("  This test program performs the following computational steps:")')
          write(*,*)
@@ -127,13 +131,7 @@ program test_dm_real
          write(*,'("  3) Computes the density matrix with orbital minimization method.")')
          write(*,*)
          write(*,'("  Now start testing  elsi_dm_real + libOMM")')
-         ! Note that the energy tolerance for libOMM is larger, due to the
-         ! random initial guess used in the code. In production calculations,
-         ! a much higher accuracy can be obtained by using ELPA eigenvectors
-         ! as the initial guess, or by completing the SCF cycle to make the
-         ! influence of the random initial guess fade away.
          e_ref = e_omm
-         e_tol = 1.0e-6_dp
       else
          write(*,'("  This test program performs the following computational steps:")')
          write(*,*)
@@ -144,7 +142,6 @@ program test_dm_real
          write(*,*)
          write(*,'("  Now start testing  elsi_dm_real + PEXSI")')
          e_ref = e_pexsi
-         e_tol = 1.0e-10_dp
       endif
       write(*,*)
    endif
@@ -156,11 +153,13 @@ program test_dm_real
    nprow = n_proc/npcol
 
    ! Set block size
-   blk = 128
+   blk = 32
 
    ! Set up BLACS
    BLACS_CTXT = mpi_comm_global
    call BLACS_Gridinit(BLACS_CTXT,'r',nprow,npcol)
+   call BLACS_Gridinfo(BLACS_CTXT,nprow,npcol,myprow,mypcol)
+
    call ms_scalapack_setup(mpi_comm_global,nprow,'r',blk,icontxt=BLACS_CTXT)
 
    ! Set parameters
@@ -168,52 +167,72 @@ program test_dm_real
    m_operation = 'lap'
    n_basis = 22
    supercell = (/3,3,3/)
-   orb_r_cut = 0.5_dp
-   k_point(1:3) = (/0.0_dp,0.0_dp,0.0_dp/)
+   orb_r_cut = 0.5_r8
+   k_point(1:3) = (/0.0_r8,0.0_r8,0.0_r8/)
 
    t1 = MPI_Wtime()
 
    ! Generate test matrices
    call tomato_TB(arg1,'silicon',.false.,frac_occ,n_basis,.false.,matrix_size,&
                   supercell,.false.,sparsity,orb_r_cut,n_states,.true.,k_point,&
-                  .true.,0.0_dp,H,S,m_storage,.true.)
+                  .true.,0.0_r8,H,S,m_storage,.true.)
 
    t2 = MPI_Wtime()
 
    if(myid == 0) then
       write(*,'("  Finished test matrices generation")')
       write(*,'("  | Time :",F10.3,"s")') t2-t1
+      write(*,*)
    endif
 
+   l_rows = numroc(matrix_size,blk,myprow,0,nprow)
+   l_cols = numroc(matrix_size,blk,mypcol,0,npcol)
+
+   allocate(ham(l_rows,l_cols))
+   allocate(ovlp(l_rows,l_cols))
+   allocate(dm(l_rows,l_cols))
+
    ! Initialize ELSI
-   n_electrons = 2.0_dp*n_states
+   n_electrons = 2.0_r8*n_states
 
-   call elsi_init(solver,1,0,matrix_size,n_electrons,n_states)
-   call elsi_set_mpi(mpi_comm_global)
-   call elsi_set_blacs(BLACS_CTXT,blk)
-
-   ! Solve problem
-   call m_allocate(D,matrix_size,matrix_size,m_storage)
-
-   ! Disable ELPA if using libOMM
-   if(solver == 2) call elsi_customize_omm(n_elpa_steps_omm=0)
-
-   ! Only 2 PEXSI poles for quick test
-   if(solver == 3) call elsi_customize_pexsi(n_poles=2)
+   call elsi_init(elsi_h,solver,1,0,matrix_size,n_electrons,n_states)
+   call elsi_set_mpi(elsi_h,mpi_comm_global)
+   call elsi_set_blacs(elsi_h,BLACS_CTXT,blk)
 
    ! Customize ELSI
-   call elsi_customize(print_detail=.true.)
-   call elsi_customize(no_check_singularity=.true.)
+   call elsi_customize(elsi_h,print_detail=.true.)
+   call elsi_customize(elsi_h,no_singularity_check=.true.)
+   if(solver == 2) call elsi_customize_omm(elsi_h,n_elpa_steps=1)
+   if(solver == 3) call elsi_customize_pexsi(elsi_h,n_poles=2)
+
+   ham = H%dval
+   ovlp = S%dval
 
    t1 = MPI_Wtime()
 
-   call elsi_dm_real(H%dval,S%dval,D%dval,e_test)
+   ! Solve (pseudo SCF 1)
+   call elsi_dm_real(elsi_h,ham,ovlp,dm,e_test)
+
+   if(myid == 0) then
+      write(*,'("  Finished SCF #1")')
+      write(*,'("  | Time :",F10.3,"s")') t2-t1
+      write(*,*)
+   endif
+
+   ham = H%dval
+
+   t1 = MPI_Wtime()
+
+   ! Solve (pseudo SCF 2, with the same H)
+   call elsi_dm_real(elsi_h,ham,ovlp,dm,e_test)
 
    t2 = MPI_Wtime()
 
    if(myid == 0) then
+      write(*,'("  Finished SCF #2")')
+      write(*,'("  | Time :",F10.3,"s")') t2-t1
+      write(*,*)
       write(*,'("  Finished test program")')
-      write(*,'("  | Total computation time :",F10.3,"s")') t2-t1
       write(*,*)
       if(abs(e_test-e_ref) < e_tol) then
          write(*,'("  Passed.")')
@@ -224,11 +243,13 @@ program test_dm_real
    endif
 
    ! Finalize ELSI
-   call elsi_finalize()
+   call elsi_finalize(elsi_h)
 
    call m_deallocate(H)
    call m_deallocate(S)
-   call m_deallocate(D)
+   deallocate(ham)
+   deallocate(ovlp)
+   deallocate(dm)
 
    call MPI_Finalize(mpierr)
 

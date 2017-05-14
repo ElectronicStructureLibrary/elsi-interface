@@ -30,7 +30,7 @@
 !!
 program test_standard_ev_real
 
-   use ELSI_PRECISION, only : dp
+   use ELSI_PRECISION, only: r8,i4
    use ELSI
 
    implicit none
@@ -41,23 +41,25 @@ program test_standard_ev_real
    character(128) :: arg2
    character(128) :: arg3
 
-   integer :: n_proc,nprow,npcol,myid,myprow,mypcol
-   integer :: mpi_comm_global,mpierr
-   integer :: blk
-   integer :: BLACS_CTXT
-   integer :: sc_desc(9)
-   integer :: info
-   integer :: matrix_size
-   integer :: n_states
-   integer :: solver
-   integer :: local_row,local_col,ldm
-   integer :: n
-   integer, allocatable :: seed(:)
-   integer, external :: numroc
+   integer(kind=i4) :: n_proc,nprow,npcol,myid,myprow,mypcol
+   integer(kind=i4) :: mpi_comm_global,mpierr
+   integer(kind=i4) :: blk
+   integer(kind=i4) :: BLACS_CTXT
+   integer(kind=i4) :: sc_desc(9)
+   integer(kind=i4) :: info
+   integer(kind=i4) :: matrix_size
+   integer(kind=i4) :: n_states
+   integer(kind=i4) :: solver
+   integer(kind=i4) :: local_row,local_col,ldm
+   integer(kind=i4) :: n
+   integer(kind=i4), allocatable :: seed(:)
+   integer(kind=i4), external :: numroc
 
-   real(kind=dp) :: t1,t2
-   real(kind=dp), allocatable :: mat_a(:,:),mat_b(:,:),mat_tmp(:,:),e_vec(:,:)
-   real(kind=dp), allocatable :: e_val(:)
+   real(kind=r8) :: t1,t2
+   real(kind=r8), allocatable :: mat_a(:,:),mat_b(:,:),mat_tmp(:,:),e_vec(:,:)
+   real(kind=r8), allocatable :: e_val(:)
+
+   type(elsi_handle) :: elsi_h
 
    ! Initialize MPI
    call MPI_Init(mpierr)
@@ -164,8 +166,8 @@ program test_standard_ev_real
    ! Symmetrize test matrix
    mat_tmp = mat_a
 
-   call pdtran(matrix_size,matrix_size,1.0_dp,mat_tmp,1,1,&
-               sc_desc,1.0_dp,mat_a,1,1,sc_desc)
+   call pdtran(matrix_size,matrix_size,1.0_r8,mat_tmp,1,1,&
+               sc_desc,1.0_r8,mat_a,1,1,sc_desc)
 
    deallocate(mat_tmp)
 
@@ -174,22 +176,22 @@ program test_standard_ev_real
    endif
 
    ! Initialize ELSI
-   call elsi_init(solver,1,0,matrix_size,0.0_dp,n_states)
-   call elsi_set_mpi(mpi_comm_global)
-   call elsi_set_blacs(BLACS_CTXT,blk)
+   call elsi_init(elsi_h,solver,1,0,matrix_size,0.0_r8,n_states)
+   call elsi_set_mpi(elsi_h,mpi_comm_global)
+   call elsi_set_blacs(elsi_h,BLACS_CTXT,blk)
 
    allocate(mat_b(1,1)) ! Dummy allocation
    allocate(e_vec(local_row,local_col))
    allocate(e_val(matrix_size))
 
    ! Customize ELSI
-   call elsi_customize(print_detail=.true.)
-   call elsi_customize(unit_overlap=.true.)
+   call elsi_customize(elsi_h,print_detail=.true.)
+   call elsi_customize(elsi_h,overlap_is_unit=.true.)
    
    t1 = MPI_Wtime()
 
    ! Solve problem
-   call elsi_ev_real(mat_a,mat_b,e_val,e_vec)
+   call elsi_ev_real(elsi_h,mat_a,mat_b,e_val,e_vec)
 
    t2 = MPI_Wtime()
 
@@ -200,7 +202,7 @@ program test_standard_ev_real
    endif
 
    ! Finalize ELSI
-   call elsi_finalize()
+   call elsi_finalize(elsi_h)
 
    deallocate(mat_a)
    deallocate(mat_b)

@@ -30,7 +30,7 @@
 !!
 program test_generalized_ev_real
 
-   use ELSI_PRECISION, only : dp
+   use ELSI_PRECISION, only: r8,i4
    use ELSI
    use MatrixSwitch ! Only for test matrices generation
 
@@ -43,24 +43,25 @@ program test_generalized_ev_real
    character(128) :: arg1
    character(128) :: arg2
 
-   integer :: n_proc,nprow,npcol,myid
-   integer :: mpi_comm_global,mpierr
-   integer :: blk
-   integer :: BLACS_CTXT
-   integer :: n_basis,n_states
-   integer :: matrix_size,supercell(3)
-   integer :: solver
+   integer(kind=i4) :: n_proc,nprow,npcol,myid
+   integer(kind=i4) :: mpi_comm_global,mpierr
+   integer(kind=i4) :: blk
+   integer(kind=i4) :: BLACS_CTXT
+   integer(kind=i4) :: n_basis,n_states
+   integer(kind=i4) :: matrix_size,supercell(3)
+   integer(kind=i4) :: solver
 
-   real(kind=dp) :: n_electrons,frac_occ,sparsity,orb_r_cut
-   real(kind=dp) :: k_point(3)
-   real(kind=dp) :: e_test,e_ref,e_tol
-   real(kind=dp) :: t1,t2
-   real(kind=dp), allocatable :: e_val(:)
+   real(kind=r8) :: n_electrons,frac_occ,sparsity,orb_r_cut
+   real(kind=r8) :: k_point(3)
+   real(kind=r8) :: e_test,e_ref,e_tol
+   real(kind=r8) :: t1,t2
+   real(kind=r8), allocatable :: e_val(:)
 
    ! VY: Reference value from calculations on Apr 5, 2017.
-   real(kind=dp), parameter :: e_elpa  = -126.817462901838_dp
+   real(kind=r8), parameter :: e_elpa  = -126.817462901838_r8
 
-   type(matrix) :: H,S,e_vec
+   type(matrix)      :: H,S,e_vec
+   type(elsi_handle) :: elsi_h
 
    ! Initialize MPI
    call MPI_Init(mpierr)
@@ -126,7 +127,7 @@ program test_generalized_ev_real
    endif
 
    e_ref = e_elpa
-   e_tol = 1e-10_dp
+   e_tol = 1e-10_r8
 
    ! Set up square-like processor grid
    do npcol = nint(sqrt(real(n_proc))),2,-1
@@ -147,15 +148,15 @@ program test_generalized_ev_real
    m_operation = 'lap'
    n_basis = 22
    supercell = (/3,3,3/)
-   orb_r_cut = 0.5_dp
-   k_point(1:3) = (/0.0_dp,0.0_dp,0.0_dp/)
+   orb_r_cut = 0.5_r8
+   k_point(1:3) = (/0.0_r8,0.0_r8,0.0_r8/)
 
    t1 = MPI_Wtime()
 
    ! Generate test matrices
    call tomato_TB(arg1,'silicon',.false.,frac_occ,n_basis,.false.,matrix_size,&
                   supercell,.false.,sparsity,orb_r_cut,n_states,.true.,k_point,&
-                  .true.,0.0_dp,H,S,m_storage,.true.)
+                  .true.,0.0_r8,H,S,m_storage,.true.)
 
    t2 = MPI_Wtime()
 
@@ -165,14 +166,14 @@ program test_generalized_ev_real
    endif
 
    ! Initialize ELSI
-   n_electrons = 2.0_dp*n_states
+   n_electrons = 2.0_r8*n_states
 
    if(n_proc == 1) then
-      call elsi_init(solver,0,0,matrix_size,n_electrons,n_states)
+      call elsi_init(elsi_h,solver,0,0,matrix_size,n_electrons,n_states)
    else
-      call elsi_init(solver,1,0,matrix_size,n_electrons,n_states)
-      call elsi_set_mpi(mpi_comm_global)
-      call elsi_set_blacs(BLACS_CTXT,blk)
+      call elsi_init(elsi_h,solver,1,0,matrix_size,n_electrons,n_states)
+      call elsi_set_mpi(elsi_h,mpi_comm_global)
+      call elsi_set_blacs(elsi_h,BLACS_CTXT,blk)
    endif
 
    ! Solve problem
@@ -180,16 +181,16 @@ program test_generalized_ev_real
    allocate(e_val(matrix_size))
 
    ! Customize ELSI
-   call elsi_customize(print_detail=.true.)
-   call elsi_customize(no_check_singularity=.true.)
+   call elsi_customize(elsi_h,print_detail=.true.)
+   call elsi_customize(elsi_h,no_singularity_check=.true.)
    
    t1 = MPI_Wtime()
 
-   call elsi_ev_real(H%dval,S%dval,e_val,e_vec%dval)
+   call elsi_ev_real(elsi_h,H%dval,S%dval,e_val,e_vec%dval)
 
    t2 = MPI_Wtime()
 
-   e_test = 2.0_dp*sum(e_val(1:n_states))
+   e_test = 2.0_r8*sum(e_val(1:n_states))
 
    if(myid == 0) then
       write(*,'("  Finished test program")')
@@ -204,7 +205,7 @@ program test_generalized_ev_real
    endif
 
    ! Finalize ELSI
-   call elsi_finalize()
+   call elsi_finalize(elsi_h)
 
    call m_deallocate(H)
    call m_deallocate(S)
