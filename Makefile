@@ -103,7 +103,7 @@ else
   STUBS += stub_sips.o
 endif
 
-.PHONY: all elpa cs omm pexsi elsi install check clean cleanelsi cleanelpa clean_cs cleanomm cleanpexsi
+.PHONY: all elpa cs omm pexsi elsi install check clean cleanelsi cleanelpa cleancs cleanomm cleanpexsi
 
 all: $(ALL_OBJ) cs elsi
 
@@ -180,7 +180,7 @@ check:
 	@echo = ELSI test programs finished. =
 	@echo ================================
 
-clean: $(CLEAN_OBJ) clean_cs cleanelsi
+clean: $(CLEAN_OBJ) cleancs cleanelsi
 
 cleanelsi:
 	@echo ====================
@@ -198,7 +198,7 @@ cleanelpa:
 	@echo ====================
 	cd $(ELPA_DIR) && $(MAKE) -f Makefile.elsi clean
 
-clean_cs:
+cleancs:
 	@echo =================================
 	@echo = Removing check_singularity... =
 	@echo =================================
