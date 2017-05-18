@@ -47,9 +47,9 @@ ELPA_DIR  ?= $(THIS_DIR)/src/ELPA
 ELPA_INC  ?= -I$(INC_DIR)
 ELPA_LIB  ?= -L$(LIB_DIR) -lelpa
 
-CS_DIR  ?= $(THIS_DIR)/src/check_singularity
-CS_INC  ?= -I$(INC_DIR)
-CS_LIB  ?= -L$(LIB_DIR) -lcheck_singularity
+CS_DIR    ?= $(THIS_DIR)/src/check_singularity
+CS_INC    ?= -I$(INC_DIR)
+CS_LIB    ?= -L$(LIB_DIR) -lcheck_singularity
 
 OMM_DIR   ?= $(THIS_DIR)/src/libOMM
 OMM_INC   ?= -I$(INC_DIR)
