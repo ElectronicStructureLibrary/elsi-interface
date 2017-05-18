@@ -105,7 +105,7 @@ subroutine elsi_compute_mu_and_occ(elsi_h,n_electron_in,n_state_in,n_spin_in,n_k
       enddo
    enddo
 
-   ! Determine the upper and lower bounds for chemical potential
+   ! Determine the upper and lower bounds for the chemical potential search
    mu_lower = e_low
 
    if(e_low == e_high) then
@@ -116,15 +116,14 @@ subroutine elsi_compute_mu_and_occ(elsi_h,n_electron_in,n_state_in,n_spin_in,n_k
 
    occ_numbers = 0.0_r8
 
-   ! Compute the difference of number of electrons
+   ! Compute the error in electron count
    call elsi_check_electrons(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
                              mu_lower,diff_ne_lower)
    call elsi_check_electrons(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
                              mu_upper,diff_ne_upper)
 
-   ! If diff_ne_lower*diff_ne_upper > 0, it means that the solution is
-   ! not in this interval.
-   ! Enlarge the interval towards both sides, then recheck the condition.
+   ! If diff_ne_lower*diff_ne_upper > 0, the solution is not in this interval.
+   ! Enlarge the interval towards both sides, then recheck.
    n_steps = 0
    do while(diff_ne_lower*diff_ne_upper > 0)
       n_steps = n_steps+1
@@ -143,16 +142,15 @@ subroutine elsi_compute_mu_and_occ(elsi_h,n_electron_in,n_state_in,n_spin_in,n_k
                                 mu_upper,diff_ne_upper)
    enddo
 
-   ! At this point we should have the correct interval for chemical potential.
-   ! Use simple bisection algorithm to find the solution.
+   ! Now the solution should lie in the interval. Use bisection to find it.
    call elsi_find_mu(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
                      mu_lower,mu_upper,mu)
 
 end subroutine
 
 !>
-!! This routine computes the number of electrons using a given chemical potential,
-!! and returns the difference in number of electrons. The occupation numbers will
+!! This routine computes the number of electrons for a given chemical potential,
+!! and returns the error in the number of electrons. The occupation numbers will
 !! be updated as well.
 !!
 subroutine elsi_check_electrons(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
@@ -269,7 +267,7 @@ subroutine elsi_check_electrons(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
 end subroutine
 
 !>
-!! This routine computes the chemical potential using bisection algorithm.
+!! This routine computes the chemical potential using a bisection algorithm.
 !!
 subroutine elsi_find_mu(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
                         mu_lower_in,mu_upper_in,mu_out)
@@ -333,15 +331,15 @@ subroutine elsi_find_mu(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
       endif
    enddo
 
-   ! Special treatment if mu does not reach the required accuracy
+   ! Special treatment if mu cannot reach the required accuracy
    if(.not. found_mu) then
-      ! Use the chemical potential of the right bound
+      ! Use the chemical potential of the right bound...
       call elsi_check_electrons(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
                                 mu_right,diff_right)
 
       mu_out = mu_right
 
-      ! With adjusted occupation numbers
+      ! ...with adjusted occupation numbers
       call elsi_statement_print("  Chemical potential cannot reach the"//&
                                 " required accuracy by bisection method."//&
                                 " The error will be arbitrarily canceled"//&
