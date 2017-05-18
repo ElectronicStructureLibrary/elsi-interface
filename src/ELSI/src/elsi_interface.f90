@@ -85,10 +85,11 @@ contains
 
 !>
 !! This routine initializes ELSI with the solver, parallel mode, matrix storage
-!! format, global matrix size, number of electrons, and number of states.
+!! format, number of basis functions (global size of the Hamiltonian matrix),
+!! number of electrons, and number of states.
 !!
 subroutine elsi_init(elsi_h,solver,parallel_mode,matrix_storage_format,&
-                     matrix_size,n_electrons,n_states)
+                     n_basis,n_electron,n_state)
 
    implicit none
 
@@ -96,26 +97,26 @@ subroutine elsi_init(elsi_h,solver,parallel_mode,matrix_storage_format,&
    integer(kind=i4),  intent(in)  :: solver                !< AUTO,ELPA,LIBOMM,PEXSI,CHESS,SIPS
    integer(kind=i4),  intent(in)  :: parallel_mode         !< SINGLE_PROC,MULTI_PROC
    integer(kind=i4),  intent(in)  :: matrix_storage_format !< BLACS_DENSE,PEXSI_CSC
-   integer(kind=i4),  intent(in)  :: matrix_size           !< Global dimension of matrix
-   real(kind=r8),     intent(in)  :: n_electrons           !< Number of electrons
-   integer(kind=i4),  intent(in)  :: n_states              !< Number of states
+   integer(kind=i4),  intent(in)  :: n_basis               !< Number of basis functions
+   real(kind=r8),     intent(in)  :: n_electron            !< Number of electrons
+   integer(kind=i4),  intent(in)  :: n_state               !< Number of states
 
    character*40, parameter :: caller = "elsi_init"
 
    elsi_h%handle_initialized    = .true.
-   elsi_h%n_g_size              = matrix_size
-   elsi_h%n_nonsingular         = matrix_size
-   elsi_h%n_electrons           = n_electrons
+   elsi_h%n_g_size              = n_basis
+   elsi_h%n_nonsingular         = n_basis
+   elsi_h%n_electrons           = n_electron
    elsi_h%solver                = solver
    elsi_h%matrix_storage_format = matrix_storage_format
    elsi_h%parallel_mode         = parallel_mode
    elsi_h%n_elsi_calls          = 0
 
    if(parallel_mode == SINGLE_PROC) then
-      elsi_h%n_l_rows = matrix_size
-      elsi_h%n_l_cols = matrix_size
-      elsi_h%n_b_rows = matrix_size
-      elsi_h%n_b_cols = matrix_size
+      elsi_h%n_l_rows = n_basis
+      elsi_h%n_l_cols = n_basis
+      elsi_h%n_b_rows = n_basis
+      elsi_h%n_b_cols = n_basis
    endif
 
    if(solver == LIBOMM) then
@@ -124,7 +125,7 @@ subroutine elsi_init(elsi_h,solver,parallel_mode,matrix_storage_format,&
       ! Set libOMM default settings
       call elsi_set_omm_default_options(elsi_h)
    else
-      elsi_h%n_states = n_states
+      elsi_h%n_states = n_state
    endif
 
    if(solver == PEXSI) then
