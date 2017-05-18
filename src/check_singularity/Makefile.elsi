@@ -1,6 +1,6 @@
 # check_singularity Makefile designed for ELSI installer
 # ELSI team
-# Apr 11, 2017
+# May 18, 2017
 
 ifeq ($(strip $(XLF)),yes)
   XLFPP = -WF,
@@ -11,7 +11,9 @@ FPP += $(XLFPP)-DWITH_MPI $(XLFPP)-DUSE_ASSUMED_SIZE $(XLFPP)-DWITH_ONE_SPECIFIC
 
 ifeq ($(strip $(ELPA_GPU)),no)
   ifeq ($(strip $(ELPA2_KERNEL)),GPU)
-    $(info ELPA_GPU must be yes to use ELPA2 GPU kernel.)
+    ifeq ($(strip $(EXTERNAL_ELPA)),yes)
+      $(info ELPA_GPU must be yes to use ELPA2 GPU kernel.)
+    endif
     $(error Incompatible choices for ELPA_GPU and ELPA2_KERNEL.)
   endif
 else
@@ -22,12 +24,14 @@ ifeq ($(strip $(ELPA2_KERNEL)),GPU)
   FPP += $(XLFPP)-DWITH_REAL_GPU_KERNEL $(XLFPP)-DWITH_COMPLEX_GPU_KERNEL
 endif
 ifeq ($(strip $(ELPA2_KERNEL)),Generic)
-  $(info =========================================)
-  $(info = Generic ELPA2 kernel has been chosen. =)
-  $(info = Often, this is a good first step.     =)
-  $(info = But considering the specific computer =)
-  $(info = platform may make a big difference.   =)
-  $(info =========================================)
+  ifeq ($(strip $(EXTERNAL_ELPA)),yes)
+    $(info =========================================)
+    $(info = Generic ELPA2 kernel has been chosen. =)
+    $(info = Often, this is a good first step.     =)
+    $(info = But considering the specific computer =)
+    $(info = platform may make a big difference.   =)
+    $(info =========================================)
+  endif
   ELPA2_KERNELS_O ?= elpa2_kernels_real.o elpa2_kernels_complex.o
   FPP += $(XLFPP)-DWITH_REAL_GENERIC_KERNEL $(XLFPP)-DWITH_COMPLEX_GENERIC_KERNEL
 endif
@@ -89,9 +93,12 @@ ifeq ($(strip $(ELPA2_KERNEL)),AVX2)
 endif
 ifneq ($(strip $(ELPA2_KERNEL)),GPU)
   ifeq ($(strip $(ELPA2_KERNELS_O)),)
-    $(info Please check your choice for ELPA2_KERNEL.)
-    $(info Often, generic kernels and mpi-only may be a good first step,)
-    $(info but considering your specific computer platform may make a big difference.)
+    ifeq ($(strip $(EXTERNAL_ELPA)),yes)
+      $(info Please check your choice for ELPA2_KERNEL.)
+      $(info Often, generic kernels and mpi-only may be a)
+      $(info good first step, but considering your specific)
+      $(info computer platform may make a big difference.)
+    endif
     $(error Invalid choice for ELPA2_KERNEL.)
   endif
 endif
@@ -100,7 +107,9 @@ ifeq ($(strip $(ELPA_OMP)),yes)
   $(error OpenMP: not yet available.)
 else
   ifneq ($(strip $(ELPA_OMP)),no)
-    $(info Please set ELPA_OMP to yes/no.)
+    ifeq ($(strip $(EXTERNAL_ELPA)),yes)
+      $(info Please set ELPA_OMP to yes/no.)
+    endif
     $(error Invalid choice for ELPA_OMP.)
   endif
 endif

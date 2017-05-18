@@ -1,6 +1,6 @@
 # ELPA Makefile designed for ELSI installer
 # ELSI team
-# Apr 11, 2017
+# May 18, 2017
 
 ifeq ($(strip $(XLF)),yes)
   XLFPP = -WF,
@@ -90,8 +90,9 @@ endif
 ifneq ($(strip $(ELPA2_KERNEL)),GPU)
   ifeq ($(strip $(ELPA2_KERNELS_O)),)
     $(info Please check your choice for ELPA2_KERNEL.)
-    $(info Often, generic kernels and mpi-only may be a good first step,)
-    $(info but considering your specific computer platform may make a big difference.)
+    $(info Often, generic kernels and mpi-only may be a)
+    $(info good first step, but considering your specific)
+    $(info computer platform may make a big difference.)
     $(error Invalid choice for ELPA2_KERNEL.)
   endif
 endif

@@ -80,7 +80,6 @@ B) ELPA SPECIFIC ARCHITECTURES
                       #          AVX
                       #          AVX2
                       #          BGQ
-                      #          GPU
 
 ==========================================================================
 C) EXTERNAL LIBRARIES
