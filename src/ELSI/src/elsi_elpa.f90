@@ -501,7 +501,7 @@ subroutine elsi_check_singularity(elsi_h)
                               " Running with a near-singular basis set"//&
                               " may lead to completely wrong numerical"//&
                               " resutls. The calculation stops here,"//&
-                              " because 'force_stop_singularity' is"//&
+                              " because 'stop_singularity' is"//&
                               " set to .true. in elsi_customize."//&
                               " Exiting...",elsi_h,caller)
             endif
@@ -574,7 +574,7 @@ subroutine elsi_check_singularity(elsi_h)
                               " Running with a near-singular basis set"//&
                               " may lead to completely wrong numerical"//&
                               " resutls. The calculation stops here,"//&
-                              " because 'force_stop_singularity' is"//&
+                              " because 'stop_singularity' is"//&
                               " set to .true. in elsi_customize."//&
                               " Exiting...",elsi_h,caller)
             endif
@@ -1158,7 +1158,7 @@ subroutine elsi_check_singularity_sp(elsi_h)
                               " Running with a near-singular basis set"//&
                               " may lead to completely wrong numerical"//&
                               " resutls. The calculation stops here,"//&
-                              " because 'force_stop_singularity' is"//&
+                              " because 'stop_singularity' is"//&
                               " set to .true. in elsi_customize."//&
                               " Exiting...",elsi_h,caller)
             endif
@@ -1229,7 +1229,7 @@ subroutine elsi_check_singularity_sp(elsi_h)
                               " Running with a near-singular basis set"//&
                               " may lead to completely wrong numerical"//&
                               " resutls. The calculation stops here,"//&
-                              " because 'force_stop_singularity' is"//&
+                              " because 'stop_singularity' is"//&
                               " set to .true. in elsi_customize."//&
                               " Exiting...",elsi_h,caller)
             endif

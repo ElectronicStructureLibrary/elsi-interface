@@ -168,7 +168,7 @@ end subroutine
 
 subroutine elsi_customize_py_wrapper(print_detail,unit_overlap,numerical_zero,&
                                     no_check_singularity,singularity_threshold,&
-                                    force_stop_singularity)
+                                    stop_singularity)
 
    use ELSI, only: elsi_customize
 
@@ -180,12 +180,12 @@ subroutine elsi_customize_py_wrapper(print_detail,unit_overlap,numerical_zero,&
    real*8,  intent(in) :: numerical_zero         ! Default:  1d-13
    logical, intent(in) :: no_check_singularity   ! Default:  .false.
    real*8,  intent(in) :: singularity_threshold  ! Default: 1d-5
-   logical, intent(in) :: force_stop_singularity ! Default: .false.
+   logical, intent(in) :: stop_singularity ! Default: .false.
 
 !   logical :: print_detail_f
 !   logical :: unit_overlap_f
 !   logical :: no_check_singularity_f
-!   logical :: force_stop_singularity_f
+!   logical :: stop_singularity_f
 
 !   if(print_detail == 0) then
 !      print_detail_f = .false.
@@ -205,15 +205,15 @@ subroutine elsi_customize_py_wrapper(print_detail,unit_overlap,numerical_zero,&
 !      no_check_singularity_f = .true.
 !   endif
 
-!   if(force_stop_singularity == 0) then
-!      force_stop_singularity_f = .false.
+!   if(stop_singularity == 0) then
+!      stop_singularity_f = .false.
 !   else
-!      force_stop_singularity_f = .true.
+!      stop_singularity_f = .true.
 !   endif
 
    call elsi_customize(print_detail,unit_overlap,numerical_zero,&
                        no_check_singularity,singularity_threshold,&
-                       force_stop_singularity)
+                       stop_singularity)
 
 end subroutine
 
