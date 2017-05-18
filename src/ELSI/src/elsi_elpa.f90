@@ -500,9 +500,9 @@ subroutine elsi_check_singularity(elsi_h)
                               " that a very large basis set is in use."//&
                               " Running with a near-singular basis set"//&
                               " may lead to completely wrong numerical"//&
-                              " resutls. The calculation stops here,"//&
-                              " because 'stop_singularity' is"//&
-                              " set to .true. in elsi_customize."//&
+                              " results. The calculation stops here,"//&
+                              " because 'stop_singularity' is set to"//&
+                              " .true. in elsi_customize."//&
                               " Exiting...",elsi_h,caller)
             endif
 
@@ -573,9 +573,9 @@ subroutine elsi_check_singularity(elsi_h)
                               " that a very large basis set is in use."//&
                               " Running with a near-singular basis set"//&
                               " may lead to completely wrong numerical"//&
-                              " resutls. The calculation stops here,"//&
-                              " because 'stop_singularity' is"//&
-                              " set to .true. in elsi_customize."//&
+                              " results. The calculation stops here,"//&
+                              " because 'stop_singularity' is set to"//&
+                              " .true. in elsi_customize."//&
                               " Exiting...",elsi_h,caller)
             endif
 
@@ -1157,9 +1157,9 @@ subroutine elsi_check_singularity_sp(elsi_h)
                               " that a very large basis set is in use."//&
                               " Running with a near-singular basis set"//&
                               " may lead to completely wrong numerical"//&
-                              " resutls. The calculation stops here,"//&
-                              " because 'stop_singularity' is"//&
-                              " set to .true. in elsi_customize."//&
+                              " results. The calculation stops here,"//&
+                              " because 'stop_singularity' is set to"//&
+                              " .true. in elsi_customize."//&
                               " Exiting...",elsi_h,caller)
             endif
 
@@ -1228,9 +1228,9 @@ subroutine elsi_check_singularity_sp(elsi_h)
                               " that a very large basis set is in use."//&
                               " Running with a near-singular basis set"//&
                               " may lead to completely wrong numerical"//&
-                              " resutls. The calculation stops here,"//&
-                              " because 'stop_singularity' is"//&
-                              " set to .true. in elsi_customize."//&
+                              " results. The calculation stops here,"//&
+                              " because 'stop_singularity' is set to"//&
+                              " .true. in elsi_customize."//&
                               " Exiting...",elsi_h,caller)
             endif
 
