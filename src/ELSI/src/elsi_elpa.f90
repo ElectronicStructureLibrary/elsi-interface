@@ -39,6 +39,7 @@ module ELSI_ELPA
    use ELSI_MU
    use ELPA1
    use ELPA2
+   use CHECK_SINGULARITY, only: elpa_check_singularity_real_double, elpa_check_singularity_complex_double
 
    implicit none
    private

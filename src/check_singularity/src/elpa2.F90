@@ -61,13 +61,13 @@
 
 
 !> \brief Fortran module which provides the routines to use the 2-stage ELPA solver
-module ELPA2
+module ELPA2_cs
 
 ! Version 1.1.2, 2011-02-21
 
-  use elpa_utilities
-  use elpa1, only : elpa_print_times, time_evp_back, time_evp_fwd, time_evp_solve
-  use elpa2_utilities
+  use elpa_utilities_cs
+  use elpa1_cs, only : elpa_print_times, time_evp_back, time_evp_fwd, time_evp_solve
+  use elpa2_utilities_cs
 
   implicit none
 
@@ -79,7 +79,6 @@ module ELPA2
   public :: solve_evp_complex_2stage_double            !< old, deprecated interface: Driver routine for complex double-precision eigenvalue problem. will be deleted at some point
   public :: elpa_solve_evp_real_2stage_double          !< Driver routine for real double-precision 2-stage eigenvalue problem
   public :: elpa_solve_evp_complex_2stage_double       !< Driver routine for complex double-precision 2-stage eigenvalue problem
-
 
 !-------------------------------------------------------------------------------
 !>  \brief solve_evp_real_2stage: Old, deprecated interface for elpa_solve_evp_real_2stage_double
@@ -413,14 +412,14 @@ function solve_evp_real_2stage_single(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
 
 
 #ifdef HAVE_DETAILED_TIMINGS
-   use timings
+   use timings_cs
 #endif
-   use elpa1_utilities, only : gpu_usage_via_environment_variable
-   use elpa1_compute
-   use elpa2_compute
-   use elpa_mpi
-   use cuda_functions
-   use mod_check_for_gpu
+   use elpa1_utilities_cs, only : gpu_usage_via_environment_variable
+   use elpa1_compute_cs
+   use elpa2_compute_cs
+   use elpa_mpi_cs
+   use cuda_functions_cs
+   use mod_check_for_gpu_cs
    use iso_c_binding
 
    implicit none
@@ -708,16 +707,16 @@ end function solve_evp_real_2stage_single
 #endif
 
 #ifdef HAVE_DETAILED_TIMINGS
-    use timings
+    use timings_cs
 #endif
-   use elpa1_utilities, only : gpu_usage_via_environment_variable
+   use elpa1_utilities_cs, only : gpu_usage_via_environment_variable
 
-   use cuda_functions
-   use mod_check_for_gpu
+   use cuda_functions_cs
+   use mod_check_for_gpu_cs
    use iso_c_binding
-   use elpa1_compute
-   use elpa2_compute
-   use elpa_mpi
+   use elpa1_compute_cs
+   use elpa2_compute_cs
+   use elpa_mpi_cs
    implicit none
    logical, intent(in), optional             :: useQR, useGPU
    logical                                   :: useQRActual, useQREnvironment
@@ -1090,15 +1089,15 @@ function solve_evp_complex_2stage_single(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
 
 
 #ifdef HAVE_DETAILED_TIMINGS
-    use timings
+    use timings_cs
 #endif
-    use elpa1_utilities, only : gpu_usage_via_environment_variable
+    use elpa1_utilities_cs, only : gpu_usage_via_environment_variable
 
-    use elpa1_compute
-    use elpa2_compute
-    use elpa_mpi
-    use cuda_functions
-    use mod_check_for_gpu
+    use elpa1_compute_cs
+    use elpa2_compute_cs
+    use elpa_mpi_cs
+    use cuda_functions_cs
+    use mod_check_for_gpu_cs
     use iso_c_binding
 
     implicit none
@@ -1388,15 +1387,15 @@ function solve_evp_complex_2stage_single(na, nev, a, lda, ev, q, ldq, nblk, &
 
 
 #ifdef HAVE_DETAILED_TIMINGS
-   use timings
+   use timings_cs
 #endif
-   use elpa1_utilities, only : gpu_usage_via_environment_variable
+   use elpa1_utilities_cs, only : gpu_usage_via_environment_variable
 
-   use cuda_functions
-   use mod_check_for_gpu
-   use elpa1_compute
-   use elpa2_compute
-   use elpa_mpi
+   use cuda_functions_cs
+   use mod_check_for_gpu_cs
+   use elpa1_compute_cs
+   use elpa2_compute_cs
+   use elpa_mpi_cs
    use iso_c_binding
    implicit none
    logical, intent(in), optional             :: useGPU
@@ -1691,4 +1690,4 @@ end function solve_evp_complex_2stage_single
 
 #endif /* WANT_SINGLE_PRECISION_COMPLEX */
 
-end module ELPA2
+end module ELPA2_cs

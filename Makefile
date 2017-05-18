@@ -47,6 +47,10 @@ ELPA_DIR  ?= $(THIS_DIR)/src/ELPA
 ELPA_INC  ?= -I$(INC_DIR)
 ELPA_LIB  ?= -L$(LIB_DIR) -lelpa
 
+CS_DIR  ?= $(THIS_DIR)/src/check_singularity
+CS_INC  ?= -I$(INC_DIR)
+CS_LIB  ?= -L$(LIB_DIR) -lcheck_singularity
+
 OMM_DIR   ?= $(THIS_DIR)/src/libOMM
 OMM_INC   ?= -I$(INC_DIR)
 OMM_LIB   ?= -L$(LIB_DIR) -lOMM -lMatrixSwitch -lpspblas -ltomato
@@ -84,8 +88,8 @@ endif
 
 export
 
-LIBS = $(ELPA_LIB) $(OMM_LIB)
-INCS = $(ELPA_INC) $(OMM_INC)
+LIBS = $(ELPA_LIB) $(CS_LIB) $(OMM_LIB)
+INCS = $(ELPA_INC) $(CS_LIB) $(OMM_INC)
 
 ifneq ($(strip $(DISABLE_CXX)),yes)
   LIBS += $(PEXSI_LIB)
@@ -99,9 +103,9 @@ else
   STUBS += stub_sips.o
 endif
 
-.PHONY: all elpa omm pexsi elsi install check clean cleanelsi cleanelpa cleanomm cleanpexsi
+.PHONY: all elpa cs omm pexsi elsi install check clean cleanelsi cleanelpa clean_cs cleanomm cleanpexsi
 
-all: $(ALL_OBJ) elsi
+all: $(ALL_OBJ) cs elsi
 
 elpa:
 	@echo ==========================
@@ -113,6 +117,17 @@ elpa:
 	@echo ===================
 	@echo = ELPA installed. =
 	@echo ===================
+
+cs:
+	@echo =======================================
+	@echo = Start building check_singularity... =
+	@echo =======================================
+	mkdir -p $(INC_DIR)
+	mkdir -p $(LIB_DIR)
+	cd $(CS_DIR) && $(MAKE) -f Makefile.elsi install
+	@echo ================================
+	@echo = check_singularity installed. =
+	@echo ================================
 
 omm: $(ELPA_OMM)
 	@echo ============================
@@ -165,7 +180,7 @@ check:
 	@echo = ELSI test programs finished. =
 	@echo ================================
 
-clean: $(CLEAN_OBJ) cleanelsi
+clean: $(CLEAN_OBJ) clean_cs cleanelsi
 
 cleanelsi:
 	@echo ====================
@@ -182,6 +197,13 @@ cleanelpa:
 	@echo = Removing ELPA... =
 	@echo ====================
 	cd $(ELPA_DIR) && $(MAKE) -f Makefile.elsi clean
+
+clean_cs:
+	@echo =================================
+	@echo = Removing check_singularity... =
+	@echo =================================
+	cd $(CS_DIR) && $(MAKE) -f Makefile.elsi clean
+
 
 cleanomm:
 	@echo ======================
