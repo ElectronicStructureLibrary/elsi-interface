@@ -245,7 +245,6 @@ module compute_hh_trafo_complex
 #if defined(WITH_COMPLEX_GENERIC_KERNEL)
 #if defined(WITH_NO_SPECIFIC_COMPLEX_KERNEL)
            if (THIS_COMPLEX_ELPA_KERNEL .eq. COMPLEX_ELPA_KERNEL_GENERIC .or. &
-               THIS_COMPLEX_ELPA_KERNEL .eq. COMPLEX_ELPA_KERNEL_BGP .or. &
                THIS_COMPLEX_ELPA_KERNEL .eq. COMPLEX_ELPA_KERNEL_BGQ ) then
 #endif /* WITH_NO_SPECIFIC_COMPLEX_KERNEL */
              ttt = mpi_wtime()
@@ -553,7 +552,6 @@ module compute_hh_trafo_complex
 #if defined(WITH_COMPLEX_GENERIC_KERNEL)
 #if defined(WITH_NO_SPECIFIC_COMPLEX_KERNEL)
            if (THIS_COMPLEX_ELPA_KERNEL .eq. COMPLEX_ELPA_KERNEL_GENERIC .or. &
-               THIS_COMPLEX_ELPA_KERNEL .eq. COMPLEX_ELPA_KERNEL_BGP .or. &
                THIS_COMPLEX_ELPA_KERNEL .eq. COMPLEX_ELPA_KERNEL_BGQ ) then
 #endif /* WITH_NO_SPECIFIC_COMPLEX_KERNEL */
              ttt = mpi_wtime()

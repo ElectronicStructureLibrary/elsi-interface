@@ -52,12 +52,7 @@
 ! distributed along with the original code in the file "COPYING".
 !
 ! --------------------------------------------------------------------------------------------------
-module real_bgq_kernel_cs
-
-  private
-  public double_hh_trafo_bgq
-contains
-  subroutine double_hh_trafo_bgq(q, hh, nb, nq, ldq, ldh)
+  subroutine double_hh_trafo_bgq_double(q, hh, nb, nq, ldq, ldh)
     use precision_cs
     implicit none
 
@@ -100,7 +95,7 @@ contains
        call hh_trafo_kernel_4_bgq(q(i  ,1), hh, nb, ldq, ldh, s)
     endif
 
-  end subroutine double_hh_trafo_bgq
+  end subroutine double_hh_trafo_bgq_double
 
 
   ! --------------------------------------------------------------------------------------------------
@@ -654,5 +649,4 @@ contains
     call VEC_ST(QPX_q1, 0, q(1,nb+1))
 
   end subroutine hh_trafo_kernel_4_bgq
-end module real_bgq_kernel_cs
 ! --------------------------------------------------------------------------------------------------
