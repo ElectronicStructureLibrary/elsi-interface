@@ -36,10 +36,11 @@ module ELSI_ELPA
    use ELSI_DIMENSIONS, only: elsi_handle
    use ELSI_TIMERS
    use ELSI_UTILS
-   use ELSI_MU
+   use ELSI_MU, only: elsi_compute_mu_and_occ
    use ELPA1
    use ELPA2
-   use CHECK_SINGULARITY, only: elpa_check_singularity_real_double, elpa_check_singularity_complex_double
+   use CHECK_SINGULARITY, only: elpa_check_singularity_real_double,&
+                                elpa_check_singularity_complex_double
 
    implicit none
    private
@@ -90,7 +91,7 @@ subroutine elsi_compute_occ_elpa(elsi_h)
    real(kind=r8), allocatable :: eval_aux(:,:,:)
    real(kind=r8), allocatable :: occ_aux(:,:,:)
 
-   !< Currently this subroutine only supports 1 spin channel and 1 k-point
+   !< 1 spin channel and 1 k-point. More in the future.
    integer(kind=i4), parameter :: n_spin   = 1
    integer(kind=i4), parameter :: n_kpoint = 1
 
@@ -138,7 +139,6 @@ subroutine elsi_compute_dm_elpa(elsi_h)
 
    select case (elsi_h%matrix_data_type)
       case (REAL_VALUES)
-         ! Get eigenvectors into tmp_real
          call elsi_allocate(elsi_h,tmp_real,elsi_h%n_l_rows,elsi_h%n_l_cols,"tmp_real",caller)
          tmp_real = elsi_h%evec_real
 
@@ -162,15 +162,14 @@ subroutine elsi_compute_dm_elpa(elsi_h)
             endif
          enddo
 
-         ! Compute density matrix
          elsi_h%den_mat = 0.0_r8
 
+         ! Compute density matrix
          ! D_elpa = tmp_real*tmp_real^T
          call pdsyrk('U','N',elsi_h%n_g_size,elsi_h%n_states,1.0_r8,tmp_real,&
                      1,1,elsi_h%sc_desc,0.0_r8,elsi_h%den_mat,1,1,elsi_h%sc_desc)
 
       case (COMPLEX_VALUES)
-         ! Get eigenvectors into tmp_complex
          call elsi_allocate(elsi_h,tmp_complex,elsi_h%n_l_rows,elsi_h%n_l_cols,"tmp_complex",caller)
          tmp_complex = elsi_h%evec_complex
 
@@ -194,10 +193,11 @@ subroutine elsi_compute_dm_elpa(elsi_h)
             endif
          enddo
 
-         ! Compute density matrix
          elsi_h%den_mat = 0.0_r8
+
          call elsi_allocate(elsi_h,tmp_real,elsi_h%n_l_rows,elsi_h%n_l_cols,"tmp_real",caller)
 
+         ! Compute density matrix
          call pdsyrk('U','N',elsi_h%n_g_size,elsi_h%n_states,1.0_r8,real(tmp_complex),&
                      1,1,elsi_h%sc_desc,0.0_r8,elsi_h%den_mat,1,1,elsi_h%sc_desc)
          call pdsyrk('U','N',elsi_h%n_g_size,elsi_h%n_states,1.0_r8,aimag(tmp_complex),&
@@ -210,7 +210,7 @@ subroutine elsi_compute_dm_elpa(elsi_h)
    if(allocated(tmp_real))    deallocate(tmp_real)
    if(allocated(tmp_complex)) deallocate(tmp_complex)
 
-   ! Set upper triangle matrix den_mat to full form
+   ! Set full matrix from upper triangle
    call elsi_allocate(elsi_h,tmp_real,elsi_h%n_l_rows,elsi_h%n_l_cols,"tmp_real",caller)
 
    call pdtran(elsi_h%n_g_size,elsi_h%n_g_size,1.0_r8,elsi_h%den_mat,1,1,&
@@ -233,16 +233,15 @@ subroutine elsi_compute_dm_elpa(elsi_h)
 end subroutine
 
 !> 
-!! This routine transforms a generalized eigenvalue problem (Ac = Bcv)
-!! to standard form (A'c' = c'v)
+!! This routine transforms a generalized eigenproblem (Hv = eSv) to
+!! the standard form (H'v' = ev').
 !!
-!! Starting from Hv = eSv, we first perform a Cholesky decomposition of S
-!! S = (U^T)U, resulting in Hv = e(U^T)Uv
+!! First perform a Cholesky decomposition: S = (U^T)U, so that Hv = e(U^T)Uv.
 !!
-!! Using 1=U^-1U we define a new standard eigenvalue problem by
-!! H(U^-1)(Uv) = e(U^T)(Uv) => ((U^-1)^T)H(U^-1)(Uv) = e(Uv)
+!! Then the new standard eigenproblem is
+!! H(U^-1)(Uv) = e(U^T)(Uv) => ((U^-1)^T)H(U^-1)(Uv) = e(Uv).
 !!
-!! On exit, (U^-1) is stored in S, to be used for back-transformation
+!! On exit, (U^-1) is stored in S to be reused later.
 !!
 subroutine elsi_to_standard_evp(elsi_h)
 
@@ -439,7 +438,7 @@ end subroutine
 !!
 !! On exit, S is not modified if not singular, while overwritten by scaled
 !! eigenvectors if singular, which is used to transform the generalized
-!! eigenvalue problem to standard form without using Cholesky.
+!! eigenproblem to the standard form without using Cholesky.
 !!
 subroutine elsi_check_singularity(elsi_h)
 
@@ -500,9 +499,9 @@ subroutine elsi_check_singularity(elsi_h)
                               " that a very large basis set is in use."//&
                               " Running with a near-singular basis set"//&
                               " may lead to completely wrong numerical"//&
-                              " resutls. The calculation stops here,"//&
-                              " because 'stop_singularity' is"//&
-                              " set to .true. in elsi_customize."//&
+                              " results. The calculation stops here,"//&
+                              " because 'stop_singularity' is set to"//&
+                              " .true. in elsi_customize."//&
                               " Exiting...",elsi_h,caller)
             endif
 
@@ -573,9 +572,9 @@ subroutine elsi_check_singularity(elsi_h)
                               " that a very large basis set is in use."//&
                               " Running with a near-singular basis set"//&
                               " may lead to completely wrong numerical"//&
-                              " resutls. The calculation stops here,"//&
-                              " because 'stop_singularity' is"//&
-                              " set to .true. in elsi_customize."//&
+                              " results. The calculation stops here,"//&
+                              " because 'stop_singularity' is set to"//&
+                              " .true. in elsi_customize."//&
                               " Exiting...",elsi_h,caller)
             endif
 
@@ -618,10 +617,8 @@ subroutine elsi_check_singularity(elsi_h)
 end subroutine
 
 !> 
-!! This routine does the back-transformation of the eigenvectors in standard
-!! form (A'c' = c'v) to the original generalized form (Ac = Bcv)
-!!
-!! v = (U^-1)v'
+!! This routine back-transforms eigenvectors in the standard form (H'v' = ev')
+!! to the original generalized form (Hv = eSv), by computing v = (U^-1)v'.
 !!
 subroutine elsi_to_original_ev(elsi_h)
 
@@ -773,16 +770,15 @@ subroutine elsi_solve_evp_elpa(elsi_h)
 end subroutine
 
 !> 
-!! This routine transforms a generalized eigenvalue problem (Ac = Bcv)
-!! to standard form (A'c' = c'v)
+!! This routine transforms a generalized eigenproblem (Hv = eSv) to
+!! the standard form (H'v' = ev').
 !!
-!! Starting from Hv = eSv, we first perform a Cholesky decomposition of S
-!! S = (U^T)U, resulting in Hv = e(U^T)Uv
+!! First perform a Cholesky decomposition: S = (U^T)U, so that Hv = e(U^T)Uv.
 !!
-!! Using 1=U^-1U we define a new standard eigenvalue problem by
-!! H(U^-1)(Uv) = e(U^T)(Uv) => ((U^-1)^T)H(U^-1)(Uv) = e(Uv)
+!! Then the new standard eigenproblem is
+!! H(U^-1)(Uv) = e(U^T)(Uv) => ((U^-1)^T)H(U^-1)(Uv) = e(Uv).
 !!
-!! On exit, (U^-1) is stored in S, to be used for back-transformation
+!! On exit, (U^-1) is stored in S to be reused later.
 !!
 subroutine elsi_to_standard_evp_sp(elsi_h)
 
@@ -938,6 +934,10 @@ subroutine elsi_to_standard_evp_sp(elsi_h)
 
 end subroutine
 
+!> 
+!! This routine back-transforms eigenvectors in the standard form (H'v' = ev')
+!! to the original generalized form (Hv = eSv), by computing v = (U^-1)v'.
+!!
 subroutine elsi_to_original_ev_sp(elsi_h)
 
    implicit none
@@ -1157,9 +1157,9 @@ subroutine elsi_check_singularity_sp(elsi_h)
                               " that a very large basis set is in use."//&
                               " Running with a near-singular basis set"//&
                               " may lead to completely wrong numerical"//&
-                              " resutls. The calculation stops here,"//&
-                              " because 'stop_singularity' is"//&
-                              " set to .true. in elsi_customize."//&
+                              " results. The calculation stops here,"//&
+                              " because 'stop_singularity' is set to"//&
+                              " .true. in elsi_customize."//&
                               " Exiting...",elsi_h,caller)
             endif
 
@@ -1228,9 +1228,9 @@ subroutine elsi_check_singularity_sp(elsi_h)
                               " that a very large basis set is in use."//&
                               " Running with a near-singular basis set"//&
                               " may lead to completely wrong numerical"//&
-                              " resutls. The calculation stops here,"//&
-                              " because 'stop_singularity' is"//&
-                              " set to .true. in elsi_customize."//&
+                              " results. The calculation stops here,"//&
+                              " because 'stop_singularity' is set to"//&
+                              " .true. in elsi_customize."//&
                               " Exiting...",elsi_h,caller)
             endif
 

@@ -360,10 +360,9 @@ subroutine tomato_TB_get_dims(template_basedir,system_label,&
 
 end subroutine
 
-!> Wrapper around tomato_TB for the real case to eliminate the
-!! usage of the type(matrix) data type.
-!! This is needed for interoperability between languages.
-!! There is currently a matrix copy in this subroutine that can
+!> Wrapper around tomato_TB for the real case to eliminate the usage of the
+!! type(matrix) data type. This is needed for interoperability between
+!! languages. There is currently a matrix copy in this subroutine that can
 !! likely be eliminated.
 subroutine tomato_TB_real(template_basedir,system_label,&
                           switch1,frac_occ,num_orbs_per_atom,&

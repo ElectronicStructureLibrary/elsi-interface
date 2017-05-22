@@ -1,3 +1,12 @@
+!************************************************************************!
+!   Copyright (c) 2015-2017, Haizhao Yang                                !
+!   All rights reserved.                                                 !
+!                                                                        !
+!   This file is part of PSP and is under the BSD 2-Clause License,      ! 
+!   which can be found in the LICENSE file in the root directory, or at  !
+!   http://opensource.org/licenses/BSD-2-Clause                          !
+!************************************************************************!
+
 MODULE pspLevel2
   use pspVariable
   use pspUtility
@@ -24,17 +33,11 @@ MODULE pspLevel2
 
   !**** INTERFACES ********************************!
 
-
-
   interface die
      module procedure die
   end interface die
 
-
-
 contains
-
-
 
   subroutine die(message)
     implicit none
@@ -63,6 +66,5 @@ contains
     stop
 
   end subroutine die
-
 
 END MODULE pspLevel2
