@@ -139,6 +139,15 @@
       ! todo: remove
       complex(kind=COMPLEX_DATATYPE)     :: tmp_print(10)
 
+#ifndef WITH_GPU_VERSION
+      a_dev     = 0
+      v_row_dev = 0
+      u_col_dev = 0
+      v_col_dev = 0
+      u_row_dev = 0
+      vu_stored_rows_dev = 0
+      uv_stored_cols_dev = 0
+#endif
       
       call timer%start("tridiag_complex" // PRECISION_SUFFIX)
 
