@@ -84,12 +84,17 @@ module pack_unpack_real_gpu_cs
       ! Issue one single transfer call for all rows (device to host)
 !        rows(:, 1 : row_count) = row_group_dev(:, 1 : row_count)
 
+#ifdef WITH_GPU_VERSION
       successCUDA =  cuda_memcpy( loc(rows(:, 1: row_count)), row_group_dev , row_count * l_nev * size_of_double_real_datatype , &
                                  cudaMemcpyDeviceToHost)
       if (.not.(successCUDA)) then
         print *,"pack_row_group_real_gpu_double: error in cudaMemcpy"
         stop
       endif
+#else
+      successCUDA = .true.
+#endif
+
       !write(*,*) cudaGetErrorString(istat)
 
     end subroutine
@@ -120,12 +125,17 @@ module pack_unpack_real_gpu_cs
        !istat =  cuda_memcpy( row_group_dev , loc(rows(:, 1: row_count)),row_count * l_nev * size_of_double_real_datatype , &
        !      cudaMemcpyHostToDevice)
 
+#ifdef WITH_GPU_VERSION
       successCUDA =  cuda_memcpy( row_group_dev , loc(rows(1, 1)),row_count * l_nev * &
                                  size_of_double_real_datatype ,cudaMemcpyHostToDevice)
       if (.not.(successCUDA)) then
         print *,"unpack_row_group_real_gpu_double: error in cudaMemcpy"
         stop
       endif
+#else
+      successCUDA = .true.
+#endif
+
       !write(*,*) cudaGetErrorString(istat)
 
       ! Use one kernel call to pack the entire row group
@@ -272,12 +282,17 @@ module pack_unpack_real_gpu_cs
       ! Issue one single transfer call for all rows (device to host)
 !        rows(:, 1 : row_count) = row_group_dev(:, 1 : row_count)
 
+#ifdef WITH_GPU_VERSION
       successCUDA =  cuda_memcpy( loc(rows(:, 1: row_count)), row_group_dev , row_count * l_nev * size_of_single_real_datatype , &
                                  cudaMemcpyDeviceToHost)
       if (.not.(successCUDA)) then
         print *,"pack_row_group_real_gpu_single: error in cudaMemcpy"
         stop
       endif
+#else
+      successCUDA = .true.
+#endif
+
       !write(*,*) cudaGetErrorString(istat)
 
     end subroutine
@@ -308,12 +323,17 @@ module pack_unpack_real_gpu_cs
        !istat =  cuda_memcpy( row_group_dev , loc(rows(:, 1: row_count)),row_count * l_nev * size_of_single_real_datatype , &
        !      cudaMemcpyHostToDevice)
 
+#ifdef WITH_GPU_VERSION
       successCUDA =  cuda_memcpy( row_group_dev , loc(rows(1, 1)),row_count * l_nev * &
                                  size_of_single_real_datatype ,cudaMemcpyHostToDevice)
       if (.not.(successCUDA)) then
         print *,"unpack_row_group_real_gpu_single: error in cudaMemcpy"
         stop
       endif
+#else
+      successCUDA = .true.
+#endif
+
       !write(*,*) cudaGetErrorString(istat)
 
       ! Use one kernel call to pack the entire row group

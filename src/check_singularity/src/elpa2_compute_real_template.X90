@@ -258,6 +258,7 @@
 
       endif ! useQr
 
+#ifdef WITH_GPU_VERSION
       if (useGPU) then
         ! Here we convert the regular host array into a pinned host array
         successCUDA = cuda_malloc(a_dev, lda*na_cols*M_size_of_PRECISION_real)
@@ -284,7 +285,9 @@
           stop
         endif
       endif ! useGPU
-
+#else
+      successCUDA = .true.
+#endif
 
       do istep = (na-1)/nbw, 1, -1
 
@@ -408,6 +411,7 @@
         vr(:) = M_CONST_0_0
         tmat(:,:,istep) = M_CONST_0_0
 
+#ifdef WITH_GPU_VERSION
         if (useGPU) then
           umcCUDA(1 : umc_size) = M_CONST_0_0
           lc_start = local_index(istep*nbw+1, my_pcol, np_cols, nblk, -1)
@@ -431,6 +435,9 @@
 
           endif
         endif ! useGPU
+#else
+        successCUDA = .true.
+#endif
 
         ! Reduce current block to lower triangular form
 
@@ -642,6 +649,7 @@
 #endif /* WITH_OPENMP */
          enddo ! lc
 
+#ifdef WITH_GPU_VERSION
          if (useGPU) then
            ! store column tiles back to GPU
            cur_pcol = pcol(istep*nbw+1, nblk, np_cols)
@@ -657,6 +665,9 @@
 
            endif
          endif
+#else
+         successCUDA = .true.
+#endif
 
          ! Calculate scalar products of stored Householder vectors.
          ! This can be done in different ways, we use dsyrk
@@ -703,6 +714,7 @@
        ! here the GPU version and CPU version diverged substantially, due to the newest
        ! optimizations due to Intel. The GPU version has to be re-written
        if (useGPU) then
+#ifdef WITH_GPU_VERSION
          umcCUDA(1 : l_cols * n_cols) = M_CONST_0_0
          vmrCUDA(cur_l_rows * n_cols + 1 : cur_l_rows * n_cols * 2) = M_CONST_0_0
 
@@ -747,7 +759,9 @@
            endif
 
          endif ! l_cols>0 .and. l_rows>0
-
+#else
+         successCUDA = .true.
+#endif
        else ! do not useGPU version
 
          !Code for Algorithm 4
@@ -846,6 +860,8 @@
        ! global tile size is smaller than the global remaining matrix
 
        if (useGPU) then
+#ifdef WITH_GPU_VERSION
+
          ! here the GPU version and CPU version divereged due to the same reasons as above
 
          if (tile_size < istep*nbw) then
@@ -966,6 +982,9 @@
                              M_CONST_1_0, (a_dev+(lcs-1)*lda*M_size_of_PRECISION_real), lda)
          enddo
 
+#else
+         successCUDA = .true.
+#endif
        else ! do not useGPU
 
          ! Or if we used the Algorithm 4
@@ -1105,6 +1124,7 @@
 
      enddo ! istep
 
+#ifdef WITH_GPU_VERSION
      if (useGPU) then
        ! this is not needed since a_dev is passed along from one subroutine to the other
        successCUDA = cuda_memcpy ( loc (a), a_dev, lda*na_cols*M_size_of_PRECISION_real,cudaMemcpyDeviceToHost)
@@ -1135,6 +1155,9 @@
          stop
        endif
      endif ! useGPU
+#else
+     successCUDA = .true.
+#endif
 
      if (allocated(vr)) then
        deallocate(vr, stat=istat, errmsg=errorMessage)
@@ -1376,6 +1399,7 @@
       max_local_cols = max_blocks_col*nblk
 
       if (useGPU) then
+#ifdef WITH_GPU_VERSION
 
         ! here the GPU and CPU version diverged: the CPU version now always uses the useQR path which
         ! is not implemented in the GPU version
@@ -1532,14 +1556,11 @@
 #else
 
             ! if MPI is not used (we do not need to transfer because of MPI_ALLREDUCE) we can set to zero on the device
-#ifdef WITH_GPU_VERSION
-
             successCUDA = cuda_memset(tmp_dev, 0, l_cols*n_cols*M_size_of_PRECISION_real)
             if (.not.(successCUDA)) then
               print *,"trans_ev_band_to_full_real: error in cudaMemset"
               stop
              endif
-#endif
 
 #endif /* WITH_MPI */
 
@@ -1615,7 +1636,9 @@
           !
           !#endif
         enddo ! istep
-
+#else
+        successCUDA = .true.
+#endif
       else ! do not useGPU
 
         ! t_blocking was formerly 2; 3 is a better choice
@@ -1796,6 +1819,7 @@
         stop
       endif
 
+#ifdef WITH_GPU_VERSION
       if (useGPU) then
         successCUDA = cuda_free(hvm_dev)
         if (.not.(successCUDA)) then
@@ -1841,6 +1865,9 @@
          !   endif
 
       endif ! useGPU
+#else
+      successCUDA = .true.
+#endif
 
       deallocate(hvm, stat=istat, errmsg=errorMessage)
       if (istat .ne. 0) then
@@ -3790,6 +3817,7 @@
 
 #endif /* WITH_MPI */
 
+#ifdef WITH_GPU_VERSION
           if (useGPU) then
             successCUDA =  cuda_memcpy(bcast_buffer_dev, loc(bcast_buffer(1,1)),  &
                                        nbw * current_local_n * M_size_of_PRECISION_real , cudaMemcpyHostToDevice)
@@ -3801,6 +3829,9 @@
             call M_extract_hh_tau_real_gpu_PRECISION(bcast_buffer_dev, hh_tau_dev, nbw, current_local_n, .false.)
             call M_compute_hh_dot_products_real_gpu_PRECISION(bcast_buffer_dev, hh_dot_dev, nbw, current_local_n)
           endif
+#else
+          successCUDA = .true.
+#endif
 
         else ! (current_local_n > 1) then
 
@@ -3890,6 +3921,7 @@
               n_off = current_local_n+a_off
 
               if (useGPU) then
+#ifdef WITH_GPU_VERSION
                 dev_offset = (0 + (n_off * stripe_width) + ( (i-1) * stripe_width *a_dim2 )) *M_size_of_PRECISION_real
                 successCUDA =  cuda_memcpy( aIntern_dev + dev_offset , loc(bottom_border_recv_buffer(1,1,i)), &
                                            stripe_width*nbw*M_size_of_PRECISION_real ,cudaMemcpyHostToDevice)
@@ -3897,7 +3929,9 @@
                   print *,"trans_ev_tridi_to_band_real: error in cudaMemcpy"
                   stop
                 endif
-
+#else
+                successCUDA = .true.
+#endif
               else
                 aIntern(:,n_off+1:n_off+nbw,i) = bottom_border_recv_buffer(:,1:nbw,i)
               endif
@@ -3985,6 +4019,7 @@
 #endif
 
              if (useGPU) then
+#ifdef WITH_GPU_VERSION
                dev_offset = (0 + (a_off * stripe_width) + ( (i-1) * stripe_width * a_dim2 )) *M_size_of_PRECISION_real
                !             host_offset= (0 + (0 * stripe_width) + ( (i-1) * stripe_width * nbw ) ) * 8
                successCUDA =  cuda_memcpy( aIntern_dev+dev_offset , loc(top_border_recv_buffer(1,1,i)),  &
@@ -3993,6 +4028,9 @@
                  print *,"trans_ev_tridi_to_band_real: error in cudaMemcpy"
                  stop
                 endif
+#else
+               successCUDA = .true.
+#endif
              else
                aIntern(:,a_off+1:a_off+top_msg_length,i) = top_border_recv_buffer(:,1:top_msg_length,i)
              endif ! useGPU
@@ -4095,6 +4133,7 @@
              n_off = current_local_n+nbw-bottom_msg_length+a_off
 
              if (useGPU) then
+#ifdef WITH_GPU_VERSION
                dev_offset = (0 + (n_off * stripe_width) + ( (i-1) * stripe_width * a_dim2 )) *M_size_of_PRECISION_real
                successCUDA =  cuda_memcpy( loc(bottom_border_send_buffer(1,1,i)), aIntern_dev + dev_offset, &
                                           stripe_width * bottom_msg_length * M_size_of_PRECISION_real ,cudaMemcpyDeviceToHost)
@@ -4102,6 +4141,9 @@
                  print *,"trans_ev_tridi_to_band_real: error in cudaMemcpy"
                  stop
                endif
+#else
+               successCUDA = .true.
+#endif
              else
                bottom_border_send_buffer(:,1:bottom_msg_length,i) = aIntern(:,n_off+1:n_off+bottom_msg_length,i)
              endif
@@ -4209,6 +4251,7 @@
           n_off = current_local_n+nbw-bottom_msg_length+a_off
 
           if (useGPU) then
+#ifdef WITH_GPU_VERSION
             dev_offset = (0 + (n_off * stripe_width) + ( (i-1) * stripe_width * a_dim2 )) *M_size_of_PRECISION_real
             successCUDA =  cuda_memcpy( loc(bottom_border_send_buffer(1,1,i)), aIntern_dev + dev_offset,  &
                                          stripe_width*bottom_msg_length*M_size_of_PRECISION_real ,cudaMemcpyDeviceToHost)
@@ -4216,6 +4259,9 @@
               print *,"trans_ev_tridi_to_band_real: error cudaMemcpy"
               stop
             endif
+#else
+            successCUDA = .true.
+#endif
           else
             bottom_border_send_buffer(:,1:bottom_msg_length,i) = aIntern(:,n_off+1:n_off+bottom_msg_length,i)
           endif
@@ -4304,6 +4350,7 @@
 #endif
 #endif
           if (useGPU) then
+#ifdef WITH_GPU_VERSION
             dev_offset = (0 + (a_off * stripe_width) + ( (i-1) * stripe_width * a_dim2 )) *M_size_of_PRECISION_real
             successCUDA =  cuda_memcpy( aIntern_dev + dev_offset , loc( top_border_recv_buffer(:,1,i)),  &
                                        stripe_width * top_msg_length *M_size_of_PRECISION_real ,cudaMemcpyHostToDevice)
@@ -4311,6 +4358,9 @@
               print *,"trans_ev_tridi_to_band_real: error in cudaMemcpy"
               stop
             endif
+#else
+            successCUDA = .true.
+#endif
           else
             aIntern(:,a_off+1:a_off+top_msg_length,i) = top_border_recv_buffer(:,1:top_msg_length,i)
           endif
@@ -4453,6 +4503,7 @@
 #endif
 #endif
         if (useGPU) then
+#ifdef WITH_GPU_VERSION
           dev_offset = (0 + (a_off * stripe_width) + ( (i-1) * stripe_width * a_dim2 )) * M_size_of_PRECISION_real
           successCUDA =  cuda_memcpy( loc(top_border_send_buffer(:,1,i)), aIntern_dev + dev_offset, &
                                      stripe_width*nbw*M_size_of_PRECISION_real ,cudaMemcpyDeviceToHost)
@@ -4460,7 +4511,9 @@
             print *,"trans_ev_tridi_to_band_real: error in cudaMemcpy"
             stop
           endif
-
+#else
+          successCUDA = .true.
+#endif
         else
           top_border_send_buffer(:,1:nbw,i) = aIntern(:,a_off+1:a_off+nbw,i)
         endif
@@ -4959,12 +5012,16 @@
           stop
         endif
 
+#ifdef WITH_GPU_VERSION
         ! copy q_dev to device, maybe this can be avoided if q_dev can be kept on device in trans_ev_tridi_to_band
         successCUDA = cuda_memcpy(q_dev, loc(q), (ldq)*(matrixCols)*M_size_of_PRECISION_real, cudaMemcpyHostToDevice)
         if (.not.(successCUDA)) then
           print *,"trans_ev_tridi_to_band_real: error in cudaMalloc"
           stop
         endif
+#else
+        successCUDA = .true.
+#endif
 
      ! deallocate all working space
 
