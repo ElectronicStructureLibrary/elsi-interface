@@ -18,7 +18,7 @@ CXX_LIB       = -lstdc++
 SCALAPACK_LIB = -mkl=cluster
 
 # ====== ELPA ======
-ELPA2_KERNEL  = AVX
+ELPA2_KERNEL  = AVX2
 
 # ====== PEXSI ======
 METIS_LIB     = -L/home/huhn/opt/ParMETIS/4.0.3/lib -lmetis
