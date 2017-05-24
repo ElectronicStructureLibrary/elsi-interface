@@ -1,31 +1,31 @@
 # PLATFORM  : EDISON @NERSC
 # COMPILERS : INTEL
-# VERIFIED  : APR 27, 2017
+# VERIFIED  : MAY 23, 2017
 # DO READ ../INSTALL CAREFULLY!
 
 # ====== ELSI ======
-MPIFC  = ftn
-MPICC  = cc
-MPICXX = CC
-LINKER = ftn
+MPIFC         = ftn
+MPICC         = cc
+MPICXX        = CC
+LINKER        = ftn
 
-FFLAGS   = -fast -no-ipo -xAVX -fp-model precise
-CFLAGS   = -fast -no-ipo -xAVX -fp-model precise
-CXXFLAGS = -fast -no-ipo -xAVX -fp-model precise -std=c++11
-LDFLAGS  = -fast -no-ipo -xAVX -fp-model precise
+FFLAGS        = -fast -no-ipo -xAVX -fp-model precise
+CFLAGS        = -fast -no-ipo -xAVX -fp-model precise
+CXXFLAGS      = -fast -no-ipo -xAVX -fp-model precise -std=c++11
+LDFLAGS       = -fast -no-ipo -xAVX -fp-model precise
 
-CXX_LIB = -lstdc++
+CXX_LIB       = -lstdc++
 SCALAPACK_LIB = -mkl=cluster
 
 # ====== ELPA ======
-ELPA2_KERNEL = AVX
+ELPA2_KERNEL  = AVX
 
 # ====== PEXSI ======
-METIS_LIB    = -L/global/homes/v/vwzyu/parmetis-4.0.3/lib -lmetis
-PARMETIS_LIB = -L/global/homes/v/vwzyu/parmetis-4.0.3/lib -lparmetis
-SUPERLU_LIB  = -L/global/homes/v/vwzyu/SuperLU_DIST_5.1.2/lib -lsuperlu_dist_5.1.2
-SUPERLU_INC  = -I/global/homes/v/vwzyu/SuperLU_DIST_5.1.2/SRC
+METIS_LIB     = -L/global/homes/v/vwzyu/parmetis-4.0.3/lib -lmetis
+PARMETIS_LIB  = -L/global/homes/v/vwzyu/parmetis-4.0.3/lib -lparmetis
+SUPERLU_LIB   = -L/global/homes/v/vwzyu/SuperLU_DIST_5.1.2/lib -lsuperlu_dist_5.1.2
+SUPERLU_INC   = -I/global/homes/v/vwzyu/SuperLU_DIST_5.1.2/SRC
 
 # ====== MAKE CHECK ======
-TOMATO_SEED = /global/homes/v/vwzyu/tomato-seed
-MPI_EXEC    = srun
+TOMATO_SEED   = /global/homes/v/vwzyu/tomato-seed
+MPI_EXEC      = srun
