@@ -1,32 +1,32 @@
 # PLATFORM  : THETA @ALCF
 # COMPILERS : INTEL
-# VERIFIED  : APR 28, 2017
+# VERIFIED  : MAY 23, 2017 (ELSI AND FHI-AIMS+ELSI REGRESSION SUITE)
 # DO READ ../INSTALL CAREFULLY!
 
 # ====== ELSI ======
-MPIFC  = ftn
-MPICC  = cc
-MPICXX = CC
-LINKER = ftn
+MPIFC         = ftn
+MPICC         = cc
+MPICXX        = CC
+LINKER        = ftn
 
-FFLAGS   = -fast -no-ipo -xMIC-AVX512 -fp-model precise
-CFLAGS   = -fast -no-ipo -xMIC-AVX512 -fp-model precise
-CXXFLAGS = -fast -no-ipo -xMIC-AVX512 -fp-model precise -std=c++11
-LDFLAGS  = -fast -no-ipo -xMIC-AVX512 -fp-model precise
+FFLAGS        = -fast -no-ipo -xmic-avx512 -fp-model precise
+CFLAGS        = -fast -no-ipo -xmic-avx512 -fp-model precise
+CXXFLAGS      = -fast -no-ipo -xmic-avx512 -fp-model precise -std=c++11
+LDFLAGS       = -fast -no-ipo -xmic-avx512 -fp-model precise
 
-CXX_LIB = -lstdc++
+CXX_LIB       = -lstdc++
 SCALAPACK_LIB = -mkl=cluster
 
 # ====== ELPA ======
-ELPA2_KERNEL = AVX2
+ELPA2_KERNEL  = AVX
 
 # ====== PEXSI ======
-METIS_LIB    = -L/home/wzvyu/parmetis-4.0.3/build/Linux-x86_64/libmetis -lmetis
-PARMETIS_LIB = -L/home/wzvyu/parmetis-4.0.3/build/Linux-x86_64/libparmetis -lparmetis
-SUPERLU_LIB  = -L/home/wzvyu/SuperLU_DIST_5.1.2/lib -lsuperlu_dist
-SUPERLU_INC  = -I/home/wzvyu/SuperLU_DIST_5.1.2/SRC
+METIS_LIB     = -L/home/huhn/opt/ParMETIS/4.0.3/lib -lmetis
+PARMETIS_LIB  = -L/home/huhn/opt/ParMETIS/4.0.3/lib -lparmetis
+SUPERLU_LIB   = -L/home/huhn/opt/SuperLU_DIST/5.1.2/lib -lsuperlu_dist
+SUPERLU_INC   = -I/home/huhn/opt/SuperLU_DIST/5.1.2/SRC
 
 # ====== MAKE CHECK ======
 # Note:  you will need to request an interactive job to run "make check"
-TOMATO_SEED = /home/wzvyu/tomato-seed
-MPI_EXEC    = aprun
+TOMATO_SEED   = /home/huhn/opt/ELSI/tomato-seed
+MPI_EXEC      = aprun
