@@ -151,7 +151,7 @@ pexsi:
 	@echo = PEXSI installed. =
 	@echo ====================
 
-elsi: $(ALL_OBJ)
+elsi: $(ALL_OBJ) cs
 	@echo ==========================
 	@echo = Start building ELSI... =
 	@echo ==========================
