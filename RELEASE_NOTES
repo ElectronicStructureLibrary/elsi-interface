@@ -1,0 +1,202 @@
+=================================
+=         ELSI May 2017         =
+=================================
+
+This is the public launch of the ELectronic Structure Infrastructure (ELSI), an
+open-source software library serving as a unified interface layer between
+density-functional codes and Kohn-Sham electronic structure solvers.  With this 
+release, we hope to receive feedback from the electronic structure community on 
+the fine details of the interface layer before committing to a finalized, stable
+interface.
+
+We will release ELSI July 2017 with a finalized interface as part of the
+"Electronic Structure Library coding workshop: drivers" workshop held by the
+Electronic Structure Library project at Trieste, Italy in July 2017.
+
+More information, as well as the most up-to-date version of ELSI, may be found
+at elsi-interchange.org .  The ELSI team may be reached via e-mail at 
+elsi-team@duke.edu .
+
+---------------------------------
+-        ELSI Philosophy        -
+---------------------------------
+
+The Kohn-Sham eigenvalue problem 
+   H\psi = S\epsilon\psi
+is a critical step in the SCF cyle of (most) density-functional codes.  When 
+solved directly using an eigensolver, it is the O(N^3) bottleneck for semi-local
+density-functional calculations (where N is the number of basis elements).  This 
+"cubic wall" problem in Kohn-Sham DFT is the current stumbling block preventing 
+true large-scale KS-DFT from becoming a reality.
+
+Much work is being done in the electronic structure community to accelerate or 
+circumvent this critical step.  While most steps in the SCF cycle differ 
+significantly in implementation based on computational choices between codes 
+(pseudization/all-electron, basis sets, etc.), the Kohn-Sham eigenvalue problem 
+is a universal problem with a similar structure across KS-DFT codes, allowing 
+for the reuse of solvers across multiple KS-DFT codes.  
+
+However, the complexity of the Kohn-Sham eigenvalue problem does not allow for a
+clean one-size-fits-all problem.  Different physical systems will have 
+Hamiltonian and overlap matrices with different properties (matrix sizes,
+sparsity patterns) better suited to particular solvers.  On the other hand,
+different codes calculating the same physical system will generate Hamiltonian 
+and overlap matrices with different properties, in particular the sparsity of 
+the matrices arising from the choice of basis set.  The KS-DFT developer wishing 
+to accelerate their code would need to implement multiple solvers and 
+dynamically choose between them.  Furthermore, different KS-DFT codes and solver 
+libraries often employ different matrix storage formats.  The KS-DFT developer 
+wishing to incorporate multiple solvers into their code will quickly find that 
+they need to convert their chosen matrix storage format into multiple other 
+matrix storage formats, and similarly the solver developer wishing to make
+their solver usable by a variety of KS-DFT codes will encounter the equivalent 
+problem.
+
+The core idea behind ELSI is to unite these two (overlapping) sub-communities 
+in electronic structure by providing a unified, stable interface layer between 
+KS-DFT codes and solver libraries, facilitating cooperation between KS-DFT and 
+solver developers.  Solvers are treated on equal footing within ELSI, creating a 
+unified platform for implementation and benchmarking across codes and physical 
+systems.  Solver libraries within ELSI can interact with one another to push 
+the combined performance beyond the performance of the individual solvers.  A 
+uniform interface for documenting and customizing run-time parameters of 
+solvers is provided, and we work closely with solver developers to optimize 
+proper default values.  Matrix storage format conversion is provided 
+automatically within ELSI, and it is our intention to support all matrix storage
+formats in use by the electronic structure community*.  
+
+ELSI provides subroutines for problems closely related to the Kohn-Sham problem 
+which are also code-independent, such as determination of the Fermi level and 
+converting a set of eigenvectors to a density matrix.  The KS-DFT developer is 
+free to use or ignore these additional features as they see fit.  Last, but 
+certainly not least, ELSI will eventually have a "decision layer" which analyzes
+the properties of the provided Hamiltonian and overlap matrices and, if the user
+desires, automatically selects the solver most suited for the problem.
+ 
+Whenever possible, ELSI will automatically build solvers as part of the unified
+ELSI make process (see INSTALL file) using source code distributed with ELSI and
+provided by the authors.  We also provide the ability to override this behavior 
+and link against external solver libraries, should the user so desire.  In cases
+where we have the blessings of the authors of a solver to interface the solver 
+with ELSI but copyright issues (or common courtesy) prohibit us from 
+redistributing the source code, we provide the option to link against the 
+user-provided external library.
+
+* We really do mean this.  If your matrix storage format is not supported by
+ELSI, please contact us at elsi-team@duke.edu . 
+
+---------------------------------
+-         Dependencies          -
+---------------------------------
+
+The standard installation process of ELSI requires:
+* A Fortran 2003 compiler
+* C/C++ compilers supporting the C++ 11 standard
+* An MPI library
+* LAPACK and ScaLAPACK
+* ParMETIS 4.0.3
+  (available at http://glaros.dtc.umn.edu/gkhome/metis/parmetis/overview)
+* SuperLU_DIST 5.1.2 or 5.1.3
+  (available at http://crd-legacy.lbl.gov/~xiaoye/SuperLU)
+This standard installation will install the ELSI interface, ELPA, libOMM, and
+PEXSI.
+
+We also provide the option for a "base" installation of ELSI which compiles
+without PEXSI support, in which case the external ParMETIS and SuperLU_DIST 
+dependencies are not needed.  See INSTALL file for more details.
+
+---------------------------------
+-         New Features          -
+---------------------------------
+
+Support for all major compiler suites (GNU, Intel, PGI, XL, Cray)
+
+Supported Programming Languages for Interfacing:
+* Fortran 90 and later (note that ELSI internally has Fortran 2003 features)
+* C/C++
+
+Matrix Storage Formats:
+* 2D block-cyclic (BLACS standard)
+* 1D block distributed compressed sparse column (PEXSI format)
+
+Support for eigenvector- and density-matrix-based SCF cycles.
+
+Support for double-precision real and complex matrix data types.
+* At this time, the only solver supported by ELSI for complex matrices is ELPA.
+
+Solvers:
+* ELPA 2016.11.001.pre (Eigenvalue SoLvers for Petaflop-Applications)
+- - Kernels distributed: Generic, Blue Gene/Q, SSE Assember, AVX, AVX2
+- - Website: http://elpa.mpcdf.mpg.de/
+- - Literature reference: doi:10.1088/0953-8984/26/21/213201 
+* libOMM 0.0.1 (Orbital Minimization Method)
+- - "Flavors":  Basic, Cholesky
+- - Website: http://esl.cecam.org/LibOMM
+- - Literature reference: doi:10.1016/j.cpc.2013.12.008
+* PEXSI 0.10.2 (Pole EXpansion and Selected Inversion method) 
+- - Website: http://pexsi.org
+- - Literature reference: doi:10.1088/0953-8984/26/30/305503
+
+Calculation of occupation numbers and determination of the Fermi level.
+
+KS-DFT Codes with Stable ELSI Support:
+* FHI-aims
+* DGDFT
+
+Known-Good Supercomputing Environments:
+* Cori   (NERSC)
+* Edison (NERSC)
+* Mira   (Argonne)
+* Theta  (Argonne)
+* Titan  (Oak Ridge)
+
+---------------------------------
+-     Experimental Features     -
+---------------------------------
+
+Solvers:
+* ELPA2 with GPU acceleration
+- We have observed irregularities in the output of the GPU-accelerated fourth 
+     step of ELPA2 as the number of MPI tasks and/or matrix size is increased.
+- If the user wishes to compile GPU-accelerated ELPA2 including the 
+     GPU-accelerated fourth step, the user should specify "ELPA_GPU = yes" and 
+     "ELPA2_KERNEL = GPU" in make.sys.  In the case, a block size of 128 for the
+     2D block-cyclic distribution must be used, as this is an internal 
+     requirement of the GPU-accelerated fourth step of ELPA2.
+- Alternatively, the user may compile GPU-accelerated ELPA2 without the 
+     GPU-accelerated fourth step by specifying "ELPA_GPU = yes" and any other
+     kernel for ELPA2_KERNEL.  In this case, the specified (CPU-only) kernel
+     will be used for the fourth step, and GPU acceleration will be employed
+     for the first and fifth step of ELPA2.  While this appears to work, we note
+     that the user will see limited speedup in this case, as most of the speedup
+     associated with GPU-accelerated ELPA2 comes from the fourth step.  If no 
+     kernel is specified, the generic (CPU-only) kernel will be used.  
+- Note:  Cray compilers are known to be incompatible with GPU-accelerated ELPA
+     due to a non-portable Cray-pointer-to-integer conversion.
+
+KS-DFT Codes with Experimental ELSI Implementations:
+* SIESTA
+* NWChem via Global Arrays
+
+---------------------------------
+-         Known Issues          -
+---------------------------------
+
+PEXSI is known to have compilation difficulties when using XL C/C++ compilers.
+     When compiling with PEXSI support, it is recommended that the user use 
+     alternative C/C++ compilers.
+
+---------------------------------
+- Planned for July 2017 Release -
+---------------------------------
+
+Fully stabilized interface
+
+Solvers:
+* ELPA, May 2017 interface
+* CheSS (Chebyshev Sparse Solvers) via external linkage
+- - Website:  https://launchpad.net/chess
+- - Preprint reference: https://arxiv.org/abs/1704.00512
+
+Supported Programming Languages for Interfacing:
+* Python language support
