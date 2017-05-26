@@ -176,10 +176,10 @@ module ELPA2_utilities_cs
 #endif /*  #if defined(WITH_REAL_AVX2_BLOCK2_KERNEL) || defined(WITH_REAL_AVX2_BLOCK4_KERNEL) || defined(WITH_REAL_AVX2_BLOCK6_KERNEL) */
 
 #ifdef WITH_REAL_BGP_KERNEL
-  integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_AVX_BGP
+  integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_BGP
 #endif
 #ifdef WITH_REAL_BGQ_KERNEL
-  integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_AVX_BGQ
+  integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_BGQ
 #endif
 #ifdef WITH_REAL_GPU_KERNEL
   integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_GPU
@@ -247,10 +247,10 @@ module ELPA2_utilities_cs
 
 
 #ifdef WITH_REAL_BGP_KERNEL
-  integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_AVX_BGP
+  integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_BGP
 #endif
 #ifdef WITH_REAL_BGQ_KERNEL
-  integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_AVX_BGQ
+  integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_BGQ
 #endif
 #ifdef WITH_REAL_GPU_KERNEL
   integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_GPU

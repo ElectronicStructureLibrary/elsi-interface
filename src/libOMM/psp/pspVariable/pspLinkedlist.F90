@@ -1,3 +1,8 @@
+! Written by Arjen Markus as part of the "Flibs" project.
+! See also
+!   *  http://flibs.sf.net
+!   *  ./copyright.flibs
+
   ! linkedlist.f90 --
   !     Include file for defining linked lists where each element holds
   !     the same kind of data

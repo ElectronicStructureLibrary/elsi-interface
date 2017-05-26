@@ -1,29 +1,29 @@
 # PLATFORM  : TIMEWARP @DUKE
 # COMPILERS : INTEL (DEBUG)
-# VERIFIED  : MAY 8, 2017
+# VERIFIED  : MAY 23, 2017
 # DO READ ../INSTALL CAREFULLY!
 
 # ====== ELSI ======
-MPIFC  = mpiifort
-MPICC  = mpiicc
-MPICXX = mpiicpc
-LINKER = mpiifort
+MPIFC         = mpiifort
+MPICC         = mpiicc
+MPICXX        = mpiicpc
+LINKER        = mpiifort
 
-FFLAGS   = -O0 -check bounds -check uninit -check pointers -traceback -g -fpe0
-CFLAGS   = -O0
-CXXFLAGS = -O0 -std=c++11
-LDFLAGS  = -O0
+FFLAGS        = -O0 -check bounds -check uninit -check pointers -traceback -g -fpe0
+CFLAGS        = -O0
+CXXFLAGS      = -O0 -std=c++11
+LDFLAGS       = -O0
 
-CXX_LIB = -lstdc++
+CXX_LIB       = -lstdc++
 
 SCALAPACK_LIB = -L/opt/intel/mkl/lib/intel64 -lmkl_scalapack_lp64 \
                 -lmkl_blacs_intelmpi_lp64 -lmkl_intel_lp64 \
                 -lmkl_sequential -lmkl_core -lpthread -lm
 
-TOMATO_SEED = /home/wy29/tomato_seed
+TOMATO_SEED   = /home/wy29/tomato_seed
 
 # ====== PEXSI ======
-METIS_LIB    = -L/home/wy29/yu/parmetis-4.0.3/build/Linux-x86_64/libmetis -lmetis
-PARMETIS_LIB = -L/home/wy29/yu/parmetis-4.0.3/build/Linux-x86_64/libparmetis -lparmetis
-SUPERLU_LIB  = -L/home/wy29/yu/SuperLU_DIST_5.1.3/lib -lsuperlu_dist_5.1.3
-SUPERLU_INC  = -I/home/wy29/yu/SuperLU_DIST_5.1.3/SRC
+METIS_LIB     = -L/home/wy29/yu/parmetis-4.0.3/build/Linux-x86_64/libmetis -lmetis
+PARMETIS_LIB  = -L/home/wy29/yu/parmetis-4.0.3/build/Linux-x86_64/libparmetis -lparmetis
+SUPERLU_LIB   = -L/home/wy29/yu/SuperLU_DIST_5.1.3/lib -lsuperlu_dist_5.1.3
+SUPERLU_INC   = -I/home/wy29/yu/SuperLU_DIST_5.1.3/SRC

@@ -63,7 +63,7 @@ elsi_constants.o: ./src/elsi_constants.f90 elsi_precision.o
 elsi_precision.o: ./src/elsi_precision.f90
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
-stub_pexsi.o: ./src/stub_pexsi.f90
+stub_pexsi.o: ./src/stub_pexsi.f90 elsi_precision.o
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
 stub_sips.o: ./src/stub_sips.f90 elsi_precision.o
