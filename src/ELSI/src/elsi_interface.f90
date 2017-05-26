@@ -36,6 +36,8 @@ module ELSI
                              COMPLEX_VALUES,SINGLE_PROC,MULTI_PROC,UNSET
    use ELSI_DIMENSIONS, only: elsi_handle,print_info
    use ELSI_ELPA
+   use ELSI_MATCONV, only: elsi_blacs_to_pexsi,elsi_blacs_to_sips,&
+                           elsi_pexsi_to_blacs_dm,elsi_pexsi_to_blacs
    use ELSI_MU, only: elsi_compute_mu_and_occ
    use ELSI_OMM
    use ELSI_PEXSI
@@ -695,6 +697,7 @@ end subroutine
 !
 !   elsi_ev_real
 !   elsi_ev_complex
+!   elsi_ev_real_sparse
 !   elsi_dm_real
 !   elsi_dm_complex
 !   elsi_dm_real_sparse
@@ -762,7 +765,7 @@ subroutine elsi_ev_real(elsi_h,H_in,S_in,e_val_out,e_vec_out)
          ! Convert matrix format and distribution from BLACS to SIPs
          call elsi_blacs_to_sips(elsi_h,H_in,S_in)
 
-         ! Set matices
+         ! Set matrices
          call elsi_set_sparse_hamiltonian(elsi_h,elsi_h%ham_real_sips)
          if(.not. elsi_h%overlap_is_unit) then
             call elsi_set_sparse_overlap(elsi_h,elsi_h%ovlp_real_sips)
@@ -839,6 +842,71 @@ subroutine elsi_ev_complex(elsi_h,H_in,S_in,e_val_out,e_vec_out)
                         " Choose ELPA if necessary. Exiting...",elsi_h,caller)
       case (SIPS)
          call elsi_stop(" SIPS not yet implemented. Exiting...",elsi_h,caller)
+      case DEFAULT
+         call elsi_stop(" No supported solver has been chosen."//&
+                        " Please choose ELPA solver to compute"//&
+                        " eigenvalues and eigenvectors. Exiting...",elsi_h,caller)
+   end select
+
+   elsi_h%matrix_data_type = UNSET
+
+end subroutine
+
+!>
+!! This routine computes eigenvalues and eigenvectors.
+!!
+subroutine elsi_ev_real_sparse(elsi_h,H_in,S_in,e_val_out,e_vec_out)
+
+   implicit none
+
+   type(elsi_handle) :: elsi_h                                     !< Handle of this ELSI instance
+   real(kind=r8)     :: H_in(elsi_h%nnz_l_pexsi)                   !< Hamiltonian
+   real(kind=r8)     :: S_in(elsi_h%nnz_l_pexsi)                   !< Overlap
+   real(kind=r8)     :: e_val_out(elsi_h%n_g_size)                 !< Eigenvalues
+   real(kind=r8)     :: e_vec_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Eigenvectors
+
+   character*40, parameter :: caller = "elsi_ev_real_sparse"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   ! Update counter
+   elsi_h%n_elsi_calls = elsi_h%n_elsi_calls+1
+
+   ! REAL case
+   elsi_h%matrix_data_type = REAL_VALUES
+
+   ! Safety check
+   call elsi_check(elsi_h,caller)
+
+   ! Here the only supported solver is ELPA
+   select case (elsi_h%solver)
+      case (ELPA)
+         ! Convert matrix format and distribution from PEXSI to BLACS
+         call elsi_pexsi_to_blacs(elsi_h,H_in,S_in)
+
+         ! Set matrices
+         call elsi_set_hamiltonian(elsi_h,elsi_h%ham_real_elpa)
+         if(.not. elsi_h%overlap_is_unit) then
+            call elsi_set_overlap(elsi_h,elsi_h%ovlp_real_elpa)
+         endif
+         call elsi_set_eigenvector(elsi_h,e_vec_out)
+         call elsi_set_eigenvalue(elsi_h,e_val_out)
+
+         ! Solve eigenvalue problem
+         call elsi_solve_evp_elpa(elsi_h)
+
+      case (LIBOMM)
+         call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
+                        " Choose ELPA if necessary. Exiting...",elsi_h,caller)
+      case (PEXSI)
+         call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
+                        " Choose ELPA if necessary. Exiting...",elsi_h,caller)
+      case (CHESS)
+         call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
+                        " Choose ELPA if necessary. Exiting...",elsi_h,caller)
+      case (SIPS)
+         call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
+                        " Choose ELPA if necessary. Exiting...",elsi_h,caller)
       case DEFAULT
          call elsi_stop(" No supported solver has been chosen."//&
                         " Please choose ELPA solver to compute"//&
@@ -1005,7 +1073,7 @@ subroutine elsi_dm_real(elsi_h,H_in,S_in,D_out,energy_out)
          ! Convert matrix format and distribution from BLACS to PEXSI
          call elsi_blacs_to_pexsi(elsi_h,H_in,S_in)
 
-         ! Set matices
+         ! Set matrices
          call elsi_set_sparse_hamiltonian(elsi_h,elsi_h%ham_real_pexsi)
          if(.not. elsi_h%overlap_is_unit) then
             call elsi_set_sparse_overlap(elsi_h,elsi_h%ovlp_real_pexsi)

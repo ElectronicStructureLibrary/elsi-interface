@@ -1,18 +1,18 @@
 all: test_ev_real.x test_dm_real.x test_generalized_ev_real.x test_standard_ev_real.x test_dm_real_sparse.x $(C_BINDING)
 
-test_dm_real.x: test_dm_real.o elsi_interface.o elsi_elpa.o elsi_omm.o elsi_pexsi.o elsi_sips.o elsi_mu.o elsi_utils.o elsi_timers.o elsi_dimensions.o elsi_precision.o elsi_constants.o $(STUBS)
+test_dm_real.x: test_dm_real.o elsi_interface.o elsi_elpa.o elsi_omm.o elsi_pexsi.o elsi_sips.o elsi_mu.o elsi_matconv.o elsi_utils.o elsi_timers.o elsi_dimensions.o elsi_precision.o elsi_constants.o $(STUBS)
 	$(LINKER) $(LDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
 
-test_ev_real.x: test_ev_real.o elsi_interface.o elsi_elpa.o elsi_omm.o elsi_pexsi.o elsi_sips.o elsi_mu.o elsi_utils.o elsi_timers.o elsi_dimensions.o elsi_precision.o elsi_constants.o $(STUBS)
+test_ev_real.x: test_ev_real.o elsi_interface.o elsi_elpa.o elsi_omm.o elsi_pexsi.o elsi_sips.o elsi_mu.o elsi_matconv.o elsi_utils.o elsi_timers.o elsi_dimensions.o elsi_precision.o elsi_constants.o $(STUBS)
 	$(LINKER) $(LDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
 
-test_generalized_ev_real.x: test_generalized_ev_real.o elsi_interface.o elsi_elpa.o elsi_omm.o elsi_pexsi.o elsi_sips.o elsi_mu.o elsi_utils.o elsi_timers.o elsi_dimensions.o elsi_precision.o elsi_constants.o $(STUBS)
+test_generalized_ev_real.x: test_generalized_ev_real.o elsi_interface.o elsi_elpa.o elsi_omm.o elsi_pexsi.o elsi_sips.o elsi_mu.o elsi_matconv.o elsi_utils.o elsi_timers.o elsi_dimensions.o elsi_precision.o elsi_constants.o $(STUBS)
 	$(LINKER) $(LDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
 
-test_standard_ev_real.x: test_standard_ev_real.o elsi_interface.o elsi_elpa.o elsi_omm.o elsi_pexsi.o elsi_sips.o elsi_mu.o elsi_utils.o elsi_timers.o elsi_dimensions.o elsi_precision.o elsi_constants.o $(STUBS)
+test_standard_ev_real.x: test_standard_ev_real.o elsi_interface.o elsi_elpa.o elsi_omm.o elsi_pexsi.o elsi_sips.o elsi_mu.o elsi_matconv.o elsi_utils.o elsi_timers.o elsi_dimensions.o elsi_precision.o elsi_constants.o $(STUBS)
 	$(LINKER) $(LDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
 
-test_dm_real_sparse.x: test_dm_real_sparse.o elsi_interface.o elsi_elpa.o elsi_omm.o elsi_pexsi.o elsi_sips.o elsi_mu.o elsi_utils.o elsi_timers.o elsi_dimensions.o elsi_precision.o elsi_constants.o $(STUBS)
+test_dm_real_sparse.x: test_dm_real_sparse.o elsi_interface.o elsi_elpa.o elsi_omm.o elsi_pexsi.o elsi_sips.o elsi_mu.o elsi_matconv.o elsi_utils.o elsi_timers.o elsi_dimensions.o elsi_precision.o elsi_constants.o $(STUBS)
 	$(LINKER) $(LDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
 
 test_dm_real.o: ./test/test_dm_real.f90 elsi_interface.o elsi_precision.o
@@ -30,7 +30,7 @@ test_standard_ev_real.o: ./test/test_standard_ev_real.f90 elsi_interface.o elsi_
 test_dm_real_sparse.o: ./test/test_dm_real_sparse.f90 elsi_interface.o elsi_precision.o
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
-elsi_interface.o: ./src/elsi_interface.f90 elsi_elpa.o elsi_omm.o elsi_pexsi.o elsi_sips.o elsi_mu.o elsi_utils.o elsi_timers.o elsi_dimensions.o elsi_precision.o elsi_constants.o $(STUBS)
+elsi_interface.o: ./src/elsi_interface.f90 elsi_elpa.o elsi_omm.o elsi_pexsi.o elsi_sips.o elsi_mu.o elsi_matconv.o elsi_utils.o elsi_timers.o elsi_dimensions.o elsi_precision.o elsi_constants.o $(STUBS)
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
 elsi_elpa.o: ./src/elsi_elpa.f90 elsi_mu.o elsi_utils.o elsi_timers.o elsi_dimensions.o elsi_precision.o elsi_constants.o $(STUBS)
@@ -46,6 +46,9 @@ elsi_sips.o: ./src/elsi_sips.f90  elsi_utils.o elsi_timers.o elsi_dimensions.o e
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
 elsi_mu.o: ./src/elsi_mu.f90 elsi_utils.o elsi_dimensions.o elsi_precision.o elsi_constants.o $(STUBS)
+	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
+
+elsi_matconv.o: ./src/elsi_matconv.f90 elsi_utils.o elsi_timers.o elsi_dimensions.o elsi_precision.o $(STUBS)
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
 elsi_timers.o: ./src/elsi_timers.f90 elsi_dimensions.o elsi_utils.o elsi_precision.o elsi_constants.o $(STUBS)
