@@ -3,32 +3,33 @@
 # VERIFIED  : MAY 4, 2017*
 # DO READ ../INSTALL CAREFULLY!
 
-# * Was verified to compile with and without "ELPA2_KERNEL    = GPU" on May 25th, but
-#   regression tests were not run. - WPH
+# * Was verified to compile with and without "ELPA2_KERNEL = GPU" on May 27th,
+#   but regression tests were not run.
 
 # ====== ELSI ======
-MPIFC           = ftn
-MPICC           = cc
-MPICXX          = CC
-LINKER          = ftn
+MPIFC        = ftn
+MPICC        = cc
+MPICXX       = CC
+LINKER       = ftn
 
-CXXFLAGS        = --c++11
-CXX_LIB         = -lstdc++
+CXXFLAGS     = --c++11
+CXX_LIB      = -lstdc++
 
 # ====== ELPA ======
-ELPA_GPU        = yes
-#ELPA2_KERNEL    = GPU # Uncomment to enable GPU acceleration for backtransformation step
-#                      # (known buggy!)
-NVCC            = nvcc
-NVCCFLAGS       = -arch sm_35 -O3
-CUDA_LIB        = -lcudart -lcublas
+ELPA_GPU     = yes
+ELPA2_KERNEL = SSE # Change to "GPU" to enable GPU acceleration for
+                      # eigenvector back-transformation step
+                      # (known buggy!)
+NVCC         = nvcc
+NVCCFLAGS    = -arch sm_35 -O3
+CUDA_LIB     = -lcudart -lcublas
 
 # ====== PEXSI ======
-METIS_LIB       = -L/ccs/home/huhn/Titan/opt/parmetis-4.0.3/metis/lib -lmetis
-PARMETIS_LIB    = -L/ccs/home/huhn/Titan/opt/parmetis-4.0.3/lib -lparmetis
-SUPERLU_LIB     = -L/ccs/home/huhn/Titan/opt/SuperLU_DIST/5.1.2/lib -lsuperlu_dist
-SUPERLU_INC     = -I/ccs/home/huhn/Titan/opt/SuperLU_DIST/5.1.2/SRC
+METIS_LIB    = -L/ccs/home/huhn/Titan/opt/parmetis-4.0.3/metis/lib -lmetis
+PARMETIS_LIB = -L/ccs/home/huhn/Titan/opt/parmetis-4.0.3/lib -lparmetis
+SUPERLU_LIB  = -L/ccs/home/huhn/Titan/opt/SuperLU_DIST/5.1.2/lib -lsuperlu_dist
+SUPERLU_INC  = -I/ccs/home/huhn/Titan/opt/SuperLU_DIST/5.1.2/SRC
 
 # ====== MAKE CHECK ======
-TOMATO_SEED     = /ccs/home/huhn/Titan/opt/ELSI/tomato-seed
-MPI_EXEC        = aprun 
+TOMATO_SEED  = /ccs/home/huhn/Titan/opt/ELSI/tomato-seed
+MPI_EXEC     = aprun 

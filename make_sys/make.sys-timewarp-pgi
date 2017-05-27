@@ -1,6 +1,6 @@
 # PLATFORM  : TIMEWARP @DUKE
-# COMPILERS : PGI 17.4 COMPILER, INTEL MPI + MKL
-# VERIFIED  : MAY 25, 2017
+# COMPILERS : PGI COMPILER + INTEL MPI + INTEL MKL
+# VERIFIED  : MAY 27, 2017
 # DO READ ../INSTALL CAREFULLY!
 
 # It was necessary on timewarp to turn off vectorization when compiling SuperLU 

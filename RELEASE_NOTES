@@ -192,6 +192,8 @@ PEXSI is known to have compilation difficulties when using XL C/C++ compilers.
 
 Fully stabilized interface
 
+Input matrix in upper/lower triangular form
+
 Solvers:
 * ELPA, May 2017 interface
 * CheSS (Chebyshev Sparse Solvers) via external linkage
