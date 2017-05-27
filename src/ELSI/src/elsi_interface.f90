@@ -734,9 +734,7 @@ subroutine elsi_ev_real(elsi_h,H_in,S_in,e_val_out,e_vec_out)
       case (ELPA)
          ! Set matrices
          call elsi_set_hamiltonian(elsi_h,H_in)
-         if(.not. elsi_h%overlap_is_unit) then
-            call elsi_set_overlap(elsi_h,S_in)
-         endif
+         call elsi_set_overlap(elsi_h,S_in)
          call elsi_set_eigenvector(elsi_h,e_vec_out)
          call elsi_set_eigenvalue(elsi_h,e_val_out)
 
@@ -767,9 +765,7 @@ subroutine elsi_ev_real(elsi_h,H_in,S_in,e_val_out,e_vec_out)
 
          ! Set matrices
          call elsi_set_sparse_hamiltonian(elsi_h,elsi_h%ham_real_sips)
-         if(.not. elsi_h%overlap_is_unit) then
-            call elsi_set_sparse_overlap(elsi_h,elsi_h%ovlp_real_sips)
-         endif
+         call elsi_set_sparse_overlap(elsi_h,elsi_h%ovlp_real_sips)
          call elsi_set_row_ind(elsi_h,elsi_h%row_ind_sips)
          call elsi_set_col_ptr(elsi_h,elsi_h%col_ptr_sips)
          call elsi_set_eigenvalue(elsi_h,e_val_out)
@@ -818,9 +814,7 @@ subroutine elsi_ev_complex(elsi_h,H_in,S_in,e_val_out,e_vec_out)
       case (ELPA)
          ! Set matrices
          call elsi_set_hamiltonian(elsi_h,H_in)
-         if(.not. elsi_h%overlap_is_unit) then
-            call elsi_set_overlap(elsi_h,S_in)
-         endif
+         call elsi_set_overlap(elsi_h,S_in)
          call elsi_set_eigenvector(elsi_h,e_vec_out)
          call elsi_set_eigenvalue(elsi_h,e_val_out)
 
@@ -886,9 +880,7 @@ subroutine elsi_ev_real_sparse(elsi_h,H_in,S_in,e_val_out,e_vec_out)
 
          ! Set matrices
          call elsi_set_hamiltonian(elsi_h,elsi_h%ham_real_elpa)
-         if(.not. elsi_h%overlap_is_unit) then
-            call elsi_set_overlap(elsi_h,elsi_h%ovlp_real_elpa)
-         endif
+         call elsi_set_overlap(elsi_h,elsi_h%ovlp_real_elpa)
          call elsi_set_eigenvector(elsi_h,e_vec_out)
          call elsi_set_eigenvalue(elsi_h,e_val_out)
 
@@ -957,9 +949,7 @@ subroutine elsi_dm_real(elsi_h,H_in,S_in,D_out,energy_out)
          endif
 
          call elsi_set_hamiltonian(elsi_h,H_in)
-         if(.not. elsi_h%overlap_is_unit) then
-            call elsi_set_overlap(elsi_h,S_in)
-         endif
+         call elsi_set_overlap(elsi_h,S_in)
          call elsi_set_eigenvector(elsi_h,elsi_h%evec_real_elpa)
          call elsi_set_eigenvalue(elsi_h,elsi_h%eval_elpa)
          call elsi_set_density_matrix(elsi_h,D_out)
@@ -996,9 +986,7 @@ subroutine elsi_dm_real(elsi_h,H_in,S_in,D_out,energy_out)
             endif
 
             call elsi_set_hamiltonian(elsi_h,H_in)
-            if(.not. elsi_h%overlap_is_unit) then
-               call elsi_set_overlap(elsi_h,S_in)
-            endif
+            call elsi_set_overlap(elsi_h,S_in)
             call elsi_set_eigenvector(elsi_h,elsi_h%evec_real_elpa)
             call elsi_set_eigenvalue(elsi_h,elsi_h%eval_elpa)
             call elsi_set_density_matrix(elsi_h,D_out)
@@ -1022,9 +1010,7 @@ subroutine elsi_dm_real(elsi_h,H_in,S_in,D_out,energy_out)
 
             ! Set matrices
             call elsi_set_hamiltonian(elsi_h,H_in)
-            if(.not. elsi_h%overlap_is_unit) then
-               call elsi_set_overlap(elsi_h,S_in)
-            endif
+            call elsi_set_overlap(elsi_h,S_in)
             call elsi_set_density_matrix(elsi_h,D_out)
 
             if(.not. elsi_h%coeff_omm%is_initialized) then
@@ -1075,9 +1061,7 @@ subroutine elsi_dm_real(elsi_h,H_in,S_in,D_out,energy_out)
 
          ! Set matrices
          call elsi_set_sparse_hamiltonian(elsi_h,elsi_h%ham_real_pexsi)
-         if(.not. elsi_h%overlap_is_unit) then
-            call elsi_set_sparse_overlap(elsi_h,elsi_h%ovlp_real_pexsi)
-         endif
+         call elsi_set_sparse_overlap(elsi_h,elsi_h%ovlp_real_pexsi)
          call elsi_set_row_ind(elsi_h,elsi_h%row_ind_pexsi)
          call elsi_set_col_ptr(elsi_h,elsi_h%col_ptr_pexsi)
          if(.not. allocated(elsi_h%den_mat_pexsi)) then
@@ -1149,9 +1133,7 @@ subroutine elsi_dm_complex(elsi_h,H_in,S_in,D_out,energy_out)
          endif
 
          call elsi_set_hamiltonian(elsi_h,H_in)
-         if(.not. elsi_h%overlap_is_unit) then
-            call elsi_set_overlap(elsi_h,S_in)
-         endif
+         call elsi_set_overlap(elsi_h,S_in)
          call elsi_set_eigenvector(elsi_h,elsi_h%evec_complex_elpa)
          call elsi_set_eigenvalue(elsi_h,elsi_h%eval_elpa)
          call elsi_set_density_matrix(elsi_h,D_out)
@@ -1167,9 +1149,7 @@ subroutine elsi_dm_complex(elsi_h,H_in,S_in,D_out,energy_out)
 
          ! Set Hamiltonian and overlap matrices
          call elsi_set_hamiltonian(elsi_h,H_in)
-         if(.not. elsi_h%overlap_is_unit) then
-            call elsi_set_overlap(elsi_h,S_in)
-         endif
+         call elsi_set_overlap(elsi_h,S_in)
          call elsi_set_density_matrix(elsi_h,D_out)
 
          if(.not. elsi_h%coeff_omm%is_initialized) then
@@ -1236,9 +1216,7 @@ subroutine elsi_dm_real_sparse(elsi_h,H_in,S_in,D_out,energy_out)
 
          ! Set matrices
          call elsi_set_sparse_hamiltonian(elsi_h,H_in)
-         if(.not. elsi_h%overlap_is_unit) then
-            call elsi_set_sparse_overlap(elsi_h,S_in)
-         endif
+         call elsi_set_sparse_overlap(elsi_h,S_in)
          call elsi_set_sparse_density_matrix(elsi_h,D_out)
 
          call elsi_init_pexsi(elsi_h)

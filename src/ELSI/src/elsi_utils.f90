@@ -548,22 +548,24 @@ subroutine elsi_set_real_overlap(elsi_h,S_in)
 
    character*40, parameter :: caller = "elsi_set_real_overlap"
 
-   select case (elsi_h%solver)
-      case (ELPA)
-         elsi_h%ovlp_real => S_in
-      case (LIBOMM)
-         call m_register_pdbc(elsi_h%ovlp_omm,S_in,elsi_h%sc_desc)
-      case (PEXSI)
-         ! Nothing to be done here
-      case (CHESS)
-         call elsi_stop(" CHESS not yet implemented. Exiting...",elsi_h,caller)
-      case (SIPS)
-         ! Nothing to be done here
-      case DEFAULT
-         call elsi_stop(" No supported solver has been chosen."//&
-                        " Please choose ELPA, LIBOMM, or PEXSI solver."//&
-                        " Exiting...",elsi_h,caller)
-   end select
+   if(.not. elsi_h%overlap_is_unit) then
+      select case (elsi_h%solver)
+         case (ELPA)
+            elsi_h%ovlp_real => S_in
+         case (LIBOMM)
+            call m_register_pdbc(elsi_h%ovlp_omm,S_in,elsi_h%sc_desc)
+         case (PEXSI)
+            ! Nothing to be done here
+         case (CHESS)
+            call elsi_stop(" CHESS not yet implemented. Exiting...",elsi_h,caller)
+         case (SIPS)
+            ! Nothing to be done here
+         case DEFAULT
+            call elsi_stop(" No supported solver has been chosen."//&
+                           " Please choose ELPA, LIBOMM, or PEXSI solver."//&
+                           " Exiting...",elsi_h,caller)
+      end select
+   endif
 
 end subroutine
 
@@ -579,23 +581,24 @@ subroutine elsi_set_complex_overlap(elsi_h,S_in)
 
    character*40, parameter :: caller = "elsi_set_complex_overlap"
 
-   select case (elsi_h%solver)
-      case (ELPA)
-         elsi_h%ovlp_complex => S_in
-      case (LIBOMM)
-         call m_register_pdbc(elsi_h%ovlp_omm,S_in,elsi_h%sc_desc)
-      case (PEXSI)
-         ! Nothing to be done here
-      case (CHESS)
-         call elsi_stop(" CHESS not yet implemented. Exiting...",elsi_h,caller)
-      case (SIPS)
-         call elsi_stop(" SIPS not yet implemented. Exiting...",elsi_h,caller)
-      case DEFAULT
-         call elsi_stop(" No supported solver has been chosen."//&
-                        " Please choose ELPA, LIBOMM, or PEXSI solver."//&
-                        " Exiting...",elsi_h,caller)
-   end select
-
+   if(.not. elsi_h%overlap_is_unit) then
+      select case (elsi_h%solver)
+         case (ELPA)
+            elsi_h%ovlp_complex => S_in
+         case (LIBOMM)
+            call m_register_pdbc(elsi_h%ovlp_omm,S_in,elsi_h%sc_desc)
+         case (PEXSI)
+            ! Nothing to be done here
+         case (CHESS)
+            call elsi_stop(" CHESS not yet implemented. Exiting...",elsi_h,caller)
+         case (SIPS)
+            call elsi_stop(" SIPS not yet implemented. Exiting...",elsi_h,caller)
+         case DEFAULT
+            call elsi_stop(" No supported solver has been chosen."//&
+                           " Please choose ELPA, LIBOMM, or PEXSI solver."//&
+                           " Exiting...",elsi_h,caller)
+      end select
+   endif
 end subroutine
 
 !>
@@ -610,22 +613,24 @@ subroutine elsi_set_sparse_real_overlap(elsi_h,S_in)
 
    character*40, parameter :: caller = "elsi_set_sparse_real_overlap"
 
-   select case (elsi_h%solver)
-      case (ELPA)
-         ! Nothing to be done here
-      case (LIBOMM)
-         ! Nothing to be done here
-      case (PEXSI)
-         elsi_h%ovlp_real_ccs => S_in
-      case (CHESS)
-         call elsi_stop(" CHESS not yet implemented. Exiting...",elsi_h,caller)
-      case (SIPS)
-         elsi_h%ovlp_real_ccs => S_in
-      case DEFAULT
-         call elsi_stop(" No supported solver has been chosen."//&
-                        " Please choose ELPA, LIBOMM, or PEXSI solver."//&
-                        " Exiting...",elsi_h,caller)
-   end select
+   if(.not. elsi_h%overlap_is_unit) then
+      select case (elsi_h%solver)
+         case (ELPA)
+            ! Nothing to be done here
+         case (LIBOMM)
+            ! Nothing to be done here
+         case (PEXSI)
+            elsi_h%ovlp_real_ccs => S_in
+         case (CHESS)
+            call elsi_stop(" CHESS not yet implemented. Exiting...",elsi_h,caller)
+         case (SIPS)
+            elsi_h%ovlp_real_ccs => S_in
+         case DEFAULT
+            call elsi_stop(" No supported solver has been chosen."//&
+                           " Please choose ELPA, LIBOMM, or PEXSI solver."//&
+                           " Exiting...",elsi_h,caller)
+      end select
+   endif
 
 end subroutine
 
@@ -641,22 +646,24 @@ subroutine elsi_set_sparse_complex_overlap(elsi_h,S_in)
 
    character*40, parameter :: caller = "elsi_set_sparse_complex_overlap"
 
-   select case (elsi_h%solver)
-      case (ELPA)
-         ! Nothing to be done here
-      case (LIBOMM)
-         ! Nothing to be done here
-      case (PEXSI)
-         elsi_h%ovlp_complex_ccs => S_in
-      case (CHESS)
-         call elsi_stop(" CHESS not yet implemented. Exiting...",elsi_h,caller)
-      case (SIPS)
-         call elsi_stop(" SIPS not yet implemented. Exiting...",elsi_h,caller)
-      case DEFAULT
-         call elsi_stop(" No supported solver has been chosen."//&
-                        " Please choose ELPA, LIBOMM, or PEXSI solver."//&
-                        " Exiting...",elsi_h,caller)
-   end select
+   if(.not. elsi_h%overlap_is_unit) then
+      select case (elsi_h%solver)
+         case (ELPA)
+            ! Nothing to be done here
+         case (LIBOMM)
+            ! Nothing to be done here
+         case (PEXSI)
+            elsi_h%ovlp_complex_ccs => S_in
+         case (CHESS)
+            call elsi_stop(" CHESS not yet implemented. Exiting...",elsi_h,caller)
+         case (SIPS)
+            call elsi_stop(" SIPS not yet implemented. Exiting...",elsi_h,caller)
+         case DEFAULT
+            call elsi_stop(" No supported solver has been chosen."//&
+                           " Please choose ELPA, LIBOMM, or PEXSI solver."//&
+                           " Exiting...",elsi_h,caller)
+      end select
+   endif
 
 end subroutine
 
