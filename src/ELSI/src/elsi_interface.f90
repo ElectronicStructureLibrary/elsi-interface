@@ -50,6 +50,8 @@ module ELSI
    implicit none
    private
 
+   character*8, parameter, public :: release_date = "20170527"
+
    public :: elsi_handle             !< ELSI handle data type
    public :: elsi_init               !< Initialize
    public :: elsi_set_solver         !< Set solver from calling code
