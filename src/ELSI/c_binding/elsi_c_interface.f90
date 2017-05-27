@@ -150,8 +150,8 @@ end subroutine
 
 subroutine elsi_customize_c_wrapper(handle_c,print_detail,overlap_is_unit,&
                                     zero_threshold,no_singularity_check,&
-                                    singularity_tolerance,stop_singularity)&
-                                    bind(C,name="c_elsi_customize")
+                                    singularity_tolerance,stop_singularity,&
+                                    uplo) bind(C,name="c_elsi_customize")
 
    implicit none
 
@@ -162,6 +162,7 @@ subroutine elsi_customize_c_wrapper(handle_c,print_detail,overlap_is_unit,&
    integer(kind=c_int), value, intent(in) :: no_singularity_check
    real(kind=c_double), value, intent(in) :: singularity_tolerance
    integer(kind=c_int), value, intent(in) :: stop_singularity
+   integer(kind=c_int), value, intent(in) :: uplo
 
    type(elsi_handle), pointer :: handle_f
    logical :: print_detail_f
@@ -197,7 +198,7 @@ subroutine elsi_customize_c_wrapper(handle_c,print_detail,overlap_is_unit,&
 
    call elsi_customize(handle_f,print_detail_f,overlap_is_unit_f,zero_threshold,&
                        no_singularity_check_f,singularity_tolerance,&
-                       stop_singularity_f)
+                       stop_singularity_f,uplo)
 
 end subroutine
 
@@ -322,11 +323,11 @@ subroutine elsi_ev_real_c_wrapper(handle_c,H,S,e_val,e_vec) bind(C,name="c_elsi_
 
    implicit none
 
-   type(c_ptr), value               :: handle_c
-   real(kind=c_double), intent(in)  :: H(n_l_rows_c,n_l_cols_c)
-   real(kind=c_double), intent(in)  :: S(n_l_rows_c,n_l_cols_c)
-   real(kind=c_double), intent(out) :: e_val(n_g_size_c)
-   real(kind=c_double), intent(out) :: e_vec(n_l_rows_c,n_l_cols_c)
+   type(c_ptr), value  :: handle_c
+   real(kind=c_double) :: H(n_l_rows_c,n_l_cols_c)
+   real(kind=c_double) :: S(n_l_rows_c,n_l_cols_c)
+   real(kind=c_double) :: e_val(n_g_size_c)
+   real(kind=c_double) :: e_vec(n_l_rows_c,n_l_cols_c)
 
    type(elsi_handle), pointer :: handle_f
 
@@ -340,11 +341,11 @@ subroutine elsi_ev_complex_c_wrapper(handle_c,H,S,e_val,e_vec) bind(C,name="c_el
 
    implicit none
 
-   type(c_ptr), value                          :: handle_c
-   complex(kind=c_double_complex), intent(in)  :: H(n_l_rows_c,n_l_cols_c)
-   complex(kind=c_double_complex), intent(in)  :: S(n_l_rows_c,n_l_cols_c)
-   real(kind=c_double),            intent(out) :: e_val(n_g_size_c)
-   complex(kind=c_double_complex), intent(out) :: e_vec(n_l_rows_c,n_l_cols_c)
+   type(c_ptr), value             :: handle_c
+   complex(kind=c_double_complex) :: H(n_l_rows_c,n_l_cols_c)
+   complex(kind=c_double_complex) :: S(n_l_rows_c,n_l_cols_c)
+   real(kind=c_double)            :: e_val(n_g_size_c)
+   complex(kind=c_double_complex) :: e_vec(n_l_rows_c,n_l_cols_c)
 
    type(elsi_handle), pointer :: handle_f
 
@@ -354,15 +355,33 @@ subroutine elsi_ev_complex_c_wrapper(handle_c,H,S,e_val,e_vec) bind(C,name="c_el
 
 end subroutine
 
+subroutine elsi_ev_real_sparse_c_wrapper(handle_c,H,S,e_val,e_vec) bind(C,name="c_elsi_ev_real_sparse")
+
+   implicit none
+
+   type(c_ptr), value  :: handle_c
+   real(kind=c_double) :: H(nnz_l_pexsi_c)
+   real(kind=c_double) :: S(nnz_l_pexsi_c)
+   real(kind=c_double) :: e_val(n_g_size_c)
+   real(kind=c_double) :: e_vec(n_l_rows_c,n_l_cols_c)
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_ev_real_sparse(handle_f,H,S,e_val,e_vec)
+
+end subroutine
+
 function elsi_dm_real_c_wrapper(handle_c,H,S,D) result(energy) bind(C,name="c_elsi_dm_real")
 
    implicit none
 
-   type(c_ptr), value               :: handle_c
-   real(kind=c_double), intent(in)  :: H(n_l_rows_c,n_l_cols_c)
-   real(kind=c_double), intent(in)  :: S(n_l_rows_c,n_l_cols_c)
-   real(kind=c_double), intent(out) :: D(n_l_rows_c,n_l_cols_c)
-   real(kind=c_double)              :: energy
+   type(c_ptr), value  :: handle_c
+   real(kind=c_double) :: H(n_l_rows_c,n_l_cols_c)
+   real(kind=c_double) :: S(n_l_rows_c,n_l_cols_c)
+   real(kind=c_double) :: D(n_l_rows_c,n_l_cols_c)
+   real(kind=c_double) :: energy
 
    type(elsi_handle), pointer :: handle_f
 
@@ -376,11 +395,11 @@ function elsi_dm_real_sparse_c_wrapper(handle_c,H,S,D) result(energy) bind(C,nam
 
    implicit none
 
-   type(c_ptr), value               :: handle_c
-   real(kind=c_double), intent(in)  :: H(nnz_l_pexsi_c)
-   real(kind=c_double), intent(in)  :: S(nnz_l_pexsi_c)
-   real(kind=c_double), intent(out) :: D(nnz_l_pexsi_c)
-   real(kind=c_double)              :: energy
+   type(c_ptr), value  :: handle_c
+   real(kind=c_double) :: H(nnz_l_pexsi_c)
+   real(kind=c_double) :: S(nnz_l_pexsi_c)
+   real(kind=c_double) :: D(nnz_l_pexsi_c)
+   real(kind=c_double) :: energy
 
    type(elsi_handle), pointer :: handle_f
 
@@ -394,10 +413,10 @@ subroutine elsi_collect_pexsi_c_wrapper(handle_c,mu,edm,fdm) bind(C,name="c_elsi
 
    implicit none
 
-   type(c_ptr), value               :: handle_c
-   real(kind=c_double), intent(out) :: mu
-   real(kind=c_double), intent(out) :: edm(nnz_l_pexsi_c)
-   real(kind=c_double), intent(out) :: fdm(nnz_l_pexsi_c)
+   type(c_ptr), value  :: handle_c
+   real(kind=c_double) :: mu
+   real(kind=c_double) :: edm(nnz_l_pexsi_c)
+   real(kind=c_double) :: fdm(nnz_l_pexsi_c)
 
    type(elsi_handle), pointer :: handle_f
 
