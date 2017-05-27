@@ -71,7 +71,8 @@ void c_elsi_customize(elsi_handle handle_c,
                       double zero_threshold,
                       int no_singularity_check,
                       double singularity_tolerance,
-                      int stop_singularity);
+                      int stop_singularity,
+                      int uplo);
 
 void c_elsi_customize_mu(elsi_handle handle_c,
                          int broadening_scheme,
@@ -122,6 +123,12 @@ void c_elsi_ev_complex(elsi_handle handle_c,
                        double _Complex *S,
                        double *e_val,
                        double _Complex *e_vec);
+
+void c_elsi_ev_real_sparse(elsi_handle handle_c,
+                           double *H,
+                           double *S,
+                           double *e_val,
+                           double *e_vec);
 
 double c_elsi_dm_real(elsi_handle handle_c,
                       double *H,
