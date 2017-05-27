@@ -32,8 +32,10 @@
 module ELSI_UTILS
 
    use iso_c_binding
-   use ELSI_CONSTANTS, only: AUTO,ELPA,LIBOMM,PEXSI,CHESS,SIPS,BLACS_DENSE,MULTI_PROC,N_SOLVERS,&
-                             N_MATRIX_DATA_TYPES,N_MATRIX_STORAGE_FORMATS,N_PARALLEL_MODES,UNSET
+   use ELSI_CONSTANTS, only: AUTO,ELPA,LIBOMM,PEXSI,CHESS,SIPS,BLACS_DENSE,&
+                             PEXSI_CSC,MULTI_PROC,FULL_MAT,UT_MAT,LT_MAT,&
+                             N_SOLVERS,N_MATRIX_DATA_TYPES,&
+                             N_MATRIX_STORAGE_FORMATS,N_PARALLEL_MODES,UNSET
    use ELSI_DIMENSIONS, only: elsi_handle,print_info
    use ELSI_PRECISION, only: r8,i4
    use f_ppexsi_interface
@@ -62,6 +64,7 @@ module ELSI_UTILS
    public :: elsi_get_global_row
    public :: elsi_get_global_col
    public :: elsi_get_local_nnz
+   public :: elsi_set_full_mat
 
    interface elsi_set_hamiltonian
       module procedure elsi_set_real_hamiltonian,&
@@ -98,6 +101,11 @@ module ELSI_UTILS
                        elsi_allocate_complex_1d,&
                        elsi_allocate_complex_2d,&
                        elsi_allocate_complex_3d
+   end interface
+
+   interface elsi_set_full_mat
+      module procedure elsi_set_full_mat_real,&
+                       elsi_set_full_mat_complex
    end interface
 
 contains
@@ -1110,6 +1118,13 @@ subroutine elsi_check(elsi_h,caller)
                      " Exiting...",elsi_h,caller)
    endif
 
+   if(elsi_h%uplo /= FULL_MAT) then
+      call elsi_stop(" Upper/lower triangular input matrix not yet supported."//&
+                     " The option is here, only for adding functionalities in"//&
+                     " the future. Please pass full matrix into ELSI."//&
+                     " Exiting...",elsi_h,caller)
+   endif
+
    ! Specific check for each solver
    if(elsi_h%solver == AUTO) then
       call elsi_stop(" AUTO not yet available."//&
@@ -1316,6 +1331,119 @@ subroutine elsi_get_local_nnz(elsi_h,matrix,n_rows,n_cols,nnz)
          endif
       enddo
    enddo
+
+end subroutine
+
+!>
+!! This routine sets a full matrix from a (upper or lower) triangular matrix.
+!! The size of matrix should be the same as the Hamiltonian matrix.
+!!
+subroutine elsi_set_full_mat_real(elsi_h,mat)
+
+   implicit none
+   include "mpif.h"
+
+   type(elsi_handle), intent(inout) :: elsi_h
+   real(kind=r8),     intent(inout) :: mat(elsi_h%n_l_rows,elsi_h%n_l_cols)
+
+   integer(kind=i4) :: i_row,i_col
+   real(kind=r8), allocatable :: tmp_real(:,:)
+
+   character*40, parameter :: caller = "elsi_set_full_mat_real"
+
+   if((elsi_h%uplo /= FULL_MAT) .and. (elsi_h%parallel_mode == MULTI_PROC)) then
+      call elsi_allocate(elsi_h,tmp_real,elsi_h%n_l_rows,elsi_h%n_l_cols,"tmp_real",caller)
+
+      call pdtran(elsi_h%n_g_size,elsi_h%n_g_size,1.0_r8,mat,1,1,elsi_h%sc_desc,&
+                  0.0_r8,tmp_real,1,1,elsi_h%sc_desc)
+
+      if(elsi_h%uplo == UT_MAT) then ! Upper triangular
+         do i_col = 1,elsi_h%n_g_size-1
+            if(elsi_h%local_col(i_col) == 0) cycle
+
+            do i_row = i_col+1,elsi_h%n_g_size
+               if(elsi_h%local_row(i_row) > 0) then
+                  mat(elsi_h%local_row(i_row),elsi_h%local_col(i_col)) = &
+                     tmp_real(elsi_h%local_row(i_row),elsi_h%local_col(i_col))
+               endif
+            enddo
+         enddo
+      elseif(elsi_h%uplo == LT_MAT) then ! Lower triangular
+         do i_col = 2,elsi_h%n_g_size
+            if(elsi_h%local_col(i_col) == 0) cycle
+
+            do i_row = 1,i_col-1
+               if(elsi_h%local_row(i_row) > 0) then
+                  mat(elsi_h%local_row(i_row),elsi_h%local_col(i_col)) = &
+                     tmp_real(elsi_h%local_row(i_row),elsi_h%local_col(i_col))
+               endif
+            enddo
+         enddo
+      endif
+
+      deallocate(tmp_real)
+   endif
+
+end subroutine
+
+!>
+!! This routine sets a full matrix from a (upper or lower) triangular matrix.
+!! The size of matrix should be the same as the Hamiltonian matrix.
+!!
+subroutine elsi_set_full_mat_complex(elsi_h,mat)
+
+   implicit none
+   include "mpif.h"
+
+   type(elsi_handle), intent(inout) :: elsi_h
+   complex(kind=r8),  intent(inout) :: mat(elsi_h%n_l_rows,elsi_h%n_l_cols)
+
+   integer(kind=i4) :: i_row,i_col
+   complex(kind=r8), allocatable :: tmp_complex(:,:)
+
+   character*40, parameter :: caller = "elsi_set_full_mat_complex"
+
+   if((elsi_h%uplo /= FULL_MAT) .and. (elsi_h%parallel_mode == MULTI_PROC)) then
+      call elsi_allocate(elsi_h,tmp_complex,elsi_h%n_l_rows,elsi_h%n_l_cols,&
+                         "tmp_complex",caller)
+
+      call pztranc(elsi_h%n_g_size,elsi_h%n_g_size,(1.0_r8,0.0_r8),mat,1,1,&
+                   elsi_h%sc_desc,(0.0_r8,0.0_r8),tmp_complex,1,1,elsi_h%sc_desc)
+
+      if(elsi_h%uplo == UT_MAT) then ! Upper triangular
+         do i_col = 1,elsi_h%n_g_size-1
+            if(elsi_h%local_col(i_col) == 0) cycle
+
+            do i_row = i_col+1,elsi_h%n_g_size
+               if(elsi_h%local_row(i_row) > 0) then
+                  mat(elsi_h%local_row(i_row),elsi_h%local_col(i_col)) = &
+                     tmp_complex(elsi_h%local_row(i_row),elsi_h%local_col(i_col))
+               endif
+            enddo
+         enddo
+      elseif(elsi_h%uplo == LT_MAT) then ! Lower triangular
+         do i_col = 2,elsi_h%n_g_size
+            if(elsi_h%local_col(i_col) == 0) cycle
+
+            do i_row = 1,i_col-1
+               if(elsi_h%local_row(i_row) > 0) then
+                  mat(elsi_h%local_row(i_row),elsi_h%local_col(i_col)) = &
+                     tmp_complex(elsi_h%local_row(i_row),elsi_h%local_col(i_col))
+               endif
+            enddo
+         enddo
+      endif
+
+      deallocate(tmp_complex)
+
+      ! Make diagonal real
+      do i_col = 1,elsi_h%n_g_size
+         if((elsi_h%local_col(i_col) == 0) .or. (elsi_h%local_row(i_col) == 0)) cycle
+
+         mat(elsi_h%local_row(i_col),elsi_h%local_col(i_col)) = &
+            dble(mat(elsi_h%local_row(i_col),elsi_h%local_col(i_col)))
+      enddo
+   endif
 
 end subroutine
 
