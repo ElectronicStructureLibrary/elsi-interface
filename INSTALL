@@ -46,10 +46,10 @@ A) BASIC
    interface itself.  Optionally, the user may link ELSI directly against 
    preinstalled version of any supported solver library.  For more 
    information how to link ELSI against a preinstalled solver library, 
-   please see the User's Manual provided with this package.  We also 
-   provide a sample make.sys file (make_sys/make.sys-external-linkage)
-   which demonstrates external linkage of ELSI against preinstalled ELPA, 
-   libOMM, and PEXSI libraries.
+   please see the User's Guide available at the ELSI Interchange 
+   (http://www.elsi-interchange.org/).  We also provide a sample make.sys 
+   file (make_sys/make.sys-external-linkage) which demonstrates external 
+   linkage of ELSI against preinstalled ELPA, libOMM, and PEXSI libraries.
  
 3) (Optional, but highly recommended) Once compiled, the ELSI libraries 
    may be sanity-checked using a quick set of regression tests by typing
@@ -145,8 +145,9 @@ C) PEXSI-SPECIFIC NOTES
 D) BEYOND THIS GUIDE
 ==========================================================================
 
-   More information may be found in the User's Guide included in this 
-   package and on the ELSI GitLab wiki pages.
+   More information may be found in the User's Guide and on the ELSI 
+   GitLab wiki pages.  Both may be accessed via the ELSI Interchange
+   at www.elsi-interchange.org .
 
 ==========================================================================
 E) TROUBLESHOOTING
