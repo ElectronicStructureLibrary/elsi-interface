@@ -31,9 +31,9 @@
 module ELSI_TIMERS
 
    use iso_c_binding
-   use ELSI_PRECISION, only: r8,i4
    use ELSI_CONSTANTS, only: ELPA,LIBOMM,PEXSI,CHESS,SIPS
    use ELSI_DIMENSIONS, only: elsi_handle,print_info
+   use ELSI_PRECISION, only: r8,i4
    use ELSI_UTILS
 
    implicit none

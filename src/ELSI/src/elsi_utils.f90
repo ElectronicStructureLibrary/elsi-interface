@@ -32,12 +32,12 @@
 module ELSI_UTILS
 
    use iso_c_binding
-   use ELSI_PRECISION, only: r8,i4
    use ELSI_CONSTANTS, only: AUTO,ELPA,LIBOMM,PEXSI,CHESS,SIPS,BLACS_DENSE,MULTI_PROC,N_SOLVERS,&
                              N_MATRIX_DATA_TYPES,N_MATRIX_STORAGE_FORMATS,N_PARALLEL_MODES,UNSET
    use ELSI_DIMENSIONS, only: elsi_handle,print_info
-   use MatrixSwitch, only: matrix,m_register_pdbc,m_deallocate
+   use ELSI_PRECISION, only: r8,i4
    use f_ppexsi_interface
+   use MatrixSwitch, only: matrix,m_register_pdbc,m_deallocate
    use m_qetsc
 
    implicit none
@@ -1131,10 +1131,12 @@ subroutine elsi_check(elsi_h,caller)
          endif
       endif
 
-      if(elsi_h%matrix_storage_format /= BLACS_DENSE) then
-         call elsi_stop(" ELPA has been chosen as the solver."//&
-                        " Please choose BLACS_DENSE matrix storage format."//&
-                        " Exiting...",elsi_h,caller)
+      if(elsi_h%matrix_storage_format == PEXSI_CSC) then
+         if(.not. elsi_h%sparsity_pattern_ready) then
+            call elsi_stop(" The PEXSI_CSC format has been chosen."//&
+                           " Please set the sparsity pattern before"//&
+                           " calling the solver. Exiting...",elsi_h,caller)
+         endif
       endif
 
    else if(elsi_h%solver == LIBOMM) then

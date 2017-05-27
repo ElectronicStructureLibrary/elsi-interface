@@ -30,10 +30,10 @@
 !!
 module ELSI_MU
 
-   use ELSI_PRECISION, only: r8,i4
    use ELSI_CONSTANTS, only: GAUSSIAN,FERMI,METHFESSEL_PAXTON_0,&
                              METHFESSEL_PAXTON_1,INVERT_SQRT_PI
    use ELSI_DIMENSIONS, only: elsi_handle
+   use ELSI_PRECISION, only: r8,i4
    use ELSI_UTILS
 
    implicit none

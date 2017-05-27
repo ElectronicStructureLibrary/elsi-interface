@@ -31,8 +31,8 @@
 module ELSI_DIMENSIONS
 
    use iso_c_binding
+   use ELSI_CONSTANTS, only: FULL_MAT,UNSET
    use ELSI_PRECISION, only: r8,i4
-   use ELSI_CONSTANTS, only: UNSET
    use f_ppexsi_interface, only: f_ppexsi_options
    use MatrixSwitch, only: matrix
 
@@ -112,6 +112,9 @@ module ELSI_DIMENSIONS
 
       !> Matrix storage format (BLACS_DENSE=0,PEXSI_CSC=1)
       integer(kind=i4) :: matrix_storage_format = UNSET
+
+      !> Is input matrix triangular? (FULL_MAT=0,UT_MAT=1,LT_MAT=2)
+      integer(kind=i4) :: uplo = FULL_MAT
 
       !> Parallel mode (SINGLE_PROC=0,MULTI_PROC=1)
       integer(kind=i4) :: parallel_mode = UNSET

@@ -31,9 +31,9 @@
 module ELSI_OMM
 
    use iso_c_binding
-   use ELSI_PRECISION, only: r8,i4
    use ELSI_CONSTANTS, only: REAL_VALUES,COMPLEX_VALUES
    use ELSI_DIMENSIONS, only: elsi_handle
+   use ELSI_PRECISION, only: r8,i4
    use ELSI_TIMERS
    use ELSI_UTILS
    use ELPA1

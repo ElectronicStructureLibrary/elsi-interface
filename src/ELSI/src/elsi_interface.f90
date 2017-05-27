@@ -36,8 +36,8 @@ module ELSI
                              COMPLEX_VALUES,SINGLE_PROC,MULTI_PROC,UNSET
    use ELSI_DIMENSIONS, only: elsi_handle,print_info
    use ELSI_ELPA
-   use ELSI_MATCONV, only: elsi_blacs_to_pexsi,elsi_blacs_to_sips,&
-                           elsi_pexsi_to_blacs_dm,elsi_pexsi_to_blacs
+   use ELSI_MATCONV, only: elsi_blacs_to_pexsi_hs,elsi_blacs_to_sips_hs,&
+                           elsi_pexsi_to_blacs_dm,elsi_pexsi_to_blacs_hs
    use ELSI_MU, only: elsi_compute_mu_and_occ
    use ELSI_OMM
    use ELSI_PEXSI
@@ -63,6 +63,7 @@ module ELSI
    public :: elsi_customize_mu       !< Override chemical potential determination
    public :: elsi_ev_real            !< Compute eigenvalues and eigenvectors
    public :: elsi_ev_complex         !< Compute eigenvalues and eigenvectors
+   public :: elsi_ev_real_sparse     !< Compute eigenvalues and eigenvectors
    public :: elsi_dm_real            !< Compute density matrix
    public :: elsi_dm_complex         !< Compute density matrix
    public :: elsi_dm_real_sparse     !< Compute density matrix
@@ -362,7 +363,8 @@ end subroutine
 !! This routine overrides ELSI default settings.
 !!
 subroutine elsi_customize(elsi_h,print_detail,overlap_is_unit,zero_threshold,&
-                          no_singularity_check,singularity_tolerance,stop_singularity)
+                          no_singularity_check,singularity_tolerance,&
+                          stop_singularity,uplo)
 
    implicit none
 
@@ -373,6 +375,7 @@ subroutine elsi_customize(elsi_h,print_detail,overlap_is_unit,zero_threshold,&
    logical,           intent(in), optional :: no_singularity_check   !< Do not perform singularity check of overlap
    real(kind=r8),     intent(in), optional :: singularity_tolerance  !< Tolerance of overlap singularity
    logical,           intent(in), optional :: stop_singularity       !< Stop if overlap is singular
+   integer,           intent(in), optional :: uplo                   !< Is input matrices upper/lower triangular?
 
    character*40, parameter :: caller = "elsi_customize"
 
@@ -397,6 +400,10 @@ subroutine elsi_customize(elsi_h,print_detail,overlap_is_unit,zero_threshold,&
    ! Always stop if overlap is singular? [Default: .false.]
    if(present(stop_singularity)) &
       elsi_h%stop_singularity = stop_singularity
+   ! Is the input matrices upper or lower triangular?
+   ! 0: FULL_MAT, 1: UT_MAT, 2: LT_MAT [Default: 0]
+   if(present(uplo)) &
+      elsi_h%uplo = uplo
 
 end subroutine
 
@@ -761,7 +768,7 @@ subroutine elsi_ev_real(elsi_h,H_in,S_in,e_val_out,e_vec_out)
          call elsi_init_sips(elsi_h)
 
          ! Convert matrix format and distribution from BLACS to SIPs
-         call elsi_blacs_to_sips(elsi_h,H_in,S_in)
+         call elsi_blacs_to_sips_hs(elsi_h,H_in,S_in)
 
          ! Set matrices
          call elsi_set_sparse_hamiltonian(elsi_h,elsi_h%ham_real_sips)
@@ -819,6 +826,7 @@ subroutine elsi_ev_complex(elsi_h,H_in,S_in,e_val_out,e_vec_out)
          call elsi_set_eigenvalue(elsi_h,e_val_out)
 
          ! Solve eigenvalue problem
+if(elsi_h%myid == 0) print *,elsi_h%ovlp_complex
          if(elsi_h%parallel_mode == SINGLE_PROC) then
             call elsi_solve_evp_elpa_sp(elsi_h)
          else ! Multi-proc
@@ -876,7 +884,7 @@ subroutine elsi_ev_real_sparse(elsi_h,H_in,S_in,e_val_out,e_vec_out)
    select case (elsi_h%solver)
       case (ELPA)
          ! Convert matrix format and distribution from PEXSI to BLACS
-         call elsi_pexsi_to_blacs(elsi_h,H_in,S_in)
+         call elsi_pexsi_to_blacs_hs(elsi_h,H_in,S_in)
 
          ! Set matrices
          call elsi_set_hamiltonian(elsi_h,elsi_h%ham_real_elpa)
@@ -1057,7 +1065,7 @@ subroutine elsi_dm_real(elsi_h,H_in,S_in,D_out,energy_out)
          call elsi_init_pexsi(elsi_h)
 
          ! Convert matrix format and distribution from BLACS to PEXSI
-         call elsi_blacs_to_pexsi(elsi_h,H_in,S_in)
+         call elsi_blacs_to_pexsi_hs(elsi_h,H_in,S_in)
 
          ! Set matrices
          call elsi_set_sparse_hamiltonian(elsi_h,elsi_h%ham_real_pexsi)

@@ -31,9 +31,9 @@
 module ELSI_PEXSI
 
    use iso_c_binding
-   use ELSI_PRECISION, only: r8,i4
    use ELSI_CONSTANTS, only: BLACS_DENSE
    use ELSI_DIMENSIONS, only: elsi_handle
+   use ELSI_PRECISION, only: r8,i4
    use ELSI_TIMERS
    use ELSI_UTILS
    use f_ppexsi_interface

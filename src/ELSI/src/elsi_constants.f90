@@ -59,6 +59,11 @@ module ELSI_CONSTANTS
       enumerator :: BLACS_DENSE, PEXSI_CSC
    end enum
 
+   !> Triangular matrix
+   enum, bind( C )
+      enumerator :: FULL_MAT, UT_MAT, LT_MAT
+   end enum
+
    !> Parallel modes
    enum, bind( C )
       enumerator :: SINGLE_PROC, MULTI_PROC
