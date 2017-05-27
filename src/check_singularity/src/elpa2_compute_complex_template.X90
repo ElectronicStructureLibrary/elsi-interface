@@ -149,6 +149,7 @@
       a_dev = 0
       umc_dev = 0
       vmr_dev = 0
+      successCUDA = .true.
 #endif
 
 #ifdef HAVE_DETAILED_TIMINGS
@@ -232,7 +233,6 @@
       l_rows_tile = tile_size/np_rows ! local rows of a tile
       l_cols_tile = tile_size/np_cols ! local cols of a tile
 
-#ifdef WITH_GPU_VERSION
       if (useGPU) then
 #if !defined(USE_ASSUMED_SIZE)
         if (size(a,dim=1) .ne. lda .or. size(a,dim=2) .ne. na_cols) then
@@ -240,21 +240,18 @@
         endif
 #endif
 
+#ifdef WITH_GPU_VERSION
 #ifdef DOUBLE_PRECISION_COMPLEX
         successCUDA = cuda_memcpy(a_dev, loc(a(1,1)),(lda)*(na_cols)*size_of_double_complex_datatype,cudaMemcpyHostToDevice)
 #else
         successCUDA = cuda_memcpy(a_dev, loc(a(1,1)),(lda)*(na_cols)*size_of_single_complex_datatype,cudaMemcpyHostToDevice)
 #endif
-
+#endif
         if (.not.(successCUDA)) then
           print *, "bandred_complex:  cuda memcpy faild a_dev ", istat
           stop
         endif
       endif
-
-#else
-        successCUDA = .true.
-#endif
 
       do istep = (na-1)/nbw, 1, -1
 
@@ -389,7 +386,6 @@
         tmat(:,:,istep) = 0._ck4
 #endif
 
-#ifdef WITH_GPU_VERSION
         if (useGPU) then
           lc_start = local_index(istep*nbw+1, my_pcol, np_cols, nblk, -1)
           lc_end   = local_index(istep*nbw+n_cols, my_pcol, np_cols, nblk, -1)
@@ -398,6 +394,7 @@
           if (lc_start .le. 0) lc_start = 1
           cur_pcol = pcol(istep*nbw+1, nblk, np_cols)
           if (my_pcol == cur_pcol) then
+#ifdef WITH_GPU_VERSION
 #ifdef DOUBLE_PRECISION_COMPLEX
             successCUDA = cuda_memcpy2d(loc(a(1, lc_start)), int(lda*size_of_double_complex_datatype,kind=c_size_t),            &
                                         (a_dev + int( ( (lc_start-1) * lda*size_of_double_complex_datatype),kind=c_size_t )),      &
@@ -411,15 +408,13 @@
                                     int(lr_end*size_of_single_complex_datatype,kind=c_size_t),               &
                                       int((lc_end - lc_start+1),kind=c_size_t),int(cudaMemcpyDeviceToHost,kind=c_int))
 #endif
+#endif
             if (.not.(successCUDA)) then
               print *, "bandred_complex: error in cudaMemcpy2"
               stop
             endif
           endif
         endif
-#else
-        successCUDA = .true.
-#endif
 
         ! Reduce current block to lower triangular form
 
@@ -598,10 +593,10 @@
         ! Calculate scalar products of stored Householder vectors.
         ! This can be done in different ways, we use zherk
 
-#ifdef WITH_GPU_VERSION
         if (useGPU) then
           cur_pcol = pcol(istep*nbw+1, nblk, np_cols)
           if (my_pcol == cur_pcol) then
+#ifdef WITH_GPU_VERSION
 #ifdef DOUBLE_PRECISION_COMPLEX
             successCUDA = cuda_memcpy2d((a_dev+int(((lc_start-1)*lda*size_of_double_complex_datatype),kind=c_size_t)),    &
                                         int(lda*size_of_double_complex_datatype,kind=c_size_t), loc(a(1,lc_start)),       &
@@ -617,15 +612,13 @@
                                         int((lc_end - lc_start+1),kind=c_size_t) &
                                         ,int(cudaMemcpyHostToDevice,kind=c_int))
 #endif
+#endif
             if (.not.(successCUDA)) then
               print *, "bandred_complex: cuda memcpy a_dev  failed ", istat
               stop
             endif
           endif
         endif
-#else
-        successCUDA = .true.
-#endif
 
         vav = 0
         if (l_rows>0) &
@@ -675,18 +668,18 @@
         vmr(1:l_rows,n_cols+1:2*n_cols) = 0._ck4
 #endif
         if (l_cols>0 .and. l_rows>0) then
-#ifdef WITH_GPU_VERSION
           if (useGPU) then
             if (size(vmr,dim=1)*size(vmr,dim=2) .gt. vmr_size) then
               print *,"bandred_complex: vmr size 2 :",size(vmr,dim=1)*size(vmr,dim=2),vmr_size
               stop
             endif
+#ifdef WITH_GPU_VERSION
 #ifdef DOUBLE_PRECISION_COMPLEX
             successCUDA = cuda_memcpy(vmr_dev, loc(vmr(1,1)),vmr_size*size_of_double_complex_datatype,cudaMemcpyHostToDevice)
 #else
             successCUDA = cuda_memcpy(vmr_dev, loc(vmr(1,1)),vmr_size*size_of_single_complex_datatype,cudaMemcpyHostToDevice)
 #endif
-
+#endif
             if (.not.(successCUDA)) then
               print *, "bandred_complex:  cuda memcpy vmr_dev failed ", istat
               stop
@@ -695,20 +688,18 @@
               print *,"bandred_complex: umc size 2 :",size(umc,dim=1)*size(umc,dim=2),umc_size
               stop
             endif
+#ifdef WITH_GPU_VERSION
 #ifdef DOUBLE_PRECISION_COMPLEX
             successCUDA = cuda_memcpy(umc_dev, loc(umc(1,1)),umc_size*size_of_double_complex_datatype,cudaMemcpyHostToDevice)
 #else
             successCUDA = cuda_memcpy(umc_dev, loc(umc(1,1)),umc_size*size_of_single_complex_datatype,cudaMemcpyHostToDevice)
+#endif
 #endif
             if (.not.(successCUDA)) then
               print *, "bandred_complex:  cuda memcpy umc_dev failed  ", istat
               stop
             endif
           endif
-#else
-          successCUDA = .true.
-#endif
-
           do i=0,(istep*nbw-1)/tile_size
 
             lcs = i*l_cols_tile+1
@@ -762,16 +753,17 @@
 #endif
           enddo
 
-#ifdef WITH_GPU_VERSION
           if (useGPU) then
             if (size(vmr,dim=1)*size(vmr,dim=2) .gt. vmr_size) then
               print *,"bandred_complex: vmr size 3 :",size(vmr,dim=1)*size(vmr,dim=2),vmr_size
               stop
             endif
+#ifdef WITH_GPU_VERSION
 #ifdef DOUBLE_PRECISION_COMPLEX
             successCUDA = cuda_memcpy(loc(vmr(1,1)),vmr_dev,vmr_size*size_of_double_complex_datatype,cudaMemcpyDeviceToHost)
 #else
             successCUDA = cuda_memcpy(loc(vmr(1,1)),vmr_dev,vmr_size*size_of_single_complex_datatype,cudaMemcpyDeviceToHost)
+#endif
 #endif
             if (.not.(successCUDA)) then
               print *, "bandred_complex:  cuad memcpy failed vmr ", istat
@@ -781,19 +773,18 @@
               print *,"bandred_complex: umc size 3 :",size(umc,dim=1)*size(umc,dim=2),umc_size
               stop
             endif
+#ifdef WITH_GPU_VERSION
 #ifdef DOUBLE_PRECISION_COMPLEX
             successCUDA = cuda_memcpy(loc(umc(1,1)), umc_dev,umc_size*size_of_double_complex_datatype,cudaMemcpyDeviceToHost)
 #else
             successCUDA = cuda_memcpy(loc(umc(1,1)), umc_dev,umc_size*size_of_single_complex_datatype,cudaMemcpyDeviceToHost)
+#endif
 #endif
             if (.not.(successCUDA)) then
               print *, "bandred_complex:  cuad memcpy failed umc ", istat
               stop
             endif
           endif ! useGPU
-#else
-        successCUDA = .true.
-#endif
         endif
 
         ! Sum up all ur(:) parts along rows and add them to the uc(:) parts
@@ -862,25 +853,28 @@
 #endif /* WITH_MPI */
 
         ! U = U * Tmat**T
-#ifdef WITH_GPU_VERSION
         if (useGPU) then
           if (size(umc,dim=1)*size(umc,dim=2) .gt. umc_size) then
             print *,"bandred_complex: umc size 4 :",size(umc,dim=1)*size(umc,dim=2),umc_size
             stop
           endif
+#ifdef WITH_GPU_VERSION
 #ifdef DOUBLE_PRECISION_COMPLEX
           successCUDA = cuda_memcpy(umc_dev, loc(umc(1,1)),umc_size*size_of_double_complex_datatype,cudaMemcpyHostToDevice)
 #else
           successCUDA = cuda_memcpy(umc_dev, loc(umc(1,1)),umc_size*size_of_single_complex_datatype,cudaMemcpyHostToDevice)
 #endif
+#endif
           if (.not.(successCUDA)) then
             print *, "bandred_complex:  cuad memcpy failed umc_dev ", istat
             stop
           endif
+#ifdef WITH_GPU_VERSION
 #ifdef DOUBLE_PRECISION_COMPLEX
           successCUDA = cuda_memcpy(tmat_dev,loc(tmat(1,1,istep)),nbw*nbw*size_of_double_complex_datatype,cudaMemcpyHostToDevice)
 #else
           successCUDA = cuda_memcpy(tmat_dev,loc(tmat(1,1,istep)),nbw*nbw*size_of_single_complex_datatype,cudaMemcpyHostToDevice)
+#endif
 #endif
           if (.not.(successCUDA)) then
             print *, "bandred_complex:  cuad memcpy failed tmat_dev ", istat
@@ -901,10 +895,6 @@
 #endif
         endif
 
-#else
-        successCUDA = .true.
-#endif
-
         ! VAV = Tmat * V**T * A * V * Tmat**T = (U*Tmat**T)**T * V * Tmat**T
         if (useGPU) then
 #ifdef WITH_GPU_VERSION
@@ -912,6 +902,7 @@
           successCUDA = cuda_memcpy(vav_dev,loc(vav(1,1)), nbw*nbw*size_of_double_complex_datatype,cudaMemcpyHostToDevice)
 #else
           successCUDA = cuda_memcpy(vav_dev,loc(vav(1,1)), nbw*nbw*size_of_single_complex_datatype,cudaMemcpyHostToDevice)
+#endif
 #endif
           if (.not.(successCUDA)) then
             print *, "bandred_complex:  cuad memcpy failed vav_dev ", istat
@@ -929,10 +920,12 @@
           call cublas_ctrmm('Right', 'Upper', 'C', 'Nonunit', n_cols, n_cols, CONE, tmat_dev, nbw, vav_dev, nbw)
 #endif
 
+#ifdef WITH_GPU_VERSION
 #ifdef DOUBLE_PRECISION_COMPLEX
           successCUDA = cuda_memcpy(loc(vav(1,1)), vav_dev,nbw*nbw*size_of_double_complex_datatype,cudaMemcpyDeviceToHost)
 #else
           successCUDA = cuda_memcpy(loc(vav(1,1)), vav_dev,nbw*nbw*size_of_single_complex_datatype,cudaMemcpyDeviceToHost)
+#endif
 #endif
           if (.not.(successCUDA)) then
             print *, "bandred_complex:  cuad memcpy failed vav ", istat
@@ -945,18 +938,17 @@
           call herm_matrix_allreduce_single(n_cols,vav, nbw, nbw,mpi_comm_cols)
 #endif
 
+#ifdef WITH_GPU_VERSION
 #ifdef DOUBLE_PRECISION_COMPLEX
           successCUDA = cuda_memcpy(vav_dev,loc(vav(1,1)),nbw*nbw*size_of_double_complex_datatype,cudaMemcpyHostToDevice)
 #else
           successCUDA = cuda_memcpy(vav_dev,loc(vav(1,1)),nbw*nbw*size_of_single_complex_datatype,cudaMemcpyHostToDevice)
 #endif
+#endif
           if (.not.(successCUDA)) then
             print *, "bandred_complex:  cuad memcpy failed vav_dev ", istat
             stop
           endif
-#else
-          successCUDA = .true.
-#endif
         else
 #ifdef DOUBLE_PRECISION_COMPLEX
           call zgemm('C', 'N', n_cols, n_cols, l_cols, CONE, umc, ubound(umc,dim=1), umc(1,n_cols+1), &
@@ -980,7 +972,6 @@
         ! U = U - 0.5 * V * VAV
 
         if (useGPU) then
-#ifdef WITH_GPU_VERSION
 #ifdef DOUBLE_PRECISION_COMPLEX
           call cublas_zgemm('N', 'N', l_cols, n_cols, n_cols, (-0.5_rk8, 0.0_rk8), (umc_dev +  &
                             (cur_l_cols * n_cols )*size_of_double_complex_datatype), &
@@ -996,10 +987,12 @@
             print *,"bandred_complex: umc size 5 :",size(umc,dim=1)*size(umc,dim=2),umc_size
             stop
           endif
+#ifdef WITH_GPU_VERSION
 #ifdef DOUBLE_PRECISION_COMPLEX
           successCUDA = cuda_memcpy(loc(umc(1,1)),umc_dev,umc_size*size_of_double_complex_datatype,cudaMemcpyDeviceToHost)
 #else
           successCUDA = cuda_memcpy(loc(umc(1,1)),umc_dev,umc_size*size_of_single_complex_datatype,cudaMemcpyDeviceToHost)
+#endif
 #endif
           if (.not.(successCUDA)) then
             print *, "bandred_complex:  cuad memcpy failed umc ", istat
@@ -1018,10 +1011,12 @@
             print *,"bandred_complex: vmr size 4 :",size(vmr,dim=1)*size(vmr,dim=2),vmr_size
             stop
           endif
+#ifdef WITH_GPU_VERSION
 #ifdef DOUBLE_PRECISION_COMPLEX
           successCUDA = cuda_memcpy(vmr_dev,loc(vmr(1,1)),vmr_size*size_of_double_complex_datatype,cudaMemcpyHostToDevice)
 #else
           successCUDA = cuda_memcpy(vmr_dev,loc(vmr(1,1)),vmr_size*size_of_single_complex_datatype,cudaMemcpyHostToDevice)
+#endif
 #endif
           if (.not.(successCUDA)) then
             print *, "bandred_complex:  cuda memcpy failed vav_dev", istat
@@ -1032,18 +1027,17 @@
             print *,"bandred_complex: umc size 6 :",size(umc,dim=1)*size(umc,dim=2),umc_size
             stop
           endif
+#ifdef WITH_GPU_VERSION
 #ifdef DOUBLE_PRECISION_COMPLEX
           successCUDA = cuda_memcpy(umc_dev,loc(umc(1,1)),umc_size*size_of_double_complex_datatype,cudaMemcpyHostToDevice)
 #else
           successCUDA = cuda_memcpy(umc_dev,loc(umc(1,1)),umc_size*size_of_single_complex_datatype,cudaMemcpyHostToDevice)
 #endif
+#endif
           if (.not.(successCUDA)) then
             print *, "bandred_complex:  cuda memcpy failed umc_dev ", istat
             stop
           endif
-#else
-          successCUDA = .true.
-#endif
         else ! not useGPU
 #ifdef DOUBLE_PRECISION_COMPLEX
           call zgemm('N', 'N', l_cols, n_cols, n_cols, (-0.5_rk8, 0.0_rk8), umc(1,n_cols+1), ubound(umc,dim=1), &
@@ -1124,7 +1118,6 @@
 
        enddo ! istep
 
-#ifdef WITH_GPU_VERSION
        if (useGPU) then
 #if !(defined(USE_ASSUMED_SIZE))
          if (size(a,dim=1)*size(a,dim=2) .ne. lda*na_cols) then
@@ -1132,10 +1125,12 @@
          endif
 #endif
 
+#ifdef WITH_GPU_VERSION
 #ifdef DOUBLE_PRECISION_COMPLEX
          successCUDA = cuda_memcpy ( loc(a(1,1)), a_dev, lda*na_cols*size_of_double_complex_datatype,cudaMemcpyDeviceToHost)
 #else
          successCUDA = cuda_memcpy ( loc(a(1,1)), a_dev, lda*na_cols*size_of_single_complex_datatype,cudaMemcpyDeviceToHost)
+#endif
 #endif
          if (.not.(successCUDA)) then
            print *, "bandred_complex:  cuad memcpy failed a ", istat
@@ -1195,9 +1190,6 @@
            endif
          endif
        endif ! use GPU
-#else
-       successCUDA = .true.
-#endif
 
 #ifdef HAVE_DETAILED_TIMINGS
 #ifdef DOUBLE_PRECISION_COMPLEX
@@ -1382,6 +1374,8 @@
        character(200)                              :: errorMessage
        logical                                     :: successCUDA
 
+       successCUDA = .true.
+
 #ifdef HAVE_DETAILED_TIMINGS
 #ifdef DOUBLE_PRECISION_COMPLEX
        call timer%start("trans_ev_band_to_full_complex_double")
@@ -1492,15 +1486,16 @@
        hvm = 0._ck4   ! Must be set to 0 !!!
        hvb = 0._ck4   ! Safety only
 #endif
-#ifdef WITH_GPU_VERSION
        if (useGPU) then
          !   q_temp(:,:) = 0.0
          !   q_temp(1:ldq,1:na_cols) = q(1:ldq,1:na_cols)
 
+#ifdef WITH_GPU_VERSION
 #ifdef DOUBLE_PRECISION_COMPLEX
          successCUDA = cuda_memcpy(q_dev, loc(q),ldq*matrixCols*size_of_double_complex_datatype, cudaMemcpyHostToDevice)
 #else
          successCUDA = cuda_memcpy(q_dev, loc(q),ldq*matrixCols*size_of_single_complex_datatype, cudaMemcpyHostToDevice)
+#endif
 #endif
          if (.not.(successCUDA)) then
            print *,"trans_ev_band_to_full_complex: error in cudaMemcpy"
@@ -1516,9 +1511,6 @@
            stop
          endif
        endif
-#else
-       successCUDA = .true.
-#endif
 
        l_cols = local_index(nqc, my_pcol, np_cols, nblk, -1) ! Local columns of q
 
@@ -1576,21 +1568,19 @@
            nb = nb+l_rows
          enddo
 
-#ifdef WITH_GPU_VERSION
          if (useGPU) then
+#ifdef WITH_GPU_VERSION
 #ifdef DOUBLE_PRECISION_COMPLEX
            successCUDA =  cuda_memcpy(hvm_dev,loc(hvm),(max_local_rows*nbw*size_of_double_complex_datatype),cudaMemcpyHostToDevice)
 #else
            successCUDA =  cuda_memcpy(hvm_dev,loc(hvm),(max_local_rows*nbw*size_of_single_complex_datatype),cudaMemcpyHostToDevice)
+#endif
 #endif
            if (.not.(successCUDA)) then
              print *,"trans_ev_band_to_full_complex: error in cudaMemcpy"
              stop
            endif
          endif
-#else
-         successCUDA = .true.
-#endif
 
          l_rows = local_index(MIN(na,(istep+1)*nbw), my_prow, np_rows, nblk, -1)
 
@@ -1598,28 +1588,26 @@
 
          if (l_rows > 0) then
            if (useGPU) then
-#ifdef WITH_GPU_VERSION
 #ifdef DOUBLE_PRECISION_COMPLEX
              call cublas_zgemm('C', 'N', n_cols, l_cols, l_rows, CONE, hvm_dev, max_local_rows, &
                                q_dev, ldq, CZERO, tmp_dev, n_cols)
+#ifdef WITH_GPU_VERSION
              successCUDA = cuda_memcpy(loc(tmp1), tmp_dev, n_cols*l_cols*size_of_double_complex_datatype, &
                                        cudaMemcpyDeviceToHost)
-
-
+#endif
 #else
              call cublas_cgemm('C', 'N', n_cols, l_cols, l_rows, CONE, hvm_dev, max_local_rows, &
                                q_dev, ldq, CZERO, tmp_dev, n_cols)
+#ifdef WITH_GPU_VERSION
              successCUDA = cuda_memcpy(loc(tmp1), tmp_dev, n_cols*l_cols*size_of_single_complex_datatype, &
                                        cudaMemcpyDeviceToHost)
+#endif
 #endif
 
              if (.not.(successCUDA)) then
                print *,"trans_ev_band_to_full_complex: error in cudaMemcpy"
                stop
              endif
-#else
-             successCUDA = .true.
-#endif
            else
 #ifdef DOUBLE_PRECISION_COMPLEX
              call zgemm('C', 'N', n_cols, l_cols, l_rows, CONE, hvm, ubound(hvm,dim=1), &
@@ -1670,23 +1658,24 @@
          if (l_rows>0) then
 
            if (useGPU) then
-#ifdef WITH_GPU_VERSION
 #ifdef WITH_MPI
 
+#ifdef WITH_GPU_VERSION
 #ifdef DOUBLE_PRECISION_COMPLEX
              successCUDA = cuda_memcpy(tmp_dev,loc(tmp2),l_cols*n_cols*size_of_double_complex_datatype,cudaMemcpyHostToDevice)
 #else
              successCUDA = cuda_memcpy(tmp_dev,loc(tmp2),l_cols*n_cols*size_of_single_complex_datatype,cudaMemcpyHostToDevice)
 #endif
-
+#endif
 #else /* WITH_MPI */
 
+#ifdef WITH_GPU_VERSION
 #ifdef DOUBLE_PRECISION_COMPLEX
              successCUDA = cuda_memcpy(tmp_dev,loc(tmp1),l_cols*n_cols*size_of_double_complex_datatype,cudaMemcpyHostToDevice)
 #else
              successCUDA = cuda_memcpy(tmp_dev,loc(tmp1),l_cols*n_cols*size_of_single_complex_datatype,cudaMemcpyHostToDevice)
 #endif
-
+#endif
 #endif /* WITH_MPI */
              if (.not.(successCUDA)) then
                print *,"trans_ev_band_to_full_complex: error in cudaMemcpy"
@@ -1694,12 +1683,14 @@
              endif
 
              ! tmat_temp(1:nbw,1:nbw) = tmat(1:nbw,1:nbw,istep)
+#ifdef WITH_GPU_VERSION
 #ifdef DOUBLE_PRECISION_COMPLEX
              successCUDA = cuda_memcpy(tmat_dev, loc(tmat(1,1,istep)),nbw*nbw* &
 	                               size_of_double_complex_datatype,cudaMemcpyHostToDevice)
 #else
              successCUDA = cuda_memcpy(tmat_dev, loc(tmat(1,1,istep)),nbw*nbw* &
 	                               size_of_single_complex_datatype,cudaMemcpyHostToDevice)
+#endif
 #endif
              if (.not.(successCUDA)) then
                print *,"trans_ev_band_to_full_complex: error in cudaMemcpy"
@@ -1713,9 +1704,6 @@
              call cublas_ctrmm('L', 'U', 'C', 'N', n_cols, l_cols, CONE, tmat_dev, nbw, tmp_dev, n_cols)
              call cublas_cgemm('N', 'N', l_rows, l_cols, n_cols, -CONE, hvm_dev, max_local_rows, &
                               tmp_dev, n_cols, CONE, q_dev, ldq)
-#endif
-#else
-             successCUDA = .true.
 #endif
            else ! not useGPU
 
@@ -1748,6 +1736,14 @@
            endif
          endif
 
+     !#ifdef WITH_GPU_VERSION
+     !     istat =cuda_memcpy(loc(hvm(1,1)),hvm_dev,((max_local_rows)*nbw*size_of_complex_datatype),cudaMemcpyDeviceToHost)
+     !     if (istat .ne. 0) then
+     !       print *,"trans_ev_band_to_full_complex: error in cudaMemcpy"
+     !       stop
+     !     endif
+     !#endif
+
        enddo
 
        deallocate(tmp1, tmp2, hvb, hvm, stat=istat, errmsg=errorMessage)
@@ -1756,7 +1752,6 @@
          stop
        endif
 
-#ifdef WITH_GPU_VERSION
        if (useGPU) then
 
          successCUDA = cuda_free(hvm_dev)
@@ -1776,10 +1771,12 @@
            print *,"trans_ev_band_to_full_complex: error in cudaFree"
            stop
          endif
+#ifdef WITH_GPU_VERSION
 #ifdef DOUBLE_PRECISION_COMPLEX
          successCUDA = cuda_memcpy(loc(q), q_dev,ldq*matrixCols*size_of_double_complex_datatype, cudaMemcpyDeviceToHost)
 #else
          successCUDA = cuda_memcpy(loc(q), q_dev,ldq*matrixCols*size_of_single_complex_datatype, cudaMemcpyDeviceToHost)
+#endif
 #endif
          if (.not.(successCUDA)) then
            print *,"trans_ev_band_to_full_complex: error in cudaMemcpy"
@@ -1803,10 +1800,6 @@
          !print *,"trans_ev_band_to_full_complex: error when deallocating tmat_temp "//errorMessage
          !endif
        endif ! use GPU
-#else
-       successCUDA = .true.
-#endif
-
 #ifdef HAVE_DETAILED_TIMINGS
 #ifdef DOUBLE_PRECISION_COMPLEX
        call timer%stop("trans_ev_band_to_full_complex_double")
@@ -2855,12 +2848,28 @@
            hd(1:nc) = hd(1:nc) - 0.5_rk4*x*hv(1:nc)
 #endif
 
+           !#ifdef WITH_GPU_VERSION
+           !         istat = cuda_memcpy2d((ab_dev +  (ns-1)*2*nb*size_of_complex_datatype), 2*nb*size_of_complex_datatype,loc(a(1,ns)), 2*nb*size_of_complex_datatype, 2*size_of_complex_datatype , &
+           !                               2*nb*size_of_complex_datatype,cudaMemcpyHostToDevice)
+           !         if (istat .ne. 0) print *, "cuda memcpy a_dev H2D failed ", istat
+           !         istat =cuda_memcpy(hv_dev,loc(hv),nc*size_of_complex_datatype,cudaMemcpyHostToDevice)
+           !         if (istat .ne. 0) print *,"cuda memcpy failed hv_dev", istat
+           !         istat =cuda_memcpy(hd_dev,loc(hd), nb*size_of_complex_datatype,cudaMemcpyHostToDevice)
+           !         if (istat .ne. 0) print *,"cuda memcpy failed hd_dev", istat
+           !#endif
+
            if (my_pe>0 .and. iblk==1) then
 
              ! The first column of the diagonal block has to be send to the previous PE
              ! Calculate first column only ...
 
+             !#ifdef WITH_GPU_VERSION
+             !            call double_hh_transform_2( ns, nc, nb  )
+             !            istat=cuda_memcpy(loc(ab),ab_dev,(2*nb*(nblocks+1)*nb)*size_of_complex_datatype,cudaMemcpyDeviceToHost)
+             !            if (istat .ne. 0) print *, " cuda memcpy failed ab ", istat
+             !#else
              ab(1:nc,ns) = ab(1:nc,ns) - hd(1:nc)*conjg(hv(1)) - hv(1:nc)*conjg(hd(1))
+             !#endif
 
              ! ... send it away ...
 
@@ -2920,10 +2929,41 @@
              !#endif
            endif
 
+           !#ifdef WITH_GPU_VERSION
+           !          istat=cuda_memcpy( loc(hd),hd_dev,nb*size_of_complex_datatype,cudaMemcpyDeviceToHost)
+           !          if (istat .ne. 0) print *,"cuda memcpy failed hd_dev", istat
+           !#endif
+
            ! Do the remaining double Householder transformation on the subdiagonal block cols 2 ... nb
+
+           !#ifdef WITH_GPU_VERSION
+           !         istat =cuda_memcpy(hs_dev,loc(hs),nb*size_of_complex_datatype,cudaMemcpyHostToDevice)
+           !         if (istat .ne. 0) print *,"cuda memcpy failed hs_dev", istat
+           !#endif
 
            if (nr>0) then
              if (nr>1) then
+               !#ifdef WITH_GPU_VERSION
+               !              istat = cuda_memcpy(hv_new_dev,loc(hv_new),nb*size_of_complex_datatype,cudaMemcpyHostToDevice)
+               !              if (istat .ne. 0) print *,"cuda memcpy failed hv_new_dev", istat
+               !
+               !              istat = cuda_memcpy(h_dev,loc(h),nb*size_of_complex_datatype,cudaMemcpyHostToDevice)
+               !              if (istat .ne. 0) print *,"cuda memcpy failed h_dev", istat
+               !
+               !              call cublas_ZGEMV('C',nr,nb-1,tau_new,ab_dev + (nb-1 + ns *2*nb)*16,2*nb-1,hv_new_dev,1,(0.d0,0.d0),h_dev + 1* 16,1)
+               !
+               !              istat = cuda_memcpy(tau_new_dev,loc(tau_new),1*size_of_complex_datatype,cudaMemcpyHostToDevice)
+               !              if (istat .ne. 0) print *,"cuda memcpy failed tau_new_dev", istat
+               !
+               !              call dot_product_kernel(nr , tau_new)
+               !              call dot_product_kernel_1( nb, nr , ns)
+               !
+               !              istat = cuda_memcpy(loc(x),x_dev,1*size_of_complex_datatype,cudaMemcpyDeviceToHost)
+               !              if (istat .ne. 0) print *, " cuda memcpy failed x_dev ", istat
+               !
+               !              istat =cuda_memcpy(loc(h),h_dev,nb*size_of_complex_datatype,cudaMemcpyDeviceToHost)
+               !              if (istat .ne. 0) print *, " cuda memcpy failed h ", istat
+               !#else
 #ifdef DOUBLE_PRECISION_COMPLEX
                call ZGEMV('C', nr, nb-1, tau_new, ab(nb,ns+1), 2*nb-1, hv_new, 1, (0.0_rk8, 0.0_rk8), h(2), 1)
 #else
@@ -2944,6 +2984,7 @@
                do i=2,nb
                  ab(2+nb-i,i+ns-1) = ab(2+nb-i,i+ns-1) - hs(1)*conjg(hv(i))
                enddo
+               !#endif
 
              endif
            endif
@@ -3356,6 +3397,9 @@
       character(200)                              :: errorMessage
       logical                                     :: successCUDA
       logical                                     :: success
+
+      successCUDA = .true.
+
 #ifndef WITH_MPI
       integer(kind=ik)                            :: j1
 #endif
@@ -4458,25 +4502,26 @@
 #endif
 
 #endif /* WITH_MPI */
-#ifdef WITH_GPU_VERSION
           if (useGPU) then
+
 #ifdef DOUBLE_PRECISION_COMPLEX
+#ifdef WITH_GPU_VERSION
             successCUDA =  cuda_memcpy(bcast_buffer_dev, loc(bcast_buffer(1,1)), nbw * &
                                        current_local_n * size_of_double_complex_datatype , &
                                        cudaMemcpyHostToDevice)
+#endif
             call extract_hh_tau_complex_gpu_double(nbw, current_local_n, .false.)
             call compute_hh_dot_products_complex_gpu_double(nbw, current_local_n)
 #else
+#ifdef WITH_GPU_VERSION
             successCUDA =  cuda_memcpy(bcast_buffer_dev, loc(bcast_buffer(1,1)), nbw * &
                                        current_local_n * size_of_single_complex_datatype , &
                                        cudaMemcpyHostToDevice)
+#endif
             call extract_hh_tau_complex_gpu_single(nbw, current_local_n, .false.)
             call compute_hh_dot_products_complex_gpu_single(nbw, current_local_n)
 #endif
           endif
-#else
-          successCUDA = .true.
-#endif
         else
           ! for current_local_n == 1 the one and only HH vector is 0 and not stored in hh_trans_complex
 #ifdef DOUBLE_PRECISION_COMPLEX
@@ -4616,16 +4661,19 @@
 
                 n_off = current_local_n+a_off
                 if (useGPU) then
-#ifdef WITH_GPU_VERSION
 !                t1_memcpy_time =MPI_Wtime()
 #ifdef DOUBLE_PRECISION_COMPLEX
                   dev_offset = (0 + (n_off * stripe_width) + ( (i-1) * stripe_width *a_dim2 )) * size_of_double_complex_datatype
+#ifdef WITH_GPU_VERSION
                   successCUDA =  cuda_memcpy( aIntern_dev + dev_offset ,loc(bottom_border_recv_buffer(1,1,i)), &
                                             stripe_width*nbw*size_of_double_complex_datatype ,cudaMemcpyHostToDevice)
+#endif
 #else
                   dev_offset = (0 + (n_off * stripe_width) + ( (i-1) * stripe_width *a_dim2 )) * size_of_single_complex_datatype
+#ifdef WITH_GPU_VERSION
                   successCUDA =  cuda_memcpy( aIntern_dev + dev_offset ,loc(bottom_border_recv_buffer(1,1,i)), &
                                             stripe_width*nbw*size_of_single_complex_datatype ,cudaMemcpyHostToDevice)
+#endif
 #endif
                   if (.not.(successCUDA)) then
                     print *,"trans_ev_tridi_to_band_complex: error in cudaMalloc"
@@ -4634,9 +4682,6 @@
 
 !                t2_memcpy_time =MPI_Wtime()
 !                t0_memcpy_time = t0_memcpy_time + ( t2_memcpy_time - t1_memcpy_time)
-#else
-                 successCUDA = .true.
-#endif
                 else
                   aIntern(:,n_off+1:n_off+nbw,i) = bottom_border_recv_buffer(:,1:nbw,i)
                 endif
@@ -4731,7 +4776,6 @@
 #endif
 #endif
                   if (useGPU) then
-#ifdef WITH_GPU_VERSION
                   !                t2_mpi_wait_time =MPI_Wtime()
                   !                t0_mpi_wait_time = t0_mpi_wait_time + ( t2_mpi_wait_time -t1_mpi_wait_time)
                   !                t1_memcpy_time =MPI_Wtime()
@@ -4744,12 +4788,14 @@
                                   size_of_single_complex_datatype
 #endif
 !                   host_offset= (0 + (0 * stripe_width) + ( (i-1) * stripe_width * nbw ))* 16
+#ifdef WITH_GPU_VERSION
 #ifdef DOUBLE_PRECISION_COMPLEX
                     successCUDA =  cuda_memcpy( aIntern_dev+dev_offset ,loc(top_border_recv_buffer(1,1,i)), &
                                                stripe_width*top_msg_length*size_of_double_complex_datatype , cudaMemcpyHostToDevice)
 #else
                     successCUDA =  cuda_memcpy( aIntern_dev+dev_offset ,loc(top_border_recv_buffer(1,1,i)), &
                                                stripe_width*top_msg_length*size_of_single_complex_datatype , cudaMemcpyHostToDevice)
+#endif
 #endif
                     if (.not.(successCUDA)) then
                       print *,"trans_ev_tridi_to_band_complex: error in cudaMemcpy"
@@ -4758,9 +4804,6 @@
 
 !                   t2_memcpy_time =MPI_Wtime()
 !                   t0_memcpy_time = t0_memcpy_time + ( t2_memcpy_time - t1_memcpy_time)
-#else
-                    successCUDA = .true.
-#endif
                   else
                     aIntern(:,a_off+1:a_off+top_msg_length,i) = top_border_recv_buffer(:,1:top_msg_length,i)
                   endif ! useGPU
@@ -4912,20 +4955,23 @@
 #else /* WITH_OPENMP */
 
                   if (useGPU) then
-#ifdef WITH_GPU_VERSION
 !                  t1_memcpy_time =MPI_Wtime()
 #ifdef DOUBLE_PRECISION_COMPLEX
                     dev_offset = (0 + (n_off * stripe_width) + ( (i-1) * stripe_width * a_dim2 )) * &
                                  size_of_double_complex_datatype
+#ifdef WITH_GPU_VERSION
                     successCUDA =  cuda_memcpy( loc(bottom_border_send_buffer(1,1,i)), aIntern_dev + dev_offset, &
                                                stripe_width * bottom_msg_length * size_of_double_complex_datatype , &
                                                cudaMemcpyDeviceToHost)
+#endif
 #else
                     dev_offset = (0 + (n_off * stripe_width) + ( (i-1) * stripe_width * a_dim2 )) * &
                                  size_of_single_complex_datatype
+#ifdef WITH_GPU_VERSION
                     successCUDA =  cuda_memcpy( loc(bottom_border_send_buffer(1,1,i)), aIntern_dev + dev_offset, &
                                                stripe_width * bottom_msg_length * size_of_single_complex_datatype , &
                                                cudaMemcpyDeviceToHost)
+#endif
 #endif
                     if (.not.(successCUDA)) then
                       print *,"trans_ev_tridi_to_band_complex: error in cudaMemcpy"
@@ -4934,9 +4980,6 @@
 
 !                   t2_memcpy_time =MPI_Wtime()
 !                   t0_memcpy_time = t0_memcpy_time + ( t2_memcpy_time -t1_memcpy_time)
-#else
-                    successCUDA = .true.
-#endif
                   else
                     bottom_border_send_buffer(:,1:bottom_msg_length,i) = aIntern(:,n_off+1:n_off+bottom_msg_length,i)
                   endif
@@ -5112,20 +5155,23 @@
 #else /* WITH_OPENMP */
 
                 if (useGPU) then
-#ifdef WITH_GPU_VERSION
 !                t1_memcpy_time =MPI_Wtime()
 #ifdef DOUBLE_PRECISION_COMPLEX
                   dev_offset = (0 + (n_off * stripe_width) + ( (i-1) * stripe_width * a_dim2 )) * &
                                 size_of_double_complex_datatype
+#ifdef WITH_GPU_VERSION
                   successCUDA =  cuda_memcpy( loc(bottom_border_send_buffer(1,1,i)), aIntern_dev + dev_offset, &
                                              stripe_width * bottom_msg_length * size_of_double_complex_datatype , &
                                              cudaMemcpyDeviceToHost)
+#endif
 #else
                   dev_offset = (0 + (n_off * stripe_width) + ( (i-1) * stripe_width * a_dim2 )) * &
                                 size_of_single_complex_datatype
+#ifdef WITH_GPU_VERSION
                   successCUDA =  cuda_memcpy( loc(bottom_border_send_buffer(1,1,i)), aIntern_dev + dev_offset, &
                                              stripe_width * bottom_msg_length * size_of_single_complex_datatype , &
                                              cudaMemcpyDeviceToHost)
+#endif
 #endif
                   if (.not.(successCUDA)) then
                     print *,"trans_ev_tridi_to_band_complex: error in cudaMemcpy"
@@ -5134,9 +5180,6 @@
 
 !                t2_memcpy_time =MPI_Wtime()
 !                t0_memcpy_time = t0_memcpy_time + ( t2_memcpy_time -t1_memcpy_time)
-#else
-                 successCUDA = .true.
-#endif
                 else
                   bottom_border_send_buffer(:,1:bottom_msg_length,i) = aIntern(:,n_off+1:n_off+bottom_msg_length,i)
                 endif
@@ -5268,7 +5311,6 @@
 #endif
 #endif
                 if (useGPU) then
-#ifdef WITH_GPU_VERSION
 !                t2_mpi_wait_time =MPI_Wtime()
 !                t0_mpi_wait_time = t0_mpi_wait_time +(t2_mpi_wait_time-t1_mpi_wait_time)
 !
@@ -5276,15 +5318,19 @@
 #ifdef DOUBLE_PRECISION_COMPLEX
                    dev_offset = (0 + (a_off * stripe_width) + ( (i-1) * stripe_width *a_dim2 )) * &
                                  size_of_double_complex_datatype
+#ifdef WITH_GPU_VERSION
                    successCUDA =  cuda_memcpy( aIntern_dev + dev_offset , loc(top_border_recv_buffer(:,1,i)), &
                                               stripe_width * top_msg_length *size_of_double_complex_datatype , &
                                               cudaMemcpyHostToDevice)
+#endif
 #else
                    dev_offset = (0 + (a_off * stripe_width) + ( (i-1) * stripe_width *a_dim2 )) * &
                                 size_of_single_complex_datatype
+#ifdef WITH_GPU_VERSION
                    successCUDA =  cuda_memcpy( aIntern_dev + dev_offset , loc(top_border_recv_buffer(:,1,i)), &
                                               stripe_width * top_msg_length *size_of_single_complex_datatype , &
                                               cudaMemcpyHostToDevice)
+#endif
 #endif
                    if (.not.(successCUDA)) then
                      print *,"trans_ev_tridi_to_band_complex: error in cudaMemcpy"
@@ -5294,9 +5340,6 @@
 !
 !                t2_memcpy_time =MPI_Wtime()
 !                t0_memcpy_time = t0_memcpy_time + ( t2_memcpy_time-t1_memcpy_time)
-#else
-                 successCUDA = .true.
-#endif
                 else
                   aIntern(:,a_off+1:a_off+top_msg_length,i) = top_border_recv_buffer(:,1:top_msg_length,i)
                 endif
@@ -5498,20 +5541,23 @@
 #else /* WITH_OPENMP */
 
               if (useGPU) then
-#ifdef WITH_GPU_VERSION
  !              t1_memcpy_time =MPI_Wtime()
 #ifdef DOUBLE_PRECISION_COMPLEX
 
                 dev_offset = (0 + (a_off * stripe_width) + ( (i-1) * stripe_width *a_dim2 )) * &
                               size_of_double_complex_datatype
+#ifdef WITH_GPU_VERSION
                 successCUDA =  cuda_memcpy( loc(top_border_send_buffer(:,1,i)), aIntern_dev + dev_offset,   &
                                            stripe_width*nbw*size_of_double_complex_datatype ,cudaMemcpyDeviceToHost)
+#endif
 #else
 
                 dev_offset = (0 + (a_off * stripe_width) + ( (i-1) * stripe_width *a_dim2 )) * &
                              size_of_single_complex_datatype
+#ifdef WITH_GPU_VERSION
                 successCUDA =  cuda_memcpy( loc(top_border_send_buffer(:,1,i)), aIntern_dev + dev_offset,   &
                                            stripe_width*nbw*size_of_single_complex_datatype ,cudaMemcpyDeviceToHost)
+#endif
 #endif
                 if (.not.(successCUDA)) then
                   print *,"trans_ev_tridi_to_band_complex: error in cudaMemcpy"
@@ -5521,9 +5567,6 @@
 !              t2_memcpy_time =MPI_Wtime()
 !              t0_memcpy_time = t0_memcpy_time + (t2_memcpy_time-t1_memcpy_time)
 !
-#else
-               successCUDA = .true.
-#endif
               else
                 top_border_send_buffer(:,1:nbw,i) = aIntern(:,a_off+1:a_off+nbw,i)
               endif
@@ -5901,7 +5944,6 @@
 #else /*WITH_OPENMP */
             do i = 1, stripe_count
               if (useGPU) then
-#ifdef WITH_GPU_VERSION
                 chunk = min(next_local_n - 1, a_off)
                 do j = top_msg_length + 1, top_msg_length + next_local_n, chunk
                   top = min(j + chunk, top_msg_length + next_local_n)
@@ -5913,8 +5955,10 @@
                                  size_of_double_complex_datatype
                   ! it is not logical to set here always the parameter "cudaMemcpyDeviceToDevice" do this ONCE at startup
                   !                  tmp = cuda_d2d(1)
+#ifdef WITH_GPU_VERSION
                   successCUDA =  cuda_memcpy( aIntern_dev + dev_offset , aIntern_dev+dev_offset_1, &
                                               stripe_width*this_chunk*size_of_double_complex_datatype, cudaMemcpyDeviceToDevice)
+#endif
 #else
                   dev_offset = (0 + ( (j-1) * stripe_width) + ( (i-1) * stripe_width * a_dim2 )) * &
                                 size_of_single_complex_datatype
@@ -5922,8 +5966,10 @@
                                  size_of_single_complex_datatype
                   ! it is not logical to set here always the parameter "cudaMemcpyDeviceToDevice" do this ONCE at startup
                   !                  tmp = cuda_d2d(1)
+#ifdef WITH_GPU_VERSION
                   successCUDA =  cuda_memcpy( aIntern_dev + dev_offset , aIntern_dev+dev_offset_1, &
                                               stripe_width*this_chunk*size_of_single_complex_datatype, cudaMemcpyDeviceToDevice)
+#endif
 #endif
                   if (.not.(successCUDA)) then
                     print *,"trans_ev_tridi_to_band_complex: error in cudaMemcpy"
@@ -5931,9 +5977,6 @@
                   endif
 
                 enddo
-#else
-                successCUDA = .true.
-#endif
               else ! useGPU
                 do j = top_msg_length+1, top_msg_length+next_local_n
                   aIntern(:,j,i) = aIntern(:,j+a_off,i)
@@ -6217,21 +6260,23 @@
        integer(kind=ik)             :: max_idx
        logical                      :: successCUDA
 
+       successCUDA = .true.
+
        max_idx = (stripe_count - 1) * stripe_width + last_stripe_width
-#ifdef WITH_GPU_VERSION
 #ifdef DOUBLE_PRECISION_COMPLEX
        call launch_my_pack_c_kernel_complex_double(row_count, n_offset, max_idx, stripe_width,a_dim2, stripe_count, &
                                             l_nev, aIntern_dev, row_group_dev)
+#ifdef WITH_GPU_VERSION
        successCUDA =  cuda_memcpy( loc(rows(:, 1: row_count)), row_group_dev ,row_count * l_nev * size_of_double_complex_datatype, &
-                                  cudaMemcpyDeviceToHost)
-#else
-       call launch_my_pack_c_kernel_complex_single(row_count, n_offset, max_idx, stripe_width,a_dim2, stripe_count, &
-                                            l_nev, aIntern_dev, row_group_dev)
-       successCUDA =  cuda_memcpy( loc(rows(:, 1: row_count)), row_group_dev ,row_count * l_nev * size_of_single_complex_datatype, &
                                   cudaMemcpyDeviceToHost)
 #endif
 #else
-       successCUDA = .true.
+       call launch_my_pack_c_kernel_complex_single(row_count, n_offset, max_idx, stripe_width,a_dim2, stripe_count, &
+                                            l_nev, aIntern_dev, row_group_dev)
+#ifdef WITH_GPU_VERSION
+       successCUDA =  cuda_memcpy( loc(rows(:, 1: row_count)), row_group_dev ,row_count * l_nev * size_of_single_complex_datatype, &
+                                  cudaMemcpyDeviceToHost)
+#endif
 #endif
        if (.not.(successCUDA)) then
          print *,"pack_row_group_complex_gpu: error in cudaMemcpy"
@@ -6253,6 +6298,8 @@
        integer(kind=ik)                :: i
        logical                         :: successCUDA
 
+       successCUDA = .true.
+
        max_idx = (stripe_count - 1) * stripe_width + last_stripe_width
 #ifdef WITH_GPU_VERSION
 #ifdef DOUBLE_PRECISION_COMPLEX
@@ -6262,8 +6309,6 @@
        successCUDA =  cuda_memcpy( row_group_dev , loc(rows(1, 1)),row_count * l_nev* size_of_single_complex_datatype , &
                                   cudaMemcpyHostToDevice)
 #endif
-#else
-       successCUDA = .true.
 #endif
        if (.not.(successCUDA)) then
          print *,"unpack_row_group_complex_gpu: error in cudaMemcpy"

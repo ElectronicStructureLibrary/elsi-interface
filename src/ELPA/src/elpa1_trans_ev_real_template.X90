@@ -162,7 +162,7 @@
       allocate(hvm(max_local_rows,max_stored_rows), stat=istat, errmsg=errorMessage)
       call check_alloc("trans_ev_real", "hvm", istat, errorMessage)
 
-#ifdef WITH_GPU_VERSION
+
       if (useGPU) then
         ! todo: this is used only for copying hmv to device.. it should be possible to go without it
         allocate(hvm1(max_local_rows*max_stored_rows), stat=istat, errmsg=errorMessage)
@@ -181,12 +181,11 @@
         check_alloc_cuda("trans_ev", successCUDA)
 
 !         q_dev = q_mat
+#ifdef WITH_GPU_VERSION
         successCUDA = cuda_memcpy(q_dev, loc(q_mat(1,1)), ldq * matrixCols * M_size_of_PRECISION_real, cudaMemcpyHostToDevice)
         check_memcpy_cuda("trans_ev", successCUDA)        
-      endif
-#else
-      successCUDA = .true.
 #endif
+      endif
 
       hvm = 0   ! Must be set to 0 !!!
       hvb = 0   ! Safety only
@@ -276,12 +275,12 @@
             nc = nc+n
           enddo
 
-#ifdef WITH_GPU_VERSION
           if (useGPU) then
             ! todo: is this reshape really neccessary?
             hvm1(1:hvm_ubnd*nstor) = reshape(hvm(1:hvm_ubnd,1:nstor), (/ hvm_ubnd*nstor /))
 
             !hvm_dev(1:hvm_ubnd*nstor) = hvm1(1:hvm_ubnd*nstor)
+#ifdef WITH_GPU_VERSION
             successCUDA = cuda_memcpy(hvm_dev, loc(hvm1(1)),   &
                           hvm_ubnd * nstor * M_size_of_PRECISION_real, cudaMemcpyHostToDevice)
             check_memcpy_cuda("trans_ev", successCUDA)
@@ -290,10 +289,8 @@
             successCUDA = cuda_memcpy(tmat_dev, loc(tmat(1,1)),   &
                           max_stored_rows * max_stored_rows * M_size_of_PRECISION_real, cudaMemcpyHostToDevice)
             check_memcpy_cuda("trans_ev", successCUDA)
-          endif
-#else
-          successCUDA = .true.
 #endif
+          endif
 
           ! Q = Q - V * T * V**T * Q
 
@@ -324,28 +321,24 @@
             call timer%start("mpi_communication")
           ! In the legacy GPU version, this allreduce was ommited. But probably it has to be done for GPU + MPI
           ! todo: does it need to be copied whole? Wouldn't be a part sufficient?
-#ifdef WITH_GPU_VERSION
           if (useGPU) then          
+#ifdef WITH_GPU_VERSION
             successCUDA = cuda_memcpy(loc(tmp1(1)), tmp_dev,  &
                           max_local_cols * max_stored_rows * M_size_of_PRECISION_real, cudaMemcpyDeviceToHost)
             check_memcpy_cuda("trans_ev", successCUDA)
-          endif
-#else
-          successCUDA = .true.
 #endif
+          endif 
           
           call mpi_allreduce(tmp1, tmp2, nstor*l_cols, M_MPI_REAL_PRECISION, MPI_SUM, mpi_comm_rows, mpierr)
 
           ! copy back tmp2 - after reduction...
-#ifdef WITH_GPU_VERSION
           if (useGPU) then          
+#ifdef WITH_GPU_VERSION
             successCUDA = cuda_memcpy(tmp_dev, loc(tmp2(1)),  &
                           max_local_cols * max_stored_rows * M_size_of_PRECISION_real, cudaMemcpyHostToDevice)
             check_memcpy_cuda("trans_ev", successCUDA)
-          endif 
-#else
-          successCUDA = .true.
 #endif
+          endif 
 
             call timer%stop("mpi_communication")
 #else
@@ -395,11 +388,12 @@
         stop
       endif
 
-#ifdef WITH_GPU_VERSION
       if (useGPU) then
         !q_mat = q_dev
+#ifdef WITH_GPU_VERSION
         successCUDA = cuda_memcpy(loc(q_mat(1,1)), q_dev, ldq * matrixCols * M_size_of_PRECISION_real, cudaMemcpyDeviceToHost)
         check_memcpy_cuda("trans_ev", successCUDA)     
+#endif
         
         deallocate(hvm1, stat=istat, errmsg=errorMessage)
         if (istat .ne. 0) then
@@ -421,9 +415,6 @@
         check_dealloc_cuda("trans_ev", successCUDA)
 
       endif
-#else
-      successCUDA = .true.
-#endif
 
       call timer%stop("trans_ev_real" // M_PRECISION_SUFFIX)
 
