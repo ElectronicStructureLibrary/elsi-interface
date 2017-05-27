@@ -115,3 +115,20 @@ intel-j8-generic:
     - make -j 8
     - make check
     - make install
+
+# We do not run make check for external linkage.  Not our circus, not our monkey.
+# We've also marked this test as optional, as it is acceptable for this test to 
+# break during normal development work, but nevertheless we should know what 
+# commits broke it and when.
+intel-j8-external-linkage:
+  script:
+    - module purge
+    - module load intel-mkl-11.1.1
+    - module load intel-mpi-4.1.3
+    - module load intel-compilers-14.0
+    - module list
+    - cp ./make_sys/make.sys-external-linkage ./make.sys
+    - make clean
+    - make -j 8
+    - make install
+  allow_failure: true

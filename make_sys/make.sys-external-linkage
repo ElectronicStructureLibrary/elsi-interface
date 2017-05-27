@@ -1,0 +1,47 @@
+# PLATFORM  : TIMEWARP @DUKE
+# COMPILERS : INTEL
+# VERIFIED  : MAY 27, 2017
+# DO READ ../INSTALL CAREFULLY!
+
+# Note:  This make.sys is provided to demonstrate external linkage against 
+#        preinstalled solver libraries.  When linking against preinstalled 
+#        solver libraries, it is the responsibility of the user to compile and 
+#        verify the libraries that they are linking ELSI against.
+
+# ====== ELSI ======
+MPIFC          = mpiifort
+MPICC          = mpiicc
+MPICXX         = mpiicpc
+LINKER         = mpiifort
+FFLAGS         = -O3 
+CFLAGS         = -O3
+CXXFLAGS       = -O3 -std=c++11
+LDFLAGS        = -O3 
+LDFLAGS       += -Wl,-rpath -Wl,/home/wph6/opt/ELPA/2016.11.001.pre/build/lib # Needed when ELPA installed as shared library
+ 
+CXX_LIB        = -lstdc++
+
+SCALAPACK_LIB  = -L/opt/intel/mkl/lib/intel64 -lmkl_scalapack_lp64 \
+                 -lmkl_blacs_intelmpi_lp64 -lmkl_intel_lp64 \
+                 -lmkl_sequential -lmkl_core -lpthread -lm
+
+TOMATO_SEED    =  /home/wph6/opt/ELSI/ext_link/tomato-seed
+
+# ====== libOMM ======
+EXTERNAL_OMM   = yes
+OMM_INC        = -I/home/wph6/opt/libOMM/0.0.1/build/include
+OMM_LIB        = -L/home/wph6/opt/libOMM/0.0.1/build/lib -lOMM -lMatrixSwitch -lpspBLAS -ltomato
+ 
+# ====== PEXSI  ======
+EXTERNAL_PEXSI = yes
+METIS_LIB      = -L/home/wph6/opt/ParMETIS/4.0.3/build/Linux-x86_64/libmetis -lmetis
+PARMETIS_LIB   = -L/home/wph6/opt/ParMETIS/4.0.3/build/Linux-x86_64/libparmetis -lparmetis
+SUPERLU_INC    = -I/home/wph6/opt/SuperLU_DIST/5.1.3/SRC
+SUPERLU_LIB    = -L/home/wph6/opt/SuperLU_DIST/5.1.3/lib -lsuperlu_dist
+PEXSI_INC      = -I/home/wph6/opt/PEXSI/0.10.2/build/include $(SUPERLU_INC)
+PEXSI_LIB      = -L/home/wph6/opt/PEXSI/0.10.2/build/lib -lpexsi $(SUPERLU_LIB) $(PARMETIS_LIB) $(METIS_LIB)
+
+# ======  ELPA  ======
+EXTERNAL_ELPA  = yes
+ELPA_INC       = -I/home/wph6/opt/ELPA/2016.11.001.pre/build/include/elpa-2016.11.001.pre/modules
+ELPA_LIB       = -L/home/wph6/opt/ELPA/2016.11.001.pre/build/lib -lelpa
