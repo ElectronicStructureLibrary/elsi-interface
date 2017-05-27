@@ -6,11 +6,14 @@ HOW TO INSTALL ELSI
 A) BASIC
 ==========================================================================
 
-1) The installation of ELSI is controlled by a "make.sys" file. Examples
-   can be found in "./make_sys". Copy one of them to the root directory of
-   ELSI, then modify it to match the system.
+1) The installation of ELSI is controlled a user-specified "make.sys" file. 
+   Example make.sys files can be found in the "./make_sys" subfolder of 
+   the root directory, which the user may adapt to their own system 
+   architecture.  make.sys files for various HPCs are included (Titan, 
+   Mira, Theta, Edison, Cori) as well as make.sys files targeted towards 
+   standard Linux-based clusters (c.f.  the "timewarp" make.sys files.) 
 
-   One simple ELSI "make.sys" file includes the following keywords:
+   A standard ELSI make.sys file includes the following keywords:
 
       MPIFC         =  # MPI Fortran compiler
       MPICC         =  # MPI C compiler
@@ -20,60 +23,87 @@ A) BASIC
       CFLAGS        =  # C compiler flags
       CXXFLAGS      =  # C++ compiler flags
 
-      CXX_LIB       =  # C++ standard library, e.g. -lstdc++
-      SCALAPACK_LIB =  # ScaLAPACK libraries
+      CXX_LIB       =  # C++ standard library flags, e.g. -lstdc++
+      SCALAPACK_LIB =  # ScaLAPACK library flags
 
-      METIS_LIB     =  # METIS library
-      PARMETIS_LIB  =  # ParMETIS library
-      SUPERLU_LIB   =  # SuperLU_DIST library
-      SUPERLU_INC   =  # SuperLU_DIST include path
+      TOMATO_SEED   =  # Location of tomato-seed files (optional, 
+                       # see step #3)
 
-2) Make sure the "make.sys" file is correctly configured.
+      METIS_LIB     =  # METIS library flags
+      PARMETIS_LIB  =  # ParMETIS library flags
+      SUPERLU_LIB   =  # SuperLU_DIST library flags
+      SUPERLU_INC   =  # SuperLU_DIST include flags
 
-   To build ELPA, libOMM, PEXSI, and ELSI interface, type
+2) Once a suitable make.sys has been provided by the user, the unified 
+   ELSI build system is run by typing
+ 
+      make
 
-      "make"
+   in the root directory.
 
-3) (Optional, but highly recommended) The correctness of compilation can
-   be checked using the "tomato-seed" data files.  Due to the size of the
-   files, they are not included here as part of the ELSI distribution, but
-   may be obtained from ELSI GitLab by cloning the "tomato-seed" project.
+   By default, the unified ELSI build system will build the ELPA, libOMM, 
+   and PEXSI solver libraries redistributed with ELSI, as well as the ELSI
+   interface itself.  Optionally, the user may link ELSI directly against 
+   preinstalled version of any supported solver library.  For more 
+   information how to link ELSI against a preinstalled solver library, 
+   please see the User's Manual provided with this package.  We also 
+   provide a sample make.sys file (make_sys/make.sys-external-linkage)
+   which demonstrates external linkage of ELSI against preinstalled ELPA, 
+   libOMM, and PEXSI libraries.
+ 
+3) (Optional, but highly recommended) Once compiled, the ELSI libraries 
+   may be sanity-checked using a quick set of regression tests by typing
 
-   Set the following keyword in make.sys:
+      make check
+
+   in the root directory.
+
+   The ELSI regression test suite uses the TOMATO library (redistributed 
+   via libOMM) which creates small but realistic matrices on the fly.  
+   TOMATO requires as input a set of parameters contained in "tomato-seed" 
+   data files.  Due to the size of the files, they are not included as 
+   part of the ELSI source package, but they may be obtained from the ELSI 
+   GitLab by cloning the "tomato-seed" git repository.
+
+   Before running the ELSI regression test suite, the user will need to 
+   specify the location of the tomato-seed data files in the make.sys file 
+   using the keyword:
 
       TOMATO_SEED =  # Path to tomato_seed
 
-   If not "mpirun", the name of MPI executable can be set by:
+   The default MPI wrapper executable used by the ELSI regression suite is
+   "mpirun".  This may be changed by the user by setting the following 
+   keyword in the make.sys file:
 
       MPI_EXEC =  # Default: mpirun
 
-   Then, type
+   The ELSI regression test suite requires the ability to run MPI 
+   calculations.  Many clusters do not allow MPI calculations to be run
+   on login/compile nodes.  If this is the case for the user's cluster, 
+   please see the cluster's documentation for information about running an 
+   interactive calculation or, alternatively, submitting a custom batch 
+   script to the cluster's queuing system.
 
-      "make check"
+4) To finalize the ELSI installation, type
 
-4) To create ELSI library, type
+      make install
 
-      "make install"
+   in the root directory.
 
-5) If the installation finishes without any fatal error, the library files
-   will be automatically put in "./lib"; module files in "./include"; and
-   executables in "./bin".
+5) If the installation finishes without any fatal errors, the library files
+   will be automatically put in the "./lib" subfolder, module files in the
+   "./include" subfolder, and executables in the "./bin" subfolder of the 
+   root directory.
 
 ==========================================================================
-B) ELPA SPECIFIC ARCHITECTURES
+B) ELPA-SPECIFIC NOTES
 ==========================================================================
 
-   To enable GPU acceleration of the 1st and 5th steps of ELPA 2-stage
-   solver, set
-
-      ELPA_GPU  =  yes  # Default: no
-      NVCC      =  NVIDIA CUDA C compiler
-      NVCCFLAGS =  NVIDIA CUDA C compiler flags
-      CUDA_LIB  =  NVIDIA cuBLAS and CUDA runtime libraries
-      CUDA_INC  =  NVIDIA CUDA include path
-
-   Available kernels (4th step of ELPA 2-stage solver) for specific
-   architectures are:
+   We highly recommend that the user specifies an ELPA2 kernel (used for
+   optimization of the 4th stage of ELPA's 2-stage solver) appropriate 
+   for their system architecture.  Available kernels for ELPA2 as 
+   redistributed by ELSI are set by the ELPA2_KERNEL keyword in the
+   make.sys file.  Options include:
 
       ELPA2_KERNEL =  # Default: Generic
                       # Options: SSE
@@ -81,39 +111,55 @@ B) ELPA SPECIFIC ARCHITECTURES
                       #          AVX2
                       #          BGQ
 
+   The default "Generic" kernel should work for all system architectures.
+
+   For clusters with NVIDIA Tesla GPUs, GPU acceleration of the 1st and 
+   5th steps of the ELPA 2-stage solver may be enabled using the 
+   following keywords in the make.sys file:
+
+      ELPA_GPU  =  yes  # Default: no
+      NVCC      =  NVIDIA CUDA C compiler
+      NVCCFLAGS =  NVIDIA CUDA C compiler flags
+      CUDA_LIB  =  NVIDIA cuBLAS and CUDA runtime libraries
+      CUDA_INC  =  NVIDIA CUDA include path
+
+   Please see your cluster's documentation for the flags appropriate for
+   your cluster's GPU architecture.
+
 ==========================================================================
-C) EXTERNAL LIBRARIES
+C) PEXSI-SPECIFIC NOTES
 ==========================================================================
 
-   PEXSI, one of the solvers in ELSI, requires two pre-installed external
-   libraries, ParMETIS and SuperLU_DIST. If for any reason they are not
-   available, one temporary solution would be disabling PEXSI (written in
-   C++) by adding this keyword to make.sys:
+   PEXSI, one of the solvers supported by ELSI, requires two pre-installed 
+   external libraries: ParMETIS and SuperLU_DIST.  If the user is unable 
+   to compile these external libraries, the user may compile ELSI without 
+   PEXSI support by adding the following keyword to the make.sys file:
 
       DISABLE_CXX =  yes  # Default: no
 
-   To build and install ELSI, type
-
-      "make"
-
-   and
-
-      "make install"
+  When DISABLE_CXX is set to "yes", the user does not need to specify the 
+  METIS_LIB, PARMETIS_LIB, SUPERLU_LIB, and SUPERLU_INC keywords in the
+  make.sys file.  
 
 ==========================================================================
 D) BEYOND THIS GUIDE
 ==========================================================================
 
-   More information, including a User's Guide in PDF format, is available
-   on the ELSI GitLab wiki pages.
+   More information may be found in the User's Guide included in this 
+   package and on the ELSI GitLab wiki pages.
 
 ==========================================================================
-E) TROUBLE SHOOTING
+E) TROUBLESHOOTING
 ==========================================================================
 
-   For comments, feedback, ideas, ... please email elsi-team@duke.edu
+   For comments, feedback, and suggestions, please contact the ELSI team
+   via e-mail at 
 
-   http://elsi-interchange.org
+     elsi-team@duke.edu
+
+   and feel free to open issues/requests/etc. on the GitLab server at
+
+     http://elsi-interchange.org
 
    Copyright (c) 2015-2017, ELSI consortium. All rights reserved.
 ==========================================================================

@@ -9,11 +9,9 @@
   ABOUT ELSI
 ============================================================================
 
-  ELSI provides and enhances open-source software solutions for electronic
-  structure theory with unified application programming interface.
-
-  ELSI focuses on methods that solve or circumvent the Kohn-Sham eigenvalue
-  problems in the Self-Consistent Field cycle of Density-Functional Theory.
+  ELSI provides and enhances open-source software packages which solve or 
+  circumvent the Kohn-Sham eigenvalue problems in the self-consistent field 
+  cycle of density-functional theory.
 
   Visit the ELSI Interchange website for more information:
 
@@ -29,8 +27,9 @@
 
   The standard installation process of ELSI requires:
 
-  * A Fortran compiler
-  * C/C++ compilers
+  * A Fortran 2003 compiler
+  * A C compiler supporting the C99 standard
+  * A C++ compiler supporting the C++11 standard
   * An MPI library
   * LAPACK and ScaLAPACK
   * ParMetis 4.0.3
@@ -40,17 +39,16 @@
 
   All major compiler suites (GNU, Intel, PGI, XL, and Cray) are supported.
 
+  The user specifies their system environment via flags set in a "make.sys" 
+  file, which should be placed in the root directory of ELSI alongside the 
+  Makefile. Some example "make.sys" files that the user may adapt for their 
+  own system environment are available in the "./make_sys" folder.
+
   The compilation process is: 
 
   * make
   * make check (optional, requires TOMATO. See ./INSTALL)
   * make install
-
-  Instead of the standard *nix "configure" step, the user specifies their
-  system environment via flags set in a "make.sys" file, which should be 
-  placed in the root directory of ELSI alongside the Makefile. Some example
-  "make.sys" files that the user may adapt for their own system environment
-  are available in the "./make_sys" folder.
 
   Please refer to the "INSTALL" file for the complete installation process.
 
@@ -58,7 +56,7 @@
   USAGE OF ELSI
 ===========================================================================
 
-  More information, including a User's Guide in PDF format, is available on
-  the ELSI GitLab wiki pages.
+  More information may be found in the User's Guide included in this package
+  and on the ELSI GitLab wiki pages.
 
   Copyright (c) 2015-2017, ELSI team. All rights reserved.
