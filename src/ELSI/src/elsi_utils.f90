@@ -844,9 +844,9 @@ subroutine elsi_set_row_ind(elsi_h,row_ind_in)
 
    select case (elsi_h%solver)
       case (ELPA)
-         ! Nothing to be done here
+         elsi_h%row_ind_ccs => row_ind_in
       case (LIBOMM)
-         ! Nothing to be done here
+         elsi_h%row_ind_ccs => row_ind_in
       case (PEXSI)
          elsi_h%row_ind_ccs => row_ind_in
       case (CHESS)
@@ -875,9 +875,9 @@ subroutine elsi_set_col_ptr(elsi_h,col_ptr_in)
 
    select case (elsi_h%solver)
       case (ELPA)
-         ! Nothing to be done here
+         elsi_h%col_ptr_ccs => col_ptr_in
       case (LIBOMM)
-         ! Nothing to be done here
+         elsi_h%col_ptr_ccs => col_ptr_in
       case (PEXSI)
          elsi_h%col_ptr_ccs => col_ptr_in
       case (CHESS)
