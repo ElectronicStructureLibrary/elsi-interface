@@ -11,7 +11,7 @@ The libraries supported and enhanced in ELSI are:
 
 * <a href="http://elpa.mpcdf.mpg.de">ELPA</a> (the Eigenvalue SoLvers for Petaflop-Applications)
 
-* <a href="http://esl.cecam.org/mediawiki/index.php/LibOMM">libOMM</a> (the Orbital Minimization Method)
+* <a href="http://esl.cecam.org/LibOMM">libOMM</a> (the Orbital Minimization Method)
 
 * <a href="http://pexsi.org">PEXSI</a> (the Pole EXpansion and Selected Inversion method)
 

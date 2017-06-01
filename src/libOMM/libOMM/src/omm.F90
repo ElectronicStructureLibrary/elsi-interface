@@ -64,7 +64,8 @@ subroutine omm(m,n,H,S,new_S,e_min,D_min,calc_ED,eta,C_min,init_C,T,scale_T,flav
   integer :: l
   integer :: seed
   integer :: icg ! CG step num.
-  integer :: n_step_max=100 ! max. num. steps for CG minimization
+  integer :: n_step_max=100
+  integer :: n_step_max2
 
   real(dp) :: rn(2)
   real(dp) :: el
@@ -423,10 +424,18 @@ subroutine omm(m,n,H,S,new_S,e_min,D_min,calc_ED,eta,C_min,init_C,T,scale_T,flav
     write(log_unit,'(a)') '+---------------------------------------------+'
     if (long_out) write(log_unit,'(a)') '|             e_min            e_diff         |'
   end if
+
   icg=0
+
+  if(floor(2147395600.0_dp/m)>n) then
+    n_step_max2=2147395600
+  else
+    n_step_max2=m*n-1
+  endif
+
   do i=1,n_step_max
     lambda=0.0_dp
-    do j=1,m*n-1
+    do j=1,n_step_max2
       if (use_precon) then
         call m_add(PG,'n',D,1.0_dp,lambda)
       else
@@ -541,7 +550,7 @@ subroutine omm(m,n,H,S,new_S,e_min,D_min,calc_ED,eta,C_min,init_C,T,scale_T,flav
     end do
     if (conv) exit
   end do
-  if (i>n_step_max) then
+  if (.not.conv) then
     if (mpi_rank==0) write(log_unit,'(a)') '| WARNING: OMM failed to converge!            |'
   end if
   if ((mpi_rank==0) .and. long_out) write(log_unit,'(a)') '+---------------------------------------------+'
