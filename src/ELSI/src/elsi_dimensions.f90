@@ -218,6 +218,7 @@ module ELSI_DIMENSIONS
       logical :: sparsity_pattern_ready = .false.    !< Is sparsity pattern set by user?
       logical :: n_p_per_pole_ready = .false.        !< Is number of processors per pole set by user?
       logical :: small_pexsi_tol = .false.           !< Is user-defined tolerance smaller than default?
+      logical :: pexsi_started = .false.             !< Is PEXSI started?
 
       real(kind=r8)            :: final_pexsi_tol = 1.0e-2_r8
       integer(kind=c_intptr_t) :: pexsi_plan
@@ -257,6 +258,7 @@ module ELSI_DIMENSIONS
       integer(kind=i4) :: n_slices = UNSET           !< Number of slices
       real(kind=r8) :: interval(2) = 0.0_r8          !< Global interval to search eigenvalues
       real(kind=r8) :: slice_buffer = 0.0_r8         !< Small buffer to expand the eigenvalue interval
+      logical :: sips_started = .false.              !< Is SIPs started?
 
       !> Timers
       real(kind=r8) :: t_generalized_evp

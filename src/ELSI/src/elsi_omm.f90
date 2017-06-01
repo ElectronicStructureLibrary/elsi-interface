@@ -192,14 +192,14 @@ subroutine elsi_set_omm_default_options(elsi_h)
    character*40, parameter :: caller = "elsi_set_omm_default_options"
 
    !< How many steps of ELPA to run before OMM
-   elsi_h%n_elpa_steps = 3
+   elsi_h%n_elpa_steps = 6
 
    !< How do we perform the calculation
    !! 0 = Basic
    !! 1 = Cholesky factorisation of S requested
    !! 2 = Cholesky already performed, U is provided in S
    !! 3 = Use preconditioning based on the energy density
-   elsi_h%omm_flavor = 2
+   elsi_h%omm_flavor = 0
 
    !< How to scale the kinetic energy matrix
    elsi_h%scale_kinetic = 5.0_r8
@@ -211,7 +211,7 @@ subroutine elsi_set_omm_default_options(elsi_h)
    elsi_h%eta = 0.0_r8
 
    !< Tolerance for minimization
-   elsi_h%min_tol = 1.0e-9_r8
+   elsi_h%min_tol = 1.0e-10_r8
 
    !< n_k_points * n_spin
    elsi_h%nk_times_nspin = 1
