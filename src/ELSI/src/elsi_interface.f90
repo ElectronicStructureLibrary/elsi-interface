@@ -828,7 +828,6 @@ subroutine elsi_ev_complex(elsi_h,H_in,S_in,e_val_out,e_vec_out)
          call elsi_set_eigenvalue(elsi_h,e_val_out)
 
          ! Solve eigenvalue problem
-if(elsi_h%myid == 0) print *,elsi_h%ovlp_complex
          if(elsi_h%parallel_mode == SINGLE_PROC) then
             call elsi_solve_evp_elpa_sp(elsi_h)
          else ! Multi-proc
