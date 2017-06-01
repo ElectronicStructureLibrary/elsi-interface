@@ -108,6 +108,9 @@ subroutine elsi_init(elsi_h,solver,parallel_mode,matrix_storage_format,&
 
    character*40, parameter :: caller = "elsi_init"
 
+   ! For safety
+   call elsi_cleanup(elsi_h)
+
    elsi_h%handle_initialized    = .true.
    elsi_h%n_g_size              = n_basis
    elsi_h%n_nonsingular         = n_basis
@@ -830,7 +833,7 @@ subroutine elsi_ev_complex(elsi_h,H_in,S_in,e_val_out,e_vec_out)
          ! Solve eigenvalue problem
          if(elsi_h%parallel_mode == SINGLE_PROC) then
             call elsi_solve_evp_elpa_sp(elsi_h)
-         else ! Multi-proc
+         else ! MULTI_PROC
             call elsi_solve_evp_elpa(elsi_h)
          endif
 
@@ -1015,6 +1018,8 @@ subroutine elsi_dm_real(elsi_h,H_in,S_in,D_out,energy_out)
                S_in(1:elsi_h%n_l_rows,1:elsi_h%n_l_cols) = &
                   elsi_h%ovlp_real_omm(1:elsi_h%n_l_rows,1:elsi_h%n_l_cols)
                deallocate(elsi_h%ovlp_real_omm)
+
+               call elsi_set_full_mat(elsi_h,S_in)
             endif
 
             ! Set matrices

@@ -66,45 +66,47 @@ subroutine elsi_init_sips(elsi_h)
 
    if(elsi_h%n_elsi_calls == 1) then
       call init_sips()
-   endif
 
-   ! Number of slices
-   elsi_h%n_p_per_slice_sips = 1
-   elsi_h%n_slices = 1
-   ! n_p_per_slice_sips cannot be larger than 16
-   do i = 1,5
-      if((mod(elsi_h%n_procs,elsi_h%n_p_per_slice_sips) == 0) .and. &
-         (elsi_h%n_procs/elsi_h%n_p_per_slice_sips .le. elsi_h%n_states)) then
-         elsi_h%n_slices = elsi_h%n_procs/elsi_h%n_p_per_slice_sips
+      ! Number of slices
+      elsi_h%n_p_per_slice_sips = 1
+      elsi_h%n_slices = 1
+      ! n_p_per_slice_sips cannot be larger than 16
+      do i = 1,5
+         if((mod(elsi_h%n_procs,elsi_h%n_p_per_slice_sips) == 0) .and. &
+            (elsi_h%n_procs/elsi_h%n_p_per_slice_sips .le. elsi_h%n_states)) then
+            elsi_h%n_slices = elsi_h%n_procs/elsi_h%n_p_per_slice_sips
+         endif
+
+         elsi_h%n_p_per_slice_sips = elsi_h%n_p_per_slice_sips*2
+      enddo
+
+      elsi_h%n_p_per_slice_sips = elsi_h%n_procs/elsi_h%n_slices
+
+      ! SIPs uses a pure block distribution
+      elsi_h%n_b_rows_sips = elsi_h%n_g_size
+
+      ! The last process holds all remaining columns
+      elsi_h%n_b_cols_sips = elsi_h%n_g_size/elsi_h%n_procs
+      if(elsi_h%myid == elsi_h%n_procs-1) then
+         elsi_h%n_b_cols_sips = elsi_h%n_g_size-(elsi_h%n_procs-1)*elsi_h%n_b_cols_sips
       endif
 
-      elsi_h%n_p_per_slice_sips = elsi_h%n_p_per_slice_sips*2
-   enddo
+      elsi_h%n_l_rows_sips = elsi_h%n_b_rows_sips
+      elsi_h%n_l_cols_sips = elsi_h%n_b_cols_sips
 
-   elsi_h%n_p_per_slice_sips = elsi_h%n_procs/elsi_h%n_slices
+      if(.not. allocated(elsi_h%slices)) then
+         call elsi_allocate(elsi_h,elsi_h%slices,elsi_h%n_slices+1,"slices",caller)
+      endif
 
-   ! SIPs uses a pure block distribution
-   elsi_h%n_b_rows_sips = elsi_h%n_g_size
+      if(.not. allocated(elsi_h%inertias)) then
+         call elsi_allocate(elsi_h,elsi_h%inertias,elsi_h%n_slices+1,"inertias",caller)
+      endif
 
-   ! The last process holds all remaining columns
-   elsi_h%n_b_cols_sips = elsi_h%n_g_size/elsi_h%n_procs
-   if(elsi_h%myid == elsi_h%n_procs-1) then
-      elsi_h%n_b_cols_sips = elsi_h%n_g_size-(elsi_h%n_procs-1)*elsi_h%n_b_cols_sips
-   endif
+      if(.not. allocated(elsi_h%shifts)) then
+         call elsi_allocate(elsi_h,elsi_h%shifts,elsi_h%n_slices+1,"shifts",caller)
+      endif
 
-   elsi_h%n_l_rows_sips = elsi_h%n_b_rows_sips
-   elsi_h%n_l_cols_sips = elsi_h%n_b_cols_sips
-
-   if(.not. allocated(elsi_h%slices)) then
-      call elsi_allocate(elsi_h,elsi_h%slices,elsi_h%n_slices+1,"slices",caller)
-   endif
-
-   if(.not. allocated(elsi_h%inertias)) then
-      call elsi_allocate(elsi_h,elsi_h%inertias,elsi_h%n_slices+1,"inertias",caller)
-   endif
-
-   if(.not. allocated(elsi_h%shifts)) then
-      call elsi_allocate(elsi_h,elsi_h%shifts,elsi_h%n_slices+1,"shifts",caller)
+      elsi_h%sips_started = .true.
    endif
 
 end subroutine

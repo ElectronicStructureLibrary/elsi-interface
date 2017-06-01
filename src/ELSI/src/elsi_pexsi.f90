@@ -123,6 +123,7 @@ subroutine elsi_init_pexsi(elsi_h)
       if(elsi_h%pexsi_info /= 0) &
          call elsi_stop(" PEXSI plan initialization failed. Exiting...",elsi_h,caller)
 
+      elsi_h%pexsi_started = .true.
    endif
 
 end subroutine

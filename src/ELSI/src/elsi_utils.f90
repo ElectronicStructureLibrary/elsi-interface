@@ -432,22 +432,19 @@ subroutine elsi_set_real_hamiltonian(elsi_h,H_in)
 
    character*40, parameter :: caller = "elsi_set_real_hamiltonian"
 
-   select case (elsi_h%solver)
-      case (ELPA)
-         elsi_h%ham_real => H_in
-      case (LIBOMM)
-         call m_register_pdbc(elsi_h%ham_omm,H_in,elsi_h%sc_desc)
-      case (PEXSI)
-         ! Nothing to be done here
-      case (CHESS)
-         call elsi_stop(" CHESS not yet implemented. Exiting...",elsi_h,caller)
-      case (SIPS)
-         ! Nothing to be done here
-      case DEFAULT
-         call elsi_stop(" No supported solver has been chosen."//&
-                        " Please choose ELPA, LIBOMM, or PEXSI solver."//&
-                        " Exiting...",elsi_h,caller)
-   end select
+   if(elsi_h%solver == ELPA) then
+      if(elsi_h%matrix_storage_format == BLACS_DENSE) then
+         call elsi_set_full_mat(elsi_h,H_in)
+      endif
+
+      elsi_h%ham_real => H_in
+   elseif(elsi_h%solver == LIBOMM) then
+      if(elsi_h%matrix_storage_format == BLACS_DENSE) then
+         call elsi_set_full_mat(elsi_h,H_in)
+      endif
+
+      call m_register_pdbc(elsi_h%ham_omm,H_in,elsi_h%sc_desc)
+   endif
 
 end subroutine
 
@@ -463,22 +460,19 @@ subroutine elsi_set_complex_hamiltonian(elsi_h,H_in)
 
    character*40, parameter :: caller = "elsi_set_complex_hamiltonian"
 
-   select case (elsi_h%solver)
-      case (ELPA)
-         elsi_h%ham_complex => H_in
-      case (LIBOMM)
-         call m_register_pdbc(elsi_h%ham_omm,H_in,elsi_h%sc_desc)
-      case (PEXSI)
-         ! Nothing to be done here
-      case (CHESS)
-         call elsi_stop(" CHESS not yet implemented. Exiting...",elsi_h,caller)
-      case (SIPS)
-         call elsi_stop(" SIPS not yet implemented. Exiting...",elsi_h,caller)
-      case DEFAULT
-         call elsi_stop(" No supported solver has been chosen."//&
-                        " Please choose ELPA, LIBOMM, or PEXSI solver."//&
-                        " Exiting...",elsi_h,caller)
-   end select
+   if(elsi_h%solver == ELPA) then
+      if(elsi_h%matrix_storage_format == BLACS_DENSE) then
+         call elsi_set_full_mat(elsi_h,H_in)
+      endif
+
+      elsi_h%ham_complex => H_in
+   elseif(elsi_h%solver == LIBOMM) then
+      if(elsi_h%matrix_storage_format == BLACS_DENSE) then
+         call elsi_set_full_mat(elsi_h,H_in)
+      endif
+
+      call m_register_pdbc(elsi_h%ham_omm,H_in,elsi_h%sc_desc)
+   endif
 
 end subroutine
 
@@ -494,22 +488,9 @@ subroutine elsi_set_sparse_real_hamiltonian(elsi_h,H_in)
 
    character*40, parameter :: caller = "elsi_set_sparse_real_hamiltonian"
 
-   select case (elsi_h%solver)
-      case (ELPA)
-         ! Nothing to be done here
-      case (LIBOMM)
-         ! Nothing to be done here
-      case (PEXSI)
-         elsi_h%ham_real_ccs => H_in
-      case (CHESS)
-         call elsi_stop(" CHESS not yet implemented. Exiting...",elsi_h,caller)
-      case (SIPS)
-         elsi_h%ham_real_ccs => H_in
-      case DEFAULT
-         call elsi_stop(" No supported solver has been chosen."//&
-                        " Please choose ELPA, LIBOMM, or PEXSI solver."//&
-                        " Exiting...",elsi_h,caller)
-   end select
+   if((elsi_h%solver == PEXSI) .or. (elsi_h%solver == SIPS)) then
+      elsi_h%ham_real_ccs => H_in
+   endif
 
 end subroutine
 
@@ -525,22 +506,9 @@ subroutine elsi_set_sparse_complex_hamiltonian(elsi_h,H_in)
 
    character*40, parameter :: caller = "elsi_set_sparse_complex_hamiltonian"
 
-   select case (elsi_h%solver)
-      case (ELPA)
-         ! Nothing to be done here
-      case (LIBOMM)
-         ! Nothing to be done here
-      case (PEXSI)
-         elsi_h%ham_complex_ccs => H_in         
-      case (CHESS)
-         call elsi_stop(" CHESS not yet implemented. Exiting...",elsi_h,caller)
-      case (SIPS)
-         call elsi_stop(" SIPS not yet implemented. Exiting...",elsi_h,caller)
-      case DEFAULT
-         call elsi_stop(" No supported solver has been chosen."//&
-                        " Please choose ELPA, LIBOMM, or PEXSI solver."//&
-                        " Exiting...",elsi_h,caller)
-   end select
+   if((elsi_h%solver == PEXSI) .or. (elsi_h%solver == SIPS)) then
+      elsi_h%ham_complex_ccs => H_in         
+   endif
 
 end subroutine
 
@@ -557,22 +525,21 @@ subroutine elsi_set_real_overlap(elsi_h,S_in)
    character*40, parameter :: caller = "elsi_set_real_overlap"
 
    if(.not. elsi_h%overlap_is_unit) then
-      select case (elsi_h%solver)
-         case (ELPA)
-            elsi_h%ovlp_real => S_in
-         case (LIBOMM)
-            call m_register_pdbc(elsi_h%ovlp_omm,S_in,elsi_h%sc_desc)
-         case (PEXSI)
-            ! Nothing to be done here
-         case (CHESS)
-            call elsi_stop(" CHESS not yet implemented. Exiting...",elsi_h,caller)
-         case (SIPS)
-            ! Nothing to be done here
-         case DEFAULT
-            call elsi_stop(" No supported solver has been chosen."//&
-                           " Please choose ELPA, LIBOMM, or PEXSI solver."//&
-                           " Exiting...",elsi_h,caller)
-      end select
+      if(elsi_h%solver == ELPA) then
+         if((elsi_h%matrix_storage_format == BLACS_DENSE) .and. &
+            (elsi_h%n_elsi_calls == 1)) then
+            call elsi_set_full_mat(elsi_h,S_in)
+         endif
+
+         elsi_h%ovlp_real => S_in
+      elseif(elsi_h%solver == LIBOMM) then
+         if((elsi_h%matrix_storage_format == BLACS_DENSE) .and. &
+            (elsi_h%n_elsi_calls == 1)) then
+            call elsi_set_full_mat(elsi_h,S_in)
+         endif
+
+         call m_register_pdbc(elsi_h%ovlp_omm,S_in,elsi_h%sc_desc)
+      endif
    endif
 
 end subroutine
@@ -590,22 +557,21 @@ subroutine elsi_set_complex_overlap(elsi_h,S_in)
    character*40, parameter :: caller = "elsi_set_complex_overlap"
 
    if(.not. elsi_h%overlap_is_unit) then
-      select case (elsi_h%solver)
-         case (ELPA)
-            elsi_h%ovlp_complex => S_in
-         case (LIBOMM)
-            call m_register_pdbc(elsi_h%ovlp_omm,S_in,elsi_h%sc_desc)
-         case (PEXSI)
-            ! Nothing to be done here
-         case (CHESS)
-            call elsi_stop(" CHESS not yet implemented. Exiting...",elsi_h,caller)
-         case (SIPS)
-            call elsi_stop(" SIPS not yet implemented. Exiting...",elsi_h,caller)
-         case DEFAULT
-            call elsi_stop(" No supported solver has been chosen."//&
-                           " Please choose ELPA, LIBOMM, or PEXSI solver."//&
-                           " Exiting...",elsi_h,caller)
-      end select
+      if(elsi_h%solver == ELPA) then
+         if((elsi_h%matrix_storage_format == BLACS_DENSE) .and. &
+            (elsi_h%n_elsi_calls == 1)) then
+            call elsi_set_full_mat(elsi_h,S_in)
+         endif
+
+         elsi_h%ovlp_complex => S_in
+      elseif(elsi_h%solver == LIBOMM) then
+         if((elsi_h%matrix_storage_format == BLACS_DENSE) .and. &
+            (elsi_h%n_elsi_calls == 1)) then
+            call elsi_set_full_mat(elsi_h,S_in)
+         endif
+
+         call m_register_pdbc(elsi_h%ovlp_omm,S_in,elsi_h%sc_desc)
+      endif
    endif
 end subroutine
 
@@ -622,22 +588,9 @@ subroutine elsi_set_sparse_real_overlap(elsi_h,S_in)
    character*40, parameter :: caller = "elsi_set_sparse_real_overlap"
 
    if(.not. elsi_h%overlap_is_unit) then
-      select case (elsi_h%solver)
-         case (ELPA)
-            ! Nothing to be done here
-         case (LIBOMM)
-            ! Nothing to be done here
-         case (PEXSI)
-            elsi_h%ovlp_real_ccs => S_in
-         case (CHESS)
-            call elsi_stop(" CHESS not yet implemented. Exiting...",elsi_h,caller)
-         case (SIPS)
-            elsi_h%ovlp_real_ccs => S_in
-         case DEFAULT
-            call elsi_stop(" No supported solver has been chosen."//&
-                           " Please choose ELPA, LIBOMM, or PEXSI solver."//&
-                           " Exiting...",elsi_h,caller)
-      end select
+      if((elsi_h%solver == PEXSI) .or. (elsi_h%solver == SIPS)) then
+         elsi_h%ovlp_real_ccs => S_in
+      endif
    endif
 
 end subroutine
@@ -655,22 +608,9 @@ subroutine elsi_set_sparse_complex_overlap(elsi_h,S_in)
    character*40, parameter :: caller = "elsi_set_sparse_complex_overlap"
 
    if(.not. elsi_h%overlap_is_unit) then
-      select case (elsi_h%solver)
-         case (ELPA)
-            ! Nothing to be done here
-         case (LIBOMM)
-            ! Nothing to be done here
-         case (PEXSI)
-            elsi_h%ovlp_complex_ccs => S_in
-         case (CHESS)
-            call elsi_stop(" CHESS not yet implemented. Exiting...",elsi_h,caller)
-         case (SIPS)
-            call elsi_stop(" SIPS not yet implemented. Exiting...",elsi_h,caller)
-         case DEFAULT
-            call elsi_stop(" No supported solver has been chosen."//&
-                           " Please choose ELPA, LIBOMM, or PEXSI solver."//&
-                           " Exiting...",elsi_h,caller)
-      end select
+      if((elsi_h%solver == PEXSI) .or. (elsi_h%solver == SIPS)) then
+         elsi_h%ovlp_complex_ccs => S_in
+      endif
    endif
 
 end subroutine
@@ -687,22 +627,9 @@ subroutine elsi_set_eigenvalue(elsi_h,e_val_in)
 
    character*40, parameter :: caller = "elsi_set_eigenvalue"
 
-   select case (elsi_h%solver)
-      case (ELPA)
-         elsi_h%eval => e_val_in
-      case (LIBOMM)
-         ! Nothing to be done here
-      case (PEXSI)
-         ! Nothing to be done here
-      case (CHESS)
-         call elsi_stop(" CHESS not yet implemented. Exiting...",elsi_h,caller)
-      case (SIPS)
-         elsi_h%eval => e_val_in
-      case DEFAULT
-         call elsi_stop(" No supported solver has been chosen."//&
-                        " Please choose ELPA, LIBOMM, or PEXSI solver."//&
-                        " Exiting...",elsi_h,caller)
-   end select
+   if((elsi_h%solver == ELPA) .or. (elsi_h%solver == SIPS)) then
+      elsi_h%eval => e_val_in
+   endif
 
 end subroutine
 
@@ -718,22 +645,9 @@ subroutine elsi_set_real_eigenvector(elsi_h,e_vec_in)
 
    character*40, parameter :: caller = "elsi_set_real_eigenvector"
 
-   select case (elsi_h%solver)
-      case (ELPA)
-         elsi_h%evec_real => e_vec_in
-      case (LIBOMM)
-         ! Nothing to be done here
-      case (PEXSI)
-         ! Nothing to be done here
-      case (CHESS)
-         call elsi_stop(" CHESS not yet implemented. Exiting...",elsi_h,caller)
-      case (SIPS)
-         elsi_h%evec_real => e_vec_in
-      case DEFAULT
-         call elsi_stop(" No supported solver has been chosen."//&
-                        " Please choose ELPA, LIBOMM, or PEXSI solver."//&
-                        " Exiting...",elsi_h,caller)
-   end select
+   if((elsi_h%solver == ELPA) .or. (elsi_h%solver == SIPS)) then
+      elsi_h%evec_real => e_vec_in
+   endif
 
 end subroutine
 
@@ -749,22 +663,9 @@ subroutine elsi_set_complex_eigenvector(elsi_h,e_vec_in)
 
    character*40, parameter :: caller = "elsi_set_complex_eigenvector"
 
-   select case (elsi_h%solver)
-      case (ELPA)
-         elsi_h%evec_complex => e_vec_in
-      case (LIBOMM)
-         ! Nothing to be done here
-      case (PEXSI)
-         ! Nothing to be done here
-      case (CHESS)
-         call elsi_stop(" CHESS not yet implemented. Exiting...",elsi_h,caller)
-      case (SIPS)
-         call elsi_stop(" SIPS not yet implemented. Exiting...",elsi_h,caller)
-      case DEFAULT
-         call elsi_stop(" No supported solver has been chosen."//&
-                        " Please choose ELPA, LIBOMM, or PEXSI solver."//&
-                        " Exiting...",elsi_h,caller)
-   end select
+   if((elsi_h%solver == ELPA) .or. (elsi_h%solver == SIPS)) then
+      elsi_h%evec_complex => e_vec_in
+   endif
 
 end subroutine
 
@@ -780,22 +681,11 @@ subroutine elsi_set_density_matrix(elsi_h,D_in)
 
    character*40, parameter :: caller = "elsi_set_density_matrix"
 
-   select case (elsi_h%solver)
-      case (ELPA)
-         elsi_h%den_mat => D_in
-      case (LIBOMM)
-         call m_register_pdbc(elsi_h%den_mat_omm,D_in,elsi_h%sc_desc)
-      case (PEXSI)
-         ! Nothing to be done here
-      case (CHESS)
-         call elsi_stop(" CHESS not yet implemented. Exiting...",elsi_h,caller)
-      case (SIPS)
-         call elsi_stop(" SIPS not yet implemented. Exiting...",elsi_h,caller)
-      case DEFAULT
-         call elsi_stop(" No supported solver has been chosen."//&
-                        " Please choose ELPA, LIBOMM, or PEXSI solver."//&
-                        " Exiting...",elsi_h,caller)
-   end select
+   if(elsi_h%solver == ELPA) then
+      elsi_h%den_mat => D_in
+   elseif(elsi_h%solver == LIBOMM) then
+      call m_register_pdbc(elsi_h%den_mat_omm,D_in,elsi_h%sc_desc)
+   endif
 
 end subroutine
 
@@ -811,22 +701,9 @@ subroutine elsi_set_sparse_density_matrix(elsi_h,D_in)
 
    character*40, parameter :: caller = "elsi_set_sparse_density_matrix"
 
-   select case (elsi_h%solver)
-      case (ELPA)
-         ! Nothing to be done here
-      case (LIBOMM)
-         ! Nothing to be done here
-      case (PEXSI)
-         elsi_h%den_mat_ccs => D_in
-      case (CHESS)
-         call elsi_stop(" CHESS not yet implemented. Exiting...",elsi_h,caller)
-      case (SIPS)
-         call elsi_stop(" SIPS not yet implemented. Exiting...",elsi_h,caller)
-      case DEFAULT
-         call elsi_stop(" No supported solver has been chosen."//&
-                        " Please choose ELPA, LIBOMM, or PEXSI solver."//&
-                        " Exiting...",elsi_h,caller)
-   end select
+   if(elsi_h%solver == PEXSI) then
+      elsi_h%den_mat_ccs => D_in
+   endif
 
 end subroutine
 
@@ -842,22 +719,7 @@ subroutine elsi_set_row_ind(elsi_h,row_ind_in)
 
    character*40, parameter :: caller = "elsi_set_row_ind"
 
-   select case (elsi_h%solver)
-      case (ELPA)
-         elsi_h%row_ind_ccs => row_ind_in
-      case (LIBOMM)
-         elsi_h%row_ind_ccs => row_ind_in
-      case (PEXSI)
-         elsi_h%row_ind_ccs => row_ind_in
-      case (CHESS)
-         call elsi_stop(" CHESS not yet implemented. Exiting...",elsi_h,caller)
-      case (SIPS)
-         elsi_h%row_ind_ccs => row_ind_in
-      case DEFAULT
-         call elsi_stop(" No supported solver has been chosen."//&
-                        " Please choose ELPA, LIBOMM, or PEXSI solver."//&
-                        " Exiting...",elsi_h,caller)
-   end select
+   elsi_h%row_ind_ccs => row_ind_in
 
 end subroutine
 
@@ -873,22 +735,7 @@ subroutine elsi_set_col_ptr(elsi_h,col_ptr_in)
 
    character*40, parameter :: caller = "elsi_set_col_ptr"
 
-   select case (elsi_h%solver)
-      case (ELPA)
-         elsi_h%col_ptr_ccs => col_ptr_in
-      case (LIBOMM)
-         elsi_h%col_ptr_ccs => col_ptr_in
-      case (PEXSI)
-         elsi_h%col_ptr_ccs => col_ptr_in
-      case (CHESS)
-         call elsi_stop(" CHESS not yet implemented. Exiting...",elsi_h,caller)
-      case (SIPS)
-         elsi_h%col_ptr_ccs => col_ptr_in
-      case DEFAULT
-         call elsi_stop(" No supported solver has been chosen."//&
-                        " Please choose ELPA, LIBOMM, or PEXSI solver."//&
-                        " Exiting...",elsi_h,caller)
-   end select
+   elsi_h%col_ptr_ccs => col_ptr_in
 
 end subroutine
 
@@ -956,20 +803,37 @@ subroutine elsi_cleanup(elsi_h)
    if(allocated(elsi_h%local_col))         deallocate(elsi_h%local_col)
 
    ! Finalize PEXSI plan
-   if(elsi_h%solver == PEXSI) then
+   if(elsi_h%pexsi_started) then
       call f_ppexsi_plan_finalize(elsi_h%pexsi_plan,elsi_h%pexsi_info)
    endif
 
    ! Finalize QETSC
-   if(elsi_h%solver == SIPS) then
+   if(elsi_h%sips_started) then
       call finalize_sips()
    endif
 
    ! Reset elsi_h
+   call elsi_reset_handle(elsi_h)
+
+end subroutine
+
+!>
+!! This routine resets an ELSI handle.
+!!
+subroutine elsi_reset_handle(elsi_h)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h
+
+   character*40, parameter :: caller = "elsi_reset_handle"
+
+   elsi_h%handle_initialized      = .false.
    elsi_h%solver                  = UNSET
    elsi_h%matrix_data_type        = UNSET
    elsi_h%matrix_storage_format   = UNSET
    elsi_h%parallel_mode           = UNSET
+   elsi_h%uplo                    = FULL_MAT
    elsi_h%n_elsi_calls            = 0
    elsi_h%n_g_size                = UNSET
    elsi_h%n_b_rows                = UNSET
@@ -1032,6 +896,7 @@ subroutine elsi_cleanup(elsi_h)
    elsi_h%n_l_cols_pexsi          = UNSET
    elsi_h%n_p_per_pole_pexsi      = UNSET
    elsi_h%nnz_l_pexsi             = UNSET
+   elsi_h%pexsi_started           = .false.
    elsi_h%sparsity_pattern_ready  = .false.
    elsi_h%n_p_per_pole_ready      = .false.
    elsi_h%small_pexsi_tol         = .false.
@@ -1061,6 +926,7 @@ subroutine elsi_cleanup(elsi_h)
    elsi_h%n_slices                = UNSET
    elsi_h%interval                = 0.0_r8
    elsi_h%slice_buffer            = 0.0_r8
+   elsi_h%sips_started            = .false.
 
 end subroutine
 
@@ -1119,10 +985,12 @@ subroutine elsi_check(elsi_h,caller)
    endif
 
    if(elsi_h%uplo /= FULL_MAT) then
-      call elsi_stop(" Upper/lower triangular input matrix not yet supported."//&
-                     " The option is here, only for adding functionalities in"//&
-                     " the future. Please pass full matrix into ELSI."//&
-                     " Exiting...",elsi_h,caller)
+      if((elsi_h%matrix_storage_format /= BLACS_DENSE) .or. &
+         (elsi_h%parallel_mode /= MULTI_PROC)) then
+         call elsi_stop(" Upper/lower triangular input matrix only supported"//&
+                        " with BLACS_DENSE matrix storage format and MULTI_PROC"//&
+                        " parallel mode. Exiting...",elsi_h,caller)
+      endif
    endif
 
    ! Specific check for each solver

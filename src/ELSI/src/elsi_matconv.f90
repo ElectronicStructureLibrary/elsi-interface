@@ -55,8 +55,8 @@ subroutine elsi_blacs_to_pexsi_hs(elsi_h,H_in,S_in)
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h
-   real(kind=r8),     intent(in)    :: H_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian matrix to be converted
-   real(kind=r8),     intent(in)    :: S_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Overlap matrix to be converted
+   real(kind=r8),     intent(inout) :: H_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian matrix to be converted
+   real(kind=r8),     intent(inout) :: S_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Overlap matrix to be converted
 
    character*40, parameter :: caller = "elsi_blacs_to_pexsi_hs"
 
@@ -65,6 +65,11 @@ subroutine elsi_blacs_to_pexsi_hs(elsi_h,H_in,S_in)
       call elsi_stop(" PEXSI with identity overlap matrix not yet available."//&
                      " Exiting...",elsi_h,caller)
    else
+      call elsi_set_full_mat(elsi_h,H_in)
+      if(elsi_h%n_elsi_calls == 1) then
+         call elsi_set_full_mat(elsi_h,S_in)
+      endif
+
       if(elsi_h%n_g_size < 46340) then
          call elsi_blacs_to_pexsi_hs_small(elsi_h,H_in,S_in)
       else ! use long integer
@@ -1231,8 +1236,8 @@ subroutine elsi_blacs_to_sips_hs(elsi_h,H_in,S_in)
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h
-   real(kind=r8),     intent(in)    :: H_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian matrix to be converted
-   real(kind=r8),     intent(in)    :: S_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Overlap matrix to be converted
+   real(kind=r8),     intent(inout) :: H_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian matrix to be converted
+   real(kind=r8),     intent(inout) :: S_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Overlap matrix to be converted
 
    character*40, parameter :: caller = "elsi_blacs_to_sips_hs"
 
@@ -1240,6 +1245,11 @@ subroutine elsi_blacs_to_sips_hs(elsi_h,H_in,S_in)
       call elsi_stop(" SIPs with identity overlap matrix not yet available."//&
                      " Exiting...",elsi_h,caller)
    else
+      call elsi_set_full_mat(elsi_h,H_in)
+      if(elsi_h%n_elsi_calls == 1) then
+         call elsi_set_full_mat(elsi_h,S_in)
+      endif
+
       if(elsi_h%n_g_size < 46340) then ! kind=4 integer works
          call elsi_blacs_to_sips_hs_small(elsi_h,H_in,S_in)
       else ! use kind=8 integer
