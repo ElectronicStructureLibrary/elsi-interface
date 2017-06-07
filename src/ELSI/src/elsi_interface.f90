@@ -70,6 +70,7 @@ module ELSI
    public :: elsi_dm_complex         !< Compute density matrix
    public :: elsi_dm_real_sparse     !< Compute density matrix
    public :: elsi_compute_mu_and_occ !< Compute chemical potential and occupation numbers
+   public :: elsi_collect_omm        !< Collect additional libOMM results
    public :: elsi_collect_pexsi      !< Collect additional PEXSI results
    public :: elsi_finalize           !< Clean memory and print timings
 
@@ -361,6 +362,7 @@ end subroutine
 !   elsi_customize_pexsi
 !   elsi_customize_elpa
 !   elsi_customize_mu
+!   elsi_collect_omm
 !   elsi_collect_pexsi
 !=========================
 
@@ -387,28 +389,41 @@ subroutine elsi_customize(elsi_h,print_detail,overlap_is_unit,zero_threshold,&
    call elsi_check_handle(elsi_h,caller)
 
    ! Print detailed ELSI information? [Default: .false.]
-   if(present(print_detail)) &
+   if(present(print_detail)) then
       print_info = print_detail
+   endif
+
    ! Is the overlap matrix unit? [Default: .false.]
-   if(present(overlap_is_unit)) &
+   if(present(overlap_is_unit)) then
       elsi_h%overlap_is_unit = overlap_is_unit
+   endif
+
    ! Threshold to define numerical zero [Default: 1e-13_r8]
-   if(present(zero_threshold)) &
+   if(present(zero_threshold)) then
       elsi_h%zero_threshold = zero_threshold
+   endif
+
    ! Disable checking for overlap singularity? [Default: .false.]
-   if(present(no_singularity_check)) &
+   if(present(no_singularity_check)) then
       elsi_h%no_singularity_check = no_singularity_check
+   endif
+
    ! Eigenfunctions of overlap matrix with eigenvalues smaller than
    ! this value will be removed to avoid singularity [Default: 1e-5_r8]
-   if(present(singularity_tolerance)) &
+   if(present(singularity_tolerance)) then
       elsi_h%singularity_tolerance = singularity_tolerance
+   endif
+
    ! Always stop if overlap is singular? [Default: .false.]
-   if(present(stop_singularity)) &
+   if(present(stop_singularity)) then
       elsi_h%stop_singularity = stop_singularity
+   endif
+
    ! Is the input matrices upper or lower triangular?
    ! 0: FULL_MAT, 1: UT_MAT, 2: LT_MAT [Default: 0]
-   if(present(uplo)) &
+   if(present(uplo)) then
       elsi_h%uplo = uplo
+   endif
 
 end subroutine
 
@@ -433,23 +448,34 @@ subroutine elsi_customize_omm(elsi_h,n_elpa_steps,omm_flavor,eigen_shift,&
    call elsi_check_handle(elsi_h,caller)
 
    ! Number of ELPA steps
-   if(present(n_elpa_steps)) &
+   if(present(n_elpa_steps)) then
       elsi_h%n_elpa_steps = n_elpa_steps
+   endif
+
    ! How to perform orbital minimization?
-   if(present(omm_flavor)) &
+   if(present(omm_flavor)) then
       elsi_h%omm_flavor = omm_flavor
+   endif
+
    ! Eigenspectrum shift parameter
-   if(present(eigen_shift)) &
+   if(present(eigen_shift)) then
       elsi_h%eta = eigen_shift
+   endif
+
    ! Tolerance for minimization
-   if(present(omm_tolerance)) &
+   if(present(omm_tolerance)) then
       elsi_h%min_tol = omm_tolerance
+   endif
+
    ! Use pspBLAS sparse linear algebra?
-   if(present(use_pspblas)) &
+   if(present(use_pspblas)) then
       elsi_h%use_psp = use_pspblas
+   endif
+
    ! Output details?
-   if(present(omm_output)) &
-      elsi_h%omm_verbose = omm_output
+   if(present(omm_output)) then
+      elsi_h%omm_output = omm_output
+   endif
 
    if(elsi_h%solver .ne. LIBOMM) then
       call elsi_statement_print("  The chosen solver is not libOMM."//&
@@ -494,22 +520,26 @@ subroutine elsi_customize_pexsi(elsi_h,temperature,gap,delta_e,n_poles,n_procs_p
    call elsi_check_handle(elsi_h,caller)
 
    ! Temperature, in the same unit as H
-   if(present(temperature)) &
+   if(present(temperature)) then
       elsi_h%pexsi_options%temperature = temperature
+   endif
 
    ! Spectral gap, can be set to 0 in most cases (default)
-   if(present(gap)) &
+   if(present(gap)) then
       elsi_h%pexsi_options%gap = gap
+   endif
 
    ! Upper bound for the spectral radius of S^(-1)H
    ! default: 10
-   if(present(delta_e)) &
+   if(present(delta_e)) then
       elsi_h%pexsi_options%deltaE = delta_e
+   endif
 
    ! Number of poles
    ! default: 40
-   if(present(n_poles)) &
+   if(present(n_poles)) then
       elsi_h%pexsi_options%numPole = n_poles
+   endif
 
    ! Number of processors for one pole
    ! default: decided from n_procs and n_poles
@@ -528,44 +558,51 @@ subroutine elsi_customize_pexsi(elsi_h,temperature,gap,delta_e,n_poles,n_procs_p
    ! Maximum number of PEXSI iterations after each inertia
    ! counting procedure
    ! default: 3
-   if(present(max_iteration)) &
+   if(present(max_iteration)) then
       elsi_h%pexsi_options%maxPEXSIIter = max_iteration
+   endif
 
    ! From the second step, initial guess of mu is from previous step
    if(elsi_h%n_elsi_calls == 0) then
       ! Initial guess of mu
       ! default: 0.0
-      if(present(mu0)) &
+      if(present(mu0)) then
          elsi_h%pexsi_options%mu0 = mu0
+      endif
    endif
 
    ! Initial guess of lower bound for mu
    ! default: -10.0
-   if(present(mu_min)) &
+   if(present(mu_min)) then
       elsi_h%pexsi_options%muMin0 = mu_min
+   endif
 
    ! Initial guess of upper bound for mu
    ! default: 10.0
-   if(present(mu_max)) &
+   if(present(mu_max)) then
       elsi_h%pexsi_options%muMax0 = mu_max
+   endif
 
    ! Stopping criterion in terms of the chemical potential
    ! for the inertia counting procedure
    ! default: 0.05
-   if(present(mu_inertia_tolerance)) &
+   if(present(mu_inertia_tolerance)) then
       elsi_h%pexsi_options%muInertiaTolerance = mu_inertia_tolerance
+   endif
 
    ! If the chemical potential is not in the initial interval,
    ! the interval is expanded by this value
    ! default: 0.3
-   if(present(mu_inertia_expansion)) &
+   if(present(mu_inertia_expansion)) then
       elsi_h%pexsi_options%muInertiaExpansion = mu_inertia_expansion
+   endif
 
    ! Safeguard criterion in terms of the chemical potential to
    ! reinvoke the inertia counting procedure
    ! default: 0.05
-   if(present(mu_safeguard)) &
+   if(present(mu_safeguard)) then
       elsi_h%pexsi_options%muPEXSISafeGuard = mu_safeguard
+   endif
 
    ! Stopping criterion of the PEXSI iteration in terms of the
    ! number of electrons compared to the exact number
@@ -581,31 +618,36 @@ subroutine elsi_customize_pexsi(elsi_h,temperature,gap,delta_e,n_poles,n_procs_p
    ! Type of input H and S matrices
    ! 0: real symmetric (default)
    ! 1: general complex
-   if(present(matrix_type)) &
+   if(present(matrix_type)) then
       elsi_h%pexsi_options%matrixType = matrix_type
+   endif
 
    ! Whether to perform symbolic factorization
    ! default: 1
-   if(present(is_symbolic_factorize)) &
+   if(present(is_symbolic_factorize)) then
       elsi_h%pexsi_options%isSymbolicFactorize = is_symbolic_factorize
+   endif
 
    ! Ordering strategy for factorization and selected inversion
    ! 0: parallel ordering using ParMETIS
    ! 1: sequential ordering using METIS
    ! 2: multiple minimum degree ordering
-   if(present(ordering)) &
+   if(present(ordering)) then
       elsi_h%pexsi_options%ordering = ordering
+   endif
 
    ! Number of processors for ParMETIS, only used if ordering=0
-   if(present(np_symbolic_factorize)) &
+   if(present(np_symbolic_factorize)) then
       elsi_h%pexsi_options%npSymbFact = np_symbolic_factorize
+   endif
 
    ! Level of output information
    ! 0: no output
    ! 1: basic output (default)
    ! 2: detailed output
-   if(present(verbosity)) &
+   if(present(verbosity)) then
       elsi_h%pexsi_options%verbosity = verbosity
+   endif
 
    if(elsi_h%solver .ne. PEXSI) then
       call elsi_statement_print("  The chosen solver is not PEXSI."//&
@@ -617,23 +659,30 @@ end subroutine
 !>
 !! This routine overrides ELPA default settings.
 !!
-subroutine elsi_customize_elpa(elsi_h,elpa_solver)
+subroutine elsi_customize_elpa(elsi_h,elpa_solver,elpa_output)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h      !< Handle of this ELSI instance
-   integer(kind=i4),  intent(in)    :: elpa_solver !< Always use 1-stage or 2-stage solver
+   type(elsi_handle), intent(inout)        :: elsi_h      !< Handle of this ELSI instance
+   integer(kind=i4),  intent(in), optional :: elpa_solver !< Always use 1-stage or 2-stage solver
+   logical,           intent(in), optional :: elpa_output !< Output details?
 
    character*40, parameter :: caller = "elsi_customize_elpa"
 
    call elsi_check_handle(elsi_h,caller)
 
-   if(elpa_solver == 1) then
-      elsi_h%elpa_one_always = .true.
-      elsi_h%elpa_two_always = .false.
-   elseif(elpa_solver == 2) then
-      elsi_h%elpa_one_always = .false.
-      elsi_h%elpa_two_always = .true.
+   if(present(elpa_solver)) then
+      if(elpa_solver == 1) then
+         elsi_h%elpa_one_always = .true.
+         elsi_h%elpa_two_always = .false.
+      elseif(elpa_solver == 2) then
+         elsi_h%elpa_one_always = .false.
+         elsi_h%elpa_two_always = .true.
+      endif
+   endif
+
+   if(present(elpa_output)) then
+      elsi_h%elpa_output = elpa_output
    endif
 
    if(elsi_h%solver .ne. ELPA) then
@@ -664,20 +713,54 @@ subroutine elsi_customize_mu(elsi_h,broadening_scheme,broadening_width,&
    call elsi_check_handle(elsi_h,caller)
 
    ! Broadening scheme to compute Fermi level [Default: GAUSSIAN]
-   if(present(broadening_scheme)) &
+   if(present(broadening_scheme)) then
       elsi_h%broadening_scheme = broadening_scheme
+   endif
+
    ! Broadening width to compute Fermi level [Default: 1e-2_r8]
-   if(present(broadening_width)) &
+   if(present(broadening_width)) then
       elsi_h%broadening_width = broadening_width
+   endif
+
    ! Accuracy for chemical potential determination [Default: 1e-10_r8]
-   if(present(occ_accuracy)) &
+   if(present(occ_accuracy)) then
       elsi_h%occ_tolerance = occ_accuracy
+   endif
+
    ! Maximum steps to determine the chemical potential [Default: 100]
-   if(present(mu_max_steps)) &
+   if(present(mu_max_steps)) then
       elsi_h%max_mu_steps = mu_max_steps
+   endif
+
    ! Spin degeneracy [Default: 2.0_r8/n_spin]
-   if(present(spin_degeneracy)) &
+   if(present(spin_degeneracy)) then
       elsi_h%spin_degen = spin_degeneracy
+   endif
+
+end subroutine
+
+!>
+!! This routine collects results (other than density matrix)
+!! after a libOMM calculation.
+!!
+subroutine elsi_collect_omm(elsi_h,edm)
+
+   implicit none
+
+   type(elsi_handle), intent(inout)         :: elsi_h                               !< Handle of this ELSI instance
+   real(kind=r8),     intent(out), optional :: edm(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Energy density matrix
+
+   character*40, parameter :: caller = "elsi_collect_omm"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   if(present(edm)) then
+      call elsi_set_density_matrix(elsi_h,edm)
+
+      call elsi_compute_edm_omm(elsi_h)
+
+      elsi_h%den_mat_omm%dval = 2.0_r8*elsi_h%den_mat_omm%dval
+   endif
 
 end subroutine
 
@@ -689,18 +772,26 @@ subroutine elsi_collect_pexsi(elsi_h,mu,edm,fdm)
 
    implicit none
 
-   type(elsi_handle), intent(in)  :: elsi_h                  !< Handle of this ELSI instance
-   real(kind=r8),     intent(out) :: mu                      !< Chemical potential
-   real(kind=r8),     intent(out) :: edm(elsi_h%nnz_l_pexsi) !< Energy density matrix
-   real(kind=r8),     intent(out) :: fdm(elsi_h%nnz_l_pexsi) !< Free energy density matrix
+   type(elsi_handle), intent(in)            :: elsi_h                  !< Handle of this ELSI instance
+   real(kind=r8),     intent(out), optional :: mu                      !< Chemical potential
+   real(kind=r8),     intent(out), optional :: edm(elsi_h%nnz_l_pexsi) !< Energy density matrix
+   real(kind=r8),     intent(out), optional :: fdm(elsi_h%nnz_l_pexsi) !< Free energy density matrix
 
    character*40, parameter :: caller = "elsi_collect_pexsi"
 
    call elsi_check_handle(elsi_h,caller)
 
-   mu = elsi_h%mu_pexsi
-   edm(1:elsi_h%nnz_l_pexsi) = elsi_h%e_den_mat_pexsi(1:elsi_h%nnz_l_pexsi)
-   fdm(1:elsi_h%nnz_l_pexsi) = elsi_h%f_den_mat_pexsi(1:elsi_h%nnz_l_pexsi)
+   if(present(mu)) then
+      mu = elsi_h%mu_pexsi
+   endif
+
+   if(present(edm)) then
+      edm(1:elsi_h%nnz_l_pexsi) = elsi_h%e_den_mat_pexsi(1:elsi_h%nnz_l_pexsi)
+   endif
+
+   if(present(fdm)) then
+      fdm(1:elsi_h%nnz_l_pexsi) = elsi_h%f_den_mat_pexsi(1:elsi_h%nnz_l_pexsi)
+   endif
 
 end subroutine
 

@@ -702,7 +702,7 @@ subroutine elsi_solve_evp_elpa(elsi_h)
 
    character*40, parameter :: caller = "elsi_solve_evp_elpa"
 
-   elpa_print_times = .false.
+   elpa_print_times = elsi_h%elpa_output
 
    ! Choose 1-stage or 2-stage solver
    if(elsi_h%elpa_one_always) then

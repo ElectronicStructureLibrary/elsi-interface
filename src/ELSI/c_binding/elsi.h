@@ -110,7 +110,8 @@ void c_elsi_customize_pexsi(elsi_handle handle_c,
                             int verbosity);
 
 void c_elsi_customize_elpa(elsi_handle handle_c,
-                           int elpa_solver);
+                           int elpa_solver,
+                           int elpa_output);
 
 void c_elsi_ev_real(elsi_handle handle_c,
                     double *H,

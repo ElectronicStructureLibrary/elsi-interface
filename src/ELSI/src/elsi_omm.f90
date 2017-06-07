@@ -43,6 +43,7 @@ module ELSI_OMM
    private
 
    public :: elsi_solve_evp_omm
+   public :: elsi_compute_edm_omm
    public :: elsi_set_omm_default_options
    public :: elsi_print_omm_options
    public :: ms_scalapack_setup_no_opt
@@ -128,7 +129,7 @@ subroutine elsi_solve_evp_omm(elsi_h)
             end select
          endif
       endif ! omm_flavor == 2
-   endif ! .not.overlap_is_unit
+   endif ! overlap_is_unit
 
    if(elsi_h%n_elsi_calls == 1) then
       elsi_h%coeff_initialized = .false.
@@ -156,7 +157,7 @@ subroutine elsi_solve_evp_omm(elsi_h)
                   elsi_h%new_overlap,elsi_h%total_energy,elsi_h%den_mat_omm,elsi_h%calc_ed,&
                   elsi_h%eta,elsi_h%coeff_omm,elsi_h%coeff_initialized,elsi_h%t_den_mat_omm,&
                   elsi_h%scale_kinetic,elsi_h%omm_flavor,elsi_h%nk_times_nspin,elsi_h%i_k_spin,&
-                  elsi_h%min_tol,elsi_h%omm_verbose,elsi_h%do_dealloc,"pzdbc","lap")
+                  elsi_h%min_tol,elsi_h%omm_output,elsi_h%do_dealloc,"pzdbc","lap")
 
       case (REAL_VALUES)
          if(elsi_h%use_psp) then
@@ -164,19 +165,42 @@ subroutine elsi_solve_evp_omm(elsi_h)
                      elsi_h%new_overlap,elsi_h%total_energy,elsi_h%den_mat_omm,elsi_h%calc_ed,&
                      elsi_h%eta,elsi_h%coeff_omm,elsi_h%coeff_initialized,elsi_h%t_den_mat_omm,&
                      elsi_h%scale_kinetic,elsi_h%omm_flavor,elsi_h%nk_times_nspin,elsi_h%i_k_spin,&
-                     elsi_h%min_tol,elsi_h%omm_verbose,elsi_h%do_dealloc,"pddbc","psp")
+                     elsi_h%min_tol,elsi_h%omm_output,elsi_h%do_dealloc,"pddbc","psp")
 
          else
             call omm(elsi_h%n_g_size,elsi_h%n_states,elsi_h%ham_omm,elsi_h%ovlp_omm,&
                      elsi_h%new_overlap,elsi_h%total_energy,elsi_h%den_mat_omm,elsi_h%calc_ed,&
                      elsi_h%eta,elsi_h%coeff_omm,elsi_h%coeff_initialized,elsi_h%t_den_mat_omm,&
                      elsi_h%scale_kinetic,elsi_h%omm_flavor,elsi_h%nk_times_nspin,elsi_h%i_k_spin,&
-                     elsi_h%min_tol,elsi_h%omm_verbose,elsi_h%do_dealloc,"pddbc","lap")
+                     elsi_h%min_tol,elsi_h%omm_output,elsi_h%do_dealloc,"pddbc","lap")
          endif
    end select
 
    call MPI_Barrier(elsi_h%mpi_comm,mpierr)
    call elsi_stop_density_matrix_time(elsi_h)
+
+end subroutine
+
+!> 
+!! This routine computes the energy-weighted density matrix.
+!! 
+subroutine elsi_compute_edm_omm(elsi_h)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h
+
+   character*40, parameter :: caller = "elsi_compute_edm_omm"
+
+   elsi_h%calc_ed = .true.
+
+   call omm(elsi_h%n_g_size,elsi_h%n_states,elsi_h%ham_omm,elsi_h%ovlp_omm,&
+            elsi_h%new_overlap,elsi_h%total_energy,elsi_h%den_mat_omm,elsi_h%calc_ed,&
+            elsi_h%eta,elsi_h%coeff_omm,elsi_h%coeff_initialized,elsi_h%t_den_mat_omm,&
+            elsi_h%scale_kinetic,elsi_h%omm_flavor,elsi_h%nk_times_nspin,elsi_h%i_k_spin,&
+            elsi_h%min_tol,elsi_h%omm_output,elsi_h%do_dealloc,"pddbc","lap")
+
+   elsi_h%calc_ed = .false.
 
 end subroutine
 
@@ -220,7 +244,7 @@ subroutine elsi_set_omm_default_options(elsi_h)
    elsi_h%i_k_spin = 1
 
    !< Output level?
-   elsi_h%omm_verbose = .true.
+   elsi_h%omm_output = .true.
 
    !< Deallocate temporary arrays?
    elsi_h%do_dealloc = .false.

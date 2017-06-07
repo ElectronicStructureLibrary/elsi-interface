@@ -303,19 +303,28 @@ subroutine elsi_customize_pexsi_c_wrapper(handle_c,temperature,gap,delta_e,n_pol
 
 end subroutine
 
-subroutine elsi_customize_elpa_c_wrapper(handle_c,elpa_solver)&
+subroutine elsi_customize_elpa_c_wrapper(handle_c,elpa_solver,elpa_output)&
                                          bind(C,name="c_elsi_customize_elpa")
 
    implicit none
 
    type(c_ptr),         value             :: handle_c
    integer(kind=c_int), value, intent(in) :: elpa_solver
+   integer(kind=c_int), value, intent(in) :: elpa_output
 
    type(elsi_handle), pointer :: handle_f
+   logical :: elpa_output_f
+
+   if(elpa_output == 0) then
+      elpa_output_f = .false.
+   else
+      elpa_output_f = .true.
+   endif
+
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_customize_elpa(handle_f,elpa_solver)
+   call elsi_customize_elpa(handle_f,elpa_solver,elpa_output_f)
 
 end subroutine
 

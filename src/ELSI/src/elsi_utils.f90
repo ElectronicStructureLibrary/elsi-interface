@@ -872,6 +872,7 @@ subroutine elsi_reset_handle(elsi_h)
    elsi_h%spin_degen              = 0.0_r8
    elsi_h%elpa_one_always         = .false.
    elsi_h%elpa_two_always         = .false.
+   elsi_h%elpa_output             = .false.
    elsi_h%n_elpa_steps            = UNSET
    elsi_h%new_overlap             = .true.
    elsi_h%coeff_initialized       = .false.
@@ -883,7 +884,7 @@ subroutine elsi_reset_handle(elsi_h)
    elsi_h%min_tol                 = 1.0e-12_r8
    elsi_h%nk_times_nspin          = UNSET
    elsi_h%i_k_spin                = UNSET
-   elsi_h%omm_verbose             = .false.
+   elsi_h%omm_output              = .false.
    elsi_h%do_dealloc              = .false.
    elsi_h%use_psp                 = .false.
    elsi_h%my_p_row_pexsi          = UNSET

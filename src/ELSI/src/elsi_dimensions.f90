@@ -183,6 +183,7 @@ module ELSI_DIMENSIONS
       !> ELPA
       logical :: elpa_one_always = .false. !< Always use 1-stage solver
       logical :: elpa_two_always = .false. !< Always use 2-stage solver
+      logical :: elpa_output = .false.     !< Output level
 
       !> libOMM
       integer(kind=i4) :: n_elpa_steps = UNSET   !< Use ELPA eigenvectors as initial guess
@@ -200,7 +201,7 @@ module ELSI_DIMENSIONS
       real(kind=r8) :: min_tol = 1.0e-12_r8      !< Tolerance for minimization
       integer(kind=i4) :: nk_times_nspin = UNSET !< n_k_points * n_spin
       integer(kind=i4) :: i_k_spin = UNSET       !< Combined k_point spin index
-      logical :: omm_verbose = .false.           !< Output level
+      logical :: omm_output = .false.            !< Output level
       logical :: do_dealloc = .false.            !< Deallocate internal storage?
       logical :: use_psp = .false.               !< Use pspBLAS sparse linear algebra?
 

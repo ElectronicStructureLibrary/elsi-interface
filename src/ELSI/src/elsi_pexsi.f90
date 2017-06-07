@@ -120,8 +120,9 @@ subroutine elsi_init_pexsi(elsi_h)
                              elsi_h%n_p_rows_pexsi,elsi_h%n_p_cols_pexsi,&
                              elsi_h%pexsi_output_file_index,elsi_h%pexsi_info)
 
-      if(elsi_h%pexsi_info /= 0) &
+      if(elsi_h%pexsi_info /= 0) then
          call elsi_stop(" PEXSI plan initialization failed. Exiting...",elsi_h,caller)
+      endif
 
       elsi_h%pexsi_started = .true.
    endif
@@ -183,8 +184,9 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
                                         0,elsi_h%ovlp_real_ccs,elsi_h%pexsi_info)
    endif
 
-   if(elsi_h%pexsi_info /= 0) &
+   if(elsi_h%pexsi_info /= 0) then
       call elsi_stop(" PEXSI not able to load H/S matrix. Exiting...",elsi_h,caller)
+   endif
 
    if(elsi_h%pexsi_options%isInertiaCount == 0) then
       call elsi_statement_print("  PEXSI inertia counting skipped",elsi_h)
@@ -197,8 +199,9 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
                             elsi_h%n_electrons_pexsi,elsi_h%mu_min_inertia,elsi_h%mu_max_inertia,&
                             elsi_h%n_total_inertia_iter,elsi_h%n_total_pexsi_iter,elsi_h%pexsi_info)
        
-   if(elsi_h%pexsi_info /= 0) &
+   if(elsi_h%pexsi_info /= 0) then
       call elsi_stop(" PEXSI DFT driver not able to solve problem. Exiting...",elsi_h,caller)
+   endif
 
    ! Turn off inertia counting if chemical potential does not change a lot
    if(abs(elsi_h%mu_pexsi-elsi_h%pexsi_options%mu0) > 5.0e-3_r8) then
