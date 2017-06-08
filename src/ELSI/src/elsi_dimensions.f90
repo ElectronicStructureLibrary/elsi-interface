@@ -101,7 +101,7 @@ module ELSI_DIMENSIONS
       real(kind=r8),    allocatable :: shifts(:)         !< Shifts
       integer(kind=i4), allocatable :: inertias(:)       !< Inertia count at each shift
 
-      !> Is this a valid handle? (!!!)
+      !> Is this a valid handle?
       logical :: handle_initialized = .false.
 
       !> Solver (AUTO=0,ELPA=1,LIBOMM=2,PEXSI=3,CHESS=4,SIPS=5)
@@ -179,6 +179,7 @@ module ELSI_DIMENSIONS
                                                     !! of electrons and the number computed by ELSI
       integer(kind=i4) :: max_mu_steps = 100        !< Maximum number of steps to find the chemical potential
       real(kind=r8) :: spin_degen = 0.0_r8          !< Spin degeneracy
+      logical :: edm_ready = .false.                !< Is energy density matrix ready to be computed?
 
       !> ELPA
       logical :: elpa_one_always = .false. !< Always use 1-stage solver

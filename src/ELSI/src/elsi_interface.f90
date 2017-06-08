@@ -69,8 +69,8 @@ module ELSI
    public :: elsi_dm_real            !< Compute density matrix
    public :: elsi_dm_complex         !< Compute density matrix
    public :: elsi_dm_real_sparse     !< Compute density matrix
+   public :: elsi_edm_real           !< Compute energy-weighted density matrix
    public :: elsi_compute_mu_and_occ !< Compute chemical potential and occupation numbers
-   public :: elsi_collect_omm        !< Collect additional libOMM results
    public :: elsi_collect_pexsi      !< Collect additional PEXSI results
    public :: elsi_finalize           !< Clean memory and print timings
 
@@ -362,7 +362,6 @@ end subroutine
 !   elsi_customize_pexsi
 !   elsi_customize_elpa
 !   elsi_customize_mu
-!   elsi_collect_omm
 !   elsi_collect_pexsi
 !=========================
 
@@ -741,31 +740,6 @@ end subroutine
 
 !>
 !! This routine collects results (other than density matrix)
-!! after a libOMM calculation.
-!!
-subroutine elsi_collect_omm(elsi_h,edm)
-
-   implicit none
-
-   type(elsi_handle), intent(inout)         :: elsi_h                               !< Handle of this ELSI instance
-   real(kind=r8),     intent(out), optional :: edm(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Energy density matrix
-
-   character*40, parameter :: caller = "elsi_collect_omm"
-
-   call elsi_check_handle(elsi_h,caller)
-
-   if(present(edm)) then
-      call elsi_set_density_matrix(elsi_h,edm)
-
-      call elsi_compute_edm_omm(elsi_h)
-
-      elsi_h%den_mat_omm%dval = 2.0_r8*elsi_h%den_mat_omm%dval
-   endif
-
-end subroutine
-
-!>
-!! This routine collects results (other than density matrix)
 !! after a PEXSI calculation.
 !!
 subroutine elsi_collect_pexsi(elsi_h,mu,edm,fdm)
@@ -786,11 +760,11 @@ subroutine elsi_collect_pexsi(elsi_h,mu,edm,fdm)
    endif
 
    if(present(edm)) then
-      edm(1:elsi_h%nnz_l_pexsi) = elsi_h%e_den_mat_pexsi(1:elsi_h%nnz_l_pexsi)
+      edm = elsi_h%e_den_mat_pexsi
    endif
 
    if(present(fdm)) then
-      fdm(1:elsi_h%nnz_l_pexsi) = elsi_h%f_den_mat_pexsi(1:elsi_h%nnz_l_pexsi)
+      fdm = elsi_h%f_den_mat_pexsi
    endif
 
 end subroutine
@@ -804,6 +778,7 @@ end subroutine
 !   elsi_dm_real
 !   elsi_dm_complex
 !   elsi_dm_real_sparse
+!   elsi_edm_real
 !=======================
 
 !>
@@ -1192,6 +1167,61 @@ subroutine elsi_dm_real(elsi_h,H_in,S_in,D_out,energy_out)
                         " Exiting...",elsi_h,caller)
    end select
 
+   elsi_h%matrix_data_type = UNSET
+   elsi_h%edm_ready = .true.
+
+end subroutine
+
+!>
+!! This routine computes energy-weighted density matrix.
+!!
+subroutine elsi_edm_real(elsi_h,D_out)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h                                 !< Handle of this ELSI instance
+   real(kind=r8),     intent(out)   :: D_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Energy density matrix
+
+   character*40, parameter :: caller = "elsi_edm_real"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   if(.not. elsi_h%edm_ready) then
+      call elsi_stop(" No supported solver has been chosen."//&
+                        " Exiting...",elsi_h,caller)
+   endif
+
+   ! REAL case
+   elsi_h%matrix_data_type = REAL_VALUES
+
+   select case (elsi_h%solver)
+      case (ELPA)
+         call elsi_set_density_matrix(elsi_h,D_out)
+
+         call elsi_compute_edm_elpa(elsi_h)
+
+      case (LIBOMM)
+         call elsi_set_density_matrix(elsi_h,D_out)
+
+         call elsi_compute_edm_omm(elsi_h)
+
+         elsi_h%den_mat_omm%dval = 2.0_r8*elsi_h%den_mat_omm%dval
+
+      case (PEXSI)
+         elsi_h%den_mat_ccs = elsi_h%e_den_mat_pexsi
+
+         call elsi_pexsi_to_blacs_dm(elsi_h,D_out)
+
+      case (CHESS)
+         call elsi_stop(" CHESS not yet implemented. Exiting...",elsi_h,caller)
+      case (SIPS)
+         call elsi_stop(" SIPS not yet implemented. Exiting...",elsi_h,caller)
+      case DEFAULT
+         call elsi_stop(" No supported solver has been chosen."//&
+                        " Exiting...",elsi_h,caller)
+   end select
+
+   elsi_h%edm_ready = .false.
    elsi_h%matrix_data_type = UNSET
 
 end subroutine

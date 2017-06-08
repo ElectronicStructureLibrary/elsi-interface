@@ -870,6 +870,7 @@ subroutine elsi_reset_handle(elsi_h)
    elsi_h%occ_tolerance           = 1.0e-13_r8
    elsi_h%max_mu_steps            = 100
    elsi_h%spin_degen              = 0.0_r8
+   elsi_h%edm_ready               = .false.
    elsi_h%elpa_one_always         = .false.
    elsi_h%elpa_two_always         = .false.
    elsi_h%elpa_output             = .false.
