@@ -132,25 +132,28 @@ subroutine elsi_compute_dm_elpa(elsi_h)
    real(kind=r8),    allocatable :: tmp_real(:,:)
    complex(kind=r8), allocatable :: tmp_complex(:,:)
    real(kind=r8),    allocatable :: factor(:)
-   integer(kind=i4)              :: i,i_col,i_row
+   integer(kind=i4)              :: i,i_col,i_row,max_state
 
    character*40, parameter :: caller = "elsi_compute_dm_elpa"
 
    call elsi_start_density_matrix_time(elsi_h)
 
+   call elsi_allocate(elsi_h,factor,elsi_h%n_states,"factor",caller)
+   factor = 0.0_r8
+
+   max_state = 0
+
+   do i = 1,elsi_h%n_states
+      if(elsi_h%occ_elpa(i) > 0.0_r8) then
+         factor(i) = sqrt(elsi_h%occ_elpa(i))
+         max_state = i
+      endif
+   enddo
+
    select case (elsi_h%matrix_data_type)
       case (REAL_VALUES)
          call elsi_allocate(elsi_h,tmp_real,elsi_h%n_l_rows,elsi_h%n_l_cols,"tmp_real",caller)
          tmp_real = elsi_h%evec_real
-
-         call elsi_allocate(elsi_h,factor,elsi_h%n_states,"factor",caller)
-         factor = 0.0_r8
-
-         do i = 1,elsi_h%n_states
-            if(elsi_h%occ_elpa(i) > 0.0_r8) then
-               factor(i) = sqrt(elsi_h%occ_elpa(i))
-            endif
-         enddo
 
          do i = 1,elsi_h%n_states
             if(factor(i) > 0.0_r8) then
@@ -165,21 +168,12 @@ subroutine elsi_compute_dm_elpa(elsi_h)
          elsi_h%den_mat = 0.0_r8
 
          ! Compute density matrix
-         call pdsyrk('U','N',elsi_h%n_g_size,elsi_h%n_states,1.0_r8,tmp_real,&
-                     1,1,elsi_h%sc_desc,0.0_r8,elsi_h%den_mat,1,1,elsi_h%sc_desc)
+         call pdsyrk('U','N',elsi_h%n_g_size,max_state,1.0_r8,tmp_real,1,1,&
+                     elsi_h%sc_desc,0.0_r8,elsi_h%den_mat,1,1,elsi_h%sc_desc)
 
       case (COMPLEX_VALUES)
          call elsi_allocate(elsi_h,tmp_complex,elsi_h%n_l_rows,elsi_h%n_l_cols,"tmp_complex",caller)
          tmp_complex = elsi_h%evec_complex
-
-         call elsi_allocate(elsi_h,factor,elsi_h%n_states,"factor",caller)
-         factor = 0.0_r8
-
-         do i = 1,elsi_h%n_states
-            if(elsi_h%occ_elpa(i) > 0.0_r8) then
-               factor(i) = sqrt(elsi_h%occ_elpa(i))
-            endif
-         enddo
 
          do i = 1,elsi_h%n_states
             if(factor(i) > 0.0_r8) then
@@ -196,10 +190,10 @@ subroutine elsi_compute_dm_elpa(elsi_h)
          call elsi_allocate(elsi_h,tmp_real,elsi_h%n_l_rows,elsi_h%n_l_cols,"tmp_real",caller)
 
          ! Compute density matrix
-         call pdsyrk('U','N',elsi_h%n_g_size,elsi_h%n_states,1.0_r8,real(tmp_complex),&
-                     1,1,elsi_h%sc_desc,0.0_r8,elsi_h%den_mat,1,1,elsi_h%sc_desc)
-         call pdsyrk('U','N',elsi_h%n_g_size,elsi_h%n_states,1.0_r8,aimag(tmp_complex),&
-                     1,1,elsi_h%sc_desc,0.0_r8,tmp_real,1,1,elsi_h%sc_desc)
+         call pdsyrk('U','N',elsi_h%n_g_size,max_state,1.0_r8,real(tmp_complex),1,1,&
+                     elsi_h%sc_desc,0.0_r8,elsi_h%den_mat,1,1,elsi_h%sc_desc)
+         call pdsyrk('U','N',elsi_h%n_g_size,max_state,1.0_r8,aimag(tmp_complex),1,1,&
+                     elsi_h%sc_desc,0.0_r8,tmp_real,1,1,elsi_h%sc_desc)
 
          elsi_h%den_mat = elsi_h%den_mat+tmp_real
    end select
