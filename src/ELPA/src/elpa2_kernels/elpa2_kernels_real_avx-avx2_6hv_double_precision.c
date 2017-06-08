@@ -74,6 +74,10 @@
 #endif
 
 #ifdef __AVX2__
+#undef __ELPA_USE_FMA__
+#undef _mm256_FMA_pd
+#undef _mm256_NFMA_pd
+#undef _mm256_FMSUB_pd
 #define __ELPA_USE_FMA__
 #define _mm256_FMA_pd(a,b,c) _mm256_fmadd_pd(a,b,c)
 #define _mm256_NFMA_pd(a,b,c) _mm256_fnmadd_pd(a,b,c)

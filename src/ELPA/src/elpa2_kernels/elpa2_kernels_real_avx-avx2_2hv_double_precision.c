@@ -65,13 +65,14 @@
 #define __forceinline __attribute__((always_inline)) static
 
 #ifdef HAVE_AVX2
-
 #ifdef __FMA4__
 #define __ELPA_USE_FMA__
 #define _mm256_FMA_pd(a,b,c) _mm256_macc_pd(a,b,c)
 #endif
 
 #ifdef __AVX2__
+#undef __ELPA_USE_FMA__
+#undef _mm256_FMA_pd
 #define __ELPA_USE_FMA__
 #define _mm256_FMA_pd(a,b,c) _mm256_fmadd_pd(a,b,c)
 #endif
