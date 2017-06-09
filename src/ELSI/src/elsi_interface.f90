@@ -1341,10 +1341,10 @@ subroutine elsi_dm_real_sparse(elsi_h,H_in,S_in,D_out,energy_out)
    ! Solve eigenvalue problem
    select case (elsi_h%solver)
       case (ELPA)
-         call elsi_stop(" ELPA cannot elsi_h sparse matrices."//&
+         call elsi_stop(" ELPA with sparse input matrices not yet available."//&
                         " Exiting...",elsi_h,caller)
       case (LIBOMM)
-         call elsi_stop(" libOMM cannot elsi_h sparse matrices."//&
+         call elsi_stop(" libOMM with sparse input matrices not yet available."//&
                         " Exiting...",elsi_h,caller)
       case (PEXSI)
          call elsi_print_pexsi_options(elsi_h)
