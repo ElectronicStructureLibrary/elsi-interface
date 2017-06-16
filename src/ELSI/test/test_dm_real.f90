@@ -213,6 +213,8 @@ program test_dm_real
    ! Solve (pseudo SCF 1)
    call elsi_dm_real(elsi_h,ham,ovlp,dm,e_test)
 
+   t2 = MPI_Wtime()
+
    if(myid == 0) then
       write(*,'("  Finished SCF #1")')
       write(*,'("  | Time :",F10.3,"s")') t2-t1
