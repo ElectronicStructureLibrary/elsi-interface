@@ -195,7 +195,7 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
    ! Solve the eigenvalue problem
    call elsi_statement_print("  Starting PEXSI density matrix solver",elsi_h)
 
-   call f_ppexsi_dft_driver(elsi_h%pexsi_plan,elsi_h%pexsi_options,elsi_h%n_electrons,elsi_h%mu_pexsi,&
+   call f_ppexsi_dft_driver(elsi_h%pexsi_plan,elsi_h%pexsi_options,elsi_h%n_electrons,elsi_h%mu,&
                             elsi_h%n_electrons_pexsi,elsi_h%mu_min_inertia,elsi_h%mu_max_inertia,&
                             elsi_h%n_total_inertia_iter,elsi_h%n_total_pexsi_iter,elsi_h%pexsi_info)
        
@@ -204,14 +204,14 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
    endif
 
    ! Turn off inertia counting if chemical potential does not change a lot
-   if(abs(elsi_h%mu_pexsi-elsi_h%pexsi_options%mu0) > 5.0e-3_r8) then
+   if(abs(elsi_h%mu-elsi_h%pexsi_options%mu0) > 5.0e-3_r8) then
       elsi_h%pexsi_options%isInertiaCount = 1
    else
       elsi_h%pexsi_options%isInertiaCount = 0
    endif
 
    ! Use chemical potential in this step as initial guess for next step
-   elsi_h%pexsi_options%mu0 = elsi_h%mu_pexsi
+   elsi_h%pexsi_options%mu0 = elsi_h%mu
 
    if(elsi_h%small_pexsi_tol) then
       if(abs(elsi_h%n_electrons-elsi_h%n_electrons_pexsi) < this_pexsi_tol) then

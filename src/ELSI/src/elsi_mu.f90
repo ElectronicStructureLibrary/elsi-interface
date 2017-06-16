@@ -192,74 +192,74 @@ subroutine elsi_check_electrons(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
       endif
    endif
 
-   select case (elsi_h%broadening_scheme)
-      case(GAUSSIAN)
-         do i_kpoint = 1,n_kpoint
-            do i_spin = 1,n_spin
-               do i_state = 1,n_state
-                  occ_numbers(i_state,i_spin,i_kpoint) = elsi_h%spin_degen*0.5_r8*&
-                     (1.0_r8-erf((eigenvalues(i_state,i_spin,i_kpoint)-mu_in)*invert_width))
+   select case(elsi_h%broadening_scheme)
+   case(GAUSSIAN)
+      do i_kpoint = 1,n_kpoint
+         do i_spin = 1,n_spin
+            do i_state = 1,n_state
+               occ_numbers(i_state,i_spin,i_kpoint) = elsi_h%spin_degen*0.5_r8*&
+                  (1.0_r8-erf((eigenvalues(i_state,i_spin,i_kpoint)-mu_in)*invert_width))
+
+               diff_ne_out = diff_ne_out+&
+                  occ_numbers(i_state,i_spin,i_kpoint)*kpoint_weights(i_kpoint)
+            enddo
+         enddo
+      enddo
+
+   case(FERMI)
+      max_exp = maxexponent(mu_in)*log(2.0_r8)
+
+      do i_kpoint = 1,n_kpoint
+         do i_spin = 1,n_spin
+            do i_state = 1,n_state
+               this_exp = (eigenvalues(i_state,i_spin,i_kpoint)-mu_in)*invert_width
+
+               if(this_exp < max_exp) then
+                  occ_numbers(i_state,i_spin,i_kpoint) = elsi_h%spin_degen/(1.0_r8+exp(this_exp))
 
                   diff_ne_out = diff_ne_out+&
                      occ_numbers(i_state,i_spin,i_kpoint)*kpoint_weights(i_kpoint)
-               enddo
+               else ! Exponent in this step is larger than the largest possible exponent
+                  occ_numbers(i_state,i_spin,i_kpoint) = 0.0_r8
+               endif
             enddo
          enddo
+      enddo
 
-      case(FERMI)
-         max_exp = maxexponent(mu_in)*log(2.0_r8)
+   case(METHFESSEL_PAXTON_0)
+      do i_kpoint = 1,n_kpoint
+         do i_spin = 1,n_spin
+            do i_state = 1,n_state
+               occ_numbers(i_state,i_spin,i_kpoint) = elsi_h%spin_degen*0.5_r8*&
+                  (1.0_r8-erf((eigenvalues(i_state,i_spin,i_kpoint)-mu_in)*invert_width))
 
-         do i_kpoint = 1,n_kpoint
-            do i_spin = 1,n_spin
-               do i_state = 1,n_state
-                  this_exp = (eigenvalues(i_state,i_spin,i_kpoint)-mu_in)*invert_width
-
-                  if(this_exp < max_exp) then
-                     occ_numbers(i_state,i_spin,i_kpoint) = elsi_h%spin_degen/(1.0_r8+exp(this_exp))
-
-                     diff_ne_out = diff_ne_out+&
-                        occ_numbers(i_state,i_spin,i_kpoint)*kpoint_weights(i_kpoint)
-                  else ! Exponent in this step is larger than the largest possible exponent
-                     occ_numbers(i_state,i_spin,i_kpoint) = 0.0_r8
-                  endif
-               enddo
+               diff_ne_out = diff_ne_out+&
+                  occ_numbers(i_state,i_spin,i_kpoint)*kpoint_weights(i_kpoint)
             enddo
          enddo
+      enddo
 
-      case(METHFESSEL_PAXTON_0)
-         do i_kpoint = 1,n_kpoint
-            do i_spin = 1,n_spin
-               do i_state = 1,n_state
-                  occ_numbers(i_state,i_spin,i_kpoint) = elsi_h%spin_degen*0.5_r8*&
-                     (1.0_r8-erf((eigenvalues(i_state,i_spin,i_kpoint)-mu_in)*invert_width))
+   case(METHFESSEL_PAXTON_1)
+      do i_kpoint = 1,n_kpoint
+         do i_spin = 1,n_spin
+            do i_state = 1,n_state
+               this_hermite = (eigenvalues(i_state,i_spin,i_kpoint)-mu_in)*invert_width
 
-                  diff_ne_out = diff_ne_out+&
-                     occ_numbers(i_state,i_spin,i_kpoint)*kpoint_weights(i_kpoint)
-               enddo
+               occ_numbers(i_state,i_spin,i_kpoint) = elsi_h%spin_degen*0.5_r8*&
+                  (1.0_r8-erf(this_hermite))-0.5_r8*invert_sqrt_pi*this_hermite*&
+                  exp(-this_hermite*this_hermite)
+
+               diff_ne_out = diff_ne_out+&
+                  occ_numbers(i_state,i_spin,i_kpoint)*kpoint_weights(i_kpoint)
             enddo
          enddo
+      enddo
 
-      case(METHFESSEL_PAXTON_1)
-         do i_kpoint = 1,n_kpoint
-            do i_spin = 1,n_spin
-               do i_state = 1,n_state
-                  this_hermite = (eigenvalues(i_state,i_spin,i_kpoint)-mu_in)*invert_width
-
-                  occ_numbers(i_state,i_spin,i_kpoint) = elsi_h%spin_degen*0.5_r8*&
-                     (1.0_r8-erf(this_hermite))-0.5_r8*invert_sqrt_pi*this_hermite*&
-                     exp(-this_hermite*this_hermite)
-
-                  diff_ne_out = diff_ne_out+&
-                     occ_numbers(i_state,i_spin,i_kpoint)*kpoint_weights(i_kpoint)
-               enddo
-            enddo
-         enddo
-
-      case DEFAULT
-         call elsi_stop(" No supperted broadening scheme has been chosen."//&
-                        " Please choose GAUSSIAN, FERMI, METHFESSEL_PAXTON_0,"//&
-                        " or METHFESSEL_PAXTON_1 broadening scheme."//&
-                        " Exiting...",elsi_h,caller)
+   case DEFAULT
+      call elsi_stop(" No supperted broadening scheme has been chosen."//&
+                     " Please choose GAUSSIAN, FERMI, METHFESSEL_PAXTON_0,"//&
+                     " or METHFESSEL_PAXTON_1 broadening scheme."//&
+                     " Exiting...",elsi_h,caller)
    end select
 
    diff_ne_out = diff_ne_out-n_electron

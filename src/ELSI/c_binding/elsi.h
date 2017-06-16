@@ -141,6 +141,11 @@ double c_elsi_dm_real_sparse(elsi_handle handle_c,
                              double *S,
                              double *D);
 
+void c_elsi_collect(elsi_handle handle_c,
+                    int *overlap_is_singular,
+                    int *n_singular_basis,
+                    double *mu);
+
 void c_elsi_collect_pexsi(elsi_handle handle_c,
                           double *mu,
                           double *edm,

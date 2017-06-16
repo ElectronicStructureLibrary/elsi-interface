@@ -46,7 +46,7 @@ contains
 
 subroutine elsi_init_c_wrapper(handle_c,solver,parallel_mode,matrix_storage_format,&
                                matrix_size,n_electrons,n_states)&
-                               bind(C,name="c_elsi_init")
+   bind(C,name="c_elsi_init")
 
    implicit none
 
@@ -77,7 +77,7 @@ subroutine elsi_init_c_wrapper(handle_c,solver,parallel_mode,matrix_storage_form
 end subroutine
 
 subroutine elsi_set_mpi_c_wrapper(handle_c,mpi_comm)&
-                                  bind(C,name="c_elsi_set_mpi")
+   bind(C,name="c_elsi_set_mpi")
 
    implicit none
 
@@ -93,7 +93,7 @@ subroutine elsi_set_mpi_c_wrapper(handle_c,mpi_comm)&
 end subroutine
 
 subroutine elsi_set_blacs_c_wrapper(handle_c,blacs_ctxt,block_size)&
-                                    bind(C,name="c_elsi_set_blacs")
+   bind(C,name="c_elsi_set_blacs")
 
    implicit none
 
@@ -113,7 +113,7 @@ subroutine elsi_set_blacs_c_wrapper(handle_c,blacs_ctxt,block_size)&
 end subroutine
 
 subroutine elsi_set_csc_c_wrapper(handle_c,nnz_g,nnz_l,n_l_cols,row_ind,col_ptr)&
-                                  bind(C,name="c_elsi_set_csc")
+   bind(C,name="c_elsi_set_csc")
 
    implicit none
 
@@ -134,7 +134,8 @@ subroutine elsi_set_csc_c_wrapper(handle_c,nnz_g,nnz_l,n_l_cols,row_ind,col_ptr)
 
 end subroutine
 
-subroutine elsi_finalize_c_wrapper(handle_c) bind(C,name="c_elsi_finalize")
+subroutine elsi_finalize_c_wrapper(handle_c)&
+   bind(C,name="c_elsi_finalize")
 
    implicit none
 
@@ -151,7 +152,8 @@ end subroutine
 subroutine elsi_customize_c_wrapper(handle_c,print_detail,overlap_is_unit,&
                                     zero_threshold,no_singularity_check,&
                                     singularity_tolerance,stop_singularity,&
-                                    uplo) bind(C,name="c_elsi_customize")
+                                    uplo)&
+   bind(C,name="c_elsi_customize")
 
    implicit none
 
@@ -204,7 +206,7 @@ end subroutine
 
 subroutine elsi_customize_mu_c_wrapper(handle_c,broadening_scheme,broadening_width,&
                                        occ_accuracy,mu_max_steps,spin_degeneracy)&
-                                       bind(C,name="c_elsi_customize_mu")
+   bind(C,name="c_elsi_customize_mu")
 
    implicit none
 
@@ -226,7 +228,7 @@ end subroutine
 
 subroutine elsi_customize_omm_c_wrapper(handle_c,n_elpa_steps,omm_flavor,eigen_shift,&
                                         omm_tolerance,use_pspblas,omm_output)&
-                                        bind(C,name="c_elsi_customize_omm")
+   bind(C,name="c_elsi_customize_omm")
 
    implicit none
 
@@ -268,7 +270,7 @@ subroutine elsi_customize_pexsi_c_wrapper(handle_c,temperature,gap,delta_e,n_pol
                                           n_electron_accuracy,matrix_type,&
                                           is_symbolic_factorize,ordering,&
                                           np_symbolic_factorize,verbosity)&
-                                          bind(C,name="c_elsi_customize_pexsi")
+   bind(C,name="c_elsi_customize_pexsi")
 
    implicit none
 
@@ -304,7 +306,7 @@ subroutine elsi_customize_pexsi_c_wrapper(handle_c,temperature,gap,delta_e,n_pol
 end subroutine
 
 subroutine elsi_customize_elpa_c_wrapper(handle_c,elpa_solver,elpa_output)&
-                                         bind(C,name="c_elsi_customize_elpa")
+   bind(C,name="c_elsi_customize_elpa")
 
    implicit none
 
@@ -328,7 +330,8 @@ subroutine elsi_customize_elpa_c_wrapper(handle_c,elpa_solver,elpa_output)&
 
 end subroutine
 
-subroutine elsi_ev_real_c_wrapper(handle_c,H,S,e_val,e_vec) bind(C,name="c_elsi_ev_real")
+subroutine elsi_ev_real_c_wrapper(handle_c,H,S,e_val,e_vec)&
+   bind(C,name="c_elsi_ev_real")
 
    implicit none
 
@@ -346,7 +349,8 @@ subroutine elsi_ev_real_c_wrapper(handle_c,H,S,e_val,e_vec) bind(C,name="c_elsi_
 
 end subroutine
 
-subroutine elsi_ev_complex_c_wrapper(handle_c,H,S,e_val,e_vec) bind(C,name="c_elsi_ev_complex")
+subroutine elsi_ev_complex_c_wrapper(handle_c,H,S,e_val,e_vec)&
+   bind(C,name="c_elsi_ev_complex")
 
    implicit none
 
@@ -364,7 +368,8 @@ subroutine elsi_ev_complex_c_wrapper(handle_c,H,S,e_val,e_vec) bind(C,name="c_el
 
 end subroutine
 
-subroutine elsi_ev_real_sparse_c_wrapper(handle_c,H,S,e_val,e_vec) bind(C,name="c_elsi_ev_real_sparse")
+subroutine elsi_ev_real_sparse_c_wrapper(handle_c,H,S,e_val,e_vec)&
+   bind(C,name="c_elsi_ev_real_sparse")
 
    implicit none
 
@@ -382,7 +387,8 @@ subroutine elsi_ev_real_sparse_c_wrapper(handle_c,H,S,e_val,e_vec) bind(C,name="
 
 end subroutine
 
-function elsi_dm_real_c_wrapper(handle_c,H,S,D) result(energy) bind(C,name="c_elsi_dm_real")
+function elsi_dm_real_c_wrapper(handle_c,H,S,D) result(energy)&
+   bind(C,name="c_elsi_dm_real")
 
    implicit none
 
@@ -400,7 +406,8 @@ function elsi_dm_real_c_wrapper(handle_c,H,S,D) result(energy) bind(C,name="c_el
 
 end function
 
-function elsi_dm_real_sparse_c_wrapper(handle_c,H,S,D) result(energy) bind(C,name="c_elsi_dm_real_sparse")
+function elsi_dm_real_sparse_c_wrapper(handle_c,H,S,D) result(energy)&
+   bind(C,name="c_elsi_dm_real_sparse")
 
    implicit none
 
@@ -418,7 +425,33 @@ function elsi_dm_real_sparse_c_wrapper(handle_c,H,S,D) result(energy) bind(C,nam
 
 end function
 
-subroutine elsi_collect_pexsi_c_wrapper(handle_c,mu,edm,fdm) bind(C,name="c_elsi_collect_pexsi")
+subroutine elsi_collect_c_wrapper(handle_c,overlap_is_singular,n_singular_basis,mu)&
+   bind(C,name="c_elsi_collect")
+
+   implicit none
+
+   type(c_ptr), value  :: handle_c
+   integer(kind=c_int) :: overlap_is_singular
+   integer(kind=c_int) :: n_singular_basis
+   real(kind=c_double) :: mu
+
+   type(elsi_handle), pointer :: handle_f
+   logical :: overlap_is_singular_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_collect(handle_f,overlap_is_singular_f,n_singular_basis,mu)
+
+   if(overlap_is_singular_f) then
+      overlap_is_singular = 1
+   else
+      overlap_is_singular = 0
+   endif
+
+end subroutine
+
+subroutine elsi_collect_pexsi_c_wrapper(handle_c,mu,edm,fdm)&
+   bind(C,name="c_elsi_collect_pexsi")
 
    implicit none
 

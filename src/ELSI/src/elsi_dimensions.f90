@@ -169,6 +169,7 @@ module ELSI_DIMENSIONS
 
       !> Physics
       real(kind=r8) :: n_electrons = 0.0_r8         !< Number of electrons in system
+      real(kind=r8) :: mu = 0.0_r8                  !< Chemical potential
       integer(kind=i4) :: n_states = UNSET          !< Number of total states
       integer(kind=i4) :: n_occupied_states = UNSET !< Number of occupied states
 
@@ -179,6 +180,7 @@ module ELSI_DIMENSIONS
                                                     !! of electrons and the number computed by ELSI
       integer(kind=i4) :: max_mu_steps = 100        !< Maximum number of steps to find the chemical potential
       real(kind=r8) :: spin_degen = 0.0_r8          !< Spin degeneracy
+      logical :: mu_ready = .false.                 !< Is chemical potential ready to be collected?
       logical :: edm_ready = .false.                !< Is energy density matrix ready to be computed?
 
       !> ELPA
@@ -227,7 +229,6 @@ module ELSI_DIMENSIONS
       type(f_ppexsi_options)   :: pexsi_options
       integer(kind=i4)         :: pexsi_info = UNSET
       integer(kind=i4)         :: pexsi_output_file_index = UNSET
-      real(kind=r8)            :: mu_pexsi = 0.0_r8          !< Chemical potential computed by PEXSI
       real(kind=r8)            :: n_electrons_pexsi = 0.0_r8 !< Number of electrons computed by PEXSI
       real(kind=r8)            :: mu_min_inertia = 0.0_r8
       real(kind=r8)            :: mu_max_inertia = 0.0_r8
