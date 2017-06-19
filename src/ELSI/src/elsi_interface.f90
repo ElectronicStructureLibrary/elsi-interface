@@ -36,8 +36,9 @@ module ELSI
                              COMPLEX_VALUES,SINGLE_PROC,MULTI_PROC,UNSET
    use ELSI_DIMENSIONS, only: elsi_handle,print_info
    use ELSI_ELPA
-   use ELSI_MATCONV, only: elsi_blacs_to_pexsi_hs,elsi_blacs_to_sips_hs,&
-                           elsi_pexsi_to_blacs_dm,elsi_pexsi_to_blacs_hs
+   use ELSI_MATCONV, only: elsi_blacs_to_pexsi_dm,elsi_blacs_to_pexsi_hs,&
+                           elsi_blacs_to_sips_hs,elsi_pexsi_to_blacs_dm,&
+                           elsi_pexsi_to_blacs_hs
    use ELSI_MU, only: elsi_compute_mu_and_occ
    use ELSI_OMM
    use ELSI_PEXSI
@@ -1389,9 +1390,6 @@ subroutine elsi_dm_real_sparse(elsi_h,H_in,S_in,D_out,energy_out)
 
    select case(elsi_h%solver)
    case(ELPA)
-      call elsi_stop(" ELPA with sparse input matrices not yet available."//&
-                     " Exiting...",elsi_h,caller)
-
       ! Convert matrix format and distribution from PEXSI to BLACS
       call elsi_pexsi_to_blacs_hs(elsi_h,H_in,S_in)
 
@@ -1422,15 +1420,12 @@ subroutine elsi_dm_real_sparse(elsi_h,H_in,S_in,D_out,energy_out)
       ! Compute density matrix
       call elsi_compute_occ_elpa(elsi_h)
       call elsi_compute_dm_elpa(elsi_h)
-!      call elsi_blacs_to_pexsi_dm(elsi_h,D_out)
+      call elsi_blacs_to_pexsi_dm(elsi_h,D_out)
       call elsi_get_energy(elsi_h,energy_out)
 
       elsi_h%mu_ready = .true.
 
    case(LIBOMM)
-      call elsi_stop(" libOMM with sparse input matrices not yet available."//&
-                     " Exiting...",elsi_h,caller)
-
       call elsi_print_omm_options(elsi_h)
 
       ! Convert matrix format and distribution from PEXSI to BLACS
@@ -1474,7 +1469,7 @@ subroutine elsi_dm_real_sparse(elsi_h,H_in,S_in,D_out,energy_out)
          ! Compute density matrix
          call elsi_compute_occ_elpa(elsi_h)
          call elsi_compute_dm_elpa(elsi_h)
-!         call elsi_blacs_to_pexsi_dm(elsi_h,D_out)
+         call elsi_blacs_to_pexsi_dm(elsi_h,D_out)
          call elsi_get_energy(elsi_h,energy_out)
 
          ! Switch back to libOMM here to guarantee elsi_customize_omm
@@ -1525,7 +1520,7 @@ subroutine elsi_dm_real_sparse(elsi_h,H_in,S_in,D_out,energy_out)
          call elsi_solve_evp_omm(elsi_h)
 
          elsi_h%den_mat_omm%dval = 2.0_r8*elsi_h%den_mat_omm%dval
-!         call elsi_blacs_to_pexsi_dm(elsi_h,D_out)
+         call elsi_blacs_to_pexsi_dm(elsi_h,D_out)
          call elsi_get_energy(elsi_h,energy_out)
       endif
 
