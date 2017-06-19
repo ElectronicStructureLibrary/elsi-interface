@@ -334,7 +334,7 @@ subroutine elsi_blacs_to_pexsi_hs_small(elsi_h,H_in,S_in)
       deallocate(s_val_send_buffer)
    endif
 
-   ! Unpack and reorder
+   ! Sort
    if(elsi_h%n_elsi_calls == 1) then
       do i_val = 1,nnz_l_pexsi_aux
          min_id = minloc(pos_recv_buffer(i_val:nnz_l_pexsi_aux),1)+i_val-1
@@ -719,7 +719,7 @@ subroutine elsi_blacs_to_pexsi_hs_large(elsi_h,H_in,S_in)
                          int(row_recv_buffer(i_val),kind=i8)
    enddo
 
-   ! Reorder
+   ! Sort
    if(elsi_h%n_elsi_calls == 1) then
       do i_val = 1,nnz_l_pexsi_aux
          min_id = minloc(global_id(i_val:nnz_l_pexsi_aux),1)+i_val-1
@@ -1417,7 +1417,7 @@ subroutine elsi_blacs_to_sips_hs_small(elsi_h,H_in,S_in)
    deallocate(send_displ)
    deallocate(recv_displ)
 
-   ! Unpack and reorder
+   ! Sort
    if(elsi_h%n_elsi_calls == 1) then
       do i_val = 1,elsi_h%nnz_l_sips
          min_id = minloc(pos_recv_buffer(i_val:elsi_h%nnz_l_sips),1)+i_val-1

@@ -179,7 +179,7 @@ subroutine elsi_solve_evp_sips(elsi_h)
    do i_state = 1,elsi_h%n_states
       call sips_get_eigenvectors(elsi_h%n_g_size,i_state,tmp_real)
 
-      this_p_col = mod((i_state-1)/elsi_h%n_b_cols,elsi_h%n_procs)
+      this_p_col = mod((i_state-1)/elsi_h%n_b_cols,elsi_h%n_p_cols)
 
       if(elsi_h%my_p_col == this_p_col) then
          i_col = (i_state-1)/(elsi_h%n_p_cols*elsi_h%n_b_cols)*elsi_h%n_b_cols&
