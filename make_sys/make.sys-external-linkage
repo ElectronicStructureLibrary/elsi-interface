@@ -1,12 +1,12 @@
 # PLATFORM  : TIMEWARP @DUKE
 # COMPILERS : INTEL
-# VERIFIED  : MAY 27, 2017
+# VERIFIED  : JUN 20, 2017
 # DO READ ../INSTALL CAREFULLY!
 
-# Note:  This make.sys is provided to demonstrate external linkage against 
-#        preinstalled solver libraries.  When linking against preinstalled 
-#        solver libraries, it is the responsibility of the user to compile and 
-#        verify the libraries that they are linking ELSI against.
+# Note:  This make.sys is provided to demonstrate external linkage against
+#        preinstalled solver libraries.  When linking against preinstalled
+#        solver libraries, it is the responsibility of the user to compile
+#        and verify the libraries that they are linking ELSI against.
 
 # ====== ELSI ======
 MPIFC          = mpiifort

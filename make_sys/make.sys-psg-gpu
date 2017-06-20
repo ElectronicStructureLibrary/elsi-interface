@@ -5,13 +5,8 @@
 
 # This make.sys is primarily intended to benchmark GPU-accelerated ELPA via ELSI on the Pascal architecture on the PSG cluster.
 # PEXSI has been disabled in this make.sys due to the additional library dependencies.  However, I (WPH) have verified that the
-# ELSI installation with PEXSI support compiles properly and passes regression tests.  The flags needed to enable PEXSI are 
+# ELSI installation with PEXSI support compiles properly and passes regression tests.  The flags needed to enable PEXSI are
 # included but commented, should the user wish to compile with PEXSI support.
-
-# Passed regression tests on 11 March, 2017 on git commit 581c65cb34d6c9f12cd5e61f2491272c53c5edb5.
-# Environment used:
-# Currently Loaded Modulefiles:
-#   1) slurm/16.05.0            2) intel-mpi/64/5.0.3/048   3) mkl/11.3.3               4) cuda/8.0.44              5) intel/16.0
 
 # ====== ELSI ======
 MPIFC  = mpiifort

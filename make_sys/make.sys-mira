@@ -1,7 +1,7 @@
 # PLATFORM  : MIRA @ALCF
-# COMPILERS : IBM XLF; GNU GCC/G++
+# COMPILERS : IBM XLF; GCC
 # VERIFIED  : JAN 10, 2017
-# COMPILED* : MAY 23, 2017 
+# COMPILED* : MAY 23, 2017
 # DO READ ../INSTALL CAREFULLY!
 
 # Notes:
@@ -10,11 +10,11 @@
 # - The keywords used in the .soft file were:
 #   +mpiwrapper-gcc
 #   +mpiwrapper-xl.ndebug
-# - When compiling SuperLU_DIST 5.1.3, -DAdd_ was used.  
+# - When compiling SuperLU_DIST 5.1.3, -DAdd_ was used.
 #
-# * I (WPH, not VY) have thrown my hands up in the air regarding running 
-#   regression tests on Mira to verify the May 2017 release.  I have 
-#   verified that ELSI May 2017 can compile on Mira, and that the resulting 
+# * I (WPH, not VY) have thrown my hands up in the air regarding running
+#   regression tests on Mira to verify the May 2017 release.  I have
+#   verified that ELSI May 2017 can compile on Mira, and that the resulting
 #   libraries can link into FHI-aims with no issues.  We also know that ELSI
 #   was usable in large-production calculations back in January.
 

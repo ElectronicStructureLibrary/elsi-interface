@@ -1,11 +1,11 @@
 # PLATFORM  : TIMEWARP @DUKE
 # COMPILERS : PGI COMPILER + INTEL MPI + INTEL MKL
-# VERIFIED  : MAY 27, 2017
+# VERIFIED  : JUN 20, 2017
 # DO READ ../INSTALL CAREFULLY!
 
-# It was necessary on timewarp to turn off vectorization when compiling SuperLU 
+# It was necessary on timewarp to turn off vectorization when compiling SuperLU
 # and ELPA using PGI.  It is unclear why this is the case, but we have had to
-# turn off vectorization when compiling code on timewarp using Intel in the 
+# turn off vectorization when compiling code on timewarp using Intel in the
 # past, and conversely we have compiled ELSI with PGI and pure -fast flags with
 # no issues on other platforms, so this is likely a timewarp issue.
 
