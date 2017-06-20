@@ -117,7 +117,7 @@ subroutine elsi_final_print(elsi_h)
          write(*,"('  | Final ELSI Output:')")
          write(*,"('  |-----------------------------------------')")
          write(*,"('  | Eigenvalue problem size : ',I13)") elsi_h%n_g_size
-         if(elsi_h%solver == PEXSI) then
+         if((elsi_h%solver == PEXSI) .or. (elsi_h%solver == SIPS)) then
             write(*,"('  | Non zero elements       : ',I13)") elsi_h%nnz_g
             sparsity = 1.0_r8-(1.0_r8*elsi_h%nnz_g/elsi_h%n_g_size)/elsi_h%n_g_size
             write(*,"('  | Sparsity                : ',F13.3)") sparsity
