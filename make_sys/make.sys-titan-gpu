@@ -1,10 +1,7 @@
 # PLATFORM  : TITAN @OLCF
 # COMPILERS : PGI + NVIDIA
-# VERIFIED  : MAY 4, 2017*
+# VERIFIED  : JUN 20, 2017
 # DO READ ../INSTALL CAREFULLY!
-
-# * Was verified to compile with and without "ELPA2_KERNEL = GPU" on May 27th,
-#   but regression tests were not run.
 
 # ====== ELSI ======
 MPIFC        = ftn
@@ -18,8 +15,8 @@ CXX_LIB      = -lstdc++
 # ====== ELPA ======
 ELPA_GPU     = yes
 ELPA2_KERNEL = SSE # Change to "GPU" to enable GPU acceleration for
-                      # eigenvector back-transformation step
-                      # (known buggy!)
+                   # eigenvector back-transformation step
+                   # (known buggy!)
 NVCC         = nvcc
 NVCCFLAGS    = -arch sm_35 -O3
 CUDA_LIB     = -lcudart -lcublas
