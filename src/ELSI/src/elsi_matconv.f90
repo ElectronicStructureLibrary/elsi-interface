@@ -71,11 +71,11 @@ subroutine elsi_blacs_to_pexsi_hs(elsi_h,H_in,S_in)
          call elsi_set_full_mat(elsi_h,S_in)
       endif
 
-      if(elsi_h%n_g_size < 46340) then
-         call elsi_blacs_to_pexsi_hs_small(elsi_h,H_in,S_in)
-      else ! use long integer
+!      if(elsi_h%n_g_size < 46340) then
+!         call elsi_blacs_to_pexsi_hs_small(elsi_h,H_in,S_in)
+!      else ! use long integer
          call elsi_blacs_to_pexsi_hs_large(elsi_h,H_in,S_in)
-      endif
+!      endif
    endif
 
 end subroutine
@@ -118,6 +118,7 @@ subroutine elsi_blacs_to_pexsi_hs_small(elsi_h,H_in,S_in)
    real(kind=r8),     intent(in)    :: H_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian matrix to be converted
    real(kind=r8),     intent(in)    :: S_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Overlap matrix to be converted
 
+   integer(kind=i4) :: n_parallel_groups
    integer(kind=i4) :: mpierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
@@ -157,6 +158,8 @@ subroutine elsi_blacs_to_pexsi_hs_small(elsi_h,H_in,S_in)
 
    call elsi_start_redistribution_time(elsi_h)
 
+   n_parallel_groups = elsi_h%n_procs/elsi_h%n_p_per_pole_pexsi
+
    if(elsi_h%n_elsi_calls == 1) then
       call elsi_get_local_nnz(elsi_h,S_in,elsi_h%n_l_rows,elsi_h%n_l_cols,elsi_h%nnz_l)
       call elsi_allocate(elsi_h,s_val_send_buffer,elsi_h%nnz_l,"s_val_send_buffer",caller)
@@ -170,16 +173,16 @@ subroutine elsi_blacs_to_pexsi_hs_small(elsi_h,H_in,S_in)
    ! Compute d1,d2,d11,d12,d21,d22 (need explanation)
    d1  = elsi_h%n_g_size/elsi_h%n_p_per_pole_pexsi
    d2  = elsi_h%n_g_size-(elsi_h%n_p_per_pole_pexsi-1)*d1
-   d11 = d1/elsi_h%pexsi_options%numPole
-   d12 = d1-(elsi_h%pexsi_options%numPole-1)*d11
-   d21 = d2/elsi_h%pexsi_options%numPole
-   d22 = d2-(elsi_h%pexsi_options%numPole-1)*d21
+   d11 = d1/n_parallel_groups
+   d12 = d1-(n_parallel_groups-1)*d11
+   d21 = d2/n_parallel_groups
+   d22 = d2-(n_parallel_groups-1)*d21
 
    i_val = 0
 
    if(d11 > 0) then
-      do i_proc = 0,elsi_h%n_procs-elsi_h%pexsi_options%numPole-1
-         if(mod((i_proc+1),elsi_h%pexsi_options%numPole) == 0) then
+      do i_proc = 0,elsi_h%n_procs-n_parallel_groups-1
+         if(mod((i_proc+1),n_parallel_groups) == 0) then
             this_n_cols = d12
          else
             this_n_cols = d11
@@ -189,8 +192,8 @@ subroutine elsi_blacs_to_pexsi_hs_small(elsi_h,H_in,S_in)
          i_val = i_val+this_n_cols
       enddo
    else
-      do i_proc = 0,elsi_h%n_procs-elsi_h%pexsi_options%numPole-1
-         if(1+mod(i_proc,elsi_h%pexsi_options%numPole) .le. d1) then
+      do i_proc = 0,elsi_h%n_procs-n_parallel_groups-1
+         if(1+mod(i_proc,n_parallel_groups) .le. d1) then
             this_n_cols = 1
          else
             this_n_cols = 0
@@ -204,8 +207,8 @@ subroutine elsi_blacs_to_pexsi_hs_small(elsi_h,H_in,S_in)
    endif
 
    if(d21 > 0) then
-      do i_proc = elsi_h%n_procs-elsi_h%pexsi_options%numPole,elsi_h%n_procs-1
-         if(mod((i_proc+1),elsi_h%pexsi_options%numPole) == 0) then
+      do i_proc = elsi_h%n_procs-n_parallel_groups,elsi_h%n_procs-1
+         if(mod((i_proc+1),n_parallel_groups) == 0) then
             this_n_cols = d22
          else
             this_n_cols = d21
@@ -215,8 +218,8 @@ subroutine elsi_blacs_to_pexsi_hs_small(elsi_h,H_in,S_in)
          i_val = i_val+this_n_cols
       enddo
    else
-      do i_proc = elsi_h%n_procs-elsi_h%pexsi_options%numPole,elsi_h%n_procs-1
-         if(1+mod(i_proc,elsi_h%pexsi_options%numPole) .le. d2) then
+      do i_proc = elsi_h%n_procs-n_parallel_groups,elsi_h%n_procs-1
+         if(1+mod(i_proc,n_parallel_groups) .le. d2) then
             this_n_cols = 1
          else
             this_n_cols = 0
@@ -367,7 +370,7 @@ subroutine elsi_blacs_to_pexsi_hs_small(elsi_h,H_in,S_in)
 
    ! Set send_count, all data sent to the first pole
    send_count = 0
-   send_count(elsi_h%myid/elsi_h%pexsi_options%numPole+1) = nnz_l_pexsi_aux
+   send_count(elsi_h%myid/n_parallel_groups+1) = nnz_l_pexsi_aux
 
    ! Set recv_count
    call MPI_Alltoall(send_count,1,mpi_integer,recv_count,&
@@ -481,6 +484,7 @@ subroutine elsi_blacs_to_pexsi_hs_large(elsi_h,H_in,S_in)
    real(kind=r8),     intent(in)    :: H_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian matrix to be converted
    real(kind=r8),     intent(in)    :: S_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Overlap matrix to be converted
 
+   integer(kind=i4) :: n_parallel_groups
    integer(kind=i4) :: mpierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
@@ -524,6 +528,8 @@ subroutine elsi_blacs_to_pexsi_hs_large(elsi_h,H_in,S_in)
 
    call elsi_start_redistribution_time(elsi_h)
 
+   n_parallel_groups = elsi_h%n_procs/elsi_h%n_p_per_pole_pexsi
+
    if(elsi_h%n_elsi_calls == 1) then
       call elsi_get_local_nnz(elsi_h,S_in,elsi_h%n_l_rows,elsi_h%n_l_cols,elsi_h%nnz_l)
       call elsi_allocate(elsi_h,s_val_send_buffer,elsi_h%nnz_l,"s_val_send_buffer",caller)
@@ -538,16 +544,16 @@ subroutine elsi_blacs_to_pexsi_hs_large(elsi_h,H_in,S_in)
    ! Compute d1,d2,d11,d12,d21,d22 (need explanation)
    d1  = elsi_h%n_g_size/elsi_h%n_p_per_pole_pexsi
    d2  = elsi_h%n_g_size-(elsi_h%n_p_per_pole_pexsi-1)*d1
-   d11 = d1/elsi_h%pexsi_options%numPole
-   d12 = d1-(elsi_h%pexsi_options%numPole-1)*d11
-   d21 = d2/elsi_h%pexsi_options%numPole
-   d22 = d2-(elsi_h%pexsi_options%numPole-1)*d21
+   d11 = d1/n_parallel_groups
+   d12 = d1-(n_parallel_groups-1)*d11
+   d21 = d2/n_parallel_groups
+   d22 = d2-(n_parallel_groups-1)*d21
 
    i_val = 0
 
    if(d11 > 0) then
-      do i_proc = 0,elsi_h%n_procs-elsi_h%pexsi_options%numPole-1
-         if(mod((i_proc+1),elsi_h%pexsi_options%numPole) == 0) then
+      do i_proc = 0,elsi_h%n_procs-n_parallel_groups-1
+         if(mod((i_proc+1),n_parallel_groups) == 0) then
             this_n_cols = d12
          else
             this_n_cols = d11
@@ -557,8 +563,8 @@ subroutine elsi_blacs_to_pexsi_hs_large(elsi_h,H_in,S_in)
          i_val = i_val+this_n_cols
       enddo
    else
-      do i_proc = 0,elsi_h%n_procs-elsi_h%pexsi_options%numPole-1
-         if(1+mod(i_proc,elsi_h%pexsi_options%numPole) .le. d1) then
+      do i_proc = 0,elsi_h%n_procs-n_parallel_groups-1
+         if(1+mod(i_proc,n_parallel_groups) .le. d1) then
             this_n_cols = 1
          else
             this_n_cols = 0
@@ -572,8 +578,8 @@ subroutine elsi_blacs_to_pexsi_hs_large(elsi_h,H_in,S_in)
    endif
 
    if(d21 > 0) then
-      do i_proc = elsi_h%n_procs-elsi_h%pexsi_options%numPole,elsi_h%n_procs-1
-         if(mod((i_proc+1),elsi_h%pexsi_options%numPole) == 0) then
+      do i_proc = elsi_h%n_procs-n_parallel_groups,elsi_h%n_procs-1
+         if(mod((i_proc+1),n_parallel_groups) == 0) then
             this_n_cols = d22
          else
             this_n_cols = d21
@@ -583,8 +589,8 @@ subroutine elsi_blacs_to_pexsi_hs_large(elsi_h,H_in,S_in)
          i_val = i_val+this_n_cols
       enddo
    else
-      do i_proc = elsi_h%n_procs-elsi_h%pexsi_options%numPole,elsi_h%n_procs-1
-         if(1+mod(i_proc,elsi_h%pexsi_options%numPole) .le. d2) then
+      do i_proc = elsi_h%n_procs-n_parallel_groups,elsi_h%n_procs-1
+         if(1+mod(i_proc,n_parallel_groups) .le. d2) then
             this_n_cols = 1
          else
             this_n_cols = 0
@@ -762,7 +768,7 @@ subroutine elsi_blacs_to_pexsi_hs_large(elsi_h,H_in,S_in)
 
    ! Set send_count, all data sent to the first pole
    send_count = 0
-   send_count(elsi_h%myid/elsi_h%pexsi_options%numPole+1) = nnz_l_pexsi_aux
+   send_count(elsi_h%myid/n_parallel_groups+1) = nnz_l_pexsi_aux
 
    ! Set recv_count
    call MPI_Alltoall(send_count,1,mpi_integer,recv_count,&

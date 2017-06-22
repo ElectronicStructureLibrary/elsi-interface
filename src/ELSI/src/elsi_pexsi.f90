@@ -62,13 +62,16 @@ subroutine elsi_init_pexsi(elsi_h)
    type(elsi_handle), intent(inout) :: elsi_h
 
    integer(kind=i4) :: n_rows_tmp
+   integer(kind=i4) :: n_groups
    character*200 :: info_str
    character*40, parameter :: caller = "elsi_init_pexsi"
 
    if(elsi_h%n_elsi_calls == 1) then
+      n_groups = elsi_h%pexsi_options%numPole*elsi_h%n_mu_points
+
       if(.not. elsi_h%n_p_per_pole_ready) then
-         if(mod(elsi_h%n_procs,elsi_h%pexsi_options%numPole) == 0) then
-            elsi_h%n_p_per_pole_pexsi = elsi_h%n_procs/elsi_h%pexsi_options%numPole
+         if(mod(elsi_h%n_procs,n_groups) == 0) then
+            elsi_h%n_p_per_pole_pexsi = elsi_h%n_procs/n_groups
 
             call elsi_statement_print("  PEXSI parallel over poles.",elsi_h)
             write(info_str,"(A,I13)") "  | Number of MPI tasks per pole: ",&
@@ -226,8 +229,8 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
    ! Get the results
    if((elsi_h%my_p_row_pexsi == 0) .or. (elsi_h%matrix_storage_format == BLACS_DENSE)) then
       call f_ppexsi_retrieve_real_dft_matrix(elsi_h%pexsi_plan,elsi_h%den_mat_ccs,&
-              elsi_h%e_den_mat_pexsi,elsi_h%f_den_mat_pexsi,elsi_h%e_tot_H,&
-              elsi_h%e_tot_S,elsi_h%f_tot,elsi_h%pexsi_info)
+              elsi_h%e_den_mat_pexsi,elsi_h%f_den_mat_pexsi,elsi_h%energy_hdm,&
+              elsi_h%energy_sedm,elsi_h%free_energy,elsi_h%pexsi_info)
    endif
 
    if(elsi_h%pexsi_info /= 0) then

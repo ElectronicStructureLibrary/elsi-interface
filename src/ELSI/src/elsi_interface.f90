@@ -326,7 +326,7 @@ subroutine elsi_get_energy(elsi_h,energy)
    case(LIBOMM)
       energy = n_spin*elsi_h%total_energy
    case(PEXSI)
-      energy = elsi_h%e_tot_H
+      energy = elsi_h%energy_hdm
    case(CHESS)
       call elsi_stop(" CHESS not yet implemented. Exiting...",elsi_h,caller)
    case(SIPS)
@@ -546,8 +546,7 @@ subroutine elsi_customize_pexsi(elsi_h,temperature,gap,delta_e,n_poles,n_procs_p
    ! Number of processors for one pole
    ! default: decided from n_procs and n_poles
    if(present(n_procs_per_pole)) then
-      if((mod(elsi_h%n_procs,n_procs_per_pole) == 0) .and. &
-         (elsi_h%matrix_storage_format .ne. 0)) then
+      if(mod(elsi_h%n_procs,n_procs_per_pole) == 0) then
          elsi_h%n_p_per_pole_pexsi = n_procs_per_pole
          elsi_h%n_p_per_pole_ready = .true.
       else

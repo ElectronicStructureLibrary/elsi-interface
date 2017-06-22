@@ -229,14 +229,16 @@ module ELSI_DIMENSIONS
       type(f_ppexsi_options)   :: pexsi_options
       integer(kind=i4)         :: pexsi_info = UNSET
       integer(kind=i4)         :: pexsi_output_file_index = UNSET
+      integer(kind=i4)         :: pexsi_method = UNSET
+      integer(kind=i4)         :: n_mu_points = UNSET
       real(kind=r8)            :: n_electrons_pexsi = 0.0_r8 !< Number of electrons computed by PEXSI
       real(kind=r8)            :: mu_min_inertia = 0.0_r8
       real(kind=r8)            :: mu_max_inertia = 0.0_r8
       integer(kind=i4)         :: n_total_inertia_iter = UNSET
       integer(kind=i4)         :: n_total_pexsi_iter = UNSET
-      real(kind=r8)            :: e_tot_h = 0.0_r8
-      real(kind=r8)            :: e_tot_s = 0.0_r8
-      real(kind=r8)            :: f_tot =0.0_r8
+      real(kind=r8)            :: energy_hdm = 0.0_r8
+      real(kind=r8)            :: energy_sedm = 0.0_r8
+      real(kind=r8)            :: free_energy =0.0_r8
 
       !> SIPs
       integer(kind=i4) :: n_b_rows_sips = UNSET
