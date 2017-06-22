@@ -259,6 +259,9 @@ subroutine elsi_set_pexsi_default_options(elsi_h)
    ! Use 1 process in ParMETIS for symbolic factorization
    elsi_h%pexsi_options%npSymbFact = 1
 
+   ! Number of mu points if using Moussa's pole expansion
+   elsi_h%n_mu_points = 1
+
 end subroutine
 
 !>

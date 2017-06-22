@@ -71,11 +71,11 @@ subroutine elsi_blacs_to_pexsi_hs(elsi_h,H_in,S_in)
          call elsi_set_full_mat(elsi_h,S_in)
       endif
 
-!      if(elsi_h%n_g_size < 46340) then
-!         call elsi_blacs_to_pexsi_hs_small(elsi_h,H_in,S_in)
-!      else ! use long integer
+      if(elsi_h%n_g_size < 46340) then
+         call elsi_blacs_to_pexsi_hs_small(elsi_h,H_in,S_in)
+      else ! use long integer
          call elsi_blacs_to_pexsi_hs_large(elsi_h,H_in,S_in)
-!      endif
+      endif
    endif
 
 end subroutine
@@ -158,7 +158,7 @@ subroutine elsi_blacs_to_pexsi_hs_small(elsi_h,H_in,S_in)
 
    call elsi_start_redistribution_time(elsi_h)
 
-   n_parallel_groups = elsi_h%n_procs/elsi_h%n_p_per_pole_pexsi
+   n_parallel_groups = elsi_h%n_procs/elsi_h%n_p_per_pole_pexsi/elsi_h%n_mu_points
 
    if(elsi_h%n_elsi_calls == 1) then
       call elsi_get_local_nnz(elsi_h,S_in,elsi_h%n_l_rows,elsi_h%n_l_cols,elsi_h%nnz_l)
@@ -528,7 +528,7 @@ subroutine elsi_blacs_to_pexsi_hs_large(elsi_h,H_in,S_in)
 
    call elsi_start_redistribution_time(elsi_h)
 
-   n_parallel_groups = elsi_h%n_procs/elsi_h%n_p_per_pole_pexsi
+   n_parallel_groups = elsi_h%n_procs/elsi_h%n_p_per_pole_pexsi/elsi_h%n_mu_points
 
    if(elsi_h%n_elsi_calls == 1) then
       call elsi_get_local_nnz(elsi_h,S_in,elsi_h%n_l_rows,elsi_h%n_l_cols,elsi_h%nnz_l)
