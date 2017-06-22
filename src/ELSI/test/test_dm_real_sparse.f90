@@ -57,8 +57,7 @@ program test_dm_real_sparse
 
    ! NOTE: The energy computed by PEXSI, e_test, is only accurate if using
    !       enough poles. In this test program, the number of poles is set to
-   !       half of the number of MPI tasks. Therefore, converged result is
-   !       expected with at least 80 MPI tasks, i.e. 40 PEXSI poles.
+   !       half of the number of MPI tasks.
 
    ! Initialize MPI
    call MPI_Init(mpierr)

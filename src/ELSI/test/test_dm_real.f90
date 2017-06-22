@@ -62,13 +62,12 @@ program test_dm_real
 
    integer(kind=i4), external :: numroc
 
-   ! VY: Reference values from calculations on May 7, 2017.
-   !     Note that PEXSI result is incorrect, since only 2 PEXSI
-   !     poles are used for this quick test. Accurate result can
-   !     be expected with at least 40 poles.
+   ! VY: Reference values from calculations on June 21, 2017.
+   !     Note that to save time, 40 poles and 1 mu iteration
+   !     are employed in this test.
    real(kind=r8), parameter :: e_elpa  = -126.817462901838_r8
    real(kind=r8), parameter :: e_omm   = -126.817462901838_r8
-   real(kind=r8), parameter :: e_pexsi = -1885.46836305848_r8
+   real(kind=r8), parameter :: e_pexsi = -121.410588065618_r8
    real(kind=r8), parameter :: e_tol   = 1.0e-10_r8
 
    ! Initialize MPI
@@ -203,7 +202,10 @@ program test_dm_real
    call elsi_customize(elsi_h,print_detail=.true.)
    call elsi_customize(elsi_h,no_singularity_check=.true.)
    if(solver == 2) call elsi_customize_omm(elsi_h,n_elpa_steps=1)
-   if(solver == 3) call elsi_customize_pexsi(elsi_h,n_poles=2)
+   ! Not enough to get accurate results; only a quick test
+   if(solver == 3) call elsi_customize_pexsi(elsi_h,n_poles=40)
+   if(solver == 3) call elsi_customize_pexsi(elsi_h,n_procs_per_pole=2)
+   if(solver == 3) call elsi_customize_pexsi(elsi_h,max_iteration=1)
 
    ham = H%dval
    ovlp = S%dval
