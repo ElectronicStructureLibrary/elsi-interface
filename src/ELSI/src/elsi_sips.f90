@@ -61,26 +61,15 @@ subroutine elsi_init_sips(elsi_h)
    type(elsi_handle), intent(inout) :: elsi_h
 
    integer(kind=i4) :: i
-
+   character*200 :: info_str
    character*40, parameter :: caller = "elsi_init_sips"
 
    if(elsi_h%n_elsi_calls == 1) then
-      call init_sips()
+      call initialize_qetsc()
 
-      ! Number of slices
+      !< TODO: Number of slices
       elsi_h%n_p_per_slice_sips = 1
-      elsi_h%n_slices = 1
-      ! n_p_per_slice_sips cannot be larger than 16
-      do i = 1,5
-         if((mod(elsi_h%n_procs,elsi_h%n_p_per_slice_sips) == 0) .and. &
-            (elsi_h%n_procs/elsi_h%n_p_per_slice_sips .le. elsi_h%n_states)) then
-            elsi_h%n_slices = elsi_h%n_procs/elsi_h%n_p_per_slice_sips
-         endif
-
-         elsi_h%n_p_per_slice_sips = elsi_h%n_p_per_slice_sips*2
-      enddo
-
-      elsi_h%n_p_per_slice_sips = elsi_h%n_procs/elsi_h%n_slices
+      elsi_h%n_slices = elsi_h%n_procs
 
       ! SIPs uses a pure block distribution
       elsi_h%n_b_rows_sips = elsi_h%n_g_size
@@ -109,6 +98,9 @@ subroutine elsi_init_sips(elsi_h)
       elsi_h%sips_started = .true.
    endif
 
+   write(info_str,"(1X,' | Number of slices ',I7)") elsi_h%n_slices
+   call elsi_statement_print(info_str,elsi_h)
+
 end subroutine
 
 !>
@@ -131,45 +123,68 @@ subroutine elsi_solve_evp_sips(elsi_h)
    integer(kind=i4) :: mpierr
    real(kind=r8), allocatable :: tmp_real(:)
 
-   character*200 :: info_str
    character*40, parameter :: caller = "elsi_solve_evp_sips"
 
    call elsi_start_generalized_evp_time(elsi_h)
 
-   write(info_str,"(1X,' | Number of slices ',I7)") elsi_h%n_slices
-   call elsi_statement_print(info_str,elsi_h)
-
    ! Solve the eigenvalue problem
    call elsi_statement_print("  Starting SIPs eigensolver",elsi_h)
 
-   ! Load H and S matrices
-   call sips_load_ham(elsi_h%n_g_size,elsi_h%n_l_cols_sips,elsi_h%nnz_l_sips,&
+   ! Load H matrix
+   call eps_load_ham(elsi_h%n_g_size,elsi_h%n_l_cols_sips,elsi_h%nnz_l_sips,&
                      elsi_h%row_ind_ccs,elsi_h%col_ptr_ccs,elsi_h%ham_real_ccs)
-
-   call sips_load_ovlp(elsi_h%n_g_size,elsi_h%n_l_cols_sips,elsi_h%nnz_l_sips,&
-                       elsi_h%row_ind_ccs,elsi_h%col_ptr_ccs,elsi_h%ovlp_real_ccs)
 
    ! Initialize an eigenvalue problem
    if(.not. elsi_h%overlap_is_unit) then
-      call sips_set_evp(1)
+      ! Load S matrix
+      call eps_load_ovlp(elsi_h%n_g_size,elsi_h%n_l_cols_sips,elsi_h%nnz_l_sips,&
+                         elsi_h%row_ind_ccs,elsi_h%col_ptr_ccs,elsi_h%ovlp_real_ccs)
+
+      call set_eps(math,mats)
    else
-      call sips_set_evp(0)
+      call set_eps(math)
    endif
 
-   ! Estimate the lower and upper bounds of eigenvalues
-   call sips_get_interval(elsi_h%interval)
+   if(elsi_h%n_elsi_calls == 1) then
+      ! Estimate the lower and upper bounds of eigenvalues
+      elsi_h%interval = get_eps_interval()
 
-   ! Compute slicing
-   call sips_get_slicing(elsi_h%n_slices,elsi_h%slicing_method,elsi_h%unbound,&
-                         elsi_h%interval,0.0_r8,0.0_r8,elsi_h%slices,&
-                         elsi_h%n_states,elsi_h%eval)
+      ! Compute slicing
+      call compute_subintervals(elsi_h%n_slices,0,elsi_h%unbound,elsi_h%interval,&
+                                0.0_r8,0.0_r8,elsi_h%slices)
+
+      call set_eps_subintervals(elsi_h%n_slices,elsi_h%slices)
+
+      if((elsi_h%inertia_option > 0) .and. (elsi_h%n_slices > 1)) then
+         call run_eps_inertias_check(elsi_h%unbound,elsi_h%n_states,elsi_h%n_slices,&
+                                     elsi_h%slices,elsi_h%shifts,elsi_h%inertias,&
+                                     elsi_h%n_solve_steps)
+
+         call inertias_to_eigenvalues(elsi_h%n_slices+1,elsi_h%n_states,&
+                                      elsi_h%slice_buffer,elsi_h%shifts,&
+                                      elsi_h%inertias,elsi_h%eval(1:elsi_h%n_states))
+
+         call compute_subintervals(elsi_h%n_slices,elsi_h%slicing_method,elsi_h%unbound,&
+                                   elsi_h%interval,0.0_r8,0.0_r8,elsi_h%slices,&
+                                   elsi_h%eval(1:elsi_h%n_states))
+      endif
+   else ! n_elsi_calls > 1
+      elsi_h%interval(1) = elsi_h%eval(1)-elsi_h%slice_buffer
+      elsi_h%interval(2) = elsi_h%eval(elsi_h%n_states)+elsi_h%slice_buffer
+
+      call compute_subintervals(elsi_h%n_slices,elsi_h%slicing_method,elsi_h%unbound,&
+                                elsi_h%interval,elsi_h%slice_buffer,1.0e-6_r8,&
+                                elsi_h%slices,elsi_h%eval(1:elsi_h%n_states))
+   endif
+
+   call set_eps_subintervals(elsi_h%n_slices,elsi_h%slices)
 
    ! Solve eigenvalue problem
-   call sips_solve_evp(elsi_h%n_states,elsi_h%n_slices,&
-                       elsi_h%slices,elsi_h%n_solve_steps)
+   call solve_eps_check(elsi_h%n_states,elsi_h%n_slices,elsi_h%slices,&
+                        elsi_h%n_solve_steps)
 
    ! Get eigenvalues
-   call sips_get_eigenvalues(elsi_h%n_states,elsi_h%eval(1:elsi_h%n_states))
+   elsi_h%eval(1:elsi_h%n_states) = get_eps_eigenvalues(elsi_h%n_states)
 
    ! Get and distribute eigenvectors
    call elsi_allocate(elsi_h,tmp_real,elsi_h%n_g_size,"tmp_real",caller)
@@ -177,7 +192,7 @@ subroutine elsi_solve_evp_sips(elsi_h)
    elsi_h%evec_real = 0.0_r8
 
    do i_state = 1,elsi_h%n_states
-      call sips_get_eigenvectors(elsi_h%n_g_size,i_state,tmp_real)
+      call get_eps_eigenvectors(elsi_h%n_g_size,i_state,tmp_real)
 
       this_p_col = mod((i_state-1)/elsi_h%n_b_cols,elsi_h%n_p_cols)
 
@@ -224,21 +239,21 @@ subroutine elsi_set_sips_default_options(elsi_h)
    !! 1 = K-meaans after equally spaced subintervals
    !! 2 = Equally populated subintervals
    !! 3 = K-means after equally populated
-   elsi_h%slicing_method = 0
+   elsi_h%slicing_method = 3
 
    !< Extra inertia computations before solve?
    !! 0 = No
    !! 1 = Yes
-   elsi_h%inertia_option = 0
+   elsi_h%inertia_option = 1
 
    !< How to bound the left side of the interval
    !! 0 = Bounded
    !! 1 = -infinity
-   elsi_h%unbound = 0
+   elsi_h%unbound = 1
 
    !< Small buffer to expand the eigenvalue interval
    !! Smaller values improve performance if eigenvalue range known
-   elsi_h%slice_buffer = 0.1_r8
+   elsi_h%slice_buffer = 0.01_r8
 
 end subroutine
 

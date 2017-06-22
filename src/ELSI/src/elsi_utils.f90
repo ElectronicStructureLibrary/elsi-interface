@@ -809,7 +809,7 @@ subroutine elsi_cleanup(elsi_h)
 
    ! Finalize QETSC
    if(elsi_h%sips_started) then
-      call finalize_sips()
+      call finalize_qetsc()
    endif
 
    ! Reset elsi_h
@@ -1089,7 +1089,7 @@ subroutine elsi_check(elsi_h,caller)
                      " Exiting...",elsi_h,caller)
 
    else if(elsi_h%solver == SIPS) then
-      call elsi_statement_print("  ATTENTION! SIPS is EXPERIMENTAL.",elsi_h)
+      call elsi_statement_print("  ATTENTION! SIPs is EXPERIMENTAL.",elsi_h)
 
       if(elsi_h%n_g_size < elsi_h%n_procs) then
          call elsi_stop(" SIPs has been chosen as the solver."//&
