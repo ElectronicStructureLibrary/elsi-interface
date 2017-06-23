@@ -130,22 +130,21 @@ subroutine elsi_solve_evp_sips(elsi_h)
    ! Solve the eigenvalue problem
    call elsi_statement_print("  Starting SIPs eigensolver",elsi_h)
 
-   ! Load H matrix
-   call eps_load_ham(elsi_h%n_g_size,elsi_h%n_l_cols_sips,elsi_h%nnz_l_sips,&
-                     elsi_h%row_ind_ccs,elsi_h%col_ptr_ccs,elsi_h%ham_real_ccs)
-
-   ! Initialize an eigenvalue problem
-   if(.not. elsi_h%overlap_is_unit) then
-      ! Load S matrix
-      call eps_load_ovlp(elsi_h%n_g_size,elsi_h%n_l_cols_sips,elsi_h%nnz_l_sips,&
-                         elsi_h%row_ind_ccs,elsi_h%col_ptr_ccs,elsi_h%ovlp_real_ccs)
-
-      call set_eps(math,mats)
-   else
-      call set_eps(math)
-   endif
-
    if(elsi_h%n_elsi_calls == 1) then
+      ! Load H matrix
+      call eps_load_ham(elsi_h%n_g_size,elsi_h%n_l_cols_sips,elsi_h%nnz_l_sips,&
+                        elsi_h%row_ind_ccs,elsi_h%col_ptr_ccs,elsi_h%ham_real_ccs)
+
+      if(.not. elsi_h%overlap_is_unit) then
+         ! Load S matrix
+         call eps_load_ovlp(elsi_h%n_g_size,elsi_h%n_l_cols_sips,elsi_h%nnz_l_sips,&
+                            elsi_h%row_ind_ccs,elsi_h%col_ptr_ccs,elsi_h%ovlp_real_ccs)
+
+         call set_eps(math,mats)
+      else
+         call set_eps(math)
+      endif
+
       ! Estimate the lower and upper bounds of eigenvalues
       elsi_h%interval = get_eps_interval()
 
@@ -155,6 +154,7 @@ subroutine elsi_solve_evp_sips(elsi_h)
 
       call set_eps_subintervals(elsi_h%n_slices,elsi_h%slices)
 
+      ! Run inertia counting
       if((elsi_h%inertia_option > 0) .and. (elsi_h%n_slices > 1)) then
          call run_eps_inertias_check(elsi_h%unbound,elsi_h%n_states,elsi_h%n_slices,&
                                      elsi_h%slices,elsi_h%shifts,elsi_h%inertias,&
@@ -169,6 +169,12 @@ subroutine elsi_solve_evp_sips(elsi_h)
                                    elsi_h%eval(1:elsi_h%n_states))
       endif
    else ! n_elsi_calls > 1
+      ! Update H matrix
+      call eps_update_ham(elsi_h%n_g_size,elsi_h%n_l_cols_sips,elsi_h%nnz_l_sips,&
+                          elsi_h%row_ind_ccs,elsi_h%col_ptr_ccs,elsi_h%ham_real_ccs)
+
+      call update_eps(elsi_h%n_slices)
+
       elsi_h%interval(1) = elsi_h%eval(1)-elsi_h%slice_buffer
       elsi_h%interval(2) = elsi_h%eval(elsi_h%n_states)+elsi_h%slice_buffer
 

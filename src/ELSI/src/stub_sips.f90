@@ -38,8 +38,10 @@ module m_qetsc
    public :: initialize_qetsc
    public :: finalize_qetsc
    public :: eps_load_ham
+   public :: eps_update_ham
    public :: eps_load_ovlp
    public :: set_eps
+   public :: update_eps
    public :: get_eps_interval
    public :: compute_subintervals
    public :: run_eps_inertias_check
@@ -91,6 +93,23 @@ subroutine eps_load_ham(global_size,local_size,local_nnz,col_idx,row_ptr,ham_val
 
 end subroutine
 
+subroutine eps_update_ham(global_size,local_size,local_nnz,col_idx,row_ptr,ham_val)
+
+   implicit none
+
+   integer(kind=i4) :: global_size
+   integer(kind=i4) :: local_size
+   integer(kind=i4) :: local_nnz
+   integer(kind=i4) :: col_idx(local_nnz)
+   integer(kind=i4) :: row_ptr(local_size+1)
+   real(kind=r8)    :: ham_val(local_size+1)
+
+   write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
+   write(*,"(A)") " Exiting..."
+   stop
+
+end subroutine
+
 subroutine eps_load_ovlp(global_size,local_size,local_nnz,col_idx,row_ptr,ovlp_val)
 
    implicit none
@@ -114,6 +133,18 @@ subroutine set_eps(mata,matb)
 
    integer(kind=i4)           :: mata
    integer(kind=i4), optional :: matb
+
+   write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
+   write(*,"(A)") " Exiting..."
+   stop
+
+end subroutine
+
+subroutine update_eps(nsub)
+
+   implicit none
+
+   integer(kind=i4) :: nsub
 
    write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
    write(*,"(A)") " Exiting..."
