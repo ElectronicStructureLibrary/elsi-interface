@@ -151,7 +151,7 @@ subroutine elsi_get_time(wtime)
    implicit none
 
    real(kind=r8), intent(out) :: wtime
- 
+
    integer(kind=i4) :: tics
 
    character*40, parameter :: caller = "elsi_get_time"
@@ -172,7 +172,7 @@ subroutine elsi_start_generalized_evp_time(elsi_h)
    type(elsi_handle), intent(inout) :: elsi_h
 
    character*40, parameter :: caller = "elsi_start_generalized_evp_time"
-   
+
    call elsi_get_time(elsi_h%t_generalized_evp_start)
 
 end subroutine

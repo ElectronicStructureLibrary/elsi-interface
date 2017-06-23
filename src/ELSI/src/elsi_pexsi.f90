@@ -201,7 +201,7 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
    call f_ppexsi_dft_driver(elsi_h%pexsi_plan,elsi_h%pexsi_options,elsi_h%n_electrons,elsi_h%mu,&
                             elsi_h%n_electrons_pexsi,elsi_h%mu_min_inertia,elsi_h%mu_max_inertia,&
                             elsi_h%n_total_inertia_iter,elsi_h%n_total_pexsi_iter,elsi_h%pexsi_info)
-       
+
    if(elsi_h%pexsi_info /= 0) then
       call elsi_stop(" PEXSI DFT driver not able to solve problem. Exiting...",elsi_h,caller)
    endif

@@ -259,7 +259,7 @@ subroutine elsi_set_omm_default_options(elsi_h)
 
    !< Use pspBLAS sparse linear algebra?
    elsi_h%use_psp = .false.
-      
+
 end subroutine
 
 !>

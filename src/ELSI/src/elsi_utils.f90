@@ -336,12 +336,12 @@ subroutine elsi_allocate_integer_3d(elsi_h,array,dim1,dim2,dim3,arrayname,caller
    integer(kind=i4),              intent(in)    :: dim3         !< Size
    character(len=*),              intent(in)    :: arrayname    !< Name
    character(len=*),              intent(in)    :: caller       !< Caller
-   
+
    integer :: error
    character*200 :: message
-   
+
    allocate(array(dim1,dim2,dim3),stat=error)
-         
+
    if(error > 0) then
       write(message,"(A,A)") "Error in allocating ",trim(arrayname)
       call elsi_stop(message,elsi_h,caller)
@@ -357,7 +357,6 @@ end subroutine
 subroutine elsi_allocate_complex_3d(elsi_h,array,dim1,dim2,dim3,arrayname,caller)
 
    implicit none
-   
 
    type(elsi_handle),             intent(in)    :: elsi_h
    complex(kind=r8), allocatable, intent(inout) :: array(:,:,:) !< Data
@@ -366,12 +365,12 @@ subroutine elsi_allocate_complex_3d(elsi_h,array,dim1,dim2,dim3,arrayname,caller
    integer(kind=i4),              intent(in)    :: dim3         !< Size
    character(len=*),              intent(in)    :: arrayname    !< Name
    character(len=*),              intent(in)    :: caller       !< Caller
-   
+
    integer :: error
    character*200 :: message
-   
+
    allocate(array(dim1,dim2,dim3),stat=error)
-         
+
    if(error > 0) then
       write(message,"(A,A)") "Error in allocating ",trim(arrayname)
       call elsi_stop(message,elsi_h,caller)
@@ -907,7 +906,7 @@ subroutine elsi_reset_handle(elsi_h)
    elsi_h%final_pexsi_tol         = 1.0e-2_r8
    elsi_h%pexsi_info              = UNSET
    elsi_h%pexsi_output_file_index = UNSET
-   elsi_h%pexsi_method            = UNSET
+   elsi_h%pexsi_driver            = UNSET
    elsi_h%n_mu_points             = UNSET
    elsi_h%n_electrons_pexsi       = 0.0_r8
    elsi_h%mu_min_inertia          = 0.0_r8

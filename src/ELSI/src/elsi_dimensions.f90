@@ -124,7 +124,7 @@ module ELSI_DIMENSIONS
 
       !> Global matrix size
       integer(kind=i4) :: n_g_size = UNSET
-  
+
       !> Block size in case of block-cyclic distribution
       integer(kind=i4) :: n_b_rows = UNSET
       integer(kind=i4) :: n_b_cols = UNSET
@@ -132,7 +132,7 @@ module ELSI_DIMENSIONS
       !> Processor grid
       integer(kind=i4) :: n_p_rows = UNSET
       integer(kind=i4) :: n_p_cols = UNSET
-  
+
       !> Local matrix size
       integer(kind=i4) :: n_l_rows = UNSET
       integer(kind=i4) :: n_l_cols = UNSET
@@ -229,7 +229,7 @@ module ELSI_DIMENSIONS
       type(f_ppexsi_options)   :: pexsi_options
       integer(kind=i4)         :: pexsi_info = UNSET
       integer(kind=i4)         :: pexsi_output_file_index = UNSET
-      integer(kind=i4)         :: pexsi_method = UNSET
+      integer(kind=i4)         :: pexsi_driver = UNSET
       integer(kind=i4)         :: n_mu_points = UNSET
       real(kind=r8)            :: n_electrons_pexsi = 0.0_r8 !< Number of electrons computed by PEXSI
       real(kind=r8)            :: mu_min_inertia = 0.0_r8

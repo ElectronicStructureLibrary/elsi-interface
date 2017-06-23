@@ -86,7 +86,7 @@ contains
 !   elsi_set_blacs
 !   elsi_set_csc
 !   elsi_get_energy
-!   elsi_finalize   
+!   elsi_finalize
 !=====================
 
 !>
