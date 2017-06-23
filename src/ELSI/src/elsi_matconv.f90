@@ -1,4 +1,4 @@
-! copyright (c) 2015-2017, the elsi team. all rights reserved.
+! Copyright (c) 2015-2017, the ELSI team. All rights reserved.
 !
 ! Redistribution and use in source and binary forms, with or without
 ! modification, are permitted provided that the following conditions are met:
