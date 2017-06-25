@@ -184,8 +184,8 @@ module ELSI_DIMENSIONS
       logical :: edm_ready = .false.                !< Is energy density matrix ready to be computed?
 
       !> ELPA
-      logical :: elpa_solver = UNSET   !< ELPA 1-stage or 2-stage solver
-      logical :: elpa_output = .false. !< Output level
+      integer(kind=i4) :: elpa_solver = UNSET   !< ELPA 1-stage or 2-stage solver
+      logical :: elpa_output = .false.          !< Output level
 
       !> libOMM
       integer(kind=i4) :: n_elpa_steps = UNSET   !< Use ELPA eigenvectors as initial guess
