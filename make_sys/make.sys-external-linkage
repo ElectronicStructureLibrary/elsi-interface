@@ -1,6 +1,6 @@
 # PLATFORM  : TIMEWARP @DUKE
 # COMPILERS : INTEL
-# VERIFIED  : JUN 20, 2017
+# VERIFIED  : JUN 25, 2017
 # DO READ ../INSTALL CAREFULLY!
 
 # Note:  This make.sys is provided to demonstrate external linkage against
@@ -38,8 +38,8 @@ METIS_LIB      = -L/home/wph6/opt/ParMETIS/4.0.3/build/Linux-x86_64/libmetis -lm
 PARMETIS_LIB   = -L/home/wph6/opt/ParMETIS/4.0.3/build/Linux-x86_64/libparmetis -lparmetis
 SUPERLU_INC    = -I/home/wph6/opt/SuperLU_DIST/5.1.3/SRC
 SUPERLU_LIB    = -L/home/wph6/opt/SuperLU_DIST/5.1.3/lib -lsuperlu_dist
-PEXSI_INC      = -I/home/wph6/opt/PEXSI/0.10.2/build/include $(SUPERLU_INC)
-PEXSI_LIB      = -L/home/wph6/opt/PEXSI/0.10.2/build/lib -lpexsi $(SUPERLU_LIB) $(PARMETIS_LIB) $(METIS_LIB)
+PEXSI_INC      = -I/home/wy29/pexsi_new/include $(SUPERLU_INC)
+PEXSI_LIB      = -L/home/wy29/pexsi_new/lib -lpexsi $(SUPERLU_LIB) $(PARMETIS_LIB) $(METIS_LIB)
 
 # ======  ELPA  ======
 EXTERNAL_ELPA  = yes
