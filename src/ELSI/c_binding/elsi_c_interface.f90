@@ -263,8 +263,9 @@ subroutine elsi_customize_omm_c_wrapper(handle_c,n_elpa_steps,omm_flavor,eigen_s
 
 end subroutine
 
-subroutine elsi_customize_pexsi_c_wrapper(handle_c,temperature,gap,delta_e,n_poles,&
-                                          n_procs_per_pole,max_iteration,mu_min,&
+subroutine elsi_customize_pexsi_c_wrapper(handle_c,pexsi_driver,temperature,gap,&
+                                          delta_e,n_poles,n_procs_per_pole,&
+                                          n_mu_points,max_iteration,mu_min,&
                                           mu_max,mu0,mu_inertia_tolerance,&
                                           mu_inertia_expansion,mu_safeguard,&
                                           n_electron_accuracy,matrix_type,&
@@ -275,11 +276,13 @@ subroutine elsi_customize_pexsi_c_wrapper(handle_c,temperature,gap,delta_e,n_pol
    implicit none
 
    type(c_ptr),         value             :: handle_c
+   integer(kind=c_int), value, intent(in) :: pexsi_driver
    real(kind=c_double), value, intent(in) :: temperature
    real(kind=c_double), value, intent(in) :: gap
    real(kind=c_double), value, intent(in) :: delta_e
    integer(kind=c_int), value, intent(in) :: n_poles
    integer(kind=c_int), value, intent(in) :: n_procs_per_pole
+   integer(kind=c_int), value, intent(in) :: n_mu_points
    integer(kind=c_int), value, intent(in) :: max_iteration
    real(kind=c_double), value, intent(in) :: mu_min
    real(kind=c_double), value, intent(in) :: mu_max
@@ -298,10 +301,10 @@ subroutine elsi_customize_pexsi_c_wrapper(handle_c,temperature,gap,delta_e,n_pol
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_customize_pexsi(handle_f,temperature,gap,delta_e,n_poles,n_procs_per_pole,&
-           max_iteration,mu_min,mu_max,mu0,mu_inertia_tolerance,mu_inertia_expansion,&
-           mu_safeguard,n_electron_accuracy,matrix_type,is_symbolic_factorize,&
-           ordering,np_symbolic_factorize,verbosity)
+   call elsi_customize_pexsi(handle_f,pexsi_driver,temperature,gap,delta_e,&
+           n_poles,n_procs_per_pole,n_mu_points,max_iteration,mu_min,mu_max,mu0,&
+           mu_inertia_tolerance,mu_inertia_expansion,mu_safeguard,n_electron_accuracy,&
+           matrix_type,is_symbolic_factorize,ordering,np_symbolic_factorize,verbosity)
 
 end subroutine
 
