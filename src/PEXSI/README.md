@@ -1,4 +1,4 @@
-PEXSI: Pole EXpansion and Selected Inversion 
+PEXSI: Pole EXpansion and Selected Inversion
 ============================================
 
 For full documentation, including instructions for installation please see
@@ -18,7 +18,7 @@ FORTRAN interface is similar.
 
 - NOTE: PEXSI v0.10.0 only supports SuperLU_DIST v5.1.2 or higher version.
 
-Installation       
+Installation
 ============
 
 
@@ -146,7 +146,7 @@ The `...OPTIONS...` can be one of the following:
 
 Some platforms have preconfigured toolchain files which can be used by adding the following option to the `cmake` command:
 
-    -DCMAKE_TOOLCHAIN_FILE=/path/to/sympack/toolchains/edison.cmake     
+    -DCMAKE_TOOLCHAIN_FILE=/path/to/sympack/toolchains/edison.cmake
     (To build on NERSC Edison for instance)
 
 
@@ -179,7 +179,7 @@ Edit the variables in make.inc.
     
     PEXSI_DIR     = Main directory for PEXSI
     DSUPERLU_DIR  = Main directory for SuperLU_DIST
-    PARMETIS_DIR  = Main directory for ParMETIS 
+    PARMETIS_DIR  = Main directory for ParMETIS
     PTSCOTCH_DIR  = Main directory for PT-Scotch
 
 Edit the compiler options, for instance
@@ -195,7 +195,7 @@ PEXSI. It is set to 0 by default. When set to 1, the `SYMPACK_DIR` variable
 must be pointing to symPACK's installation directory.
 
 
-@note 
+@note
 
 - Starting from PEXSI v0.8.0, `-std=c++11` is required in
 `CXXFLAGS`. 
@@ -224,7 +224,7 @@ package may be different. Please follow the documentation of the version
 of the PEXSI package you are working with.**
 
 If make.inc is configured correctly,
-    
+
     make 
     make install
 
@@ -262,4 +262,3 @@ saved on the 0-th processor, where \f$A\f$ is the five-point
 discretization of a Laplacian operator on a 2D domain.  The result can
 be compared with `examples/driver_pselinv_complex.out` to check the
 correctness of the result. 
-

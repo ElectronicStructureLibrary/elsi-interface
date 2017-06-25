@@ -1039,6 +1039,88 @@ void PPEXSIDFTDriver2(
     int*              info );
 
 /**
+ * @brief Simplified driver for solving Kohn-Sham DFT. Version 3. This
+ * is still in test phase.
+ * 
+ * This function contains both the inertia counting step for estimating
+ * the chemical potential, and strategy for updating the chemical
+ * potential WITHOUT Newton's iteration.  Heuristics are built into this
+ * routine.  Expert users and developers can modify this routine to
+ * obtain better heuristics.  The implementation of this function
+ * contains **all** the heuristics for a DFT solver.
+ *
+ * The input parameter options are controlled through the structure
+ * PPEXSIOptions.  The default value can be obtained through
+ * PPEXSISetDefaultOptions.
+ *
+ * **Basic strategy of the heuristics**
+ *
+ * - If isInertiaCount == 1, then the inertia counting procedure is
+ * invoked until the chemical potential interval is refined from size
+ * (muMax0-muMin0) to muInertiaTolerance, or the estimated band gap is
+ * larger than muInertiaTolerance.
+ * - The number of shifts in the inertia count is always automatically
+ * chosen to be (mpisize / npPerPole). This minimizes the wall clock
+ * time of the inertia counting procedure.
+ *
+ * **Input/Output**
+ *
+ * The input H and S matrices should be given by loading functions
+ * (currently it is PPEXSILoadRealSymmetricHSMatrix).  The output
+ * matrices should be obtained from retrieving functions (currently it
+ * is PPEXSIRetrieveRealSymmetricDFTMatrix).
+ *
+ *
+ * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
+ * data structure.
+ * @param[in] options (global) Other input parameters for the DFT driver.  
+ * @param[in] numElectronExact (global) Exact number of electrons, i.e.
+ * \f$N_e(\mu_{\mathrm{exact}})\f$.
+ * @param[out]  DMnzvalLocal (local)  Dimension: nnzLocal.  Nonzero value
+ * of density matrix in CSC format.
+ * @param[out] EDMnzvalLocal (local)  Dimension: nnzLocal.  Nonzero
+ * value of energy density matrix in CSC format.
+ * @param[out] FDMnzvalLocal (local)  Dimension: nnzLocal.  Nonzero
+ * value of free energy density matrix in CSC format.
+ * @param[out] muPEXSI      (global) Chemical potential after the last
+ * iteration.
+ * - In the case that convergence is reached within maxPEXSIIter steps, the
+ * value of muPEXSI is the last mu used to achieve accuracy within
+ * numElectronPEXSITolerance.
+ * - In the case that convergence is not reached within maxPEXSIIter steps,
+ * and the update from Newton's iteration does not exceed
+ * muPEXSISafeGuard, the value of muPEXSI is the last mu plus the update
+ * from Newton's iteration.
+ * @param[out] numElectronPEXSI (global) Number of electrons
+ * evaluated at the last step.  
+ * **Note** In the case that convergence is not reached within maxPEXSIIter steps,
+ * and numElectron does not correspond to the number of electrons
+ * evaluated at muPEXSI.
+ * @param[out] muMinInertia (global) Lower bound for mu after the last
+ * inertia count procedure.
+ * @param[out] muMaxInertia (global) Upper bound for mu after the last
+ * inertia count procedure.
+ * @param[out] numTotalInertiaIter (global) Number of total inertia
+ * counting procedure.
+ * @param[out] info (local) whether the current processor returns the correct information.
+ * - = 0: successful exit.  
+ * - > 0: unsuccessful.
+ */
+void PPEXSIDFTDriver3(
+    PPEXSIPlan        plan,
+    PPEXSIOptions*    options,
+    double            numElectronExact,
+    int               method,
+    int               nPoints,
+    double*           muPEXSI,
+    double*           numElectronPEXSI,
+    //double*           muMinInertia,
+    //double*           muMaxInertia,
+    int*              numTotalInertiaIter,
+    int*              info );
+
+
+/**
  * @brief Retrieve the output matrices after running PPEXSIDFTDriver for real input matrices.
  *
  * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
@@ -1062,6 +1144,31 @@ void PPEXSIRetrieveRealDFTMatrix(
     double*     totalEnergyS,
     double*     totalFreeEnergy,
     int*              info );
+/**
+ * @brief Retrieve the output matrices after running PPEXSIDFTDriver for real input matrices.
+ *
+ * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
+ * data structure.
+ * @param[out]  DMnzvalLocal (local)  Dimension: nnzLocal.  Nonzero value
+ * of density matrix in CSC format.
+ * @param[out] EDMnzvalLocal (local)  Dimension: nnzLocal.  Nonzero
+ * value of energy density matrix in CSC format.
+ * @param[out] FDMnzvalLocal (local)  Dimension: nnzLocal.  Nonzero
+ * value of free energy density matrix in CSC format.
+ * @param[out] info (local) whether the current processor returns the correct information.
+ * - = 0: successful exit.  
+ * - > 0: unsuccessful.
+ */
+void PPEXSIRetrieveRealDFTMatrix2(
+    PPEXSIPlan  plan,
+    double*     DMnzvalLocal,
+    double*     EDMnzvalLocal,
+    double*     FDMnzvalLocal,
+    double*     totalEnergyH,
+    double*     totalEnergyS,
+    double*     totalFreeEnergy,
+    int*              info );
+
 
 
 /**

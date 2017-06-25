@@ -262,7 +262,7 @@ void PPEXSISetDefaultOptions(
   options->muInertiaTolerance    = 0.05;
   options->muInertiaExpansion    = 0.3;      
   options->muPEXSISafeGuard      = 0.05;
-  options->numElectronPEXSITolerance = 0.01;
+  options->numElectronPEXSITolerance = 1.0E-10;
   options->matrixType            = 0;
   options->isSymbolicFactorize   = 1;
   options->solver                = 0;
@@ -1093,6 +1093,98 @@ void PPEXSIDFTDriver2(
   return;
 }   // -----  end of function PPEXSIDFTDriver2  ----- 
 
+extern "C"
+void PPEXSIDFTDriver3(
+    /* Input parameters */
+    PPEXSIPlan        plan,
+    PPEXSIOptions*    options,        // options is input and output
+    double            numElectronExact,
+    int               method,
+    int               nPoints,
+    /* Output parameters */
+    double*           muPEXSI,                   
+    double*           numElectronPEXSI,         
+    int*              numTotalInertiaIter,   
+    int*              info ){
+  *info = 0;
+  const GridType* gridPole = 
+  reinterpret_cast<PPEXSIData*>(plan)->GridPole();
+
+  try{
+    reinterpret_cast<PPEXSIData*>(plan)->DFTDriver3(
+        numElectronExact,
+        options->temperature,
+        options->gap,
+        options->deltaE,
+        options->numPole,
+        options->muInertiaTolerance,
+        options->numElectronPEXSITolerance,
+        options->matrixType,
+        options->isSymbolicFactorize,
+        options->solver,
+        options->ordering,
+        options->npSymbFact,
+        options->verbosity,
+        *muPEXSI,
+        *numElectronPEXSI,
+        options->muMin0,
+        options->muMax0,
+        *numTotalInertiaIter,
+         method,
+         nPoints);
+  }
+  catch( std::exception& e )
+  {
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+      << " caught exception with message: "
+      << std::endl << e.what() << std::endl;
+    *info = 1;
+  }
+  return;
+}   // -----  end of function PPEXSIDFTDriver3  ----- 
+
+
+extern "C"
+void PPEXSIRetrieveRealDFTMatrix2(
+    PPEXSIPlan        plan,
+    double*      DMnzvalLocal,
+    double*     EDMnzvalLocal,
+    double*     FDMnzvalLocal,
+    double*     totalEnergyH,
+    double*     totalEnergyS,
+    double*     totalFreeEnergy,
+    int*              info ){
+  *info = 0;
+  const GridType* gridPole = 
+    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
+  PPEXSIData* ptrData = reinterpret_cast<PPEXSIData*>(plan);
+
+  try{
+    Int nnzLocal = ptrData->RhoRealMat().nnzLocal;
+
+    blas::Copy( nnzLocal, ptrData->RhoRealMat().nzvalLocal.Data(), 1,
+        DMnzvalLocal, 1 );
+#if 0
+    blas::Copy( nnzLocal, ptrData->EnergyDensityRealMat().nzvalLocal.Data(), 1,
+        EDMnzvalLocal, 1 );
+
+    blas::Copy( nnzLocal, ptrData->FreeEnergyDensityRealMat().nzvalLocal.Data(), 1,
+        FDMnzvalLocal, 1 );
+#endif
+    *totalEnergyH = ptrData->TotalEnergyH();
+
+    *totalEnergyS = ptrData->TotalEnergyS();
+
+    *totalFreeEnergy = ptrData->TotalFreeEnergy();
+  }
+  catch( std::exception& e ) {
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+      << " caught exception with message: "
+      << std::endl << e.what() << std::endl;
+    *info = 1;
+  }
+  return;
+}   // -----  end of function PPEXSIRetrieveRealDFTMatrix2  ----- 
 
 
 extern "C"

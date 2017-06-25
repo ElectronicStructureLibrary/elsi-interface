@@ -66,6 +66,11 @@ subroutine elsi_init_pexsi(elsi_h)
    character*200 :: info_str
    character*40, parameter :: caller = "elsi_init_pexsi"
 
+   ! Safety
+   if(elsi_h%pexsi_driver == 1) then
+      elsi_h%n_mu_points = 1
+   endif
+
    if(elsi_h%n_elsi_calls == 1) then
       n_groups = elsi_h%pexsi_options%numPole*elsi_h%n_mu_points
 
@@ -150,12 +155,14 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
 
    call elsi_start_density_matrix_time(elsi_h)
 
-   if(elsi_h%small_pexsi_tol) then
-      elsi_h%pexsi_options%numElectronPEXSITolerance = this_pexsi_tol
+   if(elsi_h%pexsi_driver == 1) then
+      if(elsi_h%small_pexsi_tol) then
+         elsi_h%pexsi_options%numElectronPEXSITolerance = this_pexsi_tol
 
-      write(info_str,"(A,E10.1)") "  | Current tolerance of number of electrons: ",&
-         this_pexsi_tol
-      call elsi_statement_print(info_str,elsi_h)
+         write(info_str,"(A,E10.1)") "  | Current tolerance of number of electrons: ",&
+            this_pexsi_tol
+         call elsi_statement_print(info_str,elsi_h)
+      endif
    endif
 
    if(elsi_h%n_elsi_calls == 1) then
@@ -198,39 +205,53 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
    ! Solve the eigenvalue problem
    call elsi_statement_print("  Starting PEXSI density matrix solver",elsi_h)
 
-   call f_ppexsi_dft_driver(elsi_h%pexsi_plan,elsi_h%pexsi_options,elsi_h%n_electrons,elsi_h%mu,&
-                            elsi_h%n_electrons_pexsi,elsi_h%mu_min_inertia,elsi_h%mu_max_inertia,&
-                            elsi_h%n_total_inertia_iter,elsi_h%n_total_pexsi_iter,elsi_h%pexsi_info)
+   if(elsi_h%pexsi_driver == 1) then
+      call f_ppexsi_dft_driver(elsi_h%pexsi_plan,elsi_h%pexsi_options,elsi_h%n_electrons,elsi_h%mu,&
+                               elsi_h%n_electrons_pexsi,elsi_h%mu_min_inertia,elsi_h%mu_max_inertia,&
+                               elsi_h%n_total_inertia_iter,elsi_h%n_total_pexsi_iter,elsi_h%pexsi_info)
+   else
+      call f_ppexsi_dft_driver3(elsi_h%pexsi_plan,elsi_h%pexsi_options,elsi_h%n_electrons,2,&
+                                elsi_h%n_mu_points,elsi_h%mu,elsi_h%n_electrons_pexsi,&
+                                elsi_h%n_total_inertia_iter,elsi_h%pexsi_info)
+   endif
 
    if(elsi_h%pexsi_info /= 0) then
       call elsi_stop(" PEXSI DFT driver not able to solve problem. Exiting...",elsi_h,caller)
    endif
 
-   ! Turn off inertia counting if chemical potential does not change a lot
-   if(abs(elsi_h%mu-elsi_h%pexsi_options%mu0) > 5.0e-3_r8) then
-      elsi_h%pexsi_options%isInertiaCount = 1
-   else
-      elsi_h%pexsi_options%isInertiaCount = 0
-   endif
+   if(elsi_h%pexsi_driver == 1) then
+      ! Turn off inertia counting if chemical potential does not change a lot
+      if(abs(elsi_h%mu-elsi_h%pexsi_options%mu0) > 5.0e-3_r8) then
+         elsi_h%pexsi_options%isInertiaCount = 1
+      else
+         elsi_h%pexsi_options%isInertiaCount = 0
+      endif
 
-   ! Use chemical potential in this step as initial guess for next step
-   elsi_h%pexsi_options%mu0 = elsi_h%mu
+      ! Use chemical potential in this step as initial guess for next step
+      elsi_h%pexsi_options%mu0 = elsi_h%mu
 
-   if(elsi_h%small_pexsi_tol) then
-      if(abs(elsi_h%n_electrons-elsi_h%n_electrons_pexsi) < this_pexsi_tol) then
-         if(1.0e-1_r8*this_pexsi_tol > elsi_h%final_pexsi_tol) then
-            this_pexsi_tol = 1.0e-1_r8*this_pexsi_tol
-         else
-            this_pexsi_tol = elsi_h%final_pexsi_tol
+      if(elsi_h%small_pexsi_tol) then
+         if(abs(elsi_h%n_electrons-elsi_h%n_electrons_pexsi) < this_pexsi_tol) then
+            if(1.0e-1_r8*this_pexsi_tol > elsi_h%final_pexsi_tol) then
+               this_pexsi_tol = 1.0e-1_r8*this_pexsi_tol
+            else
+               this_pexsi_tol = elsi_h%final_pexsi_tol
+            endif
          endif
       endif
    endif
 
    ! Get the results
    if((elsi_h%my_p_row_pexsi == 0) .or. (elsi_h%matrix_storage_format == BLACS_DENSE)) then
-      call f_ppexsi_retrieve_real_dft_matrix(elsi_h%pexsi_plan,elsi_h%den_mat_ccs,&
-              elsi_h%e_den_mat_pexsi,elsi_h%f_den_mat_pexsi,elsi_h%energy_hdm,&
-              elsi_h%energy_sedm,elsi_h%free_energy,elsi_h%pexsi_info)
+      if(elsi_h%pexsi_driver == 1) then
+         call f_ppexsi_retrieve_real_dft_matrix(elsi_h%pexsi_plan,elsi_h%den_mat_ccs,&
+                 elsi_h%e_den_mat_pexsi,elsi_h%f_den_mat_pexsi,elsi_h%energy_hdm,&
+                 elsi_h%energy_sedm,elsi_h%free_energy,elsi_h%pexsi_info)
+      else
+         call f_ppexsi_retrieve_real_dft_matrix2(elsi_h%pexsi_plan,elsi_h%den_mat_ccs,&
+                 elsi_h%e_den_mat_pexsi,elsi_h%f_den_mat_pexsi,elsi_h%energy_hdm,&
+                 elsi_h%energy_sedm,elsi_h%free_energy,elsi_h%pexsi_info)
+      endif
    endif
 
    if(elsi_h%pexsi_info /= 0) then
@@ -259,8 +280,14 @@ subroutine elsi_set_pexsi_default_options(elsi_h)
    ! Use 1 process in ParMETIS for symbolic factorization
    elsi_h%pexsi_options%npSymbFact = 1
 
+   ! PEXSI DFT driver
+   elsi_h%pexsi_driver = 2
+
+   ! Number of poles
+   elsi_h%pexsi_options%numPole = 20
+
    ! Number of mu points if using Moussa's pole expansion
-   elsi_h%n_mu_points = 1
+   elsi_h%n_mu_points = 2
 
 end subroutine
 

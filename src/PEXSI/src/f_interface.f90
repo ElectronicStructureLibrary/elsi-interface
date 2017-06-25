@@ -1,8 +1,8 @@
 !	 Copyright (c) 2012 The Regents of the University of California,
-!	 through Lawrence Berkeley National Laboratory.  
+!	 through Lawrence Berkeley National Laboratory.
 !
 !  Author: Lin Lin
-!	 
+!
 !  This file is part of PEXSI. All rights reserved.
 !
 !	 Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,7 @@
 !>
 !> The ISO_C_BINDING feature is included in the FORTRAN 2003 standard, and is
 !> implemented in most modern compilers.
-!> 
+!>
 !>
 !> @note (From Alberto Garcia, 2013-04-10) Array arguments are *required* by the
 !> standard to be explicit shape (e.g. a(3)), or assumed size (e.g. a(*)). This
@@ -66,36 +66,36 @@ module f_ppexsi_interface
 use, intrinsic :: iso_c_binding
 
 ! Struct for PPEXSIOptions
-! NOTE: The order and the type of the parameters must be strictly the same as in PPEXSIOptions in 
-! c_pexsi_interface.h
+! NOTE: The order and the type of the parameters must be strictly
+!       the same as in PEXSIOptions in c_pexsi_interface.h
 type, bind(C) :: f_ppexsi_options
-  real(c_double)         :: temperature
-  real(c_double)         :: gap
-  real(c_double)         :: deltaE
-  integer(c_int)         :: numPole
-  integer(c_int)         :: isInertiaCount
-  integer(c_int)         :: maxPEXSIIter
-  real(c_double)         :: muMin0
-  real(c_double)         :: muMax0
-  real(c_double)         :: mu0
-  real(c_double)         :: muInertiaTolerance
-  real(c_double)         :: muInertiaExpansion
-  real(c_double)         :: muPEXSISafeGuard
-  real(c_double)         :: numElectronPEXSITolerance
-  integer(c_int)         :: matrixType
-  integer(c_int)         :: isSymbolicFactorize
-  integer(c_int)         :: isConstructCommPattern
-  integer(c_int)         :: solver
-  integer(c_int)         :: ordering
-  integer(c_int)         :: rowOrdering
-  integer(c_int)         :: npSymbFact
-  integer(c_int)         :: symmetric
-  integer(c_int)         :: transpose
-  integer(c_int)         :: verbosity
+  real(c_double) :: temperature
+  real(c_double) :: gap
+  real(c_double) :: deltaE
+  integer(c_int) :: numPole
+  integer(c_int) :: isInertiaCount
+  integer(c_int) :: maxPEXSIIter
+  real(c_double) :: muMin0
+  real(c_double) :: muMax0
+  real(c_double) :: mu0
+  real(c_double) :: muInertiaTolerance
+  real(c_double) :: muInertiaExpansion
+  real(c_double) :: muPEXSISafeGuard
+  real(c_double) :: numElectronPEXSITolerance
+  integer(c_int) :: matrixType
+  integer(c_int) :: isSymbolicFactorize
+  integer(c_int) :: isConstructCommPattern
+  integer(c_int) :: solver
+  integer(c_int) :: ordering
+  integer(c_int) :: rowOrdering
+  integer(c_int) :: npSymbFact
+  integer(c_int) :: symmetric
+  integer(c_int) :: transpose
+  integer(c_int) :: verbosity
 end type f_ppexsi_options
 
+interface
 
-interface  
   subroutine f_ppexsi_set_default_options(&
       options) &
       bind(C, Name="PPEXSISetDefaultOptions")
@@ -103,8 +103,8 @@ interface
     import         :: f_ppexsi_options
     implicit none
     type( f_ppexsi_options ), intent(out) :: options
-  end subroutine 
-  
+  end subroutine
+
   subroutine f_read_distsparsematrix_formatted_head (&
       filename,&
       nrows,&
@@ -119,7 +119,7 @@ interface
     integer(c_int), intent(out)        :: nrows, nnz, nnzLocal, numColLocal
     integer, intent(in)                :: fcomm
   end subroutine 
-  
+
   subroutine f_read_distsparsematrix_formatted(&
       filename,&
       nrows,&
@@ -155,7 +155,6 @@ interface
     integer, intent(in)                :: fcomm
   end subroutine 
 
-
   subroutine f_para_read_distsparsematrix(&
       filename,&
       nrows,&
@@ -175,7 +174,6 @@ interface
     real(c_double), intent(out)        :: nzvalLocal(*)
     integer, intent(in)                :: fcomm
   end subroutine 
-
 
   function f_ppexsi_plan_initialize(&
       fcomm,&
@@ -247,7 +245,6 @@ interface
       HnzvalLocal(*), SnzvalLocal(*)
     integer(c_int), intent(out)            :: info
   end subroutine 
-
 
   subroutine f_ppexsi_symbolic_factorize_real_symmetric_matrix(&
       plan,&
@@ -358,7 +355,6 @@ interface
     integer(c_int), intent(out)            :: info
   end subroutine 
 
-
   subroutine f_ppexsi_calculate_fermi_operator_complex(&
       plan,&
       options,&
@@ -446,7 +442,6 @@ interface
     integer(c_int), intent(out)            :: info
   end subroutine 
 
-
   subroutine f_ppexsi_dft_driver(&
       plan,&
       options,&
@@ -495,6 +490,33 @@ interface
     integer(c_int), intent(out)            :: info
   end subroutine 
 
+  subroutine f_ppexsi_dft_driver3(&
+      plan,&
+      options,&
+      numElectronExact,&
+      method,&
+      npoints,&
+      muPEXSI,&
+      numElectronPEXSI,&
+      !muMinInertia,&
+      !muMaxInertia,&
+      numTotalInertiaIter,&
+      info) &
+      bind(C, Name="PPEXSIDFTDriver3")
+    use, intrinsic :: iso_c_binding
+    import         :: f_ppexsi_options
+    implicit none
+    integer(c_intptr_t),    value, intent(in)    :: plan
+    type(f_ppexsi_options),        intent(inout) :: options
+    real(c_double),         value, intent(in)    :: numElectronExact
+    integer(c_int),         value, intent(in)    :: method
+    integer(c_int),         value, intent(in)    :: npoints
+    real(c_double),                intent(out)   :: muPEXSI, numElectronPEXSI
+    !real(c_double),                intent(out)   :: muMinInertia, muMaxInertia
+    integer(c_int),                intent(out)   :: numTotalInertiaIter
+    integer(c_int),                intent(out)   :: info
+  end subroutine
+
   subroutine f_ppexsi_retrieve_real_dft_matrix(&
       plan,&
       DMnzvalLocal,&
@@ -512,6 +534,24 @@ interface
     real(c_double), intent(out)   :: totalEnergyH, totalEnergyS, totalFreeEnergy
     integer(c_int), intent(out)            :: info
   end subroutine 
+
+  subroutine f_ppexsi_retrieve_real_dft_matrix2(&
+      plan,&
+      DMnzvalLocal,&
+      EDMnzvalLocal,&
+      FDMnzvalLocal,&
+      totalEnergyH,&
+      totalEnergyS,&
+      totalFreeEnergy,&
+      info) &
+      bind(C, Name="PPEXSIRetrieveRealDFTMatrix2")
+    use, intrinsic :: iso_c_binding
+    implicit none
+    integer(c_intptr_t), value, intent(in)  :: plan
+    real(c_double),             intent(out) :: DMnzvalLocal(*), EDMnzvalLocal(*), FDMnzvalLocal(*)
+    real(c_double),             intent(out) :: totalEnergyH, totalEnergyS, totalFreeEnergy
+    integer(c_int),             intent(out) :: info
+  end subroutine
 
   subroutine f_ppexsi_retrieve_complex_dft_matrix(&
       plan,&
@@ -557,7 +597,6 @@ interface
     real(c_double), intent(in), value  :: temp, gap, deltaE, mu
   end subroutine 
 
-
   subroutine f_get_pole_edm(&
       zshift,&
       zweight,&
@@ -573,8 +612,6 @@ interface
     integer(c_int), intent(in), value  :: Npole
     real(c_double), intent(in), value  :: temp, gap, deltaE, mu
   end subroutine 
-
-
 
   subroutine f_get_pole_fdm(&
       zshift,&
@@ -593,6 +630,5 @@ interface
   end subroutine 
 
 end interface
-
 
 end module f_ppexsi_interface

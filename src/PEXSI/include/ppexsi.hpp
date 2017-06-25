@@ -583,12 +583,68 @@ public:
       Real  numElectronTolerance,
       Real  muMinPEXSI,
       Real  muMaxPEXSI,
-    Int               solver,
+      Int   solver,
       Int   verbosity,
       Real& mu,
       Real& numElectron, 
       bool& isPEXSIConverged );
 
+  /// @brief Compute the Fermi operator and derivied quantities.
+  /// 
+  /// This routine also updates the chemical potential mu by reusing
+  /// Green's functions but with updated contour.
+  ///
+  /// This routine also computes the single particle density matrix,
+  /// the Helmholtz free energy density matrix, and the energy density
+  /// matrix (for computing the Pulay force) simultaneously.   These
+  /// matrices can be called later via member functions DensityMatrix,
+  /// FreeEnergyDensityMatrix, EnergyDensityMatrix.
+  ///
+  /// @param[in] numPole Number of poles for the pole expansion
+  ///	@param[in] temperature  Temperature
+  /// @param[in] gap Band gap
+  /// @param[in] deltaE Upperbound of the spectrum width
+  /// @param[in] numElectronExact  Exact number of electrons.
+  /// @param[in] numElectronTolerance  Tolerance for the number of
+  /// electrons. This is just used to discard some poles in the pole
+  /// expansion.
+  /// @param[in] muMinPEXSI Minimum of the interval for searching mu.
+  /// @param[in] muMaxPEXSI Maximum of the interval for searching mu.
+  /// @param[in] verbosity The level of output information.
+  /// - = 0   : No output.
+  /// - = 1   : Basic output (default)
+  /// - = 2   : Detailed output.
+  /// @param[in,out] mu Initial guess of chemical potential. On return
+  /// it gives the updated chemical potential within the range of
+  /// [muMinPEXSI, muMaxPEXSI]
+  /// @param[out] numElectron The number of electron calculated at mu.
+  /// @param[out] isConverged Whether the update strategy for finding
+  /// the chemical potential has converged.
+ 
+  void CalculateFermiOperatorReal3(
+      MPI_Comm pointColComm,
+      Int   numPole, 
+      Real  temperature,
+      Real  gap,
+      Real  deltaE,
+      Real  numElectronExact, 
+      Real  numElectronTolerance,
+      Int   solver,
+      Int   verbosity,
+      Real& mu,
+      Real& numElectron,
+      Int   method,
+      Int   nPoints);
+
+  /// @brief Compute the Correction of the EDM matrix.
+  void CalculateEDMCorrection(
+      Int   numPole,
+      Int   verbosity,
+      Int   nPoints);
+
+
+
+ 
   /// @brief Updated main driver for DFT. This reuses the pole
   /// expansion and only performs one PEXSI iteration per SCF step.
   void DFTDriver2(
@@ -606,7 +662,7 @@ public:
       Real       numElectronPEXSITolerance,
       Int        matrixType,
       Int        isSymbolicFactorize,
-    Int               solver,
+      Int        solver,
       Int        ordering,
       Int        numProcSymbFact,
       Int        verbosity,
@@ -615,6 +671,35 @@ public:
       Real&      muMinInertia,              
       Real&      muMaxInertia,             
       Int&       numTotalInertiaIter );
+
+  /// @brief Updated main driver for DFT. This reuses the pole
+  /// expansion and only performs one PEXSI iteration per SCF step.
+  void DFTDriver3(
+      Real       numElectronExact,
+      Real       temperature,
+      Real       gap,
+      Real       deltaE,
+      Int        numPole, 
+      //Int        isInertiaCount,
+      //Real       muMin0,
+      //Real       muMax0,
+      //Real       mu0,
+      Real       muInertiaTolerance,
+      //Real       muInertiaExpansion,
+      Real       numElectronPEXSITolerance,
+      Int        matrixType,
+      Int        isSymbolicFactorize,
+      Int        solver,
+      Int        ordering,
+      Int        numProcSymbFact,
+      Int        verbosity,
+      Real&      muPEXSI,                   
+      Real&      numElectronPEXSI,         
+      Real&      muMinInertia,              
+      Real&      muMaxInertia,             
+      Int&       numTotalInertiaIter,
+      Int        method,
+      Int        nPoints);
 
 
 

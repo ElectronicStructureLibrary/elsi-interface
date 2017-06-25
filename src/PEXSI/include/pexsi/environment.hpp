@@ -1,6 +1,6 @@
 /*
    Copyright (c) 2012 The Regents of the University of California,
-   through Lawrence Berkeley National Laboratory.  
+   through Lawrence Berkeley National Laboratory.
 
 Author: Lin Lin
 
@@ -46,12 +46,12 @@ such enhancements or derivative works thereof, in binary and source code form.
 #ifndef _PEXSI_ENVIRONMENT_HPP_
 #define _PEXSI_ENVIRONMENT_HPP_
 
-// Include mpi.h moved here by ELSI team
+// MPI
 #include <mpi.h>
 
 // STL libraries
-#include <iostream> 
-#include <iomanip> 
+#include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <sstream>
 #include <unistd.h>
@@ -76,9 +76,6 @@ such enhancements or derivative works thereof, in binary and source code form.
 
 // For 32-bit and 64-bit integers
 #include <stdint.h>
-
-// MPI
-//#include <mpi.h>
 
 // Google coredumper for debugging
 #ifdef COREDUMPER

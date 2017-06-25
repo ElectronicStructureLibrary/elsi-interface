@@ -1,13 +1,14 @@
 # PEXSI Makefile designed for ELSI installer.
 # Victor Yu, ELSI team.
-# Apr 6, 2017
+# Jun 25, 2017
 
 include ../make.inc
 
 SRCS_C   = pdsymbfact.c pzsymbfact.c get_perm_c_parmetis.c
 SRCS_CPP = interface.cpp ppexsi.cpp pole.cpp TreeBcast.cpp \
            superlu_dist_internal_complex.cpp superlu_dist_internal_real.cpp \
-           mpi_interf.cpp lapack.cpp blas.cpp utility.cpp global.cpp timer.cpp
+           mpi_interf.cpp lapack.cpp blas.cpp utility.cpp global.cpp timer.cpp \
+           getPole.cpp
 SRCS_F90 = f_interface.f90
 
 OBJS = $(SRCS_CPP:.cpp=.o) $(SRCS_C:.c=.o) $(SRCS_F90:.f90=.o)

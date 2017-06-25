@@ -1,6 +1,3 @@
-#!/usr/bin/bash
-
-# Compiler and tools
 CC      = $(MPICC)
 CXX     = $(MPICXX)
 FC      = $(MPIFC)
@@ -10,15 +7,12 @@ CP      = cp
 RM      = rm
 RMFLAGS = -f
 
-# Includes
 PEXSI_INCLUDE = -I$(PEXSI_DIR)/include
 INCLUDES      = $(PEXSI_INCLUDE) $(SUPERLU_INC)
 
-# Libraries
 CPP_LIB       = $(CXX_LDFLAGS)
 PEXSI_LIB     = $(PEXSI_DIR)/src/libpexsi.a
 
-# Different compiling and linking options
 COMPILE_DEF  = -DRELEASE
 
 PAR_ND_LIB = $(PARMETIS_LIB)
