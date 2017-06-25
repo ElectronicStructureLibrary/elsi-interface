@@ -489,20 +489,23 @@ end subroutine
 !>
 !! This routine overrides PEXSI default settings.
 !!
-subroutine elsi_customize_pexsi(elsi_h,temperature,gap,delta_e,n_poles,n_procs_per_pole,&
-                                max_iteration,mu_min,mu_max,mu0,mu_inertia_tolerance,&
-                                mu_inertia_expansion,mu_safeguard,n_electron_accuracy,&
-                                matrix_type,is_symbolic_factorize,ordering,&
-                                np_symbolic_factorize,verbosity)
+subroutine elsi_customize_pexsi(elsi_h,pexsi_driver,temperature,gap,delta_e,n_poles,&
+                                n_procs_per_pole,n_mu_points,max_iteration,mu_min,&
+                                mu_max,mu0,mu_inertia_tolerance,mu_inertia_expansion,&
+                                mu_safeguard,n_electron_accuracy,matrix_type,&
+                                is_symbolic_factorize,ordering,np_symbolic_factorize,&
+                                verbosity)
 
    implicit none
 
    type(elsi_handle), intent(inout)        :: elsi_h                !< Handle of this ELSI instance
+   integer(kind=i4),  intent(in), optional :: pexsi_driver          !< PEXSI DFT driver version
    real(kind=r8),     intent(in), optional :: temperature           !< Temperature, in the same unit as Hamiltonian
    real(kind=r8),     intent(in), optional :: gap                   !< Spectral gap, can be set to 0 in most cases
    real(kind=r8),     intent(in), optional :: delta_e               !< Upper bound for the spectral radius of S^(-1)H
    integer(kind=i4),  intent(in), optional :: n_poles               !< Number of poles
    integer(kind=i4),  intent(in), optional :: n_procs_per_pole      !< Number of processors for one pole
+   integer(kind=i4),  intent(in), optional :: n_mu_points           !< Number of mu points
    integer(kind=i4),  intent(in), optional :: max_iteration         !< Maximum number of PEXSI iterations
    real(kind=r8),     intent(in), optional :: mu_min                !< Lower bound of chemical potential
    real(kind=r8),     intent(in), optional :: mu_max                !< Upper bound of chemical potential
@@ -521,6 +524,18 @@ subroutine elsi_customize_pexsi(elsi_h,temperature,gap,delta_e,n_poles,n_procs_p
 
    call elsi_check_handle(elsi_h,caller)
 
+   ! PEXSI DFT driver version
+   ! Default: 2
+   if(present(pexsi_driver)) then
+      elsi_h%pexsi_driver = pexsi_driver
+   endif
+
+   ! Number of mu points
+   ! Default: 2
+   if(present(n_mu_points)) then
+      elsi_h%n_mu_points = n_mu_points
+   endif
+
    ! Temperature, in the same unit as H
    if(present(temperature)) then
       elsi_h%pexsi_options%temperature = temperature
@@ -538,7 +553,7 @@ subroutine elsi_customize_pexsi(elsi_h,temperature,gap,delta_e,n_poles,n_procs_p
    endif
 
    ! Number of poles
-   ! default: 40
+   ! default: 20
    if(present(n_poles)) then
       elsi_h%pexsi_options%numPole = n_poles
    endif
@@ -673,13 +688,7 @@ subroutine elsi_customize_elpa(elsi_h,elpa_solver,elpa_output)
    call elsi_check_handle(elsi_h,caller)
 
    if(present(elpa_solver)) then
-      if(elpa_solver == 1) then
-         elsi_h%elpa_one_always = .true.
-         elsi_h%elpa_two_always = .false.
-      elseif(elpa_solver == 2) then
-         elsi_h%elpa_one_always = .false.
-         elsi_h%elpa_two_always = .true.
-      endif
+      elsi_h%elpa_solver = elpa_solver
    endif
 
    if(present(elpa_output)) then

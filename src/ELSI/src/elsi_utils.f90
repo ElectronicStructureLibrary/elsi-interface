@@ -872,8 +872,7 @@ subroutine elsi_reset_handle(elsi_h)
    elsi_h%spin_degen              = 0.0_r8
    elsi_h%mu_ready                = .false.
    elsi_h%edm_ready               = .false.
-   elsi_h%elpa_one_always         = .false.
-   elsi_h%elpa_two_always         = .false.
+   elsi_h%elpa_solver             = UNSET
    elsi_h%elpa_output             = .false.
    elsi_h%n_elpa_steps            = UNSET
    elsi_h%new_overlap             = .true.

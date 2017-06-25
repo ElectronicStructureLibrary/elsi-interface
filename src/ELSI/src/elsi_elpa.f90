@@ -31,7 +31,7 @@
 module ELSI_ELPA
 
    use iso_c_binding
-   use ELSI_CONSTANTS, only: REAL_VALUES,COMPLEX_VALUES
+   use ELSI_CONSTANTS, only: REAL_VALUES,COMPLEX_VALUES,UNSET
    use ELSI_DIMENSIONS, only: elsi_handle
    use ELSI_MU, only: elsi_compute_mu_and_occ
    use ELSI_PRECISION, only: r8,i4
@@ -794,21 +794,18 @@ subroutine elsi_solve_evp_elpa(elsi_h)
 
    integer(kind=i4) :: mpierr
    logical :: success
-   logical :: two_step_solver
 
    character*40, parameter :: caller = "elsi_solve_evp_elpa"
 
    elpa_print_times = elsi_h%elpa_output
 
    ! Choose 1-stage or 2-stage solver
-   if(elsi_h%elpa_one_always) then
-      two_step_solver = .false.
-   elseif(elsi_h%elpa_two_always) then
-      two_step_solver = .true.
-   elseif(elsi_h%n_g_size < 256) then
-      two_step_solver = .false.
-   else
-      two_step_solver = .true.
+   if(elsi_h%elpa_solver == UNSET) then
+      if(elsi_h%n_g_size < 256) then
+         elsi_h%elpa_solver = 1
+      else
+         elsi_h%elpa_solver = 2
+      endif
    endif
 
    ! Transform to standard form
@@ -819,7 +816,7 @@ subroutine elsi_solve_evp_elpa(elsi_h)
    call elsi_start_standard_evp_time(elsi_h)
 
    ! Solve evp, return eigenvalues and eigenvectors
-   if(two_step_solver) then ! 2-stage solver
+   if(elsi_h%elpa_solver == 2) then ! 2-stage solver
       call elsi_statement_print("  Starting ELPA 2-stage eigensolver",elsi_h)
       select case(elsi_h%matrix_data_type)
       case(COMPLEX_VALUES)
