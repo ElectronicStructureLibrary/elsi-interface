@@ -42,4 +42,4 @@ install: $(PEXSI_LIB)
 	cp *.mod $(INC_DIR)
 
 clean:
-	$(RM) -f $(OBJS) $(DEPS) *.a *.d.* *.mod
+	rm -f *.o *.d *.a *.d.* *.mod
