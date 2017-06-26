@@ -148,7 +148,7 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
    type(elsi_handle), intent(inout) :: elsi_h
 
    real(kind=r8), save :: this_pexsi_tol = 1.0e-2_r8
-   integer(kind=i4) :: mpierr
+   integer(kind=i4)    :: mpierr
 
    character*200 :: info_str
    character*40, parameter :: caller = "elsi_solve_evp_pexsi"
@@ -219,15 +219,14 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
       call elsi_stop(" PEXSI DFT driver not able to solve problem. Exiting...",elsi_h,caller)
    endif
 
+   ! Reuse chemical potential
    if(elsi_h%pexsi_driver == 1) then
-      ! Turn off inertia counting if chemical potential does not change a lot
-      if(abs(elsi_h%mu-elsi_h%pexsi_options%mu0) > 5.0e-3_r8) then
+      if(abs(elsi_h%mu-elsi_h%pexsi_options%mu0) > 1.0e-3_r8) then
          elsi_h%pexsi_options%isInertiaCount = 1
       else
          elsi_h%pexsi_options%isInertiaCount = 0
       endif
 
-      ! Use chemical potential in this step as initial guess for next step
       elsi_h%pexsi_options%mu0 = elsi_h%mu
 
       if(elsi_h%small_pexsi_tol) then
@@ -239,6 +238,9 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
             endif
          endif
       endif
+   else
+      elsi_h%pexsi_options%muMin0 = elsi_h%pexsi_options%muMin0-1.0_r8
+      elsi_h%pexsi_options%muMax0 = elsi_h%pexsi_options%muMax0+1.0_r8
    endif
 
    ! Get the results

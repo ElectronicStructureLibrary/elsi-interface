@@ -65,7 +65,7 @@ program test_dm_real
    ! VY: Reference values from calculations on June 25, 2017.
    real(kind=r8), parameter :: e_elpa  = -126.817462901838_r8
    real(kind=r8), parameter :: e_omm   = -126.817462901838_r8
-   real(kind=r8), parameter :: e_pexsi = -128.733194153370_r8
+   real(kind=r8), parameter :: e_pexsi = -128.733187719376_r8
    real(kind=r8), parameter :: e_tol   = 1.0e-10_r8
 
    ! Initialize MPI

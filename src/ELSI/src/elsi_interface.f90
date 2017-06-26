@@ -578,25 +578,25 @@ subroutine elsi_customize_pexsi(elsi_h,pexsi_driver,temperature,gap,delta_e,n_po
       elsi_h%pexsi_options%maxPEXSIIter = max_iteration
    endif
 
-   ! From the second step, initial guess of mu is from previous step
+   ! From the second step, mu is from previous step
    if(elsi_h%n_elsi_calls == 0) then
       ! Initial guess of mu
       ! default: 0.0
       if(present(mu0)) then
          elsi_h%pexsi_options%mu0 = mu0
       endif
-   endif
 
-   ! Initial guess of lower bound for mu
-   ! default: -10.0
-   if(present(mu_min)) then
-      elsi_h%pexsi_options%muMin0 = mu_min
-   endif
+      ! Initial guess of lower bound for mu
+      ! default: -10.0
+      if(present(mu_min)) then
+         elsi_h%pexsi_options%muMin0 = mu_min
+      endif
 
-   ! Initial guess of upper bound for mu
-   ! default: 10.0
-   if(present(mu_max)) then
-      elsi_h%pexsi_options%muMax0 = mu_max
+      ! Initial guess of upper bound for mu
+      ! default: 10.0
+      if(present(mu_max)) then
+         elsi_h%pexsi_options%muMax0 = mu_max
+      endif
    endif
 
    ! Stopping criterion in terms of the chemical potential
