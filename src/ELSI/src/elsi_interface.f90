@@ -63,6 +63,7 @@ module ELSI
    public :: elsi_customize_elpa     !< Override ELPA default
    public :: elsi_customize_omm      !< Override libOMM default
    public :: elsi_customize_pexsi    !< Override PEXSI default
+   public :: elsi_customize_sips     !< Override SIPs default
    public :: elsi_customize_mu       !< Override chemical potential determination
    public :: elsi_ev_real            !< Compute eigenvalues and eigenvectors
    public :: elsi_ev_complex         !< Compute eigenvalues and eigenvectors
@@ -363,6 +364,7 @@ end subroutine
 !   elsi_customize_omm
 !   elsi_customize_pexsi
 !   elsi_customize_elpa
+!   elsi_customize_sips
 !   elsi_customize_mu
 !   elsi_collect
 !   elsi_collect_pexsi
@@ -449,32 +451,32 @@ subroutine elsi_customize_omm(elsi_h,n_elpa_steps,omm_flavor,eigen_shift,&
 
    call elsi_check_handle(elsi_h,caller)
 
-   ! Number of ELPA steps
+   ! Number of ELPA steps [Default: 6]
    if(present(n_elpa_steps)) then
       elsi_h%n_elpa_steps = n_elpa_steps
    endif
 
-   ! How to perform orbital minimization?
+   ! How to perform orbital minimization? [Default: 0]
    if(present(omm_flavor)) then
       elsi_h%omm_flavor = omm_flavor
    endif
 
-   ! Eigenspectrum shift parameter
+   ! Eigenspectrum shift parameter [Default: 0.0_r8
    if(present(eigen_shift)) then
       elsi_h%eta = eigen_shift
    endif
 
-   ! Tolerance for minimization
+   ! Tolerance for minimization [Default: 1.0e-10_r8]
    if(present(omm_tolerance)) then
       elsi_h%min_tol = omm_tolerance
    endif
 
-   ! Use pspBLAS sparse linear algebra?
+   ! Use pspBLAS sparse linear algebra? [Default: .false.]
    if(present(use_pspblas)) then
       elsi_h%use_psp = use_pspblas
    endif
 
-   ! Output details?
+   ! Output details? [Default: .true.]
    if(present(omm_output)) then
       elsi_h%omm_output = omm_output
    endif
@@ -524,14 +526,12 @@ subroutine elsi_customize_pexsi(elsi_h,pexsi_driver,temperature,gap,delta_e,n_po
 
    call elsi_check_handle(elsi_h,caller)
 
-   ! PEXSI DFT driver version
-   ! Default: 2
+   ! PEXSI DFT driver version [Default: 2]
    if(present(pexsi_driver)) then
       elsi_h%pexsi_driver = pexsi_driver
    endif
 
-   ! Number of mu points
-   ! Default: 2
+   ! Number of mu points [Default: 2]
    if(present(n_mu_points)) then
       elsi_h%n_mu_points = n_mu_points
    endif
@@ -541,29 +541,25 @@ subroutine elsi_customize_pexsi(elsi_h,pexsi_driver,temperature,gap,delta_e,n_po
       elsi_h%pexsi_options%temperature = temperature
    endif
 
-   ! Spectral gap, can be set to 0 in most cases (default)
+   ! Spectral gap, can be set to 0 in most cases [Default: 0.0_r8]
    if(present(gap)) then
       elsi_h%pexsi_options%gap = gap
    endif
 
-   ! Upper bound for the spectral radius of S^(-1)H
-   ! default: 10
+   ! Upper bound for the spectral radius of S^(-1)H [Default: 10.0_r8]
    if(present(delta_e)) then
       elsi_h%pexsi_options%deltaE = delta_e
    endif
 
-   ! Number of poles
-   ! default: 20
+   ! Number of poles [Default: 20]
    if(present(n_poles)) then
       elsi_h%pexsi_options%numPole = n_poles
    endif
 
    ! Number of processors for one pole
-   ! default: decided from n_procs and n_poles
    if(present(n_procs_per_pole)) then
       if(mod(elsi_h%n_procs,n_procs_per_pole) == 0) then
          elsi_h%n_p_per_pole_pexsi = n_procs_per_pole
-         elsi_h%n_p_per_pole_ready = .true.
       else
          call elsi_stop("  The total number of MPI tasks must be a"//&
                         " multiple of the number of MPI tasks per"//&
@@ -572,57 +568,49 @@ subroutine elsi_customize_pexsi(elsi_h,pexsi_driver,temperature,gap,delta_e,n_po
    endif
 
    ! Maximum number of PEXSI iterations after each inertia
-   ! counting procedure
-   ! default: 3
+   ! counting procedure [Default: 3]
    if(present(max_iteration)) then
       elsi_h%pexsi_options%maxPEXSIIter = max_iteration
    endif
 
    ! From the second step, mu is from previous step
    if(elsi_h%n_elsi_calls == 0) then
-      ! Initial guess of mu
-      ! default: 0.0
+      ! Initial guess of mu [Default: 0.0_r8]
       if(present(mu0)) then
          elsi_h%pexsi_options%mu0 = mu0
       endif
 
-      ! Initial guess of lower bound for mu
-      ! default: -10.0
+      ! Initial guess of lower bound for mu [Default: -10.0_r8]
       if(present(mu_min)) then
          elsi_h%pexsi_options%muMin0 = mu_min
       endif
 
-      ! Initial guess of upper bound for mu
-      ! default: 10.0
+      ! Initial guess of upper bound for mu [Default: 10.0_r8]
       if(present(mu_max)) then
          elsi_h%pexsi_options%muMax0 = mu_max
       endif
    endif
 
    ! Stopping criterion in terms of the chemical potential
-   ! for the inertia counting procedure
-   ! default: 0.05
+   ! for the inertia counting procedure [Default: 0.05_r8]
    if(present(mu_inertia_tolerance)) then
       elsi_h%pexsi_options%muInertiaTolerance = mu_inertia_tolerance
    endif
 
    ! If the chemical potential is not in the initial interval,
-   ! the interval is expanded by this value
-   ! default: 0.3
+   ! the interval is expanded by this value [Default: 0.3_r8]
    if(present(mu_inertia_expansion)) then
       elsi_h%pexsi_options%muInertiaExpansion = mu_inertia_expansion
    endif
 
    ! Safeguard criterion in terms of the chemical potential to
-   ! reinvoke the inertia counting procedure
-   ! default: 0.05
+   ! reinvoke the inertia counting procedure [Default: 0.05_r8]
    if(present(mu_safeguard)) then
       elsi_h%pexsi_options%muPEXSISafeGuard = mu_safeguard
    endif
 
    ! Stopping criterion of the PEXSI iteration in terms of the
-   ! number of electrons compared to the exact number
-   ! default: 0.01
+   ! number of electrons compared to the exact number [Default: 0.01_r8]
    if(present(n_electron_accuracy)) then
       elsi_h%pexsi_options%numElectronPEXSITolerance = n_electron_accuracy
       if(n_electron_accuracy < 1.0e-2_r8) then
@@ -631,20 +619,19 @@ subroutine elsi_customize_pexsi(elsi_h,pexsi_driver,temperature,gap,delta_e,n_po
       endif
    endif
 
-   ! Type of input H and S matrices
-   ! 0: real symmetric (default)
+   ! Type of input H and S matrices [Default: 0]
+   ! 0: real symmetric
    ! 1: general complex
    if(present(matrix_type)) then
       elsi_h%pexsi_options%matrixType = matrix_type
    endif
 
-   ! Whether to perform symbolic factorization
-   ! default: 1
+   ! Whether to perform symbolic factorization [Default: 1]
    if(present(is_symbolic_factorize)) then
       elsi_h%pexsi_options%isSymbolicFactorize = is_symbolic_factorize
    endif
 
-   ! Ordering strategy for factorization and selected inversion
+   ! Ordering strategy for factorization and selected inversion [Default: 0]
    ! 0: parallel ordering using ParMETIS
    ! 1: sequential ordering using METIS
    ! 2: multiple minimum degree ordering
@@ -652,14 +639,14 @@ subroutine elsi_customize_pexsi(elsi_h,pexsi_driver,temperature,gap,delta_e,n_po
       elsi_h%pexsi_options%ordering = ordering
    endif
 
-   ! Number of processors for ParMETIS, only used if ordering=0
+   ! Number of processors for ParMETIS, only used if ordering=0 [Default: 1]
    if(present(np_symbolic_factorize)) then
       elsi_h%pexsi_options%npSymbFact = np_symbolic_factorize
    endif
 
-   ! Level of output information
+   ! Level of output information [Default: 1]
    ! 0: no output
-   ! 1: basic output (default)
+   ! 1: basic output
    ! 2: detailed output
    if(present(verbosity)) then
       elsi_h%pexsi_options%verbosity = verbosity
@@ -680,17 +667,19 @@ subroutine elsi_customize_elpa(elsi_h,elpa_solver,elpa_output)
    implicit none
 
    type(elsi_handle), intent(inout)        :: elsi_h      !< Handle of this ELSI instance
-   integer(kind=i4),  intent(in), optional :: elpa_solver !< Always use 1-stage or 2-stage solver
+   integer(kind=i4),  intent(in), optional :: elpa_solver !< 1-stage or 2-stage solver?
    logical,           intent(in), optional :: elpa_output !< Output details?
 
    character*40, parameter :: caller = "elsi_customize_elpa"
 
    call elsi_check_handle(elsi_h,caller)
 
+   ! 1-stage or 2-stage solver? [Default: 2]
    if(present(elpa_solver)) then
       elsi_h%elpa_solver = elpa_solver
    endif
 
+   ! Output details? [Default: .false.]
    if(present(elpa_output)) then
       elsi_h%elpa_output = elpa_output
    endif
@@ -698,6 +687,68 @@ subroutine elsi_customize_elpa(elsi_h,elpa_solver,elpa_output)
    if(elsi_h%solver .ne. ELPA) then
       call elsi_statement_print("  The chosen solver is not ELPA."//&
                                 " Ignore elsi_customize_elpa call.",elsi_h)
+   endif
+
+end subroutine
+
+!>
+!! This routine overrides SIPs default settings.
+!!
+subroutine elsi_customize_sips(elsi_h,slicing_method,n_slices,inertia_option,&
+                               unbound,slice_buffer)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h                !< Handle of this ELSI instance
+   integer(kind=i4),  intent(in), optional :: slicing_method !< Method of slicing
+   integer(kind=i4),  intent(in), optional :: n_slices       !< Number of slices
+   integer(kind=i4),  intent(in), optional :: inertia_option !< Inertia counting before solve?
+   integer(kind=i4),  intent(in), optional :: unbound        !< Bound the left side of the interval?
+   real(kind=r8),     intent(in), optional :: slice_buffer   !< Small buffer to expand the interval
+
+   character*40, parameter :: caller = "elsi_customize_sips"
+
+   ! Method of slicing [Default: 3]
+   ! 0: Equally spaced subintervals
+   ! 1: K-meaans after equally spaced subintervals
+   ! 2: Equally populated subintervals
+   ! 3: K-means after equally populated subintervals
+   if(present(slicing_method)) then
+      elsi_h%slicing_method = slicing_method
+   endif
+
+   ! Number of slices
+   if(present(n_slices)) then
+      if(mod(elsi_h%n_procs,n_slices) == 0) then
+         elsi_h%n_slices = n_slices
+         elsi_h%n_p_per_slice_sips = elsi_h%n_procs/elsi_h%n_slices
+      else
+         call elsi_stop("  The total number of MPI tasks must be"//&
+                        " a multiple of the number of slices."//&
+                        " Exiting...",elsi_h,caller)
+      endif
+   endif
+
+   ! Perform inertia computations before solve? [Default: 1]
+   if(present(inertia_option)) then
+      elsi_h%inertia_option = inertia_option
+   endif
+
+   ! Bound the left side of the interval [Default: 1]
+   ! 0: Bound interval
+   ! 1: -Infinity
+   if(present(unbound)) then
+      elsi_h%unbound = unbound
+   endif
+
+   ! Small buffer to expand the interval [Default: 0.01_r8]
+   if(present(slice_buffer)) then
+      elsi_h%slice_buffer = slice_buffer
+   endif
+
+   if(elsi_h%solver .ne. SIPS) then
+      call elsi_statement_print("  The chosen solver is not SIPS."//&
+                                " Ignore elsi_customize_sips call.",elsi_h)
    endif
 
 end subroutine

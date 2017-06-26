@@ -900,7 +900,6 @@ subroutine elsi_reset_handle(elsi_h)
    elsi_h%nnz_l_pexsi             = UNSET
    elsi_h%pexsi_started           = .false.
    elsi_h%sparsity_pattern_ready  = .false.
-   elsi_h%n_p_per_pole_ready      = .false.
    elsi_h%small_pexsi_tol         = .false.
    elsi_h%final_pexsi_tol         = 1.0e-2_r8
    elsi_h%pexsi_info              = UNSET

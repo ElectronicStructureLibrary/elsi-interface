@@ -30,7 +30,7 @@
 !!
 module ELSI_SIPS
 
-   use ELSI_CONSTANTS
+   use ELSI_CONSTANTS, only: UNSET
    use ELSI_DIMENSIONS, only: elsi_handle
    use ELSI_PRECISION, only: r8,i4
    use ELSI_TIMERS
@@ -67,9 +67,11 @@ subroutine elsi_init_sips(elsi_h)
    if(elsi_h%n_elsi_calls == 1) then
       call initialize_qetsc()
 
-      !< TODO: Number of slices
-      elsi_h%n_p_per_slice_sips = 1
-      elsi_h%n_slices = elsi_h%n_procs
+      if(elsi_h%n_slices == UNSET) then
+         !< TODO: Number of slices
+         elsi_h%n_p_per_slice_sips = 1
+         elsi_h%n_slices = elsi_h%n_procs
+      endif
 
       ! SIPs uses a pure block distribution
       elsi_h%n_b_rows_sips = elsi_h%n_g_size

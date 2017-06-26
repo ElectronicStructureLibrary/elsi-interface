@@ -219,7 +219,6 @@ module ELSI_DIMENSIONS
       integer(kind=i4) :: n_p_per_pole_pexsi = UNSET !< Number of processors per pole
       integer(kind=i4) :: nnz_l_pexsi = UNSET        !< Local number of nonzeros in PEXSI distribution
       logical :: sparsity_pattern_ready = .false.    !< Is sparsity pattern set by user?
-      logical :: n_p_per_pole_ready = .false.        !< Is number of processors per pole set by user?
       logical :: small_pexsi_tol = .false.           !< Is user-defined tolerance smaller than default?
       logical :: pexsi_started = .false.             !< Is PEXSI started?
 

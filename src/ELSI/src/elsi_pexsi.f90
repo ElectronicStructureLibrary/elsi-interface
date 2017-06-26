@@ -31,7 +31,7 @@
 module ELSI_PEXSI
 
    use iso_c_binding
-   use ELSI_CONSTANTS, only: BLACS_DENSE
+   use ELSI_CONSTANTS, only: BLACS_DENSE,UNSET
    use ELSI_DIMENSIONS, only: elsi_handle
    use ELSI_PRECISION, only: r8,i4
    use ELSI_TIMERS
@@ -74,7 +74,7 @@ subroutine elsi_init_pexsi(elsi_h)
    if(elsi_h%n_elsi_calls == 1) then
       n_groups = elsi_h%pexsi_options%numPole*elsi_h%n_mu_points
 
-      if(.not. elsi_h%n_p_per_pole_ready) then
+      if(elsi_h%n_p_per_pole_pexsi == UNSET) then
          if(mod(elsi_h%n_procs,n_groups) == 0) then
             elsi_h%n_p_per_pole_pexsi = elsi_h%n_procs/n_groups
 
