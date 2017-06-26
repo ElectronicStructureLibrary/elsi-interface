@@ -279,7 +279,7 @@ subroutine elsi_set_pexsi_default_options(elsi_h)
    ! Use the PEXSI Default options
    call f_ppexsi_set_default_options(elsi_h%pexsi_options)
 
-   ! Use 1 process in ParMETIS for symbolic factorization
+   ! Use 1 process in symbolic factorization
    elsi_h%pexsi_options%npSymbFact = 1
 
    ! PEXSI DFT driver
@@ -308,6 +308,10 @@ subroutine elsi_print_pexsi_options(elsi_h)
    write(info_str,"(A)") "  PEXSI settings (in the same unit of Hamiltonian):"
    call elsi_statement_print(info_str,elsi_h)
 
+   write(info_str,"(1X,' | PEXSI DFT driver ',I5)") &
+      elsi_h%pexsi_driver
+   call elsi_statement_print(info_str,elsi_h)
+
    write(info_str,"(1X,' | Temperature ',F10.4)") &
       elsi_h%pexsi_options%temperature
    call elsi_statement_print(info_str,elsi_h)
@@ -318,6 +322,10 @@ subroutine elsi_print_pexsi_options(elsi_h)
 
    write(info_str,"(1X,' | Number of poles ',I5)") &
       elsi_h%pexsi_options%numPole
+   call elsi_statement_print(info_str,elsi_h)
+
+   write(info_str,"(1X,' | Number of mu points ',I5)") &
+      elsi_h%n_mu_points
    call elsi_statement_print(info_str,elsi_h)
 
    write(info_str,"(1X,' | Max PEXSI iterations ',I5)") &
