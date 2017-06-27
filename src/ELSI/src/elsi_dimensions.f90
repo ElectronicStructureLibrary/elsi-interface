@@ -279,6 +279,8 @@ module ELSI_DIMENSIONS
       real(kind=r8) :: t_density_matrix_start
       real(kind=r8) :: t_cholesky
       real(kind=r8) :: t_cholesky_start
+      real(kind=r8) :: t_inertia
+      real(kind=r8) :: t_inertia_start
 
    end type
 

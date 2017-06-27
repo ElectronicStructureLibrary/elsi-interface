@@ -53,7 +53,7 @@ contains
 !=========================
 
 !>
-!! PEXSI processor grid setup.
+!! This routine initializes PEXSI and its processor grid.
 !!
 subroutine elsi_init_pexsi(elsi_h)
 
@@ -266,7 +266,7 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
 end subroutine
 
 !>
-!! Set PEXSI variables to ELSI default.
+!! This routine sets default PEXSI parameters.
 !!
 subroutine elsi_set_pexsi_default_options(elsi_h)
 
@@ -294,7 +294,7 @@ subroutine elsi_set_pexsi_default_options(elsi_h)
 end subroutine
 
 !>
-!! Print PEXSI settings.
+!! This routine prints PEXSI settings.
 !!
 subroutine elsi_print_pexsi_options(elsi_h)
 

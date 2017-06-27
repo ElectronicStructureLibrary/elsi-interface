@@ -381,7 +381,7 @@ subroutine elsi_allocate_complex_3d(elsi_h,array,dim1,dim2,dim3,arrayname,caller
 end subroutine
 
 !>
-!! Clean shutdown in case of error.
+!! Clean shutdown in case of errors.
 !!
 subroutine elsi_stop(message,elsi_h,caller)
 
@@ -1125,7 +1125,7 @@ subroutine elsi_check_handle(elsi_h,caller)
 end subroutine
 
 !> 
-!! This routine computes global row index based on local row index.
+!! This routine computes the global row index based on the local row index.
 !!
 subroutine elsi_get_global_row(elsi_h,global_idx,local_idx)
 
@@ -1149,7 +1149,7 @@ subroutine elsi_get_global_row(elsi_h,global_idx,local_idx)
 end subroutine
 
 !> 
-!! This routine computes global column index based on local column index.
+!! This routine computes the global column index based on the local column index.
 !!
 subroutine elsi_get_global_col(elsi_h,global_idx,local_idx)
 

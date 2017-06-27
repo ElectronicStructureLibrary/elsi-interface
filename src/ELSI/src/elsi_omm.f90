@@ -213,7 +213,7 @@ subroutine elsi_compute_edm_omm(elsi_h)
 end subroutine
 
 !> 
-!! Set OMM variables to ELSI default.
+!! This routine sets default libOMM parameters.
 !! 
 subroutine elsi_set_omm_default_options(elsi_h)
    
@@ -263,7 +263,7 @@ subroutine elsi_set_omm_default_options(elsi_h)
 end subroutine
 
 !>
-!! Print OMM settings.
+!! This routine prints libOMM settings.
 !!          
 subroutine elsi_print_omm_options(elsi_h)
 
@@ -294,9 +294,11 @@ subroutine elsi_print_omm_options(elsi_h)
 
 end subroutine
 
-!> The following is a wrapper around ms_scalapack_setup without optional variables
-!! This is done by using *_present variables to mimic "present" built-in
-!! This is needed for language interoperability
+!>
+!! The following is a wrapper around ms_scalapack_setup without optional variables.
+!! This is done by using *_present variables to mimic "present" built-in.
+!! This is needed for language interoperability.
+!!
 subroutine ms_scalapack_setup_no_opt(mpi_comm,nprow,order,bs_def,bs_list_present,&
                                      bs_list,icontxt_present,icontxt)
 
@@ -330,8 +332,10 @@ subroutine ms_scalapack_setup_no_opt(mpi_comm,nprow,order,bs_def,bs_list_present
 
 end subroutine
 
-!> Wrapper around tomato_TB to return array dimension, but no matrix data.
+!>
+!! Wrapper around tomato_TB to return array dimension, but no matrix data.
 !! This is needed for interoperability between languages.
+!!
 subroutine tomato_TB_get_dims(template_basedir,system_label,&
                               switch1,frac_occ,num_orbs_per_atom,&
                               switch2,num_orbs,num_cells_dir,&
@@ -392,10 +396,12 @@ subroutine tomato_TB_get_dims(template_basedir,system_label,&
 
 end subroutine
 
-!> Wrapper around tomato_TB for the real case to eliminate the usage of the
+!>
+!! Wrapper around tomato_TB for the real case to eliminate the usage of the
 !! type(matrix) data type. This is needed for interoperability between
 !! languages. There is currently a matrix copy in this subroutine that can
 !! likely be eliminated.
+!!
 subroutine tomato_TB_real(template_basedir,system_label,&
                           switch1,frac_occ,num_orbs_per_atom,&
                           switch2,num_orbs,num_cells_dir,&

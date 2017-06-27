@@ -77,8 +77,7 @@ subroutine elsi_get_elpa_comms(elsi_h)
 end subroutine
 
 !>
-!! This routine computes the chemical potential and occupation numbers
-!! from eigenvalues.
+!! This routine computes the chemical potential and occupation numbers.
 !!
 subroutine elsi_compute_occ_elpa(elsi_h)
 
@@ -120,7 +119,7 @@ subroutine elsi_compute_occ_elpa(elsi_h)
 end subroutine
 
 !>
-!! This routine constructs the density matrix using eigenvectors from ELPA.
+!! This routine constructs the density matrix.
 !!
 subroutine elsi_compute_dm_elpa(elsi_h)
 
@@ -224,8 +223,7 @@ subroutine elsi_compute_dm_elpa(elsi_h)
 end subroutine
 
 !>
-!! This routine constructs the energy-weighted density matrix using
-!! eigenvectors from ELPA.
+!! This routine constructs the energy-weighted density matrix.
 !!
 subroutine elsi_compute_edm_elpa(elsi_h)
 

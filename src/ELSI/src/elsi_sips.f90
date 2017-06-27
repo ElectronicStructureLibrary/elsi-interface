@@ -42,6 +42,7 @@ module ELSI_SIPS
 
    public :: elsi_init_sips
    public :: elsi_solve_evp_sips
+   public :: elsi_sips_to_blacs_ev
    public :: elsi_set_sips_default_options
    public :: elsi_print_sips_options
 
@@ -52,7 +53,7 @@ contains
 !=========================
 
 !>
-!! This routine initializes SIPs solver.
+!! This routine initializes SIPs.
 !!
 subroutine elsi_init_sips(elsi_h)
 
@@ -116,15 +117,7 @@ subroutine elsi_solve_evp_sips(elsi_h)
    type(elsi_handle), intent(inout) :: elsi_h
 
    integer(kind=i4) :: n_solve_steps
-   integer(kind=i4) :: i_state
-   integer(kind=i4) :: i_row
-   integer(kind=i4) :: i_row2
-   integer(kind=i4) :: i_col
-   integer(kind=i4) :: g_row
-   integer(kind=i4) :: g_row2
-   integer(kind=i4) :: this_p_col
    integer(kind=i4) :: mpierr
-   real(kind=r8), allocatable :: tmp_real(:)
 
    character*40, parameter :: caller = "elsi_solve_evp_sips"
 
@@ -157,6 +150,8 @@ subroutine elsi_solve_evp_sips(elsi_h)
 
       ! Run inertia counting
       if((elsi_h%inertia_option > 0) .and. (elsi_h%n_slices > 1)) then
+         call elsi_start_inertia_time(elsi_h)
+
          call run_eps_inertias_check(elsi_h%unbound,elsi_h%n_states,elsi_h%n_slices,&
                                      elsi_h%slices,elsi_h%shifts,elsi_h%inertias,&
                                      n_solve_steps)
@@ -168,6 +163,8 @@ subroutine elsi_solve_evp_sips(elsi_h)
          call compute_subintervals(elsi_h%n_slices,elsi_h%slicing_method,elsi_h%unbound,&
                                    elsi_h%interval,0.0_r8,0.0_r8,elsi_h%slices,&
                                    elsi_h%eval(1:elsi_h%n_states))
+
+         call elsi_stop_inertia_time(elsi_h)
       endif
    else ! n_elsi_calls > 1
       ! Update H matrix
@@ -192,7 +189,34 @@ subroutine elsi_solve_evp_sips(elsi_h)
    ! Get eigenvalues
    elsi_h%eval(1:elsi_h%n_states) = get_eps_eigenvalues(elsi_h%n_states)
 
-   ! Get and distribute eigenvectors
+   call MPI_Barrier(elsi_h%mpi_comm,mpierr)
+   call elsi_stop_generalized_evp_time(elsi_h)
+
+end subroutine
+
+!>
+!! This routine gets the eigenvectors computed by SIPs and distributes
+!! them in a 2D block-cyclic fashion.
+!!
+subroutine elsi_sips_to_blacs_ev(elsi_h)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h
+
+   integer(kind=i4) :: i_state
+   integer(kind=i4) :: i_row
+   integer(kind=i4) :: i_row2
+   integer(kind=i4) :: i_col
+   integer(kind=i4) :: g_row
+   integer(kind=i4) :: g_row2
+   integer(kind=i4) :: this_p_col
+   real(kind=r8), allocatable :: tmp_real(:)
+
+   character*40, parameter :: caller = "elsi_distribute_ev"
+
+   call elsi_start_redistribution_time(elsi_h)
+
    call elsi_allocate(elsi_h,tmp_real,elsi_h%n_g_size,"tmp_real",caller)
 
    elsi_h%evec_real = 0.0_r8
@@ -224,13 +248,12 @@ subroutine elsi_solve_evp_sips(elsi_h)
 
    deallocate(tmp_real)
 
-   call MPI_Barrier(elsi_h%mpi_comm,mpierr)
-   call elsi_stop_generalized_evp_time(elsi_h)
+   call elsi_stop_redistribution_time(elsi_h)
 
 end subroutine
 
 !>
-!! Set SIPs variables to ELSI default.
+!! This routine sets default SIPs parameters.
 !!
 subroutine elsi_set_sips_default_options(elsi_h)
 
@@ -264,7 +287,7 @@ subroutine elsi_set_sips_default_options(elsi_h)
 end subroutine
 
 !>
-!! Print SIPs settings.
+!! This routine prints SIPs settings.
 !!
 subroutine elsi_print_sips_options(elsi_h)
 

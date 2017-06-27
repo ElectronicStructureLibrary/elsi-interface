@@ -50,8 +50,7 @@ module ELSI_MU
 contains
 
 !>
-!! This routine computes the chemical potential and occupation numbers
-!! from eigenvalues.
+!! This routine computes the chemical potential and occupation numbers.
 !!
 subroutine elsi_compute_mu_and_occ(elsi_h,n_electron_in,n_state_in,n_spin_in,n_kpoint_in,&
                                    kpoint_weights,eigenvalues,occ_numbers,mu)

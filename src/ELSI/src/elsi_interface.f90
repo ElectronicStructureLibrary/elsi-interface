@@ -26,8 +26,8 @@
 ! EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 !>
-!! This module provides routines for setting up and solving or circumventing
-!! an Kohn-Sham eigenvalue problem using ELPA, libOMM, PEXSI, CheSS, SIPs.
+!! This module provides routines for solving the Kohn-Sham electronic structure
+!! using ELPA, libOMM, PEXSI, CheSS, SIPs.
 !!
 module ELSI
 
@@ -171,7 +171,7 @@ subroutine elsi_set_solver(elsi_h,solver)
 end subroutine
 
 !>
-!! Set MPI.
+!! This routine sets the MPI communicator.
 !!
 subroutine elsi_set_mpi(elsi_h,mpi_comm)
 
@@ -199,7 +199,7 @@ subroutine elsi_set_mpi(elsi_h,mpi_comm)
 end subroutine
 
 !>
-!! Set BLACS.
+!! This routine sets the BLACS context and the block size.
 !!
 subroutine elsi_set_blacs(elsi_h,blacs_ctxt,block_size)
 
@@ -839,8 +839,7 @@ subroutine elsi_collect(elsi_h,overlap_is_singular,n_singular_basis,mu)
 end subroutine
 
 !>
-!! This routine collects results (other than density matrix)
-!! after a PEXSI calculation.
+!! This routine collects results after a PEXSI calculation.
 !!
 subroutine elsi_collect_pexsi(elsi_h,mu,edm,fdm)
 
@@ -882,7 +881,7 @@ end subroutine
 !=======================
 
 !>
-!! This routine computes eigenvalues and eigenvectors.
+!! This routine computes the eigenvalues and eigenvectors.
 !!
 subroutine elsi_ev_real(elsi_h,H_in,S_in,e_val_out,e_vec_out)
 
@@ -937,7 +936,7 @@ subroutine elsi_ev_real(elsi_h,H_in,S_in,e_val_out,e_vec_out)
       ! Initialize SIPs
       call elsi_init_sips(elsi_h)
 
-      ! Convert matrix format and distribution from BLACS to SIPs
+      ! Convert BLACS H and S to SIPs format
       call elsi_blacs_to_sips_hs(elsi_h,H_in,S_in)
 
       ! Set matrices
@@ -951,6 +950,9 @@ subroutine elsi_ev_real(elsi_h,H_in,S_in,e_val_out,e_vec_out)
       ! Solve
       call elsi_solve_evp_sips(elsi_h)
 
+      ! Convert SIPs eigenvectors to BLACS format
+      call elsi_sips_to_blacs_ev(elsi_h)
+
    case DEFAULT
       call elsi_stop(" No supported solver has been chosen."//&
                      " Please choose ELPA solver to compute"//&
@@ -962,7 +964,7 @@ subroutine elsi_ev_real(elsi_h,H_in,S_in,e_val_out,e_vec_out)
 end subroutine
 
 !>
-!! This routine computes eigenvalues and eigenvectors.
+!! This routine computes the eigenvalues and eigenvectors.
 !!
 subroutine elsi_ev_complex(elsi_h,H_in,S_in,e_val_out,e_vec_out)
 
@@ -1024,7 +1026,7 @@ subroutine elsi_ev_complex(elsi_h,H_in,S_in,e_val_out,e_vec_out)
 end subroutine
 
 !>
-!! This routine computes eigenvalues and eigenvectors.
+!! This routine computes the eigenvalues and eigenvectors.
 !!
 subroutine elsi_ev_real_sparse(elsi_h,H_in,S_in,e_val_out,e_vec_out)
 
@@ -1051,7 +1053,7 @@ subroutine elsi_ev_real_sparse(elsi_h,H_in,S_in,e_val_out,e_vec_out)
 
    select case(elsi_h%solver)
    case(ELPA)
-      ! Convert matrix format and distribution from PEXSI to BLACS
+      ! Convert PEXSI H and S to BLACS format
       call elsi_pexsi_to_blacs_hs(elsi_h,H_in,S_in)
 
       ! Set matrices
@@ -1086,7 +1088,7 @@ subroutine elsi_ev_real_sparse(elsi_h,H_in,S_in,e_val_out,e_vec_out)
 end subroutine
 
 !>
-!! This routine computes density matrix.
+!! This routine computes the density matrix.
 !!
 subroutine elsi_dm_real(elsi_h,H_in,S_in,D_out,energy_out)
 
@@ -1236,7 +1238,7 @@ subroutine elsi_dm_real(elsi_h,H_in,S_in,D_out,energy_out)
       ! Initialize PEXSI
       call elsi_init_pexsi(elsi_h)
 
-      ! Convert matrix format and distribution from BLACS to PEXSI
+      ! Convert BLACS H and S to PEXSI format
       call elsi_blacs_to_pexsi_hs(elsi_h,H_in,S_in)
 
       ! Allocate
@@ -1256,8 +1258,7 @@ subroutine elsi_dm_real(elsi_h,H_in,S_in,D_out,energy_out)
       ! Solve
       call elsi_solve_evp_pexsi(elsi_h)
 
-      ! Convert 1D block CCS sparse density matrix to 2D
-      ! block-cyclic dense format
+      ! Convert PEXSI density matrix to BLACS format
       call elsi_pexsi_to_blacs_dm(elsi_h,D_out)
       call elsi_get_energy(elsi_h,energy_out)
 
@@ -1278,7 +1279,7 @@ subroutine elsi_dm_real(elsi_h,H_in,S_in,D_out,energy_out)
 end subroutine
 
 !>
-!! This routine computes energy-weighted density matrix.
+!! This routine computes the energy-weighted density matrix.
 !!
 subroutine elsi_edm_real(elsi_h,D_out)
 
@@ -1332,7 +1333,7 @@ subroutine elsi_edm_real(elsi_h,D_out)
 end subroutine
 
 !>
-!! This routine computes density matrix.
+!! This routine computes the density matrix.
 !!
 subroutine elsi_dm_complex(elsi_h,H_in,S_in,D_out,energy_out)
 
@@ -1422,7 +1423,7 @@ subroutine elsi_dm_complex(elsi_h,H_in,S_in,D_out,energy_out)
 end subroutine
 
 !>
-!! This routine computes density matrix.
+!! This routine computes the density matrix.
 !!
 subroutine elsi_dm_real_sparse(elsi_h,H_in,S_in,D_out,energy_out)
 
@@ -1449,7 +1450,7 @@ subroutine elsi_dm_real_sparse(elsi_h,H_in,S_in,D_out,energy_out)
 
    select case(elsi_h%solver)
    case(ELPA)
-      ! Convert matrix format and distribution from PEXSI to BLACS
+      ! Convert PEXSI H and S to BLACS format
       call elsi_pexsi_to_blacs_hs(elsi_h,H_in,S_in)
 
       ! Allocate
@@ -1487,7 +1488,7 @@ subroutine elsi_dm_real_sparse(elsi_h,H_in,S_in,D_out,energy_out)
    case(LIBOMM)
       call elsi_print_omm_options(elsi_h)
 
-      ! Convert matrix format and distribution from PEXSI to BLACS
+      ! Convert PEXSI H and S to BLACS format
       call elsi_pexsi_to_blacs_hs(elsi_h,H_in,S_in)
 
       if(elsi_h%n_elsi_calls .le. elsi_h%n_elpa_steps) then

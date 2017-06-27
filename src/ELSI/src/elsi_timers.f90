@@ -60,6 +60,8 @@ module ELSI_TIMERS
    public :: elsi_stop_density_matrix_time
    public :: elsi_start_cholesky_time
    public :: elsi_stop_cholesky_time
+   public :: elsi_start_inertia_time
+   public :: elsi_stop_inertia_time
 
 contains
 
@@ -72,8 +74,7 @@ subroutine elsi_init_timers(elsi_h)
 
    type(elsi_handle), intent(inout) :: elsi_h
 
-   integer(kind=i4) :: initial_time
-
+   integer(kind=i4)        :: initial_time
    character*40, parameter :: caller = "elsi_init_timers"
 
    elsi_h%t_generalized_evp         = 0.0_r8
@@ -92,6 +93,8 @@ subroutine elsi_init_timers(elsi_h)
    elsi_h%t_density_matrix_start    = 0.0_r8
    elsi_h%t_cholesky                = 0.0_r8
    elsi_h%t_cholesky_start          = 0.0_r8
+   elsi_h%t_inertia                 = 0.0_r8
+   elsi_h%t_inertia_start           = 0.0_r8
 
    call system_clock(initial_time,clock_rate,clock_max)
 
@@ -106,9 +109,8 @@ subroutine elsi_final_print(elsi_h)
 
    type(elsi_handle), intent(in) :: elsi_h
 
-   real(kind=r8)    :: sparsity
-   integer(kind=i4) :: i_proc
-
+   real(kind=r8)           :: sparsity
+   integer(kind=i4)        :: i_proc
    character*40, parameter :: caller = "elsi_final_print"
 
    if(print_info) then
@@ -152,8 +154,7 @@ subroutine elsi_get_time(wtime)
 
    real(kind=r8), intent(out) :: wtime
 
-   integer(kind=i4) :: tics
-
+   integer(kind=i4)        :: tics
    character*40, parameter :: caller = "elsi_get_time"
 
    call system_clock(tics)
@@ -163,7 +164,7 @@ subroutine elsi_get_time(wtime)
 end subroutine
 
 !>
-!! This routine starts generalized_evp timer.
+!! This routine starts the generalized_evp timer.
 !!
 subroutine elsi_start_generalized_evp_time(elsi_h)
 
@@ -178,7 +179,7 @@ subroutine elsi_start_generalized_evp_time(elsi_h)
 end subroutine
 
 !>
-!! This routine ends generalized_evp timer.
+!! This routine ends the generalized_evp timer.
 !!
 subroutine elsi_stop_generalized_evp_time(elsi_h)
 
@@ -186,8 +187,8 @@ subroutine elsi_stop_generalized_evp_time(elsi_h)
 
    type(elsi_handle), intent(inout) :: elsi_h
 
-   real(kind=r8) :: stop_time
-   character*200 :: info_str
+   real(kind=r8)           :: stop_time
+   character*200           :: info_str
    character*40, parameter :: caller = "elsi_stop_generalized_evp_time"
 
    call elsi_get_time(stop_time)
@@ -201,7 +202,7 @@ subroutine elsi_stop_generalized_evp_time(elsi_h)
 end subroutine
 
 !>
-!! This routine starts density_matrix timer.
+!! This routine starts the density_matrix timer.
 !!
 subroutine elsi_start_density_matrix_time(elsi_h)
 
@@ -216,7 +217,7 @@ subroutine elsi_start_density_matrix_time(elsi_h)
 end subroutine
 
 !>
-!! This routine ends density_matrix timer.
+!! This routine ends the density_matrix timer.
 !!
 subroutine elsi_stop_density_matrix_time(elsi_h)
 
@@ -224,8 +225,8 @@ subroutine elsi_stop_density_matrix_time(elsi_h)
 
    type(elsi_handle), intent(inout) :: elsi_h
 
-   real(kind=r8) :: stop_time
-   character*200 :: info_str
+   real(kind=r8)           :: stop_time
+   character*200           :: info_str
    character*40, parameter :: caller = "elsi_stop_density_matrix_time"
 
    call elsi_get_time(stop_time)
@@ -239,7 +240,7 @@ subroutine elsi_stop_density_matrix_time(elsi_h)
 end subroutine
 
 !>
-!! This routine starts redistribution timer.
+!! This routine starts the redistribution timer.
 !!
 subroutine elsi_start_redistribution_time(elsi_h)
 
@@ -254,7 +255,7 @@ subroutine elsi_start_redistribution_time(elsi_h)
 end subroutine
 
 !>
-!! This routine ends redistribution timer.
+!! This routine ends the redistribution timer.
 !!
 subroutine elsi_stop_redistribution_time(elsi_h)
 
@@ -262,8 +263,8 @@ subroutine elsi_stop_redistribution_time(elsi_h)
 
    type(elsi_handle), intent(inout) :: elsi_h
 
-   real(kind=r8) :: stop_time
-   character*200 :: info_str
+   real(kind=r8)           :: stop_time
+   character*200           :: info_str
    character*40, parameter :: caller = "elsi_stop_redistribution_time"
 
    call elsi_get_time(stop_time)
@@ -277,7 +278,7 @@ subroutine elsi_stop_redistribution_time(elsi_h)
 end subroutine
 
 !>
-!! This routine starts transform_evp timer.
+!! This routine starts the transform_evp timer.
 !!
 subroutine elsi_start_transform_evp_time(elsi_h)
 
@@ -292,7 +293,7 @@ subroutine elsi_start_transform_evp_time(elsi_h)
 end subroutine
 
 !>
-!! This routine ends transform_evp timer.
+!! This routine ends the transform_evp timer.
 !!
 subroutine elsi_stop_transform_evp_time(elsi_h)
 
@@ -300,8 +301,8 @@ subroutine elsi_stop_transform_evp_time(elsi_h)
 
    type(elsi_handle), intent(inout) :: elsi_h
 
-   real(kind=r8) :: stop_time
-   character*200 :: info_str
+   real(kind=r8)           :: stop_time
+   character*200           :: info_str
    character*40, parameter :: caller = "elsi_stop_transform_evp_time"
 
    call elsi_get_time(stop_time)
@@ -315,7 +316,7 @@ subroutine elsi_stop_transform_evp_time(elsi_h)
 end subroutine
 
 !>
-!! This routine starts back_transform_ev timer.
+!! This routine starts the back_transform_ev timer.
 !!
 subroutine elsi_start_back_transform_ev_time(elsi_h)
 
@@ -330,7 +331,7 @@ subroutine elsi_start_back_transform_ev_time(elsi_h)
 end subroutine
 
 !>
-!! This routine ends back_transform_ev timer.
+!! This routine ends the back_transform_ev timer.
 !!
 subroutine elsi_stop_back_transform_ev_time(elsi_h)
 
@@ -338,8 +339,8 @@ subroutine elsi_stop_back_transform_ev_time(elsi_h)
 
    type(elsi_handle), intent(inout) :: elsi_h
 
-   real(kind=r8) :: stop_time
-   character*200 :: info_str
+   real(kind=r8)           :: stop_time
+   character*200           :: info_str
    character*40, parameter :: caller = "elsi_stop_back_transform_ev_time"
 
    call elsi_get_time(stop_time)
@@ -353,7 +354,7 @@ subroutine elsi_stop_back_transform_ev_time(elsi_h)
 end subroutine
 
 !>
-!! This routine starts singularity_check timer.
+!! This routine starts the singularity_check timer.
 !!
 subroutine elsi_start_singularity_check_time(elsi_h)
 
@@ -368,7 +369,7 @@ subroutine elsi_start_singularity_check_time(elsi_h)
 end subroutine
 
 !>
-!! This routine ends singularity_check timer.
+!! This routine ends the singularity_check timer.
 !!
 subroutine elsi_stop_singularity_check_time(elsi_h)
 
@@ -376,8 +377,8 @@ subroutine elsi_stop_singularity_check_time(elsi_h)
 
    type(elsi_handle), intent(inout) :: elsi_h
 
-   real(kind=r8) :: stop_time
-   character*200 :: info_str
+   real(kind=r8)           :: stop_time
+   character*200           :: info_str
    character*40, parameter :: caller = "elsi_stop_singularity_check_time"
 
    call elsi_get_time(stop_time)
@@ -391,7 +392,7 @@ subroutine elsi_stop_singularity_check_time(elsi_h)
 end subroutine
 
 !>
-!! This routine starts standard_evp timer.
+!! This routine starts the standard_evp timer.
 !!
 subroutine elsi_start_standard_evp_time(elsi_h)
 
@@ -406,7 +407,7 @@ subroutine elsi_start_standard_evp_time(elsi_h)
 end subroutine
 
 !>
-!! This routine ends standard_evp timer.
+!! This routine ends the standard_evp timer.
 !!
 subroutine elsi_stop_standard_evp_time(elsi_h)
 
@@ -414,8 +415,8 @@ subroutine elsi_stop_standard_evp_time(elsi_h)
 
    type(elsi_handle), intent(inout) :: elsi_h
 
-   real(kind=r8) :: stop_time
-   character*200 :: info_str
+   real(kind=r8)           :: stop_time
+   character*200           :: info_str
    character*40, parameter :: caller = "elsi_stop_standard_evp_time"
 
    call elsi_get_time(stop_time)
@@ -429,7 +430,7 @@ subroutine elsi_stop_standard_evp_time(elsi_h)
 end subroutine
 
 !>
-!! This routine starts cholesky timer.
+!! This routine starts the cholesky timer.
 !!
 subroutine elsi_start_cholesky_time(elsi_h)
 
@@ -444,7 +445,7 @@ subroutine elsi_start_cholesky_time(elsi_h)
 end subroutine
 
 !>
-!! This routine ends cholesky timer.
+!! This routine ends the cholesky timer.
 !!
 subroutine elsi_stop_cholesky_time(elsi_h)
 
@@ -452,8 +453,8 @@ subroutine elsi_stop_cholesky_time(elsi_h)
 
    type(elsi_handle), intent(inout) :: elsi_h
 
-   real(kind=r8) :: stop_time
-   character*200 :: info_str
+   real(kind=r8)           :: stop_time
+   character*200           :: info_str
    character*40, parameter :: caller = "elsi_stop_cholesky_time"
 
    call elsi_get_time(stop_time)
@@ -462,6 +463,44 @@ subroutine elsi_stop_cholesky_time(elsi_h)
    write(info_str,"('  Finished Cholesky decomposition')")
    call elsi_statement_print(info_str,elsi_h)
    write(info_str,"('  | Time :',F10.3,' s')") elsi_h%t_cholesky
+   call elsi_statement_print(info_str,elsi_h)
+
+end subroutine
+
+!>
+!! This routine starts the inertia timer.
+!!
+subroutine elsi_start_inertia_time(elsi_h)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h
+
+   character*40, parameter :: caller = "elsi_start_inertia_time"
+
+   call elsi_get_time(elsi_h%t_inertia_start)
+
+end subroutine
+
+!>
+!! This routine ends the inertia timer.
+!!
+subroutine elsi_stop_inertia_time(elsi_h)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h
+
+   real(kind=r8)           :: stop_time
+   character*200           :: info_str
+   character*40, parameter :: caller = "elsi_stop_inertia_time"
+
+   call elsi_get_time(stop_time)
+   elsi_h%t_inertia = stop_time-elsi_h%t_inertia_start
+
+   write(info_str,"('  Finished inertia counting')")
+   call elsi_statement_print(info_str,elsi_h)
+   write(info_str,"('  | Time :',F10.3,' s')") elsi_h%t_inertia
    call elsi_statement_print(info_str,elsi_h)
 
 end subroutine
