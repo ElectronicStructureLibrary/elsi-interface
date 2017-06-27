@@ -246,7 +246,6 @@ module ELSI_DIMENSIONS
       integer(kind=i4) :: nnz_l_sips = UNSET         !< Local number of nonzeros in SIPs distribution
       integer(kind=i4) :: n_p_per_slice_sips = UNSET !< Number of processors per slice
       integer(kind=i4) :: n_inertia_steps = UNSET    !< Number of inertia counting steps
-      integer(kind=i4) :: n_solve_steps = UNSET      !< Number of solution steps
       integer(kind=i4) :: slicing_method = UNSET     !< Type of slices
                                                      !! 0 = Equally spaced subintervals
                                                      !! 1 = K-meaans after equally spaced subintervals

@@ -115,6 +115,7 @@ subroutine elsi_solve_evp_sips(elsi_h)
 
    type(elsi_handle), intent(inout) :: elsi_h
 
+   integer(kind=i4) :: n_solve_steps
    integer(kind=i4) :: i_state
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_row2
@@ -154,13 +155,11 @@ subroutine elsi_solve_evp_sips(elsi_h)
       call compute_subintervals(elsi_h%n_slices,0,elsi_h%unbound,elsi_h%interval,&
                                 0.0_r8,0.0_r8,elsi_h%slices)
 
-      call set_eps_subintervals(elsi_h%n_slices,elsi_h%slices)
-
       ! Run inertia counting
       if((elsi_h%inertia_option > 0) .and. (elsi_h%n_slices > 1)) then
          call run_eps_inertias_check(elsi_h%unbound,elsi_h%n_states,elsi_h%n_slices,&
                                      elsi_h%slices,elsi_h%shifts,elsi_h%inertias,&
-                                     elsi_h%n_solve_steps)
+                                     n_solve_steps)
 
          call inertias_to_eigenvalues(elsi_h%n_slices+1,elsi_h%n_states,&
                                       elsi_h%slice_buffer,elsi_h%shifts,&
@@ -188,8 +187,7 @@ subroutine elsi_solve_evp_sips(elsi_h)
    call set_eps_subintervals(elsi_h%n_slices,elsi_h%slices)
 
    ! Solve eigenvalue problem
-   call solve_eps_check(elsi_h%n_states,elsi_h%n_slices,elsi_h%slices,&
-                        elsi_h%n_solve_steps)
+   call solve_eps_check(elsi_h%n_states,elsi_h%n_slices,elsi_h%slices,n_solve_steps)
 
    ! Get eigenvalues
    elsi_h%eval(1:elsi_h%n_states) = get_eps_eigenvalues(elsi_h%n_states)
@@ -257,11 +255,11 @@ subroutine elsi_set_sips_default_options(elsi_h)
    !< How to bound the left side of the interval
    !! 0 = Bounded
    !! 1 = -infinity
-   elsi_h%unbound = 1
+   elsi_h%unbound = 0
 
    !< Small buffer to expand the eigenvalue interval
    !! Smaller values improve performance if eigenvalue range known
-   elsi_h%slice_buffer = 0.01_r8
+   elsi_h%slice_buffer = 0.1_r8
 
 end subroutine
 

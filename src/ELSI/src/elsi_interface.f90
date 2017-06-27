@@ -734,14 +734,14 @@ subroutine elsi_customize_sips(elsi_h,slicing_method,n_slices,inertia_option,&
       elsi_h%inertia_option = inertia_option
    endif
 
-   ! Bound the left side of the interval [Default: 1]
+   ! Bound the left side of the interval [Default: 0]
    ! 0: Bound interval
    ! 1: -Infinity
    if(present(unbound)) then
       elsi_h%unbound = unbound
    endif
 
-   ! Small buffer to expand the interval [Default: 0.01_r8]
+   ! Small buffer to expand the interval [Default: 0.1_r8]
    if(present(slice_buffer)) then
       elsi_h%slice_buffer = slice_buffer
    endif

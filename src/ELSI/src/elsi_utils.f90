@@ -808,7 +808,7 @@ subroutine elsi_cleanup(elsi_h)
 
    ! Finalize QETSC
    if(elsi_h%sips_started) then
-      call finalize_qetsc()
+      call clean_qetsc()
    endif
 
    ! Reset elsi_h
@@ -921,7 +921,6 @@ subroutine elsi_reset_handle(elsi_h)
    elsi_h%nnz_l_sips              = UNSET
    elsi_h%n_p_per_slice_sips      = UNSET
    elsi_h%n_inertia_steps         = UNSET
-   elsi_h%n_solve_steps           = UNSET
    elsi_h%slicing_method          = UNSET
    elsi_h%inertia_option          = UNSET
    elsi_h%unbound                 = UNSET

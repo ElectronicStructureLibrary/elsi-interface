@@ -36,7 +36,7 @@ module m_qetsc
    private
 
    public :: initialize_qetsc
-   public :: finalize_qetsc
+   public :: clean_qetsc
    public :: eps_load_ham
    public :: eps_update_ham
    public :: eps_load_ovlp
@@ -66,7 +66,7 @@ subroutine initialize_qetsc()
 
 end subroutine
 
-subroutine finalize_qetsc()
+subroutine clean_qetsc()
 
    implicit none
 
