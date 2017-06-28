@@ -273,7 +273,7 @@ subroutine elsi_set_sips_default_options(elsi_h)
    !< Extra inertia computations before solve?
    !! 0 = No
    !! 1 = Yes
-   elsi_h%inertia_option = 1
+   elsi_h%inertia_option = 0
 
    !< How to bound the left side of the interval
    !! 0 = Bounded
@@ -282,7 +282,7 @@ subroutine elsi_set_sips_default_options(elsi_h)
 
    !< Small buffer to expand the eigenvalue interval
    !! Smaller values improve performance if eigenvalue range known
-   elsi_h%slice_buffer = 0.1_r8
+   elsi_h%slice_buffer = 0.5_r8
 
 end subroutine
 
