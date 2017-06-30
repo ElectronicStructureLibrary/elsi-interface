@@ -402,7 +402,7 @@ subroutine elsi_customize(elsi_h,print_detail,overlap_is_unit,zero_threshold,&
       elsi_h%overlap_is_unit = overlap_is_unit
    endif
 
-   ! Threshold to define numerical zero [Default: 1e-13_r8]
+   ! Threshold to define numerical zero [Default: 1e-15_r8]
    if(present(zero_threshold)) then
       elsi_h%zero_threshold = zero_threshold
    endif
