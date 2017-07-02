@@ -130,13 +130,13 @@ subroutine elsi_blacs_to_pexsi_hs_small(elsi_h,H_in,S_in)
    integer(kind=i4) :: local_col_id !< Local column id in 1D block distribution
    integer(kind=i4) :: local_row_id !< Local row id in 1D block distribution
    integer(kind=i4) :: d1,d2,d11,d12,d21,d22 !< Number of columns in the intermediate stage
+   integer(kind=i4) :: dest !< Destination of an element
    integer(kind=i4) :: this_n_cols
    integer(kind=i4) :: tmp_int
    integer(kind=i4) :: min_pos
    integer(kind=i4) :: min_id
    integer(kind=i4) :: nnz_l_pexsi_aux
    integer(kind=i4) :: mpi_comm_aux_pexsi
-   integer(kind=i4), allocatable :: dest(:) !< Destination of each element
    integer(kind=i4), allocatable :: locat(:) !< Location of each global column
    real(kind=r8) :: tmp_real
 
@@ -166,7 +166,6 @@ subroutine elsi_blacs_to_pexsi_hs_small(elsi_h,H_in,S_in)
    endif
 
    call elsi_allocate(elsi_h,locat,elsi_h%n_g_size,"locat",caller)
-   call elsi_allocate(elsi_h,dest,elsi_h%nnz_l,"dest",caller)
    call elsi_allocate(elsi_h,pos_send_buffer,elsi_h%nnz_l,"pos_send_buffer",caller)
    call elsi_allocate(elsi_h,h_val_send_buffer,elsi_h%nnz_l,"h_val_send_buffer",caller)
 
@@ -244,16 +243,13 @@ subroutine elsi_blacs_to_pexsi_hs_small(elsi_h,H_in,S_in)
                call elsi_get_global_col(elsi_h,global_col_id,i_col)
                call elsi_get_global_row(elsi_h,global_row_id,i_row)
                ! Compute destination
-               dest(i_val) = locat(global_col_id)
-               ! The last process may take more
-               if(dest(i_val) > (elsi_h%n_procs-1)) dest(i_val) = elsi_h%n_procs-1
-               ! Compute the global id
+               dest = min(locat(global_col_id),elsi_h%n_procs-1)
                ! Pack global id and data into buffers
                pos_send_buffer(i_val) = (global_col_id-1)*elsi_h%n_g_size+global_row_id
                h_val_send_buffer(i_val) = H_in(i_row,i_col)
                s_val_send_buffer(i_val) = S_in(i_row,i_col)
                ! Set send_count
-               send_count(dest(i_val)+1) = send_count(dest(i_val)+1)+1
+               send_count(dest+1) = send_count(dest+1)+1
             endif
          enddo
       enddo
@@ -266,21 +262,16 @@ subroutine elsi_blacs_to_pexsi_hs_small(elsi_h,H_in,S_in)
                call elsi_get_global_col(elsi_h,global_col_id,i_col)
                call elsi_get_global_row(elsi_h,global_row_id,i_row)
                ! Compute destination
-               dest(i_val) = locat(global_col_id)
-               ! The last process may take more
-               if(dest(i_val) > (elsi_h%n_procs-1)) dest(i_val) = elsi_h%n_procs-1
-               ! Compute the global id
+               dest = min(locat(global_col_id),elsi_h%n_procs-1)
                ! Pack global id and data into buffers
                pos_send_buffer(i_val) = (global_col_id-1)*elsi_h%n_g_size+global_row_id
                h_val_send_buffer(i_val) = H_in(i_row,i_col)
                ! Set send_count
-               send_count(dest(i_val)+1) = send_count(dest(i_val)+1)+1
+               send_count(dest+1) = send_count(dest+1)+1
             endif
          enddo
       enddo
    endif
-
-   call elsi_deallocate(elsi_h,dest,"dest")
 
    call elsi_allocate(elsi_h,recv_count,elsi_h%n_procs,"recv_count",caller)
 
@@ -496,6 +487,7 @@ subroutine elsi_blacs_to_pexsi_hs_large(elsi_h,H_in,S_in)
    integer(kind=i4) :: local_col_id !< Local column id in 1D block distribution
    integer(kind=i4) :: local_row_id !< Local row id in 1D block distribution
    integer(kind=i4) :: d1,d2,d11,d12,d21,d22 !< Number of columns in the intermediate stage
+   integer(kind=i4) :: dest !< Destination of an element
    integer(kind=i4) :: this_n_cols
    integer(kind=i4) :: min_pos
    integer(kind=i4) :: min_id
@@ -503,7 +495,6 @@ subroutine elsi_blacs_to_pexsi_hs_large(elsi_h,H_in,S_in)
    integer(kind=i4) :: mpi_comm_aux_pexsi
    integer(kind=i4) :: tmp_int
    integer(kind=i8) :: tmp_long
-   integer(kind=i4), allocatable :: dest(:) !< Destination of each element
    integer(kind=i4), allocatable :: locat(:) !< Location of each global column
    real(kind=r8) :: tmp_real
 
@@ -536,7 +527,6 @@ subroutine elsi_blacs_to_pexsi_hs_large(elsi_h,H_in,S_in)
    endif
 
    call elsi_allocate(elsi_h,locat,elsi_h%n_g_size,"locat",caller)
-   call elsi_allocate(elsi_h,dest,elsi_h%nnz_l,"dest",caller)
    call elsi_allocate(elsi_h,row_send_buffer,elsi_h%nnz_l,"row_send_buffer",caller)
    call elsi_allocate(elsi_h,col_send_buffer,elsi_h%nnz_l,"col_send_buffer",caller)
    call elsi_allocate(elsi_h,h_val_send_buffer,elsi_h%nnz_l,"h_val_send_buffer",caller)
@@ -615,16 +605,14 @@ subroutine elsi_blacs_to_pexsi_hs_large(elsi_h,H_in,S_in)
                call elsi_get_global_col(elsi_h,global_col_id,i_col)
                call elsi_get_global_row(elsi_h,global_row_id,i_row)
                ! Compute destination
-               dest(i_val) = locat(global_col_id)
-               ! The last process may take more
-               if(dest(i_val) > (elsi_h%n_procs-1)) dest(i_val) = elsi_h%n_procs-1
+               dest = min(locat(global_col_id),elsi_h%n_procs-1)
                ! Pack global id and data into buffers
                row_send_buffer(i_val) = global_row_id
                col_send_buffer(i_val) = global_col_id
                h_val_send_buffer(i_val) = H_in(i_row,i_col)
                s_val_send_buffer(i_val) = S_in(i_row,i_col)
                ! Set send_count
-               send_count(dest(i_val)+1) = send_count(dest(i_val)+1)+1
+               send_count(dest+1) = send_count(dest+1)+1
             endif
          enddo
       enddo
@@ -637,21 +625,17 @@ subroutine elsi_blacs_to_pexsi_hs_large(elsi_h,H_in,S_in)
                call elsi_get_global_col(elsi_h,global_col_id,i_col)
                call elsi_get_global_row(elsi_h,global_row_id,i_row)
                ! Compute destination
-               dest(i_val) = locat(global_col_id)
-               ! The last process may take more
-               if(dest(i_val) > (elsi_h%n_procs-1)) dest(i_val) = elsi_h%n_procs-1
+               dest = min(locat(global_col_id),elsi_h%n_procs-1)
                ! Pack global id and data into buffers
                row_send_buffer(i_val) = global_row_id
                col_send_buffer(i_val) = global_col_id
                h_val_send_buffer(i_val) = H_in(i_row,i_col)
               ! Set send_count
-               send_count(dest(i_val)+1) = send_count(dest(i_val)+1)+1
+               send_count(dest+1) = send_count(dest+1)+1
             endif
          enddo
       enddo
    endif
-
-   call elsi_deallocate(elsi_h,dest,"dest")
 
    call elsi_allocate(elsi_h,recv_count,elsi_h%n_procs,"recv_count",caller)
 
@@ -1281,11 +1265,11 @@ subroutine elsi_blacs_to_sips_hs_small(elsi_h,H_in,S_in)
    integer(kind=i4) :: global_row_id !< Global row id
    integer(kind=i4) :: local_col_id !< Local column id in 1D block distribution
    integer(kind=i4) :: local_row_id !< Local row id in 1D block distribution
+   integer(kind=i4) :: dest !< Destination of an element
    integer(kind=i4) :: tmp_int
    integer(kind=i4) :: min_pos
    integer(kind=i4) :: min_id
    real(kind=r8)    :: tmp_real
-   integer(kind=i4), allocatable :: dest(:) !< Destination of each element
 
    ! See documentation of MPI_Alltoallv
    real(kind=r8),    allocatable  :: h_val_send_buffer(:) !< Send buffer for Hamiltonian
@@ -1310,7 +1294,6 @@ subroutine elsi_blacs_to_sips_hs_small(elsi_h,H_in,S_in)
       call elsi_allocate(elsi_h,s_val_send_buffer,elsi_h%nnz_l,"s_val_send_buffer",caller)
    endif
 
-   call elsi_allocate(elsi_h,dest,elsi_h%nnz_l,"dest",caller)
    call elsi_allocate(elsi_h,pos_send_buffer,elsi_h%nnz_l,"pos_send_buffer",caller)
    call elsi_allocate(elsi_h,h_val_send_buffer,elsi_h%nnz_l,"h_val_send_buffer",caller)
    call elsi_allocate(elsi_h,send_count,elsi_h%n_procs,"send_count",caller)
@@ -1325,16 +1308,16 @@ subroutine elsi_blacs_to_sips_hs_small(elsi_h,H_in,S_in)
                call elsi_get_global_col(elsi_h,global_col_id,i_col)
                call elsi_get_global_row(elsi_h,global_row_id,i_row)
                ! Compute destination
-               dest(i_val) = (global_col_id-1)/(elsi_h%n_g_size/elsi_h%n_procs)
+               dest = (global_col_id-1)/(elsi_h%n_g_size/elsi_h%n_procs)
                ! The last process may take more
-               if(dest(i_val) > (elsi_h%n_procs-1)) dest(i_val) = elsi_h%n_procs-1
+               dest = min(dest,elsi_h%n_procs-1)
                ! Compute the global id
                ! Pack global id and data into buffers
                pos_send_buffer(i_val) = (global_col_id-1)*elsi_h%n_g_size+global_row_id
                h_val_send_buffer(i_val) = H_in(i_row,i_col)
                s_val_send_buffer(i_val) = S_in(i_row,i_col)
                ! Set send_count
-               send_count(dest(i_val)+1) = send_count(dest(i_val)+1)+1
+               send_count(dest+1) = send_count(dest+1)+1
            endif
         enddo
       enddo
@@ -1347,21 +1330,19 @@ subroutine elsi_blacs_to_sips_hs_small(elsi_h,H_in,S_in)
                call elsi_get_global_col(elsi_h,global_col_id,i_col)
                call elsi_get_global_row(elsi_h,global_row_id,i_row)
                ! Compute destination
-               dest(i_val) = (global_col_id-1)/(elsi_h%n_g_size/elsi_h%n_procs)
+               dest = (global_col_id-1)/(elsi_h%n_g_size/elsi_h%n_procs)
                ! The last process may take more
-               if(dest(i_val) > (elsi_h%n_procs-1)) dest(i_val) = elsi_h%n_procs-1
+               dest = min(dest,elsi_h%n_procs-1)
                ! Compute the global id
                ! Pack global id and data into buffers
                pos_send_buffer(i_val) = (global_col_id-1)*elsi_h%n_g_size+global_row_id
                h_val_send_buffer(i_val) = H_in(i_row,i_col)
                ! Set send_count
-               send_count(dest(i_val)+1) = send_count(dest(i_val)+1)+1
+               send_count(dest+1) = send_count(dest+1)+1
            endif
         enddo
       enddo
    endif
-
-   call elsi_deallocate(elsi_h,dest,"dest")
 
    call elsi_allocate(elsi_h,recv_count,elsi_h%n_procs,"recv_count",caller)
 
@@ -1528,12 +1509,12 @@ subroutine elsi_blacs_to_sips_hs_large(elsi_h,H_in,S_in)
    integer(kind=i4) :: global_row_id !< Global row id
    integer(kind=i4) :: local_col_id !< Local column id in 1D block distribution
    integer(kind=i4) :: local_row_id !< Local row id in 1D block distribution
+   integer(kind=i4) :: dest !< Destination of an element
    integer(kind=i4) :: tmp_int
    integer(kind=i8) :: tmp_long
    integer(kind=i4) :: min_pos
    integer(kind=i4) :: min_id
    real(kind=r8)    :: tmp_real
-   integer(kind=i4), allocatable :: dest(:) !< Destination of each element
 
    ! See documentation of MPI_Alltoallv
    real(kind=r8),    allocatable  :: h_val_send_buffer(:) !< Send buffer for Hamiltonian
@@ -1561,7 +1542,6 @@ subroutine elsi_blacs_to_sips_hs_large(elsi_h,H_in,S_in)
       call elsi_allocate(elsi_h,s_val_send_buffer,elsi_h%nnz_l,"s_val_send_buffer",caller)
    endif
 
-   call elsi_allocate(elsi_h,dest,elsi_h%nnz_l,"dest",caller)
    call elsi_allocate(elsi_h,row_send_buffer,elsi_h%nnz_l,"row_send_buffer",caller)
    call elsi_allocate(elsi_h,col_send_buffer,elsi_h%nnz_l,"col_send_buffer",caller)
    call elsi_allocate(elsi_h,h_val_send_buffer,elsi_h%nnz_l,"h_val_send_buffer",caller)
@@ -1577,16 +1557,16 @@ subroutine elsi_blacs_to_sips_hs_large(elsi_h,H_in,S_in)
                call elsi_get_global_col(elsi_h,global_col_id,i_col)
                call elsi_get_global_row(elsi_h,global_row_id,i_row)
                ! Compute destination
-               dest(i_val) = (global_col_id-1)/(elsi_h%n_g_size/elsi_h%n_procs)
+               dest = (global_col_id-1)/(elsi_h%n_g_size/elsi_h%n_procs)
                ! The last process may take more
-               if(dest(i_val) > (elsi_h%n_procs-1)) dest(i_val) = elsi_h%n_procs-1
+               dest = min(dest,elsi_h%n_procs-1)
                ! Pack global id and data into buffers
                row_send_buffer(i_val) = global_row_id
                col_send_buffer(i_val) = global_col_id
                h_val_send_buffer(i_val) = H_in(i_row,i_col)
                s_val_send_buffer(i_val) = S_in(i_row,i_col)
                ! Set send_count
-               send_count(dest(i_val)+1) = send_count(dest(i_val)+1)+1
+               send_count(dest+1) = send_count(dest+1)+1
            endif
         enddo
       enddo
@@ -1599,21 +1579,19 @@ subroutine elsi_blacs_to_sips_hs_large(elsi_h,H_in,S_in)
                call elsi_get_global_col(elsi_h,global_col_id,i_col)
                call elsi_get_global_row(elsi_h,global_row_id,i_row)
                ! Compute destination
-               dest(i_val) = (global_col_id-1)/(elsi_h%n_g_size/elsi_h%n_procs)
+               dest = (global_col_id-1)/(elsi_h%n_g_size/elsi_h%n_procs)
                ! The last process may take more
-               if(dest(i_val) > (elsi_h%n_procs-1)) dest(i_val) = elsi_h%n_procs-1
+               dest = min(dest,elsi_h%n_procs-1)
                ! Pack global id and data into buffers
                row_send_buffer(i_val) = global_row_id
                col_send_buffer(i_val) = global_col_id
                h_val_send_buffer(i_val) = H_in(i_row,i_col)
                ! Set send_count
-               send_count(dest(i_val)+1) = send_count(dest(i_val)+1)+1
+               send_count(dest+1) = send_count(dest+1)+1
            endif
         enddo
       enddo
    endif
-
-   call elsi_deallocate(elsi_h,dest,"dest")
 
    call elsi_allocate(elsi_h,recv_count,elsi_h%n_procs,"recv_count",caller)
 
