@@ -280,7 +280,7 @@ subroutine elsi_blacs_to_pexsi_hs_small(elsi_h,H_in,S_in)
       enddo
    endif
 
-   deallocate(dest)
+   call elsi_deallocate(elsi_h,dest,"dest")
 
    call elsi_allocate(elsi_h,recv_count,elsi_h%n_procs,"recv_count",caller)
 
@@ -315,7 +315,7 @@ subroutine elsi_blacs_to_pexsi_hs_small(elsi_h,H_in,S_in)
                       pos_recv_buffer,recv_count,recv_displ,mpi_integer,&
                       elsi_h%mpi_comm,mpierr)
 
-   deallocate(pos_send_buffer)
+   call elsi_deallocate(elsi_h,pos_send_buffer,"pos_send_buffer")
 
    ! Hamiltonian value
    call elsi_allocate(elsi_h,h_val_recv_buffer,nnz_l_pexsi_aux,"h_val_recv_buffer",caller)
@@ -324,7 +324,7 @@ subroutine elsi_blacs_to_pexsi_hs_small(elsi_h,H_in,S_in)
                       h_val_recv_buffer,recv_count,recv_displ,mpi_real8,&
                       elsi_h%mpi_comm,mpierr)
 
-   deallocate(h_val_send_buffer)
+   call elsi_deallocate(elsi_h,h_val_send_buffer,"h_val_send_buffer")
 
    ! Overlap value
    if(elsi_h%n_elsi_calls == 1) then
@@ -334,7 +334,7 @@ subroutine elsi_blacs_to_pexsi_hs_small(elsi_h,H_in,S_in)
                          s_val_recv_buffer,recv_count,recv_displ,mpi_real8,&
                          elsi_h%mpi_comm,mpierr)
 
-      deallocate(s_val_send_buffer)
+      call elsi_deallocate(elsi_h,s_val_send_buffer,"s_val_send_buffer")
    endif
 
    ! Sort
@@ -421,14 +421,14 @@ subroutine elsi_blacs_to_pexsi_hs_small(elsi_h,H_in,S_in)
                          pos_send_buffer,recv_count,recv_displ,mpi_integer,&
                          elsi_h%mpi_comm,mpierr)
 
-      deallocate(pos_recv_buffer)
+      call elsi_deallocate(elsi_h,pos_recv_buffer,"pos_recv_buffer")
 
       ! Overlap value
       call MPI_Alltoallv(s_val_recv_buffer,send_count,send_displ,mpi_real8,&
                          elsi_h%ovlp_real_pexsi,recv_count,recv_displ,mpi_real8,&
                          elsi_h%mpi_comm,mpierr)
 
-      deallocate(s_val_recv_buffer)
+      call elsi_deallocate(elsi_h,s_val_recv_buffer,"pos_recv_buffer")
    endif
 
    ! Hamiltonian value
@@ -436,11 +436,11 @@ subroutine elsi_blacs_to_pexsi_hs_small(elsi_h,H_in,S_in)
                       elsi_h%ham_real_pexsi,recv_count,recv_displ,mpi_real8,&
                       elsi_h%mpi_comm,mpierr)
 
-   deallocate(h_val_recv_buffer)
-   deallocate(send_count)
-   deallocate(recv_count)
-   deallocate(send_displ)
-   deallocate(recv_displ)
+   call elsi_deallocate(elsi_h,h_val_recv_buffer,"h_val_recv_buffer")
+   call elsi_deallocate(elsi_h,send_count,"send_count")
+   call elsi_deallocate(elsi_h,recv_count,"recv_count")
+   call elsi_deallocate(elsi_h,send_displ,"send_displ")
+   call elsi_deallocate(elsi_h,recv_displ,"recv_displ")
 
    ! Only the first pole computes row index and column pointer
    if(elsi_h%n_elsi_calls == 1) then
@@ -458,7 +458,7 @@ subroutine elsi_blacs_to_pexsi_hs_small(elsi_h,H_in,S_in)
          elsi_h%col_ptr_pexsi(elsi_h%n_l_cols_pexsi+1) = elsi_h%nnz_l_pexsi+1
       endif
 
-      deallocate(pos_send_buffer)
+      call elsi_deallocate(elsi_h,pos_send_buffer,"pos_send_buffer")
    endif
 
    call elsi_stop_redistribution_time(elsi_h)
@@ -651,7 +651,7 @@ subroutine elsi_blacs_to_pexsi_hs_large(elsi_h,H_in,S_in)
       enddo
    endif
 
-   deallocate(dest)
+   call elsi_deallocate(elsi_h,dest,"dest")
 
    call elsi_allocate(elsi_h,recv_count,elsi_h%n_procs,"recv_count",caller)
 
@@ -686,7 +686,7 @@ subroutine elsi_blacs_to_pexsi_hs_large(elsi_h,H_in,S_in)
                       row_recv_buffer,recv_count,recv_displ,mpi_integer,&
                       elsi_h%mpi_comm,mpierr)
 
-   deallocate(row_send_buffer)
+   call elsi_deallocate(elsi_h,row_send_buffer,"row_send_buffer")
 
    ! Column id
    call elsi_allocate(elsi_h,col_recv_buffer,nnz_l_pexsi_aux,"col_recv_buffer",caller)
@@ -695,7 +695,7 @@ subroutine elsi_blacs_to_pexsi_hs_large(elsi_h,H_in,S_in)
                       col_recv_buffer,recv_count,recv_displ,mpi_integer,&
                       elsi_h%mpi_comm,mpierr)
 
-   deallocate(col_send_buffer)
+   call elsi_deallocate(elsi_h,col_send_buffer,"col_send_buffer")
 
    ! Hamiltonian value
    call elsi_allocate(elsi_h,h_val_recv_buffer,nnz_l_pexsi_aux,"h_val_recv_buffer",caller)
@@ -704,7 +704,7 @@ subroutine elsi_blacs_to_pexsi_hs_large(elsi_h,H_in,S_in)
                       h_val_recv_buffer,recv_count,recv_displ,mpi_real8,&
                       elsi_h%mpi_comm,mpierr)
 
-   deallocate(h_val_send_buffer)
+   call elsi_deallocate(elsi_h,h_val_send_buffer,"h_val_send_buffer")
 
    ! Overlap value
    if(elsi_h%n_elsi_calls == 1) then
@@ -714,7 +714,7 @@ subroutine elsi_blacs_to_pexsi_hs_large(elsi_h,H_in,S_in)
                          s_val_recv_buffer,recv_count,recv_displ,mpi_real8,&
                          elsi_h%mpi_comm,mpierr)
 
-      deallocate(s_val_send_buffer)
+      call elsi_deallocate(elsi_h,s_val_send_buffer,"s_val_send_buffer")
    endif
 
    allocate(global_id(nnz_l_pexsi_aux))
@@ -819,7 +819,7 @@ subroutine elsi_blacs_to_pexsi_hs_large(elsi_h,H_in,S_in)
                          row_send_buffer,recv_count,recv_displ,mpi_integer,&
                          elsi_h%mpi_comm,mpierr)
 
-      deallocate(row_recv_buffer)
+      call elsi_deallocate(elsi_h,row_recv_buffer,"row_recv_buffer")
 
       ! Column id
       call elsi_allocate(elsi_h,col_send_buffer,elsi_h%nnz_l_pexsi,"col_send_buffer",caller)
@@ -828,14 +828,14 @@ subroutine elsi_blacs_to_pexsi_hs_large(elsi_h,H_in,S_in)
                          col_send_buffer,recv_count,recv_displ,mpi_integer,&
                          elsi_h%mpi_comm,mpierr)
 
-      deallocate(col_recv_buffer)
+      call elsi_deallocate(elsi_h,col_recv_buffer,"col_recv_buffer")
 
       ! Overlap value
       call MPI_Alltoallv(s_val_recv_buffer,send_count,send_displ,mpi_real8,&
                          elsi_h%ovlp_real_pexsi,recv_count,recv_displ,mpi_real8,&
                          elsi_h%mpi_comm,mpierr)
 
-      deallocate(s_val_recv_buffer)
+      call elsi_deallocate(elsi_h,s_val_recv_buffer,"s_val_recv_buffer")
    endif
 
    ! Hamiltonian value
@@ -843,11 +843,11 @@ subroutine elsi_blacs_to_pexsi_hs_large(elsi_h,H_in,S_in)
                       elsi_h%ham_real_pexsi,recv_count,recv_displ,mpi_real8,&
                       elsi_h%mpi_comm,mpierr)
 
-   deallocate(h_val_recv_buffer)
-   deallocate(send_count)
-   deallocate(recv_count)
-   deallocate(send_displ)
-   deallocate(recv_displ)
+   call elsi_deallocate(elsi_h,h_val_recv_buffer,"h_val_recv_buffer")
+   call elsi_deallocate(elsi_h,send_count,"send_count")
+   call elsi_deallocate(elsi_h,recv_count,"recv_count")
+   call elsi_deallocate(elsi_h,send_displ,"send_displ")
+   call elsi_deallocate(elsi_h,recv_displ,"recv_displ")
 
    ! Only the first pole computes row index and column pointer
    if(elsi_h%n_elsi_calls == 1) then
@@ -865,8 +865,8 @@ subroutine elsi_blacs_to_pexsi_hs_large(elsi_h,H_in,S_in)
          elsi_h%col_ptr_pexsi(elsi_h%n_l_cols_pexsi+1) = elsi_h%nnz_l_pexsi+1
       endif
 
-      deallocate(row_send_buffer)
-      deallocate(col_send_buffer)
+      call elsi_deallocate(elsi_h,row_send_buffer,"row_send_buffer")
+      call elsi_deallocate(elsi_h,col_send_buffer,"col_send_buffer")
    endif
 
    call elsi_stop_redistribution_time(elsi_h)
@@ -967,8 +967,8 @@ subroutine elsi_pexsi_to_blacs_dm_small(elsi_h,D_out)
          enddo
       enddo
 
-      deallocate(global_id)
-      deallocate(dest)
+      call elsi_deallocate(elsi_h,global_id,"global_id")
+      call elsi_deallocate(elsi_h,dest,"dest")
    endif
 
    call elsi_allocate(elsi_h,recv_count,elsi_h%n_procs,"recv_count",caller)
@@ -1002,7 +1002,7 @@ subroutine elsi_pexsi_to_blacs_dm_small(elsi_h,D_out)
                       val_recv_buffer,recv_count,recv_displ,mpi_real8,&
                       elsi_h%mpi_comm,mpierr)
 
-   deallocate(val_send_buffer)
+   call elsi_deallocate(elsi_h,val_send_buffer,"val_send_buffer")
 
    ! Position
    call elsi_allocate(elsi_h,pos_recv_buffer,elsi_h%nnz_l,"pos_recv_buffer",caller)
@@ -1011,11 +1011,11 @@ subroutine elsi_pexsi_to_blacs_dm_small(elsi_h,D_out)
                       pos_recv_buffer,recv_count,recv_displ,mpi_integer,&
                       elsi_h%mpi_comm,mpierr)
 
-   deallocate(pos_send_buffer)
-   deallocate(send_count)
-   deallocate(recv_count)
-   deallocate(send_displ)
-   deallocate(recv_displ)
+   call elsi_deallocate(elsi_h,pos_send_buffer,"pos_send_buffer")
+   call elsi_deallocate(elsi_h,send_count,"send_count")
+   call elsi_deallocate(elsi_h,recv_count,"recv_count")
+   call elsi_deallocate(elsi_h,send_displ,"send_displ")
+   call elsi_deallocate(elsi_h,recv_displ,"recv_displ")
 
    D_out = 0.0_r8
 
@@ -1035,8 +1035,8 @@ subroutine elsi_pexsi_to_blacs_dm_small(elsi_h,D_out)
       D_out(local_row_id,local_col_id) = val_recv_buffer(i_val)
    enddo
 
-   deallocate(val_recv_buffer)
-   deallocate(pos_recv_buffer)
+   call elsi_deallocate(elsi_h,val_recv_buffer,"val_recv_buffer")
+   call elsi_deallocate(elsi_h,pos_recv_buffer,"pos_recv_buffer")
 
    call elsi_stop_redistribution_time(elsi_h)
 
@@ -1142,9 +1142,9 @@ subroutine elsi_pexsi_to_blacs_dm_large(elsi_h,D_out)
          enddo
       enddo
 
-      deallocate(global_row_id)
-      deallocate(global_col_id)
-      deallocate(dest)
+      call elsi_deallocate(elsi_h,global_row_id,"global_row_id")
+      call elsi_deallocate(elsi_h,global_col_id,"global_col_id")
+      call elsi_deallocate(elsi_h,dest,"dest")
    endif
 
    call elsi_allocate(elsi_h,recv_count,elsi_h%n_procs,"recv_count",caller)
@@ -1178,7 +1178,7 @@ subroutine elsi_pexsi_to_blacs_dm_large(elsi_h,D_out)
                       val_recv_buffer,recv_count,recv_displ,mpi_real8,&
                       elsi_h%mpi_comm,mpierr)
 
-   deallocate(val_send_buffer)
+   call elsi_deallocate(elsi_h,val_send_buffer,"val_send_buffer")
 
    ! Row index
    call elsi_allocate(elsi_h,row_recv_buffer,elsi_h%nnz_l,"row_recv_buffer",caller)
@@ -1187,7 +1187,7 @@ subroutine elsi_pexsi_to_blacs_dm_large(elsi_h,D_out)
                       row_recv_buffer,recv_count,recv_displ,mpi_integer,&
                       elsi_h%mpi_comm,mpierr)
 
-   deallocate(row_send_buffer)
+   call elsi_deallocate(elsi_h,row_send_buffer,"row_send_buffer")
 
    ! Column index
    call elsi_allocate(elsi_h,col_recv_buffer,elsi_h%nnz_l,"col_recv_buffer",caller)
@@ -1196,11 +1196,11 @@ subroutine elsi_pexsi_to_blacs_dm_large(elsi_h,D_out)
                       col_recv_buffer,recv_count,recv_displ,mpi_integer,&
                       elsi_h%mpi_comm,mpierr)
 
-   deallocate(col_send_buffer)
-   deallocate(send_count)
-   deallocate(recv_count)
-   deallocate(send_displ)
-   deallocate(recv_displ)
+   call elsi_deallocate(elsi_h,col_send_buffer,"col_send_buffer")
+   call elsi_deallocate(elsi_h,send_count,"send_count")
+   call elsi_deallocate(elsi_h,recv_count,"recv_count")
+   call elsi_deallocate(elsi_h,send_displ,"send_displ")
+   call elsi_deallocate(elsi_h,recv_displ,"recv_displ")
 
    D_out = 0.0_r8
 
@@ -1216,9 +1216,9 @@ subroutine elsi_pexsi_to_blacs_dm_large(elsi_h,D_out)
       D_out(local_row_id,local_col_id) = val_recv_buffer(i_val)
    enddo
 
-   deallocate(val_recv_buffer)
-   deallocate(row_recv_buffer)
-   deallocate(col_recv_buffer)
+   call elsi_deallocate(elsi_h,val_recv_buffer,"val_recv_buffer")
+   call elsi_deallocate(elsi_h,row_recv_buffer,"row_recv_buffer")
+   call elsi_deallocate(elsi_h,col_recv_buffer,"col_recv_buffer")
 
    call elsi_stop_redistribution_time(elsi_h)
 
@@ -1361,7 +1361,7 @@ subroutine elsi_blacs_to_sips_hs_small(elsi_h,H_in,S_in)
       enddo
    endif
 
-   deallocate(dest)
+   call elsi_deallocate(elsi_h,dest,"dest")
 
    call elsi_allocate(elsi_h,recv_count,elsi_h%n_procs,"recv_count",caller)
 
@@ -1396,7 +1396,7 @@ subroutine elsi_blacs_to_sips_hs_small(elsi_h,H_in,S_in)
                       pos_recv_buffer,recv_count,recv_displ,mpi_integer,&
                       elsi_h%mpi_comm,mpierr)
 
-   deallocate(pos_send_buffer)
+   call elsi_deallocate(elsi_h,pos_send_buffer,"pos_send_buffer")
 
    ! Hamiltonian value
    call elsi_allocate(elsi_h,h_val_recv_buffer,elsi_h%nnz_l_sips,"h_val_recv_buffer",caller)
@@ -1405,7 +1405,7 @@ subroutine elsi_blacs_to_sips_hs_small(elsi_h,H_in,S_in)
                       h_val_recv_buffer,recv_count,recv_displ,mpi_real8,&
                       elsi_h%mpi_comm,mpierr)
 
-   deallocate(h_val_send_buffer)
+   call elsi_deallocate(elsi_h,h_val_send_buffer,"h_val_send_buffer")
 
    ! Overlap value
    if(elsi_h%n_elsi_calls == 1) then
@@ -1415,13 +1415,13 @@ subroutine elsi_blacs_to_sips_hs_small(elsi_h,H_in,S_in)
                          s_val_recv_buffer,recv_count,recv_displ,mpi_real8,&
                          elsi_h%mpi_comm,mpierr)
 
-      deallocate(s_val_send_buffer)
+      call elsi_deallocate(elsi_h,s_val_send_buffer,"s_val_send_buffer")
    endif
 
-   deallocate(send_count)
-   deallocate(recv_count)
-   deallocate(send_displ)
-   deallocate(recv_displ)
+   call elsi_deallocate(elsi_h,send_count,"send_count")
+   call elsi_deallocate(elsi_h,recv_count,"recv_count")
+   call elsi_deallocate(elsi_h,send_displ,"send_displ")
+   call elsi_deallocate(elsi_h,recv_displ,"recv_displ")
 
    ! Sort
    if(elsi_h%n_elsi_calls == 1) then
@@ -1470,11 +1470,11 @@ subroutine elsi_blacs_to_sips_hs_small(elsi_h,H_in,S_in)
       call elsi_allocate(elsi_h,elsi_h%col_ptr_sips,(elsi_h%n_l_cols_sips+1),"col_ptr_sips",caller)
 
    elsi_h%ham_real_sips = h_val_recv_buffer
-   deallocate(h_val_recv_buffer)
+   call elsi_deallocate(elsi_h,h_val_recv_buffer,"h_val_recv_buffer")
 
    if(elsi_h%n_elsi_calls == 1) then
       elsi_h%ovlp_real_sips = s_val_recv_buffer
-      deallocate(s_val_recv_buffer)
+      call elsi_deallocate(elsi_h,s_val_recv_buffer,"s_val_recv_buffer")
    endif
 
    ! Compute row index and column pointer
@@ -1491,7 +1491,7 @@ subroutine elsi_blacs_to_sips_hs_small(elsi_h,H_in,S_in)
       elsi_h%col_ptr_sips(elsi_h%n_l_cols_sips+1) = elsi_h%nnz_l_sips+1
    endif
 
-   deallocate(pos_recv_buffer)
+   call elsi_deallocate(elsi_h,pos_recv_buffer,"pos_recv_buffer")
 
    ! Dummy
    elsi_h%nnz_l_pexsi = elsi_h%nnz_l_sips
@@ -1613,7 +1613,7 @@ subroutine elsi_blacs_to_sips_hs_large(elsi_h,H_in,S_in)
       enddo
    endif
 
-   deallocate(dest)
+   call elsi_deallocate(elsi_h,dest,"dest")
 
    call elsi_allocate(elsi_h,recv_count,elsi_h%n_procs,"recv_count",caller)
 
@@ -1648,7 +1648,7 @@ subroutine elsi_blacs_to_sips_hs_large(elsi_h,H_in,S_in)
                       row_recv_buffer,recv_count,recv_displ,mpi_integer,&
                       elsi_h%mpi_comm,mpierr)
 
-   deallocate(row_send_buffer)
+   call elsi_deallocate(elsi_h,row_send_buffer,"row_send_buffer")
 
    ! Column id
    call elsi_allocate(elsi_h,col_recv_buffer,elsi_h%nnz_l_sips,"col_recv_buffer",caller)
@@ -1657,7 +1657,7 @@ subroutine elsi_blacs_to_sips_hs_large(elsi_h,H_in,S_in)
                       col_recv_buffer,recv_count,recv_displ,mpi_integer,&
                       elsi_h%mpi_comm,mpierr)
 
-   deallocate(col_send_buffer)
+   call elsi_deallocate(elsi_h,col_send_buffer,"col_send_buffer")
 
    ! Hamiltonian value
    call elsi_allocate(elsi_h,h_val_recv_buffer,elsi_h%nnz_l_sips,"h_val_recv_buffer",caller)
@@ -1666,7 +1666,7 @@ subroutine elsi_blacs_to_sips_hs_large(elsi_h,H_in,S_in)
                       h_val_recv_buffer,recv_count,recv_displ,mpi_real8,&
                       elsi_h%mpi_comm,mpierr)
 
-   deallocate(h_val_send_buffer)
+   call elsi_deallocate(elsi_h,h_val_send_buffer,"h_val_send_buffer")
 
    ! Overlap value
    if(elsi_h%n_elsi_calls == 1) then
@@ -1676,13 +1676,13 @@ subroutine elsi_blacs_to_sips_hs_large(elsi_h,H_in,S_in)
                          s_val_recv_buffer,recv_count,recv_displ,mpi_real8,&
                          elsi_h%mpi_comm,mpierr)
 
-      deallocate(s_val_send_buffer)
+      call elsi_deallocate(elsi_h,s_val_send_buffer,"s_val_send_buffer")
    endif
 
-   deallocate(send_count)
-   deallocate(recv_count)
-   deallocate(send_displ)
-   deallocate(recv_displ)
+   call elsi_deallocate(elsi_h,send_count,"send_count")
+   call elsi_deallocate(elsi_h,recv_count,"recv_count")
+   call elsi_deallocate(elsi_h,send_displ,"send_displ")
+   call elsi_deallocate(elsi_h,recv_displ,"recv_displ")
 
    allocate(global_id(elsi_h%nnz_l_sips))
 
@@ -1749,11 +1749,11 @@ subroutine elsi_blacs_to_sips_hs_large(elsi_h,H_in,S_in)
       call elsi_allocate(elsi_h,elsi_h%col_ptr_sips,(elsi_h%n_l_cols_sips+1),"col_ptr_sips",caller)
 
    elsi_h%ham_real_sips = h_val_recv_buffer
-   deallocate(h_val_recv_buffer)
+   call elsi_deallocate(elsi_h,h_val_recv_buffer,"h_val_recv_buffer")
 
    if(elsi_h%n_elsi_calls == 1) then
       elsi_h%ovlp_real_sips = s_val_recv_buffer
-      deallocate(s_val_recv_buffer)
+      call elsi_deallocate(elsi_h,s_val_recv_buffer,"s_val_recv_buffer")
    endif
 
    ! Compute row index and column pointer
@@ -1770,8 +1770,8 @@ subroutine elsi_blacs_to_sips_hs_large(elsi_h,H_in,S_in)
       elsi_h%col_ptr_sips(elsi_h%n_l_cols_sips+1) = elsi_h%nnz_l_sips+1
    endif
 
-   deallocate(row_recv_buffer)
-   deallocate(col_recv_buffer)
+   call elsi_deallocate(elsi_h,row_recv_buffer,"row_recv_buffer")
+   call elsi_deallocate(elsi_h,col_recv_buffer,"col_recv_buffer")
 
    ! Dummy
    elsi_h%nnz_l_pexsi = elsi_h%nnz_l_sips
@@ -1910,8 +1910,8 @@ subroutine elsi_pexsi_to_blacs_hs_small(elsi_h,H_in,S_in)
       enddo
    endif
 
-   deallocate(global_id)
-   deallocate(dest)
+   call elsi_deallocate(elsi_h,global_id,"global_id")
+   call elsi_deallocate(elsi_h,dest,"dest")
 
    call elsi_allocate(elsi_h,recv_count,elsi_h%n_procs,"recv_count",caller)
 
@@ -1944,7 +1944,7 @@ subroutine elsi_pexsi_to_blacs_hs_small(elsi_h,H_in,S_in)
                       pos_recv_buffer,recv_count,recv_displ,mpi_integer,&
                       elsi_h%mpi_comm,mpierr)
 
-   deallocate(pos_send_buffer)
+   call elsi_deallocate(elsi_h,pos_send_buffer,"pos_send_buffer")
 
    ! Hamiltonian Value
    call elsi_allocate(elsi_h,h_val_recv_buffer,elsi_h%nnz_l,"h_val_recv_buffer",caller)
@@ -1953,7 +1953,7 @@ subroutine elsi_pexsi_to_blacs_hs_small(elsi_h,H_in,S_in)
                       h_val_recv_buffer,recv_count,recv_displ,mpi_real8,&
                       elsi_h%mpi_comm,mpierr)
 
-   deallocate(h_val_send_buffer)
+   call elsi_deallocate(elsi_h,h_val_send_buffer,"h_val_send_buffer")
 
    ! Overlap value
    if(elsi_h%n_elsi_calls == 1) then
@@ -1964,10 +1964,10 @@ subroutine elsi_pexsi_to_blacs_hs_small(elsi_h,H_in,S_in)
                          elsi_h%mpi_comm,mpierr)
    endif
 
-   deallocate(send_count)
-   deallocate(recv_count)
-   deallocate(send_displ)
-   deallocate(recv_displ)
+   call elsi_deallocate(elsi_h,send_count,"send_count")
+   call elsi_deallocate(elsi_h,recv_count,"recv_count")
+   call elsi_deallocate(elsi_h,send_displ,"send_displ")
+   call elsi_deallocate(elsi_h,recv_displ,"recv_displ")
 
    ! Allocate ELPA matrices
    ! Only the Hamiltonian needs to be reset everytime
@@ -1998,7 +1998,7 @@ subroutine elsi_pexsi_to_blacs_hs_small(elsi_h,H_in,S_in)
          elsi_h%ovlp_real_elpa(local_row_id,local_col_id) = s_val_recv_buffer(i_val)
       enddo
 
-      deallocate(s_val_recv_buffer)
+      call elsi_deallocate(elsi_h,s_val_recv_buffer,"s_val_recv_buffer")
    else
       do i_val = 1,elsi_h%nnz_l
          ! Compute global 2d id
@@ -2016,8 +2016,8 @@ subroutine elsi_pexsi_to_blacs_hs_small(elsi_h,H_in,S_in)
       enddo
    endif
 
-   deallocate(h_val_recv_buffer)
-   deallocate(pos_recv_buffer)
+   call elsi_deallocate(elsi_h,h_val_recv_buffer,"h_val_recv_buffer")
+   call elsi_deallocate(elsi_h,pos_recv_buffer,"pos_recv_buffer")
 
    call elsi_stop_redistribution_time(elsi_h)
 
@@ -2136,9 +2136,9 @@ subroutine elsi_pexsi_to_blacs_hs_large(elsi_h,H_in,S_in)
       enddo
    endif
 
-   deallocate(global_row_id)
-   deallocate(global_col_id)
-   deallocate(dest)
+   call elsi_deallocate(elsi_h,global_row_id,"global_row_id")
+   call elsi_deallocate(elsi_h,global_col_id,"global_col_id")
+   call elsi_deallocate(elsi_h,dest,"dest")
 
    call elsi_allocate(elsi_h,recv_count,elsi_h%n_procs,"recv_count",caller)
 
@@ -2171,7 +2171,7 @@ subroutine elsi_pexsi_to_blacs_hs_large(elsi_h,H_in,S_in)
                       row_recv_buffer,recv_count,recv_displ,mpi_integer,&
                       elsi_h%mpi_comm,mpierr)
 
-   deallocate(row_send_buffer)
+   call elsi_deallocate(elsi_h,row_send_buffer,"row_send_buffer")
 
    ! Column index
    call elsi_allocate(elsi_h,col_recv_buffer,elsi_h%nnz_l,"col_recv_buffer",caller)
@@ -2180,7 +2180,7 @@ subroutine elsi_pexsi_to_blacs_hs_large(elsi_h,H_in,S_in)
                       col_recv_buffer,recv_count,recv_displ,mpi_integer,&
                       elsi_h%mpi_comm,mpierr)
 
-   deallocate(col_send_buffer)
+   call elsi_deallocate(elsi_h,col_send_buffer,"col_send_buffer")
 
    ! Hamiltonian Value
    call elsi_allocate(elsi_h,h_val_recv_buffer,elsi_h%nnz_l,"h_val_recv_buffer",caller)
@@ -2189,7 +2189,7 @@ subroutine elsi_pexsi_to_blacs_hs_large(elsi_h,H_in,S_in)
                       h_val_recv_buffer,recv_count,recv_displ,mpi_real8,&
                       elsi_h%mpi_comm,mpierr)
 
-   deallocate(h_val_send_buffer)
+   call elsi_deallocate(elsi_h,h_val_send_buffer,"h_val_send_buffer")
 
    ! Overlap value
    if(elsi_h%n_elsi_calls == 1) then
@@ -2200,10 +2200,10 @@ subroutine elsi_pexsi_to_blacs_hs_large(elsi_h,H_in,S_in)
                          elsi_h%mpi_comm,mpierr)
    endif
 
-   deallocate(send_count)
-   deallocate(recv_count)
-   deallocate(send_displ)
-   deallocate(recv_displ)
+   call elsi_deallocate(elsi_h,send_count,"send_count")
+   call elsi_deallocate(elsi_h,recv_count,"recv_count")
+   call elsi_deallocate(elsi_h,send_displ,"send_displ")
+   call elsi_deallocate(elsi_h,recv_displ,"recv_displ")
 
    ! Allocate ELPA matrices
    ! Only the Hamiltonian needs to be reset everytime
@@ -2230,7 +2230,7 @@ subroutine elsi_pexsi_to_blacs_hs_large(elsi_h,H_in,S_in)
          elsi_h%ovlp_real_elpa(local_row_id,local_col_id) = s_val_recv_buffer(i_val)
       enddo
 
-      deallocate(s_val_recv_buffer)
+      call elsi_deallocate(elsi_h,s_val_recv_buffer,"s_val_recv_buffer")
    else
       do i_val = 1,elsi_h%nnz_l
          ! Compute local 2d id
@@ -2244,9 +2244,9 @@ subroutine elsi_pexsi_to_blacs_hs_large(elsi_h,H_in,S_in)
       enddo
    endif
 
-   deallocate(h_val_recv_buffer)
-   deallocate(row_recv_buffer)
-   deallocate(col_recv_buffer)
+   call elsi_deallocate(elsi_h,h_val_recv_buffer,"h_val_recv_buffer")
+   call elsi_deallocate(elsi_h,row_recv_buffer,"row_recv_buffer")
+   call elsi_deallocate(elsi_h,col_recv_buffer,"col_recv_buffer")
 
    call elsi_stop_redistribution_time(elsi_h)
 

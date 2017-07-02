@@ -246,7 +246,7 @@ subroutine elsi_sips_to_blacs_ev(elsi_h)
       endif
    enddo
 
-   deallocate(tmp_real)
+   call elsi_deallocate(elsi_h,tmp_real,"tmp_real")
 
    call elsi_stop_redistribution_time(elsi_h)
 

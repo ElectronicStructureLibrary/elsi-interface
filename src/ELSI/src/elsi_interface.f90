@@ -1188,7 +1188,7 @@ subroutine elsi_dm_real(elsi_h,H_in,S_in,D_out,energy_out)
          if(allocated(elsi_h%ovlp_real_omm)) then
             ! Retrieve overlap matrix that has been destroyed by Cholesky
             S_in = elsi_h%ovlp_real_omm
-            deallocate(elsi_h%ovlp_real_omm)
+            call elsi_deallocate(elsi_h,elsi_h%ovlp_real_omm,"ovlp_real_omm")
 
             call elsi_set_full_mat(elsi_h,S_in)
          endif
@@ -1220,9 +1220,9 @@ subroutine elsi_dm_real(elsi_h,H_in,S_in,D_out,energy_out)
             if(associated(elsi_h%evec_real))     nullify(elsi_h%evec_real)
             if(associated(elsi_h%den_mat))       nullify(elsi_h%den_mat)
             if(associated(elsi_h%eval))          nullify(elsi_h%eval)
-            if(allocated(elsi_h%evec_real_elpa)) deallocate(elsi_h%evec_real_elpa)
-            if(allocated(elsi_h%eval_elpa))      deallocate(elsi_h%eval_elpa)
-            if(allocated(elsi_h%occ_elpa))       deallocate(elsi_h%occ_elpa)
+            if(allocated(elsi_h%evec_real_elpa)) call elsi_deallocate(elsi_h,elsi_h%evec_real_elpa,"evec_real_elpa")
+            if(allocated(elsi_h%eval_elpa))      call elsi_deallocate(elsi_h,elsi_h%eval_elpa,"eval_elpa")
+            if(allocated(elsi_h%occ_elpa))       call elsi_deallocate(elsi_h,elsi_h%occ_elpa,"occ_elpa")
          endif
 
          ! Solve
@@ -1539,7 +1539,7 @@ subroutine elsi_dm_real_sparse(elsi_h,H_in,S_in,D_out,energy_out)
          if(allocated(elsi_h%ovlp_real_omm)) then
             ! Retrieve overlap matrix that has been destroyed by Cholesky
             elsi_h%ovlp_real_elpa = elsi_h%ovlp_real_omm
-            deallocate(elsi_h%ovlp_real_omm)
+            call elsi_deallocate(elsi_h,elsi_h%ovlp_real_omm,"ovlp_real_omm")
 
             call elsi_set_full_mat(elsi_h,elsi_h%ovlp_real_elpa)
          endif
@@ -1571,9 +1571,9 @@ subroutine elsi_dm_real_sparse(elsi_h,H_in,S_in,D_out,energy_out)
             if(associated(elsi_h%evec_real))     nullify(elsi_h%evec_real)
             if(associated(elsi_h%den_mat))       nullify(elsi_h%den_mat)
             if(associated(elsi_h%eval))          nullify(elsi_h%eval)
-            if(allocated(elsi_h%evec_real_elpa)) deallocate(elsi_h%evec_real_elpa)
-            if(allocated(elsi_h%eval_elpa))      deallocate(elsi_h%eval_elpa)
-            if(allocated(elsi_h%occ_elpa))       deallocate(elsi_h%occ_elpa)
+            if(allocated(elsi_h%evec_real_elpa)) call elsi_deallocate(elsi_h,elsi_h%evec_real_elpa,"evec_real_elpa")
+            if(allocated(elsi_h%eval_elpa))      call elsi_deallocate(elsi_h,elsi_h%eval_elpa,"eval_elpa")
+            if(allocated(elsi_h%occ_elpa))       call elsi_deallocate(elsi_h,elsi_h%occ_elpa,"occ_elpa")
          endif
 
          ! Solve

@@ -415,7 +415,7 @@ subroutine elsi_adjust_occ(elsi_h,kpoint_weights,eigenvalues,occ_numbers,diff_ne
       occ_aux(min_id) = tmp_real
    enddo
 
-   deallocate(eval_aux)
+   call elsi_deallocate(elsi_h,eval_aux,"eval_aux")
 
    do i_val = n_total,1,-1
       if(occ_aux(i_val) > 0.0_r8) then
@@ -441,8 +441,8 @@ subroutine elsi_adjust_occ(elsi_h,kpoint_weights,eigenvalues,occ_numbers,diff_ne
       if((diff_ne < elsi_h%occ_tolerance) .or. (diff_ne == 0.0_r8)) exit
    enddo
 
-   deallocate(occ_aux)
-   deallocate(idx_aux)
+   call elsi_deallocate(elsi_h,occ_aux,"occ_aux")
+   call elsi_deallocate(elsi_h,idx_aux,"idx_aux")
 
 end subroutine
 

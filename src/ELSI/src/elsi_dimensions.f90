@@ -39,6 +39,7 @@ module ELSI_DIMENSIONS
    implicit none
 
    logical :: print_info = .false.
+   logical :: print_mem  = .false.
 
    type :: elsi_handle
 

@@ -36,7 +36,7 @@ module ELSI_UTILS
                              PEXSI_CSC,MULTI_PROC,FULL_MAT,UT_MAT,LT_MAT,&
                              N_SOLVERS,N_MATRIX_DATA_TYPES,&
                              N_MATRIX_STORAGE_FORMATS,N_PARALLEL_MODES,UNSET
-   use ELSI_DIMENSIONS, only: elsi_handle,print_info
+   use ELSI_DIMENSIONS, only: elsi_handle,print_info,print_mem
    use ELSI_PRECISION, only: r8,i4
    use f_ppexsi_interface
    use MatrixSwitch, only: matrix,m_register_pdbc,m_deallocate
@@ -57,6 +57,7 @@ module ELSI_UTILS
    public :: elsi_set_sparse_density_matrix
    public :: elsi_statement_print
    public :: elsi_allocate
+   public :: elsi_deallocate
    public :: elsi_cleanup
    public :: elsi_stop
    public :: elsi_check
@@ -103,6 +104,18 @@ module ELSI_UTILS
                        elsi_allocate_complex_3d
    end interface
 
+   interface elsi_deallocate
+      module procedure elsi_deallocate_integer_1d,&
+                       elsi_deallocate_integer_2d,&
+                       elsi_deallocate_integer_3d,&
+                       elsi_deallocate_real_1d,&
+                       elsi_deallocate_real_2d,&
+                       elsi_deallocate_real_3d,&
+                       elsi_deallocate_complex_1d,&
+                       elsi_deallocate_complex_2d,&
+                       elsi_deallocate_complex_3d
+   end interface
+
    interface elsi_set_full_mat
       module procedure elsi_set_full_mat_real,&
                        elsi_set_full_mat_complex
@@ -113,16 +126,16 @@ contains
 !>
 !! This routine prints a statement.
 !!
-subroutine elsi_statement_print(message,elsi_h)
+subroutine elsi_statement_print(info,elsi_h)
 
    implicit none
 
-   character(len=*),  intent(in) :: message
+   character(len=*),  intent(in) :: info
    type(elsi_handle), intent(in) :: elsi_h
 
    if(print_info) then
       if(elsi_h%myid == 0) then
-         write(*,'(A)') trim(message)
+         write(*,'(A)') trim(info)
       endif
    endif
 
@@ -141,14 +154,22 @@ subroutine elsi_allocate_real_1d(elsi_h,array,dim1,arrayname,caller)
    character(len=*),           intent(in)    :: arrayname !< Name
    character(len=*),           intent(in)    :: caller    !< Caller
 
-   integer :: error
-   character*200 :: message
+   real(kind=r8) :: arraysize
+   integer       :: error
+   character*200 :: info
+
+   if(print_mem) then
+      arraysize = 1.0e-6_r8*dim1*8
+
+      write(info,"(A,F12.3,A,A)") "    Allocating ",arraysize," MB for ",trim(arrayname)
+      call elsi_statement_print(info,elsi_h)
+   endif
 
    allocate(array(dim1),stat=error)
 
    if(error > 0) then 
-      write(message,"(A,A)") "Error in allocating ",trim(arrayname)
-      call elsi_stop(message,elsi_h,caller)
+      write(info,"(A,A)") " Error in allocating ",trim(arrayname)
+      call elsi_stop(info,elsi_h,caller)
    endif
 
    array = 0.0_r8
@@ -168,14 +189,22 @@ subroutine elsi_allocate_integer_1d(elsi_h,array,dim1,arrayname,caller)
    character(len=*),              intent(in)    :: arrayname !< Name
    character(len=*),              intent(in)    :: caller    !< Caller
 
-   integer :: error
-   character*200 :: message
+   real(kind=r8) :: arraysize
+   integer       :: error
+   character*200 :: info
+
+   if(print_mem) then
+      arraysize = 1.0e-6_r8*dim1*4
+
+      write(info,"(A,F12.3,A,A)") "    Allocating ",arraysize," MB for ",trim(arrayname)
+      call elsi_statement_print(info,elsi_h)
+   endif
 
    allocate(array(dim1),stat=error)
 
    if(error > 0) then
-      write(message,"(A,A)") "Error in allocating ",trim(arrayname)
-      call elsi_stop(message,elsi_h,caller)
+      write(info,"(A,A)") " Error in allocating ",trim(arrayname)
+      call elsi_stop(info,elsi_h,caller)
    endif
 
    array = 0
@@ -195,14 +224,22 @@ subroutine elsi_allocate_complex_1d(elsi_h,array,dim1,arrayname,caller)
    character(len=*),              intent(in)    :: arrayname !< Name
    character(len=*),              intent(in)    :: caller    !< Caller
 
-   integer :: error
-   character*200 :: message
+   real(kind=r8) :: arraysize
+   integer       :: error
+   character*200 :: info
+
+   if(print_mem) then
+      arraysize = 1.0e-6_r8*dim1*16
+
+      write(info,"(A,F12.3,A,A)") "    Allocating ",arraysize," MB for ",trim(arrayname)
+      call elsi_statement_print(info,elsi_h)
+   endif
 
    allocate(array(dim1),stat=error)
 
    if(error > 0) then
-      write(message,"(A,A)") "Error in allocating ",trim(arrayname)
-      call elsi_stop(message,elsi_h,caller)
+      write(info,"(A,A)") " Error in allocating ",trim(arrayname)
+      call elsi_stop(info,elsi_h,caller)
    endif
 
    array = cmplx(0.0_r8,0.0_r8)
@@ -223,14 +260,22 @@ subroutine elsi_allocate_real_2d(elsi_h,array,dim1,dim2,arrayname,caller)
    character(len=*),           intent(in)    :: arrayname  !< Name
    character(len=*),           intent(in)    :: caller     !< Caller
 
-   integer :: error
-   character*200 :: message
+   real(kind=r8) :: arraysize
+   integer       :: error
+   character*200 :: info
+
+   if(print_mem) then
+      arraysize = 1.0e-6_r8*dim1*dim2*8
+
+      write(info,"(A,F12.3,A,A)") "    Allocating ",arraysize," MB for ",trim(arrayname)
+      call elsi_statement_print(info,elsi_h)
+   endif
 
    allocate(array(dim1,dim2),stat=error)
 
    if(error > 0) then
-      write(message,"(A,A)") "Error in allocating ",trim(arrayname)
-      call elsi_stop(message,elsi_h,caller)
+      write(info,"(A,A)") " Error in allocating ",trim(arrayname)
+      call elsi_stop(info,elsi_h,caller)
    endif
 
    array = 0.0_r8
@@ -251,14 +296,22 @@ subroutine elsi_allocate_integer_2d(elsi_h,array,dim1,dim2,arrayname,caller)
    character(len=*),              intent(in)    :: arrayname  !< Name
    character(len=*),              intent(in)    :: caller     !< Caller
 
-   integer :: error
-   character*200 :: message
+   real(kind=r8) :: arraysize
+   integer       :: error
+   character*200 :: info
+
+   if(print_mem) then
+      arraysize = 1.0e-6_r8*dim1*dim2*4
+
+      write(info,"(A,F12.3,A,A)") "    Allocating ",arraysize," MB for ",trim(arrayname)
+      call elsi_statement_print(info,elsi_h)
+   endif
 
    allocate(array(dim1,dim2),stat=error)
 
    if(error > 0) then
-      write(message,"(A,A)") "Error in allocating ",trim(arrayname)
-      call elsi_stop(message,elsi_h,caller)
+      write(info,"(A,A)") " Error in allocating ",trim(arrayname)
+      call elsi_stop(info,elsi_h,caller)
    endif
 
    array = 0
@@ -279,14 +332,22 @@ subroutine elsi_allocate_complex_2d(elsi_h,array,dim1,dim2,arrayname,caller)
    character(len=*),              intent(in)    :: arrayname  !< Name
    character(len=*),              intent(in)    :: caller     !< Caller
 
-   integer :: error
-   character*200 :: message
+   real(kind=r8) :: arraysize
+   integer       :: error
+   character*200 :: info
+
+   if(print_mem) then
+      arraysize = 1.0e-6_r8*dim1*dim2*16
+
+      write(info,"(A,F12.3,A,A)") "    Allocating ",arraysize," MB for ",trim(arrayname)
+      call elsi_statement_print(info,elsi_h)
+   endif
 
    allocate(array(dim1,dim2),stat=error)
 
    if(error > 0) then
-      write(message,"(A,A)") "Error in allocating ",trim(arrayname)
-      call elsi_stop(message,elsi_h,caller)
+      write(info,"(A,A)") " Error in allocating ",trim(arrayname)
+      call elsi_stop(info,elsi_h,caller)
    endif
 
    array = cmplx(0.0_r8,0.0_r8)
@@ -308,14 +369,22 @@ subroutine elsi_allocate_real_3d(elsi_h,array,dim1,dim2,dim3,arrayname,caller)
    character(len=*),           intent(in)    :: arrayname    !< Name
    character(len=*),           intent(in)    :: caller       !< Caller
 
-   integer :: error
-   character*200 :: message
+   real(kind=r8) :: arraysize
+   integer       :: error
+   character*200 :: info
+
+   if(print_mem) then
+      arraysize = 1.0e-6_r8*dim1*dim2*dim3*8
+
+      write(info,"(A,F12.3,A,A)") "    Allocating ",arraysize," MB for ",trim(arrayname)
+      call elsi_statement_print(info,elsi_h)
+   endif
 
    allocate(array(dim1,dim2,dim3),stat=error)
 
    if(error > 0) then
-      write(message,"(A,A)") "Error in allocating ",trim(arrayname)
-      call elsi_stop(message,elsi_h,caller)
+      write(info,"(A,A)") " Error in allocating ",trim(arrayname)
+      call elsi_stop(info,elsi_h,caller)
    endif
 
    array = 0.0_r8
@@ -337,14 +406,22 @@ subroutine elsi_allocate_integer_3d(elsi_h,array,dim1,dim2,dim3,arrayname,caller
    character(len=*),              intent(in)    :: arrayname    !< Name
    character(len=*),              intent(in)    :: caller       !< Caller
 
-   integer :: error
-   character*200 :: message
+   real(kind=r8) :: arraysize
+   integer       :: error
+   character*200 :: info
+
+   if(print_mem) then
+      arraysize = 1.0e-6_r8*dim1*dim2*dim3*4
+
+      write(info,"(A,F12.3,A,A)") "    Allocating ",arraysize," MB for ",trim(arrayname)
+      call elsi_statement_print(info,elsi_h)
+   endif
 
    allocate(array(dim1,dim2,dim3),stat=error)
 
    if(error > 0) then
-      write(message,"(A,A)") "Error in allocating ",trim(arrayname)
-      call elsi_stop(message,elsi_h,caller)
+      write(info,"(A,A)") " Error in allocating ",trim(arrayname)
+      call elsi_stop(info,elsi_h,caller)
    endif
 
    array = 0
@@ -366,14 +443,22 @@ subroutine elsi_allocate_complex_3d(elsi_h,array,dim1,dim2,dim3,arrayname,caller
    character(len=*),              intent(in)    :: arrayname    !< Name
    character(len=*),              intent(in)    :: caller       !< Caller
 
-   integer :: error
-   character*200 :: message
+   real(kind=r8) :: arraysize
+   integer       :: error
+   character*200 :: info
+
+   if(print_mem) then
+      arraysize = 1.0e-6_r8*dim1*dim2*dim3*16
+
+      write(info,"(A,F12.3,A,A)") "    Allocating ",arraysize," MB for ",trim(arrayname)
+      call elsi_statement_print(info,elsi_h)
+   endif
 
    allocate(array(dim1,dim2,dim3),stat=error)
 
    if(error > 0) then
-      write(message,"(A,A)") "Error in allocating ",trim(arrayname)
-      call elsi_stop(message,elsi_h,caller)
+      write(info,"(A,A)") " Error in allocating ",trim(arrayname)
+      call elsi_stop(info,elsi_h,caller)
    endif
 
    array = cmplx(0.0_r8,0.0_r8)
@@ -381,27 +466,225 @@ subroutine elsi_allocate_complex_3d(elsi_h,array,dim1,dim2,dim3,arrayname,caller
 end subroutine
 
 !>
+!! This routine deallocates a 1D array with real(kind=r8).
+!!
+subroutine elsi_deallocate_real_1d(elsi_h,array,arrayname)
+
+   implicit none
+
+   type(elsi_handle),          intent(in)    :: elsi_h
+   real(kind=r8), allocatable, intent(inout) :: array(:)  !< Data
+   character(len=*),           intent(in)    :: arrayname !< Name
+
+   character*200 :: info
+
+   if(print_mem) then
+      write(info,"(A,A)") "    Deallocating ",trim(arrayname)
+      call elsi_statement_print(info,elsi_h)
+   endif
+
+   deallocate(array)
+
+end subroutine
+
+!>
+!! This routine deallocates a 1D array with integer.
+!! 
+subroutine elsi_deallocate_integer_1d(elsi_h,array,arrayname)
+   
+   implicit none
+      
+   type(elsi_handle),             intent(in)    :: elsi_h
+   integer(kind=i4), allocatable, intent(inout) :: array(:)  !< Data
+   character(len=*),              intent(in)    :: arrayname !< Name
+   
+   character*200 :: info
+
+   if(print_mem) then
+      write(info,"(A,A)") "    Deallocating ",trim(arrayname)
+      call elsi_statement_print(info,elsi_h)
+   endif
+
+   deallocate(array)
+
+end subroutine
+
+!>
+!! This routine deallocates a 1D array with complex(kind=r8).
+!! 
+subroutine elsi_deallocate_complex_1d(elsi_h,array,arrayname)
+   
+   implicit none
+      
+   type(elsi_handle),             intent(in)    :: elsi_h
+   complex(kind=r8), allocatable, intent(inout) :: array(:)  !< Data
+   character(len=*),              intent(in)    :: arrayname !< Name
+   
+   character*200 :: info
+
+   if(print_mem) then
+      write(info,"(A,A)") "    Deallocating ",trim(arrayname)
+      call elsi_statement_print(info,elsi_h)
+   endif
+
+   deallocate(array)
+
+end subroutine
+
+!>
+!! This routine deallocates a 2D array with real(kind=r8).
+!! 
+subroutine elsi_deallocate_real_2d(elsi_h,array,arrayname)
+   
+   implicit none
+      
+   type(elsi_handle),          intent(in)    :: elsi_h
+   real(kind=r8), allocatable, intent(inout) :: array(:,:) !< Data
+   character(len=*),           intent(in)    :: arrayname  !< Name
+   
+   character*200 :: info
+
+   if(print_mem) then
+      write(info,"(A,A)") "    Deallocating ",trim(arrayname)
+      call elsi_statement_print(info,elsi_h)
+   endif
+
+   deallocate(array)
+
+end subroutine
+
+!>
+!! This routine deallocates a 2D array with integer.
+!! 
+subroutine elsi_deallocate_integer_2d(elsi_h,array,arrayname)
+
+   implicit none
+
+   type(elsi_handle),          intent(in)       :: elsi_h
+   integer(kind=i4), allocatable, intent(inout) :: array(:,:) !< Data
+   character(len=*),           intent(in)       :: arrayname  !< Name
+
+   character*200 :: info
+
+   if(print_mem) then
+      write(info,"(A,A)") "    Deallocating ",trim(arrayname)
+      call elsi_statement_print(info,elsi_h)
+   endif
+
+   deallocate(array)
+
+end subroutine
+
+!>
+!! This routine deallocates a 2D array with complex(kind=r8).
+!! 
+subroutine elsi_deallocate_complex_2d(elsi_h,array,arrayname)
+
+   implicit none
+
+   type(elsi_handle),          intent(in)       :: elsi_h
+   complex(kind=r8), allocatable, intent(inout) :: array(:,:) !< Data
+   character(len=*),           intent(in)       :: arrayname  !< Name
+
+   character*200 :: info
+
+   if(print_mem) then
+      write(info,"(A,A)") "    Deallocating ",trim(arrayname)
+      call elsi_statement_print(info,elsi_h)
+   endif
+
+   deallocate(array)
+
+end subroutine
+
+!>
+!! This routine deallocates a 3D array with real(kind=r8).
+!! 
+subroutine elsi_deallocate_real_3d(elsi_h,array,arrayname)
+
+   implicit none
+
+   type(elsi_handle),          intent(in)    :: elsi_h
+   real(kind=r8), allocatable, intent(inout) :: array(:,:,:) !< Data
+   character(len=*),           intent(in)    :: arrayname    !< Name
+
+   character*200 :: info
+
+   if(print_mem) then
+      write(info,"(A,A)") "    Deallocating ",trim(arrayname)
+      call elsi_statement_print(info,elsi_h)
+   endif
+
+   deallocate(array)
+
+end subroutine
+
+!>
+!! This routine deallocates a 3D array with integer.
+!! 
+subroutine elsi_deallocate_integer_3d(elsi_h,array,arrayname)
+
+   implicit none
+
+   type(elsi_handle),          intent(in)       :: elsi_h
+   integer(kind=i4), allocatable, intent(inout) :: array(:,:,:) !< Data
+   character(len=*),           intent(in)       :: arrayname    !< Name
+
+   character*200 :: info
+
+   if(print_mem) then
+      write(info,"(A,A)") "    Deallocating ",trim(arrayname)
+      call elsi_statement_print(info,elsi_h)
+   endif
+
+   deallocate(array)
+
+end subroutine
+
+!>
+!! This routine deallocates a 3D array with complex(kind=r8).
+!! 
+subroutine elsi_deallocate_complex_3d(elsi_h,array,arrayname)
+
+   implicit none
+
+   type(elsi_handle),          intent(in)       :: elsi_h
+   complex(kind=r8), allocatable, intent(inout) :: array(:,:,:) !< Data
+   character(len=*),           intent(in)       :: arrayname    !< Name
+
+   character*200 :: info
+
+   if(print_mem) then
+      write(info,"(A,A)") "    Deallocating ",trim(arrayname)
+      call elsi_statement_print(info,elsi_h)
+   endif
+
+   deallocate(array)
+
+end subroutine
+
+!>
 !! Clean shutdown in case of errors.
 !!
-subroutine elsi_stop(message,elsi_h,caller)
+subroutine elsi_stop(info,elsi_h,caller)
 
    implicit none
    include "mpif.h"
 
-   character(len=*),  intent(in) :: message
+   character(len=*),  intent(in) :: info
    type(elsi_handle), intent(in) :: elsi_h
    character(len=*),  intent(in) :: caller
 
-   character(len=4096) :: string_message
+   character(len=4096) :: string_info
    integer :: i_task
    integer :: mpierr
 
    if(elsi_h%mpi_is_setup) then
       do i_task = 0,elsi_h%n_procs-1
          if(elsi_h%myid == i_task) then
-            write(string_message,"(1X,'*** Proc',I5,' in ',A,': ',A)")&
-                  elsi_h%myid,trim(caller),trim(message)
-            write(*,'(A)') trim(string_message)
+            write(string_info,"(1X,'** Proc',I5,' in ',A,': ',A)")&
+                  elsi_h%myid,trim(caller),trim(info)
+            write(*,'(A)') trim(string_info)
          endif
          call MPI_Barrier(elsi_h%mpi_comm,mpierr)
       enddo
@@ -410,9 +693,9 @@ subroutine elsi_stop(message,elsi_h,caller)
          call MPI_Abort(elsi_h%mpi_comm,0,mpierr)
       endif
    else
-      write(string_message,"(1X,'*** Proc  N/A',' in ',A,': ',A)")&
-            trim(caller),trim(message)
-      write(*,'(A)') trim(string_message)
+      write(string_info,"(1X,'** Proc N/A',' in ',A,': ',A)")&
+            trim(caller),trim(info)
+      write(*,'(A)') trim(string_info)
    endif
 
    stop
@@ -767,15 +1050,15 @@ subroutine elsi_cleanup(elsi_h)
    if(associated(elsi_h%col_ptr_ccs))      nullify(elsi_h%col_ptr_ccs)
 
    ! ELPA
-   if(allocated(elsi_h%ham_real_elpa))     deallocate(elsi_h%ham_real_elpa)
-   if(allocated(elsi_h%ham_complex_elpa))  deallocate(elsi_h%ham_complex_elpa)
-   if(allocated(elsi_h%ovlp_real_elpa))    deallocate(elsi_h%ovlp_real_elpa)
-   if(allocated(elsi_h%ovlp_complex_elpa)) deallocate(elsi_h%ovlp_complex_elpa)
-   if(allocated(elsi_h%evec_real_elpa))    deallocate(elsi_h%evec_real_elpa)
-   if(allocated(elsi_h%evec_complex_elpa)) deallocate(elsi_h%evec_complex_elpa)
-   if(allocated(elsi_h%eval_elpa))         deallocate(elsi_h%eval_elpa)
-   if(allocated(elsi_h%den_mat_elpa))      deallocate(elsi_h%den_mat_elpa)
-   if(allocated(elsi_h%occ_elpa))          deallocate(elsi_h%occ_elpa)
+   if(allocated(elsi_h%ham_real_elpa))     call elsi_deallocate(elsi_h,elsi_h%ham_real_elpa,"ham_real_elpa")
+   if(allocated(elsi_h%ham_complex_elpa))  call elsi_deallocate(elsi_h,elsi_h%ham_complex_elpa,"ham_complex_elpa")
+   if(allocated(elsi_h%ovlp_real_elpa))    call elsi_deallocate(elsi_h,elsi_h%ovlp_real_elpa,"ovlp_real_elpa")
+   if(allocated(elsi_h%ovlp_complex_elpa)) call elsi_deallocate(elsi_h,elsi_h%ovlp_complex_elpa,"ovlp_complex_elpa")
+   if(allocated(elsi_h%evec_real_elpa))    call elsi_deallocate(elsi_h,elsi_h%evec_real_elpa,"evec_real_elpa")
+   if(allocated(elsi_h%evec_complex_elpa)) call elsi_deallocate(elsi_h,elsi_h%evec_complex_elpa,"evec_real_elpa")
+   if(allocated(elsi_h%eval_elpa))         call elsi_deallocate(elsi_h,elsi_h%eval_elpa,"eval_elpa")
+   if(allocated(elsi_h%den_mat_elpa))      call elsi_deallocate(elsi_h,elsi_h%den_mat_elpa,"den_mat_elpa")
+   if(allocated(elsi_h%occ_elpa))          call elsi_deallocate(elsi_h,elsi_h%occ_elpa,"occ_elpa")
 
    ! libOMM
    if(elsi_h%ham_omm%is_initialized)       call m_deallocate(elsi_h%ham_omm)
@@ -785,21 +1068,21 @@ subroutine elsi_cleanup(elsi_h)
    if(elsi_h%t_den_mat_omm%is_initialized) call m_deallocate(elsi_h%t_den_mat_omm)
 
    ! PEXSI
-   if(allocated(elsi_h%ham_real_pexsi))    deallocate(elsi_h%ham_real_pexsi)
-   if(allocated(elsi_h%ovlp_real_pexsi))   deallocate(elsi_h%ovlp_real_pexsi)
-   if(allocated(elsi_h%den_mat_pexsi))     deallocate(elsi_h%den_mat_pexsi)
-   if(allocated(elsi_h%e_den_mat_pexsi))   deallocate(elsi_h%e_den_mat_pexsi)
-   if(allocated(elsi_h%f_den_mat_pexsi))   deallocate(elsi_h%f_den_mat_pexsi)
-   if(allocated(elsi_h%row_ind_pexsi))     deallocate(elsi_h%row_ind_pexsi)
-   if(allocated(elsi_h%col_ptr_pexsi))     deallocate(elsi_h%col_ptr_pexsi)
+   if(allocated(elsi_h%ham_real_pexsi))    call elsi_deallocate(elsi_h,elsi_h%ham_real_pexsi,"ham_real_pexsi")
+   if(allocated(elsi_h%ovlp_real_pexsi))   call elsi_deallocate(elsi_h,elsi_h%ovlp_real_pexsi,"ovlp_real_pexsi")
+   if(allocated(elsi_h%den_mat_pexsi))     call elsi_deallocate(elsi_h,elsi_h%den_mat_pexsi,"den_mat_pexsi")
+   if(allocated(elsi_h%e_den_mat_pexsi))   call elsi_deallocate(elsi_h,elsi_h%e_den_mat_pexsi,"e_den_mat_pexsi")
+   if(allocated(elsi_h%f_den_mat_pexsi))   call elsi_deallocate(elsi_h,elsi_h%f_den_mat_pexsi,"f_den_mat_pexsi")
+   if(allocated(elsi_h%row_ind_pexsi))     call elsi_deallocate(elsi_h,elsi_h%row_ind_pexsi,"row_ind_pexsi")
+   if(allocated(elsi_h%col_ptr_pexsi))     call elsi_deallocate(elsi_h,elsi_h%col_ptr_pexsi,"col_ptr_pexsi")
 
    ! SIPs
-   if(allocated(elsi_h%inertias))          deallocate(elsi_h%inertias)
-   if(allocated(elsi_h%shifts))            deallocate(elsi_h%shifts)
-   if(allocated(elsi_h%slices))            deallocate(elsi_h%slices)
+   if(allocated(elsi_h%inertias))          call elsi_deallocate(elsi_h,elsi_h%inertias,"nertias")
+   if(allocated(elsi_h%shifts))            call elsi_deallocate(elsi_h,elsi_h%shifts,"shifts")
+   if(allocated(elsi_h%slices))            call elsi_deallocate(elsi_h,elsi_h%slices,"slices")
 
-   if(allocated(elsi_h%local_row))         deallocate(elsi_h%local_row)
-   if(allocated(elsi_h%local_col))         deallocate(elsi_h%local_col)
+   if(allocated(elsi_h%local_row))         call elsi_deallocate(elsi_h,elsi_h%local_row,"local_row")
+   if(allocated(elsi_h%local_col))         call elsi_deallocate(elsi_h,elsi_h%local_col,"local_col")
 
    ! Finalize PEXSI plan
    if(elsi_h%pexsi_started) then
@@ -1250,7 +1533,7 @@ subroutine elsi_set_full_mat_real(elsi_h,mat)
          enddo
       endif
 
-      deallocate(tmp_real)
+      call elsi_deallocate(elsi_h,tmp_real,"tmp_real")
    endif
 
 end subroutine
@@ -1303,7 +1586,7 @@ subroutine elsi_set_full_mat_complex(elsi_h,mat)
          enddo
       endif
 
-      deallocate(tmp_complex)
+      call elsi_deallocate(elsi_h,tmp_complex,"tmp_complex")
 
       ! Make diagonal real
       do i_col = 1,elsi_h%n_g_size
