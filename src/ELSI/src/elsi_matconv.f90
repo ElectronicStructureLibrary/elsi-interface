@@ -31,6 +31,7 @@
 module ELSI_MATCONV
 
    use iso_c_binding
+   use ELSI_CONSTANTS, only: ELPA,LIBOMM
    use ELSI_DIMENSIONS, only: elsi_handle
    use ELSI_PRECISION, only: r8,i4,i8
    use ELSI_TIMERS
@@ -1272,13 +1273,13 @@ subroutine elsi_blacs_to_sips_hs_small(elsi_h,H_in,S_in)
    real(kind=r8)    :: tmp_real
 
    ! See documentation of MPI_Alltoallv
-   real(kind=r8),    allocatable  :: h_val_send_buffer(:) !< Send buffer for Hamiltonian
-   real(kind=r8),    allocatable  :: s_val_send_buffer(:) !< Send buffer for overlap
+   real(kind=r8),    allocatable :: h_val_send_buffer(:) !< Send buffer for Hamiltonian
+   real(kind=r8),    allocatable :: s_val_send_buffer(:) !< Send buffer for overlap
    integer(kind=i4), allocatable :: pos_send_buffer(:) !< Send buffer for global 1D id
    integer(kind=i4), allocatable :: send_count(:) !< Number of elements to send to each processor
    integer(kind=i4), allocatable :: send_displ(:) !< Displacement from which to take the outgoing data
-   real(kind=r8),    allocatable  :: h_val_recv_buffer(:) !< Receive buffer for Hamiltonian
-   real(kind=r8),    allocatable  :: s_val_recv_buffer(:) !< Receive buffer for overlap
+   real(kind=r8),    allocatable :: h_val_recv_buffer(:) !< Receive buffer for Hamiltonian
+   real(kind=r8),    allocatable :: s_val_recv_buffer(:) !< Receive buffer for overlap
    integer(kind=i4), allocatable :: pos_recv_buffer(:) !< Receive buffer for global 1D id
    integer(kind=i4), allocatable :: recv_count(:) !< Number of elements to receive from each processor
    integer(kind=i4), allocatable :: recv_displ(:) !< Displacement at which to place the incoming data
@@ -1303,7 +1304,7 @@ subroutine elsi_blacs_to_sips_hs_small(elsi_h,H_in,S_in)
       i_val = 0
       do i_col = 1,elsi_h%n_l_cols
          do i_row = 1,elsi_h%n_l_rows
-            if(abs(S_in(i_row, i_col)) > elsi_h%zero_threshold) then
+            if(abs(S_in(i_row,i_col)) > elsi_h%zero_threshold) then
                i_val = i_val+1
                call elsi_get_global_col(elsi_h,global_col_id,i_col)
                call elsi_get_global_row(elsi_h,global_row_id,i_row)
@@ -1325,7 +1326,7 @@ subroutine elsi_blacs_to_sips_hs_small(elsi_h,H_in,S_in)
       i_val = 0
       do i_col = 1,elsi_h%n_l_cols
          do i_row = 1,elsi_h%n_l_rows
-            if(abs(S_in(i_row, i_col)) > elsi_h%zero_threshold) then
+            if(abs(S_in(i_row,i_col)) > elsi_h%zero_threshold) then
                i_val = i_val+1
                call elsi_get_global_col(elsi_h,global_col_id,i_col)
                call elsi_get_global_row(elsi_h,global_row_id,i_row)
@@ -1517,14 +1518,14 @@ subroutine elsi_blacs_to_sips_hs_large(elsi_h,H_in,S_in)
    real(kind=r8)    :: tmp_real
 
    ! See documentation of MPI_Alltoallv
-   real(kind=r8),    allocatable  :: h_val_send_buffer(:) !< Send buffer for Hamiltonian
-   real(kind=r8),    allocatable  :: s_val_send_buffer(:) !< Send buffer for overlap
+   real(kind=r8),    allocatable :: h_val_send_buffer(:) !< Send buffer for Hamiltonian
+   real(kind=r8),    allocatable :: s_val_send_buffer(:) !< Send buffer for overlap
    integer(kind=i4), allocatable :: row_send_buffer(:) !< Send buffer for global row id
    integer(kind=i4), allocatable :: col_send_buffer(:) !< Send buffer for global column id
    integer(kind=i4), allocatable :: send_count(:) !< Number of elements to send to each processor
    integer(kind=i4), allocatable :: send_displ(:) !< Displacement from which to take the outgoing data
-   real(kind=r8),    allocatable  :: h_val_recv_buffer(:) !< Receive buffer for Hamiltonian
-   real(kind=r8),    allocatable  :: s_val_recv_buffer(:) !< Receive buffer for overlap
+   real(kind=r8),    allocatable :: h_val_recv_buffer(:) !< Receive buffer for Hamiltonian
+   real(kind=r8),    allocatable :: s_val_recv_buffer(:) !< Receive buffer for overlap
    integer(kind=i4), allocatable :: row_recv_buffer(:) !< Receive buffer for global row id
    integer(kind=i4), allocatable :: col_recv_buffer(:) !< Receive buffer for global col id
    integer(kind=i4), allocatable :: recv_count(:) !< Number of elements to receive from each processor
@@ -1552,7 +1553,7 @@ subroutine elsi_blacs_to_sips_hs_large(elsi_h,H_in,S_in)
       i_val = 0
       do i_col = 1,elsi_h%n_l_cols
          do i_row = 1,elsi_h%n_l_rows
-            if(abs(S_in(i_row, i_col)) > elsi_h%zero_threshold) then
+            if(abs(S_in(i_row,i_col)) > elsi_h%zero_threshold) then
                i_val = i_val+1
                call elsi_get_global_col(elsi_h,global_col_id,i_col)
                call elsi_get_global_row(elsi_h,global_row_id,i_row)
@@ -1574,7 +1575,7 @@ subroutine elsi_blacs_to_sips_hs_large(elsi_h,H_in,S_in)
       i_val = 0
       do i_col = 1,elsi_h%n_l_cols
          do i_row = 1,elsi_h%n_l_rows
-            if(abs(S_in(i_row, i_col)) > elsi_h%zero_threshold) then
+            if(abs(S_in(i_row,i_col)) > elsi_h%zero_threshold) then
                i_val = i_val+1
                call elsi_get_global_col(elsi_h,global_col_id,i_col)
                call elsi_get_global_row(elsi_h,global_row_id,i_row)
@@ -2259,8 +2260,39 @@ subroutine elsi_blacs_to_pexsi_dm_small(elsi_h,D_out)
 
    implicit none
 
+   include "mpif.h"
+
    type(elsi_handle), intent(inout) :: elsi_h
    real(kind=r8),     intent(out)   :: D_out(elsi_h%nnz_l_pexsi)
+
+   integer(kind=i4) :: mpierr
+   integer(kind=i4) :: i_row
+   integer(kind=i4) :: i_col
+   integer(kind=i4) :: i_val
+   integer(kind=i4) :: j_val
+   integer(kind=i4) :: i_proc
+   integer(kind=i4) :: global_col_id !< Global column id
+   integer(kind=i4) :: global_row_id !< Global row id
+   integer(kind=i4) :: local_col_id !< Local column id in 1D block distribution
+   integer(kind=i4) :: local_row_id !< Local row id in 1D block distribution
+   integer(kind=i4) :: dest !< Destination of an element
+   integer(kind=i4) :: nnz_l_pexsi_aux
+   integer(kind=i4) :: tmp_int
+   integer(kind=i4) :: min_pos
+   integer(kind=i4) :: min_id
+   real(kind=r8)    :: tmp_real
+
+   ! See documentation of MPI_Alltoallv
+   real(kind=r8),    allocatable :: val_send_buffer(:) !< Send buffer for value
+   integer(kind=i4), allocatable :: pos_send_buffer(:) !< Send buffer for global 1D id
+   integer(kind=i4), allocatable :: send_count(:) !< Number of elements to send to each processor
+   integer(kind=i4), allocatable :: send_displ(:) !< Displacement from which to take the outgoing data
+   real(kind=r8),    allocatable :: val_recv_buffer(:) !< Receive buffer for value
+   integer(kind=i4), allocatable :: pos_recv_buffer(:) !< Receive buffer for global 1D id
+   integer(kind=i4), allocatable :: recv_count(:) !< Number of elements to receive from each processor
+   integer(kind=i4), allocatable :: recv_displ(:) !< Displacement at which to place the incoming data
+   integer(kind=i4) :: send_displ_aux !< Auxiliary variable used to set displacement 
+   integer(kind=i4) :: recv_displ_aux !< Auxiliary variable used to set displacement
 
    character*40, parameter :: caller = "elsi_blacs_to_pexsi_dm_small"
 
@@ -2268,6 +2300,110 @@ subroutine elsi_blacs_to_pexsi_dm_small(elsi_h,D_out)
                   " Exiting...",elsi_h,caller)
 
    call elsi_start_redistribution_time(elsi_h)
+
+   if(elsi_h%solver == ELPA) then
+      call elsi_get_local_nnz(elsi_h,elsi_h%den_mat_elpa,elsi_h%n_l_rows,&
+                              elsi_h%n_l_cols,elsi_h%nnz_l)
+   elseif(elsi_h%solver == LIBOMM) then
+      call elsi_get_local_nnz(elsi_h,elsi_h%den_mat_omm%dval,elsi_h%n_l_rows,&
+                              elsi_h%n_l_cols,elsi_h%nnz_l)
+   endif
+
+   call elsi_allocate(elsi_h,val_send_buffer,elsi_h%nnz_l,"val_send_buffer",caller)
+   call elsi_allocate(elsi_h,pos_send_buffer,elsi_h%nnz_l,"pos_send_buffer",caller)
+   call elsi_allocate(elsi_h,send_count,elsi_h%n_procs,"send_count",caller)
+
+   ! Compute destination and global 1D id
+   if(elsi_h%solver == ELPA) then
+      i_val = 0
+      do i_col = 1,elsi_h%n_l_cols
+         do i_row = 1,elsi_h%n_l_rows
+            if(abs(elsi_h%den_mat_elpa(i_row,i_col)) > elsi_h%zero_threshold) then
+               i_val = i_val+1
+               call elsi_get_global_col(elsi_h,global_col_id,i_col)
+               call elsi_get_global_row(elsi_h,global_row_id,i_row)
+               ! Compute destination
+               dest = (global_col_id-1)/(elsi_h%n_g_size/elsi_h%n_procs)
+               ! The last process may take more
+               dest = min(dest,elsi_h%n_procs-1)
+               ! Compute the global id
+               ! Pack global id and data into buffers
+               pos_send_buffer(i_val) = (global_col_id-1)*elsi_h%n_g_size+global_row_id
+               val_send_buffer(i_val) = elsi_h%den_mat_elpa(i_row,i_col)
+               ! Set send_count
+               send_count(dest+1) = send_count(dest+1)+1
+            endif
+         enddo
+      enddo
+   elseif(elsi_h%solver == LIBOMM) then
+      i_val = 0
+      do i_col = 1,elsi_h%n_l_cols
+         do i_row = 1,elsi_h%n_l_rows
+            if(abs(elsi_h%den_mat_omm%dval(i_row,i_col)) > elsi_h%zero_threshold) then
+               i_val = i_val+1
+               call elsi_get_global_col(elsi_h,global_col_id,i_col)
+               call elsi_get_global_row(elsi_h,global_row_id,i_row)
+               ! Compute destination
+               dest = (global_col_id-1)/(elsi_h%n_g_size/elsi_h%n_procs)
+               ! The last process may take more
+               dest = min(dest,elsi_h%n_procs-1)
+               ! Compute the global id
+               ! Pack global id and data into buffers
+               pos_send_buffer(i_val) = (global_col_id-1)*elsi_h%n_g_size+global_row_id
+               val_send_buffer(i_val) = elsi_h%den_mat_omm%dval(i_row,i_col)
+               ! Set send_count
+               send_count(dest+1) = send_count(dest+1)+1
+            endif
+         enddo
+      enddo
+   endif
+
+   call elsi_allocate(elsi_h,recv_count,elsi_h%n_procs,"recv_count",caller)
+
+   ! Set recv_count
+   call MPI_Alltoall(send_count,1,mpi_integer,recv_count,&
+                     1,mpi_integer,elsi_h%mpi_comm,mpierr)
+
+   ! Set local number of nonzero
+   nnz_l_pexsi_aux = sum(recv_count,1)
+
+   ! Set send and receive displacement
+   call elsi_allocate(elsi_h,send_displ,elsi_h%n_procs,"send_displ",caller)
+   call elsi_allocate(elsi_h,recv_displ,elsi_h%n_procs,"recv_displ",caller)
+
+   send_displ_aux = 0
+   recv_displ_aux = 0
+
+   do i_proc = 0,elsi_h%n_procs-1
+      send_displ(i_proc+1) = send_displ_aux
+      send_displ_aux = send_displ_aux+send_count(i_proc+1)
+      recv_displ(i_proc+1) = recv_displ_aux
+      recv_displ_aux = recv_displ_aux+recv_count(i_proc+1)
+   enddo
+
+   ! Send and receive the packed data
+   ! Position
+   call elsi_allocate(elsi_h,pos_recv_buffer,nnz_l_pexsi_aux,"pos_recv_buffer",caller)
+
+   call MPI_Alltoallv(pos_send_buffer,send_count,send_displ,mpi_integer,&
+                      pos_recv_buffer,recv_count,recv_displ,mpi_integer,&
+                      elsi_h%mpi_comm,mpierr)
+
+   call elsi_deallocate(elsi_h,pos_send_buffer,"pos_send_buffer")
+
+   ! Density matrix value
+   call elsi_allocate(elsi_h,val_recv_buffer,nnz_l_pexsi_aux,"val_recv_buffer",caller)
+
+   call MPI_Alltoallv(val_send_buffer,send_count,send_displ,mpi_real8,&
+                      val_recv_buffer,recv_count,recv_displ,mpi_real8,&
+                      elsi_h%mpi_comm,mpierr)
+
+   call elsi_deallocate(elsi_h,val_send_buffer,"val_send_buffer")
+
+   call elsi_deallocate(elsi_h,send_count,"send_count")
+   call elsi_deallocate(elsi_h,recv_count,"recv_count")
+   call elsi_deallocate(elsi_h,send_displ,"send_displ")
+   call elsi_deallocate(elsi_h,recv_displ,"recv_displ")
 
    D_out = 0.0_r8
 

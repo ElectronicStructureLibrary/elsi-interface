@@ -48,7 +48,7 @@ elsi_sips.o: ./src/elsi_sips.f90  elsi_utils.o elsi_timers.o elsi_dimensions.o e
 elsi_mu.o: ./src/elsi_mu.f90 elsi_utils.o elsi_dimensions.o elsi_precision.o elsi_constants.o $(STUBS)
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
-elsi_matconv.o: ./src/elsi_matconv.f90 elsi_utils.o elsi_timers.o elsi_dimensions.o elsi_precision.o $(STUBS)
+elsi_matconv.o: ./src/elsi_matconv.f90 elsi_utils.o elsi_timers.o elsi_dimensions.o elsi_constants.o elsi_precision.o $(STUBS)
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
 elsi_timers.o: ./src/elsi_timers.f90 elsi_dimensions.o elsi_utils.o elsi_precision.o elsi_constants.o $(STUBS)
