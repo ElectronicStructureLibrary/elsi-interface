@@ -1001,7 +1001,7 @@ subroutine elsi_set_sing_tol(elsi_h,sing_tol)
 
    ! Eigenfunctions of the overlap matrix with eigenvalues smaller than
    ! this value will be removed to avoid singularity.
-   elsi_h%stop_singularity = sing_tol
+   elsi_h%singularity_tolerance = sing_tol
 
 end subroutine
 
