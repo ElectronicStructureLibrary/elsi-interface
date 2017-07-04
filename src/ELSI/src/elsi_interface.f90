@@ -34,7 +34,7 @@ module ELSI
    use iso_c_binding
    use ELSI_CONSTANTS, only: ELPA,LIBOMM,PEXSI,CHESS,SIPS,REAL_VALUES,&
                              COMPLEX_VALUES,SINGLE_PROC,MULTI_PROC,UNSET
-   use ELSI_DIMENSIONS, only: elsi_handle,print_info
+   use ELSI_DIMENSIONS, only: elsi_handle,print_info,print_mem
    use ELSI_ELPA
    use ELSI_MATCONV, only: elsi_blacs_to_pexsi_dm,elsi_blacs_to_pexsi_hs,&
                            elsi_blacs_to_sips_hs,elsi_pexsi_to_blacs_dm,&
@@ -53,29 +53,66 @@ module ELSI
 
    character*8, parameter, public :: release_date = "20170527"
 
-   public :: elsi_handle             !< ELSI handle data type
-   public :: elsi_init               !< Initialize
-   public :: elsi_set_solver         !< Set solver from calling code
-   public :: elsi_set_mpi            !< Set MPI from calling code
-   public :: elsi_set_blacs          !< Set BLACS from calling code
-   public :: elsi_set_csc            !< Set CSC sparsity pattern from calling code
-   public :: elsi_customize          !< Override ELSI default
-   public :: elsi_customize_elpa     !< Override ELPA default
-   public :: elsi_customize_omm      !< Override libOMM default
-   public :: elsi_customize_pexsi    !< Override PEXSI default
-   public :: elsi_customize_sips     !< Override SIPs default
-   public :: elsi_customize_mu       !< Override chemical potential determination
-   public :: elsi_ev_real            !< Compute eigenvalues and eigenvectors
-   public :: elsi_ev_complex         !< Compute eigenvalues and eigenvectors
-   public :: elsi_ev_real_sparse     !< Compute eigenvalues and eigenvectors
-   public :: elsi_dm_real            !< Compute density matrix
-   public :: elsi_dm_complex         !< Compute density matrix
-   public :: elsi_dm_real_sparse     !< Compute density matrix
-   public :: elsi_edm_real           !< Compute energy-weighted density matrix
-   public :: elsi_compute_mu_and_occ !< Compute chemical potential and occupation numbers
-   public :: elsi_collect            !< Collect additional ELSI results
-   public :: elsi_collect_pexsi      !< Collect additional PEXSI results
-   public :: elsi_finalize           !< Clean memory and print timings
+   !> Data type
+   public :: elsi_handle
+
+   !> Utilities
+   public :: elsi_init
+   public :: elsi_finalize
+   public :: elsi_set_solver
+   public :: elsi_set_mpi
+   public :: elsi_set_blacs
+   public :: elsi_set_csc
+   public :: elsi_set_output
+   public :: elsi_set_unit_ovlp
+   public :: elsi_set_zero_def
+   public :: elsi_set_sing_check
+   public :: elsi_set_sing_tol
+   public :: elsi_set_sing_stop
+   public :: elsi_set_uplo
+   public :: elsi_set_elpa_solver
+   public :: elsi_set_omm_flavor
+   public :: elsi_set_omm_n_elpa
+   public :: elsi_set_omm_min_tol
+   public :: elsi_set_omm_pspblas
+   public :: elsi_set_pexsi_driver
+   public :: elsi_set_pexsi_n_mu
+   public :: elsi_set_pexsi_n_pole
+   public :: elsi_set_pexsi_np_per_pole
+   public :: elsi_set_pexsi_np_symb_fact
+   public :: elsi_set_pexsi_temp
+   public :: elsi_set_pexsi_gap
+   public :: elsi_set_pexsi_mu_min
+   public :: elsi_set_pexsi_mu_max
+   public :: elsi_set_pexsi_stop_inertia
+   public :: elsi_set_sips_slicing_method
+   public :: elsi_set_sips_n_slice
+   public :: elsi_set_sips_left_bound
+   public :: elsi_set_sips_slice_buffer
+   public :: elsi_set_mu_broaden_scheme
+   public :: elsi_set_mu_broaden_width
+   public :: elsi_set_mu_accuracy
+   public :: elsi_set_mu_spin_degen
+   public :: elsi_get_ovlp_sing
+   public :: elsi_get_mu
+   public :: elsi_customize
+   public :: elsi_customize_elpa
+   public :: elsi_customize_omm
+   public :: elsi_customize_pexsi
+   public :: elsi_customize_sips
+   public :: elsi_customize_mu
+   public :: elsi_collect
+   public :: elsi_collect_pexsi
+
+   !> Solver interfaces
+   public :: elsi_ev_real
+   public :: elsi_ev_complex
+   public :: elsi_ev_real_sparse
+   public :: elsi_dm_real
+   public :: elsi_dm_complex
+   public :: elsi_dm_real_sparse
+   public :: elsi_edm_real
+   public :: elsi_compute_mu_and_occ
 
 contains
 
@@ -868,6 +905,653 @@ subroutine elsi_collect_pexsi(elsi_h,mu,edm,fdm)
 
 end subroutine
 
+!>
+!! This routine sets ELSI output level.
+!!
+subroutine elsi_set_output(elsi_h,out_level)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h
+   integer(kind=i4),  intent(in)    :: out_level
+
+   character*40, parameter :: caller = "elsi_set_output"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   if(out_level .le. 0) then
+      print_info = .false.
+      print_mem  = .false.
+      elsi_h%omm_output = .false.
+      elsi_h%pexsi_options%verbosity = 0
+      elsi_h%elpa_output = .false.
+   elseif(out_level == 1) then
+      print_info = .true.
+      print_mem  = .false.
+      elsi_h%omm_output = .false.
+      elsi_h%pexsi_options%verbosity = 0
+      elsi_h%elpa_output = .false.
+   elseif(out_level == 2) then
+      print_info = .true.
+      print_mem  = .false.
+      elsi_h%omm_output = .true.
+      elsi_h%pexsi_options%verbosity = 2
+      elsi_h%elpa_output = .true.
+   else
+      print_info = .true.
+      print_mem  = .true.
+      elsi_h%omm_output = .true.
+      elsi_h%pexsi_options%verbosity = 2
+      elsi_h%elpa_output = .true.
+   endif
+
+end subroutine
+
+!>
+!! This routine sets the overlap matrix to be identity.
+!!
+subroutine elsi_set_unit_ovlp(elsi_h,unit_ovlp)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h
+   integer(kind=i4),  intent(in)    :: unit_ovlp
+
+   character*40, parameter :: caller = "elsi_set_unit_ovlp"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   if(unit_ovlp == 0) then
+      elsi_h%overlap_is_unit = .false.
+   else
+      elsi_h%overlap_is_unit = .true.
+   endif
+
+end subroutine
+
+!>
+!! This routine sets the threshold to define "zero".
+!!
+subroutine elsi_set_zero_def(elsi_h,zero_def)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h
+   real(kind=r8),     intent(in)    :: zero_def
+
+   character*40, parameter :: caller = "elsi_set_zero_def"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   elsi_h%zero_threshold = zero_def
+
+end subroutine
+
+!>
+!! This routine switches on/off the singularity check of the overlap matrix.
+!!
+subroutine elsi_set_sing_check(elsi_h,sing_check)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h
+   integer(kind=i4),  intent(in)    :: sing_check
+
+   character*40, parameter :: caller = "elsi_set_sing_check"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   if(sing_check == 0) then
+      elsi_h%no_singularity_check = .true.
+   else
+      elsi_h%no_singularity_check = .false.
+   endif
+
+end subroutine
+
+!>
+!! This routine sets the tolerance of the singularity check.
+!!
+subroutine elsi_set_sing_tol(elsi_h,sing_tol)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h
+   real(kind=r8),     intent(in)    :: sing_tol
+
+   character*40, parameter :: caller = "elsi_set_sing_tol"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   ! Eigenfunctions of the overlap matrix with eigenvalues smaller than
+   ! this value will be removed to avoid singularity.
+   elsi_h%stop_singularity = sing_tol
+
+end subroutine
+
+!>
+!! This routine sets whether to stop in case of singular overlap matrix.
+!!
+subroutine elsi_set_sing_stop(elsi_h,sing_stop)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h
+   integer(kind=i4),  intent(in)    :: sing_stop
+
+   character*40, parameter :: caller = "elsi_set_sing_stop"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   if(sing_stop == 0) then
+      elsi_h%stop_singularity = .false.
+   else
+      elsi_h%stop_singularity = .true.
+   endif
+
+end subroutine
+
+!>
+!! This routine sets the input matrices to be full, upper triangular, or
+!! lower triangular.
+!!
+subroutine elsi_set_uplo(elsi_h,uplo)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h
+   integer(kind=i4),  intent(in)    :: uplo
+
+   character*40, parameter :: caller = "elsi_set_uplo"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   elsi_h%uplo = uplo
+
+end subroutine
+
+!>
+!! This routine sets the ELPA solver.
+!!
+subroutine elsi_set_elpa_solver(elsi_h,elpa_solver)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h
+   integer(kind=i4),  intent(in)    :: elpa_solver
+
+   character*40, parameter :: caller = "elsi_set_elpa_solver"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   elsi_h%elpa_solver = elpa_solver
+
+end subroutine
+
+!>
+!! This routine sets the flavor of libOMM.
+!!
+subroutine elsi_set_omm_flavor(elsi_h,omm_flavor)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h
+   integer(kind=i4),  intent(in)    :: omm_flavor
+
+   character*40, parameter :: caller = "elsi_set_omm_flavor"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   elsi_h%omm_flavor = omm_flavor
+
+end subroutine
+
+!>
+!! This routine sets the number of ELPA steps when using libOMM.
+!!
+subroutine elsi_set_omm_n_elpa(elsi_h,n_elpa)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h
+   integer(kind=i4),  intent(in)    :: n_elpa
+
+   character*40, parameter :: caller = "elsi_set_n_elpa"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   elsi_h%n_elpa_steps = n_elpa
+
+end subroutine
+
+!>
+!! This routine sets the tolerance of OMM minimization.
+!!
+subroutine elsi_set_omm_min_tol(elsi_h,min_tol)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h
+   integer(kind=i4),  intent(in)    :: min_tol
+
+   character*40, parameter :: caller = "elsi_set_omm_min_tol"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   elsi_h%min_tol = min_tol
+
+end subroutine
+
+!>
+!! This routine switches on/off the matrix multiplications using PSP BLAS.
+!!
+subroutine elsi_set_omm_pspblas(elsi_h,use_psp)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h
+   integer(kind=i4),  intent(in)    :: use_psp
+
+   character*40, parameter :: caller = "elsi_set_omm_use_psp"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   elsi_h%use_psp = use_psp
+
+end subroutine
+
+!>
+!! This routine sets the PEXSI driver.
+!!
+subroutine elsi_set_pexsi_driver(elsi_h,pexsi_driver)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h
+   integer(kind=i4),  intent(in)    :: pexsi_driver
+
+   character*40, parameter :: caller = "elsi_set_pexsi_driver"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   elsi_h%pexsi_driver = pexsi_driver
+
+end subroutine
+
+!>
+!! This routine sets the number of mu points when using PEXSI driver 2.
+!!
+subroutine elsi_set_pexsi_n_mu(elsi_h,n_mu)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h
+   integer(kind=i4),  intent(in)    :: n_mu
+
+   character*40, parameter :: caller = "elsi_set_pexsi_n_mu"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   elsi_h%n_mu_points = n_mu
+
+end subroutine
+
+!>
+!! This routine sets the number of poles in the pole expansion.
+!!
+subroutine elsi_set_pexsi_n_pole(elsi_h,n_pole)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h
+   integer(kind=i4),  intent(in)    :: n_pole
+
+   character*40, parameter :: caller = "elsi_set_pexsi_n_pole"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   elsi_h%pexsi_options%numPole = n_pole
+
+end subroutine
+
+!>
+!! This routine sets the number of MPI tasks assigned for one pole.
+!!
+subroutine elsi_set_pexsi_np_per_pole(elsi_h,np_per_pole)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h
+   integer(kind=i4),  intent(in)    :: np_per_pole
+
+   character*40, parameter :: caller = "elsi_set_pexsi_n_pole"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   if(mod(elsi_h%n_procs,np_per_pole) == 0) then
+      elsi_h%n_p_per_pole_pexsi = np_per_pole
+   else
+      call elsi_stop("  The total number of MPI tasks must be a"//&
+                     " multiple of the number of MPI tasks per"//&
+                     " pole. Exiting...",elsi_h,caller)
+   endif
+
+end subroutine
+
+!>
+!! This routine sets the number of MPI tasks for the symbolic factorization.
+!!
+subroutine elsi_set_pexsi_np_symb_fact(elsi_h,np_symb_fact)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h
+   integer(kind=i4),  intent(in)    :: np_symb_fact
+
+   character*40, parameter :: caller = "elsi_set_pexsi_np_symb_fact"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   elsi_h%pexsi_options%npSymbFact = np_symb_fact
+
+end subroutine
+
+!>
+!! This routine sets the temperature parameter in PEXSI.
+!!
+subroutine elsi_set_pexsi_temp(elsi_h,temp)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h
+   real(kind=r8),     intent(in)    :: temp
+
+   character*40, parameter :: caller = "elsi_set_pexsi_temp"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   elsi_h%pexsi_options%temperature = temp
+
+end subroutine
+
+!>
+!! This routine sets the spectral gap in PEXSI.
+!!
+subroutine elsi_set_pexsi_gap(elsi_h,gap)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h
+   real(kind=r8),     intent(in)    :: gap
+
+   character*40, parameter :: caller = "elsi_set_pexsi_gap"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   elsi_h%pexsi_options%gap = gap
+
+end subroutine
+
+!>
+!! This routine sets the lower bound of the chemical potential in PEXSI.
+!!
+subroutine elsi_set_pexsi_mu_min(elsi_h,mu_min)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h
+   real(kind=r8),     intent(in)    :: mu_min
+
+   character*40, parameter :: caller = "elsi_set_pexsi_mu_min"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   elsi_h%pexsi_options%muMin0 = mu_min
+
+end subroutine
+
+!>
+!! This routine sets the upper bound of the chemical potential in PEXSI.
+!!
+subroutine elsi_set_pexsi_mu_max(elsi_h,mu_max)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h
+   real(kind=r8),     intent(in)    :: mu_max
+
+   character*40, parameter :: caller = "elsi_set_pexsi_mu_max"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   elsi_h%pexsi_options%muMax0 = mu_max
+
+end subroutine
+
+!>
+!! This routine sets the stop criterion for the estimation of the chemical
+!! potential using an inertia counting procedure.
+!!
+subroutine elsi_set_pexsi_stop_inertia(elsi_h,stop_inertia)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h
+   real(kind=r8),     intent(in)    :: stop_inertia
+
+   character*40, parameter :: caller = "elsi_set_pexsi_stop_inertia"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   elsi_h%pexsi_options%muInertiaTolerance = stop_inertia
+
+end subroutine
+
+!>
+!! This routine sets the slicing method when using SIPs.
+!!
+subroutine elsi_set_sips_slicing_method(elsi_h,slicing_method)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h
+   integer(kind=i4),  intent(in)    :: slicing_method
+
+   character*40, parameter :: caller = "elsi_set_sips_slicing_method"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   elsi_h%slicing_method = slicing_method
+
+end subroutine
+
+!>
+!! This routine sets the number of slices in SIPs.
+!!
+subroutine elsi_set_sips_n_slice(elsi_h,n_slice)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h
+   integer(kind=i4),  intent(in)    :: n_slice
+
+   character*40, parameter :: caller = "elsi_set_sips_n_slice"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   if(mod(elsi_h%n_procs,n_slice) == 0) then
+      elsi_h%n_slices = n_slice
+      elsi_h%n_p_per_slice_sips = elsi_h%n_procs/n_slice
+   else
+      call elsi_stop("  The total number of MPI tasks must be"//&
+                     " a multiple of the number of slices."//&
+                     " Exiting...",elsi_h,caller)
+   endif
+
+end subroutine
+
+!>
+!! This routine sets the method to bound the left side of the eigenvalue
+!! interval in SIPs.
+!!
+subroutine elsi_set_sips_left_bound(elsi_h,left_bound)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h
+   integer(kind=i4),  intent(in)    :: left_bound
+
+   character*40, parameter :: caller = "elsi_set_sips_left_bound"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   elsi_h%unbound = left_bound
+
+end subroutine
+
+!>
+!! This routine sets a small buffer to expand the eigenvalue interval
+!! in SIPs.
+!!
+subroutine elsi_set_sips_slice_buffer(elsi_h,slice_buffer)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h
+   real(kind=r8),     intent(in)    :: slice_buffer
+
+   character*40, parameter :: caller = "elsi_set_sips_slice_buffer"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   elsi_h%slice_buffer = slice_buffer
+
+end subroutine
+
+!>
+!! This routine sets the broadening scheme to determine the chemical
+!! potential and the occupation numbers.
+!!
+subroutine elsi_set_mu_broaden_scheme(elsi_h,broaden_scheme)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h
+   integer(kind=i4),  intent(in)    :: broaden_scheme
+
+   character*40, parameter :: caller = "elsi_set_mu_broaden_method"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   elsi_h%broadening_scheme = broaden_scheme
+
+end subroutine
+
+!>
+!! This routine sets the broadening width to determine the chemical
+!! potential and the occupation numbers.
+!!
+subroutine elsi_set_mu_broaden_width(elsi_h,broaden_width)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h
+   real(kind=r8),     intent(in)    :: broaden_width
+
+   character*40, parameter :: caller = "elsi_set_mu_broaden_width"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   elsi_h%broadening_width = broaden_width
+
+end subroutine
+
+!>
+!! This routine sets the desired accuracy of the determination of the
+!! chemical potential and the occupation numbers.
+!!
+subroutine elsi_set_mu_accuracy(elsi_h,mu_accuracy)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h
+   real(kind=r8),     intent(in)    :: mu_accuracy
+
+   character*40, parameter :: caller = "elsi_set_mu_accuracy"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   elsi_h%occ_tolerance = mu_accuracy
+
+end subroutine
+
+!>
+!! This routine sets the spin degeneracy in the determination of the
+!! chemical potential and the occupation numbers.
+!!
+subroutine elsi_set_mu_spin_degen(elsi_h,spin_degen)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h
+   real(kind=r8),     intent(in)    :: spin_degen
+
+   character*40, parameter :: caller = "elsi_set_mu_spin_degen"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   elsi_h%spin_degen = spin_degen
+
+end subroutine
+
+!>
+!! This routine gets the result of the singularity check of the
+!! overlap matrix.
+!!
+subroutine elsi_get_ovlp_sing(elsi_h,ovlp_sing)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h
+   integer(kind=i4),  intent(out)   :: ovlp_sing
+
+   character*40, parameter :: caller = "elsi_get_ovlp_sing"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   if(elsi_h%overlap_is_singular) then
+      ovlp_sing = 1
+   else
+      ovlp_sing = 0
+   endif
+
+end subroutine
+
+!>
+!! This routine gets the chemical potential.
+!!
+subroutine elsi_get_mu(elsi_h,mu)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h
+   real(kind=r8),     intent(out)   :: mu
+
+   character*40, parameter :: caller = "elsi_get_mu"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   mu = elsi_h%mu
+
+   if(.not. elsi_h%mu_ready) then
+      call elsi_statement_print("  ATTENTION! The return value of mu may"//&
+                                " be 0, since it has not been computed.",elsi_h)
+   endif
+
+   elsi_h%mu_ready = .false.
+
+end subroutine
+
 !=======================
 ! ELSI solvers
 !
@@ -1293,8 +1977,8 @@ subroutine elsi_edm_real(elsi_h,D_out)
    call elsi_check_handle(elsi_h,caller)
 
    if(.not. elsi_h%edm_ready) then
-      call elsi_stop(" No supported solver has been chosen."//&
-                        " Exiting...",elsi_h,caller)
+      call elsi_stop(" Energy weighted density matrix has not been."//&
+                     " computed. Exiting...",elsi_h,caller)
    endif
 
    ! REAL case
