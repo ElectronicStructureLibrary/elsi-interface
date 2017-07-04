@@ -5,7 +5,7 @@ gnu-j1-generic:
     - module load intel-mpi-4.1.3
     - module load gcc-7.1
     - module list
-    - cp ./make_sys/make.sys-gnu ./make.sys
+    - cp /home/wy29/elsi_make_check/check_gnu ./make.sys
     - make clean
     - make
     - make check
@@ -18,7 +18,7 @@ gnu-j8-generic:
     - module load intel-mpi-4.1.3
     - module load gcc-7.1
     - module list
-    - cp ./make_sys/make.sys-gnu ./make.sys
+    - cp /home/wy29/elsi_make_check/check_gnu ./make.sys
     - make clean
     - make -j 8
     - make check
@@ -31,7 +31,7 @@ pgi-j1-generic:
     - module load intel-mpi-4.1.3
     - module load pgi-17.4
     - module list
-    - cp ./make_sys/make.sys-timewarp-pgi ./make.sys
+    - cp /home/wy29/elsi_make_check/check_pgi ./make.sys
     - make clean
     - make
     - make check
@@ -44,7 +44,7 @@ pgi-j8-generic:
     - module load intel-mpi-4.1.3
     - module load pgi-17.4
     - module list
-    - cp ./make_sys/make.sys-timewarp-pgi ./make.sys
+    - cp /home/wy29/elsi_make_check/check_pgi ./make.sys
     - make clean
     - make -j 8
     - make check
@@ -57,7 +57,7 @@ intel-j1-debug:
     - module load intel-mpi-4.1.3
     - module load intel-compilers-14.0
     - module list
-    - cp ./make_sys/make.sys-timewarp-debug ./make.sys
+    - cp /home/wy29/elsi_make_check/check_intel_debug ./make.sys
     - make clean
     - make
     - make check
@@ -70,7 +70,7 @@ intel-j8-debug:
     - module load intel-mpi-4.1.3
     - module load intel-compilers-14.0
     - module list
-    - cp ./make_sys/make.sys-timewarp-debug ./make.sys
+    - cp /home/wy29/elsi_make_check/check_intel_debug ./make.sys
     - make clean
     - make -j 8
     - make check
@@ -84,7 +84,7 @@ intel-j8-gpu:
     - module load intel-compilers-14.0
     - module load cuda-8.0
     - module list
-    - cp ./make_sys/make.sys-timewarp-gpu ./make.sys
+    - cp /home/wy29/elsi_make_check/check_intel_gpu ./make.sys
     - make clean
     - make -j 8
     - make check
@@ -97,7 +97,7 @@ intel-j1-generic:
     - module load intel-mpi-4.1.3
     - module load intel-compilers-14.0
     - module list
-    - cp ./make_sys/make.sys-intel ./make.sys
+    - cp /home/wy29/elsi_make_check/check_intel ./make.sys
     - make clean
     - make
     - make check
@@ -110,7 +110,7 @@ intel-j8-generic:
     - module load intel-mpi-4.1.3
     - module load intel-compilers-14.0
     - module list
-    - cp ./make_sys/make.sys-intel ./make.sys
+    - cp /home/wy29/elsi_make_check/check_intel ./make.sys
     - make clean
     - make -j 8
     - make check
@@ -127,7 +127,7 @@ intel-j8-external-linkage:
     - module load intel-mpi-4.1.3
     - module load intel-compilers-14.0
     - module list
-    - cp ./make_sys/make.sys-external-linkage ./make.sys
+    - cp /home/wy29/elsi_make_check/check_external ./make.sys
     - make clean
     - make -j 8
     - make install
