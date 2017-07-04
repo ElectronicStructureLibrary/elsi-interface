@@ -185,7 +185,7 @@ program test_standard_ev_real
    allocate(e_val(matrix_size))
 
    ! Customize ELSI
-   call elsi_set_output(elsi_h,3)
+   call elsi_set_output(elsi_h,2)
    call elsi_set_unit_ovlp(elsi_h,1)
    
    t1 = MPI_Wtime()

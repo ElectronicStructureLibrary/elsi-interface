@@ -55,8 +55,7 @@ void main(int argc, char** argv) {
    double double_one,double_zero;
    double *h,*h_tmp,*s,*eval,*evec;
 
-   int print,no_s,no_sing,stop_sing,uplo;
-   double hartree,zero,sing_tol;
+   int print,no_s;
 
    elsi_handle elsi_h;
 
@@ -69,7 +68,7 @@ void main(int argc, char** argv) {
    // Parameters
    n_basis     = 4000;
    n_states    = 1000;
-   n_electrons = (double) (2 * n_states); // not used at all
+   n_electrons = 0; // not used at all
    blk         = 16;
    solver      = 1; // ELPA
    format      = 0; // BLACS_DENSE
@@ -78,15 +77,8 @@ void main(int argc, char** argv) {
    int_zero    = 0;
    double_one  = 1.0;
    double_zero = 0.0;
-
-   // Parameters for elsi_customize
-   print         = 1; // Print details
-   no_s          = 1; // No overlap, i.e. standard eigenproblem
-   no_sing       = 0;
-   stop_sing     = 0;
-   zero          = 1.0E-14;
-   sing_tol      = 1.0E-5;
-   uplo          = 0; // Input matrix is full, not triangular
+   print       = 2; // Print details
+   no_s        = 1; // No overlap, i.e. standard eigenproblem
 
    tmp = (int) round(sqrt((double) n_proc));
    for (n_pcol=tmp; n_pcol>1; n_pcol--) {
@@ -140,7 +132,8 @@ void main(int argc, char** argv) {
    c_elsi_set_blacs(elsi_h,blacs_ctxt,blk);
 
    // Customize ELSI
-   c_elsi_customize(elsi_h,print,no_s,zero,no_sing,sing_tol,stop_sing,uplo);
+   c_elsi_set_output(elsi_h,print);
+   c_elsi_set_unit_ovlp(elsi_h,no_s);
 
    // Call ELSI eigensolver
    c_elsi_ev_real(elsi_h,h,s,eval,evec);

@@ -390,7 +390,7 @@ subroutine elsi_ev_real_sparse_c_wrapper(handle_c,H,S,e_val,e_vec)&
 
 end subroutine
 
-function elsi_dm_real_c_wrapper(handle_c,H,S,D) result(energy)&
+subroutine elsi_dm_real_c_wrapper(handle_c,H,S,D,energy)&
    bind(C,name="c_elsi_dm_real")
 
    implicit none
@@ -407,9 +407,9 @@ function elsi_dm_real_c_wrapper(handle_c,H,S,D) result(energy)&
 
    call elsi_dm_real(handle_f,H,S,D,energy)
 
-end function
+end subroutine
 
-function elsi_dm_real_sparse_c_wrapper(handle_c,H,S,D) result(energy)&
+subroutine elsi_dm_real_sparse_c_wrapper(handle_c,H,S,D,energy)&
    bind(C,name="c_elsi_dm_real_sparse")
 
    implicit none
@@ -426,7 +426,7 @@ function elsi_dm_real_sparse_c_wrapper(handle_c,H,S,D) result(energy)&
 
    call elsi_dm_real_sparse(handle_f,H,S,D,energy)
 
-end function
+end subroutine
 
 subroutine elsi_collect_c_wrapper(handle_c,overlap_is_singular,n_singular_basis,mu)&
    bind(C,name="c_elsi_collect")
@@ -468,6 +468,518 @@ subroutine elsi_collect_pexsi_c_wrapper(handle_c,mu,edm,fdm)&
    call c_f_pointer(handle_c,handle_f)
 
    call elsi_collect_pexsi(handle_f,mu,edm,fdm)
+
+end subroutine
+
+subroutine elsi_set_output_c_wrapper(handle_c,out_level)&
+   bind(C,name="c_elsi_set_output")
+
+   implicit none
+
+   type(c_ptr),         value             :: handle_c
+   integer(kind=c_int), value, intent(in) :: out_level
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_output(handle_f,out_level)
+
+end subroutine
+
+subroutine elsi_set_unit_ovlp_c_wrapper(handle_c,unit_ovlp)&
+   bind(C,name="c_elsi_set_unit_ovlp")
+
+   implicit none
+
+   type(c_ptr),         value             :: handle_c
+   integer(kind=c_int), value, intent(in) :: unit_ovlp
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_unit_ovlp(handle_f,unit_ovlp)
+
+end subroutine
+
+subroutine elsi_set_zero_def_c_wrapper(handle_c,zero_def)&
+   bind(C,name="c_elsi_set_zero_def")
+
+   implicit none
+
+   type(c_ptr),         value             :: handle_c
+   real(kind=c_double), value, intent(in) :: zero_def
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_zero_def(handle_f,zero_def)
+
+end subroutine
+
+subroutine elsi_set_sing_check_c_wrapper(handle_c,sing_check)&
+   bind(C,name="c_elsi_set_sing_check")
+
+   implicit none
+
+   type(c_ptr),         value             :: handle_c
+   integer(kind=c_int), value, intent(in) :: sing_check
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_sing_check(handle_f,sing_check)
+
+end subroutine
+
+subroutine elsi_set_sing_tol_c_wrapper(handle_c,sing_tol)&
+   bind(C,name="c_elsi_set_sing_tol")
+
+   implicit none
+
+   type(c_ptr),         value             :: handle_c
+   real(kind=c_double), value, intent(in) :: sing_tol
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_sing_tol(handle_f,sing_tol)
+
+end subroutine
+
+subroutine elsi_set_sing_stop_c_wrapper(handle_c,sing_stop)&
+   bind(C,name="c_elsi_set_sing_stop")
+   
+   implicit none
+   
+   type(c_ptr),         value             :: handle_c
+   integer(kind=c_int), value, intent(in) :: sing_stop
+   
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_sing_stop(handle_f,sing_stop)
+
+end subroutine
+
+subroutine elsi_set_uplo_c_wrapper(handle_c,uplo)&
+   bind(C,name="c_elsi_set_uplo")
+   
+   implicit none
+   
+   type(c_ptr),         value             :: handle_c
+   integer(kind=c_int), value, intent(in) :: uplo
+   
+   type(elsi_handle), pointer :: handle_f
+   
+   call c_f_pointer(handle_c,handle_f)
+   
+   call elsi_set_uplo(handle_f,uplo)
+
+end subroutine
+
+subroutine elsi_set_elpa_solver_c_wrapper(handle_c,elpa_solver)&
+   bind(C,name="c_elsi_set_elpa_solver")
+   
+   implicit none
+   
+   type(c_ptr),         value             :: handle_c
+   integer(kind=c_int), value, intent(in) :: elpa_solver
+   
+   type(elsi_handle), pointer :: handle_f
+   
+   call c_f_pointer(handle_c,handle_f)
+   
+   call elsi_set_elpa_solver(handle_f,elpa_solver)
+   
+end subroutine
+
+subroutine elsi_set_omm_flavor_c_wrapper(handle_c,omm_flavor)&
+   bind(C,name="c_elsi_set_omm_flavor")
+   
+   implicit none
+   
+   type(c_ptr),         value             :: handle_c
+   integer(kind=c_int), value, intent(in) :: omm_flavor
+   
+   type(elsi_handle), pointer :: handle_f
+   
+   call c_f_pointer(handle_c,handle_f)
+   
+   call elsi_set_omm_flavor(handle_f,omm_flavor)
+   
+end subroutine
+
+subroutine elsi_set_omm_n_elpa_c_wrapper(handle_c,n_elpa)&
+   bind(C,name="c_elsi_set_omm_n_elpa")
+
+   implicit none
+
+   type(c_ptr),         value             :: handle_c
+   integer(kind=c_int), value, intent(in) :: n_elpa
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_omm_n_elpa(handle_f,n_elpa)
+
+end subroutine
+
+subroutine elsi_set_omm_tol_c_wrapper(handle_c,min_tol)&
+   bind(C,name="c_elsi_set_omm_tol")
+
+   implicit none
+
+   type(c_ptr),         value             :: handle_c
+   real(kind=c_double), value, intent(in) :: min_tol
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_omm_tol(handle_f,min_tol)
+
+end subroutine
+
+subroutine elsi_set_omm_psp_c_wrapper(handle_c,use_psp)&
+   bind(C,name="c_elsi_set_omm_psp")
+
+   implicit none
+
+   type(c_ptr),         value             :: handle_c
+   integer(kind=c_int), value, intent(in) :: use_psp
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_omm_psp(handle_f,use_psp)
+
+end subroutine
+
+subroutine elsi_set_pexsi_driver_c_wrapper(handle_c,pexsi_driver)&
+   bind(C,name="c_elsi_set_pexsi_driver")
+   
+   implicit none
+   
+   type(c_ptr),         value             :: handle_c
+   integer(kind=c_int), value, intent(in) :: pexsi_driver
+   
+   type(elsi_handle), pointer :: handle_f
+   
+   call c_f_pointer(handle_c,handle_f)
+   
+   call elsi_set_pexsi_driver(handle_f,pexsi_driver)
+   
+end subroutine
+
+subroutine elsi_set_pexsi_n_mu_c_wrapper(handle_c,n_mu)&
+   bind(C,name="c_elsi_set_pexsi_n_mu")
+
+   implicit none
+
+   type(c_ptr),         value             :: handle_c
+   integer(kind=c_int), value, intent(in) :: n_mu
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_pexsi_n_mu(handle_f,n_mu)
+
+end subroutine
+
+subroutine elsi_set_pexsi_n_pole_c_wrapper(handle_c,n_pole)&
+   bind(C,name="c_elsi_set_pexsi_n_pole")
+
+   implicit none
+
+   type(c_ptr),         value             :: handle_c
+   integer(kind=c_int), value, intent(in) :: n_pole
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_pexsi_n_pole(handle_f,n_pole)
+
+end subroutine
+
+subroutine elsi_set_pexsi_np_per_pole_c_wrapper(handle_c,np_per_pole)&
+   bind(C,name="c_elsi_set_pexsi_np_per_pole")
+
+   implicit none
+
+   type(c_ptr),         value             :: handle_c
+   integer(kind=c_int), value, intent(in) :: np_per_pole
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_pexsi_np_per_pole(handle_f,np_per_pole)
+
+end subroutine
+
+subroutine elsi_set_pexsi_np_symb_fact_c_wrapper(handle_c,np_symb_fact)&
+   bind(C,name="c_elsi_set_pexsi_np_symb_fact")
+
+   implicit none
+
+   type(c_ptr),         value             :: handle_c
+   integer(kind=c_int), value, intent(in) :: np_symb_fact
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_pexsi_np_symb_fact(handle_f,np_symb_fact)
+
+end subroutine
+
+subroutine elsi_set_pexsi_temp_c_wrapper(handle_c,temp)&
+   bind(C,name="c_elsi_set_pexsi_temp")
+
+   implicit none
+
+   type(c_ptr),         value             :: handle_c
+   real(kind=c_double), value, intent(in) :: temp
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_pexsi_temp(handle_f,temp)
+
+end subroutine
+
+subroutine elsi_set_pexsi_gap_c_wrapper(handle_c,gap)&
+   bind(C,name="c_elsi_set_pexsi_gap")
+
+   implicit none
+
+   type(c_ptr),         value             :: handle_c
+   real(kind=c_double), value, intent(in) :: gap
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_pexsi_gap(handle_f,gap)
+
+end subroutine
+
+subroutine elsi_set_pexsi_mu_min_c_wrapper(handle_c,mu_min)&
+   bind(C,name="c_elsi_set_pexsi_mu_min")
+   
+   implicit none
+   
+   type(c_ptr),         value             :: handle_c
+   real(kind=c_double), value, intent(in) :: mu_min
+   
+   type(elsi_handle), pointer :: handle_f
+   
+   call c_f_pointer(handle_c,handle_f)
+   
+   call elsi_set_pexsi_mu_min(handle_f,mu_min)
+   
+end subroutine
+
+subroutine elsi_set_pexsi_mu_max_c_wrapper(handle_c,mu_max)&
+   bind(C,name="c_elsi_set_pexsi_mu_max")
+   
+   implicit none
+   
+   type(c_ptr),         value             :: handle_c
+   real(kind=c_double), value, intent(in) :: mu_max
+   
+   type(elsi_handle), pointer :: handle_f
+   
+   call c_f_pointer(handle_c,handle_f)
+   
+   call elsi_set_pexsi_mu_max(handle_f,mu_max)
+   
+end subroutine
+
+subroutine elsi_set_pexsi_inertia_tol_c_wrapper(handle_c,inertia_tol)&
+   bind(C,name="c_elsi_set_pexsi_inertia_tol")
+   
+   implicit none
+   
+   type(c_ptr),         value             :: handle_c
+   real(kind=c_double), value, intent(in) :: inertia_tol
+   
+   type(elsi_handle), pointer :: handle_f
+   
+   call c_f_pointer(handle_c,handle_f)
+   
+   call elsi_set_pexsi_inertia_tol(handle_f,inertia_tol)
+   
+end subroutine
+
+subroutine elsi_set_sips_slice_type_c_wrapper(handle_c,slice_type)&
+   bind(C,name="c_elsi_set_sips_slice_type")
+
+   implicit none
+
+   type(c_ptr),         value             :: handle_c
+   integer(kind=c_int), value, intent(in) :: slice_type
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_sips_slice_type(handle_f,slice_type)
+
+end subroutine
+
+subroutine elsi_set_sips_n_slice_c_wrapper(handle_c,n_slice)&
+   bind(C,name="c_elsi_set_sips_n_slice")
+
+   implicit none
+
+   type(c_ptr),         value             :: handle_c
+   integer(kind=c_int), value, intent(in) :: n_slice
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_sips_n_slice(handle_f,n_slice)
+
+end subroutine
+
+subroutine elsi_set_sips_left_bound_c_wrapper(handle_c,left_bound)&
+   bind(C,name="c_elsi_set_sips_left_bound")
+
+   implicit none
+
+   type(c_ptr),         value             :: handle_c
+   integer(kind=c_int), value, intent(in) :: left_bound
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_sips_left_bound(handle_f,left_bound)
+
+end subroutine
+
+subroutine elsi_set_sips_slice_buffer_c_wrapper(handle_c,slice_buffer)&
+   bind(C,name="c_elsi_set_sips_slice_buffer")
+
+   implicit none
+
+   type(c_ptr),         value             :: handle_c
+   real(kind=c_double), value, intent(in) :: slice_buffer
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_sips_slice_buffer(handle_f,slice_buffer)
+
+end subroutine
+
+subroutine elsi_set_mu_broaden_scheme_c_wrapper(handle_c,broaden_scheme)&
+   bind(C,name="c_elsi_set_mu_broaden_scheme")
+
+   implicit none
+
+   type(c_ptr),         value             :: handle_c
+   integer(kind=c_int), value, intent(in) :: broaden_scheme
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_mu_broaden_scheme(handle_f,broaden_scheme)
+
+end subroutine
+
+subroutine elsi_set_mu_broaden_width_c_wrapper(handle_c,broaden_width)&
+   bind(C,name="c_elsi_set_mu_broaden_width")
+   
+   implicit none
+   
+   type(c_ptr),         value             :: handle_c
+   real(kind=c_double), value, intent(in) :: broaden_width
+   
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_mu_broaden_width(handle_f,broaden_width)
+
+end subroutine
+
+subroutine elsi_set_mu_tol_c_wrapper(handle_c,mu_tol)&
+   bind(C,name="c_elsi_set_mu_tol")
+
+   implicit none
+
+   type(c_ptr),         value             :: handle_c
+   real(kind=c_double), value, intent(in) :: mu_tol
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_mu_tol(handle_f,mu_tol)
+
+end subroutine
+
+subroutine elsi_set_mu_spin_degen_c_wrapper(handle_c,spin_degen)&
+   bind(C,name="c_elsi_set_mu_spin_degen")
+
+   implicit none
+
+   type(c_ptr),         value             :: handle_c
+   real(kind=c_double), value, intent(in) :: spin_degen
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_mu_spin_degen(handle_f,spin_degen)
+
+end subroutine
+
+subroutine elsi_get_ovlp_sing_c_wrapper(handle_c,ovlp_sing)&
+   bind(C,name="c_elsi_get_ovlp_sing")
+
+   implicit none
+
+   type(c_ptr), value  :: handle_c
+   integer(kind=c_int) :: ovlp_sing
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_get_ovlp_sing(handle_f,ovlp_sing)
+
+end subroutine
+
+subroutine elsi_get_mu_c_wrapper(handle_c,mu)&
+   bind(C,name="c_elsi_get_mu")
+
+   implicit none
+
+   type(c_ptr), value  :: handle_c
+   real(kind=c_double) :: mu
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_get_mu(handle_f,mu)
 
 end subroutine
 

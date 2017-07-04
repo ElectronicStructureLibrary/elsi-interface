@@ -197,7 +197,7 @@ program test_dm_real
    call elsi_set_blacs(elsi_h,BLACS_CTXT,blk)
 
    ! Customize ELSI
-   call elsi_set_output(elsi_h,3)
+   call elsi_set_output(elsi_h,2)
    call elsi_set_sing_check(elsi_h,0)
    call elsi_set_omm_n_elpa(elsi_h,1)
    call elsi_set_pexsi_np_per_pole(elsi_h,2)

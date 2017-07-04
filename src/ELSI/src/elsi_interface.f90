@@ -73,8 +73,8 @@ module ELSI
    public :: elsi_set_elpa_solver
    public :: elsi_set_omm_flavor
    public :: elsi_set_omm_n_elpa
-   public :: elsi_set_omm_min_tol
-   public :: elsi_set_omm_pspblas
+   public :: elsi_set_omm_tol
+   public :: elsi_set_omm_psp
    public :: elsi_set_pexsi_driver
    public :: elsi_set_pexsi_n_mu
    public :: elsi_set_pexsi_n_pole
@@ -84,14 +84,14 @@ module ELSI
    public :: elsi_set_pexsi_gap
    public :: elsi_set_pexsi_mu_min
    public :: elsi_set_pexsi_mu_max
-   public :: elsi_set_pexsi_stop_inertia
-   public :: elsi_set_sips_slicing_method
+   public :: elsi_set_pexsi_inertia_tol
+   public :: elsi_set_sips_slice_type
    public :: elsi_set_sips_n_slice
    public :: elsi_set_sips_left_bound
    public :: elsi_set_sips_slice_buffer
    public :: elsi_set_mu_broaden_scheme
    public :: elsi_set_mu_broaden_width
-   public :: elsi_set_mu_accuracy
+   public :: elsi_set_mu_tol
    public :: elsi_set_mu_spin_degen
    public :: elsi_get_ovlp_sing
    public :: elsi_get_mu
@@ -115,17 +115,6 @@ module ELSI
    public :: elsi_compute_mu_and_occ
 
 contains
-
-!=====================
-! ELSI tools:
-!
-!   elsi_init
-!   elsi_set_mpi
-!   elsi_set_blacs
-!   elsi_set_csc
-!   elsi_get_energy
-!   elsi_finalize
-!=====================
 
 !>
 !! This routine initializes ELSI with the solver, parallel mode, matrix storage
@@ -393,19 +382,6 @@ subroutine elsi_finalize(elsi_h)
    call elsi_cleanup(elsi_h)
 
 end subroutine
-
-!=========================
-! ELSI customize routines
-!
-!   elsi_customize
-!   elsi_customize_omm
-!   elsi_customize_pexsi
-!   elsi_customize_elpa
-!   elsi_customize_sips
-!   elsi_customize_mu
-!   elsi_collect
-!   elsi_collect_pexsi
-!=========================
 
 !>
 !! This routine overrides ELSI default settings.
@@ -1127,14 +1103,14 @@ end subroutine
 !>
 !! This routine sets the tolerance of OMM minimization.
 !!
-subroutine elsi_set_omm_min_tol(elsi_h,min_tol)
+subroutine elsi_set_omm_tol(elsi_h,min_tol)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h
-   integer(kind=i4),  intent(in)    :: min_tol
+   real(kind=r8),     intent(in)    :: min_tol
 
-   character*40, parameter :: caller = "elsi_set_omm_min_tol"
+   character*40, parameter :: caller = "elsi_set_omm_tol"
 
    call elsi_check_handle(elsi_h,caller)
 
@@ -1145,14 +1121,14 @@ end subroutine
 !>
 !! This routine switches on/off the matrix multiplications using PSP BLAS.
 !!
-subroutine elsi_set_omm_pspblas(elsi_h,use_psp)
+subroutine elsi_set_omm_psp(elsi_h,use_psp)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h
    integer(kind=i4),  intent(in)    :: use_psp
 
-   character*40, parameter :: caller = "elsi_set_omm_use_psp"
+   character*40, parameter :: caller = "elsi_set_omm_psp"
 
    call elsi_check_handle(elsi_h,caller)
 
@@ -1329,39 +1305,39 @@ subroutine elsi_set_pexsi_mu_max(elsi_h,mu_max)
 end subroutine
 
 !>
-!! This routine sets the stop criterion for the estimation of the chemical
+!! This routine sets the tolerance of the estimation of the chemical
 !! potential using an inertia counting procedure.
 !!
-subroutine elsi_set_pexsi_stop_inertia(elsi_h,stop_inertia)
+subroutine elsi_set_pexsi_inertia_tol(elsi_h,inertia_tol)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h
-   real(kind=r8),     intent(in)    :: stop_inertia
+   real(kind=r8),     intent(in)    :: inertia_tol
 
-   character*40, parameter :: caller = "elsi_set_pexsi_stop_inertia"
+   character*40, parameter :: caller = "elsi_set_pexsi_inertia_tol"
 
    call elsi_check_handle(elsi_h,caller)
 
-   elsi_h%pexsi_options%muInertiaTolerance = stop_inertia
+   elsi_h%pexsi_options%muInertiaTolerance = inertia_tol
 
 end subroutine
 
 !>
 !! This routine sets the slicing method when using SIPs.
 !!
-subroutine elsi_set_sips_slicing_method(elsi_h,slicing_method)
+subroutine elsi_set_sips_slice_type(elsi_h,slice_type)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h
-   integer(kind=i4),  intent(in)    :: slicing_method
+   integer(kind=i4),  intent(in)    :: slice_type
 
-   character*40, parameter :: caller = "elsi_set_sips_slicing_method"
+   character*40, parameter :: caller = "elsi_set_sips_slice_type"
 
    call elsi_check_handle(elsi_h,caller)
 
-   elsi_h%slicing_method = slicing_method
+   elsi_h%slicing_method = slice_type
 
 end subroutine
 
@@ -1470,18 +1446,18 @@ end subroutine
 !! This routine sets the desired accuracy of the determination of the
 !! chemical potential and the occupation numbers.
 !!
-subroutine elsi_set_mu_accuracy(elsi_h,mu_accuracy)
+subroutine elsi_set_mu_tol(elsi_h,mu_tol)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h
-   real(kind=r8),     intent(in)    :: mu_accuracy
+   real(kind=r8),     intent(in)    :: mu_tol
 
-   character*40, parameter :: caller = "elsi_set_mu_accuracy"
+   character*40, parameter :: caller = "elsi_set_mu_tol"
 
    call elsi_check_handle(elsi_h,caller)
 
-   elsi_h%occ_tolerance = mu_accuracy
+   elsi_h%occ_tolerance = mu_tol
 
 end subroutine
 
@@ -1551,18 +1527,6 @@ subroutine elsi_get_mu(elsi_h,mu)
    elsi_h%mu_ready = .false.
 
 end subroutine
-
-!=======================
-! ELSI solvers
-!
-!   elsi_ev_real
-!   elsi_ev_complex
-!   elsi_ev_real_sparse
-!   elsi_dm_real
-!   elsi_dm_complex
-!   elsi_dm_real_sparse
-!   elsi_edm_real
-!=======================
 
 !>
 !! This routine computes the eigenvalues and eigenvectors.

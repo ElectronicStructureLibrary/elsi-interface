@@ -188,7 +188,7 @@ program test_ev_real
    call elsi_set_blacs(elsi_h,BLACS_CTXT,blk)
 
    ! Customize ELSI
-   call elsi_set_output(elsi_h,3)
+   call elsi_set_output(elsi_h,2)
    
    ham = H%dval
    ovlp = S%dval

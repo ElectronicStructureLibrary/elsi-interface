@@ -133,15 +133,17 @@ void c_elsi_ev_real_sparse(elsi_handle handle_c,
                            double *e_val,
                            double *e_vec);
 
-double c_elsi_dm_real(elsi_handle handle_c,
-                      double *H,
-                      double *S,
-                      double *D);
+void c_elsi_dm_real(elsi_handle handle_c,
+                    double *H,
+                    double *S,
+                    double *D,
+                    double *energy);
 
-double c_elsi_dm_real_sparse(elsi_handle handle_c,
-                             double *H,
-                             double *S,
-                             double *D);
+void c_elsi_dm_real_sparse(elsi_handle handle_c,
+                           double *H,
+                           double *S,
+                           double *D,
+                           double *energy);
 
 void c_elsi_collect(elsi_handle handle_c,
                     int *overlap_is_singular,
@@ -152,6 +154,102 @@ void c_elsi_collect_pexsi(elsi_handle handle_c,
                           double *mu,
                           double *edm,
                           double *fdm);
+
+void c_elsi_set_output(elsi_handle handle_c,
+                       int out_level);
+
+void c_elsi_set_unit_ovlp(elsi_handle handle_c,
+                          int unit_ovlp);
+
+void c_elsi_set_zero_def(elsi_handle handle_c,
+                         double zero_def);
+
+void c_elsi_set_sing_check(elsi_handle handle_c,
+                           int sing_check);
+
+void c_elsi_set_sing_tol(elsi_handle handle_c,
+                         double sing_tol);
+
+void c_elsi_set_sing_stop(elsi_handle handle_c,
+                          int sing_stop);
+
+void c_elsi_set_uplo(elsi_handle handle_c,
+                     int uplo);
+
+void c_elsi_set_elpa_solver(elsi_handle handle_c,
+                            int elpa_solver);
+
+void c_elsi_set_omm_flavor(elsi_handle handle_c,
+                           int omm_flavor);
+
+void c_elsi_set_omm_n_elpa(elsi_handle handle_c,
+                           int n_elpa);
+
+void c_elsi_set_omm_tol(elsi_handle handle_c,
+                        double min_tol);
+
+void c_elsi_set_omm_psp(elsi_handle handle_c,
+                        int use_psp);
+
+void c_elsi_set_pexsi_driver(elsi_handle handle_c,
+                             int pexsi_driver);
+
+void c_elsi_set_pexsi_n_mu(elsi_handle handle_c,
+                           int n_mu);
+
+void c_elsi_set_pexsi_n_pole(elsi_handle handle_c,
+                             int n_pole);
+
+void c_elsi_set_pexsi_np_per_pole(elsi_handle handle_c,
+                                  int np_per_pole);
+
+void c_elsi_set_pexsi_np_symb_fact(elsi_handle handle_c,
+                                   int np_symb_fact);
+
+void c_elsi_set_pexsi_temp(elsi_handle handle_c,
+                           double temp);
+
+void c_elsi_set_pexsi_gap(elsi_handle handle_c,
+                          double gap);
+
+void c_elsi_set_pexsi_mu_min(elsi_handle handle_c,
+                             double mu_min);
+
+void c_elsi_set_pexsi_mu_max(elsi_handle handle_c,
+                             double mu_max);
+
+void c_elsi_set_pexsi_inertia_tol(elsi_handle handle_c,
+                                  double inertia_tol);
+
+void c_elsi_set_sips_slice_type(elsi_handle handle_c,
+                                int inertia_tol);
+
+void c_elsi_set_sips_n_slice(elsi_handle handle_c,
+                             int n_slice);
+
+void c_elsi_set_sips_left_bound(elsi_handle handle_c,
+                                int left_bound);
+
+void c_elsi_set_sips_slice_buffer(elsi_handle handle_c,
+                                  double slice_buffer);
+
+void c_elsi_set_mu_broaden_scheme(elsi_handle handle_c,
+                                  int broaden_scheme);
+
+void c_elsi_set_mu_broaden_width(elsi_handle handle_c,
+                                 double broaden_width);
+
+void c_elsi_set_mu_tol(elsi_handle handle_c,
+                       double mu_tol);
+
+void c_elsi_set_mu_spin_degen(elsi_handle handle_c,
+                              double spin_degen);
+
+void c_elsi_get_ovlp_sing(elsi_handle handle_c,
+                          int *ovlp_sing);
+
+void c_elsi_get_mu(elsi_handle handle_c,
+                   double *mu);
 
 #ifdef __cplusplus
 }
