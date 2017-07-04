@@ -18,14 +18,14 @@ CFLAGS         = -O3
 CXXFLAGS       = -O3 -std=c++11
 LDFLAGS        = -O3 
 LDFLAGS       += -Wl,-rpath -Wl,/home/wph6/opt/ELPA/2016.11.001.pre/build/lib # Needed when ELPA installed as shared library
- 
+
 CXX_LIB        = -lstdc++
 
 SCALAPACK_LIB  = -L/opt/intel/mkl/lib/intel64 -lmkl_scalapack_lp64 \
                  -lmkl_blacs_intelmpi_lp64 -lmkl_intel_lp64 \
                  -lmkl_sequential -lmkl_core -lpthread -lm
 
-TOMATO_SEED    =  /home/wph6/opt/ELSI/ext_link/tomato-seed
+TOMATO_SEED    =  /home/wy29/elsi_make_check/tomato_seed
 
 # ====== libOMM ======
 EXTERNAL_OMM   = yes

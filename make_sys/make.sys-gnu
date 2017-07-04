@@ -20,7 +20,7 @@ SCALAPACK_LIB = -L/opt/intel/mkl/lib/intel64 -lmkl_scalapack_lp64 \
                 -lmkl_blacs_intelmpi_lp64 -lmkl_intel_lp64 \
                 -lmkl_sequential -lmkl_core -lpthread -lm
 
-TOMATO_SEED   = /home/wy29/tomato_seed
+TOMATO_SEED   = /home/wy29/elsi_make_check/tomato_seed
 
 # ====== PEXSI ======
 METIS_LIB     = -L/home/wy29/yu/parmetis-4.0.3/build/Linux-x86_64/libmetis -lmetis

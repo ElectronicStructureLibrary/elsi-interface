@@ -3,7 +3,7 @@
 # VERIFIED  : MAY 22, 2017
 # DO READ ../INSTALL CAREFULLY!
 
-# Note:  To sidestep the ar executable distributed with xcode, I had to follow the advice from 
+# Note:  To sidestep the ar executable distributed with xcode, I had to follow the advice from
 # http://stackoverflow.com/questions/4929255/building-static-libraries-on-mac-using-cmake-and-gcc
 # and run 'sudo port install autogen autoconf automake nano libtool libsdl patchutils subversion wget gmake'
 
