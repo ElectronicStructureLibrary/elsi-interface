@@ -124,12 +124,9 @@ subroutine elsi_blacs_to_pexsi_hs_small(elsi_h,H_in,S_in)
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
    integer(kind=i4) :: i_val
-   integer(kind=i4) :: j_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: global_col_id !< Global column id
    integer(kind=i4) :: global_row_id !< Global row id
-   integer(kind=i4) :: local_col_id !< Local column id in 1D block distribution
-   integer(kind=i4) :: local_row_id !< Local row id in 1D block distribution
    integer(kind=i4) :: d1,d2,d11,d12,d21,d22 !< Number of columns in the intermediate stage
    integer(kind=i4) :: dest !< Destination of an element
    integer(kind=i4) :: this_n_cols
@@ -481,12 +478,9 @@ subroutine elsi_blacs_to_pexsi_hs_large(elsi_h,H_in,S_in)
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
    integer(kind=i4) :: i_val
-   integer(kind=i4) :: j_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: global_col_id !< Global column id
    integer(kind=i4) :: global_row_id !< Global row id
-   integer(kind=i4) :: local_col_id !< Local column id in 1D block distribution
-   integer(kind=i4) :: local_row_id !< Local row id in 1D block distribution
    integer(kind=i4) :: d1,d2,d11,d12,d21,d22 !< Number of columns in the intermediate stage
    integer(kind=i4) :: dest !< Destination of an element
    integer(kind=i4) :: this_n_cols
@@ -497,6 +491,7 @@ subroutine elsi_blacs_to_pexsi_hs_large(elsi_h,H_in,S_in)
    integer(kind=i4) :: tmp_int
    integer(kind=i8) :: tmp_long
    integer(kind=i4), allocatable :: locat(:) !< Location of each global column
+   integer(kind=i8), allocatable :: global_id(:) !< Global 1D id
    real(kind=r8) :: tmp_real
 
    ! See documentation of MPI_Alltoallv
@@ -514,7 +509,6 @@ subroutine elsi_blacs_to_pexsi_hs_large(elsi_h,H_in,S_in)
    integer(kind=i4), allocatable :: recv_displ(:) !< Displacement at which to place the incoming data
    integer(kind=i4) :: recv_displ_aux !< Auxiliary variable used to set displacement
    integer(kind=i4) :: send_displ_aux !< Auxiliary variable used to set displacement
-   integer(kind=i8), allocatable :: global_id(:) !< Global 1D id
 
    character*40, parameter :: caller = "elsi_blacs_to_pexsi_hs_large"
 
@@ -1260,12 +1254,9 @@ subroutine elsi_blacs_to_sips_hs_small(elsi_h,H_in,S_in)
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
    integer(kind=i4) :: i_val
-   integer(kind=i4) :: j_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: global_col_id !< Global column id
    integer(kind=i4) :: global_row_id !< Global row id
-   integer(kind=i4) :: local_col_id !< Local column id in 1D block distribution
-   integer(kind=i4) :: local_row_id !< Local row id in 1D block distribution
    integer(kind=i4) :: dest !< Destination of an element
    integer(kind=i4) :: tmp_int
    integer(kind=i4) :: min_pos
@@ -1504,12 +1495,9 @@ subroutine elsi_blacs_to_sips_hs_large(elsi_h,H_in,S_in)
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
    integer(kind=i4) :: i_val
-   integer(kind=i4) :: j_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: global_col_id !< Global column id
    integer(kind=i4) :: global_row_id !< Global row id
-   integer(kind=i4) :: local_col_id !< Local column id in 1D block distribution
-   integer(kind=i4) :: local_row_id !< Local row id in 1D block distribution
    integer(kind=i4) :: dest !< Destination of an element
    integer(kind=i4) :: tmp_int
    integer(kind=i8) :: tmp_long
@@ -2247,7 +2235,7 @@ subroutine elsi_blacs_to_pexsi_dm(elsi_h,D_out)
    if(elsi_h%n_g_size < 46340) then
       call elsi_blacs_to_pexsi_dm_small(elsi_h,D_out)
    else ! use long integer
-!      call elsi_blacs_to_pexsi_dm_large(elsi_h,D_out)
+      call elsi_blacs_to_pexsi_dm_large(elsi_h,D_out)
    endif
 
 end subroutine
@@ -2277,10 +2265,7 @@ subroutine elsi_blacs_to_pexsi_dm_small(elsi_h,D_out)
    integer(kind=i4) :: local_row_id !< Local row id in 1D block distribution
    integer(kind=i4) :: dest !< Destination of an element
    integer(kind=i4) :: nnz_l_pexsi_aux
-   integer(kind=i4) :: tmp_int
-   integer(kind=i4) :: min_pos
-   integer(kind=i4) :: min_id
-   real(kind=r8)    :: tmp_real
+   integer(kind=i4) :: n_l_cols_pexsi_aux
 
    ! See documentation of MPI_Alltoallv
    real(kind=r8),    allocatable :: val_send_buffer(:) !< Send buffer for value
@@ -2295,9 +2280,6 @@ subroutine elsi_blacs_to_pexsi_dm_small(elsi_h,D_out)
    integer(kind=i4) :: recv_displ_aux !< Auxiliary variable used to set displacement
 
    character*40, parameter :: caller = "elsi_blacs_to_pexsi_dm_small"
-
-   call elsi_stop(" elsi_blacs_to_pexsi_dm not yet available."//&
-                  " Exiting...",elsi_h,caller)
 
    call elsi_start_redistribution_time(elsi_h)
 
@@ -2406,6 +2388,217 @@ subroutine elsi_blacs_to_pexsi_dm_small(elsi_h,D_out)
    call elsi_deallocate(elsi_h,recv_displ,"recv_displ")
 
    D_out = 0.0_r8
+
+   if(elsi_h%myid == elsi_h%n_procs-1) then
+      n_l_cols_pexsi_aux = elsi_h%n_g_size-elsi_h%n_l_cols_pexsi
+      n_l_cols_pexsi_aux = n_l_cols_pexsi_aux/(elsi_h%n_procs-1)
+   else
+      n_l_cols_pexsi_aux = elsi_h%n_l_cols_pexsi
+   endif
+
+   ! Unpack matrix
+   do i_val = 1,nnz_l_pexsi_aux
+      global_col_id = (pos_recv_buffer(i_val)-1)/elsi_h%n_g_size+1
+      local_col_id = global_col_id-elsi_h%myid*n_l_cols_pexsi_aux
+      local_row_id = mod(pos_recv_buffer(i_val)-1,elsi_h%n_g_size)+1
+
+      do j_val = elsi_h%col_ptr_ccs(local_col_id),elsi_h%col_ptr_ccs(local_col_id+1)-1
+         if(elsi_h%row_ind_ccs(j_val) == local_row_id) then
+            D_out(j_val) = val_recv_buffer(i_val)
+!            exit
+         endif
+      enddo
+   enddo
+
+   call elsi_deallocate(elsi_h,pos_recv_buffer,"pos_recv_buffer")
+   call elsi_deallocate(elsi_h,val_recv_buffer,"val_recv_buffer")
+
+   call elsi_stop_redistribution_time(elsi_h)
+
+end subroutine
+
+!>
+!! This routine converts density matrix in 2D block-cyclic distributed
+!! dense format to 1D block distributed sparse CCS format.
+!!
+!! * 2D index is used to deal with large matrices.
+!!
+subroutine elsi_blacs_to_pexsi_dm_large(elsi_h,D_out)
+
+   implicit none
+
+   include "mpif.h"
+
+   type(elsi_handle), intent(inout) :: elsi_h
+   real(kind=r8),     intent(out)   :: D_out(elsi_h%nnz_l_pexsi)
+
+   integer(kind=i4) :: mpierr
+   integer(kind=i4) :: i_row
+   integer(kind=i4) :: i_col
+   integer(kind=i4) :: i_val
+   integer(kind=i4) :: j_val
+   integer(kind=i4) :: i_proc
+   integer(kind=i4) :: local_col_id !< Local column id in 1D block distribution
+   integer(kind=i4) :: local_row_id !< Local row id in 1D block distribution
+   integer(kind=i4) :: dest !< Destination of an element
+   integer(kind=i4) :: nnz_l_pexsi_aux
+   integer(kind=i4) :: n_l_cols_pexsi_aux
+
+   ! See documentation of MPI_Alltoallv
+   real(kind=r8),    allocatable :: val_send_buffer(:) !< Send buffer for value
+   integer(kind=i4), allocatable :: row_send_buffer(:) !< Send buffer for global row id
+   integer(kind=i4), allocatable :: col_send_buffer(:) !< Send buffer for global column id
+   integer(kind=i4), allocatable :: send_count(:) !< Number of elements to send to each processor
+   integer(kind=i4), allocatable :: send_displ(:) !< Displacement from which to take the outgoing data
+   real(kind=r8),    allocatable :: val_recv_buffer(:) !< Receive buffer for value
+   integer(kind=i4), allocatable :: row_recv_buffer(:) !< Receive buffer for global row id
+   integer(kind=i4), allocatable :: col_recv_buffer(:) !< Receive buffer for global column id
+   integer(kind=i4), allocatable :: recv_count(:) !< Number of elements to receive from each processor
+   integer(kind=i4), allocatable :: recv_displ(:) !< Displacement at which to place the incoming data
+   integer(kind=i4) :: send_displ_aux !< Auxiliary variable used to set displacement 
+   integer(kind=i4) :: recv_displ_aux !< Auxiliary variable used to set displacement
+
+   character*40, parameter :: caller = "elsi_blacs_to_pexsi_dm_large"
+
+   call elsi_start_redistribution_time(elsi_h)
+
+   if(elsi_h%solver == ELPA) then
+      call elsi_get_local_nnz(elsi_h,elsi_h%den_mat_elpa,elsi_h%n_l_rows,&
+                              elsi_h%n_l_cols,elsi_h%nnz_l)
+   elseif(elsi_h%solver == LIBOMM) then
+      call elsi_get_local_nnz(elsi_h,elsi_h%den_mat_omm%dval,elsi_h%n_l_rows,&
+                              elsi_h%n_l_cols,elsi_h%nnz_l)
+   endif
+
+   call elsi_allocate(elsi_h,val_send_buffer,elsi_h%nnz_l,"val_send_buffer",caller)
+   call elsi_allocate(elsi_h,row_send_buffer,elsi_h%nnz_l,"row_send_buffer",caller)
+   call elsi_allocate(elsi_h,col_send_buffer,elsi_h%nnz_l,"col_send_buffer",caller)
+   call elsi_allocate(elsi_h,send_count,elsi_h%n_procs,"send_count",caller)
+
+   ! Compute destination and global id
+   if(elsi_h%solver == ELPA) then
+      i_val = 0
+      do i_col = 1,elsi_h%n_l_cols
+         do i_row = 1,elsi_h%n_l_rows
+            if(abs(elsi_h%den_mat_elpa(i_row,i_col)) > elsi_h%zero_threshold) then
+               i_val = i_val+1
+               ! Compute global id
+               call elsi_get_global_col(elsi_h,col_send_buffer(i_val),i_col)
+               call elsi_get_global_row(elsi_h,row_send_buffer(i_val),i_row)
+               ! Compute destination
+               dest = (col_send_buffer(i_val)-1)/(elsi_h%n_g_size/elsi_h%n_procs)
+               ! The last process may take more
+               dest = min(dest,elsi_h%n_procs-1)
+               ! Pack data
+               val_send_buffer(i_val) = elsi_h%den_mat_elpa(i_row,i_col)
+               ! Set send_count
+               send_count(dest+1) = send_count(dest+1)+1
+            endif
+         enddo
+      enddo
+   elseif(elsi_h%solver == LIBOMM) then
+      i_val = 0
+      do i_col = 1,elsi_h%n_l_cols
+         do i_row = 1,elsi_h%n_l_rows
+            if(abs(elsi_h%den_mat_omm%dval(i_row,i_col)) > elsi_h%zero_threshold) then
+               i_val = i_val+1
+               ! Compute global id
+               call elsi_get_global_col(elsi_h,col_send_buffer(i_val),i_col)
+               call elsi_get_global_row(elsi_h,row_send_buffer(i_val),i_row)
+               ! Compute destination
+               dest = (col_send_buffer(i_val)-1)/(elsi_h%n_g_size/elsi_h%n_procs)
+               ! The last process may take more
+               dest = min(dest,elsi_h%n_procs-1)
+               ! Pack data
+               val_send_buffer(i_val) = elsi_h%den_mat_omm%dval(i_row,i_col)
+               ! Set send_count
+               send_count(dest+1) = send_count(dest+1)+1
+            endif
+         enddo
+      enddo
+   endif
+
+   call elsi_allocate(elsi_h,recv_count,elsi_h%n_procs,"recv_count",caller)
+
+   ! Set recv_count
+   call MPI_Alltoall(send_count,1,mpi_integer,recv_count,&
+                     1,mpi_integer,elsi_h%mpi_comm,mpierr)
+
+   ! Set local number of nonzero
+   nnz_l_pexsi_aux = sum(recv_count,1)
+
+   ! Set send and receive displacement
+   call elsi_allocate(elsi_h,send_displ,elsi_h%n_procs,"send_displ",caller)
+   call elsi_allocate(elsi_h,recv_displ,elsi_h%n_procs,"recv_displ",caller)
+
+   send_displ_aux = 0
+   recv_displ_aux = 0
+
+   do i_proc = 0,elsi_h%n_procs-1
+      send_displ(i_proc+1) = send_displ_aux
+      send_displ_aux = send_displ_aux+send_count(i_proc+1)
+      recv_displ(i_proc+1) = recv_displ_aux
+      recv_displ_aux = recv_displ_aux+recv_count(i_proc+1)
+   enddo
+
+   ! Send and receive the packed data
+   ! Row id
+   call elsi_allocate(elsi_h,row_recv_buffer,nnz_l_pexsi_aux,"row_recv_buffer",caller)
+
+   call MPI_Alltoallv(row_send_buffer,send_count,send_displ,mpi_integer,&
+                      row_recv_buffer,recv_count,recv_displ,mpi_integer,&
+                      elsi_h%mpi_comm,mpierr)
+
+   call elsi_deallocate(elsi_h,row_send_buffer,"row_send_buffer")
+
+   ! Column id
+   call elsi_allocate(elsi_h,col_recv_buffer,nnz_l_pexsi_aux,"col_recv_buffer",caller)
+
+   call MPI_Alltoallv(col_send_buffer,send_count,send_displ,mpi_integer,&
+                      col_recv_buffer,recv_count,recv_displ,mpi_integer,&
+                      elsi_h%mpi_comm,mpierr)
+
+   call elsi_deallocate(elsi_h,col_send_buffer,"col_send_buffer")
+
+   ! Density matrix value
+   call elsi_allocate(elsi_h,val_recv_buffer,nnz_l_pexsi_aux,"val_recv_buffer",caller)
+
+   call MPI_Alltoallv(val_send_buffer,send_count,send_displ,mpi_real8,&
+                      val_recv_buffer,recv_count,recv_displ,mpi_real8,&
+                      elsi_h%mpi_comm,mpierr)
+
+   call elsi_deallocate(elsi_h,val_send_buffer,"val_send_buffer")
+
+   call elsi_deallocate(elsi_h,send_count,"send_count")
+   call elsi_deallocate(elsi_h,recv_count,"recv_count")
+   call elsi_deallocate(elsi_h,send_displ,"send_displ")
+   call elsi_deallocate(elsi_h,recv_displ,"recv_displ")
+
+   D_out = 0.0_r8
+
+   if(elsi_h%myid == elsi_h%n_procs-1) then
+      n_l_cols_pexsi_aux = elsi_h%n_g_size-elsi_h%n_l_cols_pexsi
+      n_l_cols_pexsi_aux = n_l_cols_pexsi_aux/(elsi_h%n_procs-1)
+   else
+      n_l_cols_pexsi_aux = elsi_h%n_l_cols_pexsi
+   endif
+
+   ! Unpack matrix
+   do i_val = 1,nnz_l_pexsi_aux
+      local_col_id = col_recv_buffer(i_val)-elsi_h%myid*n_l_cols_pexsi_aux
+      local_row_id = row_recv_buffer(i_val)
+
+      do j_val = elsi_h%col_ptr_ccs(local_col_id),elsi_h%col_ptr_ccs(local_col_id+1)-1
+         if(elsi_h%row_ind_ccs(j_val) == local_row_id) then
+            D_out(j_val) = val_recv_buffer(i_val)
+!            exit
+         endif
+      enddo
+   enddo
+
+   call elsi_deallocate(elsi_h,row_recv_buffer,"row_recv_buffer")
+   call elsi_deallocate(elsi_h,col_recv_buffer,"col_recv_buffer")
+   call elsi_deallocate(elsi_h,val_recv_buffer,"val_recv_buffer")
 
    call elsi_stop_redistribution_time(elsi_h)
 
