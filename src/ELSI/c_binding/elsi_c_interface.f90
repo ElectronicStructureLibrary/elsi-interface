@@ -727,19 +727,19 @@ subroutine elsi_set_pexsi_np_per_pole_c_wrapper(handle_c,np_per_pole)&
 
 end subroutine
 
-subroutine elsi_set_pexsi_np_symb_fact_c_wrapper(handle_c,np_symb_fact)&
-   bind(C,name="c_elsi_set_pexsi_np_symb_fact")
+subroutine elsi_set_pexsi_np_symbo_c_wrapper(handle_c,np_symbo)&
+   bind(C,name="c_elsi_set_pexsi_np_symbo")
 
    implicit none
 
    type(c_ptr),         value             :: handle_c
-   integer(kind=c_int), value, intent(in) :: np_symb_fact
+   integer(kind=c_int), value, intent(in) :: np_symbo
 
    type(elsi_handle), pointer :: handle_f
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_set_pexsi_np_symb_fact(handle_f,np_symb_fact)
+   call elsi_set_pexsi_np_symbo(handle_f,np_symbo)
 
 end subroutine
 

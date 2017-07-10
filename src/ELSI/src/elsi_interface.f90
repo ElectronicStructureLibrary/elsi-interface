@@ -79,7 +79,7 @@ module ELSI
    public :: elsi_set_pexsi_n_mu
    public :: elsi_set_pexsi_n_pole
    public :: elsi_set_pexsi_np_per_pole
-   public :: elsi_set_pexsi_np_symb_fact
+   public :: elsi_set_pexsi_np_symbo
    public :: elsi_set_pexsi_temp
    public :: elsi_set_pexsi_gap
    public :: elsi_set_pexsi_mu_min
@@ -1217,18 +1217,18 @@ end subroutine
 !>
 !! This routine sets the number of MPI tasks for the symbolic factorization.
 !!
-subroutine elsi_set_pexsi_np_symb_fact(elsi_h,np_symb_fact)
+subroutine elsi_set_pexsi_np_symbo(elsi_h,np_symbo)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h
-   integer(kind=i4),  intent(in)    :: np_symb_fact
+   integer(kind=i4),  intent(in)    :: np_symbo
 
-   character*40, parameter :: caller = "elsi_set_pexsi_np_symb_fact"
+   character*40, parameter :: caller = "elsi_set_pexsi_np_symbo"
 
    call elsi_check_handle(elsi_h,caller)
 
-   elsi_h%pexsi_options%npSymbFact = np_symb_fact
+   elsi_h%pexsi_options%npSymbFact = np_symbo
 
 end subroutine
 

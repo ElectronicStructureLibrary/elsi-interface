@@ -203,8 +203,8 @@ void c_elsi_set_pexsi_n_pole(elsi_handle handle_c,
 void c_elsi_set_pexsi_np_per_pole(elsi_handle handle_c,
                                   int np_per_pole);
 
-void c_elsi_set_pexsi_np_symb_fact(elsi_handle handle_c,
-                                   int np_symb_fact);
+void c_elsi_set_pexsi_np_symbo(elsi_handle handle_c,
+                               int np_symbo);
 
 void c_elsi_set_pexsi_temp(elsi_handle handle_c,
                            double temp);
