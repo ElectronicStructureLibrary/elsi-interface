@@ -32,8 +32,6 @@
 #include <stdlib.h>
 #include <math.h>
 #include <mpi.h>
-#include <mkl_blacs.h>
-#include <mkl_scalapack.h>
 #include <elsi.h>
 
 void main(int argc, char** argv) {

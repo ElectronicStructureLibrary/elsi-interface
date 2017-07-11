@@ -344,8 +344,8 @@ subroutine tomato_TB_get_dims(template_basedir,system_label,&
                               num_occ_states,&
                               gamma_point,k_point,&
                               defect,defect_perturbation,&
-                              n_rows_H, n_cols_H, n_rows_S, n_cols_S,&
-                              m_storage, build_matrix)
+                              n_rows_H,n_cols_H,n_rows_S,n_cols_S,&
+                              m_storage,build_matrix)
 
    implicit none
 
