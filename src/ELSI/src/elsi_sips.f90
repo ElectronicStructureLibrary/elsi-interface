@@ -59,10 +59,11 @@ subroutine elsi_init_sips(elsi_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
    integer(kind=i4) :: i
-   character*200 :: info_str
+   character*200    :: info_str
+
    character*40, parameter :: caller = "elsi_init_sips"
 
    if(elsi_h%n_elsi_calls == 1) then
@@ -114,7 +115,7 @@ subroutine elsi_solve_evp_sips(elsi_h)
    implicit none
    include "mpif.h"
 
-   type(elsi_handle), intent(inout) :: elsi_h
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
    integer(kind=i4) :: n_solve_steps
    integer(kind=i4) :: mpierr
@@ -202,7 +203,7 @@ subroutine elsi_sips_to_blacs_ev(elsi_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
    integer(kind=i4) :: i_state
    integer(kind=i4) :: i_row
@@ -259,7 +260,7 @@ subroutine elsi_set_sips_default_options(elsi_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
    character*40, parameter :: caller = "elsi_set_sips_default_options"
 
@@ -293,9 +294,10 @@ subroutine elsi_print_sips_options(elsi_h)
 
    implicit none
 
-   type(elsi_handle), intent(in) :: elsi_h
+   type(elsi_handle), intent(in) :: elsi_h !< Handle
 
    character*200 :: info_str
+
    character*40, parameter :: caller = "elsi_print_sips_options"
 
    write(info_str,"(A)") "  SIPs settings:"

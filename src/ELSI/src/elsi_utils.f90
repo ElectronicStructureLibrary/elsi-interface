@@ -130,8 +130,8 @@ subroutine elsi_statement_print(info,elsi_h)
 
    implicit none
 
-   character(len=*),  intent(in) :: info
-   type(elsi_handle), intent(in) :: elsi_h
+   character(len=*),  intent(in) :: info   !< Message to print
+   type(elsi_handle), intent(in) :: elsi_h !< Handle
 
    if(print_info) then
       if(elsi_h%myid == 0) then
@@ -148,7 +148,7 @@ subroutine elsi_allocate_real_1d(elsi_h,array,dim1,arrayname,caller)
 
    implicit none
 
-   type(elsi_handle),          intent(in)    :: elsi_h
+   type(elsi_handle),          intent(in)    :: elsi_h    !< Handle
    real(kind=r8), allocatable, intent(inout) :: array(:)  !< Data
    integer(kind=i4),           intent(in)    :: dim1      !< Size
    character(len=*),           intent(in)    :: arrayname !< Name
@@ -183,7 +183,7 @@ subroutine elsi_allocate_integer_1d(elsi_h,array,dim1,arrayname,caller)
 
    implicit none
 
-   type(elsi_handle),             intent(in)    :: elsi_h
+   type(elsi_handle),             intent(in)    :: elsi_h    !< Handle
    integer(kind=i4), allocatable, intent(inout) :: array(:)  !< Data
    integer(kind=i4),              intent(in)    :: dim1      !< Size
    character(len=*),              intent(in)    :: arrayname !< Name
@@ -218,7 +218,7 @@ subroutine elsi_allocate_complex_1d(elsi_h,array,dim1,arrayname,caller)
 
    implicit none
 
-   type(elsi_handle),             intent(in)    :: elsi_h
+   type(elsi_handle),             intent(in)    :: elsi_h    !< Handle
    complex(kind=r8), allocatable, intent(inout) :: array(:)  !< Data
    integer(kind=i4),              intent(in)    :: dim1      !< Size
    character(len=*),              intent(in)    :: arrayname !< Name
@@ -253,7 +253,7 @@ subroutine elsi_allocate_real_2d(elsi_h,array,dim1,dim2,arrayname,caller)
 
    implicit none
 
-   type(elsi_handle),          intent(in)    :: elsi_h
+   type(elsi_handle),          intent(in)    :: elsi_h     !< Handle
    real(kind=r8), allocatable, intent(inout) :: array(:,:) !< Data
    integer(kind=i4),           intent(in)    :: dim1       !< Size
    integer(kind=i4),           intent(in)    :: dim2       !< Size
@@ -289,7 +289,7 @@ subroutine elsi_allocate_integer_2d(elsi_h,array,dim1,dim2,arrayname,caller)
 
    implicit none
 
-   type(elsi_handle),             intent(in)    :: elsi_h
+   type(elsi_handle),             intent(in)    :: elsi_h     !< Handle
    integer(kind=i4), allocatable, intent(inout) :: array(:,:) !< Data
    integer(kind=i4),              intent(in)    :: dim1       !< Size
    integer(kind=i4),              intent(in)    :: dim2       !< Size
@@ -325,7 +325,7 @@ subroutine elsi_allocate_complex_2d(elsi_h,array,dim1,dim2,arrayname,caller)
 
    implicit none
 
-   type(elsi_handle),             intent(in)    :: elsi_h
+   type(elsi_handle),             intent(in)    :: elsi_h     !< Handle
    complex(kind=r8), allocatable, intent(inout) :: array(:,:) !< Data
    integer(kind=i4),              intent(in)    :: dim1       !< Size
    integer(kind=i4),              intent(in)    :: dim2       !< Size
@@ -361,7 +361,7 @@ subroutine elsi_allocate_real_3d(elsi_h,array,dim1,dim2,dim3,arrayname,caller)
 
    implicit none
 
-   type(elsi_handle),          intent(in)    :: elsi_h
+   type(elsi_handle),          intent(in)    :: elsi_h       !< Handle
    real(kind=r8), allocatable, intent(inout) :: array(:,:,:) !< Data
    integer(kind=i4),           intent(in)    :: dim1         !< Size
    integer(kind=i4),           intent(in)    :: dim2         !< Size
@@ -398,7 +398,7 @@ subroutine elsi_allocate_integer_3d(elsi_h,array,dim1,dim2,dim3,arrayname,caller
 
    implicit none
 
-   type(elsi_handle),             intent(in)    :: elsi_h
+   type(elsi_handle),             intent(in)    :: elsi_h       !< Handle
    integer(kind=i4), allocatable, intent(inout) :: array(:,:,:) !< Data
    integer(kind=i4),              intent(in)    :: dim1         !< Size
    integer(kind=i4),              intent(in)    :: dim2         !< Size
@@ -435,7 +435,7 @@ subroutine elsi_allocate_complex_3d(elsi_h,array,dim1,dim2,dim3,arrayname,caller
 
    implicit none
 
-   type(elsi_handle),             intent(in)    :: elsi_h
+   type(elsi_handle),             intent(in)    :: elsi_h       !< Handle
    complex(kind=r8), allocatable, intent(inout) :: array(:,:,:) !< Data
    integer(kind=i4),              intent(in)    :: dim1         !< Size
    integer(kind=i4),              intent(in)    :: dim2         !< Size
@@ -472,7 +472,7 @@ subroutine elsi_deallocate_real_1d(elsi_h,array,arrayname)
 
    implicit none
 
-   type(elsi_handle),          intent(in)    :: elsi_h
+   type(elsi_handle),          intent(in)    :: elsi_h    !< Handle
    real(kind=r8), allocatable, intent(inout) :: array(:)  !< Data
    character(len=*),           intent(in)    :: arrayname !< Name
 
@@ -494,7 +494,7 @@ subroutine elsi_deallocate_integer_1d(elsi_h,array,arrayname)
    
    implicit none
       
-   type(elsi_handle),             intent(in)    :: elsi_h
+   type(elsi_handle),             intent(in)    :: elsi_h    !< Handle
    integer(kind=i4), allocatable, intent(inout) :: array(:)  !< Data
    character(len=*),              intent(in)    :: arrayname !< Name
    
@@ -516,7 +516,7 @@ subroutine elsi_deallocate_complex_1d(elsi_h,array,arrayname)
    
    implicit none
       
-   type(elsi_handle),             intent(in)    :: elsi_h
+   type(elsi_handle),             intent(in)    :: elsi_h    !< Handle
    complex(kind=r8), allocatable, intent(inout) :: array(:)  !< Data
    character(len=*),              intent(in)    :: arrayname !< Name
    
@@ -538,7 +538,7 @@ subroutine elsi_deallocate_real_2d(elsi_h,array,arrayname)
    
    implicit none
       
-   type(elsi_handle),          intent(in)    :: elsi_h
+   type(elsi_handle),          intent(in)    :: elsi_h     !< Handle
    real(kind=r8), allocatable, intent(inout) :: array(:,:) !< Data
    character(len=*),           intent(in)    :: arrayname  !< Name
    
@@ -560,7 +560,7 @@ subroutine elsi_deallocate_integer_2d(elsi_h,array,arrayname)
 
    implicit none
 
-   type(elsi_handle),          intent(in)       :: elsi_h
+   type(elsi_handle),          intent(in)       :: elsi_h     !< Handle
    integer(kind=i4), allocatable, intent(inout) :: array(:,:) !< Data
    character(len=*),           intent(in)       :: arrayname  !< Name
 
@@ -582,7 +582,7 @@ subroutine elsi_deallocate_complex_2d(elsi_h,array,arrayname)
 
    implicit none
 
-   type(elsi_handle),          intent(in)       :: elsi_h
+   type(elsi_handle),          intent(in)       :: elsi_h     !< Handle
    complex(kind=r8), allocatable, intent(inout) :: array(:,:) !< Data
    character(len=*),           intent(in)       :: arrayname  !< Name
 
@@ -604,7 +604,7 @@ subroutine elsi_deallocate_real_3d(elsi_h,array,arrayname)
 
    implicit none
 
-   type(elsi_handle),          intent(in)    :: elsi_h
+   type(elsi_handle),          intent(in)    :: elsi_h       !< Handle
    real(kind=r8), allocatable, intent(inout) :: array(:,:,:) !< Data
    character(len=*),           intent(in)    :: arrayname    !< Name
 
@@ -626,7 +626,7 @@ subroutine elsi_deallocate_integer_3d(elsi_h,array,arrayname)
 
    implicit none
 
-   type(elsi_handle),          intent(in)       :: elsi_h
+   type(elsi_handle),          intent(in)       :: elsi_h       !< Handle
    integer(kind=i4), allocatable, intent(inout) :: array(:,:,:) !< Data
    character(len=*),           intent(in)       :: arrayname    !< Name
 
@@ -648,7 +648,7 @@ subroutine elsi_deallocate_complex_3d(elsi_h,array,arrayname)
 
    implicit none
 
-   type(elsi_handle),          intent(in)       :: elsi_h
+   type(elsi_handle),          intent(in)       :: elsi_h       !< Handle
    complex(kind=r8), allocatable, intent(inout) :: array(:,:,:) !< Data
    character(len=*),           intent(in)       :: arrayname    !< Name
 
@@ -671,9 +671,9 @@ subroutine elsi_stop(info,elsi_h,caller)
    implicit none
    include "mpif.h"
 
-   character(len=*),  intent(in) :: info
-   type(elsi_handle), intent(in) :: elsi_h
-   character(len=*),  intent(in) :: caller
+   character(len=*),  intent(in) :: info   !< Error message to print
+   type(elsi_handle), intent(in) :: elsi_h !< Handle
+   character(len=*),  intent(in) :: caller !< The subroutine in trouble
 
    character(len=4096) :: string_info
    integer :: i_task
@@ -709,8 +709,8 @@ subroutine elsi_set_real_hamiltonian(elsi_h,H_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   real(kind=r8),     target        :: H_in(elsi_h%n_l_rows,elsi_h%n_l_cols)
+   type(elsi_handle), intent(inout) :: elsi_h                                !< Handle
+   real(kind=r8),     target        :: H_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian matrix
 
    character*40, parameter :: caller = "elsi_set_real_hamiltonian"
 
@@ -737,8 +737,8 @@ subroutine elsi_set_complex_hamiltonian(elsi_h,H_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   complex(kind=r8),  target        :: H_in(elsi_h%n_l_rows,elsi_h%n_l_cols)
+   type(elsi_handle), intent(inout) :: elsi_h                                !< Handle
+   complex(kind=r8),  target        :: H_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian matrix
 
    character*40, parameter :: caller = "elsi_set_complex_hamiltonian"
 
@@ -765,8 +765,8 @@ subroutine elsi_set_sparse_real_hamiltonian(elsi_h,H_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   real(kind=r8),     target        :: H_in(elsi_h%nnz_l_pexsi)
+   type(elsi_handle), intent(inout) :: elsi_h                   !< Handle
+   real(kind=r8),     target        :: H_in(elsi_h%nnz_l_pexsi) !< Hamiltonian matrix
 
    character*40, parameter :: caller = "elsi_set_sparse_real_hamiltonian"
 
@@ -783,8 +783,8 @@ subroutine elsi_set_sparse_complex_hamiltonian(elsi_h,H_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   complex(kind=r8),  target        :: H_in(elsi_h%nnz_l_pexsi)
+   type(elsi_handle), intent(inout) :: elsi_h                   !< Handle
+   complex(kind=r8),  target        :: H_in(elsi_h%nnz_l_pexsi) !< Hamiltonian matirx
 
    character*40, parameter :: caller = "elsi_set_sparse_complex_hamiltonian"
 
@@ -801,8 +801,8 @@ subroutine elsi_set_real_overlap(elsi_h,S_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   real(kind=r8),     target        :: S_in(elsi_h%n_l_rows,elsi_h%n_l_cols)
+   type(elsi_handle), intent(inout) :: elsi_h                                !< Handle
+   real(kind=r8),     target        :: S_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Overlap matrix
 
    character*40, parameter :: caller = "elsi_set_real_overlap"
 
@@ -833,8 +833,8 @@ subroutine elsi_set_complex_overlap(elsi_h,S_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   complex(kind=r8),  target        :: S_in(elsi_h%n_l_rows,elsi_h%n_l_cols)
+   type(elsi_handle), intent(inout) :: elsi_h                                !< Handle
+   complex(kind=r8),  target        :: S_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Overlap matrix
 
    character*40, parameter :: caller = "elsi_set_complex_overlap"
 
@@ -864,8 +864,8 @@ subroutine elsi_set_sparse_real_overlap(elsi_h,S_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   real(kind=r8),     target        :: S_in(elsi_h%nnz_l_pexsi)
+   type(elsi_handle), intent(inout) :: elsi_h                   !< Handle
+   real(kind=r8),     target        :: S_in(elsi_h%nnz_l_pexsi) !< Overlap matrix
 
    character*40, parameter :: caller = "elsi_set_sparse_real_overlap"
 
@@ -884,8 +884,8 @@ subroutine elsi_set_sparse_complex_overlap(elsi_h,S_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   complex(kind=r8),  target        :: S_in(elsi_h%nnz_l_pexsi)
+   type(elsi_handle), intent(inout) :: elsi_h                   !< Handle
+   complex(kind=r8),  target        :: S_in(elsi_h%nnz_l_pexsi) !< Overlap matrix
 
    character*40, parameter :: caller = "elsi_set_sparse_complex_overlap"
 
@@ -904,8 +904,8 @@ subroutine elsi_set_eigenvalue(elsi_h,e_val_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   real(kind=r8),     target        :: e_val_in(elsi_h%n_g_size)
+   type(elsi_handle), intent(inout) :: elsi_h                    !< Handle
+   real(kind=r8),     target        :: e_val_in(elsi_h%n_g_size) !< Eigenvalues
 
    character*40, parameter :: caller = "elsi_set_eigenvalue"
 
@@ -922,8 +922,8 @@ subroutine elsi_set_real_eigenvector(elsi_h,e_vec_in)
 
    implicit none
    
-   type(elsi_handle), intent(inout) :: elsi_h
-   real(kind=r8),     target        :: e_vec_in(elsi_h%n_l_rows,elsi_h%n_l_cols)
+   type(elsi_handle), intent(inout) :: elsi_h                                    !< Handle
+   real(kind=r8),     target        :: e_vec_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Eigenvectors
 
    character*40, parameter :: caller = "elsi_set_real_eigenvector"
 
@@ -940,8 +940,8 @@ subroutine elsi_set_complex_eigenvector(elsi_h,e_vec_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   complex(kind=r8),  target        :: e_vec_in(elsi_h%n_l_rows,elsi_h%n_l_cols)
+   type(elsi_handle), intent(inout) :: elsi_h                                    !< Handle
+   complex(kind=r8),  target        :: e_vec_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Eigenvectors
 
    character*40, parameter :: caller = "elsi_set_complex_eigenvector"
 
@@ -958,8 +958,8 @@ subroutine elsi_set_density_matrix(elsi_h,D_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   real(kind=r8),     target        :: D_in(elsi_h%n_l_rows,elsi_h%n_l_cols)
+   type(elsi_handle), intent(inout) :: elsi_h                                !< Handle
+   real(kind=r8),     target        :: D_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Density matrix
 
    character*40, parameter :: caller = "elsi_set_density_matrix"
 
@@ -978,8 +978,8 @@ subroutine elsi_set_sparse_density_matrix(elsi_h,D_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   real(kind=r8),     target        :: D_in(elsi_h%nnz_l_pexsi)
+   type(elsi_handle), intent(inout) :: elsi_h                   !< Handle
+   real(kind=r8),     target        :: D_in(elsi_h%nnz_l_pexsi) !< Density matrix
 
    character*40, parameter :: caller = "elsi_set_sparse_density_matrix"
 
@@ -996,8 +996,8 @@ subroutine elsi_set_row_ind(elsi_h,row_ind_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   integer(kind=i4),  target        :: row_ind_in(elsi_h%nnz_l_pexsi)
+   type(elsi_handle), intent(inout) :: elsi_h                         !< Handle
+   integer(kind=i4),  target        :: row_ind_in(elsi_h%nnz_l_pexsi) !< Row index
 
    character*40, parameter :: caller = "elsi_set_row_ind"
 
@@ -1012,8 +1012,8 @@ subroutine elsi_set_col_ptr(elsi_h,col_ptr_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   integer(kind=i4),  target        :: col_ptr_in(elsi_h%n_l_cols_pexsi+1)
+   type(elsi_handle), intent(inout) :: elsi_h                              !< Handle
+   integer(kind=i4),  target        :: col_ptr_in(elsi_h%n_l_cols_pexsi+1) !< Column pointer
 
    character*40, parameter :: caller = "elsi_set_col_ptr"
 
@@ -1028,7 +1028,7 @@ subroutine elsi_cleanup(elsi_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
    character*40, parameter :: caller = "elsi_cleanup"
 
@@ -1106,7 +1106,7 @@ subroutine elsi_reset_handle(elsi_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
    character*40, parameter :: caller = "elsi_reset_handle"
 
@@ -1221,8 +1221,8 @@ subroutine elsi_check(elsi_h,caller)
 
    implicit none
 
-   type(elsi_handle), intent(in) :: elsi_h
-   character(len=*),  intent(in) :: caller
+   type(elsi_handle), intent(in) :: elsi_h !< Handle
+   character(len=*),  intent(in) :: caller !< Caller
 
    ! General check of solver, parallel mode, matrix data type, matrix storage format
    if(elsi_h%solver == UNSET) then
@@ -1396,8 +1396,8 @@ subroutine elsi_check_handle(elsi_h,caller)
 
    implicit none
 
-   type(elsi_handle), intent(in) :: elsi_h
-   character(len=*),  intent(in) :: caller
+   type(elsi_handle), intent(in) :: elsi_h !< Handle
+   character(len=*),  intent(in) :: caller !< Caller
 
    if(.not. elsi_h%handle_initialized) then
       call elsi_stop(" Invalid handle! An ELSI handle must be properly"//&
@@ -1414,12 +1414,12 @@ subroutine elsi_get_global_row(elsi_h,global_idx,local_idx)
 
    implicit none
 
-   type(elsi_handle), intent(in)  :: elsi_h
+   type(elsi_handle), intent(in)  :: elsi_h     !< Handle
    integer(kind=i4),  intent(in)  :: local_idx  !< Local index
    integer(kind=i4),  intent(out) :: global_idx !< Global index
 
-   integer(kind=i4) :: block !< Local block
-   integer(kind=i4) :: idx   !< Local index in block
+   integer(kind=i4) :: block
+   integer(kind=i4) :: idx
 
    character*40, parameter :: caller = "elsi_get_global_row"
 
@@ -1438,12 +1438,12 @@ subroutine elsi_get_global_col(elsi_h,global_idx,local_idx)
 
    implicit none
 
-   type(elsi_handle), intent(in)  :: elsi_h
+   type(elsi_handle), intent(in)  :: elsi_h     !< Handle
    integer(kind=i4),  intent(in)  :: local_idx  !< Local index
    integer(kind=i4),  intent(out) :: global_idx !< Global index
 
-   integer(kind=i4) :: block !< Local block
-   integer(kind=i4) :: idx   !< Local index in block
+   integer(kind=i4) :: block
+   integer(kind=i4) :: idx
 
    character*40, parameter :: caller = "elsi_get_global_col"
 
@@ -1462,15 +1462,15 @@ subroutine elsi_get_local_nnz(elsi_h,matrix,n_rows,n_cols,nnz)
 
    implicit none
 
-   type(elsi_handle), intent(in)  :: elsi_h
+   type(elsi_handle), intent(in)  :: elsi_h                !< Handle
    real(kind=r8),     intent(in)  :: matrix(n_rows,n_cols) !< Local matrix
    integer(kind=i4),  intent(in)  :: n_rows                !< Local rows
    integer(kind=i4),  intent(in)  :: n_cols                !< Local cols
    integer(kind=i4),  intent(out) :: nnz                   !< Number of non-zero
 
-   integer(kind=i4) :: i_row !< Row counter
-   integer(kind=i4) :: i_col !< Column counter
-   integer(kind=i4) :: i_nz  !< Non-zero element counter
+   integer(kind=i4) :: i_row
+   integer(kind=i4) :: i_col
+   integer(kind=i4) :: i_nz
 
    character*40, parameter :: caller = "elsi_get_local_nnz"
 
@@ -1495,10 +1495,11 @@ subroutine elsi_set_full_mat_real(elsi_h,mat)
    implicit none
    include "mpif.h"
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   real(kind=r8),     intent(inout) :: mat(elsi_h%n_l_rows,elsi_h%n_l_cols)
+   type(elsi_handle), intent(inout) :: elsi_h                               !< Handle
+   real(kind=r8),     intent(inout) :: mat(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Matrix
 
-   integer(kind=i4) :: i_row,i_col
+   integer(kind=i4) :: i_row
+   integer(kind=i4) :: i_col
    real(kind=r8), allocatable :: tmp_real(:,:)
 
    character*40, parameter :: caller = "elsi_set_full_mat_real"
@@ -1547,10 +1548,11 @@ subroutine elsi_set_full_mat_complex(elsi_h,mat)
    implicit none
    include "mpif.h"
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   complex(kind=r8),  intent(inout) :: mat(elsi_h%n_l_rows,elsi_h%n_l_cols)
+   type(elsi_handle), intent(inout) :: elsi_h                               !< Handle
+   complex(kind=r8),  intent(inout) :: mat(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Matrix
 
-   integer(kind=i4) :: i_row,i_col
+   integer(kind=i4) :: i_row
+   integer(kind=i4) :: i_col
    complex(kind=r8), allocatable :: tmp_complex(:,:)
 
    character*40, parameter :: caller = "elsi_set_full_mat_complex"

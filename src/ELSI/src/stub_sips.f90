@@ -25,9 +25,10 @@
 ! NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 ! EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-! This module is only compiled when the actual SIPs is not available, to make
-! the SIPs part of ELSI compile.
-
+!>
+!! This module is only compiled when the actual SIPs is not available, to make
+!! the SIPs part of ELSI compile.
+!!
 module m_qetsc
 
    use ELSI_PRECISION, only: r8,i4

@@ -72,9 +72,10 @@ subroutine elsi_init_timers(elsi_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
-   integer(kind=i4)        :: initial_time
+   integer(kind=i4) :: initial_time
+
    character*40, parameter :: caller = "elsi_init_timers"
 
    elsi_h%t_generalized_evp         = 0.0_r8
@@ -107,10 +108,11 @@ subroutine elsi_final_print(elsi_h)
 
    implicit none
 
-   type(elsi_handle), intent(in) :: elsi_h
+   type(elsi_handle), intent(in) :: elsi_h !< Handle
 
-   real(kind=r8)           :: sparsity
-   integer(kind=i4)        :: i_proc
+   real(kind=r8)    :: sparsity
+   integer(kind=i4) :: i_proc
+
    character*40, parameter :: caller = "elsi_final_print"
 
    if(print_info) then
@@ -152,9 +154,10 @@ subroutine elsi_get_time(wtime)
 
    implicit none
 
-   real(kind=r8), intent(out) :: wtime
+   real(kind=r8), intent(out) :: wtime !< Handle
 
-   integer(kind=i4)        :: tics
+   integer(kind=i4) :: tics
+
    character*40, parameter :: caller = "elsi_get_time"
 
    call system_clock(tics)
@@ -170,7 +173,7 @@ subroutine elsi_start_generalized_evp_time(elsi_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
    character*40, parameter :: caller = "elsi_start_generalized_evp_time"
 
@@ -185,10 +188,11 @@ subroutine elsi_stop_generalized_evp_time(elsi_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
-   real(kind=r8)           :: stop_time
-   character*200           :: info_str
+   real(kind=r8) :: stop_time
+   character*200 :: info_str
+
    character*40, parameter :: caller = "elsi_stop_generalized_evp_time"
 
    call elsi_get_time(stop_time)
@@ -208,7 +212,7 @@ subroutine elsi_start_density_matrix_time(elsi_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
    character*40, parameter :: caller = "elsi_start_density_matrix_time"
 
@@ -223,10 +227,11 @@ subroutine elsi_stop_density_matrix_time(elsi_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
-   real(kind=r8)           :: stop_time
-   character*200           :: info_str
+   real(kind=r8) :: stop_time
+   character*200 :: info_str
+
    character*40, parameter :: caller = "elsi_stop_density_matrix_time"
 
    call elsi_get_time(stop_time)
@@ -246,7 +251,7 @@ subroutine elsi_start_redistribution_time(elsi_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
    character*40, parameter :: caller = "elsi_start_redistribution_time"
    
@@ -261,10 +266,11 @@ subroutine elsi_stop_redistribution_time(elsi_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
-   real(kind=r8)           :: stop_time
-   character*200           :: info_str
+   real(kind=r8) :: stop_time
+   character*200 :: info_str
+
    character*40, parameter :: caller = "elsi_stop_redistribution_time"
 
    call elsi_get_time(stop_time)
@@ -284,7 +290,7 @@ subroutine elsi_start_transform_evp_time(elsi_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
    character*40, parameter :: caller = "elsi_start_transform_evp_time"
 
@@ -299,10 +305,11 @@ subroutine elsi_stop_transform_evp_time(elsi_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
-   real(kind=r8)           :: stop_time
-   character*200           :: info_str
+   real(kind=r8) :: stop_time
+   character*200 :: info_str
+
    character*40, parameter :: caller = "elsi_stop_transform_evp_time"
 
    call elsi_get_time(stop_time)
@@ -322,7 +329,7 @@ subroutine elsi_start_back_transform_ev_time(elsi_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
    character*40, parameter :: caller = "elsi_start_back_transform_ev_time"
 
@@ -337,10 +344,11 @@ subroutine elsi_stop_back_transform_ev_time(elsi_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
-   real(kind=r8)           :: stop_time
-   character*200           :: info_str
+   real(kind=r8) :: stop_time
+   character*200 :: info_str
+
    character*40, parameter :: caller = "elsi_stop_back_transform_ev_time"
 
    call elsi_get_time(stop_time)
@@ -360,7 +368,7 @@ subroutine elsi_start_singularity_check_time(elsi_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
    character*40, parameter :: caller = "elsi_start_singularity_check_time"
 
@@ -375,10 +383,11 @@ subroutine elsi_stop_singularity_check_time(elsi_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
-   real(kind=r8)           :: stop_time
-   character*200           :: info_str
+   real(kind=r8) :: stop_time
+   character*200 :: info_str
+
    character*40, parameter :: caller = "elsi_stop_singularity_check_time"
 
    call elsi_get_time(stop_time)
@@ -398,7 +407,7 @@ subroutine elsi_start_standard_evp_time(elsi_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
    character*40, parameter :: caller = "elsi_start_standard_evp_time"
 
@@ -413,10 +422,11 @@ subroutine elsi_stop_standard_evp_time(elsi_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
-   real(kind=r8)           :: stop_time
-   character*200           :: info_str
+   real(kind=r8) :: stop_time
+   character*200 :: info_str
+
    character*40, parameter :: caller = "elsi_stop_standard_evp_time"
 
    call elsi_get_time(stop_time)
@@ -436,7 +446,7 @@ subroutine elsi_start_cholesky_time(elsi_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
    character*40, parameter :: caller = "elsi_start_cholesky_time"
 
@@ -451,10 +461,11 @@ subroutine elsi_stop_cholesky_time(elsi_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
-   real(kind=r8)           :: stop_time
-   character*200           :: info_str
+   real(kind=r8) :: stop_time
+   character*200 :: info_str
+
    character*40, parameter :: caller = "elsi_stop_cholesky_time"
 
    call elsi_get_time(stop_time)
@@ -474,7 +485,7 @@ subroutine elsi_start_inertia_time(elsi_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
    character*40, parameter :: caller = "elsi_start_inertia_time"
 
@@ -489,10 +500,11 @@ subroutine elsi_stop_inertia_time(elsi_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
-   real(kind=r8)           :: stop_time
-   character*200           :: info_str
+   real(kind=r8) :: stop_time
+   character*200 :: info_str
+
    character*40, parameter :: caller = "elsi_stop_inertia_time"
 
    call elsi_get_time(stop_time)

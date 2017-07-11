@@ -56,7 +56,7 @@ subroutine elsi_blacs_to_pexsi_hs(elsi_h,H_in,S_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
+   type(elsi_handle), intent(inout) :: elsi_h                                !< Handle
    real(kind=r8),     intent(inout) :: H_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian matrix to be converted
    real(kind=r8),     intent(inout) :: S_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Overlap matrix to be converted
 
@@ -89,8 +89,8 @@ subroutine elsi_pexsi_to_blacs_dm(elsi_h,D_out)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   real(kind=r8),     intent(out)   :: D_out(elsi_h%n_l_rows,elsi_h%n_l_cols)
+   type(elsi_handle), intent(inout) :: elsi_h                                 !< Handle
+   real(kind=r8),     intent(out)   :: D_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Density matrix to be converted
 
    character*40, parameter :: caller = "elsi_pexsi_to_blacs_dm"
 
@@ -115,7 +115,7 @@ subroutine elsi_blacs_to_pexsi_hs_small(elsi_h,H_in,S_in)
    implicit none
    include "mpif.h"
 
-   type(elsi_handle), intent(inout) :: elsi_h
+   type(elsi_handle), intent(inout) :: elsi_h                                !< Handle
    real(kind=r8),     intent(in)    :: H_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian matrix to be converted
    real(kind=r8),     intent(in)    :: S_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Overlap matrix to be converted
 
@@ -125,32 +125,32 @@ subroutine elsi_blacs_to_pexsi_hs_small(elsi_h,H_in,S_in)
    integer(kind=i4) :: i_col
    integer(kind=i4) :: i_val
    integer(kind=i4) :: i_proc
-   integer(kind=i4) :: global_col_id !< Global column id
-   integer(kind=i4) :: global_row_id !< Global row id
-   integer(kind=i4) :: d1,d2,d11,d12,d21,d22 !< Number of columns in the intermediate stage
-   integer(kind=i4) :: dest !< Destination of an element
+   integer(kind=i4) :: global_col_id ! Global column id
+   integer(kind=i4) :: global_row_id ! Global row id
+   integer(kind=i4) :: d1,d2,d11,d12,d21,d22 ! Number of columns in the intermediate stage
+   integer(kind=i4) :: dest ! Destination of an element
    integer(kind=i4) :: this_n_cols
    integer(kind=i4) :: tmp_int
    integer(kind=i4) :: min_pos
    integer(kind=i4) :: min_id
    integer(kind=i4) :: nnz_l_pexsi_aux
    integer(kind=i4) :: mpi_comm_aux_pexsi
-   integer(kind=i4), allocatable :: locat(:) !< Location of each global column
+   integer(kind=i4), allocatable :: locat(:) ! Location of each global column
    real(kind=r8) :: tmp_real
 
    ! See documentation of MPI_Alltoallv
-   real(kind=r8),    allocatable :: h_val_send_buffer(:) !< Send buffer for Hamiltonian
-   real(kind=r8),    allocatable :: s_val_send_buffer(:) !< Send buffer for overlap
-   integer(kind=i4), allocatable :: pos_send_buffer(:) !< Send buffer for global 1D id
-   integer(kind=i4), allocatable :: send_count(:) !< Number of elements to send to each processor
-   integer(kind=i4), allocatable :: send_displ(:) !< Displacement from which to take the outgoing data
-   real(kind=r8),    allocatable :: h_val_recv_buffer(:) !< Receive buffer for Hamiltonian
-   real(kind=r8),    allocatable :: s_val_recv_buffer(:) !< Receive buffer for overlap
-   integer(kind=i4), allocatable :: pos_recv_buffer(:) !< Receive buffer for global 1D id
-   integer(kind=i4), allocatable :: recv_count(:) !< Number of elements to receive from each processor
-   integer(kind=i4), allocatable :: recv_displ(:) !< Displacement at which to place the incoming data
-   integer(kind=i4) :: send_displ_aux !< Auxiliary variable used to set displacement
-   integer(kind=i4) :: recv_displ_aux !< Auxiliary variable used to set displacement
+   real(kind=r8),    allocatable :: h_val_send_buffer(:) ! Send buffer for Hamiltonian
+   real(kind=r8),    allocatable :: s_val_send_buffer(:) ! Send buffer for overlap
+   integer(kind=i4), allocatable :: pos_send_buffer(:) ! Send buffer for global 1D id
+   integer(kind=i4), allocatable :: send_count(:) ! Number of elements to send to each processor
+   integer(kind=i4), allocatable :: send_displ(:) ! Displacement from which to take the outgoing data
+   real(kind=r8),    allocatable :: h_val_recv_buffer(:) ! Receive buffer for Hamiltonian
+   real(kind=r8),    allocatable :: s_val_recv_buffer(:) ! Receive buffer for overlap
+   integer(kind=i4), allocatable :: pos_recv_buffer(:) ! Receive buffer for global 1D id
+   integer(kind=i4), allocatable :: recv_count(:) ! Number of elements to receive from each processor
+   integer(kind=i4), allocatable :: recv_displ(:) ! Displacement at which to place the incoming data
+   integer(kind=i4) :: send_displ_aux ! Auxiliary variable used to set displacement
+   integer(kind=i4) :: recv_displ_aux ! Auxiliary variable used to set displacement
 
    character*40, parameter :: caller = "elsi_blacs_to_pexsi_hs_small"
 
@@ -469,7 +469,7 @@ subroutine elsi_blacs_to_pexsi_hs_large(elsi_h,H_in,S_in)
    implicit none
    include "mpif.h"
 
-   type(elsi_handle), intent(inout) :: elsi_h
+   type(elsi_handle), intent(inout) :: elsi_h                                !< Handle
    real(kind=r8),     intent(in)    :: H_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian matrix to be converted
    real(kind=r8),     intent(in)    :: S_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Overlap matrix to be converted
 
@@ -479,10 +479,10 @@ subroutine elsi_blacs_to_pexsi_hs_large(elsi_h,H_in,S_in)
    integer(kind=i4) :: i_col
    integer(kind=i4) :: i_val
    integer(kind=i4) :: i_proc
-   integer(kind=i4) :: global_col_id !< Global column id
-   integer(kind=i4) :: global_row_id !< Global row id
-   integer(kind=i4) :: d1,d2,d11,d12,d21,d22 !< Number of columns in the intermediate stage
-   integer(kind=i4) :: dest !< Destination of an element
+   integer(kind=i4) :: global_col_id ! Global column id
+   integer(kind=i4) :: global_row_id ! Global row id
+   integer(kind=i4) :: d1,d2,d11,d12,d21,d22 ! Number of columns in the intermediate stage
+   integer(kind=i4) :: dest ! Destination of an element
    integer(kind=i4) :: this_n_cols
    integer(kind=i4) :: min_pos
    integer(kind=i4) :: min_id
@@ -490,25 +490,25 @@ subroutine elsi_blacs_to_pexsi_hs_large(elsi_h,H_in,S_in)
    integer(kind=i4) :: mpi_comm_aux_pexsi
    integer(kind=i4) :: tmp_int
    integer(kind=i8) :: tmp_long
-   integer(kind=i4), allocatable :: locat(:) !< Location of each global column
-   integer(kind=i8), allocatable :: global_id(:) !< Global 1D id
+   integer(kind=i4), allocatable :: locat(:) ! Location of each global column
+   integer(kind=i8), allocatable :: global_id(:) ! Global 1D id
    real(kind=r8) :: tmp_real
 
    ! See documentation of MPI_Alltoallv
-   real(kind=r8),    allocatable :: h_val_send_buffer(:) !< Send buffer for Hamiltonian
-   real(kind=r8),    allocatable :: s_val_send_buffer(:) !< Send buffer for overlap
-   integer(kind=i4), allocatable :: row_send_buffer(:) !< Send buffer for global row id
-   integer(kind=i4), allocatable :: col_send_buffer(:) !< Send buffer for global column id
-   integer(kind=i4), allocatable :: send_count(:) !< Number of elements to send to each processor
-   integer(kind=i4), allocatable :: send_displ(:) !< Displacement from which to take the outgoing data
-   real(kind=r8),    allocatable :: h_val_recv_buffer(:) !< Receive buffer for Hamiltonian
-   real(kind=r8),    allocatable :: s_val_recv_buffer(:) !< Receive buffer for overlap
-   integer(kind=i4), allocatable :: row_recv_buffer(:) !< Receive buffer for global row id
-   integer(kind=i4), allocatable :: col_recv_buffer(:) !< Receive buffer for global column id
-   integer(kind=i4), allocatable :: recv_count(:) !< Number of elements to receive from each processor
-   integer(kind=i4), allocatable :: recv_displ(:) !< Displacement at which to place the incoming data
-   integer(kind=i4) :: recv_displ_aux !< Auxiliary variable used to set displacement
-   integer(kind=i4) :: send_displ_aux !< Auxiliary variable used to set displacement
+   real(kind=r8),    allocatable :: h_val_send_buffer(:) ! Send buffer for Hamiltonian
+   real(kind=r8),    allocatable :: s_val_send_buffer(:) ! Send buffer for overlap
+   integer(kind=i4), allocatable :: row_send_buffer(:) ! Send buffer for global row id
+   integer(kind=i4), allocatable :: col_send_buffer(:) ! Send buffer for global column id
+   integer(kind=i4), allocatable :: send_count(:) ! Number of elements to send to each processor
+   integer(kind=i4), allocatable :: send_displ(:) ! Displacement from which to take the outgoing data
+   real(kind=r8),    allocatable :: h_val_recv_buffer(:) ! Receive buffer for Hamiltonian
+   real(kind=r8),    allocatable :: s_val_recv_buffer(:) ! Receive buffer for overlap
+   integer(kind=i4), allocatable :: row_recv_buffer(:) ! Receive buffer for global row id
+   integer(kind=i4), allocatable :: col_recv_buffer(:) ! Receive buffer for global column id
+   integer(kind=i4), allocatable :: recv_count(:) ! Number of elements to receive from each processor
+   integer(kind=i4), allocatable :: recv_displ(:) ! Displacement at which to place the incoming data
+   integer(kind=i4) :: recv_displ_aux ! Auxiliary variable used to set displacement
+   integer(kind=i4) :: send_displ_aux ! Auxiliary variable used to set displacement
 
    character*40, parameter :: caller = "elsi_blacs_to_pexsi_hs_large"
 
@@ -862,7 +862,7 @@ subroutine elsi_pexsi_to_blacs_dm_small(elsi_h,D_out)
    implicit none
    include "mpif.h"
 
-   type(elsi_handle), intent(inout) :: elsi_h
+   type(elsi_handle), intent(inout) :: elsi_h                                 !< Handle
    real(kind=r8),     intent(out)   :: D_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Density matrix to be converted
 
    integer(kind=i4) :: mpierr
@@ -872,26 +872,26 @@ subroutine elsi_pexsi_to_blacs_dm_small(elsi_h,D_out)
    integer(kind=i4) :: j_val
    integer(kind=i4) :: k_val
    integer(kind=i4) :: i_proc
-   integer(kind=i4) :: global_col_id !< Global column id
-   integer(kind=i4) :: global_row_id !< Global row id
-   integer(kind=i4) :: local_col_id !< Local column id in 1D block distribution
-   integer(kind=i4) :: local_row_id !< Local row id in 1D block distribution
-   integer(kind=i4) :: proc_col_id !< Column id in process grid
-   integer(kind=i4) :: proc_row_id !< Row id in process grid
-   integer(kind=i4), allocatable :: dest(:) !< Destination of each element
-   integer(kind=i4), allocatable :: global_id(:) !< Global 1d id
+   integer(kind=i4) :: global_col_id ! Global column id
+   integer(kind=i4) :: global_row_id ! Global row id
+   integer(kind=i4) :: local_col_id ! Local column id in 1D block distribution
+   integer(kind=i4) :: local_row_id ! Local row id in 1D block distribution
+   integer(kind=i4) :: proc_col_id ! Column id in process grid
+   integer(kind=i4) :: proc_row_id ! Row id in process grid
+   integer(kind=i4), allocatable :: dest(:) ! Destination of each element
+   integer(kind=i4), allocatable :: global_id(:) ! Global 1d id
 
    ! See documentation of MPI_Alltoallv
-   real(kind=r8),    allocatable :: val_send_buffer(:) !< Send buffer for value
-   integer(kind=i4), allocatable :: pos_send_buffer(:) !< Send buffer for global 1D id
-   integer(kind=i4), allocatable :: send_count(:) !< Number of elements to send to each processor
-   integer(kind=i4), allocatable :: send_displ(:) !< Displacement from which to take the outgoing data
-   real(kind=r8),    allocatable :: val_recv_buffer(:) !< Receive buffer for value
-   integer(kind=i4), allocatable :: pos_recv_buffer(:) !< Receive buffer for global 1D id
-   integer(kind=i4), allocatable :: recv_count(:) !< Number of elements to receive from each processor
-   integer(kind=i4), allocatable :: recv_displ(:) !< Displacement at which to place the incoming data
-   integer(kind=i4) :: send_displ_aux !< Auxiliary variable used to set displacement
-   integer(kind=i4) :: recv_displ_aux !< Auxiliary variable used to set displacement
+   real(kind=r8),    allocatable :: val_send_buffer(:) ! Send buffer for value
+   integer(kind=i4), allocatable :: pos_send_buffer(:) ! Send buffer for global 1D id
+   integer(kind=i4), allocatable :: send_count(:) ! Number of elements to send to each processor
+   integer(kind=i4), allocatable :: send_displ(:) ! Displacement from which to take the outgoing data
+   real(kind=r8),    allocatable :: val_recv_buffer(:) ! Receive buffer for value
+   integer(kind=i4), allocatable :: pos_recv_buffer(:) ! Receive buffer for global 1D id
+   integer(kind=i4), allocatable :: recv_count(:) ! Number of elements to receive from each processor
+   integer(kind=i4), allocatable :: recv_displ(:) ! Displacement at which to place the incoming data
+   integer(kind=i4) :: send_displ_aux ! Auxiliary variable used to set displacement
+   integer(kind=i4) :: recv_displ_aux ! Auxiliary variable used to set displacement
 
    character*40, parameter :: caller = "elsi_pexsi_to_blacs_dm_small"
 
@@ -1033,7 +1033,7 @@ subroutine elsi_pexsi_to_blacs_dm_large(elsi_h,D_out)
    implicit none
    include "mpif.h"
 
-   type(elsi_handle), intent(inout) :: elsi_h
+   type(elsi_handle), intent(inout) :: elsi_h                                 !< Handle
    real(kind=r8),     intent(out)   :: D_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Density matrix to be converted
 
    integer(kind=i4) :: mpierr
@@ -1043,27 +1043,27 @@ subroutine elsi_pexsi_to_blacs_dm_large(elsi_h,D_out)
    integer(kind=i4) :: j_val
    integer(kind=i4) :: k_val
    integer(kind=i4) :: i_proc
-   integer(kind=i4) :: local_col_id !< Local column id in 1D block distribution
-   integer(kind=i4) :: local_row_id !< Local row id in 1D block distribution
-   integer(kind=i4) :: proc_col_id !< Column id in process grid
-   integer(kind=i4) :: proc_row_id !< Row id in process grid
-   integer(kind=i4), allocatable :: global_col_id(:) !< Global column id
-   integer(kind=i4), allocatable :: global_row_id(:) !< Global row id
-   integer(kind=i4), allocatable :: dest(:) !< Destination of each element
+   integer(kind=i4) :: local_col_id ! Local column id in 1D block distribution
+   integer(kind=i4) :: local_row_id ! Local row id in 1D block distribution
+   integer(kind=i4) :: proc_col_id ! Column id in process grid
+   integer(kind=i4) :: proc_row_id ! Row id in process grid
+   integer(kind=i4), allocatable :: global_col_id(:) ! Global column id
+   integer(kind=i4), allocatable :: global_row_id(:) ! Global row id
+   integer(kind=i4), allocatable :: dest(:) ! Destination of each element
 
    ! See documentation of MPI_Alltoallv
-   real(kind=r8),    allocatable :: val_send_buffer(:)  !< Send buffer for value
-   integer(kind=i4), allocatable :: row_send_buffer(:) !< Send buffer for global row id
-   integer(kind=i4), allocatable :: col_send_buffer(:) !< Send buffer for global column id
-   integer(kind=i4), allocatable :: send_count(:) !< Number of elements to send to each processor
-   integer(kind=i4), allocatable :: send_displ(:) !< Displacement from which to take the outgoing data
-   real(kind=r8),    allocatable :: val_recv_buffer(:) !< Receive buffer for value
-   integer(kind=i4), allocatable :: row_recv_buffer(:) !< Receive buffer for global row id
-   integer(kind=i4), allocatable :: col_recv_buffer(:) !< Receive buffer for global column id
-   integer(kind=i4), allocatable :: recv_count(:) !< Number of elements to receive from each processor
-   integer(kind=i4), allocatable :: recv_displ(:) !< Displacement at which to place the incoming data
-   integer(kind=i4) :: send_displ_aux !< Auxiliary variable used to set displacement
-   integer(kind=i4) :: recv_displ_aux !< Auxiliary variable used to set displacement
+   real(kind=r8),    allocatable :: val_send_buffer(:)  ! Send buffer for value
+   integer(kind=i4), allocatable :: row_send_buffer(:) ! Send buffer for global row id
+   integer(kind=i4), allocatable :: col_send_buffer(:) ! Send buffer for global column id
+   integer(kind=i4), allocatable :: send_count(:) ! Number of elements to send to each processor
+   integer(kind=i4), allocatable :: send_displ(:) ! Displacement from which to take the outgoing data
+   real(kind=r8),    allocatable :: val_recv_buffer(:) ! Receive buffer for value
+   integer(kind=i4), allocatable :: row_recv_buffer(:) ! Receive buffer for global row id
+   integer(kind=i4), allocatable :: col_recv_buffer(:) ! Receive buffer for global column id
+   integer(kind=i4), allocatable :: recv_count(:) ! Number of elements to receive from each processor
+   integer(kind=i4), allocatable :: recv_displ(:) ! Displacement at which to place the incoming data
+   integer(kind=i4) :: send_displ_aux ! Auxiliary variable used to set displacement
+   integer(kind=i4) :: recv_displ_aux ! Auxiliary variable used to set displacement
 
    character*40, parameter :: caller = "elsi_pexsi_to_blacs_dm_large"
 
@@ -1211,7 +1211,7 @@ subroutine elsi_blacs_to_sips_hs(elsi_h,H_in,S_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
+   type(elsi_handle), intent(inout) :: elsi_h                                !< Handle
    real(kind=r8),     intent(inout) :: H_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian matrix to be converted
    real(kind=r8),     intent(inout) :: S_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Overlap matrix to be converted
 
@@ -1246,7 +1246,7 @@ subroutine elsi_blacs_to_sips_hs_small(elsi_h,H_in,S_in)
 
    include "mpif.h"
 
-   type(elsi_handle), intent(inout) :: elsi_h
+   type(elsi_handle), intent(inout) :: elsi_h                                !< Handle
    real(kind=r8),     intent(in)    :: H_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian matrix to be converted
    real(kind=r8),     intent(in)    :: S_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Overlap matrix to be converted
 
@@ -1255,27 +1255,27 @@ subroutine elsi_blacs_to_sips_hs_small(elsi_h,H_in,S_in)
    integer(kind=i4) :: i_col
    integer(kind=i4) :: i_val
    integer(kind=i4) :: i_proc
-   integer(kind=i4) :: global_col_id !< Global column id
-   integer(kind=i4) :: global_row_id !< Global row id
-   integer(kind=i4) :: dest !< Destination of an element
+   integer(kind=i4) :: global_col_id ! Global column id
+   integer(kind=i4) :: global_row_id ! Global row id
+   integer(kind=i4) :: dest ! Destination of an element
    integer(kind=i4) :: tmp_int
    integer(kind=i4) :: min_pos
    integer(kind=i4) :: min_id
    real(kind=r8)    :: tmp_real
 
    ! See documentation of MPI_Alltoallv
-   real(kind=r8),    allocatable :: h_val_send_buffer(:) !< Send buffer for Hamiltonian
-   real(kind=r8),    allocatable :: s_val_send_buffer(:) !< Send buffer for overlap
-   integer(kind=i4), allocatable :: pos_send_buffer(:) !< Send buffer for global 1D id
-   integer(kind=i4), allocatable :: send_count(:) !< Number of elements to send to each processor
-   integer(kind=i4), allocatable :: send_displ(:) !< Displacement from which to take the outgoing data
-   real(kind=r8),    allocatable :: h_val_recv_buffer(:) !< Receive buffer for Hamiltonian
-   real(kind=r8),    allocatable :: s_val_recv_buffer(:) !< Receive buffer for overlap
-   integer(kind=i4), allocatable :: pos_recv_buffer(:) !< Receive buffer for global 1D id
-   integer(kind=i4), allocatable :: recv_count(:) !< Number of elements to receive from each processor
-   integer(kind=i4), allocatable :: recv_displ(:) !< Displacement at which to place the incoming data
-   integer(kind=i4) :: send_displ_aux !< Auxiliary variable used to set displacement 
-   integer(kind=i4) :: recv_displ_aux !< Auxiliary variable used to set displacement
+   real(kind=r8),    allocatable :: h_val_send_buffer(:) ! Send buffer for Hamiltonian
+   real(kind=r8),    allocatable :: s_val_send_buffer(:) ! Send buffer for overlap
+   integer(kind=i4), allocatable :: pos_send_buffer(:) ! Send buffer for global 1D id
+   integer(kind=i4), allocatable :: send_count(:) ! Number of elements to send to each processor
+   integer(kind=i4), allocatable :: send_displ(:) ! Displacement from which to take the outgoing data
+   real(kind=r8),    allocatable :: h_val_recv_buffer(:) ! Receive buffer for Hamiltonian
+   real(kind=r8),    allocatable :: s_val_recv_buffer(:) ! Receive buffer for overlap
+   integer(kind=i4), allocatable :: pos_recv_buffer(:) ! Receive buffer for global 1D id
+   integer(kind=i4), allocatable :: recv_count(:) ! Number of elements to receive from each processor
+   integer(kind=i4), allocatable :: recv_displ(:) ! Displacement at which to place the incoming data
+   integer(kind=i4) :: send_displ_aux ! Auxiliary variable used to set displacement 
+   integer(kind=i4) :: recv_displ_aux ! Auxiliary variable used to set displacement
 
    character*40, parameter :: caller = "elsi_blacs_to_sips_hs_small"
 
@@ -1487,7 +1487,7 @@ subroutine elsi_blacs_to_sips_hs_large(elsi_h,H_in,S_in)
 
    include "mpif.h"
 
-   type(elsi_handle), intent(inout) :: elsi_h
+   type(elsi_handle), intent(inout) :: elsi_h                                !< Handle
    real(kind=r8),     intent(in)    :: H_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian matrix to be converted
    real(kind=r8),     intent(in)    :: S_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Overlap matrix to be converted
 
@@ -1496,9 +1496,9 @@ subroutine elsi_blacs_to_sips_hs_large(elsi_h,H_in,S_in)
    integer(kind=i4) :: i_col
    integer(kind=i4) :: i_val
    integer(kind=i4) :: i_proc
-   integer(kind=i4) :: global_col_id !< Global column id
-   integer(kind=i4) :: global_row_id !< Global row id
-   integer(kind=i4) :: dest !< Destination of an element
+   integer(kind=i4) :: global_col_id ! Global column id
+   integer(kind=i4) :: global_row_id ! Global row id
+   integer(kind=i4) :: dest ! Destination of an element
    integer(kind=i4) :: tmp_int
    integer(kind=i8) :: tmp_long
    integer(kind=i4) :: min_pos
@@ -1506,21 +1506,21 @@ subroutine elsi_blacs_to_sips_hs_large(elsi_h,H_in,S_in)
    real(kind=r8)    :: tmp_real
 
    ! See documentation of MPI_Alltoallv
-   real(kind=r8),    allocatable :: h_val_send_buffer(:) !< Send buffer for Hamiltonian
-   real(kind=r8),    allocatable :: s_val_send_buffer(:) !< Send buffer for overlap
-   integer(kind=i4), allocatable :: row_send_buffer(:) !< Send buffer for global row id
-   integer(kind=i4), allocatable :: col_send_buffer(:) !< Send buffer for global column id
-   integer(kind=i4), allocatable :: send_count(:) !< Number of elements to send to each processor
-   integer(kind=i4), allocatable :: send_displ(:) !< Displacement from which to take the outgoing data
-   real(kind=r8),    allocatable :: h_val_recv_buffer(:) !< Receive buffer for Hamiltonian
-   real(kind=r8),    allocatable :: s_val_recv_buffer(:) !< Receive buffer for overlap
-   integer(kind=i4), allocatable :: row_recv_buffer(:) !< Receive buffer for global row id
-   integer(kind=i4), allocatable :: col_recv_buffer(:) !< Receive buffer for global col id
-   integer(kind=i4), allocatable :: recv_count(:) !< Number of elements to receive from each processor
-   integer(kind=i4), allocatable :: recv_displ(:) !< Displacement at which to place the incoming data
-   integer(kind=i4) :: send_displ_aux !< Auxiliary variable used to set displacement 
-   integer(kind=i4) :: recv_displ_aux !< Auxiliary variable used to set displacement
-   integer(kind=i8), allocatable :: global_id(:) !< Global 1D id
+   real(kind=r8),    allocatable :: h_val_send_buffer(:) ! Send buffer for Hamiltonian
+   real(kind=r8),    allocatable :: s_val_send_buffer(:) ! Send buffer for overlap
+   integer(kind=i4), allocatable :: row_send_buffer(:) ! Send buffer for global row id
+   integer(kind=i4), allocatable :: col_send_buffer(:) ! Send buffer for global column id
+   integer(kind=i4), allocatable :: send_count(:) ! Number of elements to send to each processor
+   integer(kind=i4), allocatable :: send_displ(:) ! Displacement from which to take the outgoing data
+   real(kind=r8),    allocatable :: h_val_recv_buffer(:) ! Receive buffer for Hamiltonian
+   real(kind=r8),    allocatable :: s_val_recv_buffer(:) ! Receive buffer for overlap
+   integer(kind=i4), allocatable :: row_recv_buffer(:) ! Receive buffer for global row id
+   integer(kind=i4), allocatable :: col_recv_buffer(:) ! Receive buffer for global col id
+   integer(kind=i4), allocatable :: recv_count(:) ! Number of elements to receive from each processor
+   integer(kind=i4), allocatable :: recv_displ(:) ! Displacement at which to place the incoming data
+   integer(kind=i4) :: send_displ_aux ! Auxiliary variable used to set displacement 
+   integer(kind=i4) :: recv_displ_aux ! Auxiliary variable used to set displacement
+   integer(kind=i8), allocatable :: global_id(:) ! Global 1D id
 
    character*40, parameter :: caller = "elsi_blacs_to_sips_hs_large"
 
@@ -1756,7 +1756,7 @@ subroutine elsi_pexsi_to_blacs_hs(elsi_h,H_in,S_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
+   type(elsi_handle), intent(inout) :: elsi_h                   !< Handle
    real(kind=r8),     intent(in)    :: H_in(elsi_h%nnz_l_pexsi) !< Hamiltonian matrix to be converted
    real(kind=r8),     intent(in)    :: S_in(elsi_h%nnz_l_pexsi) !< Overlap matrix to be converted
 
@@ -1780,7 +1780,7 @@ subroutine elsi_pexsi_to_blacs_hs_small(elsi_h,H_in,S_in)
    implicit none
    include "mpif.h"
 
-   type(elsi_handle), intent(inout) :: elsi_h
+   type(elsi_handle), intent(inout) :: elsi_h                   !< Handle
    real(kind=r8),     intent(in)    :: H_in(elsi_h%nnz_l_pexsi) !< Hamiltonian matrix to be converted
    real(kind=r8),     intent(in)    :: S_in(elsi_h%nnz_l_pexsi) !< Overlap matrix to be converted
 
@@ -1791,28 +1791,28 @@ subroutine elsi_pexsi_to_blacs_hs_small(elsi_h,H_in,S_in)
    integer(kind=i4) :: j_val
    integer(kind=i4) :: k_val
    integer(kind=i4) :: i_proc
-   integer(kind=i4) :: global_col_id !< Global column id
-   integer(kind=i4) :: global_row_id !< Global row id
-   integer(kind=i4) :: local_col_id !< Local column id in 1D block distribution
-   integer(kind=i4) :: local_row_id !< Local row id in 1D block distribution
-   integer(kind=i4) :: proc_col_id !< Column id in process grid
-   integer(kind=i4) :: proc_row_id !< Row id in process grid
-   integer(kind=i4), allocatable :: dest(:) !< Destination of each element
-   integer(kind=i4), allocatable :: global_id(:) !< Global 1d id
+   integer(kind=i4) :: global_col_id ! Global column id
+   integer(kind=i4) :: global_row_id ! Global row id
+   integer(kind=i4) :: local_col_id ! Local column id in 1D block distribution
+   integer(kind=i4) :: local_row_id ! Local row id in 1D block distribution
+   integer(kind=i4) :: proc_col_id ! Column id in process grid
+   integer(kind=i4) :: proc_row_id ! Row id in process grid
+   integer(kind=i4), allocatable :: dest(:) ! Destination of each element
+   integer(kind=i4), allocatable :: global_id(:) ! Global 1d id
 
    ! See documentation of MPI_Alltoallv
-   real(kind=r8),    allocatable :: h_val_send_buffer(:) !< Send buffer for H
-   real(kind=r8),    allocatable :: s_val_send_buffer(:) !< Send buffer for S
-   integer(kind=i4), allocatable :: pos_send_buffer(:) !< Send buffer for global 1D id
-   integer(kind=i4), allocatable :: send_count(:) !< Number of elements to send to each processor
-   integer(kind=i4), allocatable :: send_displ(:) !< Displacement from which to take the outgoing data
-   real(kind=r8),    allocatable :: h_val_recv_buffer(:) !< Receive buffer for H
-   real(kind=r8),    allocatable :: s_val_recv_buffer(:) !< Receive buffer for S
-   integer(kind=i4), allocatable :: pos_recv_buffer(:) !< Receive buffer for global 1D id
-   integer(kind=i4), allocatable :: recv_count(:) !< Number of elements to receive from each processor
-   integer(kind=i4), allocatable :: recv_displ(:) !< Displacement at which to place the incoming data
-   integer(kind=i4) :: send_displ_aux !< Auxiliary variable used to set displacement
-   integer(kind=i4) :: recv_displ_aux !< Auxiliary variable used to set displacement
+   real(kind=r8),    allocatable :: h_val_send_buffer(:) ! Send buffer for H
+   real(kind=r8),    allocatable :: s_val_send_buffer(:) ! Send buffer for S
+   integer(kind=i4), allocatable :: pos_send_buffer(:) ! Send buffer for global 1D id
+   integer(kind=i4), allocatable :: send_count(:) ! Number of elements to send to each processor
+   integer(kind=i4), allocatable :: send_displ(:) ! Displacement from which to take the outgoing data
+   real(kind=r8),    allocatable :: h_val_recv_buffer(:) ! Receive buffer for H
+   real(kind=r8),    allocatable :: s_val_recv_buffer(:) ! Receive buffer for S
+   integer(kind=i4), allocatable :: pos_recv_buffer(:) ! Receive buffer for global 1D id
+   integer(kind=i4), allocatable :: recv_count(:) ! Number of elements to receive from each processor
+   integer(kind=i4), allocatable :: recv_displ(:) ! Displacement at which to place the incoming data
+   integer(kind=i4) :: send_displ_aux ! Auxiliary variable used to set displacement
+   integer(kind=i4) :: recv_displ_aux ! Auxiliary variable used to set displacement
 
    character*40, parameter :: caller = "elsi_pexsi_to_blacs_hs_small"
 
@@ -2002,7 +2002,7 @@ subroutine elsi_pexsi_to_blacs_hs_large(elsi_h,H_in,S_in)
    implicit none
    include "mpif.h"
 
-   type(elsi_handle), intent(inout) :: elsi_h
+   type(elsi_handle), intent(inout) :: elsi_h                   !< Handle
    real(kind=r8),     intent(in)    :: H_in(elsi_h%nnz_l_pexsi) !< Hamiltonian matrix to be converted
    real(kind=r8),     intent(in)    :: S_in(elsi_h%nnz_l_pexsi) !< Overlap matrix to be converted
 
@@ -2013,29 +2013,29 @@ subroutine elsi_pexsi_to_blacs_hs_large(elsi_h,H_in,S_in)
    integer(kind=i4) :: j_val
    integer(kind=i4) :: k_val
    integer(kind=i4) :: i_proc
-   integer(kind=i4) :: local_col_id !< Local column id in 1D block distribution
-   integer(kind=i4) :: local_row_id !< Local row id in 1D block distribution
-   integer(kind=i4) :: proc_col_id !< Column id in process grid
-   integer(kind=i4) :: proc_row_id !< Row id in process grid
-   integer(kind=i4), allocatable :: global_row_id(:) !< Global row id
-   integer(kind=i4), allocatable :: global_col_id(:) !< Global column id
-   integer(kind=i4), allocatable :: dest(:) !< Destination of each element
+   integer(kind=i4) :: local_col_id ! Local column id in 1D block distribution
+   integer(kind=i4) :: local_row_id ! Local row id in 1D block distribution
+   integer(kind=i4) :: proc_col_id ! Column id in process grid
+   integer(kind=i4) :: proc_row_id ! Row id in process grid
+   integer(kind=i4), allocatable :: global_row_id(:) ! Global row id
+   integer(kind=i4), allocatable :: global_col_id(:) ! Global column id
+   integer(kind=i4), allocatable :: dest(:) ! Destination of each element
 
    ! See documentation of MPI_Alltoallv
-   real(kind=r8),    allocatable :: h_val_send_buffer(:) !< Send buffer for H
-   real(kind=r8),    allocatable :: s_val_send_buffer(:) !< Send buffer for S
-   integer(kind=i4), allocatable :: row_send_buffer(:) !< Send buffer for global row id
-   integer(kind=i4), allocatable :: col_send_buffer(:) !< Send buffer for global column id
-   integer(kind=i4), allocatable :: send_count(:) !< Number of elements to send to each processor
-   integer(kind=i4), allocatable :: send_displ(:) !< Displacement from which to take the outgoing data
-   real(kind=r8),    allocatable :: h_val_recv_buffer(:) !< Receive buffer for H
-   real(kind=r8),    allocatable :: s_val_recv_buffer(:) !< Receive buffer for S
-   integer(kind=i4), allocatable :: row_recv_buffer(:) !< Receive buffer for global row id
-   integer(kind=i4), allocatable :: col_recv_buffer(:) !< Receive buffer for global column id
-   integer(kind=i4), allocatable :: recv_count(:) !< Number of elements to receive from each processor
-   integer(kind=i4), allocatable :: recv_displ(:) !< Displacement at which to place the incoming data
-   integer(kind=i4) :: send_displ_aux !< Auxiliary variable used to set displacement
-   integer(kind=i4) :: recv_displ_aux !< Auxiliary variable used to set displacement
+   real(kind=r8),    allocatable :: h_val_send_buffer(:) ! Send buffer for H
+   real(kind=r8),    allocatable :: s_val_send_buffer(:) ! Send buffer for S
+   integer(kind=i4), allocatable :: row_send_buffer(:) ! Send buffer for global row id
+   integer(kind=i4), allocatable :: col_send_buffer(:) ! Send buffer for global column id
+   integer(kind=i4), allocatable :: send_count(:) ! Number of elements to send to each processor
+   integer(kind=i4), allocatable :: send_displ(:) ! Displacement from which to take the outgoing data
+   real(kind=r8),    allocatable :: h_val_recv_buffer(:) ! Receive buffer for H
+   real(kind=r8),    allocatable :: s_val_recv_buffer(:) ! Receive buffer for S
+   integer(kind=i4), allocatable :: row_recv_buffer(:) ! Receive buffer for global row id
+   integer(kind=i4), allocatable :: col_recv_buffer(:) ! Receive buffer for global column id
+   integer(kind=i4), allocatable :: recv_count(:) ! Number of elements to receive from each processor
+   integer(kind=i4), allocatable :: recv_displ(:) ! Displacement at which to place the incoming data
+   integer(kind=i4) :: send_displ_aux ! Auxiliary variable used to set displacement
+   integer(kind=i4) :: recv_displ_aux ! Auxiliary variable used to set displacement
 
    character*40, parameter :: caller = "elsi_pexsi_to_blacs_hs_large"
 
@@ -2227,8 +2227,8 @@ subroutine elsi_blacs_to_pexsi_dm(elsi_h,D_out)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   real(kind=r8),     intent(out)   :: D_out(elsi_h%nnz_l_pexsi)
+   type(elsi_handle), intent(inout) :: elsi_h                    !< Handle
+   real(kind=r8),     intent(out)   :: D_out(elsi_h%nnz_l_pexsi) !< Density matrix to be converted
 
    character*40, parameter :: caller = "elsi_blacs_to_pexsi_dm"
 
@@ -2250,8 +2250,8 @@ subroutine elsi_blacs_to_pexsi_dm_small(elsi_h,D_out)
 
    include "mpif.h"
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   real(kind=r8),     intent(out)   :: D_out(elsi_h%nnz_l_pexsi)
+   type(elsi_handle), intent(inout) :: elsi_h                    !< Handle
+   real(kind=r8),     intent(out)   :: D_out(elsi_h%nnz_l_pexsi) !< Density matrix to be converted
 
    integer(kind=i4) :: mpierr
    integer(kind=i4) :: i_row
@@ -2259,25 +2259,25 @@ subroutine elsi_blacs_to_pexsi_dm_small(elsi_h,D_out)
    integer(kind=i4) :: i_val
    integer(kind=i4) :: j_val
    integer(kind=i4) :: i_proc
-   integer(kind=i4) :: global_col_id !< Global column id
-   integer(kind=i4) :: global_row_id !< Global row id
-   integer(kind=i4) :: local_col_id !< Local column id in 1D block distribution
-   integer(kind=i4) :: local_row_id !< Local row id in 1D block distribution
-   integer(kind=i4) :: dest !< Destination of an element
+   integer(kind=i4) :: global_col_id ! Global column id
+   integer(kind=i4) :: global_row_id ! Global row id
+   integer(kind=i4) :: local_col_id ! Local column id in 1D block distribution
+   integer(kind=i4) :: local_row_id ! Local row id in 1D block distribution
+   integer(kind=i4) :: dest ! Destination of an element
    integer(kind=i4) :: nnz_l_pexsi_aux
    integer(kind=i4) :: n_l_cols_pexsi_aux
 
    ! See documentation of MPI_Alltoallv
-   real(kind=r8),    allocatable :: val_send_buffer(:) !< Send buffer for value
-   integer(kind=i4), allocatable :: pos_send_buffer(:) !< Send buffer for global 1D id
-   integer(kind=i4), allocatable :: send_count(:) !< Number of elements to send to each processor
-   integer(kind=i4), allocatable :: send_displ(:) !< Displacement from which to take the outgoing data
-   real(kind=r8),    allocatable :: val_recv_buffer(:) !< Receive buffer for value
-   integer(kind=i4), allocatable :: pos_recv_buffer(:) !< Receive buffer for global 1D id
-   integer(kind=i4), allocatable :: recv_count(:) !< Number of elements to receive from each processor
-   integer(kind=i4), allocatable :: recv_displ(:) !< Displacement at which to place the incoming data
-   integer(kind=i4) :: send_displ_aux !< Auxiliary variable used to set displacement 
-   integer(kind=i4) :: recv_displ_aux !< Auxiliary variable used to set displacement
+   real(kind=r8),    allocatable :: val_send_buffer(:) ! Send buffer for value
+   integer(kind=i4), allocatable :: pos_send_buffer(:) ! Send buffer for global 1D id
+   integer(kind=i4), allocatable :: send_count(:) ! Number of elements to send to each processor
+   integer(kind=i4), allocatable :: send_displ(:) ! Displacement from which to take the outgoing data
+   real(kind=r8),    allocatable :: val_recv_buffer(:) ! Receive buffer for value
+   integer(kind=i4), allocatable :: pos_recv_buffer(:) ! Receive buffer for global 1D id
+   integer(kind=i4), allocatable :: recv_count(:) ! Number of elements to receive from each processor
+   integer(kind=i4), allocatable :: recv_displ(:) ! Displacement at which to place the incoming data
+   integer(kind=i4) :: send_displ_aux ! Auxiliary variable used to set displacement 
+   integer(kind=i4) :: recv_displ_aux ! Auxiliary variable used to set displacement
 
    character*40, parameter :: caller = "elsi_blacs_to_pexsi_dm_small"
 
@@ -2429,8 +2429,8 @@ subroutine elsi_blacs_to_pexsi_dm_large(elsi_h,D_out)
 
    include "mpif.h"
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   real(kind=r8),     intent(out)   :: D_out(elsi_h%nnz_l_pexsi)
+   type(elsi_handle), intent(inout) :: elsi_h                    !< Handle
+   real(kind=r8),     intent(out)   :: D_out(elsi_h%nnz_l_pexsi) !< Density matrix to be converted
 
    integer(kind=i4) :: mpierr
    integer(kind=i4) :: i_row
@@ -2438,25 +2438,25 @@ subroutine elsi_blacs_to_pexsi_dm_large(elsi_h,D_out)
    integer(kind=i4) :: i_val
    integer(kind=i4) :: j_val
    integer(kind=i4) :: i_proc
-   integer(kind=i4) :: local_col_id !< Local column id in 1D block distribution
-   integer(kind=i4) :: local_row_id !< Local row id in 1D block distribution
-   integer(kind=i4) :: dest !< Destination of an element
+   integer(kind=i4) :: local_col_id ! Local column id in 1D block distribution
+   integer(kind=i4) :: local_row_id ! Local row id in 1D block distribution
+   integer(kind=i4) :: dest ! Destination of an element
    integer(kind=i4) :: nnz_l_pexsi_aux
    integer(kind=i4) :: n_l_cols_pexsi_aux
 
    ! See documentation of MPI_Alltoallv
-   real(kind=r8),    allocatable :: val_send_buffer(:) !< Send buffer for value
-   integer(kind=i4), allocatable :: row_send_buffer(:) !< Send buffer for global row id
-   integer(kind=i4), allocatable :: col_send_buffer(:) !< Send buffer for global column id
-   integer(kind=i4), allocatable :: send_count(:) !< Number of elements to send to each processor
-   integer(kind=i4), allocatable :: send_displ(:) !< Displacement from which to take the outgoing data
-   real(kind=r8),    allocatable :: val_recv_buffer(:) !< Receive buffer for value
-   integer(kind=i4), allocatable :: row_recv_buffer(:) !< Receive buffer for global row id
-   integer(kind=i4), allocatable :: col_recv_buffer(:) !< Receive buffer for global column id
-   integer(kind=i4), allocatable :: recv_count(:) !< Number of elements to receive from each processor
-   integer(kind=i4), allocatable :: recv_displ(:) !< Displacement at which to place the incoming data
-   integer(kind=i4) :: send_displ_aux !< Auxiliary variable used to set displacement 
-   integer(kind=i4) :: recv_displ_aux !< Auxiliary variable used to set displacement
+   real(kind=r8),    allocatable :: val_send_buffer(:) ! Send buffer for value
+   integer(kind=i4), allocatable :: row_send_buffer(:) ! Send buffer for global row id
+   integer(kind=i4), allocatable :: col_send_buffer(:) ! Send buffer for global column id
+   integer(kind=i4), allocatable :: send_count(:) ! Number of elements to send to each processor
+   integer(kind=i4), allocatable :: send_displ(:) ! Displacement from which to take the outgoing data
+   real(kind=r8),    allocatable :: val_recv_buffer(:) ! Receive buffer for value
+   integer(kind=i4), allocatable :: row_recv_buffer(:) ! Receive buffer for global row id
+   integer(kind=i4), allocatable :: col_recv_buffer(:) ! Receive buffer for global column id
+   integer(kind=i4), allocatable :: recv_count(:) ! Number of elements to receive from each processor
+   integer(kind=i4), allocatable :: recv_displ(:) ! Displacement at which to place the incoming data
+   integer(kind=i4) :: send_displ_aux ! Auxiliary variable used to set displacement 
+   integer(kind=i4) :: recv_displ_aux ! Auxiliary variable used to set displacement
 
    character*40, parameter :: caller = "elsi_blacs_to_pexsi_dm_large"
 

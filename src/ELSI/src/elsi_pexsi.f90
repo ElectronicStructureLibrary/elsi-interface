@@ -59,11 +59,12 @@ subroutine elsi_init_pexsi(elsi_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
    integer(kind=i4) :: n_rows_tmp
    integer(kind=i4) :: n_groups
-   character*200 :: info_str
+   character*200    :: info_str
+
    character*40, parameter :: caller = "elsi_init_pexsi"
 
    ! Safety
@@ -145,12 +146,12 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
    implicit none
    include "mpif.h"
 
-   type(elsi_handle), intent(inout) :: elsi_h
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
    real(kind=r8), save :: this_pexsi_tol = 1.0e-2_r8
    integer(kind=i4)    :: mpierr
+   character*200       :: info_str
 
-   character*200 :: info_str
    character*40, parameter :: caller = "elsi_solve_evp_pexsi"
 
    call elsi_start_density_matrix_time(elsi_h)
@@ -272,7 +273,7 @@ subroutine elsi_set_pexsi_default_options(elsi_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
    character*40, parameter :: caller = "elsi_set_pexsi_default_options"
 
@@ -300,9 +301,10 @@ subroutine elsi_print_pexsi_options(elsi_h)
 
    implicit none
 
-   type(elsi_handle), intent(in) :: elsi_h
+   type(elsi_handle), intent(in) :: elsi_h !< Handle
 
    character*200 :: info_str
+
    character*40, parameter :: caller = "elsi_print_pexsi_options"
 
    write(info_str,"(A)") "  PEXSI settings (in the same unit of Hamiltonian):"

@@ -65,7 +65,7 @@ subroutine elsi_get_elpa_comms(elsi_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h !< Handle of this ELSI instance
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
    integer(kind=i4) :: success
 
@@ -83,18 +83,15 @@ subroutine elsi_compute_occ_elpa(elsi_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h !< Handle of this ELSI instance
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
-   real(kind=r8) :: k_weights(1) !< Weights of k-points
-
+   real(kind=r8)              :: k_weights(1) ! Dummy weights of k-points
    real(kind=r8), allocatable :: eval_aux(:,:,:)
    real(kind=r8), allocatable :: occ_aux(:,:,:)
 
-   !< 1 spin channel and 1 k-point. More in the future.
-   integer(kind=i4), parameter :: n_spin   = 1
-   integer(kind=i4), parameter :: n_kpoint = 1
-
-   character*40, parameter :: caller = "elsi_compute_occ_elpa"
+   integer(kind=i4), parameter :: n_spin   = 1 ! 1 spin channel
+   integer(kind=i4), parameter :: n_kpoint = 1 ! 1 k-point
+   character*40,     parameter :: caller   = "elsi_compute_occ_elpa"
 
    k_weights(1) = 1.0_r8
 
@@ -125,7 +122,7 @@ subroutine elsi_compute_dm_elpa(elsi_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h !< Handle of this ELSI instance
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
    real(kind=r8),    allocatable :: tmp_real(:,:)
    complex(kind=r8), allocatable :: tmp_complex(:,:)
@@ -229,7 +226,7 @@ subroutine elsi_compute_edm_elpa(elsi_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h !< Handle of this ELSI instance
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
    real(kind=r8),    allocatable :: tmp_real(:,:)
    complex(kind=r8), allocatable :: tmp_complex(:,:)
@@ -341,7 +338,7 @@ subroutine elsi_to_standard_evp(elsi_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h !< Handle of this ELSI instance
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
    integer(kind=i4)              :: i_row,i_col
    real(kind=r8),    allocatable :: tmp_real(:,:)
@@ -535,7 +532,7 @@ subroutine elsi_check_singularity(elsi_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h !< Handle of this ELSI instance
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
    real(kind=r8)                 :: ev_sqrt
    real(kind=r8),    allocatable :: ev_overlap(:)
@@ -543,8 +540,8 @@ subroutine elsi_check_singularity(elsi_h)
    complex(kind=r8), allocatable :: tmp_complex(:,:)
    integer(kind=i4)              :: i
    logical                       :: success
+   character*200                 :: info_str
 
-   character*200 :: info_str
    character*40, parameter :: caller = "elsi_check_singularity"
 
    call elsi_start_singularity_check_time(elsi_h)
@@ -715,7 +712,7 @@ subroutine elsi_to_original_ev(elsi_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h !< Handle of this ELSI instance
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
    logical                       :: success
    real(kind=r8),    allocatable :: tmp_real(:,:)
@@ -785,10 +782,10 @@ subroutine elsi_solve_evp_elpa(elsi_h)
    implicit none
    include "mpif.h"
 
-   type(elsi_handle), intent(inout) :: elsi_h !< Handle of this ELSI instance
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
    integer(kind=i4) :: mpierr
-   logical :: success
+   logical          :: success
 
    character*40, parameter :: caller = "elsi_solve_evp_elpa"
 
@@ -873,7 +870,7 @@ subroutine elsi_to_standard_evp_sp(elsi_h)
    implicit none
    include 'mpif.h'
 
-   type(elsi_handle), intent(inout) :: elsi_h !< Handle of this ELSI instance
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
    real(kind=r8),    allocatable :: tmp_real(:,:)
    complex(kind=r8), allocatable :: tmp_complex(:,:)
@@ -1029,7 +1026,7 @@ subroutine elsi_to_original_ev_sp(elsi_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h !< Handle of this ELSI instance
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
    real(kind=r8),    allocatable :: tmp_real(:,:)
    complex(kind=r8), allocatable :: tmp_complex(:,:)
@@ -1090,7 +1087,7 @@ subroutine elsi_solve_evp_elpa_sp(elsi_h)
    implicit none
    include "mpif.h"
 
-   type(elsi_handle), intent(inout) :: elsi_h !< Handle of this ELSI instance
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
    real(kind=r8),    allocatable :: d(:),e(:)
    real(kind=r8),    allocatable :: tau_real(:),tmp_real(:,:)
@@ -1188,9 +1185,9 @@ end subroutine
 subroutine elsi_check_singularity_sp(elsi_h)
 
    implicit none
-   include 'mpif.h'   
+   include "mpif.h"
 
-   type(elsi_handle), intent(inout) :: elsi_h !< Handle of this ELSI instance
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
    real(kind=r8)                 :: ev_sqrt
    real(kind=r8),    allocatable :: ev_overlap(:)
@@ -1198,8 +1195,8 @@ subroutine elsi_check_singularity_sp(elsi_h)
    complex(kind=r8), allocatable :: tmp_complex(:,:)
    integer(kind=i4)              :: i,i_col
    logical                       :: success
+   character*200                 :: info_str
 
-   character*200 :: info_str
    character*40, parameter :: caller = "elsi_check_singularity_sp"
 
    call elsi_start_singularity_check_time(elsi_h)

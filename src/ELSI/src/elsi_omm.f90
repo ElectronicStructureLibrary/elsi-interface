@@ -64,9 +64,9 @@ subroutine elsi_solve_evp_omm(elsi_h)
    implicit none
    include "mpif.h"
 
-   type(elsi_handle), intent(inout) :: elsi_h
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
-   logical :: success
+   logical          :: success
    integer(kind=i4) :: mpierr
 
    character*40, parameter :: caller = "elsi_solve_evp_omm"
@@ -186,7 +186,7 @@ subroutine elsi_compute_edm_omm(elsi_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
    character*40, parameter :: caller = "elsi_compute_edm_omm"
 
@@ -219,7 +219,7 @@ subroutine elsi_set_omm_default_options(elsi_h)
    
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
    character*40, parameter :: caller = "elsi_set_omm_default_options"
 
@@ -269,9 +269,10 @@ subroutine elsi_print_omm_options(elsi_h)
 
    implicit none
 
-   type(elsi_handle), intent(in) :: elsi_h
+   type(elsi_handle), intent(in) :: elsi_h !< Handle
 
    character*200 :: info_str
+
    character*40, parameter :: caller = "elsi_print_omm_options"
 
    write(info_str,"(A)") "  libOMM settings (in the same unit of Hamiltonian):"

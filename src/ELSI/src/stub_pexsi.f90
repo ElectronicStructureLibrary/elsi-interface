@@ -28,7 +28,7 @@
 !>
 !! This module is only compiled when the actual PEXSI is not available,
 !! to make the PEXSI part of ELSI compile.
-
+!!
 module f_ppexsi_interface
 
    use iso_c_binding

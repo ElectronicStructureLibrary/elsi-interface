@@ -53,10 +53,10 @@ module ELSI
 
    character*8, parameter, public :: release_date = "20170527"
 
-   !> Data type
+   ! Data type
    public :: elsi_handle
 
-   !> Utilities
+   ! Utilities
    public :: elsi_init
    public :: elsi_finalize
    public :: elsi_set_solver
@@ -104,7 +104,7 @@ module ELSI
    public :: elsi_collect
    public :: elsi_collect_pexsi
 
-   !> Solver interfaces
+   ! Solver interfaces
    public :: elsi_ev_real
    public :: elsi_ev_complex
    public :: elsi_ev_real_sparse
@@ -126,7 +126,7 @@ subroutine elsi_init(elsi_h,solver,parallel_mode,matrix_storage_format,&
 
    implicit none
 
-   type(elsi_handle), intent(out) :: elsi_h                !< Handle of this ELSI instance
+   type(elsi_handle), intent(out) :: elsi_h                !< Handle
    integer(kind=i4),  intent(in)  :: solver                !< AUTO,ELPA,LIBOMM,PEXSI,CHESS,SIPS
    integer(kind=i4),  intent(in)  :: parallel_mode         !< SINGLE_PROC,MULTI_PROC
    integer(kind=i4),  intent(in)  :: matrix_storage_format !< BLACS_DENSE,PEXSI_CSC
@@ -185,7 +185,7 @@ subroutine elsi_set_solver(elsi_h,solver)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h !< Handle of this ELSI instance
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
    integer(kind=i4),  intent(in)    :: solver !< AUTO,ELPA,LIBOMM,PEXSI,CHESS,SIPS
 
    character*40, parameter :: caller = "elsi_set_solver"
@@ -204,7 +204,7 @@ subroutine elsi_set_mpi(elsi_h,mpi_comm)
    implicit none
    include "mpif.h"
 
-   type(elsi_handle), intent(inout) :: elsi_h      !< Handle of this ELSI instance
+   type(elsi_handle), intent(inout) :: elsi_h   !< Handle
    integer(kind=i4),  intent(in)    :: mpi_comm !< MPI communicator
 
    integer(kind=i4) :: mpierr
@@ -231,7 +231,7 @@ subroutine elsi_set_blacs(elsi_h,blacs_ctxt,block_size)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h     !< Handle of this ELSI instance
+   type(elsi_handle), intent(inout) :: elsi_h     !< Handle
    integer(kind=i4),  intent(in)    :: blacs_ctxt !< BLACS context
    integer(kind=i4),  intent(in)    :: block_size !< Block size
 
@@ -303,7 +303,7 @@ subroutine elsi_set_csc(elsi_h,nnz_g,nnz_l,n_l_cols,row_ind,col_ptr)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h            !< Handle of this ELSI instance
+   type(elsi_handle), intent(inout) :: elsi_h            !< Handle
    integer(kind=i4),  intent(in)    :: nnz_g             !< Global number of nonzeros
    integer(kind=i4),  intent(in)    :: nnz_l             !< Local number of nonzeros
    integer(kind=i4),  intent(in)    :: n_l_cols          !< Local number of columns
@@ -332,15 +332,14 @@ subroutine elsi_get_energy(elsi_h,energy)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h !< Handle of this ELSI instance
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
    real(kind=r8),     intent(out)   :: energy !< Energy of the system
 
-   ! Only spin-nonpolarized case is supported now.
-   real(kind=r8), parameter :: n_spin = 2.0_r8
    integer(kind=i4) :: i_state
-   character*200 :: info_str
+   character*200    :: info_str
 
-   character*40, parameter :: caller = "elsi_get_energy"
+   real(kind=r8), parameter :: n_spin = 2.0_r8
+   character*40,  parameter :: caller = "elsi_get_energy"
 
    call elsi_check_handle(elsi_h,caller)
 
@@ -373,7 +372,7 @@ subroutine elsi_finalize(elsi_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h !< Handle of this ELSI instance
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
    character*40, parameter :: caller = "elsi_finalize"
 
@@ -392,14 +391,14 @@ subroutine elsi_customize(elsi_h,print_detail,overlap_is_unit,zero_threshold,&
 
    implicit none
 
-   type(elsi_handle), intent(inout)        :: elsi_h                 !< Handle of this ELSI instance
-   logical,           intent(in), optional :: print_detail           !< Print detailed info?
-   logical,           intent(in), optional :: overlap_is_unit        !< Is overlap matrix unit?
-   real(kind=r8),     intent(in), optional :: zero_threshold         !< Threshold to define "zero"
-   logical,           intent(in), optional :: no_singularity_check   !< Do not perform singularity check of overlap
-   real(kind=r8),     intent(in), optional :: singularity_tolerance  !< Tolerance of overlap singularity
-   logical,           intent(in), optional :: stop_singularity       !< Stop if overlap is singular
-   integer,           intent(in), optional :: uplo                   !< Is input matrices upper/lower triangular?
+   type(elsi_handle), intent(inout)        :: elsi_h                !< Handle
+   logical,           intent(in), optional :: print_detail          !< Print detailed info?
+   logical,           intent(in), optional :: overlap_is_unit       !< Is overlap matrix unit?
+   real(kind=r8),     intent(in), optional :: zero_threshold        !< Threshold to define "zero"
+   logical,           intent(in), optional :: no_singularity_check  !< Do not perform singularity check of overlap
+   real(kind=r8),     intent(in), optional :: singularity_tolerance !< Tolerance of overlap singularity
+   logical,           intent(in), optional :: stop_singularity      !< Stop if overlap is singular
+   integer,           intent(in), optional :: uplo                  !< Is input matrices upper/lower triangular?
 
    character*40, parameter :: caller = "elsi_customize"
 
@@ -452,7 +451,7 @@ subroutine elsi_customize_omm(elsi_h,n_elpa_steps,omm_flavor,eigen_shift,&
 
    implicit none
 
-   type(elsi_handle), intent(inout)        :: elsi_h        !< Handle of this ELSI instance
+   type(elsi_handle), intent(inout)        :: elsi_h        !< Handle
    integer(kind=i4),  intent(in), optional :: n_elpa_steps  !< Number of ELPA steps before libOMM
    integer(kind=i4),  intent(in), optional :: omm_flavor    !< How to perform orbital minimization
    real(kind=r8),     intent(in), optional :: eigen_shift   !< Eigenspectrum shift parameter
@@ -513,7 +512,7 @@ subroutine elsi_customize_pexsi(elsi_h,pexsi_driver,temperature,gap,delta_e,n_po
 
    implicit none
 
-   type(elsi_handle), intent(inout)        :: elsi_h                !< Handle of this ELSI instance
+   type(elsi_handle), intent(inout)        :: elsi_h                !< Handle
    integer(kind=i4),  intent(in), optional :: pexsi_driver          !< PEXSI DFT driver version
    real(kind=r8),     intent(in), optional :: temperature           !< Temperature, in the same unit as Hamiltonian
    real(kind=r8),     intent(in), optional :: gap                   !< Spectral gap, can be set to 0 in most cases
@@ -679,7 +678,7 @@ subroutine elsi_customize_elpa(elsi_h,elpa_solver,elpa_output)
 
    implicit none
 
-   type(elsi_handle), intent(inout)        :: elsi_h      !< Handle of this ELSI instance
+   type(elsi_handle), intent(inout)        :: elsi_h      !< Handle
    integer(kind=i4),  intent(in), optional :: elpa_solver !< 1-stage or 2-stage solver?
    logical,           intent(in), optional :: elpa_output !< Output details?
 
@@ -712,7 +711,7 @@ subroutine elsi_customize_sips(elsi_h,slicing_method,n_slices,inertia_option,&
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h                !< Handle of this ELSI instance
+   type(elsi_handle), intent(inout)        :: elsi_h         !< Handle
    integer(kind=i4),  intent(in), optional :: slicing_method !< Method of slicing
    integer(kind=i4),  intent(in), optional :: n_slices       !< Number of slices
    integer(kind=i4),  intent(in), optional :: inertia_option !< Inertia counting before solve?
@@ -775,7 +774,7 @@ subroutine elsi_customize_mu(elsi_h,broadening_scheme,broadening_width,&
 
    implicit none
 
-   type(elsi_handle), intent(inout)        :: elsi_h            !< Handle of this ELSI instance
+   type(elsi_handle), intent(inout)        :: elsi_h            !< Handle
    integer(kind=i4),  intent(in), optional :: broadening_scheme !< Broadening method in chemical potential determination
    real(kind=r8),     intent(in), optional :: broadening_width  !< Broadening width in chemical potential determination
    real(kind=r8),     intent(in), optional :: occ_accuracy      !< Accuracy in electron count (sum of occ)
@@ -821,7 +820,7 @@ subroutine elsi_collect(elsi_h,overlap_is_singular,n_singular_basis,mu)
 
    implicit none
 
-   type(elsi_handle), intent(inout)         :: elsi_h              !< Handle of this ELSI instance
+   type(elsi_handle), intent(inout)         :: elsi_h              !< Handle
    logical,           intent(out), optional :: overlap_is_singular !< Is overlap singular?
    integer,           intent(out), optional :: n_singular_basis    !< Number of singular basis functions
    real(kind=r8),     intent(out), optional :: mu                  !< Chemical potential
@@ -858,7 +857,7 @@ subroutine elsi_collect_pexsi(elsi_h,mu,edm,fdm)
 
    implicit none
 
-   type(elsi_handle), intent(in)            :: elsi_h                  !< Handle of this ELSI instance
+   type(elsi_handle), intent(in)            :: elsi_h                  !< Handle
    real(kind=r8),     intent(out), optional :: mu                      !< Chemical potential
    real(kind=r8),     intent(out), optional :: edm(elsi_h%nnz_l_pexsi) !< Energy density matrix
    real(kind=r8),     intent(out), optional :: fdm(elsi_h%nnz_l_pexsi) !< Free energy density matrix
@@ -888,8 +887,8 @@ subroutine elsi_set_output(elsi_h,out_level)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   integer(kind=i4),  intent(in)    :: out_level
+   type(elsi_handle), intent(inout) :: elsi_h    !< Handle
+   integer(kind=i4),  intent(in)    :: out_level !< Output level of ELSI
 
    character*40, parameter :: caller = "elsi_set_output"
 
@@ -930,8 +929,8 @@ subroutine elsi_set_unit_ovlp(elsi_h,unit_ovlp)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   integer(kind=i4),  intent(in)    :: unit_ovlp
+   type(elsi_handle), intent(inout) :: elsi_h    !< Handle
+   integer(kind=i4),  intent(in)    :: unit_ovlp !< Overlap is an identity matrix?
 
    character*40, parameter :: caller = "elsi_set_unit_ovlp"
 
@@ -952,8 +951,8 @@ subroutine elsi_set_zero_def(elsi_h,zero_def)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   real(kind=r8),     intent(in)    :: zero_def
+   type(elsi_handle), intent(inout) :: elsi_h   !< Handle
+   real(kind=r8),     intent(in)    :: zero_def !< Numbers smaller than this will be discarded
 
    character*40, parameter :: caller = "elsi_set_zero_def"
 
@@ -970,8 +969,8 @@ subroutine elsi_set_sing_check(elsi_h,sing_check)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   integer(kind=i4),  intent(in)    :: sing_check
+   type(elsi_handle), intent(inout) :: elsi_h     !< Handle
+   integer(kind=i4),  intent(in)    :: sing_check !< Perform singularity check?
 
    character*40, parameter :: caller = "elsi_set_sing_check"
 
@@ -992,15 +991,15 @@ subroutine elsi_set_sing_tol(elsi_h,sing_tol)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   real(kind=r8),     intent(in)    :: sing_tol
+   type(elsi_handle), intent(inout) :: elsi_h   !< Handle
+   real(kind=r8),     intent(in)    :: sing_tol !< Eigenfunctions of the overlap matrix with
+                                                !! eigenvalues smaller than this value will
+                                                !! be removed to avoid singularity
 
    character*40, parameter :: caller = "elsi_set_sing_tol"
 
    call elsi_check_handle(elsi_h,caller)
 
-   ! Eigenfunctions of the overlap matrix with eigenvalues smaller than
-   ! this value will be removed to avoid singularity.
    elsi_h%singularity_tolerance = sing_tol
 
 end subroutine
@@ -1012,8 +1011,8 @@ subroutine elsi_set_sing_stop(elsi_h,sing_stop)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   integer(kind=i4),  intent(in)    :: sing_stop
+   type(elsi_handle), intent(inout) :: elsi_h    !< Handle
+   integer(kind=i4),  intent(in)    :: sing_stop !< Always stop in case of singular overlap
 
    character*40, parameter :: caller = "elsi_set_sing_stop"
 
@@ -1035,8 +1034,8 @@ subroutine elsi_set_uplo(elsi_h,uplo)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   integer(kind=i4),  intent(in)    :: uplo
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
+   integer(kind=i4),  intent(in)    :: uplo   !< Input matrix triangular?
 
    character*40, parameter :: caller = "elsi_set_uplo"
 
@@ -1053,8 +1052,8 @@ subroutine elsi_set_elpa_solver(elsi_h,elpa_solver)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   integer(kind=i4),  intent(in)    :: elpa_solver
+   type(elsi_handle), intent(inout) :: elsi_h      !< Handle
+   integer(kind=i4),  intent(in)    :: elpa_solver !< Which ELPA solver?
 
    character*40, parameter :: caller = "elsi_set_elpa_solver"
 
@@ -1071,8 +1070,8 @@ subroutine elsi_set_omm_flavor(elsi_h,omm_flavor)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   integer(kind=i4),  intent(in)    :: omm_flavor
+   type(elsi_handle), intent(inout) :: elsi_h     !< Handle
+   integer(kind=i4),  intent(in)    :: omm_flavor !< Which libOMM flavor?
 
    character*40, parameter :: caller = "elsi_set_omm_flavor"
 
@@ -1089,8 +1088,8 @@ subroutine elsi_set_omm_n_elpa(elsi_h,n_elpa)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   integer(kind=i4),  intent(in)    :: n_elpa
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
+   integer(kind=i4),  intent(in)    :: n_elpa !< Number of ELPA steps before libOMM
 
    character*40, parameter :: caller = "elsi_set_n_elpa"
 
@@ -1107,8 +1106,8 @@ subroutine elsi_set_omm_tol(elsi_h,min_tol)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   real(kind=r8),     intent(in)    :: min_tol
+   type(elsi_handle), intent(inout) :: elsi_h  !< Handle
+   real(kind=r8),     intent(in)    :: min_tol !< Tolerance of OMM minimization
 
    character*40, parameter :: caller = "elsi_set_omm_tol"
 
@@ -1125,8 +1124,8 @@ subroutine elsi_set_omm_psp(elsi_h,use_psp)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   integer(kind=i4),  intent(in)    :: use_psp
+   type(elsi_handle), intent(inout) :: elsi_h  !< Handle
+   integer(kind=i4),  intent(in)    :: use_psp !< Use pspBLAS?
 
    character*40, parameter :: caller = "elsi_set_omm_psp"
 
@@ -1143,8 +1142,8 @@ subroutine elsi_set_pexsi_driver(elsi_h,pexsi_driver)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   integer(kind=i4),  intent(in)    :: pexsi_driver
+   type(elsi_handle), intent(inout) :: elsi_h       !< Handle
+   integer(kind=i4),  intent(in)    :: pexsi_driver !< Which PEXSI driver?
 
    character*40, parameter :: caller = "elsi_set_pexsi_driver"
 
@@ -1161,8 +1160,8 @@ subroutine elsi_set_pexsi_n_mu(elsi_h,n_mu)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   integer(kind=i4),  intent(in)    :: n_mu
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
+   integer(kind=i4),  intent(in)    :: n_mu   !< Number of mu points
 
    character*40, parameter :: caller = "elsi_set_pexsi_n_mu"
 
@@ -1179,8 +1178,8 @@ subroutine elsi_set_pexsi_n_pole(elsi_h,n_pole)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   integer(kind=i4),  intent(in)    :: n_pole
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
+   integer(kind=i4),  intent(in)    :: n_pole !< Number of poles
 
    character*40, parameter :: caller = "elsi_set_pexsi_n_pole"
 
@@ -1197,8 +1196,8 @@ subroutine elsi_set_pexsi_np_per_pole(elsi_h,np_per_pole)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   integer(kind=i4),  intent(in)    :: np_per_pole
+   type(elsi_handle), intent(inout) :: elsi_h      !< Handle
+   integer(kind=i4),  intent(in)    :: np_per_pole !< Number of processes per pole
 
    character*40, parameter :: caller = "elsi_set_pexsi_n_pole"
 
@@ -1221,8 +1220,8 @@ subroutine elsi_set_pexsi_np_symbo(elsi_h,np_symbo)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   integer(kind=i4),  intent(in)    :: np_symbo
+   type(elsi_handle), intent(inout) :: elsi_h   !< Handle
+   integer(kind=i4),  intent(in)    :: np_symbo !< Number of processes for symbolic factorization
 
    character*40, parameter :: caller = "elsi_set_pexsi_np_symbo"
 
@@ -1239,8 +1238,8 @@ subroutine elsi_set_pexsi_temp(elsi_h,temp)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   real(kind=r8),     intent(in)    :: temp
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
+   real(kind=r8),     intent(in)    :: temp   !< Temperature
 
    character*40, parameter :: caller = "elsi_set_pexsi_temp"
 
@@ -1257,8 +1256,8 @@ subroutine elsi_set_pexsi_gap(elsi_h,gap)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   real(kind=r8),     intent(in)    :: gap
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
+   real(kind=r8),     intent(in)    :: gap    !< Gap
 
    character*40, parameter :: caller = "elsi_set_pexsi_gap"
 
@@ -1275,8 +1274,8 @@ subroutine elsi_set_pexsi_mu_min(elsi_h,mu_min)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   real(kind=r8),     intent(in)    :: mu_min
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
+   real(kind=r8),     intent(in)    :: mu_min !< Lower bound of mu
 
    character*40, parameter :: caller = "elsi_set_pexsi_mu_min"
 
@@ -1293,8 +1292,8 @@ subroutine elsi_set_pexsi_mu_max(elsi_h,mu_max)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   real(kind=r8),     intent(in)    :: mu_max
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
+   real(kind=r8),     intent(in)    :: mu_max !< Upper bound of mu
 
    character*40, parameter :: caller = "elsi_set_pexsi_mu_max"
 
@@ -1306,14 +1305,15 @@ end subroutine
 
 !>
 !! This routine sets the tolerance of the estimation of the chemical
-!! potential using an inertia counting procedure.
+!! potential in the inertia counting procedure.
 !!
 subroutine elsi_set_pexsi_inertia_tol(elsi_h,inertia_tol)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   real(kind=r8),     intent(in)    :: inertia_tol
+   type(elsi_handle), intent(inout) :: elsi_h      !< Handle
+   real(kind=r8),     intent(in)    :: inertia_tol !< tolerance of the estimation of the chemical
+                                                   !! potential in the inertia counting procedure
 
    character*40, parameter :: caller = "elsi_set_pexsi_inertia_tol"
 
@@ -1330,8 +1330,8 @@ subroutine elsi_set_sips_slice_type(elsi_h,slice_type)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   integer(kind=i4),  intent(in)    :: slice_type
+   type(elsi_handle), intent(inout) :: elsi_h     !< Handle
+   integer(kind=i4),  intent(in)    :: slice_type !< Method of slicing
 
    character*40, parameter :: caller = "elsi_set_sips_slice_type"
 
@@ -1348,8 +1348,8 @@ subroutine elsi_set_sips_n_slice(elsi_h,n_slice)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   integer(kind=i4),  intent(in)    :: n_slice
+   type(elsi_handle), intent(inout) :: elsi_h  !< Handle
+   integer(kind=i4),  intent(in)    :: n_slice !< Number of slices
 
    character*40, parameter :: caller = "elsi_set_sips_n_slice"
 
@@ -1374,8 +1374,8 @@ subroutine elsi_set_sips_left_bound(elsi_h,left_bound)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   integer(kind=i4),  intent(in)    :: left_bound
+   type(elsi_handle), intent(inout) :: elsi_h     !< Handle
+   integer(kind=i4),  intent(in)    :: left_bound !< How to bound the left side?
 
    character*40, parameter :: caller = "elsi_set_sips_left_bound"
 
@@ -1393,8 +1393,8 @@ subroutine elsi_set_sips_slice_buffer(elsi_h,slice_buffer)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   real(kind=r8),     intent(in)    :: slice_buffer
+   type(elsi_handle), intent(inout) :: elsi_h       !< Handle
+   real(kind=r8),     intent(in)    :: slice_buffer !< A buffer to expand the interval
 
    character*40, parameter :: caller = "elsi_set_sips_slice_buffer"
 
@@ -1412,8 +1412,8 @@ subroutine elsi_set_mu_broaden_scheme(elsi_h,broaden_scheme)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   integer(kind=i4),  intent(in)    :: broaden_scheme
+   type(elsi_handle), intent(inout) :: elsi_h         !< Handle
+   integer(kind=i4),  intent(in)    :: broaden_scheme !< Broadening method
 
    character*40, parameter :: caller = "elsi_set_mu_broaden_method"
 
@@ -1431,8 +1431,8 @@ subroutine elsi_set_mu_broaden_width(elsi_h,broaden_width)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   real(kind=r8),     intent(in)    :: broaden_width
+   type(elsi_handle), intent(inout) :: elsi_h        !< Handle
+   real(kind=r8),     intent(in)    :: broaden_width !< Broadening width
 
    character*40, parameter :: caller = "elsi_set_mu_broaden_width"
 
@@ -1450,8 +1450,8 @@ subroutine elsi_set_mu_tol(elsi_h,mu_tol)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   real(kind=r8),     intent(in)    :: mu_tol
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
+   real(kind=r8),     intent(in)    :: mu_tol !< Accuracy of mu
 
    character*40, parameter :: caller = "elsi_set_mu_tol"
 
@@ -1469,8 +1469,8 @@ subroutine elsi_set_mu_spin_degen(elsi_h,spin_degen)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   real(kind=r8),     intent(in)    :: spin_degen
+   type(elsi_handle), intent(inout) :: elsi_h     !< Handle
+   real(kind=r8),     intent(in)    :: spin_degen !< Spin degeneracy
 
    character*40, parameter :: caller = "elsi_set_mu_spin_degen"
 
@@ -1488,8 +1488,8 @@ subroutine elsi_get_ovlp_sing(elsi_h,ovlp_sing)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   integer(kind=i4),  intent(out)   :: ovlp_sing
+   type(elsi_handle), intent(inout) :: elsi_h    !< Handle
+   integer(kind=i4),  intent(out)   :: ovlp_sing !< Is overlap singular?
 
    character*40, parameter :: caller = "elsi_get_ovlp_sing"
 
@@ -1510,8 +1510,8 @@ subroutine elsi_get_mu(elsi_h,mu)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h
-   real(kind=r8),     intent(out)   :: mu
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
+   real(kind=r8),     intent(out)   :: mu     !< Chemical potential
 
    character*40, parameter :: caller = "elsi_get_mu"
 
@@ -1535,7 +1535,7 @@ subroutine elsi_ev_real(elsi_h,H_in,S_in,e_val_out,e_vec_out)
 
    implicit none
 
-   type(elsi_handle) :: elsi_h                                     !< Handle of this ELSI instance
+   type(elsi_handle) :: elsi_h                                     !< Handle
    real(kind=r8)     :: H_in(elsi_h%n_l_rows,elsi_h%n_l_cols)      !< Hamiltonian
    real(kind=r8)     :: S_in(elsi_h%n_l_rows,elsi_h%n_l_cols)      !< Overlap
    real(kind=r8)     :: e_val_out(elsi_h%n_g_size)                 !< Eigenvalues
@@ -1618,7 +1618,7 @@ subroutine elsi_ev_complex(elsi_h,H_in,S_in,e_val_out,e_vec_out)
 
    implicit none
 
-   type(elsi_handle) :: elsi_h                                     !< Handle of this ELSI instance
+   type(elsi_handle) :: elsi_h                                     !< Handle
    complex(kind=r8)  :: H_in(elsi_h%n_l_rows,elsi_h%n_l_cols)      !< Hamiltonian
    complex(kind=r8)  :: S_in(elsi_h%n_l_rows,elsi_h%n_l_cols)      !< Overlap
    real(kind=r8)     :: e_val_out(elsi_h%n_g_size)                 !< Eigenvalues
@@ -1680,7 +1680,7 @@ subroutine elsi_ev_real_sparse(elsi_h,H_in,S_in,e_val_out,e_vec_out)
 
    implicit none
 
-   type(elsi_handle) :: elsi_h                                     !< Handle of this ELSI instance
+   type(elsi_handle) :: elsi_h                                     !< Handle
    real(kind=r8)     :: H_in(elsi_h%nnz_l_pexsi)                   !< Hamiltonian
    real(kind=r8)     :: S_in(elsi_h%nnz_l_pexsi)                   !< Overlap
    real(kind=r8)     :: e_val_out(elsi_h%n_g_size)                 !< Eigenvalues
@@ -1742,7 +1742,7 @@ subroutine elsi_dm_real(elsi_h,H_in,S_in,D_out,energy_out)
 
    implicit none
 
-   type(elsi_handle) :: elsi_h                                 !< Handle of this ELSI instance
+   type(elsi_handle) :: elsi_h                                 !< Handle
    real(kind=r8)     :: H_in(elsi_h%n_l_rows,elsi_h%n_l_cols)  !< Hamiltonian
    real(kind=r8)     :: S_in(elsi_h%n_l_rows,elsi_h%n_l_cols)  !< Overlap
    real(kind=r8)     :: D_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Density matrix
@@ -1933,7 +1933,7 @@ subroutine elsi_edm_real(elsi_h,D_out)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h                                 !< Handle of this ELSI instance
+   type(elsi_handle), intent(inout) :: elsi_h                                 !< Handle
    real(kind=r8),     intent(out)   :: D_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Energy density matrix
 
    character*40, parameter :: caller = "elsi_edm_real"
@@ -1987,7 +1987,7 @@ subroutine elsi_dm_complex(elsi_h,H_in,S_in,D_out,energy_out)
 
    implicit none
 
-   type(elsi_handle) :: elsi_h                                 !< Handle of this ELSI instance
+   type(elsi_handle) :: elsi_h                                 !< Handle
    complex(kind=r8)  :: H_in(elsi_h%n_l_rows,elsi_h%n_l_cols)  !< Hamiltonian
    complex(kind=r8)  :: S_in(elsi_h%n_l_rows,elsi_h%n_l_cols)  !< Overlap
    real(kind=r8)     :: D_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Density matrix
@@ -2077,7 +2077,7 @@ subroutine elsi_dm_real_sparse(elsi_h,H_in,S_in,D_out,energy_out)
 
    implicit none
 
-   type(elsi_handle) :: elsi_h                    !< Handle of this ELSI instance
+   type(elsi_handle) :: elsi_h                    !< Handle
    real(kind=r8)     :: H_in(elsi_h%nnz_l_pexsi)  !< Hamiltonian
    real(kind=r8)     :: S_in(elsi_h%nnz_l_pexsi)  !< Overlap
    real(kind=r8)     :: D_out(elsi_h%nnz_l_pexsi) !< Density matrix

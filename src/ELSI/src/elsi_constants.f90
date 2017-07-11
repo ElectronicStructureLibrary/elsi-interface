@@ -44,33 +44,33 @@ module ELSI_CONSTANTS
    integer(kind=i4), parameter :: N_BROADENING_SCHEMES     = 4
    integer(kind=i4), parameter :: UNSET                    = -910910
 
-   !> Method names
-   enum, bind( C )
+   ! Method names
+   enum, bind(C)
       enumerator :: AUTO, ELPA, LIBOMM, PEXSI, CHESS, SIPS
    end enum
 
-   !> Real or complex data
-   enum, bind( C )
+   ! Real or complex data
+   enum, bind(C)
       enumerator :: REAL_VALUES, COMPLEX_VALUES
    end enum
 
-   !> Storage formats
-   enum, bind( C )
+   ! Storage formats
+   enum, bind(C)
       enumerator :: BLACS_DENSE, PEXSI_CSC
    end enum
 
-   !> Triangular matrix
-   enum, bind( C )
+   ! Triangular matrix
+   enum, bind(C)
       enumerator :: FULL_MAT, UT_MAT, LT_MAT
    end enum
 
-   !> Parallel modes
-   enum, bind( C )
+   ! Parallel modes
+   enum, bind(C)
       enumerator :: SINGLE_PROC, MULTI_PROC
    end enum
 
-   !> Broadening type (used if ELPA is chosen to compute density matrix)
-   enum, bind( C )
+   ! Broadening schemes
+   enum, bind(C)
       enumerator :: GAUSSIAN, FERMI, METHFESSEL_PAXTON_0, METHFESSEL_PAXTON_1
    end enum
 
