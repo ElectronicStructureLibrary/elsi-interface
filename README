@@ -9,8 +9,8 @@
   ABOUT ELSI
 ============================================================================
 
-  ELSI provides and enhances open-source software packages which solve or 
-  circumvent the Kohn-Sham eigenvalue problems in the self-consistent field 
+  ELSI provides and enhances open-source software packages which solve or
+  circumvent the Kohn-Sham eigenvalue problems in the self-consistent field
   cycle of density-functional theory.
 
   Visit the ELSI Interchange website for more information:
@@ -39,12 +39,12 @@
 
   All major compiler suites (GNU, Intel, PGI, XL, and Cray) are supported.
 
-  The user specifies their system environment via flags set in a "make.sys" 
-  file, which should be placed in the root directory of ELSI alongside the 
-  Makefile. Some example "make.sys" files that the user may adapt for their 
+  The user specifies their system environment via flags set in a "make.sys"
+  file, which should be placed in the root directory of ELSI alongside the
+  Makefile. Some example "make.sys" files that the user may adapt for their
   own system environment are available in the "./make_sys" folder.
 
-  The compilation process is: 
+  The compilation process is:
 
   * make
   * make check (optional, requires TOMATO. See ./INSTALL)
@@ -56,7 +56,7 @@
   USAGE OF ELSI
 ===========================================================================
 
-  More information may be found in the User's Guide and on the ELSI GitLab 
+  More information may be found in the User's Guide and on the ELSI GitLab
   wiki pages.  Both may be accessed via the ELSI Interchange website.
 
   Copyright (c) 2015-2017, ELSI team. All rights reserved.

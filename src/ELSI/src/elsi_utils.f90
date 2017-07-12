@@ -1325,10 +1325,12 @@ subroutine elsi_check(elsi_h,caller)
                         " Exiting...",elsi_h,caller)
       endif
 
-      if(elsi_h%matrix_storage_format /= BLACS_DENSE) then
-         call elsi_stop(" libOMM has been chosen as the solver."//&
-                        " Please choose BLACS_DENSE matrix storage format."//&
-                        " Exiting...",elsi_h,caller)
+      if(elsi_h%matrix_storage_format == PEXSI_CSC) then
+         if(.not. elsi_h%sparsity_pattern_ready) then
+            call elsi_stop(" The PEXSI_CSC format has been chosen."//&
+                           " Please set the sparsity pattern before"//&
+                           " calling the solver. Exiting...",elsi_h,caller)
+         endif
       endif
 
    else if(elsi_h%solver == PEXSI) then

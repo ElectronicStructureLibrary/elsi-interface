@@ -6,12 +6,12 @@ HOW TO INSTALL ELSI
 A) BASIC
 ==========================================================================
 
-1) The installation of ELSI is controlled a user-specified "make.sys" file. 
-   Example make.sys files can be found in the "./make_sys" subfolder of 
-   the root directory, which the user may adapt to their own system 
-   architecture.  make.sys files for various HPCs are included (Titan, 
-   Mira, Theta, Edison, Cori) as well as make.sys files targeted towards 
-   standard Linux-based clusters (c.f.  the "timewarp" make.sys files.) 
+1) The installation of ELSI is controlled a user-specified "make.sys" file.
+   Example make.sys files can be found in the "./make_sys" subfolder of
+   the root directory, which the user may adapt to their own system
+   architecture.  make.sys files for various HPCs are included (Titan,
+   Mira, Theta, Edison, Cori) as well as make.sys files targeted towards
+   standard Linux-based clusters (c.f.  the "timewarp" make.sys files.)
 
    A standard ELSI make.sys file includes the following keywords:
 
@@ -26,7 +26,7 @@ A) BASIC
       CXX_LIB       =  # C++ standard library flags, e.g. -lstdc++
       SCALAPACK_LIB =  # ScaLAPACK library flags
 
-      TOMATO_SEED   =  # Location of tomato-seed files (optional, 
+      TOMATO_SEED   =  # Location of tomato-seed files (optional,
                        # see step #3)
 
       METIS_LIB     =  # METIS library flags
@@ -34,54 +34,54 @@ A) BASIC
       SUPERLU_LIB   =  # SuperLU_DIST library flags
       SUPERLU_INC   =  # SuperLU_DIST include flags
 
-2) Once a suitable make.sys has been provided by the user, the unified 
+2) Once a suitable make.sys has been provided by the user, the unified
    ELSI build system is run by typing
- 
+
       make
 
    in the root directory.
 
-   By default, the unified ELSI build system will build the ELPA, libOMM, 
+   By default, the unified ELSI build system will build the ELPA, libOMM,
    and PEXSI solver libraries redistributed with ELSI, as well as the ELSI
-   interface itself.  Optionally, the user may link ELSI directly against 
-   preinstalled version of any supported solver library.  For more 
-   information how to link ELSI against a preinstalled solver library, 
-   please see the User's Guide available at the ELSI Interchange 
-   (http://www.elsi-interchange.org/).  We also provide a sample make.sys 
-   file (make_sys/make.sys-external-linkage) which demonstrates external 
+   interface itself.  Optionally, the user may link ELSI directly against
+   preinstalled version of any supported solver library.  For more
+   information how to link ELSI against a preinstalled solver library,
+   please see the User's Guide available at the ELSI Interchange
+   (http://www.elsi-interchange.org/).  We also provide a sample make.sys
+   file (make_sys/make.sys-external-linkage) which demonstrates external
    linkage of ELSI against preinstalled ELPA, libOMM, and PEXSI libraries.
- 
-3) (Optional, but highly recommended) Once compiled, the ELSI libraries 
+
+3) (Optional, but highly recommended) Once compiled, the ELSI libraries
    may be sanity-checked using a quick set of regression tests by typing
 
       make check
 
    in the root directory.
 
-   The ELSI regression test suite uses the TOMATO library (redistributed 
-   via libOMM) which creates small but realistic matrices on the fly.  
-   TOMATO requires as input a set of parameters contained in "tomato-seed" 
-   data files.  Due to the size of the files, they are not included as 
-   part of the ELSI source package, but they may be obtained from the ELSI 
+   The ELSI regression test suite uses the TOMATO library (redistributed
+   via libOMM) which creates small but realistic matrices on the fly.
+   TOMATO requires as input a set of parameters contained in "tomato-seed"
+   data files.  Due to the size of the files, they are not included as
+   part of the ELSI source package, but they may be obtained from the ELSI
    GitLab by cloning the "tomato-seed" git repository.
 
-   Before running the ELSI regression test suite, the user will need to 
-   specify the location of the tomato-seed data files in the make.sys file 
+   Before running the ELSI regression test suite, the user will need to
+   specify the location of the tomato-seed data files in the make.sys file
    using the keyword:
 
       TOMATO_SEED =  # Path to tomato_seed
 
    The default MPI wrapper executable used by the ELSI regression suite is
-   "mpirun".  This may be changed by the user by setting the following 
+   "mpirun".  This may be changed by the user by setting the following
    keyword in the make.sys file:
 
       MPI_EXEC =  # Default: mpirun
 
-   The ELSI regression test suite requires the ability to run MPI 
+   The ELSI regression test suite requires the ability to run MPI
    calculations.  Many clusters do not allow MPI calculations to be run
-   on login/compile nodes.  If this is the case for the user's cluster, 
-   please see the cluster's documentation for information about running an 
-   interactive calculation or, alternatively, submitting a custom batch 
+   on login/compile nodes.  If this is the case for the user's cluster,
+   please see the cluster's documentation for information about running an
+   interactive calculation or, alternatively, submitting a custom batch
    script to the cluster's queuing system.
 
 4) To finalize the ELSI installation, type
@@ -92,7 +92,7 @@ A) BASIC
 
 5) If the installation finishes without any fatal errors, the library files
    will be automatically put in the "./lib" subfolder, module files in the
-   "./include" subfolder, and executables in the "./bin" subfolder of the 
+   "./include" subfolder, and executables in the "./bin" subfolder of the
    root directory.
 
 ==========================================================================
@@ -100,8 +100,8 @@ B) ELPA-SPECIFIC NOTES
 ==========================================================================
 
    We highly recommend that the user specifies an ELPA2 kernel (used for
-   optimization of the 4th stage of ELPA's 2-stage solver) appropriate 
-   for their system architecture.  Available kernels for ELPA2 as 
+   optimization of the 4th stage of ELPA's 2-stage solver) appropriate
+   for their system architecture.  Available kernels for ELPA2 as
    redistributed by ELSI are set by the ELPA2_KERNEL keyword in the
    make.sys file.  Options include:
 
@@ -113,8 +113,8 @@ B) ELPA-SPECIFIC NOTES
 
    The default "Generic" kernel should work for all system architectures.
 
-   For clusters with NVIDIA Tesla GPUs, GPU acceleration of the 1st and 
-   5th steps of the ELPA 2-stage solver may be enabled using the 
+   For clusters with NVIDIA Tesla GPUs, GPU acceleration of the 1st and
+   5th steps of the ELPA 2-stage solver may be enabled using the
    following keywords in the make.sys file:
 
       ELPA_GPU  =  yes  # Default: no
@@ -145,7 +145,7 @@ C) PEXSI-SPECIFIC NOTES
 D) BEYOND THIS GUIDE
 ==========================================================================
 
-   More information may be found in the User's Guide and on the ELSI 
+   More information may be found in the User's Guide and on the ELSI
    GitLab wiki pages.  Both may be accessed via the ELSI Interchange
    at www.elsi-interchange.org .
 
@@ -154,7 +154,7 @@ E) TROUBLESHOOTING
 ==========================================================================
 
    For comments, feedback, and suggestions, please contact the ELSI team
-   via e-mail at 
+   via e-mail at
 
      elsi-team@duke.edu
 
