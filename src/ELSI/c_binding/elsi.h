@@ -90,13 +90,11 @@ void c_elsi_customize_omm(elsi_handle handle_c,
                           int omm_output);
 
 void c_elsi_customize_pexsi(elsi_handle handle_c,
-                            int pexsi_driver,
                             double temperature,
                             double gap,
                             double delta_e,
                             int n_poles,
                             int n_procs_per_pole,
-                            int n_mu_points,
                             int max_iteration,
                             double mu_min,
                             double mu_max,
