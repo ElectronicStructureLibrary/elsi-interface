@@ -30,7 +30,7 @@
 !!
 module ELSI_ELPA
 
-   use iso_c_binding
+   use ISO_C_BINDING
    use ELSI_CONSTANTS, only: REAL_VALUES,COMPLEX_VALUES,UNSET
    use ELSI_DIMENSIONS, only: elsi_handle
    use ELSI_MU, only: elsi_compute_mu_and_occ
@@ -53,10 +53,6 @@ module ELSI_ELPA
    public :: elsi_solve_evp_elpa_sp
 
 contains
-
-!========================
-! ELSI routines for ELPA
-!========================
 
 !>
 !! This routine gets the row and column communicators for ELPA.

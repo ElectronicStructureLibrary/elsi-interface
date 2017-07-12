@@ -30,31 +30,27 @@
 !!
 module ELSI_OMM
 
-   use iso_c_binding
+   use ISO_C_BINDING
    use ELSI_CONSTANTS, only: REAL_VALUES,COMPLEX_VALUES
    use ELSI_DIMENSIONS, only: elsi_handle
    use ELSI_PRECISION, only: r8,i4
    use ELSI_TIMERS
    use ELSI_UTILS
    use ELPA1
-   use MatrixSwitch, only: m_add,m_deallocate,ms_scalapack_setup,matrix
+   use MATRIXSWITCH, only: m_add,m_deallocate,ms_scalapack_setup,matrix
 
    implicit none
    private
 
    public :: elsi_solve_evp_omm
    public :: elsi_compute_edm_omm
-   public :: elsi_set_omm_default_options
+   public :: elsi_set_omm_default
    public :: elsi_print_omm_options
    public :: ms_scalapack_setup_no_opt
    public :: tomato_TB_get_dims
    public :: tomato_TB_real
 
 contains
-
-!=======================
-! ELSI routines for OMM
-!=======================
 
 !>
 !! This routine interfaces to libOMM.
@@ -215,49 +211,49 @@ end subroutine
 !> 
 !! This routine sets default libOMM parameters.
 !! 
-subroutine elsi_set_omm_default_options(elsi_h)
+subroutine elsi_set_omm_default(elsi_h)
    
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
-   character*40, parameter :: caller = "elsi_set_omm_default_options"
+   character*40, parameter :: caller = "elsi_set_omm_default"
 
-   !< How many steps of ELPA to run before OMM
+   ! How many steps of ELPA to run before OMM
    elsi_h%n_elpa_steps = 6
 
-   !< How do we perform the calculation
-   !! 0 = Basic
-   !! 1 = Cholesky factorisation of S requested
-   !! 2 = Cholesky already performed, U is provided in S
-   !! 3 = Use preconditioning based on the energy density
+   ! How do we perform the calculation
+   ! 0 = Basic
+   ! 1 = Cholesky factorisation of S requested
+   ! 2 = Cholesky already performed, U is provided in S
+   ! 3 = Use preconditioning based on the energy density
    elsi_h%omm_flavor = 0
 
-   !< How to scale the kinetic energy matrix
+   ! How to scale the kinetic energy matrix
    elsi_h%scale_kinetic = 5.0_r8
 
-   !< Calculate the energy density matrix
+   ! Calculate the energy density matrix
    elsi_h%calc_ed = .false.
 
-   !< Eigenspectrum shift parameter
+   ! Eigenspectrum shift parameter
    elsi_h%eta = 0.0_r8
 
-   !< Tolerance for minimization
+   ! Tolerance for minimization
    elsi_h%min_tol = 1.0e-10_r8
 
-   !< n_k_points * n_spin
+   ! n_k_points * n_spin
    elsi_h%nk_times_nspin = 1
 
-   !< Combined k_point spin index
+   ! Combined k_point spin index
    elsi_h%i_k_spin = 1
 
-   !< Output level?
-   elsi_h%omm_output = .true.
+   ! Output level?
+   elsi_h%omm_output = .false.
 
-   !< Deallocate temporary arrays?
+   ! Deallocate temporary arrays?
    elsi_h%do_dealloc = .false.
 
-   !< Use pspBLAS sparse linear algebra?
+   ! Use pspBLAS sparse linear algebra?
    elsi_h%use_psp = .false.
 
 end subroutine

@@ -30,27 +30,23 @@
 !!
 module ELSI_PEXSI
 
-   use iso_c_binding
+   use ISO_C_BINDING
    use ELSI_CONSTANTS, only: BLACS_DENSE,UNSET
    use ELSI_DIMENSIONS, only: elsi_handle
    use ELSI_PRECISION, only: r8,i4
    use ELSI_TIMERS
    use ELSI_UTILS
-   use f_ppexsi_interface
+   use F_PPEXSI_INTERFACE
 
    implicit none
    private
 
    public :: elsi_init_pexsi
    public :: elsi_solve_evp_pexsi
-   public :: elsi_set_pexsi_default_options
+   public :: elsi_set_pexsi_default
    public :: elsi_print_pexsi_options
 
 contains
-
-!=========================
-! ELSI routines for PEXSI
-!=========================
 
 !>
 !! This routine initializes PEXSI and its processor grid.
@@ -269,13 +265,13 @@ end subroutine
 !>
 !! This routine sets default PEXSI parameters.
 !!
-subroutine elsi_set_pexsi_default_options(elsi_h)
+subroutine elsi_set_pexsi_default(elsi_h)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
-   character*40, parameter :: caller = "elsi_set_pexsi_default_options"
+   character*40, parameter :: caller = "elsi_set_pexsi_default"
 
    ! Use the PEXSI Default options
    call f_ppexsi_set_default_options(elsi_h%pexsi_options)
@@ -291,6 +287,9 @@ subroutine elsi_set_pexsi_default_options(elsi_h)
 
    ! Number of mu points if using Moussa's pole expansion
    elsi_h%n_mu_points = 2
+
+   ! Output level
+   elsi_h%pexsi_options%verbosity = 0
 
 end subroutine
 

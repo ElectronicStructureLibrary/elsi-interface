@@ -31,7 +31,7 @@
 !!
 module ELSI
 
-   use iso_c_binding
+   use ISO_C_BINDING
    use ELSI_CONSTANTS, only: ELPA,LIBOMM,PEXSI,CHESS,SIPS,REAL_VALUES,&
                              COMPLEX_VALUES,SINGLE_PROC,MULTI_PROC,UNSET
    use ELSI_DIMENSIONS, only: elsi_handle,print_info,print_mem
@@ -46,7 +46,7 @@ module ELSI
    use ELSI_SIPS
    use ELSI_TIMERS
    use ELSI_UTILS
-   use MatrixSwitch, only: m_allocate,ms_scalapack_setup
+   use MATRIXSWITCH, only: m_allocate,ms_scalapack_setup
 
    implicit none
    private
@@ -159,19 +159,19 @@ subroutine elsi_init(elsi_h,solver,parallel_mode,matrix_storage_format,&
       ! Set number of occupied states for libOMM
       elsi_h%n_states = nint(elsi_h%n_electrons/2.0_r8)
       ! Set libOMM default settings
-      call elsi_set_omm_default_options(elsi_h)
+      call elsi_set_omm_default(elsi_h)
    else
       elsi_h%n_states = n_state
    endif
 
    if(solver == PEXSI) then
       ! Set PEXSI default settings
-      call elsi_set_pexsi_default_options(elsi_h)
+      call elsi_set_pexsi_default(elsi_h)
    endif
 
    if(solver == SIPS) then
       ! Set SIPs default settings
-      call elsi_set_sips_default_options(elsi_h)
+      call elsi_set_sips_default(elsi_h)
    endif
 
    call elsi_init_timers(elsi_h)

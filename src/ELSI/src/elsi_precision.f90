@@ -30,7 +30,7 @@
 !!
 module ELSI_PRECISION
 
-  use iso_c_binding, only: c_float,c_double,c_int32_t,c_int64_t
+  use ISO_C_BINDING, only: c_float,c_double,c_int32_t,c_int64_t
 
   implicit none
 

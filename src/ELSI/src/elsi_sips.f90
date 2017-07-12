@@ -30,12 +30,13 @@
 !!
 module ELSI_SIPS
 
+   use ISO_C_BINDING
    use ELSI_CONSTANTS, only: UNSET
    use ELSI_DIMENSIONS, only: elsi_handle
    use ELSI_PRECISION, only: r8,i4
    use ELSI_TIMERS
    use ELSI_UTILS
-   use m_qetsc
+   use M_QETSC
 
    implicit none
    private
@@ -43,14 +44,10 @@ module ELSI_SIPS
    public :: elsi_init_sips
    public :: elsi_solve_evp_sips
    public :: elsi_sips_to_blacs_ev
-   public :: elsi_set_sips_default_options
+   public :: elsi_set_sips_default
    public :: elsi_print_sips_options
 
 contains
-
-!=========================
-! ELSI routines for SIPs
-!=========================
 
 !>
 !! This routine initializes SIPs.
@@ -256,33 +253,33 @@ end subroutine
 !>
 !! This routine sets default SIPs parameters.
 !!
-subroutine elsi_set_sips_default_options(elsi_h)
+subroutine elsi_set_sips_default(elsi_h)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
-   character*40, parameter :: caller = "elsi_set_sips_default_options"
+   character*40, parameter :: caller = "elsi_set_sips_default"
 
-   !< Type of slices
-   !! 0 = Equally spaced subintervals
-   !! 1 = K-meaans after equally spaced subintervals
-   !! 2 = Equally populated subintervals
-   !! 3 = K-means after equally populated
+   ! Type of slices
+   ! 0 = Equally spaced subintervals
+   ! 1 = K-meaans after equally spaced subintervals
+   ! 2 = Equally populated subintervals
+   ! 3 = K-means after equally populated
    elsi_h%slicing_method = 3
 
-   !< Extra inertia computations before solve?
-   !! 0 = No
-   !! 1 = Yes
+   ! Extra inertia computations before solve?
+   ! 0 = No
+   ! 1 = Yes
    elsi_h%inertia_option = 0
 
-   !< How to bound the left side of the interval
-   !! 0 = Bounded
-   !! 1 = -infinity
+   ! How to bound the left side of the interval
+   ! 0 = Bounded
+   ! 1 = -infinity
    elsi_h%unbound = 0
 
-   !< Small buffer to expand the eigenvalue interval
-   !! Smaller values improve performance if eigenvalue range known
+   ! Small buffer to expand the eigenvalue interval
+   ! Smaller values improve performance if eigenvalue range known
    elsi_h%slice_buffer = 0.5_r8
 
 end subroutine

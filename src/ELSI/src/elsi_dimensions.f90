@@ -30,11 +30,11 @@
 !!
 module ELSI_DIMENSIONS
 
-   use iso_c_binding
+   use ISO_C_BINDING
    use ELSI_CONSTANTS, only: FULL_MAT,UNSET
    use ELSI_PRECISION, only: r8,i4
-   use f_ppexsi_interface, only: f_ppexsi_options
-   use MatrixSwitch, only: matrix
+   use F_PPEXSI_INTERFACE, only: f_ppexsi_options
+   use MATRIXSWITCH, only: matrix
 
    implicit none
 

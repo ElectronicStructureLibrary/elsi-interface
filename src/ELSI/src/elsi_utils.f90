@@ -31,16 +31,16 @@
 !!
 module ELSI_UTILS
 
-   use iso_c_binding
+   use ISO_C_BINDING
    use ELSI_CONSTANTS, only: AUTO,ELPA,LIBOMM,PEXSI,CHESS,SIPS,BLACS_DENSE,&
                              PEXSI_CSC,MULTI_PROC,FULL_MAT,UT_MAT,LT_MAT,&
                              N_SOLVERS,N_MATRIX_DATA_TYPES,&
                              N_MATRIX_STORAGE_FORMATS,N_PARALLEL_MODES,UNSET
    use ELSI_DIMENSIONS, only: elsi_handle,print_info,print_mem
    use ELSI_PRECISION, only: r8,i4
-   use f_ppexsi_interface
-   use MatrixSwitch, only: matrix,m_register_pdbc,m_deallocate
-   use m_qetsc
+   use F_PPEXSI_INTERFACE
+   use MATRIXSWITCH, only: matrix,m_register_pdbc,m_deallocate
+   use M_QETSC
 
    implicit none
    private

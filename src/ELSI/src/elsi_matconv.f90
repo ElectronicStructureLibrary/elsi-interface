@@ -30,7 +30,7 @@
 !!
 module ELSI_MATCONV
 
-   use iso_c_binding
+   use ISO_C_BINDING
    use ELSI_CONSTANTS, only: ELPA,LIBOMM
    use ELSI_DIMENSIONS, only: elsi_handle
    use ELSI_PRECISION, only: r8,i4,i8
