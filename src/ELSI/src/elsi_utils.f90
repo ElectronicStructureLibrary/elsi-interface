@@ -683,7 +683,7 @@ subroutine elsi_stop(info,elsi_h,caller)
       do i_task = 0,elsi_h%n_procs-1
          if(elsi_h%myid == i_task) then
             write(string_info,"(1X,'** Proc',I5,' in ',A,': ',A)")&
-                  elsi_h%myid,trim(caller),trim(info)
+               elsi_h%myid,trim(caller),trim(info)
             write(*,'(A)') trim(string_info)
          endif
          call MPI_Barrier(elsi_h%mpi_comm,mpierr)
@@ -694,7 +694,7 @@ subroutine elsi_stop(info,elsi_h,caller)
       endif
    else
       write(string_info,"(1X,'** Proc N/A',' in ',A,': ',A)")&
-            trim(caller),trim(info)
+         trim(caller),trim(info)
       write(*,'(A)') trim(string_info)
    endif
 
@@ -1160,7 +1160,6 @@ subroutine elsi_reset_handle(elsi_h)
    elsi_h%n_elpa_steps            = UNSET
    elsi_h%new_overlap             = .true.
    elsi_h%coeff_initialized       = .false.
-   elsi_h%total_energy            = 0.0_r8
    elsi_h%omm_flavor              = UNSET
    elsi_h%scale_kinetic           = 0.0_r8
    elsi_h%calc_ed                 = .false.
@@ -1227,82 +1226,82 @@ subroutine elsi_check(elsi_h,caller)
    ! General check of solver, parallel mode, matrix data type, matrix storage format
    if(elsi_h%solver == UNSET) then
       call elsi_stop(" The solver has not been set."//&
-                     " Please choose ELPA, LIBOMM, or PEXSI solver."//&
-                     " Exiting...",elsi_h,caller)
+              " Please choose ELPA, LIBOMM, or PEXSI solver."//&
+              " Exiting...",elsi_h,caller)
    else if((elsi_h%solver < 0) .or. (elsi_h%solver .ge. N_SOLVERS)) then
       call elsi_stop(" An unsupported solver has been chosen."//&
-                     " Please choose ELPA, LIBOMM, or PEXSI solver."//&
-                     " Exiting...",elsi_h,caller)
+              " Please choose ELPA, LIBOMM, or PEXSI solver."//&
+              " Exiting...",elsi_h,caller)
    endif
 
    if(elsi_h%parallel_mode == UNSET) then
       call elsi_stop(" The parallel mode has not been set."//&
-                     " Please choose either SINGLE_PROC or MULTI_PROC."//&
-                     " Exiting...",elsi_h,caller)
+              " Please choose either SINGLE_PROC or MULTI_PROC."//&
+              " Exiting...",elsi_h,caller)
    else if((elsi_h%parallel_mode < 0) .or. &
       (elsi_h%parallel_mode .ge. N_PARALLEL_MODES)) then
       call elsi_stop(" An unsupported parallel mode has been chosen."//&
-                     " Please choose either SINGLE_PROC or MULTI_PROC."//&
-                     " Exiting...",elsi_h,caller)
+              " Please choose either SINGLE_PROC or MULTI_PROC."//&
+              " Exiting...",elsi_h,caller)
    endif
 
    if(elsi_h%matrix_data_type == UNSET) then
       call elsi_stop(" The matrix data type has not been set."//& 
-                     " Please choose either REAL_VALUES or COMPLEX_VALUES."//&
-                     " Exiting...",elsi_h,caller)
+              " Please choose either REAL_VALUES or COMPLEX_VALUES."//&
+              " Exiting...",elsi_h,caller)
    else if((elsi_h%matrix_data_type < 0) .or. &
       (elsi_h%matrix_data_type .ge. N_MATRIX_DATA_TYPES)) then
       call elsi_stop(" An unsupported matirx data type has been chosen."//&
-                     " Please choose either REAL_VALUES or COMPLEX_VALUES."//&
-                     " Exiting...",elsi_h,caller)
+              " Please choose either REAL_VALUES or COMPLEX_VALUES."//&
+              " Exiting...",elsi_h,caller)
    endif
 
    if(elsi_h%matrix_storage_format == UNSET) then
       call elsi_stop(" The matrix storage format has not been set."//&             
-                     " Please choose either BLACS_DENSE or PEXSI_CSC."//&
-                     " Exiting...",elsi_h,caller)
+              " Please choose either BLACS_DENSE or PEXSI_CSC."//&
+              " Exiting...",elsi_h,caller)
    else if((elsi_h%matrix_storage_format < 0) .or. &
       (elsi_h%matrix_storage_format .ge. N_MATRIX_STORAGE_FORMATS)) then
       call elsi_stop(" An unsupported matirx storage format has been chosen."//&
-                     " Please choose either BLACS_DENSE or PEXSI_CSC."//&
-                     " Exiting...",elsi_h,caller)
+              " Please choose either BLACS_DENSE or PEXSI_CSC."//&
+              " Exiting...",elsi_h,caller)
    endif
 
    if(elsi_h%uplo /= FULL_MAT) then
       if((elsi_h%matrix_storage_format /= BLACS_DENSE) .or. &
          (elsi_h%parallel_mode /= MULTI_PROC)) then
          call elsi_stop(" Upper/lower triangular input matrix only supported"//&
-                        " with BLACS_DENSE matrix storage format and MULTI_PROC"//&
-                        " parallel mode. Exiting...",elsi_h,caller)
+                 " with BLACS_DENSE matrix storage format and MULTI_PROC"//&
+                 " parallel mode. Exiting...",elsi_h,caller)
       endif
    endif
 
    ! Specific check for each solver
    if(elsi_h%solver == AUTO) then
       call elsi_stop(" AUTO not yet available."//&
-                     " Please choose ELPA, LIBOMM, or PEXSI solver."//&
-                     " Exiting...",elsi_h,caller)
+               " Please choose ELPA, LIBOMM, or PEXSI solver."//&
+               " Exiting...",elsi_h,caller)
 
    else if(elsi_h%solver == ELPA) then
       if(elsi_h%parallel_mode == MULTI_PROC) then
          if(.not. elsi_h%mpi_is_setup) then
             call elsi_stop(" MULTI_PROC parallel mode requires MPI being"//&
-                           " set up before calling the solver."//&
-                           " Exiting...",elsi_h,caller)
+                    " set up before calling the solver."//&
+                    " Exiting...",elsi_h,caller)
          endif
 
          if(.not. elsi_h%blacs_is_setup) then
             call elsi_stop(" MULTI_PROC parallel mode requires BLACS being"//&
-                           " set up before calling the solver."//&
-                           " Exiting...",elsi_h,caller)
+                    " set up before calling the solver."//&
+                    " Exiting...",elsi_h,caller)
          endif
       endif
 
       if(elsi_h%matrix_storage_format == PEXSI_CSC) then
          if(.not. elsi_h%sparsity_pattern_ready) then
             call elsi_stop(" The PEXSI_CSC format has been chosen."//&
-                           " Please set the sparsity pattern before"//&
-                           " calling the solver. Exiting...",elsi_h,caller)
+                    " Please set the sparsity pattern before"//&
+                    " calling the solver. Exiting...",elsi_h,caller)
          endif
       endif
 
@@ -1310,26 +1309,26 @@ subroutine elsi_check(elsi_h,caller)
       if(elsi_h%parallel_mode == MULTI_PROC) then
          if(.not. elsi_h%mpi_is_setup) then
             call elsi_stop(" MULTI_PROC parallel mode requires MPI being"//&
-                           " set up before calling the solver."//&
-                           " Exiting...",elsi_h,caller)
+                    " set up before calling the solver."//&
+                    " Exiting...",elsi_h,caller)
          endif
 
          if(.not. elsi_h%blacs_is_setup) then
             call elsi_stop(" MULTI_PROC parallel mode requires BLACS being"//&
-                           " set up before calling the solver."//&
-                           " Exiting...",elsi_h,caller)
+                    " set up before calling the solver."//&
+                    " Exiting...",elsi_h,caller)
          endif
       else
          call elsi_stop(" libOMM has been chosen as the solver."//&
-                        " Please choose MULTI_PROC parallel mode."//&
-                        " Exiting...",elsi_h,caller)
+                 " Please choose MULTI_PROC parallel mode."//&
+                 " Exiting...",elsi_h,caller)
       endif
 
       if(elsi_h%matrix_storage_format == PEXSI_CSC) then
          if(.not. elsi_h%sparsity_pattern_ready) then
             call elsi_stop(" The PEXSI_CSC format has been chosen."//&
-                           " Please set the sparsity pattern before"//&
-                           " calling the solver. Exiting...",elsi_h,caller)
+                    " Please set the sparsity pattern before"//&
+                    " calling the solver. Exiting...",elsi_h,caller)
          endif
       endif
 
@@ -1337,53 +1336,53 @@ subroutine elsi_check(elsi_h,caller)
       if(elsi_h%parallel_mode == MULTI_PROC) then
          if(.not. elsi_h%mpi_is_setup) then
             call elsi_stop(" MULTI_PROC parallel mode requires MPI being"//&
-                           " set up before calling the solver."//&
-                           " Exiting...",elsi_h,caller)
+                    " set up before calling the solver."//&
+                    " Exiting...",elsi_h,caller)
          endif
       else
          call elsi_stop(" PEXSI has been chosen as the solver."//&
-                        " Please choose MULTI_PROC parallel mode."//&
-                        " Exiting...",elsi_h,caller)
+                 " Please choose MULTI_PROC parallel mode."//&
+                 " Exiting...",elsi_h,caller)
       endif
 
       if(elsi_h%matrix_storage_format == BLACS_DENSE) then
          if(.not. elsi_h%blacs_is_setup) then
             call elsi_stop(" The BLACS_DENSE format has been chosen."//&
-                           " Please set up BLACS before calling the"//&
-                           " solver. Exiting...",elsi_h,caller)
+                    " Please set up BLACS before calling the"//&
+                    " solver. Exiting...",elsi_h,caller)
          endif
       else
          if(.not. elsi_h%sparsity_pattern_ready) then
             call elsi_stop(" The PEXSI_CSC format has been chosen."//&
-                           " Please set the sparsity pattern before"//&
-                           " calling the solver. Exiting...",elsi_h,caller)
+                    " Please set the sparsity pattern before"//&
+                    " calling the solver. Exiting...",elsi_h,caller)
          endif
       endif
 
       if(elsi_h%n_g_size < elsi_h%n_p_per_pole_pexsi) then
          call elsi_stop(" PEXSI has been chosen as the solver."//&
-                        " The size of matrix is too small for this"//&
-                        " number of processes. Exiting...",elsi_h,caller)
+                 " The size of matrix is too small for this"//&
+                 " number of processes. Exiting...",elsi_h,caller)
       endif
 
    else if(elsi_h%solver == CHESS) then
       call elsi_stop(" CHESS not yet available."//&
-                     " Please choose ELPA, LIBOMM, or PEXSI solver."//&
-                     " Exiting...",elsi_h,caller)
+              " Please choose ELPA, LIBOMM, or PEXSI solver."//&
+              " Exiting...",elsi_h,caller)
 
    else if(elsi_h%solver == SIPS) then
       call elsi_statement_print("  ATTENTION! SIPs is EXPERIMENTAL.",elsi_h)
 
       if(elsi_h%n_g_size < elsi_h%n_procs) then
          call elsi_stop(" SIPs has been chosen as the solver."//&
-                        " The size of matrix is too small for this"//&
-                        " number of processes. Exiting...",elsi_h,caller)
+                 " The size of matrix is too small for this"//&
+                 " number of processes. Exiting...",elsi_h,caller)
       endif
 
    else
       call elsi_stop(" No supported solver has been chosen."//&
-                     " Please choose ELPA, LIBOMM, or PEXSI solver."//&
-                     " Exiting...",elsi_h,caller)
+              " Please choose ELPA, LIBOMM, or PEXSI solver."//&
+              " Exiting...",elsi_h,caller)
    endif
 
 end subroutine
@@ -1403,8 +1402,8 @@ subroutine elsi_check_handle(elsi_h,caller)
 
    if(.not. elsi_h%handle_initialized) then
       call elsi_stop(" Invalid handle! An ELSI handle must be properly"//&
-                     " initialized with 'elsi_init' before being used."//&
-                     " Exiting...",elsi_h,caller)
+              " initialized with 'elsi_init' before being used."//&
+              " Exiting...",elsi_h,caller)
    endif
 
 end subroutine
@@ -1429,7 +1428,7 @@ subroutine elsi_get_global_row(elsi_h,global_idx,local_idx)
    idx = local_idx-block*elsi_h%n_b_rows
 
    global_idx = elsi_h%my_p_row*elsi_h%n_b_rows+&
-                block*elsi_h%n_b_rows*elsi_h%n_p_rows+idx
+                   block*elsi_h%n_b_rows*elsi_h%n_p_rows+idx
 
 end subroutine
 
@@ -1453,7 +1452,7 @@ subroutine elsi_get_global_col(elsi_h,global_idx,local_idx)
    idx = local_idx-block*elsi_h%n_b_cols
 
    global_idx = elsi_h%my_p_col*elsi_h%n_b_cols+&
-                block*elsi_h%n_b_cols*elsi_h%n_p_cols+idx
+                   block*elsi_h%n_b_cols*elsi_h%n_p_cols+idx
 
 end subroutine
 
@@ -1510,7 +1509,7 @@ subroutine elsi_set_full_mat_real(elsi_h,mat)
       call elsi_allocate(elsi_h,tmp_real,elsi_h%n_l_rows,elsi_h%n_l_cols,"tmp_real",caller)
 
       call pdtran(elsi_h%n_g_size,elsi_h%n_g_size,1.0_r8,mat,1,1,elsi_h%sc_desc,&
-                  0.0_r8,tmp_real,1,1,elsi_h%sc_desc)
+              0.0_r8,tmp_real,1,1,elsi_h%sc_desc)
 
       if(elsi_h%uplo == UT_MAT) then ! Upper triangular
          do i_col = 1,elsi_h%n_g_size-1
@@ -1561,10 +1560,10 @@ subroutine elsi_set_full_mat_complex(elsi_h,mat)
 
    if((elsi_h%uplo /= FULL_MAT) .and. (elsi_h%parallel_mode == MULTI_PROC)) then
       call elsi_allocate(elsi_h,tmp_complex,elsi_h%n_l_rows,elsi_h%n_l_cols,&
-                         "tmp_complex",caller)
+              "tmp_complex",caller)
 
       call pztranc(elsi_h%n_g_size,elsi_h%n_g_size,(1.0_r8,0.0_r8),mat,1,1,&
-                   elsi_h%sc_desc,(0.0_r8,0.0_r8),tmp_complex,1,1,elsi_h%sc_desc)
+              elsi_h%sc_desc,(0.0_r8,0.0_r8),tmp_complex,1,1,elsi_h%sc_desc)
 
       if(elsi_h%uplo == UT_MAT) then ! Upper triangular
          do i_col = 1,elsi_h%n_g_size-1

@@ -44,8 +44,8 @@ module ELSI_C_INTERFACE
 
 contains
 
-subroutine elsi_init_c_wrapper(handle_c,solver,parallel_mode,matrix_storage_format,&
-                               matrix_size,n_electrons,n_states)&
+subroutine elsi_init_c_wrapper(handle_c,solver,parallel_mode,&
+              matrix_storage_format,matrix_size,n_electrons,n_states)&
    bind(C,name="c_elsi_init")
 
    implicit none
@@ -63,7 +63,7 @@ subroutine elsi_init_c_wrapper(handle_c,solver,parallel_mode,matrix_storage_form
    allocate(handle_f)
 
    call elsi_init(handle_f,solver,parallel_mode,matrix_storage_format,&
-                  matrix_size,n_electrons,n_states)
+           matrix_size,n_electrons,n_states)
 
    handle_c = c_loc(handle_f)
 
@@ -150,9 +150,8 @@ subroutine elsi_finalize_c_wrapper(handle_c)&
 end subroutine
 
 subroutine elsi_customize_c_wrapper(handle_c,print_detail,overlap_is_unit,&
-                                    zero_threshold,no_singularity_check,&
-                                    singularity_tolerance,stop_singularity,&
-                                    uplo)&
+              zero_threshold,no_singularity_check,singularity_tolerance,&
+              stop_singularity,uplo)&
    bind(C,name="c_elsi_customize")
 
    implicit none
@@ -199,13 +198,12 @@ subroutine elsi_customize_c_wrapper(handle_c,print_detail,overlap_is_unit,&
    call c_f_pointer(handle_c,handle_f)
 
    call elsi_customize(handle_f,print_detail_f,overlap_is_unit_f,zero_threshold,&
-                       no_singularity_check_f,singularity_tolerance,&
-                       stop_singularity_f,uplo)
+           no_singularity_check_f,singularity_tolerance,stop_singularity_f,uplo)
 
 end subroutine
 
 subroutine elsi_customize_mu_c_wrapper(handle_c,broadening_scheme,broadening_width,&
-                                       occ_accuracy,mu_max_steps,spin_degeneracy)&
+              occ_accuracy,mu_max_steps,spin_degeneracy)&
    bind(C,name="c_elsi_customize_mu")
 
    implicit none
@@ -222,12 +220,12 @@ subroutine elsi_customize_mu_c_wrapper(handle_c,broadening_scheme,broadening_wid
    call c_f_pointer(handle_c,handle_f)
 
    call elsi_customize_mu(handle_f,broadening_scheme,broadening_width,&
-                          occ_accuracy,mu_max_steps,spin_degeneracy)
+           occ_accuracy,mu_max_steps,spin_degeneracy)
 
 end subroutine
 
 subroutine elsi_customize_omm_c_wrapper(handle_c,n_elpa_steps,omm_flavor,eigen_shift,&
-                                        omm_tolerance,use_pspblas,omm_output)&
+              omm_tolerance,use_pspblas,omm_output)&
    bind(C,name="c_elsi_customize_omm")
 
    implicit none
@@ -259,17 +257,15 @@ subroutine elsi_customize_omm_c_wrapper(handle_c,n_elpa_steps,omm_flavor,eigen_s
    call c_f_pointer(handle_c,handle_f)
 
    call elsi_customize_omm(handle_f,n_elpa_steps,omm_flavor,eigen_shift,&
-                           omm_tolerance,use_pspblas_f,omm_output_f)
+           omm_tolerance,use_pspblas_f,omm_output_f)
 
 end subroutine
 
 subroutine elsi_customize_pexsi_c_wrapper(handle_c,temperature,gap,delta_e,&
-                                          n_poles,n_procs_per_pole,max_iteration,&
-                                          mu_min,mu_max,mu0,mu_inertia_tolerance,&
-                                          mu_inertia_expansion,mu_safeguard,&
-                                          n_electron_accuracy,matrix_type,&
-                                          is_symbolic_factorize,ordering,&
-                                          np_symbolic_factorize,verbosity)&
+              n_poles,n_procs_per_pole,max_iteration,mu_min,mu_max,mu0,&
+              mu_inertia_tolerance,mu_inertia_expansion,mu_safeguard,&
+              n_electron_accuracy,matrix_type,is_symbolic_factorize,ordering,&
+              np_symbolic_factorize,verbosity)&
    bind(C,name="c_elsi_customize_pexsi")
 
    implicit none

@@ -53,8 +53,8 @@ contains
 !>
 !! This routine computes the chemical potential and occupation numbers.
 !!
-subroutine elsi_compute_mu_and_occ(elsi_h,n_electron_in,n_state_in,n_spin_in,n_kpoint_in,&
-                                   kpoint_weights,eigenvalues,occ_numbers,mu)
+subroutine elsi_compute_mu_and_occ(elsi_h,n_electron_in,n_state_in,n_spin_in,&
+              n_kpoint_in,kpoint_weights,eigenvalues,occ_numbers,mu)
 
    implicit none
 
@@ -117,9 +117,9 @@ subroutine elsi_compute_mu_and_occ(elsi_h,n_electron_in,n_state_in,n_spin_in,n_k
 
    ! Compute the error in electron count
    call elsi_check_electrons(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
-                             mu_lower,diff_ne_lower)
+           mu_lower,diff_ne_lower)
    call elsi_check_electrons(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
-                             mu_upper,diff_ne_upper)
+           mu_upper,diff_ne_upper)
 
    ! If diff_ne_lower*diff_ne_upper > 0, the solution is not in this interval.
    ! Enlarge the interval towards both sides, then recheck.
@@ -136,14 +136,14 @@ subroutine elsi_compute_mu_and_occ(elsi_h,n_electron_in,n_state_in,n_spin_in,n_k
       mu_upper = mu_upper+0.5_r8*abs(e_high-e_low)
 
       call elsi_check_electrons(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
-                                mu_lower,diff_ne_lower)
+              mu_lower,diff_ne_lower)
       call elsi_check_electrons(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
-                                mu_upper,diff_ne_upper)
+              mu_upper,diff_ne_upper)
    enddo
 
    ! Now the solution should lie in the interval. Use bisection to find it.
    call elsi_find_mu(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
-                     mu_lower,mu_upper,mu)
+           mu_lower,mu_upper,mu)
 
 end subroutine
 
@@ -153,7 +153,7 @@ end subroutine
 !! be updated as well.
 !!
 subroutine elsi_check_electrons(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
-                                mu_in,diff_ne_out)
+              mu_in,diff_ne_out)
 
    implicit none
 
@@ -178,7 +178,7 @@ subroutine elsi_check_electrons(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
 
    if(elsi_h%broadening_width .le. 0.0_r8) then
       call elsi_stop(" Broadening width in chemical potential determination must"//&
-                     " be a positive number. Exiting...",elsi_h,caller)
+              " be a positive number. Exiting...",elsi_h,caller)
    endif
 
    invert_width = 1.0_r8/elsi_h%broadening_width
@@ -254,12 +254,6 @@ subroutine elsi_check_electrons(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
             enddo
          enddo
       enddo
-
-   case DEFAULT
-      call elsi_stop(" No supperted broadening scheme has been chosen."//&
-                     " Please choose GAUSSIAN, FERMI, METHFESSEL_PAXTON_0,"//&
-                     " or METHFESSEL_PAXTON_1 broadening scheme."//&
-                     " Exiting...",elsi_h,caller)
    end select
 
    diff_ne_out = diff_ne_out-n_electron
@@ -270,7 +264,7 @@ end subroutine
 !! This routine computes the chemical potential using a bisection algorithm.
 !!
 subroutine elsi_find_mu(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
-                        mu_lower_in,mu_upper_in,mu_out)
+              mu_lower_in,mu_upper_in,mu_out)
 
    implicit none
  
@@ -302,9 +296,9 @@ subroutine elsi_find_mu(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
 
    do while((.not.found_mu) .and. (n_steps < elsi_h%max_mu_steps))
       call elsi_check_electrons(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
-                                mu_left,diff_left)
+              mu_left,diff_left)
       call elsi_check_electrons(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
-                                mu_right,diff_right)
+              mu_right,diff_right)
 
       if(abs(diff_left) < elsi_h%occ_tolerance) then
          mu_out = mu_left
@@ -318,7 +312,7 @@ subroutine elsi_find_mu(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
          mu_mid = 0.5_r8*(mu_left+mu_right)
 
          call elsi_check_electrons(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
-                                   mu_mid,diff_mid)
+                 mu_mid,diff_mid)
 
          if(abs(diff_mid) < elsi_h%occ_tolerance) then
             mu_out = mu_mid
@@ -335,15 +329,14 @@ subroutine elsi_find_mu(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
    if(.not. found_mu) then
       ! Use the chemical potential of the right bound...
       call elsi_check_electrons(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
-                                mu_right,diff_right)
+              mu_right,diff_right)
 
       mu_out = mu_right
 
       ! ...with adjusted occupation numbers
       call elsi_statement_print("  Chemical potential cannot reach the"//&
-                                " required accuracy by bisection method."//&
-                                " The error will be arbitrarily canceled"//&
-                                " in the following state(s):",elsi_h)
+              " required accuracy by bisection method. The error will be"//&
+              " arbitrarily canceled in the following state(s):",elsi_h)
 
       call elsi_adjust_occ(elsi_h,kpoint_weights,eigenvalues,occ_numbers,diff_right)
    endif
@@ -425,7 +418,7 @@ subroutine elsi_adjust_occ(elsi_h,kpoint_weights,eigenvalues,occ_numbers,diff_ne
          i_state  = mod(idx_aux(i_val)-1,n_state)+1
 
          write(info_str,"(A,I5,A,I5,A,I5)") "  | k-point ",i_kpoint,&
-               ", spin channel ",i_spin,", state ",i_state
+            ", spin channel ",i_spin,", state ",i_state
          call elsi_statement_print(info_str,elsi_h)
 
          if(kpoint_weights(i_kpoint)*occ_aux(i_val) > diff_ne) then

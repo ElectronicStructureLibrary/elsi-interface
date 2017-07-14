@@ -173,6 +173,9 @@ module ELSI_DIMENSIONS
       real(kind=r8) :: mu = 0.0_r8                  ! Chemical potential
       integer(kind=i4) :: n_states = UNSET          ! Number of total states
       integer(kind=i4) :: n_occupied_states = UNSET ! Number of occupied states
+      real(kind=r8) :: energy_hdm = 0.0_r8
+      real(kind=r8) :: energy_sedm = 0.0_r8
+      real(kind=r8) :: free_energy = 0.0_r8
 
       ! Chemical potential
       integer(kind=i4) :: broadening_scheme = 0     ! Broadening scheme for occupation numbers
@@ -192,7 +195,6 @@ module ELSI_DIMENSIONS
       integer(kind=i4) :: n_elpa_steps = UNSET   ! Use ELPA eigenvectors as initial guess
       logical :: new_overlap = .true.            ! Is a new overlap matrix provided?
       logical :: coeff_initialized = .false.     ! Is coefficient matrix initialized?
-      real(kind=r8) :: total_energy = 0.0_r8     ! Energy of the system
       integer(kind=i4) :: omm_flavor = UNSET     ! How to perform the calculation
                                                  ! 0 = Basic
                                                  ! 1 = Cholesky factorisation (not supported)
@@ -217,7 +219,7 @@ module ELSI_DIMENSIONS
       integer(kind=i4) :: n_p_cols_pexsi = UNSET
       integer(kind=i4) :: n_l_rows_pexsi = UNSET
       integer(kind=i4) :: n_l_cols_pexsi = UNSET
-      integer(kind=i4) :: n_p_per_pole_pexsi = UNSET ! Number of processors per pole
+      integer(kind=i4) :: n_p_per_pole_pexsi = UNSET ! Number of processes per pole
       integer(kind=i4) :: nnz_l_pexsi = UNSET        ! Local number of nonzeros in PEXSI distribution
       logical :: sparsity_pattern_ready = .false.    ! Is sparsity pattern set by user?
       logical :: small_pexsi_tol = .false.           ! Is user-defined tolerance smaller than default?
@@ -235,9 +237,6 @@ module ELSI_DIMENSIONS
       real(kind=r8)            :: mu_max_inertia = 0.0_r8
       integer(kind=i4)         :: n_total_inertia_iter = UNSET
       integer(kind=i4)         :: n_total_pexsi_iter = UNSET
-      real(kind=r8)            :: energy_hdm = 0.0_r8
-      real(kind=r8)            :: energy_sedm = 0.0_r8
-      real(kind=r8)            :: free_energy =0.0_r8
 
       ! SIPs
       integer(kind=i4) :: n_b_rows_sips = UNSET
@@ -245,7 +244,7 @@ module ELSI_DIMENSIONS
       integer(kind=i4) :: n_l_rows_sips = UNSET
       integer(kind=i4) :: n_l_cols_sips = UNSET
       integer(kind=i4) :: nnz_l_sips = UNSET         ! Local number of nonzeros in SIPs distribution
-      integer(kind=i4) :: n_p_per_slice_sips = UNSET ! Number of processors per slice
+      integer(kind=i4) :: n_p_per_slice_sips = UNSET ! Number of processes per slice
       integer(kind=i4) :: n_inertia_steps = UNSET    ! Number of inertia counting steps
       integer(kind=i4) :: slicing_method = UNSET     ! Type of slices
                                                      ! 0 = Equally spaced subintervals

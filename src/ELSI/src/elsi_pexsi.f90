@@ -81,11 +81,11 @@ subroutine elsi_init_pexsi(elsi_h)
             call elsi_statement_print(info_str,elsi_h)
          else
             call elsi_stop("  PEXSI not parallel over poles. High"//&
-                           " performance of PEXSI is expected if the"//&
-                           " number of MPI tasks is a multiple of"//&
-                           " the number of PEXSI poles. Please adjust"//&
-                           " either the number of MPI tasks, or the"//&
-                           " number of poles. Exiting...",elsi_h,caller)
+                    " performance of PEXSI is expected if the number"//&
+                    " of MPI tasks is a multiple of the number of"//&
+                    " PEXSI poles. Please adjust either the number"//&
+                    " of MPI tasks, or the number of poles."//&
+                    " Exiting...",elsi_h,caller)
          endif
       endif
 
@@ -108,7 +108,7 @@ subroutine elsi_init_pexsi(elsi_h)
       elsi_h%n_b_cols_pexsi = elsi_h%n_g_size/elsi_h%n_p_per_pole_pexsi
       if(elsi_h%my_p_col_pexsi == elsi_h%n_p_per_pole_pexsi-1) then
          elsi_h%n_b_cols_pexsi = elsi_h%n_g_size-&
-                                 (elsi_h%n_p_per_pole_pexsi-1)*elsi_h%n_b_cols_pexsi
+                                    (elsi_h%n_p_per_pole_pexsi-1)*elsi_h%n_b_cols_pexsi
       endif
 
       elsi_h%n_l_rows_pexsi = elsi_h%n_b_rows_pexsi
@@ -181,14 +181,12 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
    ! Load sparse matrices for PEXSI
    if(elsi_h%overlap_is_unit) then
       call f_ppexsi_load_real_hs_matrix(elsi_h%pexsi_plan,elsi_h%pexsi_options,elsi_h%n_g_size,&
-                                        elsi_h%nnz_g,elsi_h%nnz_l_pexsi,elsi_h%n_l_cols_pexsi,&
-                                        elsi_h%col_ptr_ccs,elsi_h%row_ind_ccs,elsi_h%ham_real_ccs,&
-                                        1,elsi_h%ovlp_real_ccs,elsi_h%pexsi_info)
+              elsi_h%nnz_g,elsi_h%nnz_l_pexsi,elsi_h%n_l_cols_pexsi,elsi_h%col_ptr_ccs,&
+              elsi_h%row_ind_ccs,elsi_h%ham_real_ccs,1,elsi_h%ovlp_real_ccs,elsi_h%pexsi_info)
    else
       call f_ppexsi_load_real_hs_matrix(elsi_h%pexsi_plan,elsi_h%pexsi_options,elsi_h%n_g_size,&
-                                        elsi_h%nnz_g,elsi_h%nnz_l_pexsi,elsi_h%n_l_cols_pexsi,&
-                                        elsi_h%col_ptr_ccs,elsi_h%row_ind_ccs,elsi_h%ham_real_ccs,&
-                                        0,elsi_h%ovlp_real_ccs,elsi_h%pexsi_info)
+              elsi_h%nnz_g,elsi_h%nnz_l_pexsi,elsi_h%n_l_cols_pexsi,elsi_h%col_ptr_ccs,&
+              elsi_h%row_ind_ccs,elsi_h%ham_real_ccs,0,elsi_h%ovlp_real_ccs,elsi_h%pexsi_info)
    endif
 
    if(elsi_h%pexsi_info /= 0) then
@@ -203,13 +201,13 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
    call elsi_statement_print("  Starting PEXSI density matrix solver",elsi_h)
 
    if(elsi_h%pexsi_driver == 1) then
-      call f_ppexsi_dft_driver(elsi_h%pexsi_plan,elsi_h%pexsi_options,elsi_h%n_electrons,elsi_h%mu,&
-                               elsi_h%n_electrons_pexsi,elsi_h%mu_min_inertia,elsi_h%mu_max_inertia,&
-                               elsi_h%n_total_inertia_iter,elsi_h%n_total_pexsi_iter,elsi_h%pexsi_info)
+      call f_ppexsi_dft_driver(elsi_h%pexsi_plan,elsi_h%pexsi_options,elsi_h%n_electrons,&
+              elsi_h%mu,elsi_h%n_electrons_pexsi,elsi_h%mu_min_inertia,elsi_h%mu_max_inertia,&
+              elsi_h%n_total_inertia_iter,elsi_h%n_total_pexsi_iter,elsi_h%pexsi_info)
    else
-      call f_ppexsi_dft_driver3(elsi_h%pexsi_plan,elsi_h%pexsi_options,elsi_h%n_electrons,2,&
-                                elsi_h%n_mu_points,elsi_h%mu,elsi_h%n_electrons_pexsi,&
-                                elsi_h%n_total_inertia_iter,elsi_h%pexsi_info)
+      call f_ppexsi_dft_driver3(elsi_h%pexsi_plan,elsi_h%pexsi_options,elsi_h%n_electrons,&
+              2,elsi_h%n_mu_points,elsi_h%mu,elsi_h%n_electrons_pexsi,&
+              elsi_h%n_total_inertia_iter,elsi_h%pexsi_info)
    endif
 
    if(elsi_h%pexsi_info /= 0) then
@@ -325,13 +323,29 @@ subroutine elsi_print_pexsi_options(elsi_h)
       elsi_h%pexsi_options%numPole
    call elsi_statement_print(info_str,elsi_h)
 
-   write(info_str,"(1X,' | Number of mu points ',I5)") &
-      elsi_h%n_mu_points
-   call elsi_statement_print(info_str,elsi_h)
+   if(elsi_h%pexsi_driver == 2) then
+      write(info_str,"(1X,' | Number of mu points ',I5)") &
+         elsi_h%n_mu_points
+      call elsi_statement_print(info_str,elsi_h)
+   endif
 
-   write(info_str,"(1X,' | Max PEXSI iterations ',I5)") &
-      elsi_h%pexsi_options%maxPEXSIIter
-   call elsi_statement_print(info_str,elsi_h)
+   if(elsi_h%pexsi_driver == 1) then
+      write(info_str,"(1X,' | Max PEXSI iterations ',I5)") &
+         elsi_h%pexsi_options%maxPEXSIIter
+      call elsi_statement_print(info_str,elsi_h)
+
+      write(info_str,"(1X,' | Initial guess of chemical potential ',F10.4)") &
+         elsi_h%pexsi_options%mu0
+      call elsi_statement_print(info_str,elsi_h)
+
+      write(info_str,"(1X,' | Safeguard of chemical potential ',F10.4)") &
+         elsi_h%pexsi_options%muPexsiSafeGuard
+      call elsi_statement_print(info_str,elsi_h)
+
+      write(info_str,"(1X,' | Tolerance of number of electrons ',E10.1)") &
+         elsi_h%pexsi_options%numElectronPEXSITolerance
+      call elsi_statement_print(info_str,elsi_h)
+   endif
 
    write(info_str,"(1X,' | Lower bound of chemical potential ',F10.4)") &
       elsi_h%pexsi_options%muMin0
@@ -341,23 +355,11 @@ subroutine elsi_print_pexsi_options(elsi_h)
       elsi_h%pexsi_options%muMax0
    call elsi_statement_print(info_str,elsi_h)
 
-   write(info_str,"(1X,' | Initial guess of chemical potential ',F10.4)") &
-      elsi_h%pexsi_options%mu0
-   call elsi_statement_print(info_str,elsi_h)
-
    write(info_str,"(1X,' | Tolerance of chemical potential ',E10.1)") &
       elsi_h%pexsi_options%muInertiaTolerance
    call elsi_statement_print(info_str,elsi_h)
 
-   write(info_str,"(1X,' | Safeguard of chemical potential ',F10.4)") &
-      elsi_h%pexsi_options%muPexsiSafeGuard
-   call elsi_statement_print(info_str,elsi_h)
-
-   write(info_str,"(1X,' | Tolerance of number of electrons ',E10.1)") &
-      elsi_h%pexsi_options%numElectronPEXSITolerance
-   call elsi_statement_print(info_str,elsi_h)
-
-   write(info_str,"(1X,' | Number of processors for symbolic factorization ',I5)") &
+   write(info_str,"(1X,' | Number of processes for symbolic factorization ',I5)") &
       elsi_h%pexsi_options%npSymbFact
    call elsi_statement_print(info_str,elsi_h)
 

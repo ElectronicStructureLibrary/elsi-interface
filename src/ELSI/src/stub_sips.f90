@@ -167,7 +167,7 @@ function get_eps_interval() result(interval)
 end function
 
 subroutine compute_subintervals(nsub,subtype,lefttype,interval,buffer,&
-                                subbuffer,subs,evals)
+              subbuffer,subs,evals)
 
    implicit none
 

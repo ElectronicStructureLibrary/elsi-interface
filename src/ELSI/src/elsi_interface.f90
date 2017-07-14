@@ -122,7 +122,7 @@ contains
 !! number of electrons, and number of states.
 !!
 subroutine elsi_init(elsi_h,solver,parallel_mode,matrix_storage_format,&
-                     n_basis,n_electron,n_state)
+              n_basis,n_electron,n_state)
 
    implicit none
 
@@ -251,18 +251,18 @@ subroutine elsi_set_blacs(elsi_h,blacs_ctxt,block_size)
 
       ! Get processor grid information
       call blacs_gridinfo(elsi_h%blacs_ctxt,elsi_h%n_p_rows,elsi_h%n_p_cols,&
-                          elsi_h%my_p_row,elsi_h%my_p_col)
+              elsi_h%my_p_row,elsi_h%my_p_col)
 
       ! Get local size of matrix
       elsi_h%n_l_rows = numroc(elsi_h%n_g_size,elsi_h%n_b_rows,&
-                               elsi_h%my_p_row,0,elsi_h%n_p_rows)
+         elsi_h%my_p_row,0,elsi_h%n_p_rows)
       elsi_h%n_l_cols = numroc(elsi_h%n_g_size,elsi_h%n_b_cols,&
-                               elsi_h%my_p_col,0,elsi_h%n_p_cols)
+         elsi_h%my_p_col,0,elsi_h%n_p_cols)
 
       ! Get BLACS descriptor
       call descinit(elsi_h%sc_desc,elsi_h%n_g_size,elsi_h%n_g_size,&
-                    elsi_h%n_b_rows,elsi_h%n_b_cols,0,0,elsi_h%blacs_ctxt,&
-                    max(1,elsi_h%n_l_rows),blacs_info)
+              elsi_h%n_b_rows,elsi_h%n_b_cols,0,0,elsi_h%blacs_ctxt,&
+              max(1,elsi_h%n_l_rows),blacs_info)
 
       ! Get ELPA communicators
       call elsi_get_elpa_comms(elsi_h)
@@ -288,7 +288,7 @@ subroutine elsi_set_blacs(elsi_h,blacs_ctxt,block_size)
       ! Set up MatrixSwitch
       if(elsi_h%solver == LIBOMM) then
          call ms_scalapack_setup(elsi_h%mpi_comm,elsi_h%n_p_rows,'r',&
-                                 elsi_h%n_b_rows,icontxt=elsi_h%blacs_ctxt)
+                 elsi_h%n_b_rows,icontxt=elsi_h%blacs_ctxt)
       endif
 
       elsi_h%blacs_is_setup = .true.
@@ -338,7 +338,6 @@ subroutine elsi_get_energy(elsi_h,energy)
    integer(kind=i4) :: i_state
    character*200    :: info_str
 
-   real(kind=r8), parameter :: n_spin = 2.0_r8
    character*40,  parameter :: caller = "elsi_get_energy"
 
    call elsi_check_handle(elsi_h,caller)
@@ -350,17 +349,17 @@ subroutine elsi_get_energy(elsi_h,energy)
          energy = energy+elsi_h%occ_elpa(i_state)*elsi_h%eval(i_state)
       enddo
    case(LIBOMM)
-      energy = n_spin*elsi_h%total_energy
+      energy = 2.0_r8*elsi_h%energy_hdm
    case(PEXSI)
       energy = elsi_h%energy_hdm
    case(CHESS)
       call elsi_stop(" CHESS not yet implemented. Exiting...",elsi_h,caller)
    case(SIPS)
       call elsi_stop(" SIPS not yet implemented. Exiting...",elsi_h,caller)
-   case DEFAULT
+   case default
       call elsi_stop(" No supported solver has been chosen."//&
-                     " Please choose ELPA, LIBOMM, or PEXSI solver."//&
-                     " Exiting...",elsi_h,caller)
+               " Please choose ELPA, LIBOMM, or PEXSI solver."//&
+               " Exiting...",elsi_h,caller)
    end select
 
 end subroutine
@@ -386,8 +385,7 @@ end subroutine
 !! This routine overrides ELSI default settings.
 !!
 subroutine elsi_customize(elsi_h,print_detail,overlap_is_unit,zero_threshold,&
-                          no_singularity_check,singularity_tolerance,&
-                          stop_singularity,uplo)
+              no_singularity_check,singularity_tolerance,stop_singularity,uplo)
 
    implicit none
 
@@ -447,7 +445,7 @@ end subroutine
 !! This routine overrides libOMM default settings.
 !!
 subroutine elsi_customize_omm(elsi_h,n_elpa_steps,omm_flavor,eigen_shift,&
-                              omm_tolerance,use_pspblas,omm_output)
+              omm_tolerance,use_pspblas,omm_output)
 
    implicit none
 
@@ -493,22 +491,16 @@ subroutine elsi_customize_omm(elsi_h,n_elpa_steps,omm_flavor,eigen_shift,&
       elsi_h%omm_output = omm_output
    endif
 
-   if(elsi_h%solver .ne. LIBOMM) then
-      call elsi_statement_print("  The chosen solver is not libOMM."//&
-                                " Ignore elsi_customize_omm call.",elsi_h)
-   endif
-
 end subroutine
 
 !>
 !! This routine overrides PEXSI default settings.
 !!
 subroutine elsi_customize_pexsi(elsi_h,temperature,gap,delta_e,n_poles,&
-                                n_procs_per_pole,max_iteration,mu_min,mu_max,&
-                                mu0,mu_inertia_tolerance,mu_inertia_expansion,&
-                                mu_safeguard,n_electron_accuracy,matrix_type,&
-                                is_symbolic_factorize,ordering,&
-                                np_symbolic_factorize,verbosity)
+              n_procs_per_pole,max_iteration,mu_min,mu_max,mu0,&
+              mu_inertia_tolerance,mu_inertia_expansion,mu_safeguard,&
+              n_electron_accuracy,matrix_type,is_symbolic_factorize,&
+              ordering,np_symbolic_factorize,verbosity)
 
    implicit none
 
@@ -517,7 +509,7 @@ subroutine elsi_customize_pexsi(elsi_h,temperature,gap,delta_e,n_poles,&
    real(kind=r8),     intent(in), optional :: gap                   !< Spectral gap, can be set to 0 in most cases
    real(kind=r8),     intent(in), optional :: delta_e               !< Upper bound for the spectral radius of S^(-1)H
    integer(kind=i4),  intent(in), optional :: n_poles               !< Number of poles
-   integer(kind=i4),  intent(in), optional :: n_procs_per_pole      !< Number of processors for one pole
+   integer(kind=i4),  intent(in), optional :: n_procs_per_pole      !< Number of processes for one pole
    integer(kind=i4),  intent(in), optional :: max_iteration         !< Maximum number of PEXSI iterations
    real(kind=r8),     intent(in), optional :: mu_min                !< Lower bound of chemical potential
    real(kind=r8),     intent(in), optional :: mu_max                !< Upper bound of chemical potential
@@ -529,7 +521,7 @@ subroutine elsi_customize_pexsi(elsi_h,temperature,gap,delta_e,n_poles,&
    integer(kind=i4),  intent(in), optional :: matrix_type           !< Type of input matrices
    integer(kind=i4),  intent(in), optional :: is_symbolic_factorize !< Perform symbolic factorization?
    integer(kind=i4),  intent(in), optional :: ordering              !< Ordering strategy for factorization and selected inversion
-   integer(kind=i4),  intent(in), optional :: np_symbolic_factorize !< Number of processors for ParMETIS, only used if ordering=0
+   integer(kind=i4),  intent(in), optional :: np_symbolic_factorize !< Number of processes for ParMETIS, only used if ordering=0
    integer(kind=i4),  intent(in), optional :: verbosity             !< Level of output info
 
    character*40, parameter :: caller = "elsi_customize_pexsi"
@@ -556,7 +548,7 @@ subroutine elsi_customize_pexsi(elsi_h,temperature,gap,delta_e,n_poles,&
       elsi_h%pexsi_options%numPole = n_poles
    endif
 
-   ! Number of processors for one pole
+   ! Number of processes for one pole
    if(present(n_procs_per_pole)) then
       if(mod(elsi_h%n_procs,n_procs_per_pole) == 0) then
          elsi_h%n_p_per_pole_pexsi = n_procs_per_pole
@@ -639,7 +631,7 @@ subroutine elsi_customize_pexsi(elsi_h,temperature,gap,delta_e,n_poles,&
       elsi_h%pexsi_options%ordering = ordering
    endif
 
-   ! Number of processors for ParMETIS, only used if ordering=0 [Default: 1]
+   ! Number of processes for ParMETIS, only used if ordering=0 [Default: 1]
    if(present(np_symbolic_factorize)) then
       elsi_h%pexsi_options%npSymbFact = np_symbolic_factorize
    endif
@@ -650,11 +642,6 @@ subroutine elsi_customize_pexsi(elsi_h,temperature,gap,delta_e,n_poles,&
    ! 2: detailed output
    if(present(verbosity)) then
       elsi_h%pexsi_options%verbosity = verbosity
-   endif
-
-   if(elsi_h%solver .ne. PEXSI) then
-      call elsi_statement_print("  The chosen solver is not PEXSI."//&
-                                " Ignore elsi_customize_pexsi call.",elsi_h)
    endif
 
 end subroutine
@@ -684,18 +671,13 @@ subroutine elsi_customize_elpa(elsi_h,elpa_solver,elpa_output)
       elsi_h%elpa_output = elpa_output
    endif
 
-   if(elsi_h%solver .ne. ELPA) then
-      call elsi_statement_print("  The chosen solver is not ELPA."//&
-                                " Ignore elsi_customize_elpa call.",elsi_h)
-   endif
-
 end subroutine
 
 !>
 !! This routine overrides SIPs default settings.
 !!
 subroutine elsi_customize_sips(elsi_h,slicing_method,n_slices,inertia_option,&
-                               unbound,slice_buffer)
+              unbound,slice_buffer)
 
    implicit none
 
@@ -746,11 +728,6 @@ subroutine elsi_customize_sips(elsi_h,slicing_method,n_slices,inertia_option,&
       elsi_h%slice_buffer = slice_buffer
    endif
 
-   if(elsi_h%solver .ne. SIPS) then
-      call elsi_statement_print("  The chosen solver is not SIPS."//&
-                                " Ignore elsi_customize_sips call.",elsi_h)
-   endif
-
 end subroutine
 
 !>
@@ -758,7 +735,7 @@ end subroutine
 !! determination module.
 !!
 subroutine elsi_customize_mu(elsi_h,broadening_scheme,broadening_width,&
-                             occ_accuracy,mu_max_steps,spin_degeneracy)
+              occ_accuracy,mu_max_steps,spin_degeneracy)
 
    implicit none
 
@@ -830,7 +807,7 @@ subroutine elsi_collect(elsi_h,overlap_is_singular,n_singular_basis,mu)
 
       if(.not. elsi_h%mu_ready) then
          call elsi_statement_print("  ATTENTION! The return value of mu may"//&
-                                   " be 0, since it has not been computed.",elsi_h)
+                 " be 0, since it has not been computed.",elsi_h)
       endif
 
       elsi_h%mu_ready = .false.
@@ -1029,6 +1006,12 @@ subroutine elsi_set_uplo(elsi_h,uplo)
 
    call elsi_check_handle(elsi_h,caller)
 
+   if((uplo < 0) .or. (uplo > 2)) then
+      call elsi_stop("  Invalid choice of uplo. Please choose"//&
+              " 0 (full), 1 (upper triangular), or 2 (lower"//&
+              " triangular). Exiting...",elsi_h,caller)
+   endif
+
    elsi_h%uplo = uplo
 
 end subroutine
@@ -1047,6 +1030,12 @@ subroutine elsi_set_elpa_solver(elsi_h,elpa_solver)
 
    call elsi_check_handle(elsi_h,caller)
 
+   if((elpa_solver < 1) .or. (elpa_solver > 2)) then
+      call elsi_stop("  Invalid choice of elpa_solver. Please"//&
+              " choose 1 (1-stage solver) or 2 (2-stage solver)."//&
+              " Exiting...",elsi_h,caller)
+   endif
+
    elsi_h%elpa_solver = elpa_solver
 
 end subroutine
@@ -1064,6 +1053,12 @@ subroutine elsi_set_omm_flavor(elsi_h,omm_flavor)
    character*40, parameter :: caller = "elsi_set_omm_flavor"
 
    call elsi_check_handle(elsi_h,caller)
+
+   if((omm_flavor /= 0) .and. (omm_flavor /= 2)) then
+      call elsi_stop("  Invalid choice of omm_flavor. Please"//&
+              " choose 0 (basic flavor) or 2 (Cholesky flavor)."//&
+              " Exiting...",elsi_h,caller)
+   endif
 
    elsi_h%omm_flavor = omm_flavor
 
@@ -1137,6 +1132,12 @@ subroutine elsi_set_pexsi_driver(elsi_h,pexsi_driver)
 
    call elsi_check_handle(elsi_h,caller)
 
+   if((pexsi_driver < 1) .or. (pexsi_driver > 2)) then
+      call elsi_stop("  Invalid choice of pexsi_driver. Please"//&
+              " choose 1 (PEXSI DFT 1) or 2 (PEXSI DFT 2)."//&
+              " Exiting...",elsi_h,caller)
+   endif
+
    elsi_h%pexsi_driver = pexsi_driver
 
 end subroutine
@@ -1195,8 +1196,8 @@ subroutine elsi_set_pexsi_np_per_pole(elsi_h,np_per_pole)
       elsi_h%n_p_per_pole_pexsi = np_per_pole
    else
       call elsi_stop("  The total number of MPI tasks must be a"//&
-                     " multiple of the number of MPI tasks per"//&
-                     " pole. Exiting...",elsi_h,caller)
+              " multiple of the number of MPI tasks per pole."//&
+              " Exiting...",elsi_h,caller)
    endif
 
 end subroutine
@@ -1325,6 +1326,11 @@ subroutine elsi_set_sips_slice_type(elsi_h,slice_type)
 
    call elsi_check_handle(elsi_h,caller)
 
+   if((slice_type < 0) .or. (slice_type > 5)) then
+      call elsi_stop("  Invalid choice of slice_type. Please"//&
+              " choose 0, 1, 2, 3, or 4. Exiting...",elsi_h,caller)
+   endif
+
    elsi_h%slicing_method = slice_type
 
 end subroutine
@@ -1348,8 +1354,8 @@ subroutine elsi_set_sips_n_slice(elsi_h,n_slice)
       elsi_h%n_p_per_slice_sips = elsi_h%n_procs/n_slice
    else
       call elsi_stop("  The total number of MPI tasks must be"//&
-                     " a multiple of the number of slices."//&
-                     " Exiting...",elsi_h,caller)
+              " a multiple of the number of slices."//&
+              " Exiting...",elsi_h,caller)
    endif
 
 end subroutine
@@ -1509,7 +1515,7 @@ subroutine elsi_get_mu(elsi_h,mu)
 
    if(.not. elsi_h%mu_ready) then
       call elsi_statement_print("  ATTENTION! The return value of mu may"//&
-                                " be 0, since it has not been computed.",elsi_h)
+              " be 0, since it has not been computed.",elsi_h)
    endif
 
    elsi_h%mu_ready = .false.
@@ -1559,13 +1565,13 @@ subroutine elsi_ev_real(elsi_h,H_in,S_in,e_val_out,e_vec_out)
 
    case(LIBOMM)
       call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
-                     " Choose ELPA if necessary. Exiting...",elsi_h,caller)
+              " Choose ELPA if necessary. Exiting...",elsi_h,caller)
    case(PEXSI)
       call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
-                     " Choose ELPA if necessary. Exiting...",elsi_h,caller)
+              " Choose ELPA if necessary. Exiting...",elsi_h,caller)
    case(CHESS)
       call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
-                     " Choose ELPA if necessary. Exiting...",elsi_h,caller)
+              " Choose ELPA if necessary. Exiting...",elsi_h,caller)
    case(SIPS)
       call elsi_print_sips_options(elsi_h)
 
@@ -1589,10 +1595,10 @@ subroutine elsi_ev_real(elsi_h,H_in,S_in,e_val_out,e_vec_out)
       ! Convert SIPs eigenvectors to BLACS format
       call elsi_sips_to_blacs_ev(elsi_h)
 
-   case DEFAULT
+   case default
       call elsi_stop(" No supported solver has been chosen."//&
-                     " Please choose ELPA solver to compute"//&
-                     " eigenvalues and eigenvectors. Exiting...",elsi_h,caller)
+              " Please choose ELPA solver to compute"//&
+              " eigenvalues and eigenvectors. Exiting...",elsi_h,caller)
    end select
 
    elsi_h%matrix_data_type = UNSET
@@ -1642,19 +1648,19 @@ subroutine elsi_ev_complex(elsi_h,H_in,S_in,e_val_out,e_vec_out)
 
    case(LIBOMM)
       call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
-                     " Choose ELPA if necessary. Exiting...",elsi_h,caller)
+              " Choose ELPA if necessary. Exiting...",elsi_h,caller)
    case(PEXSI)
       call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
-                     " Choose ELPA if necessary. Exiting...",elsi_h,caller)
+              " Choose ELPA if necessary. Exiting...",elsi_h,caller)
    case(CHESS)
       call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
-                     " Choose ELPA if necessary. Exiting...",elsi_h,caller)
+              " Choose ELPA if necessary. Exiting...",elsi_h,caller)
    case(SIPS)
       call elsi_stop(" SIPS not yet implemented. Exiting...",elsi_h,caller)
-   case DEFAULT
+   case default
       call elsi_stop(" No supported solver has been chosen."//&
-                     " Please choose ELPA solver to compute"//&
-                     " eigenvalues and eigenvectors. Exiting...",elsi_h,caller)
+              " Please choose ELPA solver to compute"//&
+              " eigenvalues and eigenvectors. Exiting...",elsi_h,caller)
    end select
 
    elsi_h%matrix_data_type = UNSET
@@ -1703,20 +1709,20 @@ subroutine elsi_ev_real_sparse(elsi_h,H_in,S_in,e_val_out,e_vec_out)
 
    case(LIBOMM)
       call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
-                     " Choose ELPA if necessary. Exiting...",elsi_h,caller)
+              " Choose ELPA if necessary. Exiting...",elsi_h,caller)
    case(PEXSI)
       call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
-                     " Choose ELPA if necessary. Exiting...",elsi_h,caller)
+              " Choose ELPA if necessary. Exiting...",elsi_h,caller)
    case(CHESS)
       call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
-                     " Choose ELPA if necessary. Exiting...",elsi_h,caller)
+              " Choose ELPA if necessary. Exiting...",elsi_h,caller)
    case(SIPS)
       call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
-                     " Choose ELPA if necessary. Exiting...",elsi_h,caller)
-   case DEFAULT
+              " Choose ELPA if necessary. Exiting...",elsi_h,caller)
+   case default
       call elsi_stop(" No supported solver has been chosen."//&
-                     " Please choose ELPA solver to compute"//&
-                     " eigenvalues and eigenvectors. Exiting...",elsi_h,caller)
+              " Please choose ELPA solver to compute"//&
+              " eigenvalues and eigenvectors. Exiting...",elsi_h,caller)
    end select
 
    elsi_h%matrix_data_type = UNSET
@@ -1753,12 +1759,11 @@ subroutine elsi_dm_real(elsi_h,H_in,S_in,D_out,energy_out)
    case(ELPA)
       ! Allocate
       if(.not. allocated(elsi_h%eval_elpa)) then
-         call elsi_allocate(elsi_h,elsi_h%eval_elpa,elsi_h%n_g_size,&
-                            "eval_elpa",caller)
+         call elsi_allocate(elsi_h,elsi_h%eval_elpa,elsi_h%n_g_size,"eval_elpa",caller)
       endif
       if(.not. allocated(elsi_h%evec_real_elpa)) then
          call elsi_allocate(elsi_h,elsi_h%evec_real_elpa,elsi_h%n_l_rows,&
-                            elsi_h%n_l_cols,"evec_real_elpa",caller)
+                 elsi_h%n_l_cols,"evec_real_elpa",caller)
       endif
 
       ! Set matrices
@@ -1785,7 +1790,7 @@ subroutine elsi_dm_real(elsi_h,H_in,S_in,D_out,energy_out)
          if((elsi_h%n_elsi_calls == 1) .and. (elsi_h%omm_flavor == 0)) then
             ! Overlap will be destroyed by Cholesky
             call elsi_allocate(elsi_h,elsi_h%ovlp_real_omm,elsi_h%n_l_rows,&
-                               elsi_h%n_l_cols,"ovlp_real_omm",caller)
+                    elsi_h%n_l_cols,"ovlp_real_omm",caller)
             elsi_h%ovlp_real_omm = S_in
          endif
 
@@ -1795,11 +1800,11 @@ subroutine elsi_dm_real(elsi_h,H_in,S_in,D_out,energy_out)
          ! Allocate
          if(.not. allocated(elsi_h%eval_elpa)) then
             call elsi_allocate(elsi_h,elsi_h%eval_elpa,elsi_h%n_g_size,&
-                               "eval_elpa",caller)
+                    "eval_elpa",caller)
          endif
          if(.not. allocated(elsi_h%evec_real_elpa)) then
             call elsi_allocate(elsi_h,elsi_h%evec_real_elpa,elsi_h%n_l_rows,&
-                               elsi_h%n_l_cols,"evec_real_elpa",caller)
+                    elsi_h%n_l_cols,"evec_real_elpa",caller)
          endif
 
          ! Set matrices
@@ -1831,8 +1836,7 @@ subroutine elsi_dm_real(elsi_h,H_in,S_in,D_out,energy_out)
 
          ! Allocate
          if(.not. elsi_h%coeff_omm%is_initialized) then
-            call m_allocate(elsi_h%coeff_omm,elsi_h%n_states,&
-                            elsi_h%n_g_size,"pddbc")
+            call m_allocate(elsi_h%coeff_omm,elsi_h%n_states,elsi_h%n_g_size,"pddbc")
          endif
 
          ! Set matrices
@@ -1845,7 +1849,7 @@ subroutine elsi_dm_real(elsi_h,H_in,S_in,D_out,energy_out)
             (elsi_h%n_elsi_calls == elsi_h%n_elpa_steps+1)) then
             ! libOMM coefficient matrix is the transpose of ELPA eigenvectors
             call pdtran(elsi_h%n_g_size,elsi_h%n_g_size,1.0_r8,elsi_h%evec_real,&
-                        1,1,elsi_h%sc_desc,0.0_r8,D_out,1,1,elsi_h%sc_desc)
+                    1,1,elsi_h%sc_desc,0.0_r8,D_out,1,1,elsi_h%sc_desc)
 
             elsi_h%coeff_omm%dval(1:elsi_h%coeff_omm%iaux2(1),1:elsi_h%coeff_omm%iaux2(2)) = &
                D_out(1:elsi_h%coeff_omm%iaux2(1),1:elsi_h%coeff_omm%iaux2(2))
@@ -1880,7 +1884,7 @@ subroutine elsi_dm_real(elsi_h,H_in,S_in,D_out,energy_out)
       ! Allocate
       if(.not. allocated(elsi_h%den_mat_pexsi)) then
          call elsi_allocate(elsi_h,elsi_h%den_mat_pexsi,elsi_h%nnz_l_pexsi,&
-                            "den_mat_pexsi",caller)
+                 "den_mat_pexsi",caller)
       endif
       elsi_h%den_mat_pexsi = 0.0_r8
 
@@ -1906,7 +1910,7 @@ subroutine elsi_dm_real(elsi_h,H_in,S_in,D_out,energy_out)
       call elsi_stop(" SIPS not yet implemented. Exiting...",elsi_h,caller)
    case default
       call elsi_stop(" No supported solver has been chosen."//&
-                     " Exiting...",elsi_h,caller)
+              " Exiting...",elsi_h,caller)
    end select
 
    elsi_h%matrix_data_type = UNSET
@@ -1930,7 +1934,7 @@ subroutine elsi_edm_real(elsi_h,D_out)
 
    if(.not. elsi_h%edm_ready) then
       call elsi_stop(" Energy weighted density matrix has not been."//&
-                     " computed. Exiting...",elsi_h,caller)
+              " computed. Exiting...",elsi_h,caller)
    endif
 
    ! REAL case
@@ -1958,9 +1962,9 @@ subroutine elsi_edm_real(elsi_h,D_out)
       call elsi_stop(" CHESS not yet implemented. Exiting...",elsi_h,caller)
    case(SIPS)
       call elsi_stop(" SIPS not yet implemented. Exiting...",elsi_h,caller)
-   case DEFAULT
+   case default
       call elsi_stop(" No supported solver has been chosen."//&
-                     " Exiting...",elsi_h,caller)
+              " Exiting...",elsi_h,caller)
    end select
 
    elsi_h%edm_ready = .false.
@@ -1986,7 +1990,7 @@ subroutine elsi_dm_complex(elsi_h,H_in,S_in,D_out,energy_out)
    call elsi_check_handle(elsi_h,caller)
 
    call elsi_stop(" ELSI density matrix solver for complex case not yet available."//&
-                  " Exiting...",elsi_h,caller)
+           " Exiting...",elsi_h,caller)
 
    ! Update counter
    elsi_h%n_elsi_calls = elsi_h%n_elsi_calls+1
@@ -2005,7 +2009,7 @@ subroutine elsi_dm_complex(elsi_h,H_in,S_in,D_out,energy_out)
       endif
       if(.not. allocated(elsi_h%evec_complex_elpa)) then
          call elsi_allocate(elsi_h,elsi_h%evec_complex_elpa,elsi_h%n_l_rows,&
-                            elsi_h%n_l_cols,"evec_complex_elpa",caller)
+                 elsi_h%n_l_cols,"evec_complex_elpa",caller)
       endif
 
       ! Set matrices
@@ -2028,8 +2032,7 @@ subroutine elsi_dm_complex(elsi_h,H_in,S_in,D_out,energy_out)
 
       ! Allocate
       if(.not. elsi_h%coeff_omm%is_initialized) then
-         call m_allocate(elsi_h%coeff_omm,elsi_h%n_states,&
-                         elsi_h%n_g_size,"pddbc")
+         call m_allocate(elsi_h%coeff_omm,elsi_h%n_states,elsi_h%n_g_size,"pddbc")
       endif
 
       ! Set matrices
@@ -2051,7 +2054,7 @@ subroutine elsi_dm_complex(elsi_h,H_in,S_in,D_out,energy_out)
       call elsi_stop(" SIPS not yet implemented. Exiting...",elsi_h,caller)
    case default
       call elsi_stop(" No supported solver has been chosen."//&
-                     " Exiting...",elsi_h,caller)
+              " Exiting...",elsi_h,caller)
    end select
 
    elsi_h%matrix_data_type = UNSET
@@ -2092,15 +2095,15 @@ subroutine elsi_dm_real_sparse(elsi_h,H_in,S_in,D_out,energy_out)
       ! Allocate
       if(.not. allocated(elsi_h%eval_elpa)) then
          call elsi_allocate(elsi_h,elsi_h%eval_elpa,elsi_h%n_g_size,&
-                            "eval_elpa",caller)
+                 "eval_elpa",caller)
       endif
       if(.not. allocated(elsi_h%evec_real_elpa)) then
          call elsi_allocate(elsi_h,elsi_h%evec_real_elpa,elsi_h%n_l_rows,&
-                            elsi_h%n_l_cols,"evec_real_elpa",caller)
+                 elsi_h%n_l_cols,"evec_real_elpa",caller)
       endif
       if(.not. allocated(elsi_h%den_mat_elpa)) then
          call elsi_allocate(elsi_h,elsi_h%den_mat_elpa,elsi_h%n_l_rows,&
-                            elsi_h%n_l_cols,"den_mat_elpa",caller)
+                 elsi_h%n_l_cols,"den_mat_elpa",caller)
       endif
 
       ! Set matrices
@@ -2131,7 +2134,7 @@ subroutine elsi_dm_real_sparse(elsi_h,H_in,S_in,D_out,energy_out)
          if((elsi_h%n_elsi_calls == 1) .and. (elsi_h%omm_flavor == 0)) then
             ! Overlap will be destroyed by Cholesky
             call elsi_allocate(elsi_h,elsi_h%ovlp_real_omm,elsi_h%n_l_rows,&
-                               elsi_h%n_l_cols,"ovlp_real_omm",caller)
+                    elsi_h%n_l_cols,"ovlp_real_omm",caller)
             elsi_h%ovlp_real_omm = elsi_h%ovlp_real_elpa
          endif
 
@@ -2141,15 +2144,15 @@ subroutine elsi_dm_real_sparse(elsi_h,H_in,S_in,D_out,energy_out)
          ! Allocate
          if(.not. allocated(elsi_h%eval_elpa)) then
             call elsi_allocate(elsi_h,elsi_h%eval_elpa,elsi_h%n_g_size,&
-                               "eval_elpa",caller)
+                    "eval_elpa",caller)
          endif
          if(.not. allocated(elsi_h%evec_real_elpa)) then
             call elsi_allocate(elsi_h,elsi_h%evec_real_elpa,elsi_h%n_l_rows,&
-                               elsi_h%n_l_cols,"evec_real_elpa",caller)
+                    elsi_h%n_l_cols,"evec_real_elpa",caller)
          endif
          if(.not. allocated(elsi_h%den_mat_elpa)) then
             call elsi_allocate(elsi_h,elsi_h%den_mat_elpa,elsi_h%n_l_rows,&
-                               elsi_h%n_l_cols,"den_mat_elpa",caller)
+                    elsi_h%n_l_cols,"den_mat_elpa",caller)
          endif
 
          ! Set matrices
@@ -2183,7 +2186,7 @@ subroutine elsi_dm_real_sparse(elsi_h,H_in,S_in,D_out,energy_out)
          ! Allocate
          if(.not. elsi_h%coeff_omm%is_initialized) then
             call m_allocate(elsi_h%coeff_omm,elsi_h%n_states,&
-                            elsi_h%n_g_size,"pddbc")
+                    elsi_h%n_g_size,"pddbc")
          endif
 
          ! Set matrices
@@ -2196,7 +2199,7 @@ subroutine elsi_dm_real_sparse(elsi_h,H_in,S_in,D_out,energy_out)
             (elsi_h%n_elsi_calls == elsi_h%n_elpa_steps+1)) then
             ! libOMM coefficient matrix is the transpose of ELPA eigenvectors
             call pdtran(elsi_h%n_g_size,elsi_h%n_g_size,1.0_r8,elsi_h%evec_real,1,1,&
-                        elsi_h%sc_desc,0.0_r8,elsi_h%den_mat_elpa,1,1,elsi_h%sc_desc)
+                    elsi_h%sc_desc,0.0_r8,elsi_h%den_mat_elpa,1,1,elsi_h%sc_desc)
 
             elsi_h%coeff_omm%dval(1:elsi_h%coeff_omm%iaux2(1),1:elsi_h%coeff_omm%iaux2(2)) = &
                elsi_h%den_mat_elpa(1:elsi_h%coeff_omm%iaux2(1),1:elsi_h%coeff_omm%iaux2(2))
@@ -2244,7 +2247,7 @@ subroutine elsi_dm_real_sparse(elsi_h,H_in,S_in,D_out,energy_out)
       call elsi_stop(" SIPS not yet implemented. Exiting...",elsi_h,caller)
    case default
       call elsi_stop(" No supported solver has been chosen."//&
-                     " Exiting...",elsi_h,caller)
+              " Exiting...",elsi_h,caller)
    end select
 
    elsi_h%matrix_data_type = UNSET
