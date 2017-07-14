@@ -140,9 +140,11 @@ subroutine elsi_init(elsi_h,solver,parallel_mode,matrix_storage_format,&
    call elsi_cleanup(elsi_h)
 
    elsi_h%handle_initialized    = .true.
-   elsi_h%n_g_size              = n_basis
-   elsi_h%n_nonsingular         = n_basis
+   elsi_h%n_basis               = n_basis
+   elsi_h%n_nonsing             = n_basis
    elsi_h%n_electrons           = n_electron
+   elsi_h%n_spins               = 1
+   elsi_h%n_kpts                = 1
    elsi_h%solver                = solver
    elsi_h%matrix_storage_format = matrix_storage_format
    elsi_h%parallel_mode         = parallel_mode
@@ -254,27 +256,26 @@ subroutine elsi_set_blacs(elsi_h,blacs_ctxt,block_size)
               elsi_h%my_p_row,elsi_h%my_p_col)
 
       ! Get local size of matrix
-      elsi_h%n_l_rows = numroc(elsi_h%n_g_size,elsi_h%n_b_rows,&
+      elsi_h%n_l_rows = numroc(elsi_h%n_basis,elsi_h%n_b_rows,&
          elsi_h%my_p_row,0,elsi_h%n_p_rows)
-      elsi_h%n_l_cols = numroc(elsi_h%n_g_size,elsi_h%n_b_cols,&
+      elsi_h%n_l_cols = numroc(elsi_h%n_basis,elsi_h%n_b_cols,&
          elsi_h%my_p_col,0,elsi_h%n_p_cols)
 
       ! Get BLACS descriptor
-      call descinit(elsi_h%sc_desc,elsi_h%n_g_size,elsi_h%n_g_size,&
-              elsi_h%n_b_rows,elsi_h%n_b_cols,0,0,elsi_h%blacs_ctxt,&
-              max(1,elsi_h%n_l_rows),blacs_info)
+      call descinit(elsi_h%sc_desc,elsi_h%n_basis,elsi_h%n_basis,elsi_h%n_b_rows,&
+              elsi_h%n_b_cols,0,0,elsi_h%blacs_ctxt,max(1,elsi_h%n_l_rows),blacs_info)
 
       ! Get ELPA communicators
       call elsi_get_elpa_comms(elsi_h)
 
       ! Compute global-local mapping
-      call elsi_allocate(elsi_h,elsi_h%local_row,elsi_h%n_g_size,"local_row",caller)
-      call elsi_allocate(elsi_h,elsi_h%local_col,elsi_h%n_g_size,"local_col",caller)
+      call elsi_allocate(elsi_h,elsi_h%local_row,elsi_h%n_basis,"local_row",caller)
+      call elsi_allocate(elsi_h,elsi_h%local_col,elsi_h%n_basis,"local_col",caller)
 
       i_row = 0
       i_col = 0
 
-      do i = 1,elsi_h%n_g_size
+      do i = 1,elsi_h%n_basis
          if(mod((i-1)/elsi_h%n_b_rows,elsi_h%n_p_rows) == elsi_h%my_p_row) then
             i_row = i_row+1
             elsi_h%local_row(i) = i_row
@@ -321,7 +322,7 @@ subroutine elsi_set_csc(elsi_h,nnz_g,nnz_l,n_l_cols,row_ind,col_ptr)
    call elsi_set_row_ind(elsi_h,row_ind)
    call elsi_set_col_ptr(elsi_h,col_ptr)
 
-   elsi_h%sparsity_pattern_ready = .true.
+   elsi_h%sparsity_is_setup = .true.
 
 end subroutine
 
@@ -409,7 +410,7 @@ subroutine elsi_customize(elsi_h,print_detail,overlap_is_unit,zero_threshold,&
 
    ! Is the overlap matrix unit? [Default: .false.]
    if(present(overlap_is_unit)) then
-      elsi_h%overlap_is_unit = overlap_is_unit
+      elsi_h%ovlp_is_unit = overlap_is_unit
    endif
 
    ! Threshold to define numerical zero [Default: 1e-15_r8]
@@ -419,18 +420,18 @@ subroutine elsi_customize(elsi_h,print_detail,overlap_is_unit,zero_threshold,&
 
    ! Disable checking for overlap singularity? [Default: .false.]
    if(present(no_singularity_check)) then
-      elsi_h%no_singularity_check = no_singularity_check
+      elsi_h%no_sing_check = no_singularity_check
    endif
 
    ! Eigenfunctions of overlap matrix with eigenvalues smaller than
    ! this value will be removed to avoid singularity [Default: 1e-5_r8]
    if(present(singularity_tolerance)) then
-      elsi_h%singularity_tolerance = singularity_tolerance
+      elsi_h%sing_tol = singularity_tolerance
    endif
 
    ! Always stop if overlap is singular? [Default: .false.]
    if(present(stop_singularity)) then
-      elsi_h%stop_singularity = stop_singularity
+      elsi_h%stop_sing = stop_singularity
    endif
 
    ! Is the input matrices upper or lower triangular?
@@ -551,7 +552,7 @@ subroutine elsi_customize_pexsi(elsi_h,temperature,gap,delta_e,n_poles,&
    ! Number of processes for one pole
    if(present(n_procs_per_pole)) then
       if(mod(elsi_h%n_procs,n_procs_per_pole) == 0) then
-         elsi_h%n_p_per_pole_pexsi = n_procs_per_pole
+         elsi_h%n_p_per_pole = n_procs_per_pole
       else
          call elsi_stop("  The total number of MPI tasks must be a"//&
                         " multiple of the number of MPI tasks per"//&
@@ -703,7 +704,7 @@ subroutine elsi_customize_sips(elsi_h,slicing_method,n_slices,inertia_option,&
    if(present(n_slices)) then
       if(mod(elsi_h%n_procs,n_slices) == 0) then
          elsi_h%n_slices = n_slices
-         elsi_h%n_p_per_slice_sips = elsi_h%n_procs/elsi_h%n_slices
+         elsi_h%n_p_per_slice = elsi_h%n_procs/elsi_h%n_slices
       else
          call elsi_stop("  The total number of MPI tasks must be"//&
                         " a multiple of the number of slices."//&
@@ -795,11 +796,11 @@ subroutine elsi_collect(elsi_h,overlap_is_singular,n_singular_basis,mu)
    call elsi_check_handle(elsi_h,caller)
 
    if(present(overlap_is_singular)) then
-      overlap_is_singular = elsi_h%overlap_is_singular
+      overlap_is_singular = elsi_h%ovlp_is_sing
    endif
 
    if(present(n_singular_basis)) then
-      n_singular_basis = elsi_h%n_g_size-elsi_h%n_nonsingular
+      n_singular_basis = elsi_h%n_basis-elsi_h%n_nonsing
    endif
 
    if(present(mu)) then
@@ -902,9 +903,9 @@ subroutine elsi_set_unit_ovlp(elsi_h,unit_ovlp)
    call elsi_check_handle(elsi_h,caller)
 
    if(unit_ovlp == 0) then
-      elsi_h%overlap_is_unit = .false.
+      elsi_h%ovlp_is_unit = .false.
    else
-      elsi_h%overlap_is_unit = .true.
+      elsi_h%ovlp_is_unit = .true.
    endif
 
 end subroutine
@@ -942,9 +943,9 @@ subroutine elsi_set_sing_check(elsi_h,sing_check)
    call elsi_check_handle(elsi_h,caller)
 
    if(sing_check == 0) then
-      elsi_h%no_singularity_check = .true.
+      elsi_h%no_sing_check = .true.
    else
-      elsi_h%no_singularity_check = .false.
+      elsi_h%no_sing_check = .false.
    endif
 
 end subroutine
@@ -965,7 +966,7 @@ subroutine elsi_set_sing_tol(elsi_h,sing_tol)
 
    call elsi_check_handle(elsi_h,caller)
 
-   elsi_h%singularity_tolerance = sing_tol
+   elsi_h%sing_tol = sing_tol
 
 end subroutine
 
@@ -984,9 +985,9 @@ subroutine elsi_set_sing_stop(elsi_h,sing_stop)
    call elsi_check_handle(elsi_h,caller)
 
    if(sing_stop == 0) then
-      elsi_h%stop_singularity = .false.
+      elsi_h%stop_sing = .false.
    else
-      elsi_h%stop_singularity = .true.
+      elsi_h%stop_sing = .true.
    endif
 
 end subroutine
@@ -1188,12 +1189,12 @@ subroutine elsi_set_pexsi_np_per_pole(elsi_h,np_per_pole)
    type(elsi_handle), intent(inout) :: elsi_h      !< Handle
    integer(kind=i4),  intent(in)    :: np_per_pole !< Number of processes per pole
 
-   character*40, parameter :: caller = "elsi_set_pexsi_n_pole"
+   character*40, parameter :: caller = "elsi_set_pexsi_np_per_pole"
 
    call elsi_check_handle(elsi_h,caller)
 
    if(mod(elsi_h%n_procs,np_per_pole) == 0) then
-      elsi_h%n_p_per_pole_pexsi = np_per_pole
+      elsi_h%n_p_per_pole = np_per_pole
    else
       call elsi_stop("  The total number of MPI tasks must be a"//&
               " multiple of the number of MPI tasks per pole."//&
@@ -1351,7 +1352,7 @@ subroutine elsi_set_sips_n_slice(elsi_h,n_slice)
 
    if(mod(elsi_h%n_procs,n_slice) == 0) then
       elsi_h%n_slices = n_slice
-      elsi_h%n_p_per_slice_sips = elsi_h%n_procs/n_slice
+      elsi_h%n_p_per_slice = elsi_h%n_procs/n_slice
    else
       call elsi_stop("  The total number of MPI tasks must be"//&
               " a multiple of the number of slices."//&
@@ -1489,7 +1490,7 @@ subroutine elsi_get_ovlp_sing(elsi_h,ovlp_sing)
 
    call elsi_check_handle(elsi_h,caller)
 
-   if(elsi_h%overlap_is_singular) then
+   if(elsi_h%ovlp_is_sing) then
       ovlp_sing = 1
    else
       ovlp_sing = 0
@@ -1532,7 +1533,7 @@ subroutine elsi_ev_real(elsi_h,H_in,S_in,e_val_out,e_vec_out)
    type(elsi_handle) :: elsi_h                                     !< Handle
    real(kind=r8)     :: H_in(elsi_h%n_l_rows,elsi_h%n_l_cols)      !< Hamiltonian
    real(kind=r8)     :: S_in(elsi_h%n_l_rows,elsi_h%n_l_cols)      !< Overlap
-   real(kind=r8)     :: e_val_out(elsi_h%n_g_size)                 !< Eigenvalues
+   real(kind=r8)     :: e_val_out(elsi_h%n_basis)                  !< Eigenvalues
    real(kind=r8)     :: e_vec_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Eigenvectors
 
    character*40, parameter :: caller = "elsi_ev_real"
@@ -1615,7 +1616,7 @@ subroutine elsi_ev_complex(elsi_h,H_in,S_in,e_val_out,e_vec_out)
    type(elsi_handle) :: elsi_h                                     !< Handle
    complex(kind=r8)  :: H_in(elsi_h%n_l_rows,elsi_h%n_l_cols)      !< Hamiltonian
    complex(kind=r8)  :: S_in(elsi_h%n_l_rows,elsi_h%n_l_cols)      !< Overlap
-   real(kind=r8)     :: e_val_out(elsi_h%n_g_size)                 !< Eigenvalues
+   real(kind=r8)     :: e_val_out(elsi_h%n_basis)                  !< Eigenvalues
    complex(kind=r8)  :: e_vec_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Eigenvectors
 
    character*40, parameter :: caller = "elsi_ev_complex"
@@ -1677,7 +1678,7 @@ subroutine elsi_ev_real_sparse(elsi_h,H_in,S_in,e_val_out,e_vec_out)
    type(elsi_handle) :: elsi_h                                     !< Handle
    real(kind=r8)     :: H_in(elsi_h%nnz_l_pexsi)                   !< Hamiltonian
    real(kind=r8)     :: S_in(elsi_h%nnz_l_pexsi)                   !< Overlap
-   real(kind=r8)     :: e_val_out(elsi_h%n_g_size)                 !< Eigenvalues
+   real(kind=r8)     :: e_val_out(elsi_h%n_basis)                  !< Eigenvalues
    real(kind=r8)     :: e_vec_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Eigenvectors
 
    character*40, parameter :: caller = "elsi_ev_real_sparse"
@@ -1759,7 +1760,7 @@ subroutine elsi_dm_real(elsi_h,H_in,S_in,D_out,energy_out)
    case(ELPA)
       ! Allocate
       if(.not. allocated(elsi_h%eval_elpa)) then
-         call elsi_allocate(elsi_h,elsi_h%eval_elpa,elsi_h%n_g_size,"eval_elpa",caller)
+         call elsi_allocate(elsi_h,elsi_h%eval_elpa,elsi_h%n_basis,"eval_elpa",caller)
       endif
       if(.not. allocated(elsi_h%evec_real_elpa)) then
          call elsi_allocate(elsi_h,elsi_h%evec_real_elpa,elsi_h%n_l_rows,&
@@ -1799,7 +1800,7 @@ subroutine elsi_dm_real(elsi_h,H_in,S_in,D_out,energy_out)
 
          ! Allocate
          if(.not. allocated(elsi_h%eval_elpa)) then
-            call elsi_allocate(elsi_h,elsi_h%eval_elpa,elsi_h%n_g_size,&
+            call elsi_allocate(elsi_h,elsi_h%eval_elpa,elsi_h%n_basis,&
                     "eval_elpa",caller)
          endif
          if(.not. allocated(elsi_h%evec_real_elpa)) then
@@ -1836,7 +1837,7 @@ subroutine elsi_dm_real(elsi_h,H_in,S_in,D_out,energy_out)
 
          ! Allocate
          if(.not. elsi_h%coeff_omm%is_initialized) then
-            call m_allocate(elsi_h%coeff_omm,elsi_h%n_states,elsi_h%n_g_size,"pddbc")
+            call m_allocate(elsi_h%coeff_omm,elsi_h%n_states,elsi_h%n_basis,"pddbc")
          endif
 
          ! Set matrices
@@ -1848,7 +1849,7 @@ subroutine elsi_dm_real(elsi_h,H_in,S_in,D_out,energy_out)
          if((elsi_h%n_elpa_steps > 0) .and. &
             (elsi_h%n_elsi_calls == elsi_h%n_elpa_steps+1)) then
             ! libOMM coefficient matrix is the transpose of ELPA eigenvectors
-            call pdtran(elsi_h%n_g_size,elsi_h%n_g_size,1.0_r8,elsi_h%evec_real,&
+            call pdtran(elsi_h%n_basis,elsi_h%n_basis,1.0_r8,elsi_h%evec_real,&
                     1,1,elsi_h%sc_desc,0.0_r8,D_out,1,1,elsi_h%sc_desc)
 
             elsi_h%coeff_omm%dval(1:elsi_h%coeff_omm%iaux2(1),1:elsi_h%coeff_omm%iaux2(2)) = &
@@ -2005,7 +2006,7 @@ subroutine elsi_dm_complex(elsi_h,H_in,S_in,D_out,energy_out)
    case(ELPA)
       ! Allocate
       if(.not. allocated(elsi_h%eval_elpa)) then
-         call elsi_allocate(elsi_h,elsi_h%eval_elpa,elsi_h%n_g_size,"eval_elpa",caller)
+         call elsi_allocate(elsi_h,elsi_h%eval_elpa,elsi_h%n_basis,"eval_elpa",caller)
       endif
       if(.not. allocated(elsi_h%evec_complex_elpa)) then
          call elsi_allocate(elsi_h,elsi_h%evec_complex_elpa,elsi_h%n_l_rows,&
@@ -2032,7 +2033,7 @@ subroutine elsi_dm_complex(elsi_h,H_in,S_in,D_out,energy_out)
 
       ! Allocate
       if(.not. elsi_h%coeff_omm%is_initialized) then
-         call m_allocate(elsi_h%coeff_omm,elsi_h%n_states,elsi_h%n_g_size,"pddbc")
+         call m_allocate(elsi_h%coeff_omm,elsi_h%n_states,elsi_h%n_basis,"pddbc")
       endif
 
       ! Set matrices
@@ -2094,7 +2095,7 @@ subroutine elsi_dm_real_sparse(elsi_h,H_in,S_in,D_out,energy_out)
 
       ! Allocate
       if(.not. allocated(elsi_h%eval_elpa)) then
-         call elsi_allocate(elsi_h,elsi_h%eval_elpa,elsi_h%n_g_size,&
+         call elsi_allocate(elsi_h,elsi_h%eval_elpa,elsi_h%n_basis,&
                  "eval_elpa",caller)
       endif
       if(.not. allocated(elsi_h%evec_real_elpa)) then
@@ -2143,7 +2144,7 @@ subroutine elsi_dm_real_sparse(elsi_h,H_in,S_in,D_out,energy_out)
 
          ! Allocate
          if(.not. allocated(elsi_h%eval_elpa)) then
-            call elsi_allocate(elsi_h,elsi_h%eval_elpa,elsi_h%n_g_size,&
+            call elsi_allocate(elsi_h,elsi_h%eval_elpa,elsi_h%n_basis,&
                     "eval_elpa",caller)
          endif
          if(.not. allocated(elsi_h%evec_real_elpa)) then
@@ -2185,8 +2186,7 @@ subroutine elsi_dm_real_sparse(elsi_h,H_in,S_in,D_out,energy_out)
 
          ! Allocate
          if(.not. elsi_h%coeff_omm%is_initialized) then
-            call m_allocate(elsi_h%coeff_omm,elsi_h%n_states,&
-                    elsi_h%n_g_size,"pddbc")
+            call m_allocate(elsi_h%coeff_omm,elsi_h%n_states,elsi_h%n_basis,"pddbc")
          endif
 
          ! Set matrices
@@ -2198,7 +2198,7 @@ subroutine elsi_dm_real_sparse(elsi_h,H_in,S_in,D_out,energy_out)
          if((elsi_h%n_elpa_steps > 0) .and. &
             (elsi_h%n_elsi_calls == elsi_h%n_elpa_steps+1)) then
             ! libOMM coefficient matrix is the transpose of ELPA eigenvectors
-            call pdtran(elsi_h%n_g_size,elsi_h%n_g_size,1.0_r8,elsi_h%evec_real,1,1,&
+            call pdtran(elsi_h%n_basis,elsi_h%n_basis,1.0_r8,elsi_h%evec_real,1,1,&
                     elsi_h%sc_desc,0.0_r8,elsi_h%den_mat_elpa,1,1,elsi_h%sc_desc)
 
             elsi_h%coeff_omm%dval(1:elsi_h%coeff_omm%iaux2(1),1:elsi_h%coeff_omm%iaux2(2)) = &

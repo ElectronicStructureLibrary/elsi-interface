@@ -59,6 +59,8 @@ subroutine elsi_init_pexsi(elsi_h)
 
    integer(kind=i4) :: n_rows_tmp
    integer(kind=i4) :: n_groups
+   integer(kind=i4) :: output_id
+   integer(kind=i4) :: ierr
    character*200    :: info_str
 
    character*40, parameter :: caller = "elsi_init_pexsi"
@@ -71,13 +73,13 @@ subroutine elsi_init_pexsi(elsi_h)
    if(elsi_h%n_elsi_calls == 1) then
       n_groups = elsi_h%pexsi_options%numPole*elsi_h%n_mu_points
 
-      if(elsi_h%n_p_per_pole_pexsi == UNSET) then
+      if(elsi_h%n_p_per_pole == UNSET) then
          if(mod(elsi_h%n_procs,n_groups) == 0) then
-            elsi_h%n_p_per_pole_pexsi = elsi_h%n_procs/n_groups
+            elsi_h%n_p_per_pole = elsi_h%n_procs/n_groups
 
             call elsi_statement_print("  PEXSI parallel over poles.",elsi_h)
             write(info_str,"(A,I13)") "  | Number of MPI tasks per pole: ",&
-               elsi_h%n_p_per_pole_pexsi
+               elsi_h%n_p_per_pole
             call elsi_statement_print(info_str,elsi_h)
          else
             call elsi_stop("  PEXSI not parallel over poles. High"//&
@@ -90,25 +92,25 @@ subroutine elsi_init_pexsi(elsi_h)
       endif
 
       ! Set square-like process grid for selected inversion of each pole
-      do n_rows_tmp = nint(sqrt(real(elsi_h%n_p_per_pole_pexsi))),2,-1
-         if(mod(elsi_h%n_p_per_pole_pexsi,n_rows_tmp) == 0) exit
+      do n_rows_tmp = nint(sqrt(real(elsi_h%n_p_per_pole))),2,-1
+         if(mod(elsi_h%n_p_per_pole,n_rows_tmp) == 0) exit
       enddo
 
       elsi_h%n_p_rows_pexsi = n_rows_tmp
-      elsi_h%n_p_cols_pexsi = elsi_h%n_p_per_pole_pexsi/elsi_h%n_p_rows_pexsi
+      elsi_h%n_p_cols_pexsi = elsi_h%n_p_per_pole/elsi_h%n_p_rows_pexsi
 
       ! PEXSI process grid
-      elsi_h%my_p_col_pexsi = mod(elsi_h%myid,elsi_h%n_p_per_pole_pexsi)
-      elsi_h%my_p_row_pexsi = elsi_h%myid/elsi_h%n_p_per_pole_pexsi
+      elsi_h%my_p_col_pexsi = mod(elsi_h%myid,elsi_h%n_p_per_pole)
+      elsi_h%my_p_row_pexsi = elsi_h%myid/elsi_h%n_p_per_pole
 
       ! PEXSI uses a pure block distribution in the first process row
-      elsi_h%n_b_rows_pexsi = elsi_h%n_g_size
+      elsi_h%n_b_rows_pexsi = elsi_h%n_basis
 
       ! The last process holds all remaining columns
-      elsi_h%n_b_cols_pexsi = elsi_h%n_g_size/elsi_h%n_p_per_pole_pexsi
-      if(elsi_h%my_p_col_pexsi == elsi_h%n_p_per_pole_pexsi-1) then
-         elsi_h%n_b_cols_pexsi = elsi_h%n_g_size-&
-                                    (elsi_h%n_p_per_pole_pexsi-1)*elsi_h%n_b_cols_pexsi
+      elsi_h%n_b_cols_pexsi = elsi_h%n_basis/elsi_h%n_p_per_pole
+      if(elsi_h%my_p_col_pexsi == elsi_h%n_p_per_pole-1) then
+         elsi_h%n_b_cols_pexsi = elsi_h%n_basis-&
+                                    (elsi_h%n_p_per_pole-1)*elsi_h%n_b_cols_pexsi
       endif
 
       elsi_h%n_l_rows_pexsi = elsi_h%n_b_rows_pexsi
@@ -116,17 +118,17 @@ subroutine elsi_init_pexsi(elsi_h)
 
       ! Only master process outputs
       if(elsi_h%myid == 0) then
-         elsi_h%pexsi_output_file_index = 0
+         output_id = 0
       else
-         elsi_h%pexsi_output_file_index = -1
+         output_id = -1
       endif
 
       elsi_h%pexsi_plan = f_ppexsi_plan_initialize(elsi_h%mpi_comm,&
                              elsi_h%n_p_rows_pexsi,elsi_h%n_p_cols_pexsi,&
-                             elsi_h%pexsi_output_file_index,elsi_h%pexsi_info)
+                             output_id,ierr)
 
-      if(elsi_h%pexsi_info /= 0) then
-         call elsi_stop(" PEXSI plan initialization failed. Exiting...",elsi_h,caller)
+      if(ierr /= 0) then
+         call elsi_stop(" PEXSI initialization failed. Exiting...",elsi_h,caller)
       endif
 
       elsi_h%pexsi_started = .true.
@@ -145,7 +147,10 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
    type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
    real(kind=r8), save :: this_pexsi_tol = 1.0e-2_r8
+   integer(kind=i4)    :: n_inertia_iter
+   integer(kind=i4)    :: n_pexsi_iter
    integer(kind=i4)    :: mpierr
+   integer(kind=i4)    :: ierr
    character*200       :: info_str
 
    character*40, parameter :: caller = "elsi_solve_evp_pexsi"
@@ -169,28 +174,32 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
    endif
 
    if(.not. allocated(elsi_h%e_den_mat_pexsi)) then
-      call elsi_allocate(elsi_h,elsi_h%e_den_mat_pexsi,elsi_h%nnz_l_pexsi,"e_den_mat_pexsi",caller)
+      call elsi_allocate(elsi_h,elsi_h%e_den_mat_pexsi,elsi_h%nnz_l_pexsi,&
+              "e_den_mat_pexsi",caller)
    endif
    elsi_h%e_den_mat_pexsi = 0.0_r8
 
    if(.not. allocated(elsi_h%f_den_mat_pexsi)) then
-      call elsi_allocate(elsi_h,elsi_h%f_den_mat_pexsi,elsi_h%nnz_l_pexsi,"f_den_mat_pexsi",caller)
+      call elsi_allocate(elsi_h,elsi_h%f_den_mat_pexsi,elsi_h%nnz_l_pexsi,&
+              "f_den_mat_pexsi",caller)
    endif
    elsi_h%f_den_mat_pexsi = 0.0_r8
 
    ! Load sparse matrices for PEXSI
-   if(elsi_h%overlap_is_unit) then
-      call f_ppexsi_load_real_hs_matrix(elsi_h%pexsi_plan,elsi_h%pexsi_options,elsi_h%n_g_size,&
-              elsi_h%nnz_g,elsi_h%nnz_l_pexsi,elsi_h%n_l_cols_pexsi,elsi_h%col_ptr_ccs,&
-              elsi_h%row_ind_ccs,elsi_h%ham_real_ccs,1,elsi_h%ovlp_real_ccs,elsi_h%pexsi_info)
+   if(elsi_h%ovlp_is_unit) then
+      call f_ppexsi_load_real_hs_matrix(elsi_h%pexsi_plan,elsi_h%pexsi_options,&
+              elsi_h%n_basis,elsi_h%nnz_g,elsi_h%nnz_l_pexsi,elsi_h%n_l_cols_pexsi,&
+              elsi_h%col_ptr_ccs,elsi_h%row_ind_ccs,elsi_h%ham_real_ccs,1,&
+              elsi_h%ovlp_real_ccs,ierr)
    else
-      call f_ppexsi_load_real_hs_matrix(elsi_h%pexsi_plan,elsi_h%pexsi_options,elsi_h%n_g_size,&
-              elsi_h%nnz_g,elsi_h%nnz_l_pexsi,elsi_h%n_l_cols_pexsi,elsi_h%col_ptr_ccs,&
-              elsi_h%row_ind_ccs,elsi_h%ham_real_ccs,0,elsi_h%ovlp_real_ccs,elsi_h%pexsi_info)
+      call f_ppexsi_load_real_hs_matrix(elsi_h%pexsi_plan,elsi_h%pexsi_options,&
+              elsi_h%n_basis,elsi_h%nnz_g,elsi_h%nnz_l_pexsi,elsi_h%n_l_cols_pexsi,&
+              elsi_h%col_ptr_ccs,elsi_h%row_ind_ccs,elsi_h%ham_real_ccs,0,&
+              elsi_h%ovlp_real_ccs,ierr)
    endif
 
-   if(elsi_h%pexsi_info /= 0) then
-      call elsi_stop(" PEXSI not able to load H/S matrix. Exiting...",elsi_h,caller)
+   if(ierr /= 0) then
+      call elsi_stop(" PEXSI H/S failed to load. Exiting...",elsi_h,caller)
    endif
 
    if(elsi_h%pexsi_options%isInertiaCount == 0) then
@@ -201,17 +210,18 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
    call elsi_statement_print("  Starting PEXSI density matrix solver",elsi_h)
 
    if(elsi_h%pexsi_driver == 1) then
-      call f_ppexsi_dft_driver(elsi_h%pexsi_plan,elsi_h%pexsi_options,elsi_h%n_electrons,&
-              elsi_h%mu,elsi_h%n_electrons_pexsi,elsi_h%mu_min_inertia,elsi_h%mu_max_inertia,&
-              elsi_h%n_total_inertia_iter,elsi_h%n_total_pexsi_iter,elsi_h%pexsi_info)
+      call f_ppexsi_dft_driver(elsi_h%pexsi_plan,elsi_h%pexsi_options,&
+              elsi_h%n_electrons,elsi_h%mu,elsi_h%n_electrons_pexsi,&
+              elsi_h%mu_min_inertia,elsi_h%mu_max_inertia,&
+              n_inertia_iter,n_pexsi_iter,ierr)
    else
-      call f_ppexsi_dft_driver3(elsi_h%pexsi_plan,elsi_h%pexsi_options,elsi_h%n_electrons,&
-              2,elsi_h%n_mu_points,elsi_h%mu,elsi_h%n_electrons_pexsi,&
-              elsi_h%n_total_inertia_iter,elsi_h%pexsi_info)
+      call f_ppexsi_dft_driver3(elsi_h%pexsi_plan,elsi_h%pexsi_options,&
+              elsi_h%n_electrons,2,elsi_h%n_mu_points,elsi_h%mu,&
+              elsi_h%n_electrons_pexsi,n_inertia_iter,ierr)
    endif
 
-   if(elsi_h%pexsi_info /= 0) then
-      call elsi_stop(" PEXSI DFT driver not able to solve problem. Exiting...",elsi_h,caller)
+   if(ierr /= 0) then
+      call elsi_stop(" PEXSI DFT driver failed. Exiting...",elsi_h,caller)
    endif
 
    ! Reuse chemical potential
@@ -243,15 +253,15 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
       if(elsi_h%pexsi_driver == 1) then
          call f_ppexsi_retrieve_real_dft_matrix(elsi_h%pexsi_plan,elsi_h%den_mat_ccs,&
                  elsi_h%e_den_mat_pexsi,elsi_h%f_den_mat_pexsi,elsi_h%energy_hdm,&
-                 elsi_h%energy_sedm,elsi_h%free_energy,elsi_h%pexsi_info)
+                 elsi_h%energy_sedm,elsi_h%free_energy,ierr)
       else
          call f_ppexsi_retrieve_real_dft_matrix2(elsi_h%pexsi_plan,elsi_h%den_mat_ccs,&
                  elsi_h%e_den_mat_pexsi,elsi_h%f_den_mat_pexsi,elsi_h%energy_hdm,&
-                 elsi_h%energy_sedm,elsi_h%free_energy,elsi_h%pexsi_info)
+                 elsi_h%energy_sedm,elsi_h%free_energy,ierr)
       endif
    endif
 
-   if(elsi_h%pexsi_info /= 0) then
+   if(ierr /= 0) then
       call elsi_stop(" PEXSI not able to retrieve solution. Exiting...",elsi_h,caller)
    endif
 

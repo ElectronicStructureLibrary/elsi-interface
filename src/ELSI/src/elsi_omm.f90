@@ -67,19 +67,14 @@ subroutine elsi_solve_evp_omm(elsi_h)
 
    character*40, parameter :: caller = "elsi_solve_evp_omm"
 
-   if(elsi_h%overlap_is_singular) then
+   if(elsi_h%ovlp_is_sing) then
       call elsi_stop(" libOMM cannot treat singular overlap matrix yet."//&
               " Exiting...",elsi_h,caller)
    endif
 
-   ! Move to elsi_check?
-   if((elsi_h%omm_flavor /= 0) .and. (elsi_h%omm_flavor /= 2)) then
-      call elsi_stop(" libOMM supports flavor = 0 or 2. Exiting...",elsi_h,caller)
-   endif
-
    call elsi_start_density_matrix_time(elsi_h)
 
-   if(.not. elsi_h%overlap_is_unit) then
+   if(.not. elsi_h%ovlp_is_unit) then
       if(elsi_h%omm_flavor == 2) then
          if(elsi_h%n_elsi_calls == 1) then
             call elsi_start_cholesky_time(elsi_h)
@@ -88,23 +83,27 @@ subroutine elsi_solve_evp_omm(elsi_h)
             select case(elsi_h%matrix_data_type)
             case(COMPLEX_VALUES)
                ! Compute S = (U^T)U, U -> S
-               success = elpa_cholesky_complex_double(elsi_h%n_g_size,elsi_h%ovlp_omm%zval,&
-                            elsi_h%n_l_rows,elsi_h%n_b_rows,elsi_h%n_l_cols,elsi_h%mpi_comm_row,&
-                            elsi_h%mpi_comm_col,.false.)
+               success = elpa_cholesky_complex_double(elsi_h%n_basis,&
+                            elsi_h%ovlp_omm%zval,elsi_h%n_l_rows,elsi_h%n_b_rows,&
+                            elsi_h%n_l_cols,elsi_h%mpi_comm_row,elsi_h%mpi_comm_col,&
+                            .false.)
 
-               success = elpa_invert_trm_complex_double(elsi_h%n_g_size,elsi_h%ovlp_omm%zval,&
-                            elsi_h%n_l_rows,elsi_h%n_b_rows,elsi_h%n_l_cols,elsi_h%mpi_comm_row,&
-                            elsi_h%mpi_comm_col,.false.)
+               success = elpa_invert_trm_complex_double(elsi_h%n_basis,&
+                            elsi_h%ovlp_omm%zval,elsi_h%n_l_rows,elsi_h%n_b_rows,&
+                            elsi_h%n_l_cols,elsi_h%mpi_comm_row,elsi_h%mpi_comm_col,&
+                            .false.)
 
             case(REAL_VALUES)
                ! Compute S = (U^T)U, U -> S
-               success = elpa_cholesky_real_double(elsi_h%n_g_size,elsi_h%ovlp_omm%dval,&
-                            elsi_h%n_l_rows,elsi_h%n_b_rows,elsi_h%n_l_cols,elsi_h%mpi_comm_row,&
-                            elsi_h%mpi_comm_col,.false.)
+               success = elpa_cholesky_real_double(elsi_h%n_basis,&
+                            elsi_h%ovlp_omm%dval,elsi_h%n_l_rows,elsi_h%n_b_rows,&
+                            elsi_h%n_l_cols,elsi_h%mpi_comm_row,elsi_h%mpi_comm_col,&
+                            .false.)
 
-               success = elpa_invert_trm_real_double(elsi_h%n_g_size,elsi_h%ovlp_omm%dval,&
-                            elsi_h%n_l_rows,elsi_h%n_b_rows,elsi_h%n_l_cols,elsi_h%mpi_comm_row,&
-                            elsi_h%mpi_comm_col,.false.)
+               success = elpa_invert_trm_real_double(elsi_h%n_basis,&
+                            elsi_h%ovlp_omm%dval,elsi_h%n_l_rows,elsi_h%n_b_rows,&
+                            elsi_h%n_l_cols,elsi_h%mpi_comm_row,elsi_h%mpi_comm_col,&
+                            .false.)
             end select
 
             call elsi_stop_cholesky_time(elsi_h)
@@ -114,17 +113,19 @@ subroutine elsi_solve_evp_omm(elsi_h)
             ! Invert one more time
             select case(elsi_h%matrix_data_type)
             case(COMPLEX_VALUES)
-               success = elpa_invert_trm_complex_double(elsi_h%n_g_size,elsi_h%ovlp_omm%zval,&
-                            elsi_h%n_l_rows,elsi_h%n_b_rows,elsi_h%n_l_cols,elsi_h%mpi_comm_row,&
-                            elsi_h%mpi_comm_col,.false.)
+               success = elpa_invert_trm_complex_double(elsi_h%n_basis,&
+                            elsi_h%ovlp_omm%zval,elsi_h%n_l_rows,elsi_h%n_b_rows,&
+                            elsi_h%n_l_cols,elsi_h%mpi_comm_row,elsi_h%mpi_comm_col,&
+                            .false.)
             case(REAL_VALUES)
-               success = elpa_invert_trm_real_double(elsi_h%n_g_size,elsi_h%ovlp_omm%dval,&
-                            elsi_h%n_l_rows,elsi_h%n_b_rows,elsi_h%n_l_cols,elsi_h%mpi_comm_row,&
-                            elsi_h%mpi_comm_col,.false.)
+               success = elpa_invert_trm_real_double(elsi_h%n_basis,&
+                            elsi_h%ovlp_omm%dval,elsi_h%n_l_rows,elsi_h%n_b_rows,&
+                            elsi_h%n_l_cols,elsi_h%mpi_comm_row,elsi_h%mpi_comm_col,&
+                            .false.)
             end select
          endif
       endif ! omm_flavor == 2
-   endif ! overlap_is_unit
+   endif ! ovlp_is_unit
 
    if(elsi_h%n_elsi_calls == 1) then
       elsi_h%coeff_initialized = .false.
@@ -148,24 +149,24 @@ subroutine elsi_solve_evp_omm(elsi_h)
 
    select case(elsi_h%matrix_data_type)
    case(COMPLEX_VALUES)
-      call omm(elsi_h%n_g_size,elsi_h%n_states,elsi_h%ham_omm,elsi_h%ovlp_omm,&
-              elsi_h%new_overlap,elsi_h%energy_hdm,elsi_h%den_mat_omm,elsi_h%calc_ed,&
-              elsi_h%eta,elsi_h%coeff_omm,elsi_h%coeff_initialized,elsi_h%t_den_mat_omm,&
-              elsi_h%scale_kinetic,elsi_h%omm_flavor,elsi_h%nk_times_nspin,elsi_h%i_k_spin,&
+      call omm(elsi_h%n_basis,elsi_h%n_states,elsi_h%ham_omm,elsi_h%ovlp_omm,&
+              elsi_h%new_overlap,elsi_h%energy_hdm,elsi_h%den_mat_omm,&
+              elsi_h%calc_ed,elsi_h%eta,elsi_h%coeff_omm,elsi_h%coeff_initialized,&
+              elsi_h%t_den_mat_omm,elsi_h%scale_kinetic,elsi_h%omm_flavor,1,1,&
               elsi_h%min_tol,elsi_h%omm_output,elsi_h%do_dealloc,"pzdbc","lap")
 
    case(REAL_VALUES)
       if(elsi_h%use_psp) then
-         call omm(elsi_h%n_g_size,elsi_h%n_states,elsi_h%ham_omm,elsi_h%ovlp_omm,&
-                 elsi_h%new_overlap,elsi_h%energy_hdm,elsi_h%den_mat_omm,elsi_h%calc_ed,&
-                 elsi_h%eta,elsi_h%coeff_omm,elsi_h%coeff_initialized,elsi_h%t_den_mat_omm,&
-                 elsi_h%scale_kinetic,elsi_h%omm_flavor,elsi_h%nk_times_nspin,elsi_h%i_k_spin,&
+         call omm(elsi_h%n_basis,elsi_h%n_states,elsi_h%ham_omm,elsi_h%ovlp_omm,&
+                 elsi_h%new_overlap,elsi_h%energy_hdm,elsi_h%den_mat_omm,&
+                 elsi_h%calc_ed,elsi_h%eta,elsi_h%coeff_omm,elsi_h%coeff_initialized,&
+                 elsi_h%t_den_mat_omm,elsi_h%scale_kinetic,elsi_h%omm_flavor,1,1,&
                  elsi_h%min_tol,elsi_h%omm_output,elsi_h%do_dealloc,"pddbc","psp")
       else
-         call omm(elsi_h%n_g_size,elsi_h%n_states,elsi_h%ham_omm,elsi_h%ovlp_omm,&
-                 elsi_h%new_overlap,elsi_h%energy_hdm,elsi_h%den_mat_omm,elsi_h%calc_ed,&
-                 elsi_h%eta,elsi_h%coeff_omm,elsi_h%coeff_initialized,elsi_h%t_den_mat_omm,&
-                 elsi_h%scale_kinetic,elsi_h%omm_flavor,elsi_h%nk_times_nspin,elsi_h%i_k_spin,&
+         call omm(elsi_h%n_basis,elsi_h%n_states,elsi_h%ham_omm,elsi_h%ovlp_omm,&
+                 elsi_h%new_overlap,elsi_h%energy_hdm,elsi_h%den_mat_omm,&
+                 elsi_h%calc_ed,elsi_h%eta,elsi_h%coeff_omm,elsi_h%coeff_initialized,&
+                 elsi_h%t_den_mat_omm,elsi_h%scale_kinetic,elsi_h%omm_flavor,1,1,&
                  elsi_h%min_tol,elsi_h%omm_output,elsi_h%do_dealloc,"pddbc","lap")
       endif
    end select
@@ -190,17 +191,17 @@ subroutine elsi_compute_edm_omm(elsi_h)
 
    select case(elsi_h%matrix_data_type)
    case(COMPLEX_VALUES)
-      call omm(elsi_h%n_g_size,elsi_h%n_states,elsi_h%ham_omm,elsi_h%ovlp_omm,&
-              elsi_h%new_overlap,elsi_h%energy_hdm,elsi_h%den_mat_omm,elsi_h%calc_ed,&
-              elsi_h%eta,elsi_h%coeff_omm,elsi_h%coeff_initialized,elsi_h%t_den_mat_omm,&
-              elsi_h%scale_kinetic,elsi_h%omm_flavor,elsi_h%nk_times_nspin,elsi_h%i_k_spin,&
+      call omm(elsi_h%n_basis,elsi_h%n_states,elsi_h%ham_omm,elsi_h%ovlp_omm,&
+              elsi_h%new_overlap,elsi_h%energy_hdm,elsi_h%den_mat_omm,&
+              elsi_h%calc_ed,elsi_h%eta,elsi_h%coeff_omm,elsi_h%coeff_initialized,&
+              elsi_h%t_den_mat_omm,elsi_h%scale_kinetic,elsi_h%omm_flavor,1,1,&
               elsi_h%min_tol,elsi_h%omm_output,elsi_h%do_dealloc,"pzdbc","lap")
 
    case(REAL_VALUES)
-      call omm(elsi_h%n_g_size,elsi_h%n_states,elsi_h%ham_omm,elsi_h%ovlp_omm,&
-              elsi_h%new_overlap,elsi_h%energy_hdm,elsi_h%den_mat_omm,elsi_h%calc_ed,&
-              elsi_h%eta,elsi_h%coeff_omm,elsi_h%coeff_initialized,elsi_h%t_den_mat_omm,&
-              elsi_h%scale_kinetic,elsi_h%omm_flavor,elsi_h%nk_times_nspin,elsi_h%i_k_spin,&
+      call omm(elsi_h%n_basis,elsi_h%n_states,elsi_h%ham_omm,elsi_h%ovlp_omm,&
+              elsi_h%new_overlap,elsi_h%energy_hdm,elsi_h%den_mat_omm,&
+              elsi_h%calc_ed,elsi_h%eta,elsi_h%coeff_omm,elsi_h%coeff_initialized,&
+              elsi_h%t_den_mat_omm,elsi_h%scale_kinetic,elsi_h%omm_flavor,1,1,&
               elsi_h%min_tol,elsi_h%omm_output,elsi_h%do_dealloc,"pddbc","lap")
    end select
 
@@ -240,12 +241,6 @@ subroutine elsi_set_omm_default(elsi_h)
 
    ! Tolerance for minimization
    elsi_h%min_tol = 1.0e-10_r8
-
-   ! n_k_points * n_spin
-   elsi_h%nk_times_nspin = 1
-
-   ! Combined k_point spin index
-   elsi_h%i_k_spin = 1
 
    ! Output level?
    elsi_h%omm_output = .false.

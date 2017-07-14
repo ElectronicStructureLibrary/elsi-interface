@@ -67,18 +67,18 @@ subroutine elsi_init_sips(elsi_h)
       call initialize_qetsc()
 
       if(elsi_h%n_slices == UNSET) then
-         !< TODO: Number of slices
-         elsi_h%n_p_per_slice_sips = 1
+         ! TODO: Number of slices
+         elsi_h%n_p_per_slice = 1
          elsi_h%n_slices = elsi_h%n_procs
       endif
 
       ! SIPs uses a pure block distribution
-      elsi_h%n_b_rows_sips = elsi_h%n_g_size
+      elsi_h%n_b_rows_sips = elsi_h%n_basis
 
       ! The last process holds all remaining columns
-      elsi_h%n_b_cols_sips = elsi_h%n_g_size/elsi_h%n_procs
+      elsi_h%n_b_cols_sips = elsi_h%n_basis/elsi_h%n_procs
       if(elsi_h%myid == elsi_h%n_procs-1) then
-         elsi_h%n_b_cols_sips = elsi_h%n_g_size-(elsi_h%n_procs-1)*elsi_h%n_b_cols_sips
+         elsi_h%n_b_cols_sips = elsi_h%n_basis-(elsi_h%n_procs-1)*elsi_h%n_b_cols_sips
       endif
 
       elsi_h%n_l_rows_sips = elsi_h%n_b_rows_sips
@@ -126,12 +126,12 @@ subroutine elsi_solve_evp_sips(elsi_h)
 
    if(elsi_h%n_elsi_calls == 1) then
       ! Load H matrix
-      call eps_load_ham(elsi_h%n_g_size,elsi_h%n_l_cols_sips,elsi_h%nnz_l_sips,&
+      call eps_load_ham(elsi_h%n_basis,elsi_h%n_l_cols_sips,elsi_h%nnz_l_sips,&
               elsi_h%row_ind_ccs,elsi_h%col_ptr_ccs,elsi_h%ham_real_ccs)
 
-      if(.not. elsi_h%overlap_is_unit) then
+      if(.not. elsi_h%ovlp_is_unit) then
          ! Load S matrix
-         call eps_load_ovlp(elsi_h%n_g_size,elsi_h%n_l_cols_sips,elsi_h%nnz_l_sips,&
+         call eps_load_ovlp(elsi_h%n_basis,elsi_h%n_l_cols_sips,elsi_h%nnz_l_sips,&
                  elsi_h%row_ind_ccs,elsi_h%col_ptr_ccs,elsi_h%ovlp_real_ccs)
 
          call set_eps(math,mats)
@@ -157,14 +157,15 @@ subroutine elsi_solve_evp_sips(elsi_h)
                  elsi_h%slice_buffer,elsi_h%shifts,elsi_h%inertias,&
                  elsi_h%eval(1:elsi_h%n_states))
 
-         call compute_subintervals(elsi_h%n_slices,elsi_h%slicing_method,elsi_h%unbound,&
-                 elsi_h%interval,0.0_r8,0.0_r8,elsi_h%slices,elsi_h%eval(1:elsi_h%n_states))
+         call compute_subintervals(elsi_h%n_slices,elsi_h%slicing_method,&
+                 elsi_h%unbound,elsi_h%interval,0.0_r8,0.0_r8,elsi_h%slices,&
+                 elsi_h%eval(1:elsi_h%n_states))
 
          call elsi_stop_inertia_time(elsi_h)
       endif
    else ! n_elsi_calls > 1
       ! Update H matrix
-      call eps_update_ham(elsi_h%n_g_size,elsi_h%n_l_cols_sips,elsi_h%nnz_l_sips,&
+      call eps_update_ham(elsi_h%n_basis,elsi_h%n_l_cols_sips,elsi_h%nnz_l_sips,&
               elsi_h%row_ind_ccs,elsi_h%col_ptr_ccs,elsi_h%ham_real_ccs)
 
       call update_eps(elsi_h%n_slices)
@@ -213,12 +214,12 @@ subroutine elsi_sips_to_blacs_ev(elsi_h)
 
    call elsi_start_redistribution_time(elsi_h)
 
-   call elsi_allocate(elsi_h,tmp_real,elsi_h%n_g_size,"tmp_real",caller)
+   call elsi_allocate(elsi_h,tmp_real,elsi_h%n_basis,"tmp_real",caller)
 
    elsi_h%evec_real = 0.0_r8
 
    do i_state = 1,elsi_h%n_states
-      call get_eps_eigenvectors(elsi_h%n_g_size,i_state,tmp_real)
+      call get_eps_eigenvectors(elsi_h%n_basis,i_state,tmp_real)
 
       this_p_col = mod((i_state-1)/elsi_h%n_b_cols,elsi_h%n_p_cols)
 
@@ -232,8 +233,8 @@ subroutine elsi_sips_to_blacs_ev(elsi_h)
             call elsi_get_global_row(elsi_h,g_row,i_row)
             call elsi_get_global_row(elsi_h,g_row2,i_row2)
 
-            if(g_row2 > elsi_h%n_g_size) then
-               g_row2 = elsi_h%n_g_size
+            if(g_row2 > elsi_h%n_basis) then
+               g_row2 = elsi_h%n_basis
                i_row2 = i_row+g_row2-g_row
             endif
 

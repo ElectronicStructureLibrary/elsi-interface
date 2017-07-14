@@ -62,7 +62,7 @@ subroutine elsi_blacs_to_pexsi_hs(elsi_h,H_in,S_in)
 
    character*40, parameter :: caller = "elsi_blacs_to_pexsi_hs"
 
-   if(elsi_h%overlap_is_unit) then
+   if(elsi_h%ovlp_is_unit) then
       !TODO
       call elsi_stop(" PEXSI with identity overlap matrix not yet available."//&
               " Exiting...",elsi_h,caller)
@@ -72,7 +72,7 @@ subroutine elsi_blacs_to_pexsi_hs(elsi_h,H_in,S_in)
          call elsi_set_full_mat(elsi_h,S_in)
       endif
 
-      if(elsi_h%n_g_size < 46340) then
+      if(elsi_h%n_basis < 46340) then
          call elsi_blacs_to_pexsi_hs_small(elsi_h,H_in,S_in)
       else ! use long integer
          call elsi_blacs_to_pexsi_hs_large(elsi_h,H_in,S_in)
@@ -94,7 +94,7 @@ subroutine elsi_pexsi_to_blacs_dm(elsi_h,D_out)
 
    character*40, parameter :: caller = "elsi_pexsi_to_blacs_dm"
 
-   if(elsi_h%n_g_size < 46340) then
+   if(elsi_h%n_basis < 46340) then
       call elsi_pexsi_to_blacs_dm_small(elsi_h,D_out)
    else ! use long integer
       call elsi_pexsi_to_blacs_dm_large(elsi_h,D_out)
@@ -156,20 +156,20 @@ subroutine elsi_blacs_to_pexsi_hs_small(elsi_h,H_in,S_in)
 
    call elsi_start_redistribution_time(elsi_h)
 
-   n_parallel_groups = elsi_h%n_procs/elsi_h%n_p_per_pole_pexsi
+   n_parallel_groups = elsi_h%n_procs/elsi_h%n_p_per_pole
 
    if(elsi_h%n_elsi_calls == 1) then
       call elsi_get_local_nnz(elsi_h,S_in,elsi_h%n_l_rows,elsi_h%n_l_cols,elsi_h%nnz_l)
       call elsi_allocate(elsi_h,s_val_send_buffer,elsi_h%nnz_l,"s_val_send_buffer",caller)
    endif
 
-   call elsi_allocate(elsi_h,locat,elsi_h%n_g_size,"locat",caller)
+   call elsi_allocate(elsi_h,locat,elsi_h%n_basis,"locat",caller)
    call elsi_allocate(elsi_h,pos_send_buffer,elsi_h%nnz_l,"pos_send_buffer",caller)
    call elsi_allocate(elsi_h,h_val_send_buffer,elsi_h%nnz_l,"h_val_send_buffer",caller)
 
    ! Compute d1,d2,d11,d12,d21,d22 (need explanation)
-   d1  = elsi_h%n_g_size/elsi_h%n_p_per_pole_pexsi
-   d2  = elsi_h%n_g_size-(elsi_h%n_p_per_pole_pexsi-1)*d1
+   d1  = elsi_h%n_basis/elsi_h%n_p_per_pole
+   d2  = elsi_h%n_basis-(elsi_h%n_p_per_pole-1)*d1
    d11 = d1/n_parallel_groups
    d12 = d1-(n_parallel_groups-1)*d11
    d21 = d2/n_parallel_groups
@@ -243,7 +243,7 @@ subroutine elsi_blacs_to_pexsi_hs_small(elsi_h,H_in,S_in)
                ! Compute destination
                dest = min(locat(global_col_id),elsi_h%n_procs-1)
                ! Pack global id and data into buffers
-               pos_send_buffer(i_val) = (global_col_id-1)*elsi_h%n_g_size+global_row_id
+               pos_send_buffer(i_val) = (global_col_id-1)*elsi_h%n_basis+global_row_id
                h_val_send_buffer(i_val) = H_in(i_row,i_col)
                s_val_send_buffer(i_val) = S_in(i_row,i_col)
                ! Set send_count
@@ -262,7 +262,7 @@ subroutine elsi_blacs_to_pexsi_hs_small(elsi_h,H_in,S_in)
                ! Compute destination
                dest = min(locat(global_col_id),elsi_h%n_procs-1)
                ! Pack global id and data into buffers
-               pos_send_buffer(i_val) = (global_col_id-1)*elsi_h%n_g_size+global_row_id
+               pos_send_buffer(i_val) = (global_col_id-1)*elsi_h%n_basis+global_row_id
                h_val_send_buffer(i_val) = H_in(i_row,i_col)
                ! Set send_count
                send_count(dest+1) = send_count(dest+1)+1
@@ -429,12 +429,12 @@ subroutine elsi_blacs_to_pexsi_hs_small(elsi_h,H_in,S_in)
    if(elsi_h%n_elsi_calls == 1) then
       if(elsi_h%my_p_row_pexsi == 0) then
          ! Compute row index and column pointer
-         i_col = (pos_send_buffer(1)-1)/elsi_h%n_g_size
+         i_col = (pos_send_buffer(1)-1)/elsi_h%n_basis
          do i_val = 1,elsi_h%nnz_l_pexsi
-            elsi_h%row_ind_pexsi(i_val) = mod(pos_send_buffer(i_val)-1,elsi_h%n_g_size)+1
-            if((pos_send_buffer(i_val)-1)/elsi_h%n_g_size+1 > i_col) then
+            elsi_h%row_ind_pexsi(i_val) = mod(pos_send_buffer(i_val)-1,elsi_h%n_basis)+1
+            if((pos_send_buffer(i_val)-1)/elsi_h%n_basis+1 > i_col) then
                i_col = i_col+1
-               elsi_h%col_ptr_pexsi(i_col-(pos_send_buffer(1)-1)/elsi_h%n_g_size) = i_val
+               elsi_h%col_ptr_pexsi(i_col-(pos_send_buffer(1)-1)/elsi_h%n_basis) = i_val
             endif
          enddo
 
@@ -508,21 +508,21 @@ subroutine elsi_blacs_to_pexsi_hs_large(elsi_h,H_in,S_in)
 
    call elsi_start_redistribution_time(elsi_h)
 
-   n_parallel_groups = elsi_h%n_procs/elsi_h%n_p_per_pole_pexsi
+   n_parallel_groups = elsi_h%n_procs/elsi_h%n_p_per_pole
 
    if(elsi_h%n_elsi_calls == 1) then
       call elsi_get_local_nnz(elsi_h,S_in,elsi_h%n_l_rows,elsi_h%n_l_cols,elsi_h%nnz_l)
       call elsi_allocate(elsi_h,s_val_send_buffer,elsi_h%nnz_l,"s_val_send_buffer",caller)
    endif
 
-   call elsi_allocate(elsi_h,locat,elsi_h%n_g_size,"locat",caller)
+   call elsi_allocate(elsi_h,locat,elsi_h%n_basis,"locat",caller)
    call elsi_allocate(elsi_h,row_send_buffer,elsi_h%nnz_l,"row_send_buffer",caller)
    call elsi_allocate(elsi_h,col_send_buffer,elsi_h%nnz_l,"col_send_buffer",caller)
    call elsi_allocate(elsi_h,h_val_send_buffer,elsi_h%nnz_l,"h_val_send_buffer",caller)
 
    ! Compute d1,d2,d11,d12,d21,d22 (need explanation)
-   d1  = elsi_h%n_g_size/elsi_h%n_p_per_pole_pexsi
-   d2  = elsi_h%n_g_size-(elsi_h%n_p_per_pole_pexsi-1)*d1
+   d1  = elsi_h%n_basis/elsi_h%n_p_per_pole
+   d2  = elsi_h%n_basis-(elsi_h%n_p_per_pole-1)*d1
    d11 = d1/n_parallel_groups
    d12 = d1-(n_parallel_groups-1)*d11
    d21 = d2/n_parallel_groups
@@ -690,7 +690,7 @@ subroutine elsi_blacs_to_pexsi_hs_large(elsi_h,H_in,S_in)
 
    ! Compute global 1D id
    do i_val = 1,nnz_l_pexsi_aux
-      global_id(i_val) = int(col_recv_buffer(i_val)-1,kind=i8)*int(elsi_h%n_g_size,kind=i8)+&
+      global_id(i_val) = int(col_recv_buffer(i_val)-1,kind=i8)*int(elsi_h%n_basis,kind=i8)+&
                             int(row_recv_buffer(i_val),kind=i8)
    enddo
 
@@ -901,8 +901,8 @@ subroutine elsi_pexsi_to_blacs_dm_small(elsi_h,D_out)
 
          ! Compute global id
          global_row_id = i_row
-         global_col_id = i_col+elsi_h%myid*(elsi_h%n_g_size/elsi_h%n_p_per_pole_pexsi)
-         global_id(i_val) = (global_col_id-1)*elsi_h%n_g_size+global_row_id
+         global_col_id = i_col+elsi_h%myid*(elsi_h%n_basis/elsi_h%n_p_per_pole)
+         global_id(i_val) = (global_col_id-1)*elsi_h%n_basis+global_row_id
 
          ! Compute destination
          proc_row_id = mod((global_row_id-1)/elsi_h%n_b_rows,elsi_h%n_p_rows)
@@ -985,8 +985,8 @@ subroutine elsi_pexsi_to_blacs_dm_small(elsi_h,D_out)
    ! Unpack density matrix
    do i_val = 1,elsi_h%nnz_l
       ! Compute global 2d id
-      global_col_id = (pos_recv_buffer(i_val)-1)/elsi_h%n_g_size+1
-      global_row_id = mod(pos_recv_buffer(i_val)-1,elsi_h%n_g_size)+1
+      global_col_id = (pos_recv_buffer(i_val)-1)/elsi_h%n_basis+1
+      global_row_id = mod(pos_recv_buffer(i_val)-1,elsi_h%n_basis)+1
 
       ! Compute local 2d id
       local_row_id = (global_row_id-1)/(elsi_h%n_p_rows*elsi_h%n_b_rows)*elsi_h%n_b_rows&
@@ -1073,7 +1073,7 @@ subroutine elsi_pexsi_to_blacs_dm_large(elsi_h,D_out)
 
          ! Compute global id
          global_row_id(i_val) = i_row
-         global_col_id(i_val) = i_col+elsi_h%myid*(elsi_h%n_g_size/elsi_h%n_p_per_pole_pexsi)
+         global_col_id(i_val) = i_col+elsi_h%myid*(elsi_h%n_basis/elsi_h%n_p_per_pole)
 
          ! Compute destination
          proc_row_id = mod((global_row_id(i_val)-1)/elsi_h%n_b_rows,elsi_h%n_p_rows)
@@ -1198,7 +1198,7 @@ subroutine elsi_blacs_to_sips_hs(elsi_h,H_in,S_in)
 
    character*40, parameter :: caller = "elsi_blacs_to_sips_hs"
 
-   if(elsi_h%overlap_is_unit) then
+   if(elsi_h%ovlp_is_unit) then
       call elsi_stop(" SIPs with identity overlap matrix not yet available."//&
               " Exiting...",elsi_h,caller)
    else
@@ -1207,7 +1207,7 @@ subroutine elsi_blacs_to_sips_hs(elsi_h,H_in,S_in)
          call elsi_set_full_mat(elsi_h,S_in)
       endif
 
-      if(elsi_h%n_g_size < 46340) then ! kind=4 integer works
+      if(elsi_h%n_basis < 46340) then ! kind=4 integer works
          call elsi_blacs_to_sips_hs_small(elsi_h,H_in,S_in)
       else ! use kind=8 integer
          call elsi_blacs_to_sips_hs_large(elsi_h,H_in,S_in)
@@ -1281,12 +1281,12 @@ subroutine elsi_blacs_to_sips_hs_small(elsi_h,H_in,S_in)
                call elsi_get_global_col(elsi_h,global_col_id,i_col)
                call elsi_get_global_row(elsi_h,global_row_id,i_row)
                ! Compute destination
-               dest = (global_col_id-1)/(elsi_h%n_g_size/elsi_h%n_procs)
+               dest = (global_col_id-1)/(elsi_h%n_basis/elsi_h%n_procs)
                ! The last process may take more
                dest = min(dest,elsi_h%n_procs-1)
                ! Compute the global id
                ! Pack global id and data into buffers
-               pos_send_buffer(i_val) = (global_col_id-1)*elsi_h%n_g_size+global_row_id
+               pos_send_buffer(i_val) = (global_col_id-1)*elsi_h%n_basis+global_row_id
                h_val_send_buffer(i_val) = H_in(i_row,i_col)
                s_val_send_buffer(i_val) = S_in(i_row,i_col)
                ! Set send_count
@@ -1303,12 +1303,12 @@ subroutine elsi_blacs_to_sips_hs_small(elsi_h,H_in,S_in)
                call elsi_get_global_col(elsi_h,global_col_id,i_col)
                call elsi_get_global_row(elsi_h,global_row_id,i_row)
                ! Compute destination
-               dest = (global_col_id-1)/(elsi_h%n_g_size/elsi_h%n_procs)
+               dest = (global_col_id-1)/(elsi_h%n_basis/elsi_h%n_procs)
                ! The last process may take more
                dest = min(dest,elsi_h%n_procs-1)
                ! Compute the global id
                ! Pack global id and data into buffers
-               pos_send_buffer(i_val) = (global_col_id-1)*elsi_h%n_g_size+global_row_id
+               pos_send_buffer(i_val) = (global_col_id-1)*elsi_h%n_basis+global_row_id
                h_val_send_buffer(i_val) = H_in(i_row,i_col)
                ! Set send_count
                send_count(dest+1) = send_count(dest+1)+1
@@ -1430,12 +1430,12 @@ subroutine elsi_blacs_to_sips_hs_small(elsi_h,H_in,S_in)
 
    ! Compute row index and column pointer
    if(elsi_h%n_elsi_calls == 1) then
-      i_col = (pos_recv_buffer(1)-1)/elsi_h%n_g_size
+      i_col = (pos_recv_buffer(1)-1)/elsi_h%n_basis
       do i_val = 1,elsi_h%nnz_l_sips
-         elsi_h%row_ind_sips(i_val) = mod(pos_recv_buffer(i_val)-1,elsi_h%n_g_size)+1
-         if((pos_recv_buffer(i_val)-1)/elsi_h%n_g_size+1 > i_col) then
+         elsi_h%row_ind_sips(i_val) = mod(pos_recv_buffer(i_val)-1,elsi_h%n_basis)+1
+         if((pos_recv_buffer(i_val)-1)/elsi_h%n_basis+1 > i_col) then
             i_col = i_col+1
-            elsi_h%col_ptr_sips(i_col-(pos_recv_buffer(1)-1)/elsi_h%n_g_size) = i_val
+            elsi_h%col_ptr_sips(i_col-(pos_recv_buffer(1)-1)/elsi_h%n_basis) = i_val
          endif
       enddo
 
@@ -1524,7 +1524,7 @@ subroutine elsi_blacs_to_sips_hs_large(elsi_h,H_in,S_in)
                call elsi_get_global_col(elsi_h,global_col_id,i_col)
                call elsi_get_global_row(elsi_h,global_row_id,i_row)
                ! Compute destination
-               dest = (global_col_id-1)/(elsi_h%n_g_size/elsi_h%n_procs)
+               dest = (global_col_id-1)/(elsi_h%n_basis/elsi_h%n_procs)
                ! The last process may take more
                dest = min(dest,elsi_h%n_procs-1)
                ! Pack global id and data into buffers
@@ -1546,7 +1546,7 @@ subroutine elsi_blacs_to_sips_hs_large(elsi_h,H_in,S_in)
                call elsi_get_global_col(elsi_h,global_col_id,i_col)
                call elsi_get_global_row(elsi_h,global_row_id,i_row)
                ! Compute destination
-               dest = (global_col_id-1)/(elsi_h%n_g_size/elsi_h%n_procs)
+               dest = (global_col_id-1)/(elsi_h%n_basis/elsi_h%n_procs)
                ! The last process may take more
                dest = min(dest,elsi_h%n_procs-1)
                ! Pack global id and data into buffers
@@ -1629,7 +1629,7 @@ subroutine elsi_blacs_to_sips_hs_large(elsi_h,H_in,S_in)
 
    ! Compute global 1D id
    do i_val = 1,elsi_h%nnz_l_sips
-      global_id(i_val) = int(col_recv_buffer(i_val)-1,kind=i8)*int(elsi_h%n_g_size,kind=i8)+&
+      global_id(i_val) = int(col_recv_buffer(i_val)-1,kind=i8)*int(elsi_h%n_basis,kind=i8)+&
                             int(row_recv_buffer(i_val),kind=i8)
    enddo
 
@@ -1736,7 +1736,7 @@ subroutine elsi_pexsi_to_blacs_hs(elsi_h,H_in,S_in)
 
    character*40, parameter :: caller = "elsi_pexsi_to_blacs_hs"
 
-   if(elsi_h%n_g_size < 46340) then
+   if(elsi_h%n_basis < 46340) then
       call elsi_pexsi_to_blacs_hs_small(elsi_h,H_in,S_in)
    else ! use long integer
       call elsi_pexsi_to_blacs_hs_large(elsi_h,H_in,S_in)
@@ -1813,8 +1813,8 @@ subroutine elsi_pexsi_to_blacs_hs_small(elsi_h,H_in,S_in)
 
       ! Compute global id
       global_row_id = i_row
-      global_col_id = i_col+elsi_h%myid*(elsi_h%n_g_size/elsi_h%n_procs)
-      global_id(i_val) = (global_col_id-1)*elsi_h%n_g_size+global_row_id
+      global_col_id = i_col+elsi_h%myid*(elsi_h%n_basis/elsi_h%n_procs)
+      global_id(i_val) = (global_col_id-1)*elsi_h%n_basis+global_row_id
 
       ! Compute destination
       proc_row_id = mod((global_row_id-1)/elsi_h%n_b_rows,elsi_h%n_p_rows)
@@ -1922,8 +1922,8 @@ subroutine elsi_pexsi_to_blacs_hs_small(elsi_h,H_in,S_in)
    if(elsi_h%n_elsi_calls == 1) then
       do i_val = 1,elsi_h%nnz_l
          ! Compute global 2d id
-         global_col_id = (pos_recv_buffer(i_val)-1)/elsi_h%n_g_size+1
-         global_row_id = mod(pos_recv_buffer(i_val)-1,elsi_h%n_g_size)+1
+         global_col_id = (pos_recv_buffer(i_val)-1)/elsi_h%n_basis+1
+         global_row_id = mod(pos_recv_buffer(i_val)-1,elsi_h%n_basis)+1
 
          ! Compute local 2d id
          local_row_id = (global_row_id-1)/(elsi_h%n_p_rows*elsi_h%n_b_rows)*elsi_h%n_b_rows&
@@ -1940,8 +1940,8 @@ subroutine elsi_pexsi_to_blacs_hs_small(elsi_h,H_in,S_in)
    else
       do i_val = 1,elsi_h%nnz_l
          ! Compute global 2d id
-         global_col_id = (pos_recv_buffer(i_val)-1)/elsi_h%n_g_size+1
-         global_row_id = mod(pos_recv_buffer(i_val)-1,elsi_h%n_g_size)+1
+         global_col_id = (pos_recv_buffer(i_val)-1)/elsi_h%n_basis+1
+         global_row_id = mod(pos_recv_buffer(i_val)-1,elsi_h%n_basis)+1
 
          ! Compute local 2d id
          local_row_id = (global_row_id-1)/(elsi_h%n_p_rows*elsi_h%n_b_rows)*elsi_h%n_b_rows&
@@ -2035,7 +2035,7 @@ subroutine elsi_pexsi_to_blacs_hs_large(elsi_h,H_in,S_in)
 
       ! Compute global id
       global_row_id(i_val) = i_row
-      global_col_id(i_val) = i_col+elsi_h%myid*(elsi_h%n_g_size/elsi_h%n_procs)
+      global_col_id(i_val) = i_col+elsi_h%myid*(elsi_h%n_basis/elsi_h%n_procs)
 
       ! Compute destination
       proc_row_id = mod((global_row_id(i_val)-1)/elsi_h%n_b_rows,elsi_h%n_p_rows)
@@ -2199,7 +2199,7 @@ subroutine elsi_blacs_to_pexsi_dm(elsi_h,D_out)
 
    character*40, parameter :: caller = "elsi_blacs_to_pexsi_dm"
 
-   if(elsi_h%n_g_size < 46340) then
+   if(elsi_h%n_basis < 46340) then
       call elsi_blacs_to_pexsi_dm_small(elsi_h,D_out)
    else ! use long integer
       call elsi_blacs_to_pexsi_dm_large(elsi_h,D_out)
@@ -2272,12 +2272,12 @@ subroutine elsi_blacs_to_pexsi_dm_small(elsi_h,D_out)
                call elsi_get_global_col(elsi_h,global_col_id,i_col)
                call elsi_get_global_row(elsi_h,global_row_id,i_row)
                ! Compute destination
-               dest = (global_col_id-1)/(elsi_h%n_g_size/elsi_h%n_procs)
+               dest = (global_col_id-1)/(elsi_h%n_basis/elsi_h%n_procs)
                ! The last process may take more
                dest = min(dest,elsi_h%n_procs-1)
                ! Compute the global id
                ! Pack global id and data into buffers
-               pos_send_buffer(i_val) = (global_col_id-1)*elsi_h%n_g_size+global_row_id
+               pos_send_buffer(i_val) = (global_col_id-1)*elsi_h%n_basis+global_row_id
                val_send_buffer(i_val) = elsi_h%den_mat_elpa(i_row,i_col)
                ! Set send_count
                send_count(dest+1) = send_count(dest+1)+1
@@ -2293,12 +2293,12 @@ subroutine elsi_blacs_to_pexsi_dm_small(elsi_h,D_out)
                call elsi_get_global_col(elsi_h,global_col_id,i_col)
                call elsi_get_global_row(elsi_h,global_row_id,i_row)
                ! Compute destination
-               dest = (global_col_id-1)/(elsi_h%n_g_size/elsi_h%n_procs)
+               dest = (global_col_id-1)/(elsi_h%n_basis/elsi_h%n_procs)
                ! The last process may take more
                dest = min(dest,elsi_h%n_procs-1)
                ! Compute the global id
                ! Pack global id and data into buffers
-               pos_send_buffer(i_val) = (global_col_id-1)*elsi_h%n_g_size+global_row_id
+               pos_send_buffer(i_val) = (global_col_id-1)*elsi_h%n_basis+global_row_id
                val_send_buffer(i_val) = elsi_h%den_mat_omm%dval(i_row,i_col)
                ! Set send_count
                send_count(dest+1) = send_count(dest+1)+1
@@ -2355,7 +2355,7 @@ subroutine elsi_blacs_to_pexsi_dm_small(elsi_h,D_out)
    D_out = 0.0_r8
 
    if(elsi_h%myid == elsi_h%n_procs-1) then
-      n_l_cols_pexsi_aux = elsi_h%n_g_size-elsi_h%n_l_cols_pexsi
+      n_l_cols_pexsi_aux = elsi_h%n_basis-elsi_h%n_l_cols_pexsi
       n_l_cols_pexsi_aux = n_l_cols_pexsi_aux/(elsi_h%n_procs-1)
    else
       n_l_cols_pexsi_aux = elsi_h%n_l_cols_pexsi
@@ -2363,9 +2363,9 @@ subroutine elsi_blacs_to_pexsi_dm_small(elsi_h,D_out)
 
    ! Unpack matrix
    do i_val = 1,nnz_l_pexsi_aux
-      global_col_id = (pos_recv_buffer(i_val)-1)/elsi_h%n_g_size+1
+      global_col_id = (pos_recv_buffer(i_val)-1)/elsi_h%n_basis+1
       local_col_id = global_col_id-elsi_h%myid*n_l_cols_pexsi_aux
-      local_row_id = mod(pos_recv_buffer(i_val)-1,elsi_h%n_g_size)+1
+      local_row_id = mod(pos_recv_buffer(i_val)-1,elsi_h%n_basis)+1
 
       do j_val = elsi_h%col_ptr_ccs(local_col_id),elsi_h%col_ptr_ccs(local_col_id+1)-1
          if(elsi_h%row_ind_ccs(j_val) == local_row_id) then
@@ -2451,7 +2451,7 @@ subroutine elsi_blacs_to_pexsi_dm_large(elsi_h,D_out)
                call elsi_get_global_col(elsi_h,col_send_buffer(i_val),i_col)
                call elsi_get_global_row(elsi_h,row_send_buffer(i_val),i_row)
                ! Compute destination
-               dest = (col_send_buffer(i_val)-1)/(elsi_h%n_g_size/elsi_h%n_procs)
+               dest = (col_send_buffer(i_val)-1)/(elsi_h%n_basis/elsi_h%n_procs)
                ! The last process may take more
                dest = min(dest,elsi_h%n_procs-1)
                ! Pack data
@@ -2471,7 +2471,7 @@ subroutine elsi_blacs_to_pexsi_dm_large(elsi_h,D_out)
                call elsi_get_global_col(elsi_h,col_send_buffer(i_val),i_col)
                call elsi_get_global_row(elsi_h,row_send_buffer(i_val),i_row)
                ! Compute destination
-               dest = (col_send_buffer(i_val)-1)/(elsi_h%n_g_size/elsi_h%n_procs)
+               dest = (col_send_buffer(i_val)-1)/(elsi_h%n_basis/elsi_h%n_procs)
                ! The last process may take more
                dest = min(dest,elsi_h%n_procs-1)
                ! Pack data
@@ -2539,7 +2539,7 @@ subroutine elsi_blacs_to_pexsi_dm_large(elsi_h,D_out)
    D_out = 0.0_r8
 
    if(elsi_h%myid == elsi_h%n_procs-1) then
-      n_l_cols_pexsi_aux = elsi_h%n_g_size-elsi_h%n_l_cols_pexsi
+      n_l_cols_pexsi_aux = elsi_h%n_basis-elsi_h%n_l_cols_pexsi
       n_l_cols_pexsi_aux = n_l_cols_pexsi_aux/(elsi_h%n_procs-1)
    else
       n_l_cols_pexsi_aux = elsi_h%n_l_cols_pexsi

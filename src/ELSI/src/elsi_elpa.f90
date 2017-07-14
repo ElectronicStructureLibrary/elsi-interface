@@ -85,9 +85,7 @@ subroutine elsi_compute_occ_elpa(elsi_h)
    real(kind=r8), allocatable :: eval_aux(:,:,:)
    real(kind=r8), allocatable :: occ_aux(:,:,:)
 
-   integer(kind=i4), parameter :: n_spin   = 1 ! 1 spin channel
-   integer(kind=i4), parameter :: n_kpoint = 1 ! 1 k-point
-   character*40,     parameter :: caller   = "elsi_compute_occ_elpa"
+   character*40, parameter :: caller = "elsi_compute_occ_elpa"
 
    k_weights(1) = 1.0_r8
 
@@ -102,7 +100,7 @@ subroutine elsi_compute_occ_elpa(elsi_h)
    occ_aux = 0.0_r8
 
    call elsi_compute_mu_and_occ(elsi_h,elsi_h%n_electrons,elsi_h%n_states,&
-           n_spin,n_kpoint,k_weights,eval_aux,occ_aux,elsi_h%mu)
+           elsi_h%n_spins,elsi_h%n_kpts,k_weights,eval_aux,occ_aux,elsi_h%mu)
 
    elsi_h%occ_elpa(:) = occ_aux(:,1,1)
 
@@ -159,7 +157,7 @@ subroutine elsi_compute_dm_elpa(elsi_h)
       elsi_h%den_mat = 0.0_r8
 
       ! Compute density matrix
-      call pdsyrk('U','N',elsi_h%n_g_size,max_state,1.0_r8,tmp_real,1,1,&
+      call pdsyrk('U','N',elsi_h%n_basis,max_state,1.0_r8,tmp_real,1,1,&
               elsi_h%sc_desc,0.0_r8,elsi_h%den_mat,1,1,elsi_h%sc_desc)
 
    case(COMPLEX_VALUES)
@@ -181,9 +179,9 @@ subroutine elsi_compute_dm_elpa(elsi_h)
       call elsi_allocate(elsi_h,tmp_real,elsi_h%n_l_rows,elsi_h%n_l_cols,"tmp_real",caller)
 
       ! Compute density matrix
-      call pdsyrk('U','N',elsi_h%n_g_size,max_state,1.0_r8,real(tmp_complex),1,1,&
+      call pdsyrk('U','N',elsi_h%n_basis,max_state,1.0_r8,real(tmp_complex),1,1,&
               elsi_h%sc_desc,0.0_r8,elsi_h%den_mat,1,1,elsi_h%sc_desc)
-      call pdsyrk('U','N',elsi_h%n_g_size,max_state,1.0_r8,aimag(tmp_complex),1,1,&
+      call pdsyrk('U','N',elsi_h%n_basis,max_state,1.0_r8,aimag(tmp_complex),1,1,&
               elsi_h%sc_desc,0.0_r8,tmp_real,1,1,elsi_h%sc_desc)
 
       elsi_h%den_mat = elsi_h%den_mat+tmp_real
@@ -196,12 +194,12 @@ subroutine elsi_compute_dm_elpa(elsi_h)
    ! Set full matrix from upper triangle
    call elsi_allocate(elsi_h,tmp_real,elsi_h%n_l_rows,elsi_h%n_l_cols,"tmp_real",caller)
 
-   call pdtran(elsi_h%n_g_size,elsi_h%n_g_size,1.0_r8,elsi_h%den_mat,1,1,&
+   call pdtran(elsi_h%n_basis,elsi_h%n_basis,1.0_r8,elsi_h%den_mat,1,1,&
            elsi_h%sc_desc,0.0_r8,tmp_real,1,1,elsi_h%sc_desc)
 
-   do i_col = 1,elsi_h%n_g_size-1
+   do i_col = 1,elsi_h%n_basis-1
       if(elsi_h%local_col(i_col) == 0) cycle
-      do i_row = i_col+1,elsi_h%n_g_size
+      do i_row = i_col+1,elsi_h%n_basis
          if(elsi_h%local_row(i_row) > 0) then
             elsi_h%den_mat(elsi_h%local_row(i_row),elsi_h%local_col(i_col)) = &
                tmp_real(elsi_h%local_row(i_row),elsi_h%local_col(i_col))
@@ -263,7 +261,7 @@ subroutine elsi_compute_edm_elpa(elsi_h)
       elsi_h%den_mat = 0.0_r8
 
       ! Compute density matrix
-      call pdsyrk('U','N',elsi_h%n_g_size,max_state,1.0_r8,tmp_real,1,1,&
+      call pdsyrk('U','N',elsi_h%n_basis,max_state,1.0_r8,tmp_real,1,1,&
               elsi_h%sc_desc,0.0_r8,elsi_h%den_mat,1,1,elsi_h%sc_desc)
 
    case(COMPLEX_VALUES)
@@ -285,9 +283,9 @@ subroutine elsi_compute_edm_elpa(elsi_h)
       call elsi_allocate(elsi_h,tmp_real,elsi_h%n_l_rows,elsi_h%n_l_cols,"tmp_real",caller)
 
       ! Compute density matrix
-      call pdsyrk('U','N',elsi_h%n_g_size,max_state,1.0_r8,real(tmp_complex),1,1,&
+      call pdsyrk('U','N',elsi_h%n_basis,max_state,1.0_r8,real(tmp_complex),1,1,&
               elsi_h%sc_desc,0.0_r8,elsi_h%den_mat,1,1,elsi_h%sc_desc)
-      call pdsyrk('U','N',elsi_h%n_g_size,max_state,1.0_r8,aimag(tmp_complex),1,1,&
+      call pdsyrk('U','N',elsi_h%n_basis,max_state,1.0_r8,aimag(tmp_complex),1,1,&
               elsi_h%sc_desc,0.0_r8,tmp_real,1,1,elsi_h%sc_desc)
 
       elsi_h%den_mat = elsi_h%den_mat+tmp_real
@@ -302,12 +300,12 @@ subroutine elsi_compute_edm_elpa(elsi_h)
    ! Set full matrix from upper triangle
    call elsi_allocate(elsi_h,tmp_real,elsi_h%n_l_rows,elsi_h%n_l_cols,"tmp_real",caller)
 
-   call pdtran(elsi_h%n_g_size,elsi_h%n_g_size,1.0_r8,elsi_h%den_mat,1,1,&
+   call pdtran(elsi_h%n_basis,elsi_h%n_basis,1.0_r8,elsi_h%den_mat,1,1,&
            elsi_h%sc_desc,0.0_r8,tmp_real,1,1,elsi_h%sc_desc)
 
-   do i_col = 1,elsi_h%n_g_size-1
+   do i_col = 1,elsi_h%n_basis-1
       if(elsi_h%local_col(i_col) == 0) cycle
-      do i_row = i_col+1,elsi_h%n_g_size
+      do i_row = i_col+1,elsi_h%n_basis
          if(elsi_h%local_row(i_row) > 0) then
             elsi_h%den_mat(elsi_h%local_row(i_row),elsi_h%local_col(i_col)) = &
                tmp_real(elsi_h%local_row(i_row),elsi_h%local_col(i_col))
@@ -346,17 +344,17 @@ subroutine elsi_to_standard_evp(elsi_h)
    select case(elsi_h%matrix_data_type)
    case(COMPLEX_VALUES)
       if(elsi_h%n_elsi_calls == 1) then
-         if(.not. elsi_h%no_singularity_check) then
+         if(.not. elsi_h%no_sing_check) then
             call elsi_check_singularity(elsi_h)
          endif
 
-         if(elsi_h%n_nonsingular == elsi_h%n_g_size) then ! Not singular
+         if(elsi_h%n_nonsing == elsi_h%n_basis) then ! Not singular
             call elsi_start_cholesky_time(elsi_h)
 
-            elsi_h%overlap_is_singular = .false.
+            elsi_h%ovlp_is_sing = .false.
 
             ! Compute S = (U^T)U, U -> S
-            success = elpa_cholesky_complex_double(elsi_h%n_g_size,elsi_h%ovlp_complex,&
+            success = elpa_cholesky_complex_double(elsi_h%n_basis,elsi_h%ovlp_complex,&
                          elsi_h%n_l_rows,elsi_h%n_b_rows,elsi_h%n_l_cols,&
                          elsi_h%mpi_comm_row,elsi_h%mpi_comm_col,.false.)
             if(.not. success) then
@@ -364,7 +362,7 @@ subroutine elsi_to_standard_evp(elsi_h)
             endif
 
             ! compute U^-1 -> S
-            success = elpa_invert_trm_complex_double(elsi_h%n_g_size,elsi_h%ovlp_complex,&
+            success = elpa_invert_trm_complex_double(elsi_h%n_basis,elsi_h%ovlp_complex,&
                          elsi_h%n_l_rows,elsi_h%n_b_rows,elsi_h%n_l_cols,&
                          elsi_h%mpi_comm_row,elsi_h%mpi_comm_col,.false.)
             if(.not. success) then
@@ -379,40 +377,40 @@ subroutine elsi_to_standard_evp(elsi_h)
 
       call elsi_allocate(elsi_h,tmp_complex,elsi_h%n_l_rows,elsi_h%n_l_cols,"tmp_complex",caller)
 
-      if(elsi_h%overlap_is_singular) then ! Use scaled eigenvectors
+      if(elsi_h%ovlp_is_sing) then ! Use scaled eigenvectors
          ! tmp_complex = H_complex * S_complex
-         call pzgemm('N','N',elsi_h%n_g_size,elsi_h%n_nonsingular,elsi_h%n_g_size,&
+         call pzgemm('N','N',elsi_h%n_basis,elsi_h%n_nonsing,elsi_h%n_basis,&
                  (1.0_r8,0.0_r8),elsi_h%ham_complex,1,1,elsi_h%sc_desc,elsi_h%ovlp_complex,&
                  1,1,elsi_h%sc_desc,(0.0_r8,0.0_r8),tmp_complex,1,1,elsi_h%sc_desc)
 
          ! H_complex = (S_complex)^* * tmp_complex
-         call pzgemm('C','N',elsi_h%n_nonsingular,elsi_h%n_nonsingular,elsi_h%n_g_size,&
+         call pzgemm('C','N',elsi_h%n_nonsing,elsi_h%n_nonsing,elsi_h%n_basis,&
                  (1.0_r8,0.0_r8),elsi_h%ovlp_complex,1,1,elsi_h%sc_desc,tmp_complex,1,1,&
                  elsi_h%sc_desc,(0.0_r8,0.0_r8),elsi_h%ham_complex,1,1,elsi_h%sc_desc)
 
       else ! Use cholesky
-         success = elpa_mult_ah_b_complex_double('U','L',elsi_h%n_g_size,elsi_h%n_g_size,&
+         success = elpa_mult_ah_b_complex_double('U','L',elsi_h%n_basis,elsi_h%n_basis,&
                       elsi_h%ovlp_complex,elsi_h%n_l_rows,elsi_h%n_l_cols,elsi_h%ham_complex,&
                       elsi_h%n_l_rows,elsi_h%n_l_cols,elsi_h%n_b_rows,elsi_h%mpi_comm_row,&
                       elsi_h%mpi_comm_col,tmp_complex,elsi_h%n_l_rows,elsi_h%n_l_cols)
 
-         call pztranc(elsi_h%n_g_size,elsi_h%n_g_size,(1.0_r8,0.0_r8),tmp_complex,1,1,&
+         call pztranc(elsi_h%n_basis,elsi_h%n_basis,(1.0_r8,0.0_r8),tmp_complex,1,1,&
                  elsi_h%sc_desc,(0.0_r8,0.0_r8),elsi_h%ham_complex,1,1,elsi_h%sc_desc)
 
          tmp_complex = elsi_h%ham_complex
 
-         success = elpa_mult_ah_b_complex_double('U','U',elsi_h%n_g_size,elsi_h%n_g_size,&
+         success = elpa_mult_ah_b_complex_double('U','U',elsi_h%n_basis,elsi_h%n_basis,&
                       elsi_h%ovlp_complex,elsi_h%n_l_rows,elsi_h%n_l_cols,tmp_complex,&
                       elsi_h%n_l_rows,elsi_h%n_l_cols,elsi_h%n_b_rows,elsi_h%mpi_comm_row,&
                       elsi_h%mpi_comm_col,elsi_h%ham_complex,elsi_h%n_l_rows,elsi_h%n_l_cols)
 
-         call pztranc(elsi_h%n_g_size,elsi_h%n_g_size,(1.0_r8,0.0_r8),elsi_h%ham_complex,&
+         call pztranc(elsi_h%n_basis,elsi_h%n_basis,(1.0_r8,0.0_r8),elsi_h%ham_complex,&
                  1,1,elsi_h%sc_desc,(0.0_r8,0.0_r8),tmp_complex,1,1,elsi_h%sc_desc)
 
          ! Set the lower part from the upper
-         do i_col = 1,elsi_h%n_g_size-1
+         do i_col = 1,elsi_h%n_basis-1
             if(elsi_h%local_col(i_col) == 0) cycle
-            do i_row = i_col+1,elsi_h%n_g_size
+            do i_row = i_col+1,elsi_h%n_basis
                if(elsi_h%local_row(i_row) > 0) then
                   elsi_h%ham_complex(elsi_h%local_row(i_row),elsi_h%local_col(i_col)) = &
                      tmp_complex(elsi_h%local_row(i_row),elsi_h%local_col(i_col))
@@ -420,7 +418,7 @@ subroutine elsi_to_standard_evp(elsi_h)
             enddo
          enddo
 
-         do i_col=1,elsi_h%n_g_size
+         do i_col=1,elsi_h%n_basis
             if(elsi_h%local_col(i_col) == 0 .or. elsi_h%local_row(i_col) == 0) cycle
             elsi_h%ham_complex(elsi_h%local_row(i_col),elsi_h%local_col(i_col)) = &
                dble(elsi_h%ham_complex(elsi_h%local_row(i_col),elsi_h%local_col(i_col)))
@@ -431,17 +429,17 @@ subroutine elsi_to_standard_evp(elsi_h)
 
    case(REAL_VALUES)
       if(elsi_h%n_elsi_calls == 1) then
-         if(.not. elsi_h%no_singularity_check) then
+         if(.not. elsi_h%no_sing_check) then
             call elsi_check_singularity(elsi_h)
          endif
 
-         if(elsi_h%n_nonsingular == elsi_h%n_g_size) then ! Not singular
+         if(elsi_h%n_nonsing == elsi_h%n_basis) then ! Not singular
             call elsi_start_cholesky_time(elsi_h)
 
-            elsi_h%overlap_is_singular = .false.
+            elsi_h%ovlp_is_sing = .false.
 
             ! Compute S = (U^T)U, U -> S
-            success = elpa_cholesky_real_double(elsi_h%n_g_size,elsi_h%ovlp_real,&
+            success = elpa_cholesky_real_double(elsi_h%n_basis,elsi_h%ovlp_real,&
                          elsi_h%n_l_rows,elsi_h%n_b_rows,elsi_h%n_l_cols,&
                          elsi_h%mpi_comm_row,elsi_h%mpi_comm_col,.false.)
             if(.not. success) then
@@ -449,7 +447,7 @@ subroutine elsi_to_standard_evp(elsi_h)
             endif
 
             ! compute U^-1 -> S
-            success = elpa_invert_trm_real_double(elsi_h%n_g_size,elsi_h%ovlp_real,&
+            success = elpa_invert_trm_real_double(elsi_h%n_basis,elsi_h%ovlp_real,&
                          elsi_h%n_l_rows,elsi_h%n_b_rows,elsi_h%n_l_cols,&
                          elsi_h%mpi_comm_row,elsi_h%mpi_comm_col,.false.)
             if(.not. success) then
@@ -464,40 +462,40 @@ subroutine elsi_to_standard_evp(elsi_h)
 
       call elsi_allocate(elsi_h,tmp_real,elsi_h%n_l_rows,elsi_h%n_l_cols,"tmp_real",caller)
 
-      if(elsi_h%overlap_is_singular) then ! Use scaled eigenvectors
+      if(elsi_h%ovlp_is_sing) then ! Use scaled eigenvectors
          ! tmp_real = H_real * S_real
-         call pdgemm('N','N',elsi_h%n_g_size,elsi_h%n_nonsingular,elsi_h%n_g_size,&
+         call pdgemm('N','N',elsi_h%n_basis,elsi_h%n_nonsing,elsi_h%n_basis,&
                  1.0_r8,elsi_h%ham_real,1,1,elsi_h%sc_desc,elsi_h%ovlp_real,1,1,&
                  elsi_h%sc_desc,0.0_r8,tmp_real,1,1,elsi_h%sc_desc)
 
          ! H_real = (S_real)^T * tmp_real
-         call pdgemm('T','N',elsi_h%n_nonsingular,elsi_h%n_nonsingular,elsi_h%n_g_size,&
+         call pdgemm('T','N',elsi_h%n_nonsing,elsi_h%n_nonsing,elsi_h%n_basis,&
                  1.0_r8,elsi_h%ovlp_real,1,1,elsi_h%sc_desc,tmp_real,1,1,elsi_h%sc_desc,&
                  0.0_r8,elsi_h%ham_real,1,1,elsi_h%sc_desc)
 
       else ! Use Cholesky
-         success = elpa_mult_at_b_real_double('U','L',elsi_h%n_g_size,elsi_h%n_g_size,&
+         success = elpa_mult_at_b_real_double('U','L',elsi_h%n_basis,elsi_h%n_basis,&
                       elsi_h%ovlp_real,elsi_h%n_l_rows,elsi_h%n_l_cols,elsi_h%ham_real,&
                       elsi_h%n_l_rows,elsi_h%n_l_cols,elsi_h%n_b_rows,elsi_h%mpi_comm_row,&
                       elsi_h%mpi_comm_col,tmp_real,elsi_h%n_l_rows,elsi_h%n_l_cols)
 
-         call pdtran(elsi_h%n_g_size,elsi_h%n_g_size,1.0_r8,tmp_real,1,1,elsi_h%sc_desc,&
+         call pdtran(elsi_h%n_basis,elsi_h%n_basis,1.0_r8,tmp_real,1,1,elsi_h%sc_desc,&
                  0.0_r8,elsi_h%ham_real,1,1,elsi_h%sc_desc)
 
          tmp_real = elsi_h%ham_real
 
-         success = elpa_mult_at_b_real_double('U','U',elsi_h%n_g_size,elsi_h%n_g_size,&
+         success = elpa_mult_at_b_real_double('U','U',elsi_h%n_basis,elsi_h%n_basis,&
                       elsi_h%ovlp_real,elsi_h%n_l_rows,elsi_h%n_l_cols,tmp_real,&
                       elsi_h%n_l_rows,elsi_h%n_l_cols,elsi_h%n_b_rows,elsi_h%mpi_comm_row,&
                       elsi_h%mpi_comm_col,elsi_h%ham_real,elsi_h%n_l_rows,elsi_h%n_l_cols)
 
-         call pdtran(elsi_h%n_g_size,elsi_h%n_g_size,1.0_r8,elsi_h%ham_real,1,1,&
+         call pdtran(elsi_h%n_basis,elsi_h%n_basis,1.0_r8,elsi_h%ham_real,1,1,&
                      elsi_h%sc_desc,0.0_r8,tmp_real,1,1,elsi_h%sc_desc)
 
          ! Set the lower part from the upper
-         do i_col = 1,elsi_h%n_g_size-1
+         do i_col = 1,elsi_h%n_basis-1
             if(elsi_h%local_col(i_col) == 0) cycle
-            do i_row = i_col+1,elsi_h%n_g_size
+            do i_row = i_col+1,elsi_h%n_basis
                if(elsi_h%local_row(i_row) > 0) then
                   elsi_h%ham_real(elsi_h%local_row(i_row),elsi_h%local_col(i_col)) = &
                      tmp_real(elsi_h%local_row(i_row),elsi_h%local_col(i_col))
@@ -551,29 +549,29 @@ subroutine elsi_check_singularity(elsi_h)
       ! eigenvalues of negative overlap matrix
       tmp_complex = -elsi_h%ovlp_complex
 
-      call elsi_allocate(elsi_h,ev_overlap,elsi_h%n_g_size,"ev_overlap",caller)
+      call elsi_allocate(elsi_h,ev_overlap,elsi_h%n_basis,"ev_overlap",caller)
 
       ! Use customized ELPA 2-stage solver to check overlap singularity
       ! Eigenvectors computed only for singular overlap matrix
-      success = elpa_check_singularity_complex_double(elsi_h%n_g_size,elsi_h%n_g_size,&
+      success = elpa_check_singularity_complex_double(elsi_h%n_basis,elsi_h%n_basis,&
                    tmp_complex,elsi_h%n_l_rows,ev_overlap,elsi_h%evec_complex,&
                    elsi_h%n_l_rows,elsi_h%n_b_rows,elsi_h%n_l_cols,elsi_h%mpi_comm_row,&
-                   elsi_h%mpi_comm_col,elsi_h%mpi_comm,elsi_h%singularity_tolerance,&
-                   elsi_h%n_nonsingular)
+                   elsi_h%mpi_comm_col,elsi_h%mpi_comm,elsi_h%sing_tol,&
+                   elsi_h%n_nonsing)
       if(.not. success) then
          call elsi_stop(" ELPA failed when solving eigenvalue problem."//&
                  " Exiting...",elsi_h,caller)
       endif
 
-      ! Stop if n_states is larger that n_nonsingular
-      if(elsi_h%n_nonsingular < elsi_h%n_states) then ! Too singular to continue
+      ! Stop if n_states is larger than n_nonsing
+      if(elsi_h%n_nonsing < elsi_h%n_states) then ! Too singular to continue
          call elsi_stop(" Overlap matrix is singular. The number of"//&
                  " basis functions after removing singularity is smaller"//&
                  " than the number of states. Exiting...",elsi_h,caller)
-      elseif(elsi_h%n_nonsingular < elsi_h%n_g_size) then ! Singular
-         elsi_h%overlap_is_singular = .true.
+      elseif(elsi_h%n_nonsing < elsi_h%n_basis) then ! Singular
+         elsi_h%ovlp_is_sing = .true.
 
-         if(elsi_h%stop_singularity) then
+         if(elsi_h%stop_sing) then
             call elsi_stop(" Overlap matrix is singular. Running with a"//&
                     " a near-singular basis set may lead to completely"//&
                     " wrong numerical results. Exiting...",elsi_h,caller)
@@ -585,14 +583,14 @@ subroutine elsi_check_singularity(elsi_h)
                  " numerical results.",elsi_h)
 
          write(info_str,"(A,I13)") "  | Number of basis functions reduced to: ",&
-            elsi_h%n_nonsingular
+            elsi_h%n_nonsing
          call elsi_statement_print(info_str,elsi_h)
 
          call elsi_statement_print("  Using scaled eigenvectors of overlap"//&
                  " matrix for transformation",elsi_h)
 
          ! Overlap matrix is overwritten with scaled eigenvectors
-         do i = 1,elsi_h%n_nonsingular
+         do i = 1,elsi_h%n_nonsing
             ev_sqrt = sqrt(ev_overlap(i))
             if(elsi_h%local_col(i) == 0) cycle
             elsi_h%ovlp_complex(:,elsi_h%local_col(i)) = &
@@ -600,7 +598,7 @@ subroutine elsi_check_singularity(elsi_h)
          enddo
 
       else ! Nonsingular
-         elsi_h%overlap_is_singular = .false.
+         elsi_h%ovlp_is_sing = .false.
          call elsi_statement_print("  Overlap matrix is nonsingular",elsi_h)
       endif ! Singular overlap?
 
@@ -613,28 +611,28 @@ subroutine elsi_check_singularity(elsi_h)
       ! eigenvalues of negative overlap matrix
       tmp_real = -elsi_h%ovlp_real
 
-      call elsi_allocate(elsi_h,ev_overlap,elsi_h%n_g_size,"ev_overlap",caller)
+      call elsi_allocate(elsi_h,ev_overlap,elsi_h%n_basis,"ev_overlap",caller)
 
       ! Use customized ELPA 2-stage solver to check overlap singularity
       ! Eigenvectors computed only for singular overlap matrix
-      success = elpa_check_singularity_real_double(elsi_h%n_g_size,elsi_h%n_g_size,&
+      success = elpa_check_singularity_real_double(elsi_h%n_basis,elsi_h%n_basis,&
                    tmp_real,elsi_h%n_l_rows,ev_overlap,elsi_h%evec_real,elsi_h%n_l_rows,&
                    elsi_h%n_b_rows,elsi_h%n_l_cols,elsi_h%mpi_comm_row,elsi_h%mpi_comm_col,&
-                   elsi_h%mpi_comm,elsi_h%singularity_tolerance,elsi_h%n_nonsingular)
+                   elsi_h%mpi_comm,elsi_h%sing_tol,elsi_h%n_nonsing)
       if(.not. success) then
          call elsi_stop(" ELPA failed when solving eigenvalue problem."//&
                  " Exiting...",elsi_h,caller)
       endif
 
-      ! Stop if n_states is larger that n_nonsingular
-      if(elsi_h%n_nonsingular < elsi_h%n_states) then ! Too singular to continue
+      ! Stop if n_states is larger than n_nonsing
+      if(elsi_h%n_nonsing < elsi_h%n_states) then ! Too singular to continue
          call elsi_stop(" Overlap matrix is singular. The number of basis"//&
                  " functions after removing singularity is smaller than the"//&
                  " number of states. Exiting...",elsi_h,caller)
-      elseif(elsi_h%n_nonsingular < elsi_h%n_g_size) then ! Singular
-         elsi_h%overlap_is_singular = .true.
+      elseif(elsi_h%n_nonsing < elsi_h%n_basis) then ! Singular
+         elsi_h%ovlp_is_sing = .true.
 
-         if(elsi_h%stop_singularity) then
+         if(elsi_h%stop_sing) then
             call elsi_stop(" Overlap matrix is singular. Running with a"//&
                     " near-singular basis set may lead to completely"//&
                     " wrong numerical results. Exiting...",elsi_h,caller)
@@ -645,14 +643,14 @@ subroutine elsi_check_singularity(elsi_h)
                  " completely wrong numerical results.",elsi_h)
 
          write(info_str,"(A,I13)") "  | Number of basis functions reduced to: ",&
-            elsi_h%n_nonsingular
+            elsi_h%n_nonsing
          call elsi_statement_print(info_str,elsi_h)
 
          call elsi_statement_print("  Using scaled eigenvectors of"//&
                  " overlap matrix for transformation",elsi_h)
 
          ! Overlap matrix is overwritten with scaled eigenvectors
-         do i = 1,elsi_h%n_nonsingular
+         do i = 1,elsi_h%n_nonsing
             ev_sqrt = sqrt(ev_overlap(i))
             if(elsi_h%local_col(i) == 0) cycle
             elsi_h%ovlp_real(:,elsi_h%local_col(i)) = &
@@ -660,7 +658,7 @@ subroutine elsi_check_singularity(elsi_h)
          enddo
 
       else ! Nonsingular
-         elsi_h%overlap_is_singular = .false.
+         elsi_h%ovlp_is_sing = .false.
          call elsi_statement_print("  Overlap matrix is nonsingular",elsi_h)
       endif ! Singular overlap?
 
@@ -697,18 +695,18 @@ subroutine elsi_to_original_ev(elsi_h)
       call elsi_allocate(elsi_h,tmp_complex,elsi_h%n_l_rows,elsi_h%n_l_cols,"tmp_complex",caller)
       tmp_complex = elsi_h%evec_complex
 
-      if(elsi_h%overlap_is_singular) then
+      if(elsi_h%ovlp_is_sing) then
          ! Transform matrix is stored in S_complex after elsi_to_standard_evp
-         call pzgemm('N','N',elsi_h%n_g_size,elsi_h%n_states,elsi_h%n_nonsingular,&
+         call pzgemm('N','N',elsi_h%n_basis,elsi_h%n_states,elsi_h%n_nonsing,&
                  (1.0_r8,0.0_r8),elsi_h%ovlp_complex,1,1,elsi_h%sc_desc,tmp_complex,&
                  1,1,elsi_h%sc_desc,(0.0_r8,0.0_r8),elsi_h%evec_complex,1,1,elsi_h%sc_desc)
       else ! Nonsingular, use Cholesky
          ! (U^-1) is stored in S_complex after elsi_to_standard_evp
          ! C_complex = S_complex * C_complex = S_complex * tmp_complex
-         call pztranc(elsi_h%n_g_size,elsi_h%n_g_size,(1.0_r8,0.0_r8),elsi_h%ovlp_complex,&
+         call pztranc(elsi_h%n_basis,elsi_h%n_basis,(1.0_r8,0.0_r8),elsi_h%ovlp_complex,&
                  1,1,elsi_h%sc_desc,(0.0_r8,0.0_r8),elsi_h%ham_complex,1,1,elsi_h%sc_desc)
 
-         success = elpa_mult_ah_b_complex_double('L','N',elsi_h%n_g_size,elsi_h%n_states,&
+         success = elpa_mult_ah_b_complex_double('L','N',elsi_h%n_basis,elsi_h%n_states,&
                       elsi_h%ham_complex,elsi_h%n_l_rows,elsi_h%n_l_cols,tmp_complex,&
                       elsi_h%n_l_rows,elsi_h%n_l_cols,elsi_h%n_b_rows,elsi_h%mpi_comm_row,&
                       elsi_h%mpi_comm_col,elsi_h%evec_complex,elsi_h%n_l_rows,elsi_h%n_l_cols)
@@ -718,18 +716,18 @@ subroutine elsi_to_original_ev(elsi_h)
       call elsi_allocate(elsi_h,tmp_real,elsi_h%n_l_rows,elsi_h%n_l_cols,"tmp_real",caller)
       tmp_real = elsi_h%evec_real
 
-      if(elsi_h%overlap_is_singular) then
+      if(elsi_h%ovlp_is_sing) then
          ! Transform matrix is stored in S_real after elsi_to_standard_evp
-         call pdgemm('N','N',elsi_h%n_g_size,elsi_h%n_states,elsi_h%n_nonsingular,1.0_r8,&
+         call pdgemm('N','N',elsi_h%n_basis,elsi_h%n_states,elsi_h%n_nonsing,1.0_r8,&
                  elsi_h%ovlp_real,1,1,elsi_h%sc_desc,tmp_real,1,1,elsi_h%sc_desc,0.0_r8,&
                  elsi_h%evec_real,1,1,elsi_h%sc_desc)
       else ! Nonsingular, use Cholesky
          ! (U^-1) is stored in S_real after elsi_to_standard_evp
          ! C_real = S_real * C_real = S_real * tmp_real
-         call pdtran(elsi_h%n_g_size,elsi_h%n_g_size,1.0_r8,elsi_h%ovlp_real,1,1,&
+         call pdtran(elsi_h%n_basis,elsi_h%n_basis,1.0_r8,elsi_h%ovlp_real,1,1,&
                  elsi_h%sc_desc,0.0_r8,elsi_h%ham_real,1,1,elsi_h%sc_desc)
 
-         success = elpa_mult_at_b_real_double('L','N',elsi_h%n_g_size,elsi_h%n_states,&
+         success = elpa_mult_at_b_real_double('L','N',elsi_h%n_basis,elsi_h%n_states,&
                       elsi_h%ham_real,elsi_h%n_l_rows,elsi_h%n_l_cols,tmp_real,elsi_h%n_l_rows,&
                       elsi_h%n_l_cols,elsi_h%n_b_rows,elsi_h%mpi_comm_row,elsi_h%mpi_comm_col,&
                       elsi_h%evec_real,elsi_h%n_l_rows,elsi_h%n_l_cols)
@@ -763,7 +761,7 @@ subroutine elsi_solve_evp_elpa(elsi_h)
 
    ! Choose 1-stage or 2-stage solver
    if(elsi_h%elpa_solver == UNSET) then
-      if(elsi_h%n_g_size < 256) then
+      if(elsi_h%n_basis < 250) then
          elsi_h%elpa_solver = 1
       else
          elsi_h%elpa_solver = 2
@@ -771,7 +769,7 @@ subroutine elsi_solve_evp_elpa(elsi_h)
    endif
 
    ! Transform to standard form
-   if(.not. elsi_h%overlap_is_unit) then
+   if(.not. elsi_h%ovlp_is_unit) then
       call elsi_to_standard_evp(elsi_h)
    endif
 
@@ -782,12 +780,12 @@ subroutine elsi_solve_evp_elpa(elsi_h)
       call elsi_statement_print("  Starting ELPA 2-stage eigensolver",elsi_h)
       select case(elsi_h%matrix_data_type)
       case(COMPLEX_VALUES)
-         success = elpa_solve_evp_complex_2stage_double(elsi_h%n_nonsingular,elsi_h%n_states,&
+         success = elpa_solve_evp_complex_2stage_double(elsi_h%n_nonsing,elsi_h%n_states,&
                       elsi_h%ham_complex,elsi_h%n_l_rows,elsi_h%eval,elsi_h%evec_complex,&
                       elsi_h%n_l_rows,elsi_h%n_b_rows,elsi_h%n_l_cols,elsi_h%mpi_comm_row,&
                       elsi_h%mpi_comm_col,elsi_h%mpi_comm)
       case(REAL_VALUES)
-         success = elpa_solve_evp_real_2stage_double(elsi_h%n_nonsingular,elsi_h%n_states,&
+         success = elpa_solve_evp_real_2stage_double(elsi_h%n_nonsing,elsi_h%n_states,&
                       elsi_h%ham_real,elsi_h%n_l_rows,elsi_h%eval,elsi_h%evec_real,&
                       elsi_h%n_l_rows,elsi_h%n_b_rows,elsi_h%n_l_cols,elsi_h%mpi_comm_row,&
                       elsi_h%mpi_comm_col,elsi_h%mpi_comm)
@@ -796,12 +794,12 @@ subroutine elsi_solve_evp_elpa(elsi_h)
       call elsi_statement_print("  Starting ELPA 1-stage eigensolver",elsi_h)
       select case(elsi_h%matrix_data_type)
       case(COMPLEX_VALUES)
-         success = elpa_solve_evp_complex_1stage_double(elsi_h%n_nonsingular,elsi_h%n_states,&
+         success = elpa_solve_evp_complex_1stage_double(elsi_h%n_nonsing,elsi_h%n_states,&
                       elsi_h%ham_complex,elsi_h%n_l_rows,elsi_h%eval,elsi_h%evec_complex,&
                       elsi_h%n_l_rows,elsi_h%n_b_rows,elsi_h%n_l_cols,elsi_h%mpi_comm_row,&
                       elsi_h%mpi_comm_col,elsi_h%mpi_comm)
       case(REAL_VALUES)
-         success = elpa_solve_evp_real_1stage_double(elsi_h%n_nonsingular,elsi_h%n_states,&
+         success = elpa_solve_evp_real_1stage_double(elsi_h%n_nonsing,elsi_h%n_states,&
                       elsi_h%ham_real,elsi_h%n_l_rows,elsi_h%eval,elsi_h%evec_real,elsi_h%n_l_rows,&
                       elsi_h%n_b_rows,elsi_h%n_l_cols,elsi_h%mpi_comm_row,elsi_h%mpi_comm_col,&
                       elsi_h%mpi_comm)
@@ -816,7 +814,7 @@ subroutine elsi_solve_evp_elpa(elsi_h)
    endif
 
    ! Back-transform eigenvectors
-   if(.not. elsi_h%overlap_is_unit) then
+   if(.not. elsi_h%ovlp_is_unit) then
       call elsi_to_original_ev(elsi_h)
    endif
 
@@ -853,18 +851,18 @@ subroutine elsi_to_standard_evp_sp(elsi_h)
    select case(elsi_h%matrix_data_type)
    case(COMPLEX_VALUES)
       if(elsi_h%n_elsi_calls == 1) then
-         if(.not. elsi_h%no_singularity_check) then
+         if(.not. elsi_h%no_sing_check) then
             call elsi_check_singularity_sp(elsi_h)
          endif
       endif ! n_elsi_calls == 1
 
-      if(elsi_h%n_nonsingular == elsi_h%n_g_size) then ! Not singular
+      if(elsi_h%n_nonsing == elsi_h%n_basis) then ! Not singular
          call elsi_start_cholesky_time(elsi_h)
 
-         elsi_h%overlap_is_singular = .false.
+         elsi_h%ovlp_is_sing = .false.
 
          ! Compute S = (U^T)U, U -> S
-         success = elpa_cholesky_complex_double(elsi_h%n_g_size,elsi_h%ovlp_complex,&
+         success = elpa_cholesky_complex_double(elsi_h%n_basis,elsi_h%ovlp_complex,&
                       elsi_h%n_l_rows,elsi_h%n_b_rows,elsi_h%n_l_cols,mpi_comm_self,&
                       mpi_comm_self,.false.)
          if(.not. success) then
@@ -872,7 +870,7 @@ subroutine elsi_to_standard_evp_sp(elsi_h)
          endif
 
          ! compute U^-1 -> S
-         success = elpa_invert_trm_complex_double(elsi_h%n_g_size,elsi_h%ovlp_complex,&
+         success = elpa_invert_trm_complex_double(elsi_h%n_basis,elsi_h%ovlp_complex,&
                       elsi_h%n_l_rows,elsi_h%n_b_rows,elsi_h%n_l_cols,mpi_comm_self,&
                       mpi_comm_self,.false.)
          if(.not. success) then
@@ -886,52 +884,52 @@ subroutine elsi_to_standard_evp_sp(elsi_h)
 
       call elsi_allocate(elsi_h,tmp_complex,elsi_h%n_l_rows,elsi_h%n_l_cols,"tmp_complex",caller)
 
-      if(elsi_h%overlap_is_singular) then ! Use scaled eigenvectors
+      if(elsi_h%ovlp_is_sing) then ! Use scaled eigenvectors
          ! tmp_complex = H_complex * S_complex
-         call zgemm('N','N',elsi_h%n_g_size,elsi_h%n_nonsingular,elsi_h%n_g_size,(1.0_r8,0.0_r8),&
-                 elsi_h%ham_complex(1,1),elsi_h%n_g_size,elsi_h%ovlp_complex(1,1),elsi_h%n_g_size,&
-                 (0.0_r8,0.0_r8),tmp_complex(1,1),elsi_h%n_g_size)
+         call zgemm('N','N',elsi_h%n_basis,elsi_h%n_nonsing,elsi_h%n_basis,(1.0_r8,0.0_r8),&
+                 elsi_h%ham_complex(1,1),elsi_h%n_basis,elsi_h%ovlp_complex(1,1),elsi_h%n_basis,&
+                 (0.0_r8,0.0_r8),tmp_complex(1,1),elsi_h%n_basis)
 
          ! H_complex = (S_complex)^* * tmp_complex
-         call zgemm('C','N',elsi_h%n_nonsingular,elsi_h%n_nonsingular,elsi_h%n_g_size,(1.0_r8,0.0_r8),&
-                 elsi_h%ovlp_complex(1,1),elsi_h%n_g_size,tmp_complex(1,1),elsi_h%n_g_size,&
-                 (0.0_r8,0.0_r8),elsi_h%ham_complex(1,1),elsi_h%n_g_size)
+         call zgemm('C','N',elsi_h%n_nonsing,elsi_h%n_nonsing,elsi_h%n_basis,(1.0_r8,0.0_r8),&
+                 elsi_h%ovlp_complex(1,1),elsi_h%n_basis,tmp_complex(1,1),elsi_h%n_basis,&
+                 (0.0_r8,0.0_r8),elsi_h%ham_complex(1,1),elsi_h%n_basis)
 
       else ! Use cholesky
          ! tmp_complex = H_complex * S_complex
-         call zgemm('N','N',elsi_h%n_g_size,elsi_h%n_g_size,elsi_h%n_g_size,(1.0_r8,0.0_r8),&
-                 elsi_h%ham_complex(1,1),elsi_h%n_g_size,elsi_h%ovlp_complex(1,1),elsi_h%n_g_size,&
-                 (0.0_r8,0.0_r8),tmp_complex(1,1),elsi_h%n_g_size)
+         call zgemm('N','N',elsi_h%n_basis,elsi_h%n_basis,elsi_h%n_basis,(1.0_r8,0.0_r8),&
+                 elsi_h%ham_complex(1,1),elsi_h%n_basis,elsi_h%ovlp_complex(1,1),elsi_h%n_basis,&
+                 (0.0_r8,0.0_r8),tmp_complex(1,1),elsi_h%n_basis)
 
          ! H_complex = (tmp_complex)^* * S_complex
-         call zgemm('C','N',elsi_h%n_g_size,elsi_h%n_g_size,elsi_h%n_g_size,(1.0_r8,0.0_r8),&
-                 tmp_complex(1,1),elsi_h%n_g_size,elsi_h%ovlp_complex(1,1),elsi_h%n_g_size,&
-                 (0.0_r8,0.0_r8),elsi_h%ham_complex(1,1),elsi_h%n_g_size)
+         call zgemm('C','N',elsi_h%n_basis,elsi_h%n_basis,elsi_h%n_basis,(1.0_r8,0.0_r8),&
+                 tmp_complex(1,1),elsi_h%n_basis,elsi_h%ovlp_complex(1,1),elsi_h%n_basis,&
+                 (0.0_r8,0.0_r8),elsi_h%ham_complex(1,1),elsi_h%n_basis)
       endif
 
       call elsi_stop_transform_evp_time(elsi_h)
 
    case(REAL_VALUES)
       if(elsi_h%n_elsi_calls == 1) then
-         if(.not. elsi_h%no_singularity_check) then
+         if(.not. elsi_h%no_sing_check) then
             call elsi_check_singularity_sp(elsi_h)
          endif
       endif ! n_elsi_calls == 1
 
-      if(elsi_h%n_nonsingular == elsi_h%n_g_size) then ! Not singular
+      if(elsi_h%n_nonsing == elsi_h%n_basis) then ! Not singular
          call elsi_start_cholesky_time(elsi_h)
 
-         elsi_h%overlap_is_singular = .false.
+         elsi_h%ovlp_is_sing = .false.
 
          ! Compute S = (U^T)U, U -> S
-         success = elpa_cholesky_real_double(elsi_h%n_g_size,elsi_h%ovlp_real,elsi_h%n_l_rows,&
+         success = elpa_cholesky_real_double(elsi_h%n_basis,elsi_h%ovlp_real,elsi_h%n_l_rows,&
                       elsi_h%n_b_rows,elsi_h%n_l_cols,mpi_comm_self,mpi_comm_self,.false.)
          if(.not. success) then
             call elsi_stop(" Cholesky decomposition failed.",elsi_h,caller)
          endif
 
          ! compute U^-1 -> S
-         success = elpa_invert_trm_real_double(elsi_h%n_g_size,elsi_h%ovlp_real,elsi_h%n_l_rows,&
+         success = elpa_invert_trm_real_double(elsi_h%n_basis,elsi_h%ovlp_real,elsi_h%n_l_rows,&
                       elsi_h%n_b_rows,elsi_h%n_l_cols,mpi_comm_self,mpi_comm_self,.false.)
          if(.not. success) then
             call elsi_stop(" Matrix inversion failed.",elsi_h,caller)
@@ -944,38 +942,38 @@ subroutine elsi_to_standard_evp_sp(elsi_h)
 
       call elsi_allocate(elsi_h,tmp_real,elsi_h%n_l_rows,elsi_h%n_l_cols,"tep_real",caller)
 
-      if(elsi_h%overlap_is_singular) then ! Use scaled eigenvectors
+      if(elsi_h%ovlp_is_sing) then ! Use scaled eigenvectors
          ! tmp_real = H_real * S_real
-         call dgemm('N','N',elsi_h%n_g_size,elsi_h%n_nonsingular,elsi_h%n_g_size,1.0_r8,&
-                 elsi_h%ham_real(1,1),elsi_h%n_g_size,elsi_h%ovlp_real(1,1),elsi_h%n_g_size,&
-                 0.0_r8,tmp_real(1,1),elsi_h%n_g_size)
+         call dgemm('N','N',elsi_h%n_basis,elsi_h%n_nonsing,elsi_h%n_basis,1.0_r8,&
+                 elsi_h%ham_real(1,1),elsi_h%n_basis,elsi_h%ovlp_real(1,1),elsi_h%n_basis,&
+                 0.0_r8,tmp_real(1,1),elsi_h%n_basis)
 
          ! H_real = (S_real)^T * tmp_real
-         call dgemm('T','N',elsi_h%n_nonsingular,elsi_h%n_nonsingular,elsi_h%n_g_size,1.0_r8,&
-                 elsi_h%ovlp_real(1,1),elsi_h%n_g_size,tmp_real(1,1),elsi_h%n_g_size,0.0_r8,&
-                 elsi_h%ham_real(1,1),elsi_h%n_g_size)
+         call dgemm('T','N',elsi_h%n_nonsing,elsi_h%n_nonsing,elsi_h%n_basis,1.0_r8,&
+                 elsi_h%ovlp_real(1,1),elsi_h%n_basis,tmp_real(1,1),elsi_h%n_basis,0.0_r8,&
+                 elsi_h%ham_real(1,1),elsi_h%n_basis)
 
       else ! Use Cholesky
         ! tmp_real = H_real * S_real
-        do n = 1,elsi_h%n_g_size,nblk
+        do n = 1,elsi_h%n_basis,nblk
            nwork = nblk
 
-           if(n+nwork-1 > elsi_h%n_g_size) nwork = elsi_h%n_g_size-n+1
+           if(n+nwork-1 > elsi_h%n_basis) nwork = elsi_h%n_basis-n+1
 
-           call dgemm('N','N',n+nwork-1,nwork,n+nwork-1,1.0_r8,elsi_h%ham_real(1,1),elsi_h%n_g_size,&
-                   elsi_h%ovlp_real(1,n),elsi_h%n_g_size,0.0_r8,tmp_real(1,n),elsi_h%n_g_size) 
+           call dgemm('N','N',n+nwork-1,nwork,n+nwork-1,1.0_r8,elsi_h%ham_real(1,1),elsi_h%n_basis,&
+                   elsi_h%ovlp_real(1,n),elsi_h%n_basis,0.0_r8,tmp_real(1,n),elsi_h%n_basis) 
         enddo
 
         ! H_real = (tmp_real)*T * S_real
-        do n = 1,elsi_h%n_g_size,nblk
+        do n = 1,elsi_h%n_basis,nblk
 
            nwork = nblk
 
-           if(n+nwork-1 > elsi_h%n_g_size) nwork = elsi_h%n_g_size-n+1
+           if(n+nwork-1 > elsi_h%n_basis) nwork = elsi_h%n_basis-n+1
 
-           call dgemm('T','N',nwork,elsi_h%n_g_size-n+1,n+nwork-1,1.0_r8,elsi_h%ovlp_real(1,n),&
-                   elsi_h%n_g_size,tmp_real(1,n),elsi_h%n_g_size,0.0_r8,elsi_h%ham_real(n,n),&
-                   elsi_h%n_g_size)
+           call dgemm('T','N',nwork,elsi_h%n_basis-n+1,n+nwork-1,1.0_r8,elsi_h%ovlp_real(1,n),&
+                   elsi_h%n_basis,tmp_real(1,n),elsi_h%n_basis,0.0_r8,elsi_h%ham_real(n,n),&
+                   elsi_h%n_basis)
         enddo
      endif
 
@@ -1010,34 +1008,34 @@ subroutine elsi_to_original_ev_sp(elsi_h)
       call elsi_allocate(elsi_h,tmp_complex,elsi_h%n_l_rows,elsi_h%n_l_cols,"tmp_complex",caller)
       tmp_complex = elsi_h%evec_complex
 
-      if(elsi_h%overlap_is_singular) then
+      if(elsi_h%ovlp_is_sing) then
          ! Transform matrix is stored in S_complex after elsi_to_standard_evp
-         call zgemm('N','N',elsi_h%n_g_size,elsi_h%n_states,elsi_h%n_nonsingular,(1.0_r8,0.0_r8),&
-                 elsi_h%ovlp_complex(1,1),elsi_h%n_g_size,tmp_complex(1,1),elsi_h%n_g_size,&
-                 (0.0_r8,0.0_r8),elsi_h%evec_complex(1,1),elsi_h%n_g_size)
+         call zgemm('N','N',elsi_h%n_basis,elsi_h%n_states,elsi_h%n_nonsing,(1.0_r8,0.0_r8),&
+                 elsi_h%ovlp_complex(1,1),elsi_h%n_basis,tmp_complex(1,1),elsi_h%n_basis,&
+                 (0.0_r8,0.0_r8),elsi_h%evec_complex(1,1),elsi_h%n_basis)
       else ! Nonsingular, use Cholesky
          ! (U^-1) is stored in S_complex after elsi_to_standard_evp
          ! C_complex = S_complex * C_complex = S_complex * tmp_complex
-         call zgemm('N','N',elsi_h%n_g_size,elsi_h%n_states,elsi_h%n_g_size,(1.0_r8,0.0_r8),&
-                 elsi_h%ovlp_complex(1,1),elsi_h%n_g_size,tmp_complex(1,1),elsi_h%n_g_size,&
-                 (0.0_r8,0.0_r8),elsi_h%evec_complex(1,1),elsi_h%n_g_size)
+         call zgemm('N','N',elsi_h%n_basis,elsi_h%n_states,elsi_h%n_basis,(1.0_r8,0.0_r8),&
+                 elsi_h%ovlp_complex(1,1),elsi_h%n_basis,tmp_complex(1,1),elsi_h%n_basis,&
+                 (0.0_r8,0.0_r8),elsi_h%evec_complex(1,1),elsi_h%n_basis)
       endif
 
    case(REAL_VALUES)
       call elsi_allocate(elsi_h,tmp_real,elsi_h%n_l_rows,elsi_h%n_l_cols,"tmp_real",caller)
       tmp_real = elsi_h%evec_real
 
-      if(elsi_h%overlap_is_singular) then
+      if(elsi_h%ovlp_is_sing) then
          ! Transform matrix is stored in S_real after elsi_to_standard_evp
-         call dgemm('N','N',elsi_h%n_g_size,elsi_h%n_states,elsi_h%n_nonsingular,1.0_r8,&
-                 elsi_h%ovlp_real(1,1),elsi_h%n_g_size,tmp_real(1,1),elsi_h%n_g_size,&
-                 0.0_r8,elsi_h%evec_real(1,1),elsi_h%n_g_size)
+         call dgemm('N','N',elsi_h%n_basis,elsi_h%n_states,elsi_h%n_nonsing,1.0_r8,&
+                 elsi_h%ovlp_real(1,1),elsi_h%n_basis,tmp_real(1,1),elsi_h%n_basis,&
+                 0.0_r8,elsi_h%evec_real(1,1),elsi_h%n_basis)
       else ! Nonsingular, use Cholesky
          ! (U^-1) is stored in S_real after elsi_to_standard_evp
          ! C_real = S_real * C_real = S_real * tmp_real
-         call dgemm('N','N',elsi_h%n_g_size,elsi_h%n_states,elsi_h%n_g_size,1.0_r8,&
-                 elsi_h%ovlp_real(1,1),elsi_h%n_g_size,tmp_real(1,1),elsi_h%n_g_size,&
-                 0.0_r8,elsi_h%evec_real(1,1),elsi_h%n_g_size)
+         call dgemm('N','N',elsi_h%n_basis,elsi_h%n_states,elsi_h%n_basis,1.0_r8,&
+                 elsi_h%ovlp_real(1,1),elsi_h%n_basis,tmp_real(1,1),elsi_h%n_basis,&
+                 0.0_r8,elsi_h%evec_real(1,1),elsi_h%n_basis)
       endif
 
    end select
@@ -1067,11 +1065,11 @@ subroutine elsi_solve_evp_elpa_sp(elsi_h)
 
    character*40, parameter :: caller = "elsi_solve_evp_elpa_sp"
 
-   call elsi_allocate(elsi_h,d,elsi_h%n_g_size,"d",caller)
-   call elsi_allocate(elsi_h,e,elsi_h%n_g_size,"e",caller)
+   call elsi_allocate(elsi_h,d,elsi_h%n_basis,"d",caller)
+   call elsi_allocate(elsi_h,e,elsi_h%n_basis,"e",caller)
 
    ! Transform to standard form
-   if(.not. elsi_h%overlap_is_unit) then
+   if(.not. elsi_h%ovlp_is_unit) then
       call elsi_to_standard_evp_sp(elsi_h)
    endif
 
@@ -1082,43 +1080,43 @@ subroutine elsi_solve_evp_elpa_sp(elsi_h)
 
    select case(elsi_h%matrix_data_type)
    case(COMPLEX_VALUES)
-      call elsi_allocate(elsi_h,tau_complex,elsi_h%n_g_size,"tau_complex",caller)
-      call elsi_allocate(elsi_h,tmp_real,elsi_h%n_g_size,elsi_h%n_g_size,"tmp_real",caller)
-      call elsi_allocate(elsi_h,tmp_complex,elsi_h%n_g_size,elsi_h%n_g_size,"tmp_complex",caller)
+      call elsi_allocate(elsi_h,tau_complex,elsi_h%n_basis,"tau_complex",caller)
+      call elsi_allocate(elsi_h,tmp_real,elsi_h%n_basis,elsi_h%n_basis,"tmp_real",caller)
+      call elsi_allocate(elsi_h,tmp_complex,elsi_h%n_basis,elsi_h%n_basis,"tmp_complex",caller)
 
-      call zhetrd('U',elsi_h%n_g_size,elsi_h%ham_complex,elsi_h%n_g_size,d,e,tau_complex,&
+      call zhetrd('U',elsi_h%n_basis,elsi_h%ham_complex,elsi_h%n_basis,d,e,tau_complex,&
               tmp_complex,size(tmp_complex),info)
 
-      success = elpa_solve_tridi_double(elsi_h%n_g_size,elsi_h%n_states,d,e,tmp_real,&
-                   elsi_h%n_g_size,64,elsi_h%n_g_size,mpi_comm_self,mpi_comm_self,.false.)
+      success = elpa_solve_tridi_double(elsi_h%n_basis,elsi_h%n_states,d,e,tmp_real,&
+                   elsi_h%n_basis,64,elsi_h%n_basis,mpi_comm_self,mpi_comm_self,.false.)
 
       elsi_h%eval(1:elsi_h%n_states) = d(1:elsi_h%n_states)
-      elsi_h%evec_complex(1:elsi_h%n_g_size,1:elsi_h%n_states) = &
-         tmp_real(1:elsi_h%n_g_size,1:elsi_h%n_states)
+      elsi_h%evec_complex(1:elsi_h%n_basis,1:elsi_h%n_states) = &
+         tmp_real(1:elsi_h%n_basis,1:elsi_h%n_states)
 
-      call zunmtr('L','U','N',elsi_h%n_g_size,elsi_h%n_states,elsi_h%ham_complex,elsi_h%n_g_size,&
-              tau_complex,elsi_h%evec_complex,elsi_h%n_g_size,tmp_complex,size(tmp_complex),info)
+      call zunmtr('L','U','N',elsi_h%n_basis,elsi_h%n_states,elsi_h%ham_complex,elsi_h%n_basis,&
+              tau_complex,elsi_h%evec_complex,elsi_h%n_basis,tmp_complex,size(tmp_complex),info)
 
       call elsi_deallocate(elsi_h,tau_complex,"tau_complex")
       call elsi_deallocate(elsi_h,tmp_real,"tmp_real")
       call elsi_deallocate(elsi_h,tmp_complex,"tmp_complex")
 
    case(REAL_VALUES)
-      call elsi_allocate(elsi_h,tau_real,elsi_h%n_g_size,"tau_real",caller)
-      call elsi_allocate(elsi_h,tmp_real,elsi_h%n_g_size,elsi_h%n_g_size,"tmp_real",caller)
+      call elsi_allocate(elsi_h,tau_real,elsi_h%n_basis,"tau_real",caller)
+      call elsi_allocate(elsi_h,tmp_real,elsi_h%n_basis,elsi_h%n_basis,"tmp_real",caller)
 
-      call dsytrd('U',elsi_h%n_g_size,elsi_h%ham_real,elsi_h%n_g_size,d,e,tau_real,tmp_real,&
+      call dsytrd('U',elsi_h%n_basis,elsi_h%ham_real,elsi_h%n_basis,d,e,tau_real,tmp_real,&
               size(tmp_real),info)
 
-      success = elpa_solve_tridi_double(elsi_h%n_g_size,elsi_h%n_states,d,e,tmp_real,&
-                   elsi_h%n_g_size,64,elsi_h%n_g_size,mpi_comm_self,mpi_comm_self,.false.)
+      success = elpa_solve_tridi_double(elsi_h%n_basis,elsi_h%n_states,d,e,tmp_real,&
+                   elsi_h%n_basis,64,elsi_h%n_basis,mpi_comm_self,mpi_comm_self,.false.)
 
       elsi_h%eval(1:elsi_h%n_states) = d(1:elsi_h%n_states)
-      elsi_h%evec_real(1:elsi_h%n_g_size,1:elsi_h%n_states) = &
-         tmp_real(1:elsi_h%n_g_size,1:elsi_h%n_states)
+      elsi_h%evec_real(1:elsi_h%n_basis,1:elsi_h%n_states) = &
+         tmp_real(1:elsi_h%n_basis,1:elsi_h%n_states)
 
-      call dormtr('L','U','N',elsi_h%n_g_size,elsi_h%n_states,elsi_h%ham_real,elsi_h%n_g_size,&
-              tau_real,elsi_h%evec_real,elsi_h%n_g_size,tmp_real,size(tmp_real),info)
+      call dormtr('L','U','N',elsi_h%n_basis,elsi_h%n_states,elsi_h%ham_real,elsi_h%n_basis,&
+              tau_real,elsi_h%evec_real,elsi_h%n_basis,tmp_real,size(tmp_real),info)
 
       call elsi_deallocate(elsi_h,tau_real,"tau_real")
       call elsi_deallocate(elsi_h,tmp_real,"tmp_real")
@@ -1136,7 +1134,7 @@ subroutine elsi_solve_evp_elpa_sp(elsi_h)
    endif
 
    ! Back-transform eigenvectors
-   if(.not. elsi_h%overlap_is_unit) then
+   if(.not. elsi_h%ovlp_is_unit) then
       call elsi_to_original_ev_sp(elsi_h)
    endif
 
@@ -1179,28 +1177,28 @@ subroutine elsi_check_singularity_sp(elsi_h)
       ! eigenvalues of negative overlap matrix
       tmp_complex = -elsi_h%ovlp_complex
 
-      call elsi_allocate(elsi_h,ev_overlap,elsi_h%n_g_size,"ev_overlap",caller)
+      call elsi_allocate(elsi_h,ev_overlap,elsi_h%n_basis,"ev_overlap",caller)
 
       ! Use customized ELPA 2-stage solver to check overlap singularity
       ! Eigenvectors computed only for singular overlap matrix
-      success = elpa_check_singularity_complex_double(elsi_h%n_g_size,elsi_h%n_g_size,&
+      success = elpa_check_singularity_complex_double(elsi_h%n_basis,elsi_h%n_basis,&
                    tmp_complex,elsi_h%n_l_rows,ev_overlap,elsi_h%evec_complex,elsi_h%n_l_rows,&
                    elsi_h%n_b_rows,elsi_h%n_l_cols,mpi_comm_self,mpi_comm_self,mpi_comm_self,&
-                   elsi_h%singularity_tolerance,elsi_h%n_nonsingular)
+                   elsi_h%sing_tol,elsi_h%n_nonsing)
       if(.not. success) then
          call elsi_stop(" ELPA failed when solving eigenvalue problem."//&
                  " Exiting...",elsi_h,caller)
       endif
 
-      ! Stop if n_states is larger that n_nonsingular
-      if(elsi_h%n_nonsingular < elsi_h%n_states) then ! Too singular to continue
+      ! Stop if n_states is larger than n_nonsing
+      if(elsi_h%n_nonsing < elsi_h%n_states) then ! Too singular to continue
          call elsi_stop(" Overlap matrix is singular. The number of"//&
                  " basis functions after removing singularity is smaller"//&
                  " than the number of states. Exiting...",elsi_h,caller)
-      elseif(elsi_h%n_nonsingular < elsi_h%n_g_size) then ! Singular
-         elsi_h%overlap_is_singular = .true.
+      elseif(elsi_h%n_nonsing < elsi_h%n_basis) then ! Singular
+         elsi_h%ovlp_is_sing = .true.
 
-         if(elsi_h%stop_singularity) then
+         if(elsi_h%stop_sing) then
             call elsi_stop(" Overlap matrix is singular. Running with a"//&
                     " near-singular basis set may lead to completely"//&
                     " wrong numerical results. Exiting...",elsi_h,caller)
@@ -1211,20 +1209,20 @@ subroutine elsi_check_singularity_sp(elsi_h)
                  " to completely wrong numerical results.",elsi_h)
 
          write(info_str,"(A,I13)") "  | Number of basis functions reduced to: ",&
-            elsi_h%n_nonsingular
+            elsi_h%n_nonsing
          call elsi_statement_print(info_str,elsi_h)
 
          call elsi_statement_print("  Using scaled eigenvectors of"//&
                  " overlap matrix for transformation",elsi_h)
 
          ! Overlap matrix is overwritten with scaled eigenvectors
-         do i = 1,elsi_h%n_nonsingular
+         do i = 1,elsi_h%n_nonsing
             ev_sqrt = sqrt(ev_overlap(i))
             elsi_h%ovlp_complex(:,i) = elsi_h%evec_complex(:,i)/ev_sqrt
          enddo
 
       else ! Nonsingular
-         elsi_h%overlap_is_singular = .false.
+         elsi_h%ovlp_is_sing = .false.
          call elsi_statement_print("  Overlap matrix is nonsingular",elsi_h)
       endif ! Singular overlap?
 
@@ -1237,28 +1235,28 @@ subroutine elsi_check_singularity_sp(elsi_h)
       ! eigenvalues of negative overlap matrix
       tmp_real = -elsi_h%ovlp_real
 
-      call elsi_allocate(elsi_h,ev_overlap,elsi_h%n_g_size,"ev_overlap",caller)
+      call elsi_allocate(elsi_h,ev_overlap,elsi_h%n_basis,"ev_overlap",caller)
 
       ! Use customized ELPA 2-stage solver to check overlap singularity
       ! Eigenvectors computed only for singular overlap matrix
-      success = elpa_check_singularity_real_double(elsi_h%n_g_size,elsi_h%n_g_size,&
+      success = elpa_check_singularity_real_double(elsi_h%n_basis,elsi_h%n_basis,&
                    tmp_real,elsi_h%n_l_rows,ev_overlap,elsi_h%evec_real,elsi_h%n_l_rows,&
                    elsi_h%n_b_rows,elsi_h%n_l_cols,mpi_comm_self,mpi_comm_self,&
-                   mpi_comm_self,elsi_h%singularity_tolerance,elsi_h%n_nonsingular)
+                   mpi_comm_self,elsi_h%sing_tol,elsi_h%n_nonsing)
       if(.not. success) then
          call elsi_stop(" ELPA failed when solving eigenvalue problem."//&
                  " Exiting...",elsi_h,caller)
       endif
 
-      ! Stop if n_states is larger that n_nonsingular
-      if(elsi_h%n_nonsingular < elsi_h%n_states) then ! Too singular to continue
+      ! Stop if n_states is larger than n_nonsing
+      if(elsi_h%n_nonsing < elsi_h%n_states) then ! Too singular to continue
          call elsi_stop(" Overlap matrix is singular. The number of"//&
                  " basis functions after removing singularity is smaller"//&
                  " than the number of states. Exiting...",elsi_h,caller)
-      elseif(elsi_h%n_nonsingular < elsi_h%n_g_size) then ! Singular
-         elsi_h%overlap_is_singular = .true.
+      elseif(elsi_h%n_nonsing < elsi_h%n_basis) then ! Singular
+         elsi_h%ovlp_is_sing = .true.
 
-         if(elsi_h%stop_singularity) then
+         if(elsi_h%stop_sing) then
             call elsi_stop(" Overlap matrix is singular. Running with a"//&
                     " near-singular basis set may lead to completely wrong"//&
                     " numerical results. Exiting...",elsi_h,caller)
@@ -1269,20 +1267,20 @@ subroutine elsi_check_singularity_sp(elsi_h)
                  " completely wrong numerical results.",elsi_h)
 
          write(info_str,"(A,I13)") "  | Number of basis functions reduced to: ",&
-            elsi_h%n_nonsingular
+            elsi_h%n_nonsing
          call elsi_statement_print(info_str,elsi_h)
 
          call elsi_statement_print("  Using scaled eigenvectors of"//&
                  " overlap matrix for transformation",elsi_h)
 
          ! Overlap matrix is overwritten with scaled eigenvectors
-         do i = 1,elsi_h%n_nonsingular
+         do i = 1,elsi_h%n_nonsing
             ev_sqrt = sqrt(ev_overlap(i))
             elsi_h%ovlp_real(:,i) = elsi_h%evec_real(:,i)/ev_sqrt
          enddo
 
       else ! Nonsingular
-         elsi_h%overlap_is_singular = .false.
+         elsi_h%ovlp_is_sing = .false.
          call elsi_statement_print("  Overlap matrix is nonsingular",elsi_h)
       endif ! Singular overlap?
 

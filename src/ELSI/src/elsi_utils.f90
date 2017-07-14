@@ -806,7 +806,7 @@ subroutine elsi_set_real_overlap(elsi_h,S_in)
 
    character*40, parameter :: caller = "elsi_set_real_overlap"
 
-   if(.not. elsi_h%overlap_is_unit) then
+   if(.not. elsi_h%ovlp_is_unit) then
       if(elsi_h%solver == ELPA) then
          if((elsi_h%matrix_storage_format == BLACS_DENSE) .and. &
             (elsi_h%n_elsi_calls == 1)) then
@@ -838,7 +838,7 @@ subroutine elsi_set_complex_overlap(elsi_h,S_in)
 
    character*40, parameter :: caller = "elsi_set_complex_overlap"
 
-   if(.not. elsi_h%overlap_is_unit) then
+   if(.not. elsi_h%ovlp_is_unit) then
       if(elsi_h%solver == ELPA) then
          if((elsi_h%matrix_storage_format == BLACS_DENSE) .and. &
             (elsi_h%n_elsi_calls == 1)) then
@@ -869,7 +869,7 @@ subroutine elsi_set_sparse_real_overlap(elsi_h,S_in)
 
    character*40, parameter :: caller = "elsi_set_sparse_real_overlap"
 
-   if(.not. elsi_h%overlap_is_unit) then
+   if(.not. elsi_h%ovlp_is_unit) then
       if((elsi_h%solver == PEXSI) .or. (elsi_h%solver == SIPS)) then
          elsi_h%ovlp_real_ccs => S_in
       endif
@@ -889,7 +889,7 @@ subroutine elsi_set_sparse_complex_overlap(elsi_h,S_in)
 
    character*40, parameter :: caller = "elsi_set_sparse_complex_overlap"
 
-   if(.not. elsi_h%overlap_is_unit) then
+   if(.not. elsi_h%ovlp_is_unit) then
       if((elsi_h%solver == PEXSI) .or. (elsi_h%solver == SIPS)) then
          elsi_h%ovlp_complex_ccs => S_in
       endif
@@ -904,8 +904,8 @@ subroutine elsi_set_eigenvalue(elsi_h,e_val_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h                    !< Handle
-   real(kind=r8),     target        :: e_val_in(elsi_h%n_g_size) !< Eigenvalues
+   type(elsi_handle), intent(inout) :: elsi_h                   !< Handle
+   real(kind=r8),     target        :: e_val_in(elsi_h%n_basis) !< Eigenvalues
 
    character*40, parameter :: caller = "elsi_set_eigenvalue"
 
@@ -1030,6 +1030,8 @@ subroutine elsi_cleanup(elsi_h)
 
    type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
+   integer(kind=i4) :: ierr
+
    character*40, parameter :: caller = "elsi_cleanup"
 
    ! Nullify pointers
@@ -1086,7 +1088,7 @@ subroutine elsi_cleanup(elsi_h)
 
    ! Finalize PEXSI plan
    if(elsi_h%pexsi_started) then
-      call f_ppexsi_plan_finalize(elsi_h%pexsi_plan,elsi_h%pexsi_info)
+      call f_ppexsi_plan_finalize(elsi_h%pexsi_plan,ierr)
    endif
 
    ! Finalize QETSC
@@ -1110,106 +1112,102 @@ subroutine elsi_reset_handle(elsi_h)
 
    character*40, parameter :: caller = "elsi_reset_handle"
 
-   elsi_h%handle_initialized      = .false.
-   elsi_h%solver                  = UNSET
-   elsi_h%matrix_data_type        = UNSET
-   elsi_h%matrix_storage_format   = UNSET
-   elsi_h%parallel_mode           = UNSET
-   elsi_h%uplo                    = FULL_MAT
-   elsi_h%n_elsi_calls            = 0
-   elsi_h%n_g_size                = UNSET
-   elsi_h%n_b_rows                = UNSET
-   elsi_h%n_b_cols                = UNSET
-   elsi_h%n_p_rows                = UNSET
-   elsi_h%n_p_cols                = UNSET
-   elsi_h%n_l_rows                = UNSET
-   elsi_h%n_l_cols                = UNSET
-   elsi_h%myid                    = UNSET
-   elsi_h%n_procs                 = UNSET
-   elsi_h%mpi_comm                = UNSET
-   elsi_h%mpi_is_setup            = .false.
-   elsi_h%blacs_ctxt              = UNSET
-   elsi_h%sc_desc                 = UNSET
-   elsi_h%mpi_comm_row            = UNSET
-   elsi_h%mpi_comm_col            = UNSET
-   elsi_h%my_p_row                = UNSET
-   elsi_h%my_p_col                = UNSET
-   elsi_h%blacs_is_setup          = .false.
-   elsi_h%nnz_g                   = UNSET
-   elsi_h%nnz_l                   = UNSET
-   elsi_h%zero_threshold          = 1.0e-15_r8
-   elsi_h%overlap_is_unit         = .false.
-   elsi_h%overlap_is_singular     = .false.
-   elsi_h%no_singularity_check    = .false.
-   elsi_h%singularity_tolerance   = 1.0e-5_r8
-   elsi_h%stop_singularity        = .false.
-   elsi_h%n_nonsingular           = UNSET
-   elsi_h%n_electrons             = 0.0_r8
-   elsi_h%mu                      = 0.0_r8
-   elsi_h%n_states                = UNSET
-   elsi_h%n_occupied_states       = UNSET
-   elsi_h%broadening_scheme       = 0
-   elsi_h%broadening_width        = 1.0e-2_r8
-   elsi_h%occ_tolerance           = 1.0e-13_r8
-   elsi_h%max_mu_steps            = 100
-   elsi_h%spin_degen              = 0.0_r8
-   elsi_h%mu_ready                = .false.
-   elsi_h%edm_ready               = .false.
-   elsi_h%elpa_solver             = UNSET
-   elsi_h%elpa_output             = .false.
-   elsi_h%n_elpa_steps            = UNSET
-   elsi_h%new_overlap             = .true.
-   elsi_h%coeff_initialized       = .false.
-   elsi_h%omm_flavor              = UNSET
-   elsi_h%scale_kinetic           = 0.0_r8
-   elsi_h%calc_ed                 = .false.
-   elsi_h%eta                     = 0.0_r8
-   elsi_h%min_tol                 = 1.0e-12_r8
-   elsi_h%nk_times_nspin          = UNSET
-   elsi_h%i_k_spin                = UNSET
-   elsi_h%omm_output              = .false.
-   elsi_h%do_dealloc              = .false.
-   elsi_h%use_psp                 = .false.
-   elsi_h%my_p_row_pexsi          = UNSET
-   elsi_h%my_p_col_pexsi          = UNSET
-   elsi_h%n_b_rows_pexsi          = UNSET
-   elsi_h%n_b_cols_pexsi          = UNSET
-   elsi_h%n_p_rows_pexsi          = UNSET
-   elsi_h%n_p_cols_pexsi          = UNSET
-   elsi_h%n_l_rows_pexsi          = UNSET
-   elsi_h%n_l_cols_pexsi          = UNSET
-   elsi_h%n_p_per_pole_pexsi      = UNSET
-   elsi_h%nnz_l_pexsi             = UNSET
-   elsi_h%pexsi_started           = .false.
-   elsi_h%sparsity_pattern_ready  = .false.
-   elsi_h%small_pexsi_tol         = .false.
-   elsi_h%final_pexsi_tol         = 1.0e-2_r8
-   elsi_h%pexsi_info              = UNSET
-   elsi_h%pexsi_output_file_index = UNSET
-   elsi_h%pexsi_driver            = UNSET
-   elsi_h%n_mu_points             = UNSET
-   elsi_h%n_electrons_pexsi       = 0.0_r8
-   elsi_h%mu_min_inertia          = 0.0_r8
-   elsi_h%mu_max_inertia          = 0.0_r8
-   elsi_h%n_total_inertia_iter    = UNSET
-   elsi_h%n_total_pexsi_iter      = UNSET
-   elsi_h%energy_hdm              = 0.0_r8
-   elsi_h%energy_sedm             = 0.0_r8
-   elsi_h%free_energy             = 0.0_r8
-   elsi_h%n_b_rows_sips           = UNSET
-   elsi_h%n_b_cols_sips           = UNSET
-   elsi_h%n_l_rows_sips           = UNSET
-   elsi_h%n_l_cols_sips           = UNSET
-   elsi_h%nnz_l_sips              = UNSET
-   elsi_h%n_p_per_slice_sips      = UNSET
-   elsi_h%n_inertia_steps         = UNSET
-   elsi_h%slicing_method          = UNSET
-   elsi_h%inertia_option          = UNSET
-   elsi_h%unbound                 = UNSET
-   elsi_h%n_slices                = UNSET
-   elsi_h%interval                = 0.0_r8
-   elsi_h%slice_buffer            = 0.0_r8
-   elsi_h%sips_started            = .false.
+   elsi_h%handle_initialized    = .false.
+   elsi_h%solver                = UNSET
+   elsi_h%matrix_data_type      = UNSET
+   elsi_h%matrix_storage_format = UNSET
+   elsi_h%parallel_mode         = UNSET
+   elsi_h%uplo                  = FULL_MAT
+   elsi_h%n_elsi_calls          = 0
+   elsi_h%n_basis               = UNSET
+   elsi_h%n_spins               = UNSET
+   elsi_h%n_kpts                = UNSET
+   elsi_h%n_b_rows              = UNSET
+   elsi_h%n_b_cols              = UNSET
+   elsi_h%n_p_rows              = UNSET
+   elsi_h%n_p_cols              = UNSET
+   elsi_h%n_l_rows              = UNSET
+   elsi_h%n_l_cols              = UNSET
+   elsi_h%myid                  = UNSET
+   elsi_h%n_procs               = UNSET
+   elsi_h%mpi_comm              = UNSET
+   elsi_h%mpi_is_setup          = .false.
+   elsi_h%blacs_ctxt            = UNSET
+   elsi_h%sc_desc               = UNSET
+   elsi_h%mpi_comm_row          = UNSET
+   elsi_h%mpi_comm_col          = UNSET
+   elsi_h%my_p_row              = UNSET
+   elsi_h%my_p_col              = UNSET
+   elsi_h%blacs_is_setup        = .false.
+   elsi_h%nnz_g                 = UNSET
+   elsi_h%nnz_l                 = UNSET
+   elsi_h%zero_threshold        = 1.0e-15_r8
+   elsi_h%ovlp_is_unit          = .false.
+   elsi_h%ovlp_is_sing          = .false.
+   elsi_h%no_sing_check         = .false.
+   elsi_h%sing_tol              = 1.0e-5_r8
+   elsi_h%stop_sing             = .false.
+   elsi_h%n_nonsing             = UNSET
+   elsi_h%n_electrons           = 0.0_r8
+   elsi_h%mu                    = 0.0_r8
+   elsi_h%n_states              = UNSET
+   elsi_h%n_occupied_states     = UNSET
+   elsi_h%broadening_scheme     = 0
+   elsi_h%broadening_width      = 1.0e-2_r8
+   elsi_h%occ_tolerance         = 1.0e-13_r8
+   elsi_h%max_mu_steps          = 100
+   elsi_h%spin_degen            = 0.0_r8
+   elsi_h%mu_ready              = .false.
+   elsi_h%edm_ready             = .false.
+   elsi_h%elpa_solver           = UNSET
+   elsi_h%elpa_output           = .false.
+   elsi_h%n_elpa_steps          = UNSET
+   elsi_h%new_overlap           = .true.
+   elsi_h%coeff_initialized     = .false.
+   elsi_h%omm_flavor            = UNSET
+   elsi_h%scale_kinetic         = 0.0_r8
+   elsi_h%calc_ed               = .false.
+   elsi_h%eta                   = 0.0_r8
+   elsi_h%min_tol               = 1.0e-12_r8
+   elsi_h%omm_output            = .false.
+   elsi_h%do_dealloc            = .false.
+   elsi_h%use_psp               = .false.
+   elsi_h%my_p_row_pexsi        = UNSET
+   elsi_h%my_p_col_pexsi        = UNSET
+   elsi_h%n_b_rows_pexsi        = UNSET
+   elsi_h%n_b_cols_pexsi        = UNSET
+   elsi_h%n_p_rows_pexsi        = UNSET
+   elsi_h%n_p_cols_pexsi        = UNSET
+   elsi_h%n_l_rows_pexsi        = UNSET
+   elsi_h%n_l_cols_pexsi        = UNSET
+   elsi_h%n_p_per_pole          = UNSET
+   elsi_h%nnz_l_pexsi           = UNSET
+   elsi_h%pexsi_started         = .false.
+   elsi_h%sparsity_is_setup     = .false.
+   elsi_h%small_pexsi_tol       = .false.
+   elsi_h%final_pexsi_tol       = 1.0e-2_r8
+   elsi_h%pexsi_driver          = UNSET
+   elsi_h%n_mu_points           = UNSET
+   elsi_h%n_electrons_pexsi     = 0.0_r8
+   elsi_h%mu_min_inertia        = 0.0_r8
+   elsi_h%mu_max_inertia        = 0.0_r8
+   elsi_h%energy_hdm            = 0.0_r8
+   elsi_h%energy_sedm           = 0.0_r8
+   elsi_h%free_energy           = 0.0_r8
+   elsi_h%n_b_rows_sips         = UNSET
+   elsi_h%n_b_cols_sips         = UNSET
+   elsi_h%n_l_rows_sips         = UNSET
+   elsi_h%n_l_cols_sips         = UNSET
+   elsi_h%nnz_l_sips            = UNSET
+   elsi_h%n_p_per_slice         = UNSET
+   elsi_h%n_inertia_steps       = UNSET
+   elsi_h%slicing_method        = UNSET
+   elsi_h%inertia_option        = UNSET
+   elsi_h%unbound               = UNSET
+   elsi_h%n_slices              = UNSET
+   elsi_h%interval              = 0.0_r8
+   elsi_h%slice_buffer          = 0.0_r8
+   elsi_h%sips_started          = .false.
 
 end subroutine
 
@@ -1228,7 +1226,7 @@ subroutine elsi_check(elsi_h,caller)
       call elsi_stop(" The solver has not been set."//&
               " Please choose ELPA, LIBOMM, or PEXSI solver."//&
               " Exiting...",elsi_h,caller)
-   else if((elsi_h%solver < 0) .or. (elsi_h%solver .ge. N_SOLVERS)) then
+   elseif((elsi_h%solver < 0) .or. (elsi_h%solver .ge. N_SOLVERS)) then
       call elsi_stop(" An unsupported solver has been chosen."//&
               " Please choose ELPA, LIBOMM, or PEXSI solver."//&
               " Exiting...",elsi_h,caller)
@@ -1238,7 +1236,7 @@ subroutine elsi_check(elsi_h,caller)
       call elsi_stop(" The parallel mode has not been set."//&
               " Please choose either SINGLE_PROC or MULTI_PROC."//&
               " Exiting...",elsi_h,caller)
-   else if((elsi_h%parallel_mode < 0) .or. &
+   elseif((elsi_h%parallel_mode < 0) .or. &
       (elsi_h%parallel_mode .ge. N_PARALLEL_MODES)) then
       call elsi_stop(" An unsupported parallel mode has been chosen."//&
               " Please choose either SINGLE_PROC or MULTI_PROC."//&
@@ -1249,7 +1247,7 @@ subroutine elsi_check(elsi_h,caller)
       call elsi_stop(" The matrix data type has not been set."//& 
               " Please choose either REAL_VALUES or COMPLEX_VALUES."//&
               " Exiting...",elsi_h,caller)
-   else if((elsi_h%matrix_data_type < 0) .or. &
+   elseif((elsi_h%matrix_data_type < 0) .or. &
       (elsi_h%matrix_data_type .ge. N_MATRIX_DATA_TYPES)) then
       call elsi_stop(" An unsupported matirx data type has been chosen."//&
               " Please choose either REAL_VALUES or COMPLEX_VALUES."//&
@@ -1260,19 +1258,19 @@ subroutine elsi_check(elsi_h,caller)
       call elsi_stop(" The matrix storage format has not been set."//&             
               " Please choose either BLACS_DENSE or PEXSI_CSC."//&
               " Exiting...",elsi_h,caller)
-   else if((elsi_h%matrix_storage_format < 0) .or. &
+   elseif((elsi_h%matrix_storage_format < 0) .or. &
       (elsi_h%matrix_storage_format .ge. N_MATRIX_STORAGE_FORMATS)) then
-      call elsi_stop(" An unsupported matirx storage format has been chosen."//&
-              " Please choose either BLACS_DENSE or PEXSI_CSC."//&
+      call elsi_stop(" An unsupported matirx storage format has been"//&
+              " set. Please choose either BLACS_DENSE or PEXSI_CSC."//&
               " Exiting...",elsi_h,caller)
    endif
 
    if(elsi_h%uplo /= FULL_MAT) then
       if((elsi_h%matrix_storage_format /= BLACS_DENSE) .or. &
          (elsi_h%parallel_mode /= MULTI_PROC)) then
-         call elsi_stop(" Upper/lower triangular input matrix only supported"//&
-                 " with BLACS_DENSE matrix storage format and MULTI_PROC"//&
-                 " parallel mode. Exiting...",elsi_h,caller)
+         call elsi_stop(" Upper/lower triangular input matrix only"//&
+                 " supported with BLACS_DENSE matrix storage format and"//&
+                 " MULTI_PROC parallel mode. Exiting...",elsi_h,caller)
       endif
    endif
 
@@ -1282,40 +1280,40 @@ subroutine elsi_check(elsi_h,caller)
                " Please choose ELPA, LIBOMM, or PEXSI solver."//&
                " Exiting...",elsi_h,caller)
 
-   else if(elsi_h%solver == ELPA) then
+   elseif(elsi_h%solver == ELPA) then
       if(elsi_h%parallel_mode == MULTI_PROC) then
          if(.not. elsi_h%mpi_is_setup) then
-            call elsi_stop(" MULTI_PROC parallel mode requires MPI being"//&
-                    " set up before calling the solver."//&
+            call elsi_stop(" MULTI_PROC parallel mode requires MPI"//&
+                    " being set up before calling the solver."//&
                     " Exiting...",elsi_h,caller)
          endif
 
          if(.not. elsi_h%blacs_is_setup) then
-            call elsi_stop(" MULTI_PROC parallel mode requires BLACS being"//&
-                    " set up before calling the solver."//&
+            call elsi_stop(" MULTI_PROC parallel mode requires BLACS"//&
+                    " being set up before calling the solver."//&
                     " Exiting...",elsi_h,caller)
          endif
       endif
 
       if(elsi_h%matrix_storage_format == PEXSI_CSC) then
-         if(.not. elsi_h%sparsity_pattern_ready) then
+         if(.not. elsi_h%sparsity_is_setup) then
             call elsi_stop(" The PEXSI_CSC format has been chosen."//&
                     " Please set the sparsity pattern before"//&
                     " calling the solver. Exiting...",elsi_h,caller)
          endif
       endif
 
-   else if(elsi_h%solver == LIBOMM) then
+   elseif(elsi_h%solver == LIBOMM) then
       if(elsi_h%parallel_mode == MULTI_PROC) then
          if(.not. elsi_h%mpi_is_setup) then
-            call elsi_stop(" MULTI_PROC parallel mode requires MPI being"//&
-                    " set up before calling the solver."//&
+            call elsi_stop(" MULTI_PROC parallel mode requires MPI"//&
+                    " being set up before calling the solver."//&
                     " Exiting...",elsi_h,caller)
          endif
 
          if(.not. elsi_h%blacs_is_setup) then
-            call elsi_stop(" MULTI_PROC parallel mode requires BLACS being"//&
-                    " set up before calling the solver."//&
+            call elsi_stop(" MULTI_PROC parallel mode requires BLACS"//&
+                    " being set up before calling the solver."//&
                     " Exiting...",elsi_h,caller)
          endif
       else
@@ -1325,18 +1323,18 @@ subroutine elsi_check(elsi_h,caller)
       endif
 
       if(elsi_h%matrix_storage_format == PEXSI_CSC) then
-         if(.not. elsi_h%sparsity_pattern_ready) then
+         if(.not. elsi_h%sparsity_is_setup) then
             call elsi_stop(" The PEXSI_CSC format has been chosen."//&
                     " Please set the sparsity pattern before"//&
                     " calling the solver. Exiting...",elsi_h,caller)
          endif
       endif
 
-   else if(elsi_h%solver == PEXSI) then
+   elseif(elsi_h%solver == PEXSI) then
       if(elsi_h%parallel_mode == MULTI_PROC) then
          if(.not. elsi_h%mpi_is_setup) then
-            call elsi_stop(" MULTI_PROC parallel mode requires MPI being"//&
-                    " set up before calling the solver."//&
+            call elsi_stop(" MULTI_PROC parallel mode requires MPI"//&
+                    " being set up before calling the solver."//&
                     " Exiting...",elsi_h,caller)
          endif
       else
@@ -1352,28 +1350,42 @@ subroutine elsi_check(elsi_h,caller)
                     " solver. Exiting...",elsi_h,caller)
          endif
       else
-         if(.not. elsi_h%sparsity_pattern_ready) then
+         if(.not. elsi_h%sparsity_is_setup) then
             call elsi_stop(" The PEXSI_CSC format has been chosen."//&
                     " Please set the sparsity pattern before"//&
                     " calling the solver. Exiting...",elsi_h,caller)
          endif
       endif
 
-      if(elsi_h%n_g_size < elsi_h%n_p_per_pole_pexsi) then
+      if(elsi_h%n_basis < elsi_h%n_p_per_pole) then
          call elsi_stop(" PEXSI has been chosen as the solver."//&
                  " The size of matrix is too small for this"//&
                  " number of processes. Exiting...",elsi_h,caller)
       endif
 
-   else if(elsi_h%solver == CHESS) then
+      if(elsi_h%pexsi_driver == 1) then
+         if(mod(elsi_h%n_procs,elsi_h%n_p_per_pole) /= 0) then
+            call elsi_stop("  The total number of MPI tasks must"//&
+                    " be a multiple of the number of MPI tasks per"//&
+                    " pole. Exiting...",elsi_h,caller)
+         endif
+      else
+         if(mod(elsi_h%n_procs,elsi_h%n_p_per_pole*elsi_h%n_mu_points) /= 0) then
+            call elsi_stop("  The total number of MPI tasks must be a"//&
+                    " multiple of the number of MPI tasks per pole times"//&
+                    " the number of mu points. Exiting...",elsi_h,caller)
+         endif
+      endif
+
+   elseif(elsi_h%solver == CHESS) then
       call elsi_stop(" CHESS not yet available."//&
               " Please choose ELPA, LIBOMM, or PEXSI solver."//&
               " Exiting...",elsi_h,caller)
 
-   else if(elsi_h%solver == SIPS) then
+   elseif(elsi_h%solver == SIPS) then
       call elsi_statement_print("  ATTENTION! SIPs is EXPERIMENTAL.",elsi_h)
 
-      if(elsi_h%n_g_size < elsi_h%n_procs) then
+      if(elsi_h%n_basis < elsi_h%n_procs) then
          call elsi_stop(" SIPs has been chosen as the solver."//&
                  " The size of matrix is too small for this"//&
                  " number of processes. Exiting...",elsi_h,caller)
@@ -1508,14 +1520,14 @@ subroutine elsi_set_full_mat_real(elsi_h,mat)
    if((elsi_h%uplo /= FULL_MAT) .and. (elsi_h%parallel_mode == MULTI_PROC)) then
       call elsi_allocate(elsi_h,tmp_real,elsi_h%n_l_rows,elsi_h%n_l_cols,"tmp_real",caller)
 
-      call pdtran(elsi_h%n_g_size,elsi_h%n_g_size,1.0_r8,mat,1,1,elsi_h%sc_desc,&
+      call pdtran(elsi_h%n_basis,elsi_h%n_basis,1.0_r8,mat,1,1,elsi_h%sc_desc,&
               0.0_r8,tmp_real,1,1,elsi_h%sc_desc)
 
       if(elsi_h%uplo == UT_MAT) then ! Upper triangular
-         do i_col = 1,elsi_h%n_g_size-1
+         do i_col = 1,elsi_h%n_basis-1
             if(elsi_h%local_col(i_col) == 0) cycle
 
-            do i_row = i_col+1,elsi_h%n_g_size
+            do i_row = i_col+1,elsi_h%n_basis
                if(elsi_h%local_row(i_row) > 0) then
                   mat(elsi_h%local_row(i_row),elsi_h%local_col(i_col)) = &
                      tmp_real(elsi_h%local_row(i_row),elsi_h%local_col(i_col))
@@ -1523,7 +1535,7 @@ subroutine elsi_set_full_mat_real(elsi_h,mat)
             enddo
          enddo
       elseif(elsi_h%uplo == LT_MAT) then ! Lower triangular
-         do i_col = 2,elsi_h%n_g_size
+         do i_col = 2,elsi_h%n_basis
             if(elsi_h%local_col(i_col) == 0) cycle
 
             do i_row = 1,i_col-1
@@ -1562,14 +1574,14 @@ subroutine elsi_set_full_mat_complex(elsi_h,mat)
       call elsi_allocate(elsi_h,tmp_complex,elsi_h%n_l_rows,elsi_h%n_l_cols,&
               "tmp_complex",caller)
 
-      call pztranc(elsi_h%n_g_size,elsi_h%n_g_size,(1.0_r8,0.0_r8),mat,1,1,&
+      call pztranc(elsi_h%n_basis,elsi_h%n_basis,(1.0_r8,0.0_r8),mat,1,1,&
               elsi_h%sc_desc,(0.0_r8,0.0_r8),tmp_complex,1,1,elsi_h%sc_desc)
 
       if(elsi_h%uplo == UT_MAT) then ! Upper triangular
-         do i_col = 1,elsi_h%n_g_size-1
+         do i_col = 1,elsi_h%n_basis-1
             if(elsi_h%local_col(i_col) == 0) cycle
 
-            do i_row = i_col+1,elsi_h%n_g_size
+            do i_row = i_col+1,elsi_h%n_basis
                if(elsi_h%local_row(i_row) > 0) then
                   mat(elsi_h%local_row(i_row),elsi_h%local_col(i_col)) = &
                      tmp_complex(elsi_h%local_row(i_row),elsi_h%local_col(i_col))
@@ -1577,7 +1589,7 @@ subroutine elsi_set_full_mat_complex(elsi_h,mat)
             enddo
          enddo
       elseif(elsi_h%uplo == LT_MAT) then ! Lower triangular
-         do i_col = 2,elsi_h%n_g_size
+         do i_col = 2,elsi_h%n_basis
             if(elsi_h%local_col(i_col) == 0) cycle
 
             do i_row = 1,i_col-1
@@ -1592,7 +1604,7 @@ subroutine elsi_set_full_mat_complex(elsi_h,mat)
       call elsi_deallocate(elsi_h,tmp_complex,"tmp_complex")
 
       ! Make diagonal real
-      do i_col = 1,elsi_h%n_g_size
+      do i_col = 1,elsi_h%n_basis
          if((elsi_h%local_col(i_col) == 0) .or. (elsi_h%local_row(i_col) == 0)) cycle
 
          mat(elsi_h%local_row(i_col),elsi_h%local_col(i_col)) = &
