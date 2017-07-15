@@ -51,6 +51,7 @@ module ELSI_ELPA
    public :: elsi_compute_edm_elpa
    public :: elsi_solve_evp_elpa
    public :: elsi_solve_evp_elpa_sp
+   public :: elsi_set_elpa_default
 
 contains
 
@@ -759,15 +760,6 @@ subroutine elsi_solve_evp_elpa(elsi_h)
 
    elpa_print_times = elsi_h%elpa_output
 
-   ! Choose 1-stage or 2-stage solver
-   if(elsi_h%elpa_solver == UNSET) then
-      if(elsi_h%n_basis < 250) then
-         elsi_h%elpa_solver = 1
-      else
-         elsi_h%elpa_solver = 2
-      endif
-   endif
-
    ! Transform to standard form
    if(.not. elsi_h%ovlp_is_unit) then
       call elsi_to_standard_evp(elsi_h)
@@ -819,6 +811,29 @@ subroutine elsi_solve_evp_elpa(elsi_h)
    endif
 
    call MPI_Barrier(elsi_h%mpi_comm,mpierr)
+
+end subroutine
+
+!> 
+!! This routine sets default ELPA parameters.
+!! 
+subroutine elsi_set_elpa_default(elsi_h)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
+
+   character*40, parameter :: caller = "elsi_set_elpa_default"
+
+   ! ELPA solver
+   if(elsi_h%n_basis < 250) then
+      elsi_h%elpa_solver = 1
+   else
+      elsi_h%elpa_solver = 2
+   endif
+
+   ! ELPA output?
+   elsi_h%elpa_output = .false.
 
 end subroutine
 

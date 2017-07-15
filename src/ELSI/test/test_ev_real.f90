@@ -183,7 +183,7 @@ program test_ev_real
    ! Initialize ELSI
    n_electrons = 2.0_r8*n_states
 
-   call elsi_init(elsi_h,solver,1,0,matrix_size,n_electrons,n_states)
+   call elsi_init(elsi_h,solver,1,0,matrix_size,n_electrons,1,1,n_states)
    call elsi_set_mpi(elsi_h,mpi_comm_global)
    call elsi_set_blacs(elsi_h,BLACS_CTXT,blk)
 

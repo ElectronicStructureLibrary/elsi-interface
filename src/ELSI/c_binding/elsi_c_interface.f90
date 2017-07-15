@@ -45,7 +45,7 @@ module ELSI_C_INTERFACE
 contains
 
 subroutine elsi_init_c_wrapper(handle_c,solver,parallel_mode,&
-              matrix_storage_format,matrix_size,n_electrons,n_states)&
+              matrix_format,n_basis,n_electron,n_spin,n_kpt,n_state)&
    bind(C,name="c_elsi_init")
 
    implicit none
@@ -53,21 +53,23 @@ subroutine elsi_init_c_wrapper(handle_c,solver,parallel_mode,&
    type(c_ptr)                            :: handle_c
    integer(kind=c_int), value, intent(in) :: solver
    integer(kind=c_int), value, intent(in) :: parallel_mode
-   integer(kind=c_int), value, intent(in) :: matrix_storage_format
-   integer(kind=c_int), value, intent(in) :: matrix_size
-   real(kind=c_double), value, intent(in) :: n_electrons
-   integer(kind=c_int), value, intent(in) :: n_states
+   integer(kind=c_int), value, intent(in) :: matrix_format
+   integer(kind=c_int), value, intent(in) :: n_basis
+   real(kind=c_double), value, intent(in) :: n_electron
+   integer(kind=c_int), value, intent(in) :: n_spin
+   integer(kind=c_int), value, intent(in) :: n_kpt
+   integer(kind=c_int), value, intent(in) :: n_state
 
    type(elsi_handle), pointer :: handle_f
 
    allocate(handle_f)
 
-   call elsi_init(handle_f,solver,parallel_mode,matrix_storage_format,&
-           matrix_size,n_electrons,n_states)
+   call elsi_init(handle_f,solver,parallel_mode,matrix_format,&
+           n_basis,n_electron,n_spin,n_kpt,n_state)
 
    handle_c = c_loc(handle_f)
 
-   n_g_size_c = matrix_size
+   n_g_size_c = n_basis
 
    if(parallel_mode == 0) then
       n_l_rows_c = handle_f%n_l_rows

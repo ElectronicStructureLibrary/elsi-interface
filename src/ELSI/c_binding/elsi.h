@@ -44,10 +44,12 @@ extern "C"{
 void c_elsi_init(elsi_handle *handle_c,
                  int solver,
                  int parallel_mode,
-                 int matrix_storage_format,
-                 int matrix_size,
-                 double n_electrons,
-                 int n_states);
+                 int matrix_format,
+                 int n_basis,
+                 double n_electron,
+                 int n_spin,
+                 int n_kpt,
+                 int n_state);
 
 void c_elsi_set_mpi(elsi_handle handle_c,
                     int mpi_comm);

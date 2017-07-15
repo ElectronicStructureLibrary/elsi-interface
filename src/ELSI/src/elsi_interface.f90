@@ -59,7 +59,6 @@ module ELSI
    ! Utilities
    public :: elsi_init
    public :: elsi_finalize
-   public :: elsi_set_solver
    public :: elsi_set_mpi
    public :: elsi_set_blacs
    public :: elsi_set_csc
@@ -121,18 +120,20 @@ contains
 !! format, number of basis functions (global size of the Hamiltonian matrix),
 !! number of electrons, and number of states.
 !!
-subroutine elsi_init(elsi_h,solver,parallel_mode,matrix_storage_format,&
-              n_basis,n_electron,n_state)
+subroutine elsi_init(elsi_h,solver,parallel_mode,matrix_format,&
+              n_basis,n_electron,n_spin,n_kpoint,n_state)
 
    implicit none
 
-   type(elsi_handle), intent(out) :: elsi_h                !< Handle
-   integer(kind=i4),  intent(in)  :: solver                !< AUTO,ELPA,LIBOMM,PEXSI,CHESS,SIPS
-   integer(kind=i4),  intent(in)  :: parallel_mode         !< SINGLE_PROC,MULTI_PROC
-   integer(kind=i4),  intent(in)  :: matrix_storage_format !< BLACS_DENSE,PEXSI_CSC
-   integer(kind=i4),  intent(in)  :: n_basis               !< Number of basis functions
-   real(kind=r8),     intent(in)  :: n_electron            !< Number of electrons
-   integer(kind=i4),  intent(in)  :: n_state               !< Number of states
+   type(elsi_handle), intent(out) :: elsi_h        !< Handle
+   integer(kind=i4),  intent(in)  :: solver        !< AUTO,ELPA,LIBOMM,PEXSI,CHESS,SIPS
+   integer(kind=i4),  intent(in)  :: parallel_mode !< SINGLE_PROC,MULTI_PROC
+   integer(kind=i4),  intent(in)  :: matrix_format !< BLACS_DENSE,PEXSI_CSC
+   integer(kind=i4),  intent(in)  :: n_basis       !< Number of basis functions
+   real(kind=r8),     intent(in)  :: n_electron    !< Number of electrons
+   integer(kind=i4),  intent(in)  :: n_spin        !< Number of spin channels
+   integer(kind=i4),  intent(in)  :: n_kpoint      !< Number of k-points
+   integer(kind=i4),  intent(in)  :: n_state       !< Number of states
 
    character*40, parameter :: caller = "elsi_init"
 
@@ -143,10 +144,11 @@ subroutine elsi_init(elsi_h,solver,parallel_mode,matrix_storage_format,&
    elsi_h%n_basis               = n_basis
    elsi_h%n_nonsing             = n_basis
    elsi_h%n_electrons           = n_electron
-   elsi_h%n_spins               = 1
-   elsi_h%n_kpts                = 1
+   elsi_h%n_spins               = n_spin
+   elsi_h%n_kpts                = n_kpoint
+   elsi_h%n_states              = n_state
    elsi_h%solver                = solver
-   elsi_h%matrix_storage_format = matrix_storage_format
+   elsi_h%matrix_storage_format = matrix_format
    elsi_h%parallel_mode         = parallel_mode
    elsi_h%n_elsi_calls          = 0
 
@@ -157,44 +159,30 @@ subroutine elsi_init(elsi_h,solver,parallel_mode,matrix_storage_format,&
       elsi_h%n_b_cols = n_basis
    endif
 
-   if(solver == LIBOMM) then
-      ! Set number of occupied states for libOMM
-      elsi_h%n_states = nint(elsi_h%n_electrons/2.0_r8)
-      ! Set libOMM default settings
-      call elsi_set_omm_default(elsi_h)
-   else
-      elsi_h%n_states = n_state
+   ! Set ELPA default settings
+   if(solver == ELPA) then
+      call elsi_set_elpa_default(elsi_h)
    endif
 
+   ! Set libOMM default settings
+   if(solver == LIBOMM) then
+      call elsi_set_omm_default(elsi_h)
+
+      ! Set number of occupied states
+      elsi_h%n_states = nint(elsi_h%n_electrons/2.0_r8)
+   endif
+
+   ! Set PEXSI default settings
    if(solver == PEXSI) then
-      ! Set PEXSI default settings
       call elsi_set_pexsi_default(elsi_h)
    endif
 
+   ! Set SIPs default settings
    if(solver == SIPS) then
-      ! Set SIPs default settings
       call elsi_set_sips_default(elsi_h)
    endif
 
    call elsi_init_timers(elsi_h)
-
-end subroutine
-
-!>
-!! This routine sets the solver.
-!!
-subroutine elsi_set_solver(elsi_h,solver)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: elsi_h !< Handle
-   integer(kind=i4),  intent(in)    :: solver !< AUTO,ELPA,LIBOMM,PEXSI,CHESS,SIPS
-
-   character*40, parameter :: caller = "elsi_set_solver"
-
-   call elsi_check_handle(elsi_h,caller)
-
-   elsi_h%solver = solver
 
 end subroutine
 

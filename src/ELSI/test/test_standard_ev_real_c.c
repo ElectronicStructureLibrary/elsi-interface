@@ -42,7 +42,7 @@ void main(int argc, char** argv) {
    int blacs_ctxt;
    int info,*sc_desc;
    int blk,l_row,l_col,l_size,ldm;
-   int n_basis,n_states;
+   int n_basis,n_states,n_spins,n_kpts;
    int solver,format,parallel;
    int int_one,int_zero;
    int success;
@@ -65,6 +65,8 @@ void main(int argc, char** argv) {
 
    // Parameters
    n_basis     = 4000;
+   n_spins     = 1;
+   n_kpts      = 1;
    n_states    = 1000;
    n_electrons = 0; // not used at all
    blk         = 16;
@@ -125,7 +127,7 @@ void main(int argc, char** argv) {
    mpierr = MPI_Barrier(mpi_comm_elsi);
 
    // Initialize ELSI
-   c_elsi_init(&elsi_h,solver,parallel,format,n_basis,n_electrons,n_states);
+   c_elsi_init(&elsi_h,solver,parallel,format,n_basis,n_electrons,n_spins,n_kpts,n_states);
    c_elsi_set_mpi(elsi_h,mpi_comm_elsi);
    c_elsi_set_blacs(elsi_h,blacs_ctxt,blk);
 
