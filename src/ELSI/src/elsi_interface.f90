@@ -189,13 +189,14 @@ end subroutine
 !>
 !! This routine sets the MPI communicator.
 !!
-subroutine elsi_set_mpi(elsi_h,mpi_comm)
+subroutine elsi_set_mpi(elsi_h,mpi_comm,mpi_comm_all)
 
    implicit none
    include "mpif.h"
 
-   type(elsi_handle), intent(inout) :: elsi_h   !< Handle
-   integer(kind=i4),  intent(in)    :: mpi_comm !< MPI communicator
+   type(elsi_handle), intent(inout) :: elsi_h       !< Handle
+   integer(kind=i4),  intent(in)    :: mpi_comm     !< Unit ELSI communicator
+   integer(kind=i4),  intent(in)    :: mpi_comm_all !< Global ELSI communicator
 
    integer(kind=i4) :: mpierr
 
@@ -204,10 +205,19 @@ subroutine elsi_set_mpi(elsi_h,mpi_comm)
    call elsi_check_handle(elsi_h,caller)
 
    if(elsi_h%parallel_mode == MULTI_PROC) then
+      ! Unit ELSI communicator
+      ! If there's more than one spin/kpt, each unit communicator
+      ! solves one KS problem
       elsi_h%mpi_comm = mpi_comm
 
       call MPI_Comm_rank(mpi_comm,elsi_h%myid,mpierr)
       call MPI_Comm_size(mpi_comm,elsi_h%n_procs,mpierr)
+
+      ! Global ELSI communicator
+      elsi_h%mpi_comm_all = mpi_comm_all
+
+      call MPI_Comm_rank(mpi_comm_all,elsi_h%myid_all,mpierr)
+      call MPI_Comm_size(mpi_comm_all,elsi_h%n_procs_all,mpierr)
 
       elsi_h%mpi_is_setup = .true.
    endif
