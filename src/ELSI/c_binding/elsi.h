@@ -52,7 +52,8 @@ void c_elsi_init(elsi_handle *handle_c,
                  int n_state);
 
 void c_elsi_set_mpi(elsi_handle handle_c,
-                    int mpi_comm);
+                    int mpi_comm,
+                    int mpi_comm_all);
 
 void c_elsi_set_blacs(elsi_handle handle_c,
                       int blacs_ctxt,

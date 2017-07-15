@@ -118,7 +118,7 @@ subroutine elsi_final_print(elsi_h)
    character*40, parameter :: caller = "elsi_final_print"
 
    if(print_info) then
-      if(elsi_h%myid == 0) then
+      if(elsi_h%myid_all == 0) then
          write(*,"('  |------------------------------------------')")
          write(*,"('  | Final ELSI Output')")
          write(*,"('  |------------------------------------------')")

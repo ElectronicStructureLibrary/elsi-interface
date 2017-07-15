@@ -134,7 +134,7 @@ subroutine elsi_statement_print(info,elsi_h)
    type(elsi_handle), intent(in) :: elsi_h !< Handle
 
    if(print_info) then
-      if(elsi_h%myid == 0) then
+      if(elsi_h%myid_all == 0) then
          write(*,'(A)') trim(info)
       endif
    endif
@@ -680,21 +680,17 @@ subroutine elsi_stop(info,elsi_h,caller)
    integer :: mpierr
 
    if(elsi_h%mpi_is_setup) then
-      do i_task = 0,elsi_h%n_procs-1
-         if(elsi_h%myid == i_task) then
-            write(string_info,"(1X,'** Proc',I5,' in ',A,': ',A)")&
-               elsi_h%myid,trim(caller),trim(info)
+      do i_task = 0,elsi_h%n_procs_all-1
+         if(elsi_h%myid_all == i_task) then
+            write(string_info,"(1X,' Error! MPI task',I5,' in ',A,': ',A)")&
+               elsi_h%myid_all,trim(caller),trim(info)
             write(*,'(A)') trim(string_info)
+            exit
          endif
-         call MPI_Barrier(elsi_h%mpi_comm,mpierr)
+         call MPI_Barrier(elsi_h%mpi_comm_all,mpierr)
       enddo
-
-      if(elsi_h%n_procs > 1) then
-         call MPI_Abort(elsi_h%mpi_comm,0,mpierr)
-      endif
    else
-      write(string_info,"(1X,'** Proc N/A',' in ',A,': ',A)")&
-         trim(caller),trim(info)
+      write(string_info,"(1X,' Error!',A,': ',A)") trim(caller),trim(info)
       write(*,'(A)') trim(string_info)
    endif
 
@@ -1129,8 +1125,11 @@ subroutine elsi_reset_handle(elsi_h)
    elsi_h%n_l_rows              = UNSET
    elsi_h%n_l_cols              = UNSET
    elsi_h%myid                  = UNSET
+   elsi_h%myid_all              = UNSET
    elsi_h%n_procs               = UNSET
+   elsi_h%n_procs_all           = UNSET
    elsi_h%mpi_comm              = UNSET
+   elsi_h%mpi_comm_all          = UNSET
    elsi_h%mpi_is_setup          = .false.
    elsi_h%blacs_ctxt            = UNSET
    elsi_h%sc_desc               = UNSET

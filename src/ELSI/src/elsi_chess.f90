@@ -72,7 +72,7 @@ subroutine elsi_init_chess(elsi_h)
 
    ! Initialize task groups
    call init_matrix_taskgroups_wrapper(elsi_h%myid,elsi_h%n_procs,&
-           elsi_h%mpi_comm_elsi,.false.,2,elsi_h%sparse_mat)
+           elsi_h%mpi_comm,.false.,2,elsi_h%sparse_mat)
 
    ! Initialize FOE objects
    call init_foe()

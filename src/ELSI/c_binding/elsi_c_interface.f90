@@ -78,19 +78,20 @@ subroutine elsi_init_c_wrapper(handle_c,solver,parallel_mode,&
 
 end subroutine
 
-subroutine elsi_set_mpi_c_wrapper(handle_c,mpi_comm)&
+subroutine elsi_set_mpi_c_wrapper(handle_c,mpi_comm,mpi_comm_all)&
    bind(C,name="c_elsi_set_mpi")
 
    implicit none
 
    type(c_ptr),         value             :: handle_c
    integer(kind=c_int), value, intent(in) :: mpi_comm
+   integer(kind=c_int), value, intent(in) :: mpi_comm_all
 
    type(elsi_handle), pointer :: handle_f
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_set_mpi(handle_f,mpi_comm)
+   call elsi_set_mpi(handle_f,mpi_comm,mpi_comm_all)
 
 end subroutine
 

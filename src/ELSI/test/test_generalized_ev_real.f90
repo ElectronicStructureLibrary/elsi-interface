@@ -172,7 +172,7 @@ program test_generalized_ev_real
       call elsi_init(elsi_h,solver,0,0,matrix_size,n_electrons,1,1,n_states)
    else
       call elsi_init(elsi_h,solver,1,0,matrix_size,n_electrons,1,1,n_states)
-      call elsi_set_mpi(elsi_h,mpi_comm_global)
+      call elsi_set_mpi(elsi_h,mpi_comm_global,mpi_comm_global)
       call elsi_set_blacs(elsi_h,BLACS_CTXT,blk)
    endif
 

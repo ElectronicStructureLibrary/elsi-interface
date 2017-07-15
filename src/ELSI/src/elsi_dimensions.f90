@@ -137,8 +137,11 @@ module ELSI_DIMENSIONS
 
       ! MPI
       integer(kind=i4) :: myid = UNSET
+      integer(kind=i4) :: myid_all = UNSET
       integer(kind=i4) :: n_procs = UNSET
+      integer(kind=i4) :: n_procs_all = UNSET
       integer(kind=i4) :: mpi_comm = UNSET
+      integer(kind=i4) :: mpi_comm_all = UNSET
       logical          :: mpi_is_setup = .false.
 
       ! BLACS

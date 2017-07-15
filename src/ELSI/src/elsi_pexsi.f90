@@ -116,8 +116,8 @@ subroutine elsi_init_pexsi(elsi_h)
       elsi_h%n_l_rows_pexsi = elsi_h%n_b_rows_pexsi
       elsi_h%n_l_cols_pexsi = elsi_h%n_b_cols_pexsi
 
-      ! Only master process outputs
-      if(elsi_h%myid == 0) then
+      ! Only one process outputs
+      if(elsi_h%myid_all == 0) then
          output_id = 0
       else
          output_id = -1
