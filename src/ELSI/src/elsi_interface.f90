@@ -155,6 +155,8 @@ subroutine elsi_init(elsi_h,solver,parallel_mode,matrix_storage_format,&
       elsi_h%n_l_cols = n_basis
       elsi_h%n_b_rows = n_basis
       elsi_h%n_b_cols = n_basis
+      elsi_h%myid     = 0
+      elsi_h%n_procs  = 1
    endif
 
    if(solver == LIBOMM) then

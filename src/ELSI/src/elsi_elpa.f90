@@ -940,7 +940,7 @@ subroutine elsi_to_standard_evp_sp(elsi_h)
 
       call elsi_start_transform_evp_time(elsi_h)
 
-      call elsi_allocate(elsi_h,tmp_real,elsi_h%n_l_rows,elsi_h%n_l_cols,"tep_real",caller)
+      call elsi_allocate(elsi_h,tmp_real,elsi_h%n_l_rows,elsi_h%n_l_cols,"tmp_real",caller)
 
       if(elsi_h%ovlp_is_sing) then ! Use scaled eigenvectors
          ! tmp_real = H_real * S_real
