@@ -190,7 +190,8 @@ module ELSI_DIMENSIONS
       integer(kind=i4) :: max_mu_steps = 100        ! Maximum number of steps to find the chemical potential
       real(kind=r8) :: spin_degen = 0.0_r8          ! Spin degeneracy
       logical :: mu_ready = .false.                 ! Is chemical potential ready to be collected?
-      logical :: edm_ready = .false.                ! Is energy density matrix ready to be computed?
+      logical :: edm_ready_real = .false.           ! Is energy density matrix ready to be computed?
+      logical :: edm_ready_complex = .false.        ! Is energy density matrix ready to be computed?
 
       ! ELPA
       integer(kind=i4) :: elpa_solver = UNSET ! ELPA 1-stage or 2-stage solver

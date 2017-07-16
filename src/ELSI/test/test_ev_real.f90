@@ -196,7 +196,7 @@ program test_ev_real
    t1 = MPI_Wtime()
 
    ! Solve (pseudo SCF 1)
-   call elsi_ev_real(elsi_h,ham,ovlp,e_val,e_vec)
+   call elsi_ev_real(elsi_h,1,1,ham,ovlp,e_val,e_vec)
 
    t2 = MPI_Wtime()
 
@@ -211,7 +211,7 @@ program test_ev_real
    t1 = MPI_Wtime()
 
    ! Solve (pseudo SCF 2, with the same H)
-   call elsi_ev_real(elsi_h,ham,ovlp,e_val,e_vec)
+   call elsi_ev_real(elsi_h,1,1,ham,ovlp,e_val,e_vec)
 
    t2 = MPI_Wtime()
 

@@ -117,30 +117,48 @@ void c_elsi_customize_elpa(elsi_handle handle_c,
                            int elpa_output);
 
 void c_elsi_ev_real(elsi_handle handle_c,
+                    int i_spin,
+                    int i_kpt,
                     double *H,
                     double *S,
                     double *e_val,
                     double *e_vec);
 
 void c_elsi_ev_complex(elsi_handle handle_c,
+                       int i_spin,
+                       int i_kpt,
                        double _Complex *H,
                        double _Complex *S,
                        double *e_val,
                        double _Complex *e_vec);
 
 void c_elsi_ev_real_sparse(elsi_handle handle_c,
+                           int i_spin,
+                           int i_kpt,
                            double *H,
                            double *S,
                            double *e_val,
                            double *e_vec);
 
 void c_elsi_dm_real(elsi_handle handle_c,
+                    int i_spin,
+                    int i_kpt,
                     double *H,
                     double *S,
                     double *D,
                     double *energy);
 
+void c_elsi_dm_complex(elsi_handle handle_c,
+                       int i_spin,
+                       int i_kpt,
+                       double _Complex *H,
+                       double _Complex *S,
+                       double *D,
+                       double *energy);
+
 void c_elsi_dm_real_sparse(elsi_handle handle_c,
+                           int i_spin,
+                           int i_kpt,
                            double *H,
                            double *S,
                            double *D,
@@ -251,6 +269,9 @@ void c_elsi_get_ovlp_sing(elsi_handle handle_c,
 
 void c_elsi_get_mu(elsi_handle handle_c,
                    double *mu);
+
+void c_elsi_get_edm(elsi_handle handle_c,
+                   double *edm);
 
 #ifdef __cplusplus
 }

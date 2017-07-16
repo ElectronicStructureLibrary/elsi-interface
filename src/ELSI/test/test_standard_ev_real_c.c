@@ -44,6 +44,7 @@ void main(int argc, char** argv) {
    int blk,l_row,l_col,l_size,ldm;
    int n_basis,n_states,n_spins,n_kpts;
    int solver,format,parallel;
+   int i_spin,i_kpt;
    int int_one,int_zero;
    int success;
    int tmp;
@@ -74,6 +75,8 @@ void main(int argc, char** argv) {
    solver      = 1; // ELPA
    format      = 0; // BLACS_DENSE
    parallel    = 1; // MULTI_PROC
+   i_spin      = 1;
+   i_kpt       = 1;
    int_one     = 1;
    int_zero    = 0;
    double_one  = 1.0;
@@ -137,7 +140,7 @@ void main(int argc, char** argv) {
    c_elsi_set_unit_ovlp(elsi_h,no_s);
 
    // Call ELSI eigensolver
-   c_elsi_ev_real(elsi_h,h,s,eval,evec);
+   c_elsi_ev_real(elsi_h,i_spin,i_kpt,h,s,eval,evec);
 
    // Finalize ELSI
    c_elsi_finalize(elsi_h);

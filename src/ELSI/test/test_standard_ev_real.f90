@@ -191,7 +191,7 @@ program test_standard_ev_real
    t1 = MPI_Wtime()
 
    ! Solve problem
-   call elsi_ev_real(elsi_h,mat_a,mat_b,e_val,e_vec)
+   call elsi_ev_real(elsi_h,1,1,mat_a,mat_b,e_val,e_vec)
 
    t2 = MPI_Wtime()
 

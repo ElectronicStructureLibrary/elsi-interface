@@ -208,7 +208,7 @@ program test_dm_real
    t1 = MPI_Wtime()
 
    ! Solve (pseudo SCF 1)
-   call elsi_dm_real(elsi_h,ham,ovlp,dm,e_test)
+   call elsi_dm_real(elsi_h,1,1,ham,ovlp,dm,e_test)
 
    t2 = MPI_Wtime()
 
@@ -223,7 +223,7 @@ program test_dm_real
    t1 = MPI_Wtime()
 
    ! Solve (pseudo SCF 2, with the same H)
-   call elsi_dm_real(elsi_h,ham,ovlp,dm,e_test)
+   call elsi_dm_real(elsi_h,1,1,ham,ovlp,dm,e_test)
 
    t2 = MPI_Wtime()
 
