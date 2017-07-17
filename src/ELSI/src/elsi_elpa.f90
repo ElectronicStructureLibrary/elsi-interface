@@ -84,8 +84,6 @@ subroutine elsi_compute_dm_elpa(elsi_h)
 
    type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
-   real(kind=r8),    allocatable :: tmp_real(:,:)
-   complex(kind=r8), allocatable :: tmp_complex(:,:)
    real(kind=r8),    allocatable :: factor(:)
    integer(kind=i4)              :: i
    integer(kind=i4)              :: i_col
@@ -110,74 +108,85 @@ subroutine elsi_compute_dm_elpa(elsi_h)
 
    select case(elsi_h%matrix_data_type)
    case(REAL_VALUES)
-      call elsi_allocate(elsi_h,tmp_real,elsi_h%n_l_rows,&
-              elsi_h%n_l_cols,"tmp_real",caller)
-      tmp_real = elsi_h%evec_real
+      elsi_h%ham_real = elsi_h%evec_real
 
       do i = 1,elsi_h%n_states
          if(factor(i) > 0.0_r8) then
             if(elsi_h%local_col(i) > 0) then
-               tmp_real(:,elsi_h%local_col(i)) = &
-                  tmp_real(:,elsi_h%local_col(i))*factor(i)
+               elsi_h%ham_real(:,elsi_h%local_col(i)) = &
+                  elsi_h%ham_real(:,elsi_h%local_col(i))*factor(i)
             endif
          elseif(elsi_h%local_col(i) .ne. 0) then
-            tmp_real(:,elsi_h%local_col(i)) = 0.0_r8
+            elsi_h%ham_real(:,elsi_h%local_col(i)) = 0.0_r8
          endif
       enddo
 
-      elsi_h%den_mat = 0.0_r8
+      elsi_h%dm_real = 0.0_r8
 
       ! Compute density matrix
-      call pdsyrk('U','N',elsi_h%n_basis,max_state,1.0_r8,tmp_real,1,1,&
-              elsi_h%sc_desc,0.0_r8,elsi_h%den_mat,1,1,elsi_h%sc_desc)
+      call pdsyrk('U','N',elsi_h%n_basis,max_state,1.0_r8,elsi_h%ham_real,1,1,&
+              elsi_h%sc_desc,0.0_r8,elsi_h%dm_real,1,1,elsi_h%sc_desc)
+
+      call elsi_deallocate(elsi_h,factor,"factor")
+
+      ! Set full matrix from upper triangle
+      call pdtran(elsi_h%n_basis,elsi_h%n_basis,1.0_r8,elsi_h%dm_real,&
+              1,1,elsi_h%sc_desc,0.0_r8,elsi_h%ham_real,1,1,elsi_h%sc_desc)
+
+      do i_col = 1,elsi_h%n_basis-1
+         if(elsi_h%local_col(i_col) == 0) cycle
+         do i_row = i_col+1,elsi_h%n_basis
+            if(elsi_h%local_row(i_row) > 0) then
+               elsi_h%dm_real(elsi_h%local_row(i_row),elsi_h%local_col(i_col)) = &
+                  elsi_h%ham_real(elsi_h%local_row(i_row),elsi_h%local_col(i_col))
+            endif
+         enddo
+      enddo
 
    case(COMPLEX_VALUES)
-      call elsi_allocate(elsi_h,tmp_complex,elsi_h%n_l_rows,&
-              elsi_h%n_l_cols,"tmp_complex",caller)
-      tmp_complex = elsi_h%evec_complex
+      elsi_h%ham_complex = elsi_h%evec_complex
 
       do i = 1,elsi_h%n_states
          if(factor(i) > 0.0_r8) then
             if(elsi_h%local_col(i) > 0) then
-               tmp_complex(:,elsi_h%local_col(i)) = &
-                  tmp_complex(:,elsi_h%local_col(i))*factor(i)
+               elsi_h%ham_complex(:,elsi_h%local_col(i)) = &
+                  elsi_h%ham_complex(:,elsi_h%local_col(i))*factor(i)
             endif
          elseif(elsi_h%local_col(i) .ne. 0) then
-            tmp_complex(:,elsi_h%local_col(i)) = (0.0_r8,0.0_r8)
+            elsi_h%ham_complex(:,elsi_h%local_col(i)) = (0.0_r8,0.0_r8)
          endif
       enddo
 
-      elsi_h%den_mat = 0.0_r8
+      elsi_h%dm_complex = (0.0_r8,0.0_r8)
 
       ! Compute density matrix
-      call pzherk('U','N',elsi_h%n_basis,max_state,(1.0_r8,0.0_r8),tmp_complex,&
+      call pzherk('U','N',elsi_h%n_basis,max_state,(1.0_r8,0.0_r8),elsi_h%ham_complex,&
+              1,1,elsi_h%sc_desc,(0.0_r8,0.0_r8),elsi_h%dm_complex,1,1,elsi_h%sc_desc)
+
+      call elsi_deallocate(elsi_h,factor,"factor")
+
+      ! Set full matrix from upper triangle
+      call pztranc(elsi_h%n_basis,elsi_h%n_basis,(1.0_r8,0.0_r8),elsi_h%dm_complex,&
               1,1,elsi_h%sc_desc,(0.0_r8,0.0_r8),elsi_h%ham_complex,1,1,elsi_h%sc_desc)
 
-      elsi_h%den_mat = dble(elsi_h%ham_complex)
-   end select
-
-   call elsi_deallocate(elsi_h,factor,"factor")
-   if(allocated(tmp_real))    call elsi_deallocate(elsi_h,tmp_real,"tmp_real")
-   if(allocated(tmp_complex)) call elsi_deallocate(elsi_h,tmp_complex,"tmp_complex")
-
-   ! Set full matrix from upper triangle
-   call elsi_allocate(elsi_h,tmp_real,elsi_h%n_l_rows,&
-           elsi_h%n_l_cols,"tmp_real",caller)
-
-   call pdtran(elsi_h%n_basis,elsi_h%n_basis,1.0_r8,elsi_h%den_mat,&
-           1,1,elsi_h%sc_desc,0.0_r8,tmp_real,1,1,elsi_h%sc_desc)
-
-   do i_col = 1,elsi_h%n_basis-1
-      if(elsi_h%local_col(i_col) == 0) cycle
-      do i_row = i_col+1,elsi_h%n_basis
-         if(elsi_h%local_row(i_row) > 0) then
-            elsi_h%den_mat(elsi_h%local_row(i_row),elsi_h%local_col(i_col)) = &
-               tmp_real(elsi_h%local_row(i_row),elsi_h%local_col(i_col))
-         endif
+      do i_col = 1,elsi_h%n_basis-1
+         if(elsi_h%local_col(i_col) == 0) cycle
+         do i_row = i_col+1,elsi_h%n_basis
+            if(elsi_h%local_row(i_row) > 0) then
+               elsi_h%dm_complex(elsi_h%local_row(i_row),elsi_h%local_col(i_col)) = &
+                  elsi_h%ham_complex(elsi_h%local_row(i_row),elsi_h%local_col(i_col))
+            endif
+         enddo
       enddo
-   enddo
 
-   call elsi_deallocate(elsi_h,tmp_real,"tmp_real")
+      ! Make diagonal real
+      do i_col = 1,elsi_h%n_basis
+         if((elsi_h%local_col(i_col) == 0) .or. (elsi_h%local_row(i_col) == 0)) cycle
+
+         elsi_h%dm_complex(elsi_h%local_row(i_col),elsi_h%local_col(i_col)) = &
+            dble(elsi_h%dm_complex(elsi_h%local_row(i_col),elsi_h%local_col(i_col)))
+      enddo
+   end select
 
    call elsi_stop_density_matrix_time(elsi_h)
 
@@ -234,11 +243,11 @@ subroutine elsi_compute_edm_elpa(elsi_h)
          endif
       enddo
 
-      elsi_h%den_mat = 0.0_r8
+      elsi_h%dm_real = 0.0_r8
 
       ! Compute density matrix
       call pdsyrk('U','N',elsi_h%n_basis,max_state,1.0_r8,tmp_real,1,1,&
-              elsi_h%sc_desc,0.0_r8,elsi_h%den_mat,1,1,elsi_h%sc_desc)
+              elsi_h%sc_desc,0.0_r8,elsi_h%dm_real,1,1,elsi_h%sc_desc)
 
    case(COMPLEX_VALUES)
       call elsi_allocate(elsi_h,tmp_complex,elsi_h%n_l_rows,&
@@ -256,21 +265,17 @@ subroutine elsi_compute_edm_elpa(elsi_h)
          endif
       enddo
 
-      elsi_h%den_mat = 0.0_r8
+      elsi_h%dm_complex = (0.0_r8,0.0_r8)
 
       call elsi_allocate(elsi_h,tmp_real,elsi_h%n_l_rows,&
               elsi_h%n_l_cols,"tmp_real",caller)
 
       ! Compute density matrix
-      call pdsyrk('U','N',elsi_h%n_basis,max_state,1.0_r8,real(tmp_complex),&
-              1,1,elsi_h%sc_desc,0.0_r8,elsi_h%den_mat,1,1,elsi_h%sc_desc)
-      call pdsyrk('U','N',elsi_h%n_basis,max_state,1.0_r8,aimag(tmp_complex),&
-              1,1,elsi_h%sc_desc,0.0_r8,tmp_real,1,1,elsi_h%sc_desc)
-
-      elsi_h%den_mat = elsi_h%den_mat+tmp_real
+      call pzherk('U','N',elsi_h%n_basis,max_state,(1.0_r8,0.0_r8),tmp_complex,&
+              1,1,elsi_h%sc_desc,(0.0_r8,0.0_r8),elsi_h%dm_complex,1,1,elsi_h%sc_desc)
    end select
 
-   elsi_h%den_mat = -1.0_r8*elsi_h%den_mat
+   elsi_h%dm_real = -1.0_r8*elsi_h%dm_real
 
    call elsi_deallocate(elsi_h,factor,"factor")
    if(allocated(tmp_real))    call elsi_deallocate(elsi_h,tmp_real,"tmp_real")
@@ -280,14 +285,14 @@ subroutine elsi_compute_edm_elpa(elsi_h)
    call elsi_allocate(elsi_h,tmp_real,elsi_h%n_l_rows,&
            elsi_h%n_l_cols,"tmp_real",caller)
 
-   call pdtran(elsi_h%n_basis,elsi_h%n_basis,1.0_r8,elsi_h%den_mat,1,1,&
+   call pdtran(elsi_h%n_basis,elsi_h%n_basis,1.0_r8,elsi_h%dm_real,1,1,&
            elsi_h%sc_desc,0.0_r8,tmp_real,1,1,elsi_h%sc_desc)
 
    do i_col = 1,elsi_h%n_basis-1
       if(elsi_h%local_col(i_col) == 0) cycle
       do i_row = i_col+1,elsi_h%n_basis
          if(elsi_h%local_row(i_row) > 0) then
-            elsi_h%den_mat(elsi_h%local_row(i_row),elsi_h%local_col(i_col)) = &
+            elsi_h%dm_real(elsi_h%local_row(i_row),elsi_h%local_col(i_col)) = &
                tmp_real(elsi_h%local_row(i_row),elsi_h%local_col(i_col))
          endif
       enddo

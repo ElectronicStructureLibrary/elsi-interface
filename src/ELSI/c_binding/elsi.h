@@ -155,7 +155,7 @@ void c_elsi_dm_real(elsi_handle handle_c,
 void c_elsi_dm_complex(elsi_handle handle_c,
                        double _Complex *H,
                        double _Complex *S,
-                       double *D,
+                       double _Complex *D,
                        double *energy,
                        int i_spin,
                        int i_kpt,
@@ -276,8 +276,8 @@ void c_elsi_get_ovlp_sing(elsi_handle handle_c,
 void c_elsi_get_mu(elsi_handle handle_c,
                    double *mu);
 
-void c_elsi_get_edm(elsi_handle handle_c,
-                   double *edm);
+void c_elsi_get_edm_real(elsi_handle handle_c,
+                         double *edm);
 
 #ifdef __cplusplus
 }

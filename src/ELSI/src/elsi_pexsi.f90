@@ -173,17 +173,17 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
       elsi_h%pexsi_options%isSymbolicFactorize = 0
    endif
 
-   if(.not. allocated(elsi_h%e_den_mat_pexsi)) then
-      call elsi_allocate(elsi_h,elsi_h%e_den_mat_pexsi,elsi_h%nnz_l_pexsi,&
-              "e_den_mat_pexsi",caller)
+   if(.not. allocated(elsi_h%edm_real_pexsi)) then
+      call elsi_allocate(elsi_h,elsi_h%edm_real_pexsi,elsi_h%nnz_l_pexsi,&
+              "edm_real_pexsi",caller)
    endif
-   elsi_h%e_den_mat_pexsi = 0.0_r8
+   elsi_h%edm_real_pexsi = 0.0_r8
 
-   if(.not. allocated(elsi_h%f_den_mat_pexsi)) then
-      call elsi_allocate(elsi_h,elsi_h%f_den_mat_pexsi,elsi_h%nnz_l_pexsi,&
-              "f_den_mat_pexsi",caller)
+   if(.not. allocated(elsi_h%fdm_real_pexsi)) then
+      call elsi_allocate(elsi_h,elsi_h%fdm_real_pexsi,elsi_h%nnz_l_pexsi,&
+              "fdm_real_pexsi",caller)
    endif
-   elsi_h%f_den_mat_pexsi = 0.0_r8
+   elsi_h%fdm_real_pexsi = 0.0_r8
 
    ! Load sparse matrices for PEXSI
    if(elsi_h%ovlp_is_unit) then
@@ -251,18 +251,18 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
    ! Get the results
    if((elsi_h%my_p_row_pexsi == 0) .or. (elsi_h%matrix_storage_format == BLACS_DENSE)) then
       if(elsi_h%pexsi_driver == 1) then
-         call f_ppexsi_retrieve_real_dft_matrix(elsi_h%pexsi_plan,elsi_h%den_mat_ccs,&
-                 elsi_h%e_den_mat_pexsi,elsi_h%f_den_mat_pexsi,elsi_h%energy_hdm,&
-                 elsi_h%energy_sedm,elsi_h%free_energy,ierr)
+         call f_ppexsi_retrieve_real_dft_matrix(elsi_h%pexsi_plan,&
+                 elsi_h%dm_real_ccs,elsi_h%edm_real_pexsi,elsi_h%fdm_real_pexsi,&
+                 elsi_h%energy_hdm,elsi_h%energy_sedm,elsi_h%free_energy,ierr)
       else
-         call f_ppexsi_retrieve_real_dft_matrix2(elsi_h%pexsi_plan,elsi_h%den_mat_ccs,&
-                 elsi_h%e_den_mat_pexsi,elsi_h%f_den_mat_pexsi,elsi_h%energy_hdm,&
-                 elsi_h%energy_sedm,elsi_h%free_energy,ierr)
+         call f_ppexsi_retrieve_real_dft_matrix2(elsi_h%pexsi_plan,&
+                 elsi_h%dm_real_ccs,elsi_h%edm_real_pexsi,elsi_h%fdm_real_pexsi,&
+                 elsi_h%energy_hdm,elsi_h%energy_sedm,elsi_h%free_energy,ierr)
       endif
    endif
 
    if(ierr /= 0) then
-      call elsi_stop(" PEXSI not able to retrieve solution. Exiting...",elsi_h,caller)
+      call elsi_stop(" PEXSI not able to get results. Exiting...",elsi_h,caller)
    endif
 
    call MPI_Barrier(elsi_h%mpi_comm,mpierr)

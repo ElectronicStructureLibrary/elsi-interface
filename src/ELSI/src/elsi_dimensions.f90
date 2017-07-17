@@ -51,12 +51,14 @@ module ELSI_DIMENSIONS
       real(kind=r8),    pointer :: eval(:)             ! Eigenvalues
       real(kind=r8),    pointer :: evec_real(:,:)      ! Real eigenvectors
       complex(kind=r8), pointer :: evec_complex(:,:)   ! Complex eigenvectors
-      real(kind=r8),    pointer :: den_mat(:,:)        ! Density matrix
+      real(kind=r8),    pointer :: dm_real(:,:)        ! Real density matrix
+      complex(kind=r8), pointer :: dm_complex(:,:)     ! Complex density matrix
       real(kind=r8),    pointer :: ham_real_ccs(:)     ! Real Hamiltonian
       complex(kind=r8), pointer :: ham_complex_ccs(:)  ! Complex Hamiltonian
       real(kind=r8),    pointer :: ovlp_real_ccs(:)    ! Real overlap
       complex(kind=r8), pointer :: ovlp_complex_ccs(:) ! Complex overlap
-      real(kind=r8),    pointer :: den_mat_ccs(:)      ! Density matrix
+      real(kind=r8),    pointer :: dm_real_ccs(:)      ! Real density matrix
+      complex(kind=r8), pointer :: dm_complex_ccs(:)   ! Complex density matrix
       integer(kind=i4), pointer :: row_ind_ccs(:)      ! Row index
       integer(kind=i4), pointer :: col_ptr_ccs(:)      ! Column pointer
 
@@ -69,7 +71,8 @@ module ELSI_DIMENSIONS
       real(kind=r8),    allocatable :: eval_elpa(:)           ! Eigenvalues
       real(kind=r8),    allocatable :: evec_real_elpa(:,:)    ! Real eigenvectors
       complex(kind=r8), allocatable :: evec_complex_elpa(:,:) ! Complex eigenvectors
-      real(kind=r8),    allocatable :: den_mat_elpa(:,:)      ! Density matrix
+      real(kind=r8),    allocatable :: dm_real_elpa(:,:)      ! Real density matrix
+      complex(kind=r8), allocatable :: dm_complex_elpa(:,:)   ! Complex density matrix
       real(kind=r8),    allocatable :: occ_num(:,:,:)         ! Occupation numbers
       real(kind=r8),    allocatable :: eval_all(:,:,:)        ! Eigenvalues
       real(kind=r8),    allocatable :: k_weight(:)            ! K-point weights
@@ -77,21 +80,23 @@ module ELSI_DIMENSIONS
       integer(kind=i4), allocatable :: local_col(:)
 
       ! libOMM
-      type(Matrix)               :: ham_omm            ! Hamiltonian
-      type(Matrix)               :: ovlp_omm           ! Overlap
-      type(Matrix)               :: coeff_omm          ! Coefficient matrix
-      type(Matrix)               :: den_mat_omm        ! Density matrix
-      type(Matrix)               :: t_den_mat_omm      ! Kinetic energy density matrix
-      real(kind=r8), allocatable :: ovlp_real_omm(:,:) ! Copy of overlap matrix
+      type(Matrix)                  :: ham_omm               ! Hamiltonian
+      type(Matrix)                  :: ovlp_omm              ! Overlap
+      type(Matrix)                  :: coeff_omm             ! Coefficient matrix
+      type(Matrix)                  :: dm_omm                ! Density matrix
+      type(Matrix)                  :: tdm_omm               ! Kinetic energy density matrix
+      real(kind=r8),    allocatable :: ovlp_real_omm(:,:)    ! Copy of real overlap
+      complex(kind=r8), allocatable :: ovlp_complex_omm(:,:) ! Copy of complex overlap
 
       ! PESXI
       real(kind=r8),    allocatable :: ham_real_pexsi(:)     ! Sparse real Hamiltonian
       complex(kind=r8), allocatable :: ham_complex_pexsi(:)  ! Sparse complex Hamiltonian
       real(kind=r8),    allocatable :: ovlp_real_pexsi(:)    ! Sparse real overlap
       complex(kind=r8), allocatable :: ovlp_complex_pexsi(:) ! Sparse complex overlap
-      real(kind=r8),    allocatable :: den_mat_pexsi(:)      ! Sparse density matrix
-      real(kind=r8),    allocatable :: e_den_mat_pexsi(:)    ! Sparse energy density matrix
-      real(kind=r8),    allocatable :: f_den_mat_pexsi(:)    ! Sparse free energy density matrix
+      real(kind=r8),    allocatable :: dm_real_pexsi(:)      ! Sparse real density matrix
+      complex(kind=r8), allocatable :: dm_complex_pexsi(:)   ! Sparse complex density matrix
+      real(kind=r8),    allocatable :: edm_real_pexsi(:)     ! Sparse energy density matrix
+      real(kind=r8),    allocatable :: fdm_real_pexsi(:)     ! Sparse free energy density matrix
       integer(kind=i4), allocatable :: row_ind_pexsi(:)      ! Row index
       integer(kind=i4), allocatable :: col_ptr_pexsi(:)      ! Column pointer
 

@@ -45,16 +45,16 @@ module ELSI_UTILS
    implicit none
    private
 
-   public :: elsi_set_hamiltonian
-   public :: elsi_set_overlap
-   public :: elsi_set_eigenvalue
-   public :: elsi_set_eigenvector
-   public :: elsi_set_density_matrix
+   public :: elsi_set_ham
+   public :: elsi_set_ovlp
+   public :: elsi_set_eval
+   public :: elsi_set_evec
+   public :: elsi_set_dm
    public :: elsi_set_row_ind
    public :: elsi_set_col_ptr
-   public :: elsi_set_sparse_hamiltonian
-   public :: elsi_set_sparse_overlap
-   public :: elsi_set_sparse_density_matrix
+   public :: elsi_set_sparse_ham
+   public :: elsi_set_sparse_ovlp
+   public :: elsi_set_sparse_dm
    public :: elsi_statement_print
    public :: elsi_allocate
    public :: elsi_deallocate
@@ -67,29 +67,39 @@ module ELSI_UTILS
    public :: elsi_get_local_nnz
    public :: elsi_set_full_mat
 
-   interface elsi_set_hamiltonian
-      module procedure elsi_set_real_hamiltonian,&
-                       elsi_set_complex_hamiltonian
+   interface elsi_set_ham
+      module procedure elsi_set_real_ham,&
+                       elsi_set_complex_ham
    end interface
 
-   interface elsi_set_sparse_hamiltonian
-      module procedure elsi_set_sparse_real_hamiltonian,&
-                       elsi_set_sparse_complex_hamiltonian
+   interface elsi_set_sparse_ham
+      module procedure elsi_set_sparse_real_ham,&
+                       elsi_set_sparse_complex_ham
    end interface
 
-   interface elsi_set_overlap
-      module procedure elsi_set_real_overlap,&
-                       elsi_set_complex_overlap
+   interface elsi_set_ovlp
+      module procedure elsi_set_real_ovlp,&
+                       elsi_set_complex_ovlp
    end interface
 
-   interface elsi_set_sparse_overlap
-      module procedure elsi_set_sparse_real_overlap,&
-                       elsi_set_sparse_complex_overlap
+   interface elsi_set_sparse_ovlp
+      module procedure elsi_set_sparse_real_ovlp,&
+                       elsi_set_sparse_complex_ovlp
    end interface
 
-   interface elsi_set_eigenvector
-      module procedure elsi_set_real_eigenvector,&
-                       elsi_set_complex_eigenvector
+   interface elsi_set_evec
+      module procedure elsi_set_real_evec,&
+                       elsi_set_complex_evec
+   end interface
+
+   interface elsi_set_dm
+      module procedure elsi_set_real_dm,&
+                       elsi_set_complex_dm
+   end interface
+
+   interface elsi_set_sparse_dm
+      module procedure elsi_set_sparse_real_dm,&
+                       elsi_set_sparse_complex_dm
    end interface
 
    interface elsi_allocate
@@ -701,14 +711,14 @@ end subroutine
 !>
 !! This routine sets the real hamiltonian matrix.
 !!
-subroutine elsi_set_real_hamiltonian(elsi_h,H_in)
+subroutine elsi_set_real_ham(elsi_h,H_in)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h                                !< Handle
    real(kind=r8),     target        :: H_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian matrix
 
-   character*40, parameter :: caller = "elsi_set_real_hamiltonian"
+   character*40, parameter :: caller = "elsi_set_real_ham"
 
    if(elsi_h%solver == ELPA) then
       if(elsi_h%matrix_storage_format == BLACS_DENSE) then
@@ -729,14 +739,14 @@ end subroutine
 !>
 !! This routine sets the complex hamiltonian matrix.
 !!
-subroutine elsi_set_complex_hamiltonian(elsi_h,H_in)
+subroutine elsi_set_complex_ham(elsi_h,H_in)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h                                !< Handle
    complex(kind=r8),  target        :: H_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian matrix
 
-   character*40, parameter :: caller = "elsi_set_complex_hamiltonian"
+   character*40, parameter :: caller = "elsi_set_complex_ham"
 
    if(elsi_h%solver == ELPA) then
       if(elsi_h%matrix_storage_format == BLACS_DENSE) then
@@ -757,14 +767,14 @@ end subroutine
 !>
 !! This routine sets the sparse real Hamiltonian matrix.
 !!
-subroutine elsi_set_sparse_real_hamiltonian(elsi_h,H_in)
+subroutine elsi_set_sparse_real_ham(elsi_h,H_in)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h                   !< Handle
    real(kind=r8),     target        :: H_in(elsi_h%nnz_l_pexsi) !< Hamiltonian matrix
 
-   character*40, parameter :: caller = "elsi_set_sparse_real_hamiltonian"
+   character*40, parameter :: caller = "elsi_set_sparse_real_ham"
 
    if((elsi_h%solver == PEXSI) .or. (elsi_h%solver == SIPS)) then
       elsi_h%ham_real_ccs => H_in
@@ -775,14 +785,14 @@ end subroutine
 !>
 !! This routine sets the sparse complex Hamiltonian matrix.
 !!
-subroutine elsi_set_sparse_complex_hamiltonian(elsi_h,H_in)
+subroutine elsi_set_sparse_complex_ham(elsi_h,H_in)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h                   !< Handle
    complex(kind=r8),  target        :: H_in(elsi_h%nnz_l_pexsi) !< Hamiltonian matirx
 
-   character*40, parameter :: caller = "elsi_set_sparse_complex_hamiltonian"
+   character*40, parameter :: caller = "elsi_set_sparse_complex_ham"
 
    if((elsi_h%solver == PEXSI) .or. (elsi_h%solver == SIPS)) then
       elsi_h%ham_complex_ccs => H_in         
@@ -793,14 +803,14 @@ end subroutine
 !>
 !! This routine sets the real overlap matrix.
 !!
-subroutine elsi_set_real_overlap(elsi_h,S_in)
+subroutine elsi_set_real_ovlp(elsi_h,S_in)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h                                !< Handle
    real(kind=r8),     target        :: S_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Overlap matrix
 
-   character*40, parameter :: caller = "elsi_set_real_overlap"
+   character*40, parameter :: caller = "elsi_set_real_ovlp"
 
    if(.not. elsi_h%ovlp_is_unit) then
       if(elsi_h%solver == ELPA) then
@@ -823,16 +833,16 @@ subroutine elsi_set_real_overlap(elsi_h,S_in)
 end subroutine
 
 !>
-!! This routine sets the complex overlap matrix.
+!! This routine sets the complex ovlp matrix.
 !!
-subroutine elsi_set_complex_overlap(elsi_h,S_in)
+subroutine elsi_set_complex_ovlp(elsi_h,S_in)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h                                !< Handle
    complex(kind=r8),  target        :: S_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Overlap matrix
 
-   character*40, parameter :: caller = "elsi_set_complex_overlap"
+   character*40, parameter :: caller = "elsi_set_complex_ovlp"
 
    if(.not. elsi_h%ovlp_is_unit) then
       if(elsi_h%solver == ELPA) then
@@ -856,14 +866,14 @@ end subroutine
 !>
 !! This routine sets the sparse real overlap matrix.
 !!
-subroutine elsi_set_sparse_real_overlap(elsi_h,S_in)
+subroutine elsi_set_sparse_real_ovlp(elsi_h,S_in)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h                   !< Handle
    real(kind=r8),     target        :: S_in(elsi_h%nnz_l_pexsi) !< Overlap matrix
 
-   character*40, parameter :: caller = "elsi_set_sparse_real_overlap"
+   character*40, parameter :: caller = "elsi_set_sparse_real_ovlp"
 
    if(.not. elsi_h%ovlp_is_unit) then
       if((elsi_h%solver == PEXSI) .or. (elsi_h%solver == SIPS)) then
@@ -876,14 +886,14 @@ end subroutine
 !>
 !! This routine sets the sparse complex overlap matrix.
 !!
-subroutine elsi_set_sparse_complex_overlap(elsi_h,S_in)
+subroutine elsi_set_sparse_complex_ovlp(elsi_h,S_in)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h                   !< Handle
    complex(kind=r8),  target        :: S_in(elsi_h%nnz_l_pexsi) !< Overlap matrix
 
-   character*40, parameter :: caller = "elsi_set_sparse_complex_overlap"
+   character*40, parameter :: caller = "elsi_set_sparse_complex_ovlp"
 
    if(.not. elsi_h%ovlp_is_unit) then
       if((elsi_h%solver == PEXSI) .or. (elsi_h%solver == SIPS)) then
@@ -896,14 +906,14 @@ end subroutine
 !>
 !! This routine sets the eigenvalues.
 !!
-subroutine elsi_set_eigenvalue(elsi_h,e_val_in)
+subroutine elsi_set_eval(elsi_h,e_val_in)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h                   !< Handle
    real(kind=r8),     target        :: e_val_in(elsi_h%n_basis) !< Eigenvalues
 
-   character*40, parameter :: caller = "elsi_set_eigenvalue"
+   character*40, parameter :: caller = "elsi_set_eval"
 
    if((elsi_h%solver == ELPA) .or. (elsi_h%solver == SIPS)) then
       elsi_h%eval => e_val_in
@@ -914,14 +924,14 @@ end subroutine
 !>
 !! This routine sets the real eigenvectors.
 !!
-subroutine elsi_set_real_eigenvector(elsi_h,e_vec_in)
+subroutine elsi_set_real_evec(elsi_h,e_vec_in)
 
    implicit none
    
    type(elsi_handle), intent(inout) :: elsi_h                                    !< Handle
    real(kind=r8),     target        :: e_vec_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Eigenvectors
 
-   character*40, parameter :: caller = "elsi_set_real_eigenvector"
+   character*40, parameter :: caller = "elsi_set_real_evec"
 
    if((elsi_h%solver == ELPA) .or. (elsi_h%solver == SIPS)) then
       elsi_h%evec_real => e_vec_in
@@ -932,14 +942,14 @@ end subroutine
 !>
 !! This routine sets the complex eigenvectors.
 !!
-subroutine elsi_set_complex_eigenvector(elsi_h,e_vec_in)
+subroutine elsi_set_complex_evec(elsi_h,e_vec_in)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h                                    !< Handle
    complex(kind=r8),  target        :: e_vec_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Eigenvectors
 
-   character*40, parameter :: caller = "elsi_set_complex_eigenvector"
+   character*40, parameter :: caller = "elsi_set_complex_evec"
 
    if((elsi_h%solver == ELPA) .or. (elsi_h%solver == SIPS)) then
       elsi_h%evec_complex => e_vec_in
@@ -948,39 +958,77 @@ subroutine elsi_set_complex_eigenvector(elsi_h,e_vec_in)
 end subroutine
 
 !>
-!! This routine sets the density matrix.
+!! This routine sets the real density matrix.
 !!
-subroutine elsi_set_density_matrix(elsi_h,D_in)
+subroutine elsi_set_real_dm(elsi_h,D_in)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h                                !< Handle
    real(kind=r8),     target        :: D_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Density matrix
 
-   character*40, parameter :: caller = "elsi_set_density_matrix"
+   character*40, parameter :: caller = "elsi_set_real_dm"
 
    if(elsi_h%solver == ELPA) then
-      elsi_h%den_mat => D_in
+      elsi_h%dm_real => D_in
    elseif(elsi_h%solver == LIBOMM) then
-      call m_register_pdbc(elsi_h%den_mat_omm,D_in,elsi_h%sc_desc)
+      call m_register_pdbc(elsi_h%dm_omm,D_in,elsi_h%sc_desc)
    endif
 
 end subroutine
 
 !>
-!! This routine sets the sparse density matrix.
+!! This routine sets the complex density matrix.
 !!
-subroutine elsi_set_sparse_density_matrix(elsi_h,D_in)
+subroutine elsi_set_complex_dm(elsi_h,D_in)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h                                !< Handle
+   complex(kind=r8),  target        :: D_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Density matrix
+
+   character*40, parameter :: caller = "elsi_set_complex_dm"
+
+   if(elsi_h%solver == ELPA) then
+      elsi_h%dm_complex => D_in
+   elseif(elsi_h%solver == LIBOMM) then
+      call m_register_pdbc(elsi_h%dm_omm,D_in,elsi_h%sc_desc)
+   endif
+
+end subroutine
+
+!>
+!! This routine sets the sparse real density matrix.
+!!
+subroutine elsi_set_sparse_real_dm(elsi_h,D_in)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h                   !< Handle
    real(kind=r8),     target        :: D_in(elsi_h%nnz_l_pexsi) !< Density matrix
 
-   character*40, parameter :: caller = "elsi_set_sparse_density_matrix"
+   character*40, parameter :: caller = "elsi_set_sparse_real_dm"
 
    if(elsi_h%solver == PEXSI) then
-      elsi_h%den_mat_ccs => D_in
+      elsi_h%dm_real_ccs => D_in
+   endif
+
+end subroutine
+
+!>
+!! This routine sets the sparse complex density matrix.
+!!
+subroutine elsi_set_sparse_complex_dm(elsi_h,D_in)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h                   !< Handle
+   complex(kind=r8),  target        :: D_in(elsi_h%nnz_l_pexsi) !< Density matrix
+
+   character*40, parameter :: caller = "elsi_set_sparse_complex_dm"
+
+   if(elsi_h%solver == PEXSI) then
+      elsi_h%dm_complex_ccs => D_in
    endif
 
 end subroutine
@@ -1031,58 +1079,64 @@ subroutine elsi_cleanup(elsi_h)
    character*40, parameter :: caller = "elsi_cleanup"
 
    ! Nullify pointers
-   if(associated(elsi_h%ham_real))         nullify(elsi_h%ham_real)
-   if(associated(elsi_h%ham_complex))      nullify(elsi_h%ham_complex)
-   if(associated(elsi_h%ovlp_real))        nullify(elsi_h%ovlp_real)
-   if(associated(elsi_h%ovlp_complex))     nullify(elsi_h%ovlp_complex)
-   if(associated(elsi_h%evec_real))        nullify(elsi_h%evec_real)
-   if(associated(elsi_h%evec_complex))     nullify(elsi_h%evec_complex)
-   if(associated(elsi_h%eval))             nullify(elsi_h%eval)
-   if(associated(elsi_h%den_mat))          nullify(elsi_h%den_mat)
-   if(associated(elsi_h%ham_real_ccs))     nullify(elsi_h%ham_real_ccs)
-   if(associated(elsi_h%ham_complex_ccs))  nullify(elsi_h%ham_complex_ccs)
-   if(associated(elsi_h%ovlp_real_ccs))    nullify(elsi_h%ovlp_real_ccs)
-   if(associated(elsi_h%ovlp_complex_ccs)) nullify(elsi_h%ovlp_complex_ccs)
-   if(associated(elsi_h%den_mat_ccs))      nullify(elsi_h%den_mat_ccs)
-   if(associated(elsi_h%row_ind_ccs))      nullify(elsi_h%row_ind_ccs)
-   if(associated(elsi_h%col_ptr_ccs))      nullify(elsi_h%col_ptr_ccs)
+   if(associated(elsi_h%ham_real))          nullify(elsi_h%ham_real)
+   if(associated(elsi_h%ham_complex))       nullify(elsi_h%ham_complex)
+   if(associated(elsi_h%ovlp_real))         nullify(elsi_h%ovlp_real)
+   if(associated(elsi_h%ovlp_complex))      nullify(elsi_h%ovlp_complex)
+   if(associated(elsi_h%evec_real))         nullify(elsi_h%evec_real)
+   if(associated(elsi_h%evec_complex))      nullify(elsi_h%evec_complex)
+   if(associated(elsi_h%eval))              nullify(elsi_h%eval)
+   if(associated(elsi_h%dm_real))           nullify(elsi_h%dm_real)
+   if(associated(elsi_h%dm_complex))        nullify(elsi_h%dm_complex)
+   if(associated(elsi_h%ham_real_ccs))      nullify(elsi_h%ham_real_ccs)
+   if(associated(elsi_h%ham_complex_ccs))   nullify(elsi_h%ham_complex_ccs)
+   if(associated(elsi_h%ovlp_real_ccs))     nullify(elsi_h%ovlp_real_ccs)
+   if(associated(elsi_h%ovlp_complex_ccs))  nullify(elsi_h%ovlp_complex_ccs)
+   if(associated(elsi_h%dm_real_ccs))       nullify(elsi_h%dm_real_ccs)
+   if(associated(elsi_h%dm_complex_ccs))    nullify(elsi_h%dm_complex_ccs)
+   if(associated(elsi_h%row_ind_ccs))       nullify(elsi_h%row_ind_ccs)
+   if(associated(elsi_h%col_ptr_ccs))       nullify(elsi_h%col_ptr_ccs)
 
    ! ELPA
-   if(allocated(elsi_h%ham_real_elpa))     call elsi_deallocate(elsi_h,elsi_h%ham_real_elpa,"ham_real_elpa")
-   if(allocated(elsi_h%ham_complex_elpa))  call elsi_deallocate(elsi_h,elsi_h%ham_complex_elpa,"ham_complex_elpa")
-   if(allocated(elsi_h%ovlp_real_elpa))    call elsi_deallocate(elsi_h,elsi_h%ovlp_real_elpa,"ovlp_real_elpa")
-   if(allocated(elsi_h%ovlp_complex_elpa)) call elsi_deallocate(elsi_h,elsi_h%ovlp_complex_elpa,"ovlp_complex_elpa")
-   if(allocated(elsi_h%evec_real_elpa))    call elsi_deallocate(elsi_h,elsi_h%evec_real_elpa,"evec_real_elpa")
-   if(allocated(elsi_h%evec_complex_elpa)) call elsi_deallocate(elsi_h,elsi_h%evec_complex_elpa,"evec_real_elpa")
-   if(allocated(elsi_h%eval_elpa))         call elsi_deallocate(elsi_h,elsi_h%eval_elpa,"eval_elpa")
-   if(allocated(elsi_h%den_mat_elpa))      call elsi_deallocate(elsi_h,elsi_h%den_mat_elpa,"den_mat_elpa")
-   if(allocated(elsi_h%occ_num))           call elsi_deallocate(elsi_h,elsi_h%occ_num,"occ_num")
-   if(allocated(elsi_h%k_weight))          call elsi_deallocate(elsi_h,elsi_h%k_weight,"k_weight")
-   if(allocated(elsi_h%eval_all))          call elsi_deallocate(elsi_h,elsi_h%eval_all,"eval_all")
+   if(allocated(elsi_h%ham_real_elpa))      call elsi_deallocate(elsi_h,elsi_h%ham_real_elpa,"ham_real_elpa")
+   if(allocated(elsi_h%ham_complex_elpa))   call elsi_deallocate(elsi_h,elsi_h%ham_complex_elpa,"ham_complex_elpa")
+   if(allocated(elsi_h%ovlp_real_elpa))     call elsi_deallocate(elsi_h,elsi_h%ovlp_real_elpa,"ovlp_real_elpa")
+   if(allocated(elsi_h%ovlp_complex_elpa))  call elsi_deallocate(elsi_h,elsi_h%ovlp_complex_elpa,"ovlp_complex_elpa")
+   if(allocated(elsi_h%evec_real_elpa))     call elsi_deallocate(elsi_h,elsi_h%evec_real_elpa,"evec_real_elpa")
+   if(allocated(elsi_h%evec_complex_elpa))  call elsi_deallocate(elsi_h,elsi_h%evec_complex_elpa,"evec_real_elpa")
+   if(allocated(elsi_h%eval_elpa))          call elsi_deallocate(elsi_h,elsi_h%eval_elpa,"eval_elpa")
+   if(allocated(elsi_h%dm_real_elpa))       call elsi_deallocate(elsi_h,elsi_h%dm_real_elpa,"dm_real_elpa")
+   if(allocated(elsi_h%dm_complex_elpa))    call elsi_deallocate(elsi_h,elsi_h%dm_complex_elpa,"dm_complex_elpa")
+   if(allocated(elsi_h%occ_num))            call elsi_deallocate(elsi_h,elsi_h%occ_num,"occ_num")
+   if(allocated(elsi_h%k_weight))           call elsi_deallocate(elsi_h,elsi_h%k_weight,"k_weight")
+   if(allocated(elsi_h%eval_all))           call elsi_deallocate(elsi_h,elsi_h%eval_all,"eval_all")
 
    ! libOMM
-   if(elsi_h%ham_omm%is_initialized)       call m_deallocate(elsi_h%ham_omm)
-   if(elsi_h%ovlp_omm%is_initialized)      call m_deallocate(elsi_h%ovlp_omm)
-   if(elsi_h%den_mat_omm%is_initialized)   call m_deallocate(elsi_h%den_mat_omm)
-   if(elsi_h%coeff_omm%is_initialized)     call m_deallocate(elsi_h%coeff_omm)
-   if(elsi_h%t_den_mat_omm%is_initialized) call m_deallocate(elsi_h%t_den_mat_omm)
+   if(elsi_h%ham_omm%is_initialized)        call m_deallocate(elsi_h%ham_omm)
+   if(elsi_h%ovlp_omm%is_initialized)       call m_deallocate(elsi_h%ovlp_omm)
+   if(elsi_h%dm_omm%is_initialized)         call m_deallocate(elsi_h%dm_omm)
+   if(elsi_h%coeff_omm%is_initialized)      call m_deallocate(elsi_h%coeff_omm)
+   if(elsi_h%tdm_omm%is_initialized)        call m_deallocate(elsi_h%tdm_omm)
 
    ! PEXSI
-   if(allocated(elsi_h%ham_real_pexsi))    call elsi_deallocate(elsi_h,elsi_h%ham_real_pexsi,"ham_real_pexsi")
-   if(allocated(elsi_h%ovlp_real_pexsi))   call elsi_deallocate(elsi_h,elsi_h%ovlp_real_pexsi,"ovlp_real_pexsi")
-   if(allocated(elsi_h%den_mat_pexsi))     call elsi_deallocate(elsi_h,elsi_h%den_mat_pexsi,"den_mat_pexsi")
-   if(allocated(elsi_h%e_den_mat_pexsi))   call elsi_deallocate(elsi_h,elsi_h%e_den_mat_pexsi,"e_den_mat_pexsi")
-   if(allocated(elsi_h%f_den_mat_pexsi))   call elsi_deallocate(elsi_h,elsi_h%f_den_mat_pexsi,"f_den_mat_pexsi")
-   if(allocated(elsi_h%row_ind_pexsi))     call elsi_deallocate(elsi_h,elsi_h%row_ind_pexsi,"row_ind_pexsi")
-   if(allocated(elsi_h%col_ptr_pexsi))     call elsi_deallocate(elsi_h,elsi_h%col_ptr_pexsi,"col_ptr_pexsi")
+   if(allocated(elsi_h%ham_real_pexsi))     call elsi_deallocate(elsi_h,elsi_h%ham_real_pexsi,"ham_real_pexsi")
+   if(allocated(elsi_h%ham_complex_pexsi))  call elsi_deallocate(elsi_h,elsi_h%ham_real_pexsi,"ham_complex_pexsi")
+   if(allocated(elsi_h%ovlp_real_pexsi))    call elsi_deallocate(elsi_h,elsi_h%ovlp_real_pexsi,"ovlp_real_pexsi")
+   if(allocated(elsi_h%ovlp_complex_pexsi)) call elsi_deallocate(elsi_h,elsi_h%ovlp_real_pexsi,"ovlp_complex_pexsi")
+   if(allocated(elsi_h%dm_real_pexsi))      call elsi_deallocate(elsi_h,elsi_h%dm_real_pexsi,"dm_real_pexsi")
+   if(allocated(elsi_h%dm_complex_pexsi))   call elsi_deallocate(elsi_h,elsi_h%dm_real_pexsi,"dm_complex_pexsi")
+   if(allocated(elsi_h%edm_real_pexsi))     call elsi_deallocate(elsi_h,elsi_h%edm_real_pexsi,"edm_real_pexsi")
+   if(allocated(elsi_h%fdm_real_pexsi))     call elsi_deallocate(elsi_h,elsi_h%fdm_real_pexsi,"fdm_real_pexsi")
+   if(allocated(elsi_h%row_ind_pexsi))      call elsi_deallocate(elsi_h,elsi_h%row_ind_pexsi,"row_ind_pexsi")
+   if(allocated(elsi_h%col_ptr_pexsi))      call elsi_deallocate(elsi_h,elsi_h%col_ptr_pexsi,"col_ptr_pexsi")
 
    ! SIPs
-   if(allocated(elsi_h%inertias))          call elsi_deallocate(elsi_h,elsi_h%inertias,"nertias")
-   if(allocated(elsi_h%shifts))            call elsi_deallocate(elsi_h,elsi_h%shifts,"shifts")
-   if(allocated(elsi_h%slices))            call elsi_deallocate(elsi_h,elsi_h%slices,"slices")
+   if(allocated(elsi_h%inertias))           call elsi_deallocate(elsi_h,elsi_h%inertias,"nertias")
+   if(allocated(elsi_h%shifts))             call elsi_deallocate(elsi_h,elsi_h%shifts,"shifts")
+   if(allocated(elsi_h%slices))             call elsi_deallocate(elsi_h,elsi_h%slices,"slices")
 
-   if(allocated(elsi_h%local_row))         call elsi_deallocate(elsi_h,elsi_h%local_row,"local_row")
-   if(allocated(elsi_h%local_col))         call elsi_deallocate(elsi_h,elsi_h%local_col,"local_col")
+   if(allocated(elsi_h%local_row))          call elsi_deallocate(elsi_h,elsi_h%local_row,"local_row")
+   if(allocated(elsi_h%local_col))          call elsi_deallocate(elsi_h,elsi_h%local_col,"local_col")
 
    ! Finalize PEXSI plan
    if(elsi_h%pexsi_started) then

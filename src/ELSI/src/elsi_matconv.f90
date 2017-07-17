@@ -918,13 +918,13 @@ subroutine elsi_pexsi_to_blacs_dm_small(elsi_h,D_out)
          do i_val = 1,elsi_h%nnz_l_pexsi
             if(dest(i_val) == i_proc-1) then
                j_val = j_val+1
-               val_send_buffer(j_val) = elsi_h%den_mat_ccs(i_val)
+               val_send_buffer(j_val) = elsi_h%dm_real_ccs(i_val)
                pos_send_buffer(j_val) = global_id(i_val)
                send_count(i_proc) = send_count(i_proc)+1
             endif
             if(dest(i_val) == elsi_h%n_procs-i_proc) then
                k_val = k_val-1
-               val_send_buffer(k_val) = elsi_h%den_mat_ccs(i_val)
+               val_send_buffer(k_val) = elsi_h%dm_real_ccs(i_val)
                pos_send_buffer(k_val) = global_id(i_val)
                send_count(elsi_h%n_procs+1-i_proc) = &
                   send_count(elsi_h%n_procs+1-i_proc)+1
@@ -1089,14 +1089,14 @@ subroutine elsi_pexsi_to_blacs_dm_large(elsi_h,D_out)
          do i_val = 1,elsi_h%nnz_l_pexsi
             if(dest(i_val) == i_proc-1) then
                j_val = j_val+1
-               val_send_buffer(j_val) = elsi_h%den_mat_ccs(i_val)
+               val_send_buffer(j_val) = elsi_h%dm_real_ccs(i_val)
                row_send_buffer(j_val) = global_row_id(i_val)
                col_send_buffer(j_val) = global_col_id(i_val)
                send_count(i_proc) = send_count(i_proc)+1
             endif
             if(dest(i_val) == elsi_h%n_procs-i_proc) then
                k_val = k_val-1
-               val_send_buffer(k_val) = elsi_h%den_mat_ccs(i_val)
+               val_send_buffer(k_val) = elsi_h%dm_real_ccs(i_val)
                row_send_buffer(k_val) = global_row_id(i_val)
                col_send_buffer(k_val) = global_col_id(i_val)
                send_count(elsi_h%n_procs+1-i_proc) = &
@@ -2251,10 +2251,10 @@ subroutine elsi_blacs_to_pexsi_dm_small(elsi_h,D_out)
    call elsi_start_redistribution_time(elsi_h)
 
    if(elsi_h%solver == ELPA) then
-      call elsi_get_local_nnz(elsi_h,elsi_h%den_mat_elpa,elsi_h%n_l_rows,&
+      call elsi_get_local_nnz(elsi_h,elsi_h%dm_real_elpa,elsi_h%n_l_rows,&
               elsi_h%n_l_cols,elsi_h%nnz_l)
    elseif(elsi_h%solver == LIBOMM) then
-      call elsi_get_local_nnz(elsi_h,elsi_h%den_mat_omm%dval,elsi_h%n_l_rows,&
+      call elsi_get_local_nnz(elsi_h,elsi_h%dm_omm%dval,elsi_h%n_l_rows,&
               elsi_h%n_l_cols,elsi_h%nnz_l)
    endif
 
@@ -2267,7 +2267,7 @@ subroutine elsi_blacs_to_pexsi_dm_small(elsi_h,D_out)
       i_val = 0
       do i_col = 1,elsi_h%n_l_cols
          do i_row = 1,elsi_h%n_l_rows
-            if(abs(elsi_h%den_mat_elpa(i_row,i_col)) > elsi_h%zero_threshold) then
+            if(abs(elsi_h%dm_real_elpa(i_row,i_col)) > elsi_h%zero_threshold) then
                i_val = i_val+1
                call elsi_get_global_col(elsi_h,global_col_id,i_col)
                call elsi_get_global_row(elsi_h,global_row_id,i_row)
@@ -2278,7 +2278,7 @@ subroutine elsi_blacs_to_pexsi_dm_small(elsi_h,D_out)
                ! Compute the global id
                ! Pack global id and data into buffers
                pos_send_buffer(i_val) = (global_col_id-1)*elsi_h%n_basis+global_row_id
-               val_send_buffer(i_val) = elsi_h%den_mat_elpa(i_row,i_col)
+               val_send_buffer(i_val) = elsi_h%dm_real_elpa(i_row,i_col)
                ! Set send_count
                send_count(dest+1) = send_count(dest+1)+1
             endif
@@ -2288,7 +2288,7 @@ subroutine elsi_blacs_to_pexsi_dm_small(elsi_h,D_out)
       i_val = 0
       do i_col = 1,elsi_h%n_l_cols
          do i_row = 1,elsi_h%n_l_rows
-            if(abs(elsi_h%den_mat_omm%dval(i_row,i_col)) > elsi_h%zero_threshold) then
+            if(abs(elsi_h%dm_omm%dval(i_row,i_col)) > elsi_h%zero_threshold) then
                i_val = i_val+1
                call elsi_get_global_col(elsi_h,global_col_id,i_col)
                call elsi_get_global_row(elsi_h,global_row_id,i_row)
@@ -2299,7 +2299,7 @@ subroutine elsi_blacs_to_pexsi_dm_small(elsi_h,D_out)
                ! Compute the global id
                ! Pack global id and data into buffers
                pos_send_buffer(i_val) = (global_col_id-1)*elsi_h%n_basis+global_row_id
-               val_send_buffer(i_val) = elsi_h%den_mat_omm%dval(i_row,i_col)
+               val_send_buffer(i_val) = elsi_h%dm_omm%dval(i_row,i_col)
                ! Set send_count
                send_count(dest+1) = send_count(dest+1)+1
             endif
@@ -2428,10 +2428,10 @@ subroutine elsi_blacs_to_pexsi_dm_large(elsi_h,D_out)
    call elsi_start_redistribution_time(elsi_h)
 
    if(elsi_h%solver == ELPA) then
-      call elsi_get_local_nnz(elsi_h,elsi_h%den_mat_elpa,elsi_h%n_l_rows,&
+      call elsi_get_local_nnz(elsi_h,elsi_h%dm_real_elpa,elsi_h%n_l_rows,&
               elsi_h%n_l_cols,elsi_h%nnz_l)
    elseif(elsi_h%solver == LIBOMM) then
-      call elsi_get_local_nnz(elsi_h,elsi_h%den_mat_omm%dval,elsi_h%n_l_rows,&
+      call elsi_get_local_nnz(elsi_h,elsi_h%dm_omm%dval,elsi_h%n_l_rows,&
               elsi_h%n_l_cols,elsi_h%nnz_l)
    endif
 
@@ -2445,7 +2445,7 @@ subroutine elsi_blacs_to_pexsi_dm_large(elsi_h,D_out)
       i_val = 0
       do i_col = 1,elsi_h%n_l_cols
          do i_row = 1,elsi_h%n_l_rows
-            if(abs(elsi_h%den_mat_elpa(i_row,i_col)) > elsi_h%zero_threshold) then
+            if(abs(elsi_h%dm_real_elpa(i_row,i_col)) > elsi_h%zero_threshold) then
                i_val = i_val+1
                ! Compute global id
                call elsi_get_global_col(elsi_h,col_send_buffer(i_val),i_col)
@@ -2455,7 +2455,7 @@ subroutine elsi_blacs_to_pexsi_dm_large(elsi_h,D_out)
                ! The last process may take more
                dest = min(dest,elsi_h%n_procs-1)
                ! Pack data
-               val_send_buffer(i_val) = elsi_h%den_mat_elpa(i_row,i_col)
+               val_send_buffer(i_val) = elsi_h%dm_real_elpa(i_row,i_col)
                ! Set send_count
                send_count(dest+1) = send_count(dest+1)+1
             endif
@@ -2465,7 +2465,7 @@ subroutine elsi_blacs_to_pexsi_dm_large(elsi_h,D_out)
       i_val = 0
       do i_col = 1,elsi_h%n_l_cols
          do i_row = 1,elsi_h%n_l_rows
-            if(abs(elsi_h%den_mat_omm%dval(i_row,i_col)) > elsi_h%zero_threshold) then
+            if(abs(elsi_h%dm_omm%dval(i_row,i_col)) > elsi_h%zero_threshold) then
                i_val = i_val+1
                ! Compute global id
                call elsi_get_global_col(elsi_h,col_send_buffer(i_val),i_col)
@@ -2475,7 +2475,7 @@ subroutine elsi_blacs_to_pexsi_dm_large(elsi_h,D_out)
                ! The last process may take more
                dest = min(dest,elsi_h%n_procs-1)
                ! Pack data
-               val_send_buffer(i_val) = elsi_h%den_mat_omm%dval(i_row,i_col)
+               val_send_buffer(i_val) = elsi_h%dm_omm%dval(i_row,i_col)
                ! Set send_count
                send_count(dest+1) = send_count(dest+1)+1
             endif

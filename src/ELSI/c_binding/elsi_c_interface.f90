@@ -435,7 +435,7 @@ subroutine elsi_dm_complex_c_wrapper(handle_c,H,S,D,energy,&
    type(c_ptr),         value     :: handle_c
    complex(kind=c_double_complex) :: H(n_l_rows_c,n_l_cols_c)
    complex(kind=c_double_complex) :: S(n_l_rows_c,n_l_cols_c)
-   real(kind=c_double)            :: D(n_l_rows_c,n_l_cols_c)
+   complex(kind=c_double_complex) :: D(n_l_rows_c,n_l_cols_c)
    real(kind=c_double)            :: energy
    integer(kind=c_int), value     :: i_spin
    integer(kind=c_int), value     :: i_kpt
@@ -1029,8 +1029,8 @@ subroutine elsi_get_mu_c_wrapper(handle_c,mu)&
 
 end subroutine
 
-subroutine elsi_get_edm_c_wrapper(handle_c,edm)&
-   bind(C,name="c_elsi_get_edm")
+subroutine elsi_get_edm_real_c_wrapper(handle_c,edm)&
+   bind(C,name="c_elsi_get_edm_real")
 
    implicit none
 
@@ -1041,7 +1041,7 @@ subroutine elsi_get_edm_c_wrapper(handle_c,edm)&
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_get_edm(handle_f,edm)
+   call elsi_get_edm_real(handle_f,edm)
 
 end subroutine
 
