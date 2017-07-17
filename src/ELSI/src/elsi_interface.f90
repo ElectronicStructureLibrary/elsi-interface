@@ -353,7 +353,8 @@ subroutine elsi_get_energy(elsi_h,energy)
          do i_spin = 1,elsi_h%n_spins
             do i_state = 1,elsi_h%n_states
                energy = energy+elsi_h%eval_all(i_state,i_spin,i_kpt)*&
-                           elsi_h%occ_num(i_state,i_spin,i_kpt)
+                           elsi_h%occ_num(i_state,i_spin,i_kpt)*&
+                           elsi_h%k_weight(i_kpt)
             enddo
          enddo
       enddo
@@ -1867,7 +1868,7 @@ subroutine elsi_dm_real(elsi_h,H_in,S_in,D_out,energy_out,&
       call elsi_solve_evp_elpa(elsi_h)
 
       ! Compute density matrix
-      call elsi_compute_mu_and_occ(elsi_h)
+      call elsi_compute_occ_elpa(elsi_h)
       call elsi_compute_dm_elpa(elsi_h)
       call elsi_get_energy(elsi_h,energy_out)
 
@@ -1908,7 +1909,7 @@ subroutine elsi_dm_real(elsi_h,H_in,S_in,D_out,energy_out,&
          call elsi_solve_evp_elpa(elsi_h)
 
          ! Compute density matrix
-         call elsi_compute_mu_and_occ(elsi_h)
+         call elsi_compute_occ_elpa(elsi_h)
          call elsi_compute_dm_elpa(elsi_h)
          call elsi_get_energy(elsi_h,energy_out)
 
@@ -2065,9 +2066,11 @@ subroutine elsi_dm_complex(elsi_h,H_in,S_in,D_out,energy_out,&
       call elsi_solve_evp_elpa(elsi_h)
 
       ! Compute density matrix
-      call elsi_compute_mu_and_occ(elsi_h)
+      call elsi_compute_occ_elpa(elsi_h)
       call elsi_compute_dm_elpa(elsi_h)
       call elsi_get_energy(elsi_h,energy_out)
+
+      elsi_h%mu_ready = .true.
 
    case(LIBOMM)
       call elsi_print_omm_options(elsi_h)
@@ -2169,7 +2172,7 @@ subroutine elsi_dm_real_sparse(elsi_h,H_in,S_in,D_out,energy_out,&
       call elsi_solve_evp_elpa(elsi_h)
 
       ! Compute density matrix
-      call elsi_compute_mu_and_occ(elsi_h)
+      call elsi_compute_occ_elpa(elsi_h)
       call elsi_compute_dm_elpa(elsi_h)
       call elsi_blacs_to_pexsi_dm(elsi_h,D_out)
       call elsi_get_energy(elsi_h,energy_out)
@@ -2218,7 +2221,7 @@ subroutine elsi_dm_real_sparse(elsi_h,H_in,S_in,D_out,energy_out,&
          call elsi_solve_evp_elpa(elsi_h)
 
          ! Compute density matrix
-         call elsi_compute_mu_and_occ(elsi_h)
+         call elsi_compute_occ_elpa(elsi_h)
          call elsi_compute_dm_elpa(elsi_h)
          call elsi_blacs_to_pexsi_dm(elsi_h,D_out)
          call elsi_get_energy(elsi_h,energy_out)
