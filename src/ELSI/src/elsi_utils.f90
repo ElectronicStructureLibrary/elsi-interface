@@ -1056,7 +1056,9 @@ subroutine elsi_cleanup(elsi_h)
    if(allocated(elsi_h%evec_complex_elpa)) call elsi_deallocate(elsi_h,elsi_h%evec_complex_elpa,"evec_real_elpa")
    if(allocated(elsi_h%eval_elpa))         call elsi_deallocate(elsi_h,elsi_h%eval_elpa,"eval_elpa")
    if(allocated(elsi_h%den_mat_elpa))      call elsi_deallocate(elsi_h,elsi_h%den_mat_elpa,"den_mat_elpa")
-   if(allocated(elsi_h%occ_elpa))          call elsi_deallocate(elsi_h,elsi_h%occ_elpa,"occ_elpa")
+   if(allocated(elsi_h%occ_num))           call elsi_deallocate(elsi_h,elsi_h%occ_num,"occ_num")
+   if(allocated(elsi_h%k_weight))          call elsi_deallocate(elsi_h,elsi_h%k_weight,"k_weight")
+   if(allocated(elsi_h%eval_all))          call elsi_deallocate(elsi_h,elsi_h%eval_all,"eval_all")
 
    ! libOMM
    if(elsi_h%ham_omm%is_initialized)       call m_deallocate(elsi_h%ham_omm)
@@ -1118,6 +1120,9 @@ subroutine elsi_reset_handle(elsi_h)
    elsi_h%n_basis               = UNSET
    elsi_h%n_spins               = UNSET
    elsi_h%n_kpts                = UNSET
+   elsi_h%i_spin                = 1
+   elsi_h%i_kpt                 = 1
+   elsi_h%i_weight              = 1.0_r8
    elsi_h%n_b_rows              = UNSET
    elsi_h%n_b_cols              = UNSET
    elsi_h%n_p_rows              = UNSET

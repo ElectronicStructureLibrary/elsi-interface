@@ -70,7 +70,9 @@ module ELSI_DIMENSIONS
       real(kind=r8),    allocatable :: evec_real_elpa(:,:)    ! Real eigenvectors
       complex(kind=r8), allocatable :: evec_complex_elpa(:,:) ! Complex eigenvectors
       real(kind=r8),    allocatable :: den_mat_elpa(:,:)      ! Density matrix
-      real(kind=r8),    allocatable :: occ_elpa(:)            ! Occupation numbers
+      real(kind=r8),    allocatable :: occ_num(:,:,:)         ! Occupation numbers
+      real(kind=r8),    allocatable :: eval_all(:,:,:)        ! Eigenvalues
+      real(kind=r8),    allocatable :: k_weight(:)            ! K-point weights
       integer(kind=i4), allocatable :: local_row(:)
       integer(kind=i4), allocatable :: local_col(:)
 
@@ -178,6 +180,9 @@ module ELSI_DIMENSIONS
       integer(kind=i4) :: n_kpts = 1                ! Number of k-points
       integer(kind=i4) :: n_states = UNSET          ! Number of total states
       integer(kind=i4) :: n_occupied_states = UNSET ! Number of occupied states
+      integer(kind=i4) :: i_spin = 1                ! Spin index
+      integer(kind=i4) :: i_kpt = 1                 ! K-point index
+      real(kind=r8) :: i_weight = 1.0_r8            ! Weight
       real(kind=r8) :: energy_hdm = 0.0_r8
       real(kind=r8) :: energy_sedm = 0.0_r8
       real(kind=r8) :: free_energy = 0.0_r8

@@ -51,6 +51,7 @@ void main(int argc, char** argv) {
    int i;
 
    double n_electrons;
+   double weight;
    double double_one,double_zero;
    double *h,*h_tmp,*s,*eval,*evec;
 
@@ -77,6 +78,7 @@ void main(int argc, char** argv) {
    parallel    = 1; // MULTI_PROC
    i_spin      = 1;
    i_kpt       = 1;
+   weight      = 1.0;
    int_one     = 1;
    int_zero    = 0;
    double_one  = 1.0;
@@ -140,7 +142,7 @@ void main(int argc, char** argv) {
    c_elsi_set_unit_ovlp(elsi_h,no_s);
 
    // Call ELSI eigensolver
-   c_elsi_ev_real(elsi_h,i_spin,i_kpt,h,s,eval,evec);
+   c_elsi_ev_real(elsi_h,h,s,eval,evec,i_spin,i_kpt,weight);
 
    // Finalize ELSI
    c_elsi_finalize(elsi_h);

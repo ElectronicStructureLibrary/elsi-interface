@@ -186,7 +186,7 @@ program test_generalized_ev_real
    
    t1 = MPI_Wtime()
 
-   call elsi_ev_real(elsi_h,1,1,H%dval,S%dval,e_val,e_vec%dval)
+   call elsi_ev_real(elsi_h,H%dval,S%dval,e_val,e_vec%dval,1,1,1.0_r8)
 
    t2 = MPI_Wtime()
 

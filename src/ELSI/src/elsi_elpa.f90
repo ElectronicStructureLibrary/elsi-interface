@@ -46,7 +46,6 @@ module ELSI_ELPA
    private
 
    public :: elsi_get_elpa_comms
-   public :: elsi_compute_occ_elpa
    public :: elsi_compute_dm_elpa
    public :: elsi_compute_edm_elpa
    public :: elsi_solve_evp_elpa
@@ -74,43 +73,6 @@ subroutine elsi_get_elpa_comms(elsi_h)
 end subroutine
 
 !>
-!! This routine computes the chemical potential and occupation numbers.
-!!
-subroutine elsi_compute_occ_elpa(elsi_h)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: elsi_h !< Handle
-
-   real(kind=r8)              :: k_weights(1) ! Dummy weights of k-points
-   real(kind=r8), allocatable :: eval_aux(:,:,:)
-   real(kind=r8), allocatable :: occ_aux(:,:,:)
-
-   character*40, parameter :: caller = "elsi_compute_occ_elpa"
-
-   k_weights(1) = 1.0_r8
-
-   if(.not. allocated(elsi_h%occ_elpa)) then
-       call elsi_allocate(elsi_h,elsi_h%occ_elpa,elsi_h%n_states,"occ_elpa",caller)
-   endif
-
-   call elsi_allocate(elsi_h,eval_aux,elsi_h%n_states,1,1,"eval_aux",caller)
-   call elsi_allocate(elsi_h,occ_aux,elsi_h%n_states,1,1,"occ_aux",caller)
-
-   eval_aux(1:elsi_h%n_states,1,1) = elsi_h%eval(1:elsi_h%n_states)
-   occ_aux = 0.0_r8
-
-   call elsi_compute_mu_and_occ(elsi_h,elsi_h%n_electrons,elsi_h%n_states,&
-           elsi_h%n_spins,elsi_h%n_kpts,k_weights,eval_aux,occ_aux,elsi_h%mu)
-
-   elsi_h%occ_elpa(:) = occ_aux(:,1,1)
-
-   call elsi_deallocate(elsi_h,eval_aux,"eval_aux")
-   call elsi_deallocate(elsi_h,occ_aux,"occ_aux")
-
-end subroutine
-
-!>
 !! This routine constructs the density matrix.
 !!
 subroutine elsi_compute_dm_elpa(elsi_h)
@@ -122,7 +84,10 @@ subroutine elsi_compute_dm_elpa(elsi_h)
    real(kind=r8),    allocatable :: tmp_real(:,:)
    complex(kind=r8), allocatable :: tmp_complex(:,:)
    real(kind=r8),    allocatable :: factor(:)
-   integer(kind=i4)              :: i,i_col,i_row,max_state
+   integer(kind=i4)              :: i
+   integer(kind=i4)              :: i_col
+   integer(kind=i4)              :: i_row
+   integer(kind=i4)              :: max_state
 
    character*40, parameter :: caller = "elsi_compute_dm_elpa"
 
@@ -134,8 +99,8 @@ subroutine elsi_compute_dm_elpa(elsi_h)
    max_state = 0
 
    do i = 1,elsi_h%n_states
-      if(elsi_h%occ_elpa(i) > 0.0_r8) then
-         factor(i) = sqrt(elsi_h%occ_elpa(i))
+      if(elsi_h%occ_num(i,elsi_h%i_spin,elsi_h%i_kpt) > 0.0_r8) then
+         factor(i) = sqrt(elsi_h%occ_num(i,elsi_h%i_spin,elsi_h%i_kpt))
          max_state = i
       endif
    enddo
@@ -226,7 +191,10 @@ subroutine elsi_compute_edm_elpa(elsi_h)
    real(kind=r8),    allocatable :: tmp_real(:,:)
    complex(kind=r8), allocatable :: tmp_complex(:,:)
    real(kind=r8),    allocatable :: factor(:)
-   integer(kind=i4)              :: i,i_col,i_row,max_state
+   integer(kind=i4)              :: i
+   integer(kind=i4)              :: i_col
+   integer(kind=i4)              :: i_row
+   integer(kind=i4)              :: max_state
 
    character*40, parameter :: caller = "elsi_compute_edm_elpa"
 
@@ -235,7 +203,8 @@ subroutine elsi_compute_edm_elpa(elsi_h)
    max_state = 0
 
    do i = 1,elsi_h%n_states
-      factor(i) = -1.0_r8*elsi_h%occ_elpa(i)*elsi_h%eval(i)
+      factor(i) = -1.0_r8*elsi_h%occ_num(i,elsi_h%i_spin,elsi_h%i_kpt)*&
+                     elsi_h%eval(i)
       if(factor(i) > 0.0_r8) then
          factor(i) = sqrt(factor(i))
          max_state = i

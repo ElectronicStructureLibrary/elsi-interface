@@ -339,22 +339,31 @@ subroutine elsi_get_energy(elsi_h,energy)
    real(kind=r8),     intent(out)   :: energy !< Energy of the system
 
    integer(kind=i4) :: i_state
+   integer(kind=i4) :: i_spin
+   integer(kind=i4) :: i_kpt
    character*200    :: info_str
 
    character*40,  parameter :: caller = "elsi_get_energy"
 
-   call elsi_check_handle(elsi_h,caller)
-
    select case(elsi_h%solver)
    case(ELPA)
       energy = 0.0_r8
-      do i_state =1,elsi_h%n_states
-         energy = energy+elsi_h%occ_elpa(i_state)*elsi_h%eval(i_state)
+
+      do i_kpt = 1,elsi_h%n_kpts
+         do i_spin = 1,elsi_h%n_spins
+            do i_state = 1,elsi_h%n_states
+               energy = energy+elsi_h%eval_all(i_state,i_spin,i_kpt)*&
+                           elsi_h%occ_num(i_state,i_spin,i_kpt)
+            enddo
+         enddo
       enddo
+
    case(LIBOMM)
       energy = 2.0_r8*elsi_h%energy_hdm
+      ! TODO: MPI_Allreduce
    case(PEXSI)
       energy = elsi_h%energy_hdm
+      ! TODO: MPI_Allreduce
    case(CHESS)
       call elsi_stop(" CHESS not yet implemented. Exiting...",elsi_h,caller)
    case(SIPS)
@@ -1546,12 +1555,10 @@ subroutine elsi_get_edm(elsi_h,D_out)
       select case(elsi_h%solver)
       case(ELPA)
          call elsi_set_density_matrix(elsi_h,D_out)
-
          call elsi_compute_edm_elpa(elsi_h)
 
       case(LIBOMM)
          call elsi_set_density_matrix(elsi_h,D_out)
-
          call elsi_compute_edm_omm(elsi_h)
 
          elsi_h%den_mat_omm%dval = 2.0_r8*elsi_h%den_mat_omm%dval
@@ -1574,29 +1581,8 @@ subroutine elsi_get_edm(elsi_h,D_out)
       ! COMPLEX case
       elsi_h%matrix_data_type = COMPLEX_VALUES
 
-      select case(elsi_h%solver)
-      case(ELPA)
-         call elsi_set_density_matrix(elsi_h,D_out)
-
-         call elsi_compute_edm_elpa(elsi_h)
-
-      case(LIBOMM)
-         call elsi_set_density_matrix(elsi_h,D_out)
-
-         call elsi_compute_edm_omm(elsi_h)
-
-         elsi_h%den_mat_omm%zval = 2.0_r8*elsi_h%den_mat_omm%zval
-
-      case(PEXSI)
-         call elsi_stop(" PEXSI not yet implemented. Exiting...",elsi_h,caller)
-      case(CHESS)
-         call elsi_stop(" CHESS not yet implemented. Exiting...",elsi_h,caller)
-      case(SIPS)
-         call elsi_stop(" SIPS not yet implemented. Exiting...",elsi_h,caller)
-      case default
-         call elsi_stop(" No supported solver has been chosen."//&
-                 " Exiting...",elsi_h,caller)
-      end select
+      call elsi_stop(" Energy weighted density matrix has not been."//&
+              " computed. Exiting...",elsi_h,caller)
 
    else
       call elsi_stop(" Energy weighted density matrix has not been."//&
@@ -1612,17 +1598,19 @@ end subroutine
 !>
 !! This routine computes the eigenvalues and eigenvectors.
 !!
-subroutine elsi_ev_real(elsi_h,i_spin,i_kpt,H_in,S_in,e_val_out,e_vec_out)
+subroutine elsi_ev_real(elsi_h,H_in,S_in,e_val_out,e_vec_out,&
+              i_spin,i_kpt,weight)
 
    implicit none
 
    type(elsi_handle)            :: elsi_h                                     !< Handle
-   integer(kind=i4), intent(in) :: i_spin                                     !< Spin index
-   integer(kind=i4), intent(in) :: i_kpt                                      !< K-point index
    real(kind=r8)                :: H_in(elsi_h%n_l_rows,elsi_h%n_l_cols)      !< Hamiltonian
    real(kind=r8)                :: S_in(elsi_h%n_l_rows,elsi_h%n_l_cols)      !< Overlap
    real(kind=r8)                :: e_val_out(elsi_h%n_basis)                  !< Eigenvalues
    real(kind=r8)                :: e_vec_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Eigenvectors
+   integer(kind=i4), intent(in) :: i_spin                                     !< Spin index
+   integer(kind=i4), intent(in) :: i_kpt                                      !< K-point index
+   real(kind=r8),    intent(in) :: weight                                     !< Weight
 
    character*40, parameter :: caller = "elsi_ev_real"
 
@@ -1654,13 +1642,13 @@ subroutine elsi_ev_real(elsi_h,i_spin,i_kpt,H_in,S_in,e_val_out,e_vec_out)
 
    case(LIBOMM)
       call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
-              " Choose ELPA if necessary. Exiting...",elsi_h,caller)
+              " Choose ELPA if needed. Exiting...",elsi_h,caller)
    case(PEXSI)
       call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
-              " Choose ELPA if necessary. Exiting...",elsi_h,caller)
+              " Choose ELPA if needed. Exiting...",elsi_h,caller)
    case(CHESS)
       call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
-              " Choose ELPA if necessary. Exiting...",elsi_h,caller)
+              " Choose ELPA if needed. Exiting...",elsi_h,caller)
    case(SIPS)
       call elsi_print_sips_options(elsi_h)
 
@@ -1686,8 +1674,7 @@ subroutine elsi_ev_real(elsi_h,i_spin,i_kpt,H_in,S_in,e_val_out,e_vec_out)
 
    case default
       call elsi_stop(" No supported solver has been chosen."//&
-              " Please choose ELPA solver to compute"//&
-              " eigenvalues and eigenvectors. Exiting...",elsi_h,caller)
+              " Exiting...",elsi_h,caller)
    end select
 
    elsi_h%matrix_data_type = UNSET
@@ -1697,17 +1684,19 @@ end subroutine
 !>
 !! This routine computes the eigenvalues and eigenvectors.
 !!
-subroutine elsi_ev_complex(elsi_h,i_spin,i_kpt,H_in,S_in,e_val_out,e_vec_out)
+subroutine elsi_ev_complex(elsi_h,H_in,S_in,e_val_out,e_vec_out,&
+              i_spin,i_kpt,weight)
 
    implicit none
 
    type(elsi_handle)            :: elsi_h                                     !< Handle
-   integer(kind=i4), intent(in) :: i_spin                                     !< Spin index
-   integer(kind=i4), intent(in) :: i_kpt                                      !< K-point index
    complex(kind=r8)             :: H_in(elsi_h%n_l_rows,elsi_h%n_l_cols)      !< Hamiltonian
    complex(kind=r8)             :: S_in(elsi_h%n_l_rows,elsi_h%n_l_cols)      !< Overlap
    real(kind=r8)                :: e_val_out(elsi_h%n_basis)                  !< Eigenvalues
    complex(kind=r8)             :: e_vec_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Eigenvectors
+   integer(kind=i4), intent(in) :: i_spin                                     !< Spin index
+   integer(kind=i4), intent(in) :: i_kpt                                      !< K-point index
+   real(kind=r8),    intent(in) :: weight                                     !< Weight
 
    character*40, parameter :: caller = "elsi_ev_complex"
 
@@ -1739,19 +1728,18 @@ subroutine elsi_ev_complex(elsi_h,i_spin,i_kpt,H_in,S_in,e_val_out,e_vec_out)
 
    case(LIBOMM)
       call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
-              " Choose ELPA if necessary. Exiting...",elsi_h,caller)
+              " Choose ELPA if needed. Exiting...",elsi_h,caller)
    case(PEXSI)
       call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
-              " Choose ELPA if necessary. Exiting...",elsi_h,caller)
+              " Choose ELPA if needed. Exiting...",elsi_h,caller)
    case(CHESS)
       call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
-              " Choose ELPA if necessary. Exiting...",elsi_h,caller)
+              " Choose ELPA if needed. Exiting...",elsi_h,caller)
    case(SIPS)
       call elsi_stop(" SIPS not yet implemented. Exiting...",elsi_h,caller)
    case default
       call elsi_stop(" No supported solver has been chosen."//&
-              " Please choose ELPA solver to compute"//&
-              " eigenvalues and eigenvectors. Exiting...",elsi_h,caller)
+              " Exiting...",elsi_h,caller)
    end select
 
    elsi_h%matrix_data_type = UNSET
@@ -1761,17 +1749,19 @@ end subroutine
 !>
 !! This routine computes the eigenvalues and eigenvectors.
 !!
-subroutine elsi_ev_real_sparse(elsi_h,i_spin,i_kpt,H_in,S_in,e_val_out,e_vec_out)
+subroutine elsi_ev_real_sparse(elsi_h,H_in,S_in,e_val_out,e_vec_out,&
+              i_spin,i_kpt,weight)
 
    implicit none
 
    type(elsi_handle)            :: elsi_h                                     !< Handle
-   integer(kind=i4), intent(in) :: i_spin                                     !< Spin index
-   integer(kind=i4), intent(in) :: i_kpt                                      !< K-point index
    real(kind=r8)                :: H_in(elsi_h%nnz_l_pexsi)                   !< Hamiltonian
    real(kind=r8)                :: S_in(elsi_h%nnz_l_pexsi)                   !< Overlap
    real(kind=r8)                :: e_val_out(elsi_h%n_basis)                  !< Eigenvalues
    real(kind=r8)                :: e_vec_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Eigenvectors
+   integer(kind=i4), intent(in) :: i_spin                                     !< Spin index
+   integer(kind=i4), intent(in) :: i_kpt                                      !< K-point index
+   real(kind=r8),    intent(in) :: weight                                     !< Weight
 
    character*40, parameter :: caller = "elsi_ev_real_sparse"
 
@@ -1802,20 +1792,18 @@ subroutine elsi_ev_real_sparse(elsi_h,i_spin,i_kpt,H_in,S_in,e_val_out,e_vec_out
 
    case(LIBOMM)
       call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
-              " Choose ELPA if necessary. Exiting...",elsi_h,caller)
+              " Choose ELPA if needed. Exiting...",elsi_h,caller)
    case(PEXSI)
       call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
-              " Choose ELPA if necessary. Exiting...",elsi_h,caller)
+              " Choose ELPA if needed. Exiting...",elsi_h,caller)
    case(CHESS)
       call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
-              " Choose ELPA if necessary. Exiting...",elsi_h,caller)
+              " Choose ELPA if needed. Exiting...",elsi_h,caller)
    case(SIPS)
-      call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
-              " Choose ELPA if necessary. Exiting...",elsi_h,caller)
+      call elsi_stop(" SIPS not yet implemented. Exiting...",elsi_h,caller)
    case default
       call elsi_stop(" No supported solver has been chosen."//&
-              " Please choose ELPA solver to compute"//&
-              " eigenvalues and eigenvectors. Exiting...",elsi_h,caller)
+              " Exiting...",elsi_h,caller)
    end select
 
    elsi_h%matrix_data_type = UNSET
@@ -1825,21 +1813,28 @@ end subroutine
 !>
 !! This routine computes the density matrix.
 !!
-subroutine elsi_dm_real(elsi_h,i_spin,i_kpt,H_in,S_in,D_out,energy_out)
+subroutine elsi_dm_real(elsi_h,H_in,S_in,D_out,energy_out,&
+              i_spin,i_kpt,weight)
 
    implicit none
 
    type(elsi_handle)            :: elsi_h                                 !< Handle
-   integer(kind=i4), intent(in) :: i_spin                                 !< Spin index
-   integer(kind=i4), intent(in) :: i_kpt                                  !< K-point index
    real(kind=r8)                :: H_in(elsi_h%n_l_rows,elsi_h%n_l_cols)  !< Hamiltonian
    real(kind=r8)                :: S_in(elsi_h%n_l_rows,elsi_h%n_l_cols)  !< Overlap
    real(kind=r8)                :: D_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Density matrix
    real(kind=r8)                :: energy_out                             !< Energy
+   integer(kind=i4), intent(in) :: i_spin                                 !< Spin index
+   integer(kind=i4), intent(in) :: i_kpt                                  !< K-point index
+   real(kind=r8),    intent(in) :: weight                                 !< Weight
 
    character*40, parameter :: caller = "elsi_dm_real"
 
    call elsi_check_handle(elsi_h,caller)
+
+   ! Info of this task
+   elsi_h%i_spin = i_spin
+   elsi_h%i_kpt = i_kpt
+   elsi_h%i_weight = weight
 
    ! Update counter
    elsi_h%n_elsi_calls = elsi_h%n_elsi_calls+1
@@ -1872,7 +1867,7 @@ subroutine elsi_dm_real(elsi_h,i_spin,i_kpt,H_in,S_in,D_out,energy_out)
       call elsi_solve_evp_elpa(elsi_h)
 
       ! Compute density matrix
-      call elsi_compute_occ_elpa(elsi_h)
+      call elsi_compute_mu_and_occ(elsi_h)
       call elsi_compute_dm_elpa(elsi_h)
       call elsi_get_energy(elsi_h,energy_out)
 
@@ -1913,7 +1908,7 @@ subroutine elsi_dm_real(elsi_h,i_spin,i_kpt,H_in,S_in,D_out,energy_out)
          call elsi_solve_evp_elpa(elsi_h)
 
          ! Compute density matrix
-         call elsi_compute_occ_elpa(elsi_h)
+         call elsi_compute_mu_and_occ(elsi_h)
          call elsi_compute_dm_elpa(elsi_h)
          call elsi_get_energy(elsi_h,energy_out)
 
@@ -1957,7 +1952,7 @@ subroutine elsi_dm_real(elsi_h,i_spin,i_kpt,H_in,S_in,D_out,energy_out)
             if(associated(elsi_h%eval))          nullify(elsi_h%eval)
             if(allocated(elsi_h%evec_real_elpa)) call elsi_deallocate(elsi_h,elsi_h%evec_real_elpa,"evec_real_elpa")
             if(allocated(elsi_h%eval_elpa))      call elsi_deallocate(elsi_h,elsi_h%eval_elpa,"eval_elpa")
-            if(allocated(elsi_h%occ_elpa))       call elsi_deallocate(elsi_h,elsi_h%occ_elpa,"occ_elpa")
+            if(allocated(elsi_h%occ_num))        call elsi_deallocate(elsi_h,elsi_h%occ_num,"occ_num")
          endif
 
          ! Solve
@@ -2016,24 +2011,28 @@ end subroutine
 !>
 !! This routine computes the density matrix.
 !!
-subroutine elsi_dm_complex(elsi_h,i_spin,i_kpt,H_in,S_in,D_out,energy_out)
+subroutine elsi_dm_complex(elsi_h,H_in,S_in,D_out,energy_out,&
+              i_spin,i_kpt,weight)
 
    implicit none
 
    type(elsi_handle)            :: elsi_h                                 !< Handle
-   integer(kind=i4), intent(in) :: i_spin                                 !< Spin index
-   integer(kind=i4), intent(in) :: i_kpt                                  !< K-point index
    complex(kind=r8)             :: H_in(elsi_h%n_l_rows,elsi_h%n_l_cols)  !< Hamiltonian
    complex(kind=r8)             :: S_in(elsi_h%n_l_rows,elsi_h%n_l_cols)  !< Overlap
    real(kind=r8)                :: D_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Density matrix
    real(kind=r8)                :: energy_out                             !< Energy
+   integer(kind=i4), intent(in) :: i_spin                                 !< Spin index
+   integer(kind=i4), intent(in) :: i_kpt                                  !< K-point index
+   real(kind=r8),    intent(in) :: weight                                 !< Weight
 
    character*40, parameter :: caller = "elsi_dm_complex"
 
    call elsi_check_handle(elsi_h,caller)
 
-   call elsi_stop(" ELSI density matrix solver for complex case not yet available."//&
-           " Exiting...",elsi_h,caller)
+   ! Info of this task
+   elsi_h%i_spin = i_spin
+   elsi_h%i_kpt = i_kpt
+   elsi_h%i_weight = weight
 
    ! Update counter
    elsi_h%n_elsi_calls = elsi_h%n_elsi_calls+1
@@ -2066,7 +2065,7 @@ subroutine elsi_dm_complex(elsi_h,i_spin,i_kpt,H_in,S_in,D_out,energy_out)
       call elsi_solve_evp_elpa(elsi_h)
 
       ! Compute density matrix
-      call elsi_compute_occ_elpa(elsi_h)
+      call elsi_compute_mu_and_occ(elsi_h)
       call elsi_compute_dm_elpa(elsi_h)
       call elsi_get_energy(elsi_h,energy_out)
 
@@ -2108,21 +2107,28 @@ end subroutine
 !>
 !! This routine computes the density matrix.
 !!
-subroutine elsi_dm_real_sparse(elsi_h,i_spin,i_kpt,H_in,S_in,D_out,energy_out)
+subroutine elsi_dm_real_sparse(elsi_h,H_in,S_in,D_out,energy_out,&
+              i_spin,i_kpt,weight)
 
    implicit none
 
    type(elsi_handle)            :: elsi_h                    !< Handle
-   integer(kind=i4), intent(in) :: i_spin                    !< Spin index
-   integer(kind=i4), intent(in) :: i_kpt                     !< K-point index
    real(kind=r8)                :: H_in(elsi_h%nnz_l_pexsi)  !< Hamiltonian
    real(kind=r8)                :: S_in(elsi_h%nnz_l_pexsi)  !< Overlap
    real(kind=r8)                :: D_out(elsi_h%nnz_l_pexsi) !< Density matrix
    real(kind=r8)                :: energy_out                !< Energy
+   integer(kind=i4), intent(in) :: i_spin                    !< Spin index
+   integer(kind=i4), intent(in) :: i_kpt                     !< K-point index
+   real(kind=r8),    intent(in) :: weight                    !< Weight
 
    character*40, parameter :: caller = "elsi_dm_real_sparse"
 
    call elsi_check_handle(elsi_h,caller)
+
+   ! Info of this task
+   elsi_h%i_spin = i_spin
+   elsi_h%i_kpt = i_kpt
+   elsi_h%i_weight = weight
 
    ! Update counter
    elsi_h%n_elsi_calls = elsi_h%n_elsi_calls+1
@@ -2163,7 +2169,7 @@ subroutine elsi_dm_real_sparse(elsi_h,i_spin,i_kpt,H_in,S_in,D_out,energy_out)
       call elsi_solve_evp_elpa(elsi_h)
 
       ! Compute density matrix
-      call elsi_compute_occ_elpa(elsi_h)
+      call elsi_compute_mu_and_occ(elsi_h)
       call elsi_compute_dm_elpa(elsi_h)
       call elsi_blacs_to_pexsi_dm(elsi_h,D_out)
       call elsi_get_energy(elsi_h,energy_out)
@@ -2212,7 +2218,7 @@ subroutine elsi_dm_real_sparse(elsi_h,i_spin,i_kpt,H_in,S_in,D_out,energy_out)
          call elsi_solve_evp_elpa(elsi_h)
 
          ! Compute density matrix
-         call elsi_compute_occ_elpa(elsi_h)
+         call elsi_compute_mu_and_occ(elsi_h)
          call elsi_compute_dm_elpa(elsi_h)
          call elsi_blacs_to_pexsi_dm(elsi_h,D_out)
          call elsi_get_energy(elsi_h,energy_out)
@@ -2257,7 +2263,7 @@ subroutine elsi_dm_real_sparse(elsi_h,i_spin,i_kpt,H_in,S_in,D_out,energy_out)
             if(associated(elsi_h%eval))          nullify(elsi_h%eval)
             if(allocated(elsi_h%evec_real_elpa)) call elsi_deallocate(elsi_h,elsi_h%evec_real_elpa,"evec_real_elpa")
             if(allocated(elsi_h%eval_elpa))      call elsi_deallocate(elsi_h,elsi_h%eval_elpa,"eval_elpa")
-            if(allocated(elsi_h%occ_elpa))       call elsi_deallocate(elsi_h,elsi_h%occ_elpa,"occ_elpa")
+            if(allocated(elsi_h%occ_num))        call elsi_deallocate(elsi_h,elsi_h%occ_num,"occ_num")
          endif
 
          ! Solve

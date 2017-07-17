@@ -115,7 +115,8 @@ subroutine elsi_set_blacs_c_wrapper(handle_c,blacs_ctxt,block_size)&
 
 end subroutine
 
-subroutine elsi_set_csc_c_wrapper(handle_c,nnz_g,nnz_l,n_l_cols,row_ind,col_ptr)&
+subroutine elsi_set_csc_c_wrapper(handle_c,nnz_g,nnz_l,n_l_cols,&
+              row_ind,col_ptr)&
    bind(C,name="c_elsi_set_csc")
 
    implicit none
@@ -152,9 +153,9 @@ subroutine elsi_finalize_c_wrapper(handle_c)&
 
 end subroutine
 
-subroutine elsi_customize_c_wrapper(handle_c,print_detail,overlap_is_unit,&
-              zero_threshold,no_singularity_check,singularity_tolerance,&
-              stop_singularity,uplo)&
+subroutine elsi_customize_c_wrapper(handle_c,print_detail,&
+              overlap_is_unit,zero_threshold,no_singularity_check,&
+              singularity_tolerance,stop_singularity,uplo)&
    bind(C,name="c_elsi_customize")
 
    implicit none
@@ -200,13 +201,14 @@ subroutine elsi_customize_c_wrapper(handle_c,print_detail,overlap_is_unit,&
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_customize(handle_f,print_detail_f,overlap_is_unit_f,zero_threshold,&
-           no_singularity_check_f,singularity_tolerance,stop_singularity_f,uplo)
+   call elsi_customize(handle_f,print_detail_f,overlap_is_unit_f,&
+           zero_threshold,no_singularity_check_f,&
+           singularity_tolerance,stop_singularity_f,uplo)
 
 end subroutine
 
-subroutine elsi_customize_mu_c_wrapper(handle_c,broadening_scheme,broadening_width,&
-              occ_accuracy,mu_max_steps,spin_degeneracy)&
+subroutine elsi_customize_mu_c_wrapper(handle_c,broadening_scheme,&
+              broadening_width,occ_accuracy,mu_max_steps,spin_degeneracy)&
    bind(C,name="c_elsi_customize_mu")
 
    implicit none
@@ -227,8 +229,8 @@ subroutine elsi_customize_mu_c_wrapper(handle_c,broadening_scheme,broadening_wid
 
 end subroutine
 
-subroutine elsi_customize_omm_c_wrapper(handle_c,n_elpa_steps,omm_flavor,eigen_shift,&
-              omm_tolerance,use_pspblas,omm_output)&
+subroutine elsi_customize_omm_c_wrapper(handle_c,n_elpa_steps,omm_flavor,&
+              eigen_shift,omm_tolerance,use_pspblas,omm_output)&
    bind(C,name="c_elsi_customize_omm")
 
    implicit none
@@ -259,16 +261,17 @@ subroutine elsi_customize_omm_c_wrapper(handle_c,n_elpa_steps,omm_flavor,eigen_s
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_customize_omm(handle_f,n_elpa_steps,omm_flavor,eigen_shift,&
-           omm_tolerance,use_pspblas_f,omm_output_f)
+   call elsi_customize_omm(handle_f,n_elpa_steps,omm_flavor,&
+           eigen_shift,omm_tolerance,use_pspblas_f,omm_output_f)
 
 end subroutine
 
-subroutine elsi_customize_pexsi_c_wrapper(handle_c,temperature,gap,delta_e,&
-              n_poles,n_procs_per_pole,max_iteration,mu_min,mu_max,mu0,&
-              mu_inertia_tolerance,mu_inertia_expansion,mu_safeguard,&
-              n_electron_accuracy,matrix_type,is_symbolic_factorize,ordering,&
-              np_symbolic_factorize,verbosity)&
+subroutine elsi_customize_pexsi_c_wrapper(handle_c,temperature,gap,&
+              delta_e,n_poles,n_procs_per_pole,max_iteration,mu_min,&
+              mu_max,mu0,mu_inertia_tolerance,mu_inertia_expansion,&
+              mu_safeguard,n_electron_accuracy,matrix_type,&
+              is_symbolic_factorize,ordering,np_symbolic_factorize,&
+              verbosity)&
    bind(C,name="c_elsi_customize_pexsi")
 
    implicit none
@@ -297,14 +300,16 @@ subroutine elsi_customize_pexsi_c_wrapper(handle_c,temperature,gap,delta_e,&
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_customize_pexsi(handle_f,temperature,gap,delta_e,n_poles,n_procs_per_pole,&
-           max_iteration,mu_min,mu_max,mu0,mu_inertia_tolerance,mu_inertia_expansion,&
-           mu_safeguard,n_electron_accuracy,matrix_type,is_symbolic_factorize,ordering,&
-           np_symbolic_factorize,verbosity)
+   call elsi_customize_pexsi(handle_f,temperature,gap,delta_e,n_poles,&
+           n_procs_per_pole,max_iteration,mu_min,mu_max,mu0,&
+           mu_inertia_tolerance,mu_inertia_expansion,mu_safeguard,&
+           n_electron_accuracy,matrix_type,is_symbolic_factorize,&
+           ordering,np_symbolic_factorize,verbosity)
 
 end subroutine
 
-subroutine elsi_customize_elpa_c_wrapper(handle_c,elpa_solver,elpa_output)&
+subroutine elsi_customize_elpa_c_wrapper(handle_c,elpa_solver,&
+              elpa_output)&
    bind(C,name="c_elsi_customize_elpa")
 
    implicit none
@@ -329,133 +334,146 @@ subroutine elsi_customize_elpa_c_wrapper(handle_c,elpa_solver,elpa_output)&
 
 end subroutine
 
-subroutine elsi_ev_real_c_wrapper(handle_c,i_spin,i_kpt,H,S,e_val,e_vec)&
+subroutine elsi_ev_real_c_wrapper(handle_c,H,S,e_val,e_vec,&
+              i_spin,i_kpt,weight)&
    bind(C,name="c_elsi_ev_real")
 
    implicit none
 
    type(c_ptr),         value :: handle_c
-   integer(kind=c_int), value :: i_spin
-   integer(kind=c_int), value :: i_kpt
    real(kind=c_double)        :: H(n_l_rows_c,n_l_cols_c)
    real(kind=c_double)        :: S(n_l_rows_c,n_l_cols_c)
    real(kind=c_double)        :: e_val(n_g_size_c)
    real(kind=c_double)        :: e_vec(n_l_rows_c,n_l_cols_c)
+   integer(kind=c_int), value :: i_spin
+   integer(kind=c_int), value :: i_kpt
+   real(kind=c_double), value :: weight
 
    type(elsi_handle), pointer :: handle_f
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_ev_real(handle_f,i_spin,i_kpt,H,S,e_val,e_vec)
+   call elsi_ev_real(handle_f,H,S,e_val,e_vec,i_spin,i_kpt,weight)
 
 end subroutine
 
-subroutine elsi_ev_complex_c_wrapper(handle_c,i_spin,i_kpt,H,S,e_val,e_vec)&
+subroutine elsi_ev_complex_c_wrapper(handle_c,H,S,e_val,e_vec,&
+              i_spin,i_kpt,weight)&
    bind(C,name="c_elsi_ev_complex")
 
    implicit none
 
    type(c_ptr),         value     :: handle_c
-   integer(kind=c_int), value     :: i_spin
-   integer(kind=c_int), value     :: i_kpt
    complex(kind=c_double_complex) :: H(n_l_rows_c,n_l_cols_c)
    complex(kind=c_double_complex) :: S(n_l_rows_c,n_l_cols_c)
    real(kind=c_double)            :: e_val(n_g_size_c)
    complex(kind=c_double_complex) :: e_vec(n_l_rows_c,n_l_cols_c)
+   integer(kind=c_int), value     :: i_spin
+   integer(kind=c_int), value     :: i_kpt
+   real(kind=c_double), value     :: weight
 
    type(elsi_handle), pointer :: handle_f
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_ev_complex(handle_f,i_spin,i_kpt,H,S,e_val,e_vec)
+   call elsi_ev_complex(handle_f,H,S,e_val,e_vec,i_spin,i_kpt,weight)
 
 end subroutine
 
-subroutine elsi_ev_real_sparse_c_wrapper(handle_c,i_spin,i_kpt,H,S,e_val,e_vec)&
+subroutine elsi_ev_real_sparse_c_wrapper(handle_c,H,S,e_val,e_vec,&
+              i_spin,i_kpt,weight)&
    bind(C,name="c_elsi_ev_real_sparse")
 
    implicit none
 
    type(c_ptr),         value :: handle_c
-   integer(kind=c_int), value :: i_spin
-   integer(kind=c_int), value :: i_kpt
    real(kind=c_double)        :: H(nnz_l_pexsi_c)
    real(kind=c_double)        :: S(nnz_l_pexsi_c)
    real(kind=c_double)        :: e_val(n_g_size_c)
    real(kind=c_double)        :: e_vec(n_l_rows_c,n_l_cols_c)
+   integer(kind=c_int), value :: i_spin
+   integer(kind=c_int), value :: i_kpt
+   real(kind=c_double), value :: weight
 
    type(elsi_handle), pointer :: handle_f
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_ev_real_sparse(handle_f,i_spin,i_kpt,H,S,e_val,e_vec)
+   call elsi_ev_real_sparse(handle_f,H,S,e_val,e_vec,i_spin,i_kpt,weight)
 
 end subroutine
 
-subroutine elsi_dm_real_c_wrapper(handle_c,i_spin,i_kpt,H,S,D,energy)&
+subroutine elsi_dm_real_c_wrapper(handle_c,H,S,D,energy,&
+              i_spin,i_kpt,weight)&
    bind(C,name="c_elsi_dm_real")
 
    implicit none
 
    type(c_ptr),         value :: handle_c
-   integer(kind=c_int), value :: i_spin
-   integer(kind=c_int), value :: i_kpt
    real(kind=c_double)        :: H(n_l_rows_c,n_l_cols_c)
    real(kind=c_double)        :: S(n_l_rows_c,n_l_cols_c)
    real(kind=c_double)        :: D(n_l_rows_c,n_l_cols_c)
    real(kind=c_double)        :: energy
+   integer(kind=c_int), value :: i_spin
+   integer(kind=c_int), value :: i_kpt
+   real(kind=c_double), value :: weight
 
    type(elsi_handle), pointer :: handle_f
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_dm_real(handle_f,i_spin,i_kpt,H,S,D,energy)
+   call elsi_dm_real(handle_f,H,S,D,energy,i_spin,i_kpt,weight)
 
 end subroutine
 
-subroutine elsi_dm_complex_c_wrapper(handle_c,i_spin,i_kpt,H,S,D,energy)&
+subroutine elsi_dm_complex_c_wrapper(handle_c,H,S,D,energy,&
+              i_spin,i_kpt,weight)&
    bind(C,name="c_elsi_dm_complex")
 
    implicit none
 
    type(c_ptr),         value     :: handle_c
-   integer(kind=c_int), value     :: i_spin
-   integer(kind=c_int), value     :: i_kpt
    complex(kind=c_double_complex) :: H(n_l_rows_c,n_l_cols_c)
    complex(kind=c_double_complex) :: S(n_l_rows_c,n_l_cols_c)
    real(kind=c_double)            :: D(n_l_rows_c,n_l_cols_c)
    real(kind=c_double)            :: energy
+   integer(kind=c_int), value     :: i_spin
+   integer(kind=c_int), value     :: i_kpt
+   real(kind=c_double), value     :: weight
 
    type(elsi_handle), pointer :: handle_f
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_dm_complex(handle_f,i_spin,i_kpt,H,S,D,energy)
+   call elsi_dm_complex(handle_f,H,S,D,energy,i_spin,i_kpt,weight)
 
 end subroutine
 
-subroutine elsi_dm_real_sparse_c_wrapper(handle_c,i_spin,i_kpt,H,S,D,energy)&
+subroutine elsi_dm_real_sparse_c_wrapper(handle_c,H,S,D,energy,&
+              i_spin,i_kpt,weight)&
    bind(C,name="c_elsi_dm_real_sparse")
 
    implicit none
 
    type(c_ptr),         value :: handle_c
-   integer(kind=c_int), value :: i_spin
-   integer(kind=c_int), value :: i_kpt
    real(kind=c_double)        :: H(nnz_l_pexsi_c)
    real(kind=c_double)        :: S(nnz_l_pexsi_c)
    real(kind=c_double)        :: D(nnz_l_pexsi_c)
    real(kind=c_double)        :: energy
+   integer(kind=c_int), value :: i_spin
+   integer(kind=c_int), value :: i_kpt
+   real(kind=c_double), value :: weight
 
    type(elsi_handle), pointer :: handle_f
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_dm_real_sparse(handle_f,i_spin,i_kpt,H,S,D,energy)
+   call elsi_dm_real_sparse(handle_f,H,S,D,energy,i_spin,i_kpt,weight)
 
 end subroutine
 
-subroutine elsi_collect_c_wrapper(handle_c,overlap_is_singular,n_singular_basis,mu)&
+subroutine elsi_collect_c_wrapper(handle_c,overlap_is_singular,&
+              n_singular_basis,mu)&
    bind(C,name="c_elsi_collect")
 
    implicit none
@@ -470,7 +488,8 @@ subroutine elsi_collect_c_wrapper(handle_c,overlap_is_singular,n_singular_basis,
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_collect(handle_f,overlap_is_singular_f,n_singular_basis,mu)
+   call elsi_collect(handle_f,overlap_is_singular_f,&
+           n_singular_basis,mu)
 
    if(overlap_is_singular_f) then
       overlap_is_singular = 1
