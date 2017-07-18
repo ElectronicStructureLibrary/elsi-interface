@@ -183,7 +183,7 @@ module ELSI_DIMENSIONS
       integer(kind=i4) :: n_basis = UNSET           ! Number of basis functions
       integer(kind=i4) :: n_spins = 1               ! Number of spin channels
       integer(kind=i4) :: n_kpts = 1                ! Number of k-points
-      integer(kind=i4) :: n_states = UNSET          ! Number of total states
+      integer(kind=i4) :: n_states = UNSET          ! Number of states
       integer(kind=i4) :: n_occupied_states = UNSET ! Number of occupied states
       integer(kind=i4) :: i_spin = 1                ! Spin index
       integer(kind=i4) :: i_kpt = 1                 ! K-point index
@@ -208,6 +208,7 @@ module ELSI_DIMENSIONS
       logical :: elpa_output = .false.        ! Output level
 
       ! libOMM
+      integer(kind=i4) :: n_states_omm = UNSET ! Number of states used in libOMM
       integer(kind=i4) :: n_elpa_steps = UNSET ! Use ELPA eigenvectors as initial guess
       logical :: new_overlap = .true.          ! Is a new overlap matrix provided?
       logical :: coeff_initialized = .false.   ! Is coefficient matrix initialized?

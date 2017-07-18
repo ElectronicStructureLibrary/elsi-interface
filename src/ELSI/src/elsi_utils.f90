@@ -1209,6 +1209,7 @@ subroutine elsi_reset_handle(elsi_h)
    elsi_h%n_electrons           = 0.0_r8
    elsi_h%mu                    = 0.0_r8
    elsi_h%n_states              = UNSET
+   elsi_h%n_states_omm          = UNSET
    elsi_h%n_occupied_states     = UNSET
    elsi_h%broadening_scheme     = 0
    elsi_h%broadening_width      = 1.0e-2_r8

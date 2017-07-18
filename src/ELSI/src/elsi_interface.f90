@@ -173,7 +173,7 @@ subroutine elsi_init(elsi_h,solver,parallel_mode,matrix_format,&
       call elsi_set_omm_default(elsi_h)
 
       ! Set number of occupied states
-      elsi_h%n_states = nint(elsi_h%n_electrons/2.0_r8)
+      elsi_h%n_states_omm = nint(elsi_h%n_electrons/2.0_r8)
    endif
 
    ! Set PEXSI default settings
@@ -1957,7 +1957,7 @@ subroutine elsi_dm_real(elsi_h,H_in,S_in,D_out,energy_out,&
 
          ! Allocate
          if(.not. elsi_h%coeff_omm%is_initialized) then
-            call m_allocate(elsi_h%coeff_omm,elsi_h%n_states,elsi_h%n_basis,"pddbc")
+            call m_allocate(elsi_h%coeff_omm,elsi_h%n_states_omm,elsi_h%n_basis,"pddbc")
          endif
 
          ! Set matrices
@@ -2109,7 +2109,7 @@ subroutine elsi_dm_complex(elsi_h,H_in,S_in,D_out,energy_out,&
 
       ! Allocate
       if(.not. elsi_h%coeff_omm%is_initialized) then
-         call m_allocate(elsi_h%coeff_omm,elsi_h%n_states,elsi_h%n_basis,"pzdbc")
+         call m_allocate(elsi_h%coeff_omm,elsi_h%n_states_omm,elsi_h%n_basis,"pzdbc")
       endif
 
       ! Set matrices
@@ -2272,7 +2272,7 @@ subroutine elsi_dm_real_sparse(elsi_h,H_in,S_in,D_out,energy_out,&
 
          ! Allocate
          if(.not. elsi_h%coeff_omm%is_initialized) then
-            call m_allocate(elsi_h%coeff_omm,elsi_h%n_states,elsi_h%n_basis,"pddbc")
+            call m_allocate(elsi_h%coeff_omm,elsi_h%n_states_omm,elsi_h%n_basis,"pddbc")
          endif
 
          ! Set matrices
