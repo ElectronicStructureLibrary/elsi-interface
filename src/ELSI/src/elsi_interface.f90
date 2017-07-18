@@ -2109,7 +2109,7 @@ subroutine elsi_dm_complex(elsi_h,H_in,S_in,D_out,energy_out,&
 
       ! Allocate
       if(.not. elsi_h%coeff_omm%is_initialized) then
-         call m_allocate(elsi_h%coeff_omm,elsi_h%n_states,elsi_h%n_basis,"pddbc")
+         call m_allocate(elsi_h%coeff_omm,elsi_h%n_states,elsi_h%n_basis,"pzdbc")
       endif
 
       ! Set matrices
@@ -2120,7 +2120,7 @@ subroutine elsi_dm_complex(elsi_h,H_in,S_in,D_out,energy_out,&
       ! Solve
       call elsi_solve_evp_omm(elsi_h)
 
-      elsi_h%dm_omm%dval = 2.0_r8*elsi_h%dm_omm%dval
+      elsi_h%dm_omm%zval = 2.0_r8*elsi_h%dm_omm%zval
       call elsi_get_energy(elsi_h,energy_out)
 
    case(PEXSI)
