@@ -352,47 +352,16 @@ subroutine elsi_get_energy(elsi_h,energy)
    case(ELPA)
       energy = 0.0_r8
 
-      do i_kpt = 1,elsi_h%n_kpts
-         do i_spin = 1,elsi_h%n_spins
-            do i_state = 1,elsi_h%n_states
-               energy = energy+elsi_h%eval_all(i_state,i_spin,i_kpt)*&
-                           elsi_h%occ_num(i_state,i_spin,i_kpt)*&
-                           elsi_h%k_weight(i_kpt)
-            enddo
-         enddo
+      do i_state = 1,elsi_h%n_states
+         energy = energy+elsi_h%i_weight*elsi_h%eval(i_state)*&
+                     elsi_h%occ_num(i_state,elsi_h%i_spin,elsi_h%i_kpt)
       enddo
 
    case(LIBOMM)
-      if(elsi_h%n_spins*elsi_h%n_kpts > 1) then
-         energy = 0.0_r8
-
-         if(elsi_h%myid == 0) then
-            energy = 2.0_r8*elsi_h%energy_hdm*elsi_h%i_weight
-         endif
-
-         call MPI_Allreduce(energy,tmp_real,1,mpi_real8,mpi_sum,&
-                 elsi_h%mpi_comm_all,mpierr)
-
-         energy = tmp_real
-      else
-         energy = 2.0_r8*elsi_h%energy_hdm*elsi_h%i_weight
-      endif
+      energy = 2.0_r8*elsi_h%energy_hdm*elsi_h%i_weight
 
    case(PEXSI)
-      if(elsi_h%n_spins*elsi_h%n_kpts > 1) then
-         energy = 0.0_r8
-
-         if(elsi_h%myid == 0) then
-            energy = elsi_h%energy_hdm*elsi_h%i_weight
-         endif
-
-         call MPI_Allreduce(energy,tmp_real,1,mpi_real8,mpi_sum,&
-                 elsi_h%mpi_comm_all,mpierr)
-
-         energy = tmp_real
-      else
-         energy = elsi_h%energy_hdm*elsi_h%i_weight
-      endif
+      energy = elsi_h%energy_hdm*elsi_h%i_weight
 
    case(CHESS)
       call elsi_stop(" CHESS not yet implemented. Exiting...",elsi_h,caller)
@@ -403,6 +372,17 @@ subroutine elsi_get_energy(elsi_h,energy)
                " Please choose ELPA, LIBOMM, or PEXSI solver."//&
                " Exiting...",elsi_h,caller)
    end select
+
+   if(elsi_h%n_spins*elsi_h%n_kpts > 1) then
+      if(elsi_h%myid /= 0) then
+         energy = 0.0_r8
+      endif
+
+      call MPI_Allreduce(energy,tmp_real,1,mpi_real8,mpi_sum,&
+              elsi_h%mpi_comm_all,mpierr)
+
+      energy = tmp_real
+   endif
 
 end subroutine
 
