@@ -334,16 +334,19 @@ end subroutine
 subroutine elsi_get_energy(elsi_h,energy)
 
    implicit none
+   include "mpif.h"
 
    type(elsi_handle), intent(inout) :: elsi_h !< Handle
    real(kind=r8),     intent(out)   :: energy !< Energy of the system
 
+   real(kind=r8)    :: tmp_real
    integer(kind=i4) :: i_state
    integer(kind=i4) :: i_spin
    integer(kind=i4) :: i_kpt
+   integer(kind=i4) :: mpierr
    character*200    :: info_str
 
-   character*40,  parameter :: caller = "elsi_get_energy"
+   character*40, parameter :: caller = "elsi_get_energy"
 
    select case(elsi_h%solver)
    case(ELPA)
@@ -360,11 +363,37 @@ subroutine elsi_get_energy(elsi_h,energy)
       enddo
 
    case(LIBOMM)
-      energy = 2.0_r8*elsi_h%energy_hdm
-      ! TODO: MPI_Allreduce
+      if(elsi_h%n_spins*elsi_h%n_kpts > 1) then
+         energy = 0.0_r8
+
+         if(elsi_h%myid == 0) then
+            energy = 2.0_r8*elsi_h%energy_hdm*elsi_h%i_weight
+         endif
+
+         call MPI_Allreduce(energy,tmp_real,1,mpi_real8,mpi_sum,&
+                 elsi_h%mpi_comm_all,mpierr)
+
+         energy = tmp_real
+      else
+         energy = 2.0_r8*elsi_h%energy_hdm*elsi_h%i_weight
+      endif
+
    case(PEXSI)
-      energy = elsi_h%energy_hdm
-      ! TODO: MPI_Allreduce
+      if(elsi_h%n_spins*elsi_h%n_kpts > 1) then
+         energy = 0.0_r8
+
+         if(elsi_h%myid == 0) then
+            energy = elsi_h%energy_hdm*elsi_h%i_weight
+         endif
+
+         call MPI_Allreduce(energy,tmp_real,1,mpi_real8,mpi_sum,&
+                 elsi_h%mpi_comm_all,mpierr)
+
+         energy = tmp_real
+      else
+         energy = elsi_h%energy_hdm*elsi_h%i_weight
+      endif
+
    case(CHESS)
       call elsi_stop(" CHESS not yet implemented. Exiting...",elsi_h,caller)
    case(SIPS)
