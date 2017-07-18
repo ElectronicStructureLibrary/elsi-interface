@@ -1979,11 +1979,13 @@ subroutine elsi_dm_real(elsi_h,H_in,S_in,D_out,energy_out,&
             if(associated(elsi_h%ham_real))      nullify(elsi_h%ham_real)
             if(associated(elsi_h%ovlp_real))     nullify(elsi_h%ovlp_real)
             if(associated(elsi_h%evec_real))     nullify(elsi_h%evec_real)
-            if(associated(elsi_h%dm_real))       nullify(elsi_h%dm_real)
             if(associated(elsi_h%eval))          nullify(elsi_h%eval)
+            if(associated(elsi_h%dm_real))       nullify(elsi_h%dm_real)
             if(allocated(elsi_h%evec_real_elpa)) call elsi_deallocate(elsi_h,elsi_h%evec_real_elpa,"evec_real_elpa")
             if(allocated(elsi_h%eval_elpa))      call elsi_deallocate(elsi_h,elsi_h%eval_elpa,"eval_elpa")
+            if(allocated(elsi_h%eval_all))       call elsi_deallocate(elsi_h,elsi_h%eval_all,"eval_all")
             if(allocated(elsi_h%occ_num))        call elsi_deallocate(elsi_h,elsi_h%occ_num,"occ_num")
+            if(allocated(elsi_h%k_weight))       call elsi_deallocate(elsi_h,elsi_h%k_weight,"k_weight")
          endif
 
          ! Solve
