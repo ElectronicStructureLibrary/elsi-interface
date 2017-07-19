@@ -12,7 +12,8 @@ LINKER        = mpiifort
 FFLAGS        = -O3
 CFLAGS        = -O3
 CXXFLAGS      = -O3 -std=c++11
-LDFLAGS       = -O3 -nofor-main
+LDFLAGS       = -O3
+CLDFLAGS      = -nofor-main # Linker flags when linking a C program
 
 CXX_LIB       = -lstdc++
 

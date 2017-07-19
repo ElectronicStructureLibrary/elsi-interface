@@ -1,7 +1,7 @@
 #!/bin/bash
 # VY: This is a simple bash script used for "make checkc"
 
-if [ "$C_INTERFACE" != "no" ]
+if [ "$C_INTERFACE" = "yes" ]
 then
 
 rm ev_real_elpa_c.log 2> /dev/null
