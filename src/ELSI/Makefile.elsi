@@ -1,4 +1,4 @@
-all: test_ev_real.x test_dm_real.x test_generalized_ev_real.x test_standard_ev_real.x $(C_BINDING)
+all: test_ev_real.x test_dm_real.x test_generalized_ev_real.x test_standard_ev_real.x $(C_BINDING) $(C_EXEC)
 
 test_dm_real.x: test_dm_real.o elsi_interface.o elsi_elpa.o elsi_omm.o elsi_pexsi.o elsi_sips.o elsi_mu.o elsi_matconv.o elsi_utils.o elsi_timers.o elsi_dimensions.o elsi_precision.o elsi_constants.o $(STUBS)
 	$(LINKER) $(LDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
@@ -12,8 +12,17 @@ test_generalized_ev_real.x: test_generalized_ev_real.o elsi_interface.o elsi_elp
 test_standard_ev_real.x: test_standard_ev_real.o elsi_interface.o elsi_elpa.o elsi_omm.o elsi_pexsi.o elsi_sips.o elsi_mu.o elsi_matconv.o elsi_utils.o elsi_timers.o elsi_dimensions.o elsi_precision.o elsi_constants.o $(STUBS)
 	$(LINKER) $(LDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
 
-#test_standard_ev_real_c.x: test_standard_ev_real_c.o elsi_c_interface.o tomato_c_interface.o elsi_interface.o elsi_elpa.o elsi_omm.o elsi_pexsi.o elsi_sips.o elsi_mu.o elsi_matconv.o elsi_utils.o elsi_timers.o elsi_dimensions.o elsi_precision.o elsi_constants.o elsi_c2f_conversion.o $(STUBS)
-#	$(MPIFC) $(LDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
+test_dm_real_c.x: test_dm_real_c.o elsi_c_interface.o tomato_c_interface.o elsi_interface.o elsi_elpa.o elsi_omm.o elsi_pexsi.o elsi_sips.o elsi_mu.o elsi_matconv.o elsi_utils.o elsi_timers.o elsi_dimensions.o elsi_precision.o elsi_constants.o elsi_c2f.o $(STUBS)
+	$(LINKER) $(LDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
+
+test_ev_real_c.x: test_ev_real_c.o elsi_c_interface.o tomato_c_interface.o elsi_interface.o elsi_elpa.o elsi_omm.o elsi_pexsi.o elsi_sips.o elsi_mu.o elsi_matconv.o elsi_utils.o elsi_timers.o elsi_dimensions.o elsi_precision.o elsi_constants.o elsi_c2f.o $(STUBS)
+	$(LINKER) $(LDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
+
+test_generalized_ev_real_c.x: test_generalized_ev_real_c.o elsi_c_interface.o tomato_c_interface.o elsi_interface.o elsi_elpa.o elsi_omm.o elsi_pexsi.o elsi_sips.o elsi_mu.o elsi_matconv.o elsi_utils.o elsi_timers.o elsi_dimensions.o elsi_precision.o elsi_constants.o elsi_c2f.o $(STUBS)
+	$(LINKER) $(LDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
+
+test_standard_ev_real_c.x: test_standard_ev_real_c.o elsi_c_interface.o elsi_interface.o elsi_elpa.o elsi_omm.o elsi_pexsi.o elsi_sips.o elsi_mu.o elsi_matconv.o elsi_utils.o elsi_timers.o elsi_dimensions.o elsi_precision.o elsi_constants.o elsi_c2f.o $(STUBS)
+	$(LINKER) $(LDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
 
 test_dm_real.o: ./test/test_dm_real.f90 elsi_interface.o elsi_precision.o
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
@@ -27,8 +36,17 @@ test_generalized_ev_real.o: ./test/test_generalized_ev_real.f90 elsi_interface.o
 test_standard_ev_real.o: ./test/test_standard_ev_real.f90 elsi_interface.o elsi_precision.o
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
-#test_standard_ev_real_c.o: ./test/test_standard_ev_real_c.c elsi_c_interface.o elsi_interface.o elsi_precision.o
-#	$(MPICC) $(CFLAGS_I) $(INCS) -c $<
+test_dm_real_c.o: ./test/test_dm_real_c.c elsi_c_interface.o tomato_c_interface.o
+	$(MPICC) $(CFLAGS_I) $(INCS) -c $<
+
+test_ev_real_c.o: ./test/test_ev_real_c.c elsi_c_interface.o tomato_c_interface.o
+	$(MPICC) $(CFLAGS_I) $(INCS) -c $<
+
+test_generalized_ev_real_c.o: ./test/test_generalized_ev_real_c.c elsi_c_interface.o tomato_c_interface.o
+	$(MPICC) $(CFLAGS_I) $(INCS) -c $<
+
+test_standard_ev_real_c.o: ./test/test_standard_ev_real_c.c elsi_c_interface.o
+	$(MPICC) $(CFLAGS_I) $(INCS) -c $<
 
 elsi_interface.o: ./src/elsi_interface.f90 elsi_elpa.o elsi_omm.o elsi_pexsi.o elsi_sips.o elsi_mu.o elsi_matconv.o elsi_utils.o elsi_timers.o elsi_dimensions.o elsi_precision.o elsi_constants.o $(STUBS)
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
@@ -76,8 +94,13 @@ elsi_c_interface.o: ./c_binding/elsi_c_interface.f90 elsi_interface.o elsi_dimen
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 	cp ./c_binding/elsi.h $(INC_DIR)
 
+tomato_c_interface.o: ./c_binding/tomato_c_interface.f90 elsi_dimensions.o elsi_c2f.o $(STUBS)
+	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
+	cp ./c_binding/elsi.h $(INC_DIR)
+
 elsi_c2f.o: ./c_binding/elsi_c2f.f90 $(STUBS)
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
+	cp ./c_binding/tomato.h $(INC_DIR)
 
 .PHONY: clean install check
 

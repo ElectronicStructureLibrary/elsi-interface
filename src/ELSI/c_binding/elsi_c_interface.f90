@@ -176,10 +176,10 @@ subroutine elsi_customize_c_wrapper(handle_c,print_detail,overlap_is_unit,&
    logical :: no_singularity_check_f
    logical :: stop_singularity_f
 
-   print_detail_f         = convert_c_int_to_f_logical( print_detail )
-   overlap_is_unit_f      = convert_c_int_to_f_logical( overlap_is_unit )
-   no_singularity_check_f = convert_c_int_to_f_logical( no_singularity_check )
-   stop_singularity_f     = convert_c_int_to_f_logical( stop_singularity )
+   print_detail_f         = convert_c_int_to_f_logical(print_detail)
+   overlap_is_unit_f      = convert_c_int_to_f_logical(overlap_is_unit)
+   no_singularity_check_f = convert_c_int_to_f_logical(no_singularity_check)
+   stop_singularity_f     = convert_c_int_to_f_logical(stop_singularity)
 
    call c_f_pointer(handle_c,handle_f)
 
@@ -228,8 +228,8 @@ subroutine elsi_customize_omm_c_wrapper(handle_c,n_elpa_steps,omm_flavor,eigen_s
    logical :: use_pspblas_f
    logical :: omm_output_f
 
-   use_pspblas_f = convert_c_int_to_f_logical( use_pspblas )
-   omm_output_f  = convert_c_int_to_f_logical( omm_output )
+   use_pspblas_f = convert_c_int_to_f_logical(use_pspblas)
+   omm_output_f  = convert_c_int_to_f_logical(omm_output)
 
    call c_f_pointer(handle_c,handle_f)
 
@@ -290,7 +290,7 @@ subroutine elsi_customize_elpa_c_wrapper(handle_c,elpa_solver,elpa_output)&
    type(elsi_handle), pointer :: handle_f
    logical :: elpa_output_f
 
-   elpa_output_f = convert_c_int_to_f_logical( elpa_output )
+   elpa_output_f = convert_c_int_to_f_logical(elpa_output)
 
    call c_f_pointer(handle_c,handle_f)
 
