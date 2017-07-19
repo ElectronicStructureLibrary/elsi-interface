@@ -1,6 +1,6 @@
 # PLATFORM  : TIMEWARP @DUKE
 # COMPILERS : INTEL + NVIDIA
-# VERIFIED  : JUN 20, 2017
+# VERIFIED  : JUL 19, 2017
 # DO READ ../INSTALL CAREFULLY!
 
 # ====== ELSI ======
@@ -12,7 +12,7 @@ LINKER        = mpiifort
 FFLAGS        = -O3
 CFLAGS        = -O3
 CXXFLAGS      = -O3 -std=c++11
-LDFLAGS       = -O3
+LDFLAGS       = -O3 -nofor-main
 
 CXX_LIB       = -lstdc++
 

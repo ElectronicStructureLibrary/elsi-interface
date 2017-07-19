@@ -1,6 +1,6 @@
 # PLATFORM  : TIMEWARP @DUKE
 # COMPILERS : INTEL
-# VERIFIED  : JUN 25, 2017
+# VERIFIED  : JUL 19, 2017
 # DO READ ../INSTALL CAREFULLY!
 
 # Note:  This make.sys is provided to demonstrate external linkage against
@@ -16,7 +16,7 @@ LINKER         = mpiifort
 FFLAGS         = -O3 
 CFLAGS         = -O3
 CXXFLAGS       = -O3 -std=c++11
-LDFLAGS        = -O3 
+LDFLAGS        = -O3 -nofor-main
 LDFLAGS       += -Wl,-rpath -Wl,/home/wph6/opt/ELPA/2016.11.001.pre/build/lib # Needed when ELPA installed as shared library
 
 CXX_LIB        = -lstdc++
