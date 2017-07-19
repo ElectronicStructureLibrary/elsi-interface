@@ -178,13 +178,22 @@ install:
 	@echo ======================================
 
 check:
-	@echo ================================
-	@echo = Running ELSI test programs.. =
-	@echo ================================
+	@echo ========================================
+	@echo = Running ELSI Fortran test programs.. =
+	@echo ========================================
 	cd $(ELSI_DIR) && $(MAKE) -f Makefile.elsi check
-	@echo ================================
-	@echo = ELSI test programs finished. =
-	@echo ================================
+	@echo ========================================
+	@echo = ELSI Fortran test programs finished. =
+	@echo ========================================
+
+checkc:
+	@echo ==================================
+	@echo = Running ELSI C test programs.. =
+	@echo ==================================
+	cd $(ELSI_DIR) && $(MAKE) -f Makefile.elsi checkc
+	@echo ==================================
+	@echo = ELSI C test programs finished. =
+	@echo ==================================
 
 clean: $(CLEAN_OBJ) cleancs cleanelsi
 

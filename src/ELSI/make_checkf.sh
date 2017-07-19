@@ -1,6 +1,5 @@
 #!/bin/bash
-# VY: This is a simple bash script used for "make check"
-# More tests can be done by using test_ev_real.x and test_dm_real.x
+# VY: This is a simple bash script used for "make checkf"
 
 rm ev_real_elpa.log 2> /dev/null
 rm dm_real_elpa.log 2> /dev/null
@@ -13,7 +12,7 @@ echo
 echo "Test program output may be found in $PWD"
 
 echo
-echo -n "Running the 'elsi_ev_real + ELPA' test"
+echo -n "Running the 'elsi_ev_real + ELPA' Fortran test"
 ${MPI_EXEC} -n 4 ./test_ev_real.x ${TOMATO_SEED} 1 > ev_real_elpa.log &
 PID=$!
 while kill -0 $PID 2>/dev/null; do
@@ -34,7 +33,7 @@ else
 fi
 
 echo
-echo -n "Running the 'elsi_dm_real + ELPA' test"
+echo -n "Running the 'elsi_dm_real + ELPA' Fortran test"
 ${MPI_EXEC} -n 4 ./test_dm_real.x ${TOMATO_SEED} 1 > dm_real_elpa.log &
 PID=$!
 while kill -0 $PID 2>/dev/null; do
@@ -55,7 +54,7 @@ else
 fi
 
 echo
-echo -n "Running the 'elsi_dm_real + libOMM' test"
+echo -n "Running the 'elsi_dm_real + libOMM' Fortran test"
 ${MPI_EXEC} -n 4 ./test_dm_real.x ${TOMATO_SEED} 2 > dm_real_libomm.log &
 PID=$!
 while kill -0 $PID 2>/dev/null; do
@@ -78,7 +77,7 @@ fi
 echo
 if [ "$DISABLE_CXX" != "yes" ]
 then
-   echo -n "Running the 'elsi_dm_real + PEXSI' test"
+   echo -n "Running the 'elsi_dm_real + PEXSI' Fortran test"
    ${MPI_EXEC} -n 4 ./test_dm_real.x ${TOMATO_SEED} 3 > dm_real_pexsi.log &
    PID=$!
    while kill -0 $PID 2>/dev/null; do
@@ -106,16 +105,15 @@ else
 fi
 
 echo
-# WHY AM I YELLING?
 if [ "$RED_ALART" = "true" ] 
 then
    tput setaf 5
    echo "MAKE CHECK FAILED, CHECK YOUR COMPILATION SETTINGS!"
    tput sgr0
+   exit 1
 else
    tput setaf 10
    echo "MAKE CHECK PASSED, YOU'RE GOOD TO GO!"
    tput sgr0
+   exit 0
 fi
-
-echo

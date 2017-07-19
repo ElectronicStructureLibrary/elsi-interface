@@ -102,7 +102,7 @@ elsi_c2f.o: ./c_binding/elsi_c2f.f90 $(STUBS)
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 	cp ./c_binding/tomato.h $(INC_DIR)
 
-.PHONY: clean install check
+.PHONY: clean install check checkc
 
 clean:
 	rm -f *.o *.mod *.x *.a *log*
@@ -119,4 +119,7 @@ install:
 	cp $(BUILD_DIR)/*.mod $(INC_DIR)
 
 check:
-	chmod u+x ./make_check.sh && ./make_check.sh
+	chmod u+x ./make_checkf.sh && ./make_checkf.sh
+
+checkc:
+	chmod u+x ./make_checkc.sh && ./make_checkc.sh

@@ -62,13 +62,13 @@ subroutine tomato_tb_c_wrapper(seed_dir,system,switch1,frac_occ,&
    integer(c_int), value,                        intent(in) :: n_basis_per_atom
    integer(c_int), value,                        intent(in) :: switch2
    integer(c_int)       ,                        intent(in) :: n_basis
-   integer(c_int)       ,                        intent(in) :: supercell
+   integer(c_int)       ,                        intent(in) :: supercell(3)
    integer(c_int), value,                        intent(in) :: switch3
    real(c_double)       ,                        intent(in) :: sparsity
    real(c_double)       ,                        intent(in) :: r_cut
    integer(c_int)       ,                        intent(in) :: n_states
    integer(c_int), value,                        intent(in) :: gamma_only
-   real(c_double)       ,                        intent(in) :: k_point
+   real(c_double)       ,                        intent(in) :: k_point(3)
    integer(c_int), value,                        intent(in) :: defect
    real(c_double), value,                        intent(in) :: perturbation
    type(c_ptr)                                              :: h_c

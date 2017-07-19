@@ -55,9 +55,13 @@ void main(int argc, char** argv) {
    double n_electrons;
    double double_one,double_zero;
    double *h,*s,*dm;
-   double e_elpa,e_test;
+   double e_elpa,e_omm,e_pexsi,e_test,e_tol,e_ref;
 
-   e_elpa = -126.817462901838;
+   e_elpa  = -126.817462901838;
+   e_omm   = -126.817462901838;
+   e_pexsi = -128.733159836578;
+   e_tol   = 0.00000001;
+
 
    elsi_handle elsi_h;
    matrix h_ms,s_ms;
@@ -77,6 +81,17 @@ void main(int argc, char** argv) {
    int_zero    = 0;
    double_one  = 1.0;
    double_zero = 0.0;
+   r_cut       = 0.5;
+
+   if (solver == 1) {
+       e_ref = e_elpa;
+   }
+   if (solver == 2) {
+       e_ref = e_omm;
+   }
+   if (solver == 3) {
+       e_ref = e_pexsi;
+   }
 
    supercell = malloc(3 * sizeof(int));
    k_point   = malloc(3 * sizeof(double));
@@ -139,6 +154,15 @@ void main(int argc, char** argv) {
 
    // Finalize ELSI
    c_elsi_finalize(elsi_h);
+
+   if (myid == 0) {
+       if (fabs(e_test-e_ref) < e_tol) {
+           printf("  Passed.\n");
+       }
+       else {
+           printf("  Failed!!\n");
+       }
+   }
 
    free(h);
    free(s);

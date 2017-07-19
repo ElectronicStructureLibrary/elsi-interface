@@ -55,9 +55,10 @@ void main(int argc, char** argv) {
    double n_electrons;
    double double_one,double_zero;
    double *h,*s,*eval,*evec;
-   double e_elpa,e_test;
+   double e_elpa,e_test,e_tol;
 
    e_elpa = -126.817462901838;
+   e_tol = 0.0000000001;
 
    elsi_handle elsi_h;
    matrix h_ms,s_ms;
@@ -77,6 +78,7 @@ void main(int argc, char** argv) {
    int_zero    = 0;
    double_one  = 1.0;
    double_zero = 0.0;
+   r_cut       = 0.5;
 
    supercell = malloc(3 * sizeof(int));
    k_point   = malloc(3 * sizeof(double));
@@ -142,6 +144,17 @@ void main(int argc, char** argv) {
    e_test = 0.0;
    for (i=0; i<n_states; i++) {
         e_test += eval[i];
+   }
+
+   e_test *= 2.0;
+
+   if (myid == 0) {
+       if (fabs(e_test-e_elpa) < e_tol) {
+           printf("  Passed.\n");
+       }
+       else {
+           printf("  Failed!!\n");
+       }
    }
 
    free(h);

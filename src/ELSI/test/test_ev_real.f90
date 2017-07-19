@@ -189,7 +189,7 @@ program test_ev_real
 
    ! Customize ELSI
    call elsi_set_output(elsi_h,2)
-   
+
    ham = H%dval
    ovlp = S%dval
 
