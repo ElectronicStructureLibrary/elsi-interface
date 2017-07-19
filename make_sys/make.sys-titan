@@ -1,6 +1,6 @@
 # PLATFORM  : TITAN @OLCF
 # COMPILERS : PGI + NVIDIA
-# VERIFIED  : JUN 20, 2017
+# VERIFIED  : JUL 19, 2017
 # DO READ ../INSTALL CAREFULLY!
 
 # ====== ELSI ======
@@ -10,6 +10,7 @@ MPICXX       = CC
 LINKER       = ftn
 
 CXXFLAGS     = --c++11
+CLDFLAGS     = -Mnomain
 CXX_LIB      = -lstdc++
 
 # ====== ELPA ======

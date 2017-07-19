@@ -13,6 +13,7 @@ FFLAGS        = -fast -no-ipo -xAVX -fp-model precise
 CFLAGS        = -fast -no-ipo -xAVX -fp-model precise
 CXXFLAGS      = -fast -no-ipo -xAVX -fp-model precise -std=c++11
 LDFLAGS       = -fast -no-ipo -xAVX -fp-model precise
+CLDFLAGS      = -nofor-main # Linker flags when linking a C program
 
 CXX_LIB       = -lstdc++
 SCALAPACK_LIB = -mkl=cluster
