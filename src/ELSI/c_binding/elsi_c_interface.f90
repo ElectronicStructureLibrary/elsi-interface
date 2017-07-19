@@ -32,6 +32,7 @@ module ELSI_C_INTERFACE
 
    use, intrinsic :: iso_c_binding
    use ELSI
+   use ELSI_C2F
 
    implicit none
 
@@ -43,6 +44,10 @@ module ELSI_C_INTERFACE
    integer(kind=c_int) :: nnz_l_pexsi_c
 
 contains
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! ELSI C Wrapper Subroutines !     
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 subroutine elsi_init_c_wrapper(handle_c,solver,parallel_mode,&
               matrix_storage_format,matrix_size,n_electrons,n_states)&

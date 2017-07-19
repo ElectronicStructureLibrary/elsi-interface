@@ -12,6 +12,9 @@ test_generalized_ev_real.x: test_generalized_ev_real.o elsi_interface.o elsi_elp
 test_standard_ev_real.x: test_standard_ev_real.o elsi_interface.o elsi_elpa.o elsi_omm.o elsi_pexsi.o elsi_sips.o elsi_mu.o elsi_matconv.o elsi_utils.o elsi_timers.o elsi_dimensions.o elsi_precision.o elsi_constants.o $(STUBS)
 	$(LINKER) $(LDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
 
+#test_standard_ev_real_c.x: test_standard_ev_real_c.o elsi_c_interface.o tomato_c_interface.o elsi_interface.o elsi_elpa.o elsi_omm.o elsi_pexsi.o elsi_sips.o elsi_mu.o elsi_matconv.o elsi_utils.o elsi_timers.o elsi_dimensions.o elsi_precision.o elsi_constants.o elsi_c2f_conversion.o $(STUBS)
+#	$(MPIFC) $(LDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
+
 test_dm_real.o: ./test/test_dm_real.f90 elsi_interface.o elsi_precision.o
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
@@ -23,6 +26,9 @@ test_generalized_ev_real.o: ./test/test_generalized_ev_real.f90 elsi_interface.o
 
 test_standard_ev_real.o: ./test/test_standard_ev_real.f90 elsi_interface.o elsi_precision.o
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
+
+#test_standard_ev_real_c.o: ./test/test_standard_ev_real_c.c elsi_c_interface.o elsi_interface.o elsi_precision.o
+#	$(MPICC) $(CFLAGS_I) $(INCS) -c $<
 
 elsi_interface.o: ./src/elsi_interface.f90 elsi_elpa.o elsi_omm.o elsi_pexsi.o elsi_sips.o elsi_mu.o elsi_matconv.o elsi_utils.o elsi_timers.o elsi_dimensions.o elsi_precision.o elsi_constants.o $(STUBS)
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
@@ -66,9 +72,12 @@ stub_pexsi.o: ./src/stub_pexsi.f90 elsi_precision.o
 stub_sips.o: ./src/stub_sips.f90 elsi_precision.o
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
-elsi_c_interface.o: ./c_binding/elsi_c_interface.f90 elsi_interface.o elsi_dimensions.o $(STUBS)
+elsi_c_interface.o: ./c_binding/elsi_c_interface.f90 elsi_interface.o elsi_dimensions.o elsi_c2f.o $(STUBS)
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 	cp ./c_binding/elsi.h $(INC_DIR)
+
+elsi_c2f.o: ./c_binding/elsi_c2f.f90 $(STUBS)
+	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
 .PHONY: clean install check
 
