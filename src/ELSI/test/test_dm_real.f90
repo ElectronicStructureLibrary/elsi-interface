@@ -39,7 +39,6 @@ program test_dm_real
    include "mpif.h"
 
    character(5) :: m_storage
-   character(3) :: m_operation
    character(128) :: arg1
    character(128) :: arg2
 
@@ -161,7 +160,6 @@ program test_dm_real
 
    ! Set parameters
    m_storage = 'pddbc'
-   m_operation = 'lap'
    n_basis = 22
    supercell = (/3,3,3/)
    orb_r_cut = 0.5_r8

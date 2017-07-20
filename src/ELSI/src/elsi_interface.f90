@@ -795,6 +795,7 @@ subroutine elsi_customize_mu(elsi_h,broadening_scheme,broadening_width,&
    ! Spin degeneracy [Default: 2.0_r8/n_spin]
    if(present(spin_degeneracy)) then
       elsi_h%spin_degen = spin_degeneracy
+      elsi_h%spin_is_set = .true.
    endif
 
 end subroutine
@@ -1495,6 +1496,7 @@ subroutine elsi_set_mu_spin_degen(elsi_h,spin_degen)
    call elsi_check_handle(elsi_h,caller)
 
    elsi_h%spin_degen = spin_degen
+   elsi_h%spin_is_set = .true.
 
 end subroutine
 

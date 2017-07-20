@@ -22,6 +22,7 @@ gnu-j8-generic:
     - make clean
     - make -j 8
     - make check
+    - make checkc
     - make install
 
 pgi-j1-generic:
@@ -114,6 +115,7 @@ intel-j8-generic:
     - make clean
     - make -j 8
     - make check
+    - make checkc
     - make install
 
 # We do not run make check for external linkage.  Not our circus, not our monkey.

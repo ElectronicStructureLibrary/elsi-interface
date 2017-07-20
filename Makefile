@@ -83,9 +83,13 @@ MPI_EXEC ?= mpirun
 # Create C interfaces
 C_INTERFACE ?= yes
 ifeq ($(strip $(C_INTERFACE)),yes)
-  C_BINDING = elsi_c_interface.o \
-              tomato_c_interface.o \
-              elsi_c2f.o
+  C_BINDING  = elsi_c_interface.o
+  C_BINDING += tomato_c_interface.o
+  C_BINDING += elsi_c2f.o
+  C_BINDING += test_dm_real_c.x
+  C_BINDING += test_ev_real_c.x
+  C_BINDING += test_generalized_ev_real_c.x
+  C_BINDING += test_standard_ev_real_c.x
 endif
 
 export
@@ -105,7 +109,7 @@ else
   STUBS += stub_sips.o
 endif
 
-.PHONY: all elpa cs omm pexsi elsi install check clean cleanelsi cleanelpa cleancs cleanomm cleanpexsi
+.PHONY: all elpa cs omm pexsi elsi install check checkc clean cleanelsi cleanelpa cleancs cleanomm cleanpexsi
 
 all: $(ALL_OBJ) cs elsi
 
@@ -174,13 +178,22 @@ install:
 	@echo ======================================
 
 check:
-	@echo ================================
-	@echo = Running ELSI test programs.. =
-	@echo ================================
+	@echo ========================================
+	@echo = Running ELSI Fortran test programs.. =
+	@echo ========================================
 	cd $(ELSI_DIR) && $(MAKE) -f Makefile.elsi check
-	@echo ================================
-	@echo = ELSI test programs finished. =
-	@echo ================================
+	@echo ========================================
+	@echo = ELSI Fortran test programs finished. =
+	@echo ========================================
+
+checkc:
+	@echo ==================================
+	@echo = Running ELSI C test programs.. =
+	@echo ==================================
+	cd $(ELSI_DIR) && $(MAKE) -f Makefile.elsi checkc
+	@echo ==================================
+	@echo = ELSI C test programs finished. =
+	@echo ==================================
 
 clean: $(CLEAN_OBJ) cleancs cleanelsi
 

@@ -1451,12 +1451,10 @@ subroutine elsi_check_electrons(elsi_h,mu_in,diff_ne_out)
    invert_width = 1.0_r8/elsi_h%broadening_width
    diff_ne_out = 0.0_r8
 
-   if((elsi_h%spin_degen /= 1.0_r8) .and. (elsi_h%spin_degen /= 2.0_r8)) then ! Not set
-      if(elsi_h%n_spins == 2) then
-         elsi_h%spin_degen = 1.0_r8
-      else
-         elsi_h%spin_degen = 2.0_r8
-      endif
+   if(elsi_h%n_spins == 2) then
+      elsi_h%spin_degen = 1.0_r8
+   else
+      elsi_h%spin_degen = 2.0_r8
    endif
 
    select case(elsi_h%broadening_scheme)

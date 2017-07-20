@@ -26,13 +26,14 @@
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 // This program demonstrates how to use the ELSI interface in C to solve a
-// standard eigenvalue problem.
+// generalized eigenvalue problem.
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <mpi.h>
 #include <elsi.h>
+#include <tomato.h>
 
 void main(int argc, char** argv) {
 
@@ -40,8 +41,7 @@ void main(int argc, char** argv) {
    int mpi_comm,mpi_comm_global;
    int mpierr;
    int blacs_ctxt;
-   int info,*sc_desc;
-   int blk,l_row,l_col,l_size,ldm;
+   int blk,l_row,l_col,l_size;
    int n_basis,n_states,n_spins,n_kpts;
    int solver,format,parallel;
    int i_spin,i_kpt;
@@ -49,13 +49,21 @@ void main(int argc, char** argv) {
    int success;
    int tmp;
    int i;
+   int *supercell;
 
+   double *k_point;
+   double frac_occ,sparsity,r_cut;
    double n_electrons;
    double weight;
    double double_one,double_zero;
-   double *h,*h_tmp,*s,*eval,*evec;
+   double *h,*s,*eval,*evec;
+   double e_elpa,e_test,e_tol;
+
+   e_elpa = -126.817462901838;
+   e_tol = 0.0000000001;
 
    elsi_handle elsi_h;
+   matrix h_ms,s_ms;
 
    // Set up MPI
    MPI_Init(&argc,&argv);
@@ -65,15 +73,13 @@ void main(int argc, char** argv) {
    MPI_Comm_rank(mpi_comm_global,&myid);
 
    // Parameters
-   n_basis     = 4000;
-   n_states    = 1000;
-   n_electrons = 0.0; // not used at all
-   n_spins     = 1;
-   n_kpts      = 1;
    blk         = 16;
    solver      = 1; // ELPA
    format      = 0; // BLACS_DENSE
    parallel    = 1; // MULTI_PROC
+   r_cut       = 0.5; // Tomato only
+   n_spins     = 1;
+   n_kpts      = 1;
    i_spin      = 1;
    i_kpt       = 1;
    weight      = 1.0;
@@ -81,6 +87,13 @@ void main(int argc, char** argv) {
    int_zero    = 0;
    double_one  = 1.0;
    double_zero = 0.0;
+
+   supercell = malloc(3 * sizeof(int));
+   k_point   = malloc(3 * sizeof(double));
+   for (i=0; i<3; i++) {
+        supercell[i] = 3;
+        k_point[i]   = 0.0;
+   }
 
    tmp = (int) round(sqrt((double) n_proc));
    for (n_pcol=tmp; n_pcol>1; n_pcol--) {
@@ -91,42 +104,35 @@ void main(int argc, char** argv) {
    n_prow = n_proc/n_pcol;
 
    // Set up BLACS
-   sc_desc = malloc(9*sizeof(int));
    blacs_ctxt = mpi_comm;
    blacs_gridinit_(&blacs_ctxt,"R",&n_prow,&n_pcol);
    blacs_gridinfo_(&blacs_ctxt,&n_prow,&n_pcol,&my_prow,&my_pcol);
+
+   // MatrixSwitch
+   c_ms_scalapack_setup(mpi_comm,n_prow,"r",blk,blacs_ctxt);
+
+   // Prepare matrices by Tomato
+   c_tomato_tb(argv[1],"silicon",0,&frac_occ,22,0,&n_basis,supercell,0,
+               &sparsity,&r_cut,&n_states,1,k_point,1,0.0,&h_ms,&s_ms,"pddbc",1);
+
+   n_electrons = 2.0*n_states;
+
    l_row = numroc_(&n_basis,&blk,&my_prow,&int_zero,&n_prow);
    l_col = numroc_(&n_basis,&blk,&my_pcol,&int_zero,&n_pcol);
 
-   if (l_row > 1) {
-	ldm = l_row;
-   }
-   else {
-	ldm = 1;
-   }
-
-   descinit_(sc_desc,&n_basis,&n_basis,&blk,&blk,&int_zero,&int_zero,&blacs_ctxt,&ldm,&info);
-
-   // Prepare a symmetric matrix by pdtran
    l_size = l_row * l_col;
    h      = malloc(l_size * sizeof(double));
-   h_tmp  = malloc(l_size * sizeof(double));
-   s      = NULL;
+   s      = malloc(l_size * sizeof(double));
    evec   = malloc(l_size * sizeof(double));
    eval   = malloc(n_basis * sizeof(double));
 
-   for (i=0; i<l_size; i++) {
-	h[i]     = rand();
-	h[i]    /= RAND_MAX;
-	h_tmp[i] = h[i];
-   }
+   c_get_mat_real(h_ms,h);
+   c_get_mat_real(s_ms,s);
 
-   pdtran_(&n_basis,&n_basis,&double_one,h_tmp,&int_one,&int_one,sc_desc,&double_one,h,&int_one,&int_one,sc_desc);
-
-   free(sc_desc);
-   free(h_tmp);
-
-   mpierr = MPI_Barrier(mpi_comm_global);
+   c_m_deallocate(h_ms);
+   c_m_deallocate(s_ms);
+   free(supercell);
+   free(k_point);
 
    // Initialize ELSI
    c_elsi_init(&elsi_h,solver,parallel,format,n_basis,n_electrons,n_spins,n_kpts,n_states);
@@ -135,7 +141,7 @@ void main(int argc, char** argv) {
 
    // Customize ELSI
    c_elsi_set_output(elsi_h,2);
-   c_elsi_set_unit_ovlp(elsi_h,1);
+   c_elsi_set_sing_check(elsi_h,0);
 
    // Call ELSI eigensolver
    c_elsi_ev_real(elsi_h,h,s,eval,evec,i_spin,i_kpt,weight);
@@ -143,7 +149,24 @@ void main(int argc, char** argv) {
    // Finalize ELSI
    c_elsi_finalize(elsi_h);
 
+   e_test = 0.0;
+   for (i=0; i<n_states; i++) {
+        e_test += eval[i];
+   }
+
+   e_test *= 2.0;
+
+   if (myid == 0) {
+       if (fabs(e_test-e_elpa) < e_tol) {
+           printf("  Passed.\n");
+       }
+       else {
+           printf("  Failed!!\n");
+       }
+   }
+
    free(h);
+   free(s);
    free(evec);
    free(eval);
 
