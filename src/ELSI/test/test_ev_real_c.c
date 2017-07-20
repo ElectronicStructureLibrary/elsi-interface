@@ -26,7 +26,7 @@
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 // This program demonstrates how to use the ELSI interface in C to solve a
-// standard eigenvalue problem.
+// generalized eigenvalue problem.
 
 #include <stdio.h>
 #include <stdlib.h>
