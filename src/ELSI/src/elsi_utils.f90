@@ -1245,9 +1245,6 @@ subroutine elsi_reset_handle(elsi_h)
    elsi_h%nnz_l_pexsi           = UNSET
    elsi_h%pexsi_started         = .false.
    elsi_h%sparsity_is_setup     = .false.
-   elsi_h%small_pexsi_tol       = .false.
-   elsi_h%final_pexsi_tol       = 1.0e-2_r8
-   elsi_h%pexsi_driver          = UNSET
    elsi_h%n_mu_points           = UNSET
    elsi_h%n_electrons_pexsi     = 0.0_r8
    elsi_h%mu_min_inertia        = 0.0_r8
@@ -1424,18 +1421,10 @@ subroutine elsi_check(elsi_h,caller)
                  " number of processes. Exiting...",elsi_h,caller)
       endif
 
-      if(elsi_h%pexsi_driver == 1) then
-         if(mod(elsi_h%n_procs,elsi_h%n_p_per_pole) /= 0) then
-            call elsi_stop("  The total number of MPI tasks must"//&
-                    " be a multiple of the number of MPI tasks per"//&
-                    " pole. Exiting...",elsi_h,caller)
-         endif
-      else
-         if(mod(elsi_h%n_procs,elsi_h%n_p_per_pole*elsi_h%n_mu_points) /= 0) then
-            call elsi_stop("  The total number of MPI tasks must be a"//&
-                    " multiple of the number of MPI tasks per pole times"//&
-                    " the number of mu points. Exiting...",elsi_h,caller)
-         endif
+      if(mod(elsi_h%n_procs,elsi_h%n_p_per_pole*elsi_h%n_mu_points) /= 0) then
+         call elsi_stop("  The total number of MPI tasks must be a"//&
+                 " multiple of the number of MPI tasks per pole times"//&
+                 " the number of mu points. Exiting...",elsi_h,caller)
       endif
 
    elseif(elsi_h%solver == CHESS) then

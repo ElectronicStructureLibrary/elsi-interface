@@ -74,7 +74,6 @@ module ELSI
    public :: elsi_set_omm_n_elpa
    public :: elsi_set_omm_tol
    public :: elsi_set_omm_psp
-   public :: elsi_set_pexsi_driver
    public :: elsi_set_pexsi_n_mu
    public :: elsi_set_pexsi_n_pole
    public :: elsi_set_pexsi_np_per_pole
@@ -92,6 +91,8 @@ module ELSI
    public :: elsi_set_mu_broaden_width
    public :: elsi_set_mu_tol
    public :: elsi_set_mu_spin_degen
+   public :: elsi_get_pexsi_mu_min
+   public :: elsi_get_pexsi_mu_max
    public :: elsi_get_ovlp_sing
    public :: elsi_get_mu
    public :: elsi_get_edm_real
@@ -424,11 +425,6 @@ subroutine elsi_customize(elsi_h,print_detail,overlap_is_unit,zero_threshold,&
 
    call elsi_check_handle(elsi_h,caller)
 
-   ! Print detailed ELSI information? [Default: .false.]
-   if(present(print_detail)) then
-      print_info = print_detail
-   endif
-
    ! Is the overlap matrix unit? [Default: .false.]
    if(present(overlap_is_unit)) then
       elsi_h%ovlp_is_unit = overlap_is_unit
@@ -508,11 +504,6 @@ subroutine elsi_customize_omm(elsi_h,n_elpa_steps,omm_flavor,eigen_shift,&
       elsi_h%use_psp = use_pspblas
    endif
 
-   ! Output details? [Default: .true.]
-   if(present(omm_output)) then
-      elsi_h%omm_output = omm_output
-   endif
-
 end subroutine
 
 !>
@@ -581,63 +572,20 @@ subroutine elsi_customize_pexsi(elsi_h,temperature,gap,delta_e,n_poles,&
       endif
    endif
 
-   ! Maximum number of PEXSI iterations after each inertia
-   ! counting procedure [Default: 3]
-   if(present(max_iteration)) then
-      elsi_h%pexsi_options%maxPEXSIIter = max_iteration
+   ! Initial guess of lower bound for mu [Default: -10.0_r8]
+   if(present(mu_min)) then
+      elsi_h%pexsi_options%muMin0 = mu_min
    endif
 
-   ! From the second step, mu is from previous step
-   if(elsi_h%n_elsi_calls == 0) then
-      ! Initial guess of mu [Default: 0.0_r8]
-      if(present(mu0)) then
-         elsi_h%pexsi_options%mu0 = mu0
-      endif
-
-      ! Initial guess of lower bound for mu [Default: -10.0_r8]
-      if(present(mu_min)) then
-         elsi_h%pexsi_options%muMin0 = mu_min
-      endif
-
-      ! Initial guess of upper bound for mu [Default: 10.0_r8]
-      if(present(mu_max)) then
-         elsi_h%pexsi_options%muMax0 = mu_max
-      endif
+   ! Initial guess of upper bound for mu [Default: 10.0_r8]
+   if(present(mu_max)) then
+      elsi_h%pexsi_options%muMax0 = mu_max
    endif
 
    ! Stopping criterion in terms of the chemical potential
    ! for the inertia counting procedure [Default: 0.05_r8]
    if(present(mu_inertia_tolerance)) then
       elsi_h%pexsi_options%muInertiaTolerance = mu_inertia_tolerance
-   endif
-
-   ! If the chemical potential is not in the initial interval,
-   ! the interval is expanded by this value [Default: 0.3_r8]
-   if(present(mu_inertia_expansion)) then
-      elsi_h%pexsi_options%muInertiaExpansion = mu_inertia_expansion
-   endif
-
-   ! Safeguard criterion in terms of the chemical potential to
-   ! reinvoke the inertia counting procedure [Default: 0.05_r8]
-   if(present(mu_safeguard)) then
-      elsi_h%pexsi_options%muPEXSISafeGuard = mu_safeguard
-   endif
-
-   ! Stopping criterion of the PEXSI iteration in terms of the
-   ! number of electrons compared to the exact number [Default: 0.01_r8]
-   if(present(n_electron_accuracy)) then
-      elsi_h%pexsi_options%numElectronPEXSITolerance = n_electron_accuracy
-      if(n_electron_accuracy < 1.0e-2_r8) then
-         elsi_h%small_pexsi_tol = .true.
-         elsi_h%final_pexsi_tol = n_electron_accuracy
-      endif
-   endif
-
-   ! Type of input H and S matrices [Default: 0]
-   ! 0: real symmetric
-   ! 1: general complex
-   if(present(matrix_type)) then
-      elsi_h%pexsi_options%matrixType = matrix_type
    endif
 
    ! Whether to perform symbolic factorization [Default: 1]
@@ -656,14 +604,6 @@ subroutine elsi_customize_pexsi(elsi_h,temperature,gap,delta_e,n_poles,&
    ! Number of processes for ParMETIS, only used if ordering=0 [Default: 1]
    if(present(np_symbolic_factorize)) then
       elsi_h%pexsi_options%npSymbFact = np_symbolic_factorize
-   endif
-
-   ! Level of output information [Default: 1]
-   ! 0: no output
-   ! 1: basic output
-   ! 2: detailed output
-   if(present(verbosity)) then
-      elsi_h%pexsi_options%verbosity = verbosity
    endif
 
 end subroutine
@@ -686,11 +626,6 @@ subroutine elsi_customize_elpa(elsi_h,elpa_solver,elpa_output)
    ! 1-stage or 2-stage solver? [Default: 2]
    if(present(elpa_solver)) then
       elsi_h%elpa_solver = elpa_solver
-   endif
-
-   ! Output details? [Default: .false.]
-   if(present(elpa_output)) then
-      elsi_h%elpa_output = elpa_output
    endif
 
 end subroutine
@@ -1145,30 +1080,6 @@ subroutine elsi_set_omm_psp(elsi_h,use_psp)
 end subroutine
 
 !>
-!! This routine sets the PEXSI driver.
-!!
-subroutine elsi_set_pexsi_driver(elsi_h,pexsi_driver)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: elsi_h       !< Handle
-   integer(kind=i4),  intent(in)    :: pexsi_driver !< Which PEXSI driver?
-
-   character*40, parameter :: caller = "elsi_set_pexsi_driver"
-
-   call elsi_check_handle(elsi_h,caller)
-
-   if((pexsi_driver < 1) .or. (pexsi_driver > 2)) then
-      call elsi_stop("  Invalid choice of pexsi_driver. Please"//&
-              " choose 1 (PEXSI DFT 1) or 2 (PEXSI DFT 2)."//&
-              " Exiting...",elsi_h,caller)
-   endif
-
-   elsi_h%pexsi_driver = pexsi_driver
-
-end subroutine
-
-!>
 !! This routine sets the number of mu points when using PEXSI driver 2.
 !!
 subroutine elsi_set_pexsi_n_mu(elsi_h,n_mu)
@@ -1497,6 +1408,44 @@ subroutine elsi_set_mu_spin_degen(elsi_h,spin_degen)
 
    elsi_h%spin_degen = spin_degen
    elsi_h%spin_is_set = .true.
+
+end subroutine
+
+!>
+!! This routine gets the lower bound of the chemical potential
+!! returned by the inertia counting in PEXSI.
+!!
+subroutine elsi_get_pexsi_mu_min(elsi_h,mu_min)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
+   real(kind=r8),     intent(out)   :: mu_min !< Lower bound of mu
+
+   character*40, parameter :: caller = "elsi_get_pexsi_mu_min"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   mu_min = elsi_h%pexsi_options%muMin0
+
+end subroutine
+
+!>
+!! This routine gets the upper bound of the chemical potential
+!! returned by the inertia counting in PEXSI.
+!!
+subroutine elsi_get_pexsi_mu_max(elsi_h,mu_max)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
+   real(kind=r8),     intent(out)   :: mu_max !< Upper bound of mu
+
+   character*40, parameter :: caller = "elsi_get_pexsi_mu_max"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   mu_max = elsi_h%pexsi_options%muMax0
 
 end subroutine
 

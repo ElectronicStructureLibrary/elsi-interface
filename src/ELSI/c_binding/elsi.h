@@ -216,9 +216,6 @@ void c_elsi_set_omm_tol(elsi_handle handle_c,
 void c_elsi_set_omm_psp(elsi_handle handle_c,
                         int use_psp);
 
-void c_elsi_set_pexsi_driver(elsi_handle handle_c,
-                             int pexsi_driver);
-
 void c_elsi_set_pexsi_n_mu(elsi_handle handle_c,
                            int n_mu);
 
@@ -269,6 +266,12 @@ void c_elsi_set_mu_tol(elsi_handle handle_c,
 
 void c_elsi_set_mu_spin_degen(elsi_handle handle_c,
                               double spin_degen);
+
+void c_elsi_get_pexsi_mu_min(elsi_handle handle_c,
+                             double *mu_min);
+
+void c_elsi_get_pexsi_mu_max(elsi_handle handle_c,
+                             double *mu_max);
 
 void c_elsi_get_ovlp_sing(elsi_handle handle_c,
                           int *ovlp_sing);

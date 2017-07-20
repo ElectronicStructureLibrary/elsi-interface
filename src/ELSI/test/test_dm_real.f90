@@ -50,7 +50,7 @@ program test_dm_real
    integer(kind=i4) :: matrix_size,l_rows,l_cols,supercell(3)
    integer(kind=i4) :: solver
 
-   real(kind=r8) :: n_electrons,frac_occ,sparsity,orb_r_cut
+   real(kind=r8) :: n_electrons,frac_occ,sparsity,orb_r_cut,mu_min,mu_max
    real(kind=r8) :: k_point(3)
    real(kind=r8) :: e_test,e_ref
    real(kind=r8) :: t1,t2
@@ -217,6 +217,12 @@ program test_dm_real
    endif
 
    ham = H%dval
+
+   ! Refine chemical potential for PEXSI
+   call elsi_get_pexsi_mu_min(elsi_h,mu_min)
+   call elsi_get_pexsi_mu_max(elsi_h,mu_max)
+   call elsi_set_pexsi_mu_min(elsi_h,mu_min-1.0_r8)
+   call elsi_set_pexsi_mu_max(elsi_h,mu_max+1.0_r8)
 
    t1 = MPI_Wtime()
 

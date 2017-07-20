@@ -237,13 +237,10 @@ module ELSI_DIMENSIONS
       integer(kind=i4) :: n_l_rows_pexsi = UNSET
       integer(kind=i4) :: n_l_cols_pexsi = UNSET
       integer(kind=i4) :: nnz_l_pexsi = UNSET ! Local number of nonzeros in PEXSI distribution
-      logical :: small_pexsi_tol = .false.    ! Is user-defined tolerance smaller than default?
       logical :: pexsi_started = .false.      ! Is PEXSI started?
 
-      real(kind=r8)            :: final_pexsi_tol = 1.0e-2_r8
       integer(kind=c_intptr_t) :: pexsi_plan
       type(f_ppexsi_options)   :: pexsi_options
-      integer(kind=i4)         :: pexsi_driver = UNSET
       integer(kind=i4)         :: n_mu_points = UNSET
       real(kind=r8)            :: n_electrons_pexsi = 0.0_r8 ! Number of electrons computed by PEXSI
       real(kind=r8)            :: mu_min_inertia = 0.0_r8

@@ -677,22 +677,6 @@ subroutine elsi_set_omm_psp_c_wrapper(handle_c,use_psp)&
 
 end subroutine
 
-subroutine elsi_set_pexsi_driver_c_wrapper(handle_c,pexsi_driver)&
-   bind(C,name="c_elsi_set_pexsi_driver")
-   
-   implicit none
-   
-   type(c_ptr),         value             :: handle_c
-   integer(kind=c_int), value, intent(in) :: pexsi_driver
-   
-   type(elsi_handle), pointer :: handle_f
-   
-   call c_f_pointer(handle_c,handle_f)
-   
-   call elsi_set_pexsi_driver(handle_f,pexsi_driver)
-   
-end subroutine
-
 subroutine elsi_set_pexsi_n_mu_c_wrapper(handle_c,n_mu)&
    bind(C,name="c_elsi_set_pexsi_n_mu")
 
@@ -962,6 +946,38 @@ subroutine elsi_set_mu_spin_degen_c_wrapper(handle_c,spin_degen)&
    call c_f_pointer(handle_c,handle_f)
 
    call elsi_set_mu_spin_degen(handle_f,spin_degen)
+
+end subroutine
+
+subroutine elsi_get_pexsi_mu_min_c_wrapper(handle_c,mu_min)&
+   bind(C,name="c_elsi_get_pexsi_mu_min")
+
+   implicit none
+
+   type(c_ptr), value  :: handle_c
+   real(kind=c_double) :: mu_min
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_get_pexsi_mu_min(handle_f,mu_min)
+
+end subroutine
+
+subroutine elsi_get_pexsi_mu_max_c_wrapper(handle_c,mu_max)&
+   bind(C,name="c_elsi_get_pexsi_mu_max")
+
+   implicit none
+
+   type(c_ptr), value  :: handle_c
+   real(kind=c_double) :: mu_max
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_get_pexsi_mu_max(handle_f,mu_max)
 
 end subroutine
 
