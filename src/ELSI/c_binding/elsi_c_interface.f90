@@ -30,8 +30,9 @@
 !!
 module ELSI_C_INTERFACE
 
-   use, intrinsic :: iso_c_binding
+   use, intrinsic :: ISO_C_BINDING
    use ELSI
+   use ELSI_C2F
 
    implicit none
 
@@ -175,29 +176,10 @@ subroutine elsi_customize_c_wrapper(handle_c,print_detail,&
    logical :: no_singularity_check_f
    logical :: stop_singularity_f
 
-   if(print_detail == 0) then
-      print_detail_f = .false.
-   else
-      print_detail_f = .true.
-   endif
-
-   if(overlap_is_unit == 0) then
-      overlap_is_unit_f = .false.
-   else
-      overlap_is_unit_f = .true.
-   endif
-
-   if(no_singularity_check == 0) then
-      no_singularity_check_f = .false.
-   else
-      no_singularity_check_f = .true.
-   endif
-
-   if(stop_singularity == 0) then
-      stop_singularity_f = .false.
-   else
-      stop_singularity_f = .true.
-   endif
+   print_detail_f         = convert_c_int_to_f_logical(print_detail)
+   overlap_is_unit_f      = convert_c_int_to_f_logical(overlap_is_unit)
+   no_singularity_check_f = convert_c_int_to_f_logical(no_singularity_check)
+   stop_singularity_f     = convert_c_int_to_f_logical(stop_singularity)
 
    call c_f_pointer(handle_c,handle_f)
 
@@ -247,17 +229,8 @@ subroutine elsi_customize_omm_c_wrapper(handle_c,n_elpa_steps,omm_flavor,&
    logical :: use_pspblas_f
    logical :: omm_output_f
 
-   if(use_pspblas == 0) then
-      use_pspblas_f = .false.
-   else
-      use_pspblas_f = .true.
-   endif
-
-   if(omm_output == 0) then
-      omm_output_f = .false.
-   else
-      omm_output_f = .true.
-   endif
+   use_pspblas_f = convert_c_int_to_f_logical(use_pspblas)
+   omm_output_f  = convert_c_int_to_f_logical(omm_output)
 
    call c_f_pointer(handle_c,handle_f)
 
@@ -321,12 +294,7 @@ subroutine elsi_customize_elpa_c_wrapper(handle_c,elpa_solver,&
    type(elsi_handle), pointer :: handle_f
    logical :: elpa_output_f
 
-   if(elpa_output == 0) then
-      elpa_output_f = .false.
-   else
-      elpa_output_f = .true.
-   endif
-
+   elpa_output_f = convert_c_int_to_f_logical(elpa_output)
 
    call c_f_pointer(handle_c,handle_f)
 

@@ -1135,7 +1135,11 @@ subroutine elsi_set_omm_psp(elsi_h,use_psp)
 
    call elsi_check_handle(elsi_h,caller)
 
-   elsi_h%use_psp = use_psp
+   if(use_psp == 0) then
+      elsi_h%use_psp = .false.
+   else
+      elsi_h%use_psp = .true.
+   endif
 
 end subroutine
 
