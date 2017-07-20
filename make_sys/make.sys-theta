@@ -1,6 +1,6 @@
 # PLATFORM  : THETA @ALCF
 # COMPILERS : INTEL
-# VERIFIED  : MAY 23, 2017
+# VERIFIED  : JUL 19, 2017
 # DO READ ../INSTALL CAREFULLY!
 
 # ====== ELSI ======
@@ -13,6 +13,7 @@ FFLAGS        = -fast -no-ipo -xmic-avx512 -fp-model precise
 CFLAGS        = -fast -no-ipo -xmic-avx512 -fp-model precise
 CXXFLAGS      = -fast -no-ipo -xmic-avx512 -fp-model precise -std=c++11
 LDFLAGS       = -fast -no-ipo -xmic-avx512 -fp-model precise
+CLDFLAGS      = -nofor-main # Linker flags when linking a C program
 
 CXX_LIB       = -lstdc++
 SCALAPACK_LIB = -mkl=cluster
