@@ -48,13 +48,13 @@ test_generalized_ev_real_c.o: ./test/test_generalized_ev_real_c.c elsi_c_interfa
 test_standard_ev_real_c.o: ./test/test_standard_ev_real_c.c elsi_c_interface.o
 	$(MPICC) $(CFLAGS_I) $(INCS) -c $<
 
-elsi_interface.o: ./src/elsi_interface.f90 elsi_elpa.o elsi_omm.o elsi_pexsi.o elsi_sips.o elsi_mu.o elsi_matconv.o elsi_utils.o elsi_timers.o elsi_dimensions.o elsi_precision.o elsi_constants.o $(STUBS)
+elsi_interface.o: ./src/elsi_interface.f90 elsi_elpa.o elsi_omm.o elsi_pexsi.o elsi_sips.o elsi_mu.o elsi_matconv.o elsi_utils.o elsi_timers.o elsi_dimensions.o elsi_precision.o elsi_constants.o
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
-elsi_elpa.o: ./src/elsi_elpa.f90 elsi_mu.o elsi_utils.o elsi_timers.o elsi_dimensions.o elsi_precision.o elsi_constants.o $(STUBS)
+elsi_elpa.o: ./src/elsi_elpa.f90 elsi_mu.o elsi_utils.o elsi_timers.o elsi_dimensions.o elsi_precision.o elsi_constants.o
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
-elsi_omm.o: ./src/elsi_omm.f90 elsi_utils.o elsi_timers.o elsi_dimensions.o elsi_precision.o elsi_constants.o $(STUBS)
+elsi_omm.o: ./src/elsi_omm.f90 elsi_utils.o elsi_timers.o elsi_dimensions.o elsi_precision.o elsi_constants.o
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
 elsi_pexsi.o: ./src/elsi_pexsi.f90 elsi_utils.o elsi_timers.o elsi_dimensions.o elsi_precision.o elsi_constants.o $(STUBS)
@@ -63,13 +63,13 @@ elsi_pexsi.o: ./src/elsi_pexsi.f90 elsi_utils.o elsi_timers.o elsi_dimensions.o 
 elsi_sips.o: ./src/elsi_sips.f90  elsi_utils.o elsi_timers.o elsi_dimensions.o elsi_precision.o elsi_constants.o $(STUBS)
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
-elsi_mu.o: ./src/elsi_mu.f90 elsi_utils.o elsi_dimensions.o elsi_precision.o elsi_constants.o $(STUBS)
+elsi_mu.o: ./src/elsi_mu.f90 elsi_utils.o elsi_dimensions.o elsi_precision.o elsi_constants.o
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
-elsi_matconv.o: ./src/elsi_matconv.f90 elsi_utils.o elsi_timers.o elsi_dimensions.o elsi_constants.o elsi_precision.o $(STUBS)
+elsi_matconv.o: ./src/elsi_matconv.f90 elsi_utils.o elsi_timers.o elsi_dimensions.o elsi_constants.o elsi_precision.o
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
-elsi_timers.o: ./src/elsi_timers.f90 elsi_dimensions.o elsi_utils.o elsi_precision.o elsi_constants.o $(STUBS)
+elsi_timers.o: ./src/elsi_timers.f90 elsi_dimensions.o elsi_utils.o elsi_precision.o elsi_constants.o
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
 elsi_utils.o: ./src/elsi_utils.f90 elsi_dimensions.o elsi_precision.o elsi_constants.o $(STUBS)
@@ -90,17 +90,16 @@ stub_pexsi.o: ./src/stub_pexsi.f90 elsi_precision.o
 stub_sips.o: ./src/stub_sips.f90 elsi_precision.o
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
-elsi_c_interface.o: ./c_binding/elsi_c_interface.f90 elsi_interface.o elsi_dimensions.o elsi_c2f.o $(STUBS)
+elsi_c_interface.o: ./c_binding/elsi_c_interface.f90 elsi_interface.o elsi_c2f.o
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 	cp ./c_binding/elsi.h $(INC_DIR)
 
-tomato_c_interface.o: ./c_binding/tomato_c_interface.f90 elsi_dimensions.o elsi_c2f.o $(STUBS)
-	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
-	cp ./c_binding/elsi.h $(INC_DIR)
-
-elsi_c2f.o: ./c_binding/elsi_c2f.f90 $(STUBS)
+tomato_c_interface.o: ./c_binding/tomato_c_interface.f90 elsi_c2f.o
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 	cp ./c_binding/tomato.h $(INC_DIR)
+
+elsi_c2f.o: ./c_binding/elsi_c2f.f90
+	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
 .PHONY: clean install check checkc
 
