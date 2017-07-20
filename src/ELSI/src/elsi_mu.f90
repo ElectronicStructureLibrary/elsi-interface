@@ -284,7 +284,6 @@ subroutine elsi_find_mu(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
    real(kind=r8)    :: diff_mid   ! Difference in number of electrons on middle point
    logical          :: found_mu
    integer(kind=i4) :: n_steps
-   character*200    :: info_str
 
    character*40, parameter :: caller = "elsi_find_mu"
 
@@ -336,7 +335,7 @@ subroutine elsi_find_mu(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
       ! ...with adjusted occupation numbers
       call elsi_statement_print("  Chemical potential cannot reach the"//&
               " required accuracy by bisection method. The error will be"//&
-              " arbitrarily canceled in the following state(s):",elsi_h)
+              " arbitrarily removed from the highest occupied states.",elsi_h)
 
       call elsi_adjust_occ(elsi_h,kpoint_weights,eigenvalues,occ_numbers,diff_right)
    endif
@@ -368,7 +367,6 @@ subroutine elsi_adjust_occ(elsi_h,kpoint_weights,eigenvalues,occ_numbers,diff_ne
    integer(kind=i4) :: i_spin
    integer(kind=i4) :: i_val
    integer(kind=i4) :: n_total
-   character*200    :: info_str
 
    character*40, parameter :: caller = "elsi_adjust_occ"
 
@@ -414,12 +412,8 @@ subroutine elsi_adjust_occ(elsi_h,kpoint_weights,eigenvalues,occ_numbers,diff_ne
    do i_val = n_total,1,-1
       if(occ_aux(i_val) > 0.0_r8) then
          i_kpoint = (idx_aux(i_val)-1)/(n_spin*n_state)+1
-         i_spin   = mod((idx_aux(i_val)-1)/6,2)+1
+         i_spin   = mod((idx_aux(i_val)-1)/n_state,n_spin)+1
          i_state  = mod(idx_aux(i_val)-1,n_state)+1
-
-         write(info_str,"(A,I5,A,I5,A,I5)") "  | k-point ",i_kpoint,&
-            ", spin channel ",i_spin,", state ",i_state
-         call elsi_statement_print(info_str,elsi_h)
 
          if(kpoint_weights(i_kpoint)*occ_aux(i_val) > diff_ne) then
             occ_aux(i_val) = occ_aux(i_val)-diff_ne/kpoint_weights(i_kpoint)
