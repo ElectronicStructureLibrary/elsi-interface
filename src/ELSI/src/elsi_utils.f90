@@ -1246,9 +1246,6 @@ subroutine elsi_reset_handle(elsi_h)
    elsi_h%pexsi_started         = .false.
    elsi_h%sparsity_is_setup     = .false.
    elsi_h%n_mu_points           = UNSET
-   elsi_h%n_electrons_pexsi     = 0.0_r8
-   elsi_h%mu_min_inertia        = 0.0_r8
-   elsi_h%mu_max_inertia        = 0.0_r8
    elsi_h%energy_hdm            = 0.0_r8
    elsi_h%energy_sedm           = 0.0_r8
    elsi_h%free_energy           = 0.0_r8

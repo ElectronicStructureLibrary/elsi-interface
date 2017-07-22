@@ -832,7 +832,6 @@ subroutine elsi_set_output(elsi_h,out_level)
    elseif(out_level == 2) then
       print_info = .true.
       print_mem  = .false.
-      print_mem  = .true.
       elsi_h%omm_output = .true.
       elsi_h%pexsi_options%verbosity = 2
       elsi_h%elpa_output = .true.
