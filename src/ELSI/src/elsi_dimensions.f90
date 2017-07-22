@@ -242,9 +242,6 @@ module ELSI_DIMENSIONS
       integer(kind=c_intptr_t) :: pexsi_plan
       type(f_ppexsi_options)   :: pexsi_options
       integer(kind=i4)         :: n_mu_points = UNSET
-      real(kind=r8)            :: n_electrons_pexsi = 0.0_r8 ! Number of electrons computed by PEXSI
-      real(kind=r8)            :: mu_min_inertia = 0.0_r8
-      real(kind=r8)            :: mu_max_inertia = 0.0_r8
 
       ! SIPs
       integer(kind=i4) :: n_b_rows_sips = UNSET

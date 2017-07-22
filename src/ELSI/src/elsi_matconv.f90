@@ -62,11 +62,7 @@ subroutine elsi_blacs_to_pexsi_hs(elsi_h,H_in,S_in)
 
    character*40, parameter :: caller = "elsi_blacs_to_pexsi_hs"
 
-   if(elsi_h%ovlp_is_unit) then
-      !TODO
-      call elsi_stop(" PEXSI with identity overlap matrix not yet available."//&
-              " Exiting...",elsi_h,caller)
-   else
+   if(.not. elsi_h%ovlp_is_unit) then
       call elsi_set_full_mat(elsi_h,H_in)
       if(elsi_h%n_elsi_calls == 1) then
          call elsi_set_full_mat(elsi_h,S_in)
@@ -1198,10 +1194,7 @@ subroutine elsi_blacs_to_sips_hs(elsi_h,H_in,S_in)
 
    character*40, parameter :: caller = "elsi_blacs_to_sips_hs"
 
-   if(elsi_h%ovlp_is_unit) then
-      call elsi_stop(" SIPs with identity overlap matrix not yet available."//&
-              " Exiting...",elsi_h,caller)
-   else
+   if(.not. elsi_h%ovlp_is_unit) then
       call elsi_set_full_mat(elsi_h,H_in)
       if(elsi_h%n_elsi_calls == 1) then
          call elsi_set_full_mat(elsi_h,S_in)

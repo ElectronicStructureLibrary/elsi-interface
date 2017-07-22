@@ -141,9 +141,8 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
 
    type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
-   real(kind=r8), save :: this_pexsi_tol = 1.0e-2_r8
+   real(kind=r8)       :: n_electrons_pexsi
    integer(kind=i4)    :: n_inertia_iter
-   integer(kind=i4)    :: n_pexsi_iter
    integer(kind=i4)    :: mpierr
    integer(kind=i4)    :: ierr
    character*200       :: info_str
@@ -191,8 +190,8 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
    call elsi_statement_print("  Starting PEXSI density matrix solver",elsi_h)
 
    call f_ppexsi_dft_driver3(elsi_h%pexsi_plan,elsi_h%pexsi_options,&
-           elsi_h%n_electrons,2,elsi_h%n_mu_points,elsi_h%mu,&
-           elsi_h%n_electrons_pexsi,n_inertia_iter,ierr)
+           elsi_h%n_electrons,2,elsi_h%n_mu_points,elsi_h%mu,n_electrons_pexsi,&
+           n_inertia_iter,ierr)
 
    if(ierr /= 0) then
       call elsi_stop(" PEXSI DFT driver failed. Exiting...",elsi_h,caller)
