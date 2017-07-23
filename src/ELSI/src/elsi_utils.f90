@@ -36,7 +36,7 @@ module ELSI_UTILS
                              PEXSI_CSC,MULTI_PROC,FULL_MAT,UT_MAT,LT_MAT,&
                              N_SOLVERS,N_MATRIX_DATA_TYPES,&
                              N_MATRIX_STORAGE_FORMATS,N_PARALLEL_MODES,UNSET
-   use ELSI_DIMENSIONS, only: elsi_handle,print_info,print_mem
+   use ELSI_DATATYPE, only: elsi_handle,print_info,print_mem
    use ELSI_PRECISION, only: r8,i4
    use F_PPEXSI_INTERFACE
    use MATRIXSWITCH, only: matrix,m_register_pdbc,m_deallocate
@@ -1235,11 +1235,8 @@ subroutine elsi_reset_handle(elsi_h)
    elsi_h%use_psp               = .false.
    elsi_h%my_p_row_pexsi        = UNSET
    elsi_h%my_p_col_pexsi        = UNSET
-   elsi_h%n_b_rows_pexsi        = UNSET
-   elsi_h%n_b_cols_pexsi        = UNSET
    elsi_h%n_p_rows_pexsi        = UNSET
    elsi_h%n_p_cols_pexsi        = UNSET
-   elsi_h%n_l_rows_pexsi        = UNSET
    elsi_h%n_l_cols_pexsi        = UNSET
    elsi_h%n_p_per_pole          = UNSET
    elsi_h%nnz_l_pexsi           = UNSET
@@ -1249,9 +1246,6 @@ subroutine elsi_reset_handle(elsi_h)
    elsi_h%energy_hdm            = 0.0_r8
    elsi_h%energy_sedm           = 0.0_r8
    elsi_h%free_energy           = 0.0_r8
-   elsi_h%n_b_rows_sips         = UNSET
-   elsi_h%n_b_cols_sips         = UNSET
-   elsi_h%n_l_rows_sips         = UNSET
    elsi_h%n_l_cols_sips         = UNSET
    elsi_h%nnz_l_sips            = UNSET
    elsi_h%n_p_per_slice         = UNSET

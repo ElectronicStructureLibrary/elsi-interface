@@ -28,7 +28,7 @@
 !> 
 !! This module contains variables accessible in ELSI and related modules.
 !!
-module ELSI_DIMENSIONS
+module ELSI_DATATYPE
 
    use ISO_C_BINDING
    use ELSI_CONSTANTS, only: FULL_MAT,UNSET
@@ -230,11 +230,8 @@ module ELSI_DIMENSIONS
       integer(kind=i4) :: n_p_per_pole = UNSET
       integer(kind=i4) :: my_p_row_pexsi = UNSET
       integer(kind=i4) :: my_p_col_pexsi = UNSET
-      integer(kind=i4) :: n_b_rows_pexsi = UNSET
-      integer(kind=i4) :: n_b_cols_pexsi = UNSET
       integer(kind=i4) :: n_p_rows_pexsi = UNSET
       integer(kind=i4) :: n_p_cols_pexsi = UNSET
-      integer(kind=i4) :: n_l_rows_pexsi = UNSET
       integer(kind=i4) :: n_l_cols_pexsi = UNSET
       integer(kind=i4) :: nnz_l_pexsi = UNSET ! Local number of nonzeros in PEXSI distribution
       logical :: pexsi_started = .false.      ! Is PEXSI started?
@@ -244,11 +241,8 @@ module ELSI_DIMENSIONS
       integer(kind=i4)         :: n_mu_points = UNSET
 
       ! SIPs
-      integer(kind=i4) :: n_b_rows_sips = UNSET
-      integer(kind=i4) :: n_b_cols_sips = UNSET
-      integer(kind=i4) :: n_l_rows_sips = UNSET
-      integer(kind=i4) :: n_l_cols_sips = UNSET
       integer(kind=i4) :: n_p_per_slice = UNSET
+      integer(kind=i4) :: n_l_cols_sips = UNSET
       integer(kind=i4) :: nnz_l_sips = UNSET      ! Local number of nonzeros in SIPs distribution
       integer(kind=i4) :: n_inertia_steps = UNSET ! Number of inertia counting steps
       integer(kind=i4) :: slicing_method = UNSET  ! Type of slices
@@ -289,4 +283,4 @@ module ELSI_DIMENSIONS
 
    end type
 
-end module ELSI_DIMENSIONS
+end module ELSI_DATATYPE

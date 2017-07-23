@@ -32,7 +32,7 @@ module ELSI_PEXSI
 
    use ISO_C_BINDING
    use ELSI_CONSTANTS, only: BLACS_DENSE,UNSET
-   use ELSI_DIMENSIONS, only: elsi_handle
+   use ELSI_DATATYPE, only: elsi_handle
    use ELSI_PRECISION, only: r8,i4
    use ELSI_TIMERS
    use ELSI_UTILS
@@ -98,18 +98,14 @@ subroutine elsi_init_pexsi(elsi_h)
       elsi_h%my_p_col_pexsi = mod(elsi_h%myid,elsi_h%n_p_per_pole)
       elsi_h%my_p_row_pexsi = elsi_h%myid/elsi_h%n_p_per_pole
 
-      ! PEXSI uses a pure block distribution in the first process row
-      elsi_h%n_b_rows_pexsi = elsi_h%n_basis
+      ! 1D block distribution
+      elsi_h%n_l_cols_pexsi = elsi_h%n_basis/elsi_h%n_p_per_pole
 
       ! The last process holds all remaining columns
-      elsi_h%n_b_cols_pexsi = elsi_h%n_basis/elsi_h%n_p_per_pole
       if(elsi_h%my_p_col_pexsi == elsi_h%n_p_per_pole-1) then
-         elsi_h%n_b_cols_pexsi = elsi_h%n_basis-&
-                                    (elsi_h%n_p_per_pole-1)*elsi_h%n_b_cols_pexsi
+         elsi_h%n_l_cols_pexsi = elsi_h%n_basis-&
+                                    (elsi_h%n_p_per_pole-1)*elsi_h%n_l_cols_pexsi
       endif
-
-      elsi_h%n_l_rows_pexsi = elsi_h%n_b_rows_pexsi
-      elsi_h%n_l_cols_pexsi = elsi_h%n_b_cols_pexsi
 
       ! Only one process outputs
       if(elsi_h%myid_all == 0) then

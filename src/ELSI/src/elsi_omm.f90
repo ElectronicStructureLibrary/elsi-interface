@@ -32,7 +32,7 @@ module ELSI_OMM
 
    use ISO_C_BINDING
    use ELSI_CONSTANTS, only: REAL_VALUES,COMPLEX_VALUES
-   use ELSI_DIMENSIONS, only: elsi_handle
+   use ELSI_DATATYPE, only: elsi_handle
    use ELSI_PRECISION, only: r8,i4
    use ELSI_TIMERS
    use ELSI_UTILS

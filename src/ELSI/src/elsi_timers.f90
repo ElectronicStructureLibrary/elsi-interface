@@ -34,7 +34,7 @@ module ELSI_TIMERS
    use ELSI_CONSTANTS, only: ELPA,LIBOMM,PEXSI,CHESS,SIPS,&
                              MULTI_PROC,SINGLE_PROC,&
                              BLACS_DENSE,PEXSI_CSC
-   use ELSI_DIMENSIONS, only: elsi_handle,print_info
+   use ELSI_DATATYPE, only: elsi_handle,print_info
    use ELSI_PRECISION, only: r8,i4
    use ELSI_UTILS
 

@@ -34,7 +34,7 @@ module ELSI
    use ISO_C_BINDING
    use ELSI_CONSTANTS, only: ELPA,LIBOMM,PEXSI,CHESS,SIPS,REAL_VALUES,&
                              COMPLEX_VALUES,SINGLE_PROC,MULTI_PROC,UNSET
-   use ELSI_DIMENSIONS, only: elsi_handle,print_info,print_mem
+   use ELSI_DATATYPE, only: elsi_handle,print_info,print_mem
    use ELSI_ELPA
    use ELSI_MATCONV, only: elsi_blacs_to_pexsi_dm,elsi_blacs_to_pexsi_hs,&
                            elsi_blacs_to_sips_hs,elsi_pexsi_to_blacs_dm,&
@@ -96,6 +96,7 @@ module ELSI
    public :: elsi_get_ovlp_sing
    public :: elsi_get_mu
    public :: elsi_get_edm_real
+   public :: elsi_get_edm_complex
    public :: elsi_customize
    public :: elsi_customize_elpa
    public :: elsi_customize_omm
@@ -1539,21 +1540,61 @@ subroutine elsi_get_edm_real(elsi_h,D_out)
                  " Exiting...",elsi_h,caller)
       end select
 
-   elseif(elsi_h%edm_ready_complex) then
-      ! COMPLEX case
-      elsi_h%matrix_data_type = COMPLEX_VALUES
-
-      call elsi_stop(" Energy weighted density matrix has not been."//&
-              " computed. Exiting...",elsi_h,caller)
-
+      elsi_h%edm_ready_real = .false.
+      elsi_h%matrix_data_type = UNSET
    else
       call elsi_stop(" Energy weighted density matrix has not been."//&
               " computed. Exiting...",elsi_h,caller)
    endif
 
-   elsi_h%edm_ready_real = .false.
-   elsi_h%edm_ready_complex = .false.
-   elsi_h%matrix_data_type = UNSET
+end subroutine
+
+!>
+!! This routine gets the energy-weighted density matrix.
+!!
+subroutine elsi_get_edm_complex(elsi_h,D_out)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h                                 !< Handle
+   complex(kind=r8),  intent(out)   :: D_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Energy density matrix
+
+   character*40, parameter :: caller = "elsi_get_edm_complex"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   if(elsi_h%edm_ready_complex) then
+      ! REAL case
+      elsi_h%matrix_data_type = COMPLEX_VALUES
+
+      select case(elsi_h%solver)
+      case(ELPA)
+         call elsi_set_dm(elsi_h,D_out)
+         call elsi_compute_edm_elpa(elsi_h)
+
+      case(LIBOMM)
+         call elsi_set_dm(elsi_h,D_out)
+         call elsi_compute_edm_omm(elsi_h)
+
+         elsi_h%dm_omm%zval = 2.0_r8*elsi_h%dm_omm%zval
+
+      case(PEXSI)
+         call elsi_stop(" PEXSI not yet implemented. Exiting...",elsi_h,caller)
+      case(CHESS)
+         call elsi_stop(" CHESS not yet implemented. Exiting...",elsi_h,caller)
+      case(SIPS)
+         call elsi_stop(" SIPS not yet implemented. Exiting...",elsi_h,caller)
+      case default
+         call elsi_stop(" No supported solver has been chosen."//&
+                 " Exiting...",elsi_h,caller)
+      end select
+
+      elsi_h%edm_ready_complex = .false.
+      elsi_h%matrix_data_type = UNSET
+   else
+      call elsi_stop(" Energy weighted density matrix has not been."//&
+              " computed. Exiting...",elsi_h,caller)
+   endif
 
 end subroutine
 

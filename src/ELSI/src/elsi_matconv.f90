@@ -32,7 +32,7 @@ module ELSI_MATCONV
 
    use ISO_C_BINDING
    use ELSI_CONSTANTS, only: ELPA,LIBOMM
-   use ELSI_DIMENSIONS, only: elsi_handle
+   use ELSI_DATATYPE, only: elsi_handle
    use ELSI_PRECISION, only: r8,i4,i8
    use ELSI_TIMERS
    use ELSI_UTILS
@@ -78,33 +78,9 @@ subroutine elsi_blacs_to_pexsi_hs(elsi_h,H_in,S_in)
 end subroutine
 
 !>
-!! This routine is a driver to convert matrix format and distribution
-!! from PEXSI to BLACS.
-!!
-subroutine elsi_pexsi_to_blacs_dm(elsi_h,D_out)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: elsi_h                                 !< Handle
-   real(kind=r8),     intent(out)   :: D_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Density matrix
-
-   character*40, parameter :: caller = "elsi_pexsi_to_blacs_dm"
-
-   if(elsi_h%n_basis < 46340) then
-      call elsi_pexsi_to_blacs_dm_small(elsi_h,D_out)
-   else
-      call elsi_pexsi_to_blacs_dm_large(elsi_h,D_out)
-   endif
-
-end subroutine
-
-!>
 !! This routine converts Halmitonian and overlap matrix stored in
 !! 2D block-cyclic distributed dense format to 1D block distributed
 !! sparse CCS format, which can be used as input by PEXSI.
-!!
-!! * PEXSI pole parallelism MUST be available. Data redistributed on
-!!   the processes corresponding to the first pole.
 !!
 subroutine elsi_blacs_to_pexsi_hs_small(elsi_h,H_in,S_in)
 
@@ -468,9 +444,6 @@ end subroutine
 !! sparse CCS format, which can be used as input by PEXSI.
 !!
 !! * Integer(kind=8) is used to deal with large matrices.
-!!
-!! * PEXSI pole parallelism MUST be available. Data redistributed on
-!!   the processes corresponding to the first pole.
 !!
 subroutine elsi_blacs_to_pexsi_hs_large(elsi_h,H_in,S_in)
 
@@ -873,6 +846,27 @@ subroutine elsi_blacs_to_pexsi_hs_large(elsi_h,H_in,S_in)
    endif
 
    call elsi_stop_redistribution_time(elsi_h)
+
+end subroutine
+
+!>
+!! This routine is a driver to convert matrix format and distribution
+!! from PEXSI to BLACS.
+!!
+subroutine elsi_pexsi_to_blacs_dm(elsi_h,D_out)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h                                 !< Handle
+   real(kind=r8),     intent(out)   :: D_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Density matrix
+
+   character*40, parameter :: caller = "elsi_pexsi_to_blacs_dm"
+
+   if(elsi_h%n_basis < 46340) then
+      call elsi_pexsi_to_blacs_dm_small(elsi_h,D_out)
+   else
+      call elsi_pexsi_to_blacs_dm_large(elsi_h,D_out)
+   endif
 
 end subroutine
 

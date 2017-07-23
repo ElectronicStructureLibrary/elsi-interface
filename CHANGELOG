@@ -1,17 +1,18 @@
 =================================
 =         ELSI May 2017         =
 =================================
-Initial release of ELSI.
 
-Support for all major compiler suites (GNU, Intel, PGI, XL, Cray)
+Initial release of ELSI
+
+Support for five major compiler suites (GNU, Intel, PGI, XL, Cray)
 
 Solvers:
-* ELPA (version 2016.11.001.pre)
+* ELPA   (version 2016.11.001.pre)
 * libOMM (version 0.0.1)
-* PEXSI (version 0.10.2)
+* PEXSI  (version 0.10.2)
 
 Matrix Storage Formats:
-* 2D block cyclic (BLACS standard)
+* 2D block-cyclic dense (BLACS standard)
 * 1D block compressed sparse column (PEXSI format)
 
 Supported Programming Languages for Interfacing:
