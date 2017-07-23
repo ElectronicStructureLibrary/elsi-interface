@@ -1029,4 +1029,20 @@ subroutine elsi_get_edm_real_c_wrapper(handle_c,edm)&
 
 end subroutine
 
+subroutine elsi_get_edm_complex_c_wrapper(handle_c,edm)&
+   bind(C,name="c_elsi_get_edm_complex")
+
+   implicit none
+
+   type(c_ptr), value             :: handle_c
+   complex(kind=c_double_complex) :: edm(n_l_rows_c,n_l_cols_c)
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_get_edm_complex(handle_f,edm)
+
+end subroutine
+
 end module ELSI_C_INTERFACE

@@ -282,6 +282,9 @@ void c_elsi_get_mu(elsi_handle handle_c,
 void c_elsi_get_edm_real(elsi_handle handle_c,
                          double *edm);
 
+void c_elsi_get_edm_complex(elsi_handle handle_c,
+                            double _Complex *edm);
+
 #ifdef __cplusplus
 }
 #endif
