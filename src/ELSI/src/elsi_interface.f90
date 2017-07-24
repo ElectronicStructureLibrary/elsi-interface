@@ -1129,13 +1129,7 @@ subroutine elsi_set_pexsi_np_per_pole(elsi_h,np_per_pole)
 
    call elsi_check_handle(elsi_h,caller)
 
-   if(mod(elsi_h%n_procs,np_per_pole) == 0) then
-      elsi_h%n_p_per_pole = np_per_pole
-   else
-      call elsi_stop("  The total number of MPI tasks must be a"//&
-              " multiple of the number of MPI tasks per pole."//&
-              " Exiting...",elsi_h,caller)
-   endif
+   elsi_h%n_p_per_pole = np_per_pole
 
 end subroutine
 

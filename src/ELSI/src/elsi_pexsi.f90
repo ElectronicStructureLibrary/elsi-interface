@@ -66,25 +66,14 @@ subroutine elsi_init_pexsi(elsi_h)
    character*40, parameter :: caller = "elsi_init_pexsi"
 
    if(elsi_h%n_elsi_calls == 1) then
-      n_groups = elsi_h%pexsi_options%numPole*elsi_h%n_mu_points
-
       if(elsi_h%n_p_per_pole == UNSET) then
-         if(mod(elsi_h%n_procs,n_groups) == 0) then
-            elsi_h%n_p_per_pole = elsi_h%n_procs/n_groups
-
-            call elsi_statement_print("  PEXSI parallel over poles.",elsi_h)
-            write(info_str,"(A,I13)") "  | Number of MPI tasks per pole: ",&
-               elsi_h%n_p_per_pole
-            call elsi_statement_print(info_str,elsi_h)
-         else
-            call elsi_stop("  PEXSI not parallel over poles. High"//&
-                    " performance of PEXSI is expected if the number"//&
-                    " of MPI tasks is a multiple of the number of"//&
-                    " PEXSI poles. Please adjust either the number"//&
-                    " of MPI tasks, or the number of poles."//&
-                    " Exiting...",elsi_h,caller)
-         endif
+         elsi_h%n_p_per_pole = elsi_h%n_procs/(elsi_h%pexsi_options%numPole*&
+                                  elsi_h%n_mu_points)
       endif
+
+      write(info_str,"(A,I13)") "  | Number of MPI tasks per pole: ",&
+         elsi_h%n_p_per_pole
+      call elsi_statement_print(info_str,elsi_h)
 
       ! Set square-like process grid for selected inversion of each pole
       do n_rows_tmp = nint(sqrt(real(elsi_h%n_p_per_pole))),2,-1
@@ -92,7 +81,7 @@ subroutine elsi_init_pexsi(elsi_h)
       enddo
 
       elsi_h%n_p_rows_pexsi = n_rows_tmp
-      elsi_h%n_p_cols_pexsi = elsi_h%n_p_per_pole/elsi_h%n_p_rows_pexsi
+      elsi_h%n_p_cols_pexsi = elsi_h%n_p_per_pole/n_rows_tmp
 
       ! PEXSI process grid
       elsi_h%my_p_col_pexsi = mod(elsi_h%myid,elsi_h%n_p_per_pole)

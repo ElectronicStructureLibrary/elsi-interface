@@ -1426,6 +1426,14 @@ subroutine elsi_check(elsi_h,caller)
                     " times the number of mu points. Exiting...",&
                     elsi_h,caller)
          endif
+      else
+         if(mod(elsi_h%n_procs,elsi_h%n_p_per_pole*&
+            elsi_h%n_mu_points) /= 0) then
+            call elsi_stop("  The total number of MPI tasks must be"//&
+                    " a multiple of the number of MPI tasks per pole"//&
+                    " times the number of mu points. Exiting...",&
+                    elsi_h,caller)
+         endif
       endif
 
    elseif(elsi_h%solver == CHESS) then
