@@ -221,9 +221,6 @@ subroutine elsi_set_pexsi_default(elsi_h)
    ! Number of mu points if using Moussa's pole expansion
    elsi_h%n_mu_points = 2
 
-   ! Output level
-   elsi_h%pexsi_options%verbosity = 0
-
 end subroutine
 
 !>
