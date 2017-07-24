@@ -93,6 +93,57 @@ subroutine elsi_set_mpi_c_wrapper(handle_c,mpi_comm)&
 
 end subroutine
 
+subroutine elsi_set_mpi_global_c_wrapper(handle_c,mpi_comm_global)&
+   bind(C,name="c_elsi_set_mpi_global")
+
+   implicit none
+
+   type(c_ptr),         value             :: handle_c
+   integer(kind=c_int), value, intent(in) :: mpi_comm_global
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_mpi_global(handle_f,mpi_comm_global)
+
+end subroutine
+
+subroutine elsi_set_spin_c_wrapper(handle_c,n_spin,i_spin)&
+   bind(C,name="c_elsi_set_spin")
+
+   implicit none
+
+   type(c_ptr),         value             :: handle_c
+   integer(kind=c_int), value, intent(in) :: n_spin
+   integer(kind=c_int), value, intent(in) :: i_spin
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_spin(handle_f,n_spin,i_spin)
+
+end subroutine
+
+subroutine elsi_set_kpoint_c_wrapper(handle_c,n_kpt,i_kpt,weight)&
+   bind(C,name="c_elsi_set_kpoint")
+
+   implicit none
+
+   type(c_ptr),         value             :: handle_c
+   integer(kind=c_int), value, intent(in) :: n_kpt
+   integer(kind=c_int), value, intent(in) :: i_kpt
+   real(kind=c_double), value, intent(in) :: weight
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_kpoint(handle_f,n_kpt,i_kpt,weight)
+
+end subroutine
+
 subroutine elsi_set_blacs_c_wrapper(handle_c,blacs_ctxt,block_size)&
    bind(C,name="c_elsi_set_blacs")
 

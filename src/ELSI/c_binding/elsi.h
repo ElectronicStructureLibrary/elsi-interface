@@ -52,6 +52,18 @@ void c_elsi_init(elsi_handle *handle_c,
 void c_elsi_set_mpi(elsi_handle handle_c,
                     int mpi_comm);
 
+void c_elsi_set_mpi_global(elsi_handle handle_c,
+                           int mpi_comm_global);
+
+void c_elsi_set_spin(elsi_handle handle_c,
+                     int n_spin,
+                     int i_spin);
+
+void c_elsi_set_kpoint(elsi_handle handle_c,
+                       int n_kpt,
+                       int i_kpt,
+                       double weight);
+
 void c_elsi_set_blacs(elsi_handle handle_c,
                       int blacs_ctxt,
                       int block_size);
