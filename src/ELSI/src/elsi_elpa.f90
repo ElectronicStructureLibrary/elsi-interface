@@ -252,6 +252,8 @@ subroutine elsi_compute_edm_elpa(elsi_h)
       call pdsyrk('U','N',elsi_h%n_basis,max_state,1.0_r8,tmp_real,1,1,&
               elsi_h%sc_desc,0.0_r8,elsi_h%dm_real,1,1,elsi_h%sc_desc)
 
+      elsi_h%dm_real = -1.0_r8*elsi_h%dm_real
+
       ! Set full matrix from upper triangle
       call pdtran(elsi_h%n_basis,elsi_h%n_basis,1.0_r8,elsi_h%dm_real,&
               1,1,elsi_h%sc_desc,0.0_r8,tmp_real,1,1,elsi_h%sc_desc)
@@ -292,7 +294,7 @@ subroutine elsi_compute_edm_elpa(elsi_h)
       call pzherk('U','N',elsi_h%n_basis,max_state,(1.0_r8,0.0_r8),tmp_complex,&
               1,1,elsi_h%sc_desc,(0.0_r8,0.0_r8),elsi_h%dm_complex,1,1,elsi_h%sc_desc)
 
-      elsi_h%dm_real = -1.0_r8*elsi_h%dm_real
+      elsi_h%dm_complex = (-1.0_r8,0.0_r8)*elsi_h%dm_complex
 
       ! Set full matrix from upper triangle
       call pztranc(elsi_h%n_basis,elsi_h%n_basis,(1.0_r8,0.0_r8),elsi_h%dm_complex,&
