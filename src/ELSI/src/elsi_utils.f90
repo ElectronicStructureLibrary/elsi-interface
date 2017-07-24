@@ -689,7 +689,7 @@ subroutine elsi_stop(info,elsi_h,caller)
    integer :: i_task
    integer :: mpierr
 
-   if(elsi_h%mpi_is_setup) then
+   if(elsi_h%global_mpi_is_setup) then
       do i_task = 0,elsi_h%n_procs_all-1
          if(elsi_h%myid_all == i_task) then
             write(string_info,"(1X,' Error! MPI task',I5,' in ',A,': ',A)")&
@@ -698,6 +698,16 @@ subroutine elsi_stop(info,elsi_h,caller)
             exit
          endif
          call MPI_Barrier(elsi_h%mpi_comm_all,mpierr)
+      enddo
+   elseif(elsi_h%mpi_is_setup) then
+      do i_task = 0,elsi_h%n_procs-1
+         if(elsi_h%myid == i_task) then
+            write(string_info,"(1X,' Error! MPI task',I5,' in ',A,': ',A)")&
+               elsi_h%myid,trim(caller),trim(info)
+            write(*,'(A)') trim(string_info)
+            exit
+         endif
+         call MPI_Barrier(elsi_h%mpi_comm,mpierr)
       enddo
    else
       write(string_info,"(1X,' Error!',A,': ',A)") trim(caller),trim(info)
@@ -1172,8 +1182,8 @@ subroutine elsi_reset_handle(elsi_h)
    elsi_h%uplo                  = FULL_MAT
    elsi_h%n_elsi_calls          = 0
    elsi_h%n_basis               = UNSET
-   elsi_h%n_spins               = UNSET
-   elsi_h%n_kpts                = UNSET
+   elsi_h%n_spins               = 1
+   elsi_h%n_kpts                = 1
    elsi_h%i_spin                = 1
    elsi_h%i_kpt                 = 1
    elsi_h%i_weight              = 1.0_r8
@@ -1190,6 +1200,7 @@ subroutine elsi_reset_handle(elsi_h)
    elsi_h%mpi_comm              = UNSET
    elsi_h%mpi_comm_all          = UNSET
    elsi_h%mpi_is_setup          = .false.
+   elsi_h%global_mpi_is_setup   = .false.
    elsi_h%blacs_ctxt            = UNSET
    elsi_h%sc_desc               = UNSET
    elsi_h%mpi_comm_row          = UNSET
@@ -1267,8 +1278,8 @@ subroutine elsi_check(elsi_h,caller)
 
    implicit none
 
-   type(elsi_handle), intent(in) :: elsi_h !< Handle
-   character(len=*),  intent(in) :: caller !< Caller
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
+   character(len=*),  intent(in)    :: caller !< Caller
 
    ! General check of solver, parallel mode, matrix data type, matrix storage format
    if(elsi_h%solver == UNSET) then
@@ -1321,6 +1332,20 @@ subroutine elsi_check(elsi_h,caller)
                  " supported with BLACS_DENSE matrix storage format and"//&
                  " MULTI_PROC parallel mode. Exiting...",elsi_h,caller)
       endif
+   endif
+
+   ! Spin and k-point
+   if(elsi_h%n_spins*elsi_h%n_kpts > 1) then
+      if(.not. elsi_h%global_mpi_is_setup) then
+         call elsi_stop(" Spin/k-point calculations require a global"//&
+                 " MPI communicator. Exiting...",elsi_h,caller)
+      endif
+   endif
+
+   if(.not. elsi_h%global_mpi_is_setup) then
+      elsi_h%mpi_comm_all = elsi_h%mpi_comm
+      elsi_h%n_procs_all  = elsi_h%n_procs
+      elsi_h%myid_all     = elsi_h%myid
    endif
 
    ! Specific check for each solver

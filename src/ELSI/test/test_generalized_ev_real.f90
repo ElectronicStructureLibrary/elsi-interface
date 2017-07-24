@@ -167,10 +167,10 @@ program test_generalized_ev_real
    n_electrons = 2.0_r8*n_states
 
    if(n_proc == 1) then
-      call elsi_init(elsi_h,solver,0,0,matrix_size,n_electrons,1,1,n_states)
+      call elsi_init(elsi_h,solver,0,0,matrix_size,n_electrons,n_states)
    else
-      call elsi_init(elsi_h,solver,1,0,matrix_size,n_electrons,1,1,n_states)
-      call elsi_set_mpi(elsi_h,mpi_comm_global,mpi_comm_global)
+      call elsi_init(elsi_h,solver,1,0,matrix_size,n_electrons,n_states)
+      call elsi_set_mpi(elsi_h,mpi_comm_global)
       call elsi_set_blacs(elsi_h,BLACS_CTXT,blk)
    endif
 
@@ -184,7 +184,7 @@ program test_generalized_ev_real
    
    t1 = MPI_Wtime()
 
-   call elsi_ev_real(elsi_h,H%dval,S%dval,e_val,e_vec%dval,1,1,1.0_r8)
+   call elsi_ev_real(elsi_h,H%dval,S%dval,e_val,e_vec%dval)
 
    t2 = MPI_Wtime()
 

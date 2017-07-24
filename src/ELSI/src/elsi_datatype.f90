@@ -149,7 +149,8 @@ module ELSI_DATATYPE
       integer(kind=i4) :: n_procs_all = UNSET
       integer(kind=i4) :: mpi_comm = UNSET
       integer(kind=i4) :: mpi_comm_all = UNSET
-      logical          :: mpi_is_setup = .false.
+      logical :: mpi_is_setup = .false.
+      logical :: global_mpi_is_setup = .false.
 
       ! BLACS
       integer(kind=i4) :: blacs_ctxt = UNSET
@@ -158,7 +159,7 @@ module ELSI_DATATYPE
       integer(kind=i4) :: mpi_comm_col = UNSET
       integer(kind=i4) :: my_p_row = UNSET
       integer(kind=i4) :: my_p_col = UNSET
-      logical          :: blacs_is_setup = .false.
+      logical :: blacs_is_setup = .false.
 
       ! Sparse matrix information
       integer(kind=i4) :: nnz_g = UNSET               ! Global number of nonzeros

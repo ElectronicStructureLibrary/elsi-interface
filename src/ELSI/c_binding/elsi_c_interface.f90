@@ -46,7 +46,7 @@ module ELSI_C_INTERFACE
 contains
 
 subroutine elsi_init_c_wrapper(handle_c,solver,parallel_mode,&
-              matrix_format,n_basis,n_electron,n_spin,n_kpt,n_state)&
+              matrix_format,n_basis,n_electron,n_state)&
    bind(C,name="c_elsi_init")
 
    implicit none
@@ -57,8 +57,6 @@ subroutine elsi_init_c_wrapper(handle_c,solver,parallel_mode,&
    integer(kind=c_int), value, intent(in) :: matrix_format
    integer(kind=c_int), value, intent(in) :: n_basis
    real(kind=c_double), value, intent(in) :: n_electron
-   integer(kind=c_int), value, intent(in) :: n_spin
-   integer(kind=c_int), value, intent(in) :: n_kpt
    integer(kind=c_int), value, intent(in) :: n_state
 
    type(elsi_handle), pointer :: handle_f
@@ -66,7 +64,7 @@ subroutine elsi_init_c_wrapper(handle_c,solver,parallel_mode,&
    allocate(handle_f)
 
    call elsi_init(handle_f,solver,parallel_mode,matrix_format,&
-           n_basis,n_electron,n_spin,n_kpt,n_state)
+           n_basis,n_electron,n_state)
 
    handle_c = c_loc(handle_f)
 
@@ -79,20 +77,19 @@ subroutine elsi_init_c_wrapper(handle_c,solver,parallel_mode,&
 
 end subroutine
 
-subroutine elsi_set_mpi_c_wrapper(handle_c,mpi_comm,mpi_comm_all)&
+subroutine elsi_set_mpi_c_wrapper(handle_c,mpi_comm)&
    bind(C,name="c_elsi_set_mpi")
 
    implicit none
 
    type(c_ptr),         value             :: handle_c
    integer(kind=c_int), value, intent(in) :: mpi_comm
-   integer(kind=c_int), value, intent(in) :: mpi_comm_all
 
    type(elsi_handle), pointer :: handle_f
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_set_mpi(handle_f,mpi_comm,mpi_comm_all)
+   call elsi_set_mpi(handle_f,mpi_comm)
 
 end subroutine
 
@@ -302,141 +299,117 @@ subroutine elsi_customize_elpa_c_wrapper(handle_c,elpa_solver,&
 
 end subroutine
 
-subroutine elsi_ev_real_c_wrapper(handle_c,H,S,e_val,e_vec,&
-              i_spin,i_kpt,weight)&
+subroutine elsi_ev_real_c_wrapper(handle_c,H,S,e_val,e_vec)&
    bind(C,name="c_elsi_ev_real")
 
    implicit none
 
-   type(c_ptr),         value :: handle_c
-   real(kind=c_double)        :: H(n_l_rows_c,n_l_cols_c)
-   real(kind=c_double)        :: S(n_l_rows_c,n_l_cols_c)
-   real(kind=c_double)        :: e_val(n_g_size_c)
-   real(kind=c_double)        :: e_vec(n_l_rows_c,n_l_cols_c)
-   integer(kind=c_int), value :: i_spin
-   integer(kind=c_int), value :: i_kpt
-   real(kind=c_double), value :: weight
+   type(c_ptr), value  :: handle_c
+   real(kind=c_double) :: H(n_l_rows_c,n_l_cols_c)
+   real(kind=c_double) :: S(n_l_rows_c,n_l_cols_c)
+   real(kind=c_double) :: e_val(n_g_size_c)
+   real(kind=c_double) :: e_vec(n_l_rows_c,n_l_cols_c)
 
    type(elsi_handle), pointer :: handle_f
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_ev_real(handle_f,H,S,e_val,e_vec,i_spin,i_kpt,weight)
+   call elsi_ev_real(handle_f,H,S,e_val,e_vec)
 
 end subroutine
 
-subroutine elsi_ev_complex_c_wrapper(handle_c,H,S,e_val,e_vec,&
-              i_spin,i_kpt,weight)&
+subroutine elsi_ev_complex_c_wrapper(handle_c,H,S,e_val,e_vec)&
    bind(C,name="c_elsi_ev_complex")
 
    implicit none
 
-   type(c_ptr),         value     :: handle_c
+   type(c_ptr), value             :: handle_c
    complex(kind=c_double_complex) :: H(n_l_rows_c,n_l_cols_c)
    complex(kind=c_double_complex) :: S(n_l_rows_c,n_l_cols_c)
    real(kind=c_double)            :: e_val(n_g_size_c)
    complex(kind=c_double_complex) :: e_vec(n_l_rows_c,n_l_cols_c)
-   integer(kind=c_int), value     :: i_spin
-   integer(kind=c_int), value     :: i_kpt
-   real(kind=c_double), value     :: weight
 
    type(elsi_handle), pointer :: handle_f
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_ev_complex(handle_f,H,S,e_val,e_vec,i_spin,i_kpt,weight)
+   call elsi_ev_complex(handle_f,H,S,e_val,e_vec)
 
 end subroutine
 
-subroutine elsi_ev_real_sparse_c_wrapper(handle_c,H,S,e_val,e_vec,&
-              i_spin,i_kpt,weight)&
+subroutine elsi_ev_real_sparse_c_wrapper(handle_c,H,S,e_val,e_vec)&
    bind(C,name="c_elsi_ev_real_sparse")
 
    implicit none
 
-   type(c_ptr),         value :: handle_c
-   real(kind=c_double)        :: H(nnz_l_pexsi_c)
-   real(kind=c_double)        :: S(nnz_l_pexsi_c)
-   real(kind=c_double)        :: e_val(n_g_size_c)
-   real(kind=c_double)        :: e_vec(n_l_rows_c,n_l_cols_c)
-   integer(kind=c_int), value :: i_spin
-   integer(kind=c_int), value :: i_kpt
-   real(kind=c_double), value :: weight
+   type(c_ptr), value  :: handle_c
+   real(kind=c_double) :: H(nnz_l_pexsi_c)
+   real(kind=c_double) :: S(nnz_l_pexsi_c)
+   real(kind=c_double) :: e_val(n_g_size_c)
+   real(kind=c_double) :: e_vec(n_l_rows_c,n_l_cols_c)
 
    type(elsi_handle), pointer :: handle_f
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_ev_real_sparse(handle_f,H,S,e_val,e_vec,i_spin,i_kpt,weight)
+   call elsi_ev_real_sparse(handle_f,H,S,e_val,e_vec)
 
 end subroutine
 
-subroutine elsi_dm_real_c_wrapper(handle_c,H,S,D,energy,&
-              i_spin,i_kpt,weight)&
+subroutine elsi_dm_real_c_wrapper(handle_c,H,S,D,energy)&
    bind(C,name="c_elsi_dm_real")
 
    implicit none
 
-   type(c_ptr),         value :: handle_c
-   real(kind=c_double)        :: H(n_l_rows_c,n_l_cols_c)
-   real(kind=c_double)        :: S(n_l_rows_c,n_l_cols_c)
-   real(kind=c_double)        :: D(n_l_rows_c,n_l_cols_c)
-   real(kind=c_double)        :: energy
-   integer(kind=c_int), value :: i_spin
-   integer(kind=c_int), value :: i_kpt
-   real(kind=c_double), value :: weight
+   type(c_ptr), value  :: handle_c
+   real(kind=c_double) :: H(n_l_rows_c,n_l_cols_c)
+   real(kind=c_double) :: S(n_l_rows_c,n_l_cols_c)
+   real(kind=c_double) :: D(n_l_rows_c,n_l_cols_c)
+   real(kind=c_double) :: energy
 
    type(elsi_handle), pointer :: handle_f
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_dm_real(handle_f,H,S,D,energy,i_spin,i_kpt,weight)
+   call elsi_dm_real(handle_f,H,S,D,energy)
 
 end subroutine
 
-subroutine elsi_dm_complex_c_wrapper(handle_c,H,S,D,energy,&
-              i_spin,i_kpt,weight)&
+subroutine elsi_dm_complex_c_wrapper(handle_c,H,S,D,energy)&
    bind(C,name="c_elsi_dm_complex")
 
    implicit none
 
-   type(c_ptr),         value     :: handle_c
+   type(c_ptr), value             :: handle_c
    complex(kind=c_double_complex) :: H(n_l_rows_c,n_l_cols_c)
    complex(kind=c_double_complex) :: S(n_l_rows_c,n_l_cols_c)
    complex(kind=c_double_complex) :: D(n_l_rows_c,n_l_cols_c)
    real(kind=c_double)            :: energy
-   integer(kind=c_int), value     :: i_spin
-   integer(kind=c_int), value     :: i_kpt
-   real(kind=c_double), value     :: weight
 
    type(elsi_handle), pointer :: handle_f
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_dm_complex(handle_f,H,S,D,energy,i_spin,i_kpt,weight)
+   call elsi_dm_complex(handle_f,H,S,D,energy)
 
 end subroutine
 
-subroutine elsi_dm_real_sparse_c_wrapper(handle_c,H,S,D,energy,&
-              i_spin,i_kpt,weight)&
+subroutine elsi_dm_real_sparse_c_wrapper(handle_c,H,S,D,energy)&
    bind(C,name="c_elsi_dm_real_sparse")
 
    implicit none
 
-   type(c_ptr),         value :: handle_c
-   real(kind=c_double)        :: H(nnz_l_pexsi_c)
-   real(kind=c_double)        :: S(nnz_l_pexsi_c)
-   real(kind=c_double)        :: D(nnz_l_pexsi_c)
-   real(kind=c_double)        :: energy
-   integer(kind=c_int), value :: i_spin
-   integer(kind=c_int), value :: i_kpt
-   real(kind=c_double), value :: weight
+   type(c_ptr), value  :: handle_c
+   real(kind=c_double) :: H(nnz_l_pexsi_c)
+   real(kind=c_double) :: S(nnz_l_pexsi_c)
+   real(kind=c_double) :: D(nnz_l_pexsi_c)
+   real(kind=c_double) :: energy
 
    type(elsi_handle), pointer :: handle_f
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_dm_real_sparse(handle_f,H,S,D,energy,i_spin,i_kpt,weight)
+   call elsi_dm_real_sparse(handle_f,H,S,D,energy)
 
 end subroutine
 

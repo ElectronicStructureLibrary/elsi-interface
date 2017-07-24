@@ -47,13 +47,10 @@ void c_elsi_init(elsi_handle *handle_c,
                  int matrix_format,
                  int n_basis,
                  double n_electron,
-                 int n_spin,
-                 int n_kpt,
                  int n_state);
 
 void c_elsi_set_mpi(elsi_handle handle_c,
-                    int mpi_comm,
-                    int mpi_comm_all);
+                    int mpi_comm);
 
 void c_elsi_set_blacs(elsi_handle handle_c,
                       int blacs_ctxt,
@@ -120,55 +117,37 @@ void c_elsi_ev_real(elsi_handle handle_c,
                     double *H,
                     double *S,
                     double *e_val,
-                    double *e_vec,
-                    int i_spin,
-                    int i_kpt,
-                    double weight);
+                    double *e_vec);
 
 void c_elsi_ev_complex(elsi_handle handle_c,
                        double _Complex *H,
                        double _Complex *S,
                        double *e_val,
-                       double _Complex *e_vec,
-                       int i_spin,
-                       int i_kpt,
-                       double weight);
+                       double _Complex *e_vec);
 
 void c_elsi_ev_real_sparse(elsi_handle handle_c,
                            double *H,
                            double *S,
                            double *e_val,
-                           double *e_vec,
-                           int i_spin,
-                           int i_kpt,
-                           double weight);
+                           double *e_vec);
 
 void c_elsi_dm_real(elsi_handle handle_c,
                     double *H,
                     double *S,
                     double *D,
-                    double *energy,
-                    int i_spin,
-                    int i_kpt,
-                    double weight);
+                    double *energy);
 
 void c_elsi_dm_complex(elsi_handle handle_c,
                        double _Complex *H,
                        double _Complex *S,
                        double _Complex *D,
-                       double *energy,
-                       int i_spin,
-                       int i_kpt,
-                       double weight);
+                       double *energy);
 
 void c_elsi_dm_real_sparse(elsi_handle handle_c,
                            double *H,
                            double *S,
                            double *D,
-                           double *energy,
-                           int i_spin,
-                           int i_kpt,
-                           double weight);
+                           double *energy);
 
 void c_elsi_collect(elsi_handle handle_c,
                     int *overlap_is_singular,

@@ -176,8 +176,8 @@ program test_standard_ev_real
    endif
 
    ! Initialize ELSI
-   call elsi_init(elsi_h,solver,1,0,matrix_size,0.0_r8,1,1,n_states)
-   call elsi_set_mpi(elsi_h,mpi_comm_global,mpi_comm_global)
+   call elsi_init(elsi_h,solver,1,0,matrix_size,0.0_r8,n_states)
+   call elsi_set_mpi(elsi_h,mpi_comm_global)
    call elsi_set_blacs(elsi_h,BLACS_CTXT,blk)
 
    allocate(mat_b(1,1)) ! Dummy allocation
@@ -191,7 +191,7 @@ program test_standard_ev_real
    t1 = MPI_Wtime()
 
    ! Solve problem
-   call elsi_ev_real(elsi_h,mat_a,mat_b,e_val,e_vec,1,1,1.0_r8)
+   call elsi_ev_real(elsi_h,mat_a,mat_b,e_val,e_vec)
 
    t2 = MPI_Wtime()
 

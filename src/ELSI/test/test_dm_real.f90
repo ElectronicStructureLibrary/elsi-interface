@@ -190,8 +190,8 @@ program test_dm_real
    ! Initialize ELSI
    n_electrons = 2.0_r8*n_states
 
-   call elsi_init(elsi_h,solver,1,0,matrix_size,n_electrons,1,1,n_states)
-   call elsi_set_mpi(elsi_h,mpi_comm_global,mpi_comm_global)
+   call elsi_init(elsi_h,solver,1,0,matrix_size,n_electrons,n_states)
+   call elsi_set_mpi(elsi_h,mpi_comm_global)
    call elsi_set_blacs(elsi_h,BLACS_CTXT,blk)
 
    ! Customize ELSI
@@ -206,7 +206,7 @@ program test_dm_real
    t1 = MPI_Wtime()
 
    ! Solve (pseudo SCF 1)
-   call elsi_dm_real(elsi_h,ham,ovlp,dm,e_test,1,1,1.0_r8)
+   call elsi_dm_real(elsi_h,ham,ovlp,dm,e_test)
 
    t2 = MPI_Wtime()
 
@@ -227,7 +227,7 @@ program test_dm_real
    t1 = MPI_Wtime()
 
    ! Solve (pseudo SCF 2, with the same H)
-   call elsi_dm_real(elsi_h,ham,ovlp,dm,e_test,1,1,1.0_r8)
+   call elsi_dm_real(elsi_h,ham,ovlp,dm,e_test)
 
    t2 = MPI_Wtime()
 

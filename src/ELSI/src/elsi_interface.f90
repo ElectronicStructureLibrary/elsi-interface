@@ -60,6 +60,9 @@ module ELSI
    public :: elsi_init
    public :: elsi_finalize
    public :: elsi_set_mpi
+   public :: elsi_set_mpi_global
+   public :: elsi_set_spin
+   public :: elsi_set_kpoint
    public :: elsi_set_blacs
    public :: elsi_set_csc
    public :: elsi_set_output
@@ -122,8 +125,8 @@ contains
 !! format, number of basis functions (global size of the Hamiltonian matrix),
 !! number of electrons, and number of states.
 !!
-subroutine elsi_init(elsi_h,solver,parallel_mode,matrix_format,&
-              n_basis,n_electron,n_spin,n_kpoint,n_state)
+subroutine elsi_init(elsi_h,solver,parallel_mode,matrix_format,n_basis,&
+              n_electron,n_state)
 
    implicit none
 
@@ -133,8 +136,6 @@ subroutine elsi_init(elsi_h,solver,parallel_mode,matrix_format,&
    integer(kind=i4),  intent(in)  :: matrix_format !< BLACS_DENSE,PEXSI_CSC
    integer(kind=i4),  intent(in)  :: n_basis       !< Number of basis functions
    real(kind=r8),     intent(in)  :: n_electron    !< Number of electrons
-   integer(kind=i4),  intent(in)  :: n_spin        !< Number of spin channels
-   integer(kind=i4),  intent(in)  :: n_kpoint      !< Number of k-points
    integer(kind=i4),  intent(in)  :: n_state       !< Number of states
 
    character*40, parameter :: caller = "elsi_init"
@@ -146,8 +147,6 @@ subroutine elsi_init(elsi_h,solver,parallel_mode,matrix_format,&
    elsi_h%n_basis               = n_basis
    elsi_h%n_nonsing             = n_basis
    elsi_h%n_electrons           = n_electron
-   elsi_h%n_spins               = n_spin
-   elsi_h%n_kpts                = n_kpoint
    elsi_h%n_states              = n_state
    elsi_h%solver                = solver
    elsi_h%matrix_storage_format = matrix_format
@@ -195,14 +194,13 @@ end subroutine
 !>
 !! This routine sets the MPI communicator.
 !!
-subroutine elsi_set_mpi(elsi_h,mpi_comm,mpi_comm_all)
+subroutine elsi_set_mpi(elsi_h,mpi_comm)
 
    implicit none
    include "mpif.h"
 
    type(elsi_handle), intent(inout) :: elsi_h       !< Handle
    integer(kind=i4),  intent(in)    :: mpi_comm     !< Unit ELSI communicator
-   integer(kind=i4),  intent(in)    :: mpi_comm_all !< Global ELSI communicator
 
    integer(kind=i4) :: mpierr
 
@@ -219,14 +217,71 @@ subroutine elsi_set_mpi(elsi_h,mpi_comm,mpi_comm_all)
       call MPI_Comm_rank(mpi_comm,elsi_h%myid,mpierr)
       call MPI_Comm_size(mpi_comm,elsi_h%n_procs,mpierr)
 
+      elsi_h%mpi_is_setup = .true.
+   endif
+
+end subroutine
+
+!>
+!! This routine sets the global MPI communicator.
+!!
+subroutine elsi_set_mpi_global(elsi_h,mpi_comm_all)
+
+   implicit none
+   include "mpif.h"
+
+   type(elsi_handle), intent(inout) :: elsi_h       !< Handle
+   integer(kind=i4),  intent(in)    :: mpi_comm_all !< Unit ELSI communicator
+
+   integer(kind=i4) :: mpierr
+
+   character*40, parameter :: caller = "elsi_set_mpi_global"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   if(elsi_h%parallel_mode == MULTI_PROC) then
       ! Global ELSI communicator
       elsi_h%mpi_comm_all = mpi_comm_all
 
       call MPI_Comm_rank(mpi_comm_all,elsi_h%myid_all,mpierr)
       call MPI_Comm_size(mpi_comm_all,elsi_h%n_procs_all,mpierr)
 
-      elsi_h%mpi_is_setup = .true.
+      elsi_h%global_mpi_is_setup = .true.
    endif
+
+end subroutine
+
+!>
+!! This routine sets the spin information.
+!!
+subroutine elsi_set_spin(elsi_h,n_spin,i_spin)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
+   integer(kind=i4),  intent(in)    :: n_spin !< Number of spin channels
+   integer(kind=i4),  intent(in)    :: i_spin !< Spin index
+
+   elsi_h%n_spins = n_spin
+   elsi_h%i_spin  = i_spin
+
+end subroutine
+
+!>
+!! This routine sets the k-point information.
+!!
+subroutine elsi_set_kpoint(elsi_h,n_kpt,i_kpt,weight)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
+   integer(kind=i4),  intent(in)    :: n_kpt  !< Number of k-points
+   integer(kind=i4),  intent(in)    :: i_kpt  !< K-point index
+   real(kind=r8),     intent(in)    :: weight !< Weight
+
+   elsi_h%n_kpts   = n_kpt
+   elsi_h%i_kpt    = i_kpt
+   elsi_h%i_weight = weight
 
 end subroutine
 
@@ -1595,19 +1650,15 @@ end subroutine
 !>
 !! This routine computes the eigenvalues and eigenvectors.
 !!
-subroutine elsi_ev_real(elsi_h,H_in,S_in,e_val_out,e_vec_out,&
-              i_spin,i_kpt,weight)
+subroutine elsi_ev_real(elsi_h,H_in,S_in,e_val_out,e_vec_out)
 
    implicit none
 
-   type(elsi_handle)            :: elsi_h                                     !< Handle
-   real(kind=r8)                :: H_in(elsi_h%n_l_rows,elsi_h%n_l_cols)      !< Hamiltonian
-   real(kind=r8)                :: S_in(elsi_h%n_l_rows,elsi_h%n_l_cols)      !< Overlap
-   real(kind=r8)                :: e_val_out(elsi_h%n_basis)                  !< Eigenvalues
-   real(kind=r8)                :: e_vec_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Eigenvectors
-   integer(kind=i4), intent(in) :: i_spin                                     !< Spin index
-   integer(kind=i4), intent(in) :: i_kpt                                      !< K-point index
-   real(kind=r8),    intent(in) :: weight                                     !< Weight
+   type(elsi_handle) :: elsi_h                                     !< Handle
+   real(kind=r8)     :: H_in(elsi_h%n_l_rows,elsi_h%n_l_cols)      !< Hamiltonian
+   real(kind=r8)     :: S_in(elsi_h%n_l_rows,elsi_h%n_l_cols)      !< Overlap
+   real(kind=r8)     :: e_val_out(elsi_h%n_basis)                  !< Eigenvalues
+   real(kind=r8)     :: e_vec_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Eigenvectors
 
    character*40, parameter :: caller = "elsi_ev_real"
 
@@ -1681,19 +1732,15 @@ end subroutine
 !>
 !! This routine computes the eigenvalues and eigenvectors.
 !!
-subroutine elsi_ev_complex(elsi_h,H_in,S_in,e_val_out,e_vec_out,&
-              i_spin,i_kpt,weight)
+subroutine elsi_ev_complex(elsi_h,H_in,S_in,e_val_out,e_vec_out)
 
    implicit none
 
-   type(elsi_handle)            :: elsi_h                                     !< Handle
-   complex(kind=r8)             :: H_in(elsi_h%n_l_rows,elsi_h%n_l_cols)      !< Hamiltonian
-   complex(kind=r8)             :: S_in(elsi_h%n_l_rows,elsi_h%n_l_cols)      !< Overlap
-   real(kind=r8)                :: e_val_out(elsi_h%n_basis)                  !< Eigenvalues
-   complex(kind=r8)             :: e_vec_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Eigenvectors
-   integer(kind=i4), intent(in) :: i_spin                                     !< Spin index
-   integer(kind=i4), intent(in) :: i_kpt                                      !< K-point index
-   real(kind=r8),    intent(in) :: weight                                     !< Weight
+   type(elsi_handle) :: elsi_h                                     !< Handle
+   complex(kind=r8)  :: H_in(elsi_h%n_l_rows,elsi_h%n_l_cols)      !< Hamiltonian
+   complex(kind=r8)  :: S_in(elsi_h%n_l_rows,elsi_h%n_l_cols)      !< Overlap
+   real(kind=r8)     :: e_val_out(elsi_h%n_basis)                  !< Eigenvalues
+   complex(kind=r8)  :: e_vec_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Eigenvectors
 
    character*40, parameter :: caller = "elsi_ev_complex"
 
@@ -1746,19 +1793,15 @@ end subroutine
 !>
 !! This routine computes the eigenvalues and eigenvectors.
 !!
-subroutine elsi_ev_real_sparse(elsi_h,H_in,S_in,e_val_out,e_vec_out,&
-              i_spin,i_kpt,weight)
+subroutine elsi_ev_real_sparse(elsi_h,H_in,S_in,e_val_out,e_vec_out)
 
    implicit none
 
-   type(elsi_handle)            :: elsi_h                                     !< Handle
-   real(kind=r8)                :: H_in(elsi_h%nnz_l_pexsi)                   !< Hamiltonian
-   real(kind=r8)                :: S_in(elsi_h%nnz_l_pexsi)                   !< Overlap
-   real(kind=r8)                :: e_val_out(elsi_h%n_basis)                  !< Eigenvalues
-   real(kind=r8)                :: e_vec_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Eigenvectors
-   integer(kind=i4), intent(in) :: i_spin                                     !< Spin index
-   integer(kind=i4), intent(in) :: i_kpt                                      !< K-point index
-   real(kind=r8),    intent(in) :: weight                                     !< Weight
+   type(elsi_handle) :: elsi_h                                     !< Handle
+   real(kind=r8)     :: H_in(elsi_h%nnz_l_pexsi)                   !< Hamiltonian
+   real(kind=r8)     :: S_in(elsi_h%nnz_l_pexsi)                   !< Overlap
+   real(kind=r8)     :: e_val_out(elsi_h%n_basis)                  !< Eigenvalues
+   real(kind=r8)     :: e_vec_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Eigenvectors
 
    character*40, parameter :: caller = "elsi_ev_real_sparse"
 
@@ -1810,28 +1853,19 @@ end subroutine
 !>
 !! This routine computes the density matrix.
 !!
-subroutine elsi_dm_real(elsi_h,H_in,S_in,D_out,energy_out,&
-              i_spin,i_kpt,weight)
+subroutine elsi_dm_real(elsi_h,H_in,S_in,D_out,energy_out)
 
    implicit none
 
-   type(elsi_handle)            :: elsi_h                                 !< Handle
-   real(kind=r8)                :: H_in(elsi_h%n_l_rows,elsi_h%n_l_cols)  !< Hamiltonian
-   real(kind=r8)                :: S_in(elsi_h%n_l_rows,elsi_h%n_l_cols)  !< Overlap
-   real(kind=r8)                :: D_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Density matrix
-   real(kind=r8)                :: energy_out                             !< Energy
-   integer(kind=i4), intent(in) :: i_spin                                 !< Spin index
-   integer(kind=i4), intent(in) :: i_kpt                                  !< K-point index
-   real(kind=r8),    intent(in) :: weight                                 !< Weight
+   type(elsi_handle) :: elsi_h                                 !< Handle
+   real(kind=r8)     :: H_in(elsi_h%n_l_rows,elsi_h%n_l_cols)  !< Hamiltonian
+   real(kind=r8)     :: S_in(elsi_h%n_l_rows,elsi_h%n_l_cols)  !< Overlap
+   real(kind=r8)     :: D_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Density matrix
+   real(kind=r8)     :: energy_out                             !< Energy
 
    character*40, parameter :: caller = "elsi_dm_real"
 
    call elsi_check_handle(elsi_h,caller)
-
-   ! Info of this task
-   elsi_h%i_spin = i_spin
-   elsi_h%i_kpt = i_kpt
-   elsi_h%i_weight = weight
 
    ! Update counter
    elsi_h%n_elsi_calls = elsi_h%n_elsi_calls+1
@@ -2030,28 +2064,19 @@ end subroutine
 !>
 !! This routine computes the density matrix.
 !!
-subroutine elsi_dm_complex(elsi_h,H_in,S_in,D_out,energy_out,&
-              i_spin,i_kpt,weight)
+subroutine elsi_dm_complex(elsi_h,H_in,S_in,D_out,energy_out)
 
    implicit none
 
-   type(elsi_handle)            :: elsi_h                                 !< Handle
-   complex(kind=r8)             :: H_in(elsi_h%n_l_rows,elsi_h%n_l_cols)  !< Hamiltonian
-   complex(kind=r8)             :: S_in(elsi_h%n_l_rows,elsi_h%n_l_cols)  !< Overlap
-   complex(kind=r8)             :: D_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Density matrix
-   real(kind=r8)                :: energy_out                             !< Energy
-   integer(kind=i4), intent(in) :: i_spin                                 !< Spin index
-   integer(kind=i4), intent(in) :: i_kpt                                  !< K-point index
-   real(kind=r8),    intent(in) :: weight                                 !< Weight
+   type(elsi_handle) :: elsi_h                                 !< Handle
+   complex(kind=r8)  :: H_in(elsi_h%n_l_rows,elsi_h%n_l_cols)  !< Hamiltonian
+   complex(kind=r8)  :: S_in(elsi_h%n_l_rows,elsi_h%n_l_cols)  !< Overlap
+   complex(kind=r8)  :: D_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Density matrix
+   real(kind=r8)     :: energy_out                             !< Energy
 
    character*40, parameter :: caller = "elsi_dm_complex"
 
    call elsi_check_handle(elsi_h,caller)
-
-   ! Info of this task
-   elsi_h%i_spin = i_spin
-   elsi_h%i_kpt = i_kpt
-   elsi_h%i_weight = weight
 
    ! Update counter
    elsi_h%n_elsi_calls = elsi_h%n_elsi_calls+1
@@ -2221,28 +2246,19 @@ end subroutine
 !>
 !! This routine computes the density matrix.
 !!
-subroutine elsi_dm_real_sparse(elsi_h,H_in,S_in,D_out,energy_out,&
-              i_spin,i_kpt,weight)
+subroutine elsi_dm_real_sparse(elsi_h,H_in,S_in,D_out,energy_out)
 
    implicit none
 
-   type(elsi_handle)            :: elsi_h                    !< Handle
-   real(kind=r8)                :: H_in(elsi_h%nnz_l_pexsi)  !< Hamiltonian
-   real(kind=r8)                :: S_in(elsi_h%nnz_l_pexsi)  !< Overlap
-   real(kind=r8)                :: D_out(elsi_h%nnz_l_pexsi) !< Density matrix
-   real(kind=r8)                :: energy_out                !< Energy
-   integer(kind=i4), intent(in) :: i_spin                    !< Spin index
-   integer(kind=i4), intent(in) :: i_kpt                     !< K-point index
-   real(kind=r8),    intent(in) :: weight                    !< Weight
+   type(elsi_handle) :: elsi_h                    !< Handle
+   real(kind=r8)     :: H_in(elsi_h%nnz_l_pexsi)  !< Hamiltonian
+   real(kind=r8)     :: S_in(elsi_h%nnz_l_pexsi)  !< Overlap
+   real(kind=r8)     :: D_out(elsi_h%nnz_l_pexsi) !< Density matrix
+   real(kind=r8)     :: energy_out                !< Energy
 
    character*40, parameter :: caller = "elsi_dm_real_sparse"
 
    call elsi_check_handle(elsi_h,caller)
-
-   ! Info of this task
-   elsi_h%i_spin = i_spin
-   elsi_h%i_kpt = i_kpt
-   elsi_h%i_weight = weight
 
    ! Update counter
    elsi_h%n_elsi_calls = elsi_h%n_elsi_calls+1

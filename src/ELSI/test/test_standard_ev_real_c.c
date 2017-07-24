@@ -37,21 +37,19 @@
 void main(int argc, char** argv) {
 
    int n_proc,n_prow,n_pcol,myid,my_prow,my_pcol;
-   int mpi_comm,mpi_comm_global;
+   int mpi_comm_global;
    int mpierr;
    int blacs_ctxt;
    int info,*sc_desc;
    int blk,l_row,l_col,l_size,ldm;
-   int n_basis,n_states,n_spins,n_kpts;
+   int n_basis,n_states;
    int solver,format,parallel;
-   int i_spin,i_kpt;
    int int_one,int_zero;
    int success;
    int tmp;
    int i;
 
    double n_electrons;
-   double weight;
    double double_one,double_zero;
    double *h,*h_tmp,*s,*eval,*evec;
 
@@ -59,7 +57,6 @@ void main(int argc, char** argv) {
 
    // Set up MPI
    MPI_Init(&argc,&argv);
-   mpi_comm = MPI_COMM_WORLD;
    mpi_comm_global = MPI_COMM_WORLD;
    MPI_Comm_size(mpi_comm_global,&n_proc);
    MPI_Comm_rank(mpi_comm_global,&myid);
@@ -68,15 +65,10 @@ void main(int argc, char** argv) {
    n_basis     = 4000;
    n_states    = 1000;
    n_electrons = 0.0; // not used at all
-   n_spins     = 1;
-   n_kpts      = 1;
    blk         = 16;
    solver      = 1; // ELPA
    format      = 0; // BLACS_DENSE
    parallel    = 1; // MULTI_PROC
-   i_spin      = 1;
-   i_kpt       = 1;
-   weight      = 1.0;
    int_one     = 1;
    int_zero    = 0;
    double_one  = 1.0;
@@ -92,7 +84,7 @@ void main(int argc, char** argv) {
 
    // Set up BLACS
    sc_desc = malloc(9*sizeof(int));
-   blacs_ctxt = mpi_comm;
+   blacs_ctxt = mpi_comm_global;
    blacs_gridinit_(&blacs_ctxt,"R",&n_prow,&n_pcol);
    blacs_gridinfo_(&blacs_ctxt,&n_prow,&n_pcol,&my_prow,&my_pcol);
    l_row = numroc_(&n_basis,&blk,&my_prow,&int_zero,&n_prow);
@@ -129,8 +121,8 @@ void main(int argc, char** argv) {
    mpierr = MPI_Barrier(mpi_comm_global);
 
    // Initialize ELSI
-   c_elsi_init(&elsi_h,solver,parallel,format,n_basis,n_electrons,n_spins,n_kpts,n_states);
-   c_elsi_set_mpi(elsi_h,mpi_comm,mpi_comm_global);
+   c_elsi_init(&elsi_h,solver,parallel,format,n_basis,n_electrons,n_states);
+   c_elsi_set_mpi(elsi_h,mpi_comm_global);
    c_elsi_set_blacs(elsi_h,blacs_ctxt,blk);
 
    // Customize ELSI
@@ -138,7 +130,7 @@ void main(int argc, char** argv) {
    c_elsi_set_unit_ovlp(elsi_h,1);
 
    // Call ELSI eigensolver
-   c_elsi_ev_real(elsi_h,h,s,eval,evec,i_spin,i_kpt,weight);
+   c_elsi_ev_real(elsi_h,h,s,eval,evec);
 
    // Finalize ELSI
    c_elsi_finalize(elsi_h);
