@@ -888,12 +888,15 @@ subroutine elsi_to_standard_evp_sp(elsi_h)
 
    type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
+   integer(kind=i4) :: nwork
+   integer(kind=i4) :: n
+   integer(kind=i4) :: i
+   integer(kind=i4) :: j
+   integer(kind=i4) :: ierr
+   logical          :: success
+
    real(kind=r8),    allocatable :: tmp_real(:,:)
    complex(kind=r8), allocatable :: tmp_complex(:,:)
-   logical                       :: success
-   integer(kind=i4)              :: ierr
-   integer(kind=i4)              :: nwork
-   integer(kind=i4)              :: n
 
    integer(kind=i4), parameter :: nblk = 128
    character*40,     parameter :: caller = "elsi_to_standard_evp_sp"
@@ -910,6 +913,13 @@ subroutine elsi_to_standard_evp_sp(elsi_h)
          call elsi_start_cholesky_time(elsi_h)
 
          elsi_h%ovlp_is_sing = .false.
+
+         ! Erase the lower triangle
+         do i = 1,elsi_h%n_basis
+            do j= 1,i-1
+               elsi_h%ovlp_complex(i,j) = (0.0_r8,0.0_r8)
+            enddo
+         enddo
 
          ! Compute S = (U^H)U, U -> S
          call zpotrf('U',elsi_h%n_basis,elsi_h%ovlp_complex,elsi_h%n_basis,ierr)
@@ -980,6 +990,13 @@ subroutine elsi_to_standard_evp_sp(elsi_h)
          call elsi_start_cholesky_time(elsi_h)
 
          elsi_h%ovlp_is_sing = .false.
+
+         ! Erase the lower triangle
+         do i = 1,elsi_h%n_basis
+            do j= 1,i-1
+               elsi_h%ovlp_real(i,j) = 0.0_r8
+            enddo
+         enddo
 
          ! Compute S = (U^T)U, U -> S
          call dpotrf('U',elsi_h%n_basis,elsi_h%ovlp_real,elsi_h%n_basis,ierr)
@@ -1126,9 +1143,6 @@ subroutine elsi_solve_evp_elpa_sp(elsi_h)
 
    character*40, parameter :: caller = "elsi_solve_evp_elpa_sp"
 
-   call elsi_allocate(elsi_h,d,elsi_h%n_basis,"d",caller)
-   call elsi_allocate(elsi_h,e,elsi_h%n_basis,"e",caller)
-
    ! Transform to standard form
    if(.not. elsi_h%ovlp_is_unit) then
       call elsi_to_standard_evp_sp(elsi_h)
@@ -1136,8 +1150,10 @@ subroutine elsi_solve_evp_elpa_sp(elsi_h)
 
    ! Solve evp, return eigenvalues and eigenvectors
    call elsi_statement_print("  Starting ELPA eigensolver",elsi_h)
-
    call elsi_start_standard_evp_time(elsi_h)
+
+   call elsi_allocate(elsi_h,d,elsi_h%n_basis,"d",caller)
+   call elsi_allocate(elsi_h,e,elsi_h%n_basis,"e",caller)
 
    select case(elsi_h%matrix_data_type)
    case(COMPLEX_VALUES)

@@ -199,8 +199,8 @@ subroutine elsi_set_mpi(elsi_h,mpi_comm)
    implicit none
    include "mpif.h"
 
-   type(elsi_handle), intent(inout) :: elsi_h       !< Handle
-   integer(kind=i4),  intent(in)    :: mpi_comm     !< Unit ELSI communicator
+   type(elsi_handle), intent(inout) :: elsi_h   !< Handle
+   integer(kind=i4),  intent(in)    :: mpi_comm !< Unit ELSI communicator
 
    integer(kind=i4) :: mpierr
 
