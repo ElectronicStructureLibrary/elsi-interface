@@ -362,18 +362,12 @@ subroutine elsi_to_standard_evp(elsi_h)
                          elsi_h%ovlp_complex,elsi_h%n_l_rows,elsi_h%n_b_rows,&
                          elsi_h%n_l_cols,elsi_h%mpi_comm_row,&
                          elsi_h%mpi_comm_col,.false.)
-            if(.not. success) then
-               call elsi_stop(" Cholesky decomposition failed.",elsi_h,caller)
-            endif
 
             ! compute U^-1 -> S
             success = elpa_invert_trm_complex_double(elsi_h%n_basis,&
                          elsi_h%ovlp_complex,elsi_h%n_l_rows,elsi_h%n_b_rows,&
                          elsi_h%n_l_cols,elsi_h%mpi_comm_row,&
                          elsi_h%mpi_comm_col,.false.)
-            if(.not. success) then
-               call elsi_stop(" Matrix inversion failed.",elsi_h,caller)
-            endif
 
             call elsi_stop_cholesky_time(elsi_h)
          endif
@@ -455,17 +449,11 @@ subroutine elsi_to_standard_evp(elsi_h)
             success = elpa_cholesky_real_double(elsi_h%n_basis,elsi_h%ovlp_real,&
                          elsi_h%n_l_rows,elsi_h%n_b_rows,elsi_h%n_l_cols,&
                          elsi_h%mpi_comm_row,elsi_h%mpi_comm_col,.false.)
-            if(.not. success) then
-               call elsi_stop(" Cholesky decomposition failed.",elsi_h,caller)
-            endif
 
             ! compute U^-1 -> S
             success = elpa_invert_trm_real_double(elsi_h%n_basis,elsi_h%ovlp_real,&
                          elsi_h%n_l_rows,elsi_h%n_b_rows,elsi_h%n_l_cols,&
                          elsi_h%mpi_comm_row,elsi_h%mpi_comm_col,.false.)
-            if(.not. success) then
-               call elsi_stop(" Matrix inversion failed.",elsi_h,caller)
-            endif
 
             call elsi_stop_cholesky_time(elsi_h)
          endif
@@ -570,10 +558,6 @@ subroutine elsi_check_singularity(elsi_h)
                    elsi_h%evec_complex,elsi_h%n_l_rows,elsi_h%n_b_rows,&
                    elsi_h%n_l_cols,elsi_h%mpi_comm_row,elsi_h%mpi_comm_col,&
                    elsi_h%mpi_comm,elsi_h%sing_tol,elsi_h%n_nonsing)
-      if(.not. success) then
-         call elsi_stop(" ELPA failed when solving eigenvalue problem."//&
-                 " Exiting...",elsi_h,caller)
-      endif
 
       ! Stop if n_states is larger than n_nonsing
       if(elsi_h%n_nonsing < elsi_h%n_states) then ! Too singular to continue
@@ -631,10 +615,6 @@ subroutine elsi_check_singularity(elsi_h)
                    elsi_h%evec_real,elsi_h%n_l_rows,elsi_h%n_b_rows,&
                    elsi_h%n_l_cols,elsi_h%mpi_comm_row,elsi_h%mpi_comm_col,&
                    elsi_h%mpi_comm,elsi_h%sing_tol,elsi_h%n_nonsing)
-      if(.not. success) then
-         call elsi_stop(" ELPA failed when solving eigenvalue problem."//&
-                 " Exiting...",elsi_h,caller)
-      endif
 
       ! Stop if n_states is larger than n_nonsing
       if(elsi_h%n_nonsing < elsi_h%n_states) then ! Too singular to continue
@@ -821,11 +801,6 @@ subroutine elsi_solve_evp_elpa(elsi_h)
 
    call elsi_stop_standard_evp_time(elsi_h)
 
-   if(.not. success) then
-      call elsi_stop(" ELPA failed when solving eigenvalue problem."//&
-              " Exiting...",elsi_h,caller)
-   endif
-
    ! Back-transform eigenvectors
    if(.not. elsi_h%ovlp_is_unit) then
       call elsi_to_original_ev(elsi_h)
@@ -883,9 +858,6 @@ subroutine elsi_to_standard_evp_sp(elsi_h)
    integer(kind=i4) :: ierr
    logical          :: success
 
-   real(kind=r8),    allocatable :: tmp_real(:,:)
-   complex(kind=r8), allocatable :: tmp_complex(:,:)
-
    integer(kind=i4), parameter :: nblk = 128
    character*40,     parameter :: caller = "elsi_to_standard_evp_sp"
 
@@ -920,20 +892,18 @@ subroutine elsi_to_standard_evp_sp(elsi_h)
 
       call elsi_start_transform_evp_time(elsi_h)
 
-      call elsi_allocate(elsi_h,tmp_complex,elsi_h%n_l_rows,&
-              elsi_h%n_l_cols,"tmp_complex",caller)
-
       if(elsi_h%ovlp_is_sing) then ! Use scaled eigenvectors
+         ! evec_complex used as tmp_complex
          ! tmp_complex = H_complex * S_complex
          call zgemm('N','N',elsi_h%n_basis,elsi_h%n_nonsing,elsi_h%n_basis,&
                  (1.0_r8,0.0_r8),elsi_h%ham_complex(1,1),elsi_h%n_basis,&
                  elsi_h%ovlp_complex(1,1),elsi_h%n_basis,(0.0_r8,0.0_r8),&
-                 tmp_complex(1,1),elsi_h%n_basis)
+                 elsi_h%evec_complex(1,1),elsi_h%n_basis)
 
          ! H_complex = (S_complex)^* * tmp_complex
          call zgemm('C','N',elsi_h%n_nonsing,elsi_h%n_nonsing,elsi_h%n_basis,&
                  (1.0_r8,0.0_r8),elsi_h%ovlp_complex(1,1),elsi_h%n_basis,&
-                 tmp_complex(1,1),elsi_h%n_basis,(0.0_r8,0.0_r8),&
+                 elsi_h%evec_complex(1,1),elsi_h%n_basis,(0.0_r8,0.0_r8),&
                  elsi_h%ham_complex(1,1),elsi_h%n_basis)
 
       else ! Use cholesky
@@ -947,7 +917,8 @@ subroutine elsi_to_standard_evp_sp(elsi_h)
 
             call zgemm('N','N',n+nwork-1,nwork,n+nwork-1,(1.0_r8,0.0_r8),&
                     elsi_h%ham_complex(1,1),elsi_h%n_basis,elsi_h%ovlp_complex(1,n),&
-                    elsi_h%n_basis,(0.0_r8,0.0_r8),tmp_complex(1,n),elsi_h%n_basis)
+                    elsi_h%n_basis,(0.0_r8,0.0_r8),elsi_h%evec_complex(1,n),&
+                    elsi_h%n_basis)
          enddo
 
          ! H_complex = (tmp_complex)^* * S_complex
@@ -959,7 +930,7 @@ subroutine elsi_to_standard_evp_sp(elsi_h)
             endif
 
             call zgemm('C','N',nwork,elsi_h%n_basis-n+1,n+nwork-1,(1.0_r8,0.0_r8),&
-                    elsi_h%ovlp_complex(1,n),elsi_h%n_basis,tmp_complex(1,n),&
+                    elsi_h%ovlp_complex(1,n),elsi_h%n_basis,elsi_h%evec_complex(1,n),&
                     elsi_h%n_basis,(0.0_r8,0.0_r8),elsi_h%ham_complex(n,n),&
                     elsi_h%n_basis)
          enddo
@@ -997,18 +968,16 @@ subroutine elsi_to_standard_evp_sp(elsi_h)
 
       call elsi_start_transform_evp_time(elsi_h)
 
-      call elsi_allocate(elsi_h,tmp_real,elsi_h%n_l_rows,&
-              elsi_h%n_l_cols,"tmp_real",caller)
-
       if(elsi_h%ovlp_is_sing) then ! Use scaled eigenvectors
+         ! evec_real used as tmp_real
          ! tmp_real = H_real * S_real
          call dgemm('N','N',elsi_h%n_basis,elsi_h%n_nonsing,elsi_h%n_basis,&
                  1.0_r8,elsi_h%ham_real(1,1),elsi_h%n_basis,elsi_h%ovlp_real(1,1),&
-                 elsi_h%n_basis,0.0_r8,tmp_real(1,1),elsi_h%n_basis)
+                 elsi_h%n_basis,0.0_r8,elsi_h%evec_real(1,1),elsi_h%n_basis)
 
          ! H_real = (S_real)^T * tmp_real
          call dgemm('T','N',elsi_h%n_nonsing,elsi_h%n_nonsing,elsi_h%n_basis,&
-                 1.0_r8,elsi_h%ovlp_real(1,1),elsi_h%n_basis,tmp_real(1,1),&
+                 1.0_r8,elsi_h%ovlp_real(1,1),elsi_h%n_basis,elsi_h%evec_real(1,1),&
                  elsi_h%n_basis,0.0_r8,elsi_h%ham_real(1,1),elsi_h%n_basis)
 
       else ! Use Cholesky
@@ -1022,7 +991,7 @@ subroutine elsi_to_standard_evp_sp(elsi_h)
 
            call dgemm('N','N',n+nwork-1,nwork,n+nwork-1,1.0_r8,elsi_h%ham_real(1,1),&
                    elsi_h%n_basis,elsi_h%ovlp_real(1,n),elsi_h%n_basis,0.0_r8,&
-                   tmp_real(1,n),elsi_h%n_basis) 
+                   elsi_h%evec_real(1,n),elsi_h%n_basis) 
         enddo
 
         ! H_real = (tmp_real)*T * S_real
@@ -1034,7 +1003,7 @@ subroutine elsi_to_standard_evp_sp(elsi_h)
            endif
 
            call dgemm('T','N',nwork,elsi_h%n_basis-n+1,n+nwork-1,1.0_r8,&
-                   elsi_h%ovlp_real(1,n),elsi_h%n_basis,tmp_real(1,n),&
+                   elsi_h%ovlp_real(1,n),elsi_h%n_basis,elsi_h%evec_real(1,n),&
                    elsi_h%n_basis,0.0_r8,elsi_h%ham_real(n,n),elsi_h%n_basis)
         enddo
      endif
@@ -1042,9 +1011,6 @@ subroutine elsi_to_standard_evp_sp(elsi_h)
      call elsi_stop_transform_evp_time(elsi_h)
 
    end select
-
-   if(allocated(tmp_real))    call elsi_deallocate(elsi_h,tmp_real,"tmp_real")
-   if(allocated(tmp_complex)) call elsi_deallocate(elsi_h,tmp_complex,"tmp_complex")
 
 end subroutine
 
@@ -1121,7 +1087,7 @@ subroutine elsi_solve_evp_elpa_sp(elsi_h)
 
    type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
-   real(kind=r8),    allocatable :: d(:),e(:)
+   real(kind=r8),    allocatable :: e(:)
    real(kind=r8),    allocatable :: tau_real(:)
    complex(kind=r8), allocatable :: tau_complex(:)
    real(kind=r8),    allocatable :: tmp_real(:,:)
@@ -1140,7 +1106,6 @@ subroutine elsi_solve_evp_elpa_sp(elsi_h)
    call elsi_statement_print("  Starting ELPA eigensolver",elsi_h)
    call elsi_start_standard_evp_time(elsi_h)
 
-   call elsi_allocate(elsi_h,d,elsi_h%n_basis,"d",caller)
    call elsi_allocate(elsi_h,e,elsi_h%n_basis,"e",caller)
 
    select case(elsi_h%matrix_data_type)
@@ -1149,13 +1114,13 @@ subroutine elsi_solve_evp_elpa_sp(elsi_h)
       call elsi_allocate(elsi_h,tmp_real,elsi_h%n_basis,elsi_h%n_basis,"tmp_real",caller)
       call elsi_allocate(elsi_h,tmp_complex,elsi_h%n_basis,elsi_h%n_basis,"tmp_complex",caller)
 
-      call zhetrd('U',elsi_h%n_basis,elsi_h%ham_complex,elsi_h%n_basis,d,e,tau_complex,&
-              tmp_complex,elsi_h%n_basis*elsi_h%n_basis,ierr)
+      call zhetrd('U',elsi_h%n_basis,elsi_h%ham_complex,elsi_h%n_basis,elsi_h%eval,&
+              e,tau_complex,tmp_complex,elsi_h%n_basis*elsi_h%n_basis,ierr)
 
-      success = elpa_solve_tridi_double(elsi_h%n_basis,elsi_h%n_states,d,e,tmp_real,&
-                   elsi_h%n_basis,64,elsi_h%n_basis,mpi_comm_self,mpi_comm_self,.false.)
+      success = elpa_solve_tridi_double(elsi_h%n_basis,elsi_h%n_states,elsi_h%eval,&
+                   e,tmp_real,elsi_h%n_basis,64,elsi_h%n_basis,mpi_comm_self,&
+                   mpi_comm_self,.false.)
 
-      elsi_h%eval(1:elsi_h%n_states) = d(1:elsi_h%n_states)
       elsi_h%evec_complex(1:elsi_h%n_basis,1:elsi_h%n_states) = &
          tmp_real(1:elsi_h%n_basis,1:elsi_h%n_states)
 
@@ -1171,13 +1136,13 @@ subroutine elsi_solve_evp_elpa_sp(elsi_h)
       call elsi_allocate(elsi_h,tau_real,elsi_h%n_basis,"tau_real",caller)
       call elsi_allocate(elsi_h,tmp_real,elsi_h%n_basis,elsi_h%n_basis,"tmp_real",caller)
 
-      call dsytrd('U',elsi_h%n_basis,elsi_h%ham_real,elsi_h%n_basis,d,e,tau_real,tmp_real,&
-              elsi_h%n_basis*elsi_h%n_basis,ierr)
+      call dsytrd('U',elsi_h%n_basis,elsi_h%ham_real,elsi_h%n_basis,elsi_h%eval,&
+              e,tau_real,tmp_real,elsi_h%n_basis*elsi_h%n_basis,ierr)
 
-      success = elpa_solve_tridi_double(elsi_h%n_basis,elsi_h%n_states,d,e,tmp_real,&
-                   elsi_h%n_basis,64,elsi_h%n_basis,mpi_comm_self,mpi_comm_self,.false.)
+      success = elpa_solve_tridi_double(elsi_h%n_basis,elsi_h%n_states,elsi_h%eval,&
+                   e,tmp_real,elsi_h%n_basis,64,elsi_h%n_basis,mpi_comm_self,&
+                   mpi_comm_self,.false.)
 
-      elsi_h%eval(1:elsi_h%n_states) = d(1:elsi_h%n_states)
       elsi_h%evec_real(1:elsi_h%n_basis,1:elsi_h%n_states) = &
          tmp_real(1:elsi_h%n_basis,1:elsi_h%n_states)
 
@@ -1192,13 +1157,7 @@ subroutine elsi_solve_evp_elpa_sp(elsi_h)
 
    call elsi_stop_standard_evp_time(elsi_h)
 
-   call elsi_deallocate(elsi_h,d,"d")
    call elsi_deallocate(elsi_h,e,"e")
-
-   if(.not. success) then
-      call elsi_stop(" ELPA failed when solving eigenvalue problem."//&
-              " Exiting...",elsi_h,caller)
-   endif
 
    ! Back-transform eigenvectors
    if(.not. elsi_h%ovlp_is_unit) then
@@ -1253,10 +1212,6 @@ subroutine elsi_check_singularity_sp(elsi_h)
                    tmp_complex,elsi_h%n_l_rows,ev_overlap,elsi_h%evec_complex,&
                    elsi_h%n_l_rows,elsi_h%n_b_rows,elsi_h%n_l_cols,mpi_comm_self,&
                    mpi_comm_self,mpi_comm_self,elsi_h%sing_tol,elsi_h%n_nonsing)
-      if(.not. success) then
-         call elsi_stop(" ELPA failed when solving eigenvalue problem."//&
-                 " Exiting...",elsi_h,caller)
-      endif
 
       ! Stop if n_states is larger than n_nonsing
       if(elsi_h%n_nonsing < elsi_h%n_states) then ! Too singular to continue
@@ -1312,10 +1267,6 @@ subroutine elsi_check_singularity_sp(elsi_h)
                    tmp_real,elsi_h%n_l_rows,ev_overlap,elsi_h%evec_real,&
                    elsi_h%n_l_rows,elsi_h%n_b_rows,elsi_h%n_l_cols,mpi_comm_self,&
                    mpi_comm_self,mpi_comm_self,elsi_h%sing_tol,elsi_h%n_nonsing)
-      if(.not. success) then
-         call elsi_stop(" ELPA failed when solving eigenvalue problem."//&
-                 " Exiting...",elsi_h,caller)
-      endif
 
       ! Stop if n_states is larger than n_nonsing
       if(elsi_h%n_nonsing < elsi_h%n_states) then ! Too singular to continue
