@@ -45,10 +45,6 @@ module ELSI_C_INTERFACE
 
 contains
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! ELSI C Wrapper Subroutines !     
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 subroutine elsi_init_c_wrapper(handle_c,solver,parallel_mode,&
               matrix_format,n_basis,n_electron,n_state)&
    bind(C,name="c_elsi_init")
