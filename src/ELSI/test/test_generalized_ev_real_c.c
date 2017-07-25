@@ -38,7 +38,7 @@
 void main(int argc, char** argv) {
 
    int n_proc,n_prow,n_pcol,myid,my_prow,my_pcol;
-   int mpi_comm_elsi;
+   int mpi_comm_global;
    int mpierr;
    int blacs_ctxt;
    int blk,l_row,l_col,l_size;
@@ -65,20 +65,20 @@ void main(int argc, char** argv) {
 
    // Set up MPI
    MPI_Init(&argc,&argv);
-   mpi_comm_elsi = MPI_COMM_WORLD;
-   MPI_Comm_size(mpi_comm_elsi,&n_proc);
-   MPI_Comm_rank(mpi_comm_elsi,&myid);
+   mpi_comm_global = MPI_COMM_WORLD;
+   MPI_Comm_size(mpi_comm_global,&n_proc);
+   MPI_Comm_rank(mpi_comm_global,&myid);
 
    // Parameters
    blk         = 16;
    solver      = 1; // ELPA
    format      = 0; // BLACS_DENSE
    parallel    = 1; // MULTI_PROC
+   r_cut       = 0.5; // Tomato only
    int_one     = 1;
    int_zero    = 0;
    double_one  = 1.0;
    double_zero = 0.0;
-   r_cut       = 0.5;
 
    supercell = malloc(3 * sizeof(int));
    k_point   = malloc(3 * sizeof(double));
@@ -96,12 +96,12 @@ void main(int argc, char** argv) {
    n_prow = n_proc/n_pcol;
 
    // Set up BLACS
-   blacs_ctxt = mpi_comm_elsi;
+   blacs_ctxt = mpi_comm_global;
    blacs_gridinit_(&blacs_ctxt,"R",&n_prow,&n_pcol);
    blacs_gridinfo_(&blacs_ctxt,&n_prow,&n_pcol,&my_prow,&my_pcol);
 
    // MatrixSwitch
-   c_ms_scalapack_setup(mpi_comm_elsi,n_prow,"r",blk,blacs_ctxt);
+   c_ms_scalapack_setup(mpi_comm_global,n_prow,"r",blk,blacs_ctxt);
 
    // Prepare matrices by Tomato
    c_tomato_tb(argv[1],"silicon",0,&frac_occ,22,0,&n_basis,supercell,0,
@@ -128,7 +128,7 @@ void main(int argc, char** argv) {
 
    // Initialize ELSI
    c_elsi_init(&elsi_h,solver,parallel,format,n_basis,n_electrons,n_states);
-   c_elsi_set_mpi(elsi_h,mpi_comm_elsi);
+   c_elsi_set_mpi(elsi_h,mpi_comm_global);
    c_elsi_set_blacs(elsi_h,blacs_ctxt,blk);
 
    // Customize ELSI

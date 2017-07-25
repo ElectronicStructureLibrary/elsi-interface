@@ -28,7 +28,7 @@
 !> 
 !! This module contains variables accessible in ELSI and related modules.
 !!
-module ELSI_DIMENSIONS
+module ELSI_DATATYPE
 
    use ISO_C_BINDING
    use ELSI_CONSTANTS, only: FULL_MAT,UNSET
@@ -51,12 +51,14 @@ module ELSI_DIMENSIONS
       real(kind=r8),    pointer :: eval(:)             ! Eigenvalues
       real(kind=r8),    pointer :: evec_real(:,:)      ! Real eigenvectors
       complex(kind=r8), pointer :: evec_complex(:,:)   ! Complex eigenvectors
-      real(kind=r8),    pointer :: den_mat(:,:)        ! Density matrix
+      real(kind=r8),    pointer :: dm_real(:,:)        ! Real density matrix
+      complex(kind=r8), pointer :: dm_complex(:,:)     ! Complex density matrix
       real(kind=r8),    pointer :: ham_real_ccs(:)     ! Real Hamiltonian
       complex(kind=r8), pointer :: ham_complex_ccs(:)  ! Complex Hamiltonian
       real(kind=r8),    pointer :: ovlp_real_ccs(:)    ! Real overlap
       complex(kind=r8), pointer :: ovlp_complex_ccs(:) ! Complex overlap
-      real(kind=r8),    pointer :: den_mat_ccs(:)      ! Density matrix
+      real(kind=r8),    pointer :: dm_real_ccs(:)      ! Real density matrix
+      complex(kind=r8), pointer :: dm_complex_ccs(:)   ! Complex density matrix
       integer(kind=i4), pointer :: row_ind_ccs(:)      ! Row index
       integer(kind=i4), pointer :: col_ptr_ccs(:)      ! Column pointer
 
@@ -69,27 +71,32 @@ module ELSI_DIMENSIONS
       real(kind=r8),    allocatable :: eval_elpa(:)           ! Eigenvalues
       real(kind=r8),    allocatable :: evec_real_elpa(:,:)    ! Real eigenvectors
       complex(kind=r8), allocatable :: evec_complex_elpa(:,:) ! Complex eigenvectors
-      real(kind=r8),    allocatable :: den_mat_elpa(:,:)      ! Density matrix
-      real(kind=r8),    allocatable :: occ_elpa(:)            ! Occupation numbers
+      real(kind=r8),    allocatable :: dm_real_elpa(:,:)      ! Real density matrix
+      complex(kind=r8), allocatable :: dm_complex_elpa(:,:)   ! Complex density matrix
+      real(kind=r8),    allocatable :: occ_num(:,:,:)         ! Occupation numbers
+      real(kind=r8),    allocatable :: eval_all(:,:,:)        ! Eigenvalues
+      real(kind=r8),    allocatable :: k_weight(:)            ! K-point weights
       integer(kind=i4), allocatable :: local_row(:)
       integer(kind=i4), allocatable :: local_col(:)
 
       ! libOMM
-      type(Matrix)               :: ham_omm            ! Hamiltonian
-      type(Matrix)               :: ovlp_omm           ! Overlap
-      type(Matrix)               :: coeff_omm          ! Coefficient matrix
-      type(Matrix)               :: den_mat_omm        ! Density matrix
-      type(Matrix)               :: t_den_mat_omm      ! Kinetic energy density matrix
-      real(kind=r8), allocatable :: ovlp_real_omm(:,:) ! Copy of overlap matrix
+      type(Matrix)                  :: ham_omm               ! Hamiltonian
+      type(Matrix)                  :: ovlp_omm              ! Overlap
+      type(Matrix)                  :: coeff_omm             ! Coefficient matrix
+      type(Matrix)                  :: dm_omm                ! Density matrix
+      type(Matrix)                  :: tdm_omm               ! Kinetic energy density matrix
+      real(kind=r8),    allocatable :: ovlp_real_omm(:,:)    ! Copy of real overlap
+      complex(kind=r8), allocatable :: ovlp_complex_omm(:,:) ! Copy of complex overlap
 
       ! PESXI
       real(kind=r8),    allocatable :: ham_real_pexsi(:)     ! Sparse real Hamiltonian
       complex(kind=r8), allocatable :: ham_complex_pexsi(:)  ! Sparse complex Hamiltonian
       real(kind=r8),    allocatable :: ovlp_real_pexsi(:)    ! Sparse real overlap
       complex(kind=r8), allocatable :: ovlp_complex_pexsi(:) ! Sparse complex overlap
-      real(kind=r8),    allocatable :: den_mat_pexsi(:)      ! Sparse density matrix
-      real(kind=r8),    allocatable :: e_den_mat_pexsi(:)    ! Sparse energy density matrix
-      real(kind=r8),    allocatable :: f_den_mat_pexsi(:)    ! Sparse free energy density matrix
+      real(kind=r8),    allocatable :: dm_real_pexsi(:)      ! Sparse real density matrix
+      complex(kind=r8), allocatable :: dm_complex_pexsi(:)   ! Sparse complex density matrix
+      real(kind=r8),    allocatable :: edm_real_pexsi(:)     ! Sparse energy density matrix
+      real(kind=r8),    allocatable :: fdm_real_pexsi(:)     ! Sparse free energy density matrix
       integer(kind=i4), allocatable :: row_ind_pexsi(:)      ! Row index
       integer(kind=i4), allocatable :: col_ptr_pexsi(:)      ! Column pointer
 
@@ -137,9 +144,13 @@ module ELSI_DIMENSIONS
 
       ! MPI
       integer(kind=i4) :: myid = UNSET
+      integer(kind=i4) :: myid_all = UNSET
       integer(kind=i4) :: n_procs = UNSET
+      integer(kind=i4) :: n_procs_all = UNSET
       integer(kind=i4) :: mpi_comm = UNSET
-      logical          :: mpi_is_setup = .false.
+      integer(kind=i4) :: mpi_comm_all = UNSET
+      logical :: mpi_is_setup = .false.
+      logical :: global_mpi_is_setup = .false.
 
       ! BLACS
       integer(kind=i4) :: blacs_ctxt = UNSET
@@ -148,7 +159,7 @@ module ELSI_DIMENSIONS
       integer(kind=i4) :: mpi_comm_col = UNSET
       integer(kind=i4) :: my_p_row = UNSET
       integer(kind=i4) :: my_p_col = UNSET
-      logical          :: blacs_is_setup = .false.
+      logical :: blacs_is_setup = .false.
 
       ! Sparse matrix information
       integer(kind=i4) :: nnz_g = UNSET               ! Global number of nonzeros
@@ -173,8 +184,11 @@ module ELSI_DIMENSIONS
       integer(kind=i4) :: n_basis = UNSET           ! Number of basis functions
       integer(kind=i4) :: n_spins = 1               ! Number of spin channels
       integer(kind=i4) :: n_kpts = 1                ! Number of k-points
-      integer(kind=i4) :: n_states = UNSET          ! Number of total states
+      integer(kind=i4) :: n_states = UNSET          ! Number of states
       integer(kind=i4) :: n_occupied_states = UNSET ! Number of occupied states
+      integer(kind=i4) :: i_spin = 1                ! Spin index
+      integer(kind=i4) :: i_kpt = 1                 ! K-point index
+      real(kind=r8) :: i_weight = 1.0_r8            ! Weight
       real(kind=r8) :: energy_hdm = 0.0_r8
       real(kind=r8) :: energy_sedm = 0.0_r8
       real(kind=r8) :: free_energy = 0.0_r8
@@ -186,14 +200,17 @@ module ELSI_DIMENSIONS
                                                     ! of electrons and the number computed by ELSI
       integer(kind=i4) :: max_mu_steps = 100        ! Maximum number of steps to find the chemical potential
       real(kind=r8) :: spin_degen = 0.0_r8          ! Spin degeneracy
+      logical :: spin_is_set = .false.              ! Is spin_degen set by user?
       logical :: mu_ready = .false.                 ! Is chemical potential ready to be collected?
-      logical :: edm_ready = .false.                ! Is energy density matrix ready to be computed?
+      logical :: edm_ready_real = .false.           ! Is energy density matrix ready to be computed?
+      logical :: edm_ready_complex = .false.        ! Is energy density matrix ready to be computed?
 
       ! ELPA
       integer(kind=i4) :: elpa_solver = UNSET ! ELPA 1-stage or 2-stage solver
       logical :: elpa_output = .false.        ! Output level
 
       ! libOMM
+      integer(kind=i4) :: n_states_omm = UNSET ! Number of states used in libOMM
       integer(kind=i4) :: n_elpa_steps = UNSET ! Use ELPA eigenvectors as initial guess
       logical :: new_overlap = .true.          ! Is a new overlap matrix provided?
       logical :: coeff_initialized = .false.   ! Is coefficient matrix initialized?
@@ -214,31 +231,19 @@ module ELSI_DIMENSIONS
       integer(kind=i4) :: n_p_per_pole = UNSET
       integer(kind=i4) :: my_p_row_pexsi = UNSET
       integer(kind=i4) :: my_p_col_pexsi = UNSET
-      integer(kind=i4) :: n_b_rows_pexsi = UNSET
-      integer(kind=i4) :: n_b_cols_pexsi = UNSET
       integer(kind=i4) :: n_p_rows_pexsi = UNSET
       integer(kind=i4) :: n_p_cols_pexsi = UNSET
-      integer(kind=i4) :: n_l_rows_pexsi = UNSET
       integer(kind=i4) :: n_l_cols_pexsi = UNSET
       integer(kind=i4) :: nnz_l_pexsi = UNSET ! Local number of nonzeros in PEXSI distribution
-      logical :: small_pexsi_tol = .false.    ! Is user-defined tolerance smaller than default?
       logical :: pexsi_started = .false.      ! Is PEXSI started?
 
-      real(kind=r8)            :: final_pexsi_tol = 1.0e-2_r8
       integer(kind=c_intptr_t) :: pexsi_plan
       type(f_ppexsi_options)   :: pexsi_options
-      integer(kind=i4)         :: pexsi_driver = UNSET
       integer(kind=i4)         :: n_mu_points = UNSET
-      real(kind=r8)            :: n_electrons_pexsi = 0.0_r8 ! Number of electrons computed by PEXSI
-      real(kind=r8)            :: mu_min_inertia = 0.0_r8
-      real(kind=r8)            :: mu_max_inertia = 0.0_r8
 
       ! SIPs
-      integer(kind=i4) :: n_b_rows_sips = UNSET
-      integer(kind=i4) :: n_b_cols_sips = UNSET
-      integer(kind=i4) :: n_l_rows_sips = UNSET
-      integer(kind=i4) :: n_l_cols_sips = UNSET
       integer(kind=i4) :: n_p_per_slice = UNSET
+      integer(kind=i4) :: n_l_cols_sips = UNSET
       integer(kind=i4) :: nnz_l_sips = UNSET      ! Local number of nonzeros in SIPs distribution
       integer(kind=i4) :: n_inertia_steps = UNSET ! Number of inertia counting steps
       integer(kind=i4) :: slicing_method = UNSET  ! Type of slices
@@ -279,4 +284,4 @@ module ELSI_DIMENSIONS
 
    end type
 
-end module ELSI_DIMENSIONS
+end module ELSI_DATATYPE

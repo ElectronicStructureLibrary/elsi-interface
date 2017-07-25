@@ -83,13 +83,13 @@ MPI_EXEC ?= mpirun
 # Create C interfaces
 C_INTERFACE ?= yes
 ifeq ($(strip $(C_INTERFACE)),yes)
-  C_BINDING = elsi_c_interface.o \
-              tomato_c_interface.o \
-              elsi_c2f.o
-  C_EXEC = test_dm_real_c.x \
-           test_ev_real_c.x \
-           test_generalized_ev_real_c.x \
-           test_standard_ev_real_c.x
+  C_BINDING  = elsi_c_interface.o
+  C_BINDING += tomato_c_interface.o
+  C_BINDING += elsi_c2f.o
+  C_BINDING += test_dm_real_c.x
+  C_BINDING += test_ev_real_c.x
+  C_BINDING += test_generalized_ev_real_c.x
+  C_BINDING += test_standard_ev_real_c.x
 endif
 
 export

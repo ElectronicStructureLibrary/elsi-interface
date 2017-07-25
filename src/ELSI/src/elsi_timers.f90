@@ -34,7 +34,7 @@ module ELSI_TIMERS
    use ELSI_CONSTANTS, only: ELPA,LIBOMM,PEXSI,CHESS,SIPS,&
                              MULTI_PROC,SINGLE_PROC,&
                              BLACS_DENSE,PEXSI_CSC
-   use ELSI_DIMENSIONS, only: elsi_handle,print_info
+   use ELSI_DATATYPE, only: elsi_handle,print_info
    use ELSI_PRECISION, only: r8,i4
    use ELSI_UTILS
 
@@ -118,7 +118,7 @@ subroutine elsi_final_print(elsi_h)
    character*40, parameter :: caller = "elsi_final_print"
 
    if(print_info) then
-      if(elsi_h%myid == 0) then
+      if(elsi_h%myid_all == 0) then
          write(*,"('  |------------------------------------------')")
          write(*,"('  | Final ELSI Output')")
          write(*,"('  |------------------------------------------')")

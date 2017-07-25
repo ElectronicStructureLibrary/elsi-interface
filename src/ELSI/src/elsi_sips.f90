@@ -32,7 +32,7 @@ module ELSI_SIPS
 
    use ISO_C_BINDING
    use ELSI_CONSTANTS, only: UNSET
-   use ELSI_DIMENSIONS, only: elsi_handle
+   use ELSI_DATATYPE, only: elsi_handle
    use ELSI_PRECISION, only: r8,i4
    use ELSI_TIMERS
    use ELSI_UTILS
@@ -72,17 +72,13 @@ subroutine elsi_init_sips(elsi_h)
          elsi_h%n_slices = elsi_h%n_procs
       endif
 
-      ! SIPs uses a pure block distribution
-      elsi_h%n_b_rows_sips = elsi_h%n_basis
+      ! 1D block distribution
+      elsi_h%n_l_cols_sips = elsi_h%n_basis/elsi_h%n_procs
 
       ! The last process holds all remaining columns
-      elsi_h%n_b_cols_sips = elsi_h%n_basis/elsi_h%n_procs
       if(elsi_h%myid == elsi_h%n_procs-1) then
-         elsi_h%n_b_cols_sips = elsi_h%n_basis-(elsi_h%n_procs-1)*elsi_h%n_b_cols_sips
+         elsi_h%n_l_cols_sips = elsi_h%n_basis-(elsi_h%n_procs-1)*elsi_h%n_l_cols_sips
       endif
-
-      elsi_h%n_l_rows_sips = elsi_h%n_b_rows_sips
-      elsi_h%n_l_cols_sips = elsi_h%n_b_cols_sips
 
       if(.not. allocated(elsi_h%slices)) then
          call elsi_allocate(elsi_h,elsi_h%slices,elsi_h%n_slices+1,"slices",caller)

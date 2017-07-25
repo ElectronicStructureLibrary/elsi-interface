@@ -37,7 +37,7 @@
 void main(int argc, char** argv) {
 
    int n_proc,n_prow,n_pcol,myid,my_prow,my_pcol;
-   int mpi_comm_elsi;
+   int mpi_comm_global;
    int mpierr;
    int blacs_ctxt;
    int info,*sc_desc;
@@ -57,14 +57,14 @@ void main(int argc, char** argv) {
 
    // Set up MPI
    MPI_Init(&argc,&argv);
-   mpi_comm_elsi = MPI_COMM_WORLD;
-   MPI_Comm_size(mpi_comm_elsi,&n_proc);
-   MPI_Comm_rank(mpi_comm_elsi,&myid);
+   mpi_comm_global = MPI_COMM_WORLD;
+   MPI_Comm_size(mpi_comm_global,&n_proc);
+   MPI_Comm_rank(mpi_comm_global,&myid);
 
    // Parameters
    n_basis     = 4000;
    n_states    = 1000;
-   n_electrons = 0; // not used at all
+   n_electrons = 0.0; // not used at all
    blk         = 16;
    solver      = 1; // ELPA
    format      = 0; // BLACS_DENSE
@@ -84,7 +84,7 @@ void main(int argc, char** argv) {
 
    // Set up BLACS
    sc_desc = malloc(9*sizeof(int));
-   blacs_ctxt = mpi_comm_elsi;
+   blacs_ctxt = mpi_comm_global;
    blacs_gridinit_(&blacs_ctxt,"R",&n_prow,&n_pcol);
    blacs_gridinfo_(&blacs_ctxt,&n_prow,&n_pcol,&my_prow,&my_pcol);
    l_row = numroc_(&n_basis,&blk,&my_prow,&int_zero,&n_prow);
@@ -118,11 +118,11 @@ void main(int argc, char** argv) {
    free(sc_desc);
    free(h_tmp);
 
-   mpierr = MPI_Barrier(mpi_comm_elsi);
+   mpierr = MPI_Barrier(mpi_comm_global);
 
    // Initialize ELSI
    c_elsi_init(&elsi_h,solver,parallel,format,n_basis,n_electrons,n_states);
-   c_elsi_set_mpi(elsi_h,mpi_comm_elsi);
+   c_elsi_set_mpi(elsi_h,mpi_comm_global);
    c_elsi_set_blacs(elsi_h,blacs_ctxt,blk);
 
    // Customize ELSI

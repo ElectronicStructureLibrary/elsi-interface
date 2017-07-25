@@ -33,14 +33,13 @@ module ELSI_MU
    use ISO_C_BINDING
    use ELSI_CONSTANTS, only: GAUSSIAN,FERMI,METHFESSEL_PAXTON_0,&
                              METHFESSEL_PAXTON_1,INVERT_SQRT_PI
-   use ELSI_DIMENSIONS, only: elsi_handle
+   use ELSI_DATATYPE, only: elsi_handle
    use ELSI_PRECISION, only: r8,i4
    use ELSI_UTILS
 
    implicit none
    private
 
-   !> Public routines
    public :: elsi_compute_mu_and_occ
 
    real(kind=r8)    :: n_electron
@@ -184,7 +183,7 @@ subroutine elsi_check_electrons(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
    invert_width = 1.0_r8/elsi_h%broadening_width
    diff_ne_out = 0.0_r8
 
-   if((elsi_h%spin_degen /= 1.0_r8) .and. (elsi_h%spin_degen /= 2.0_r8)) then ! Not set by user
+   if(.not. elsi_h%spin_is_set) then
       if(n_spin == 2) then
          elsi_h%spin_degen = 1.0_r8
       else

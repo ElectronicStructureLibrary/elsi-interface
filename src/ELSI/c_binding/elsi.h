@@ -44,13 +44,25 @@ extern "C"{
 void c_elsi_init(elsi_handle *handle_c,
                  int solver,
                  int parallel_mode,
-                 int matrix_storage_format,
-                 int matrix_size,
-                 double n_electrons,
-                 int n_states);
+                 int matrix_format,
+                 int n_basis,
+                 double n_electron,
+                 int n_state);
 
 void c_elsi_set_mpi(elsi_handle handle_c,
                     int mpi_comm);
+
+void c_elsi_set_mpi_global(elsi_handle handle_c,
+                           int mpi_comm_global);
+
+void c_elsi_set_spin(elsi_handle handle_c,
+                     int n_spin,
+                     int i_spin);
+
+void c_elsi_set_kpoint(elsi_handle handle_c,
+                       int n_kpt,
+                       int i_kpt,
+                       double weight);
 
 void c_elsi_set_blacs(elsi_handle handle_c,
                       int blacs_ctxt,
@@ -137,6 +149,12 @@ void c_elsi_dm_real(elsi_handle handle_c,
                     double *D,
                     double *energy);
 
+void c_elsi_dm_complex(elsi_handle handle_c,
+                       double _Complex *H,
+                       double _Complex *S,
+                       double _Complex *D,
+                       double *energy);
+
 void c_elsi_dm_real_sparse(elsi_handle handle_c,
                            double *H,
                            double *S,
@@ -189,9 +207,6 @@ void c_elsi_set_omm_tol(elsi_handle handle_c,
 void c_elsi_set_omm_psp(elsi_handle handle_c,
                         int use_psp);
 
-void c_elsi_set_pexsi_driver(elsi_handle handle_c,
-                             int pexsi_driver);
-
 void c_elsi_set_pexsi_n_mu(elsi_handle handle_c,
                            int n_mu);
 
@@ -243,11 +258,23 @@ void c_elsi_set_mu_tol(elsi_handle handle_c,
 void c_elsi_set_mu_spin_degen(elsi_handle handle_c,
                               double spin_degen);
 
+void c_elsi_get_pexsi_mu_min(elsi_handle handle_c,
+                             double *mu_min);
+
+void c_elsi_get_pexsi_mu_max(elsi_handle handle_c,
+                             double *mu_max);
+
 void c_elsi_get_ovlp_sing(elsi_handle handle_c,
                           int *ovlp_sing);
 
 void c_elsi_get_mu(elsi_handle handle_c,
                    double *mu);
+
+void c_elsi_get_edm_real(elsi_handle handle_c,
+                         double *edm);
+
+void c_elsi_get_edm_complex(elsi_handle handle_c,
+                            double _Complex *edm);
 
 #ifdef __cplusplus
 }

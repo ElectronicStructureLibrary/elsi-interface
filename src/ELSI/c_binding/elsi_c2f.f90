@@ -25,59 +25,62 @@
 ! NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 ! EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-! This module contains various utilities to aid in conversion between C and
-! Fortran
-
+!>
+!! This module contains various utilities to aid in conversion between C and
+!! Fortran.
+!!
 module ELSI_C2F
 
-   use, intrinsic :: iso_c_binding
+   use, intrinsic :: ISO_C_BINDING
 
    implicit none
 
 contains
 
-   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-   ! C/Fortran Conversion Functions !
-   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!>
+!! This routine encodes the standard convention that 0 is .false., any other
+!! integer is .true..
+!!
+function convert_c_int_to_f_logical(int_c) result(logical_f)
 
-   ! Encodes the standard convention that 0 is .false., any other
-   ! integer is .true. 
-   function convert_c_int_to_f_logical( int_c ) result(logical_f)
-   
-      implicit none
-   
-      integer(kind=c_int), intent(in) :: int_c
-      logical                         :: logical_f
-    
-      if (int_c .eq. 0) then
-        logical_f = .false.
-      else
-        logical_f = .true.
-      end if
-   end function
-   
-   ! Converts a C string into a Fortran string.  Contrary to what you may have read
-   ! online, a Fortran string is *not* just a character array without a NULL
-   ! character.  A Fortran string (i.e. char(*)) is a separate data type from a 
-   ! character array (i.e. char, dimension(*)) and they are *not* interoperable in
-   ! interfaces.  Hence this function.
-   function convert_c_string_to_f_string( string_c ) result(string_f)
-   
-      implicit none
-   
-      character(kind=c_char,len=1), dimension(*), intent(in) :: string_c
-      character(len=:), allocatable                          :: string_f
-   
-      integer :: string_f_len
-   
-      string_f_len = 0
-      do
-        if (string_c(string_f_len+1) == C_NULL_CHAR) exit
-        string_f_len = string_f_len + 1
-      end do 
-   
-      allocate( character(len=string_f_len) :: string_f )
-      string_f = transfer( string_c(1:string_f_len), string_f )
-   end function
-   
+   implicit none
+
+   integer(kind=c_int), intent(in) :: int_c
+   logical                         :: logical_f
+ 
+   if(int_c == 0) then
+     logical_f = .false.
+   else
+     logical_f = .true.
+   endif
+
+end function
+
+!>
+!! This routine converts a C string into a Fortran string. A Fortran string is
+!! NOT just a character array without a NULL character. A Fortran string (i.e. 
+!! char(*)) is a separate data type from a character array (i.e. char,
+!! dimension(*)) and they are NOT interoperable in interfaces.
+!!
+function convert_c_string_to_f_string(string_c) result(string_f)
+
+   implicit none
+
+   character(kind=c_char,len=1), dimension(*), intent(in) :: string_c
+   character(len=:), allocatable                          :: string_f
+
+   integer :: string_f_len
+
+   string_f_len = 0
+
+   do
+     if(string_c(string_f_len+1) == C_NULL_CHAR) exit
+     string_f_len = string_f_len+1
+   enddo
+
+   allocate(character(len=string_f_len) :: string_f)
+   string_f = transfer(string_c(1:string_f_len),string_f)
+
+end function
+
 end module ELSI_C2F
