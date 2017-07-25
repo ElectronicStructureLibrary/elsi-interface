@@ -1,6 +1,7 @@
 #!/bin/bash
 # VY: This is a simple bash script used for "make checkf"
 
+rm ev_real_serial.log 2> /dev/null
 rm ev_real_elpa.log 2> /dev/null
 rm dm_real_elpa.log 2> /dev/null
 rm dm_real_libomm.log libOMM.log 2> /dev/null
@@ -12,7 +13,28 @@ echo
 echo "Test program output may be found in $PWD"
 
 echo
-echo -n "Running the 'elsi_ev_real + ELPA' Fortran test"
+echo -n "Running the serial 'elsi_ev_real' Fortran test"
+${MPI_EXEC} -n 1 ./test_generalized_ev_real.x ${TOMATO_SEED} 1 > ev_real_serial.log &
+PID=$!
+while kill -0 $PID 2>/dev/null; do
+    sleep 1
+    echo -n '.'
+done
+
+if (! grep -q "Passed" <./ev_real_serial.log); then
+   tput setaf 5
+   RED_ALART="true"
+   echo " FAILED!"
+   tput sgr0
+   echo "See `pwd`/ev_real_serial.log for details."
+else
+   tput setaf 10
+   echo " PASSED!"
+   tput sgr0
+fi
+
+echo
+echo -n "Running the parallel 'elsi_ev_real + ELPA' Fortran test"
 ${MPI_EXEC} -n 4 ./test_ev_real.x ${TOMATO_SEED} 1 > ev_real_elpa.log &
 PID=$!
 while kill -0 $PID 2>/dev/null; do
@@ -33,7 +55,7 @@ else
 fi
 
 echo
-echo -n "Running the 'elsi_dm_real + ELPA' Fortran test"
+echo -n "Running the parallel 'elsi_dm_real + ELPA' Fortran test"
 ${MPI_EXEC} -n 4 ./test_dm_real.x ${TOMATO_SEED} 1 > dm_real_elpa.log &
 PID=$!
 while kill -0 $PID 2>/dev/null; do
@@ -54,7 +76,7 @@ else
 fi
 
 echo
-echo -n "Running the 'elsi_dm_real + libOMM' Fortran test"
+echo -n "Running the parallel 'elsi_dm_real + libOMM' Fortran test"
 ${MPI_EXEC} -n 4 ./test_dm_real.x ${TOMATO_SEED} 2 > dm_real_libomm.log &
 PID=$!
 while kill -0 $PID 2>/dev/null; do
@@ -77,7 +99,7 @@ fi
 echo
 if [ "$DISABLE_CXX" != "yes" ]
 then
-   echo -n "Running the 'elsi_dm_real + PEXSI' Fortran test"
+   echo -n "Running the parallel 'elsi_dm_real + PEXSI' Fortran test"
    ${MPI_EXEC} -n 4 ./test_dm_real.x ${TOMATO_SEED} 3 > dm_real_pexsi.log &
    PID=$!
    while kill -0 $PID 2>/dev/null; do
