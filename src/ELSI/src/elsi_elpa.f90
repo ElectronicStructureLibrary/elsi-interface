@@ -534,8 +534,8 @@ subroutine elsi_check_singularity(elsi_h)
    logical          :: success
    character*200    :: info_str
 
-   real(kind=r8),    allocatable :: tmp_real(:,:)
-   complex(kind=r8), allocatable :: tmp_complex(:,:)
+   real(kind=r8),    allocatable :: copy_real(:,:)
+   complex(kind=r8), allocatable :: copy_complex(:,:)
 
    character*40, parameter :: caller = "elsi_check_singularity"
 
@@ -543,20 +543,22 @@ subroutine elsi_check_singularity(elsi_h)
 
    select case(elsi_h%matrix_data_type)
    case(COMPLEX_VALUES)
-      call elsi_allocate(elsi_h,tmp_complex,elsi_h%n_l_rows,&
-              elsi_h%n_l_cols,"tmp_complex",caller)
+      call elsi_allocate(elsi_h,copy_complex,elsi_h%n_l_rows,&
+              elsi_h%n_l_cols,"copy_complex",caller)
 
-      ! Use tmp_complex to store overlap matrix, otherwise it will
+      ! Use copy_complex to store overlap matrix, otherwise it will
       ! be destroyed by eigenvalue calculation
-      tmp_complex = -elsi_h%ovlp_complex
+      copy_complex = -elsi_h%ovlp_complex
 
       ! Use customized ELPA 2-stage solver to check overlap singularity
       ! Eigenvectors computed only for singular overlap matrix
       success = elpa_check_singularity_complex_double(elsi_h%n_basis,&
-                   elsi_h%n_basis,tmp_complex,elsi_h%n_l_rows,elsi_h%eval,&
+                   elsi_h%n_basis,copy_complex,elsi_h%n_l_rows,elsi_h%eval,&
                    elsi_h%evec_complex,elsi_h%n_l_rows,elsi_h%n_b_rows,&
                    elsi_h%n_l_cols,elsi_h%mpi_comm_row,elsi_h%mpi_comm_col,&
                    elsi_h%mpi_comm,elsi_h%sing_tol,elsi_h%n_nonsing)
+
+      call elsi_deallocate(elsi_h,copy_complex,"copy_complex")
 
       ! Stop if n_states is larger than n_nonsing
       if(elsi_h%n_nonsing < elsi_h%n_states) then ! Too singular to continue
@@ -598,20 +600,22 @@ subroutine elsi_check_singularity(elsi_h)
       endif ! Singular overlap?
 
    case(REAL_VALUES)
-      call elsi_allocate(elsi_h,tmp_real,elsi_h%n_l_rows,&
-              elsi_h%n_l_cols,"tmp_real",caller)
+      call elsi_allocate(elsi_h,copy_real,elsi_h%n_l_rows,&
+              elsi_h%n_l_cols,"copy_real",caller)
 
-      ! Use tmp_real to store overlap matrix, otherwise it will be
+      ! Use copy_real to store overlap matrix, otherwise it will be
       ! destroyed by eigenvalue calculation
-      tmp_real = -elsi_h%ovlp_real
+      copy_real = -elsi_h%ovlp_real
 
       ! Use customized ELPA 2-stage solver to check overlap singularity
       ! Eigenvectors computed only for singular overlap matrix
       success = elpa_check_singularity_real_double(elsi_h%n_basis,&
-                   elsi_h%n_basis,tmp_real,elsi_h%n_l_rows,elsi_h%eval,&
+                   elsi_h%n_basis,copy_real,elsi_h%n_l_rows,elsi_h%eval,&
                    elsi_h%evec_real,elsi_h%n_l_rows,elsi_h%n_b_rows,&
                    elsi_h%n_l_cols,elsi_h%mpi_comm_row,elsi_h%mpi_comm_col,&
                    elsi_h%mpi_comm,elsi_h%sing_tol,elsi_h%n_nonsing)
+
+      call elsi_deallocate(elsi_h,copy_real,"copy_real")
 
       ! Stop if n_states is larger than n_nonsing
       if(elsi_h%n_nonsing < elsi_h%n_states) then ! Too singular to continue
@@ -652,9 +656,6 @@ subroutine elsi_check_singularity(elsi_h)
       endif ! Singular overlap?
 
    end select ! select matrix_data_type
-
-   if(allocated(tmp_real))    call elsi_deallocate(elsi_h,tmp_real,"tmp_real")
-   if(allocated(tmp_complex)) call elsi_deallocate(elsi_h,tmp_complex,"tmp_complex")
 
    call elsi_stop_singularity_check_time(elsi_h)
 
