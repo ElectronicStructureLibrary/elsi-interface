@@ -8,7 +8,6 @@ gnu-j1-generic:
     - cp /home/wy29/elsi_make_check/check_gnu ./make.sys
     - make clean
     - make
-    - make check
     - make install
 
 gnu-j8-generic:
@@ -35,7 +34,6 @@ pgi-j1-generic:
     - cp /home/wy29/elsi_make_check/check_pgi ./make.sys
     - make clean
     - make
-    - make check
     - make install
 
 pgi-j8-generic:
@@ -49,6 +47,7 @@ pgi-j8-generic:
     - make clean
     - make -j 8
     - make check
+    - make checkc
     - make install
 
 intel-j1-debug:
@@ -61,7 +60,6 @@ intel-j1-debug:
     - cp /home/wy29/elsi_make_check/check_intel_debug ./make.sys
     - make clean
     - make
-    - make check
     - make install
 
 intel-j8-debug:
@@ -75,6 +73,7 @@ intel-j8-debug:
     - make clean
     - make -j 8
     - make check
+    - make checkc
     - make install
 
 intel-j8-gpu:
@@ -101,7 +100,6 @@ intel-j1-generic:
     - cp /home/wy29/elsi_make_check/check_intel ./make.sys
     - make clean
     - make
-    - make check
     - make install
 
 intel-j8-generic:
