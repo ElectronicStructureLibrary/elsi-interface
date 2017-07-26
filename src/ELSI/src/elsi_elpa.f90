@@ -1634,12 +1634,9 @@ subroutine elsi_adjust_occ(elsi_h,diff_ne)
    real(kind=r8),     intent(inout) :: diff_ne !< Error in electron count
 
    real(kind=r8),    allocatable :: eval_aux(:)
-   real(kind=r8),    allocatable :: occ_aux(:)
-   integer(kind=i4), allocatable :: idx_aux(:)
 
-   real(kind=r8)    :: tmp_real
-   integer(kind=i4) :: tmp_int
-   integer(kind=i4) :: min_id
+   real(kind=r8)    :: min_eval
+   integer(kind=i4) :: max_id
    integer(kind=i4) :: i_state
    integer(kind=i4) :: i_kpt
    integer(kind=i4) :: i_spin
@@ -1651,10 +1648,8 @@ subroutine elsi_adjust_occ(elsi_h,diff_ne)
    n_total = elsi_h%n_states*elsi_h%n_spins*elsi_h%n_kpts
 
    call elsi_allocate(elsi_h,eval_aux,n_total,"eval_aux",caller)
-   call elsi_allocate(elsi_h,occ_aux,n_total,"occ_aux",caller)
-   call elsi_allocate(elsi_h,idx_aux,n_total,"idx_aux",caller)
 
-   ! Put eigenvalues and occupation numbers into 1D arrays
+   ! Put eigenvalues into a 1D array
    i_val = 0
 
    do i_kpt = 1,elsi_h%n_kpts
@@ -1662,53 +1657,34 @@ subroutine elsi_adjust_occ(elsi_h,diff_ne)
          do i_state = 1,elsi_h%n_states
             i_val = i_val+1
             eval_aux(i_val) = elsi_h%eval_all(i_state,i_spin,i_kpt)
-            occ_aux(i_val)  = elsi_h%occ_num(i_state,i_spin,i_kpt)
-            idx_aux(i_val)  = i_val
          enddo
       enddo
    enddo
 
-   ! Sort eval_aux; move occ_aux and idx_aux accordingly
+   min_eval = minval(eval_aux,1)
+
+   ! Remove error
    do i_val = 1,n_total
-      min_id = minloc(eval_aux(i_val:n_total),1)+i_val-1
+      max_id           = maxloc(eval_aux,1)
+      eval_aux(max_id) = min_eval-1.0_r8
 
-      tmp_int = idx_aux(i_val)
-      idx_aux(i_val) = idx_aux(min_id)
-      idx_aux(min_id) = tmp_int
+      i_kpt   = (i_val-1)/(elsi_h%n_spins*elsi_h%n_states)+1
+      i_spin  = mod((i_val-1)/elsi_h%n_states,elsi_h%n_spins)+1
+      i_state = mod(i_val-1,elsi_h%n_states)+1
 
-      tmp_real = eval_aux(i_val)
-      eval_aux(i_val) = eval_aux(min_id)
-      eval_aux(min_id) = tmp_real
+      if(elsi_h%k_weight(i_kpt)*elsi_h%occ_num(i_state,i_spin,i_kpt) > diff_ne) then
+         elsi_h%occ_num(i_state,i_spin,i_kpt) = elsi_h%occ_num(i_state,i_spin,i_kpt)-&
+                                                   diff_ne/elsi_h%k_weight(i_kpt)
+         diff_ne = 0.0_r8
+      else
+         diff_ne = diff_ne-elsi_h%k_weight(i_kpt)*elsi_h%occ_num(i_state,i_spin,i_kpt)
+         elsi_h%occ_num(i_state,i_spin,i_kpt) = 0.0_r8
+      endif
 
-      tmp_real = occ_aux(i_val)
-      occ_aux(i_val) = occ_aux(min_id)
-      occ_aux(min_id) = tmp_real
+      if(diff_ne .le. elsi_h%occ_tolerance) exit
    enddo
 
    call elsi_deallocate(elsi_h,eval_aux,"eval_aux")
-
-   do i_val = n_total,1,-1
-      if(occ_aux(i_val) > 0.0_r8) then
-         i_kpt   = (idx_aux(i_val)-1)/(elsi_h%n_spins*elsi_h%n_states)+1
-         i_spin  = mod((idx_aux(i_val)-1)/elsi_h%n_states,elsi_h%n_spins)+1
-         i_state = mod(idx_aux(i_val)-1,elsi_h%n_states)+1
-
-         if(elsi_h%k_weight(i_kpt)*occ_aux(i_val) > diff_ne) then
-            occ_aux(i_val) = occ_aux(i_val)-diff_ne/elsi_h%k_weight(i_kpt)
-            diff_ne = 0.0_r8
-         else
-            diff_ne = diff_ne-elsi_h%k_weight(i_kpt)*occ_aux(i_val)
-            occ_aux(i_val) = 0.0_r8
-         endif
-
-         elsi_h%occ_num(i_state,i_spin,i_kpt) = occ_aux(i_val)
-      endif
-
-      if((diff_ne < elsi_h%occ_tolerance) .or. (diff_ne == 0.0_r8)) exit
-   enddo
-
-   call elsi_deallocate(elsi_h,occ_aux,"occ_aux")
-   call elsi_deallocate(elsi_h,idx_aux,"idx_aux")
 
 end subroutine
 
