@@ -30,11 +30,20 @@
 !!
 module ELSI_CHESS
 
-   use ELSI_DATATYPE, only: elsi_handle
+   use ELSI_DIMENSIONS, only: elsi_handle
    use ELSI_PRECISION, only: r8,i4
    use ELSI_TIMERS
    use ELSI_UTILS
-!TODO: use CHESS
+
+   use FOE_BASE, only: foe_data,foe_data_deallocate,foe_data_get_real
+   use FOE_COMMON, only: init_foe
+   use SPARSEMATRIX_BASE, only: sparsematrix_init_errors,&
+                                sparsematrix_initialize_timing_categories
+   use SPARSEMATRIX_HIGHLEVEL, only: matrices_init,&
+                                     matrix_fermi_operator_expansion,&
+                                     sparse_matrix_init_from_data_ccs
+   use SPARSEMATRIX_INIT, only: write_sparsematrix_info,&
+                                init_matrix_taskgroups_wrapper
 
    implicit none
    private
@@ -59,25 +68,68 @@ subroutine elsi_init_chess(elsi_h)
 
    character*40, parameter :: caller = "elsi_init_chess"
 
+   ! TODO: Get a larger sparsity pattern
+
    ! Initialize Futile
    call f_lib_initialize()
+
+   if(elsi_h%myid == 0) then
+      call yaml_new_document()
+   endif
 
    ! Initialize sparsematrix error handling and timing
    call sparsematrix_init_errors()
    call sparsematrix_initialize_timing_categories()
 
+   if(elsi_h%myid == 0) then
+      call f_timing_reset(filename='time.yaml',master=.true.,verbose_mode=.false.)
+   else
+      call f_timing_reset(filename='time.yaml',master=.false.,verbose_mode=.false.)
+   endif
+
    ! Initialize sparse matrices
-   call sparse_matrix_init_from_data_ccs()
+   call sparse_matrix_init_from_data_ccs(elsi_h%myid,elsi_h%n_procs,&
+           elsi_h%mpi_comm_elsi,elsi_h%n_basis,elsi_h%nnz_g,elsi_h%row_ind_g,&
+           elsi_h%col_ptr_g,elsi_h%sparse_mat(1),init_matmul=.false.)
+
+   call sparse_matrix_init_from_data_ccs(elsi_h%myid,elsi_h%n_procs,&
+           elsi_h%mpi_comm_elsi,elsi_h%n_basis,elsi_h%nnz_g,elsi_h%row_ind_g,&
+           elsi_h%col_ptr_g,elsi_h%sparse_mat(2),init_matmul=.true.,&
+           nvctr_mult=elsi_h%nnz_g,row_ind_mult=elsi_h%row_ind_g,&
+           col_ptr_mult=elsi_h%col_ptr_g)
 
    ! Initialize task groups
    call init_matrix_taskgroups_wrapper(elsi_h%myid,elsi_h%n_procs,&
-           elsi_h%mpi_comm,.false.,2,elsi_h%sparse_mat)
+           elsi_h%mpi_comm_elsi,.false.,2,elsi_h%sparse_mat)
+
+   if(elsi_h%myid == 0) then
+      call yaml_mapping_open('Sparse matrices')
+      call write_sparsematrix_info(smat(1),'Hamiltonian and overlap matrices')
+      call write_sparsematrix_info(smat(2),'Density matrix')
+      call yaml_mapping_close()
+   endif
 
    ! Initialize FOE objects
-   call init_foe()
+   call init_foe(elsi_h%myid,elsi_h%n_procs,1,elsi_h%n_electrons,&
+           elsi_h%foe_obj,fscale=elsi_h%erf_decay,&
+           fscale_lowerbound=elsi_h%erf_decay_min,&
+           fscale_upperbound=elsi_h%erf_decay_max,&
+           evlow=elsi_h%ev_ham_min,evhigh=elsi_h%ev_ham_max,&
+           betax=elsi_h%betax)
+
+   call init_foe(elsi_h%myid,elsi_h%n_procs,1,elsi_h%n_electrons,&
+           elsi_h%ice_obj,evlow=elsi_h%ev_ovlp_min,&
+           evhigh=elsi_h%ev_ovlp_max,betax=elsi_h%betax)
 
    ! Allocate CheSS matrices
-   call matrices_init()
+   call matrices_init(sparse_mat(1),ham_chess,matsize=SPARSE_TASKGROUP)
+   call matrices_init(sparse_mat(1),ovlp_chess,matsize=SPARSE_TASKGROUP)
+   call matrices_init(sparse_mat(2),den_mat_chess,matsize=SPARSE_TASKGROUP)
+   call matrices_init(sparse_mat(2),e_den_mat_chess,matsize=SPARSE_TASKGROUP)
+   call matrices_init(sparse_mat(2),ovlp_inv_sqrt_chess,matsize=SPARSE_TASKGROUP)
+
+   call f_timing_checkpoint(ctr_name='INIT',mpi_comm=elsi_h%mpi_comm_elsi,&
+           nproc=elsi_h%n_procs,gather_routine=gather_timings)
 
 end subroutine
 
@@ -91,13 +143,29 @@ subroutine elsi_solve_evp_chess(elsi_h)
 
    type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
+   logical          :: calc_ovlp_inv_sqrt
    integer(kind=i4) :: mpierr
 
    character*40, parameter :: caller = "elsi_solve_evp_chess"
 
    call elsi_start_density_matrix_time(elsi_h)
 
-   call matrix_fermi_operator_expansion()
+   if(elsi_h%n_elsi_calls == 1) then
+      calc_ovlp_inv_sqrt = .true.
+   else
+      calc_ovlp_inv_sqrt = .false.
+   endif
+
+   call matrix_fermi_operator_expansion(elsi_h%myid,elsi_h%n_procs,&
+           elsi_h%mpi_comm_elsi,elsi_h%foe_obj,elsi_h%ice_obj,&
+           elsi_h%sparse_mat(1),elsi_h%sparse_mat(1),elsi_h%sparse_mat(2),&
+           elsi_h%ovlp_chess,elsi_h%ham_chess,elsi_h%ovlp_inv_sqrt_chess,&
+           elsi_h%den_mat_chess,elsi_h%energy_hdm,&
+           calculate_minusonehalf=calc_ovlp_inv_sqrt,foe_verbosity=0,&
+           symmetrize_kernel=.true.,calculate_energy_density_kernel=.false.,&
+           energy_kernel=e_den_mat_chess)
+
+   elsi_h%mu = foe_data_get_real(elsi_h%foe_obj,"ef",1)
 
    call MPI_Barrier(elsi_h%mpi_comm,mpierr)
    call elsi_stop_density_matrix_time(elsi_h)
@@ -129,27 +197,26 @@ subroutine elsi_set_chess_default(elsi_h)
    character*40, parameter :: caller = "elsi_set_chess_default"
 
    ! Initial guess of the decay length of the error function
-   elsi_h%erf_decay = 0.1_r8
+   elsi_h%erf_decay = 5.0e-2_r8
 
    ! Lower bound of the decay length
-   elsi_h%erf_decay_min = 0.01_r8
+   elsi_h%erf_decay_min = 5.0e-3_r8
 
    ! Upper bound of the decay length
-   elsi_h%erf_decay_max = 0.1_r8
+   elsi_h%erf_decay_max = 5.0e-2_r8
 
    ! Lower bound of the eigenvalues of H
    elsi_h%ev_ham_min = -20.0_r8
 
    ! Upper bound of the eigenvalues of H
-   elsi_h%ev_ham_max = 10.0_r8
+   elsi_h%ev_ham_max = 5.0_r8
 
    ! Lower bound of the eigenvalues of S
    elsi_h%ev_ovlp_min = 1.0e-6_r8
 
    ! Upper bound of the eigenvalues of S
-   elsi_h%ev_ovlp_max = 5.0_r8
+   elsi_h%ev_ovlp_max = 1.0_r8
 
-   ! ???
    elsi_h%betax = -1.0e3_r8
 
 end subroutine
