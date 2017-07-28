@@ -30,7 +30,6 @@
 !!
 module ELSI_TIMERS
 
-   use ISO_C_BINDING
    use ELSI_CONSTANTS, only: ELPA,LIBOMM,PEXSI,CHESS,SIPS,&
                              MULTI_PROC,SINGLE_PROC,&
                              BLACS_DENSE,PEXSI_CSC

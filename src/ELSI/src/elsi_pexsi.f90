@@ -30,7 +30,6 @@
 !!
 module ELSI_PEXSI
 
-   use ISO_C_BINDING
    use ELSI_CONSTANTS, only: BLACS_DENSE,UNSET
    use ELSI_DATATYPE, only: elsi_handle
    use ELSI_PRECISION, only: r8,i4

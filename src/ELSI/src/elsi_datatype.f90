@@ -30,7 +30,7 @@
 !!
 module ELSI_DATATYPE
 
-   use ISO_C_BINDING
+   use, intrinsic :: ISO_C_BINDING
    use ELSI_CONSTANTS, only: FULL_MAT,UNSET
    use ELSI_PRECISION, only: r8,i4
    use F_PPEXSI_INTERFACE, only: f_ppexsi_options

@@ -30,7 +30,7 @@
 !!
 module ELSI_CONSTANTS
 
-   use ISO_C_BINDING
+   use, intrinsic :: ISO_C_BINDING
    use ELSI_PRECISION, only: r8,i4
 
    implicit none

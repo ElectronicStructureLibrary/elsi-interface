@@ -31,7 +31,6 @@
 !!
 module ELSI
 
-   use ISO_C_BINDING
    use ELSI_CONSTANTS, only: ELPA,LIBOMM,PEXSI,CHESS,SIPS,REAL_VALUES,&
                              COMPLEX_VALUES,SINGLE_PROC,MULTI_PROC,UNSET
    use ELSI_DATATYPE, only: elsi_handle,print_info,print_mem

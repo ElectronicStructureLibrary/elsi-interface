@@ -31,7 +31,6 @@
 !!
 module m_qetsc
 
-   use ISO_C_BINDING
    use ELSI_PRECISION, only: r8,i4
 
    implicit none

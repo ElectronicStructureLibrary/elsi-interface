@@ -30,7 +30,6 @@
 !!
 module ELSI_CHESS
 
-   use ISO_C_BINDING
    use ELSI_DATATYPE, only: elsi_handle
    use ELSI_PRECISION, only: r8,i4
    use ELSI_TIMERS

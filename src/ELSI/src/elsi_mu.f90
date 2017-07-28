@@ -30,7 +30,6 @@
 !!
 module ELSI_MU
 
-   use ISO_C_BINDING
    use ELSI_CONSTANTS, only: GAUSSIAN,FERMI,METHFESSEL_PAXTON_0,&
                              METHFESSEL_PAXTON_1,INVERT_SQRT_PI
    use ELSI_DATATYPE, only: elsi_handle

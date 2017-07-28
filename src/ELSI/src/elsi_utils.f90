@@ -31,7 +31,6 @@
 !!
 module ELSI_UTILS
 
-   use ISO_C_BINDING
    use ELSI_CONSTANTS, only: AUTO,ELPA,LIBOMM,PEXSI,CHESS,SIPS,BLACS_DENSE,&
                              PEXSI_CSC,MULTI_PROC,FULL_MAT,UT_MAT,LT_MAT,&
                              N_SOLVERS,N_MATRIX_DATA_TYPES,&
