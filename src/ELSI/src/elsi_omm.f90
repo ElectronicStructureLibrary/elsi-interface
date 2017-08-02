@@ -236,7 +236,7 @@ subroutine elsi_set_omm_default(elsi_h)
    elsi_h%eta = 0.0_r8
 
    ! Tolerance for minimization
-   elsi_h%min_tol = 1.0e-10_r8
+   elsi_h%min_tol = 1.0e-12_r8
 
    ! Output level?
    elsi_h%omm_output = .false.

@@ -109,6 +109,13 @@ else
   STUBS += stub_sips.o
 endif
 
+ifeq ($(strip $(ENABLE_CHESS)),yes)
+  LIBS += $(CHESS_LIB)
+  INCS += $(CHESS_INC)
+else
+  STUBS += stub_chess.o
+endif
+
 .PHONY: all elpa cs omm pexsi elsi install check checkc clean cleanelsi cleanelpa cleancs cleanomm cleanpexsi
 
 all: $(ALL_OBJ) cs elsi

@@ -33,8 +33,10 @@ module ELSI_DATATYPE
    use, intrinsic :: ISO_C_BINDING
    use ELSI_CONSTANTS, only: FULL_MAT,UNSET
    use ELSI_PRECISION, only: r8,i4
+   use FOE_BASE, only: foe_data
    use F_PPEXSI_INTERFACE, only: f_ppexsi_options
    use MATRIXSWITCH, only: matrix
+   use SPARSEMATRIX_BASE, only: matrices,sparse_matrix
 
    implicit none
 
@@ -108,6 +110,18 @@ module ELSI_DATATYPE
       real(kind=r8),    allocatable :: slices(:)         ! Slices
       real(kind=r8),    allocatable :: shifts(:)         ! Shifts
       integer(kind=i4), allocatable :: inertias(:)       ! Inertia count at each shift
+
+      ! CheSS
+      real(kind=r8),    allocatable :: ham_real_chess(:)      ! Sparse real Hamiltonian
+      real(kind=r8),    allocatable :: ovlp_real_chess(:)     ! Sparse real overlap
+      integer(kind=i4), allocatable :: row_ind_chess(:)       ! Row index
+      integer(kind=i4), allocatable :: col_ptr_chess(:)       ! Column pointer
+      type(matrices)                :: ham_chess              ! Hamiltonian
+      type(matrices)                :: ovlp_chess             ! Overlap
+      type(matrices)                :: dm_chess               ! Density matrix
+      type(matrices)                :: edm_chess              ! Energy density matrix
+      type(matrices)                :: ovlp_inv_sqrt_chess(1) ! (1/ovlp)^(-1/2)
+      type(sparse_matrix)           :: sparse_mat(2)          ! Sparsity pattern etc
 
       ! Is this a valid handle?
       logical :: handle_initialized = .false.
@@ -222,7 +236,7 @@ module ELSI_DATATYPE
       real(kind=r8) :: scale_kinetic = 0.0_r8  ! Scaling of the kinetic energy matrix
       logical :: calc_ed = .false.             ! Calculate energy weighted density matrix?
       real(kind=r8) :: eta = 0.0_r8            ! Eigenspectrum shift parameter
-      real(kind=r8) :: min_tol = 1.0e-12_r8    ! Tolerance for minimization
+      real(kind=r8) :: min_tol = 0.0_r8        ! Tolerance for minimization
       logical :: omm_output = .false.          ! Output level
       logical :: do_dealloc = .false.          ! Deallocate internal storage?
       logical :: use_psp = .false.             ! Use pspBLAS sparse linear algebra?
@@ -240,6 +254,18 @@ module ELSI_DATATYPE
       integer(kind=c_intptr_t) :: pexsi_plan
       type(f_ppexsi_options)   :: pexsi_options
       integer(kind=i4)         :: n_mu_points = UNSET
+
+      ! CheSS
+      type(foe_data) :: foe_obj
+      type(foe_data) :: ice_obj
+      real(kind=r8) :: erf_decay = 0.0_r8
+      real(kind=r8) :: erf_decay_min = 0.0_r8
+      real(kind=r8) :: erf_decay_max = 0.0_r8
+      real(kind=r8) :: ev_ham_min = 0.0_r8
+      real(kind=r8) :: ev_ham_max = 0.0_r8
+      real(kind=r8) :: ev_ovlp_min = 0.0_r8
+      real(kind=r8) :: ev_ovlp_max = 0.0_r8
+      real(kind=r8) :: betax = 0.0_r8
 
       ! SIPs
       integer(kind=i4) :: n_p_per_slice = UNSET

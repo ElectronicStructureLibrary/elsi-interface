@@ -720,27 +720,27 @@ end subroutine
 !>
 !! This routine sets the real hamiltonian matrix.
 !!
-subroutine elsi_set_real_ham(elsi_h,H_in)
+subroutine elsi_set_real_ham(elsi_h,h_in)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h                                !< Handle
-   real(kind=r8),     target        :: H_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian matrix
+   real(kind=r8),     target        :: h_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian matrix
 
    character*40, parameter :: caller = "elsi_set_real_ham"
 
    if(elsi_h%solver == ELPA) then
       if(elsi_h%matrix_storage_format == BLACS_DENSE) then
-         call elsi_set_full_mat(elsi_h,H_in)
+         call elsi_set_full_mat(elsi_h,h_in)
       endif
 
-      elsi_h%ham_real => H_in
+      elsi_h%ham_real => h_in
    elseif(elsi_h%solver == LIBOMM) then
       if(elsi_h%matrix_storage_format == BLACS_DENSE) then
-         call elsi_set_full_mat(elsi_h,H_in)
+         call elsi_set_full_mat(elsi_h,h_in)
       endif
 
-      call m_register_pdbc(elsi_h%ham_omm,H_in,elsi_h%sc_desc)
+      call m_register_pdbc(elsi_h%ham_omm,h_in,elsi_h%sc_desc)
    endif
 
 end subroutine
@@ -748,27 +748,27 @@ end subroutine
 !>
 !! This routine sets the complex hamiltonian matrix.
 !!
-subroutine elsi_set_complex_ham(elsi_h,H_in)
+subroutine elsi_set_complex_ham(elsi_h,h_in)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h                                !< Handle
-   complex(kind=r8),  target        :: H_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian matrix
+   complex(kind=r8),  target        :: h_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian matrix
 
    character*40, parameter :: caller = "elsi_set_complex_ham"
 
    if(elsi_h%solver == ELPA) then
       if(elsi_h%matrix_storage_format == BLACS_DENSE) then
-         call elsi_set_full_mat(elsi_h,H_in)
+         call elsi_set_full_mat(elsi_h,h_in)
       endif
 
-      elsi_h%ham_complex => H_in
+      elsi_h%ham_complex => h_in
    elseif(elsi_h%solver == LIBOMM) then
       if(elsi_h%matrix_storage_format == BLACS_DENSE) then
-         call elsi_set_full_mat(elsi_h,H_in)
+         call elsi_set_full_mat(elsi_h,h_in)
       endif
 
-      call m_register_pdbc(elsi_h%ham_omm,H_in,elsi_h%sc_desc)
+      call m_register_pdbc(elsi_h%ham_omm,h_in,elsi_h%sc_desc)
    endif
 
 end subroutine
@@ -776,17 +776,17 @@ end subroutine
 !>
 !! This routine sets the sparse real Hamiltonian matrix.
 !!
-subroutine elsi_set_sparse_real_ham(elsi_h,H_in)
+subroutine elsi_set_sparse_real_ham(elsi_h,h_in)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h                   !< Handle
-   real(kind=r8),     target        :: H_in(elsi_h%nnz_l_pexsi) !< Hamiltonian matrix
+   real(kind=r8),     target        :: h_in(elsi_h%nnz_l_pexsi) !< Hamiltonian matrix
 
    character*40, parameter :: caller = "elsi_set_sparse_real_ham"
 
    if((elsi_h%solver == PEXSI) .or. (elsi_h%solver == SIPS)) then
-      elsi_h%ham_real_ccs => H_in
+      elsi_h%ham_real_ccs => h_in
    endif
 
 end subroutine
@@ -794,17 +794,17 @@ end subroutine
 !>
 !! This routine sets the sparse complex Hamiltonian matrix.
 !!
-subroutine elsi_set_sparse_complex_ham(elsi_h,H_in)
+subroutine elsi_set_sparse_complex_ham(elsi_h,h_in)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h                   !< Handle
-   complex(kind=r8),  target        :: H_in(elsi_h%nnz_l_pexsi) !< Hamiltonian matirx
+   complex(kind=r8),  target        :: h_in(elsi_h%nnz_l_pexsi) !< Hamiltonian matirx
 
    character*40, parameter :: caller = "elsi_set_sparse_complex_ham"
 
    if((elsi_h%solver == PEXSI) .or. (elsi_h%solver == SIPS)) then
-      elsi_h%ham_complex_ccs => H_in         
+      elsi_h%ham_complex_ccs => h_in         
    endif
 
 end subroutine
@@ -812,12 +812,12 @@ end subroutine
 !>
 !! This routine sets the real overlap matrix.
 !!
-subroutine elsi_set_real_ovlp(elsi_h,S_in)
+subroutine elsi_set_real_ovlp(elsi_h,s_in)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h                                !< Handle
-   real(kind=r8),     target        :: S_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Overlap matrix
+   real(kind=r8),     target        :: s_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Overlap matrix
 
    character*40, parameter :: caller = "elsi_set_real_ovlp"
 
@@ -825,17 +825,17 @@ subroutine elsi_set_real_ovlp(elsi_h,S_in)
       if(elsi_h%solver == ELPA) then
          if((elsi_h%matrix_storage_format == BLACS_DENSE) .and. &
             (elsi_h%n_elsi_calls == 1)) then
-            call elsi_set_full_mat(elsi_h,S_in)
+            call elsi_set_full_mat(elsi_h,s_in)
          endif
 
-         elsi_h%ovlp_real => S_in
+         elsi_h%ovlp_real => s_in
       elseif(elsi_h%solver == LIBOMM) then
          if((elsi_h%matrix_storage_format == BLACS_DENSE) .and. &
             (elsi_h%n_elsi_calls == 1)) then
-            call elsi_set_full_mat(elsi_h,S_in)
+            call elsi_set_full_mat(elsi_h,s_in)
          endif
 
-         call m_register_pdbc(elsi_h%ovlp_omm,S_in,elsi_h%sc_desc)
+         call m_register_pdbc(elsi_h%ovlp_omm,s_in,elsi_h%sc_desc)
       endif
    endif
 
@@ -844,12 +844,12 @@ end subroutine
 !>
 !! This routine sets the complex ovlp matrix.
 !!
-subroutine elsi_set_complex_ovlp(elsi_h,S_in)
+subroutine elsi_set_complex_ovlp(elsi_h,s_in)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h                                !< Handle
-   complex(kind=r8),  target        :: S_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Overlap matrix
+   complex(kind=r8),  target        :: s_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Overlap matrix
 
    character*40, parameter :: caller = "elsi_set_complex_ovlp"
 
@@ -857,17 +857,17 @@ subroutine elsi_set_complex_ovlp(elsi_h,S_in)
       if(elsi_h%solver == ELPA) then
          if((elsi_h%matrix_storage_format == BLACS_DENSE) .and. &
             (elsi_h%n_elsi_calls == 1)) then
-            call elsi_set_full_mat(elsi_h,S_in)
+            call elsi_set_full_mat(elsi_h,s_in)
          endif
 
-         elsi_h%ovlp_complex => S_in
+         elsi_h%ovlp_complex => s_in
       elseif(elsi_h%solver == LIBOMM) then
          if((elsi_h%matrix_storage_format == BLACS_DENSE) .and. &
             (elsi_h%n_elsi_calls == 1)) then
-            call elsi_set_full_mat(elsi_h,S_in)
+            call elsi_set_full_mat(elsi_h,s_in)
          endif
 
-         call m_register_pdbc(elsi_h%ovlp_omm,S_in,elsi_h%sc_desc)
+         call m_register_pdbc(elsi_h%ovlp_omm,s_in,elsi_h%sc_desc)
       endif
    endif
 end subroutine
@@ -875,18 +875,18 @@ end subroutine
 !>
 !! This routine sets the sparse real overlap matrix.
 !!
-subroutine elsi_set_sparse_real_ovlp(elsi_h,S_in)
+subroutine elsi_set_sparse_real_ovlp(elsi_h,s_in)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h                   !< Handle
-   real(kind=r8),     target        :: S_in(elsi_h%nnz_l_pexsi) !< Overlap matrix
+   real(kind=r8),     target        :: s_in(elsi_h%nnz_l_pexsi) !< Overlap matrix
 
    character*40, parameter :: caller = "elsi_set_sparse_real_ovlp"
 
    if(.not. elsi_h%ovlp_is_unit) then
       if((elsi_h%solver == PEXSI) .or. (elsi_h%solver == SIPS)) then
-         elsi_h%ovlp_real_ccs => S_in
+         elsi_h%ovlp_real_ccs => s_in
       endif
    endif
 
@@ -895,18 +895,18 @@ end subroutine
 !>
 !! This routine sets the sparse complex overlap matrix.
 !!
-subroutine elsi_set_sparse_complex_ovlp(elsi_h,S_in)
+subroutine elsi_set_sparse_complex_ovlp(elsi_h,s_in)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h                   !< Handle
-   complex(kind=r8),  target        :: S_in(elsi_h%nnz_l_pexsi) !< Overlap matrix
+   complex(kind=r8),  target        :: s_in(elsi_h%nnz_l_pexsi) !< Overlap matrix
 
    character*40, parameter :: caller = "elsi_set_sparse_complex_ovlp"
 
    if(.not. elsi_h%ovlp_is_unit) then
       if((elsi_h%solver == PEXSI) .or. (elsi_h%solver == SIPS)) then
-         elsi_h%ovlp_complex_ccs => S_in
+         elsi_h%ovlp_complex_ccs => s_in
       endif
    endif
 
@@ -969,19 +969,19 @@ end subroutine
 !>
 !! This routine sets the real density matrix.
 !!
-subroutine elsi_set_real_dm(elsi_h,D_in)
+subroutine elsi_set_real_dm(elsi_h,d_in)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h                                !< Handle
-   real(kind=r8),     target        :: D_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Density matrix
+   real(kind=r8),     target        :: d_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Density matrix
 
    character*40, parameter :: caller = "elsi_set_real_dm"
 
    if(elsi_h%solver == ELPA) then
-      elsi_h%dm_real => D_in
+      elsi_h%dm_real => d_in
    elseif(elsi_h%solver == LIBOMM) then
-      call m_register_pdbc(elsi_h%dm_omm,D_in,elsi_h%sc_desc)
+      call m_register_pdbc(elsi_h%dm_omm,d_in,elsi_h%sc_desc)
    endif
 
 end subroutine
@@ -989,19 +989,19 @@ end subroutine
 !>
 !! This routine sets the complex density matrix.
 !!
-subroutine elsi_set_complex_dm(elsi_h,D_in)
+subroutine elsi_set_complex_dm(elsi_h,d_in)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h                                !< Handle
-   complex(kind=r8),  target        :: D_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Density matrix
+   complex(kind=r8),  target        :: d_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Density matrix
 
    character*40, parameter :: caller = "elsi_set_complex_dm"
 
    if(elsi_h%solver == ELPA) then
-      elsi_h%dm_complex => D_in
+      elsi_h%dm_complex => d_in
    elseif(elsi_h%solver == LIBOMM) then
-      call m_register_pdbc(elsi_h%dm_omm,D_in,elsi_h%sc_desc)
+      call m_register_pdbc(elsi_h%dm_omm,d_in,elsi_h%sc_desc)
    endif
 
 end subroutine
@@ -1009,17 +1009,17 @@ end subroutine
 !>
 !! This routine sets the sparse real density matrix.
 !!
-subroutine elsi_set_sparse_real_dm(elsi_h,D_in)
+subroutine elsi_set_sparse_real_dm(elsi_h,d_in)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h                   !< Handle
-   real(kind=r8),     target        :: D_in(elsi_h%nnz_l_pexsi) !< Density matrix
+   real(kind=r8),     target        :: d_in(elsi_h%nnz_l_pexsi) !< Density matrix
 
    character*40, parameter :: caller = "elsi_set_sparse_real_dm"
 
    if(elsi_h%solver == PEXSI) then
-      elsi_h%dm_real_ccs => D_in
+      elsi_h%dm_real_ccs => d_in
    endif
 
 end subroutine
@@ -1027,17 +1027,17 @@ end subroutine
 !>
 !! This routine sets the sparse complex density matrix.
 !!
-subroutine elsi_set_sparse_complex_dm(elsi_h,D_in)
+subroutine elsi_set_sparse_complex_dm(elsi_h,d_in)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h                   !< Handle
-   complex(kind=r8),  target        :: D_in(elsi_h%nnz_l_pexsi) !< Density matrix
+   complex(kind=r8),  target        :: d_in(elsi_h%nnz_l_pexsi) !< Density matrix
 
    character*40, parameter :: caller = "elsi_set_sparse_complex_dm"
 
    if(elsi_h%solver == PEXSI) then
-      elsi_h%dm_complex_ccs => D_in
+      elsi_h%dm_complex_ccs => d_in
    endif
 
 end subroutine

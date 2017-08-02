@@ -1548,12 +1548,12 @@ end subroutine
 !>
 !! This routine gets the energy-weighted density matrix.
 !!
-subroutine elsi_get_edm_real(elsi_h,D_out)
+subroutine elsi_get_edm_real(elsi_h,d_out)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h                                 !< Handle
-   real(kind=r8),     intent(out)   :: D_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Energy density matrix
+   real(kind=r8),     intent(out)   :: d_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Energy density matrix
 
    character*40, parameter :: caller = "elsi_get_edm_real"
 
@@ -1565,11 +1565,11 @@ subroutine elsi_get_edm_real(elsi_h,D_out)
 
       select case(elsi_h%solver)
       case(ELPA)
-         call elsi_set_dm(elsi_h,D_out)
+         call elsi_set_dm(elsi_h,d_out)
          call elsi_compute_edm_elpa(elsi_h)
 
       case(LIBOMM)
-         call elsi_set_dm(elsi_h,D_out)
+         call elsi_set_dm(elsi_h,d_out)
          call elsi_compute_edm_omm(elsi_h)
 
          elsi_h%dm_omm%dval = 2.0_r8*elsi_h%dm_omm%dval
@@ -1577,7 +1577,7 @@ subroutine elsi_get_edm_real(elsi_h,D_out)
       case(PEXSI)
          elsi_h%dm_real_ccs = elsi_h%edm_real_pexsi
 
-         call elsi_pexsi_to_blacs_dm(elsi_h,D_out)
+         call elsi_pexsi_to_blacs_dm(elsi_h,d_out)
 
       case(CHESS)
          call elsi_stop(" CHESS not yet implemented. Exiting...",elsi_h,caller)
@@ -1600,12 +1600,12 @@ end subroutine
 !>
 !! This routine gets the energy-weighted density matrix.
 !!
-subroutine elsi_get_edm_complex(elsi_h,D_out)
+subroutine elsi_get_edm_complex(elsi_h,d_out)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h                                 !< Handle
-   complex(kind=r8),  intent(out)   :: D_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Energy density matrix
+   complex(kind=r8),  intent(out)   :: d_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Energy density matrix
 
    character*40, parameter :: caller = "elsi_get_edm_complex"
 
@@ -1617,11 +1617,11 @@ subroutine elsi_get_edm_complex(elsi_h,D_out)
 
       select case(elsi_h%solver)
       case(ELPA)
-         call elsi_set_dm(elsi_h,D_out)
+         call elsi_set_dm(elsi_h,d_out)
          call elsi_compute_edm_elpa(elsi_h)
 
       case(LIBOMM)
-         call elsi_set_dm(elsi_h,D_out)
+         call elsi_set_dm(elsi_h,d_out)
          call elsi_compute_edm_omm(elsi_h)
 
          elsi_h%dm_omm%zval = 2.0_r8*elsi_h%dm_omm%zval
@@ -1649,13 +1649,13 @@ end subroutine
 !>
 !! This routine computes the eigenvalues and eigenvectors.
 !!
-subroutine elsi_ev_real(elsi_h,H_in,S_in,e_val_out,e_vec_out)
+subroutine elsi_ev_real(elsi_h,h_in,s_in,e_val_out,e_vec_out)
 
    implicit none
 
    type(elsi_handle) :: elsi_h                                     !< Handle
-   real(kind=r8)     :: H_in(elsi_h%n_l_rows,elsi_h%n_l_cols)      !< Hamiltonian
-   real(kind=r8)     :: S_in(elsi_h%n_l_rows,elsi_h%n_l_cols)      !< Overlap
+   real(kind=r8)     :: h_in(elsi_h%n_l_rows,elsi_h%n_l_cols)      !< Hamiltonian
+   real(kind=r8)     :: s_in(elsi_h%n_l_rows,elsi_h%n_l_cols)      !< Overlap
    real(kind=r8)     :: e_val_out(elsi_h%n_basis)                  !< Eigenvalues
    real(kind=r8)     :: e_vec_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Eigenvectors
 
@@ -1675,8 +1675,8 @@ subroutine elsi_ev_real(elsi_h,H_in,S_in,e_val_out,e_vec_out)
    select case(elsi_h%solver)
    case(ELPA)
       ! Set matrices
-      call elsi_set_ham(elsi_h,H_in)
-      call elsi_set_ovlp(elsi_h,S_in)
+      call elsi_set_ham(elsi_h,h_in)
+      call elsi_set_ovlp(elsi_h,s_in)
       call elsi_set_evec(elsi_h,e_vec_out)
       call elsi_set_eval(elsi_h,e_val_out)
 
@@ -1703,7 +1703,7 @@ subroutine elsi_ev_real(elsi_h,H_in,S_in,e_val_out,e_vec_out)
       call elsi_init_sips(elsi_h)
 
       ! Convert BLACS H and S to SIPs format
-      call elsi_blacs_to_sips_hs(elsi_h,H_in,S_in)
+      call elsi_blacs_to_sips_hs(elsi_h,h_in,s_in)
 
       ! Set matrices
       call elsi_set_sparse_ham(elsi_h,elsi_h%ham_real_sips)
@@ -1731,13 +1731,13 @@ end subroutine
 !>
 !! This routine computes the eigenvalues and eigenvectors.
 !!
-subroutine elsi_ev_complex(elsi_h,H_in,S_in,e_val_out,e_vec_out)
+subroutine elsi_ev_complex(elsi_h,h_in,s_in,e_val_out,e_vec_out)
 
    implicit none
 
    type(elsi_handle) :: elsi_h                                     !< Handle
-   complex(kind=r8)  :: H_in(elsi_h%n_l_rows,elsi_h%n_l_cols)      !< Hamiltonian
-   complex(kind=r8)  :: S_in(elsi_h%n_l_rows,elsi_h%n_l_cols)      !< Overlap
+   complex(kind=r8)  :: h_in(elsi_h%n_l_rows,elsi_h%n_l_cols)      !< Hamiltonian
+   complex(kind=r8)  :: s_in(elsi_h%n_l_rows,elsi_h%n_l_cols)      !< Overlap
    real(kind=r8)     :: e_val_out(elsi_h%n_basis)                  !< Eigenvalues
    complex(kind=r8)  :: e_vec_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Eigenvectors
 
@@ -1757,8 +1757,8 @@ subroutine elsi_ev_complex(elsi_h,H_in,S_in,e_val_out,e_vec_out)
    select case(elsi_h%solver)
    case(ELPA)
       ! Set matrices
-      call elsi_set_ham(elsi_h,H_in)
-      call elsi_set_ovlp(elsi_h,S_in)
+      call elsi_set_ham(elsi_h,h_in)
+      call elsi_set_ovlp(elsi_h,s_in)
       call elsi_set_evec(elsi_h,e_vec_out)
       call elsi_set_eval(elsi_h,e_val_out)
 
@@ -1792,13 +1792,13 @@ end subroutine
 !>
 !! This routine computes the eigenvalues and eigenvectors.
 !!
-subroutine elsi_ev_real_sparse(elsi_h,H_in,S_in,e_val_out,e_vec_out)
+subroutine elsi_ev_real_sparse(elsi_h,h_in,s_in,e_val_out,e_vec_out)
 
    implicit none
 
    type(elsi_handle) :: elsi_h                                     !< Handle
-   real(kind=r8)     :: H_in(elsi_h%nnz_l_pexsi)                   !< Hamiltonian
-   real(kind=r8)     :: S_in(elsi_h%nnz_l_pexsi)                   !< Overlap
+   real(kind=r8)     :: h_in(elsi_h%nnz_l_pexsi)                   !< Hamiltonian
+   real(kind=r8)     :: s_in(elsi_h%nnz_l_pexsi)                   !< Overlap
    real(kind=r8)     :: e_val_out(elsi_h%n_basis)                  !< Eigenvalues
    real(kind=r8)     :: e_vec_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Eigenvectors
 
@@ -1818,7 +1818,7 @@ subroutine elsi_ev_real_sparse(elsi_h,H_in,S_in,e_val_out,e_vec_out)
    select case(elsi_h%solver)
    case(ELPA)
       ! Convert PEXSI H and S to BLACS format
-      call elsi_pexsi_to_blacs_hs(elsi_h,H_in,S_in)
+      call elsi_pexsi_to_blacs_hs(elsi_h,h_in,s_in)
 
       ! Set matrices
       call elsi_set_ham(elsi_h,elsi_h%ham_real_elpa)
@@ -1852,14 +1852,14 @@ end subroutine
 !>
 !! This routine computes the density matrix.
 !!
-subroutine elsi_dm_real(elsi_h,H_in,S_in,D_out,energy_out)
+subroutine elsi_dm_real(elsi_h,h_in,s_in,d_out,energy_out)
 
    implicit none
 
    type(elsi_handle) :: elsi_h                                 !< Handle
-   real(kind=r8)     :: H_in(elsi_h%n_l_rows,elsi_h%n_l_cols)  !< Hamiltonian
-   real(kind=r8)     :: S_in(elsi_h%n_l_rows,elsi_h%n_l_cols)  !< Overlap
-   real(kind=r8)     :: D_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Density matrix
+   real(kind=r8)     :: h_in(elsi_h%n_l_rows,elsi_h%n_l_cols)  !< Hamiltonian
+   real(kind=r8)     :: s_in(elsi_h%n_l_rows,elsi_h%n_l_cols)  !< Overlap
+   real(kind=r8)     :: d_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Density matrix
    real(kind=r8)     :: energy_out                             !< Energy
 
    character*40, parameter :: caller = "elsi_dm_real"
@@ -1887,11 +1887,11 @@ subroutine elsi_dm_real(elsi_h,H_in,S_in,D_out,energy_out)
       endif
 
       ! Set matrices
-      call elsi_set_ham(elsi_h,H_in)
-      call elsi_set_ovlp(elsi_h,S_in)
+      call elsi_set_ham(elsi_h,h_in)
+      call elsi_set_ovlp(elsi_h,s_in)
       call elsi_set_evec(elsi_h,elsi_h%evec_real_elpa)
       call elsi_set_eval(elsi_h,elsi_h%eval_elpa)
-      call elsi_set_dm(elsi_h,D_out)
+      call elsi_set_dm(elsi_h,d_out)
 
       ! Solve
       call elsi_solve_evp_elpa(elsi_h)
@@ -1911,7 +1911,7 @@ subroutine elsi_dm_real(elsi_h,H_in,S_in,D_out,energy_out)
             ! Overlap will be destroyed by Cholesky
             call elsi_allocate(elsi_h,elsi_h%ovlp_real_omm,elsi_h%n_l_rows,&
                     elsi_h%n_l_cols,"ovlp_real_omm",caller)
-            elsi_h%ovlp_real_omm = S_in
+            elsi_h%ovlp_real_omm = s_in
          endif
 
          ! Compute libOMM initial guess by ELPA
@@ -1928,11 +1928,11 @@ subroutine elsi_dm_real(elsi_h,H_in,S_in,D_out,energy_out)
          endif
 
          ! Set matrices
-         call elsi_set_ham(elsi_h,H_in)
-         call elsi_set_ovlp(elsi_h,S_in)
+         call elsi_set_ham(elsi_h,h_in)
+         call elsi_set_ovlp(elsi_h,s_in)
          call elsi_set_evec(elsi_h,elsi_h%evec_real_elpa)
          call elsi_set_eval(elsi_h,elsi_h%eval_elpa)
-         call elsi_set_dm(elsi_h,D_out)
+         call elsi_set_dm(elsi_h,d_out)
 
          ! Solve
          call elsi_solve_evp_elpa(elsi_h)
@@ -1948,10 +1948,10 @@ subroutine elsi_dm_real(elsi_h,H_in,S_in,D_out,energy_out)
       else ! ELPA is done
          if(allocated(elsi_h%ovlp_real_omm)) then
             ! Retrieve overlap matrix that has been destroyed by Cholesky
-            S_in = elsi_h%ovlp_real_omm
+            s_in = elsi_h%ovlp_real_omm
             call elsi_deallocate(elsi_h,elsi_h%ovlp_real_omm,"ovlp_real_omm")
 
-            call elsi_set_full_mat(elsi_h,S_in)
+            call elsi_set_full_mat(elsi_h,s_in)
          endif
 
          ! Allocate
@@ -1960,19 +1960,19 @@ subroutine elsi_dm_real(elsi_h,H_in,S_in,D_out,energy_out)
          endif
 
          ! Set matrices
-         call elsi_set_ham(elsi_h,H_in)
-         call elsi_set_ovlp(elsi_h,S_in)
-         call elsi_set_dm(elsi_h,D_out)
+         call elsi_set_ham(elsi_h,h_in)
+         call elsi_set_ovlp(elsi_h,s_in)
+         call elsi_set_dm(elsi_h,d_out)
 
          ! Initialize coefficient matrix with ELPA eigenvectors if possible
          if((elsi_h%n_elpa_steps > 0) .and. &
             (elsi_h%n_elsi_calls == elsi_h%n_elpa_steps+1)) then
             ! libOMM coefficient matrix is the transpose of ELPA eigenvectors
             call pdtran(elsi_h%n_basis,elsi_h%n_basis,1.0_r8,elsi_h%evec_real,&
-                    1,1,elsi_h%sc_desc,0.0_r8,D_out,1,1,elsi_h%sc_desc)
+                    1,1,elsi_h%sc_desc,0.0_r8,d_out,1,1,elsi_h%sc_desc)
 
             elsi_h%coeff_omm%dval(1:elsi_h%coeff_omm%iaux2(1),1:elsi_h%coeff_omm%iaux2(2)) = &
-               D_out(1:elsi_h%coeff_omm%iaux2(1),1:elsi_h%coeff_omm%iaux2(2))
+               d_out(1:elsi_h%coeff_omm%iaux2(1),1:elsi_h%coeff_omm%iaux2(2))
 
             ! ELPA matrices are no longer needed
             if(associated(elsi_h%ham_real)) then
@@ -2021,7 +2021,7 @@ subroutine elsi_dm_real(elsi_h,H_in,S_in,D_out,energy_out)
       call elsi_init_pexsi(elsi_h)
 
       ! Convert BLACS H and S to PEXSI format
-      call elsi_blacs_to_pexsi_hs(elsi_h,H_in,S_in)
+      call elsi_blacs_to_pexsi_hs(elsi_h,h_in,s_in)
 
       ! Allocate
       if(.not. allocated(elsi_h%dm_real_pexsi)) then
@@ -2041,7 +2041,7 @@ subroutine elsi_dm_real(elsi_h,H_in,S_in,D_out,energy_out)
       call elsi_solve_evp_pexsi(elsi_h)
 
       ! Convert PEXSI density matrix to BLACS format
-      call elsi_pexsi_to_blacs_dm(elsi_h,D_out)
+      call elsi_pexsi_to_blacs_dm(elsi_h,d_out)
       call elsi_get_energy(elsi_h,energy_out)
 
       elsi_h%mu_ready = .true.
@@ -2063,14 +2063,14 @@ end subroutine
 !>
 !! This routine computes the density matrix.
 !!
-subroutine elsi_dm_complex(elsi_h,H_in,S_in,D_out,energy_out)
+subroutine elsi_dm_complex(elsi_h,h_in,s_in,d_out,energy_out)
 
    implicit none
 
    type(elsi_handle) :: elsi_h                                 !< Handle
-   complex(kind=r8)  :: H_in(elsi_h%n_l_rows,elsi_h%n_l_cols)  !< Hamiltonian
-   complex(kind=r8)  :: S_in(elsi_h%n_l_rows,elsi_h%n_l_cols)  !< Overlap
-   complex(kind=r8)  :: D_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Density matrix
+   complex(kind=r8)  :: h_in(elsi_h%n_l_rows,elsi_h%n_l_cols)  !< Hamiltonian
+   complex(kind=r8)  :: s_in(elsi_h%n_l_rows,elsi_h%n_l_cols)  !< Overlap
+   complex(kind=r8)  :: d_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Density matrix
    real(kind=r8)     :: energy_out                             !< Energy
 
    character*40, parameter :: caller = "elsi_dm_complex"
@@ -2098,11 +2098,11 @@ subroutine elsi_dm_complex(elsi_h,H_in,S_in,D_out,energy_out)
       endif
 
       ! Set matrices
-      call elsi_set_ham(elsi_h,H_in)
-      call elsi_set_ovlp(elsi_h,S_in)
+      call elsi_set_ham(elsi_h,h_in)
+      call elsi_set_ovlp(elsi_h,s_in)
       call elsi_set_evec(elsi_h,elsi_h%evec_complex_elpa)
       call elsi_set_eval(elsi_h,elsi_h%eval_elpa)
-      call elsi_set_dm(elsi_h,D_out)
+      call elsi_set_dm(elsi_h,d_out)
 
       ! Solve
       call elsi_solve_evp_elpa(elsi_h)
@@ -2122,7 +2122,7 @@ subroutine elsi_dm_complex(elsi_h,H_in,S_in,D_out,energy_out)
             ! Overlap will be destroyed by Cholesky
             call elsi_allocate(elsi_h,elsi_h%ovlp_complex_omm,elsi_h%n_l_rows,&
                     elsi_h%n_l_cols,"ovlp_complex_omm",caller)
-            elsi_h%ovlp_complex_omm = S_in
+            elsi_h%ovlp_complex_omm = s_in
          endif
 
          ! Compute libOMM initial guess by ELPA
@@ -2139,11 +2139,11 @@ subroutine elsi_dm_complex(elsi_h,H_in,S_in,D_out,energy_out)
          endif
 
          ! Set matrices
-         call elsi_set_ham(elsi_h,H_in)
-         call elsi_set_ovlp(elsi_h,S_in)
+         call elsi_set_ham(elsi_h,h_in)
+         call elsi_set_ovlp(elsi_h,s_in)
          call elsi_set_evec(elsi_h,elsi_h%evec_complex_elpa)
          call elsi_set_eval(elsi_h,elsi_h%eval_elpa)
-         call elsi_set_dm(elsi_h,D_out)
+         call elsi_set_dm(elsi_h,d_out)
 
          ! Solve
          call elsi_solve_evp_elpa(elsi_h)
@@ -2159,10 +2159,10 @@ subroutine elsi_dm_complex(elsi_h,H_in,S_in,D_out,energy_out)
       else ! ELPA is done
          if(allocated(elsi_h%ovlp_complex_omm)) then
             ! Retrieve overlap matrix that has been destroyed by Cholesky
-            S_in = elsi_h%ovlp_complex_omm
+            s_in = elsi_h%ovlp_complex_omm
             call elsi_deallocate(elsi_h,elsi_h%ovlp_complex_omm,"ovlp_complex_omm")
 
-            call elsi_set_full_mat(elsi_h,S_in)
+            call elsi_set_full_mat(elsi_h,s_in)
          endif
 
          ! Allocate
@@ -2171,9 +2171,9 @@ subroutine elsi_dm_complex(elsi_h,H_in,S_in,D_out,energy_out)
          endif
 
          ! Set matrices
-         call elsi_set_ham(elsi_h,H_in)
-         call elsi_set_ovlp(elsi_h,S_in)
-         call elsi_set_dm(elsi_h,D_out)
+         call elsi_set_ham(elsi_h,h_in)
+         call elsi_set_ovlp(elsi_h,s_in)
+         call elsi_set_dm(elsi_h,d_out)
 
          ! Initialize coefficient matrix with ELPA eigenvectors if possible
          if((elsi_h%n_elpa_steps > 0) .and. &
@@ -2181,10 +2181,10 @@ subroutine elsi_dm_complex(elsi_h,H_in,S_in,D_out,energy_out)
             ! libOMM coefficient matrix is the transpose of ELPA eigenvectors
             call pztranc(elsi_h%n_basis,elsi_h%n_basis,(1.0_r8,0.0_r8),&
                     elsi_h%evec_complex,1,1,elsi_h%sc_desc,(0.0_r8,0.0_r8),&
-                    D_out,1,1,elsi_h%sc_desc)
+                    d_out,1,1,elsi_h%sc_desc)
 
             elsi_h%coeff_omm%zval(1:elsi_h%coeff_omm%iaux2(1),1:elsi_h%coeff_omm%iaux2(2)) = &
-               D_out(1:elsi_h%coeff_omm%iaux2(1),1:elsi_h%coeff_omm%iaux2(2))
+               d_out(1:elsi_h%coeff_omm%iaux2(1),1:elsi_h%coeff_omm%iaux2(2))
 
             ! ELPA matrices are no longer needed
             if(associated(elsi_h%ham_complex)) then
@@ -2245,14 +2245,14 @@ end subroutine
 !>
 !! This routine computes the density matrix.
 !!
-subroutine elsi_dm_real_sparse(elsi_h,H_in,S_in,D_out,energy_out)
+subroutine elsi_dm_real_sparse(elsi_h,h_in,s_in,d_out,energy_out)
 
    implicit none
 
    type(elsi_handle) :: elsi_h                    !< Handle
-   real(kind=r8)     :: H_in(elsi_h%nnz_l_pexsi)  !< Hamiltonian
-   real(kind=r8)     :: S_in(elsi_h%nnz_l_pexsi)  !< Overlap
-   real(kind=r8)     :: D_out(elsi_h%nnz_l_pexsi) !< Density matrix
+   real(kind=r8)     :: h_in(elsi_h%nnz_l_pexsi)  !< Hamiltonian
+   real(kind=r8)     :: s_in(elsi_h%nnz_l_pexsi)  !< Overlap
+   real(kind=r8)     :: d_out(elsi_h%nnz_l_pexsi) !< Density matrix
    real(kind=r8)     :: energy_out                !< Energy
 
    character*40, parameter :: caller = "elsi_dm_real_sparse"
@@ -2271,7 +2271,7 @@ subroutine elsi_dm_real_sparse(elsi_h,H_in,S_in,D_out,energy_out)
    select case(elsi_h%solver)
    case(ELPA)
       ! Convert PEXSI H and S to BLACS format
-      call elsi_pexsi_to_blacs_hs(elsi_h,H_in,S_in)
+      call elsi_pexsi_to_blacs_hs(elsi_h,h_in,s_in)
 
       ! Allocate
       if(.not. allocated(elsi_h%eval_elpa)) then
@@ -2300,7 +2300,7 @@ subroutine elsi_dm_real_sparse(elsi_h,H_in,S_in,D_out,energy_out)
       ! Compute density matrix
       call elsi_compute_occ_elpa(elsi_h)
       call elsi_compute_dm_elpa(elsi_h)
-      call elsi_blacs_to_pexsi_dm(elsi_h,D_out)
+      call elsi_blacs_to_pexsi_dm(elsi_h,d_out)
       call elsi_get_energy(elsi_h,energy_out)
 
       elsi_h%mu_ready = .true.
@@ -2309,7 +2309,7 @@ subroutine elsi_dm_real_sparse(elsi_h,H_in,S_in,D_out,energy_out)
       call elsi_print_omm_options(elsi_h)
 
       ! Convert PEXSI H and S to BLACS format
-      call elsi_pexsi_to_blacs_hs(elsi_h,H_in,S_in)
+      call elsi_pexsi_to_blacs_hs(elsi_h,h_in,s_in)
 
       if(elsi_h%n_elsi_calls .le. elsi_h%n_elpa_steps) then
          if((elsi_h%n_elsi_calls == 1) .and. (elsi_h%omm_flavor == 0)) then
@@ -2349,7 +2349,7 @@ subroutine elsi_dm_real_sparse(elsi_h,H_in,S_in,D_out,energy_out)
          ! Compute density matrix
          call elsi_compute_occ_elpa(elsi_h)
          call elsi_compute_dm_elpa(elsi_h)
-         call elsi_blacs_to_pexsi_dm(elsi_h,D_out)
+         call elsi_blacs_to_pexsi_dm(elsi_h,d_out)
          call elsi_get_energy(elsi_h,energy_out)
 
          ! Switch back to libOMM here to guarantee elsi_customize_omm
@@ -2415,7 +2415,7 @@ subroutine elsi_dm_real_sparse(elsi_h,H_in,S_in,D_out,energy_out)
          call elsi_solve_evp_omm(elsi_h)
 
          elsi_h%dm_omm%dval = 2.0_r8*elsi_h%dm_omm%dval
-         call elsi_blacs_to_pexsi_dm(elsi_h,D_out)
+         call elsi_blacs_to_pexsi_dm(elsi_h,d_out)
          call elsi_get_energy(elsi_h,energy_out)
       endif
 
@@ -2423,9 +2423,9 @@ subroutine elsi_dm_real_sparse(elsi_h,H_in,S_in,D_out,energy_out)
       call elsi_print_pexsi_options(elsi_h)
 
       ! Set matrices
-      call elsi_set_sparse_ham(elsi_h,H_in)
-      call elsi_set_sparse_ovlp(elsi_h,S_in)
-      call elsi_set_sparse_dm(elsi_h,D_out)
+      call elsi_set_sparse_ham(elsi_h,h_in)
+      call elsi_set_sparse_ovlp(elsi_h,s_in)
+      call elsi_set_sparse_dm(elsi_h,d_out)
 
       ! Initialize PEXSI
       call elsi_init_pexsi(elsi_h)
