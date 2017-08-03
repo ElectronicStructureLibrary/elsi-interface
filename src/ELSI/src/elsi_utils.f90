@@ -1461,9 +1461,43 @@ subroutine elsi_check(elsi_h,caller)
       endif
 
    elseif(elsi_h%solver == CHESS) then
-      call elsi_stop(" CHESS not yet available."//&
-              " Please choose ELPA, LIBOMM, or PEXSI solver."//&
-              " Exiting...",elsi_h,caller)
+      call elsi_statement_print("  ATTENTION! CheSS is EXPERIMENTAL.",elsi_h)
+
+      if(elsi_h%n_basis < elsi_h%n_procs) then
+         call elsi_stop(" CheSS has been chosen as the solver."//&
+                 " The size of matrix is too small for this"//&
+                 " number of processes. Exiting...",elsi_h,caller)
+      endif
+
+      if(elsi_h%parallel_mode == MULTI_PROC) then
+         if(.not. elsi_h%mpi_is_setup) then
+            call elsi_stop(" MULTI_PROC parallel mode requires MPI"//&
+                    " being set up before calling the solver."//&
+                    " Exiting...",elsi_h,caller)
+         endif
+      else
+         call elsi_stop(" CheSS has been chosen as the solver."//&
+                 " Please choose MULTI_PROC parallel mode."//&
+                 " Exiting...",elsi_h,caller)
+      endif
+
+      if(elsi_h%matrix_storage_format == BLACS_DENSE) then
+         if(.not. elsi_h%blacs_is_setup) then
+            call elsi_stop(" The BLACS_DENSE format has been chosen."//&
+                    " Please set up BLACS before calling the solver."//&
+                    " Exiting...",elsi_h,caller)
+         endif
+
+         if(elsi_h%ovlp_is_unit) then
+            call elsi_stop(" CheSS with BLACS_DENSE format and an"//&
+                    " identity overlap matrix not yet available."//&
+                    " Exiting...",elsi_h,caller)
+         endif
+      else
+         call elsi_stop(" CheSS has been chosen as the solver."//&
+                 " Please choose BLACS_DENSE matrix format."//&
+                 " Exiting...",elsi_h,caller)
+      endif
 
    elseif(elsi_h%solver == SIPS) then
       call elsi_statement_print("  ATTENTION! SIPs is EXPERIMENTAL.",elsi_h)
@@ -1489,8 +1523,8 @@ subroutine elsi_check(elsi_h,caller)
       if(elsi_h%matrix_storage_format == BLACS_DENSE) then
          if(.not. elsi_h%blacs_is_setup) then
             call elsi_stop(" The BLACS_DENSE format has been chosen."//&
-                    " Please set up BLACS before calling the"//&
-                    " solver. Exiting...",elsi_h,caller)
+                    " Please set up BLACS before calling the solver."//&
+                    " Exiting...",elsi_h,caller)
          endif
 
          if(elsi_h%ovlp_is_unit) then

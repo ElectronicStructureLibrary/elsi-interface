@@ -31,14 +31,13 @@
 !!
 module ELSI
 
+   use ELSI_CHESS
    use ELSI_CONSTANTS, only: ELPA,LIBOMM,PEXSI,CHESS,SIPS,REAL_VALUES,&
                              COMPLEX_VALUES,SINGLE_PROC,MULTI_PROC,UNSET
-   use ELSI_DATATYPE, only: elsi_handle,print_info,print_mem
+   use ELSI_DATATYPE
    use ELSI_ELPA
-   use ELSI_MATCONV, only: elsi_blacs_to_pexsi_dm,elsi_blacs_to_pexsi_hs,&
-                           elsi_blacs_to_sips_hs,elsi_pexsi_to_blacs_dm,&
-                           elsi_pexsi_to_blacs_hs
-   use ELSI_MU, only: elsi_compute_mu_and_occ
+   use ELSI_MATCONV
+   use ELSI_MU
    use ELSI_OMM
    use ELSI_PEXSI
    use ELSI_PRECISION, only: r8,i4
@@ -163,12 +162,12 @@ subroutine elsi_init(elsi_h,solver,parallel_mode,matrix_format,n_basis,&
       elsi_h%n_procs_all  = 1
    endif
 
-   ! Set ELPA default settings
+   ! Set ELPA default
    if(solver == ELPA) then
       call elsi_set_elpa_default(elsi_h)
    endif
 
-   ! Set libOMM default settings
+   ! Set libOMM default
    if(solver == LIBOMM) then
       call elsi_set_omm_default(elsi_h)
 
@@ -176,12 +175,17 @@ subroutine elsi_init(elsi_h,solver,parallel_mode,matrix_format,n_basis,&
       elsi_h%n_states_omm = nint(elsi_h%n_electrons/2.0_r8)
    endif
 
-   ! Set PEXSI default settings
+   ! Set PEXSI default
    if(solver == PEXSI) then
       call elsi_set_pexsi_default(elsi_h)
    endif
 
-   ! Set SIPs default settings
+   ! Set CheSS default
+   if(solver == CHESS) then
+      call elsi_set_chess_default(elsi_h)
+   endif
+
+   ! Set SIPs default
    if(solver == SIPS) then
       call elsi_set_sips_default(elsi_h)
    endif
@@ -2047,7 +2051,31 @@ subroutine elsi_dm_real(elsi_h,h_in,s_in,d_out,energy_out)
       elsi_h%mu_ready = .true.
 
    case(CHESS)
-      call elsi_stop(" CHESS not yet implemented. Exiting...",elsi_h,caller)
+      call elsi_print_chess_options(elsi_h)
+
+      ! Convert BLACS H and S to CheSS format
+      call elsi_blacs_to_chess_hs(elsi_h,h_in,s_in)
+
+      call elsi_stop(" CheSS test stops here. Exiting...",elsi_h,caller)
+
+      ! Initialize CheSS
+      call elsi_init_chess(elsi_h)
+
+      ! Set matrices
+!      call elsi_set_sparse_ham(elsi_h,elsi_h%ham_real_pexsi)
+!      call elsi_set_sparse_ovlp(elsi_h,elsi_h%ovlp_real_pexsi)
+!      call elsi_set_row_ind(elsi_h,elsi_h%row_ind_pexsi)
+!      call elsi_set_col_ptr(elsi_h,elsi_h%col_ptr_pexsi)
+
+      ! Solve
+      call elsi_solve_evp_chess(elsi_h)
+
+      ! Convert CheSS density matrix to BLACS format
+!      call elsi_chess_to_blacs_dm(elsi_h,d_out)
+      call elsi_get_energy(elsi_h,energy_out)
+
+      elsi_h%mu_ready = .true.
+
    case(SIPS)
       call elsi_stop(" SIPS not yet implemented. Exiting...",elsi_h,caller)
    case default

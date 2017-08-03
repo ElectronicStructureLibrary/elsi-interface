@@ -238,11 +238,11 @@ subroutine elsi_print_pexsi_options(elsi_h)
    write(info_str,"(A)") "  PEXSI settings (in the same unit of Hamiltonian):"
    call elsi_statement_print(info_str,elsi_h)
 
-   write(info_str,"(1X,' | Temperature ',F10.4)") &
+   write(info_str,"(1X,' | Temperature ',F10.3)") &
       elsi_h%pexsi_options%temperature
    call elsi_statement_print(info_str,elsi_h)
 
-   write(info_str,"(1X,' | Spectral gap ',F10.4)") &
+   write(info_str,"(1X,' | Spectral gap ',F10.3)") &
       elsi_h%pexsi_options%gap
    call elsi_statement_print(info_str,elsi_h)
 
@@ -254,11 +254,11 @@ subroutine elsi_print_pexsi_options(elsi_h)
       elsi_h%n_mu_points
    call elsi_statement_print(info_str,elsi_h)
 
-   write(info_str,"(1X,' | Lower bound of chemical potential ',F10.4)") &
+   write(info_str,"(1X,' | Lower bound of chemical potential ',F10.3)") &
       elsi_h%pexsi_options%muMin0
    call elsi_statement_print(info_str,elsi_h)
 
-   write(info_str,"(1X,' | Upper bound of chemical potential ',F10.4)") &
+   write(info_str,"(1X,' | Upper bound of chemical potential ',F10.3)") &
       elsi_h%pexsi_options%muMax0
    call elsi_statement_print(info_str,elsi_h)
 

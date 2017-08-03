@@ -2655,7 +2655,15 @@ subroutine elsi_blacs_to_chess_hs(elsi_h,h_in,s_in)
          call elsi_set_full_mat(elsi_h,s_in)
       endif
 
-      ! First convert to SIPs format
+      ! First convert to SIPs 1D block distribution
+      elsi_h%n_l_cols_sips = elsi_h%n_basis/elsi_h%n_procs
+
+      ! The last process holds all remaining columns
+      if(elsi_h%myid == elsi_h%n_procs-1) then
+         elsi_h%n_l_cols_sips = elsi_h%n_basis-&
+                                   (elsi_h%n_procs-1)*elsi_h%n_l_cols_sips
+      endif
+
       if(elsi_h%n_basis < 46340) then
          call elsi_blacs_to_sips_hs_small(elsi_h,h_in,s_in)
       else
@@ -2679,7 +2687,12 @@ subroutine elsi_sips_to_chess_hs(elsi_h)
 
    type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
+   integer(kind=i4), allocatable :: recv_count(:)
+   integer(kind=i4), allocatable :: recv_displ(:)
+
    integer(kind=i4) :: prev_nnz
+   integer(kind=i4) :: recv_displ_aux
+   integer(kind=i4) :: i_proc
    integer(kind=i4) :: mpierr
 
    character*40, parameter :: caller = "elsi_sips_to_chess_hs"
@@ -2692,15 +2705,29 @@ subroutine elsi_sips_to_chess_hs(elsi_h)
 
    elsi_h%col_ptr_sips = elsi_h%col_ptr_sips+prev_nnz
 
+   ! Set recv_count and recv_displ
+   call elsi_allocate(elsi_h,recv_count,elsi_h%n_procs,"recv_count",caller)
+   call elsi_allocate(elsi_h,recv_displ,elsi_h%n_procs,"recv_displ",caller)
+
+   call MPI_Allgather(elsi_h%nnz_l_sips,1,mpi_integer,recv_count,1,&
+           mpi_integer,elsi_h%mpi_comm,mpierr)
+
+   recv_displ_aux = 0
+
+   do i_proc = 1,elsi_h%n_procs
+      recv_displ(i_proc) = recv_displ_aux
+      recv_displ_aux = recv_displ_aux+recv_count(i_proc)
+   enddo
+
    ! Get the global matrices
    if(elsi_h%n_elsi_calls == 1) then
       ! Overlap value
       call elsi_allocate(elsi_h,elsi_h%ovlp_real_chess,elsi_h%nnz_g,&
               "ovlp_real_chess",caller)
 
-      call MPI_Allgather(elsi_h%ovlp_real_sips,elsi_h%nnz_l_sips,&
-              mpi_real8,elsi_h%ovlp_real_chess,elsi_h%nnz_g,mpi_real8,&
-              elsi_h%mpi_comm,mpierr)
+      call MPI_Allgatherv(elsi_h%ovlp_real_sips,elsi_h%nnz_l_sips,&
+              mpi_real8,elsi_h%ovlp_real_chess,recv_count,recv_displ,&
+              mpi_real8,elsi_h%mpi_comm,mpierr)
 
       call elsi_deallocate(elsi_h,elsi_h%ovlp_real_sips,"ovlp_real_sips")
 
@@ -2708,32 +2735,49 @@ subroutine elsi_sips_to_chess_hs(elsi_h)
       call elsi_allocate(elsi_h,elsi_h%row_ind_chess,elsi_h%nnz_g,&
               "row_ind_chess",caller)
 
-      call MPI_Allgather(elsi_h%row_ind_sips,elsi_h%nnz_l_sips,&
-              mpi_integer,elsi_h%row_ind_chess,elsi_h%nnz_g,mpi_integer,&
-              elsi_h%mpi_comm,mpierr)
+      call MPI_Allgatherv(elsi_h%row_ind_sips,elsi_h%nnz_l_sips,&
+              mpi_integer,elsi_h%row_ind_chess,recv_count,recv_displ,&
+              mpi_integer,elsi_h%mpi_comm,mpierr)
 
       call elsi_deallocate(elsi_h,elsi_h%row_ind_sips,"row_ind_sips")
-
-      ! Column pointer
-      call elsi_allocate(elsi_h,elsi_h%col_ptr_chess,elsi_h%n_basis+1,&
-              "col_ptr_chess",caller)
-
-      call MPI_Allgather(elsi_h%col_ptr_sips,elsi_h%n_l_cols_sips,&
-              mpi_integer,elsi_h%col_ptr_chess,elsi_h%n_basis,mpi_integer,&
-              elsi_h%mpi_comm,mpierr)
-
-      elsi_h%col_ptr_chess(elsi_h%n_basis+1) = elsi_h%nnz_g+1
-
-      call elsi_deallocate(elsi_h,elsi_h%col_ptr_sips,"col_ptr_sips")
 
       call elsi_allocate(elsi_h,elsi_h%ham_real_chess,elsi_h%nnz_g,&
               "ham_real_chess",caller)
    endif
 
    ! Hamiltonian value
-   call MPI_Allgather(elsi_h%ham_real_sips,elsi_h%nnz_l_sips,&
-           mpi_real8,elsi_h%ham_real_chess,elsi_h%nnz_g,mpi_real8,&
-           elsi_h%mpi_comm,mpierr)
+   call MPI_Allgatherv(elsi_h%ham_real_sips,elsi_h%nnz_l_sips,&
+           mpi_real8,elsi_h%ham_real_chess,recv_count,recv_displ,&
+           mpi_real8,elsi_h%mpi_comm,mpierr)
+
+   if(elsi_h%n_elsi_calls == 1) then
+      ! Set recv_count and recv_displ
+      recv_count(1:elsi_h%n_procs-1) = elsi_h%n_basis/elsi_h%n_procs
+      recv_count(elsi_h%n_procs) = elsi_h%n_basis-&
+                                      (elsi_h%n_procs-1)*recv_count(1)
+
+      recv_displ_aux = 0
+
+      do i_proc = 1,elsi_h%n_procs
+         recv_displ(i_proc) = recv_displ_aux
+         recv_displ_aux = recv_displ_aux+recv_count(i_proc)
+      enddo
+
+      ! Column pointer
+      call elsi_allocate(elsi_h,elsi_h%col_ptr_chess,elsi_h%n_basis+1,&
+              "col_ptr_chess",caller)
+
+      call MPI_Allgatherv(elsi_h%col_ptr_sips,elsi_h%n_l_cols_sips,&
+              mpi_integer,elsi_h%col_ptr_chess,recv_count,recv_displ,&
+              mpi_integer,elsi_h%mpi_comm,mpierr)
+
+      elsi_h%col_ptr_chess(elsi_h%n_basis+1) = elsi_h%nnz_g+1
+
+      call elsi_deallocate(elsi_h,elsi_h%col_ptr_sips,"col_ptr_sips")
+   endif
+
+   call elsi_deallocate(elsi_h,recv_count,"recv_count")
+   call elsi_deallocate(elsi_h,recv_displ,"recv_displ")
 
 end subroutine
 

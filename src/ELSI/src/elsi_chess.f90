@@ -219,35 +219,35 @@ subroutine elsi_print_chess_options(elsi_h)
    write(info_str,"(A)") "  CheSS settings (in the same unit of Hamiltonian):"
    call elsi_statement_print(info_str,elsi_h)
 
-   write(info_str,"(1X,' | Initial guess of error function decay length ',F10.4)") &
+   write(info_str,"(1X,' | Initial guess of error function decay length ',E10.1)") &
       elsi_h%erf_decay
    call elsi_statement_print(info_str,elsi_h)
 
-   write(info_str,"(1X,' | Lower bound of decay length ',F10.4)") &
+   write(info_str,"(1X,' | Lower bound of decay length ',E10.1)") &
       elsi_h%erf_decay_min
    call elsi_statement_print(info_str,elsi_h)
 
-   write(info_str,"(1X,' | Upper bound of decay length ',F10.4)") &
+   write(info_str,"(1X,' | Upper bound of decay length ',E10.1)") &
       elsi_h%erf_decay_max
    call elsi_statement_print(info_str,elsi_h)
 
-   write(info_str,"(1X,' | Lower bound of H eigenvalue ',F10.4)") &
+   write(info_str,"(1X,' | Lower bound of H eigenvalue ',E10.1)") &
       elsi_h%ev_ham_min
    call elsi_statement_print(info_str,elsi_h)
 
-   write(info_str,"(1X,' | Upper bound of H eigenvalue ',F10.4)") &
+   write(info_str,"(1X,' | Upper bound of H eigenvalue ',E10.1)") &
       elsi_h%ev_ham_max
    call elsi_statement_print(info_str,elsi_h)
 
-   write(info_str,"(1X,' | Lower bound of S eigenvalue ',F10.4)") &
+   write(info_str,"(1X,' | Lower bound of S eigenvalue ',E10.1)") &
       elsi_h%ev_ovlp_min
    call elsi_statement_print(info_str,elsi_h)
 
-   write(info_str,"(1X,' | Upper bound of S eigenvalue ',F10.4)") &
+   write(info_str,"(1X,' | Upper bound of S eigenvalue ',E10.1)") &
       elsi_h%ev_ovlp_max
    call elsi_statement_print(info_str,elsi_h)
 
-   write(info_str,"(1X,' | Betax ',F10.4)") &
+   write(info_str,"(1X,' | Betax ',E10.1)") &
       elsi_h%betax
    call elsi_statement_print(info_str,elsi_h)
 
