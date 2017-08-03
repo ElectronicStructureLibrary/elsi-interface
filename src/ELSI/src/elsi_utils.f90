@@ -37,9 +37,11 @@ module ELSI_UTILS
                              N_MATRIX_STORAGE_FORMATS,N_PARALLEL_MODES,UNSET
    use ELSI_DATATYPE, only: elsi_handle,print_info,print_mem
    use ELSI_PRECISION, only: r8,i4
+   use FOE_BASE, only: foe_data_deallocate
    use F_PPEXSI_INTERFACE
    use MATRIXSWITCH, only: matrix,m_register_pdbc,m_deallocate
    use M_QETSC
+   use SPARSEMATRIX_BASE, only: deallocate_sparse_matrix,deallocate_matrices
 
    implicit none
    private
@@ -1139,6 +1141,12 @@ subroutine elsi_cleanup(elsi_h)
    if(allocated(elsi_h%row_ind_pexsi))      call elsi_deallocate(elsi_h,elsi_h%row_ind_pexsi,"row_ind_pexsi")
    if(allocated(elsi_h%col_ptr_pexsi))      call elsi_deallocate(elsi_h,elsi_h%col_ptr_pexsi,"col_ptr_pexsi")
 
+   ! CheSS
+   if(allocated(elsi_h%ham_real_chess))  call elsi_deallocate(elsi_h,elsi_h%ham_real_chess,"ham_real_chess")
+   if(allocated(elsi_h%ovlp_real_chess)) call elsi_deallocate(elsi_h,elsi_h%ovlp_real_chess,"ovlp_real_chess")
+   if(allocated(elsi_h%row_ind_chess))   call elsi_deallocate(elsi_h,elsi_h%row_ind_chess,"row_ind_chess")
+   if(allocated(elsi_h%col_ptr_chess))   call elsi_deallocate(elsi_h,elsi_h%col_ptr_chess,"col_ptr_chess")
+
    ! SIPs
    if(allocated(elsi_h%inertias))           call elsi_deallocate(elsi_h,elsi_h%inertias,"nertias")
    if(allocated(elsi_h%shifts))             call elsi_deallocate(elsi_h,elsi_h%shifts,"shifts")
@@ -1150,6 +1158,20 @@ subroutine elsi_cleanup(elsi_h)
    ! Finalize PEXSI plan
    if(elsi_h%pexsi_started) then
       call f_ppexsi_plan_finalize(elsi_h%pexsi_plan,ierr)
+   endif
+
+   ! Finalize f_lib
+   if(elsi_h%chess_started) then
+      call deallocate_sparse_matrix(elsi_h%sparse_mat(1))
+      call deallocate_sparse_matrix(elsi_h%sparse_mat(2))
+      call foe_data_deallocate(elsi_h%ice_obj)
+      call foe_data_deallocate(elsi_h%foe_obj)
+      call deallocate_matrices(elsi_h%ham_chess)
+      call deallocate_matrices(elsi_h%ovlp_chess)
+      call deallocate_matrices(elsi_h%dm_chess)
+      call deallocate_matrices(elsi_h%edm_chess)
+      call deallocate_matrices(elsi_h%ovlp_inv_sqrt_chess(1))
+      call f_lib_finalize()
    endif
 
    ! Finalize QETSC
@@ -1264,6 +1286,7 @@ subroutine elsi_reset_handle(elsi_h)
    elsi_h%ev_ovlp_min       = 0.0_r8
    elsi_h%ev_ovlp_max       = 0.0_r8
    elsi_h%betax             = 0.0_r8
+   elsi_h%chess_started     = .false.
    elsi_h%n_p_per_slice     = UNSET
    elsi_h%n_inertia_steps   = UNSET
    elsi_h%slicing_method    = UNSET

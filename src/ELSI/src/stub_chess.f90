@@ -136,6 +136,8 @@ module SPARSEMATRIX_BASE
 
    public :: sparsematrix_init_errors
    public :: sparsematrix_initialize_timing_categories
+   public :: deallocate_sparse_matrix
+   public :: deallocate_matrices
 
    integer(kind=i4), parameter, public :: SPARSE_TASKGROUP = 50
 
@@ -159,9 +161,33 @@ subroutine sparsematrix_init_errors()
 
 end subroutine
 
-subroutine sparsematrix_initialize_timing_categories
+subroutine sparsematrix_initialize_timing_categories()
 
    implicit none
+
+   write(*,"(A)") " A CheSS stub routine was called. Check ELSI installation."
+   write(*,"(A)") " Exiting..."
+   stop
+
+end subroutine
+
+subroutine deallocate_sparse_matrix(sparsemat)
+
+   implicit none
+
+   type(sparse_matrix) :: sparsemat
+
+   write(*,"(A)") " A CheSS stub routine was called. Check ELSI installation."
+   write(*,"(A)") " Exiting..."
+   stop
+
+end subroutine
+
+subroutine deallocate_matrices(mat)
+
+   implicit none
+
+   type(matrices) :: mat
 
    write(*,"(A)") " A CheSS stub routine was called. Check ELSI installation."
    write(*,"(A)") " Exiting..."
@@ -295,6 +321,16 @@ end subroutine
 end module
 
 subroutine f_lib_initialize()
+
+   implicit none
+
+   write(*,"(A)") " A CheSS stub routine was called. Check ELSI installation."
+   write(*,"(A)") " Exiting..."
+   stop
+
+end subroutine
+
+subroutine f_lib_finalize()
 
    implicit none
 

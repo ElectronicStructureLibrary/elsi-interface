@@ -266,6 +266,7 @@ module ELSI_DATATYPE
       real(kind=r8) :: ev_ovlp_min = 0.0_r8
       real(kind=r8) :: ev_ovlp_max = 0.0_r8
       real(kind=r8) :: betax = 0.0_r8
+      logical :: chess_started = .false.      ! Is CheSS started?
 
       ! SIPs
       integer(kind=i4) :: n_p_per_slice = UNSET

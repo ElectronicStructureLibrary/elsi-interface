@@ -34,7 +34,7 @@ module ELSI_CHESS
    use ELSI_PRECISION, only: r8,i4
    use ELSI_TIMERS
    use ELSI_UTILS
-   use FOE_BASE, only: foe_data_deallocate,foe_data_get_real
+   use FOE_BASE, only: foe_data_get_real
    use FOE_COMMON, only: init_foe
    use SPARSEMATRIX_BASE, only: sparsematrix_init_errors,&
                                 sparsematrix_initialize_timing_categories,&
@@ -114,6 +114,8 @@ subroutine elsi_init_chess(elsi_h)
       call matrices_init(elsi_h%sparse_mat(2),elsi_h%ovlp_inv_sqrt_chess(1),matsize=SPARSE_TASKGROUP)
 
       elsi_h%ovlp_chess%matrix_compr = elsi_h%ovlp_real_chess
+
+      elsi_h%chess_started = .true.
    endif
 
    elsi_h%ham_chess%matrix_compr = elsi_h%ham_real_chess
