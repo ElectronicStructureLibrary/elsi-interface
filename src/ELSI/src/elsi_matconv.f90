@@ -2785,12 +2785,30 @@ subroutine elsi_chess_to_blacs_dm(elsi_h,d_out)
    type(elsi_handle), intent(inout) :: elsi_h                                 !< Handle
    real(kind=r8),     intent(out)   :: d_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Density matrix
 
+   integer(kind=i4) :: i_row
+   integer(kind=i4) :: i_col
+   integer(kind=i4) :: i_val
+   integer(kind=i4) :: g_row
+   integer(kind=i4) :: g_col
+
    character*40, parameter :: caller = "elsi_chess_to_blacs_dm"
 
    d_out = 0.0_r8
 
-   call elsi_stop(" Density matrix conversion from CheSS to BLACS"//&
-           " not yet implemented. Exiting...",elsi_h,caller)
+   do i_col = 1,elsi_h%n_l_cols
+      call elsi_get_global_col(elsi_h,g_col,i_col)
+
+      do i_val = elsi_h%col_ptr_ccs(g_col),elsi_h%col_ptr_ccs(g_col+1)-1
+         g_row = elsi_h%row_ind_ccs(i_val)
+
+         if(elsi_h%local_row(g_row) == 0) cycle
+
+         i_row = (g_row-1)/(elsi_h%n_p_rows*elsi_h%n_b_rows)*&
+                    elsi_h%n_b_rows+mod((g_row-1),elsi_h%n_b_rows)+1
+
+         d_out(i_row,i_col) = elsi_h%dm_chess%matrix_compr(i_val)
+      enddo
+   enddo
 
 end subroutine
 
