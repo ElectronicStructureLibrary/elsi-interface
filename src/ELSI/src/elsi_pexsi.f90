@@ -87,12 +87,12 @@ subroutine elsi_init_pexsi(elsi_h)
       elsi_h%my_p_row_pexsi = elsi_h%myid/elsi_h%n_p_per_pole
 
       ! 1D block distribution
-      elsi_h%n_l_cols_pexsi = elsi_h%n_basis/elsi_h%n_p_per_pole
+      elsi_h%n_l_cols_sp = elsi_h%n_basis/elsi_h%n_p_per_pole
 
       ! The last process holds all remaining columns
       if(elsi_h%my_p_col_pexsi == elsi_h%n_p_per_pole-1) then
-         elsi_h%n_l_cols_pexsi = elsi_h%n_basis-&
-                                    (elsi_h%n_p_per_pole-1)*elsi_h%n_l_cols_pexsi
+         elsi_h%n_l_cols_sp = elsi_h%n_basis-&
+                                 (elsi_h%n_p_per_pole-1)*elsi_h%n_l_cols_sp
       endif
 
       ! Only one process outputs
@@ -141,27 +141,15 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
       elsi_h%pexsi_options%isSymbolicFactorize = 0
    endif
 
-   if(.not. allocated(elsi_h%edm_real_pexsi)) then
-      call elsi_allocate(elsi_h,elsi_h%edm_real_pexsi,elsi_h%nnz_l_pexsi,&
-              "edm_real_pexsi",caller)
-   endif
-   elsi_h%edm_real_pexsi = 0.0_r8
-
-   if(.not. allocated(elsi_h%fdm_real_pexsi)) then
-      call elsi_allocate(elsi_h,elsi_h%fdm_real_pexsi,elsi_h%nnz_l_pexsi,&
-              "fdm_real_pexsi",caller)
-   endif
-   elsi_h%fdm_real_pexsi = 0.0_r8
-
    ! Load sparse matrices for PEXSI
    if(elsi_h%ovlp_is_unit) then
       call f_ppexsi_load_real_hs_matrix(elsi_h%pexsi_plan,elsi_h%pexsi_options,&
-              elsi_h%n_basis,elsi_h%nnz_g,elsi_h%nnz_l_pexsi,elsi_h%n_l_cols_pexsi,&
+              elsi_h%n_basis,elsi_h%nnz_g,elsi_h%nnz_l_sp,elsi_h%n_l_cols_sp,&
               elsi_h%col_ptr_ccs,elsi_h%row_ind_ccs,elsi_h%ham_real_ccs,1,&
               elsi_h%ovlp_real_ccs,ierr)
    else
       call f_ppexsi_load_real_hs_matrix(elsi_h%pexsi_plan,elsi_h%pexsi_options,&
-              elsi_h%n_basis,elsi_h%nnz_g,elsi_h%nnz_l_pexsi,elsi_h%n_l_cols_pexsi,&
+              elsi_h%n_basis,elsi_h%nnz_g,elsi_h%nnz_l_sp,elsi_h%n_l_cols_sp,&
               elsi_h%col_ptr_ccs,elsi_h%row_ind_ccs,elsi_h%ham_real_ccs,0,&
               elsi_h%ovlp_real_ccs,ierr)
    endif
@@ -182,7 +170,15 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
    endif
 
    ! Get the results
-   if((elsi_h%my_p_row_pexsi == 0) .or. (elsi_h%matrix_storage_format == BLACS_DENSE)) then
+   if(elsi_h%n_elsi_calls == 1) then
+      call elsi_allocate(elsi_h,elsi_h%edm_real_pexsi,elsi_h%nnz_l_sp,&
+              "edm_real_pexsi",caller)
+
+      call elsi_allocate(elsi_h,elsi_h%fdm_real_pexsi,elsi_h%nnz_l_sp,&
+              "fdm_real_pexsi",caller)
+   endif
+
+   if((elsi_h%my_p_row_pexsi == 0) .or. (elsi_h%matrix_format == BLACS_DENSE)) then
       call f_ppexsi_retrieve_real_dft_matrix2(elsi_h%pexsi_plan,&
               elsi_h%dm_real_ccs,elsi_h%edm_real_pexsi,elsi_h%fdm_real_pexsi,&
               elsi_h%energy_hdm,elsi_h%energy_sedm,elsi_h%free_energy,ierr)

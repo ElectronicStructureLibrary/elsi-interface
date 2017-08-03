@@ -124,7 +124,7 @@ module ELSI_DATATYPE
       type(sparse_matrix)           :: sparse_mat(2)          ! Sparsity pattern etc
 
       ! Is this a valid handle?
-      logical :: handle_initialized = .false.
+      logical :: handle_ready = .false.
 
       ! Solver (AUTO=0,ELPA=1,LIBOMM=2,PEXSI=3,CHESS=4,SIPS=5)
       integer(kind=i4) :: solver = UNSET
@@ -133,7 +133,7 @@ module ELSI_DATATYPE
       integer(kind=i4) :: matrix_data_type = UNSET
 
       ! Matrix storage format (BLACS_DENSE=0,PEXSI_CSC=1)
-      integer(kind=i4) :: matrix_storage_format = UNSET
+      integer(kind=i4) :: matrix_format = UNSET
 
       ! Is input matrix triangular? (FULL_MAT=0,UT_MAT=1,LT_MAT=2)
       integer(kind=i4) :: uplo = FULL_MAT
@@ -163,8 +163,8 @@ module ELSI_DATATYPE
       integer(kind=i4) :: n_procs_all = UNSET
       integer(kind=i4) :: mpi_comm = UNSET
       integer(kind=i4) :: mpi_comm_all = UNSET
-      logical :: mpi_is_setup = .false.
-      logical :: global_mpi_is_setup = .false.
+      logical :: mpi_ready = .false.
+      logical :: global_mpi_ready = .false.
 
       ! BLACS
       integer(kind=i4) :: blacs_ctxt = UNSET
@@ -173,13 +173,15 @@ module ELSI_DATATYPE
       integer(kind=i4) :: mpi_comm_col = UNSET
       integer(kind=i4) :: my_p_row = UNSET
       integer(kind=i4) :: my_p_col = UNSET
-      logical :: blacs_is_setup = .false.
+      logical :: blacs_ready = .false.
 
       ! Sparse matrix information
-      integer(kind=i4) :: nnz_g = UNSET               ! Global number of nonzeros
-      integer(kind=i4) :: nnz_l = UNSET               ! Local number of nonzeros
-      real(kind=r8)    :: zero_threshold = 1.0e-15_r8 ! Threshold to define numerical zero
-      logical :: sparsity_is_setup = .false.          ! Is sparsity pattern set by user?
+      integer(kind=i4) :: nnz_g = UNSET            ! Global number of nonzeros
+      integer(kind=i4) :: nnz_l = UNSET            ! Local number of nonzeros
+      integer(kind=i4) :: n_l_cols_sp = UNSET      ! Local number of columns
+      integer(kind=i4) :: nnz_l_sp = UNSET         ! Local number of nonzeros
+      real(kind=r8) :: zero_threshold = 1.0e-15_r8 ! Threshold to define numerical zero
+      logical :: sparsity_ready = .false.          ! Is sparsity pattern set by user?
 
 
       ! Overlap
@@ -227,7 +229,7 @@ module ELSI_DATATYPE
       integer(kind=i4) :: n_states_omm = UNSET ! Number of states used in libOMM
       integer(kind=i4) :: n_elpa_steps = UNSET ! Use ELPA eigenvectors as initial guess
       logical :: new_overlap = .true.          ! Is a new overlap matrix provided?
-      logical :: coeff_initialized = .false.   ! Is coefficient matrix initialized?
+      logical :: coeff_ready = .false.         ! Is coefficient matrix initialized?
       integer(kind=i4) :: omm_flavor = UNSET   ! How to perform the calculation
                                                ! 0 = Basic
                                                ! 1 = Cholesky factorisation (not supported)
@@ -247,8 +249,6 @@ module ELSI_DATATYPE
       integer(kind=i4) :: my_p_col_pexsi = UNSET
       integer(kind=i4) :: n_p_rows_pexsi = UNSET
       integer(kind=i4) :: n_p_cols_pexsi = UNSET
-      integer(kind=i4) :: n_l_cols_pexsi = UNSET
-      integer(kind=i4) :: nnz_l_pexsi = UNSET ! Local number of nonzeros in PEXSI distribution
       logical :: pexsi_started = .false.      ! Is PEXSI started?
 
       integer(kind=c_intptr_t) :: pexsi_plan
@@ -269,8 +269,6 @@ module ELSI_DATATYPE
 
       ! SIPs
       integer(kind=i4) :: n_p_per_slice = UNSET
-      integer(kind=i4) :: n_l_cols_sips = UNSET
-      integer(kind=i4) :: nnz_l_sips = UNSET      ! Local number of nonzeros in SIPs distribution
       integer(kind=i4) :: n_inertia_steps = UNSET ! Number of inertia counting steps
       integer(kind=i4) :: slicing_method = UNSET  ! Type of slices
                                                   ! 0 = Equally spaced subintervals

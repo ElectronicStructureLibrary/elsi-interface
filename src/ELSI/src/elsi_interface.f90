@@ -141,25 +141,25 @@ subroutine elsi_init(elsi_h,solver,parallel_mode,matrix_format,n_basis,&
    ! For safety
    call elsi_cleanup(elsi_h)
 
-   elsi_h%handle_initialized    = .true.
-   elsi_h%n_basis               = n_basis
-   elsi_h%n_nonsing             = n_basis
-   elsi_h%n_electrons           = n_electron
-   elsi_h%n_states              = n_state
-   elsi_h%solver                = solver
-   elsi_h%matrix_storage_format = matrix_format
-   elsi_h%parallel_mode         = parallel_mode
-   elsi_h%n_elsi_calls          = 0
+   elsi_h%handle_ready  = .true.
+   elsi_h%n_basis       = n_basis
+   elsi_h%n_nonsing     = n_basis
+   elsi_h%n_electrons   = n_electron
+   elsi_h%n_states      = n_state
+   elsi_h%solver        = solver
+   elsi_h%matrix_format = matrix_format
+   elsi_h%parallel_mode = parallel_mode
+   elsi_h%n_elsi_calls  = 0
 
    if(parallel_mode == SINGLE_PROC) then
-      elsi_h%n_l_rows     = n_basis
-      elsi_h%n_l_cols     = n_basis
-      elsi_h%n_b_rows     = n_basis
-      elsi_h%n_b_cols     = n_basis
-      elsi_h%myid         = 0
-      elsi_h%n_procs      = 1
-      elsi_h%myid_all     = 0
-      elsi_h%n_procs_all  = 1
+      elsi_h%n_l_rows    = n_basis
+      elsi_h%n_l_cols    = n_basis
+      elsi_h%n_b_rows    = n_basis
+      elsi_h%n_b_cols    = n_basis
+      elsi_h%myid        = 0
+      elsi_h%n_procs     = 1
+      elsi_h%myid_all    = 0
+      elsi_h%n_procs_all = 1
    endif
 
    ! Set ELPA default
@@ -220,7 +220,7 @@ subroutine elsi_set_mpi(elsi_h,mpi_comm)
       call MPI_Comm_rank(mpi_comm,elsi_h%myid,mpierr)
       call MPI_Comm_size(mpi_comm,elsi_h%n_procs,mpierr)
 
-      elsi_h%mpi_is_setup = .true.
+      elsi_h%mpi_ready = .true.
    endif
 
 end subroutine
@@ -249,7 +249,7 @@ subroutine elsi_set_mpi_global(elsi_h,mpi_comm_all)
       call MPI_Comm_rank(mpi_comm_all,elsi_h%myid_all,mpierr)
       call MPI_Comm_size(mpi_comm_all,elsi_h%n_procs_all,mpierr)
 
-      elsi_h%global_mpi_is_setup = .true.
+      elsi_h%global_mpi_ready = .true.
    endif
 
 end subroutine
@@ -354,7 +354,7 @@ subroutine elsi_set_blacs(elsi_h,blacs_ctxt,block_size)
                  elsi_h%n_b_rows,icontxt=elsi_h%blacs_ctxt)
       endif
 
-      elsi_h%blacs_is_setup = .true.
+      elsi_h%blacs_ready = .true.
    endif
 
 end subroutine
@@ -366,25 +366,25 @@ subroutine elsi_set_csc(elsi_h,nnz_g,nnz_l,n_l_cols,row_ind,col_ptr)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h            !< Handle
-   integer(kind=i4),  intent(in)    :: nnz_g             !< Global number of nonzeros
-   integer(kind=i4),  intent(in)    :: nnz_l             !< Local number of nonzeros
-   integer(kind=i4),  intent(in)    :: n_l_cols          !< Local number of columns
-   integer(kind=i4)                 :: row_ind(nnz_l)    !< Row index
-   integer(kind=i4)                 :: col_ptr(n_l_cols) !< Column pointer
+   type(elsi_handle), intent(inout) :: elsi_h              !< Handle
+   integer(kind=i4),  intent(in)    :: nnz_g               !< Global number of nonzeros
+   integer(kind=i4),  intent(in)    :: nnz_l               !< Local number of nonzeros
+   integer(kind=i4),  intent(in)    :: n_l_cols            !< Local number of columns
+   integer(kind=i4)                 :: row_ind(nnz_l)      !< Row index
+   integer(kind=i4)                 :: col_ptr(n_l_cols+1) !< Column pointer
 
    character*40, parameter :: caller = "elsi_set_csc"
 
    call elsi_check_handle(elsi_h,caller)
 
-   elsi_h%nnz_g          = nnz_g
-   elsi_h%nnz_l_pexsi    = nnz_l
-   elsi_h%n_l_cols_pexsi = n_l_cols
+   elsi_h%nnz_g       = nnz_g
+   elsi_h%nnz_l_sp    = nnz_l
+   elsi_h%n_l_cols_sp = n_l_cols
 
    call elsi_set_row_ind(elsi_h,row_ind)
    call elsi_set_col_ptr(elsi_h,col_ptr)
 
-   elsi_h%sparsity_is_setup = .true.
+   elsi_h%sparsity_ready = .true.
 
 end subroutine
 
@@ -424,7 +424,8 @@ subroutine elsi_get_energy(elsi_h,energy)
       energy = elsi_h%energy_hdm*elsi_h%i_weight
 
    case(CHESS)
-      call elsi_stop(" CHESS not yet implemented. Exiting...",elsi_h,caller)
+      energy = elsi_h%energy_hdm*elsi_h%i_weight
+
    case(SIPS)
       call elsi_stop(" SIPS not yet implemented. Exiting...",elsi_h,caller)
    case default
@@ -839,10 +840,10 @@ subroutine elsi_collect_pexsi(elsi_h,mu,edm,fdm)
 
    implicit none
 
-   type(elsi_handle), intent(in)            :: elsi_h                  !< Handle
-   real(kind=r8),     intent(out), optional :: mu                      !< Chemical potential
-   real(kind=r8),     intent(out), optional :: edm(elsi_h%nnz_l_pexsi) !< Energy density matrix
-   real(kind=r8),     intent(out), optional :: fdm(elsi_h%nnz_l_pexsi) !< Free energy density matrix
+   type(elsi_handle), intent(in)            :: elsi_h               !< Handle
+   real(kind=r8),     intent(out), optional :: mu                   !< Chemical potential
+   real(kind=r8),     intent(out), optional :: edm(elsi_h%nnz_l_sp) !< Energy density matrix
+   real(kind=r8),     intent(out), optional :: fdm(elsi_h%nnz_l_sp) !< Free energy density matrix
 
    character*40, parameter :: caller = "elsi_collect_pexsi"
 
@@ -1801,8 +1802,8 @@ subroutine elsi_ev_real_sparse(elsi_h,h_in,s_in,e_val_out,e_vec_out)
    implicit none
 
    type(elsi_handle) :: elsi_h                                     !< Handle
-   real(kind=r8)     :: h_in(elsi_h%nnz_l_pexsi)                   !< Hamiltonian
-   real(kind=r8)     :: s_in(elsi_h%nnz_l_pexsi)                   !< Overlap
+   real(kind=r8)     :: h_in(elsi_h%nnz_l_sp)                      !< Hamiltonian
+   real(kind=r8)     :: s_in(elsi_h%nnz_l_sp)                      !< Overlap
    real(kind=r8)     :: e_val_out(elsi_h%n_basis)                  !< Eigenvalues
    real(kind=r8)     :: e_vec_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Eigenvectors
 
@@ -2029,7 +2030,7 @@ subroutine elsi_dm_real(elsi_h,h_in,s_in,d_out,energy_out)
 
       ! Allocate
       if(.not. allocated(elsi_h%dm_real_pexsi)) then
-         call elsi_allocate(elsi_h,elsi_h%dm_real_pexsi,elsi_h%nnz_l_pexsi,&
+         call elsi_allocate(elsi_h,elsi_h%dm_real_pexsi,elsi_h%nnz_l_sp,&
                  "dm_real_pexsi",caller)
       endif
       elsi_h%dm_real_pexsi = 0.0_r8
@@ -2062,16 +2063,16 @@ subroutine elsi_dm_real(elsi_h,h_in,s_in,d_out,energy_out)
       call elsi_init_chess(elsi_h)
 
       ! Set matrices
-!      call elsi_set_sparse_ham(elsi_h,elsi_h%ham_real_pexsi)
-!      call elsi_set_sparse_ovlp(elsi_h,elsi_h%ovlp_real_pexsi)
-!      call elsi_set_row_ind(elsi_h,elsi_h%row_ind_pexsi)
-!      call elsi_set_col_ptr(elsi_h,elsi_h%col_ptr_pexsi)
+      call elsi_set_sparse_ham(elsi_h,elsi_h%ham_real_chess)
+      call elsi_set_sparse_ovlp(elsi_h,elsi_h%ovlp_real_chess)
+      call elsi_set_row_ind(elsi_h,elsi_h%row_ind_chess)
+      call elsi_set_col_ptr(elsi_h,elsi_h%col_ptr_chess)
 
       ! Solve
       call elsi_solve_evp_chess(elsi_h)
 
       ! Convert CheSS density matrix to BLACS format
-!      call elsi_chess_to_blacs_dm(elsi_h,d_out)
+      call elsi_chess_to_blacs_dm(elsi_h,d_out)
       call elsi_get_energy(elsi_h,energy_out)
 
       elsi_h%mu_ready = .true.
@@ -2277,11 +2278,11 @@ subroutine elsi_dm_real_sparse(elsi_h,h_in,s_in,d_out,energy_out)
 
    implicit none
 
-   type(elsi_handle) :: elsi_h                    !< Handle
-   real(kind=r8)     :: h_in(elsi_h%nnz_l_pexsi)  !< Hamiltonian
-   real(kind=r8)     :: s_in(elsi_h%nnz_l_pexsi)  !< Overlap
-   real(kind=r8)     :: d_out(elsi_h%nnz_l_pexsi) !< Density matrix
-   real(kind=r8)     :: energy_out                !< Energy
+   type(elsi_handle) :: elsi_h                 !< Handle
+   real(kind=r8)     :: h_in(elsi_h%nnz_l_sp)  !< Hamiltonian
+   real(kind=r8)     :: s_in(elsi_h%nnz_l_sp)  !< Overlap
+   real(kind=r8)     :: d_out(elsi_h%nnz_l_sp) !< Density matrix
+   real(kind=r8)     :: energy_out             !< Energy
 
    character*40, parameter :: caller = "elsi_dm_real_sparse"
 

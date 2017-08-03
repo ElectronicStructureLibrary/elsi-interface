@@ -124,9 +124,9 @@ subroutine elsi_solve_evp_omm(elsi_h)
    endif ! ovlp_is_unit
 
    if(elsi_h%n_elsi_calls == 1) then
-      elsi_h%coeff_initialized = .false.
+      elsi_h%coeff_ready = .false.
    else
-      elsi_h%coeff_initialized = .true.
+      elsi_h%coeff_ready = .true.
    endif
 
    if(elsi_h%n_elsi_calls == elsi_h%n_elpa_steps+1) then
@@ -147,7 +147,7 @@ subroutine elsi_solve_evp_omm(elsi_h)
    case(COMPLEX_VALUES)
       call omm(elsi_h%n_basis,elsi_h%n_states_omm,elsi_h%ham_omm,elsi_h%ovlp_omm,&
               elsi_h%new_overlap,elsi_h%energy_hdm,elsi_h%dm_omm,elsi_h%calc_ed,&
-              elsi_h%eta,elsi_h%coeff_omm,elsi_h%coeff_initialized,elsi_h%tdm_omm,&
+              elsi_h%eta,elsi_h%coeff_omm,elsi_h%coeff_ready,elsi_h%tdm_omm,&
               elsi_h%scale_kinetic,elsi_h%omm_flavor,1,1,elsi_h%min_tol,&
               elsi_h%omm_output,elsi_h%do_dealloc,"pzdbc","lap")
 
@@ -155,13 +155,13 @@ subroutine elsi_solve_evp_omm(elsi_h)
       if(elsi_h%use_psp) then
          call omm(elsi_h%n_basis,elsi_h%n_states_omm,elsi_h%ham_omm,elsi_h%ovlp_omm,&
                  elsi_h%new_overlap,elsi_h%energy_hdm,elsi_h%dm_omm,elsi_h%calc_ed,&
-                 elsi_h%eta,elsi_h%coeff_omm,elsi_h%coeff_initialized,elsi_h%tdm_omm,&
+                 elsi_h%eta,elsi_h%coeff_omm,elsi_h%coeff_ready,elsi_h%tdm_omm,&
                  elsi_h%scale_kinetic,elsi_h%omm_flavor,1,1,elsi_h%min_tol,&
                  elsi_h%omm_output,elsi_h%do_dealloc,"pddbc","psp")
       else
          call omm(elsi_h%n_basis,elsi_h%n_states_omm,elsi_h%ham_omm,elsi_h%ovlp_omm,&
                  elsi_h%new_overlap,elsi_h%energy_hdm,elsi_h%dm_omm,elsi_h%calc_ed,&
-                 elsi_h%eta,elsi_h%coeff_omm,elsi_h%coeff_initialized,elsi_h%tdm_omm,&
+                 elsi_h%eta,elsi_h%coeff_omm,elsi_h%coeff_ready,elsi_h%tdm_omm,&
                  elsi_h%scale_kinetic,elsi_h%omm_flavor,1,1,elsi_h%min_tol,&
                  elsi_h%omm_output,elsi_h%do_dealloc,"pddbc","lap")
       endif
@@ -189,14 +189,14 @@ subroutine elsi_compute_edm_omm(elsi_h)
    case(COMPLEX_VALUES)
       call omm(elsi_h%n_basis,elsi_h%n_states_omm,elsi_h%ham_omm,elsi_h%ovlp_omm,&
               elsi_h%new_overlap,elsi_h%energy_hdm,elsi_h%dm_omm,elsi_h%calc_ed,&
-              elsi_h%eta,elsi_h%coeff_omm,elsi_h%coeff_initialized,elsi_h%tdm_omm,&
+              elsi_h%eta,elsi_h%coeff_omm,elsi_h%coeff_ready,elsi_h%tdm_omm,&
               elsi_h%scale_kinetic,elsi_h%omm_flavor,1,1,elsi_h%min_tol,&
               elsi_h%omm_output,elsi_h%do_dealloc,"pzdbc","lap")
 
    case(REAL_VALUES)
       call omm(elsi_h%n_basis,elsi_h%n_states_omm,elsi_h%ham_omm,elsi_h%ovlp_omm,&
               elsi_h%new_overlap,elsi_h%energy_hdm,elsi_h%dm_omm,elsi_h%calc_ed,&
-              elsi_h%eta,elsi_h%coeff_omm,elsi_h%coeff_initialized,elsi_h%tdm_omm,&
+              elsi_h%eta,elsi_h%coeff_omm,elsi_h%coeff_ready,elsi_h%tdm_omm,&
               elsi_h%scale_kinetic,elsi_h%omm_flavor,1,1,elsi_h%min_tol,&
               elsi_h%omm_output,elsi_h%do_dealloc,"pddbc","lap")
    end select
