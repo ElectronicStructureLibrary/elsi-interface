@@ -2057,8 +2057,6 @@ subroutine elsi_dm_real(elsi_h,h_in,s_in,d_out,energy_out)
       ! Convert BLACS H and S to CheSS format
       call elsi_blacs_to_chess_hs(elsi_h,h_in,s_in)
 
-      call elsi_stop(" CheSS test stops here. Exiting...",elsi_h,caller)
-
       ! Initialize CheSS
       call elsi_init_chess(elsi_h)
 

@@ -2689,14 +2689,6 @@ subroutine elsi_sips_to_chess_hs(elsi_h)
 
    character*40, parameter :: caller = "elsi_sips_to_chess_hs"
 
-   ! Shift column pointers
-   prev_nnz = 0
-
-   call MPI_Exscan(elsi_h%nnz_l_sp,prev_nnz,1,mpi_integer,mpi_sum,&
-           elsi_h%mpi_comm,mpierr)
-
-   elsi_h%col_ptr_sips = elsi_h%col_ptr_sips+prev_nnz
-
    ! Set recv_count and recv_displ
    call elsi_allocate(elsi_h,recv_count,elsi_h%n_procs,"recv_count",caller)
    call elsi_allocate(elsi_h,recv_displ,elsi_h%n_procs,"recv_displ",caller)
@@ -2754,6 +2746,14 @@ subroutine elsi_sips_to_chess_hs(elsi_h)
          recv_displ(i_proc) = recv_displ_aux
          recv_displ_aux = recv_displ_aux+recv_count(i_proc)
       enddo
+
+      ! Shift column pointers
+      prev_nnz = 0
+
+      call MPI_Exscan(elsi_h%nnz_l_sp,prev_nnz,1,mpi_integer,mpi_sum,&
+              elsi_h%mpi_comm,mpierr)
+
+      elsi_h%col_ptr_sips = elsi_h%col_ptr_sips+prev_nnz
 
       ! Column pointer
       call elsi_allocate(elsi_h,elsi_h%col_ptr_chess,elsi_h%n_basis+1,&

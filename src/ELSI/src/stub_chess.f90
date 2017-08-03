@@ -293,3 +293,13 @@ subroutine init_matrix_taskgroups_wrapper(iproc,nproc,comm,&
 end subroutine
 
 end module
+
+subroutine f_lib_initialize()
+
+   implicit none
+
+   write(*,"(A)") " A CheSS stub routine was called. Check ELSI installation."
+   write(*,"(A)") " Exiting..."
+   stop
+
+end subroutine

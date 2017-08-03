@@ -85,7 +85,7 @@ subroutine elsi_init_chess(elsi_h)
            elsi_h%mpi_comm,elsi_h%n_basis,elsi_h%nnz_g,elsi_h%row_ind_chess,&
            elsi_h%col_ptr_chess,elsi_h%sparse_mat(2),init_matmul=.true.,&
            nvctr_mult=elsi_h%nnz_g,row_ind_mult=elsi_h%row_ind_chess,&
-           col_ptr_mult=elsi_h%col_ptr_chess)
+           col_ptr_mult=elsi_h%col_ptr_chess(1:elsi_h%n_basis))
 
    ! Initialize task groups
    call init_matrix_taskgroups_wrapper(elsi_h%myid,elsi_h%n_procs,&
@@ -201,7 +201,7 @@ subroutine elsi_set_chess_default(elsi_h)
    ! Upper bound of the eigenvalues of S
    elsi_h%ev_ovlp_max = 1.0_r8
 
-   ! Betax
+   ! Beta used in the penalty function
    elsi_h%betax = -1.0e3_r8
 
 end subroutine
@@ -250,7 +250,7 @@ subroutine elsi_print_chess_options(elsi_h)
       elsi_h%ev_ovlp_max
    call elsi_statement_print(info_str,elsi_h)
 
-   write(info_str,"(1X,' | Betax ',E10.1)") &
+   write(info_str,"(1X,' | Beta parameter ',E10.1)") &
       elsi_h%betax
    call elsi_statement_print(info_str,elsi_h)
 
