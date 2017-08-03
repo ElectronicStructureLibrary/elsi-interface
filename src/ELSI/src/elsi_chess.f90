@@ -69,6 +69,9 @@ subroutine elsi_init_chess(elsi_h)
 
    character*40, parameter :: caller = "elsi_init_chess"
 
+   ! Initialize f_lib
+   call f_lib_initialize()
+
    ! Initialize sparsematrix error handling and timing
    call sparsematrix_init_errors()
    call sparsematrix_initialize_timing_categories()
