@@ -69,51 +69,54 @@ subroutine elsi_init_chess(elsi_h)
 
    character*40, parameter :: caller = "elsi_init_chess"
 
-   ! Initialize f_lib
-   call f_lib_initialize()
+   if(elsi_h%n_elsi_calls == 1) then
+      ! Initialize f_lib
+      call f_lib_initialize()
 
-   ! Initialize sparsematrix error handling and timing
-   call sparsematrix_init_errors()
-   call sparsematrix_initialize_timing_categories()
+      ! Initialize sparsematrix error handling and timing
+      call sparsematrix_init_errors()
+      call sparsematrix_initialize_timing_categories()
 
-   ! Initialize sparse matrices
-   call sparse_matrix_init_from_data_ccs(elsi_h%myid,elsi_h%n_procs,&
-           elsi_h%mpi_comm,elsi_h%n_basis,elsi_h%nnz_g,elsi_h%row_ind_chess,&
-           elsi_h%col_ptr_chess,elsi_h%sparse_mat(1),init_matmul=.false.)
+      ! Initialize sparse matrices
+      call sparse_matrix_init_from_data_ccs(elsi_h%myid,elsi_h%n_procs,&
+              elsi_h%mpi_comm,elsi_h%n_basis,elsi_h%nnz_g,elsi_h%row_ind_chess,&
+              elsi_h%col_ptr_chess,elsi_h%sparse_mat(1),init_matmul=.false.)
 
-   call sparse_matrix_init_from_data_ccs(elsi_h%myid,elsi_h%n_procs,&
-           elsi_h%mpi_comm,elsi_h%n_basis,elsi_h%nnz_g,elsi_h%row_ind_chess,&
-           elsi_h%col_ptr_chess,elsi_h%sparse_mat(2),init_matmul=.true.,&
-           nvctr_mult=elsi_h%nnz_g,row_ind_mult=elsi_h%row_ind_chess,&
-           col_ptr_mult=elsi_h%col_ptr_chess(1:elsi_h%n_basis))
+      call sparse_matrix_init_from_data_ccs(elsi_h%myid,elsi_h%n_procs,&
+              elsi_h%mpi_comm,elsi_h%n_basis,elsi_h%nnz_g,elsi_h%row_ind_chess,&
+              elsi_h%col_ptr_chess,elsi_h%sparse_mat(2),init_matmul=.true.,&
+              nvctr_mult=elsi_h%nnz_g,row_ind_mult=elsi_h%row_ind_chess,&
+              col_ptr_mult=elsi_h%col_ptr_chess(1:elsi_h%n_basis))
 
-   ! Initialize task groups
-   call init_matrix_taskgroups_wrapper(elsi_h%myid,elsi_h%n_procs,&
-           elsi_h%mpi_comm,.false.,2,elsi_h%sparse_mat)
+      ! Initialize task groups
+      call init_matrix_taskgroups_wrapper(elsi_h%myid,elsi_h%n_procs,&
+              elsi_h%mpi_comm,.false.,2,elsi_h%sparse_mat)
 
-   n_electron = elsi_h%n_electrons
+      n_electron = elsi_h%n_electrons
 
-   ! Initialize FOE objects
-   call init_foe(elsi_h%myid,elsi_h%n_procs,1,n_electron,&
-           elsi_h%foe_obj,fscale=elsi_h%erf_decay,&
-           fscale_lowerbound=elsi_h%erf_decay_min,&
-           fscale_upperbound=elsi_h%erf_decay_max,&
-           evlow=elsi_h%ev_ham_min,evhigh=elsi_h%ev_ham_max,&
-           betax=elsi_h%betax)
+      ! Initialize FOE objects
+      call init_foe(elsi_h%myid,elsi_h%n_procs,1,n_electron,&
+              elsi_h%foe_obj,fscale=elsi_h%erf_decay,&
+              fscale_lowerbound=elsi_h%erf_decay_min,&
+              fscale_upperbound=elsi_h%erf_decay_max,&
+              evlow=elsi_h%ev_ham_min,evhigh=elsi_h%ev_ham_max,&
+              betax=elsi_h%betax)
 
-   call init_foe(elsi_h%myid,elsi_h%n_procs,1,n_electron,&
-           elsi_h%ice_obj,evlow=elsi_h%ev_ovlp_min,&
-           evhigh=elsi_h%ev_ovlp_max,betax=elsi_h%betax)
+      call init_foe(elsi_h%myid,elsi_h%n_procs,1,n_electron,&
+              elsi_h%ice_obj,evlow=elsi_h%ev_ovlp_min,&
+              evhigh=elsi_h%ev_ovlp_max,betax=elsi_h%betax)
 
-   ! Allocate CheSS matrices
-   call matrices_init(elsi_h%sparse_mat(1),elsi_h%ham_chess,matsize=SPARSE_TASKGROUP)
-   call matrices_init(elsi_h%sparse_mat(1),elsi_h%ovlp_chess,matsize=SPARSE_TASKGROUP)
-   call matrices_init(elsi_h%sparse_mat(2),elsi_h%dm_chess,matsize=SPARSE_TASKGROUP)
-   call matrices_init(elsi_h%sparse_mat(2),elsi_h%edm_chess,matsize=SPARSE_TASKGROUP)
-   call matrices_init(elsi_h%sparse_mat(2),elsi_h%ovlp_inv_sqrt_chess(1),matsize=SPARSE_TASKGROUP)
+      ! Allocate CheSS matrices
+      call matrices_init(elsi_h%sparse_mat(1),elsi_h%ham_chess,matsize=SPARSE_TASKGROUP)
+      call matrices_init(elsi_h%sparse_mat(1),elsi_h%ovlp_chess,matsize=SPARSE_TASKGROUP)
+      call matrices_init(elsi_h%sparse_mat(2),elsi_h%dm_chess,matsize=SPARSE_TASKGROUP)
+      call matrices_init(elsi_h%sparse_mat(2),elsi_h%edm_chess,matsize=SPARSE_TASKGROUP)
+      call matrices_init(elsi_h%sparse_mat(2),elsi_h%ovlp_inv_sqrt_chess(1),matsize=SPARSE_TASKGROUP)
+
+      elsi_h%ovlp_chess%matrix_compr = elsi_h%ovlp_real_chess
+   endif
 
    elsi_h%ham_chess%matrix_compr = elsi_h%ham_real_chess
-   elsi_h%ovlp_chess%matrix_compr = elsi_h%ovlp_real_chess
 
 end subroutine
 

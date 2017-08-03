@@ -2664,6 +2664,9 @@ subroutine elsi_blacs_to_chess_hs(elsi_h,h_in,s_in)
 
       ! Then get the global matrices
       call elsi_sips_to_chess_hs(elsi_h)
+
+      elsi_h%nnz_l_sp = elsi_h%nnz_g
+      elsi_h%n_l_cols_sp = elsi_h%n_basis
    endif
 
 end subroutine
