@@ -1170,7 +1170,7 @@ subroutine elsi_cleanup(elsi_h)
       call deallocate_matrices(elsi_h%ovlp_chess)
       call deallocate_matrices(elsi_h%dm_chess)
       call deallocate_matrices(elsi_h%edm_chess)
-      call deallocate_matrices(elsi_h%ovlp_inv_sqrt_chess(1))
+      call deallocate_matrices(elsi_h%ovlp_inv_sqrt(1))
       call f_lib_finalize()
    endif
 
@@ -1285,7 +1285,7 @@ subroutine elsi_reset_handle(elsi_h)
    elsi_h%ev_ham_max        = 0.0_r8
    elsi_h%ev_ovlp_min       = 0.0_r8
    elsi_h%ev_ovlp_max       = 0.0_r8
-   elsi_h%betax             = 0.0_r8
+   elsi_h%beta              = 0.0_r8
    elsi_h%chess_started     = .false.
    elsi_h%n_p_per_slice     = UNSET
    elsi_h%n_inertia_steps   = UNSET

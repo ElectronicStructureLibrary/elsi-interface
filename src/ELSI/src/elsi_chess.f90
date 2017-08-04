@@ -82,6 +82,7 @@ subroutine elsi_init_chess(elsi_h)
               elsi_h%mpi_comm,elsi_h%n_basis,elsi_h%nnz_g,elsi_h%row_ind_chess,&
               elsi_h%col_ptr_chess,elsi_h%sparse_mat(1),init_matmul=.false.)
 
+      ! TODO: Sparsity buffer
       call sparse_matrix_init_from_data_ccs(elsi_h%myid,elsi_h%n_procs,&
               elsi_h%mpi_comm,elsi_h%n_basis,elsi_h%nnz_g,elsi_h%row_ind_chess,&
               elsi_h%col_ptr_chess,elsi_h%sparse_mat(2),init_matmul=.true.,&
@@ -100,18 +101,23 @@ subroutine elsi_init_chess(elsi_h)
               fscale_lowerbound=elsi_h%erf_decay_min,&
               fscale_upperbound=elsi_h%erf_decay_max,&
               evlow=elsi_h%ev_ham_min,evhigh=elsi_h%ev_ham_max,&
-              betax=elsi_h%betax)
+              betax=elsi_h%beta)
 
       call init_foe(elsi_h%myid,elsi_h%n_procs,1,n_electron,&
               elsi_h%ice_obj,evlow=elsi_h%ev_ovlp_min,&
-              evhigh=elsi_h%ev_ovlp_max,betax=elsi_h%betax)
+              evhigh=elsi_h%ev_ovlp_max,betax=elsi_h%beta)
 
       ! Allocate CheSS matrices
-      call matrices_init(elsi_h%sparse_mat(1),elsi_h%ham_chess,matsize=SPARSE_TASKGROUP)
-      call matrices_init(elsi_h%sparse_mat(1),elsi_h%ovlp_chess,matsize=SPARSE_TASKGROUP)
-      call matrices_init(elsi_h%sparse_mat(2),elsi_h%dm_chess,matsize=SPARSE_TASKGROUP)
-      call matrices_init(elsi_h%sparse_mat(2),elsi_h%edm_chess,matsize=SPARSE_TASKGROUP)
-      call matrices_init(elsi_h%sparse_mat(2),elsi_h%ovlp_inv_sqrt_chess(1),matsize=SPARSE_TASKGROUP)
+      call matrices_init(elsi_h%sparse_mat(1),elsi_h%ham_chess,&
+              matsize=SPARSE_TASKGROUP)
+      call matrices_init(elsi_h%sparse_mat(1),elsi_h%ovlp_chess,&
+              matsize=SPARSE_TASKGROUP)
+      call matrices_init(elsi_h%sparse_mat(2),elsi_h%dm_chess,&
+              matsize=SPARSE_TASKGROUP)
+      call matrices_init(elsi_h%sparse_mat(2),elsi_h%edm_chess,&
+              matsize=SPARSE_TASKGROUP)
+      call matrices_init(elsi_h%sparse_mat(2),elsi_h%ovlp_inv_sqrt(1),&
+              matsize=SPARSE_TASKGROUP)
 
       elsi_h%ovlp_chess%matrix_compr = elsi_h%ovlp_real_chess
 
@@ -146,10 +152,11 @@ subroutine elsi_solve_evp_chess(elsi_h)
    endif
 
    call matrix_fermi_operator_expansion(elsi_h%myid,elsi_h%n_procs,&
-           elsi_h%mpi_comm,elsi_h%foe_obj,elsi_h%ice_obj,elsi_h%sparse_mat(1),&
-           elsi_h%sparse_mat(1),elsi_h%sparse_mat(2),elsi_h%ovlp_chess,&
-           elsi_h%ham_chess,elsi_h%ovlp_inv_sqrt_chess,elsi_h%dm_chess,&
-           elsi_h%energy_hdm,calculate_minusonehalf=calc_ovlp_inv_sqrt,&
+           elsi_h%mpi_comm,elsi_h%foe_obj,elsi_h%ice_obj,&
+           elsi_h%sparse_mat(1),elsi_h%sparse_mat(1),&
+           elsi_h%sparse_mat(2),elsi_h%ovlp_chess,elsi_h%ham_chess,&
+           elsi_h%ovlp_inv_sqrt,elsi_h%dm_chess,elsi_h%energy_hdm,&
+           calculate_minusonehalf=calc_ovlp_inv_sqrt,&
            foe_verbosity=0,symmetrize_kernel=.true.,&
            calculate_energy_density_kernel=.false.,&
            energy_kernel=elsi_h%edm_chess)
@@ -206,8 +213,8 @@ subroutine elsi_set_chess_default(elsi_h)
    ! Upper bound of the eigenvalues of S
    elsi_h%ev_ovlp_max = 1.0_r8
 
-   ! Beta used in the penalty function
-   elsi_h%betax = -1.0e3_r8
+   ! A patameter used to estimate eigenspectrum
+   elsi_h%beta = -1.0e3_r8
 
 end subroutine
 
@@ -253,10 +260,6 @@ subroutine elsi_print_chess_options(elsi_h)
 
    write(info_str,"(1X,' | Upper bound of S eigenvalue ',E10.1)") &
       elsi_h%ev_ovlp_max
-   call elsi_statement_print(info_str,elsi_h)
-
-   write(info_str,"(1X,' | Beta parameter ',E10.1)") &
-      elsi_h%betax
    call elsi_statement_print(info_str,elsi_h)
 
 end subroutine

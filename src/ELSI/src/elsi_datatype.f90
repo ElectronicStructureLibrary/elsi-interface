@@ -112,16 +112,18 @@ module ELSI_DATATYPE
       integer(kind=i4), allocatable :: inertias(:)       ! Inertia count at each shift
 
       ! CheSS
-      real(kind=r8),    allocatable :: ham_real_chess(:)      ! Sparse real Hamiltonian
-      real(kind=r8),    allocatable :: ovlp_real_chess(:)     ! Sparse real overlap
-      integer(kind=i4), allocatable :: row_ind_chess(:)       ! Row index
-      integer(kind=i4), allocatable :: col_ptr_chess(:)       ! Column pointer
-      type(matrices)                :: ham_chess              ! Hamiltonian
-      type(matrices)                :: ovlp_chess             ! Overlap
-      type(matrices)                :: dm_chess               ! Density matrix
-      type(matrices)                :: edm_chess              ! Energy density matrix
-      type(matrices)                :: ovlp_inv_sqrt_chess(1) ! (1/ovlp)^(-1/2)
-      type(sparse_matrix)           :: sparse_mat(2)          ! Sparsity pattern etc
+      real(kind=r8),    allocatable :: ham_real_chess(:)  ! Sparse real Hamiltonian
+      real(kind=r8),    allocatable :: ovlp_real_chess(:) ! Sparse real overlap
+      integer(kind=i4), allocatable :: row_ind_chess(:)   ! Row index
+      integer(kind=i4), allocatable :: col_ptr_chess(:)   ! Column pointer
+      integer(kind=i4), allocatable :: row_ind_buffer(:)  ! Row index of sparsity buffer
+      integer(kind=i4), allocatable :: col_ptr_buffer(:)  ! Column pointer of sparsity buffer
+      type(matrices)                :: ham_chess          ! Hamiltonian
+      type(matrices)                :: ovlp_chess         ! Overlap
+      type(matrices)                :: dm_chess           ! Density matrix
+      type(matrices)                :: edm_chess          ! Energy density matrix
+      type(matrices)                :: ovlp_inv_sqrt(1)   ! (1/ovlp)^(-1/2)
+      type(sparse_matrix)           :: sparse_mat(2)      ! Sparsity pattern etc
 
       ! Is this a valid handle?
       logical :: handle_ready = .false.
@@ -188,9 +190,8 @@ module ELSI_DATATYPE
       logical :: ovlp_is_unit = .false.     ! Is overlap matrix unit?
       logical :: ovlp_is_sing = .false.     ! Is overlap matrix singular?
       logical :: no_sing_check = .false.    ! Disable checking for singular overlap?
-      real(kind=r8) :: sing_tol = 1.0e-5_r8 ! Eigenfunctions of overlap matrix with
-                                            ! eigenvalues smaller than this value
-                                            ! will be removed to avoid singularity
+      real(kind=r8) :: sing_tol = 1.0e-5_r8 ! Eigenfunctions of overlap with eigenvalues
+                                            ! smaller than this value will be removed
       logical :: stop_sing = .false.        ! Always stop if overlap is singular?
       integer(kind=i4) :: n_nonsing = UNSET ! Number of nonsingular basis functions
 
@@ -202,9 +203,9 @@ module ELSI_DATATYPE
       integer(kind=i4) :: n_kpts = 1                ! Number of k-points
       integer(kind=i4) :: n_states = UNSET          ! Number of states
       integer(kind=i4) :: n_occupied_states = UNSET ! Number of occupied states
-      integer(kind=i4) :: i_spin = 1                ! Spin index
-      integer(kind=i4) :: i_kpt = 1                 ! K-point index
-      real(kind=r8) :: i_weight = 1.0_r8            ! Weight
+      integer(kind=i4) :: i_spin = 1
+      integer(kind=i4) :: i_kpt = 1
+      real(kind=r8) :: i_weight = 1.0_r8
       real(kind=r8) :: energy_hdm = 0.0_r8
       real(kind=r8) :: energy_sedm = 0.0_r8
       real(kind=r8) :: free_energy = 0.0_r8
@@ -212,9 +213,8 @@ module ELSI_DATATYPE
       ! Chemical potential
       integer(kind=i4) :: broadening_scheme = 0     ! Broadening scheme for occupation numbers
       real(kind=r8) :: broadening_width = 1.0e-2_r8 ! Broadening width for occupation numbers
-      real(kind=r8) :: occ_tolerance = 1.0e-13_r8   ! Maximum allowed difference between actual number
-                                                    ! of electrons and the number computed by ELSI
-      integer(kind=i4) :: max_mu_steps = 100        ! Maximum number of steps to find the chemical potential
+      real(kind=r8) :: occ_tolerance = 1.0e-13_r8   ! Accuracy of occupation numbers
+      integer(kind=i4) :: max_mu_steps = 100        ! Maximum number of steps to find mu
       real(kind=r8) :: spin_degen = 0.0_r8          ! Spin degeneracy
       logical :: spin_is_set = .false.              ! Is spin_degen set by user?
       logical :: mu_ready = .false.                 ! Is chemical potential ready to be collected?
@@ -230,12 +230,11 @@ module ELSI_DATATYPE
       integer(kind=i4) :: n_elpa_steps = UNSET ! Use ELPA eigenvectors as initial guess
       logical :: new_overlap = .true.          ! Is a new overlap matrix provided?
       logical :: coeff_ready = .false.         ! Is coefficient matrix initialized?
-      integer(kind=i4) :: omm_flavor = UNSET   ! How to perform the calculation
-                                               ! 0 = Basic
+      integer(kind=i4) :: omm_flavor = UNSET   ! 0 = Basic
                                                ! 1 = Cholesky factorisation (not supported)
                                                ! 2 = Cholesky already performed
                                                ! 3 = Preconditioning (not supported)
-      real(kind=r8) :: scale_kinetic = 0.0_r8  ! Scaling of the kinetic energy matrix
+      real(kind=r8) :: scale_kinetic = 0.0_r8  ! Factor to scale kinetic energy matrix
       logical :: calc_ed = .false.             ! Calculate energy weighted density matrix?
       real(kind=r8) :: eta = 0.0_r8            ! Eigenspectrum shift parameter
       real(kind=r8) :: min_tol = 0.0_r8        ! Tolerance for minimization
@@ -249,7 +248,7 @@ module ELSI_DATATYPE
       integer(kind=i4) :: my_p_col_pexsi = UNSET
       integer(kind=i4) :: n_p_rows_pexsi = UNSET
       integer(kind=i4) :: n_p_cols_pexsi = UNSET
-      logical :: pexsi_started = .false.      ! Is PEXSI started?
+      logical :: pexsi_started = .false. ! Is PEXSI started?
 
       integer(kind=c_intptr_t) :: pexsi_plan
       type(f_ppexsi_options)   :: pexsi_options
@@ -258,33 +257,32 @@ module ELSI_DATATYPE
       ! CheSS
       type(foe_data) :: foe_obj
       type(foe_data) :: ice_obj
-      real(kind=r8) :: erf_decay = 0.0_r8
-      real(kind=r8) :: erf_decay_min = 0.0_r8
-      real(kind=r8) :: erf_decay_max = 0.0_r8
+      real(kind=r8) :: erf_decay = 0.0_r8     ! Initial guess of error function decay length
+      real(kind=r8) :: erf_decay_min = 0.0_r8 ! Lower bound of decay length
+      real(kind=r8) :: erf_decay_max = 0.0_r8 ! Upper bound of decay length
       real(kind=r8) :: ev_ham_min = 0.0_r8
       real(kind=r8) :: ev_ham_max = 0.0_r8
       real(kind=r8) :: ev_ovlp_min = 0.0_r8
       real(kind=r8) :: ev_ovlp_max = 0.0_r8
-      real(kind=r8) :: betax = 0.0_r8
+      real(kind=r8) :: beta = 0.0_r8          ! A patameter used to estimate eigenspectrum
       logical :: chess_started = .false.      ! Is CheSS started?
 
       ! SIPs
       integer(kind=i4) :: n_p_per_slice = UNSET
       integer(kind=i4) :: n_inertia_steps = UNSET ! Number of inertia counting steps
-      integer(kind=i4) :: slicing_method = UNSET  ! Type of slices
-                                                  ! 0 = Equally spaced subintervals
-                                                  ! 1 = K-meaans after equally spaced subintervals
+      integer(kind=i4) :: slicing_method = UNSET  ! 0 = Equally spaced subintervals
+                                                  ! 1 = K-means after equally spaced subintervals
                                                   ! 2 = Equally populated subintervals
                                                   ! 3 = K-means after equally populated subintervals
       integer(kind=i4) :: inertia_option = UNSET  ! Extra inertia computations before solve?
                                                   ! 0 = No
                                                   ! 1 = Yes
-      integer(kind=i4) :: unbound = UNSET         ! How to bound the left side of the interval
+      integer(kind=i4) :: unbound = UNSET         ! How to bound left side
                                                   ! 0 = Bound interval
                                                   ! 1 = -infinity
       integer(kind=i4) :: n_slices = UNSET        ! Number of slices
       real(kind=r8) :: interval(2) = 0.0_r8       ! Global interval to search eigenvalues
-      real(kind=r8) :: slice_buffer = 0.0_r8      ! Small buffer to expand the eigenvalue interval
+      real(kind=r8) :: slice_buffer = 0.0_r8      ! Small buffer to expand interval
       logical :: sips_started = .false.           ! Is SIPs started?
 
       ! Timers

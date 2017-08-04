@@ -74,6 +74,7 @@ module ELSI
    public :: elsi_set_omm_flavor
    public :: elsi_set_omm_n_elpa
    public :: elsi_set_omm_tol
+   public :: elsi_set_omm_ev_shift
    public :: elsi_set_omm_psp
    public :: elsi_set_pexsi_n_mu
    public :: elsi_set_pexsi_n_pole
@@ -84,6 +85,13 @@ module ELSI
    public :: elsi_set_pexsi_mu_min
    public :: elsi_set_pexsi_mu_max
    public :: elsi_set_pexsi_inertia_tol
+   public :: elsi_set_chess_erf_decay
+   public :: elsi_set_chess_erf_decay_min
+   public :: elsi_set_chess_erf_decay_max
+   public :: elsi_set_chess_ev_ham_min
+   public :: elsi_set_chess_ev_ham_max
+   public :: elsi_set_chess_ev_ovlp_min
+   public :: elsi_set_chess_ev_ovlp_max
    public :: elsi_set_sips_slice_type
    public :: elsi_set_sips_n_slice
    public :: elsi_set_sips_left_bound
@@ -549,7 +557,7 @@ subroutine elsi_customize_omm(elsi_h,n_elpa_steps,omm_flavor,eigen_shift,&
       elsi_h%omm_flavor = omm_flavor
    endif
 
-   ! Eigenspectrum shift parameter [Default: 0.0_r8
+   ! Eigenspectrum shift parameter [Default: 0.0_r8]
    if(present(eigen_shift)) then
       elsi_h%eta = eigen_shift
    endif
@@ -1117,7 +1125,25 @@ subroutine elsi_set_omm_tol(elsi_h,min_tol)
 end subroutine
 
 !>
-!! This routine switches on/off the matrix multiplications using PSP BLAS.
+!! This routine sets the shift of the eigenspectrum.
+!!
+subroutine elsi_set_omm_ev_shift(elsi_h,ev_shift)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h   !< Handle
+   real(kind=r8),     intent(in)    :: ev_shift !< Shift of the eigenspectrum
+
+   character*40, parameter :: caller = "elsi_set_omm_ev_shift"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   elsi_h%eta = ev_shift
+
+end subroutine
+
+!>
+!! This routine switches on/off the matrix multiplications using PSP.
 !!
 subroutine elsi_set_omm_psp(elsi_h,use_psp)
 
@@ -1298,6 +1324,137 @@ subroutine elsi_set_pexsi_inertia_tol(elsi_h,inertia_tol)
    call elsi_check_handle(elsi_h,caller)
 
    elsi_h%pexsi_options%muInertiaTolerance = inertia_tol
+
+end subroutine
+
+!>
+!! This routine sets the initial guess of the error function decay
+!! length in CheSS.
+!!
+subroutine elsi_set_chess_erf_decay(elsi_h,erf_decay)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h    !< Handle
+   real(kind=r8),     intent(in)    :: erf_decay !< Decay length of error function
+
+   character*40, parameter :: caller = "elsi_set_chess_erf_decay"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   elsi_h%erf_decay = erf_decay
+
+end subroutine
+
+!>
+!! This routine sets the lower bound of the decay length in CheSS.
+!!
+subroutine elsi_set_chess_erf_decay_min(elsi_h,erf_decay_min)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h        !< Handle
+   real(kind=r8),     intent(in)    :: erf_decay_min !< Minimum decay length
+
+   character*40, parameter :: caller = "elsi_set_chess_erf_decay_min"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   elsi_h%erf_decay_min = erf_decay_min
+
+end subroutine
+
+!>
+!! This routine sets the upper bound of the decay length in CheSS.
+!!
+subroutine elsi_set_chess_erf_decay_max(elsi_h,erf_decay_max)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h        !< Handle
+   real(kind=r8),     intent(in)    :: erf_decay_max !< Maximum decay length
+
+   character*40, parameter :: caller = "elsi_set_chess_erf_decay_max"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   elsi_h%erf_decay_max = erf_decay_max
+
+end subroutine
+
+!>
+!! This routine sets the lower bound of the eigenvalues of the
+!! Hamiltonian matrix.
+!!
+subroutine elsi_set_chess_ev_ham_min(elsi_h,ev_ham_min)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h     !< Handle
+   real(kind=r8),     intent(in)    :: ev_ham_min !< Minimum eigenvalue
+
+   character*40, parameter :: caller = "elsi_set_chess_ev_ham_min"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   elsi_h%ev_ham_min = ev_ham_min
+
+end subroutine
+
+!>
+!! This routine sets the upper bound of the eigenvalues of the
+!! Hamiltonian matrix.
+!!
+subroutine elsi_set_chess_ev_ham_max(elsi_h,ev_ham_max)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h     !< Handle
+   real(kind=r8),     intent(in)    :: ev_ham_max !< Maximum eigenvalue
+
+   character*40, parameter :: caller = "elsi_set_chess_ev_ham_max"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   elsi_h%ev_ham_max = ev_ham_max
+
+end subroutine
+
+!>
+!! This routine sets the lower bound of the eigenvalues of the
+!! overlap matrix.
+!!
+subroutine elsi_set_chess_ev_ovlp_min(elsi_h,ev_ovlp_min)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h      !< Handle
+   real(kind=r8),     intent(in)    :: ev_ovlp_min !< Minimum eigenvalue
+
+   character*40, parameter :: caller = "elsi_set_chess_ev_ovlp_min"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   elsi_h%ev_ovlp_min = ev_ovlp_min
+
+end subroutine
+
+!>
+!! This routine sets the upper bound of the eigenvalues of the
+!! overlap matrix.
+!!
+subroutine elsi_set_chess_ev_ovlp_max(elsi_h,ev_ovlp_max)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h      !< Handle
+   real(kind=r8),     intent(in)    :: ev_ovlp_max !< Maximum eigenvalue
+
+   character*40, parameter :: caller = "elsi_set_chess_ev_ovlp_max"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   elsi_h%ev_ovlp_max = ev_ovlp_max
 
 end subroutine
 
