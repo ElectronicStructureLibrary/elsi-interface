@@ -47,13 +47,29 @@ module ELSI_MATCONV
    public :: elsi_pexsi_to_blacs_dm
    public :: elsi_pexsi_to_blacs_hs
 
+   interface elsi_blacs_to_pexsi_dm
+      module procedure elsi_blacs_to_pexsi_dm_real
+   end interface
+
+   interface elsi_blacs_to_pexsi_hs
+      module procedure elsi_blacs_to_pexsi_hs_real
+   end interface
+
+   interface elsi_pexsi_to_blacs_dm
+      module procedure elsi_pexsi_to_blacs_dm_real
+   end interface
+
+   interface elsi_pexsi_to_blacs_hs
+      module procedure elsi_pexsi_to_blacs_hs_real
+   end interface
+
 contains
 
 !>
 !! This routine is a driver to convert matrix format and distribution
 !! from BLACS to PEXSI.
 !!
-subroutine elsi_blacs_to_pexsi_hs(elsi_h,h_in,s_in)
+subroutine elsi_blacs_to_pexsi_hs_real(elsi_h,h_in,s_in)
 
    implicit none
 
@@ -61,7 +77,7 @@ subroutine elsi_blacs_to_pexsi_hs(elsi_h,h_in,s_in)
    real(kind=r8),     intent(inout) :: h_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian
    real(kind=r8),     intent(inout) :: s_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Overlap
 
-   character*40, parameter :: caller = "elsi_blacs_to_pexsi_hs"
+   character*40, parameter :: caller = "elsi_blacs_to_pexsi_hs_real"
 
    if(.not. elsi_h%ovlp_is_unit) then
       call elsi_set_full_mat(elsi_h,h_in)
@@ -70,9 +86,9 @@ subroutine elsi_blacs_to_pexsi_hs(elsi_h,h_in,s_in)
       endif
 
       if(elsi_h%n_basis < 46340) then
-         call elsi_blacs_to_pexsi_hs_small(elsi_h,h_in,s_in)
+         call elsi_blacs_to_pexsi_hs_small_real(elsi_h,h_in,s_in)
       else
-         call elsi_blacs_to_pexsi_hs_large(elsi_h,h_in,s_in)
+         call elsi_blacs_to_pexsi_hs_large_real(elsi_h,h_in,s_in)
       endif
    endif
 
@@ -83,7 +99,7 @@ end subroutine
 !! 2D block-cyclic distributed dense format to 1D block distributed
 !! sparse CCS format, which can be used as input by PEXSI.
 !!
-subroutine elsi_blacs_to_pexsi_hs_small(elsi_h,h_in,s_in)
+subroutine elsi_blacs_to_pexsi_hs_small_real(elsi_h,h_in,s_in)
 
    implicit none
    include "mpif.h"
@@ -125,7 +141,7 @@ subroutine elsi_blacs_to_pexsi_hs_small(elsi_h,h_in,s_in)
    integer(kind=i4) :: send_displ_aux
    integer(kind=i4) :: recv_displ_aux
 
-   character*40, parameter :: caller = "elsi_blacs_to_pexsi_hs_small"
+   character*40, parameter :: caller = "elsi_blacs_to_pexsi_hs_small_real"
 
    call elsi_start_redistribution_time(elsi_h)
 
@@ -441,7 +457,7 @@ end subroutine
 !!
 !! * Integer(kind=8) is used to deal with large matrices.
 !!
-subroutine elsi_blacs_to_pexsi_hs_large(elsi_h,h_in,s_in)
+subroutine elsi_blacs_to_pexsi_hs_large_real(elsi_h,h_in,s_in)
 
    implicit none
    include "mpif.h"
@@ -487,7 +503,7 @@ subroutine elsi_blacs_to_pexsi_hs_large(elsi_h,h_in,s_in)
    integer(kind=i4) :: recv_displ_aux
    integer(kind=i4) :: send_displ_aux
 
-   character*40, parameter :: caller = "elsi_blacs_to_pexsi_hs_large"
+   character*40, parameter :: caller = "elsi_blacs_to_pexsi_hs_large_real"
 
    call elsi_start_redistribution_time(elsi_h)
 
@@ -844,19 +860,19 @@ end subroutine
 !! This routine is a driver to convert matrix format and distribution
 !! from PEXSI to BLACS.
 !!
-subroutine elsi_pexsi_to_blacs_dm(elsi_h,d_out)
+subroutine elsi_pexsi_to_blacs_dm_real(elsi_h,d_out)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h                                 !< Handle
    real(kind=r8),     intent(out)   :: d_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Density matrix
 
-   character*40, parameter :: caller = "elsi_pexsi_to_blacs_dm"
+   character*40, parameter :: caller = "elsi_pexsi_to_blacs_dm_real"
 
    if(elsi_h%n_basis < 46340) then
-      call elsi_pexsi_to_blacs_dm_small(elsi_h,d_out)
+      call elsi_pexsi_to_blacs_dm_small_real(elsi_h,d_out)
    else
-      call elsi_pexsi_to_blacs_dm_large(elsi_h,d_out)
+      call elsi_pexsi_to_blacs_dm_large_real(elsi_h,d_out)
    endif
 
 end subroutine
@@ -866,7 +882,7 @@ end subroutine
 !! in 1D block distributed sparse CCS format to 2D block-cyclic
 !! distributed dense format.
 !!
-subroutine elsi_pexsi_to_blacs_dm_small(elsi_h,d_out)
+subroutine elsi_pexsi_to_blacs_dm_small_real(elsi_h,d_out)
 
    implicit none
    include "mpif.h"
@@ -902,7 +918,7 @@ subroutine elsi_pexsi_to_blacs_dm_small(elsi_h,d_out)
    integer(kind=i4) :: send_displ_aux
    integer(kind=i4) :: recv_displ_aux
 
-   character*40, parameter :: caller = "elsi_pexsi_to_blacs_dm_small"
+   character*40, parameter :: caller = "elsi_pexsi_to_blacs_dm_small_real"
 
    call elsi_start_redistribution_time(elsi_h)
 
@@ -1042,7 +1058,7 @@ end subroutine
 !!
 !! * 2D index is used to deal with large matrices.
 !!
-subroutine elsi_pexsi_to_blacs_dm_large(elsi_h,d_out)
+subroutine elsi_pexsi_to_blacs_dm_large_real(elsi_h,d_out)
 
    implicit none
    include "mpif.h"
@@ -1079,7 +1095,7 @@ subroutine elsi_pexsi_to_blacs_dm_large(elsi_h,d_out)
    integer(kind=i4) :: send_displ_aux
    integer(kind=i4) :: recv_displ_aux
 
-   character*40, parameter :: caller = "elsi_pexsi_to_blacs_dm_large"
+   character*40, parameter :: caller = "elsi_pexsi_to_blacs_dm_large_real"
 
    call elsi_start_redistribution_time(elsi_h)
 
@@ -1747,7 +1763,7 @@ end subroutine
 !! This routine is a driver to convert matrix format and distribution
 !! from PEXSI to BLACS.
 !!
-subroutine elsi_pexsi_to_blacs_hs(elsi_h,h_in,s_in)
+subroutine elsi_pexsi_to_blacs_hs_real(elsi_h,h_in,s_in)
 
    implicit none
 
@@ -1755,12 +1771,12 @@ subroutine elsi_pexsi_to_blacs_hs(elsi_h,h_in,s_in)
    real(kind=r8),     intent(in)    :: h_in(elsi_h%nnz_l_sp) !< Hamiltonian
    real(kind=r8),     intent(in)    :: s_in(elsi_h%nnz_l_sp) !< Overlap
 
-   character*40, parameter :: caller = "elsi_pexsi_to_blacs_hs"
+   character*40, parameter :: caller = "elsi_pexsi_to_blacs_hs_real"
 
    if(elsi_h%n_basis < 46340) then
-      call elsi_pexsi_to_blacs_hs_small(elsi_h,h_in,s_in)
+      call elsi_pexsi_to_blacs_hs_small_real(elsi_h,h_in,s_in)
    else
-      call elsi_pexsi_to_blacs_hs_large(elsi_h,h_in,s_in)
+      call elsi_pexsi_to_blacs_hs_large_real(elsi_h,h_in,s_in)
    endif
 
 end subroutine
@@ -1770,7 +1786,7 @@ end subroutine
 !! 1D block distributed sparse CCS format to 2D block-cyclic
 !! distributed dense format, which can be used as input by ELPA.
 !!
-subroutine elsi_pexsi_to_blacs_hs_small(elsi_h,h_in,s_in)
+subroutine elsi_pexsi_to_blacs_hs_small_real(elsi_h,h_in,s_in)
 
    implicit none
    include "mpif.h"
@@ -1809,7 +1825,7 @@ subroutine elsi_pexsi_to_blacs_hs_small(elsi_h,h_in,s_in)
    integer(kind=i4) :: send_displ_aux
    integer(kind=i4) :: recv_displ_aux
 
-   character*40, parameter :: caller = "elsi_pexsi_to_blacs_hs_small"
+   character*40, parameter :: caller = "elsi_pexsi_to_blacs_hs_small_real"
 
    call elsi_start_redistribution_time(elsi_h)
 
@@ -1996,7 +2012,7 @@ end subroutine
 !!
 !! * 2D index is used to deal with large matrices.
 !!
-subroutine elsi_pexsi_to_blacs_hs_large(elsi_h,h_in,s_in)
+subroutine elsi_pexsi_to_blacs_hs_large_real(elsi_h,h_in,s_in)
 
    implicit none
    include "mpif.h"
@@ -2036,7 +2052,7 @@ subroutine elsi_pexsi_to_blacs_hs_large(elsi_h,h_in,s_in)
    integer(kind=i4) :: send_displ_aux
    integer(kind=i4) :: recv_displ_aux
 
-   character*40, parameter :: caller = "elsi_pexsi_to_blacs_hs_large"
+   character*40, parameter :: caller = "elsi_pexsi_to_blacs_hs_large_real"
 
    call elsi_start_redistribution_time(elsi_h)
 
@@ -2235,19 +2251,19 @@ end subroutine
 !! This routine is a driver to convert matrix format and distribution
 !! from BLACS to PEXSI.
 !!
-subroutine elsi_blacs_to_pexsi_dm(elsi_h,d_out)
+subroutine elsi_blacs_to_pexsi_dm_real(elsi_h,d_out)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h                 !< Handle
    real(kind=r8),     intent(out)   :: d_out(elsi_h%nnz_l_sp) !< Density matrix
 
-   character*40, parameter :: caller = "elsi_blacs_to_pexsi_dm"
+   character*40, parameter :: caller = "elsi_blacs_to_pexsi_dm_real"
 
    if(elsi_h%n_basis < 46340) then
-      call elsi_blacs_to_pexsi_dm_small(elsi_h,d_out)
+      call elsi_blacs_to_pexsi_dm_small_real(elsi_h,d_out)
    else
-      call elsi_blacs_to_pexsi_dm_large(elsi_h,d_out)
+      call elsi_blacs_to_pexsi_dm_large_real(elsi_h,d_out)
    endif
 
 end subroutine
@@ -2256,7 +2272,7 @@ end subroutine
 !! This routine converts density matrix in 2D block-cyclic distributed
 !! dense format to 1D block distributed sparse CCS format.
 !!
-subroutine elsi_blacs_to_pexsi_dm_small(elsi_h,d_out)
+subroutine elsi_blacs_to_pexsi_dm_small_real(elsi_h,d_out)
 
    implicit none
 
@@ -2291,7 +2307,7 @@ subroutine elsi_blacs_to_pexsi_dm_small(elsi_h,d_out)
    integer(kind=i4) :: send_displ_aux
    integer(kind=i4) :: recv_displ_aux
 
-   character*40, parameter :: caller = "elsi_blacs_to_pexsi_dm_small"
+   character*40, parameter :: caller = "elsi_blacs_to_pexsi_dm_small_real"
 
    call elsi_start_redistribution_time(elsi_h)
 
@@ -2440,7 +2456,7 @@ end subroutine
 !!
 !! * 2D index is used to deal with large matrices.
 !!
-subroutine elsi_blacs_to_pexsi_dm_large(elsi_h,d_out)
+subroutine elsi_blacs_to_pexsi_dm_large_real(elsi_h,d_out)
 
    implicit none
 
@@ -2475,7 +2491,7 @@ subroutine elsi_blacs_to_pexsi_dm_large(elsi_h,d_out)
    integer(kind=i4) :: send_displ_aux
    integer(kind=i4) :: recv_displ_aux
 
-   character*40, parameter :: caller = "elsi_blacs_to_pexsi_dm_large"
+   character*40, parameter :: caller = "elsi_blacs_to_pexsi_dm_large_real"
 
    call elsi_start_redistribution_time(elsi_h)
 
