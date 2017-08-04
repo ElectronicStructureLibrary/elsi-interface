@@ -29,7 +29,7 @@
 !! This module is only compiled when the actual SIPs is not available, to make
 !! the SIPs part of ELSI compile.
 !!
-module m_qetsc
+module M_QETSC
 
    use ELSI_PRECISION, only: r8,i4
 
@@ -275,4 +275,4 @@ subroutine get_eps_eigenvectors(n_basis,idx,evec)
 
 end subroutine
 
-end module
+end module M_QETSC

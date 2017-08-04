@@ -72,24 +72,16 @@ subroutine elsi_init_sips(elsi_h)
       endif
 
       ! 1D block distribution
-      elsi_h%n_l_cols_sips = elsi_h%n_basis/elsi_h%n_procs
+      elsi_h%n_l_cols_sp = elsi_h%n_basis/elsi_h%n_procs
 
       ! The last process holds all remaining columns
       if(elsi_h%myid == elsi_h%n_procs-1) then
-         elsi_h%n_l_cols_sips = elsi_h%n_basis-(elsi_h%n_procs-1)*elsi_h%n_l_cols_sips
+         elsi_h%n_l_cols_sp = elsi_h%n_basis-(elsi_h%n_procs-1)*elsi_h%n_l_cols_sp
       endif
 
-      if(.not. allocated(elsi_h%slices)) then
-         call elsi_allocate(elsi_h,elsi_h%slices,elsi_h%n_slices+1,"slices",caller)
-      endif
-
-      if(.not. allocated(elsi_h%inertias)) then
-         call elsi_allocate(elsi_h,elsi_h%inertias,elsi_h%n_slices+1,"inertias",caller)
-      endif
-
-      if(.not. allocated(elsi_h%shifts)) then
-         call elsi_allocate(elsi_h,elsi_h%shifts,elsi_h%n_slices+1,"shifts",caller)
-      endif
+      call elsi_allocate(elsi_h,elsi_h%slices,elsi_h%n_slices+1,"slices",caller)
+      call elsi_allocate(elsi_h,elsi_h%inertias,elsi_h%n_slices+1,"inertias",caller)
+      call elsi_allocate(elsi_h,elsi_h%shifts,elsi_h%n_slices+1,"shifts",caller)
 
       elsi_h%sips_started = .true.
    endif
@@ -121,12 +113,12 @@ subroutine elsi_solve_evp_sips(elsi_h)
 
    if(elsi_h%n_elsi_calls == 1) then
       ! Load H matrix
-      call eps_load_ham(elsi_h%n_basis,elsi_h%n_l_cols_sips,elsi_h%nnz_l_sips,&
+      call eps_load_ham(elsi_h%n_basis,elsi_h%n_l_cols_sp,elsi_h%nnz_l_sp,&
               elsi_h%row_ind_ccs,elsi_h%col_ptr_ccs,elsi_h%ham_real_ccs)
 
       if(.not. elsi_h%ovlp_is_unit) then
          ! Load S matrix
-         call eps_load_ovlp(elsi_h%n_basis,elsi_h%n_l_cols_sips,elsi_h%nnz_l_sips,&
+         call eps_load_ovlp(elsi_h%n_basis,elsi_h%n_l_cols_sp,elsi_h%nnz_l_sp,&
                  elsi_h%row_ind_ccs,elsi_h%col_ptr_ccs,elsi_h%ovlp_real_ccs)
 
          call set_eps(math,mats)
@@ -160,7 +152,7 @@ subroutine elsi_solve_evp_sips(elsi_h)
       endif
    else ! n_elsi_calls > 1
       ! Update H matrix
-      call eps_update_ham(elsi_h%n_basis,elsi_h%n_l_cols_sips,elsi_h%nnz_l_sips,&
+      call eps_update_ham(elsi_h%n_basis,elsi_h%n_l_cols_sp,elsi_h%nnz_l_sp,&
               elsi_h%row_ind_ccs,elsi_h%col_ptr_ccs,elsi_h%ham_real_ccs)
 
       call update_eps(elsi_h%n_slices)

@@ -151,9 +151,9 @@ subroutine elsi_final_print(elsi_h)
             write(*,"('  | Parallel mode             :',A13)") "SINGLE_PROC"
          endif
 
-         if(elsi_h%matrix_storage_format == BLACS_DENSE) then
+         if(elsi_h%matrix_format == BLACS_DENSE) then
             write(*,"('  | Matrix format             :',A13)") "BLACS_DENSE"
-         elseif(elsi_h%matrix_storage_format == PEXSI_CSC) then
+         elseif(elsi_h%matrix_format == PEXSI_CSC) then
             write(*,"('  | Matrix format             :',A13)") "PEXSI_CSC"
          endif
 

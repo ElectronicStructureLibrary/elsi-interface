@@ -685,6 +685,22 @@ subroutine elsi_set_omm_tol_c_wrapper(handle_c,min_tol)&
 
 end subroutine
 
+subroutine elsi_set_omm_ev_shift_c_wrapper(handle_c,ev_shift)&
+   bind(C,name="c_elsi_set_omm_ev_shift")
+
+   implicit none
+
+   type(c_ptr),         value             :: handle_c
+   real(kind=c_double), value, intent(in) :: ev_shift
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_omm_ev_shift(handle_f,ev_shift)
+
+end subroutine
+
 subroutine elsi_set_omm_psp_c_wrapper(handle_c,use_psp)&
    bind(C,name="c_elsi_set_omm_psp")
 
@@ -843,6 +859,118 @@ subroutine elsi_set_pexsi_inertia_tol_c_wrapper(handle_c,inertia_tol)&
    
    call elsi_set_pexsi_inertia_tol(handle_f,inertia_tol)
    
+end subroutine
+
+subroutine elsi_set_chess_erf_decay_c_wrapper(handle_c,decay)&
+   bind(C,name="c_elsi_set_chess_erf_decay")
+
+   implicit none
+
+   type(c_ptr),         value             :: handle_c
+   real(kind=c_double), value, intent(in) :: decay
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_chess_erf_decay(handle_f,decay)
+
+end subroutine
+
+subroutine elsi_set_chess_erf_decay_min_c_wrapper(handle_c,decay_min)&
+   bind(C,name="c_elsi_set_chess_erf_decay_min")
+
+   implicit none
+
+   type(c_ptr),         value             :: handle_c
+   real(kind=c_double), value, intent(in) :: decay_min
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_chess_erf_decay_min(handle_f,decay_min)
+
+end subroutine
+
+subroutine elsi_set_chess_erf_decay_max_c_wrapper(handle_c,decay_max)&
+   bind(C,name="c_elsi_set_chess_erf_decay_max")
+
+   implicit none
+
+   type(c_ptr),         value             :: handle_c
+   real(kind=c_double), value, intent(in) :: decay_max
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_chess_erf_decay_max(handle_f,decay_max)
+
+end subroutine
+
+subroutine elsi_set_chess_ev_ham_min_c_wrapper(handle_c,ev_min)&
+   bind(C,name="c_elsi_set_chess_ev_ham_min")
+
+   implicit none
+
+   type(c_ptr),         value             :: handle_c
+   real(kind=c_double), value, intent(in) :: ev_min
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_chess_ev_ham_min(handle_f,ev_min)
+
+end subroutine
+
+subroutine elsi_set_chess_ev_ham_max_c_wrapper(handle_c,ev_max)&
+   bind(C,name="c_elsi_set_chess_ev_ham_max")
+   
+   implicit none
+   
+   type(c_ptr),         value             :: handle_c
+   real(kind=c_double), value, intent(in) :: ev_max
+   
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_chess_ev_ham_max(handle_f,ev_max)
+
+end subroutine
+
+subroutine elsi_set_chess_ev_ovlp_min_c_wrapper(handle_c,ev_min)&
+   bind(C,name="c_elsi_set_chess_ev_ovlp_min")
+   
+   implicit none
+
+   type(c_ptr),         value             :: handle_c
+   real(kind=c_double), value, intent(in) :: ev_min
+   
+   type(elsi_handle), pointer :: handle_f
+   
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_chess_ev_ovlp_min(handle_f,ev_min)
+
+end subroutine
+
+subroutine elsi_set_chess_ev_ovlp_max_c_wrapper(handle_c,ev_max)&
+   bind(C,name="c_elsi_set_chess_ev_ovlp_max")
+   
+   implicit none
+
+   type(c_ptr),         value             :: handle_c
+   real(kind=c_double), value, intent(in) :: ev_max
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_chess_ev_ovlp_max(handle_f,ev_max)
+
 end subroutine
 
 subroutine elsi_set_sips_slice_type_c_wrapper(handle_c,slice_type)&

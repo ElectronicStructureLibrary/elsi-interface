@@ -29,12 +29,13 @@
 !! This module is only compiled when the actual PEXSI is not available,
 !! to make the PEXSI part of ELSI compile.
 !!
-module f_ppexsi_interface
+module F_PPEXSI_INTERFACE
 
    use, intrinsic :: ISO_C_BINDING
    use ELSI_PRECISION, only: r8,i4
 
    implicit none
+   private
 
    public :: f_ppexsi_set_default_options
    public :: f_ppexsi_plan_initialize
@@ -45,7 +46,7 @@ module f_ppexsi_interface
    public :: f_ppexsi_retrieve_real_dft_matrix2
    public :: f_ppexsi_plan_finalize
 
-   type, bind(C) :: f_ppexsi_options
+   type, public, bind(C) :: f_ppexsi_options
       real(kind=r8)    :: temperature
       real(kind=r8)    :: gap
       real(kind=r8)    :: deltaE
@@ -68,7 +69,7 @@ module f_ppexsi_interface
       integer(kind=i4) :: symmetric
       integer(kind=i4) :: transpose
       integer(kind=i4) :: verbosity
-   end type f_ppexsi_options
+   end type
 
 contains
 
@@ -206,4 +207,4 @@ subroutine f_ppexsi_plan_finalize(plan,info)
 
 end subroutine
 
-end module
+end module F_PPEXSI_INTERFACE

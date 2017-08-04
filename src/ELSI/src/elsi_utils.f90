@@ -37,9 +37,11 @@ module ELSI_UTILS
                              N_MATRIX_STORAGE_FORMATS,N_PARALLEL_MODES,UNSET
    use ELSI_DATATYPE, only: elsi_handle,print_info,print_mem
    use ELSI_PRECISION, only: r8,i4
+   use FOE_BASE, only: foe_data_deallocate
    use F_PPEXSI_INTERFACE
    use MATRIXSWITCH, only: matrix,m_register_pdbc,m_deallocate
    use M_QETSC
+   use SPARSEMATRIX_BASE, only: deallocate_sparse_matrix,deallocate_matrices
 
    implicit none
    private
@@ -688,7 +690,7 @@ subroutine elsi_stop(info,elsi_h,caller)
    integer :: i_task
    integer :: mpierr
 
-   if(elsi_h%global_mpi_is_setup) then
+   if(elsi_h%global_mpi_ready) then
       do i_task = 0,elsi_h%n_procs_all-1
          if(elsi_h%myid_all == i_task) then
             write(string_info,"(1X,' Error! MPI task',I5,' in ',A,': ',A)")&
@@ -698,7 +700,7 @@ subroutine elsi_stop(info,elsi_h,caller)
          endif
          call MPI_Barrier(elsi_h%mpi_comm_all,mpierr)
       enddo
-   elseif(elsi_h%mpi_is_setup) then
+   elseif(elsi_h%mpi_ready) then
       do i_task = 0,elsi_h%n_procs-1
          if(elsi_h%myid == i_task) then
             write(string_info,"(1X,' Error! MPI task',I5,' in ',A,': ',A)")&
@@ -720,27 +722,27 @@ end subroutine
 !>
 !! This routine sets the real hamiltonian matrix.
 !!
-subroutine elsi_set_real_ham(elsi_h,H_in)
+subroutine elsi_set_real_ham(elsi_h,h_in)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h                                !< Handle
-   real(kind=r8),     target        :: H_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian matrix
+   real(kind=r8),     target        :: h_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian matrix
 
    character*40, parameter :: caller = "elsi_set_real_ham"
 
    if(elsi_h%solver == ELPA) then
-      if(elsi_h%matrix_storage_format == BLACS_DENSE) then
-         call elsi_set_full_mat(elsi_h,H_in)
+      if(elsi_h%matrix_format == BLACS_DENSE) then
+         call elsi_set_full_mat(elsi_h,h_in)
       endif
 
-      elsi_h%ham_real => H_in
+      elsi_h%ham_real => h_in
    elseif(elsi_h%solver == LIBOMM) then
-      if(elsi_h%matrix_storage_format == BLACS_DENSE) then
-         call elsi_set_full_mat(elsi_h,H_in)
+      if(elsi_h%matrix_format == BLACS_DENSE) then
+         call elsi_set_full_mat(elsi_h,h_in)
       endif
 
-      call m_register_pdbc(elsi_h%ham_omm,H_in,elsi_h%sc_desc)
+      call m_register_pdbc(elsi_h%ham_omm,h_in,elsi_h%sc_desc)
    endif
 
 end subroutine
@@ -748,27 +750,27 @@ end subroutine
 !>
 !! This routine sets the complex hamiltonian matrix.
 !!
-subroutine elsi_set_complex_ham(elsi_h,H_in)
+subroutine elsi_set_complex_ham(elsi_h,h_in)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h                                !< Handle
-   complex(kind=r8),  target        :: H_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian matrix
+   complex(kind=r8),  target        :: h_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian matrix
 
    character*40, parameter :: caller = "elsi_set_complex_ham"
 
    if(elsi_h%solver == ELPA) then
-      if(elsi_h%matrix_storage_format == BLACS_DENSE) then
-         call elsi_set_full_mat(elsi_h,H_in)
+      if(elsi_h%matrix_format == BLACS_DENSE) then
+         call elsi_set_full_mat(elsi_h,h_in)
       endif
 
-      elsi_h%ham_complex => H_in
+      elsi_h%ham_complex => h_in
    elseif(elsi_h%solver == LIBOMM) then
-      if(elsi_h%matrix_storage_format == BLACS_DENSE) then
-         call elsi_set_full_mat(elsi_h,H_in)
+      if(elsi_h%matrix_format == BLACS_DENSE) then
+         call elsi_set_full_mat(elsi_h,h_in)
       endif
 
-      call m_register_pdbc(elsi_h%ham_omm,H_in,elsi_h%sc_desc)
+      call m_register_pdbc(elsi_h%ham_omm,h_in,elsi_h%sc_desc)
    endif
 
 end subroutine
@@ -776,17 +778,17 @@ end subroutine
 !>
 !! This routine sets the sparse real Hamiltonian matrix.
 !!
-subroutine elsi_set_sparse_real_ham(elsi_h,H_in)
+subroutine elsi_set_sparse_real_ham(elsi_h,h_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h                   !< Handle
-   real(kind=r8),     target        :: H_in(elsi_h%nnz_l_pexsi) !< Hamiltonian matrix
+   type(elsi_handle), intent(inout) :: elsi_h                !< Handle
+   real(kind=r8),     target        :: h_in(elsi_h%nnz_l_sp) !< Hamiltonian matrix
 
    character*40, parameter :: caller = "elsi_set_sparse_real_ham"
 
    if((elsi_h%solver == PEXSI) .or. (elsi_h%solver == SIPS)) then
-      elsi_h%ham_real_ccs => H_in
+      elsi_h%ham_real_ccs => h_in
    endif
 
 end subroutine
@@ -794,17 +796,17 @@ end subroutine
 !>
 !! This routine sets the sparse complex Hamiltonian matrix.
 !!
-subroutine elsi_set_sparse_complex_ham(elsi_h,H_in)
+subroutine elsi_set_sparse_complex_ham(elsi_h,h_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h                   !< Handle
-   complex(kind=r8),  target        :: H_in(elsi_h%nnz_l_pexsi) !< Hamiltonian matirx
+   type(elsi_handle), intent(inout) :: elsi_h                !< Handle
+   complex(kind=r8),  target        :: h_in(elsi_h%nnz_l_sp) !< Hamiltonian matirx
 
    character*40, parameter :: caller = "elsi_set_sparse_complex_ham"
 
    if((elsi_h%solver == PEXSI) .or. (elsi_h%solver == SIPS)) then
-      elsi_h%ham_complex_ccs => H_in         
+      elsi_h%ham_complex_ccs => h_in         
    endif
 
 end subroutine
@@ -812,30 +814,30 @@ end subroutine
 !>
 !! This routine sets the real overlap matrix.
 !!
-subroutine elsi_set_real_ovlp(elsi_h,S_in)
+subroutine elsi_set_real_ovlp(elsi_h,s_in)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h                                !< Handle
-   real(kind=r8),     target        :: S_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Overlap matrix
+   real(kind=r8),     target        :: s_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Overlap matrix
 
    character*40, parameter :: caller = "elsi_set_real_ovlp"
 
    if(.not. elsi_h%ovlp_is_unit) then
       if(elsi_h%solver == ELPA) then
-         if((elsi_h%matrix_storage_format == BLACS_DENSE) .and. &
+         if((elsi_h%matrix_format == BLACS_DENSE) .and. &
             (elsi_h%n_elsi_calls == 1)) then
-            call elsi_set_full_mat(elsi_h,S_in)
+            call elsi_set_full_mat(elsi_h,s_in)
          endif
 
-         elsi_h%ovlp_real => S_in
+         elsi_h%ovlp_real => s_in
       elseif(elsi_h%solver == LIBOMM) then
-         if((elsi_h%matrix_storage_format == BLACS_DENSE) .and. &
+         if((elsi_h%matrix_format == BLACS_DENSE) .and. &
             (elsi_h%n_elsi_calls == 1)) then
-            call elsi_set_full_mat(elsi_h,S_in)
+            call elsi_set_full_mat(elsi_h,s_in)
          endif
 
-         call m_register_pdbc(elsi_h%ovlp_omm,S_in,elsi_h%sc_desc)
+         call m_register_pdbc(elsi_h%ovlp_omm,s_in,elsi_h%sc_desc)
       endif
    endif
 
@@ -844,30 +846,30 @@ end subroutine
 !>
 !! This routine sets the complex ovlp matrix.
 !!
-subroutine elsi_set_complex_ovlp(elsi_h,S_in)
+subroutine elsi_set_complex_ovlp(elsi_h,s_in)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h                                !< Handle
-   complex(kind=r8),  target        :: S_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Overlap matrix
+   complex(kind=r8),  target        :: s_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Overlap matrix
 
    character*40, parameter :: caller = "elsi_set_complex_ovlp"
 
    if(.not. elsi_h%ovlp_is_unit) then
       if(elsi_h%solver == ELPA) then
-         if((elsi_h%matrix_storage_format == BLACS_DENSE) .and. &
+         if((elsi_h%matrix_format == BLACS_DENSE) .and. &
             (elsi_h%n_elsi_calls == 1)) then
-            call elsi_set_full_mat(elsi_h,S_in)
+            call elsi_set_full_mat(elsi_h,s_in)
          endif
 
-         elsi_h%ovlp_complex => S_in
+         elsi_h%ovlp_complex => s_in
       elseif(elsi_h%solver == LIBOMM) then
-         if((elsi_h%matrix_storage_format == BLACS_DENSE) .and. &
+         if((elsi_h%matrix_format == BLACS_DENSE) .and. &
             (elsi_h%n_elsi_calls == 1)) then
-            call elsi_set_full_mat(elsi_h,S_in)
+            call elsi_set_full_mat(elsi_h,s_in)
          endif
 
-         call m_register_pdbc(elsi_h%ovlp_omm,S_in,elsi_h%sc_desc)
+         call m_register_pdbc(elsi_h%ovlp_omm,s_in,elsi_h%sc_desc)
       endif
    endif
 end subroutine
@@ -875,18 +877,18 @@ end subroutine
 !>
 !! This routine sets the sparse real overlap matrix.
 !!
-subroutine elsi_set_sparse_real_ovlp(elsi_h,S_in)
+subroutine elsi_set_sparse_real_ovlp(elsi_h,s_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h                   !< Handle
-   real(kind=r8),     target        :: S_in(elsi_h%nnz_l_pexsi) !< Overlap matrix
+   type(elsi_handle), intent(inout) :: elsi_h                !< Handle
+   real(kind=r8),     target        :: s_in(elsi_h%nnz_l_sp) !< Overlap matrix
 
    character*40, parameter :: caller = "elsi_set_sparse_real_ovlp"
 
    if(.not. elsi_h%ovlp_is_unit) then
       if((elsi_h%solver == PEXSI) .or. (elsi_h%solver == SIPS)) then
-         elsi_h%ovlp_real_ccs => S_in
+         elsi_h%ovlp_real_ccs => s_in
       endif
    endif
 
@@ -895,18 +897,18 @@ end subroutine
 !>
 !! This routine sets the sparse complex overlap matrix.
 !!
-subroutine elsi_set_sparse_complex_ovlp(elsi_h,S_in)
+subroutine elsi_set_sparse_complex_ovlp(elsi_h,s_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h                   !< Handle
-   complex(kind=r8),  target        :: S_in(elsi_h%nnz_l_pexsi) !< Overlap matrix
+   type(elsi_handle), intent(inout) :: elsi_h                !< Handle
+   complex(kind=r8),  target        :: s_in(elsi_h%nnz_l_sp) !< Overlap matrix
 
    character*40, parameter :: caller = "elsi_set_sparse_complex_ovlp"
 
    if(.not. elsi_h%ovlp_is_unit) then
       if((elsi_h%solver == PEXSI) .or. (elsi_h%solver == SIPS)) then
-         elsi_h%ovlp_complex_ccs => S_in
+         elsi_h%ovlp_complex_ccs => s_in
       endif
    endif
 
@@ -969,19 +971,19 @@ end subroutine
 !>
 !! This routine sets the real density matrix.
 !!
-subroutine elsi_set_real_dm(elsi_h,D_in)
+subroutine elsi_set_real_dm(elsi_h,d_in)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h                                !< Handle
-   real(kind=r8),     target        :: D_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Density matrix
+   real(kind=r8),     target        :: d_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Density matrix
 
    character*40, parameter :: caller = "elsi_set_real_dm"
 
    if(elsi_h%solver == ELPA) then
-      elsi_h%dm_real => D_in
+      elsi_h%dm_real => d_in
    elseif(elsi_h%solver == LIBOMM) then
-      call m_register_pdbc(elsi_h%dm_omm,D_in,elsi_h%sc_desc)
+      call m_register_pdbc(elsi_h%dm_omm,d_in,elsi_h%sc_desc)
    endif
 
 end subroutine
@@ -989,19 +991,19 @@ end subroutine
 !>
 !! This routine sets the complex density matrix.
 !!
-subroutine elsi_set_complex_dm(elsi_h,D_in)
+subroutine elsi_set_complex_dm(elsi_h,d_in)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h                                !< Handle
-   complex(kind=r8),  target        :: D_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Density matrix
+   complex(kind=r8),  target        :: d_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Density matrix
 
    character*40, parameter :: caller = "elsi_set_complex_dm"
 
    if(elsi_h%solver == ELPA) then
-      elsi_h%dm_complex => D_in
+      elsi_h%dm_complex => d_in
    elseif(elsi_h%solver == LIBOMM) then
-      call m_register_pdbc(elsi_h%dm_omm,D_in,elsi_h%sc_desc)
+      call m_register_pdbc(elsi_h%dm_omm,d_in,elsi_h%sc_desc)
    endif
 
 end subroutine
@@ -1009,17 +1011,17 @@ end subroutine
 !>
 !! This routine sets the sparse real density matrix.
 !!
-subroutine elsi_set_sparse_real_dm(elsi_h,D_in)
+subroutine elsi_set_sparse_real_dm(elsi_h,d_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h                   !< Handle
-   real(kind=r8),     target        :: D_in(elsi_h%nnz_l_pexsi) !< Density matrix
+   type(elsi_handle), intent(inout) :: elsi_h                !< Handle
+   real(kind=r8),     target        :: d_in(elsi_h%nnz_l_sp) !< Density matrix
 
    character*40, parameter :: caller = "elsi_set_sparse_real_dm"
 
    if(elsi_h%solver == PEXSI) then
-      elsi_h%dm_real_ccs => D_in
+      elsi_h%dm_real_ccs => d_in
    endif
 
 end subroutine
@@ -1027,17 +1029,17 @@ end subroutine
 !>
 !! This routine sets the sparse complex density matrix.
 !!
-subroutine elsi_set_sparse_complex_dm(elsi_h,D_in)
+subroutine elsi_set_sparse_complex_dm(elsi_h,d_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h                   !< Handle
-   complex(kind=r8),  target        :: D_in(elsi_h%nnz_l_pexsi) !< Density matrix
+   type(elsi_handle), intent(inout) :: elsi_h                !< Handle
+   complex(kind=r8),  target        :: d_in(elsi_h%nnz_l_sp) !< Density matrix
 
    character*40, parameter :: caller = "elsi_set_sparse_complex_dm"
 
    if(elsi_h%solver == PEXSI) then
-      elsi_h%dm_complex_ccs => D_in
+      elsi_h%dm_complex_ccs => d_in
    endif
 
 end subroutine
@@ -1049,8 +1051,8 @@ subroutine elsi_set_row_ind(elsi_h,row_ind_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h                         !< Handle
-   integer(kind=i4),  target        :: row_ind_in(elsi_h%nnz_l_pexsi) !< Row index
+   type(elsi_handle), intent(inout) :: elsi_h                      !< Handle
+   integer(kind=i4),  target        :: row_ind_in(elsi_h%nnz_l_sp) !< Row index
 
    character*40, parameter :: caller = "elsi_set_row_ind"
 
@@ -1065,8 +1067,8 @@ subroutine elsi_set_col_ptr(elsi_h,col_ptr_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h                              !< Handle
-   integer(kind=i4),  target        :: col_ptr_in(elsi_h%n_l_cols_pexsi+1) !< Column pointer
+   type(elsi_handle), intent(inout) :: elsi_h                           !< Handle
+   integer(kind=i4),  target        :: col_ptr_in(elsi_h%n_l_cols_sp+1) !< Column pointer
 
    character*40, parameter :: caller = "elsi_set_col_ptr"
 
@@ -1139,6 +1141,12 @@ subroutine elsi_cleanup(elsi_h)
    if(allocated(elsi_h%row_ind_pexsi))      call elsi_deallocate(elsi_h,elsi_h%row_ind_pexsi,"row_ind_pexsi")
    if(allocated(elsi_h%col_ptr_pexsi))      call elsi_deallocate(elsi_h,elsi_h%col_ptr_pexsi,"col_ptr_pexsi")
 
+   ! CheSS
+   if(allocated(elsi_h%ham_real_chess))  call elsi_deallocate(elsi_h,elsi_h%ham_real_chess,"ham_real_chess")
+   if(allocated(elsi_h%ovlp_real_chess)) call elsi_deallocate(elsi_h,elsi_h%ovlp_real_chess,"ovlp_real_chess")
+   if(allocated(elsi_h%row_ind_chess))   call elsi_deallocate(elsi_h,elsi_h%row_ind_chess,"row_ind_chess")
+   if(allocated(elsi_h%col_ptr_chess))   call elsi_deallocate(elsi_h,elsi_h%col_ptr_chess,"col_ptr_chess")
+
    ! SIPs
    if(allocated(elsi_h%inertias))           call elsi_deallocate(elsi_h,elsi_h%inertias,"nertias")
    if(allocated(elsi_h%shifts))             call elsi_deallocate(elsi_h,elsi_h%shifts,"shifts")
@@ -1150,6 +1158,20 @@ subroutine elsi_cleanup(elsi_h)
    ! Finalize PEXSI plan
    if(elsi_h%pexsi_started) then
       call f_ppexsi_plan_finalize(elsi_h%pexsi_plan,ierr)
+   endif
+
+   ! Finalize f_lib
+   if(elsi_h%chess_started) then
+      call deallocate_sparse_matrix(elsi_h%sparse_mat(1))
+      call deallocate_sparse_matrix(elsi_h%sparse_mat(2))
+      call foe_data_deallocate(elsi_h%ice_obj)
+      call foe_data_deallocate(elsi_h%foe_obj)
+      call deallocate_matrices(elsi_h%ham_chess)
+      call deallocate_matrices(elsi_h%ovlp_chess)
+      call deallocate_matrices(elsi_h%dm_chess)
+      call deallocate_matrices(elsi_h%edm_chess)
+      call deallocate_matrices(elsi_h%ovlp_inv_sqrt(1))
+      call f_lib_finalize()
    endif
 
    ! Finalize QETSC
@@ -1173,100 +1195,107 @@ subroutine elsi_reset_handle(elsi_h)
 
    character*40, parameter :: caller = "elsi_reset_handle"
 
-   elsi_h%handle_initialized    = .false.
-   elsi_h%solver                = UNSET
-   elsi_h%matrix_data_type      = UNSET
-   elsi_h%matrix_storage_format = UNSET
-   elsi_h%parallel_mode         = UNSET
-   elsi_h%uplo                  = FULL_MAT
-   elsi_h%n_elsi_calls          = 0
-   elsi_h%n_basis               = UNSET
-   elsi_h%n_spins               = 1
-   elsi_h%n_kpts                = 1
-   elsi_h%i_spin                = 1
-   elsi_h%i_kpt                 = 1
-   elsi_h%i_weight              = 1.0_r8
-   elsi_h%n_b_rows              = UNSET
-   elsi_h%n_b_cols              = UNSET
-   elsi_h%n_p_rows              = UNSET
-   elsi_h%n_p_cols              = UNSET
-   elsi_h%n_l_rows              = UNSET
-   elsi_h%n_l_cols              = UNSET
-   elsi_h%myid                  = UNSET
-   elsi_h%myid_all              = UNSET
-   elsi_h%n_procs               = UNSET
-   elsi_h%n_procs_all           = UNSET
-   elsi_h%mpi_comm              = UNSET
-   elsi_h%mpi_comm_all          = UNSET
-   elsi_h%mpi_is_setup          = .false.
-   elsi_h%global_mpi_is_setup   = .false.
-   elsi_h%blacs_ctxt            = UNSET
-   elsi_h%sc_desc               = UNSET
-   elsi_h%mpi_comm_row          = UNSET
-   elsi_h%mpi_comm_col          = UNSET
-   elsi_h%my_p_row              = UNSET
-   elsi_h%my_p_col              = UNSET
-   elsi_h%blacs_is_setup        = .false.
-   elsi_h%nnz_g                 = UNSET
-   elsi_h%nnz_l                 = UNSET
-   elsi_h%zero_threshold        = 1.0e-15_r8
-   elsi_h%ovlp_is_unit          = .false.
-   elsi_h%ovlp_is_sing          = .false.
-   elsi_h%no_sing_check         = .false.
-   elsi_h%sing_tol              = 1.0e-5_r8
-   elsi_h%stop_sing             = .false.
-   elsi_h%n_nonsing             = UNSET
-   elsi_h%n_electrons           = 0.0_r8
-   elsi_h%mu                    = 0.0_r8
-   elsi_h%n_states              = UNSET
-   elsi_h%n_states_omm          = UNSET
-   elsi_h%n_occupied_states     = UNSET
-   elsi_h%broadening_scheme     = 0
-   elsi_h%broadening_width      = 1.0e-2_r8
-   elsi_h%occ_tolerance         = 1.0e-13_r8
-   elsi_h%max_mu_steps          = 100
-   elsi_h%spin_degen            = 0.0_r8
-   elsi_h%spin_is_set           = .false.
-   elsi_h%mu_ready              = .false.
-   elsi_h%edm_ready_real        = .false.
-   elsi_h%edm_ready_complex     = .false.
-   elsi_h%elpa_solver           = UNSET
-   elsi_h%elpa_output           = .false.
-   elsi_h%n_elpa_steps          = UNSET
-   elsi_h%new_overlap           = .true.
-   elsi_h%coeff_initialized     = .false.
-   elsi_h%omm_flavor            = UNSET
-   elsi_h%scale_kinetic         = 0.0_r8
-   elsi_h%calc_ed               = .false.
-   elsi_h%eta                   = 0.0_r8
-   elsi_h%min_tol               = 1.0e-12_r8
-   elsi_h%omm_output            = .false.
-   elsi_h%do_dealloc            = .false.
-   elsi_h%use_psp               = .false.
-   elsi_h%my_p_row_pexsi        = UNSET
-   elsi_h%my_p_col_pexsi        = UNSET
-   elsi_h%n_p_rows_pexsi        = UNSET
-   elsi_h%n_p_cols_pexsi        = UNSET
-   elsi_h%n_l_cols_pexsi        = UNSET
-   elsi_h%n_p_per_pole          = UNSET
-   elsi_h%nnz_l_pexsi           = UNSET
-   elsi_h%pexsi_started         = .false.
-   elsi_h%sparsity_is_setup     = .false.
-   elsi_h%n_mu_points           = UNSET
-   elsi_h%energy_hdm            = 0.0_r8
-   elsi_h%energy_sedm           = 0.0_r8
-   elsi_h%free_energy           = 0.0_r8
-   elsi_h%n_l_cols_sips         = UNSET
-   elsi_h%nnz_l_sips            = UNSET
-   elsi_h%n_p_per_slice         = UNSET
-   elsi_h%n_inertia_steps       = UNSET
-   elsi_h%slicing_method        = UNSET
-   elsi_h%inertia_option        = UNSET
-   elsi_h%unbound               = UNSET
-   elsi_h%n_slices              = UNSET
-   elsi_h%interval              = 0.0_r8
-   elsi_h%slice_buffer          = 0.0_r8
-   elsi_h%sips_started          = .false.
+   elsi_h%handle_ready      = .false.
+   elsi_h%solver            = UNSET
+   elsi_h%matrix_data_type  = UNSET
+   elsi_h%matrix_format     = UNSET
+   elsi_h%parallel_mode     = UNSET
+   elsi_h%uplo              = FULL_MAT
+   elsi_h%n_elsi_calls      = 0
+   elsi_h%n_basis           = UNSET
+   elsi_h%n_spins           = 1
+   elsi_h%n_kpts            = 1
+   elsi_h%i_spin            = 1
+   elsi_h%i_kpt             = 1
+   elsi_h%i_weight          = 1.0_r8
+   elsi_h%n_b_rows          = UNSET
+   elsi_h%n_b_cols          = UNSET
+   elsi_h%n_p_rows          = UNSET
+   elsi_h%n_p_cols          = UNSET
+   elsi_h%n_l_rows          = UNSET
+   elsi_h%n_l_cols          = UNSET
+   elsi_h%myid              = UNSET
+   elsi_h%myid_all          = UNSET
+   elsi_h%n_procs           = UNSET
+   elsi_h%n_procs_all       = UNSET
+   elsi_h%mpi_comm          = UNSET
+   elsi_h%mpi_comm_all      = UNSET
+   elsi_h%mpi_ready         = .false.
+   elsi_h%global_mpi_ready  = .false.
+   elsi_h%blacs_ctxt        = UNSET
+   elsi_h%sc_desc           = UNSET
+   elsi_h%mpi_comm_row      = UNSET
+   elsi_h%mpi_comm_col      = UNSET
+   elsi_h%my_p_row          = UNSET
+   elsi_h%my_p_col          = UNSET
+   elsi_h%blacs_ready       = .false.
+   elsi_h%nnz_g             = UNSET
+   elsi_h%nnz_l             = UNSET
+   elsi_h%nnz_l_sp          = UNSET
+   elsi_h%n_l_cols_sp       = UNSET
+   elsi_h%zero_threshold    = 1.0e-15_r8
+   elsi_h%ovlp_is_unit      = .false.
+   elsi_h%ovlp_is_sing      = .false.
+   elsi_h%no_sing_check     = .false.
+   elsi_h%sing_tol          = 1.0e-5_r8
+   elsi_h%stop_sing         = .false.
+   elsi_h%n_nonsing         = UNSET
+   elsi_h%n_electrons       = 0.0_r8
+   elsi_h%mu                = 0.0_r8
+   elsi_h%n_states          = UNSET
+   elsi_h%n_states_omm      = UNSET
+   elsi_h%n_occupied_states = UNSET
+   elsi_h%broadening_scheme = 0
+   elsi_h%broadening_width  = 1.0e-2_r8
+   elsi_h%occ_tolerance     = 1.0e-13_r8
+   elsi_h%max_mu_steps      = 100
+   elsi_h%spin_degen        = 0.0_r8
+   elsi_h%spin_is_set       = .false.
+   elsi_h%mu_ready          = .false.
+   elsi_h%edm_ready_real    = .false.
+   elsi_h%edm_ready_complex = .false.
+   elsi_h%elpa_solver       = UNSET
+   elsi_h%elpa_output       = .false.
+   elsi_h%n_elpa_steps      = UNSET
+   elsi_h%new_overlap       = .true.
+   elsi_h%coeff_ready       = .false.
+   elsi_h%omm_flavor        = UNSET
+   elsi_h%scale_kinetic     = 0.0_r8
+   elsi_h%calc_ed           = .false.
+   elsi_h%eta               = 0.0_r8
+   elsi_h%min_tol           = 1.0e-12_r8
+   elsi_h%omm_output        = .false.
+   elsi_h%do_dealloc        = .false.
+   elsi_h%use_psp           = .false.
+   elsi_h%my_p_row_pexsi    = UNSET
+   elsi_h%my_p_col_pexsi    = UNSET
+   elsi_h%n_p_rows_pexsi    = UNSET
+   elsi_h%n_p_cols_pexsi    = UNSET
+   elsi_h%n_p_per_pole      = UNSET
+   elsi_h%pexsi_started     = .false.
+   elsi_h%sparsity_ready    = .false.
+   elsi_h%n_mu_points       = UNSET
+   elsi_h%energy_hdm        = 0.0_r8
+   elsi_h%energy_sedm       = 0.0_r8
+   elsi_h%free_energy       = 0.0_r8
+   elsi_h%erf_decay         = 0.0_r8
+   elsi_h%erf_decay_min     = 0.0_r8
+   elsi_h%erf_decay_max     = 0.0_r8
+   elsi_h%ev_ham_min        = 0.0_r8
+   elsi_h%ev_ham_max        = 0.0_r8
+   elsi_h%ev_ovlp_min       = 0.0_r8
+   elsi_h%ev_ovlp_max       = 0.0_r8
+   elsi_h%beta              = 0.0_r8
+   elsi_h%chess_started     = .false.
+   elsi_h%n_p_per_slice     = UNSET
+   elsi_h%n_inertia_steps   = UNSET
+   elsi_h%slicing_method    = UNSET
+   elsi_h%inertia_option    = UNSET
+   elsi_h%unbound           = UNSET
+   elsi_h%n_slices          = UNSET
+   elsi_h%interval          = 0.0_r8
+   elsi_h%slice_buffer      = 0.0_r8
+   elsi_h%sips_started      = .false.
 
 end subroutine
 
@@ -1313,19 +1342,19 @@ subroutine elsi_check(elsi_h,caller)
               " Exiting...",elsi_h,caller)
    endif
 
-   if(elsi_h%matrix_storage_format == UNSET) then
+   if(elsi_h%matrix_format == UNSET) then
       call elsi_stop(" The matrix storage format has not been set."//&             
               " Please choose either BLACS_DENSE or PEXSI_CSC."//&
               " Exiting...",elsi_h,caller)
-   elseif((elsi_h%matrix_storage_format < 0) .or. &
-      (elsi_h%matrix_storage_format .ge. N_MATRIX_STORAGE_FORMATS)) then
+   elseif((elsi_h%matrix_format < 0) .or. &
+      (elsi_h%matrix_format .ge. N_MATRIX_STORAGE_FORMATS)) then
       call elsi_stop(" An unsupported matirx storage format has been"//&
               " set. Please choose either BLACS_DENSE or PEXSI_CSC."//&
               " Exiting...",elsi_h,caller)
    endif
 
    if(elsi_h%uplo /= FULL_MAT) then
-      if((elsi_h%matrix_storage_format /= BLACS_DENSE) .or. &
+      if((elsi_h%matrix_format /= BLACS_DENSE) .or. &
          (elsi_h%parallel_mode /= MULTI_PROC)) then
          call elsi_stop(" Upper/lower triangular input matrix only"//&
                  " supported with BLACS_DENSE matrix storage format and"//&
@@ -1335,13 +1364,13 @@ subroutine elsi_check(elsi_h,caller)
 
    ! Spin and k-point
    if(elsi_h%n_spins*elsi_h%n_kpts > 1) then
-      if(.not. elsi_h%global_mpi_is_setup) then
+      if(.not. elsi_h%global_mpi_ready) then
          call elsi_stop(" Spin/k-point calculations require a global"//&
                  " MPI communicator. Exiting...",elsi_h,caller)
       endif
    endif
 
-   if(.not. elsi_h%global_mpi_is_setup) then
+   if(.not. elsi_h%global_mpi_ready) then
       elsi_h%mpi_comm_all = elsi_h%mpi_comm
       elsi_h%n_procs_all  = elsi_h%n_procs
       elsi_h%myid_all     = elsi_h%myid
@@ -1355,21 +1384,21 @@ subroutine elsi_check(elsi_h,caller)
 
    elseif(elsi_h%solver == ELPA) then
       if(elsi_h%parallel_mode == MULTI_PROC) then
-         if(.not. elsi_h%mpi_is_setup) then
+         if(.not. elsi_h%mpi_ready) then
             call elsi_stop(" MULTI_PROC parallel mode requires MPI"//&
                     " being set up before calling the solver."//&
                     " Exiting...",elsi_h,caller)
          endif
 
-         if(.not. elsi_h%blacs_is_setup) then
+         if(.not. elsi_h%blacs_ready) then
             call elsi_stop(" MULTI_PROC parallel mode requires BLACS"//&
                     " being set up before calling the solver."//&
                     " Exiting...",elsi_h,caller)
          endif
       endif
 
-      if(elsi_h%matrix_storage_format == PEXSI_CSC) then
-         if(.not. elsi_h%sparsity_is_setup) then
+      if(elsi_h%matrix_format == PEXSI_CSC) then
+         if(.not. elsi_h%sparsity_ready) then
             call elsi_stop(" The PEXSI_CSC format has been chosen."//&
                     " Please set the sparsity pattern before"//&
                     " calling the solver. Exiting...",elsi_h,caller)
@@ -1378,13 +1407,13 @@ subroutine elsi_check(elsi_h,caller)
 
    elseif(elsi_h%solver == LIBOMM) then
       if(elsi_h%parallel_mode == MULTI_PROC) then
-         if(.not. elsi_h%mpi_is_setup) then
+         if(.not. elsi_h%mpi_ready) then
             call elsi_stop(" MULTI_PROC parallel mode requires MPI"//&
                     " being set up before calling the solver."//&
                     " Exiting...",elsi_h,caller)
          endif
 
-         if(.not. elsi_h%blacs_is_setup) then
+         if(.not. elsi_h%blacs_ready) then
             call elsi_stop(" MULTI_PROC parallel mode requires BLACS"//&
                     " being set up before calling the solver."//&
                     " Exiting...",elsi_h,caller)
@@ -1395,8 +1424,8 @@ subroutine elsi_check(elsi_h,caller)
                  " Exiting...",elsi_h,caller)
       endif
 
-      if(elsi_h%matrix_storage_format == PEXSI_CSC) then
-         if(.not. elsi_h%sparsity_is_setup) then
+      if(elsi_h%matrix_format == PEXSI_CSC) then
+         if(.not. elsi_h%sparsity_ready) then
             call elsi_stop(" The PEXSI_CSC format has been chosen."//&
                     " Please set the sparsity pattern before"//&
                     " calling the solver. Exiting...",elsi_h,caller)
@@ -1405,7 +1434,7 @@ subroutine elsi_check(elsi_h,caller)
 
    elseif(elsi_h%solver == PEXSI) then
       if(elsi_h%parallel_mode == MULTI_PROC) then
-         if(.not. elsi_h%mpi_is_setup) then
+         if(.not. elsi_h%mpi_ready) then
             call elsi_stop(" MULTI_PROC parallel mode requires MPI"//&
                     " being set up before calling the solver."//&
                     " Exiting...",elsi_h,caller)
@@ -1416,8 +1445,8 @@ subroutine elsi_check(elsi_h,caller)
                  " Exiting...",elsi_h,caller)
       endif
 
-      if(elsi_h%matrix_storage_format == BLACS_DENSE) then
-         if(.not. elsi_h%blacs_is_setup) then
+      if(elsi_h%matrix_format == BLACS_DENSE) then
+         if(.not. elsi_h%blacs_ready) then
             call elsi_stop(" The BLACS_DENSE format has been chosen."//&
                     " Please set up BLACS before calling the"//&
                     " solver. Exiting...",elsi_h,caller)
@@ -1429,7 +1458,7 @@ subroutine elsi_check(elsi_h,caller)
                     " Exiting...",elsi_h,caller)
          endif
       else
-         if(.not. elsi_h%sparsity_is_setup) then
+         if(.not. elsi_h%sparsity_ready) then
             call elsi_stop(" The PEXSI_CSC format has been chosen."//&
                     " Please set the sparsity pattern before"//&
                     " calling the solver. Exiting...",elsi_h,caller)
@@ -1461,9 +1490,43 @@ subroutine elsi_check(elsi_h,caller)
       endif
 
    elseif(elsi_h%solver == CHESS) then
-      call elsi_stop(" CHESS not yet available."//&
-              " Please choose ELPA, LIBOMM, or PEXSI solver."//&
-              " Exiting...",elsi_h,caller)
+      call elsi_statement_print("  ATTENTION! CheSS is EXPERIMENTAL.",elsi_h)
+
+      if(elsi_h%n_basis < elsi_h%n_procs) then
+         call elsi_stop(" CheSS has been chosen as the solver."//&
+                 " The size of matrix is too small for this"//&
+                 " number of processes. Exiting...",elsi_h,caller)
+      endif
+
+      if(elsi_h%parallel_mode == MULTI_PROC) then
+         if(.not. elsi_h%mpi_ready) then
+            call elsi_stop(" MULTI_PROC parallel mode requires MPI"//&
+                    " being set up before calling the solver."//&
+                    " Exiting...",elsi_h,caller)
+         endif
+      else
+         call elsi_stop(" CheSS has been chosen as the solver."//&
+                 " Please choose MULTI_PROC parallel mode."//&
+                 " Exiting...",elsi_h,caller)
+      endif
+
+      if(elsi_h%matrix_format == BLACS_DENSE) then
+         if(.not. elsi_h%blacs_ready) then
+            call elsi_stop(" The BLACS_DENSE format has been chosen."//&
+                    " Please set up BLACS before calling the solver."//&
+                    " Exiting...",elsi_h,caller)
+         endif
+
+         if(elsi_h%ovlp_is_unit) then
+            call elsi_stop(" CheSS with BLACS_DENSE format and an"//&
+                    " identity overlap matrix not yet available."//&
+                    " Exiting...",elsi_h,caller)
+         endif
+      else
+         call elsi_stop(" CheSS has been chosen as the solver."//&
+                 " Please choose BLACS_DENSE matrix format."//&
+                 " Exiting...",elsi_h,caller)
+      endif
 
    elseif(elsi_h%solver == SIPS) then
       call elsi_statement_print("  ATTENTION! SIPs is EXPERIMENTAL.",elsi_h)
@@ -1475,7 +1538,7 @@ subroutine elsi_check(elsi_h,caller)
       endif
 
       if(elsi_h%parallel_mode == MULTI_PROC) then
-         if(.not. elsi_h%mpi_is_setup) then
+         if(.not. elsi_h%mpi_ready) then
             call elsi_stop(" MULTI_PROC parallel mode requires MPI"//&
                     " being set up before calling the solver."//&
                     " Exiting...",elsi_h,caller)
@@ -1486,11 +1549,11 @@ subroutine elsi_check(elsi_h,caller)
                  " Exiting...",elsi_h,caller)
       endif
 
-      if(elsi_h%matrix_storage_format == BLACS_DENSE) then
-         if(.not. elsi_h%blacs_is_setup) then
+      if(elsi_h%matrix_format == BLACS_DENSE) then
+         if(.not. elsi_h%blacs_ready) then
             call elsi_stop(" The BLACS_DENSE format has been chosen."//&
-                    " Please set up BLACS before calling the"//&
-                    " solver. Exiting...",elsi_h,caller)
+                    " Please set up BLACS before calling the solver."//&
+                    " Exiting...",elsi_h,caller)
          endif
 
          if(elsi_h%ovlp_is_unit) then
@@ -1499,7 +1562,7 @@ subroutine elsi_check(elsi_h,caller)
                     " Exiting...",elsi_h,caller)
          endif
       else
-         if(.not. elsi_h%sparsity_is_setup) then
+         if(.not. elsi_h%sparsity_ready) then
             call elsi_stop(" The PEXSI_CSC format has been chosen."//&
                     " Please set the sparsity pattern before"//&
                     " calling the solver. Exiting...",elsi_h,caller)
@@ -1527,7 +1590,7 @@ subroutine elsi_check_handle(elsi_h,caller)
    type(elsi_handle), intent(in) :: elsi_h !< Handle
    character(len=*),  intent(in) :: caller !< Caller
 
-   if(.not. elsi_h%handle_initialized) then
+   if(.not. elsi_h%handle_ready) then
       call elsi_stop(" Invalid handle! An ELSI handle must be properly"//&
               " initialized with 'elsi_init' before being used."//&
               " Exiting...",elsi_h,caller)
