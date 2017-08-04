@@ -202,16 +202,16 @@ subroutine elsi_set_chess_default(elsi_h)
    elsi_h%erf_decay_max = 5.0e-2_r8
 
    ! Lower bound of the eigenvalues of H
-   elsi_h%ev_ham_min = -20.0_r8
+   elsi_h%ev_ham_min = -2.0_r8
 
    ! Upper bound of the eigenvalues of H
-   elsi_h%ev_ham_max = 5.0_r8
+   elsi_h%ev_ham_max = 2.0_r8
 
    ! Lower bound of the eigenvalues of S
-   elsi_h%ev_ovlp_min = 1.0e-6_r8
+   elsi_h%ev_ovlp_min = 1.0e-4_r8
 
    ! Upper bound of the eigenvalues of S
-   elsi_h%ev_ovlp_max = 1.0_r8
+   elsi_h%ev_ovlp_max = 2.0_r8
 
    ! A patameter used to estimate eigenspectrum
    elsi_h%beta = -1.0e3_r8
