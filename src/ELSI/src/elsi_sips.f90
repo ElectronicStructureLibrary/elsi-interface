@@ -79,17 +79,9 @@ subroutine elsi_init_sips(elsi_h)
          elsi_h%n_l_cols_sp = elsi_h%n_basis-(elsi_h%n_procs-1)*elsi_h%n_l_cols_sp
       endif
 
-      if(.not. allocated(elsi_h%slices)) then
-         call elsi_allocate(elsi_h,elsi_h%slices,elsi_h%n_slices+1,"slices",caller)
-      endif
-
-      if(.not. allocated(elsi_h%inertias)) then
-         call elsi_allocate(elsi_h,elsi_h%inertias,elsi_h%n_slices+1,"inertias",caller)
-      endif
-
-      if(.not. allocated(elsi_h%shifts)) then
-         call elsi_allocate(elsi_h,elsi_h%shifts,elsi_h%n_slices+1,"shifts",caller)
-      endif
+      call elsi_allocate(elsi_h,elsi_h%slices,elsi_h%n_slices+1,"slices",caller)
+      call elsi_allocate(elsi_h,elsi_h%inertias,elsi_h%n_slices+1,"inertias",caller)
+      call elsi_allocate(elsi_h,elsi_h%shifts,elsi_h%n_slices+1,"shifts",caller)
 
       elsi_h%sips_started = .true.
    endif

@@ -706,6 +706,8 @@ subroutine elsi_to_original_ev(elsi_h)
                       elsi_h%n_l_cols)
       endif
 
+      call elsi_deallocate(elsi_h,tmp_complex,"tmp_complex")
+
    case(REAL_VALUES)
       call elsi_allocate(elsi_h,tmp_real,elsi_h%n_l_rows,&
               elsi_h%n_l_cols,"tmp_real",caller)
@@ -729,10 +731,8 @@ subroutine elsi_to_original_ev(elsi_h)
                       elsi_h%evec_real,elsi_h%n_l_rows,elsi_h%n_l_cols)
       endif
 
+      call elsi_deallocate(elsi_h,tmp_real,"tmp_real")
    end select
-
-   if(allocated(tmp_real))    call elsi_deallocate(elsi_h,tmp_real,"tmp_real")
-   if(allocated(tmp_complex)) call elsi_deallocate(elsi_h,tmp_complex,"tmp_complex")
 
    call elsi_stop_back_transform_ev_time(elsi_h)
 
@@ -1703,28 +1703,22 @@ subroutine elsi_get_eval_all(elsi_h)
 
    character*40, parameter :: caller = "elsi_get_eval_all"
 
-   if(.not. allocated(elsi_h%eval_all)) then
+   if(elsi_h%n_elsi_calls == 1) then
       call elsi_allocate(elsi_h,elsi_h%eval_all,elsi_h%n_states,&
               elsi_h%n_spins,elsi_h%n_kpts,"eval_all",caller)
-   endif
 
-   elsi_h%eval_all = 0.0_r8
-   elsi_h%eval_all(1:elsi_h%n_states,elsi_h%i_spin,elsi_h%i_kpt) = &
-      elsi_h%eval_elpa(1:elsi_h%n_states)
-
-   if(.not. allocated(elsi_h%occ_num)) then
       call elsi_allocate(elsi_h,elsi_h%occ_num,elsi_h%n_states,&
               elsi_h%n_spins,elsi_h%n_kpts,"occ_num",caller)
-   endif
 
-   elsi_h%occ_num = 0.0_r8
-
-   if(.not. allocated(elsi_h%k_weight)) then
       call elsi_allocate(elsi_h,elsi_h%k_weight,&
               elsi_h%n_kpts,"k_weight",caller)
    endif
 
+   elsi_h%eval_all = 0.0_r8
+   elsi_h%occ_num = 0.0_r8
    elsi_h%k_weight = 0.0_r8
+   elsi_h%eval_all(1:elsi_h%n_states,elsi_h%i_spin,elsi_h%i_kpt) = &
+      elsi_h%eval_elpa(1:elsi_h%n_states)
    elsi_h%k_weight(elsi_h%i_kpt) = elsi_h%i_weight
 
    if(elsi_h%n_spins*elsi_h%n_kpts > 1) then
