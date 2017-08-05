@@ -40,10 +40,9 @@ module F_PPEXSI_INTERFACE
    public :: f_ppexsi_set_default_options
    public :: f_ppexsi_plan_initialize
    public :: f_ppexsi_load_real_hs_matrix
-   public :: f_ppexsi_dft_driver
-   public :: f_ppexsi_dft_driver3
-   public :: f_ppexsi_retrieve_real_dft_matrix
-   public :: f_ppexsi_retrieve_real_dft_matrix2
+   public :: f_ppexsi_dft_driver2
+   public :: f_ppexsi_retrieve_real_dm
+   public :: f_ppexsi_retrieve_real_edm
    public :: f_ppexsi_plan_finalize
 
    type, public, bind(C) :: f_ppexsi_options
@@ -68,6 +67,8 @@ module F_PPEXSI_INTERFACE
       integer(kind=i4) :: npSymbFact
       integer(kind=i4) :: symmetric
       integer(kind=i4) :: transpose
+      integer(kind=i4) :: method
+      integer(kind=i4) :: nPoints
       integer(kind=i4) :: verbosity
    end type
 
@@ -90,7 +91,9 @@ function f_ppexsi_plan_initialize(fcomm,numProcRow,numProcCol,outputFileIndex,in
    implicit none
 
    integer                  :: fcomm
-   integer(kind=i4)         :: numProcRow,numProcCol,outputFileIndex
+   integer(kind=i4)         :: numProcRow
+   integer(kind=i4)         :: numProcCol
+   integer(kind=i4)         :: outputFileIndex
    integer(kind=i4)         :: info
    integer(kind=c_intptr_t) :: f_ppexsi_plan_initialize
 
@@ -110,9 +113,15 @@ subroutine f_ppexsi_load_real_hs_matrix(plan,options,nrows,nnz,nnzLocal,&
 
    integer(kind=c_intptr_t) :: plan
    type(f_ppexsi_options)   :: options
-   integer(kind=i4)         :: nrows,nnz,nnzLocal,numColLocal,isSIdentity
-   integer(kind=i4)         :: colptrLocal(*),rowindLocal(*)
-   real(kind=r8)            :: HnzvalLocal(*),SnzvalLocal(*)
+   integer(kind=i4)         :: nrows
+   integer(kind=i4)         :: nnz
+   integer(kind=i4)         :: nnzLocal
+   integer(kind=i4)         :: numColLocal
+   integer(kind=i4)         :: isSIdentity
+   integer(kind=i4)         :: colptrLocal(*)
+   integer(kind=i4)         :: rowindLocal(*)
+   real(kind=r8)            :: HnzvalLocal(*)
+   real(kind=r8)            :: SnzvalLocal(*)
    integer(kind=i4)         :: info
 
    write(*,"(A)") " A PEXSI stub routine was called. Check ELSI installation."
@@ -121,27 +130,7 @@ subroutine f_ppexsi_load_real_hs_matrix(plan,options,nrows,nnz,nnzLocal,&
 
 end subroutine
 
-subroutine f_ppexsi_dft_driver(plan,options,numElectronExact,muPEXSI,&
-              numElectronPEXSI,muMinInertia,muMaxInertia,numTotalInertiaIter,&
-              numTotalPEXSIIter,info)
-
-   implicit none
-
-   integer(kind=c_intptr_t) :: plan
-   type(f_ppexsi_options)   :: options
-   real(kind=r8)            :: numElectronExact
-   real(kind=r8)            :: muPEXSI,numElectronPEXSI
-   real(kind=r8)            :: muMinInertia,muMaxInertia
-   integer(kind=i4)         :: numTotalInertiaIter,numTotalPEXSIIter
-   integer(kind=i4)         :: info
-
-   write(*,"(A)") " A PEXSI stub routine was called. Check ELSI installation."
-   write(*,"(A)") " Exiting..."
-   stop
-
-end subroutine
-
-subroutine f_ppexsi_dft_driver3(plan,options,numElectronExact,pexsi_driver,&
+subroutine f_ppexsi_dft_driver2(plan,options,numElectronExact,pexsi_driver,&
               n_mu_points,muPEXSI,numElectronPEXSI,numTotalInertiaIter,info)
 
    implicit none
@@ -149,8 +138,10 @@ subroutine f_ppexsi_dft_driver3(plan,options,numElectronExact,pexsi_driver,&
    integer(kind=c_intptr_t) :: plan
    type(f_ppexsi_options)   :: options
    real(kind=r8)            :: numElectronExact
-   integer(kind=i4)         :: pexsi_driver,n_mu_points
-   real(kind=r8)            :: muPEXSI,numElectronPEXSI
+   integer(kind=i4)         :: pexsi_driver
+   integer(kind=i4)         :: n_mu_points
+   real(kind=r8)            :: muPEXSI
+   real(kind=r8)            :: numElectronPEXSI
    integer(kind=i4)         :: numTotalInertiaIter
    integer(kind=i4)         :: info
 
@@ -160,15 +151,13 @@ subroutine f_ppexsi_dft_driver3(plan,options,numElectronExact,pexsi_driver,&
 
 end subroutine
 
-subroutine f_ppexsi_retrieve_real_dft_matrix(plan,DMnzvalLocal,&
-              EDMnzvalLocal,FDMnzvalLocal,totalEnergyH,totalEnergyS,&
-              totalFreeEnergy,info)
+subroutine f_ppexsi_retrieve_real_dm(plan,DMnzvalLocal,totalEnergyH,info)
 
    implicit none
 
    integer(kind=c_intptr_t) :: plan
-   real(kind=r8)            :: DMnzvalLocal(*),EDMnzvalLocal(*),FDMnzvalLocal(*)
-   real(kind=r8)            :: totalEnergyH,totalEnergyS,totalFreeEnergy
+   real(kind=r8)            :: DMnzvalLocal(*)
+   real(kind=r8)            :: totalEnergyH
    integer(kind=i4)         :: info
 
    write(*,"(A)") " A PEXSI stub routine was called. Check ELSI installation."
@@ -177,15 +166,13 @@ subroutine f_ppexsi_retrieve_real_dft_matrix(plan,DMnzvalLocal,&
 
 end subroutine
 
-subroutine f_ppexsi_retrieve_real_dft_matrix2(plan,DMnzvalLocal,&
-              EDMnzvalLocal,FDMnzvalLocal,totalEnergyH,totalEnergyS,&
-              totalFreeEnergy,info)
+subroutine f_ppexsi_retrieve_real_edm(plan,EDMnzvalLocal,totalEnergyS,info)
 
    implicit none
 
    integer(kind=c_intptr_t) :: plan
-   real(kind=r8)            :: DMnzvalLocal(*),EDMnzvalLocal(*),FDMnzvalLocal(*)
-   real(kind=r8)            :: totalEnergyH,totalEnergyS,totalFreeEnergy
+   real(kind=r8)            :: EDMnzvalLocal(*)
+   real(kind=r8)            :: totalEnergyS
    integer(kind=i4)         :: info
 
    write(*,"(A)") " A PEXSI stub routine was called. Check ELSI installation."

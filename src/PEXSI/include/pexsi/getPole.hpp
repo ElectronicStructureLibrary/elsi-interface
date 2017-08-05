@@ -1,6 +1,6 @@
 /*
    Copyright (c) 2017 The Regents of the University of California,
-   through Lawrence Berkeley National Laboratory.
+   through Lawrence Berkeley National Laboratory.  
 
 Authors: Weile Jia & Lin Lin
 
@@ -48,7 +48,7 @@ such enhancements or derivative works thereof, in binary and source code form.
 #define _PEXSI_GETPOLE_HPP_
 
 #include "pexsi/environment.hpp"
-class poleClass {
+class poleClass { 
     private:
 
 	// @brief method used

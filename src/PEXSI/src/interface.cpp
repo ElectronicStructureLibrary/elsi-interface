@@ -253,7 +253,7 @@ void PPEXSISetDefaultOptions(
   options->temperature           = 0.0019;   // 300K 
   options->gap                   = 0.0;      // no gap 
   options->deltaE                = 10.0; 
-  options->numPole               = 40;
+  options->numPole               = 20;
   options->isInertiaCount        = 1;
   options->maxPEXSIIter          = 3;
   options->muMin0                = -10.0; 
@@ -271,7 +271,9 @@ void PPEXSISetDefaultOptions(
   options->npSymbFact            = 1;
   options->symmetric             = 1;
   options->transpose             = 0;
+  options->method                = 2;
   options->verbosity             = 1;
+  options->nPoints               = 2;
 }   // -----  end of function PPEXSISetDefaultOptions  ----- 
 
 
@@ -845,10 +847,12 @@ void PPEXSICalculateFermiOperatorComplex(
         mu,
         numElectronExact,
         options.numElectronPEXSITolerance,
-          options.solver,
+        options.solver,
         options.verbosity,
         *numElectronPEXSI,
-        *numElectronDrvMuPEXSI );
+        *numElectronDrvMuPEXSI,
+         options.method,
+         options.nPoints);
   }
   catch( std::exception& e )
   {
@@ -860,6 +864,138 @@ void PPEXSICalculateFermiOperatorComplex(
 
   return ;
 }		// -----  end of function PPEXSICalculateFermiOperatorComplex   ----- 
+
+extern "C"
+void PPEXSICalculateEDMCorrectionReal(
+    PPEXSIPlan        plan,
+    PPEXSIOptions     options,
+    int*              info )
+{
+  *info = 0;
+  const GridType* gridPole = 
+    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
+
+  try{
+    reinterpret_cast<PPEXSIData*>(plan)->CalculateEDMCorrectionReal(
+        options.numPole,
+        options.verbosity,
+        options.nPoints);
+  }
+  catch( std::exception& e )
+  {
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+      << " caught exception with message: "
+      << std::endl << e.what() << std::endl;
+    *info = 1;
+  }
+
+  return ;
+}		// -----  end of function PPEXSICalculateEDMCorrectionReal  ----- 
+
+extern "C"
+void PPEXSICalculateEDMCorrectionComplex(
+    PPEXSIPlan        plan,
+    PPEXSIOptions     options,
+    int*              info )
+{
+  *info = 0;
+  const GridType* gridPole = 
+    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
+
+  try{
+    reinterpret_cast<PPEXSIData*>(plan)->CalculateEDMCorrectionComplex(
+        options.numPole,
+        options.verbosity,
+        options.nPoints);
+  }
+  catch( std::exception& e )
+  {
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+      << " caught exception with message: "
+      << std::endl << e.what() << std::endl;
+    *info = 1;
+  }
+
+  return ;
+}		// -----  end of function PPEXSICalculateEDMCorrectionComplex  ----- 
+
+extern "C"
+void PPEXSIInterpolateDMReal(
+    PPEXSIPlan        plan,
+    PPEXSIOptions*    options,
+    double            numElectronExact,
+    double            numElectronPEXSI,
+    double *          NeVec,
+    double *          muPEXSI,
+    int*              info )
+{
+  *info = 0;
+  const GridType* gridPole = 
+    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
+
+  try{
+    reinterpret_cast<PPEXSIData*>(plan)->InterpolateDMReal(
+        numElectronExact,
+	numElectronPEXSI,
+	options->numElectronPEXSITolerance,
+	options->nPoints,
+	NeVec,
+	options->muMin0,
+	options->muMax0,
+	*muPEXSI, 
+	options->verbosity);
+
+  }
+  catch( std::exception& e )
+  {
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+      << " caught exception with message: "
+      << std::endl << e.what() << std::endl;
+    *info = 1;
+  }
+
+  return ;
+}		// -----  end of function PEXSIInterpolateDMReal  ----- 
+
+
+extern "C"
+void PPEXSIInterpolateDMComplex(
+    PPEXSIPlan        plan,
+    PPEXSIOptions*    options,
+    double            numElectronExact,
+    double            numElectronPEXSI,
+    double *          NeVec,
+    double *          muPEXSI,
+    int*              info )
+{
+  *info = 0;
+  const GridType* gridPole = 
+    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
+
+  try{
+    reinterpret_cast<PPEXSIData*>(plan)->InterpolateDMComplex(
+        numElectronExact,
+	numElectronPEXSI,
+	options->numElectronPEXSITolerance,
+	options->nPoints,
+	NeVec,
+	options->muMin0,
+	options->muMax0,
+	*muPEXSI, 
+	options->verbosity);
+
+  }
+  catch( std::exception& e )
+  {
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+      << " caught exception with message: "
+      << std::endl << e.what() << std::endl;
+    *info = 1;
+  }
+
+  return ;
+}		// -----  end of function PEXSIInterpolateDMComplex  ----- 
+
 
 
 extern "C"
@@ -1041,7 +1177,7 @@ void PPEXSIDFTDriver(
 }   // -----  end of function PPEXSIDFTDriver  ----- 
 
 extern "C"
-void PPEXSIDFTDriver2(
+void PPEXSIDFTDriver2_Deprecate(
     /* Input parameters */
     PPEXSIPlan        plan,
     PPEXSIOptions     options,
@@ -1058,7 +1194,7 @@ void PPEXSIDFTDriver2(
     reinterpret_cast<PPEXSIData*>(plan)->GridPole();
 
   try{
-    reinterpret_cast<PPEXSIData*>(plan)->DFTDriver2(
+    reinterpret_cast<PPEXSIData*>(plan)->DFTDriver2_Deprecate(
         numElectronExact,
         options.temperature,
         options.gap,
@@ -1091,10 +1227,10 @@ void PPEXSIDFTDriver2(
     *info = 1;
   }
   return;
-}   // -----  end of function PPEXSIDFTDriver2  ----- 
+}   // -----  end of function PPEXSIDFTDriver2_Deprecate  ----- 
 
 extern "C"
-void PPEXSIDFTDriver3(
+void PPEXSIDFTDriver2(
     /* Input parameters */
     PPEXSIPlan        plan,
     PPEXSIOptions*    options,        // options is input and output
@@ -1111,7 +1247,7 @@ void PPEXSIDFTDriver3(
   reinterpret_cast<PPEXSIData*>(plan)->GridPole();
 
   try{
-    reinterpret_cast<PPEXSIData*>(plan)->DFTDriver3(
+    reinterpret_cast<PPEXSIData*>(plan)->DFTDriver2(
         numElectronExact,
         options->temperature,
         options->gap,
@@ -1141,7 +1277,7 @@ void PPEXSIDFTDriver3(
     *info = 1;
   }
   return;
-}   // -----  end of function PPEXSIDFTDriver3  ----- 
+}   // -----  end of function PPEXSIDFTDriver2  ----- 
 
 
 extern "C"
@@ -1514,5 +1650,243 @@ PPEXSIPlan f_ppexsi_plan_initialize (
       outputFileIndex,
       info );
 }		// -----  end of function f_ppexsi_plan_initialize  ----- 
+
+extern "C"
+void PPEXSIRetrieveComplexDMEDM(
+    PPEXSIPlan  plan,
+    double*     DMnzvalLocal,
+    double*     EDMnzvalLocal,
+    int*        nnz,
+    int*        info ){
+  *info = 0;
+  const GridType* gridPole = 
+    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
+  PPEXSIData* ptrData = reinterpret_cast<PPEXSIData*>(plan);
+
+  try{
+    Int nnzLocal = ptrData->RhoComplexMat().nnzLocal;
+
+    blas::Copy( 2*nnzLocal, 
+        reinterpret_cast<double*>(ptrData->RhoComplexMat().nzvalLocal.Data()), 1,
+        DMnzvalLocal, 1 );
+
+    blas::Copy( 2*nnzLocal, 
+        reinterpret_cast<double*>(ptrData->EnergyDensityComplexMat().nzvalLocal.Data()), 1,
+        EDMnzvalLocal, 1 );
+
+    *nnz = nnzLocal;
+  }
+  catch( std::exception& e ) {
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+      << " caught exception with message: "
+      << std::endl << e.what() << std::endl;
+    *info = 1;
+  }
+  return;
+}   // -----  end of function PPEXSIRetrieveComplexDMEDM   ----- 
+
+
+extern "C"
+void PPEXSIRetrieveRealDMEDM(
+    PPEXSIPlan  plan,
+    double*     DMnzvalLocal,
+    double*     EDMnzvalLocal,
+    int*        nnz,
+    int*        info ){
+  *info = 0;
+  const GridType* gridPole = 
+    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
+  PPEXSIData* ptrData = reinterpret_cast<PPEXSIData*>(plan);
+
+  try{
+
+    Int nnzLocal = ptrData->RhoRealMat().nnzLocal;
+
+    blas::Copy( nnzLocal, ptrData->RhoRealMat().nzvalLocal.Data(), 1,
+        DMnzvalLocal, 1 );
+
+    blas::Copy( nnzLocal, ptrData->EnergyDensityRealMat().nzvalLocal.Data(), 1,
+        EDMnzvalLocal, 1 );
+
+    *nnz = nnzLocal;
+  }
+  catch( std::exception& e ) {
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+      << " caught exception with message: "
+      << std::endl << e.what() << std::endl;
+    *info = 1;
+  }
+  return;
+}   // -----  end of function PPEXSIRetrieveRealDMEDM   ----- 
+
+extern "C"
+void PPEXSIRetrieveRealDM(
+    PPEXSIPlan  plan,
+    double*     DMnzvalLocal,
+    double*     totalEnergyH,
+    int*              info ){
+  *info = 0;
+  const GridType* gridPole = 
+    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
+  PPEXSIData* ptrData = reinterpret_cast<PPEXSIData*>(plan);
+
+  try{
+    Int nnzLocal = ptrData->RhoRealMat().nnzLocal;
+
+    blas::Copy( nnzLocal, ptrData->RhoRealMat().nzvalLocal.Data(), 1,
+        DMnzvalLocal, 1 );
+    *totalEnergyH = ptrData->TotalEnergyH();
+  }
+  catch( std::exception& e ) {
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+      << " caught exception with message: "
+      << std::endl << e.what() << std::endl;
+    *info = 1;
+  }
+  return;
+}   // -----  end of function PPEXSIRetrieveRealDM  ----- 
+
+extern "C"
+void PPEXSIRetrieveRealEDM(
+    PPEXSIPlan  plan,
+    double*     EDMnzvalLocal,
+    double*     totalEnergyS,
+    int*        info ){
+  *info = 0;
+  const GridType* gridPole = 
+    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
+  PPEXSIData* ptrData = reinterpret_cast<PPEXSIData*>(plan);
+
+  try{
+    Int nnzLocal = ptrData->EnergyDensityRealMat().nnzLocal;
+
+    blas::Copy( nnzLocal, ptrData->EnergyDensityRealMat().nzvalLocal.Data(), 1,
+        EDMnzvalLocal, 1 );
+
+    *totalEnergyS = ptrData->TotalEnergyS();
+  }
+  catch( std::exception& e ) {
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+      << " caught exception with message: "
+      << std::endl << e.what() << std::endl;
+    *info = 1;
+  }
+  return;
+}   // -----  end of function PPEXSIRetrieveRealEDM   ----- 
+
+extern "C"
+void PPEXSIRetrieveRealFDM(
+    PPEXSIPlan        plan,
+    double*     FDMnzvalLocal,
+    double*     totalFreeEnergy,
+    int*              info ){
+  *info = 0;
+  const GridType* gridPole = 
+    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
+  PPEXSIData* ptrData = reinterpret_cast<PPEXSIData*>(plan);
+
+  try{
+    Int nnzLocal = ptrData->RhoRealMat().nnzLocal;
+
+    blas::Copy( nnzLocal, ptrData->FreeEnergyDensityRealMat().nzvalLocal.Data(), 1,
+        FDMnzvalLocal, 1 );
+
+    *totalFreeEnergy = ptrData->TotalFreeEnergy();
+  }
+  catch( std::exception& e ) {
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+      << " caught exception with message: "
+      << std::endl << e.what() << std::endl;
+    *info = 1;
+  }
+  return;
+}   // -----  end of function PPEXSIRetrieveRealFDM   ----- 
+
+extern "C"
+void PPEXSIRetrieveComplexDM(
+    PPEXSIPlan        plan,
+    double*      DMnzvalLocal,
+    double*     totalEnergyH,
+    int*              info ){
+  *info = 0;
+  const GridType* gridPole = 
+    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
+  PPEXSIData* ptrData = reinterpret_cast<PPEXSIData*>(plan);
+
+  try{
+    Int nnzLocal = ptrData->RhoComplexMat().nnzLocal;
+
+    blas::Copy( 2*nnzLocal, 
+        reinterpret_cast<double*>(ptrData->RhoComplexMat().nzvalLocal.Data()), 1,
+        DMnzvalLocal, 1 );
+
+    *totalEnergyH = ptrData->TotalEnergyH();
+  }
+  catch( std::exception& e ) {
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+      << " caught exception with message: "
+      << std::endl << e.what() << std::endl;
+    *info = 1;
+  }
+  return;
+}   // -----  end of function PPEXSIRetrieveComplexDM  ----- 
+
+extern "C"
+void PPEXSIRetrieveComplexEDM(
+    PPEXSIPlan        plan,
+    double*     EDMnzvalLocal,
+    double*     totalEnergyS,
+    int*              info ){
+  *info = 0;
+  const GridType* gridPole = 
+    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
+  PPEXSIData* ptrData = reinterpret_cast<PPEXSIData*>(plan);
+
+  try{
+    Int nnzLocal = ptrData->RhoComplexMat().nnzLocal;
+
+    blas::Copy( 2*nnzLocal, 
+        reinterpret_cast<double*>(ptrData->EnergyDensityComplexMat().nzvalLocal.Data()), 1,
+        EDMnzvalLocal, 1 );
+
+    *totalEnergyS = ptrData->TotalEnergyS();
+  }
+  catch( std::exception& e ) {
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+      << " caught exception with message: "
+      << std::endl << e.what() << std::endl;
+    *info = 1;
+  }
+  return;
+}   // -----  end of function PPEXSIRetrieveComplexEDM ----- 
+
+extern "C"
+void PPEXSIRetrieveComplexFDM(
+    PPEXSIPlan        plan,
+    double*     FDMnzvalLocal,
+    double*     totalFreeEnergy,
+    int*              info ){
+  *info = 0;
+  const GridType* gridPole = 
+    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
+  PPEXSIData* ptrData = reinterpret_cast<PPEXSIData*>(plan);
+
+  try{
+    Int nnzLocal = ptrData->RhoComplexMat().nnzLocal;
+
+    blas::Copy( 2*nnzLocal, 
+        reinterpret_cast<double*>(ptrData->FreeEnergyDensityComplexMat().nzvalLocal.Data()), 1,
+        FDMnzvalLocal, 1 );
+
+    *totalFreeEnergy = ptrData->TotalFreeEnergy();
+  }
+  catch( std::exception& e ) {
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+      << " caught exception with message: "
+      << std::endl << e.what() << std::endl;
+    *info = 1;
+  }
+  return;
+}   // -----  end of function PPEXSIRetrieveComplexFDM  ----- 
 
 

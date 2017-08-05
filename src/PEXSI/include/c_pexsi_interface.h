@@ -1,6 +1,6 @@
 /*
    Copyright (c) 2012 The Regents of the University of California,
-   through Lawrence Berkeley National Laboratory.  
+   through Lawrence Berkeley National Laboratory.
 
    Author: Lin Lin
 
@@ -295,6 +295,22 @@ typedef struct {
      * - = 1   : Factor transposed matrix.
      */ 
     int           transpose;
+    /** 
+     * @brief  The pole expansion method to be used.
+     * - = 1   : Cauchy Contour Integral method used.
+     * - = 2   : Moussa optimized method.
+     */ 
+    int           method;
+    /** 
+     * @brief  The point parallelizaion of PEXSI.
+     * - = 2  : Recommend two points parallelization
+     */ 
+    int           nPoints;
+    /** 
+     * @brief  The driver version of the PEXSI.
+     * - = 1.0.0 : Latest version is 1.0.0 
+     */ 
+    //char         driverVersion[10] ;//= "1.0.0";
     /** 
      * @brief  The level of output information.
      * - = 0   : No output.
@@ -951,12 +967,12 @@ void PPEXSIDFTDriver(
     PPEXSIPlan        plan,
     PPEXSIOptions     options,
     double            numElectronExact,
-		double*           muPEXSI,
-		double*           numElectronPEXSI,
+    double*           muPEXSI,
+    double*           numElectronPEXSI,
     double*           muMinInertia,
-		double*           muMaxInertia,
-		int*              numTotalInertiaIter,
-		int*              numTotalPEXSIIter,
+    double*           muMaxInertia,
+    int*              numTotalInertiaIter,
+    int*              numTotalPEXSIIter,
     int*              info );
 
 /**
@@ -1027,15 +1043,15 @@ void PPEXSIDFTDriver(
  * - = 0: successful exit.  
  * - > 0: unsuccessful.
  */
-void PPEXSIDFTDriver2(
+void PPEXSIDFTDriver2_Deprecate(
     PPEXSIPlan        plan,
     PPEXSIOptions     options,
     double            numElectronExact,
-		double*           muPEXSI,
-		double*           numElectronPEXSI,
+    double*           muPEXSI,
+    double*           numElectronPEXSI,
     double*           muMinInertia,
-		double*           muMaxInertia,
-		int*              numTotalInertiaIter,
+    double*           muMaxInertia,
+    int*              numTotalInertiaIter,
     int*              info );
 
 /**
@@ -1106,7 +1122,7 @@ void PPEXSIDFTDriver2(
  * - = 0: successful exit.  
  * - > 0: unsuccessful.
  */
-void PPEXSIDFTDriver3(
+void PPEXSIDFTDriver2(
     PPEXSIPlan        plan,
     PPEXSIOptions*    options,
     double            numElectronExact,
@@ -1114,8 +1130,6 @@ void PPEXSIDFTDriver3(
     int               nPoints,
     double*           muPEXSI,
     double*           numElectronPEXSI,
-    //double*           muMinInertia,
-    //double*           muMaxInertia,
     int*              numTotalInertiaIter,
     int*              info );
 
@@ -1137,9 +1151,9 @@ void PPEXSIDFTDriver3(
  */
 void PPEXSIRetrieveRealDFTMatrix(
     PPEXSIPlan        plan,
-		double*      DMnzvalLocal,
-		double*     EDMnzvalLocal,
-		double*     FDMnzvalLocal,
+    double*      DMnzvalLocal,
+    double*     EDMnzvalLocal,
+    double*     FDMnzvalLocal,
     double*     totalEnergyH,
     double*     totalEnergyS,
     double*     totalFreeEnergy,
@@ -1188,9 +1202,9 @@ void PPEXSIRetrieveRealDFTMatrix2(
  */
 void PPEXSIRetrieveComplexDFTMatrix(
     PPEXSIPlan        plan,
-		double*      DMnzvalLocal,
-		double*     EDMnzvalLocal,
-		double*     FDMnzvalLocal,
+    double*      DMnzvalLocal,
+    double*     EDMnzvalLocal,
+    double*     FDMnzvalLocal,
     double*     totalEnergyH,
     double*     totalEnergyS,
     double*     totalFreeEnergy,
@@ -1269,6 +1283,185 @@ void PPEXSIGetPoleFDM(
     double        gap,
     double        deltaE,
     double        mu );
+
+/**
+ * @brief Pole expansion for correct the complex EDM matrix
+ *
+ * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
+ * data structure.
+ * @param[in] options (global) Other input parameters for the DFT driver.  
+ * @param[out] info (local) whether the current processor returns the correct information.
+ * - = 0: successful exit.  
+ * - > 0: unsuccessful.
+ *
+ */
+void PPEXSICalculateEDMCorrectionComplex( 
+    PPEXSIPlan        plan,
+    PPEXSIOptions     options,
+    int*              info );
+
+/**
+ * @brief Pole expansion for correct the complex EDM matrix
+ *
+ * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
+ * data structure.
+ * @param[in] options (global) Other input parameters for the DFT driver.  
+ * @param[out] info (local) whether the current processor returns the correct information.
+ * - = 0: successful exit.  
+ * - > 0: unsuccessful.
+ *
+ */
+void PPEXSICalculateEDMCorrectionReal( 
+    PPEXSIPlan        plan,
+    PPEXSIOptions     options,
+    int*              info );
+
+/**
+ * @brief interpolate the Density matrix(DM) and Energy Density Matrix EDM
+ *
+ * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
+ * data structure.
+ * @param[in] options (global) Other input parameters for the DFT driver.  
+ * @param[out] info (local) whether the current processor returns the correct information.
+ * - = 0: successful exit.  
+ * - > 0: unsuccessful.
+ *
+ */
+void PPEXSIInterpolateDMReal( 
+    PPEXSIPlan        plan,
+    PPEXSIOptions*    options,
+    double            numElectronExact,
+    double            numElectronPEXSI,
+    double *          NeVec,
+    double *          muPEXSI,
+    int*              info );
+
+/**
+ * @brief interpolate the complex Density matrix(DM) and Energy Density Matrix EDM
+ *
+ * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
+ * data structure.
+ * @param[in] options (global) Other input parameters for the DFT driver.  
+ * @param[out] info (local) whether the current processor returns the correct information.
+ * - = 0: successful exit.  
+ * - > 0: unsuccessful.
+ *
+ */
+void PPEXSIInterpolateDMComplex( 
+    PPEXSIPlan        plan,
+    PPEXSIOptions*    options,
+    double            numElectronExact,
+    double            numElectronPEXSI,
+    double *          NeVec,
+    double *          muPEXSI,
+    int*              info );
+
+/**
+ * @brief Retrieve the output DM matrices after running PPEXSIDFTDriver for real input matrices.
+ *
+ * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
+ * data structure.
+ * @param[out]  DMnzvalLocal (local)  Dimension: nnzLocal.  Nonzero value
+ * of density matrix in CSC format.
+ * @param[out]  totalEnergyH(local)  H*DM energy
+ * @param[out] info (local) whether the current processor returns the correct information.
+ * - = 0: successful exit.  
+ * - > 0: unsuccessful.
+ */
+void PPEXSIRetrieveRealDM(
+    PPEXSIPlan  plan,
+    double*     DMnzvalLocal,
+    double*     totalEnergyH,
+    int*        info );
+
+/**
+ * @brief Retrieve the output DM matrices after running PPEXSIDFTDriver for real input matrices.
+ *
+ * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
+ * data structure.
+ * @param[out] EDMnzvalLocal (local)  Dimension: nnzLocal.  Nonzero
+ * value of energy density matrix in CSC format.
+ * @param[out]  totalEnergyS(local)  Tr[S*EDM] energy
+ * @param[out] info (local) whether the current processor returns the correct information.
+ * - = 0: successful exit.  
+ * - > 0: unsuccessful.
+ */
+void PPEXSIRetrieveRealEDM(
+    PPEXSIPlan  plan,
+    double*     EDMnzvalLocal,
+    double*     totalEnergyS,
+    int*        info );
+
+/**
+ * @brief Retrieve the output DM matrices after running PPEXSIDFTDriver for real input matrices.
+ *
+ * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
+ * data structure.
+ * @param[out] FDMnzvalLocal (local)  Dimension: nnzLocal.  Nonzero
+ * value of free energy density matrix in CSC format.
+ * @param[out]  totalEnergyS(local)  Free Energy 
+ * @param[out] info (local) whether the current processor returns the correct information.
+ * - = 0: successful exit.  
+ * - > 0: unsuccessful.
+ */
+void PPEXSIRetrieveRealFDM(
+    PPEXSIPlan  plan,
+    double*     FDMnzvalLocal,
+    double*     totalFreeEnergy,
+    int*        info );
+
+/**
+ * @brief Retrieve the output matrices after running PPEXSIDFTDriver for complex input matrices.
+ *
+ * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
+ * data structure.
+ * @param[out]  DMnzvalLocal (local)  Dimension: 2*nnzLocal.  Nonzero value
+ * of density matrix in CSC format.
+ * @param[out] info (local) whether the current processor returns the correct information.
+ * - = 0: successful exit.  
+ * - > 0: unsuccessful.
+ */
+void PPEXSIRetrieveComplexDM(
+    PPEXSIPlan        plan,
+    double*      DMnzvalLocal,
+    double*     totalEnergyH,
+    int*              info );
+
+/**
+ * @brief Retrieve the output matrices after running PPEXSIDFTDriver for complex input matrices.
+ *
+ * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
+ * data structure.
+ * @param[out] EDMnzvalLocal (local)  Dimension: 2*nnzLocal.  Nonzero
+ * value of energy density matrix in CSC format.
+ * @param[out] info (local) whether the current processor returns the correct information.
+ * - = 0: successful exit.  
+ * - > 0: unsuccessful.
+ */
+void PPEXSIRetrieveComplexEDM(
+    PPEXSIPlan        plan,
+    double*     EDMnzvalLocal,
+    double*     totalEnergyS,
+    int*              info );
+
+/**
+ * @brief Retrieve the output matrices after running PPEXSIDFTDriver for complex input matrices.
+ *
+ * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
+ * data structure.
+ * @param[out] FDMnzvalLocal (local)  Dimension: 2*nnzLocal.  Nonzero
+ * value of free energy density matrix in CSC format.
+ * @param[out] info (local) whether the current processor returns the correct information.
+ * - = 0: successful exit.  
+ * - > 0: unsuccessful.
+ */
+void PPEXSIRetrieveComplexFDM(
+    PPEXSIPlan        plan,
+    double*     FDMnzvalLocal,
+    double*     totalFreeEnergy,
+    int*              info );
+
+
 
 #ifdef __cplusplus
 }// extern "C"

@@ -471,6 +471,44 @@ public:
       Real& numElectron,
       Real& numElectronDrvMu );
 
+  /// @brief Compute the Fermi operator for a given chemical
+  /// potential for complex Hermitian matrices.
+  ///
+  /// This routine also computes the single particle density matrix,
+  /// the Helmholtz free energy density matrix, and the energy density
+  /// matrix (for computing the Pulay force) simultaneously.   These
+  /// matrices can be called later via member functions DensityMatrix,
+  /// FreeEnergyDensityMatrix, EnergyDensityMatrix.
+  ///
+  /// @param[in] numPole Number of poles for the pole expansion
+  ///	@param[in] temperature  Temperature
+  /// @param[in] gap Band gap
+  /// @param[in] deltaE Upperbound of the spectrum width
+  /// @param[in] mu Initial guess of chemical potential.
+  /// @param[in] numElectronExact  Exact number of electrons.
+  /// @param[in] numElectronTolerance  Tolerance for the number of
+  /// electrons. This is just used to discard some poles in the pole
+  /// expansion.
+  /// @param[in] verbosity The level of output information.
+  /// - = 0   : No output.
+  /// - = 1   : Basic output (default)
+  /// - = 2   : Detailed output.
+  /// @param[out] numElectron The number of electron calculated at mu.
+  /// @param[out] numElectronDrvMu The derivative of the number of
+  /// electron calculated with respect to the chemical potential at mu.
+  void CalculateFermiOperatorComplexDeprecate(
+      Int   numPole, 
+      Real  temperature,
+      Real  gap,
+      Real  deltaE,
+      Real  mu,
+      Real  numElectronExact, 
+      Real  numElectronTolerance,
+      Int   solver,
+      Int   verbosity,
+      Real& numElectron,
+      Real& numElectronDrvMu );
+
 
   /// @brief Compute the Fermi operator for a given chemical
   /// potential for complex Hermitian matrices.
@@ -505,10 +543,12 @@ public:
       Real  mu,
       Real  numElectronExact, 
       Real  numElectronTolerance,
-    Int               solver,
+      Int   solver,
       Int   verbosity,
       Real& numElectron,
-      Real& numElectronDrvMu );
+      Real& numElectronDrvMu,
+      Int   method,
+      Int   nPoints );
 
 
 
@@ -530,7 +570,7 @@ public:
       Real       numElectronPEXSITolerance,
       Int        matrixType,
       Int        isSymbolicFactorize,
-    Int               solver,
+      Int        solver,
       Int        ordering,
       Int        numProcSymbFact,
       Int        verbosity,
@@ -637,7 +677,14 @@ public:
       Int   nPoints);
 
   /// @brief Compute the Correction of the EDM matrix.
-  void CalculateEDMCorrection(
+  void CalculateEDMCorrectionReal(
+      Int   numPole,
+      Int   verbosity,
+      Int   nPoints);
+
+
+  /// @brief Compute the Correction of the EDM matrix.
+  void CalculateEDMCorrectionComplex(
       Int   numPole,
       Int   verbosity,
       Int   nPoints);
@@ -647,7 +694,7 @@ public:
  
   /// @brief Updated main driver for DFT. This reuses the pole
   /// expansion and only performs one PEXSI iteration per SCF step.
-  void DFTDriver2(
+  void DFTDriver2_Deprecate(
       Real       numElectronExact,
       Real       temperature,
       Real       gap,
@@ -674,7 +721,7 @@ public:
 
   /// @brief Updated main driver for DFT. This reuses the pole
   /// expansion and only performs one PEXSI iteration per SCF step.
-  void DFTDriver3(
+  void DFTDriver2(
       Real       numElectronExact,
       Real       temperature,
       Real       gap,
@@ -701,8 +748,30 @@ public:
       Int        method,
       Int        nPoints);
 
+  /// @brief Interpolate the DM and get the total Energy
+  void InterpolateDMReal(
+    Real                numElectronExact,
+    Real                numElectronPEXSI,
+    Real                numElectronPEXSITolerance,
+    Int                 nPoints,
+    Real              * NeVec,
+    Real              & muMin,
+    Real              & muMax,
+    Real              & muPEXSI,
+    Int                 verbosity);
 
 
+  /// @brief Interpolate the DM and get the total Energy
+  void InterpolateDMComplex(
+    Real                numElectronExact,
+    Real                numElectronPEXSI,
+    Real                numElectronPEXSITolerance,
+    Int                 nPoints,
+    Real              * NeVec,
+    Real              & muMin,
+    Real              & muMax,
+    Real              & muPEXSI,
+    Int                 verbosity);
 
   // *********************************************************************
   // Access data

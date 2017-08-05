@@ -6,9 +6,9 @@ make.sys
 *.log
 *.err
 logPEXSI*
-src/ELSI/doc/html
-src/ELSI/doc/latex
-include
-lib
-bin
-build
+/src/ELSI/doc/html/
+/src/ELSI/doc/latex/
+/include/
+/lib/
+/bin/
+/build/

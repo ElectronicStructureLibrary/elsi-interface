@@ -2,7 +2,7 @@
 !	 through Lawrence Berkeley National Laboratory.
 !
 !  Author: Lin Lin
-!
+!	 
 !  This file is part of PEXSI. All rights reserved.
 !
 !	 Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,7 @@
 !>
 !> The ISO_C_BINDING feature is included in the FORTRAN 2003 standard, and is
 !> implemented in most modern compilers.
-!>
+!> 
 !>
 !> @note (From Alberto Garcia, 2013-04-10) Array arguments are *required* by the
 !> standard to be explicit shape (e.g. a(3)), or assumed size (e.g. a(*)). This
@@ -66,35 +66,37 @@ module f_ppexsi_interface
 use, intrinsic :: iso_c_binding
 
 ! Struct for PPEXSIOptions
-! NOTE: The order and the type of the parameters must be strictly
-!       the same as in PEXSIOptions in c_pexsi_interface.h
+! NOTE: The order and the type of the parameters must be strictly the same as in PPEXSIOptions in 
+! c_pexsi_interface.h
 type, bind(C) :: f_ppexsi_options
-  real(c_double) :: temperature
-  real(c_double) :: gap
-  real(c_double) :: deltaE
-  integer(c_int) :: numPole
-  integer(c_int) :: isInertiaCount
-  integer(c_int) :: maxPEXSIIter
-  real(c_double) :: muMin0
-  real(c_double) :: muMax0
-  real(c_double) :: mu0
-  real(c_double) :: muInertiaTolerance
-  real(c_double) :: muInertiaExpansion
-  real(c_double) :: muPEXSISafeGuard
-  real(c_double) :: numElectronPEXSITolerance
-  integer(c_int) :: matrixType
-  integer(c_int) :: isSymbolicFactorize
-  integer(c_int) :: isConstructCommPattern
-  integer(c_int) :: solver
-  integer(c_int) :: ordering
-  integer(c_int) :: rowOrdering
-  integer(c_int) :: npSymbFact
-  integer(c_int) :: symmetric
-  integer(c_int) :: transpose
-  integer(c_int) :: verbosity
+  real(c_double)         :: temperature
+  real(c_double)         :: gap
+  real(c_double)         :: deltaE
+  integer(c_int)         :: numPole
+  integer(c_int)         :: isInertiaCount
+  integer(c_int)         :: maxPEXSIIter
+  real(c_double)         :: muMin0
+  real(c_double)         :: muMax0
+  real(c_double)         :: mu0
+  real(c_double)         :: muInertiaTolerance
+  real(c_double)         :: muInertiaExpansion
+  real(c_double)         :: muPEXSISafeGuard
+  real(c_double)         :: numElectronPEXSITolerance
+  integer(c_int)         :: matrixType
+  integer(c_int)         :: isSymbolicFactorize
+  integer(c_int)         :: isConstructCommPattern
+  integer(c_int)         :: solver
+  integer(c_int)         :: ordering
+  integer(c_int)         :: rowOrdering
+  integer(c_int)         :: npSymbFact
+  integer(c_int)         :: symmetric
+  integer(c_int)         :: transpose
+  integer(c_int)         :: method
+  integer(c_int)         :: nPoints
+  integer(c_int)         :: verbosity
 end type f_ppexsi_options
 
-interface
+interface  
 
   subroutine f_ppexsi_set_default_options(&
       options) &
@@ -103,8 +105,8 @@ interface
     import         :: f_ppexsi_options
     implicit none
     type( f_ppexsi_options ), intent(out) :: options
-  end subroutine
-
+  end subroutine 
+ 
   subroutine f_read_distsparsematrix_formatted_head (&
       filename,&
       nrows,&
@@ -466,7 +468,7 @@ interface
     integer(c_int), intent(out)            :: info
   end subroutine 
 
-  subroutine f_ppexsi_dft_driver2(&
+  subroutine f_ppexsi_dft_driver2_deprecate(&
       plan,&
       options,&
       numElectronExact,&
@@ -477,7 +479,7 @@ interface
       numTotalInertiaIter,&
       numTotalPEXSIIter,&
       info) &
-      bind(C, Name="PPEXSIDFTDriver2")
+      bind(C, Name="PPEXSIDFTDriver2_Deprecate")
     use, intrinsic :: iso_c_binding
     import         :: f_ppexsi_options
     implicit none
@@ -490,7 +492,7 @@ interface
     integer(c_int), intent(out)            :: info
   end subroutine 
 
-  subroutine f_ppexsi_dft_driver3(&
+  subroutine f_ppexsi_dft_driver2(&
       plan,&
       options,&
       numElectronExact,&
@@ -502,7 +504,7 @@ interface
       !muMaxInertia,&
       numTotalInertiaIter,&
       info) &
-      bind(C, Name="PPEXSIDFTDriver3")
+      bind(C, Name="PPEXSIDFTDriver2")
     use, intrinsic :: iso_c_binding
     import         :: f_ppexsi_options
     implicit none
@@ -512,7 +514,6 @@ interface
     integer(c_int),         value, intent(in)    :: method
     integer(c_int),         value, intent(in)    :: npoints
     real(c_double),                intent(out)   :: muPEXSI, numElectronPEXSI
-    !real(c_double),                intent(out)   :: muMinInertia, muMaxInertia
     integer(c_int),                intent(out)   :: numTotalInertiaIter
     integer(c_int),                intent(out)   :: info
   end subroutine
@@ -627,6 +628,188 @@ interface
     real(c_double), intent(out)  :: zshift(*), zweight(*)
     integer(c_int), intent(in), value  :: Npole
     real(c_double), intent(in), value  :: temp, gap, deltaE, mu
+  end subroutine 
+
+  subroutine f_calculate_edm_correction_complex(&
+      plan,&
+      options,&
+      info) &
+      bind(C, Name="PPEXSICalculateEDMCorrectionComplex")
+    use, intrinsic :: iso_c_binding
+    import         :: f_ppexsi_options
+    implicit none
+    integer(c_intptr_t), intent(in), value :: plan
+    type( f_ppexsi_options ), value, intent(in) :: options
+    integer(c_int), intent(out)        :: info
+  end subroutine     
+
+  subroutine f_calculate_edm_correction_real(&
+      plan,&
+      options,&
+      info) &
+      bind(C, Name="PPEXSICalculateEDMCorrectionReal")
+    use, intrinsic :: iso_c_binding
+    import         :: f_ppexsi_options
+    implicit none
+    integer(c_intptr_t), intent(in), value :: plan
+    type( f_ppexsi_options ), value, intent(in) :: options
+    integer(c_int), intent(out)        :: info
+  end subroutine     
+
+  subroutine f_interpolate_dm_real(&
+      plan,&
+      options,&
+      numElectronExact,&
+      numElectronPEXSI,&
+      NeVec,&
+      muPEXSI, &
+      info)&
+      bind(C, Name="PPEXSIInterpolateDMReal") 
+    use, intrinsic :: iso_c_binding
+    import         :: f_ppexsi_options
+    implicit none
+    integer(c_intptr_t), intent(in), value :: plan
+    type( f_ppexsi_options ), intent(inout) :: options
+    real(c_double), intent(in)        :: numElectronExact 
+    real(c_double), intent(in)        :: numElectronPEXSI
+    real(c_double), intent(out)        :: NeVec(*)
+    real(c_double), intent(out)        :: muPEXSI
+    integer(c_int), intent(out)        :: info
+  end subroutine     
+
+  subroutine f_interpolate_dm_complex(&
+      plan,&
+      options,&
+      numElectronExact,&
+      numElectronPEXSI,&
+      NeVec,&
+      muPEXSI, &
+      info)&
+      bind(C, Name="PPEXSIInterpolateDMComplex") 
+    use, intrinsic :: iso_c_binding
+    import         :: f_ppexsi_options
+    implicit none
+    integer(c_intptr_t), intent(in), value :: plan
+    type( f_ppexsi_options ), intent(inout) :: options
+    real(c_double), intent(in)        :: numElectronExact 
+    real(c_double), intent(in)        :: numElectronPEXSI
+    real(c_double), intent(out)        :: NeVec(*)
+    real(c_double), intent(out)        :: muPEXSI
+    integer(c_int), intent(out)        :: info
+  end subroutine     
+
+  subroutine f_ppexsi_retrieve_real_dm_edm(&
+      plan,&
+      DMnzvalLocal,&
+      EDMnzvalLocal,&
+      nnzLocal,&
+      info) &
+      bind(C, Name="PPEXSIRetrieveRealDMEDM")
+    use, intrinsic :: iso_c_binding
+    implicit none
+    integer(c_intptr_t), value, intent(in)  :: plan
+    real(c_double),             intent(out) :: DMnzvalLocal(*), EDMnzvalLocal(*)
+    integer(c_int),             intent(out) :: nnzLocal
+    integer(c_int),             intent(out) :: info
+  end subroutine
+
+  subroutine f_ppexsi_retrieve_complex_dm_edm(&
+      plan,&
+      DMnzvalLocal,&
+      EDMnzvalLocal,&
+      nnzLocal,&
+      info) &
+      bind(C, Name="PPEXSIRetrieveComplexDFTMatrix")
+    use, intrinsic :: iso_c_binding
+    implicit none
+    integer(c_intptr_t), value, intent(in)  :: plan
+    real(c_double),             intent(out) :: DMnzvalLocal(*), EDMnzvalLocal(*)
+    integer(c_int),             intent(out) :: nnzLocal
+    integer(c_int),             intent(out) :: info
+  end subroutine 
+
+   subroutine f_ppexsi_retrieve_real_dm(&
+      plan,&
+      DMnzvalLocal,&
+      totalEnergyH,&
+      info) &
+      bind(C, Name="PPEXSIRetrieveRealDM")
+    use, intrinsic :: iso_c_binding
+    implicit none
+    integer(c_intptr_t), intent(in), value :: plan
+    real(c_double), intent(out)   :: DMnzvalLocal(*)
+    real(c_double), intent(out)   :: totalEnergyH
+    integer(c_int), intent(out)   :: info
+  end subroutine 
+
+  subroutine f_ppexsi_retrieve_real_edm(&
+      plan,&
+      EDMnzvalLocal,&
+      totalEnergyS,&
+      info) &
+      bind(C, Name="PPEXSIRetrieveRealEDM")
+    use, intrinsic :: iso_c_binding
+    implicit none
+    integer(c_intptr_t), intent(in), value :: plan
+    real(c_double), intent(out)   :: EDMnzvalLocal(*)
+    real(c_double), intent(out)   :: totalEnergyS
+    integer(c_int), intent(out)   :: info
+  end subroutine 
+
+  subroutine f_ppexsi_retrieve_real_fdm(&
+      plan,&
+      FDMnzvalLocal,&
+      totalFreeEnergy,&
+      info) &
+      bind(C, Name="PPEXSIRetrieveRealFDM")
+    use, intrinsic :: iso_c_binding
+    implicit none
+    integer(c_intptr_t), intent(in), value :: plan
+    real(c_double), intent(out)   :: FDMnzvalLocal(*)
+    real(c_double), intent(out)   :: totalFreeEnergy
+    integer(c_int), intent(out)   :: info
+  end subroutine 
+
+  subroutine f_ppexsi_retrieve_complex_dm(&
+      plan,&
+      DMnzvalLocal,&
+      totalEnergyH,&
+      info) &
+      bind(C, Name="PPEXSIRetrieveComplexDM")
+    use, intrinsic :: iso_c_binding
+    implicit none
+    integer(c_intptr_t), intent(in), value :: plan
+    real(c_double), intent(out)   :: DMnzvalLocal(*)
+    real(c_double), intent(out)   :: totalEnergyH
+    integer(c_int), intent(out)            :: info
+  end subroutine 
+
+  subroutine f_ppexsi_retrieve_complex_edm(&
+      plan,&
+      EDMnzvalLocal,&
+      totalEnergyS,&
+      info) &
+      bind(C, Name="PPEXSIRetrieveComplexEDM")
+    use, intrinsic :: iso_c_binding
+    implicit none
+    integer(c_intptr_t), intent(in), value :: plan
+    real(c_double), intent(out)   :: EDMnzvalLocal(*)
+    real(c_double), intent(out)   :: totalEnergyS
+    integer(c_int), intent(out)   :: info
+  end subroutine 
+
+  subroutine f_ppexsi_retrieve_complex_fdm(&
+      plan,&
+      FDMnzvalLocal,&
+      totalFreeEnergy,&
+      info) &
+      bind(C, Name="PPEXSIRetrieveComplexFDM")
+    use, intrinsic :: iso_c_binding
+    implicit none
+    integer(c_intptr_t), intent(in), value :: plan
+    real(c_double), intent(out)   :: FDMnzvalLocal(*)
+    real(c_double), intent(out)   :: totalFreeEnergy
+    integer(c_int), intent(out)   :: info
   end subroutine 
 
 end interface

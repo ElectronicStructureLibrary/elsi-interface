@@ -1136,8 +1136,6 @@ subroutine elsi_cleanup(elsi_h)
    if(allocated(elsi_h%ovlp_complex_pexsi)) call elsi_deallocate(elsi_h,elsi_h%ovlp_real_pexsi,"ovlp_complex_pexsi")
    if(allocated(elsi_h%dm_real_pexsi))      call elsi_deallocate(elsi_h,elsi_h%dm_real_pexsi,"dm_real_pexsi")
    if(allocated(elsi_h%dm_complex_pexsi))   call elsi_deallocate(elsi_h,elsi_h%dm_real_pexsi,"dm_complex_pexsi")
-   if(allocated(elsi_h%edm_real_pexsi))     call elsi_deallocate(elsi_h,elsi_h%edm_real_pexsi,"edm_real_pexsi")
-   if(allocated(elsi_h%fdm_real_pexsi))     call elsi_deallocate(elsi_h,elsi_h%fdm_real_pexsi,"fdm_real_pexsi")
    if(allocated(elsi_h%row_ind_pexsi))      call elsi_deallocate(elsi_h,elsi_h%row_ind_pexsi,"row_ind_pexsi")
    if(allocated(elsi_h%col_ptr_pexsi))      call elsi_deallocate(elsi_h,elsi_h%col_ptr_pexsi,"col_ptr_pexsi")
 
@@ -1274,7 +1272,6 @@ subroutine elsi_reset_handle(elsi_h)
    elsi_h%n_p_per_pole      = UNSET
    elsi_h%pexsi_started     = .false.
    elsi_h%sparsity_ready    = .false.
-   elsi_h%n_mu_points       = UNSET
    elsi_h%energy_hdm        = 0.0_r8
    elsi_h%energy_sedm       = 0.0_r8
    elsi_h%free_energy       = 0.0_r8
@@ -1473,7 +1470,7 @@ subroutine elsi_check(elsi_h,caller)
 
       if(elsi_h%n_p_per_pole == UNSET) then
          if(mod(elsi_h%n_procs,elsi_h%pexsi_options%numPole*&
-            elsi_h%n_mu_points) /= 0) then
+            elsi_h%pexsi_options%nPoints) /= 0) then
             call elsi_stop("  The total number of MPI tasks must be"//&
                     " a multiple of the number of MPI tasks per pole"//&
                     " times the number of mu points. Exiting...",&
@@ -1481,7 +1478,7 @@ subroutine elsi_check(elsi_h,caller)
          endif
       else
          if(mod(elsi_h%n_procs,elsi_h%n_p_per_pole*&
-            elsi_h%n_mu_points) /= 0) then
+            elsi_h%pexsi_options%nPoints) /= 0) then
             call elsi_stop("  The total number of MPI tasks must be"//&
                     " a multiple of the number of MPI tasks per pole"//&
                     " times the number of mu points. Exiting...",&

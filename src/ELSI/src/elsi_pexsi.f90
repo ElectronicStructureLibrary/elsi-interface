@@ -42,6 +42,7 @@ module ELSI_PEXSI
 
    public :: elsi_init_pexsi
    public :: elsi_solve_evp_pexsi
+   public :: elsi_compute_edm_pexsi
    public :: elsi_set_pexsi_default
    public :: elsi_print_pexsi_options
 
@@ -67,7 +68,7 @@ subroutine elsi_init_pexsi(elsi_h)
    if(elsi_h%n_elsi_calls == 1) then
       if(elsi_h%n_p_per_pole == UNSET) then
          elsi_h%n_p_per_pole = elsi_h%n_procs/(elsi_h%pexsi_options%numPole*&
-                                  elsi_h%n_mu_points)
+                                  elsi_h%pexsi_options%nPoints)
       endif
 
       write(info_str,"(A,I13)") "  | Number of MPI tasks per pole: ",&
@@ -161,27 +162,18 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
    ! Solve the eigenvalue problem
    call elsi_statement_print("  Starting PEXSI density matrix solver",elsi_h)
 
-   call f_ppexsi_dft_driver3(elsi_h%pexsi_plan,elsi_h%pexsi_options,&
-           elsi_h%n_electrons,2,elsi_h%n_mu_points,elsi_h%mu,n_electrons_pexsi,&
-           n_inertia_iter,ierr)
+   call f_ppexsi_dft_driver2(elsi_h%pexsi_plan,elsi_h%pexsi_options,&
+           elsi_h%n_electrons,2,elsi_h%pexsi_options%nPoints,elsi_h%mu,&
+           n_electrons_pexsi,n_inertia_iter,ierr)
 
    if(ierr /= 0) then
       call elsi_stop(" PEXSI DFT driver failed. Exiting...",elsi_h,caller)
    endif
 
    ! Get the results
-   if(elsi_h%n_elsi_calls == 1) then
-      call elsi_allocate(elsi_h,elsi_h%edm_real_pexsi,elsi_h%nnz_l_sp,&
-              "edm_real_pexsi",caller)
-
-      call elsi_allocate(elsi_h,elsi_h%fdm_real_pexsi,elsi_h%nnz_l_sp,&
-              "fdm_real_pexsi",caller)
-   endif
-
    if((elsi_h%my_p_row_pexsi == 0) .or. (elsi_h%matrix_format == BLACS_DENSE)) then
-      call f_ppexsi_retrieve_real_dft_matrix2(elsi_h%pexsi_plan,&
-              elsi_h%dm_real_ccs,elsi_h%edm_real_pexsi,elsi_h%fdm_real_pexsi,&
-              elsi_h%energy_hdm,elsi_h%energy_sedm,elsi_h%free_energy,ierr)
+      call f_ppexsi_retrieve_real_dm(elsi_h%pexsi_plan,elsi_h%dm_real_ccs,&
+              elsi_h%energy_hdm,ierr)
    endif
 
    if(ierr /= 0) then
@@ -190,6 +182,27 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
 
    call MPI_Barrier(elsi_h%mpi_comm,mpierr)
    call elsi_stop_density_matrix_time(elsi_h)
+
+end subroutine
+
+!> 
+!! This routine computes the energy-weighted density matrix.
+!! 
+subroutine elsi_compute_edm_pexsi(elsi_h)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
+
+   integer(kind=i4) :: ierr
+
+   character*40, parameter :: caller = "elsi_compute_edm_pexsi"
+
+   if((elsi_h%my_p_row_pexsi == 0) .or. &
+      (elsi_h%matrix_format == BLACS_DENSE)) then
+      call f_ppexsi_retrieve_real_edm(elsi_h%pexsi_plan,&
+              elsi_h%dm_real_ccs,elsi_h%energy_sedm,ierr)
+   endif
 
 end subroutine
 
@@ -209,12 +222,6 @@ subroutine elsi_set_pexsi_default(elsi_h)
 
    ! Use 1 process in symbolic factorization
    elsi_h%pexsi_options%npSymbFact = 1
-
-   ! Number of poles
-   elsi_h%pexsi_options%numPole = 20
-
-   ! Number of mu points if using Moussa's pole expansion
-   elsi_h%n_mu_points = 2
 
 end subroutine
 
@@ -247,7 +254,7 @@ subroutine elsi_print_pexsi_options(elsi_h)
    call elsi_statement_print(info_str,elsi_h)
 
    write(info_str,"(1X,' | Number of mu points ',I5)") &
-      elsi_h%n_mu_points
+      elsi_h%pexsi_options%nPoints
    call elsi_statement_print(info_str,elsi_h)
 
    write(info_str,"(1X,' | Lower bound of chemical potential ',F10.3)") &

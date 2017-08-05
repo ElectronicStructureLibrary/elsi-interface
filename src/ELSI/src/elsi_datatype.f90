@@ -97,8 +97,6 @@ module ELSI_DATATYPE
       complex(kind=r8), allocatable :: ovlp_complex_pexsi(:) ! Sparse complex overlap
       real(kind=r8),    allocatable :: dm_real_pexsi(:)      ! Sparse real density matrix
       complex(kind=r8), allocatable :: dm_complex_pexsi(:)   ! Sparse complex density matrix
-      real(kind=r8),    allocatable :: edm_real_pexsi(:)     ! Sparse energy density matrix
-      real(kind=r8),    allocatable :: fdm_real_pexsi(:)     ! Sparse free energy density matrix
       integer(kind=i4), allocatable :: row_ind_pexsi(:)      ! Row index
       integer(kind=i4), allocatable :: col_ptr_pexsi(:)      ! Column pointer
 
@@ -252,7 +250,6 @@ module ELSI_DATATYPE
 
       integer(kind=c_intptr_t) :: pexsi_plan
       type(f_ppexsi_options)   :: pexsi_options
-      integer(kind=i4)         :: n_mu_points = UNSET
 
       ! CheSS
       type(foe_data) :: foe_obj

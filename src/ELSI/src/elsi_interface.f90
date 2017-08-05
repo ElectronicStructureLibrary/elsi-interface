@@ -112,8 +112,6 @@ module ELSI
    public :: elsi_customize_pexsi
    public :: elsi_customize_sips
    public :: elsi_customize_mu
-   public :: elsi_collect
-   public :: elsi_collect_pexsi
 
    ! Solver interfaces
    public :: elsi_ev_real
@@ -804,74 +802,6 @@ subroutine elsi_customize_mu(elsi_h,broadening_scheme,broadening_width,&
 end subroutine
 
 !>
-!! This routine collects useful quantities that are not available via
-!! the solver API.
-!!
-subroutine elsi_collect(elsi_h,overlap_is_singular,n_singular_basis,mu)
-
-   implicit none
-
-   type(elsi_handle), intent(inout)         :: elsi_h              !< Handle
-   logical,           intent(out), optional :: overlap_is_singular !< Is overlap singular?
-   integer,           intent(out), optional :: n_singular_basis    !< Number of singular basis
-   real(kind=r8),     intent(out), optional :: mu                  !< Chemical potential
-
-   character*40, parameter :: caller = "elsi_collect"
-
-   call elsi_check_handle(elsi_h,caller)
-
-   if(present(overlap_is_singular)) then
-      overlap_is_singular = elsi_h%ovlp_is_sing
-   endif
-
-   if(present(n_singular_basis)) then
-      n_singular_basis = elsi_h%n_basis-elsi_h%n_nonsing
-   endif
-
-   if(present(mu)) then
-      mu = elsi_h%mu
-
-      if(.not. elsi_h%mu_ready) then
-         call elsi_statement_print("  ATTENTION! The return value of mu may"//&
-                 " be 0, since it has not been computed.",elsi_h)
-      endif
-
-      elsi_h%mu_ready = .false.
-   endif
-
-end subroutine
-
-!>
-!! This routine collects results after a PEXSI calculation.
-!!
-subroutine elsi_collect_pexsi(elsi_h,mu,edm,fdm)
-
-   implicit none
-
-   type(elsi_handle), intent(in)            :: elsi_h               !< Handle
-   real(kind=r8),     intent(out), optional :: mu                   !< Chemical potential
-   real(kind=r8),     intent(out), optional :: edm(elsi_h%nnz_l_sp) !< Energy density matrix
-   real(kind=r8),     intent(out), optional :: fdm(elsi_h%nnz_l_sp) !< Free energy density matrix
-
-   character*40, parameter :: caller = "elsi_collect_pexsi"
-
-   call elsi_check_handle(elsi_h,caller)
-
-   if(present(mu)) then
-      mu = elsi_h%mu
-   endif
-
-   if(present(edm)) then
-      edm = elsi_h%edm_real_pexsi
-   endif
-
-   if(present(fdm)) then
-      fdm = elsi_h%fdm_real_pexsi
-   endif
-
-end subroutine
-
-!>
 !! This routine sets ELSI output level.
 !!
 subroutine elsi_set_output(elsi_h,out_level)
@@ -1178,7 +1108,7 @@ subroutine elsi_set_pexsi_n_mu(elsi_h,n_mu)
 
    call elsi_check_handle(elsi_h,caller)
 
-   elsi_h%n_mu_points = n_mu
+   elsi_h%pexsi_options%nPoints = n_mu
 
 end subroutine
 
@@ -1737,8 +1667,7 @@ subroutine elsi_get_edm_real(elsi_h,d_out)
          elsi_h%dm_omm%dval = 2.0_r8*elsi_h%dm_omm%dval
 
       case(PEXSI)
-         elsi_h%dm_real_ccs = elsi_h%edm_real_pexsi
-
+         call elsi_compute_edm_pexsi(elsi_h)
          call elsi_pexsi_to_blacs_dm(elsi_h,d_out)
 
       case(CHESS)
