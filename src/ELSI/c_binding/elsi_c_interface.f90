@@ -464,51 +464,6 @@ subroutine elsi_dm_real_sparse_c_wrapper(handle_c,H,S,D,energy)&
 
 end subroutine
 
-subroutine elsi_collect_c_wrapper(handle_c,overlap_is_singular,&
-              n_singular_basis,mu)&
-   bind(C,name="c_elsi_collect")
-
-   implicit none
-
-   type(c_ptr), value  :: handle_c
-   integer(kind=c_int) :: overlap_is_singular
-   integer(kind=c_int) :: n_singular_basis
-   real(kind=c_double) :: mu
-
-   type(elsi_handle), pointer :: handle_f
-   logical :: overlap_is_singular_f
-
-   call c_f_pointer(handle_c,handle_f)
-
-   call elsi_collect(handle_f,overlap_is_singular_f,&
-           n_singular_basis,mu)
-
-   if(overlap_is_singular_f) then
-      overlap_is_singular = 1
-   else
-      overlap_is_singular = 0
-   endif
-
-end subroutine
-
-subroutine elsi_collect_pexsi_c_wrapper(handle_c,mu,edm,fdm)&
-   bind(C,name="c_elsi_collect_pexsi")
-
-   implicit none
-
-   type(c_ptr), value  :: handle_c
-   real(kind=c_double) :: mu
-   real(kind=c_double) :: edm(nnz_l_pexsi_c)
-   real(kind=c_double) :: fdm(nnz_l_pexsi_c)
-
-   type(elsi_handle), pointer :: handle_f
-
-   call c_f_pointer(handle_c,handle_f)
-
-   call elsi_collect_pexsi(handle_f,mu,edm,fdm)
-
-end subroutine
-
 subroutine elsi_set_output_c_wrapper(handle_c,out_level)&
    bind(C,name="c_elsi_set_output")
 
