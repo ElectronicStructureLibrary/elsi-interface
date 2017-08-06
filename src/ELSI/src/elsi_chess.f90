@@ -151,6 +151,8 @@ subroutine elsi_solve_evp_chess(elsi_h)
       calc_ovlp_inv_sqrt = .false.
    endif
 
+   call elsi_statement_print("  Starting CheSS density matrix solver",elsi_h)
+
    call matrix_fermi_operator_expansion(elsi_h%myid,elsi_h%n_procs,&
            elsi_h%mpi_comm,elsi_h%foe_obj,elsi_h%ice_obj,&
            elsi_h%sparse_mat(1),elsi_h%sparse_mat(1),&

@@ -140,7 +140,6 @@ subroutine elsi_solve_evp_omm(elsi_h)
       call m_add(elsi_h%ovlp_omm,'N',elsi_h%ham_omm,-elsi_h%eta,1.0_r8,"lap")
    endif
 
-   ! Solve the eigenvalue problem
    call elsi_statement_print("  Starting OMM density matrix solver",elsi_h)
 
    select case(elsi_h%matrix_data_type)

@@ -79,9 +79,12 @@ subroutine elsi_init_sips(elsi_h)
          elsi_h%n_l_cols_sp = elsi_h%n_basis-(elsi_h%n_procs-1)*elsi_h%n_l_cols_sp
       endif
 
-      call elsi_allocate(elsi_h,elsi_h%slices,elsi_h%n_slices+1,"slices",caller)
-      call elsi_allocate(elsi_h,elsi_h%inertias,elsi_h%n_slices+1,"inertias",caller)
-      call elsi_allocate(elsi_h,elsi_h%shifts,elsi_h%n_slices+1,"shifts",caller)
+      call elsi_allocate(elsi_h,elsi_h%slices,elsi_h%n_slices+1,&
+              "slices",caller)
+      call elsi_allocate(elsi_h,elsi_h%inertias_sips,elsi_h%n_slices+1,&
+              "inertias_sips",caller)
+      call elsi_allocate(elsi_h,elsi_h%shifts_sips,elsi_h%n_slices+1,&
+              "shifts_sips",caller)
 
       elsi_h%sips_started = .true.
    endif
@@ -138,10 +141,10 @@ subroutine elsi_solve_evp_sips(elsi_h)
          call elsi_start_inertia_time(elsi_h)
 
          call run_eps_inertias_check(elsi_h%unbound,elsi_h%n_states,elsi_h%n_slices,&
-                 elsi_h%slices,elsi_h%shifts,elsi_h%inertias,n_solve_steps)
+                 elsi_h%slices,elsi_h%shifts_sips,elsi_h%inertias_sips,n_solve_steps)
 
          call inertias_to_eigenvalues(elsi_h%n_slices+1,elsi_h%n_states,&
-                 elsi_h%slice_buffer,elsi_h%shifts,elsi_h%inertias,&
+                 elsi_h%slice_buffer,elsi_h%shifts_sips,elsi_h%inertias_sips,&
                  elsi_h%eval(1:elsi_h%n_states))
 
          call compute_subintervals(elsi_h%n_slices,elsi_h%slicing_method,&
@@ -167,7 +170,7 @@ subroutine elsi_solve_evp_sips(elsi_h)
 
    call set_eps_subintervals(elsi_h%n_slices,elsi_h%slices)
 
-   ! Solve eigenvalue problem
+   ! Solve
    call solve_eps_check(elsi_h%n_states,elsi_h%n_slices,elsi_h%slices,n_solve_steps)
 
    ! Get eigenvalues

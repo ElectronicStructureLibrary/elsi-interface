@@ -243,7 +243,7 @@ interface
       nrows, nnz, nnzLocal, numColLocal, isSIdentity
     integer(c_int), intent(in)  :: &
       colptrLocal(*), rowindLocal(*)
-    real(c_double), intent(in)  :: &
+    complex(c_double), intent(in)  :: &
       HnzvalLocal(*), SnzvalLocal(*)
     integer(c_int), intent(out)            :: info
   end subroutine 
@@ -319,7 +319,7 @@ interface
     integer(c_int), intent(out)            :: info
   end subroutine 
 
-  subroutine f_ppexsi_inertia_count_complx_matrix(&
+  subroutine f_ppexsi_inertia_count_complex_matrix(&
       plan,&
       options,&
       numShift,&
@@ -582,7 +582,7 @@ interface
     integer(c_int), intent(out)            :: info
   end subroutine 
 
-  subroutine f_get_pole_dm(&
+  subroutine f_ppexsi_get_pole_dm(&
       zshift,&
       zweight,&
       Npole,&
@@ -598,7 +598,7 @@ interface
     real(c_double), intent(in), value  :: temp, gap, deltaE, mu
   end subroutine 
 
-  subroutine f_get_pole_edm(&
+  subroutine f_ppexsi_get_pole_edm(&
       zshift,&
       zweight,&
       Npole,&
@@ -614,7 +614,7 @@ interface
     real(c_double), intent(in), value  :: temp, gap, deltaE, mu
   end subroutine 
 
-  subroutine f_get_pole_fdm(&
+  subroutine f_ppexsi_get_pole_fdm(&
       zshift,&
       zweight,&
       Npole,&
@@ -630,7 +630,7 @@ interface
     real(c_double), intent(in), value  :: temp, gap, deltaE, mu
   end subroutine 
 
-  subroutine f_calculate_edm_correction_complex(&
+  subroutine f_ppexsi_calculate_edm_correction_complex(&
       plan,&
       options,&
       info) &
@@ -643,7 +643,7 @@ interface
     integer(c_int), intent(out)        :: info
   end subroutine     
 
-  subroutine f_calculate_edm_correction_real(&
+  subroutine f_ppexsi_calculate_edm_correction_real(&
       plan,&
       options,&
       info) &
@@ -656,7 +656,7 @@ interface
     integer(c_int), intent(out)        :: info
   end subroutine     
 
-  subroutine f_interpolate_dm_real(&
+  subroutine f_ppexsi_interpolate_dm_real(&
       plan,&
       options,&
       numElectronExact,&
@@ -677,7 +677,7 @@ interface
     integer(c_int), intent(out)        :: info
   end subroutine     
 
-  subroutine f_interpolate_dm_complex(&
+  subroutine f_ppexsi_interpolate_dm_complex(&
       plan,&
       options,&
       numElectronExact,&
@@ -779,7 +779,7 @@ interface
     use, intrinsic :: iso_c_binding
     implicit none
     integer(c_intptr_t), intent(in), value :: plan
-    real(c_double), intent(out)   :: DMnzvalLocal(*)
+    complex(c_double), intent(out)   :: DMnzvalLocal(*)
     real(c_double), intent(out)   :: totalEnergyH
     integer(c_int), intent(out)            :: info
   end subroutine 
@@ -793,7 +793,7 @@ interface
     use, intrinsic :: iso_c_binding
     implicit none
     integer(c_intptr_t), intent(in), value :: plan
-    real(c_double), intent(out)   :: EDMnzvalLocal(*)
+    complex(c_double), intent(out)   :: EDMnzvalLocal(*)
     real(c_double), intent(out)   :: totalEnergyS
     integer(c_int), intent(out)   :: info
   end subroutine 
@@ -807,7 +807,7 @@ interface
     use, intrinsic :: iso_c_binding
     implicit none
     integer(c_intptr_t), intent(in), value :: plan
-    real(c_double), intent(out)   :: FDMnzvalLocal(*)
+    complex(c_double), intent(out)   :: FDMnzvalLocal(*)
     real(c_double), intent(out)   :: totalFreeEnergy
     integer(c_int), intent(out)   :: info
   end subroutine 

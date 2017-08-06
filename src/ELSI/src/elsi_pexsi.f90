@@ -30,7 +30,7 @@
 !!
 module ELSI_PEXSI
 
-   use ELSI_CONSTANTS, only: BLACS_DENSE,UNSET
+   use ELSI_CONSTANTS, only: BLACS_DENSE,REAL_VALUES,COMPLEX_VALUES,UNSET
    use ELSI_DATATYPE, only: elsi_handle
    use ELSI_PRECISION, only: r8,i4
    use ELSI_TIMERS
@@ -108,7 +108,8 @@ subroutine elsi_init_pexsi(elsi_h)
                              output_id,ierr)
 
       if(ierr /= 0) then
-         call elsi_stop(" PEXSI initialization failed. Exiting...",elsi_h,caller)
+         call elsi_stop(" PEXSI initialization failed. Exiting...",&
+                  elsi_h,caller)
       endif
 
       elsi_h%pexsi_started = .true.
@@ -126,58 +127,234 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
 
    type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
-   real(kind=r8)       :: n_electrons_pexsi
-   integer(kind=i4)    :: n_inertia_iter
-   integer(kind=i4)    :: mpierr
-   integer(kind=i4)    :: ierr
-   character*200       :: info_str
+   real(kind=r8)    :: ne_pexsi
+   real(kind=r8)    :: ne_drv
+   real(kind=r8)    :: mu_range
+   real(kind=r8)    :: shift_width
+   integer(kind=i4) :: n_iner_steps
+   integer(kind=i4) :: n_shift
+   integer(kind=i4) :: aux_min
+   integer(kind=i4) :: aux_max
+   integer(kind=i4) :: i
+   integer(kind=i4) :: mpierr
+   integer(kind=i4) :: ierr
+   character*200    :: info_str
+
+   real(kind=r8), allocatable :: ne_vec(:)
+   real(kind=r8), allocatable :: send_buffer(:)
 
    character*40, parameter :: caller = "elsi_solve_evp_pexsi"
 
    call elsi_start_density_matrix_time(elsi_h)
 
-   if(elsi_h%n_elsi_calls == 1) then
-      elsi_h%pexsi_options%isSymbolicFactorize = 1
-   else
-      elsi_h%pexsi_options%isSymbolicFactorize = 0
-   endif
-
    ! Load sparse matrices for PEXSI
-   if(elsi_h%ovlp_is_unit) then
-      call f_ppexsi_load_real_hs_matrix(elsi_h%pexsi_plan,elsi_h%pexsi_options,&
-              elsi_h%n_basis,elsi_h%nnz_g,elsi_h%nnz_l_sp,elsi_h%n_l_cols_sp,&
-              elsi_h%col_ptr_ccs,elsi_h%row_ind_ccs,elsi_h%ham_real_ccs,1,&
-              elsi_h%ovlp_real_ccs,ierr)
-   else
-      call f_ppexsi_load_real_hs_matrix(elsi_h%pexsi_plan,elsi_h%pexsi_options,&
-              elsi_h%n_basis,elsi_h%nnz_g,elsi_h%nnz_l_sp,elsi_h%n_l_cols_sp,&
-              elsi_h%col_ptr_ccs,elsi_h%row_ind_ccs,elsi_h%ham_real_ccs,0,&
-              elsi_h%ovlp_real_ccs,ierr)
-   endif
+   select case(elsi_h%matrix_data_type)
+   case(REAL_VALUES)
+      if(elsi_h%ovlp_is_unit) then
+         call f_ppexsi_load_real_hs_matrix(elsi_h%pexsi_plan,&
+                 elsi_h%pexsi_options,elsi_h%n_basis,elsi_h%nnz_g,&
+                 elsi_h%nnz_l_sp,elsi_h%n_l_cols_sp,elsi_h%col_ptr_ccs,&
+                 elsi_h%row_ind_ccs,elsi_h%ham_real_ccs,1,&
+                 elsi_h%ovlp_real_ccs,ierr)
+      else
+         call f_ppexsi_load_real_hs_matrix(elsi_h%pexsi_plan,&
+                 elsi_h%pexsi_options,elsi_h%n_basis,elsi_h%nnz_g,&
+                 elsi_h%nnz_l_sp,elsi_h%n_l_cols_sp,elsi_h%col_ptr_ccs,&
+                 elsi_h%row_ind_ccs,elsi_h%ham_real_ccs,0,&
+                 elsi_h%ovlp_real_ccs,ierr)
+      endif
+   case(COMPLEX_VALUES)
+      if(elsi_h%ovlp_is_unit) then
+         call f_ppexsi_load_complex_hs_matrix(elsi_h%pexsi_plan,&
+                 elsi_h%pexsi_options,elsi_h%n_basis,elsi_h%nnz_g,&
+                 elsi_h%nnz_l_sp,elsi_h%n_l_cols_sp,elsi_h%col_ptr_ccs,&
+                 elsi_h%row_ind_ccs,elsi_h%ham_complex_ccs,1,&
+                 elsi_h%ovlp_complex_ccs,ierr)
+      else
+         call f_ppexsi_load_complex_hs_matrix(elsi_h%pexsi_plan,&
+                 elsi_h%pexsi_options,elsi_h%n_basis,elsi_h%nnz_g,&
+                 elsi_h%nnz_l_sp,elsi_h%n_l_cols_sp,elsi_h%col_ptr_ccs,&
+                 elsi_h%row_ind_ccs,elsi_h%ham_complex_ccs,0,&
+                 elsi_h%ovlp_complex_ccs,ierr)
+      endif
+   end select
 
    if(ierr /= 0) then
-      call elsi_stop(" PEXSI H/S failed to load. Exiting...",elsi_h,caller)
+      call elsi_stop(" PEXSI load matrices failed. Exiting...",elsi_h,caller)
    endif
 
-   ! Solve the eigenvalue problem
    call elsi_statement_print("  Starting PEXSI density matrix solver",elsi_h)
 
-   call f_ppexsi_dft_driver2(elsi_h%pexsi_plan,elsi_h%pexsi_options,&
-           elsi_h%n_electrons,2,elsi_h%pexsi_options%nPoints,elsi_h%mu,&
-           n_electrons_pexsi,n_inertia_iter,ierr)
+   ! Symbolic factorization
+   if(elsi_h%n_elsi_calls == 1) then
+      select case(elsi_h%matrix_data_type)
+      case(REAL_VALUES)
+         call f_ppexsi_symbolic_factorize_real_symmetric_matrix(&
+                 elsi_h%pexsi_plan,elsi_h%pexsi_options,ierr)
 
-   if(ierr /= 0) then
-      call elsi_stop(" PEXSI DFT driver failed. Exiting...",elsi_h,caller)
+         call f_ppexsi_symbolic_factorize_complex_symmetric_matrix(&
+                 elsi_h%pexsi_plan,elsi_h%pexsi_options,ierr)
+      case(COMPLEX_VALUES)
+         call f_ppexsi_symbolic_factorize_complex_symmetric_matrix(&
+                 elsi_h%pexsi_plan,elsi_h%pexsi_options,ierr)
+
+         call f_ppexsi_symbolic_factorize_complex_unsymmetric_matrix(&
+                 elsi_h%pexsi_plan,elsi_h%pexsi_options,ierr)
+      end select
    endif
 
-   ! Get the results
-   if((elsi_h%my_p_row_pexsi == 0) .or. (elsi_h%matrix_format == BLACS_DENSE)) then
-      call f_ppexsi_retrieve_real_dm(elsi_h%pexsi_plan,elsi_h%dm_real_ccs,&
-              elsi_h%energy_hdm,ierr)
+   if(ierr /= 0) then
+      call elsi_stop(" Symbolic factorization failed. Exiting...",elsi_h,caller)
+   endif
+
+   ! Inertia counting
+   n_iner_steps = 0
+   mu_range = elsi_h%pexsi_options%muMax0-elsi_h%pexsi_options%muMin0
+   n_shift = min(10,elsi_h%n_procs/elsi_h%n_p_per_pole)
+
+   call elsi_allocate(elsi_h,elsi_h%shifts_pexsi,n_shift,&
+           "shifts_pexsi",caller)
+   call elsi_allocate(elsi_h,elsi_h%inertias_pexsi,n_shift,&
+           "inertias_pexsi",caller)
+
+   do while((n_iner_steps < 10) .and. &
+            (mu_range > elsi_h%pexsi_options%muInertiaTolerance))
+      n_iner_steps = n_iner_steps+1
+
+      shift_width = mu_range/(n_shift-1)
+
+      do i = 1,n_shift
+         elsi_h%shifts_pexsi(i) = elsi_h%pexsi_options%muMin0+(i-1)*shift_width
+      enddo
+
+      select case(elsi_h%matrix_data_type)
+      case(REAL_VALUES)
+         call f_ppexsi_inertia_count_real_matrix(elsi_h%pexsi_plan,&
+                 elsi_h%pexsi_options,n_shift,elsi_h%shifts_pexsi,&
+                 elsi_h%inertias_pexsi,ierr)
+      case(COMPLEX_VALUES)
+         call f_ppexsi_inertia_count_complex_matrix(elsi_h%pexsi_plan,&
+                 elsi_h%pexsi_options,n_shift,elsi_h%shifts_pexsi,&
+                 elsi_h%inertias_pexsi,ierr)
+      end select
+
+      ! Get global inertias
+      if(elsi_h%n_spins*elsi_h%n_kpts > 1) then
+         if(elsi_h%myid == 0) then
+            elsi_h%inertias_pexsi = elsi_h%inertias_pexsi*elsi_h%i_weight
+         else
+            elsi_h%inertias_pexsi = 0.0_r8
+         endif
+
+         call elsi_allocate(elsi_h,send_buffer,n_shift,"send_buffer",caller)
+
+         call MPI_Allreduce(send_buffer,elsi_h%inertias_pexsi,n_shift,&
+                 mpi_real8,mpi_sum,elsi_h%mpi_comm_all,mpierr)
+
+         call elsi_deallocate(elsi_h,send_buffer,"send_buffer")
+      endif
+
+      aux_min = 0
+      aux_max = 0
+
+      do i = 1,n_shift
+         if(elsi_h%inertias_pexsi(i) < elsi_h%n_electrons) then
+            aux_min = i
+         endif
+
+         if(elsi_h%inertias_pexsi(i) > elsi_h%n_electrons) then
+            aux_max = i
+            exit
+         endif
+      enddo
+
+      if(aux_min*aux_max == 0) then
+         call elsi_stop(" Chemical potential not found. Exiting... ",&
+                 elsi_h,caller)
+      elseif((aux_min == 1) .and. (aux_max == n_shift)) then
+         exit
+      else
+         elsi_h%pexsi_options%muMin0 = elsi_h%shifts_pexsi(aux_min)
+         elsi_h%pexsi_options%muMax0 = elsi_h%shifts_pexsi(aux_max)
+         mu_range = elsi_h%pexsi_options%muMax0-elsi_h%pexsi_options%muMin0
+      endif
+   enddo
+
+   call elsi_deallocate(elsi_h,elsi_h%shifts_pexsi,"shifts_pexsi")
+   call elsi_deallocate(elsi_h,elsi_h%inertias_pexsi,"inertias_pexsi")
+
+   if(ierr /= 0) then
+      call elsi_stop(" Inertia counting failed. Exiting...",elsi_h,caller)
+   endif
+
+   ! Fermi operator expansion
+   select case(elsi_h%matrix_data_type)
+   case(REAL_VALUES)
+      call f_ppexsi_calculate_fermi_operator_real(elsi_h%pexsi_plan,&
+              elsi_h%pexsi_options,elsi_h%mu,elsi_h%n_electrons,&
+              ne_pexsi,ne_drv,ierr)
+   case(COMPLEX_VALUES)
+      call f_ppexsi_calculate_fermi_operator_complex(elsi_h%pexsi_plan,&
+              elsi_h%pexsi_options,elsi_h%mu,elsi_h%n_electrons,&
+              ne_pexsi,ne_drv,ierr)
+   end select
+
+   ! Get global number of electrons
+   call elsi_allocate(elsi_h,send_buffer,elsi_h%pexsi_options%nPoints,&
+           "send_buffer",caller)
+   call elsi_allocate(elsi_h,ne_vec,elsi_h%pexsi_options%nPoints,&
+           "ne_vec",caller)
+
+   do i = 1,elsi_h%pexsi_options%nPoints
+      if(elsi_h%myid == (i-1)*elsi_h%n_p_per_pole) then
+         send_buffer(i) = ne_pexsi*elsi_h%i_weight
+      endif
+   enddo
+
+   call MPI_Allreduce(send_buffer,ne_vec,elsi_h%pexsi_options%nPoints,&
+           mpi_real8,mpi_sum,elsi_h%mpi_comm_all,mpierr)
+
+   call elsi_deallocate(elsi_h,send_buffer,"send_buffer")
+
+   if(ierr /= 0) then
+      call elsi_stop(" Fermi operator calculation failed. Exiting...",&
+              elsi_h,caller)
+   endif
+
+   ! Interpolation
+   select case(elsi_h%matrix_data_type)
+   case(REAL_VALUES)
+      call f_ppexsi_interpolate_dm_real(elsi_h%pexsi_plan,&
+              elsi_h%pexsi_options,elsi_h%n_electrons,ne_pexsi,&
+              ne_vec,elsi_h%mu,ierr)
+   case(COMPLEX_VALUES)
+      call f_ppexsi_interpolate_dm_complex(elsi_h%pexsi_plan,&
+              elsi_h%pexsi_options,elsi_h%n_electrons,ne_pexsi,&
+              ne_vec,elsi_h%mu,ierr)
+   end select
+
+   call elsi_deallocate(elsi_h,ne_vec,"ne_vec")
+
+   if(ierr /= 0) then
+      call elsi_stop(" Density matrix interpolation failed. Exiting...",&
+              elsi_h,caller)
+   endif
+
+   ! Get density matrix and energy
+   if(elsi_h%my_p_row_pexsi == 0) then
+      select case(elsi_h%matrix_data_type)
+      case(REAL_VALUES)
+         call f_ppexsi_retrieve_real_dm(elsi_h%pexsi_plan,&
+                 elsi_h%dm_real_ccs,elsi_h%energy_hdm,ierr)
+      case(COMPLEX_VALUES)
+         call f_ppexsi_retrieve_complex_dm(elsi_h%pexsi_plan,&
+                 elsi_h%dm_complex_ccs,elsi_h%energy_hdm,ierr)
+      end select
    endif
 
    if(ierr /= 0) then
-      call elsi_stop(" PEXSI not able to get results. Exiting...",elsi_h,caller)
+      call elsi_stop(" Retrieving PEXSI density matirx failed. Exiting...",&
+              elsi_h,caller)
    endif
 
    call MPI_Barrier(elsi_h%mpi_comm,mpierr)

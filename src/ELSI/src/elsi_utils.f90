@@ -1138,16 +1138,18 @@ subroutine elsi_cleanup(elsi_h)
    if(allocated(elsi_h%dm_complex_pexsi))   call elsi_deallocate(elsi_h,elsi_h%dm_real_pexsi,"dm_complex_pexsi")
    if(allocated(elsi_h%row_ind_pexsi))      call elsi_deallocate(elsi_h,elsi_h%row_ind_pexsi,"row_ind_pexsi")
    if(allocated(elsi_h%col_ptr_pexsi))      call elsi_deallocate(elsi_h,elsi_h%col_ptr_pexsi,"col_ptr_pexsi")
+   if(allocated(elsi_h%inertias_pexsi))     call elsi_deallocate(elsi_h,elsi_h%inertias_pexsi,"inertias_pexsi")
+   if(allocated(elsi_h%shifts_pexsi))       call elsi_deallocate(elsi_h,elsi_h%shifts_pexsi,"shifts_pexsi")
 
    ! CheSS
-   if(allocated(elsi_h%ham_real_chess))  call elsi_deallocate(elsi_h,elsi_h%ham_real_chess,"ham_real_chess")
-   if(allocated(elsi_h%ovlp_real_chess)) call elsi_deallocate(elsi_h,elsi_h%ovlp_real_chess,"ovlp_real_chess")
-   if(allocated(elsi_h%row_ind_chess))   call elsi_deallocate(elsi_h,elsi_h%row_ind_chess,"row_ind_chess")
-   if(allocated(elsi_h%col_ptr_chess))   call elsi_deallocate(elsi_h,elsi_h%col_ptr_chess,"col_ptr_chess")
+   if(allocated(elsi_h%ham_real_chess))     call elsi_deallocate(elsi_h,elsi_h%ham_real_chess,"ham_real_chess")
+   if(allocated(elsi_h%ovlp_real_chess))    call elsi_deallocate(elsi_h,elsi_h%ovlp_real_chess,"ovlp_real_chess")
+   if(allocated(elsi_h%row_ind_chess))      call elsi_deallocate(elsi_h,elsi_h%row_ind_chess,"row_ind_chess")
+   if(allocated(elsi_h%col_ptr_chess))      call elsi_deallocate(elsi_h,elsi_h%col_ptr_chess,"col_ptr_chess")
 
    ! SIPs
-   if(allocated(elsi_h%inertias))           call elsi_deallocate(elsi_h,elsi_h%inertias,"nertias")
-   if(allocated(elsi_h%shifts))             call elsi_deallocate(elsi_h,elsi_h%shifts,"shifts")
+   if(allocated(elsi_h%inertias_sips))      call elsi_deallocate(elsi_h,elsi_h%inertias_sips,"nertias_sips")
+   if(allocated(elsi_h%shifts_sips))        call elsi_deallocate(elsi_h,elsi_h%shifts_sips,"shifts_sips")
    if(allocated(elsi_h%slices))             call elsi_deallocate(elsi_h,elsi_h%slices,"slices")
 
    if(allocated(elsi_h%local_row))          call elsi_deallocate(elsi_h,elsi_h%local_row,"local_row")
