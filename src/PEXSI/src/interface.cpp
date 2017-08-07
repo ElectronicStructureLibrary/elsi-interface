@@ -825,6 +825,45 @@ void PPEXSICalculateFermiOperatorReal(
 }		// -----  end of function PPEXSICalculateFermiOperatorReal  ----- 
 
 extern "C"
+void PPEXSICalculateFermiOperatorReal3(
+    PPEXSIPlan        plan,
+    PPEXSIOptions     options,
+    double            mu,
+    double            numElectronExact,
+    double*           numElectronPEXSI,
+    double*           numElectronDrvMuPEXSI,
+    int*              info )
+{
+  *info = 0;
+  const GridType* gridPole =
+    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
+
+  try{
+    reinterpret_cast<PPEXSIData*>(plan)->CalculateFermiOperatorReal3(
+        options.numPole,
+        options.temperature,
+        options.gap,
+        options.deltaE,
+        numElectronExact,
+        options.numElectronPEXSITolerance,
+        options.solver,
+        options.verbosity,
+        mu,
+        *numElectronPEXSI,
+        options.method,
+        options.nPoints);
+  }
+  catch( std::exception& e )
+  {
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank
+      << " caught exception with message: "
+      << std::endl << e.what() << std::endl;
+    *info = 1;
+  }
+
+  return ;
+}               // -----  end of function PPEXSICalculateFermiOperatorReal3  -----
+extern "C"
 void PPEXSICalculateFermiOperatorComplex(
     PPEXSIPlan        plan,
     PPEXSIOptions     options,

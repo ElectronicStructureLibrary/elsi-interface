@@ -5656,7 +5656,6 @@ PPEXSIData::DFTDriver2 (
       if(myPoint == currentPoint){
 
          CalculateFermiOperatorReal3(
-             pointColComm,
              numPole,
              temperature,
              gap,
@@ -7839,7 +7838,6 @@ void PPEXSIData::CalculateFermiOperatorReal2(
 //
 
 void PPEXSIData::CalculateFermiOperatorReal3(
-    MPI_Comm pointColComm,
     Int   numPole, 
     Real  temperature,
     Real  gap,
@@ -7855,9 +7853,15 @@ void PPEXSIData::CalculateFermiOperatorReal3(
 
   // These are needed in the point-pole-pexsi parallelization
   Int npPerPoint  = gridPole_->mpisize / nPoints;
+  if(npPerPoint < 1) {
+    statusOFS << " Error, Point parallelization error, npPerPoint < 1 " << std::endl;
+  }
   Int myPoint     = gridPole_->mpirank / npPerPoint;
   Int myPointRank = gridPole_->mpirank % npPerPoint;
   Int myRowPoint  = myPointRank / gridPole_->numProcCol;
+  MPI_Comm pointColComm, pointRowComm;
+  MPI_Comm_split( gridPole_->colComm, myPoint, myPointRank, &pointColComm);
+  MPI_Comm_split( gridPole_->colComm, myPointRank, myPoint, &pointRowComm);
 
   if( isMatrixLoaded_ == false ){
     std::ostringstream msg;

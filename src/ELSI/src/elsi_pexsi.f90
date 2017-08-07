@@ -133,6 +133,7 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
    real(kind=r8)    :: shift_width
    integer(kind=i4) :: n_iner_steps
    integer(kind=i4) :: n_shift
+   integer(kind=i4) :: my_point
    integer(kind=i4) :: aux_min
    integer(kind=i4) :: aux_max
    integer(kind=i4) :: i
@@ -210,12 +211,20 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
    ! Inertia counting
    n_iner_steps = 0
    mu_range = elsi_h%pexsi_options%muMax0-elsi_h%pexsi_options%muMin0
-   n_shift = min(10,elsi_h%n_procs/elsi_h%n_p_per_pole)
+   n_shift = max(10,elsi_h%n_procs/elsi_h%n_p_per_pole)
 
    call elsi_allocate(elsi_h,elsi_h%shifts_pexsi,n_shift,&
            "shifts_pexsi",caller)
    call elsi_allocate(elsi_h,elsi_h%inertias_pexsi,n_shift,&
            "inertias_pexsi",caller)
+
+   if(.not. elsi_h%spin_is_set) then
+      if(elsi_h%n_spins == 2) then
+         elsi_h%spin_degen = 1.0_r8
+      else
+         elsi_h%spin_degen = 2.0_r8
+      endif
+   endif
 
    do while((n_iner_steps < 10) .and. &
             (mu_range > elsi_h%pexsi_options%muInertiaTolerance))
@@ -237,6 +246,8 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
                  elsi_h%pexsi_options,n_shift,elsi_h%shifts_pexsi,&
                  elsi_h%inertias_pexsi,ierr)
       end select
+
+      elsi_h%inertias_pexsi = elsi_h%inertias_pexsi*elsi_h%spin_degen
 
       ! Get global inertias
       if(elsi_h%n_spins*elsi_h%n_kpts > 1) then
@@ -288,9 +299,14 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
    endif
 
    ! Fermi operator expansion
+   my_point = mod(elsi_h%myid,elsi_h%pexsi_options%nPoints)+1
+   shift_width = mu_range/(elsi_h%pexsi_options%nPoints-1)
+
+   elsi_h%mu = elsi_h%pexsi_options%muMin0+(my_point-1)*shift_width
+
    select case(elsi_h%matrix_data_type)
    case(REAL_VALUES)
-      call f_ppexsi_calculate_fermi_operator_real(elsi_h%pexsi_plan,&
+      call f_ppexsi_calculate_fermi_operator_real3(elsi_h%pexsi_plan,&
               elsi_h%pexsi_options,elsi_h%mu,elsi_h%n_electrons,&
               ne_pexsi,ne_drv,ierr)
    case(COMPLEX_VALUES)
