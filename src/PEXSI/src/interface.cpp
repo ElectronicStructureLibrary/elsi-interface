@@ -863,6 +863,7 @@ void PPEXSICalculateFermiOperatorReal3(
 
   return ;
 }               // -----  end of function PPEXSICalculateFermiOperatorReal3  -----
+
 extern "C"
 void PPEXSICalculateFermiOperatorComplex(
     PPEXSIPlan        plan,

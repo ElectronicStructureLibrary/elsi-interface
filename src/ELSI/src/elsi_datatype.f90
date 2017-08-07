@@ -99,8 +99,6 @@ module ELSI_DATATYPE
       complex(kind=r8), allocatable :: dm_complex_pexsi(:)   ! Sparse complex density matrix
       integer(kind=i4), allocatable :: row_ind_pexsi(:)      ! Row index
       integer(kind=i4), allocatable :: col_ptr_pexsi(:)      ! Column pointer
-      real(kind=r8),    allocatable :: shifts_pexsi(:)       ! Shifts
-      real(kind=r8),    allocatable :: inertias_pexsi(:)     ! Inertia counts
 
       ! SIPs
       real(kind=r8),    allocatable :: ham_real_sips(:)  ! Sparse real Hamiltonian
@@ -108,8 +106,6 @@ module ELSI_DATATYPE
       integer(kind=i4), allocatable :: row_ind_sips(:)   ! Row index
       integer(kind=i4), allocatable :: col_ptr_sips(:)   ! Column pointer
       real(kind=r8),    allocatable :: slices(:)         ! Slices
-      real(kind=r8),    allocatable :: shifts_sips(:)    ! Shifts
-      integer(kind=i4), allocatable :: inertias_sips(:)  ! Inertia counts
 
       ! CheSS
       real(kind=r8),    allocatable :: ham_real_chess(:)  ! Sparse real Hamiltonian

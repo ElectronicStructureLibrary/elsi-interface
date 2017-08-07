@@ -100,7 +100,8 @@ subroutine elsi_init_pexsi(elsi_h)
       if(elsi_h%myid_all == 0) then
          output_id = 0
       else
-         output_id = -1
+!         output_id = -1
+         output_id = elsi_h%myid_all
       endif
 
       elsi_h%pexsi_plan = f_ppexsi_plan_initialize(elsi_h%mpi_comm,&
@@ -137,14 +138,19 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
    integer(kind=i4) :: aux_min
    integer(kind=i4) :: aux_max
    integer(kind=i4) :: i
+   integer(kind=i4) :: idx
    integer(kind=i4) :: mpierr
    integer(kind=i4) :: ierr
    character*200    :: info_str
 
+   real(kind=r8), allocatable :: shifts(:)
+   real(kind=r8), allocatable :: inertias(:)
+   real(kind=r8), allocatable :: ne_lower(:)
+   real(kind=r8), allocatable :: ne_upper(:)
    real(kind=r8), allocatable :: ne_vec(:)
    real(kind=r8), allocatable :: send_buffer(:)
 
-   character*40, parameter :: caller = "elsi_solve_evp_pexsi"
+   character*40,  parameter :: caller = "elsi_solve_evp_pexsi"
 
    call elsi_start_density_matrix_time(elsi_h)
 
@@ -213,10 +219,10 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
    mu_range = elsi_h%pexsi_options%muMax0-elsi_h%pexsi_options%muMin0
    n_shift = max(10,elsi_h%n_procs/elsi_h%n_p_per_pole)
 
-   call elsi_allocate(elsi_h,elsi_h%shifts_pexsi,n_shift,&
-           "shifts_pexsi",caller)
-   call elsi_allocate(elsi_h,elsi_h%inertias_pexsi,n_shift,&
-           "inertias_pexsi",caller)
+   call elsi_allocate(elsi_h,shifts,n_shift,"shifts",caller)
+   call elsi_allocate(elsi_h,inertias,n_shift,"inertias",caller)
+   call elsi_allocate(elsi_h,ne_lower,n_shift,"ne_lower",caller)
+   call elsi_allocate(elsi_h,ne_upper,n_shift,"ne_upper",caller)
 
    if(.not. elsi_h%spin_is_set) then
       if(elsi_h%n_spins == 2) then
@@ -232,88 +238,100 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
 
       shift_width = mu_range/(n_shift-1)
 
+      ne_lower = 0.0_r8
+      ne_upper = elsi_h%n_basis*elsi_h%spin_degen
+
       do i = 1,n_shift
-         elsi_h%shifts_pexsi(i) = elsi_h%pexsi_options%muMin0+(i-1)*shift_width
+         shifts(i)   = elsi_h%pexsi_options%muMin0+(i-1)*shift_width
       enddo
 
       select case(elsi_h%matrix_data_type)
       case(REAL_VALUES)
          call f_ppexsi_inertia_count_real_matrix(elsi_h%pexsi_plan,&
-                 elsi_h%pexsi_options,n_shift,elsi_h%shifts_pexsi,&
-                 elsi_h%inertias_pexsi,ierr)
+                 elsi_h%pexsi_options,n_shift,shifts,inertias,ierr)
       case(COMPLEX_VALUES)
          call f_ppexsi_inertia_count_complex_matrix(elsi_h%pexsi_plan,&
-                 elsi_h%pexsi_options,n_shift,elsi_h%shifts_pexsi,&
-                 elsi_h%inertias_pexsi,ierr)
+                 elsi_h%pexsi_options,n_shift,shifts,inertias,ierr)
       end select
 
-      elsi_h%inertias_pexsi = elsi_h%inertias_pexsi*elsi_h%spin_degen
+      inertias = inertias*elsi_h%spin_degen
 
       ! Get global inertias
       if(elsi_h%n_spins*elsi_h%n_kpts > 1) then
          if(elsi_h%myid == 0) then
-            elsi_h%inertias_pexsi = elsi_h%inertias_pexsi*elsi_h%i_weight
+            inertias = inertias*elsi_h%i_weight
          else
-            elsi_h%inertias_pexsi = 0.0_r8
+            inertias = 0.0_r8
          endif
 
          call elsi_allocate(elsi_h,send_buffer,n_shift,"send_buffer",caller)
 
-         call MPI_Allreduce(send_buffer,elsi_h%inertias_pexsi,n_shift,&
-                 mpi_real8,mpi_sum,elsi_h%mpi_comm_all,mpierr)
+         call MPI_Allreduce(send_buffer,inertias,n_shift,mpi_real8,&
+                 mpi_sum,elsi_h%mpi_comm_all,mpierr)
 
          call elsi_deallocate(elsi_h,send_buffer,"send_buffer")
       endif
 
-      aux_min = 0
-      aux_max = 0
+      idx = ceiling(3*elsi_h%pexsi_options%temperature/shift_width)
 
-      do i = 1,n_shift
-         if(elsi_h%inertias_pexsi(i) < elsi_h%n_electrons) then
+      do i = idx+1,n_shift
+         ne_lower(i) = 0.5_r8*(inertias(i-idx)+inertias(i))
+         ne_upper(i-idx) = ne_lower(i)
+      enddo
+
+      aux_min = 1
+      aux_max = n_shift
+
+      do i = 2,n_shift-1
+         if((ne_upper(i) < elsi_h%n_electrons) .and. &
+            (ne_upper(i+1) .ge. elsi_h%n_electrons))  then
             aux_min = i
          endif
 
-         if(elsi_h%inertias_pexsi(i) > elsi_h%n_electrons) then
+         if((ne_lower(i) > elsi_h%n_electrons) .and. &
+            (ne_lower(i-1) .le. elsi_h%n_electrons)) then
             aux_max = i
-            exit
          endif
       enddo
 
-      if(aux_min*aux_max == 0) then
-         call elsi_stop(" Chemical potential not found. Exiting... ",&
-                 elsi_h,caller)
-      elseif((aux_min == 1) .and. (aux_max == n_shift)) then
+      if((aux_min == 1) .and. (aux_max == n_shift)) then
          exit
       else
-         elsi_h%pexsi_options%muMin0 = elsi_h%shifts_pexsi(aux_min)
-         elsi_h%pexsi_options%muMax0 = elsi_h%shifts_pexsi(aux_max)
+         elsi_h%pexsi_options%muMin0 = shifts(aux_min)
+         elsi_h%pexsi_options%muMax0 = shifts(aux_max)
          mu_range = elsi_h%pexsi_options%muMax0-elsi_h%pexsi_options%muMin0
       endif
    enddo
 
-   call elsi_deallocate(elsi_h,elsi_h%shifts_pexsi,"shifts_pexsi")
-   call elsi_deallocate(elsi_h,elsi_h%inertias_pexsi,"inertias_pexsi")
+   call elsi_deallocate(elsi_h,shifts,"shifts")
+   call elsi_deallocate(elsi_h,inertias,"inertias")
+   call elsi_deallocate(elsi_h,ne_lower,"ne_lower")
+   call elsi_deallocate(elsi_h,ne_upper,"ne_upper")
 
    if(ierr /= 0) then
       call elsi_stop(" Inertia counting failed. Exiting...",elsi_h,caller)
    endif
 
    ! Fermi operator expansion
-   my_point = mod(elsi_h%myid,elsi_h%pexsi_options%nPoints)+1
-   shift_width = mu_range/(elsi_h%pexsi_options%nPoints-1)
+   my_point = elsi_h%myid/(elsi_h%n_procs/elsi_h%pexsi_options%nPoints)+1
+   shift_width = mu_range/(elsi_h%pexsi_options%nPoints+1)
 
-   elsi_h%mu = elsi_h%pexsi_options%muMin0+(my_point-1)*shift_width
+   do i = 1,elsi_h%pexsi_options%nPoints
+      elsi_h%mu = elsi_h%pexsi_options%muMin0+i*shift_width
 
-   select case(elsi_h%matrix_data_type)
-   case(REAL_VALUES)
-      call f_ppexsi_calculate_fermi_operator_real3(elsi_h%pexsi_plan,&
-              elsi_h%pexsi_options,elsi_h%mu,elsi_h%n_electrons,&
-              ne_pexsi,ne_drv,ierr)
-   case(COMPLEX_VALUES)
-      call f_ppexsi_calculate_fermi_operator_complex(elsi_h%pexsi_plan,&
-              elsi_h%pexsi_options,elsi_h%mu,elsi_h%n_electrons,&
-              ne_pexsi,ne_drv,ierr)
-   end select
+      if(my_point == i) then
+         select case(elsi_h%matrix_data_type)
+         case(REAL_VALUES)
+            call f_ppexsi_calculate_fermi_operator_real3(elsi_h%pexsi_plan,&
+                    elsi_h%pexsi_options,elsi_h%mu,elsi_h%n_electrons,&
+                    ne_pexsi,ne_drv,ierr)
+         case(COMPLEX_VALUES)
+            call f_ppexsi_calculate_fermi_operator_complex(elsi_h%pexsi_plan,&
+                    elsi_h%pexsi_options,elsi_h%mu,elsi_h%n_electrons,&
+                    ne_pexsi,ne_drv,ierr)
+         end select
+      endif
+   enddo
 
    ! Get global number of electrons
    call elsi_allocate(elsi_h,send_buffer,elsi_h%pexsi_options%nPoints,&
@@ -321,11 +339,10 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
    call elsi_allocate(elsi_h,ne_vec,elsi_h%pexsi_options%nPoints,&
            "ne_vec",caller)
 
-   do i = 1,elsi_h%pexsi_options%nPoints
-      if(elsi_h%myid == (i-1)*elsi_h%n_p_per_pole) then
-         send_buffer(i) = ne_pexsi*elsi_h%i_weight
-      endif
-   enddo
+   if(mod(elsi_h%myid,elsi_h%n_procs/elsi_h%pexsi_options%nPoints) == 0) then
+      send_buffer(elsi_h%myid/(elsi_h%n_procs/&
+         elsi_h%pexsi_options%nPoints)+1) = ne_pexsi*elsi_h%i_weight
+   endif
 
    call MPI_Allreduce(send_buffer,ne_vec,elsi_h%pexsi_options%nPoints,&
            mpi_real8,mpi_sum,elsi_h%mpi_comm_all,mpierr)

@@ -369,11 +369,11 @@ interface
     use, intrinsic :: iso_c_binding
     import         :: f_ppexsi_options
     implicit none
-    integer(c_intptr_t), intent(in), value :: plan
-    type( f_ppexsi_options ), value, intent(in) :: options
-    real(c_double), value, intent(in)      :: mu, numElectronExact
-    real(c_double), intent(out)   :: numElectronPEXSI, numElectronDrvMuPEXSI
-    integer(c_int), intent(out)            :: info
+    integer(c_intptr_t), intent(in), value    :: plan
+    type(f_ppexsi_options), value, intent(in) :: options
+    real(c_double), value, intent(in)         :: mu, numElectronExact
+    real(c_double), intent(out)               :: numElectronPEXSI, numElectronDrvMuPEXSI
+    integer(c_int), intent(out)               :: info
   end subroutine
 
   subroutine f_ppexsi_calculate_fermi_operator_complex(&

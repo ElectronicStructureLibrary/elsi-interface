@@ -79,12 +79,7 @@ subroutine elsi_init_sips(elsi_h)
          elsi_h%n_l_cols_sp = elsi_h%n_basis-(elsi_h%n_procs-1)*elsi_h%n_l_cols_sp
       endif
 
-      call elsi_allocate(elsi_h,elsi_h%slices,elsi_h%n_slices+1,&
-              "slices",caller)
-      call elsi_allocate(elsi_h,elsi_h%inertias_sips,elsi_h%n_slices+1,&
-              "inertias_sips",caller)
-      call elsi_allocate(elsi_h,elsi_h%shifts_sips,elsi_h%n_slices+1,&
-              "shifts_sips",caller)
+      call elsi_allocate(elsi_h,elsi_h%slices,elsi_h%n_slices+1,"slices",caller)
 
       elsi_h%sips_started = .true.
    endif
@@ -106,6 +101,9 @@ subroutine elsi_solve_evp_sips(elsi_h)
 
    integer(kind=i4) :: n_solve_steps
    integer(kind=i4) :: mpierr
+
+   real(kind=r8),    allocatable :: shifts(:)
+   integer(kind=i4), allocatable :: inertias(:)
 
    character*40, parameter :: caller = "elsi_solve_evp_sips"
 
@@ -140,16 +138,21 @@ subroutine elsi_solve_evp_sips(elsi_h)
       if((elsi_h%inertia_option > 0) .and. (elsi_h%n_slices > 1)) then
          call elsi_start_inertia_time(elsi_h)
 
+         call elsi_allocate(elsi_h,inertias,elsi_h%n_slices+1,"inertias",caller)
+         call elsi_allocate(elsi_h,shifts,elsi_h%n_slices+1,"shifts",caller)
+
          call run_eps_inertias_check(elsi_h%unbound,elsi_h%n_states,elsi_h%n_slices,&
-                 elsi_h%slices,elsi_h%shifts_sips,elsi_h%inertias_sips,n_solve_steps)
+                 elsi_h%slices,shifts,inertias,n_solve_steps)
 
          call inertias_to_eigenvalues(elsi_h%n_slices+1,elsi_h%n_states,&
-                 elsi_h%slice_buffer,elsi_h%shifts_sips,elsi_h%inertias_sips,&
-                 elsi_h%eval(1:elsi_h%n_states))
+                 elsi_h%slice_buffer,shifts,inertias,elsi_h%eval(1:elsi_h%n_states))
 
          call compute_subintervals(elsi_h%n_slices,elsi_h%slicing_method,&
                  elsi_h%unbound,elsi_h%interval,0.0_r8,0.0_r8,elsi_h%slices,&
                  elsi_h%eval(1:elsi_h%n_states))
+
+         call elsi_deallocate(elsi_h,inertias,"inertias")
+         call elsi_deallocate(elsi_h,shifts,"shifts")
 
          call elsi_stop_inertia_time(elsi_h)
       endif
