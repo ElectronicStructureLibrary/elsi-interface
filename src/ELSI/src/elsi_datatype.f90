@@ -285,25 +285,7 @@ module ELSI_DATATYPE
       real(kind=r8) :: slice_buffer = 0.0_r8      ! Small buffer to expand interval
       logical :: sips_started = .false.
 
-      ! Timers
-      real(kind=r8) :: t_generalized_evp
-      real(kind=r8) :: t_generalized_evp_start
-      real(kind=r8) :: t_redistribution
-      real(kind=r8) :: t_redistribution_start
-      real(kind=r8) :: t_transform_evp
-      real(kind=r8) :: t_transform_evp_start
-      real(kind=r8) :: t_back_transform_ev
-      real(kind=r8) :: t_back_transform_ev_start
-      real(kind=r8) :: t_singularity_check
-      real(kind=r8) :: t_singularity_check_start
-      real(kind=r8) :: t_standard_evp
-      real(kind=r8) :: t_standard_evp_start
-      real(kind=r8) :: t_density_matrix
-      real(kind=r8) :: t_density_matrix_start
-      real(kind=r8) :: t_cholesky
-      real(kind=r8) :: t_cholesky_start
-      real(kind=r8) :: t_inertia
-      real(kind=r8) :: t_inertia_start
+      integer(kind=i4) :: clock_rate = UNSET
 
    end type
 

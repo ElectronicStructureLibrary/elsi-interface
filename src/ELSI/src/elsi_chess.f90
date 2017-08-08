@@ -32,7 +32,6 @@ module ELSI_CHESS
 
    use ELSI_DATATYPE, only: elsi_handle
    use ELSI_PRECISION, only: r8,i4
-   use ELSI_TIMERS
    use ELSI_UTILS
    use FOE_BASE, only: foe_data_get_real
    use FOE_COMMON, only: init_foe
@@ -139,11 +138,14 @@ subroutine elsi_solve_evp_chess(elsi_h)
    type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
    logical          :: calc_ovlp_inv_sqrt
+   real(kind=r8)    :: t0
+   real(kind=r8)    :: t1
    integer(kind=i4) :: mpierr
+   character*200    :: info_str
 
    character*40, parameter :: caller = "elsi_solve_evp_chess"
 
-   call elsi_start_density_matrix_time(elsi_h)
+   call elsi_get_time(elsi_h,t0)
 
    if(elsi_h%n_elsi_calls == 1) then
       calc_ovlp_inv_sqrt = .true.
@@ -166,7 +168,13 @@ subroutine elsi_solve_evp_chess(elsi_h)
    elsi_h%mu = foe_data_get_real(elsi_h%foe_obj,"ef",1)
 
    call MPI_Barrier(elsi_h%mpi_comm,mpierr)
-   call elsi_stop_density_matrix_time(elsi_h)
+
+   call elsi_get_time(elsi_h,t1)
+
+   write(info_str,"('  Finished density matrix calculation')")
+   call elsi_statement_print(info_str,elsi_h)
+   write(info_str,"('  | Time :',F10.3,' s')") t1-t0
+   call elsi_statement_print(info_str,elsi_h)
 
 end subroutine
 
@@ -180,6 +188,8 @@ subroutine elsi_compute_edm_chess(elsi_h)
    type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
    character*40, parameter :: caller = "elsi_compute_edm_chess"
+
+   ! TODO
 
 end subroutine
 

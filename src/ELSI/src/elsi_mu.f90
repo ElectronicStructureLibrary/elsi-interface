@@ -203,7 +203,6 @@ subroutine elsi_check_electrons(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
             enddo
          enddo
       enddo
-
    case(FERMI)
       max_exp = maxexponent(mu_in)*log(2.0_r8)
 
@@ -223,7 +222,6 @@ subroutine elsi_check_electrons(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
             enddo
          enddo
       enddo
-
    case(METHFESSEL_PAXTON_0)
       do i_kpoint = 1,n_kpoint
          do i_spin = 1,n_spin
@@ -236,7 +234,6 @@ subroutine elsi_check_electrons(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
             enddo
          enddo
       enddo
-
    case(METHFESSEL_PAXTON_1)
       do i_kpoint = 1,n_kpoint
          do i_spin = 1,n_spin

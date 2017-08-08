@@ -33,7 +33,6 @@ module ELSI_PEXSI
    use ELSI_CONSTANTS, only: BLACS_DENSE,REAL_VALUES,COMPLEX_VALUES,UNSET
    use ELSI_DATATYPE, only: elsi_handle
    use ELSI_PRECISION, only: r8,i4
-   use ELSI_TIMERS
    use ELSI_UTILS
    use F_PPEXSI_INTERFACE
 
@@ -179,8 +178,6 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
    real(kind=r8), external :: ddot
 
    character*40,  parameter :: caller = "elsi_solve_evp_pexsi"
-
-   call elsi_start_density_matrix_time(elsi_h)
 
    ! Load sparse matrices for PEXSI
    select case(elsi_h%matrix_data_type)
@@ -546,7 +543,6 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
    call MPI_Bcast(elsi_h%energy_hdm,1,mpi_real8,0,elsi_h%mpi_comm,mpierr)
 
    call MPI_Barrier(elsi_h%mpi_comm,mpierr)
-   call elsi_stop_density_matrix_time(elsi_h)
 
 end subroutine
 

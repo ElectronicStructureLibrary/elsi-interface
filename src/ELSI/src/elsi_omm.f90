@@ -33,7 +33,6 @@ module ELSI_OMM
    use ELSI_CONSTANTS, only: REAL_VALUES,COMPLEX_VALUES
    use ELSI_DATATYPE, only: elsi_handle
    use ELSI_PRECISION, only: r8,i4
-   use ELSI_TIMERS
    use ELSI_UTILS
    use ELPA1
    use MATRIXSWITCH, only: m_add,m_deallocate,ms_scalapack_setup,matrix
@@ -59,7 +58,10 @@ subroutine elsi_solve_evp_omm(elsi_h)
    type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
    logical          :: success
+   real(kind=r8)    :: t0
+   real(kind=r8)    :: t1
    integer(kind=i4) :: mpierr
+   character*200    :: info_str
 
    character*40, parameter :: caller = "elsi_solve_evp_omm"
 
@@ -68,12 +70,10 @@ subroutine elsi_solve_evp_omm(elsi_h)
               " Exiting...",elsi_h,caller)
    endif
 
-   call elsi_start_density_matrix_time(elsi_h)
-
    if(.not. elsi_h%ovlp_is_unit) then
       if(elsi_h%omm_flavor == 2) then
          if(elsi_h%n_elsi_calls == 1) then
-            call elsi_start_cholesky_time(elsi_h)
+            call elsi_get_time(elsi_h,t0)
 
             ! Cholesky factorization
             select case(elsi_h%matrix_data_type)
@@ -88,7 +88,6 @@ subroutine elsi_solve_evp_omm(elsi_h)
                             elsi_h%ovlp_omm%zval,elsi_h%n_l_rows,elsi_h%n_b_rows,&
                             elsi_h%n_l_cols,elsi_h%mpi_comm_row,elsi_h%mpi_comm_col,&
                             .false.)
-
             case(REAL_VALUES)
                ! Compute S = (U^T)U, U -> S
                success = elpa_cholesky_real_double(elsi_h%n_basis,&
@@ -102,7 +101,12 @@ subroutine elsi_solve_evp_omm(elsi_h)
                             .false.)
             end select
 
-            call elsi_stop_cholesky_time(elsi_h)
+            call elsi_get_time(elsi_h,t1)
+
+            write(info_str,"('  Finished Cholesky decomposition')")
+            call elsi_statement_print(info_str,elsi_h)
+            write(info_str,"('  | Time :',F10.3,' s')") t1-t0
+            call elsi_statement_print(info_str,elsi_h)
          endif
 
          if(elsi_h%n_elsi_calls > elsi_h%n_elpa_steps+1) then
@@ -140,6 +144,8 @@ subroutine elsi_solve_evp_omm(elsi_h)
       call m_add(elsi_h%ovlp_omm,'N',elsi_h%ham_omm,-elsi_h%eta,1.0_r8,"lap")
    endif
 
+   call elsi_get_time(elsi_h,t0)
+
    call elsi_statement_print("  Starting OMM density matrix solver",elsi_h)
 
    select case(elsi_h%matrix_data_type)
@@ -167,7 +173,13 @@ subroutine elsi_solve_evp_omm(elsi_h)
    end select
 
    call MPI_Barrier(elsi_h%mpi_comm,mpierr)
-   call elsi_stop_density_matrix_time(elsi_h)
+
+   call elsi_get_time(elsi_h,t1)
+
+   write(info_str,"('  Finished density matrix calculation')")
+   call elsi_statement_print(info_str,elsi_h)
+   write(info_str,"('  | Time :',F10.3,' s')") t1-t0
+   call elsi_statement_print(info_str,elsi_h)
 
 end subroutine
 
@@ -191,7 +203,6 @@ subroutine elsi_compute_edm_omm(elsi_h)
               elsi_h%eta,elsi_h%coeff_omm,elsi_h%coeff_ready,elsi_h%tdm_omm,&
               elsi_h%scale_kinetic,elsi_h%omm_flavor,1,1,elsi_h%min_tol,&
               elsi_h%omm_output,elsi_h%do_dealloc,"pzdbc","lap")
-
    case(REAL_VALUES)
       call omm(elsi_h%n_basis,elsi_h%n_states_omm,elsi_h%ham_omm,elsi_h%ovlp_omm,&
               elsi_h%new_overlap,elsi_h%energy_hdm,elsi_h%dm_omm,elsi_h%calc_ed,&

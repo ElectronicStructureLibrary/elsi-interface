@@ -33,7 +33,6 @@ module ELSI_MATCONV
    use ELSI_CONSTANTS, only: ELPA,LIBOMM
    use ELSI_DATATYPE, only: elsi_handle
    use ELSI_PRECISION, only: r8,i4,i8
-   use ELSI_TIMERS
    use ELSI_UTILS
 
    implicit none
@@ -77,7 +76,13 @@ subroutine elsi_blacs_to_pexsi_hs_real(elsi_h,h_in,s_in)
    real(kind=r8),     intent(inout) :: h_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian
    real(kind=r8),     intent(inout) :: s_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Overlap
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
+   character*200 :: info_str
+
    character*40, parameter :: caller = "elsi_blacs_to_pexsi_hs_real"
+
+   call elsi_get_time(elsi_h,t0)
 
    if(.not. elsi_h%ovlp_is_unit) then
       call elsi_set_full_mat(elsi_h,h_in)
@@ -91,6 +96,13 @@ subroutine elsi_blacs_to_pexsi_hs_real(elsi_h,h_in,s_in)
          call elsi_blacs_to_pexsi_hs_large_real(elsi_h,h_in,s_in)
       endif
    endif
+
+   call elsi_get_time(elsi_h,t1)
+
+   write(info_str,"('  Finished matrix redistribution')")
+   call elsi_statement_print(info_str,elsi_h)
+   write(info_str,"('  | Time :',F10.3,' s')") t1-t0
+   call elsi_statement_print(info_str,elsi_h)
 
 end subroutine
 
@@ -141,8 +153,6 @@ subroutine elsi_blacs_to_pexsi_hs_small_real(elsi_h,h_in,s_in)
    integer(kind=i4) :: recv_displ_aux
 
    character*40, parameter :: caller = "elsi_blacs_to_pexsi_hs_small_real"
-
-   call elsi_start_redistribution_time(elsi_h)
 
    n_para_task = elsi_h%n_procs/elsi_h%n_p_per_pole
 
@@ -443,8 +453,6 @@ subroutine elsi_blacs_to_pexsi_hs_small_real(elsi_h,h_in,s_in)
       call elsi_deallocate(elsi_h,pos_send_buffer,"pos_send_buffer")
    endif
 
-   call elsi_stop_redistribution_time(elsi_h)
-
 end subroutine
 
 !>
@@ -500,8 +508,6 @@ subroutine elsi_blacs_to_pexsi_hs_large_real(elsi_h,h_in,s_in)
    integer(kind=i4) :: send_displ_aux
 
    character*40, parameter :: caller = "elsi_blacs_to_pexsi_hs_large_real"
-
-   call elsi_start_redistribution_time(elsi_h)
 
    n_para_task = elsi_h%n_procs/elsi_h%n_p_per_pole
 
@@ -846,8 +852,6 @@ subroutine elsi_blacs_to_pexsi_hs_large_real(elsi_h,h_in,s_in)
       call elsi_deallocate(elsi_h,col_send_buffer,"col_send_buffer")
    endif
 
-   call elsi_stop_redistribution_time(elsi_h)
-
 end subroutine
 
 !>
@@ -861,13 +865,26 @@ subroutine elsi_pexsi_to_blacs_dm_real(elsi_h,d_out)
    type(elsi_handle), intent(inout) :: elsi_h                                 !< Handle
    real(kind=r8),     intent(out)   :: d_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Density matrix
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
+   character*200 :: info_str
+
    character*40, parameter :: caller = "elsi_pexsi_to_blacs_dm_real"
+
+   call elsi_get_time(elsi_h,t0)
 
    if(elsi_h%n_basis < 46340) then
       call elsi_pexsi_to_blacs_dm_small_real(elsi_h,d_out)
    else
       call elsi_pexsi_to_blacs_dm_large_real(elsi_h,d_out)
    endif
+
+   call elsi_get_time(elsi_h,t1)
+
+   write(info_str,"('  Finished matrix redistribution')")
+   call elsi_statement_print(info_str,elsi_h)
+   write(info_str,"('  | Time :',F10.3,' s')") t1-t0
+   call elsi_statement_print(info_str,elsi_h)
 
 end subroutine
 
@@ -913,8 +930,6 @@ subroutine elsi_pexsi_to_blacs_dm_small_real(elsi_h,d_out)
    integer(kind=i4) :: recv_displ_aux
 
    character*40, parameter :: caller = "elsi_pexsi_to_blacs_dm_small_real"
-
-   call elsi_start_redistribution_time(elsi_h)
 
    call elsi_allocate(elsi_h,val_send_buffer,elsi_h%nnz_l_sp,&
            "val_send_buffer",caller)
@@ -1041,8 +1056,6 @@ subroutine elsi_pexsi_to_blacs_dm_small_real(elsi_h,d_out)
    call elsi_deallocate(elsi_h,val_recv_buffer,"val_recv_buffer")
    call elsi_deallocate(elsi_h,pos_recv_buffer,"pos_recv_buffer")
 
-   call elsi_stop_redistribution_time(elsi_h)
-
 end subroutine
 
 !>
@@ -1090,8 +1103,6 @@ subroutine elsi_pexsi_to_blacs_dm_large_real(elsi_h,d_out)
    integer(kind=i4) :: recv_displ_aux
 
    character*40, parameter :: caller = "elsi_pexsi_to_blacs_dm_large_real"
-
-   call elsi_start_redistribution_time(elsi_h)
 
    call elsi_allocate(elsi_h,val_send_buffer,elsi_h%nnz_l_sp,&
            "val_send_buffer",caller)
@@ -1232,8 +1243,6 @@ subroutine elsi_pexsi_to_blacs_dm_large_real(elsi_h,d_out)
    call elsi_deallocate(elsi_h,row_recv_buffer,"row_recv_buffer")
    call elsi_deallocate(elsi_h,col_recv_buffer,"col_recv_buffer")
 
-   call elsi_stop_redistribution_time(elsi_h)
-
 end subroutine
 
 !>
@@ -1248,7 +1257,13 @@ subroutine elsi_blacs_to_sips_hs(elsi_h,h_in,s_in)
    real(kind=r8),     intent(inout) :: h_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian
    real(kind=r8),     intent(inout) :: s_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Overlap
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
+   character*200 :: info_str
+
    character*40, parameter :: caller = "elsi_blacs_to_sips_hs"
+
+   call elsi_get_time(elsi_h,t0)
 
    if(.not. elsi_h%ovlp_is_unit) then
       call elsi_set_full_mat(elsi_h,h_in)
@@ -1262,6 +1277,13 @@ subroutine elsi_blacs_to_sips_hs(elsi_h,h_in,s_in)
          call elsi_blacs_to_sips_hs_large(elsi_h,h_in,s_in)
       endif
    endif
+
+   call elsi_get_time(elsi_h,t1)
+
+   write(info_str,"('  Finished matrix redistribution')")
+   call elsi_statement_print(info_str,elsi_h)
+   write(info_str,"('  | Time :',F10.3,' s')") t1-t0
+   call elsi_statement_print(info_str,elsi_h)
 
 end subroutine
 
@@ -1306,8 +1328,6 @@ subroutine elsi_blacs_to_sips_hs_small(elsi_h,h_in,s_in)
    integer(kind=i4) :: recv_displ_aux
 
    character*40, parameter :: caller = "elsi_blacs_to_sips_hs_small"
-
-   call elsi_start_redistribution_time(elsi_h)
 
    if(elsi_h%n_elsi_calls == 1) then
       call elsi_get_local_nnz(elsi_h,h_in,elsi_h%n_l_rows,&
@@ -1486,8 +1506,6 @@ subroutine elsi_blacs_to_sips_hs_small(elsi_h,h_in,s_in)
 
    call elsi_deallocate(elsi_h,pos_recv_buffer,"pos_recv_buffer")
 
-   call elsi_stop_redistribution_time(elsi_h)
-
 end subroutine
 
 !> 
@@ -1537,8 +1555,6 @@ subroutine elsi_blacs_to_sips_hs_large(elsi_h,h_in,s_in)
    integer(kind=i8), allocatable :: global_id(:)
 
    character*40, parameter :: caller = "elsi_blacs_to_sips_hs_large"
-
-   call elsi_start_redistribution_time(elsi_h)
 
    if(elsi_h%n_elsi_calls == 1) then
       call elsi_get_local_nnz(elsi_h,h_in,elsi_h%n_l_rows,&
@@ -1749,8 +1765,6 @@ subroutine elsi_blacs_to_sips_hs_large(elsi_h,h_in,s_in)
    call elsi_deallocate(elsi_h,row_recv_buffer,"row_recv_buffer")
    call elsi_deallocate(elsi_h,col_recv_buffer,"col_recv_buffer")
 
-   call elsi_stop_redistribution_time(elsi_h)
-
 end subroutine
 
 !>
@@ -1765,13 +1779,26 @@ subroutine elsi_pexsi_to_blacs_hs_real(elsi_h,h_in,s_in)
    real(kind=r8),     intent(in)    :: h_in(elsi_h%nnz_l_sp) !< Hamiltonian
    real(kind=r8),     intent(in)    :: s_in(elsi_h%nnz_l_sp) !< Overlap
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
+   character*200 :: info_str
+
    character*40, parameter :: caller = "elsi_pexsi_to_blacs_hs_real"
+
+   call elsi_get_time(elsi_h,t0)
 
    if(elsi_h%n_basis < 46340) then
       call elsi_pexsi_to_blacs_hs_small_real(elsi_h,h_in,s_in)
    else
       call elsi_pexsi_to_blacs_hs_large_real(elsi_h,h_in,s_in)
    endif
+
+   call elsi_get_time(elsi_h,t1)
+
+   write(info_str,"('  Finished matrix redistribution')")
+   call elsi_statement_print(info_str,elsi_h)
+   write(info_str,"('  | Time :',F10.3,' s')") t1-t0
+   call elsi_statement_print(info_str,elsi_h)
 
 end subroutine
 
@@ -1820,8 +1847,6 @@ subroutine elsi_pexsi_to_blacs_hs_small_real(elsi_h,h_in,s_in)
    integer(kind=i4) :: recv_displ_aux
 
    character*40, parameter :: caller = "elsi_pexsi_to_blacs_hs_small_real"
-
-   call elsi_start_redistribution_time(elsi_h)
 
    if(elsi_h%n_elsi_calls == 1) then
       call elsi_allocate(elsi_h,s_val_send_buffer,elsi_h%nnz_l_sp,&
@@ -1995,8 +2020,6 @@ subroutine elsi_pexsi_to_blacs_hs_small_real(elsi_h,h_in,s_in)
    call elsi_deallocate(elsi_h,h_val_recv_buffer,"h_val_recv_buffer")
    call elsi_deallocate(elsi_h,pos_recv_buffer,"pos_recv_buffer")
 
-   call elsi_stop_redistribution_time(elsi_h)
-
 end subroutine
 
 !>
@@ -2047,8 +2070,6 @@ subroutine elsi_pexsi_to_blacs_hs_large_real(elsi_h,h_in,s_in)
    integer(kind=i4) :: recv_displ_aux
 
    character*40, parameter :: caller = "elsi_pexsi_to_blacs_hs_large_real"
-
-   call elsi_start_redistribution_time(elsi_h)
 
    if(elsi_h%n_elsi_calls == 1) then
       call elsi_allocate(elsi_h,s_val_send_buffer,elsi_h%nnz_l_sp,&
@@ -2237,8 +2258,6 @@ subroutine elsi_pexsi_to_blacs_hs_large_real(elsi_h,h_in,s_in)
    call elsi_deallocate(elsi_h,row_recv_buffer,"row_recv_buffer")
    call elsi_deallocate(elsi_h,col_recv_buffer,"col_recv_buffer")
 
-   call elsi_stop_redistribution_time(elsi_h)
-
 end subroutine
 
 !>
@@ -2252,13 +2271,26 @@ subroutine elsi_blacs_to_pexsi_dm_real(elsi_h,d_out)
    type(elsi_handle), intent(inout) :: elsi_h                 !< Handle
    real(kind=r8),     intent(out)   :: d_out(elsi_h%nnz_l_sp) !< Density matrix
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
+   character*200 :: info_str
+
    character*40, parameter :: caller = "elsi_blacs_to_pexsi_dm_real"
+
+   call elsi_get_time(elsi_h,t0)
 
    if(elsi_h%n_basis < 46340) then
       call elsi_blacs_to_pexsi_dm_small_real(elsi_h,d_out)
    else
       call elsi_blacs_to_pexsi_dm_large_real(elsi_h,d_out)
    endif
+
+   call elsi_get_time(elsi_h,t1)
+
+   write(info_str,"('  Finished matrix redistribution')")
+   call elsi_statement_print(info_str,elsi_h)
+   write(info_str,"('  | Time :',F10.3,' s')") t1-t0
+   call elsi_statement_print(info_str,elsi_h)
 
 end subroutine
 
@@ -2302,8 +2334,6 @@ subroutine elsi_blacs_to_pexsi_dm_small_real(elsi_h,d_out)
    integer(kind=i4) :: recv_displ_aux
 
    character*40, parameter :: caller = "elsi_blacs_to_pexsi_dm_small_real"
-
-   call elsi_start_redistribution_time(elsi_h)
 
    if(elsi_h%solver == ELPA) then
       call elsi_get_local_nnz(elsi_h,elsi_h%dm_real_elpa,elsi_h%n_l_rows,&
@@ -2440,8 +2470,6 @@ subroutine elsi_blacs_to_pexsi_dm_small_real(elsi_h,d_out)
    call elsi_deallocate(elsi_h,pos_recv_buffer,"pos_recv_buffer")
    call elsi_deallocate(elsi_h,val_recv_buffer,"val_recv_buffer")
 
-   call elsi_stop_redistribution_time(elsi_h)
-
 end subroutine
 
 !>
@@ -2486,8 +2514,6 @@ subroutine elsi_blacs_to_pexsi_dm_large_real(elsi_h,d_out)
    integer(kind=i4) :: recv_displ_aux
 
    character*40, parameter :: caller = "elsi_blacs_to_pexsi_dm_large_real"
-
-   call elsi_start_redistribution_time(elsi_h)
 
    if(elsi_h%solver == ELPA) then
       call elsi_get_local_nnz(elsi_h,elsi_h%dm_real_elpa,elsi_h%n_l_rows,&
@@ -2633,8 +2659,6 @@ subroutine elsi_blacs_to_pexsi_dm_large_real(elsi_h,d_out)
    call elsi_deallocate(elsi_h,col_recv_buffer,"col_recv_buffer")
    call elsi_deallocate(elsi_h,val_recv_buffer,"val_recv_buffer")
 
-   call elsi_stop_redistribution_time(elsi_h)
-
 end subroutine
 
 !>
@@ -2649,7 +2673,13 @@ subroutine elsi_blacs_to_chess_hs(elsi_h,h_in,s_in)
    real(kind=r8),     intent(inout) :: h_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian
    real(kind=r8),     intent(inout) :: s_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Overlap
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
+   character*200 :: info_str
+
    character*40, parameter :: caller = "elsi_blacs_to_chess_hs"
+
+   call elsi_get_time(elsi_h,t0)
 
    if(.not. elsi_h%ovlp_is_unit) then
       call elsi_set_full_mat(elsi_h,h_in)
@@ -2678,6 +2708,13 @@ subroutine elsi_blacs_to_chess_hs(elsi_h,h_in,s_in)
       elsi_h%nnz_l_sp = elsi_h%nnz_g
       elsi_h%n_l_cols_sp = elsi_h%n_basis
    endif
+
+   call elsi_get_time(elsi_h,t1)
+
+   write(info_str,"('  Finished matrix redistribution')")
+   call elsi_statement_print(info_str,elsi_h)
+   write(info_str,"('  | Time :',F10.3,' s')") t1-t0
+   call elsi_statement_print(info_str,elsi_h)
 
 end subroutine
 

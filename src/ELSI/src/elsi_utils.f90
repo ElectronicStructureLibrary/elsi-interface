@@ -32,8 +32,8 @@
 module ELSI_UTILS
 
    use ELSI_CONSTANTS, only: AUTO,ELPA,LIBOMM,PEXSI,CHESS,SIPS,BLACS_DENSE,&
-                             PEXSI_CSC,MULTI_PROC,FULL_MAT,UT_MAT,LT_MAT,&
-                             N_SOLVERS,N_MATRIX_DATA_TYPES,&
+                             PEXSI_CSC,MULTI_PROC,SINGLE_PROC,FULL_MAT,UT_MAT,&
+                             LT_MAT,N_SOLVERS,N_MATRIX_DATA_TYPES,&
                              N_MATRIX_STORAGE_FORMATS,N_PARALLEL_MODES,UNSET
    use ELSI_DATATYPE, only: elsi_handle,print_info,print_mem
    use ELSI_PRECISION, only: r8,i4
@@ -67,6 +67,9 @@ module ELSI_UTILS
    public :: elsi_get_global_col
    public :: elsi_get_local_nnz
    public :: elsi_set_full_mat
+   public :: elsi_init_timers
+   public :: elsi_final_print
+   public :: elsi_get_time
 
    interface elsi_set_ham
       module procedure elsi_set_real_ham,&
@@ -1306,6 +1309,7 @@ subroutine elsi_reset_handle(elsi_h)
    elsi_h%interval          = 0.0_r8
    elsi_h%slice_buffer      = 0.0_r8
    elsi_h%sips_started      = .false.
+   elsi_h%clock_rate        = UNSET
 
 end subroutine
 
@@ -1798,6 +1802,107 @@ subroutine elsi_set_full_mat_complex(elsi_h,mat)
          mat(elsi_h%local_row(i_col),elsi_h%local_col(i_col)) = &
             dble(mat(elsi_h%local_row(i_col),elsi_h%local_col(i_col)))
       enddo
+   endif
+
+end subroutine
+
+!>
+!! This routine initializes the timer.
+!!
+subroutine elsi_init_timers(elsi_h)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
+
+   integer(kind=i4) :: initial_time
+   integer(kind=i4) :: clock_max
+
+   character*40, parameter :: caller = "elsi_init_timers"
+
+   call system_clock(initial_time,elsi_h%clock_rate,clock_max)
+
+end subroutine
+
+!>
+!! This routine gets the current wallclock time.
+!!
+subroutine elsi_get_time(elsi_h,wtime)
+
+   implicit none
+
+   type(elsi_handle), intent(in)  :: elsi_h !< Handle
+   real(kind=r8),     intent(out) :: wtime !< Time
+
+   integer(kind=i4) :: tics
+
+   character*40, parameter :: caller = "elsi_get_time"
+
+   call system_clock(tics)
+
+   wtime = 1.0_r8*tics/elsi_h%clock_rate
+
+end subroutine
+
+!>
+!! This routine prints a final output.
+!!
+subroutine elsi_final_print(elsi_h)
+
+   implicit none
+
+   type(elsi_handle), intent(in) :: elsi_h !< Handle
+
+   real(kind=r8)    :: sparsity
+   integer(kind=i4) :: i_proc
+
+   character*40, parameter :: caller = "elsi_final_print"
+
+   if(print_info) then
+      if(elsi_h%myid_all == 0) then
+         write(*,"('  |------------------------------------------')")
+         write(*,"('  | Final ELSI Output')")
+         write(*,"('  |------------------------------------------')")
+
+         write(*,"('  | Number of basis functions :',I13)") elsi_h%n_basis
+         if((elsi_h%solver == PEXSI) .or. (elsi_h%solver == SIPS)) then
+            write(*,"('  | Number of nonzeros        :',I13)") elsi_h%nnz_g
+            sparsity = 1.0_r8-(1.0_r8*elsi_h%nnz_g/elsi_h%n_basis)/elsi_h%n_basis
+            write(*,"('  | Sparsity                  :',F13.3)") sparsity
+         endif
+         write(*,"('  | Number of electrons       :',F13.1)") elsi_h%n_electrons
+         write(*,"('  | Number of states          :',I13)") elsi_h%n_states
+         write(*,"('  | Number of spins           :',I13)") elsi_h%n_spins
+         write(*,"('  | Number of k-points        :',I13)") elsi_h%n_kpts
+
+         if(elsi_h%solver == ELPA) then
+            write(*,"('  | Solver                    :',A13)") "ELPA"
+         elseif(elsi_h%solver == LIBOMM) then
+            write(*,"('  | Solver                    :',A13)") "libOMM"
+         elseif(elsi_h%solver == PEXSI) then
+            write(*,"('  | Solver                    :',A13)") "PEXSI"
+         elseif(elsi_h%solver == CHESS) then
+            write(*,"('  | Solver                    :',A13)") "CheSS"
+         elseif(elsi_h%solver == SIPS) then
+            write(*,"('  | Solver                    :',A13)") "SIPs"
+         endif
+
+         if(elsi_h%parallel_mode == MULTI_PROC) then
+            write(*,"('  | Parallel mode             :',A13)") "MULTI_PROC"
+         elseif(elsi_h%parallel_mode == SINGLE_PROC) then
+            write(*,"('  | Parallel mode             :',A13)") "SINGLE_PROC"
+         endif
+
+         if(elsi_h%matrix_format == BLACS_DENSE) then
+            write(*,"('  | Matrix format             :',A13)") "BLACS_DENSE"
+         elseif(elsi_h%matrix_format == PEXSI_CSC) then
+            write(*,"('  | Matrix format             :',A13)") "PEXSI_CSC"
+         endif
+
+         write(*,"('  |------------------------------------------')")
+         write(*,"('  | ELSI Project (c)  elsi-interchange.org')")
+         write(*,"('  |------------------------------------------')")
+      endif
    endif
 
 end subroutine
