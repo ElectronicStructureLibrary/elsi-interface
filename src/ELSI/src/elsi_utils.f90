@@ -1482,7 +1482,7 @@ subroutine elsi_check(elsi_h,caller)
       if(elsi_h%n_basis < elsi_h%n_p_per_pole) then
          call elsi_stop(" PEXSI has been chosen as the solver."//&
                  " The size of matrix is too small for this"//&
-                 " number of processes. Exiting...",elsi_h,caller)
+                 " number of MPI tasks. Exiting...",elsi_h,caller)
       endif
 
       if(elsi_h%n_p_per_pole == UNSET) then
@@ -1501,6 +1501,13 @@ subroutine elsi_check(elsi_h,caller)
                     " times the number of mu points. Exiting...",&
                     elsi_h,caller)
          endif
+
+         if(elsi_h%n_p_per_pole*elsi_h%pexsi_options%numPole*&
+            elsi_h%pexsi_options%nPoints < elsi_h%n_procs) then
+            call elsi_stop("  Specified number of MPI tasks per pole"//&
+                    " is too small for the total number of MPI tasks."//&
+                    " Exiting...",elsi_h,caller)
+         endif
       endif
 
    elseif(elsi_h%solver == CHESS) then
@@ -1509,7 +1516,7 @@ subroutine elsi_check(elsi_h,caller)
       if(elsi_h%n_basis < elsi_h%n_procs) then
          call elsi_stop(" CheSS has been chosen as the solver."//&
                  " The size of matrix is too small for this"//&
-                 " number of processes. Exiting...",elsi_h,caller)
+                 " number of MPI tasks. Exiting...",elsi_h,caller)
       endif
 
       if(elsi_h%parallel_mode == MULTI_PROC) then
@@ -1548,7 +1555,7 @@ subroutine elsi_check(elsi_h,caller)
       if(elsi_h%n_basis < elsi_h%n_procs) then
          call elsi_stop(" SIPs has been chosen as the solver."//&
                  " The size of matrix is too small for this"//&
-                 " number of processes. Exiting...",elsi_h,caller)
+                 " number of MPI tasks. Exiting...",elsi_h,caller)
       endif
 
       if(elsi_h%parallel_mode == MULTI_PROC) then
