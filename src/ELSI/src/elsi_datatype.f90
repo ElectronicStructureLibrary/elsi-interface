@@ -100,13 +100,6 @@ module ELSI_DATATYPE
       integer(kind=i4), allocatable :: row_ind_pexsi(:)      ! Row index
       integer(kind=i4), allocatable :: col_ptr_pexsi(:)      ! Column pointer
 
-      ! SIPs
-      real(kind=r8),    allocatable :: ham_real_sips(:)  ! Sparse real Hamiltonian
-      real(kind=r8),    allocatable :: ovlp_real_sips(:) ! Sparse real overlap
-      integer(kind=i4), allocatable :: row_ind_sips(:)   ! Row index
-      integer(kind=i4), allocatable :: col_ptr_sips(:)   ! Column pointer
-      real(kind=r8),    allocatable :: slices(:)         ! Slices
-
       ! CheSS
       real(kind=r8),    allocatable :: ham_real_chess(:)  ! Sparse real Hamiltonian
       real(kind=r8),    allocatable :: ovlp_real_chess(:) ! Sparse real overlap
@@ -118,8 +111,15 @@ module ELSI_DATATYPE
       type(matrices)                :: ovlp_chess         ! Overlap
       type(matrices)                :: dm_chess           ! Density matrix
       type(matrices)                :: edm_chess          ! Energy density matrix
-      type(matrices)                :: ovlp_inv_sqrt(1)   ! (1/ovlp)^(-1/2)
+      type(matrices)                :: ovlp_inv_sqrt(1)   ! (1/overlap)^(-1/2)
       type(sparse_matrix)           :: sparse_mat(2)      ! Sparsity pattern etc
+
+      ! SIPs
+      real(kind=r8),    allocatable :: ham_real_sips(:)  ! Sparse real Hamiltonian
+      real(kind=r8),    allocatable :: ovlp_real_sips(:) ! Sparse real overlap
+      integer(kind=i4), allocatable :: row_ind_sips(:)   ! Row index
+      integer(kind=i4), allocatable :: col_ptr_sips(:)   ! Column pointer
+      real(kind=r8),    allocatable :: slices(:)         ! Slices
 
       ! Is this a valid handle?
       logical :: handle_ready = .false.
@@ -161,16 +161,16 @@ module ELSI_DATATYPE
       integer(kind=i4) :: n_procs_all = UNSET
       integer(kind=i4) :: mpi_comm = UNSET
       integer(kind=i4) :: mpi_comm_all = UNSET
+      integer(kind=i4) :: mpi_comm_row = UNSET
+      integer(kind=i4) :: mpi_comm_col = UNSET
+      integer(kind=i4) :: my_p_row = UNSET
+      integer(kind=i4) :: my_p_col = UNSET
       logical :: mpi_ready = .false.
       logical :: global_mpi_ready = .false.
 
       ! BLACS
       integer(kind=i4) :: blacs_ctxt = UNSET
       integer(kind=i4) :: sc_desc(9) = UNSET
-      integer(kind=i4) :: mpi_comm_row = UNSET
-      integer(kind=i4) :: mpi_comm_col = UNSET
-      integer(kind=i4) :: my_p_row = UNSET
-      integer(kind=i4) :: my_p_col = UNSET
       logical :: blacs_ready = .false.
 
       ! Sparse matrix information
@@ -191,7 +191,7 @@ module ELSI_DATATYPE
       integer(kind=i4) :: n_nonsing = UNSET ! Number of nonsingular basis functions
 
       ! Physics
-      real(kind=r8) :: n_electrons = 0.0_r8         ! Number of electrons in system
+      real(kind=r8) :: n_electrons = 0.0_r8         ! Number of electrons
       real(kind=r8) :: mu = 0.0_r8                  ! Chemical potential
       integer(kind=i4) :: n_basis = UNSET           ! Number of basis functions
       integer(kind=i4) :: n_spins = 1               ! Number of spin channels
@@ -206,15 +206,15 @@ module ELSI_DATATYPE
       real(kind=r8) :: free_energy = 0.0_r8
 
       ! Chemical potential
-      integer(kind=i4) :: broadening_scheme = 0     ! Broadening scheme for occupation numbers
-      real(kind=r8) :: broadening_width = 1.0e-2_r8 ! Broadening width for occupation numbers
+      integer(kind=i4) :: broadening_scheme = 0
+      real(kind=r8) :: broadening_width = 1.0e-2_r8
       real(kind=r8) :: occ_tolerance = 1.0e-13_r8   ! Accuracy of occupation numbers
       integer(kind=i4) :: max_mu_steps = 100        ! Maximum number of steps to find mu
       real(kind=r8) :: spin_degen = 0.0_r8          ! Spin degeneracy
-      logical :: spin_is_set = .false.              ! Is spin_degen set by user?
-      logical :: mu_ready = .false.                 ! Is chemical potential ready to be collected?
-      logical :: edm_ready_real = .false.           ! Is energy density matrix ready to be computed?
-      logical :: edm_ready_complex = .false.        ! Is energy density matrix ready to be computed?
+      logical :: spin_is_set = .false.
+      logical :: mu_ready = .false.
+      logical :: edm_ready_real = .false.
+      logical :: edm_ready_complex = .false.
 
       ! ELPA
       integer(kind=i4) :: elpa_solver = UNSET ! ELPA 1-stage or 2-stage solver
@@ -233,17 +233,24 @@ module ELSI_DATATYPE
       logical :: calc_ed = .false.             ! Calculate energy weighted density matrix?
       real(kind=r8) :: eta = 0.0_r8            ! Eigenspectrum shift parameter
       real(kind=r8) :: min_tol = 0.0_r8        ! Tolerance for minimization
-      logical :: omm_output = .false.          ! Output level
-      logical :: do_dealloc = .false.          ! Deallocate internal storage?
-      logical :: use_psp = .false.             ! Use pspBLAS sparse linear algebra?
+      logical :: omm_output = .false.
+      logical :: do_dealloc = .false.
+      logical :: use_psp = .false.             ! Use PSP
 
       ! PEXSI
       integer(kind=i4) :: n_p_per_pole = UNSET
+      integer(kind=i4) :: n_p_per_point = UNSET
       integer(kind=i4) :: my_p_row_pexsi = UNSET
       integer(kind=i4) :: my_p_col_pexsi = UNSET
       integer(kind=i4) :: n_p_rows_pexsi = UNSET
       integer(kind=i4) :: n_p_cols_pexsi = UNSET
-      logical :: pexsi_started = .false. ! Is PEXSI started?
+      integer(kind=i4) :: my_point = UNSET
+      integer(kind=i4) :: myid_point = UNSET
+      integer(kind=i4) :: comm_among_pole = UNSET
+      integer(kind=i4) :: comm_in_pole = UNSET
+      integer(kind=i4) :: comm_among_point = UNSET
+      integer(kind=i4) :: comm_in_point = UNSET
+      logical :: pexsi_started = .false.
       integer(kind=c_intptr_t) :: pexsi_plan
       type(f_ppexsi_options)   :: pexsi_options
 
@@ -258,7 +265,7 @@ module ELSI_DATATYPE
       real(kind=r8) :: ev_ovlp_min = 0.0_r8
       real(kind=r8) :: ev_ovlp_max = 0.0_r8
       real(kind=r8) :: beta = 0.0_r8          ! A patameter used to estimate eigenspectrum
-      logical :: chess_started = .false.      ! Is CheSS started?
+      logical :: chess_started = .false.
 
       ! SIPs
       integer(kind=i4) :: n_p_per_slice = UNSET
@@ -276,7 +283,7 @@ module ELSI_DATATYPE
       integer(kind=i4) :: n_slices = UNSET        ! Number of slices
       real(kind=r8) :: interval(2) = 0.0_r8       ! Global interval to search eigenvalues
       real(kind=r8) :: slice_buffer = 0.0_r8      ! Small buffer to expand interval
-      logical :: sips_started = .false.           ! Is SIPs started?
+      logical :: sips_started = .false.
 
       ! Timers
       real(kind=r8) :: t_generalized_evp

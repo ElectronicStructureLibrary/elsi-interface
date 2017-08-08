@@ -123,7 +123,6 @@ subroutine elsi_blacs_to_pexsi_hs_small_real(elsi_h,h_in,s_in)
    integer(kind=i4) :: min_pos
    integer(kind=i4) :: min_id
    integer(kind=i4) :: nnz_l_pexsi_aux
-   integer(kind=i4) :: mpi_comm_aux_pexsi
    integer(kind=i4), allocatable :: locat(:) ! Location of each global column
    real(kind=r8) :: tmp_real
 
@@ -362,13 +361,11 @@ subroutine elsi_blacs_to_pexsi_hs_small_real(elsi_h,h_in,s_in)
            1,mpi_integer,elsi_h%mpi_comm,mpierr)
 
    if(elsi_h%n_elsi_calls == 1) then
+      ! Only the first pole knows nnz_l_sp
       elsi_h%nnz_l_sp = sum(recv_count,1)
 
-      ! At this point only the first pole knows nnz_l_sp
-      call MPI_Comm_split(elsi_h%mpi_comm,elsi_h%my_p_col_pexsi,&
-              elsi_h%my_p_row_pexsi,mpi_comm_aux_pexsi,mpierr)
-
-      call MPI_Bcast(elsi_h%nnz_l_sp,1,mpi_integer,0,mpi_comm_aux_pexsi,mpierr)
+      call MPI_Bcast(elsi_h%nnz_l_sp,1,mpi_integer,0,&
+              elsi_h%comm_among_pole,mpierr)
    endif
 
    ! Set send and receive displacement
@@ -480,7 +477,6 @@ subroutine elsi_blacs_to_pexsi_hs_large_real(elsi_h,h_in,s_in)
    integer(kind=i4) :: min_pos
    integer(kind=i4) :: min_id
    integer(kind=i4) :: nnz_l_pexsi_aux
-   integer(kind=i4) :: mpi_comm_aux_pexsi
    integer(kind=i4) :: tmp_int
    integer(kind=i8) :: tmp_long
    integer(kind=i4), allocatable :: locat(:) ! Location of each global column
@@ -757,13 +753,11 @@ subroutine elsi_blacs_to_pexsi_hs_large_real(elsi_h,h_in,s_in)
            1,mpi_integer,elsi_h%mpi_comm,mpierr)
 
    if(elsi_h%n_elsi_calls == 1) then
+      ! Only the first pole knows nnz_l_sp
       elsi_h%nnz_l_sp = sum(recv_count,1)
 
-      ! At this point only the first pole knows nnz_l_sp
-      call MPI_Comm_split(elsi_h%mpi_comm,elsi_h%my_p_col_pexsi,&
-              elsi_h%my_p_row_pexsi,mpi_comm_aux_pexsi,mpierr)
-
-      call MPI_Bcast(elsi_h%nnz_l_sp,1,mpi_integer,0,mpi_comm_aux_pexsi,mpierr)
+      call MPI_Bcast(elsi_h%nnz_l_sp,1,mpi_integer,0,&
+              elsi_h%comm_among_pole,mpierr)
    endif
 
    ! Set send and receive displacement
