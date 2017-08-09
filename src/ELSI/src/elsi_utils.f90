@@ -1143,6 +1143,7 @@ subroutine elsi_cleanup(elsi_h)
    if(allocated(elsi_h%dm_complex_pexsi))   call elsi_deallocate(elsi_h,elsi_h%dm_real_pexsi,"dm_complex_pexsi")
    if(allocated(elsi_h%row_ind_pexsi))      call elsi_deallocate(elsi_h,elsi_h%row_ind_pexsi,"row_ind_pexsi")
    if(allocated(elsi_h%col_ptr_pexsi))      call elsi_deallocate(elsi_h,elsi_h%col_ptr_pexsi,"col_ptr_pexsi")
+   if(allocated(elsi_h%ne_vec))             call elsi_deallocate(elsi_h,elsi_h%ne_vec,"ne_vec")
 
    ! CheSS
    if(allocated(elsi_h%ham_real_chess))     call elsi_deallocate(elsi_h,elsi_h%ham_real_chess,"ham_real_chess")
@@ -1290,6 +1291,7 @@ subroutine elsi_reset_handle(elsi_h)
    elsi_h%comm_in_pole      = UNSET
    elsi_h%comm_among_point  = UNSET
    elsi_h%comm_in_point     = UNSET
+   elsi_h%ne_pexsi          = 0.0_r8
    elsi_h%pexsi_started     = .false.
    elsi_h%erf_decay         = 0.0_r8
    elsi_h%erf_decay_min     = 0.0_r8

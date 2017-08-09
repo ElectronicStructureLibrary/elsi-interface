@@ -192,7 +192,13 @@ subroutine elsi_compute_edm_omm(elsi_h)
 
    type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
+   character*200 :: info_str
+
    character*40, parameter :: caller = "elsi_compute_edm_omm"
+
+   call elsi_get_time(elsi_h,t0)
 
    elsi_h%calc_ed = .true.
 
@@ -212,6 +218,13 @@ subroutine elsi_compute_edm_omm(elsi_h)
    end select
 
    elsi_h%calc_ed = .false.
+
+   call elsi_get_time(elsi_h,t1)
+
+   write(info_str,"('  Finished energy density matrix calculation')")
+   call elsi_statement_print(info_str,elsi_h)
+   write(info_str,"('  | Time :',F10.3,' s')") t1-t0
+   call elsi_statement_print(info_str,elsi_h)
 
 end subroutine
 

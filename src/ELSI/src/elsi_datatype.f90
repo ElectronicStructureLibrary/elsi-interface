@@ -78,8 +78,8 @@ module ELSI_DATATYPE
       real(kind=r8),    allocatable :: occ_num(:,:,:)         ! Occupation numbers
       real(kind=r8),    allocatable :: eval_all(:,:,:)        ! Eigenvalues
       real(kind=r8),    allocatable :: k_weight(:)            ! K-point weights
-      integer(kind=i4), allocatable :: local_row(:)
-      integer(kind=i4), allocatable :: local_col(:)
+      integer(kind=i4), allocatable :: local_row(:)           ! Local-global index mapping
+      integer(kind=i4), allocatable :: local_col(:)           ! Local-global index mapping
 
       ! libOMM
       type(Matrix)                  :: ham_omm               ! Hamiltonian
@@ -99,6 +99,7 @@ module ELSI_DATATYPE
       complex(kind=r8), allocatable :: dm_complex_pexsi(:)   ! Sparse complex density matrix
       integer(kind=i4), allocatable :: row_ind_pexsi(:)      ! Row index
       integer(kind=i4), allocatable :: col_ptr_pexsi(:)      ! Column pointer
+      real(kind=r8),    allocatable :: ne_vec(:)             ! Number of electrons at all points
 
       ! CheSS
       real(kind=r8),    allocatable :: ham_real_chess(:)  ! Sparse real Hamiltonian
@@ -250,6 +251,7 @@ module ELSI_DATATYPE
       integer(kind=i4) :: comm_in_pole = UNSET
       integer(kind=i4) :: comm_among_point = UNSET
       integer(kind=i4) :: comm_in_point = UNSET
+      real(kind=r8)    :: ne_pexsi ! Number of electrons computed by PEXSI
       logical :: pexsi_started = .false.
       integer(kind=c_intptr_t) :: pexsi_plan
       type(f_ppexsi_options)   :: pexsi_options

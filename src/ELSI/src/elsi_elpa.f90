@@ -210,12 +210,17 @@ subroutine elsi_compute_edm_elpa(elsi_h)
    integer(kind=i4) :: i_col
    integer(kind=i4) :: i_row
    integer(kind=i4) :: max_state
+   real(kind=r8)    :: t0
+   real(kind=r8)    :: t1
+   character*200    :: info_str
 
    real(kind=r8),    allocatable :: factor(:)
    real(kind=r8),    allocatable :: tmp_real(:,:)
    complex(kind=r8), allocatable :: tmp_complex(:,:)
 
    character*40, parameter :: caller = "elsi_compute_edm_elpa"
+
+   call elsi_get_time(elsi_h,t0)
 
    call elsi_allocate(elsi_h,factor,elsi_h%n_states,"factor",caller)
 
@@ -324,6 +329,13 @@ subroutine elsi_compute_edm_elpa(elsi_h)
             dble(elsi_h%dm_complex(elsi_h%local_row(i_col),elsi_h%local_col(i_col)))
       enddo
    end select
+
+   call elsi_get_time(elsi_h,t1)
+
+   write(info_str,"('  Finished energy density matrix calculation')")
+   call elsi_statement_print(info_str,elsi_h)
+   write(info_str,"('  | Time :',F10.3,' s')") t1-t0
+   call elsi_statement_print(info_str,elsi_h)
 
 end subroutine
 
