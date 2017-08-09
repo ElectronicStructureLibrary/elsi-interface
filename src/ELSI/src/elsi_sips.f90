@@ -314,16 +314,16 @@ subroutine elsi_print_sips_options(elsi_h)
    write(info_str,"(A)") "  SIPs settings:"
    call elsi_statement_print(info_str,elsi_h)
 
-   write(info_str,"(1X,' | Slicing method ',I2)") elsi_h%slicing_method
+   write(info_str,"(1X,' | Slicing method ',I10)") elsi_h%slicing_method
    call elsi_statement_print(info_str,elsi_h)
 
-   write(info_str,"(1X,' | Inertia option ',I2)") elsi_h%inertia_option
+   write(info_str,"(1X,' | Inertia option ',I10)") elsi_h%inertia_option
    call elsi_statement_print(info_str,elsi_h)
 
-   write(info_str,"(1X,' | Left bound ',I2)") elsi_h%unbound
+   write(info_str,"(1X,' | Left bound     ',I10)") elsi_h%unbound
    call elsi_statement_print(info_str,elsi_h)
 
-   write(info_str,"(1X,' | Slice buffer ',F10.4)") elsi_h%slice_buffer
+   write(info_str,"(1X,' | Slice buffer   ',E10.2)") elsi_h%slice_buffer
    call elsi_statement_print(info_str,elsi_h)
 
 end subroutine
