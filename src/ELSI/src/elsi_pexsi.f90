@@ -72,7 +72,7 @@ subroutine elsi_init_pexsi(elsi_h)
                                   elsi_h%pexsi_options%nPoints)
       endif
 
-      write(info_str,"(1X,' | Number of MPI tasks per pole           ',I10)") &
+      write(info_str,"(1X,' | Number of MPI tasks per pole                   ',I10)") &
          elsi_h%n_p_per_pole
       call elsi_statement_print(info_str,elsi_h)
 
@@ -289,14 +289,16 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
                  elsi_h%pexsi_options,n_shift,shifts,inertias,ierr)
       end select
 
-      inertias = inertias*elsi_h%spin_degen
+      inertias = inertias*elsi_h%spin_degen*elsi_h%i_weight
 
       ! Get global inertias
       if(elsi_h%n_spins*elsi_h%n_kpts > 1) then
          call elsi_allocate(elsi_h,send_buffer,n_shift,"send_buffer",caller)
 
          if(elsi_h%myid == 0) then
-            send_buffer = inertias*elsi_h%i_weight
+            send_buffer = inertias
+         else
+            send_buffer = 0.0_r8
          endif
 
          call MPI_Allreduce(send_buffer,inertias,n_shift,mpi_real8,&
@@ -381,7 +383,6 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
       endif
    enddo
 
-   ! Get global number of electrons
    call elsi_allocate(elsi_h,send_buffer,elsi_h%pexsi_options%nPoints,&
            "send_buffer",caller)
    if(elsi_h%n_elsi_calls == 1) then
@@ -393,6 +394,19 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
 
    call MPI_Allreduce(send_buffer,elsi_h%ne_vec,elsi_h%pexsi_options%nPoints,&
            mpi_real8,mpi_sum,elsi_h%comm_among_point,mpierr)
+
+   ! Get global number of electrons
+   if(elsi_h%n_spins*elsi_h%n_kpts > 1) then
+      if(elsi_h%myid == 0) then
+         send_buffer = elsi_h%ne_vec
+      else
+         send_buffer = 0.0_r8
+      endif
+
+      call MPI_Allreduce(send_buffer,elsi_h%ne_vec,&
+              elsi_h%pexsi_options%nPoints,mpi_real8,mpi_sum,&
+              elsi_h%mpi_comm_all,mpierr)
+   endif
 
    call elsi_deallocate(elsi_h,send_buffer,"send_buffer")
 
