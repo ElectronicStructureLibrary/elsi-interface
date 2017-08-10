@@ -7863,8 +7863,6 @@ void PPEXSIData::CalculateFermiOperatorReal3(
   MPI_Comm_split( gridPole_->colComm, myPoint, myPointRank, &pointColComm);
   MPI_Comm_split( gridPole_->colComm, myPointRank, myPoint, &pointRowComm);
 
-  statusOFS << " myid " << gridPole_->mpirank << " mymu " << mu << std::endl;
-
   if( isMatrixLoaded_ == false ){
     std::ostringstream msg;
     msg  << std::endl

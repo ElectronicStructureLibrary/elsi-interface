@@ -72,7 +72,7 @@ subroutine elsi_init_pexsi(elsi_h)
                                   elsi_h%pexsi_options%nPoints)
       endif
 
-      write(info_str,"(A,I13)") "  | Number of MPI tasks per pole: ",&
+      write(info_str,"(1X,' | Number of MPI tasks per pole           ',I10)") &
          elsi_h%n_p_per_pole
       call elsi_statement_print(info_str,elsi_h)
 
@@ -293,13 +293,11 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
 
       ! Get global inertias
       if(elsi_h%n_spins*elsi_h%n_kpts > 1) then
-         if(elsi_h%myid == 0) then
-            inertias = inertias*elsi_h%i_weight
-         else
-            inertias = 0.0_r8
-         endif
-
          call elsi_allocate(elsi_h,send_buffer,n_shift,"send_buffer",caller)
+
+         if(elsi_h%myid == 0) then
+            send_buffer = inertias*elsi_h%i_weight
+         endif
 
          call MPI_Allreduce(send_buffer,inertias,n_shift,mpi_real8,&
                  mpi_sum,elsi_h%mpi_comm_all,mpierr)
