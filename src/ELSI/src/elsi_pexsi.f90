@@ -667,7 +667,7 @@ subroutine elsi_compute_edm_pexsi(elsi_h)
 
    ! Check convergence
    mu_range    = elsi_h%pexsi_options%muMax0-elsi_h%pexsi_options%muMin0
-   shift_width = mu_range/(elsi_h%pexsi_options%nPoints-1)
+   shift_width = mu_range/(elsi_h%pexsi_options%nPoints+1)
    converged   = .false.
    aux_min     = 0
    aux_max     = elsi_h%pexsi_options%nPoints+1
@@ -676,7 +676,7 @@ subroutine elsi_compute_edm_pexsi(elsi_h)
            "shifts",caller)
 
    do i = 1,elsi_h%pexsi_options%nPoints
-      shifts(i) = elsi_h%pexsi_options%muMin0+(i-1)*shift_width
+      shifts(i) = elsi_h%pexsi_options%muMin0+i*shift_width
    enddo
 
    do i = 1,elsi_h%pexsi_options%nPoints
