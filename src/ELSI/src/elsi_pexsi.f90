@@ -449,7 +449,7 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
    ! Check convergence
    converged = .false.
    aux_min = 0
-   aux_max = n_shift+1
+   aux_max = elsi_h%pexsi_options%nPoints+1
 
    do i = 1,elsi_h%pexsi_options%nPoints
       if(elsi_h%ne_vec(i) < elsi_h%n_electrons-&
@@ -488,11 +488,11 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
          endif
       endif
 
-      if(aux_max == n_shift+1) then
-         aux_max = n_shift
+      if(aux_max == elsi_h%pexsi_options%nPoints+1) then
+         aux_max = elsi_h%pexsi_options%nPoints
 
          if(aux_min .ge. aux_max) then
-            aux_min = n_shift-1
+            aux_min = elsi_h%pexsi_options%nPoints-1
          endif
       endif
 
@@ -612,7 +612,6 @@ subroutine elsi_compute_edm_pexsi(elsi_h)
    real(kind=r8)    :: factor_max
    real(kind=r8)    :: t0
    real(kind=r8)    :: t1
-   integer(kind=i4) :: n_shift
    integer(kind=i4) :: aux_min
    integer(kind=i4) :: aux_max
    integer(kind=i4) :: i
@@ -668,15 +667,15 @@ subroutine elsi_compute_edm_pexsi(elsi_h)
 
    ! Check convergence
    mu_range    = elsi_h%pexsi_options%muMax0-elsi_h%pexsi_options%muMin0
-   n_shift     = max(10,elsi_h%n_procs/elsi_h%n_p_per_pole)
-   shift_width = mu_range/(n_shift-1)
+   shift_width = mu_range/(elsi_h%pexsi_options%nPoints-1)
    converged   = .false.
    aux_min     = 0
-   aux_max     = n_shift+1
+   aux_max     = elsi_h%pexsi_options%nPoints+1
 
-   call elsi_allocate(elsi_h,shifts,n_shift,"shifts",caller)
+   call elsi_allocate(elsi_h,shifts,elsi_h%pexsi_options%nPoints,&
+           "shifts",caller)
 
-   do i = 1,n_shift
+   do i = 1,elsi_h%pexsi_options%nPoints
       shifts(i) = elsi_h%pexsi_options%muMin0+(i-1)*shift_width
    enddo
 
@@ -717,11 +716,11 @@ subroutine elsi_compute_edm_pexsi(elsi_h)
          endif
       endif
 
-      if(aux_max == n_shift+1) then
-         aux_max = n_shift
+      if(aux_max == elsi_h%pexsi_options%nPoints+1) then
+         aux_max = elsi_h%pexsi_options%nPoints
 
          if(aux_min .ge. aux_max) then
-            aux_min = n_shift-1
+            aux_min = elsi_h%pexsi_options%nPoints-1
          endif
       endif
 
