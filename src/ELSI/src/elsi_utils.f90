@@ -130,6 +130,11 @@ module ELSI_UTILS
                        elsi_deallocate_complex_3d
    end interface
 
+   interface elsi_get_local_nnz
+      module procedure elsi_get_local_nnz_real,&
+                       elsi_get_local_nnz_complex
+   end interface
+
    interface elsi_set_full_mat
       module procedure elsi_set_full_mat_real,&
                        elsi_set_full_mat_complex
@@ -1326,43 +1331,27 @@ subroutine elsi_check(elsi_h,caller)
    character(len=*),  intent(in)    :: caller !< Caller
 
    ! General check of solver, parallel mode, matrix data type, matrix storage format
-   if(elsi_h%solver == UNSET) then
-      call elsi_stop(" The solver has not been set."//&
-              " Please choose ELPA, LIBOMM, or PEXSI solver."//&
-              " Exiting...",elsi_h,caller)
-   elseif((elsi_h%solver < 0) .or. (elsi_h%solver .ge. N_SOLVERS)) then
+   if((elsi_h%solver < 0) .or. (elsi_h%solver .ge. N_SOLVERS)) then
       call elsi_stop(" An unsupported solver has been chosen."//&
               " Please choose ELPA, LIBOMM, or PEXSI solver."//&
               " Exiting...",elsi_h,caller)
    endif
 
-   if(elsi_h%parallel_mode == UNSET) then
-      call elsi_stop(" The parallel mode has not been set."//&
-              " Please choose either SINGLE_PROC or MULTI_PROC."//&
-              " Exiting...",elsi_h,caller)
-   elseif((elsi_h%parallel_mode < 0) .or. &
+   if((elsi_h%parallel_mode < 0) .or. &
       (elsi_h%parallel_mode .ge. N_PARALLEL_MODES)) then
       call elsi_stop(" An unsupported parallel mode has been chosen."//&
               " Please choose either SINGLE_PROC or MULTI_PROC."//&
               " Exiting...",elsi_h,caller)
    endif
 
-   if(elsi_h%matrix_data_type == UNSET) then
-      call elsi_stop(" The matrix data type has not been set."//& 
-              " Please choose either REAL_VALUES or COMPLEX_VALUES."//&
-              " Exiting...",elsi_h,caller)
-   elseif((elsi_h%matrix_data_type < 0) .or. &
+   if((elsi_h%matrix_data_type < 0) .or. &
       (elsi_h%matrix_data_type .ge. N_MATRIX_DATA_TYPES)) then
       call elsi_stop(" An unsupported matirx data type has been chosen."//&
               " Please choose either REAL_VALUES or COMPLEX_VALUES."//&
               " Exiting...",elsi_h,caller)
    endif
 
-   if(elsi_h%matrix_format == UNSET) then
-      call elsi_stop(" The matrix storage format has not been set."//&             
-              " Please choose either BLACS_DENSE or PEXSI_CSC."//&
-              " Exiting...",elsi_h,caller)
-   elseif((elsi_h%matrix_format < 0) .or. &
+   if((elsi_h%matrix_format < 0) .or. &
       (elsi_h%matrix_format .ge. N_MATRIX_STORAGE_FORMATS)) then
       call elsi_stop(" An unsupported matirx storage format has been"//&
               " set. Please choose either BLACS_DENSE or PEXSI_CSC."//&
@@ -1375,6 +1364,10 @@ subroutine elsi_check(elsi_h,caller)
          call elsi_stop(" Upper/lower triangular input matrix only"//&
                  " supported with BLACS_DENSE matrix storage format and"//&
                  " MULTI_PROC parallel mode. Exiting...",elsi_h,caller)
+      endif
+
+      if((elsi_h%uplo /= UT_MAT) .and. (elsi_h%uplo /= LT_MAT)) then
+         call elsi_stop(" Invalid choice of uplo. Exiting...",elsi_h,caller)
       endif
    endif
 
@@ -1397,7 +1390,6 @@ subroutine elsi_check(elsi_h,caller)
       call elsi_stop(" AUTO not yet available."//&
                " Please choose ELPA, LIBOMM, or PEXSI solver."//&
                " Exiting...",elsi_h,caller)
-
    elseif(elsi_h%solver == ELPA) then
       if(elsi_h%parallel_mode == MULTI_PROC) then
          if(.not. elsi_h%mpi_ready) then
@@ -1420,7 +1412,6 @@ subroutine elsi_check(elsi_h,caller)
                     " calling the solver. Exiting...",elsi_h,caller)
          endif
       endif
-
    elseif(elsi_h%solver == LIBOMM) then
       if(elsi_h%parallel_mode == MULTI_PROC) then
          if(.not. elsi_h%mpi_ready) then
@@ -1447,7 +1438,6 @@ subroutine elsi_check(elsi_h,caller)
                     " calling the solver. Exiting...",elsi_h,caller)
          endif
       endif
-
    elseif(elsi_h%solver == PEXSI) then
       if(elsi_h%parallel_mode == MULTI_PROC) then
          if(.not. elsi_h%mpi_ready) then
@@ -1511,7 +1501,6 @@ subroutine elsi_check(elsi_h,caller)
                     " Exiting...",elsi_h,caller)
          endif
       endif
-
    elseif(elsi_h%solver == CHESS) then
       call elsi_statement_print("  ATTENTION! CheSS is EXPERIMENTAL.",elsi_h)
 
@@ -1550,7 +1539,6 @@ subroutine elsi_check(elsi_h,caller)
                  " Please choose BLACS_DENSE matrix format."//&
                  " Exiting...",elsi_h,caller)
       endif
-
    elseif(elsi_h%solver == SIPS) then
       call elsi_statement_print("  ATTENTION! SIPs is EXPERIMENTAL.",elsi_h)
 
@@ -1591,7 +1579,6 @@ subroutine elsi_check(elsi_h,caller)
                     " calling the solver. Exiting...",elsi_h,caller)
          endif
       endif
-
    else
       call elsi_stop(" No supported solver has been chosen."//&
               " Please choose ELPA, LIBOMM, or PEXSI solver."//&
@@ -1672,7 +1659,7 @@ end subroutine
 !>
 !! This routine counts the local number of non_zero elements.
 !!
-subroutine elsi_get_local_nnz(elsi_h,matrix,n_rows,n_cols,nnz)
+subroutine elsi_get_local_nnz_real(elsi_h,matrix,n_rows,n_cols,nnz)
 
    implicit none
 
@@ -1686,7 +1673,38 @@ subroutine elsi_get_local_nnz(elsi_h,matrix,n_rows,n_cols,nnz)
    integer(kind=i4) :: i_col
    integer(kind=i4) :: i_nz
 
-   character*40, parameter :: caller = "elsi_get_local_nnz"
+   character*40, parameter :: caller = "elsi_get_local_nnz_real"
+
+   nnz = 0
+
+   do i_col = 1,n_cols
+      do i_row = 1,n_rows
+         if(abs(matrix(i_row,i_col)) > elsi_h%zero_threshold) then
+            nnz = nnz+1
+         endif
+      enddo
+   enddo
+
+end subroutine
+
+!>
+!! This routine counts the local number of non_zero elements.
+!!
+subroutine elsi_get_local_nnz_complex(elsi_h,matrix,n_rows,n_cols,nnz)
+
+   implicit none
+
+   type(elsi_handle), intent(in)  :: elsi_h                !< Handle
+   complex(kind=r8),  intent(in)  :: matrix(n_rows,n_cols) !< Local matrix
+   integer(kind=i4),  intent(in)  :: n_rows                !< Local rows
+   integer(kind=i4),  intent(in)  :: n_cols                !< Local cols
+   integer(kind=i4),  intent(out) :: nnz                   !< Number of non-zero
+
+   integer(kind=i4) :: i_row
+   integer(kind=i4) :: i_col
+   integer(kind=i4) :: i_nz
+
+   character*40, parameter :: caller = "elsi_get_local_nnz_complex"
 
    nnz = 0
 

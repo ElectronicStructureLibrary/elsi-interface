@@ -385,6 +385,7 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
 
    call elsi_allocate(elsi_h,send_buffer,elsi_h%pexsi_options%nPoints,&
            "send_buffer",caller)
+
    if(elsi_h%n_elsi_calls == 1) then
       call elsi_allocate(elsi_h,elsi_h%ne_vec,elsi_h%pexsi_options%nPoints,&
               "ne_vec",caller)
@@ -676,7 +677,7 @@ subroutine elsi_compute_edm_pexsi(elsi_h)
    call elsi_allocate(elsi_h,shifts,n_shift,"shifts",caller)
 
    do i = 1,n_shift
-      shifts(i)   = elsi_h%pexsi_options%muMin0+(i-1)*shift_width
+      shifts(i) = elsi_h%pexsi_options%muMin0+(i-1)*shift_width
    enddo
 
    do i = 1,elsi_h%pexsi_options%nPoints
@@ -772,7 +773,6 @@ subroutine elsi_compute_edm_pexsi(elsi_h)
 
          call elsi_deallocate(elsi_h,send_buffer,"send_buffer")
          call elsi_deallocate(elsi_h,tmp_real,"tmp_real")
-
       case(COMPLEX_VALUES)
          call elsi_allocate(elsi_h,send_buffer_complex,elsi_h%nnz_l_sp,&
                  "send_buffer_complex",caller)

@@ -413,7 +413,6 @@ subroutine elsi_to_standard_evp(elsi_h)
                  (1.0_r8,0.0_r8),elsi_h%ovlp_complex,1,1,elsi_h%sc_desc,&
                  elsi_h%evec_complex,1,1,elsi_h%sc_desc,(0.0_r8,0.0_r8),&
                  elsi_h%ham_complex,1,1,elsi_h%sc_desc)
-
       else ! Use cholesky
          success = elpa_mult_ah_b_complex_double('U','L',elsi_h%n_basis,&
                       elsi_h%n_basis,elsi_h%ovlp_complex,elsi_h%n_l_rows,&
@@ -506,7 +505,6 @@ subroutine elsi_to_standard_evp(elsi_h)
          call pdgemm('T','N',elsi_h%n_nonsing,elsi_h%n_nonsing,elsi_h%n_basis,&
                  1.0_r8,elsi_h%ovlp_real,1,1,elsi_h%sc_desc,elsi_h%evec_real,&
                  1,1,elsi_h%sc_desc,0.0_r8,elsi_h%ham_real,1,1,elsi_h%sc_desc)
-
       else ! Use Cholesky
          success = elpa_mult_at_b_real_double('U','L',elsi_h%n_basis,&
                       elsi_h%n_basis,elsi_h%ovlp_real,elsi_h%n_l_rows,&
@@ -632,7 +630,6 @@ subroutine elsi_check_singularity(elsi_h)
             elsi_h%ovlp_complex(:,elsi_h%local_col(i)) = &
                elsi_h%evec_complex(:,elsi_h%local_col(i))/ev_sqrt
          enddo
-
       else ! Nonsingular
          elsi_h%ovlp_is_sing = .false.
          call elsi_statement_print("  Overlap matrix is nonsingular",elsi_h)
@@ -687,7 +684,6 @@ subroutine elsi_check_singularity(elsi_h)
             elsi_h%ovlp_real(:,elsi_h%local_col(i)) = &
                elsi_h%evec_real(:,elsi_h%local_col(i))/ev_sqrt
          enddo
-
       else ! Nonsingular
          elsi_h%ovlp_is_sing = .false.
          call elsi_statement_print("  Overlap matrix is nonsingular",elsi_h)
@@ -969,7 +965,6 @@ subroutine elsi_to_standard_evp_sp(elsi_h)
                  (1.0_r8,0.0_r8),elsi_h%ovlp_complex(1,1),elsi_h%n_basis,&
                  elsi_h%evec_complex(1,1),elsi_h%n_basis,(0.0_r8,0.0_r8),&
                  elsi_h%ham_complex(1,1),elsi_h%n_basis)
-
       else ! Use cholesky
          ! tmp_complex = H_complex * S_complex
          do n = 1,elsi_h%n_basis,nblk
@@ -1052,7 +1047,6 @@ subroutine elsi_to_standard_evp_sp(elsi_h)
          call dgemm('T','N',elsi_h%n_nonsing,elsi_h%n_nonsing,elsi_h%n_basis,&
                  1.0_r8,elsi_h%ovlp_real(1,1),elsi_h%n_basis,elsi_h%evec_real(1,1),&
                  elsi_h%n_basis,0.0_r8,elsi_h%ham_real(1,1),elsi_h%n_basis)
-
       else ! Use Cholesky
          ! tmp_real = H_real * S_real
          do n = 1,elsi_h%n_basis,nblk
@@ -1367,7 +1361,6 @@ subroutine elsi_check_singularity_sp(elsi_h)
             ev_sqrt = sqrt(elsi_h%eval(i))
             elsi_h%ovlp_complex(:,i) = elsi_h%evec_complex(:,i)/ev_sqrt
          enddo
-
       else ! Nonsingular
          elsi_h%ovlp_is_sing = .false.
          call elsi_statement_print("  Overlap matrix is nonsingular",elsi_h)
@@ -1444,7 +1437,6 @@ subroutine elsi_check_singularity_sp(elsi_h)
             ev_sqrt = sqrt(elsi_h%eval(i))
             elsi_h%ovlp_real(:,i) = elsi_h%evec_real(:,i)/ev_sqrt
          enddo
-
       else ! Nonsingular
          elsi_h%ovlp_is_sing = .false.
          call elsi_statement_print("  Overlap matrix is nonsingular",elsi_h)

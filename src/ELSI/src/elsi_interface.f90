@@ -955,12 +955,6 @@ subroutine elsi_set_uplo(elsi_h,uplo)
 
    call elsi_check_handle(elsi_h,caller)
 
-   if((uplo < 0) .or. (uplo > 2)) then
-      call elsi_stop("  Invalid choice of uplo. Please choose"//&
-              " 0 (full), 1 (upper triangular), or 2 (lower"//&
-              " triangular). Exiting...",elsi_h,caller)
-   endif
-
    elsi_h%uplo = uplo
 
 end subroutine
@@ -1764,18 +1758,18 @@ subroutine elsi_ev_real(elsi_h,h_in,s_in,e_val_out,e_vec_out)
       ! Solve
       if(elsi_h%parallel_mode == SINGLE_PROC) then
          call elsi_solve_evp_elpa_sp(elsi_h)
-      else ! Multi-proc
+      else ! MULTI_PROC
          call elsi_solve_evp_elpa(elsi_h)
       endif
    case(LIBOMM)
-      call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
-              " Choose ELPA if needed. Exiting...",elsi_h,caller)
+      call elsi_stop(" LIBOMM is not an eigensolver. Choose ELPA or"//&
+              " SIPS if needed. Exiting...",elsi_h,caller)
    case(PEXSI)
-      call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
-              " Choose ELPA if needed. Exiting...",elsi_h,caller)
+      call elsi_stop(" PEXSI is not an eigensolver. Choose ELPA or"//&
+              " SIPS if needed. Exiting...",elsi_h,caller)
    case(CHESS)
-      call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
-              " Choose ELPA if needed. Exiting...",elsi_h,caller)
+      call elsi_stop(" CHESS is not an eigensolver. Choose ELPA or"//&
+              " SIPS if needed. Exiting...",elsi_h,caller)
    case(SIPS)
       call elsi_print_sips_options(elsi_h)
 
@@ -1848,14 +1842,14 @@ subroutine elsi_ev_complex(elsi_h,h_in,s_in,e_val_out,e_vec_out)
          call elsi_solve_evp_elpa(elsi_h)
       endif
    case(LIBOMM)
-      call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
-              " Choose ELPA if needed. Exiting...",elsi_h,caller)
+      call elsi_stop(" LIBOMM is not an eigensolver. Choose ELPA if"//&
+              " needed. Exiting...",elsi_h,caller)
    case(PEXSI)
-      call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
-              " Choose ELPA if needed. Exiting...",elsi_h,caller)
+      call elsi_stop(" PEXSI is not an eigensolver. Choose ELPA if"//&
+              " needed. Exiting...",elsi_h,caller)
    case(CHESS)
-      call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
-              " Choose ELPA if needed. Exiting...",elsi_h,caller)
+      call elsi_stop(" CHESS is not an eigensolver. Choose ELPA if"//&
+              " needed. Exiting...",elsi_h,caller)
    case(SIPS)
       call elsi_stop(" SIPS not yet implemented. Exiting...",elsi_h,caller)
    case default
@@ -1907,14 +1901,14 @@ subroutine elsi_ev_real_sparse(elsi_h,h_in,s_in,e_val_out,e_vec_out)
       ! Solve
       call elsi_solve_evp_elpa(elsi_h)
    case(LIBOMM)
-      call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
-              " Choose ELPA if needed. Exiting...",elsi_h,caller)
+      call elsi_stop(" LIBOMM is not an eigensolver. Choose ELPA if"//&
+              " needed. Exiting...",elsi_h,caller)
    case(PEXSI)
-      call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
-              " Choose ELPA if needed. Exiting...",elsi_h,caller)
+      call elsi_stop(" PEXSI is not an eigensolver. Choose ELPA if"//&
+              " needed. Exiting...",elsi_h,caller)
    case(CHESS)
-      call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
-              " Choose ELPA if needed. Exiting...",elsi_h,caller)
+      call elsi_stop(" CHESS is not an eigensolver. Choose ELPA if"//&
+              " needed. Exiting...",elsi_h,caller)
    case(SIPS)
       call elsi_stop(" SIPS not yet implemented. Exiting...",elsi_h,caller)
    case default
@@ -2020,7 +2014,6 @@ subroutine elsi_dm_real(elsi_h,h_in,s_in,d_out,energy_out)
 
          ! Switch back to libOMM here to guarantee elsi_customize_omm
          elsi_h%solver = LIBOMM
-
       else ! ELPA is done
          if(allocated(elsi_h%ovlp_real_omm)) then
             ! Retrieve overlap matrix that has been destroyed by Cholesky
@@ -2249,7 +2242,6 @@ subroutine elsi_dm_complex(elsi_h,h_in,s_in,d_out,energy_out)
 
          ! Switch back to libOMM here to guarantee elsi_customize_omm
          elsi_h%solver = LIBOMM
-
       else ! ELPA is done
          if(allocated(elsi_h%ovlp_complex_omm)) then
             ! Retrieve overlap matrix that has been destroyed by Cholesky
@@ -2320,7 +2312,36 @@ subroutine elsi_dm_complex(elsi_h,h_in,s_in,d_out,energy_out)
          call elsi_get_energy(elsi_h,energy_out)
       endif
    case(PEXSI)
-      call elsi_stop(" PEXSI not yet implemented. Exiting...",elsi_h,caller)
+      call elsi_print_pexsi_options(elsi_h)
+
+      ! Initialize PEXSI
+      call elsi_init_pexsi(elsi_h)
+
+      ! Convert BLACS H and S to PEXSI format
+      call elsi_blacs_to_pexsi_hs(elsi_h,h_in,s_in)
+
+      ! Allocate
+      if(.not. allocated(elsi_h%dm_complex_pexsi)) then
+         call elsi_allocate(elsi_h,elsi_h%dm_complex_pexsi,elsi_h%nnz_l_sp,&
+                 "dm_complex_pexsi",caller)
+      endif
+      elsi_h%dm_complex_pexsi = (0.0_r8,0.0_r8)
+
+      ! Set matrices
+      call elsi_set_sparse_ham(elsi_h,elsi_h%ham_complex_pexsi)
+      call elsi_set_sparse_ovlp(elsi_h,elsi_h%ovlp_complex_pexsi)
+      call elsi_set_row_ind(elsi_h,elsi_h%row_ind_pexsi)
+      call elsi_set_col_ptr(elsi_h,elsi_h%col_ptr_pexsi)
+      call elsi_set_sparse_dm(elsi_h,elsi_h%dm_complex_pexsi)
+
+      ! Solve
+      call elsi_solve_evp_pexsi(elsi_h)
+
+      ! Convert PEXSI density matrix to BLACS format
+      call elsi_pexsi_to_blacs_dm(elsi_h,d_out)
+      call elsi_get_energy(elsi_h,energy_out)
+
+      elsi_h%mu_ready = .true.
    case(CHESS)
       call elsi_stop(" CHESS not yet implemented. Exiting...",elsi_h,caller)
    case(SIPS)
@@ -2446,7 +2467,6 @@ subroutine elsi_dm_real_sparse(elsi_h,h_in,s_in,d_out,energy_out)
 
          ! Switch back to libOMM here to guarantee elsi_customize_omm
          elsi_h%solver = LIBOMM
-
       else ! ELPA is done
          if(allocated(elsi_h%ovlp_real_omm)) then
             ! Retrieve overlap matrix that has been destroyed by Cholesky
