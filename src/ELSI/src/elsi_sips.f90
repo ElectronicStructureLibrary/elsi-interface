@@ -33,7 +33,6 @@ module ELSI_SIPS
    use ELSI_CONSTANTS, only: UNSET
    use ELSI_DATATYPE, only: elsi_handle
    use ELSI_PRECISION, only: r8,i4
-   use ELSI_TIMERS
    use ELSI_UTILS
    use M_QETSC
 
@@ -80,8 +79,6 @@ subroutine elsi_init_sips(elsi_h)
       endif
 
       call elsi_allocate(elsi_h,elsi_h%slices,elsi_h%n_slices+1,"slices",caller)
-      call elsi_allocate(elsi_h,elsi_h%inertias,elsi_h%n_slices+1,"inertias",caller)
-      call elsi_allocate(elsi_h,elsi_h%shifts,elsi_h%n_slices+1,"shifts",caller)
 
       elsi_h%sips_started = .true.
    endif
@@ -102,11 +99,15 @@ subroutine elsi_solve_evp_sips(elsi_h)
    type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
    integer(kind=i4) :: n_solve_steps
+   real(kind=r8)    :: t0
+   real(kind=r8)    :: t1
    integer(kind=i4) :: mpierr
+   character*200    :: info_str
+
+   real(kind=r8),    allocatable :: shifts(:)
+   integer(kind=i4), allocatable :: inertias(:)
 
    character*40, parameter :: caller = "elsi_solve_evp_sips"
-
-   call elsi_start_generalized_evp_time(elsi_h)
 
    ! Solve the eigenvalue problem
    call elsi_statement_print("  Starting SIPs eigensolver",elsi_h)
@@ -135,20 +136,30 @@ subroutine elsi_solve_evp_sips(elsi_h)
 
       ! Run inertia counting
       if((elsi_h%inertia_option > 0) .and. (elsi_h%n_slices > 1)) then
-         call elsi_start_inertia_time(elsi_h)
+         call elsi_get_time(elsi_h,t0)
+
+         call elsi_allocate(elsi_h,inertias,elsi_h%n_slices+1,"inertias",caller)
+         call elsi_allocate(elsi_h,shifts,elsi_h%n_slices+1,"shifts",caller)
 
          call run_eps_inertias_check(elsi_h%unbound,elsi_h%n_states,elsi_h%n_slices,&
-                 elsi_h%slices,elsi_h%shifts,elsi_h%inertias,n_solve_steps)
+                 elsi_h%slices,shifts,inertias,n_solve_steps)
 
          call inertias_to_eigenvalues(elsi_h%n_slices+1,elsi_h%n_states,&
-                 elsi_h%slice_buffer,elsi_h%shifts,elsi_h%inertias,&
-                 elsi_h%eval(1:elsi_h%n_states))
+                 elsi_h%slice_buffer,shifts,inertias,elsi_h%eval(1:elsi_h%n_states))
 
          call compute_subintervals(elsi_h%n_slices,elsi_h%slicing_method,&
                  elsi_h%unbound,elsi_h%interval,0.0_r8,0.0_r8,elsi_h%slices,&
                  elsi_h%eval(1:elsi_h%n_states))
 
-         call elsi_stop_inertia_time(elsi_h)
+         call elsi_deallocate(elsi_h,inertias,"inertias")
+         call elsi_deallocate(elsi_h,shifts,"shifts")
+
+         call elsi_get_time(elsi_h,t1)
+
+         write(info_str,"('  Finished inertia counting')")
+         call elsi_statement_print(info_str,elsi_h)
+         write(info_str,"('  | Time :',F10.3,' s')") t1-t0
+         call elsi_statement_print(info_str,elsi_h)
       endif
    else ! n_elsi_calls > 1
       ! Update H matrix
@@ -167,14 +178,22 @@ subroutine elsi_solve_evp_sips(elsi_h)
 
    call set_eps_subintervals(elsi_h%n_slices,elsi_h%slices)
 
-   ! Solve eigenvalue problem
+   call elsi_get_time(elsi_h,t0)
+
+   ! Solve
    call solve_eps_check(elsi_h%n_states,elsi_h%n_slices,elsi_h%slices,n_solve_steps)
 
    ! Get eigenvalues
    elsi_h%eval(1:elsi_h%n_states) = get_eps_eigenvalues(elsi_h%n_states)
 
    call MPI_Barrier(elsi_h%mpi_comm,mpierr)
-   call elsi_stop_generalized_evp_time(elsi_h)
+
+   call elsi_get_time(elsi_h,t1)
+
+   write(info_str,"('  Finished solving generalized eigenproblem')")
+   call elsi_statement_print(info_str,elsi_h)
+   write(info_str,"('  | Time :',F10.3,' s')") t1-t0
+   call elsi_statement_print(info_str,elsi_h)
 
 end subroutine
 
@@ -195,11 +214,15 @@ subroutine elsi_sips_to_blacs_ev(elsi_h)
    integer(kind=i4) :: g_row
    integer(kind=i4) :: g_row2
    integer(kind=i4) :: this_p_col
+   real(kind=r8)    :: t0
+   real(kind=r8)    :: t1
+   character*200    :: info_str
+
    real(kind=r8), allocatable :: tmp_real(:)
 
    character*40, parameter :: caller = "elsi_distribute_ev"
 
-   call elsi_start_redistribution_time(elsi_h)
+   call elsi_get_time(elsi_h,t0)
 
    call elsi_allocate(elsi_h,tmp_real,elsi_h%n_basis,"tmp_real",caller)
 
@@ -232,7 +255,12 @@ subroutine elsi_sips_to_blacs_ev(elsi_h)
 
    call elsi_deallocate(elsi_h,tmp_real,"tmp_real")
 
-   call elsi_stop_redistribution_time(elsi_h)
+   call elsi_get_time(elsi_h,t1)
+
+   write(info_str,"('  Finished matrix redistribution')")
+   call elsi_statement_print(info_str,elsi_h)
+   write(info_str,"('  | Time :',F10.3,' s')") t1-t0
+   call elsi_statement_print(info_str,elsi_h)
 
 end subroutine
 
@@ -286,16 +314,16 @@ subroutine elsi_print_sips_options(elsi_h)
    write(info_str,"(A)") "  SIPs settings:"
    call elsi_statement_print(info_str,elsi_h)
 
-   write(info_str,"(1X,' | Slicing method ',I2)") elsi_h%slicing_method
+   write(info_str,"(1X,' | Slicing method ',I10)") elsi_h%slicing_method
    call elsi_statement_print(info_str,elsi_h)
 
-   write(info_str,"(1X,' | Inertia option ',I2)") elsi_h%inertia_option
+   write(info_str,"(1X,' | Inertia option ',I10)") elsi_h%inertia_option
    call elsi_statement_print(info_str,elsi_h)
 
-   write(info_str,"(1X,' | Left bound ',I2)") elsi_h%unbound
+   write(info_str,"(1X,' | Left bound     ',I10)") elsi_h%unbound
    call elsi_statement_print(info_str,elsi_h)
 
-   write(info_str,"(1X,' | Slice buffer ',F10.4)") elsi_h%slice_buffer
+   write(info_str,"(1X,' | Slice buffer   ',E10.2)") elsi_h%slice_buffer
    call elsi_statement_print(info_str,elsi_h)
 
 end subroutine

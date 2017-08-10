@@ -42,7 +42,6 @@ module ELSI
    use ELSI_PEXSI
    use ELSI_PRECISION, only: r8,i4
    use ELSI_SIPS
-   use ELSI_TIMERS
    use ELSI_UTILS
    use MATRIXSWITCH, only: m_allocate,ms_scalapack_setup
 
@@ -422,16 +421,12 @@ subroutine elsi_get_energy(elsi_h,energy)
          energy = energy+elsi_h%i_weight*elsi_h%eval(i_state)*&
                      elsi_h%occ_num(i_state,elsi_h%i_spin,elsi_h%i_kpt)
       enddo
-
    case(LIBOMM)
       energy = 2.0_r8*elsi_h%energy_hdm*elsi_h%i_weight
-
    case(PEXSI)
       energy = elsi_h%energy_hdm*elsi_h%i_weight
-
    case(CHESS)
       energy = elsi_h%energy_hdm*elsi_h%i_weight
-
    case(SIPS)
       call elsi_stop(" SIPS not yet implemented. Exiting...",elsi_h,caller)
    case default
@@ -1659,17 +1654,14 @@ subroutine elsi_get_edm_real(elsi_h,d_out)
       case(ELPA)
          call elsi_set_dm(elsi_h,d_out)
          call elsi_compute_edm_elpa(elsi_h)
-
       case(LIBOMM)
          call elsi_set_dm(elsi_h,d_out)
          call elsi_compute_edm_omm(elsi_h)
 
          elsi_h%dm_omm%dval = 2.0_r8*elsi_h%dm_omm%dval
-
       case(PEXSI)
          call elsi_compute_edm_pexsi(elsi_h)
          call elsi_pexsi_to_blacs_dm(elsi_h,d_out)
-
       case(CHESS)
          call elsi_stop(" CHESS not yet implemented. Exiting...",elsi_h,caller)
       case(SIPS)
@@ -1710,13 +1702,11 @@ subroutine elsi_get_edm_complex(elsi_h,d_out)
       case(ELPA)
          call elsi_set_dm(elsi_h,d_out)
          call elsi_compute_edm_elpa(elsi_h)
-
       case(LIBOMM)
          call elsi_set_dm(elsi_h,d_out)
          call elsi_compute_edm_omm(elsi_h)
 
          elsi_h%dm_omm%zval = 2.0_r8*elsi_h%dm_omm%zval
-
       case(PEXSI)
          call elsi_stop(" PEXSI not yet implemented. Exiting...",elsi_h,caller)
       case(CHESS)
@@ -1777,7 +1767,6 @@ subroutine elsi_ev_real(elsi_h,h_in,s_in,e_val_out,e_vec_out)
       else ! Multi-proc
          call elsi_solve_evp_elpa(elsi_h)
       endif
-
    case(LIBOMM)
       call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
               " Choose ELPA if needed. Exiting...",elsi_h,caller)
@@ -1809,7 +1798,6 @@ subroutine elsi_ev_real(elsi_h,h_in,s_in,e_val_out,e_vec_out)
 
       ! Convert SIPs eigenvectors to BLACS format
       call elsi_sips_to_blacs_ev(elsi_h)
-
    case default
       call elsi_stop(" No supported solver has been chosen."//&
               " Exiting...",elsi_h,caller)
@@ -1859,7 +1847,6 @@ subroutine elsi_ev_complex(elsi_h,h_in,s_in,e_val_out,e_vec_out)
       else ! MULTI_PROC
          call elsi_solve_evp_elpa(elsi_h)
       endif
-
    case(LIBOMM)
       call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
               " Choose ELPA if needed. Exiting...",elsi_h,caller)
@@ -1919,7 +1906,6 @@ subroutine elsi_ev_real_sparse(elsi_h,h_in,s_in,e_val_out,e_vec_out)
 
       ! Solve
       call elsi_solve_evp_elpa(elsi_h)
-
    case(LIBOMM)
       call elsi_stop(" Only ELPA computes eigenvalues and eigenvectors."//&
               " Choose ELPA if needed. Exiting...",elsi_h,caller)
@@ -1993,7 +1979,6 @@ subroutine elsi_dm_real(elsi_h,h_in,s_in,d_out,energy_out)
       call elsi_get_energy(elsi_h,energy_out)
 
       elsi_h%mu_ready = .true.
-
    case(LIBOMM)
       call elsi_print_omm_options(elsi_h)
 
@@ -2104,7 +2089,6 @@ subroutine elsi_dm_real(elsi_h,h_in,s_in,d_out,energy_out)
          elsi_h%dm_omm%dval = 2.0_r8*elsi_h%dm_omm%dval
          call elsi_get_energy(elsi_h,energy_out)
       endif
-
    case(PEXSI)
       call elsi_print_pexsi_options(elsi_h)
 
@@ -2136,7 +2120,6 @@ subroutine elsi_dm_real(elsi_h,h_in,s_in,d_out,energy_out)
       call elsi_get_energy(elsi_h,energy_out)
 
       elsi_h%mu_ready = .true.
-
    case(CHESS)
       call elsi_print_chess_options(elsi_h)
 
@@ -2160,7 +2143,6 @@ subroutine elsi_dm_real(elsi_h,h_in,s_in,d_out,energy_out)
       call elsi_get_energy(elsi_h,energy_out)
 
       elsi_h%mu_ready = .true.
-
    case(SIPS)
       call elsi_stop(" SIPS not yet implemented. Exiting...",elsi_h,caller)
    case default
@@ -2226,7 +2208,6 @@ subroutine elsi_dm_complex(elsi_h,h_in,s_in,d_out,energy_out)
       call elsi_get_energy(elsi_h,energy_out)
 
       elsi_h%mu_ready = .true.
-
    case(LIBOMM)
       call elsi_print_omm_options(elsi_h)
 
@@ -2338,7 +2319,6 @@ subroutine elsi_dm_complex(elsi_h,h_in,s_in,d_out,energy_out)
          elsi_h%dm_omm%zval = 2.0_r8*elsi_h%dm_omm%zval
          call elsi_get_energy(elsi_h,energy_out)
       endif
-
    case(PEXSI)
       call elsi_stop(" PEXSI not yet implemented. Exiting...",elsi_h,caller)
    case(CHESS)
@@ -2417,7 +2397,6 @@ subroutine elsi_dm_real_sparse(elsi_h,h_in,s_in,d_out,energy_out)
       call elsi_get_energy(elsi_h,energy_out)
 
       elsi_h%mu_ready = .true.
-
    case(LIBOMM)
       call elsi_print_omm_options(elsi_h)
 
@@ -2531,7 +2510,6 @@ subroutine elsi_dm_real_sparse(elsi_h,h_in,s_in,d_out,energy_out)
          call elsi_blacs_to_pexsi_dm(elsi_h,d_out)
          call elsi_get_energy(elsi_h,energy_out)
       endif
-
    case(PEXSI)
       call elsi_print_pexsi_options(elsi_h)
 
@@ -2549,7 +2527,6 @@ subroutine elsi_dm_real_sparse(elsi_h,h_in,s_in,d_out,energy_out)
       call elsi_get_energy(elsi_h,energy_out)
 
       elsi_h%mu_ready = .true.
-
    case(CHESS)
       call elsi_stop(" CHESS not yet implemented. Exiting...",elsi_h,caller)
    case(SIPS)

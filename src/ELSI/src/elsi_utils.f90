@@ -32,8 +32,8 @@
 module ELSI_UTILS
 
    use ELSI_CONSTANTS, only: AUTO,ELPA,LIBOMM,PEXSI,CHESS,SIPS,BLACS_DENSE,&
-                             PEXSI_CSC,MULTI_PROC,FULL_MAT,UT_MAT,LT_MAT,&
-                             N_SOLVERS,N_MATRIX_DATA_TYPES,&
+                             PEXSI_CSC,MULTI_PROC,SINGLE_PROC,FULL_MAT,UT_MAT,&
+                             LT_MAT,N_SOLVERS,N_MATRIX_DATA_TYPES,&
                              N_MATRIX_STORAGE_FORMATS,N_PARALLEL_MODES,UNSET
    use ELSI_DATATYPE, only: elsi_handle,print_info,print_mem
    use ELSI_PRECISION, only: r8,i4
@@ -67,6 +67,9 @@ module ELSI_UTILS
    public :: elsi_get_global_col
    public :: elsi_get_local_nnz
    public :: elsi_set_full_mat
+   public :: elsi_init_timers
+   public :: elsi_final_print
+   public :: elsi_get_time
 
    interface elsi_set_ham
       module procedure elsi_set_real_ham,&
@@ -1094,9 +1097,9 @@ subroutine elsi_cleanup(elsi_h)
    if(associated(elsi_h%ham_complex))       nullify(elsi_h%ham_complex)
    if(associated(elsi_h%ovlp_real))         nullify(elsi_h%ovlp_real)
    if(associated(elsi_h%ovlp_complex))      nullify(elsi_h%ovlp_complex)
+   if(associated(elsi_h%eval))              nullify(elsi_h%eval)
    if(associated(elsi_h%evec_real))         nullify(elsi_h%evec_real)
    if(associated(elsi_h%evec_complex))      nullify(elsi_h%evec_complex)
-   if(associated(elsi_h%eval))              nullify(elsi_h%eval)
    if(associated(elsi_h%dm_real))           nullify(elsi_h%dm_real)
    if(associated(elsi_h%dm_complex))        nullify(elsi_h%dm_complex)
    if(associated(elsi_h%ham_real_ccs))      nullify(elsi_h%ham_real_ccs)
@@ -1113,9 +1116,9 @@ subroutine elsi_cleanup(elsi_h)
    if(allocated(elsi_h%ham_complex_elpa))   call elsi_deallocate(elsi_h,elsi_h%ham_complex_elpa,"ham_complex_elpa")
    if(allocated(elsi_h%ovlp_real_elpa))     call elsi_deallocate(elsi_h,elsi_h%ovlp_real_elpa,"ovlp_real_elpa")
    if(allocated(elsi_h%ovlp_complex_elpa))  call elsi_deallocate(elsi_h,elsi_h%ovlp_complex_elpa,"ovlp_complex_elpa")
+   if(allocated(elsi_h%eval_elpa))          call elsi_deallocate(elsi_h,elsi_h%eval_elpa,"eval_elpa")
    if(allocated(elsi_h%evec_real_elpa))     call elsi_deallocate(elsi_h,elsi_h%evec_real_elpa,"evec_real_elpa")
    if(allocated(elsi_h%evec_complex_elpa))  call elsi_deallocate(elsi_h,elsi_h%evec_complex_elpa,"evec_real_elpa")
-   if(allocated(elsi_h%eval_elpa))          call elsi_deallocate(elsi_h,elsi_h%eval_elpa,"eval_elpa")
    if(allocated(elsi_h%dm_real_elpa))       call elsi_deallocate(elsi_h,elsi_h%dm_real_elpa,"dm_real_elpa")
    if(allocated(elsi_h%dm_complex_elpa))    call elsi_deallocate(elsi_h,elsi_h%dm_complex_elpa,"dm_complex_elpa")
    if(allocated(elsi_h%occ_num))            call elsi_deallocate(elsi_h,elsi_h%occ_num,"occ_num")
@@ -1128,6 +1131,8 @@ subroutine elsi_cleanup(elsi_h)
    if(elsi_h%dm_omm%is_initialized)         call m_deallocate(elsi_h%dm_omm)
    if(elsi_h%coeff_omm%is_initialized)      call m_deallocate(elsi_h%coeff_omm)
    if(elsi_h%tdm_omm%is_initialized)        call m_deallocate(elsi_h%tdm_omm)
+   if(allocated(elsi_h%ovlp_real_omm))      call elsi_deallocate(elsi_h,elsi_h%ovlp_real_omm,"ovlp_real_omm")
+   if(allocated(elsi_h%ovlp_complex_omm))   call elsi_deallocate(elsi_h,elsi_h%ovlp_complex_omm,"ovlp_complex_omm")
 
    ! PEXSI
    if(allocated(elsi_h%ham_real_pexsi))     call elsi_deallocate(elsi_h,elsi_h%ham_real_pexsi,"ham_real_pexsi")
@@ -1138,27 +1143,32 @@ subroutine elsi_cleanup(elsi_h)
    if(allocated(elsi_h%dm_complex_pexsi))   call elsi_deallocate(elsi_h,elsi_h%dm_real_pexsi,"dm_complex_pexsi")
    if(allocated(elsi_h%row_ind_pexsi))      call elsi_deallocate(elsi_h,elsi_h%row_ind_pexsi,"row_ind_pexsi")
    if(allocated(elsi_h%col_ptr_pexsi))      call elsi_deallocate(elsi_h,elsi_h%col_ptr_pexsi,"col_ptr_pexsi")
+   if(allocated(elsi_h%ne_vec))             call elsi_deallocate(elsi_h,elsi_h%ne_vec,"ne_vec")
 
    ! CheSS
-   if(allocated(elsi_h%ham_real_chess))  call elsi_deallocate(elsi_h,elsi_h%ham_real_chess,"ham_real_chess")
-   if(allocated(elsi_h%ovlp_real_chess)) call elsi_deallocate(elsi_h,elsi_h%ovlp_real_chess,"ovlp_real_chess")
-   if(allocated(elsi_h%row_ind_chess))   call elsi_deallocate(elsi_h,elsi_h%row_ind_chess,"row_ind_chess")
-   if(allocated(elsi_h%col_ptr_chess))   call elsi_deallocate(elsi_h,elsi_h%col_ptr_chess,"col_ptr_chess")
+   if(allocated(elsi_h%ham_real_chess))     call elsi_deallocate(elsi_h,elsi_h%ham_real_chess,"ham_real_chess")
+   if(allocated(elsi_h%ovlp_real_chess))    call elsi_deallocate(elsi_h,elsi_h%ovlp_real_chess,"ovlp_real_chess")
+   if(allocated(elsi_h%row_ind_chess))      call elsi_deallocate(elsi_h,elsi_h%row_ind_chess,"row_ind_chess")
+   if(allocated(elsi_h%col_ptr_chess))      call elsi_deallocate(elsi_h,elsi_h%col_ptr_chess,"col_ptr_chess")
+   if(allocated(elsi_h%row_ind_buffer))     call elsi_deallocate(elsi_h,elsi_h%row_ind_buffer,"row_ind_buffer")
+   if(allocated(elsi_h%col_ptr_buffer))     call elsi_deallocate(elsi_h,elsi_h%col_ptr_buffer,"col_ptr_buffer")
 
    ! SIPs
-   if(allocated(elsi_h%inertias))           call elsi_deallocate(elsi_h,elsi_h%inertias,"nertias")
-   if(allocated(elsi_h%shifts))             call elsi_deallocate(elsi_h,elsi_h%shifts,"shifts")
+   if(allocated(elsi_h%ham_real_sips))      call elsi_deallocate(elsi_h,elsi_h%ham_real_sips,"ham_real_sips")
+   if(allocated(elsi_h%ovlp_real_sips))     call elsi_deallocate(elsi_h,elsi_h%ovlp_real_sips,"ovlp_real_sips")
+   if(allocated(elsi_h%row_ind_sips))       call elsi_deallocate(elsi_h,elsi_h%row_ind_sips,"row_ind_sips")
+   if(allocated(elsi_h%col_ptr_sips))       call elsi_deallocate(elsi_h,elsi_h%col_ptr_sips,"col_ptr_sips")
    if(allocated(elsi_h%slices))             call elsi_deallocate(elsi_h,elsi_h%slices,"slices")
 
    if(allocated(elsi_h%local_row))          call elsi_deallocate(elsi_h,elsi_h%local_row,"local_row")
    if(allocated(elsi_h%local_col))          call elsi_deallocate(elsi_h,elsi_h%local_col,"local_col")
 
-   ! Finalize PEXSI plan
+   ! Finalize PEXSI
    if(elsi_h%pexsi_started) then
       call f_ppexsi_plan_finalize(elsi_h%pexsi_plan,ierr)
    endif
 
-   ! Finalize f_lib
+   ! Finalize CheSS
    if(elsi_h%chess_started) then
       call deallocate_sparse_matrix(elsi_h%sparse_mat(1))
       call deallocate_sparse_matrix(elsi_h%sparse_mat(2))
@@ -1172,7 +1182,7 @@ subroutine elsi_cleanup(elsi_h)
       call f_lib_finalize()
    endif
 
-   ! Finalize QETSC
+   ! Finalize SIPs
    if(elsi_h%sips_started) then
       call clean_qetsc()
    endif
@@ -1200,12 +1210,6 @@ subroutine elsi_reset_handle(elsi_h)
    elsi_h%parallel_mode     = UNSET
    elsi_h%uplo              = FULL_MAT
    elsi_h%n_elsi_calls      = 0
-   elsi_h%n_basis           = UNSET
-   elsi_h%n_spins           = 1
-   elsi_h%n_kpts            = 1
-   elsi_h%i_spin            = 1
-   elsi_h%i_kpt             = 1
-   elsi_h%i_weight          = 1.0_r8
    elsi_h%n_b_rows          = UNSET
    elsi_h%n_b_cols          = UNSET
    elsi_h%n_p_rows          = UNSET
@@ -1218,20 +1222,21 @@ subroutine elsi_reset_handle(elsi_h)
    elsi_h%n_procs_all       = UNSET
    elsi_h%mpi_comm          = UNSET
    elsi_h%mpi_comm_all      = UNSET
-   elsi_h%mpi_ready         = .false.
-   elsi_h%global_mpi_ready  = .false.
-   elsi_h%blacs_ctxt        = UNSET
-   elsi_h%sc_desc           = UNSET
    elsi_h%mpi_comm_row      = UNSET
    elsi_h%mpi_comm_col      = UNSET
    elsi_h%my_p_row          = UNSET
    elsi_h%my_p_col          = UNSET
+   elsi_h%mpi_ready         = .false.
+   elsi_h%global_mpi_ready  = .false.
+   elsi_h%blacs_ctxt        = UNSET
+   elsi_h%sc_desc           = UNSET
    elsi_h%blacs_ready       = .false.
    elsi_h%nnz_g             = UNSET
    elsi_h%nnz_l             = UNSET
    elsi_h%nnz_l_sp          = UNSET
    elsi_h%n_l_cols_sp       = UNSET
    elsi_h%zero_threshold    = 1.0e-15_r8
+   elsi_h%sparsity_ready    = .false.
    elsi_h%ovlp_is_unit      = .false.
    elsi_h%ovlp_is_sing      = .false.
    elsi_h%no_sing_check     = .false.
@@ -1240,9 +1245,17 @@ subroutine elsi_reset_handle(elsi_h)
    elsi_h%n_nonsing         = UNSET
    elsi_h%n_electrons       = 0.0_r8
    elsi_h%mu                = 0.0_r8
+   elsi_h%n_basis           = UNSET
+   elsi_h%n_spins           = 1
+   elsi_h%n_kpts            = 1
    elsi_h%n_states          = UNSET
-   elsi_h%n_states_omm      = UNSET
    elsi_h%n_occupied_states = UNSET
+   elsi_h%i_spin            = 1
+   elsi_h%i_kpt             = 1
+   elsi_h%i_weight          = 1.0_r8
+   elsi_h%energy_hdm        = 0.0_r8
+   elsi_h%energy_sedm       = 0.0_r8
+   elsi_h%free_energy       = 0.0_r8
    elsi_h%broadening_scheme = 0
    elsi_h%broadening_width  = 1.0e-2_r8
    elsi_h%occ_tolerance     = 1.0e-13_r8
@@ -1254,6 +1267,7 @@ subroutine elsi_reset_handle(elsi_h)
    elsi_h%edm_ready_complex = .false.
    elsi_h%elpa_solver       = UNSET
    elsi_h%elpa_output       = .false.
+   elsi_h%n_states_omm      = UNSET
    elsi_h%n_elpa_steps      = UNSET
    elsi_h%new_overlap       = .true.
    elsi_h%coeff_ready       = .false.
@@ -1265,16 +1279,20 @@ subroutine elsi_reset_handle(elsi_h)
    elsi_h%omm_output        = .false.
    elsi_h%do_dealloc        = .false.
    elsi_h%use_psp           = .false.
+   elsi_h%n_p_per_pole      = UNSET
+   elsi_h%n_p_per_point     = UNSET
    elsi_h%my_p_row_pexsi    = UNSET
    elsi_h%my_p_col_pexsi    = UNSET
    elsi_h%n_p_rows_pexsi    = UNSET
    elsi_h%n_p_cols_pexsi    = UNSET
-   elsi_h%n_p_per_pole      = UNSET
+   elsi_h%my_point          = UNSET
+   elsi_h%myid_point        = UNSET
+   elsi_h%comm_among_pole   = UNSET
+   elsi_h%comm_in_pole      = UNSET
+   elsi_h%comm_among_point  = UNSET
+   elsi_h%comm_in_point     = UNSET
+   elsi_h%ne_pexsi          = 0.0_r8
    elsi_h%pexsi_started     = .false.
-   elsi_h%sparsity_ready    = .false.
-   elsi_h%energy_hdm        = 0.0_r8
-   elsi_h%energy_sedm       = 0.0_r8
-   elsi_h%free_energy       = 0.0_r8
    elsi_h%erf_decay         = 0.0_r8
    elsi_h%erf_decay_min     = 0.0_r8
    elsi_h%erf_decay_max     = 0.0_r8
@@ -1293,6 +1311,7 @@ subroutine elsi_reset_handle(elsi_h)
    elsi_h%interval          = 0.0_r8
    elsi_h%slice_buffer      = 0.0_r8
    elsi_h%sips_started      = .false.
+   elsi_h%clock_rate        = UNSET
 
 end subroutine
 
@@ -1465,7 +1484,7 @@ subroutine elsi_check(elsi_h,caller)
       if(elsi_h%n_basis < elsi_h%n_p_per_pole) then
          call elsi_stop(" PEXSI has been chosen as the solver."//&
                  " The size of matrix is too small for this"//&
-                 " number of processes. Exiting...",elsi_h,caller)
+                 " number of MPI tasks. Exiting...",elsi_h,caller)
       endif
 
       if(elsi_h%n_p_per_pole == UNSET) then
@@ -1484,6 +1503,13 @@ subroutine elsi_check(elsi_h,caller)
                     " times the number of mu points. Exiting...",&
                     elsi_h,caller)
          endif
+
+         if(elsi_h%n_p_per_pole*elsi_h%pexsi_options%numPole*&
+            elsi_h%pexsi_options%nPoints < elsi_h%n_procs) then
+            call elsi_stop("  Specified number of MPI tasks per pole"//&
+                    " is too small for the total number of MPI tasks."//&
+                    " Exiting...",elsi_h,caller)
+         endif
       endif
 
    elseif(elsi_h%solver == CHESS) then
@@ -1492,7 +1518,7 @@ subroutine elsi_check(elsi_h,caller)
       if(elsi_h%n_basis < elsi_h%n_procs) then
          call elsi_stop(" CheSS has been chosen as the solver."//&
                  " The size of matrix is too small for this"//&
-                 " number of processes. Exiting...",elsi_h,caller)
+                 " number of MPI tasks. Exiting...",elsi_h,caller)
       endif
 
       if(elsi_h%parallel_mode == MULTI_PROC) then
@@ -1531,7 +1557,7 @@ subroutine elsi_check(elsi_h,caller)
       if(elsi_h%n_basis < elsi_h%n_procs) then
          call elsi_stop(" SIPs has been chosen as the solver."//&
                  " The size of matrix is too small for this"//&
-                 " number of processes. Exiting...",elsi_h,caller)
+                 " number of MPI tasks. Exiting...",elsi_h,caller)
       endif
 
       if(elsi_h%parallel_mode == MULTI_PROC) then
@@ -1785,6 +1811,107 @@ subroutine elsi_set_full_mat_complex(elsi_h,mat)
          mat(elsi_h%local_row(i_col),elsi_h%local_col(i_col)) = &
             dble(mat(elsi_h%local_row(i_col),elsi_h%local_col(i_col)))
       enddo
+   endif
+
+end subroutine
+
+!>
+!! This routine initializes the timer.
+!!
+subroutine elsi_init_timers(elsi_h)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
+
+   integer(kind=i4) :: initial_time
+   integer(kind=i4) :: clock_max
+
+   character*40, parameter :: caller = "elsi_init_timers"
+
+   call system_clock(initial_time,elsi_h%clock_rate,clock_max)
+
+end subroutine
+
+!>
+!! This routine gets the current wallclock time.
+!!
+subroutine elsi_get_time(elsi_h,wtime)
+
+   implicit none
+
+   type(elsi_handle), intent(in)  :: elsi_h !< Handle
+   real(kind=r8),     intent(out) :: wtime !< Time
+
+   integer(kind=i4) :: tics
+
+   character*40, parameter :: caller = "elsi_get_time"
+
+   call system_clock(tics)
+
+   wtime = 1.0_r8*tics/elsi_h%clock_rate
+
+end subroutine
+
+!>
+!! This routine prints a final output.
+!!
+subroutine elsi_final_print(elsi_h)
+
+   implicit none
+
+   type(elsi_handle), intent(in) :: elsi_h !< Handle
+
+   real(kind=r8)    :: sparsity
+   integer(kind=i4) :: i_proc
+
+   character*40, parameter :: caller = "elsi_final_print"
+
+   if(print_info) then
+      if(elsi_h%myid_all == 0) then
+         write(*,"('  |------------------------------------------')")
+         write(*,"('  | Final ELSI Output')")
+         write(*,"('  |------------------------------------------')")
+
+         write(*,"('  | Number of basis functions :',I13)") elsi_h%n_basis
+         if((elsi_h%solver == PEXSI) .or. (elsi_h%solver == SIPS)) then
+            write(*,"('  | Number of nonzeros        :',I13)") elsi_h%nnz_g
+            sparsity = 1.0_r8-(1.0_r8*elsi_h%nnz_g/elsi_h%n_basis)/elsi_h%n_basis
+            write(*,"('  | Sparsity                  :',F13.3)") sparsity
+         endif
+         write(*,"('  | Number of electrons       :',F13.1)") elsi_h%n_electrons
+         write(*,"('  | Number of states          :',I13)") elsi_h%n_states
+         write(*,"('  | Number of spins           :',I13)") elsi_h%n_spins
+         write(*,"('  | Number of k-points        :',I13)") elsi_h%n_kpts
+
+         if(elsi_h%solver == ELPA) then
+            write(*,"('  | Solver                    :',A13)") "ELPA"
+         elseif(elsi_h%solver == LIBOMM) then
+            write(*,"('  | Solver                    :',A13)") "libOMM"
+         elseif(elsi_h%solver == PEXSI) then
+            write(*,"('  | Solver                    :',A13)") "PEXSI"
+         elseif(elsi_h%solver == CHESS) then
+            write(*,"('  | Solver                    :',A13)") "CheSS"
+         elseif(elsi_h%solver == SIPS) then
+            write(*,"('  | Solver                    :',A13)") "SIPs"
+         endif
+
+         if(elsi_h%parallel_mode == MULTI_PROC) then
+            write(*,"('  | Parallel mode             :',A13)") "MULTI_PROC"
+         elseif(elsi_h%parallel_mode == SINGLE_PROC) then
+            write(*,"('  | Parallel mode             :',A13)") "SINGLE_PROC"
+         endif
+
+         if(elsi_h%matrix_format == BLACS_DENSE) then
+            write(*,"('  | Matrix format             :',A13)") "BLACS_DENSE"
+         elseif(elsi_h%matrix_format == PEXSI_CSC) then
+            write(*,"('  | Matrix format             :',A13)") "PEXSI_CSC"
+         endif
+
+         write(*,"('  |------------------------------------------')")
+         write(*,"('  | ELSI Project (c)  elsi-interchange.org')")
+         write(*,"('  |------------------------------------------')")
+      endif
    endif
 
 end subroutine

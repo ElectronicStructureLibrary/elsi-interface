@@ -40,9 +40,20 @@ module F_PPEXSI_INTERFACE
    public :: f_ppexsi_set_default_options
    public :: f_ppexsi_plan_initialize
    public :: f_ppexsi_load_real_hs_matrix
-   public :: f_ppexsi_dft_driver2
+   public :: f_ppexsi_load_complex_hs_matrix
+   public :: f_ppexsi_symbolic_factorize_real_symmetric_matrix
+   public :: f_ppexsi_symbolic_factorize_complex_symmetric_matrix
+   public :: f_ppexsi_symbolic_factorize_complex_unsymmetric_matrix
+   public :: f_ppexsi_inertia_count_real_matrix
+   public :: f_ppexsi_inertia_count_complex_matrix
+   public :: f_ppexsi_calculate_fermi_operator_real3
+   public :: f_ppexsi_calculate_fermi_operator_complex
+   public :: f_ppexsi_calculate_edm_correction_real
+   public :: f_ppexsi_calculate_edm_correction_complex
    public :: f_ppexsi_retrieve_real_dm
+   public :: f_ppexsi_retrieve_complex_dm
    public :: f_ppexsi_retrieve_real_edm
+   public :: f_ppexsi_retrieve_complex_edm
    public :: f_ppexsi_plan_finalize
 
    type, public, bind(C) :: f_ppexsi_options
@@ -130,20 +141,168 @@ subroutine f_ppexsi_load_real_hs_matrix(plan,options,nrows,nnz,nnzLocal,&
 
 end subroutine
 
-subroutine f_ppexsi_dft_driver2(plan,options,numElectronExact,pexsi_driver,&
-              n_mu_points,muPEXSI,numElectronPEXSI,numTotalInertiaIter,info)
+subroutine f_ppexsi_load_complex_hs_matrix(plan,options,nrows,nnz,nnzLocal,&
+              numColLocal,colptrLocal,rowindLocal,HnzvalLocal,isSIdentity,&
+              SnzvalLocal,info)
 
    implicit none
 
    integer(kind=c_intptr_t) :: plan
    type(f_ppexsi_options)   :: options
-   real(kind=r8)            :: numElectronExact
-   integer(kind=i4)         :: pexsi_driver
-   integer(kind=i4)         :: n_mu_points
-   real(kind=r8)            :: muPEXSI
-   real(kind=r8)            :: numElectronPEXSI
-   integer(kind=i4)         :: numTotalInertiaIter
+   integer(kind=i4)         :: nrows
+   integer(kind=i4)         :: nnz
+   integer(kind=i4)         :: nnzLocal
+   integer(kind=i4)         :: numColLocal
+   integer(kind=i4)         :: isSIdentity
+   integer(kind=i4)         :: colptrLocal(*)
+   integer(kind=i4)         :: rowindLocal(*)
+   complex(kind=r8)         :: HnzvalLocal(*)
+   complex(kind=r8)         :: SnzvalLocal(*)
    integer(kind=i4)         :: info
+
+   write(*,"(A)") " A PEXSI stub routine was called. Check ELSI installation."
+   write(*,"(A)") " Exiting..."
+   stop
+
+end subroutine
+
+subroutine f_ppexsi_symbolic_factorize_real_symmetric_matrix(plan,options,info)
+
+   implicit none
+
+   integer(kind=c_intptr_t) :: plan
+   type(f_ppexsi_options)   :: options
+   integer(kind=i4)         :: info
+
+   write(*,"(A)") " A PEXSI stub routine was called. Check ELSI installation."
+   write(*,"(A)") " Exiting..."
+   stop
+
+end subroutine
+
+subroutine f_ppexsi_symbolic_factorize_complex_symmetric_matrix(plan,options,info)
+
+   implicit none
+
+   integer(kind=c_intptr_t) :: plan
+   type(f_ppexsi_options)   :: options
+   integer(kind=i4)         :: info
+
+   write(*,"(A)") " A PEXSI stub routine was called. Check ELSI installation."
+   write(*,"(A)") " Exiting..."
+   stop
+
+end subroutine
+
+subroutine f_ppexsi_symbolic_factorize_complex_unsymmetric_matrix(plan,options,info)
+
+   implicit none
+
+   integer(kind=c_intptr_t) :: plan
+   type(f_ppexsi_options)   :: options
+   integer(kind=i4)         :: info
+
+   write(*,"(A)") " A PEXSI stub routine was called. Check ELSI installation."
+   write(*,"(A)") " Exiting..."
+   stop
+
+end subroutine
+
+subroutine f_ppexsi_inertia_count_real_matrix(plan,options,numShift,shiftList,&
+              inertiaList,info)
+
+   implicit none
+
+   integer(c_intptr_t)    :: plan
+   type(f_ppexsi_options) :: options
+   integer(kind=i4)       :: numShift
+   real(kind=r8)          :: shiftList(*)
+   real(kind=r8)          :: inertiaList(*)
+   integer(kind=i4)       :: info
+
+   write(*,"(A)") " A PEXSI stub routine was called. Check ELSI installation."
+   write(*,"(A)") " Exiting..."
+   stop
+
+end subroutine
+
+subroutine f_ppexsi_inertia_count_complex_matrix(plan,options,numShift,&
+              shiftList,inertiaList,info)
+
+   implicit none
+
+   integer(c_intptr_t)    :: plan
+   type(f_ppexsi_options) :: options
+   integer(kind=i4)       :: numShift
+   real(kind=r8)          :: shiftList(*)
+   real(kind=r8)          :: inertiaList(*)
+   integer(kind=i4)       :: info
+
+   write(*,"(A)") " A PEXSI stub routine was called. Check ELSI installation."
+   write(*,"(A)") " Exiting..."
+   stop
+
+end subroutine
+
+subroutine f_ppexsi_calculate_fermi_operator_real3(plan,options,mu,&
+              numElectronExact,numElectronPEXSI,numElectronDrvMuPEXSI,info)
+
+   implicit none
+
+   integer(c_intptr_t)    :: plan
+   type(f_ppexsi_options) :: options
+   real(kind=r8)          :: mu
+   real(kind=r8)          :: numElectronExact
+   real(kind=r8)          :: numElectronPEXSI
+   real(kind=r8)          :: numElectronDrvMuPEXSI
+   integer(kind=i4)       :: info
+
+   write(*,"(A)") " A PEXSI stub routine was called. Check ELSI installation."
+   write(*,"(A)") " Exiting..."
+   stop
+
+end subroutine
+
+subroutine f_ppexsi_calculate_fermi_operator_complex(plan,options,mu,&
+              numElectronExact,numElectronPEXSI,numElectronDrvMuPEXSI,info)
+
+   implicit none
+
+   integer(c_intptr_t)    :: plan
+   type(f_ppexsi_options) :: options
+   real(kind=r8)          :: mu
+   real(kind=r8)          :: numElectronExact
+   real(kind=r8)          :: numElectronPEXSI
+   real(kind=r8)          :: numElectronDrvMuPEXSI
+   integer(kind=i4)       :: info
+
+   write(*,"(A)") " A PEXSI stub routine was called. Check ELSI installation."
+   write(*,"(A)") " Exiting..."
+   stop
+
+end subroutine
+
+subroutine f_ppexsi_calculate_edm_correction_real(plan,options,info)
+
+   implicit none
+
+   integer(c_intptr_t)    :: plan
+   type(f_ppexsi_options) :: options
+   integer(kind=i4)       :: info
+
+   write(*,"(A)") " A PEXSI stub routine was called. Check ELSI installation."
+   write(*,"(A)") " Exiting..."
+   stop
+
+end subroutine
+
+subroutine f_ppexsi_calculate_edm_correction_complex(plan,options,info)
+
+   implicit none
+
+   integer(c_intptr_t)    :: plan
+   type(f_ppexsi_options) :: options
+   integer(kind=i4)       :: info
 
    write(*,"(A)") " A PEXSI stub routine was called. Check ELSI installation."
    write(*,"(A)") " Exiting..."
@@ -166,12 +325,42 @@ subroutine f_ppexsi_retrieve_real_dm(plan,DMnzvalLocal,totalEnergyH,info)
 
 end subroutine
 
+subroutine f_ppexsi_retrieve_complex_dm(plan,DMnzvalLocal,totalEnergyH,info)
+
+   implicit none
+
+   integer(kind=c_intptr_t) :: plan
+   complex(kind=r8)         :: DMnzvalLocal(*)
+   real(kind=r8)            :: totalEnergyH
+   integer(kind=i4)         :: info
+
+   write(*,"(A)") " A PEXSI stub routine was called. Check ELSI installation."
+   write(*,"(A)") " Exiting..."
+   stop
+
+end subroutine
+
 subroutine f_ppexsi_retrieve_real_edm(plan,EDMnzvalLocal,totalEnergyS,info)
 
    implicit none
 
    integer(kind=c_intptr_t) :: plan
    real(kind=r8)            :: EDMnzvalLocal(*)
+   real(kind=r8)            :: totalEnergyS
+   integer(kind=i4)         :: info
+
+   write(*,"(A)") " A PEXSI stub routine was called. Check ELSI installation."
+   write(*,"(A)") " Exiting..."
+   stop
+
+end subroutine
+
+subroutine f_ppexsi_retrieve_complex_edm(plan,EDMnzvalLocal,totalEnergyS,info)
+
+   implicit none
+
+   integer(kind=c_intptr_t) :: plan
+   complex(kind=r8)         :: EDMnzvalLocal(*)
    real(kind=r8)            :: totalEnergyS
    integer(kind=i4)         :: info
 
