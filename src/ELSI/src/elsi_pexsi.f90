@@ -154,6 +154,7 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
    real(kind=r8)    :: factor_max
    real(kind=r8)    :: t0
    real(kind=r8)    :: t1
+   complex(kind=r8) :: local_complex
    integer(kind=i4) :: n_iner_steps
    integer(kind=i4) :: n_shift
    integer(kind=i4) :: aux_min
@@ -174,7 +175,8 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
    real(kind=r8),    allocatable :: send_buffer(:)
    complex(kind=r8), allocatable :: send_buffer_complex(:)
 
-   real(kind=r8), external :: ddot
+   real(kind=r8),    external :: ddot
+   complex(kind=r8), external :: zdotu
 
    character*40,  parameter :: caller = "elsi_solve_evp_pexsi"
 
@@ -573,10 +575,18 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
 
    call elsi_deallocate(elsi_h,shifts,"shifts")
 
-   ! Compute energy = Tr(H * DM)
+   ! Compute energy = Tr(H*DM)
    if(elsi_h%my_p_row_pexsi == 0) then
-      local_energy = ddot(elsi_h%nnz_l_sp,elsi_h%ham_real_ccs,1,&
-                        elsi_h%dm_real_ccs,1)
+      select case(elsi_h%matrix_data_type)
+      case(REAL_VALUES)
+         local_energy = ddot(elsi_h%nnz_l_sp,elsi_h%ham_real_ccs,1,&
+                           elsi_h%dm_real_ccs,1)
+      case(COMPLEX_VALUES)
+         local_complex = zdotu(elsi_h%nnz_l_sp,elsi_h%ham_complex_ccs,1,&
+                            elsi_h%dm_complex_ccs,1)
+
+         local_energy = dble(local_complex)
+      end select
 
       call MPI_Reduce(local_energy,elsi_h%energy_hdm,1,mpi_real8,&
               mpi_sum,0,elsi_h%comm_in_pole,mpierr)
