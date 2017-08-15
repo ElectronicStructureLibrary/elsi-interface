@@ -754,7 +754,7 @@ subroutine elsi_compute_edm_pexsi(elsi_h)
       enddo
    endif
 
-   ! Interpolation
+   ! Adjust to exact number of electrons
    if(.not. converged) then
       ! Energy density matrix
       factor_min = (elsi_h%ne_vec(aux_max)-elsi_h%n_electrons)/&

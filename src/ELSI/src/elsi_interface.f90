@@ -105,6 +105,7 @@ module ELSI
    public :: elsi_get_mu
    public :: elsi_get_edm_real
    public :: elsi_get_edm_complex
+   public :: elsi_get_edm_real_sparse
    public :: elsi_customize
    public :: elsi_customize_elpa
    public :: elsi_customize_omm
@@ -1641,21 +1642,73 @@ subroutine elsi_get_edm_real(elsi_h,d_out)
    call elsi_check_handle(elsi_h,caller)
 
    if(elsi_h%edm_ready_real) then
-      ! REAL case
       elsi_h%matrix_data_type = REAL_VALUES
 
       select case(elsi_h%solver)
       case(ELPA)
          call elsi_set_dm(elsi_h,d_out)
+
          call elsi_compute_edm_elpa(elsi_h)
       case(LIBOMM)
          call elsi_set_dm(elsi_h,d_out)
+
          call elsi_compute_edm_omm(elsi_h)
 
          elsi_h%dm_omm%dval = 2.0_r8*elsi_h%dm_omm%dval
       case(PEXSI)
          call elsi_compute_edm_pexsi(elsi_h)
+
          call elsi_pexsi_to_blacs_dm(elsi_h,d_out)
+      case(CHESS)
+         call elsi_stop(" CHESS not yet implemented. Exiting...",elsi_h,caller)
+      case(SIPS)
+         call elsi_stop(" SIPS not yet implemented. Exiting...",elsi_h,caller)
+      case default
+         call elsi_stop(" No supported solver has been chosen."//&
+                 " Exiting...",elsi_h,caller)
+      end select
+
+      elsi_h%edm_ready_real = .false.
+      elsi_h%matrix_data_type = UNSET
+   else
+      call elsi_stop(" Energy weighted density matrix has not been."//&
+              " computed. Exiting...",elsi_h,caller)
+   endif
+
+end subroutine
+
+!>
+!! This routine gets the energy-weighted density matrix.
+!!
+subroutine elsi_get_edm_real_sparse(elsi_h,d_out)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h                 !< Handle
+   real(kind=r8),     intent(out)   :: d_out(elsi_h%nnz_l_sp) !< Energy density matrix
+
+   character*40, parameter :: caller = "elsi_get_edm_real_sparse"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   if(elsi_h%edm_ready_real) then
+      elsi_h%matrix_data_type = REAL_VALUES
+
+      select case(elsi_h%solver)
+      case(ELPA)
+         call elsi_compute_edm_elpa(elsi_h)
+
+         call elsi_blacs_to_pexsi_dm(elsi_h,d_out)
+      case(LIBOMM)
+         call elsi_compute_edm_omm(elsi_h)
+
+         elsi_h%dm_omm%dval = 2.0_r8*elsi_h%dm_omm%dval
+
+         call elsi_blacs_to_pexsi_dm(elsi_h,d_out)
+      case(PEXSI)
+         call elsi_set_sparse_dm(elsi_h,d_out)
+
+         call elsi_compute_edm_pexsi(elsi_h)
       case(CHESS)
          call elsi_stop(" CHESS not yet implemented. Exiting...",elsi_h,caller)
       case(SIPS)
@@ -1689,20 +1742,23 @@ subroutine elsi_get_edm_complex(elsi_h,d_out)
    call elsi_check_handle(elsi_h,caller)
 
    if(elsi_h%edm_ready_complex) then
-      ! REAL case
       elsi_h%matrix_data_type = COMPLEX_VALUES
 
       select case(elsi_h%solver)
       case(ELPA)
          call elsi_set_dm(elsi_h,d_out)
+
          call elsi_compute_edm_elpa(elsi_h)
       case(LIBOMM)
          call elsi_set_dm(elsi_h,d_out)
+
          call elsi_compute_edm_omm(elsi_h)
 
-         elsi_h%dm_omm%zval = 2.0_r8*elsi_h%dm_omm%zval
+         elsi_h%dm_omm%zval = (2.0_r8,0.0_r8)*elsi_h%dm_omm%zval
       case(PEXSI)
-         call elsi_stop(" PEXSI not yet implemented. Exiting...",elsi_h,caller)
+         call elsi_compute_edm_pexsi(elsi_h)
+
+         call elsi_pexsi_to_blacs_dm(elsi_h,d_out)
       case(CHESS)
          call elsi_stop(" CHESS not yet implemented. Exiting...",elsi_h,caller)
       case(SIPS)
