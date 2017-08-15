@@ -518,7 +518,7 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
       enddo
    endif
 
-   ! Interpolation
+   ! Adjust to exact number of electrons
    if(.not. converged) then
       ! Chemical potential
       elsi_h%mu = shifts(aux_min)+(elsi_h%n_electrons-elsi_h%ne_vec(aux_min))/&
@@ -596,7 +596,7 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
 
    call elsi_get_time(elsi_h,t1)
 
-   write(info_str,"('  Finished density matrix interpolation')")
+   write(info_str,"('  Finished density matrix correction')")
    call elsi_statement_print(info_str,elsi_h)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
    call elsi_statement_print(info_str,elsi_h)
