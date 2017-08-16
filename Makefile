@@ -88,7 +88,6 @@ ifeq ($(strip $(C_INTERFACE)),yes)
   C_BINDING += elsi_c2f.o
   C_BINDING += test_dm_real_c.x
   C_BINDING += test_ev_real_c.x
-  C_BINDING += test_generalized_ev_real_c.x
   C_BINDING += test_standard_ev_real_c.x
 endif
 

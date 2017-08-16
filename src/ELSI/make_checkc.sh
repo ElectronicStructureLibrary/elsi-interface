@@ -17,7 +17,7 @@ echo "Test program output may be found in $PWD"
 
 echo
 echo -n "Running the serial 'elsi_ev_real' C test"
-${MPI_EXEC} -n 1 ./test_generalized_ev_real_c.x ${TOMATO_SEED} 1 > ev_real_serial_c.log &
+${MPI_EXEC} -n 1 ./test_ev_real_c.x ${TOMATO_SEED} 1 > ev_real_serial_c.log &
 PID=$!
 while kill -0 $PID 2>/dev/null; do
     sleep 1
