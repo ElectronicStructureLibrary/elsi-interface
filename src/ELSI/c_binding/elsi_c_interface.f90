@@ -768,6 +768,22 @@ subroutine elsi_set_pexsi_gap_c_wrapper(handle_c,gap)&
 
 end subroutine
 
+subroutine elsi_set_pexsi_delta_e_c_wrapper(handle_c,delta_e)&
+   bind(C,name="c_elsi_set_pexsi_delta_e")
+
+   implicit none
+
+   type(c_ptr),         value             :: handle_c
+   real(kind=c_double), value, intent(in) :: delta_e
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_pexsi_delta_e(handle_f,delta_e)
+
+end subroutine
+
 subroutine elsi_set_pexsi_mu_min_c_wrapper(handle_c,mu_min)&
    bind(C,name="c_elsi_set_pexsi_mu_min")
    

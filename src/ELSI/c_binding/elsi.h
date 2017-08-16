@@ -218,6 +218,9 @@ void c_elsi_set_pexsi_temp(elsi_handle handle_c,
 void c_elsi_set_pexsi_gap(elsi_handle handle_c,
                           double gap);
 
+void c_elsi_set_pexsi_delta_e(elsi_handle handle_c,
+                              double delta_e);
+
 void c_elsi_set_pexsi_mu_min(elsi_handle handle_c,
                              double mu_min);
 

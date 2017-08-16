@@ -81,6 +81,7 @@ module ELSI
    public :: elsi_set_pexsi_np_symbo
    public :: elsi_set_pexsi_temp
    public :: elsi_set_pexsi_gap
+   public :: elsi_set_pexsi_delta_e
    public :: elsi_set_pexsi_mu_min
    public :: elsi_set_pexsi_mu_max
    public :: elsi_set_pexsi_inertia_tol
@@ -1189,6 +1190,24 @@ subroutine elsi_set_pexsi_gap(elsi_h,gap)
    call elsi_check_handle(elsi_h,caller)
 
    elsi_h%pexsi_options%gap = gap
+
+end subroutine
+
+!>
+!! This routine sets the spectrum width in PEXSI.
+!!
+subroutine elsi_set_pexsi_delta_e(elsi_h,delta_e)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h  !< Handle
+   real(kind=r8),     intent(in)    :: delta_e !< Spectrum width
+
+   character*40, parameter :: caller = "elsi_set_pexsi_delta_e"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   elsi_h%pexsi_options%deltaE = delta_e
 
 end subroutine
 
