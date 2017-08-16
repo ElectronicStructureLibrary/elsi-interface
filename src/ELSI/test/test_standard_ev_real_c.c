@@ -25,8 +25,7 @@
  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
-// This program demonstrates how to use the ELSI interface in C to solve a
-// standard eigenvalue problem.
+// This program tests elsi_ev_real.
 
 #include <stdio.h>
 #include <stdlib.h>

@@ -26,9 +26,9 @@
 ! EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 !>
-!! This program tests elsi_ev_real.
+!! This program tests elsi_ev_complex.
 !!
-program test_ev_real
+program test_ev_complex
 
    use ELSI_PRECISION, only: r8,i4
    use ELSI
@@ -55,13 +55,14 @@ program test_ev_real
    real(kind=r8) :: e_test,e_ref
    real(kind=r8) :: t1,t2
 
-   real(kind=r8), allocatable :: ham(:,:),ovlp(:,:),eval(:),evec(:,:)
+   real(kind=r8),    allocatable :: eval(:)
+   complex(kind=r8), allocatable :: ham(:,:),ovlp(:,:),evec(:,:)
 
    type(matrix)      :: H,S
    type(elsi_handle) :: elsi_h
 
-   ! VY: Reference value from calculations on May 7, 2017.
-   real(kind=r8), parameter :: e_elpa = -126.817462901838_r8
+   ! VY: Reference value from calculations on August 15, 2017.
+   real(kind=r8), parameter :: e_elpa = -128.347567525780_r8
    real(kind=r8), parameter :: e_tol  = 1e-10_r8
 
    integer(kind=i4), external :: numroc
@@ -106,7 +107,7 @@ program test_ev_real
          write(*,'("  4) Solves the standard eigenproblem;")')
          write(*,'("  5) Back-transforms the eigenvectors to the generalized problem;")')
          write(*,*)
-         write(*,'("  Now start testing  elsi_ev_real + ELPA")')
+         write(*,'("  Now start testing  elsi_ev_complex + ELPA")')
       elseif(solver == 5) then
          write(*,'("  This test program performs the following computational steps:")')
          write(*,*)
@@ -115,7 +116,7 @@ program test_ev_real
          write(*,'("  3) Solves the generalized eigenproblem with shift-and-invert")')
          write(*,'("     parallel spectral transformation.")')
          write(*,*)
-         write(*,'("  Now start testing  elsi_ev_real + SIPs")')
+         write(*,'("  Now start testing  elsi_ev_complex + SIPs")')
       endif
       write(*,*)
    endif
@@ -139,17 +140,17 @@ program test_ev_real
    call ms_scalapack_setup(mpi_comm_global,nprow,'r',blk,icontxt=BLACS_CTXT)
 
    ! Set parameters
-   m_storage = 'pddbc'
+   m_storage = 'pzdbc'
    n_basis = 22
    supercell = (/3,3,3/)
    orb_r_cut = 0.5_r8
-   k_point(1:3) = (/0.0_r8,0.0_r8,0.0_r8/)
+   k_point(1:3) = (/0.25_r8,0.5_r8,0.75_r8/)
 
    t1 = MPI_Wtime()
 
    ! Generate test matrices
    call tomato_TB(arg1,'silicon',.false.,frac_occ,n_basis,.false.,matrix_size,&
-                  supercell,.false.,sparsity,orb_r_cut,n_states,.true.,k_point,&
+                  supercell,.false.,sparsity,orb_r_cut,n_states,.false.,k_point,&
                   .true.,0.0_r8,H,S,m_storage,.true.)
 
    t2 = MPI_Wtime()
@@ -184,13 +185,13 @@ program test_ev_real
    ! Customize ELSI
    call elsi_set_output(elsi_h,2)
 
-   ham = H%dval
-   ovlp = S%dval
+   ham = H%zval
+   ovlp = S%zval
 
    t1 = MPI_Wtime()
 
    ! Solve (pseudo SCF 1)
-   call elsi_ev_real(elsi_h,ham,ovlp,eval,evec)
+   call elsi_ev_complex(elsi_h,ham,ovlp,eval,evec)
 
    t2 = MPI_Wtime()
 
@@ -200,16 +201,16 @@ program test_ev_real
       write(*,*)
    endif
 
-   ham = H%dval
+   ham = H%zval
 
    if(n_proc == 1) then
-      ovlp = S%dval
+      ovlp = S%zval
    endif
 
    t1 = MPI_Wtime()
 
    ! Solve (pseudo SCF 2, with the same H)
-   call elsi_ev_real(elsi_h,ham,ovlp,eval,evec)
+   call elsi_ev_complex(elsi_h,ham,ovlp,eval,evec)
 
    t2 = MPI_Wtime()
 

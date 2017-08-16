@@ -26,7 +26,7 @@
 ! EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 !>
-!! This program tests ELSI density matrix solver.
+!! This program tests elsi_dm_real.
 !!
 program test_dm_real
 
@@ -54,6 +54,7 @@ program test_dm_real
    real(kind=r8) :: k_point(3)
    real(kind=r8) :: e_test,e_ref
    real(kind=r8) :: t1,t2
+
    real(kind=r8), allocatable :: ham(:,:),ovlp(:,:),dm(:,:)
 
    type(matrix)      :: H,S
@@ -78,17 +79,6 @@ program test_dm_real
       call GET_COMMAND_ARGUMENT(1,arg1)
       call GET_COMMAND_ARGUMENT(2,arg2)
       read(arg2,*) solver
-      if(solver < 1 .or. solver > 3) then
-         if(myid == 0) then
-            write(*,'("  ################################################")')
-            write(*,'("  ##  Wrong choice of solver!!                  ##")')
-            write(*,'("  ##  Please choose:                            ##")')
-            write(*,'("  ##  ELPA = 1; libOMM = 2; PEXSI = 3           ##")')
-            write(*,'("  ################################################")')
-            call MPI_Abort(mpi_comm_global,0,mpierr)
-            stop
-         endif
-      endif
    else
       if(myid == 0) then
          write(*,'("  ################################################")')

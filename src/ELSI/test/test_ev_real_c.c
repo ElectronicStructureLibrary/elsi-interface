@@ -25,8 +25,7 @@
  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
-// This program demonstrates how to use the ELSI interface in C to solve a
-// generalized eigenvalue problem.
+// This program tests elsi_ev_real.
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -73,7 +72,6 @@ void main(int argc, char** argv) {
    blk         = 16;
    solver      = 1; // ELPA
    format      = 0; // BLACS_DENSE
-   parallel    = 1; // MULTI_PROC
    r_cut       = 0.5; // Tomato only
    int_one     = 1;
    int_zero    = 0;
@@ -127,9 +125,18 @@ void main(int argc, char** argv) {
    free(k_point);
 
    // Initialize ELSI
-   c_elsi_init(&elsi_h,solver,parallel,format,n_basis,n_electrons,n_states);
-   c_elsi_set_mpi(elsi_h,mpi_comm_global);
-   c_elsi_set_blacs(elsi_h,blacs_ctxt,blk);
+   if (n_proc == 1) {
+       parallel = 0; // Test SINGLE_PROC mode
+
+       c_elsi_init(&elsi_h,solver,parallel,format,n_basis,n_electrons,n_states);
+   }
+   else {
+       parallel = 1; // Test MULTI_PROC mode
+
+       c_elsi_init(&elsi_h,solver,parallel,format,n_basis,n_electrons,n_states);
+       c_elsi_set_mpi(elsi_h,mpi_comm_global);
+       c_elsi_set_blacs(elsi_h,blacs_ctxt,blk);
+   }
 
    // Customize ELSI
    c_elsi_set_output(elsi_h,2);

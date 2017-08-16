@@ -26,7 +26,7 @@
 ! EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 !>
-!! This program tests ELSI eigensolver.
+!! This program tests elsi_ev_real.
 !!
 program test_standard_ev_real
 
@@ -56,8 +56,8 @@ program test_standard_ev_real
    integer(kind=i4), external :: numroc
 
    real(kind=r8) :: t1,t2
-   real(kind=r8), allocatable :: mat_a(:,:),mat_b(:,:),mat_tmp(:,:),e_vec(:,:)
-   real(kind=r8), allocatable :: e_val(:)
+   real(kind=r8), allocatable :: mat_a(:,:),mat_b(:,:),mat_tmp(:,:),evec(:,:)
+   real(kind=r8), allocatable :: eval(:)
 
    type(elsi_handle) :: elsi_h
 
@@ -84,17 +84,6 @@ program test_standard_ev_real
       endif
 
       read(arg3,*) solver
-      if((solver .ne. 1) .and. (solver .ne. 5)) then
-         if(myid == 0) then
-            write(*,'("  ################################################")')
-            write(*,'("  ##  Wrong choice of solver!!                  ##")')
-            write(*,'("  ##  Please choose:                            ##")')
-            write(*,'("  ##  ELPA = 1; SIPs = 5                        ##")')
-            write(*,'("  ################################################")')
-            call MPI_Abort(mpi_comm_global,0,mpierr)
-            stop
-         endif
-      endif
    else
       if(myid == 0) then
          write(*,'("  ################################################")')
@@ -181,8 +170,8 @@ program test_standard_ev_real
    call elsi_set_blacs(elsi_h,BLACS_CTXT,blk)
 
    allocate(mat_b(1,1)) ! Dummy allocation
-   allocate(e_vec(local_row,local_col))
-   allocate(e_val(matrix_size))
+   allocate(evec(local_row,local_col))
+   allocate(eval(matrix_size))
 
    ! Customize ELSI
    call elsi_set_output(elsi_h,2)
@@ -191,7 +180,7 @@ program test_standard_ev_real
    t1 = MPI_Wtime()
 
    ! Solve problem
-   call elsi_ev_real(elsi_h,mat_a,mat_b,e_val,e_vec)
+   call elsi_ev_real(elsi_h,mat_a,mat_b,eval,evec)
 
    t2 = MPI_Wtime()
 
@@ -206,8 +195,8 @@ program test_standard_ev_real
 
    deallocate(mat_a)
    deallocate(mat_b)
-   deallocate(e_val)
-   deallocate(e_vec)
+   deallocate(eval)
+   deallocate(evec)
 
    call MPI_Finalize(mpierr)
 
