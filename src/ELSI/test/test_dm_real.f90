@@ -62,10 +62,10 @@ program test_dm_real
 
    integer(kind=i4), external :: numroc
 
-   ! VY: Reference values from calculations on June 25, 2017.
+   ! VY: Reference values from calculations on August 17, 2017.
    real(kind=r8), parameter :: e_elpa  = -126.817462901838_r8
    real(kind=r8), parameter :: e_omm   = -126.817462901838_r8
-   real(kind=r8), parameter :: e_pexsi = -128.733187719376_r8
+   real(kind=r8), parameter :: e_pexsi = -128.733194153370_r8
    real(kind=r8), parameter :: e_tol   = 1.0e-10_r8
 
    ! Initialize MPI
@@ -207,12 +207,6 @@ program test_dm_real
    endif
 
    ham = H%dval
-
-   ! Refine chemical potential for PEXSI
-   call elsi_get_pexsi_mu_min(elsi_h,mu_min)
-   call elsi_get_pexsi_mu_max(elsi_h,mu_max)
-   call elsi_set_pexsi_mu_min(elsi_h,mu_min-1.0_r8)
-   call elsi_set_pexsi_mu_max(elsi_h,mu_max+1.0_r8)
 
    t1 = MPI_Wtime()
 

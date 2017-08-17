@@ -61,7 +61,6 @@ void main(int argc, char** argv) {
    e_pexsi = -128.733159836578;
    e_tol   = 0.00000001;
 
-
    elsi_handle elsi_h;
    matrix h_ms,s_ms;
 

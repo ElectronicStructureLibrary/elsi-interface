@@ -84,7 +84,7 @@ program test_ev_complex
          write(*,'("  ##  Wrong number of command line arguments!!  ##")')
          write(*,'("  ##  Arg#1: Path to Tomato seed folder.        ##")')
          write(*,'("  ##  Arg#2: Choice of solver.                  ##")')
-         write(*,'("  ##         (ELPA = 1; SIPs = 5)               ##")')
+         write(*,'("  ##         (ELPA = 1)                         ##")')
          write(*,'("  ################################################")')
          call MPI_Abort(mpi_comm_global,0,mpierr)
          stop

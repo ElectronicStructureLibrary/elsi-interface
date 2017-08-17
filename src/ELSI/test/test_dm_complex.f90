@@ -208,12 +208,6 @@ program test_dm_complex
 
    ham = H%zval
 
-   ! Refine chemical potential for PEXSI
-   call elsi_get_pexsi_mu_min(elsi_h,mu_min)
-   call elsi_get_pexsi_mu_max(elsi_h,mu_max)
-   call elsi_set_pexsi_mu_min(elsi_h,mu_min-1.0_r8)
-   call elsi_set_pexsi_mu_max(elsi_h,mu_max+1.0_r8)
-
    t1 = MPI_Wtime()
 
    ! Solve (pseudo SCF 2, with the same H)
