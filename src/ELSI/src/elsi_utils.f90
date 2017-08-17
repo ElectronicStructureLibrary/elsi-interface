@@ -1090,6 +1090,7 @@ end subroutine
 subroutine elsi_cleanup(elsi_h)
 
    implicit none
+   include "mpif.h"
 
    type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
@@ -1171,6 +1172,10 @@ subroutine elsi_cleanup(elsi_h)
    ! Finalize PEXSI
    if(elsi_h%pexsi_started) then
       call f_ppexsi_plan_finalize(elsi_h%pexsi_plan,ierr)
+      call MPI_Comm_free(elsi_h%comm_among_pole,ierr)
+      call MPI_Comm_free(elsi_h%comm_in_pole,ierr)
+      call MPI_Comm_free(elsi_h%comm_among_point,ierr)
+      call MPI_Comm_free(elsi_h%comm_in_point,ierr)
    endif
 
    ! Finalize CheSS
