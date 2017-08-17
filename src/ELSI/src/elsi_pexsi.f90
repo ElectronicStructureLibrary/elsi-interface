@@ -347,10 +347,12 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
 
    call elsi_get_time(elsi_h,t1)
 
-   write(info_str,"('  Finished inertia counting')")
-   call elsi_statement_print(info_str,elsi_h)
-   write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_statement_print(info_str,elsi_h)
+   if(n_iner_steps > 0) then
+      write(info_str,"('  Finished inertia counting')")
+      call elsi_statement_print(info_str,elsi_h)
+      write(info_str,"('  | Time :',F10.3,' s')") t1-t0
+      call elsi_statement_print(info_str,elsi_h)
+   endif
 
    if(ierr /= 0) then
       call elsi_stop(" Inertia counting failed. Exiting...",elsi_h,caller)
@@ -856,6 +858,10 @@ subroutine elsi_print_pexsi_options(elsi_h)
 
    write(info_str,"(1X,' | Spectral gap                                   ',F10.3)") &
       elsi_h%pexsi_options%gap
+   call elsi_statement_print(info_str,elsi_h)
+
+   write(info_str,"(1X,' | Spectral width                                 ',F10.3)") &
+      elsi_h%pexsi_options%deltaE
    call elsi_statement_print(info_str,elsi_h)
 
    write(info_str,"(1X,' | Number of poles                                ',I10)") &
