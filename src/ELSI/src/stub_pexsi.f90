@@ -35,6 +35,7 @@ module F_PPEXSI_INTERFACE
    use ELSI_PRECISION, only: r8,i4
 
    implicit none
+
    private
 
    public :: f_ppexsi_set_default_options

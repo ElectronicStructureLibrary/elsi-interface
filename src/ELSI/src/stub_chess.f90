@@ -35,6 +35,8 @@ module FOE_BASE
 
    implicit none
 
+   private
+
    public :: foe_data_deallocate
    public :: foe_data_get_real
 
@@ -81,6 +83,8 @@ module FOE_COMMON
    use FOE_BASE, only: foe_data
    
    implicit none
+
+   private
 
    public :: init_foe
 
@@ -133,6 +137,8 @@ module SPARSEMATRIX_BASE
    use ELSI_PRECISION, only: r8,i4
    
    implicit none
+
+   private
 
    public :: sparsematrix_init_errors
    public :: sparsematrix_initialize_timing_categories
@@ -204,6 +210,8 @@ module SPARSEMATRIX_HIGHLEVEL
    use SPARSEMATRIX_BASE, only: matrices,sparse_matrix
    
    implicit none
+
+   private
 
    public :: matrices_init
    public :: matrix_fermi_operator_expansion
@@ -294,6 +302,8 @@ module SPARSEMATRIX_INIT
    use SPARSEMATRIX_BASE, only: sparse_matrix
    
    implicit none
+
+   private
 
    public :: init_matrix_taskgroups_wrapper
 

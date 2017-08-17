@@ -46,6 +46,7 @@ module ELSI
    use MATRIXSWITCH, only: m_allocate,ms_scalapack_setup
 
    implicit none
+
    private
 
    character*8, parameter, public :: release_date = "20170527"
@@ -207,7 +208,6 @@ end subroutine
 subroutine elsi_set_mpi(elsi_h,mpi_comm)
 
    implicit none
-   include "mpif.h"
 
    type(elsi_handle), intent(inout) :: elsi_h   !< Handle
    integer(kind=i4),  intent(in)    :: mpi_comm !< Unit ELSI communicator
@@ -238,7 +238,6 @@ end subroutine
 subroutine elsi_set_mpi_global(elsi_h,mpi_comm_all)
 
    implicit none
-   include "mpif.h"
 
    type(elsi_handle), intent(inout) :: elsi_h       !< Handle
    integer(kind=i4),  intent(in)    :: mpi_comm_all !< Unit ELSI communicator
@@ -401,7 +400,6 @@ end subroutine
 subroutine elsi_get_energy(elsi_h,energy)
 
    implicit none
-   include "mpif.h"
 
    type(elsi_handle), intent(inout) :: elsi_h !< Handle
    real(kind=r8),     intent(out)   :: energy !< Energy of the system

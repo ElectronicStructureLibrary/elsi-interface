@@ -37,6 +37,7 @@ module ELSI_SIPS
    use M_QETSC
 
    implicit none
+
    private
 
    public :: elsi_init_sips
@@ -94,7 +95,6 @@ end subroutine
 subroutine elsi_solve_evp_sips(elsi_h)
 
    implicit none
-   include "mpif.h"
 
    type(elsi_handle), intent(inout) :: elsi_h !< Handle
 

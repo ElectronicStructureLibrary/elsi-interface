@@ -44,6 +44,7 @@ module ELSI_CHESS
    use SPARSEMATRIX_INIT, only: init_matrix_taskgroups_wrapper
 
    implicit none
+
    private
 
    public :: elsi_init_chess
@@ -60,7 +61,6 @@ contains
 subroutine elsi_init_chess(elsi_h)
 
    implicit none
-   include "mpif.h"
 
    type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
@@ -133,7 +133,6 @@ end subroutine
 subroutine elsi_solve_evp_chess(elsi_h)
 
    implicit none
-   include "mpif.h"
 
    type(elsi_handle), intent(inout) :: elsi_h !< Handle
 

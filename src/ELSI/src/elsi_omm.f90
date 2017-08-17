@@ -38,6 +38,7 @@ module ELSI_OMM
    use MATRIXSWITCH, only: m_add,m_deallocate,ms_scalapack_setup,matrix
 
    implicit none
+
    private
 
    public :: elsi_solve_evp_omm
@@ -53,7 +54,6 @@ contains
 subroutine elsi_solve_evp_omm(elsi_h)
 
    implicit none
-   include "mpif.h"
 
    type(elsi_handle), intent(inout) :: elsi_h !< Handle
 

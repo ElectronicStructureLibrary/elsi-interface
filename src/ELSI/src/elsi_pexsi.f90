@@ -37,6 +37,7 @@ module ELSI_PEXSI
    use F_PPEXSI_INTERFACE
 
    implicit none
+
    private
 
    public :: elsi_init_pexsi
@@ -53,7 +54,6 @@ contains
 subroutine elsi_init_pexsi(elsi_h)
 
    implicit none
-   include "mpif.h"
 
    type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
@@ -142,7 +142,6 @@ end subroutine
 subroutine elsi_solve_evp_pexsi(elsi_h)
 
    implicit none
-   include "mpif.h"
 
    type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
@@ -613,7 +612,6 @@ end subroutine
 subroutine elsi_compute_edm_pexsi(elsi_h)
 
    implicit none
-   include "mpif.h"
 
    type(elsi_handle), intent(inout) :: elsi_h !< Handle
 

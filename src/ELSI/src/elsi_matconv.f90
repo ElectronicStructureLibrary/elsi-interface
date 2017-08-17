@@ -36,6 +36,7 @@ module ELSI_MATCONV
    use ELSI_UTILS
 
    implicit none
+
    private
 
    public :: elsi_blacs_to_chess_hs
@@ -116,7 +117,6 @@ end subroutine
 subroutine elsi_blacs_to_pexsi_hs_small_real(elsi_h,h_in,s_in)
 
    implicit none
-   include "mpif.h"
 
    type(elsi_handle), intent(inout) :: elsi_h                                !< Handle
    real(kind=r8),     intent(in)    :: h_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian
@@ -467,7 +467,6 @@ end subroutine
 subroutine elsi_blacs_to_pexsi_hs_large_real(elsi_h,h_in,s_in)
 
    implicit none
-   include "mpif.h"
 
    type(elsi_handle), intent(inout) :: elsi_h                                !< Handle
    real(kind=r8),     intent(in)    :: h_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian
@@ -906,7 +905,6 @@ end subroutine
 subroutine elsi_blacs_to_pexsi_hs_small_complex(elsi_h,h_in,s_in)
 
    implicit none
-   include "mpif.h"
 
    type(elsi_handle), intent(inout) :: elsi_h                                !< Handle
    complex(kind=r8),  intent(in)    :: h_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian
@@ -1257,7 +1255,6 @@ end subroutine
 subroutine elsi_blacs_to_pexsi_hs_large_complex(elsi_h,h_in,s_in)
 
    implicit none
-   include "mpif.h"
 
    type(elsi_handle), intent(inout) :: elsi_h                                !< Handle
    complex(kind=r8),  intent(in)    :: h_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian
@@ -1688,7 +1685,6 @@ end subroutine
 subroutine elsi_pexsi_to_blacs_dm_small_real(elsi_h,d_out)
 
    implicit none
-   include "mpif.h"
 
    type(elsi_handle), intent(inout) :: elsi_h                                 !< Handle
    real(kind=r8),     intent(out)   :: d_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Density matrix
@@ -1860,7 +1856,6 @@ end subroutine
 subroutine elsi_pexsi_to_blacs_dm_large_real(elsi_h,d_out)
 
    implicit none
-   include "mpif.h"
 
    type(elsi_handle), intent(inout) :: elsi_h                                 !< Handle
    real(kind=r8),     intent(out)   :: d_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Density matrix
@@ -2079,7 +2074,6 @@ end subroutine
 subroutine elsi_pexsi_to_blacs_dm_small_complex(elsi_h,d_out)
 
    implicit none
-   include "mpif.h"
 
    type(elsi_handle), intent(inout) :: elsi_h                                 !< Handle
    complex(kind=r8),  intent(out)   :: d_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Density matrix
@@ -2251,7 +2245,6 @@ end subroutine
 subroutine elsi_pexsi_to_blacs_dm_large_complex(elsi_h,d_out)
 
    implicit none
-   include "mpif.h"
 
    type(elsi_handle), intent(inout) :: elsi_h                                 !< Handle
    complex(kind=r8),  intent(out)   :: d_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Density matrix
@@ -2479,8 +2472,6 @@ subroutine elsi_blacs_to_sips_hs_small(elsi_h,h_in,s_in)
 
    implicit none
 
-   include "mpif.h"
-
    type(elsi_handle), intent(inout) :: elsi_h                                !< Handle
    real(kind=r8),     intent(in)    :: h_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian
    real(kind=r8),     intent(in)    :: s_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Overlap
@@ -2701,8 +2692,6 @@ end subroutine
 subroutine elsi_blacs_to_sips_hs_large(elsi_h,h_in,s_in)
 
    implicit none
-
-   include "mpif.h"
 
    type(elsi_handle), intent(inout) :: elsi_h                                !< Handle
    real(kind=r8),     intent(in)    :: h_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian 
@@ -2993,7 +2982,6 @@ end subroutine
 subroutine elsi_pexsi_to_blacs_hs_small_real(elsi_h,h_in,s_in)
 
    implicit none
-   include "mpif.h"
 
    type(elsi_handle), intent(inout) :: elsi_h                !< Handle
    real(kind=r8),     intent(in)    :: h_in(elsi_h%nnz_l_sp) !< Hamiltonian
@@ -3215,7 +3203,6 @@ end subroutine
 subroutine elsi_pexsi_to_blacs_hs_large_real(elsi_h,h_in,s_in)
 
    implicit none
-   include "mpif.h"
 
    type(elsi_handle), intent(inout) :: elsi_h                !< Handle
    real(kind=r8),     intent(in)    :: h_in(elsi_h%nnz_l_sp) !< Hamiltonian
@@ -3485,8 +3472,6 @@ subroutine elsi_blacs_to_pexsi_dm_small_real(elsi_h,d_out)
 
    implicit none
 
-   include "mpif.h"
-
    type(elsi_handle), intent(inout) :: elsi_h                 !< Handle
    real(kind=r8),     intent(out)   :: d_out(elsi_h%nnz_l_sp) !< Density matrix
 
@@ -3664,8 +3649,6 @@ end subroutine
 subroutine elsi_blacs_to_pexsi_dm_large_real(elsi_h,d_out)
 
    implicit none
-
-   include "mpif.h"
 
    type(elsi_handle), intent(inout) :: elsi_h                 !< Handle
    real(kind=r8),     intent(out)   :: d_out(elsi_h%nnz_l_sp) !< Density matrix
@@ -3908,7 +3891,6 @@ end subroutine
 subroutine elsi_sips_to_chess_hs(elsi_h)
 
    implicit none
-   include "mpif.h"
 
    type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
@@ -4013,7 +3995,6 @@ end subroutine
 subroutine elsi_chess_to_blacs_dm(elsi_h,d_out)
 
    implicit none
-   include "mpif.h"
 
    type(elsi_handle), intent(inout) :: elsi_h                                 !< Handle
    real(kind=r8),     intent(out)   :: d_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Density matrix

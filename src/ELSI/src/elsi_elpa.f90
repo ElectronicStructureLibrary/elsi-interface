@@ -43,6 +43,7 @@ module ELSI_ELPA
    use ELPA2
 
    implicit none
+
    private
 
    public :: elsi_get_elpa_comms
@@ -790,7 +791,6 @@ end subroutine
 subroutine elsi_solve_evp_elpa(elsi_h)
 
    implicit none
-   include "mpif.h"
 
    type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
@@ -899,7 +899,6 @@ end subroutine
 subroutine elsi_to_standard_evp_sp(elsi_h)
 
    implicit none
-   include 'mpif.h'
 
    type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
@@ -1161,7 +1160,6 @@ end subroutine
 subroutine elsi_solve_evp_elpa_sp(elsi_h)
 
    implicit none
-   include "mpif.h"
 
    type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
@@ -1262,7 +1260,6 @@ end subroutine
 subroutine elsi_check_singularity_sp(elsi_h)
 
    implicit none
-   include "mpif.h"
 
    type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
@@ -1780,7 +1777,6 @@ end subroutine
 subroutine elsi_get_eval_all(elsi_h)
 
    implicit none
-   include "mpif.h"
 
    type(elsi_handle), intent(inout) :: elsi_h  !< Handle
 

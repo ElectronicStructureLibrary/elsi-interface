@@ -37,6 +37,7 @@ module ELSI_MU
    use ELSI_UTILS
 
    implicit none
+
    private
 
    public :: elsi_compute_mu_and_occ

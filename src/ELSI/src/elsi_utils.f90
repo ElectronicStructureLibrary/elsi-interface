@@ -44,7 +44,8 @@ module ELSI_UTILS
    use SPARSEMATRIX_BASE, only: deallocate_sparse_matrix,deallocate_matrices
 
    implicit none
-   private
+
+   include "mpif.h"
 
    public :: elsi_set_ham
    public :: elsi_set_ovlp
@@ -688,7 +689,6 @@ end subroutine
 subroutine elsi_stop(info,elsi_h,caller)
 
    implicit none
-   include "mpif.h"
 
    character(len=*),  intent(in) :: info   !< Error message to print
    type(elsi_handle), intent(in) :: elsi_h !< Handle
@@ -1090,7 +1090,6 @@ end subroutine
 subroutine elsi_cleanup(elsi_h)
 
    implicit none
-   include "mpif.h"
 
    type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
@@ -1730,7 +1729,6 @@ end subroutine
 subroutine elsi_set_full_mat_real(elsi_h,mat)
 
    implicit none
-   include "mpif.h"
 
    type(elsi_handle), intent(inout) :: elsi_h                               !< Handle
    real(kind=r8),     intent(inout) :: mat(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Matrix
@@ -1783,7 +1781,6 @@ end subroutine
 subroutine elsi_set_full_mat_complex(elsi_h,mat)
 
    implicit none
-   include "mpif.h"
 
    type(elsi_handle), intent(inout) :: elsi_h                               !< Handle
    complex(kind=r8),  intent(inout) :: mat(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Matrix
