@@ -406,12 +406,14 @@ subroutine elsi_to_standard_evp(elsi_h)
          ! tmp_complex = H_complex * S_complex
          call pzgemm('N','N',elsi_h%n_basis,elsi_h%n_nonsing,elsi_h%n_basis,&
                  (1.0_r8,0.0_r8),elsi_h%ham_complex,1,1,elsi_h%sc_desc,&
-                 elsi_h%ovlp_complex,1,1,elsi_h%sc_desc,(0.0_r8,0.0_r8),&
-                 elsi_h%evec_complex,1,1,elsi_h%sc_desc)
+                 elsi_h%ovlp_complex,1,elsi_h%n_basis-elsi_h%n_nonsing+1,&
+                 elsi_h%sc_desc,(0.0_r8,0.0_r8),elsi_h%evec_complex,1,1,&
+                 elsi_h%sc_desc)
 
          ! H_complex = (S_complex)^* * tmp_complex
          call pzgemm('C','N',elsi_h%n_nonsing,elsi_h%n_nonsing,elsi_h%n_basis,&
-                 (1.0_r8,0.0_r8),elsi_h%ovlp_complex,1,1,elsi_h%sc_desc,&
+                 (1.0_r8,0.0_r8),elsi_h%ovlp_complex,1,&
+                 elsi_h%n_basis-elsi_h%n_nonsing+1,elsi_h%sc_desc,&
                  elsi_h%evec_complex,1,1,elsi_h%sc_desc,(0.0_r8,0.0_r8),&
                  elsi_h%ham_complex,1,1,elsi_h%sc_desc)
       else ! Use cholesky
@@ -500,12 +502,14 @@ subroutine elsi_to_standard_evp(elsi_h)
          ! tmp_real = H_real * S_real
          call pdgemm('N','N',elsi_h%n_basis,elsi_h%n_nonsing,elsi_h%n_basis,&
                  1.0_r8,elsi_h%ham_real,1,1,elsi_h%sc_desc,elsi_h%ovlp_real,&
-                 1,1,elsi_h%sc_desc,0.0_r8,elsi_h%evec_real,1,1,elsi_h%sc_desc)
+                 1,elsi_h%n_basis-elsi_h%n_nonsing+1,elsi_h%sc_desc,0.0_r8,&
+                 elsi_h%evec_real,1,1,elsi_h%sc_desc)
 
          ! H_real = (S_real)^T * tmp_real
          call pdgemm('T','N',elsi_h%n_nonsing,elsi_h%n_nonsing,elsi_h%n_basis,&
-                 1.0_r8,elsi_h%ovlp_real,1,1,elsi_h%sc_desc,elsi_h%evec_real,&
-                 1,1,elsi_h%sc_desc,0.0_r8,elsi_h%ham_real,1,1,elsi_h%sc_desc)
+                 1.0_r8,elsi_h%ovlp_real,1,elsi_h%n_basis-elsi_h%n_nonsing+1,&
+                 elsi_h%sc_desc,elsi_h%evec_real,1,1,elsi_h%sc_desc,0.0_r8,&
+                 elsi_h%ham_real,1,1,elsi_h%sc_desc)
       else ! Use Cholesky
          success = elpa_mult_at_b_real_double('U','L',elsi_h%n_basis,&
                       elsi_h%n_basis,elsi_h%ovlp_real,elsi_h%n_l_rows,&
@@ -586,7 +590,7 @@ subroutine elsi_check_singularity(elsi_h)
 
       ! Use copy_complex to store overlap matrix, otherwise it will
       ! be destroyed by eigenvalue calculation
-      copy_complex = -elsi_h%ovlp_complex
+      copy_complex = elsi_h%ovlp_complex
 
       ! Use customized ELPA 2-stage solver to check overlap singularity
       ! Eigenvectors computed only for singular overlap matrix
@@ -625,7 +629,7 @@ subroutine elsi_check_singularity(elsi_h)
                  " matrix for transformation",elsi_h)
 
          ! Overlap matrix is overwritten with scaled eigenvectors
-         do i = 1,elsi_h%n_nonsing
+         do i = elsi_h%n_basis-elsi_h%n_nonsing+1,elsi_h%n_basis
             ev_sqrt = sqrt(elsi_h%eval(i))
             if(elsi_h%local_col(i) == 0) cycle
             elsi_h%ovlp_complex(:,elsi_h%local_col(i)) = &
@@ -641,7 +645,7 @@ subroutine elsi_check_singularity(elsi_h)
 
       ! Use copy_real to store overlap matrix, otherwise it will be
       ! destroyed by eigenvalue calculation
-      copy_real = -elsi_h%ovlp_real
+      copy_real = elsi_h%ovlp_real
 
       ! Use customized ELPA 2-stage solver to check overlap singularity
       ! Eigenvectors computed only for singular overlap matrix
@@ -679,7 +683,7 @@ subroutine elsi_check_singularity(elsi_h)
                  " overlap matrix for transformation",elsi_h)
 
          ! Overlap matrix is overwritten with scaled eigenvectors
-         do i = 1,elsi_h%n_nonsing
+         do i = elsi_h%n_basis-elsi_h%n_nonsing+1,elsi_h%n_basis
             ev_sqrt = sqrt(elsi_h%eval(i))
             if(elsi_h%local_col(i) == 0) cycle
             elsi_h%ovlp_real(:,elsi_h%local_col(i)) = &
@@ -710,10 +714,10 @@ subroutine elsi_to_original_ev(elsi_h)
 
    type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
-   logical          :: success
-   real(kind=r8)    :: t0
-   real(kind=r8)    :: t1
-   character*200    :: info_str
+   logical       :: success
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
+   character*200 :: info_str
 
    real(kind=r8),    allocatable :: tmp_real(:,:)
    complex(kind=r8), allocatable :: tmp_complex(:,:)
@@ -731,9 +735,10 @@ subroutine elsi_to_original_ev(elsi_h)
       if(elsi_h%ovlp_is_sing) then
          ! Transform matrix is stored in S_complex after elsi_to_standard_evp
          call pzgemm('N','N',elsi_h%n_basis,elsi_h%n_states,elsi_h%n_nonsing,&
-                 (1.0_r8,0.0_r8),elsi_h%ovlp_complex,1,1,elsi_h%sc_desc,&
-                 tmp_complex,1,1,elsi_h%sc_desc,(0.0_r8,0.0_r8),&
-                 elsi_h%evec_complex,1,1,elsi_h%sc_desc)
+                 (1.0_r8,0.0_r8),elsi_h%ovlp_complex,1,&
+                 elsi_h%n_basis-elsi_h%n_nonsing+1,elsi_h%sc_desc,tmp_complex,&
+                 1,1,elsi_h%sc_desc,(0.0_r8,0.0_r8),elsi_h%evec_complex,1,1,&
+                 elsi_h%sc_desc)
       else ! Nonsingular, use Cholesky
          ! (U^-1) is stored in S_complex after elsi_to_standard_evp
          ! C_complex = S_complex * C_complex = S_complex * tmp_complex
@@ -758,8 +763,9 @@ subroutine elsi_to_original_ev(elsi_h)
       if(elsi_h%ovlp_is_sing) then
          ! Transform matrix is stored in S_real after elsi_to_standard_evp
          call pdgemm('N','N',elsi_h%n_basis,elsi_h%n_states,elsi_h%n_nonsing,&
-                 1.0_r8,elsi_h%ovlp_real,1,1,elsi_h%sc_desc,tmp_real,1,1,&
-                 elsi_h%sc_desc,0.0_r8,elsi_h%evec_real,1,1,elsi_h%sc_desc)
+                 1.0_r8,elsi_h%ovlp_real,1,elsi_h%n_basis-elsi_h%n_nonsing+1,&
+                 elsi_h%sc_desc,tmp_real,1,1,elsi_h%sc_desc,0.0_r8,&
+                 elsi_h%evec_real,1,1,elsi_h%sc_desc)
       else ! Nonsingular, use Cholesky
          ! (U^-1) is stored in S_real after elsi_to_standard_evp
          ! C_real = S_real * C_real = S_real * tmp_real
@@ -1716,7 +1722,7 @@ subroutine elsi_adjust_occ(elsi_h,diff_ne)
    type(elsi_handle), intent(inout) :: elsi_h  !< Handle
    real(kind=r8),     intent(inout) :: diff_ne !< Error in electron count
 
-   real(kind=r8),    allocatable :: eval_aux(:)
+   real(kind=r8), allocatable :: eval_aux(:)
 
    real(kind=r8)    :: min_eval
    integer(kind=i4) :: max_id

@@ -210,14 +210,13 @@ function elpa_check_singularity_real_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCol
 
    deallocate(e)
 
-   ! Invert signs of eigenvalues
-   ev = -ev
-
    ! Get the number of nonsingular eigenvalues
+   n_nonsing = na
    do i = 1,na
-      if(ev(i) < singular_tol) exit
+      if(ev(i) < singular_tol) then
+         n_nonsing = n_nonsing-1
+      endif
    enddo
-   n_nonsing = i-1
 
    if(n_nonsing < na) then
       ! Back-transform 1
@@ -392,14 +391,13 @@ function elpa_check_singularity_complex_double(na,nev,a,lda,ev,q,ldq,nblk,matrix
    deallocate(e)
    deallocate(q_real)
 
-   ! Invert signs of eigenvalues
-   ev = -ev
-
    ! Get the number of nonsingular eigenvalues
+   n_nonsing = na
    do i = 1,na
-      if(ev(i) < singular_tol) exit
+      if(ev(i) < singular_tol) then
+         n_nonsing = n_nonsing-1
+      endif
    enddo
-   n_nonsing = i-1
 
    if(n_nonsing < na) then
       ! Back-transform 1

@@ -580,9 +580,9 @@ subroutine elsi_deallocate_integer_2d(elsi_h,array,arrayname)
 
    implicit none
 
-   type(elsi_handle),          intent(in)       :: elsi_h     !< Handle
+   type(elsi_handle),             intent(in)    :: elsi_h     !< Handle
    integer(kind=i4), allocatable, intent(inout) :: array(:,:) !< Data
-   character(len=*),           intent(in)       :: arrayname  !< Name
+   character(len=*),              intent(in)    :: arrayname  !< Name
 
    character*200 :: info
 
@@ -602,9 +602,9 @@ subroutine elsi_deallocate_complex_2d(elsi_h,array,arrayname)
 
    implicit none
 
-   type(elsi_handle),          intent(in)       :: elsi_h     !< Handle
+   type(elsi_handle),             intent(in)    :: elsi_h     !< Handle
    complex(kind=r8), allocatable, intent(inout) :: array(:,:) !< Data
-   character(len=*),           intent(in)       :: arrayname  !< Name
+   character(len=*),              intent(in)    :: arrayname  !< Name
 
    character*200 :: info
 
@@ -646,9 +646,9 @@ subroutine elsi_deallocate_integer_3d(elsi_h,array,arrayname)
 
    implicit none
 
-   type(elsi_handle),          intent(in)       :: elsi_h       !< Handle
+   type(elsi_handle),             intent(in)    :: elsi_h       !< Handle
    integer(kind=i4), allocatable, intent(inout) :: array(:,:,:) !< Data
-   character(len=*),           intent(in)       :: arrayname    !< Name
+   character(len=*),              intent(in)    :: arrayname    !< Name
 
    character*200 :: info
 
@@ -668,9 +668,9 @@ subroutine elsi_deallocate_complex_3d(elsi_h,array,arrayname)
 
    implicit none
 
-   type(elsi_handle),          intent(in)       :: elsi_h       !< Handle
+   type(elsi_handle),             intent(in)    :: elsi_h       !< Handle
    complex(kind=r8), allocatable, intent(inout) :: array(:,:,:) !< Data
-   character(len=*),           intent(in)       :: arrayname    !< Name
+   character(len=*),              intent(in)    :: arrayname    !< Name
 
    character*200 :: info
 
