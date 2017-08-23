@@ -177,6 +177,7 @@ subroutine elsi_init(elsi_h,solver,parallel_mode,matrix_format,n_basis,&
 
    ! Set libOMM default
    if(solver == LIBOMM) then
+      call elsi_set_elpa_default(elsi_h)
       call elsi_set_omm_default(elsi_h)
 
       ! Set number of occupied states

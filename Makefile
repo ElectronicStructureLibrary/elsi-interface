@@ -225,7 +225,6 @@ cleancs:
 	@echo =================================
 	cd $(CS_DIR) && $(MAKE) -f Makefile.elsi clean
 
-
 cleanomm:
 	@echo ======================
 	@echo = Removing libOMM... =

@@ -1194,47 +1194,47 @@ subroutine elsi_solve_evp_elpa_sp(elsi_h)
 
    select case(elsi_h%matrix_data_type)
    case(COMPLEX_VALUES)
-      call elsi_allocate(elsi_h,off_diag,elsi_h%n_basis,"off_diag",caller)
-      call elsi_allocate(elsi_h,tau_complex,elsi_h%n_basis,"tau_complex",caller)
-      call elsi_allocate(elsi_h,tmp_real,elsi_h%n_basis,elsi_h%n_basis,"tmp_real",caller)
-      call elsi_allocate(elsi_h,tmp_complex,elsi_h%n_basis,elsi_h%n_basis,"tmp_complex",caller)
+      call elsi_allocate(elsi_h,off_diag,elsi_h%n_nonsing,"off_diag",caller)
+      call elsi_allocate(elsi_h,tau_complex,elsi_h%n_nonsing,"tau_complex",caller)
+      call elsi_allocate(elsi_h,tmp_real,elsi_h%n_nonsing,elsi_h%n_nonsing,"tmp_real",caller)
+      call elsi_allocate(elsi_h,tmp_complex,elsi_h%n_nonsing,elsi_h%n_nonsing,"tmp_complex",caller)
 
-      call zhetrd('U',elsi_h%n_basis,elsi_h%ham_complex,elsi_h%n_basis,elsi_h%eval,&
-              off_diag,tau_complex,tmp_complex,elsi_h%n_basis*elsi_h%n_basis,ierr)
+      call zhetrd('U',elsi_h%n_nonsing,elsi_h%ham_complex,elsi_h%n_nonsing,elsi_h%eval,&
+              off_diag,tau_complex,tmp_complex,elsi_h%n_nonsing*elsi_h%n_nonsing,ierr)
 
-      success = elpa_solve_tridi_double(elsi_h%n_basis,elsi_h%n_states,elsi_h%eval,&
-                   off_diag,tmp_real,elsi_h%n_basis,64,elsi_h%n_basis,mpi_comm_self,&
+      success = elpa_solve_tridi_double(elsi_h%n_nonsing,elsi_h%n_states,elsi_h%eval,&
+                   off_diag,tmp_real,elsi_h%n_nonsing,64,elsi_h%n_nonsing,mpi_comm_self,&
                    mpi_comm_self,.false.)
 
-      elsi_h%evec_complex(1:elsi_h%n_basis,1:elsi_h%n_states) = &
-         tmp_real(1:elsi_h%n_basis,1:elsi_h%n_states)
+      elsi_h%evec_complex(1:elsi_h%n_nonsing,1:elsi_h%n_states) = &
+         tmp_real(1:elsi_h%n_nonsing,1:elsi_h%n_states)
 
-      call zunmtr('L','U','N',elsi_h%n_basis,elsi_h%n_states,elsi_h%ham_complex,&
-              elsi_h%n_basis,tau_complex,elsi_h%evec_complex,elsi_h%n_basis,&
-              tmp_complex,elsi_h%n_basis*elsi_h%n_basis,ierr)
+      call zunmtr('L','U','N',elsi_h%n_nonsing,elsi_h%n_states,elsi_h%ham_complex,&
+              elsi_h%n_nonsing,tau_complex,elsi_h%evec_complex,elsi_h%n_nonsing,&
+              tmp_complex,elsi_h%n_nonsing*elsi_h%n_nonsing,ierr)
 
       call elsi_deallocate(elsi_h,off_diag,"off_diag")
       call elsi_deallocate(elsi_h,tau_complex,"tau_complex")
       call elsi_deallocate(elsi_h,tmp_real,"tmp_real")
       call elsi_deallocate(elsi_h,tmp_complex,"tmp_complex")
    case(REAL_VALUES)
-      call elsi_allocate(elsi_h,off_diag,elsi_h%n_basis,"off_diag",caller)
-      call elsi_allocate(elsi_h,tau_real,elsi_h%n_basis,"tau_real",caller)
-      call elsi_allocate(elsi_h,tmp_real,elsi_h%n_basis,elsi_h%n_basis,"tmp_real",caller)
+      call elsi_allocate(elsi_h,off_diag,elsi_h%n_nonsing,"off_diag",caller)
+      call elsi_allocate(elsi_h,tau_real,elsi_h%n_nonsing,"tau_real",caller)
+      call elsi_allocate(elsi_h,tmp_real,elsi_h%n_nonsing,elsi_h%n_nonsing,"tmp_real",caller)
 
-      call dsytrd('U',elsi_h%n_basis,elsi_h%ham_real,elsi_h%n_basis,elsi_h%eval,&
-              off_diag,tau_real,tmp_real,elsi_h%n_basis*elsi_h%n_basis,ierr)
+      call dsytrd('U',elsi_h%n_nonsing,elsi_h%ham_real,elsi_h%n_nonsing,elsi_h%eval,&
+              off_diag,tau_real,tmp_real,elsi_h%n_nonsing*elsi_h%n_nonsing,ierr)
 
-      success = elpa_solve_tridi_double(elsi_h%n_basis,elsi_h%n_states,elsi_h%eval,&
-                   off_diag,tmp_real,elsi_h%n_basis,64,elsi_h%n_basis,mpi_comm_self,&
+      success = elpa_solve_tridi_double(elsi_h%n_nonsing,elsi_h%n_states,elsi_h%eval,&
+                   off_diag,tmp_real,elsi_h%n_nonsing,64,elsi_h%n_nonsing,mpi_comm_self,&
                    mpi_comm_self,.false.)
 
-      elsi_h%evec_real(1:elsi_h%n_basis,1:elsi_h%n_states) = &
-         tmp_real(1:elsi_h%n_basis,1:elsi_h%n_states)
+      elsi_h%evec_real(1:elsi_h%n_nonsing,1:elsi_h%n_states) = &
+         tmp_real(1:elsi_h%n_nonsing,1:elsi_h%n_states)
 
-      call dormtr('L','U','N',elsi_h%n_basis,elsi_h%n_states,elsi_h%ham_real,&
-              elsi_h%n_basis,tau_real,elsi_h%evec_real,elsi_h%n_basis,tmp_real,&
-              elsi_h%n_basis*elsi_h%n_basis,ierr)
+      call dormtr('L','U','N',elsi_h%n_nonsing,elsi_h%n_states,elsi_h%ham_real,&
+              elsi_h%n_nonsing,tau_real,elsi_h%evec_real,elsi_h%n_nonsing,tmp_real,&
+              elsi_h%n_nonsing*elsi_h%n_nonsing,ierr)
 
       call elsi_deallocate(elsi_h,off_diag,"off_diag")
       call elsi_deallocate(elsi_h,tau_real,"tau_real")
