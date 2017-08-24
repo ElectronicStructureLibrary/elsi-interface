@@ -94,7 +94,7 @@ endif
 export
 
 LIBS = $(ELPA_LIB) $(CS_LIB) $(OMM_LIB)
-INCS = $(ELPA_INC) $(CS_INC) $(OMM_INC) $(INC_DIR)
+INCS = $(ELPA_INC) $(CS_INC) $(OMM_INC) -I$(INC_DIR)
 
 ifneq ($(strip $(DISABLE_CXX)),yes)
   LIBS += $(PEXSI_LIB)
