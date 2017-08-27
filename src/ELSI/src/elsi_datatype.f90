@@ -126,168 +126,165 @@ module ELSI_DATATYPE
       logical :: handle_ready = .false.
 
       ! Solver (AUTO=0,ELPA=1,LIBOMM=2,PEXSI=3,CHESS=4,SIPS=5)
-      integer(kind=i4) :: solver = UNSET
+      integer(kind=i4) :: solver
 
       ! Real or complex data (REAL_VALUES=0,COMPLEX_VALUES=1)
-      integer(kind=i4) :: matrix_data_type = UNSET
+      integer(kind=i4) :: matrix_data_type
 
       ! Matrix storage format (BLACS_DENSE=0,PEXSI_CSC=1)
-      integer(kind=i4) :: matrix_format = UNSET
+      integer(kind=i4) :: matrix_format
 
       ! Is input matrix triangular? (FULL_MAT=0,UT_MAT=1,LT_MAT=2)
-      integer(kind=i4) :: uplo = FULL_MAT
+      integer(kind=i4) :: uplo
 
       ! Parallel mode (SINGLE_PROC=0,MULTI_PROC=1)
-      integer(kind=i4) :: parallel_mode = UNSET
+      integer(kind=i4) :: parallel_mode
 
       ! Number of ELSI being called
-      integer(kind=i4) :: n_elsi_calls = 0
+      integer(kind=i4) :: n_elsi_calls
 
       ! Block size in case of block-cyclic distribution
-      integer(kind=i4) :: n_b_rows = UNSET
-      integer(kind=i4) :: n_b_cols = UNSET
+      integer(kind=i4) :: n_b_rows
+      integer(kind=i4) :: n_b_cols
 
       ! Processor grid
-      integer(kind=i4) :: n_p_rows = UNSET
-      integer(kind=i4) :: n_p_cols = UNSET
+      integer(kind=i4) :: n_p_rows
+      integer(kind=i4) :: n_p_cols
 
       ! Local matrix size
-      integer(kind=i4) :: n_l_rows = UNSET
-      integer(kind=i4) :: n_l_cols = UNSET
+      integer(kind=i4) :: n_l_rows
+      integer(kind=i4) :: n_l_cols
 
       ! MPI
-      integer(kind=i4) :: myid = UNSET
-      integer(kind=i4) :: myid_all = UNSET
-      integer(kind=i4) :: n_procs = UNSET
-      integer(kind=i4) :: n_procs_all = UNSET
-      integer(kind=i4) :: mpi_comm = UNSET
-      integer(kind=i4) :: mpi_comm_all = UNSET
-      integer(kind=i4) :: mpi_comm_row = UNSET
-      integer(kind=i4) :: mpi_comm_col = UNSET
-      integer(kind=i4) :: my_p_row = UNSET
-      integer(kind=i4) :: my_p_col = UNSET
-      logical :: mpi_ready = .false.
-      logical :: global_mpi_ready = .false.
+      integer(kind=i4) :: myid
+      integer(kind=i4) :: myid_all
+      integer(kind=i4) :: n_procs
+      integer(kind=i4) :: n_procs_all
+      integer(kind=i4) :: mpi_comm
+      integer(kind=i4) :: mpi_comm_all
+      integer(kind=i4) :: mpi_comm_row
+      integer(kind=i4) :: mpi_comm_col
+      integer(kind=i4) :: my_p_row
+      integer(kind=i4) :: my_p_col
+      logical :: mpi_ready
+      logical :: global_mpi_ready
 
       ! BLACS
-      integer(kind=i4) :: blacs_ctxt = UNSET
-      integer(kind=i4) :: sc_desc(9) = UNSET
-      logical :: blacs_ready = .false.
+      integer(kind=i4) :: blacs_ctxt
+      integer(kind=i4) :: sc_desc(9)
+      logical :: blacs_ready
 
       ! Sparse matrix information
-      integer(kind=i4) :: nnz_g = UNSET            ! Global number of nonzeros
-      integer(kind=i4) :: nnz_l = UNSET            ! Local number of nonzeros
-      integer(kind=i4) :: n_l_cols_sp = UNSET      ! Local number of columns
-      integer(kind=i4) :: nnz_l_sp = UNSET         ! Local number of nonzeros
-      real(kind=r8) :: zero_threshold = 1.0e-15_r8 ! Threshold to define numerical zero
-      logical :: sparsity_ready = .false.          ! Is sparsity pattern set by user?
+      integer(kind=i4) :: nnz_g       ! Global number of nonzeros
+      integer(kind=i4) :: nnz_l       ! Local number of nonzeros
+      integer(kind=i4) :: nnz_l_sp    ! Local number of nonzeros
+      integer(kind=i4) :: n_l_cols_sp ! Local number of columns
+      real(kind=r8) :: zero_threshold ! Threshold to define numerical zero
+      logical :: sparsity_ready       ! Is sparsity pattern set by user?
 
       ! Overlap
-      logical :: ovlp_is_unit = .false.     ! Is overlap matrix unit?
-      logical :: ovlp_is_sing = .false.     ! Is overlap matrix singular?
-      logical :: no_sing_check = .false.    ! Disable checking for singular overlap?
-      real(kind=r8) :: sing_tol = 1.0e-5_r8 ! Eigenfunctions of overlap with eigenvalues
-                                            ! smaller than this value will be removed
-      logical :: stop_sing = .false.        ! Always stop if overlap is singular?
-      integer(kind=i4) :: n_nonsing = UNSET ! Number of nonsingular basis functions
+      logical :: ovlp_is_unit       ! Is overlap matrix unit?
+      logical :: ovlp_is_sing       ! Is overlap matrix singular?
+      logical :: no_sing_check      ! Disable checking for singular overlap?
+      real(kind=r8) :: sing_tol     ! Overlap singularity tolerance
+      logical :: stop_sing          ! Always stop if overlap is singular?
+      integer(kind=i4) :: n_nonsing ! Number of nonsingular basis functions
 
       ! Physics
-      real(kind=r8) :: n_electrons = 0.0_r8         ! Number of electrons
-      real(kind=r8) :: mu = 0.0_r8                  ! Chemical potential
-      integer(kind=i4) :: n_basis = UNSET           ! Number of basis functions
-      integer(kind=i4) :: n_spins = 1               ! Number of spin channels
-      integer(kind=i4) :: n_kpts = 1                ! Number of k-points
-      integer(kind=i4) :: n_states = UNSET          ! Number of states
-      integer(kind=i4) :: n_occupied_states = UNSET ! Number of occupied states
-      integer(kind=i4) :: i_spin = 1
-      integer(kind=i4) :: i_kpt = 1
-      real(kind=r8) :: i_weight = 1.0_r8
-      real(kind=r8) :: energy_hdm = 0.0_r8
-      real(kind=r8) :: energy_sedm = 0.0_r8
-      real(kind=r8) :: free_energy = 0.0_r8
+      real(kind=r8) :: n_electrons       ! Number of electrons
+      real(kind=r8) :: mu                ! Chemical potential
+      integer(kind=i4) :: n_basis        ! Number of basis functions
+      integer(kind=i4) :: n_spins        ! Number of spin channels
+      integer(kind=i4) :: n_kpts         ! Number of k-points
+      integer(kind=i4) :: n_states       ! Number of states
+      integer(kind=i4) :: n_states_solve ! Number of states to solve
+      integer(kind=i4) :: i_spin
+      integer(kind=i4) :: i_kpt
+      real(kind=r8) :: i_weight
+      real(kind=r8) :: energy_hdm
+      real(kind=r8) :: energy_sedm
+      real(kind=r8) :: free_energy
 
       ! Chemical potential
-      integer(kind=i4) :: broadening_scheme = 0
-      real(kind=r8) :: broadening_width = 1.0e-2_r8
-      real(kind=r8) :: occ_tolerance = 1.0e-13_r8   ! Accuracy of occupation numbers
-      integer(kind=i4) :: max_mu_steps = 100        ! Maximum number of steps to find mu
-      real(kind=r8) :: spin_degen = 0.0_r8          ! Spin degeneracy
-      logical :: spin_is_set = .false.
-      logical :: mu_ready = .false.
-      logical :: edm_ready_real = .false.
-      logical :: edm_ready_complex = .false.
+      integer(kind=i4) :: broaden_scheme
+      real(kind=r8) :: broaden_width
+      real(kind=r8) :: occ_tolerance
+      integer(kind=i4) :: max_mu_steps
+      real(kind=r8) :: spin_degen
+      logical :: spin_is_set
+      logical :: mu_ready
+      logical :: edm_ready_real
+      logical :: edm_ready_complex
 
       ! ELPA
-      integer(kind=i4) :: elpa_solver = UNSET ! ELPA 1-stage or 2-stage solver
-      logical :: elpa_output = .false.        ! Output level
+      integer(kind=i4) :: elpa_solver
+      logical :: elpa_output
 
       ! libOMM
-      integer(kind=i4) :: n_states_omm = UNSET ! Number of states used in libOMM
-      integer(kind=i4) :: n_elpa_steps = UNSET ! Use ELPA eigenvectors as initial guess
-      logical :: new_overlap = .true.          ! Is a new overlap matrix provided?
-      logical :: coeff_ready = .false.         ! Is coefficient matrix initialized?
-      integer(kind=i4) :: omm_flavor = UNSET   ! 0 = Basic
-                                               ! 1 = Cholesky factorisation (not supported)
-                                               ! 2 = Cholesky already performed
-                                               ! 3 = Preconditioning (not supported)
-      real(kind=r8) :: scale_kinetic = 0.0_r8  ! Factor to scale kinetic energy matrix
-      logical :: calc_ed = .false.             ! Calculate energy weighted density matrix?
-      real(kind=r8) :: eta = 0.0_r8            ! Eigenspectrum shift parameter
-      real(kind=r8) :: min_tol = 0.0_r8        ! Tolerance for minimization
-      logical :: omm_output = .false.
-      logical :: do_dealloc = .false.
-      logical :: use_psp = .false.             ! Use PSP
+      integer(kind=i4) :: n_states_omm ! Number of states used in libOMM
+      integer(kind=i4) :: n_elpa_steps ! Use ELPA eigenvectors as initial guess
+      logical :: new_overlap           ! Is a new overlap matrix provided?
+      logical :: coeff_ready           ! Is coefficient matrix initialized?
+      integer(kind=i4) :: omm_flavor   ! 0 = Basic
+                                       ! 2 = Cholesky already performed
+      real(kind=r8) :: scale_kinetic   ! Factor to scale kinetic energy matrix
+      logical :: calc_ed               ! Calculate energy weighted density matrix?
+      real(kind=r8) :: eta             ! Eigenspectrum shift parameter
+      real(kind=r8) :: min_tol         ! Tolerance for minimization
+      logical :: omm_output
+      logical :: do_dealloc
+      logical :: use_psp
 
       ! PEXSI
-      integer(kind=i4) :: n_p_per_pole = UNSET
-      integer(kind=i4) :: n_p_per_point = UNSET
-      integer(kind=i4) :: my_p_row_pexsi = UNSET
-      integer(kind=i4) :: my_p_col_pexsi = UNSET
-      integer(kind=i4) :: n_p_rows_pexsi = UNSET
-      integer(kind=i4) :: n_p_cols_pexsi = UNSET
-      integer(kind=i4) :: my_point = UNSET
-      integer(kind=i4) :: myid_point = UNSET
-      integer(kind=i4) :: comm_among_pole = UNSET
-      integer(kind=i4) :: comm_in_pole = UNSET
-      integer(kind=i4) :: comm_among_point = UNSET
-      integer(kind=i4) :: comm_in_point = UNSET
+      integer(kind=i4) :: n_p_per_pole
+      integer(kind=i4) :: n_p_per_point
+      integer(kind=i4) :: my_p_row_pexsi
+      integer(kind=i4) :: my_p_col_pexsi
+      integer(kind=i4) :: n_p_rows_pexsi
+      integer(kind=i4) :: n_p_cols_pexsi
+      integer(kind=i4) :: my_point
+      integer(kind=i4) :: myid_point
+      integer(kind=i4) :: comm_among_pole
+      integer(kind=i4) :: comm_in_pole
+      integer(kind=i4) :: comm_among_point
+      integer(kind=i4) :: comm_in_point
       real(kind=r8)    :: ne_pexsi ! Number of electrons computed by PEXSI
-      logical :: pexsi_started = .false.
+      logical :: pexsi_started
       integer(kind=c_intptr_t) :: pexsi_plan
       type(f_ppexsi_options)   :: pexsi_options
 
       ! CheSS
       type(foe_data) :: foe_obj
       type(foe_data) :: ice_obj
-      real(kind=r8) :: erf_decay = 0.0_r8     ! Initial guess of error function decay length
-      real(kind=r8) :: erf_decay_min = 0.0_r8 ! Lower bound of decay length
-      real(kind=r8) :: erf_decay_max = 0.0_r8 ! Upper bound of decay length
-      real(kind=r8) :: ev_ham_min = 0.0_r8
-      real(kind=r8) :: ev_ham_max = 0.0_r8
-      real(kind=r8) :: ev_ovlp_min = 0.0_r8
-      real(kind=r8) :: ev_ovlp_max = 0.0_r8
-      real(kind=r8) :: beta = 0.0_r8          ! A patameter used to estimate eigenspectrum
-      logical :: chess_started = .false.
+      real(kind=r8) :: erf_decay     ! Initial guess of error function decay length
+      real(kind=r8) :: erf_decay_min ! Lower bound of decay length
+      real(kind=r8) :: erf_decay_max ! Upper bound of decay length
+      real(kind=r8) :: ev_ham_min
+      real(kind=r8) :: ev_ham_max
+      real(kind=r8) :: ev_ovlp_min
+      real(kind=r8) :: ev_ovlp_max
+      real(kind=r8) :: beta          ! A patameter used to estimate eigenspectrum
+      logical :: chess_started
 
       ! SIPs
-      integer(kind=i4) :: n_p_per_slice = UNSET
-      integer(kind=i4) :: n_inertia_steps = UNSET ! Number of inertia counting steps
-      integer(kind=i4) :: slicing_method = UNSET  ! 0 = Equally spaced subintervals
-                                                  ! 1 = K-means after equally spaced subintervals
-                                                  ! 2 = Equally populated subintervals
-                                                  ! 3 = K-means after equally populated subintervals
-      integer(kind=i4) :: inertia_option = UNSET  ! Extra inertia computations before solve?
-                                                  ! 0 = No
-                                                  ! 1 = Yes
-      integer(kind=i4) :: unbound = UNSET         ! How to bound left side
-                                                  ! 0 = Bound interval
-                                                  ! 1 = -infinity
-      integer(kind=i4) :: n_slices = UNSET        ! Number of slices
-      real(kind=r8) :: interval(2) = 0.0_r8       ! Global interval to search eigenvalues
-      real(kind=r8) :: slice_buffer = 0.0_r8      ! Small buffer to expand interval
-      logical :: sips_started = .false.
+      integer(kind=i4) :: n_p_per_slice
+      integer(kind=i4) :: n_inertia_steps ! Number of inertia counting steps
+      integer(kind=i4) :: slicing_method  ! 0 = Equally spaced subintervals
+                                          ! 1 = K-means after equally spaced subintervals
+                                          ! 2 = Equally populated subintervals
+                                          ! 3 = K-means after equally populated subintervals
+      integer(kind=i4) :: inertia_option  ! Extra inertia computations before solve?
+                                          ! 0 = No
+                                          ! 1 = Yes
+      integer(kind=i4) :: unbound         ! How to bound left side
+                                          ! 0 = Bound interval
+                                          ! 1 = -infinity
+      integer(kind=i4) :: n_slices        ! Number of slices
+      real(kind=r8) :: interval(2)        ! Global interval to search eigenvalues
+      real(kind=r8) :: slice_buffer       ! Small buffer to expand interval
+      logical :: sips_started
 
-      integer(kind=i4) :: clock_rate = UNSET
+      integer(kind=i4) :: clock_rate      ! Timer
 
    end type
 

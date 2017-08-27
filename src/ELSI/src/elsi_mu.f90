@@ -175,12 +175,12 @@ subroutine elsi_check_electrons(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
 
    character*40, parameter :: caller = "elsi_check_electrons"
 
-   if(elsi_h%broadening_width .le. 0.0_r8) then
+   if(elsi_h%broaden_width .le. 0.0_r8) then
       call elsi_stop(" Broadening width in chemical potential determination must"//&
               " be a positive number. Exiting...",elsi_h,caller)
    endif
 
-   invert_width = 1.0_r8/elsi_h%broadening_width
+   invert_width = 1.0_r8/elsi_h%broaden_width
    diff_ne_out = 0.0_r8
 
    if(.not. elsi_h%spin_is_set) then
@@ -191,7 +191,7 @@ subroutine elsi_check_electrons(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
       endif
    endif
 
-   select case(elsi_h%broadening_scheme)
+   select case(elsi_h%broaden_scheme)
    case(GAUSSIAN)
       do i_kpoint = 1,n_kpoint
          do i_spin = 1,n_spin

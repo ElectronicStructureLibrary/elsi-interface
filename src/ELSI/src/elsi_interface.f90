@@ -104,6 +104,7 @@ module ELSI
    public :: elsi_get_pexsi_mu_min
    public :: elsi_get_pexsi_mu_max
    public :: elsi_get_ovlp_sing
+   public :: elsi_get_n_sing
    public :: elsi_get_mu
    public :: elsi_get_edm_real
    public :: elsi_get_edm_complex
@@ -149,15 +150,17 @@ subroutine elsi_init(elsi_h,solver,parallel_mode,matrix_format,n_basis,&
    ! For safety
    call elsi_cleanup(elsi_h)
 
-   elsi_h%handle_ready  = .true.
-   elsi_h%n_basis       = n_basis
-   elsi_h%n_nonsing     = n_basis
-   elsi_h%n_electrons   = n_electron
-   elsi_h%n_states      = n_state
-   elsi_h%solver        = solver
-   elsi_h%matrix_format = matrix_format
-   elsi_h%parallel_mode = parallel_mode
-   elsi_h%n_elsi_calls  = 0
+   elsi_h%handle_ready   = .true.
+   elsi_h%n_basis        = n_basis
+   elsi_h%n_nonsing      = n_basis
+   elsi_h%n_electrons    = n_electron
+   elsi_h%n_states       = n_state
+   elsi_h%n_states_solve = n_state
+   elsi_h%n_states_omm   = nint(n_electron/2.0_r8)
+   elsi_h%solver         = solver
+   elsi_h%matrix_format  = matrix_format
+   elsi_h%parallel_mode  = parallel_mode
+   elsi_h%n_elsi_calls   = 0
 
    if(parallel_mode == SINGLE_PROC) then
       elsi_h%n_l_rows    = n_basis
@@ -179,9 +182,6 @@ subroutine elsi_init(elsi_h,solver,parallel_mode,matrix_format,n_basis,&
    if(solver == LIBOMM) then
       call elsi_set_elpa_default(elsi_h)
       call elsi_set_omm_default(elsi_h)
-
-      ! Set number of occupied states
-      elsi_h%n_states_omm = nint(elsi_h%n_electrons/2.0_r8)
    endif
 
    ! Set PEXSI default
@@ -418,7 +418,7 @@ subroutine elsi_get_energy(elsi_h,energy)
    case(ELPA)
       energy = 0.0_r8
 
-      do i_state = 1,elsi_h%n_states
+      do i_state = 1,elsi_h%n_states_solve
          energy = energy+elsi_h%i_weight*elsi_h%eval(i_state)*&
                      elsi_h%occ_num(i_state,elsi_h%i_spin,elsi_h%i_kpt)
       enddo
@@ -771,12 +771,12 @@ subroutine elsi_customize_mu(elsi_h,broadening_scheme,broadening_width,&
 
    ! Broadening scheme to compute Fermi level [Default: GAUSSIAN]
    if(present(broadening_scheme)) then
-      elsi_h%broadening_scheme = broadening_scheme
+      elsi_h%broaden_scheme = broadening_scheme
    endif
 
    ! Broadening width to compute Fermi level [Default: 1e-2_r8]
    if(present(broadening_width)) then
-      elsi_h%broadening_width = broadening_width
+      elsi_h%broaden_width = broadening_width
    endif
 
    ! Accuracy for chemical potential determination [Default: 1e-10_r8]
@@ -1497,7 +1497,7 @@ subroutine elsi_set_mu_broaden_scheme(elsi_h,broaden_scheme)
 
    call elsi_check_handle(elsi_h,caller)
 
-   elsi_h%broadening_scheme = broaden_scheme
+   elsi_h%broaden_scheme = broaden_scheme
 
 end subroutine
 
@@ -1516,7 +1516,7 @@ subroutine elsi_set_mu_broaden_width(elsi_h,broaden_width)
 
    call elsi_check_handle(elsi_h,caller)
 
-   elsi_h%broadening_width = broaden_width
+   elsi_h%broaden_width = broaden_width
 
 end subroutine
 
@@ -1617,6 +1617,25 @@ subroutine elsi_get_ovlp_sing(elsi_h,ovlp_sing)
    else
       ovlp_sing = 0
    endif
+
+end subroutine
+
+!>
+!! This routine gets the number of basis functions that are removed
+!! due to overlap singularity.
+!!
+subroutine elsi_get_n_sing(elsi_h,n_sing)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: elsi_h !< Handle
+   integer(kind=i4),  intent(out)   :: n_sing !< Number of singular basis
+
+   character*40, parameter :: caller = "elsi_get_n_sing"
+
+   call elsi_check_handle(elsi_h,caller)
+
+   n_sing = elsi_h%n_basis-elsi_h%n_nonsing
 
 end subroutine
 
