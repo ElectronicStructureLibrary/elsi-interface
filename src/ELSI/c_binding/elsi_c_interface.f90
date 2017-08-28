@@ -25,7 +25,7 @@
 ! NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 ! EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-!> 
+!>
 !! This module contains the C interfaces of ELSI.
 !!
 module ELSI_C_INTERFACE
@@ -546,12 +546,12 @@ end subroutine
 
 subroutine elsi_set_sing_stop_c_wrapper(handle_c,sing_stop)&
    bind(C,name="c_elsi_set_sing_stop")
-   
+
    implicit none
-   
+
    type(c_ptr),         value             :: handle_c
    integer(kind=c_int), value, intent(in) :: sing_stop
-   
+
    type(elsi_handle), pointer :: handle_f
 
    call c_f_pointer(handle_c,handle_f)
@@ -562,50 +562,50 @@ end subroutine
 
 subroutine elsi_set_uplo_c_wrapper(handle_c,uplo)&
    bind(C,name="c_elsi_set_uplo")
-   
+
    implicit none
-   
+
    type(c_ptr),         value             :: handle_c
    integer(kind=c_int), value, intent(in) :: uplo
-   
+
    type(elsi_handle), pointer :: handle_f
-   
+
    call c_f_pointer(handle_c,handle_f)
-   
+
    call elsi_set_uplo(handle_f,uplo)
 
 end subroutine
 
 subroutine elsi_set_elpa_solver_c_wrapper(handle_c,elpa_solver)&
    bind(C,name="c_elsi_set_elpa_solver")
-   
+
    implicit none
-   
+
    type(c_ptr),         value             :: handle_c
    integer(kind=c_int), value, intent(in) :: elpa_solver
-   
+
    type(elsi_handle), pointer :: handle_f
-   
+
    call c_f_pointer(handle_c,handle_f)
-   
+
    call elsi_set_elpa_solver(handle_f,elpa_solver)
-   
+
 end subroutine
 
 subroutine elsi_set_omm_flavor_c_wrapper(handle_c,omm_flavor)&
    bind(C,name="c_elsi_set_omm_flavor")
-   
+
    implicit none
-   
+
    type(c_ptr),         value             :: handle_c
    integer(kind=c_int), value, intent(in) :: omm_flavor
-   
+
    type(elsi_handle), pointer :: handle_f
-   
+
    call c_f_pointer(handle_c,handle_f)
-   
+
    call elsi_set_omm_flavor(handle_f,omm_flavor)
-   
+
 end subroutine
 
 subroutine elsi_set_omm_n_elpa_c_wrapper(handle_c,n_elpa)&
@@ -786,50 +786,50 @@ end subroutine
 
 subroutine elsi_set_pexsi_mu_min_c_wrapper(handle_c,mu_min)&
    bind(C,name="c_elsi_set_pexsi_mu_min")
-   
+
    implicit none
-   
+
    type(c_ptr),         value             :: handle_c
    real(kind=c_double), value, intent(in) :: mu_min
-   
+
    type(elsi_handle), pointer :: handle_f
-   
+
    call c_f_pointer(handle_c,handle_f)
-   
+
    call elsi_set_pexsi_mu_min(handle_f,mu_min)
-   
+
 end subroutine
 
 subroutine elsi_set_pexsi_mu_max_c_wrapper(handle_c,mu_max)&
    bind(C,name="c_elsi_set_pexsi_mu_max")
-   
+
    implicit none
-   
+
    type(c_ptr),         value             :: handle_c
    real(kind=c_double), value, intent(in) :: mu_max
-   
+
    type(elsi_handle), pointer :: handle_f
-   
+
    call c_f_pointer(handle_c,handle_f)
-   
+
    call elsi_set_pexsi_mu_max(handle_f,mu_max)
-   
+
 end subroutine
 
 subroutine elsi_set_pexsi_inertia_tol_c_wrapper(handle_c,inertia_tol)&
    bind(C,name="c_elsi_set_pexsi_inertia_tol")
-   
+
    implicit none
-   
+
    type(c_ptr),         value             :: handle_c
    real(kind=c_double), value, intent(in) :: inertia_tol
-   
+
    type(elsi_handle), pointer :: handle_f
-   
+
    call c_f_pointer(handle_c,handle_f)
-   
+
    call elsi_set_pexsi_inertia_tol(handle_f,inertia_tol)
-   
+
 end subroutine
 
 subroutine elsi_set_chess_erf_decay_c_wrapper(handle_c,decay)&
@@ -898,12 +898,12 @@ end subroutine
 
 subroutine elsi_set_chess_ev_ham_max_c_wrapper(handle_c,ev_max)&
    bind(C,name="c_elsi_set_chess_ev_ham_max")
-   
+
    implicit none
-   
+
    type(c_ptr),         value             :: handle_c
    real(kind=c_double), value, intent(in) :: ev_max
-   
+
    type(elsi_handle), pointer :: handle_f
 
    call c_f_pointer(handle_c,handle_f)
@@ -914,14 +914,14 @@ end subroutine
 
 subroutine elsi_set_chess_ev_ovlp_min_c_wrapper(handle_c,ev_min)&
    bind(C,name="c_elsi_set_chess_ev_ovlp_min")
-   
+
    implicit none
 
    type(c_ptr),         value             :: handle_c
    real(kind=c_double), value, intent(in) :: ev_min
-   
+
    type(elsi_handle), pointer :: handle_f
-   
+
    call c_f_pointer(handle_c,handle_f)
 
    call elsi_set_chess_ev_ovlp_min(handle_f,ev_min)
@@ -930,7 +930,7 @@ end subroutine
 
 subroutine elsi_set_chess_ev_ovlp_max_c_wrapper(handle_c,ev_max)&
    bind(C,name="c_elsi_set_chess_ev_ovlp_max")
-   
+
    implicit none
 
    type(c_ptr),         value             :: handle_c
@@ -1026,12 +1026,12 @@ end subroutine
 
 subroutine elsi_set_mu_broaden_width_c_wrapper(handle_c,broaden_width)&
    bind(C,name="c_elsi_set_mu_broaden_width")
-   
+
    implicit none
-   
+
    type(c_ptr),         value             :: handle_c
    real(kind=c_double), value, intent(in) :: broaden_width
-   
+
    type(elsi_handle), pointer :: handle_f
 
    call c_f_pointer(handle_c,handle_f)
@@ -1117,6 +1117,22 @@ subroutine elsi_get_ovlp_sing_c_wrapper(handle_c,ovlp_sing)&
    call c_f_pointer(handle_c,handle_f)
 
    call elsi_get_ovlp_sing(handle_f,ovlp_sing)
+
+end subroutine
+
+subroutine elsi_get_n_sing_c_wrapper(handle_c,n_sing)&
+   bind(C,name="c_elsi_get_n_sing")
+
+   implicit none
+
+   type(c_ptr), value  :: handle_c
+   integer(kind=c_int) :: n_sing
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_get_n_sing(handle_f,n_sing)
 
 end subroutine
 

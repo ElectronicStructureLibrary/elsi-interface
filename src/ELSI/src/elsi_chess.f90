@@ -177,9 +177,9 @@ subroutine elsi_solve_evp_chess(elsi_h)
 
 end subroutine
 
-!> 
+!>
 !! This routine computes the energy-weighted density matrix.
-!! 
+!!
 subroutine elsi_compute_edm_chess(elsi_h)
 
    implicit none
@@ -192,11 +192,11 @@ subroutine elsi_compute_edm_chess(elsi_h)
 
 end subroutine
 
-!> 
+!>
 !! This routine sets default CheSS parameters.
-!! 
+!!
 subroutine elsi_set_chess_default(elsi_h)
-   
+
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h !< Handle
@@ -231,7 +231,7 @@ end subroutine
 
 !>
 !! This routine prints CheSS settings.
-!!          
+!!
 subroutine elsi_print_chess_options(elsi_h)
 
    implicit none

@@ -25,7 +25,7 @@
 ! NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 ! EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-!> 
+!>
 !! This module contains variables accessible in ELSI and related modules.
 !!
 module ELSI_DATATYPE
@@ -284,7 +284,7 @@ module ELSI_DATATYPE
       real(kind=r8) :: slice_buffer       ! Small buffer to expand interval
       logical :: sips_started = .false.
 
-      integer(kind=i4) :: clock_rate      ! Timer
+      integer(kind=i4) :: clock_rate ! Timer
 
    end type
 

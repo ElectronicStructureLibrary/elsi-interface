@@ -175,7 +175,7 @@ subroutine elsi_check_electrons(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
 
    character*40, parameter :: caller = "elsi_check_electrons"
 
-   if(elsi_h%broaden_width .le. 0.0_r8) then
+   if(elsi_h%broaden_width <= 0.0_r8) then
       call elsi_stop(" Broadening width in chemical potential determination must"//&
               " be a positive number. Exiting...",elsi_h,caller)
    endif
@@ -263,7 +263,7 @@ subroutine elsi_find_mu(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
               mu_lower_in,mu_upper_in,mu_out)
 
    implicit none
- 
+
    type(elsi_handle), intent(inout) :: elsi_h                               !< Handle
    real(kind=r8),     intent(in)    :: kpoint_weights(n_kpoint)             !< K-points weights
    real(kind=r8),     intent(in)    :: eigenvalues(n_state,n_spin,n_kpoint) !< Eigenvalues
@@ -399,7 +399,7 @@ subroutine elsi_adjust_occ(elsi_h,kpoint_weights,eigenvalues,occ_numbers,diff_ne
          occ_numbers(i_state,i_spin,i_kpoint) = 0.0_r8
       endif
 
-      if(diff_ne .le. elsi_h%occ_tolerance) exit
+      if(diff_ne <= elsi_h%occ_tolerance) exit
    enddo
 
    call elsi_deallocate(elsi_h,eval_aux,"eval_aux")

@@ -81,7 +81,7 @@ module FOE_COMMON
 
    use ELSI_PRECISION, only: r8,i4
    use FOE_BASE, only: foe_data
-   
+
    implicit none
 
    private
@@ -135,7 +135,7 @@ end module
 module SPARSEMATRIX_BASE
 
    use ELSI_PRECISION, only: r8,i4
-   
+
    implicit none
 
    private
@@ -208,7 +208,7 @@ module SPARSEMATRIX_HIGHLEVEL
    use ELSI_PRECISION, only: r8,i4
    use FOE_BASE, only: foe_data
    use SPARSEMATRIX_BASE, only: matrices,sparse_matrix
-   
+
    implicit none
 
    private
@@ -300,7 +300,7 @@ module SPARSEMATRIX_INIT
 
    use ELSI_PRECISION, only: r8,i4
    use SPARSEMATRIX_BASE, only: sparse_matrix
-   
+
    implicit none
 
    private

@@ -340,7 +340,7 @@ subroutine elsi_compute_edm_elpa(elsi_h)
 
 end subroutine
 
-!> 
+!>
 !! This routine transforms a generalized eigenproblem (Hv = eSv) to
 !! the standard form (H'v' = ev').
 !!
@@ -555,7 +555,7 @@ subroutine elsi_to_standard_evp(elsi_h)
 
 end subroutine
 
-!> 
+!>
 !! This routine checks the singularity of overlap matrix by computing all
 !! its eigenvalues.
 !!
@@ -698,7 +698,7 @@ subroutine elsi_check_singularity(elsi_h)
 
 end subroutine
 
-!> 
+!>
 !! This routine back-transforms eigenvectors in the standard form (H'v' = ev')
 !! to the original generalized form (Hv = eSv), by computing v = (U^-1)v'.
 !!
@@ -868,9 +868,9 @@ subroutine elsi_solve_evp_elpa(elsi_h)
 
 end subroutine
 
-!> 
+!>
 !! This routine sets default ELPA parameters.
-!! 
+!!
 subroutine elsi_set_elpa_default(elsi_h)
 
    implicit none
@@ -891,7 +891,7 @@ subroutine elsi_set_elpa_default(elsi_h)
 
 end subroutine
 
-!> 
+!>
 !! This routine transforms a generalized eigenproblem (Hv = eSv) to
 !! the standard form (H'v' = ev').
 !!
@@ -1063,7 +1063,7 @@ subroutine elsi_to_standard_evp_sp(elsi_h)
 
             call dgemm('N','N',n+nwork-1,nwork,n+nwork-1,1.0_r8,elsi_h%ham_real(1,1),&
                     elsi_h%n_basis,elsi_h%ovlp_real(1,n),elsi_h%n_basis,0.0_r8,&
-                    elsi_h%evec_real(1,n),elsi_h%n_basis) 
+                    elsi_h%evec_real(1,n),elsi_h%n_basis)
          enddo
 
          ! H_real = (tmp_real)*T * S_real
@@ -1090,7 +1090,7 @@ subroutine elsi_to_standard_evp_sp(elsi_h)
 
 end subroutine
 
-!> 
+!>
 !! This routine back-transforms eigenvectors in the standard form (H'v' = ev')
 !! to the original generalized form (Hv = eSv), by computing v = (U^-1)v'.
 !!
@@ -1269,7 +1269,7 @@ subroutine elsi_solve_evp_elpa_sp(elsi_h)
 
 end subroutine
 
-!> 
+!>
 !! This routine checks the singularity of overlap matrix by computing all
 !! its eigenvalues.
 !!
@@ -1568,7 +1568,7 @@ subroutine elsi_check_electrons(elsi_h,mu_in,diff_ne_out)
 
    character*40, parameter :: caller = "elsi_check_electrons"
 
-   if(elsi_h%broaden_width .le. 0.0_r8) then
+   if(elsi_h%broaden_width <= 0.0_r8) then
       call elsi_stop(" Broadening width in chemical potential determination must"//&
               " be a positive number. Exiting...",elsi_h,caller)
    endif
@@ -1653,7 +1653,7 @@ end subroutine
 subroutine elsi_find_mu(elsi_h,mu_lower_in,mu_upper_in)
 
    implicit none
- 
+
    type(elsi_handle), intent(inout) :: elsi_h      !< Handle
    real(kind=r8),     intent(in)    :: mu_lower_in !< Lower bound of chemical potential
    real(kind=r8),     intent(in)    :: mu_upper_in !< Upper bound of chemical potential
@@ -1778,7 +1778,7 @@ subroutine elsi_adjust_occ(elsi_h,diff_ne)
          elsi_h%occ_num(i_state,i_spin,i_kpt) = 0.0_r8
       endif
 
-      if(diff_ne .le. elsi_h%occ_tolerance) exit
+      if(diff_ne <= elsi_h%occ_tolerance) exit
    enddo
 
    call elsi_deallocate(elsi_h,eval_aux,"eval_aux")

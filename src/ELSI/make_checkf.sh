@@ -127,7 +127,7 @@ else
 fi
 
 echo
-if [ "$RED_ALART" = "true" ] 
+if [ "$RED_ALART" = "true" ]
 then
    tput setaf 5
    echo "MAKE CHECK FAILED, CHECK YOUR COMPILATION SETTINGS!"

@@ -152,7 +152,7 @@ omm: $(ELPA_OMM)
 	@echo = libOMM installed. =
 	@echo =====================
 
-pexsi:  
+pexsi:
 	@echo ===========================
 	@echo = Start building PEXSI... =
 	@echo ===========================

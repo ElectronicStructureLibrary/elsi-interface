@@ -187,7 +187,7 @@ subroutine elsi_allocate_real_1d(elsi_h,array,dim1,arrayname,caller)
 
    allocate(array(dim1),stat=error)
 
-   if(error > 0) then 
+   if(error > 0) then
       write(info,"(A,A)") " Error in allocating ",trim(arrayname)
       call elsi_stop(info,elsi_h,caller)
    endif
@@ -509,15 +509,15 @@ end subroutine
 
 !>
 !! This routine deallocates a 1D array with integer.
-!! 
+!!
 subroutine elsi_deallocate_integer_1d(elsi_h,array,arrayname)
-   
+
    implicit none
-      
+
    type(elsi_handle),             intent(in)    :: elsi_h    !< Handle
    integer(kind=i4), allocatable, intent(inout) :: array(:)  !< Data
    character(len=*),              intent(in)    :: arrayname !< Name
-   
+
    character*200 :: info
 
    if(print_mem) then
@@ -531,15 +531,15 @@ end subroutine
 
 !>
 !! This routine deallocates a 1D array with complex(kind=r8).
-!! 
+!!
 subroutine elsi_deallocate_complex_1d(elsi_h,array,arrayname)
-   
+
    implicit none
-      
+
    type(elsi_handle),             intent(in)    :: elsi_h    !< Handle
    complex(kind=r8), allocatable, intent(inout) :: array(:)  !< Data
    character(len=*),              intent(in)    :: arrayname !< Name
-   
+
    character*200 :: info
 
    if(print_mem) then
@@ -553,15 +553,15 @@ end subroutine
 
 !>
 !! This routine deallocates a 2D array with real(kind=r8).
-!! 
+!!
 subroutine elsi_deallocate_real_2d(elsi_h,array,arrayname)
-   
+
    implicit none
-      
+
    type(elsi_handle),          intent(in)    :: elsi_h     !< Handle
    real(kind=r8), allocatable, intent(inout) :: array(:,:) !< Data
    character(len=*),           intent(in)    :: arrayname  !< Name
-   
+
    character*200 :: info
 
    if(print_mem) then
@@ -575,7 +575,7 @@ end subroutine
 
 !>
 !! This routine deallocates a 2D array with integer.
-!! 
+!!
 subroutine elsi_deallocate_integer_2d(elsi_h,array,arrayname)
 
    implicit none
@@ -597,7 +597,7 @@ end subroutine
 
 !>
 !! This routine deallocates a 2D array with complex(kind=r8).
-!! 
+!!
 subroutine elsi_deallocate_complex_2d(elsi_h,array,arrayname)
 
    implicit none
@@ -619,7 +619,7 @@ end subroutine
 
 !>
 !! This routine deallocates a 3D array with real(kind=r8).
-!! 
+!!
 subroutine elsi_deallocate_real_3d(elsi_h,array,arrayname)
 
    implicit none
@@ -641,7 +641,7 @@ end subroutine
 
 !>
 !! This routine deallocates a 3D array with integer.
-!! 
+!!
 subroutine elsi_deallocate_integer_3d(elsi_h,array,arrayname)
 
    implicit none
@@ -663,7 +663,7 @@ end subroutine
 
 !>
 !! This routine deallocates a 3D array with complex(kind=r8).
-!! 
+!!
 subroutine elsi_deallocate_complex_3d(elsi_h,array,arrayname)
 
    implicit none
@@ -814,7 +814,7 @@ subroutine elsi_set_sparse_complex_ham(elsi_h,h_in)
    character*40, parameter :: caller = "elsi_set_sparse_complex_ham"
 
    if((elsi_h%solver == PEXSI) .or. (elsi_h%solver == SIPS)) then
-      elsi_h%ham_complex_ccs => h_in         
+      elsi_h%ham_complex_ccs => h_in
    endif
 
 end subroutine
@@ -946,7 +946,7 @@ end subroutine
 subroutine elsi_set_real_evec(elsi_h,e_vec_in)
 
    implicit none
-   
+
    type(elsi_handle), intent(inout) :: elsi_h                                    !< Handle
    real(kind=r8),     target        :: e_vec_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Eigenvectors
 
@@ -1335,28 +1335,28 @@ subroutine elsi_check(elsi_h,caller)
    character(len=*),  intent(in)    :: caller !< Caller
 
    ! General check of solver, parallel mode, matrix data type, matrix storage format
-   if((elsi_h%solver < 0) .or. (elsi_h%solver .ge. N_SOLVERS)) then
+   if((elsi_h%solver < 0) .or. (elsi_h%solver >= N_SOLVERS)) then
       call elsi_stop(" An unsupported solver has been chosen."//&
               " Please choose ELPA, LIBOMM, or PEXSI solver."//&
               " Exiting...",elsi_h,caller)
    endif
 
    if((elsi_h%parallel_mode < 0) .or. &
-      (elsi_h%parallel_mode .ge. N_PARALLEL_MODES)) then
+      (elsi_h%parallel_mode >= N_PARALLEL_MODES)) then
       call elsi_stop(" An unsupported parallel mode has been chosen."//&
               " Please choose either SINGLE_PROC or MULTI_PROC."//&
               " Exiting...",elsi_h,caller)
    endif
 
    if((elsi_h%matrix_data_type < 0) .or. &
-      (elsi_h%matrix_data_type .ge. N_MATRIX_DATA_TYPES)) then
+      (elsi_h%matrix_data_type >= N_MATRIX_DATA_TYPES)) then
       call elsi_stop(" An unsupported matirx data type has been chosen."//&
               " Please choose either REAL_VALUES or COMPLEX_VALUES."//&
               " Exiting...",elsi_h,caller)
    endif
 
    if((elsi_h%matrix_format < 0) .or. &
-      (elsi_h%matrix_format .ge. N_MATRIX_STORAGE_FORMATS)) then
+      (elsi_h%matrix_format >= N_MATRIX_STORAGE_FORMATS)) then
       call elsi_stop(" An unsupported matirx storage format has been"//&
               " set. Please choose either BLACS_DENSE or PEXSI_CSC."//&
               " Exiting...",elsi_h,caller)
@@ -1612,7 +1612,7 @@ subroutine elsi_check_handle(elsi_h,caller)
 
 end subroutine
 
-!> 
+!>
 !! This routine computes the global row index based on the local row index.
 !!
 subroutine elsi_get_global_row(elsi_h,global_idx,local_idx)
@@ -1636,7 +1636,7 @@ subroutine elsi_get_global_row(elsi_h,global_idx,local_idx)
 
 end subroutine
 
-!> 
+!>
 !! This routine computes the global column index based on the local column index.
 !!
 subroutine elsi_get_global_col(elsi_h,global_idx,local_idx)

@@ -74,7 +74,7 @@ program test_standard_ev_real
       call GET_COMMAND_ARGUMENT(3,arg3)
 
       read(arg1,*) matrix_size
-      if(matrix_size .le. 0) then
+      if(matrix_size <= 0) then
          matrix_size = 1000
       endif
 
@@ -176,7 +176,7 @@ program test_standard_ev_real
    ! Customize ELSI
    call elsi_set_output(elsi_h,2)
    call elsi_set_unit_ovlp(elsi_h,1)
-   
+
    t1 = MPI_Wtime()
 
    ! Solve problem

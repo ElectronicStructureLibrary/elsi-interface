@@ -320,12 +320,12 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
 
       do i = 2,n_shift-1
          if((ne_upper(i) < elsi_h%n_electrons) .and. &
-            (ne_upper(i+1) .ge. elsi_h%n_electrons))  then
+            (ne_upper(i+1) >= elsi_h%n_electrons))  then
             aux_min = i
          endif
 
          if((ne_lower(i) > elsi_h%n_electrons) .and. &
-            (ne_lower(i-1) .le. elsi_h%n_electrons)) then
+            (ne_lower(i-1) <= elsi_h%n_electrons)) then
             aux_max = i
          endif
       enddo
@@ -486,7 +486,7 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
       if(aux_min == 0) then
          aux_min = 1
 
-         if(aux_max .le. aux_min) then
+         if(aux_max <= aux_min) then
             aux_max = 2
          endif
       endif
@@ -494,7 +494,7 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
       if(aux_max == elsi_h%pexsi_options%nPoints+1) then
          aux_max = elsi_h%pexsi_options%nPoints
 
-         if(aux_min .ge. aux_max) then
+         if(aux_min >= aux_max) then
             aux_min = elsi_h%pexsi_options%nPoints-1
          endif
       endif
@@ -606,9 +606,9 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
 
 end subroutine
 
-!> 
+!>
 !! This routine computes the energy-weighted density matrix.
-!! 
+!!
 subroutine elsi_compute_edm_pexsi(elsi_h)
 
    implicit none
@@ -721,7 +721,7 @@ subroutine elsi_compute_edm_pexsi(elsi_h)
       if(aux_min == 0) then
          aux_min = 1
 
-         if(aux_max .le. aux_min) then
+         if(aux_max <= aux_min) then
             aux_max = 2
          endif
       endif
@@ -729,7 +729,7 @@ subroutine elsi_compute_edm_pexsi(elsi_h)
       if(aux_max == elsi_h%pexsi_options%nPoints+1) then
          aux_max = elsi_h%pexsi_options%nPoints
 
-         if(aux_min .ge. aux_max) then
+         if(aux_min >= aux_max) then
             aux_min = elsi_h%pexsi_options%nPoints-1
          endif
       endif

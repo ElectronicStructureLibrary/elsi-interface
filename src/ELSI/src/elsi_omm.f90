@@ -183,9 +183,9 @@ subroutine elsi_solve_evp_omm(elsi_h)
 
 end subroutine
 
-!> 
+!>
 !! This routine computes the energy-weighted density matrix.
-!! 
+!!
 subroutine elsi_compute_edm_omm(elsi_h)
 
    implicit none
@@ -228,11 +228,11 @@ subroutine elsi_compute_edm_omm(elsi_h)
 
 end subroutine
 
-!> 
+!>
 !! This routine sets default libOMM parameters.
-!! 
+!!
 subroutine elsi_set_omm_default(elsi_h)
-   
+
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h !< Handle
@@ -274,7 +274,7 @@ end subroutine
 
 !>
 !! This routine prints libOMM settings.
-!!          
+!!
 subroutine elsi_print_omm_options(elsi_h)
 
    implicit none

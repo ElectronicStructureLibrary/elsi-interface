@@ -194,7 +194,7 @@ subroutine elsi_blacs_to_pexsi_hs_small_real(elsi_h,h_in,s_in)
       enddo
    else
       do i_proc = 0,elsi_h%n_procs-n_para_task-1
-         if(1+mod(i_proc,n_para_task) .le. d1) then
+         if(1+mod(i_proc,n_para_task) <= d1) then
             this_n_cols = 1
          else
             this_n_cols = 0
@@ -220,7 +220,7 @@ subroutine elsi_blacs_to_pexsi_hs_small_real(elsi_h,h_in,s_in)
       enddo
    else
       do i_proc = elsi_h%n_procs-n_para_task,elsi_h%n_procs-1
-         if(1+mod(i_proc,n_para_task) .le. d2) then
+         if(1+mod(i_proc,n_para_task) <= d2) then
             this_n_cols = 1
          else
             this_n_cols = 0
@@ -550,7 +550,7 @@ subroutine elsi_blacs_to_pexsi_hs_large_real(elsi_h,h_in,s_in)
       enddo
    else
       do i_proc = 0,elsi_h%n_procs-n_para_task-1
-         if(1+mod(i_proc,n_para_task) .le. d1) then
+         if(1+mod(i_proc,n_para_task) <= d1) then
             this_n_cols = 1
          else
             this_n_cols = 0
@@ -576,7 +576,7 @@ subroutine elsi_blacs_to_pexsi_hs_large_real(elsi_h,h_in,s_in)
       enddo
    else
       do i_proc = elsi_h%n_procs-n_para_task,elsi_h%n_procs-1
-         if(1+mod(i_proc,n_para_task) .le. d2) then
+         if(1+mod(i_proc,n_para_task) <= d2) then
             this_n_cols = 1
          else
             this_n_cols = 0
@@ -982,7 +982,7 @@ subroutine elsi_blacs_to_pexsi_hs_small_complex(elsi_h,h_in,s_in)
       enddo
    else
       do i_proc = 0,elsi_h%n_procs-n_para_task-1
-         if(1+mod(i_proc,n_para_task) .le. d1) then
+         if(1+mod(i_proc,n_para_task) <= d1) then
             this_n_cols = 1
          else
             this_n_cols = 0
@@ -1008,7 +1008,7 @@ subroutine elsi_blacs_to_pexsi_hs_small_complex(elsi_h,h_in,s_in)
       enddo
    else
       do i_proc = elsi_h%n_procs-n_para_task,elsi_h%n_procs-1
-         if(1+mod(i_proc,n_para_task) .le. d2) then
+         if(1+mod(i_proc,n_para_task) <= d2) then
             this_n_cols = 1
          else
             this_n_cols = 0
@@ -1338,7 +1338,7 @@ subroutine elsi_blacs_to_pexsi_hs_large_complex(elsi_h,h_in,s_in)
       enddo
    else
       do i_proc = 0,elsi_h%n_procs-n_para_task-1
-         if(1+mod(i_proc,n_para_task) .le. d1) then
+         if(1+mod(i_proc,n_para_task) <= d1) then
             this_n_cols = 1
          else
             this_n_cols = 0
@@ -1364,7 +1364,7 @@ subroutine elsi_blacs_to_pexsi_hs_large_complex(elsi_h,h_in,s_in)
       enddo
    else
       do i_proc = elsi_h%n_procs-n_para_task,elsi_h%n_procs-1
-         if(1+mod(i_proc,n_para_task) .le. d2) then
+         if(1+mod(i_proc,n_para_task) <= d2) then
             this_n_cols = 1
          else
             this_n_cols = 0
@@ -2682,7 +2682,7 @@ subroutine elsi_blacs_to_sips_hs_small(elsi_h,h_in,s_in)
 
 end subroutine
 
-!> 
+!>
 !! This routine converts Halmitonian and overlap matrix stored in
 !! 2D block-cyclic distributed dense format to 1D block distributed
 !! sparse CCS format, which can be used as input by SIPs.
@@ -2694,7 +2694,7 @@ subroutine elsi_blacs_to_sips_hs_large(elsi_h,h_in,s_in)
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h                                !< Handle
-   real(kind=r8),     intent(in)    :: h_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian 
+   real(kind=r8),     intent(in)    :: h_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian
    real(kind=r8),     intent(in)    :: s_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Overlap
 
    integer(kind=i4) :: mpierr

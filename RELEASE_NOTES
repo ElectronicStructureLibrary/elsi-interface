@@ -21,7 +21,7 @@ elsi-team@duke.edu .
 -        ELSI Philosophy        -
 ---------------------------------
 
-The Kohn-Sham eigenvalue problem 
+The Kohn-Sham eigenvalue problem
    H\psi = S\epsilon\psi
 is a critical step in the SCF cyle of (most) density-functional codes.  When
 solved directly using an eigensolver, it is the O(N^3) bottleneck for semi-local

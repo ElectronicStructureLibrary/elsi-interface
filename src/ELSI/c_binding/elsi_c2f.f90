@@ -47,7 +47,7 @@ function convert_c_int_to_f_logical(int_c) result(logical_f)
 
    integer(kind=c_int), intent(in) :: int_c
    logical                         :: logical_f
- 
+
    if(int_c == 0) then
      logical_f = .false.
    else
@@ -58,7 +58,7 @@ end function
 
 !>
 !! This routine converts a C string into a Fortran string. A Fortran string is
-!! NOT just a character array without a NULL character. A Fortran string (i.e. 
+!! NOT just a character array without a NULL character. A Fortran string (i.e.
 !! char(*)) is a separate data type from a character array (i.e. char,
 !! dimension(*)) and they are NOT interoperable in interfaces.
 !!

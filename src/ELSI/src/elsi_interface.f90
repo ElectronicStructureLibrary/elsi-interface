@@ -811,7 +811,7 @@ subroutine elsi_set_output(elsi_h,out_level)
 
    call elsi_check_handle(elsi_h,caller)
 
-   if(out_level .le. 0) then
+   if(out_level <= 0) then
       print_info = .false.
       print_mem  = .false.
       elsi_h%omm_output = .false.
@@ -2069,7 +2069,7 @@ subroutine elsi_dm_real(elsi_h,h_in,s_in,d_out,energy_out)
    case(LIBOMM)
       call elsi_print_omm_options(elsi_h)
 
-      if(elsi_h%n_elsi_calls .le. elsi_h%n_elpa_steps) then
+      if(elsi_h%n_elsi_calls <= elsi_h%n_elpa_steps) then
          if((elsi_h%n_elsi_calls == 1) .and. (elsi_h%omm_flavor == 0)) then
             ! Overlap will be destroyed by Cholesky
             call elsi_allocate(elsi_h,elsi_h%ovlp_real_omm,elsi_h%n_l_rows,&
@@ -2297,7 +2297,7 @@ subroutine elsi_dm_complex(elsi_h,h_in,s_in,d_out,energy_out)
    case(LIBOMM)
       call elsi_print_omm_options(elsi_h)
 
-      if(elsi_h%n_elsi_calls .le. elsi_h%n_elpa_steps) then
+      if(elsi_h%n_elsi_calls <= elsi_h%n_elpa_steps) then
          if((elsi_h%n_elsi_calls == 1) .and. (elsi_h%omm_flavor == 0)) then
             ! Overlap will be destroyed by Cholesky
             call elsi_allocate(elsi_h,elsi_h%ovlp_complex_omm,elsi_h%n_l_rows,&
@@ -2517,7 +2517,7 @@ subroutine elsi_dm_real_sparse(elsi_h,h_in,s_in,d_out,energy_out)
       ! Convert PEXSI H and S to BLACS format
       call elsi_pexsi_to_blacs_hs(elsi_h,h_in,s_in)
 
-      if(elsi_h%n_elsi_calls .le. elsi_h%n_elpa_steps) then
+      if(elsi_h%n_elsi_calls <= elsi_h%n_elpa_steps) then
          if((elsi_h%n_elsi_calls == 1) .and. (elsi_h%omm_flavor == 0)) then
             ! Overlap will be destroyed by Cholesky
             call elsi_allocate(elsi_h,elsi_h%ovlp_real_omm,elsi_h%n_l_rows,&
