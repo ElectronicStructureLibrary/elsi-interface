@@ -249,7 +249,7 @@ module ELSI_DATATYPE
       integer(kind=i4) :: comm_among_point
       integer(kind=i4) :: comm_in_point
       real(kind=r8)    :: ne_pexsi ! Number of electrons computed by PEXSI
-      logical :: pexsi_started
+      logical :: pexsi_started = .false.
       integer(kind=c_intptr_t) :: pexsi_plan
       type(f_ppexsi_options)   :: pexsi_options
 
@@ -264,7 +264,7 @@ module ELSI_DATATYPE
       real(kind=r8) :: ev_ovlp_min
       real(kind=r8) :: ev_ovlp_max
       real(kind=r8) :: beta          ! A patameter used to estimate eigenspectrum
-      logical :: chess_started
+      logical :: chess_started = .false.
 
       ! SIPs
       integer(kind=i4) :: n_p_per_slice
@@ -282,7 +282,7 @@ module ELSI_DATATYPE
       integer(kind=i4) :: n_slices        ! Number of slices
       real(kind=r8) :: interval(2)        ! Global interval to search eigenvalues
       real(kind=r8) :: slice_buffer       ! Small buffer to expand interval
-      logical :: sips_started
+      logical :: sips_started = .false.
 
       integer(kind=i4) :: clock_rate      ! Timer
 
