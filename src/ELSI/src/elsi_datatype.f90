@@ -118,6 +118,7 @@ module ELSI_DATATYPE
       ! SIPs
       real(kind=r8),    allocatable :: ham_real_sips(:)  ! Sparse real Hamiltonian
       real(kind=r8),    allocatable :: ovlp_real_sips(:) ! Sparse real overlap
+      real(kind=r8),    allocatable :: dm_real_sips(:)   ! Sparse real density matrix
       integer(kind=i4), allocatable :: row_ind_sips(:)   ! Row index
       integer(kind=i4), allocatable :: col_ptr_sips(:)   ! Column pointer
       real(kind=r8),    allocatable :: slices(:)         ! Slices

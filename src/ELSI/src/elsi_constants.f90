@@ -43,6 +43,7 @@ module ELSI_CONSTANTS
    integer(kind=i4), parameter :: N_PARALLEL_MODES         = 2
    integer(kind=i4), parameter :: N_BROADENING_SCHEMES     = 4
    integer(kind=i4), parameter :: UNSET                    = -910910
+   integer(kind=i4), parameter :: HEADER_SIZE              = 12
 
    ! Method names
    enum, bind(C)

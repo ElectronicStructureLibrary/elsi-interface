@@ -69,8 +69,8 @@ module ELSI_UTILS
    public :: elsi_get_local_nnz
    public :: elsi_set_full_mat
    public :: elsi_init_timers
-   public :: elsi_final_print
    public :: elsi_get_time
+   public :: elsi_final_print
 
    interface elsi_set_ham
       module procedure elsi_set_real_ham,&
@@ -1161,6 +1161,7 @@ subroutine elsi_cleanup(elsi_h)
    ! SIPs
    if(allocated(elsi_h%ham_real_sips))      call elsi_deallocate(elsi_h,elsi_h%ham_real_sips,"ham_real_sips")
    if(allocated(elsi_h%ovlp_real_sips))     call elsi_deallocate(elsi_h,elsi_h%ovlp_real_sips,"ovlp_real_sips")
+   if(allocated(elsi_h%dm_real_sips))       call elsi_deallocate(elsi_h,elsi_h%dm_real_sips,"dm_real_sips")
    if(allocated(elsi_h%row_ind_sips))       call elsi_deallocate(elsi_h,elsi_h%row_ind_sips,"row_ind_sips")
    if(allocated(elsi_h%col_ptr_sips))       call elsi_deallocate(elsi_h,elsi_h%col_ptr_sips,"col_ptr_sips")
    if(allocated(elsi_h%slices))             call elsi_deallocate(elsi_h,elsi_h%slices,"slices")
