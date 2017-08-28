@@ -31,12 +31,9 @@
 !!
 module ELSI_UTILS
 
-   use ELSI_CONSTANTS, only: AUTO,ELPA,LIBOMM,PEXSI,CHESS,SIPS,BLACS_DENSE,&
-                             PEXSI_CSC,MULTI_PROC,SINGLE_PROC,FULL_MAT,UT_MAT,&
-                             LT_MAT,N_SOLVERS,N_MATRIX_DATA_TYPES,&
-                             N_MATRIX_STORAGE_FORMATS,N_PARALLEL_MODES,UNSET
-   use ELSI_DATATYPE, only: elsi_handle,print_info,print_mem
-   use ELSI_PRECISION, only: r4,r8,i4,i8
+   use ELSI_CONSTANTS
+   use ELSI_DATATYPE
+   use ELSI_PRECISION
    use FOE_BASE, only: foe_data_deallocate
    use F_PPEXSI_INTERFACE
    use MATRIXSWITCH, only: matrix,m_register_pdbc,m_deallocate

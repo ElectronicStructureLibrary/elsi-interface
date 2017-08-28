@@ -46,33 +46,38 @@ module ELSI_CONSTANTS
    integer(kind=i4), parameter :: HEADER_SIZE              = 12
 
    ! Method names
-   enum, bind(C)
-      enumerator :: AUTO, ELPA, LIBOMM, PEXSI, CHESS, SIPS
+   enum,bind(C)
+      enumerator :: AUTO,ELPA,LIBOMM,PEXSI,CHESS,SIPS
    end enum
 
    ! Real or complex data
-   enum, bind(C)
-      enumerator :: REAL_VALUES, COMPLEX_VALUES
+   enum,bind(C)
+      enumerator :: REAL_VALUES,COMPLEX_VALUES
    end enum
 
    ! Storage formats
-   enum, bind(C)
-      enumerator :: BLACS_DENSE, PEXSI_CSC
+   enum,bind(C)
+      enumerator :: BLACS_DENSE,PEXSI_CSC
    end enum
 
    ! Triangular matrix
-   enum, bind(C)
-      enumerator :: FULL_MAT, UT_MAT, LT_MAT
+   enum,bind(C)
+      enumerator :: FULL_MAT,UT_MAT,LT_MAT
    end enum
 
    ! Parallel modes
-   enum, bind(C)
-      enumerator :: SINGLE_PROC, MULTI_PROC
+   enum,bind(C)
+      enumerator :: SINGLE_PROC,MULTI_PROC
    end enum
 
    ! Broadening schemes
-   enum, bind(C)
-      enumerator :: GAUSSIAN, FERMI, METHFESSEL_PAXTON_0, METHFESSEL_PAXTON_1
+   enum,bind(C)
+      enumerator :: GAUSSIAN,FERMI,METHFESSEL_PAXTON_0,METHFESSEL_PAXTON_1
+   end enum
+
+   ! Matrix ID
+   enum,bind(C)
+      enumerator :: MATRIX_H,MATRIX_S,MATRIX_D
    end enum
 
 end module ELSI_CONSTANTS
