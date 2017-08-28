@@ -36,7 +36,7 @@ module ELSI_UTILS
                              LT_MAT,N_SOLVERS,N_MATRIX_DATA_TYPES,&
                              N_MATRIX_STORAGE_FORMATS,N_PARALLEL_MODES,UNSET
    use ELSI_DATATYPE, only: elsi_handle,print_info,print_mem
-   use ELSI_PRECISION, only: r8,i4
+   use ELSI_PRECISION, only: r4,r8,i4,i8
    use FOE_BASE, only: foe_data_deallocate
    use F_PPEXSI_INTERFACE
    use MATRIXSWITCH, only: matrix,m_register_pdbc,m_deallocate
@@ -108,27 +108,29 @@ module ELSI_UTILS
    end interface
 
    interface elsi_allocate
-      module procedure elsi_allocate_integer_1d,&
-                       elsi_allocate_integer_2d,&
-                       elsi_allocate_integer_3d,&
-                       elsi_allocate_real_1d,&
-                       elsi_allocate_real_2d,&
-                       elsi_allocate_real_3d,&
-                       elsi_allocate_complex_1d,&
-                       elsi_allocate_complex_2d,&
-                       elsi_allocate_complex_3d
+      module procedure elsi_allocate_integer4_1d,&
+                       elsi_allocate_integer4_2d,&
+                       elsi_allocate_integer4_3d,&
+                       elsi_allocate_integer8_1d,&
+                       elsi_allocate_real8_1d,&
+                       elsi_allocate_real8_2d,&
+                       elsi_allocate_real8_3d,&
+                       elsi_allocate_complex16_1d,&
+                       elsi_allocate_complex16_2d,&
+                       elsi_allocate_complex16_3d
    end interface
 
    interface elsi_deallocate
-      module procedure elsi_deallocate_integer_1d,&
-                       elsi_deallocate_integer_2d,&
-                       elsi_deallocate_integer_3d,&
-                       elsi_deallocate_real_1d,&
-                       elsi_deallocate_real_2d,&
-                       elsi_deallocate_real_3d,&
-                       elsi_deallocate_complex_1d,&
-                       elsi_deallocate_complex_2d,&
-                       elsi_deallocate_complex_3d
+      module procedure elsi_deallocate_integer4_1d,&
+                       elsi_deallocate_integer4_2d,&
+                       elsi_deallocate_integer4_3d,&
+                       elsi_deallocate_integer8_1d,&
+                       elsi_deallocate_real8_1d,&
+                       elsi_deallocate_real8_2d,&
+                       elsi_deallocate_real8_3d,&
+                       elsi_deallocate_complex16_1d,&
+                       elsi_deallocate_complex16_2d,&
+                       elsi_deallocate_complex16_3d
    end interface
 
    interface elsi_get_local_nnz
@@ -164,7 +166,7 @@ end subroutine
 !>
 !! This routine allocates a 1D array with real(kind=r8).
 !!
-subroutine elsi_allocate_real_1d(elsi_h,array,dim1,arrayname,caller)
+subroutine elsi_allocate_real8_1d(elsi_h,array,dim1,arrayname,caller)
 
    implicit none
 
@@ -197,9 +199,9 @@ subroutine elsi_allocate_real_1d(elsi_h,array,dim1,arrayname,caller)
 end subroutine
 
 !>
-!! This routine allocates a 1D array with integer.
+!! This routine allocates a 1D array with integer(kind=i4).
 !!
-subroutine elsi_allocate_integer_1d(elsi_h,array,dim1,arrayname,caller)
+subroutine elsi_allocate_integer4_1d(elsi_h,array,dim1,arrayname,caller)
 
    implicit none
 
@@ -232,9 +234,44 @@ subroutine elsi_allocate_integer_1d(elsi_h,array,dim1,arrayname,caller)
 end subroutine
 
 !>
+!! This routine allocates a 1D array with integer(kind=i8).
+!!
+subroutine elsi_allocate_integer8_1d(elsi_h,array,dim1,arrayname,caller)
+
+   implicit none
+
+   type(elsi_handle),             intent(in)    :: elsi_h    !< Handle
+   integer(kind=i8), allocatable, intent(inout) :: array(:)  !< Data
+   integer(kind=i4),              intent(in)    :: dim1      !< Size
+   character(len=*),              intent(in)    :: arrayname !< Name
+   character(len=*),              intent(in)    :: caller    !< Caller
+
+   real(kind=r8) :: arraysize
+   integer       :: error
+   character*200 :: info
+
+   if(print_mem) then
+      arraysize = 1.0e-6_r8*dim1*8
+
+      write(info,"(A,F12.3,A,A)") "    Allocating ",arraysize," MB for ",trim(arrayname)
+      call elsi_statement_print(info,elsi_h)
+   endif
+
+   allocate(array(dim1),stat=error)
+
+   if(error > 0) then
+      write(info,"(A,A)") " Error in allocating ",trim(arrayname)
+      call elsi_stop(info,elsi_h,caller)
+   endif
+
+   array = 0
+
+end subroutine
+
+!>
 !! This routine allocates a 1D array with complex(kind=r8).
 !!
-subroutine elsi_allocate_complex_1d(elsi_h,array,dim1,arrayname,caller)
+subroutine elsi_allocate_complex16_1d(elsi_h,array,dim1,arrayname,caller)
 
    implicit none
 
@@ -269,7 +306,7 @@ end subroutine
 !>
 !! This routine allocates a 2D array of real(kind=r8).
 !!
-subroutine elsi_allocate_real_2d(elsi_h,array,dim1,dim2,arrayname,caller)
+subroutine elsi_allocate_real8_2d(elsi_h,array,dim1,dim2,arrayname,caller)
 
    implicit none
 
@@ -303,9 +340,9 @@ subroutine elsi_allocate_real_2d(elsi_h,array,dim1,dim2,arrayname,caller)
 end subroutine
 
 !>
-!! This routine allocates a 2D array of integer.
+!! This routine allocates a 2D array of integer(kind=i4).
 !!
-subroutine elsi_allocate_integer_2d(elsi_h,array,dim1,dim2,arrayname,caller)
+subroutine elsi_allocate_integer4_2d(elsi_h,array,dim1,dim2,arrayname,caller)
 
    implicit none
 
@@ -341,7 +378,7 @@ end subroutine
 !>
 !! This routine allocates a 2D array of complex(kind=r8).
 !!
-subroutine elsi_allocate_complex_2d(elsi_h,array,dim1,dim2,arrayname,caller)
+subroutine elsi_allocate_complex16_2d(elsi_h,array,dim1,dim2,arrayname,caller)
 
    implicit none
 
@@ -377,7 +414,7 @@ end subroutine
 !>
 !! This routine allocates a 3D array of real(kind=r8).
 !!
-subroutine elsi_allocate_real_3d(elsi_h,array,dim1,dim2,dim3,arrayname,caller)
+subroutine elsi_allocate_real8_3d(elsi_h,array,dim1,dim2,dim3,arrayname,caller)
 
    implicit none
 
@@ -412,9 +449,9 @@ subroutine elsi_allocate_real_3d(elsi_h,array,dim1,dim2,dim3,arrayname,caller)
 end subroutine
 
 !>
-!! This routine allocates a 3D array of integer.
+!! This routine allocates a 3D array of integer(kind=i4).
 !!
-subroutine elsi_allocate_integer_3d(elsi_h,array,dim1,dim2,dim3,arrayname,caller)
+subroutine elsi_allocate_integer4_3d(elsi_h,array,dim1,dim2,dim3,arrayname,caller)
 
    implicit none
 
@@ -451,7 +488,7 @@ end subroutine
 !>
 !! This routine allocates a 3D array of complex(kind=r8).
 !!
-subroutine elsi_allocate_complex_3d(elsi_h,array,dim1,dim2,dim3,arrayname,caller)
+subroutine elsi_allocate_complex16_3d(elsi_h,array,dim1,dim2,dim3,arrayname,caller)
 
    implicit none
 
@@ -488,7 +525,7 @@ end subroutine
 !>
 !! This routine deallocates a 1D array with real(kind=r8).
 !!
-subroutine elsi_deallocate_real_1d(elsi_h,array,arrayname)
+subroutine elsi_deallocate_real8_1d(elsi_h,array,arrayname)
 
    implicit none
 
@@ -508,9 +545,9 @@ subroutine elsi_deallocate_real_1d(elsi_h,array,arrayname)
 end subroutine
 
 !>
-!! This routine deallocates a 1D array with integer.
+!! This routine deallocates a 1D array with integer(kind=i4).
 !!
-subroutine elsi_deallocate_integer_1d(elsi_h,array,arrayname)
+subroutine elsi_deallocate_integer4_1d(elsi_h,array,arrayname)
 
    implicit none
 
@@ -530,9 +567,31 @@ subroutine elsi_deallocate_integer_1d(elsi_h,array,arrayname)
 end subroutine
 
 !>
+!! This routine deallocates a 1D array with integer(kind=i8).
+!! 
+subroutine elsi_deallocate_integer8_1d(elsi_h,array,arrayname)
+
+   implicit none
+
+   type(elsi_handle),             intent(in)    :: elsi_h    !< Handle
+   integer(kind=i8), allocatable, intent(inout) :: array(:)  !< Data
+   character(len=*),              intent(in)    :: arrayname !< Name
+
+   character*200 :: info
+
+   if(print_mem) then
+      write(info,"(A,A)") "    Deallocating ",trim(arrayname)
+      call elsi_statement_print(info,elsi_h)
+   endif
+
+   deallocate(array)
+
+end subroutine
+
+!>
 !! This routine deallocates a 1D array with complex(kind=r8).
 !!
-subroutine elsi_deallocate_complex_1d(elsi_h,array,arrayname)
+subroutine elsi_deallocate_complex16_1d(elsi_h,array,arrayname)
 
    implicit none
 
@@ -554,7 +613,7 @@ end subroutine
 !>
 !! This routine deallocates a 2D array with real(kind=r8).
 !!
-subroutine elsi_deallocate_real_2d(elsi_h,array,arrayname)
+subroutine elsi_deallocate_real8_2d(elsi_h,array,arrayname)
 
    implicit none
 
@@ -574,9 +633,9 @@ subroutine elsi_deallocate_real_2d(elsi_h,array,arrayname)
 end subroutine
 
 !>
-!! This routine deallocates a 2D array with integer.
+!! This routine deallocates a 2D array with integer(kind=i4).
 !!
-subroutine elsi_deallocate_integer_2d(elsi_h,array,arrayname)
+subroutine elsi_deallocate_integer4_2d(elsi_h,array,arrayname)
 
    implicit none
 
@@ -598,7 +657,7 @@ end subroutine
 !>
 !! This routine deallocates a 2D array with complex(kind=r8).
 !!
-subroutine elsi_deallocate_complex_2d(elsi_h,array,arrayname)
+subroutine elsi_deallocate_complex16_2d(elsi_h,array,arrayname)
 
    implicit none
 
@@ -620,7 +679,7 @@ end subroutine
 !>
 !! This routine deallocates a 3D array with real(kind=r8).
 !!
-subroutine elsi_deallocate_real_3d(elsi_h,array,arrayname)
+subroutine elsi_deallocate_real8_3d(elsi_h,array,arrayname)
 
    implicit none
 
@@ -640,9 +699,9 @@ subroutine elsi_deallocate_real_3d(elsi_h,array,arrayname)
 end subroutine
 
 !>
-!! This routine deallocates a 3D array with integer.
+!! This routine deallocates a 3D array with integer(kind=i4).
 !!
-subroutine elsi_deallocate_integer_3d(elsi_h,array,arrayname)
+subroutine elsi_deallocate_integer4_3d(elsi_h,array,arrayname)
 
    implicit none
 
@@ -664,7 +723,7 @@ end subroutine
 !>
 !! This routine deallocates a 3D array with complex(kind=r8).
 !!
-subroutine elsi_deallocate_complex_3d(elsi_h,array,arrayname)
+subroutine elsi_deallocate_complex16_3d(elsi_h,array,arrayname)
 
    implicit none
 

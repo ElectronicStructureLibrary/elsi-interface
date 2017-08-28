@@ -701,7 +701,7 @@ subroutine elsi_blacs_to_pexsi_hs_large_real(elsi_h,h_in,s_in)
       call elsi_deallocate(elsi_h,s_val_send_buffer,"s_val_send_buffer")
    endif
 
-   allocate(global_id(nnz_l_pexsi_aux))
+   call elsi_allocate(elsi_h,global_id,nnz_l_pexsi_aux,"global_id",caller)
 
    ! Compute global 1D id
    do i_val = 1,nnz_l_pexsi_aux
@@ -749,7 +749,7 @@ subroutine elsi_blacs_to_pexsi_hs_large_real(elsi_h,h_in,s_in)
       enddo
    endif
 
-   deallocate(global_id)
+   call elsi_deallocate(elsi_h,global_id,"global_id")
 
    ! Set send_count, all data sent to the first pole
    send_count = 0
@@ -1489,7 +1489,7 @@ subroutine elsi_blacs_to_pexsi_hs_large_complex(elsi_h,h_in,s_in)
       call elsi_deallocate(elsi_h,s_val_send_buffer,"s_val_send_buffer")
    endif
 
-   allocate(global_id(nnz_l_pexsi_aux))
+   call elsi_allocate(elsi_h,global_id,nnz_l_pexsi_aux,"global_id",caller)
 
    ! Compute global 1D id
    do i_val = 1,nnz_l_pexsi_aux
@@ -1537,7 +1537,7 @@ subroutine elsi_blacs_to_pexsi_hs_large_complex(elsi_h,h_in,s_in)
       enddo
    endif
 
-   deallocate(global_id)
+   call elsi_deallocate(elsi_h,global_id,"global_id")
 
    ! Set send_count, all data sent to the first pole
    send_count = 0
@@ -2864,7 +2864,7 @@ subroutine elsi_blacs_to_sips_hs_large(elsi_h,h_in,s_in)
    call elsi_deallocate(elsi_h,send_displ,"send_displ")
    call elsi_deallocate(elsi_h,recv_displ,"recv_displ")
 
-   allocate(global_id(elsi_h%nnz_l_sp))
+   call elsi_allocate(elsi_h,global_id,elsi_h%nnz_l_sp,"global_id",caller)
 
    ! Compute global 1D id
    do i_val = 1,elsi_h%nnz_l_sp
@@ -2912,7 +2912,7 @@ subroutine elsi_blacs_to_sips_hs_large(elsi_h,h_in,s_in)
       enddo
    endif
 
-   deallocate(global_id)
+   call elsi_deallocate(elsi_h,global_id,"global_id")
 
    ! Compute row index and column pointer
    if(elsi_h%n_elsi_calls == 1) then
