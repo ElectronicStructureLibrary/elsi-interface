@@ -75,9 +75,4 @@ module ELSI_CONSTANTS
       enumerator :: GAUSSIAN,FERMI,METHFESSEL_PAXTON_0,METHFESSEL_PAXTON_1
    end enum
 
-   ! Matrix ID
-   enum,bind(C)
-      enumerator :: MATRIX_H,MATRIX_S,MATRIX_D
-   end enum
-
 end module ELSI_CONSTANTS

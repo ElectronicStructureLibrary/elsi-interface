@@ -31,10 +31,10 @@
 module ELSI_IO
 
    use, intrinsic :: ISO_C_BINDING
-   use ELSI_CONSTANTS, only: SINGLE_PROC,HEADER_SIZE,BLACS_DENSE,PEXSI_CSC,&
-                             MATRIX_H,MATRIX_S,MATRIX_D
+   use ELSI_CONSTANTS, only: SINGLE_PROC,HEADER_SIZE,BLACS_DENSE,PEXSI_CSC
    use ELSI_DATATYPE, only: elsi_handle
-   use ELSI_MATCONV
+   use ELSI_SETUP
+   use ELSI_MATCONV, only: elsi_pexsi_to_blacs_dm,elsi_blacs_to_pexsi_dm
    use ELSI_PRECISION, only: r8,i4
    use ELSI_UTILS
 
@@ -42,148 +42,137 @@ module ELSI_IO
 
    private
 
-   public :: elsi_write_matrix_real
-   public :: elsi_write_matrix_real_sparse
-!   public :: elsi_write_matrix_complex
-!   public :: elsi_write_matrix_complex_sparse
-   public :: elsi_read_matrix_real
-   public :: elsi_read_matrix_real_sparse
-!   public :: elsi_read_matrix_complex
-!   public :: elsi_read_matrix_complex_sparse
-   public :: elsi_get_matrix_dim
-   public :: elsi_get_matrix_dim_sparse
-   public :: elsi_get_csc
-   public :: elsi_get_matrix_real
-   public :: elsi_get_matrix_real_sparse
-   public :: elsi_get_matrix_complex
-   public :: elsi_get_matrix_complex_sparse
+   public :: elsi_read_mat_dim
+   public :: elsi_read_mat_dim_sparse
+   public :: elsi_read_mat_real
+   public :: elsi_read_mat_real_sparse
+!   public :: elsi_read_mat_complex
+!   public :: elsi_read_mat_complex_sparse
+   public :: elsi_write_mat_real
+   public :: elsi_write_mat_real_sparse
+!   public :: elsi_write_mat_complex
+!   public :: elsi_write_mat_complex_sparse
 
 contains
 
 !>
-!! This routine reads a 2D block-cyclic dense matrix from file.
+!! This routine reads the dimensions of a 2D block-cyclic dense matrix
+!! from file.
 !!
-subroutine elsi_read_matrix_real(elsi_h,id)
+subroutine elsi_read_mat_dim(filename,mpi_comm,blacs_ctxt,block_size,&
+              n_basis,n_l_rows,n_l_cols)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h !< Handle
-   integer(kind=i4),  intent(in)    :: id     !< H,S,D
+   character(*),     intent(in)  :: filename   !< File to open
+   integer(kind=i4), intent(in)  :: mpi_comm   !< MPI communicator
+   integer(kind=i4), intent(in)  :: blacs_ctxt !< BLACS context
+   integer(kind=i4), intent(in)  :: block_size !< Block size
+   integer(kind=i4), intent(out) :: n_basis    !< Matrix size
+   integer(kind=i4), intent(out) :: n_l_rows   !< Local number of rows
+   integer(kind=i4), intent(out) :: n_l_cols   !< Local number of columns
+
+   integer(kind=i4) :: myid
+   integer(kind=i4) :: mpierr
+   integer(kind=i4) :: mat_format
+   integer(kind=i4) :: n_p_rows
+   integer(kind=i4) :: n_p_cols
+   integer(kind=i4) :: my_p_row
+   integer(kind=i4) :: my_p_col
+
+   integer(kind=i4), external :: numroc
+
+   character*40, parameter :: caller = "elsi_read_mat_dim"
+
+   call MPI_Comm_rank(mpi_comm,myid,mpierr)
+
+   if(myid == 0) then
+      open(10,file=trim(filename))
+      read(10,*) mat_format
+      read(10,*) n_basis
+      close(10)
+   endif
+
+   call MPI_Bcast(n_basis,1,mpi_integer4,0,mpi_comm,mpierr)
+
+   ! Get processor grid information
+   call blacs_gridinfo(blacs_ctxt,n_p_rows,n_p_cols,my_p_row,my_p_col)
+
+   ! Get local size of matrix
+   n_l_rows = numroc(n_basis,block_size,my_p_row,0,n_p_rows)
+   n_l_cols = numroc(n_basis,block_size,my_p_col,0,n_p_cols)
+
+end subroutine
+
+!>
+!! This routine reads the dimensions of a 1D block CSC matrix from file.
+!!
+subroutine elsi_read_mat_dim_sparse(filename,mpi_comm,n_basis,nnz_g,&
+              nnz_l,n_l_cols)
+
+   implicit none
+
+   character(*),     intent(in)  :: filename !< File to open
+   integer(kind=i4), intent(in)  :: mpi_comm !< MPI communicator
+   integer(kind=i4), intent(out) :: n_basis  !< Matrix size
+   integer(kind=i4), intent(out) :: nnz_g    !< Global number of nonzeros
+   integer(kind=i4), intent(out) :: nnz_l    !< Local number of nonzeros
+   integer(kind=i4), intent(out) :: n_l_cols !< Local number of columns
 
    integer(kind=i4) :: mpierr
+   integer(kind=i4) :: myid
+   integer(kind=i4) :: n_procs
    integer(kind=i4) :: filehandle
    integer(kind=i4) :: filemode
    integer(kind=i4) :: header(HEADER_SIZE)
-   integer(kind=i4) :: n_l_cols
    integer(kind=i4) :: n_l_cols0
-   integer(kind=i4) :: nnz_l
    integer(kind=i4) :: prev_nnz
 
    integer(kind=mpi_offset_kind) :: offset
-   integer(kind=i4), allocatable :: row_ind(:)
+
    integer(kind=i4), allocatable :: col_ptr(:)
-   real(kind=r8),    allocatable :: nnz_val(:)
 
-   integer(kind=i4) :: i_row
-   integer(kind=i4) :: i_col
-   integer(kind=i4) :: i_val
-   integer(kind=i4) :: j_val
-   integer(kind=i4) :: k_val
-   integer(kind=i4) :: i_proc
-   integer(kind=i4) :: local_col_id ! Local column id in 1D block distribution
-   integer(kind=i4) :: local_row_id ! Local row id in 1D block distribution
-   integer(kind=i4) :: proc_col_id ! Column id in process grid
-   integer(kind=i4) :: proc_row_id ! Row id in process grid
-   integer(kind=i4), allocatable :: global_col_id(:) ! Global column id
-   integer(kind=i4), allocatable :: global_row_id(:) ! Global row id
-   integer(kind=i4), allocatable :: dest(:) ! Destination of each element
+   character*40, parameter :: caller = "elsi_read_mat_dim_sparse"
 
-   ! See documentation of MPI_Alltoallv
-   real(kind=r8),    allocatable :: val_send_buffer(:)
-   integer(kind=i4), allocatable :: row_send_buffer(:)
-   integer(kind=i4), allocatable :: col_send_buffer(:)
-   integer(kind=i4), allocatable :: send_count(:)
-   integer(kind=i4), allocatable :: send_displ(:)
-   real(kind=r8),    allocatable :: val_recv_buffer(:)
-   integer(kind=i4), allocatable :: row_recv_buffer(:)
-   integer(kind=i4), allocatable :: col_recv_buffer(:)
-   integer(kind=i4), allocatable :: recv_count(:)
-   integer(kind=i4), allocatable :: recv_displ(:)
-   integer(kind=i4) :: send_displ_aux
-   integer(kind=i4) :: recv_displ_aux
-
-   character    :: label
-   character*40 :: filename
-
-   character*40, parameter :: caller = "elsi_read_matrix_real"
-
-   call elsi_check_handle(elsi_h,caller)
-
-   if(.not. elsi_h%mpi_ready) then
-      call elsi_stop(" Parallel matrix I/O requires MPI. Exiting...",&
-              elsi_h,caller)
-   endif
-
-   ! File name
-   select case(id)
-   case(MATRIX_H)
-      label = "H"
-   case(MATRIX_S)
-      label = "S"
-   case(MATRIX_D)
-      label = "D"
-   case default
-      call elsi_stop(" Matrix not supported. Exiting...",elsi_h,caller)
-   end select
-
-   write(filename,"(A,A,I1.1,A,I5.5,A)") label,"_spin_",elsi_h%i_spin,&
-      "_kpt_",elsi_h%i_kpt,".csc"
+   call MPI_Comm_rank(mpi_comm,myid,mpierr)
+   call MPI_Comm_size(mpi_comm,n_procs,mpierr)
 
    ! Open file
    filemode = mpi_mode_rdonly
 
-   call MPI_File_open(elsi_h%mpi_comm,filename,filemode,mpi_info_null,&
-           filehandle,mpierr)
+   call MPI_File_open(mpi_comm,filename,filemode,mpi_info_null,filehandle,mpierr)
 
    ! Read header
-   if(elsi_h%myid == 0) then
+   if(myid == 0) then
       offset = 0
 
-      call MPI_File_read_at(filehandle,offset,header,HEADER_SIZE,&
-              mpi_integer4,mpi_status_ignore,mpierr)
+      call MPI_File_read_at(filehandle,offset,header,HEADER_SIZE,mpi_integer4,&
+              mpi_status_ignore,mpierr)
    endif
 
    ! Broadcast header
-   call MPI_Bcast(header,HEADER_SIZE,mpi_integer4,0,elsi_h%mpi_comm,mpierr)
+   call MPI_Bcast(header,HEADER_SIZE,mpi_integer4,0,mpi_comm,mpierr)
 
-   ! Set ELSI parameters
-   if(header(1) /= BLACS_DENSE) then
-      call elsi_stop(" Not reading a dense matrix. Exiting...",elsi_h,caller)
-   endif
+   n_basis = header(2)
+   nnz_g   = header(4)
 
-   elsi_h%matrix_format = BLACS_DENSE
-   elsi_h%n_basis       = header(2)
-   elsi_h%n_nonsing     = header(2)
-   elsi_h%n_electrons   = real(header(3),kind=r8)
-   elsi_h%nnz_g         = header(4)
-
-   ! Compute n_l_col
-   n_l_cols  = elsi_h%n_basis/elsi_h%n_procs
+   ! Compute n_l_cols
+   n_l_cols  = n_basis/n_procs
    n_l_cols0 = n_l_cols
-   if(elsi_h%myid == elsi_h%n_procs-1) then
-      elsi_h%n_l_cols = elsi_h%n_basis-(elsi_h%n_procs-1)*n_l_cols0
+   if(myid == n_procs-1) then
+      n_l_cols = n_basis-(n_procs-1)*n_l_cols0
    endif
 
-   call elsi_allocate(elsi_h,col_ptr,n_l_cols+1,"col_ptr",caller)
+   allocate(col_ptr(n_l_cols+1))
 
    ! Read column pointer
-   offset = HEADER_SIZE*4+elsi_h%myid*n_l_cols0*4
+   offset = HEADER_SIZE*4+myid*n_l_cols0*4
 
-   call MPI_File_read_at_all(filehandle,offset,col_ptr,n_l_cols+1,&
-           mpi_integer4,mpi_status_ignore,mpierr)
+   call MPI_File_read_at_all(filehandle,offset,col_ptr,n_l_cols+1,mpi_integer4,&
+           mpi_status_ignore,mpierr)
 
-   if(elsi_h%myid == elsi_h%n_procs-1) then
-      col_ptr(n_l_cols+1) = elsi_h%nnz_g+1
+   if(myid == n_procs-1) then
+      col_ptr(n_l_cols+1) = nnz_g+1
    endif
 
    ! Shift column pointer
@@ -193,18 +182,113 @@ subroutine elsi_read_matrix_real(elsi_h,id)
    ! Compute nnz_l
    nnz_l = col_ptr(n_l_cols+1)-col_ptr(1)
 
-   call elsi_allocate(elsi_h,row_ind,nnz_l,"row_ind",caller)
+   deallocate(col_ptr)
+
+end subroutine
+
+!>
+!! This routine reads a 2D block-cyclic dense matrix from file.
+!!
+subroutine elsi_read_mat_real(filename,mpi_comm,blacs_ctxt,block_size,&
+              n_basis,n_l_rows,n_l_cols,mat_out)
+
+   implicit none
+
+   character(*),     intent(in)  :: filename                   !< File to open
+   integer(kind=i4), intent(in)  :: mpi_comm                   !< MPI communicator
+   integer(kind=i4), intent(in)  :: blacs_ctxt                 !< BLACS context
+   integer(kind=i4), intent(in)  :: block_size                 !< Block size
+   integer(kind=i4), intent(in)  :: n_basis                    !< Matrix size
+   integer(kind=i4), intent(in)  :: n_l_rows                   !< Local number of rows
+   integer(kind=i4), intent(in)  :: n_l_cols                   !< Local number of columns
+   real(kind=r8),    intent(out) :: mat_out(n_l_rows,n_l_cols) !< Output matrix
+
+   integer(kind=i4) :: mpierr
+   integer(kind=i4) :: myid
+   integer(kind=i4) :: n_procs
+   integer(kind=i4) :: filehandle
+   integer(kind=i4) :: filemode
+   integer(kind=i4) :: header(HEADER_SIZE)
+   integer(kind=i4) :: n_l_cols_sp
+   integer(kind=i4) :: n_l_cols0
+   integer(kind=i4) :: nnz_g
+   integer(kind=i4) :: nnz_l
+   integer(kind=i4) :: prev_nnz
+
+   integer(kind=mpi_offset_kind) :: offset
+
+   integer(kind=i4), allocatable :: row_ind(:)
+   integer(kind=i4), allocatable :: col_ptr(:)
+   real(kind=r8),    allocatable :: nnz_val(:)
+
+   type(elsi_handle) :: io_h
+
+   character*40, parameter :: caller = "elsi_read_mat_real"
+
+   call MPI_Comm_rank(mpi_comm,myid,mpierr)
+   call MPI_Comm_size(mpi_comm,n_procs,mpierr)
+
+   ! Open file
+   filemode = mpi_mode_rdonly
+
+   call MPI_File_open(mpi_comm,filename,filemode,mpi_info_null,filehandle,mpierr)
+
+   ! Read header
+   if(myid == 0) then
+      offset = 0
+
+      call MPI_File_read_at(filehandle,offset,header,HEADER_SIZE,mpi_integer4,&
+              mpi_status_ignore,mpierr)
+   endif
+
+   ! Broadcast header
+   call MPI_Bcast(header,HEADER_SIZE,mpi_integer4,0,mpi_comm,mpierr)
+
+   ! Setup a handle for I/O
+   call elsi_init(io_h,PEXSI,MULTI_PROC,BLACS_DENSE,n_basis,0.0_r8,0)
+   call elsi_set_mpi(io_h,mpi_comm)
+   call elsi_set_blacs(io_h,blacs_ctxt,block_size)
+
+   nnz_g = header(4)
+
+   ! Compute n_l_cols_sp
+   n_l_cols_sp  = n_basis/n_procs
+   n_l_cols0    = n_l_cols_sp
+   if(myid == n_procs-1) then
+      n_l_cols_sp = n_basis-(n_procs-1)*n_l_cols0
+   endif
+
+   allocate(col_ptr(n_l_cols_sp+1))
+
+   ! Read column pointer
+   offset = HEADER_SIZE*4+myid*n_l_cols0*4
+
+   call MPI_File_read_at_all(filehandle,offset,col_ptr,n_l_cols_sp+1,&
+           mpi_integer4,mpi_status_ignore,mpierr)
+
+   if(myid == n_procs-1) then
+      col_ptr(n_l_cols_sp+1) = nnz_g+1
+   endif
+
+   ! Shift column pointer
+   prev_nnz = col_ptr(1)-1
+   col_ptr  = col_ptr-prev_nnz
+
+   ! Compute nnz_l
+   nnz_l = col_ptr(n_l_cols_sp+1)-col_ptr(1)
+
+   allocate(row_ind(nnz_l))
 
    ! Read row index
-   offset = HEADER_SIZE*4+elsi_h%n_basis*4+prev_nnz*4
+   offset = HEADER_SIZE*4+n_basis*4+prev_nnz*4
 
    call MPI_File_read_at_all(filehandle,offset,row_ind,nnz_l,mpi_integer4,&
            mpi_status_ignore,mpierr)
 
    ! Read non-zero value
-   offset = HEADER_SIZE*4+elsi_h%n_basis*4+elsi_h%nnz_g*4+prev_nnz*8
+   offset = HEADER_SIZE*4+n_basis*4+nnz_g*4+prev_nnz*8
 
-   call elsi_allocate(elsi_h,nnz_val,nnz_l,"nnz_val",caller)
+   allocate(nnz_val(nnz_l))
 
    call MPI_File_read_at_all(filehandle,offset,nnz_val,nnz_l,mpi_real8,&
            mpi_status_ignore,mpierr)
@@ -213,190 +297,44 @@ subroutine elsi_read_matrix_real(elsi_h,id)
    call MPI_File_close(filehandle,mpierr)
 
    ! Redistribute matrix
-   call elsi_allocate(elsi_h,val_send_buffer,nnz_l,"val_send_buffer",caller)
-   call elsi_allocate(elsi_h,row_send_buffer,nnz_l,"row_send_buffer",caller)
-   call elsi_allocate(elsi_h,col_send_buffer,nnz_l,"col_send_buffer",caller)
-   call elsi_allocate(elsi_h,send_count,elsi_h%n_procs,"send_count",caller)
-   call elsi_allocate(elsi_h,global_row_id,nnz_l,"global_row_id",caller)
-   call elsi_allocate(elsi_h,global_col_id,nnz_l,"global_col_id",caller)
-   call elsi_allocate(elsi_h,dest,nnz_l,"dest",caller)
+   call elsi_set_csc(io_h,nnz_g,nnz_l,n_l_cols_sp,row_ind,col_ptr)
+   call elsi_set_sparse_dm(io_h,nnz_val)
 
-   ! Compute destination and global 1D id
-   i_col = 0
+   io_h%my_p_row_pexsi = 0
+   io_h%n_p_per_pole   = n_procs
 
-   do i_val = 1,nnz_l
-      if((i_val == col_ptr(i_col+1)) .and. (i_col /= n_l_cols)) then
-         i_col = i_col+1
-      endif
-      i_row = row_ind(i_val)
+   call elsi_pexsi_to_blacs_dm(io_h,mat_out)
 
-      ! Compute global id
-      global_row_id = i_row
-      global_col_id = i_col+elsi_h%myid*n_l_cols0
+   ! Shut down handle
+   call elsi_finalize(io_h)
 
-      ! Compute destination
-      proc_row_id = mod((global_row_id-1)/elsi_h%n_b_rows,elsi_h%n_p_rows)
-      proc_col_id = mod((global_col_id-1)/elsi_h%n_b_cols,elsi_h%n_p_cols)
-      dest(i_val) = proc_col_id+proc_row_id*elsi_h%n_p_cols
-   enddo
-
-   call elsi_deallocate(elsi_h,row_ind,"row_ind")
-   call elsi_deallocate(elsi_h,col_ptr,"col_ptr")
-
-   j_val = 0
-   k_val = nnz_l+1
-
-   ! Set send_count
-   do i_proc = 1,elsi_h%n_procs
-      do i_val = 1,nnz_l
-         if(dest(i_val) == i_proc-1) then
-            j_val = j_val+1
-            val_send_buffer(j_val) = nnz_val(i_val)
-            row_send_buffer(j_val) = global_row_id(i_val)
-            col_send_buffer(j_val) = global_col_id(i_val)
-            send_count(i_proc) = send_count(i_proc)+1
-         endif
-      enddo
-   enddo
-
-   call elsi_deallocate(elsi_h,nnz_val,"nnz_val")
-   call elsi_deallocate(elsi_h,global_row_id,"global_row_id")
-   call elsi_deallocate(elsi_h,global_col_id,"global_col_id")
-   call elsi_deallocate(elsi_h,dest,"dest")
-
-   call elsi_allocate(elsi_h,recv_count,elsi_h%n_procs,"recv_count",caller)
-
-   ! Set recv_count
-   call MPI_Alltoall(send_count,1,mpi_integer4,recv_count,1,mpi_integer4,&
-           elsi_h%mpi_comm,mpierr)
-
-   elsi_h%nnz_l = sum(recv_count,1)
-
-   ! Set send and receive displacement
-   call elsi_allocate(elsi_h,send_displ,elsi_h%n_procs,"send_displ",caller)
-   call elsi_allocate(elsi_h,recv_displ,elsi_h%n_procs,"recv_displ",caller)
-
-   send_displ_aux = 0
-   recv_displ_aux = 0
-
-   do i_proc = 1,elsi_h%n_procs
-      send_displ(i_proc) = send_displ_aux
-      send_displ_aux = send_displ_aux+send_count(i_proc)
-
-      recv_displ(i_proc) = recv_displ_aux
-      recv_displ_aux = recv_displ_aux+recv_count(i_proc)
-   enddo
-
-   ! Send and receive the packed data
-   ! Value
-   call elsi_allocate(elsi_h,val_recv_buffer,elsi_h%nnz_l,"val_recv_buffer",&
-           caller)
-
-   call MPI_Alltoallv(val_send_buffer,send_count,send_displ,mpi_real8,&
-           val_recv_buffer,recv_count,recv_displ,mpi_real8,elsi_h%mpi_comm,&
-           mpierr)
-
-   call elsi_deallocate(elsi_h,val_send_buffer,"val_send_buffer")
-
-   ! Row ID
-   call elsi_allocate(elsi_h,row_recv_buffer,elsi_h%nnz_l,"row_recv_buffer",&
-           caller)
-
-   call MPI_Alltoallv(row_send_buffer,send_count,send_displ,mpi_integer4,&
-           row_recv_buffer,recv_count,recv_displ,mpi_integer4,&
-           elsi_h%mpi_comm,mpierr)
-
-   call elsi_deallocate(elsi_h,row_send_buffer,"row_send_buffer")
-
-   ! Column ID
-   call elsi_allocate(elsi_h,col_recv_buffer,elsi_h%nnz_l,"col_recv_buffer",&
-           caller)
-
-   call MPI_Alltoallv(col_send_buffer,send_count,send_displ,mpi_integer4,&
-           col_recv_buffer,recv_count,recv_displ,mpi_integer4,&
-           elsi_h%mpi_comm,mpierr)
-
-   call elsi_deallocate(elsi_h,col_send_buffer,"col_send_buffer")
-   call elsi_deallocate(elsi_h,send_count,"send_count")
-   call elsi_deallocate(elsi_h,recv_count,"recv_count")
-   call elsi_deallocate(elsi_h,send_displ,"send_displ")
-   call elsi_deallocate(elsi_h,recv_displ,"recv_displ")
-
-   ! Unpack matrix
-   select case(id)
-   case(MATRIX_H)
-      call elsi_allocate(elsi_h,elsi_h%ham_real_elpa,elsi_h%n_l_rows,&
-              elsi_h%n_l_cols,"ham_real_elpa",caller)
-
-      do i_val = 1,elsi_h%nnz_l
-         ! Compute local 2d id
-         local_row_id = (row_recv_buffer(i_val)-1)/&
-                           (elsi_h%n_p_rows*elsi_h%n_b_rows)*elsi_h%n_b_rows+&
-                           mod((row_recv_buffer(i_val)-1),elsi_h%n_b_rows)+1
-         local_col_id = (col_recv_buffer(i_val)-1)/&
-                        (elsi_h%n_p_cols*elsi_h%n_b_cols)*elsi_h%n_b_cols+&
-                        mod((col_recv_buffer(i_val)-1),elsi_h%n_b_cols)+1
-
-         ! Put value to correct position
-         elsi_h%ham_real_elpa(local_row_id,local_col_id) = val_recv_buffer(i_val)
-      enddo
-
-      call elsi_set_ham(elsi_h,elsi_h%ham_real_elpa)
-   case(MATRIX_S)
-      call elsi_allocate(elsi_h,elsi_h%ovlp_real_elpa,elsi_h%n_l_rows,&
-              elsi_h%n_l_cols,"ovlp_real_elpa",caller)
-
-      do i_val = 1,elsi_h%nnz_l
-         ! Compute local 2d id
-         local_row_id = (row_recv_buffer(i_val)-1)/&
-                           (elsi_h%n_p_rows*elsi_h%n_b_rows)*elsi_h%n_b_rows+&
-                           mod((row_recv_buffer(i_val)-1),elsi_h%n_b_rows)+1
-         local_col_id = (col_recv_buffer(i_val)-1)/&
-                        (elsi_h%n_p_cols*elsi_h%n_b_cols)*elsi_h%n_b_cols+&
-                        mod((col_recv_buffer(i_val)-1),elsi_h%n_b_cols)+1
-
-         ! Put value to correct position
-         elsi_h%ovlp_real_elpa(local_row_id,local_col_id) = val_recv_buffer(i_val)
-      enddo
-
-      call elsi_set_ovlp(elsi_h,elsi_h%ovlp_real_elpa)
-   case(MATRIX_D)
-      call elsi_allocate(elsi_h,elsi_h%dm_real_elpa,elsi_h%n_l_rows,&
-              elsi_h%n_l_cols,"dm_real_elpa",caller)
-
-      do i_val = 1,elsi_h%nnz_l
-         ! Compute local 2d id
-         local_row_id = (row_recv_buffer(i_val)-1)/&
-                           (elsi_h%n_p_rows*elsi_h%n_b_rows)*elsi_h%n_b_rows+&
-                           mod((row_recv_buffer(i_val)-1),elsi_h%n_b_rows)+1
-         local_col_id = (col_recv_buffer(i_val)-1)/&
-                        (elsi_h%n_p_cols*elsi_h%n_b_cols)*elsi_h%n_b_cols+&
-                        mod((col_recv_buffer(i_val)-1),elsi_h%n_b_cols)+1
-
-         ! Put value to correct position
-         elsi_h%dm_real_elpa(local_row_id,local_col_id) = val_recv_buffer(i_val)
-      enddo
-
-      call elsi_set_dm(elsi_h,elsi_h%dm_real_elpa)
-   end select
-
-   call elsi_deallocate(elsi_h,val_recv_buffer,"val_recv_buffer")
-   call elsi_deallocate(elsi_h,row_recv_buffer,"row_recv_buffer")
-   call elsi_deallocate(elsi_h,col_recv_buffer,"col_recv_buffer")
+   deallocate(col_ptr)
+   deallocate(row_ind)
+   deallocate(nnz_val)
 
 end subroutine
 
 !>
 !! This routine reads a 1D block CSC matrix from file.
 !!
-subroutine elsi_read_matrix_real_sparse(elsi_h,id)
+subroutine elsi_read_mat_real_sparse(filename,mpi_comm,n_basis,nnz_g,&
+              nnz_l,n_l_cols,row_ind,col_ptr,mat_out)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h !< Handle
-   integer(kind=i4),  intent(in)    :: id     !< H,S,D
+   character(*),     intent(in)  :: filename            !< File to open
+   integer(kind=i4), intent(in)  :: mpi_comm            !< MPI communicator
+   integer(kind=i4), intent(in)  :: n_basis             !< Matrix size
+   integer(kind=i4), intent(in)  :: nnz_g               !< Global number of nonzeros
+   integer(kind=i4), intent(in)  :: nnz_l               !< Local number of nonzeros
+   integer(kind=i4), intent(in)  :: n_l_cols            !< Local number of columns
+   integer(kind=i4), intent(out) :: row_ind(nnz_l)      !< Row index
+   integer(kind=i4), intent(out) :: col_ptr(n_l_cols+1) !< Column pointer
+   real(kind=r8),    intent(out) :: mat_out(nnz_l)      !< Output matrix
 
    integer(kind=i4) :: mpierr
+   integer(kind=i4) :: myid
+   integer(kind=i4) :: n_procs
    integer(kind=i4) :: filehandle
    integer(kind=i4) :: filemode
    integer(kind=i4) :: header(HEADER_SIZE)
@@ -405,133 +343,44 @@ subroutine elsi_read_matrix_real_sparse(elsi_h,id)
 
    integer(kind=mpi_offset_kind) :: offset
 
-   character    :: label
-   character*40 :: filename
+   character*40, parameter :: caller = "elsi_read_mat_real_sparse"
 
-   character*40, parameter :: caller = "elsi_read_matrix_real_sparse"
-
-   call elsi_check_handle(elsi_h,caller)
-
-   if(.not. elsi_h%mpi_ready) then
-      call elsi_stop(" Parallel matrix I/O requires MPI. Exiting...",&
-              elsi_h,caller)
-   endif
-
-   ! File name
-   select case(id)
-   case(MATRIX_H)
-      label = "H"
-   case(MATRIX_S)
-      label = "S"
-   case(MATRIX_D)
-      label = "D"
-   case default
-      call elsi_stop(" Matrix not supported. Exiting...",elsi_h,caller)
-   end select
-
-   write(filename,"(A,A,I1.1,A,I5.5,A)") label,"_spin_",elsi_h%i_spin,&
-      "_kpt_",elsi_h%i_kpt,".csc"
+   call MPI_Comm_rank(mpi_comm,myid,mpierr)
+   call MPI_Comm_size(mpi_comm,n_procs,mpierr)
 
    ! Open file
    filemode = mpi_mode_rdonly
 
-   call MPI_File_open(elsi_h%mpi_comm,filename,filemode,mpi_info_null,&
-           filehandle,mpierr)
+   call MPI_File_open(mpi_comm,filename,filemode,mpi_info_null,filehandle,mpierr)
 
-   ! Read header
-   if(elsi_h%myid == 0) then
-      offset = 0
-
-      call MPI_File_read_at(filehandle,offset,header,HEADER_SIZE,&
-              mpi_integer4,mpi_status_ignore,mpierr)
-   endif
-
-   ! Broadcast header
-   call MPI_Bcast(header,HEADER_SIZE,mpi_integer4,0,elsi_h%mpi_comm,mpierr)
-
-   ! Set ELSI parameters
-   if(header(1) /= PEXSI_CSC) then
-      call elsi_stop(" Not reading a sparse matrix. Exiting...",elsi_h,caller)
-   endif
-
-   elsi_h%matrix_format = PEXSI_CSC
-   elsi_h%n_basis       = header(2)
-   elsi_h%n_nonsing     = header(2)
-   elsi_h%n_electrons   = real(header(3),kind=r8)
-   elsi_h%nnz_g         = header(4)
-
-   ! Compute n_l_col
-   elsi_h%n_l_cols_sp = elsi_h%n_basis/elsi_h%n_procs
-   n_l_cols0 = elsi_h%n_l_cols_sp
-   if(elsi_h%myid == elsi_h%n_procs-1) then
-      elsi_h%n_l_cols_sp = elsi_h%n_basis-(elsi_h%n_procs-1)*n_l_cols0
-   endif
-
-   call elsi_allocate(elsi_h,elsi_h%col_ptr_sips,elsi_h%n_l_cols_sp+1,&
-           "col_ptr_sips",caller)
+   ! Compute n_l_cols0
+   n_l_cols0 = n_basis/n_procs
 
    ! Read column pointer
-   offset = HEADER_SIZE*4+elsi_h%myid*n_l_cols0*4
+   offset = HEADER_SIZE*4+myid*n_l_cols0*4
 
-   call MPI_File_read_at_all(filehandle,offset,elsi_h%col_ptr_sips,&
-           elsi_h%n_l_cols_sp+1,mpi_integer4,mpi_status_ignore,mpierr)
+   call MPI_File_read_at_all(filehandle,offset,col_ptr,n_l_cols+1,mpi_integer4,&
+           mpi_status_ignore,mpierr)
 
-   if(elsi_h%myid == elsi_h%n_procs-1) then
-      elsi_h%col_ptr_sips(elsi_h%n_l_cols_sp+1) = elsi_h%nnz_g+1
+   if(myid == n_procs-1) then
+      col_ptr(n_l_cols+1) = nnz_g+1
    endif
 
    ! Shift column pointer
-   prev_nnz = elsi_h%col_ptr_sips(1)-1
-   elsi_h%col_ptr_sips = elsi_h%col_ptr_sips-prev_nnz
-
-   ! Compute nnz_l
-   elsi_h%nnz_l_sp = elsi_h%col_ptr_sips(elsi_h%n_l_cols_sp+1)-&
-                        elsi_h%col_ptr_sips(1)
-
-   call elsi_allocate(elsi_h,elsi_h%row_ind_sips,elsi_h%nnz_l_sp,&
-           "row_ind_sips",caller)
+   prev_nnz = col_ptr(1)-1
+   col_ptr  = col_ptr-prev_nnz
 
    ! Read row index
-   offset = HEADER_SIZE*4+elsi_h%n_basis*4+prev_nnz*4
+   offset = HEADER_SIZE*4+n_basis*4+prev_nnz*4
 
-   call MPI_File_read_at_all(filehandle,offset,elsi_h%row_ind_sips,&
-           elsi_h%nnz_l_sp,mpi_integer4,mpi_status_ignore,mpierr)
-
-   ! Set ELSI sparsity pattern up
-   call elsi_set_row_ind(elsi_h,elsi_h%row_ind_sips)
-   call elsi_set_col_ptr(elsi_h,elsi_h%col_ptr_sips)
-
-   elsi_h%sparsity_ready = .true.
+   call MPI_File_read_at_all(filehandle,offset,row_ind,nnz_l,mpi_integer4,&
+           mpi_status_ignore,mpierr)
 
    ! Read non-zero value
-   offset = HEADER_SIZE*4+elsi_h%n_basis*4+elsi_h%nnz_g*4+prev_nnz*8
+   offset = HEADER_SIZE*4+n_basis*4+nnz_g*4+prev_nnz*8
 
-   select case(id)
-   case(MATRIX_H)
-      call elsi_allocate(elsi_h,elsi_h%ham_real_sips,elsi_h%nnz_l_sp,&
-              "ham_real_sips",caller)
-
-      call MPI_File_read_at_all(filehandle,offset,elsi_h%ham_real_sips,&
-              elsi_h%nnz_l_sp,mpi_real8,mpi_status_ignore,mpierr)
-
-      call elsi_set_sparse_ham(elsi_h,elsi_h%ham_real_sips)
-   case(MATRIX_S)
-      call elsi_allocate(elsi_h,elsi_h%ovlp_real_sips,elsi_h%nnz_l_sp,&
-              "ovlp_real_sips",caller)
-
-      call MPI_File_read_at_all(filehandle,offset,elsi_h%ovlp_real_sips,&
-              elsi_h%nnz_l_sp,mpi_real8,mpi_status_ignore,mpierr)
-
-      call elsi_set_sparse_ovlp(elsi_h,elsi_h%ovlp_real_sips)
-   case(MATRIX_D)
-      call elsi_allocate(elsi_h,elsi_h%dm_real_sips,elsi_h%nnz_l_sp,&
-              "dm_real_sips",caller)
-
-      call MPI_File_read_at_all(filehandle,offset,elsi_h%dm_real_sips,&
-              elsi_h%nnz_l_sp,mpi_real8,mpi_status_ignore,mpierr)
-
-      call elsi_set_sparse_dm(elsi_h,elsi_h%dm_real_sips)
-   end select
+   call MPI_File_read_at_all(filehandle,offset,mat_out,nnz_l,mpi_real8,&
+           mpi_status_ignore,mpierr)
 
    call MPI_File_close(filehandle,mpierr)
 
@@ -540,7 +389,7 @@ end subroutine
 !>
 !! This routine writes a 2D block-cyclic dense matrix to file.
 !!
-subroutine elsi_write_matrix_real(elsi_h,id)
+subroutine elsi_write_mat_real(elsi_h,id)
 
    implicit none
 
@@ -557,16 +406,14 @@ subroutine elsi_write_matrix_real(elsi_h,id)
    integer(kind=i4) :: prev_nnz
 
    integer(kind=mpi_offset_kind) :: offset
+
    integer(kind=i4), allocatable :: row_ind(:)
    integer(kind=i4), allocatable :: col_ptr(:)
    real(kind=r8),    allocatable :: nnz_val(:)
 
-   integer(kind=mpi_offset_kind) :: offset
-
-   character    :: label
    character*40 :: filename
 
-   character*40, parameter :: caller = "elsi_write_matrix_real"
+   character*40, parameter :: caller = "elsi_write_mat_real"
 
    call elsi_check_handle(elsi_h,caller)
 
@@ -577,21 +424,6 @@ subroutine elsi_write_matrix_real(elsi_h,id)
 
    ! Redistribute matrix
    ! TODO
-
-   ! File name
-   select case(id)
-   case(MATRIX_H)
-      label = "H"
-   case(MATRIX_S)
-      label = "S"
-   case(MATRIX_D)
-      label = "D"
-   case default
-      call elsi_stop(" Matrix not supported. Exiting...",elsi_h,caller)
-   end select
-
-   write(filename,"(A,A,I1.1,A,I5.5,A)") label,"_spin_",elsi_h%i_spin,&
-      "_kpt_",elsi_h%i_kpt,".csc"
 
    ! Open file
    filemode = mpi_mode_wronly+mpi_mode_create
@@ -650,12 +482,9 @@ end subroutine
 !>
 !! This routine writes a 1D block CSC matrix to file.
 !!
-subroutine elsi_write_matrix_real_sparse(elsi_h,id)
+subroutine elsi_write_mat_real_sparse()
 
    implicit none
-
-   type(elsi_handle), intent(inout) :: elsi_h !< Handle
-   integer(kind=i4),  intent(in)    :: id     !< H,S,D
 
    integer(kind=i4) :: mpierr
    integer(kind=i4) :: filehandle
@@ -666,357 +495,57 @@ subroutine elsi_write_matrix_real_sparse(elsi_h,id)
 
    integer(kind=mpi_offset_kind) :: offset
 
-   character    :: label
-   character*40 :: filename
-
-   character*40, parameter :: caller = "elsi_write_matrix_real_sparse"
-
-   call elsi_check_handle(elsi_h,caller)
-
-   if(.not. elsi_h%mpi_ready) then
-      call elsi_stop(" Parallel matrix I/O requires MPI. Exiting...",&
-              elsi_h,caller)
-   endif
-
-   ! File name
-   select case(id)
-   case(MATRIX_H)
-      label = "H"
-   case(MATRIX_S)
-      label = "S"
-   case(MATRIX_D)
-      label = "D"
-   case default
-      call elsi_stop(" Matrix not supported. Exiting...",elsi_h,caller)
-   end select
-
-   write(filename,"(A,A,I1.1,A,I5.5,A)") label,"_spin_",elsi_h%i_spin,&
-      "_kpt_",elsi_h%i_kpt,".csc"
+   character*40, parameter :: caller = "elsi_write_mat_real_sparse"
 
    ! Open file
-   filemode = mpi_mode_wronly+mpi_mode_create
-
-   call MPI_File_open(elsi_h%mpi_comm,filename,filemode,mpi_info_null,&
-           filehandle,mpierr)
-
+!   filemode = mpi_mode_wronly+mpi_mode_create
+!
+!   call MPI_File_open(mpi_comm,filename,filemode,mpi_info_null,filehandle,mpierr)
+!
    ! Write header
-   header(1) = PEXSI_CSC
-   header(2) = elsi_h%n_basis
-   header(3) = int(elsi_h%n_electrons,kind=i4)
-   header(4) = elsi_h%nnz_g
-
-   if(elsi_h%myid == 0) then
-      offset = 0
-
-      call MPI_File_write_at(filehandle,offset,header,HEADER_SIZE,&
-              mpi_integer4,mpi_status_ignore,mpierr)
-   endif
-
-   ! Compute shift of column pointers
-   prev_nnz = 0
-
-   call MPI_Exscan(elsi_h%nnz_l_sp,prev_nnz,1,mpi_integer4,mpi_sum,&
-           elsi_h%mpi_comm,mpierr)
-
-   ! Shift column pointer
-   elsi_h%col_ptr_ccs = elsi_h%col_ptr_ccs+prev_nnz
-
-   ! Write column pointer
-   n_l_cols0 = elsi_h%n_basis/elsi_h%n_procs
-   offset = HEADER_SIZE*4+elsi_h%myid*n_l_cols0*4
-
-   call MPI_File_write_at_all(filehandle,offset,elsi_h%col_ptr_ccs,&
-           elsi_h%n_l_cols_sp,mpi_integer4,mpi_status_ignore,mpierr)
-
-   ! Unshift column pointer
-   elsi_h%col_ptr_ccs = elsi_h%col_ptr_ccs-prev_nnz
-
-   ! Write row index
-   offset = HEADER_SIZE*4+elsi_h%n_basis*4+prev_nnz*4
-
-   call MPI_File_write_at_all(filehandle,offset,elsi_h%row_ind_ccs,&
-           elsi_h%nnz_l_sp,mpi_integer4,mpi_status_ignore,mpierr)
-
-   ! Write non-zero value
-   offset = HEADER_SIZE*4+elsi_h%n_basis*4+elsi_h%nnz_g*4+prev_nnz*8
-
-   select case(id)
-   case(MATRIX_H)
-      if(.not. associated(elsi_h%ham_real_ccs)) then
-         call elsi_stop(" Sparse Hamiltonian not available. Exiting...",&
-                 elsi_h,caller)
-      endif
-
-      call MPI_File_write_at_all(filehandle,offset,elsi_h%ham_real_ccs,&
-              elsi_h%nnz_l_sp,mpi_real8,mpi_status_ignore,mpierr)
-   case(MATRIX_S)
-      if(.not. associated(elsi_h%ovlp_real_ccs)) then
-         call elsi_stop(" Sparse overlap not available. Exiting...",&
-                 elsi_h,caller)
-      endif
-
-      call MPI_File_write_at_all(filehandle,offset,elsi_h%ovlp_real_ccs,&
-              elsi_h%nnz_l_sp,mpi_real8,mpi_status_ignore,mpierr)
-   case(MATRIX_D)
-      if(.not. associated(elsi_h%dm_real_ccs)) then
-         call elsi_stop(" Sparse density matrix not available. Exiting...",&
-                 elsi_h,caller)
-      endif
-
-      call MPI_File_write_at_all(filehandle,offset,elsi_h%dm_real_ccs,&
-              elsi_h%nnz_l_sp,mpi_real8,mpi_status_ignore,mpierr)
-   end select
-
-   call MPI_File_close(filehandle,mpierr)
-
-end subroutine
-
-!>
-!! This routine gets the dimensions of 2D block-cyclic dense matrices in ELSI.
-!!
-subroutine elsi_get_matrix_dim(elsi_h,n_basis,n_row_l,n_col_l)
-
-   implicit none
-
-   type(elsi_handle), intent(in)  :: elsi_h  !< Handle
-   integer(kind=i4),  intent(out) :: n_basis !< Number of basis functions
-   integer(kind=i4),  intent(out) :: n_row_l !< Number of local rows
-   integer(kind=i4),  intent(out) :: n_col_l !< Number of local columns
-
-   character*40, parameter :: caller = "elsi_get_matrix_dim"
-
-   call elsi_check_handle(elsi_h,caller)
-
-   n_basis = elsi_h%n_basis
-   n_row_l = elsi_h%n_l_rows
-   n_col_l = elsi_h%n_l_cols
-
-end subroutine
-
-!>
-!! This routine gets the dimensions of 1D block CSC matrices in ELSI.
-!!
-subroutine elsi_get_matrix_dim_sparse(elsi_h,n_basis,nnz_g,nnz_l,n_col_l)
-
-   implicit none
-
-   type(elsi_handle), intent(in)  :: elsi_h  !< Handle
-   integer(kind=i4),  intent(out) :: n_basis !< Number of basis functions
-   integer(kind=i4),  intent(out) :: nnz_g   !< Global number of nonzeros
-   integer(kind=i4),  intent(out) :: nnz_l   !< Local number of nonzeros
-   integer(kind=i4),  intent(out) :: n_col_l !< Number of local columns
-
-   character*40, parameter :: caller = "elsi_get_matrix_dim_sparse"
-
-   call elsi_check_handle(elsi_h,caller)
-
-   n_basis = elsi_h%n_basis
-   nnz_g   = elsi_h%nnz_g
-   nnz_l   = elsi_h%nnz_l_sp
-   n_col_l = elsi_h%n_l_cols_sp
-
-end subroutine
-
-!>
-!! This routine gets the row index and column pointer arrays of 1D block
-!! CSC matrices in ELSI.
-!!
-subroutine elsi_get_csc(elsi_h,row_ind,col_ptr)
-
-   implicit none
-
-   type(elsi_handle), intent(in)  :: elsi_h                        !< Handle
-   integer(kind=i4),  intent(out) :: row_ind(elsi_h%nnz_l_sp)      !< Row index
-   integer(kind=i4),  intent(out) :: col_ptr(elsi_h%n_l_cols_sp+1) !< Column pointer
-
-   character*40, parameter :: caller = "elsi_get_csc"
-
-   call elsi_check_handle(elsi_h,caller)
-
-   if(.not. associated(elsi_h%row_ind_ccs)) then
-      call elsi_stop(" Row index not available. Exiting...",&
-              elsi_h,caller)
-   endif
-
-   if(.not. associated(elsi_h%col_ptr_ccs)) then
-      call elsi_stop(" Column pointer not available. Exiting...",&
-              elsi_h,caller)
-   endif
-
-   row_ind = elsi_h%row_ind_ccs
-   col_ptr = elsi_h%col_ptr_ccs
-
-end subroutine
-
-!>
-!! This routine gets a 2D block-cyclic dense matrix.
-!!
-subroutine elsi_get_matrix_real(elsi_h,id,matrix_out)
-
-   implicit none
-
-   type(elsi_handle), intent(in)  :: elsi_h                                      !< Handle
-   integer(kind=i4),  intent(in)  :: id                                          !< H,S,D
-   real(kind=r8),     intent(out) :: matrix_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Output matrix
-
-   character*40, parameter :: caller = "elsi_get_matrix_real"
-
-   call elsi_check_handle(elsi_h,caller)
-
-   select case(id)
-   case(MATRIX_H)
-      if(.not. associated(elsi_h%ham_real)) then
-         call elsi_stop(" Hamiltonian not available. Exiting...",&
-                 elsi_h,caller)
-      endif
-
-      matrix_out = elsi_h%ham_real
-   case(MATRIX_S)
-      if(.not. associated(elsi_h%ovlp_real)) then
-         call elsi_stop(" Overlap not available. Exiting...",&
-                 elsi_h,caller)
-      endif
-
-      matrix_out = elsi_h%ovlp_real
-   case(MATRIX_D)
-      if(.not. associated(elsi_h%dm_real)) then
-         call elsi_stop(" Density matrix not available. Exiting...",&
-                 elsi_h,caller)
-      endif
-
-      matrix_out = elsi_h%dm_real
-   case default
-      call elsi_stop(" Matrix not supported. Exiting...",elsi_h,caller)
-   end select
-
-end subroutine
-
-!>
-!! This routine gets a 1D block CSC matrix.
-!!
-subroutine elsi_get_matrix_real_sparse(elsi_h,id,matrix_out)
-
-   implicit none
-
-   type(elsi_handle), intent(in)  :: elsi_h                      !< Handle
-   integer(kind=i4),  intent(in)  :: id                          !< H,S,D
-   real(kind=r8),     intent(out) :: matrix_out(elsi_h%nnz_l_sp) !< Output matrix
-
-   character*40, parameter :: caller = "elsi_get_matrix_real_sparse"
-
-   call elsi_check_handle(elsi_h,caller)
-
-   select case(id)
-   case(MATRIX_H)
-      if(.not. associated(elsi_h%ham_real_ccs)) then
-         call elsi_stop(" Sparse Hamiltonian not available. Exiting...",&
-                 elsi_h,caller)
-      endif
-
-      matrix_out = elsi_h%ham_real_ccs
-   case(MATRIX_S)
-      if(.not. associated(elsi_h%ovlp_real_ccs)) then
-         call elsi_stop(" Sparse overlap not available. Exiting...",&
-                 elsi_h,caller)
-      endif
-
-      matrix_out = elsi_h%ovlp_real_ccs
-   case(MATRIX_D)
-      if(.not. associated(elsi_h%dm_real_ccs)) then
-         call elsi_stop(" Sparse density matrix not available. Exiting...",&
-                 elsi_h,caller)
-      endif
-
-      matrix_out = elsi_h%dm_real_ccs
-   case default
-      call elsi_stop(" Matrix not supported. Exiting...",elsi_h,caller)
-   end select
-
-end subroutine
-
-!>
-!! This routine gets a 2D block-cyclic dense matrix.
-!!
-subroutine elsi_get_matrix_complex(elsi_h,id,matrix_out)
-
-   implicit none
-
-   type(elsi_handle), intent(in)  :: elsi_h                                      !< Handle
-   integer(kind=i4),  intent(in)  :: id                                          !< H,S,D
-   complex(kind=r8),  intent(out) :: matrix_out(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Output matrix
-
-   character*40, parameter :: caller = "elsi_get_matrix_complex"
-
-   call elsi_check_handle(elsi_h,caller)
-
-   select case(id)
-   case(MATRIX_H)
-      if(.not. associated(elsi_h%ham_real)) then
-         call elsi_stop(" Hamiltonian not available. Exiting...",&
-                 elsi_h,caller)
-      endif
-
-      matrix_out = elsi_h%ham_complex
-   case(MATRIX_S)
-      if(.not. associated(elsi_h%ovlp_real)) then
-         call elsi_stop(" Overlap not available. Exiting...",&
-                 elsi_h,caller)
-      endif
-
-      matrix_out = elsi_h%ovlp_complex
-   case(MATRIX_D)
-      if(.not. associated(elsi_h%dm_real)) then
-         call elsi_stop(" Density matrix not available. Exiting...",&
-                 elsi_h,caller)
-      endif
-
-      matrix_out = elsi_h%dm_complex
-   case default
-      call elsi_stop(" Matrix not supported. Exiting...",elsi_h,caller)
-   end select
-
-end subroutine
-
-!>
-!! This routine gets a 1D block CSC matrix.
-!!
-subroutine elsi_get_matrix_complex_sparse(elsi_h,id,matrix_out)
-
-   implicit none
-
-   type(elsi_handle), intent(in)  :: elsi_h                      !< Handle
-   integer(kind=i4),  intent(in)  :: id                          !< H,S,D
-   complex(kind=i4),  intent(out) :: matrix_out(elsi_h%nnz_l_sp) !< Output matrix
-
-   character*40, parameter :: caller = "elsi_get_matrix_complex_sparse"
-
-   call elsi_check_handle(elsi_h,caller)
-
-   select case(id)
-   case(MATRIX_H)
-      if(.not. associated(elsi_h%ham_real_ccs)) then
-         call elsi_stop(" Sparse Hamiltonian not available. Exiting...",&
-                 elsi_h,caller)
-      endif
-
-      matrix_out = elsi_h%ham_complex_ccs
-   case(MATRIX_S)
-      if(.not. associated(elsi_h%ovlp_real_ccs)) then
-         call elsi_stop(" Sparse overlap not available. Exiting...",&
-                 elsi_h,caller)
-      endif
-
-      matrix_out = elsi_h%ovlp_complex_ccs
-   case(MATRIX_D)
-      if(.not. associated(elsi_h%dm_real_ccs)) then
-         call elsi_stop(" Sparse density matrix not available. Exiting...",&
-                 elsi_h,caller)
-      endif
-
-      matrix_out = elsi_h%dm_complex_ccs
-   case default
-      call elsi_stop(" Matrix not supported. Exiting...",elsi_h,caller)
-   end select
+!   header(1) = PEXSI_CSC
+!   header(2) = n_basis
+!   header(3) = int(n_electrons,kind=i4)
+!   header(4) = nnz_g
+!
+!   if(myid == 0) then
+!      offset = 0
+!
+!      call MPI_File_write_at(filehandle,offset,header,HEADER_SIZE,mpi_integer4,&
+!              mpi_status_ignore,mpierr)
+!   endif
+!
+!   ! Compute shift of column pointers
+!   prev_nnz = 0
+!
+!   call MPI_Exscan(nnz_l_sp,prev_nnz,1,mpi_integer4,mpi_sum,mpi_comm,mpierr)
+!
+!   ! Shift column pointer
+!   col_ptr = col_ptr+prev_nnz
+!
+!   ! Write column pointer
+!   n_l_cols0 = n_basis/n_procs
+!   offset = HEADER_SIZE*4+myid*n_l_cols0*4
+!
+!   call MPI_File_write_at_all(filehandle,offset,col_ptr,n_l_cols,mpi_integer4,&
+!           mpi_status_ignore,mpierr)
+!
+!   ! Unshift column pointer
+!   col_ptr = col_ptr-prev_nnz
+!
+!   ! Write row index
+!   offset = HEADER_SIZE*4+n_basis*4+prev_nnz*4
+!
+!   call MPI_File_write_at_all(filehandle,offset,row_ind,nnz_l,mpi_integer4,&
+!           mpi_status_ignore,mpierr)
+!
+!   ! Write non-zero value
+!   offset = HEADER_SIZE*4+n_basis*4+nnz_g*4+prev_nnz*8
+!
+!   call MPI_File_write_at_all(filehandle,offset,nnz_val,nnz_l,mpi_real8,&
+!           mpi_status_ignore,mpierr)
+!
+!   call MPI_File_close(filehandle,mpierr)
 
 end subroutine
 
