@@ -48,7 +48,7 @@ test_ev_real_c.o: ./test/test_ev_real_c.c elsi_c_interface.o tomato_c_interface.
 test_standard_ev_real_c.o: ./test/test_standard_ev_real_c.c elsi_c_interface.o
 	$(MPICC) $(CFLAGS_I) $(INCS) -c $<
 
-elsi_interface.o: ./src/elsi_interface.f90 elsi_setup.o elsi_solver.o elsi_mutator.o elsi_io.o
+elsi_interface.o: ./src/elsi_interface.f90 elsi_setup.o elsi_solver.o elsi_mutator.o elsi_io.o elsi_mu.o elsi_datatype.o
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
 elsi_io.o: ./src/elsi_io.f90 elsi_setup.o elsi_matconv.o elsi_utils.o elsi_datatype.o elsi_precision.o elsi_constants.o
