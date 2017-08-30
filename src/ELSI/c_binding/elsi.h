@@ -74,8 +74,8 @@ void c_elsi_set_csc(elsi_handle handle_c,
                     int nnz,
                     int nnz_l,
                     int n_l_cols,
-                    int* row_ind,
-                    int* col_ptr);
+                    int *row_ind,
+                    int *col_ptr);
 
 void c_elsi_customize(elsi_handle handle_c,
                       int print_detail,
@@ -295,6 +295,59 @@ void c_elsi_get_edm_real(elsi_handle handle_c,
 
 void c_elsi_get_edm_complex(elsi_handle handle_c,
                             double _Complex *edm);
+
+void c_elsi_read_mat_dim(char *name_c,
+                         int mpi_comm,
+                         int blacs_ctxt,
+                         int block_size,
+                         int *n_basis,
+                         int *n_l_rows,
+                         int *n_l_cols);
+
+void c_elsi_read_mat_dim_sparse(char *name_c,
+                                int mpi_comm,
+                                int *n_basis,
+                                int *nnz_g,
+                                int *nnz_l,
+                                int *n_l_cols);
+
+void c_elsi_read_mat_real(char *name_c,
+                          int mpi_comm,
+                          int blacs_ctxt,
+                          int block_size,
+                          int n_basis,
+                          int n_l_rows,
+                          int n_l_cols,
+                          double *mat);
+
+void c_elsi_read_mat_real_sparse(char *name_c,
+                                 int mpi_comm,
+                                 int n_basis,
+                                 int nnz_g,
+                                 int nnz_l,
+                                 int n_l_cols,
+                                 int *row_ind,
+                                 int *col_ptr,
+                                 double *mat);
+
+void c_elsi_write_mat_real(char *name_c,
+                           int mpi_comm,
+                           int blacs_ctxt,
+                           int block_size,
+                           int n_basis,
+                           int n_l_rows,
+                           int n_l_cols,
+                           double *mat);
+
+void c_elsi_write_mat_real_sparse(char *name_c,
+                                  int mpi_comm,
+                                  int n_basis,
+                                  int nnz_g,
+                                  int nnz_l,
+                                  int n_l_cols,
+                                  int *row_ind,
+                                  int *col_ptr,
+                                  double *mat);
 
 #ifdef __cplusplus
 }

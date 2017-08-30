@@ -1184,4 +1184,147 @@ subroutine elsi_get_edm_complex_c_wrapper(handle_c,edm)&
 
 end subroutine
 
+subroutine elsi_read_mat_dim_c_wrapper(name_c,mpi_comm,blacs_ctxt,&
+              block_size,n_basis,n_l_rows,n_l_cols)&
+   bind(C,name="c_elsi_read_mat_dim")
+
+   implicit none
+
+   character(kind=c_char,len=1), dimension(128) :: name_c
+   integer(c_int), value, intent(in)            :: mpi_comm
+   integer(c_int), value, intent(in)            :: blacs_ctxt
+   integer(c_int), value, intent(in)            :: block_size
+   integer(c_int)                               :: n_basis
+   integer(c_int)                               :: n_l_rows
+   integer(c_int)                               :: n_l_cols
+
+   character(len=:), allocatable :: name_f
+
+   name_f = convert_c_string_to_f_string(name_c)
+
+   call elsi_read_mat_dim(name_f,mpi_comm,blacs_ctxt,block_size,n_basis,&
+           n_l_rows,n_l_cols)
+
+end subroutine
+
+subroutine elsi_read_mat_dim_sparse_c_wrapper(name_c,mpi_comm,n_basis,&
+              nnz_g,nnz_l,n_l_cols)&
+   bind(C,name="c_elsi_read_mat_dim_sparse")
+
+   implicit none
+
+   character(kind=c_char,len=1), dimension(128) :: name_c
+   integer(c_int), value, intent(in)            :: mpi_comm
+   integer(c_int)                               :: n_basis
+   integer(c_int)                               :: nnz_g
+   integer(c_int)                               :: nnz_l
+   integer(c_int)                               :: n_l_cols
+
+   character(len=:), allocatable :: name_f
+
+   name_f = convert_c_string_to_f_string(name_c)
+
+   call elsi_read_mat_dim_sparse(name_f,mpi_comm,n_basis,nnz_g,&
+           nnz_l,n_l_cols)
+
+end subroutine
+
+subroutine elsi_read_mat_real_c_wrapper(name_c,mpi_comm,blacs_ctxt,&
+              block_size,n_basis,n_l_rows,n_l_cols,mat)&
+   bind(C,name="c_elsi_read_mat_real")
+
+   implicit none
+
+   character(kind=c_char,len=1), dimension(128) :: name_c
+   integer(c_int), value, intent(in)            :: mpi_comm
+   integer(c_int), value, intent(in)            :: blacs_ctxt
+   integer(c_int), value, intent(in)            :: block_size
+   integer(c_int), value, intent(in)            :: n_basis
+   integer(c_int), value, intent(in)            :: n_l_rows
+   integer(c_int), value, intent(in)            :: n_l_cols
+   real(kind=c_double)                          :: mat(n_l_rows,n_l_cols)
+
+   character(len=:), allocatable :: name_f
+
+   name_f = convert_c_string_to_f_string(name_c)
+
+   call elsi_read_mat_real(name_f,mpi_comm,blacs_ctxt,block_size,n_basis,&
+           n_l_rows,n_l_cols,mat)
+
+end subroutine
+
+subroutine elsi_read_mat_real_sparse_c_wrapper(name_c,mpi_comm,n_basis,&
+              nnz_g,nnz_l,n_l_cols,row_ind,col_ptr,mat)&
+   bind(C,name="c_elsi_read_mat_real_sparse")
+
+   implicit none
+
+   character(kind=c_char,len=1), dimension(128) :: name_c
+   integer(c_int), value, intent(in)            :: mpi_comm
+   integer(c_int), value, intent(in)            :: n_basis
+   integer(c_int), value, intent(in)            :: nnz_g
+   integer(c_int), value, intent(in)            :: nnz_l
+   integer(c_int), value, intent(in)            :: n_l_cols
+   integer(c_int)                               :: row_ind(nnz_l)
+   integer(c_int)                               :: col_ptr(n_l_cols+1)
+   real(kind=c_double)                          :: mat(nnz_l)
+
+   character(len=:), allocatable :: name_f
+
+   name_f = convert_c_string_to_f_string(name_c)
+
+   call elsi_read_mat_real_sparse(name_f,mpi_comm,n_basis,nnz_g,nnz_l,&
+           n_l_cols,row_ind,col_ptr,mat)
+
+end subroutine
+
+subroutine elsi_write_mat_real_c_wrapper(name_c,mpi_comm,blacs_ctxt,&
+              block_size,n_basis,n_l_rows,n_l_cols,mat)&
+   bind(C,name="c_elsi_write_mat_real")
+
+   implicit none
+
+   character(kind=c_char,len=1), dimension(128) :: name_c
+   integer(c_int), value, intent(in)            :: mpi_comm
+   integer(c_int), value, intent(in)            :: blacs_ctxt
+   integer(c_int), value, intent(in)            :: block_size
+   integer(c_int), value, intent(in)            :: n_basis
+   integer(c_int), value, intent(in)            :: n_l_rows
+   integer(c_int), value, intent(in)            :: n_l_cols
+   real(kind=c_double)                          :: mat(n_l_rows,n_l_cols)
+
+   character(len=:), allocatable :: name_f
+
+   name_f = convert_c_string_to_f_string(name_c)
+
+   call elsi_write_mat_real(name_f,mpi_comm,blacs_ctxt,block_size,n_basis,&
+           n_l_rows,n_l_cols,mat)
+
+end subroutine
+
+subroutine elsi_write_mat_real_sparse_c_wrapper(name_c,mpi_comm,n_basis,&
+              nnz_g,nnz_l,n_l_cols,row_ind,col_ptr,mat)&
+   bind(C,name="c_elsi_write_mat_real_sparse")
+
+   implicit none
+
+   character(kind=c_char,len=1), dimension(128) :: name_c
+   integer(c_int), value, intent(in)            :: mpi_comm
+   integer(c_int), value, intent(in)            :: n_basis
+   integer(c_int), value, intent(in)            :: nnz_g
+   integer(c_int), value, intent(in)            :: nnz_l
+   integer(c_int), value, intent(in)            :: n_l_cols
+   integer(c_int)                               :: row_ind(nnz_l)
+   integer(c_int)                               :: col_ptr(n_l_cols+1)
+   real(kind=c_double)                          :: mat(nnz_l)
+
+   character(len=:), allocatable :: name_f
+
+   name_f = convert_c_string_to_f_string(name_c)
+
+   call elsi_write_mat_real_sparse(name_f,mpi_comm,n_basis,nnz_g,nnz_l,&
+           n_l_cols,row_ind,col_ptr,mat)
+
+end subroutine
+
 end module ELSI_C_INTERFACE
