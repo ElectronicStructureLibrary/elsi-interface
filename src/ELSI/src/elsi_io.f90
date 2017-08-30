@@ -75,11 +75,15 @@ subroutine elsi_read_mat_dim(f_name,mpi_comm,blacs_ctxt,block_size,&
 
    integer(kind=i4) :: myid
    integer(kind=i4) :: mpierr
-   integer(kind=i4) :: mat_format
+   integer(kind=i4) :: f_handle
+   integer(kind=i4) :: f_mode
+   integer(kind=i4) :: header(HEADER_SIZE)
    integer(kind=i4) :: n_p_rows
    integer(kind=i4) :: n_p_cols
    integer(kind=i4) :: my_p_row
    integer(kind=i4) :: my_p_col
+
+   integer(kind=mpi_offset_kind) :: offset
 
    integer(kind=i4), external :: numroc
 
@@ -87,14 +91,23 @@ subroutine elsi_read_mat_dim(f_name,mpi_comm,blacs_ctxt,block_size,&
 
    call MPI_Comm_rank(mpi_comm,myid,mpierr)
 
+   ! Open file
+   f_mode = mpi_mode_rdonly
+
+   call MPI_File_open(mpi_comm,f_name,f_mode,mpi_info_null,f_handle,mpierr)
+
+   ! Read header
    if(myid == 0) then
-      open(10,file=trim(f_name))
-      read(10,*) mat_format
-      read(10,*) n_basis
-      close(10)
+      offset = 0
+
+      call MPI_File_read_at(f_handle,offset,header,HEADER_SIZE,mpi_integer4,&
+              mpi_status_ignore,mpierr)
    endif
 
-   call MPI_Bcast(n_basis,1,mpi_integer4,0,mpi_comm,mpierr)
+   ! Broadcast header
+   call MPI_Bcast(header,HEADER_SIZE,mpi_integer4,0,mpi_comm,mpierr)
+
+   n_basis = header(2)
 
    ! Get processor grid information
    call blacs_gridinfo(blacs_ctxt,n_p_rows,n_p_cols,my_p_row,my_p_col)
@@ -184,7 +197,7 @@ subroutine elsi_read_mat_dim_sparse(f_name,mpi_comm,n_basis,nnz_g,&
    nnz_l = col_ptr(n_l_cols+1)-col_ptr(1)
 
    call elsi_deallocate(io_h,col_ptr,"col_ptr")
-   call elsi_finalize(io_h)
+   call elsi_cleanup(io_h)
 
 end subroutine
 
@@ -317,7 +330,7 @@ subroutine elsi_read_mat_real(f_name,mpi_comm,blacs_ctxt,block_size,&
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
    call elsi_statement_print(info_str,io_h)
 
-   call elsi_finalize(io_h)
+   call elsi_cleanup(io_h)
 
 end subroutine
 
@@ -403,7 +416,7 @@ subroutine elsi_read_mat_real_sparse(f_name,mpi_comm,n_basis,nnz_g,nnz_l,&
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
    call elsi_statement_print(info_str,io_h)
 
-   call elsi_finalize(io_h)
+   call elsi_cleanup(io_h)
 
 end subroutine
 
@@ -513,7 +526,7 @@ subroutine elsi_write_mat_real(f_name,mpi_comm,blacs_ctxt,block_size,&
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
    call elsi_statement_print(info_str,io_h)
 
-   call elsi_finalize(io_h)
+   call elsi_cleanup(io_h)
 
 end subroutine
 
@@ -615,7 +628,7 @@ subroutine elsi_write_mat_real_sparse(f_name,mpi_comm,n_basis,nnz_g,nnz_l,&
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
    call elsi_statement_print(info_str,io_h)
 
-   call elsi_finalize(io_h)
+   call elsi_cleanup(io_h)
 
 end subroutine
 
