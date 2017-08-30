@@ -795,18 +795,14 @@ subroutine elsi_set_real_ham(elsi_h,h_in)
 
    character*40, parameter :: caller = "elsi_set_real_ham"
 
-   if(elsi_h%solver == ELPA) then
-      if(elsi_h%matrix_format == BLACS_DENSE) then
-         call elsi_set_full_mat(elsi_h,h_in)
-      endif
+   if(elsi_h%matrix_format == BLACS_DENSE) then
+      call elsi_set_full_mat(elsi_h,h_in)
+   endif
 
-      elsi_h%ham_real => h_in
-   elseif(elsi_h%solver == LIBOMM) then
-      if(elsi_h%matrix_format == BLACS_DENSE) then
-         call elsi_set_full_mat(elsi_h,h_in)
-      endif
-
+   if(elsi_h%solver == LIBOMM) then
       call m_register_pdbc(elsi_h%ham_omm,h_in,elsi_h%sc_desc)
+   else
+      elsi_h%ham_real => h_in
    endif
 
 end subroutine
@@ -823,18 +819,14 @@ subroutine elsi_set_complex_ham(elsi_h,h_in)
 
    character*40, parameter :: caller = "elsi_set_complex_ham"
 
-   if(elsi_h%solver == ELPA) then
-      if(elsi_h%matrix_format == BLACS_DENSE) then
-         call elsi_set_full_mat(elsi_h,h_in)
-      endif
+   if(elsi_h%matrix_format == BLACS_DENSE) then
+      call elsi_set_full_mat(elsi_h,h_in)
+   endif
 
-      elsi_h%ham_complex => h_in
-   elseif(elsi_h%solver == LIBOMM) then
-      if(elsi_h%matrix_format == BLACS_DENSE) then
-         call elsi_set_full_mat(elsi_h,h_in)
-      endif
-
+   if(elsi_h%solver == LIBOMM) then
       call m_register_pdbc(elsi_h%ham_omm,h_in,elsi_h%sc_desc)
+   else
+      elsi_h%ham_complex => h_in
    endif
 
 end subroutine
@@ -851,9 +843,7 @@ subroutine elsi_set_sparse_real_ham(elsi_h,h_in)
 
    character*40, parameter :: caller = "elsi_set_sparse_real_ham"
 
-   if((elsi_h%solver == PEXSI) .or. (elsi_h%solver == SIPS)) then
-      elsi_h%ham_real_ccs => h_in
-   endif
+   elsi_h%ham_real_ccs => h_in
 
 end subroutine
 
@@ -869,9 +859,7 @@ subroutine elsi_set_sparse_complex_ham(elsi_h,h_in)
 
    character*40, parameter :: caller = "elsi_set_sparse_complex_ham"
 
-   if((elsi_h%solver == PEXSI) .or. (elsi_h%solver == SIPS)) then
-      elsi_h%ham_complex_ccs => h_in
-   endif
+   elsi_h%ham_complex_ccs => h_in
 
 end subroutine
 
@@ -888,20 +876,15 @@ subroutine elsi_set_real_ovlp(elsi_h,s_in)
    character*40, parameter :: caller = "elsi_set_real_ovlp"
 
    if(.not. elsi_h%ovlp_is_unit) then
-      if(elsi_h%solver == ELPA) then
-         if((elsi_h%matrix_format == BLACS_DENSE) .and. &
-            (elsi_h%n_elsi_calls == 1)) then
-            call elsi_set_full_mat(elsi_h,s_in)
-         endif
+      if((elsi_h%matrix_format == BLACS_DENSE) .and. &
+         (elsi_h%n_elsi_calls == 1)) then
+         call elsi_set_full_mat(elsi_h,s_in)
+      endif
 
-         elsi_h%ovlp_real => s_in
-      elseif(elsi_h%solver == LIBOMM) then
-         if((elsi_h%matrix_format == BLACS_DENSE) .and. &
-            (elsi_h%n_elsi_calls == 1)) then
-            call elsi_set_full_mat(elsi_h,s_in)
-         endif
-
+      if(elsi_h%solver == LIBOMM) then
          call m_register_pdbc(elsi_h%ovlp_omm,s_in,elsi_h%sc_desc)
+      else
+         elsi_h%ovlp_real => s_in
       endif
    endif
 
@@ -920,22 +903,18 @@ subroutine elsi_set_complex_ovlp(elsi_h,s_in)
    character*40, parameter :: caller = "elsi_set_complex_ovlp"
 
    if(.not. elsi_h%ovlp_is_unit) then
-      if(elsi_h%solver == ELPA) then
-         if((elsi_h%matrix_format == BLACS_DENSE) .and. &
-            (elsi_h%n_elsi_calls == 1)) then
-            call elsi_set_full_mat(elsi_h,s_in)
-         endif
+      if((elsi_h%matrix_format == BLACS_DENSE) .and. &
+         (elsi_h%n_elsi_calls == 1)) then
+         call elsi_set_full_mat(elsi_h,s_in)
+      endif
 
-         elsi_h%ovlp_complex => s_in
-      elseif(elsi_h%solver == LIBOMM) then
-         if((elsi_h%matrix_format == BLACS_DENSE) .and. &
-            (elsi_h%n_elsi_calls == 1)) then
-            call elsi_set_full_mat(elsi_h,s_in)
-         endif
-
+      if(elsi_h%solver == LIBOMM) then
          call m_register_pdbc(elsi_h%ovlp_omm,s_in,elsi_h%sc_desc)
+      else
+         elsi_h%ovlp_complex => s_in
       endif
    endif
+
 end subroutine
 
 !>
@@ -951,9 +930,7 @@ subroutine elsi_set_sparse_real_ovlp(elsi_h,s_in)
    character*40, parameter :: caller = "elsi_set_sparse_real_ovlp"
 
    if(.not. elsi_h%ovlp_is_unit) then
-      if((elsi_h%solver == PEXSI) .or. (elsi_h%solver == SIPS)) then
-         elsi_h%ovlp_real_ccs => s_in
-      endif
+      elsi_h%ovlp_real_ccs => s_in
    endif
 
 end subroutine
@@ -971,9 +948,7 @@ subroutine elsi_set_sparse_complex_ovlp(elsi_h,s_in)
    character*40, parameter :: caller = "elsi_set_sparse_complex_ovlp"
 
    if(.not. elsi_h%ovlp_is_unit) then
-      if((elsi_h%solver == PEXSI) .or. (elsi_h%solver == SIPS)) then
-         elsi_h%ovlp_complex_ccs => s_in
-      endif
+      elsi_h%ovlp_complex_ccs => s_in
    endif
 
 end subroutine
@@ -990,9 +965,7 @@ subroutine elsi_set_eval(elsi_h,e_val_in)
 
    character*40, parameter :: caller = "elsi_set_eval"
 
-   if((elsi_h%solver == ELPA) .or. (elsi_h%solver == SIPS)) then
-      elsi_h%eval => e_val_in
-   endif
+   elsi_h%eval => e_val_in
 
 end subroutine
 
@@ -1008,9 +981,7 @@ subroutine elsi_set_real_evec(elsi_h,e_vec_in)
 
    character*40, parameter :: caller = "elsi_set_real_evec"
 
-   if((elsi_h%solver == ELPA) .or. (elsi_h%solver == SIPS)) then
-      elsi_h%evec_real => e_vec_in
-   endif
+   elsi_h%evec_real => e_vec_in
 
 end subroutine
 
@@ -1026,9 +997,7 @@ subroutine elsi_set_complex_evec(elsi_h,e_vec_in)
 
    character*40, parameter :: caller = "elsi_set_complex_evec"
 
-   if((elsi_h%solver == ELPA) .or. (elsi_h%solver == SIPS)) then
-      elsi_h%evec_complex => e_vec_in
-   endif
+   elsi_h%evec_complex => e_vec_in
 
 end subroutine
 
@@ -1044,10 +1013,10 @@ subroutine elsi_set_real_dm(elsi_h,d_in)
 
    character*40, parameter :: caller = "elsi_set_real_dm"
 
-   if(elsi_h%solver == ELPA) then
-      elsi_h%dm_real => d_in
-   elseif(elsi_h%solver == LIBOMM) then
+   if(elsi_h%solver == LIBOMM) then
       call m_register_pdbc(elsi_h%dm_omm,d_in,elsi_h%sc_desc)
+   else
+      elsi_h%dm_real => d_in
    endif
 
 end subroutine
@@ -1064,10 +1033,10 @@ subroutine elsi_set_complex_dm(elsi_h,d_in)
 
    character*40, parameter :: caller = "elsi_set_complex_dm"
 
-   if(elsi_h%solver == ELPA) then
-      elsi_h%dm_complex => d_in
-   elseif(elsi_h%solver == LIBOMM) then
+   if(elsi_h%solver == LIBOMM) then
       call m_register_pdbc(elsi_h%dm_omm,d_in,elsi_h%sc_desc)
+   else
+      elsi_h%dm_complex => d_in
    endif
 
 end subroutine
@@ -1084,9 +1053,7 @@ subroutine elsi_set_sparse_real_dm(elsi_h,d_in)
 
    character*40, parameter :: caller = "elsi_set_sparse_real_dm"
 
-   if(elsi_h%solver == PEXSI) then
-      elsi_h%dm_real_ccs => d_in
-   endif
+   elsi_h%dm_real_ccs => d_in
 
 end subroutine
 
@@ -1102,9 +1069,7 @@ subroutine elsi_set_sparse_complex_dm(elsi_h,d_in)
 
    character*40, parameter :: caller = "elsi_set_sparse_complex_dm"
 
-   if(elsi_h%solver == PEXSI) then
-      elsi_h%dm_complex_ccs => d_in
-   endif
+   elsi_h%dm_complex_ccs => d_in
 
 end subroutine
 
