@@ -34,7 +34,8 @@ module ELSI_IO
    use ELSI_CONSTANTS, only: SINGLE_PROC,HEADER_SIZE,BLACS_DENSE,PEXSI_CSC
    use ELSI_DATATYPE, only: elsi_handle
    use ELSI_SETUP
-   use ELSI_MATCONV, only: elsi_pexsi_to_blacs_dm,elsi_blacs_to_pexsi_dm
+   use ELSI_MATCONV, only: elsi_pexsi_to_blacs_dm,elsi_blacs_to_sips_hs_small,&
+                           elsi_blacs_to_sips_hs_large
    use ELSI_PRECISION, only: r8,i4
    use ELSI_UTILS
 
@@ -59,12 +60,12 @@ contains
 !! This routine reads the dimensions of a 2D block-cyclic dense matrix
 !! from file.
 !!
-subroutine elsi_read_mat_dim(filename,mpi_comm,blacs_ctxt,block_size,&
+subroutine elsi_read_mat_dim(f_name,mpi_comm,blacs_ctxt,block_size,&
               n_basis,n_l_rows,n_l_cols)
 
    implicit none
 
-   character(*),     intent(in)  :: filename   !< File to open
+   character(*),     intent(in)  :: f_name     !< File name
    integer(kind=i4), intent(in)  :: mpi_comm   !< MPI communicator
    integer(kind=i4), intent(in)  :: blacs_ctxt !< BLACS context
    integer(kind=i4), intent(in)  :: block_size !< Block size
@@ -87,7 +88,7 @@ subroutine elsi_read_mat_dim(filename,mpi_comm,blacs_ctxt,block_size,&
    call MPI_Comm_rank(mpi_comm,myid,mpierr)
 
    if(myid == 0) then
-      open(10,file=trim(filename))
+      open(10,file=trim(f_name))
       read(10,*) mat_format
       read(10,*) n_basis
       close(10)
@@ -107,12 +108,12 @@ end subroutine
 !>
 !! This routine reads the dimensions of a 1D block CSC matrix from file.
 !!
-subroutine elsi_read_mat_dim_sparse(filename,mpi_comm,n_basis,nnz_g,&
+subroutine elsi_read_mat_dim_sparse(f_name,mpi_comm,n_basis,nnz_g,&
               nnz_l,n_l_cols)
 
    implicit none
 
-   character(*),     intent(in)  :: filename !< File to open
+   character(*),     intent(in)  :: f_name   !< File name
    integer(kind=i4), intent(in)  :: mpi_comm !< MPI communicator
    integer(kind=i4), intent(out) :: n_basis  !< Matrix size
    integer(kind=i4), intent(out) :: nnz_g    !< Global number of nonzeros
@@ -122,8 +123,8 @@ subroutine elsi_read_mat_dim_sparse(filename,mpi_comm,n_basis,nnz_g,&
    integer(kind=i4) :: mpierr
    integer(kind=i4) :: myid
    integer(kind=i4) :: n_procs
-   integer(kind=i4) :: filehandle
-   integer(kind=i4) :: filemode
+   integer(kind=i4) :: f_handle
+   integer(kind=i4) :: f_mode
    integer(kind=i4) :: header(HEADER_SIZE)
    integer(kind=i4) :: n_l_cols0
    integer(kind=i4) :: prev_nnz
@@ -138,15 +139,15 @@ subroutine elsi_read_mat_dim_sparse(filename,mpi_comm,n_basis,nnz_g,&
    call MPI_Comm_size(mpi_comm,n_procs,mpierr)
 
    ! Open file
-   filemode = mpi_mode_rdonly
+   f_mode = mpi_mode_rdonly
 
-   call MPI_File_open(mpi_comm,filename,filemode,mpi_info_null,filehandle,mpierr)
+   call MPI_File_open(mpi_comm,f_name,f_mode,mpi_info_null,f_handle,mpierr)
 
    ! Read header
    if(myid == 0) then
       offset = 0
 
-      call MPI_File_read_at(filehandle,offset,header,HEADER_SIZE,mpi_integer4,&
+      call MPI_File_read_at(f_handle,offset,header,HEADER_SIZE,mpi_integer4,&
               mpi_status_ignore,mpierr)
    endif
 
@@ -168,7 +169,7 @@ subroutine elsi_read_mat_dim_sparse(filename,mpi_comm,n_basis,nnz_g,&
    ! Read column pointer
    offset = HEADER_SIZE*4+myid*n_l_cols0*4
 
-   call MPI_File_read_at_all(filehandle,offset,col_ptr,n_l_cols+1,mpi_integer4,&
+   call MPI_File_read_at_all(f_handle,offset,col_ptr,n_l_cols+1,mpi_integer4,&
            mpi_status_ignore,mpierr)
 
    if(myid == n_procs-1) then
@@ -189,25 +190,25 @@ end subroutine
 !>
 !! This routine reads a 2D block-cyclic dense matrix from file.
 !!
-subroutine elsi_read_mat_real(filename,mpi_comm,blacs_ctxt,block_size,&
-              n_basis,n_l_rows,n_l_cols,mat_out)
+subroutine elsi_read_mat_real(f_name,mpi_comm,blacs_ctxt,block_size,&
+              n_basis,n_l_rows,n_l_cols,mat)
 
    implicit none
 
-   character(*),     intent(in)  :: filename                   !< File to open
-   integer(kind=i4), intent(in)  :: mpi_comm                   !< MPI communicator
-   integer(kind=i4), intent(in)  :: blacs_ctxt                 !< BLACS context
-   integer(kind=i4), intent(in)  :: block_size                 !< Block size
-   integer(kind=i4), intent(in)  :: n_basis                    !< Matrix size
-   integer(kind=i4), intent(in)  :: n_l_rows                   !< Local number of rows
-   integer(kind=i4), intent(in)  :: n_l_cols                   !< Local number of columns
-   real(kind=r8),    intent(out) :: mat_out(n_l_rows,n_l_cols) !< Output matrix
+   character(*),     intent(in)  :: f_name                 !< File name
+   integer(kind=i4), intent(in)  :: mpi_comm               !< MPI communicator
+   integer(kind=i4), intent(in)  :: blacs_ctxt             !< BLACS context
+   integer(kind=i4), intent(in)  :: block_size             !< Block size
+   integer(kind=i4), intent(in)  :: n_basis                !< Matrix size
+   integer(kind=i4), intent(in)  :: n_l_rows               !< Local number of rows
+   integer(kind=i4), intent(in)  :: n_l_cols               !< Local number of columns
+   real(kind=r8),    intent(out) :: mat(n_l_rows,n_l_cols) !< Matrix
 
    integer(kind=i4) :: mpierr
    integer(kind=i4) :: myid
    integer(kind=i4) :: n_procs
-   integer(kind=i4) :: filehandle
-   integer(kind=i4) :: filemode
+   integer(kind=i4) :: f_handle
+   integer(kind=i4) :: f_mode
    integer(kind=i4) :: header(HEADER_SIZE)
    integer(kind=i4) :: n_l_cols_sp
    integer(kind=i4) :: n_l_cols0
@@ -229,15 +230,15 @@ subroutine elsi_read_mat_real(filename,mpi_comm,blacs_ctxt,block_size,&
    call MPI_Comm_size(mpi_comm,n_procs,mpierr)
 
    ! Open file
-   filemode = mpi_mode_rdonly
+   f_mode = mpi_mode_rdonly
 
-   call MPI_File_open(mpi_comm,filename,filemode,mpi_info_null,filehandle,mpierr)
+   call MPI_File_open(mpi_comm,f_name,f_mode,mpi_info_null,f_handle,mpierr)
 
    ! Read header
    if(myid == 0) then
       offset = 0
 
-      call MPI_File_read_at(filehandle,offset,header,HEADER_SIZE,mpi_integer4,&
+      call MPI_File_read_at(f_handle,offset,header,HEADER_SIZE,mpi_integer4,&
               mpi_status_ignore,mpierr)
    endif
 
@@ -263,7 +264,7 @@ subroutine elsi_read_mat_real(filename,mpi_comm,blacs_ctxt,block_size,&
    ! Read column pointer
    offset = HEADER_SIZE*4+myid*n_l_cols0*4
 
-   call MPI_File_read_at_all(filehandle,offset,col_ptr,n_l_cols_sp+1,&
+   call MPI_File_read_at_all(f_handle,offset,col_ptr,n_l_cols_sp+1,&
            mpi_integer4,mpi_status_ignore,mpierr)
 
    if(myid == n_procs-1) then
@@ -282,7 +283,7 @@ subroutine elsi_read_mat_real(filename,mpi_comm,blacs_ctxt,block_size,&
    ! Read row index
    offset = HEADER_SIZE*4+n_basis*4+prev_nnz*4
 
-   call MPI_File_read_at_all(filehandle,offset,row_ind,nnz_l,mpi_integer4,&
+   call MPI_File_read_at_all(f_handle,offset,row_ind,nnz_l,mpi_integer4,&
            mpi_status_ignore,mpierr)
 
    ! Read non-zero value
@@ -290,11 +291,11 @@ subroutine elsi_read_mat_real(filename,mpi_comm,blacs_ctxt,block_size,&
 
    allocate(nnz_val(nnz_l))
 
-   call MPI_File_read_at_all(filehandle,offset,nnz_val,nnz_l,mpi_real8,&
+   call MPI_File_read_at_all(f_handle,offset,nnz_val,nnz_l,mpi_real8,&
            mpi_status_ignore,mpierr)
 
    ! Close file
-   call MPI_File_close(filehandle,mpierr)
+   call MPI_File_close(f_handle,mpierr)
 
    ! Redistribute matrix
    call elsi_set_csc(io_h,nnz_g,nnz_l,n_l_cols_sp,row_ind,col_ptr)
@@ -303,7 +304,7 @@ subroutine elsi_read_mat_real(filename,mpi_comm,blacs_ctxt,block_size,&
    io_h%my_p_row_pexsi = 0
    io_h%n_p_per_pole   = n_procs
 
-   call elsi_pexsi_to_blacs_dm(io_h,mat_out)
+   call elsi_pexsi_to_blacs_dm(io_h,mat)
 
    ! Shut down handle
    call elsi_finalize(io_h)
@@ -317,12 +318,12 @@ end subroutine
 !>
 !! This routine reads a 1D block CSC matrix from file.
 !!
-subroutine elsi_read_mat_real_sparse(filename,mpi_comm,n_basis,nnz_g,&
-              nnz_l,n_l_cols,row_ind,col_ptr,mat_out)
+subroutine elsi_read_mat_real_sparse(f_name,mpi_comm,n_basis,nnz_g,nnz_l,&
+              n_l_cols,row_ind,col_ptr,mat)
 
    implicit none
 
-   character(*),     intent(in)  :: filename            !< File to open
+   character(*),     intent(in)  :: f_name              !< File name
    integer(kind=i4), intent(in)  :: mpi_comm            !< MPI communicator
    integer(kind=i4), intent(in)  :: n_basis             !< Matrix size
    integer(kind=i4), intent(in)  :: nnz_g               !< Global number of nonzeros
@@ -330,13 +331,13 @@ subroutine elsi_read_mat_real_sparse(filename,mpi_comm,n_basis,nnz_g,&
    integer(kind=i4), intent(in)  :: n_l_cols            !< Local number of columns
    integer(kind=i4), intent(out) :: row_ind(nnz_l)      !< Row index
    integer(kind=i4), intent(out) :: col_ptr(n_l_cols+1) !< Column pointer
-   real(kind=r8),    intent(out) :: mat_out(nnz_l)      !< Output matrix
+   real(kind=r8),    intent(out) :: mat(nnz_l)          !< Matrix
 
    integer(kind=i4) :: mpierr
    integer(kind=i4) :: myid
    integer(kind=i4) :: n_procs
-   integer(kind=i4) :: filehandle
-   integer(kind=i4) :: filemode
+   integer(kind=i4) :: f_handle
+   integer(kind=i4) :: f_mode
    integer(kind=i4) :: header(HEADER_SIZE)
    integer(kind=i4) :: n_l_cols0
    integer(kind=i4) :: prev_nnz
@@ -349,9 +350,9 @@ subroutine elsi_read_mat_real_sparse(filename,mpi_comm,n_basis,nnz_g,&
    call MPI_Comm_size(mpi_comm,n_procs,mpierr)
 
    ! Open file
-   filemode = mpi_mode_rdonly
+   f_mode = mpi_mode_rdonly
 
-   call MPI_File_open(mpi_comm,filename,filemode,mpi_info_null,filehandle,mpierr)
+   call MPI_File_open(mpi_comm,f_name,f_mode,mpi_info_null,f_handle,mpierr)
 
    ! Compute n_l_cols0
    n_l_cols0 = n_basis/n_procs
@@ -359,7 +360,7 @@ subroutine elsi_read_mat_real_sparse(filename,mpi_comm,n_basis,nnz_g,&
    ! Read column pointer
    offset = HEADER_SIZE*4+myid*n_l_cols0*4
 
-   call MPI_File_read_at_all(filehandle,offset,col_ptr,n_l_cols+1,mpi_integer4,&
+   call MPI_File_read_at_all(f_handle,offset,col_ptr,n_l_cols+1,mpi_integer4,&
            mpi_status_ignore,mpierr)
 
    if(myid == n_procs-1) then
@@ -373,179 +374,203 @@ subroutine elsi_read_mat_real_sparse(filename,mpi_comm,n_basis,nnz_g,&
    ! Read row index
    offset = HEADER_SIZE*4+n_basis*4+prev_nnz*4
 
-   call MPI_File_read_at_all(filehandle,offset,row_ind,nnz_l,mpi_integer4,&
+   call MPI_File_read_at_all(f_handle,offset,row_ind,nnz_l,mpi_integer4,&
            mpi_status_ignore,mpierr)
 
    ! Read non-zero value
    offset = HEADER_SIZE*4+n_basis*4+nnz_g*4+prev_nnz*8
 
-   call MPI_File_read_at_all(filehandle,offset,mat_out,nnz_l,mpi_real8,&
+   call MPI_File_read_at_all(f_handle,offset,mat,nnz_l,mpi_real8,&
            mpi_status_ignore,mpierr)
 
-   call MPI_File_close(filehandle,mpierr)
+   call MPI_File_close(f_handle,mpierr)
 
 end subroutine
 
 !>
 !! This routine writes a 2D block-cyclic dense matrix to file.
 !!
-subroutine elsi_write_mat_real(elsi_h,id)
+subroutine elsi_write_mat_real(f_name,mpi_comm,blacs_ctxt,block_size,&
+              n_basis,n_l_rows,n_l_cols,mat)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h !< Handle
-   integer(kind=i4),  intent(in)    :: id     !< H,S,D
+   character(*),     intent(in) :: f_name                 !< File name
+   integer(kind=i4), intent(in) :: mpi_comm               !< MPI communicator
+   integer(kind=i4), intent(in) :: blacs_ctxt             !< BLACS context
+   integer(kind=i4), intent(in) :: block_size             !< Block size
+   integer(kind=i4), intent(in) :: n_basis                !< Matrix size
+   integer(kind=i4), intent(in) :: n_l_rows               !< Local number of rows
+   integer(kind=i4), intent(in) :: n_l_cols               !< Local number of columns
+   real(kind=r8),    intent(in) :: mat(n_l_rows,n_l_cols) !< Matrix
 
    integer(kind=i4) :: mpierr
-   integer(kind=i4) :: filehandle
-   integer(kind=i4) :: filemode
+   integer(kind=i4) :: myid
+   integer(kind=i4) :: n_procs
+   integer(kind=i4) :: f_handle
+   integer(kind=i4) :: f_mode
    integer(kind=i4) :: header(HEADER_SIZE)
-   integer(kind=i4) :: n_l_cols
    integer(kind=i4) :: n_l_cols0
-   integer(kind=i4) :: nnz_l
    integer(kind=i4) :: prev_nnz
 
    integer(kind=mpi_offset_kind) :: offset
 
-   integer(kind=i4), allocatable :: row_ind(:)
-   integer(kind=i4), allocatable :: col_ptr(:)
-   real(kind=r8),    allocatable :: nnz_val(:)
-
-   character*40 :: filename
+   type(elsi_handle) :: io_h
 
    character*40, parameter :: caller = "elsi_write_mat_real"
 
-   call elsi_check_handle(elsi_h,caller)
-
-   if(.not. elsi_h%mpi_ready) then
-      call elsi_stop(" Parallel matrix I/O requires MPI. Exiting...",&
-              elsi_h,caller)
-   endif
+   call MPI_Comm_rank(mpi_comm,myid,mpierr)
+   call MPI_Comm_size(mpi_comm,n_procs,mpierr)
 
    ! Redistribute matrix
-   ! TODO
+   call elsi_init(io_h,SIPS,MULTI_PROC,BLACS_DENSE,n_basis,0.0_r8,0)
+   call elsi_set_mpi(io_h,mpi_comm)
+   call elsi_set_blacs(io_h,blacs_ctxt,block_size)
+
+   if(n_basis < 46340) then
+      call elsi_blacs_to_sips_hs_small(io_h,mat,mat)
+   else
+      call elsi_blacs_to_sips_hs_large(io_h,mat,mat)
+   endif
 
    ! Open file
-   filemode = mpi_mode_wronly+mpi_mode_create
+   f_mode = mpi_mode_wronly+mpi_mode_create
 
-   call MPI_File_open(elsi_h%mpi_comm,filename,filemode,mpi_info_null,&
-           filehandle,mpierr)
+   call MPI_File_open(mpi_comm,f_name,f_mode,mpi_info_null,f_handle,mpierr)
 
    ! Write header
-   header(1) = BLACS_DENSE
-   header(2) = elsi_h%n_basis
-   header(3) = int(elsi_h%n_electrons,kind=i4)
-   header(4) = elsi_h%nnz_g
+   header(1) = PEXSI_CSC
+   header(2) = n_basis
+   header(3) = 0
+   header(4) = io_h%nnz_g
 
-   if(elsi_h%myid == 0) then
+   if(myid == 0) then
       offset = 0
 
-      call MPI_File_write_at(filehandle,offset,header,HEADER_SIZE,&
-              mpi_integer4,mpi_status_ignore,mpierr)
+      call MPI_File_write_at(f_handle,offset,header,HEADER_SIZE,mpi_integer4,&
+              mpi_status_ignore,mpierr)
    endif
 
    ! Compute shift of column pointers
    prev_nnz = 0
 
-   call MPI_Exscan(nnz_l,prev_nnz,1,mpi_integer4,mpi_sum,elsi_h%mpi_comm,&
+   call MPI_Exscan(io_h%nnz_l_sp,prev_nnz,1,mpi_integer4,mpi_sum,mpi_comm,&
            mpierr)
 
    ! Shift column pointer
-   col_ptr = col_ptr+prev_nnz
+   io_h%col_ptr_ccs = io_h%col_ptr_ccs+prev_nnz
 
    ! Write column pointer
-   n_l_cols0 = elsi_h%n_basis/elsi_h%n_procs
-   offset = HEADER_SIZE*4+elsi_h%myid*n_l_cols0*4
+   n_l_cols0 = n_basis/n_procs
+   offset = HEADER_SIZE*4+myid*n_l_cols0*4
 
-   call MPI_File_write_at_all(filehandle,offset,col_ptr,n_l_cols,&
-           mpi_integer4,mpi_status_ignore,mpierr)
-
-   ! Unshift column pointer
-   col_ptr = col_ptr-prev_nnz
+   call MPI_File_write_at_all(f_handle,offset,io_h%col_ptr_ccs,&
+           io_h%n_l_cols_sp,mpi_integer4,mpi_status_ignore,mpierr)
 
    ! Write row index
-   offset = HEADER_SIZE*4+elsi_h%n_basis*4+prev_nnz*4
+   offset = HEADER_SIZE*4+n_basis*4+prev_nnz*4
 
-   call MPI_File_write_at_all(filehandle,offset,row_ind,nnz_l,&
+   call MPI_File_write_at_all(f_handle,offset,io_h%row_ind_ccs,io_h%nnz_l_sp,&
            mpi_integer4,mpi_status_ignore,mpierr)
 
    ! Write non-zero value
-   offset = HEADER_SIZE*4+elsi_h%n_basis*4+elsi_h%nnz_g*4+prev_nnz*8
+   offset = HEADER_SIZE*4+n_basis*4+io_h%nnz_g*4+prev_nnz*8
 
-   call MPI_File_write_at_all(filehandle,offset,nnz_val,nnz_l,mpi_real8,&
-           mpi_status_ignore,mpierr)
+   call MPI_File_write_at_all(f_handle,offset,io_h%ham_real_ccs,io_h%nnz_l_sp,&
+           mpi_real8,mpi_status_ignore,mpierr)
 
-   call MPI_File_close(filehandle,mpierr)
+   call MPI_File_close(f_handle,mpierr)
+
+   call elsi_finalize(io_h)
 
 end subroutine
 
 !>
 !! This routine writes a 1D block CSC matrix to file.
 !!
-subroutine elsi_write_mat_real_sparse()
+subroutine elsi_write_mat_real_sparse(f_name,mpi_comm,n_basis,nnz_g,nnz_l,&
+              n_l_cols,row_ind,col_ptr,mat)
 
    implicit none
 
+   character(*),     intent(in) :: f_name              !< File name
+   integer(kind=i4), intent(in) :: mpi_comm            !< MPI communicator
+   integer(kind=i4), intent(in) :: n_basis             !< Matrix size
+   integer(kind=i4), intent(in) :: nnz_g               !< Global number of nonzeros
+   integer(kind=i4), intent(in) :: nnz_l               !< Local number of nonzeros
+   integer(kind=i4), intent(in) :: n_l_cols            !< Local number of columns
+   integer(kind=i4), intent(in) :: row_ind(nnz_l)      !< Row index
+   integer(kind=i4), intent(in) :: col_ptr(n_l_cols+1) !< Column pointer
+   real(kind=r8),    intent(in) :: mat(nnz_l)          !< Matrix
+
    integer(kind=i4) :: mpierr
-   integer(kind=i4) :: filehandle
-   integer(kind=i4) :: filemode
+   integer(kind=i4) :: myid
+   integer(kind=i4) :: n_procs
+   integer(kind=i4) :: f_handle
+   integer(kind=i4) :: f_mode
    integer(kind=i4) :: header(HEADER_SIZE)
    integer(kind=i4) :: prev_nnz
    integer(kind=i4) :: n_l_cols0
 
    integer(kind=mpi_offset_kind) :: offset
 
+   integer(kind=i4), allocatable :: col_ptr_shift(:)
+
    character*40, parameter :: caller = "elsi_write_mat_real_sparse"
 
+   call MPI_Comm_rank(mpi_comm,myid,mpierr)
+   call MPI_Comm_size(mpi_comm,n_procs,mpierr)
+
    ! Open file
-!   filemode = mpi_mode_wronly+mpi_mode_create
-!
-!   call MPI_File_open(mpi_comm,filename,filemode,mpi_info_null,filehandle,mpierr)
-!
+   f_mode = mpi_mode_wronly+mpi_mode_create
+
+   call MPI_File_open(mpi_comm,f_name,f_mode,mpi_info_null,f_handle,mpierr)
+
    ! Write header
-!   header(1) = PEXSI_CSC
-!   header(2) = n_basis
-!   header(3) = int(n_electrons,kind=i4)
-!   header(4) = nnz_g
-!
-!   if(myid == 0) then
-!      offset = 0
-!
-!      call MPI_File_write_at(filehandle,offset,header,HEADER_SIZE,mpi_integer4,&
-!              mpi_status_ignore,mpierr)
-!   endif
-!
-!   ! Compute shift of column pointers
-!   prev_nnz = 0
-!
-!   call MPI_Exscan(nnz_l_sp,prev_nnz,1,mpi_integer4,mpi_sum,mpi_comm,mpierr)
-!
-!   ! Shift column pointer
-!   col_ptr = col_ptr+prev_nnz
-!
-!   ! Write column pointer
-!   n_l_cols0 = n_basis/n_procs
-!   offset = HEADER_SIZE*4+myid*n_l_cols0*4
-!
-!   call MPI_File_write_at_all(filehandle,offset,col_ptr,n_l_cols,mpi_integer4,&
-!           mpi_status_ignore,mpierr)
-!
-!   ! Unshift column pointer
-!   col_ptr = col_ptr-prev_nnz
-!
-!   ! Write row index
-!   offset = HEADER_SIZE*4+n_basis*4+prev_nnz*4
-!
-!   call MPI_File_write_at_all(filehandle,offset,row_ind,nnz_l,mpi_integer4,&
-!           mpi_status_ignore,mpierr)
-!
-!   ! Write non-zero value
-!   offset = HEADER_SIZE*4+n_basis*4+nnz_g*4+prev_nnz*8
-!
-!   call MPI_File_write_at_all(filehandle,offset,nnz_val,nnz_l,mpi_real8,&
-!           mpi_status_ignore,mpierr)
-!
-!   call MPI_File_close(filehandle,mpierr)
+   header(1) = PEXSI_CSC
+   header(2) = n_basis
+   header(3) = 0
+   header(4) = nnz_g
+
+   if(myid == 0) then
+      offset = 0
+
+      call MPI_File_write_at(f_handle,offset,header,HEADER_SIZE,mpi_integer4,&
+              mpi_status_ignore,mpierr)
+   endif
+
+   ! Compute shift of column pointers
+   prev_nnz = 0
+
+   call MPI_Exscan(nnz_l,prev_nnz,1,mpi_integer4,mpi_sum,mpi_comm,mpierr)
+
+   ! Shift column pointer
+   allocate(col_ptr_shift(n_l_cols+1))
+
+   col_ptr_shift = col_ptr+prev_nnz
+
+   ! Write column pointer
+   n_l_cols0 = n_basis/n_procs
+   offset = HEADER_SIZE*4+myid*n_l_cols0*4
+
+   call MPI_File_write_at_all(f_handle,offset,col_ptr_shift,n_l_cols,&
+           mpi_integer4,mpi_status_ignore,mpierr)
+
+   deallocate(col_ptr_shift)
+
+   ! Write row index
+   offset = HEADER_SIZE*4+n_basis*4+prev_nnz*4
+
+   call MPI_File_write_at_all(f_handle,offset,row_ind,nnz_l,mpi_integer4,&
+           mpi_status_ignore,mpierr)
+
+   ! Write non-zero value
+   offset = HEADER_SIZE*4+n_basis*4+nnz_g*4+prev_nnz*8
+
+   call MPI_File_write_at_all(f_handle,offset,mat,nnz_l,mpi_real8,&
+           mpi_status_ignore,mpierr)
+
+   call MPI_File_close(f_handle,mpierr)
 
 end subroutine
 

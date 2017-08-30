@@ -46,6 +46,8 @@ module ELSI_MATCONV
    public :: elsi_chess_to_blacs_dm
    public :: elsi_pexsi_to_blacs_dm
    public :: elsi_pexsi_to_blacs_hs
+   public :: elsi_blacs_to_sips_hs_small
+   public :: elsi_blacs_to_sips_hs_large
 
    interface elsi_blacs_to_pexsi_dm
       module procedure elsi_blacs_to_pexsi_dm_real
