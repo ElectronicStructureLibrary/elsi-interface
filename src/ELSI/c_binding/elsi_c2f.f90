@@ -35,13 +35,18 @@ module ELSI_C2F
 
    implicit none
 
+   private
+
+   public :: c_int_to_f_logical
+   public :: c_string_to_f_string
+
 contains
 
 !>
 !! This routine encodes the standard convention that 0 is .false., any other
 !! integer is .true..
 !!
-function convert_c_int_to_f_logical(int_c) result(logical_f)
+function c_int_to_f_logical(int_c) result(logical_f)
 
    implicit none
 
@@ -62,7 +67,7 @@ end function
 !! char(*)) is a separate data type from a character array (i.e. char,
 !! dimension(*)) and they are NOT interoperable in interfaces.
 !!
-function convert_c_string_to_f_string(string_c) result(string_f)
+function c_string_to_f_string(string_c) result(string_f)
 
    implicit none
 

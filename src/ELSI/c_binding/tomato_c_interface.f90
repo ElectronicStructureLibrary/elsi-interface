@@ -72,7 +72,7 @@ subroutine ms_scalapack_setup_c_wrapper(mpi_comm,nprow,order,blk,ctxt)&
 
    character(2) :: order_f
 
-   order_f = convert_c_string_to_f_string(order)
+   order_f = c_string_to_f_string(order)
 
    call ms_scalapack_setup(mpi_comm,nprow,order_f,blk,icontxt=ctxt)
 
@@ -124,16 +124,16 @@ subroutine tomato_tb_c_wrapper(seed_dir,system,switch1,frac_occ,&
    allocate(h_f)
    allocate(s_f)
 
-   switch1_f      = convert_c_int_to_f_logical(switch1)
-   switch2_f      = convert_c_int_to_f_logical(switch2)
-   switch3_f      = convert_c_int_to_f_logical(switch3)
-   gamma_only_f   = convert_c_int_to_f_logical(gamma_only)
-   defect_f       = convert_c_int_to_f_logical(defect)
-   build_matrix_f = convert_c_int_to_f_logical(build_matrix)
+   switch1_f      = c_int_to_f_logical(switch1)
+   switch2_f      = c_int_to_f_logical(switch2)
+   switch3_f      = c_int_to_f_logical(switch3)
+   gamma_only_f   = c_int_to_f_logical(gamma_only)
+   defect_f       = c_int_to_f_logical(defect)
+   build_matrix_f = c_int_to_f_logical(build_matrix)
 
-   seed_dir_f     = convert_c_string_to_f_string(seed_dir)
-   system_f       = convert_c_string_to_f_string(system)
-   ms_storage_f   = convert_c_string_to_f_string(ms_storage)
+   seed_dir_f     = c_string_to_f_string(seed_dir)
+   system_f       = c_string_to_f_string(system)
+   ms_storage_f   = c_string_to_f_string(ms_storage)
 
    call tomato_TB(seed_dir_f,system_f,switch1_f,frac_occ,n_basis_per_atom,&
            switch2_f,n_basis,supercell,switch3_f,sparsity,r_cut,n_states,&

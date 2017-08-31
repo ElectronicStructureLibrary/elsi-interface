@@ -349,6 +349,44 @@ void c_elsi_write_mat_real_sparse(char *name_c,
                                   int *col_ptr,
                                   double *mat);
 
+void c_elsi_read_mat_complex(char *name_c,
+                             int mpi_comm,
+                             int blacs_ctxt,
+                             int block_size,
+                             int n_basis,
+                             int n_l_rows,
+                             int n_l_cols,
+                             double _Complex *mat);
+
+void c_elsi_read_mat_complex_sparse(char *name_c,
+                                    int mpi_comm,
+                                    int n_basis,
+                                    int nnz_g,
+                                    int nnz_l,
+                                    int n_l_cols,
+                                    int *row_ind,
+                                    int *col_ptr,
+                                    double _Complex *mat);
+
+void c_elsi_write_mat_complex(char *name_c,
+                              int mpi_comm,
+                              int blacs_ctxt,
+                              int block_size,
+                              int n_basis,
+                              int n_l_rows,
+                              int n_l_cols,
+                              double _Complex *mat);
+
+void c_elsi_write_mat_complex_sparse(char *name_c,
+                                     int mpi_comm,
+                                     int n_basis,
+                                     int nnz_g,
+                                     int nnz_l,
+                                     int n_l_cols,
+                                     int *row_ind,
+                                     int *col_ptr,
+                                     double _Complex *mat);
+
 #ifdef __cplusplus
 }
 #endif
