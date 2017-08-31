@@ -167,6 +167,10 @@ subroutine elsi_ev_real(elsi_h,h_in,s_in,e_val_out,e_vec_out)
       call elsi_init_sips(elsi_h)
 
       ! Convert BLACS H and S to SIPs format
+      if((.not. elsi_h%ovlp_is_unit) .and. (elsi_h%n_elsi_calls == 1)) then
+         call elsi_set_full_mat(elsi_h,s_in)
+      endif
+      call elsi_set_full_mat(elsi_h,h_in)
       call elsi_blacs_to_sips_hs(elsi_h,h_in,s_in)
 
       ! Set matrices
@@ -479,6 +483,10 @@ subroutine elsi_dm_real(elsi_h,h_in,s_in,d_out,energy_out)
       call elsi_init_pexsi(elsi_h)
 
       ! Convert BLACS H and S to PEXSI format
+      if((.not. elsi_h%ovlp_is_unit) .and. (elsi_h%n_elsi_calls == 1)) then
+         call elsi_set_full_mat(elsi_h,s_in)
+      endif
+      call elsi_set_full_mat(elsi_h,h_in)
       call elsi_blacs_to_pexsi_hs(elsi_h,h_in,s_in)
 
       ! Allocate
@@ -507,6 +515,10 @@ subroutine elsi_dm_real(elsi_h,h_in,s_in,d_out,energy_out)
       call elsi_print_chess_options(elsi_h)
 
       ! Convert BLACS H and S to CheSS format
+      if((.not. elsi_h%ovlp_is_unit) .and. (elsi_h%n_elsi_calls == 1)) then
+         call elsi_set_full_mat(elsi_h,s_in)
+      endif
+      call elsi_set_full_mat(elsi_h,h_in)
       call elsi_blacs_to_chess_hs(elsi_h,h_in,s_in)
 
       ! Initialize CheSS
@@ -708,6 +720,10 @@ subroutine elsi_dm_complex(elsi_h,h_in,s_in,d_out,energy_out)
       call elsi_init_pexsi(elsi_h)
 
       ! Convert BLACS H and S to PEXSI format
+      if((.not. elsi_h%ovlp_is_unit) .and. (elsi_h%n_elsi_calls == 1)) then
+         call elsi_set_full_mat(elsi_h,s_in)
+      endif
+      call elsi_set_full_mat(elsi_h,h_in)
       call elsi_blacs_to_pexsi_hs(elsi_h,h_in,s_in)
 
       ! Allocate

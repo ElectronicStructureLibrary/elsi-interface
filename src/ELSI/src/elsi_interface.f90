@@ -125,11 +125,11 @@ module ELSI
    public :: elsi_read_mat_dim_sparse
    public :: elsi_read_mat_real
    public :: elsi_read_mat_real_sparse
-!   public :: elsi_read_mat_complex
-!   public :: elsi_read_mat_complex_sparse
+   public :: elsi_read_mat_complex
+   public :: elsi_read_mat_complex_sparse
    public :: elsi_write_mat_real
    public :: elsi_write_mat_real_sparse
-!   public :: elsi_write_mat_complex
-!   public :: elsi_write_mat_complex_sparse
+   public :: elsi_write_mat_complex
+   public :: elsi_write_mat_complex_sparse
 
 end module ELSI

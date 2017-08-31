@@ -188,7 +188,7 @@ subroutine elsi_compute_edm_chess(elsi_h)
 
    character*40, parameter :: caller = "elsi_compute_edm_chess"
 
-   ! TODO
+   ! TODO: Compute edm
 
 end subroutine
 

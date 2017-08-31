@@ -115,12 +115,15 @@ module ELSI_DATATYPE
       type(sparse_matrix)           :: sparse_mat(2)      ! Sparsity pattern etc
 
       ! SIPs
-      real(kind=r8),    allocatable :: ham_real_sips(:)  ! Sparse real Hamiltonian
-      real(kind=r8),    allocatable :: ovlp_real_sips(:) ! Sparse real overlap
-      real(kind=r8),    allocatable :: dm_real_sips(:)   ! Sparse real density matrix
-      integer(kind=i4), allocatable :: row_ind_sips(:)   ! Row index
-      integer(kind=i4), allocatable :: col_ptr_sips(:)   ! Column pointer
-      real(kind=r8),    allocatable :: slices(:)         ! Slices
+      real(kind=r8),    allocatable :: ham_real_sips(:)     ! Sparse real Hamiltonian
+      complex(kind=r8), allocatable :: ham_complex_sips(:)  ! Sparse complex Hamiltonian
+      real(kind=r8),    allocatable :: ovlp_real_sips(:)    ! Sparse real overlap
+      complex(kind=r8), allocatable :: ovlp_complex_sips(:) ! Sparse complex overlap
+      real(kind=r8),    allocatable :: dm_real_sips(:)      ! Sparse real density matrix
+      complex(kind=r8), allocatable :: dm_complex_sips(:)   ! Sparse complex density matrix
+      integer(kind=i4), allocatable :: row_ind_sips(:)      ! Row index
+      integer(kind=i4), allocatable :: col_ptr_sips(:)      ! Column pointer
+      real(kind=r8),    allocatable :: slices(:)            ! Slices
 
       ! Is this a valid handle?
       logical :: handle_ready = .false.
