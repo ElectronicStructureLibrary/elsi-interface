@@ -1,6 +1,6 @@
 # PLATFORM  : TIMEWARP @DUKE
 # COMPILERS : GNU COMPILER + INTEL MPI + INTEL MKL
-# VERIFIED  : JUL 19, 2017
+# VERIFIED  : AUG 31, 2017
 # DO READ ../INSTALL CAREFULLY!
 
 # ====== ELSI ======
@@ -19,8 +19,6 @@ CXX_LIB       = -lstdc++
 SCALAPACK_LIB = -L/opt/intel/mkl/lib/intel64 -lmkl_scalapack_lp64 \
                 -lmkl_blacs_intelmpi_lp64 -lmkl_intel_lp64 \
                 -lmkl_sequential -lmkl_core -lpthread -lm
-
-TOMATO_SEED   = /home/wy29/elsi_make_check/tomato_seed
 
 # ====== PEXSI ======
 METIS_LIB     = -L/home/wy29/yu/parmetis-4.0.3/build/Linux-x86_64/libmetis -lmetis

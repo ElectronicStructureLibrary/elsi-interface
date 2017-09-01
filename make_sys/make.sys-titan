@@ -29,5 +29,4 @@ SUPERLU_LIB  = -L/ccs/home/huhn/Titan/opt/SuperLU_DIST/5.1.2/lib -lsuperlu_dist
 SUPERLU_INC  = -I/ccs/home/huhn/Titan/opt/SuperLU_DIST/5.1.2/SRC
 
 # ====== MAKE CHECK ======
-TOMATO_SEED  = /ccs/home/huhn/Titan/opt/ELSI/tomato-seed
 MPI_EXEC     = aprun

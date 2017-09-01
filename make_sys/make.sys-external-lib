@@ -1,6 +1,6 @@
 # PLATFORM  : TIMEWARP @DUKE
 # COMPILERS : INTEL
-# VERIFIED  : AUG 17, 2017
+# VERIFIED  : AUG 31, 2017
 # DO READ ../INSTALL CAREFULLY!
 
 # Note:  This make.sys is provided to demonstrate external linkage against
@@ -25,12 +25,10 @@ SCALAPACK_LIB  = -L/opt/intel/mkl/lib/intel64 -lmkl_scalapack_lp64 \
                  -lmkl_blacs_intelmpi_lp64 -lmkl_intel_lp64 \
                  -lmkl_sequential -lmkl_core -lpthread -lm
 
-TOMATO_SEED    =  /home/wy29/elsi_make_check/tomato_seed
-
 # ====== libOMM ======
 EXTERNAL_OMM   = yes
 OMM_INC        = -I/home/wph6/opt/libOMM/0.0.1/build/include
-OMM_LIB        = -L/home/wph6/opt/libOMM/0.0.1/build/lib -lOMM -lMatrixSwitch -lpspBLAS -ltomato
+OMM_LIB        = -L/home/wph6/opt/libOMM/0.0.1/build/lib -lOMM -lMatrixSwitch -lpspBLAS
 
 # ====== PEXSI  ======
 EXTERNAL_PEXSI = yes

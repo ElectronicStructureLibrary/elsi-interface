@@ -1,6 +1,6 @@
 # PLATFORM  : EDISON @NERSC
 # COMPILERS : INTEL
-# VERIFIED  : JUN 20, 2017
+# VERIFIED  : AUG 31, 2017
 # DO READ ../INSTALL CAREFULLY!
 
 # ====== ELSI ======
@@ -22,11 +22,7 @@ SCALAPACK_LIB = -mkl=cluster
 ELPA2_KERNEL  = AVX
 
 # ====== PEXSI ======
-METIS_LIB     = -L/usr/common/software/metis/5.1.0/intel/lib -lmetis
-PARMETIS_LIB  = -L/usr/common/software/parmetis/4.0.3/intel/lib -lparmetis
+METIS_LIB     = -L/global/homes/v/vwzyu/parmetis-4.0.3/build/Linux-x86_64/libmetis -lmetis
+PARMETIS_LIB  = -L/global/homes/v/vwzyu/parmetis-4.0.3/build/Linux-x86_64/libparmetis -lparmetis
 SUPERLU_LIB   = -L/global/homes/v/vwzyu/edison/SuperLU_DIST_5.1.3/lib -lsuperlu_dist
 SUPERLU_INC   = -I/global/homes/v/vwzyu/edison/SuperLU_DIST_5.1.3/SRC
-
-# ====== MAKE CHECK ======
-TOMATO_SEED   = /global/homes/v/vwzyu/tomato-seed
-MPI_EXEC      = srun

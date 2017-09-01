@@ -12,11 +12,11 @@
 #   +mpiwrapper-xl.ndebug
 # - When compiling SuperLU_DIST 5.1.3, -DAdd_ was used.
 #
-# * I (WPH, not VY) have thrown my hands up in the air regarding running
-#   regression tests on Mira to verify the May 2017 release.  I have
-#   verified that ELSI May 2017 can compile on Mira, and that the resulting
-#   libraries can link into FHI-aims with no issues.  We also know that ELSI
-#   was usable in large-production calculations back in January.
+# * I (WPH) have thrown my hands up in the air regarding running tests on
+#   Mira to verify the May 2017 release.  I have verified that ELSI May
+#   2017 can compile on Mira, and that the resulting libraries can link
+#   into FHI-aims with no issues.  We also know that ELSI was usable in
+#   large-production calculations back in January.
 
 # ====== ELSI ======
 MPIFC         = mpixlf2003_r

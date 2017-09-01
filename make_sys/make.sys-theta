@@ -1,6 +1,6 @@
 # PLATFORM  : THETA @ALCF
 # COMPILERS : INTEL
-# VERIFIED  : JUL 19, 2017
+# VERIFIED  : AUG 31, 2017
 # DO READ ../INSTALL CAREFULLY!
 
 # ====== ELSI ======
@@ -28,6 +28,4 @@ SUPERLU_LIB   = -L/home/huhn/opt/SuperLU_DIST/5.1.2/lib -lsuperlu_dist
 SUPERLU_INC   = -I/home/huhn/opt/SuperLU_DIST/5.1.2/SRC
 
 # ====== MAKE CHECK ======
-# Note:  you will need to request an interactive job to run "make check"
-TOMATO_SEED   = /home/huhn/opt/ELSI/tomato-seed
 MPI_EXEC      = aprun
