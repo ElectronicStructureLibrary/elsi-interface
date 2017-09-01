@@ -32,11 +32,10 @@
 #include <math.h>
 #include <mpi.h>
 #include <elsi.h>
-#include <tomato.h>
 
 void main(int argc, char** argv) {
 
-   int n_proc,n_prow,n_pcol,myid,my_prow,my_pcol;
+   int n_proc,n_prow,n_pcol,myid;
    int mpi_comm_global;
    int mpierr;
    int blacs_ctxt;
@@ -47,22 +46,18 @@ void main(int argc, char** argv) {
    int success;
    int tmp;
    int i;
-   int *supercell;
 
-   double *k_point;
-   double frac_occ,sparsity,r_cut;
    double n_electrons;
    double double_one,double_zero;
    double *h,*s,*dm;
    double e_elpa,e_omm,e_pexsi,e_test,e_tol,e_ref;
 
-   e_elpa  = -126.817462901838;
-   e_omm   = -126.817462901838;
-   e_pexsi = -128.733159836578;
+   e_elpa  = -1833.07932666530;
+   e_omm   = -1833.07932666692;
+   e_pexsi = -1833.07837980666;
    e_tol   = 0.00000001;
 
    elsi_handle elsi_h;
-   matrix h_ms,s_ms;
 
    // Set up MPI
    MPI_Init(&argc,&argv);
@@ -72,10 +67,9 @@ void main(int argc, char** argv) {
 
    // Parameters
    blk         = 16;
-   solver      = atoi(argv[2]);
+   solver      = atoi(argv[1]);
    format      = 0; // BLACS_DENSE
    parallel    = 1; // MULTI_PROC
-   r_cut       = 0.5; // Tomato only
    int_one     = 1;
    int_zero    = 0;
    double_one  = 1.0;
@@ -91,13 +85,6 @@ void main(int argc, char** argv) {
        e_ref = e_pexsi;
    }
 
-   supercell = malloc(3 * sizeof(int));
-   k_point   = malloc(3 * sizeof(double));
-   for (i=0; i<3; i++) {
-        supercell[i] = 3;
-        k_point[i]   = 0.0;
-   }
-
    tmp = (int) round(sqrt((double) n_proc));
    for (n_pcol=tmp; n_pcol>1; n_pcol--) {
 	if (n_proc%n_pcol == 0) {
@@ -109,32 +96,20 @@ void main(int argc, char** argv) {
    // Set up BLACS
    blacs_ctxt = mpi_comm_global;
    blacs_gridinit_(&blacs_ctxt,"R",&n_prow,&n_pcol);
-   blacs_gridinfo_(&blacs_ctxt,&n_prow,&n_pcol,&my_prow,&my_pcol);
 
-   // MatrixSwitch
-   c_ms_scalapack_setup(mpi_comm_global,n_prow,"r",blk,blacs_ctxt);
-
-   // Prepare matrices by Tomato
-   c_tomato_tb(argv[1],"silicon",0,&frac_occ,22,0,&n_basis,supercell,0,
-               &sparsity,&r_cut,&n_states,1,k_point,1,0.0,&h_ms,&s_ms,"pddbc",1);
-
-   n_electrons = 2.0*n_states;
-
-   l_row = numroc_(&n_basis,&blk,&my_prow,&int_zero,&n_prow);
-   l_col = numroc_(&n_basis,&blk,&my_pcol,&int_zero,&n_pcol);
+   // Read H and S matrices
+   c_elsi_read_mat_dim(argv[2],mpi_comm_global,blacs_ctxt,blk,&n_basis,&l_row,&l_col);
 
    l_size = l_row * l_col;
    h      = malloc(l_size * sizeof(double));
    s      = malloc(l_size * sizeof(double));
    dm     = malloc(l_size * sizeof(double));
 
-   c_get_mat_real(h_ms,h);
-   c_get_mat_real(s_ms,s);
+   c_elsi_read_mat_real(argv[2],mpi_comm_global,blacs_ctxt,blk,n_basis,l_row,l_col,h);
+   c_elsi_read_mat_real(argv[3],mpi_comm_global,blacs_ctxt,blk,n_basis,l_row,l_col,s);
 
-   c_m_deallocate(h_ms);
-   c_m_deallocate(s_ms);
-   free(supercell);
-   free(k_point);
+   n_electrons = 28.0;
+   n_states    = 28;
 
    // Initialize ELSI
    c_elsi_init(&elsi_h,solver,parallel,format,n_basis,n_electrons,n_states);

@@ -47,7 +47,7 @@
   The compilation process is:
 
   * make
-  * make check (optional, requires TOMATO. See ./INSTALL)
+  * make check (optional)
   * make install
 
   Please refer to the "INSTALL" file for the complete installation process.

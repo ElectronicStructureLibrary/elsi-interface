@@ -32,41 +32,50 @@ program test_dm_real
 
    use ELSI_PRECISION, only: r8,i4
    use ELSI
-   use MatrixSwitch ! Only for test matrices generation
 
    implicit none
 
    include "mpif.h"
 
-   character(5) :: m_storage
-   character(128) :: arg1
-   character(128) :: arg2
+   character(128) :: arg1 ! solver
+   character(128) :: arg2 ! H file
+   character(128) :: arg3 ! S file
+   character(128) :: arg4 ! make check?
 
-   integer(kind=i4) :: n_proc,nprow,npcol,myid,myprow,mypcol
-   integer(kind=i4) :: mpi_comm_global,mpierr
+   integer(kind=i4) :: n_proc
+   integer(kind=i4) :: nprow
+   integer(kind=i4) :: npcol
+   integer(kind=i4) :: myid
+   integer(kind=i4) :: mpi_comm_global
+   integer(kind=i4) :: mpierr
    integer(kind=i4) :: blk
    integer(kind=i4) :: BLACS_CTXT
-   integer(kind=i4) :: n_basis,n_states
-   integer(kind=i4) :: matrix_size,l_rows,l_cols,supercell(3)
+   integer(kind=i4) :: n_states
+   integer(kind=i4) :: matrix_size
+   integer(kind=i4) :: l_rows
+   integer(kind=i4) :: l_cols
    integer(kind=i4) :: solver
 
-   real(kind=r8) :: n_electrons,frac_occ,sparsity,orb_r_cut,mu_min,mu_max
-   real(kind=r8) :: k_point(3)
-   real(kind=r8) :: e_test,e_ref
-   real(kind=r8) :: t1,t2
+   real(kind=r8) :: n_electrons
+   real(kind=r8) :: e_test
+   real(kind=r8) :: e_ref
+   real(kind=r8) :: t1
+   real(kind=r8) :: t2
 
-   real(kind=r8), allocatable :: ham(:,:),ovlp(:,:),dm(:,:)
+   logical :: make_check ! Are we running "make check"?
 
-   type(matrix)      :: H,S
+   real(kind=r8), allocatable :: ham(:,:)
+   real(kind=r8), allocatable :: ham_save(:,:)
+   real(kind=r8), allocatable :: ovlp(:,:)
+   real(kind=r8), allocatable :: dm(:,:)
+
    type(elsi_handle) :: elsi_h
 
-   integer(kind=i4), external :: numroc
-
-   ! VY: Reference values from calculations on August 17, 2017.
-   real(kind=r8), parameter :: e_elpa  = -126.817462901838_r8
-   real(kind=r8), parameter :: e_omm   = -126.817462901838_r8
-   real(kind=r8), parameter :: e_pexsi = -128.733194153370_r8
-   real(kind=r8), parameter :: e_tol   = 1.0e-10_r8
+   ! VY: Reference values from calculations on August 31, 2017.
+   real(kind=r8), parameter :: e_elpa  = -1833.07932666530_r8
+   real(kind=r8), parameter :: e_omm   = -1833.07932666692_r8
+   real(kind=r8), parameter :: e_pexsi = -1833.07836578201_r8
+   real(kind=r8), parameter :: e_tol   = 1.0e-8_r8
 
    ! Initialize MPI
    call MPI_Init(mpierr)
@@ -75,17 +84,27 @@ program test_dm_real
    call MPI_Comm_rank(mpi_comm_global,myid,mpierr)
 
    ! Read command line arguments
-   if(COMMAND_ARGUMENT_COUNT() == 2) then
+   if(COMMAND_ARGUMENT_COUNT() == 4) then
       call GET_COMMAND_ARGUMENT(1,arg1)
       call GET_COMMAND_ARGUMENT(2,arg2)
-      read(arg2,*) solver
+      call GET_COMMAND_ARGUMENT(3,arg3)
+      call GET_COMMAND_ARGUMENT(4,arg4)
+      read(arg1,*) solver
+      make_check = .true.
+   elseif(COMMAND_ARGUMENT_COUNT() == 3) then
+      call GET_COMMAND_ARGUMENT(1,arg1)
+      call GET_COMMAND_ARGUMENT(2,arg2)
+      call GET_COMMAND_ARGUMENT(3,arg3)
+      read(arg1,*) solver
+      make_check = .false.
    else
       if(myid == 0) then
          write(*,'("  ################################################")')
          write(*,'("  ##  Wrong number of command line arguments!!  ##")')
-         write(*,'("  ##  Arg#1: Path to Tomato seed folder.        ##")')
-         write(*,'("  ##  Arg#2: Choice of solver.                  ##")')
+         write(*,'("  ##  Arg#1: Choice of solver.                  ##")')
          write(*,'("  ##         (ELPA = 1; libOMM = 2; PEXSI = 3)  ##")')
+         write(*,'("  ##  Arg#2: H matrix file.                     ##")')
+         write(*,'("  ##  Arg#3: S matrix file.                     ##")')
          write(*,'("  ################################################")')
          call MPI_Abort(mpi_comm_global,0,mpierr)
          stop
@@ -100,7 +119,7 @@ program test_dm_real
       if(solver == 1) then
          write(*,'("  This test program performs the following computational steps:")')
          write(*,*)
-         write(*,'("  1) Generates Hamiltonian and overlap matrices;")')
+         write(*,'("  1) Reads Hamiltonian and overlap matrices;")')
          write(*,'("  2) Transforms the generalized eigenproblem to the standard")')
          write(*,'("     form by using Cholesky factorization;")')
          write(*,'("  3) Solves the standard eigenproblem;")')
@@ -112,7 +131,7 @@ program test_dm_real
       elseif(solver == 2) then
          write(*,'("  This test program performs the following computational steps:")')
          write(*,*)
-         write(*,'("  1) Generates Hamiltonian and overlap matrices;")')
+         write(*,'("  1) Reads Hamiltonian and overlap matrices;")')
          write(*,'("  2) Computes the Cholesky factorization of the overlap matrix;")')
          write(*,'("  3) Computes the density matrix with orbital minimization method.")')
          write(*,*)
@@ -121,7 +140,7 @@ program test_dm_real
       else
          write(*,'("  This test program performs the following computational steps:")')
          write(*,*)
-         write(*,'("  1) Generates Hamiltonian and overlap matrices;")')
+         write(*,'("  1) Reads Hamiltonian and overlap matrices;")')
          write(*,'("  2) Converts the matrices to 1D block distributed CSC format;")')
          write(*,'("  3) Computes the density matrix with pole expansion and selected")')
          write(*,'("     inversion method.")')
@@ -144,41 +163,37 @@ program test_dm_real
    ! Set up BLACS
    BLACS_CTXT = mpi_comm_global
    call BLACS_Gridinit(BLACS_CTXT,'r',nprow,npcol)
-   call BLACS_Gridinfo(BLACS_CTXT,nprow,npcol,myprow,mypcol)
-
-   call ms_scalapack_setup(mpi_comm_global,nprow,'r',blk,icontxt=BLACS_CTXT)
-
-   ! Set parameters
-   m_storage = 'pddbc'
-   n_basis = 22
-   supercell = (/3,3,3/)
-   orb_r_cut = 0.5_r8
-   k_point(1:3) = (/0.0_r8,0.0_r8,0.0_r8/)
 
    t1 = MPI_Wtime()
 
-   ! Generate test matrices
-   call tomato_TB(arg1,'silicon',.false.,frac_occ,n_basis,.false.,matrix_size,&
-                  supercell,.false.,sparsity,orb_r_cut,n_states,.true.,k_point,&
-                  .true.,0.0_r8,H,S,m_storage,.true.)
+   ! Read H and S matrices
+   call elsi_read_mat_dim(arg2,mpi_comm_global,BLACS_CTXT,blk,&
+           matrix_size,l_rows,l_cols)
+
+   allocate(ham(l_rows,l_cols))
+   allocate(ham_save(l_rows,l_cols))
+   allocate(ovlp(l_rows,l_cols))
+   allocate(dm(l_rows,l_cols))
+
+   call elsi_read_mat_real(arg2,mpi_comm_global,BLACS_CTXT,blk,&
+           matrix_size,l_rows,l_cols,ham)
+
+   call elsi_read_mat_real(arg3,mpi_comm_global,BLACS_CTXT,blk,&
+           matrix_size,l_rows,l_cols,ovlp)
+
+   ham_save = ham
 
    t2 = MPI_Wtime()
 
    if(myid == 0) then
-      write(*,'("  Finished test matrices generation")')
+      write(*,'("  Finished reading H and S matrices")')
       write(*,'("  | Time :",F10.3,"s")') t2-t1
       write(*,*)
    endif
 
-   l_rows = numroc(matrix_size,blk,myprow,0,nprow)
-   l_cols = numroc(matrix_size,blk,mypcol,0,npcol)
-
-   allocate(ham(l_rows,l_cols))
-   allocate(ovlp(l_rows,l_cols))
-   allocate(dm(l_rows,l_cols))
-
    ! Initialize ELSI
-   n_electrons = 2.0_r8*n_states
+   n_electrons = 28.0_r8
+   n_states = min(matrix_size,int(n_electrons,kind=i4))
 
    call elsi_init(elsi_h,solver,1,0,matrix_size,n_electrons,n_states)
    call elsi_set_mpi(elsi_h,mpi_comm_global)
@@ -189,9 +204,6 @@ program test_dm_real
    call elsi_set_sing_check(elsi_h,0)
    call elsi_set_omm_n_elpa(elsi_h,1)
    call elsi_set_pexsi_np_per_pole(elsi_h,2)
-
-   ham = H%dval
-   ovlp = S%dval
 
    t1 = MPI_Wtime()
 
@@ -206,7 +218,7 @@ program test_dm_real
       write(*,*)
    endif
 
-   ham = H%dval
+   ham = ham_save
 
    t1 = MPI_Wtime()
 
@@ -221,20 +233,21 @@ program test_dm_real
       write(*,*)
       write(*,'("  Finished test program")')
       write(*,*)
-      if(abs(e_test-e_ref) < e_tol) then
-         write(*,'("  Passed.")')
-      else
-         write(*,'("  Failed!!")')
+      if(make_check) then
+         if(abs(e_test-e_ref) < e_tol) then
+            write(*,'("  Passed.")')
+         else
+            write(*,'("  Failed!!")')
+         endif
+         write(*,*)
       endif
-      write(*,*)
    endif
 
    ! Finalize ELSI
    call elsi_finalize(elsi_h)
 
-   call m_deallocate(H)
-   call m_deallocate(S)
    deallocate(ham)
+   deallocate(ham_save)
    deallocate(ovlp)
    deallocate(dm)
 

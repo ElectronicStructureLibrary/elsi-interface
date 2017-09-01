@@ -32,11 +32,10 @@
 #include <math.h>
 #include <mpi.h>
 #include <elsi.h>
-#include <tomato.h>
 
 void main(int argc, char** argv) {
 
-   int n_proc,n_prow,n_pcol,myid,my_prow,my_pcol;
+   int n_proc,n_prow,n_pcol,myid;
    int mpi_comm_global;
    int mpierr;
    int blacs_ctxt;
@@ -47,20 +46,16 @@ void main(int argc, char** argv) {
    int success;
    int tmp;
    int i;
-   int *supercell;
 
-   double *k_point;
-   double frac_occ,sparsity,r_cut;
    double n_electrons;
    double double_one,double_zero;
    double *h,*s,*eval,*evec;
    double e_elpa,e_test,e_tol;
 
-   e_elpa = -126.817462901838;
-   e_tol = 0.0000000001;
+   e_elpa = -2217.76186674317;
+   e_tol = 0.00000001;
 
    elsi_handle elsi_h;
-   matrix h_ms,s_ms;
 
    // Set up MPI
    MPI_Init(&argc,&argv);
@@ -72,18 +67,10 @@ void main(int argc, char** argv) {
    blk         = 16;
    solver      = 1; // ELPA
    format      = 0; // BLACS_DENSE
-   r_cut       = 0.5; // Tomato only
    int_one     = 1;
    int_zero    = 0;
    double_one  = 1.0;
    double_zero = 0.0;
-
-   supercell = malloc(3 * sizeof(int));
-   k_point   = malloc(3 * sizeof(double));
-   for (i=0; i<3; i++) {
-        supercell[i] = 3;
-        k_point[i]   = 0.0;
-   }
 
    tmp = (int) round(sqrt((double) n_proc));
    for (n_pcol=tmp; n_pcol>1; n_pcol--) {
@@ -96,19 +83,9 @@ void main(int argc, char** argv) {
    // Set up BLACS
    blacs_ctxt = mpi_comm_global;
    blacs_gridinit_(&blacs_ctxt,"R",&n_prow,&n_pcol);
-   blacs_gridinfo_(&blacs_ctxt,&n_prow,&n_pcol,&my_prow,&my_pcol);
 
-   // MatrixSwitch
-   c_ms_scalapack_setup(mpi_comm_global,n_prow,"r",blk,blacs_ctxt);
-
-   // Prepare matrices by Tomato
-   c_tomato_tb(argv[1],"silicon",0,&frac_occ,22,0,&n_basis,supercell,0,
-               &sparsity,&r_cut,&n_states,1,k_point,1,0.0,&h_ms,&s_ms,"pddbc",1);
-
-   n_electrons = 2.0*n_states;
-
-   l_row = numroc_(&n_basis,&blk,&my_prow,&int_zero,&n_prow);
-   l_col = numroc_(&n_basis,&blk,&my_pcol,&int_zero,&n_pcol);
+   // Read H and S matrices
+   c_elsi_read_mat_dim(argv[2],mpi_comm_global,blacs_ctxt,blk,&n_basis,&l_row,&l_col);
 
    l_size = l_row * l_col;
    h      = malloc(l_size * sizeof(double));
@@ -116,13 +93,11 @@ void main(int argc, char** argv) {
    evec   = malloc(l_size * sizeof(double));
    eval   = malloc(n_basis * sizeof(double));
 
-   c_get_mat_real(h_ms,h);
-   c_get_mat_real(s_ms,s);
+   c_elsi_read_mat_real(argv[2],mpi_comm_global,blacs_ctxt,blk,n_basis,l_row,l_col,h);
+   c_elsi_read_mat_real(argv[3],mpi_comm_global,blacs_ctxt,blk,n_basis,l_row,l_col,s);
 
-   c_m_deallocate(h_ms);
-   c_m_deallocate(s_ms);
-   free(supercell);
-   free(k_point);
+   n_electrons = 28.0;
+   n_states    = 28;
 
    // Initialize ELSI
    if (n_proc == 1) {
@@ -149,10 +124,8 @@ void main(int argc, char** argv) {
 
    e_test = 0.0;
    for (i=0; i<n_states; i++) {
-        e_test += eval[i];
+        e_test += 2.0*eval[i];
    }
-
-   e_test *= 2.0;
 
    if (myid == 0) {
        if (fabs(e_test-e_elpa) < e_tol) {

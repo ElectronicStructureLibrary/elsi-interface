@@ -24,9 +24,6 @@ A) BASIC
       CXX_LIB       =  # C++ standard library flags, e.g. -lstdc++
       SCALAPACK_LIB =  # BLAS, LAPACK, BLACS, ScaLAPACK library flags
 
-      TOMATO_SEED   =  # Location of tomato-seed files (optional,
-                       # see step #3)
-
       METIS_LIB     =  # METIS library flags
       PARMETIS_LIB  =  # ParMETIS library flags
       SUPERLU_LIB   =  # SuperLU_DIST library flags
@@ -50,38 +47,24 @@ A) BASIC
    of ELSI against preinstalled ELPA, libOMM, and PEXSI libraries.
 
 3) (Optional, but highly recommended) Once compiled, the ELSI libraries
-   may be sanity-checked using a quick set of regression tests by typing
+   may be sanity-checked using a quick set of tests by typing
 
       make check
 
    in the root directory.
 
-   The ELSI regression test suite uses the TOMATO library (redistributed
-   via libOMM) which creates small but realistic matrices on the fly.
-   TOMATO requires as input a set of parameters contained in "tomato-seed"
-   data files.  Due to the size of the files, they are not included as
-   part of the ELSI source package, but they may be obtained from the ELSI
-   GitLab by cloning the "tomato-seed" git repository, or from the ELSI
-   Interchange (http://elsi-interchange.org).
-
-   Before running the ELSI regression test suite, the user will need to
-   specify the location of the tomato-seed data files in the make.sys file
-   using the keyword:
-
-      TOMATO_SEED =  # Path to tomato_seed
-
-   The default MPI wrapper executable used by the ELSI regression suite is
-   "mpirun".  This may be changed by the user by setting the following
-   keyword in the make.sys file:
+   The default MPI wrapper executable used by the ELSI suite is "mpirun".
+   This may be changed by the user by setting the following keyword in
+   the make.sys file:
 
       MPI_EXEC =  # Default: mpirun
 
-   The ELSI regression test suite requires the ability to run MPI
-   calculations.  Many clusters do not allow MPI calculations to be run
-   on login/compile nodes.  If this is the case for the user's cluster,
-   please see the cluster's documentation for information about running an
-   interactive calculation or, alternatively, submitting a custom batch
-   script to the cluster's queuing system.
+   The ELSI test suite requires the ability to run MPI calculations.
+   Many clusters do not allow MPI calculations to be run on login/compile
+   nodes.  If this is the case for the user's cluster, please see the
+   cluster's documentation for information about running an interactive
+   calculation or, alternatively, submitting a custom script to the
+   cluster's queuing system.
 
 4) To finalize the ELSI installation, type
 

@@ -17,7 +17,7 @@ echo "Test program output may be found in $PWD"
 
 echo
 echo -n "Running the serial 'elsi_ev_real' C test"
-${MPI_EXEC} -n 1 ./test_ev_real_c.x ${TOMATO_SEED} 1 > ev_real_serial_c.log &
+${MPI_EXEC} -n 1 ./test_ev_real_c.x 1 ${ELSI_DIR}/test/H_real.csc ${ELSI_DIR}/test/S_real.csc 1 > ev_real_serial_c.log &
 PID=$!
 while kill -0 $PID 2>/dev/null; do
     sleep 1
@@ -38,7 +38,7 @@ fi
 
 echo
 echo -n "Running the parallel 'elsi_ev_real + ELPA' C test"
-${MPI_EXEC} -n 4 ./test_ev_real_c.x ${TOMATO_SEED} 1 > ev_real_elpa_c.log &
+${MPI_EXEC} -n 4 ./test_ev_real_c.x 1 ${ELSI_DIR}/test/H_real.csc ${ELSI_DIR}/test/S_real.csc 1 > ev_real_elpa_c.log &
 PID=$!
 while kill -0 $PID 2>/dev/null; do
     sleep 1
@@ -59,7 +59,7 @@ fi
 
 echo
 echo -n "Running the parallel 'elsi_dm_real + ELPA' C test"
-${MPI_EXEC} -n 4 ./test_dm_real_c.x ${TOMATO_SEED} 1 > dm_real_elpa_c.log &
+${MPI_EXEC} -n 4 ./test_dm_real_c.x 1 ${ELSI_DIR}/test/H_real.csc ${ELSI_DIR}/test/S_real.csc 1 > dm_real_elpa_c.log &
 PID=$!
 while kill -0 $PID 2>/dev/null; do
     sleep 1
@@ -80,7 +80,7 @@ fi
 
 echo
 echo -n "Running the parallel 'elsi_dm_real + libOMM' C test"
-${MPI_EXEC} -n 4 ./test_dm_real_c.x ${TOMATO_SEED} 2 > dm_real_libomm_c.log &
+${MPI_EXEC} -n 4 ./test_dm_real_c.x 2 ${ELSI_DIR}/test/H_real.csc ${ELSI_DIR}/test/S_real.csc 2 > dm_real_libomm_c.log &
 PID=$!
 while kill -0 $PID 2>/dev/null; do
    sleep 1
@@ -103,7 +103,7 @@ echo
 if [ "$DISABLE_CXX" != "yes" ]
 then
    echo -n "Running the parallel 'elsi_dm_real + PEXSI' C test"
-   ${MPI_EXEC} -n 4 ./test_dm_real_c.x ${TOMATO_SEED} 3 > dm_real_pexsi_c.log &
+   ${MPI_EXEC} -n 4 ./test_dm_real_c.x 3 ${ELSI_DIR}/test/H_real.csc ${ELSI_DIR}/test/S_real.csc 3 > dm_real_pexsi_c.log &
    PID=$!
    while kill -0 $PID 2>/dev/null; do
       sleep 1

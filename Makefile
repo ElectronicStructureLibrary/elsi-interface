@@ -53,7 +53,7 @@ CS_LIB    ?= -L$(LIB_DIR) -lcheck_singularity
 
 OMM_DIR   ?= $(THIS_DIR)/src/libOMM
 OMM_INC   ?= -I$(INC_DIR)
-OMM_LIB   ?= -L$(LIB_DIR) -lOMM -lMatrixSwitch -lpspblas -ltomato
+OMM_LIB   ?= -L$(LIB_DIR) -lOMM -lMatrixSwitch -lpspblas
 
 PEXSI_DIR ?= $(THIS_DIR)/src/PEXSI
 PEXSI_INC ?= -I$(INC_DIR)
@@ -84,7 +84,6 @@ MPI_EXEC ?= mpirun
 C_INTERFACE ?= yes
 ifeq ($(strip $(C_INTERFACE)),yes)
   C_BINDING  = elsi_c_interface.o
-  C_BINDING += tomato_c_interface.o
   C_BINDING += elsi_c2f.o
   C_BINDING += test_dm_real_c.x
   C_BINDING += test_ev_real_c.x
