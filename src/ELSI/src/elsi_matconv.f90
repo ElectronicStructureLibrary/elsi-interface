@@ -1693,7 +1693,6 @@ subroutine elsi_pexsi_to_blacs_dm_small_real(elsi_h,d_out)
    integer(kind=i4) :: i_col
    integer(kind=i4) :: i_val
    integer(kind=i4) :: j_val
-   integer(kind=i4) :: k_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: global_col_id ! Global column id
    integer(kind=i4) :: global_row_id ! Global row id
@@ -1749,23 +1748,14 @@ subroutine elsi_pexsi_to_blacs_dm_small_real(elsi_h,d_out)
       enddo
 
       j_val = 0
-      k_val = elsi_h%nnz_l_sp+1
-
       ! Set send_count
-      do i_proc = 1,elsi_h%n_procs/2
+      do i_proc = 1,elsi_h%n_procs
          do i_val = 1,elsi_h%nnz_l_sp
             if(dest(i_val) == i_proc-1) then
                j_val = j_val+1
                val_send_buffer(j_val) = elsi_h%dm_real_ccs(i_val)
                pos_send_buffer(j_val) = global_id(i_val)
                send_count(i_proc) = send_count(i_proc)+1
-            endif
-            if(dest(i_val) == elsi_h%n_procs-i_proc) then
-               k_val = k_val-1
-               val_send_buffer(k_val) = elsi_h%dm_real_ccs(i_val)
-               pos_send_buffer(k_val) = global_id(i_val)
-               send_count(elsi_h%n_procs+1-i_proc) = &
-                  send_count(elsi_h%n_procs+1-i_proc)+1
             endif
          enddo
       enddo
@@ -1864,7 +1854,6 @@ subroutine elsi_pexsi_to_blacs_dm_large_real(elsi_h,d_out)
    integer(kind=i4) :: i_col
    integer(kind=i4) :: i_val
    integer(kind=i4) :: j_val
-   integer(kind=i4) :: k_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: local_col_id ! Local column id in 1D block distribution
    integer(kind=i4) :: local_row_id ! Local row id in 1D block distribution
@@ -1925,10 +1914,8 @@ subroutine elsi_pexsi_to_blacs_dm_large_real(elsi_h,d_out)
       enddo
 
       j_val = 0
-      k_val = elsi_h%nnz_l_sp+1
-
       ! Set send_count
-      do i_proc = 1,elsi_h%n_procs/2
+      do i_proc = 1,elsi_h%n_procs
          do i_val = 1,elsi_h%nnz_l_sp
             if(dest(i_val) == i_proc-1) then
                j_val = j_val+1
@@ -1936,14 +1923,6 @@ subroutine elsi_pexsi_to_blacs_dm_large_real(elsi_h,d_out)
                row_send_buffer(j_val) = global_row_id(i_val)
                col_send_buffer(j_val) = global_col_id(i_val)
                send_count(i_proc) = send_count(i_proc)+1
-            endif
-            if(dest(i_val) == elsi_h%n_procs-i_proc) then
-               k_val = k_val-1
-               val_send_buffer(k_val) = elsi_h%dm_real_ccs(i_val)
-               row_send_buffer(k_val) = global_row_id(i_val)
-               col_send_buffer(k_val) = global_col_id(i_val)
-               send_count(elsi_h%n_procs+1-i_proc) = &
-                  send_count(elsi_h%n_procs+1-i_proc)+1
             endif
          enddo
       enddo
@@ -2082,7 +2061,6 @@ subroutine elsi_pexsi_to_blacs_dm_small_complex(elsi_h,d_out)
    integer(kind=i4) :: i_col
    integer(kind=i4) :: i_val
    integer(kind=i4) :: j_val
-   integer(kind=i4) :: k_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: global_col_id ! Global column id
    integer(kind=i4) :: global_row_id ! Global row id
@@ -2138,23 +2116,14 @@ subroutine elsi_pexsi_to_blacs_dm_small_complex(elsi_h,d_out)
       enddo
 
       j_val = 0
-      k_val = elsi_h%nnz_l_sp+1
-
       ! Set send_count
-      do i_proc = 1,elsi_h%n_procs/2
+      do i_proc = 1,elsi_h%n_procs
          do i_val = 1,elsi_h%nnz_l_sp
             if(dest(i_val) == i_proc-1) then
                j_val = j_val+1
                val_send_buffer(j_val) = elsi_h%dm_complex_ccs(i_val)
                pos_send_buffer(j_val) = global_id(i_val)
                send_count(i_proc) = send_count(i_proc)+1
-            endif
-            if(dest(i_val) == elsi_h%n_procs-i_proc) then
-               k_val = k_val-1
-               val_send_buffer(k_val) = elsi_h%dm_complex_ccs(i_val)
-               pos_send_buffer(k_val) = global_id(i_val)
-               send_count(elsi_h%n_procs+1-i_proc) = &
-                  send_count(elsi_h%n_procs+1-i_proc)+1
             endif
          enddo
       enddo
@@ -2253,7 +2222,6 @@ subroutine elsi_pexsi_to_blacs_dm_large_complex(elsi_h,d_out)
    integer(kind=i4) :: i_col
    integer(kind=i4) :: i_val
    integer(kind=i4) :: j_val
-   integer(kind=i4) :: k_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: local_col_id ! Local column id in 1D block distribution
    integer(kind=i4) :: local_row_id ! Local row id in 1D block distribution
@@ -2314,10 +2282,8 @@ subroutine elsi_pexsi_to_blacs_dm_large_complex(elsi_h,d_out)
       enddo
 
       j_val = 0
-      k_val = elsi_h%nnz_l_sp+1
-
       ! Set send_count
-      do i_proc = 1,elsi_h%n_procs/2
+      do i_proc = 1,elsi_h%n_procs
          do i_val = 1,elsi_h%nnz_l_sp
             if(dest(i_val) == i_proc-1) then
                j_val = j_val+1
@@ -2325,14 +2291,6 @@ subroutine elsi_pexsi_to_blacs_dm_large_complex(elsi_h,d_out)
                row_send_buffer(j_val) = global_row_id(i_val)
                col_send_buffer(j_val) = global_col_id(i_val)
                send_count(i_proc) = send_count(i_proc)+1
-            endif
-            if(dest(i_val) == elsi_h%n_procs-i_proc) then
-               k_val = k_val-1
-               val_send_buffer(k_val) = elsi_h%dm_complex_ccs(i_val)
-               row_send_buffer(k_val) = global_row_id(i_val)
-               col_send_buffer(k_val) = global_col_id(i_val)
-               send_count(elsi_h%n_procs+1-i_proc) = &
-                  send_count(elsi_h%n_procs+1-i_proc)+1
             endif
          enddo
       enddo
@@ -3495,7 +3453,6 @@ subroutine elsi_pexsi_to_blacs_hs_small_real(elsi_h,h_in,s_in)
    integer(kind=i4) :: i_col
    integer(kind=i4) :: i_val
    integer(kind=i4) :: j_val
-   integer(kind=i4) :: k_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: global_col_id ! Global column id
    integer(kind=i4) :: global_row_id ! Global row id
@@ -3557,8 +3514,6 @@ subroutine elsi_pexsi_to_blacs_hs_small_real(elsi_h,h_in,s_in)
    enddo
 
    j_val = 0
-   k_val = elsi_h%nnz_l_sp+1
-
    ! Set send_count
    if(elsi_h%n_elsi_calls == 1) then
       do i_proc = 1,elsi_h%n_procs
@@ -3716,7 +3671,6 @@ subroutine elsi_pexsi_to_blacs_hs_large_real(elsi_h,h_in,s_in)
    integer(kind=i4) :: i_col
    integer(kind=i4) :: i_val
    integer(kind=i4) :: j_val
-   integer(kind=i4) :: k_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: local_col_id ! Local column id in 1D block distribution
    integer(kind=i4) :: local_row_id ! Local row id in 1D block distribution
@@ -3784,8 +3738,6 @@ subroutine elsi_pexsi_to_blacs_hs_large_real(elsi_h,h_in,s_in)
    enddo
 
    j_val = 0
-   k_val = elsi_h%nnz_l_sp+1
-
    ! Set send_count
    if(elsi_h%n_elsi_calls == 1) then
       do i_proc = 1,elsi_h%n_procs
