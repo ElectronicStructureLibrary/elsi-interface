@@ -85,7 +85,7 @@ void main(int argc, char** argv) {
    blacs_gridinit_(&blacs_ctxt,"R",&n_prow,&n_pcol);
 
    // Read H and S matrices
-   c_elsi_read_mat_dim(argv[2],mpi_comm_global,blacs_ctxt,blk,&n_basis,&l_row,&l_col);
+   c_elsi_read_mat_dim(argv[2],mpi_comm_global,blacs_ctxt,blk,&n_electrons,&n_basis,&l_row,&l_col);
 
    l_size = l_row * l_col;
    h      = malloc(l_size * sizeof(double));
@@ -96,8 +96,7 @@ void main(int argc, char** argv) {
    c_elsi_read_mat_real(argv[2],mpi_comm_global,blacs_ctxt,blk,n_basis,l_row,l_col,h);
    c_elsi_read_mat_real(argv[3],mpi_comm_global,blacs_ctxt,blk,n_basis,l_row,l_col,s);
 
-   n_electrons = 28.0;
-   n_states    = 28;
+   n_states = n_electrons;
 
    // Initialize ELSI
    if (n_proc == 1) {

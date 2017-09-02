@@ -55,7 +55,6 @@ void main(int argc, char** argv) {
    e_elpa  = -1833.07932666530;
    e_omm   = -1833.07932666692;
    e_pexsi = -1833.07837980666;
-   e_tol   = 0.00000001;
 
    elsi_handle elsi_h;
 
@@ -77,12 +76,15 @@ void main(int argc, char** argv) {
 
    if (solver == 1) {
        e_ref = e_elpa;
+       e_tol = 0.00000001;
    }
    if (solver == 2) {
        e_ref = e_omm;
+       e_tol = 0.00000001;
    }
    if (solver == 3) {
        e_ref = e_pexsi;
+       e_tol = 0.0001;
    }
 
    tmp = (int) round(sqrt((double) n_proc));
@@ -98,7 +100,7 @@ void main(int argc, char** argv) {
    blacs_gridinit_(&blacs_ctxt,"R",&n_prow,&n_pcol);
 
    // Read H and S matrices
-   c_elsi_read_mat_dim(argv[2],mpi_comm_global,blacs_ctxt,blk,&n_basis,&l_row,&l_col);
+   c_elsi_read_mat_dim(argv[2],mpi_comm_global,blacs_ctxt,blk,&n_electrons,&n_basis,&l_row,&l_col);
 
    l_size = l_row * l_col;
    h      = malloc(l_size * sizeof(double));
@@ -108,8 +110,7 @@ void main(int argc, char** argv) {
    c_elsi_read_mat_real(argv[2],mpi_comm_global,blacs_ctxt,blk,n_basis,l_row,l_col,h);
    c_elsi_read_mat_real(argv[3],mpi_comm_global,blacs_ctxt,blk,n_basis,l_row,l_col,s);
 
-   n_electrons = 28.0;
-   n_states    = 28;
+   n_states = n_electrons;
 
    // Initialize ELSI
    c_elsi_init(&elsi_h,solver,parallel,format,n_basis,n_electrons,n_states);

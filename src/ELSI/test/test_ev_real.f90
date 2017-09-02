@@ -62,6 +62,7 @@ program test_ev_real
    real(kind=r8) :: weight(1)
    real(kind=r8) :: e_test
    real(kind=r8) :: e_ref
+   real(kind=r8) :: e_tol
    real(kind=r8) :: t1
    real(kind=r8) :: t2
 
@@ -79,7 +80,6 @@ program test_ev_real
 
    ! VY: Reference value from calculations on August 31, 2017.
    real(kind=r8), parameter :: e_elpa = -1833.07932666530_r8
-   real(kind=r8), parameter :: e_tol  = 1e-8_r8
 
    ! Initialize MPI
    call MPI_Init(mpierr)
@@ -116,6 +116,7 @@ program test_ev_real
    endif
 
    if(myid == 0) then
+      e_tol = 1.0e-8_r8
       write(*,'("  ################################")')
       write(*,'("  ##     ELSI TEST PROGRAMS     ##")')
       write(*,'("  ################################")')
@@ -164,7 +165,7 @@ program test_ev_real
 
    ! Read H and S matrices
    call elsi_read_mat_dim(arg2,mpi_comm_global,BLACS_CTXT,blk,&
-           matrix_size,l_rows,l_cols)
+           n_electrons,matrix_size,l_rows,l_cols)
 
    allocate(ham(l_rows,l_cols))
    allocate(ham_save(l_rows,l_cols))
@@ -192,8 +193,7 @@ program test_ev_real
    endif
 
    ! Initialize ELSI
-   n_electrons = 28.0_r8
-   n_states = min(matrix_size,int(n_electrons,kind=i4))
+   n_states = int(n_electrons,kind=i4)
    weight(1) = 1.0_r8
 
    if(n_proc == 1) then

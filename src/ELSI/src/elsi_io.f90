@@ -60,7 +60,7 @@ contains
 !! from file.
 !!
 subroutine elsi_read_mat_dim(f_name,mpi_comm,blacs_ctxt,block_size,&
-              n_basis,n_l_rows,n_l_cols)
+              n_electron,n_basis,n_l_rows,n_l_cols)
 
    implicit none
 
@@ -68,6 +68,7 @@ subroutine elsi_read_mat_dim(f_name,mpi_comm,blacs_ctxt,block_size,&
    integer(kind=i4), intent(in)  :: mpi_comm   !< MPI communicator
    integer(kind=i4), intent(in)  :: blacs_ctxt !< BLACS context
    integer(kind=i4), intent(in)  :: block_size !< Block size
+   real(kind=r8),    intent(out) :: n_electron !< Number of electrons
    integer(kind=i4), intent(out) :: n_basis    !< Matrix size
    integer(kind=i4), intent(out) :: n_l_rows   !< Local number of rows
    integer(kind=i4), intent(out) :: n_l_cols   !< Local number of columns
@@ -105,7 +106,8 @@ subroutine elsi_read_mat_dim(f_name,mpi_comm,blacs_ctxt,block_size,&
    ! Broadcast header
    call MPI_Bcast(header,HEADER_SIZE,mpi_integer4,0,mpi_comm,mpierr)
 
-   n_basis = header(2)
+   n_basis    = header(2)
+   n_electron = real(header(3),kind=r8)
 
    ! Get processor grid information
    call blacs_gridinfo(blacs_ctxt,n_p_rows,n_p_cols,my_p_row,my_p_col)
@@ -119,17 +121,18 @@ end subroutine
 !>
 !! This routine reads the dimensions of a 1D block CSC matrix from file.
 !!
-subroutine elsi_read_mat_dim_sparse(f_name,mpi_comm,n_basis,nnz_g,&
-              nnz_l,n_l_cols)
+subroutine elsi_read_mat_dim_sparse(f_name,mpi_comm,n_electron,n_basis,&
+              nnz_g,nnz_l,n_l_cols)
 
    implicit none
 
-   character(*),     intent(in)  :: f_name   !< File name
-   integer(kind=i4), intent(in)  :: mpi_comm !< MPI communicator
-   integer(kind=i4), intent(out) :: n_basis  !< Matrix size
-   integer(kind=i4), intent(out) :: nnz_g    !< Global number of nonzeros
-   integer(kind=i4), intent(out) :: nnz_l    !< Local number of nonzeros
-   integer(kind=i4), intent(out) :: n_l_cols !< Local number of columns
+   character(*),     intent(in)  :: f_name     !< File name
+   integer(kind=i4), intent(in)  :: mpi_comm   !< MPI communicator
+   real(kind=r8),    intent(out) :: n_electron !< Number of electrons
+   integer(kind=i4), intent(out) :: n_basis    !< Matrix size
+   integer(kind=i4), intent(out) :: nnz_g      !< Global number of nonzeros
+   integer(kind=i4), intent(out) :: nnz_l      !< Local number of nonzeros
+   integer(kind=i4), intent(out) :: n_l_cols   !< Local number of columns
 
    integer(kind=i4) :: mpierr
    integer(kind=i4) :: f_handle
@@ -165,8 +168,9 @@ subroutine elsi_read_mat_dim_sparse(f_name,mpi_comm,n_basis,nnz_g,&
    ! Broadcast header
    call MPI_Bcast(header,HEADER_SIZE,mpi_integer4,0,mpi_comm,mpierr)
 
-   n_basis = header(2)
-   nnz_g   = header(4)
+   n_basis    = header(2)
+   n_electron = real(header(3),kind=r8)
+   nnz_g      = header(4)
 
    ! Compute n_l_cols
    n_l_cols  = n_basis/io_h%n_procs
@@ -639,7 +643,7 @@ end subroutine
 !! This routine writes a 2D block-cyclic dense matrix to file.
 !!
 subroutine elsi_write_mat_real(f_name,mpi_comm,blacs_ctxt,block_size,&
-              n_basis,n_l_rows,n_l_cols,mat)
+              n_electron,n_basis,n_l_rows,n_l_cols,mat)
 
    implicit none
 
@@ -647,6 +651,7 @@ subroutine elsi_write_mat_real(f_name,mpi_comm,blacs_ctxt,block_size,&
    integer(kind=i4), intent(in) :: mpi_comm               !< MPI communicator
    integer(kind=i4), intent(in) :: blacs_ctxt             !< BLACS context
    integer(kind=i4), intent(in) :: block_size             !< Block size
+   real(kind=r8),    intent(in) :: n_electron             !< Number of electrons
    integer(kind=i4), intent(in) :: n_basis                !< Matrix size
    integer(kind=i4), intent(in) :: n_l_rows               !< Local number of rows
    integer(kind=i4), intent(in) :: n_l_cols               !< Local number of columns
@@ -689,7 +694,7 @@ subroutine elsi_write_mat_real(f_name,mpi_comm,blacs_ctxt,block_size,&
    ! Write header
    header(1) = PEXSI_CSC
    header(2) = n_basis
-   header(3) = 0
+   header(3) = int(n_electron,kind=i4)
    header(4) = io_h%nnz_g
 
    if(io_h%myid == 0) then
@@ -744,7 +749,7 @@ end subroutine
 !! This routine writes a 2D block-cyclic dense matrix to file.
 !!
 subroutine elsi_write_mat_complex(f_name,mpi_comm,blacs_ctxt,block_size,&
-              n_basis,n_l_rows,n_l_cols,mat)
+              n_electron,n_basis,n_l_rows,n_l_cols,mat)
 
    implicit none
 
@@ -752,6 +757,7 @@ subroutine elsi_write_mat_complex(f_name,mpi_comm,blacs_ctxt,block_size,&
    integer(kind=i4), intent(in) :: mpi_comm               !< MPI communicator
    integer(kind=i4), intent(in) :: blacs_ctxt             !< BLACS context
    integer(kind=i4), intent(in) :: block_size             !< Block size
+   real(kind=r8),    intent(in) :: n_electron             !< Number of electrons
    integer(kind=i4), intent(in) :: n_basis                !< Matrix size
    integer(kind=i4), intent(in) :: n_l_rows               !< Local number of rows
    integer(kind=i4), intent(in) :: n_l_cols               !< Local number of columns
@@ -794,7 +800,7 @@ subroutine elsi_write_mat_complex(f_name,mpi_comm,blacs_ctxt,block_size,&
    ! Write header
    header(1) = PEXSI_CSC
    header(2) = n_basis
-   header(3) = 0
+   header(3) = int(n_electron,kind=i4)
    header(4) = io_h%nnz_g
 
    if(io_h%myid == 0) then
@@ -848,13 +854,14 @@ end subroutine
 !>
 !! This routine writes a 1D block CSC matrix to file.
 !!
-subroutine elsi_write_mat_real_sparse(f_name,mpi_comm,n_basis,nnz_g,nnz_l,&
-              n_l_cols,row_ind,col_ptr,mat)
+subroutine elsi_write_mat_real_sparse(f_name,mpi_comm,n_electron,n_basis,&
+              nnz_g,nnz_l,n_l_cols,row_ind,col_ptr,mat)
 
    implicit none
 
    character(*),     intent(in) :: f_name              !< File name
    integer(kind=i4), intent(in) :: mpi_comm            !< MPI communicator
+   real(kind=r8),    intent(in) :: n_electron          !< Number of electrons
    integer(kind=i4), intent(in) :: n_basis             !< Matrix size
    integer(kind=i4), intent(in) :: nnz_g               !< Global number of nonzeros
    integer(kind=i4), intent(in) :: nnz_l               !< Local number of nonzeros
@@ -893,7 +900,7 @@ subroutine elsi_write_mat_real_sparse(f_name,mpi_comm,n_basis,nnz_g,nnz_l,&
    ! Write header
    header(1) = PEXSI_CSC
    header(2) = n_basis
-   header(3) = 0
+   header(3) = int(n_electron,kind=i4)
    header(4) = nnz_g
 
    if(io_h%myid == 0) then
@@ -950,13 +957,14 @@ end subroutine
 !>
 !! This routine writes a 1D block CSC matrix to file.
 !!
-subroutine elsi_write_mat_complex_sparse(f_name,mpi_comm,n_basis,nnz_g,&
-              nnz_l,n_l_cols,row_ind,col_ptr,mat)
+subroutine elsi_write_mat_complex_sparse(f_name,mpi_comm,n_electron,&
+              n_basis,nnz_g,nnz_l,n_l_cols,row_ind,col_ptr,mat)
 
    implicit none
 
    character(*),     intent(in) :: f_name              !< File name
    integer(kind=i4), intent(in) :: mpi_comm            !< MPI communicator
+   real(kind=r8),    intent(in) :: n_electron          !< Number of electrons
    integer(kind=i4), intent(in) :: n_basis             !< Matrix size
    integer(kind=i4), intent(in) :: nnz_g               !< Global number of nonzeros
    integer(kind=i4), intent(in) :: nnz_l               !< Local number of nonzeros
@@ -995,7 +1003,7 @@ subroutine elsi_write_mat_complex_sparse(f_name,mpi_comm,n_basis,nnz_g,&
    ! Write header
    header(1) = PEXSI_CSC
    header(2) = n_basis
-   header(3) = 0
+   header(3) = int(n_electron,kind=i4)
    header(4) = nnz_g
 
    if(io_h%myid == 0) then

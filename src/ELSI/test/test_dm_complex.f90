@@ -59,6 +59,7 @@ program test_dm_complex
    real(kind=r8) :: n_electrons
    real(kind=r8) :: e_test
    real(kind=r8) :: e_ref
+   real(kind=r8) :: e_tol
    real(kind=r8) :: t1
    real(kind=r8) :: t2
 
@@ -75,7 +76,6 @@ program test_dm_complex
    real(kind=r8), parameter :: e_elpa  = -1833.07932666530_r8
    real(kind=r8), parameter :: e_omm   = -1833.07932666692_r8
    real(kind=r8), parameter :: e_pexsi = -1833.07836497809_r8
-   real(kind=r8), parameter :: e_tol   = 1.0e-8_r8
 
    ! Initialize MPI
    call MPI_Init(mpierr)
@@ -112,6 +112,7 @@ program test_dm_complex
    endif
 
    if(myid == 0) then
+      e_tol = 1e-8_r8
       write(*,'("  ################################")')
       write(*,'("  ##     ELSI TEST PROGRAMS     ##")')
       write(*,'("  ################################")')
@@ -147,6 +148,7 @@ program test_dm_complex
          write(*,*)
          write(*,'("  Now start testing  elsi_dm_complex + PEXSI")')
          e_ref = e_pexsi
+         e_tol = 1e-4_r8
       endif
       write(*,*)
    endif
@@ -168,7 +170,7 @@ program test_dm_complex
 
    ! Read H and S matrices
    call elsi_read_mat_dim(arg2,mpi_comm_global,BLACS_CTXT,blk,&
-           matrix_size,l_rows,l_cols)
+           n_electrons,matrix_size,l_rows,l_cols)
 
    allocate(ham(l_rows,l_cols))
    allocate(ham_save(l_rows,l_cols))
@@ -192,8 +194,7 @@ program test_dm_complex
    endif
 
    ! Initialize ELSI
-   n_electrons = 28.0_r8
-   n_states = min(matrix_size,int(n_electrons,kind=i4))
+   n_states = int(n_electrons,kind=i4)
 
    call elsi_init(elsi_h,solver,1,0,matrix_size,n_electrons,n_states)
    call elsi_set_mpi(elsi_h,mpi_comm_global)
@@ -228,7 +229,6 @@ program test_dm_complex
    t2 = MPI_Wtime()
 
    if(myid == 0) then
-print *,e_test
       write(*,'("  Finished SCF #2")')
       write(*,'("  | Time :",F10.3,"s")') t2-t1
       write(*,*)

@@ -1185,7 +1185,7 @@ subroutine elsi_get_edm_complex_c_wrapper(handle_c,edm)&
 end subroutine
 
 subroutine elsi_read_mat_dim_c_wrapper(name_c,mpi_comm,blacs_ctxt,&
-              block_size,n_basis,n_l_rows,n_l_cols)&
+              block_size,n_electrons,n_basis,n_l_rows,n_l_cols)&
    bind(C,name="c_elsi_read_mat_dim")
 
    implicit none
@@ -1194,6 +1194,7 @@ subroutine elsi_read_mat_dim_c_wrapper(name_c,mpi_comm,blacs_ctxt,&
    integer(c_int), value, intent(in)            :: mpi_comm
    integer(c_int), value, intent(in)            :: blacs_ctxt
    integer(c_int), value, intent(in)            :: block_size
+   real(c_double)                               :: n_electrons
    integer(c_int)                               :: n_basis
    integer(c_int)                               :: n_l_rows
    integer(c_int)                               :: n_l_cols
@@ -1202,19 +1203,20 @@ subroutine elsi_read_mat_dim_c_wrapper(name_c,mpi_comm,blacs_ctxt,&
 
    name_f = c_string_to_f_string(name_c)
 
-   call elsi_read_mat_dim(name_f,mpi_comm,blacs_ctxt,block_size,n_basis,&
-           n_l_rows,n_l_cols)
+   call elsi_read_mat_dim(name_f,mpi_comm,blacs_ctxt,block_size,&
+           n_electrons,n_basis,n_l_rows,n_l_cols)
 
 end subroutine
 
-subroutine elsi_read_mat_dim_sparse_c_wrapper(name_c,mpi_comm,n_basis,&
-              nnz_g,nnz_l,n_l_cols)&
+subroutine elsi_read_mat_dim_sparse_c_wrapper(name_c,mpi_comm,&
+              n_electrons,n_basis,nnz_g,nnz_l,n_l_cols)&
    bind(C,name="c_elsi_read_mat_dim_sparse")
 
    implicit none
 
    character(kind=c_char,len=1), dimension(128) :: name_c
    integer(c_int), value, intent(in)            :: mpi_comm
+   real(c_double)                               :: n_electrons
    integer(c_int)                               :: n_basis
    integer(c_int)                               :: nnz_g
    integer(c_int)                               :: nnz_l
@@ -1224,8 +1226,8 @@ subroutine elsi_read_mat_dim_sparse_c_wrapper(name_c,mpi_comm,n_basis,&
 
    name_f = c_string_to_f_string(name_c)
 
-   call elsi_read_mat_dim_sparse(name_f,mpi_comm,n_basis,nnz_g,&
-           nnz_l,n_l_cols)
+   call elsi_read_mat_dim_sparse(name_f,mpi_comm,n_electrons,n_basis,&
+           nnz_g,nnz_l,n_l_cols)
 
 end subroutine
 
@@ -1279,7 +1281,7 @@ subroutine elsi_read_mat_real_sparse_c_wrapper(name_c,mpi_comm,n_basis,&
 end subroutine
 
 subroutine elsi_write_mat_real_c_wrapper(name_c,mpi_comm,blacs_ctxt,&
-              block_size,n_basis,n_l_rows,n_l_cols,mat)&
+              block_size,n_electrons,n_basis,n_l_rows,n_l_cols,mat)&
    bind(C,name="c_elsi_write_mat_real")
 
    implicit none
@@ -1288,6 +1290,7 @@ subroutine elsi_write_mat_real_c_wrapper(name_c,mpi_comm,blacs_ctxt,&
    integer(c_int), value, intent(in)            :: mpi_comm
    integer(c_int), value, intent(in)            :: blacs_ctxt
    integer(c_int), value, intent(in)            :: block_size
+   real(c_double), value, intent(in)            :: n_electrons
    integer(c_int), value, intent(in)            :: n_basis
    integer(c_int), value, intent(in)            :: n_l_rows
    integer(c_int), value, intent(in)            :: n_l_cols
@@ -1297,19 +1300,21 @@ subroutine elsi_write_mat_real_c_wrapper(name_c,mpi_comm,blacs_ctxt,&
 
    name_f = c_string_to_f_string(name_c)
 
-   call elsi_write_mat_real(name_f,mpi_comm,blacs_ctxt,block_size,n_basis,&
-           n_l_rows,n_l_cols,mat)
+   call elsi_write_mat_real(name_f,mpi_comm,blacs_ctxt,block_size,&
+           n_electrons,n_basis,n_l_rows,n_l_cols,mat)
 
 end subroutine
 
-subroutine elsi_write_mat_real_sparse_c_wrapper(name_c,mpi_comm,n_basis,&
-              nnz_g,nnz_l,n_l_cols,row_ind,col_ptr,mat)&
+subroutine elsi_write_mat_real_sparse_c_wrapper(name_c,mpi_comm,&
+              n_electrons,n_basis,nnz_g,nnz_l,n_l_cols,row_ind,&
+              col_ptr,mat)&
    bind(C,name="c_elsi_write_mat_real_sparse")
 
    implicit none
 
    character(kind=c_char,len=1), dimension(128) :: name_c
    integer(c_int), value, intent(in)            :: mpi_comm
+   real(c_double), value, intent(in)            :: n_electrons
    integer(c_int), value, intent(in)            :: n_basis
    integer(c_int), value, intent(in)            :: nnz_g
    integer(c_int), value, intent(in)            :: nnz_l
@@ -1322,8 +1327,8 @@ subroutine elsi_write_mat_real_sparse_c_wrapper(name_c,mpi_comm,n_basis,&
 
    name_f = c_string_to_f_string(name_c)
 
-   call elsi_write_mat_real_sparse(name_f,mpi_comm,n_basis,nnz_g,nnz_l,&
-           n_l_cols,row_ind,col_ptr,mat)
+   call elsi_write_mat_real_sparse(name_f,mpi_comm,n_electrons,n_basis,&
+           nnz_g,nnz_l,n_l_cols,row_ind,col_ptr,mat)
 
 end subroutine
 
@@ -1377,7 +1382,7 @@ subroutine elsi_read_mat_complex_sparse_c_wrapper(name_c,mpi_comm,&
 end subroutine
 
 subroutine elsi_write_mat_complex_c_wrapper(name_c,mpi_comm,blacs_ctxt,&
-              block_size,n_basis,n_l_rows,n_l_cols,mat)&
+              block_size,n_electrons,n_basis,n_l_rows,n_l_cols,mat)&
    bind(C,name="c_elsi_write_mat_complex")
 
    implicit none
@@ -1386,6 +1391,7 @@ subroutine elsi_write_mat_complex_c_wrapper(name_c,mpi_comm,blacs_ctxt,&
    integer(c_int), value, intent(in)            :: mpi_comm
    integer(c_int), value, intent(in)            :: blacs_ctxt
    integer(c_int), value, intent(in)            :: block_size
+   real(c_double), value, intent(in)            :: n_electrons
    integer(c_int), value, intent(in)            :: n_basis
    integer(c_int), value, intent(in)            :: n_l_rows
    integer(c_int), value, intent(in)            :: n_l_cols
@@ -1396,18 +1402,19 @@ subroutine elsi_write_mat_complex_c_wrapper(name_c,mpi_comm,blacs_ctxt,&
    name_f = c_string_to_f_string(name_c)
 
    call elsi_write_mat_complex(name_f,mpi_comm,blacs_ctxt,block_size,&
-           n_basis,n_l_rows,n_l_cols,mat)
+           n_electrons,n_basis,n_l_rows,n_l_cols,mat)
 
 end subroutine
 
 subroutine elsi_write_mat_complex_sparse_c_wrapper(name_c,mpi_comm,&
-              n_basis,nnz_g,nnz_l,n_l_cols,row_ind,col_ptr,mat)&
+              n_electrons,n_basis,nnz_g,nnz_l,n_l_cols,row_ind,col_ptr,mat)&
    bind(C,name="c_elsi_write_mat_complex_sparse")
 
    implicit none
 
    character(kind=c_char,len=1), dimension(128) :: name_c
    integer(c_int), value, intent(in)            :: mpi_comm
+   real(c_double), value, intent(in)            :: n_electrons
    integer(c_int), value, intent(in)            :: n_basis
    integer(c_int), value, intent(in)            :: nnz_g
    integer(c_int), value, intent(in)            :: nnz_l
@@ -1420,8 +1427,8 @@ subroutine elsi_write_mat_complex_sparse_c_wrapper(name_c,mpi_comm,&
 
    name_f = c_string_to_f_string(name_c)
 
-   call elsi_write_mat_complex_sparse(name_f,mpi_comm,n_basis,nnz_g,&
-           nnz_l,n_l_cols,row_ind,col_ptr,mat)
+   call elsi_write_mat_complex_sparse(name_f,mpi_comm,n_electrons,&
+           n_basis,nnz_g,nnz_l,n_l_cols,row_ind,col_ptr,mat)
 
 end subroutine
 
