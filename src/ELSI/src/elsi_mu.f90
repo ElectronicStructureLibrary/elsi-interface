@@ -168,7 +168,6 @@ subroutine elsi_check_electrons(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
    real(kind=r8) :: this_exp
    real(kind=r8) :: this_hermite
 
-   integer(kind=i4) :: n_steps
    integer(kind=i4) :: i_state
    integer(kind=i4) :: i_kpoint
    integer(kind=i4) :: i_spin

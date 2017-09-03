@@ -69,10 +69,7 @@ subroutine elsi_get_energy(elsi_h,energy)
 
    real(kind=r8)    :: tmp_real
    integer(kind=i4) :: i_state
-   integer(kind=i4) :: i_spin
-   integer(kind=i4) :: i_kpt
    integer(kind=i4) :: mpierr
-   character*200    :: info_str
 
    character*40, parameter :: caller = "elsi_get_energy"
 

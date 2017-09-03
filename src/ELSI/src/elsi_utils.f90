@@ -296,7 +296,7 @@ subroutine elsi_allocate_complex16_1d(elsi_h,array,dim1,arrayname,caller)
       call elsi_stop(info,elsi_h,caller)
    endif
 
-   array = cmplx(0.0_r8,0.0_r8)
+   array = (0.0_r8,0.0_r8)
 
 end subroutine
 
@@ -404,7 +404,7 @@ subroutine elsi_allocate_complex16_2d(elsi_h,array,dim1,dim2,arrayname,caller)
       call elsi_stop(info,elsi_h,caller)
    endif
 
-   array = cmplx(0.0_r8,0.0_r8)
+   array = (0.0_r8,0.0_r8)
 
 end subroutine
 
@@ -515,7 +515,7 @@ subroutine elsi_allocate_complex16_3d(elsi_h,array,dim1,dim2,dim3,arrayname,call
       call elsi_stop(info,elsi_h,caller)
    endif
 
-   array = cmplx(0.0_r8,0.0_r8)
+   array = (0.0_r8,0.0_r8)
 
 end subroutine
 
@@ -1700,7 +1700,6 @@ subroutine elsi_get_local_nnz_real(elsi_h,matrix,n_rows,n_cols,nnz)
 
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
-   integer(kind=i4) :: i_nz
 
    character*40, parameter :: caller = "elsi_get_local_nnz_real"
 
@@ -1731,7 +1730,6 @@ subroutine elsi_get_local_nnz_complex(elsi_h,matrix,n_rows,n_cols,nnz)
 
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
-   integer(kind=i4) :: i_nz
 
    character*40, parameter :: caller = "elsi_get_local_nnz_complex"
 
@@ -1907,8 +1905,7 @@ subroutine elsi_final_print(elsi_h)
 
    type(elsi_handle), intent(in) :: elsi_h !< Handle
 
-   real(kind=r8)    :: sparsity
-   integer(kind=i4) :: i_proc
+   real(kind=r8) :: sparsity
 
    character*40, parameter :: caller = "elsi_final_print"
 

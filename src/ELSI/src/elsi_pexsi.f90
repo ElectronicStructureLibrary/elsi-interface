@@ -58,7 +58,6 @@ subroutine elsi_init_pexsi(elsi_h)
    type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
    integer(kind=i4) :: n_rows_tmp
-   integer(kind=i4) :: n_groups
    integer(kind=i4) :: output_id
    integer(kind=i4) :: ierr
    integer(kind=i4) :: mpierr

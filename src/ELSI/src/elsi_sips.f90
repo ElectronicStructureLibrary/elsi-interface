@@ -57,8 +57,7 @@ subroutine elsi_init_sips(elsi_h)
 
    type(elsi_handle), intent(inout) :: elsi_h !< Handle
 
-   integer(kind=i4) :: i
-   character*200    :: info_str
+   character*200 :: info_str
 
    character*40, parameter :: caller = "elsi_init_sips"
 

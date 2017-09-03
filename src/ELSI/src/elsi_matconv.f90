@@ -140,7 +140,6 @@ subroutine elsi_blacs_to_pexsi_hs_small_real(elsi_h,h_in,s_in)
    integer(kind=i4) :: dest ! Destination of an element
    integer(kind=i4) :: this_n_cols
    integer(kind=i4) :: tmp_int
-   integer(kind=i4) :: min_pos
    integer(kind=i4) :: min_id
    integer(kind=i4) :: nnz_l_pexsi_aux
    real(kind=r8)    :: tmp_real
@@ -489,7 +488,6 @@ subroutine elsi_blacs_to_pexsi_hs_large_real(elsi_h,h_in,s_in)
    integer(kind=i4) :: d1,d2,d11,d12,d21,d22 ! Number of columns in the intermediate stage
    integer(kind=i4) :: dest ! Destination of an element
    integer(kind=i4) :: this_n_cols
-   integer(kind=i4) :: min_pos
    integer(kind=i4) :: min_id
    integer(kind=i4) :: nnz_l_pexsi_aux
    integer(kind=i4) :: tmp_int
@@ -921,7 +919,6 @@ subroutine elsi_blacs_to_pexsi_hs_small_complex(elsi_h,h_in,s_in)
    integer(kind=i4) :: dest ! Destination of an element
    integer(kind=i4) :: this_n_cols
    integer(kind=i4) :: tmp_int
-   integer(kind=i4) :: min_pos
    integer(kind=i4) :: min_id
    integer(kind=i4) :: nnz_l_pexsi_aux
    complex(kind=r8) :: tmp_complex
@@ -1270,7 +1267,6 @@ subroutine elsi_blacs_to_pexsi_hs_large_complex(elsi_h,h_in,s_in)
    integer(kind=i4) :: d1,d2,d11,d12,d21,d22 ! Number of columns in the intermediate stage
    integer(kind=i4) :: dest ! Destination of an element
    integer(kind=i4) :: this_n_cols
-   integer(kind=i4) :: min_pos
    integer(kind=i4) :: min_id
    integer(kind=i4) :: nnz_l_pexsi_aux
    integer(kind=i4) :: tmp_int
@@ -2435,7 +2431,6 @@ subroutine elsi_blacs_to_sips_hs_small_real(elsi_h,h_in,s_in)
    integer(kind=i4) :: global_row_id ! Global row id
    integer(kind=i4) :: dest ! Destination of an element
    integer(kind=i4) :: tmp_int
-   integer(kind=i4) :: min_pos
    integer(kind=i4) :: min_id
    real(kind=r8)    :: tmp_real
 
@@ -2657,7 +2652,6 @@ subroutine elsi_blacs_to_sips_hs_large_real(elsi_h,h_in,s_in)
    integer(kind=i4) :: dest ! Destination of an element
    integer(kind=i4) :: tmp_int
    integer(kind=i8) :: tmp_long
-   integer(kind=i4) :: min_pos
    integer(kind=i4) :: min_id
    real(kind=r8)    :: tmp_real
 
@@ -2946,7 +2940,6 @@ subroutine elsi_blacs_to_sips_hs_small_complex(elsi_h,h_in,s_in)
    integer(kind=i4) :: global_row_id ! Global row id
    integer(kind=i4) :: dest ! Destination of an element
    integer(kind=i4) :: tmp_int
-   integer(kind=i4) :: min_pos
    integer(kind=i4) :: min_id
    complex(kind=r8) :: tmp_complex
 
@@ -3168,7 +3161,6 @@ subroutine elsi_blacs_to_sips_hs_large_complex(elsi_h,h_in,s_in)
    integer(kind=i4) :: dest ! Destination of an element
    integer(kind=i4) :: tmp_int
    integer(kind=i8) :: tmp_long
-   integer(kind=i4) :: min_pos
    integer(kind=i4) :: min_id
    complex(kind=r8) :: tmp_complex
 

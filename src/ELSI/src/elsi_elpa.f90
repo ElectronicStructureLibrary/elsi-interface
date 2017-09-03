@@ -913,7 +913,6 @@ subroutine elsi_to_standard_evp_sp(elsi_h)
    integer(kind=i4) :: i
    integer(kind=i4) :: j
    integer(kind=i4) :: ierr
-   logical          :: success
    real(kind=r8)    :: t0
    real(kind=r8)    :: t1
    character*200    :: info_str
@@ -1561,7 +1560,6 @@ subroutine elsi_check_electrons(elsi_h,mu_in,diff_ne_out)
    real(kind=r8) :: this_exp
    real(kind=r8) :: this_hermite
 
-   integer(kind=i4) :: n_steps
    integer(kind=i4) :: i_state
    integer(kind=i4) :: i_kpt
    integer(kind=i4) :: i_spin
@@ -1795,8 +1793,8 @@ subroutine elsi_get_eval_all(elsi_h)
 
    type(elsi_handle), intent(inout) :: elsi_h  !< Handle
 
-   real(kind=r8),    allocatable :: tmp_real1(:)
-   real(kind=r8),    allocatable :: tmp_real2(:,:,:)
+   real(kind=r8), allocatable :: tmp_real1(:)
+   real(kind=r8), allocatable :: tmp_real2(:,:,:)
 
    integer(kind=i4) :: mpierr
 
@@ -1813,6 +1811,9 @@ subroutine elsi_get_eval_all(elsi_h)
               "k_weight",caller)
 
       if(elsi_h%n_kpts > 1) then
+         call elsi_allocate(elsi_h,tmp_real1,elsi_h%n_kpts,&
+                 "tmp_real",caller)
+
          if(elsi_h%myid == 0) then
             tmp_real1(elsi_h%i_kpt) = elsi_h%i_weight
          endif

@@ -357,7 +357,6 @@ subroutine elsi_read_mat_real_sparse(f_name,mpi_comm,n_basis,nnz_g,nnz_l,&
    integer(kind=i4) :: mpierr
    integer(kind=i4) :: f_handle
    integer(kind=i4) :: f_mode
-   integer(kind=i4) :: header(HEADER_SIZE)
    integer(kind=i4) :: n_l_cols0
    integer(kind=i4) :: prev_nnz
    integer(kind=i8) :: offset
@@ -575,7 +574,6 @@ subroutine elsi_read_mat_complex_sparse(f_name,mpi_comm,n_basis,nnz_g,&
    integer(kind=i4) :: mpierr
    integer(kind=i4) :: f_handle
    integer(kind=i4) :: f_mode
-   integer(kind=i4) :: header(HEADER_SIZE)
    integer(kind=i4) :: n_l_cols0
    integer(kind=i4) :: prev_nnz
    integer(kind=i8) :: offset
