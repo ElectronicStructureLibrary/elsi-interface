@@ -406,7 +406,7 @@ subroutine elsi_dm_real(elsi_h,h_in,s_in,d_out,energy_out)
          call elsi_compute_dm_elpa(elsi_h)
          call elsi_get_energy(elsi_h,energy_out)
 
-         ! Switch back to libOMM here to guarantee elsi_customize_omm
+         ! Switch back to libOMM
          elsi_h%solver = LIBOMM
       else ! ELPA is done
          if(allocated(elsi_h%ovlp_real_omm)) then
@@ -642,7 +642,7 @@ subroutine elsi_dm_complex(elsi_h,h_in,s_in,d_out,energy_out)
          call elsi_compute_dm_elpa(elsi_h)
          call elsi_get_energy(elsi_h,energy_out)
 
-         ! Switch back to libOMM here to guarantee elsi_customize_omm
+         ! Switch back to libOMM
          elsi_h%solver = LIBOMM
       else ! ELPA is done
          if(allocated(elsi_h%ovlp_complex_omm)) then
@@ -871,7 +871,7 @@ subroutine elsi_dm_real_sparse(elsi_h,h_in,s_in,d_out,energy_out)
          call elsi_blacs_to_pexsi_dm(elsi_h,d_out)
          call elsi_get_energy(elsi_h,energy_out)
 
-         ! Switch back to libOMM here to guarantee elsi_customize_omm
+         ! Switch back to libOMM
          elsi_h%solver = LIBOMM
       else ! ELPA is done
          if(allocated(elsi_h%ovlp_real_omm)) then
@@ -885,6 +885,10 @@ subroutine elsi_dm_real_sparse(elsi_h,h_in,s_in,d_out,energy_out)
          ! Allocate
          if(.not. elsi_h%coeff_omm%is_initialized) then
             call m_allocate(elsi_h%coeff_omm,elsi_h%n_states_omm,elsi_h%n_basis,"pddbc")
+         endif
+         if(.not. allocated(elsi_h%dm_real_elpa)) then
+            call elsi_allocate(elsi_h,elsi_h%dm_real_elpa,elsi_h%n_l_rows,&
+                    elsi_h%n_l_cols,"dm_real_elpa",caller)
          endif
 
          ! Set matrices
