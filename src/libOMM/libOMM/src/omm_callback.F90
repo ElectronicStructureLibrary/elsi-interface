@@ -71,7 +71,6 @@ subroutine omm_callback(m,n,H,S,new_S,e_min,D_min,calc_ED,eta,C_min,init_C,T,sca
   integer :: i
   integer :: j
   integer :: k
-  integer :: l
   integer :: seed
   integer :: icg ! CG step num.
   integer :: n_step_max=100 ! max. num. steps for CG minimization

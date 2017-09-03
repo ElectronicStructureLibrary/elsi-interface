@@ -431,12 +431,9 @@ subroutine m_dreduce(A,C,label)
 
   !**** INTERNAL ********************************!
 
-  character(1) :: c1, c2
   character(5) :: m_storage
 
   integer :: ot, i, j, info
-
-  real(dp) :: scale_Cholesky
 
   type(matrix) :: work1
 
@@ -450,10 +447,6 @@ subroutine m_dreduce(A,C,label)
   integer :: local_row, local_col
   integer, allocatable :: local_row_list(:), local_col_list(:)
   integer, external :: numroc
-
-  ! VY: Added to use pspBLAS
-  !     Jan 31, 2017
-  type(matrix) :: H_psp, S_psp
 
   !**********************************************!
 
@@ -615,24 +608,6 @@ subroutine m_dreduce(A,C,label)
 #else
       call die('m_dreduce: compile with ScaLAPACK')
 #endif
-
-! VY: Added pspBLAS support
-!     Jan 31, 2017
-      if (label .eq. 'psp') then
-        ! Convert to sparse format
-        call m_register_psp_thre(H_psp,C%dval,C%iaux1,'csc',1d-13)
-        call m_register_psp_thre(S_psp,A%dval,A%iaux1,'csc',1d-13)
-
-        ! Save a copy of overlap for back-transformation
-        S_psp%dval  => A%dval
-        S_psp%iaux1 => A%iaux1
-
-        C = H_psp
-        A = S_psp
-
-        call m_deallocate(H_psp)
-        call m_deallocate(S_psp)
-      endif
 
   end select
 
@@ -1198,7 +1173,7 @@ subroutine m_dinverse(C,label)
       if (info/=0) call die('m_dinverse: error in pdgetri')
       liwork=iwork(1)
       deallocate(iwork)
-      lwork=work(1)
+      lwork=int(work(1),kind=dp)
       deallocate(work)
       allocate(work(lwork))
       allocate(iwork(liwork))
@@ -1312,7 +1287,7 @@ subroutine m_zinverse(C,label)
       if (info/=0) call die('m_zinverse: error in pzgetri')
       liwork=iwork(1)
       deallocate(iwork)
-      lwork=work(1)
+      lwork=int(work(1),kind=dp)
       deallocate(work)
       allocate(work(lwork))
       allocate(iwork(liwork))

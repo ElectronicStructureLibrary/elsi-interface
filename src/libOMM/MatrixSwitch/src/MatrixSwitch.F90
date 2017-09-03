@@ -292,7 +292,7 @@ contains
 
     character(1) :: c1, c2
 
-    integer :: st, i, j, k
+    integer :: st
 
     real(dp) :: abs_threshold, soft_threshold
 
@@ -2287,7 +2287,7 @@ contains
 
     !**** INTERNAL ********************************!
 
-    integer :: ot, i, j
+    integer :: ot
 
 #ifdef CONV
     complex(dp) :: cmplx_alpha, cmplx_beta
@@ -2369,7 +2369,7 @@ contains
 
     !**** INTERNAL ********************************!
 
-    integer :: ot, i, j
+    integer :: ot
 
 #ifdef CONV
     real(dp) :: real_alpha, real_beta

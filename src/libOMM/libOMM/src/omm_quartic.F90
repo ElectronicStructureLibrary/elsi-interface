@@ -71,7 +71,6 @@ subroutine omm_solve_quartic(c,x_min,fail)
 
   !**** LOCAL ***********************************!
 
-  integer :: i
   integer :: x_order(1:3)
 
   real(dp) :: t(1:3)

@@ -1260,7 +1260,7 @@ contains
 
     !**** INTERNAL ********************************!
 
-    integer :: i, j, k, l, m
+    integer :: j, k, m
     integer :: n_comm, nnz_recv, loc_dim_recv, info
     integer, allocatable :: col_ptr_recv(:), row_ind_recv(:)
 
@@ -1334,7 +1334,7 @@ contains
 
     !**** INTERNAL ********************************!
 
-    integer :: i, j, k, l, m
+    integer :: i, k, l, m
     integer :: n_comm, nnz_recv, loc_dim_recv, info
     integer, allocatable :: col_ptr_recv(:), row_ind_recv(:)
 
@@ -1493,7 +1493,7 @@ contains
 
     !**** INTERNAL ********************************!
 
-    integer :: i, j, k, l, m
+    integer :: j, k, m
     integer :: n_comm, nnz_recv, loc_dim_recv, info
     integer, allocatable :: col_ptr_recv(:), row_ind_recv(:)
 
@@ -1574,7 +1574,7 @@ contains
 
     !**** INTERNAL ********************************!
 
-    integer :: i, j, k, l, m
+    integer :: i, k, l, m
     integer :: n_comm, nnz_recv, loc_dim_recv, info
     integer, allocatable :: col_ptr_recv(:), row_ind_recv(:)
 

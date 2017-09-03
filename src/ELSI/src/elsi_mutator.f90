@@ -197,7 +197,7 @@ subroutine elsi_customize_omm(elsi_h,n_elpa_steps,omm_flavor,eigen_shift,&
 
    ! Use pspBLAS sparse linear algebra? [Default: .false.]
    if(present(use_pspblas)) then
-      elsi_h%use_psp = use_pspblas
+      elsi_h%use_psp = .false.
    endif
 
 end subroutine
@@ -713,7 +713,7 @@ subroutine elsi_set_omm_psp(elsi_h,use_psp)
    if(use_psp == 0) then
       elsi_h%use_psp = .false.
    else
-      elsi_h%use_psp = .true.
+      elsi_h%use_psp = .false.
    endif
 
 end subroutine

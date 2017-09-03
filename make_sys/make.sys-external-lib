@@ -28,7 +28,7 @@ SCALAPACK_LIB  = -L/opt/intel/mkl/lib/intel64 -lmkl_scalapack_lp64 \
 # ====== libOMM ======
 EXTERNAL_OMM   = yes
 OMM_INC        = -I/home/wph6/opt/libOMM/0.0.1/build/include
-OMM_LIB        = -L/home/wph6/opt/libOMM/0.0.1/build/lib -lOMM -lMatrixSwitch -lpspBLAS
+OMM_LIB        = -L/home/wph6/opt/libOMM/0.0.1/build/lib -lOMM -lMatrixSwitch
 
 # ====== PEXSI  ======
 EXTERNAL_PEXSI = yes

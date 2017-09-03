@@ -53,7 +53,7 @@ CS_LIB    ?= -L$(LIB_DIR) -lcheck_singularity
 
 OMM_DIR   ?= $(THIS_DIR)/src/libOMM
 OMM_INC   ?= -I$(INC_DIR)
-OMM_LIB   ?= -L$(LIB_DIR) -lOMM -lMatrixSwitch -lpspblas
+OMM_LIB   ?= -L$(LIB_DIR) -lOMM -lMatrixSwitch
 
 PEXSI_DIR ?= $(THIS_DIR)/src/PEXSI
 PEXSI_INC ?= -I$(INC_DIR)
