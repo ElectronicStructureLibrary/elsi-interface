@@ -410,8 +410,6 @@ subroutine elsi_dm_real(elsi_h,h_in,s_in,d_out,energy_out)
             ! Retrieve overlap matrix that has been destroyed by Cholesky
             s_in = elsi_h%ovlp_real_omm
             call elsi_deallocate(elsi_h,elsi_h%ovlp_real_omm,"ovlp_real_omm")
-
-            call elsi_set_full_mat(elsi_h,s_in)
          endif
 
          ! Allocate
@@ -646,8 +644,6 @@ subroutine elsi_dm_complex(elsi_h,h_in,s_in,d_out,energy_out)
             ! Retrieve overlap matrix that has been destroyed by Cholesky
             s_in = elsi_h%ovlp_complex_omm
             call elsi_deallocate(elsi_h,elsi_h%ovlp_complex_omm,"ovlp_complex_omm")
-
-            call elsi_set_full_mat(elsi_h,s_in)
          endif
 
          ! Allocate
@@ -875,8 +871,6 @@ subroutine elsi_dm_real_sparse(elsi_h,h_in,s_in,d_out,energy_out)
             ! Retrieve overlap matrix that has been destroyed by Cholesky
             elsi_h%ovlp_real_elpa = elsi_h%ovlp_real_omm
             call elsi_deallocate(elsi_h,elsi_h%ovlp_real_omm,"ovlp_real_omm")
-
-            call elsi_set_full_mat(elsi_h,elsi_h%ovlp_real_elpa)
          endif
 
          ! Allocate

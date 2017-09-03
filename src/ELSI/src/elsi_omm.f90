@@ -139,11 +139,6 @@ subroutine elsi_solve_evp_omm(elsi_h)
       elsi_h%new_overlap = .false.
    endif
 
-   ! Shift eigenvalue spectrum
-   if(elsi_h%eta .ne. 0.0_r8) then
-      call m_add(elsi_h%ovlp_omm,'N',elsi_h%ham_omm,-elsi_h%eta,1.0_r8,"lap")
-   endif
-
    call elsi_get_time(elsi_h,t0)
 
    call elsi_statement_print("  Starting OMM density matrix solver",elsi_h)
