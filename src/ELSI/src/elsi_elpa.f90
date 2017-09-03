@@ -30,9 +30,9 @@
 !!
 module ELSI_ELPA
 
-   use ELSI_CONSTANTS, only: REAL_VALUES,COMPLEX_VALUES,UNSET,&
-                             GAUSSIAN,FERMI,METHFESSEL_PAXTON_0,&
-                             METHFESSEL_PAXTON_1,INVERT_SQRT_PI
+   use ELSI_CONSTANTS, only: REAL_VALUES,COMPLEX_VALUES,GAUSSIAN,FERMI,&
+                             METHFESSEL_PAXTON_0,METHFESSEL_PAXTON_1,&
+                             INVERT_SQRT_PI
 
    use ELSI_DATATYPE, only: elsi_handle
    use ELSI_PRECISION, only: r8,i4
@@ -614,7 +614,7 @@ subroutine elsi_check_singularity(elsi_h)
          endif
 
          call elsi_statement_print("  Overlap matrix is singular. A large"//&
-                 " basis sest may be in use. Note that running with a"//&
+                 " basis set may be in use. Note that running with a"//&
                  " near-singular basis set may lead to completely wrong"//&
                  " numerical results.",elsi_h)
 
@@ -1633,7 +1633,7 @@ subroutine elsi_check_electrons(elsi_h,mu_in,diff_ne_out)
                this_hermite = (elsi_h%eval_all(i_state,i_spin,i_kpt)-mu_in)*invert_width
 
                elsi_h%occ_num(i_state,i_spin,i_kpt) = elsi_h%spin_degen*0.5_r8*&
-                  (1.0_r8-erf(this_hermite))-0.5_r8*invert_sqrt_pi*this_hermite*&
+                  (1.0_r8-erf(this_hermite))-0.5_r8*INVERT_SQRT_PI*this_hermite*&
                   exp(-this_hermite*this_hermite)
 
                diff_ne_out = elsi_h%occ_num(i_state,i_spin,i_kpt)*elsi_h%k_weight(i_kpt)+&
@@ -1712,8 +1712,9 @@ subroutine elsi_find_mu(elsi_h,mu_lower_in,mu_upper_in)
 
       ! ...with adjusted occupation numbers
       call elsi_statement_print("  Chemical potential cannot reach the"//&
-              " required accuracy by bisection method. The error will be"//&
-              " arbitrarily removed from the highest occupied states.",elsi_h)
+              " required accuracy by bisection method.",elsi_h)
+      call elsi_statement_print("  The error will be arbitrarily removed"//&
+              " from the highest occupied states.",elsi_h)
 
       call elsi_adjust_occ(elsi_h,diff_right)
    endif

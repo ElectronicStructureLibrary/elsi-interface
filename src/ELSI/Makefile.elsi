@@ -1,4 +1,12 @@
-all: test_ev_real.x test_ev_complex.x test_dm_real.x test_dm_complex.x test_standard_ev_real.x $(C_BINDING)
+TEST_PROGRAMS = test_ev_real.x \
+                test_ev_real_sparse.x \
+                test_dm_real.x \
+                test_dm_real_sparse.x \
+                test_standard_ev_real.x \
+                test_ev_complex.x \
+                test_dm_complex.x
+
+all: $(TEST_PROGRAMS) $(C_BINDING)
 
 test_dm_real.x: test_dm_real.o elsi_interface.o elsi_io.o elsi_setup.o elsi_solver.o elsi_mutator.o elsi_elpa.o elsi_omm.o elsi_pexsi.o elsi_sips.o elsi_chess.o elsi_mu.o elsi_matconv.o elsi_utils.o elsi_datatype.o elsi_precision.o elsi_constants.o $(STUBS)
 	$(LINKER) $(LDFLAGS) $(FLDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
@@ -10,6 +18,12 @@ test_ev_real.x: test_ev_real.o elsi_interface.o elsi_io.o elsi_setup.o elsi_solv
 	$(LINKER) $(LDFLAGS) $(FLDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
 
 test_ev_complex.x: test_ev_complex.o elsi_interface.o elsi_io.o elsi_setup.o elsi_solver.o elsi_mutator.o elsi_elpa.o elsi_omm.o elsi_pexsi.o elsi_sips.o elsi_chess.o elsi_mu.o elsi_matconv.o elsi_utils.o elsi_datatype.o elsi_precision.o elsi_constants.o $(STUBS)
+	$(LINKER) $(LDFLAGS) $(FLDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
+
+test_ev_real_sparse.x: test_ev_real_sparse.o elsi_interface.o elsi_io.o elsi_setup.o elsi_solver.o elsi_mutator.o elsi_elpa.o elsi_omm.o elsi_pexsi.o elsi_sips.o elsi_chess.o elsi_mu.o elsi_matconv.o elsi_utils.o elsi_datatype.o elsi_precision.o elsi_constants.o $(STUBS)
+	$(LINKER) $(LDFLAGS) $(FLDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
+
+test_dm_real_sparse.x: test_dm_real_sparse.o elsi_interface.o elsi_io.o elsi_setup.o elsi_solver.o elsi_mutator.o elsi_elpa.o elsi_omm.o elsi_pexsi.o elsi_sips.o elsi_chess.o elsi_mu.o elsi_matconv.o elsi_utils.o elsi_datatype.o elsi_precision.o elsi_constants.o $(STUBS)
 	$(LINKER) $(LDFLAGS) $(FLDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
 
 test_standard_ev_real.x: test_standard_ev_real.o elsi_interface.o elsi_io.o elsi_setup.o elsi_solver.o elsi_mutator.o elsi_elpa.o elsi_omm.o elsi_pexsi.o elsi_sips.o elsi_chess.o elsi_mu.o elsi_matconv.o elsi_utils.o elsi_datatype.o elsi_precision.o elsi_constants.o $(STUBS)
@@ -34,6 +48,12 @@ test_ev_real.o: ./test/test_ev_real.f90 elsi_interface.o elsi_precision.o
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
 test_ev_complex.o: ./test/test_ev_complex.f90 elsi_interface.o elsi_precision.o
+	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
+
+test_ev_real_sparse.o: ./test/test_ev_real_sparse.f90 elsi_interface.o elsi_precision.o
+	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
+
+test_dm_real_sparse.o: ./test/test_dm_real_sparse.f90 elsi_interface.o elsi_precision.o
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
 test_standard_ev_real.o: ./test/test_standard_ev_real.f90 elsi_interface.o elsi_precision.o

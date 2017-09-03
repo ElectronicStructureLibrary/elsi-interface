@@ -30,7 +30,7 @@
 !!
 module ELSI_PEXSI
 
-   use ELSI_CONSTANTS, only: BLACS_DENSE,REAL_VALUES,COMPLEX_VALUES,UNSET
+   use ELSI_CONSTANTS, only: REAL_VALUES,COMPLEX_VALUES,UNSET
    use ELSI_DATATYPE, only: elsi_handle
    use ELSI_PRECISION, only: r8,i4
    use ELSI_UTILS
@@ -106,13 +106,16 @@ subroutine elsi_init_pexsi(elsi_h)
       call MPI_Comm_split(elsi_h%mpi_comm,elsi_h%my_point,&
               elsi_h%myid_point,elsi_h%comm_in_point,mpierr)
 
-      ! 1D block distribution
-      elsi_h%n_l_cols_sp = elsi_h%n_basis/elsi_h%n_p_per_pole
+      if(.not. elsi_h%sparsity_ready) then
+         ! Set up 1D block distribution
+         elsi_h%n_l_cols_sp = elsi_h%n_basis/elsi_h%n_p_per_pole
 
-      ! The last process holds all remaining columns
-      if(elsi_h%my_p_col_pexsi == elsi_h%n_p_per_pole-1) then
-         elsi_h%n_l_cols_sp = elsi_h%n_basis-&
-                                 (elsi_h%n_p_per_pole-1)*elsi_h%n_l_cols_sp
+         ! The last process holds all remaining columns
+         if(elsi_h%my_p_col_pexsi == elsi_h%n_p_per_pole-1) then
+            elsi_h%n_l_cols_sp = elsi_h%n_basis-&
+                                    (elsi_h%n_p_per_pole-1)*&
+                                    elsi_h%n_l_cols_sp
+         endif
       endif
 
       ! Only one process outputs

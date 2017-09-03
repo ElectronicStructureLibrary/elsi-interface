@@ -44,7 +44,7 @@ program test_standard_ev_real
    integer(kind=i4) :: n_proc,nprow,npcol,myid,myprow,mypcol
    integer(kind=i4) :: mpi_comm_global,mpierr
    integer(kind=i4) :: blk
-   integer(kind=i4) :: BLACS_CTXT
+   integer(kind=i4) :: blacs_ctxt
    integer(kind=i4) :: sc_desc(9)
    integer(kind=i4) :: info
    integer(kind=i4) :: matrix_size
@@ -127,10 +127,10 @@ program test_standard_ev_real
    blk = 32
 
    ! Set up BLACS
-   BLACS_CTXT = mpi_comm_global
+   blacs_ctxt = mpi_comm_global
 
-   call BLACS_Gridinit(BLACS_CTXT,'r',nprow,npcol)
-   call BLACS_Gridinfo(BLACS_CTXT,nprow,npcol,myprow,mypcol)
+   call BLACS_Gridinit(blacs_ctxt,'r',nprow,npcol)
+   call BLACS_Gridinfo(blacs_ctxt,nprow,npcol,myprow,mypcol)
 
    local_row = numroc(matrix_size,blk,myprow,0,nprow)
    local_col = numroc(matrix_size,blk,mypcol,0,npcol)
@@ -138,7 +138,7 @@ program test_standard_ev_real
    ldm = max(local_row,1)
 
    call descinit(sc_desc,matrix_size,matrix_size,blk,blk,&
-                 0,0,BLACS_CTXT,ldm,info)
+                 0,0,blacs_ctxt,ldm,info)
 
    ! Generate a random matrix
    call random_seed(size=n)
@@ -167,7 +167,7 @@ program test_standard_ev_real
    ! Initialize ELSI
    call elsi_init(elsi_h,solver,1,0,matrix_size,0.0_r8,n_states)
    call elsi_set_mpi(elsi_h,mpi_comm_global)
-   call elsi_set_blacs(elsi_h,BLACS_CTXT,blk)
+   call elsi_set_blacs(elsi_h,blacs_ctxt,blk)
 
    allocate(mat_b(1,1)) ! Dummy allocation
    allocate(evec(local_row,local_col))

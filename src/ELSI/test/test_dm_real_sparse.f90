@@ -26,9 +26,9 @@
 ! EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 !>
-!! This program tests elsi_dm_complex.
+!! This program tests elsi_dm_real_sparse.
 !!
-program test_dm_complex
+program test_dm_real_sparse
 
    use ELSI_PRECISION, only: r8,i4
    use ELSI
@@ -47,14 +47,20 @@ program test_dm_complex
    integer(kind=i4) :: npcol
    integer(kind=i4) :: myid
    integer(kind=i4) :: mpi_comm_global
+   integer(kind=i4) :: comm_in_task
+   integer(kind=i4) :: comm_among_task
    integer(kind=i4) :: mpierr
    integer(kind=i4) :: blk
    integer(kind=i4) :: blacs_ctxt
    integer(kind=i4) :: n_states
    integer(kind=i4) :: matrix_size
-   integer(kind=i4) :: l_rows
-   integer(kind=i4) :: l_cols
+   integer(kind=i4) :: nnz_g
+   integer(kind=i4) :: nnz_l
+   integer(kind=i4) :: n_l_cols
    integer(kind=i4) :: solver
+   integer(kind=i4) :: id_in_task
+   integer(kind=i4) :: task_id
+   integer(kind=i4) :: buffer(5)
 
    real(kind=r8) :: n_electrons
    real(kind=r8) :: e_test
@@ -65,17 +71,19 @@ program test_dm_complex
 
    logical :: make_check ! Are we running "make check"?
 
-   complex(kind=r8), allocatable :: ham(:,:)
-   complex(kind=r8), allocatable :: ham_save(:,:)
-   complex(kind=r8), allocatable :: ovlp(:,:)
-   complex(kind=r8), allocatable :: dm(:,:)
+   real(kind=r8),    allocatable :: ham(:)
+   real(kind=r8),    allocatable :: ham_save(:)
+   real(kind=r8),    allocatable :: ovlp(:)
+   real(kind=r8),    allocatable :: dm(:)
+   integer(kind=i4), allocatable :: row_ind(:)
+   integer(kind=i4), allocatable :: col_ptr(:)
 
    type(elsi_handle) :: elsi_h
 
    ! VY: Reference values from calculations on August 31, 2017.
    real(kind=r8), parameter :: e_elpa  = -1833.07932666530_r8
    real(kind=r8), parameter :: e_omm   = -1833.07932666692_r8
-   real(kind=r8), parameter :: e_pexsi = -1833.07836497809_r8
+   real(kind=r8), parameter :: e_pexsi = -1833.07836578201_r8
 
    ! Initialize MPI
    call MPI_Init(mpierr)
@@ -112,7 +120,7 @@ program test_dm_complex
    endif
 
    if(myid == 0) then
-      e_tol = 1e-8_r8
+      e_tol = 1.0e-8_r8
       write(*,'("  ################################")')
       write(*,'("  ##     ELSI TEST PROGRAMS     ##")')
       write(*,'("  ################################")')
@@ -121,69 +129,106 @@ program test_dm_complex
          write(*,'("  This test program performs the following computational steps:")')
          write(*,*)
          write(*,'("  1) Reads Hamiltonian and overlap matrices;")')
-         write(*,'("  2) Transforms the generalized eigenproblem to the standard")')
+         write(*,'("  2) Converts the matrices to 2D block-cyclic dense format;")')
+         write(*,'("  3) Transforms the generalized eigenproblem to the standard")')
          write(*,'("     form by using Cholesky factorization;")')
-         write(*,'("  3) Solves the standard eigenproblem;")')
-         write(*,'("  4) Back-transforms the eigenvectors to the generalized problem;")')
-         write(*,'("  5) Constructs the density matrix from the eigen-solutions.")')
+         write(*,'("  4) Solves the standard eigenproblem;")')
+         write(*,'("  5) Back-transforms the eigenvectors to the generalized problem;")')
+         write(*,'("  6) Constructs the density matrix from the eigen-solutions.")')
          write(*,*)
-         write(*,'("  Now start testing  elsi_dm_complex + ELPA")')
+         write(*,'("  Now start testing  elsi_dm_real_sparse + ELPA")')
          e_ref = e_elpa
       elseif(solver == 2) then
          write(*,'("  This test program performs the following computational steps:")')
          write(*,*)
          write(*,'("  1) Reads Hamiltonian and overlap matrices;")')
-         write(*,'("  2) Computes the Cholesky factorization of the overlap matrix;")')
-         write(*,'("  3) Computes the density matrix with orbital minimization method.")')
+         write(*,'("  2) Converts the matrices to 2D block-cyclic dense format;")')
+         write(*,'("  3) Computes the Cholesky factorization of the overlap matrix;")')
+         write(*,'("  4) Computes the density matrix with orbital minimization method.")')
          write(*,*)
-         write(*,'("  Now start testing  elsi_dm_complex + libOMM")')
+         write(*,'("  Now start testing  elsi_dm_real_sparse + libOMM")')
          e_ref = e_omm
       else
          write(*,'("  This test program performs the following computational steps:")')
          write(*,*)
          write(*,'("  1) Reads Hamiltonian and overlap matrices;")')
-         write(*,'("  2) Converts the matrices to 1D block CSC format;")')
-         write(*,'("  3) Computes the density matrix with pole expansion and selected")')
+         write(*,'("  2) Computes the density matrix with pole expansion and selected")')
          write(*,'("     inversion method.")')
          write(*,*)
-         write(*,'("  Now start testing  elsi_dm_complex + PEXSI")')
+         write(*,'("  Now start testing  elsi_dm_real_sparse + PEXSI")')
          e_ref = e_pexsi
-         e_tol = 1e-4_r8
+         e_tol = 1.0e-4_r8
       endif
       write(*,*)
    endif
 
-   ! Set up square-like processor grid
-   do npcol = nint(sqrt(real(n_proc))),2,-1
-      if(mod(n_proc,npcol) == 0) exit
-   enddo
-   nprow = n_proc/npcol
-
-   ! Set block size
-   blk = 32
-
-   ! Set up BLACS
-   blacs_ctxt = mpi_comm_global
-   call BLACS_Gridinit(blacs_ctxt,'r',nprow,npcol)
-
    t1 = MPI_Wtime()
 
-   ! Read H and S matrices
-   call elsi_read_mat_dim(arg2,mpi_comm_global,blacs_ctxt,blk,&
-           n_electrons,matrix_size,l_rows,l_cols)
+   if((solver == 1) .or. (solver == 2)) then
+      ! Set up square-like processor grid
+      do npcol = nint(sqrt(real(n_proc))),2,-1
+         if(mod(n_proc,npcol) == 0) exit
+      enddo
+      nprow = n_proc/npcol
 
-   allocate(ham(l_rows,l_cols))
-   allocate(ham_save(l_rows,l_cols))
-   allocate(ovlp(l_rows,l_cols))
-   allocate(dm(l_rows,l_cols))
+      ! Set block size
+      blk = 32
 
-   call elsi_read_mat_complex(arg2,mpi_comm_global,blacs_ctxt,blk,&
-           matrix_size,l_rows,l_cols,ham)
+      ! Set up BLACS
+      blacs_ctxt = mpi_comm_global
+      call BLACS_Gridinit(blacs_ctxt,'r',nprow,npcol)
 
-   call elsi_read_mat_complex(arg3,mpi_comm_global,blacs_ctxt,blk,&
-           matrix_size,l_rows,l_cols,ovlp)
+      task_id = 0
+   elseif(solver == 3) then
+      task_id    = myid/2
+      id_in_task = mod(myid,2)
+   endif
 
-   ham_save = ham
+   call MPI_Comm_split(mpi_comm_global,task_id,id_in_task,&
+           comm_in_task,mpierr)
+   call MPI_Comm_split(mpi_comm_global,id_in_task,task_id,&
+           comm_among_task,mpierr)
+
+   if(task_id == 0) then
+      ! Read H and S matrices
+      call elsi_read_mat_dim_sparse(arg2,comm_in_task,n_electrons,&
+              matrix_size,nnz_g,nnz_l,n_l_cols)
+   endif
+
+   if(solver == 3) then
+      if(task_id == 0) then
+         buffer(1) = int(n_electrons,kind=i4)
+         buffer(2) = matrix_size
+         buffer(3) = nnz_g
+         buffer(4) = nnz_l
+         buffer(5) = n_l_cols
+      endif
+
+      call MPI_Bcast(buffer,5,mpi_integer4,0,comm_among_task,mpierr)
+
+      n_electrons = real(buffer(1),kind=r8)
+      matrix_size = buffer(2)
+      nnz_g       = buffer(3)
+      nnz_l       = buffer(4)
+      n_l_cols    = buffer(5)
+   endif
+
+   allocate(ham(nnz_l))
+   allocate(ham_save(nnz_l))
+   allocate(ovlp(nnz_l))
+   allocate(dm(nnz_l))
+   allocate(row_ind(nnz_l))
+   allocate(col_ptr(n_l_cols+1))
+
+   if(task_id == 0) then
+      call elsi_read_mat_real_sparse(arg2,comm_in_task,matrix_size,nnz_g,&
+              nnz_l,n_l_cols,row_ind,col_ptr,ham)
+
+      call elsi_read_mat_real_sparse(arg3,comm_in_task,matrix_size,nnz_g,&
+              nnz_l,n_l_cols,row_ind,col_ptr,ovlp)
+
+      ham_save = ham
+   endif
 
    t2 = MPI_Wtime()
 
@@ -196,9 +241,13 @@ program test_dm_complex
    ! Initialize ELSI
    n_states = int(n_electrons,kind=i4)
 
-   call elsi_init(elsi_h,solver,1,0,matrix_size,n_electrons,n_states)
+   call elsi_init(elsi_h,solver,1,1,matrix_size,n_electrons,n_states)
    call elsi_set_mpi(elsi_h,mpi_comm_global)
-   call elsi_set_blacs(elsi_h,blacs_ctxt,blk)
+   call elsi_set_csc(elsi_h,nnz_g,nnz_l,n_l_cols,row_ind,col_ptr)
+
+   if((solver == 1) .or. (solver == 2)) then
+      call elsi_set_blacs(elsi_h,blacs_ctxt,blk)
+   endif
 
    ! Customize ELSI
    call elsi_set_output(elsi_h,2)
@@ -209,7 +258,7 @@ program test_dm_complex
    t1 = MPI_Wtime()
 
    ! Solve (pseudo SCF 1)
-   call elsi_dm_complex(elsi_h,ham,ovlp,dm,e_test)
+   call elsi_dm_real_sparse(elsi_h,ham,ovlp,dm,e_test)
 
    t2 = MPI_Wtime()
 
@@ -219,12 +268,14 @@ program test_dm_complex
       write(*,*)
    endif
 
-   ham = ham_save
+   if(task_id == 0) then
+      ham = ham_save
+   endif
 
    t1 = MPI_Wtime()
 
    ! Solve (pseudo SCF 2, with the same H)
-   call elsi_dm_complex(elsi_h,ham,ovlp,dm,e_test)
+   call elsi_dm_real_sparse(elsi_h,ham,ovlp,dm,e_test)
 
    t2 = MPI_Wtime()
 
@@ -251,6 +302,8 @@ program test_dm_complex
    deallocate(ham_save)
    deallocate(ovlp)
    deallocate(dm)
+   deallocate(row_ind)
+   deallocate(col_ptr)
 
    call MPI_Finalize(mpierr)
 

@@ -49,7 +49,7 @@ program test_dm_real
    integer(kind=i4) :: mpi_comm_global
    integer(kind=i4) :: mpierr
    integer(kind=i4) :: blk
-   integer(kind=i4) :: BLACS_CTXT
+   integer(kind=i4) :: blacs_ctxt
    integer(kind=i4) :: n_states
    integer(kind=i4) :: matrix_size
    integer(kind=i4) :: l_rows
@@ -142,7 +142,7 @@ program test_dm_real
          write(*,'("  This test program performs the following computational steps:")')
          write(*,*)
          write(*,'("  1) Reads Hamiltonian and overlap matrices;")')
-         write(*,'("  2) Converts the matrices to 1D block distributed CSC format;")')
+         write(*,'("  2) Converts the matrices to 1D block CSC format;")')
          write(*,'("  3) Computes the density matrix with pole expansion and selected")')
          write(*,'("     inversion method.")')
          write(*,*)
@@ -163,13 +163,13 @@ program test_dm_real
    blk = 32
 
    ! Set up BLACS
-   BLACS_CTXT = mpi_comm_global
-   call BLACS_Gridinit(BLACS_CTXT,'r',nprow,npcol)
+   blacs_ctxt = mpi_comm_global
+   call BLACS_Gridinit(blacs_ctxt,'r',nprow,npcol)
 
    t1 = MPI_Wtime()
 
    ! Read H and S matrices
-   call elsi_read_mat_dim(arg2,mpi_comm_global,BLACS_CTXT,blk,&
+   call elsi_read_mat_dim(arg2,mpi_comm_global,blacs_ctxt,blk,&
            n_electrons,matrix_size,l_rows,l_cols)
 
    allocate(ham(l_rows,l_cols))
@@ -177,10 +177,10 @@ program test_dm_real
    allocate(ovlp(l_rows,l_cols))
    allocate(dm(l_rows,l_cols))
 
-   call elsi_read_mat_real(arg2,mpi_comm_global,BLACS_CTXT,blk,&
+   call elsi_read_mat_real(arg2,mpi_comm_global,blacs_ctxt,blk,&
            matrix_size,l_rows,l_cols,ham)
 
-   call elsi_read_mat_real(arg3,mpi_comm_global,BLACS_CTXT,blk,&
+   call elsi_read_mat_real(arg3,mpi_comm_global,blacs_ctxt,blk,&
            matrix_size,l_rows,l_cols,ovlp)
 
    ham_save = ham
@@ -198,7 +198,7 @@ program test_dm_real
 
    call elsi_init(elsi_h,solver,1,0,matrix_size,n_electrons,n_states)
    call elsi_set_mpi(elsi_h,mpi_comm_global)
-   call elsi_set_blacs(elsi_h,BLACS_CTXT,blk)
+   call elsi_set_blacs(elsi_h,blacs_ctxt,blk)
 
    ! Customize ELSI
    call elsi_set_output(elsi_h,2)

@@ -36,7 +36,7 @@ module ELSI_UTILS
    use ELSI_PRECISION
    use FOE_BASE, only: foe_data_deallocate
    use F_PPEXSI_INTERFACE
-   use MATRIXSWITCH, only: matrix,m_register_pdbc,m_deallocate
+   use MATRIXSWITCH, only: m_register_pdbc,m_deallocate
    use M_QETSC
    use SPARSEMATRIX_BASE, only: deallocate_sparse_matrix,deallocate_matrices
 

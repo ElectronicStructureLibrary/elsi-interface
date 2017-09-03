@@ -35,7 +35,7 @@ module ELSI_OMM
    use ELSI_PRECISION, only: r8,i4
    use ELSI_UTILS
    use ELPA1
-   use MATRIXSWITCH, only: m_add,m_deallocate,ms_scalapack_setup,matrix
+   use MATRIXSWITCH, only: m_add
 
    implicit none
 

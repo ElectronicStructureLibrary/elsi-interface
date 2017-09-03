@@ -242,7 +242,7 @@ subroutine elsi_check_electrons(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
                this_hermite = (eigenvalues(i_state,i_spin,i_kpoint)-mu_in)*invert_width
 
                occ_numbers(i_state,i_spin,i_kpoint) = elsi_h%spin_degen*0.5_r8*&
-                  (1.0_r8-erf(this_hermite))-0.5_r8*invert_sqrt_pi*this_hermite*&
+                  (1.0_r8-erf(this_hermite))-0.5_r8*INVERT_SQRT_PI*this_hermite*&
                   exp(-this_hermite*this_hermite)
 
                diff_ne_out = diff_ne_out+&
@@ -330,8 +330,9 @@ subroutine elsi_find_mu(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
 
       ! ...with adjusted occupation numbers
       call elsi_statement_print("  Chemical potential cannot reach the"//&
-              " required accuracy by bisection method. The error will be"//&
-              " arbitrarily removed from the highest occupied states.",elsi_h)
+              " required accuracy by bisection method.",elsi_h)
+      call elsi_statement_print("  The error will be arbitrarily removed"//&
+              " from the highest occupied states.",elsi_h)
 
       call elsi_adjust_occ(elsi_h,kpoint_weights,eigenvalues,occ_numbers,diff_right)
    endif

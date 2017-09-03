@@ -49,7 +49,7 @@ program test_ev_real
    integer(kind=i4) :: mpi_comm_global
    integer(kind=i4) :: mpierr
    integer(kind=i4) :: blk
-   integer(kind=i4) :: BLACS_CTXT
+   integer(kind=i4) :: blacs_ctxt
    integer(kind=i4) :: n_states
    integer(kind=i4) :: matrix_size
    integer(kind=i4) :: l_rows
@@ -124,7 +124,7 @@ program test_ev_real
       if(solver == 1) then
          write(*,'("  This test program performs the following computational steps:")')
          write(*,*)
-         write(*,'("  1) Generates Hamiltonian and overlap matrices;")')
+         write(*,'("  1) Reads Hamiltonian and overlap matrices;")')
          write(*,'("  2) Checks the singularity of the overlap matrix by computing")')
          write(*,'("     all its eigenvalues;")')
          write(*,'("  3) Transforms the generalized eigenproblem to the standard")')
@@ -136,8 +136,8 @@ program test_ev_real
       elseif(solver == 5) then
          write(*,'("  This test program performs the following computational steps:")')
          write(*,*)
-         write(*,'("  1) Generates Hamiltonian and overlap matrices;")')
-         write(*,'("  2) Converts the matrices to 1D block distributed CSC format;")')
+         write(*,'("  1) Reads Hamiltonian and overlap matrices;")')
+         write(*,'("  2) Converts the matrices to 1D block CSC format;")')
          write(*,'("  3) Solves the generalized eigenproblem with shift-and-invert")')
          write(*,'("     parallel spectral transformation.")')
          write(*,*)
@@ -158,13 +158,13 @@ program test_ev_real
    blk = 32
 
    ! Set up BLACS
-   BLACS_CTXT = mpi_comm_global
-   call BLACS_Gridinit(BLACS_CTXT,'r',nprow,npcol)
+   blacs_ctxt = mpi_comm_global
+   call BLACS_Gridinit(blacs_ctxt,'r',nprow,npcol)
 
    t1 = MPI_Wtime()
 
    ! Read H and S matrices
-   call elsi_read_mat_dim(arg2,mpi_comm_global,BLACS_CTXT,blk,&
+   call elsi_read_mat_dim(arg2,mpi_comm_global,blacs_ctxt,blk,&
            n_electrons,matrix_size,l_rows,l_cols)
 
    allocate(ham(l_rows,l_cols))
@@ -175,10 +175,10 @@ program test_ev_real
    allocate(eval(matrix_size))
    allocate(occ(matrix_size))
 
-   call elsi_read_mat_real(arg2,mpi_comm_global,BLACS_CTXT,blk,&
+   call elsi_read_mat_real(arg2,mpi_comm_global,blacs_ctxt,blk,&
            matrix_size,l_rows,l_cols,ham)
 
-   call elsi_read_mat_real(arg3,mpi_comm_global,BLACS_CTXT,blk,&
+   call elsi_read_mat_real(arg3,mpi_comm_global,blacs_ctxt,blk,&
            matrix_size,l_rows,l_cols,ovlp)
 
    ham_save  = ham
@@ -203,7 +203,7 @@ program test_ev_real
       ! Test MULTI_PROC mode
       call elsi_init(elsi_h,solver,1,0,matrix_size,n_electrons,n_states)
       call elsi_set_mpi(elsi_h,mpi_comm_global)
-      call elsi_set_blacs(elsi_h,BLACS_CTXT,blk)
+      call elsi_set_blacs(elsi_h,blacs_ctxt,blk)
    endif
 
    ! Customize ELSI
