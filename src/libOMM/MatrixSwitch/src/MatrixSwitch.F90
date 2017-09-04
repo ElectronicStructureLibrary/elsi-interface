@@ -1708,6 +1708,9 @@ contains
 
   subroutine m_ztrace(A,alpha,label)
     implicit none
+#ifdef MPI
+    include 'mpif.h'
+#endif
 
     !**** INPUT ***********************************!
 
@@ -1721,16 +1724,25 @@ contains
 
     !**** INTERNAL ********************************!
 
-    integer :: ot, i
+    integer :: ot, i, j
 
 #ifdef CONV
     real(dp) :: real_alpha
 #endif
 
+    complex(dp) :: alpha_loc
+
+    integer :: l_row, l_col
+    integer :: g_row, g_col
+    integer :: ms_lap_myprow, ms_lap_mypcol
+    integer :: mpierr
+
     !**** EXTERNAL ********************************!
 
 #if defined(MPI) && defined(SLAP)
     complex(dp), external :: pzlatra
+
+    integer, external :: numroc
 #endif
 
     !**********************************************!
@@ -1787,7 +1799,32 @@ contains
        end do
     case (2)
 #if defined(MPI) && defined(SLAP)
-       alpha=pzlatra(A%dim1,A%zval,1,1,A%iaux1)
+!       alpha=pzlatra(A%dim1,A%zval,1,1,A%iaux1)
+
+       alpha_loc = (0.0_dp,0.0_dp)
+
+       call blacs_pcoord(ms_lap_icontxt,ms_mpi_rank,ms_lap_myprow,ms_lap_mypcol)
+
+       l_row = numroc(A%dim1,ms_lap_bs_def,ms_lap_myprow,0,ms_lap_nprow)
+       l_col = numroc(A%dim1,ms_lap_bs_def,ms_lap_mypcol,0,ms_lap_npcol)
+
+       do i = 1,l_col
+          g_col = ms_lap_mypcol*ms_lap_bs_def+&
+                     (i-1)/ms_lap_bs_def*ms_lap_bs_def*ms_lap_npcol+&
+                     i-(i-1)/ms_lap_bs_def*ms_lap_bs_def
+
+          do j = 1,l_row
+             g_row = ms_lap_myprow*ms_lap_bs_def+&
+                        (j-1)/ms_lap_bs_def*ms_lap_bs_def*ms_lap_nprow+&
+                        j-(j-1)/ms_lap_bs_def*ms_lap_bs_def
+
+             if(g_row == g_col) then
+                alpha_loc = alpha_loc+A%zval(j,i)
+             endif
+          enddo
+       enddo
+
+       call mpi_allreduce(alpha_loc,alpha,1,mpi_complex16,mpi_sum,ms_mpi_comm,mpierr)
 #else
        call die('m_ztrace: compile with ScaLAPACK')
 #endif
