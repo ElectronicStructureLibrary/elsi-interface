@@ -235,7 +235,8 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
                  elsi_h%pexsi_plan,elsi_h%pexsi_options,ierr)
 
          call f_ppexsi_symbolic_factorize_complex_unsymmetric_matrix(&
-                 elsi_h%pexsi_plan,elsi_h%pexsi_options,ierr)
+                 elsi_h%pexsi_plan,elsi_h%pexsi_options,&
+                 elsi_h%ovlp_complex_ccs,ierr)
       end select
 
       call elsi_get_time(elsi_h,t1)

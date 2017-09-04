@@ -92,10 +92,6 @@ subroutine f_ppexsi_set_default_options(options)
 
    type(f_ppexsi_options) :: options
 
-   write(*,"(A)") " A PEXSI stub routine was called. Check ELSI installation."
-   write(*,"(A)") " Exiting..."
-   stop
-
 end subroutine
 
 function f_ppexsi_plan_initialize(fcomm,numProcRow,numProcCol,outputFileIndex,info)
@@ -195,12 +191,14 @@ subroutine f_ppexsi_symbolic_factorize_complex_symmetric_matrix(plan,options,inf
 
 end subroutine
 
-subroutine f_ppexsi_symbolic_factorize_complex_unsymmetric_matrix(plan,options,info)
+subroutine f_ppexsi_symbolic_factorize_complex_unsymmetric_matrix(plan,options,&
+              AnzvalLocal,info)
 
    implicit none
 
    integer(kind=c_intptr_t) :: plan
    type(f_ppexsi_options)   :: options
+   complex(kind=r8)         :: AnzvalLocal(*)
    integer(kind=i4)         :: info
 
    write(*,"(A)") " A PEXSI stub routine was called. Check ELSI installation."

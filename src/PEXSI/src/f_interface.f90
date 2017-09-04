@@ -277,6 +277,7 @@ interface
   subroutine f_ppexsi_symbolic_factorize_real_unsymmetric_matrix(&
       plan,&
       options,&
+      AnzvalLocal,&
       info) &
       bind(C, Name="PPEXSISymbolicFactorizeRealUnsymmetricMatrix")
     use, intrinsic :: iso_c_binding
@@ -284,12 +285,14 @@ interface
     implicit none
     integer(c_intptr_t), intent(in), value :: plan
     type( f_ppexsi_options ), value, intent(in) :: options
+    real(c_double), intent(inout)          :: AnzvalLocal(*)
     integer(c_int), intent(out)            :: info
   end subroutine 
 
   subroutine f_ppexsi_symbolic_factorize_complex_unsymmetric_matrix(&
       plan,&
       options,&
+      AnzvalLocal,&
       info) &
       bind(C, Name="PPEXSISymbolicFactorizeComplexUnsymmetricMatrix")
     use, intrinsic :: iso_c_binding
@@ -297,6 +300,7 @@ interface
     implicit none
     integer(c_intptr_t), intent(in), value :: plan
     type( f_ppexsi_options ), value, intent(in) :: options
+    complex(c_double), intent(inout)       :: AnzvalLocal(*)
     integer(c_int), intent(out)            :: info
   end subroutine 
 
