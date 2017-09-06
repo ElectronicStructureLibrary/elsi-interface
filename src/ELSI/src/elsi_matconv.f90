@@ -40,19 +40,19 @@ module ELSI_MATCONV
    private
 
    public :: elsi_blacs_to_chess_hs
-   public :: elsi_blacs_to_pexsi_dm
+   public :: elsi_blacs_to_sips_dm
    public :: elsi_blacs_to_pexsi_hs
    public :: elsi_blacs_to_sips_hs
    public :: elsi_chess_to_blacs_dm
    public :: elsi_pexsi_to_blacs_dm
-   public :: elsi_pexsi_to_blacs_hs
+   public :: elsi_sips_to_blacs_hs
 
    interface elsi_blacs_to_chess_hs
       module procedure elsi_blacs_to_chess_hs_real
    end interface
 
-   interface elsi_blacs_to_pexsi_dm
-      module procedure elsi_blacs_to_pexsi_dm_real
+   interface elsi_blacs_to_sips_dm
+      module procedure elsi_blacs_to_sips_dm_real
    end interface
 
    interface elsi_blacs_to_pexsi_hs
@@ -74,8 +74,8 @@ module ELSI_MATCONV
                        elsi_pexsi_to_blacs_dm_complex
    end interface
 
-   interface elsi_pexsi_to_blacs_hs
-      module procedure elsi_pexsi_to_blacs_hs_real
+   interface elsi_sips_to_blacs_hs
+      module procedure elsi_sips_to_blacs_hs_real
    end interface
 
 contains
@@ -125,8 +125,10 @@ subroutine elsi_blacs_to_pexsi_hs_small_real(elsi_h,h_in,s_in)
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h                                !< Handle
-   real(kind=r8),     intent(in)    :: h_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian
-   real(kind=r8),     intent(in)    :: s_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Overlap
+   real(kind=r8),     target        :: h_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian
+   real(kind=r8),     target        :: s_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Overlap
+
+   real(kind=r8), pointer :: ref(:,:) ! Sparsity pattern
 
    integer(kind=i4) :: n_para_task
    integer(kind=i4) :: mpierr
@@ -134,8 +136,8 @@ subroutine elsi_blacs_to_pexsi_hs_small_real(elsi_h,h_in,s_in)
    integer(kind=i4) :: i_col
    integer(kind=i4) :: i_val
    integer(kind=i4) :: i_proc
-   integer(kind=i4) :: global_col_id ! Global column id
-   integer(kind=i4) :: global_row_id ! Global row id
+   integer(kind=i4) :: global_col_id
+   integer(kind=i4) :: global_row_id
    integer(kind=i4) :: d1,d2,d11,d12,d21,d22 ! Number of columns in the intermediate stage
    integer(kind=i4) :: dest ! Destination of an element
    integer(kind=i4) :: this_n_cols
@@ -163,11 +165,20 @@ subroutine elsi_blacs_to_pexsi_hs_small_real(elsi_h,h_in,s_in)
 
    n_para_task = elsi_h%n_procs/elsi_h%n_p_per_pole
 
+   if(.not. elsi_h%ovlp_is_unit) then
+      ref => s_in
+   else
+      ref => h_in
+   endif
+
    if(elsi_h%n_elsi_calls == 1) then
       call elsi_get_local_nnz(elsi_h,s_in,elsi_h%n_l_rows,&
               elsi_h%n_l_cols,elsi_h%nnz_l)
-      call elsi_allocate(elsi_h,s_val_send_buffer,elsi_h%nnz_l,&
-              "s_val_send_buffer",caller)
+
+      if(.not. elsi_h%ovlp_is_unit) then
+         call elsi_allocate(elsi_h,s_val_send_buffer,elsi_h%nnz_l,&
+                 "s_val_send_buffer",caller)
+      endif
    endif
 
    call elsi_allocate(elsi_h,locat,elsi_h%n_basis,"locat",caller)
@@ -241,20 +252,25 @@ subroutine elsi_blacs_to_pexsi_hs_small_real(elsi_h,h_in,s_in)
    call elsi_allocate(elsi_h,send_count,elsi_h%n_procs,"send_count",caller)
 
    ! Compute destination and global 1D id
-   if(elsi_h%n_elsi_calls == 1) then
+   if((elsi_h%n_elsi_calls == 1) .and. (.not. elsi_h%ovlp_is_unit)) then
       i_val = 0
       do i_col = 1,elsi_h%n_l_cols
+         call elsi_get_global_col(elsi_h,global_col_id,i_col)
+
+         ! Compute destination
+         dest = min(locat(global_col_id),elsi_h%n_procs-1)
+
          do i_row = 1,elsi_h%n_l_rows
-            if(abs(s_in(i_row,i_col)) > elsi_h%zero_threshold) then
+            if(abs(ref(i_row,i_col)) > elsi_h%zero_threshold) then
                i_val = i_val+1
-               call elsi_get_global_col(elsi_h,global_col_id,i_col)
+
                call elsi_get_global_row(elsi_h,global_row_id,i_row)
-               ! Compute destination
-               dest = min(locat(global_col_id),elsi_h%n_procs-1)
+
                ! Pack global id and data into buffers
                pos_send_buffer(i_val) = (global_col_id-1)*elsi_h%n_basis+global_row_id
                h_val_send_buffer(i_val) = h_in(i_row,i_col)
                s_val_send_buffer(i_val) = s_in(i_row,i_col)
+
                ! Set send_count
                send_count(dest+1) = send_count(dest+1)+1
             endif
@@ -263,22 +279,29 @@ subroutine elsi_blacs_to_pexsi_hs_small_real(elsi_h,h_in,s_in)
    else
       i_val = 0
       do i_col = 1,elsi_h%n_l_cols
+         call elsi_get_global_col(elsi_h,global_col_id,i_col)
+
+         ! Compute destination
+         dest = min(locat(global_col_id),elsi_h%n_procs-1)
+
          do i_row = 1,elsi_h%n_l_rows
-            if(abs(s_in(i_row,i_col)) > elsi_h%zero_threshold) then
+            if(abs(ref(i_row,i_col)) > elsi_h%zero_threshold) then
                i_val = i_val+1
-               call elsi_get_global_col(elsi_h,global_col_id,i_col)
+
                call elsi_get_global_row(elsi_h,global_row_id,i_row)
-               ! Compute destination
-               dest = min(locat(global_col_id),elsi_h%n_procs-1)
+
                ! Pack global id and data into buffers
                pos_send_buffer(i_val) = (global_col_id-1)*elsi_h%n_basis+global_row_id
                h_val_send_buffer(i_val) = h_in(i_row,i_col)
+
                ! Set send_count
                send_count(dest+1) = send_count(dest+1)+1
             endif
          enddo
       enddo
    endif
+
+   nullify(ref)
 
    call elsi_allocate(elsi_h,recv_count,elsi_h%n_procs,"recv_count",caller)
 
@@ -327,7 +350,7 @@ subroutine elsi_blacs_to_pexsi_hs_small_real(elsi_h,h_in,s_in)
    call elsi_deallocate(elsi_h,h_val_send_buffer,"h_val_send_buffer")
 
    ! Overlap value
-   if(elsi_h%n_elsi_calls == 1) then
+   if((elsi_h%n_elsi_calls == 1) .and. (.not. elsi_h%ovlp_is_unit)) then
       call elsi_allocate(elsi_h,s_val_recv_buffer,nnz_l_pexsi_aux,&
               "s_val_recv_buffer",caller)
 
@@ -339,7 +362,7 @@ subroutine elsi_blacs_to_pexsi_hs_small_real(elsi_h,h_in,s_in)
    endif
 
    ! Sort
-   if(elsi_h%n_elsi_calls == 1) then
+   if((elsi_h%n_elsi_calls == 1) .and. (.not. elsi_h%ovlp_is_unit)) then
       do i_val = 1,nnz_l_pexsi_aux
          min_id = minloc(pos_recv_buffer(i_val:nnz_l_pexsi_aux),1)+i_val-1
 
@@ -408,18 +431,22 @@ subroutine elsi_blacs_to_pexsi_hs_small_real(elsi_h,h_in,s_in)
 
       call elsi_deallocate(elsi_h,pos_recv_buffer,"pos_recv_buffer")
 
-      ! Overlap value
-      call elsi_allocate(elsi_h,elsi_h%ovlp_real_pexsi,elsi_h%nnz_l_sp,&
-              "ovlp_real_pexsi",caller)
+      if(.not. elsi_h%ovlp_is_unit) then
+         ! Overlap value
+         call elsi_allocate(elsi_h,elsi_h%ovlp_real_pexsi,elsi_h%nnz_l_sp,&
+                 "ovlp_real_pexsi",caller)
 
-      call MPI_Alltoallv(s_val_recv_buffer,send_count,send_displ,&
-              mpi_real8,elsi_h%ovlp_real_pexsi,recv_count,recv_displ,&
-              mpi_real8,elsi_h%mpi_comm,mpierr)
+         call MPI_Alltoallv(s_val_recv_buffer,send_count,send_displ,&
+                 mpi_real8,elsi_h%ovlp_real_pexsi,recv_count,recv_displ,&
+                 mpi_real8,elsi_h%mpi_comm,mpierr)
 
-      call elsi_deallocate(elsi_h,s_val_recv_buffer,"s_val_recv_buffer")
+         call elsi_deallocate(elsi_h,s_val_recv_buffer,"s_val_recv_buffer")
 
-      call elsi_allocate(elsi_h,elsi_h%ham_real_pexsi,elsi_h%nnz_l_sp,&
-              "ham_real_pexsi",caller)
+         call elsi_allocate(elsi_h,elsi_h%ham_real_pexsi,elsi_h%nnz_l_sp,&
+                 "ham_real_pexsi",caller)
+      else
+         call elsi_allocate(elsi_h,elsi_h%ovlp_real_pexsi,1,"dummy",caller)
+      endif
    endif
 
    elsi_h%ham_real_pexsi = 0.0_r8
@@ -474,8 +501,10 @@ subroutine elsi_blacs_to_pexsi_hs_large_real(elsi_h,h_in,s_in)
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h                                !< Handle
-   real(kind=r8),     intent(in)    :: h_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian
-   real(kind=r8),     intent(in)    :: s_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Overlap
+   real(kind=r8),     target        :: h_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian
+   real(kind=r8),     target        :: s_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Overlap
+
+   real(kind=r8), pointer :: ref(:,:) ! Sparsity pattern
 
    integer(kind=i4) :: n_para_task
    integer(kind=i4) :: mpierr
@@ -483,8 +512,8 @@ subroutine elsi_blacs_to_pexsi_hs_large_real(elsi_h,h_in,s_in)
    integer(kind=i4) :: i_col
    integer(kind=i4) :: i_val
    integer(kind=i4) :: i_proc
-   integer(kind=i4) :: global_col_id ! Global column id
-   integer(kind=i4) :: global_row_id ! Global row id
+   integer(kind=i4) :: global_col_id
+   integer(kind=i4) :: global_row_id
    integer(kind=i4) :: d1,d2,d11,d12,d21,d22 ! Number of columns in the intermediate stage
    integer(kind=i4) :: dest ! Destination of an element
    integer(kind=i4) :: this_n_cols
@@ -516,11 +545,20 @@ subroutine elsi_blacs_to_pexsi_hs_large_real(elsi_h,h_in,s_in)
 
    n_para_task = elsi_h%n_procs/elsi_h%n_p_per_pole
 
+   if(.not. elsi_h%ovlp_is_unit) then
+      ref => s_in
+   else
+      ref => h_in
+   endif
+
    if(elsi_h%n_elsi_calls == 1) then
       call elsi_get_local_nnz(elsi_h,s_in,elsi_h%n_l_rows,&
               elsi_h%n_l_cols,elsi_h%nnz_l)
-      call elsi_allocate(elsi_h,s_val_send_buffer,elsi_h%nnz_l,&
-              "s_val_send_buffer",caller)
+
+      if(.not. elsi_h%ovlp_is_unit) then
+         call elsi_allocate(elsi_h,s_val_send_buffer,elsi_h%nnz_l,&
+                 "s_val_send_buffer",caller)
+      endif
    endif
 
    call elsi_allocate(elsi_h,locat,elsi_h%n_basis,"locat",caller)
@@ -596,21 +634,26 @@ subroutine elsi_blacs_to_pexsi_hs_large_real(elsi_h,h_in,s_in)
    call elsi_allocate(elsi_h,send_count,elsi_h%n_procs,"send_count",caller)
 
    ! Compute destination and global id
-   if(elsi_h%n_elsi_calls == 1) then
+   if((elsi_h%n_elsi_calls == 1) .and. (.not. elsi_h%ovlp_is_unit)) then
       i_val = 0
       do i_col = 1,elsi_h%n_l_cols
+         call elsi_get_global_col(elsi_h,global_col_id,i_col)
+
+         ! Compute destination
+         dest = min(locat(global_col_id),elsi_h%n_procs-1)
+
          do i_row = 1,elsi_h%n_l_rows
-            if(abs(s_in(i_row,i_col)) > elsi_h%zero_threshold) then
+            if(abs(ref(i_row,i_col)) > elsi_h%zero_threshold) then
                i_val = i_val+1
-               call elsi_get_global_col(elsi_h,global_col_id,i_col)
+
                call elsi_get_global_row(elsi_h,global_row_id,i_row)
-               ! Compute destination
-               dest = min(locat(global_col_id),elsi_h%n_procs-1)
+
                ! Pack global id and data into buffers
                row_send_buffer(i_val) = global_row_id
                col_send_buffer(i_val) = global_col_id
                h_val_send_buffer(i_val) = h_in(i_row,i_col)
                s_val_send_buffer(i_val) = s_in(i_row,i_col)
+
                ! Set send_count
                send_count(dest+1) = send_count(dest+1)+1
             endif
@@ -619,23 +662,30 @@ subroutine elsi_blacs_to_pexsi_hs_large_real(elsi_h,h_in,s_in)
    else
       i_val = 0
       do i_col = 1,elsi_h%n_l_cols
+         call elsi_get_global_col(elsi_h,global_col_id,i_col)
+
+         ! Compute destination
+         dest = min(locat(global_col_id),elsi_h%n_procs-1)
+
          do i_row = 1,elsi_h%n_l_rows
-            if(abs(s_in(i_row,i_col)) > elsi_h%zero_threshold) then
+            if(abs(ref(i_row,i_col)) > elsi_h%zero_threshold) then
                i_val = i_val+1
-               call elsi_get_global_col(elsi_h,global_col_id,i_col)
+
                call elsi_get_global_row(elsi_h,global_row_id,i_row)
-               ! Compute destination
-               dest = min(locat(global_col_id),elsi_h%n_procs-1)
+
                ! Pack global id and data into buffers
                row_send_buffer(i_val) = global_row_id
                col_send_buffer(i_val) = global_col_id
                h_val_send_buffer(i_val) = h_in(i_row,i_col)
-              ! Set send_count
+
+               ! Set send_count
                send_count(dest+1) = send_count(dest+1)+1
             endif
          enddo
       enddo
    endif
+
+   nullify(ref)
 
    call elsi_allocate(elsi_h,recv_count,elsi_h%n_procs,"recv_count",caller)
 
@@ -694,7 +744,7 @@ subroutine elsi_blacs_to_pexsi_hs_large_real(elsi_h,h_in,s_in)
    call elsi_deallocate(elsi_h,h_val_send_buffer,"h_val_send_buffer")
 
    ! Overlap value
-   if(elsi_h%n_elsi_calls == 1) then
+   if((elsi_h%n_elsi_calls == 1) .and. (.not. elsi_h%ovlp_is_unit)) then
       call elsi_allocate(elsi_h,s_val_recv_buffer,nnz_l_pexsi_aux,&
               "s_val_recv_buffer",caller)
 
@@ -715,7 +765,7 @@ subroutine elsi_blacs_to_pexsi_hs_large_real(elsi_h,h_in,s_in)
    enddo
 
    ! Sort
-   if(elsi_h%n_elsi_calls == 1) then
+   if((elsi_h%n_elsi_calls == 1) .and. (.not. elsi_h%ovlp_is_unit)) then
       do i_val = 1,nnz_l_pexsi_aux
          min_id = minloc(global_id(i_val:nnz_l_pexsi_aux),1)+i_val-1
 
@@ -804,18 +854,22 @@ subroutine elsi_blacs_to_pexsi_hs_large_real(elsi_h,h_in,s_in)
 
       call elsi_deallocate(elsi_h,col_recv_buffer,"col_recv_buffer")
 
-      ! Overlap value
-      call elsi_allocate(elsi_h,elsi_h%ovlp_real_pexsi,elsi_h%nnz_l_sp,&
-              "ovlp_real_pexsi",caller)
+      if(.not. elsi_h%ovlp_is_unit) then
+         ! Overlap value
+         call elsi_allocate(elsi_h,elsi_h%ovlp_real_pexsi,elsi_h%nnz_l_sp,&
+                 "ovlp_real_pexsi",caller)
 
-      call MPI_Alltoallv(s_val_recv_buffer,send_count,send_displ,&
-              mpi_real8,elsi_h%ovlp_real_pexsi,recv_count,recv_displ,&
-              mpi_real8,elsi_h%mpi_comm,mpierr)
+         call MPI_Alltoallv(s_val_recv_buffer,send_count,send_displ,&
+                 mpi_real8,elsi_h%ovlp_real_pexsi,recv_count,recv_displ,&
+                 mpi_real8,elsi_h%mpi_comm,mpierr)
 
-      call elsi_deallocate(elsi_h,s_val_recv_buffer,"s_val_recv_buffer")
+         call elsi_deallocate(elsi_h,s_val_recv_buffer,"s_val_recv_buffer")
 
-      call elsi_allocate(elsi_h,elsi_h%ham_real_pexsi,elsi_h%nnz_l_sp,&
-              "ham_real_pexsi",caller)
+         call elsi_allocate(elsi_h,elsi_h%ham_real_pexsi,elsi_h%nnz_l_sp,&
+                 "ham_real_pexsi",caller)
+      else
+         call elsi_allocate(elsi_h,elsi_h%ovlp_real_pexsi,1,"dummy",caller)
+      endif
    endif
 
    elsi_h%ham_real_pexsi = 0.0_r8
@@ -904,8 +958,10 @@ subroutine elsi_blacs_to_pexsi_hs_small_complex(elsi_h,h_in,s_in)
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h                                !< Handle
-   complex(kind=r8),  intent(in)    :: h_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian
-   complex(kind=r8),  intent(in)    :: s_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Overlap
+   complex(kind=r8),  target        :: h_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian
+   complex(kind=r8),  target        :: s_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Overlap
+
+   complex(kind=r8), pointer :: ref(:,:) ! Sparsity pattern
 
    integer(kind=i4) :: n_para_task
    integer(kind=i4) :: mpierr
@@ -913,8 +969,8 @@ subroutine elsi_blacs_to_pexsi_hs_small_complex(elsi_h,h_in,s_in)
    integer(kind=i4) :: i_col
    integer(kind=i4) :: i_val
    integer(kind=i4) :: i_proc
-   integer(kind=i4) :: global_col_id ! Global column id
-   integer(kind=i4) :: global_row_id ! Global row id
+   integer(kind=i4) :: global_col_id
+   integer(kind=i4) :: global_row_id
    integer(kind=i4) :: d1,d2,d11,d12,d21,d22 ! Number of columns in the intermediate stage
    integer(kind=i4) :: dest ! Destination of an element
    integer(kind=i4) :: this_n_cols
@@ -942,11 +998,19 @@ subroutine elsi_blacs_to_pexsi_hs_small_complex(elsi_h,h_in,s_in)
 
    n_para_task = elsi_h%n_procs/elsi_h%n_p_per_pole
 
+   if(.not. elsi_h%ovlp_is_unit) then
+      ref => s_in
+   else
+      ref => h_in
+   endif
+
    if(elsi_h%n_elsi_calls == 1) then
       call elsi_get_local_nnz(elsi_h,s_in,elsi_h%n_l_rows,&
               elsi_h%n_l_cols,elsi_h%nnz_l)
-      call elsi_allocate(elsi_h,s_val_send_buffer,elsi_h%nnz_l,&
-              "s_val_send_buffer",caller)
+      if(.not. elsi_h%ovlp_is_unit) then
+         call elsi_allocate(elsi_h,s_val_send_buffer,elsi_h%nnz_l,&
+                 "s_val_send_buffer",caller)
+      endif
    endif
 
    call elsi_allocate(elsi_h,locat,elsi_h%n_basis,"locat",caller)
@@ -1020,20 +1084,25 @@ subroutine elsi_blacs_to_pexsi_hs_small_complex(elsi_h,h_in,s_in)
    call elsi_allocate(elsi_h,send_count,elsi_h%n_procs,"send_count",caller)
 
    ! Compute destination and global 1D id
-   if(elsi_h%n_elsi_calls == 1) then
+   if((elsi_h%n_elsi_calls == 1) .and. (.not. elsi_h%ovlp_is_unit)) then
       i_val = 0
       do i_col = 1,elsi_h%n_l_cols
+         call elsi_get_global_col(elsi_h,global_col_id,i_col)
+
+         ! Compute destination
+         dest = min(locat(global_col_id),elsi_h%n_procs-1)
+
          do i_row = 1,elsi_h%n_l_rows
-            if(abs(s_in(i_row,i_col)) > elsi_h%zero_threshold) then
+            if(abs(ref(i_row,i_col)) > elsi_h%zero_threshold) then
                i_val = i_val+1
-               call elsi_get_global_col(elsi_h,global_col_id,i_col)
+
                call elsi_get_global_row(elsi_h,global_row_id,i_row)
-               ! Compute destination
-               dest = min(locat(global_col_id),elsi_h%n_procs-1)
+
                ! Pack global id and data into buffers
                pos_send_buffer(i_val) = (global_col_id-1)*elsi_h%n_basis+global_row_id
                h_val_send_buffer(i_val) = h_in(i_row,i_col)
                s_val_send_buffer(i_val) = s_in(i_row,i_col)
+
                ! Set send_count
                send_count(dest+1) = send_count(dest+1)+1
             endif
@@ -1042,22 +1111,29 @@ subroutine elsi_blacs_to_pexsi_hs_small_complex(elsi_h,h_in,s_in)
    else
       i_val = 0
       do i_col = 1,elsi_h%n_l_cols
+         call elsi_get_global_col(elsi_h,global_col_id,i_col)
+
+         ! Compute destination
+         dest = min(locat(global_col_id),elsi_h%n_procs-1)
+
          do i_row = 1,elsi_h%n_l_rows
-            if(abs(s_in(i_row,i_col)) > elsi_h%zero_threshold) then
+            if(abs(ref(i_row,i_col)) > elsi_h%zero_threshold) then
                i_val = i_val+1
-               call elsi_get_global_col(elsi_h,global_col_id,i_col)
+
                call elsi_get_global_row(elsi_h,global_row_id,i_row)
-               ! Compute destination
-               dest = min(locat(global_col_id),elsi_h%n_procs-1)
+
                ! Pack global id and data into buffers
                pos_send_buffer(i_val) = (global_col_id-1)*elsi_h%n_basis+global_row_id
                h_val_send_buffer(i_val) = h_in(i_row,i_col)
+
                ! Set send_count
                send_count(dest+1) = send_count(dest+1)+1
             endif
          enddo
       enddo
    endif
+
+   nullify(ref)
 
    call elsi_allocate(elsi_h,recv_count,elsi_h%n_procs,"recv_count",caller)
 
@@ -1106,7 +1182,7 @@ subroutine elsi_blacs_to_pexsi_hs_small_complex(elsi_h,h_in,s_in)
    call elsi_deallocate(elsi_h,h_val_send_buffer,"h_val_send_buffer")
 
    ! Overlap value
-   if(elsi_h%n_elsi_calls == 1) then
+   if((elsi_h%n_elsi_calls == 1) .and. (.not. elsi_h%ovlp_is_unit)) then
       call elsi_allocate(elsi_h,s_val_recv_buffer,nnz_l_pexsi_aux,&
               "s_val_recv_buffer",caller)
 
@@ -1118,7 +1194,7 @@ subroutine elsi_blacs_to_pexsi_hs_small_complex(elsi_h,h_in,s_in)
    endif
 
    ! Sort
-   if(elsi_h%n_elsi_calls == 1) then
+   if((elsi_h%n_elsi_calls == 1) .and. (.not. elsi_h%ovlp_is_unit)) then
       do i_val = 1,nnz_l_pexsi_aux
          min_id = minloc(pos_recv_buffer(i_val:nnz_l_pexsi_aux),1)+i_val-1
 
@@ -1187,18 +1263,22 @@ subroutine elsi_blacs_to_pexsi_hs_small_complex(elsi_h,h_in,s_in)
 
       call elsi_deallocate(elsi_h,pos_recv_buffer,"pos_recv_buffer")
 
-      ! Overlap value
-      call elsi_allocate(elsi_h,elsi_h%ovlp_complex_pexsi,elsi_h%nnz_l_sp,&
-              "ovlp_complex_pexsi",caller)
+      if(.not. elsi_h%ovlp_is_unit) then
+         ! Overlap value
+         call elsi_allocate(elsi_h,elsi_h%ovlp_complex_pexsi,elsi_h%nnz_l_sp,&
+                 "ovlp_complex_pexsi",caller)
 
-      call MPI_Alltoallv(s_val_recv_buffer,send_count,send_displ,&
-              mpi_complex16,elsi_h%ovlp_complex_pexsi,recv_count,recv_displ,&
-              mpi_complex16,elsi_h%mpi_comm,mpierr)
+         call MPI_Alltoallv(s_val_recv_buffer,send_count,send_displ,&
+                 mpi_complex16,elsi_h%ovlp_complex_pexsi,recv_count,recv_displ,&
+                 mpi_complex16,elsi_h%mpi_comm,mpierr)
 
-      call elsi_deallocate(elsi_h,s_val_recv_buffer,"s_val_recv_buffer")
+         call elsi_deallocate(elsi_h,s_val_recv_buffer,"s_val_recv_buffer")
 
-      call elsi_allocate(elsi_h,elsi_h%ham_complex_pexsi,elsi_h%nnz_l_sp,&
-              "ham_complex_pexsi",caller)
+         call elsi_allocate(elsi_h,elsi_h%ham_complex_pexsi,elsi_h%nnz_l_sp,&
+                 "ham_complex_pexsi",caller)
+      else
+         call elsi_allocate(elsi_h,elsi_h%ovlp_complex_pexsi,1,"dummy",caller)
+      endif
    endif
 
    elsi_h%ham_complex_pexsi = (0.0_r8,0.0_r8)
@@ -1253,8 +1333,10 @@ subroutine elsi_blacs_to_pexsi_hs_large_complex(elsi_h,h_in,s_in)
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h                                !< Handle
-   complex(kind=r8),  intent(in)    :: h_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian
-   complex(kind=r8),  intent(in)    :: s_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Overlap
+   complex(kind=r8),  target        :: h_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian
+   complex(kind=r8),  target        :: s_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Overlap
+
+   complex(kind=r8), pointer :: ref(:,:) ! Sparsity pattern
 
    integer(kind=i4) :: n_para_task
    integer(kind=i4) :: mpierr
@@ -1262,8 +1344,8 @@ subroutine elsi_blacs_to_pexsi_hs_large_complex(elsi_h,h_in,s_in)
    integer(kind=i4) :: i_col
    integer(kind=i4) :: i_val
    integer(kind=i4) :: i_proc
-   integer(kind=i4) :: global_col_id ! Global column id
-   integer(kind=i4) :: global_row_id ! Global row id
+   integer(kind=i4) :: global_col_id
+   integer(kind=i4) :: global_row_id
    integer(kind=i4) :: d1,d2,d11,d12,d21,d22 ! Number of columns in the intermediate stage
    integer(kind=i4) :: dest ! Destination of an element
    integer(kind=i4) :: this_n_cols
@@ -1295,11 +1377,19 @@ subroutine elsi_blacs_to_pexsi_hs_large_complex(elsi_h,h_in,s_in)
 
    n_para_task = elsi_h%n_procs/elsi_h%n_p_per_pole
 
+   if(.not. elsi_h%ovlp_is_unit) then
+      ref => s_in
+   else
+      ref => h_in
+   endif
+
    if(elsi_h%n_elsi_calls == 1) then
       call elsi_get_local_nnz(elsi_h,s_in,elsi_h%n_l_rows,&
               elsi_h%n_l_cols,elsi_h%nnz_l)
-      call elsi_allocate(elsi_h,s_val_send_buffer,elsi_h%nnz_l,&
-              "s_val_send_buffer",caller)
+      if(.not. elsi_h%ovlp_is_unit) then
+         call elsi_allocate(elsi_h,s_val_send_buffer,elsi_h%nnz_l,&
+                 "s_val_send_buffer",caller)
+      endif
    endif
 
    call elsi_allocate(elsi_h,locat,elsi_h%n_basis,"locat",caller)
@@ -1375,21 +1465,26 @@ subroutine elsi_blacs_to_pexsi_hs_large_complex(elsi_h,h_in,s_in)
    call elsi_allocate(elsi_h,send_count,elsi_h%n_procs,"send_count",caller)
 
    ! Compute destination and global id
-   if(elsi_h%n_elsi_calls == 1) then
+   if((elsi_h%n_elsi_calls == 1) .and. (.not. elsi_h%ovlp_is_unit)) then
       i_val = 0
       do i_col = 1,elsi_h%n_l_cols
+         call elsi_get_global_col(elsi_h,global_col_id,i_col)
+
+         ! Compute destination
+         dest = min(locat(global_col_id),elsi_h%n_procs-1)
+
          do i_row = 1,elsi_h%n_l_rows
-            if(abs(s_in(i_row,i_col)) > elsi_h%zero_threshold) then
+            if(abs(ref(i_row,i_col)) > elsi_h%zero_threshold) then
                i_val = i_val+1
-               call elsi_get_global_col(elsi_h,global_col_id,i_col)
+
                call elsi_get_global_row(elsi_h,global_row_id,i_row)
-               ! Compute destination
-               dest = min(locat(global_col_id),elsi_h%n_procs-1)
+
                ! Pack global id and data into buffers
                row_send_buffer(i_val) = global_row_id
                col_send_buffer(i_val) = global_col_id
                h_val_send_buffer(i_val) = h_in(i_row,i_col)
                s_val_send_buffer(i_val) = s_in(i_row,i_col)
+
                ! Set send_count
                send_count(dest+1) = send_count(dest+1)+1
             endif
@@ -1398,23 +1493,30 @@ subroutine elsi_blacs_to_pexsi_hs_large_complex(elsi_h,h_in,s_in)
    else
       i_val = 0
       do i_col = 1,elsi_h%n_l_cols
+         call elsi_get_global_col(elsi_h,global_col_id,i_col)
+
+         ! Compute destination
+         dest = min(locat(global_col_id),elsi_h%n_procs-1)
+
          do i_row = 1,elsi_h%n_l_rows
-            if(abs(s_in(i_row,i_col)) > elsi_h%zero_threshold) then
+            if(abs(ref(i_row,i_col)) > elsi_h%zero_threshold) then
                i_val = i_val+1
-               call elsi_get_global_col(elsi_h,global_col_id,i_col)
+
                call elsi_get_global_row(elsi_h,global_row_id,i_row)
-               ! Compute destination
-               dest = min(locat(global_col_id),elsi_h%n_procs-1)
+
                ! Pack global id and data into buffers
                row_send_buffer(i_val) = global_row_id
                col_send_buffer(i_val) = global_col_id
                h_val_send_buffer(i_val) = h_in(i_row,i_col)
-              ! Set send_count
+
+               ! Set send_count
                send_count(dest+1) = send_count(dest+1)+1
             endif
          enddo
       enddo
    endif
+
+   nullify(ref)
 
    call elsi_allocate(elsi_h,recv_count,elsi_h%n_procs,"recv_count",caller)
 
@@ -1473,7 +1575,7 @@ subroutine elsi_blacs_to_pexsi_hs_large_complex(elsi_h,h_in,s_in)
    call elsi_deallocate(elsi_h,h_val_send_buffer,"h_val_send_buffer")
 
    ! Overlap value
-   if(elsi_h%n_elsi_calls == 1) then
+   if((elsi_h%n_elsi_calls == 1) .and. (.not. elsi_h%ovlp_is_unit)) then
       call elsi_allocate(elsi_h,s_val_recv_buffer,nnz_l_pexsi_aux,&
               "s_val_recv_buffer",caller)
 
@@ -1494,7 +1596,7 @@ subroutine elsi_blacs_to_pexsi_hs_large_complex(elsi_h,h_in,s_in)
    enddo
 
    ! Sort
-   if(elsi_h%n_elsi_calls == 1) then
+   if((elsi_h%n_elsi_calls == 1) .and. (.not. elsi_h%ovlp_is_unit)) then
       do i_val = 1,nnz_l_pexsi_aux
          min_id = minloc(global_id(i_val:nnz_l_pexsi_aux),1)+i_val-1
 
@@ -1583,18 +1685,22 @@ subroutine elsi_blacs_to_pexsi_hs_large_complex(elsi_h,h_in,s_in)
 
       call elsi_deallocate(elsi_h,col_recv_buffer,"col_recv_buffer")
 
-      ! Overlap value
-      call elsi_allocate(elsi_h,elsi_h%ovlp_complex_pexsi,elsi_h%nnz_l_sp,&
-              "ovlp_complex_pexsi",caller)
+      if(.not. elsi_h%ovlp_is_unit) then
+         ! Overlap value
+         call elsi_allocate(elsi_h,elsi_h%ovlp_complex_pexsi,elsi_h%nnz_l_sp,&
+                 "ovlp_complex_pexsi",caller)
 
-      call MPI_Alltoallv(s_val_recv_buffer,send_count,send_displ,&
-              mpi_complex16,elsi_h%ovlp_complex_pexsi,recv_count,recv_displ,&
-              mpi_complex16,elsi_h%mpi_comm,mpierr)
+         call MPI_Alltoallv(s_val_recv_buffer,send_count,send_displ,&
+                 mpi_complex16,elsi_h%ovlp_complex_pexsi,recv_count,&
+                 recv_displ,mpi_complex16,elsi_h%mpi_comm,mpierr)
 
-      call elsi_deallocate(elsi_h,s_val_recv_buffer,"s_val_recv_buffer")
+         call elsi_deallocate(elsi_h,s_val_recv_buffer,"s_val_recv_buffer")
 
-      call elsi_allocate(elsi_h,elsi_h%ham_complex_pexsi,elsi_h%nnz_l_sp,&
-              "ham_complex_pexsi",caller)
+         call elsi_allocate(elsi_h,elsi_h%ham_complex_pexsi,elsi_h%nnz_l_sp,&
+                 "ham_complex_pexsi",caller)
+      else
+         call elsi_allocate(elsi_h,elsi_h%ovlp_complex_pexsi,1,"dummy",caller)
+      endif
    endif
 
    elsi_h%ham_complex_pexsi = (0.0_r8,0.0_r8)
@@ -1690,8 +1796,8 @@ subroutine elsi_pexsi_to_blacs_dm_small_real(elsi_h,d_out)
    integer(kind=i4) :: i_val
    integer(kind=i4) :: j_val
    integer(kind=i4) :: i_proc
-   integer(kind=i4) :: global_col_id ! Global column id
-   integer(kind=i4) :: global_row_id ! Global row id
+   integer(kind=i4) :: global_col_id
+   integer(kind=i4) :: global_row_id
    integer(kind=i4) :: local_col_id ! Local column id in 1D block distribution
    integer(kind=i4) :: local_row_id ! Local row id in 1D block distribution
    integer(kind=i4) :: proc_col_id ! Column id in process grid
@@ -1855,8 +1961,8 @@ subroutine elsi_pexsi_to_blacs_dm_large_real(elsi_h,d_out)
    integer(kind=i4) :: local_row_id ! Local row id in 1D block distribution
    integer(kind=i4) :: proc_col_id ! Column id in process grid
    integer(kind=i4) :: proc_row_id ! Row id in process grid
-   integer(kind=i4), allocatable :: global_col_id(:) ! Global column id
-   integer(kind=i4), allocatable :: global_row_id(:) ! Global row id
+   integer(kind=i4), allocatable :: global_col_id(:)
+   integer(kind=i4), allocatable :: global_row_id(:)
    integer(kind=i4), allocatable :: dest(:) ! Destination of each element
 
    ! See documentation of MPI_Alltoallv
@@ -2058,8 +2164,8 @@ subroutine elsi_pexsi_to_blacs_dm_small_complex(elsi_h,d_out)
    integer(kind=i4) :: i_val
    integer(kind=i4) :: j_val
    integer(kind=i4) :: i_proc
-   integer(kind=i4) :: global_col_id ! Global column id
-   integer(kind=i4) :: global_row_id ! Global row id
+   integer(kind=i4) :: global_col_id
+   integer(kind=i4) :: global_row_id
    integer(kind=i4) :: local_col_id ! Local column id in 1D block distribution
    integer(kind=i4) :: local_row_id ! Local row id in 1D block distribution
    integer(kind=i4) :: proc_col_id ! Column id in process grid
@@ -2223,8 +2329,8 @@ subroutine elsi_pexsi_to_blacs_dm_large_complex(elsi_h,d_out)
    integer(kind=i4) :: local_row_id ! Local row id in 1D block distribution
    integer(kind=i4) :: proc_col_id ! Column id in process grid
    integer(kind=i4) :: proc_row_id ! Row id in process grid
-   integer(kind=i4), allocatable :: global_col_id(:) ! Global column id
-   integer(kind=i4), allocatable :: global_row_id(:) ! Global row id
+   integer(kind=i4), allocatable :: global_col_id(:)
+   integer(kind=i4), allocatable :: global_row_id(:)
    integer(kind=i4), allocatable :: dest(:) ! Destination of each element
 
    ! See documentation of MPI_Alltoallv
@@ -2419,16 +2525,18 @@ subroutine elsi_blacs_to_sips_hs_small_real(elsi_h,h_in,s_in)
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h                                !< Handle
-   real(kind=r8),     intent(in)    :: h_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian
-   real(kind=r8),     intent(in)    :: s_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Overlap
+   real(kind=r8),     target        :: h_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian
+   real(kind=r8),     target        :: s_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Overlap
+
+   real(kind=r8), pointer :: ref(:,:) ! Sparsity pattern
 
    integer(kind=i4) :: mpierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
    integer(kind=i4) :: i_val
    integer(kind=i4) :: i_proc
-   integer(kind=i4) :: global_col_id ! Global column id
-   integer(kind=i4) :: global_row_id ! Global row id
+   integer(kind=i4) :: global_col_id
+   integer(kind=i4) :: global_row_id
    integer(kind=i4) :: dest ! Destination of an element
    integer(kind=i4) :: tmp_int
    integer(kind=i4) :: min_id
@@ -2448,11 +2556,20 @@ subroutine elsi_blacs_to_sips_hs_small_real(elsi_h,h_in,s_in)
 
    character*40, parameter :: caller = "elsi_blacs_to_sips_hs_small_real"
 
+   if(.not. elsi_h%ovlp_is_unit) then
+      ref => s_in
+   else
+      ref => h_in
+   endif
+
    if(elsi_h%n_elsi_calls == 1) then
       call elsi_get_local_nnz(elsi_h,h_in,elsi_h%n_l_rows,&
               elsi_h%n_l_cols,elsi_h%nnz_l)
-      call elsi_allocate(elsi_h,s_val_send_buffer,elsi_h%nnz_l,&
-              "s_val_send_buffer",caller)
+
+      if(.not. elsi_h%ovlp_is_unit) then
+         call elsi_allocate(elsi_h,s_val_send_buffer,elsi_h%nnz_l,&
+                 "s_val_send_buffer",caller)
+      endif
    endif
 
    call elsi_allocate(elsi_h,pos_send_buffer,elsi_h%nnz_l,&
@@ -2462,23 +2579,27 @@ subroutine elsi_blacs_to_sips_hs_small_real(elsi_h,h_in,s_in)
    call elsi_allocate(elsi_h,send_count,elsi_h%n_procs,"send_count",caller)
 
    ! Compute destination and global 1D id
-   if(elsi_h%n_elsi_calls == 1) then
+   if((elsi_h%n_elsi_calls == 1) .and. (.not. elsi_h%ovlp_is_unit)) then
       i_val = 0
       do i_col = 1,elsi_h%n_l_cols
+         call elsi_get_global_col(elsi_h,global_col_id,i_col)
+
+         ! Compute destination
+         dest = (global_col_id-1)/(elsi_h%n_basis/elsi_h%n_procs)
+         ! The last process may take more
+         dest = min(dest,elsi_h%n_procs-1)
+
          do i_row = 1,elsi_h%n_l_rows
-            if(abs(s_in(i_row,i_col)) > elsi_h%zero_threshold) then
+            if(abs(ref(i_row,i_col)) > elsi_h%zero_threshold) then
                i_val = i_val+1
-               call elsi_get_global_col(elsi_h,global_col_id,i_col)
+
                call elsi_get_global_row(elsi_h,global_row_id,i_row)
-               ! Compute destination
-               dest = (global_col_id-1)/(elsi_h%n_basis/elsi_h%n_procs)
-               ! The last process may take more
-               dest = min(dest,elsi_h%n_procs-1)
-               ! Compute the global id
+
                ! Pack global id and data into buffers
                pos_send_buffer(i_val) = (global_col_id-1)*elsi_h%n_basis+global_row_id
                h_val_send_buffer(i_val) = h_in(i_row,i_col)
                s_val_send_buffer(i_val) = s_in(i_row,i_col)
+
                ! Set send_count
                send_count(dest+1) = send_count(dest+1)+1
            endif
@@ -2487,25 +2608,30 @@ subroutine elsi_blacs_to_sips_hs_small_real(elsi_h,h_in,s_in)
    else
       i_val = 0
       do i_col = 1,elsi_h%n_l_cols
+         call elsi_get_global_col(elsi_h,global_col_id,i_col)
+
+         ! Compute destination
+         dest = (global_col_id-1)/(elsi_h%n_basis/elsi_h%n_procs)
+         ! The last process may take more
+         dest = min(dest,elsi_h%n_procs-1)
+
          do i_row = 1,elsi_h%n_l_rows
-            if(abs(s_in(i_row,i_col)) > elsi_h%zero_threshold) then
+            if(abs(ref(i_row,i_col)) > elsi_h%zero_threshold) then
                i_val = i_val+1
-               call elsi_get_global_col(elsi_h,global_col_id,i_col)
                call elsi_get_global_row(elsi_h,global_row_id,i_row)
-               ! Compute destination
-               dest = (global_col_id-1)/(elsi_h%n_basis/elsi_h%n_procs)
-               ! The last process may take more
-               dest = min(dest,elsi_h%n_procs-1)
-               ! Compute the global id
+
                ! Pack global id and data into buffers
                pos_send_buffer(i_val) = (global_col_id-1)*elsi_h%n_basis+global_row_id
                h_val_send_buffer(i_val) = h_in(i_row,i_col)
+
                ! Set send_count
                send_count(dest+1) = send_count(dest+1)+1
            endif
         enddo
       enddo
    endif
+
+   nullify(ref)
 
    call elsi_allocate(elsi_h,recv_count,elsi_h%n_procs,"recv_count",caller)
 
@@ -2557,14 +2683,18 @@ subroutine elsi_blacs_to_sips_hs_small_real(elsi_h,h_in,s_in)
 
    ! Overlap value
    if(elsi_h%n_elsi_calls == 1) then
-      call elsi_allocate(elsi_h,elsi_h%ovlp_real_sips,elsi_h%nnz_l_sp,&
-              "ovlp_real_sips",caller)
+      if(.not. elsi_h%ovlp_is_unit) then
+         call elsi_allocate(elsi_h,elsi_h%ovlp_real_sips,elsi_h%nnz_l_sp,&
+                 "ovlp_real_sips",caller)
 
-      call MPI_Alltoallv(s_val_send_buffer,send_count,send_displ,&
-              mpi_real8,elsi_h%ovlp_real_sips,recv_count,recv_displ,&
-              mpi_real8,elsi_h%mpi_comm,mpierr)
+         call MPI_Alltoallv(s_val_send_buffer,send_count,send_displ,&
+                 mpi_real8,elsi_h%ovlp_real_sips,recv_count,recv_displ,&
+                 mpi_real8,elsi_h%mpi_comm,mpierr)
 
-      call elsi_deallocate(elsi_h,s_val_send_buffer,"s_val_send_buffer")
+         call elsi_deallocate(elsi_h,s_val_send_buffer,"s_val_send_buffer")
+      else
+         call elsi_allocate(elsi_h,elsi_h%ovlp_real_sips,1,"dummy",caller)
+      endif
    endif
 
    call elsi_deallocate(elsi_h,send_count,"send_count")
@@ -2573,7 +2703,7 @@ subroutine elsi_blacs_to_sips_hs_small_real(elsi_h,h_in,s_in)
    call elsi_deallocate(elsi_h,recv_displ,"recv_displ")
 
    ! Sort
-   if(elsi_h%n_elsi_calls == 1) then
+   if((elsi_h%n_elsi_calls == 1) .and. (.not. elsi_h%ovlp_is_unit)) then
       do i_val = 1,elsi_h%nnz_l_sp
          min_id = minloc(pos_recv_buffer(i_val:elsi_h%nnz_l_sp),1)+i_val-1
 
@@ -2639,16 +2769,18 @@ subroutine elsi_blacs_to_sips_hs_large_real(elsi_h,h_in,s_in)
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h                                !< Handle
-   real(kind=r8),     intent(in)    :: h_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian
-   real(kind=r8),     intent(in)    :: s_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Overlap
+   real(kind=r8),     target        :: h_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian
+   real(kind=r8),     target        :: s_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Overlap
+
+   real(kind=r8), pointer :: ref(:,:) ! Sparsity pattern
 
    integer(kind=i4) :: mpierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
    integer(kind=i4) :: i_val
    integer(kind=i4) :: i_proc
-   integer(kind=i4) :: global_col_id ! Global column id
-   integer(kind=i4) :: global_row_id ! Global row id
+   integer(kind=i4) :: global_col_id
+   integer(kind=i4) :: global_row_id
    integer(kind=i4) :: dest ! Destination of an element
    integer(kind=i4) :: tmp_int
    integer(kind=i8) :: tmp_long
@@ -2672,11 +2804,20 @@ subroutine elsi_blacs_to_sips_hs_large_real(elsi_h,h_in,s_in)
 
    character*40, parameter :: caller = "elsi_blacs_to_sips_hs_large_real"
 
+   if(.not. elsi_h%ovlp_is_unit) then
+      ref => s_in
+   else
+      ref => h_in
+   endif
+
    if(elsi_h%n_elsi_calls == 1) then
       call elsi_get_local_nnz(elsi_h,h_in,elsi_h%n_l_rows,&
               elsi_h%n_l_cols,elsi_h%nnz_l)
-      call elsi_allocate(elsi_h,s_val_send_buffer,elsi_h%nnz_l,&
-              "s_val_send_buffer",caller)
+
+      if(.not. elsi_h%ovlp_is_unit) then
+         call elsi_allocate(elsi_h,s_val_send_buffer,elsi_h%nnz_l,&
+                 "s_val_send_buffer",caller)
+      endif
    endif
 
    call elsi_allocate(elsi_h,row_send_buffer,elsi_h%nnz_l,&
@@ -2688,23 +2829,28 @@ subroutine elsi_blacs_to_sips_hs_large_real(elsi_h,h_in,s_in)
    call elsi_allocate(elsi_h,send_count,elsi_h%n_procs,"send_count",caller)
 
    ! Compute destination and global id
-   if(elsi_h%n_elsi_calls == 1) then
+   if((elsi_h%n_elsi_calls == 1) .and. (.not. elsi_h%ovlp_is_unit)) then
       i_val = 0
       do i_col = 1,elsi_h%n_l_cols
+         call elsi_get_global_col(elsi_h,global_col_id,i_col)
+
+         ! Compute destination
+         dest = (global_col_id-1)/(elsi_h%n_basis/elsi_h%n_procs)
+         ! The last process may take more
+         dest = min(dest,elsi_h%n_procs-1)
+
          do i_row = 1,elsi_h%n_l_rows
-            if(abs(s_in(i_row,i_col)) > elsi_h%zero_threshold) then
+            if(abs(ref(i_row,i_col)) > elsi_h%zero_threshold) then
                i_val = i_val+1
-               call elsi_get_global_col(elsi_h,global_col_id,i_col)
+
                call elsi_get_global_row(elsi_h,global_row_id,i_row)
-               ! Compute destination
-               dest = (global_col_id-1)/(elsi_h%n_basis/elsi_h%n_procs)
-               ! The last process may take more
-               dest = min(dest,elsi_h%n_procs-1)
+
                ! Pack global id and data into buffers
                row_send_buffer(i_val) = global_row_id
                col_send_buffer(i_val) = global_col_id
                h_val_send_buffer(i_val) = h_in(i_row,i_col)
                s_val_send_buffer(i_val) = s_in(i_row,i_col)
+
                ! Set send_count
                send_count(dest+1) = send_count(dest+1)+1
            endif
@@ -2713,25 +2859,32 @@ subroutine elsi_blacs_to_sips_hs_large_real(elsi_h,h_in,s_in)
    else
       i_val = 0
       do i_col = 1,elsi_h%n_l_cols
+         call elsi_get_global_col(elsi_h,global_col_id,i_col)
+
+         ! Compute destination
+         dest = (global_col_id-1)/(elsi_h%n_basis/elsi_h%n_procs)
+         ! The last process may take more
+         dest = min(dest,elsi_h%n_procs-1)
+
          do i_row = 1,elsi_h%n_l_rows
-            if(abs(s_in(i_row,i_col)) > elsi_h%zero_threshold) then
+            if(abs(ref(i_row,i_col)) > elsi_h%zero_threshold) then
                i_val = i_val+1
-               call elsi_get_global_col(elsi_h,global_col_id,i_col)
+
                call elsi_get_global_row(elsi_h,global_row_id,i_row)
-               ! Compute destination
-               dest = (global_col_id-1)/(elsi_h%n_basis/elsi_h%n_procs)
-               ! The last process may take more
-               dest = min(dest,elsi_h%n_procs-1)
+
                ! Pack global id and data into buffers
                row_send_buffer(i_val) = global_row_id
                col_send_buffer(i_val) = global_col_id
                h_val_send_buffer(i_val) = h_in(i_row,i_col)
+
                ! Set send_count
                send_count(dest+1) = send_count(dest+1)+1
            endif
         enddo
       enddo
    endif
+
+   nullify(ref)
 
    call elsi_allocate(elsi_h,recv_count,elsi_h%n_procs,"recv_count",caller)
 
@@ -2793,14 +2946,18 @@ subroutine elsi_blacs_to_sips_hs_large_real(elsi_h,h_in,s_in)
 
    ! Overlap value
    if(elsi_h%n_elsi_calls == 1) then
-      call elsi_allocate(elsi_h,elsi_h%ovlp_real_sips,elsi_h%nnz_l_sp,&
-              "ovlp_real_sips",caller)
+      if(.not. elsi_h%ovlp_is_unit) then
+         call elsi_allocate(elsi_h,elsi_h%ovlp_real_sips,elsi_h%nnz_l_sp,&
+                 "ovlp_real_sips",caller)
 
-      call MPI_Alltoallv(s_val_send_buffer,send_count,send_displ,&
-              mpi_real8,elsi_h%ovlp_real_sips,recv_count,recv_displ,&
-              mpi_real8,elsi_h%mpi_comm,mpierr)
+         call MPI_Alltoallv(s_val_send_buffer,send_count,send_displ,&
+                 mpi_real8,elsi_h%ovlp_real_sips,recv_count,recv_displ,&
+                 mpi_real8,elsi_h%mpi_comm,mpierr)
 
-      call elsi_deallocate(elsi_h,s_val_send_buffer,"s_val_send_buffer")
+         call elsi_deallocate(elsi_h,s_val_send_buffer,"s_val_send_buffer")
+      else
+         call elsi_allocate(elsi_h,elsi_h%ovlp_real_sips,1,"dummy",caller)
+      endif
    endif
 
    call elsi_deallocate(elsi_h,send_count,"send_count")
@@ -2818,7 +2975,7 @@ subroutine elsi_blacs_to_sips_hs_large_real(elsi_h,h_in,s_in)
    enddo
 
    ! Sort
-   if(elsi_h%n_elsi_calls == 1) then
+   if((elsi_h%n_elsi_calls == 1) .and. (.not. elsi_h%ovlp_is_unit)) then
       do i_val = 1,elsi_h%nnz_l_sp
          min_id = minloc(global_id(i_val:elsi_h%nnz_l_sp),1)+i_val-1
 
@@ -2928,16 +3085,18 @@ subroutine elsi_blacs_to_sips_hs_small_complex(elsi_h,h_in,s_in)
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h                                !< Handle
-   complex(kind=r8),  intent(in)    :: h_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian
-   complex(kind=r8),  intent(in)    :: s_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Overlap
+   complex(kind=r8),  target        :: h_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian
+   complex(kind=r8),  target        :: s_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Overlap
+
+   complex(kind=r8), pointer :: ref(:,:) ! Sparsity pattern
 
    integer(kind=i4) :: mpierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
    integer(kind=i4) :: i_val
    integer(kind=i4) :: i_proc
-   integer(kind=i4) :: global_col_id ! Global column id
-   integer(kind=i4) :: global_row_id ! Global row id
+   integer(kind=i4) :: global_col_id
+   integer(kind=i4) :: global_row_id
    integer(kind=i4) :: dest ! Destination of an element
    integer(kind=i4) :: tmp_int
    integer(kind=i4) :: min_id
@@ -2957,11 +3116,20 @@ subroutine elsi_blacs_to_sips_hs_small_complex(elsi_h,h_in,s_in)
 
    character*40, parameter :: caller = "elsi_blacs_to_sips_hs_small_complex"
 
+   if(.not. elsi_h%ovlp_is_unit) then
+      ref => s_in
+   else
+      ref => h_in
+   endif
+
    if(elsi_h%n_elsi_calls == 1) then
       call elsi_get_local_nnz(elsi_h,h_in,elsi_h%n_l_rows,&
               elsi_h%n_l_cols,elsi_h%nnz_l)
-      call elsi_allocate(elsi_h,s_val_send_buffer,elsi_h%nnz_l,&
-              "s_val_send_buffer",caller)
+
+      if(.not. elsi_h%ovlp_is_unit) then
+         call elsi_allocate(elsi_h,s_val_send_buffer,elsi_h%nnz_l,&
+                 "s_val_send_buffer",caller)
+      endif
    endif
 
    call elsi_allocate(elsi_h,pos_send_buffer,elsi_h%nnz_l,&
@@ -2971,23 +3139,27 @@ subroutine elsi_blacs_to_sips_hs_small_complex(elsi_h,h_in,s_in)
    call elsi_allocate(elsi_h,send_count,elsi_h%n_procs,"send_count",caller)
 
    ! Compute destination and global 1D id
-   if(elsi_h%n_elsi_calls == 1) then
+   if((elsi_h%n_elsi_calls == 1) .and. (.not. elsi_h%ovlp_is_unit)) then
       i_val = 0
       do i_col = 1,elsi_h%n_l_cols
+         call elsi_get_global_col(elsi_h,global_col_id,i_col)
+
+         ! Compute destination
+         dest = (global_col_id-1)/(elsi_h%n_basis/elsi_h%n_procs)
+         ! The last process may take more
+         dest = min(dest,elsi_h%n_procs-1)
+
          do i_row = 1,elsi_h%n_l_rows
-            if(abs(s_in(i_row,i_col)) > elsi_h%zero_threshold) then
+            if(abs(ref(i_row,i_col)) > elsi_h%zero_threshold) then
                i_val = i_val+1
-               call elsi_get_global_col(elsi_h,global_col_id,i_col)
+
                call elsi_get_global_row(elsi_h,global_row_id,i_row)
-               ! Compute destination
-               dest = (global_col_id-1)/(elsi_h%n_basis/elsi_h%n_procs)
-               ! The last process may take more
-               dest = min(dest,elsi_h%n_procs-1)
-               ! Compute the global id
+
                ! Pack global id and data into buffers
                pos_send_buffer(i_val) = (global_col_id-1)*elsi_h%n_basis+global_row_id
                h_val_send_buffer(i_val) = h_in(i_row,i_col)
                s_val_send_buffer(i_val) = s_in(i_row,i_col)
+
                ! Set send_count
                send_count(dest+1) = send_count(dest+1)+1
            endif
@@ -2996,25 +3168,31 @@ subroutine elsi_blacs_to_sips_hs_small_complex(elsi_h,h_in,s_in)
    else
       i_val = 0
       do i_col = 1,elsi_h%n_l_cols
+         call elsi_get_global_col(elsi_h,global_col_id,i_col)
+
+         ! Compute destination
+         dest = (global_col_id-1)/(elsi_h%n_basis/elsi_h%n_procs)
+         ! The last process may take more
+         dest = min(dest,elsi_h%n_procs-1)
+
          do i_row = 1,elsi_h%n_l_rows
-            if(abs(s_in(i_row,i_col)) > elsi_h%zero_threshold) then
+            if(abs(ref(i_row,i_col)) > elsi_h%zero_threshold) then
                i_val = i_val+1
-               call elsi_get_global_col(elsi_h,global_col_id,i_col)
+
                call elsi_get_global_row(elsi_h,global_row_id,i_row)
-               ! Compute destination
-               dest = (global_col_id-1)/(elsi_h%n_basis/elsi_h%n_procs)
-               ! The last process may take more
-               dest = min(dest,elsi_h%n_procs-1)
-               ! Compute the global id
+
                ! Pack global id and data into buffers
                pos_send_buffer(i_val) = (global_col_id-1)*elsi_h%n_basis+global_row_id
                h_val_send_buffer(i_val) = h_in(i_row,i_col)
+
                ! Set send_count
                send_count(dest+1) = send_count(dest+1)+1
            endif
         enddo
       enddo
    endif
+
+   nullify(ref)
 
    call elsi_allocate(elsi_h,recv_count,elsi_h%n_procs,"recv_count",caller)
 
@@ -3066,14 +3244,18 @@ subroutine elsi_blacs_to_sips_hs_small_complex(elsi_h,h_in,s_in)
 
    ! Overlap value
    if(elsi_h%n_elsi_calls == 1) then
-      call elsi_allocate(elsi_h,elsi_h%ovlp_complex_sips,elsi_h%nnz_l_sp,&
-              "ovlp_complex_sips",caller)
+      if(.not. elsi_h%ovlp_is_unit) then
+         call elsi_allocate(elsi_h,elsi_h%ovlp_complex_sips,elsi_h%nnz_l_sp,&
+                 "ovlp_complex_sips",caller)
 
-      call MPI_Alltoallv(s_val_send_buffer,send_count,send_displ,&
-              mpi_complex16,elsi_h%ovlp_complex_sips,recv_count,recv_displ,&
-              mpi_complex16,elsi_h%mpi_comm,mpierr)
+         call MPI_Alltoallv(s_val_send_buffer,send_count,send_displ,&
+                 mpi_complex16,elsi_h%ovlp_complex_sips,recv_count,recv_displ,&
+                 mpi_complex16,elsi_h%mpi_comm,mpierr)
 
-      call elsi_deallocate(elsi_h,s_val_send_buffer,"s_val_send_buffer")
+         call elsi_deallocate(elsi_h,s_val_send_buffer,"s_val_send_buffer")
+      else
+         call elsi_allocate(elsi_h,elsi_h%ovlp_complex_sips,1,"dummy",caller)
+      endif
    endif
 
    call elsi_deallocate(elsi_h,send_count,"send_count")
@@ -3082,7 +3264,7 @@ subroutine elsi_blacs_to_sips_hs_small_complex(elsi_h,h_in,s_in)
    call elsi_deallocate(elsi_h,recv_displ,"recv_displ")
 
    ! Sort
-   if(elsi_h%n_elsi_calls == 1) then
+   if((elsi_h%n_elsi_calls == 1) .and. (.not. elsi_h%ovlp_is_unit)) then
       do i_val = 1,elsi_h%nnz_l_sp
          min_id = minloc(pos_recv_buffer(i_val:elsi_h%nnz_l_sp),1)+i_val-1
 
@@ -3148,16 +3330,18 @@ subroutine elsi_blacs_to_sips_hs_large_complex(elsi_h,h_in,s_in)
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h                                !< Handle
-   complex(kind=r8),  intent(in)    :: h_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian
-   complex(kind=r8),  intent(in)    :: s_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Overlap
+   complex(kind=r8),  target        :: h_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Hamiltonian
+   complex(kind=r8),  target        :: s_in(elsi_h%n_l_rows,elsi_h%n_l_cols) !< Overlap
+
+   complex(kind=r8), pointer :: ref(:,:) ! Sparsity pattern
 
    integer(kind=i4) :: mpierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
    integer(kind=i4) :: i_val
    integer(kind=i4) :: i_proc
-   integer(kind=i4) :: global_col_id ! Global column id
-   integer(kind=i4) :: global_row_id ! Global row id
+   integer(kind=i4) :: global_col_id
+   integer(kind=i4) :: global_row_id
    integer(kind=i4) :: dest ! Destination of an element
    integer(kind=i4) :: tmp_int
    integer(kind=i8) :: tmp_long
@@ -3181,11 +3365,20 @@ subroutine elsi_blacs_to_sips_hs_large_complex(elsi_h,h_in,s_in)
 
    character*40, parameter :: caller = "elsi_blacs_to_sips_hs_large_complex"
 
+   if(.not. elsi_h%ovlp_is_unit) then
+      ref => s_in
+   else
+      ref => h_in
+   endif
+
    if(elsi_h%n_elsi_calls == 1) then
       call elsi_get_local_nnz(elsi_h,h_in,elsi_h%n_l_rows,&
               elsi_h%n_l_cols,elsi_h%nnz_l)
-      call elsi_allocate(elsi_h,s_val_send_buffer,elsi_h%nnz_l,&
-              "s_val_send_buffer",caller)
+
+      if(.not. elsi_h%ovlp_is_unit) then
+         call elsi_allocate(elsi_h,s_val_send_buffer,elsi_h%nnz_l,&
+                 "s_val_send_buffer",caller)
+      endif
    endif
 
    call elsi_allocate(elsi_h,row_send_buffer,elsi_h%nnz_l,&
@@ -3197,23 +3390,28 @@ subroutine elsi_blacs_to_sips_hs_large_complex(elsi_h,h_in,s_in)
    call elsi_allocate(elsi_h,send_count,elsi_h%n_procs,"send_count",caller)
 
    ! Compute destination and global id
-   if(elsi_h%n_elsi_calls == 1) then
+   if((elsi_h%n_elsi_calls == 1) .and. (.not. elsi_h%ovlp_is_unit)) then
       i_val = 0
       do i_col = 1,elsi_h%n_l_cols
+         call elsi_get_global_col(elsi_h,global_col_id,i_col)
+
+         ! Compute destination
+         dest = (global_col_id-1)/(elsi_h%n_basis/elsi_h%n_procs)
+         ! The last process may take more
+         dest = min(dest,elsi_h%n_procs-1)
+
          do i_row = 1,elsi_h%n_l_rows
-            if(abs(s_in(i_row,i_col)) > elsi_h%zero_threshold) then
+            if(abs(ref(i_row,i_col)) > elsi_h%zero_threshold) then
                i_val = i_val+1
-               call elsi_get_global_col(elsi_h,global_col_id,i_col)
+
                call elsi_get_global_row(elsi_h,global_row_id,i_row)
-               ! Compute destination
-               dest = (global_col_id-1)/(elsi_h%n_basis/elsi_h%n_procs)
-               ! The last process may take more
-               dest = min(dest,elsi_h%n_procs-1)
+
                ! Pack global id and data into buffers
                row_send_buffer(i_val) = global_row_id
                col_send_buffer(i_val) = global_col_id
                h_val_send_buffer(i_val) = h_in(i_row,i_col)
                s_val_send_buffer(i_val) = s_in(i_row,i_col)
+
                ! Set send_count
                send_count(dest+1) = send_count(dest+1)+1
            endif
@@ -3222,25 +3420,32 @@ subroutine elsi_blacs_to_sips_hs_large_complex(elsi_h,h_in,s_in)
    else
       i_val = 0
       do i_col = 1,elsi_h%n_l_cols
+         call elsi_get_global_col(elsi_h,global_col_id,i_col)
+
+         ! Compute destination
+         dest = (global_col_id-1)/(elsi_h%n_basis/elsi_h%n_procs)
+         ! The last process may take more
+         dest = min(dest,elsi_h%n_procs-1)
+
          do i_row = 1,elsi_h%n_l_rows
-            if(abs(s_in(i_row,i_col)) > elsi_h%zero_threshold) then
+            if(abs(ref(i_row,i_col)) > elsi_h%zero_threshold) then
                i_val = i_val+1
-               call elsi_get_global_col(elsi_h,global_col_id,i_col)
+
                call elsi_get_global_row(elsi_h,global_row_id,i_row)
-               ! Compute destination
-               dest = (global_col_id-1)/(elsi_h%n_basis/elsi_h%n_procs)
-               ! The last process may take more
-               dest = min(dest,elsi_h%n_procs-1)
+
                ! Pack global id and data into buffers
                row_send_buffer(i_val) = global_row_id
                col_send_buffer(i_val) = global_col_id
                h_val_send_buffer(i_val) = h_in(i_row,i_col)
+
                ! Set send_count
                send_count(dest+1) = send_count(dest+1)+1
            endif
         enddo
       enddo
    endif
+
+   nullify(ref)
 
    call elsi_allocate(elsi_h,recv_count,elsi_h%n_procs,"recv_count",caller)
 
@@ -3302,14 +3507,18 @@ subroutine elsi_blacs_to_sips_hs_large_complex(elsi_h,h_in,s_in)
 
    ! Overlap value
    if(elsi_h%n_elsi_calls == 1) then
-      call elsi_allocate(elsi_h,elsi_h%ovlp_complex_sips,elsi_h%nnz_l_sp,&
-              "ovlp_complex_sips",caller)
+      if(.not. elsi_h%ovlp_is_unit) then
+         call elsi_allocate(elsi_h,elsi_h%ovlp_complex_sips,elsi_h%nnz_l_sp,&
+                 "ovlp_complex_sips",caller)
 
-      call MPI_Alltoallv(s_val_send_buffer,send_count,send_displ,&
-              mpi_complex16,elsi_h%ovlp_complex_sips,recv_count,recv_displ,&
-              mpi_complex16,elsi_h%mpi_comm,mpierr)
+         call MPI_Alltoallv(s_val_send_buffer,send_count,send_displ,&
+                 mpi_complex16,elsi_h%ovlp_complex_sips,recv_count,recv_displ,&
+                 mpi_complex16,elsi_h%mpi_comm,mpierr)
 
-      call elsi_deallocate(elsi_h,s_val_send_buffer,"s_val_send_buffer")
+         call elsi_deallocate(elsi_h,s_val_send_buffer,"s_val_send_buffer")
+      else
+         call elsi_allocate(elsi_h,elsi_h%ovlp_complex_sips,1,"dummy",caller)
+      endif
    endif
 
    call elsi_deallocate(elsi_h,send_count,"send_count")
@@ -3327,7 +3536,7 @@ subroutine elsi_blacs_to_sips_hs_large_complex(elsi_h,h_in,s_in)
    enddo
 
    ! Sort
-   if(elsi_h%n_elsi_calls == 1) then
+   if((elsi_h%n_elsi_calls == 1) .and. (.not. elsi_h%ovlp_is_unit)) then
       do i_val = 1,elsi_h%nnz_l_sp
          min_id = minloc(global_id(i_val:elsi_h%nnz_l_sp),1)+i_val-1
 
@@ -3396,7 +3605,7 @@ end subroutine
 !! This routine is a driver to convert matrix format and distribution
 !! from PEXSI to BLACS.
 !!
-subroutine elsi_pexsi_to_blacs_hs_real(elsi_h,h_in,s_in)
+subroutine elsi_sips_to_blacs_hs_real(elsi_h,h_in,s_in)
 
    implicit none
 
@@ -3408,14 +3617,14 @@ subroutine elsi_pexsi_to_blacs_hs_real(elsi_h,h_in,s_in)
    real(kind=r8) :: t1
    character*200 :: info_str
 
-   character*40, parameter :: caller = "elsi_pexsi_to_blacs_hs_real"
+   character*40, parameter :: caller = "elsi_sips_to_blacs_hs_real"
 
    call elsi_get_time(elsi_h,t0)
 
    if(elsi_h%n_basis < 46340) then
-      call elsi_pexsi_to_blacs_hs_small_real(elsi_h,h_in,s_in)
+      call elsi_sips_to_blacs_hs_small_real(elsi_h,h_in,s_in)
    else
-      call elsi_pexsi_to_blacs_hs_large_real(elsi_h,h_in,s_in)
+      call elsi_sips_to_blacs_hs_large_real(elsi_h,h_in,s_in)
    endif
 
    call elsi_get_time(elsi_h,t1)
@@ -3432,7 +3641,7 @@ end subroutine
 !! 1D block distributed sparse CCS format to 2D block-cyclic
 !! distributed dense format, which can be used as input by ELPA.
 !!
-subroutine elsi_pexsi_to_blacs_hs_small_real(elsi_h,h_in,s_in)
+subroutine elsi_sips_to_blacs_hs_small_real(elsi_h,h_in,s_in)
 
    implicit none
 
@@ -3446,8 +3655,8 @@ subroutine elsi_pexsi_to_blacs_hs_small_real(elsi_h,h_in,s_in)
    integer(kind=i4) :: i_val
    integer(kind=i4) :: j_val
    integer(kind=i4) :: i_proc
-   integer(kind=i4) :: global_col_id ! Global column id
-   integer(kind=i4) :: global_row_id ! Global row id
+   integer(kind=i4) :: global_col_id
+   integer(kind=i4) :: global_row_id
    integer(kind=i4) :: local_col_id ! Local column id in 1D block distribution
    integer(kind=i4) :: local_row_id ! Local row id in 1D block distribution
    integer(kind=i4) :: proc_col_id ! Column id in process grid
@@ -3469,9 +3678,9 @@ subroutine elsi_pexsi_to_blacs_hs_small_real(elsi_h,h_in,s_in)
    integer(kind=i4) :: send_displ_aux
    integer(kind=i4) :: recv_displ_aux
 
-   character*40, parameter :: caller = "elsi_pexsi_to_blacs_hs_small_real"
+   character*40, parameter :: caller = "elsi_sips_to_blacs_hs_small_real"
 
-   if(elsi_h%n_elsi_calls == 1) then
+   if((elsi_h%n_elsi_calls == 1) .and. (.not. elsi_h%ovlp_is_unit)) then
       call elsi_allocate(elsi_h,s_val_send_buffer,elsi_h%nnz_l_sp,&
               "s_val_send_buffer",caller)
    endif
@@ -3507,7 +3716,7 @@ subroutine elsi_pexsi_to_blacs_hs_small_real(elsi_h,h_in,s_in)
 
    j_val = 0
    ! Set send_count
-   if(elsi_h%n_elsi_calls == 1) then
+   if((elsi_h%n_elsi_calls == 1) .and. (.not. elsi_h%ovlp_is_unit)) then
       do i_proc = 1,elsi_h%n_procs
          do i_val = 1,elsi_h%nnz_l_sp
             if(dest(i_val) == i_proc-1) then
@@ -3580,7 +3789,7 @@ subroutine elsi_pexsi_to_blacs_hs_small_real(elsi_h,h_in,s_in)
    call elsi_deallocate(elsi_h,h_val_send_buffer,"h_val_send_buffer")
 
    ! Overlap value
-   if(elsi_h%n_elsi_calls == 1) then
+   if((elsi_h%n_elsi_calls == 1) .and. (.not. elsi_h%ovlp_is_unit)) then
       call elsi_allocate(elsi_h,s_val_recv_buffer,elsi_h%nnz_l,&
               "s_val_recv_buffer",caller)
 
@@ -3595,7 +3804,7 @@ subroutine elsi_pexsi_to_blacs_hs_small_real(elsi_h,h_in,s_in)
    call elsi_deallocate(elsi_h,recv_displ,"recv_displ")
 
    ! Unpack matrix
-   if(elsi_h%n_elsi_calls == 1) then
+   if((elsi_h%n_elsi_calls == 1) .and. (.not. elsi_h%ovlp_is_unit)) then
       call elsi_allocate(elsi_h,elsi_h%ham_real_elpa,elsi_h%n_l_rows,&
               elsi_h%n_l_cols,"ham_real_elpa",caller)
 
@@ -3620,6 +3829,13 @@ subroutine elsi_pexsi_to_blacs_hs_small_real(elsi_h,h_in,s_in)
 
       call elsi_deallocate(elsi_h,s_val_recv_buffer,"s_val_recv_buffer")
    else
+      if(elsi_h%n_elsi_calls == 1) then
+         call elsi_allocate(elsi_h,elsi_h%ham_real_elpa,elsi_h%n_l_rows,&
+                 elsi_h%n_l_cols,"ham_real_elpa",caller)
+
+         call elsi_allocate(elsi_h,elsi_h%ovlp_real_elpa,1,1,"dummy",caller)
+      endif
+
       elsi_h%ham_real_elpa = 0.0_r8
 
       do i_val = 1,elsi_h%nnz_l
@@ -3650,7 +3866,7 @@ end subroutine
 !!
 !! * 2D index is used to deal with large matrices.
 !!
-subroutine elsi_pexsi_to_blacs_hs_large_real(elsi_h,h_in,s_in)
+subroutine elsi_sips_to_blacs_hs_large_real(elsi_h,h_in,s_in)
 
    implicit none
 
@@ -3668,8 +3884,8 @@ subroutine elsi_pexsi_to_blacs_hs_large_real(elsi_h,h_in,s_in)
    integer(kind=i4) :: local_row_id ! Local row id in 1D block distribution
    integer(kind=i4) :: proc_col_id ! Column id in process grid
    integer(kind=i4) :: proc_row_id ! Row id in process grid
-   integer(kind=i4), allocatable :: global_row_id(:) ! Global row id
-   integer(kind=i4), allocatable :: global_col_id(:) ! Global column id
+   integer(kind=i4), allocatable :: global_row_id(:)
+   integer(kind=i4), allocatable :: global_col_id(:)
    integer(kind=i4), allocatable :: dest(:) ! Destination of each element
 
    ! See documentation of MPI_Alltoallv
@@ -3688,9 +3904,9 @@ subroutine elsi_pexsi_to_blacs_hs_large_real(elsi_h,h_in,s_in)
    integer(kind=i4) :: send_displ_aux
    integer(kind=i4) :: recv_displ_aux
 
-   character*40, parameter :: caller = "elsi_pexsi_to_blacs_hs_large_real"
+   character*40, parameter :: caller = "elsi_sips_to_blacs_hs_large_real"
 
-   if(elsi_h%n_elsi_calls == 1) then
+   if((elsi_h%n_elsi_calls == 1) .and. (.not. elsi_h%ovlp_is_unit)) then
       call elsi_allocate(elsi_h,s_val_send_buffer,elsi_h%nnz_l_sp,&
               "s_val_send_buffer",caller)
    endif
@@ -3817,7 +4033,7 @@ subroutine elsi_pexsi_to_blacs_hs_large_real(elsi_h,h_in,s_in)
    call elsi_deallocate(elsi_h,h_val_send_buffer,"h_val_send_buffer")
 
    ! Overlap value
-   if(elsi_h%n_elsi_calls == 1) then
+   if((elsi_h%n_elsi_calls == 1) .and. (.not. elsi_h%ovlp_is_unit)) then
       call elsi_allocate(elsi_h,s_val_recv_buffer,elsi_h%nnz_l,&
               "s_val_recv_buffer",caller)
 
@@ -3832,7 +4048,7 @@ subroutine elsi_pexsi_to_blacs_hs_large_real(elsi_h,h_in,s_in)
    call elsi_deallocate(elsi_h,recv_displ,"recv_displ")
 
    ! Unpack matrix
-   if(elsi_h%n_elsi_calls == 1) then
+   if((elsi_h%n_elsi_calls == 1) .and. (.not. elsi_h%ovlp_is_unit)) then
       call elsi_allocate(elsi_h,elsi_h%ham_real_elpa,elsi_h%n_l_rows,&
               elsi_h%n_l_cols,"ham_real_elpa",caller)
 
@@ -3855,6 +4071,13 @@ subroutine elsi_pexsi_to_blacs_hs_large_real(elsi_h,h_in,s_in)
 
       call elsi_deallocate(elsi_h,s_val_recv_buffer,"s_val_recv_buffer")
    else
+      if(elsi_h%n_elsi_calls == 1) then
+         call elsi_allocate(elsi_h,elsi_h%ham_real_elpa,elsi_h%n_l_rows,&
+                 elsi_h%n_l_cols,"ham_real_elpa",caller)
+
+         call elsi_allocate(elsi_h,elsi_h%ovlp_real_elpa,1,1,"dummy",caller)
+      endif
+
       elsi_h%ham_real_elpa = 0.0_r8
 
       do i_val = 1,elsi_h%nnz_l
@@ -3881,7 +4104,7 @@ end subroutine
 !! This routine is a driver to convert matrix format and distribution
 !! from BLACS to PEXSI.
 !!
-subroutine elsi_blacs_to_pexsi_dm_real(elsi_h,d_out)
+subroutine elsi_blacs_to_sips_dm_real(elsi_h,d_out)
 
    implicit none
 
@@ -3892,14 +4115,14 @@ subroutine elsi_blacs_to_pexsi_dm_real(elsi_h,d_out)
    real(kind=r8) :: t1
    character*200 :: info_str
 
-   character*40, parameter :: caller = "elsi_blacs_to_pexsi_dm_real"
+   character*40, parameter :: caller = "elsi_blacs_to_sips_dm_real"
 
    call elsi_get_time(elsi_h,t0)
 
    if(elsi_h%n_basis < 46340) then
-      call elsi_blacs_to_pexsi_dm_small_real(elsi_h,d_out)
+      call elsi_blacs_to_sips_dm_small_real(elsi_h,d_out)
    else
-      call elsi_blacs_to_pexsi_dm_large_real(elsi_h,d_out)
+      call elsi_blacs_to_sips_dm_large_real(elsi_h,d_out)
    endif
 
    call elsi_get_time(elsi_h,t1)
@@ -3915,12 +4138,14 @@ end subroutine
 !! This routine converts density matrix in 2D block-cyclic distributed
 !! dense format to 1D block distributed sparse CCS format.
 !!
-subroutine elsi_blacs_to_pexsi_dm_small_real(elsi_h,d_out)
+subroutine elsi_blacs_to_sips_dm_small_real(elsi_h,d_out)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h                 !< Handle
    real(kind=r8),     intent(out)   :: d_out(elsi_h%nnz_l_sp) !< Density matrix
+
+   real(kind=r8), pointer :: ref(:,:) ! Sparsity pattern
 
    integer(kind=i4) :: mpierr
    integer(kind=i4) :: i_row
@@ -3928,8 +4153,8 @@ subroutine elsi_blacs_to_pexsi_dm_small_real(elsi_h,d_out)
    integer(kind=i4) :: i_val
    integer(kind=i4) :: j_val
    integer(kind=i4) :: i_proc
-   integer(kind=i4) :: global_col_id ! Global column id
-   integer(kind=i4) :: global_row_id ! Global row id
+   integer(kind=i4) :: global_col_id
+   integer(kind=i4) :: global_row_id
    integer(kind=i4) :: local_col_id ! Local column id in 1D block distribution
    integer(kind=i4) :: local_row_id ! Local row id in 1D block distribution
    integer(kind=i4) :: dest ! Destination of an element
@@ -3948,15 +4173,16 @@ subroutine elsi_blacs_to_pexsi_dm_small_real(elsi_h,d_out)
    integer(kind=i4) :: send_displ_aux
    integer(kind=i4) :: recv_displ_aux
 
-   character*40, parameter :: caller = "elsi_blacs_to_pexsi_dm_small_real"
+   character*40, parameter :: caller = "elsi_blacs_to_sips_dm_small_real"
 
    if(elsi_h%solver == ELPA) then
-      call elsi_get_local_nnz(elsi_h,elsi_h%dm_real_elpa,elsi_h%n_l_rows,&
-              elsi_h%n_l_cols,elsi_h%nnz_l)
+      ref => elsi_h%dm_real
    elseif(elsi_h%solver == LIBOMM) then
-      call elsi_get_local_nnz(elsi_h,elsi_h%dm_omm%dval,elsi_h%n_l_rows,&
-              elsi_h%n_l_cols,elsi_h%nnz_l)
+      ref => elsi_h%dm_omm%dval
    endif
+
+   call elsi_get_local_nnz(elsi_h,ref,elsi_h%n_l_rows,elsi_h%n_l_cols,&
+           elsi_h%nnz_l)
 
    call elsi_allocate(elsi_h,val_send_buffer,elsi_h%nnz_l,&
            "val_send_buffer",caller)
@@ -3966,49 +4192,32 @@ subroutine elsi_blacs_to_pexsi_dm_small_real(elsi_h,d_out)
            "send_count",caller)
 
    ! Compute destination and global 1D id
-   if(elsi_h%solver == ELPA) then
-      i_val = 0
-      do i_col = 1,elsi_h%n_l_cols
-         do i_row = 1,elsi_h%n_l_rows
-            if(abs(elsi_h%dm_real_elpa(i_row,i_col)) > elsi_h%zero_threshold) then
-               i_val = i_val+1
-               call elsi_get_global_col(elsi_h,global_col_id,i_col)
-               call elsi_get_global_row(elsi_h,global_row_id,i_row)
-               ! Compute destination
-               dest = (global_col_id-1)/(elsi_h%n_basis/elsi_h%n_procs)
-               ! The last process may take more
-               dest = min(dest,elsi_h%n_procs-1)
-               ! Compute the global id
-               ! Pack global id and data into buffers
-               pos_send_buffer(i_val) = (global_col_id-1)*elsi_h%n_basis+global_row_id
-               val_send_buffer(i_val) = elsi_h%dm_real_elpa(i_row,i_col)
-               ! Set send_count
-               send_count(dest+1) = send_count(dest+1)+1
-            endif
-         enddo
+   i_val = 0
+   do i_col = 1,elsi_h%n_l_cols
+      call elsi_get_global_col(elsi_h,global_col_id,i_col)
+
+      ! Compute destination
+      dest = (global_col_id-1)/(elsi_h%n_basis/elsi_h%n_procs)
+      ! The last process may take more
+      dest = min(dest,elsi_h%n_procs-1)
+
+      do i_row = 1,elsi_h%n_l_rows
+         if(abs(ref(i_row,i_col)) > elsi_h%zero_threshold) then
+            i_val = i_val+1
+
+            call elsi_get_global_row(elsi_h,global_row_id,i_row)
+
+            ! Pack global id and data into buffers
+            pos_send_buffer(i_val) = (global_col_id-1)*elsi_h%n_basis+global_row_id
+            val_send_buffer(i_val) = ref(i_row,i_col)
+
+            ! Set send_count
+            send_count(dest+1) = send_count(dest+1)+1
+         endif
       enddo
-   elseif(elsi_h%solver == LIBOMM) then
-      i_val = 0
-      do i_col = 1,elsi_h%n_l_cols
-         do i_row = 1,elsi_h%n_l_rows
-            if(abs(elsi_h%dm_omm%dval(i_row,i_col)) > elsi_h%zero_threshold) then
-               i_val = i_val+1
-               call elsi_get_global_col(elsi_h,global_col_id,i_col)
-               call elsi_get_global_row(elsi_h,global_row_id,i_row)
-               ! Compute destination
-               dest = (global_col_id-1)/(elsi_h%n_basis/elsi_h%n_procs)
-               ! The last process may take more
-               dest = min(dest,elsi_h%n_procs-1)
-               ! Compute the global id
-               ! Pack global id and data into buffers
-               pos_send_buffer(i_val) = (global_col_id-1)*elsi_h%n_basis+global_row_id
-               val_send_buffer(i_val) = elsi_h%dm_omm%dval(i_row,i_col)
-               ! Set send_count
-               send_count(dest+1) = send_count(dest+1)+1
-            endif
-         enddo
-      enddo
-   endif
+   enddo
+
+   nullify(ref)
 
    call elsi_allocate(elsi_h,recv_count,elsi_h%n_procs,"recv_count",caller)
 
@@ -4093,12 +4302,14 @@ end subroutine
 !!
 !! * 2D index is used to deal with large matrices.
 !!
-subroutine elsi_blacs_to_pexsi_dm_large_real(elsi_h,d_out)
+subroutine elsi_blacs_to_sips_dm_large_real(elsi_h,d_out)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h                 !< Handle
    real(kind=r8),     intent(out)   :: d_out(elsi_h%nnz_l_sp) !< Density matrix
+
+   real(kind=r8), pointer :: ref(:,:) ! Sparsity pattern
 
    integer(kind=i4) :: mpierr
    integer(kind=i4) :: i_row
@@ -4126,15 +4337,16 @@ subroutine elsi_blacs_to_pexsi_dm_large_real(elsi_h,d_out)
    integer(kind=i4) :: send_displ_aux
    integer(kind=i4) :: recv_displ_aux
 
-   character*40, parameter :: caller = "elsi_blacs_to_pexsi_dm_large_real"
+   character*40, parameter :: caller = "elsi_blacs_to_sips_dm_large_real"
 
    if(elsi_h%solver == ELPA) then
-      call elsi_get_local_nnz(elsi_h,elsi_h%dm_real_elpa,elsi_h%n_l_rows,&
-              elsi_h%n_l_cols,elsi_h%nnz_l)
+      ref => elsi_h%dm_real
    elseif(elsi_h%solver == LIBOMM) then
-      call elsi_get_local_nnz(elsi_h,elsi_h%dm_omm%dval,elsi_h%n_l_rows,&
-              elsi_h%n_l_cols,elsi_h%nnz_l)
+      ref => elsi_h%dm_omm%dval
    endif
+
+   call elsi_get_local_nnz(elsi_h,ref,elsi_h%n_l_rows,elsi_h%n_l_cols,&
+           elsi_h%nnz_l)
 
    call elsi_allocate(elsi_h,val_send_buffer,elsi_h%nnz_l,&
            "val_send_buffer",caller)
@@ -4145,47 +4357,31 @@ subroutine elsi_blacs_to_pexsi_dm_large_real(elsi_h,d_out)
    call elsi_allocate(elsi_h,send_count,elsi_h%n_procs,"send_count",caller)
 
    ! Compute destination and global id
-   if(elsi_h%solver == ELPA) then
-      i_val = 0
-      do i_col = 1,elsi_h%n_l_cols
-         do i_row = 1,elsi_h%n_l_rows
-            if(abs(elsi_h%dm_real_elpa(i_row,i_col)) > elsi_h%zero_threshold) then
-               i_val = i_val+1
-               ! Compute global id
-               call elsi_get_global_col(elsi_h,col_send_buffer(i_val),i_col)
-               call elsi_get_global_row(elsi_h,row_send_buffer(i_val),i_row)
-               ! Compute destination
-               dest = (col_send_buffer(i_val)-1)/(elsi_h%n_basis/elsi_h%n_procs)
-               ! The last process may take more
-               dest = min(dest,elsi_h%n_procs-1)
-               ! Pack data
-               val_send_buffer(i_val) = elsi_h%dm_real_elpa(i_row,i_col)
-               ! Set send_count
-               send_count(dest+1) = send_count(dest+1)+1
-            endif
-         enddo
+   i_val = 0
+   do i_col = 1,elsi_h%n_l_cols
+      call elsi_get_global_col(elsi_h,col_send_buffer(i_val),i_col)
+
+      ! Compute destination
+      dest = (col_send_buffer(i_val)-1)/(elsi_h%n_basis/elsi_h%n_procs)
+      ! The last process may take more
+      dest = min(dest,elsi_h%n_procs-1)
+
+      do i_row = 1,elsi_h%n_l_rows
+         if(abs(ref(i_row,i_col)) > elsi_h%zero_threshold) then
+            i_val = i_val+1
+
+            call elsi_get_global_row(elsi_h,row_send_buffer(i_val),i_row)
+
+            ! Pack data
+            val_send_buffer(i_val) = ref(i_row,i_col)
+
+            ! Set send_count
+            send_count(dest+1) = send_count(dest+1)+1
+         endif
       enddo
-   elseif(elsi_h%solver == LIBOMM) then
-      i_val = 0
-      do i_col = 1,elsi_h%n_l_cols
-         do i_row = 1,elsi_h%n_l_rows
-            if(abs(elsi_h%dm_omm%dval(i_row,i_col)) > elsi_h%zero_threshold) then
-               i_val = i_val+1
-               ! Compute global id
-               call elsi_get_global_col(elsi_h,col_send_buffer(i_val),i_col)
-               call elsi_get_global_row(elsi_h,row_send_buffer(i_val),i_row)
-               ! Compute destination
-               dest = (col_send_buffer(i_val)-1)/(elsi_h%n_basis/elsi_h%n_procs)
-               ! The last process may take more
-               dest = min(dest,elsi_h%n_procs-1)
-               ! Pack data
-               val_send_buffer(i_val) = elsi_h%dm_omm%dval(i_row,i_col)
-               ! Set send_count
-               send_count(dest+1) = send_count(dest+1)+1
-            endif
-         enddo
-      enddo
-   endif
+   enddo
+
+   nullify(ref)
 
    call elsi_allocate(elsi_h,recv_count,elsi_h%n_procs,"recv_count",caller)
 
@@ -4360,15 +4556,19 @@ subroutine elsi_sips_to_chess_hs(elsi_h)
 
    ! Get the global matrices
    if(elsi_h%n_elsi_calls == 1) then
-      ! Overlap value
-      call elsi_allocate(elsi_h,elsi_h%ovlp_real_chess,elsi_h%nnz_g,&
-              "ovlp_real_chess",caller)
+      if(.not. elsi_h%ovlp_is_unit) then
+         ! Overlap value
+         call elsi_allocate(elsi_h,elsi_h%ovlp_real_chess,elsi_h%nnz_g,&
+                 "ovlp_real_chess",caller)
 
-      call MPI_Allgatherv(elsi_h%ovlp_real_sips,elsi_h%nnz_l_sp,&
-              mpi_real8,elsi_h%ovlp_real_chess,recv_count,recv_displ,&
-              mpi_real8,elsi_h%mpi_comm,mpierr)
+         call MPI_Allgatherv(elsi_h%ovlp_real_sips,elsi_h%nnz_l_sp,&
+                 mpi_real8,elsi_h%ovlp_real_chess,recv_count,recv_displ,&
+                 mpi_real8,elsi_h%mpi_comm,mpierr)
 
-      call elsi_deallocate(elsi_h,elsi_h%ovlp_real_sips,"ovlp_real_sips")
+         call elsi_deallocate(elsi_h,elsi_h%ovlp_real_sips,"ovlp_real_sips")
+      else
+         call elsi_allocate(elsi_h,elsi_h%ovlp_real_chess,1,"dummy",caller)
+      endif
 
       ! Row index
       call elsi_allocate(elsi_h,elsi_h%row_ind_chess,elsi_h%nnz_g,&

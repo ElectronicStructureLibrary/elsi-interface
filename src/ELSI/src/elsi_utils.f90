@@ -1359,7 +1359,7 @@ subroutine elsi_check(elsi_h,caller)
    type(elsi_handle), intent(inout) :: elsi_h !< Handle
    character(len=*),  intent(in)    :: caller !< Caller
 
-   ! General check of solver, parallel mode, matrix data type, matrix storage format
+   ! General check of solver, parallel mode, data type, matrix format
    if((elsi_h%solver < 0) .or. (elsi_h%solver >= N_SOLVERS)) then
       call elsi_stop(" An unsupported solver has been chosen."//&
               " Please choose ELPA, LIBOMM, or PEXSI solver."//&
@@ -1486,12 +1486,6 @@ subroutine elsi_check(elsi_h,caller)
                     " Please set up BLACS before calling the"//&
                     " solver. Exiting...",elsi_h,caller)
          endif
-
-         if(elsi_h%ovlp_is_unit) then
-            call elsi_stop(" PEXSI with BLACS_DENSE format and an"//&
-                    " identity overlap matrix not yet available."//&
-                    " Exiting...",elsi_h,caller)
-         endif
       else
          if(.not. elsi_h%sparsity_ready) then
             call elsi_stop(" The PEXSI_CSC format has been chosen."//&
@@ -1559,9 +1553,8 @@ subroutine elsi_check(elsi_h,caller)
          endif
 
          if(elsi_h%ovlp_is_unit) then
-            call elsi_stop(" CheSS with BLACS_DENSE format and an"//&
-                    " identity overlap matrix not yet available."//&
-                    " Exiting...",elsi_h,caller)
+            call elsi_stop(" CheSS with an identity overlap matrix"//&
+                    " not yet available. Exiting...",elsi_h,caller)
          endif
       else
          call elsi_stop(" CheSS has been chosen as the solver."//&
@@ -1593,12 +1586,6 @@ subroutine elsi_check(elsi_h,caller)
          if(.not. elsi_h%blacs_ready) then
             call elsi_stop(" The BLACS_DENSE format has been chosen."//&
                     " Please set up BLACS before calling the solver."//&
-                    " Exiting...",elsi_h,caller)
-         endif
-
-         if(elsi_h%ovlp_is_unit) then
-            call elsi_stop(" SIPs with BLACS_DENSE format and an"//&
-                    " identity overlap matrix not yet available."//&
                     " Exiting...",elsi_h,caller)
          endif
       else

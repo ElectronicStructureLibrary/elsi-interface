@@ -35,6 +35,7 @@ module ELSI_IO
    use ELSI_DATATYPE, only: elsi_handle
    use ELSI_SETUP
    use ELSI_MATCONV, only: elsi_pexsi_to_blacs_dm,elsi_blacs_to_sips_hs
+   use ELSI_MUTATOR, only: elsi_set_unit_ovlp
    use ELSI_PRECISION, only: r8,i4,i8
    use ELSI_UTILS
 
@@ -666,6 +667,8 @@ subroutine elsi_write_mat_real(f_name,mpi_comm,blacs_ctxt,block_size,&
    real(kind=r8)    :: t1
    character*200    :: info_str
 
+   real(kind=r8), allocatable :: dummy(:,:)
+
    type(elsi_handle) :: io_h
 
    character*40, parameter :: caller = "elsi_write_mat_real"
@@ -674,6 +677,7 @@ subroutine elsi_write_mat_real(f_name,mpi_comm,blacs_ctxt,block_size,&
    call elsi_set_mpi(io_h,mpi_comm)
    call elsi_set_mpi_global(io_h,mpi_comm)
    call elsi_set_blacs(io_h,blacs_ctxt,block_size)
+   call elsi_set_unit_ovlp(io_h,1)
    call elsi_get_time(io_h,t0)
 
    io_h%n_elsi_calls = 1
@@ -682,7 +686,9 @@ subroutine elsi_write_mat_real(f_name,mpi_comm,blacs_ctxt,block_size,&
       io_h%n_l_cols_sp = io_h%n_basis-(io_h%n_procs-1)*io_h%n_l_cols_sp
    endif
 
-   call elsi_blacs_to_sips_hs(io_h,mat,mat)
+   call elsi_allocate(io_h,dummy,1,1,"dummy",caller)
+   call elsi_blacs_to_sips_hs(io_h,mat,dummy)
+   call elsi_deallocate(io_h,dummy,"dummy")
 
    ! Open file
    f_mode = mpi_mode_wronly+mpi_mode_create
@@ -772,6 +778,8 @@ subroutine elsi_write_mat_complex(f_name,mpi_comm,blacs_ctxt,block_size,&
    real(kind=r8)    :: t1
    character*200    :: info_str
 
+   complex(kind=r8), allocatable :: dummy(:,:)
+
    type(elsi_handle) :: io_h
 
    character*40, parameter :: caller = "elsi_write_mat_complex"
@@ -780,6 +788,7 @@ subroutine elsi_write_mat_complex(f_name,mpi_comm,blacs_ctxt,block_size,&
    call elsi_set_mpi(io_h,mpi_comm)
    call elsi_set_mpi_global(io_h,mpi_comm)
    call elsi_set_blacs(io_h,blacs_ctxt,block_size)
+   call elsi_set_unit_ovlp(io_h,1)
    call elsi_get_time(io_h,t0)
 
    io_h%n_elsi_calls = 1
@@ -788,7 +797,9 @@ subroutine elsi_write_mat_complex(f_name,mpi_comm,blacs_ctxt,block_size,&
       io_h%n_l_cols_sp = io_h%n_basis-(io_h%n_procs-1)*io_h%n_l_cols_sp
    endif
 
-   call elsi_blacs_to_sips_hs(io_h,mat,mat)
+   call elsi_allocate(io_h,dummy,1,1,"dummy",caller)
+   call elsi_blacs_to_sips_hs(io_h,mat,dummy)
+   call elsi_deallocate(io_h,dummy,"dummy")
 
    ! Open file
    f_mode = mpi_mode_wronly+mpi_mode_create

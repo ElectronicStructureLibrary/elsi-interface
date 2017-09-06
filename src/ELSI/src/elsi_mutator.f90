@@ -34,7 +34,7 @@ module ELSI_MUTATOR
                              COMPLEX_VALUES,UNSET
    use ELSI_DATATYPE
    use ELSI_ELPA, only: elsi_compute_edm_elpa
-   use ELSI_MATCONV, only: elsi_pexsi_to_blacs_dm,elsi_blacs_to_pexsi_dm
+   use ELSI_MATCONV, only: elsi_pexsi_to_blacs_dm,elsi_blacs_to_sips_dm
    use ELSI_OMM, only: elsi_compute_edm_omm
    use ELSI_PEXSI, only: elsi_compute_edm_pexsi
    use ELSI_PRECISION, only: r8,i4
@@ -1369,13 +1369,13 @@ subroutine elsi_get_edm_real_sparse(elsi_h,d_out)
       case(ELPA)
          call elsi_compute_edm_elpa(elsi_h)
 
-         call elsi_blacs_to_pexsi_dm(elsi_h,d_out)
+         call elsi_blacs_to_sips_dm(elsi_h,d_out)
       case(LIBOMM)
          call elsi_compute_edm_omm(elsi_h)
 
          elsi_h%dm_omm%dval = 2.0_r8*elsi_h%dm_omm%dval
 
-         call elsi_blacs_to_pexsi_dm(elsi_h,d_out)
+         call elsi_blacs_to_sips_dm(elsi_h,d_out)
       case(PEXSI)
          call elsi_set_sparse_dm(elsi_h,d_out)
 

@@ -163,7 +163,7 @@ subroutine elsi_ev_real(elsi_h,h_in,s_in,e_val_out,e_vec_out)
       ! Initialize SIPs
       call elsi_init_sips(elsi_h)
 
-      ! Convert BLACS H and S to SIPs format
+      ! Convert 2D dense to 1D CSC
       if((.not. elsi_h%ovlp_is_unit) .and. (elsi_h%n_elsi_calls == 1)) then
          call elsi_set_full_mat(elsi_h,s_in)
       endif
@@ -181,7 +181,7 @@ subroutine elsi_ev_real(elsi_h,h_in,s_in,e_val_out,e_vec_out)
       ! Solve
       call elsi_solve_evp_sips(elsi_h)
 
-      ! Convert SIPs eigenvectors to BLACS format
+      ! Convert non-distributed dense to 2D dense
       call elsi_sips_to_blacs_ev(elsi_h)
    case default
       call elsi_stop(" No supported solver has been chosen."//&
@@ -280,8 +280,8 @@ subroutine elsi_ev_real_sparse(elsi_h,h_in,s_in,e_val_out,e_vec_out)
 
    select case(elsi_h%solver)
    case(ELPA)
-      ! Convert PEXSI H and S to BLACS format
-      call elsi_pexsi_to_blacs_hs(elsi_h,h_in,s_in)
+      ! Convert 1D CSC to 2D dense
+      call elsi_sips_to_blacs_hs(elsi_h,h_in,s_in)
 
       ! Set matrices
       call elsi_set_ham(elsi_h,elsi_h%ham_real_elpa)
@@ -477,7 +477,7 @@ subroutine elsi_dm_real(elsi_h,h_in,s_in,d_out,energy_out)
       ! Initialize PEXSI
       call elsi_init_pexsi(elsi_h)
 
-      ! Convert BLACS H and S to PEXSI format
+      ! Convert 2D dense to 1D CSC
       if((.not. elsi_h%ovlp_is_unit) .and. (elsi_h%n_elsi_calls == 1)) then
          call elsi_set_full_mat(elsi_h,s_in)
       endif
@@ -501,7 +501,6 @@ subroutine elsi_dm_real(elsi_h,h_in,s_in,d_out,energy_out)
       ! Solve
       call elsi_solve_evp_pexsi(elsi_h)
 
-      ! Convert PEXSI density matrix to BLACS format
       call elsi_pexsi_to_blacs_dm(elsi_h,d_out)
       call elsi_get_energy(elsi_h,energy_out)
 
@@ -509,7 +508,7 @@ subroutine elsi_dm_real(elsi_h,h_in,s_in,d_out,energy_out)
    case(CHESS)
       call elsi_print_chess_options(elsi_h)
 
-      ! Convert BLACS H and S to CheSS format
+      ! Convert 2D dense to non-distributed CSC
       if((.not. elsi_h%ovlp_is_unit) .and. (elsi_h%n_elsi_calls == 1)) then
          call elsi_set_full_mat(elsi_h,s_in)
       endif
@@ -528,7 +527,6 @@ subroutine elsi_dm_real(elsi_h,h_in,s_in,d_out,energy_out)
       ! Solve
       call elsi_solve_evp_chess(elsi_h)
 
-      ! Convert CheSS density matrix to BLACS format
       call elsi_chess_to_blacs_dm(elsi_h,d_out)
       call elsi_get_energy(elsi_h,energy_out)
 
@@ -712,7 +710,7 @@ subroutine elsi_dm_complex(elsi_h,h_in,s_in,d_out,energy_out)
       ! Initialize PEXSI
       call elsi_init_pexsi(elsi_h)
 
-      ! Convert BLACS H and S to PEXSI format
+      ! Convert 2D dense to 1D CSC
       if((.not. elsi_h%ovlp_is_unit) .and. (elsi_h%n_elsi_calls == 1)) then
          call elsi_set_full_mat(elsi_h,s_in)
       endif
@@ -736,7 +734,6 @@ subroutine elsi_dm_complex(elsi_h,h_in,s_in,d_out,energy_out)
       ! Solve
       call elsi_solve_evp_pexsi(elsi_h)
 
-      ! Convert PEXSI density matrix to BLACS format
       call elsi_pexsi_to_blacs_dm(elsi_h,d_out)
       call elsi_get_energy(elsi_h,energy_out)
 
@@ -783,8 +780,8 @@ subroutine elsi_dm_real_sparse(elsi_h,h_in,s_in,d_out,energy_out)
 
    select case(elsi_h%solver)
    case(ELPA)
-      ! Convert PEXSI H and S to BLACS format
-      call elsi_pexsi_to_blacs_hs(elsi_h,h_in,s_in)
+      ! Convert 1D CSC to 2D dense
+      call elsi_sips_to_blacs_hs(elsi_h,h_in,s_in)
 
       ! Allocate
       if(.not. allocated(elsi_h%eval_elpa)) then
@@ -813,15 +810,15 @@ subroutine elsi_dm_real_sparse(elsi_h,h_in,s_in,d_out,energy_out)
       ! Compute density matrix
       call elsi_compute_occ_elpa(elsi_h)
       call elsi_compute_dm_elpa(elsi_h)
-      call elsi_blacs_to_pexsi_dm(elsi_h,d_out)
+      call elsi_blacs_to_sips_dm(elsi_h,d_out)
       call elsi_get_energy(elsi_h,energy_out)
 
       elsi_h%mu_ready = .true.
    case(LIBOMM)
       call elsi_print_omm_options(elsi_h)
 
-      ! Convert PEXSI H and S to BLACS format
-      call elsi_pexsi_to_blacs_hs(elsi_h,h_in,s_in)
+      ! Convert 1D CSC to 2D dense
+      call elsi_sips_to_blacs_hs(elsi_h,h_in,s_in)
 
       if(elsi_h%n_elsi_calls <= elsi_h%n_elpa_steps) then
          if((elsi_h%n_elsi_calls == 1) .and. (elsi_h%omm_flavor == 0)) then
@@ -861,7 +858,7 @@ subroutine elsi_dm_real_sparse(elsi_h,h_in,s_in,d_out,energy_out)
          ! Compute density matrix
          call elsi_compute_occ_elpa(elsi_h)
          call elsi_compute_dm_elpa(elsi_h)
-         call elsi_blacs_to_pexsi_dm(elsi_h,d_out)
+         call elsi_blacs_to_sips_dm(elsi_h,d_out)
          call elsi_get_energy(elsi_h,energy_out)
 
          ! Switch back to libOMM
@@ -928,7 +925,7 @@ subroutine elsi_dm_real_sparse(elsi_h,h_in,s_in,d_out,energy_out)
          call elsi_solve_evp_omm(elsi_h)
 
          elsi_h%dm_omm%dval = 2.0_r8*elsi_h%dm_omm%dval
-         call elsi_blacs_to_pexsi_dm(elsi_h,d_out)
+         call elsi_blacs_to_sips_dm(elsi_h,d_out)
          call elsi_get_energy(elsi_h,energy_out)
       endif
    case(PEXSI)
