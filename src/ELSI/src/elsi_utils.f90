@@ -565,7 +565,7 @@ end subroutine
 
 !>
 !! This routine deallocates a 1D array with integer(kind=i8).
-!! 
+!!
 subroutine elsi_deallocate_integer8_1d(elsi_h,array,arrayname)
 
    implicit none
