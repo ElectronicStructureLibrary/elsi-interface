@@ -42,30 +42,25 @@ module ELSI_MU
 
    public :: elsi_compute_mu_and_occ
 
-   real(kind=r8)    :: n_electron
-   integer(kind=i4) :: n_state
-   integer(kind=i4) :: n_spin
-   integer(kind=i4) :: n_kpoint
-
 contains
 
 !>
 !! This routine computes the chemical potential and occupation numbers.
 !!
-subroutine elsi_compute_mu_and_occ(elsi_h,n_electron_in,n_state_in,n_spin_in,&
-              n_kpoint_in,kpoint_weights,eigenvalues,occ_numbers,mu)
+subroutine elsi_compute_mu_and_occ(elsi_h,n_electron,n_state,n_spin,&
+              n_kpt,k_weights,evals,occ_nums,mu)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h                                        !< Handle
-   real(kind=r8),     intent(in)    :: n_electron_in                                 !< Number of electrons
-   integer(kind=i4),  intent(in)    :: n_state_in                                    !< Number of states
-   integer(kind=i4),  intent(in)    :: n_spin_in                                     !< Number of spins
-   integer(kind=i4),  intent(in)    :: n_kpoint_in                                   !< Number of k-points
-   real(kind=r8),     intent(in)    :: kpoint_weights(n_kpoint_in)                   !< K-points weights
-   real(kind=r8),     intent(in)    :: eigenvalues(n_state_in,n_spin_in,n_kpoint_in) !< Eigenvalues
-   real(kind=r8),     intent(out)   :: occ_numbers(n_state_in,n_spin_in,n_kpoint_in) !< Occupation members
-   real(kind=r8),     intent(out)   :: mu                                            !< Chemical potential
+   type(elsi_handle), intent(inout) :: elsi_h                         !< Handle
+   real(kind=r8),     intent(in)    :: n_electron                     !< Number of electrons
+   integer(kind=i4),  intent(in)    :: n_state                        !< Number of states
+   integer(kind=i4),  intent(in)    :: n_spin                         !< Number of spins
+   integer(kind=i4),  intent(in)    :: n_kpt                          !< Number of k-points
+   real(kind=r8),     intent(in)    :: k_weights(n_kpt)               !< K-points weights
+   real(kind=r8),     intent(in)    :: evals(n_state,n_spin,n_kpt)    !< Eigenvalues
+   real(kind=r8),     intent(out)   :: occ_nums(n_state,n_spin,n_kpt) !< Occupation members
+   real(kind=r8),     intent(out)   :: mu                             !< Chemical potential
 
    real(kind=r8)    :: e_low         ! Lowest eigenvalue
    real(kind=r8)    :: e_high        ! Highest eigenvalue
@@ -74,36 +69,31 @@ subroutine elsi_compute_mu_and_occ(elsi_h,n_electron_in,n_state_in,n_spin_in,&
    real(kind=r8)    :: diff_ne_lower ! Difference in number of electrons on lower bound
    real(kind=r8)    :: diff_ne_upper ! Difference in number of electrons on upper bound
    integer(kind=i4) :: i_state
-   integer(kind=i4) :: i_kpoint
+   integer(kind=i4) :: i_kpt
    integer(kind=i4) :: i_spin
    integer(kind=i4) :: n_steps
    character*200    :: info_str
 
    character*40, parameter :: caller = "elsi_compute_mu_and_occ"
 
-   n_electron = n_electron_in
-   n_state    = n_state_in
-   n_spin     = n_spin_in
-   n_kpoint   = n_kpoint_in
+   ! Determine smallest and largest eivenvalues
+   e_low = evals(1,1,1)
+   e_high = evals(n_state,1,1)
 
-   ! Determine the smallest and largest eivenvalues
-   e_low = eigenvalues(1,1,1)
-   e_high = eigenvalues(n_state,1,1)
-
-   do i_kpoint = 1,n_kpoint
+   do i_kpt = 1,n_kpt
       do i_spin = 1,n_spin
          do i_state = 1,n_state
-            if(eigenvalues(i_state,i_spin,i_kpoint) < e_low) then
-               e_low = eigenvalues(i_state,i_spin,i_kpoint)
+            if(evals(i_state,i_spin,i_kpt) < e_low) then
+               e_low = evals(i_state,i_spin,i_kpt)
             endif
-            if(eigenvalues(i_state,i_spin,i_kpoint) > e_high) then
-               e_high = eigenvalues(i_state,i_spin,i_kpoint)
+            if(evals(i_state,i_spin,i_kpt) > e_high) then
+               e_high = evals(i_state,i_spin,i_kpt)
             endif
          enddo
       enddo
    enddo
 
-   ! Determine the upper and lower bounds for the chemical potential search
+   ! Determine upper and lower bounds of mu
    mu_lower = e_low
 
    if(e_low == e_high) then
@@ -112,19 +102,19 @@ subroutine elsi_compute_mu_and_occ(elsi_h,n_electron_in,n_state_in,n_spin_in,&
       mu_upper = e_high
    endif
 
-   occ_numbers = 0.0_r8
+   occ_nums = 0.0_r8
 
-   ! Compute the error in electron count
-   call elsi_check_electrons(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
-           mu_lower,diff_ne_lower)
-   call elsi_check_electrons(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
-           mu_upper,diff_ne_upper)
+   ! Compute electron count error
+   call elsi_check_electrons(elsi_h,n_electron,n_state,n_spin,n_kpt,&
+           k_weights,evals,occ_nums,mu_lower,diff_ne_lower)
+   call elsi_check_electrons(elsi_h,n_electron,n_state,n_spin,n_kpt,&
+           k_weights,evals,occ_nums,mu_upper,diff_ne_upper)
 
-   ! If diff_ne_lower*diff_ne_upper > 0, the solution is not in this interval.
-   ! Enlarge the interval towards both sides, then recheck.
+   ! Enlarge the interval towards both sides if solution not found
    n_steps = 0
    do while(diff_ne_lower*diff_ne_upper > 0)
       n_steps = n_steps+1
+
       if(n_steps > elsi_h%max_mu_steps) then
          write(info_str,"(A,I13,A)") " Chemical potential not found in ",&
             elsi_h%max_mu_steps," iterations! Exiting..."
@@ -134,34 +124,38 @@ subroutine elsi_compute_mu_and_occ(elsi_h,n_electron_in,n_state_in,n_spin_in,&
       mu_lower = mu_lower-0.5_r8*abs(e_high-e_low)
       mu_upper = mu_upper+0.5_r8*abs(e_high-e_low)
 
-      call elsi_check_electrons(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
-              mu_lower,diff_ne_lower)
-      call elsi_check_electrons(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
-              mu_upper,diff_ne_upper)
+      call elsi_check_electrons(elsi_h,n_electron,n_state,n_spin,n_kpt,&
+              k_weights,evals,occ_nums,mu_lower,diff_ne_lower)
+      call elsi_check_electrons(elsi_h,n_electron,n_state,n_spin,n_kpt,&
+              k_weights,evals,occ_nums,mu_upper,diff_ne_upper)
    enddo
 
-   ! Now the solution should lie in the interval. Use bisection to find it.
-   call elsi_find_mu(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
-           mu_lower,mu_upper,mu)
+   ! Perform bisection
+   call elsi_find_mu(elsi_h,n_electron,n_state,n_spin,n_kpt,k_weights,&
+           evals,occ_nums,mu_lower,mu_upper,mu)
 
 end subroutine
 
 !>
-!! This routine computes the number of electrons for a given chemical potential,
-!! and returns the error in the number of electrons. The occupation numbers will
-!! be updated as well.
+!! This routine computes the number of electrons for a given chemical
+!! potential, and returns the error in the number of electrons. The
+!! occupation numbers are updated as well.
 !!
-subroutine elsi_check_electrons(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
-              mu_in,diff_ne_out)
+subroutine elsi_check_electrons(elsi_h,n_electron,n_state,n_spin,n_kpt,&
+              k_weights,evals,occ_nums,mu_in,diff_ne_out)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h                               !< Handle
-   real(kind=r8),     intent(in)    :: kpoint_weights(n_kpoint)             !< K-points weights
-   real(kind=r8),     intent(in)    :: eigenvalues(n_state,n_spin,n_kpoint) !< Eigenvalues
-   real(kind=r8),     intent(out)   :: occ_numbers(n_state,n_spin,n_kpoint) !< Occupation numbers
-   real(kind=r8),     intent(in)    :: mu_in                                !< Input chemical potential
-   real(kind=r8),     intent(out)   :: diff_ne_out                          !< Difference in number of electrons
+   type(elsi_handle), intent(inout) :: elsi_h                         !< Handle
+   real(kind=r8),     intent(in)    :: n_electron                     !< Number of electrons
+   integer(kind=i4),  intent(in)    :: n_state                        !< Number of states
+   integer(kind=i4),  intent(in)    :: n_spin                         !< Number of spins
+   integer(kind=i4),  intent(in)    :: n_kpt                          !< Number of k-points
+   real(kind=r8),     intent(in)    :: k_weights(n_kpt)               !< K-points weights
+   real(kind=r8),     intent(in)    :: evals(n_state,n_spin,n_kpt)    !< Eigenvalues
+   real(kind=r8),     intent(out)   :: occ_nums(n_state,n_spin,n_kpt) !< Occupation numbers
+   real(kind=r8),     intent(in)    :: mu_in                          !< Input chemical potential
+   real(kind=r8),     intent(out)   :: diff_ne_out                    !< Electron count error
 
    real(kind=r8) :: invert_width ! 1/broaden_width
    real(kind=r8) :: max_exp ! Maximum possible exponent
@@ -169,14 +163,14 @@ subroutine elsi_check_electrons(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
    real(kind=r8) :: this_hermite
 
    integer(kind=i4) :: i_state
-   integer(kind=i4) :: i_kpoint
+   integer(kind=i4) :: i_kpt
    integer(kind=i4) :: i_spin
 
    character*40, parameter :: caller = "elsi_check_electrons"
 
    if(elsi_h%broaden_width <= 0.0_r8) then
-      call elsi_stop(" Broadening width in chemical potential determination must"//&
-              " be a positive number. Exiting...",elsi_h,caller)
+      call elsi_stop(" Broadening width in chemical potential determination"//&
+              " must be a positive number. Exiting...",elsi_h,caller)
    endif
 
    invert_width = 1.0_r8/elsi_h%broaden_width
@@ -192,60 +186,61 @@ subroutine elsi_check_electrons(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
 
    select case(elsi_h%broaden_scheme)
    case(GAUSSIAN)
-      do i_kpoint = 1,n_kpoint
+      do i_kpt = 1,n_kpt
          do i_spin = 1,n_spin
             do i_state = 1,n_state
-               occ_numbers(i_state,i_spin,i_kpoint) = elsi_h%spin_degen*0.5_r8*&
-                  (1.0_r8-erf((eigenvalues(i_state,i_spin,i_kpoint)-mu_in)*invert_width))
+               occ_nums(i_state,i_spin,i_kpt) = elsi_h%spin_degen*0.5_r8*&
+                  (1.0_r8-erf((evals(i_state,i_spin,i_kpt)-mu_in)*invert_width))
 
                diff_ne_out = diff_ne_out+&
-                  occ_numbers(i_state,i_spin,i_kpoint)*kpoint_weights(i_kpoint)
+                  occ_nums(i_state,i_spin,i_kpt)*k_weights(i_kpt)
             enddo
          enddo
       enddo
    case(FERMI)
       max_exp = maxexponent(mu_in)*log(2.0_r8)
 
-      do i_kpoint = 1,n_kpoint
+      do i_kpt = 1,n_kpt
          do i_spin = 1,n_spin
             do i_state = 1,n_state
-               this_exp = (eigenvalues(i_state,i_spin,i_kpoint)-mu_in)*invert_width
+               this_exp = (evals(i_state,i_spin,i_kpt)-mu_in)*invert_width
 
                if(this_exp < max_exp) then
-                  occ_numbers(i_state,i_spin,i_kpoint) = elsi_h%spin_degen/(1.0_r8+exp(this_exp))
+                  occ_nums(i_state,i_spin,i_kpt) = elsi_h%spin_degen/&
+                                                      (1.0_r8+exp(this_exp))
 
                   diff_ne_out = diff_ne_out+&
-                     occ_numbers(i_state,i_spin,i_kpoint)*kpoint_weights(i_kpoint)
-               else ! Exponent in this step is larger than the largest possible exponent
-                  occ_numbers(i_state,i_spin,i_kpoint) = 0.0_r8
+                     occ_nums(i_state,i_spin,i_kpt)*k_weights(i_kpt)
+               else ! Exponent larger than maximum value
+                  occ_nums(i_state,i_spin,i_kpt) = 0.0_r8
                endif
             enddo
          enddo
       enddo
    case(METHFESSEL_PAXTON_0)
-      do i_kpoint = 1,n_kpoint
+      do i_kpt = 1,n_kpt
          do i_spin = 1,n_spin
             do i_state = 1,n_state
-               occ_numbers(i_state,i_spin,i_kpoint) = elsi_h%spin_degen*0.5_r8*&
-                  (1.0_r8-erf((eigenvalues(i_state,i_spin,i_kpoint)-mu_in)*invert_width))
+               occ_nums(i_state,i_spin,i_kpt) = elsi_h%spin_degen*0.5_r8*&
+                  (1.0_r8-erf((evals(i_state,i_spin,i_kpt)-mu_in)*invert_width))
 
                diff_ne_out = diff_ne_out+&
-                  occ_numbers(i_state,i_spin,i_kpoint)*kpoint_weights(i_kpoint)
+                  occ_nums(i_state,i_spin,i_kpt)*k_weights(i_kpt)
             enddo
          enddo
       enddo
    case(METHFESSEL_PAXTON_1)
-      do i_kpoint = 1,n_kpoint
+      do i_kpt = 1,n_kpt
          do i_spin = 1,n_spin
             do i_state = 1,n_state
-               this_hermite = (eigenvalues(i_state,i_spin,i_kpoint)-mu_in)*invert_width
+               this_hermite = (evals(i_state,i_spin,i_kpt)-mu_in)*invert_width
 
-               occ_numbers(i_state,i_spin,i_kpoint) = elsi_h%spin_degen*0.5_r8*&
-                  (1.0_r8-erf(this_hermite))-0.5_r8*INVERT_SQRT_PI*this_hermite*&
-                  exp(-this_hermite*this_hermite)
+               occ_nums(i_state,i_spin,i_kpt) = elsi_h%spin_degen*0.5_r8*&
+                  (1.0_r8-erf(this_hermite))-0.5_r8*INVERT_SQRT_PI*&
+                  this_hermite*exp(-this_hermite*this_hermite)
 
                diff_ne_out = diff_ne_out+&
-                  occ_numbers(i_state,i_spin,i_kpoint)*kpoint_weights(i_kpoint)
+                  occ_nums(i_state,i_spin,i_kpt)*k_weights(i_kpt)
             enddo
          enddo
       enddo
@@ -258,18 +253,22 @@ end subroutine
 !>
 !! This routine computes the chemical potential using a bisection algorithm.
 !!
-subroutine elsi_find_mu(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
-              mu_lower_in,mu_upper_in,mu_out)
+subroutine elsi_find_mu(elsi_h,n_electron,n_state,n_spin,n_kpt,k_weights,&
+              evals,occ_nums,mu_lower_in,mu_upper_in,mu_out)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h                               !< Handle
-   real(kind=r8),     intent(in)    :: kpoint_weights(n_kpoint)             !< K-points weights
-   real(kind=r8),     intent(in)    :: eigenvalues(n_state,n_spin,n_kpoint) !< Eigenvalues
-   real(kind=r8),     intent(out)   :: occ_numbers(n_state,n_spin,n_kpoint) !< Occupation numbers
-   real(kind=r8),     intent(in)    :: mu_lower_in                          !< Lower bound of chemical potential
-   real(kind=r8),     intent(in)    :: mu_upper_in                          !< Upper bound of chemical potential
-   real(kind=r8),     intent(out)   :: mu_out                               !< Solution of chemical potential
+   type(elsi_handle), intent(inout) :: elsi_h                         !< Handle
+   real(kind=r8),     intent(in)    :: n_electron                     !< Number of electrons
+   integer(kind=i4),  intent(in)    :: n_state                        !< Number of states
+   integer(kind=i4),  intent(in)    :: n_spin                         !< Number of spins
+   integer(kind=i4),  intent(in)    :: n_kpt                          !< Number of k-points
+   real(kind=r8),     intent(in)    :: k_weights(n_kpt)               !< K-points weights
+   real(kind=r8),     intent(in)    :: evals(n_state,n_spin,n_kpt)    !< Eigenvalues
+   real(kind=r8),     intent(out)   :: occ_nums(n_state,n_spin,n_kpt) !< Occupation numbers
+   real(kind=r8),     intent(in)    :: mu_lower_in                    !< Lower bound of mu
+   real(kind=r8),     intent(in)    :: mu_upper_in                    !< Upper bound of mu
+   real(kind=r8),     intent(out)   :: mu_out                         !< Solution
 
    real(kind=r8)    :: mu_left    ! Left bound of chemical potential interval
    real(kind=r8)    :: mu_right   ! Right bound of chemical potential interval
@@ -289,10 +288,10 @@ subroutine elsi_find_mu(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
    mu_right = mu_upper_in
 
    do while((.not.found_mu) .and. (n_steps < elsi_h%max_mu_steps))
-      call elsi_check_electrons(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
-              mu_left,diff_left)
-      call elsi_check_electrons(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
-              mu_right,diff_right)
+      call elsi_check_electrons(elsi_h,n_electron,n_state,n_spin,n_kpt,&
+              k_weights,evals,occ_nums,mu_left,diff_left)
+      call elsi_check_electrons(elsi_h,n_electron,n_state,n_spin,n_kpt,&
+              k_weights,evals,occ_nums,mu_right,diff_right)
 
       if(abs(diff_left) < elsi_h%occ_tolerance) then
          mu_out = mu_left
@@ -305,8 +304,8 @@ subroutine elsi_find_mu(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
 
          mu_mid = 0.5_r8*(mu_left+mu_right)
 
-         call elsi_check_electrons(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
-                 mu_mid,diff_mid)
+         call elsi_check_electrons(elsi_h,n_electron,n_state,n_spin,n_kpt,&
+                 k_weights,evals,occ_nums,mu_mid,diff_mid)
 
          if(abs(diff_mid) < elsi_h%occ_tolerance) then
             mu_out = mu_mid
@@ -322,8 +321,8 @@ subroutine elsi_find_mu(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
    ! Special treatment if mu cannot reach the required accuracy
    if(.not. found_mu) then
       ! Use the chemical potential of the right bound...
-      call elsi_check_electrons(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
-              mu_right,diff_right)
+      call elsi_check_electrons(elsi_h,n_electron,n_state,n_spin,n_kpt,&
+              k_weights,evals,occ_nums,mu_right,diff_right)
 
       mu_out = mu_right
 
@@ -333,7 +332,8 @@ subroutine elsi_find_mu(elsi_h,kpoint_weights,eigenvalues,occ_numbers,&
       call elsi_statement_print("  The error will be arbitrarily removed"//&
               " from the highest occupied states.",elsi_h)
 
-      call elsi_adjust_occ(elsi_h,kpoint_weights,eigenvalues,occ_numbers,diff_right)
+      call elsi_adjust_occ(elsi_h,n_electron,n_state,n_spin,n_kpt,&
+              k_weights,evals,occ_nums,diff_right)
    endif
 
 end subroutine
@@ -341,40 +341,45 @@ end subroutine
 !>
 !! This routine cancels the small error in number of electrons.
 !!
-subroutine elsi_adjust_occ(elsi_h,kpoint_weights,eigenvalues,occ_numbers,diff_ne)
+subroutine elsi_adjust_occ(elsi_h,n_electron,n_state,n_spin,n_kpt,&
+              k_weights,evals,occ_nums,diff_ne)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h                               !< Handle
-   real(kind=r8),     intent(in)    :: kpoint_weights(n_kpoint)             !< K-points weights
-   real(kind=r8),     intent(in)    :: eigenvalues(n_state,n_spin,n_kpoint) !< Eigenvalues
-   real(kind=r8),     intent(inout) :: occ_numbers(n_state,n_spin,n_kpoint) !< Occupation numbers
-   real(kind=r8),     intent(inout) :: diff_ne                              !< Error in electron count
+   type(elsi_handle), intent(inout) :: elsi_h                         !< Handle
+   real(kind=r8),     intent(in)    :: n_electron                     !< Number of electrons
+   integer(kind=i4),  intent(in)    :: n_state                        !< Number of states
+   integer(kind=i4),  intent(in)    :: n_spin                         !< Number of spins
+   integer(kind=i4),  intent(in)    :: n_kpt                          !< Number of k-points
+   real(kind=r8),     intent(in)    :: k_weights(n_kpt)               !< K-points weights
+   real(kind=r8),     intent(in)    :: evals(n_state,n_spin,n_kpt)    !< Eigenvalues
+   real(kind=r8),     intent(inout) :: occ_nums(n_state,n_spin,n_kpt) !< Occupation numbers
+   real(kind=r8),     intent(inout) :: diff_ne                        !< Electron count error
 
    real(kind=r8), allocatable :: eval_aux(:)
 
    real(kind=r8)    :: min_eval
    integer(kind=i4) :: max_id
    integer(kind=i4) :: i_state
-   integer(kind=i4) :: i_kpoint
+   integer(kind=i4) :: i_kpt
    integer(kind=i4) :: i_spin
    integer(kind=i4) :: i_val
    integer(kind=i4) :: n_total
 
    character*40, parameter :: caller = "elsi_adjust_occ"
 
-   n_total = n_state*n_spin*n_kpoint
+   n_total = n_state*n_spin*n_kpt
 
    call elsi_allocate(elsi_h,eval_aux,n_total,"eval_aux",caller)
 
-   ! Put eigenvalues into a 1D array
+   ! Put evals into a 1D array
    i_val = 0
 
-   do i_kpoint = 1,n_kpoint
+   do i_kpt = 1,n_kpt
       do i_spin = 1,n_spin
          do i_state = 1,n_state
             i_val = i_val+1
-            eval_aux(i_val) = eigenvalues(i_state,i_spin,i_kpoint)
+            eval_aux(i_val) = evals(i_state,i_spin,i_kpt)
          enddo
       enddo
    enddo
@@ -386,17 +391,17 @@ subroutine elsi_adjust_occ(elsi_h,kpoint_weights,eigenvalues,occ_numbers,diff_ne
       max_id           = maxloc(eval_aux,1)
       eval_aux(max_id) = min_eval-1.0_r8
 
-      i_kpoint = (i_val-1)/(n_spin*n_state)+1
+      i_kpt = (i_val-1)/(n_spin*n_state)+1
       i_spin   = mod((i_val-1)/n_state,n_spin)+1
       i_state  = mod(i_val-1,n_state)+1
 
-      if(kpoint_weights(i_kpoint)*occ_numbers(i_state,i_spin,i_kpoint) > diff_ne) then
-         occ_numbers(i_state,i_spin,i_kpoint) = occ_numbers(i_state,i_spin,i_kpoint)-&
-                                                   diff_ne/kpoint_weights(i_kpoint)
+      if(k_weights(i_kpt)*occ_nums(i_state,i_spin,i_kpt) > diff_ne) then
+         occ_nums(i_state,i_spin,i_kpt) = occ_nums(i_state,i_spin,i_kpt)-&
+                                             diff_ne/k_weights(i_kpt)
          diff_ne = 0.0_r8
       else
-         diff_ne = diff_ne-kpoint_weights(i_kpoint)*occ_numbers(i_state,i_spin,i_kpoint)
-         occ_numbers(i_state,i_spin,i_kpoint) = 0.0_r8
+         diff_ne = diff_ne-k_weights(i_kpt)*occ_nums(i_state,i_spin,i_kpt)
+         occ_nums(i_state,i_spin,i_kpt) = 0.0_r8
       endif
 
       if(diff_ne <= elsi_h%occ_tolerance) exit

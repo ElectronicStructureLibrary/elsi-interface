@@ -1269,7 +1269,7 @@ subroutine elsi_reset_handle(elsi_h)
    elsi_h%nnz_l             = UNSET
    elsi_h%nnz_l_sp          = UNSET
    elsi_h%n_l_cols_sp       = UNSET
-   elsi_h%zero_threshold    = 1.0e-15_r8
+   elsi_h%zero_threshold    = 1.0e-13_r8
    elsi_h%sparsity_ready    = .false.
    elsi_h%ovlp_is_unit      = .false.
    elsi_h%ovlp_is_sing      = .false.

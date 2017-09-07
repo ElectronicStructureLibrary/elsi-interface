@@ -83,7 +83,7 @@ elsi_solver.o: ./src/elsi_solver.f90 elsi_elpa.o elsi_omm.o elsi_pexsi.o elsi_ch
 elsi_mutator.o: ./src/elsi_mutator.f90 elsi_elpa.o elsi_omm.o elsi_pexsi.o elsi_matconv.o elsi_utils.o elsi_constants.o elsi_datatype.o elsi_precision.o
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
-elsi_elpa.o: ./src/elsi_elpa.f90 elsi_utils.o elsi_datatype.o elsi_precision.o elsi_constants.o
+elsi_elpa.o: ./src/elsi_elpa.f90 elsi_mu.o elsi_utils.o elsi_datatype.o elsi_precision.o elsi_constants.o
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
 elsi_omm.o: ./src/elsi_omm.f90 elsi_utils.o elsi_datatype.o elsi_precision.o elsi_constants.o
