@@ -992,8 +992,8 @@ subroutine elsi_set_sips_left_bound_c_wrapper(handle_c,left_bound)&
 
 end subroutine
 
-subroutine elsi_set_sips_slice_buffer_c_wrapper(handle_c,slice_buffer)&
-   bind(C,name="c_elsi_set_sips_slice_buffer")
+subroutine elsi_set_sips_slice_buf_c_wrapper(handle_c,slice_buffer)&
+   bind(C,name="c_elsi_set_sips_slice_buf")
 
    implicit none
 
@@ -1004,7 +1004,7 @@ subroutine elsi_set_sips_slice_buffer_c_wrapper(handle_c,slice_buffer)&
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_set_sips_slice_buffer(handle_f,slice_buffer)
+   call elsi_set_sips_slice_buf(handle_f,slice_buffer)
 
 end subroutine
 

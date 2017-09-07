@@ -78,7 +78,7 @@ module ELSI_MUTATOR
    public :: elsi_set_sips_slice_type
    public :: elsi_set_sips_n_slice
    public :: elsi_set_sips_left_bound
-   public :: elsi_set_sips_slice_buffer
+   public :: elsi_set_sips_slice_buf
    public :: elsi_set_mu_broaden_scheme
    public :: elsi_set_mu_broaden_width
    public :: elsi_set_mu_tol
@@ -1101,14 +1101,14 @@ end subroutine
 !! This routine sets a small buffer to expand the eigenvalue interval
 !! in SIPs.
 !!
-subroutine elsi_set_sips_slice_buffer(elsi_h,slice_buffer)
+subroutine elsi_set_sips_slice_buf(elsi_h,slice_buffer)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: elsi_h       !< Handle
    real(kind=r8),     intent(in)    :: slice_buffer !< Buffer to expand the interval
 
-   character*40, parameter :: caller = "elsi_set_sips_slice_buffer"
+   character*40, parameter :: caller = "elsi_set_sips_slice_buf"
 
    call elsi_check_handle(elsi_h,caller)
 

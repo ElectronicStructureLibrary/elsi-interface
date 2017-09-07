@@ -1176,8 +1176,8 @@ subroutine elsi_cleanup(elsi_h)
    if(allocated(elsi_h%ovlp_real_chess))    call elsi_deallocate(elsi_h,elsi_h%ovlp_real_chess,"ovlp_real_chess")
    if(allocated(elsi_h%row_ind_chess))      call elsi_deallocate(elsi_h,elsi_h%row_ind_chess,"row_ind_chess")
    if(allocated(elsi_h%col_ptr_chess))      call elsi_deallocate(elsi_h,elsi_h%col_ptr_chess,"col_ptr_chess")
-   if(allocated(elsi_h%row_ind_buffer))     call elsi_deallocate(elsi_h,elsi_h%row_ind_buffer,"row_ind_buffer")
-   if(allocated(elsi_h%col_ptr_buffer))     call elsi_deallocate(elsi_h,elsi_h%col_ptr_buffer,"col_ptr_buffer")
+   if(allocated(elsi_h%row_ind_buf))        call elsi_deallocate(elsi_h,elsi_h%row_ind_buf,"row_ind_buf")
+   if(allocated(elsi_h%col_ptr_buf))        call elsi_deallocate(elsi_h,elsi_h%col_ptr_buf,"col_ptr_buf")
 
    ! SIPs
    if(allocated(elsi_h%ham_real_sips))      call elsi_deallocate(elsi_h,elsi_h%ham_real_sips,"ham_real_sips")

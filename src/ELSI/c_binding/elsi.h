@@ -260,8 +260,8 @@ void c_elsi_set_sips_n_slice(elsi_handle handle_c,
 void c_elsi_set_sips_left_bound(elsi_handle handle_c,
                                 int left_bound);
 
-void c_elsi_set_sips_slice_buffer(elsi_handle handle_c,
-                                  double slice_buffer);
+void c_elsi_set_sips_slice_buf(elsi_handle handle_c,
+                               double slice_buffer);
 
 void c_elsi_set_mu_broaden_scheme(elsi_handle handle_c,
                                   int broaden_scheme);

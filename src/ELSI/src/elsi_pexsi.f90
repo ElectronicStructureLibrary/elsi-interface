@@ -173,8 +173,8 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
    real(kind=r8),    allocatable :: ne_upper(:)
    real(kind=r8),    allocatable :: tmp_real(:)
    complex(kind=r8), allocatable :: tmp_complex(:)
-   real(kind=r8),    allocatable :: send_buffer(:)
-   complex(kind=r8), allocatable :: send_buffer_complex(:)
+   real(kind=r8),    allocatable :: send_buf(:)
+   complex(kind=r8), allocatable :: send_buf_complex(:)
 
    real(kind=r8),    external :: ddot
 !   complex(kind=r8), external :: zdotu
@@ -297,18 +297,18 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
 
       ! Get global inertias
       if(elsi_h%n_spins*elsi_h%n_kpts > 1) then
-         call elsi_allocate(elsi_h,send_buffer,n_shift,"send_buffer",caller)
+         call elsi_allocate(elsi_h,send_buf,n_shift,"send_buf",caller)
 
          if(elsi_h%myid == 0) then
-            send_buffer = inertias
+            send_buf = inertias
          else
-            send_buffer = 0.0_r8
+            send_buf = 0.0_r8
          endif
 
-         call MPI_Allreduce(send_buffer,inertias,n_shift,mpi_real8,&
+         call MPI_Allreduce(send_buf,inertias,n_shift,mpi_real8,&
                  mpi_sum,elsi_h%mpi_comm_all,mpierr)
 
-         call elsi_deallocate(elsi_h,send_buffer,"send_buffer")
+         call elsi_deallocate(elsi_h,send_buf,"send_buf")
       endif
 
       idx = ceiling(3*elsi_h%pexsi_options%temperature/shift_width)
@@ -389,33 +389,32 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
       endif
    enddo
 
-   call elsi_allocate(elsi_h,send_buffer,elsi_h%pexsi_options%nPoints,&
-           "send_buffer",caller)
+   call elsi_allocate(elsi_h,send_buf,elsi_h%pexsi_options%nPoints,&
+           "send_buf",caller)
 
    if(elsi_h%n_elsi_calls == 1) then
       call elsi_allocate(elsi_h,elsi_h%ne_vec,elsi_h%pexsi_options%nPoints,&
               "ne_vec",caller)
    endif
 
-   send_buffer(elsi_h%my_point+1) = elsi_h%ne_pexsi*elsi_h%i_weight
+   send_buf(elsi_h%my_point+1) = elsi_h%ne_pexsi*elsi_h%i_weight
 
-   call MPI_Allreduce(send_buffer,elsi_h%ne_vec,elsi_h%pexsi_options%nPoints,&
+   call MPI_Allreduce(send_buf,elsi_h%ne_vec,elsi_h%pexsi_options%nPoints,&
            mpi_real8,mpi_sum,elsi_h%comm_among_point,mpierr)
 
    ! Get global number of electrons
    if(elsi_h%n_spins*elsi_h%n_kpts > 1) then
       if(elsi_h%myid == 0) then
-         send_buffer = elsi_h%ne_vec
+         send_buf = elsi_h%ne_vec
       else
-         send_buffer = 0.0_r8
+         send_buf = 0.0_r8
       endif
 
-      call MPI_Allreduce(send_buffer,elsi_h%ne_vec,&
-              elsi_h%pexsi_options%nPoints,mpi_real8,mpi_sum,&
-              elsi_h%mpi_comm_all,mpierr)
+      call MPI_Allreduce(send_buf,elsi_h%ne_vec,elsi_h%pexsi_options%nPoints,&
+              mpi_real8,mpi_sum,elsi_h%mpi_comm_all,mpierr)
    endif
 
-   call elsi_deallocate(elsi_h,send_buffer,"send_buffer")
+   call elsi_deallocate(elsi_h,send_buf,"send_buf")
 
    call elsi_get_time(elsi_h,t1)
 
@@ -537,42 +536,41 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
 
       select case(elsi_h%matrix_data_type)
       case(REAL_VALUES)
-         call elsi_allocate(elsi_h,send_buffer,elsi_h%nnz_l_sp,&
-                 "send_buffer",caller)
+         call elsi_allocate(elsi_h,send_buf,elsi_h%nnz_l_sp,"send_buf",caller)
 
          if(elsi_h%my_point == aux_min-1) then
-            send_buffer = factor_min*tmp_real
+            send_buf = factor_min*tmp_real
          elseif(elsi_h%my_point == aux_max-1) then
-            send_buffer = factor_max*tmp_real
+            send_buf = factor_max*tmp_real
          endif
 
-         call MPI_Allreduce(send_buffer,tmp_real,elsi_h%nnz_l_sp,mpi_real8,&
+         call MPI_Allreduce(send_buf,tmp_real,elsi_h%nnz_l_sp,mpi_real8,&
                  mpi_sum,elsi_h%comm_among_point,mpierr)
 
          if(elsi_h%my_p_row_pexsi == 0) then
             elsi_h%dm_real_ccs = tmp_real
          endif
 
-         call elsi_deallocate(elsi_h,send_buffer,"send_buffer")
+         call elsi_deallocate(elsi_h,send_buf,"send_buf")
          call elsi_deallocate(elsi_h,tmp_real,"tmp_real")
       case(COMPLEX_VALUES)
-         call elsi_allocate(elsi_h,send_buffer_complex,elsi_h%nnz_l_sp,&
-                 "send_buffer_complex",caller)
+         call elsi_allocate(elsi_h,send_buf_complex,elsi_h%nnz_l_sp,&
+                 "send_buf_complex",caller)
 
          if(elsi_h%my_point == aux_min-1) then
-            send_buffer_complex = factor_min*tmp_complex
+            send_buf_complex = factor_min*tmp_complex
          elseif(elsi_h%my_point == aux_max-1) then
-            send_buffer_complex = factor_max*tmp_complex
+            send_buf_complex = factor_max*tmp_complex
          endif
 
-         call MPI_Allreduce(send_buffer_complex,tmp_complex,elsi_h%nnz_l_sp,&
+         call MPI_Allreduce(send_buf_complex,tmp_complex,elsi_h%nnz_l_sp,&
                  mpi_complex16,mpi_sum,elsi_h%comm_among_point,mpierr)
 
          if(elsi_h%my_p_row_pexsi == 0) then
             elsi_h%dm_complex_ccs = tmp_complex
          endif
 
-         call elsi_deallocate(elsi_h,send_buffer_complex,"send_buffer_complex")
+         call elsi_deallocate(elsi_h,send_buf_complex,"send_buf_complex")
          call elsi_deallocate(elsi_h,tmp_complex,"tmp_complex")
       end select
    endif
@@ -642,8 +640,8 @@ subroutine elsi_compute_edm_pexsi(elsi_h)
    real(kind=r8),    allocatable :: shifts(:)
    real(kind=r8),    allocatable :: tmp_real(:)
    complex(kind=r8), allocatable :: tmp_complex(:)
-   real(kind=r8),    allocatable :: send_buffer(:)
-   complex(kind=r8), allocatable :: send_buffer_complex(:)
+   real(kind=r8),    allocatable :: send_buf(:)
+   complex(kind=r8), allocatable :: send_buf_complex(:)
 
    character*40, parameter :: caller = "elsi_compute_edm_pexsi"
 
@@ -773,42 +771,41 @@ subroutine elsi_compute_edm_pexsi(elsi_h)
 
       select case(elsi_h%matrix_data_type)
       case(REAL_VALUES)
-         call elsi_allocate(elsi_h,send_buffer,elsi_h%nnz_l_sp,&
-                 "send_buffer",caller)
+         call elsi_allocate(elsi_h,send_buf,elsi_h%nnz_l_sp,"send_buf",caller)
 
          if(elsi_h%my_point == aux_min-1) then
-            send_buffer = factor_min*tmp_real
+            send_buf = factor_min*tmp_real
          elseif(elsi_h%my_point == aux_max-1) then
-            send_buffer = factor_max*tmp_real
+            send_buf = factor_max*tmp_real
          endif
 
-         call MPI_Allreduce(send_buffer,tmp_real,elsi_h%nnz_l_sp,mpi_real8,&
+         call MPI_Allreduce(send_buf,tmp_real,elsi_h%nnz_l_sp,mpi_real8,&
                  mpi_sum,elsi_h%comm_among_point,mpierr)
 
          if(elsi_h%my_p_row_pexsi == 0) then
             elsi_h%dm_real_ccs = tmp_real
          endif
 
-         call elsi_deallocate(elsi_h,send_buffer,"send_buffer")
+         call elsi_deallocate(elsi_h,send_buf,"send_buf")
          call elsi_deallocate(elsi_h,tmp_real,"tmp_real")
       case(COMPLEX_VALUES)
-         call elsi_allocate(elsi_h,send_buffer_complex,elsi_h%nnz_l_sp,&
-                 "send_buffer_complex",caller)
+         call elsi_allocate(elsi_h,send_buf_complex,elsi_h%nnz_l_sp,&
+                 "send_buf_complex",caller)
 
          if(elsi_h%my_point == aux_min-1) then
-            send_buffer_complex = factor_min*tmp_complex
+            send_buf_complex = factor_min*tmp_complex
          elseif(elsi_h%my_point == aux_max-1) then
-            send_buffer_complex = factor_max*tmp_complex
+            send_buf_complex = factor_max*tmp_complex
          endif
 
-         call MPI_Allreduce(send_buffer_complex,tmp_complex,elsi_h%nnz_l_sp,&
+         call MPI_Allreduce(send_buf_complex,tmp_complex,elsi_h%nnz_l_sp,&
                  mpi_complex16,mpi_sum,elsi_h%comm_among_point,mpierr)
 
          if(elsi_h%my_p_row_pexsi == 0) then
             elsi_h%dm_complex_ccs = tmp_complex
          endif
 
-         call elsi_deallocate(elsi_h,send_buffer_complex,"send_buffer_complex")
+         call elsi_deallocate(elsi_h,send_buf_complex,"send_buf_complex")
          call elsi_deallocate(elsi_h,tmp_complex,"tmp_complex")
       end select
    endif

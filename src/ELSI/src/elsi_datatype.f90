@@ -105,8 +105,8 @@ module ELSI_DATATYPE
       real(kind=r8),    allocatable :: ovlp_real_chess(:) ! Sparse real overlap
       integer(kind=i4), allocatable :: row_ind_chess(:)   ! Row index
       integer(kind=i4), allocatable :: col_ptr_chess(:)   ! Column pointer
-      integer(kind=i4), allocatable :: row_ind_buffer(:)  ! Row index of sparsity buffer
-      integer(kind=i4), allocatable :: col_ptr_buffer(:)  ! Column pointer of sparsity buffer
+      integer(kind=i4), allocatable :: row_ind_buf(:)     ! Row index of sparsity buffer
+      integer(kind=i4), allocatable :: col_ptr_buf(:)     ! Column pointer of sparsity buffer
       type(matrices)                :: ham_chess          ! Hamiltonian
       type(matrices)                :: ovlp_chess         ! Overlap
       type(matrices)                :: dm_chess           ! Density matrix

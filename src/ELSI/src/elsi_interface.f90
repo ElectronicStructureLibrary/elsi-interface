@@ -91,7 +91,7 @@ module ELSI
    public :: elsi_set_sips_slice_type
    public :: elsi_set_sips_n_slice
    public :: elsi_set_sips_left_bound
-   public :: elsi_set_sips_slice_buffer
+   public :: elsi_set_sips_slice_buf
    public :: elsi_set_mu_broaden_scheme
    public :: elsi_set_mu_broaden_width
    public :: elsi_set_mu_tol
