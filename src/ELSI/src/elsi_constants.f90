@@ -35,7 +35,7 @@ module ELSI_CONSTANTS
 
    implicit none
 
-   real(kind=r8), parameter :: INVERT_SQRT_PI = 0.5641895835477563275_r8 !< Constant: 1/sqrt(pi)
+   real(kind=r8), parameter :: INVERT_SQRT_PI = 0.5641895835477563275_r8 ! Constant: 1/sqrt(pi)
 
    integer(kind=i4), parameter :: N_SOLVERS                = 6
    integer(kind=i4), parameter :: N_MATRIX_DATA_TYPES      = 2

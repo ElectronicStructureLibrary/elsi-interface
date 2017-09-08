@@ -31,7 +31,8 @@
 module ELSI_SETUP
 
    use ELSI_CHESS, only: elsi_set_chess_default
-   use ELSI_CONSTANTS, only: ELPA,LIBOMM,PEXSI,CHESS,SIPS,SINGLE_PROC,MULTI_PROC
+   use ELSI_CONSTANTS, only: ELPA,LIBOMM,PEXSI,CHESS,SIPS,&
+                             SINGLE_PROC,MULTI_PROC
    use ELSI_DATATYPE, only: elsi_handle
    use ELSI_ELPA, only: elsi_set_elpa_default,elsi_get_elpa_comms
    use ELSI_OMM, only: elsi_set_omm_default
@@ -260,15 +261,18 @@ subroutine elsi_set_blacs(elsi_h,blacs_ctxt,block_size)
          elsi_h%my_p_col,0,elsi_h%n_p_cols)
 
       ! Get BLACS descriptor
-      call descinit(elsi_h%sc_desc,elsi_h%n_basis,elsi_h%n_basis,elsi_h%n_b_rows,&
-              elsi_h%n_b_cols,0,0,elsi_h%blacs_ctxt,max(1,elsi_h%n_l_rows),blacs_info)
+      call descinit(elsi_h%sc_desc,elsi_h%n_basis,elsi_h%n_basis,&
+              elsi_h%n_b_rows,elsi_h%n_b_cols,0,0,elsi_h%blacs_ctxt,&
+              max(1,elsi_h%n_l_rows),blacs_info)
 
       ! Get ELPA communicators
       call elsi_get_elpa_comms(elsi_h)
 
       ! Compute global-local mapping
-      call elsi_allocate(elsi_h,elsi_h%local_row,elsi_h%n_basis,"local_row",caller)
-      call elsi_allocate(elsi_h,elsi_h%local_col,elsi_h%n_basis,"local_col",caller)
+      call elsi_allocate(elsi_h,elsi_h%local_row,elsi_h%n_basis,&
+              "local_row",caller)
+      call elsi_allocate(elsi_h,elsi_h%local_col,elsi_h%n_basis,&
+              "local_col",caller)
 
       i_row = 0
       i_col = 0

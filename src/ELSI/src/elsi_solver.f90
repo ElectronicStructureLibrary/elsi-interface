@@ -341,7 +341,8 @@ subroutine elsi_dm_real(elsi_h,h_in,s_in,d_out,energy_out)
    case(ELPA)
       ! Allocate
       if(.not. allocated(elsi_h%eval_elpa)) then
-         call elsi_allocate(elsi_h,elsi_h%eval_elpa,elsi_h%n_basis,"eval_elpa",caller)
+         call elsi_allocate(elsi_h,elsi_h%eval_elpa,elsi_h%n_basis,&
+                 "eval_elpa",caller)
       endif
       if(.not. allocated(elsi_h%evec_real_elpa)) then
          call elsi_allocate(elsi_h,elsi_h%evec_real_elpa,elsi_h%n_l_rows,&
@@ -414,7 +415,8 @@ subroutine elsi_dm_real(elsi_h,h_in,s_in,d_out,energy_out)
 
          ! Allocate
          if(.not. elsi_h%coeff_omm%is_initialized) then
-            call m_allocate(elsi_h%coeff_omm,elsi_h%n_states_omm,elsi_h%n_basis,"pddbc")
+            call m_allocate(elsi_h%coeff_omm,elsi_h%n_states_omm,&
+                    elsi_h%n_basis,"pddbc")
          endif
 
          ! Set matrices
@@ -449,7 +451,8 @@ subroutine elsi_dm_real(elsi_h,h_in,s_in,d_out,energy_out)
                nullify(elsi_h%dm_real)
             endif
             if(allocated(elsi_h%evec_real_elpa)) then
-               call elsi_deallocate(elsi_h,elsi_h%evec_real_elpa,"evec_real_elpa")
+               call elsi_deallocate(elsi_h,elsi_h%evec_real_elpa,&
+                       "evec_real_elpa")
             endif
             if(allocated(elsi_h%eval_elpa)) then
                call elsi_deallocate(elsi_h,elsi_h%eval_elpa,"eval_elpa")
@@ -573,7 +576,8 @@ subroutine elsi_dm_complex(elsi_h,h_in,s_in,d_out,energy_out)
    case(ELPA)
       ! Allocate
       if(.not. allocated(elsi_h%eval_elpa)) then
-         call elsi_allocate(elsi_h,elsi_h%eval_elpa,elsi_h%n_basis,"eval_elpa",caller)
+         call elsi_allocate(elsi_h,elsi_h%eval_elpa,elsi_h%n_basis,&
+                 "eval_elpa",caller)
       endif
       if(.not. allocated(elsi_h%evec_complex_elpa)) then
          call elsi_allocate(elsi_h,elsi_h%evec_complex_elpa,elsi_h%n_l_rows,&
@@ -641,12 +645,14 @@ subroutine elsi_dm_complex(elsi_h,h_in,s_in,d_out,energy_out)
          if(allocated(elsi_h%ovlp_complex_omm)) then
             ! Retrieve overlap matrix that has been destroyed by Cholesky
             s_in = elsi_h%ovlp_complex_omm
-            call elsi_deallocate(elsi_h,elsi_h%ovlp_complex_omm,"ovlp_complex_omm")
+            call elsi_deallocate(elsi_h,elsi_h%ovlp_complex_omm,&
+                    "ovlp_complex_omm")
          endif
 
          ! Allocate
          if(.not. elsi_h%coeff_omm%is_initialized) then
-            call m_allocate(elsi_h%coeff_omm,elsi_h%n_states_omm,elsi_h%n_basis,"pzdbc")
+            call m_allocate(elsi_h%coeff_omm,elsi_h%n_states_omm,&
+                    elsi_h%n_basis,"pzdbc")
          endif
 
          ! Set matrices
@@ -682,7 +688,8 @@ subroutine elsi_dm_complex(elsi_h,h_in,s_in,d_out,energy_out)
                nullify(elsi_h%dm_complex)
             endif
             if(allocated(elsi_h%evec_complex_elpa)) then
-               call elsi_deallocate(elsi_h,elsi_h%evec_complex_elpa,"evec_complex_elpa")
+               call elsi_deallocate(elsi_h,elsi_h%evec_complex_elpa,&
+                       "evec_complex_elpa")
             endif
             if(allocated(elsi_h%eval_elpa)) then
                call elsi_deallocate(elsi_h,elsi_h%eval_elpa,"eval_elpa")
@@ -872,7 +879,8 @@ subroutine elsi_dm_real_sparse(elsi_h,h_in,s_in,d_out,energy_out)
 
          ! Allocate
          if(.not. elsi_h%coeff_omm%is_initialized) then
-            call m_allocate(elsi_h%coeff_omm,elsi_h%n_states_omm,elsi_h%n_basis,"pddbc")
+            call m_allocate(elsi_h%coeff_omm,elsi_h%n_states_omm,&
+                    elsi_h%n_basis,"pddbc")
          endif
          if(.not. allocated(elsi_h%dm_real_elpa)) then
             call elsi_allocate(elsi_h,elsi_h%dm_real_elpa,elsi_h%n_l_rows,&
@@ -888,8 +896,9 @@ subroutine elsi_dm_real_sparse(elsi_h,h_in,s_in,d_out,energy_out)
          if((elsi_h%n_elpa_steps > 0) .and. &
             (elsi_h%n_elsi_calls == elsi_h%n_elpa_steps+1)) then
             ! libOMM coefficient matrix is the transpose of ELPA eigenvectors
-            call pdtran(elsi_h%n_basis,elsi_h%n_basis,1.0_r8,elsi_h%evec_real,1,1,&
-                    elsi_h%sc_desc,0.0_r8,elsi_h%dm_real_elpa,1,1,elsi_h%sc_desc)
+            call pdtran(elsi_h%n_basis,elsi_h%n_basis,1.0_r8,&
+                    elsi_h%evec_real,1,1,elsi_h%sc_desc,0.0_r8,&
+                    elsi_h%dm_real_elpa,1,1,elsi_h%sc_desc)
 
             elsi_h%coeff_omm%dval(1:elsi_h%coeff_omm%iaux2(1),1:elsi_h%coeff_omm%iaux2(2)) = &
                elsi_h%dm_real_elpa(1:elsi_h%coeff_omm%iaux2(1),1:elsi_h%coeff_omm%iaux2(2))
@@ -911,7 +920,8 @@ subroutine elsi_dm_real_sparse(elsi_h,h_in,s_in,d_out,energy_out)
                nullify(elsi_h%eval)
             endif
             if(allocated(elsi_h%evec_real_elpa)) then
-               call elsi_deallocate(elsi_h,elsi_h%evec_real_elpa,"evec_real_elpa")
+               call elsi_deallocate(elsi_h,elsi_h%evec_real_elpa,&
+                       "evec_real_elpa")
             endif
             if(allocated(elsi_h%eval_elpa)) then
                call elsi_deallocate(elsi_h,elsi_h%eval_elpa,"eval_elpa")

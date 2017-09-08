@@ -88,15 +88,23 @@ module ELSI_MATCONV
    interface downheap
       module procedure downheap_real_v1,&
                        downheap_real_v2,&
+                       downheap_real_v3,&
+                       downheap_real_v4,&
                        downheap_complex_v1,&
-                       downheap_complex_v2
+                       downheap_complex_v2,&
+                       downheap_complex_v3,&
+                       downheap_complex_v4
    end interface
 
    interface heapsort
       module procedure heapsort_real_v1,&
                        heapsort_real_v2,&
+                       heapsort_real_v3,&
+                       heapsort_real_v4,&
                        heapsort_complex_v1,&
-                       heapsort_complex_v2
+                       heapsort_complex_v2,&
+                       heapsort_complex_v3,&
+                       heapsort_complex_v4
    end interface
 
 contains
@@ -247,56 +255,33 @@ subroutine elsi_blacs_to_pexsi_hs_real(elsi_h,h_in,s_in)
    call elsi_allocate(elsi_h,send_count,elsi_h%n_procs,"send_count",caller)
 
    ! Compute destination and global id
-   if((elsi_h%n_elsi_calls == 1) .and. (.not. elsi_h%ovlp_is_unit)) then
-      i_val = 0
-      do i_col = 1,elsi_h%n_l_cols
-         call elsi_get_global_col(elsi_h,global_col_id,i_col)
+   i_val = 0
+   do i_col = 1,elsi_h%n_l_cols
+      call elsi_get_global_col(elsi_h,global_col_id,i_col)
 
-         ! Compute destination
-         dest = min(locat(global_col_id),elsi_h%n_procs-1)
+      ! Compute destination
+      dest = min(locat(global_col_id),elsi_h%n_procs-1)
 
-         do i_row = 1,elsi_h%n_l_rows
-            if(abs(ref(i_row,i_col)) > elsi_h%zero_threshold) then
-               i_val = i_val+1
+      do i_row = 1,elsi_h%n_l_rows
+         if(abs(ref(i_row,i_col)) > elsi_h%zero_threshold) then
+            i_val = i_val+1
 
-               call elsi_get_global_row(elsi_h,global_row_id,i_row)
+            call elsi_get_global_row(elsi_h,global_row_id,i_row)
 
-               ! Pack global id and data into bufs
-               row_send_buf(i_val) = global_row_id
-               col_send_buf(i_val) = global_col_id
-               h_val_send_buf(i_val) = h_in(i_row,i_col)
+            ! Pack global id and data into bufs
+            row_send_buf(i_val) = global_row_id
+            col_send_buf(i_val) = global_col_id
+            h_val_send_buf(i_val) = h_in(i_row,i_col)
+            if((elsi_h%n_elsi_calls == 1) .and. &
+               (.not. elsi_h%ovlp_is_unit)) then
                s_val_send_buf(i_val) = s_in(i_row,i_col)
-
-               ! Set send_count
-               send_count(dest+1) = send_count(dest+1)+1
             endif
-         enddo
+
+            ! Set send_count
+            send_count(dest+1) = send_count(dest+1)+1
+         endif
       enddo
-   else
-      i_val = 0
-      do i_col = 1,elsi_h%n_l_cols
-         call elsi_get_global_col(elsi_h,global_col_id,i_col)
-
-         ! Compute destination
-         dest = min(locat(global_col_id),elsi_h%n_procs-1)
-
-         do i_row = 1,elsi_h%n_l_rows
-            if(abs(ref(i_row,i_col)) > elsi_h%zero_threshold) then
-               i_val = i_val+1
-
-               call elsi_get_global_row(elsi_h,global_row_id,i_row)
-
-               ! Pack global id and data into bufs
-               row_send_buf(i_val) = global_row_id
-               col_send_buf(i_val) = global_col_id
-               h_val_send_buf(i_val) = h_in(i_row,i_col)
-
-               ! Set send_count
-               send_count(dest+1) = send_count(dest+1)+1
-            endif
-         enddo
-      enddo
-   endif
+   enddo
 
    nullify(ref)
 
@@ -639,56 +624,33 @@ subroutine elsi_blacs_to_pexsi_hs_complex(elsi_h,h_in,s_in)
    call elsi_allocate(elsi_h,send_count,elsi_h%n_procs,"send_count",caller)
 
    ! Compute destination and global id
-   if((elsi_h%n_elsi_calls == 1) .and. (.not. elsi_h%ovlp_is_unit)) then
-      i_val = 0
-      do i_col = 1,elsi_h%n_l_cols
-         call elsi_get_global_col(elsi_h,global_col_id,i_col)
+   i_val = 0
+   do i_col = 1,elsi_h%n_l_cols
+      call elsi_get_global_col(elsi_h,global_col_id,i_col)
 
-         ! Compute destination
-         dest = min(locat(global_col_id),elsi_h%n_procs-1)
+      ! Compute destination
+      dest = min(locat(global_col_id),elsi_h%n_procs-1)
 
-         do i_row = 1,elsi_h%n_l_rows
-            if(abs(ref(i_row,i_col)) > elsi_h%zero_threshold) then
-               i_val = i_val+1
+      do i_row = 1,elsi_h%n_l_rows
+         if(abs(ref(i_row,i_col)) > elsi_h%zero_threshold) then
+            i_val = i_val+1
 
-               call elsi_get_global_row(elsi_h,global_row_id,i_row)
+            call elsi_get_global_row(elsi_h,global_row_id,i_row)
 
-               ! Pack global id and data into bufs
-               row_send_buf(i_val) = global_row_id
-               col_send_buf(i_val) = global_col_id
-               h_val_send_buf(i_val) = h_in(i_row,i_col)
+            ! Pack global id and data into bufs
+            row_send_buf(i_val) = global_row_id
+            col_send_buf(i_val) = global_col_id
+            h_val_send_buf(i_val) = h_in(i_row,i_col)
+            if((elsi_h%n_elsi_calls == 1) .and. &
+               (.not. elsi_h%ovlp_is_unit)) then
                s_val_send_buf(i_val) = s_in(i_row,i_col)
-
-               ! Set send_count
-               send_count(dest+1) = send_count(dest+1)+1
             endif
-         enddo
+
+            ! Set send_count
+            send_count(dest+1) = send_count(dest+1)+1
+         endif
       enddo
-   else
-      i_val = 0
-      do i_col = 1,elsi_h%n_l_cols
-         call elsi_get_global_col(elsi_h,global_col_id,i_col)
-
-         ! Compute destination
-         dest = min(locat(global_col_id),elsi_h%n_procs-1)
-
-         do i_row = 1,elsi_h%n_l_rows
-            if(abs(ref(i_row,i_col)) > elsi_h%zero_threshold) then
-               i_val = i_val+1
-
-               call elsi_get_global_row(elsi_h,global_row_id,i_row)
-
-               ! Pack global id and data into bufs
-               row_send_buf(i_val) = global_row_id
-               col_send_buf(i_val) = global_col_id
-               h_val_send_buf(i_val) = h_in(i_row,i_col)
-
-               ! Set send_count
-               send_count(dest+1) = send_count(dest+1)+1
-            endif
-         enddo
-      enddo
-   endif
+   enddo
 
    nullify(ref)
 
@@ -901,7 +863,6 @@ subroutine elsi_pexsi_to_blacs_dm_real(elsi_h,d_out)
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
    integer(kind=i4) :: i_val
-   integer(kind=i4) :: j_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: local_col_id ! Local column id in 1D block distribution
    integer(kind=i4) :: local_row_id ! Local row id in 1D block distribution
@@ -922,8 +883,6 @@ subroutine elsi_pexsi_to_blacs_dm_real(elsi_h,d_out)
    integer(kind=i4), allocatable :: col_recv_buf(:)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
-   integer(kind=i4), allocatable :: global_col_id(:)
-   integer(kind=i4), allocatable :: global_row_id(:)
    integer(kind=i4), allocatable :: dest(:) ! Destination of each element
 
    character*40, parameter :: caller = "elsi_pexsi_to_blacs_dm_real"
@@ -939,10 +898,6 @@ subroutine elsi_pexsi_to_blacs_dm_real(elsi_h,d_out)
    call elsi_allocate(elsi_h,send_count,elsi_h%n_procs,"send_count",caller)
 
    if(elsi_h%my_p_row_pexsi == 0) then
-      call elsi_allocate(elsi_h,global_row_id,elsi_h%nnz_l_sp,&
-              "global_row_id",caller)
-      call elsi_allocate(elsi_h,global_col_id,elsi_h%nnz_l_sp,&
-              "global_col_id",caller)
       call elsi_allocate(elsi_h,dest,elsi_h%nnz_l_sp,"dest",caller)
 
       i_col = 0
@@ -955,31 +910,25 @@ subroutine elsi_pexsi_to_blacs_dm_real(elsi_h,d_out)
          i_row = elsi_h%row_ind_ccs(i_val)
 
          ! Compute global id
-         global_row_id(i_val) = i_row
-         global_col_id(i_val) = i_col+elsi_h%myid*(elsi_h%n_basis/elsi_h%n_p_per_pole)
+         row_send_buf(i_val) = i_row
+         col_send_buf(i_val) = i_col+elsi_h%myid*&
+                                  (elsi_h%n_basis/elsi_h%n_p_per_pole)
+         val_send_buf(i_val) = elsi_h%dm_real_ccs(i_val)
 
          ! Compute destination
-         proc_row_id = mod((global_row_id(i_val)-1)/elsi_h%n_b_rows,elsi_h%n_p_rows)
-         proc_col_id = mod((global_col_id(i_val)-1)/elsi_h%n_b_cols,elsi_h%n_p_cols)
+         proc_row_id = mod((row_send_buf(i_val)-1)/elsi_h%n_b_rows,&
+                          elsi_h%n_p_rows)
+         proc_col_id = mod((col_send_buf(i_val)-1)/elsi_h%n_b_cols,&
+                          elsi_h%n_p_cols)
          dest(i_val) = proc_col_id+proc_row_id*elsi_h%n_p_cols
+
+         ! Set send_count
+         send_count(dest(i_val)+1) = send_count(dest(i_val)+1)+1
       enddo
 
-      j_val = 0
-      ! Set send_count
-      do i_proc = 1,elsi_h%n_procs
-         do i_val = 1,elsi_h%nnz_l_sp
-            if(dest(i_val) == i_proc-1) then
-               j_val = j_val+1
-               val_send_buf(j_val) = elsi_h%dm_real_ccs(i_val)
-               row_send_buf(j_val) = global_row_id(i_val)
-               col_send_buf(j_val) = global_col_id(i_val)
-               send_count(i_proc) = send_count(i_proc)+1
-            endif
-         enddo
-      enddo
+      call heapsort(elsi_h%nnz_l_sp,dest,val_send_buf,row_send_buf,&
+              col_send_buf)
 
-      call elsi_deallocate(elsi_h,global_row_id,"global_row_id")
-      call elsi_deallocate(elsi_h,global_col_id,"global_col_id")
       call elsi_deallocate(elsi_h,dest,"dest")
    endif
 
@@ -1040,10 +989,12 @@ subroutine elsi_pexsi_to_blacs_dm_real(elsi_h,d_out)
    ! Unpack density matrix
    do i_val = 1,elsi_h%nnz_l
       ! Compute local 2d id
-      local_row_id = (row_recv_buf(i_val)-1)/(elsi_h%n_p_rows*elsi_h%n_b_rows)*&
-                        elsi_h%n_b_rows+mod((row_recv_buf(i_val)-1),elsi_h%n_b_rows)+1
-      local_col_id = (col_recv_buf(i_val)-1)/(elsi_h%n_p_cols*elsi_h%n_b_cols)*&
-                        elsi_h%n_b_cols+mod((col_recv_buf(i_val)-1),elsi_h%n_b_cols)+1
+      local_row_id = (row_recv_buf(i_val)-1)/&
+                        (elsi_h%n_p_rows*elsi_h%n_b_rows)*elsi_h%n_b_rows+&
+                        mod((row_recv_buf(i_val)-1),elsi_h%n_b_rows)+1
+      local_col_id = (col_recv_buf(i_val)-1)/&
+                        (elsi_h%n_p_cols*elsi_h%n_b_cols)*elsi_h%n_b_cols+&
+                        mod((col_recv_buf(i_val)-1),elsi_h%n_b_cols)+1
 
       ! Put value to correct position
       d_out(local_row_id,local_col_id) = val_recv_buf(i_val)
@@ -1078,7 +1029,6 @@ subroutine elsi_pexsi_to_blacs_dm_complex(elsi_h,d_out)
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
    integer(kind=i4) :: i_val
-   integer(kind=i4) :: j_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: local_col_id ! Local column id in 1D block distribution
    integer(kind=i4) :: local_row_id ! Local row id in 1D block distribution
@@ -1099,8 +1049,6 @@ subroutine elsi_pexsi_to_blacs_dm_complex(elsi_h,d_out)
    integer(kind=i4), allocatable :: col_recv_buf(:)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
-   integer(kind=i4), allocatable :: global_col_id(:)
-   integer(kind=i4), allocatable :: global_row_id(:)
    integer(kind=i4), allocatable :: dest(:) ! Destination of each element
 
    character*40, parameter :: caller = "elsi_pexsi_to_blacs_dm_complex"
@@ -1116,10 +1064,6 @@ subroutine elsi_pexsi_to_blacs_dm_complex(elsi_h,d_out)
    call elsi_allocate(elsi_h,send_count,elsi_h%n_procs,"send_count",caller)
 
    if(elsi_h%my_p_row_pexsi == 0) then
-      call elsi_allocate(elsi_h,global_row_id,elsi_h%nnz_l_sp,&
-              "global_row_id",caller)
-      call elsi_allocate(elsi_h,global_col_id,elsi_h%nnz_l_sp,&
-              "global_col_id",caller)
       call elsi_allocate(elsi_h,dest,elsi_h%nnz_l_sp,"dest",caller)
 
       i_col = 0
@@ -1132,31 +1076,25 @@ subroutine elsi_pexsi_to_blacs_dm_complex(elsi_h,d_out)
          i_row = elsi_h%row_ind_ccs(i_val)
 
          ! Compute global id
-         global_row_id(i_val) = i_row
-         global_col_id(i_val) = i_col+elsi_h%myid*(elsi_h%n_basis/elsi_h%n_p_per_pole)
+         row_send_buf(i_val) = i_row
+         col_send_buf(i_val) = i_col+elsi_h%myid*&
+                                  (elsi_h%n_basis/elsi_h%n_p_per_pole)
+         val_send_buf(i_val) = elsi_h%dm_complex_ccs(i_val)
 
          ! Compute destination
-         proc_row_id = mod((global_row_id(i_val)-1)/elsi_h%n_b_rows,elsi_h%n_p_rows)
-         proc_col_id = mod((global_col_id(i_val)-1)/elsi_h%n_b_cols,elsi_h%n_p_cols)
+         proc_row_id = mod((row_send_buf(i_val)-1)/elsi_h%n_b_rows,&
+                          elsi_h%n_p_rows)
+         proc_col_id = mod((col_send_buf(i_val)-1)/elsi_h%n_b_cols,&
+                          elsi_h%n_p_cols)
          dest(i_val) = proc_col_id+proc_row_id*elsi_h%n_p_cols
+
+         ! Set send_count
+         send_count(dest(i_val)+1) = send_count(dest(i_val)+1)+1
       enddo
 
-      j_val = 0
-      ! Set send_count
-      do i_proc = 1,elsi_h%n_procs
-         do i_val = 1,elsi_h%nnz_l_sp
-            if(dest(i_val) == i_proc-1) then
-               j_val = j_val+1
-               val_send_buf(j_val) = elsi_h%dm_complex_ccs(i_val)
-               row_send_buf(j_val) = global_row_id(i_val)
-               col_send_buf(j_val) = global_col_id(i_val)
-               send_count(i_proc) = send_count(i_proc)+1
-            endif
-         enddo
-      enddo
+      call heapsort(elsi_h%nnz_l_sp,dest,val_send_buf,row_send_buf,&
+              col_send_buf)
 
-      call elsi_deallocate(elsi_h,global_row_id,"global_row_id")
-      call elsi_deallocate(elsi_h,global_col_id,"global_col_id")
       call elsi_deallocate(elsi_h,dest,"dest")
    endif
 
@@ -1217,10 +1155,12 @@ subroutine elsi_pexsi_to_blacs_dm_complex(elsi_h,d_out)
    ! Unpack density matrix
    do i_val = 1,elsi_h%nnz_l
       ! Compute local 2d id
-      local_row_id = (row_recv_buf(i_val)-1)/(elsi_h%n_p_rows*elsi_h%n_b_rows)*&
-                        elsi_h%n_b_rows+mod((row_recv_buf(i_val)-1),elsi_h%n_b_rows)+1
-      local_col_id = (col_recv_buf(i_val)-1)/(elsi_h%n_p_cols*elsi_h%n_b_cols)*&
-                        elsi_h%n_b_cols+mod((col_recv_buf(i_val)-1),elsi_h%n_b_cols)+1
+      local_row_id = (row_recv_buf(i_val)-1)/&
+                        (elsi_h%n_p_rows*elsi_h%n_b_rows)*elsi_h%n_b_rows+&
+                        mod((row_recv_buf(i_val)-1),elsi_h%n_b_rows)+1
+      local_col_id = (col_recv_buf(i_val)-1)/&
+                        (elsi_h%n_p_cols*elsi_h%n_b_cols)*elsi_h%n_b_cols+&
+                        mod((col_recv_buf(i_val)-1),elsi_h%n_b_cols)+1
 
       ! Put value to correct position
       d_out(local_row_id,local_col_id) = val_recv_buf(i_val)
@@ -1312,60 +1252,35 @@ subroutine elsi_blacs_to_sips_hs_real(elsi_h,h_in,s_in)
    call elsi_allocate(elsi_h,send_count,elsi_h%n_procs,"send_count",caller)
 
    ! Compute destination and global id
-   if((elsi_h%n_elsi_calls == 1) .and. (.not. elsi_h%ovlp_is_unit)) then
-      i_val = 0
-      do i_col = 1,elsi_h%n_l_cols
-         call elsi_get_global_col(elsi_h,global_col_id,i_col)
+   i_val = 0
+   do i_col = 1,elsi_h%n_l_cols
+      call elsi_get_global_col(elsi_h,global_col_id,i_col)
 
-         ! Compute destination
-         dest = (global_col_id-1)/(elsi_h%n_basis/elsi_h%n_procs)
-         ! The last process may take more
-         dest = min(dest,elsi_h%n_procs-1)
+      ! Compute destination
+      dest = (global_col_id-1)/(elsi_h%n_basis/elsi_h%n_procs)
+      ! The last process may take more
+      dest = min(dest,elsi_h%n_procs-1)
 
-         do i_row = 1,elsi_h%n_l_rows
-            if(abs(ref(i_row,i_col)) > elsi_h%zero_threshold) then
-               i_val = i_val+1
+      do i_row = 1,elsi_h%n_l_rows
+         if(abs(ref(i_row,i_col)) > elsi_h%zero_threshold) then
+            i_val = i_val+1
 
-               call elsi_get_global_row(elsi_h,global_row_id,i_row)
+            call elsi_get_global_row(elsi_h,global_row_id,i_row)
 
-               ! Pack global id and data into bufs
-               row_send_buf(i_val) = global_row_id
-               col_send_buf(i_val) = global_col_id
-               h_val_send_buf(i_val) = h_in(i_row,i_col)
+            ! Pack global id and data into bufs
+            row_send_buf(i_val) = global_row_id
+            col_send_buf(i_val) = global_col_id
+            h_val_send_buf(i_val) = h_in(i_row,i_col)
+            if((elsi_h%n_elsi_calls == 1) .and. &
+               (.not. elsi_h%ovlp_is_unit)) then
                s_val_send_buf(i_val) = s_in(i_row,i_col)
+            endif
 
-               ! Set send_count
-               send_count(dest+1) = send_count(dest+1)+1
-           endif
-        enddo
-      enddo
-   else
-      i_val = 0
-      do i_col = 1,elsi_h%n_l_cols
-         call elsi_get_global_col(elsi_h,global_col_id,i_col)
-
-         ! Compute destination
-         dest = (global_col_id-1)/(elsi_h%n_basis/elsi_h%n_procs)
-         ! The last process may take more
-         dest = min(dest,elsi_h%n_procs-1)
-
-         do i_row = 1,elsi_h%n_l_rows
-            if(abs(ref(i_row,i_col)) > elsi_h%zero_threshold) then
-               i_val = i_val+1
-
-               call elsi_get_global_row(elsi_h,global_row_id,i_row)
-
-               ! Pack global id and data into bufs
-               row_send_buf(i_val) = global_row_id
-               col_send_buf(i_val) = global_col_id
-               h_val_send_buf(i_val) = h_in(i_row,i_col)
-
-               ! Set send_count
-               send_count(dest+1) = send_count(dest+1)+1
-           endif
-        enddo
-      enddo
-   endif
+            ! Set send_count
+            send_count(dest+1) = send_count(dest+1)+1
+        endif
+     enddo
+   enddo
 
    nullify(ref)
 
@@ -1568,60 +1483,35 @@ subroutine elsi_blacs_to_sips_hs_complex(elsi_h,h_in,s_in)
    call elsi_allocate(elsi_h,send_count,elsi_h%n_procs,"send_count",caller)
 
    ! Compute destination and global id
-   if((elsi_h%n_elsi_calls == 1) .and. (.not. elsi_h%ovlp_is_unit)) then
-      i_val = 0
-      do i_col = 1,elsi_h%n_l_cols
-         call elsi_get_global_col(elsi_h,global_col_id,i_col)
+   i_val = 0
+   do i_col = 1,elsi_h%n_l_cols
+      call elsi_get_global_col(elsi_h,global_col_id,i_col)
 
-         ! Compute destination
-         dest = (global_col_id-1)/(elsi_h%n_basis/elsi_h%n_procs)
-         ! The last process may take more
-         dest = min(dest,elsi_h%n_procs-1)
+      ! Compute destination
+      dest = (global_col_id-1)/(elsi_h%n_basis/elsi_h%n_procs)
+      ! The last process may take more
+      dest = min(dest,elsi_h%n_procs-1)
 
-         do i_row = 1,elsi_h%n_l_rows
-            if(abs(ref(i_row,i_col)) > elsi_h%zero_threshold) then
-               i_val = i_val+1
+      do i_row = 1,elsi_h%n_l_rows
+         if(abs(ref(i_row,i_col)) > elsi_h%zero_threshold) then
+            i_val = i_val+1
 
-               call elsi_get_global_row(elsi_h,global_row_id,i_row)
+            call elsi_get_global_row(elsi_h,global_row_id,i_row)
 
-               ! Pack global id and data into bufs
-               row_send_buf(i_val) = global_row_id
-               col_send_buf(i_val) = global_col_id
-               h_val_send_buf(i_val) = h_in(i_row,i_col)
+            ! Pack global id and data into bufs
+            row_send_buf(i_val) = global_row_id
+            col_send_buf(i_val) = global_col_id
+            h_val_send_buf(i_val) = h_in(i_row,i_col)
+            if((elsi_h%n_elsi_calls == 1) .and. &
+               (.not. elsi_h%ovlp_is_unit)) then
                s_val_send_buf(i_val) = s_in(i_row,i_col)
+            endif
 
-               ! Set send_count
-               send_count(dest+1) = send_count(dest+1)+1
-           endif
-        enddo
-      enddo
-   else
-      i_val = 0
-      do i_col = 1,elsi_h%n_l_cols
-         call elsi_get_global_col(elsi_h,global_col_id,i_col)
-
-         ! Compute destination
-         dest = (global_col_id-1)/(elsi_h%n_basis/elsi_h%n_procs)
-         ! The last process may take more
-         dest = min(dest,elsi_h%n_procs-1)
-
-         do i_row = 1,elsi_h%n_l_rows
-            if(abs(ref(i_row,i_col)) > elsi_h%zero_threshold) then
-               i_val = i_val+1
-
-               call elsi_get_global_row(elsi_h,global_row_id,i_row)
-
-               ! Pack global id and data into bufs
-               row_send_buf(i_val) = global_row_id
-               col_send_buf(i_val) = global_col_id
-               h_val_send_buf(i_val) = h_in(i_row,i_col)
-
-               ! Set send_count
-               send_count(dest+1) = send_count(dest+1)+1
-           endif
-        enddo
-      enddo
-   endif
+            ! Set send_count
+            send_count(dest+1) = send_count(dest+1)+1
+        endif
+     enddo
+   enddo
 
    nullify(ref)
 
@@ -1685,8 +1575,8 @@ subroutine elsi_blacs_to_sips_hs_complex(elsi_h,h_in,s_in)
                  "ovlp_complex_sips",caller)
 
          call MPI_Alltoallv(s_val_send_buf,send_count,send_displ,&
-                 mpi_complex16,elsi_h%ovlp_complex_sips,recv_count,recv_displ,&
-                 mpi_complex16,elsi_h%mpi_comm,mpierr)
+                 mpi_complex16,elsi_h%ovlp_complex_sips,recv_count,&
+                 recv_displ,mpi_complex16,elsi_h%mpi_comm,mpierr)
 
          call elsi_deallocate(elsi_h,s_val_send_buf,"s_val_send_buf")
       else
@@ -1768,7 +1658,6 @@ subroutine elsi_sips_to_blacs_hs_real(elsi_h,h_in,s_in)
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
    integer(kind=i4) :: i_val
-   integer(kind=i4) :: j_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: local_col_id ! Local column id in 1D block distribution
    integer(kind=i4) :: local_row_id ! Local row id in 1D block distribution
@@ -1791,8 +1680,6 @@ subroutine elsi_sips_to_blacs_hs_real(elsi_h,h_in,s_in)
    integer(kind=i4), allocatable :: col_recv_buf(:)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
-   integer(kind=i4), allocatable :: global_row_id(:)
-   integer(kind=i4), allocatable :: global_col_id(:)
    integer(kind=i4), allocatable :: dest(:) ! Destination of each element
 
    character*40, parameter :: caller = "elsi_sips_to_blacs_hs_real"
@@ -1807,16 +1694,12 @@ subroutine elsi_sips_to_blacs_hs_real(elsi_h,h_in,s_in)
    call elsi_allocate(elsi_h,h_val_send_buf,elsi_h%nnz_l_sp,&
            "h_val_send_buf",caller)
    call elsi_allocate(elsi_h,row_send_buf,elsi_h%nnz_l_sp,&
-           "pos_send_buf",caller)
+           "row_send_buf",caller)
    call elsi_allocate(elsi_h,col_send_buf,elsi_h%nnz_l_sp,&
-           "pos_send_buf",caller)
+           "col_send_buf",caller)
    call elsi_allocate(elsi_h,send_count,elsi_h%n_procs,&
            "send_count",caller)
 
-   call elsi_allocate(elsi_h,global_row_id,elsi_h%nnz_l_sp,&
-           "global_row_id",caller)
-   call elsi_allocate(elsi_h,global_col_id,elsi_h%nnz_l_sp,&
-           "global_col_id",caller)
    call elsi_allocate(elsi_h,dest,elsi_h%nnz_l_sp,"dest",caller)
 
    i_col = 0
@@ -1829,46 +1712,32 @@ subroutine elsi_sips_to_blacs_hs_real(elsi_h,h_in,s_in)
       i_row = elsi_h%row_ind_ccs(i_val)
 
       ! Compute global id
-      global_row_id(i_val) = i_row
-      global_col_id(i_val) = i_col+elsi_h%myid*(elsi_h%n_basis/elsi_h%n_procs)
+      row_send_buf(i_val) = i_row
+      col_send_buf(i_val) = i_col+elsi_h%myid*(elsi_h%n_basis/elsi_h%n_procs)
+      h_val_send_buf(i_val) = h_in(i_val)
+      if((elsi_h%n_elsi_calls == 1) .and. (.not. elsi_h%ovlp_is_unit)) then
+         s_val_send_buf(i_val) = s_in(i_val)
+      endif
 
       ! Compute destination
-      proc_row_id = mod((global_row_id(i_val)-1)/elsi_h%n_b_rows,elsi_h%n_p_rows)
-      proc_col_id = mod((global_col_id(i_val)-1)/elsi_h%n_b_cols,elsi_h%n_p_cols)
+      proc_row_id = mod((row_send_buf(i_val)-1)/elsi_h%n_b_rows,&
+                       elsi_h%n_p_rows)
+      proc_col_id = mod((col_send_buf(i_val)-1)/elsi_h%n_b_cols,&
+                       elsi_h%n_p_cols)
       dest(i_val) = proc_col_id+proc_row_id*elsi_h%n_p_cols
+
+      ! Set send_count
+      send_count(dest(i_val)+1) = send_count(dest(i_val)+1)+1
    enddo
 
-   j_val = 0
-   ! Set send_count
    if((elsi_h%n_elsi_calls == 1) .and. (.not. elsi_h%ovlp_is_unit)) then
-      do i_proc = 1,elsi_h%n_procs
-         do i_val = 1,elsi_h%nnz_l_sp
-            if(dest(i_val) == i_proc-1) then
-               j_val = j_val+1
-               h_val_send_buf(j_val) = h_in(i_val)
-               s_val_send_buf(j_val) = s_in(i_val)
-               row_send_buf(j_val) = global_row_id(i_val)
-               col_send_buf(j_val) = global_col_id(i_val)
-               send_count(i_proc) = send_count(i_proc)+1
-            endif
-         enddo
-      enddo
+      call heapsort(elsi_h%nnz_l_sp,dest,h_val_send_buf,s_val_send_buf,&
+              row_send_buf,col_send_buf)
    else
-      do i_proc = 1,elsi_h%n_procs
-         do i_val = 1,elsi_h%nnz_l_sp
-            if(dest(i_val) == i_proc-1) then
-               j_val = j_val+1
-               h_val_send_buf(j_val) = h_in(i_val)
-               row_send_buf(j_val) = global_row_id(i_val)
-               col_send_buf(j_val) = global_col_id(i_val)
-               send_count(i_proc) = send_count(i_proc)+1
-            endif
-         enddo
-      enddo
+      call heapsort(elsi_h%nnz_l_sp,dest,h_val_send_buf,row_send_buf,&
+              col_send_buf)
    endif
 
-   call elsi_deallocate(elsi_h,global_row_id,"global_row_id")
-   call elsi_deallocate(elsi_h,global_col_id,"global_col_id")
    call elsi_deallocate(elsi_h,dest,"dest")
 
    call elsi_allocate(elsi_h,recv_count,elsi_h%n_procs,"recv_count",caller)
@@ -1952,8 +1821,10 @@ subroutine elsi_sips_to_blacs_hs_real(elsi_h,h_in,s_in)
                            mod((col_recv_buf(i_val)-1),elsi_h%n_b_cols)+1
 
          ! Put value to correct position
-         elsi_h%ham_real_elpa(local_row_id,local_col_id) = h_val_recv_buf(i_val)
-         elsi_h%ovlp_real_elpa(local_row_id,local_col_id) = s_val_recv_buf(i_val)
+         elsi_h%ham_real_elpa(local_row_id,local_col_id) = &
+            h_val_recv_buf(i_val)
+         elsi_h%ovlp_real_elpa(local_row_id,local_col_id) = &
+            s_val_recv_buf(i_val)
       enddo
 
       call elsi_deallocate(elsi_h,s_val_recv_buf,"s_val_recv_buf")
@@ -1977,7 +1848,8 @@ subroutine elsi_sips_to_blacs_hs_real(elsi_h,h_in,s_in)
                            mod((col_recv_buf(i_val)-1),elsi_h%n_b_cols)+1
 
          ! Put value to correct position
-         elsi_h%ham_real_elpa(local_row_id,local_col_id) = h_val_recv_buf(i_val)
+         elsi_h%ham_real_elpa(local_row_id,local_col_id) = &
+            h_val_recv_buf(i_val)
       enddo
    endif
 
@@ -2149,7 +2021,8 @@ subroutine elsi_blacs_to_sips_dm_real(elsi_h,d_out)
       local_col_id = col_recv_buf(i_val)-elsi_h%myid*n_l_cols_pexsi_aux
       local_row_id = row_recv_buf(i_val)
 
-      do j_val = elsi_h%col_ptr_ccs(local_col_id),elsi_h%col_ptr_ccs(local_col_id+1)-1
+      do j_val = elsi_h%col_ptr_ccs(local_col_id),&
+                    elsi_h%col_ptr_ccs(local_col_id+1)-1
          if(elsi_h%row_ind_ccs(j_val) == local_row_id) then
             d_out(j_val) = val_recv_buf(i_val)
          endif
@@ -2364,8 +2237,8 @@ subroutine heapsort_real_v1(length,a_i8,b_r8,c_r8,d_i4,e_i4)
 
    integer(kind=i4), intent(in)    :: length       !< Length of array
    integer(kind=i8), intent(inout) :: a_i8(length) !< i8 array to be sorted
-   real(kind=i8)   , intent(inout) :: b_r8(length) !< r8 array to be moved
-   real(kind=i8)   , intent(inout) :: c_r8(length) !< r8 array to be moved
+   real(kind=r8)   , intent(inout) :: b_r8(length) !< r8 array to be moved
+   real(kind=r8)   , intent(inout) :: c_r8(length) !< r8 array to be moved
    integer(kind=i4), intent(inout) :: d_i4(length) !< i4 array to be moved
    integer(kind=i4), intent(inout) :: e_i4(length) !< i4 array to be moved
 
@@ -2404,8 +2277,8 @@ subroutine downheap_real_v1(length,a_i8,b_r8,c_r8,d_i4,e_i4,top,bottom)
 
    integer(kind=i4), intent(in)    :: length       !< Length of array
    integer(kind=i8), intent(inout) :: a_i8(length) !< i8 array to be sorted
-   real(kind=i8)   , intent(inout) :: b_r8(length) !< r8 array to be moved
-   real(kind=i8)   , intent(inout) :: c_r8(length) !< r8 array to be moved
+   real(kind=r8)   , intent(inout) :: b_r8(length) !< r8 array to be moved
+   real(kind=r8)   , intent(inout) :: c_r8(length) !< r8 array to be moved
    integer(kind=i4), intent(inout) :: d_i4(length) !< i4 array to be moved
    integer(kind=i4), intent(inout) :: e_i4(length) !< i4 array to be moved
    integer(kind=i4), intent(in)    :: top          !< Top of heap
@@ -2450,7 +2323,7 @@ subroutine heapsort_real_v2(length,a_i8,b_r8)
 
    integer(kind=i4), intent(in)    :: length       !< Length of array
    integer(kind=i8), intent(inout) :: a_i8(length) !< i8 array to be sorted
-   real(kind=i8)   , intent(inout) :: b_r8(length) !< r8 array to be moved
+   real(kind=r8)   , intent(inout) :: b_r8(length) !< r8 array to be moved
 
    integer(kind=i4) :: top
    integer(kind=i4) :: i
@@ -2484,7 +2357,7 @@ subroutine downheap_real_v2(length,a_i8,b_r8,top,bottom)
 
    integer(kind=i4), intent(in)    :: length       !< Length of array
    integer(kind=i8), intent(inout) :: a_i8(length) !< i8 array to be sorted
-   real(kind=i8)   , intent(inout) :: b_r8(length) !< r8 array to be moved
+   real(kind=r8)   , intent(inout) :: b_r8(length) !< r8 array to be moved
    integer(kind=i4), intent(in)    :: top          !< Top of heap
    integer(kind=i4), intent(in)    :: bottom       !< Bottom of heap
 
@@ -2515,6 +2388,176 @@ subroutine downheap_real_v2(length,a_i8,b_r8,top,bottom)
 end subroutine
 
 !>
+!! This routine sorts an integer(kind=i4) array by heapsort,
+!! moves two real(kind=r8) arrays and two integer(kind=i4)
+!! arrays accordingly.
+!!
+subroutine heapsort_real_v3(length,a_i4,b_r8,c_r8,d_i4,e_i4)
+
+   implicit none
+
+   integer(kind=i4), intent(in)    :: length       !< Length of array
+   integer(kind=i4), intent(inout) :: a_i4(length) !< i4 array to be sorted
+   real(kind=r8)   , intent(inout) :: b_r8(length) !< r8 array to be moved
+   real(kind=r8)   , intent(inout) :: c_r8(length) !< r8 array to be moved
+   integer(kind=i4), intent(inout) :: d_i4(length) !< i4 array to be moved
+   integer(kind=i4), intent(inout) :: e_i4(length) !< i4 array to be moved
+
+   integer(kind=i4) :: top
+   integer(kind=i4) :: i
+
+   ! Heapify
+   top = length/2
+
+   do i = top,1,-1
+      call downheap(length,a_i4,b_r8,c_r8,d_i4,e_i4,i,length)
+   enddo
+
+   i = length
+
+   do while(i > 1)
+      call swap(length,a_i4,1,i)
+      call swap(length,b_r8,1,i)
+      call swap(length,c_r8,1,i)
+      call swap(length,d_i4,1,i)
+      call swap(length,e_i4,1,i)
+
+      i = i-1
+
+      call downheap(length,a_i4,b_r8,c_r8,d_i4,e_i4,1,i)
+   enddo
+
+end subroutine
+
+!>
+!! This routine restores the max-heap structure.
+!!
+subroutine downheap_real_v3(length,a_i4,b_r8,c_r8,d_i4,e_i4,top,bottom)
+
+   implicit none
+
+   integer(kind=i4), intent(in)    :: length       !< Length of array
+   integer(kind=i4), intent(inout) :: a_i4(length) !< i4 array to be sorted
+   real(kind=r8)   , intent(inout) :: b_r8(length) !< r8 array to be moved
+   real(kind=r8)   , intent(inout) :: c_r8(length) !< r8 array to be moved
+   integer(kind=i4), intent(inout) :: d_i4(length) !< i4 array to be moved
+   integer(kind=i4), intent(inout) :: e_i4(length) !< i4 array to be moved
+   integer(kind=i4), intent(in)    :: top          !< Top of heap
+   integer(kind=i4), intent(in)    :: bottom       !< Bottom of heap
+
+   integer(kind=i4) :: v
+   integer(kind=i4) :: w
+
+   v = top
+   w = 2*v
+
+   do while (w <= bottom)
+      if(w+1 <= bottom) then
+         if(a_i4(w+1) > a_i4(w)) then
+            w = w+1
+         endif
+      endif
+
+      if(a_i4(v) >= a_i4(w)) then
+         return
+      else
+         call swap(length,a_i4,v,w)
+         call swap(length,b_r8,v,w)
+         call swap(length,c_r8,v,w)
+         call swap(length,d_i4,v,w)
+         call swap(length,e_i4,v,w)
+
+         v = w
+         w = 2*v
+      endif
+   enddo
+
+end subroutine
+
+!>
+!! This routine sorts an integer(kind=i4) array by heapsort,
+!! moves one real(kind=r8) arrays and two integer(kind=i4)
+!! arrays accordingly.
+!!
+subroutine heapsort_real_v4(length,a_i4,b_r8,c_i4,d_i4)
+
+   implicit none
+
+   integer(kind=i4), intent(in)    :: length       !< Length of array
+   integer(kind=i4), intent(inout) :: a_i4(length) !< i4 array to be sorted
+   real(kind=r8)   , intent(inout) :: b_r8(length) !< r8 array to be moved
+   integer(kind=i4), intent(inout) :: c_i4(length) !< i4 array to be moved
+   integer(kind=i4), intent(inout) :: d_i4(length) !< i4 array to be moved
+
+   integer(kind=i4) :: top
+   integer(kind=i4) :: i
+
+   ! Heapify
+   top = length/2
+
+   do i = top,1,-1
+      call downheap(length,a_i4,b_r8,c_i4,d_i4,i,length)
+   enddo
+
+   i = length
+
+   do while(i > 1)
+      call swap(length,a_i4,1,i)
+      call swap(length,b_r8,1,i)
+      call swap(length,c_i4,1,i)
+      call swap(length,d_i4,1,i)
+
+      i = i-1
+
+      call downheap(length,a_i4,b_r8,c_i4,d_i4,1,i)
+   enddo
+
+end subroutine
+
+!>
+!! This routine restores the max-heap structure.
+!!
+subroutine downheap_real_v4(length,a_i4,b_r8,c_i4,d_i4,top,bottom)
+
+   implicit none
+
+   integer(kind=i4), intent(in)    :: length       !< Length of array
+   integer(kind=i4), intent(inout) :: a_i4(length) !< i4 array to be sorted
+   real(kind=r8)   , intent(inout) :: b_r8(length) !< r8 array to be moved
+   integer(kind=i4), intent(inout) :: c_i4(length) !< i4 array to be moved
+   integer(kind=i4), intent(inout) :: d_i4(length) !< i4 array to be moved
+   integer(kind=i4), intent(in)    :: top          !< Top of heap
+   integer(kind=i4), intent(in)    :: bottom       !< Bottom of heap
+
+   integer(kind=i4) :: v
+   integer(kind=i4) :: w
+
+   v = top
+   w = 2*v
+
+   do while (w <= bottom)
+      if(w+1 <= bottom) then
+         if(a_i4(w+1) > a_i4(w)) then
+            w = w+1
+         endif
+      endif
+
+      if(a_i4(v) >= a_i4(w)) then
+         return
+      else
+         call swap(length,a_i4,v,w)
+         call swap(length,b_r8,v,w)
+         call swap(length,c_i4,v,w)
+         call swap(length,d_i4,v,w)
+
+         v = w
+         w = 2*v
+      endif
+   enddo
+
+end subroutine
+
+!>
 !! This routine sorts an integer(kind=i8) array by heapsort,
 !! moves two complex(kind=r8) arrays and two integer(kind=i4)
 !! arrays accordingly.
@@ -2525,8 +2568,8 @@ subroutine heapsort_complex_v1(length,a_i8,b_c16,c_c16,d_i4,e_i4)
 
    integer(kind=i4), intent(in)    :: length        !< Length of array
    integer(kind=i8), intent(inout) :: a_i8(length)  !< i8 array to be sorted
-   complex(kind=i8), intent(inout) :: b_c16(length) !< c16 array to be moved
-   complex(kind=i8), intent(inout) :: c_c16(length) !< c16 array to be moved
+   complex(kind=r8), intent(inout) :: b_c16(length) !< c16 array to be moved
+   complex(kind=r8), intent(inout) :: c_c16(length) !< c16 array to be moved
    integer(kind=i4), intent(inout) :: d_i4(length)  !< i4 array to be moved
    integer(kind=i4), intent(inout) :: e_i4(length)  !< i4 array to be moved
 
@@ -2565,8 +2608,8 @@ subroutine downheap_complex_v1(length,a_i8,b_c16,c_c16,d_i4,e_i4,top,bottom)
 
    integer(kind=i4), intent(in)    :: length        !< Length of array
    integer(kind=i8), intent(inout) :: a_i8(length)  !< i8 array to be sorted
-   complex(kind=i8), intent(inout) :: b_c16(length) !< c16 array to be moved
-   complex(kind=i8), intent(inout) :: c_c16(length) !< c16 array to be moved
+   complex(kind=r8), intent(inout) :: b_c16(length) !< c16 array to be moved
+   complex(kind=r8), intent(inout) :: c_c16(length) !< c16 array to be moved
    integer(kind=i4), intent(inout) :: d_i4(length)  !< i4 array to be moved
    integer(kind=i4), intent(inout) :: e_i4(length)  !< i4 array to be moved
    integer(kind=i4), intent(in)    :: top           !< Top of heap
@@ -2611,7 +2654,7 @@ subroutine heapsort_complex_v2(length,a_i8,b_c16)
 
    integer(kind=i4), intent(in)    :: length        !< Length of array
    integer(kind=i8), intent(inout) :: a_i8(length)  !< i8 array to be sorted
-   complex(kind=i8), intent(inout) :: b_c16(length) !< c16 array to be moved
+   complex(kind=r8), intent(inout) :: b_c16(length) !< c16 array to be moved
 
    integer(kind=i4) :: top
    integer(kind=i4) :: i
@@ -2645,7 +2688,7 @@ subroutine downheap_complex_v2(length,a_i8,b_c16,top,bottom)
 
    integer(kind=i4), intent(in)    :: length        !< Length of array
    integer(kind=i8), intent(inout) :: a_i8(length)  !< i8 array to be sorted
-   complex(kind=i8), intent(inout) :: b_c16(length) !< c16 array to be moved
+   complex(kind=r8), intent(inout) :: b_c16(length) !< c16 array to be moved
    integer(kind=i4), intent(in)    :: top           !< Top of heap
    integer(kind=i4), intent(in)    :: bottom        !< Bottom of heap
 
@@ -2667,6 +2710,176 @@ subroutine downheap_complex_v2(length,a_i8,b_c16,top,bottom)
       else
          call swap(length,a_i8,v,w)
          call swap(length,b_c16,v,w)
+
+         v = w
+         w = 2*v
+      endif
+   enddo
+
+end subroutine
+
+!>
+!! This routine sorts an integer(kind=i4) array by heapsort,
+!! moves two complex(kind=r8) arrays and two integer(kind=i4)
+!! arrays accordingly.
+!!
+subroutine heapsort_complex_v3(length,a_i4,b_c16,c_c16,d_i4,e_i4)
+
+   implicit none
+
+   integer(kind=i4), intent(in)    :: length        !< Length of array
+   integer(kind=i4), intent(inout) :: a_i4(length)  !< i4 array to be sorted
+   complex(kind=r8), intent(inout) :: b_c16(length) !< c16 array to be moved
+   complex(kind=r8), intent(inout) :: c_c16(length) !< c16 array to be moved
+   integer(kind=i4), intent(inout) :: d_i4(length)  !< i4 array to be moved
+   integer(kind=i4), intent(inout) :: e_i4(length)  !< i4 array to be moved
+
+   integer(kind=i4) :: top
+   integer(kind=i4) :: i
+
+   ! Heapify
+   top = length/2
+
+   do i = top,1,-1
+      call downheap(length,a_i4,b_c16,c_c16,d_i4,e_i4,i,length)
+   enddo
+
+   i = length
+
+   do while(i > 1)
+      call swap(length,a_i4,1,i)
+      call swap(length,b_c16,1,i)
+      call swap(length,c_c16,1,i)
+      call swap(length,d_i4,1,i)
+      call swap(length,e_i4,1,i)
+
+      i = i-1
+
+      call downheap(length,a_i4,b_c16,c_c16,d_i4,e_i4,1,i)
+   enddo
+
+end subroutine
+
+!>
+!! This routine restores the max-heap structure.
+!!
+subroutine downheap_complex_v3(length,a_i4,b_c16,c_c16,d_i4,e_i4,top,bottom)
+
+   implicit none
+
+   integer(kind=i4), intent(in)    :: length        !< Length of array
+   integer(kind=i4), intent(inout) :: a_i4(length)  !< i4 array to be sorted
+   complex(kind=r8), intent(inout) :: b_c16(length) !< c16 array to be moved
+   complex(kind=r8), intent(inout) :: c_c16(length) !< c16 array to be moved
+   integer(kind=i4), intent(inout) :: d_i4(length)  !< i4 array to be moved
+   integer(kind=i4), intent(inout) :: e_i4(length)  !< i4 array to be moved
+   integer(kind=i4), intent(in)    :: top           !< Top of heap
+   integer(kind=i4), intent(in)    :: bottom        !< Bottom of heap
+
+   integer(kind=i4) :: v
+   integer(kind=i4) :: w
+
+   v = top
+   w = 2*v
+
+   do while (w <= bottom)
+      if(w+1 <= bottom) then
+         if(a_i4(w+1) > a_i4(w)) then
+            w = w+1
+         endif
+      endif
+
+      if(a_i4(v) >= a_i4(w)) then
+         return
+      else
+         call swap(length,a_i4,v,w)
+         call swap(length,b_c16,v,w)
+         call swap(length,c_c16,v,w)
+         call swap(length,d_i4,v,w)
+         call swap(length,e_i4,v,w)
+
+         v = w
+         w = 2*v
+      endif
+   enddo
+
+end subroutine
+
+!>
+!! This routine sorts an integer(kind=i4) array by heapsort,
+!! moves one complex(kind=r8) array and two integer(kind=i4)
+!! arrays accordingly.
+!!
+subroutine heapsort_complex_v4(length,a_i4,b_c16,c_i4,d_i4)
+
+   implicit none
+
+   integer(kind=i4), intent(in)    :: length        !< Length of array
+   integer(kind=i4), intent(inout) :: a_i4(length)  !< i4 array to be sorted
+   complex(kind=r8), intent(inout) :: b_c16(length) !< c16 array to be moved
+   integer(kind=i4), intent(inout) :: c_i4(length)  !< i4 array to be moved
+   integer(kind=i4), intent(inout) :: d_i4(length)  !< i4 array to be moved
+
+   integer(kind=i4) :: top
+   integer(kind=i4) :: i
+
+   ! Heapify
+   top = length/2
+
+   do i = top,1,-1
+      call downheap(length,a_i4,b_c16,c_i4,d_i4,i,length)
+   enddo
+
+   i = length
+
+   do while(i > 1)
+      call swap(length,a_i4,1,i)
+      call swap(length,b_c16,1,i)
+      call swap(length,c_i4,1,i)
+      call swap(length,d_i4,1,i)
+
+      i = i-1
+
+      call downheap(length,a_i4,b_c16,c_i4,d_i4,1,i)
+   enddo
+
+end subroutine
+
+!>
+!! This routine restores the max-heap structure.
+!!
+subroutine downheap_complex_v4(length,a_i4,b_c16,c_i4,d_i4,top,bottom)
+
+   implicit none
+
+   integer(kind=i4), intent(in)    :: length        !< Length of array
+   integer(kind=i4), intent(inout) :: a_i4(length)  !< i4 array to be sorted
+   complex(kind=r8), intent(inout) :: b_c16(length) !< c16 array to be moved
+   integer(kind=i4), intent(inout) :: c_i4(length)  !< i4 array to be moved
+   integer(kind=i4), intent(inout) :: d_i4(length)  !< i4 array to be moved
+   integer(kind=i4), intent(in)    :: top           !< Top of heap
+   integer(kind=i4), intent(in)    :: bottom        !< Bottom of heap
+
+   integer(kind=i4) :: v
+   integer(kind=i4) :: w
+
+   v = top
+   w = 2*v
+
+   do while (w <= bottom)
+      if(w+1 <= bottom) then
+         if(a_i4(w+1) > a_i4(w)) then
+            w = w+1
+         endif
+      endif
+
+      if(a_i4(v) >= a_i4(w)) then
+         return
+      else
+         call swap(length,a_i4,v,w)
+         call swap(length,b_c16,v,w)
+         call swap(length,c_i4,v,w)
+         call swap(length,d_i4,v,w)
 
          v = w
          w = 2*v

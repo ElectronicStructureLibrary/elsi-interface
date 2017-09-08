@@ -177,7 +177,8 @@ subroutine f_ppexsi_symbolic_factorize_real_symmetric_matrix(plan,options,info)
 
 end subroutine
 
-subroutine f_ppexsi_symbolic_factorize_complex_symmetric_matrix(plan,options,info)
+subroutine f_ppexsi_symbolic_factorize_complex_symmetric_matrix(plan,options,&
+              info)
 
    implicit none
 

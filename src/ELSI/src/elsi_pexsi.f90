@@ -71,7 +71,7 @@ subroutine elsi_init_pexsi(elsi_h)
                                   elsi_h%pexsi_options%nPoints)
       endif
 
-      write(info_str,"(1X,' | Number of MPI tasks per pole                   ',I10)") &
+      write(info_str,"(1X,' | Number of MPI tasks per pole           ',I10)") &
          elsi_h%n_p_per_pole
       call elsi_statement_print(info_str,elsi_h)
 
@@ -248,7 +248,8 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
    endif
 
    if(ierr /= 0) then
-      call elsi_stop(" Symbolic factorization failed. Exiting...",elsi_h,caller)
+      call elsi_stop(" Symbolic factorization failed. Exiting...",&
+              elsi_h,caller)
    endif
 
    ! Inertia counting
@@ -856,39 +857,39 @@ subroutine elsi_print_pexsi_options(elsi_h)
    write(info_str,"(A)") "  PEXSI settings (in the same unit of Hamiltonian):"
    call elsi_statement_print(info_str,elsi_h)
 
-   write(info_str,"(1X,' | Temperature                                    ',E10.2)") &
+   write(info_str,"(1X,' | Temperature                            ',E10.2)") &
       elsi_h%pexsi_options%temperature
    call elsi_statement_print(info_str,elsi_h)
 
-   write(info_str,"(1X,' | Spectral gap                                   ',F10.3)") &
+   write(info_str,"(1X,' | Spectral gap                           ',F10.3)") &
       elsi_h%pexsi_options%gap
    call elsi_statement_print(info_str,elsi_h)
 
-   write(info_str,"(1X,' | Spectral width                                 ',F10.3)") &
+   write(info_str,"(1X,' | Spectral width                         ',F10.3)") &
       elsi_h%pexsi_options%deltaE
    call elsi_statement_print(info_str,elsi_h)
 
-   write(info_str,"(1X,' | Number of poles                                ',I10)") &
+   write(info_str,"(1X,' | Number of poles                        ',I10)") &
       elsi_h%pexsi_options%numPole
    call elsi_statement_print(info_str,elsi_h)
 
-   write(info_str,"(1X,' | Number of mu points                            ',I10)") &
+   write(info_str,"(1X,' | Number of mu points                    ',I10)") &
       elsi_h%pexsi_options%nPoints
    call elsi_statement_print(info_str,elsi_h)
 
-   write(info_str,"(1X,' | Lower bound of chemical potential              ',E10.2)") &
+   write(info_str,"(1X,' | Lower bound of chemical potential      ',E10.2)") &
       elsi_h%pexsi_options%muMin0
    call elsi_statement_print(info_str,elsi_h)
 
-   write(info_str,"(1X,' | Upper bound of chemical potential              ',E10.2)") &
+   write(info_str,"(1X,' | Upper bound of chemical potential      ',E10.2)") &
       elsi_h%pexsi_options%muMax0
    call elsi_statement_print(info_str,elsi_h)
 
-   write(info_str,"(1X,' | Stopping criterion of inertia counting         ',E10.2)") &
+   write(info_str,"(1X,' | Stopping criterion of inertia counting ',E10.2)") &
       elsi_h%pexsi_options%muInertiaTolerance
    call elsi_statement_print(info_str,elsi_h)
 
-   write(info_str,"(1X,' | Number of processes for symbolic factorization ',I10)") &
+   write(info_str,"(1X,' | Processes for symbolic factorization   ',I10)") &
       elsi_h%pexsi_options%npSymbFact
    call elsi_statement_print(info_str,elsi_h)
 

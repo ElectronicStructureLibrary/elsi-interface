@@ -78,7 +78,8 @@ subroutine clean_qetsc()
 
 end subroutine
 
-subroutine eps_load_ham(global_size,local_size,local_nnz,col_idx,row_ptr,ham_val)
+subroutine eps_load_ham(global_size,local_size,local_nnz,col_idx,row_ptr,&
+              ham_val)
 
    implicit none
 
@@ -95,7 +96,8 @@ subroutine eps_load_ham(global_size,local_size,local_nnz,col_idx,row_ptr,ham_val
 
 end subroutine
 
-subroutine eps_update_ham(global_size,local_size,local_nnz,col_idx,row_ptr,ham_val)
+subroutine eps_update_ham(global_size,local_size,local_nnz,col_idx,row_ptr,&
+              ham_val)
 
    implicit none
 
@@ -112,7 +114,8 @@ subroutine eps_update_ham(global_size,local_size,local_nnz,col_idx,row_ptr,ham_v
 
 end subroutine
 
-subroutine eps_load_ovlp(global_size,local_size,local_nnz,col_idx,row_ptr,ovlp_val)
+subroutine eps_load_ovlp(global_size,local_size,local_nnz,col_idx,row_ptr,&
+              ovlp_val)
 
    implicit none
 
@@ -199,7 +202,8 @@ subroutine set_eps_subintervals(nslice,subs)
 
 end subroutine
 
-subroutine run_eps_inertias_check(unbound,nreq,nsub,subs,shifts,inertias,nsolve)
+subroutine run_eps_inertias_check(unbound,nreq,nsub,subs,shifts,inertias,&
+              nsolve)
 
    implicit none
 

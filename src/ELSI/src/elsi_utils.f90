@@ -180,7 +180,8 @@ subroutine elsi_allocate_real8_1d(elsi_h,array,dim1,arrayname,caller)
    if(print_mem) then
       arraysize = 1.0e-6_r8*dim1*8
 
-      write(info,"(A,F12.3,A,A)") "    Allocating ",arraysize," MB for ",trim(arrayname)
+      write(info,"(A,F12.3,A,A)") "    Allocating ",arraysize,&
+         " MB for ",trim(arrayname)
       call elsi_statement_print(info,elsi_h)
    endif
 
@@ -215,7 +216,8 @@ subroutine elsi_allocate_integer4_1d(elsi_h,array,dim1,arrayname,caller)
    if(print_mem) then
       arraysize = 1.0e-6_r8*dim1*4
 
-      write(info,"(A,F12.3,A,A)") "    Allocating ",arraysize," MB for ",trim(arrayname)
+      write(info,"(A,F12.3,A,A)") "    Allocating ",arraysize,&
+         " MB for ",trim(arrayname)
       call elsi_statement_print(info,elsi_h)
    endif
 
@@ -250,7 +252,8 @@ subroutine elsi_allocate_integer8_1d(elsi_h,array,dim1,arrayname,caller)
    if(print_mem) then
       arraysize = 1.0e-6_r8*dim1*8
 
-      write(info,"(A,F12.3,A,A)") "    Allocating ",arraysize," MB for ",trim(arrayname)
+      write(info,"(A,F12.3,A,A)") "    Allocating ",arraysize,&
+         " MB for ",trim(arrayname)
       call elsi_statement_print(info,elsi_h)
    endif
 
@@ -285,7 +288,8 @@ subroutine elsi_allocate_complex16_1d(elsi_h,array,dim1,arrayname,caller)
    if(print_mem) then
       arraysize = 1.0e-6_r8*dim1*16
 
-      write(info,"(A,F12.3,A,A)") "    Allocating ",arraysize," MB for ",trim(arrayname)
+      write(info,"(A,F12.3,A,A)") "    Allocating ",arraysize,&
+         " MB for ",trim(arrayname)
       call elsi_statement_print(info,elsi_h)
    endif
 
@@ -321,7 +325,8 @@ subroutine elsi_allocate_real8_2d(elsi_h,array,dim1,dim2,arrayname,caller)
    if(print_mem) then
       arraysize = 1.0e-6_r8*dim1*dim2*8
 
-      write(info,"(A,F12.3,A,A)") "    Allocating ",arraysize," MB for ",trim(arrayname)
+      write(info,"(A,F12.3,A,A)") "    Allocating ",arraysize,&
+         " MB for ",trim(arrayname)
       call elsi_statement_print(info,elsi_h)
    endif
 
@@ -339,7 +344,8 @@ end subroutine
 !>
 !! This routine allocates a 2D array of integer(kind=i4).
 !!
-subroutine elsi_allocate_integer4_2d(elsi_h,array,dim1,dim2,arrayname,caller)
+subroutine elsi_allocate_integer4_2d(elsi_h,array,dim1,dim2,&
+              arrayname,caller)
 
    implicit none
 
@@ -357,7 +363,8 @@ subroutine elsi_allocate_integer4_2d(elsi_h,array,dim1,dim2,arrayname,caller)
    if(print_mem) then
       arraysize = 1.0e-6_r8*dim1*dim2*4
 
-      write(info,"(A,F12.3,A,A)") "    Allocating ",arraysize," MB for ",trim(arrayname)
+      write(info,"(A,F12.3,A,A)") "    Allocating ",arraysize,&
+         " MB for ",trim(arrayname)
       call elsi_statement_print(info,elsi_h)
    endif
 
@@ -375,7 +382,8 @@ end subroutine
 !>
 !! This routine allocates a 2D array of complex(kind=r8).
 !!
-subroutine elsi_allocate_complex16_2d(elsi_h,array,dim1,dim2,arrayname,caller)
+subroutine elsi_allocate_complex16_2d(elsi_h,array,dim1,dim2,&
+              arrayname,caller)
 
    implicit none
 
@@ -393,7 +401,8 @@ subroutine elsi_allocate_complex16_2d(elsi_h,array,dim1,dim2,arrayname,caller)
    if(print_mem) then
       arraysize = 1.0e-6_r8*dim1*dim2*16
 
-      write(info,"(A,F12.3,A,A)") "    Allocating ",arraysize," MB for ",trim(arrayname)
+      write(info,"(A,F12.3,A,A)") "    Allocating ",arraysize,&
+         " MB for ",trim(arrayname)
       call elsi_statement_print(info,elsi_h)
    endif
 
@@ -411,7 +420,8 @@ end subroutine
 !>
 !! This routine allocates a 3D array of real(kind=r8).
 !!
-subroutine elsi_allocate_real8_3d(elsi_h,array,dim1,dim2,dim3,arrayname,caller)
+subroutine elsi_allocate_real8_3d(elsi_h,array,dim1,dim2,dim3,&
+              arrayname,caller)
 
    implicit none
 
@@ -430,7 +440,8 @@ subroutine elsi_allocate_real8_3d(elsi_h,array,dim1,dim2,dim3,arrayname,caller)
    if(print_mem) then
       arraysize = 1.0e-6_r8*dim1*dim2*dim3*8
 
-      write(info,"(A,F12.3,A,A)") "    Allocating ",arraysize," MB for ",trim(arrayname)
+      write(info,"(A,F12.3,A,A)") "    Allocating ",arraysize,&
+         " MB for ",trim(arrayname)
       call elsi_statement_print(info,elsi_h)
    endif
 
@@ -448,7 +459,8 @@ end subroutine
 !>
 !! This routine allocates a 3D array of integer(kind=i4).
 !!
-subroutine elsi_allocate_integer4_3d(elsi_h,array,dim1,dim2,dim3,arrayname,caller)
+subroutine elsi_allocate_integer4_3d(elsi_h,array,dim1,dim2,dim3,&
+              arrayname,caller)
 
    implicit none
 
@@ -467,7 +479,8 @@ subroutine elsi_allocate_integer4_3d(elsi_h,array,dim1,dim2,dim3,arrayname,calle
    if(print_mem) then
       arraysize = 1.0e-6_r8*dim1*dim2*dim3*4
 
-      write(info,"(A,F12.3,A,A)") "    Allocating ",arraysize," MB for ",trim(arrayname)
+      write(info,"(A,F12.3,A,A)") "    Allocating ",arraysize,&
+         " MB for ",trim(arrayname)
       call elsi_statement_print(info,elsi_h)
    endif
 
@@ -485,7 +498,8 @@ end subroutine
 !>
 !! This routine allocates a 3D array of complex(kind=r8).
 !!
-subroutine elsi_allocate_complex16_3d(elsi_h,array,dim1,dim2,dim3,arrayname,caller)
+subroutine elsi_allocate_complex16_3d(elsi_h,array,dim1,dim2,dim3,&
+              arrayname,caller)
 
    implicit none
 
@@ -504,7 +518,8 @@ subroutine elsi_allocate_complex16_3d(elsi_h,array,dim1,dim2,dim3,arrayname,call
    if(print_mem) then
       arraysize = 1.0e-6_r8*dim1*dim2*dim3*16
 
-      write(info,"(A,F12.3,A,A)") "    Allocating ",arraysize," MB for ",trim(arrayname)
+      write(info,"(A,F12.3,A,A)") "    Allocating ",arraysize,&
+         " MB for ",trim(arrayname)
       call elsi_statement_print(info,elsi_h)
    endif
 
@@ -1749,11 +1764,13 @@ subroutine elsi_set_full_mat_real(elsi_h,mat)
 
    character*40, parameter :: caller = "elsi_set_full_mat_real"
 
-   if((elsi_h%uplo /= FULL_MAT) .and. (elsi_h%parallel_mode == MULTI_PROC)) then
-      call elsi_allocate(elsi_h,tmp_real,elsi_h%n_l_rows,elsi_h%n_l_cols,"tmp_real",caller)
+   if((elsi_h%uplo /= FULL_MAT) .and. &
+      (elsi_h%parallel_mode == MULTI_PROC)) then
+      call elsi_allocate(elsi_h,tmp_real,elsi_h%n_l_rows,&
+              elsi_h%n_l_cols,"tmp_real",caller)
 
-      call pdtran(elsi_h%n_basis,elsi_h%n_basis,1.0_r8,mat,1,1,elsi_h%sc_desc,&
-              0.0_r8,tmp_real,1,1,elsi_h%sc_desc)
+      call pdtran(elsi_h%n_basis,elsi_h%n_basis,1.0_r8,mat,1,1,&
+              elsi_h%sc_desc,0.0_r8,tmp_real,1,1,elsi_h%sc_desc)
 
       if(elsi_h%uplo == UT_MAT) then ! Upper triangular
          do i_col = 1,elsi_h%n_basis-1
@@ -1801,9 +1818,10 @@ subroutine elsi_set_full_mat_complex(elsi_h,mat)
 
    character*40, parameter :: caller = "elsi_set_full_mat_complex"
 
-   if((elsi_h%uplo /= FULL_MAT) .and. (elsi_h%parallel_mode == MULTI_PROC)) then
-      call elsi_allocate(elsi_h,tmp_complex,elsi_h%n_l_rows,elsi_h%n_l_cols,&
-              "tmp_complex",caller)
+   if((elsi_h%uplo /= FULL_MAT) .and. &
+      (elsi_h%parallel_mode == MULTI_PROC)) then
+      call elsi_allocate(elsi_h,tmp_complex,elsi_h%n_l_rows,&
+              elsi_h%n_l_cols,"tmp_complex",caller)
 
       call pztranc(elsi_h%n_basis,elsi_h%n_basis,(1.0_r8,0.0_r8),mat,1,1,&
               elsi_h%sc_desc,(0.0_r8,0.0_r8),tmp_complex,1,1,elsi_h%sc_desc)
@@ -1815,7 +1833,8 @@ subroutine elsi_set_full_mat_complex(elsi_h,mat)
             do i_row = i_col+1,elsi_h%n_basis
                if(elsi_h%local_row(i_row) > 0) then
                   mat(elsi_h%local_row(i_row),elsi_h%local_col(i_col)) = &
-                     tmp_complex(elsi_h%local_row(i_row),elsi_h%local_col(i_col))
+                     tmp_complex(elsi_h%local_row(i_row),&
+                     elsi_h%local_col(i_col))
                endif
             enddo
          enddo
@@ -1826,7 +1845,8 @@ subroutine elsi_set_full_mat_complex(elsi_h,mat)
             do i_row = 1,i_col-1
                if(elsi_h%local_row(i_row) > 0) then
                   mat(elsi_h%local_row(i_row),elsi_h%local_col(i_col)) = &
-                     tmp_complex(elsi_h%local_row(i_row),elsi_h%local_col(i_col))
+                     tmp_complex(elsi_h%local_row(i_row),&
+                     elsi_h%local_col(i_col))
                endif
             enddo
          enddo
@@ -1836,7 +1856,8 @@ subroutine elsi_set_full_mat_complex(elsi_h,mat)
 
       ! Make diagonal real
       do i_col = 1,elsi_h%n_basis
-         if((elsi_h%local_col(i_col) == 0) .or. (elsi_h%local_row(i_col) == 0)) cycle
+         if((elsi_h%local_col(i_col) == 0) .or. &
+            (elsi_h%local_row(i_col) == 0)) cycle
 
          mat(elsi_h%local_row(i_col),elsi_h%local_col(i_col)) = &
             dble(mat(elsi_h%local_row(i_col),elsi_h%local_col(i_col)))
@@ -1905,10 +1926,13 @@ subroutine elsi_final_print(elsi_h)
          write(*,"('  | Number of basis functions :',I13)") elsi_h%n_basis
          if((elsi_h%solver == PEXSI) .or. (elsi_h%solver == SIPS)) then
             write(*,"('  | Number of nonzeros        :',I13)") elsi_h%nnz_g
-            sparsity = 1.0_r8-(1.0_r8*elsi_h%nnz_g/elsi_h%n_basis)/elsi_h%n_basis
+
+            sparsity = 1.0_r8*elsi_h%nnz_g/elsi_h%n_basis/elsi_h%n_basis
+            sparsity = 1.0_r8-sparsity
             write(*,"('  | Sparsity                  :',F13.3)") sparsity
          endif
-         write(*,"('  | Number of electrons       :',F13.1)") elsi_h%n_electrons
+         write(*,"('  | Number of electrons       :',I13)") &
+            int(elsi_h%n_electrons,kind=i4)
          write(*,"('  | Number of states          :',I13)") elsi_h%n_states
          write(*,"('  | Number of spins           :',I13)") elsi_h%n_spins
          write(*,"('  | Number of k-points        :',I13)") elsi_h%n_kpts

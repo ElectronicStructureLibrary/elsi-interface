@@ -75,10 +75,12 @@ subroutine elsi_init_sips(elsi_h)
 
       ! The last process holds all remaining columns
       if(elsi_h%myid == elsi_h%n_procs-1) then
-         elsi_h%n_l_cols_sp = elsi_h%n_basis-(elsi_h%n_procs-1)*elsi_h%n_l_cols_sp
+         elsi_h%n_l_cols_sp = elsi_h%n_basis-&
+                                 (elsi_h%n_procs-1)*elsi_h%n_l_cols_sp
       endif
 
-      call elsi_allocate(elsi_h,elsi_h%slices,elsi_h%n_slices+1,"slices",caller)
+      call elsi_allocate(elsi_h,elsi_h%slices,elsi_h%n_slices+1,&
+              "slices",caller)
 
       elsi_h%sips_started = .true.
    endif
@@ -130,8 +132,8 @@ subroutine elsi_solve_evp_sips(elsi_h)
       elsi_h%interval = get_eps_interval()
 
       ! Compute slicing
-      call compute_subintervals(elsi_h%n_slices,0,elsi_h%unbound,elsi_h%interval,&
-              0.0_r8,0.0_r8,elsi_h%slices)
+      call compute_subintervals(elsi_h%n_slices,0,elsi_h%unbound,&
+              elsi_h%interval,0.0_r8,0.0_r8,elsi_h%slices)
 
       ! Run inertia counting
       if((elsi_h%inertia_option > 0) .and. (elsi_h%n_slices > 1)) then
@@ -140,11 +142,12 @@ subroutine elsi_solve_evp_sips(elsi_h)
          call elsi_allocate(elsi_h,inertias,elsi_h%n_slices+1,"inertias",caller)
          call elsi_allocate(elsi_h,shifts,elsi_h%n_slices+1,"shifts",caller)
 
-         call run_eps_inertias_check(elsi_h%unbound,elsi_h%n_states,elsi_h%n_slices,&
-                 elsi_h%slices,shifts,inertias,n_solve_steps)
+         call run_eps_inertias_check(elsi_h%unbound,elsi_h%n_states,&
+                 elsi_h%n_slices,elsi_h%slices,shifts,inertias,n_solve_steps)
 
          call inertias_to_eigenvalues(elsi_h%n_slices+1,elsi_h%n_states,&
-                 elsi_h%slice_buffer,shifts,inertias,elsi_h%eval(1:elsi_h%n_states))
+                 elsi_h%slice_buffer,shifts,inertias,&
+                 elsi_h%eval(1:elsi_h%n_states))
 
          call compute_subintervals(elsi_h%n_slices,elsi_h%slicing_method,&
                  elsi_h%unbound,elsi_h%interval,0.0_r8,0.0_r8,elsi_h%slices,&
@@ -170,9 +173,9 @@ subroutine elsi_solve_evp_sips(elsi_h)
       elsi_h%interval(1) = elsi_h%eval(1)-elsi_h%slice_buffer
       elsi_h%interval(2) = elsi_h%eval(elsi_h%n_states)+elsi_h%slice_buffer
 
-      call compute_subintervals(elsi_h%n_slices,elsi_h%slicing_method,elsi_h%unbound,&
-              elsi_h%interval,elsi_h%slice_buffer,1.0e-6_r8,elsi_h%slices,&
-              elsi_h%eval(1:elsi_h%n_states))
+      call compute_subintervals(elsi_h%n_slices,elsi_h%slicing_method,&
+              elsi_h%unbound,elsi_h%interval,elsi_h%slice_buffer,1.0e-6_r8,&
+              elsi_h%slices,elsi_h%eval(1:elsi_h%n_states))
    endif
 
    call set_eps_subintervals(elsi_h%n_slices,elsi_h%slices)
@@ -180,7 +183,8 @@ subroutine elsi_solve_evp_sips(elsi_h)
    call elsi_get_time(elsi_h,t0)
 
    ! Solve
-   call solve_eps_check(elsi_h%n_states,elsi_h%n_slices,elsi_h%slices,n_solve_steps)
+   call solve_eps_check(elsi_h%n_states,elsi_h%n_slices,elsi_h%slices,&
+           n_solve_steps)
 
    ! Get eigenvalues
    elsi_h%eval(1:elsi_h%n_states) = get_eps_eigenvalues(elsi_h%n_states)
