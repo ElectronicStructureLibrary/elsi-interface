@@ -508,7 +508,7 @@ subroutine elsi_blacs_to_pexsi_hs_complex(elsi_h,h_in,s_in)
    integer(kind=i4) :: nnz_l_pexsi_aux
    integer(kind=i4) :: tmp_int
    integer(kind=i8) :: tmp_long
-   complex(kind=r8) :: tmp_complex
+   complex(kind=r8) :: tmp_cmplx
    real(kind=r8)    :: t0
    real(kind=r8)    :: t1
    character*200    :: info_str
@@ -782,27 +782,27 @@ subroutine elsi_blacs_to_pexsi_hs_complex(elsi_h,h_in,s_in)
 
       if(.not. elsi_h%ovlp_is_unit) then
          ! Overlap value
-         call elsi_allocate(elsi_h,elsi_h%ovlp_complex_pexsi,elsi_h%nnz_l_sp,&
-                 "ovlp_complex_pexsi",caller)
+         call elsi_allocate(elsi_h,elsi_h%ovlp_cmplx_pexsi,elsi_h%nnz_l_sp,&
+                 "ovlp_cmplx_pexsi",caller)
 
          call MPI_Alltoallv(s_val_recv_buf,send_count,send_displ,&
-                 mpi_complex16,elsi_h%ovlp_complex_pexsi,recv_count,&
+                 mpi_complex16,elsi_h%ovlp_cmplx_pexsi,recv_count,&
                  recv_displ,mpi_complex16,elsi_h%mpi_comm,mpierr)
 
          call elsi_deallocate(elsi_h,s_val_recv_buf,"s_val_recv_buf")
 
-         call elsi_allocate(elsi_h,elsi_h%ham_complex_pexsi,elsi_h%nnz_l_sp,&
-                 "ham_complex_pexsi",caller)
+         call elsi_allocate(elsi_h,elsi_h%ham_cmplx_pexsi,elsi_h%nnz_l_sp,&
+                 "ham_cmplx_pexsi",caller)
       else
-         call elsi_allocate(elsi_h,elsi_h%ovlp_complex_pexsi,1,"dummy",caller)
+         call elsi_allocate(elsi_h,elsi_h%ovlp_cmplx_pexsi,1,"dummy",caller)
       endif
    endif
 
-   elsi_h%ham_complex_pexsi = (0.0_r8,0.0_r8)
+   elsi_h%ham_cmplx_pexsi = (0.0_r8,0.0_r8)
 
    ! Hamiltonian value
    call MPI_Alltoallv(h_val_recv_buf,send_count,send_displ,&
-           mpi_complex16,elsi_h%ham_complex_pexsi,recv_count,recv_displ,&
+           mpi_complex16,elsi_h%ham_cmplx_pexsi,recv_count,recv_displ,&
            mpi_complex16,elsi_h%mpi_comm,mpierr)
 
    call elsi_deallocate(elsi_h,h_val_recv_buf,"h_val_recv_buf")
@@ -1079,7 +1079,7 @@ subroutine elsi_pexsi_to_blacs_dm_complex(elsi_h,d_out)
          row_send_buf(i_val) = i_row
          col_send_buf(i_val) = i_col+elsi_h%myid*&
                                   (elsi_h%n_basis/elsi_h%n_p_per_pole)
-         val_send_buf(i_val) = elsi_h%dm_complex_ccs(i_val)
+         val_send_buf(i_val) = elsi_h%dm_cmplx_ccs(i_val)
 
          ! Compute destination
          proc_row_id = mod((row_send_buf(i_val)-1)/elsi_h%n_b_rows,&
@@ -1436,7 +1436,7 @@ subroutine elsi_blacs_to_sips_hs_complex(elsi_h,h_in,s_in)
    integer(kind=i4) :: tmp_int
    integer(kind=i8) :: tmp_long
    integer(kind=i4) :: min_id
-   complex(kind=r8) :: tmp_complex
+   complex(kind=r8) :: tmp_cmplx
    real(kind=r8)    :: t0
    real(kind=r8)    :: t1
    character*200    :: info_str
@@ -1558,12 +1558,12 @@ subroutine elsi_blacs_to_sips_hs_complex(elsi_h,h_in,s_in)
 
    ! Hamiltonian value
    if(elsi_h%n_elsi_calls == 1) then
-      call elsi_allocate(elsi_h,elsi_h%ham_complex_sips,elsi_h%nnz_l_sp,&
-              "ham_complex_sips",caller)
+      call elsi_allocate(elsi_h,elsi_h%ham_cmplx_sips,elsi_h%nnz_l_sp,&
+              "ham_cmplx_sips",caller)
    endif
 
    call MPI_Alltoallv(h_val_send_buf,send_count,send_displ,&
-           mpi_complex16,elsi_h%ham_complex_sips,recv_count,recv_displ,&
+           mpi_complex16,elsi_h%ham_cmplx_sips,recv_count,recv_displ,&
            mpi_complex16,elsi_h%mpi_comm,mpierr)
 
    call elsi_deallocate(elsi_h,h_val_send_buf,"h_val_send_buf")
@@ -1571,16 +1571,16 @@ subroutine elsi_blacs_to_sips_hs_complex(elsi_h,h_in,s_in)
    ! Overlap value
    if(elsi_h%n_elsi_calls == 1) then
       if(.not. elsi_h%ovlp_is_unit) then
-         call elsi_allocate(elsi_h,elsi_h%ovlp_complex_sips,elsi_h%nnz_l_sp,&
-                 "ovlp_complex_sips",caller)
+         call elsi_allocate(elsi_h,elsi_h%ovlp_cmplx_sips,elsi_h%nnz_l_sp,&
+                 "ovlp_cmplx_sips",caller)
 
          call MPI_Alltoallv(s_val_send_buf,send_count,send_displ,&
-                 mpi_complex16,elsi_h%ovlp_complex_sips,recv_count,&
+                 mpi_complex16,elsi_h%ovlp_cmplx_sips,recv_count,&
                  recv_displ,mpi_complex16,elsi_h%mpi_comm,mpierr)
 
          call elsi_deallocate(elsi_h,s_val_send_buf,"s_val_send_buf")
       else
-         call elsi_allocate(elsi_h,elsi_h%ovlp_complex_sips,1,"dummy",caller)
+         call elsi_allocate(elsi_h,elsi_h%ovlp_cmplx_sips,1,"dummy",caller)
       endif
    endif
 
@@ -1600,10 +1600,10 @@ subroutine elsi_blacs_to_sips_hs_complex(elsi_h,h_in,s_in)
 
    ! Sort
    if((elsi_h%n_elsi_calls == 1) .and. (.not. elsi_h%ovlp_is_unit)) then
-      call heapsort(elsi_h%nnz_l_sp,global_id,elsi_h%ham_complex_sips,&
-              elsi_h%ovlp_complex_sips,row_recv_buf,col_recv_buf)
+      call heapsort(elsi_h%nnz_l_sp,global_id,elsi_h%ham_cmplx_sips,&
+              elsi_h%ovlp_cmplx_sips,row_recv_buf,col_recv_buf)
    else
-      call heapsort(elsi_h%nnz_l_sp,global_id,elsi_h%ham_complex_sips)
+      call heapsort(elsi_h%nnz_l_sp,global_id,elsi_h%ham_cmplx_sips)
    endif
 
    call elsi_deallocate(elsi_h,global_id,"global_id")
@@ -2215,7 +2215,7 @@ subroutine elsi_chess_to_blacs_dm_real(elsi_h,d_out)
       do i_val = elsi_h%col_ptr_ccs(g_col),elsi_h%col_ptr_ccs(g_col+1)-1
          g_row = elsi_h%row_ind_ccs(i_val)
 
-         if(elsi_h%local_row(g_row) == 0) cycle
+         if(elsi_h%loc_row(g_row) == 0) cycle
 
          i_row = (g_row-1)/(elsi_h%n_p_rows*elsi_h%n_b_rows)*&
                     elsi_h%n_b_rows+mod((g_row-1),elsi_h%n_b_rows)+1

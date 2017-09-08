@@ -1412,7 +1412,7 @@ subroutine elsi_get_edm_complex(elsi_h,d_out)
 
    call elsi_check_handle(elsi_h,caller)
 
-   if(elsi_h%edm_ready_complex) then
+   if(elsi_h%edm_ready_cmplx) then
       elsi_h%matrix_data_type = COMPLEX_VALUES
 
       select case(elsi_h%solver)
@@ -1439,7 +1439,7 @@ subroutine elsi_get_edm_complex(elsi_h,d_out)
                  " Exiting...",elsi_h,caller)
       end select
 
-      elsi_h%edm_ready_complex = .false.
+      elsi_h%edm_ready_cmplx = .false.
       elsi_h%matrix_data_type = UNSET
    else
       call elsi_stop(" Energy weighted density matrix has not been."//&

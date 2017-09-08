@@ -844,7 +844,7 @@ subroutine elsi_write_mat_complex(f_name,mpi_comm,blacs_ctxt,block_size,&
    ! Write non-zero value
    offset = HEADER_SIZE*4+n_basis*4+io_h%nnz_g*4+prev_nnz*16
 
-   call MPI_File_write_at_all(f_handle,offset,io_h%ham_complex_sips,&
+   call MPI_File_write_at_all(f_handle,offset,io_h%ham_cmplx_sips,&
            io_h%nnz_l_sp,mpi_complex16,mpi_status_ignore,mpierr)
 
    call MPI_File_close(f_handle,mpierr)

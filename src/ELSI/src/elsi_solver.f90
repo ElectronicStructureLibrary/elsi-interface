@@ -579,15 +579,15 @@ subroutine elsi_dm_complex(elsi_h,h_in,s_in,d_out,energy_out)
          call elsi_allocate(elsi_h,elsi_h%eval_elpa,elsi_h%n_basis,&
                  "eval_elpa",caller)
       endif
-      if(.not. allocated(elsi_h%evec_complex_elpa)) then
-         call elsi_allocate(elsi_h,elsi_h%evec_complex_elpa,elsi_h%n_l_rows,&
-                 elsi_h%n_l_cols,"evec_complex_elpa",caller)
+      if(.not. allocated(elsi_h%evec_cmplx_elpa)) then
+         call elsi_allocate(elsi_h,elsi_h%evec_cmplx_elpa,elsi_h%n_l_rows,&
+                 elsi_h%n_l_cols,"evec_cmplx_elpa",caller)
       endif
 
       ! Set matrices
       call elsi_set_ham(elsi_h,h_in)
       call elsi_set_ovlp(elsi_h,s_in)
-      call elsi_set_evec(elsi_h,elsi_h%evec_complex_elpa)
+      call elsi_set_evec(elsi_h,elsi_h%evec_cmplx_elpa)
       call elsi_set_eval(elsi_h,elsi_h%eval_elpa)
       call elsi_set_dm(elsi_h,d_out)
 
@@ -606,9 +606,9 @@ subroutine elsi_dm_complex(elsi_h,h_in,s_in,d_out,energy_out)
       if(elsi_h%n_elsi_calls <= elsi_h%n_elpa_steps) then
          if((elsi_h%n_elsi_calls == 1) .and. (elsi_h%omm_flavor == 0)) then
             ! Overlap will be destroyed by Cholesky
-            call elsi_allocate(elsi_h,elsi_h%ovlp_complex_omm,elsi_h%n_l_rows,&
-                    elsi_h%n_l_cols,"ovlp_complex_omm",caller)
-            elsi_h%ovlp_complex_omm = s_in
+            call elsi_allocate(elsi_h,elsi_h%ovlp_cmplx_omm,elsi_h%n_l_rows,&
+                    elsi_h%n_l_cols,"ovlp_cmplx_omm",caller)
+            elsi_h%ovlp_cmplx_omm = s_in
          endif
 
          ! Compute libOMM initial guess by ELPA
@@ -619,15 +619,15 @@ subroutine elsi_dm_complex(elsi_h,h_in,s_in,d_out,energy_out)
             call elsi_allocate(elsi_h,elsi_h%eval_elpa,elsi_h%n_basis,&
                     "eval_elpa",caller)
          endif
-         if(.not. allocated(elsi_h%evec_complex_elpa)) then
-            call elsi_allocate(elsi_h,elsi_h%evec_complex_elpa,elsi_h%n_l_rows,&
-                    elsi_h%n_l_cols,"evec_complex_elpa",caller)
+         if(.not. allocated(elsi_h%evec_cmplx_elpa)) then
+            call elsi_allocate(elsi_h,elsi_h%evec_cmplx_elpa,elsi_h%n_l_rows,&
+                    elsi_h%n_l_cols,"evec_cmplx_elpa",caller)
          endif
 
          ! Set matrices
          call elsi_set_ham(elsi_h,h_in)
          call elsi_set_ovlp(elsi_h,s_in)
-         call elsi_set_evec(elsi_h,elsi_h%evec_complex_elpa)
+         call elsi_set_evec(elsi_h,elsi_h%evec_cmplx_elpa)
          call elsi_set_eval(elsi_h,elsi_h%eval_elpa)
          call elsi_set_dm(elsi_h,d_out)
 
@@ -642,11 +642,11 @@ subroutine elsi_dm_complex(elsi_h,h_in,s_in,d_out,energy_out)
          ! Switch back to libOMM
          elsi_h%solver = LIBOMM
       else ! ELPA is done
-         if(allocated(elsi_h%ovlp_complex_omm)) then
+         if(allocated(elsi_h%ovlp_cmplx_omm)) then
             ! Retrieve overlap matrix that has been destroyed by Cholesky
-            s_in = elsi_h%ovlp_complex_omm
-            call elsi_deallocate(elsi_h,elsi_h%ovlp_complex_omm,&
-                    "ovlp_complex_omm")
+            s_in = elsi_h%ovlp_cmplx_omm
+            call elsi_deallocate(elsi_h,elsi_h%ovlp_cmplx_omm,&
+                    "ovlp_cmplx_omm")
          endif
 
          ! Allocate
@@ -665,31 +665,31 @@ subroutine elsi_dm_complex(elsi_h,h_in,s_in,d_out,energy_out)
             (elsi_h%n_elsi_calls == elsi_h%n_elpa_steps+1)) then
             ! libOMM coefficient matrix is the transpose of ELPA eigenvectors
             call pztranc(elsi_h%n_basis,elsi_h%n_basis,(1.0_r8,0.0_r8),&
-                    elsi_h%evec_complex,1,1,elsi_h%sc_desc,(0.0_r8,0.0_r8),&
+                    elsi_h%evec_cmplx,1,1,elsi_h%sc_desc,(0.0_r8,0.0_r8),&
                     d_out,1,1,elsi_h%sc_desc)
 
             elsi_h%coeff_omm%zval(1:elsi_h%coeff_omm%iaux2(1),1:elsi_h%coeff_omm%iaux2(2)) = &
                d_out(1:elsi_h%coeff_omm%iaux2(1),1:elsi_h%coeff_omm%iaux2(2))
 
             ! ELPA matrices are no longer needed
-            if(associated(elsi_h%ham_complex)) then
-               nullify(elsi_h%ham_complex)
+            if(associated(elsi_h%ham_cmplx)) then
+               nullify(elsi_h%ham_cmplx)
             endif
-            if(associated(elsi_h%ovlp_complex)) then
-               nullify(elsi_h%ovlp_complex)
+            if(associated(elsi_h%ovlp_cmplx)) then
+               nullify(elsi_h%ovlp_cmplx)
             endif
-            if(associated(elsi_h%evec_complex)) then
-               nullify(elsi_h%evec_complex)
+            if(associated(elsi_h%evec_cmplx)) then
+               nullify(elsi_h%evec_cmplx)
             endif
             if(associated(elsi_h%eval)) then
                nullify(elsi_h%eval)
             endif
-            if(associated(elsi_h%dm_complex)) then
-               nullify(elsi_h%dm_complex)
+            if(associated(elsi_h%dm_cmplx)) then
+               nullify(elsi_h%dm_cmplx)
             endif
-            if(allocated(elsi_h%evec_complex_elpa)) then
-               call elsi_deallocate(elsi_h,elsi_h%evec_complex_elpa,&
-                       "evec_complex_elpa")
+            if(allocated(elsi_h%evec_cmplx_elpa)) then
+               call elsi_deallocate(elsi_h,elsi_h%evec_cmplx_elpa,&
+                       "evec_cmplx_elpa")
             endif
             if(allocated(elsi_h%eval_elpa)) then
                call elsi_deallocate(elsi_h,elsi_h%eval_elpa,"eval_elpa")
@@ -725,18 +725,18 @@ subroutine elsi_dm_complex(elsi_h,h_in,s_in,d_out,energy_out)
       call elsi_blacs_to_pexsi_hs(elsi_h,h_in,s_in)
 
       ! Allocate
-      if(.not. allocated(elsi_h%dm_complex_pexsi)) then
-         call elsi_allocate(elsi_h,elsi_h%dm_complex_pexsi,elsi_h%nnz_l_sp,&
-                 "dm_complex_pexsi",caller)
+      if(.not. allocated(elsi_h%dm_cmplx_pexsi)) then
+         call elsi_allocate(elsi_h,elsi_h%dm_cmplx_pexsi,elsi_h%nnz_l_sp,&
+                 "dm_cmplx_pexsi",caller)
       endif
-      elsi_h%dm_complex_pexsi = (0.0_r8,0.0_r8)
+      elsi_h%dm_cmplx_pexsi = (0.0_r8,0.0_r8)
 
       ! Set matrices
-      call elsi_set_sparse_ham(elsi_h,elsi_h%ham_complex_pexsi)
-      call elsi_set_sparse_ovlp(elsi_h,elsi_h%ovlp_complex_pexsi)
+      call elsi_set_sparse_ham(elsi_h,elsi_h%ham_cmplx_pexsi)
+      call elsi_set_sparse_ovlp(elsi_h,elsi_h%ovlp_cmplx_pexsi)
       call elsi_set_row_ind(elsi_h,elsi_h%row_ind_pexsi)
       call elsi_set_col_ptr(elsi_h,elsi_h%col_ptr_pexsi)
-      call elsi_set_sparse_dm(elsi_h,elsi_h%dm_complex_pexsi)
+      call elsi_set_sparse_dm(elsi_h,elsi_h%dm_cmplx_pexsi)
 
       ! Solve
       call elsi_solve_evp_pexsi(elsi_h)
@@ -755,7 +755,7 @@ subroutine elsi_dm_complex(elsi_h,h_in,s_in,d_out,energy_out)
    end select
 
    elsi_h%matrix_data_type = UNSET
-   elsi_h%edm_ready_complex = .true.
+   elsi_h%edm_ready_cmplx = .true.
 
 end subroutine
 

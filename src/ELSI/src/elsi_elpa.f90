@@ -185,12 +185,12 @@ subroutine elsi_compute_dm_elpa(elsi_h)
 
       do i = 1,elsi_h%n_states_solve
          if(factor(i) > 0.0_r8) then
-            if(elsi_h%local_col(i) > 0) then
-               elsi_h%ham_real(:,elsi_h%local_col(i)) = &
-                  elsi_h%ham_real(:,elsi_h%local_col(i))*factor(i)
+            if(elsi_h%loc_col(i) > 0) then
+               elsi_h%ham_real(:,elsi_h%loc_col(i)) = &
+                  elsi_h%ham_real(:,elsi_h%loc_col(i))*factor(i)
             endif
-         elseif(elsi_h%local_col(i) .ne. 0) then
-            elsi_h%ham_real(:,elsi_h%local_col(i)) = 0.0_r8
+         elseif(elsi_h%loc_col(i) .ne. 0) then
+            elsi_h%ham_real(:,elsi_h%loc_col(i)) = 0.0_r8
          endif
       enddo
 
@@ -207,67 +207,61 @@ subroutine elsi_compute_dm_elpa(elsi_h)
               1,1,elsi_h%sc_desc,0.0_r8,elsi_h%ham_real,1,1,elsi_h%sc_desc)
 
       do i_col = 1,elsi_h%n_basis-1
-         if(elsi_h%local_col(i_col) == 0) cycle
+         if(elsi_h%loc_col(i_col) == 0) cycle
 
          do i_row = i_col+1,elsi_h%n_basis
-            if(elsi_h%local_row(i_row) > 0) then
-               elsi_h%dm_real(elsi_h%local_row(i_row),&
-                  elsi_h%local_col(i_col)) = &
-                  elsi_h%ham_real(elsi_h%local_row(i_row),&
-                  elsi_h%local_col(i_col))
+            if(elsi_h%loc_row(i_row) > 0) then
+               elsi_h%dm_real(elsi_h%loc_row(i_row),elsi_h%loc_col(i_col)) = &
+                  elsi_h%ham_real(elsi_h%loc_row(i_row),elsi_h%loc_col(i_col))
             endif
          enddo
       enddo
    case(COMPLEX_VALUES)
-      elsi_h%ham_complex = elsi_h%evec_complex
+      elsi_h%ham_cmplx = elsi_h%evec_cmplx
 
       do i = 1,elsi_h%n_states_solve
          if(factor(i) > 0.0_r8) then
-            if(elsi_h%local_col(i) > 0) then
-               elsi_h%ham_complex(:,elsi_h%local_col(i)) = &
-                  elsi_h%ham_complex(:,elsi_h%local_col(i))*factor(i)
+            if(elsi_h%loc_col(i) > 0) then
+               elsi_h%ham_cmplx(:,elsi_h%loc_col(i)) = &
+                  elsi_h%ham_cmplx(:,elsi_h%loc_col(i))*factor(i)
             endif
-         elseif(elsi_h%local_col(i) .ne. 0) then
-            elsi_h%ham_complex(:,elsi_h%local_col(i)) = (0.0_r8,0.0_r8)
+         elseif(elsi_h%loc_col(i) .ne. 0) then
+            elsi_h%ham_cmplx(:,elsi_h%loc_col(i)) = (0.0_r8,0.0_r8)
          endif
       enddo
 
-      elsi_h%dm_complex = (0.0_r8,0.0_r8)
+      elsi_h%dm_cmplx = (0.0_r8,0.0_r8)
 
       ! Compute density matrix
       call pzherk('U','N',elsi_h%n_basis,max_state,(1.0_r8,0.0_r8),&
-              elsi_h%ham_complex,1,1,elsi_h%sc_desc,(0.0_r8,0.0_r8),&
-              elsi_h%dm_complex,1,1,elsi_h%sc_desc)
+              elsi_h%ham_cmplx,1,1,elsi_h%sc_desc,(0.0_r8,0.0_r8),&
+              elsi_h%dm_cmplx,1,1,elsi_h%sc_desc)
 
       call elsi_deallocate(elsi_h,factor,"factor")
 
       ! Set full matrix from upper triangle
       call pztranc(elsi_h%n_basis,elsi_h%n_basis,(1.0_r8,0.0_r8),&
-              elsi_h%dm_complex,1,1,elsi_h%sc_desc,(0.0_r8,0.0_r8),&
-              elsi_h%ham_complex,1,1,elsi_h%sc_desc)
+              elsi_h%dm_cmplx,1,1,elsi_h%sc_desc,(0.0_r8,0.0_r8),&
+              elsi_h%ham_cmplx,1,1,elsi_h%sc_desc)
 
       do i_col = 1,elsi_h%n_basis-1
-         if(elsi_h%local_col(i_col) == 0) cycle
+         if(elsi_h%loc_col(i_col) == 0) cycle
 
          do i_row = i_col+1,elsi_h%n_basis
-            if(elsi_h%local_row(i_row) > 0) then
-               elsi_h%dm_complex(elsi_h%local_row(i_row),&
-                  elsi_h%local_col(i_col)) = &
-                  elsi_h%ham_complex(elsi_h%local_row(i_row),&
-                  elsi_h%local_col(i_col))
+            if(elsi_h%loc_row(i_row) > 0) then
+               elsi_h%dm_cmplx(elsi_h%loc_row(i_row),elsi_h%loc_col(i_col)) = &
+                  elsi_h%ham_cmplx(elsi_h%loc_row(i_row),elsi_h%loc_col(i_col))
             endif
          enddo
       enddo
 
       ! Make diagonal real
       do i_col = 1,elsi_h%n_basis
-         if((elsi_h%local_col(i_col) == 0) .or. &
-            (elsi_h%local_row(i_col) == 0)) cycle
+         if((elsi_h%loc_col(i_col) == 0) .or. &
+            (elsi_h%loc_row(i_col) == 0)) cycle
 
-         elsi_h%dm_complex(elsi_h%local_row(i_col),&
-            elsi_h%local_col(i_col)) = &
-            dble(elsi_h%dm_complex(elsi_h%local_row(i_col),&
-            elsi_h%local_col(i_col)))
+         elsi_h%dm_cmplx(elsi_h%loc_row(i_col),elsi_h%loc_col(i_col)) = &
+            dble(elsi_h%dm_cmplx(elsi_h%loc_row(i_col),elsi_h%loc_col(i_col)))
       enddo
    end select
 
@@ -299,7 +293,7 @@ subroutine elsi_compute_edm_elpa(elsi_h)
 
    real(kind=r8),    allocatable :: factor(:)
    real(kind=r8),    allocatable :: tmp_real(:,:)
-   complex(kind=r8), allocatable :: tmp_complex(:,:)
+   complex(kind=r8), allocatable :: tmp_cmplx(:,:)
 
    character*40, parameter :: caller = "elsi_compute_edm_elpa"
 
@@ -328,12 +322,12 @@ subroutine elsi_compute_edm_elpa(elsi_h)
 
       do i = 1,elsi_h%n_states_solve
          if(factor(i) > 0.0_r8) then
-            if(elsi_h%local_col(i) > 0) then
-               tmp_real(:,elsi_h%local_col(i)) = &
-                  tmp_real(:,elsi_h%local_col(i))*factor(i)
+            if(elsi_h%loc_col(i) > 0) then
+               tmp_real(:,elsi_h%loc_col(i)) = &
+                  tmp_real(:,elsi_h%loc_col(i))*factor(i)
             endif
-         elseif(elsi_h%local_col(i) .ne. 0) then
-            tmp_real(:,elsi_h%local_col(i)) = 0.0_r8
+         elseif(elsi_h%loc_col(i) .ne. 0) then
+            tmp_real(:,elsi_h%loc_col(i)) = 0.0_r8
          endif
       enddo
 
@@ -352,14 +346,12 @@ subroutine elsi_compute_edm_elpa(elsi_h)
               1,1,elsi_h%sc_desc,0.0_r8,tmp_real,1,1,elsi_h%sc_desc)
 
       do i_col = 1,elsi_h%n_basis-1
-         if(elsi_h%local_col(i_col) == 0) cycle
+         if(elsi_h%loc_col(i_col) == 0) cycle
 
          do i_row = i_col+1,elsi_h%n_basis
-            if(elsi_h%local_row(i_row) > 0) then
-               elsi_h%dm_real(elsi_h%local_row(i_row),&
-                  elsi_h%local_col(i_col)) = &
-                  tmp_real(elsi_h%local_row(i_row),&
-                  elsi_h%local_col(i_col))
+            if(elsi_h%loc_row(i_row) > 0) then
+               elsi_h%dm_real(elsi_h%loc_row(i_row),elsi_h%loc_col(i_col)) = &
+                  tmp_real(elsi_h%loc_row(i_row),elsi_h%loc_col(i_col))
             endif
          enddo
       enddo
@@ -367,60 +359,56 @@ subroutine elsi_compute_edm_elpa(elsi_h)
       call elsi_deallocate(elsi_h,tmp_real,"tmp_real")
    case(COMPLEX_VALUES)
       call elsi_allocate(elsi_h,tmp_real,elsi_h%n_l_rows,elsi_h%n_l_cols,&
-              "tmp_complex",caller)
-      tmp_complex = elsi_h%evec_complex
+              "tmp_cmplx",caller)
+      tmp_cmplx = elsi_h%evec_cmplx
 
       do i = 1,elsi_h%n_states_solve
          if(factor(i) > 0.0_r8) then
-            if(elsi_h%local_col(i) > 0) then
-               tmp_complex(:,elsi_h%local_col(i)) = &
-                  tmp_complex(:,elsi_h%local_col(i))*factor(i)
+            if(elsi_h%loc_col(i) > 0) then
+               tmp_cmplx(:,elsi_h%loc_col(i)) = &
+                  tmp_cmplx(:,elsi_h%loc_col(i))*factor(i)
             endif
-         elseif(elsi_h%local_col(i) .ne. 0) then
-            tmp_complex(:,elsi_h%local_col(i)) = (0.0_r8,0.0_r8)
+         elseif(elsi_h%loc_col(i) .ne. 0) then
+            tmp_cmplx(:,elsi_h%loc_col(i)) = (0.0_r8,0.0_r8)
          endif
       enddo
 
       call elsi_deallocate(elsi_h,factor,"factor")
 
-      elsi_h%dm_complex = (0.0_r8,0.0_r8)
+      elsi_h%dm_cmplx = (0.0_r8,0.0_r8)
 
       ! Compute density matrix
       call pzherk('U','N',elsi_h%n_basis,max_state,(1.0_r8,0.0_r8),&
-              tmp_complex,1,1,elsi_h%sc_desc,(0.0_r8,0.0_r8),&
-              elsi_h%dm_complex,1,1,elsi_h%sc_desc)
+              tmp_cmplx,1,1,elsi_h%sc_desc,(0.0_r8,0.0_r8),&
+              elsi_h%dm_cmplx,1,1,elsi_h%sc_desc)
 
-      elsi_h%dm_complex = (-1.0_r8,0.0_r8)*elsi_h%dm_complex
+      elsi_h%dm_cmplx = (-1.0_r8,0.0_r8)*elsi_h%dm_cmplx
 
       ! Set full matrix from upper triangle
       call pztranc(elsi_h%n_basis,elsi_h%n_basis,(1.0_r8,0.0_r8),&
-              elsi_h%dm_complex,1,1,elsi_h%sc_desc,(0.0_r8,0.0_r8),&
-              tmp_complex,1,1,elsi_h%sc_desc)
+              elsi_h%dm_cmplx,1,1,elsi_h%sc_desc,(0.0_r8,0.0_r8),&
+              tmp_cmplx,1,1,elsi_h%sc_desc)
 
       do i_col = 1,elsi_h%n_basis-1
-         if(elsi_h%local_col(i_col) == 0) cycle
+         if(elsi_h%loc_col(i_col) == 0) cycle
 
          do i_row = i_col+1,elsi_h%n_basis
-            if(elsi_h%local_row(i_row) > 0) then
-               elsi_h%dm_complex(elsi_h%local_row(i_row),&
-                  elsi_h%local_col(i_col)) = &
-                  tmp_complex(elsi_h%local_row(i_row),&
-                  elsi_h%local_col(i_col))
+            if(elsi_h%loc_row(i_row) > 0) then
+               elsi_h%dm_cmplx(elsi_h%loc_row(i_row),elsi_h%loc_col(i_col)) = &
+                  tmp_cmplx(elsi_h%loc_row(i_row),elsi_h%loc_col(i_col))
             endif
          enddo
       enddo
 
-      call elsi_deallocate(elsi_h,tmp_complex,"tmp_complex")
+      call elsi_deallocate(elsi_h,tmp_cmplx,"tmp_cmplx")
 
       ! Make diagonal real
       do i_col = 1,elsi_h%n_basis
-         if((elsi_h%local_col(i_col) == 0) .or. &
-            (elsi_h%local_row(i_col) == 0)) cycle
+         if((elsi_h%loc_col(i_col) == 0) .or. &
+            (elsi_h%loc_row(i_col) == 0)) cycle
 
-         elsi_h%dm_complex(elsi_h%local_row(i_col),&
-            elsi_h%local_col(i_col)) = &
-            dble(elsi_h%dm_complex(elsi_h%local_row(i_col),&
-            elsi_h%local_col(i_col)))
+         elsi_h%dm_cmplx(elsi_h%loc_row(i_col),elsi_h%loc_col(i_col)) = &
+            dble(elsi_h%dm_cmplx(elsi_h%loc_row(i_col),elsi_h%loc_col(i_col)))
       enddo
    end select
 
@@ -473,13 +461,13 @@ subroutine elsi_to_standard_evp(elsi_h)
 
             ! Compute S = (U^T)U, U -> S
             success = elpa_cholesky_complex_double(elsi_h%n_basis,&
-                         elsi_h%ovlp_complex,elsi_h%n_l_rows,elsi_h%n_b_rows,&
+                         elsi_h%ovlp_cmplx,elsi_h%n_l_rows,elsi_h%n_b_rows,&
                          elsi_h%n_l_cols,elsi_h%mpi_comm_row,&
                          elsi_h%mpi_comm_col,.false.)
 
             ! compute U^-1 -> S
             success = elpa_invert_trm_complex_double(elsi_h%n_basis,&
-                         elsi_h%ovlp_complex,elsi_h%n_l_rows,elsi_h%n_b_rows,&
+                         elsi_h%ovlp_cmplx,elsi_h%n_l_rows,elsi_h%n_b_rows,&
                          elsi_h%n_l_cols,elsi_h%mpi_comm_row,&
                          elsi_h%mpi_comm_col,.false.)
 
@@ -495,67 +483,63 @@ subroutine elsi_to_standard_evp(elsi_h)
       call elsi_get_time(elsi_h,t0)
 
       if(elsi_h%ovlp_is_sing) then ! Use scaled eigenvectors
-         ! evec_complex used as tmp_complex
-         ! tmp_complex = H_complex * S_complex
+         ! evec_cmplx used as tmp_cmplx
+         ! tmp_cmplx = H_cmplx * S_cmplx
          call pzgemm('N','N',elsi_h%n_basis,elsi_h%n_nonsing,elsi_h%n_basis,&
-                 (1.0_r8,0.0_r8),elsi_h%ham_complex,1,1,elsi_h%sc_desc,&
-                 elsi_h%ovlp_complex,1,elsi_h%n_basis-elsi_h%n_nonsing+1,&
-                 elsi_h%sc_desc,(0.0_r8,0.0_r8),elsi_h%evec_complex,1,1,&
+                 (1.0_r8,0.0_r8),elsi_h%ham_cmplx,1,1,elsi_h%sc_desc,&
+                 elsi_h%ovlp_cmplx,1,elsi_h%n_basis-elsi_h%n_nonsing+1,&
+                 elsi_h%sc_desc,(0.0_r8,0.0_r8),elsi_h%evec_cmplx,1,1,&
                  elsi_h%sc_desc)
 
-         ! H_complex = (S_complex)^* * tmp_complex
+         ! H_cmplx = (S_cmplx)^* * tmp_cmplx
          call pzgemm('C','N',elsi_h%n_nonsing,elsi_h%n_nonsing,elsi_h%n_basis,&
-                 (1.0_r8,0.0_r8),elsi_h%ovlp_complex,1,&
+                 (1.0_r8,0.0_r8),elsi_h%ovlp_cmplx,1,&
                  elsi_h%n_basis-elsi_h%n_nonsing+1,elsi_h%sc_desc,&
-                 elsi_h%evec_complex,1,1,elsi_h%sc_desc,(0.0_r8,0.0_r8),&
-                 elsi_h%ham_complex,1,1,elsi_h%sc_desc)
+                 elsi_h%evec_cmplx,1,1,elsi_h%sc_desc,(0.0_r8,0.0_r8),&
+                 elsi_h%ham_cmplx,1,1,elsi_h%sc_desc)
       else ! Use cholesky
          success = elpa_mult_ah_b_complex_double('U','L',elsi_h%n_basis,&
-                      elsi_h%n_basis,elsi_h%ovlp_complex,elsi_h%n_l_rows,&
-                      elsi_h%n_l_cols,elsi_h%ham_complex,elsi_h%n_l_rows,&
+                      elsi_h%n_basis,elsi_h%ovlp_cmplx,elsi_h%n_l_rows,&
+                      elsi_h%n_l_cols,elsi_h%ham_cmplx,elsi_h%n_l_rows,&
                       elsi_h%n_l_cols,elsi_h%n_b_rows,elsi_h%mpi_comm_row,&
-                      elsi_h%mpi_comm_col,elsi_h%evec_complex,elsi_h%n_l_rows,&
+                      elsi_h%mpi_comm_col,elsi_h%evec_cmplx,elsi_h%n_l_rows,&
                       elsi_h%n_l_cols)
 
          call pztranc(elsi_h%n_basis,elsi_h%n_basis,(1.0_r8,0.0_r8),&
-                 elsi_h%evec_complex,1,1,elsi_h%sc_desc,(0.0_r8,0.0_r8),&
-                 elsi_h%ham_complex,1,1,elsi_h%sc_desc)
+                 elsi_h%evec_cmplx,1,1,elsi_h%sc_desc,(0.0_r8,0.0_r8),&
+                 elsi_h%ham_cmplx,1,1,elsi_h%sc_desc)
 
-         elsi_h%evec_complex = elsi_h%ham_complex
+         elsi_h%evec_cmplx = elsi_h%ham_cmplx
 
          success = elpa_mult_ah_b_complex_double('U','U',elsi_h%n_basis,&
-                      elsi_h%n_basis,elsi_h%ovlp_complex,elsi_h%n_l_rows,&
-                      elsi_h%n_l_cols,elsi_h%evec_complex,elsi_h%n_l_rows,&
+                      elsi_h%n_basis,elsi_h%ovlp_cmplx,elsi_h%n_l_rows,&
+                      elsi_h%n_l_cols,elsi_h%evec_cmplx,elsi_h%n_l_rows,&
                       elsi_h%n_l_cols,elsi_h%n_b_rows,elsi_h%mpi_comm_row,&
-                      elsi_h%mpi_comm_col,elsi_h%ham_complex,elsi_h%n_l_rows,&
+                      elsi_h%mpi_comm_col,elsi_h%ham_cmplx,elsi_h%n_l_rows,&
                       elsi_h%n_l_cols)
 
          call pztranc(elsi_h%n_basis,elsi_h%n_basis,(1.0_r8,0.0_r8),&
-                 elsi_h%ham_complex,1,1,elsi_h%sc_desc,(0.0_r8,0.0_r8),&
-                 elsi_h%evec_complex,1,1,elsi_h%sc_desc)
+                 elsi_h%ham_cmplx,1,1,elsi_h%sc_desc,(0.0_r8,0.0_r8),&
+                 elsi_h%evec_cmplx,1,1,elsi_h%sc_desc)
 
          ! Set the lower part from the upper
          do i_col = 1,elsi_h%n_basis-1
-            if(elsi_h%local_col(i_col) == 0) cycle
+            if(elsi_h%loc_col(i_col) == 0) cycle
 
             do i_row = i_col+1,elsi_h%n_basis
-               if(elsi_h%local_row(i_row) > 0) then
-                  elsi_h%ham_complex(elsi_h%local_row(i_row),&
-                     elsi_h%local_col(i_col)) = &
-                     elsi_h%evec_complex(elsi_h%local_row(i_row),&
-                     elsi_h%local_col(i_col))
+               if(elsi_h%loc_row(i_row) > 0) then
+                  elsi_h%ham_cmplx(elsi_h%loc_row(i_row),elsi_h%loc_col(i_col)) = &
+                     elsi_h%evec_cmplx(elsi_h%loc_row(i_row),elsi_h%loc_col(i_col))
                endif
             enddo
          enddo
 
          do i_col=1,elsi_h%n_basis
-            if(elsi_h%local_col(i_col) == 0 .or. &
-                  elsi_h%local_row(i_col) == 0) cycle
+            if(elsi_h%loc_col(i_col) == 0 .or. &
+                  elsi_h%loc_row(i_col) == 0) cycle
 
-            elsi_h%ham_complex(elsi_h%local_row(i_col),&
-               elsi_h%local_col(i_col)) = &
-               dble(elsi_h%ham_complex(elsi_h%local_row(i_col),&
-               elsi_h%local_col(i_col)))
+            elsi_h%ham_cmplx(elsi_h%loc_row(i_col),elsi_h%loc_col(i_col)) = &
+               dble(elsi_h%ham_cmplx(elsi_h%loc_row(i_col),elsi_h%loc_col(i_col)))
          enddo
       endif
 
@@ -637,14 +621,12 @@ subroutine elsi_to_standard_evp(elsi_h)
 
          ! Set the lower part from the upper
          do i_col = 1,elsi_h%n_basis-1
-            if(elsi_h%local_col(i_col) == 0) cycle
+            if(elsi_h%loc_col(i_col) == 0) cycle
 
             do i_row = i_col+1,elsi_h%n_basis
-               if(elsi_h%local_row(i_row) > 0) then
-                  elsi_h%ham_real(elsi_h%local_row(i_row),&
-                     elsi_h%local_col(i_col)) = &
-                     elsi_h%evec_real(elsi_h%local_row(i_row),&
-                     elsi_h%local_col(i_col))
+               if(elsi_h%loc_row(i_row) > 0) then
+                  elsi_h%ham_real(elsi_h%loc_row(i_row),elsi_h%loc_col(i_col)) = &
+                     elsi_h%evec_real(elsi_h%loc_row(i_row),elsi_h%loc_col(i_col))
                endif
             enddo
          enddo
@@ -682,7 +664,7 @@ subroutine elsi_check_singularity(elsi_h)
    character*200    :: info_str
 
    real(kind=r8),    allocatable :: copy_real(:,:)
-   complex(kind=r8), allocatable :: copy_complex(:,:)
+   complex(kind=r8), allocatable :: copy_cmplx(:,:)
 
    character*40, parameter :: caller = "elsi_check_singularity"
 
@@ -690,22 +672,22 @@ subroutine elsi_check_singularity(elsi_h)
 
    select case(elsi_h%matrix_data_type)
    case(COMPLEX_VALUES)
-      call elsi_allocate(elsi_h,copy_complex,elsi_h%n_l_rows,&
-              elsi_h%n_l_cols,"copy_complex",caller)
+      call elsi_allocate(elsi_h,copy_cmplx,elsi_h%n_l_rows,&
+              elsi_h%n_l_cols,"copy_cmplx",caller)
 
-      ! Use copy_complex to store overlap matrix, otherwise it will
+      ! Use copy_cmplx to store overlap matrix, otherwise it will
       ! be destroyed by eigenvalue calculation
-      copy_complex = elsi_h%ovlp_complex
+      copy_cmplx = elsi_h%ovlp_cmplx
 
       ! Use customized ELPA 2-stage solver to check overlap singularity
       ! Eigenvectors computed only for singular overlap matrix
       success = elpa_check_singularity_complex_double(elsi_h%n_basis,&
-                   elsi_h%n_basis,copy_complex,elsi_h%n_l_rows,elsi_h%eval,&
-                   elsi_h%evec_complex,elsi_h%n_l_rows,elsi_h%n_b_rows,&
+                   elsi_h%n_basis,copy_cmplx,elsi_h%n_l_rows,elsi_h%eval,&
+                   elsi_h%evec_cmplx,elsi_h%n_l_rows,elsi_h%n_b_rows,&
                    elsi_h%n_l_cols,elsi_h%mpi_comm_row,elsi_h%mpi_comm_col,&
                    elsi_h%mpi_comm,elsi_h%sing_tol,elsi_h%n_nonsing)
 
-      call elsi_deallocate(elsi_h,copy_complex,"copy_complex")
+      call elsi_deallocate(elsi_h,copy_cmplx,"copy_cmplx")
 
       elsi_h%n_states_solve = min(elsi_h%n_nonsing,elsi_h%n_states)
 
@@ -734,10 +716,10 @@ subroutine elsi_check_singularity(elsi_h)
          do i = elsi_h%n_basis-elsi_h%n_nonsing+1,elsi_h%n_basis
             ev_sqrt = sqrt(elsi_h%eval(i))
 
-            if(elsi_h%local_col(i) == 0) cycle
+            if(elsi_h%loc_col(i) == 0) cycle
 
-            elsi_h%ovlp_complex(:,elsi_h%local_col(i)) = &
-               elsi_h%evec_complex(:,elsi_h%local_col(i))/ev_sqrt
+            elsi_h%ovlp_cmplx(:,elsi_h%loc_col(i)) = &
+               elsi_h%evec_cmplx(:,elsi_h%loc_col(i))/ev_sqrt
          enddo
       else ! Nonsingular
          elsi_h%ovlp_is_sing = .false.
@@ -787,10 +769,10 @@ subroutine elsi_check_singularity(elsi_h)
          do i = elsi_h%n_basis-elsi_h%n_nonsing+1,elsi_h%n_basis
             ev_sqrt = sqrt(elsi_h%eval(i))
 
-            if(elsi_h%local_col(i) == 0) cycle
+            if(elsi_h%loc_col(i) == 0) cycle
 
-            elsi_h%ovlp_real(:,elsi_h%local_col(i)) = &
-               elsi_h%evec_real(:,elsi_h%local_col(i))/ev_sqrt
+            elsi_h%ovlp_real(:,elsi_h%loc_col(i)) = &
+               elsi_h%evec_real(:,elsi_h%loc_col(i))/ev_sqrt
          enddo
       else ! Nonsingular
          elsi_h%ovlp_is_sing = .false.
@@ -823,7 +805,7 @@ subroutine elsi_to_original_ev(elsi_h)
    character*200 :: info_str
 
    real(kind=r8),    allocatable :: tmp_real(:,:)
-   complex(kind=r8), allocatable :: tmp_complex(:,:)
+   complex(kind=r8), allocatable :: tmp_cmplx(:,:)
 
    character*40, parameter :: caller = "elsi_to_original_ev"
 
@@ -831,33 +813,33 @@ subroutine elsi_to_original_ev(elsi_h)
 
    select case(elsi_h%matrix_data_type)
    case(COMPLEX_VALUES)
-      call elsi_allocate(elsi_h,tmp_complex,elsi_h%n_l_rows,&
-              elsi_h%n_l_cols,"tmp_complex",caller)
-      tmp_complex = elsi_h%evec_complex
+      call elsi_allocate(elsi_h,tmp_cmplx,elsi_h%n_l_rows,&
+              elsi_h%n_l_cols,"tmp_cmplx",caller)
+      tmp_cmplx = elsi_h%evec_cmplx
 
       if(elsi_h%ovlp_is_sing) then
-         ! Transform matrix is stored in S_complex after elsi_to_standard_evp
+         ! Transform matrix is stored in S_cmplx after elsi_to_standard_evp
          call pzgemm('N','N',elsi_h%n_basis,elsi_h%n_states_solve,&
-                 elsi_h%n_nonsing,(1.0_r8,0.0_r8),elsi_h%ovlp_complex,1,&
-                 elsi_h%n_basis-elsi_h%n_nonsing+1,elsi_h%sc_desc,tmp_complex,&
-                 1,1,elsi_h%sc_desc,(0.0_r8,0.0_r8),elsi_h%evec_complex,1,1,&
+                 elsi_h%n_nonsing,(1.0_r8,0.0_r8),elsi_h%ovlp_cmplx,1,&
+                 elsi_h%n_basis-elsi_h%n_nonsing+1,elsi_h%sc_desc,tmp_cmplx,&
+                 1,1,elsi_h%sc_desc,(0.0_r8,0.0_r8),elsi_h%evec_cmplx,1,1,&
                  elsi_h%sc_desc)
       else ! Nonsingular, use Cholesky
-         ! (U^-1) is stored in S_complex after elsi_to_standard_evp
-         ! C_complex = S_complex * C_complex = S_complex * tmp_complex
+         ! (U^-1) is stored in S_cmplx after elsi_to_standard_evp
+         ! C_cmplx = S_cmplx * C_cmplx = S_cmplx * tmp_cmplx
          call pztranc(elsi_h%n_basis,elsi_h%n_basis,(1.0_r8,0.0_r8),&
-                 elsi_h%ovlp_complex,1,1,elsi_h%sc_desc,(0.0_r8,0.0_r8),&
-                 elsi_h%ham_complex,1,1,elsi_h%sc_desc)
+                 elsi_h%ovlp_cmplx,1,1,elsi_h%sc_desc,(0.0_r8,0.0_r8),&
+                 elsi_h%ham_cmplx,1,1,elsi_h%sc_desc)
 
          success = elpa_mult_ah_b_complex_double('L','N',elsi_h%n_basis,&
-                      elsi_h%n_states,elsi_h%ham_complex,elsi_h%n_l_rows,&
-                      elsi_h%n_l_cols,tmp_complex,elsi_h%n_l_rows,&
+                      elsi_h%n_states,elsi_h%ham_cmplx,elsi_h%n_l_rows,&
+                      elsi_h%n_l_cols,tmp_cmplx,elsi_h%n_l_rows,&
                       elsi_h%n_l_cols,elsi_h%n_b_rows,elsi_h%mpi_comm_row,&
-                      elsi_h%mpi_comm_col,elsi_h%evec_complex,elsi_h%n_l_rows,&
+                      elsi_h%mpi_comm_col,elsi_h%evec_cmplx,elsi_h%n_l_rows,&
                       elsi_h%n_l_cols)
       endif
 
-      call elsi_deallocate(elsi_h,tmp_complex,"tmp_complex")
+      call elsi_deallocate(elsi_h,tmp_cmplx,"tmp_cmplx")
    case(REAL_VALUES)
       call elsi_allocate(elsi_h,tmp_real,elsi_h%n_l_rows,&
               elsi_h%n_l_cols,"tmp_real",caller)
@@ -926,8 +908,8 @@ subroutine elsi_solve_evp_elpa(elsi_h)
       select case(elsi_h%matrix_data_type)
       case(COMPLEX_VALUES)
          success = elpa_solve_evp_complex_2stage_double(elsi_h%n_nonsing,&
-                      elsi_h%n_states_solve,elsi_h%ham_complex,&
-                      elsi_h%n_l_rows,elsi_h%eval,elsi_h%evec_complex,&
+                      elsi_h%n_states_solve,elsi_h%ham_cmplx,&
+                      elsi_h%n_l_rows,elsi_h%eval,elsi_h%evec_cmplx,&
                       elsi_h%n_l_rows,elsi_h%n_b_rows,elsi_h%n_l_cols,&
                       elsi_h%mpi_comm_row,elsi_h%mpi_comm_col,elsi_h%mpi_comm)
       case(REAL_VALUES)
@@ -942,8 +924,8 @@ subroutine elsi_solve_evp_elpa(elsi_h)
       select case(elsi_h%matrix_data_type)
       case(COMPLEX_VALUES)
          success = elpa_solve_evp_complex_1stage_double(elsi_h%n_nonsing,&
-                      elsi_h%n_states_solve,elsi_h%ham_complex,&
-                      elsi_h%n_l_rows,elsi_h%eval,elsi_h%evec_complex,&
+                      elsi_h%n_states_solve,elsi_h%ham_cmplx,&
+                      elsi_h%n_l_rows,elsi_h%eval,elsi_h%evec_cmplx,&
                       elsi_h%n_l_rows,elsi_h%n_b_rows,elsi_h%n_l_cols,&
                       elsi_h%mpi_comm_row,elsi_h%mpi_comm_col,elsi_h%mpi_comm)
       case(REAL_VALUES)
@@ -1045,16 +1027,16 @@ subroutine elsi_to_standard_evp_sp(elsi_h)
          ! Erase the lower triangle
          do i = 1,elsi_h%n_basis
             do j= 1,i-1
-               elsi_h%ovlp_complex(i,j) = (0.0_r8,0.0_r8)
+               elsi_h%ovlp_cmplx(i,j) = (0.0_r8,0.0_r8)
             enddo
          enddo
 
          ! Compute S = (U^H)U, U -> S
-         call zpotrf('U',elsi_h%n_basis,elsi_h%ovlp_complex,&
+         call zpotrf('U',elsi_h%n_basis,elsi_h%ovlp_cmplx,&
                  elsi_h%n_basis,ierr)
 
          ! compute U^-1 -> S
-         call ztrtri('U','N',elsi_h%n_basis,elsi_h%ovlp_complex,&
+         call ztrtri('U','N',elsi_h%n_basis,elsi_h%ovlp_cmplx,&
                  elsi_h%n_basis,ierr)
 
          call elsi_get_time(elsi_h,t1)
@@ -1068,20 +1050,20 @@ subroutine elsi_to_standard_evp_sp(elsi_h)
       call elsi_get_time(elsi_h,t0)
 
       if(elsi_h%ovlp_is_sing) then ! Use scaled eigenvectors
-         ! evec_complex used as tmp_complex
-         ! tmp_complex = H_complex * S_complex
+         ! evec_cmplx used as tmp_cmplx
+         ! tmp_cmplx = H_cmplx * S_cmplx
          call zgemm('N','N',elsi_h%n_basis,elsi_h%n_nonsing,elsi_h%n_basis,&
-                 (1.0_r8,0.0_r8),elsi_h%ham_complex(1,1),elsi_h%n_basis,&
-                 elsi_h%ovlp_complex(1,1),elsi_h%n_basis,(0.0_r8,0.0_r8),&
-                 elsi_h%evec_complex(1,1),elsi_h%n_basis)
+                 (1.0_r8,0.0_r8),elsi_h%ham_cmplx(1,1),elsi_h%n_basis,&
+                 elsi_h%ovlp_cmplx(1,1),elsi_h%n_basis,(0.0_r8,0.0_r8),&
+                 elsi_h%evec_cmplx(1,1),elsi_h%n_basis)
 
-         ! H_complex = (S_complex)^* * tmp_complex
+         ! H_cmplx = (S_cmplx)^* * tmp_cmplx
          call zgemm('C','N',elsi_h%n_nonsing,elsi_h%n_nonsing,elsi_h%n_basis,&
-                 (1.0_r8,0.0_r8),elsi_h%ovlp_complex(1,1),elsi_h%n_basis,&
-                 elsi_h%evec_complex(1,1),elsi_h%n_basis,(0.0_r8,0.0_r8),&
-                 elsi_h%ham_complex(1,1),elsi_h%n_basis)
+                 (1.0_r8,0.0_r8),elsi_h%ovlp_cmplx(1,1),elsi_h%n_basis,&
+                 elsi_h%evec_cmplx(1,1),elsi_h%n_basis,(0.0_r8,0.0_r8),&
+                 elsi_h%ham_cmplx(1,1),elsi_h%n_basis)
       else ! Use cholesky
-         ! tmp_complex = H_complex * S_complex
+         ! tmp_cmplx = H_cmplx * S_cmplx
          do n = 1,elsi_h%n_basis,nblk
             nwork = nblk
 
@@ -1090,12 +1072,12 @@ subroutine elsi_to_standard_evp_sp(elsi_h)
             endif
 
             call zgemm('N','N',n+nwork-1,nwork,n+nwork-1,(1.0_r8,0.0_r8),&
-                    elsi_h%ham_complex(1,1),elsi_h%n_basis,&
-                    elsi_h%ovlp_complex(1,n),elsi_h%n_basis,(0.0_r8,0.0_r8),&
-                    elsi_h%evec_complex(1,n),elsi_h%n_basis)
+                    elsi_h%ham_cmplx(1,1),elsi_h%n_basis,&
+                    elsi_h%ovlp_cmplx(1,n),elsi_h%n_basis,(0.0_r8,0.0_r8),&
+                    elsi_h%evec_cmplx(1,n),elsi_h%n_basis)
          enddo
 
-         ! H_complex = (tmp_complex)^* * S_complex
+         ! H_cmplx = (tmp_cmplx)^* * S_cmplx
          do n = 1,elsi_h%n_basis,nblk
             nwork = nblk
 
@@ -1104,9 +1086,9 @@ subroutine elsi_to_standard_evp_sp(elsi_h)
             endif
 
             call zgemm('C','N',nwork,elsi_h%n_basis-n+1,n+nwork-1,&
-                    (1.0_r8,0.0_r8),elsi_h%ovlp_complex(1,n),elsi_h%n_basis,&
-                    elsi_h%evec_complex(1,n),elsi_h%n_basis,(0.0_r8,0.0_r8),&
-                    elsi_h%ham_complex(n,n),elsi_h%n_basis)
+                    (1.0_r8,0.0_r8),elsi_h%ovlp_cmplx(1,n),elsi_h%n_basis,&
+                    elsi_h%evec_cmplx(1,n),elsi_h%n_basis,(0.0_r8,0.0_r8),&
+                    elsi_h%ham_cmplx(n,n),elsi_h%n_basis)
          enddo
       endif
 
@@ -1219,7 +1201,7 @@ subroutine elsi_to_original_ev_sp(elsi_h)
    character*200 :: info_str
 
    real(kind=r8),    allocatable :: tmp_real(:,:)
-   complex(kind=r8), allocatable :: tmp_complex(:,:)
+   complex(kind=r8), allocatable :: tmp_cmplx(:,:)
 
    character*40, parameter :: caller = "elsi_to_original_ev_sp"
 
@@ -1228,22 +1210,22 @@ subroutine elsi_to_original_ev_sp(elsi_h)
    select case(elsi_h%matrix_data_type)
    case(COMPLEX_VALUES)
       if(elsi_h%ovlp_is_sing) then
-         call elsi_allocate(elsi_h,tmp_complex,elsi_h%n_l_rows,&
-                 elsi_h%n_l_cols,"tmp_complex",caller)
-         tmp_complex = elsi_h%evec_complex
+         call elsi_allocate(elsi_h,tmp_cmplx,elsi_h%n_l_rows,&
+                 elsi_h%n_l_cols,"tmp_cmplx",caller)
+         tmp_cmplx = elsi_h%evec_cmplx
 
-         ! Transform matrix is stored in S_complex after elsi_to_standard_evp
+         ! Transform matrix is stored in S_cmplx after elsi_to_standard_evp
          call zgemm('N','N',elsi_h%n_basis,elsi_h%n_states_solve,&
-                 elsi_h%n_nonsing,(1.0_r8,0.0_r8),elsi_h%ovlp_complex(1,1),&
-                 elsi_h%n_basis,tmp_complex(1,1),elsi_h%n_basis,&
-                 (0.0_r8,0.0_r8),elsi_h%evec_complex(1,1),elsi_h%n_basis)
+                 elsi_h%n_nonsing,(1.0_r8,0.0_r8),elsi_h%ovlp_cmplx(1,1),&
+                 elsi_h%n_basis,tmp_cmplx(1,1),elsi_h%n_basis,&
+                 (0.0_r8,0.0_r8),elsi_h%evec_cmplx(1,1),elsi_h%n_basis)
 
-         call elsi_deallocate(elsi_h,tmp_complex,"tmp_complex")
+         call elsi_deallocate(elsi_h,tmp_cmplx,"tmp_cmplx")
       else ! Nonsingular, use Cholesky
-         ! (U^-1) is stored in S_complex after elsi_to_standard_evp
+         ! (U^-1) is stored in S_cmplx after elsi_to_standard_evp
          call ztrmm('L','U','N','N',elsi_h%n_basis,elsi_h%n_states,&
-                 (1.0_r8,0.0_r8),elsi_h%ovlp_complex(1,1),elsi_h%n_basis,&
-                 elsi_h%evec_complex(1,1),elsi_h%n_basis)
+                 (1.0_r8,0.0_r8),elsi_h%ovlp_cmplx(1,1),elsi_h%n_basis,&
+                 elsi_h%evec_cmplx(1,1),elsi_h%n_basis)
       endif
    case(REAL_VALUES)
       if(elsi_h%ovlp_is_sing) then
@@ -1286,9 +1268,9 @@ subroutine elsi_solve_evp_elpa_sp(elsi_h)
 
    real(kind=r8),    allocatable :: off_diag(:)
    real(kind=r8),    allocatable :: tau_real(:)
-   complex(kind=r8), allocatable :: tau_complex(:)
+   complex(kind=r8), allocatable :: tau_cmplx(:)
    real(kind=r8),    allocatable :: tmp_real(:,:)
-   complex(kind=r8), allocatable :: tmp_complex(:,:)
+   complex(kind=r8), allocatable :: tmp_cmplx(:,:)
 
    logical          :: success
    integer(kind=i4) :: ierr
@@ -1310,33 +1292,33 @@ subroutine elsi_solve_evp_elpa_sp(elsi_h)
    select case(elsi_h%matrix_data_type)
    case(COMPLEX_VALUES)
       call elsi_allocate(elsi_h,off_diag,elsi_h%n_nonsing,"off_diag",caller)
-      call elsi_allocate(elsi_h,tau_complex,elsi_h%n_nonsing,"tau_complex",&
+      call elsi_allocate(elsi_h,tau_cmplx,elsi_h%n_nonsing,"tau_cmplx",&
               caller)
       call elsi_allocate(elsi_h,tmp_real,elsi_h%n_nonsing,elsi_h%n_nonsing,&
               "tmp_real",caller)
-      call elsi_allocate(elsi_h,tmp_complex,elsi_h%n_nonsing,elsi_h%n_nonsing,&
-              "tmp_complex",caller)
+      call elsi_allocate(elsi_h,tmp_cmplx,elsi_h%n_nonsing,elsi_h%n_nonsing,&
+              "tmp_cmplx",caller)
 
-      call zhetrd('U',elsi_h%n_nonsing,elsi_h%ham_complex,elsi_h%n_nonsing,&
-              elsi_h%eval,off_diag,tau_complex,tmp_complex,&
+      call zhetrd('U',elsi_h%n_nonsing,elsi_h%ham_cmplx,elsi_h%n_nonsing,&
+              elsi_h%eval,off_diag,tau_cmplx,tmp_cmplx,&
               elsi_h%n_nonsing*elsi_h%n_nonsing,ierr)
 
       success = elpa_solve_tridi_double(elsi_h%n_nonsing,elsi_h%n_states_solve,&
                    elsi_h%eval,off_diag,tmp_real,elsi_h%n_nonsing,64,&
                    elsi_h%n_nonsing,mpi_comm_self,mpi_comm_self,.false.)
 
-      elsi_h%evec_complex(1:elsi_h%n_nonsing,1:elsi_h%n_states_solve) = &
+      elsi_h%evec_cmplx(1:elsi_h%n_nonsing,1:elsi_h%n_states_solve) = &
          tmp_real(1:elsi_h%n_nonsing,1:elsi_h%n_states_solve)
 
       call zunmtr('L','U','N',elsi_h%n_nonsing,elsi_h%n_states_solve,&
-              elsi_h%ham_complex,elsi_h%n_nonsing,tau_complex,&
-              elsi_h%evec_complex,elsi_h%n_nonsing,tmp_complex,&
+              elsi_h%ham_cmplx,elsi_h%n_nonsing,tau_cmplx,&
+              elsi_h%evec_cmplx,elsi_h%n_nonsing,tmp_cmplx,&
               elsi_h%n_nonsing*elsi_h%n_nonsing,ierr)
 
       call elsi_deallocate(elsi_h,off_diag,"off_diag")
-      call elsi_deallocate(elsi_h,tau_complex,"tau_complex")
+      call elsi_deallocate(elsi_h,tau_cmplx,"tau_cmplx")
       call elsi_deallocate(elsi_h,tmp_real,"tmp_real")
-      call elsi_deallocate(elsi_h,tmp_complex,"tmp_complex")
+      call elsi_deallocate(elsi_h,tmp_cmplx,"tmp_cmplx")
    case(REAL_VALUES)
       call elsi_allocate(elsi_h,off_diag,elsi_h%n_nonsing,"off_diag",caller)
       call elsi_allocate(elsi_h,tau_real,elsi_h%n_nonsing,"tau_real",caller)
@@ -1407,11 +1389,11 @@ subroutine elsi_check_singularity_sp(elsi_h)
 
    real(kind=r8),    allocatable :: off_diag(:)
    real(kind=r8),    allocatable :: tau_real(:)
-   complex(kind=r8), allocatable :: tau_complex(:)
+   complex(kind=r8), allocatable :: tau_cmplx(:)
    real(kind=r8),    allocatable :: tmp_real(:,:)
-   complex(kind=r8), allocatable :: tmp_complex(:,:)
+   complex(kind=r8), allocatable :: tmp_cmplx(:,:)
    real(kind=r8),    allocatable :: copy_real(:,:)
-   complex(kind=r8), allocatable :: copy_complex(:,:)
+   complex(kind=r8), allocatable :: copy_cmplx(:,:)
 
    character*40, parameter :: caller = "elsi_check_singularity_sp"
 
@@ -1419,24 +1401,24 @@ subroutine elsi_check_singularity_sp(elsi_h)
 
    select case(elsi_h%matrix_data_type)
    case(COMPLEX_VALUES)
-      call elsi_allocate(elsi_h,copy_complex,elsi_h%n_l_rows,&
-              elsi_h%n_l_cols,"copy_complex",caller)
+      call elsi_allocate(elsi_h,copy_cmplx,elsi_h%n_l_rows,&
+              elsi_h%n_l_cols,"copy_cmplx",caller)
 
-      ! Use copy_complex to store overlap matrix, otherwise it will
+      ! Use copy_cmplx to store overlap matrix, otherwise it will
       ! be destroyed by eigenvalue calculation
-      copy_complex = -elsi_h%ovlp_complex
+      copy_cmplx = -elsi_h%ovlp_cmplx
 
       call elsi_allocate(elsi_h,off_diag,elsi_h%n_basis,&
               "off_diag",caller)
-      call elsi_allocate(elsi_h,tau_complex,elsi_h%n_basis,&
-              "tau_complex",caller)
+      call elsi_allocate(elsi_h,tau_cmplx,elsi_h%n_basis,&
+              "tau_cmplx",caller)
       call elsi_allocate(elsi_h,tmp_real,elsi_h%n_basis,&
               elsi_h%n_basis,"tmp_real",caller)
-      call elsi_allocate(elsi_h,tmp_complex,elsi_h%n_basis,&
-              elsi_h%n_basis,"tmp_complex",caller)
+      call elsi_allocate(elsi_h,tmp_cmplx,elsi_h%n_basis,&
+              elsi_h%n_basis,"tmp_cmplx",caller)
 
-      call zhetrd('U',elsi_h%n_basis,copy_complex,elsi_h%n_basis,&
-              elsi_h%eval,off_diag,tau_complex,tmp_complex,&
+      call zhetrd('U',elsi_h%n_basis,copy_cmplx,elsi_h%n_basis,&
+              elsi_h%eval,off_diag,tau_cmplx,tmp_cmplx,&
               elsi_h%n_basis*elsi_h%n_basis,ierr)
 
       success = elpa_solve_tridi_double(elsi_h%n_basis,elsi_h%n_basis,&
@@ -1454,18 +1436,18 @@ subroutine elsi_check_singularity_sp(elsi_h)
 
       ! Eigenvectors computed only for singular overlap matrix
       if(elsi_h%n_nonsing < elsi_h%n_basis) then
-         elsi_h%evec_complex = tmp_real
+         elsi_h%evec_cmplx = tmp_real
 
-         call zunmtr('L','U','N',elsi_h%n_basis,elsi_h%n_basis,copy_complex,&
-                 elsi_h%n_basis,tau_complex,elsi_h%evec_complex,elsi_h%n_basis,&
-                 tmp_complex,elsi_h%n_basis*elsi_h%n_basis,ierr)
+         call zunmtr('L','U','N',elsi_h%n_basis,elsi_h%n_basis,copy_cmplx,&
+                 elsi_h%n_basis,tau_cmplx,elsi_h%evec_cmplx,elsi_h%n_basis,&
+                 tmp_cmplx,elsi_h%n_basis*elsi_h%n_basis,ierr)
       endif
 
       call elsi_deallocate(elsi_h,off_diag,"off_diag")
-      call elsi_deallocate(elsi_h,tau_complex,"tau_complex")
+      call elsi_deallocate(elsi_h,tau_cmplx,"tau_cmplx")
       call elsi_deallocate(elsi_h,tmp_real,"tmp_real")
-      call elsi_deallocate(elsi_h,tmp_complex,"tmp_complex")
-      call elsi_deallocate(elsi_h,copy_complex,"copy_complex")
+      call elsi_deallocate(elsi_h,tmp_cmplx,"tmp_cmplx")
+      call elsi_deallocate(elsi_h,copy_cmplx,"copy_cmplx")
 
       elsi_h%n_states_solve = min(elsi_h%n_nonsing,elsi_h%n_states)
 
@@ -1492,7 +1474,7 @@ subroutine elsi_check_singularity_sp(elsi_h)
          ! Overlap matrix is overwritten with scaled eigenvectors
          do i = 1,elsi_h%n_nonsing
             ev_sqrt = sqrt(elsi_h%eval(i))
-            elsi_h%ovlp_complex(:,i) = elsi_h%evec_complex(:,i)/ev_sqrt
+            elsi_h%ovlp_cmplx(:,i) = elsi_h%evec_cmplx(:,i)/ev_sqrt
          enddo
       else ! Nonsingular
          elsi_h%ovlp_is_sing = .false.

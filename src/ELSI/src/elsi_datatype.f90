@@ -45,60 +45,60 @@ module ELSI_DATATYPE
    type :: elsi_handle
 
       ! Pointers used when input format compatible with chosen solver
-      real(kind=r8),    pointer :: ham_real(:,:)       ! Real Hamiltonian
-      complex(kind=r8), pointer :: ham_complex(:,:)    ! Complex Hamiltonian
-      real(kind=r8),    pointer :: ovlp_real(:,:)      ! Real overlap
-      complex(kind=r8), pointer :: ovlp_complex(:,:)   ! Complex overlap
-      real(kind=r8),    pointer :: eval(:)             ! Eigenvalues
-      real(kind=r8),    pointer :: evec_real(:,:)      ! Real eigenvectors
-      complex(kind=r8), pointer :: evec_complex(:,:)   ! Complex eigenvectors
-      real(kind=r8),    pointer :: dm_real(:,:)        ! Real density matrix
-      complex(kind=r8), pointer :: dm_complex(:,:)     ! Complex density matrix
-      real(kind=r8),    pointer :: ham_real_ccs(:)     ! Real Hamiltonian
-      complex(kind=r8), pointer :: ham_complex_ccs(:)  ! Complex Hamiltonian
-      real(kind=r8),    pointer :: ovlp_real_ccs(:)    ! Real overlap
-      complex(kind=r8), pointer :: ovlp_complex_ccs(:) ! Complex overlap
-      real(kind=r8),    pointer :: dm_real_ccs(:)      ! Real density matrix
-      complex(kind=r8), pointer :: dm_complex_ccs(:)   ! Complex density matrix
-      integer(kind=i4), pointer :: row_ind_ccs(:)      ! Row index
-      integer(kind=i4), pointer :: col_ptr_ccs(:)      ! Column pointer
+      real(kind=r8),    pointer :: ham_real(:,:)     ! Real Hamiltonian
+      complex(kind=r8), pointer :: ham_cmplx(:,:)    ! Complex Hamiltonian
+      real(kind=r8),    pointer :: ovlp_real(:,:)    ! Real overlap
+      complex(kind=r8), pointer :: ovlp_cmplx(:,:)   ! Complex overlap
+      real(kind=r8),    pointer :: eval(:)           ! Eigenvalues
+      real(kind=r8),    pointer :: evec_real(:,:)    ! Real eigenvectors
+      complex(kind=r8), pointer :: evec_cmplx(:,:)   ! Complex eigenvectors
+      real(kind=r8),    pointer :: dm_real(:,:)      ! Real density matrix
+      complex(kind=r8), pointer :: dm_cmplx(:,:)     ! Complex density matrix
+      real(kind=r8),    pointer :: ham_real_ccs(:)   ! Real Hamiltonian
+      complex(kind=r8), pointer :: ham_cmplx_ccs(:)  ! Complex Hamiltonian
+      real(kind=r8),    pointer :: ovlp_real_ccs(:)  ! Real overlap
+      complex(kind=r8), pointer :: ovlp_cmplx_ccs(:) ! Complex overlap
+      real(kind=r8),    pointer :: dm_real_ccs(:)    ! Real density matrix
+      complex(kind=r8), pointer :: dm_cmplx_ccs(:)   ! Complex density matrix
+      integer(kind=i4), pointer :: row_ind_ccs(:)    ! Row index
+      integer(kind=i4), pointer :: col_ptr_ccs(:)    ! Column pointer
 
       ! Allocatables
       ! ELPA
-      real(kind=r8),    allocatable :: ham_real_elpa(:,:)     ! Real Hamiltonian
-      complex(kind=r8), allocatable :: ham_complex_elpa(:,:)  ! Complex Hamiltonian
-      real(kind=r8),    allocatable :: ovlp_real_elpa(:,:)    ! Real overlap
-      complex(kind=r8), allocatable :: ovlp_complex_elpa(:,:) ! Complex overlap
-      real(kind=r8),    allocatable :: eval_elpa(:)           ! Eigenvalues
-      real(kind=r8),    allocatable :: evec_real_elpa(:,:)    ! Real eigenvectors
-      complex(kind=r8), allocatable :: evec_complex_elpa(:,:) ! Complex eigenvectors
-      real(kind=r8),    allocatable :: dm_real_elpa(:,:)      ! Real density matrix
-      complex(kind=r8), allocatable :: dm_complex_elpa(:,:)   ! Complex density matrix
-      real(kind=r8),    allocatable :: occ_num(:,:,:)         ! Occupation numbers
-      real(kind=r8),    allocatable :: eval_all(:,:,:)        ! Eigenvalues
-      real(kind=r8),    allocatable :: k_weight(:)            ! K-point weights
-      integer(kind=i4), allocatable :: local_row(:)           ! Local-global index mapping
-      integer(kind=i4), allocatable :: local_col(:)           ! Local-global index mapping
+      real(kind=r8),    allocatable :: ham_real_elpa(:,:)   ! Real Hamiltonian
+      complex(kind=r8), allocatable :: ham_cmplx_elpa(:,:)  ! Complex Hamiltonian
+      real(kind=r8),    allocatable :: ovlp_real_elpa(:,:)  ! Real overlap
+      complex(kind=r8), allocatable :: ovlp_cmplx_elpa(:,:) ! Complex overlap
+      real(kind=r8),    allocatable :: eval_elpa(:)         ! Eigenvalues
+      real(kind=r8),    allocatable :: evec_real_elpa(:,:)  ! Real eigenvectors
+      complex(kind=r8), allocatable :: evec_cmplx_elpa(:,:) ! Complex eigenvectors
+      real(kind=r8),    allocatable :: dm_real_elpa(:,:)    ! Real density matrix
+      complex(kind=r8), allocatable :: dm_cmplx_elpa(:,:)   ! Complex density matrix
+      real(kind=r8),    allocatable :: occ_num(:,:,:)       ! Occupation numbers
+      real(kind=r8),    allocatable :: eval_all(:,:,:)      ! Eigenvalues
+      real(kind=r8),    allocatable :: k_weight(:)          ! K-point weights
+      integer(kind=i4), allocatable :: loc_row(:)           ! Local-global index mapping
+      integer(kind=i4), allocatable :: loc_col(:)           ! Local-global index mapping
 
       ! libOMM
-      type(Matrix)                  :: ham_omm               ! Hamiltonian
-      type(Matrix)                  :: ovlp_omm              ! Overlap
-      type(Matrix)                  :: coeff_omm             ! Coefficient matrix
-      type(Matrix)                  :: dm_omm                ! Density matrix
-      type(Matrix)                  :: tdm_omm               ! Kinetic energy density matrix
-      real(kind=r8),    allocatable :: ovlp_real_omm(:,:)    ! Copy of real overlap
-      complex(kind=r8), allocatable :: ovlp_complex_omm(:,:) ! Copy of complex overlap
+      type(Matrix)                  :: ham_omm             ! Hamiltonian
+      type(Matrix)                  :: ovlp_omm            ! Overlap
+      type(Matrix)                  :: coeff_omm           ! Coefficient matrix
+      type(Matrix)                  :: dm_omm              ! Density matrix
+      type(Matrix)                  :: tdm_omm             ! Kinetic energy density matrix
+      real(kind=r8),    allocatable :: ovlp_real_omm(:,:)  ! Copy of real overlap
+      complex(kind=r8), allocatable :: ovlp_cmplx_omm(:,:) ! Copy of complex overlap
 
       ! PESXI
-      real(kind=r8),    allocatable :: ham_real_pexsi(:)     ! Sparse real Hamiltonian
-      complex(kind=r8), allocatable :: ham_complex_pexsi(:)  ! Sparse complex Hamiltonian
-      real(kind=r8),    allocatable :: ovlp_real_pexsi(:)    ! Sparse real overlap
-      complex(kind=r8), allocatable :: ovlp_complex_pexsi(:) ! Sparse complex overlap
-      real(kind=r8),    allocatable :: dm_real_pexsi(:)      ! Sparse real density matrix
-      complex(kind=r8), allocatable :: dm_complex_pexsi(:)   ! Sparse complex density matrix
-      integer(kind=i4), allocatable :: row_ind_pexsi(:)      ! Row index
-      integer(kind=i4), allocatable :: col_ptr_pexsi(:)      ! Column pointer
-      real(kind=r8),    allocatable :: ne_vec(:)             ! Number of electrons at all points
+      real(kind=r8),    allocatable :: ham_real_pexsi(:)   ! Sparse real Hamiltonian
+      complex(kind=r8), allocatable :: ham_cmplx_pexsi(:)  ! Sparse complex Hamiltonian
+      real(kind=r8),    allocatable :: ovlp_real_pexsi(:)  ! Sparse real overlap
+      complex(kind=r8), allocatable :: ovlp_cmplx_pexsi(:) ! Sparse complex overlap
+      real(kind=r8),    allocatable :: dm_real_pexsi(:)    ! Sparse real density matrix
+      complex(kind=r8), allocatable :: dm_cmplx_pexsi(:)   ! Sparse complex density matrix
+      integer(kind=i4), allocatable :: row_ind_pexsi(:)    ! Row index
+      integer(kind=i4), allocatable :: col_ptr_pexsi(:)    ! Column pointer
+      real(kind=r8),    allocatable :: ne_vec(:)           ! Number of electrons at all points
 
       ! CheSS
       real(kind=r8),    allocatable :: ham_real_chess(:)  ! Sparse real Hamiltonian
@@ -115,15 +115,15 @@ module ELSI_DATATYPE
       type(sparse_matrix)           :: sparse_mat(2)      ! Sparsity pattern etc
 
       ! SIPs
-      real(kind=r8),    allocatable :: ham_real_sips(:)     ! Sparse real Hamiltonian
-      complex(kind=r8), allocatable :: ham_complex_sips(:)  ! Sparse complex Hamiltonian
-      real(kind=r8),    allocatable :: ovlp_real_sips(:)    ! Sparse real overlap
-      complex(kind=r8), allocatable :: ovlp_complex_sips(:) ! Sparse complex overlap
-      real(kind=r8),    allocatable :: dm_real_sips(:)      ! Sparse real density matrix
-      complex(kind=r8), allocatable :: dm_complex_sips(:)   ! Sparse complex density matrix
-      integer(kind=i4), allocatable :: row_ind_sips(:)      ! Row index
-      integer(kind=i4), allocatable :: col_ptr_sips(:)      ! Column pointer
-      real(kind=r8),    allocatable :: slices(:)            ! Slices
+      real(kind=r8),    allocatable :: ham_real_sips(:)   ! Sparse real Hamiltonian
+      complex(kind=r8), allocatable :: ham_cmplx_sips(:)  ! Sparse complex Hamiltonian
+      real(kind=r8),    allocatable :: ovlp_real_sips(:)  ! Sparse real overlap
+      complex(kind=r8), allocatable :: ovlp_cmplx_sips(:) ! Sparse complex overlap
+      real(kind=r8),    allocatable :: dm_real_sips(:)    ! Sparse real density matrix
+      complex(kind=r8), allocatable :: dm_cmplx_sips(:)   ! Sparse complex density matrix
+      integer(kind=i4), allocatable :: row_ind_sips(:)    ! Row index
+      integer(kind=i4), allocatable :: col_ptr_sips(:)    ! Column pointer
+      real(kind=r8),    allocatable :: slices(:)          ! Slices
 
       ! Is this a valid handle?
       logical :: handle_ready = .false.
@@ -217,7 +217,7 @@ module ELSI_DATATYPE
       logical :: spin_is_set
       logical :: mu_ready
       logical :: edm_ready_real
-      logical :: edm_ready_complex
+      logical :: edm_ready_cmplx
 
       ! ELPA
       integer(kind=i4) :: elpa_solver

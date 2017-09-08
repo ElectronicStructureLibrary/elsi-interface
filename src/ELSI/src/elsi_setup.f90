@@ -268,11 +268,9 @@ subroutine elsi_set_blacs(elsi_h,blacs_ctxt,block_size)
       ! Get ELPA communicators
       call elsi_get_elpa_comms(elsi_h)
 
-      ! Compute global-local mapping
-      call elsi_allocate(elsi_h,elsi_h%local_row,elsi_h%n_basis,&
-              "local_row",caller)
-      call elsi_allocate(elsi_h,elsi_h%local_col,elsi_h%n_basis,&
-              "local_col",caller)
+      ! Create global-local mapping
+      call elsi_allocate(elsi_h,elsi_h%loc_row,elsi_h%n_basis,"loc_row",caller)
+      call elsi_allocate(elsi_h,elsi_h%loc_col,elsi_h%n_basis,"loc_col",caller)
 
       i_row = 0
       i_col = 0
@@ -280,11 +278,11 @@ subroutine elsi_set_blacs(elsi_h,blacs_ctxt,block_size)
       do i = 1,elsi_h%n_basis
          if(mod((i-1)/elsi_h%n_b_rows,elsi_h%n_p_rows) == elsi_h%my_p_row) then
             i_row = i_row+1
-            elsi_h%local_row(i) = i_row
+            elsi_h%loc_row(i) = i_row
          endif
          if(mod((i-1)/elsi_h%n_b_cols,elsi_h%n_p_cols) == elsi_h%my_p_col) then
             i_col = i_col+1
-            elsi_h%local_col(i) = i_col
+            elsi_h%loc_col(i) = i_col
          endif
       enddo
 

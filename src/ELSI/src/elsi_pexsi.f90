@@ -155,7 +155,7 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
    real(kind=r8)    :: factor_max
    real(kind=r8)    :: t0
    real(kind=r8)    :: t1
-   complex(kind=r8) :: local_complex
+   complex(kind=r8) :: local_cmplx
    integer(kind=i4) :: n_iner_steps
    integer(kind=i4) :: n_shift
    integer(kind=i4) :: aux_min
@@ -172,9 +172,9 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
    real(kind=r8),    allocatable :: ne_lower(:)
    real(kind=r8),    allocatable :: ne_upper(:)
    real(kind=r8),    allocatable :: tmp_real(:)
-   complex(kind=r8), allocatable :: tmp_complex(:)
+   complex(kind=r8), allocatable :: tmp_cmplx(:)
    real(kind=r8),    allocatable :: send_buf(:)
-   complex(kind=r8), allocatable :: send_buf_complex(:)
+   complex(kind=r8), allocatable :: send_buf_cmplx(:)
 
    real(kind=r8),    external :: ddot
 !   complex(kind=r8), external :: zdotu
@@ -202,14 +202,14 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
          call f_ppexsi_load_complex_hs_matrix(elsi_h%pexsi_plan,&
                  elsi_h%pexsi_options,elsi_h%n_basis,elsi_h%nnz_g,&
                  elsi_h%nnz_l_sp,elsi_h%n_l_cols_sp,elsi_h%col_ptr_ccs,&
-                 elsi_h%row_ind_ccs,elsi_h%ham_complex_ccs,1,&
-                 elsi_h%ovlp_complex_ccs,ierr)
+                 elsi_h%row_ind_ccs,elsi_h%ham_cmplx_ccs,1,&
+                 elsi_h%ovlp_cmplx_ccs,ierr)
       else
          call f_ppexsi_load_complex_hs_matrix(elsi_h%pexsi_plan,&
                  elsi_h%pexsi_options,elsi_h%n_basis,elsi_h%nnz_g,&
                  elsi_h%nnz_l_sp,elsi_h%n_l_cols_sp,elsi_h%col_ptr_ccs,&
-                 elsi_h%row_ind_ccs,elsi_h%ham_complex_ccs,0,&
-                 elsi_h%ovlp_complex_ccs,ierr)
+                 elsi_h%row_ind_ccs,elsi_h%ham_cmplx_ccs,0,&
+                 elsi_h%ovlp_cmplx_ccs,ierr)
       endif
    end select
 
@@ -236,7 +236,7 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
 
          call f_ppexsi_symbolic_factorize_complex_unsymmetric_matrix(&
                  elsi_h%pexsi_plan,elsi_h%pexsi_options,&
-                 elsi_h%ovlp_complex_ccs,ierr)
+                 elsi_h%ovlp_cmplx_ccs,ierr)
       end select
 
       call elsi_get_time(elsi_h,t1)
@@ -440,10 +440,10 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
       call f_ppexsi_retrieve_real_dm(elsi_h%pexsi_plan,tmp_real,&
               local_energy,ierr)
    case(COMPLEX_VALUES)
-      call elsi_allocate(elsi_h,tmp_complex,elsi_h%nnz_l_sp,&
-              "tmp_complex",caller)
+      call elsi_allocate(elsi_h,tmp_cmplx,elsi_h%nnz_l_sp,&
+              "tmp_cmplx",caller)
 
-      call f_ppexsi_retrieve_complex_dm(elsi_h%pexsi_plan,tmp_complex,&
+      call f_ppexsi_retrieve_complex_dm(elsi_h%pexsi_plan,tmp_cmplx,&
               local_energy,ierr)
    end select
 
@@ -479,7 +479,7 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
       case(REAL_VALUES)
          tmp_real = (elsi_h%n_electrons/elsi_h%ne_pexsi)*tmp_real
       case(COMPLEX_VALUES)
-         tmp_complex = (elsi_h%n_electrons/elsi_h%ne_pexsi)*tmp_complex
+         tmp_cmplx = (elsi_h%n_electrons/elsi_h%ne_pexsi)*tmp_cmplx
       end select
 
       converged = .true.
@@ -513,7 +513,7 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
                call MPI_Bcast(tmp_real,elsi_h%nnz_l_sp,mpi_real8,i,&
                        elsi_h%comm_among_point,mpierr)
             case(COMPLEX_VALUES)
-               call MPI_Bcast(tmp_complex,elsi_h%nnz_l_sp,mpi_complex16,&
+               call MPI_Bcast(tmp_cmplx,elsi_h%nnz_l_sp,mpi_complex16,&
                        i,elsi_h%comm_among_point,mpierr)
             end select
 
@@ -555,24 +555,24 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
          call elsi_deallocate(elsi_h,send_buf,"send_buf")
          call elsi_deallocate(elsi_h,tmp_real,"tmp_real")
       case(COMPLEX_VALUES)
-         call elsi_allocate(elsi_h,send_buf_complex,elsi_h%nnz_l_sp,&
-                 "send_buf_complex",caller)
+         call elsi_allocate(elsi_h,send_buf_cmplx,elsi_h%nnz_l_sp,&
+                 "send_buf_cmplx",caller)
 
          if(elsi_h%my_point == aux_min-1) then
-            send_buf_complex = factor_min*tmp_complex
+            send_buf_cmplx = factor_min*tmp_cmplx
          elseif(elsi_h%my_point == aux_max-1) then
-            send_buf_complex = factor_max*tmp_complex
+            send_buf_cmplx = factor_max*tmp_cmplx
          endif
 
-         call MPI_Allreduce(send_buf_complex,tmp_complex,elsi_h%nnz_l_sp,&
+         call MPI_Allreduce(send_buf_cmplx,tmp_cmplx,elsi_h%nnz_l_sp,&
                  mpi_complex16,mpi_sum,elsi_h%comm_among_point,mpierr)
 
          if(elsi_h%my_p_row_pexsi == 0) then
-            elsi_h%dm_complex_ccs = tmp_complex
+            elsi_h%dm_cmplx_ccs = tmp_cmplx
          endif
 
-         call elsi_deallocate(elsi_h,send_buf_complex,"send_buf_complex")
-         call elsi_deallocate(elsi_h,tmp_complex,"tmp_complex")
+         call elsi_deallocate(elsi_h,send_buf_cmplx,"send_buf_cmplx")
+         call elsi_deallocate(elsi_h,tmp_cmplx,"tmp_cmplx")
       end select
    endif
 
@@ -587,14 +587,14 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
       case(COMPLEX_VALUES)
          ! The following lines are equivalent to "zdotu" in LAPACK,
          ! which is simple but problematic in some version of LAPACK
-         local_complex = (0.0_r8,0.0_r8)
+         local_cmplx = (0.0_r8,0.0_r8)
 
          do i = 1,elsi_h%nnz_l_sp
-            local_complex = local_complex+elsi_h%ham_complex_ccs(i)*&
-                               elsi_h%dm_complex_ccs(i)
+            local_cmplx = local_cmplx+elsi_h%ham_cmplx_ccs(i)*&
+                             elsi_h%dm_cmplx_ccs(i)
          enddo
 
-         local_energy = dble(local_complex)
+         local_energy = dble(local_cmplx)
       end select
 
       call MPI_Reduce(local_energy,elsi_h%energy_hdm,1,mpi_real8,&
@@ -640,9 +640,9 @@ subroutine elsi_compute_edm_pexsi(elsi_h)
 
    real(kind=r8),    allocatable :: shifts(:)
    real(kind=r8),    allocatable :: tmp_real(:)
-   complex(kind=r8), allocatable :: tmp_complex(:)
+   complex(kind=r8), allocatable :: tmp_cmplx(:)
    real(kind=r8),    allocatable :: send_buf(:)
-   complex(kind=r8), allocatable :: send_buf_complex(:)
+   complex(kind=r8), allocatable :: send_buf_cmplx(:)
 
    character*40, parameter :: caller = "elsi_compute_edm_pexsi"
 
@@ -671,10 +671,10 @@ subroutine elsi_compute_edm_pexsi(elsi_h)
       call f_ppexsi_retrieve_real_edm(elsi_h%pexsi_plan,tmp_real,&
               local_energy,ierr)
    case(COMPLEX_VALUES)
-      call elsi_allocate(elsi_h,tmp_complex,elsi_h%nnz_l_sp,&
-              "tmp_complex",caller)
+      call elsi_allocate(elsi_h,tmp_cmplx,elsi_h%nnz_l_sp,&
+              "tmp_cmplx",caller)
 
-      call f_ppexsi_retrieve_complex_edm(elsi_h%pexsi_plan,tmp_complex,&
+      call f_ppexsi_retrieve_complex_edm(elsi_h%pexsi_plan,tmp_cmplx,&
               local_energy,ierr)
    end select
 
@@ -719,7 +719,7 @@ subroutine elsi_compute_edm_pexsi(elsi_h)
       case(REAL_VALUES)
          tmp_real = (elsi_h%n_electrons/elsi_h%ne_pexsi)*tmp_real
       case(COMPLEX_VALUES)
-         tmp_complex = (elsi_h%n_electrons/elsi_h%ne_pexsi)*tmp_complex
+         tmp_cmplx = (elsi_h%n_electrons/elsi_h%ne_pexsi)*tmp_cmplx
       end select
 
       converged = .true.
@@ -753,7 +753,7 @@ subroutine elsi_compute_edm_pexsi(elsi_h)
                call MPI_Bcast(tmp_real,elsi_h%nnz_l_sp,mpi_real8,i,&
                        elsi_h%comm_among_point,mpierr)
             case(COMPLEX_VALUES)
-               call MPI_Bcast(tmp_complex,elsi_h%nnz_l_sp,mpi_complex16,&
+               call MPI_Bcast(tmp_cmplx,elsi_h%nnz_l_sp,mpi_complex16,&
                        i,elsi_h%comm_among_point,mpierr)
             end select
 
@@ -790,24 +790,24 @@ subroutine elsi_compute_edm_pexsi(elsi_h)
          call elsi_deallocate(elsi_h,send_buf,"send_buf")
          call elsi_deallocate(elsi_h,tmp_real,"tmp_real")
       case(COMPLEX_VALUES)
-         call elsi_allocate(elsi_h,send_buf_complex,elsi_h%nnz_l_sp,&
-                 "send_buf_complex",caller)
+         call elsi_allocate(elsi_h,send_buf_cmplx,elsi_h%nnz_l_sp,&
+                 "send_buf_cmplx",caller)
 
          if(elsi_h%my_point == aux_min-1) then
-            send_buf_complex = factor_min*tmp_complex
+            send_buf_cmplx = factor_min*tmp_cmplx
          elseif(elsi_h%my_point == aux_max-1) then
-            send_buf_complex = factor_max*tmp_complex
+            send_buf_cmplx = factor_max*tmp_cmplx
          endif
 
-         call MPI_Allreduce(send_buf_complex,tmp_complex,elsi_h%nnz_l_sp,&
+         call MPI_Allreduce(send_buf_cmplx,tmp_cmplx,elsi_h%nnz_l_sp,&
                  mpi_complex16,mpi_sum,elsi_h%comm_among_point,mpierr)
 
          if(elsi_h%my_p_row_pexsi == 0) then
-            elsi_h%dm_complex_ccs = tmp_complex
+            elsi_h%dm_cmplx_ccs = tmp_cmplx
          endif
 
-         call elsi_deallocate(elsi_h,send_buf_complex,"send_buf_complex")
-         call elsi_deallocate(elsi_h,tmp_complex,"tmp_complex")
+         call elsi_deallocate(elsi_h,send_buf_cmplx,"send_buf_cmplx")
+         call elsi_deallocate(elsi_h,tmp_cmplx,"tmp_cmplx")
       end select
    endif
 
