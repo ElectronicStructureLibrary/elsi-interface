@@ -347,7 +347,7 @@ subroutine elsi_compute_edm_elpa(e_h)
 
       call elsi_deallocate(e_h,tmp_real,"tmp_real")
    case(COMPLEX_VALUES)
-      call elsi_allocate(e_h,tmp_real,e_h%n_l_rows,e_h%n_l_cols,"tmp_cmplx",&
+      call elsi_allocate(e_h,tmp_cmplx,e_h%n_l_rows,e_h%n_l_cols,"tmp_cmplx",&
               caller)
       tmp_cmplx = e_h%evec_cmplx
 
