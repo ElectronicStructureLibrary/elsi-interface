@@ -108,17 +108,19 @@ subroutine elsi_get_energy(e_h,energy)
 end subroutine
 
 !>
-!! This routine computes the eigenvalues and eigenvectors.
+!! This routine computes the eigenvalues and eigenvectors. Note the
+!! intent(inout) - it is because everything has the potential to be reused in
+!! the next call.
 !!
 subroutine elsi_ev_real(e_h,h_in,s_in,e_val_out,e_vec_out)
 
    implicit none
 
-   type(elsi_handle) :: e_h                                  !< Handle
-   real(kind=r8)     :: h_in(e_h%n_l_rows,e_h%n_l_cols)      !< Hamiltonian
-   real(kind=r8)     :: s_in(e_h%n_l_rows,e_h%n_l_cols)      !< Overlap
-   real(kind=r8)     :: e_val_out(e_h%n_basis)               !< Eigenvalues
-   real(kind=r8)     :: e_vec_out(e_h%n_l_rows,e_h%n_l_cols) !< Eigenvectors
+   type(elsi_handle), intent(inout) :: e_h                                  !< Handle
+   real(kind=r8),     intent(inout) :: h_in(e_h%n_l_rows,e_h%n_l_cols)      !< Hamiltonian
+   real(kind=r8),     intent(inout) :: s_in(e_h%n_l_rows,e_h%n_l_cols)      !< Overlap
+   real(kind=r8),     intent(inout) :: e_val_out(e_h%n_basis)               !< Eigenvalues
+   real(kind=r8),     intent(inout) :: e_vec_out(e_h%n_l_rows,e_h%n_l_cols) !< Eigenvectors
 
    character*40, parameter :: caller = "elsi_ev_real"
 
@@ -192,17 +194,19 @@ subroutine elsi_ev_real(e_h,h_in,s_in,e_val_out,e_vec_out)
 end subroutine
 
 !>
-!! This routine computes the eigenvalues and eigenvectors.
+!! This routine computes the eigenvalues and eigenvectors. Note the
+!! intent(inout) - it is because everything has the potential to be reused in
+!! the next call.
 !!
 subroutine elsi_ev_complex(e_h,h_in,s_in,e_val_out,e_vec_out)
 
    implicit none
 
-   type(elsi_handle) :: e_h                                  !< Handle
-   complex(kind=r8)  :: h_in(e_h%n_l_rows,e_h%n_l_cols)      !< Hamiltonian
-   complex(kind=r8)  :: s_in(e_h%n_l_rows,e_h%n_l_cols)      !< Overlap
-   real(kind=r8)     :: e_val_out(e_h%n_basis)               !< Eigenvalues
-   complex(kind=r8)  :: e_vec_out(e_h%n_l_rows,e_h%n_l_cols) !< Eigenvectors
+   type(elsi_handle), intent(inout) :: e_h                                  !< Handle
+   complex(kind=r8),  intent(inout) :: h_in(e_h%n_l_rows,e_h%n_l_cols)      !< Hamiltonian
+   complex(kind=r8),  intent(inout) :: s_in(e_h%n_l_rows,e_h%n_l_cols)      !< Overlap
+   real(kind=r8),     intent(inout) :: e_val_out(e_h%n_basis)               !< Eigenvalues
+   complex(kind=r8),  intent(inout) :: e_vec_out(e_h%n_l_rows,e_h%n_l_cols) !< Eigenvectors
 
    character*40, parameter :: caller = "elsi_ev_complex"
 
@@ -252,17 +256,19 @@ subroutine elsi_ev_complex(e_h,h_in,s_in,e_val_out,e_vec_out)
 end subroutine
 
 !>
-!! This routine computes the eigenvalues and eigenvectors.
+!! This routine computes the eigenvalues and eigenvectors. Note the
+!! intent(inout) - it is because everything has the potential to be reused in
+!! the next call.
 !!
 subroutine elsi_ev_real_sparse(e_h,h_in,s_in,e_val_out,e_vec_out)
 
    implicit none
 
-   type(elsi_handle) :: e_h                                  !< Handle
-   real(kind=r8)     :: h_in(e_h%nnz_l_sp)                   !< Hamiltonian
-   real(kind=r8)     :: s_in(e_h%nnz_l_sp)                   !< Overlap
-   real(kind=r8)     :: e_val_out(e_h%n_basis)               !< Eigenvalues
-   real(kind=r8)     :: e_vec_out(e_h%n_l_rows,e_h%n_l_cols) !< Eigenvectors
+   type(elsi_handle), intent(inout) :: e_h                                  !< Handle
+   real(kind=r8),     intent(inout) :: h_in(e_h%nnz_l_sp)                   !< Hamiltonian
+   real(kind=r8),     intent(inout) :: s_in(e_h%nnz_l_sp)                   !< Overlap
+   real(kind=r8),     intent(inout) :: e_val_out(e_h%n_basis)               !< Eigenvalues
+   real(kind=r8),     intent(inout) :: e_vec_out(e_h%n_l_rows,e_h%n_l_cols) !< Eigenvectors
 
    character*40, parameter :: caller = "elsi_ev_real_sparse"
 
@@ -311,17 +317,18 @@ subroutine elsi_ev_real_sparse(e_h,h_in,s_in,e_val_out,e_vec_out)
 end subroutine
 
 !>
-!! This routine computes the density matrix.
+!! This routine computes the density matrix. Note the intent(inout) - it is
+!! because everything has the potential to be reused in the next call.
 !!
 subroutine elsi_dm_real(e_h,h_in,s_in,d_out,energy_out)
 
    implicit none
 
-   type(elsi_handle) :: e_h                              !< Handle
-   real(kind=r8)     :: h_in(e_h%n_l_rows,e_h%n_l_cols)  !< Hamiltonian
-   real(kind=r8)     :: s_in(e_h%n_l_rows,e_h%n_l_cols)  !< Overlap
-   real(kind=r8)     :: d_out(e_h%n_l_rows,e_h%n_l_cols) !< Density matrix
-   real(kind=r8)     :: energy_out                       !< Energy
+   type(elsi_handle), intent(inout) :: e_h                              !< Handle
+   real(kind=r8),     intent(inout) :: h_in(e_h%n_l_rows,e_h%n_l_cols)  !< Hamiltonian
+   real(kind=r8),     intent(inout) :: s_in(e_h%n_l_rows,e_h%n_l_cols)  !< Overlap
+   real(kind=r8),     intent(inout) :: d_out(e_h%n_l_rows,e_h%n_l_cols) !< Density matrix
+   real(kind=r8),     intent(inout) :: energy_out                       !< Energy
 
    character*40, parameter :: caller = "elsi_dm_real"
 
@@ -542,17 +549,18 @@ subroutine elsi_dm_real(e_h,h_in,s_in,d_out,energy_out)
 end subroutine
 
 !>
-!! This routine computes the density matrix.
+!! This routine computes the density matrix. Note the intent(inout) - it is
+!! because everything has the potential to be reused in the next call.
 !!
 subroutine elsi_dm_complex(e_h,h_in,s_in,d_out,energy_out)
 
    implicit none
 
-   type(elsi_handle) :: e_h                              !< Handle
-   complex(kind=r8)  :: h_in(e_h%n_l_rows,e_h%n_l_cols)  !< Hamiltonian
-   complex(kind=r8)  :: s_in(e_h%n_l_rows,e_h%n_l_cols)  !< Overlap
-   complex(kind=r8)  :: d_out(e_h%n_l_rows,e_h%n_l_cols) !< Density matrix
-   real(kind=r8)     :: energy_out                       !< Energy
+   type(elsi_handle), intent(inout) :: e_h                              !< Handle
+   complex(kind=r8),  intent(inout) :: h_in(e_h%n_l_rows,e_h%n_l_cols)  !< Hamiltonian
+   complex(kind=r8),  intent(inout) :: s_in(e_h%n_l_rows,e_h%n_l_cols)  !< Overlap
+   complex(kind=r8),  intent(inout) :: d_out(e_h%n_l_rows,e_h%n_l_cols) !< Density matrix
+   real(kind=r8),     intent(inout) :: energy_out                       !< Energy
 
    character*40, parameter :: caller = "elsi_dm_complex"
 
@@ -750,17 +758,18 @@ subroutine elsi_dm_complex(e_h,h_in,s_in,d_out,energy_out)
 end subroutine
 
 !>
-!! This routine computes the density matrix.
+!! This routine computes the density matrix. Note the intent(inout) - it is
+!! because everything has the potential to be reused in the next call.
 !!
 subroutine elsi_dm_real_sparse(e_h,h_in,s_in,d_out,energy_out)
 
    implicit none
 
-   type(elsi_handle) :: e_h                 !< Handle
-   real(kind=r8)     :: h_in(e_h%nnz_l_sp)  !< Hamiltonian
-   real(kind=r8)     :: s_in(e_h%nnz_l_sp)  !< Overlap
-   real(kind=r8)     :: d_out(e_h%nnz_l_sp) !< Density matrix
-   real(kind=r8)     :: energy_out          !< Energy
+   type(elsi_handle), intent(inout) :: e_h                 !< Handle
+   real(kind=r8),     intent(inout) :: h_in(e_h%nnz_l_sp)  !< Hamiltonian
+   real(kind=r8),     intent(inout) :: s_in(e_h%nnz_l_sp)  !< Overlap
+   real(kind=r8),     intent(inout) :: d_out(e_h%nnz_l_sp) !< Density matrix
+   real(kind=r8),     intent(inout) :: energy_out          !< Energy
 
    character*40, parameter :: caller = "elsi_dm_real_sparse"
 

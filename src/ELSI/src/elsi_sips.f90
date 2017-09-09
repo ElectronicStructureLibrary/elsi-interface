@@ -83,7 +83,7 @@ subroutine elsi_init_sips(e_h)
       e_h%sips_started = .true.
    endif
 
-   write(info_str,"(1X,' | Number of slices ',I7)") e_h%n_slices
+   write(info_str,"('  | Number of slices ',I7)") e_h%n_slices
    call elsi_statement_print(info_str,e_h)
 
 end subroutine
@@ -309,19 +309,19 @@ subroutine elsi_print_sips_options(e_h)
 
    character*40, parameter :: caller = "elsi_print_sips_options"
 
-   write(info_str,"(A)") "  SIPs settings:"
+   write(info_str,"('  SIPs settings:')")
    call elsi_statement_print(info_str,e_h)
 
-   write(info_str,"(1X,' | Slicing method ',I10)") e_h%slicing_method
+   write(info_str,"('  | Slicing method ',I10)") e_h%slicing_method
    call elsi_statement_print(info_str,e_h)
 
-   write(info_str,"(1X,' | Inertia option ',I10)") e_h%inertia_option
+   write(info_str,"('  | Inertia option ',I10)") e_h%inertia_option
    call elsi_statement_print(info_str,e_h)
 
-   write(info_str,"(1X,' | Left bound     ',I10)") e_h%unbound
+   write(info_str,"('  | Left bound     ',I10)") e_h%unbound
    call elsi_statement_print(info_str,e_h)
 
-   write(info_str,"(1X,' | Slice buffer   ',E10.2)") e_h%slice_buffer
+   write(info_str,"('  | Slice buffer   ',E10.2)") e_h%slice_buffer
    call elsi_statement_print(info_str,e_h)
 
 end subroutine

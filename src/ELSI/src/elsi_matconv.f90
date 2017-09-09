@@ -118,9 +118,9 @@ subroutine elsi_blacs_to_pexsi_hs_real(e_h,h_in,s_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                             !< Handle
-   real(kind=r8),     target        :: h_in(e_h%n_l_rows,e_h%n_l_cols) !< Hamiltonian
-   real(kind=r8),     target        :: s_in(e_h%n_l_rows,e_h%n_l_cols) !< Overlap
+   type(elsi_handle), intent(inout)        :: e_h                             !< Handle
+   real(kind=r8),     intent(in),   target :: h_in(e_h%n_l_rows,e_h%n_l_cols) !< Hamiltonian
+   real(kind=r8),     intent(in),   target :: s_in(e_h%n_l_rows,e_h%n_l_cols) !< Overlap
 
    real(kind=r8), pointer :: ref(:,:) ! Sparsity pattern
 
@@ -474,9 +474,9 @@ subroutine elsi_blacs_to_pexsi_hs_complex(e_h,h_in,s_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                             !< Handle
-   complex(kind=r8),  target        :: h_in(e_h%n_l_rows,e_h%n_l_cols) !< Hamiltonian
-   complex(kind=r8),  target        :: s_in(e_h%n_l_rows,e_h%n_l_cols) !< Overlap
+   type(elsi_handle), intent(inout)        :: e_h                             !< Handle
+   complex(kind=r8),  intent(in),   target :: h_in(e_h%n_l_rows,e_h%n_l_cols) !< Hamiltonian
+   complex(kind=r8),  intent(in),   target :: s_in(e_h%n_l_rows,e_h%n_l_cols) !< Overlap
 
    complex(kind=r8), pointer :: ref(:,:) ! Sparsity pattern
 
@@ -1135,9 +1135,9 @@ subroutine elsi_blacs_to_sips_hs_real(e_h,h_in,s_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                             !< Handle
-   real(kind=r8),     target        :: h_in(e_h%n_l_rows,e_h%n_l_cols) !< Hamiltonian
-   real(kind=r8),     target        :: s_in(e_h%n_l_rows,e_h%n_l_cols) !< Overlap
+   type(elsi_handle), intent(inout)        :: e_h                             !< Handle
+   real(kind=r8),     intent(in),   target :: h_in(e_h%n_l_rows,e_h%n_l_cols) !< Hamiltonian
+   real(kind=r8),     intent(in),   target :: s_in(e_h%n_l_rows,e_h%n_l_cols) !< Overlap
 
    real(kind=r8), pointer :: ref(:,:) ! Sparsity pattern
 
@@ -1357,9 +1357,9 @@ subroutine elsi_blacs_to_sips_hs_complex(e_h,h_in,s_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                             !< Handle
-   complex(kind=r8),  target        :: h_in(e_h%n_l_rows,e_h%n_l_cols) !< Hamiltonian
-   complex(kind=r8),  target        :: s_in(e_h%n_l_rows,e_h%n_l_cols) !< Overlap
+   type(elsi_handle), intent(inout)      :: e_h                             !< Handle
+   complex(kind=r8),  intent(in), target :: h_in(e_h%n_l_rows,e_h%n_l_cols) !< Hamiltonian
+   complex(kind=r8),  intent(in), target :: s_in(e_h%n_l_rows,e_h%n_l_cols) !< Overlap
 
    complex(kind=r8), pointer :: ref(:,:) ! Sparsity pattern
 

@@ -306,8 +306,8 @@ subroutine elsi_set_csc(e_h,nnz_g,nnz_l,n_l_cols,row_ind,col_ptr)
    integer(kind=i4),  intent(in)    :: nnz_g               !< Global number of nonzeros
    integer(kind=i4),  intent(in)    :: nnz_l               !< Local number of nonzeros
    integer(kind=i4),  intent(in)    :: n_l_cols            !< Local number of columns
-   integer(kind=i4)                 :: row_ind(nnz_l)      !< Row index
-   integer(kind=i4)                 :: col_ptr(n_l_cols+1) !< Column pointer
+   integer(kind=i4),  intent(in)    :: row_ind(nnz_l)      !< Row index
+   integer(kind=i4),  intent(in)    :: col_ptr(n_l_cols+1) !< Column pointer
 
    character*40, parameter :: caller = "elsi_set_csc"
 

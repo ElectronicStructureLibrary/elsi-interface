@@ -145,16 +145,16 @@ contains
 !>
 !! This routine prints a statement.
 !!
-subroutine elsi_statement_print(info,e_h)
+subroutine elsi_statement_print(info_str,e_h)
 
    implicit none
 
-   character(len=*),  intent(in) :: info !< Message to print
-   type(elsi_handle), intent(in) :: e_h  !< Handle
+   character(len=*),  intent(in) :: info_str !< Message to print
+   type(elsi_handle), intent(in) :: e_h      !< Handle
 
    if(print_info) then
       if(e_h%myid_all == 0) then
-         write(*,'(A)') trim(info)
+         write(*,"(A)") trim(info_str)
       endif
    endif
 
@@ -167,29 +167,29 @@ subroutine elsi_allocate_real8_1d(e_h,array,dim1,arrayname,caller)
 
    implicit none
 
-   type(elsi_handle),          intent(in)    :: e_h       !< Handle
-   real(kind=r8), allocatable, intent(inout) :: array(:)  !< Data
-   integer(kind=i4),           intent(in)    :: dim1      !< Size
-   character(len=*),           intent(in)    :: arrayname !< Name
-   character(len=*),           intent(in)    :: caller    !< Caller
+   type(elsi_handle), intent(in)                 :: e_h       !< Handle
+   real(kind=r8),     intent(inout), allocatable :: array(:)  !< Data
+   integer(kind=i4),  intent(in)                 :: dim1      !< Size
+   character(len=*),  intent(in)                 :: arrayname !< Name
+   character(len=*),  intent(in)                 :: caller    !< Caller
 
    real(kind=r8) :: arraysize
    integer       :: error
-   character*200 :: info
+   character*200 :: info_str
 
    if(print_mem) then
       arraysize = 1.0e-6_r8*dim1*8
 
-      write(info,"(A,F12.3,A,A)") "    Allocating ",arraysize," MB for ",&
+      write(info_str,"(A,F12.3,A,A)") "    Allocating ",arraysize," MB for ",&
          trim(arrayname)
-      call elsi_statement_print(info,e_h)
+      call elsi_statement_print(info_str,e_h)
    endif
 
    allocate(array(dim1),stat=error)
 
    if(error > 0) then
-      write(info,"(A,A)") " Error in allocating ",trim(arrayname)
-      call elsi_stop(info,e_h,caller)
+      write(info_str,"(A,A)") " Error in allocating ",trim(arrayname)
+      call elsi_stop(info_str,e_h,caller)
    endif
 
    array = 0.0_r8
@@ -203,29 +203,29 @@ subroutine elsi_allocate_integer4_1d(e_h,array,dim1,arrayname,caller)
 
    implicit none
 
-   type(elsi_handle),             intent(in)    :: e_h       !< Handle
-   integer(kind=i4), allocatable, intent(inout) :: array(:)  !< Data
-   integer(kind=i4),              intent(in)    :: dim1      !< Size
-   character(len=*),              intent(in)    :: arrayname !< Name
-   character(len=*),              intent(in)    :: caller    !< Caller
+   type(elsi_handle), intent(in)                 :: e_h       !< Handle
+   integer(kind=i4),  intent(inout), allocatable :: array(:)  !< Data
+   integer(kind=i4),  intent(in)                 :: dim1      !< Size
+   character(len=*),  intent(in)                 :: arrayname !< Name
+   character(len=*),  intent(in)                 :: caller    !< Caller
 
    real(kind=r8) :: arraysize
    integer       :: error
-   character*200 :: info
+   character*200 :: info_str
 
    if(print_mem) then
       arraysize = 1.0e-6_r8*dim1*4
 
-      write(info,"(A,F12.3,A,A)") "    Allocating ",arraysize," MB for ",&
+      write(info_str,"(A,F12.3,A,A)") "    Allocating ",arraysize," MB for ",&
          trim(arrayname)
-      call elsi_statement_print(info,e_h)
+      call elsi_statement_print(info_str,e_h)
    endif
 
    allocate(array(dim1),stat=error)
 
    if(error > 0) then
-      write(info,"(A,A)") " Error in allocating ",trim(arrayname)
-      call elsi_stop(info,e_h,caller)
+      write(info_str,"(A,A)") " Error in allocating ",trim(arrayname)
+      call elsi_stop(info_str,e_h,caller)
    endif
 
    array = 0
@@ -239,29 +239,29 @@ subroutine elsi_allocate_integer8_1d(e_h,array,dim1,arrayname,caller)
 
    implicit none
 
-   type(elsi_handle),             intent(in)    :: e_h       !< Handle
-   integer(kind=i8), allocatable, intent(inout) :: array(:)  !< Data
-   integer(kind=i4),              intent(in)    :: dim1      !< Size
-   character(len=*),              intent(in)    :: arrayname !< Name
-   character(len=*),              intent(in)    :: caller    !< Caller
+   type(elsi_handle), intent(in)                 :: e_h       !< Handle
+   integer(kind=i8),  intent(inout), allocatable :: array(:)  !< Data
+   integer(kind=i4),  intent(in)                 :: dim1      !< Size
+   character(len=*),  intent(in)                 :: arrayname !< Name
+   character(len=*),  intent(in)                 :: caller    !< Caller
 
    real(kind=r8) :: arraysize
    integer       :: error
-   character*200 :: info
+   character*200 :: info_str
 
    if(print_mem) then
       arraysize = 1.0e-6_r8*dim1*8
 
-      write(info,"(A,F12.3,A,A)") "    Allocating ",arraysize," MB for ",&
+      write(info_str,"(A,F12.3,A,A)") "    Allocating ",arraysize," MB for ",&
          trim(arrayname)
-      call elsi_statement_print(info,e_h)
+      call elsi_statement_print(info_str,e_h)
    endif
 
    allocate(array(dim1),stat=error)
 
    if(error > 0) then
-      write(info,"(A,A)") " Error in allocating ",trim(arrayname)
-      call elsi_stop(info,e_h,caller)
+      write(info_str,"(A,A)") " Error in allocating ",trim(arrayname)
+      call elsi_stop(info_str,e_h,caller)
    endif
 
    array = 0
@@ -275,29 +275,29 @@ subroutine elsi_allocate_complex16_1d(e_h,array,dim1,arrayname,caller)
 
    implicit none
 
-   type(elsi_handle),             intent(in)    :: e_h       !< Handle
-   complex(kind=r8), allocatable, intent(inout) :: array(:)  !< Data
-   integer(kind=i4),              intent(in)    :: dim1      !< Size
-   character(len=*),              intent(in)    :: arrayname !< Name
-   character(len=*),              intent(in)    :: caller    !< Caller
+   type(elsi_handle), intent(in)                 :: e_h       !< Handle
+   complex(kind=r8),  intent(inout), allocatable :: array(:)  !< Data
+   integer(kind=i4),  intent(in)                 :: dim1      !< Size
+   character(len=*),  intent(in)                 :: arrayname !< Name
+   character(len=*),  intent(in)                 :: caller    !< Caller
 
    real(kind=r8) :: arraysize
    integer       :: error
-   character*200 :: info
+   character*200 :: info_str
 
    if(print_mem) then
       arraysize = 1.0e-6_r8*dim1*16
 
-      write(info,"(A,F12.3,A,A)") "    Allocating ",arraysize," MB for ",&
+      write(info_str,"(A,F12.3,A,A)") "    Allocating ",arraysize," MB for ",&
          trim(arrayname)
-      call elsi_statement_print(info,e_h)
+      call elsi_statement_print(info_str,e_h)
    endif
 
    allocate(array(dim1),stat=error)
 
    if(error > 0) then
-      write(info,"(A,A)") " Error in allocating ",trim(arrayname)
-      call elsi_stop(info,e_h,caller)
+      write(info_str,"(A,A)") " Error in allocating ",trim(arrayname)
+      call elsi_stop(info_str,e_h,caller)
    endif
 
    array = (0.0_r8,0.0_r8)
@@ -311,30 +311,30 @@ subroutine elsi_allocate_real8_2d(e_h,array,dim1,dim2,arrayname,caller)
 
    implicit none
 
-   type(elsi_handle),          intent(in)    :: e_h        !< Handle
-   real(kind=r8), allocatable, intent(inout) :: array(:,:) !< Data
-   integer(kind=i4),           intent(in)    :: dim1       !< Size
-   integer(kind=i4),           intent(in)    :: dim2       !< Size
-   character(len=*),           intent(in)    :: arrayname  !< Name
-   character(len=*),           intent(in)    :: caller     !< Caller
+   type(elsi_handle), intent(in)                 :: e_h        !< Handle
+   real(kind=r8),     intent(inout), allocatable :: array(:,:) !< Data
+   integer(kind=i4),  intent(in)                 :: dim1       !< Size
+   integer(kind=i4),  intent(in)                 :: dim2       !< Size
+   character(len=*),  intent(in)                 :: arrayname  !< Name
+   character(len=*),  intent(in)                 :: caller     !< Caller
 
    real(kind=r8) :: arraysize
    integer       :: error
-   character*200 :: info
+   character*200 :: info_str
 
    if(print_mem) then
       arraysize = 1.0e-6_r8*dim1*dim2*8
 
-      write(info,"(A,F12.3,A,A)") "    Allocating ",arraysize," MB for ",&
+      write(info_str,"(A,F12.3,A,A)") "    Allocating ",arraysize," MB for ",&
          trim(arrayname)
-      call elsi_statement_print(info,e_h)
+      call elsi_statement_print(info_str,e_h)
    endif
 
    allocate(array(dim1,dim2),stat=error)
 
    if(error > 0) then
-      write(info,"(A,A)") " Error in allocating ",trim(arrayname)
-      call elsi_stop(info,e_h,caller)
+      write(info_str,"(A,A)") " Error in allocating ",trim(arrayname)
+      call elsi_stop(info_str,e_h,caller)
    endif
 
    array = 0.0_r8
@@ -348,30 +348,30 @@ subroutine elsi_allocate_integer4_2d(e_h,array,dim1,dim2,arrayname,caller)
 
    implicit none
 
-   type(elsi_handle),             intent(in)    :: e_h        !< Handle
-   integer(kind=i4), allocatable, intent(inout) :: array(:,:) !< Data
-   integer(kind=i4),              intent(in)    :: dim1       !< Size
-   integer(kind=i4),              intent(in)    :: dim2       !< Size
-   character(len=*),              intent(in)    :: arrayname  !< Name
-   character(len=*),              intent(in)    :: caller     !< Caller
+   type(elsi_handle), intent(in)                 :: e_h        !< Handle
+   integer(kind=i4),  intent(inout), allocatable :: array(:,:) !< Data
+   integer(kind=i4),  intent(in)                 :: dim1       !< Size
+   integer(kind=i4),  intent(in)                 :: dim2       !< Size
+   character(len=*),  intent(in)                 :: arrayname  !< Name
+   character(len=*),  intent(in)                 :: caller     !< Caller
 
    real(kind=r8) :: arraysize
    integer       :: error
-   character*200 :: info
+   character*200 :: info_str
 
    if(print_mem) then
       arraysize = 1.0e-6_r8*dim1*dim2*4
 
-      write(info,"(A,F12.3,A,A)") "    Allocating ",arraysize," MB for ",&
+      write(info_str,"(A,F12.3,A,A)") "    Allocating ",arraysize," MB for ",&
          trim(arrayname)
-      call elsi_statement_print(info,e_h)
+      call elsi_statement_print(info_str,e_h)
    endif
 
    allocate(array(dim1,dim2),stat=error)
 
    if(error > 0) then
-      write(info,"(A,A)") " Error in allocating ",trim(arrayname)
-      call elsi_stop(info,e_h,caller)
+      write(info_str,"(A,A)") " Error in allocating ",trim(arrayname)
+      call elsi_stop(info_str,e_h,caller)
    endif
 
    array = 0
@@ -385,30 +385,30 @@ subroutine elsi_allocate_complex16_2d(e_h,array,dim1,dim2,arrayname,caller)
 
    implicit none
 
-   type(elsi_handle),             intent(in)    :: e_h        !< Handle
-   complex(kind=r8), allocatable, intent(inout) :: array(:,:) !< Data
-   integer(kind=i4),              intent(in)    :: dim1       !< Size
-   integer(kind=i4),              intent(in)    :: dim2       !< Size
-   character(len=*),              intent(in)    :: arrayname  !< Name
-   character(len=*),              intent(in)    :: caller     !< Caller
+   type(elsi_handle), intent(in)                 :: e_h        !< Handle
+   complex(kind=r8),  intent(inout), allocatable :: array(:,:) !< Data
+   integer(kind=i4),  intent(in)                 :: dim1       !< Size
+   integer(kind=i4),  intent(in)                 :: dim2       !< Size
+   character(len=*),  intent(in)                 :: arrayname  !< Name
+   character(len=*),  intent(in)                 :: caller     !< Caller
 
    real(kind=r8) :: arraysize
    integer       :: error
-   character*200 :: info
+   character*200 :: info_str
 
    if(print_mem) then
       arraysize = 1.0e-6_r8*dim1*dim2*16
 
-      write(info,"(A,F12.3,A,A)") "    Allocating ",arraysize," MB for ",&
+      write(info_str,"(A,F12.3,A,A)") "    Allocating ",arraysize," MB for ",&
          trim(arrayname)
-      call elsi_statement_print(info,e_h)
+      call elsi_statement_print(info_str,e_h)
    endif
 
    allocate(array(dim1,dim2),stat=error)
 
    if(error > 0) then
-      write(info,"(A,A)") " Error in allocating ",trim(arrayname)
-      call elsi_stop(info,e_h,caller)
+      write(info_str,"(A,A)") " Error in allocating ",trim(arrayname)
+      call elsi_stop(info_str,e_h,caller)
    endif
 
    array = (0.0_r8,0.0_r8)
@@ -422,31 +422,31 @@ subroutine elsi_allocate_real8_3d(e_h,array,dim1,dim2,dim3,arrayname,caller)
 
    implicit none
 
-   type(elsi_handle),          intent(in)    :: e_h          !< Handle
-   real(kind=r8), allocatable, intent(inout) :: array(:,:,:) !< Data
-   integer(kind=i4),           intent(in)    :: dim1         !< Size
-   integer(kind=i4),           intent(in)    :: dim2         !< Size
-   integer(kind=i4),           intent(in)    :: dim3         !< Size
-   character(len=*),           intent(in)    :: arrayname    !< Name
-   character(len=*),           intent(in)    :: caller       !< Caller
+   type(elsi_handle), intent(in)                 :: e_h          !< Handle
+   real(kind=r8),     intent(inout), allocatable :: array(:,:,:) !< Data
+   integer(kind=i4),  intent(in)                 :: dim1         !< Size
+   integer(kind=i4),  intent(in)                 :: dim2         !< Size
+   integer(kind=i4),  intent(in)                 :: dim3         !< Size
+   character(len=*),  intent(in)                 :: arrayname    !< Name
+   character(len=*),  intent(in)                 :: caller       !< Caller
 
    real(kind=r8) :: arraysize
    integer       :: error
-   character*200 :: info
+   character*200 :: info_str
 
    if(print_mem) then
       arraysize = 1.0e-6_r8*dim1*dim2*dim3*8
 
-      write(info,"(A,F12.3,A,A)") "    Allocating ",arraysize," MB for ",&
+      write(info_str,"(A,F12.3,A,A)") "    Allocating ",arraysize," MB for ",&
          trim(arrayname)
-      call elsi_statement_print(info,e_h)
+      call elsi_statement_print(info_str,e_h)
    endif
 
    allocate(array(dim1,dim2,dim3),stat=error)
 
    if(error > 0) then
-      write(info,"(A,A)") " Error in allocating ",trim(arrayname)
-      call elsi_stop(info,e_h,caller)
+      write(info_str,"(A,A)") " Error in allocating ",trim(arrayname)
+      call elsi_stop(info_str,e_h,caller)
    endif
 
    array = 0.0_r8
@@ -460,31 +460,31 @@ subroutine elsi_allocate_integer4_3d(e_h,array,dim1,dim2,dim3,arrayname,caller)
 
    implicit none
 
-   type(elsi_handle),             intent(in)    :: e_h          !< Handle
-   integer(kind=i4), allocatable, intent(inout) :: array(:,:,:) !< Data
-   integer(kind=i4),              intent(in)    :: dim1         !< Size
-   integer(kind=i4),              intent(in)    :: dim2         !< Size
-   integer(kind=i4),              intent(in)    :: dim3         !< Size
-   character(len=*),              intent(in)    :: arrayname    !< Name
-   character(len=*),              intent(in)    :: caller       !< Caller
+   type(elsi_handle), intent(in)                 :: e_h          !< Handle
+   integer(kind=i4),  intent(inout), allocatable :: array(:,:,:) !< Data
+   integer(kind=i4),  intent(in)                 :: dim1         !< Size
+   integer(kind=i4),  intent(in)                 :: dim2         !< Size
+   integer(kind=i4),  intent(in)                 :: dim3         !< Size
+   character(len=*),  intent(in)                 :: arrayname    !< Name
+   character(len=*),  intent(in)                 :: caller       !< Caller
 
    real(kind=r8) :: arraysize
    integer       :: error
-   character*200 :: info
+   character*200 :: info_str
 
    if(print_mem) then
       arraysize = 1.0e-6_r8*dim1*dim2*dim3*4
 
-      write(info,"(A,F12.3,A,A)") "    Allocating ",arraysize," MB for ",&
+      write(info_str,"(A,F12.3,A,A)") "    Allocating ",arraysize," MB for ",&
          trim(arrayname)
-      call elsi_statement_print(info,e_h)
+      call elsi_statement_print(info_str,e_h)
    endif
 
    allocate(array(dim1,dim2,dim3),stat=error)
 
    if(error > 0) then
-      write(info,"(A,A)") " Error in allocating ",trim(arrayname)
-      call elsi_stop(info,e_h,caller)
+      write(info_str,"(A,A)") " Error in allocating ",trim(arrayname)
+      call elsi_stop(info_str,e_h,caller)
    endif
 
    array = 0
@@ -498,31 +498,31 @@ subroutine elsi_allocate_complex16_3d(e_h,array,dim1,dim2,dim3,arrayname,caller)
 
    implicit none
 
-   type(elsi_handle),             intent(in)    :: e_h          !< Handle
-   complex(kind=r8), allocatable, intent(inout) :: array(:,:,:) !< Data
-   integer(kind=i4),              intent(in)    :: dim1         !< Size
-   integer(kind=i4),              intent(in)    :: dim2         !< Size
-   integer(kind=i4),              intent(in)    :: dim3         !< Size
-   character(len=*),              intent(in)    :: arrayname    !< Name
-   character(len=*),              intent(in)    :: caller       !< Caller
+   type(elsi_handle), intent(in)                 :: e_h          !< Handle
+   complex(kind=r8),  intent(inout), allocatable :: array(:,:,:) !< Data
+   integer(kind=i4),  intent(in)                 :: dim1         !< Size
+   integer(kind=i4),  intent(in)                 :: dim2         !< Size
+   integer(kind=i4),  intent(in)                 :: dim3         !< Size
+   character(len=*),  intent(in)                 :: arrayname    !< Name
+   character(len=*),  intent(in)                 :: caller       !< Caller
 
    real(kind=r8) :: arraysize
    integer       :: error
-   character*200 :: info
+   character*200 :: info_str
 
    if(print_mem) then
       arraysize = 1.0e-6_r8*dim1*dim2*dim3*16
 
-      write(info,"(A,F12.3,A,A)") "    Allocating ",arraysize," MB for ",&
+      write(info_str,"(A,F12.3,A,A)") "    Allocating ",arraysize," MB for ",&
          trim(arrayname)
-      call elsi_statement_print(info,e_h)
+      call elsi_statement_print(info_str,e_h)
    endif
 
    allocate(array(dim1,dim2,dim3),stat=error)
 
    if(error > 0) then
-      write(info,"(A,A)") " Error in allocating ",trim(arrayname)
-      call elsi_stop(info,e_h,caller)
+      write(info_str,"(A,A)") " Error in allocating ",trim(arrayname)
+      call elsi_stop(info_str,e_h,caller)
    endif
 
    array = (0.0_r8,0.0_r8)
@@ -536,15 +536,15 @@ subroutine elsi_deallocate_real8_1d(e_h,array,arrayname)
 
    implicit none
 
-   type(elsi_handle),          intent(in)    :: e_h       !< Handle
-   real(kind=r8), allocatable, intent(inout) :: array(:)  !< Data
-   character(len=*),           intent(in)    :: arrayname !< Name
+   type(elsi_handle), intent(in)                 :: e_h       !< Handle
+   real(kind=r8),     intent(inout), allocatable :: array(:)  !< Data
+   character(len=*),  intent(in)                 :: arrayname !< Name
 
-   character*200 :: info
+   character*200 :: info_str
 
    if(print_mem) then
-      write(info,"(A,A)") "    Deallocating ",trim(arrayname)
-      call elsi_statement_print(info,e_h)
+      write(info_str,"(A,A)") "    Deallocating ",trim(arrayname)
+      call elsi_statement_print(info_str,e_h)
    endif
 
    deallocate(array)
@@ -558,15 +558,15 @@ subroutine elsi_deallocate_integer4_1d(e_h,array,arrayname)
 
    implicit none
 
-   type(elsi_handle),             intent(in)    :: e_h       !< Handle
-   integer(kind=i4), allocatable, intent(inout) :: array(:)  !< Data
-   character(len=*),              intent(in)    :: arrayname !< Name
+   type(elsi_handle), intent(in)                 :: e_h       !< Handle
+   integer(kind=i4),  intent(inout), allocatable :: array(:)  !< Data
+   character(len=*),  intent(in)                 :: arrayname !< Name
 
-   character*200 :: info
+   character*200 :: info_str
 
    if(print_mem) then
-      write(info,"(A,A)") "    Deallocating ",trim(arrayname)
-      call elsi_statement_print(info,e_h)
+      write(info_str,"(A,A)") "    Deallocating ",trim(arrayname)
+      call elsi_statement_print(info_str,e_h)
    endif
 
    deallocate(array)
@@ -580,15 +580,15 @@ subroutine elsi_deallocate_integer8_1d(e_h,array,arrayname)
 
    implicit none
 
-   type(elsi_handle),             intent(in)    :: e_h       !< Handle
-   integer(kind=i8), allocatable, intent(inout) :: array(:)  !< Data
-   character(len=*),              intent(in)    :: arrayname !< Name
+   type(elsi_handle), intent(in)                 :: e_h       !< Handle
+   integer(kind=i8),  intent(inout), allocatable :: array(:)  !< Data
+   character(len=*),  intent(in)                 :: arrayname !< Name
 
-   character*200 :: info
+   character*200 :: info_str
 
    if(print_mem) then
-      write(info,"(A,A)") "    Deallocating ",trim(arrayname)
-      call elsi_statement_print(info,e_h)
+      write(info_str,"(A,A)") "    Deallocating ",trim(arrayname)
+      call elsi_statement_print(info_str,e_h)
    endif
 
    deallocate(array)
@@ -602,15 +602,15 @@ subroutine elsi_deallocate_complex16_1d(e_h,array,arrayname)
 
    implicit none
 
-   type(elsi_handle),             intent(in)    :: e_h       !< Handle
-   complex(kind=r8), allocatable, intent(inout) :: array(:)  !< Data
-   character(len=*),              intent(in)    :: arrayname !< Name
+   type(elsi_handle), intent(in)                 :: e_h       !< Handle
+   complex(kind=r8),  intent(inout), allocatable :: array(:)  !< Data
+   character(len=*),  intent(in)                 :: arrayname !< Name
 
-   character*200 :: info
+   character*200 :: info_str
 
    if(print_mem) then
-      write(info,"(A,A)") "    Deallocating ",trim(arrayname)
-      call elsi_statement_print(info,e_h)
+      write(info_str,"(A,A)") "    Deallocating ",trim(arrayname)
+      call elsi_statement_print(info_str,e_h)
    endif
 
    deallocate(array)
@@ -624,15 +624,15 @@ subroutine elsi_deallocate_real8_2d(e_h,array,arrayname)
 
    implicit none
 
-   type(elsi_handle),          intent(in)    :: e_h        !< Handle
-   real(kind=r8), allocatable, intent(inout) :: array(:,:) !< Data
-   character(len=*),           intent(in)    :: arrayname  !< Name
+   type(elsi_handle), intent(in)                 :: e_h        !< Handle
+   real(kind=r8),     intent(inout), allocatable :: array(:,:) !< Data
+   character(len=*),  intent(in)                 :: arrayname  !< Name
 
-   character*200 :: info
+   character*200 :: info_str
 
    if(print_mem) then
-      write(info,"(A,A)") "    Deallocating ",trim(arrayname)
-      call elsi_statement_print(info,e_h)
+      write(info_str,"(A,A)") "    Deallocating ",trim(arrayname)
+      call elsi_statement_print(info_str,e_h)
    endif
 
    deallocate(array)
@@ -646,15 +646,15 @@ subroutine elsi_deallocate_integer4_2d(e_h,array,arrayname)
 
    implicit none
 
-   type(elsi_handle),             intent(in)    :: e_h        !< Handle
-   integer(kind=i4), allocatable, intent(inout) :: array(:,:) !< Data
-   character(len=*),              intent(in)    :: arrayname  !< Name
+   type(elsi_handle), intent(in)                 :: e_h        !< Handle
+   integer(kind=i4),  intent(inout), allocatable :: array(:,:) !< Data
+   character(len=*),  intent(in)                 :: arrayname  !< Name
 
-   character*200 :: info
+   character*200 :: info_str
 
    if(print_mem) then
-      write(info,"(A,A)") "    Deallocating ",trim(arrayname)
-      call elsi_statement_print(info,e_h)
+      write(info_str,"(A,A)") "    Deallocating ",trim(arrayname)
+      call elsi_statement_print(info_str,e_h)
    endif
 
    deallocate(array)
@@ -668,15 +668,15 @@ subroutine elsi_deallocate_complex16_2d(e_h,array,arrayname)
 
    implicit none
 
-   type(elsi_handle),             intent(in)    :: e_h        !< Handle
-   complex(kind=r8), allocatable, intent(inout) :: array(:,:) !< Data
-   character(len=*),              intent(in)    :: arrayname  !< Name
+   type(elsi_handle), intent(in)                 :: e_h        !< Handle
+   complex(kind=r8),  intent(inout), allocatable :: array(:,:) !< Data
+   character(len=*),  intent(in)                 :: arrayname  !< Name
 
-   character*200 :: info
+   character*200 :: info_str
 
    if(print_mem) then
-      write(info,"(A,A)") "    Deallocating ",trim(arrayname)
-      call elsi_statement_print(info,e_h)
+      write(info_str,"(A,A)") "    Deallocating ",trim(arrayname)
+      call elsi_statement_print(info_str,e_h)
    endif
 
    deallocate(array)
@@ -690,15 +690,15 @@ subroutine elsi_deallocate_real8_3d(e_h,array,arrayname)
 
    implicit none
 
-   type(elsi_handle),          intent(in)    :: e_h          !< Handle
-   real(kind=r8), allocatable, intent(inout) :: array(:,:,:) !< Data
-   character(len=*),           intent(in)    :: arrayname    !< Name
+   type(elsi_handle), intent(in)                 :: e_h          !< Handle
+   real(kind=r8),     intent(inout), allocatable :: array(:,:,:) !< Data
+   character(len=*),  intent(in)                 :: arrayname    !< Name
 
-   character*200 :: info
+   character*200 :: info_str
 
    if(print_mem) then
-      write(info,"(A,A)") "    Deallocating ",trim(arrayname)
-      call elsi_statement_print(info,e_h)
+      write(info_str,"(A,A)") "    Deallocating ",trim(arrayname)
+      call elsi_statement_print(info_str,e_h)
    endif
 
    deallocate(array)
@@ -712,15 +712,15 @@ subroutine elsi_deallocate_integer4_3d(e_h,array,arrayname)
 
    implicit none
 
-   type(elsi_handle),             intent(in)    :: e_h          !< Handle
-   integer(kind=i4), allocatable, intent(inout) :: array(:,:,:) !< Data
-   character(len=*),              intent(in)    :: arrayname    !< Name
+   type(elsi_handle), intent(in)                 :: e_h          !< Handle
+   integer(kind=i4),  intent(inout), allocatable :: array(:,:,:) !< Data
+   character(len=*),  intent(in)                 :: arrayname    !< Name
 
-   character*200 :: info
+   character*200 :: info_str
 
    if(print_mem) then
-      write(info,"(A,A)") "    Deallocating ",trim(arrayname)
-      call elsi_statement_print(info,e_h)
+      write(info_str,"(A,A)") "    Deallocating ",trim(arrayname)
+      call elsi_statement_print(info_str,e_h)
    endif
 
    deallocate(array)
@@ -734,15 +734,15 @@ subroutine elsi_deallocate_complex16_3d(e_h,array,arrayname)
 
    implicit none
 
-   type(elsi_handle),             intent(in)    :: e_h          !< Handle
-   complex(kind=r8), allocatable, intent(inout) :: array(:,:,:) !< Data
-   character(len=*),              intent(in)    :: arrayname    !< Name
+   type(elsi_handle), intent(in)                 :: e_h          !< Handle
+   complex(kind=r8),  intent(inout), allocatable :: array(:,:,:) !< Data
+   character(len=*),  intent(in)                 :: arrayname    !< Name
 
-   character*200 :: info
+   character*200 :: info_str
 
    if(print_mem) then
-      write(info,"(A,A)") "    Deallocating ",trim(arrayname)
-      call elsi_statement_print(info,e_h)
+      write(info_str,"(A,A)") "    Deallocating ",trim(arrayname)
+      call elsi_statement_print(info_str,e_h)
    endif
 
    deallocate(array)
@@ -760,16 +760,16 @@ subroutine elsi_stop(info,e_h,caller)
    type(elsi_handle), intent(in) :: e_h    !< Handle
    character(len=*),  intent(in) :: caller !< The subroutine in trouble
 
-   character(len=4096) :: string_info
+   character(len=4096) :: info_str
    integer :: i_task
    integer :: mpierr
 
    if(e_h%global_mpi_ready) then
       do i_task = 0,e_h%n_procs_all-1
          if(e_h%myid_all == i_task) then
-            write(string_info,"(1X,' Error! MPI task',I5,' in ',A,': ',A)")&
+            write(info_str,"(' Error! MPI task',I5,' in ',A,': ',A)")&
                e_h%myid_all,trim(caller),trim(info)
-            write(*,'(A)') trim(string_info)
+            write(*,"(A)") trim(info_str)
             exit
          endif
          call MPI_Barrier(e_h%mpi_comm_all,mpierr)
@@ -777,16 +777,16 @@ subroutine elsi_stop(info,e_h,caller)
    elseif(e_h%mpi_ready) then
       do i_task = 0,e_h%n_procs-1
          if(e_h%myid == i_task) then
-            write(string_info,"(1X,' Error! MPI task',I5,' in ',A,': ',A)")&
+            write(info_str,"(' Error! MPI task',I5,' in ',A,': ',A)")&
                e_h%myid,trim(caller),trim(info)
-            write(*,'(A)') trim(string_info)
+            write(*,"(A)") trim(info_str)
             exit
          endif
          call MPI_Barrier(e_h%mpi_comm,mpierr)
       enddo
    else
-      write(string_info,"(1X,' Error!',A,': ',A)") trim(caller),trim(info)
-      write(*,'(A)') trim(string_info)
+      write(info_str,"(' Error!',A,': ',A)") trim(caller),trim(info)
+      write(*,"(A)") trim(info_str)
    endif
 
    stop
@@ -800,8 +800,8 @@ subroutine elsi_set_real_ham(e_h,h_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                             !< Handle
-   real(kind=r8),     target        :: h_in(e_h%n_l_rows,e_h%n_l_cols) !< Hamiltonian matrix
+   type(elsi_handle), intent(inout)         :: e_h                             !< Handle
+   real(kind=r8),     intent(inout), target :: h_in(e_h%n_l_rows,e_h%n_l_cols) !< Hamiltonian matrix
 
    character*40, parameter :: caller = "elsi_set_real_ham"
 
@@ -824,8 +824,8 @@ subroutine elsi_set_complex_ham(e_h,h_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                             !< Handle
-   complex(kind=r8),  target        :: h_in(e_h%n_l_rows,e_h%n_l_cols) !< Hamiltonian matrix
+   type(elsi_handle), intent(inout)         :: e_h                             !< Handle
+   complex(kind=r8),  intent(inout), target :: h_in(e_h%n_l_rows,e_h%n_l_cols) !< Hamiltonian matrix
 
    character*40, parameter :: caller = "elsi_set_complex_ham"
 
@@ -848,8 +848,8 @@ subroutine elsi_set_sparse_real_ham(e_h,h_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                !< Handle
-   real(kind=r8),     target        :: h_in(e_h%nnz_l_sp) !< Hamiltonian matrix
+   type(elsi_handle), intent(inout)         :: e_h                !< Handle
+   real(kind=r8),     intent(inout), target :: h_in(e_h%nnz_l_sp) !< Hamiltonian matrix
 
    character*40, parameter :: caller = "elsi_set_sparse_real_ham"
 
@@ -864,8 +864,8 @@ subroutine elsi_set_sparse_complex_ham(e_h,h_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                !< Handle
-   complex(kind=r8),  target        :: h_in(e_h%nnz_l_sp) !< Hamiltonian matirx
+   type(elsi_handle), intent(inout)         :: e_h                !< Handle
+   complex(kind=r8),  intent(inout), target :: h_in(e_h%nnz_l_sp) !< Hamiltonian matirx
 
    character*40, parameter :: caller = "elsi_set_sparse_complex_ham"
 
@@ -880,8 +880,8 @@ subroutine elsi_set_real_ovlp(e_h,s_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                             !< Handle
-   real(kind=r8),     target        :: s_in(e_h%n_l_rows,e_h%n_l_cols) !< Overlap matrix
+   type(elsi_handle), intent(inout)         :: e_h                             !< Handle
+   real(kind=r8),     intent(inout), target :: s_in(e_h%n_l_rows,e_h%n_l_cols) !< Overlap matrix
 
    character*40, parameter :: caller = "elsi_set_real_ovlp"
 
@@ -906,8 +906,8 @@ subroutine elsi_set_complex_ovlp(e_h,s_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                             !< Handle
-   complex(kind=r8),  target        :: s_in(e_h%n_l_rows,e_h%n_l_cols) !< Overlap matrix
+   type(elsi_handle), intent(inout)         :: e_h                             !< Handle
+   complex(kind=r8),  intent(inout), target :: s_in(e_h%n_l_rows,e_h%n_l_cols) !< Overlap matrix
 
    character*40, parameter :: caller = "elsi_set_complex_ovlp"
 
@@ -932,8 +932,8 @@ subroutine elsi_set_sparse_real_ovlp(e_h,s_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                !< Handle
-   real(kind=r8),     target        :: s_in(e_h%nnz_l_sp) !< Overlap matrix
+   type(elsi_handle), intent(inout)         :: e_h                !< Handle
+   real(kind=r8),     intent(inout), target :: s_in(e_h%nnz_l_sp) !< Overlap matrix
 
    character*40, parameter :: caller = "elsi_set_sparse_real_ovlp"
 
@@ -950,8 +950,8 @@ subroutine elsi_set_sparse_complex_ovlp(e_h,s_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                !< Handle
-   complex(kind=r8),  target        :: s_in(e_h%nnz_l_sp) !< Overlap matrix
+   type(elsi_handle), intent(inout)         :: e_h                !< Handle
+   complex(kind=r8),  intent(inout), target :: s_in(e_h%nnz_l_sp) !< Overlap matrix
 
    character*40, parameter :: caller = "elsi_set_sparse_complex_ovlp"
 
@@ -964,48 +964,48 @@ end subroutine
 !>
 !! This routine sets the eigenvalues.
 !!
-subroutine elsi_set_eval(e_h,e_val_in)
+subroutine elsi_set_eval(e_h,eval_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                   !< Handle
-   real(kind=r8),     target        :: e_val_in(e_h%n_basis) !< Eigenvalues
+   type(elsi_handle), intent(inout)         :: e_h                  !< Handle
+   real(kind=r8),     intent(inout), target :: eval_in(e_h%n_basis) !< Eigenvalues
 
    character*40, parameter :: caller = "elsi_set_eval"
 
-   e_h%eval => e_val_in
+   e_h%eval => eval_in
 
 end subroutine
 
 !>
 !! This routine sets the real eigenvectors.
 !!
-subroutine elsi_set_real_evec(e_h,e_vec_in)
+subroutine elsi_set_real_evec(e_h,evec_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                                 !< Handle
-   real(kind=r8),     target        :: e_vec_in(e_h%n_l_rows,e_h%n_l_cols) !< Eigenvectors
+   type(elsi_handle), intent(inout)         :: e_h                                !< Handle
+   real(kind=r8),     intent(inout), target :: evec_in(e_h%n_l_rows,e_h%n_l_cols) !< Eigenvectors
 
    character*40, parameter :: caller = "elsi_set_real_evec"
 
-   e_h%evec_real => e_vec_in
+   e_h%evec_real => evec_in
 
 end subroutine
 
 !>
 !! This routine sets the complex eigenvectors.
 !!
-subroutine elsi_set_complex_evec(e_h,e_vec_in)
+subroutine elsi_set_complex_evec(e_h,evec_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                                 !< Handle
-   complex(kind=r8),  target        :: e_vec_in(e_h%n_l_rows,e_h%n_l_cols) !< Eigenvectors
+   type(elsi_handle), intent(inout)         :: e_h                                !< Handle
+   complex(kind=r8),  intent(inout), target :: evec_in(e_h%n_l_rows,e_h%n_l_cols) !< Eigenvectors
 
    character*40, parameter :: caller = "elsi_set_complex_evec"
 
-   e_h%evec_cmplx => e_vec_in
+   e_h%evec_cmplx => evec_in
 
 end subroutine
 
@@ -1016,8 +1016,8 @@ subroutine elsi_set_real_dm(e_h,d_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                             !< Handle
-   real(kind=r8),     target        :: d_in(e_h%n_l_rows,e_h%n_l_cols) !< Density matrix
+   type(elsi_handle), intent(inout)         :: e_h                             !< Handle
+   real(kind=r8),     intent(inout), target :: d_in(e_h%n_l_rows,e_h%n_l_cols) !< Density matrix
 
    character*40, parameter :: caller = "elsi_set_real_dm"
 
@@ -1036,8 +1036,8 @@ subroutine elsi_set_complex_dm(e_h,d_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                             !< Handle
-   complex(kind=r8),  target        :: d_in(e_h%n_l_rows,e_h%n_l_cols) !< Density matrix
+   type(elsi_handle), intent(inout)         :: e_h                             !< Handle
+   complex(kind=r8),  intent(inout), target :: d_in(e_h%n_l_rows,e_h%n_l_cols) !< Density matrix
 
    character*40, parameter :: caller = "elsi_set_complex_dm"
 
@@ -1056,8 +1056,8 @@ subroutine elsi_set_sparse_real_dm(e_h,d_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                !< Handle
-   real(kind=r8),     target        :: d_in(e_h%nnz_l_sp) !< Density matrix
+   type(elsi_handle), intent(inout)         :: e_h                !< Handle
+   real(kind=r8),     intent(inout), target :: d_in(e_h%nnz_l_sp) !< Density matrix
 
    character*40, parameter :: caller = "elsi_set_sparse_real_dm"
 
@@ -1072,8 +1072,8 @@ subroutine elsi_set_sparse_complex_dm(e_h,d_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                !< Handle
-   complex(kind=r8),  target        :: d_in(e_h%nnz_l_sp) !< Density matrix
+   type(elsi_handle), intent(inout)         :: e_h                !< Handle
+   complex(kind=r8),  intent(inout), target :: d_in(e_h%nnz_l_sp) !< Density matrix
 
    character*40, parameter :: caller = "elsi_set_sparse_complex_dm"
 
@@ -1088,8 +1088,8 @@ subroutine elsi_set_row_ind(e_h,row_ind_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                      !< Handle
-   integer(kind=i4),  target        :: row_ind_in(e_h%nnz_l_sp) !< Row index
+   type(elsi_handle), intent(inout)        :: e_h                      !< Handle
+   integer(kind=i4),  intent(in),   target :: row_ind_in(e_h%nnz_l_sp) !< Row index
 
    character*40, parameter :: caller = "elsi_set_row_ind"
 
@@ -1104,8 +1104,8 @@ subroutine elsi_set_col_ptr(e_h,col_ptr_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                           !< Handle
-   integer(kind=i4),  target        :: col_ptr_in(e_h%n_l_cols_sp+1) !< Column pointer
+   type(elsi_handle), intent(inout)        :: e_h                           !< Handle
+   integer(kind=i4),  intent(in),   target :: col_ptr_in(e_h%n_l_cols_sp+1) !< Column pointer
 
    character*40, parameter :: caller = "elsi_set_col_ptr"
 

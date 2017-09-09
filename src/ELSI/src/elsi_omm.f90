@@ -272,20 +272,19 @@ subroutine elsi_print_omm_options(e_h)
 
    character*40, parameter :: caller = "elsi_print_omm_options"
 
-   write(info_str,"(A)") "  libOMM settings (in the same unit of Hamiltonian):"
+   write(info_str,"('  libOMM settings (in the same unit of Hamiltonian):')")
    call elsi_statement_print(info_str,e_h)
 
-   write(info_str,"(1X,' | ELPA steps before OMM         ',I10)") &
-      e_h%n_elpa_steps
+   write(info_str,"('  | ELPA steps before OMM         ',I10)") e_h%n_elpa_steps
    call elsi_statement_print(info_str,e_h)
 
-   write(info_str,"(1X,' | libOMM flavor                 ',I10)") e_h%omm_flavor
+   write(info_str,"('  | libOMM flavor                 ',I10)") e_h%omm_flavor
    call elsi_statement_print(info_str,e_h)
 
-   write(info_str,"(1X,' | Tolerance of OMM minimization ',E10.2)") e_h%min_tol
+   write(info_str,"('  | Tolerance of OMM minimization ',E10.2)") e_h%min_tol
    call elsi_statement_print(info_str,e_h)
 
-   write(info_str,"(1X,' | Use PSP sparse linear algebra ',L10)") e_h%use_psp
+   write(info_str,"('  | Use PSP sparse linear algebra ',L10)") e_h%use_psp
    call elsi_statement_print(info_str,e_h)
 
 end subroutine

@@ -108,14 +108,14 @@ subroutine elsi_customize(e_h,print_detail,overlap_is_unit,zero_threshold,&
 
    implicit none
 
-   type(elsi_handle), intent(inout)        :: e_h                   !< Handle
-   logical,           intent(in), optional :: print_detail          !< Print detailed info?
-   logical,           intent(in), optional :: overlap_is_unit       !< Is overlap matrix unit?
-   real(kind=r8),     intent(in), optional :: zero_threshold        !< Threshold to define "zero"
-   logical,           intent(in), optional :: no_singularity_check  !< Do not perform singularity check
-   real(kind=r8),     intent(in), optional :: singularity_tolerance !< Tolerance of overlap singularity
-   logical,           intent(in), optional :: stop_singularity      !< Stop if overlap is singular
-   integer,           intent(in), optional :: uplo                  !< Is input upper/lower triangular?
+   type(elsi_handle), intent(inout)          :: e_h                   !< Handle
+   logical,           intent(in),   optional :: print_detail          !< Print detailed info?
+   logical,           intent(in),   optional :: overlap_is_unit       !< Is overlap matrix unit?
+   real(kind=r8),     intent(in),   optional :: zero_threshold        !< Threshold to define "zero"
+   logical,           intent(in),   optional :: no_singularity_check  !< Do not perform singularity check
+   real(kind=r8),     intent(in),   optional :: singularity_tolerance !< Tolerance of overlap singularity
+   logical,           intent(in),   optional :: stop_singularity      !< Stop if overlap is singular
+   integer,           intent(in),   optional :: uplo                  !< Is input upper/lower triangular?
 
    character*40, parameter :: caller = "elsi_customize"
 
@@ -163,13 +163,13 @@ subroutine elsi_customize_omm(e_h,n_elpa_steps,omm_flavor,eigen_shift,&
 
    implicit none
 
-   type(elsi_handle), intent(inout)        :: e_h           !< Handle
-   integer(kind=i4),  intent(in), optional :: n_elpa_steps  !< Number of ELPA steps
-   integer(kind=i4),  intent(in), optional :: omm_flavor    !< OMM method
-   real(kind=r8),     intent(in), optional :: eigen_shift   !< Eigenspectrum shift
-   real(kind=r8),     intent(in), optional :: omm_tolerance !< Tolerance of minimization
-   logical,           intent(in), optional :: use_pspblas   !< Use PSP sparse linear algebra?
-   logical,           intent(in), optional :: omm_output    !< Output details?
+   type(elsi_handle), intent(inout)          :: e_h           !< Handle
+   integer(kind=i4),  intent(in),   optional :: n_elpa_steps  !< Number of ELPA steps
+   integer(kind=i4),  intent(in),   optional :: omm_flavor    !< OMM method
+   real(kind=r8),     intent(in),   optional :: eigen_shift   !< Eigenspectrum shift
+   real(kind=r8),     intent(in),   optional :: omm_tolerance !< Tolerance of minimization
+   logical,           intent(in),   optional :: use_pspblas   !< Use PSP sparse linear algebra?
+   logical,           intent(in),   optional :: omm_output    !< Output details?
 
    character*40, parameter :: caller = "elsi_customize_omm"
 
@@ -214,24 +214,24 @@ subroutine elsi_customize_pexsi(e_h,temperature,gap,delta_e,n_poles,&
    implicit none
 
    type(elsi_handle), intent(inout)        :: e_h                   !< Handle
-   real(kind=r8),     intent(in), optional :: temperature           !< Temperature
-   real(kind=r8),     intent(in), optional :: gap                   !< Spectral gap
-   real(kind=r8),     intent(in), optional :: delta_e               !< Upper bound of spectral radius of S^(-1)H
-   integer(kind=i4),  intent(in), optional :: n_poles               !< Number of poles
-   integer(kind=i4),  intent(in), optional :: n_procs_per_pole      !< Number of processes for one pole
-   integer(kind=i4),  intent(in), optional :: max_iteration         !< Maximum number of PEXSI iterations
-   real(kind=r8),     intent(in), optional :: mu_min                !< Lower bound of chemical potential
-   real(kind=r8),     intent(in), optional :: mu_max                !< Upper bound of chemical potential
-   real(kind=r8),     intent(in), optional :: mu0                   !< Initial guess of chemical potential
-   real(kind=r8),     intent(in), optional :: mu_inertia_tolerance  !< Tolerance of inertia counting
-   real(kind=r8),     intent(in), optional :: mu_inertia_expansion  !< Expansion step size in inertia counting
-   real(kind=r8),     intent(in), optional :: mu_safeguard          !< Safeguard to reinvoke inertia counting
-   real(kind=r8),     intent(in), optional :: n_electron_accuracy   !< Accuracy of number of electrons
-   integer(kind=i4),  intent(in), optional :: matrix_type           !< Type of input matrices
-   integer(kind=i4),  intent(in), optional :: is_symbolic_factorize !< Perform symbolic factorization?
-   integer(kind=i4),  intent(in), optional :: ordering              !< Ordering strategy
-   integer(kind=i4),  intent(in), optional :: np_symbolic_factorize !< Number of processes for symbolic factorization
-   integer(kind=i4),  intent(in), optional :: verbosity             !< Level of output info
+   real(kind=r8),     intent(in),   optional :: temperature           !< Temperature
+   real(kind=r8),     intent(in),   optional :: gap                   !< Spectral gap
+   real(kind=r8),     intent(in),   optional :: delta_e               !< Upper bound of spectral radius of S^(-1)H
+   integer(kind=i4),  intent(in),   optional :: n_poles               !< Number of poles
+   integer(kind=i4),  intent(in),   optional :: n_procs_per_pole      !< Number of processes for one pole
+   integer(kind=i4),  intent(in),   optional :: max_iteration         !< Maximum number of PEXSI iterations
+   real(kind=r8),     intent(in),   optional :: mu_min                !< Lower bound of chemical potential
+   real(kind=r8),     intent(in),   optional :: mu_max                !< Upper bound of chemical potential
+   real(kind=r8),     intent(in),   optional :: mu0                   !< Initial guess of chemical potential
+   real(kind=r8),     intent(in),   optional :: mu_inertia_tolerance  !< Tolerance of inertia counting
+   real(kind=r8),     intent(in),   optional :: mu_inertia_expansion  !< Expansion step size in inertia counting
+   real(kind=r8),     intent(in),   optional :: mu_safeguard          !< Safeguard to reinvoke inertia counting
+   real(kind=r8),     intent(in),   optional :: n_electron_accuracy   !< Accuracy of number of electrons
+   integer(kind=i4),  intent(in),   optional :: matrix_type           !< Type of input matrices
+   integer(kind=i4),  intent(in),   optional :: is_symbolic_factorize !< Perform symbolic factorization?
+   integer(kind=i4),  intent(in),   optional :: ordering              !< Ordering strategy
+   integer(kind=i4),  intent(in),   optional :: np_symbolic_factorize !< Number of processes for symbolic factorization
+   integer(kind=i4),  intent(in),   optional :: verbosity             !< Level of output info
 
    character*40, parameter :: caller = "elsi_customize_pexsi"
 
@@ -311,9 +311,9 @@ subroutine elsi_customize_elpa(e_h,elpa_solver,elpa_output)
 
    implicit none
 
-   type(elsi_handle), intent(inout)        :: e_h         !< Handle
-   integer(kind=i4),  intent(in), optional :: elpa_solver !< 1-stage or 2-stage solver?
-   logical,           intent(in), optional :: elpa_output !< Output details?
+   type(elsi_handle), intent(inout)          :: e_h         !< Handle
+   integer(kind=i4),  intent(in),   optional :: elpa_solver !< 1-stage or 2-stage solver?
+   logical,           intent(in),   optional :: elpa_output !< Output details?
 
    character*40, parameter :: caller = "elsi_customize_elpa"
 
@@ -334,12 +334,12 @@ subroutine elsi_customize_sips(e_h,slicing_method,n_slices,inertia_option,&
 
    implicit none
 
-   type(elsi_handle), intent(inout)        :: e_h            !< Handle
-   integer(kind=i4),  intent(in), optional :: slicing_method !< Method of slicing
-   integer(kind=i4),  intent(in), optional :: n_slices       !< Number of slices
-   integer(kind=i4),  intent(in), optional :: inertia_option !< Inertia counting before solve?
-   integer(kind=i4),  intent(in), optional :: unbound        !< Bound the left side of the interval?
-   real(kind=r8),     intent(in), optional :: slice_buffer   !< Small buffer to expand the interval
+   type(elsi_handle), intent(inout)          :: e_h            !< Handle
+   integer(kind=i4),  intent(in),   optional :: slicing_method !< Method of slicing
+   integer(kind=i4),  intent(in),   optional :: n_slices       !< Number of slices
+   integer(kind=i4),  intent(in),   optional :: inertia_option !< Inertia counting before solve?
+   integer(kind=i4),  intent(in),   optional :: unbound        !< Bound the left side of the interval?
+   real(kind=r8),     intent(in),   optional :: slice_buffer   !< Small buffer to expand the interval
 
    character*40, parameter :: caller = "elsi_customize_sips"
 
@@ -391,12 +391,12 @@ subroutine elsi_customize_mu(e_h,broadening_scheme,broadening_width,&
 
    implicit none
 
-   type(elsi_handle), intent(inout)        :: e_h               !< Handle
-   integer(kind=i4),  intent(in), optional :: broadening_scheme !< Broadening method
-   real(kind=r8),     intent(in), optional :: broadening_width  !< Broadening width
-   real(kind=r8),     intent(in), optional :: occ_accuracy      !< Accuracy in electron count
-   integer(kind=i4),  intent(in), optional :: mu_max_steps      !< Maximum number of bisection steps
-   real(kind=r8),     intent(in), optional :: spin_degeneracy   !< Spin degeneracy
+   type(elsi_handle), intent(inout)          :: e_h               !< Handle
+   integer(kind=i4),  intent(in),   optional :: broadening_scheme !< Broadening method
+   real(kind=r8),     intent(in),   optional :: broadening_width  !< Broadening width
+   real(kind=r8),     intent(in),   optional :: occ_accuracy      !< Accuracy in electron count
+   integer(kind=i4),  intent(in),   optional :: mu_max_steps      !< Maximum number of bisection steps
+   real(kind=r8),     intent(in),   optional :: spin_degeneracy   !< Spin degeneracy
 
    character*40, parameter :: caller = "elsi_customize_mu"
 
