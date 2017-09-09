@@ -173,8 +173,8 @@ program test_ev_real_sparse
    t1 = MPI_Wtime()
 
    ! Read H and S matrices
-   call elsi_read_mat_dim_sparse(arg2,mpi_comm_global,n_electrons,&
-           matrix_size,nnz_g,nnz_l,n_l_cols)
+   call elsi_read_mat_dim_sparse(arg2,mpi_comm_global,n_electrons,matrix_size,&
+           nnz_g,nnz_l,n_l_cols)
 
    l_rows = numroc(matrix_size,blk,myprow,0,nprow)
    l_cols = numroc(matrix_size,blk,mypcol,0,npcol)
@@ -188,11 +188,11 @@ program test_ev_real_sparse
    allocate(eval(matrix_size))
    allocate(occ(matrix_size))
 
-   call elsi_read_mat_real_sparse(arg2,mpi_comm_global,matrix_size,&
-           nnz_g,nnz_l,n_l_cols,row_ind,col_ptr,ham)
+   call elsi_read_mat_real_sparse(arg2,mpi_comm_global,matrix_size,nnz_g,nnz_l,&
+           n_l_cols,row_ind,col_ptr,ham)
 
-   call elsi_read_mat_real_sparse(arg3,mpi_comm_global,matrix_size,&
-           nnz_g,nnz_l,n_l_cols,row_ind,col_ptr,ovlp)
+   call elsi_read_mat_real_sparse(arg3,mpi_comm_global,matrix_size,nnz_g,nnz_l,&
+           n_l_cols,row_ind,col_ptr,ovlp)
 
    ham_save = ham
 
@@ -238,8 +238,8 @@ program test_ev_real_sparse
 
    t2 = MPI_Wtime()
 
-   call elsi_compute_mu_and_occ(elsi_h,n_electrons,n_states,1,1,&
-           weight,eval,occ,mu)
+   call elsi_compute_mu_and_occ(elsi_h,n_electrons,n_states,1,1,weight,eval,&
+           occ,mu)
 
    e_test = 0.0_r8
 

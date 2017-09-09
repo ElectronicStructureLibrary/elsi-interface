@@ -164,8 +164,8 @@ program test_ev_real
    t1 = MPI_Wtime()
 
    ! Read H and S matrices
-   call elsi_read_mat_dim(arg2,mpi_comm_global,blacs_ctxt,blk,&
-           n_electrons,matrix_size,l_rows,l_cols)
+   call elsi_read_mat_dim(arg2,mpi_comm_global,blacs_ctxt,blk,n_electrons,&
+           matrix_size,l_rows,l_cols)
 
    allocate(ham(l_rows,l_cols))
    allocate(ham_save(l_rows,l_cols))
@@ -175,11 +175,11 @@ program test_ev_real
    allocate(eval(matrix_size))
    allocate(occ(matrix_size))
 
-   call elsi_read_mat_real(arg2,mpi_comm_global,blacs_ctxt,blk,&
-           matrix_size,l_rows,l_cols,ham)
+   call elsi_read_mat_real(arg2,mpi_comm_global,blacs_ctxt,blk,matrix_size,&
+           l_rows,l_cols,ham)
 
-   call elsi_read_mat_real(arg3,mpi_comm_global,blacs_ctxt,blk,&
-           matrix_size,l_rows,l_cols,ovlp)
+   call elsi_read_mat_real(arg3,mpi_comm_global,blacs_ctxt,blk,matrix_size,&
+           l_rows,l_cols,ovlp)
 
    ham_save  = ham
    ovlp_save = ovlp
@@ -235,8 +235,8 @@ program test_ev_real
 
    t2 = MPI_Wtime()
 
-   call elsi_compute_mu_and_occ(elsi_h,n_electrons,n_states,1,1,&
-           weight,eval,occ,mu)
+   call elsi_compute_mu_and_occ(elsi_h,n_electrons,n_states,1,1,weight,eval,&
+           occ,mu)
 
    e_test = 0.0_r8
 

@@ -75,6 +75,7 @@ program test_dm_real_sparse
    real(kind=r8),    allocatable :: ham_save(:)
    real(kind=r8),    allocatable :: ovlp(:)
    real(kind=r8),    allocatable :: dm(:)
+   real(kind=r8),    allocatable :: edm(:)
    integer(kind=i4), allocatable :: row_ind(:)
    integer(kind=i4), allocatable :: col_ptr(:)
 
@@ -184,15 +185,14 @@ program test_dm_real_sparse
       id_in_task = mod(myid,2)
    endif
 
-   call MPI_Comm_split(mpi_comm_global,task_id,id_in_task,&
-           comm_in_task,mpierr)
-   call MPI_Comm_split(mpi_comm_global,id_in_task,task_id,&
-           comm_among_task,mpierr)
+   call MPI_Comm_split(mpi_comm_global,task_id,id_in_task,comm_in_task,mpierr)
+   call MPI_Comm_split(mpi_comm_global,id_in_task,task_id,comm_among_task,&
+           mpierr)
 
    if(task_id == 0) then
       ! Read H and S matrices
-      call elsi_read_mat_dim_sparse(arg2,comm_in_task,n_electrons,&
-              matrix_size,nnz_g,nnz_l,n_l_cols)
+      call elsi_read_mat_dim_sparse(arg2,comm_in_task,n_electrons,matrix_size,&
+              nnz_g,nnz_l,n_l_cols)
    endif
 
    if(solver == 3) then
@@ -217,15 +217,16 @@ program test_dm_real_sparse
    allocate(ham_save(nnz_l))
    allocate(ovlp(nnz_l))
    allocate(dm(nnz_l))
+   allocate(edm(nnz_l))
    allocate(row_ind(nnz_l))
    allocate(col_ptr(n_l_cols+1))
 
    if(task_id == 0) then
-      call elsi_read_mat_real_sparse(arg2,comm_in_task,matrix_size,nnz_g,&
-              nnz_l,n_l_cols,row_ind,col_ptr,ham)
+      call elsi_read_mat_real_sparse(arg2,comm_in_task,matrix_size,nnz_g,nnz_l,&
+              n_l_cols,row_ind,col_ptr,ham)
 
-      call elsi_read_mat_real_sparse(arg3,comm_in_task,matrix_size,nnz_g,&
-              nnz_l,n_l_cols,row_ind,col_ptr,ovlp)
+      call elsi_read_mat_real_sparse(arg3,comm_in_task,matrix_size,nnz_g,nnz_l,&
+              n_l_cols,row_ind,col_ptr,ovlp)
 
       ham_save = ham
    endif
@@ -279,6 +280,9 @@ program test_dm_real_sparse
 
    t2 = MPI_Wtime()
 
+   ! Compute energy density matrix
+   call elsi_get_edm_real_sparse(elsi_h,edm)
+
    if(myid == 0) then
       write(*,'("  Finished SCF #2")')
       write(*,'("  | Time :",F10.3,"s")') t2-t1
@@ -302,6 +306,7 @@ program test_dm_real_sparse
    deallocate(ham_save)
    deallocate(ovlp)
    deallocate(dm)
+   deallocate(edm)
    deallocate(row_ind)
    deallocate(col_ptr)
 

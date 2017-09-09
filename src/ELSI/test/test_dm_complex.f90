@@ -69,6 +69,7 @@ program test_dm_complex
    complex(kind=r8), allocatable :: ham_save(:,:)
    complex(kind=r8), allocatable :: ovlp(:,:)
    complex(kind=r8), allocatable :: dm(:,:)
+   complex(kind=r8), allocatable :: edm(:,:)
 
    type(elsi_handle) :: elsi_h
 
@@ -112,7 +113,7 @@ program test_dm_complex
    endif
 
    if(myid == 0) then
-      e_tol = 1e-8_r8
+      e_tol = 1.0e-8_r8
       write(*,'("  ################################")')
       write(*,'("  ##     ELSI TEST PROGRAMS     ##")')
       write(*,'("  ################################")')
@@ -148,7 +149,7 @@ program test_dm_complex
          write(*,*)
          write(*,'("  Now start testing  elsi_dm_complex + PEXSI")')
          e_ref = e_pexsi
-         e_tol = 1e-4_r8
+         e_tol = 1.0e-4_r8
       endif
       write(*,*)
    endif
@@ -169,19 +170,20 @@ program test_dm_complex
    t1 = MPI_Wtime()
 
    ! Read H and S matrices
-   call elsi_read_mat_dim(arg2,mpi_comm_global,blacs_ctxt,blk,&
-           n_electrons,matrix_size,l_rows,l_cols)
+   call elsi_read_mat_dim(arg2,mpi_comm_global,blacs_ctxt,blk,n_electrons,&
+           matrix_size,l_rows,l_cols)
 
    allocate(ham(l_rows,l_cols))
    allocate(ham_save(l_rows,l_cols))
    allocate(ovlp(l_rows,l_cols))
    allocate(dm(l_rows,l_cols))
+   allocate(edm(l_rows,l_cols))
 
-   call elsi_read_mat_complex(arg2,mpi_comm_global,blacs_ctxt,blk,&
-           matrix_size,l_rows,l_cols,ham)
+   call elsi_read_mat_complex(arg2,mpi_comm_global,blacs_ctxt,blk,matrix_size,&
+           l_rows,l_cols,ham)
 
-   call elsi_read_mat_complex(arg3,mpi_comm_global,blacs_ctxt,blk,&
-           matrix_size,l_rows,l_cols,ovlp)
+   call elsi_read_mat_complex(arg3,mpi_comm_global,blacs_ctxt,blk,matrix_size,&
+           l_rows,l_cols,ovlp)
 
    ham_save = ham
 
@@ -228,6 +230,9 @@ program test_dm_complex
 
    t2 = MPI_Wtime()
 
+   ! Compute energy density matrix
+   call elsi_get_edm_complex(elsi_h,edm)
+
    if(myid == 0) then
       write(*,'("  Finished SCF #2")')
       write(*,'("  | Time :",F10.3,"s")') t2-t1
@@ -251,6 +256,7 @@ program test_dm_complex
    deallocate(ham_save)
    deallocate(ovlp)
    deallocate(dm)
+   deallocate(edm)
 
    call MPI_Finalize(mpierr)
 

@@ -69,6 +69,7 @@ program test_dm_real
    real(kind=r8), allocatable :: ham_save(:,:)
    real(kind=r8), allocatable :: ovlp(:,:)
    real(kind=r8), allocatable :: dm(:,:)
+   real(kind=r8), allocatable :: edm(:,:)
 
    type(elsi_handle) :: elsi_h
 
@@ -169,19 +170,20 @@ program test_dm_real
    t1 = MPI_Wtime()
 
    ! Read H and S matrices
-   call elsi_read_mat_dim(arg2,mpi_comm_global,blacs_ctxt,blk,&
-           n_electrons,matrix_size,l_rows,l_cols)
+   call elsi_read_mat_dim(arg2,mpi_comm_global,blacs_ctxt,blk,n_electrons,&
+           matrix_size,l_rows,l_cols)
 
    allocate(ham(l_rows,l_cols))
    allocate(ham_save(l_rows,l_cols))
    allocate(ovlp(l_rows,l_cols))
    allocate(dm(l_rows,l_cols))
+   allocate(edm(l_rows,l_cols))
 
-   call elsi_read_mat_real(arg2,mpi_comm_global,blacs_ctxt,blk,&
-           matrix_size,l_rows,l_cols,ham)
+   call elsi_read_mat_real(arg2,mpi_comm_global,blacs_ctxt,blk,matrix_size,&
+           l_rows,l_cols,ham)
 
-   call elsi_read_mat_real(arg3,mpi_comm_global,blacs_ctxt,blk,&
-           matrix_size,l_rows,l_cols,ovlp)
+   call elsi_read_mat_real(arg3,mpi_comm_global,blacs_ctxt,blk,matrix_size,&
+           l_rows,l_cols,ovlp)
 
    ham_save = ham
 
@@ -228,6 +230,9 @@ program test_dm_real
 
    t2 = MPI_Wtime()
 
+   ! Compute energy density matrix
+   call elsi_get_edm_real(elsi_h,edm)
+
    if(myid == 0) then
       write(*,'("  Finished SCF #2")')
       write(*,'("  | Time :",F10.3,"s")') t2-t1
@@ -251,6 +256,7 @@ program test_dm_real
    deallocate(ham_save)
    deallocate(ovlp)
    deallocate(dm)
+   deallocate(edm)
 
    call MPI_Finalize(mpierr)
 

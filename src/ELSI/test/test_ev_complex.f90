@@ -117,7 +117,7 @@ program test_ev_complex
    endif
 
    if(myid == 0) then
-      e_tol = 1e-8_r8
+      e_tol = 1.0e-8_r8
       write(*,'("  ################################")')
       write(*,'("  ##     ELSI TEST PROGRAMS     ##")')
       write(*,'("  ################################")')
@@ -165,8 +165,8 @@ program test_ev_complex
    t1 = MPI_Wtime()
 
    ! Read H and S matrices
-   call elsi_read_mat_dim(arg2,mpi_comm_global,blacs_ctxt,blk,&
-           n_electrons,matrix_size,l_rows,l_cols)
+   call elsi_read_mat_dim(arg2,mpi_comm_global,blacs_ctxt,blk,n_electrons,&
+           matrix_size,l_rows,l_cols)
 
    allocate(ham(l_rows,l_cols))
    allocate(ham_save(l_rows,l_cols))
@@ -176,11 +176,11 @@ program test_ev_complex
    allocate(eval(matrix_size))
    allocate(occ(matrix_size))
 
-   call elsi_read_mat_complex(arg2,mpi_comm_global,blacs_ctxt,blk,&
-           matrix_size,l_rows,l_cols,ham)
+   call elsi_read_mat_complex(arg2,mpi_comm_global,blacs_ctxt,blk,matrix_size,&
+           l_rows,l_cols,ham)
 
-   call elsi_read_mat_complex(arg3,mpi_comm_global,blacs_ctxt,blk,&
-           matrix_size,l_rows,l_cols,ovlp)
+   call elsi_read_mat_complex(arg3,mpi_comm_global,blacs_ctxt,blk,matrix_size,&
+           l_rows,l_cols,ovlp)
 
    ham_save  = ham
    ovlp_save = ovlp
@@ -236,8 +236,8 @@ program test_ev_complex
 
    t2 = MPI_Wtime()
 
-   call elsi_compute_mu_and_occ(elsi_h,n_electrons,n_states,1,1,&
-           weight,eval,occ,mu)
+   call elsi_compute_mu_and_occ(elsi_h,n_electrons,n_states,1,1,weight,eval,&
+           occ,mu)
 
    e_test = 0.0_r8
 
