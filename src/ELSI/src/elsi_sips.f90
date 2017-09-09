@@ -51,53 +51,51 @@ contains
 !>
 !! This routine initializes SIPs.
 !!
-subroutine elsi_init_sips(elsi_h)
+subroutine elsi_init_sips(e_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h !< Handle
+   type(elsi_handle), intent(inout) :: e_h !< Handle
 
    character*200 :: info_str
 
    character*40, parameter :: caller = "elsi_init_sips"
 
-   if(elsi_h%n_elsi_calls == 1) then
+   if(e_h%n_elsi_calls == 1) then
       call initialize_qetsc()
 
-      if(elsi_h%n_slices == UNSET) then
+      if(e_h%n_slices == UNSET) then
          ! TODO: Number of slices
-         elsi_h%n_p_per_slice = 1
-         elsi_h%n_slices = elsi_h%n_procs
+         e_h%n_p_per_slice = 1
+         e_h%n_slices = e_h%n_procs
       endif
 
       ! 1D block distribution
-      elsi_h%n_l_cols_sp = elsi_h%n_basis/elsi_h%n_procs
+      e_h%n_l_cols_sp = e_h%n_basis/e_h%n_procs
 
       ! The last process holds all remaining columns
-      if(elsi_h%myid == elsi_h%n_procs-1) then
-         elsi_h%n_l_cols_sp = elsi_h%n_basis-&
-                                 (elsi_h%n_procs-1)*elsi_h%n_l_cols_sp
+      if(e_h%myid == e_h%n_procs-1) then
+         e_h%n_l_cols_sp = e_h%n_basis-(e_h%n_procs-1)*e_h%n_l_cols_sp
       endif
 
-      call elsi_allocate(elsi_h,elsi_h%slices,elsi_h%n_slices+1,&
-              "slices",caller)
+      call elsi_allocate(e_h,e_h%slices,e_h%n_slices+1,"slices",caller)
 
-      elsi_h%sips_started = .true.
+      e_h%sips_started = .true.
    endif
 
-   write(info_str,"(1X,' | Number of slices ',I7)") elsi_h%n_slices
-   call elsi_statement_print(info_str,elsi_h)
+   write(info_str,"(1X,' | Number of slices ',I7)") e_h%n_slices
+   call elsi_statement_print(info_str,e_h)
 
 end subroutine
 
 !>
 !! This routine interfaces to SIPs via QETSC.
 !!
-subroutine elsi_solve_evp_sips(elsi_h)
+subroutine elsi_solve_evp_sips(e_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h !< Handle
+   type(elsi_handle), intent(inout) :: e_h !< Handle
 
    integer(kind=i4) :: n_solve_steps
    real(kind=r8)    :: t0
@@ -111,17 +109,17 @@ subroutine elsi_solve_evp_sips(elsi_h)
    character*40, parameter :: caller = "elsi_solve_evp_sips"
 
    ! Solve the eigenvalue problem
-   call elsi_statement_print("  Starting SIPs eigensolver",elsi_h)
+   call elsi_statement_print("  Starting SIPs eigensolver",e_h)
 
-   if(elsi_h%n_elsi_calls == 1) then
+   if(e_h%n_elsi_calls == 1) then
       ! Load H matrix
-      call eps_load_ham(elsi_h%n_basis,elsi_h%n_l_cols_sp,elsi_h%nnz_l_sp,&
-              elsi_h%row_ind_ccs,elsi_h%col_ptr_ccs,elsi_h%ham_real_ccs)
+      call eps_load_ham(e_h%n_basis,e_h%n_l_cols_sp,e_h%nnz_l_sp,&
+              e_h%row_ind_ccs,e_h%col_ptr_ccs,e_h%ham_real_ccs)
 
-      if(.not. elsi_h%ovlp_is_unit) then
+      if(.not. e_h%ovlp_is_unit) then
          ! Load S matrix
-         call eps_load_ovlp(elsi_h%n_basis,elsi_h%n_l_cols_sp,elsi_h%nnz_l_sp,&
-                 elsi_h%row_ind_ccs,elsi_h%col_ptr_ccs,elsi_h%ovlp_real_ccs)
+         call eps_load_ovlp(e_h%n_basis,e_h%n_l_cols_sp,e_h%nnz_l_sp,&
+                 e_h%row_ind_ccs,e_h%col_ptr_ccs,e_h%ovlp_real_ccs)
 
          call set_eps(math,mats)
       else
@@ -129,86 +127,83 @@ subroutine elsi_solve_evp_sips(elsi_h)
       endif
 
       ! Estimate the lower and upper bounds of eigenvalues
-      elsi_h%interval = get_eps_interval()
+      e_h%interval = get_eps_interval()
 
       ! Compute slicing
-      call compute_subintervals(elsi_h%n_slices,0,elsi_h%unbound,&
-              elsi_h%interval,0.0_r8,0.0_r8,elsi_h%slices)
+      call compute_subintervals(e_h%n_slices,0,e_h%unbound,e_h%interval,0.0_r8,&
+              0.0_r8,e_h%slices)
 
       ! Run inertia counting
-      if((elsi_h%inertia_option > 0) .and. (elsi_h%n_slices > 1)) then
-         call elsi_get_time(elsi_h,t0)
+      if(e_h%inertia_option > 0 .and. e_h%n_slices > 1) then
+         call elsi_get_time(e_h,t0)
 
-         call elsi_allocate(elsi_h,inertias,elsi_h%n_slices+1,"inertias",caller)
-         call elsi_allocate(elsi_h,shifts,elsi_h%n_slices+1,"shifts",caller)
+         call elsi_allocate(e_h,inertias,e_h%n_slices+1,"inertias",caller)
+         call elsi_allocate(e_h,shifts,e_h%n_slices+1,"shifts",caller)
 
-         call run_eps_inertias_check(elsi_h%unbound,elsi_h%n_states,&
-                 elsi_h%n_slices,elsi_h%slices,shifts,inertias,n_solve_steps)
+         call run_eps_inertias_check(e_h%unbound,e_h%n_states,e_h%n_slices,&
+                 e_h%slices,shifts,inertias,n_solve_steps)
 
-         call inertias_to_eigenvalues(elsi_h%n_slices+1,elsi_h%n_states,&
-                 elsi_h%slice_buffer,shifts,inertias,&
-                 elsi_h%eval(1:elsi_h%n_states))
+         call inertias_to_eigenvalues(e_h%n_slices+1,e_h%n_states,&
+                 e_h%slice_buffer,shifts,inertias,e_h%eval(1:e_h%n_states))
 
-         call compute_subintervals(elsi_h%n_slices,elsi_h%slicing_method,&
-                 elsi_h%unbound,elsi_h%interval,0.0_r8,0.0_r8,elsi_h%slices,&
-                 elsi_h%eval(1:elsi_h%n_states))
+         call compute_subintervals(e_h%n_slices,e_h%slicing_method,e_h%unbound,&
+                 e_h%interval,0.0_r8,0.0_r8,e_h%slices,e_h%eval(1:e_h%n_states))
 
-         call elsi_deallocate(elsi_h,inertias,"inertias")
-         call elsi_deallocate(elsi_h,shifts,"shifts")
+         call elsi_deallocate(e_h,inertias,"inertias")
+         call elsi_deallocate(e_h,shifts,"shifts")
 
-         call elsi_get_time(elsi_h,t1)
+         call elsi_get_time(e_h,t1)
 
          write(info_str,"('  Finished inertia counting')")
-         call elsi_statement_print(info_str,elsi_h)
+         call elsi_statement_print(info_str,e_h)
          write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-         call elsi_statement_print(info_str,elsi_h)
+         call elsi_statement_print(info_str,e_h)
       endif
    else ! n_elsi_calls > 1
       ! Update H matrix
-      call eps_update_ham(elsi_h%n_basis,elsi_h%n_l_cols_sp,elsi_h%nnz_l_sp,&
-              elsi_h%row_ind_ccs,elsi_h%col_ptr_ccs,elsi_h%ham_real_ccs)
+      call eps_update_ham(e_h%n_basis,e_h%n_l_cols_sp,e_h%nnz_l_sp,&
+              e_h%row_ind_ccs,e_h%col_ptr_ccs,e_h%ham_real_ccs)
 
-      call update_eps(elsi_h%n_slices)
+      call update_eps(e_h%n_slices)
 
-      elsi_h%interval(1) = elsi_h%eval(1)-elsi_h%slice_buffer
-      elsi_h%interval(2) = elsi_h%eval(elsi_h%n_states)+elsi_h%slice_buffer
+      e_h%interval(1) = e_h%eval(1)-e_h%slice_buffer
+      e_h%interval(2) = e_h%eval(e_h%n_states)+e_h%slice_buffer
 
-      call compute_subintervals(elsi_h%n_slices,elsi_h%slicing_method,&
-              elsi_h%unbound,elsi_h%interval,elsi_h%slice_buffer,1.0e-6_r8,&
-              elsi_h%slices,elsi_h%eval(1:elsi_h%n_states))
+      call compute_subintervals(e_h%n_slices,e_h%slicing_method,e_h%unbound,&
+              e_h%interval,e_h%slice_buffer,1.0e-6_r8,e_h%slices,&
+              e_h%eval(1:e_h%n_states))
    endif
 
-   call set_eps_subintervals(elsi_h%n_slices,elsi_h%slices)
+   call set_eps_subintervals(e_h%n_slices,e_h%slices)
 
-   call elsi_get_time(elsi_h,t0)
+   call elsi_get_time(e_h,t0)
 
    ! Solve
-   call solve_eps_check(elsi_h%n_states,elsi_h%n_slices,elsi_h%slices,&
-           n_solve_steps)
+   call solve_eps_check(e_h%n_states,e_h%n_slices,e_h%slices,n_solve_steps)
 
    ! Get eigenvalues
-   elsi_h%eval(1:elsi_h%n_states) = get_eps_eigenvalues(elsi_h%n_states)
+   e_h%eval(1:e_h%n_states) = get_eps_eigenvalues(e_h%n_states)
 
-   call MPI_Barrier(elsi_h%mpi_comm,mpierr)
+   call MPI_Barrier(e_h%mpi_comm,mpierr)
 
-   call elsi_get_time(elsi_h,t1)
+   call elsi_get_time(e_h,t1)
 
    write(info_str,"('  Finished solving generalized eigenproblem')")
-   call elsi_statement_print(info_str,elsi_h)
+   call elsi_statement_print(info_str,e_h)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_statement_print(info_str,elsi_h)
+   call elsi_statement_print(info_str,e_h)
 
 end subroutine
 
 !>
-!! This routine gets the eigenvectors computed by SIPs and distributes
-!! them in a 2D block-cyclic fashion.
+!! This routine gets the eigenvectors computed by SIPs and distributes them in a
+!! 2D block-cyclic fashion.
 !!
-subroutine elsi_sips_to_blacs_ev(elsi_h)
+subroutine elsi_sips_to_blacs_ev(e_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h !< Handle
+   type(elsi_handle), intent(inout) :: e_h !< Handle
 
    integer(kind=i4) :: i_state
    integer(kind=i4) :: i_row
@@ -225,56 +220,56 @@ subroutine elsi_sips_to_blacs_ev(elsi_h)
 
    character*40, parameter :: caller = "elsi_distribute_ev"
 
-   call elsi_get_time(elsi_h,t0)
+   call elsi_get_time(e_h,t0)
 
-   call elsi_allocate(elsi_h,tmp_real,elsi_h%n_basis,"tmp_real",caller)
+   call elsi_allocate(e_h,tmp_real,e_h%n_basis,"tmp_real",caller)
 
-   elsi_h%evec_real = 0.0_r8
+   e_h%evec_real = 0.0_r8
 
-   do i_state = 1,elsi_h%n_states
-      call get_eps_eigenvectors(elsi_h%n_basis,i_state,tmp_real)
+   do i_state = 1,e_h%n_states
+      call get_eps_eigenvectors(e_h%n_basis,i_state,tmp_real)
 
-      this_p_col = mod((i_state-1)/elsi_h%n_b_cols,elsi_h%n_p_cols)
+      this_p_col = mod((i_state-1)/e_h%n_b_cols,e_h%n_p_cols)
 
-      if(elsi_h%my_p_col == this_p_col) then
-         i_col = (i_state-1)/(elsi_h%n_p_cols*elsi_h%n_b_cols)*elsi_h%n_b_cols&
-                    +mod((i_state-1),elsi_h%n_b_cols)+1
+      if(e_h%my_p_col == this_p_col) then
+         i_col = (i_state-1)/(e_h%n_p_cols*e_h%n_b_cols)*e_h%n_b_cols+&
+                    mod((i_state-1),e_h%n_b_cols)+1
 
-         do i_row = 1,elsi_h%n_l_rows,elsi_h%n_b_rows
-            i_row2 = i_row+elsi_h%n_b_rows-1
+         do i_row = 1,e_h%n_l_rows,e_h%n_b_rows
+            i_row2 = i_row+e_h%n_b_rows-1
 
-            call elsi_get_global_row(elsi_h,g_row,i_row)
-            call elsi_get_global_row(elsi_h,g_row2,i_row2)
+            call elsi_get_global_row(e_h,g_row,i_row)
+            call elsi_get_global_row(e_h,g_row2,i_row2)
 
-            if(g_row2 > elsi_h%n_basis) then
-               g_row2 = elsi_h%n_basis
+            if(g_row2 > e_h%n_basis) then
+               g_row2 = e_h%n_basis
                i_row2 = i_row+g_row2-g_row
             endif
 
-            elsi_h%evec_real(i_row:i_row2,i_col) = tmp_real(g_row:g_row2)
+            e_h%evec_real(i_row:i_row2,i_col) = tmp_real(g_row:g_row2)
          enddo
       endif
    enddo
 
-   call elsi_deallocate(elsi_h,tmp_real,"tmp_real")
+   call elsi_deallocate(e_h,tmp_real,"tmp_real")
 
-   call elsi_get_time(elsi_h,t1)
+   call elsi_get_time(e_h,t1)
 
    write(info_str,"('  Finished matrix redistribution')")
-   call elsi_statement_print(info_str,elsi_h)
+   call elsi_statement_print(info_str,e_h)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_statement_print(info_str,elsi_h)
+   call elsi_statement_print(info_str,e_h)
 
 end subroutine
 
 !>
 !! This routine sets default SIPs parameters.
 !!
-subroutine elsi_set_sips_default(elsi_h)
+subroutine elsi_set_sips_default(e_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h !< Handle
+   type(elsi_handle), intent(inout) :: e_h !< Handle
 
    character*40, parameter :: caller = "elsi_set_sips_default"
 
@@ -283,51 +278,51 @@ subroutine elsi_set_sips_default(elsi_h)
    ! 1 = K-meaans after equally spaced subintervals
    ! 2 = Equally populated subintervals
    ! 3 = K-means after equally populated
-   elsi_h%slicing_method = 3
+   e_h%slicing_method = 3
 
    ! Extra inertia computations before solve?
    ! 0 = No
    ! 1 = Yes
-   elsi_h%inertia_option = 0
+   e_h%inertia_option = 0
 
    ! How to bound the left side of the interval
    ! 0 = Bounded
    ! 1 = -infinity
-   elsi_h%unbound = 0
+   e_h%unbound = 0
 
    ! Small buffer to expand the eigenvalue interval
    ! Smaller values improve performance if eigenvalue range known
-   elsi_h%slice_buffer = 0.5_r8
+   e_h%slice_buffer = 0.5_r8
 
 end subroutine
 
 !>
 !! This routine prints SIPs settings.
 !!
-subroutine elsi_print_sips_options(elsi_h)
+subroutine elsi_print_sips_options(e_h)
 
    implicit none
 
-   type(elsi_handle), intent(in) :: elsi_h !< Handle
+   type(elsi_handle), intent(in) :: e_h !< Handle
 
    character*200 :: info_str
 
    character*40, parameter :: caller = "elsi_print_sips_options"
 
    write(info_str,"(A)") "  SIPs settings:"
-   call elsi_statement_print(info_str,elsi_h)
+   call elsi_statement_print(info_str,e_h)
 
-   write(info_str,"(1X,' | Slicing method ',I10)") elsi_h%slicing_method
-   call elsi_statement_print(info_str,elsi_h)
+   write(info_str,"(1X,' | Slicing method ',I10)") e_h%slicing_method
+   call elsi_statement_print(info_str,e_h)
 
-   write(info_str,"(1X,' | Inertia option ',I10)") elsi_h%inertia_option
-   call elsi_statement_print(info_str,elsi_h)
+   write(info_str,"(1X,' | Inertia option ',I10)") e_h%inertia_option
+   call elsi_statement_print(info_str,e_h)
 
-   write(info_str,"(1X,' | Left bound     ',I10)") elsi_h%unbound
-   call elsi_statement_print(info_str,elsi_h)
+   write(info_str,"(1X,' | Left bound     ',I10)") e_h%unbound
+   call elsi_statement_print(info_str,e_h)
 
-   write(info_str,"(1X,' | Slice buffer   ',E10.2)") elsi_h%slice_buffer
-   call elsi_statement_print(info_str,elsi_h)
+   write(info_str,"(1X,' | Slice buffer   ',E10.2)") e_h%slice_buffer
+   call elsi_statement_print(info_str,e_h)
 
 end subroutine
 

@@ -45,8 +45,8 @@ module ELSI_C_INTERFACE
 
 contains
 
-subroutine elsi_init_c_wrapper(handle_c,solver,parallel_mode,&
-              matrix_format,n_basis,n_electron,n_state)&
+subroutine elsi_init_c_wrapper(handle_c,solver,parallel_mode,matrix_format,&
+              n_basis,n_electron,n_state)&
    bind(C,name="c_elsi_init")
 
    implicit none
@@ -63,8 +63,8 @@ subroutine elsi_init_c_wrapper(handle_c,solver,parallel_mode,&
 
    allocate(handle_f)
 
-   call elsi_init(handle_f,solver,parallel_mode,matrix_format,&
-           n_basis,n_electron,n_state)
+   call elsi_init(handle_f,solver,parallel_mode,matrix_format,n_basis,&
+           n_electron,n_state)
 
    handle_c = c_loc(handle_f)
 
@@ -164,8 +164,8 @@ subroutine elsi_set_blacs_c_wrapper(handle_c,blacs_ctxt,block_size)&
 
 end subroutine
 
-subroutine elsi_set_csc_c_wrapper(handle_c,nnz_g,nnz_l,n_l_cols,&
-              row_ind,col_ptr)&
+subroutine elsi_set_csc_c_wrapper(handle_c,nnz_g,nnz_l,n_l_cols,row_ind,&
+              col_ptr)&
    bind(C,name="c_elsi_set_csc")
 
    implicit none
@@ -202,9 +202,9 @@ subroutine elsi_finalize_c_wrapper(handle_c)&
 
 end subroutine
 
-subroutine elsi_customize_c_wrapper(handle_c,print_detail,&
-              overlap_is_unit,zero_threshold,no_singularity_check,&
-              singularity_tolerance,stop_singularity,uplo)&
+subroutine elsi_customize_c_wrapper(handle_c,print_detail,overlap_is_unit,&
+              zero_threshold,no_singularity_check,singularity_tolerance,&
+              stop_singularity,uplo)&
    bind(C,name="c_elsi_customize")
 
    implicit none
@@ -232,8 +232,8 @@ subroutine elsi_customize_c_wrapper(handle_c,print_detail,&
    call c_f_pointer(handle_c,handle_f)
 
    call elsi_customize(handle_f,print_detail_f,overlap_is_unit_f,&
-           zero_threshold,no_singularity_check_f,&
-           singularity_tolerance,stop_singularity_f,uplo)
+           zero_threshold,no_singularity_check_f,singularity_tolerance,&
+           stop_singularity_f,uplo)
 
 end subroutine
 
@@ -282,17 +282,16 @@ subroutine elsi_customize_omm_c_wrapper(handle_c,n_elpa_steps,omm_flavor,&
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_customize_omm(handle_f,n_elpa_steps,omm_flavor,&
-           eigen_shift,omm_tolerance,use_pspblas_f,omm_output_f)
+   call elsi_customize_omm(handle_f,n_elpa_steps,omm_flavor,eigen_shift,&
+           omm_tolerance,use_pspblas_f,omm_output_f)
 
 end subroutine
 
-subroutine elsi_customize_pexsi_c_wrapper(handle_c,temperature,gap,&
-              delta_e,n_poles,n_procs_per_pole,max_iteration,mu_min,&
-              mu_max,mu0,mu_inertia_tolerance,mu_inertia_expansion,&
-              mu_safeguard,n_electron_accuracy,matrix_type,&
-              is_symbolic_factorize,ordering,np_symbolic_factorize,&
-              verbosity)&
+subroutine elsi_customize_pexsi_c_wrapper(handle_c,temperature,gap,delta_e,&
+              n_poles,n_procs_per_pole,max_iteration,mu_min,mu_max,mu0,&
+              mu_inertia_tolerance,mu_inertia_expansion,mu_safeguard,&
+              n_electron_accuracy,matrix_type,is_symbolic_factorize,ordering,&
+              np_symbolic_factorize,verbosity)&
    bind(C,name="c_elsi_customize_pexsi")
 
    implicit none
@@ -324,13 +323,12 @@ subroutine elsi_customize_pexsi_c_wrapper(handle_c,temperature,gap,&
    call elsi_customize_pexsi(handle_f,temperature,gap,delta_e,n_poles,&
            n_procs_per_pole,max_iteration,mu_min,mu_max,mu0,&
            mu_inertia_tolerance,mu_inertia_expansion,mu_safeguard,&
-           n_electron_accuracy,matrix_type,is_symbolic_factorize,&
-           ordering,np_symbolic_factorize,verbosity)
+           n_electron_accuracy,matrix_type,is_symbolic_factorize,ordering,&
+           np_symbolic_factorize,verbosity)
 
 end subroutine
 
-subroutine elsi_customize_elpa_c_wrapper(handle_c,elpa_solver,&
-              elpa_output)&
+subroutine elsi_customize_elpa_c_wrapper(handle_c,elpa_solver,elpa_output)&
    bind(C,name="c_elsi_customize_elpa")
 
    implicit none
@@ -1184,8 +1182,8 @@ subroutine elsi_get_edm_complex_c_wrapper(handle_c,edm)&
 
 end subroutine
 
-subroutine elsi_read_mat_dim_c_wrapper(name_c,mpi_comm,blacs_ctxt,&
-              block_size,n_electrons,n_basis,n_l_rows,n_l_cols)&
+subroutine elsi_read_mat_dim_c_wrapper(name_c,mpi_comm,blacs_ctxt,block_size,&
+              n_electrons,n_basis,n_l_rows,n_l_cols)&
    bind(C,name="c_elsi_read_mat_dim")
 
    implicit none
@@ -1203,13 +1201,13 @@ subroutine elsi_read_mat_dim_c_wrapper(name_c,mpi_comm,blacs_ctxt,&
 
    name_f = c_string_to_f_string(name_c)
 
-   call elsi_read_mat_dim(name_f,mpi_comm,blacs_ctxt,block_size,&
-           n_electrons,n_basis,n_l_rows,n_l_cols)
+   call elsi_read_mat_dim(name_f,mpi_comm,blacs_ctxt,block_size,n_electrons,&
+           n_basis,n_l_rows,n_l_cols)
 
 end subroutine
 
-subroutine elsi_read_mat_dim_sparse_c_wrapper(name_c,mpi_comm,&
-              n_electrons,n_basis,nnz_g,nnz_l,n_l_cols)&
+subroutine elsi_read_mat_dim_sparse_c_wrapper(name_c,mpi_comm,n_electrons,&
+              n_basis,nnz_g,nnz_l,n_l_cols)&
    bind(C,name="c_elsi_read_mat_dim_sparse")
 
    implicit none
@@ -1226,13 +1224,13 @@ subroutine elsi_read_mat_dim_sparse_c_wrapper(name_c,mpi_comm,&
 
    name_f = c_string_to_f_string(name_c)
 
-   call elsi_read_mat_dim_sparse(name_f,mpi_comm,n_electrons,n_basis,&
-           nnz_g,nnz_l,n_l_cols)
+   call elsi_read_mat_dim_sparse(name_f,mpi_comm,n_electrons,n_basis,nnz_g,&
+           nnz_l,n_l_cols)
 
 end subroutine
 
-subroutine elsi_read_mat_real_c_wrapper(name_c,mpi_comm,blacs_ctxt,&
-              block_size,n_basis,n_l_rows,n_l_cols,mat)&
+subroutine elsi_read_mat_real_c_wrapper(name_c,mpi_comm,blacs_ctxt,block_size,&
+              n_basis,n_l_rows,n_l_cols,mat)&
    bind(C,name="c_elsi_read_mat_real")
 
    implicit none
@@ -1255,8 +1253,8 @@ subroutine elsi_read_mat_real_c_wrapper(name_c,mpi_comm,blacs_ctxt,&
 
 end subroutine
 
-subroutine elsi_read_mat_real_sparse_c_wrapper(name_c,mpi_comm,n_basis,&
-              nnz_g,nnz_l,n_l_cols,row_ind,col_ptr,mat)&
+subroutine elsi_read_mat_real_sparse_c_wrapper(name_c,mpi_comm,n_basis,nnz_g,&
+              nnz_l,n_l_cols,row_ind,col_ptr,mat)&
    bind(C,name="c_elsi_read_mat_real_sparse")
 
    implicit none
@@ -1275,13 +1273,13 @@ subroutine elsi_read_mat_real_sparse_c_wrapper(name_c,mpi_comm,n_basis,&
 
    name_f = c_string_to_f_string(name_c)
 
-   call elsi_read_mat_real_sparse(name_f,mpi_comm,n_basis,nnz_g,nnz_l,&
-           n_l_cols,row_ind,col_ptr,mat)
+   call elsi_read_mat_real_sparse(name_f,mpi_comm,n_basis,nnz_g,nnz_l,n_l_cols,&
+           row_ind,col_ptr,mat)
 
 end subroutine
 
-subroutine elsi_write_mat_real_c_wrapper(name_c,mpi_comm,blacs_ctxt,&
-              block_size,n_electrons,n_basis,n_l_rows,n_l_cols,mat)&
+subroutine elsi_write_mat_real_c_wrapper(name_c,mpi_comm,blacs_ctxt,block_size,&
+              n_electrons,n_basis,n_l_rows,n_l_cols,mat)&
    bind(C,name="c_elsi_write_mat_real")
 
    implicit none
@@ -1300,14 +1298,13 @@ subroutine elsi_write_mat_real_c_wrapper(name_c,mpi_comm,blacs_ctxt,&
 
    name_f = c_string_to_f_string(name_c)
 
-   call elsi_write_mat_real(name_f,mpi_comm,blacs_ctxt,block_size,&
-           n_electrons,n_basis,n_l_rows,n_l_cols,mat)
+   call elsi_write_mat_real(name_f,mpi_comm,blacs_ctxt,block_size,n_electrons,&
+           n_basis,n_l_rows,n_l_cols,mat)
 
 end subroutine
 
-subroutine elsi_write_mat_real_sparse_c_wrapper(name_c,mpi_comm,&
-              n_electrons,n_basis,nnz_g,nnz_l,n_l_cols,row_ind,&
-              col_ptr,mat)&
+subroutine elsi_write_mat_real_sparse_c_wrapper(name_c,mpi_comm,n_electrons,&
+              n_basis,nnz_g,nnz_l,n_l_cols,row_ind,col_ptr,mat)&
    bind(C,name="c_elsi_write_mat_real_sparse")
 
    implicit none
@@ -1327,8 +1324,8 @@ subroutine elsi_write_mat_real_sparse_c_wrapper(name_c,mpi_comm,&
 
    name_f = c_string_to_f_string(name_c)
 
-   call elsi_write_mat_real_sparse(name_f,mpi_comm,n_electrons,n_basis,&
-           nnz_g,nnz_l,n_l_cols,row_ind,col_ptr,mat)
+   call elsi_write_mat_real_sparse(name_f,mpi_comm,n_electrons,n_basis,nnz_g,&
+           nnz_l,n_l_cols,row_ind,col_ptr,mat)
 
 end subroutine
 
@@ -1351,13 +1348,13 @@ subroutine elsi_read_mat_complex_c_wrapper(name_c,mpi_comm,blacs_ctxt,&
 
    name_f = c_string_to_f_string(name_c)
 
-   call elsi_read_mat_complex(name_f,mpi_comm,blacs_ctxt,block_size,&
-           n_basis,n_l_rows,n_l_cols,mat)
+   call elsi_read_mat_complex(name_f,mpi_comm,blacs_ctxt,block_size,n_basis,&
+           n_l_rows,n_l_cols,mat)
 
 end subroutine
 
-subroutine elsi_read_mat_complex_sparse_c_wrapper(name_c,mpi_comm,&
-              n_basis,nnz_g,nnz_l,n_l_cols,row_ind,col_ptr,mat)&
+subroutine elsi_read_mat_complex_sparse_c_wrapper(name_c,mpi_comm,n_basis,&
+              nnz_g,nnz_l,n_l_cols,row_ind,col_ptr,mat)&
    bind(C,name="c_elsi_read_mat_complex_sparse")
 
    implicit none
@@ -1376,8 +1373,8 @@ subroutine elsi_read_mat_complex_sparse_c_wrapper(name_c,mpi_comm,&
 
    name_f = c_string_to_f_string(name_c)
 
-   call elsi_read_mat_complex_sparse(name_f,mpi_comm,n_basis,nnz_g,&
-           nnz_l,n_l_cols,row_ind,col_ptr,mat)
+   call elsi_read_mat_complex_sparse(name_f,mpi_comm,n_basis,nnz_g,nnz_l,&
+           n_l_cols,row_ind,col_ptr,mat)
 
 end subroutine
 
@@ -1406,8 +1403,8 @@ subroutine elsi_write_mat_complex_c_wrapper(name_c,mpi_comm,blacs_ctxt,&
 
 end subroutine
 
-subroutine elsi_write_mat_complex_sparse_c_wrapper(name_c,mpi_comm,&
-              n_electrons,n_basis,nnz_g,nnz_l,n_l_cols,row_ind,col_ptr,mat)&
+subroutine elsi_write_mat_complex_sparse_c_wrapper(name_c,mpi_comm,n_electrons,&
+              n_basis,nnz_g,nnz_l,n_l_cols,row_ind,col_ptr,mat)&
    bind(C,name="c_elsi_write_mat_complex_sparse")
 
    implicit none
@@ -1427,8 +1424,8 @@ subroutine elsi_write_mat_complex_sparse_c_wrapper(name_c,mpi_comm,&
 
    name_f = c_string_to_f_string(name_c)
 
-   call elsi_write_mat_complex_sparse(name_f,mpi_comm,n_electrons,&
-           n_basis,nnz_g,nnz_l,n_l_cols,row_ind,col_ptr,mat)
+   call elsi_write_mat_complex_sparse(name_f,mpi_comm,n_electrons,n_basis,&
+           nnz_g,nnz_l,n_l_cols,row_ind,col_ptr,mat)
 
 end subroutine
 

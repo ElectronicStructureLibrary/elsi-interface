@@ -57,11 +57,11 @@ module ELSI_IO
 contains
 
 !>
-!! This routine reads the dimensions of a 2D block-cyclic dense matrix
-!! from file.
+!! This routine reads the dimensions of a 2D block-cyclic dense matrix from
+!! file.
 !!
-subroutine elsi_read_mat_dim(f_name,mpi_comm,blacs_ctxt,block_size,&
-              n_electron,n_basis,n_l_rows,n_l_cols)
+subroutine elsi_read_mat_dim(f_name,mpi_comm,blacs_ctxt,block_size,n_electron,&
+              n_basis,n_l_rows,n_l_cols)
 
    implicit none
 
@@ -122,8 +122,8 @@ end subroutine
 !>
 !! This routine reads the dimensions of a 1D block CSC matrix from file.
 !!
-subroutine elsi_read_mat_dim_sparse(f_name,mpi_comm,n_electron,n_basis,&
-              nnz_g,nnz_l,n_l_cols)
+subroutine elsi_read_mat_dim_sparse(f_name,mpi_comm,n_electron,n_basis,nnz_g,&
+              nnz_l,n_l_cols)
 
    implicit none
 
@@ -207,8 +207,8 @@ end subroutine
 !>
 !! This routine reads a 2D block-cyclic dense matrix from file.
 !!
-subroutine elsi_read_mat_real(f_name,mpi_comm,blacs_ctxt,block_size,&
-              n_basis,n_l_rows,n_l_cols,mat)
+subroutine elsi_read_mat_real(f_name,mpi_comm,blacs_ctxt,block_size,n_basis,&
+              n_l_rows,n_l_cols,mat)
 
    implicit none
 
@@ -424,8 +424,8 @@ end subroutine
 !>
 !! This routine reads a 2D block-cyclic dense matrix from file.
 !!
-subroutine elsi_read_mat_complex(f_name,mpi_comm,blacs_ctxt,block_size,&
-              n_basis,n_l_rows,n_l_cols,mat)
+subroutine elsi_read_mat_complex(f_name,mpi_comm,blacs_ctxt,block_size,n_basis,&
+              n_l_rows,n_l_cols,mat)
 
    implicit none
 
@@ -557,8 +557,8 @@ end subroutine
 !>
 !! This routine reads a 1D block CSC matrix from file.
 !!
-subroutine elsi_read_mat_complex_sparse(f_name,mpi_comm,n_basis,nnz_g,&
-              nnz_l,n_l_cols,row_ind,col_ptr,mat)
+subroutine elsi_read_mat_complex_sparse(f_name,mpi_comm,n_basis,nnz_g,nnz_l,&
+              n_l_cols,row_ind,col_ptr,mat)
 
    implicit none
 
@@ -863,8 +863,8 @@ end subroutine
 !>
 !! This routine writes a 1D block CSC matrix to file.
 !!
-subroutine elsi_write_mat_real_sparse(f_name,mpi_comm,n_electron,n_basis,&
-              nnz_g,nnz_l,n_l_cols,row_ind,col_ptr,mat)
+subroutine elsi_write_mat_real_sparse(f_name,mpi_comm,n_electron,n_basis,nnz_g,&
+              nnz_l,n_l_cols,row_ind,col_ptr,mat)
 
    implicit none
 
@@ -966,8 +966,8 @@ end subroutine
 !>
 !! This routine writes a 1D block CSC matrix to file.
 !!
-subroutine elsi_write_mat_complex_sparse(f_name,mpi_comm,n_electron,&
-              n_basis,nnz_g,nnz_l,n_l_cols,row_ind,col_ptr,mat)
+subroutine elsi_write_mat_complex_sparse(f_name,mpi_comm,n_electron,n_basis,&
+              nnz_g,nnz_l,n_l_cols,row_ind,col_ptr,mat)
 
    implicit none
 

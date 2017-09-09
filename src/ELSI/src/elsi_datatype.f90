@@ -83,7 +83,7 @@ module ELSI_DATATYPE
       ! libOMM
       type(Matrix)                  :: ham_omm             ! Hamiltonian
       type(Matrix)                  :: ovlp_omm            ! Overlap
-      type(Matrix)                  :: coeff_omm           ! Coefficient matrix
+      type(Matrix)                  :: coeff               ! Coefficient matrix
       type(Matrix)                  :: dm_omm              ! Density matrix
       type(Matrix)                  :: tdm_omm             ! Kinetic energy density matrix
       real(kind=r8),    allocatable :: ovlp_real_omm(:,:)  ! Copy of real overlap

@@ -51,11 +51,11 @@ contains
 !>
 !! This routine initializes PEXSI and its processor grid.
 !!
-subroutine elsi_init_pexsi(elsi_h)
+subroutine elsi_init_pexsi(e_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h !< Handle
+   type(elsi_handle), intent(inout) :: e_h !< Handle
 
    integer(kind=i4) :: n_rows_tmp
    integer(kind=i4) :: output_id
@@ -65,75 +65,71 @@ subroutine elsi_init_pexsi(elsi_h)
 
    character*40, parameter :: caller = "elsi_init_pexsi"
 
-   if(elsi_h%n_elsi_calls == 1) then
-      if(elsi_h%n_p_per_pole == UNSET) then
-         elsi_h%n_p_per_pole = elsi_h%n_procs/(elsi_h%pexsi_options%numPole*&
-                                  elsi_h%pexsi_options%nPoints)
+   if(e_h%n_elsi_calls == 1) then
+      if(e_h%n_p_per_pole == UNSET) then
+         e_h%n_p_per_pole = e_h%n_procs/(e_h%pexsi_options%numPole*&
+                               e_h%pexsi_options%nPoints)
       endif
 
       write(info_str,"(1X,' | Number of MPI tasks per pole           ',I10)") &
-         elsi_h%n_p_per_pole
-      call elsi_statement_print(info_str,elsi_h)
+         e_h%n_p_per_pole
+      call elsi_statement_print(info_str,e_h)
 
       ! Set square-like process grid for selected inversion of each pole
-      do n_rows_tmp = nint(sqrt(real(elsi_h%n_p_per_pole))),2,-1
-         if(mod(elsi_h%n_p_per_pole,n_rows_tmp) == 0) exit
+      do n_rows_tmp = nint(sqrt(real(e_h%n_p_per_pole))),2,-1
+         if(mod(e_h%n_p_per_pole,n_rows_tmp) == 0) exit
       enddo
 
-      elsi_h%n_p_rows_pexsi = n_rows_tmp
-      elsi_h%n_p_cols_pexsi = elsi_h%n_p_per_pole/n_rows_tmp
+      e_h%n_p_rows_pexsi = n_rows_tmp
+      e_h%n_p_cols_pexsi = e_h%n_p_per_pole/n_rows_tmp
 
       ! PEXSI process grid
-      elsi_h%my_p_col_pexsi = mod(elsi_h%myid,elsi_h%n_p_per_pole)
-      elsi_h%my_p_row_pexsi = elsi_h%myid/elsi_h%n_p_per_pole
+      e_h%my_p_col_pexsi = mod(e_h%myid,e_h%n_p_per_pole)
+      e_h%my_p_row_pexsi = e_h%myid/e_h%n_p_per_pole
 
       ! Point parallelization
-      elsi_h%n_p_per_point = elsi_h%n_procs/elsi_h%pexsi_options%nPoints
-      elsi_h%my_point      = elsi_h%myid/elsi_h%n_p_per_point
-      elsi_h%myid_point    = mod(elsi_h%myid,elsi_h%n_p_per_point)
+      e_h%n_p_per_point = e_h%n_procs/e_h%pexsi_options%nPoints
+      e_h%my_point      = e_h%myid/e_h%n_p_per_point
+      e_h%myid_point    = mod(e_h%myid,e_h%n_p_per_point)
 
       ! PEXSI MPI communicators
-      call MPI_Comm_split(elsi_h%mpi_comm,elsi_h%my_p_col_pexsi,&
-              elsi_h%my_p_row_pexsi,elsi_h%comm_among_pole,mpierr)
+      call MPI_Comm_split(e_h%mpi_comm,e_h%my_p_col_pexsi,e_h%my_p_row_pexsi,&
+              e_h%comm_among_pole,mpierr)
 
-      call MPI_Comm_split(elsi_h%mpi_comm,elsi_h%my_p_row_pexsi,&
-              elsi_h%my_p_col_pexsi,elsi_h%comm_in_pole,mpierr)
+      call MPI_Comm_split(e_h%mpi_comm,e_h%my_p_row_pexsi,e_h%my_p_col_pexsi,&
+              e_h%comm_in_pole,mpierr)
 
-      call MPI_Comm_split(elsi_h%mpi_comm,elsi_h%myid_point,&
-              elsi_h%my_point,elsi_h%comm_among_point,mpierr)
+      call MPI_Comm_split(e_h%mpi_comm,e_h%myid_point,e_h%my_point,&
+              e_h%comm_among_point,mpierr)
 
-      call MPI_Comm_split(elsi_h%mpi_comm,elsi_h%my_point,&
-              elsi_h%myid_point,elsi_h%comm_in_point,mpierr)
+      call MPI_Comm_split(e_h%mpi_comm,e_h%my_point,e_h%myid_point,&
+              e_h%comm_in_point,mpierr)
 
-      if(.not. elsi_h%sparsity_ready) then
+      if(.not. e_h%sparsity_ready) then
          ! Set up 1D block distribution
-         elsi_h%n_l_cols_sp = elsi_h%n_basis/elsi_h%n_p_per_pole
+         e_h%n_l_cols_sp = e_h%n_basis/e_h%n_p_per_pole
 
          ! The last process holds all remaining columns
-         if(elsi_h%my_p_col_pexsi == elsi_h%n_p_per_pole-1) then
-            elsi_h%n_l_cols_sp = elsi_h%n_basis-&
-                                    (elsi_h%n_p_per_pole-1)*&
-                                    elsi_h%n_l_cols_sp
+         if(e_h%my_p_col_pexsi == e_h%n_p_per_pole-1) then
+            e_h%n_l_cols_sp = e_h%n_basis-(e_h%n_p_per_pole-1)*e_h%n_l_cols_sp
          endif
       endif
 
       ! Only one process outputs
-      if(elsi_h%myid_all == 0) then
+      if(e_h%myid_all == 0) then
          output_id = 0
       else
          output_id = -1
       endif
 
-      elsi_h%pexsi_plan = f_ppexsi_plan_initialize(elsi_h%mpi_comm,&
-                             elsi_h%n_p_rows_pexsi,elsi_h%n_p_cols_pexsi,&
-                             output_id,ierr)
+      e_h%pexsi_plan = f_ppexsi_plan_initialize(e_h%mpi_comm,&
+                          e_h%n_p_rows_pexsi,e_h%n_p_cols_pexsi,output_id,ierr)
 
       if(ierr /= 0) then
-         call elsi_stop(" PEXSI initialization failed. Exiting...",&
-                  elsi_h,caller)
+         call elsi_stop(" PEXSI initialization failed. Exiting...",e_h,caller)
       endif
 
-      elsi_h%pexsi_started = .true.
+      e_h%pexsi_started = .true.
    endif
 
 end subroutine
@@ -141,11 +137,11 @@ end subroutine
 !>
 !! This routine interfaces to PEXSI.
 !!
-subroutine elsi_solve_evp_pexsi(elsi_h)
+subroutine elsi_solve_evp_pexsi(e_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h !< Handle
+   type(elsi_handle), intent(inout) :: e_h !< Handle
 
    real(kind=r8)    :: ne_drv
    real(kind=r8)    :: mu_range
@@ -182,137 +178,131 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
    character*40,  parameter :: caller = "elsi_solve_evp_pexsi"
 
    ! Load sparse matrices for PEXSI
-   select case(elsi_h%matrix_data_type)
+   select case(e_h%matrix_data_type)
    case(REAL_VALUES)
-      if(elsi_h%ovlp_is_unit) then
-         call f_ppexsi_load_real_hs_matrix(elsi_h%pexsi_plan,&
-                 elsi_h%pexsi_options,elsi_h%n_basis,elsi_h%nnz_g,&
-                 elsi_h%nnz_l_sp,elsi_h%n_l_cols_sp,elsi_h%col_ptr_ccs,&
-                 elsi_h%row_ind_ccs,elsi_h%ham_real_ccs,1,&
-                 elsi_h%ovlp_real_ccs,ierr)
+      if(e_h%ovlp_is_unit) then
+         call f_ppexsi_load_real_hs_matrix(e_h%pexsi_plan,e_h%pexsi_options,&
+                 e_h%n_basis,e_h%nnz_g,e_h%nnz_l_sp,e_h%n_l_cols_sp,&
+                 e_h%col_ptr_ccs,e_h%row_ind_ccs,e_h%ham_real_ccs,1,&
+                 e_h%ovlp_real_ccs,ierr)
       else
-         call f_ppexsi_load_real_hs_matrix(elsi_h%pexsi_plan,&
-                 elsi_h%pexsi_options,elsi_h%n_basis,elsi_h%nnz_g,&
-                 elsi_h%nnz_l_sp,elsi_h%n_l_cols_sp,elsi_h%col_ptr_ccs,&
-                 elsi_h%row_ind_ccs,elsi_h%ham_real_ccs,0,&
-                 elsi_h%ovlp_real_ccs,ierr)
+         call f_ppexsi_load_real_hs_matrix(e_h%pexsi_plan,e_h%pexsi_options,&
+                 e_h%n_basis,e_h%nnz_g,e_h%nnz_l_sp,e_h%n_l_cols_sp,&
+                 e_h%col_ptr_ccs,e_h%row_ind_ccs,e_h%ham_real_ccs,0,&
+                 e_h%ovlp_real_ccs,ierr)
       endif
    case(COMPLEX_VALUES)
-      if(elsi_h%ovlp_is_unit) then
-         call f_ppexsi_load_complex_hs_matrix(elsi_h%pexsi_plan,&
-                 elsi_h%pexsi_options,elsi_h%n_basis,elsi_h%nnz_g,&
-                 elsi_h%nnz_l_sp,elsi_h%n_l_cols_sp,elsi_h%col_ptr_ccs,&
-                 elsi_h%row_ind_ccs,elsi_h%ham_cmplx_ccs,1,&
-                 elsi_h%ovlp_cmplx_ccs,ierr)
+      if(e_h%ovlp_is_unit) then
+         call f_ppexsi_load_complex_hs_matrix(e_h%pexsi_plan,e_h%pexsi_options,&
+                 e_h%n_basis,e_h%nnz_g,e_h%nnz_l_sp,e_h%n_l_cols_sp,&
+                 e_h%col_ptr_ccs,e_h%row_ind_ccs,e_h%ham_cmplx_ccs,1,&
+                 e_h%ovlp_cmplx_ccs,ierr)
       else
-         call f_ppexsi_load_complex_hs_matrix(elsi_h%pexsi_plan,&
-                 elsi_h%pexsi_options,elsi_h%n_basis,elsi_h%nnz_g,&
-                 elsi_h%nnz_l_sp,elsi_h%n_l_cols_sp,elsi_h%col_ptr_ccs,&
-                 elsi_h%row_ind_ccs,elsi_h%ham_cmplx_ccs,0,&
-                 elsi_h%ovlp_cmplx_ccs,ierr)
+         call f_ppexsi_load_complex_hs_matrix(e_h%pexsi_plan,e_h%pexsi_options,&
+                 e_h%n_basis,e_h%nnz_g,e_h%nnz_l_sp,e_h%n_l_cols_sp,&
+                 e_h%col_ptr_ccs,e_h%row_ind_ccs,e_h%ham_cmplx_ccs,0,&
+                 e_h%ovlp_cmplx_ccs,ierr)
       endif
    end select
 
    if(ierr /= 0) then
-      call elsi_stop(" PEXSI load matrices failed. Exiting...",elsi_h,caller)
+      call elsi_stop(" PEXSI load matrices failed. Exiting...",e_h,caller)
    endif
 
-   call elsi_statement_print("  Starting PEXSI density matrix solver",elsi_h)
+   call elsi_statement_print("  Starting PEXSI density matrix solver",e_h)
 
    ! Symbolic factorization
-   if(elsi_h%n_elsi_calls == 1) then
-      call elsi_get_time(elsi_h,t0)
+   if(e_h%n_elsi_calls == 1) then
+      call elsi_get_time(e_h,t0)
 
-      select case(elsi_h%matrix_data_type)
+      select case(e_h%matrix_data_type)
       case(REAL_VALUES)
-         call f_ppexsi_symbolic_factorize_real_symmetric_matrix(&
-                 elsi_h%pexsi_plan,elsi_h%pexsi_options,ierr)
+         call f_ppexsi_symbolic_factorize_real_symmetric_matrix(e_h%pexsi_plan,&
+                 e_h%pexsi_options,ierr)
 
          call f_ppexsi_symbolic_factorize_complex_symmetric_matrix(&
-                 elsi_h%pexsi_plan,elsi_h%pexsi_options,ierr)
+                 e_h%pexsi_plan,e_h%pexsi_options,ierr)
       case(COMPLEX_VALUES)
          call f_ppexsi_symbolic_factorize_complex_symmetric_matrix(&
-                 elsi_h%pexsi_plan,elsi_h%pexsi_options,ierr)
+                 e_h%pexsi_plan,e_h%pexsi_options,ierr)
 
          call f_ppexsi_symbolic_factorize_complex_unsymmetric_matrix(&
-                 elsi_h%pexsi_plan,elsi_h%pexsi_options,&
-                 elsi_h%ovlp_cmplx_ccs,ierr)
+                 e_h%pexsi_plan,e_h%pexsi_options,e_h%ovlp_cmplx_ccs,ierr)
       end select
 
-      call elsi_get_time(elsi_h,t1)
+      call elsi_get_time(e_h,t1)
 
       write(info_str,"('  Finished symbolic factorization')")
-      call elsi_statement_print(info_str,elsi_h)
+      call elsi_statement_print(info_str,e_h)
       write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-      call elsi_statement_print(info_str,elsi_h)
+      call elsi_statement_print(info_str,e_h)
    endif
 
    if(ierr /= 0) then
-      call elsi_stop(" Symbolic factorization failed. Exiting...",&
-              elsi_h,caller)
+      call elsi_stop(" Symbolic factorization failed. Exiting...",e_h,caller)
    endif
 
    ! Inertia counting
-   call elsi_get_time(elsi_h,t0)
+   call elsi_get_time(e_h,t0)
 
    n_iner_steps = 0
-   mu_range = elsi_h%pexsi_options%muMax0-elsi_h%pexsi_options%muMin0
-   n_shift = max(10,elsi_h%n_procs/elsi_h%n_p_per_pole)
+   mu_range = e_h%pexsi_options%muMax0-e_h%pexsi_options%muMin0
+   n_shift = max(10,e_h%n_procs/e_h%n_p_per_pole)
 
-   call elsi_allocate(elsi_h,shifts,n_shift,"shifts",caller)
-   call elsi_allocate(elsi_h,inertias,n_shift,"inertias",caller)
-   call elsi_allocate(elsi_h,ne_lower,n_shift,"ne_lower",caller)
-   call elsi_allocate(elsi_h,ne_upper,n_shift,"ne_upper",caller)
+   call elsi_allocate(e_h,shifts,n_shift,"shifts",caller)
+   call elsi_allocate(e_h,inertias,n_shift,"inertias",caller)
+   call elsi_allocate(e_h,ne_lower,n_shift,"ne_lower",caller)
+   call elsi_allocate(e_h,ne_upper,n_shift,"ne_upper",caller)
 
-   if(.not. elsi_h%spin_is_set) then
-      if(elsi_h%n_spins == 2) then
-         elsi_h%spin_degen = 1.0_r8
+   if(.not. e_h%spin_is_set) then
+      if(e_h%n_spins == 2) then
+         e_h%spin_degen = 1.0_r8
       else
-         elsi_h%spin_degen = 2.0_r8
+         e_h%spin_degen = 2.0_r8
       endif
    endif
 
-   do while((n_iner_steps < 10) .and. &
-            (mu_range > elsi_h%pexsi_options%muInertiaTolerance))
+   do while(n_iner_steps < 10 .and. &
+            mu_range > e_h%pexsi_options%muInertiaTolerance)
       n_iner_steps = n_iner_steps+1
 
       shift_width = mu_range/(n_shift-1)
 
       ne_lower = 0.0_r8
-      ne_upper = elsi_h%n_basis*elsi_h%spin_degen
+      ne_upper = e_h%n_basis*e_h%spin_degen
 
       do i = 1,n_shift
-         shifts(i)   = elsi_h%pexsi_options%muMin0+(i-1)*shift_width
+         shifts(i)   = e_h%pexsi_options%muMin0+(i-1)*shift_width
       enddo
 
-      select case(elsi_h%matrix_data_type)
+      select case(e_h%matrix_data_type)
       case(REAL_VALUES)
-         call f_ppexsi_inertia_count_real_matrix(elsi_h%pexsi_plan,&
-                 elsi_h%pexsi_options,n_shift,shifts,inertias,ierr)
+         call f_ppexsi_inertia_count_real_matrix(e_h%pexsi_plan,&
+                 e_h%pexsi_options,n_shift,shifts,inertias,ierr)
       case(COMPLEX_VALUES)
-         call f_ppexsi_inertia_count_complex_matrix(elsi_h%pexsi_plan,&
-                 elsi_h%pexsi_options,n_shift,shifts,inertias,ierr)
+         call f_ppexsi_inertia_count_complex_matrix(e_h%pexsi_plan,&
+                 e_h%pexsi_options,n_shift,shifts,inertias,ierr)
       end select
 
-      inertias = inertias*elsi_h%spin_degen*elsi_h%i_weight
+      inertias = inertias*e_h%spin_degen*e_h%i_weight
 
       ! Get global inertias
-      if(elsi_h%n_spins*elsi_h%n_kpts > 1) then
-         call elsi_allocate(elsi_h,send_buf,n_shift,"send_buf",caller)
+      if(e_h%n_spins*e_h%n_kpts > 1) then
+         call elsi_allocate(e_h,send_buf,n_shift,"send_buf",caller)
 
-         if(elsi_h%myid == 0) then
+         if(e_h%myid == 0) then
             send_buf = inertias
          else
             send_buf = 0.0_r8
          endif
 
-         call MPI_Allreduce(send_buf,inertias,n_shift,mpi_real8,&
-                 mpi_sum,elsi_h%mpi_comm_all,mpierr)
+         call MPI_Allreduce(send_buf,inertias,n_shift,mpi_real8,mpi_sum,&
+                 e_h%mpi_comm_all,mpierr)
 
-         call elsi_deallocate(elsi_h,send_buf,"send_buf")
+         call elsi_deallocate(e_h,send_buf,"send_buf")
       endif
 
-      idx = ceiling(3*elsi_h%pexsi_options%temperature/shift_width)
+      idx = ceiling(3*e_h%pexsi_options%temperature/shift_width)
 
       do i = idx+1,n_shift
          ne_lower(i) = 0.5_r8*(inertias(i-idx)+inertias(i))
@@ -323,167 +313,161 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
       aux_max = n_shift
 
       do i = 2,n_shift-1
-         if((ne_upper(i) < elsi_h%n_electrons) .and. &
-            (ne_upper(i+1) >= elsi_h%n_electrons))  then
+         if(ne_upper(i) < e_h%n_electrons .and. &
+            ne_upper(i+1) >= e_h%n_electrons)  then
             aux_min = i
          endif
 
-         if((ne_lower(i) > elsi_h%n_electrons) .and. &
-            (ne_lower(i-1) <= elsi_h%n_electrons)) then
+         if(ne_lower(i) > e_h%n_electrons .and. &
+            ne_lower(i-1) <= e_h%n_electrons) then
             aux_max = i
          endif
       enddo
 
-      if((aux_min == 1) .and. (aux_max == n_shift)) then
+      if(aux_min == 1 .and. aux_max == n_shift) then
          exit
       else
-         elsi_h%pexsi_options%muMin0 = shifts(aux_min)
-         elsi_h%pexsi_options%muMax0 = shifts(aux_max)
-         mu_range = elsi_h%pexsi_options%muMax0-elsi_h%pexsi_options%muMin0
+         e_h%pexsi_options%muMin0 = shifts(aux_min)
+         e_h%pexsi_options%muMax0 = shifts(aux_max)
+         mu_range = e_h%pexsi_options%muMax0-e_h%pexsi_options%muMin0
       endif
    enddo
 
-   call elsi_deallocate(elsi_h,shifts,"shifts")
-   call elsi_deallocate(elsi_h,inertias,"inertias")
-   call elsi_deallocate(elsi_h,ne_lower,"ne_lower")
-   call elsi_deallocate(elsi_h,ne_upper,"ne_upper")
+   call elsi_deallocate(e_h,shifts,"shifts")
+   call elsi_deallocate(e_h,inertias,"inertias")
+   call elsi_deallocate(e_h,ne_lower,"ne_lower")
+   call elsi_deallocate(e_h,ne_upper,"ne_upper")
 
-   call elsi_get_time(elsi_h,t1)
+   call elsi_get_time(e_h,t1)
 
    if(n_iner_steps > 0) then
       write(info_str,"('  Finished inertia counting')")
-      call elsi_statement_print(info_str,elsi_h)
+      call elsi_statement_print(info_str,e_h)
       write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-      call elsi_statement_print(info_str,elsi_h)
+      call elsi_statement_print(info_str,e_h)
    endif
 
    if(ierr /= 0) then
-      call elsi_stop(" Inertia counting failed. Exiting...",elsi_h,caller)
+      call elsi_stop(" Inertia counting failed. Exiting...",e_h,caller)
    endif
 
    ! Fermi operator expansion
-   call elsi_get_time(elsi_h,t0)
+   call elsi_get_time(e_h,t0)
 
-   shift_width = mu_range/(elsi_h%pexsi_options%nPoints+1)
+   shift_width = mu_range/(e_h%pexsi_options%nPoints+1)
 
-   call elsi_allocate(elsi_h,shifts,elsi_h%pexsi_options%nPoints,&
-           "shifts",caller)
+   call elsi_allocate(e_h,shifts,e_h%pexsi_options%nPoints,"shifts",caller)
 
-   do i = 1,elsi_h%pexsi_options%nPoints
-      shifts(i) = elsi_h%pexsi_options%muMin0+i*shift_width
+   do i = 1,e_h%pexsi_options%nPoints
+      shifts(i) = e_h%pexsi_options%muMin0+i*shift_width
    enddo
 
-   do i = 1,elsi_h%pexsi_options%nPoints
-      elsi_h%mu = shifts(i)
+   do i = 1,e_h%pexsi_options%nPoints
+      e_h%mu = shifts(i)
 
-      if(elsi_h%my_point == i-1) then
-         select case(elsi_h%matrix_data_type)
+      if(e_h%my_point == i-1) then
+         select case(e_h%matrix_data_type)
          case(REAL_VALUES)
-            call f_ppexsi_calculate_fermi_operator_real3(elsi_h%pexsi_plan,&
-                    elsi_h%pexsi_options,elsi_h%mu,elsi_h%n_electrons,&
-                    elsi_h%ne_pexsi,ne_drv,ierr)
+            call f_ppexsi_calculate_fermi_operator_real3(e_h%pexsi_plan,&
+                    e_h%pexsi_options,e_h%mu,e_h%n_electrons,e_h%ne_pexsi,&
+                    ne_drv,ierr)
          case(COMPLEX_VALUES)
-            call f_ppexsi_calculate_fermi_operator_complex(elsi_h%pexsi_plan,&
-                    elsi_h%pexsi_options,elsi_h%mu,elsi_h%n_electrons,&
-                    elsi_h%ne_pexsi,ne_drv,ierr)
+            call f_ppexsi_calculate_fermi_operator_complex(e_h%pexsi_plan,&
+                    e_h%pexsi_options,e_h%mu,e_h%n_electrons,e_h%ne_pexsi,&
+                    ne_drv,ierr)
          end select
       endif
    enddo
 
-   call elsi_allocate(elsi_h,send_buf,elsi_h%pexsi_options%nPoints,&
-           "send_buf",caller)
+   call elsi_allocate(e_h,send_buf,e_h%pexsi_options%nPoints,"send_buf",caller)
 
-   if(elsi_h%n_elsi_calls == 1) then
-      call elsi_allocate(elsi_h,elsi_h%ne_vec,elsi_h%pexsi_options%nPoints,&
-              "ne_vec",caller)
+   if(e_h%n_elsi_calls == 1) then
+      call elsi_allocate(e_h,e_h%ne_vec,e_h%pexsi_options%nPoints,"ne_vec",&
+              caller)
    endif
 
-   send_buf(elsi_h%my_point+1) = elsi_h%ne_pexsi*elsi_h%i_weight
+   send_buf(e_h%my_point+1) = e_h%ne_pexsi*e_h%i_weight
 
-   call MPI_Allreduce(send_buf,elsi_h%ne_vec,elsi_h%pexsi_options%nPoints,&
-           mpi_real8,mpi_sum,elsi_h%comm_among_point,mpierr)
+   call MPI_Allreduce(send_buf,e_h%ne_vec,e_h%pexsi_options%nPoints,mpi_real8,&
+           mpi_sum,e_h%comm_among_point,mpierr)
 
    ! Get global number of electrons
-   if(elsi_h%n_spins*elsi_h%n_kpts > 1) then
-      if(elsi_h%myid == 0) then
-         send_buf = elsi_h%ne_vec
+   if(e_h%n_spins*e_h%n_kpts > 1) then
+      if(e_h%myid == 0) then
+         send_buf = e_h%ne_vec
       else
          send_buf = 0.0_r8
       endif
 
-      call MPI_Allreduce(send_buf,elsi_h%ne_vec,elsi_h%pexsi_options%nPoints,&
-              mpi_real8,mpi_sum,elsi_h%mpi_comm_all,mpierr)
+      call MPI_Allreduce(send_buf,e_h%ne_vec,e_h%pexsi_options%nPoints,&
+              mpi_real8,mpi_sum,e_h%mpi_comm_all,mpierr)
    endif
 
-   call elsi_deallocate(elsi_h,send_buf,"send_buf")
+   call elsi_deallocate(e_h,send_buf,"send_buf")
 
-   call elsi_get_time(elsi_h,t1)
+   call elsi_get_time(e_h,t1)
 
    write(info_str,"('  Finished Fermi operator calculation')")
-   call elsi_statement_print(info_str,elsi_h)
+   call elsi_statement_print(info_str,e_h)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_statement_print(info_str,elsi_h)
+   call elsi_statement_print(info_str,e_h)
 
    if(ierr /= 0) then
-      call elsi_stop(" Fermi operator calculation failed. Exiting...",&
-              elsi_h,caller)
+      call elsi_stop(" Fermi operator calculation failed. Exiting...",e_h,&
+              caller)
    endif
 
    ! Get density matrix
-   call elsi_get_time(elsi_h,t0)
+   call elsi_get_time(e_h,t0)
 
-   select case(elsi_h%matrix_data_type)
+   select case(e_h%matrix_data_type)
    case(REAL_VALUES)
-      call elsi_allocate(elsi_h,tmp_real,elsi_h%nnz_l_sp,&
-              "tmp_real",caller)
+      call elsi_allocate(e_h,tmp_real,e_h%nnz_l_sp,"tmp_real",caller)
 
-      call f_ppexsi_retrieve_real_dm(elsi_h%pexsi_plan,tmp_real,&
-              local_energy,ierr)
+      call f_ppexsi_retrieve_real_dm(e_h%pexsi_plan,tmp_real,local_energy,ierr)
    case(COMPLEX_VALUES)
-      call elsi_allocate(elsi_h,tmp_cmplx,elsi_h%nnz_l_sp,&
-              "tmp_cmplx",caller)
+      call elsi_allocate(e_h,tmp_cmplx,e_h%nnz_l_sp,"tmp_cmplx",caller)
 
-      call f_ppexsi_retrieve_complex_dm(elsi_h%pexsi_plan,tmp_cmplx,&
-              local_energy,ierr)
+      call f_ppexsi_retrieve_complex_dm(e_h%pexsi_plan,tmp_cmplx,local_energy,&
+              ierr)
    end select
 
    if(ierr /= 0) then
-      call elsi_stop(" Retrieving density matirx failed. Exiting...",&
-              elsi_h,caller)
+      call elsi_stop(" Retrieving density matirx failed. Exiting...",e_h,caller)
    endif
 
    ! Check convergence
    converged = .false.
    aux_min = 0
-   aux_max = elsi_h%pexsi_options%nPoints+1
+   aux_max = e_h%pexsi_options%nPoints+1
 
-   do i = 1,elsi_h%pexsi_options%nPoints
-      if(elsi_h%ne_vec(i) < elsi_h%n_electrons-&
-         elsi_h%pexsi_options%numElectronPEXSITolerance) then
-         elsi_h%pexsi_options%muMin0 = shifts(i)
+   do i = 1,e_h%pexsi_options%nPoints
+      if(e_h%ne_vec(i) < e_h%n_electrons-&
+         e_h%pexsi_options%numElectronPEXSITolerance) then
+         e_h%pexsi_options%muMin0 = shifts(i)
          aux_min = i
       endif
    enddo
 
-   do i = elsi_h%pexsi_options%nPoints,1,-1
-      if(elsi_h%ne_vec(i) > elsi_h%n_electrons+&
-         elsi_h%pexsi_options%numElectronPEXSITolerance) then
-         elsi_h%pexsi_options%muMax0 = shifts(i)
+   do i = e_h%pexsi_options%nPoints,1,-1
+      if(e_h%ne_vec(i) > e_h%n_electrons+&
+         e_h%pexsi_options%numElectronPEXSITolerance) then
+         e_h%pexsi_options%muMax0 = shifts(i)
          aux_max = i
       endif
    enddo
 
-   if(elsi_h%pexsi_options%nPoints == 1) then
+   if(e_h%pexsi_options%nPoints == 1) then
       ! Scale density matrix
-      select case(elsi_h%matrix_data_type)
+      select case(e_h%matrix_data_type)
       case(REAL_VALUES)
-         tmp_real = (elsi_h%n_electrons/elsi_h%ne_pexsi)*tmp_real
+         tmp_real = (e_h%n_electrons/e_h%ne_pexsi)*tmp_real
       case(COMPLEX_VALUES)
-         tmp_cmplx = (elsi_h%n_electrons/elsi_h%ne_pexsi)*tmp_cmplx
+         tmp_cmplx = (e_h%n_electrons/e_h%ne_pexsi)*tmp_cmplx
       end select
 
       converged = .true.
-      elsi_h%mu = shifts(1)
+      e_h%mu = shifts(1)
    else
       ! Safety check
       if(aux_min == 0) then
@@ -494,27 +478,27 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
          endif
       endif
 
-      if(aux_max == elsi_h%pexsi_options%nPoints+1) then
-         aux_max = elsi_h%pexsi_options%nPoints
+      if(aux_max == e_h%pexsi_options%nPoints+1) then
+         aux_max = e_h%pexsi_options%nPoints
 
          if(aux_min >= aux_max) then
-            aux_min = elsi_h%pexsi_options%nPoints-1
+            aux_min = e_h%pexsi_options%nPoints-1
          endif
       endif
 
       do i = aux_min,aux_max
-         if(abs(elsi_h%ne_vec(i)-elsi_h%n_electrons) < &
-            elsi_h%pexsi_options%numElectronPEXSITolerance) then
-            elsi_h%mu = shifts(i)
+         if(abs(e_h%ne_vec(i)-e_h%n_electrons) < &
+            e_h%pexsi_options%numElectronPEXSITolerance) then
+            e_h%mu = shifts(i)
             converged = .true.
 
-            select case(elsi_h%matrix_data_type)
+            select case(e_h%matrix_data_type)
             case(REAL_VALUES)
-               call MPI_Bcast(tmp_real,elsi_h%nnz_l_sp,mpi_real8,i,&
-                       elsi_h%comm_among_point,mpierr)
+               call MPI_Bcast(tmp_real,e_h%nnz_l_sp,mpi_real8,i,&
+                       e_h%comm_among_point,mpierr)
             case(COMPLEX_VALUES)
-               call MPI_Bcast(tmp_cmplx,elsi_h%nnz_l_sp,mpi_complex16,&
-                       i,elsi_h%comm_among_point,mpierr)
+               call MPI_Bcast(tmp_cmplx,e_h%nnz_l_sp,mpi_complex16,i,&
+                       e_h%comm_among_point,mpierr)
             end select
 
             exit
@@ -525,103 +509,101 @@ subroutine elsi_solve_evp_pexsi(elsi_h)
    ! Adjust to exact number of electrons
    if(.not. converged) then
       ! Chemical potential
-      elsi_h%mu = shifts(aux_min)+(elsi_h%n_electrons-elsi_h%ne_vec(aux_min))/&
-                     (elsi_h%ne_vec(aux_max)-elsi_h%ne_vec(aux_min))*&
-                     (shifts(aux_max)-shifts(aux_min))
+      e_h%mu = shifts(aux_min)+(e_h%n_electrons-e_h%ne_vec(aux_min))/&
+                  (e_h%ne_vec(aux_max)-e_h%ne_vec(aux_min))*&
+                  (shifts(aux_max)-shifts(aux_min))
 
       ! Density matrix
-      factor_min = (elsi_h%ne_vec(aux_max)-elsi_h%n_electrons)/&
-                      (elsi_h%ne_vec(aux_max)-elsi_h%ne_vec(aux_min))
-      factor_max = (elsi_h%n_electrons-elsi_h%ne_vec(aux_min))/&
-                      (elsi_h%ne_vec(aux_max)-elsi_h%ne_vec(aux_min))
+      factor_min = (e_h%ne_vec(aux_max)-e_h%n_electrons)/&
+                      (e_h%ne_vec(aux_max)-e_h%ne_vec(aux_min))
+      factor_max = (e_h%n_electrons-e_h%ne_vec(aux_min))/&
+                      (e_h%ne_vec(aux_max)-e_h%ne_vec(aux_min))
 
-      select case(elsi_h%matrix_data_type)
+      select case(e_h%matrix_data_type)
       case(REAL_VALUES)
-         call elsi_allocate(elsi_h,send_buf,elsi_h%nnz_l_sp,"send_buf",caller)
+         call elsi_allocate(e_h,send_buf,e_h%nnz_l_sp,"send_buf",caller)
 
-         if(elsi_h%my_point == aux_min-1) then
+         if(e_h%my_point == aux_min-1) then
             send_buf = factor_min*tmp_real
-         elseif(elsi_h%my_point == aux_max-1) then
+         elseif(e_h%my_point == aux_max-1) then
             send_buf = factor_max*tmp_real
          endif
 
-         call MPI_Allreduce(send_buf,tmp_real,elsi_h%nnz_l_sp,mpi_real8,&
-                 mpi_sum,elsi_h%comm_among_point,mpierr)
+         call MPI_Allreduce(send_buf,tmp_real,e_h%nnz_l_sp,mpi_real8,mpi_sum,&
+                 e_h%comm_among_point,mpierr)
 
-         if(elsi_h%my_p_row_pexsi == 0) then
-            elsi_h%dm_real_ccs = tmp_real
+         if(e_h%my_p_row_pexsi == 0) then
+            e_h%dm_real_ccs = tmp_real
          endif
 
-         call elsi_deallocate(elsi_h,send_buf,"send_buf")
-         call elsi_deallocate(elsi_h,tmp_real,"tmp_real")
+         call elsi_deallocate(e_h,send_buf,"send_buf")
+         call elsi_deallocate(e_h,tmp_real,"tmp_real")
       case(COMPLEX_VALUES)
-         call elsi_allocate(elsi_h,send_buf_cmplx,elsi_h%nnz_l_sp,&
-                 "send_buf_cmplx",caller)
+         call elsi_allocate(e_h,send_buf_cmplx,e_h%nnz_l_sp,"send_buf_cmplx",&
+                 caller)
 
-         if(elsi_h%my_point == aux_min-1) then
+         if(e_h%my_point == aux_min-1) then
             send_buf_cmplx = factor_min*tmp_cmplx
-         elseif(elsi_h%my_point == aux_max-1) then
+         elseif(e_h%my_point == aux_max-1) then
             send_buf_cmplx = factor_max*tmp_cmplx
          endif
 
-         call MPI_Allreduce(send_buf_cmplx,tmp_cmplx,elsi_h%nnz_l_sp,&
-                 mpi_complex16,mpi_sum,elsi_h%comm_among_point,mpierr)
+         call MPI_Allreduce(send_buf_cmplx,tmp_cmplx,e_h%nnz_l_sp,&
+                 mpi_complex16,mpi_sum,e_h%comm_among_point,mpierr)
 
-         if(elsi_h%my_p_row_pexsi == 0) then
-            elsi_h%dm_cmplx_ccs = tmp_cmplx
+         if(e_h%my_p_row_pexsi == 0) then
+            e_h%dm_cmplx_ccs = tmp_cmplx
          endif
 
-         call elsi_deallocate(elsi_h,send_buf_cmplx,"send_buf_cmplx")
-         call elsi_deallocate(elsi_h,tmp_cmplx,"tmp_cmplx")
+         call elsi_deallocate(e_h,send_buf_cmplx,"send_buf_cmplx")
+         call elsi_deallocate(e_h,tmp_cmplx,"tmp_cmplx")
       end select
    endif
 
-   call elsi_deallocate(elsi_h,shifts,"shifts")
+   call elsi_deallocate(e_h,shifts,"shifts")
 
    ! Compute energy = Tr(H*DM)
-   if(elsi_h%my_p_row_pexsi == 0) then
-      select case(elsi_h%matrix_data_type)
+   if(e_h%my_p_row_pexsi == 0) then
+      select case(e_h%matrix_data_type)
       case(REAL_VALUES)
-         local_energy = ddot(elsi_h%nnz_l_sp,elsi_h%ham_real_ccs,1,&
-                           elsi_h%dm_real_ccs,1)
+         local_energy = ddot(e_h%nnz_l_sp,e_h%ham_real_ccs,1,e_h%dm_real_ccs,1)
       case(COMPLEX_VALUES)
          ! The following lines are equivalent to "zdotu" in LAPACK,
          ! which is simple but problematic in some version of LAPACK
          local_cmplx = (0.0_r8,0.0_r8)
 
-         do i = 1,elsi_h%nnz_l_sp
-            local_cmplx = local_cmplx+elsi_h%ham_cmplx_ccs(i)*&
-                             elsi_h%dm_cmplx_ccs(i)
+         do i = 1,e_h%nnz_l_sp
+            local_cmplx = local_cmplx+e_h%ham_cmplx_ccs(i)*e_h%dm_cmplx_ccs(i)
          enddo
 
          local_energy = dble(local_cmplx)
       end select
 
-      call MPI_Reduce(local_energy,elsi_h%energy_hdm,1,mpi_real8,&
-              mpi_sum,0,elsi_h%comm_in_pole,mpierr)
+      call MPI_Reduce(local_energy,e_h%energy_hdm,1,mpi_real8,mpi_sum,0,&
+              e_h%comm_in_pole,mpierr)
    endif
 
-   call MPI_Bcast(elsi_h%energy_hdm,1,mpi_real8,0,elsi_h%mpi_comm,mpierr)
+   call MPI_Bcast(e_h%energy_hdm,1,mpi_real8,0,e_h%mpi_comm,mpierr)
 
-   call elsi_get_time(elsi_h,t1)
+   call elsi_get_time(e_h,t1)
 
    write(info_str,"('  Finished density matrix correction')")
-   call elsi_statement_print(info_str,elsi_h)
+   call elsi_statement_print(info_str,e_h)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_statement_print(info_str,elsi_h)
+   call elsi_statement_print(info_str,e_h)
 
-   call MPI_Barrier(elsi_h%mpi_comm,mpierr)
+   call MPI_Barrier(e_h%mpi_comm,mpierr)
 
 end subroutine
 
 !>
 !! This routine computes the energy-weighted density matrix.
 !!
-subroutine elsi_compute_edm_pexsi(elsi_h)
+subroutine elsi_compute_edm_pexsi(e_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h !< Handle
+   type(elsi_handle), intent(inout) :: e_h !< Handle
 
    real(kind=r8)    :: mu_range
    real(kind=r8)    :: shift_width
@@ -646,84 +628,80 @@ subroutine elsi_compute_edm_pexsi(elsi_h)
 
    character*40, parameter :: caller = "elsi_compute_edm_pexsi"
 
-   call elsi_get_time(elsi_h,t0)
+   call elsi_get_time(e_h,t0)
 
-   select case(elsi_h%matrix_data_type)
+   select case(e_h%matrix_data_type)
    case(REAL_VALUES)
-      call f_ppexsi_calculate_edm_correction_real(elsi_h%pexsi_plan,&
-              elsi_h%pexsi_options,ierr)
+      call f_ppexsi_calculate_edm_correction_real(e_h%pexsi_plan,&
+              e_h%pexsi_options,ierr)
    case(COMPLEX_VALUES)
-      call f_ppexsi_calculate_edm_correction_complex(elsi_h%pexsi_plan,&
-              elsi_h%pexsi_options,ierr)
+      call f_ppexsi_calculate_edm_correction_complex(e_h%pexsi_plan,&
+              e_h%pexsi_options,ierr)
    end select
 
    if(ierr /= 0) then
       call elsi_stop(" Energy density matrix correction failed. Exiting...",&
-              elsi_h,caller)
+              e_h,caller)
    endif
 
    ! Get energy density matrix
-   select case(elsi_h%matrix_data_type)
+   select case(e_h%matrix_data_type)
    case(REAL_VALUES)
-      call elsi_allocate(elsi_h,tmp_real,elsi_h%nnz_l_sp,&
-              "tmp_real",caller)
+      call elsi_allocate(e_h,tmp_real,e_h%nnz_l_sp,"tmp_real",caller)
 
-      call f_ppexsi_retrieve_real_edm(elsi_h%pexsi_plan,tmp_real,&
-              local_energy,ierr)
+      call f_ppexsi_retrieve_real_edm(e_h%pexsi_plan,tmp_real,local_energy,ierr)
    case(COMPLEX_VALUES)
-      call elsi_allocate(elsi_h,tmp_cmplx,elsi_h%nnz_l_sp,&
-              "tmp_cmplx",caller)
+      call elsi_allocate(e_h,tmp_cmplx,e_h%nnz_l_sp,"tmp_cmplx",caller)
 
-      call f_ppexsi_retrieve_complex_edm(elsi_h%pexsi_plan,tmp_cmplx,&
-              local_energy,ierr)
+      call f_ppexsi_retrieve_complex_edm(e_h%pexsi_plan,tmp_cmplx,local_energy,&
+              ierr)
    end select
 
    if(ierr /= 0) then
       call elsi_stop(" Retrieving energy density matirx failed. Exiting...",&
-              elsi_h,caller)
+              e_h,caller)
    endif
 
    ! Check convergence
-   mu_range    = elsi_h%pexsi_options%muMax0-elsi_h%pexsi_options%muMin0
-   shift_width = mu_range/(elsi_h%pexsi_options%nPoints+1)
+   mu_range    = e_h%pexsi_options%muMax0-e_h%pexsi_options%muMin0
+   shift_width = mu_range/(e_h%pexsi_options%nPoints+1)
    converged   = .false.
    aux_min     = 0
-   aux_max     = elsi_h%pexsi_options%nPoints+1
+   aux_max     = e_h%pexsi_options%nPoints+1
 
-   call elsi_allocate(elsi_h,shifts,elsi_h%pexsi_options%nPoints,&
-           "shifts",caller)
+   call elsi_allocate(e_h,shifts,e_h%pexsi_options%nPoints,"shifts",caller)
 
-   do i = 1,elsi_h%pexsi_options%nPoints
-      shifts(i) = elsi_h%pexsi_options%muMin0+i*shift_width
+   do i = 1,e_h%pexsi_options%nPoints
+      shifts(i) = e_h%pexsi_options%muMin0+i*shift_width
    enddo
 
-   do i = 1,elsi_h%pexsi_options%nPoints
-      if(elsi_h%ne_vec(i) < elsi_h%n_electrons-&
-         elsi_h%pexsi_options%numElectronPEXSITolerance) then
-         elsi_h%pexsi_options%muMin0 = shifts(i)
+   do i = 1,e_h%pexsi_options%nPoints
+      if(e_h%ne_vec(i) < e_h%n_electrons-&
+         e_h%pexsi_options%numElectronPEXSITolerance) then
+         e_h%pexsi_options%muMin0 = shifts(i)
          aux_min = i
       endif
    enddo
 
-   do i = elsi_h%pexsi_options%nPoints,1,-1
-      if(elsi_h%ne_vec(i) > elsi_h%n_electrons+&
-         elsi_h%pexsi_options%numElectronPEXSITolerance) then
-         elsi_h%pexsi_options%muMax0 = shifts(i)
+   do i = e_h%pexsi_options%nPoints,1,-1
+      if(e_h%ne_vec(i) > e_h%n_electrons+&
+         e_h%pexsi_options%numElectronPEXSITolerance) then
+         e_h%pexsi_options%muMax0 = shifts(i)
          aux_max = i
       endif
    enddo
 
-   if(elsi_h%pexsi_options%nPoints == 1) then
+   if(e_h%pexsi_options%nPoints == 1) then
       ! Scale energy density matrix
-      select case(elsi_h%matrix_data_type)
+      select case(e_h%matrix_data_type)
       case(REAL_VALUES)
-         tmp_real = (elsi_h%n_electrons/elsi_h%ne_pexsi)*tmp_real
+         tmp_real = (e_h%n_electrons/e_h%ne_pexsi)*tmp_real
       case(COMPLEX_VALUES)
-         tmp_cmplx = (elsi_h%n_electrons/elsi_h%ne_pexsi)*tmp_cmplx
+         tmp_cmplx = (e_h%n_electrons/e_h%ne_pexsi)*tmp_cmplx
       end select
 
       converged = .true.
-      elsi_h%mu = shifts(1)
+      e_h%mu = shifts(1)
    else
       ! Safety check
       if(aux_min == 0) then
@@ -734,27 +712,27 @@ subroutine elsi_compute_edm_pexsi(elsi_h)
          endif
       endif
 
-      if(aux_max == elsi_h%pexsi_options%nPoints+1) then
-         aux_max = elsi_h%pexsi_options%nPoints
+      if(aux_max == e_h%pexsi_options%nPoints+1) then
+         aux_max = e_h%pexsi_options%nPoints
 
          if(aux_min >= aux_max) then
-            aux_min = elsi_h%pexsi_options%nPoints-1
+            aux_min = e_h%pexsi_options%nPoints-1
          endif
       endif
 
       do i = aux_min,aux_max
-         if(abs(elsi_h%ne_vec(i)-elsi_h%n_electrons) < &
-            elsi_h%pexsi_options%numElectronPEXSITolerance) then
-            elsi_h%mu = shifts(i)
+         if(abs(e_h%ne_vec(i)-e_h%n_electrons) < &
+            e_h%pexsi_options%numElectronPEXSITolerance) then
+            e_h%mu = shifts(i)
             converged = .true.
 
-            select case(elsi_h%matrix_data_type)
+            select case(e_h%matrix_data_type)
             case(REAL_VALUES)
-               call MPI_Bcast(tmp_real,elsi_h%nnz_l_sp,mpi_real8,i,&
-                       elsi_h%comm_among_point,mpierr)
+               call MPI_Bcast(tmp_real,e_h%nnz_l_sp,mpi_real8,i,&
+                       e_h%comm_among_point,mpierr)
             case(COMPLEX_VALUES)
-               call MPI_Bcast(tmp_cmplx,elsi_h%nnz_l_sp,mpi_complex16,&
-                       i,elsi_h%comm_among_point,mpierr)
+               call MPI_Bcast(tmp_cmplx,e_h%nnz_l_sp,mpi_complex16,i,&
+                       e_h%comm_among_point,mpierr)
             end select
 
             exit
@@ -765,133 +743,133 @@ subroutine elsi_compute_edm_pexsi(elsi_h)
    ! Adjust to exact number of electrons
    if(.not. converged) then
       ! Energy density matrix
-      factor_min = (elsi_h%ne_vec(aux_max)-elsi_h%n_electrons)/&
-                      (elsi_h%ne_vec(aux_max)-elsi_h%ne_vec(aux_min))
-      factor_max = (elsi_h%n_electrons-elsi_h%ne_vec(aux_min))/&
-                      (elsi_h%ne_vec(aux_max)-elsi_h%ne_vec(aux_min))
+      factor_min = (e_h%ne_vec(aux_max)-e_h%n_electrons)/&
+                      (e_h%ne_vec(aux_max)-e_h%ne_vec(aux_min))
+      factor_max = (e_h%n_electrons-e_h%ne_vec(aux_min))/&
+                      (e_h%ne_vec(aux_max)-e_h%ne_vec(aux_min))
 
-      select case(elsi_h%matrix_data_type)
+      select case(e_h%matrix_data_type)
       case(REAL_VALUES)
-         call elsi_allocate(elsi_h,send_buf,elsi_h%nnz_l_sp,"send_buf",caller)
+         call elsi_allocate(e_h,send_buf,e_h%nnz_l_sp,"send_buf",caller)
 
-         if(elsi_h%my_point == aux_min-1) then
+         if(e_h%my_point == aux_min-1) then
             send_buf = factor_min*tmp_real
-         elseif(elsi_h%my_point == aux_max-1) then
+         elseif(e_h%my_point == aux_max-1) then
             send_buf = factor_max*tmp_real
          endif
 
-         call MPI_Allreduce(send_buf,tmp_real,elsi_h%nnz_l_sp,mpi_real8,&
-                 mpi_sum,elsi_h%comm_among_point,mpierr)
+         call MPI_Allreduce(send_buf,tmp_real,e_h%nnz_l_sp,mpi_real8,mpi_sum,&
+                 e_h%comm_among_point,mpierr)
 
-         if(elsi_h%my_p_row_pexsi == 0) then
-            elsi_h%dm_real_ccs = tmp_real
+         if(e_h%my_p_row_pexsi == 0) then
+            e_h%dm_real_ccs = tmp_real
          endif
 
-         call elsi_deallocate(elsi_h,send_buf,"send_buf")
-         call elsi_deallocate(elsi_h,tmp_real,"tmp_real")
+         call elsi_deallocate(e_h,send_buf,"send_buf")
+         call elsi_deallocate(e_h,tmp_real,"tmp_real")
       case(COMPLEX_VALUES)
-         call elsi_allocate(elsi_h,send_buf_cmplx,elsi_h%nnz_l_sp,&
-                 "send_buf_cmplx",caller)
+         call elsi_allocate(e_h,send_buf_cmplx,e_h%nnz_l_sp,"send_buf_cmplx",&
+                 caller)
 
-         if(elsi_h%my_point == aux_min-1) then
+         if(e_h%my_point == aux_min-1) then
             send_buf_cmplx = factor_min*tmp_cmplx
-         elseif(elsi_h%my_point == aux_max-1) then
+         elseif(e_h%my_point == aux_max-1) then
             send_buf_cmplx = factor_max*tmp_cmplx
          endif
 
-         call MPI_Allreduce(send_buf_cmplx,tmp_cmplx,elsi_h%nnz_l_sp,&
-                 mpi_complex16,mpi_sum,elsi_h%comm_among_point,mpierr)
+         call MPI_Allreduce(send_buf_cmplx,tmp_cmplx,e_h%nnz_l_sp,&
+                 mpi_complex16,mpi_sum,e_h%comm_among_point,mpierr)
 
-         if(elsi_h%my_p_row_pexsi == 0) then
-            elsi_h%dm_cmplx_ccs = tmp_cmplx
+         if(e_h%my_p_row_pexsi == 0) then
+            e_h%dm_cmplx_ccs = tmp_cmplx
          endif
 
-         call elsi_deallocate(elsi_h,send_buf_cmplx,"send_buf_cmplx")
-         call elsi_deallocate(elsi_h,tmp_cmplx,"tmp_cmplx")
+         call elsi_deallocate(e_h,send_buf_cmplx,"send_buf_cmplx")
+         call elsi_deallocate(e_h,tmp_cmplx,"tmp_cmplx")
       end select
    endif
 
-   call elsi_deallocate(elsi_h,shifts,"shifts")
+   call elsi_deallocate(e_h,shifts,"shifts")
 
-   call elsi_get_time(elsi_h,t1)
+   call elsi_get_time(e_h,t1)
 
    write(info_str,"('  Finished energy density matrix calculation')")
-   call elsi_statement_print(info_str,elsi_h)
+   call elsi_statement_print(info_str,e_h)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_statement_print(info_str,elsi_h)
+   call elsi_statement_print(info_str,e_h)
 
 end subroutine
 
 !>
 !! This routine sets default PEXSI parameters.
 !!
-subroutine elsi_set_pexsi_default(elsi_h)
+subroutine elsi_set_pexsi_default(e_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: elsi_h !< Handle
+   type(elsi_handle), intent(inout) :: e_h !< Handle
 
    character*40, parameter :: caller = "elsi_set_pexsi_default"
 
    ! Use the PEXSI Default options
-   call f_ppexsi_set_default_options(elsi_h%pexsi_options)
+   call f_ppexsi_set_default_options(e_h%pexsi_options)
 
    ! Use 1 process in symbolic factorization
-   elsi_h%pexsi_options%npSymbFact = 1
+   e_h%pexsi_options%npSymbFact = 1
 
 end subroutine
 
 !>
 !! This routine prints PEXSI settings.
 !!
-subroutine elsi_print_pexsi_options(elsi_h)
+subroutine elsi_print_pexsi_options(e_h)
 
    implicit none
 
-   type(elsi_handle), intent(in) :: elsi_h !< Handle
+   type(elsi_handle), intent(in) :: e_h !< Handle
 
    character*200 :: info_str
 
    character*40, parameter :: caller = "elsi_print_pexsi_options"
 
    write(info_str,"(A)") "  PEXSI settings (in the same unit of Hamiltonian):"
-   call elsi_statement_print(info_str,elsi_h)
+   call elsi_statement_print(info_str,e_h)
 
-   write(info_str,"(1X,' | Temperature                            ',E10.2)") &
-      elsi_h%pexsi_options%temperature
-   call elsi_statement_print(info_str,elsi_h)
+   write(info_str,"(1X,' | Temperature                          ',E10.2)") &
+      e_h%pexsi_options%temperature
+   call elsi_statement_print(info_str,e_h)
 
-   write(info_str,"(1X,' | Spectral gap                           ',F10.3)") &
-      elsi_h%pexsi_options%gap
-   call elsi_statement_print(info_str,elsi_h)
+   write(info_str,"(1X,' | Spectral gap                         ',F10.3)") &
+      e_h%pexsi_options%gap
+   call elsi_statement_print(info_str,e_h)
 
-   write(info_str,"(1X,' | Spectral width                         ',F10.3)") &
-      elsi_h%pexsi_options%deltaE
-   call elsi_statement_print(info_str,elsi_h)
+   write(info_str,"(1X,' | Spectral width                       ',F10.3)") &
+      e_h%pexsi_options%deltaE
+   call elsi_statement_print(info_str,e_h)
 
-   write(info_str,"(1X,' | Number of poles                        ',I10)") &
-      elsi_h%pexsi_options%numPole
-   call elsi_statement_print(info_str,elsi_h)
+   write(info_str,"(1X,' | Number of poles                      ',I10)") &
+      e_h%pexsi_options%numPole
+   call elsi_statement_print(info_str,e_h)
 
-   write(info_str,"(1X,' | Number of mu points                    ',I10)") &
-      elsi_h%pexsi_options%nPoints
-   call elsi_statement_print(info_str,elsi_h)
+   write(info_str,"(1X,' | Number of mu points                  ',I10)") &
+      e_h%pexsi_options%nPoints
+   call elsi_statement_print(info_str,e_h)
 
-   write(info_str,"(1X,' | Lower bound of chemical potential      ',E10.2)") &
-      elsi_h%pexsi_options%muMin0
-   call elsi_statement_print(info_str,elsi_h)
+   write(info_str,"(1X,' | Lower bound of chemical potential    ',E10.2)") &
+      e_h%pexsi_options%muMin0
+   call elsi_statement_print(info_str,e_h)
 
-   write(info_str,"(1X,' | Upper bound of chemical potential      ',E10.2)") &
-      elsi_h%pexsi_options%muMax0
-   call elsi_statement_print(info_str,elsi_h)
+   write(info_str,"(1X,' | Upper bound of chemical potential    ',E10.2)") &
+      e_h%pexsi_options%muMax0
+   call elsi_statement_print(info_str,e_h)
 
-   write(info_str,"(1X,' | Stopping criterion of inertia counting ',E10.2)") &
-      elsi_h%pexsi_options%muInertiaTolerance
-   call elsi_statement_print(info_str,elsi_h)
+   write(info_str,"(1X,' | Stop criterion of inertia counting   ',E10.2)") &
+      e_h%pexsi_options%muInertiaTolerance
+   call elsi_statement_print(info_str,e_h)
 
-   write(info_str,"(1X,' | Processes for symbolic factorization   ',I10)") &
-      elsi_h%pexsi_options%npSymbFact
-   call elsi_statement_print(info_str,elsi_h)
+   write(info_str,"(1X,' | Processes for symbolic factorization ',I10)") &
+      e_h%pexsi_options%npSymbFact
+   call elsi_statement_print(info_str,e_h)
 
 end subroutine
 
