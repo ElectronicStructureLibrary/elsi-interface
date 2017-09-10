@@ -126,39 +126,39 @@ void c_elsi_customize_elpa(elsi_handle handle_c,
                            int elpa_output);
 
 void c_elsi_ev_real(elsi_handle handle_c,
-                    double *H,
-                    double *S,
-                    double *e_val,
-                    double *e_vec);
+                    double *ham,
+                    double *ovlp,
+                    double *eval,
+                    double *evec);
 
 void c_elsi_ev_complex(elsi_handle handle_c,
-                       double _Complex *H,
-                       double _Complex *S,
-                       double *e_val,
-                       double _Complex *e_vec);
+                       double _Complex *ham,
+                       double _Complex *ovlp,
+                       double *eval,
+                       double _Complex *evec);
 
 void c_elsi_ev_real_sparse(elsi_handle handle_c,
-                           double *H,
-                           double *S,
-                           double *e_val,
-                           double *e_vec);
+                           double *ham,
+                           double *ovlp,
+                           double *eval,
+                           double *evec);
 
 void c_elsi_dm_real(elsi_handle handle_c,
-                    double *H,
-                    double *S,
-                    double *D,
+                    double *ham,
+                    double *ovlp,
+                    double *dm,
                     double *energy);
 
 void c_elsi_dm_complex(elsi_handle handle_c,
-                       double _Complex *H,
-                       double _Complex *S,
-                       double _Complex *D,
+                       double _Complex *ham,
+                       double _Complex *ovlp,
+                       double _Complex *dm,
                        double *energy);
 
 void c_elsi_dm_real_sparse(elsi_handle handle_c,
-                           double *H,
-                           double *S,
-                           double *D,
+                           double *ham,
+                           double *ovlp,
+                           double *dm,
                            double *energy);
 
 void c_elsi_set_output(elsi_handle handle_c,

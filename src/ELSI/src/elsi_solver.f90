@@ -112,15 +112,15 @@ end subroutine
 !! intent(inout) - it is because everything has the potential to be reused in
 !! the next call.
 !!
-subroutine elsi_ev_real(e_h,h_in,s_in,e_val_out,e_vec_out)
+subroutine elsi_ev_real(e_h,h_in,s_in,eval_out,evec_out)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                                  !< Handle
-   real(kind=r8),     intent(inout) :: h_in(e_h%n_l_rows,e_h%n_l_cols)      !< Hamiltonian
-   real(kind=r8),     intent(inout) :: s_in(e_h%n_l_rows,e_h%n_l_cols)      !< Overlap
-   real(kind=r8),     intent(inout) :: e_val_out(e_h%n_basis)               !< Eigenvalues
-   real(kind=r8),     intent(inout) :: e_vec_out(e_h%n_l_rows,e_h%n_l_cols) !< Eigenvectors
+   type(elsi_handle), intent(inout) :: e_h                                 !< Handle
+   real(kind=r8),     intent(inout) :: h_in(e_h%n_l_rows,e_h%n_l_cols)     !< Hamiltonian
+   real(kind=r8),     intent(inout) :: s_in(e_h%n_l_rows,e_h%n_l_cols)     !< Overlap
+   real(kind=r8),     intent(inout) :: eval_out(e_h%n_basis)               !< Eigenvalues
+   real(kind=r8),     intent(inout) :: evec_out(e_h%n_l_rows,e_h%n_l_cols) !< Eigenvectors
 
    character*40, parameter :: caller = "elsi_ev_real"
 
@@ -140,8 +140,8 @@ subroutine elsi_ev_real(e_h,h_in,s_in,e_val_out,e_vec_out)
       ! Set matrices
       call elsi_set_ham(e_h,h_in)
       call elsi_set_ovlp(e_h,s_in)
-      call elsi_set_evec(e_h,e_vec_out)
-      call elsi_set_eval(e_h,e_val_out)
+      call elsi_set_evec(e_h,evec_out)
+      call elsi_set_eval(e_h,eval_out)
 
       ! Solve
       if(e_h%parallel_mode == SINGLE_PROC) then
@@ -176,8 +176,8 @@ subroutine elsi_ev_real(e_h,h_in,s_in,e_val_out,e_vec_out)
       call elsi_set_sparse_ovlp(e_h,e_h%ovlp_real_sips)
       call elsi_set_row_ind(e_h,e_h%row_ind_sips)
       call elsi_set_col_ptr(e_h,e_h%col_ptr_sips)
-      call elsi_set_eval(e_h,e_val_out)
-      call elsi_set_evec(e_h,e_vec_out)
+      call elsi_set_eval(e_h,eval_out)
+      call elsi_set_evec(e_h,evec_out)
 
       ! Solve
       call elsi_solve_evp_sips(e_h)
@@ -198,15 +198,15 @@ end subroutine
 !! intent(inout) - it is because everything has the potential to be reused in
 !! the next call.
 !!
-subroutine elsi_ev_complex(e_h,h_in,s_in,e_val_out,e_vec_out)
+subroutine elsi_ev_complex(e_h,h_in,s_in,eval_out,evec_out)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                                  !< Handle
-   complex(kind=r8),  intent(inout) :: h_in(e_h%n_l_rows,e_h%n_l_cols)      !< Hamiltonian
-   complex(kind=r8),  intent(inout) :: s_in(e_h%n_l_rows,e_h%n_l_cols)      !< Overlap
-   real(kind=r8),     intent(inout) :: e_val_out(e_h%n_basis)               !< Eigenvalues
-   complex(kind=r8),  intent(inout) :: e_vec_out(e_h%n_l_rows,e_h%n_l_cols) !< Eigenvectors
+   type(elsi_handle), intent(inout) :: e_h                                 !< Handle
+   complex(kind=r8),  intent(inout) :: h_in(e_h%n_l_rows,e_h%n_l_cols)     !< Hamiltonian
+   complex(kind=r8),  intent(inout) :: s_in(e_h%n_l_rows,e_h%n_l_cols)     !< Overlap
+   real(kind=r8),     intent(inout) :: eval_out(e_h%n_basis)               !< Eigenvalues
+   complex(kind=r8),  intent(inout) :: evec_out(e_h%n_l_rows,e_h%n_l_cols) !< Eigenvectors
 
    character*40, parameter :: caller = "elsi_ev_complex"
 
@@ -226,8 +226,8 @@ subroutine elsi_ev_complex(e_h,h_in,s_in,e_val_out,e_vec_out)
       ! Set matrices
       call elsi_set_ham(e_h,h_in)
       call elsi_set_ovlp(e_h,s_in)
-      call elsi_set_evec(e_h,e_vec_out)
-      call elsi_set_eval(e_h,e_val_out)
+      call elsi_set_evec(e_h,evec_out)
+      call elsi_set_eval(e_h,eval_out)
 
       ! Solve
       if(e_h%parallel_mode == SINGLE_PROC) then
@@ -260,15 +260,15 @@ end subroutine
 !! intent(inout) - it is because everything has the potential to be reused in
 !! the next call.
 !!
-subroutine elsi_ev_real_sparse(e_h,h_in,s_in,e_val_out,e_vec_out)
+subroutine elsi_ev_real_sparse(e_h,h_in,s_in,eval_out,evec_out)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                                  !< Handle
-   real(kind=r8),     intent(inout) :: h_in(e_h%nnz_l_sp)                   !< Hamiltonian
-   real(kind=r8),     intent(inout) :: s_in(e_h%nnz_l_sp)                   !< Overlap
-   real(kind=r8),     intent(inout) :: e_val_out(e_h%n_basis)               !< Eigenvalues
-   real(kind=r8),     intent(inout) :: e_vec_out(e_h%n_l_rows,e_h%n_l_cols) !< Eigenvectors
+   type(elsi_handle), intent(inout) :: e_h                                 !< Handle
+   real(kind=r8),     intent(inout) :: h_in(e_h%nnz_l_sp)                  !< Hamiltonian
+   real(kind=r8),     intent(inout) :: s_in(e_h%nnz_l_sp)                  !< Overlap
+   real(kind=r8),     intent(inout) :: eval_out(e_h%n_basis)               !< Eigenvalues
+   real(kind=r8),     intent(inout) :: evec_out(e_h%n_l_rows,e_h%n_l_cols) !< Eigenvectors
 
    character*40, parameter :: caller = "elsi_ev_real_sparse"
 
@@ -291,8 +291,8 @@ subroutine elsi_ev_real_sparse(e_h,h_in,s_in,e_val_out,e_vec_out)
       ! Set matrices
       call elsi_set_ham(e_h,e_h%ham_real_elpa)
       call elsi_set_ovlp(e_h,e_h%ovlp_real_elpa)
-      call elsi_set_evec(e_h,e_vec_out)
-      call elsi_set_eval(e_h,e_val_out)
+      call elsi_set_evec(e_h,evec_out)
+      call elsi_set_eval(e_h,eval_out)
 
       ! Solve
       call elsi_solve_evp_elpa(e_h)
