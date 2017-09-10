@@ -104,6 +104,7 @@ module ELSI
    public :: elsi_get_edm_real
    public :: elsi_get_edm_complex
    public :: elsi_get_edm_real_sparse
+   public :: elsi_get_edm_complex_sparse
    public :: elsi_customize
    public :: elsi_customize_elpa
    public :: elsi_customize_omm

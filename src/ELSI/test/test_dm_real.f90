@@ -167,8 +167,6 @@ program test_dm_real
    blacs_ctxt = mpi_comm_global
    call BLACS_Gridinit(blacs_ctxt,'r',nprow,npcol)
 
-   t1 = MPI_Wtime()
-
    ! Read H and S matrices
    call elsi_read_mat_dim(arg2,mpi_comm_global,blacs_ctxt,blk,n_electrons,&
            matrix_size,l_rows,l_cols)
@@ -178,6 +176,8 @@ program test_dm_real
    allocate(ovlp(l_rows,l_cols))
    allocate(dm(l_rows,l_cols))
    allocate(edm(l_rows,l_cols))
+
+   t1 = MPI_Wtime()
 
    call elsi_read_mat_real(arg2,mpi_comm_global,blacs_ctxt,blk,matrix_size,&
            l_rows,l_cols,ham)

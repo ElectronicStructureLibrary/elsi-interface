@@ -26,9 +26,9 @@
 ! EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 !>
-!! This program tests elsi_ev_real.
+!! This program tests elsi_ev_complex_sparse.
 !!
-program test_ev_real
+program test_ev_complex_sparse
 
    use ELSI_PRECISION, only: r8,i4
    use ELSI
@@ -46,12 +46,17 @@ program test_ev_real
    integer(kind=i4) :: nprow
    integer(kind=i4) :: npcol
    integer(kind=i4) :: myid
+   integer(kind=i4) :: myprow
+   integer(kind=i4) :: mypcol
    integer(kind=i4) :: mpi_comm_global
    integer(kind=i4) :: mpierr
    integer(kind=i4) :: blk
    integer(kind=i4) :: blacs_ctxt
    integer(kind=i4) :: n_states
    integer(kind=i4) :: matrix_size
+   integer(kind=i4) :: nnz_g
+   integer(kind=i4) :: nnz_l
+   integer(kind=i4) :: n_l_cols
    integer(kind=i4) :: l_rows
    integer(kind=i4) :: l_cols
    integer(kind=i4) :: solver
@@ -68,18 +73,21 @@ program test_ev_real
 
    logical :: make_check ! Are we running "make check"?
 
-   real(kind=r8), allocatable :: ham(:,:)
-   real(kind=r8), allocatable :: ham_save(:,:)
-   real(kind=r8), allocatable :: ovlp(:,:)
-   real(kind=r8), allocatable :: ovlp_save(:,:)
-   real(kind=r8), allocatable :: evec(:,:)
-   real(kind=r8), allocatable :: eval(:)
-   real(kind=r8), allocatable :: occ(:)
+   complex(kind=r8), allocatable :: ham(:)
+   complex(kind=r8), allocatable :: ham_save(:)
+   complex(kind=r8), allocatable :: ovlp(:)
+   complex(kind=r8), allocatable :: evec(:,:)
+   real(kind=r8),    allocatable :: eval(:)
+   real(kind=r8),    allocatable :: occ(:)
+   integer(kind=i4), allocatable :: row_ind(:)
+   integer(kind=i4), allocatable :: col_ptr(:)
 
    type(elsi_handle) :: elsi_h
 
    ! VY: Reference value from calculations on August 31, 2017.
    real(kind=r8), parameter :: e_elpa = -1833.07932666530_r8
+
+   integer(kind=i4), external :: numroc
 
    ! Initialize MPI
    call MPI_Init(mpierr)
@@ -106,7 +114,7 @@ program test_ev_real
          write(*,'("  ################################################")')
          write(*,'("  ##  Wrong number of command line arguments!!  ##")')
          write(*,'("  ##  Arg#1: Choice of solver.                  ##")')
-         write(*,'("  ##         (ELPA = 1; SIPs = 5)               ##")')
+         write(*,'("  ##         (ELPA = 1)                         ##")')
          write(*,'("  ##  Arg#2: H matrix file.                     ##")')
          write(*,'("  ##  Arg#3: S matrix file.                     ##")')
          write(*,'("  ################################################")')
@@ -125,23 +133,15 @@ program test_ev_real
          write(*,'("  This test program performs the following computational steps:")')
          write(*,*)
          write(*,'("  1) Reads Hamiltonian and overlap matrices;")')
-         write(*,'("  2) Checks the singularity of the overlap matrix by computing")')
+         write(*,'("  2) Converts the matrices to 2D block-cyclic dense format;")')
+         write(*,'("  3) Checks the singularity of the overlap matrix by computing")')
          write(*,'("     all its eigenvalues;")')
-         write(*,'("  3) Transforms the generalized eigenproblem to the standard")')
+         write(*,'("  4) Transforms the generalized eigenproblem to the standard")')
          write(*,'("     form by using Cholesky factorization;")')
-         write(*,'("  4) Solves the standard eigenproblem;")')
-         write(*,'("  5) Back-transforms the eigenvectors to the generalized problem;")')
+         write(*,'("  5) Solves the standard eigenproblem;")')
+         write(*,'("  6) Back-transforms the eigenvectors to the generalized problem;")')
          write(*,*)
-         write(*,'("  Now start testing  elsi_ev_real + ELPA")')
-      elseif(solver == 5) then
-         write(*,'("  This test program performs the following computational steps:")')
-         write(*,*)
-         write(*,'("  1) Reads Hamiltonian and overlap matrices;")')
-         write(*,'("  2) Converts the matrices to 1D block CSC format;")')
-         write(*,'("  3) Solves the generalized eigenproblem with shift-and-invert")')
-         write(*,'("     parallel spectral transformation.")')
-         write(*,*)
-         write(*,'("  Now start testing  elsi_ev_real + SIPs")')
+         write(*,'("  Now start testing  elsi_ev_complex_sparse + ELPA")')
       endif
       write(*,*)
    endif
@@ -160,29 +160,33 @@ program test_ev_real
    ! Set up BLACS
    blacs_ctxt = mpi_comm_global
    call BLACS_Gridinit(blacs_ctxt,'r',nprow,npcol)
+   call BLACS_Gridinfo(blacs_ctxt,nprow,npcol,myprow,mypcol)
 
    ! Read H and S matrices
-   call elsi_read_mat_dim(arg2,mpi_comm_global,blacs_ctxt,blk,n_electrons,&
-           matrix_size,l_rows,l_cols)
+   call elsi_read_mat_dim_sparse(arg2,mpi_comm_global,n_electrons,matrix_size,&
+           nnz_g,nnz_l,n_l_cols)
 
-   allocate(ham(l_rows,l_cols))
-   allocate(ham_save(l_rows,l_cols))
-   allocate(ovlp(l_rows,l_cols))
-   allocate(ovlp_save(l_rows,l_cols))
+   l_rows = numroc(matrix_size,blk,myprow,0,nprow)
+   l_cols = numroc(matrix_size,blk,mypcol,0,npcol)
+
+   allocate(ham(nnz_l))
+   allocate(ham_save(nnz_l))
+   allocate(ovlp(nnz_l))
+   allocate(row_ind(nnz_l))
+   allocate(col_ptr(n_l_cols+1))
    allocate(evec(l_rows,l_cols))
    allocate(eval(matrix_size))
    allocate(occ(matrix_size))
 
    t1 = MPI_Wtime()
 
-   call elsi_read_mat_real(arg2,mpi_comm_global,blacs_ctxt,blk,matrix_size,&
-           l_rows,l_cols,ham)
+   call elsi_read_mat_complex_sparse(arg2,mpi_comm_global,matrix_size,nnz_g,&
+           nnz_l,n_l_cols,row_ind,col_ptr,ham)
 
-   call elsi_read_mat_real(arg3,mpi_comm_global,blacs_ctxt,blk,matrix_size,&
-           l_rows,l_cols,ovlp)
+   call elsi_read_mat_complex_sparse(arg3,mpi_comm_global,matrix_size,nnz_g,&
+           nnz_l,n_l_cols,row_ind,col_ptr,ovlp)
 
-   ham_save  = ham
-   ovlp_save = ovlp
+   ham_save = ham
 
    t2 = MPI_Wtime()
 
@@ -196,15 +200,10 @@ program test_ev_real
    n_states = int(n_electrons,kind=i4)
    weight(1) = 1.0_r8
 
-   if(n_proc == 1) then
-      ! Test SINGLE_PROC mode
-      call elsi_init(elsi_h,solver,0,0,matrix_size,n_electrons,n_states)
-   else
-      ! Test MULTI_PROC mode
-      call elsi_init(elsi_h,solver,1,0,matrix_size,n_electrons,n_states)
-      call elsi_set_mpi(elsi_h,mpi_comm_global)
-      call elsi_set_blacs(elsi_h,blacs_ctxt,blk)
-   endif
+   call elsi_init(elsi_h,solver,1,1,matrix_size,n_electrons,n_states)
+   call elsi_set_mpi(elsi_h,mpi_comm_global)
+   call elsi_set_csc(elsi_h,nnz_g,nnz_l,n_l_cols,row_ind,col_ptr)
+   call elsi_set_blacs(elsi_h,blacs_ctxt,blk)
 
    ! Customize ELSI
    call elsi_set_output(elsi_h,2)
@@ -212,7 +211,7 @@ program test_ev_real
    t1 = MPI_Wtime()
 
    ! Solve (pseudo SCF 1)
-   call elsi_ev_real(elsi_h,ham,ovlp,eval,evec)
+   call elsi_ev_complex_sparse(elsi_h,ham,ovlp,eval,evec)
 
    t2 = MPI_Wtime()
 
@@ -224,14 +223,10 @@ program test_ev_real
 
    ham = ham_save
 
-   if(n_proc == 1) then
-      ovlp = ovlp_save
-   endif
-
    t1 = MPI_Wtime()
 
    ! Solve (pseudo SCF 2, with the same H)
-   call elsi_ev_real(elsi_h,ham,ovlp,eval,evec)
+   call elsi_ev_complex_sparse(elsi_h,ham,ovlp,eval,evec)
 
    t2 = MPI_Wtime()
 
@@ -266,10 +261,11 @@ program test_ev_real
    deallocate(ham)
    deallocate(ham_save)
    deallocate(ovlp)
-   deallocate(ovlp_save)
    deallocate(evec)
    deallocate(eval)
    deallocate(occ)
+   deallocate(row_ind)
+   deallocate(col_ptr)
 
    call MPI_Finalize(mpierr)
 

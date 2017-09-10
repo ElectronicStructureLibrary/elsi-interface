@@ -1369,6 +1369,29 @@ subroutine elsi_get_edm_real_sparse_c_wrapper(handle_c,edm_c)&
 
 end subroutine
 
+subroutine elsi_get_edm_complex_sparse_c_wrapper(handle_c,edm_c)&
+   bind(C,name="c_elsi_get_edm_complex_sparse")
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: edm_c
+
+   type(elsi_handle),      pointer :: handle_f
+   complex(kind=c_double), pointer :: edm_f(:)
+
+   integer(kind=c_int) :: nnz_l
+
+   call c_f_pointer(handle_c,handle_f)
+
+   nnz_l = handle_f%nnz_l_sp
+
+   call c_f_pointer(edm_c,edm_f,shape=[nnz_l])
+
+   call elsi_get_edm_complex_sparse(handle_f,edm_f)
+
+end subroutine
+
 subroutine elsi_read_mat_dim_c_wrapper(name_c,mpi_comm,blacs_ctxt,block_size,&
               n_electrons,n_basis,n_l_rows,n_l_cols)&
    bind(C,name="c_elsi_read_mat_dim")

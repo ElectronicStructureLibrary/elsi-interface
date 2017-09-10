@@ -162,8 +162,6 @@ program test_ev_complex
    blacs_ctxt = mpi_comm_global
    call BLACS_Gridinit(blacs_ctxt,'r',nprow,npcol)
 
-   t1 = MPI_Wtime()
-
    ! Read H and S matrices
    call elsi_read_mat_dim(arg2,mpi_comm_global,blacs_ctxt,blk,n_electrons,&
            matrix_size,l_rows,l_cols)
@@ -175,6 +173,8 @@ program test_ev_complex
    allocate(evec(l_rows,l_cols))
    allocate(eval(matrix_size))
    allocate(occ(matrix_size))
+
+   t1 = MPI_Wtime()
 
    call elsi_read_mat_complex(arg2,mpi_comm_global,blacs_ctxt,blk,matrix_size,&
            l_rows,l_cols,ham)

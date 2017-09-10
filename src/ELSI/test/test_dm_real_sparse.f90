@@ -163,8 +163,6 @@ program test_dm_real_sparse
       write(*,*)
    endif
 
-   t1 = MPI_Wtime()
-
    if((solver == 1) .or. (solver == 2)) then
       ! Set up square-like processor grid
       do npcol = nint(sqrt(real(n_proc))),2,-1
@@ -220,6 +218,8 @@ program test_dm_real_sparse
    allocate(edm(nnz_l))
    allocate(row_ind(nnz_l))
    allocate(col_ptr(n_l_cols+1))
+
+   t1 = MPI_Wtime()
 
    if(task_id == 0) then
       call elsi_read_mat_real_sparse(arg2,comm_in_task,matrix_size,nnz_g,nnz_l,&

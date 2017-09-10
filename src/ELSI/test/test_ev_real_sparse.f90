@@ -170,8 +170,6 @@ program test_ev_real_sparse
    call BLACS_Gridinit(blacs_ctxt,'r',nprow,npcol)
    call BLACS_Gridinfo(blacs_ctxt,nprow,npcol,myprow,mypcol)
 
-   t1 = MPI_Wtime()
-
    ! Read H and S matrices
    call elsi_read_mat_dim_sparse(arg2,mpi_comm_global,n_electrons,matrix_size,&
            nnz_g,nnz_l,n_l_cols)
@@ -187,6 +185,8 @@ program test_ev_real_sparse
    allocate(evec(l_rows,l_cols))
    allocate(eval(matrix_size))
    allocate(occ(matrix_size))
+
+   t1 = MPI_Wtime()
 
    call elsi_read_mat_real_sparse(arg2,mpi_comm_global,matrix_size,nnz_g,nnz_l,&
            n_l_cols,row_ind,col_ptr,ham)

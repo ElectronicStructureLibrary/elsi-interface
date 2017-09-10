@@ -308,6 +308,12 @@ void c_elsi_get_edm_real(elsi_handle handle_c,
 void c_elsi_get_edm_complex(elsi_handle handle_c,
                             double _Complex *edm);
 
+void c_elsi_get_edm_real_sparse(elsi_handle handle_c,
+                                double *edm);
+
+void c_elsi_get_edm_complex_sparse(elsi_handle handle_c,
+                                   double _Complex *edm);
+
 void c_elsi_read_mat_dim(char *name_c,
                          int mpi_comm,
                          int blacs_ctxt,

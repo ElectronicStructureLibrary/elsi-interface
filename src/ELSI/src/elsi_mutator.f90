@@ -91,6 +91,7 @@ module ELSI_MUTATOR
    public :: elsi_get_edm_real
    public :: elsi_get_edm_complex
    public :: elsi_get_edm_real_sparse
+   public :: elsi_get_edm_complex_sparse
    public :: elsi_customize
    public :: elsi_customize_elpa
    public :: elsi_customize_omm
@@ -1426,6 +1427,56 @@ subroutine elsi_get_edm_complex(e_h,d_out)
          call elsi_compute_edm_pexsi(e_h)
 
          call elsi_pexsi_to_blacs_dm(e_h,d_out)
+      case(CHESS)
+         call elsi_stop(" CHESS not yet implemented. Exiting...",e_h,caller)
+      case(SIPS)
+         call elsi_stop(" SIPS not yet implemented. Exiting...",e_h,caller)
+      case default
+         call elsi_stop(" No supported solver has been chosen. Exiting...",e_h,&
+                 caller)
+      end select
+
+      e_h%edm_ready_cmplx = .false.
+      e_h%matrix_data_type = UNSET
+   else
+      call elsi_stop(" Energy weighted density matrix has not been computed."//&
+              " Exiting...",e_h,caller)
+   endif
+
+end subroutine
+
+!>
+!! This routine gets the energy-weighted density matrix.
+!!
+subroutine elsi_get_edm_complex_sparse(e_h,d_out)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h                 !< Handle
+   complex(kind=r8),  intent(out)   :: d_out(e_h%nnz_l_sp) !< Energy density matrix
+
+   character*40, parameter :: caller = "elsi_get_edm_complex_sparse"
+
+   call elsi_check_handle(e_h,caller)
+
+   if(e_h%edm_ready_cmplx) then
+      e_h%matrix_data_type = COMPLEX_VALUES
+
+      select case(e_h%solver)
+      case(ELPA)
+         call elsi_compute_edm_elpa(e_h)
+
+         call elsi_blacs_to_sips_dm(e_h,d_out)
+      case(LIBOMM)
+         call elsi_compute_edm_omm(e_h)
+
+         e_h%dm_omm%zval = 2.0_r8*e_h%dm_omm%zval
+
+         call elsi_blacs_to_sips_dm(e_h,d_out)
+      case(PEXSI)
+         call elsi_set_sparse_dm(e_h,d_out)
+
+         call elsi_compute_edm_pexsi(e_h)
       case(CHESS)
          call elsi_stop(" CHESS not yet implemented. Exiting...",e_h,caller)
       case(SIPS)
