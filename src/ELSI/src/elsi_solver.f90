@@ -1145,7 +1145,7 @@ subroutine elsi_dm_complex_sparse(e_h,h_in,s_in,d_out,energy_out)
 
          ! Allocate
          if(.not. e_h%coeff%is_initialized) then
-            call m_allocate(e_h%coeff,e_h%n_states_omm,e_h%n_basis,"pddbc")
+            call m_allocate(e_h%coeff,e_h%n_states_omm,e_h%n_basis,"pzdbc")
          endif
          if(.not. allocated(e_h%dm_cmplx_elpa)) then
             call elsi_allocate(e_h,e_h%dm_cmplx_elpa,e_h%n_l_rows,e_h%n_l_cols,&
