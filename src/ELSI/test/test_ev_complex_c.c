@@ -25,7 +25,7 @@
  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
-// This program tests elsi_ev_real.
+// This program tests elsi_ev_complex.
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -48,7 +48,8 @@ void main(int argc, char** argv) {
    int i;
 
    double n_electrons;
-   double *h,*s,*eval,*evec;
+   double *eval;
+   double _Complex *h,*s,*evec;
    double e_elpa,e_test,e_tol;
 
    e_elpa = -2217.76186674317;
@@ -85,13 +86,13 @@ void main(int argc, char** argv) {
    c_elsi_read_mat_dim(argv[2],mpi_comm_global,blacs_ctxt,blk,&n_electrons,&n_basis,&l_row,&l_col);
 
    l_size = l_row * l_col;
-   h      = malloc(l_size * sizeof(double));
-   s      = malloc(l_size * sizeof(double));
-   evec   = malloc(l_size * sizeof(double));
+   h      = malloc(l_size * sizeof(double _Complex));
+   s      = malloc(l_size * sizeof(double _Complex));
+   evec   = malloc(l_size * sizeof(double _Complex));
    eval   = malloc(n_basis * sizeof(double));
 
-   c_elsi_read_mat_real(argv[2],mpi_comm_global,blacs_ctxt,blk,n_basis,l_row,l_col,h);
-   c_elsi_read_mat_real(argv[3],mpi_comm_global,blacs_ctxt,blk,n_basis,l_row,l_col,s);
+   c_elsi_read_mat_complex(argv[2],mpi_comm_global,blacs_ctxt,blk,n_basis,l_row,l_col,h);
+   c_elsi_read_mat_complex(argv[3],mpi_comm_global,blacs_ctxt,blk,n_basis,l_row,l_col,s);
 
    n_states = n_electrons;
 
@@ -113,7 +114,7 @@ void main(int argc, char** argv) {
    c_elsi_set_output(elsi_h,2);
 
    // Call ELSI eigensolver
-   c_elsi_ev_real(elsi_h,h,s,eval,evec);
+   c_elsi_ev_complex(elsi_h,h,s,eval,evec);
 
    // Finalize ELSI
    c_elsi_finalize(elsi_h);

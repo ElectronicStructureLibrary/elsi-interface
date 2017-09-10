@@ -25,7 +25,7 @@
  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
-// This program tests elsi_ev_real.
+// This program tests elsi_dm_complex.
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -48,11 +48,12 @@ void main(int argc, char** argv) {
    int i;
 
    double n_electrons;
-   double *h,*s,*eval,*evec;
-   double e_elpa,e_test,e_tol;
+   double _Complex *h,*s,*dm;
+   double e_elpa,e_omm,e_pexsi,e_test,e_tol,e_ref;
 
-   e_elpa = -2217.76186674317;
-   e_tol = 0.00000001;
+   e_elpa  = -1833.07932666530;
+   e_omm   = -1833.07932666692;
+   e_pexsi = -1833.07836497809;
 
    elsi_handle elsi_h;
 
@@ -64,10 +65,24 @@ void main(int argc, char** argv) {
 
    // Parameters
    blk         = 16;
-   solver      = 1; // ELPA
+   solver      = atoi(argv[1]);
    format      = 0; // BLACS_DENSE
+   parallel    = 1; // MULTI_PROC
    int_one     = 1;
    int_zero    = 0;
+
+   if (solver == 1) {
+       e_ref = e_elpa;
+       e_tol = 0.00000001;
+   }
+   if (solver == 2) {
+       e_ref = e_omm;
+       e_tol = 0.00000001;
+   }
+   if (solver == 3) {
+       e_ref = e_pexsi;
+       e_tol = 0.0001;
+   }
 
    tmp = (int) round(sqrt((double) n_proc));
    for (n_pcol=tmp; n_pcol>1; n_pcol--) {
@@ -85,46 +100,34 @@ void main(int argc, char** argv) {
    c_elsi_read_mat_dim(argv[2],mpi_comm_global,blacs_ctxt,blk,&n_electrons,&n_basis,&l_row,&l_col);
 
    l_size = l_row * l_col;
-   h      = malloc(l_size * sizeof(double));
-   s      = malloc(l_size * sizeof(double));
-   evec   = malloc(l_size * sizeof(double));
-   eval   = malloc(n_basis * sizeof(double));
+   h      = malloc(l_size * sizeof(double _Complex));
+   s      = malloc(l_size * sizeof(double _Complex));
+   dm     = malloc(l_size * sizeof(double _Complex));
 
-   c_elsi_read_mat_real(argv[2],mpi_comm_global,blacs_ctxt,blk,n_basis,l_row,l_col,h);
-   c_elsi_read_mat_real(argv[3],mpi_comm_global,blacs_ctxt,blk,n_basis,l_row,l_col,s);
+   c_elsi_read_mat_complex(argv[2],mpi_comm_global,blacs_ctxt,blk,n_basis,l_row,l_col,h);
+   c_elsi_read_mat_complex(argv[3],mpi_comm_global,blacs_ctxt,blk,n_basis,l_row,l_col,s);
 
    n_states = n_electrons;
 
    // Initialize ELSI
-   if (n_proc == 1) {
-       parallel = 0; // Test SINGLE_PROC mode
-
-       c_elsi_init(&elsi_h,solver,parallel,format,n_basis,n_electrons,n_states);
-   }
-   else {
-       parallel = 1; // Test MULTI_PROC mode
-
-       c_elsi_init(&elsi_h,solver,parallel,format,n_basis,n_electrons,n_states);
-       c_elsi_set_mpi(elsi_h,mpi_comm_global);
-       c_elsi_set_blacs(elsi_h,blacs_ctxt,blk);
-   }
+   c_elsi_init(&elsi_h,solver,parallel,format,n_basis,n_electrons,n_states);
+   c_elsi_set_mpi(elsi_h,mpi_comm_global);
+   c_elsi_set_blacs(elsi_h,blacs_ctxt,blk);
 
    // Customize ELSI
    c_elsi_set_output(elsi_h,2);
+   c_elsi_set_sing_check(elsi_h,0);
+   c_elsi_set_omm_n_elpa(elsi_h,1);
+   c_elsi_set_pexsi_np_per_pole(elsi_h,2);
 
-   // Call ELSI eigensolver
-   c_elsi_ev_real(elsi_h,h,s,eval,evec);
+   // Call ELSI density matrix solver
+   c_elsi_dm_complex(elsi_h,h,s,dm,&e_test);
 
    // Finalize ELSI
    c_elsi_finalize(elsi_h);
 
-   e_test = 0.0;
-   for (i=0; i<n_states; i++) {
-        e_test += 2.0*eval[i];
-   }
-
    if (myid == 0) {
-       if (fabs(e_test-e_elpa) < e_tol) {
+       if (fabs(e_test-e_ref) < e_tol) {
            printf("  Passed.\n");
        }
        else {
@@ -134,8 +137,7 @@ void main(int argc, char** argv) {
 
    free(h);
    free(s);
-   free(evec);
-   free(eval);
+   free(dm);
 
    MPI_Finalize();
 

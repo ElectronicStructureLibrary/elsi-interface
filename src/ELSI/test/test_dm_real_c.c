@@ -48,7 +48,6 @@ void main(int argc, char** argv) {
    int i;
 
    double n_electrons;
-   double double_one,double_zero;
    double *h,*s,*dm;
    double e_elpa,e_omm,e_pexsi,e_test,e_tol,e_ref;
 
@@ -71,8 +70,6 @@ void main(int argc, char** argv) {
    parallel    = 1; // MULTI_PROC
    int_one     = 1;
    int_zero    = 0;
-   double_one  = 1.0;
-   double_zero = 0.0;
 
    if (solver == 1) {
        e_ref = e_elpa;
