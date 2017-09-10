@@ -441,6 +441,45 @@ subroutine elsi_ev_real_sparse_c_wrapper(handle_c,ham_c,ovlp_c,eval_c,evec_c)&
 
 end subroutine
 
+subroutine elsi_ev_complex_sparse_c_wrapper(handle_c,ham_c,ovlp_c,eval_c,&
+              evec_c)&
+   bind(C,name="c_elsi_ev_complex_sparse")
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: ham_c
+   type(c_ptr), value, intent(in) :: ovlp_c
+   type(c_ptr), value, intent(in) :: eval_c
+   type(c_ptr), value, intent(in) :: evec_c
+
+   type(elsi_handle),      pointer :: handle_f
+   complex(kind=c_double), pointer :: ham_f(:)
+   complex(kind=c_double), pointer :: ovlp_f(:)
+   real(kind=c_double),    pointer :: eval_f(:)
+   complex(kind=c_double), pointer :: evec_f(:,:)
+
+   integer(kind=c_int) :: n_basis
+   integer(kind=c_int) :: nnz_l
+   integer(kind=c_int) :: l_rows
+   integer(kind=c_int) :: l_cols
+
+   call c_f_pointer(handle_c,handle_f)
+
+   n_basis = handle_f%n_basis
+   nnz_l   = handle_f%nnz_l_sp
+   l_rows  = handle_f%n_l_rows
+   l_cols  = handle_f%n_l_cols
+
+   call c_f_pointer(ham_c,ham_f,shape=[nnz_l])
+   call c_f_pointer(ovlp_c,ovlp_f,shape=[nnz_l])
+   call c_f_pointer(eval_c,eval_f,shape=[n_basis])
+   call c_f_pointer(evec_c,evec_f,shape=[l_rows,l_cols])
+
+   call elsi_ev_complex_sparse(handle_f,ham_f,ovlp_f,eval_f,evec_f)
+
+end subroutine
+
 subroutine elsi_dm_real_c_wrapper(handle_c,ham_c,ovlp_c,dm_c,energy)&
    bind(C,name="c_elsi_dm_real")
 
@@ -536,6 +575,36 @@ subroutine elsi_dm_real_sparse_c_wrapper(handle_c,ham_c,ovlp_c,dm_c,energy)&
    call c_f_pointer(dm_c,dm_f,shape=[nnz_l])
 
    call elsi_dm_real_sparse(handle_f,ham_f,ovlp_f,dm_f,energy)
+
+end subroutine
+
+subroutine elsi_dm_complex_sparse_c_wrapper(handle_c,ham_c,ovlp_c,dm_c,energy)&
+   bind(C,name="c_elsi_dm_complex_sparse")
+
+   implicit none
+
+   type(c_ptr), value,  intent(in)    :: handle_c
+   type(c_ptr), value,  intent(in)    :: ham_c
+   type(c_ptr), value,  intent(in)    :: ovlp_c
+   type(c_ptr), value,  intent(in)    :: dm_c
+   real(kind=c_double), intent(inout) :: energy
+
+   type(elsi_handle),      pointer :: handle_f
+   complex(kind=c_double), pointer :: ham_f(:)
+   complex(kind=c_double), pointer :: ovlp_f(:)
+   complex(kind=c_double), pointer :: dm_f(:)
+
+   integer(kind=c_int) :: nnz_l
+
+   call c_f_pointer(handle_c,handle_f)
+
+   nnz_l = handle_f%nnz_l_sp
+
+   call c_f_pointer(ham_c,ham_f,shape=[nnz_l])
+   call c_f_pointer(ovlp_c,ovlp_f,shape=[nnz_l])
+   call c_f_pointer(dm_c,dm_f,shape=[nnz_l])
+
+   call elsi_dm_complex_sparse(handle_f,ham_f,ovlp_f,dm_f,energy)
 
 end subroutine
 

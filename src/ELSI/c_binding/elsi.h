@@ -143,6 +143,12 @@ void c_elsi_ev_real_sparse(elsi_handle handle_c,
                            double *eval,
                            double *evec);
 
+void c_elsi_ev_complex_sparse(elsi_handle handle_c,
+                              double _Complex *ham,
+                              double _Complex *ovlp,
+                              double *eval,
+                              double _Complex *evec);
+
 void c_elsi_dm_real(elsi_handle handle_c,
                     double *ham,
                     double *ovlp,
@@ -160,6 +166,12 @@ void c_elsi_dm_real_sparse(elsi_handle handle_c,
                            double *ovlp,
                            double *dm,
                            double *energy);
+
+void c_elsi_dm_complex_sparse(elsi_handle handle_c,
+                              double _Complex *ham,
+                              double _Complex *ovlp,
+                              double _Complex *dm,
+                              double *energy);
 
 void c_elsi_set_output(elsi_handle handle_c,
                        int out_level);
