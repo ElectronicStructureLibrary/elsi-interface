@@ -115,9 +115,11 @@ module ELSI
    public :: elsi_ev_real
    public :: elsi_ev_complex
    public :: elsi_ev_real_sparse
+   public :: elsi_ev_complex_sparse
    public :: elsi_dm_real
    public :: elsi_dm_complex
    public :: elsi_dm_real_sparse
+   public :: elsi_dm_complex_sparse
    public :: elsi_compute_mu_and_occ
 
    ! I/O
