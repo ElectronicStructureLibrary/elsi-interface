@@ -341,4 +341,67 @@ subroutine elsi_finalize(e_h)
 
 end subroutine
 
+!>
+!! This routine prints a final output.
+!!
+subroutine elsi_final_print(e_h)
+
+   implicit none
+
+   type(elsi_handle), intent(in) :: e_h !< Handle
+
+   real(kind=r8) :: sparsity
+
+   character*40, parameter :: caller = "elsi_final_print"
+
+   if(print_info) then
+      if(e_h%myid_all == 0) then
+         write(*,"('  |------------------------------------------')")
+         write(*,"('  | Final ELSI Output')")
+         write(*,"('  |------------------------------------------')")
+
+         write(*,"('  | Number of basis functions :',I13)") e_h%n_basis
+         if(e_h%solver == PEXSI .or. e_h%solver == SIPS) then
+            write(*,"('  | Number of nonzeros        :',I13)") e_h%nnz_g
+
+            sparsity = 1.0_r8-(1.0_r8*e_h%nnz_g/e_h%n_basis/e_h%n_basis)
+            write(*,"('  | Sparsity                  :',F13.3)") sparsity
+         endif
+         write(*,"('  | Number of electrons       :',F13.1)") e_h%n_electrons
+         write(*,"('  | Number of states          :',I13)") e_h%n_states
+         write(*,"('  | Number of spins           :',I13)") e_h%n_spins
+         write(*,"('  | Number of k-points        :',I13)") e_h%n_kpts
+
+         if(e_h%solver == ELPA) then
+            write(*,"('  | Solver                    :',A13)") "ELPA"
+         elseif(e_h%solver == LIBOMM) then
+            write(*,"('  | Solver                    :',A13)") "libOMM"
+         elseif(e_h%solver == PEXSI) then
+            write(*,"('  | Solver                    :',A13)") "PEXSI"
+         elseif(e_h%solver == CHESS) then
+            write(*,"('  | Solver                    :',A13)") "CheSS"
+         elseif(e_h%solver == SIPS) then
+            write(*,"('  | Solver                    :',A13)") "SIPs"
+         endif
+
+         if(e_h%parallel_mode == MULTI_PROC) then
+            write(*,"('  | Parallel mode             :',A13)") "MULTI_PROC"
+         elseif(e_h%parallel_mode == SINGLE_PROC) then
+            write(*,"('  | Parallel mode             :',A13)") "SINGLE_PROC"
+         endif
+
+         if(e_h%matrix_format == BLACS_DENSE) then
+            write(*,"('  | Matrix format             :',A13)") "BLACS_DENSE"
+         elseif(e_h%matrix_format == PEXSI_CSC) then
+            write(*,"('  | Matrix format             :',A13)") "PEXSI_CSC"
+         endif
+
+         write(*,"('  |------------------------------------------')")
+         write(*,"('  | ELSI Project (c)  elsi-interchange.org')")
+         write(*,"('  |------------------------------------------')")
+      endif
+   endif
+
+end subroutine
+
 end module ELSI_SETUP

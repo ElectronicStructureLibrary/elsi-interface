@@ -137,6 +137,8 @@ subroutine elsi_ev_real(e_h,h_in,s_in,eval_out,evec_out)
    ! Safety check
    call elsi_check(e_h,caller)
 
+   call elsi_print_settings(e_h)
+
    select case(e_h%solver)
    case(ELPA)
       ! Set matrices
@@ -161,8 +163,6 @@ subroutine elsi_ev_real(e_h,h_in,s_in,eval_out,evec_out)
       call elsi_stop(" CHESS is not an eigensolver. Choose ELPA or SIPS if"//&
               " needed. Exiting...",e_h,caller)
    case(SIPS)
-      call elsi_print_sips_options(e_h)
-
       ! Initialize SIPs
       call elsi_init_sips(e_h)
 
@@ -222,6 +222,8 @@ subroutine elsi_ev_complex(e_h,h_in,s_in,eval_out,evec_out)
 
    ! Safety check
    call elsi_check(e_h,caller)
+
+   call elsi_print_settings(e_h)
 
    select case(e_h%solver)
    case(ELPA)
@@ -285,6 +287,8 @@ subroutine elsi_ev_real_sparse(e_h,h_in,s_in,eval_out,evec_out)
    ! Safety check
    call elsi_check(e_h,caller)
 
+   call elsi_print_settings(e_h)
+
    select case(e_h%solver)
    case(ELPA)
       ! Convert 1D CSC to 2D dense
@@ -346,6 +350,8 @@ subroutine elsi_ev_complex_sparse(e_h,h_in,s_in,eval_out,evec_out)
    ! Safety check
    call elsi_check(e_h,caller)
 
+   call elsi_print_settings(e_h)
+
    select case(e_h%solver)
    case(ELPA)
       ! Convert 1D CSC to 2D dense
@@ -406,6 +412,8 @@ subroutine elsi_dm_real(e_h,h_in,s_in,d_out,energy_out)
    ! Safety check
    call elsi_check(e_h,caller)
 
+   call elsi_print_settings(e_h)
+
    select case(e_h%solver)
    case(ELPA)
       ! Allocate
@@ -434,8 +442,6 @@ subroutine elsi_dm_real(e_h,h_in,s_in,d_out,energy_out)
 
       e_h%mu_ready = .true.
    case(LIBOMM)
-      call elsi_print_omm_options(e_h)
-
       if(e_h%n_elsi_calls <= e_h%n_elpa_steps) then
          if(e_h%n_elsi_calls == 1 .and. e_h%omm_flavor == 0) then
             ! Overlap will be destroyed by Cholesky
@@ -540,8 +546,6 @@ subroutine elsi_dm_real(e_h,h_in,s_in,d_out,energy_out)
          call elsi_get_energy(e_h,energy_out)
       endif
    case(PEXSI)
-      call elsi_print_pexsi_options(e_h)
-
       ! Initialize PEXSI
       call elsi_init_pexsi(e_h)
 
@@ -574,8 +578,6 @@ subroutine elsi_dm_real(e_h,h_in,s_in,d_out,energy_out)
 
       e_h%mu_ready = .true.
    case(CHESS)
-      call elsi_print_chess_options(e_h)
-
       ! Convert 2D dense to non-distributed CSC
       if(.not. e_h%ovlp_is_unit .and. e_h%n_elsi_calls == 1) then
          call elsi_set_full_mat(e_h,s_in)
@@ -638,6 +640,8 @@ subroutine elsi_dm_complex(e_h,h_in,s_in,d_out,energy_out)
    ! Safety check
    call elsi_check(e_h,caller)
 
+   call elsi_print_settings(e_h)
+
    select case(e_h%solver)
    case(ELPA)
       ! Allocate
@@ -666,8 +670,6 @@ subroutine elsi_dm_complex(e_h,h_in,s_in,d_out,energy_out)
 
       e_h%mu_ready = .true.
    case(LIBOMM)
-      call elsi_print_omm_options(e_h)
-
       if(e_h%n_elsi_calls <= e_h%n_elpa_steps) then
          if(e_h%n_elsi_calls == 1 .and. e_h%omm_flavor == 0) then
             ! Overlap will be destroyed by Cholesky
@@ -773,8 +775,6 @@ subroutine elsi_dm_complex(e_h,h_in,s_in,d_out,energy_out)
          call elsi_get_energy(e_h,energy_out)
       endif
    case(PEXSI)
-      call elsi_print_pexsi_options(e_h)
-
       ! Initialize PEXSI
       call elsi_init_pexsi(e_h)
 
@@ -847,6 +847,8 @@ subroutine elsi_dm_real_sparse(e_h,h_in,s_in,d_out,energy_out)
    ! Safety check
    call elsi_check(e_h,caller)
 
+   call elsi_print_settings(e_h)
+
    select case(e_h%solver)
    case(ELPA)
       ! Convert 1D CSC to 2D dense
@@ -883,8 +885,6 @@ subroutine elsi_dm_real_sparse(e_h,h_in,s_in,d_out,energy_out)
 
       e_h%mu_ready = .true.
    case(LIBOMM)
-      call elsi_print_omm_options(e_h)
-
       ! Convert 1D CSC to 2D dense
       call elsi_sips_to_blacs_hs(e_h,h_in,s_in)
 
@@ -996,8 +996,6 @@ subroutine elsi_dm_real_sparse(e_h,h_in,s_in,d_out,energy_out)
          call elsi_get_energy(e_h,energy_out)
       endif
    case(PEXSI)
-      call elsi_print_pexsi_options(e_h)
-
       ! Set matrices
       call elsi_set_sparse_ham(e_h,h_in)
       call elsi_set_sparse_ovlp(e_h,s_in)
@@ -1053,6 +1051,8 @@ subroutine elsi_dm_complex_sparse(e_h,h_in,s_in,d_out,energy_out)
    ! Safety check
    call elsi_check(e_h,caller)
 
+   call elsi_print_settings(e_h)
+
    select case(e_h%solver)
    case(ELPA)
       ! Convert 1D CSC to 2D dense
@@ -1089,8 +1089,6 @@ subroutine elsi_dm_complex_sparse(e_h,h_in,s_in,d_out,energy_out)
 
       e_h%mu_ready = .true.
    case(LIBOMM)
-      call elsi_print_omm_options(e_h)
-
       ! Convert 1D CSC to 2D dense
       call elsi_sips_to_blacs_hs(e_h,h_in,s_in)
 
@@ -1203,8 +1201,6 @@ subroutine elsi_dm_complex_sparse(e_h,h_in,s_in,d_out,energy_out)
          call elsi_get_energy(e_h,energy_out)
       endif
    case(PEXSI)
-      call elsi_print_pexsi_options(e_h)
-
       ! Set matrices
       call elsi_set_sparse_ham(e_h,h_in)
       call elsi_set_sparse_ovlp(e_h,s_in)
@@ -1230,6 +1226,135 @@ subroutine elsi_dm_complex_sparse(e_h,h_in,s_in,d_out,energy_out)
 
    e_h%matrix_data_type = UNSET
    e_h%edm_ready_cmplx = .true.
+
+end subroutine
+
+!>
+!! This routine prints ELSI settings.
+!!
+subroutine elsi_print_settings(e_h)
+
+   implicit none
+
+   type(elsi_handle), intent(in) :: e_h !< Handle
+
+   character*200 :: info_str
+
+   character*40, parameter :: caller = "elsi_print_settings"
+
+   select case(e_h%solver)
+   case(CHESS)
+      write(info_str,"('  CheSS settings:')")
+      call elsi_statement_print(info_str,e_h)
+
+      write(info_str,"('  | Error function decay length ',E10.2)")&
+         e_h%erf_decay
+      call elsi_statement_print(info_str,e_h)
+
+      write(info_str,"('  | Lower bound of decay length ',E10.2)")&
+         e_h%erf_decay_min
+      call elsi_statement_print(info_str,e_h)
+
+      write(info_str,"('  | Upper bound of decay length ',E10.2)")&
+         e_h%erf_decay_max
+      call elsi_statement_print(info_str,e_h)
+
+      write(info_str,"('  | Lower bound of H eigenvalue ',E10.2)")&
+         e_h%ev_ham_min
+      call elsi_statement_print(info_str,e_h)
+
+      write(info_str,"('  | Upper bound of H eigenvalue ',E10.2)")&
+         e_h%ev_ham_max
+      call elsi_statement_print(info_str,e_h)
+
+      write(info_str,"('  | Lower bound of S eigenvalue ',E10.2)")&
+         e_h%ev_ovlp_min
+      call elsi_statement_print(info_str,e_h)
+
+      write(info_str,"('  | Upper bound of S eigenvalue ',E10.2)") &
+         e_h%ev_ovlp_max
+      call elsi_statement_print(info_str,e_h)
+   case(ELPA)
+      write(info_str,"('  ELPA settings:')")
+      call elsi_statement_print(info_str,e_h)
+
+      write(info_str,"('  | ELPA solver ',I10)")&
+         e_h%elpa_solver
+      call elsi_statement_print(info_str,e_h)
+   case(LIBOMM)
+      write(info_str,"('  libOMM settings:')")
+      call elsi_statement_print(info_str,e_h)
+
+      write(info_str,"('  | Number of ELPA steps       ',I10)")&
+         e_h%n_elpa_steps
+      call elsi_statement_print(info_str,e_h)
+
+      write(info_str,"('  | OMM minimization flavor    ',I10)")&
+         e_h%omm_flavor
+      call elsi_statement_print(info_str,e_h)
+
+      write(info_str,"('  | OMM minimization tolerance ',E10.2)")&
+         e_h%min_tol
+      call elsi_statement_print(info_str,e_h)
+   case(PEXSI)
+      write(info_str,"('  PEXSI settings:')")
+      call elsi_statement_print(info_str,e_h)
+
+      write(info_str,"('  | Electron temperature       ',E10.2)")&
+         e_h%pexsi_options%temperature
+      call elsi_statement_print(info_str,e_h)
+
+      write(info_str,"('  | Spectral gap               ',F10.3)")&
+         e_h%pexsi_options%gap
+      call elsi_statement_print(info_str,e_h)
+
+      write(info_str,"('  | Spectral width             ',F10.3)")&
+         e_h%pexsi_options%deltaE
+      call elsi_statement_print(info_str,e_h)
+
+      write(info_str,"('  | Number of poles            ',I10)")&
+         e_h%pexsi_options%numPole
+      call elsi_statement_print(info_str,e_h)
+
+      write(info_str,"('  | Number of mu points        ',I10)")&
+         e_h%pexsi_options%nPoints
+      call elsi_statement_print(info_str,e_h)
+
+      write(info_str,"('  | Mu lower bound             ',E10.2)")&
+         e_h%pexsi_options%muMin0
+      call elsi_statement_print(info_str,e_h)
+
+      write(info_str,"('  | Mu upper bound             ',E10.2)")&
+         e_h%pexsi_options%muMax0
+      call elsi_statement_print(info_str,e_h)
+
+      write(info_str,"('  | Inertia counting tolerance ',E10.2)")&
+         e_h%pexsi_options%muInertiaTolerance
+      call elsi_statement_print(info_str,e_h)
+
+      write(info_str,"('  | MPI tasks for symbolic     ',I10)")&
+         e_h%pexsi_options%npSymbFact
+      call elsi_statement_print(info_str,e_h)
+   case(SIPS)
+      write(info_str,"('  SIPs settings:')")
+      call elsi_statement_print(info_str,e_h)
+
+      write(info_str,"('  | Slicing method    ',I10)")&
+         e_h%slicing_method
+      call elsi_statement_print(info_str,e_h)
+
+      write(info_str,"('  | Inertia counting  ',I10)")&
+         e_h%inertia_option
+      call elsi_statement_print(info_str,e_h)
+
+      write(info_str,"('  | Left bound option ',I10)")&
+         e_h%unbound
+      call elsi_statement_print(info_str,e_h)
+
+      write(info_str,"('  | Slice buffer      ',E10.2)")&
+         e_h%slice_buffer
+      call elsi_statement_print(info_str,e_h)
+   end select
 
 end subroutine
 

@@ -67,7 +67,6 @@ module ELSI_UTILS
    public :: elsi_set_full_mat
    public :: elsi_init_timers
    public :: elsi_get_time
-   public :: elsi_final_print
 
    interface elsi_set_ham
       module procedure elsi_set_real_ham,&
@@ -112,9 +111,12 @@ module ELSI_UTILS
                        elsi_allocate_real8_1d,&
                        elsi_allocate_real8_2d,&
                        elsi_allocate_real8_3d,&
+                       elsi_allocate_real4_1d,&
+                       elsi_allocate_real4_2d,&
                        elsi_allocate_complex16_1d,&
                        elsi_allocate_complex16_2d,&
-                       elsi_allocate_complex16_3d
+                       elsi_allocate_complex16_3d,&
+                       elsi_allocate_complex8_2d
    end interface
 
    interface elsi_deallocate
@@ -125,9 +127,12 @@ module ELSI_UTILS
                        elsi_deallocate_real8_1d,&
                        elsi_deallocate_real8_2d,&
                        elsi_deallocate_real8_3d,&
+                       elsi_deallocate_real4_1d,&
+                       elsi_deallocate_real4_2d,&
                        elsi_deallocate_complex16_1d,&
                        elsi_deallocate_complex16_2d,&
-                       elsi_deallocate_complex16_3d
+                       elsi_deallocate_complex16_3d,&
+                       elsi_deallocate_complex8_2d
    end interface
 
    interface elsi_get_local_nnz
@@ -157,6 +162,42 @@ subroutine elsi_statement_print(info_str,e_h)
          write(*,"(A)") trim(info_str)
       endif
    endif
+
+end subroutine
+
+!>
+!! This routine allocates a 1D array with real(kind=r4).
+!!
+subroutine elsi_allocate_real4_1d(e_h,array,dim1,arrayname,caller)
+
+   implicit none
+
+   type(elsi_handle), intent(in)                 :: e_h       !< Handle
+   real(kind=r4),     intent(inout), allocatable :: array(:)  !< Data
+   integer(kind=i4),  intent(in)                 :: dim1      !< Size
+   character(len=*),  intent(in)                 :: arrayname !< Name
+   character(len=*),  intent(in)                 :: caller    !< Caller
+
+   real(kind=r8) :: arraysize
+   integer       :: error
+   character*200 :: info_str
+
+   if(print_mem) then
+      arraysize = 1.0e-6_r8*dim1*4
+
+      write(info_str,"(A,F12.3,A,A)") "    Allocating ",arraysize," MB for ",&
+         trim(arrayname)
+      call elsi_statement_print(info_str,e_h)
+   endif
+
+   allocate(array(dim1),stat=error)
+
+   if(error > 0) then
+      write(info_str,"(A,A)") " Error in allocating ",trim(arrayname)
+      call elsi_stop(info_str,e_h,caller)
+   endif
+
+   array = 0.0_r4
 
 end subroutine
 
@@ -305,6 +346,43 @@ subroutine elsi_allocate_complex16_1d(e_h,array,dim1,arrayname,caller)
 end subroutine
 
 !>
+!! This routine allocates a 2D array of real(kind=r4).
+!!
+subroutine elsi_allocate_real4_2d(e_h,array,dim1,dim2,arrayname,caller)
+
+   implicit none
+
+   type(elsi_handle), intent(in)                 :: e_h        !< Handle
+   real(kind=r4),     intent(inout), allocatable :: array(:,:) !< Data
+   integer(kind=i4),  intent(in)                 :: dim1       !< Size
+   integer(kind=i4),  intent(in)                 :: dim2       !< Size
+   character(len=*),  intent(in)                 :: arrayname  !< Name
+   character(len=*),  intent(in)                 :: caller     !< Caller
+
+   real(kind=r8) :: arraysize
+   integer       :: error
+   character*200 :: info_str
+
+   if(print_mem) then
+      arraysize = 1.0e-6_r8*dim1*dim2*4
+
+      write(info_str,"(A,F12.3,A,A)") "    Allocating ",arraysize," MB for ",&
+         trim(arrayname)
+      call elsi_statement_print(info_str,e_h)
+   endif
+
+   allocate(array(dim1,dim2),stat=error)
+
+   if(error > 0) then
+      write(info_str,"(A,A)") " Error in allocating ",trim(arrayname)
+      call elsi_stop(info_str,e_h,caller)
+   endif
+
+   array = 0.0_r4
+
+end subroutine
+
+!>
 !! This routine allocates a 2D array of real(kind=r8).
 !!
 subroutine elsi_allocate_real8_2d(e_h,array,dim1,dim2,arrayname,caller)
@@ -375,6 +453,43 @@ subroutine elsi_allocate_integer4_2d(e_h,array,dim1,dim2,arrayname,caller)
    endif
 
    array = 0
+
+end subroutine
+
+!>
+!! This routine allocates a 2D array of complex(kind=r4).
+!!
+subroutine elsi_allocate_complex8_2d(e_h,array,dim1,dim2,arrayname,caller)
+
+   implicit none
+
+   type(elsi_handle), intent(in)                 :: e_h        !< Handle
+   complex(kind=r4),  intent(inout), allocatable :: array(:,:) !< Data
+   integer(kind=i4),  intent(in)                 :: dim1       !< Size
+   integer(kind=i4),  intent(in)                 :: dim2       !< Size
+   character(len=*),  intent(in)                 :: arrayname  !< Name
+   character(len=*),  intent(in)                 :: caller     !< Caller
+
+   real(kind=r8) :: arraysize
+   integer       :: error
+   character*200 :: info_str
+
+   if(print_mem) then
+      arraysize = 1.0e-6_r8*dim1*dim2*8
+
+      write(info_str,"(A,F12.3,A,A)") "    Allocating ",arraysize," MB for ",&
+         trim(arrayname)
+      call elsi_statement_print(info_str,e_h)
+   endif
+
+   allocate(array(dim1,dim2),stat=error)
+
+   if(error > 0) then
+      write(info_str,"(A,A)") " Error in allocating ",trim(arrayname)
+      call elsi_stop(info_str,e_h,caller)
+   endif
+
+   array = (0.0_r4,0.0_r4)
 
 end subroutine
 
@@ -530,6 +645,28 @@ subroutine elsi_allocate_complex16_3d(e_h,array,dim1,dim2,dim3,arrayname,caller)
 end subroutine
 
 !>
+!! This routine deallocates a 1D array with real(kind=r4).
+!!
+subroutine elsi_deallocate_real4_1d(e_h,array,arrayname)
+
+   implicit none
+
+   type(elsi_handle), intent(in)                 :: e_h       !< Handle
+   real(kind=r4),     intent(inout), allocatable :: array(:)  !< Data
+   character(len=*),  intent(in)                 :: arrayname !< Name
+
+   character*200 :: info_str
+
+   if(print_mem) then
+      write(info_str,"(A,A)") "    Deallocating ",trim(arrayname)
+      call elsi_statement_print(info_str,e_h)
+   endif
+
+   deallocate(array)
+
+end subroutine
+
+!>
 !! This routine deallocates a 1D array with real(kind=r8).
 !!
 subroutine elsi_deallocate_real8_1d(e_h,array,arrayname)
@@ -618,6 +755,28 @@ subroutine elsi_deallocate_complex16_1d(e_h,array,arrayname)
 end subroutine
 
 !>
+!! This routine deallocates a 2D array with real(kind=r4).
+!!
+subroutine elsi_deallocate_real4_2d(e_h,array,arrayname)
+
+   implicit none
+
+   type(elsi_handle), intent(in)                 :: e_h        !< Handle
+   real(kind=r4),     intent(inout), allocatable :: array(:,:) !< Data
+   character(len=*),  intent(in)                 :: arrayname  !< Name
+
+   character*200 :: info_str
+
+   if(print_mem) then
+      write(info_str,"(A,A)") "    Deallocating ",trim(arrayname)
+      call elsi_statement_print(info_str,e_h)
+   endif
+
+   deallocate(array)
+
+end subroutine
+
+!>
 !! This routine deallocates a 2D array with real(kind=r8).
 !!
 subroutine elsi_deallocate_real8_2d(e_h,array,arrayname)
@@ -661,6 +820,29 @@ subroutine elsi_deallocate_integer4_2d(e_h,array,arrayname)
 
 end subroutine
 
+!>
+!! This routine deallocates a 2D array with complex(kind=r4).
+!!
+subroutine elsi_deallocate_complex8_2d(e_h,array,arrayname)
+
+   implicit none
+
+   type(elsi_handle), intent(in)                 :: e_h        !< Handle
+   complex(kind=r4),  intent(inout), allocatable :: array(:,:) !< Data
+   character(len=*),  intent(in)                 :: arrayname  !< Name
+
+   character*200 :: info_str
+
+   if(print_mem) then
+      write(info_str,"(A,A)") "    Deallocating ",trim(arrayname)
+      call elsi_statement_print(info_str,e_h)
+   endif
+
+   deallocate(array)
+
+end subroutine
+
+!>
 !>
 !! This routine deallocates a 2D array with complex(kind=r8).
 !!
@@ -1868,69 +2050,6 @@ subroutine elsi_get_time(e_h,wtime)
    call system_clock(tics)
 
    wtime = 1.0_r8*tics/e_h%clock_rate
-
-end subroutine
-
-!>
-!! This routine prints a final output.
-!!
-subroutine elsi_final_print(e_h)
-
-   implicit none
-
-   type(elsi_handle), intent(in) :: e_h !< Handle
-
-   real(kind=r8) :: sparsity
-
-   character*40, parameter :: caller = "elsi_final_print"
-
-   if(print_info) then
-      if(e_h%myid_all == 0) then
-         write(*,"('  |------------------------------------------')")
-         write(*,"('  | Final ELSI Output')")
-         write(*,"('  |------------------------------------------')")
-
-         write(*,"('  | Number of basis functions :',I13)") e_h%n_basis
-         if(e_h%solver == PEXSI .or. e_h%solver == SIPS) then
-            write(*,"('  | Number of nonzeros        :',I13)") e_h%nnz_g
-
-            sparsity = 1.0_r8-(1.0_r8*e_h%nnz_g/e_h%n_basis/e_h%n_basis)
-            write(*,"('  | Sparsity                  :',F13.3)") sparsity
-         endif
-         write(*,"('  | Number of electrons       :',F13.1)") e_h%n_electrons
-         write(*,"('  | Number of states          :',I13)") e_h%n_states
-         write(*,"('  | Number of spins           :',I13)") e_h%n_spins
-         write(*,"('  | Number of k-points        :',I13)") e_h%n_kpts
-
-         if(e_h%solver == ELPA) then
-            write(*,"('  | Solver                    :',A13)") "ELPA"
-         elseif(e_h%solver == LIBOMM) then
-            write(*,"('  | Solver                    :',A13)") "libOMM"
-         elseif(e_h%solver == PEXSI) then
-            write(*,"('  | Solver                    :',A13)") "PEXSI"
-         elseif(e_h%solver == CHESS) then
-            write(*,"('  | Solver                    :',A13)") "CheSS"
-         elseif(e_h%solver == SIPS) then
-            write(*,"('  | Solver                    :',A13)") "SIPs"
-         endif
-
-         if(e_h%parallel_mode == MULTI_PROC) then
-            write(*,"('  | Parallel mode             :',A13)") "MULTI_PROC"
-         elseif(e_h%parallel_mode == SINGLE_PROC) then
-            write(*,"('  | Parallel mode             :',A13)") "SINGLE_PROC"
-         endif
-
-         if(e_h%matrix_format == BLACS_DENSE) then
-            write(*,"('  | Matrix format             :',A13)") "BLACS_DENSE"
-         elseif(e_h%matrix_format == PEXSI_CSC) then
-            write(*,"('  | Matrix format             :',A13)") "PEXSI_CSC"
-         endif
-
-         write(*,"('  |------------------------------------------')")
-         write(*,"('  | ELSI Project (c)  elsi-interchange.org')")
-         write(*,"('  |------------------------------------------')")
-      endif
-   endif
 
 end subroutine
 

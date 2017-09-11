@@ -41,10 +41,9 @@ module ELSI_OMM
 
    private
 
+   public :: elsi_set_omm_default
    public :: elsi_solve_evp_omm
    public :: elsi_compute_edm_omm
-   public :: elsi_set_omm_default
-   public :: elsi_print_omm_options
 
 contains
 
@@ -256,36 +255,6 @@ subroutine elsi_set_omm_default(e_h)
 
    ! Use pspBLAS sparse linear algebra?
    e_h%use_psp = .false.
-
-end subroutine
-
-!>
-!! This routine prints libOMM settings.
-!!
-subroutine elsi_print_omm_options(e_h)
-
-   implicit none
-
-   type(elsi_handle), intent(in) :: e_h !< Handle
-
-   character*200 :: info_str
-
-   character*40, parameter :: caller = "elsi_print_omm_options"
-
-   write(info_str,"('  libOMM settings (in the same unit of Hamiltonian):')")
-   call elsi_statement_print(info_str,e_h)
-
-   write(info_str,"('  | ELPA steps before OMM         ',I10)") e_h%n_elpa_steps
-   call elsi_statement_print(info_str,e_h)
-
-   write(info_str,"('  | libOMM flavor                 ',I10)") e_h%omm_flavor
-   call elsi_statement_print(info_str,e_h)
-
-   write(info_str,"('  | Tolerance of OMM minimization ',E10.2)") e_h%min_tol
-   call elsi_statement_print(info_str,e_h)
-
-   write(info_str,"('  | Use PSP sparse linear algebra ',L10)") e_h%use_psp
-   call elsi_statement_print(info_str,e_h)
 
 end subroutine
 

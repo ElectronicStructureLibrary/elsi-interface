@@ -40,11 +40,10 @@ module ELSI_PEXSI
 
    private
 
+   public :: elsi_set_pexsi_default
    public :: elsi_init_pexsi
    public :: elsi_solve_evp_pexsi
    public :: elsi_compute_edm_pexsi
-   public :: elsi_set_pexsi_default
-   public :: elsi_print_pexsi_options
 
 contains
 
@@ -71,7 +70,7 @@ subroutine elsi_init_pexsi(e_h)
                                e_h%pexsi_options%nPoints)
       endif
 
-      write(info_str,"('  | Number of MPI tasks per pole           ',I10)")&
+      write(info_str,"('  | MPI tasks per pole         ',I10)")&
          e_h%n_p_per_pole
       call elsi_statement_print(info_str,e_h)
 
@@ -816,60 +815,6 @@ subroutine elsi_set_pexsi_default(e_h)
 
    ! Use 1 process in symbolic factorization
    e_h%pexsi_options%npSymbFact = 1
-
-end subroutine
-
-!>
-!! This routine prints PEXSI settings.
-!!
-subroutine elsi_print_pexsi_options(e_h)
-
-   implicit none
-
-   type(elsi_handle), intent(in) :: e_h !< Handle
-
-   character*200 :: info_str
-
-   character*40, parameter :: caller = "elsi_print_pexsi_options"
-
-   write(info_str,"('  PEXSI settings (in the same unit of Hamiltonian):')")
-   call elsi_statement_print(info_str,e_h)
-
-   write(info_str,"('  | Temperature                          ',E10.2)")&
-      e_h%pexsi_options%temperature
-   call elsi_statement_print(info_str,e_h)
-
-   write(info_str,"('  | Spectral gap                         ',F10.3)")&
-      e_h%pexsi_options%gap
-   call elsi_statement_print(info_str,e_h)
-
-   write(info_str,"('  | Spectral width                       ',F10.3)")&
-      e_h%pexsi_options%deltaE
-   call elsi_statement_print(info_str,e_h)
-
-   write(info_str,"('  | Number of poles                      ',I10)")&
-      e_h%pexsi_options%numPole
-   call elsi_statement_print(info_str,e_h)
-
-   write(info_str,"('  | Number of mu points                  ',I10)")&
-      e_h%pexsi_options%nPoints
-   call elsi_statement_print(info_str,e_h)
-
-   write(info_str,"('  | Lower bound of chemical potential    ',E10.2)")&
-      e_h%pexsi_options%muMin0
-   call elsi_statement_print(info_str,e_h)
-
-   write(info_str,"('  | Upper bound of chemical potential    ',E10.2)")&
-      e_h%pexsi_options%muMax0
-   call elsi_statement_print(info_str,e_h)
-
-   write(info_str,"('  | Stop criterion of inertia counting   ',E10.2)")&
-      e_h%pexsi_options%muInertiaTolerance
-   call elsi_statement_print(info_str,e_h)
-
-   write(info_str,"('  | Processes for symbolic factorization ',I10)")&
-      e_h%pexsi_options%npSymbFact
-   call elsi_statement_print(info_str,e_h)
 
 end subroutine
 

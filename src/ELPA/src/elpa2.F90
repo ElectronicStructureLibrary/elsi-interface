@@ -530,7 +530,7 @@ function solve_evp_real_2stage_single(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
     if(.not.(success)) return
     ttt1 = MPI_Wtime()
     if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-       print *,"  | Time full ==> band            :",ttt1-ttt0
+       write(*,"(A,F10.3,A)") "  | Time full => band           :",ttt1-ttt0," s"
 
     ! Reduction band -> tridiagonal
     allocate(e(na),stat=istat,errmsg=errorMessage)
@@ -549,7 +549,7 @@ function solve_evp_real_2stage_single(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
 #endif
     ttt1 = MPI_Wtime()
     if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-       print *,"  | Time band ==> tridiagonal     :",ttt1-ttt0
+       write(*,"(A,F10.3,A)") "  | Time band => tridiagonal    :",ttt1-ttt0," s"
 
 #ifdef WITH_MPI
 #ifdef HAVE_DETAILED_TIMINGS
@@ -579,7 +579,7 @@ function solve_evp_real_2stage_single(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
     if(.not.(success)) return
     ttt1 = MPI_Wtime()
     if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-       print *,"  | Time solve tridiagonal        :",ttt1-ttt0
+       write(*,"(A,F10.3,A)") "  | Time solve tridiagonal      :",ttt1-ttt0," s"
 
     deallocate(e,stat=istat,errmsg=errorMessage)
     if(istat .ne. 0) then
@@ -600,7 +600,7 @@ function solve_evp_real_2stage_single(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
     if(.not.(success)) return
     ttt1 = MPI_Wtime()
     if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-       print *,"  | Time ev tridiagonal ==> band  :",ttt1-ttt0
+       write(*,"(A,F10.3,A)") "  | Time ev tridiagonal => band :",ttt1-ttt0," s"
 
     ! We can now deallocate the stored householder vectors
     deallocate(hh_trans_real,stat=istat,errmsg=errorMessage)
@@ -621,7 +621,7 @@ function solve_evp_real_2stage_single(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
 
     ttt1 = MPI_Wtime()
     if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-       print *,"  | Time ev band ==> full         :",ttt1-ttt0
+       write(*,"(A,F10.3,A)") "  | Time ev band => full        :",ttt1-ttt0," s"
 
     deallocate(tmat,stat=istat,errmsg=errorMessage)
     if(istat .ne. 0) then
@@ -1202,7 +1202,7 @@ function solve_evp_complex_2stage_single(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
     endif
     ttt1 = MPI_Wtime()
     if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-       print *,"  | Time full ==> band            :",ttt1-ttt0
+       write(*,"(A,F10.3,A)") "  | Time full => band           :",ttt1-ttt0," s"
 
     ! Reduction band -> tridiagonal
     allocate(e(na),stat=istat,errmsg=errorMessage)
@@ -1222,7 +1222,7 @@ function solve_evp_complex_2stage_single(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
 
     ttt1 = MPI_Wtime()
     if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-       print *,"  | Time band ==> tridiagonal     :",ttt1-ttt0
+       write(*,"(A,F10.3,A)") "  | Time band => tridiagonal    :",ttt1-ttt0," s"
 
 #ifdef WITH_MPI
 #ifdef HAVE_DETAILED_TIMINGS
@@ -1263,7 +1263,7 @@ function solve_evp_complex_2stage_single(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
 
     ttt1 = MPI_Wtime()
     if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times)  &
-       print *,"  | Time solve tridiagonal        :",ttt1-ttt0
+       write(*,"(A,F10.3,A)") "  | Time solve tridiagonal      :",ttt1-ttt0," s"
 
     q(1:l_rows,1:l_cols_nev) = q_real(1:l_rows,1:l_cols_nev)
 
@@ -1285,7 +1285,7 @@ function solve_evp_complex_2stage_single(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
     if(.not.(success)) return
     ttt1 = MPI_Wtime()
     if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-       print *,"  | Time ev tridiagonal ==> band  :",ttt1-ttt0
+       write(*,"(A,F10.3,A)") "  | Time ev tridiagonal => band :",ttt1-ttt0," s"
 
     ! We can now deallocate the stored householder vectors
     deallocate(hh_trans_complex,stat=istat,errmsg=errorMessage)
@@ -1305,7 +1305,7 @@ function solve_evp_complex_2stage_single(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
 #endif
     ttt1 = MPI_Wtime()
     if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-       print *,"  | Time ev band ==> full         :",ttt1-ttt0
+       write(*,"(A,F10.3,A)") "  | Time ev band => full        :",ttt1-ttt0," s"
 
     deallocate(tmat,stat=istat,errmsg=errorMessage)
     if(istat .ne. 0) then

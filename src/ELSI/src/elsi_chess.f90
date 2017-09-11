@@ -47,11 +47,10 @@ module ELSI_CHESS
 
    private
 
+   public :: elsi_set_chess_default
    public :: elsi_init_chess
    public :: elsi_solve_evp_chess
    public :: elsi_compute_edm_chess
-   public :: elsi_set_chess_default
-   public :: elsi_print_chess_options
 
 contains
 
@@ -221,52 +220,6 @@ subroutine elsi_set_chess_default(e_h)
 
    ! A patameter used to estimate eigenspectrum
    e_h%beta = -1.0e3_r8
-
-end subroutine
-
-!>
-!! This routine prints CheSS settings.
-!!
-subroutine elsi_print_chess_options(e_h)
-
-   implicit none
-
-   type(elsi_handle), intent(in) :: e_h !< Handle
-
-   character*200 :: info_str
-
-   character*40, parameter :: caller = "elsi_print_chess_options"
-
-   write(info_str,"('  CheSS settings (in the same unit of Hamiltonian):')")
-   call elsi_statement_print(info_str,e_h)
-
-   write(info_str,"('  | Initial error function decay length ',E10.2)")&
-      e_h%erf_decay
-   call elsi_statement_print(info_str,e_h)
-
-   write(info_str,"('  | Lower bound of decay length         ',E10.2)")&
-      e_h%erf_decay_min
-   call elsi_statement_print(info_str,e_h)
-
-   write(info_str,"('  | Upper bound of decay length         ',E10.2)")&
-      e_h%erf_decay_max
-   call elsi_statement_print(info_str,e_h)
-
-   write(info_str,"('  | Lower bound of H eigenvalue         ',E10.2)")&
-      e_h%ev_ham_min
-   call elsi_statement_print(info_str,e_h)
-
-   write(info_str,"('  | Upper bound of H eigenvalue         ',E10.2)")&
-      e_h%ev_ham_max
-   call elsi_statement_print(info_str,e_h)
-
-   write(info_str,"('  | Lower bound of S eigenvalue         ',E10.2)")&
-      e_h%ev_ovlp_min
-   call elsi_statement_print(info_str,e_h)
-
-   write(info_str,"('  | Upper bound of S eigenvalue         ',E10.2)") &
-      e_h%ev_ovlp_max
-   call elsi_statement_print(info_str,e_h)
 
 end subroutine
 

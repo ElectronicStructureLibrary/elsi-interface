@@ -656,7 +656,7 @@ function elpa_solve_evp_real_1stage_double(na, nev, a, lda, ev, q, ldq, nblk, &
 #endif
    ttt1 = MPI_Wtime()
    if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-      print *,"  | Time full ==> tridiagonal    :",ttt1-ttt0
+      write(*,"(A,F10.3,A)") "  | Time full => tridiagonal    :",ttt1-ttt0," s"
 
    ttt0 = MPI_Wtime()
 #ifdef DOUBLE_PRECISION_REAL
@@ -670,7 +670,7 @@ function elpa_solve_evp_real_1stage_double(na, nev, a, lda, ev, q, ldq, nblk, &
 
    ttt1 = MPI_Wtime()
    if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-      print *,"  | Time solve tridiagonal       :",ttt1-ttt0
+      write(*,"(A,F10.3,A)") "  | Time solve tridiagonal      :",ttt1-ttt0," s"
 
 
    ttt0 = MPI_Wtime()
@@ -682,7 +682,7 @@ function elpa_solve_evp_real_1stage_double(na, nev, a, lda, ev, q, ldq, nblk, &
    ttt1 = MPI_Wtime()
 
    if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-      print *,"  | Time ev tridiagonal ==> full :",ttt1-ttt0
+      write(*,"(A,F10.3,A)") "  | Time ev tridiagonal => full :",ttt1-ttt0," s"
 
    deallocate(e, tau)
 
@@ -1024,7 +1024,7 @@ function elpa_solve_evp_complex_1stage_double(na, nev, a, lda, ev, q, ldq, nblk,
 #endif
    ttt1 = MPI_Wtime()
    if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-      print *,"  | Time full ==> tridiagonal    :",ttt1-ttt0
+      write(*,"(A,F10.3,A)") "  | Time full => tridiagonal    :",ttt1-ttt0," s"
 
 
    ttt0 = MPI_Wtime()
@@ -1039,7 +1039,7 @@ function elpa_solve_evp_complex_1stage_double(na, nev, a, lda, ev, q, ldq, nblk,
 
    ttt1 = MPI_Wtime()
    if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-      print *,"  | Time solve tridiagonal       :",ttt1-ttt0
+      write(*,"(A,F10.3,A)") "  | Time solve tridiagonal      :",ttt1-ttt0," s"
 
 
    ttt0 = MPI_Wtime()
@@ -1051,7 +1051,7 @@ function elpa_solve_evp_complex_1stage_double(na, nev, a, lda, ev, q, ldq, nblk,
 #endif
    ttt1 = MPI_Wtime()
    if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-      print *,"  | Time ev tridiagonal ==> full :",ttt1-ttt0
+      write(*,"(A,F10.3,A)") "  | Time ev tridiagonal => full :",ttt1-ttt0," s"
 
 
    deallocate(q_real)

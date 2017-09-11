@@ -39,13 +39,13 @@ module ELSI_MATCONV
 
    private
 
-   public :: elsi_blacs_to_chess_hs
-   public :: elsi_blacs_to_sips_dm
    public :: elsi_blacs_to_pexsi_hs
-   public :: elsi_blacs_to_sips_hs
-   public :: elsi_chess_to_blacs_dm
    public :: elsi_pexsi_to_blacs_dm
+   public :: elsi_blacs_to_sips_hs
    public :: elsi_sips_to_blacs_hs
+   public :: elsi_blacs_to_sips_dm
+   public :: elsi_blacs_to_chess_hs
+   public :: elsi_chess_to_blacs_dm
 
    interface elsi_blacs_to_chess_hs
       module procedure elsi_blacs_to_chess_hs_real

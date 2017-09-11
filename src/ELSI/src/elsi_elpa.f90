@@ -47,11 +47,11 @@ module ELSI_ELPA
 
    private
 
-   public :: elsi_compute_dm_elpa
-   public :: elsi_compute_edm_elpa
-   public :: elsi_compute_occ_elpa
    public :: elsi_get_elpa_comms
    public :: elsi_set_elpa_default
+   public :: elsi_compute_occ_elpa
+   public :: elsi_compute_dm_elpa
+   public :: elsi_compute_edm_elpa
    public :: elsi_solve_evp_elpa
    public :: elsi_solve_evp_elpa_sp
 
@@ -858,38 +858,37 @@ subroutine elsi_solve_evp_elpa(e_h)
 
    call elsi_get_time(e_h,t0)
 
+   call elsi_statement_print("  Starting ELPA eigensolver",e_h)
+
    ! Solve evp, return eigenvalues and eigenvectors
-   if(e_h%elpa_solver == 2) then ! 2-stage solver
-      call elsi_statement_print("  Starting ELPA 2-stage eigensolver",e_h)
-      select case(e_h%matrix_data_type)
-      case(COMPLEX_VALUES)
+   select case(e_h%matrix_data_type)
+   case(COMPLEX_VALUES)
+      if(e_h%elpa_solver == 2) then
          success = elpa_solve_evp_complex_2stage_double(e_h%n_nonsing,&
                       e_h%n_states_solve,e_h%ham_cmplx,e_h%n_l_rows,e_h%eval,&
                       e_h%evec_cmplx,e_h%n_l_rows,e_h%n_b_rows,e_h%n_l_cols,&
                       e_h%mpi_comm_row,e_h%mpi_comm_col,e_h%mpi_comm)
-      case(REAL_VALUES)
-         success = elpa_solve_evp_real_2stage_double(e_h%n_nonsing,&
-                      e_h%n_states_solve,e_h%ham_real,e_h%n_l_rows,e_h%eval,&
-                      e_h%evec_real,e_h%n_l_rows,e_h%n_b_rows,e_h%n_l_cols,&
-                      e_h%mpi_comm_row,e_h%mpi_comm_col,e_h%mpi_comm)
-      end select
-   else ! 1-stage solver
-      call elsi_statement_print("  Starting ELPA 1-stage eigensolver",e_h)
-      select case(e_h%matrix_data_type)
-      case(COMPLEX_VALUES)
+      else
          success = elpa_solve_evp_complex_1stage_double(e_h%n_nonsing,&
                       e_h%n_states_solve,e_h%ham_cmplx,e_h%n_l_rows,e_h%eval,&
                       e_h%evec_cmplx,e_h%n_l_rows,e_h%n_b_rows,e_h%n_l_cols,&
                       e_h%mpi_comm_row,e_h%mpi_comm_col,e_h%mpi_comm)
-      case(REAL_VALUES)
+      endif
+   case(REAL_VALUES)
+      if(e_h%elpa_solver == 2) then
+         success = elpa_solve_evp_real_2stage_double(e_h%n_nonsing,&
+                      e_h%n_states_solve,e_h%ham_real,e_h%n_l_rows,e_h%eval,&
+                      e_h%evec_real,e_h%n_l_rows,e_h%n_b_rows,e_h%n_l_cols,&
+                      e_h%mpi_comm_row,e_h%mpi_comm_col,e_h%mpi_comm)
+      else
          success = elpa_solve_evp_real_1stage_double(e_h%n_nonsing,&
                       e_h%n_states_solve,e_h%ham_real,e_h%n_l_rows,e_h%eval,&
                       e_h%evec_real,e_h%n_l_rows,e_h%n_b_rows,e_h%n_l_cols,&
                       e_h%mpi_comm_row,e_h%mpi_comm_col,e_h%mpi_comm)
-      end select
-   endif
+      endif
+   end select
 
-   ! Overwrite zero eigenvalues
+   ! Dummy eigenvalues for correct chemical potential, no physical meaning!
    if(e_h%n_nonsing < e_h%n_basis) then
       e_h%eval(e_h%n_nonsing+1:e_h%n_basis) = e_h%eval(e_h%n_nonsing)+10.0_r8
    endif

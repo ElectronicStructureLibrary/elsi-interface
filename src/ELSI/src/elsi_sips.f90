@@ -40,11 +40,10 @@ module ELSI_SIPS
 
    private
 
+   public :: elsi_set_sips_default
    public :: elsi_init_sips
    public :: elsi_solve_evp_sips
    public :: elsi_sips_to_blacs_ev
-   public :: elsi_set_sips_default
-   public :: elsi_print_sips_options
 
 contains
 
@@ -293,36 +292,6 @@ subroutine elsi_set_sips_default(e_h)
    ! Small buffer to expand the eigenvalue interval
    ! Smaller values improve performance if eigenvalue range known
    e_h%slice_buffer = 0.5_r8
-
-end subroutine
-
-!>
-!! This routine prints SIPs settings.
-!!
-subroutine elsi_print_sips_options(e_h)
-
-   implicit none
-
-   type(elsi_handle), intent(in) :: e_h !< Handle
-
-   character*200 :: info_str
-
-   character*40, parameter :: caller = "elsi_print_sips_options"
-
-   write(info_str,"('  SIPs settings:')")
-   call elsi_statement_print(info_str,e_h)
-
-   write(info_str,"('  | Slicing method ',I10)") e_h%slicing_method
-   call elsi_statement_print(info_str,e_h)
-
-   write(info_str,"('  | Inertia option ',I10)") e_h%inertia_option
-   call elsi_statement_print(info_str,e_h)
-
-   write(info_str,"('  | Left bound     ',I10)") e_h%unbound
-   call elsi_statement_print(info_str,e_h)
-
-   write(info_str,"('  | Slice buffer   ',E10.2)") e_h%slice_buffer
-   call elsi_statement_print(info_str,e_h)
 
 end subroutine
 
