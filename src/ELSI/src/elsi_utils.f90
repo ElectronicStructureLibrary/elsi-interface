@@ -37,7 +37,7 @@ module ELSI_UTILS
    use FOE_BASE, only: foe_data_deallocate
    use F_PPEXSI_INTERFACE
    use MATRIXSWITCH, only: m_register_pdbc,m_deallocate
-   use M_QETSC
+   use M_QETSC, only: clean_qetsc
    use SPARSEMATRIX_BASE, only: deallocate_sparse_matrix,deallocate_matrices
 
    implicit none
@@ -1459,7 +1459,7 @@ subroutine elsi_reset_handle(e_h)
    e_h%nnz_l            = UNSET
    e_h%nnz_l_sp         = UNSET
    e_h%n_l_cols_sp      = UNSET
-   e_h%zero_threshold   = 1.0e-13_r8
+   e_h%zero_threshold   = 1.0e-15_r8
    e_h%sparsity_ready   = .false.
    e_h%ovlp_is_unit     = .false.
    e_h%ovlp_is_sing     = .false.

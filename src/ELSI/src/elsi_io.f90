@@ -243,7 +243,7 @@ subroutine elsi_read_mat_real(f_name,mpi_comm,blacs_ctxt,block_size,n_basis,&
 
    character*40, parameter :: caller = "elsi_read_mat_real"
 
-   call elsi_init(io_h,PEXSI,MULTI_PROC,BLACS_DENSE,n_basis,0.0_r8,0)
+   call elsi_init(io_h,ELPA,MULTI_PROC,BLACS_DENSE,n_basis,0.0_r8,0)
    call elsi_set_mpi(io_h,mpi_comm)
    call elsi_set_mpi_global(io_h,mpi_comm)
    call elsi_set_blacs(io_h,blacs_ctxt,block_size)
@@ -460,7 +460,7 @@ subroutine elsi_read_mat_complex(f_name,mpi_comm,blacs_ctxt,block_size,n_basis,&
 
    character*40, parameter :: caller = "elsi_read_mat_complex"
 
-   call elsi_init(io_h,PEXSI,MULTI_PROC,BLACS_DENSE,n_basis,0.0_r8,0)
+   call elsi_init(io_h,ELPA,MULTI_PROC,BLACS_DENSE,n_basis,0.0_r8,0)
    call elsi_set_mpi(io_h,mpi_comm)
    call elsi_set_mpi_global(io_h,mpi_comm)
    call elsi_set_blacs(io_h,blacs_ctxt,block_size)

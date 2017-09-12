@@ -92,6 +92,8 @@ subroutine f_ppexsi_set_default_options(options)
 
    type(f_ppexsi_options) :: options
 
+   ! Do not stop here!
+
 end subroutine
 
 function f_ppexsi_plan_initialize(fcomm,numProcRow,numProcCol,outputFileIndex,info)
