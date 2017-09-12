@@ -39,9 +39,6 @@ module ELSI_DATATYPE
 
    implicit none
 
-   logical :: print_info = .false.
-   logical :: print_mem  = .false.
-
    type :: elsi_handle
 
       ! Pointers used when input format compatible with chosen solver
@@ -142,6 +139,10 @@ module ELSI_DATATYPE
 
       ! Parallel mode (SINGLE_PROC=0,MULTI_PROC=1)
       integer(kind=i4) :: parallel_mode
+
+      ! Output level
+      logical :: print_info
+      logical :: print_mem
 
       ! Number of ELSI being called
       integer(kind=i4) :: n_elsi_calls

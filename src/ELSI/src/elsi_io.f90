@@ -32,7 +32,7 @@ module ELSI_IO
 
    use, intrinsic :: ISO_C_BINDING
    use ELSI_CONSTANTS, only: HEADER_SIZE,BLACS_DENSE,PEXSI_CSC
-   use ELSI_DATATYPE, only: elsi_handle
+   use ELSI_DATATYPE
    use ELSI_SETUP
    use ELSI_MATCONV, only: elsi_pexsi_to_blacs_dm,elsi_blacs_to_sips_hs
    use ELSI_MUTATOR, only: elsi_set_unit_ovlp

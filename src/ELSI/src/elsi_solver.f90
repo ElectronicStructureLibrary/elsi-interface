@@ -33,7 +33,7 @@ module ELSI_SOLVER
    use ELSI_CHESS
    use ELSI_CONSTANTS, only: ELPA,LIBOMM,PEXSI,CHESS,SIPS,REAL_VALUES,&
                              COMPLEX_VALUES,SINGLE_PROC,UNSET
-   use ELSI_DATATYPE, only: elsi_handle
+   use ELSI_DATATYPE
    use ELSI_ELPA
    use ELSI_MATCONV
    use ELSI_OMM

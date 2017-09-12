@@ -34,7 +34,7 @@ module ELSI_ELPA
                              METHFESSEL_PAXTON_0,METHFESSEL_PAXTON_1,&
                              INVERT_SQRT_PI
 
-   use ELSI_DATATYPE, only: elsi_handle
+   use ELSI_DATATYPE
    use ELSI_MU, only: elsi_compute_mu_and_occ
    use ELSI_PRECISION, only: r8,i4
    use ELSI_UTILS

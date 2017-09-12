@@ -446,26 +446,26 @@ subroutine elsi_set_output(e_h,out_level)
    call elsi_check_handle(e_h,caller)
 
    if(out_level <= 0) then
-      print_info = .false.
-      print_mem  = .false.
+      e_h%print_info = .false.
+      e_h%print_mem  = .false.
       e_h%omm_output = .false.
-      e_h%pexsi_options%verbosity = 0
+      e_h%pexsi_options%verbosity = 1
       e_h%elpa_output = .false.
    elseif(out_level == 1) then
-      print_info = .true.
-      print_mem  = .false.
+      e_h%print_info = .true.
+      e_h%print_mem  = .false.
       e_h%omm_output = .false.
-      e_h%pexsi_options%verbosity = 0
+      e_h%pexsi_options%verbosity = 1
       e_h%elpa_output = .false.
    elseif(out_level == 2) then
-      print_info = .true.
-      print_mem  = .false.
+      e_h%print_info = .true.
+      e_h%print_mem  = .false.
       e_h%omm_output = .true.
       e_h%pexsi_options%verbosity = 2
       e_h%elpa_output = .true.
    else
-      print_info = .true.
-      print_mem  = .true.
+      e_h%print_info = .true.
+      e_h%print_mem  = .true.
       e_h%omm_output = .true.
       e_h%pexsi_options%verbosity = 2
       e_h%elpa_output = .true.

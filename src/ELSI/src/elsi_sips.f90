@@ -31,7 +31,7 @@
 module ELSI_SIPS
 
    use ELSI_CONSTANTS, only: UNSET
-   use ELSI_DATATYPE, only: elsi_handle
+   use ELSI_DATATYPE
    use ELSI_PRECISION, only: r8,i4
    use ELSI_UTILS
    use M_QETSC

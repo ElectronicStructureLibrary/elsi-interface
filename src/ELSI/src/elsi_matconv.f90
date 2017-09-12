@@ -31,7 +31,7 @@
 module ELSI_MATCONV
 
    use ELSI_CONSTANTS, only: ELPA,LIBOMM
-   use ELSI_DATATYPE, only: elsi_handle
+   use ELSI_DATATYPE
    use ELSI_PRECISION, only: r8,i4,i8
    use ELSI_UTILS
 

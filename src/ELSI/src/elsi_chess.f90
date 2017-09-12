@@ -30,7 +30,7 @@
 !!
 module ELSI_CHESS
 
-   use ELSI_DATATYPE, only: elsi_handle
+   use ELSI_DATATYPE
    use ELSI_PRECISION, only: r8,i4
    use ELSI_UTILS
    use FOE_BASE, only: foe_data_get_real

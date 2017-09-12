@@ -32,7 +32,7 @@ module ELSI_SETUP
 
    use ELSI_CHESS, only: elsi_set_chess_default
    use ELSI_CONSTANTS, only: ELPA,LIBOMM,PEXSI,CHESS,SIPS,SINGLE_PROC,MULTI_PROC
-   use ELSI_DATATYPE, only: elsi_handle
+   use ELSI_DATATYPE
    use ELSI_ELPA, only: elsi_set_elpa_default,elsi_get_elpa_comms
    use ELSI_OMM, only: elsi_set_omm_default
    use ELSI_PEXSI, only: elsi_set_pexsi_default
@@ -354,7 +354,7 @@ subroutine elsi_final_print(e_h)
 
    character*40, parameter :: caller = "elsi_final_print"
 
-   if(print_info) then
+   if(e_h%print_info) then
       if(e_h%myid_all == 0) then
          write(*,"('  |------------------------------------------')")
          write(*,"('  | Final ELSI Output')")

@@ -31,7 +31,7 @@
 module ELSI_PEXSI
 
    use ELSI_CONSTANTS, only: REAL_VALUES,COMPLEX_VALUES,UNSET
-   use ELSI_DATATYPE, only: elsi_handle
+   use ELSI_DATATYPE
    use ELSI_PRECISION, only: r8,i4
    use ELSI_UTILS
    use F_PPEXSI_INTERFACE
