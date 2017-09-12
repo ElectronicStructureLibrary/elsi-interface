@@ -125,7 +125,7 @@ subroutine elsi_init_pexsi(e_h)
                           e_h%n_p_rows_pexsi,e_h%n_p_cols_pexsi,output_id,ierr)
 
       if(ierr /= 0) then
-         call elsi_stop(" PEXSI initialization failed. Exiting...",e_h,caller)
+         call elsi_stop(" Initialization failed. Exiting...",e_h,caller)
       endif
 
       e_h%pexsi_started = .true.
@@ -205,7 +205,7 @@ subroutine elsi_solve_evp_pexsi(e_h)
    end select
 
    if(ierr /= 0) then
-      call elsi_stop(" PEXSI load matrices failed. Exiting...",e_h,caller)
+      call elsi_stop(" Failed to load matrices. Exiting...",e_h,caller)
    endif
 
    call elsi_statement_print("  Starting PEXSI density matrix solver",e_h)
@@ -432,7 +432,7 @@ subroutine elsi_solve_evp_pexsi(e_h)
    end select
 
    if(ierr /= 0) then
-      call elsi_stop(" Retrieving density matirx failed. Exiting...",e_h,caller)
+      call elsi_stop(" Failed to get density matirx. Exiting...",e_h,caller)
    endif
 
    ! Check convergence
@@ -657,7 +657,7 @@ subroutine elsi_compute_edm_pexsi(e_h)
    end select
 
    if(ierr /= 0) then
-      call elsi_stop(" Retrieving energy density matirx failed. Exiting...",&
+      call elsi_stop(" Failed to get energy density matirx failed. Exiting...",&
               e_h,caller)
    endif
 

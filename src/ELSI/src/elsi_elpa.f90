@@ -73,6 +73,10 @@ subroutine elsi_get_elpa_comms(e_h)
    success = elpa_get_communicators(e_h%mpi_comm,e_h%my_p_row,e_h%my_p_col,&
                 e_h%mpi_comm_row,e_h%mpi_comm_col)
 
+   if(success /= 0) then
+      call elsi_stop(" Failed to get MPI communicators. Exiting...",e_h,caller)
+   endif
+
 end subroutine
 
 !>
@@ -443,10 +447,18 @@ subroutine elsi_to_standard_evp(e_h)
                          e_h%n_l_rows,e_h%n_b_rows,e_h%n_l_cols,&
                          e_h%mpi_comm_row,e_h%mpi_comm_col,.false.)
 
+            if(.not. success) then
+               call elsi_stop(" Cholesky failed. Exiting...",e_h,caller)
+            endif
+
             ! compute U^-1 -> S
             success = elpa_invert_trm_complex_double(e_h%n_basis,&
                          e_h%ovlp_cmplx,e_h%n_l_rows,e_h%n_b_rows,e_h%n_l_cols,&
                          e_h%mpi_comm_row,e_h%mpi_comm_col,.false.)
+
+            if(.not. success) then
+               call elsi_stop(" Matrix inversion failed. Exiting...",e_h,caller)
+            endif
 
             call elsi_get_time(e_h,t1)
 
@@ -479,6 +491,11 @@ subroutine elsi_to_standard_evp(e_h)
                       e_h%mpi_comm_row,e_h%mpi_comm_col,e_h%evec_cmplx,&
                       e_h%n_l_rows,e_h%n_l_cols)
 
+         if(.not. success) then
+            call elsi_stop(" Matrix multiplication failed. Exiting...",e_h,&
+                    caller)
+         endif
+
          call pztranc(e_h%n_basis,e_h%n_basis,(1.0_r8,0.0_r8),e_h%evec_cmplx,1,&
                  1,e_h%sc_desc,(0.0_r8,0.0_r8),e_h%ham_cmplx,1,1,e_h%sc_desc)
 
@@ -489,6 +506,11 @@ subroutine elsi_to_standard_evp(e_h)
                       e_h%evec_cmplx,e_h%n_l_rows,e_h%n_l_cols,e_h%n_b_rows,&
                       e_h%mpi_comm_row,e_h%mpi_comm_col,e_h%ham_cmplx,&
                       e_h%n_l_rows,e_h%n_l_cols)
+
+         if(.not. success) then
+            call elsi_stop(" Matrix multiplication failed. Exiting...",e_h,&
+                    caller)
+         endif
 
          call pztranc(e_h%n_basis,e_h%n_basis,(1.0_r8,0.0_r8),e_h%ham_cmplx,1,&
                  1,e_h%sc_desc,(0.0_r8,0.0_r8),e_h%evec_cmplx,1,1,e_h%sc_desc)
@@ -535,10 +557,18 @@ subroutine elsi_to_standard_evp(e_h)
                          e_h%n_l_rows,e_h%n_b_rows,e_h%n_l_cols,&
                          e_h%mpi_comm_row,e_h%mpi_comm_col,.false.)
 
+            if(.not. success) then
+               call elsi_stop(" Cholesky failed. Exiting...",e_h,caller)
+            endif
+
             ! compute U^-1 -> S
             success = elpa_invert_trm_real_double(e_h%n_basis,e_h%ovlp_real,&
                          e_h%n_l_rows,e_h%n_b_rows,e_h%n_l_cols,&
                          e_h%mpi_comm_row,e_h%mpi_comm_col,.false.)
+
+            if(.not. success) then
+               call elsi_stop(" Matrix inversion failed. Exiting...",e_h,caller)
+            endif
 
             call elsi_get_time(e_h,t1)
 
@@ -570,6 +600,11 @@ subroutine elsi_to_standard_evp(e_h)
                       e_h%n_l_rows,e_h%n_l_cols,e_h%n_b_rows,e_h%mpi_comm_row,&
                       e_h%mpi_comm_col,e_h%evec_real,e_h%n_l_rows,e_h%n_l_cols)
 
+         if(.not. success) then
+            call elsi_stop(" Matrix multiplication failed. Exiting...",e_h,&
+                    caller)
+         endif
+
          call pdtran(e_h%n_basis,e_h%n_basis,1.0_r8,e_h%evec_real,1,1,&
                  e_h%sc_desc,0.0_r8,e_h%ham_real,1,1,e_h%sc_desc)
 
@@ -579,6 +614,11 @@ subroutine elsi_to_standard_evp(e_h)
                       e_h%ovlp_real,e_h%n_l_rows,e_h%n_l_cols,e_h%evec_real,&
                       e_h%n_l_rows,e_h%n_l_cols,e_h%n_b_rows,e_h%mpi_comm_row,&
                       e_h%mpi_comm_col,e_h%ham_real,e_h%n_l_rows,e_h%n_l_cols)
+
+         if(.not. success) then
+            call elsi_stop(" Matrix multiplication failed. Exiting...",e_h,&
+                    caller)
+         endif
 
          call pdtran(e_h%n_basis,e_h%n_basis,1.0_r8,e_h%ham_real,1,1,&
                  e_h%sc_desc,0.0_r8,e_h%evec_real,1,1,e_h%sc_desc)
@@ -648,6 +688,10 @@ subroutine elsi_check_singularity(e_h)
                    e_h%n_l_rows,e_h%n_b_rows,e_h%n_l_cols,e_h%mpi_comm_row,&
                    e_h%mpi_comm_col,e_h%mpi_comm,e_h%sing_tol,e_h%n_nonsing)
 
+      if(.not. success) then
+         call elsi_stop(" Singularity check failed. Exiting...",e_h,caller)
+      endif
+
       call elsi_deallocate(e_h,copy_cmplx,"copy_cmplx")
 
       e_h%n_states_solve = min(e_h%n_nonsing,e_h%n_states)
@@ -700,6 +744,10 @@ subroutine elsi_check_singularity(e_h)
                    copy_real,e_h%n_l_rows,e_h%eval,e_h%evec_real,e_h%n_l_rows,&
                    e_h%n_b_rows,e_h%n_l_cols,e_h%mpi_comm_row,e_h%mpi_comm_col,&
                    e_h%mpi_comm,e_h%sing_tol,e_h%n_nonsing)
+
+      if(.not. success) then
+         call elsi_stop(" Singularity check failed. Exiting...",e_h,caller)
+      endif
 
       call elsi_deallocate(e_h,copy_real,"copy_real")
 
@@ -794,6 +842,11 @@ subroutine elsi_to_original_ev(e_h)
                       tmp_cmplx,e_h%n_l_rows,e_h%n_l_cols,e_h%n_b_rows,&
                       e_h%mpi_comm_row,e_h%mpi_comm_col,e_h%evec_cmplx,&
                       e_h%n_l_rows,e_h%n_l_cols)
+
+         if(.not. success) then
+            call elsi_stop(" Matrix multiplication failed. Exiting...",e_h,&
+                    caller)
+         endif
       endif
 
       call elsi_deallocate(e_h,tmp_cmplx,"tmp_cmplx")
@@ -818,6 +871,11 @@ subroutine elsi_to_original_ev(e_h)
                       e_h%ham_real,e_h%n_l_rows,e_h%n_l_cols,tmp_real,&
                       e_h%n_l_rows,e_h%n_l_cols,e_h%n_b_rows,e_h%mpi_comm_row,&
                       e_h%mpi_comm_col,e_h%evec_real,e_h%n_l_rows,e_h%n_l_cols)
+
+         if(.not. success) then
+            call elsi_stop(" Matrix multiplication failed. Exiting...",e_h,&
+                    caller)
+         endif
       endif
 
       call elsi_deallocate(e_h,tmp_real,"tmp_real")
@@ -887,6 +945,10 @@ subroutine elsi_solve_evp_elpa(e_h)
                       e_h%mpi_comm_row,e_h%mpi_comm_col,e_h%mpi_comm)
       endif
    end select
+
+   if(.not. success) then
+      call elsi_stop(" ELPA solver failed. Exiting...",e_h,caller)
+   endif
 
    ! Dummy eigenvalues for correct chemical potential, no physical meaning!
    if(e_h%n_nonsing < e_h%n_basis) then
@@ -1238,6 +1300,10 @@ subroutine elsi_solve_evp_elpa_sp(e_h)
                    e_h%eval,off_diag,tmp_real,e_h%n_nonsing,64,e_h%n_nonsing,&
                    mpi_comm_self,mpi_comm_self,.false.)
 
+      if(.not. success) then
+         call elsi_stop(" ELPA solver failed. Exiting...",e_h,caller)
+      endif
+
       e_h%evec_cmplx(1:e_h%n_nonsing,1:e_h%n_states_solve) = &
          tmp_real(1:e_h%n_nonsing,1:e_h%n_states_solve)
 
@@ -1261,6 +1327,10 @@ subroutine elsi_solve_evp_elpa_sp(e_h)
       success = elpa_solve_tridi_double(e_h%n_nonsing,e_h%n_states_solve,&
                    e_h%eval,off_diag,tmp_real,e_h%n_nonsing,64,e_h%n_nonsing,&
                    mpi_comm_self,mpi_comm_self,.false.)
+
+      if(.not. success) then
+         call elsi_stop(" ELPA solver failed. Exiting...",e_h,caller)
+      endif
 
       e_h%evec_real(1:e_h%n_nonsing,1:e_h%n_states_solve) = &
          tmp_real(1:e_h%n_nonsing,1:e_h%n_states_solve)
@@ -1347,6 +1417,10 @@ subroutine elsi_check_singularity_sp(e_h)
                    off_diag,tmp_real,e_h%n_basis,64,e_h%n_basis,mpi_comm_self,&
                    mpi_comm_self,.false.)
 
+      if(.not. success) then
+         call elsi_stop(" ELPA solver failed. Exiting...",e_h,caller)
+      endif
+
       ! Get the number of nonsingular eigenvalues
       e_h%eval = -e_h%eval
 
@@ -1420,6 +1494,10 @@ subroutine elsi_check_singularity_sp(e_h)
       success = elpa_solve_tridi_double(e_h%n_basis,e_h%n_basis,e_h%eval,&
                    off_diag,tmp_real,e_h%n_basis,64,e_h%n_basis,mpi_comm_self,&
                    mpi_comm_self,.false.)
+
+      if(.not. success) then
+         call elsi_stop(" ELPA solver failed. Exiting...",e_h,caller)
+      endif
 
       ! Get the number of nonsingular eigenvalues
       e_h%eval = -e_h%eval
