@@ -64,11 +64,6 @@ subroutine elsi_solve_evp_omm(e_h)
 
    character*40, parameter :: caller = "elsi_solve_evp_omm"
 
-   if(e_h%ovlp_is_sing) then
-      call elsi_stop(" libOMM cannot treat singular overlap matrix yet."//&
-              " Exiting...",e_h,caller)
-   endif
-
    if(.not. e_h%ovlp_is_unit) then
       if(e_h%omm_flavor == 2) then
          if(e_h%n_elsi_calls == 1) then

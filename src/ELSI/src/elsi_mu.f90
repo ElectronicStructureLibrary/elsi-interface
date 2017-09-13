@@ -115,7 +115,7 @@ subroutine elsi_compute_mu_and_occ(e_h,n_electron,n_state,n_spin,n_kpt,&
       n_steps = n_steps+1
 
       if(n_steps > e_h%max_mu_steps) then
-         call elsi_stop(" Chemical potential not found. Exiting...",e_h,caller)
+         call elsi_stop(" Chemical potential not found.",e_h,caller)
       endif
 
       mu_lower = mu_lower-0.5_r8*abs(e_high-e_low)
@@ -164,11 +164,6 @@ subroutine elsi_check_electrons(e_h,n_electron,n_state,n_spin,n_kpt,k_weights,&
    integer(kind=i4) :: i_spin
 
    character*40, parameter :: caller = "elsi_check_electrons"
-
-   if(e_h%broaden_width <= 0.0_r8) then
-      call elsi_stop(" Broadening width in chemical potential determination"//&
-              " must be a positive number. Exiting...",e_h,caller)
-   endif
 
    invert_width = 1.0_r8/e_h%broaden_width
    diff_ne_out = 0.0_r8

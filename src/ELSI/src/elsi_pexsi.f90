@@ -125,7 +125,7 @@ subroutine elsi_init_pexsi(e_h)
                           e_h%n_p_rows_pexsi,e_h%n_p_cols_pexsi,output_id,ierr)
 
       if(ierr /= 0) then
-         call elsi_stop(" Initialization failed. Exiting...",e_h,caller)
+         call elsi_stop(" Initialization failed.",e_h,caller)
       endif
 
       e_h%pexsi_started = .true.
@@ -205,7 +205,7 @@ subroutine elsi_solve_evp_pexsi(e_h)
    end select
 
    if(ierr /= 0) then
-      call elsi_stop(" Failed to load matrices. Exiting...",e_h,caller)
+      call elsi_stop(" Failed to load matrices.",e_h,caller)
    endif
 
    call elsi_statement_print("  Starting PEXSI density matrix solver",e_h)
@@ -238,7 +238,7 @@ subroutine elsi_solve_evp_pexsi(e_h)
    endif
 
    if(ierr /= 0) then
-      call elsi_stop(" Symbolic factorization failed. Exiting...",e_h,caller)
+      call elsi_stop(" Symbolic factorization failed.",e_h,caller)
    endif
 
    ! Inertia counting
@@ -347,7 +347,7 @@ subroutine elsi_solve_evp_pexsi(e_h)
    endif
 
    if(ierr /= 0) then
-      call elsi_stop(" Inertia counting failed. Exiting...",e_h,caller)
+      call elsi_stop(" Inertia counting failed.",e_h,caller)
    endif
 
    ! Fermi operator expansion
@@ -412,8 +412,7 @@ subroutine elsi_solve_evp_pexsi(e_h)
    call elsi_statement_print(info_str,e_h)
 
    if(ierr /= 0) then
-      call elsi_stop(" Fermi operator calculation failed. Exiting...",e_h,&
-              caller)
+      call elsi_stop(" Fermi operator calculation failed.",e_h,caller)
    endif
 
    ! Get density matrix
@@ -432,7 +431,7 @@ subroutine elsi_solve_evp_pexsi(e_h)
    end select
 
    if(ierr /= 0) then
-      call elsi_stop(" Failed to get density matirx. Exiting...",e_h,caller)
+      call elsi_stop(" Failed to get density matirx.",e_h,caller)
    endif
 
    ! Check convergence
@@ -575,7 +574,7 @@ subroutine elsi_solve_evp_pexsi(e_h)
             local_cmplx = local_cmplx+e_h%ham_cmplx_ccs(i)*e_h%dm_cmplx_ccs(i)
          enddo
 
-         local_energy = dble(local_cmplx)
+         local_energy = real(local_cmplx,kind=r8)
       end select
 
       call MPI_Reduce(local_energy,e_h%energy_hdm,1,mpi_real8,mpi_sum,0,&
@@ -639,8 +638,7 @@ subroutine elsi_compute_edm_pexsi(e_h)
    end select
 
    if(ierr /= 0) then
-      call elsi_stop(" Energy density matrix correction failed. Exiting...",&
-              e_h,caller)
+      call elsi_stop(" Energy density matrix correction failed.",e_h,caller)
    endif
 
    ! Get energy density matrix
@@ -657,8 +655,7 @@ subroutine elsi_compute_edm_pexsi(e_h)
    end select
 
    if(ierr /= 0) then
-      call elsi_stop(" Failed to get energy density matirx failed. Exiting...",&
-              e_h,caller)
+      call elsi_stop(" Failed to get energy density matirx failed.",e_h,caller)
    endif
 
    ! Check convergence

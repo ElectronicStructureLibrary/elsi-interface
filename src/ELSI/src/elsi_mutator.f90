@@ -264,9 +264,8 @@ subroutine elsi_customize_pexsi(e_h,temperature,gap,delta_e,n_poles,&
       if(mod(e_h%n_procs,n_procs_per_pole) == 0) then
          e_h%n_p_per_pole = n_procs_per_pole
       else
-         call elsi_stop("  The total number of MPI tasks must be a multiple"//&
-                        " of the number of MPI tasks per pole. Exiting...",e_h,&
-                        caller)
+         call elsi_stop(" The total number of MPI tasks must be a multiple"//&
+                        " of the number of MPI tasks per pole.",e_h,caller)
       endif
    endif
 
@@ -360,8 +359,8 @@ subroutine elsi_customize_sips(e_h,slicing_method,n_slices,inertia_option,&
          e_h%n_slices = n_slices
          e_h%n_p_per_slice = e_h%n_procs/e_h%n_slices
       else
-         call elsi_stop("  The total number of MPI tasks must be a multiple"//&
-                        " of the number of slices. Exiting...",e_h,caller)
+         call elsi_stop(" The total number of MPI tasks must be a multiple"//&
+                        " of the number of slices.",e_h,caller)
       endif
    endif
 
@@ -628,8 +627,7 @@ subroutine elsi_set_elpa_solver(e_h,elpa_solver)
    call elsi_check_handle(e_h,caller)
 
    if(elpa_solver < 1 .or. elpa_solver > 2) then
-      call elsi_stop("  Invalid choice of elpa_solver. Please choose 1-stage"//&
-              " solver or 2-stage solver. Exiting...",e_h,caller)
+      call elsi_stop(" Unsupported elpa_solver.",e_h,caller)
    endif
 
    e_h%elpa_solver = elpa_solver
@@ -651,8 +649,7 @@ subroutine elsi_set_omm_flavor(e_h,omm_flavor)
    call elsi_check_handle(e_h,caller)
 
    if(omm_flavor /= 0 .and. omm_flavor /= 2) then
-      call elsi_stop("  Invalid choice of omm_flavor. Please choose basic"//&
-              " flavor or Cholesky flavor. Exiting...",e_h,caller)
+      call elsi_stop(" Unsupported omm_flavor.",e_h,caller)
    endif
 
    e_h%omm_flavor = omm_flavor
@@ -749,6 +746,10 @@ subroutine elsi_set_pexsi_n_mu(e_h,n_mu)
 
    call elsi_check_handle(e_h,caller)
 
+   if(n_mu < 1) then
+      call elsi_stop(" Number of mu points should be at least 1.",e_h,caller)
+   endif
+
    e_h%pexsi_options%nPoints = n_mu
 
 end subroutine
@@ -766,6 +767,10 @@ subroutine elsi_set_pexsi_n_pole(e_h,n_pole)
    character*40, parameter :: caller = "elsi_set_pexsi_n_pole"
 
    call elsi_check_handle(e_h,caller)
+
+   if(n_pole < 1) then
+      call elsi_stop(" Number of poles should be at least 1.",e_h,caller)
+   endif
 
    e_h%pexsi_options%numPole = n_pole
 
@@ -803,6 +808,11 @@ subroutine elsi_set_pexsi_np_symbo(e_h,np_symbo)
 
    call elsi_check_handle(e_h,caller)
 
+   if(np_symbo < 1) then
+      call elsi_stop(" Number of MPI tasks for symbolic factorization should"//&
+              " be at least 1.",e_h,caller)
+   endif
+
    e_h%pexsi_options%npSymbFact = np_symbo
 
 end subroutine
@@ -839,6 +849,10 @@ subroutine elsi_set_pexsi_gap(e_h,gap)
 
    call elsi_check_handle(e_h,caller)
 
+   if(gap < 0.0_r8) then
+      call elsi_stop(" Gap cannot be negative.",e_h,caller)
+   endif
+
    e_h%pexsi_options%gap = gap
 
 end subroutine
@@ -856,6 +870,10 @@ subroutine elsi_set_pexsi_delta_e(e_h,delta_e)
    character*40, parameter :: caller = "elsi_set_pexsi_delta_e"
 
    call elsi_check_handle(e_h,caller)
+
+   if(delta_e < 0.0_r8) then
+      call elsi_stop(" Spectrum width cannot be negative.",e_h,caller)
+   endif
 
    e_h%pexsi_options%deltaE = delta_e
 
@@ -911,6 +929,11 @@ subroutine elsi_set_pexsi_inertia_tol(e_h,inertia_tol)
    character*40, parameter :: caller = "elsi_set_pexsi_inertia_tol"
 
    call elsi_check_handle(e_h,caller)
+
+   if(inertia_tol < 0.0_r8) then
+      call elsi_stop(" Inertia counting tolerance cannot be negative.",e_h,&
+              caller)
+   endif
 
    e_h%pexsi_options%muInertiaTolerance = inertia_tol
 
@@ -1062,8 +1085,7 @@ subroutine elsi_set_sips_slice_type(e_h,slice_type)
    call elsi_check_handle(e_h,caller)
 
    if(slice_type < 0 .or. slice_type > 5) then
-      call elsi_stop("  Invalid choice of slice_type. Please choose 0, 1, 2,"//&
-              " 3, or 4. Exiting...",e_h,caller)
+      call elsi_stop(" Unsupported slice_type.",e_h,caller)
    endif
 
    e_h%slicing_method = slice_type
@@ -1088,8 +1110,8 @@ subroutine elsi_set_sips_n_slice(e_h,n_slice)
       e_h%n_slices = n_slice
       e_h%n_p_per_slice = e_h%n_procs/n_slice
    else
-      call elsi_stop("  The total number of MPI tasks must be a multiple of"//&
-              " the number of slices. Exiting...",e_h,caller)
+      call elsi_stop(" The total number of MPI tasks must be a multiple of"//&
+              " the number of slices.",e_h,caller)
    endif
 
 end subroutine
@@ -1166,6 +1188,10 @@ subroutine elsi_set_mu_broaden_width(e_h,broaden_width)
 
    call elsi_check_handle(e_h,caller)
 
+   if(broaden_width < 0.0_r8) then
+      call elsi_stop(" Broadening width cannot be negative.",e_h,caller)
+   endif
+
    e_h%broaden_width = broaden_width
 
 end subroutine
@@ -1184,6 +1210,11 @@ subroutine elsi_set_mu_tol(e_h,mu_tol)
    character*40, parameter :: caller = "elsi_set_mu_tol"
 
    call elsi_check_handle(e_h,caller)
+
+   if(mu_tol < 0.0_r8) then
+      call elsi_stop(" Occupation number accuracy cannot be negative.",e_h,&
+              caller)
+   endif
 
    e_h%occ_tolerance = mu_tol
 
@@ -1347,19 +1378,17 @@ subroutine elsi_get_edm_real(e_h,d_out)
 
          call elsi_pexsi_to_blacs_dm(e_h,d_out)
       case(CHESS)
-         call elsi_stop(" CHESS not yet implemented. Exiting...",e_h,caller)
+         call elsi_stop(" CHESS not yet implemented.",e_h,caller)
       case(SIPS)
-         call elsi_stop(" SIPS not yet implemented. Exiting...",e_h,caller)
+         call elsi_stop(" SIPS not yet implemented.",e_h,caller)
       case default
-         call elsi_stop(" No supported solver has been chosen. Exiting...",e_h,&
-                 caller)
+         call elsi_stop(" Unsupported solver.",e_h,caller)
       end select
 
       e_h%edm_ready_real = .false.
       e_h%matrix_data_type = UNSET
    else
-      call elsi_stop(" Energy weighted density matrix has not been computed."//&
-              " Exiting...",e_h,caller)
+      call elsi_stop(" Energy-weighted density matrix not computed.",e_h,caller)
    endif
 
 end subroutine
@@ -1397,19 +1426,17 @@ subroutine elsi_get_edm_real_sparse(e_h,d_out)
 
          call elsi_compute_edm_pexsi(e_h)
       case(CHESS)
-         call elsi_stop(" CHESS not yet implemented. Exiting...",e_h,caller)
+         call elsi_stop(" CHESS not yet implemented.",e_h,caller)
       case(SIPS)
-         call elsi_stop(" SIPS not yet implemented. Exiting...",e_h,caller)
+         call elsi_stop(" SIPS not yet implemented.",e_h,caller)
       case default
-         call elsi_stop(" No supported solver has been chosen. Exiting...",e_h,&
-                 caller)
+         call elsi_stop(" Unsupported solver.",e_h,caller)
       end select
 
       e_h%edm_ready_real = .false.
       e_h%matrix_data_type = UNSET
    else
-      call elsi_stop(" Energy weighted density matrix has not been computed."//&
-              " Exiting...",e_h,caller)
+      call elsi_stop(" Energy-weighted density matrix not computed.",e_h,caller)
    endif
 
 end subroutine
@@ -1447,19 +1474,17 @@ subroutine elsi_get_edm_complex(e_h,d_out)
 
          call elsi_pexsi_to_blacs_dm(e_h,d_out)
       case(CHESS)
-         call elsi_stop(" CHESS not yet implemented. Exiting...",e_h,caller)
+         call elsi_stop(" CHESS not yet implemented.",e_h,caller)
       case(SIPS)
-         call elsi_stop(" SIPS not yet implemented. Exiting...",e_h,caller)
+         call elsi_stop(" SIPS not yet implemented.",e_h,caller)
       case default
-         call elsi_stop(" No supported solver has been chosen. Exiting...",e_h,&
-                 caller)
+         call elsi_stop(" Unsupported solver.",e_h,caller)
       end select
 
       e_h%edm_ready_cmplx = .false.
       e_h%matrix_data_type = UNSET
    else
-      call elsi_stop(" Energy weighted density matrix has not been computed."//&
-              " Exiting...",e_h,caller)
+      call elsi_stop(" Energy-weighted density matrix not computed.",e_h,caller)
    endif
 
 end subroutine
@@ -1497,19 +1522,17 @@ subroutine elsi_get_edm_complex_sparse(e_h,d_out)
 
          call elsi_compute_edm_pexsi(e_h)
       case(CHESS)
-         call elsi_stop(" CHESS not yet implemented. Exiting...",e_h,caller)
+         call elsi_stop(" CHESS not yet implemented.",e_h,caller)
       case(SIPS)
-         call elsi_stop(" SIPS not yet implemented. Exiting...",e_h,caller)
+         call elsi_stop(" SIPS not yet implemented.",e_h,caller)
       case default
-         call elsi_stop(" No supported solver has been chosen. Exiting...",e_h,&
-                 caller)
+         call elsi_stop(" Unsupported solver.",e_h,caller)
       end select
 
       e_h%edm_ready_cmplx = .false.
       e_h%matrix_data_type = UNSET
    else
-      call elsi_stop(" Energy weighted density matrix has not been computed."//&
-              " Exiting...",e_h,caller)
+      call elsi_stop(" Energy-weighted density matrix not computed.",e_h,caller)
    endif
 
 end subroutine

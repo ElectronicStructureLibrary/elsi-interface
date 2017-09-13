@@ -74,7 +74,7 @@ subroutine elsi_get_elpa_comms(e_h)
                 e_h%mpi_comm_row,e_h%mpi_comm_col)
 
    if(success /= 0) then
-      call elsi_stop(" Failed to get MPI communicators. Exiting...",e_h,caller)
+      call elsi_stop(" Failed to get MPI communicators.",e_h,caller)
    endif
 
 end subroutine
@@ -257,7 +257,7 @@ subroutine elsi_compute_dm_elpa(e_h)
          if(e_h%loc_col(i_col) == 0 .or. e_h%loc_row(i_col) == 0) cycle
 
          e_h%dm_cmplx(e_h%loc_row(i_col),e_h%loc_col(i_col)) = &
-            dble(e_h%dm_cmplx(e_h%loc_row(i_col),e_h%loc_col(i_col)))
+            real(e_h%dm_cmplx(e_h%loc_row(i_col),e_h%loc_col(i_col)),kind=r8)
       enddo
    end select
 
@@ -398,7 +398,7 @@ subroutine elsi_compute_edm_elpa(e_h)
          if(e_h%loc_col(i_col) == 0 .or. e_h%loc_row(i_col) == 0) cycle
 
          e_h%dm_cmplx(e_h%loc_row(i_col),e_h%loc_col(i_col)) = &
-            dble(e_h%dm_cmplx(e_h%loc_row(i_col),e_h%loc_col(i_col)))
+            real(e_h%dm_cmplx(e_h%loc_row(i_col),e_h%loc_col(i_col)),kind=r8)
       enddo
    end select
 
@@ -448,7 +448,7 @@ subroutine elsi_to_standard_evp(e_h)
                          e_h%mpi_comm_row,e_h%mpi_comm_col,.false.)
 
             if(.not. success) then
-               call elsi_stop(" Cholesky failed. Exiting...",e_h,caller)
+               call elsi_stop(" Cholesky failed.",e_h,caller)
             endif
 
             ! compute U^-1 -> S
@@ -457,7 +457,7 @@ subroutine elsi_to_standard_evp(e_h)
                          e_h%mpi_comm_row,e_h%mpi_comm_col,.false.)
 
             if(.not. success) then
-               call elsi_stop(" Matrix inversion failed. Exiting...",e_h,caller)
+               call elsi_stop(" Matrix inversion failed.",e_h,caller)
             endif
 
             call elsi_get_time(e_h,t1)
@@ -492,8 +492,7 @@ subroutine elsi_to_standard_evp(e_h)
                       e_h%n_l_rows,e_h%n_l_cols)
 
          if(.not. success) then
-            call elsi_stop(" Matrix multiplication failed. Exiting...",e_h,&
-                    caller)
+            call elsi_stop(" Matrix multiplication failed.",e_h,caller)
          endif
 
          call pztranc(e_h%n_basis,e_h%n_basis,(1.0_r8,0.0_r8),e_h%evec_cmplx,1,&
@@ -508,8 +507,7 @@ subroutine elsi_to_standard_evp(e_h)
                       e_h%n_l_rows,e_h%n_l_cols)
 
          if(.not. success) then
-            call elsi_stop(" Matrix multiplication failed. Exiting...",e_h,&
-                    caller)
+            call elsi_stop(" Matrix multiplication failed.",e_h,caller)
          endif
 
          call pztranc(e_h%n_basis,e_h%n_basis,(1.0_r8,0.0_r8),e_h%ham_cmplx,1,&
@@ -531,7 +529,8 @@ subroutine elsi_to_standard_evp(e_h)
             if(e_h%loc_col(i_col) == 0 .or. e_h%loc_row(i_col) == 0) cycle
 
             e_h%ham_cmplx(e_h%loc_row(i_col),e_h%loc_col(i_col)) = &
-               dble(e_h%ham_cmplx(e_h%loc_row(i_col),e_h%loc_col(i_col)))
+               real(e_h%ham_cmplx(e_h%loc_row(i_col),e_h%loc_col(i_col)),&
+               kind=r8)
          enddo
       endif
 
@@ -558,7 +557,7 @@ subroutine elsi_to_standard_evp(e_h)
                          e_h%mpi_comm_row,e_h%mpi_comm_col,.false.)
 
             if(.not. success) then
-               call elsi_stop(" Cholesky failed. Exiting...",e_h,caller)
+               call elsi_stop(" Cholesky failed.",e_h,caller)
             endif
 
             ! compute U^-1 -> S
@@ -567,7 +566,7 @@ subroutine elsi_to_standard_evp(e_h)
                          e_h%mpi_comm_row,e_h%mpi_comm_col,.false.)
 
             if(.not. success) then
-               call elsi_stop(" Matrix inversion failed. Exiting...",e_h,caller)
+               call elsi_stop(" Matrix inversion failed.",e_h,caller)
             endif
 
             call elsi_get_time(e_h,t1)
@@ -601,8 +600,7 @@ subroutine elsi_to_standard_evp(e_h)
                       e_h%mpi_comm_col,e_h%evec_real,e_h%n_l_rows,e_h%n_l_cols)
 
          if(.not. success) then
-            call elsi_stop(" Matrix multiplication failed. Exiting...",e_h,&
-                    caller)
+            call elsi_stop(" Matrix multiplication failed.",e_h,caller)
          endif
 
          call pdtran(e_h%n_basis,e_h%n_basis,1.0_r8,e_h%evec_real,1,1,&
@@ -616,8 +614,7 @@ subroutine elsi_to_standard_evp(e_h)
                       e_h%mpi_comm_col,e_h%ham_real,e_h%n_l_rows,e_h%n_l_cols)
 
          if(.not. success) then
-            call elsi_stop(" Matrix multiplication failed. Exiting...",e_h,&
-                    caller)
+            call elsi_stop(" Matrix multiplication failed.",e_h,caller)
          endif
 
          call pdtran(e_h%n_basis,e_h%n_basis,1.0_r8,e_h%ham_real,1,1,&
@@ -689,7 +686,7 @@ subroutine elsi_check_singularity(e_h)
                    e_h%mpi_comm_col,e_h%mpi_comm,e_h%sing_tol,e_h%n_nonsing)
 
       if(.not. success) then
-         call elsi_stop(" Singularity check failed. Exiting...",e_h,caller)
+         call elsi_stop(" Singularity check failed.",e_h,caller)
       endif
 
       call elsi_deallocate(e_h,copy_cmplx,"copy_cmplx")
@@ -700,15 +697,10 @@ subroutine elsi_check_singularity(e_h)
          e_h%ovlp_is_sing = .true.
 
          if(e_h%stop_sing) then
-            call elsi_stop(" Overlap matrix is singular. Running with a near"//&
-                    "-singular basis set may lead to completely wrong"//&
-                    " numerical results. Exiting...",e_h,caller)
+            call elsi_stop(" Overlap matrix is singular.",e_h,caller)
          endif
 
-         call elsi_statement_print("  Overlap matrix is singular. A large"//&
-                 " basis set may be in use. Note that running with a naer"//&
-                 " -singular basis set may lead to completely wrong"//&
-                 " numerical results.",e_h)
+         call elsi_statement_print("  Overlap matrix is singular.",e_h)
 
          write(info_str,"('  | Number of basis functions reduced to: ',I13)")&
             e_h%n_nonsing
@@ -746,7 +738,7 @@ subroutine elsi_check_singularity(e_h)
                    e_h%mpi_comm,e_h%sing_tol,e_h%n_nonsing)
 
       if(.not. success) then
-         call elsi_stop(" Singularity check failed. Exiting...",e_h,caller)
+         call elsi_stop(" Singularity check failed.",e_h,caller)
       endif
 
       call elsi_deallocate(e_h,copy_real,"copy_real")
@@ -757,14 +749,10 @@ subroutine elsi_check_singularity(e_h)
          e_h%ovlp_is_sing = .true.
 
          if(e_h%stop_sing) then
-            call elsi_stop(" Overlap matrix is singular. Running with a near"//&
-                    "-singular basis set may lead to completely wrong"//&
-                    " numerical results. Exiting...",e_h,caller)
+            call elsi_stop(" Overlap matrix is singular.",e_h,caller)
          endif
 
-         call elsi_statement_print("  Overlap matrix is singular. Note that"//&
-                 " running with a near-singular basis set may lead to"//&
-                 " completely wrong numerical results.",e_h)
+         call elsi_statement_print("  Overlap matrix is singular.",e_h)
 
          write(info_str,"('  | Number of basis functions reduced to: ',I13)")&
             e_h%n_nonsing
@@ -844,8 +832,7 @@ subroutine elsi_to_original_ev(e_h)
                       e_h%n_l_rows,e_h%n_l_cols)
 
          if(.not. success) then
-            call elsi_stop(" Matrix multiplication failed. Exiting...",e_h,&
-                    caller)
+            call elsi_stop(" Matrix multiplication failed.",e_h,caller)
          endif
       endif
 
@@ -873,8 +860,7 @@ subroutine elsi_to_original_ev(e_h)
                       e_h%mpi_comm_col,e_h%evec_real,e_h%n_l_rows,e_h%n_l_cols)
 
          if(.not. success) then
-            call elsi_stop(" Matrix multiplication failed. Exiting...",e_h,&
-                    caller)
+            call elsi_stop(" Matrix multiplication failed.",e_h,caller)
          endif
       endif
 
@@ -947,7 +933,7 @@ subroutine elsi_solve_evp_elpa(e_h)
    end select
 
    if(.not. success) then
-      call elsi_stop(" ELPA solver failed. Exiting...",e_h,caller)
+      call elsi_stop(" ELPA solver failed.",e_h,caller)
    endif
 
    ! Dummy eigenvalues for correct chemical potential, no physical meaning!
@@ -1301,7 +1287,7 @@ subroutine elsi_solve_evp_elpa_sp(e_h)
                    mpi_comm_self,mpi_comm_self,.false.)
 
       if(.not. success) then
-         call elsi_stop(" ELPA solver failed. Exiting...",e_h,caller)
+         call elsi_stop(" ELPA solver failed.",e_h,caller)
       endif
 
       e_h%evec_cmplx(1:e_h%n_nonsing,1:e_h%n_states_solve) = &
@@ -1329,7 +1315,7 @@ subroutine elsi_solve_evp_elpa_sp(e_h)
                    mpi_comm_self,mpi_comm_self,.false.)
 
       if(.not. success) then
-         call elsi_stop(" ELPA solver failed. Exiting...",e_h,caller)
+         call elsi_stop(" ELPA solver failed.",e_h,caller)
       endif
 
       e_h%evec_real(1:e_h%n_nonsing,1:e_h%n_states_solve) = &
@@ -1418,7 +1404,7 @@ subroutine elsi_check_singularity_sp(e_h)
                    mpi_comm_self,.false.)
 
       if(.not. success) then
-         call elsi_stop(" ELPA solver failed. Exiting...",e_h,caller)
+         call elsi_stop(" ELPA solver failed.",e_h,caller)
       endif
 
       ! Get the number of nonsingular eigenvalues
@@ -1451,14 +1437,10 @@ subroutine elsi_check_singularity_sp(e_h)
          e_h%ovlp_is_sing = .true.
 
          if(e_h%stop_sing) then
-            call elsi_stop(" Overlap matrix is singular. Running with a near"//&
-                    "-singular basis set may lead to completely wrong"//&
-                    " numerical results. Exiting...",e_h,caller)
+            call elsi_stop(" Overlap matrix is singular.",e_h,caller)
          endif
 
-         call elsi_statement_print("  Overlap matrix is singular. Note that"//&
-                 " running with a near-singular basis set may lead to"//&
-                 " completely wrong numerical results.",e_h)
+         call elsi_statement_print("  Overlap matrix is singular.",e_h)
 
          write(info_str,"('  | Number of basis functions reduced to: ',I13)")&
             e_h%n_nonsing
@@ -1496,7 +1478,7 @@ subroutine elsi_check_singularity_sp(e_h)
                    mpi_comm_self,.false.)
 
       if(.not. success) then
-         call elsi_stop(" ELPA solver failed. Exiting...",e_h,caller)
+         call elsi_stop(" ELPA solver failed.",e_h,caller)
       endif
 
       ! Get the number of nonsingular eigenvalues
@@ -1528,14 +1510,10 @@ subroutine elsi_check_singularity_sp(e_h)
          e_h%ovlp_is_sing = .true.
 
          if(e_h%stop_sing) then
-            call elsi_stop(" Overlap matrix is singular. Running with a near"//&
-                    "-singular basis set may lead to completely wrong"//&
-                    " numerical results. Exiting...",e_h,caller)
+            call elsi_stop(" Overlap matrix is singular.",e_h,caller)
          endif
 
-         call elsi_statement_print("  Overlap matrix is singular. Note that"//&
-                 " running with a near-singular basis set may lead to"//&
-                 " completely wrong numerical results.",e_h)
+         call elsi_statement_print("  Overlap matrix is singular.",e_h)
 
          write(info_str,"('  | Number of basis functions reduced to: ',I13)")&
             e_h%n_nonsing

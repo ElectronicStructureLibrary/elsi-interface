@@ -90,10 +90,9 @@ subroutine elsi_get_energy(e_h,energy)
    case(CHESS)
       energy = e_h%energy_hdm*e_h%i_weight
    case(SIPS)
-      call elsi_stop(" SIPS not yet implemented. Exiting...",e_h,caller)
+      call elsi_stop(" SIPS not yet implemented.",e_h,caller)
    case default
-      call elsi_stop(" No supported solver has been chosen. Please choose"//&
-               " ELPA, LIBOMM, or PEXSI solver. Exiting...",e_h,caller)
+      call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
    if(e_h%n_spins*e_h%n_kpts > 1) then
@@ -154,14 +153,11 @@ subroutine elsi_ev_real(e_h,h_in,s_in,eval_out,evec_out)
          call elsi_solve_evp_elpa(e_h)
       endif
    case(LIBOMM)
-      call elsi_stop(" LIBOMM is not an eigensolver. Choose ELPA or SIPS if"//&
-              " needed. Exiting...",e_h,caller)
+      call elsi_stop(" LIBOMM is not an eigensolver.",e_h,caller)
    case(PEXSI)
-      call elsi_stop(" PEXSI is not an eigensolver. Choose ELPA or SIPS if"//&
-              " needed. Exiting...",e_h,caller)
+      call elsi_stop(" PEXSI is not an eigensolver.",e_h,caller)
    case(CHESS)
-      call elsi_stop(" CHESS is not an eigensolver. Choose ELPA or SIPS if"//&
-              " needed. Exiting...",e_h,caller)
+      call elsi_stop(" CHESS is not an eigensolver.",e_h,caller)
    case(SIPS)
       ! Initialize SIPs
       call elsi_init_sips(e_h)
@@ -187,8 +183,7 @@ subroutine elsi_ev_real(e_h,h_in,s_in,eval_out,evec_out)
       ! Convert non-distributed dense to 2D dense
       call elsi_sips_to_blacs_ev(e_h)
    case default
-      call elsi_stop(" No supported solver has been chosen. Exiting...",e_h,&
-              caller)
+      call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
    e_h%matrix_data_type = UNSET
@@ -240,19 +235,15 @@ subroutine elsi_ev_complex(e_h,h_in,s_in,eval_out,evec_out)
          call elsi_solve_evp_elpa(e_h)
       endif
    case(LIBOMM)
-      call elsi_stop(" LIBOMM is not an eigensolver. Choose ELPA if needed."//&
-              " Exiting...",e_h,caller)
+      call elsi_stop(" LIBOMM is not an eigensolver.",e_h,caller)
    case(PEXSI)
-      call elsi_stop(" PEXSI is not an eigensolver. Choose ELPA if needed."//&
-              " Exiting...",e_h,caller)
+      call elsi_stop(" PEXSI is not an eigensolver.",e_h,caller)
    case(CHESS)
-      call elsi_stop(" CHESS is not an eigensolver. Choose ELPA if needed."//&
-              " Exiting...",e_h,caller)
+      call elsi_stop(" CHESS is not an eigensolver.",e_h,caller)
    case(SIPS)
-      call elsi_stop(" SIPS not yet implemented. Exiting...",e_h,caller)
+      call elsi_stop(" SIPS not yet implemented.",e_h,caller)
    case default
-      call elsi_stop(" No supported solver has been chosen. Exiting...",e_h,&
-              caller)
+      call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
    e_h%matrix_data_type = UNSET
@@ -303,19 +294,15 @@ subroutine elsi_ev_real_sparse(e_h,h_in,s_in,eval_out,evec_out)
       ! Solve
       call elsi_solve_evp_elpa(e_h)
    case(LIBOMM)
-      call elsi_stop(" LIBOMM is not an eigensolver. Choose ELPA if needed."//&
-              " Exiting...",e_h,caller)
+      call elsi_stop(" LIBOMM is not an eigensolver.",e_h,caller)
    case(PEXSI)
-      call elsi_stop(" PEXSI is not an eigensolver. Choose ELPA if needed."//&
-              " Exiting...",e_h,caller)
+      call elsi_stop(" PEXSI is not an eigensolver.",e_h,caller)
    case(CHESS)
-      call elsi_stop(" CHESS is not an eigensolver. Choose ELPA if needed."//&
-              " Exiting...",e_h,caller)
+      call elsi_stop(" CHESS is not an eigensolver.",e_h,caller)
    case(SIPS)
-      call elsi_stop(" SIPS not yet implemented. Exiting...",e_h,caller)
+      call elsi_stop(" SIPS not yet implemented.",e_h,caller)
    case default
-      call elsi_stop(" No supported solver has been chosen. Exiting...",e_h,&
-              caller)
+      call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
    e_h%matrix_data_type = UNSET
@@ -366,19 +353,15 @@ subroutine elsi_ev_complex_sparse(e_h,h_in,s_in,eval_out,evec_out)
       ! Solve
       call elsi_solve_evp_elpa(e_h)
    case(LIBOMM)
-      call elsi_stop(" LIBOMM is not an eigensolver. Choose ELPA if needed."//&
-              " Exiting...",e_h,caller)
+      call elsi_stop(" LIBOMM is not an eigensolver.",e_h,caller)
    case(PEXSI)
-      call elsi_stop(" PEXSI is not an eigensolver. Choose ELPA if needed."//&
-              " Exiting...",e_h,caller)
+      call elsi_stop(" PEXSI is not an eigensolver.",e_h,caller)
    case(CHESS)
-      call elsi_stop(" CHESS is not an eigensolver. Choose ELPA if needed."//&
-              " Exiting...",e_h,caller)
+      call elsi_stop(" CHESS is not an eigensolver.",e_h,caller)
    case(SIPS)
-      call elsi_stop(" SIPS not yet implemented. Exiting...",e_h,caller)
+      call elsi_stop(" SIPS not yet implemented.",e_h,caller)
    case default
-      call elsi_stop(" No supported solver has been chosen. Exiting...",e_h,&
-              caller)
+      call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
    e_h%matrix_data_type = UNSET
@@ -602,10 +585,9 @@ subroutine elsi_dm_real(e_h,h_in,s_in,d_out,energy_out)
 
       e_h%mu_ready = .true.
    case(SIPS)
-      call elsi_stop(" SIPS not yet implemented. Exiting...",e_h,caller)
+      call elsi_stop(" SIPS not yet implemented.",e_h,caller)
    case default
-      call elsi_stop(" No supported solver has been chosen. Exiting...",e_h,&
-              caller)
+      call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
    e_h%matrix_data_type = UNSET
@@ -807,12 +789,11 @@ subroutine elsi_dm_complex(e_h,h_in,s_in,d_out,energy_out)
 
       e_h%mu_ready = .true.
    case(CHESS)
-      call elsi_stop(" CHESS not yet implemented. Exiting...",e_h,caller)
+      call elsi_stop(" CHESS not yet implemented.",e_h,caller)
    case(SIPS)
-      call elsi_stop(" SIPS not yet implemented. Exiting...",e_h,caller)
+      call elsi_stop(" SIPS not yet implemented.",e_h,caller)
    case default
-      call elsi_stop(" No supported solver has been chosen. Exiting...",e_h,&
-              caller)
+      call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
    e_h%matrix_data_type = UNSET
@@ -1011,12 +992,11 @@ subroutine elsi_dm_real_sparse(e_h,h_in,s_in,d_out,energy_out)
 
       e_h%mu_ready = .true.
    case(CHESS)
-      call elsi_stop(" CHESS not yet implemented. Exiting...",e_h,caller)
+      call elsi_stop(" CHESS not yet implemented.",e_h,caller)
    case(SIPS)
-      call elsi_stop(" SIPS not yet implemented. Exiting...",e_h,caller)
+      call elsi_stop(" SIPS not yet implemented.",e_h,caller)
    case default
-      call elsi_stop(" No supported solver has been chosen. Exiting...",e_h,&
-              caller)
+      call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
    e_h%matrix_data_type = UNSET
@@ -1216,12 +1196,11 @@ subroutine elsi_dm_complex_sparse(e_h,h_in,s_in,d_out,energy_out)
 
       e_h%mu_ready = .true.
    case(CHESS)
-      call elsi_stop(" CHESS not yet implemented. Exiting...",e_h,caller)
+      call elsi_stop(" CHESS not yet implemented.",e_h,caller)
    case(SIPS)
-      call elsi_stop(" SIPS not yet implemented. Exiting...",e_h,caller)
+      call elsi_stop(" SIPS not yet implemented.",e_h,caller)
    case default
-      call elsi_stop(" No supported solver has been chosen. Exiting...",e_h,&
-              caller)
+      call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
    e_h%matrix_data_type = UNSET
