@@ -710,7 +710,7 @@ subroutine elsi_check_singularity(e_h)
                  " -singular basis set may lead to completely wrong"//&
                  " numerical results.",e_h)
 
-         write(info_str,"(A,I13)") "  | Basis functions reduced to: ",&
+         write(info_str,"('  | Number of basis functions reduced to: ',I13)")&
             e_h%n_nonsing
          call elsi_statement_print(info_str,e_h)
 
@@ -766,7 +766,7 @@ subroutine elsi_check_singularity(e_h)
                  " running with a near-singular basis set may lead to"//&
                  " completely wrong numerical results.",e_h)
 
-         write(info_str,"(A,I13)") "  | Basis functions reduced to: ",&
+         write(info_str,"('  | Number of basis functions reduced to: ',I13)")&
             e_h%n_nonsing
          call elsi_statement_print(info_str,e_h)
 
@@ -1460,7 +1460,7 @@ subroutine elsi_check_singularity_sp(e_h)
                  " running with a near-singular basis set may lead to"//&
                  " completely wrong numerical results.",e_h)
 
-         write(info_str,"(A,I13)") "  | Basis functions reduced to: ",&
+         write(info_str,"('  | Number of basis functions reduced to: ',I13)")&
             e_h%n_nonsing
          call elsi_statement_print(info_str,e_h)
 
@@ -1537,7 +1537,7 @@ subroutine elsi_check_singularity_sp(e_h)
                  " running with a near-singular basis set may lead to"//&
                  " completely wrong numerical results.",e_h)
 
-         write(info_str,"(A,I13)") "  | Basis functions reduced to: ",&
+         write(info_str,"('  | Number of basis functions reduced to: ',I13)")&
             e_h%n_nonsing
          call elsi_statement_print(info_str,e_h)
 

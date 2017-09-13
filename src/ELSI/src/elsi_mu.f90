@@ -72,7 +72,6 @@ subroutine elsi_compute_mu_and_occ(e_h,n_electron,n_state,n_spin,n_kpt,&
    integer(kind=i4) :: i_kpt
    integer(kind=i4) :: i_spin
    integer(kind=i4) :: n_steps
-   character*200    :: info_str
 
    character*40, parameter :: caller = "elsi_compute_mu_and_occ"
 
@@ -116,9 +115,7 @@ subroutine elsi_compute_mu_and_occ(e_h,n_electron,n_state,n_spin,n_kpt,&
       n_steps = n_steps+1
 
       if(n_steps > e_h%max_mu_steps) then
-         write(info_str,"(A,I13,A)") " Chemical potential not found in ",&
-            e_h%max_mu_steps," iterations! Exiting..."
-         call elsi_stop(info_str,e_h,caller)
+         call elsi_stop(" Chemical potential not found. Exiting...",e_h,caller)
       endif
 
       mu_lower = mu_lower-0.5_r8*abs(e_high-e_low)

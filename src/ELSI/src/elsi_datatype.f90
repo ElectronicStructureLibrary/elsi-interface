@@ -140,9 +140,10 @@ module ELSI_DATATYPE
       ! Parallel mode (SINGLE_PROC=0,MULTI_PROC=1)
       integer(kind=i4) :: parallel_mode
 
-      ! Output level
+      ! Output
       logical :: print_info
       logical :: print_mem
+      integer(kind=i4) :: print_unit
 
       ! Number of ELSI being called
       integer(kind=i4) :: n_elsi_calls

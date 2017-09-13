@@ -59,6 +59,7 @@ module ELSI
 
    ! Mutator
    public :: elsi_set_output
+   public :: elsi_set_write_unit
    public :: elsi_set_unit_ovlp
    public :: elsi_set_zero_def
    public :: elsi_set_sing_check

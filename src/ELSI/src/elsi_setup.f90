@@ -351,56 +351,80 @@ subroutine elsi_final_print(e_h)
    type(elsi_handle), intent(in) :: e_h !< Handle
 
    real(kind=r8) :: sparsity
+   character*200 :: info_str
 
    character*40, parameter :: caller = "elsi_final_print"
 
-   if(e_h%print_info) then
-      if(e_h%myid_all == 0) then
-         write(*,"('  |------------------------------------------')")
-         write(*,"('  | Final ELSI Output')")
-         write(*,"('  |------------------------------------------')")
+   write(info_str,"(A)") "  |------------------------------------------"
+   call elsi_statement_print(info_str,e_h)
+   write(info_str,"(A)") "  | Final ELSI Output"
+   call elsi_statement_print(info_str,e_h)
+   write(info_str,"(A)") "  |------------------------------------------"
+   call elsi_statement_print(info_str,e_h)
 
-         write(*,"('  | Number of basis functions :',I13)") e_h%n_basis
-         if(e_h%solver == PEXSI .or. e_h%solver == SIPS) then
-            write(*,"('  | Number of nonzeros        :',I13)") e_h%nnz_g
+   write(info_str,"(A,I13)") "  | Number of basis functions :",e_h%n_basis
+   call elsi_statement_print(info_str,e_h)
 
-            sparsity = 1.0_r8-(1.0_r8*e_h%nnz_g/e_h%n_basis/e_h%n_basis)
-            write(*,"('  | Sparsity                  :',F13.3)") sparsity
-         endif
-         write(*,"('  | Number of electrons       :',F13.1)") e_h%n_electrons
-         write(*,"('  | Number of states          :',I13)") e_h%n_states
-         write(*,"('  | Number of spins           :',I13)") e_h%n_spins
-         write(*,"('  | Number of k-points        :',I13)") e_h%n_kpts
+   if(e_h%solver == PEXSI .or. e_h%solver == SIPS) then
+      write(info_str,"(A,I13)") "  | Number of nonzeros        :",e_h%nnz_g
+      call elsi_statement_print(info_str,e_h)
 
-         if(e_h%solver == ELPA) then
-            write(*,"('  | Solver                    :',A13)") "ELPA"
-         elseif(e_h%solver == LIBOMM) then
-            write(*,"('  | Solver                    :',A13)") "libOMM"
-         elseif(e_h%solver == PEXSI) then
-            write(*,"('  | Solver                    :',A13)") "PEXSI"
-         elseif(e_h%solver == CHESS) then
-            write(*,"('  | Solver                    :',A13)") "CheSS"
-         elseif(e_h%solver == SIPS) then
-            write(*,"('  | Solver                    :',A13)") "SIPs"
-         endif
-
-         if(e_h%parallel_mode == MULTI_PROC) then
-            write(*,"('  | Parallel mode             :',A13)") "MULTI_PROC"
-         elseif(e_h%parallel_mode == SINGLE_PROC) then
-            write(*,"('  | Parallel mode             :',A13)") "SINGLE_PROC"
-         endif
-
-         if(e_h%matrix_format == BLACS_DENSE) then
-            write(*,"('  | Matrix format             :',A13)") "BLACS_DENSE"
-         elseif(e_h%matrix_format == PEXSI_CSC) then
-            write(*,"('  | Matrix format             :',A13)") "PEXSI_CSC"
-         endif
-
-         write(*,"('  |------------------------------------------')")
-         write(*,"('  | ELSI Project (c)  elsi-interchange.org')")
-         write(*,"('  |------------------------------------------')")
-      endif
+      sparsity = 1.0_r8-(1.0_r8*e_h%nnz_g/e_h%n_basis/e_h%n_basis)
+      write(info_str,"(A,F13.3)") "  | Sparsity                  :",sparsity
+      call elsi_statement_print(info_str,e_h)
    endif
+
+   write(info_str,"(A,F13.1)") "  | Number of electrons       :",e_h%n_electrons
+   call elsi_statement_print(info_str,e_h)
+   write(info_str,"(A,I13)") "  | Number of spins           :",e_h%n_spins
+   call elsi_statement_print(info_str,e_h)
+   write(info_str,"(A,I13)") "  | Number of k-points        :",e_h%n_kpts
+   call elsi_statement_print(info_str,e_h)
+
+   if(e_h%solver == ELPA .or. e_h%solver == SIPS) then
+      write(info_str,"(A,I13)") "  | Number of states          :",e_h%n_states
+      call elsi_statement_print(info_str,e_h)
+   endif
+
+   if(e_h%solver == ELPA) then
+      write(info_str,"(A,A13)") "  | Solver                    :","ELPA"
+      call elsi_statement_print(info_str,e_h)
+   elseif(e_h%solver == LIBOMM) then
+      write(info_str,"(A,A13)") "  | Solver                    :","libOMM"
+      call elsi_statement_print(info_str,e_h)
+   elseif(e_h%solver == PEXSI) then
+      write(info_str,"(A,A13)") "  | Solver                    :","PEXSI"
+      call elsi_statement_print(info_str,e_h)
+   elseif(e_h%solver == CHESS) then
+      write(info_str,"(A,A13)") "  | Solver                    :","CheSS"
+      call elsi_statement_print(info_str,e_h)
+   elseif(e_h%solver == SIPS) then
+      write(info_str,"(A,A13)") "  | Solver                    :","SIPs"
+      call elsi_statement_print(info_str,e_h)
+   endif
+
+   if(e_h%parallel_mode == MULTI_PROC) then
+      write(info_str,"(A,A13)") "  | Parallel mode             :","MULTI_PROC"
+      call elsi_statement_print(info_str,e_h)
+   elseif(e_h%parallel_mode == SINGLE_PROC) then
+      write(info_str,"(A,A13)") "  | Parallel mode             :","SINGLE_PROC"
+      call elsi_statement_print(info_str,e_h)
+   endif
+
+   if(e_h%matrix_format == BLACS_DENSE) then
+      write(info_str,"(A,A13)") "  | Matrix format             :","BLACS_DENSE"
+      call elsi_statement_print(info_str,e_h)
+   elseif(e_h%matrix_format == PEXSI_CSC) then
+      write(info_str,"(A,A13)") "  | Matrix format             :","PEXSI_CSC"
+      call elsi_statement_print(info_str,e_h)
+   endif
+
+   write(info_str,"(A)") "  |------------------------------------------"
+   call elsi_statement_print(info_str,e_h)
+   write(info_str,"(A)") "  | ELSI Project (c)  elsi-interchange.org"
+   call elsi_statement_print(info_str,e_h)
+   write(info_str,"(A)") "  |------------------------------------------"
+   call elsi_statement_print(info_str,e_h)
 
 end subroutine
 

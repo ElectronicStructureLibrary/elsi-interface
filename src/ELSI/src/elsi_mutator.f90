@@ -46,6 +46,7 @@ module ELSI_MUTATOR
 
    ! Mutator
    public :: elsi_set_output
+   public :: elsi_set_write_unit
    public :: elsi_set_unit_ovlp
    public :: elsi_set_zero_def
    public :: elsi_set_sing_check
@@ -214,7 +215,7 @@ subroutine elsi_customize_pexsi(e_h,temperature,gap,delta_e,n_poles,&
 
    implicit none
 
-   type(elsi_handle), intent(inout)        :: e_h                   !< Handle
+   type(elsi_handle), intent(inout)          :: e_h                   !< Handle
    real(kind=r8),     intent(in),   optional :: temperature           !< Temperature
    real(kind=r8),     intent(in),   optional :: gap                   !< Spectral gap
    real(kind=r8),     intent(in),   optional :: delta_e               !< Upper bound of spectral radius of S^(-1)H
@@ -439,7 +440,7 @@ subroutine elsi_set_output(e_h,out_level)
    implicit none
 
    type(elsi_handle), intent(inout) :: e_h       !< Handle
-   integer(kind=i4),  intent(in)    :: out_level !< Output level of ELSI
+   integer(kind=i4),  intent(in)    :: out_level !< Output level
 
    character*40, parameter :: caller = "elsi_set_output"
 
@@ -470,6 +471,24 @@ subroutine elsi_set_output(e_h,out_level)
       e_h%pexsi_options%verbosity = 2
       e_h%elpa_output = .true.
    endif
+
+end subroutine
+
+!>
+!! This routine sets the unit to be used by ELSI output.
+!!
+subroutine elsi_set_write_unit(e_h,write_unit)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h        !< Handle
+   integer(kind=i4),  intent(in)    :: write_unit !< Unit
+
+   character*40, parameter :: caller = "elsi_set_write_unit"
+
+   call elsi_check_handle(e_h,caller)
+
+   e_h%print_unit = write_unit
 
 end subroutine
 
