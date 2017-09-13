@@ -938,9 +938,9 @@ subroutine elsi_stop(info,e_h,caller)
 
    implicit none
 
-   character(len=*),  intent(in) :: info   !< Error message to print
+   character(len=*),  intent(in) :: info   !< Error message
    type(elsi_handle), intent(in) :: e_h    !< Handle
-   character(len=*),  intent(in) :: caller !< The subroutine in trouble
+   character(len=*),  intent(in) :: caller !< Caller
 
    character(len=4096) :: info_str
    integer :: i_task
