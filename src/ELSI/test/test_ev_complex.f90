@@ -60,13 +60,13 @@ program test_ev_complex
    real(kind=r8) :: n_electrons
    real(kind=r8) :: mu
    real(kind=r8) :: weight(1)
-   real(kind=r8) :: e_test
-   real(kind=r8) :: e_ref
-   real(kind=r8) :: e_tol
+   real(kind=r8) :: e_test = 0.0_r8
+   real(kind=r8) :: e_ref = 0.0_r8
+   real(kind=r8) :: e_tol = 0.0_r8
    real(kind=r8) :: t1
    real(kind=r8) :: t2
 
-   logical :: make_check ! Are we running "make check"?
+   logical :: make_check = .false. ! Are we running "make check"?
 
    complex(kind=r8), allocatable :: ham(:,:)
    complex(kind=r8), allocatable :: ham_save(:,:)
@@ -90,18 +90,17 @@ program test_ev_complex
 
    ! Read command line arguments
    if(COMMAND_ARGUMENT_COUNT() == 4) then
+      make_check = .true.
       call GET_COMMAND_ARGUMENT(1,arg1)
       call GET_COMMAND_ARGUMENT(2,arg2)
       call GET_COMMAND_ARGUMENT(3,arg3)
       call GET_COMMAND_ARGUMENT(4,arg4)
       read(arg1,*) solver
-      make_check = .true.
    elseif(COMMAND_ARGUMENT_COUNT() == 3) then
       call GET_COMMAND_ARGUMENT(1,arg1)
       call GET_COMMAND_ARGUMENT(2,arg2)
       call GET_COMMAND_ARGUMENT(3,arg3)
       read(arg1,*) solver
-      make_check = .false.
    else
       if(myid == 0) then
          write(*,'("  ################################################")')

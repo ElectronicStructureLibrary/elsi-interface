@@ -32,13 +32,14 @@ module ELSI_SOLVER
 
    use ELSI_CHESS
    use ELSI_CONSTANTS, only: ELPA,LIBOMM,PEXSI,CHESS,SIPS,REAL_VALUES,&
-                             COMPLEX_VALUES,SINGLE_PROC,UNSET
+                             COMPLEX_VALUES,MULTI_PROC,SINGLE_PROC,UNSET
    use ELSI_DATATYPE
    use ELSI_ELPA
    use ELSI_MATCONV
    use ELSI_OMM
    use ELSI_PEXSI
    use ELSI_PRECISION, only: r8,i4
+   use ELSI_SETUP, only: elsi_set_blacs
    use ELSI_SIPS
    use ELSI_UTILS
    use MATRIXSWITCH, only: m_allocate
@@ -299,7 +300,7 @@ subroutine elsi_ev_real_sparse(e_h,h_in,s_in,eval_out,evec_out)
       call elsi_stop(" PEXSI is not an eigensolver.",e_h,caller)
    case(CHESS)
       call elsi_stop(" CHESS is not an eigensolver.",e_h,caller)
-   case(SIPS)
+   case(SIPS) ! TODO
       call elsi_stop(" SIPS not yet implemented.",e_h,caller)
    case default
       call elsi_stop(" Unsupported solver.",e_h,caller)
@@ -832,6 +833,11 @@ subroutine elsi_dm_real_sparse(e_h,h_in,s_in,d_out,energy_out)
 
    select case(e_h%solver)
    case(ELPA)
+      ! Set up BLACS if not done by user
+      if(.not. e_h%blacs_ready) then
+         call elsi_init_blacs(e_h)
+      endif
+
       ! Convert 1D CSC to 2D dense
       call elsi_sips_to_blacs_hs(e_h,h_in,s_in)
 
@@ -866,6 +872,11 @@ subroutine elsi_dm_real_sparse(e_h,h_in,s_in,d_out,energy_out)
 
       e_h%mu_ready = .true.
    case(LIBOMM)
+      ! Set up BLACS if not done by user
+      if(.not. e_h%blacs_ready) then
+         call elsi_init_blacs(e_h)
+      endif
+
       ! Convert 1D CSC to 2D dense
       call elsi_sips_to_blacs_hs(e_h,h_in,s_in)
 
@@ -991,7 +1002,7 @@ subroutine elsi_dm_real_sparse(e_h,h_in,s_in,d_out,energy_out)
       call elsi_get_energy(e_h,energy_out)
 
       e_h%mu_ready = .true.
-   case(CHESS)
+   case(CHESS) ! TODO
       call elsi_stop(" CHESS not yet implemented.",e_h,caller)
    case(SIPS)
       call elsi_stop(" SIPS not yet implemented.",e_h,caller)
@@ -1035,6 +1046,11 @@ subroutine elsi_dm_complex_sparse(e_h,h_in,s_in,d_out,energy_out)
 
    select case(e_h%solver)
    case(ELPA)
+      ! Set up BLACS if not done by user
+      if(.not. e_h%blacs_ready) then
+         call elsi_init_blacs(e_h)
+      endif
+
       ! Convert 1D CSC to 2D dense
       call elsi_sips_to_blacs_hs(e_h,h_in,s_in)
 
@@ -1069,6 +1085,11 @@ subroutine elsi_dm_complex_sparse(e_h,h_in,s_in,d_out,energy_out)
 
       e_h%mu_ready = .true.
    case(LIBOMM)
+      ! Set up BLACS if not done by user
+      if(.not. e_h%blacs_ready) then
+         call elsi_init_blacs(e_h)
+      endif
+
       ! Convert 1D CSC to 2D dense
       call elsi_sips_to_blacs_hs(e_h,h_in,s_in)
 
@@ -1205,6 +1226,59 @@ subroutine elsi_dm_complex_sparse(e_h,h_in,s_in,d_out,energy_out)
 
    e_h%matrix_data_type = UNSET
    e_h%edm_ready_cmplx = .true.
+
+end subroutine
+
+!>
+!! This routine initializes BLACS.
+!!
+subroutine elsi_init_blacs(e_h)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h !< Handle
+
+   integer(kind=i4) :: nprow
+   integer(kind=i4) :: npcol
+   integer(kind=i4) :: blacs_ctxt
+   integer(kind=i4) :: block_size
+
+   character*40, parameter :: caller = "elsi_init_blacs"
+
+   if(e_h%parallel_mode == MULTI_PROC .and. .not. e_h%blacs_ready) then
+      ! Set square-like process grid
+      do nprow = nint(sqrt(real(e_h%n_procs))),2,-1
+         if(mod(e_h%n_procs,nprow) == 0) exit
+      enddo
+
+      npcol = e_h%n_procs/nprow
+
+      if(max(nprow,npcol) > e_h%n_basis) then
+         call elsi_stop(" Matrix size is too small for this number of MPI"//&
+                 "tasks.",e_h,caller)
+      endif
+
+      ! Initialize BLACS
+      blacs_ctxt = e_h%mpi_comm
+
+      call BLACS_Gridinit(blacs_ctxt,'r',nprow,npcol)
+
+      ! Find block size
+      block_size = 1
+
+      ! Maximum allowed value: 256
+      do while (2*block_size*max(nprow,npcol) <= e_h%n_basis .and. &
+                block_size < 256)
+         block_size = 2*block_size
+      enddo
+
+      ! ELPA works better with a small block_size
+      if(e_h%solver == ELPA) then
+         block_size = min(32,block_size)
+      endif
+
+      call elsi_set_blacs(e_h,blacs_ctxt,block_size)
+   endif
 
 end subroutine
 

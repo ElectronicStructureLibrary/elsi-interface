@@ -43,15 +43,11 @@ program test_dm_complex_sparse
    character(128) :: arg4 ! make check?
 
    integer(kind=i4) :: n_proc
-   integer(kind=i4) :: nprow
-   integer(kind=i4) :: npcol
    integer(kind=i4) :: myid
    integer(kind=i4) :: mpi_comm_global
    integer(kind=i4) :: comm_in_task
    integer(kind=i4) :: comm_among_task
    integer(kind=i4) :: mpierr
-   integer(kind=i4) :: blk
-   integer(kind=i4) :: blacs_ctxt
    integer(kind=i4) :: n_states
    integer(kind=i4) :: matrix_size
    integer(kind=i4) :: nnz_g
@@ -63,13 +59,13 @@ program test_dm_complex_sparse
    integer(kind=i4) :: buffer(5)
 
    real(kind=r8) :: n_electrons
-   real(kind=r8) :: e_test
-   real(kind=r8) :: e_ref
-   real(kind=r8) :: e_tol
+   real(kind=r8) :: e_test = 0.0_r8
+   real(kind=r8) :: e_ref = 0.0_r8
+   real(kind=r8) :: e_tol = 0.0_r8
    real(kind=r8) :: t1
    real(kind=r8) :: t2
 
-   logical :: make_check ! Are we running "make check"?
+   logical :: make_check = .false. ! Are we running "make check"?
 
    complex(kind=r8), allocatable :: ham(:)
    complex(kind=r8), allocatable :: ham_save(:)
@@ -94,18 +90,17 @@ program test_dm_complex_sparse
 
    ! Read command line arguments
    if(COMMAND_ARGUMENT_COUNT() == 4) then
+      make_check = .true.
       call GET_COMMAND_ARGUMENT(1,arg1)
       call GET_COMMAND_ARGUMENT(2,arg2)
       call GET_COMMAND_ARGUMENT(3,arg3)
       call GET_COMMAND_ARGUMENT(4,arg4)
       read(arg1,*) solver
-      make_check = .true.
    elseif(COMMAND_ARGUMENT_COUNT() == 3) then
       call GET_COMMAND_ARGUMENT(1,arg1)
       call GET_COMMAND_ARGUMENT(2,arg2)
       call GET_COMMAND_ARGUMENT(3,arg3)
       read(arg1,*) solver
-      make_check = .false.
    else
       if(myid == 0) then
          write(*,'("  ################################################")')
@@ -164,20 +159,8 @@ program test_dm_complex_sparse
    endif
 
    if((solver == 1) .or. (solver == 2)) then
-      ! Set up square-like processor grid
-      do npcol = nint(sqrt(real(n_proc))),2,-1
-         if(mod(n_proc,npcol) == 0) exit
-      enddo
-      nprow = n_proc/npcol
-
-      ! Set block size
-      blk = 32
-
-      ! Set up BLACS
-      blacs_ctxt = mpi_comm_global
-      call BLACS_Gridinit(blacs_ctxt,'r',nprow,npcol)
-
-      task_id = 0
+      task_id    = 0
+      id_in_task = myid
    elseif(solver == 3) then
       task_id    = myid/2
       id_in_task = mod(myid,2)
@@ -245,10 +228,6 @@ program test_dm_complex_sparse
    call elsi_init(elsi_h,solver,1,1,matrix_size,n_electrons,n_states)
    call elsi_set_mpi(elsi_h,mpi_comm_global)
    call elsi_set_csc(elsi_h,nnz_g,nnz_l,n_l_cols,row_ind,col_ptr)
-
-   if((solver == 1) .or. (solver == 2)) then
-      call elsi_set_blacs(elsi_h,blacs_ctxt,blk)
-   endif
 
    ! Customize ELSI
    call elsi_set_output(elsi_h,2)

@@ -918,6 +918,10 @@ subroutine elsi_solve_evp_elpa(e_h)
                       e_h%evec_cmplx,e_h%n_l_rows,e_h%n_b_rows,e_h%n_l_cols,&
                       e_h%mpi_comm_row,e_h%mpi_comm_col,e_h%mpi_comm)
       endif
+
+      if(.not. success) then
+         call elsi_stop(" ELPA solver failed.",e_h,caller)
+      endif
    case(REAL_VALUES)
       if(e_h%elpa_solver == 2) then
          success = elpa_solve_evp_real_2stage_double(e_h%n_nonsing,&
@@ -930,11 +934,11 @@ subroutine elsi_solve_evp_elpa(e_h)
                       e_h%evec_real,e_h%n_l_rows,e_h%n_b_rows,e_h%n_l_cols,&
                       e_h%mpi_comm_row,e_h%mpi_comm_col,e_h%mpi_comm)
       endif
-   end select
 
-   if(.not. success) then
-      call elsi_stop(" ELPA solver failed.",e_h,caller)
-   endif
+      if(.not. success) then
+         call elsi_stop(" ELPA solver failed.",e_h,caller)
+      endif
+   end select
 
    ! Dummy eigenvalues for correct chemical potential, no physical meaning!
    if(e_h%n_nonsing < e_h%n_basis) then

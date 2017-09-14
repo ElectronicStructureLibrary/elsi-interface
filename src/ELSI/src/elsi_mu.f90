@@ -324,8 +324,8 @@ subroutine elsi_find_mu(e_h,n_electron,n_state,n_spin,n_kpt,k_weights,evals,&
       call elsi_statement_print("  The error will be arbitrarily removed"//&
               " from the highest occupied states.",e_h)
 
-      call elsi_adjust_occ(e_h,n_electron,n_state,n_spin,n_kpt,k_weights,evals,&
-              occ_nums,diff_right)
+      call elsi_adjust_occ(e_h,n_state,n_spin,n_kpt,k_weights,evals,occ_nums,&
+              diff_right)
    endif
 
 end subroutine
@@ -333,13 +333,12 @@ end subroutine
 !>
 !! This routine cancels the small error in number of electrons.
 !!
-subroutine elsi_adjust_occ(e_h,n_electron,n_state,n_spin,n_kpt,k_weights,evals,&
-              occ_nums,diff_ne)
+subroutine elsi_adjust_occ(e_h,n_state,n_spin,n_kpt,k_weights,evals,occ_nums,&
+              diff_ne)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: e_h                            !< Handle
-   real(kind=r8),     intent(in)    :: n_electron                     !< Number of electrons
    integer(kind=i4),  intent(in)    :: n_state                        !< Number of states
    integer(kind=i4),  intent(in)    :: n_spin                         !< Number of spins
    integer(kind=i4),  intent(in)    :: n_kpt                          !< Number of k-points

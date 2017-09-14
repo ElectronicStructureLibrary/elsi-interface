@@ -1598,68 +1598,38 @@ subroutine elsi_check(e_h,caller)
       e_h%myid_all     = e_h%myid
    endif
 
+   if(e_h%parallel_mode == MULTI_PROC) then
+      if(.not. e_h%mpi_ready) then
+         call elsi_stop(" MULTI_PROC parallel mode requires MPI.",e_h,caller)
+      endif
+   endif
+
+   if(e_h%matrix_format == BLACS_DENSE) then
+      if(.not. e_h%blacs_ready .and. e_h%parallel_mode /= SINGLE_PROC) then
+         call elsi_stop(" BLACS_DENSE matrix format requires BLACS.",e_h,caller)
+      endif
+   else
+      if(.not. e_h%sparsity_ready) then
+         call elsi_stop(" PEXSI_CSC matrix format requires a sparsity"//&
+                 " pattern.",e_h,caller)
+      endif
+   endif
+
    ! Specific check for each solver
-   if(e_h%solver == AUTO) then
+   select case(e_h%solver)
+   case(AUTO)
       call elsi_stop(" Solver auto-selection not yet available.",e_h,caller)
-   elseif(e_h%solver == ELPA) then
-      if(e_h%parallel_mode == MULTI_PROC) then
-         if(.not. e_h%mpi_ready) then
-            call elsi_stop(" MULTI_PROC parallel mode requires MPI.",e_h,caller)
-         endif
-
-         if(.not. e_h%blacs_ready) then
-            call elsi_stop(" MULTI_PROC parallel mode requires BLACS.",e_h,&
-                    caller)
-         endif
-      endif
-
-      if(e_h%matrix_format == PEXSI_CSC) then
-         if(.not. e_h%sparsity_ready) then
-            call elsi_stop(" PEXSI_CSC matrix format requires a sparsity"//&
-                    " pattern.",e_h,caller)
-         endif
-      endif
-   elseif(e_h%solver == LIBOMM) then
-      if(e_h%parallel_mode == MULTI_PROC) then
-         if(.not. e_h%mpi_ready) then
-            call elsi_stop(" MULTI_PROC parallel mode requires MPI.",e_h,caller)
-         endif
-
-         if(.not. e_h%blacs_ready) then
-            call elsi_stop(" MULTI_PROC parallel mode requires BLACS.",e_h,&
-                    caller)
-         endif
-      else
+   case(ELPA)
+      ! Nothing
+   case(LIBOMM)
+      if(e_h%parallel_mode /= MULTI_PROC) then
          call elsi_stop(" libOMM solver requires MULTI_PROC parallel mode.",&
                  e_h,caller)
       endif
-
-      if(e_h%matrix_format == PEXSI_CSC) then
-         if(.not. e_h%sparsity_ready) then
-            call elsi_stop(" PEXSI_CSC matrix format requires a sparsity"//&
-                    " pattern.",e_h,caller)
-         endif
-      endif
-   elseif(e_h%solver == PEXSI) then
-      if(e_h%parallel_mode == MULTI_PROC) then
-         if(.not. e_h%mpi_ready) then
-            call elsi_stop(" MULTI_PROC parallel mode requires MPI.",e_h,caller)
-         endif
-      else
+   case(PEXSI)
+      if(e_h%parallel_mode /= MULTI_PROC) then
          call elsi_stop(" PEXSI solver requires MULTI_PROC parallel mode.",e_h,&
                  caller)
-      endif
-
-      if(e_h%matrix_format == BLACS_DENSE) then
-         if(.not. e_h%blacs_ready) then
-            call elsi_stop(" BLACS_DENSE matrix format requires BLACS.",e_h,&
-                    caller)
-         endif
-      else
-         if(.not. e_h%sparsity_ready) then
-            call elsi_stop(" PEXSI_CSC matrix format requires a sparsity"//&
-                    " pattern.",e_h,caller)
-         endif
       endif
 
       if(e_h%n_basis < e_h%n_p_per_pole) then
@@ -1688,7 +1658,7 @@ subroutine elsi_check(e_h,caller)
                     " small for the total number of MPI tasks.",e_h,caller)
          endif
       endif
-   elseif(e_h%solver == CHESS) then
+   case(CHESS)
       call elsi_statement_print("  ATTENTION! CheSS is EXPERIMENTAL.",e_h)
 
       if(e_h%n_basis < e_h%n_procs) then
@@ -1696,31 +1666,16 @@ subroutine elsi_check(e_h,caller)
                  " too small to use CheSS.",e_h,caller)
       endif
 
-      if(e_h%parallel_mode == MULTI_PROC) then
-         if(.not. e_h%mpi_ready) then
-            call elsi_stop(" MULTI_PROC parallel mode requires MPI.",e_h,caller)
-         endif
-      else
+      if(e_h%parallel_mode /= MULTI_PROC) then
          call elsi_stop(" CheSS solver requires MULTI_PROC parallel mode.",e_h,&
                  caller)
       endif
 
-      if(e_h%matrix_format == BLACS_DENSE) then
-         if(.not. e_h%blacs_ready) then
-            call elsi_stop(" BLACS_DENSE matrix format requires BLACS.",e_h,&
-                    caller)
-         endif
-
-         if(e_h%ovlp_is_unit) then
-            call elsi_stop(" CheSS solver with an identity overlap matrix"//&
-                    " not yet available.",e_h,caller)
-         endif
-      else
-         ! TODO: CheSS + PEXSI_CSC makes more sense
-         call elsi_stop(" CheSS solver requires BLACS_DENSE matrix format.",&
-                 e_h,caller)
+      if(e_h%ovlp_is_unit) then
+         call elsi_stop(" CheSS solver with an identity overlap matrix not"//&
+                 " yet available.",e_h,caller)
       endif
-   elseif(e_h%solver == SIPS) then
+   case(SIPS)
       call elsi_statement_print("  ATTENTION! SIPs is EXPERIMENTAL.",e_h)
 
       if(e_h%n_basis < e_h%n_procs) then
@@ -1728,29 +1683,13 @@ subroutine elsi_check(e_h,caller)
                  " too small to use SIPs.",e_h,caller)
       endif
 
-      if(e_h%parallel_mode == MULTI_PROC) then
-         if(.not. e_h%mpi_ready) then
-            call elsi_stop(" MULTI_PROC parallel mode requires MPI.",e_h,caller)
-         endif
-      else
+      if(e_h%parallel_mode /= MULTI_PROC) then
          call elsi_stop(" SIPs solver requires MULTI_PROC parallel mode.",e_h,&
                  caller)
       endif
-
-      if(e_h%matrix_format == BLACS_DENSE) then
-         if(.not. e_h%blacs_ready) then
-            call elsi_stop(" BLACS_DENSE matrix format requires BLACS.",e_h,&
-                    caller)
-         endif
-      else
-         if(.not. e_h%sparsity_ready) then
-            call elsi_stop(" PEXSI_CSC matrix format requires a sparsity"//&
-                    " pattern.",e_h,caller)
-         endif
-      endif
-   else
+   case default
       call elsi_stop(" Unsupported solver.",e_h,caller)
-   endif
+   end select
 
 end subroutine
 

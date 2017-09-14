@@ -142,11 +142,7 @@ subroutine elsi_blacs_to_pexsi_hs_real(e_h,h_in,s_in)
    integer(kind=i4) :: d22
    integer(kind=i4) :: dest ! Destination of an element
    integer(kind=i4) :: this_n_cols
-   integer(kind=i4) :: min_id
    integer(kind=i4) :: nnz_l_aux
-   integer(kind=i4) :: tmp_int
-   integer(kind=i8) :: tmp_long
-   real(kind=r8)    :: tmp_real
    real(kind=r8)    :: t0
    real(kind=r8)    :: t1
    character*200    :: info_str
@@ -501,11 +497,7 @@ subroutine elsi_blacs_to_pexsi_hs_complex(e_h,h_in,s_in)
    integer(kind=i4) :: d22
    integer(kind=i4) :: dest ! Destination of an element
    integer(kind=i4) :: this_n_cols
-   integer(kind=i4) :: min_id
    integer(kind=i4) :: nnz_l_aux
-   integer(kind=i4) :: tmp_int
-   integer(kind=i8) :: tmp_long
-   complex(kind=r8) :: tmp_cmplx
    real(kind=r8)    :: t0
    real(kind=r8)    :: t1
    character*200    :: info_str
@@ -1157,10 +1149,6 @@ subroutine elsi_blacs_to_sips_hs_real(e_h,h_in,s_in)
    integer(kind=i4) :: g_col_id
    integer(kind=i4) :: g_row_id
    integer(kind=i4) :: dest ! Destination of an element
-   integer(kind=i4) :: tmp_int
-   integer(kind=i8) :: tmp_long
-   integer(kind=i4) :: min_id
-   real(kind=r8)    :: tmp_real
    real(kind=r8)    :: t0
    real(kind=r8)    :: t1
    character*200    :: info_str
@@ -1379,10 +1367,6 @@ subroutine elsi_blacs_to_sips_hs_complex(e_h,h_in,s_in)
    integer(kind=i4) :: g_col_id
    integer(kind=i4) :: g_row_id
    integer(kind=i4) :: dest ! Destination of an element
-   integer(kind=i4) :: tmp_int
-   integer(kind=i8) :: tmp_long
-   integer(kind=i4) :: min_id
-   complex(kind=r8) :: tmp_cmplx
    real(kind=r8)    :: t0
    real(kind=r8)    :: t1
    character*200    :: info_str
