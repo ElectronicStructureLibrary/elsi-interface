@@ -705,7 +705,6 @@ subroutine elsi_write_mat_real(f_name,mpi_comm,blacs_ctxt,block_size,&
    integer(kind=i4) :: n_l_cols0
    integer(kind=i4) :: prev_nnz
    integer(kind=i8) :: offset
-   logical          :: file_ok
    real(kind=r8)    :: t0
    real(kind=r8)    :: t1
    character*200    :: info_str
@@ -715,12 +714,6 @@ subroutine elsi_write_mat_real(f_name,mpi_comm,blacs_ctxt,block_size,&
    type(elsi_handle) :: io_h
 
    character*40, parameter :: caller = "elsi_write_mat_real"
-
-   inquire(file=f_name,exist=file_ok)
-
-   if(.not. file_ok) then
-      call elsi_io_stop(" File does not exist.",caller)
-   endif
 
    call elsi_init(io_h,ELPA,MULTI_PROC,BLACS_DENSE,n_basis,0.0_r8,0)
    call elsi_set_mpi(io_h,mpi_comm)
@@ -823,7 +816,6 @@ subroutine elsi_write_mat_complex(f_name,mpi_comm,blacs_ctxt,block_size,&
    integer(kind=i4) :: n_l_cols0
    integer(kind=i4) :: prev_nnz
    integer(kind=i8) :: offset
-   logical          :: file_ok
    real(kind=r8)    :: t0
    real(kind=r8)    :: t1
    character*200    :: info_str
@@ -833,12 +825,6 @@ subroutine elsi_write_mat_complex(f_name,mpi_comm,blacs_ctxt,block_size,&
    type(elsi_handle) :: io_h
 
    character*40, parameter :: caller = "elsi_write_mat_complex"
-
-   inquire(file=f_name,exist=file_ok)
-
-   if(.not. file_ok) then
-      call elsi_io_stop(" File does not exist.",caller)
-   endif
 
    call elsi_init(io_h,ELPA,MULTI_PROC,BLACS_DENSE,n_basis,0.0_r8,0)
    call elsi_set_mpi(io_h,mpi_comm)
@@ -942,7 +928,6 @@ subroutine elsi_write_mat_real_sparse(f_name,mpi_comm,n_electron,n_basis,nnz_g,&
    integer(kind=i4) :: prev_nnz
    integer(kind=i4) :: n_l_cols0
    integer(kind=i8) :: offset
-   logical          :: file_ok
    real(kind=r8)    :: t0
    real(kind=r8)    :: t1
    character*200    :: info_str
@@ -952,12 +937,6 @@ subroutine elsi_write_mat_real_sparse(f_name,mpi_comm,n_electron,n_basis,nnz_g,&
    type(elsi_handle) :: io_h
 
    character*40, parameter :: caller = "elsi_write_mat_real_sparse"
-
-   inquire(file=f_name,exist=file_ok)
-
-   if(.not. file_ok) then
-      call elsi_io_stop(" File does not exist.",caller)
-   endif
 
    call elsi_init(io_h,ELPA,MULTI_PROC,BLACS_DENSE,n_basis,0.0_r8,0)
    call elsi_set_mpi(io_h,mpi_comm)
@@ -1052,7 +1031,6 @@ subroutine elsi_write_mat_complex_sparse(f_name,mpi_comm,n_electron,n_basis,&
    integer(kind=i4) :: prev_nnz
    integer(kind=i4) :: n_l_cols0
    integer(kind=i8) :: offset
-   logical          :: file_ok
    real(kind=r8)    :: t0
    real(kind=r8)    :: t1
    character*200    :: info_str
@@ -1062,12 +1040,6 @@ subroutine elsi_write_mat_complex_sparse(f_name,mpi_comm,n_electron,n_basis,&
    type(elsi_handle) :: io_h
 
    character*40, parameter :: caller = "elsi_write_mat_complex_sparse"
-
-   inquire(file=f_name,exist=file_ok)
-
-   if(.not. file_ok) then
-      call elsi_io_stop(" File does not exist.",caller)
-   endif
 
    call elsi_init(io_h,ELPA,MULTI_PROC,BLACS_DENSE,n_basis,0.0_r8,0)
    call elsi_set_mpi(io_h,mpi_comm)
