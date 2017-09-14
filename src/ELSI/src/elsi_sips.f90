@@ -120,9 +120,9 @@ subroutine elsi_solve_evp_sips(e_h)
          call eps_load_ovlp(e_h%n_basis,e_h%n_l_cols_sp,e_h%nnz_l_sp,&
                  e_h%row_ind_ccs,e_h%col_ptr_ccs,e_h%ovlp_real_ccs)
 
-         call set_eps(math,mats)
+         call set_eps(e_h%ev_min,e_h%ev_max,math,mats)
       else
-         call set_eps(math)
+         call set_eps(e_h%ev_min,e_h%ev_max,math)
       endif
 
       ! Estimate the lower and upper bounds of eigenvalues
@@ -292,6 +292,12 @@ subroutine elsi_set_sips_default(e_h)
    ! Small buffer to expand the eigenvalue interval
    ! Smaller values improve performance if eigenvalue range known
    e_h%slice_buffer = 0.5_r8
+
+   ! Lower bound of eigenvalue
+   e_h%ev_min = -1.0e3_r8
+
+   ! Upper bound of eigenvalue
+   e_h%ev_max = 3.0e1_r8
 
 end subroutine
 

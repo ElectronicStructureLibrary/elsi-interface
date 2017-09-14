@@ -80,6 +80,8 @@ module ELSI_MUTATOR
    public :: elsi_set_sips_n_slice
    public :: elsi_set_sips_left_bound
    public :: elsi_set_sips_slice_buf
+   public :: elsi_set_sips_ev_min
+   public :: elsi_set_sips_ev_max
    public :: elsi_set_mu_broaden_scheme
    public :: elsi_set_mu_broaden_width
    public :: elsi_set_mu_tol
@@ -1151,6 +1153,42 @@ subroutine elsi_set_sips_slice_buf(e_h,slice_buffer)
    call elsi_check_handle(e_h,caller)
 
    e_h%slice_buffer = slice_buffer
+
+end subroutine
+
+!>
+!! This routine sets the lower bound of eigenvalues to be solved by SIPs.
+!!
+subroutine elsi_set_sips_ev_min(e_h,ev_min)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h    !< Handle
+   real(kind=r8),     intent(in)    :: ev_min !< Minimum eigenvalue
+
+   character*40, parameter :: caller = "elsi_set_sips_ev_min"
+
+   call elsi_check_handle(e_h,caller)
+
+   e_h%ev_min = ev_min
+
+end subroutine
+
+!>
+!! This routine sets the upper bound of eigenvalues to be solved by SIPs.
+!!
+subroutine elsi_set_sips_ev_max(e_h,ev_max)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h    !< Handle
+   real(kind=r8),     intent(in)    :: ev_max !< Maximum eigenvalue
+
+   character*40, parameter :: caller = "elsi_set_sips_ev_max"
+
+   call elsi_check_handle(e_h,caller)
+
+   e_h%ev_max = ev_max
 
 end subroutine
 

@@ -287,9 +287,11 @@ module ELSI_DATATYPE
       integer(kind=i4) :: n_slices        ! Number of slices
       real(kind=r8) :: interval(2)        ! Global interval to search eigenvalues
       real(kind=r8) :: slice_buffer       ! Small buffer to expand interval
+      real(kind=r8) :: ev_min             ! Lower bound of eigenvalue
+      real(kind=r8) :: ev_max             ! Upper bound of eigenvalue
       logical :: sips_started = .false.
 
-      integer(kind=i4) :: clock_rate ! Timer
+      integer(kind=i4) :: clock_rate
 
    end type
 

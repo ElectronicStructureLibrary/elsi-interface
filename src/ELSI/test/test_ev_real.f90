@@ -207,6 +207,8 @@ program test_ev_real
 
    ! Customize ELSI
    call elsi_set_output(elsi_h,2)
+   call elsi_set_sips_ev_min(elsi_h,-70.0_r8)
+   call elsi_set_sips_ev_max(elsi_h,0.0_r8)
 
    t1 = MPI_Wtime()
 

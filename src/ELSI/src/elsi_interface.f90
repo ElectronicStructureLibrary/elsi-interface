@@ -93,6 +93,8 @@ module ELSI
    public :: elsi_set_sips_n_slice
    public :: elsi_set_sips_left_bound
    public :: elsi_set_sips_slice_buf
+   public :: elsi_set_sips_ev_min
+   public :: elsi_set_sips_ev_max
    public :: elsi_set_mu_broaden_scheme
    public :: elsi_set_mu_broaden_width
    public :: elsi_set_mu_tol

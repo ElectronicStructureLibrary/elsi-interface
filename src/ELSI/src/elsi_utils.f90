@@ -1534,6 +1534,8 @@ subroutine elsi_reset_handle(e_h)
    e_h%n_slices         = UNSET
    e_h%interval         = 0.0_r8
    e_h%slice_buffer     = 0.0_r8
+   e_h%ev_min           = 0.0_r8
+   e_h%ev_max           = 0.0_r8
    e_h%sips_started     = .false.
    e_h%clock_rate       = UNSET
 

@@ -1152,6 +1152,38 @@ subroutine elsi_set_sips_slice_buf_c_wrapper(handle_c,slice_buffer)&
 
 end subroutine
 
+subroutine elsi_set_sips_ev_min_c_wrapper(handle_c,ev_min)&
+   bind(C,name="c_elsi_set_sips_ev_min")
+
+   implicit none
+
+   type(c_ptr),         value, intent(in) :: handle_c
+   real(kind=c_double), value, intent(in) :: ev_min
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_sips_ev_min(handle_f,ev_min)
+
+end subroutine
+
+subroutine elsi_set_sips_ev_max_c_wrapper(handle_c,ev_max)&
+   bind(C,name="c_elsi_set_sips_ev_max")
+
+   implicit none
+
+   type(c_ptr),         value, intent(in) :: handle_c
+   real(kind=c_double), value, intent(in) :: ev_max
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_sips_ev_max(handle_f,ev_max)
+
+end subroutine
+
 subroutine elsi_set_mu_broaden_scheme_c_wrapper(handle_c,broaden_scheme)&
    bind(C,name="c_elsi_set_mu_broaden_scheme")
 
