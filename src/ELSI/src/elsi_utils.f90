@@ -947,25 +947,21 @@ subroutine elsi_stop(info,e_h,caller)
    integer :: mpierr
 
    if(e_h%global_mpi_ready) then
-      do i_task = 0,e_h%n_procs_all-1
-         if(e_h%myid_all == i_task) then
-            write(info_str,"(A,I7,5A)") "**Error! MPI task ",e_h%myid_all,&
-               " in ",trim(caller),": ",trim(info)," Exiting..."
-            write(e_h%print_unit,"(A)") trim(info_str)
-         endif
+      write(info_str,"(A,I7,5A)") "**Error! MPI task ",e_h%myid_all," in ",&
+         trim(caller),": ",trim(info)," Exiting..."
+      write(e_h%print_unit,"(A)") trim(info_str)
 
-         call MPI_Barrier(e_h%mpi_comm_all,mpierr)
-      enddo
+      if(e_h%n_procs_all > 1) then
+         call MPI_Abort(e_h%mpi_comm_all,0,mpierr)
+      endif
    elseif(e_h%mpi_ready) then
-      do i_task = 0,e_h%n_procs-1
-         if(e_h%myid == i_task) then
-            write(info_str,"(A,I7,5A)") "**Error! MPI task ",e_h%myid," in ",&
-               trim(caller),": ",trim(info)," Exiting..."
-            write(e_h%print_unit,"(A)") trim(info_str)
-         endif
+      write(info_str,"(A,I7,5A)") "**Error! MPI task ",e_h%myid," in ",&
+         trim(caller),": ",trim(info)," Exiting..."
+      write(e_h%print_unit,"(A)") trim(info_str)
 
-         call MPI_Barrier(e_h%mpi_comm,mpierr)
-      enddo
+      if(e_h%n_procs > 1) then
+         call MPI_Abort(e_h%mpi_comm,0,mpierr)
+      endif
    else
       write(info_str,"(5A)") "**Error! ",trim(caller),": ",trim(info),&
          " Exiting..."
