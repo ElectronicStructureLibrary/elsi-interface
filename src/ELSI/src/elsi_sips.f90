@@ -82,7 +82,7 @@ subroutine elsi_init_sips(e_h)
       e_h%sips_started = .true.
    endif
 
-   write(info_str,"('  | Number of slices ',I7)") e_h%n_slices
+   write(info_str,"('  | Number of slices          ',I10)") e_h%n_slices
    call elsi_statement_print(info_str,e_h)
 
 end subroutine

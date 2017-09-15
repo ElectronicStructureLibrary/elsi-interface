@@ -1373,11 +1373,11 @@ subroutine elsi_print_settings(e_h)
          e_h%pexsi_options%nPoints
       call elsi_statement_print(info_str,e_h)
 
-      write(info_str,"('  | Mu lower bound             ',E10.2)")&
+      write(info_str,"('  | Lower bound of mu          ',E10.2)")&
          e_h%pexsi_options%muMin0
       call elsi_statement_print(info_str,e_h)
 
-      write(info_str,"('  | Mu upper bound             ',E10.2)")&
+      write(info_str,"('  | Upper bound of mu          ',E10.2)")&
          e_h%pexsi_options%muMax0
       call elsi_statement_print(info_str,e_h)
 
@@ -1392,19 +1392,27 @@ subroutine elsi_print_settings(e_h)
       write(info_str,"('  SIPs settings:')")
       call elsi_statement_print(info_str,e_h)
 
-      write(info_str,"('  | Slicing method    ',I10)")&
+      write(info_str,"('  | Slicing method            ',I10)")&
          e_h%slicing_method
       call elsi_statement_print(info_str,e_h)
 
-      write(info_str,"('  | Inertia counting  ',I10)")&
+      write(info_str,"('  | Lower bound of eigenvalue ',E10.2)")&
+         e_h%slice_buffer
+      call elsi_statement_print(info_str,e_h)
+
+      write(info_str,"('  | Upper bound of eigenvalue ',E10.2)")&
+         e_h%slice_buffer
+      call elsi_statement_print(info_str,e_h)
+
+      write(info_str,"('  | Inertia counting          ',I10)")&
          e_h%inertia_option
       call elsi_statement_print(info_str,e_h)
 
-      write(info_str,"('  | Left bound option ',I10)")&
+      write(info_str,"('  | Left bound option         ',I10)")&
          e_h%unbound
       call elsi_statement_print(info_str,e_h)
 
-      write(info_str,"('  | Slice buffer      ',E10.2)")&
+      write(info_str,"('  | Slice buffer              ',E10.2)")&
          e_h%slice_buffer
       call elsi_statement_print(info_str,e_h)
    end select
