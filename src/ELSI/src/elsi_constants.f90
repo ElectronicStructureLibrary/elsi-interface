@@ -41,7 +41,6 @@ module ELSI_CONSTANTS
    integer(kind=i4), parameter :: N_MATRIX_FORMATS     = 2
    integer(kind=i4), parameter :: N_PARALLEL_MODES     = 2
    integer(kind=i4), parameter :: N_BROADENING_SCHEMES = 4
-   integer(kind=i4), parameter :: HEADER_SIZE          = 4
 
    ! Method names
    integer(kind=i4), parameter :: AUTO   = 0
@@ -73,5 +72,9 @@ module ELSI_CONSTANTS
    integer(kind=i4), parameter :: FERMI               = 1
    integer(kind=i4), parameter :: METHFESSEL_PAXTON_0 = 2
    integer(kind=i4), parameter :: METHFESSEL_PAXTON_1 = 3
+
+   ! Matrix IO
+   integer(kind=i4), parameter :: HEADER_SIZE = 10
+   integer(kind=i4), parameter :: IO_FORMAT   = 170915
 
 end module ELSI_CONSTANTS

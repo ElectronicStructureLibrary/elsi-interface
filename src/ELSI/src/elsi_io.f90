@@ -31,7 +31,8 @@
 module ELSI_IO
 
    use, intrinsic :: ISO_C_BINDING
-   use ELSI_CONSTANTS, only: HEADER_SIZE,BLACS_DENSE,PEXSI_CSC
+   use ELSI_CONSTANTS, only: HEADER_SIZE,IO_FORMAT,BLACS_DENSE,PEXSI_CSC,&
+                             REAL_VALUES,COMPLEX_VALUES
    use ELSI_DATATYPE
    use ELSI_SETUP,     only: elsi_init,elsi_set_mpi,elsi_set_mpi_global,&
                              elsi_set_blacs,elsi_set_csc
@@ -114,8 +115,8 @@ subroutine elsi_read_mat_dim(f_name,mpi_comm,blacs_ctxt,block_size,n_electron,&
    ! Broadcast header
    call MPI_Bcast(header,HEADER_SIZE,mpi_integer4,0,mpi_comm,mpierr)
 
-   n_basis    = header(2)
-   n_electron = real(header(3),kind=r8)
+   n_basis    = header(4)
+   n_electron = real(header(5),kind=r8)
 
    ! Get processor grid information
    call blacs_gridinfo(blacs_ctxt,n_p_rows,n_p_cols,my_p_row,my_p_col)
@@ -183,9 +184,9 @@ subroutine elsi_read_mat_dim_sparse(f_name,mpi_comm,n_electron,n_basis,nnz_g,&
    ! Broadcast header
    call MPI_Bcast(header,HEADER_SIZE,mpi_integer4,0,mpi_comm,mpierr)
 
-   n_basis    = header(2)
-   n_electron = real(header(3),kind=r8)
-   nnz_g      = header(4)
+   n_basis    = header(4)
+   n_electron = real(header(5),kind=r8)
+   nnz_g      = header(6)
 
    ! Compute n_l_cols
    n_l_cols  = n_basis/io_h%n_procs
@@ -286,7 +287,7 @@ subroutine elsi_read_mat_real(f_name,mpi_comm,blacs_ctxt,block_size,n_basis,&
    ! Broadcast header
    call MPI_Bcast(header,HEADER_SIZE,mpi_integer4,0,mpi_comm,mpierr)
 
-   nnz_g = header(4)
+   nnz_g = header(6)
 
    ! Compute n_l_cols_sp
    n_l_cols_sp  = n_basis/io_h%n_procs
@@ -517,7 +518,7 @@ subroutine elsi_read_mat_complex(f_name,mpi_comm,blacs_ctxt,block_size,n_basis,&
    ! Broadcast header
    call MPI_Bcast(header,HEADER_SIZE,mpi_integer4,0,mpi_comm,mpierr)
 
-   nnz_g = header(4)
+   nnz_g = header(6)
 
    ! Compute n_l_cols_sp
    n_l_cols_sp  = n_basis/io_h%n_procs
@@ -738,10 +739,13 @@ subroutine elsi_write_mat_real(f_name,mpi_comm,blacs_ctxt,block_size,&
    call MPI_File_open(mpi_comm,f_name,f_mode,mpi_info_null,f_handle,mpierr)
 
    ! Write header
-   header(1) = PEXSI_CSC
-   header(2) = n_basis
-   header(3) = int(n_electron,kind=i4)
-   header(4) = io_h%nnz_g
+   header    = 0
+   header(1) = IO_FORMAT
+   header(2) = PEXSI_CSC
+   header(3) = REAL_VALUES
+   header(4) = n_basis
+   header(5) = int(n_electron,kind=i4)
+   header(6) = io_h%nnz_g
 
    if(io_h%myid == 0) then
       offset = 0
@@ -849,10 +853,13 @@ subroutine elsi_write_mat_complex(f_name,mpi_comm,blacs_ctxt,block_size,&
    call MPI_File_open(mpi_comm,f_name,f_mode,mpi_info_null,f_handle,mpierr)
 
    ! Write header
-   header(1) = PEXSI_CSC
-   header(2) = n_basis
-   header(3) = int(n_electron,kind=i4)
-   header(4) = io_h%nnz_g
+   header    = 0
+   header(1) = IO_FORMAT
+   header(2) = PEXSI_CSC
+   header(3) = COMPLEX_VALUES
+   header(4) = n_basis
+   header(5) = int(n_electron,kind=i4)
+   header(6) = io_h%nnz_g
 
    if(io_h%myid == 0) then
       offset = 0
@@ -949,10 +956,13 @@ subroutine elsi_write_mat_real_sparse(f_name,mpi_comm,n_electron,n_basis,nnz_g,&
    call MPI_File_open(mpi_comm,f_name,f_mode,mpi_info_null,f_handle,mpierr)
 
    ! Write header
-   header(1) = PEXSI_CSC
-   header(2) = n_basis
-   header(3) = int(n_electron,kind=i4)
-   header(4) = nnz_g
+   header    = 0
+   header(1) = IO_FORMAT
+   header(2) = PEXSI_CSC
+   header(3) = REAL_VALUES
+   header(4) = n_basis
+   header(5) = int(n_electron,kind=i4)
+   header(6) = nnz_g
 
    if(io_h%myid == 0) then
       offset = 0
@@ -1052,10 +1062,13 @@ subroutine elsi_write_mat_complex_sparse(f_name,mpi_comm,n_electron,n_basis,&
    call MPI_File_open(mpi_comm,f_name,f_mode,mpi_info_null,f_handle,mpierr)
 
    ! Write header
-   header(1) = PEXSI_CSC
-   header(2) = n_basis
-   header(3) = int(n_electron,kind=i4)
-   header(4) = nnz_g
+   header    = 0
+   header(1) = IO_FORMAT
+   header(2) = PEXSI_CSC
+   header(3) = COMPLEX_VALUES
+   header(4) = n_basis
+   header(5) = int(n_electron,kind=i4)
+   header(6) = nnz_g
 
    if(io_h%myid == 0) then
       offset = 0
