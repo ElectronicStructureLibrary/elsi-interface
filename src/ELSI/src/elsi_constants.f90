@@ -30,49 +30,48 @@
 !!
 module ELSI_CONSTANTS
 
-   use, intrinsic :: ISO_C_BINDING
    use ELSI_PRECISION, only: r8,i4
 
    implicit none
 
    real(kind=r8), parameter :: INVERT_SQRT_PI = 0.5641895835477563275_r8 ! Constant: 1/sqrt(pi)
 
-   integer(kind=i4), parameter :: N_SOLVERS                = 6
-   integer(kind=i4), parameter :: N_MATRIX_DATA_TYPES      = 2
-   integer(kind=i4), parameter :: N_MATRIX_STORAGE_FORMATS = 2
-   integer(kind=i4), parameter :: N_PARALLEL_MODES         = 2
-   integer(kind=i4), parameter :: N_BROADENING_SCHEMES     = 4
-   integer(kind=i4), parameter :: UNSET                    = -910910
-   integer(kind=i4), parameter :: HEADER_SIZE              = 4
+   integer(kind=i4), parameter :: UNSET                = -910910
+   integer(kind=i4), parameter :: N_SOLVERS            = 6
+   integer(kind=i4), parameter :: N_MATRIX_FORMATS     = 2
+   integer(kind=i4), parameter :: N_PARALLEL_MODES     = 2
+   integer(kind=i4), parameter :: N_BROADENING_SCHEMES = 4
+   integer(kind=i4), parameter :: HEADER_SIZE          = 4
 
    ! Method names
-   enum,bind(C)
-      enumerator :: AUTO,ELPA,LIBOMM,PEXSI,CHESS,SIPS
-   end enum
+   integer(kind=i4), parameter :: AUTO   = 0
+   integer(kind=i4), parameter :: ELPA   = 1
+   integer(kind=i4), parameter :: LIBOMM = 2
+   integer(kind=i4), parameter :: PEXSI  = 3
+   integer(kind=i4), parameter :: CHESS  = 4
+   integer(kind=i4), parameter :: SIPS   = 5
 
    ! Real or complex data
-   enum,bind(C)
-      enumerator :: REAL_VALUES,COMPLEX_VALUES
-   end enum
+   integer(kind=i4), parameter :: REAL_VALUES    = 0
+   integer(kind=i4), parameter :: COMPLEX_VALUES = 1
 
    ! Storage formats
-   enum,bind(C)
-      enumerator :: BLACS_DENSE,PEXSI_CSC
-   end enum
+   integer(kind=i4), parameter :: BLACS_DENSE = 0
+   integer(kind=i4), parameter :: PEXSI_CSC   = 1
 
    ! Triangular matrix
-   enum,bind(C)
-      enumerator :: FULL_MAT,UT_MAT,LT_MAT
-   end enum
+   integer(kind=i4), parameter :: FULL_MAT = 0
+   integer(kind=i4), parameter :: UT_MAT   = 1
+   integer(kind=i4), parameter :: LT_MAT   = 2
 
    ! Parallel modes
-   enum,bind(C)
-      enumerator :: SINGLE_PROC,MULTI_PROC
-   end enum
+   integer(kind=i4), parameter :: SINGLE_PROC = 0
+   integer(kind=i4), parameter :: MULTI_PROC  = 1
 
    ! Broadening schemes
-   enum,bind(C)
-      enumerator :: GAUSSIAN,FERMI,METHFESSEL_PAXTON_0,METHFESSEL_PAXTON_1
-   end enum
+   integer(kind=i4), parameter :: GAUSSIAN            = 0
+   integer(kind=i4), parameter :: FERMI               = 1
+   integer(kind=i4), parameter :: METHFESSEL_PAXTON_0 = 2
+   integer(kind=i4), parameter :: METHFESSEL_PAXTON_1 = 3
 
 end module ELSI_CONSTANTS

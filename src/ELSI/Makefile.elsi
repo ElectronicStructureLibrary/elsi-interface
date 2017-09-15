@@ -97,7 +97,7 @@ test_standard_ev_real_c.o: ./test/test_standard_ev_real_c.c elsi_c_interface.o
 elsi_interface.o: ./src/elsi_interface.f90 elsi_setup.o elsi_solver.o elsi_mutator.o elsi_io.o elsi_mu.o elsi_datatype.o
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
-elsi_io.o: ./src/elsi_io.f90 elsi_setup.o elsi_mutator.o elsi_matconv.o elsi_utils.o elsi_datatype.o elsi_precision.o elsi_constants.o
+elsi_io.o: ./src/elsi_io.f90 elsi_setup.o elsi_matconv.o elsi_utils.o elsi_datatype.o elsi_precision.o elsi_constants.o
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
 elsi_setup.o: ./src/elsi_setup.f90 elsi_elpa.o elsi_omm.o elsi_pexsi.o elsi_chess.o elsi_sips.o elsi_constants.o elsi_datatype.o elsi_precision.o elsi_utils.o
@@ -121,7 +121,7 @@ elsi_pexsi.o: ./src/elsi_pexsi.f90 elsi_utils.o elsi_datatype.o elsi_precision.o
 elsi_sips.o: ./src/elsi_sips.f90 elsi_utils.o elsi_datatype.o elsi_precision.o elsi_constants.o $(STUBS)
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
-elsi_chess.o: ./src/elsi_chess.f90 elsi_utils.o elsi_datatype.o elsi_precision.o elsi_constants.o $(STUBS)
+elsi_chess.o: ./src/elsi_chess.f90 elsi_utils.o elsi_datatype.o elsi_precision.o $(STUBS)
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
 elsi_mu.o: ./src/elsi_mu.f90 elsi_utils.o elsi_datatype.o elsi_precision.o elsi_constants.o

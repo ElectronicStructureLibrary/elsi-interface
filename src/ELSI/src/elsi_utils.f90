@@ -34,11 +34,11 @@ module ELSI_UTILS
    use ELSI_CONSTANTS
    use ELSI_DATATYPE
    use ELSI_PRECISION
-   use FOE_BASE, only: foe_data_deallocate
-   use F_PPEXSI_INTERFACE
-   use MATRIXSWITCH, only: m_register_pdbc,m_deallocate
-   use M_QETSC, only: clean_qetsc
-   use SPARSEMATRIX_BASE, only: deallocate_sparse_matrix,deallocate_matrices
+   use FOE_BASE,           only: foe_data_deallocate
+   use F_PPEXSI_INTERFACE, only: f_ppexsi_plan_finalize
+   use MATRIXSWITCH,       only: m_register_pdbc,m_deallocate
+   use M_QETSC,            only: clean_qetsc
+   use SPARSEMATRIX_BASE,  only: deallocate_sparse_matrix,deallocate_matrices
 
    implicit none
 
@@ -54,7 +54,7 @@ module ELSI_UTILS
    public :: elsi_set_sparse_ham
    public :: elsi_set_sparse_ovlp
    public :: elsi_set_sparse_dm
-   public :: elsi_statement_print
+   public :: elsi_say
    public :: elsi_allocate
    public :: elsi_deallocate
    public :: elsi_cleanup
@@ -148,9 +148,9 @@ module ELSI_UTILS
 contains
 
 !>
-!! This routine prints a statement.
+!! This routine prints a message.
 !!
-subroutine elsi_statement_print(info_str,e_h)
+subroutine elsi_say(info_str,e_h)
 
    implicit none
 
@@ -187,7 +187,7 @@ subroutine elsi_allocate_real4_1d(e_h,array,dim1,arrayname,caller)
 
       write(info_str,"(A,F10.3,2A)") "    Allocating ",arraysize," MB for ",&
          trim(arrayname)
-      call elsi_statement_print(info_str,e_h)
+      call elsi_say(info_str,e_h)
    endif
 
    allocate(array(dim1),stat=error)
@@ -223,7 +223,7 @@ subroutine elsi_allocate_real8_1d(e_h,array,dim1,arrayname,caller)
 
       write(info_str,"(A,F10.3,2A)") "    Allocating ",arraysize," MB for ",&
          trim(arrayname)
-      call elsi_statement_print(info_str,e_h)
+      call elsi_say(info_str,e_h)
    endif
 
    allocate(array(dim1),stat=error)
@@ -259,7 +259,7 @@ subroutine elsi_allocate_integer4_1d(e_h,array,dim1,arrayname,caller)
 
       write(info_str,"(A,F10.3,2A)") "    Allocating ",arraysize," MB for ",&
          trim(arrayname)
-      call elsi_statement_print(info_str,e_h)
+      call elsi_say(info_str,e_h)
    endif
 
    allocate(array(dim1),stat=error)
@@ -295,7 +295,7 @@ subroutine elsi_allocate_integer8_1d(e_h,array,dim1,arrayname,caller)
 
       write(info_str,"(A,F10.3,2A)") "    Allocating ",arraysize," MB for ",&
          trim(arrayname)
-      call elsi_statement_print(info_str,e_h)
+      call elsi_say(info_str,e_h)
    endif
 
    allocate(array(dim1),stat=error)
@@ -331,7 +331,7 @@ subroutine elsi_allocate_complex16_1d(e_h,array,dim1,arrayname,caller)
 
       write(info_str,"(A,F10.3,2A)") "    Allocating ",arraysize," MB for ",&
          trim(arrayname)
-      call elsi_statement_print(info_str,e_h)
+      call elsi_say(info_str,e_h)
    endif
 
    allocate(array(dim1),stat=error)
@@ -368,7 +368,7 @@ subroutine elsi_allocate_real4_2d(e_h,array,dim1,dim2,arrayname,caller)
 
       write(info_str,"(A,F10.3,2A)") "    Allocating ",arraysize," MB for ",&
          trim(arrayname)
-      call elsi_statement_print(info_str,e_h)
+      call elsi_say(info_str,e_h)
    endif
 
    allocate(array(dim1,dim2),stat=error)
@@ -405,7 +405,7 @@ subroutine elsi_allocate_real8_2d(e_h,array,dim1,dim2,arrayname,caller)
 
       write(info_str,"(A,F10.3,2A)") "    Allocating ",arraysize," MB for ",&
          trim(arrayname)
-      call elsi_statement_print(info_str,e_h)
+      call elsi_say(info_str,e_h)
    endif
 
    allocate(array(dim1,dim2),stat=error)
@@ -442,7 +442,7 @@ subroutine elsi_allocate_integer4_2d(e_h,array,dim1,dim2,arrayname,caller)
 
       write(info_str,"(A,F10.3,2A)") "    Allocating ",arraysize," MB for ",&
          trim(arrayname)
-      call elsi_statement_print(info_str,e_h)
+      call elsi_say(info_str,e_h)
    endif
 
    allocate(array(dim1,dim2),stat=error)
@@ -479,7 +479,7 @@ subroutine elsi_allocate_complex8_2d(e_h,array,dim1,dim2,arrayname,caller)
 
       write(info_str,"(A,F10.3,2A)") "    Allocating ",arraysize," MB for ",&
          trim(arrayname)
-      call elsi_statement_print(info_str,e_h)
+      call elsi_say(info_str,e_h)
    endif
 
    allocate(array(dim1,dim2),stat=error)
@@ -516,7 +516,7 @@ subroutine elsi_allocate_complex16_2d(e_h,array,dim1,dim2,arrayname,caller)
 
       write(info_str,"(A,F10.3,2A)") "    Allocating ",arraysize," MB for ",&
          trim(arrayname)
-      call elsi_statement_print(info_str,e_h)
+      call elsi_say(info_str,e_h)
    endif
 
    allocate(array(dim1,dim2),stat=error)
@@ -554,7 +554,7 @@ subroutine elsi_allocate_real8_3d(e_h,array,dim1,dim2,dim3,arrayname,caller)
 
       write(info_str,"(A,F10.3,2A)") "    Allocating ",arraysize," MB for ",&
          trim(arrayname)
-      call elsi_statement_print(info_str,e_h)
+      call elsi_say(info_str,e_h)
    endif
 
    allocate(array(dim1,dim2,dim3),stat=error)
@@ -592,7 +592,7 @@ subroutine elsi_allocate_integer4_3d(e_h,array,dim1,dim2,dim3,arrayname,caller)
 
       write(info_str,"(A,F10.3,2A)") "    Allocating ",arraysize," MB for ",&
          trim(arrayname)
-      call elsi_statement_print(info_str,e_h)
+      call elsi_say(info_str,e_h)
    endif
 
    allocate(array(dim1,dim2,dim3),stat=error)
@@ -630,7 +630,7 @@ subroutine elsi_allocate_complex16_3d(e_h,array,dim1,dim2,dim3,arrayname,caller)
 
       write(info_str,"(A,F10.3,2A)") "    Allocating ",arraysize," MB for ",&
          trim(arrayname)
-      call elsi_statement_print(info_str,e_h)
+      call elsi_say(info_str,e_h)
    endif
 
    allocate(array(dim1,dim2,dim3),stat=error)
@@ -659,7 +659,7 @@ subroutine elsi_deallocate_real4_1d(e_h,array,arrayname)
 
    if(e_h%print_mem) then
       write(info_str,"(2A)") "    Deallocating ",trim(arrayname)
-      call elsi_statement_print(info_str,e_h)
+      call elsi_say(info_str,e_h)
    endif
 
    deallocate(array)
@@ -681,7 +681,7 @@ subroutine elsi_deallocate_real8_1d(e_h,array,arrayname)
 
    if(e_h%print_mem) then
       write(info_str,"(2A)") "    Deallocating ",trim(arrayname)
-      call elsi_statement_print(info_str,e_h)
+      call elsi_say(info_str,e_h)
    endif
 
    deallocate(array)
@@ -703,7 +703,7 @@ subroutine elsi_deallocate_integer4_1d(e_h,array,arrayname)
 
    if(e_h%print_mem) then
       write(info_str,"(2A)") "    Deallocating ",trim(arrayname)
-      call elsi_statement_print(info_str,e_h)
+      call elsi_say(info_str,e_h)
    endif
 
    deallocate(array)
@@ -725,7 +725,7 @@ subroutine elsi_deallocate_integer8_1d(e_h,array,arrayname)
 
    if(e_h%print_mem) then
       write(info_str,"(2A)") "    Deallocating ",trim(arrayname)
-      call elsi_statement_print(info_str,e_h)
+      call elsi_say(info_str,e_h)
    endif
 
    deallocate(array)
@@ -747,7 +747,7 @@ subroutine elsi_deallocate_complex16_1d(e_h,array,arrayname)
 
    if(e_h%print_mem) then
       write(info_str,"(2A)") "    Deallocating ",trim(arrayname)
-      call elsi_statement_print(info_str,e_h)
+      call elsi_say(info_str,e_h)
    endif
 
    deallocate(array)
@@ -769,7 +769,7 @@ subroutine elsi_deallocate_real4_2d(e_h,array,arrayname)
 
    if(e_h%print_mem) then
       write(info_str,"(2A)") "    Deallocating ",trim(arrayname)
-      call elsi_statement_print(info_str,e_h)
+      call elsi_say(info_str,e_h)
    endif
 
    deallocate(array)
@@ -791,7 +791,7 @@ subroutine elsi_deallocate_real8_2d(e_h,array,arrayname)
 
    if(e_h%print_mem) then
       write(info_str,"(2A)") "    Deallocating ",trim(arrayname)
-      call elsi_statement_print(info_str,e_h)
+      call elsi_say(info_str,e_h)
    endif
 
    deallocate(array)
@@ -813,7 +813,7 @@ subroutine elsi_deallocate_integer4_2d(e_h,array,arrayname)
 
    if(e_h%print_mem) then
       write(info_str,"(2A)") "    Deallocating ",trim(arrayname)
-      call elsi_statement_print(info_str,e_h)
+      call elsi_say(info_str,e_h)
    endif
 
    deallocate(array)
@@ -835,7 +835,7 @@ subroutine elsi_deallocate_complex8_2d(e_h,array,arrayname)
 
    if(e_h%print_mem) then
       write(info_str,"(2A)") "    Deallocating ",trim(arrayname)
-      call elsi_statement_print(info_str,e_h)
+      call elsi_say(info_str,e_h)
    endif
 
    deallocate(array)
@@ -858,7 +858,7 @@ subroutine elsi_deallocate_complex16_2d(e_h,array,arrayname)
 
    if(e_h%print_mem) then
       write(info_str,"(2A)") "    Deallocating ",trim(arrayname)
-      call elsi_statement_print(info_str,e_h)
+      call elsi_say(info_str,e_h)
    endif
 
    deallocate(array)
@@ -880,7 +880,7 @@ subroutine elsi_deallocate_real8_3d(e_h,array,arrayname)
 
    if(e_h%print_mem) then
       write(info_str,"(2A)") "    Deallocating ",trim(arrayname)
-      call elsi_statement_print(info_str,e_h)
+      call elsi_say(info_str,e_h)
    endif
 
    deallocate(array)
@@ -902,7 +902,7 @@ subroutine elsi_deallocate_integer4_3d(e_h,array,arrayname)
 
    if(e_h%print_mem) then
       write(info_str,"(2A)") "    Deallocating ",trim(arrayname)
-      call elsi_statement_print(info_str,e_h)
+      call elsi_say(info_str,e_h)
    endif
 
    deallocate(array)
@@ -924,7 +924,7 @@ subroutine elsi_deallocate_complex16_3d(e_h,array,arrayname)
 
    if(e_h%print_mem) then
       write(info_str,"(2A)") "    Deallocating ",trim(arrayname)
-      call elsi_statement_print(info_str,e_h)
+      call elsi_say(info_str,e_h)
    endif
 
    deallocate(array)
@@ -1560,13 +1560,11 @@ subroutine elsi_check(e_h,caller)
       call elsi_stop(" Unsupported parallel mode.",e_h,caller)
    endif
 
-   if(e_h%matrix_data_type < 0 .or. &
-      e_h%matrix_data_type >= N_MATRIX_DATA_TYPES) then
+   if(e_h%matrix_data_type < 0 .or. e_h%matrix_data_type >= 2) then
       call elsi_stop(" Unsupported matirx data type.",e_h,caller)
    endif
 
-   if(e_h%matrix_format < 0 .or. &
-      e_h%matrix_format >= N_MATRIX_STORAGE_FORMATS) then
+   if(e_h%matrix_format < 0 .or. e_h%matrix_format >= N_MATRIX_FORMATS) then
       call elsi_stop(" Unsupported matirx format.",e_h,caller)
    endif
 
@@ -1657,7 +1655,7 @@ subroutine elsi_check(e_h,caller)
          endif
       endif
    case(CHESS)
-      call elsi_statement_print("  ATTENTION! CheSS is EXPERIMENTAL.",e_h)
+      call elsi_say("  ATTENTION! CheSS is EXPERIMENTAL.",e_h)
 
       if(e_h%n_basis < e_h%n_procs) then
          call elsi_stop(" For this number of MPI tasks, the matrix size is"//&
@@ -1674,7 +1672,7 @@ subroutine elsi_check(e_h,caller)
                  " yet available.",e_h,caller)
       endif
    case(SIPS)
-      call elsi_statement_print("  ATTENTION! SIPs is EXPERIMENTAL.",e_h)
+      call elsi_say("  ATTENTION! SIPs is EXPERIMENTAL.",e_h)
 
       if(e_h%n_basis < e_h%n_procs) then
          call elsi_stop(" For this number of MPI tasks, the matrix size is"//&

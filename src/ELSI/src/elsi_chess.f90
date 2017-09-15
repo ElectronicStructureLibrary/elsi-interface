@@ -30,18 +30,18 @@
 !!
 module ELSI_CHESS
 
-   use ELSI_DATATYPE
-   use ELSI_PRECISION, only: r8,i4
+   use ELSI_DATATYPE,          only: elsi_handle
+   use ELSI_PRECISION,         only: r8,i4
    use ELSI_UTILS
-   use FOE_BASE, only: foe_data_get_real
-   use FOE_COMMON, only: init_foe
-   use SPARSEMATRIX_BASE, only: sparsematrix_init_errors,&
-                                sparsematrix_initialize_timing_categories,&
-                                SPARSE_TASKGROUP
+   use FOE_BASE,               only: foe_data_get_real
+   use FOE_COMMON,             only: init_foe
+   use SPARSEMATRIX_BASE,      only: sparsematrix_init_errors,&
+                                     sparsematrix_initialize_timing_categories,&
+                                     SPARSE_TASKGROUP
    use SPARSEMATRIX_HIGHLEVEL, only: matrices_init,&
                                      matrix_fermi_operator_expansion,&
                                      sparse_matrix_init_from_data_ccs
-   use SPARSEMATRIX_INIT, only: init_matrix_taskgroups_wrapper
+   use SPARSEMATRIX_INIT,      only: init_matrix_taskgroups_wrapper
 
    implicit none
 
@@ -148,7 +148,7 @@ subroutine elsi_solve_evp_chess(e_h)
       calc_ovlp_inv_sqrt = .false.
    endif
 
-   call elsi_statement_print("  Starting CheSS density matrix solver",e_h)
+   call elsi_say("  Starting CheSS density matrix solver",e_h)
 
    call matrix_fermi_operator_expansion(e_h%myid,e_h%n_procs,e_h%mpi_comm,&
            e_h%foe_obj,e_h%ice_obj,e_h%sparse_mat(1),e_h%sparse_mat(1),&
@@ -165,9 +165,9 @@ subroutine elsi_solve_evp_chess(e_h)
    call elsi_get_time(e_h,t1)
 
    write(info_str,"('  Finished density matrix calculation')")
-   call elsi_statement_print(info_str,e_h)
+   call elsi_say(info_str,e_h)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_statement_print(info_str,e_h)
+   call elsi_say(info_str,e_h)
 
 end subroutine
 

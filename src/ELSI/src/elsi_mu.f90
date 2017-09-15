@@ -32,7 +32,7 @@ module ELSI_MU
 
    use ELSI_CONSTANTS, only: GAUSSIAN,FERMI,METHFESSEL_PAXTON_0,&
                              METHFESSEL_PAXTON_1,INVERT_SQRT_PI
-   use ELSI_DATATYPE
+   use ELSI_DATATYPE,  only: elsi_handle
    use ELSI_PRECISION, only: r8,i4
    use ELSI_UTILS
 
@@ -319,9 +319,9 @@ subroutine elsi_find_mu(e_h,n_electron,n_state,n_spin,n_kpt,k_weights,evals,&
       mu_out = mu_right
 
       ! ...with adjusted occupation numbers
-      call elsi_statement_print("  Chemical potential cannot reach the"//&
+      call elsi_say("  Chemical potential cannot reach the"//&
               " required accuracy by bisection method.",e_h)
-      call elsi_statement_print("  The error will be arbitrarily removed"//&
+      call elsi_say("  The error will be arbitrarily removed"//&
               " from the highest occupied states.",e_h)
 
       call elsi_adjust_occ(e_h,n_state,n_spin,n_kpt,k_weights,evals,occ_nums,&

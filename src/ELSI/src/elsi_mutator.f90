@@ -32,11 +32,11 @@ module ELSI_MUTATOR
 
    use ELSI_CONSTANTS, only: ELPA,LIBOMM,PEXSI,CHESS,SIPS,REAL_VALUES,&
                              COMPLEX_VALUES,UNSET
-   use ELSI_DATATYPE
-   use ELSI_ELPA, only: elsi_compute_edm_elpa
-   use ELSI_MATCONV, only: elsi_pexsi_to_blacs_dm,elsi_blacs_to_sips_dm
-   use ELSI_OMM, only: elsi_compute_edm_omm
-   use ELSI_PEXSI, only: elsi_compute_edm_pexsi
+   use ELSI_DATATYPE,  only: elsi_handle
+   use ELSI_ELPA,      only: elsi_compute_edm_elpa
+   use ELSI_MATCONV,   only: elsi_pexsi_to_blacs_dm,elsi_blacs_to_sips_dm
+   use ELSI_OMM,       only: elsi_compute_edm_omm
+   use ELSI_PEXSI,     only: elsi_compute_edm_pexsi
    use ELSI_PRECISION, only: r8,i4
    use ELSI_UTILS
 
@@ -1375,8 +1375,8 @@ subroutine elsi_get_mu(e_h,mu)
    mu = e_h%mu
 
    if(.not. e_h%mu_ready) then
-      call elsi_statement_print("  ATTENTION! The return value of mu may be"//&
-              " 0, since mu has not been computed.",e_h)
+      call elsi_say("  ATTENTION! The return value of mu may be 0, since mu"//&
+              " has not been computed.",e_h)
    endif
 
    e_h%mu_ready = .false.

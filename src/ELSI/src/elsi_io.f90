@@ -33,9 +33,9 @@ module ELSI_IO
    use, intrinsic :: ISO_C_BINDING
    use ELSI_CONSTANTS, only: HEADER_SIZE,BLACS_DENSE,PEXSI_CSC
    use ELSI_DATATYPE
-   use ELSI_SETUP
-   use ELSI_MATCONV, only: elsi_pexsi_to_blacs_dm,elsi_blacs_to_sips_hs
-   use ELSI_MUTATOR, only: elsi_set_unit_ovlp
+   use ELSI_SETUP,     only: elsi_init,elsi_set_mpi,elsi_set_mpi_global,&
+                             elsi_set_blacs,elsi_set_csc
+   use ELSI_MATCONV,   only: elsi_pexsi_to_blacs_dm,elsi_blacs_to_sips_hs
    use ELSI_PRECISION, only: r8,i4,i8
    use ELSI_UTILS
 
@@ -350,9 +350,9 @@ subroutine elsi_read_mat_real(f_name,mpi_comm,blacs_ctxt,block_size,n_basis,&
    call elsi_get_time(io_h,t1)
 
    write(info_str,"('  Finished reading matrix')")
-   call elsi_statement_print(info_str,io_h)
+   call elsi_say(info_str,io_h)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_statement_print(info_str,io_h)
+   call elsi_say(info_str,io_h)
 
    call elsi_cleanup(io_h)
 
@@ -441,9 +441,9 @@ subroutine elsi_read_mat_real_sparse(f_name,mpi_comm,n_basis,nnz_g,nnz_l,&
    call elsi_get_time(io_h,t1)
 
    write(info_str,"('  Finished reading matrix')")
-   call elsi_statement_print(info_str,io_h)
+   call elsi_say(info_str,io_h)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_statement_print(info_str,io_h)
+   call elsi_say(info_str,io_h)
 
    call elsi_cleanup(io_h)
 
@@ -581,9 +581,9 @@ subroutine elsi_read_mat_complex(f_name,mpi_comm,blacs_ctxt,block_size,n_basis,&
    call elsi_get_time(io_h,t1)
 
    write(info_str,"('  Finished reading matrix')")
-   call elsi_statement_print(info_str,io_h)
+   call elsi_say(info_str,io_h)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_statement_print(info_str,io_h)
+   call elsi_say(info_str,io_h)
 
    call elsi_cleanup(io_h)
 
@@ -672,9 +672,9 @@ subroutine elsi_read_mat_complex_sparse(f_name,mpi_comm,n_basis,nnz_g,nnz_l,&
    call elsi_get_time(io_h,t1)
 
    write(info_str,"('  Finished reading matrix')")
-   call elsi_statement_print(info_str,io_h)
+   call elsi_say(info_str,io_h)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_statement_print(info_str,io_h)
+   call elsi_say(info_str,io_h)
 
    call elsi_cleanup(io_h)
 
@@ -719,9 +719,9 @@ subroutine elsi_write_mat_real(f_name,mpi_comm,blacs_ctxt,block_size,&
    call elsi_set_mpi(io_h,mpi_comm)
    call elsi_set_mpi_global(io_h,mpi_comm)
    call elsi_set_blacs(io_h,blacs_ctxt,block_size)
-   call elsi_set_unit_ovlp(io_h,1)
    call elsi_get_time(io_h,t0)
 
+   io_h%ovlp_is_unit = .true.
    io_h%n_elsi_calls = 1
    io_h%n_l_cols_sp = io_h%n_basis/io_h%n_procs
    if(io_h%myid == io_h%n_procs-1) then
@@ -783,9 +783,9 @@ subroutine elsi_write_mat_real(f_name,mpi_comm,blacs_ctxt,block_size,&
    call elsi_get_time(io_h,t1)
 
    write(info_str,"('  Finished writing matrix')")
-   call elsi_statement_print(info_str,io_h)
+   call elsi_say(info_str,io_h)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_statement_print(info_str,io_h)
+   call elsi_say(info_str,io_h)
 
    call elsi_cleanup(io_h)
 
@@ -830,9 +830,9 @@ subroutine elsi_write_mat_complex(f_name,mpi_comm,blacs_ctxt,block_size,&
    call elsi_set_mpi(io_h,mpi_comm)
    call elsi_set_mpi_global(io_h,mpi_comm)
    call elsi_set_blacs(io_h,blacs_ctxt,block_size)
-   call elsi_set_unit_ovlp(io_h,1)
    call elsi_get_time(io_h,t0)
 
+   io_h%ovlp_is_unit = .true.
    io_h%n_elsi_calls = 1
    io_h%n_l_cols_sp = io_h%n_basis/io_h%n_procs
    if(io_h%myid == io_h%n_procs-1) then
@@ -894,9 +894,9 @@ subroutine elsi_write_mat_complex(f_name,mpi_comm,blacs_ctxt,block_size,&
    call elsi_get_time(io_h,t1)
 
    write(info_str,"('  Finished writing matrix')")
-   call elsi_statement_print(info_str,io_h)
+   call elsi_say(info_str,io_h)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_statement_print(info_str,io_h)
+   call elsi_say(info_str,io_h)
 
    call elsi_cleanup(io_h)
 
@@ -997,9 +997,9 @@ subroutine elsi_write_mat_real_sparse(f_name,mpi_comm,n_electron,n_basis,nnz_g,&
    call elsi_get_time(io_h,t1)
 
    write(info_str,"('  Finished writing matrix')")
-   call elsi_statement_print(info_str,io_h)
+   call elsi_say(info_str,io_h)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_statement_print(info_str,io_h)
+   call elsi_say(info_str,io_h)
 
    call elsi_cleanup(io_h)
 
@@ -1100,9 +1100,9 @@ subroutine elsi_write_mat_complex_sparse(f_name,mpi_comm,n_electron,n_basis,&
    call elsi_get_time(io_h,t1)
 
    write(info_str,"('  Finished writing matrix')")
-   call elsi_statement_print(info_str,io_h)
+   call elsi_say(info_str,io_h)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_statement_print(info_str,io_h)
+   call elsi_say(info_str,io_h)
 
    call elsi_cleanup(io_h)
 

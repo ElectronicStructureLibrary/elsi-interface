@@ -31,11 +31,14 @@
 module ELSI_OMM
 
    use ELSI_CONSTANTS, only: REAL_VALUES,COMPLEX_VALUES
-   use ELSI_DATATYPE
+   use ELSI_DATATYPE,  only: elsi_handle
    use ELSI_PRECISION, only: r8,i4
    use ELSI_UTILS
-   use ELPA1
-   use MATRIXSWITCH, only: m_add
+   use ELPA1,          only: elpa_cholesky_real_double,&
+                             elpa_cholesky_complex_double,&
+                             elpa_invert_trm_real_double,&
+                             elpa_invert_trm_complex_double
+   use MATRIXSWITCH,   only: m_add
 
    implicit none
 
@@ -98,9 +101,9 @@ subroutine elsi_solve_evp_omm(e_h)
             call elsi_get_time(e_h,t1)
 
             write(info_str,"('  Finished Cholesky decomposition')")
-            call elsi_statement_print(info_str,e_h)
+            call elsi_say(info_str,e_h)
             write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-            call elsi_statement_print(info_str,e_h)
+            call elsi_say(info_str,e_h)
          endif
 
          if(e_h%n_elsi_calls > e_h%n_elpa_steps+1) then
@@ -135,7 +138,7 @@ subroutine elsi_solve_evp_omm(e_h)
 
    call elsi_get_time(e_h,t0)
 
-   call elsi_statement_print("  Starting OMM density matrix solver",e_h)
+   call elsi_say("  Starting OMM density matrix solver",e_h)
 
    select case(e_h%matrix_data_type)
    case(COMPLEX_VALUES)
@@ -158,9 +161,9 @@ subroutine elsi_solve_evp_omm(e_h)
    call elsi_get_time(e_h,t1)
 
    write(info_str,"('  Finished density matrix calculation')")
-   call elsi_statement_print(info_str,e_h)
+   call elsi_say(info_str,e_h)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_statement_print(info_str,e_h)
+   call elsi_say(info_str,e_h)
 
 end subroutine
 
@@ -203,9 +206,9 @@ subroutine elsi_compute_edm_omm(e_h)
    call elsi_get_time(e_h,t1)
 
    write(info_str,"('  Finished energy density matrix calculation')")
-   call elsi_statement_print(info_str,e_h)
+   call elsi_say(info_str,e_h)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_statement_print(info_str,e_h)
+   call elsi_say(info_str,e_h)
 
 end subroutine
 
