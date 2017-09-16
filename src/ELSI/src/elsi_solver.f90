@@ -36,7 +36,9 @@ module ELSI_SOLVER
    use ELSI_DATATYPE
    use ELSI_ELPA,      only: elsi_compute_occ_elpa,elsi_compute_dm_elpa,&
                              elsi_solve_evp_elpa,elsi_solve_evp_elpa_sp
+   use ELSI_MALLOC
    use ELSI_MATCONV
+   use ELSI_MATRICES
    use ELSI_OMM,       only: elsi_solve_evp_omm
    use ELSI_PEXSI,     only: elsi_init_pexsi,elsi_solve_evp_pexsi
    use ELSI_PRECISION, only: r8,i4

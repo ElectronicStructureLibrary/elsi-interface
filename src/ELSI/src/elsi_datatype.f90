@@ -31,11 +31,11 @@
 module ELSI_DATATYPE
 
    use, intrinsic :: ISO_C_BINDING
-   use ELSI_PRECISION, only: r8,i4
-   use FOE_BASE, only: foe_data
+   use ELSI_PRECISION,     only: r8,i4
+   use FOE_BASE,           only: foe_data
    use F_PPEXSI_INTERFACE, only: f_ppexsi_options
-   use MATRIXSWITCH, only: matrix
-   use SPARSEMATRIX_BASE, only: matrices,sparse_matrix
+   use MATRIXSWITCH,       only: matrix
+   use SPARSEMATRIX_BASE,  only: matrices,sparse_matrix
 
    implicit none
 

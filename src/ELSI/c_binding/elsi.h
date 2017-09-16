@@ -77,54 +77,6 @@ void c_elsi_set_csc(elsi_handle handle_c,
                     int *row_ind,
                     int *col_ptr);
 
-void c_elsi_customize(elsi_handle handle_c,
-                      int print_detail,
-                      int overlap_is_unit,
-                      double zero_threshold,
-                      int no_singularity_check,
-                      double singularity_tolerance,
-                      int stop_singularity,
-                      int uplo);
-
-void c_elsi_customize_mu(elsi_handle handle_c,
-                         int broadening_scheme,
-                         double broadening_width,
-                         double occ_accuracy,
-                         int mu_max_steps,
-                         double spin_degeneracy);
-
-void c_elsi_customize_omm(elsi_handle handle_c,
-                          int n_elpa_steps,
-                          int omm_flavor,
-                          double eigen_shift,
-                          double omm_tolerance,
-                          int use_pspblas,
-                          int omm_output);
-
-void c_elsi_customize_pexsi(elsi_handle handle_c,
-                            double temperature,
-                            double gap,
-                            double delta_e,
-                            int n_poles,
-                            int n_procs_per_pole,
-                            int max_iteration,
-                            double mu_min,
-                            double mu_max,
-                            double mu0,
-                            double mu_inertia_tolerance,
-                            double mu_inertia_expansion,
-                            double mu_safeguard,
-                            double n_electron_accuracy,
-                            int matrix_type,
-                            int is_symbolic_factorize,
-                            int ordering,
-                            int np_symbolic_factorize,
-                            int verbosity);
-
-void c_elsi_customize_elpa(elsi_handle handle_c,
-                           int elpa_solver,
-                           int elpa_output);
-
 void c_elsi_ev_real(elsi_handle handle_c,
                     double *ham,
                     double *ovlp,

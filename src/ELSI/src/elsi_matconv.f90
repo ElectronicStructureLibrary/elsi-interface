@@ -31,8 +31,10 @@
 module ELSI_MATCONV
 
    use ELSI_CONSTANTS, only: ELPA,LIBOMM
-   use ELSI_DATATYPE,  only: elsi_handle
+   use ELSI_DATATYPE
+   use ELSI_MALLOC
    use ELSI_PRECISION, only: r8,i4,i8
+   use ELSI_SORT
    use ELSI_UTILS
 
    implicit none
@@ -78,35 +80,6 @@ module ELSI_MATCONV
    interface elsi_sips_to_blacs_hs
       module procedure elsi_sips_to_blacs_hs_real,&
                        elsi_sips_to_blacs_hs_complex
-   end interface
-
-   interface swap
-      module procedure swap_i8,&
-                       swap_i4,&
-                       swap_r8,&
-                       swap_c16
-   end interface
-
-   interface downheap
-      module procedure downheap_real_v1,&
-                       downheap_real_v2,&
-                       downheap_real_v3,&
-                       downheap_real_v4,&
-                       downheap_complex_v1,&
-                       downheap_complex_v2,&
-                       downheap_complex_v3,&
-                       downheap_complex_v4
-   end interface
-
-   interface heapsort
-      module procedure heapsort_real_v1,&
-                       heapsort_real_v2,&
-                       heapsort_real_v3,&
-                       heapsort_real_v4,&
-                       heapsort_complex_v1,&
-                       heapsort_complex_v2,&
-                       heapsort_complex_v3,&
-                       heapsort_complex_v4
    end interface
 
 contains
@@ -350,10 +323,10 @@ subroutine elsi_blacs_to_pexsi_hs_real(e_h,h_in,s_in)
 
    ! Sort
    if(e_h%n_elsi_calls == 1 .and. .not. e_h%ovlp_is_unit) then
-      call heapsort(nnz_l_aux,global_id,h_val_recv_buf,s_val_recv_buf,&
+      call elsi_heapsort(nnz_l_aux,global_id,h_val_recv_buf,s_val_recv_buf,&
               row_recv_buf,col_recv_buf)
    else
-      call heapsort(nnz_l_aux,global_id,h_val_recv_buf,row_recv_buf,&
+      call elsi_heapsort(nnz_l_aux,global_id,h_val_recv_buf,row_recv_buf,&
               col_recv_buf)
    endif
 
@@ -707,10 +680,10 @@ subroutine elsi_blacs_to_pexsi_hs_complex(e_h,h_in,s_in)
 
    ! Sort
    if(e_h%n_elsi_calls == 1 .and. .not. e_h%ovlp_is_unit) then
-      call heapsort(nnz_l_aux,global_id,h_val_recv_buf,s_val_recv_buf,&
+      call elsi_heapsort(nnz_l_aux,global_id,h_val_recv_buf,s_val_recv_buf,&
               row_recv_buf,col_recv_buf)
    else
-      call heapsort(nnz_l_aux,global_id,h_val_recv_buf,row_recv_buf,&
+      call elsi_heapsort(nnz_l_aux,global_id,h_val_recv_buf,row_recv_buf,&
               col_recv_buf)
    endif
 
@@ -896,7 +869,8 @@ subroutine elsi_pexsi_to_blacs_dm_real(e_h,d_out)
          send_count(dest(i_val)+1) = send_count(dest(i_val)+1)+1
       enddo
 
-      call heapsort(e_h%nnz_l_sp,dest,val_send_buf,row_send_buf,col_send_buf)
+      call elsi_heapsort(e_h%nnz_l_sp,dest,val_send_buf,row_send_buf,&
+              col_send_buf)
 
       call elsi_deallocate(e_h,dest,"dest")
    endif
@@ -1048,7 +1022,8 @@ subroutine elsi_pexsi_to_blacs_dm_complex(e_h,d_out)
          send_count(dest(i_val)+1) = send_count(dest(i_val)+1)+1
       enddo
 
-      call heapsort(e_h%nnz_l_sp,dest,val_send_buf,row_send_buf,col_send_buf)
+      call elsi_heapsort(e_h%nnz_l_sp,dest,val_send_buf,row_send_buf,&
+              col_send_buf)
 
       call elsi_deallocate(e_h,dest,"dest")
    endif
@@ -1305,10 +1280,10 @@ subroutine elsi_blacs_to_sips_hs_real(e_h,h_in,s_in)
 
    ! Sort
    if(e_h%n_elsi_calls == 1 .and. .not. e_h%ovlp_is_unit) then
-      call heapsort(e_h%nnz_l_sp,global_id,e_h%ham_real_sips,&
+      call elsi_heapsort(e_h%nnz_l_sp,global_id,e_h%ham_real_sips,&
               e_h%ovlp_real_sips,row_recv_buf,col_recv_buf)
    else
-      call heapsort(e_h%nnz_l_sp,global_id,e_h%ham_real_sips,row_recv_buf,&
+      call elsi_heapsort(e_h%nnz_l_sp,global_id,e_h%ham_real_sips,row_recv_buf,&
               col_recv_buf)
    endif
 
@@ -1524,11 +1499,11 @@ subroutine elsi_blacs_to_sips_hs_complex(e_h,h_in,s_in)
 
    ! Sort
    if(e_h%n_elsi_calls == 1 .and. .not. e_h%ovlp_is_unit) then
-      call heapsort(e_h%nnz_l_sp,global_id,e_h%ham_cmplx_sips,&
+      call elsi_heapsort(e_h%nnz_l_sp,global_id,e_h%ham_cmplx_sips,&
               e_h%ovlp_cmplx_sips,row_recv_buf,col_recv_buf)
    else
-      call heapsort(e_h%nnz_l_sp,global_id,e_h%ham_cmplx_sips,row_recv_buf,&
-              col_recv_buf)
+      call elsi_heapsort(e_h%nnz_l_sp,global_id,e_h%ham_cmplx_sips,&
+              row_recv_buf,col_recv_buf)
    endif
 
    call elsi_deallocate(e_h,global_id,"global_id")
@@ -1649,10 +1624,11 @@ subroutine elsi_sips_to_blacs_hs_real(e_h,h_in,s_in)
    enddo
 
    if(e_h%n_elsi_calls == 1 .and. .not. e_h%ovlp_is_unit) then
-      call heapsort(e_h%nnz_l_sp,dest,h_val_send_buf,s_val_send_buf,&
+      call elsi_heapsort(e_h%nnz_l_sp,dest,h_val_send_buf,s_val_send_buf,&
               row_send_buf,col_send_buf)
    else
-      call heapsort(e_h%nnz_l_sp,dest,h_val_send_buf,row_send_buf,col_send_buf)
+      call elsi_heapsort(e_h%nnz_l_sp,dest,h_val_send_buf,row_send_buf,&
+              col_send_buf)
    endif
 
    call elsi_deallocate(e_h,dest,"dest")
@@ -1856,10 +1832,11 @@ subroutine elsi_sips_to_blacs_hs_complex(e_h,h_in,s_in)
    enddo
 
    if(e_h%n_elsi_calls == 1 .and. .not. e_h%ovlp_is_unit) then
-      call heapsort(e_h%nnz_l_sp,dest,h_val_send_buf,s_val_send_buf,&
+      call elsi_heapsort(e_h%nnz_l_sp,dest,h_val_send_buf,s_val_send_buf,&
               row_send_buf,col_send_buf)
    else
-      call heapsort(e_h%nnz_l_sp,dest,h_val_send_buf,row_send_buf,col_send_buf)
+      call elsi_heapsort(e_h%nnz_l_sp,dest,h_val_send_buf,row_send_buf,&
+              col_send_buf)
    endif
 
    call elsi_deallocate(e_h,dest,"dest")
@@ -2488,758 +2465,6 @@ subroutine elsi_chess_to_blacs_dm_real(e_h,d_out)
          d_out(i_row,i_col) = e_h%dm_chess%matrix_compr(i_val)
       enddo
    enddo
-
-end subroutine
-
-!>
-!! This routine sorts an integer(kind=i8) array by heapsort, moves two
-!! real(kind=r8) arrays and two integer(kind=i4) arrays accordingly.
-!!
-subroutine heapsort_real_v1(length,a_i8,b_r8,c_r8,d_i4,e_i4)
-
-   implicit none
-
-   integer(kind=i4), intent(in)    :: length       !< Length of array
-   integer(kind=i8), intent(inout) :: a_i8(length) !< i8 array to be sorted
-   real(kind=r8)   , intent(inout) :: b_r8(length) !< r8 array to be moved
-   real(kind=r8)   , intent(inout) :: c_r8(length) !< r8 array to be moved
-   integer(kind=i4), intent(inout) :: d_i4(length) !< i4 array to be moved
-   integer(kind=i4), intent(inout) :: e_i4(length) !< i4 array to be moved
-
-   integer(kind=i4) :: top
-   integer(kind=i4) :: i
-
-   ! Heapify
-   top = length/2
-
-   do i = top,1,-1
-      call downheap(length,a_i8,b_r8,c_r8,d_i4,e_i4,i,length)
-   enddo
-
-   i = length
-
-   do while(i > 1)
-      call swap(length,a_i8,1,i)
-      call swap(length,b_r8,1,i)
-      call swap(length,c_r8,1,i)
-      call swap(length,d_i4,1,i)
-      call swap(length,e_i4,1,i)
-
-      i = i-1
-
-      call downheap(length,a_i8,b_r8,c_r8,d_i4,e_i4,1,i)
-   enddo
-
-end subroutine
-
-!>
-!! This routine restores the max-heap structure.
-!!
-subroutine downheap_real_v1(length,a_i8,b_r8,c_r8,d_i4,e_i4,top,bottom)
-
-   implicit none
-
-   integer(kind=i4), intent(in)    :: length       !< Length of array
-   integer(kind=i8), intent(inout) :: a_i8(length) !< i8 array to be sorted
-   real(kind=r8)   , intent(inout) :: b_r8(length) !< r8 array to be moved
-   real(kind=r8)   , intent(inout) :: c_r8(length) !< r8 array to be moved
-   integer(kind=i4), intent(inout) :: d_i4(length) !< i4 array to be moved
-   integer(kind=i4), intent(inout) :: e_i4(length) !< i4 array to be moved
-   integer(kind=i4), intent(in)    :: top          !< Top of heap
-   integer(kind=i4), intent(in)    :: bottom       !< Bottom of heap
-
-   integer(kind=i4) :: v
-   integer(kind=i4) :: w
-
-   v = top
-   w = 2*v
-
-   do while (w <= bottom)
-      if(w+1 <= bottom) then
-         if(a_i8(w+1) > a_i8(w)) then
-            w = w+1
-         endif
-      endif
-
-      if(a_i8(v) >= a_i8(w)) then
-         return
-      else
-         call swap(length,a_i8,v,w)
-         call swap(length,b_r8,v,w)
-         call swap(length,c_r8,v,w)
-         call swap(length,d_i4,v,w)
-         call swap(length,e_i4,v,w)
-
-         v = w
-         w = 2*v
-      endif
-   enddo
-
-end subroutine
-
-!>
-!! This routine sorts an integer(kind=i8) array by heapsort, moves one
-!! real(kind=r8) array and two integer(kind=i4) arrays accordingly.
-!!
-subroutine heapsort_real_v2(length,a_i8,b_r8,c_i4,d_i4)
-
-   implicit none
-
-   integer(kind=i4), intent(in)    :: length       !< Length of array
-   integer(kind=i8), intent(inout) :: a_i8(length) !< i8 array to be sorted
-   real(kind=r8)   , intent(inout) :: b_r8(length) !< r8 array to be moved
-   integer(kind=i4), intent(inout) :: c_i4(length) !< i4 array to be moved
-   integer(kind=i4), intent(inout) :: d_i4(length) !< i4 array to be moved
-
-   integer(kind=i4) :: top
-   integer(kind=i4) :: i
-
-   ! Heapify
-   top = length/2
-
-   do i = top,1,-1
-      call downheap(length,a_i8,b_r8,c_i4,d_i4,i,length)
-   enddo
-
-   i = length
-
-   do while(i > 1)
-      call swap(length,a_i8,1,i)
-      call swap(length,b_r8,1,i)
-      call swap(length,c_i4,1,i)
-      call swap(length,d_i4,1,i)
-
-      i = i-1
-
-      call downheap(length,a_i8,b_r8,c_i4,d_i4,1,i)
-   enddo
-
-end subroutine
-
-!>
-!! This routine restores the max-heap structure.
-!!
-subroutine downheap_real_v2(length,a_i8,b_r8,c_i4,d_i4,top,bottom)
-
-   implicit none
-
-   integer(kind=i4), intent(in)    :: length       !< Length of array
-   integer(kind=i8), intent(inout) :: a_i8(length) !< i8 array to be sorted
-   real(kind=r8)   , intent(inout) :: b_r8(length) !< r8 array to be moved
-   integer(kind=i4), intent(inout) :: c_i4(length) !< i4 array to be moved
-   integer(kind=i4), intent(inout) :: d_i4(length) !< i4 array to be moved
-   integer(kind=i4), intent(in)    :: top          !< Top of heap
-   integer(kind=i4), intent(in)    :: bottom       !< Bottom of heap
-
-   integer(kind=i4) :: v
-   integer(kind=i4) :: w
-
-   v = top
-   w = 2*v
-
-   do while (w <= bottom)
-      if(w+1 <= bottom) then
-         if(a_i8(w+1) > a_i8(w)) then
-            w = w+1
-         endif
-      endif
-
-      if(a_i8(v) >= a_i8(w)) then
-         return
-      else
-         call swap(length,a_i8,v,w)
-         call swap(length,b_r8,v,w)
-         call swap(length,c_i4,v,w)
-         call swap(length,d_i4,v,w)
-
-         v = w
-         w = 2*v
-      endif
-   enddo
-
-end subroutine
-
-!>
-!! This routine sorts an integer(kind=i4) array by heapsort, moves two
-!! real(kind=r8) arrays and two integer(kind=i4) arrays accordingly.
-!!
-subroutine heapsort_real_v3(length,a_i4,b_r8,c_r8,d_i4,e_i4)
-
-   implicit none
-
-   integer(kind=i4), intent(in)    :: length       !< Length of array
-   integer(kind=i4), intent(inout) :: a_i4(length) !< i4 array to be sorted
-   real(kind=r8)   , intent(inout) :: b_r8(length) !< r8 array to be moved
-   real(kind=r8)   , intent(inout) :: c_r8(length) !< r8 array to be moved
-   integer(kind=i4), intent(inout) :: d_i4(length) !< i4 array to be moved
-   integer(kind=i4), intent(inout) :: e_i4(length) !< i4 array to be moved
-
-   integer(kind=i4) :: top
-   integer(kind=i4) :: i
-
-   ! Heapify
-   top = length/2
-
-   do i = top,1,-1
-      call downheap(length,a_i4,b_r8,c_r8,d_i4,e_i4,i,length)
-   enddo
-
-   i = length
-
-   do while(i > 1)
-      call swap(length,a_i4,1,i)
-      call swap(length,b_r8,1,i)
-      call swap(length,c_r8,1,i)
-      call swap(length,d_i4,1,i)
-      call swap(length,e_i4,1,i)
-
-      i = i-1
-
-      call downheap(length,a_i4,b_r8,c_r8,d_i4,e_i4,1,i)
-   enddo
-
-end subroutine
-
-!>
-!! This routine restores the max-heap structure.
-!!
-subroutine downheap_real_v3(length,a_i4,b_r8,c_r8,d_i4,e_i4,top,bottom)
-
-   implicit none
-
-   integer(kind=i4), intent(in)    :: length       !< Length of array
-   integer(kind=i4), intent(inout) :: a_i4(length) !< i4 array to be sorted
-   real(kind=r8)   , intent(inout) :: b_r8(length) !< r8 array to be moved
-   real(kind=r8)   , intent(inout) :: c_r8(length) !< r8 array to be moved
-   integer(kind=i4), intent(inout) :: d_i4(length) !< i4 array to be moved
-   integer(kind=i4), intent(inout) :: e_i4(length) !< i4 array to be moved
-   integer(kind=i4), intent(in)    :: top          !< Top of heap
-   integer(kind=i4), intent(in)    :: bottom       !< Bottom of heap
-
-   integer(kind=i4) :: v
-   integer(kind=i4) :: w
-
-   v = top
-   w = 2*v
-
-   do while (w <= bottom)
-      if(w+1 <= bottom) then
-         if(a_i4(w+1) > a_i4(w)) then
-            w = w+1
-         endif
-      endif
-
-      if(a_i4(v) >= a_i4(w)) then
-         return
-      else
-         call swap(length,a_i4,v,w)
-         call swap(length,b_r8,v,w)
-         call swap(length,c_r8,v,w)
-         call swap(length,d_i4,v,w)
-         call swap(length,e_i4,v,w)
-
-         v = w
-         w = 2*v
-      endif
-   enddo
-
-end subroutine
-
-!>
-!! This routine sorts an integer(kind=i4) array by heapsort, moves one
-!! real(kind=r8) arrays and two integer(kind=i4) arrays accordingly.
-!!
-subroutine heapsort_real_v4(length,a_i4,b_r8,c_i4,d_i4)
-
-   implicit none
-
-   integer(kind=i4), intent(in)    :: length       !< Length of array
-   integer(kind=i4), intent(inout) :: a_i4(length) !< i4 array to be sorted
-   real(kind=r8)   , intent(inout) :: b_r8(length) !< r8 array to be moved
-   integer(kind=i4), intent(inout) :: c_i4(length) !< i4 array to be moved
-   integer(kind=i4), intent(inout) :: d_i4(length) !< i4 array to be moved
-
-   integer(kind=i4) :: top
-   integer(kind=i4) :: i
-
-   ! Heapify
-   top = length/2
-
-   do i = top,1,-1
-      call downheap(length,a_i4,b_r8,c_i4,d_i4,i,length)
-   enddo
-
-   i = length
-
-   do while(i > 1)
-      call swap(length,a_i4,1,i)
-      call swap(length,b_r8,1,i)
-      call swap(length,c_i4,1,i)
-      call swap(length,d_i4,1,i)
-
-      i = i-1
-
-      call downheap(length,a_i4,b_r8,c_i4,d_i4,1,i)
-   enddo
-
-end subroutine
-
-!>
-!! This routine restores the max-heap structure.
-!!
-subroutine downheap_real_v4(length,a_i4,b_r8,c_i4,d_i4,top,bottom)
-
-   implicit none
-
-   integer(kind=i4), intent(in)    :: length       !< Length of array
-   integer(kind=i4), intent(inout) :: a_i4(length) !< i4 array to be sorted
-   real(kind=r8)   , intent(inout) :: b_r8(length) !< r8 array to be moved
-   integer(kind=i4), intent(inout) :: c_i4(length) !< i4 array to be moved
-   integer(kind=i4), intent(inout) :: d_i4(length) !< i4 array to be moved
-   integer(kind=i4), intent(in)    :: top          !< Top of heap
-   integer(kind=i4), intent(in)    :: bottom       !< Bottom of heap
-
-   integer(kind=i4) :: v
-   integer(kind=i4) :: w
-
-   v = top
-   w = 2*v
-
-   do while (w <= bottom)
-      if(w+1 <= bottom) then
-         if(a_i4(w+1) > a_i4(w)) then
-            w = w+1
-         endif
-      endif
-
-      if(a_i4(v) >= a_i4(w)) then
-         return
-      else
-         call swap(length,a_i4,v,w)
-         call swap(length,b_r8,v,w)
-         call swap(length,c_i4,v,w)
-         call swap(length,d_i4,v,w)
-
-         v = w
-         w = 2*v
-      endif
-   enddo
-
-end subroutine
-
-!>
-!! This routine sorts an integer(kind=i8) array by heapsort, moves two
-!! complex(kind=r8) arrays and two integer(kind=i4) arrays accordingly.
-!!
-subroutine heapsort_complex_v1(length,a_i8,b_c16,c_c16,d_i4,e_i4)
-
-   implicit none
-
-   integer(kind=i4), intent(in)    :: length        !< Length of array
-   integer(kind=i8), intent(inout) :: a_i8(length)  !< i8 array to be sorted
-   complex(kind=r8), intent(inout) :: b_c16(length) !< c16 array to be moved
-   complex(kind=r8), intent(inout) :: c_c16(length) !< c16 array to be moved
-   integer(kind=i4), intent(inout) :: d_i4(length)  !< i4 array to be moved
-   integer(kind=i4), intent(inout) :: e_i4(length)  !< i4 array to be moved
-
-   integer(kind=i4) :: top
-   integer(kind=i4) :: i
-
-   ! Heapify
-   top = length/2
-
-   do i = top,1,-1
-      call downheap(length,a_i8,b_c16,c_c16,d_i4,e_i4,i,length)
-   enddo
-
-   i = length
-
-   do while(i > 1)
-      call swap(length,a_i8,1,i)
-      call swap(length,b_c16,1,i)
-      call swap(length,c_c16,1,i)
-      call swap(length,d_i4,1,i)
-      call swap(length,e_i4,1,i)
-
-      i = i-1
-
-      call downheap(length,a_i8,b_c16,c_c16,d_i4,e_i4,1,i)
-   enddo
-
-end subroutine
-
-!>
-!! This routine restores the max-heap structure.
-!!
-subroutine downheap_complex_v1(length,a_i8,b_c16,c_c16,d_i4,e_i4,top,bottom)
-
-   implicit none
-
-   integer(kind=i4), intent(in)    :: length        !< Length of array
-   integer(kind=i8), intent(inout) :: a_i8(length)  !< i8 array to be sorted
-   complex(kind=r8), intent(inout) :: b_c16(length) !< c16 array to be moved
-   complex(kind=r8), intent(inout) :: c_c16(length) !< c16 array to be moved
-   integer(kind=i4), intent(inout) :: d_i4(length)  !< i4 array to be moved
-   integer(kind=i4), intent(inout) :: e_i4(length)  !< i4 array to be moved
-   integer(kind=i4), intent(in)    :: top           !< Top of heap
-   integer(kind=i4), intent(in)    :: bottom        !< Bottom of heap
-
-   integer(kind=i4) :: v
-   integer(kind=i4) :: w
-
-   v = top
-   w = 2*v
-
-   do while (w <= bottom)
-      if(w+1 <= bottom) then
-         if(a_i8(w+1) > a_i8(w)) then
-            w = w+1
-         endif
-      endif
-
-      if(a_i8(v) >= a_i8(w)) then
-         return
-      else
-         call swap(length,a_i8,v,w)
-         call swap(length,b_c16,v,w)
-         call swap(length,c_c16,v,w)
-         call swap(length,d_i4,v,w)
-         call swap(length,e_i4,v,w)
-
-         v = w
-         w = 2*v
-      endif
-   enddo
-
-end subroutine
-
-!>
-!! This routine sorts an integer(kind=i8) array by heapsort, moves one
-!! complex(kind=r8) array and two integer(kind=i4) arrays accordingly.
-!!
-subroutine heapsort_complex_v2(length,a_i8,b_c16,c_i4,d_i4)
-
-   implicit none
-
-   integer(kind=i4), intent(in)    :: length        !< Length of array
-   integer(kind=i8), intent(inout) :: a_i8(length)  !< i8 array to be sorted
-   complex(kind=r8), intent(inout) :: b_c16(length) !< c16 array to be moved
-   integer(kind=i4), intent(inout) :: c_i4(length)  !< i4 array to be moved
-   integer(kind=i4), intent(inout) :: d_i4(length)  !< i4 array to be moved
-
-   integer(kind=i4) :: top
-   integer(kind=i4) :: i
-
-   ! Heapify
-   top = length/2
-
-   do i = top,1,-1
-      call downheap(length,a_i8,b_c16,c_i4,d_i4,i,length)
-   enddo
-
-   i = length
-
-   do while(i > 1)
-      call swap(length,a_i8,1,i)
-      call swap(length,b_c16,1,i)
-      call swap(length,c_i4,1,i)
-      call swap(length,d_i4,1,i)
-
-      i = i-1
-
-      call downheap(length,a_i8,b_c16,c_i4,d_i4,1,i)
-   enddo
-
-end subroutine
-
-!>
-!! This routine restores the max-heap structure.
-!!
-subroutine downheap_complex_v2(length,a_i8,b_c16,c_i4,d_i4,top,bottom)
-
-   implicit none
-
-   integer(kind=i4), intent(in)    :: length        !< Length of array
-   integer(kind=i8), intent(inout) :: a_i8(length)  !< i8 array to be sorted
-   complex(kind=r8), intent(inout) :: b_c16(length) !< c16 array to be moved
-   integer(kind=i4), intent(inout) :: c_i4(length)  !< i4 array to be moved
-   integer(kind=i4), intent(inout) :: d_i4(length)  !< i4 array to be moved
-   integer(kind=i4), intent(in)    :: top           !< Top of heap
-   integer(kind=i4), intent(in)    :: bottom        !< Bottom of heap
-
-   integer(kind=i4) :: v
-   integer(kind=i4) :: w
-
-   v = top
-   w = 2*v
-
-   do while (w <= bottom)
-      if(w+1 <= bottom) then
-         if(a_i8(w+1) > a_i8(w)) then
-            w = w+1
-         endif
-      endif
-
-      if(a_i8(v) >= a_i8(w)) then
-         return
-      else
-         call swap(length,a_i8,v,w)
-         call swap(length,b_c16,v,w)
-         call swap(length,c_i4,v,w)
-         call swap(length,d_i4,v,w)
-
-         v = w
-         w = 2*v
-      endif
-   enddo
-
-end subroutine
-
-!>
-!! This routine sorts an integer(kind=i4) array by heapsort, moves two
-!! complex(kind=r8) arrays and two integer(kind=i4) arrays accordingly.
-!!
-subroutine heapsort_complex_v3(length,a_i4,b_c16,c_c16,d_i4,e_i4)
-
-   implicit none
-
-   integer(kind=i4), intent(in)    :: length        !< Length of array
-   integer(kind=i4), intent(inout) :: a_i4(length)  !< i4 array to be sorted
-   complex(kind=r8), intent(inout) :: b_c16(length) !< c16 array to be moved
-   complex(kind=r8), intent(inout) :: c_c16(length) !< c16 array to be moved
-   integer(kind=i4), intent(inout) :: d_i4(length)  !< i4 array to be moved
-   integer(kind=i4), intent(inout) :: e_i4(length)  !< i4 array to be moved
-
-   integer(kind=i4) :: top
-   integer(kind=i4) :: i
-
-   ! Heapify
-   top = length/2
-
-   do i = top,1,-1
-      call downheap(length,a_i4,b_c16,c_c16,d_i4,e_i4,i,length)
-   enddo
-
-   i = length
-
-   do while(i > 1)
-      call swap(length,a_i4,1,i)
-      call swap(length,b_c16,1,i)
-      call swap(length,c_c16,1,i)
-      call swap(length,d_i4,1,i)
-      call swap(length,e_i4,1,i)
-
-      i = i-1
-
-      call downheap(length,a_i4,b_c16,c_c16,d_i4,e_i4,1,i)
-   enddo
-
-end subroutine
-
-!>
-!! This routine restores the max-heap structure.
-!!
-subroutine downheap_complex_v3(length,a_i4,b_c16,c_c16,d_i4,e_i4,top,bottom)
-
-   implicit none
-
-   integer(kind=i4), intent(in)    :: length        !< Length of array
-   integer(kind=i4), intent(inout) :: a_i4(length)  !< i4 array to be sorted
-   complex(kind=r8), intent(inout) :: b_c16(length) !< c16 array to be moved
-   complex(kind=r8), intent(inout) :: c_c16(length) !< c16 array to be moved
-   integer(kind=i4), intent(inout) :: d_i4(length)  !< i4 array to be moved
-   integer(kind=i4), intent(inout) :: e_i4(length)  !< i4 array to be moved
-   integer(kind=i4), intent(in)    :: top           !< Top of heap
-   integer(kind=i4), intent(in)    :: bottom        !< Bottom of heap
-
-   integer(kind=i4) :: v
-   integer(kind=i4) :: w
-
-   v = top
-   w = 2*v
-
-   do while (w <= bottom)
-      if(w+1 <= bottom) then
-         if(a_i4(w+1) > a_i4(w)) then
-            w = w+1
-         endif
-      endif
-
-      if(a_i4(v) >= a_i4(w)) then
-         return
-      else
-         call swap(length,a_i4,v,w)
-         call swap(length,b_c16,v,w)
-         call swap(length,c_c16,v,w)
-         call swap(length,d_i4,v,w)
-         call swap(length,e_i4,v,w)
-
-         v = w
-         w = 2*v
-      endif
-   enddo
-
-end subroutine
-
-!>
-!! This routine sorts an integer(kind=i4) array by heapsort, moves one
-!! complex(kind=r8) array and two integer(kind=i4) arrays accordingly.
-!!
-subroutine heapsort_complex_v4(length,a_i4,b_c16,c_i4,d_i4)
-
-   implicit none
-
-   integer(kind=i4), intent(in)    :: length        !< Length of array
-   integer(kind=i4), intent(inout) :: a_i4(length)  !< i4 array to be sorted
-   complex(kind=r8), intent(inout) :: b_c16(length) !< c16 array to be moved
-   integer(kind=i4), intent(inout) :: c_i4(length)  !< i4 array to be moved
-   integer(kind=i4), intent(inout) :: d_i4(length)  !< i4 array to be moved
-
-   integer(kind=i4) :: top
-   integer(kind=i4) :: i
-
-   ! Heapify
-   top = length/2
-
-   do i = top,1,-1
-      call downheap(length,a_i4,b_c16,c_i4,d_i4,i,length)
-   enddo
-
-   i = length
-
-   do while(i > 1)
-      call swap(length,a_i4,1,i)
-      call swap(length,b_c16,1,i)
-      call swap(length,c_i4,1,i)
-      call swap(length,d_i4,1,i)
-
-      i = i-1
-
-      call downheap(length,a_i4,b_c16,c_i4,d_i4,1,i)
-   enddo
-
-end subroutine
-
-!>
-!! This routine restores the max-heap structure.
-!!
-subroutine downheap_complex_v4(length,a_i4,b_c16,c_i4,d_i4,top,bottom)
-
-   implicit none
-
-   integer(kind=i4), intent(in)    :: length        !< Length of array
-   integer(kind=i4), intent(inout) :: a_i4(length)  !< i4 array to be sorted
-   complex(kind=r8), intent(inout) :: b_c16(length) !< c16 array to be moved
-   integer(kind=i4), intent(inout) :: c_i4(length)  !< i4 array to be moved
-   integer(kind=i4), intent(inout) :: d_i4(length)  !< i4 array to be moved
-   integer(kind=i4), intent(in)    :: top           !< Top of heap
-   integer(kind=i4), intent(in)    :: bottom        !< Bottom of heap
-
-   integer(kind=i4) :: v
-   integer(kind=i4) :: w
-
-   v = top
-   w = 2*v
-
-   do while (w <= bottom)
-      if(w+1 <= bottom) then
-         if(a_i4(w+1) > a_i4(w)) then
-            w = w+1
-         endif
-      endif
-
-      if(a_i4(v) >= a_i4(w)) then
-         return
-      else
-         call swap(length,a_i4,v,w)
-         call swap(length,b_c16,v,w)
-         call swap(length,c_i4,v,w)
-         call swap(length,d_i4,v,w)
-
-         v = w
-         w = 2*v
-      endif
-   enddo
-
-end subroutine
-
-!>
-!! This routine swaps two numbers in an integer(kind=i8) array.
-!!
-subroutine swap_i8(length,array,i,j)
-
-   implicit none
-
-   integer(kind=i4), intent(in)    :: length        !< Length of array
-   integer(kind=i8), intent(inout) :: array(length) !< i8 array
-   integer(kind=i4), intent(in)    :: i             !< Index to be swapped
-   integer(kind=i4), intent(in)    :: j             !< Index to be swapped
-
-   integer(kind=i8) :: tmp
-
-   tmp      = array(i)
-   array(i) = array(j)
-   array(j) = tmp
-
-end subroutine
-
-!>
-!! This routine swaps two numbers in an integer(kind=i4) array.
-!!
-subroutine swap_i4(length,array,i,j)
-
-   implicit none
-
-   integer(kind=i4), intent(in)    :: length        !< Length of array
-   integer(kind=i4), intent(inout) :: array(length) !< i4 array
-   integer(kind=i4), intent(in)    :: i             !< Index to be swapped
-   integer(kind=i4), intent(in)    :: j             !< Index to be swapped
-
-   integer(kind=i4) :: tmp
-
-   tmp      = array(i)
-   array(i) = array(j)
-   array(j) = tmp
-
-end subroutine
-
-!>
-!! This routine swaps two numbers in a real(kind=r8) array.
-!!
-subroutine swap_r8(length,array,i,j)
-
-   implicit none
-
-   integer(kind=i4), intent(in)    :: length        !< Length of array
-   real(kind=r8),    intent(inout) :: array(length) !< r8 array
-   integer(kind=i4), intent(in)    :: i             !< Index to be swapped
-   integer(kind=i4), intent(in)    :: j             !< Index to be swapped
-
-   real(kind=r8) :: tmp
-
-   tmp      = array(i)
-   array(i) = array(j)
-   array(j) = tmp
-
-end subroutine
-
-!>
-!! This routine swaps two numbers in a complex(kind=r8) array.
-!!
-subroutine swap_c16(length,array,i,j)
-
-   implicit none
-
-   integer(kind=i4), intent(in)    :: length        !< Length of array
-   complex(kind=r8), intent(inout) :: array(length) !< c16 array
-   integer(kind=i4), intent(in)    :: i             !< Index to be swapped
-   integer(kind=i4), intent(in)    :: j             !< Index to be swapped
-
-   complex(kind=r8) :: tmp
-
-   tmp      = array(i)
-   array(i) = array(j)
-   array(j) = tmp
 
 end subroutine
 

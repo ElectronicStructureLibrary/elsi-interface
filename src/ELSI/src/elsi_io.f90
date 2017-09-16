@@ -34,10 +34,12 @@ module ELSI_IO
    use ELSI_CONSTANTS, only: HEADER_SIZE,IO_FORMAT,BLACS_DENSE,PEXSI_CSC,&
                              REAL_VALUES,COMPLEX_VALUES
    use ELSI_DATATYPE
-   use ELSI_SETUP,     only: elsi_init,elsi_set_mpi,elsi_set_mpi_global,&
-                             elsi_set_blacs,elsi_set_csc
+   use ELSI_MALLOC
    use ELSI_MATCONV,   only: elsi_pexsi_to_blacs_dm,elsi_blacs_to_sips_hs
+   use ELSI_MATRICES,  only: elsi_set_sparse_dm
    use ELSI_PRECISION, only: r8,i4,i8
+   use ELSI_SETUP,     only: elsi_init,elsi_set_mpi,elsi_set_mpi_global,&
+                             elsi_set_blacs,elsi_set_csc,elsi_cleanup
    use ELSI_UTILS
 
    implicit none
@@ -166,7 +168,6 @@ subroutine elsi_read_mat_dim_sparse(f_name,mpi_comm,n_electron,n_basis,nnz_g,&
 
    call elsi_init(io_h,ELPA,MULTI_PROC,BLACS_DENSE,n_basis,0.0_r8,0)
    call elsi_set_mpi(io_h,mpi_comm)
-   call elsi_set_mpi_global(io_h,mpi_comm)
 
    ! Open file
    f_mode = mpi_mode_rdonly
@@ -267,7 +268,6 @@ subroutine elsi_read_mat_real(f_name,mpi_comm,blacs_ctxt,block_size,n_basis,&
 
    call elsi_init(io_h,ELPA,MULTI_PROC,BLACS_DENSE,n_basis,0.0_r8,0)
    call elsi_set_mpi(io_h,mpi_comm)
-   call elsi_set_mpi_global(io_h,mpi_comm)
    call elsi_set_blacs(io_h,blacs_ctxt,block_size)
    call elsi_get_time(io_h,t0)
 
@@ -400,7 +400,6 @@ subroutine elsi_read_mat_real_sparse(f_name,mpi_comm,n_basis,nnz_g,nnz_l,&
 
    call elsi_init(io_h,ELPA,MULTI_PROC,BLACS_DENSE,n_basis,0.0_r8,0)
    call elsi_set_mpi(io_h,mpi_comm)
-   call elsi_set_mpi_global(io_h,mpi_comm)
    call elsi_get_time(io_h,t0)
 
    ! Open file
@@ -498,7 +497,6 @@ subroutine elsi_read_mat_complex(f_name,mpi_comm,blacs_ctxt,block_size,n_basis,&
 
    call elsi_init(io_h,ELPA,MULTI_PROC,BLACS_DENSE,n_basis,0.0_r8,0)
    call elsi_set_mpi(io_h,mpi_comm)
-   call elsi_set_mpi_global(io_h,mpi_comm)
    call elsi_set_blacs(io_h,blacs_ctxt,block_size)
    call elsi_get_time(io_h,t0)
 
@@ -631,7 +629,6 @@ subroutine elsi_read_mat_complex_sparse(f_name,mpi_comm,n_basis,nnz_g,nnz_l,&
 
    call elsi_init(io_h,ELPA,MULTI_PROC,BLACS_DENSE,n_basis,0.0_r8,0)
    call elsi_set_mpi(io_h,mpi_comm)
-   call elsi_set_mpi_global(io_h,mpi_comm)
    call elsi_get_time(io_h,t0)
 
    ! Open file
@@ -718,7 +715,6 @@ subroutine elsi_write_mat_real(f_name,mpi_comm,blacs_ctxt,block_size,&
 
    call elsi_init(io_h,ELPA,MULTI_PROC,BLACS_DENSE,n_basis,0.0_r8,0)
    call elsi_set_mpi(io_h,mpi_comm)
-   call elsi_set_mpi_global(io_h,mpi_comm)
    call elsi_set_blacs(io_h,blacs_ctxt,block_size)
    call elsi_get_time(io_h,t0)
 
@@ -832,7 +828,6 @@ subroutine elsi_write_mat_complex(f_name,mpi_comm,blacs_ctxt,block_size,&
 
    call elsi_init(io_h,ELPA,MULTI_PROC,BLACS_DENSE,n_basis,0.0_r8,0)
    call elsi_set_mpi(io_h,mpi_comm)
-   call elsi_set_mpi_global(io_h,mpi_comm)
    call elsi_set_blacs(io_h,blacs_ctxt,block_size)
    call elsi_get_time(io_h,t0)
 
@@ -947,7 +942,6 @@ subroutine elsi_write_mat_real_sparse(f_name,mpi_comm,n_electron,n_basis,nnz_g,&
 
    call elsi_init(io_h,ELPA,MULTI_PROC,BLACS_DENSE,n_basis,0.0_r8,0)
    call elsi_set_mpi(io_h,mpi_comm)
-   call elsi_set_mpi_global(io_h,mpi_comm)
    call elsi_get_time(io_h,t0)
 
    ! Open file
@@ -1053,7 +1047,6 @@ subroutine elsi_write_mat_complex_sparse(f_name,mpi_comm,n_electron,n_basis,&
 
    call elsi_init(io_h,ELPA,MULTI_PROC,BLACS_DENSE,n_basis,0.0_r8,0)
    call elsi_set_mpi(io_h,mpi_comm)
-   call elsi_set_mpi_global(io_h,mpi_comm)
    call elsi_get_time(io_h,t0)
 
    ! Open file

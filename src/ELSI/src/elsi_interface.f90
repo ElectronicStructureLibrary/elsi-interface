@@ -108,12 +108,6 @@ module ELSI
    public :: elsi_get_edm_complex
    public :: elsi_get_edm_real_sparse
    public :: elsi_get_edm_complex_sparse
-   public :: elsi_customize
-   public :: elsi_customize_elpa
-   public :: elsi_customize_omm
-   public :: elsi_customize_pexsi
-   public :: elsi_customize_sips
-   public :: elsi_customize_mu
 
    ! Solver
    public :: elsi_ev_real

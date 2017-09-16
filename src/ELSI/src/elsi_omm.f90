@@ -31,7 +31,7 @@
 module ELSI_OMM
 
    use ELSI_CONSTANTS, only: REAL_VALUES,COMPLEX_VALUES
-   use ELSI_DATATYPE,  only: elsi_handle
+   use ELSI_DATATYPE
    use ELSI_PRECISION, only: r8,i4
    use ELSI_UTILS
    use ELPA1,          only: elpa_cholesky_real_double,&
