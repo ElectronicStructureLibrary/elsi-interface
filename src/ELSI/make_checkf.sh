@@ -151,6 +151,30 @@ else
    tput sgr0
 fi
 
+if [ "$ENABLE_SIPS" = "yes" ]
+then
+   echo
+   echo -n "Running the parallel 'elsi_ev_real + SIPs' Fortran test"
+   ${MPI_EXEC} -n 4 ./test_ev_real.x 5 ${ELSI_DIR}/test/H_real.csc ${ELSI_DIR}/test/S_real.csc 1 > ev_real_sips.log &
+   PID=$!
+   while kill -0 $PID 2>/dev/null; do
+      sleep 1
+      echo -n '.'
+   done
+
+   if (! grep -q "Passed" <./ev_real_sips.log); then
+      tput setaf 5
+      RED_ALART="true"
+      echo " FAILED!"
+      tput sgr0
+      echo "See `pwd`/ev_real_sips.log for details."
+   else
+      tput setaf 10
+      echo " PASSED!"
+      tput sgr0
+   fi
+fi
+
 echo
 echo -n "Running the parallel 'elsi_dm_real + ELPA' Fortran test"
 ${MPI_EXEC} -n 4 ./test_dm_real.x 1 ${ELSI_DIR}/test/H_real.csc ${ELSI_DIR}/test/S_real.csc 1 > dm_real_elpa.log &
@@ -237,7 +261,7 @@ fi
 
 echo
 echo -n "Running the parallel 'elsi_dm_real + libOMM' Fortran test"
-${MPI_EXEC} -n 4 ./test_dm_real.x 2 ${ELSI_DIR}/test/H_real.csc ${ELSI_DIR}/test/S_real.csc 2 > dm_real_libomm.log &
+${MPI_EXEC} -n 4 ./test_dm_real.x 2 ${ELSI_DIR}/test/H_real.csc ${ELSI_DIR}/test/S_real.csc 1 > dm_real_libomm.log &
 PID=$!
 while kill -0 $PID 2>/dev/null; do
    sleep 1
@@ -258,7 +282,7 @@ fi
 
 echo
 echo -n "Running the parallel 'elsi_dm_complex + libOMM' Fortran test"
-${MPI_EXEC} -n 4 ./test_dm_complex.x 2 ${ELSI_DIR}/test/H_complex.csc ${ELSI_DIR}/test/S_complex.csc 2 > dm_complex_libomm.log &
+${MPI_EXEC} -n 4 ./test_dm_complex.x 2 ${ELSI_DIR}/test/H_complex.csc ${ELSI_DIR}/test/S_complex.csc 1 > dm_complex_libomm.log &
 PID=$!
 while kill -0 $PID 2>/dev/null; do
    sleep 1
@@ -279,7 +303,7 @@ fi
 
 echo
 echo -n "Running the parallel 'elsi_dm_real_sparse + libOMM' Fortran test"
-${MPI_EXEC} -n 4 ./test_dm_real_sparse.x 2 ${ELSI_DIR}/test/H_real.csc ${ELSI_DIR}/test/S_real.csc 2 > dm_real_sparse_libomm.log &
+${MPI_EXEC} -n 4 ./test_dm_real_sparse.x 2 ${ELSI_DIR}/test/H_real.csc ${ELSI_DIR}/test/S_real.csc 1 > dm_real_sparse_libomm.log &
 PID=$!
 while kill -0 $PID 2>/dev/null; do
    sleep 1
@@ -300,7 +324,7 @@ fi
 
 echo
 echo -n "Running the parallel 'elsi_dm_complex_sparse + libOMM' Fortran test"
-${MPI_EXEC} -n 4 ./test_dm_complex_sparse.x 2 ${ELSI_DIR}/test/H_complex.csc ${ELSI_DIR}/test/S_complex.csc 2 > dm_complex_sparse_libomm.log &
+${MPI_EXEC} -n 4 ./test_dm_complex_sparse.x 2 ${ELSI_DIR}/test/H_complex.csc ${ELSI_DIR}/test/S_complex.csc 1 > dm_complex_sparse_libomm.log &
 PID=$!
 while kill -0 $PID 2>/dev/null; do
    sleep 1
@@ -323,7 +347,7 @@ if [ "$DISABLE_CXX" != "yes" ]
 then
    echo
    echo -n "Running the parallel 'elsi_dm_real + PEXSI' Fortran test"
-   ${MPI_EXEC} -n 4 ./test_dm_real.x 3 ${ELSI_DIR}/test/H_real.csc ${ELSI_DIR}/test/S_real.csc 3 > dm_real_pexsi.log &
+   ${MPI_EXEC} -n 4 ./test_dm_real.x 3 ${ELSI_DIR}/test/H_real.csc ${ELSI_DIR}/test/S_real.csc 1 > dm_real_pexsi.log &
    PID=$!
    while kill -0 $PID 2>/dev/null; do
       sleep 1
@@ -344,7 +368,7 @@ then
 
    echo
    echo -n "Running the parallel 'elsi_dm_complex + PEXSI' Fortran test"
-   ${MPI_EXEC} -n 4 ./test_dm_complex.x 3 ${ELSI_DIR}/test/H_complex.csc ${ELSI_DIR}/test/S_complex.csc 3 > dm_complex_pexsi.log &
+   ${MPI_EXEC} -n 4 ./test_dm_complex.x 3 ${ELSI_DIR}/test/H_complex.csc ${ELSI_DIR}/test/S_complex.csc 1 > dm_complex_pexsi.log &
    PID=$!
    while kill -0 $PID 2>/dev/null; do
       sleep 1
@@ -365,7 +389,7 @@ then
 
    echo
    echo -n "Running the parallel 'elsi_dm_real_sparse + PEXSI' Fortran test"
-   ${MPI_EXEC} -n 4 ./test_dm_real_sparse.x 3 ${ELSI_DIR}/test/H_real.csc ${ELSI_DIR}/test/S_real.csc 3 > dm_real_sparse_pexsi.log &
+   ${MPI_EXEC} -n 4 ./test_dm_real_sparse.x 3 ${ELSI_DIR}/test/H_real.csc ${ELSI_DIR}/test/S_real.csc 1 > dm_real_sparse_pexsi.log &
    PID=$!
    while kill -0 $PID 2>/dev/null; do
       sleep 1
@@ -386,7 +410,7 @@ then
 
    echo
    echo -n "Running the parallel 'elsi_dm_complex_sparse + PEXSI' Fortran test"
-   ${MPI_EXEC} -n 4 ./test_dm_complex_sparse.x 3 ${ELSI_DIR}/test/H_complex.csc ${ELSI_DIR}/test/S_complex.csc 3 > dm_complex_sparse_pexsi.log &
+   ${MPI_EXEC} -n 4 ./test_dm_complex_sparse.x 3 ${ELSI_DIR}/test/H_complex.csc ${ELSI_DIR}/test/S_complex.csc 1 > dm_complex_sparse_pexsi.log &
    PID=$!
    while kill -0 $PID 2>/dev/null; do
       sleep 1

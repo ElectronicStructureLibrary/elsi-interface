@@ -83,8 +83,6 @@ MPI_EXEC ?= mpirun
 # Create C interfaces
 C_INTERFACE ?= yes
 ifeq ($(strip $(C_INTERFACE)),yes)
-  C_BINDING  = elsi_c_interface.o
-  C_BINDING += elsi_c2f.o
   C_BINDING += test_dm_complex_c.x
   C_BINDING += test_dm_real_c.x
   C_BINDING += test_ev_complex_c.x
@@ -172,23 +170,22 @@ elsi: $(ALL_OBJ) cs
 	mkdir -p $(LIB_DIR)
 	mkdir -p $(BIN_DIR)
 	mkdir -p $(BUILD_DIR)
-	cd $(ELSI_DIR) && $(MAKE) -f Makefile.elsi
+	cd $(BUILD_DIR) && $(MAKE) -f $(ELSI_DIR)/Makefile.elsi
 	@echo ===============================
 	@echo = ELSI compiled successfully. =
 	@echo ===============================
 
 install:
-	rm -f $(ELSI_DIR)/*log*
-	cd $(ELSI_DIR) && $(MAKE) -f Makefile.elsi install
-	@echo ======================================
-	@echo = ELSI library created successfully. =
-	@echo ======================================
+	cd $(BUILD_DIR) && $(MAKE) -f $(ELSI_DIR)/Makefile.elsi install
+	@echo ================================
+	@echo = ELSI installed successfully. =
+	@echo ================================
 
 check:
 	@echo ========================================
 	@echo = Running ELSI Fortran test programs.. =
 	@echo ========================================
-	cd $(ELSI_DIR) && $(MAKE) -f Makefile.elsi check
+	cd $(BUILD_DIR) && $(MAKE) -f $(ELSI_DIR)/Makefile.elsi check
 	@echo ========================================
 	@echo = ELSI Fortran test programs finished. =
 	@echo ========================================
@@ -197,7 +194,7 @@ checkc:
 	@echo ==================================
 	@echo = Running ELSI C test programs.. =
 	@echo ==================================
-	cd $(ELSI_DIR) && $(MAKE) -f Makefile.elsi checkc
+	cd $(BUILD_DIR) && $(MAKE) -f $(ELSI_DIR)/Makefile.elsi checkc
 	@echo ==================================
 	@echo = ELSI C test programs finished. =
 	@echo ==================================
@@ -208,7 +205,7 @@ cleanelsi:
 	@echo ====================
 	@echo = Removing ELSI... =
 	@echo ====================
-	cd $(ELSI_DIR) && $(MAKE) -f Makefile.elsi clean
+	cd $(BUILD_DIR) && $(MAKE) -f $(ELSI_DIR)/Makefile.elsi clean
 	rm -rf $(INC_DIR) $(LIB_DIR) $(BIN_DIR) $(BUILD_DIR)
 	@echo =========
 	@echo = Done. =

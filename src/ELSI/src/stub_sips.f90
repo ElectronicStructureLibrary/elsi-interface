@@ -136,8 +136,8 @@ subroutine set_eps(a,b,mata,matb)
 
    implicit none
 
-   integer(kind=i4)           :: a
-   integer(kind=i4)           :: b
+   real(kind=r8)              :: a
+   real(kind=r8)              :: b
    integer(kind=i4)           :: mata
    integer(kind=i4), optional :: matb
 
