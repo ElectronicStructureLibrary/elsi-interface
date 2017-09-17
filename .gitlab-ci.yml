@@ -6,9 +6,9 @@ gnu-j1-generic:
     - module load gcc-7.1
     - module list
     - cp /home/wy29/elsi_make_check/check_gnu ./make.sys
-    - make clean
     - make
     - make install
+    - make clean
 
 gnu-j8-generic:
   script:
@@ -18,11 +18,11 @@ gnu-j8-generic:
     - module load gcc-7.1
     - module list
     - cp /home/wy29/elsi_make_check/check_gnu ./make.sys
-    - make clean
     - make -j 8
     - make check
     - make checkc
     - make install
+    - make clean
 
 pgi-j1-generic:
   script:
@@ -32,9 +32,9 @@ pgi-j1-generic:
     - module load pgi-17.4
     - module list
     - cp /home/wy29/elsi_make_check/check_pgi ./make.sys
-    - make clean
     - make
     - make install
+    - make clean
 
 pgi-j8-generic:
   script:
@@ -44,11 +44,11 @@ pgi-j8-generic:
     - module load pgi-17.4
     - module list
     - cp /home/wy29/elsi_make_check/check_pgi ./make.sys
-    - make clean
     - make -j 8
     - make check
     - make checkc
     - make install
+    - make clean
 
 intel-j1-debug:
   script:
@@ -58,9 +58,9 @@ intel-j1-debug:
     - module load intel-compilers-14.0
     - module list
     - cp /home/wy29/elsi_make_check/check_intel_debug ./make.sys
-    - make clean
     - make
     - make install
+    - make clean
 
 intel-j8-debug:
   script:
@@ -70,11 +70,11 @@ intel-j8-debug:
     - module load intel-compilers-14.0
     - module list
     - cp /home/wy29/elsi_make_check/check_intel_debug ./make.sys
-    - make clean
     - make -j 8
     - make check
     - make checkc
     - make install
+    - make clean
 
 intel-j8-gpu:
   script:
@@ -85,10 +85,10 @@ intel-j8-gpu:
     - module load cuda-8.0
     - module list
     - cp /home/wy29/elsi_make_check/check_intel_gpu ./make.sys
-    - make clean
     - make -j 8
     - make check
     - make install
+    - make clean
 
 intel-j1-generic:
   script:
@@ -98,9 +98,9 @@ intel-j1-generic:
     - module load intel-compilers-14.0
     - module list
     - cp /home/wy29/elsi_make_check/check_intel ./make.sys
-    - make clean
     - make
     - make install
+    - make clean
 
 intel-j8-generic:
   script:
@@ -110,11 +110,11 @@ intel-j8-generic:
     - module load intel-compilers-14.0
     - module list
     - cp /home/wy29/elsi_make_check/check_intel ./make.sys
-    - make clean
     - make -j 8
     - make check
     - make checkc
     - make install
+    - make clean
 
 # We do not run make check for external linkage.  Not our circus, not our monkey.
 # We've also marked this test as optional, as it is acceptable for this test to
@@ -128,7 +128,7 @@ intel-j8-external-linkage:
     - module load intel-compilers-14.0
     - module list
     - cp /home/wy29/elsi_make_check/check_external ./make.sys
-    - make clean
     - make -j 8
     - make install
+    - make clean
   allow_failure: true
