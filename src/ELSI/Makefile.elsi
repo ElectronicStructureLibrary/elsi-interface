@@ -104,19 +104,19 @@ test_standard_ev_real.o: $(ELSI_DIR)/test/test_standard_ev_real.f90 elsi_interfa
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
 test_dm_real_c.o: $(ELSI_DIR)/test/test_dm_real_c.c elsi_c_interface.o
-	$(MPICC) $(CFLAGS_I) $(INCS) -c $<
+	$(MPICC) $(CFLAGS_I) $(INCS) -I$(ELSI_DIR)/c_binding -c $<
 
 test_dm_complex_c.o: $(ELSI_DIR)/test/test_dm_complex_c.c elsi_c_interface.o
-	$(MPICC) $(CFLAGS_I) $(INCS) -c $<
+	$(MPICC) $(CFLAGS_I) $(INCS) -I$(ELSI_DIR)/c_binding -c $<
 
 test_ev_real_c.o: $(ELSI_DIR)/test/test_ev_real_c.c elsi_c_interface.o
-	$(MPICC) $(CFLAGS_I) $(INCS) -c $<
+	$(MPICC) $(CFLAGS_I) $(INCS) -I$(ELSI_DIR)/c_binding -c $<
 
 test_ev_complex_c.o: $(ELSI_DIR)/test/test_ev_complex_c.c elsi_c_interface.o
-	$(MPICC) $(CFLAGS_I) $(INCS) -c $<
+	$(MPICC) $(CFLAGS_I) $(INCS) -I$(ELSI_DIR)/c_binding -c $<
 
 test_standard_ev_real_c.o: $(ELSI_DIR)/test/test_standard_ev_real_c.c elsi_c_interface.o
-	$(MPICC) $(CFLAGS_I) $(INCS) -c $<
+	$(MPICC) $(CFLAGS_I) $(INCS) -I$(ELSI_DIR)/c_binding -c $<
 
 elsi_c_interface.o: $(ELSI_DIR)/c_binding/elsi_c_interface.f90 elsi_interface.o elsi_c2f.o
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
