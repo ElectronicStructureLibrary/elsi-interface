@@ -180,7 +180,7 @@ function elpa_check_singularity_real_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCol
    if(.not.(success)) return
    ttt1 = MPI_Wtime()
    if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-      print *,"  | Time full ==> band            :",ttt1-ttt0
+      write(*,"(A,F10.3,A)") "  | Time full => band           :",ttt1-ttt0," s"
 
    ! Reduction band -> tridiagonal
    allocate(e(na),stat=istat)
@@ -194,7 +194,7 @@ function elpa_check_singularity_real_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCol
                                  mpi_comm_rows,mpi_comm_cols,mpi_comm_all)
    ttt1 = MPI_Wtime()
    if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-      print *,"  | Time band ==> tridiagonal     :",ttt1-ttt0
+      write(*,"(A,F10.3,A)") "  | Time band => tridiagonal    :",ttt1-ttt0," s"
 
    call mpi_bcast(ev,na,MPI_REAL8,0,mpi_comm_all,mpierr)
    call mpi_bcast(e,na,MPI_REAL8,0,mpi_comm_all,mpierr)
@@ -206,7 +206,7 @@ function elpa_check_singularity_real_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCol
    if(.not.success) return
    ttt1 = MPI_Wtime()
    if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-      print *,"  | Time solve tridiagonal        :",ttt1-ttt0
+      write(*,"(A,F10.3,A)") "  | Time solve tridiagonal      :",ttt1-ttt0," s"
 
    deallocate(e)
 
@@ -227,7 +227,7 @@ function elpa_check_singularity_real_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCol
       if(.not.success) return
       ttt1 = MPI_Wtime()
       if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-         print *,"  | Time ev tridiagonal ==> band  :",ttt1-ttt0
+         write(*,"(A,F10.3,A)") "  | Time ev tridiagonal => band :",ttt1-ttt0," s"
 
       deallocate(hh_trans_real)
 
@@ -238,7 +238,7 @@ function elpa_check_singularity_real_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCol
                                              mpi_comm_cols,do_useGPU,useQRActual)
       ttt1 = MPI_Wtime()
       if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-         print *,"  | Time ev band ==> full         :",ttt1-ttt0
+         write(*,"(A,F10.3,A)") "  | Time ev band => full        :",ttt1-ttt0," s"
 
       deallocate(tmat)
    else
@@ -348,7 +348,7 @@ function elpa_check_singularity_complex_double(na,nev,a,lda,ev,q,ldq,nblk,matrix
    if(.not.success) return
    ttt1 = MPI_Wtime()
    if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-      print *,"  | Time full ==> band            :",ttt1-ttt0
+      write(*,"(A,F10.3,A)") "  | Time full => band           :",ttt1-ttt0," s"
 
    ! Reduction band -> tridiagonal
    allocate(e(na),stat=istat)
@@ -362,7 +362,7 @@ function elpa_check_singularity_complex_double(na,nev,a,lda,ev,q,ldq,nblk,matrix
                                     mpi_comm_rows,mpi_comm_cols,mpi_comm_all)
    ttt1 = MPI_Wtime()
    if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-      print *,"  | Time band ==> tridiagonal     :",ttt1-ttt0
+      write(*,"(A,F10.3,A)") "  | Time band => tridiagonal    :",ttt1-ttt0," s"
 
    call mpi_bcast(ev,na,mpi_real8,0,mpi_comm_all,mpierr)
    call mpi_bcast(e,na,mpi_real8,0,mpi_comm_all,mpierr)
@@ -384,7 +384,7 @@ function elpa_check_singularity_complex_double(na,nev,a,lda,ev,q,ldq,nblk,matrix
    if(.not.success) return
    ttt1 = MPI_Wtime()
    if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-      print *,"  | Time solve tridiagonal        :",ttt1-ttt0
+      write(*,"(A,F10.3,A)") "  | Time solve tridiagonal      :",ttt1-ttt0," s"
 
    q(1:l_rows,1:l_cols_nev) = q_real(1:l_rows,1:l_cols_nev)
 
@@ -409,7 +409,7 @@ function elpa_check_singularity_complex_double(na,nev,a,lda,ev,q,ldq,nblk,matrix
       if(.not.success) return
       ttt1 = MPI_Wtime()
       if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-         print *,"  | Time ev tridiagonal ==> band  :",ttt1-ttt0
+         write(*,"(A,F10.3,A)") "  | Time ev tridiagonal => band :",ttt1-ttt0," s"
 
       deallocate(hh_trans_complex)
 
@@ -420,7 +420,7 @@ function elpa_check_singularity_complex_double(na,nev,a,lda,ev,q,ldq,nblk,matrix
                                                 mpi_comm_cols,do_useGPU)
       ttt1 = MPI_Wtime()
       if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-         print *,"  | Time ev band ==> full         :",ttt1-ttt0
+         write(*,"(A,F10.3,A)") "  | Time ev band => full        :",ttt1-ttt0," s"
 
       deallocate(tmat)
    else
