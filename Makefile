@@ -17,14 +17,18 @@ ifneq ($(strip $(EXTERNAL_OMM)),yes)
   CLEAN_OBJ += cleanomm
 endif
 
+ifeq ($(strip $(DISABLE_CXX)),yes)
+  DISABLE_PEXSI = yes
+endif
+
 ifneq ($(strip $(EXTERNAL_PEXSI)),yes)
-  ifneq ($(strip $(DISABLE_CXX)),yes)
+  ifneq ($(strip $(DISABLE_PEXSI)),yes)
     ALL_OBJ += pexsi
     CLEAN_OBJ += cleanpexsi
   else
-    $(info ==================================)
-    $(info = PEXSI disabled by DISABLE_CXX. =)
-    $(info ==================================)
+    $(info ====================================)
+    $(info = PEXSI disabled by DISABLE_PEXSI. =)
+    $(info ====================================)
     STUBS += stub_pexsi.o
   endif
 endif
@@ -95,7 +99,7 @@ export
 LIBS = $(ELPA_LIB) $(CS_LIB) $(OMM_LIB)
 INCS = $(ELPA_INC) $(CS_INC) $(OMM_INC) -I$(INC_DIR)
 
-ifneq ($(strip $(DISABLE_CXX)),yes)
+ifneq ($(strip $(DISABLE_PEXSI)),yes)
   LIBS += $(PEXSI_LIB)
   INCS += $(PEXSI_INC)
 endif
@@ -205,7 +209,6 @@ cleanelsi:
 	@echo ====================
 	@echo = Removing ELSI... =
 	@echo ====================
-	cd $(BUILD_DIR) && $(MAKE) -f $(ELSI_DIR)/Makefile.elsi clean
 	rm -rf $(INC_DIR) $(LIB_DIR) $(BIN_DIR) $(BUILD_DIR)
 	@echo =========
 	@echo = Done. =

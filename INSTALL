@@ -1,15 +1,14 @@
-===================
-HOW TO INSTALL ELSI
-===================
+=======================
+  HOW TO INSTALL ELSI
+=======================
 
-==========================================================================
+===========================================================================
 A) BASIC
-==========================================================================
+===========================================================================
 
 1) The installation of ELSI is controlled by a user-specified "make.sys"
-   file.  Example make.sys files can be found in the "./make_sys"
-   subfolder of the root directory, which the user may adapt to their own
-   system architecture.
+   file.  Example make.sys files can be found in the "./make_sys" subfolder
+   of the root directory, which the user may adapt to their own system.
 
    A standard ELSI make.sys file includes the following keywords:
 
@@ -29,8 +28,8 @@ A) BASIC
       SUPERLU_LIB   =  # SuperLU_DIST library flags
       SUPERLU_INC   =  # SuperLU_DIST include flags
 
-2) Once a suitable make.sys has been provided by the user, the unified
-   ELSI build system is run by typing
+2) Once a suitable make.sys has been provided by the user, the unified ELSI
+   build system is run by typing
 
       make
 
@@ -43,7 +42,7 @@ A) BASIC
    information how to link ELSI against a preinstalled solver library,
    please see the User's Guide available at the ELSI Interchange
    (http://elsi-interchange.org).  We also provide a sample make.sys file
-   (make_sys/make.sys-external-lib) which demonstrates external linkage
+   (./make_sys/make.sys-external-lib) which demonstrates external linkage
    of ELSI against preinstalled ELPA, libOMM, and PEXSI libraries.
 
 3) (Optional, but highly recommended) Once compiled, the ELSI libraries
@@ -54,17 +53,16 @@ A) BASIC
    in the root directory.
 
    The default MPI wrapper executable used by the ELSI suite is "mpirun".
-   This may be changed by the user by setting the following keyword in
-   the make.sys file:
+   This may be changed by the user by setting the following keyword in the
+   make.sys file:
 
       MPI_EXEC =  # Default: mpirun
 
-   The ELSI test suite requires the ability to run MPI calculations.
-   Many clusters do not allow MPI calculations to be run on login/compile
-   nodes.  If this is the case for the user's cluster, please see the
-   cluster's documentation for information about running an interactive
-   calculation or, alternatively, submitting a custom script to the
-   cluster's queuing system.
+   The ELSI test suite requires the ability to run MPI calculations.  Many
+   clusters do not allow MPI calculations to be run on login/compile nodes.
+   If this is the case for the user's cluster, please see the cluster's
+   documentation for information about requesting an interactive job or,
+   alternatively, submitting a custom script to the queuing system.
 
 4) To finalize the ELSI installation, type
 
@@ -72,32 +70,33 @@ A) BASIC
 
    in the root directory.
 
-5) If the installation finishes without any fatal errors, the library
-   files will be put in the "./lib" subfolder, module files in the
-   "./include" subfolder, and executables in the "./bin" subfolder of the
-   root directory.
+5) If the installation finishes without any fatal errors, the library files
+   will be put in the "./lib" subfolder, module files in the "./include"
+   subfolder, and executables in the "./bin" subfolder.
 
-==========================================================================
+===========================================================================
 B) ELPA-SPECIFIC NOTES
-==========================================================================
+===========================================================================
 
    We highly recommend that the user specifies an ELPA2 kernel (used for
-   optimization of the 4th stage of ELPA's 2-stage solver) appropriate
-   for their system architecture.  Available kernels for ELPA2 as
-   redistributed by ELSI are set by the ELPA2_KERNEL keyword in the
-   make.sys file.  Options include:
+   optimization of the 4th stage of ELPA's 2-stage solver) appropriate for
+   their system architecture.  Available kernels for ELPA2 as redistributed
+   by ELSI are set by the ELPA2_KERNEL keyword in the make.sys file.
+
+   Options include:
 
       ELPA2_KERNEL =  # Default: Generic
                       # Options: SSE
                       #          AVX
                       #          AVX2
+                      #          AVX512
                       #          BGQ
 
    The default "Generic" kernel should work for all system architectures.
 
-   For clusters with NVIDIA GPUs, GPU acceleration of the 1st and 5th
-   steps of the ELPA 2-stage solver may be enabled using the following
-   keywords in the make.sys file:
+   For clusters with NVIDIA GPUs, GPU acceleration of the 1st and 5th steps
+   of the ELPA 2-stage solver may be enabled using the following keywords
+   in the make.sys file:
 
       ELPA_GPU  =  yes  # Default: no
       NVCC      =  NVIDIA CUDA C compiler
@@ -108,41 +107,37 @@ B) ELPA-SPECIFIC NOTES
    Please see your cluster's documentation for the flags appropriate for
    your cluster's GPU architecture.
 
-==========================================================================
+===========================================================================
 C) PEXSI-SPECIFIC NOTES
-==========================================================================
+===========================================================================
 
    PEXSI, one of the solvers supported by ELSI, requires two pre-installed
    external libraries: ParMETIS and SuperLU_DIST.  If the user is unable
    to compile these external libraries, the user may compile ELSI without
    PEXSI support by adding the following keyword to the make.sys file:
 
-      DISABLE_CXX =  yes  # Default: no
+      DISABLE_PEXSI =  yes  # Default: no
 
-  When DISABLE_CXX is set to "yes", the user does not need to specify the
+  When DISABLE_PEXSI is set to "yes", the user does not need to specify the
   METIS_LIB, PARMETIS_LIB, SUPERLU_LIB, and SUPERLU_INC keywords in the
   make.sys file.
 
-==========================================================================
+===========================================================================
 D) BEYOND THIS GUIDE
-==========================================================================
+===========================================================================
 
-   More information may be found in the User's Guide and on the ELSI
-   GitLab wiki pages.  Both may be accessed via the ELSI Interchange
-   at http://elsi-interchange.org .
+   More information may be found in the User's Guide and on the ELSI GitLab
+   GitLab wiki pages.  Both may be accessed via the ELSI Interchange at
 
-==========================================================================
+     http://elsi-interchange.org
+
+===========================================================================
 E) TROUBLESHOOTING
-==========================================================================
+===========================================================================
 
    For comments, feedback, and suggestions, please contact the ELSI team
    via e-mail at
 
      elsi-team@duke.edu
 
-   and feel free to open issues on the GitLab server at
-
-     http://elsi-interchange.org
-
-   Copyright (c) 2015-2017, the ELSI team. All rights reserved.
-==========================================================================
+   Copyright (c) 2015-2017, the ELSI team.  All rights reserved.
