@@ -65,10 +65,10 @@ module CHECK_SINGULARITY
 
 ! Version 1.1.2, 2011-02-21
 
-  use elpa_utilities_cs
-  use elpa1_cs, only : elpa_print_times, time_evp_back, time_evp_fwd, time_evp_solve
-  use elpa2_utilities_cs
-  use elpa2_cs
+  use elpa_utilities
+  use elpa1, only : elpa_print_times, time_evp_back, time_evp_fwd, time_evp_solve
+  use elpa2_utilities
+  use elpa2
 
   implicit none
 
@@ -85,15 +85,15 @@ function elpa_check_singularity_real_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCol
             mpi_comm_rows,mpi_comm_cols,mpi_comm_all,singular_tol,n_nonsing)&
             result(success)
 
-   use elpa_utilities_cs
-   use elpa1_cs
-   use elpa2_utilities_cs
-   use elpa1_compute_cs
-   use elpa2_compute_cs
-   use elpa_mpi_cs
-   use cuda_functions_cs
-   use mod_check_for_gpu_cs
-   use iso_c_binding
+   use elpa_utilities
+   use elpa1
+   use elpa2_utilities
+   use elpa1_compute
+   use elpa2_compute
+   use elpa_mpi
+   use cuda_functions
+   use mod_check_for_gpu
+   use, intrinsic :: iso_c_binding
 
    implicit none
 
@@ -262,15 +262,15 @@ function elpa_check_singularity_complex_double(na,nev,a,lda,ev,q,ldq,nblk,matrix
             mpi_comm_rows,mpi_comm_cols,mpi_comm_all,singular_tol,n_nonsing)&
             result(success)
 
-   use elpa_utilities_cs
-   use elpa1_cs
-   use elpa2_utilities_cs
-   use elpa1_compute_cs
-   use elpa2_compute_cs
-   use elpa_mpi_cs
-   use cuda_functions_cs
-   use mod_check_for_gpu_cs
-   use iso_c_binding
+   use elpa_utilities
+   use elpa1
+   use elpa2_utilities
+   use elpa1_compute
+   use elpa2_compute
+   use elpa_mpi
+   use cuda_functions
+   use mod_check_for_gpu
+   use, intrinsic :: iso_c_binding
 
    implicit none
 

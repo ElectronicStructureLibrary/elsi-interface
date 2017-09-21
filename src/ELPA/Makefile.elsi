@@ -1,6 +1,5 @@
-# ELPA Makefile designed for ELSI installer
-# ELSI team
-# May 18, 2017
+# ELPA Makefile
+# Sept 21, 2017
 
 ifeq ($(strip $(XLF)),yes)
   XLFPP = -WF,
@@ -11,8 +10,7 @@ FPP += $(XLFPP)-DWITH_MPI $(XLFPP)-DUSE_ASSUMED_SIZE $(XLFPP)-DWITH_ONE_SPECIFIC
 
 ifeq ($(strip $(ELPA_GPU)),no)
   ifeq ($(strip $(ELPA2_KERNEL)),GPU)
-    $(info ELPA_GPU must be yes to use ELPA2 GPU kernel.)
-    $(error Incompatible choices for ELPA_GPU and ELPA2_KERNEL.)
+    $(error ELPA_GPU must be yes to use ELPA2 GPU kernel.)
   endif
 else
   FPP += $(XLFPP)-DWITH_GPU_VERSION
@@ -22,12 +20,6 @@ ifeq ($(strip $(ELPA2_KERNEL)),GPU)
   FPP += $(XLFPP)-DWITH_REAL_GPU_KERNEL $(XLFPP)-DWITH_COMPLEX_GPU_KERNEL
 endif
 ifeq ($(strip $(ELPA2_KERNEL)),Generic)
-  $(info =========================================)
-  $(info = Generic ELPA2 kernel has been chosen. =)
-  $(info = Often, this is a good first step.     =)
-  $(info = But considering the specific computer =)
-  $(info = platform may make a big difference.   =)
-  $(info =========================================)
   ELPA2_KERNELS_O ?= elpa2_kernels_real.o elpa2_kernels_complex.o
   FPP += $(XLFPP)-DWITH_REAL_GENERIC_KERNEL $(XLFPP)-DWITH_COMPLEX_GENERIC_KERNEL
 endif
@@ -36,64 +28,24 @@ ifeq ($(strip $(ELPA2_KERNEL)),BGQ)
   FPP += $(XLFPP)-DWITH_REAL_BGQ_KERNEL $(XLFPP)-DWITH_COMPLEX_GENERIC_KERNEL
 endif
 ifeq ($(strip $(ELPA2_KERNEL)),SSE)
-  ELPA2_KERNELS_O ?= elpa2_kernels_asm_x86_64_double_precision.o
+  ELPA2_KERNELS_O ?= elpa2_kernels_asm_x86_64_double.o
   FPP += $(XLFPP)-DHAVE_SSE_ASSEMBLY $(XLFPP)-DWITH_REAL_SSE_ASSEMBLY_KERNEL $(XLFPP)-DWITH_COMPLEX_SSE_ASSEMBLY_KERNEL
 endif
 ifeq ($(strip $(ELPA2_KERNEL)),AVX)
-  ELPA2_KERNELS_O ?= elpa2_kernels_real_avx-avx2_2hv_double_precision.o elpa2_kernels_complex_avx-avx2_1hv_double_precision.o
-  FPP += $(XLFPP)-DHAVE_AVX
-  ifeq ($(strip $(BLOCK_REAL)),2)
-    ELPA2_KERNELS_O +=
-    FPP += $(XLFPP)-DWITH_REAL_AVX_BLOCK2_KERNEL
-  endif
-  ifeq ($(strip $(BLOCK_REAL)),4)
-    ELPA2_KERNELS_O += elpa2_kernels_real_avx-avx2_4hv_double_precision.o
-    FPP += $(XLFPP)-DWITH_REAL_AVX_BLOCK4_KERNEL
-  endif
-  ifeq ($(strip $(BLOCK_REAL)),6)
-    ELPA2_KERNELS_O += elpa2_kernels_real_avx-avx2_4hv_double_precision.o elpa2_kernels_real_avx-avx2_6hv_double_precision.o
-    FPP += $(XLFPP)-DWITH_REAL_AVX_BLOCK6_KERNEL
-  endif
-  ifeq ($(strip $(BLOCK_COMPLEX)),1)
-    ELPA2_KERNELS_O +=
-    FPP += $(XLFPP)-DWITH_COMPLEX_AVX_BLOCK1_KERNEL
-  endif
-  ifeq ($(strip $(BLOCK_COMPLEX)),2)
-    ELPA2_KERNELS_O += elpa2_kernels_complex_avx-avx2_2hv_double_precision.o
-    FPP += $(XLFPP)-DWITH_COMPLEX_AVX_BLOCK2_KERNEL
-  endif
+  ELPA2_KERNELS_O ?= elpa2_kernels_real_avx_avx2_2hv_double.o elpa2_kernels_complex_avx_avx2_1hv_double.o
+  FPP += $(XLFPP)-DHAVE_AVX $(XLFPP)-DWITH_REAL_AVX_BLOCK2_KERNEL $(XLFPP)-DWITH_COMPLEX_AVX_BLOCK1_KERNEL
 endif
 ifeq ($(strip $(ELPA2_KERNEL)),AVX2)
-  ELPA2_KERNELS_O ?= elpa2_kernels_real_avx-avx2_2hv_double_precision.o elpa2_kernels_complex_avx-avx2_1hv_double_precision.o
-  FPP += $(XLFPP)-DHAVE_AVX $(XLFPP)-DHAVE_AVX2
-  ifeq ($(strip $(BLOCK_REAL)),2)
-    ELPA2_KERNELS_O +=
-    FPP += $(XLFPP)-DWITH_REAL_AVX2_BLOCK2_KERNEL
-  endif
-  ifeq ($(strip $(BLOCK_REAL)),4)
-    ELPA2_KERNELS_O += elpa2_kernels_real_avx-avx2_4hv_double_precision.o
-    FPP += $(XLFPP)-DWITH_REAL_AVX2_BLOCK4_KERNEL
-  endif
-  ifeq ($(strip $(BLOCK_REAL)),6)
-    ELPA2_KERNELS_O += elpa2_kernels_real_avx-avx2_4hv_double_precision.o elpa2_kernels_real_avx-avx2_6hv_double_precision.o
-    FPP += $(XLFPP)-DWITH_REAL_AVX2_BLOCK6_KERNEL
-  endif
-  ifeq ($(strip $(BLOCK_COMPLEX)),1)
-    ELPA2_KERNELS_O +=
-    FPP += $(XLFPP)-DWITH_COMPLEX_AVX2_BLOCK1_KERNEL
-  endif
-  ifeq ($(strip $(BLOCK_COMPLEX)),2)
-    ELPA2_KERNELS_O += elpa2_kernels_complex_avx-avx2_2hv_double_precision.o
-    FPP += $(XLFPP)-DWITH_COMPLEX_AVX2_BLOCK2_KERNEL
-  endif
+  ELPA2_KERNELS_O ?= elpa2_kernels_real_avx_avx2_2hv_double.o elpa2_kernels_complex_avx_avx2_1hv_double.o
+  FPP += $(XLFPP)-DHAVE_AVX $(XLFPP)-DHAVE_AVX2 $(XLFPP)-DWITH_REAL_AVX2_BLOCK2_KERNEL $(XLFPP)-DWITH_COMPLEX_AVX2_BLOCK1_KERNEL
+endif
+ifeq ($(strip $(ELPA2_KERNEL)),AVX512)
+  ELPA2_KERNELS_O ?= elpa2_kernels_real_avx512_2hv_double.o elpa2_kernels_complex_avx512_1hv_double.o
+  FPP += $(XLFPP)-DHAVE_AVX512 $(XLFPP)-DWITH_REAL_AVX512_BLOCK2_KERNEL $(XLFPP)-DWITH_COMPLEX_AVX512_BLOCK1_KERNEL
 endif
 ifneq ($(strip $(ELPA2_KERNEL)),GPU)
   ifeq ($(strip $(ELPA2_KERNELS_O)),)
-    $(info Please check your choice for ELPA2_KERNEL.)
-    $(info Often, generic kernels and mpi-only may be a)
-    $(info good first step, but considering your specific)
-    $(info computer platform may make a big difference.)
-    $(error Invalid choice for ELPA2_KERNEL.)
+    $(error Invalid ELPA2_KERNEL.)
   endif
 endif
 
@@ -101,13 +53,12 @@ ifeq ($(strip $(ELPA_OMP)),yes)
   $(error OpenMP: not yet available.)
 else
   ifneq ($(strip $(ELPA_OMP)),no)
-    $(info Please set ELPA_OMP to yes/no.)
-    $(error Invalid choice for ELPA_OMP.)
+    $(error Please set ELPA_OMP to yes/no.)
   endif
 endif
 
 
-ALL_OBJECTS = $(ELPA2_KERNELS_O) aligned_mem.o check_for_gpu.o elpa1_auxiliary.o elpa1_compute_private.o elpa1.o elpa1_utilities.o elpa2_compute.o elpa2.o elpa2_utilities.o elpa_pdgeqrf.o elpa_pdlarfb.o elpa_qrkernels.o elpa_utilities.o interface_c_kernel.o mod_compute_hh_trafo_complex.o mod_compute_hh_trafo_real.o mod_cuda.o mod_fortran_interfaces.o mod_mpi.o mod_pack_unpack_complex.o mod_pack_unpack_real_gpu.o mod_pack_unpack_real.o mod_precision.o mod_single_hh_trafo_real.o qr_utils.o timer_dummy.o
+ALL_OBJECTS = $(ELPA2_KERNELS_O) aligned_mem.o check_for_gpu.o check_singularity.o elpa1_auxiliary.o elpa1_compute_private.o elpa1.o elpa1_utilities.o elpa2_compute.o elpa2.o elpa2_utilities.o elpa_pdgeqrf.o elpa_pdlarfb.o elpa_qrkernels.o elpa_utilities.o interface_c_kernel.o mod_compute_hh_trafo_complex.o mod_compute_hh_trafo_real.o mod_cuda.o mod_fortran_interfaces.o mod_mpi.o mod_pack_unpack_complex.o mod_pack_unpack_real_gpu.o mod_pack_unpack_real.o mod_precision.o mod_single_hh_trafo_real.o qr_utils.o timer_dummy.o
 GPU_OBJECTS = cudaFunctions.o cuUtils.o ev_tridi_band_gpu_c_v2.o
 
 ifeq ($(strip $(ELPA_GPU)),yes)
@@ -131,6 +82,9 @@ elpa1_utilities.o: ./src/elpa1_utilities.F90 elpa_utilities.o mod_precision.o ti
 	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
 
 elpa2.o: ./src/elpa2.F90 elpa1.o elpa_utilities.o elpa2_utilities.o elpa1_compute_private.o elpa2_compute.o check_for_gpu.o mod_mpi.o mod_cuda.o
+	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
+
+check_singularity.o: ./src/check_singularity.F90 elpa2.o elpa1.o elpa_utilities.o elpa2_utilities.o elpa1_compute_private.o elpa2_compute.o check_for_gpu.o mod_mpi.o mod_cuda.o
 	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
 
 elpa2_compute.o: ./src/elpa2_compute.F90 aligned_mem.o mod_compute_hh_trafo_complex.o mod_compute_hh_trafo_real.o mod_pack_unpack_complex.o mod_pack_unpack_real.o mod_pack_unpack_real_gpu.o elpa_pdgeqrf.o elpa1.o elpa2_utilities.o elpa1_compute_private.o mod_mpi.o mod_precision.o elpa_utilities.o mod_cuda.o
@@ -169,31 +123,28 @@ mod_pack_unpack_real_gpu.o: ./src/mod_pack_unpack_real_gpu.F90 interface_c_kerne
 check_for_gpu.o: ./src/check_for_gpu.F90 mod_cuda.o mod_precision.o mod_mpi.o
 	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
 
-elpa2_kernels_real.o : ./src/elpa2_kernels/elpa2_kernels_real.F90 mod_precision.o
+elpa2_kernels_real.o: ./src/elpa2_kernels/elpa2_kernels_real.F90 mod_precision.o
 	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
 
-elpa2_kernels_complex.o : ./src/elpa2_kernels/elpa2_kernels_complex.F90 mod_precision.o
+elpa2_kernels_complex.o: ./src/elpa2_kernels/elpa2_kernels_complex.F90 mod_precision.o
 	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
 
-elpa2_kernels_complex_avx-avx2_1hv_double_precision.o : ./src/elpa2_kernels/elpa2_kernels_complex_avx-avx2_1hv_double_precision.c
+elpa2_kernels_complex_avx_avx2_1hv_double.o: ./src/elpa2_kernels/elpa2_kernels_complex_avx_avx2_1hv_double.c
 	$(MPICC) $(CFLAGS_E) $(FPP) -c $<
 
-elpa2_kernels_real_avx-avx2_2hv_double_precision.o : ./src/elpa2_kernels/elpa2_kernels_real_avx-avx2_2hv_double_precision.c
+elpa2_kernels_real_avx_avx2_2hv_double.o: ./src/elpa2_kernels/elpa2_kernels_real_avx_avx2_2hv_double.c
 	$(MPICC) $(CFLAGS_E) $(FPP) -c $<
 
-elpa2_kernels_complex_avx-avx2_2hv_double_precision.o : ./src/elpa2_kernels/elpa2_kernels_complex_avx-avx2_2hv_double_precision.c
+elpa2_kernels_complex_avx512_1hv_double.o: ./src/elpa2_kernels/elpa2_kernels_complex_avx512_1hv_double.c
 	$(MPICC) $(CFLAGS_E) $(FPP) -c $<
 
-elpa2_kernels_real_avx-avx2_4hv_double_precision.o : ./src/elpa2_kernels/elpa2_kernels_real_avx-avx2_4hv_double_precision.c
+elpa2_kernels_real_avx512_2hv_double.o: ./src/elpa2_kernels/elpa2_kernels_real_avx512_2hv_double.c
 	$(MPICC) $(CFLAGS_E) $(FPP) -c $<
 
-elpa2_kernels_real_avx-avx2_6hv_double_precision.o : ./src/elpa2_kernels/elpa2_kernels_real_avx-avx2_6hv_double_precision.c
-	$(MPICC) $(CFLAGS_E) $(FPP) -c $<
-
-elpa2_kernels_asm_x86_64_double_precision.o : ./src/elpa2_kernels/elpa2_kernels_asm_x86_64_double_precision.s
+elpa2_kernels_asm_x86_64_double.o: ./src/elpa2_kernels/elpa2_kernels_asm_x86_64_double.s
 	$(MPIFC) $(FFLAGS_E) -c $<
 
-elpa2_kernels_real_bgq.o : ./src/elpa2_kernels/elpa2_kernels_real_bgq.f90 mod_precision.o mod_mpi.o
+elpa2_kernels_real_bgq.o: ./src/elpa2_kernels/elpa2_kernels_real_bgq.f90 mod_precision.o mod_mpi.o
 	$(MPIFC) $(FFLAGS_E) -c $<
 
 elpa_utilities.o: ./src/elpa_utilities.F90 mod_precision.o

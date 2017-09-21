@@ -51,10 +51,6 @@ ELPA_DIR  ?= $(THIS_DIR)/src/ELPA
 ELPA_INC  ?= -I$(INC_DIR)
 ELPA_LIB  ?= -L$(LIB_DIR) -lelpa
 
-CS_DIR    ?= $(THIS_DIR)/src/check_singularity
-CS_INC    ?= -I$(INC_DIR)
-CS_LIB    ?= -L$(LIB_DIR) -lcheck_singularity
-
 OMM_DIR   ?= $(THIS_DIR)/src/libOMM
 OMM_INC   ?= -I$(INC_DIR)
 OMM_LIB   ?= -L$(LIB_DIR) -lOMM -lMatrixSwitch
@@ -78,8 +74,6 @@ LDFLAGS    ?= $(FFLAGS_I)
 ELPA_OMP      ?= no
 ELPA_GPU      ?= no
 ELPA2_KERNEL  ?= Generic
-BLOCK_REAL    ?= 2
-BLOCK_COMPLEX ?= 1
 
 # Name of MPI executable
 MPI_EXEC ?= mpirun
@@ -96,8 +90,8 @@ endif
 
 export
 
-LIBS = $(ELPA_LIB) $(CS_LIB) $(OMM_LIB)
-INCS = $(ELPA_INC) $(CS_INC) $(OMM_INC) -I$(INC_DIR)
+LIBS = $(ELPA_LIB) $(OMM_LIB)
+INCS = $(ELPA_INC) $(OMM_INC) -I$(INC_DIR)
 
 ifneq ($(strip $(DISABLE_PEXSI)),yes)
   LIBS += $(PEXSI_LIB)
@@ -118,9 +112,9 @@ else
   STUBS += stub_chess.o
 endif
 
-.PHONY: all elpa cs omm pexsi elsi install check checkc clean cleanelsi cleanelpa cleancs cleanomm cleanpexsi
+.PHONY: all elpa omm pexsi elsi install check checkc clean cleanelsi cleanelpa cleanomm cleanpexsi
 
-all: $(ALL_OBJ) cs elsi
+all: $(ALL_OBJ) elsi
 
 elpa:
 	@echo ==========================
@@ -132,17 +126,6 @@ elpa:
 	@echo ===================
 	@echo = ELPA installed. =
 	@echo ===================
-
-cs:
-	@echo =======================================
-	@echo = Start building check_singularity... =
-	@echo =======================================
-	mkdir -p $(INC_DIR)
-	mkdir -p $(LIB_DIR)
-	cd $(CS_DIR) && $(MAKE) -f Makefile.elsi install
-	@echo ================================
-	@echo = check_singularity installed. =
-	@echo ================================
 
 omm: $(ELPA_OMM)
 	@echo ============================
@@ -166,7 +149,7 @@ pexsi:
 	@echo = PEXSI installed. =
 	@echo ====================
 
-elsi: $(ALL_OBJ) cs
+elsi: $(ALL_OBJ)
 	@echo ==========================
 	@echo = Start building ELSI... =
 	@echo ==========================
@@ -203,7 +186,7 @@ checkc:
 	@echo = ELSI C test programs finished. =
 	@echo ==================================
 
-clean: $(CLEAN_OBJ) cleancs cleanelsi
+clean: $(CLEAN_OBJ) cleanelsi
 
 cleanelsi:
 	@echo ====================
@@ -218,22 +201,16 @@ cleanelpa:
 	@echo ====================
 	@echo = Removing ELPA... =
 	@echo ====================
-	cd $(ELPA_DIR) && $(MAKE) -f Makefile.elsi clean
-
-cleancs:
-	@echo =================================
-	@echo = Removing check_singularity... =
-	@echo =================================
-	cd $(CS_DIR) && $(MAKE) -f Makefile.elsi clean
+	rm -f $(ELPA_DIR)/*.o $(ELPA_DIR)/*.mod $(ELPA_DIR)/*.a
 
 cleanomm:
 	@echo ======================
 	@echo = Removing libOMM... =
 	@echo ======================
-	cd $(OMM_DIR) && $(MAKE) -f Makefile.elsi clean
+	rm -f $(OMM_DIR)/*.o $(OMM_DIR)/*.mod $(OMM_DIR)/*.a
 
 cleanpexsi:
 	@echo =====================
 	@echo = Removing PEXSI... =
 	@echo =====================
-	cd $(PEXSI_DIR)/src && $(MAKE) -f Makefile.elsi clean
+	rm -f $(PEXSI_DIR)/*.o $(PEXSI_DIR)/*.mod $(PEXSI_DIR)/*.a $(PEXSI_DIR)/*.d $(PEXSI_DIR)/*.d.*
