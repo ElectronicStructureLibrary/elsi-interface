@@ -67,6 +67,24 @@ subroutine elsi_solve_evp_omm(e_h)
 
    character*40, parameter :: caller = "elsi_solve_evp_omm"
 
+   ! Compute sparsity
+   if(e_h%n_elsi_calls == 1) then
+      select case(e_h%matrix_data_type)
+      case(COMPLEX_VALUES)
+         call elsi_get_local_nnz_complex(e_h,e_h%ham_omm%zval,e_h%n_l_rows,&
+                 e_h%n_l_cols,e_h%nnz_l)
+
+         call MPI_Allreduce(e_h%nnz_l,e_h%nnz_g,1,mpi_integer4,mpi_sum,&
+                 e_h%mpi_comm,mpierr)
+      case(REAL_VALUES)
+         call elsi_get_local_nnz_real(e_h,e_h%ham_omm%dval,e_h%n_l_rows,&
+                 e_h%n_l_cols,e_h%nnz_l)
+
+         call MPI_Allreduce(e_h%nnz_l,e_h%nnz_g,1,mpi_integer4,mpi_sum,&
+                 e_h%mpi_comm,mpierr)
+      end select
+   endif
+
    if(.not. e_h%ovlp_is_unit) then
       if(e_h%omm_flavor == 2) then
          if(e_h%n_elsi_calls == 1) then

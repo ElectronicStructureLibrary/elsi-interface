@@ -370,7 +370,7 @@ subroutine elsi_final_print(e_h)
    write(info_str,"(A,I13)") "  | Number of basis functions :",e_h%n_basis
    call elsi_say(info_str,e_h)
 
-   if(e_h%solver == PEXSI .or. e_h%solver == SIPS) then
+   if(e_h%parallel_mode == MULTI_PROC) then
       write(info_str,"(A,I13)") "  | Number of nonzeros        :",e_h%nnz_g
       call elsi_say(info_str,e_h)
 
