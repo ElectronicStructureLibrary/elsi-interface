@@ -191,6 +191,7 @@ subroutine elsi_reset_handle(e_h)
    e_h%edm_ready_real   = .false.
    e_h%edm_ready_cmplx  = .false.
    e_h%elpa_solver      = UNSET
+   e_h%n_single_steps   = UNSET
    e_h%elpa_output      = .false.
    e_h%n_states_omm     = UNSET
    e_h%n_elpa_steps     = UNSET
@@ -316,7 +317,7 @@ subroutine elsi_check(e_h,caller)
    select case(e_h%solver)
    case(AUTO)
       call elsi_stop(" Solver auto-selection not yet available.",e_h,caller)
-   case(ELPA)
+   case(ELPAA)
       ! Nothing
    case(LIBOMM)
       if(e_h%parallel_mode /= MULTI_PROC) then

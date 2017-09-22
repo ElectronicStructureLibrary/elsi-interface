@@ -30,7 +30,7 @@
 !!
 module ELSI_MUTATOR
 
-   use ELSI_CONSTANTS, only: ELPA,LIBOMM,PEXSI,CHESS,SIPS,REAL_VALUES,&
+   use ELSI_CONSTANTS, only: ELPAA,LIBOMM,PEXSI,CHESS,SIPS,REAL_VALUES,&
                              COMPLEX_VALUES,UNSET
    use ELSI_DATATYPE
    use ELSI_ELPA,      only: elsi_compute_edm_elpa
@@ -55,6 +55,7 @@ module ELSI_MUTATOR
    public :: elsi_set_sing_stop
    public :: elsi_set_uplo
    public :: elsi_set_elpa_solver
+   public :: elsi_set_elpa_n_single
    public :: elsi_set_omm_flavor
    public :: elsi_set_omm_n_elpa
    public :: elsi_set_omm_tol
@@ -167,7 +168,7 @@ subroutine elsi_set_unit_ovlp(e_h,unit_ovlp)
    implicit none
 
    type(elsi_handle), intent(inout) :: e_h       !< Handle
-   integer(kind=i4),  intent(in)    :: unit_ovlp !< Overlap is an identity matrix?
+   integer(kind=i4),  intent(in)    :: unit_ovlp !< Overlap is identity?
 
    character*40, parameter :: caller = "elsi_set_unit_ovlp"
 
@@ -189,7 +190,7 @@ subroutine elsi_set_zero_def(e_h,zero_def)
    implicit none
 
    type(elsi_handle), intent(inout) :: e_h      !< Handle
-   real(kind=r8),     intent(in)    :: zero_def !< Numbers smaller than this will be discarded
+   real(kind=r8),     intent(in)    :: zero_def !< Zero tolerance
 
    character*40, parameter :: caller = "elsi_set_zero_def"
 
@@ -207,7 +208,7 @@ subroutine elsi_set_sing_check(e_h,sing_check)
    implicit none
 
    type(elsi_handle), intent(inout) :: e_h        !< Handle
-   integer(kind=i4),  intent(in)    :: sing_check !< Perform singularity check?
+   integer(kind=i4),  intent(in)    :: sing_check !< Check singularity?
 
    character*40, parameter :: caller = "elsi_set_sing_check"
 
@@ -288,7 +289,7 @@ subroutine elsi_set_elpa_solver(e_h,elpa_solver)
    implicit none
 
    type(elsi_handle), intent(inout) :: e_h         !< Handle
-   integer(kind=i4),  intent(in)    :: elpa_solver !< Which ELPA solver?
+   integer(kind=i4),  intent(in)    :: elpa_solver !< ELPA solver
 
    character*40, parameter :: caller = "elsi_set_elpa_solver"
 
@@ -303,6 +304,24 @@ subroutine elsi_set_elpa_solver(e_h,elpa_solver)
 end subroutine
 
 !>
+!! This routine sets the number of steps using single precision ELPA.
+!!
+subroutine elsi_set_elpa_n_single(e_h,n_single)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h      !< Handle
+   integer(kind=i4),  intent(in)    :: n_single !< Single precision steps
+
+   character*40, parameter :: caller = "elsi_set_elpa_n_single"
+
+   call elsi_check_handle(e_h,caller)
+
+   e_h%n_single_steps = n_single
+
+end subroutine
+
+!>
 !! This routine sets the flavor of libOMM.
 !!
 subroutine elsi_set_omm_flavor(e_h,omm_flavor)
@@ -310,7 +329,7 @@ subroutine elsi_set_omm_flavor(e_h,omm_flavor)
    implicit none
 
    type(elsi_handle), intent(inout) :: e_h        !< Handle
-   integer(kind=i4),  intent(in)    :: omm_flavor !< Which libOMM flavor?
+   integer(kind=i4),  intent(in)    :: omm_flavor !< libOMM flavor
 
    character*40, parameter :: caller = "elsi_set_omm_flavor"
 
@@ -332,7 +351,7 @@ subroutine elsi_set_omm_n_elpa(e_h,n_elpa)
    implicit none
 
    type(elsi_handle), intent(inout) :: e_h    !< Handle
-   integer(kind=i4),  intent(in)    :: n_elpa !< Number of ELPA steps before libOMM
+   integer(kind=i4),  intent(in)    :: n_elpa !< ELPA steps
 
    character*40, parameter :: caller = "elsi_set_n_elpa"
 
@@ -452,7 +471,7 @@ subroutine elsi_set_pexsi_np_per_pole(e_h,np_per_pole)
    implicit none
 
    type(elsi_handle), intent(inout) :: e_h         !< Handle
-   integer(kind=i4),  intent(in)    :: np_per_pole !< Number of processes per pole
+   integer(kind=i4),  intent(in)    :: np_per_pole !< Number of tasks per pole
 
    character*40, parameter :: caller = "elsi_set_pexsi_np_per_pole"
 
@@ -470,7 +489,7 @@ subroutine elsi_set_pexsi_np_symbo(e_h,np_symbo)
    implicit none
 
    type(elsi_handle), intent(inout) :: e_h      !< Handle
-   integer(kind=i4),  intent(in)    :: np_symbo !< Number of processes for symbolic factorization
+   integer(kind=i4),  intent(in)    :: np_symbo !< Number of tasks for symbolic factorization
 
    character*40, parameter :: caller = "elsi_set_pexsi_np_symbo"
 
@@ -592,7 +611,7 @@ subroutine elsi_set_pexsi_inertia_tol(e_h,inertia_tol)
    implicit none
 
    type(elsi_handle), intent(inout) :: e_h         !< Handle
-   real(kind=r8),     intent(in)    :: inertia_tol !< Tolerance of chemical potential
+   real(kind=r8),     intent(in)    :: inertia_tol !< Tolerance of inertia counting
 
    character*40, parameter :: caller = "elsi_set_pexsi_inertia_tol"
 
@@ -793,7 +812,7 @@ subroutine elsi_set_sips_left_bound(e_h,left_bound)
    implicit none
 
    type(elsi_handle), intent(inout) :: e_h        !< Handle
-   integer(kind=i4),  intent(in)    :: left_bound !< How to bound the left side?
+   integer(kind=i4),  intent(in)    :: left_bound !< How to bound left side?
 
    character*40, parameter :: caller = "elsi_set_sips_left_bound"
 
@@ -812,7 +831,7 @@ subroutine elsi_set_sips_slice_buf(e_h,slice_buffer)
    implicit none
 
    type(elsi_handle), intent(inout) :: e_h          !< Handle
-   real(kind=r8),     intent(in)    :: slice_buffer !< Buffer to expand the interval
+   real(kind=r8),     intent(in)    :: slice_buffer !< Buffer to expand interval
 
    character*40, parameter :: caller = "elsi_set_sips_slice_buf"
 
@@ -1067,7 +1086,7 @@ subroutine elsi_get_edm_real(e_h,d_out)
       e_h%matrix_data_type = REAL_VALUES
 
       select case(e_h%solver)
-      case(ELPA)
+      case(ELPAA)
          call elsi_set_dm(e_h,d_out)
 
          call elsi_compute_edm_elpa(e_h)
@@ -1115,7 +1134,7 @@ subroutine elsi_get_edm_real_sparse(e_h,d_out)
       e_h%matrix_data_type = REAL_VALUES
 
       select case(e_h%solver)
-      case(ELPA)
+      case(ELPAA)
          call elsi_compute_edm_elpa(e_h)
 
          call elsi_blacs_to_sips_dm(e_h,d_out)
@@ -1163,7 +1182,7 @@ subroutine elsi_get_edm_complex(e_h,d_out)
       e_h%matrix_data_type = COMPLEX_VALUES
 
       select case(e_h%solver)
-      case(ELPA)
+      case(ELPAA)
          call elsi_set_dm(e_h,d_out)
 
          call elsi_compute_edm_elpa(e_h)
@@ -1211,7 +1230,7 @@ subroutine elsi_get_edm_complex_sparse(e_h,d_out)
       e_h%matrix_data_type = COMPLEX_VALUES
 
       select case(e_h%solver)
-      case(ELPA)
+      case(ELPAA)
          call elsi_compute_edm_elpa(e_h)
 
          call elsi_blacs_to_sips_dm(e_h,d_out)

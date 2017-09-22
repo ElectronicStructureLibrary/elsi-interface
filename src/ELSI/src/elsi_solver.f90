@@ -26,16 +26,19 @@
 ! EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 !>
-!! This module provides solver interfaces to ELPA, libOMM, PEXSI, CheSS, SIPs.
+!! This module contains subroutines to solve an eigenproblem or to compute the
+!! density matrix, using one of the five solvers ELPA, libOMM, PEXSI, CheSS,
+!! and SIPs.
 !!
 module ELSI_SOLVER
 
    use ELSI_CHESS,     only: elsi_init_chess,elsi_solve_evp_chess
-   use ELSI_CONSTANTS, only: ELPA,LIBOMM,PEXSI,CHESS,SIPS,REAL_VALUES,&
+   use ELSI_CONSTANTS, only: ELPAA,LIBOMM,PEXSI,CHESS,SIPS,REAL_VALUES,&
                              COMPLEX_VALUES,MULTI_PROC,SINGLE_PROC,UNSET
    use ELSI_DATATYPE
    use ELSI_ELPA,      only: elsi_compute_occ_elpa,elsi_compute_dm_elpa,&
-                             elsi_solve_evp_elpa,elsi_solve_evp_elpa_sp
+                             elsi_solve_evp_elpa
+   use ELSI_LAPACK,    only: elsi_solve_evp_lapack
    use ELSI_MALLOC
    use ELSI_MATCONV
    use ELSI_MATRICES
@@ -81,7 +84,7 @@ subroutine elsi_get_energy(e_h,energy)
    character*40, parameter :: caller = "elsi_get_energy"
 
    select case(e_h%solver)
-   case(ELPA)
+   case(ELPAA)
       energy = 0.0_r8
 
       do i_state = 1,e_h%n_states_solve
@@ -144,7 +147,7 @@ subroutine elsi_ev_real(e_h,h_in,s_in,eval_out,evec_out)
    call elsi_print_settings(e_h)
 
    select case(e_h%solver)
-   case(ELPA)
+   case(ELPAA)
       ! Set matrices
       call elsi_set_ham(e_h,h_in)
       call elsi_set_ovlp(e_h,s_in)
@@ -153,7 +156,7 @@ subroutine elsi_ev_real(e_h,h_in,s_in,eval_out,evec_out)
 
       ! Solve
       if(e_h%parallel_mode == SINGLE_PROC) then
-         call elsi_solve_evp_elpa_sp(e_h)
+         call elsi_solve_evp_lapack(e_h)
       else ! MULTI_PROC
          call elsi_solve_evp_elpa(e_h)
       endif
@@ -226,7 +229,7 @@ subroutine elsi_ev_complex(e_h,h_in,s_in,eval_out,evec_out)
    call elsi_print_settings(e_h)
 
    select case(e_h%solver)
-   case(ELPA)
+   case(ELPAA)
       ! Set matrices
       call elsi_set_ham(e_h,h_in)
       call elsi_set_ovlp(e_h,s_in)
@@ -235,7 +238,7 @@ subroutine elsi_ev_complex(e_h,h_in,s_in,eval_out,evec_out)
 
       ! Solve
       if(e_h%parallel_mode == SINGLE_PROC) then
-         call elsi_solve_evp_elpa_sp(e_h)
+         call elsi_solve_evp_lapack(e_h)
       else ! MULTI_PROC
          call elsi_solve_evp_elpa(e_h)
       endif
@@ -286,7 +289,7 @@ subroutine elsi_ev_real_sparse(e_h,h_in,s_in,eval_out,evec_out)
    call elsi_print_settings(e_h)
 
    select case(e_h%solver)
-   case(ELPA)
+   case(ELPAA)
       ! Convert 1D CSC to 2D dense
       call elsi_sips_to_blacs_hs(e_h,h_in,s_in)
 
@@ -345,7 +348,7 @@ subroutine elsi_ev_complex_sparse(e_h,h_in,s_in,eval_out,evec_out)
    call elsi_print_settings(e_h)
 
    select case(e_h%solver)
-   case(ELPA)
+   case(ELPAA)
       ! Convert 1D CSC to 2D dense
       call elsi_sips_to_blacs_hs(e_h,h_in,s_in)
 
@@ -403,7 +406,7 @@ subroutine elsi_dm_real(e_h,h_in,s_in,d_out,energy_out)
    call elsi_print_settings(e_h)
 
    select case(e_h%solver)
-   case(ELPA)
+   case(ELPAA)
       ! Allocate
       if(.not. allocated(e_h%eval_elpa)) then
          call elsi_allocate(e_h,e_h%eval_elpa,e_h%n_basis,"eval_elpa",caller)
@@ -439,7 +442,7 @@ subroutine elsi_dm_real(e_h,h_in,s_in,d_out,energy_out)
          endif
 
          ! Compute libOMM initial guess by ELPA
-         e_h%solver = ELPA
+         e_h%solver = ELPAA
 
          ! Allocate
          if(.not. allocated(e_h%eval_elpa)) then
@@ -630,7 +633,7 @@ subroutine elsi_dm_complex(e_h,h_in,s_in,d_out,energy_out)
    call elsi_print_settings(e_h)
 
    select case(e_h%solver)
-   case(ELPA)
+   case(ELPAA)
       ! Allocate
       if(.not. allocated(e_h%eval_elpa)) then
          call elsi_allocate(e_h,e_h%eval_elpa,e_h%n_basis,"eval_elpa",caller)
@@ -666,7 +669,7 @@ subroutine elsi_dm_complex(e_h,h_in,s_in,d_out,energy_out)
          endif
 
          ! Compute libOMM initial guess by ELPA
-         e_h%solver = ELPA
+         e_h%solver = ELPAA
 
          ! Allocate
          if(.not. allocated(e_h%eval_elpa)) then
@@ -836,7 +839,7 @@ subroutine elsi_dm_real_sparse(e_h,h_in,s_in,d_out,energy_out)
    call elsi_print_settings(e_h)
 
    select case(e_h%solver)
-   case(ELPA)
+   case(ELPAA)
       ! Set up BLACS if not done by user
       if(.not. e_h%blacs_ready) then
          call elsi_init_blacs(e_h)
@@ -893,7 +896,7 @@ subroutine elsi_dm_real_sparse(e_h,h_in,s_in,d_out,energy_out)
          endif
 
          ! Compute libOMM initial guess by ELPA
-         e_h%solver = ELPA
+         e_h%solver = ELPAA
 
          ! Allocate
          if(.not. allocated(e_h%eval_elpa)) then
@@ -1049,7 +1052,7 @@ subroutine elsi_dm_complex_sparse(e_h,h_in,s_in,d_out,energy_out)
    call elsi_print_settings(e_h)
 
    select case(e_h%solver)
-   case(ELPA)
+   case(ELPAA)
       ! Set up BLACS if not done by user
       if(.not. e_h%blacs_ready) then
          call elsi_init_blacs(e_h)
@@ -1106,7 +1109,7 @@ subroutine elsi_dm_complex_sparse(e_h,h_in,s_in,d_out,energy_out)
          endif
 
          ! Compute libOMM initial guess by ELPA
-         e_h%solver = ELPA
+         e_h%solver = ELPAA
 
          ! Allocate
          if(.not. allocated(e_h%eval_elpa)) then
@@ -1277,7 +1280,7 @@ subroutine elsi_init_blacs(e_h)
       enddo
 
       ! ELPA works better with a small block_size
-      if(e_h%solver == ELPA) then
+      if(e_h%solver == ELPAA) then
          block_size = min(32,block_size)
       endif
 
@@ -1329,7 +1332,7 @@ subroutine elsi_print_settings(e_h)
       write(info_str,"('  | Upper bound of S eigenvalue ',E10.2)") &
          e_h%ev_ovlp_max
       call elsi_say(info_str,e_h)
-   case(ELPA)
+   case(ELPAA)
       call elsi_say("  ELPA settings:",e_h)
 
       write(info_str,"('  | ELPA solver ',I10)") e_h%elpa_solver

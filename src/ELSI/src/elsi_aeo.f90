@@ -26,7 +26,7 @@
 ! EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 !>
-!! This module provides interfaces to ELPA.
+!! This module provides interfaces to ELPA-AEO.
 !!
 module ELSI_ELPA
 
@@ -34,11 +34,11 @@ module ELSI_ELPA
    use ELSI_DATATYPE
    use ELSI_MALLOC
    use ELSI_MU,           only: elsi_compute_mu_and_occ
-   use ELSI_PRECISION,    only: r8,i4
+   use ELSI_PRECISION,    only: r4,r8,i4
    use ELSI_UTILS
-   use CHECK_SINGULARITY, only: elpa_check_singularity_real_double,&
-                                elpa_check_singularity_complex_double
+   use ELPA
    use ELPA1,             only: elpa_print_times,elpa_get_communicators,&
+                                elpa_solve_tridi_double,&
                                 elpa_solve_evp_real_1stage_double,&
                                 elpa_solve_evp_complex_1stage_double,&
                                 elpa_cholesky_real_double,&
@@ -48,7 +48,9 @@ module ELSI_ELPA
                                 elpa_mult_at_b_real_double,&
                                 elpa_mult_ah_b_complex_double
    use ELPA2,             only: elpa_solve_evp_real_2stage_double,&
-                                elpa_solve_evp_complex_2stage_double
+                                elpa_solve_evp_complex_2stage_double,&
+                                elpa_solve_evp_real_2stage_single,&
+                                elpa_solve_evp_complex_2stage_single
 
    implicit none
 
@@ -662,9 +664,9 @@ subroutine elsi_check_singularity(e_h)
 
    type(elsi_handle), intent(inout) :: e_h !< Handle
 
-   real(kind=r8)    :: ev_sqrt
    integer(kind=i4) :: i
-   logical          :: success
+   integer(kind=i4) :: ierr
+   real(kind=r8)    :: ev_sqrt
    real(kind=r8)    :: t0
    real(kind=r8)    :: t1
    character*200    :: info_str
@@ -672,9 +674,34 @@ subroutine elsi_check_singularity(e_h)
    real(kind=r8),    allocatable :: copy_real(:,:)
    complex(kind=r8), allocatable :: copy_cmplx(:,:)
 
+   class(elpa_t), pointer :: elpa_t
+
    character*40, parameter :: caller = "elsi_check_singularity"
 
    call elsi_get_time(e_h,t0)
+
+   ierr = elpa_init(20170403)
+
+   elpa_t => elpa_allocate()
+
+   call elpa_t%set("na",e_h%n_basis,ierr)
+   call elpa_t%set("nev",e_h%n_basis,ierr)
+   call elpa_t%set("local_nrows",e_h%n_l_rows,ierr)
+   call elpa_t%set("local_ncols",e_h%n_l_cols,ierr)
+   call elpa_t%set("nblk",e_h%n_b_rows,ierr)
+   call elpa_t%set("mpi_comm_parent",e_h%mpi_comm,ierr)
+   call elpa_t%set("process_row",e_h%my_p_row,ierr)
+   call elpa_t%set("process_col",e_h%my_p_col,ierr)
+
+   ierr = elpa_t%setup()
+
+   ! TODO: ill-conditioning tolerance should be set here
+   call elpa_t%set("solver",2,ierr)
+   call elpa_t%set("check_pd",1,ierr)
+
+   if(ierr /= 0) then
+      call elsi_stop(" ELPA setup failed.",e_h,caller)
+   endif
 
    select case(e_h%matrix_data_type)
    case(COMPLEX_VALUES)
@@ -685,14 +712,16 @@ subroutine elsi_check_singularity(e_h)
       ! be destroyed by eigenvalue calculation
       copy_cmplx = e_h%ovlp_cmplx
 
-      ! Use customized ELPA 2-stage solver to check overlap singularity
-      ! Eigenvectors computed only for singular overlap matrix
-      success = elpa_check_singularity_complex_double(e_h%n_basis,e_h%n_basis,&
-                   copy_cmplx,e_h%n_l_rows,e_h%eval,e_h%evec_cmplx,&
-                   e_h%n_l_rows,e_h%n_b_rows,e_h%n_l_cols,e_h%mpi_comm_row,&
-                   e_h%mpi_comm_col,e_h%mpi_comm,e_h%sing_tol,e_h%n_nonsing)
+      ! Use ELPA to check overlap singularity
+      call elpa_t%eigenvectors(copy_cmplx,e_h%eval,e_h%evec_cmplx,ierr)
 
-      if(.not. success) then
+      do i = 1,e_h%n_basis
+         if(e_h%eval(i) < e_h%sing_tol) then
+            e_h%n_nonsing = e_h%n_nonsing-1
+         endif
+      enddo
+
+      if(ierr /= 0) then
          call elsi_stop(" Singularity check failed.",e_h,caller)
       endif
 
@@ -737,14 +766,16 @@ subroutine elsi_check_singularity(e_h)
       ! destroyed by eigenvalue calculation
       copy_real = e_h%ovlp_real
 
-      ! Use customized ELPA 2-stage solver to check overlap singularity
-      ! Eigenvectors computed only for singular overlap matrix
-      success = elpa_check_singularity_real_double(e_h%n_basis,e_h%n_basis,&
-                   copy_real,e_h%n_l_rows,e_h%eval,e_h%evec_real,e_h%n_l_rows,&
-                   e_h%n_b_rows,e_h%n_l_cols,e_h%mpi_comm_row,e_h%mpi_comm_col,&
-                   e_h%mpi_comm,e_h%sing_tol,e_h%n_nonsing)
+      ! Use ELPA to check overlap singularity
+      call elpa_t%eigenvectors(copy_real,e_h%eval,e_h%evec_real,ierr)
 
-      if(.not. success) then
+      do i = 1,e_h%n_basis
+         if(e_h%eval(i) < e_h%sing_tol) then
+            e_h%n_nonsing = e_h%n_nonsing-1
+         endif
+      enddo
+
+      if(ierr /= 0) then
          call elsi_stop(" Singularity check failed.",e_h,caller)
       endif
 
@@ -898,6 +929,12 @@ subroutine elsi_solve_evp_elpa(e_h)
    logical          :: success
    character*200    :: info_str
 
+   real(kind=r4),    allocatable :: eval_single(:)
+   real(kind=r4),    allocatable :: ham_real_single(:,:)
+   real(kind=r4),    allocatable :: evec_real_single(:,:)
+   complex(kind=r4), allocatable :: ham_cmplx_single(:,:)
+   complex(kind=r4), allocatable :: evec_cmplx_single(:,:)
+
    character*40, parameter :: caller = "elsi_solve_evp_elpa"
 
    elpa_print_times = e_h%elpa_output
@@ -909,35 +946,92 @@ subroutine elsi_solve_evp_elpa(e_h)
 
    call elsi_get_time(e_h,t0)
 
-   call elsi_say("  Starting ELPA eigensolver",e_h)
-
    ! Solve evp, return eigenvalues and eigenvectors
-   select case(e_h%matrix_data_type)
-   case(COMPLEX_VALUES)
-      if(e_h%elpa_solver == 2) then
-         success = elpa_solve_evp_complex_2stage_double(e_h%n_nonsing,&
-                      e_h%n_states_solve,e_h%ham_cmplx,e_h%n_l_rows,e_h%eval,&
-                      e_h%evec_cmplx,e_h%n_l_rows,e_h%n_b_rows,e_h%n_l_cols,&
-                      e_h%mpi_comm_row,e_h%mpi_comm_col,e_h%mpi_comm)
-      else
-         success = elpa_solve_evp_complex_1stage_double(e_h%n_nonsing,&
-                      e_h%n_states_solve,e_h%ham_cmplx,e_h%n_l_rows,e_h%eval,&
-                      e_h%evec_cmplx,e_h%n_l_rows,e_h%n_b_rows,e_h%n_l_cols,&
-                      e_h%mpi_comm_row,e_h%mpi_comm_col,e_h%mpi_comm)
-      endif
-   case(REAL_VALUES)
-      if(e_h%elpa_solver == 2) then
-         success = elpa_solve_evp_real_2stage_double(e_h%n_nonsing,&
-                      e_h%n_states_solve,e_h%ham_real,e_h%n_l_rows,e_h%eval,&
-                      e_h%evec_real,e_h%n_l_rows,e_h%n_b_rows,e_h%n_l_cols,&
-                      e_h%mpi_comm_row,e_h%mpi_comm_col,e_h%mpi_comm)
-      else
-         success = elpa_solve_evp_real_1stage_double(e_h%n_nonsing,&
-                      e_h%n_states_solve,e_h%ham_real,e_h%n_l_rows,e_h%eval,&
-                      e_h%evec_real,e_h%n_l_rows,e_h%n_b_rows,e_h%n_l_cols,&
-                      e_h%mpi_comm_row,e_h%mpi_comm_col,e_h%mpi_comm)
-      endif
-   end select
+   if(e_h%n_elsi_calls <= e_h%n_single_steps) then
+      call elsi_say("  Starting ELPA eigensolver (single precision)",e_h)
+
+      select case(e_h%matrix_data_type)
+      case(COMPLEX_VALUES)
+         ! Convert to single precision
+         call elsi_allocate(e_h,eval_single,e_h%n_basis,"eval_single",caller)
+         call elsi_allocate(e_h,ham_cmplx_single,e_h%n_l_rows,e_h%n_l_cols,&
+                 "ham_cmplx_single",caller)
+         call elsi_allocate(e_h,evec_cmplx_single,e_h%n_l_rows,e_h%n_l_cols,&
+                 "evec_cmplx_single",caller)
+
+         ham_cmplx_single = cmplx(e_h%ham_cmplx,kind=r4)
+
+         ! Solve with single precision
+         success = elpa_solve_evp_complex_2stage_single(e_h%n_nonsing,&
+                      e_h%n_states_solve,ham_cmplx_single,e_h%n_l_rows,&
+                      eval_single,evec_cmplx_single,e_h%n_l_rows,e_h%n_b_rows,&
+                      e_h%n_l_cols,e_h%mpi_comm_row,e_h%mpi_comm_col,&
+                      e_h%mpi_comm)
+
+         ! Convert back to double precision
+         e_h%eval = real(eval_single,kind=r8)
+         e_h%evec_cmplx = cmplx(evec_cmplx_single,kind=r8)
+
+         call elsi_deallocate(e_h,eval_single,"eval_single")
+         call elsi_deallocate(e_h,ham_cmplx_single,"ham_cmplx_single")
+         call elsi_deallocate(e_h,evec_cmplx_single,"evec_cmplx_single")
+      case(REAL_VALUES)
+         ! Convert to single precision
+         call elsi_allocate(e_h,eval_single,e_h%n_basis,"eval_single",caller)
+         call elsi_allocate(e_h,ham_real_single,e_h%n_l_rows,e_h%n_l_cols,&
+                 "ham_real_single",caller)
+         call elsi_allocate(e_h,evec_real_single,e_h%n_l_rows,e_h%n_l_cols,&
+                 "evec_real_single",caller)
+
+         ham_real_single = real(e_h%ham_real,kind=r4)
+
+         ! Solve with single precision
+         success = elpa_solve_evp_real_2stage_single(e_h%n_nonsing,&
+                      e_h%n_states_solve,ham_real_single,e_h%n_l_rows,&
+                      eval_single,evec_real_single,e_h%n_l_rows,e_h%n_b_rows,&
+                      e_h%n_l_cols,e_h%mpi_comm_row,e_h%mpi_comm_col,&
+                      e_h%mpi_comm)
+
+         ! Convert back to double precision
+         e_h%eval = real(eval_single,kind=r8)
+         e_h%evec_real = real(evec_real_single,kind=r8)
+
+         call elsi_deallocate(e_h,eval_single,"eval_single")
+         call elsi_deallocate(e_h,ham_real_single,"ham_real_single")
+         call elsi_deallocate(e_h,evec_real_single,"evec_real_single")
+      end select
+   else ! No single precision
+      call elsi_say("  Starting ELPA eigensolver",e_h)
+
+      select case(e_h%matrix_data_type)
+      case(COMPLEX_VALUES)
+         if(e_h%elpa_solver == 2) then
+            success = elpa_solve_evp_complex_2stage_double(e_h%n_nonsing,&
+                         e_h%n_states_solve,e_h%ham_cmplx,e_h%n_l_rows,&
+                         e_h%eval,e_h%evec_cmplx,e_h%n_l_rows,e_h%n_b_rows,&
+                         e_h%n_l_cols,e_h%mpi_comm_row,e_h%mpi_comm_col,&
+                         e_h%mpi_comm)
+         else
+            success = elpa_solve_evp_complex_1stage_double(e_h%n_nonsing,&
+                         e_h%n_states_solve,e_h%ham_cmplx,e_h%n_l_rows,&
+                         e_h%eval,e_h%evec_cmplx,e_h%n_l_rows,e_h%n_b_rows,&
+                         e_h%n_l_cols,e_h%mpi_comm_row,e_h%mpi_comm_col,&
+                         e_h%mpi_comm)
+         endif
+      case(REAL_VALUES)
+         if(e_h%elpa_solver == 2) then
+            success = elpa_solve_evp_real_2stage_double(e_h%n_nonsing,&
+                         e_h%n_states_solve,e_h%ham_real,e_h%n_l_rows,e_h%eval,&
+                         e_h%evec_real,e_h%n_l_rows,e_h%n_b_rows,e_h%n_l_cols,&
+                         e_h%mpi_comm_row,e_h%mpi_comm_col,e_h%mpi_comm)
+         else
+            success = elpa_solve_evp_real_1stage_double(e_h%n_nonsing,&
+                         e_h%n_states_solve,e_h%ham_real,e_h%n_l_rows,e_h%eval,&
+                         e_h%evec_real,e_h%n_l_rows,e_h%n_b_rows,e_h%n_l_cols,&
+                         e_h%mpi_comm_row,e_h%mpi_comm_col,e_h%mpi_comm)
+         endif
+      end select
+   endif
 
    if(.not. success) then
       call elsi_stop(" ELPA solver failed.",e_h,caller)

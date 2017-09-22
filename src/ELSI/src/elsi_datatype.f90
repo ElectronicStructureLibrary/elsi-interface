@@ -223,6 +223,7 @@ module ELSI_DATATYPE
 
       ! ELPA
       integer(kind=i4) :: elpa_solver
+      integer(kind=i4) :: n_single_steps
       logical :: elpa_output
 
       ! libOMM

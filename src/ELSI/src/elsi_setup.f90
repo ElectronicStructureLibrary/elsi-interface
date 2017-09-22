@@ -31,7 +31,7 @@
 module ELSI_SETUP
 
    use ELSI_CHESS,         only: elsi_set_chess_default
-   use ELSI_CONSTANTS,     only: ELPA,LIBOMM,PEXSI,CHESS,SIPS,SINGLE_PROC,&
+   use ELSI_CONSTANTS,     only: ELPAA,LIBOMM,PEXSI,CHESS,SIPS,SINGLE_PROC,&
                                  MULTI_PROC
    use ELSI_DATATYPE
    use ELSI_ELPA,          only: elsi_set_elpa_default,elsi_get_elpa_comms
@@ -111,7 +111,7 @@ subroutine elsi_init(e_h,solver,parallel_mode,matrix_format,n_basis,n_electron,&
    endif
 
    ! Set ELPA default
-   if(solver == ELPA) then
+   if(solver == ELPAA) then
       call elsi_set_elpa_default(e_h)
    endif
 
@@ -386,12 +386,12 @@ subroutine elsi_final_print(e_h)
    write(info_str,"(A,I13)") "  | Number of k-points        :",e_h%n_kpts
    call elsi_say(info_str,e_h)
 
-   if(e_h%solver == ELPA .or. e_h%solver == SIPS) then
+   if(e_h%solver == ELPAA .or. e_h%solver == SIPS) then
       write(info_str,"(A,I13)") "  | Number of states          :",e_h%n_states
       call elsi_say(info_str,e_h)
    endif
 
-   if(e_h%solver == ELPA) then
+   if(e_h%solver == ELPAA) then
       call elsi_say("  | Solver                    :         ELPA ",e_h)
    elseif(e_h%solver == LIBOMM) then
       call elsi_say("  | Solver                    :       libOMM ",e_h)

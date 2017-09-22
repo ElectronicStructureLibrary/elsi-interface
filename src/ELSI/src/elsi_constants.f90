@@ -34,7 +34,7 @@ module ELSI_CONSTANTS
 
    implicit none
 
-   real(kind=r8), parameter :: INVERT_SQRT_PI = 0.5641895835477563275_r8 ! Constant: 1/sqrt(pi)
+   real(kind=r8), parameter :: INVERT_SQRT_PI = 0.5641895835477563275_r8 ! 1/sqrt(pi)
 
    integer(kind=i4), parameter :: UNSET                = -910910
    integer(kind=i4), parameter :: N_SOLVERS            = 6
@@ -44,7 +44,7 @@ module ELSI_CONSTANTS
 
    ! Method names
    integer(kind=i4), parameter :: AUTO   = 0
-   integer(kind=i4), parameter :: ELPA   = 1
+   integer(kind=i4), parameter :: ELPAA  = 1 ! "ELPA" conflicts with a module
    integer(kind=i4), parameter :: LIBOMM = 2
    integer(kind=i4), parameter :: PEXSI  = 3
    integer(kind=i4), parameter :: CHESS  = 4

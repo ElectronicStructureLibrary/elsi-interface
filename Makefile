@@ -10,6 +10,9 @@ ifneq ($(strip $(EXTERNAL_ELPA)),yes)
   ALL_OBJ += elpa
   CLEAN_OBJ += cleanelpa
   ELPA_OMM = elpa
+  ELSI_ELPA = elsi_elpa.o
+else
+  ELSI_ELPA = elsi_aeo.o
 endif
 
 ifneq ($(strip $(EXTERNAL_OMM)),yes)
