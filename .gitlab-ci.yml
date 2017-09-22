@@ -1,10 +1,7 @@
 gnu-j1-generic:
   script:
     - module purge
-    - module load intel-mkl-11.1.1
-    - module load intel-mpi-4.1.3
     - module load gcc-7.1
-    - module list
     - cp /home/wy29/elsi_make_check/check_gnu ./make.sys
     - make
     - make install
@@ -13,10 +10,7 @@ gnu-j1-generic:
 gnu-j8-generic:
   script:
     - module purge
-    - module load intel-mkl-11.1.1
-    - module load intel-mpi-4.1.3
     - module load gcc-7.1
-    - module list
     - cp /home/wy29/elsi_make_check/check_gnu ./make.sys
     - make -j 8
     - make check
@@ -27,10 +21,8 @@ gnu-j8-generic:
 pgi-j1-generic:
   script:
     - module purge
-    - module load intel-mkl-11.1.1
-    - module load intel-mpi-4.1.3
+    - module load gcc-7.1
     - module load pgi-17.4
-    - module list
     - cp /home/wy29/elsi_make_check/check_pgi ./make.sys
     - make
     - make install
@@ -39,10 +31,8 @@ pgi-j1-generic:
 pgi-j8-generic:
   script:
     - module purge
-    - module load intel-mkl-11.1.1
-    - module load intel-mpi-4.1.3
+    - module load gcc-7.1
     - module load pgi-17.4
-    - module list
     - cp /home/wy29/elsi_make_check/check_pgi ./make.sys
     - make -j 8
     - make check
@@ -53,10 +43,7 @@ pgi-j8-generic:
 intel-j1-debug:
   script:
     - module purge
-    - module load intel-mkl-11.1.1
-    - module load intel-mpi-4.1.3
-    - module load intel-compilers-14.0
-    - module list
+    - module load gcc-7.1
     - cp /home/wy29/elsi_make_check/check_intel_debug ./make.sys
     - make
     - make install
@@ -65,10 +52,7 @@ intel-j1-debug:
 intel-j8-debug:
   script:
     - module purge
-    - module load intel-mkl-11.1.1
-    - module load intel-mpi-4.1.3
-    - module load intel-compilers-14.0
-    - module list
+    - module load gcc-7.1
     - cp /home/wy29/elsi_make_check/check_intel_debug ./make.sys
     - make -j 8
     - make check
@@ -79,11 +63,8 @@ intel-j8-debug:
 intel-j8-gpu:
   script:
     - module purge
-    - module load intel-mkl-11.1.1
-    - module load intel-mpi-4.1.3
-    - module load intel-compilers-14.0
+    - module load gcc-7.1
     - module load cuda-8.0
-    - module list
     - cp /home/wy29/elsi_make_check/check_intel_gpu ./make.sys
     - make -j 8
     - make check
@@ -93,10 +74,7 @@ intel-j8-gpu:
 intel-j1-generic:
   script:
     - module purge
-    - module load intel-mkl-11.1.1
-    - module load intel-mpi-4.1.3
-    - module load intel-compilers-14.0
-    - module list
+    - module load gcc-7.1
     - cp /home/wy29/elsi_make_check/check_intel ./make.sys
     - make
     - make install
@@ -105,10 +83,7 @@ intel-j1-generic:
 intel-j8-generic:
   script:
     - module purge
-    - module load intel-mkl-11.1.1
-    - module load intel-mpi-4.1.3
-    - module load intel-compilers-14.0
-    - module list
+    - module load gcc-7.1
     - cp /home/wy29/elsi_make_check/check_intel ./make.sys
     - make -j 8
     - make check
@@ -123,10 +98,7 @@ intel-j8-generic:
 intel-j8-external-linkage:
   script:
     - module purge
-    - module load intel-mkl-11.1.1
-    - module load intel-mpi-4.1.3
-    - module load intel-compilers-14.0
-    - module list
+    - module load gcc-7.1
     - cp /home/wy29/elsi_make_check/check_external ./make.sys
     - make -j 8
     - make install

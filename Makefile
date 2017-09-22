@@ -71,7 +71,11 @@ FFLAGS_P   ?= $(FFLAGS) $(SCALAPACK_INC)
 CFLAGS_P   ?= $(CFLAGS) $(SCALAPACK_INC)
 CXXFLAGS_P ?= $(CXXFLAGS) $(SCALAPACK_INC)
 LINKER     ?= $(MPIFC)
+FLINKER    ?= $(LINKER)
+CLINKER    ?= $(LINKER)
 LDFLAGS    ?= $(FFLAGS_I)
+FLDFLAGS   ?= $(LDFLAGS)
+CLDFLAGS   ?= $(LDFLAGS)
 
 # Default architecture settings
 ELPA_OMP      ?= no
