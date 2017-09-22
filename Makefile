@@ -192,7 +192,10 @@ cleanelsi:
 	@echo ====================
 	@echo = Removing ELSI... =
 	@echo ====================
-	rm -rf $(INC_DIR) $(LIB_DIR) $(BIN_DIR) $(BUILD_DIR)
+	rm -rf $(INC_DIR)
+	rm -rf $(LIB_DIR)
+	rm -rf $(BIN_DIR)
+	rm -rf $(BUILD_DIR)
 	@echo =========
 	@echo = Done. =
 	@echo =========
@@ -201,16 +204,24 @@ cleanelpa:
 	@echo ====================
 	@echo = Removing ELPA... =
 	@echo ====================
-	rm -f $(ELPA_DIR)/*.o $(ELPA_DIR)/*.mod $(ELPA_DIR)/*.a
+	rm -f $(ELPA_DIR)/*.o
+	rm -f $(ELPA_DIR)/*.mod
+	rm -f $(ELPA_DIR)/*.a
 
 cleanomm:
 	@echo ======================
 	@echo = Removing libOMM... =
 	@echo ======================
-	rm -f $(OMM_DIR)/*.o $(OMM_DIR)/*.mod $(OMM_DIR)/*.a
+	rm -f $(OMM_DIR)/*.o
+	rm -f $(OMM_DIR)/*.mod
+	rm -f $(OMM_DIR)/*.a
 
 cleanpexsi:
 	@echo =====================
 	@echo = Removing PEXSI... =
 	@echo =====================
-	rm -f $(PEXSI_DIR)/*.o $(PEXSI_DIR)/*.mod $(PEXSI_DIR)/*.a $(PEXSI_DIR)/*.d $(PEXSI_DIR)/*.d.*
+	rm -f $(PEXSI_DIR)/src/*.o
+	rm -f $(PEXSI_DIR)/src/*.d
+	rm -f $(PEXSI_DIR)/src/*.d.*
+	rm -f $(PEXSI_DIR)/src/*.mod
+	rm -f $(PEXSI_DIR)/src/*.a
