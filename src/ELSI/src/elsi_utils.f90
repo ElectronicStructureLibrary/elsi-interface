@@ -84,9 +84,8 @@ subroutine elsi_stop(info,e_h,caller)
    type(elsi_handle), intent(in) :: e_h    !< Handle
    character(len=*),  intent(in) :: caller !< Caller
 
-   character(len=4096) :: info_str
-   integer :: i_task
-   integer :: mpierr
+   character*800 :: info_str
+   integer       :: mpierr
 
    if(e_h%global_mpi_ready) then
       write(info_str,"(A,I7,5A)") "**Error! MPI task ",e_h%myid_all," in ",&
