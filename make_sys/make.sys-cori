@@ -1,6 +1,6 @@
 # PLATFORM  : CORI @NERSC
 # COMPILERS : INTEL
-# VERIFIED  : AUG 31, 2017
+# VERIFIED  : SEPT 22, 2017
 # DO READ ../INSTALL CAREFULLY!
 
 # ====== ELSI ======
@@ -9,6 +9,7 @@ MPICC         = cc
 MPICXX        = CC
 LINKER        = ftn
 
+# Note: Compile with -xAVX2 for Haswell
 FFLAGS        = -fast -no-ipo -xmic-avx512 -fp-model precise
 CFLAGS        = -fast -no-ipo -xmic-avx512 -fp-model precise
 CXXFLAGS      = -fast -no-ipo -xmic-avx512 -fp-model precise -std=c++11
@@ -19,7 +20,7 @@ CXX_LIB       = -lstdc++
 SCALAPACK_LIB = -mkl=cluster
 
 # ====== ELPA ======
-ELPA2_KERNEL  = AVX2
+ELPA2_KERNEL  = AVX512
 
 # ====== PEXSI ======
 METIS_LIB     = -L/global/homes/v/vwzyu/parmetis-4.0.3/build/Linux-x86_64/libmetis -lmetis

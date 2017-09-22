@@ -1,6 +1,6 @@
 # PLATFORM  : THETA @ALCF
 # COMPILERS : INTEL
-# VERIFIED  : AUG 31, 2017
+# VERIFIED  : SEPT 22, 2017
 # DO READ ../INSTALL CAREFULLY!
 
 # ====== ELSI ======
@@ -19,7 +19,7 @@ CXX_LIB       = -lstdc++
 SCALAPACK_LIB = -mkl=cluster
 
 # ====== ELPA ======
-ELPA2_KERNEL  = AVX2
+ELPA2_KERNEL  = AVX512
 
 # ====== PEXSI ======
 METIS_LIB     = -L/home/huhn/opt/ParMETIS/4.0.3/lib -lmetis

@@ -173,7 +173,7 @@ subroutine elsi_solve_evp_pexsi(e_h)
    complex(kind=r8), allocatable :: send_buf_cmplx(:)
 
    real(kind=r8),    external :: ddot
-!   complex(kind=r8), external :: zdotu
+   complex(kind=r8), external :: zdotu
 
    character*40,  parameter :: caller = "elsi_solve_evp_pexsi"
 
@@ -567,14 +567,8 @@ subroutine elsi_solve_evp_pexsi(e_h)
       case(REAL_VALUES)
          local_energy = ddot(e_h%nnz_l_sp,e_h%ham_real_ccs,1,e_h%dm_real_ccs,1)
       case(COMPLEX_VALUES)
-         ! The following lines are equivalent to "zdotu" in LAPACK,
-         ! which is simple but problematic in some version of LAPACK
-         local_cmplx = (0.0_r8,0.0_r8)
-
-         do i = 1,e_h%nnz_l_sp
-            local_cmplx = local_cmplx+e_h%ham_cmplx_ccs(i)*e_h%dm_cmplx_ccs(i)
-         enddo
-
+         local_cmplx = zdotu(e_h%nnz_l_sp,e_h%ham_cmplx_ccs,1,e_h%dm_cmplx_ccs,&
+                          1)
          local_energy = real(local_cmplx,kind=r8)
       end select
 
