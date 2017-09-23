@@ -69,7 +69,7 @@ subroutine elsi_solve_evp_omm(e_h)
 
    ! Compute sparsity
    if(e_h%n_elsi_calls == 1) then
-      select case(e_h%matrix_data_type)
+      select case(e_h%data_type)
       case(COMPLEX_VALUES)
          call elsi_get_local_nnz_complex(e_h,e_h%ham_omm%zval,e_h%n_l_rows,&
                  e_h%n_l_cols,e_h%nnz_l)
@@ -91,7 +91,7 @@ subroutine elsi_solve_evp_omm(e_h)
             call elsi_get_time(e_h,t0)
 
             ! Cholesky factorization
-            select case(e_h%matrix_data_type)
+            select case(e_h%data_type)
             case(COMPLEX_VALUES)
                ! Compute S = (U^T)U, U -> S
                success = elpa_cholesky_complex_double(e_h%n_basis,&
@@ -126,7 +126,7 @@ subroutine elsi_solve_evp_omm(e_h)
 
          if(e_h%n_elsi_calls > e_h%n_elpa_steps+1) then
             ! Invert one more time
-            select case(e_h%matrix_data_type)
+            select case(e_h%data_type)
             case(COMPLEX_VALUES)
                success = elpa_invert_trm_complex_double(e_h%n_basis,&
                             e_h%ovlp_omm%zval,e_h%n_l_rows,e_h%n_b_rows,&
@@ -158,7 +158,7 @@ subroutine elsi_solve_evp_omm(e_h)
 
    call elsi_say("  Starting OMM density matrix solver",e_h)
 
-   select case(e_h%matrix_data_type)
+   select case(e_h%data_type)
    case(COMPLEX_VALUES)
       call omm(e_h%n_basis,e_h%n_states_omm,e_h%ham_omm,e_h%ovlp_omm,&
               e_h%new_overlap,e_h%energy_hdm,e_h%dm_omm,e_h%calc_ed,e_h%eta,&
@@ -204,7 +204,7 @@ subroutine elsi_compute_edm_omm(e_h)
 
    e_h%calc_ed = .true.
 
-   select case(e_h%matrix_data_type)
+   select case(e_h%data_type)
    case(COMPLEX_VALUES)
       call omm(e_h%n_basis,e_h%n_states_omm,e_h%ham_omm,e_h%ovlp_omm,&
               e_h%new_overlap,e_h%energy_hdm,e_h%dm_omm,e_h%calc_ed,e_h%eta,&

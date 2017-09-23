@@ -178,7 +178,7 @@ subroutine elsi_solve_evp_pexsi(e_h)
    character*40,  parameter :: caller = "elsi_solve_evp_pexsi"
 
    ! Load sparse matrices for PEXSI
-   select case(e_h%matrix_data_type)
+   select case(e_h%data_type)
    case(REAL_VALUES)
       if(e_h%ovlp_is_unit) then
          call f_ppexsi_load_real_hs_matrix(e_h%pexsi_plan,e_h%pexsi_options,&
@@ -215,7 +215,7 @@ subroutine elsi_solve_evp_pexsi(e_h)
    if(e_h%n_elsi_calls == 1) then
       call elsi_get_time(e_h,t0)
 
-      select case(e_h%matrix_data_type)
+      select case(e_h%data_type)
       case(REAL_VALUES)
          call f_ppexsi_symbolic_factorize_real_symmetric_matrix(e_h%pexsi_plan,&
                  e_h%pexsi_options,ierr)
@@ -275,7 +275,7 @@ subroutine elsi_solve_evp_pexsi(e_h)
          shifts(i)   = e_h%pexsi_options%muMin0+(i-1)*shift_width
       enddo
 
-      select case(e_h%matrix_data_type)
+      select case(e_h%data_type)
       case(REAL_VALUES)
          call f_ppexsi_inertia_count_real_matrix(e_h%pexsi_plan,&
                  e_h%pexsi_options,n_shift,shifts,inertias,ierr)
@@ -366,7 +366,7 @@ subroutine elsi_solve_evp_pexsi(e_h)
       e_h%mu = shifts(i)
 
       if(e_h%my_point == i-1) then
-         select case(e_h%matrix_data_type)
+         select case(e_h%data_type)
          case(REAL_VALUES)
             call f_ppexsi_calculate_fermi_operator_real3(e_h%pexsi_plan,&
                     e_h%pexsi_options,e_h%mu,e_h%n_electrons,e_h%ne_pexsi,&
@@ -419,7 +419,7 @@ subroutine elsi_solve_evp_pexsi(e_h)
    ! Get density matrix
    call elsi_get_time(e_h,t0)
 
-   select case(e_h%matrix_data_type)
+   select case(e_h%data_type)
    case(REAL_VALUES)
       call elsi_allocate(e_h,tmp_real,e_h%nnz_l_sp,"tmp_real",caller)
 
@@ -458,7 +458,7 @@ subroutine elsi_solve_evp_pexsi(e_h)
 
    if(e_h%pexsi_options%nPoints == 1) then
       ! Scale density matrix
-      select case(e_h%matrix_data_type)
+      select case(e_h%data_type)
       case(REAL_VALUES)
          tmp_real = (e_h%n_electrons/e_h%ne_pexsi)*tmp_real
       case(COMPLEX_VALUES)
@@ -491,7 +491,7 @@ subroutine elsi_solve_evp_pexsi(e_h)
             e_h%mu = shifts(i)
             converged = .true.
 
-            select case(e_h%matrix_data_type)
+            select case(e_h%data_type)
             case(REAL_VALUES)
                call MPI_Bcast(tmp_real,e_h%nnz_l_sp,mpi_real8,i,&
                        e_h%comm_among_point,mpierr)
@@ -518,7 +518,7 @@ subroutine elsi_solve_evp_pexsi(e_h)
       factor_max = (e_h%n_electrons-e_h%ne_vec(aux_min))/&
                       (e_h%ne_vec(aux_max)-e_h%ne_vec(aux_min))
 
-      select case(e_h%matrix_data_type)
+      select case(e_h%data_type)
       case(REAL_VALUES)
          call elsi_allocate(e_h,send_buf,e_h%nnz_l_sp,"send_buf",caller)
 
@@ -563,7 +563,7 @@ subroutine elsi_solve_evp_pexsi(e_h)
 
    ! Compute energy = Tr(H*DM)
    if(e_h%my_p_row_pexsi == 0) then
-      select case(e_h%matrix_data_type)
+      select case(e_h%data_type)
       case(REAL_VALUES)
          local_energy = ddot(e_h%nnz_l_sp,e_h%ham_real_ccs,1,e_h%dm_real_ccs,1)
       case(COMPLEX_VALUES)
@@ -623,7 +623,7 @@ subroutine elsi_compute_edm_pexsi(e_h)
 
    call elsi_get_time(e_h,t0)
 
-   select case(e_h%matrix_data_type)
+   select case(e_h%data_type)
    case(REAL_VALUES)
       call f_ppexsi_calculate_edm_correction_real(e_h%pexsi_plan,&
               e_h%pexsi_options,ierr)
@@ -637,7 +637,7 @@ subroutine elsi_compute_edm_pexsi(e_h)
    endif
 
    ! Get energy density matrix
-   select case(e_h%matrix_data_type)
+   select case(e_h%data_type)
    case(REAL_VALUES)
       call elsi_allocate(e_h,tmp_real,e_h%nnz_l_sp,"tmp_real",caller)
 
@@ -684,7 +684,7 @@ subroutine elsi_compute_edm_pexsi(e_h)
 
    if(e_h%pexsi_options%nPoints == 1) then
       ! Scale energy density matrix
-      select case(e_h%matrix_data_type)
+      select case(e_h%data_type)
       case(REAL_VALUES)
          tmp_real = (e_h%n_electrons/e_h%ne_pexsi)*tmp_real
       case(COMPLEX_VALUES)
@@ -717,7 +717,7 @@ subroutine elsi_compute_edm_pexsi(e_h)
             e_h%mu = shifts(i)
             converged = .true.
 
-            select case(e_h%matrix_data_type)
+            select case(e_h%data_type)
             case(REAL_VALUES)
                call MPI_Bcast(tmp_real,e_h%nnz_l_sp,mpi_real8,i,&
                        e_h%comm_among_point,mpierr)
@@ -739,7 +739,7 @@ subroutine elsi_compute_edm_pexsi(e_h)
       factor_max = (e_h%n_electrons-e_h%ne_vec(aux_min))/&
                       (e_h%ne_vec(aux_max)-e_h%ne_vec(aux_min))
 
-      select case(e_h%matrix_data_type)
+      select case(e_h%data_type)
       case(REAL_VALUES)
          call elsi_allocate(e_h,send_buf,e_h%nnz_l_sp,"send_buf",caller)
 

@@ -68,7 +68,7 @@ subroutine elsi_to_standard_evp_sp(e_h)
    integer(kind=i4), parameter :: nblk = 128
    character*40,     parameter :: caller = "elsi_to_standard_evp_sp"
 
-   select case(e_h%matrix_data_type)
+   select case(e_h%data_type)
    case(COMPLEX_VALUES)
       if(e_h%n_elsi_calls == 1) then
          if(.not. e_h%no_sing_check) then
@@ -256,7 +256,7 @@ subroutine elsi_to_original_ev_sp(e_h)
 
    call elsi_get_time(e_h,t0)
 
-   select case(e_h%matrix_data_type)
+   select case(e_h%data_type)
    case(COMPLEX_VALUES)
       if(e_h%ovlp_is_sing) then
          call elsi_allocate(e_h,tmp_cmplx,e_h%n_l_rows,e_h%n_l_cols,&
@@ -336,7 +336,7 @@ subroutine elsi_solve_evp_lapack(e_h)
    call elsi_say("  Starting LAPACK eigensolver",e_h)
    call elsi_get_time(e_h,t0)
 
-   select case(e_h%matrix_data_type)
+   select case(e_h%data_type)
    case(COMPLEX_VALUES)
       call elsi_allocate(e_h,off_diag,e_h%n_nonsing,"off_diag",caller)
       call elsi_allocate(e_h,tau_cmplx,e_h%n_nonsing,"tau_cmplx",caller)
@@ -447,7 +447,7 @@ subroutine elsi_check_singularity_sp(e_h)
 
    call elsi_get_time(e_h,t0)
 
-   select case(e_h%matrix_data_type)
+   select case(e_h%data_type)
    case(COMPLEX_VALUES)
       call elsi_allocate(e_h,copy_cmplx,e_h%n_l_rows,e_h%n_l_cols,"copy_cmplx",&
               caller)
@@ -597,7 +597,7 @@ subroutine elsi_check_singularity_sp(e_h)
          e_h%ovlp_is_sing = .false.
          call elsi_say("  Overlap matrix is nonsingular",e_h)
       endif ! Singular overlap?
-   end select ! select matrix_data_type
+   end select
 
    call elsi_get_time(e_h,t1)
 

@@ -33,8 +33,9 @@
 module ELSI_SOLVER
 
    use ELSI_CHESS,     only: elsi_init_chess,elsi_solve_evp_chess
-   use ELSI_CONSTANTS, only: ELPAA,LIBOMM,PEXSI,CHESS,SIPS,REAL_VALUES,&
-                             COMPLEX_VALUES,MULTI_PROC,SINGLE_PROC,UNSET
+   use ELSI_CONSTANTS, only: ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,CHESS_SOLVER,&
+                             SIPS_SOLVER,REAL_VALUES,COMPLEX_VALUES,MULTI_PROC,&
+                             SINGLE_PROC,UNSET
    use ELSI_DATATYPE
    use ELSI_ELPA,      only: elsi_compute_occ_elpa,elsi_compute_dm_elpa,&
                              elsi_solve_evp_elpa
@@ -84,20 +85,20 @@ subroutine elsi_get_energy(e_h,energy)
    character*40, parameter :: caller = "elsi_get_energy"
 
    select case(e_h%solver)
-   case(ELPAA)
+   case(ELPA_SOLVER)
       energy = 0.0_r8
 
       do i_state = 1,e_h%n_states_solve
          energy = energy+e_h%i_weight*e_h%eval(i_state)*&
                      e_h%occ_num(i_state,e_h%i_spin,e_h%i_kpt)
       enddo
-   case(LIBOMM)
+   case(OMM_SOLVER)
       energy = 2.0_r8*e_h%energy_hdm*e_h%i_weight
-   case(PEXSI)
+   case(PEXSI_SOLVER)
       energy = e_h%energy_hdm*e_h%i_weight
-   case(CHESS)
+   case(CHESS_SOLVER)
       energy = e_h%energy_hdm*e_h%i_weight
-   case(SIPS)
+   case(SIPS_SOLVER)
       call elsi_stop(" SIPS not yet implemented.",e_h,caller)
    case default
       call elsi_stop(" Unsupported solver.",e_h,caller)
@@ -139,7 +140,7 @@ subroutine elsi_ev_real(e_h,h_in,s_in,eval_out,evec_out)
    e_h%n_elsi_calls = e_h%n_elsi_calls+1
 
    ! REAL case
-   e_h%matrix_data_type = REAL_VALUES
+   e_h%data_type = REAL_VALUES
 
    ! Safety check
    call elsi_check(e_h,caller)
@@ -147,7 +148,7 @@ subroutine elsi_ev_real(e_h,h_in,s_in,eval_out,evec_out)
    call elsi_print_settings(e_h)
 
    select case(e_h%solver)
-   case(ELPAA)
+   case(ELPA_SOLVER)
       ! Set matrices
       call elsi_set_ham(e_h,h_in)
       call elsi_set_ovlp(e_h,s_in)
@@ -160,13 +161,13 @@ subroutine elsi_ev_real(e_h,h_in,s_in,eval_out,evec_out)
       else ! MULTI_PROC
          call elsi_solve_evp_elpa(e_h)
       endif
-   case(LIBOMM)
+   case(OMM_SOLVER)
       call elsi_stop(" LIBOMM is not an eigensolver.",e_h,caller)
-   case(PEXSI)
+   case(PEXSI_SOLVER)
       call elsi_stop(" PEXSI is not an eigensolver.",e_h,caller)
-   case(CHESS)
+   case(CHESS_SOLVER)
       call elsi_stop(" CHESS is not an eigensolver.",e_h,caller)
-   case(SIPS)
+   case(SIPS_SOLVER)
       ! Initialize SIPs
       call elsi_init_sips(e_h)
 
@@ -194,7 +195,7 @@ subroutine elsi_ev_real(e_h,h_in,s_in,eval_out,evec_out)
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
-   e_h%matrix_data_type = UNSET
+   e_h%data_type = UNSET
 
 end subroutine
 
@@ -221,7 +222,7 @@ subroutine elsi_ev_complex(e_h,h_in,s_in,eval_out,evec_out)
    e_h%n_elsi_calls = e_h%n_elsi_calls+1
 
    ! COMPLEX case
-   e_h%matrix_data_type = COMPLEX_VALUES
+   e_h%data_type = COMPLEX_VALUES
 
    ! Safety check
    call elsi_check(e_h,caller)
@@ -229,7 +230,7 @@ subroutine elsi_ev_complex(e_h,h_in,s_in,eval_out,evec_out)
    call elsi_print_settings(e_h)
 
    select case(e_h%solver)
-   case(ELPAA)
+   case(ELPA_SOLVER)
       ! Set matrices
       call elsi_set_ham(e_h,h_in)
       call elsi_set_ovlp(e_h,s_in)
@@ -242,19 +243,19 @@ subroutine elsi_ev_complex(e_h,h_in,s_in,eval_out,evec_out)
       else ! MULTI_PROC
          call elsi_solve_evp_elpa(e_h)
       endif
-   case(LIBOMM)
+   case(OMM_SOLVER)
       call elsi_stop(" LIBOMM is not an eigensolver.",e_h,caller)
-   case(PEXSI)
+   case(PEXSI_SOLVER)
       call elsi_stop(" PEXSI is not an eigensolver.",e_h,caller)
-   case(CHESS)
+   case(CHESS_SOLVER)
       call elsi_stop(" CHESS is not an eigensolver.",e_h,caller)
-   case(SIPS)
+   case(SIPS_SOLVER)
       call elsi_stop(" SIPS not yet implemented.",e_h,caller)
    case default
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
-   e_h%matrix_data_type = UNSET
+   e_h%data_type = UNSET
 
 end subroutine
 
@@ -281,7 +282,7 @@ subroutine elsi_ev_real_sparse(e_h,h_in,s_in,eval_out,evec_out)
    e_h%n_elsi_calls = e_h%n_elsi_calls+1
 
    ! REAL case
-   e_h%matrix_data_type = REAL_VALUES
+   e_h%data_type = REAL_VALUES
 
    ! Safety check
    call elsi_check(e_h,caller)
@@ -289,7 +290,7 @@ subroutine elsi_ev_real_sparse(e_h,h_in,s_in,eval_out,evec_out)
    call elsi_print_settings(e_h)
 
    select case(e_h%solver)
-   case(ELPAA)
+   case(ELPA_SOLVER)
       ! Convert 1D CSC to 2D dense
       call elsi_sips_to_blacs_hs(e_h,h_in,s_in)
 
@@ -301,19 +302,19 @@ subroutine elsi_ev_real_sparse(e_h,h_in,s_in,eval_out,evec_out)
 
       ! Solve
       call elsi_solve_evp_elpa(e_h)
-   case(LIBOMM)
+   case(OMM_SOLVER)
       call elsi_stop(" LIBOMM is not an eigensolver.",e_h,caller)
-   case(PEXSI)
+   case(PEXSI_SOLVER)
       call elsi_stop(" PEXSI is not an eigensolver.",e_h,caller)
-   case(CHESS)
+   case(CHESS_SOLVER)
       call elsi_stop(" CHESS is not an eigensolver.",e_h,caller)
-   case(SIPS) ! TODO
+   case(SIPS_SOLVER) ! TODO
       call elsi_stop(" SIPS not yet implemented.",e_h,caller)
    case default
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
-   e_h%matrix_data_type = UNSET
+   e_h%data_type = UNSET
 
 end subroutine
 
@@ -340,7 +341,7 @@ subroutine elsi_ev_complex_sparse(e_h,h_in,s_in,eval_out,evec_out)
    e_h%n_elsi_calls = e_h%n_elsi_calls+1
 
    ! REAL case
-   e_h%matrix_data_type = COMPLEX_VALUES
+   e_h%data_type = COMPLEX_VALUES
 
    ! Safety check
    call elsi_check(e_h,caller)
@@ -348,7 +349,7 @@ subroutine elsi_ev_complex_sparse(e_h,h_in,s_in,eval_out,evec_out)
    call elsi_print_settings(e_h)
 
    select case(e_h%solver)
-   case(ELPAA)
+   case(ELPA_SOLVER)
       ! Convert 1D CSC to 2D dense
       call elsi_sips_to_blacs_hs(e_h,h_in,s_in)
 
@@ -360,19 +361,19 @@ subroutine elsi_ev_complex_sparse(e_h,h_in,s_in,eval_out,evec_out)
 
       ! Solve
       call elsi_solve_evp_elpa(e_h)
-   case(LIBOMM)
+   case(OMM_SOLVER)
       call elsi_stop(" LIBOMM is not an eigensolver.",e_h,caller)
-   case(PEXSI)
+   case(PEXSI_SOLVER)
       call elsi_stop(" PEXSI is not an eigensolver.",e_h,caller)
-   case(CHESS)
+   case(CHESS_SOLVER)
       call elsi_stop(" CHESS is not an eigensolver.",e_h,caller)
-   case(SIPS)
+   case(SIPS_SOLVER)
       call elsi_stop(" SIPS not yet implemented.",e_h,caller)
    case default
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
-   e_h%matrix_data_type = UNSET
+   e_h%data_type = UNSET
 
 end subroutine
 
@@ -398,7 +399,7 @@ subroutine elsi_dm_real(e_h,h_in,s_in,d_out,energy_out)
    e_h%n_elsi_calls = e_h%n_elsi_calls+1
 
    ! REAL case
-   e_h%matrix_data_type = REAL_VALUES
+   e_h%data_type = REAL_VALUES
 
    ! Safety check
    call elsi_check(e_h,caller)
@@ -406,7 +407,7 @@ subroutine elsi_dm_real(e_h,h_in,s_in,d_out,energy_out)
    call elsi_print_settings(e_h)
 
    select case(e_h%solver)
-   case(ELPAA)
+   case(ELPA_SOLVER)
       ! Allocate
       if(.not. allocated(e_h%eval_elpa)) then
          call elsi_allocate(e_h,e_h%eval_elpa,e_h%n_basis,"eval_elpa",caller)
@@ -432,7 +433,7 @@ subroutine elsi_dm_real(e_h,h_in,s_in,d_out,energy_out)
       call elsi_get_energy(e_h,energy_out)
 
       e_h%mu_ready = .true.
-   case(LIBOMM)
+   case(OMM_SOLVER)
       if(e_h%n_elsi_calls <= e_h%n_elpa_steps) then
          if(e_h%n_elsi_calls == 1 .and. e_h%omm_flavor == 0) then
             ! Overlap will be destroyed by Cholesky
@@ -442,7 +443,7 @@ subroutine elsi_dm_real(e_h,h_in,s_in,d_out,energy_out)
          endif
 
          ! Compute libOMM initial guess by ELPA
-         e_h%solver = ELPAA
+         e_h%solver = ELPA_SOLVER
 
          ! Allocate
          if(.not. allocated(e_h%eval_elpa)) then
@@ -469,7 +470,7 @@ subroutine elsi_dm_real(e_h,h_in,s_in,d_out,energy_out)
          call elsi_get_energy(e_h,energy_out)
 
          ! Switch back to libOMM
-         e_h%solver = LIBOMM
+         e_h%solver = OMM_SOLVER
       else ! ELPA is done
          if(allocated(e_h%ovlp_real_omm)) then
             ! Retrieve overlap matrix that has been destroyed by Cholesky
@@ -536,7 +537,7 @@ subroutine elsi_dm_real(e_h,h_in,s_in,d_out,energy_out)
          e_h%dm_omm%dval = 2.0_r8*e_h%dm_omm%dval
          call elsi_get_energy(e_h,energy_out)
       endif
-   case(PEXSI)
+   case(PEXSI_SOLVER)
       ! Initialize PEXSI
       call elsi_init_pexsi(e_h)
 
@@ -568,7 +569,7 @@ subroutine elsi_dm_real(e_h,h_in,s_in,d_out,energy_out)
       call elsi_get_energy(e_h,energy_out)
 
       e_h%mu_ready = .true.
-   case(CHESS)
+   case(CHESS_SOLVER)
       ! Convert 2D dense to non-distributed CSC
       if(.not. e_h%ovlp_is_unit .and. e_h%n_elsi_calls == 1) then
          call elsi_set_full_mat(e_h,s_in)
@@ -592,13 +593,13 @@ subroutine elsi_dm_real(e_h,h_in,s_in,d_out,energy_out)
       call elsi_get_energy(e_h,energy_out)
 
       e_h%mu_ready = .true.
-   case(SIPS)
+   case(SIPS_SOLVER)
       call elsi_stop(" SIPS not yet implemented.",e_h,caller)
    case default
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
-   e_h%matrix_data_type = UNSET
+   e_h%data_type = UNSET
    e_h%edm_ready_real = .true.
 
 end subroutine
@@ -625,7 +626,7 @@ subroutine elsi_dm_complex(e_h,h_in,s_in,d_out,energy_out)
    e_h%n_elsi_calls = e_h%n_elsi_calls+1
 
    ! COMPLEX case
-   e_h%matrix_data_type = COMPLEX_VALUES
+   e_h%data_type = COMPLEX_VALUES
 
    ! Safety check
    call elsi_check(e_h,caller)
@@ -633,7 +634,7 @@ subroutine elsi_dm_complex(e_h,h_in,s_in,d_out,energy_out)
    call elsi_print_settings(e_h)
 
    select case(e_h%solver)
-   case(ELPAA)
+   case(ELPA_SOLVER)
       ! Allocate
       if(.not. allocated(e_h%eval_elpa)) then
          call elsi_allocate(e_h,e_h%eval_elpa,e_h%n_basis,"eval_elpa",caller)
@@ -659,7 +660,7 @@ subroutine elsi_dm_complex(e_h,h_in,s_in,d_out,energy_out)
       call elsi_get_energy(e_h,energy_out)
 
       e_h%mu_ready = .true.
-   case(LIBOMM)
+   case(OMM_SOLVER)
       if(e_h%n_elsi_calls <= e_h%n_elpa_steps) then
          if(e_h%n_elsi_calls == 1 .and. e_h%omm_flavor == 0) then
             ! Overlap will be destroyed by Cholesky
@@ -669,7 +670,7 @@ subroutine elsi_dm_complex(e_h,h_in,s_in,d_out,energy_out)
          endif
 
          ! Compute libOMM initial guess by ELPA
-         e_h%solver = ELPAA
+         e_h%solver = ELPA_SOLVER
 
          ! Allocate
          if(.not. allocated(e_h%eval_elpa)) then
@@ -696,7 +697,7 @@ subroutine elsi_dm_complex(e_h,h_in,s_in,d_out,energy_out)
          call elsi_get_energy(e_h,energy_out)
 
          ! Switch back to libOMM
-         e_h%solver = LIBOMM
+         e_h%solver = OMM_SOLVER
       else ! ELPA is done
          if(allocated(e_h%ovlp_cmplx_omm)) then
             ! Retrieve overlap matrix that has been destroyed by Cholesky
@@ -764,7 +765,7 @@ subroutine elsi_dm_complex(e_h,h_in,s_in,d_out,energy_out)
          e_h%dm_omm%zval = 2.0_r8*e_h%dm_omm%zval
          call elsi_get_energy(e_h,energy_out)
       endif
-   case(PEXSI)
+   case(PEXSI_SOLVER)
       ! Initialize PEXSI
       call elsi_init_pexsi(e_h)
 
@@ -796,15 +797,15 @@ subroutine elsi_dm_complex(e_h,h_in,s_in,d_out,energy_out)
       call elsi_get_energy(e_h,energy_out)
 
       e_h%mu_ready = .true.
-   case(CHESS)
+   case(CHESS_SOLVER)
       call elsi_stop(" CHESS not yet implemented.",e_h,caller)
-   case(SIPS)
+   case(SIPS_SOLVER)
       call elsi_stop(" SIPS not yet implemented.",e_h,caller)
    case default
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
-   e_h%matrix_data_type = UNSET
+   e_h%data_type = UNSET
    e_h%edm_ready_cmplx = .true.
 
 end subroutine
@@ -831,7 +832,7 @@ subroutine elsi_dm_real_sparse(e_h,h_in,s_in,d_out,energy_out)
    e_h%n_elsi_calls = e_h%n_elsi_calls+1
 
    ! REAL case
-   e_h%matrix_data_type = REAL_VALUES
+   e_h%data_type = REAL_VALUES
 
    ! Safety check
    call elsi_check(e_h,caller)
@@ -839,7 +840,7 @@ subroutine elsi_dm_real_sparse(e_h,h_in,s_in,d_out,energy_out)
    call elsi_print_settings(e_h)
 
    select case(e_h%solver)
-   case(ELPAA)
+   case(ELPA_SOLVER)
       ! Set up BLACS if not done by user
       if(.not. e_h%blacs_ready) then
          call elsi_init_blacs(e_h)
@@ -878,7 +879,7 @@ subroutine elsi_dm_real_sparse(e_h,h_in,s_in,d_out,energy_out)
       call elsi_get_energy(e_h,energy_out)
 
       e_h%mu_ready = .true.
-   case(LIBOMM)
+   case(OMM_SOLVER)
       ! Set up BLACS if not done by user
       if(.not. e_h%blacs_ready) then
          call elsi_init_blacs(e_h)
@@ -896,7 +897,7 @@ subroutine elsi_dm_real_sparse(e_h,h_in,s_in,d_out,energy_out)
          endif
 
          ! Compute libOMM initial guess by ELPA
-         e_h%solver = ELPAA
+         e_h%solver = ELPA_SOLVER
 
          ! Allocate
          if(.not. allocated(e_h%eval_elpa)) then
@@ -928,7 +929,7 @@ subroutine elsi_dm_real_sparse(e_h,h_in,s_in,d_out,energy_out)
          call elsi_get_energy(e_h,energy_out)
 
          ! Switch back to libOMM
-         e_h%solver = LIBOMM
+         e_h%solver = OMM_SOLVER
       else ! ELPA is done
          if(allocated(e_h%ovlp_real_omm)) then
             ! Retrieve overlap matrix that has been destroyed by Cholesky
@@ -994,7 +995,7 @@ subroutine elsi_dm_real_sparse(e_h,h_in,s_in,d_out,energy_out)
          call elsi_blacs_to_sips_dm(e_h,d_out)
          call elsi_get_energy(e_h,energy_out)
       endif
-   case(PEXSI)
+   case(PEXSI_SOLVER)
       ! Set matrices
       call elsi_set_sparse_ham(e_h,h_in)
       call elsi_set_sparse_ovlp(e_h,s_in)
@@ -1009,15 +1010,15 @@ subroutine elsi_dm_real_sparse(e_h,h_in,s_in,d_out,energy_out)
       call elsi_get_energy(e_h,energy_out)
 
       e_h%mu_ready = .true.
-   case(CHESS) ! TODO
+   case(CHESS_SOLVER) ! TODO
       call elsi_stop(" CHESS not yet implemented.",e_h,caller)
-   case(SIPS)
+   case(SIPS_SOLVER)
       call elsi_stop(" SIPS not yet implemented.",e_h,caller)
    case default
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
-   e_h%matrix_data_type = UNSET
+   e_h%data_type = UNSET
    e_h%edm_ready_real = .true.
 
 end subroutine
@@ -1044,7 +1045,7 @@ subroutine elsi_dm_complex_sparse(e_h,h_in,s_in,d_out,energy_out)
    e_h%n_elsi_calls = e_h%n_elsi_calls+1
 
    ! REAL case
-   e_h%matrix_data_type = COMPLEX_VALUES
+   e_h%data_type = COMPLEX_VALUES
 
    ! Safety check
    call elsi_check(e_h,caller)
@@ -1052,7 +1053,7 @@ subroutine elsi_dm_complex_sparse(e_h,h_in,s_in,d_out,energy_out)
    call elsi_print_settings(e_h)
 
    select case(e_h%solver)
-   case(ELPAA)
+   case(ELPA_SOLVER)
       ! Set up BLACS if not done by user
       if(.not. e_h%blacs_ready) then
          call elsi_init_blacs(e_h)
@@ -1091,7 +1092,7 @@ subroutine elsi_dm_complex_sparse(e_h,h_in,s_in,d_out,energy_out)
       call elsi_get_energy(e_h,energy_out)
 
       e_h%mu_ready = .true.
-   case(LIBOMM)
+   case(OMM_SOLVER)
       ! Set up BLACS if not done by user
       if(.not. e_h%blacs_ready) then
          call elsi_init_blacs(e_h)
@@ -1109,7 +1110,7 @@ subroutine elsi_dm_complex_sparse(e_h,h_in,s_in,d_out,energy_out)
          endif
 
          ! Compute libOMM initial guess by ELPA
-         e_h%solver = ELPAA
+         e_h%solver = ELPA_SOLVER
 
          ! Allocate
          if(.not. allocated(e_h%eval_elpa)) then
@@ -1141,7 +1142,7 @@ subroutine elsi_dm_complex_sparse(e_h,h_in,s_in,d_out,energy_out)
          call elsi_get_energy(e_h,energy_out)
 
          ! Switch back to libOMM
-         e_h%solver = LIBOMM
+         e_h%solver = OMM_SOLVER
       else ! ELPA is done
          if(allocated(e_h%ovlp_cmplx_omm)) then
             ! Retrieve overlap matrix that has been destroyed by Cholesky
@@ -1208,7 +1209,7 @@ subroutine elsi_dm_complex_sparse(e_h,h_in,s_in,d_out,energy_out)
          call elsi_blacs_to_sips_dm(e_h,d_out)
          call elsi_get_energy(e_h,energy_out)
       endif
-   case(PEXSI)
+   case(PEXSI_SOLVER)
       ! Set matrices
       call elsi_set_sparse_ham(e_h,h_in)
       call elsi_set_sparse_ovlp(e_h,s_in)
@@ -1223,15 +1224,15 @@ subroutine elsi_dm_complex_sparse(e_h,h_in,s_in,d_out,energy_out)
       call elsi_get_energy(e_h,energy_out)
 
       e_h%mu_ready = .true.
-   case(CHESS)
+   case(CHESS_SOLVER)
       call elsi_stop(" CHESS not yet implemented.",e_h,caller)
-   case(SIPS)
+   case(SIPS_SOLVER)
       call elsi_stop(" SIPS not yet implemented.",e_h,caller)
    case default
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
-   e_h%matrix_data_type = UNSET
+   e_h%data_type = UNSET
    e_h%edm_ready_cmplx = .true.
 
 end subroutine
@@ -1280,7 +1281,7 @@ subroutine elsi_init_blacs(e_h)
       enddo
 
       ! ELPA works better with a small block_size
-      if(e_h%solver == ELPAA) then
+      if(e_h%solver == ELPA_SOLVER) then
          block_size = min(32,block_size)
       endif
 
@@ -1303,7 +1304,7 @@ subroutine elsi_print_settings(e_h)
    character*40, parameter :: caller = "elsi_print_settings"
 
    select case(e_h%solver)
-   case(CHESS)
+   case(CHESS_SOLVER)
       call elsi_say("  CheSS settings:",e_h)
 
       write(info_str,"('  | Error function decay length ',E10.2)") e_h%erf_decay
@@ -1332,12 +1333,12 @@ subroutine elsi_print_settings(e_h)
       write(info_str,"('  | Upper bound of S eigenvalue ',E10.2)") &
          e_h%ev_ovlp_max
       call elsi_say(info_str,e_h)
-   case(ELPAA)
+   case(ELPA_SOLVER)
       call elsi_say("  ELPA settings:",e_h)
 
       write(info_str,"('  | ELPA solver ',I10)") e_h%elpa_solver
       call elsi_say(info_str,e_h)
-   case(LIBOMM)
+   case(OMM_SOLVER)
       call elsi_say("  libOMM settings:",e_h)
 
       write(info_str,"('  | Number of ELPA steps       ',I10)") e_h%n_elpa_steps
@@ -1348,7 +1349,7 @@ subroutine elsi_print_settings(e_h)
 
       write(info_str,"('  | OMM minimization tolerance ',E10.2)") e_h%min_tol
       call elsi_say(info_str,e_h)
-   case(PEXSI)
+   case(PEXSI_SOLVER)
       call elsi_say("  PEXSI settings:",e_h)
 
       write(info_str,"('  | Electron temperature       ',E10.2)")&
@@ -1386,7 +1387,7 @@ subroutine elsi_print_settings(e_h)
       write(info_str,"('  | MPI tasks for symbolic     ',I10)")&
          e_h%pexsi_options%npSymbFact
       call elsi_say(info_str,e_h)
-   case(SIPS)
+   case(SIPS_SOLVER)
       write(info_str,"('  SIPs settings:')")
 
       write(info_str,"('  | Slicing method            ',I10)")&

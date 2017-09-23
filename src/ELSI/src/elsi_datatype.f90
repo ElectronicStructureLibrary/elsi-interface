@@ -125,13 +125,13 @@ module ELSI_DATATYPE
       ! Is this a valid handle?
       logical :: handle_ready = .false.
 
-      ! Solver (AUTO=0,ELPA=1,LIBOMM=2,PEXSI=3,CHESS=4,SIPS=5)
+      ! Solver (AUTO=0,ELPA=1,OMM=2,PEXSI=3,CHESS=4,SIPS=5)
       integer(kind=i4) :: solver
 
       ! Real or complex data (REAL_VALUES=0,COMPLEX_VALUES=1)
-      integer(kind=i4) :: matrix_data_type
+      integer(kind=i4) :: data_type
 
-      ! Matrix storage format (BLACS_DENSE=0,PEXSI_CSC=1)
+      ! Matrix format (BLACS_DENSE=0,PEXSI_CSC=1)
       integer(kind=i4) :: matrix_format
 
       ! Is input matrix triangular? (FULL_MAT=0,UT_MAT=1,LT_MAT=2)
@@ -139,6 +139,9 @@ module ELSI_DATATYPE
 
       ! Parallel mode (SINGLE_PROC=0,MULTI_PROC=1)
       integer(kind=i4) :: parallel_mode
+
+      ! File format (DENSE_FILE=0,CSC_FILE=1)
+      integer(kind=i4) :: file_format
 
       ! Output
       logical :: print_info

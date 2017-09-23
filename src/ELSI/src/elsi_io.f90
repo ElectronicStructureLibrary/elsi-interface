@@ -32,7 +32,7 @@ module ELSI_IO
 
    use, intrinsic :: ISO_C_BINDING
    use ELSI_CONSTANTS, only: HEADER_SIZE,IO_FORMAT,BLACS_DENSE,PEXSI_CSC,&
-                             REAL_VALUES,COMPLEX_VALUES,ELPAA
+                             REAL_VALUES,COMPLEX_VALUES
    use ELSI_DATATYPE
    use ELSI_MALLOC
    use ELSI_MATCONV,   only: elsi_pexsi_to_blacs_dm,elsi_blacs_to_sips_hs
@@ -166,7 +166,7 @@ subroutine elsi_read_mat_dim_sparse(f_name,mpi_comm,n_electron,n_basis,nnz_g,&
       call elsi_io_stop(" File does not exist.",caller)
    endif
 
-   call elsi_init(io_h,ELPAA,MULTI_PROC,BLACS_DENSE,n_basis,0.0_r8,0)
+   call elsi_init(io_h,ELPA_SOLVER,MULTI_PROC,BLACS_DENSE,n_basis,0.0_r8,0)
    call elsi_set_mpi(io_h,mpi_comm)
 
    ! Open file
@@ -266,7 +266,7 @@ subroutine elsi_read_mat_real(f_name,mpi_comm,blacs_ctxt,block_size,n_basis,&
       call elsi_io_stop(" File does not exist.",caller)
    endif
 
-   call elsi_init(io_h,ELPAA,MULTI_PROC,BLACS_DENSE,n_basis,0.0_r8,0)
+   call elsi_init(io_h,ELPA_SOLVER,MULTI_PROC,BLACS_DENSE,n_basis,0.0_r8,0)
    call elsi_set_mpi(io_h,mpi_comm)
    call elsi_set_blacs(io_h,blacs_ctxt,block_size)
    call elsi_get_time(io_h,t0)
@@ -398,7 +398,7 @@ subroutine elsi_read_mat_real_sparse(f_name,mpi_comm,n_basis,nnz_g,nnz_l,&
       call elsi_io_stop(" File does not exist.",caller)
    endif
 
-   call elsi_init(io_h,ELPAA,MULTI_PROC,BLACS_DENSE,n_basis,0.0_r8,0)
+   call elsi_init(io_h,ELPA_SOLVER,MULTI_PROC,BLACS_DENSE,n_basis,0.0_r8,0)
    call elsi_set_mpi(io_h,mpi_comm)
    call elsi_get_time(io_h,t0)
 
@@ -495,7 +495,7 @@ subroutine elsi_read_mat_complex(f_name,mpi_comm,blacs_ctxt,block_size,n_basis,&
       call elsi_io_stop(" File does not exist.",caller)
    endif
 
-   call elsi_init(io_h,ELPAA,MULTI_PROC,BLACS_DENSE,n_basis,0.0_r8,0)
+   call elsi_init(io_h,ELPA_SOLVER,MULTI_PROC,BLACS_DENSE,n_basis,0.0_r8,0)
    call elsi_set_mpi(io_h,mpi_comm)
    call elsi_set_blacs(io_h,blacs_ctxt,block_size)
    call elsi_get_time(io_h,t0)
@@ -627,7 +627,7 @@ subroutine elsi_read_mat_complex_sparse(f_name,mpi_comm,n_basis,nnz_g,nnz_l,&
       call elsi_io_stop(" File does not exist.",caller)
    endif
 
-   call elsi_init(io_h,ELPAA,MULTI_PROC,BLACS_DENSE,n_basis,0.0_r8,0)
+   call elsi_init(io_h,ELPA_SOLVER,MULTI_PROC,BLACS_DENSE,n_basis,0.0_r8,0)
    call elsi_set_mpi(io_h,mpi_comm)
    call elsi_get_time(io_h,t0)
 
@@ -713,7 +713,7 @@ subroutine elsi_write_mat_real(f_name,mpi_comm,blacs_ctxt,block_size,&
 
    character*40, parameter :: caller = "elsi_write_mat_real"
 
-   call elsi_init(io_h,ELPAA,MULTI_PROC,BLACS_DENSE,n_basis,0.0_r8,0)
+   call elsi_init(io_h,ELPA_SOLVER,MULTI_PROC,BLACS_DENSE,n_basis,0.0_r8,0)
    call elsi_set_mpi(io_h,mpi_comm)
    call elsi_set_blacs(io_h,blacs_ctxt,block_size)
    call elsi_get_time(io_h,t0)
@@ -826,7 +826,7 @@ subroutine elsi_write_mat_complex(f_name,mpi_comm,blacs_ctxt,block_size,&
 
    character*40, parameter :: caller = "elsi_write_mat_complex"
 
-   call elsi_init(io_h,ELPAA,MULTI_PROC,BLACS_DENSE,n_basis,0.0_r8,0)
+   call elsi_init(io_h,ELPA_SOLVER,MULTI_PROC,BLACS_DENSE,n_basis,0.0_r8,0)
    call elsi_set_mpi(io_h,mpi_comm)
    call elsi_set_blacs(io_h,blacs_ctxt,block_size)
    call elsi_get_time(io_h,t0)
@@ -940,7 +940,7 @@ subroutine elsi_write_mat_real_sparse(f_name,mpi_comm,n_electron,n_basis,nnz_g,&
 
    character*40, parameter :: caller = "elsi_write_mat_real_sparse"
 
-   call elsi_init(io_h,ELPAA,MULTI_PROC,BLACS_DENSE,n_basis,0.0_r8,0)
+   call elsi_init(io_h,ELPA_SOLVER,MULTI_PROC,BLACS_DENSE,n_basis,0.0_r8,0)
    call elsi_set_mpi(io_h,mpi_comm)
    call elsi_get_time(io_h,t0)
 
@@ -1045,7 +1045,7 @@ subroutine elsi_write_mat_complex_sparse(f_name,mpi_comm,n_electron,n_basis,&
 
    character*40, parameter :: caller = "elsi_write_mat_complex_sparse"
 
-   call elsi_init(io_h,ELPAA,MULTI_PROC,BLACS_DENSE,n_basis,0.0_r8,0)
+   call elsi_init(io_h,ELPA_SOLVER,MULTI_PROC,BLACS_DENSE,n_basis,0.0_r8,0)
    call elsi_set_mpi(io_h,mpi_comm)
    call elsi_get_time(io_h,t0)
 

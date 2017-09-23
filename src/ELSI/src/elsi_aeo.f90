@@ -186,7 +186,7 @@ subroutine elsi_compute_dm_elpa(e_h)
       endif
    enddo
 
-   select case(e_h%matrix_data_type)
+   select case(e_h%data_type)
    case(REAL_VALUES)
       e_h%ham_real = e_h%evec_real
 
@@ -317,7 +317,7 @@ subroutine elsi_compute_edm_elpa(e_h)
       endif
    enddo
 
-   select case(e_h%matrix_data_type)
+   select case(e_h%data_type)
    case(REAL_VALUES)
       call elsi_allocate(e_h,tmp_real,e_h%n_l_rows,e_h%n_l_cols,"tmp_real",&
               caller)
@@ -439,7 +439,7 @@ subroutine elsi_to_standard_evp(e_h)
 
    character*40, parameter :: caller = "elsi_to_standard_evp"
 
-   select case(e_h%matrix_data_type)
+   select case(e_h%data_type)
    case(COMPLEX_VALUES)
       if(e_h%n_elsi_calls == 1) then
          if(.not. e_h%no_sing_check) then
@@ -703,7 +703,7 @@ subroutine elsi_check_singularity(e_h)
       call elsi_stop(" ELPA setup failed.",e_h,caller)
    endif
 
-   select case(e_h%matrix_data_type)
+   select case(e_h%data_type)
    case(COMPLEX_VALUES)
       call elsi_allocate(e_h,copy_cmplx,e_h%n_l_rows,e_h%n_l_cols,"copy_cmplx",&
               caller)
@@ -812,7 +812,7 @@ subroutine elsi_check_singularity(e_h)
          e_h%ovlp_is_sing = .false.
          call elsi_say("  Overlap matrix is nonsingular",e_h)
       endif ! Singular overlap?
-   end select ! select matrix_data_type
+   end select
 
    call elsi_get_time(e_h,t1)
 
@@ -845,7 +845,7 @@ subroutine elsi_to_original_ev(e_h)
 
    call elsi_get_time(e_h,t0)
 
-   select case(e_h%matrix_data_type)
+   select case(e_h%data_type)
    case(COMPLEX_VALUES)
       call elsi_allocate(e_h,tmp_cmplx,e_h%n_l_rows,e_h%n_l_cols,"tmp_cmplx",&
               caller)
@@ -950,7 +950,7 @@ subroutine elsi_solve_evp_elpa(e_h)
    if(e_h%n_elsi_calls <= e_h%n_single_steps) then
       call elsi_say("  Starting ELPA eigensolver (single precision)",e_h)
 
-      select case(e_h%matrix_data_type)
+      select case(e_h%data_type)
       case(COMPLEX_VALUES)
          ! Convert to single precision
          call elsi_allocate(e_h,eval_single,e_h%n_basis,"eval_single",caller)
@@ -1003,7 +1003,7 @@ subroutine elsi_solve_evp_elpa(e_h)
    else ! No single precision
       call elsi_say("  Starting ELPA eigensolver",e_h)
 
-      select case(e_h%matrix_data_type)
+      select case(e_h%data_type)
       case(COMPLEX_VALUES)
          if(e_h%elpa_solver == 2) then
             success = elpa_solve_evp_complex_2stage_double(e_h%n_nonsing,&

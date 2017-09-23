@@ -126,10 +126,11 @@ subroutine elsi_reset_handle(e_h)
 
    e_h%handle_ready     = .false.
    e_h%solver           = UNSET
-   e_h%matrix_data_type = UNSET
+   e_h%data_type        = UNSET
    e_h%matrix_format    = UNSET
    e_h%uplo             = FULL_MAT
    e_h%parallel_mode    = UNSET
+   e_h%file_format      = UNSET
    e_h%print_info       = .false.
    e_h%print_mem        = .false.
    e_h%print_unit       = 6
@@ -261,7 +262,7 @@ subroutine elsi_check(e_h,caller)
       call elsi_stop(" Unsupported parallel mode.",e_h,caller)
    endif
 
-   if(e_h%matrix_data_type < 0 .or. e_h%matrix_data_type >= 2) then
+   if(e_h%data_type < 0 .or. e_h%data_type >= 2) then
       call elsi_stop(" Unsupported matirx data type.",e_h,caller)
    endif
 
@@ -316,14 +317,14 @@ subroutine elsi_check(e_h,caller)
    select case(e_h%solver)
    case(AUTO)
       call elsi_stop(" Solver auto-selection not yet available.",e_h,caller)
-   case(ELPAA)
+   case(ELPA_SOLVER)
       ! Nothing
-   case(LIBOMM)
+   case(OMM_SOLVER)
       if(e_h%parallel_mode /= MULTI_PROC) then
          call elsi_stop(" libOMM solver requires MULTI_PROC parallel mode.",&
                  e_h,caller)
       endif
-   case(PEXSI)
+   case(PEXSI_SOLVER)
       if(e_h%parallel_mode /= MULTI_PROC) then
          call elsi_stop(" PEXSI solver requires MULTI_PROC parallel mode.",e_h,&
                  caller)
@@ -355,7 +356,7 @@ subroutine elsi_check(e_h,caller)
                     " small for the total number of MPI tasks.",e_h,caller)
          endif
       endif
-   case(CHESS)
+   case(CHESS_SOLVER)
       call elsi_say("  ATTENTION! CheSS is EXPERIMENTAL.",e_h)
 
       if(e_h%n_basis < e_h%n_procs) then
@@ -372,7 +373,7 @@ subroutine elsi_check(e_h,caller)
          call elsi_stop(" CheSS solver with an identity overlap matrix not"//&
                  " yet available.",e_h,caller)
       endif
-   case(SIPS)
+   case(SIPS_SOLVER)
       call elsi_say("  ATTENTION! SIPs is EXPERIMENTAL.",e_h)
 
       if(e_h%n_basis < e_h%n_procs) then

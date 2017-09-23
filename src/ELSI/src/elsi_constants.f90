@@ -44,19 +44,23 @@ module ELSI_CONSTANTS
 
    ! Method names
    integer(kind=i4), parameter :: AUTO   = 0
-   integer(kind=i4), parameter :: ELPAA  = 1 ! "ELPA" conflicts with a module
-   integer(kind=i4), parameter :: LIBOMM = 2
-   integer(kind=i4), parameter :: PEXSI  = 3
-   integer(kind=i4), parameter :: CHESS  = 4
-   integer(kind=i4), parameter :: SIPS   = 5
+   integer(kind=i4), parameter :: ELPA_SOLVER  = 1
+   integer(kind=i4), parameter :: OMM_SOLVER   = 2
+   integer(kind=i4), parameter :: PEXSI_SOLVER = 3
+   integer(kind=i4), parameter :: CHESS_SOLVER = 4
+   integer(kind=i4), parameter :: SIPS_SOLVER  = 5
 
    ! Real or complex data
    integer(kind=i4), parameter :: REAL_VALUES    = 0
    integer(kind=i4), parameter :: COMPLEX_VALUES = 1
 
-   ! Storage formats
+   ! Matrix formats
    integer(kind=i4), parameter :: BLACS_DENSE = 0
    integer(kind=i4), parameter :: PEXSI_CSC   = 1
+
+   ! File formats
+   integer(kind=i4), parameter :: DENSE_FILE = 0
+   integer(kind=i4), parameter :: CSC_FILE   = 1
 
    ! Triangular matrix
    integer(kind=i4), parameter :: FULL_MAT = 0

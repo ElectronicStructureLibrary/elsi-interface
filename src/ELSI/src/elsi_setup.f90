@@ -31,8 +31,8 @@
 module ELSI_SETUP
 
    use ELSI_CHESS,         only: elsi_set_chess_default
-   use ELSI_CONSTANTS,     only: ELPAA,LIBOMM,PEXSI,CHESS,SIPS,SINGLE_PROC,&
-                                 MULTI_PROC
+   use ELSI_CONSTANTS,     only: ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,&
+                                 CHESS_SOLVER,SIPS_SOLVER,SINGLE_PROC,MULTI_PROC
    use ELSI_DATATYPE
    use ELSI_ELPA,          only: elsi_set_elpa_default,elsi_get_elpa_comms
    use ELSI_MALLOC
@@ -111,28 +111,28 @@ subroutine elsi_init(e_h,solver,parallel_mode,matrix_format,n_basis,n_electron,&
    endif
 
    ! Set ELPA default
-   if(solver == ELPAA) then
+   if(solver == ELPA_SOLVER) then
       call elsi_set_elpa_default(e_h)
    endif
 
    ! Set libOMM default
-   if(solver == LIBOMM) then
+   if(solver == OMM_SOLVER) then
       call elsi_set_elpa_default(e_h)
       call elsi_set_omm_default(e_h)
    endif
 
    ! Set PEXSI default
-   if(solver == PEXSI) then
+   if(solver == PEXSI_SOLVER) then
       call elsi_set_pexsi_default(e_h)
    endif
 
    ! Set CheSS default
-   if(solver == CHESS) then
+   if(solver == CHESS_SOLVER) then
       call elsi_set_chess_default(e_h)
    endif
 
    ! Set SIPs default
-   if(solver == SIPS) then
+   if(solver == SIPS_SOLVER) then
       call elsi_set_sips_default(e_h)
    endif
 
@@ -293,7 +293,7 @@ subroutine elsi_set_blacs(e_h,blacs_ctxt,block_size)
       enddo
 
       ! Set up MatrixSwitch
-      if(e_h%solver == LIBOMM) then
+      if(e_h%solver == OMM_SOLVER) then
          call ms_scalapack_setup(e_h%mpi_comm,e_h%n_p_rows,'r',e_h%n_b_rows,&
                  icontxt=e_h%blacs_ctxt)
       endif
@@ -386,20 +386,20 @@ subroutine elsi_final_print(e_h)
    write(info_str,"(A,I13)") "  | Number of k-points        :",e_h%n_kpts
    call elsi_say(info_str,e_h)
 
-   if(e_h%solver == ELPAA .or. e_h%solver == SIPS) then
+   if(e_h%solver == ELPA_SOLVER .or. e_h%solver == SIPS_SOLVER) then
       write(info_str,"(A,I13)") "  | Number of states          :",e_h%n_states
       call elsi_say(info_str,e_h)
    endif
 
-   if(e_h%solver == ELPAA) then
+   if(e_h%solver == ELPA_SOLVER) then
       call elsi_say("  | Solver                    :         ELPA ",e_h)
-   elseif(e_h%solver == LIBOMM) then
+   elseif(e_h%solver == OMM_SOLVER) then
       call elsi_say("  | Solver                    :       libOMM ",e_h)
-   elseif(e_h%solver == PEXSI) then
+   elseif(e_h%solver == PEXSI_SOLVER) then
       call elsi_say("  | Solver                    :        PEXSI ",e_h)
-   elseif(e_h%solver == CHESS) then
+   elseif(e_h%solver == CHESS_SOLVER) then
       call elsi_say("  | Solver                    :        CheSS ",e_h)
-   elseif(e_h%solver == SIPS) then
+   elseif(e_h%solver == SIPS_SOLVER) then
       call elsi_say("  | Solver                    :         SIPs ",e_h)
    endif
 

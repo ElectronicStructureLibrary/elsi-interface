@@ -30,7 +30,7 @@
 !!
 module ELSI_MATRICES
 
-   use ELSI_CONSTANTS, only: BLACS_DENSE,LIBOMM,MULTI_PROC,FULL_MAT,UT_MAT,&
+   use ELSI_CONSTANTS, only: BLACS_DENSE,OMM_SOLVER,MULTI_PROC,FULL_MAT,UT_MAT,&
                              LT_MAT
    use ELSI_DATATYPE
    use ELSI_MALLOC
@@ -111,7 +111,7 @@ subroutine elsi_set_real_ham(e_h,h_in)
       call elsi_set_full_mat(e_h,h_in)
    endif
 
-   if(e_h%solver == LIBOMM) then
+   if(e_h%solver == OMM_SOLVER) then
       call m_register_pdbc(e_h%ham_omm,h_in,e_h%sc_desc)
    else
       e_h%ham_real => h_in
@@ -135,7 +135,7 @@ subroutine elsi_set_complex_ham(e_h,h_in)
       call elsi_set_full_mat(e_h,h_in)
    endif
 
-   if(e_h%solver == LIBOMM) then
+   if(e_h%solver == OMM_SOLVER) then
       call m_register_pdbc(e_h%ham_omm,h_in,e_h%sc_desc)
    else
       e_h%ham_cmplx => h_in
@@ -192,7 +192,7 @@ subroutine elsi_set_real_ovlp(e_h,s_in)
          call elsi_set_full_mat(e_h,s_in)
       endif
 
-      if(e_h%solver == LIBOMM) then
+      if(e_h%solver == OMM_SOLVER) then
          call m_register_pdbc(e_h%ovlp_omm,s_in,e_h%sc_desc)
       else
          e_h%ovlp_real => s_in
@@ -218,7 +218,7 @@ subroutine elsi_set_complex_ovlp(e_h,s_in)
          call elsi_set_full_mat(e_h,s_in)
       endif
 
-      if(e_h%solver == LIBOMM) then
+      if(e_h%solver == OMM_SOLVER) then
          call m_register_pdbc(e_h%ovlp_omm,s_in,e_h%sc_desc)
       else
          e_h%ovlp_cmplx => s_in
@@ -323,7 +323,7 @@ subroutine elsi_set_real_dm(e_h,d_in)
 
    character*40, parameter :: caller = "elsi_set_real_dm"
 
-   if(e_h%solver == LIBOMM) then
+   if(e_h%solver == OMM_SOLVER) then
       call m_register_pdbc(e_h%dm_omm,d_in,e_h%sc_desc)
    else
       e_h%dm_real => d_in
@@ -343,7 +343,7 @@ subroutine elsi_set_complex_dm(e_h,d_in)
 
    character*40, parameter :: caller = "elsi_set_complex_dm"
 
-   if(e_h%solver == LIBOMM) then
+   if(e_h%solver == OMM_SOLVER) then
       call m_register_pdbc(e_h%dm_omm,d_in,e_h%sc_desc)
    else
       e_h%dm_cmplx => d_in
