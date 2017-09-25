@@ -194,6 +194,8 @@ program test_ev_real_sparse
    call elsi_read_mat_real_sparse(rw_h,arg2,row_ind,col_ptr,ham)
    call elsi_read_mat_real_sparse(rw_h,arg3,row_ind,col_ptr,ovlp)
 
+   call elsi_finalize_rw(rw_h)
+
    ham_save = ham
 
    t2 = MPI_Wtime()

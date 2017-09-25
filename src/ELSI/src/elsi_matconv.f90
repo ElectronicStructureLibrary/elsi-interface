@@ -235,7 +235,7 @@ subroutine elsi_blacs_to_pexsi_hs_real(e_h,h_in,s_in)
       dest = min(locat(g_col_id),e_h%n_procs-1)
 
       do i_row = 1,e_h%n_lrow
-         if(abs(ref(i_row,i_col)) > e_h%zero_threshold) then
+         if(abs(ref(i_row,i_col)) > e_h%zero_def) then
             i_val = i_val+1
 
             call elsi_get_global_row(e_h,g_row_id,i_row)
@@ -591,7 +591,7 @@ subroutine elsi_blacs_to_pexsi_hs_complex(e_h,h_in,s_in)
       dest = min(locat(g_col_id),e_h%n_procs-1)
 
       do i_row = 1,e_h%n_lrow
-         if(abs(ref(i_row,i_col)) > e_h%zero_threshold) then
+         if(abs(ref(i_row,i_col)) > e_h%zero_def) then
             i_val = i_val+1
 
             call elsi_get_global_row(e_h,g_row_id,i_row)
@@ -1172,7 +1172,7 @@ subroutine elsi_blacs_to_sips_hs_real(e_h,h_in,s_in)
       dest = min(dest,e_h%n_procs-1)
 
       do i_row = 1,e_h%n_lrow
-         if(abs(ref(i_row,i_col)) > e_h%zero_threshold) then
+         if(abs(ref(i_row,i_col)) > e_h%zero_def) then
             i_val = i_val+1
 
             call elsi_get_global_row(e_h,g_row_id,i_row)
@@ -1391,7 +1391,7 @@ subroutine elsi_blacs_to_sips_hs_complex(e_h,h_in,s_in)
       dest = min(dest,e_h%n_procs-1)
 
       do i_row = 1,e_h%n_lrow
-         if(abs(ref(i_row,i_col)) > e_h%zero_threshold) then
+         if(abs(ref(i_row,i_col)) > e_h%zero_def) then
             i_val = i_val+1
 
             call elsi_get_global_row(e_h,g_row_id,i_row)
@@ -2011,7 +2011,7 @@ subroutine elsi_blacs_to_sips_dm_real(e_h,d_out)
    i_val = 0
    do i_col = 1,e_h%n_lcol
       do i_row = 1,e_h%n_lrow
-         if(abs(ref(i_row,i_col)) > e_h%zero_threshold) then
+         if(abs(ref(i_row,i_col)) > e_h%zero_def) then
             i_val = i_val+1
 
             call elsi_get_global_row(e_h,row_send_buf(i_val),i_row)
@@ -2176,7 +2176,7 @@ subroutine elsi_blacs_to_sips_dm_complex(e_h,d_out)
    i_val = 0
    do i_col = 1,e_h%n_lcol
       do i_row = 1,e_h%n_lrow
-         if(abs(ref(i_row,i_col)) > e_h%zero_threshold) then
+         if(abs(ref(i_row,i_col)) > e_h%zero_def) then
             i_val = i_val+1
 
             call elsi_get_global_row(e_h,row_send_buf(i_val),i_row)

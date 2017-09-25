@@ -196,7 +196,7 @@ subroutine elsi_set_zero_def(e_h,zero_def)
 
    call elsi_check_handle(e_h,caller)
 
-   e_h%zero_threshold = zero_def
+   e_h%zero_def = zero_def
 
 end subroutine
 

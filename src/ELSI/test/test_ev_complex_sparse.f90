@@ -82,7 +82,7 @@ program test_ev_complex_sparse
    integer(kind=i4), allocatable :: row_ind(:)
    integer(kind=i4), allocatable :: col_ptr(:)
 
-   type(elsi_handle) :: e_h
+   type(elsi_handle)    :: e_h
    type(elsi_rw_handle) :: rw_h
 
    ! VY: Reference value from calculations on August 31, 2017.

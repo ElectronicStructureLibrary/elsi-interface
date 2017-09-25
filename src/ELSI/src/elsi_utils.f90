@@ -159,7 +159,7 @@ subroutine elsi_reset_handle(e_h)
    e_h%nnz_l            = UNSET
    e_h%nnz_l_sp         = UNSET
    e_h%n_lcol_sp        = UNSET
-   e_h%zero_threshold   = 1.0e-15_r8
+   e_h%zero_def         = 1.0e-15_r8
    e_h%sparsity_ready   = .false.
    e_h%ovlp_is_unit     = .false.
    e_h%ovlp_is_sing     = .false.
@@ -473,7 +473,7 @@ subroutine elsi_get_local_nnz_real(e_h,matrix,n_rows,n_cols,nnz)
 
    do i_col = 1,n_cols
       do i_row = 1,n_rows
-         if(abs(matrix(i_row,i_col)) > e_h%zero_threshold) then
+         if(abs(matrix(i_row,i_col)) > e_h%zero_def) then
             nnz = nnz+1
          endif
       enddo
@@ -503,7 +503,7 @@ subroutine elsi_get_local_nnz_complex(e_h,matrix,n_rows,n_cols,nnz)
 
    do i_col = 1,n_cols
       do i_row = 1,n_rows
-         if(abs(matrix(i_row,i_col)) > e_h%zero_threshold) then
+         if(abs(matrix(i_row,i_col)) > e_h%zero_def) then
             nnz = nnz+1
          endif
       enddo

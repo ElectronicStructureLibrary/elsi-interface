@@ -182,7 +182,7 @@ module ELSI_DATATYPE
       integer(kind=i4) :: nnz_l     ! Local number of nonzeros
       integer(kind=i4) :: nnz_l_sp  ! Local number of nonzeros
       integer(kind=i4) :: n_lcol_sp ! Local number of columns
-      real(kind=r8)    :: zero_threshold
+      real(kind=r8)    :: zero_def
       logical          :: sparsity_ready
 
       ! Overlap
@@ -333,7 +333,7 @@ module ELSI_DATATYPE
       integer(kind=i4) :: nnz_g     ! Global number of nonzeros
       integer(kind=i4) :: nnz_l_sp  ! Local number of nonzeros
       integer(kind=i4) :: n_lcol_sp ! Local number of columns
-      real(kind=r8)    :: zero_threshold
+      real(kind=r8)    :: zero_def
       logical          :: sparsity_ready
 
       ! Physics

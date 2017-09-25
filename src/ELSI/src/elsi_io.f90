@@ -39,8 +39,8 @@ module ELSI_IO
    use ELSI_MATCONV,   only: elsi_pexsi_to_blacs_dm,elsi_blacs_to_sips_hs
    use ELSI_MATRICES,  only: elsi_set_sparse_dm
    use ELSI_PRECISION, only: r8,i4,i8
-   use ELSI_SETUP,     only: elsi_init,elsi_set_mpi,elsi_set_mpi_global,&
-                             elsi_set_blacs,elsi_set_csc,elsi_cleanup
+   use ELSI_SETUP,     only: elsi_init,elsi_set_mpi,elsi_set_blacs,&
+                             elsi_set_csc,elsi_cleanup
    use ELSI_UTILS
 
    implicit none
@@ -273,7 +273,7 @@ subroutine elsi_set_rw_zero_def(rw_h,zero_def)
 
    call elsi_check_rw_handle(rw_h,caller)
 
-   rw_h%zero_threshold = zero_def
+   rw_h%zero_def = zero_def
 
 end subroutine
 
@@ -325,7 +325,7 @@ subroutine elsi_reset_rw_handle(rw_h)
    rw_h%nnz_g          = UNSET
    rw_h%nnz_l_sp       = UNSET
    rw_h%n_lcol_sp      = UNSET
-   rw_h%zero_threshold = 1.0e-15_r8
+   rw_h%zero_def       = 1.0e-15_r8
    rw_h%sparsity_ready = .false.
    rw_h%n_electrons    = 0.0_r8
    rw_h%n_basis        = UNSET
@@ -566,7 +566,11 @@ subroutine elsi_read_mat_real(rw_h,f_name,mat)
    call elsi_set_mpi(aux_h,rw_h%mpi_comm)
    call elsi_set_blacs(aux_h,rw_h%blacs_ctxt,rw_h%blk)
 
+   ! Output
+   aux_h%myid_all   = rw_h%myid
    aux_h%print_info = rw_h%print_info
+   aux_h%print_mem  = rw_h%print_mem
+   aux_h%print_unit = rw_h%print_unit
 
    call elsi_get_time(aux_h,t0)
 
@@ -693,8 +697,10 @@ subroutine elsi_read_mat_real_sparse(rw_h,f_name,row_ind,col_ptr,mat)
       call elsi_rw_stop(" File does not exist.",rw_h,caller)
    endif
 
-   aux_h%print_info = rw_h%print_info
+   ! Output
    aux_h%myid_all   = rw_h%myid
+   aux_h%print_info = rw_h%print_info
+   aux_h%print_unit = rw_h%print_unit
 
    call elsi_init_timer(aux_h)
    call elsi_get_time(aux_h,t0)
@@ -786,7 +792,11 @@ subroutine elsi_read_mat_complex(rw_h,f_name,mat)
    call elsi_set_mpi(aux_h,rw_h%mpi_comm)
    call elsi_set_blacs(aux_h,rw_h%blacs_ctxt,rw_h%blk)
 
+   ! Output
+   aux_h%myid_all   = rw_h%myid
    aux_h%print_info = rw_h%print_info
+   aux_h%print_mem  = rw_h%print_mem
+   aux_h%print_unit = rw_h%print_unit
 
    call elsi_get_time(aux_h,t0)
 
@@ -801,6 +811,8 @@ subroutine elsi_read_mat_complex(rw_h,f_name,mat)
 
       call MPI_File_read_at(f_handle,offset,header,HEADER_SIZE,mpi_integer4,&
               mpi_status_ignore,mpierr)
+
+print *, header
    endif
 
    ! Broadcast header
@@ -913,8 +925,10 @@ subroutine elsi_read_mat_complex_sparse(rw_h,f_name,row_ind,col_ptr,mat)
       call elsi_rw_stop(" File does not exist.",rw_h,caller)
    endif
 
-   aux_h%print_info = rw_h%print_info
+   ! Output
    aux_h%myid_all   = rw_h%myid
+   aux_h%print_info = rw_h%print_info
+   aux_h%print_unit = rw_h%print_unit
 
    call elsi_init_timer(aux_h)
    call elsi_get_time(aux_h,t0)
@@ -1000,7 +1014,13 @@ subroutine elsi_write_mat_real(rw_h,f_name,mat)
    call elsi_set_blacs(aux_h,rw_h%blacs_ctxt,rw_h%blk)
    call elsi_get_time(aux_h,t0)
 
-   aux_h%print_info   = rw_h%print_info
+   ! Output
+   aux_h%myid_all   = rw_h%myid
+   aux_h%print_info = rw_h%print_info
+   aux_h%print_mem  = rw_h%print_mem
+   aux_h%print_unit = rw_h%print_unit
+
+   aux_h%zero_def     = rw_h%zero_def
    aux_h%ovlp_is_unit = .true.
    aux_h%n_elsi_calls = 1
    aux_h%n_lcol_sp    = rw_h%n_basis/rw_h%n_procs
@@ -1024,7 +1044,7 @@ subroutine elsi_write_mat_real(rw_h,f_name,mat)
    header(3) = REAL_VALUES
    header(4) = rw_h%n_basis
    header(5) = int(rw_h%n_electrons,kind=i4)
-   header(6) = rw_h%nnz_g
+   header(6) = aux_h%nnz_g
 
    if(rw_h%myid == 0) then
       offset = 0
@@ -1108,7 +1128,13 @@ subroutine elsi_write_mat_complex(rw_h,f_name,mat)
    call elsi_set_blacs(aux_h,rw_h%blacs_ctxt,rw_h%blk)
    call elsi_get_time(aux_h,t0)
 
-   aux_h%print_info   = rw_h%print_info
+   ! Output
+   aux_h%myid_all   = rw_h%myid
+   aux_h%print_info = rw_h%print_info
+   aux_h%print_mem  = rw_h%print_mem
+   aux_h%print_unit = rw_h%print_unit
+
+   aux_h%zero_def     = rw_h%zero_def
    aux_h%ovlp_is_unit = .true.
    aux_h%n_elsi_calls = 1
    aux_h%n_lcol_sp    = rw_h%n_basis/rw_h%n_procs
@@ -1132,9 +1158,11 @@ subroutine elsi_write_mat_complex(rw_h,f_name,mat)
    header(3) = COMPLEX_VALUES
    header(4) = rw_h%n_basis
    header(5) = int(rw_h%n_electrons,kind=i4)
-   header(6) = rw_h%nnz_g
+   header(6) = aux_h%nnz_g
 
    if(rw_h%myid == 0) then
+print *, header
+
       offset = 0
 
       call MPI_File_write_at(f_handle,offset,header,HEADER_SIZE,mpi_integer4,&
@@ -1212,8 +1240,10 @@ subroutine elsi_write_mat_real_sparse(rw_h,f_name,row_ind,col_ptr,mat)
 
    character*40, parameter :: caller = "elsi_write_mat_real_sparse"
 
-   aux_h%print_info = rw_h%print_info
+   ! Output
    aux_h%myid_all   = rw_h%myid
+   aux_h%print_info = rw_h%print_info
+   aux_h%print_unit = rw_h%print_unit
 
    call elsi_init_timer(aux_h)
    call elsi_get_time(aux_h,t0)
@@ -1312,8 +1342,10 @@ subroutine elsi_write_mat_complex_sparse(rw_h,f_name,row_ind,col_ptr,mat)
 
    character*40, parameter :: caller = "elsi_write_mat_complex_sparse"
 
-   aux_h%print_info = rw_h%print_info
+   ! Output
    aux_h%myid_all   = rw_h%myid
+   aux_h%print_info = rw_h%print_info
+   aux_h%print_unit = rw_h%print_unit
 
    call elsi_init_timer(aux_h)
    call elsi_get_time(aux_h,t0)
