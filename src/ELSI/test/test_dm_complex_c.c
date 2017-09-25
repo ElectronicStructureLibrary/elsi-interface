@@ -55,7 +55,8 @@ void main(int argc, char** argv) {
    e_omm   = -1833.07932666692;
    e_pexsi = -1833.07836497809;
 
-   elsi_handle elsi_h;
+   elsi_handle    e_h;
+   elsi_rw_handle rw_h;
 
    // Set up MPI
    MPI_Init(&argc,&argv);
@@ -97,34 +98,41 @@ void main(int argc, char** argv) {
    blacs_gridinit_(&blacs_ctxt,"R",&n_prow,&n_pcol);
 
    // Read H and S matrices
-   c_elsi_read_mat_dim(argv[2],mpi_comm_global,blacs_ctxt,blk,&n_electrons,&n_basis,&l_row,&l_col);
+   c_elsi_init_rw(&rw_h,0,1,0,1,0,0.0);
+   c_elsi_set_rw_mpi(rw_h,mpi_comm_global);
+   c_elsi_set_rw_blacs(rw_h,blacs_ctxt,blk);
+   c_elsi_set_rw_output(rw_h,2);
+
+   c_elsi_read_mat_dim(rw_h,argv[2],&n_electrons,&n_basis,&l_row,&l_col);
 
    l_size = l_row * l_col;
    h      = malloc(l_size * sizeof(double _Complex));
    s      = malloc(l_size * sizeof(double _Complex));
    dm     = malloc(l_size * sizeof(double _Complex));
 
-   c_elsi_read_mat_complex(argv[2],mpi_comm_global,blacs_ctxt,blk,n_basis,l_row,l_col,h);
-   c_elsi_read_mat_complex(argv[3],mpi_comm_global,blacs_ctxt,blk,n_basis,l_row,l_col,s);
+   c_elsi_read_mat_complex(rw_h,argv[2],h);
+   c_elsi_read_mat_complex(rw_h,argv[3],s);
+
+   c_elsi_finalize_rw(rw_h);
 
    n_states = n_electrons;
 
    // Initialize ELSI
-   c_elsi_init(&elsi_h,solver,parallel,format,n_basis,n_electrons,n_states);
-   c_elsi_set_mpi(elsi_h,mpi_comm_global);
-   c_elsi_set_blacs(elsi_h,blacs_ctxt,blk);
+   c_elsi_init(&e_h,solver,parallel,format,n_basis,n_electrons,n_states);
+   c_elsi_set_mpi(e_h,mpi_comm_global);
+   c_elsi_set_blacs(e_h,blacs_ctxt,blk);
 
    // Customize ELSI
-   c_elsi_set_output(elsi_h,2);
-   c_elsi_set_sing_check(elsi_h,0);
-   c_elsi_set_omm_n_elpa(elsi_h,1);
-   c_elsi_set_pexsi_np_per_pole(elsi_h,2);
+   c_elsi_set_output(e_h,2);
+   c_elsi_set_sing_check(e_h,0);
+   c_elsi_set_omm_n_elpa(e_h,1);
+   c_elsi_set_pexsi_np_per_pole(e_h,2);
 
    // Call ELSI density matrix solver
-   c_elsi_dm_complex(elsi_h,h,s,dm,&e_test);
+   c_elsi_dm_complex(e_h,h,s,dm,&e_test);
 
    // Finalize ELSI
-   c_elsi_finalize(elsi_h);
+   c_elsi_finalize(e_h);
 
    if (myid == 0) {
        if (fabs(e_test-e_ref) < e_tol) {

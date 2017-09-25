@@ -46,6 +46,7 @@ module ELSI
 
    ! Data type
    public :: elsi_handle
+   public :: elsi_rw_handle
 
    ! Setup
    public :: elsi_init
@@ -121,7 +122,15 @@ module ELSI
    public :: elsi_dm_complex_sparse
    public :: elsi_compute_mu_and_occ
 
-   ! I/O
+   ! Reading and writing
+   public :: elsi_init_rw
+   public :: elsi_finalize_rw
+   public :: elsi_set_rw_mpi
+   public :: elsi_set_rw_blacs
+   public :: elsi_set_rw_csc
+   public :: elsi_set_rw_output
+   public :: elsi_set_rw_write_unit
+   public :: elsi_set_rw_zero_def
    public :: elsi_read_mat_dim
    public :: elsi_read_mat_dim_sparse
    public :: elsi_read_mat_real

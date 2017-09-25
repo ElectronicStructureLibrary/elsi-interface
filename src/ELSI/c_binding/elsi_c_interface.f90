@@ -149,8 +149,7 @@ subroutine elsi_set_blacs_c_wrapper(handle_c,blacs_ctxt,block_size)&
 
 end subroutine
 
-subroutine elsi_set_csc_c_wrapper(handle_c,nnz_g,nnz_l,n_l_cols,row_ind,&
-              col_ptr)&
+subroutine elsi_set_csc_c_wrapper(handle_c,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)&
    bind(C,name="c_elsi_set_csc")
 
    implicit none
@@ -158,15 +157,15 @@ subroutine elsi_set_csc_c_wrapper(handle_c,nnz_g,nnz_l,n_l_cols,row_ind,&
    type(c_ptr),         value, intent(in) :: handle_c
    integer(kind=c_int), value, intent(in) :: nnz_g
    integer(kind=c_int), value, intent(in) :: nnz_l
-   integer(kind=c_int), value, intent(in) :: n_l_cols
+   integer(kind=c_int), value, intent(in) :: n_lcol
    integer(kind=c_int),        intent(in) :: row_ind(nnz_l)
-   integer(kind=c_int),        intent(in) :: col_ptr(n_l_cols+1)
+   integer(kind=c_int),        intent(in) :: col_ptr(n_lcol+1)
 
    type(elsi_handle), pointer :: handle_f
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_set_csc(handle_f,nnz_g,nnz_l,n_l_cols,row_ind,col_ptr)
+   call elsi_set_csc(handle_f,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)
 
 end subroutine
 
@@ -203,19 +202,19 @@ subroutine elsi_ev_real_c_wrapper(handle_c,ham_c,ovlp_c,eval_c,evec_c)&
    real(kind=c_double), pointer :: evec_f(:,:)
 
    integer(kind=c_int) :: n_basis
-   integer(kind=c_int) :: l_rows
-   integer(kind=c_int) :: l_cols
+   integer(kind=c_int) :: lrow
+   integer(kind=c_int) :: lcol
 
    call c_f_pointer(handle_c,handle_f)
 
    n_basis = handle_f%n_basis
-   l_rows  = handle_f%n_l_rows
-   l_cols  = handle_f%n_l_cols
+   lrow    = handle_f%n_lrow
+   lcol    = handle_f%n_lcol
 
-   call c_f_pointer(ham_c,ham_f,shape=[l_rows,l_cols])
-   call c_f_pointer(ovlp_c,ovlp_f,shape=[l_rows,l_cols])
+   call c_f_pointer(ham_c,ham_f,shape=[lrow,lcol])
+   call c_f_pointer(ovlp_c,ovlp_f,shape=[lrow,lcol])
    call c_f_pointer(eval_c,eval_f,shape=[n_basis])
-   call c_f_pointer(evec_c,evec_f,shape=[l_rows,l_cols])
+   call c_f_pointer(evec_c,evec_f,shape=[lrow,lcol])
 
    call elsi_ev_real(handle_f,ham_f,ovlp_f,eval_f,evec_f)
 
@@ -239,19 +238,19 @@ subroutine elsi_ev_complex_c_wrapper(handle_c,ham_c,ovlp_c,eval_c,evec_c)&
    complex(kind=c_double_complex), pointer :: evec_f(:,:)
 
    integer(kind=c_int) :: n_basis
-   integer(kind=c_int) :: l_rows
-   integer(kind=c_int) :: l_cols
+   integer(kind=c_int) :: lrow
+   integer(kind=c_int) :: lcol
 
    call c_f_pointer(handle_c,handle_f)
 
    n_basis = handle_f%n_basis
-   l_rows  = handle_f%n_l_rows
-   l_cols  = handle_f%n_l_cols
+   lrow    = handle_f%n_lrow
+   lcol    = handle_f%n_lcol
 
-   call c_f_pointer(ham_c,ham_f,shape=[l_rows,l_cols])
-   call c_f_pointer(ovlp_c,ovlp_f,shape=[l_rows,l_cols])
+   call c_f_pointer(ham_c,ham_f,shape=[lrow,lcol])
+   call c_f_pointer(ovlp_c,ovlp_f,shape=[lrow,lcol])
    call c_f_pointer(eval_c,eval_f,shape=[n_basis])
-   call c_f_pointer(evec_c,evec_f,shape=[l_rows,l_cols])
+   call c_f_pointer(evec_c,evec_f,shape=[lrow,lcol])
 
    call elsi_ev_complex(handle_f,ham_f,ovlp_f,eval_f,evec_f)
 
@@ -276,20 +275,20 @@ subroutine elsi_ev_real_sparse_c_wrapper(handle_c,ham_c,ovlp_c,eval_c,evec_c)&
 
    integer(kind=c_int) :: n_basis
    integer(kind=c_int) :: nnz_l
-   integer(kind=c_int) :: l_rows
-   integer(kind=c_int) :: l_cols
+   integer(kind=c_int) :: lrow
+   integer(kind=c_int) :: lcol
 
    call c_f_pointer(handle_c,handle_f)
 
    n_basis = handle_f%n_basis
    nnz_l   = handle_f%nnz_l_sp
-   l_rows  = handle_f%n_l_rows
-   l_cols  = handle_f%n_l_cols
+   lrow    = handle_f%n_lrow
+   lcol    = handle_f%n_lcol
 
    call c_f_pointer(ham_c,ham_f,shape=[nnz_l])
    call c_f_pointer(ovlp_c,ovlp_f,shape=[nnz_l])
    call c_f_pointer(eval_c,eval_f,shape=[n_basis])
-   call c_f_pointer(evec_c,evec_f,shape=[l_rows,l_cols])
+   call c_f_pointer(evec_c,evec_f,shape=[lrow,lcol])
 
    call elsi_ev_real_sparse(handle_f,ham_f,ovlp_f,eval_f,evec_f)
 
@@ -315,20 +314,20 @@ subroutine elsi_ev_complex_sparse_c_wrapper(handle_c,ham_c,ovlp_c,eval_c,&
 
    integer(kind=c_int) :: n_basis
    integer(kind=c_int) :: nnz_l
-   integer(kind=c_int) :: l_rows
-   integer(kind=c_int) :: l_cols
+   integer(kind=c_int) :: lrow
+   integer(kind=c_int) :: lcol
 
    call c_f_pointer(handle_c,handle_f)
 
    n_basis = handle_f%n_basis
    nnz_l   = handle_f%nnz_l_sp
-   l_rows  = handle_f%n_l_rows
-   l_cols  = handle_f%n_l_cols
+   lrow    = handle_f%n_lrow
+   lcol    = handle_f%n_lcol
 
    call c_f_pointer(ham_c,ham_f,shape=[nnz_l])
    call c_f_pointer(ovlp_c,ovlp_f,shape=[nnz_l])
    call c_f_pointer(eval_c,eval_f,shape=[n_basis])
-   call c_f_pointer(evec_c,evec_f,shape=[l_rows,l_cols])
+   call c_f_pointer(evec_c,evec_f,shape=[lrow,lcol])
 
    call elsi_ev_complex_sparse(handle_f,ham_f,ovlp_f,eval_f,evec_f)
 
@@ -351,18 +350,18 @@ subroutine elsi_dm_real_c_wrapper(handle_c,ham_c,ovlp_c,dm_c,energy)&
    real(kind=c_double), pointer :: dm_f(:,:)
 
    integer(kind=c_int) :: n_basis
-   integer(kind=c_int) :: l_rows
-   integer(kind=c_int) :: l_cols
+   integer(kind=c_int) :: lrow
+   integer(kind=c_int) :: lcol
 
    call c_f_pointer(handle_c,handle_f)
 
    n_basis = handle_f%n_basis
-   l_rows  = handle_f%n_l_rows
-   l_cols  = handle_f%n_l_cols
+   lrow    = handle_f%n_lrow
+   lcol    = handle_f%n_lcol
 
-   call c_f_pointer(ham_c,ham_f,shape=[l_rows,l_cols])
-   call c_f_pointer(ovlp_c,ovlp_f,shape=[l_rows,l_cols])
-   call c_f_pointer(dm_c,dm_f,shape=[l_rows,l_cols])
+   call c_f_pointer(ham_c,ham_f,shape=[lrow,lcol])
+   call c_f_pointer(ovlp_c,ovlp_f,shape=[lrow,lcol])
+   call c_f_pointer(dm_c,dm_f,shape=[lrow,lcol])
 
    call elsi_dm_real(handle_f,ham_f,ovlp_f,dm_f,energy)
 
@@ -385,18 +384,18 @@ subroutine elsi_dm_complex_c_wrapper(handle_c,ham_c,ovlp_c,dm_c,energy)&
    complex(kind=c_double_complex), pointer :: dm_f(:,:)
 
    integer(kind=c_int) :: n_basis
-   integer(kind=c_int) :: l_rows
-   integer(kind=c_int) :: l_cols
+   integer(kind=c_int) :: lrow
+   integer(kind=c_int) :: lcol
 
    call c_f_pointer(handle_c,handle_f)
 
    n_basis = handle_f%n_basis
-   l_rows  = handle_f%n_l_rows
-   l_cols  = handle_f%n_l_cols
+   lrow    = handle_f%n_lrow
+   lcol    = handle_f%n_lcol
 
-   call c_f_pointer(ham_c,ham_f,shape=[l_rows,l_cols])
-   call c_f_pointer(ovlp_c,ovlp_f,shape=[l_rows,l_cols])
-   call c_f_pointer(dm_c,dm_f,shape=[l_rows,l_cols])
+   call c_f_pointer(ham_c,ham_f,shape=[lrow,lcol])
+   call c_f_pointer(ovlp_c,ovlp_f,shape=[lrow,lcol])
+   call c_f_pointer(dm_c,dm_f,shape=[lrow,lcol])
 
    call elsi_dm_complex(handle_f,ham_f,ovlp_f,dm_f,energy)
 
@@ -1209,15 +1208,15 @@ subroutine elsi_get_edm_real_c_wrapper(handle_c,edm_c)&
    type(elsi_handle),   pointer :: handle_f
    real(kind=c_double), pointer :: edm_f(:,:)
 
-   integer(kind=c_int) :: l_rows
-   integer(kind=c_int) :: l_cols
+   integer(kind=c_int) :: lrow
+   integer(kind=c_int) :: lcol
 
    call c_f_pointer(handle_c,handle_f)
 
-   l_rows = handle_f%n_l_rows
-   l_cols = handle_f%n_l_cols
+   lrow = handle_f%n_lrow
+   lcol = handle_f%n_lcol
 
-   call c_f_pointer(edm_c,edm_f,shape=[l_rows,l_cols])
+   call c_f_pointer(edm_c,edm_f,shape=[lrow,lcol])
 
    call elsi_get_edm_real(handle_f,edm_f)
 
@@ -1234,15 +1233,15 @@ subroutine elsi_get_edm_complex_c_wrapper(handle_c,edm_c)&
    type(elsi_handle),      pointer :: handle_f
    complex(kind=c_double), pointer :: edm_f(:,:)
 
-   integer(kind=c_int) :: l_rows
-   integer(kind=c_int) :: l_cols
+   integer(kind=c_int) :: lrow
+   integer(kind=c_int) :: lcol
 
    call c_f_pointer(handle_c,handle_f)
 
-   l_rows = handle_f%n_l_rows
-   l_cols = handle_f%n_l_cols
+   lrow = handle_f%n_lrow
+   lcol = handle_f%n_lcol
 
-   call c_f_pointer(edm_c,edm_f,shape=[l_rows,l_cols])
+   call c_f_pointer(edm_c,edm_f,shape=[lrow,lcol])
 
    call elsi_get_edm_complex(handle_f,edm_f)
 
@@ -1294,250 +1293,446 @@ subroutine elsi_get_edm_complex_sparse_c_wrapper(handle_c,edm_c)&
 
 end subroutine
 
-subroutine elsi_read_mat_dim_c_wrapper(name_c,mpi_comm,blacs_ctxt,block_size,&
-              n_electrons,n_basis,n_l_rows,n_l_cols)&
+subroutine elsi_init_rw_c_wrapper(handle_c,rw_task,parallel_mode,matrix_format,&
+              file_format,n_basis,n_electron)&
+   bind(C,name="c_elsi_init_rw")
+
+   implicit none
+
+   type(c_ptr)                            :: handle_c
+   integer(kind=c_int), value, intent(in) :: rw_task
+   integer(kind=c_int), value, intent(in) :: parallel_mode
+   integer(kind=c_int), value, intent(in) :: matrix_format
+   integer(kind=c_int), value, intent(in) :: file_format
+   integer(kind=c_int), value, intent(in) :: n_basis
+   real(kind=c_double), value, intent(in) :: n_electron
+
+   type(elsi_rw_handle), pointer :: handle_f
+
+   allocate(handle_f)
+
+   call elsi_init_rw(handle_f,rw_task,parallel_mode,matrix_format,file_format,&
+           n_basis,n_electron)
+
+   handle_c = c_loc(handle_f)
+
+end subroutine
+
+subroutine elsi_set_rw_mpi_c_wrapper(handle_c,mpi_comm)&
+   bind(C,name="c_elsi_set_rw_mpi")
+
+   implicit none
+
+   type(c_ptr),         value, intent(in) :: handle_c
+   integer(kind=c_int), value, intent(in) :: mpi_comm
+
+   type(elsi_rw_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_rw_mpi(handle_f,mpi_comm)
+
+end subroutine
+
+subroutine elsi_set_rw_blacs_c_wrapper(handle_c,blacs_ctxt,block_size)&
+   bind(C,name="c_elsi_set_rw_blacs")
+
+   implicit none
+
+   type(c_ptr),         value, intent(in) :: handle_c
+   integer(kind=c_int), value, intent(in) :: blacs_ctxt
+   integer(kind=c_int), value, intent(in) :: block_size
+
+   type(elsi_rw_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_rw_blacs(handle_f,blacs_ctxt,block_size)
+
+end subroutine
+
+subroutine elsi_set_rw_csc_c_wrapper(handle_c,nnz_g,nnz_l,n_lcol)&
+   bind(C,name="c_elsi_set_rw_csc")
+
+   implicit none
+
+   type(c_ptr),         value, intent(in) :: handle_c
+   integer(kind=c_int), value, intent(in) :: nnz_g
+   integer(kind=c_int), value, intent(in) :: nnz_l
+   integer(kind=c_int), value, intent(in) :: n_lcol
+
+   type(elsi_rw_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_rw_csc(handle_f,nnz_g,nnz_l,n_lcol)
+
+end subroutine
+
+subroutine elsi_finalize_rw_c_wrapper(handle_c)&
+   bind(C,name="c_elsi_finalize_rw")
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: handle_c
+
+   type(elsi_rw_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_finalize_rw(handle_f)
+
+end subroutine
+
+subroutine elsi_set_rw_output_c_wrapper(handle_c,out_level)&
+   bind(C,name="c_elsi_set_rw_output")
+
+   implicit none
+
+   type(c_ptr),         value, intent(in) :: handle_c
+   integer(kind=c_int), value, intent(in) :: out_level
+
+   type(elsi_rw_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_rw_output(handle_f,out_level)
+
+end subroutine
+
+subroutine elsi_set_rw_zero_def_c_wrapper(handle_c,zero_def)&
+   bind(C,name="c_elsi_set_rw_zero_def")
+
+   implicit none
+
+   type(c_ptr),         value, intent(in) :: handle_c
+   real(kind=c_double), value, intent(in) :: zero_def
+
+   type(elsi_rw_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_rw_zero_def(handle_f,zero_def)
+
+end subroutine
+
+subroutine elsi_read_mat_dim_c_wrapper(handle_c,name_c,n_electrons,n_basis,&
+              n_lrow,n_lcol)&
    bind(C,name="c_elsi_read_mat_dim")
 
    implicit none
 
+   type(c_ptr), value, intent(in)               :: handle_c
    character(kind=c_char,len=1), dimension(128) :: name_c
-   integer(c_int), value, intent(in)            :: mpi_comm
-   integer(c_int), value, intent(in)            :: blacs_ctxt
-   integer(c_int), value, intent(in)            :: block_size
-   real(c_double),        intent(out)           :: n_electrons
-   integer(c_int),        intent(out)           :: n_basis
-   integer(c_int),        intent(out)           :: n_l_rows
-   integer(c_int),        intent(out)           :: n_l_cols
+   real(c_double),     intent(out)              :: n_electrons
+   integer(c_int),     intent(out)              :: n_basis
+   integer(c_int),     intent(out)              :: n_lrow
+   integer(c_int),     intent(out)              :: n_lcol
+
+   type(elsi_rw_handle), pointer :: handle_f
 
    character(len=:), allocatable :: name_f
 
+   call c_f_pointer(handle_c,handle_f)
+
    name_f = c_string_to_f_string(name_c)
 
-   call elsi_read_mat_dim(name_f,mpi_comm,blacs_ctxt,block_size,n_electrons,&
-           n_basis,n_l_rows,n_l_cols)
+   call elsi_read_mat_dim(handle_f,name_f,n_electrons,n_basis,n_lrow,n_lcol)
 
 end subroutine
 
-subroutine elsi_read_mat_dim_sparse_c_wrapper(name_c,mpi_comm,n_electrons,&
-              n_basis,nnz_g,nnz_l,n_l_cols)&
+subroutine elsi_read_mat_dim_sparse_c_wrapper(handle_c,name_c,n_electrons,&
+              n_basis,nnz_g,nnz_l,n_lcol)&
    bind(C,name="c_elsi_read_mat_dim_sparse")
 
    implicit none
 
+   type(c_ptr), value, intent(in)               :: handle_c
    character(kind=c_char,len=1), dimension(128) :: name_c
-   integer(c_int), value, intent(in)            :: mpi_comm
-   real(c_double),        intent(out)           :: n_electrons
-   integer(c_int),        intent(out)           :: n_basis
-   integer(c_int),        intent(out)           :: nnz_g
-   integer(c_int),        intent(out)           :: nnz_l
-   integer(c_int),        intent(out)           :: n_l_cols
+   real(c_double),     intent(out)              :: n_electrons
+   integer(c_int),     intent(out)              :: n_basis
+   integer(c_int),     intent(out)              :: nnz_g
+   integer(c_int),     intent(out)              :: nnz_l
+   integer(c_int),     intent(out)              :: n_lcol
+
+   type(elsi_rw_handle), pointer :: handle_f
 
    character(len=:), allocatable :: name_f
 
+   call c_f_pointer(handle_c,handle_f)
+
    name_f = c_string_to_f_string(name_c)
 
-   call elsi_read_mat_dim_sparse(name_f,mpi_comm,n_electrons,n_basis,nnz_g,&
-           nnz_l,n_l_cols)
+   call elsi_read_mat_dim_sparse(handle_f,name_f,n_electrons,n_basis,nnz_g,&
+           nnz_l,n_lcol)
 
 end subroutine
 
-subroutine elsi_read_mat_real_c_wrapper(name_c,mpi_comm,blacs_ctxt,block_size,&
-              n_basis,n_l_rows,n_l_cols,mat)&
+subroutine elsi_read_mat_real_c_wrapper(handle_c,name_c,mat_c)&
    bind(C,name="c_elsi_read_mat_real")
 
    implicit none
 
+   type(c_ptr), value, intent(in)               :: handle_c
    character(kind=c_char,len=1), dimension(128) :: name_c
-   integer(c_int), value, intent(in)            :: mpi_comm
-   integer(c_int), value, intent(in)            :: blacs_ctxt
-   integer(c_int), value, intent(in)            :: block_size
-   integer(c_int), value, intent(in)            :: n_basis
-   integer(c_int), value, intent(in)            :: n_l_rows
-   integer(c_int), value, intent(in)            :: n_l_cols
-   real(kind=c_double),   intent(out)           :: mat(n_l_rows,n_l_cols)
+   type(c_ptr), value, intent(in)               :: mat_c
+
+   type(elsi_rw_handle), pointer :: handle_f
+   real(kind=c_double),  pointer :: mat_f(:,:)
 
    character(len=:), allocatable :: name_f
 
+   integer(kind=c_int) :: lrow
+   integer(kind=c_int) :: lcol
+
+   call c_f_pointer(handle_c,handle_f)
+
+   lrow = handle_f%n_lrow
+   lcol = handle_f%n_lcol
+
+   call c_f_pointer(mat_c,mat_f,shape=[lrow,lcol])
+
    name_f = c_string_to_f_string(name_c)
 
-   call elsi_read_mat_real(name_f,mpi_comm,blacs_ctxt,block_size,n_basis,&
-           n_l_rows,n_l_cols,mat)
+   call elsi_read_mat_real(handle_f,name_f,mat_f)
 
 end subroutine
 
-subroutine elsi_read_mat_real_sparse_c_wrapper(name_c,mpi_comm,n_basis,nnz_g,&
-              nnz_l,n_l_cols,row_ind,col_ptr,mat)&
+subroutine elsi_read_mat_real_sparse_c_wrapper(handle_c,name_c,row_ind_c,&
+              col_ptr_c,mat_c)&
    bind(C,name="c_elsi_read_mat_real_sparse")
 
    implicit none
 
+   type(c_ptr), value, intent(in)               :: handle_c
    character(kind=c_char,len=1), dimension(128) :: name_c
-   integer(c_int), value, intent(in)            :: mpi_comm
-   integer(c_int), value, intent(in)            :: n_basis
-   integer(c_int), value, intent(in)            :: nnz_g
-   integer(c_int), value, intent(in)            :: nnz_l
-   integer(c_int), value, intent(in)            :: n_l_cols
-   integer(c_int),        intent(out)           :: row_ind(nnz_l)
-   integer(c_int),        intent(out)           :: col_ptr(n_l_cols+1)
-   real(kind=c_double),   intent(out)           :: mat(nnz_l)
+   type(c_ptr), value, intent(in)               :: row_ind_c
+   type(c_ptr), value, intent(in)               :: col_ptr_c
+   type(c_ptr), value, intent(in)               :: mat_c
+
+   type(elsi_rw_handle), pointer :: handle_f
+   integer(kind=c_int),  pointer :: row_ind_f(:)
+   integer(kind=c_int),  pointer :: col_ptr_f(:)
+   real(kind=c_double),  pointer :: mat_f(:)
 
    character(len=:), allocatable :: name_f
 
+   integer(kind=c_int) :: nnz_l
+   integer(kind=c_int) :: lcol
+
+   call c_f_pointer(handle_c,handle_f)
+
+   nnz_l = handle_f%nnz_l_sp
+   lcol  = handle_f%n_lcol_sp
+
+   call c_f_pointer(row_ind_c,row_ind_f,shape=[nnz_l])
+   call c_f_pointer(col_ptr_c,col_ptr_f,shape=[lcol+1])
+   call c_f_pointer(mat_c,mat_f,shape=[nnz_l])
+
    name_f = c_string_to_f_string(name_c)
 
-   call elsi_read_mat_real_sparse(name_f,mpi_comm,n_basis,nnz_g,nnz_l,n_l_cols,&
-           row_ind,col_ptr,mat)
+   call elsi_read_mat_real_sparse(handle_f,name_f,row_ind_f,col_ptr_f,mat_f)
 
 end subroutine
 
-subroutine elsi_write_mat_real_c_wrapper(name_c,mpi_comm,blacs_ctxt,block_size,&
-              n_electrons,n_basis,n_l_rows,n_l_cols,mat)&
+subroutine elsi_write_mat_real_c_wrapper(handle_c,name_c,mat_c)&
    bind(C,name="c_elsi_write_mat_real")
 
    implicit none
 
+   type(c_ptr), value, intent(in)               :: handle_c
    character(kind=c_char,len=1), dimension(128) :: name_c
-   integer(c_int), value, intent(in)            :: mpi_comm
-   integer(c_int), value, intent(in)            :: blacs_ctxt
-   integer(c_int), value, intent(in)            :: block_size
-   real(c_double), value, intent(in)            :: n_electrons
-   integer(c_int), value, intent(in)            :: n_basis
-   integer(c_int), value, intent(in)            :: n_l_rows
-   integer(c_int), value, intent(in)            :: n_l_cols
-   real(kind=c_double),   intent(in)            :: mat(n_l_rows,n_l_cols)
+   type(c_ptr), value, intent(in)               :: mat_c
+
+   type(elsi_rw_handle), pointer :: handle_f
+   real(kind=c_double),  pointer :: mat_f(:,:)
 
    character(len=:), allocatable :: name_f
 
+   integer(kind=c_int) :: lrow
+   integer(kind=c_int) :: lcol
+
+   call c_f_pointer(handle_c,handle_f)
+
+   lrow = handle_f%n_lrow
+   lcol = handle_f%n_lcol
+
+   call c_f_pointer(mat_c,mat_f,shape=[lrow,lcol])
+
    name_f = c_string_to_f_string(name_c)
 
-   call elsi_write_mat_real(name_f,mpi_comm,blacs_ctxt,block_size,n_electrons,&
-           n_basis,n_l_rows,n_l_cols,mat)
+   call elsi_write_mat_real(handle_f,name_f,mat_f)
 
 end subroutine
 
-subroutine elsi_write_mat_real_sparse_c_wrapper(name_c,mpi_comm,n_electrons,&
-              n_basis,nnz_g,nnz_l,n_l_cols,row_ind,col_ptr,mat)&
+subroutine elsi_write_mat_real_sparse_c_wrapper(handle_c,name_c,row_ind_c,&
+              col_ptr_c,mat_c)&
    bind(C,name="c_elsi_write_mat_real_sparse")
 
    implicit none
 
+   type(c_ptr), value, intent(in)               :: handle_c
    character(kind=c_char,len=1), dimension(128) :: name_c
-   integer(c_int), value, intent(in)            :: mpi_comm
-   real(c_double), value, intent(in)            :: n_electrons
-   integer(c_int), value, intent(in)            :: n_basis
-   integer(c_int), value, intent(in)            :: nnz_g
-   integer(c_int), value, intent(in)            :: nnz_l
-   integer(c_int), value, intent(in)            :: n_l_cols
-   integer(c_int),        intent(in)            :: row_ind(nnz_l)
-   integer(c_int),        intent(in)            :: col_ptr(n_l_cols+1)
-   real(kind=c_double),   intent(in)            :: mat(nnz_l)
+   type(c_ptr), value, intent(in)               :: row_ind_c
+   type(c_ptr), value, intent(in)               :: col_ptr_c
+   type(c_ptr), value, intent(in)               :: mat_c
+
+   type(elsi_rw_handle), pointer :: handle_f
+   integer(kind=c_int),  pointer :: row_ind_f(:)
+   integer(kind=c_int),  pointer :: col_ptr_f(:)
+   real(kind=c_double),  pointer :: mat_f(:)
 
    character(len=:), allocatable :: name_f
 
+   integer(kind=c_int) :: nnz_l
+   integer(kind=c_int) :: lcol
+
+   call c_f_pointer(handle_c,handle_f)
+
+   nnz_l = handle_f%nnz_l_sp
+   lcol  = handle_f%n_lcol_sp
+
+   call c_f_pointer(row_ind_c,row_ind_f,shape=[nnz_l])
+   call c_f_pointer(col_ptr_c,col_ptr_f,shape=[lcol+1])
+   call c_f_pointer(mat_c,mat_f,shape=[nnz_l])
+
    name_f = c_string_to_f_string(name_c)
 
-   call elsi_write_mat_real_sparse(name_f,mpi_comm,n_electrons,n_basis,nnz_g,&
-           nnz_l,n_l_cols,row_ind,col_ptr,mat)
+   call elsi_write_mat_real_sparse(handle_f,name_f,row_ind_f,col_ptr_f,mat_f)
 
 end subroutine
 
-subroutine elsi_read_mat_complex_c_wrapper(name_c,mpi_comm,blacs_ctxt,&
-              block_size,n_basis,n_l_rows,n_l_cols,mat)&
+subroutine elsi_read_mat_complex_c_wrapper(handle_c,name_c,mat_c)&
    bind(C,name="c_elsi_read_mat_complex")
 
    implicit none
 
+   type(c_ptr), value, intent(in)               :: handle_c
    character(kind=c_char,len=1), dimension(128) :: name_c
-   integer(c_int), value,  intent(in)           :: mpi_comm
-   integer(c_int), value,  intent(in)           :: blacs_ctxt
-   integer(c_int), value,  intent(in)           :: block_size
-   integer(c_int), value,  intent(in)           :: n_basis
-   integer(c_int), value,  intent(in)           :: n_l_rows
-   integer(c_int), value,  intent(in)           :: n_l_cols
-   complex(kind=c_double), intent(out)          :: mat(n_l_rows,n_l_cols)
+   type(c_ptr), value, intent(in)               :: mat_c
+
+   type(elsi_rw_handle),   pointer :: handle_f
+   complex(kind=c_double), pointer :: mat_f(:,:)
 
    character(len=:), allocatable :: name_f
 
+   integer(kind=c_int) :: lrow
+   integer(kind=c_int) :: lcol
+
+   call c_f_pointer(handle_c,handle_f)
+
+   lrow = handle_f%n_lrow
+   lcol = handle_f%n_lcol
+
+   call c_f_pointer(mat_c,mat_f,shape=[lrow,lcol])
+
    name_f = c_string_to_f_string(name_c)
 
-   call elsi_read_mat_complex(name_f,mpi_comm,blacs_ctxt,block_size,n_basis,&
-           n_l_rows,n_l_cols,mat)
+   call elsi_read_mat_complex(handle_f,name_f,mat_f)
 
 end subroutine
 
-subroutine elsi_read_mat_complex_sparse_c_wrapper(name_c,mpi_comm,n_basis,&
-              nnz_g,nnz_l,n_l_cols,row_ind,col_ptr,mat)&
+subroutine elsi_read_mat_complex_sparse_c_wrapper(handle_c,name_c,row_ind_c,&
+              col_ptr_c,mat_c)&
    bind(C,name="c_elsi_read_mat_complex_sparse")
 
    implicit none
 
+   type(c_ptr), value, intent(in)               :: handle_c
    character(kind=c_char,len=1), dimension(128) :: name_c
-   integer(c_int), value,  intent(in)           :: mpi_comm
-   integer(c_int), value,  intent(in)           :: n_basis
-   integer(c_int), value,  intent(in)           :: nnz_g
-   integer(c_int), value,  intent(in)           :: nnz_l
-   integer(c_int), value,  intent(in)           :: n_l_cols
-   integer(c_int),         intent(out)          :: row_ind(nnz_l)
-   integer(c_int),         intent(out)          :: col_ptr(n_l_cols+1)
-   complex(kind=c_double), intent(out)          :: mat(nnz_l)
+   type(c_ptr), value, intent(in)               :: row_ind_c
+   type(c_ptr), value, intent(in)               :: col_ptr_c
+   type(c_ptr), value, intent(in)               :: mat_c
+
+   type(elsi_rw_handle),   pointer :: handle_f
+   integer(kind=c_int),    pointer :: row_ind_f(:)
+   integer(kind=c_int),    pointer :: col_ptr_f(:)
+   complex(kind=c_double), pointer :: mat_f(:)
 
    character(len=:), allocatable :: name_f
 
+   integer(kind=c_int) :: nnz_l
+   integer(kind=c_int) :: lcol
+
+   call c_f_pointer(handle_c,handle_f)
+
+   nnz_l = handle_f%nnz_l_sp
+   lcol  = handle_f%n_lcol_sp
+
+   call c_f_pointer(row_ind_c,row_ind_f,shape=[nnz_l])
+   call c_f_pointer(col_ptr_c,col_ptr_f,shape=[lcol+1])
+   call c_f_pointer(mat_c,mat_f,shape=[nnz_l])
+
    name_f = c_string_to_f_string(name_c)
 
-   call elsi_read_mat_complex_sparse(name_f,mpi_comm,n_basis,nnz_g,nnz_l,&
-           n_l_cols,row_ind,col_ptr,mat)
+   call elsi_read_mat_complex_sparse(handle_f,name_f,row_ind_f,col_ptr_f,mat_f)
 
 end subroutine
 
-subroutine elsi_write_mat_complex_c_wrapper(name_c,mpi_comm,blacs_ctxt,&
-              block_size,n_electrons,n_basis,n_l_rows,n_l_cols,mat)&
+subroutine elsi_write_mat_complex_c_wrapper(handle_c,name_c,mat_c)&
    bind(C,name="c_elsi_write_mat_complex")
 
    implicit none
 
+   type(c_ptr), value, intent(in)               :: handle_c
    character(kind=c_char,len=1), dimension(128) :: name_c
-   integer(c_int), value,  intent(in)           :: mpi_comm
-   integer(c_int), value,  intent(in)           :: blacs_ctxt
-   integer(c_int), value,  intent(in)           :: block_size
-   real(c_double), value,  intent(in)           :: n_electrons
-   integer(c_int), value,  intent(in)           :: n_basis
-   integer(c_int), value,  intent(in)           :: n_l_rows
-   integer(c_int), value,  intent(in)           :: n_l_cols
-   complex(kind=c_double), intent(in)           :: mat(n_l_rows,n_l_cols)
+   type(c_ptr), value, intent(in)               :: mat_c
+
+   type(elsi_rw_handle),   pointer :: handle_f
+   complex(kind=c_double), pointer :: mat_f(:,:)
 
    character(len=:), allocatable :: name_f
 
+   integer(kind=c_int) :: lrow
+   integer(kind=c_int) :: lcol
+
+   call c_f_pointer(handle_c,handle_f)
+
+   lrow = handle_f%n_lrow
+   lcol = handle_f%n_lcol
+
+   call c_f_pointer(mat_c,mat_f,shape=[lrow,lcol])
+
    name_f = c_string_to_f_string(name_c)
 
-   call elsi_write_mat_complex(name_f,mpi_comm,blacs_ctxt,block_size,&
-           n_electrons,n_basis,n_l_rows,n_l_cols,mat)
+   call elsi_write_mat_complex(handle_f,name_f,mat_f)
 
 end subroutine
 
-subroutine elsi_write_mat_complex_sparse_c_wrapper(name_c,mpi_comm,n_electrons,&
-              n_basis,nnz_g,nnz_l,n_l_cols,row_ind,col_ptr,mat)&
+subroutine elsi_write_mat_complex_sparse_c_wrapper(handle_c,name_c,row_ind_c,&
+              col_ptr_c,mat_c)&
    bind(C,name="c_elsi_write_mat_complex_sparse")
 
    implicit none
 
+   type(c_ptr), value, intent(in)               :: handle_c
    character(kind=c_char,len=1), dimension(128) :: name_c
-   integer(c_int), value,  intent(in)           :: mpi_comm
-   real(c_double), value,  intent(in)           :: n_electrons
-   integer(c_int), value,  intent(in)           :: n_basis
-   integer(c_int), value,  intent(in)           :: nnz_g
-   integer(c_int), value,  intent(in)           :: nnz_l
-   integer(c_int), value,  intent(in)           :: n_l_cols
-   integer(c_int),         intent(in)           :: row_ind(nnz_l)
-   integer(c_int),         intent(in)           :: col_ptr(n_l_cols+1)
-   complex(kind=c_double), intent(in)           :: mat(nnz_l)
+   type(c_ptr), value, intent(in)               :: row_ind_c
+   type(c_ptr), value, intent(in)               :: col_ptr_c
+   type(c_ptr), value, intent(in)               :: mat_c
+
+   type(elsi_rw_handle),   pointer :: handle_f
+   integer(kind=c_int),    pointer :: row_ind_f(:)
+   integer(kind=c_int),    pointer :: col_ptr_f(:)
+   complex(kind=c_double), pointer :: mat_f(:)
 
    character(len=:), allocatable :: name_f
 
+   integer(kind=c_int) :: nnz_l
+   integer(kind=c_int) :: lcol
+
+   call c_f_pointer(handle_c,handle_f)
+
+   nnz_l = handle_f%nnz_l_sp
+   lcol  = handle_f%n_lcol_sp
+
+   call c_f_pointer(row_ind_c,row_ind_f,shape=[nnz_l])
+   call c_f_pointer(col_ptr_c,col_ptr_f,shape=[lcol+1])
+   call c_f_pointer(mat_c,mat_f,shape=[nnz_l])
+
    name_f = c_string_to_f_string(name_c)
 
-   call elsi_write_mat_complex_sparse(name_f,mpi_comm,n_electrons,n_basis,&
-           nnz_g,nnz_l,n_l_cols,row_ind,col_ptr,mat)
+   call elsi_write_mat_complex_sparse(handle_f,name_f,row_ind_f,col_ptr_f,mat_f)
 
 end subroutine
 

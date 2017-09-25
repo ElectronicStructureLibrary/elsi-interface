@@ -76,7 +76,8 @@ program test_ev_real
    real(kind=r8), allocatable :: eval(:)
    real(kind=r8), allocatable :: occ(:)
 
-   type(elsi_handle) :: elsi_h
+   type(elsi_handle)    :: e_h
+   type(elsi_rw_handle) :: rw_h
 
    ! VY: Reference value from calculations on August 31, 2017.
    real(kind=r8), parameter :: e_elpa = -1833.07932666530_r8
@@ -161,8 +162,11 @@ program test_ev_real
    call BLACS_Gridinit(blacs_ctxt,'r',nprow,npcol)
 
    ! Read H and S matrices
-   call elsi_read_mat_dim(arg2,mpi_comm_global,blacs_ctxt,blk,n_electrons,&
-           matrix_size,l_rows,l_cols)
+   call elsi_init_rw(rw_h,0,1,0,1,0,0.0_r8)
+   call elsi_set_rw_mpi(rw_h,mpi_comm_global)
+   call elsi_set_rw_blacs(rw_h,blacs_ctxt,blk)
+
+   call elsi_read_mat_dim(rw_h,arg2,n_electrons,matrix_size,l_rows,l_cols)
 
    allocate(ham(l_rows,l_cols))
    allocate(ham_save(l_rows,l_cols))
@@ -174,11 +178,10 @@ program test_ev_real
 
    t1 = MPI_Wtime()
 
-   call elsi_read_mat_real(arg2,mpi_comm_global,blacs_ctxt,blk,matrix_size,&
-           l_rows,l_cols,ham)
+   call elsi_read_mat_real(rw_h,arg2,ham)
+   call elsi_read_mat_real(rw_h,arg3,ovlp)
 
-   call elsi_read_mat_real(arg3,mpi_comm_global,blacs_ctxt,blk,matrix_size,&
-           l_rows,l_cols,ovlp)
+   call elsi_finalize_rw(rw_h)
 
    ham_save  = ham
    ovlp_save = ovlp
@@ -197,23 +200,23 @@ program test_ev_real
 
    if(n_proc == 1) then
       ! Test SINGLE_PROC mode
-      call elsi_init(elsi_h,solver,0,0,matrix_size,n_electrons,n_states)
+      call elsi_init(e_h,solver,0,0,matrix_size,n_electrons,n_states)
    else
       ! Test MULTI_PROC mode
-      call elsi_init(elsi_h,solver,1,0,matrix_size,n_electrons,n_states)
-      call elsi_set_mpi(elsi_h,mpi_comm_global)
-      call elsi_set_blacs(elsi_h,blacs_ctxt,blk)
+      call elsi_init(e_h,solver,1,0,matrix_size,n_electrons,n_states)
+      call elsi_set_mpi(e_h,mpi_comm_global)
+      call elsi_set_blacs(e_h,blacs_ctxt,blk)
    endif
 
    ! Customize ELSI
-   call elsi_set_output(elsi_h,2)
-   call elsi_set_sips_ev_min(elsi_h,-70.0_r8)
-   call elsi_set_sips_ev_max(elsi_h,0.0_r8)
+   call elsi_set_output(e_h,2)
+   call elsi_set_sips_ev_min(e_h,-70.0_r8)
+   call elsi_set_sips_ev_max(e_h,0.0_r8)
 
    t1 = MPI_Wtime()
 
    ! Solve (pseudo SCF 1)
-   call elsi_ev_real(elsi_h,ham,ovlp,eval,evec)
+   call elsi_ev_real(e_h,ham,ovlp,eval,evec)
 
    t2 = MPI_Wtime()
 
@@ -232,12 +235,11 @@ program test_ev_real
    t1 = MPI_Wtime()
 
    ! Solve (pseudo SCF 2, with the same H)
-   call elsi_ev_real(elsi_h,ham,ovlp,eval,evec)
+   call elsi_ev_real(e_h,ham,ovlp,eval,evec)
 
    t2 = MPI_Wtime()
 
-   call elsi_compute_mu_and_occ(elsi_h,n_electrons,n_states,1,1,weight,eval,&
-           occ,mu)
+   call elsi_compute_mu_and_occ(e_h,n_electrons,n_states,1,1,weight,eval,occ,mu)
 
    e_test = 0.0_r8
 
@@ -262,7 +264,7 @@ program test_ev_real
    endif
 
    ! Finalize ELSI
-   call elsi_finalize(elsi_h)
+   call elsi_finalize(e_h)
 
    deallocate(ham)
    deallocate(ham_save)

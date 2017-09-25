@@ -93,9 +93,9 @@ subroutine elsi_blacs_to_pexsi_hs_real(e_h,h_in,s_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout)        :: e_h                             !< Handle
-   real(kind=r8),     intent(in),   target :: h_in(e_h%n_l_rows,e_h%n_l_cols) !< Hamiltonian
-   real(kind=r8),     intent(in),   target :: s_in(e_h%n_l_rows,e_h%n_l_cols) !< Overlap
+   type(elsi_handle), intent(inout)        :: e_h                         !< Handle
+   real(kind=r8),     intent(in),   target :: h_in(e_h%n_lrow,e_h%n_lcol) !< Hamiltonian
+   real(kind=r8),     intent(in),   target :: s_in(e_h%n_lrow,e_h%n_lcol) !< Overlap
 
    real(kind=r8), pointer :: ref(:,:) ! Sparsity pattern
 
@@ -140,7 +140,7 @@ subroutine elsi_blacs_to_pexsi_hs_real(e_h,h_in,s_in)
 
    call elsi_get_time(e_h,t0)
 
-   n_para_task = e_h%n_procs/e_h%n_p_per_pole
+   n_para_task = e_h%n_procs/e_h%np_per_pole
 
    if(.not. e_h%ovlp_is_unit) then
       ref => s_in
@@ -149,7 +149,7 @@ subroutine elsi_blacs_to_pexsi_hs_real(e_h,h_in,s_in)
    endif
 
    if(e_h%n_elsi_calls == 1) then
-      call elsi_get_local_nnz(e_h,ref,e_h%n_l_rows,e_h%n_l_cols,e_h%nnz_l)
+      call elsi_get_local_nnz(e_h,ref,e_h%n_lrow,e_h%n_lcol,e_h%nnz_l)
 
       if(.not. e_h%ovlp_is_unit) then
          call elsi_allocate(e_h,s_val_send_buf,e_h%nnz_l,"s_val_send_buf",&
@@ -163,8 +163,8 @@ subroutine elsi_blacs_to_pexsi_hs_real(e_h,h_in,s_in)
    call elsi_allocate(e_h,h_val_send_buf,e_h%nnz_l,"h_val_send_buf",caller)
 
    ! Compute d1,d2,d11,d12,d21,d22 (need explanation)
-   d1  = e_h%n_basis/e_h%n_p_per_pole
-   d2  = e_h%n_basis-(e_h%n_p_per_pole-1)*d1
+   d1  = e_h%n_basis/e_h%np_per_pole
+   d2  = e_h%n_basis-(e_h%np_per_pole-1)*d1
    d11 = d1/n_para_task
    d12 = d1-(n_para_task-1)*d11
    d21 = d2/n_para_task
@@ -228,13 +228,13 @@ subroutine elsi_blacs_to_pexsi_hs_real(e_h,h_in,s_in)
 
    ! Compute destination and global id
    i_val = 0
-   do i_col = 1,e_h%n_l_cols
+   do i_col = 1,e_h%n_lcol
       call elsi_get_global_col(e_h,g_col_id,i_col)
 
       ! Compute destination
       dest = min(locat(g_col_id),e_h%n_procs-1)
 
-      do i_row = 1,e_h%n_l_rows
+      do i_row = 1,e_h%n_lrow
          if(abs(ref(i_row,i_col)) > e_h%zero_threshold) then
             i_val = i_val+1
 
@@ -408,11 +408,11 @@ subroutine elsi_blacs_to_pexsi_hs_real(e_h,h_in,s_in)
       call elsi_allocate(e_h,e_h%row_ind_pexsi,e_h%nnz_l_sp,"row_ind_pexsi",&
               caller)
 
-      call elsi_allocate(e_h,e_h%col_ptr_pexsi,(e_h%n_l_cols_sp+1),&
+      call elsi_allocate(e_h,e_h%col_ptr_pexsi,(e_h%n_lcol_sp+1),&
               "col_ptr_pexsi",caller)
 
       ! Only the first pole computes row index and column pointer
-      if(e_h%my_p_row_pexsi == 0) then
+      if(e_h%my_prow_pexsi == 0) then
          ! Compute row index and column pointer
          i_col = col_send_buf(1)-1
          do i_val = 1,e_h%nnz_l_sp
@@ -424,7 +424,7 @@ subroutine elsi_blacs_to_pexsi_hs_real(e_h,h_in,s_in)
             endif
          enddo
 
-         e_h%col_ptr_pexsi(e_h%n_l_cols_sp+1) = e_h%nnz_l_sp+1
+         e_h%col_ptr_pexsi(e_h%n_lcol_sp+1) = e_h%nnz_l_sp+1
       endif
 
       call elsi_deallocate(e_h,row_send_buf,"row_send_buf")
@@ -449,9 +449,9 @@ subroutine elsi_blacs_to_pexsi_hs_complex(e_h,h_in,s_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout)        :: e_h                             !< Handle
-   complex(kind=r8),  intent(in),   target :: h_in(e_h%n_l_rows,e_h%n_l_cols) !< Hamiltonian
-   complex(kind=r8),  intent(in),   target :: s_in(e_h%n_l_rows,e_h%n_l_cols) !< Overlap
+   type(elsi_handle), intent(inout)        :: e_h                         !< Handle
+   complex(kind=r8),  intent(in),   target :: h_in(e_h%n_lrow,e_h%n_lcol) !< Hamiltonian
+   complex(kind=r8),  intent(in),   target :: s_in(e_h%n_lrow,e_h%n_lcol) !< Overlap
 
    complex(kind=r8), pointer :: ref(:,:) ! Sparsity pattern
 
@@ -496,7 +496,7 @@ subroutine elsi_blacs_to_pexsi_hs_complex(e_h,h_in,s_in)
 
    call elsi_get_time(e_h,t0)
 
-   n_para_task = e_h%n_procs/e_h%n_p_per_pole
+   n_para_task = e_h%n_procs/e_h%np_per_pole
 
    if(.not. e_h%ovlp_is_unit) then
       ref => s_in
@@ -505,7 +505,7 @@ subroutine elsi_blacs_to_pexsi_hs_complex(e_h,h_in,s_in)
    endif
 
    if(e_h%n_elsi_calls == 1) then
-      call elsi_get_local_nnz(e_h,ref,e_h%n_l_rows,e_h%n_l_cols,e_h%nnz_l)
+      call elsi_get_local_nnz(e_h,ref,e_h%n_lrow,e_h%n_lcol,e_h%nnz_l)
 
       if(.not. e_h%ovlp_is_unit) then
          call elsi_allocate(e_h,s_val_send_buf,e_h%nnz_l,"s_val_send_buf",&
@@ -519,8 +519,8 @@ subroutine elsi_blacs_to_pexsi_hs_complex(e_h,h_in,s_in)
    call elsi_allocate(e_h,h_val_send_buf,e_h%nnz_l,"h_val_send_buf",caller)
 
    ! Compute d1,d2,d11,d12,d21,d22 (need explanation)
-   d1  = e_h%n_basis/e_h%n_p_per_pole
-   d2  = e_h%n_basis-(e_h%n_p_per_pole-1)*d1
+   d1  = e_h%n_basis/e_h%np_per_pole
+   d2  = e_h%n_basis-(e_h%np_per_pole-1)*d1
    d11 = d1/n_para_task
    d12 = d1-(n_para_task-1)*d11
    d21 = d2/n_para_task
@@ -584,13 +584,13 @@ subroutine elsi_blacs_to_pexsi_hs_complex(e_h,h_in,s_in)
 
    ! Compute destination and global id
    i_val = 0
-   do i_col = 1,e_h%n_l_cols
+   do i_col = 1,e_h%n_lcol
       call elsi_get_global_col(e_h,g_col_id,i_col)
 
       ! Compute destination
       dest = min(locat(g_col_id),e_h%n_procs-1)
 
-      do i_row = 1,e_h%n_l_rows
+      do i_row = 1,e_h%n_lrow
          if(abs(ref(i_row,i_col)) > e_h%zero_threshold) then
             i_val = i_val+1
 
@@ -765,11 +765,11 @@ subroutine elsi_blacs_to_pexsi_hs_complex(e_h,h_in,s_in)
       call elsi_allocate(e_h,e_h%row_ind_pexsi,e_h%nnz_l_sp,"row_ind_pexsi",&
               caller)
 
-      call elsi_allocate(e_h,e_h%col_ptr_pexsi,(e_h%n_l_cols_sp+1),&
+      call elsi_allocate(e_h,e_h%col_ptr_pexsi,(e_h%n_lcol_sp+1),&
               "col_ptr_pexsi",caller)
 
       ! Only the first pole computes row index and column pointer
-      if(e_h%my_p_row_pexsi == 0) then
+      if(e_h%my_prow_pexsi == 0) then
          ! Compute row index and column pointer
          i_col = col_send_buf(1)-1
          do i_val = 1,e_h%nnz_l_sp
@@ -781,7 +781,7 @@ subroutine elsi_blacs_to_pexsi_hs_complex(e_h,h_in,s_in)
             endif
          enddo
 
-         e_h%col_ptr_pexsi(e_h%n_l_cols_sp+1) = e_h%nnz_l_sp+1
+         e_h%col_ptr_pexsi(e_h%n_lcol_sp+1) = e_h%nnz_l_sp+1
       endif
 
       call elsi_deallocate(e_h,row_send_buf,"row_send_buf")
@@ -805,8 +805,8 @@ subroutine elsi_pexsi_to_blacs_dm_real(e_h,d_out)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                              !< Handle
-   real(kind=r8),     intent(out)   :: d_out(e_h%n_l_rows,e_h%n_l_cols) !< Density matrix
+   type(elsi_handle), intent(inout) :: e_h                          !< Handle
+   real(kind=r8),     intent(out)   :: d_out(e_h%n_lrow,e_h%n_lcol) !< Density matrix
 
    integer(kind=i4) :: mpierr
    integer(kind=i4) :: i_row
@@ -843,27 +843,26 @@ subroutine elsi_pexsi_to_blacs_dm_real(e_h,d_out)
    call elsi_allocate(e_h,col_send_buf,e_h%nnz_l_sp,"col_send_buf",caller)
    call elsi_allocate(e_h,send_count,e_h%n_procs,"send_count",caller)
 
-   if(e_h%my_p_row_pexsi == 0) then
+   if(e_h%my_prow_pexsi == 0) then
       call elsi_allocate(e_h,dest,e_h%nnz_l_sp,"dest",caller)
 
       i_col = 0
       ! Compute destination and global id
       do i_val = 1,e_h%nnz_l_sp
-         if(i_val == e_h%col_ptr_ccs(i_col+1) .and. &
-            i_col /= e_h%n_l_cols_sp) then
+         if(i_val == e_h%col_ptr_ccs(i_col+1) .and. i_col /= e_h%n_lcol_sp) then
             i_col = i_col+1
          endif
          i_row = e_h%row_ind_ccs(i_val)
 
          ! Compute global id
          row_send_buf(i_val) = i_row
-         col_send_buf(i_val) = i_col+e_h%myid*(e_h%n_basis/e_h%n_p_per_pole)
+         col_send_buf(i_val) = i_col+e_h%myid*(e_h%n_basis/e_h%np_per_pole)
          val_send_buf(i_val) = e_h%dm_real_ccs(i_val)
 
          ! Compute destination
-         proc_row_id = mod((row_send_buf(i_val)-1)/e_h%n_b_rows,e_h%n_p_rows)
-         proc_col_id = mod((col_send_buf(i_val)-1)/e_h%n_b_cols,e_h%n_p_cols)
-         dest(i_val) = proc_col_id+proc_row_id*e_h%n_p_cols
+         proc_row_id = mod((row_send_buf(i_val)-1)/e_h%blk_row,e_h%n_prow)
+         proc_col_id = mod((col_send_buf(i_val)-1)/e_h%blk_col,e_h%n_pcol)
+         dest(i_val) = proc_col_id+proc_row_id*e_h%n_pcol
 
          ! Set send_count
          send_count(dest(i_val)+1) = send_count(dest(i_val)+1)+1
@@ -926,12 +925,10 @@ subroutine elsi_pexsi_to_blacs_dm_real(e_h,d_out)
    ! Unpack density matrix
    do i_val = 1,e_h%nnz_l
       ! Compute local 2d id
-      l_row_id = (row_recv_buf(i_val)-1)/&
-                    (e_h%n_p_rows*e_h%n_b_rows)*e_h%n_b_rows+&
-                    mod((row_recv_buf(i_val)-1),e_h%n_b_rows)+1
-      l_col_id = (col_recv_buf(i_val)-1)/&
-                    (e_h%n_p_cols*e_h%n_b_cols)*e_h%n_b_cols+&
-                    mod((col_recv_buf(i_val)-1),e_h%n_b_cols)+1
+      l_row_id = (row_recv_buf(i_val)-1)/(e_h%n_prow*e_h%blk_row)*e_h%blk_row+&
+                    mod((row_recv_buf(i_val)-1),e_h%blk_row)+1
+      l_col_id = (col_recv_buf(i_val)-1)/(e_h%n_pcol*e_h%blk_col)*e_h%blk_col+&
+                    mod((col_recv_buf(i_val)-1),e_h%blk_col)+1
 
       ! Put value to correct position
       d_out(l_row_id,l_col_id) = val_recv_buf(i_val)
@@ -958,8 +955,8 @@ subroutine elsi_pexsi_to_blacs_dm_complex(e_h,d_out)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                              !< Handle
-   complex(kind=r8),  intent(out)   :: d_out(e_h%n_l_rows,e_h%n_l_cols) !< Density matrix
+   type(elsi_handle), intent(inout) :: e_h                          !< Handle
+   complex(kind=r8),  intent(out)   :: d_out(e_h%n_lrow,e_h%n_lcol) !< Density matrix
 
    integer(kind=i4) :: mpierr
    integer(kind=i4) :: i_row
@@ -996,27 +993,26 @@ subroutine elsi_pexsi_to_blacs_dm_complex(e_h,d_out)
    call elsi_allocate(e_h,col_send_buf,e_h%nnz_l_sp,"col_send_buf",caller)
    call elsi_allocate(e_h,send_count,e_h%n_procs,"send_count",caller)
 
-   if(e_h%my_p_row_pexsi == 0) then
+   if(e_h%my_prow_pexsi == 0) then
       call elsi_allocate(e_h,dest,e_h%nnz_l_sp,"dest",caller)
 
       i_col = 0
       ! Compute destination and global id
       do i_val = 1,e_h%nnz_l_sp
-         if(i_val == e_h%col_ptr_ccs(i_col+1) .and. &
-            i_col /= e_h%n_l_cols_sp) then
+         if(i_val == e_h%col_ptr_ccs(i_col+1) .and. i_col /= e_h%n_lcol_sp) then
             i_col = i_col+1
          endif
          i_row = e_h%row_ind_ccs(i_val)
 
          ! Compute global id
          row_send_buf(i_val) = i_row
-         col_send_buf(i_val) = i_col+e_h%myid*(e_h%n_basis/e_h%n_p_per_pole)
+         col_send_buf(i_val) = i_col+e_h%myid*(e_h%n_basis/e_h%np_per_pole)
          val_send_buf(i_val) = e_h%dm_cmplx_ccs(i_val)
 
          ! Compute destination
-         proc_row_id = mod((row_send_buf(i_val)-1)/e_h%n_b_rows,e_h%n_p_rows)
-         proc_col_id = mod((col_send_buf(i_val)-1)/e_h%n_b_cols,e_h%n_p_cols)
-         dest(i_val) = proc_col_id+proc_row_id*e_h%n_p_cols
+         proc_row_id = mod((row_send_buf(i_val)-1)/e_h%blk_row,e_h%n_prow)
+         proc_col_id = mod((col_send_buf(i_val)-1)/e_h%blk_col,e_h%n_pcol)
+         dest(i_val) = proc_col_id+proc_row_id*e_h%n_pcol
 
          ! Set send_count
          send_count(dest(i_val)+1) = send_count(dest(i_val)+1)+1
@@ -1079,12 +1075,10 @@ subroutine elsi_pexsi_to_blacs_dm_complex(e_h,d_out)
    ! Unpack density matrix
    do i_val = 1,e_h%nnz_l
       ! Compute local 2d id
-      l_row_id = (row_recv_buf(i_val)-1)/&
-                    (e_h%n_p_rows*e_h%n_b_rows)*e_h%n_b_rows+&
-                    mod((row_recv_buf(i_val)-1),e_h%n_b_rows)+1
-      l_col_id = (col_recv_buf(i_val)-1)/&
-                    (e_h%n_p_cols*e_h%n_b_cols)*e_h%n_b_cols+&
-                    mod((col_recv_buf(i_val)-1),e_h%n_b_cols)+1
+      l_row_id = (row_recv_buf(i_val)-1)/(e_h%n_prow*e_h%blk_row)*e_h%blk_row+&
+                    mod((row_recv_buf(i_val)-1),e_h%blk_row)+1
+      l_col_id = (col_recv_buf(i_val)-1)/(e_h%n_pcol*e_h%blk_col)*e_h%blk_col+&
+                    mod((col_recv_buf(i_val)-1),e_h%blk_col)+1
 
       ! Put value to correct position
       d_out(l_row_id,l_col_id) = val_recv_buf(i_val)
@@ -1112,9 +1106,9 @@ subroutine elsi_blacs_to_sips_hs_real(e_h,h_in,s_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout)        :: e_h                             !< Handle
-   real(kind=r8),     intent(in),   target :: h_in(e_h%n_l_rows,e_h%n_l_cols) !< Hamiltonian
-   real(kind=r8),     intent(in),   target :: s_in(e_h%n_l_rows,e_h%n_l_cols) !< Overlap
+   type(elsi_handle), intent(inout)        :: e_h                         !< Handle
+   real(kind=r8),     intent(in),   target :: h_in(e_h%n_lrow,e_h%n_lcol) !< Hamiltonian
+   real(kind=r8),     intent(in),   target :: s_in(e_h%n_lrow,e_h%n_lcol) !< Overlap
 
    real(kind=r8), pointer :: ref(:,:) ! Sparsity pattern
 
@@ -1154,7 +1148,7 @@ subroutine elsi_blacs_to_sips_hs_real(e_h,h_in,s_in)
    endif
 
    if(e_h%n_elsi_calls == 1) then
-      call elsi_get_local_nnz(e_h,ref,e_h%n_l_rows,e_h%n_l_cols,e_h%nnz_l)
+      call elsi_get_local_nnz(e_h,ref,e_h%n_lrow,e_h%n_lcol,e_h%nnz_l)
 
       if(.not. e_h%ovlp_is_unit) then
          call elsi_allocate(e_h,s_val_send_buf,e_h%nnz_l,"s_val_send_buf",&
@@ -1169,7 +1163,7 @@ subroutine elsi_blacs_to_sips_hs_real(e_h,h_in,s_in)
 
    ! Compute destination and global id
    i_val = 0
-   do i_col = 1,e_h%n_l_cols
+   do i_col = 1,e_h%n_lcol
       call elsi_get_global_col(e_h,g_col_id,i_col)
 
       ! Compute destination
@@ -1177,7 +1171,7 @@ subroutine elsi_blacs_to_sips_hs_real(e_h,h_in,s_in)
       ! The last process may take more
       dest = min(dest,e_h%n_procs-1)
 
-      do i_row = 1,e_h%n_l_rows
+      do i_row = 1,e_h%n_lrow
          if(abs(ref(i_row,i_col)) > e_h%zero_threshold) then
             i_val = i_val+1
 
@@ -1294,7 +1288,7 @@ subroutine elsi_blacs_to_sips_hs_real(e_h,h_in,s_in)
       call elsi_allocate(e_h,e_h%row_ind_sips,e_h%nnz_l_sp,"row_ind_sips",&
               caller)
 
-      call elsi_allocate(e_h,e_h%col_ptr_sips,(e_h%n_l_cols_sp+1),&
+      call elsi_allocate(e_h,e_h%col_ptr_sips,(e_h%n_lcol_sp+1),&
               "col_ptr_sips",caller)
 
       i_col = col_recv_buf(1)-1
@@ -1307,7 +1301,7 @@ subroutine elsi_blacs_to_sips_hs_real(e_h,h_in,s_in)
          endif
       enddo
 
-      e_h%col_ptr_sips(e_h%n_l_cols_sp+1) = e_h%nnz_l_sp+1
+      e_h%col_ptr_sips(e_h%n_lcol_sp+1) = e_h%nnz_l_sp+1
    endif
 
    call elsi_deallocate(e_h,row_recv_buf,"row_recv_buf")
@@ -1331,9 +1325,9 @@ subroutine elsi_blacs_to_sips_hs_complex(e_h,h_in,s_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout)      :: e_h                             !< Handle
-   complex(kind=r8),  intent(in), target :: h_in(e_h%n_l_rows,e_h%n_l_cols) !< Hamiltonian
-   complex(kind=r8),  intent(in), target :: s_in(e_h%n_l_rows,e_h%n_l_cols) !< Overlap
+   type(elsi_handle), intent(inout)      :: e_h                         !< Handle
+   complex(kind=r8),  intent(in), target :: h_in(e_h%n_lrow,e_h%n_lcol) !< Hamiltonian
+   complex(kind=r8),  intent(in), target :: s_in(e_h%n_lrow,e_h%n_lcol) !< Overlap
 
    complex(kind=r8), pointer :: ref(:,:) ! Sparsity pattern
 
@@ -1373,7 +1367,7 @@ subroutine elsi_blacs_to_sips_hs_complex(e_h,h_in,s_in)
    endif
 
    if(e_h%n_elsi_calls == 1) then
-      call elsi_get_local_nnz(e_h,ref,e_h%n_l_rows,e_h%n_l_cols,e_h%nnz_l)
+      call elsi_get_local_nnz(e_h,ref,e_h%n_lrow,e_h%n_lcol,e_h%nnz_l)
 
       if(.not. e_h%ovlp_is_unit) then
          call elsi_allocate(e_h,s_val_send_buf,e_h%nnz_l,"s_val_send_buf",&
@@ -1388,7 +1382,7 @@ subroutine elsi_blacs_to_sips_hs_complex(e_h,h_in,s_in)
 
    ! Compute destination and global id
    i_val = 0
-   do i_col = 1,e_h%n_l_cols
+   do i_col = 1,e_h%n_lcol
       call elsi_get_global_col(e_h,g_col_id,i_col)
 
       ! Compute destination
@@ -1396,7 +1390,7 @@ subroutine elsi_blacs_to_sips_hs_complex(e_h,h_in,s_in)
       ! The last process may take more
       dest = min(dest,e_h%n_procs-1)
 
-      do i_row = 1,e_h%n_l_rows
+      do i_row = 1,e_h%n_lrow
          if(abs(ref(i_row,i_col)) > e_h%zero_threshold) then
             i_val = i_val+1
 
@@ -1513,7 +1507,7 @@ subroutine elsi_blacs_to_sips_hs_complex(e_h,h_in,s_in)
       call elsi_allocate(e_h,e_h%row_ind_sips,e_h%nnz_l_sp,"row_ind_sips",&
               caller)
 
-      call elsi_allocate(e_h,e_h%col_ptr_sips,(e_h%n_l_cols_sp+1),&
+      call elsi_allocate(e_h,e_h%col_ptr_sips,(e_h%n_lcol_sp+1),&
               "col_ptr_sips",caller)
 
       i_col = col_recv_buf(1)-1
@@ -1526,7 +1520,7 @@ subroutine elsi_blacs_to_sips_hs_complex(e_h,h_in,s_in)
          endif
       enddo
 
-      e_h%col_ptr_sips(e_h%n_l_cols_sp+1) = e_h%nnz_l_sp+1
+      e_h%col_ptr_sips(e_h%n_lcol_sp+1) = e_h%nnz_l_sp+1
    endif
 
    call elsi_deallocate(e_h,row_recv_buf,"row_recv_buf")
@@ -1600,8 +1594,7 @@ subroutine elsi_sips_to_blacs_hs_real(e_h,h_in,s_in)
    i_col = 0
    ! Compute destination and global id
    do i_val = 1,e_h%nnz_l_sp
-      if(i_val == e_h%col_ptr_ccs(i_col+1) .and. &
-         i_col /= e_h%n_l_cols_sp) then
+      if(i_val == e_h%col_ptr_ccs(i_col+1) .and. i_col /= e_h%n_lcol_sp) then
          i_col = i_col+1
       endif
       i_row = e_h%row_ind_ccs(i_val)
@@ -1615,9 +1608,9 @@ subroutine elsi_sips_to_blacs_hs_real(e_h,h_in,s_in)
       endif
 
       ! Compute destination
-      proc_row_id = mod((row_send_buf(i_val)-1)/e_h%n_b_rows,e_h%n_p_rows)
-      proc_col_id = mod((col_send_buf(i_val)-1)/e_h%n_b_cols,e_h%n_p_cols)
-      dest(i_val) = proc_col_id+proc_row_id*e_h%n_p_cols
+      proc_row_id = mod((row_send_buf(i_val)-1)/e_h%blk_row,e_h%n_prow)
+      proc_col_id = mod((col_send_buf(i_val)-1)/e_h%blk_col,e_h%n_pcol)
+      dest(i_val) = proc_col_id+proc_row_id*e_h%n_pcol
 
       ! Set send_count
       send_count(dest(i_val)+1) = send_count(dest(i_val)+1)+1
@@ -1691,20 +1684,20 @@ subroutine elsi_sips_to_blacs_hs_real(e_h,h_in,s_in)
 
    ! Unpack matrix
    if(e_h%n_elsi_calls == 1 .and. .not. e_h%ovlp_is_unit) then
-      call elsi_allocate(e_h,e_h%ham_real_elpa,e_h%n_l_rows,e_h%n_l_cols,&
+      call elsi_allocate(e_h,e_h%ham_real_elpa,e_h%n_lrow,e_h%n_lcol,&
               "ham_real_elpa",caller)
 
-      call elsi_allocate(e_h,e_h%ovlp_real_elpa,e_h%n_l_rows,e_h%n_l_cols,&
+      call elsi_allocate(e_h,e_h%ovlp_real_elpa,e_h%n_lrow,e_h%n_lcol,&
               "ovlp_real_elpa",caller)
 
       do i_val = 1,e_h%nnz_l
          ! Compute local 2d id
          l_row_id = (row_recv_buf(i_val)-1)/&
-                       (e_h%n_p_rows*e_h%n_b_rows)*e_h%n_b_rows+&
-                       mod((row_recv_buf(i_val)-1),e_h%n_b_rows)+1
+                       (e_h%n_prow*e_h%blk_row)*e_h%blk_row+&
+                       mod((row_recv_buf(i_val)-1),e_h%blk_row)+1
          l_col_id = (col_recv_buf(i_val)-1)/&
-                       (e_h%n_p_cols*e_h%n_b_cols)*e_h%n_b_cols+&
-                       mod((col_recv_buf(i_val)-1),e_h%n_b_cols)+1
+                       (e_h%n_pcol*e_h%blk_col)*e_h%blk_col+&
+                       mod((col_recv_buf(i_val)-1),e_h%blk_col)+1
 
          ! Put value to correct position
          e_h%ham_real_elpa(l_row_id,l_col_id) = h_val_recv_buf(i_val)
@@ -1714,7 +1707,7 @@ subroutine elsi_sips_to_blacs_hs_real(e_h,h_in,s_in)
       call elsi_deallocate(e_h,s_val_recv_buf,"s_val_recv_buf")
    else
       if(e_h%n_elsi_calls == 1) then
-         call elsi_allocate(e_h,e_h%ham_real_elpa,e_h%n_l_rows,e_h%n_l_cols,&
+         call elsi_allocate(e_h,e_h%ham_real_elpa,e_h%n_lrow,e_h%n_lcol,&
                  "ham_real_elpa",caller)
 
          call elsi_allocate(e_h,e_h%ovlp_real_elpa,1,1,"dummy",caller)
@@ -1725,11 +1718,11 @@ subroutine elsi_sips_to_blacs_hs_real(e_h,h_in,s_in)
       do i_val = 1,e_h%nnz_l
          ! Compute local 2d id
          l_row_id = (row_recv_buf(i_val)-1)/&
-                       (e_h%n_p_rows*e_h%n_b_rows)*e_h%n_b_rows+&
-                       mod((row_recv_buf(i_val)-1),e_h%n_b_rows)+1
+                       (e_h%n_prow*e_h%blk_row)*e_h%blk_row+&
+                       mod((row_recv_buf(i_val)-1),e_h%blk_row)+1
          l_col_id = (col_recv_buf(i_val)-1)/&
-                       (e_h%n_p_cols*e_h%n_b_cols)*e_h%n_b_cols+&
-                       mod((col_recv_buf(i_val)-1),e_h%n_b_cols)+1
+                       (e_h%n_pcol*e_h%blk_col)*e_h%blk_col+&
+                       mod((col_recv_buf(i_val)-1),e_h%blk_col)+1
 
          ! Put value to correct position
          e_h%ham_real_elpa(l_row_id,l_col_id) = h_val_recv_buf(i_val)
@@ -1808,8 +1801,7 @@ subroutine elsi_sips_to_blacs_hs_complex(e_h,h_in,s_in)
    i_col = 0
    ! Compute destination and global id
    do i_val = 1,e_h%nnz_l_sp
-      if(i_val == e_h%col_ptr_ccs(i_col+1) .and. &
-         i_col /= e_h%n_l_cols_sp) then
+      if(i_val == e_h%col_ptr_ccs(i_col+1) .and. i_col /= e_h%n_lcol_sp) then
          i_col = i_col+1
       endif
       i_row = e_h%row_ind_ccs(i_val)
@@ -1823,9 +1815,9 @@ subroutine elsi_sips_to_blacs_hs_complex(e_h,h_in,s_in)
       endif
 
       ! Compute destination
-      proc_row_id = mod((row_send_buf(i_val)-1)/e_h%n_b_rows,e_h%n_p_rows)
-      proc_col_id = mod((col_send_buf(i_val)-1)/e_h%n_b_cols,e_h%n_p_cols)
-      dest(i_val) = proc_col_id+proc_row_id*e_h%n_p_cols
+      proc_row_id = mod((row_send_buf(i_val)-1)/e_h%blk_row,e_h%n_prow)
+      proc_col_id = mod((col_send_buf(i_val)-1)/e_h%blk_col,e_h%n_pcol)
+      dest(i_val) = proc_col_id+proc_row_id*e_h%n_pcol
 
       ! Set send_count
       send_count(dest(i_val)+1) = send_count(dest(i_val)+1)+1
@@ -1900,20 +1892,20 @@ subroutine elsi_sips_to_blacs_hs_complex(e_h,h_in,s_in)
 
    ! Unpack matrix
    if(e_h%n_elsi_calls == 1 .and. .not. e_h%ovlp_is_unit) then
-      call elsi_allocate(e_h,e_h%ham_cmplx_elpa,e_h%n_l_rows,e_h%n_l_cols,&
+      call elsi_allocate(e_h,e_h%ham_cmplx_elpa,e_h%n_lrow,e_h%n_lcol,&
               "ham_cmplx_elpa",caller)
 
-      call elsi_allocate(e_h,e_h%ovlp_cmplx_elpa,e_h%n_l_rows,e_h%n_l_cols,&
+      call elsi_allocate(e_h,e_h%ovlp_cmplx_elpa,e_h%n_lrow,e_h%n_lcol,&
               "ovlp_cmplx_elpa",caller)
 
       do i_val = 1,e_h%nnz_l
          ! Compute local 2d id
          l_row_id = (row_recv_buf(i_val)-1)/&
-                       (e_h%n_p_rows*e_h%n_b_rows)*e_h%n_b_rows+&
-                       mod((row_recv_buf(i_val)-1),e_h%n_b_rows)+1
+                       (e_h%n_prow*e_h%blk_row)*e_h%blk_row+&
+                       mod((row_recv_buf(i_val)-1),e_h%blk_row)+1
          l_col_id = (col_recv_buf(i_val)-1)/&
-                       (e_h%n_p_cols*e_h%n_b_cols)*e_h%n_b_cols+&
-                       mod((col_recv_buf(i_val)-1),e_h%n_b_cols)+1
+                       (e_h%n_pcol*e_h%blk_col)*e_h%blk_col+&
+                       mod((col_recv_buf(i_val)-1),e_h%blk_col)+1
 
          ! Put value to correct position
          e_h%ham_cmplx_elpa(l_row_id,l_col_id) = h_val_recv_buf(i_val)
@@ -1923,7 +1915,7 @@ subroutine elsi_sips_to_blacs_hs_complex(e_h,h_in,s_in)
       call elsi_deallocate(e_h,s_val_recv_buf,"s_val_recv_buf")
    else
       if(e_h%n_elsi_calls == 1) then
-         call elsi_allocate(e_h,e_h%ham_cmplx_elpa,e_h%n_l_rows,e_h%n_l_cols,&
+         call elsi_allocate(e_h,e_h%ham_cmplx_elpa,e_h%n_lrow,e_h%n_lcol,&
                  "ham_cmplx_elpa",caller)
 
          call elsi_allocate(e_h,e_h%ovlp_cmplx_elpa,1,1,"dummy",caller)
@@ -1934,11 +1926,11 @@ subroutine elsi_sips_to_blacs_hs_complex(e_h,h_in,s_in)
       do i_val = 1,e_h%nnz_l
          ! Compute local 2d id
          l_row_id = (row_recv_buf(i_val)-1)/&
-                       (e_h%n_p_rows*e_h%n_b_rows)*e_h%n_b_rows+&
-                       mod((row_recv_buf(i_val)-1),e_h%n_b_rows)+1
+                       (e_h%n_prow*e_h%blk_row)*e_h%blk_row+&
+                       mod((row_recv_buf(i_val)-1),e_h%blk_row)+1
          l_col_id = (col_recv_buf(i_val)-1)/&
-                       (e_h%n_p_cols*e_h%n_b_cols)*e_h%n_b_cols+&
-                       mod((col_recv_buf(i_val)-1),e_h%n_b_cols)+1
+                       (e_h%n_pcol*e_h%blk_col)*e_h%blk_col+&
+                       mod((col_recv_buf(i_val)-1),e_h%blk_col)+1
 
          ! Put value to correct position
          e_h%ham_cmplx_elpa(l_row_id,l_col_id) = h_val_recv_buf(i_val)
@@ -1981,7 +1973,7 @@ subroutine elsi_blacs_to_sips_dm_real(e_h,d_out)
    integer(kind=i4) :: l_row_id ! Local row id in 1D block distribution
    integer(kind=i4) :: dest ! Destination of an element
    integer(kind=i4) :: nnz_l_aux
-   integer(kind=i4) :: n_l_cols_aux
+   integer(kind=i4) :: n_lcol_aux
    real(kind=r8)    :: t0
    real(kind=r8)    :: t1
    character*200    :: info_str
@@ -2008,7 +2000,7 @@ subroutine elsi_blacs_to_sips_dm_real(e_h,d_out)
       ref => e_h%dm_omm%dval
    endif
 
-   call elsi_get_local_nnz(e_h,ref,e_h%n_l_rows,e_h%n_l_cols,e_h%nnz_l)
+   call elsi_get_local_nnz(e_h,ref,e_h%n_lrow,e_h%n_lcol,e_h%nnz_l)
 
    call elsi_allocate(e_h,val_send_buf,e_h%nnz_l,"val_send_buf",caller)
    call elsi_allocate(e_h,row_send_buf,e_h%nnz_l,"row_send_buf",caller)
@@ -2017,8 +2009,8 @@ subroutine elsi_blacs_to_sips_dm_real(e_h,d_out)
 
    ! Compute destination and global id
    i_val = 0
-   do i_col = 1,e_h%n_l_cols
-      do i_row = 1,e_h%n_l_rows
+   do i_col = 1,e_h%n_lcol
+      do i_row = 1,e_h%n_lrow
          if(abs(ref(i_row,i_col)) > e_h%zero_threshold) then
             i_val = i_val+1
 
@@ -2092,15 +2084,15 @@ subroutine elsi_blacs_to_sips_dm_real(e_h,d_out)
    d_out = 0.0_r8
 
    if(e_h%myid == e_h%n_procs-1) then
-      n_l_cols_aux = e_h%n_basis-e_h%n_l_cols_sp
-      n_l_cols_aux = n_l_cols_aux/(e_h%n_procs-1)
+      n_lcol_aux = e_h%n_basis-e_h%n_lcol_sp
+      n_lcol_aux = n_lcol_aux/(e_h%n_procs-1)
    else
-      n_l_cols_aux = e_h%n_l_cols_sp
+      n_lcol_aux = e_h%n_lcol_sp
    endif
 
    ! Unpack matrix
    do i_val = 1,nnz_l_aux
-      l_col_id = col_recv_buf(i_val)-e_h%myid*n_l_cols_aux
+      l_col_id = col_recv_buf(i_val)-e_h%myid*n_lcol_aux
       l_row_id = row_recv_buf(i_val)
 
       do j_val = e_h%col_ptr_ccs(l_col_id),e_h%col_ptr_ccs(l_col_id+1)-1
@@ -2146,7 +2138,7 @@ subroutine elsi_blacs_to_sips_dm_complex(e_h,d_out)
    integer(kind=i4) :: l_row_id ! Local row id in 1D block distribution
    integer(kind=i4) :: dest ! Destination of an element
    integer(kind=i4) :: nnz_l_aux
-   integer(kind=i4) :: n_l_cols_aux
+   integer(kind=i4) :: n_lcol_aux
    real(kind=r8)    :: t0
    real(kind=r8)    :: t1
    character*200    :: info_str
@@ -2173,7 +2165,7 @@ subroutine elsi_blacs_to_sips_dm_complex(e_h,d_out)
       ref => e_h%dm_omm%zval
    endif
 
-   call elsi_get_local_nnz(e_h,ref,e_h%n_l_rows,e_h%n_l_cols,e_h%nnz_l)
+   call elsi_get_local_nnz(e_h,ref,e_h%n_lrow,e_h%n_lcol,e_h%nnz_l)
 
    call elsi_allocate(e_h,val_send_buf,e_h%nnz_l,"val_send_buf",caller)
    call elsi_allocate(e_h,row_send_buf,e_h%nnz_l,"row_send_buf",caller)
@@ -2182,8 +2174,8 @@ subroutine elsi_blacs_to_sips_dm_complex(e_h,d_out)
 
    ! Compute destination and global id
    i_val = 0
-   do i_col = 1,e_h%n_l_cols
-      do i_row = 1,e_h%n_l_rows
+   do i_col = 1,e_h%n_lcol
+      do i_row = 1,e_h%n_lrow
          if(abs(ref(i_row,i_col)) > e_h%zero_threshold) then
             i_val = i_val+1
 
@@ -2257,15 +2249,15 @@ subroutine elsi_blacs_to_sips_dm_complex(e_h,d_out)
    d_out = 0.0_r8
 
    if(e_h%myid == e_h%n_procs-1) then
-      n_l_cols_aux = e_h%n_basis-e_h%n_l_cols_sp
-      n_l_cols_aux = n_l_cols_aux/(e_h%n_procs-1)
+      n_lcol_aux = e_h%n_basis-e_h%n_lcol_sp
+      n_lcol_aux = n_lcol_aux/(e_h%n_procs-1)
    else
-      n_l_cols_aux = e_h%n_l_cols_sp
+      n_lcol_aux = e_h%n_lcol_sp
    endif
 
    ! Unpack matrix
    do i_val = 1,nnz_l_aux
-      l_col_id = col_recv_buf(i_val)-e_h%myid*n_l_cols_aux
+      l_col_id = col_recv_buf(i_val)-e_h%myid*n_lcol_aux
       l_row_id = row_recv_buf(i_val)
 
       do j_val = e_h%col_ptr_ccs(l_col_id),e_h%col_ptr_ccs(l_col_id+1)-1
@@ -2295,9 +2287,9 @@ subroutine elsi_blacs_to_chess_hs_real(e_h,h_in,s_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                                !< Handle
-   real(kind=r8),     intent(in)    :: h_in(e_h%n_l_rows,e_h%n_l_cols) !< Hamiltonian
-   real(kind=r8),     intent(in)    :: s_in(e_h%n_l_rows,e_h%n_l_cols) !< Overlap
+   type(elsi_handle), intent(inout) :: e_h                         !< Handle
+   real(kind=r8),     intent(in)    :: h_in(e_h%n_lrow,e_h%n_lcol) !< Hamiltonian
+   real(kind=r8),     intent(in)    :: s_in(e_h%n_lrow,e_h%n_lcol) !< Overlap
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
@@ -2308,11 +2300,11 @@ subroutine elsi_blacs_to_chess_hs_real(e_h,h_in,s_in)
    call elsi_get_time(e_h,t0)
 
    ! First convert to SIPs 1D block distribution
-   e_h%n_l_cols_sp = e_h%n_basis/e_h%n_procs
+   e_h%n_lcol_sp = e_h%n_basis/e_h%n_procs
 
    ! The last process holds all remaining columns
    if(e_h%myid == e_h%n_procs-1) then
-      e_h%n_l_cols_sp = e_h%n_basis-(e_h%n_procs-1)*e_h%n_l_cols_sp
+      e_h%n_lcol_sp = e_h%n_basis-(e_h%n_procs-1)*e_h%n_lcol_sp
    endif
 
    call elsi_blacs_to_sips_hs_real(e_h,h_in,s_in)
@@ -2321,7 +2313,7 @@ subroutine elsi_blacs_to_chess_hs_real(e_h,h_in,s_in)
    call elsi_sips_to_chess_hs(e_h)
 
    e_h%nnz_l_sp = e_h%nnz_g
-   e_h%n_l_cols_sp = e_h%n_basis
+   e_h%n_lcol_sp = e_h%n_basis
 
    call elsi_get_time(e_h,t1)
 
@@ -2416,7 +2408,7 @@ subroutine elsi_sips_to_chess_hs(e_h)
       call elsi_allocate(e_h,e_h%col_ptr_chess,e_h%n_basis+1,"col_ptr_chess",&
               caller)
 
-      call MPI_Allgatherv(e_h%col_ptr_sips,e_h%n_l_cols_sp,mpi_integer4,&
+      call MPI_Allgatherv(e_h%col_ptr_sips,e_h%n_lcol_sp,mpi_integer4,&
               e_h%col_ptr_chess,recv_count,recv_displ,mpi_integer4,&
               e_h%mpi_comm,mpierr)
 
@@ -2438,8 +2430,8 @@ subroutine elsi_chess_to_blacs_dm_real(e_h,d_out)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                              !< Handle
-   real(kind=r8),     intent(out)   :: d_out(e_h%n_l_rows,e_h%n_l_cols) !< Density matrix
+   type(elsi_handle), intent(inout) :: e_h                          !< Handle
+   real(kind=r8),     intent(out)   :: d_out(e_h%n_lrow,e_h%n_lcol) !< Density matrix
 
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
@@ -2451,7 +2443,7 @@ subroutine elsi_chess_to_blacs_dm_real(e_h,d_out)
 
    d_out = 0.0_r8
 
-   do i_col = 1,e_h%n_l_cols
+   do i_col = 1,e_h%n_lcol
       call elsi_get_global_col(e_h,g_col,i_col)
 
       do i_val = e_h%col_ptr_ccs(g_col),e_h%col_ptr_ccs(g_col+1)-1
@@ -2459,8 +2451,8 @@ subroutine elsi_chess_to_blacs_dm_real(e_h,d_out)
 
          if(e_h%loc_row(g_row) == 0) cycle
 
-         i_row = (g_row-1)/(e_h%n_p_rows*e_h%n_b_rows)*e_h%n_b_rows+&
-                    mod((g_row-1),e_h%n_b_rows)+1
+         i_row = (g_row-1)/(e_h%n_prow*e_h%blk_row)*e_h%blk_row+&
+                    mod((g_row-1),e_h%blk_row)+1
 
          d_out(i_row,i_col) = e_h%dm_chess%matrix_compr(i_val)
       enddo

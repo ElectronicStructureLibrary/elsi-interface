@@ -66,37 +66,36 @@ subroutine elsi_init_pexsi(e_h)
    character*40, parameter :: caller = "elsi_init_pexsi"
 
    if(e_h%n_elsi_calls == 1) then
-      if(e_h%n_p_per_pole == UNSET) then
-         e_h%n_p_per_pole = e_h%n_procs/(e_h%pexsi_options%numPole*&
+      if(e_h%np_per_pole == UNSET) then
+         e_h%np_per_pole = e_h%n_procs/(e_h%pexsi_options%numPole*&
                                e_h%pexsi_options%nPoints)
       endif
 
-      write(info_str,"('  | MPI tasks per pole         ',I10)")&
-         e_h%n_p_per_pole
+      write(info_str,"('  | MPI tasks per pole         ',I10)") e_h%np_per_pole
       call elsi_say(info_str,e_h)
 
       ! Set square-like process grid for selected inversion of each pole
-      do n_rows_tmp = nint(sqrt(real(e_h%n_p_per_pole))),2,-1
-         if(mod(e_h%n_p_per_pole,n_rows_tmp) == 0) exit
+      do n_rows_tmp = nint(sqrt(real(e_h%np_per_pole))),2,-1
+         if(mod(e_h%np_per_pole,n_rows_tmp) == 0) exit
       enddo
 
-      e_h%n_p_rows_pexsi = n_rows_tmp
-      e_h%n_p_cols_pexsi = e_h%n_p_per_pole/n_rows_tmp
+      e_h%n_prow_pexsi = n_rows_tmp
+      e_h%n_pcol_pexsi = e_h%np_per_pole/n_rows_tmp
 
       ! PEXSI process grid
-      e_h%my_p_col_pexsi = mod(e_h%myid,e_h%n_p_per_pole)
-      e_h%my_p_row_pexsi = e_h%myid/e_h%n_p_per_pole
+      e_h%my_pcol_pexsi = mod(e_h%myid,e_h%np_per_pole)
+      e_h%my_prow_pexsi = e_h%myid/e_h%np_per_pole
 
       ! Point parallelization
-      e_h%n_p_per_point = e_h%n_procs/e_h%pexsi_options%nPoints
-      e_h%my_point      = e_h%myid/e_h%n_p_per_point
-      e_h%myid_point    = mod(e_h%myid,e_h%n_p_per_point)
+      e_h%np_per_point = e_h%n_procs/e_h%pexsi_options%nPoints
+      e_h%my_point     = e_h%myid/e_h%np_per_point
+      e_h%myid_point   = mod(e_h%myid,e_h%np_per_point)
 
       ! PEXSI MPI communicators
-      call MPI_Comm_split(e_h%mpi_comm,e_h%my_p_col_pexsi,e_h%my_p_row_pexsi,&
+      call MPI_Comm_split(e_h%mpi_comm,e_h%my_pcol_pexsi,e_h%my_prow_pexsi,&
               e_h%comm_among_pole,mpierr)
 
-      call MPI_Comm_split(e_h%mpi_comm,e_h%my_p_row_pexsi,e_h%my_p_col_pexsi,&
+      call MPI_Comm_split(e_h%mpi_comm,e_h%my_prow_pexsi,e_h%my_pcol_pexsi,&
               e_h%comm_in_pole,mpierr)
 
       call MPI_Comm_split(e_h%mpi_comm,e_h%myid_point,e_h%my_point,&
@@ -107,11 +106,11 @@ subroutine elsi_init_pexsi(e_h)
 
       if(.not. e_h%sparsity_ready) then
          ! Set up 1D block distribution
-         e_h%n_l_cols_sp = e_h%n_basis/e_h%n_p_per_pole
+         e_h%n_lcol_sp = e_h%n_basis/e_h%np_per_pole
 
          ! The last process holds all remaining columns
-         if(e_h%my_p_col_pexsi == e_h%n_p_per_pole-1) then
-            e_h%n_l_cols_sp = e_h%n_basis-(e_h%n_p_per_pole-1)*e_h%n_l_cols_sp
+         if(e_h%my_pcol_pexsi == e_h%np_per_pole-1) then
+            e_h%n_lcol_sp = e_h%n_basis-(e_h%np_per_pole-1)*e_h%n_lcol_sp
          endif
       endif
 
@@ -122,8 +121,8 @@ subroutine elsi_init_pexsi(e_h)
          output_id = -1
       endif
 
-      e_h%pexsi_plan = f_ppexsi_plan_initialize(e_h%mpi_comm,&
-                          e_h%n_p_rows_pexsi,e_h%n_p_cols_pexsi,output_id,ierr)
+      e_h%pexsi_plan = f_ppexsi_plan_initialize(e_h%mpi_comm,e_h%n_prow_pexsi,&
+                          e_h%n_pcol_pexsi,output_id,ierr)
 
       if(ierr /= 0) then
          call elsi_stop(" Initialization failed.",e_h,caller)
@@ -182,24 +181,24 @@ subroutine elsi_solve_evp_pexsi(e_h)
    case(REAL_VALUES)
       if(e_h%ovlp_is_unit) then
          call f_ppexsi_load_real_hs_matrix(e_h%pexsi_plan,e_h%pexsi_options,&
-                 e_h%n_basis,e_h%nnz_g,e_h%nnz_l_sp,e_h%n_l_cols_sp,&
+                 e_h%n_basis,e_h%nnz_g,e_h%nnz_l_sp,e_h%n_lcol_sp,&
                  e_h%col_ptr_ccs,e_h%row_ind_ccs,e_h%ham_real_ccs,1,&
                  e_h%ovlp_real_ccs,ierr)
       else
          call f_ppexsi_load_real_hs_matrix(e_h%pexsi_plan,e_h%pexsi_options,&
-                 e_h%n_basis,e_h%nnz_g,e_h%nnz_l_sp,e_h%n_l_cols_sp,&
+                 e_h%n_basis,e_h%nnz_g,e_h%nnz_l_sp,e_h%n_lcol_sp,&
                  e_h%col_ptr_ccs,e_h%row_ind_ccs,e_h%ham_real_ccs,0,&
                  e_h%ovlp_real_ccs,ierr)
       endif
    case(COMPLEX_VALUES)
       if(e_h%ovlp_is_unit) then
          call f_ppexsi_load_complex_hs_matrix(e_h%pexsi_plan,e_h%pexsi_options,&
-                 e_h%n_basis,e_h%nnz_g,e_h%nnz_l_sp,e_h%n_l_cols_sp,&
+                 e_h%n_basis,e_h%nnz_g,e_h%nnz_l_sp,e_h%n_lcol_sp,&
                  e_h%col_ptr_ccs,e_h%row_ind_ccs,e_h%ham_cmplx_ccs,1,&
                  e_h%ovlp_cmplx_ccs,ierr)
       else
          call f_ppexsi_load_complex_hs_matrix(e_h%pexsi_plan,e_h%pexsi_options,&
-                 e_h%n_basis,e_h%nnz_g,e_h%nnz_l_sp,e_h%n_l_cols_sp,&
+                 e_h%n_basis,e_h%nnz_g,e_h%nnz_l_sp,e_h%n_lcol_sp,&
                  e_h%col_ptr_ccs,e_h%row_ind_ccs,e_h%ham_cmplx_ccs,0,&
                  e_h%ovlp_cmplx_ccs,ierr)
       endif
@@ -247,7 +246,7 @@ subroutine elsi_solve_evp_pexsi(e_h)
 
    n_iner_steps = 0
    mu_range = e_h%pexsi_options%muMax0-e_h%pexsi_options%muMin0
-   n_shift = max(10,e_h%n_procs/e_h%n_p_per_pole)
+   n_shift = max(10,e_h%n_procs/e_h%np_per_pole)
 
    call elsi_allocate(e_h,shifts,n_shift,"shifts",caller)
    call elsi_allocate(e_h,inertias,n_shift,"inertias",caller)
@@ -531,7 +530,7 @@ subroutine elsi_solve_evp_pexsi(e_h)
          call MPI_Allreduce(send_buf,tmp_real,e_h%nnz_l_sp,mpi_real8,mpi_sum,&
                  e_h%comm_among_point,mpierr)
 
-         if(e_h%my_p_row_pexsi == 0) then
+         if(e_h%my_prow_pexsi == 0) then
             e_h%dm_real_ccs = tmp_real
          endif
 
@@ -550,7 +549,7 @@ subroutine elsi_solve_evp_pexsi(e_h)
          call MPI_Allreduce(send_buf_cmplx,tmp_cmplx,e_h%nnz_l_sp,&
                  mpi_complex16,mpi_sum,e_h%comm_among_point,mpierr)
 
-         if(e_h%my_p_row_pexsi == 0) then
+         if(e_h%my_prow_pexsi == 0) then
             e_h%dm_cmplx_ccs = tmp_cmplx
          endif
 
@@ -562,7 +561,7 @@ subroutine elsi_solve_evp_pexsi(e_h)
    call elsi_deallocate(e_h,shifts,"shifts")
 
    ! Compute energy = Tr(H*DM)
-   if(e_h%my_p_row_pexsi == 0) then
+   if(e_h%my_prow_pexsi == 0) then
       select case(e_h%data_type)
       case(REAL_VALUES)
          local_energy = ddot(e_h%nnz_l_sp,e_h%ham_real_ccs,1,e_h%dm_real_ccs,1)
@@ -752,7 +751,7 @@ subroutine elsi_compute_edm_pexsi(e_h)
          call MPI_Allreduce(send_buf,tmp_real,e_h%nnz_l_sp,mpi_real8,mpi_sum,&
                  e_h%comm_among_point,mpierr)
 
-         if(e_h%my_p_row_pexsi == 0) then
+         if(e_h%my_prow_pexsi == 0) then
             e_h%dm_real_ccs = tmp_real
          endif
 
@@ -771,7 +770,7 @@ subroutine elsi_compute_edm_pexsi(e_h)
          call MPI_Allreduce(send_buf_cmplx,tmp_cmplx,e_h%nnz_l_sp,&
                  mpi_complex16,mpi_sum,e_h%comm_among_point,mpierr)
 
-         if(e_h%my_p_row_pexsi == 0) then
+         if(e_h%my_prow_pexsi == 0) then
             e_h%dm_cmplx_ccs = tmp_cmplx
          endif
 

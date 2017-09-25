@@ -71,14 +71,14 @@ subroutine elsi_solve_evp_omm(e_h)
    if(e_h%n_elsi_calls == 1) then
       select case(e_h%data_type)
       case(COMPLEX_VALUES)
-         call elsi_get_local_nnz_complex(e_h,e_h%ham_omm%zval,e_h%n_l_rows,&
-                 e_h%n_l_cols,e_h%nnz_l)
+         call elsi_get_local_nnz_complex(e_h,e_h%ham_omm%zval,e_h%n_lrow,&
+                 e_h%n_lcol,e_h%nnz_l)
 
          call MPI_Allreduce(e_h%nnz_l,e_h%nnz_g,1,mpi_integer4,mpi_sum,&
                  e_h%mpi_comm,mpierr)
       case(REAL_VALUES)
-         call elsi_get_local_nnz_real(e_h,e_h%ham_omm%dval,e_h%n_l_rows,&
-                 e_h%n_l_cols,e_h%nnz_l)
+         call elsi_get_local_nnz_real(e_h,e_h%ham_omm%dval,e_h%n_lrow,&
+                 e_h%n_lcol,e_h%nnz_l)
 
          call MPI_Allreduce(e_h%nnz_l,e_h%nnz_g,1,mpi_integer4,mpi_sum,&
                  e_h%mpi_comm,mpierr)
@@ -95,24 +95,24 @@ subroutine elsi_solve_evp_omm(e_h)
             case(COMPLEX_VALUES)
                ! Compute S = (U^T)U, U -> S
                success = elpa_cholesky_complex_double(e_h%n_basis,&
-                            e_h%ovlp_omm%zval,e_h%n_l_rows,e_h%n_b_rows,&
-                            e_h%n_l_cols,e_h%mpi_comm_row,e_h%mpi_comm_col,&
+                            e_h%ovlp_omm%zval,e_h%n_lrow,e_h%blk_row,&
+                            e_h%n_lcol,e_h%mpi_comm_row,e_h%mpi_comm_col,&
                             .false.)
 
                success = elpa_invert_trm_complex_double(e_h%n_basis,&
-                            e_h%ovlp_omm%zval,e_h%n_l_rows,e_h%n_b_rows,&
-                            e_h%n_l_cols,e_h%mpi_comm_row,e_h%mpi_comm_col,&
+                            e_h%ovlp_omm%zval,e_h%n_lrow,e_h%blk_row,&
+                            e_h%n_lcol,e_h%mpi_comm_row,e_h%mpi_comm_col,&
                             .false.)
             case(REAL_VALUES)
                ! Compute S = (U^T)U, U -> S
                success = elpa_cholesky_real_double(e_h%n_basis,&
-                            e_h%ovlp_omm%dval,e_h%n_l_rows,e_h%n_b_rows,&
-                            e_h%n_l_cols,e_h%mpi_comm_row,e_h%mpi_comm_col,&
+                            e_h%ovlp_omm%dval,e_h%n_lrow,e_h%blk_row,&
+                            e_h%n_lcol,e_h%mpi_comm_row,e_h%mpi_comm_col,&
                             .false.)
 
                success = elpa_invert_trm_real_double(e_h%n_basis,&
-                            e_h%ovlp_omm%dval,e_h%n_l_rows,e_h%n_b_rows,&
-                            e_h%n_l_cols,e_h%mpi_comm_row,e_h%mpi_comm_col,&
+                            e_h%ovlp_omm%dval,e_h%n_lrow,e_h%blk_row,&
+                            e_h%n_lcol,e_h%mpi_comm_row,e_h%mpi_comm_col,&
                             .false.)
             end select
 
@@ -129,13 +129,13 @@ subroutine elsi_solve_evp_omm(e_h)
             select case(e_h%data_type)
             case(COMPLEX_VALUES)
                success = elpa_invert_trm_complex_double(e_h%n_basis,&
-                            e_h%ovlp_omm%zval,e_h%n_l_rows,e_h%n_b_rows,&
-                            e_h%n_l_cols,e_h%mpi_comm_row,e_h%mpi_comm_col,&
+                            e_h%ovlp_omm%zval,e_h%n_lrow,e_h%blk_row,&
+                            e_h%n_lcol,e_h%mpi_comm_row,e_h%mpi_comm_col,&
                             .false.)
             case(REAL_VALUES)
                success = elpa_invert_trm_real_double(e_h%n_basis,&
-                            e_h%ovlp_omm%dval,e_h%n_l_rows,e_h%n_b_rows,&
-                            e_h%n_l_cols,e_h%mpi_comm_row,e_h%mpi_comm_col,&
+                            e_h%ovlp_omm%dval,e_h%n_lrow,e_h%blk_row,&
+                            e_h%n_lcol,e_h%mpi_comm_row,e_h%mpi_comm_col,&
                             .false.)
             end select
          endif

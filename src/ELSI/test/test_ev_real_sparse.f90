@@ -82,7 +82,8 @@ program test_ev_real_sparse
    integer(kind=i4), allocatable :: row_ind(:)
    integer(kind=i4), allocatable :: col_ptr(:)
 
-   type(elsi_handle) :: elsi_h
+   type(elsi_handle)    :: e_h
+   type(elsi_rw_handle) :: rw_h
 
    ! VY: Reference value from calculations on August 31, 2017.
    real(kind=r8), parameter :: e_elpa = -1833.07932666530_r8
@@ -170,8 +171,11 @@ program test_ev_real_sparse
    call BLACS_Gridinfo(blacs_ctxt,nprow,npcol,myprow,mypcol)
 
    ! Read H and S matrices
-   call elsi_read_mat_dim_sparse(arg2,mpi_comm_global,n_electrons,matrix_size,&
-           nnz_g,nnz_l,n_l_cols)
+   call elsi_init_rw(rw_h,0,1,1,1,0,0.0_r8)
+   call elsi_set_rw_mpi(rw_h,mpi_comm_global)
+
+   call elsi_read_mat_dim_sparse(rw_h,arg2,n_electrons,matrix_size,nnz_g,nnz_l,&
+           n_l_cols)
 
    l_rows = numroc(matrix_size,blk,myprow,0,nprow)
    l_cols = numroc(matrix_size,blk,mypcol,0,npcol)
@@ -187,11 +191,8 @@ program test_ev_real_sparse
 
    t1 = MPI_Wtime()
 
-   call elsi_read_mat_real_sparse(arg2,mpi_comm_global,matrix_size,nnz_g,nnz_l,&
-           n_l_cols,row_ind,col_ptr,ham)
-
-   call elsi_read_mat_real_sparse(arg3,mpi_comm_global,matrix_size,nnz_g,nnz_l,&
-           n_l_cols,row_ind,col_ptr,ovlp)
+   call elsi_read_mat_real_sparse(rw_h,arg2,row_ind,col_ptr,ham)
+   call elsi_read_mat_real_sparse(rw_h,arg3,row_ind,col_ptr,ovlp)
 
    ham_save = ham
 
@@ -207,18 +208,18 @@ program test_ev_real_sparse
    n_states = int(n_electrons,kind=i4)
    weight(1) = 1.0_r8
 
-   call elsi_init(elsi_h,solver,1,1,matrix_size,n_electrons,n_states)
-   call elsi_set_mpi(elsi_h,mpi_comm_global)
-   call elsi_set_csc(elsi_h,nnz_g,nnz_l,n_l_cols,row_ind,col_ptr)
-   call elsi_set_blacs(elsi_h,blacs_ctxt,blk)
+   call elsi_init(e_h,solver,1,1,matrix_size,n_electrons,n_states)
+   call elsi_set_mpi(e_h,mpi_comm_global)
+   call elsi_set_csc(e_h,nnz_g,nnz_l,n_l_cols,row_ind,col_ptr)
+   call elsi_set_blacs(e_h,blacs_ctxt,blk)
 
    ! Customize ELSI
-   call elsi_set_output(elsi_h,2)
+   call elsi_set_output(e_h,2)
 
    t1 = MPI_Wtime()
 
    ! Solve (pseudo SCF 1)
-   call elsi_ev_real_sparse(elsi_h,ham,ovlp,eval,evec)
+   call elsi_ev_real_sparse(e_h,ham,ovlp,eval,evec)
 
    t2 = MPI_Wtime()
 
@@ -233,12 +234,11 @@ program test_ev_real_sparse
    t1 = MPI_Wtime()
 
    ! Solve (pseudo SCF 2, with the same H)
-   call elsi_ev_real_sparse(elsi_h,ham,ovlp,eval,evec)
+   call elsi_ev_real_sparse(e_h,ham,ovlp,eval,evec)
 
    t2 = MPI_Wtime()
 
-   call elsi_compute_mu_and_occ(elsi_h,n_electrons,n_states,1,1,weight,eval,&
-           occ,mu)
+   call elsi_compute_mu_and_occ(e_h,n_electrons,n_states,1,1,weight,eval,occ,mu)
 
    e_test = 0.0_r8
 
@@ -263,7 +263,7 @@ program test_ev_real_sparse
    endif
 
    ! Finalize ELSI
-   call elsi_finalize(elsi_h)
+   call elsi_finalize(e_h)
 
    deallocate(ham)
    deallocate(ham_save)

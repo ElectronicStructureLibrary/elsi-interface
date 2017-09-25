@@ -78,7 +78,7 @@ subroutine elsi_get_elpa_comms(e_h)
 
    character*40, parameter :: caller = "elsi_get_elpa_comms"
 
-   success = elpa_get_communicators(e_h%mpi_comm,e_h%my_p_row,e_h%my_p_col,&
+   success = elpa_get_communicators(e_h%mpi_comm,e_h%my_prow,e_h%my_pcol,&
                 e_h%mpi_comm_row,e_h%mpi_comm_col)
 
    if(success /= 0) then
@@ -319,8 +319,7 @@ subroutine elsi_compute_edm_elpa(e_h)
 
    select case(e_h%data_type)
    case(REAL_VALUES)
-      call elsi_allocate(e_h,tmp_real,e_h%n_l_rows,e_h%n_l_cols,"tmp_real",&
-              caller)
+      call elsi_allocate(e_h,tmp_real,e_h%n_lrow,e_h%n_lcol,"tmp_real",caller)
       tmp_real = e_h%evec_real
 
       do i = 1,e_h%n_states_solve
@@ -360,8 +359,7 @@ subroutine elsi_compute_edm_elpa(e_h)
 
       call elsi_deallocate(e_h,tmp_real,"tmp_real")
    case(COMPLEX_VALUES)
-      call elsi_allocate(e_h,tmp_cmplx,e_h%n_l_rows,e_h%n_l_cols,"tmp_cmplx",&
-              caller)
+      call elsi_allocate(e_h,tmp_cmplx,e_h%n_lrow,e_h%n_lcol,"tmp_cmplx",caller)
       tmp_cmplx = e_h%evec_cmplx
 
       do i = 1,e_h%n_states_solve
@@ -453,8 +451,8 @@ subroutine elsi_to_standard_evp(e_h)
 
             ! Compute S = (U^T)U, U -> S
             success = elpa_cholesky_complex_double(e_h%n_basis,e_h%ovlp_cmplx,&
-                         e_h%n_l_rows,e_h%n_b_rows,e_h%n_l_cols,&
-                         e_h%mpi_comm_row,e_h%mpi_comm_col,.false.)
+                         e_h%n_lrow,e_h%blk_row,e_h%n_lcol,e_h%mpi_comm_row,&
+                         e_h%mpi_comm_col,.false.)
 
             if(.not. success) then
                call elsi_stop(" Cholesky failed.",e_h,caller)
@@ -462,7 +460,7 @@ subroutine elsi_to_standard_evp(e_h)
 
             ! compute U^-1 -> S
             success = elpa_invert_trm_complex_double(e_h%n_basis,&
-                         e_h%ovlp_cmplx,e_h%n_l_rows,e_h%n_b_rows,e_h%n_l_cols,&
+                         e_h%ovlp_cmplx,e_h%n_lrow,e_h%blk_row,e_h%n_lcol,&
                          e_h%mpi_comm_row,e_h%mpi_comm_col,.false.)
 
             if(.not. success) then
@@ -495,10 +493,10 @@ subroutine elsi_to_standard_evp(e_h)
                  e_h%ham_cmplx,1,1,e_h%sc_desc)
       else ! Use cholesky
          success = elpa_mult_ah_b_complex_double('U','L',e_h%n_basis,&
-                      e_h%n_basis,e_h%ovlp_cmplx,e_h%n_l_rows,e_h%n_l_cols,&
-                      e_h%ham_cmplx,e_h%n_l_rows,e_h%n_l_cols,e_h%n_b_rows,&
+                      e_h%n_basis,e_h%ovlp_cmplx,e_h%n_lrow,e_h%n_lcol,&
+                      e_h%ham_cmplx,e_h%n_lrow,e_h%n_lcol,e_h%blk_row,&
                       e_h%mpi_comm_row,e_h%mpi_comm_col,e_h%evec_cmplx,&
-                      e_h%n_l_rows,e_h%n_l_cols)
+                      e_h%n_lrow,e_h%n_lcol)
 
          if(.not. success) then
             call elsi_stop(" Matrix multiplication failed.",e_h,caller)
@@ -510,10 +508,10 @@ subroutine elsi_to_standard_evp(e_h)
          e_h%evec_cmplx = e_h%ham_cmplx
 
          success = elpa_mult_ah_b_complex_double('U','U',e_h%n_basis,&
-                      e_h%n_basis,e_h%ovlp_cmplx,e_h%n_l_rows,e_h%n_l_cols,&
-                      e_h%evec_cmplx,e_h%n_l_rows,e_h%n_l_cols,e_h%n_b_rows,&
+                      e_h%n_basis,e_h%ovlp_cmplx,e_h%n_lrow,e_h%n_lcol,&
+                      e_h%evec_cmplx,e_h%n_lrow,e_h%n_lcol,e_h%blk_row,&
                       e_h%mpi_comm_row,e_h%mpi_comm_col,e_h%ham_cmplx,&
-                      e_h%n_l_rows,e_h%n_l_cols)
+                      e_h%n_lrow,e_h%n_lcol)
 
          if(.not. success) then
             call elsi_stop(" Matrix multiplication failed.",e_h,caller)
@@ -562,8 +560,8 @@ subroutine elsi_to_standard_evp(e_h)
 
             ! Compute S = (U^T)U, U -> S
             success = elpa_cholesky_real_double(e_h%n_basis,e_h%ovlp_real,&
-                         e_h%n_l_rows,e_h%n_b_rows,e_h%n_l_cols,&
-                         e_h%mpi_comm_row,e_h%mpi_comm_col,.false.)
+                         e_h%n_lrow,e_h%blk_row,e_h%n_lcol,e_h%mpi_comm_row,&
+                         e_h%mpi_comm_col,.false.)
 
             if(.not. success) then
                call elsi_stop(" Cholesky failed.",e_h,caller)
@@ -571,8 +569,8 @@ subroutine elsi_to_standard_evp(e_h)
 
             ! compute U^-1 -> S
             success = elpa_invert_trm_real_double(e_h%n_basis,e_h%ovlp_real,&
-                         e_h%n_l_rows,e_h%n_b_rows,e_h%n_l_cols,&
-                         e_h%mpi_comm_row,e_h%mpi_comm_col,.false.)
+                         e_h%n_lrow,e_h%blk_row,e_h%n_lcol,e_h%mpi_comm_row,&
+                         e_h%mpi_comm_col,.false.)
 
             if(.not. success) then
                call elsi_stop(" Matrix inversion failed.",e_h,caller)
@@ -604,9 +602,9 @@ subroutine elsi_to_standard_evp(e_h)
                  e_h%sc_desc)
       else ! Use Cholesky
          success = elpa_mult_at_b_real_double('U','L',e_h%n_basis,e_h%n_basis,&
-                      e_h%ovlp_real,e_h%n_l_rows,e_h%n_l_cols,e_h%ham_real,&
-                      e_h%n_l_rows,e_h%n_l_cols,e_h%n_b_rows,e_h%mpi_comm_row,&
-                      e_h%mpi_comm_col,e_h%evec_real,e_h%n_l_rows,e_h%n_l_cols)
+                      e_h%ovlp_real,e_h%n_lrow,e_h%n_lcol,e_h%ham_real,&
+                      e_h%n_lrow,e_h%n_lcol,e_h%blk_row,e_h%mpi_comm_row,&
+                      e_h%mpi_comm_col,e_h%evec_real,e_h%n_lrow,e_h%n_lcol)
 
          if(.not. success) then
             call elsi_stop(" Matrix multiplication failed.",e_h,caller)
@@ -618,9 +616,9 @@ subroutine elsi_to_standard_evp(e_h)
          e_h%evec_real = e_h%ham_real
 
          success = elpa_mult_at_b_real_double('U','U',e_h%n_basis,e_h%n_basis,&
-                      e_h%ovlp_real,e_h%n_l_rows,e_h%n_l_cols,e_h%evec_real,&
-                      e_h%n_l_rows,e_h%n_l_cols,e_h%n_b_rows,e_h%mpi_comm_row,&
-                      e_h%mpi_comm_col,e_h%ham_real,e_h%n_l_rows,e_h%n_l_cols)
+                      e_h%ovlp_real,e_h%n_lrow,e_h%n_lcol,e_h%evec_real,&
+                      e_h%n_lrow,e_h%n_lcol,e_h%blk_row,e_h%mpi_comm_row,&
+                      e_h%mpi_comm_col,e_h%ham_real,e_h%n_lrow,e_h%n_lcol)
 
          if(.not. success) then
             call elsi_stop(" Matrix multiplication failed.",e_h,caller)
@@ -686,12 +684,12 @@ subroutine elsi_check_singularity(e_h)
 
    call elpa_t%set("na",e_h%n_basis,ierr)
    call elpa_t%set("nev",e_h%n_basis,ierr)
-   call elpa_t%set("local_nrows",e_h%n_l_rows,ierr)
-   call elpa_t%set("local_ncols",e_h%n_l_cols,ierr)
-   call elpa_t%set("nblk",e_h%n_b_rows,ierr)
+   call elpa_t%set("local_nrows",e_h%n_lrow,ierr)
+   call elpa_t%set("local_ncols",e_h%n_lcol,ierr)
+   call elpa_t%set("nblk",e_h%blk_row,ierr)
    call elpa_t%set("mpi_comm_parent",e_h%mpi_comm,ierr)
-   call elpa_t%set("process_row",e_h%my_p_row,ierr)
-   call elpa_t%set("process_col",e_h%my_p_col,ierr)
+   call elpa_t%set("process_row",e_h%my_prow,ierr)
+   call elpa_t%set("process_col",e_h%my_pcol,ierr)
 
    ierr = elpa_t%setup()
 
@@ -705,7 +703,7 @@ subroutine elsi_check_singularity(e_h)
 
    select case(e_h%data_type)
    case(COMPLEX_VALUES)
-      call elsi_allocate(e_h,copy_cmplx,e_h%n_l_rows,e_h%n_l_cols,"copy_cmplx",&
+      call elsi_allocate(e_h,copy_cmplx,e_h%n_lrow,e_h%n_lcol,"copy_cmplx",&
               caller)
 
       ! Use copy_cmplx to store overlap matrix, otherwise it will
@@ -759,8 +757,7 @@ subroutine elsi_check_singularity(e_h)
          call elsi_say("  Overlap matrix is nonsingular",e_h)
       endif ! Singular overlap?
    case(REAL_VALUES)
-      call elsi_allocate(e_h,copy_real,e_h%n_l_rows,e_h%n_l_cols,"copy_real",&
-              caller)
+      call elsi_allocate(e_h,copy_real,e_h%n_lrow,e_h%n_lcol,"copy_real",caller)
 
       ! Use copy_real to store overlap matrix, otherwise it will be
       ! destroyed by eigenvalue calculation
@@ -847,8 +844,7 @@ subroutine elsi_to_original_ev(e_h)
 
    select case(e_h%data_type)
    case(COMPLEX_VALUES)
-      call elsi_allocate(e_h,tmp_cmplx,e_h%n_l_rows,e_h%n_l_cols,"tmp_cmplx",&
-              caller)
+      call elsi_allocate(e_h,tmp_cmplx,e_h%n_lrow,e_h%n_lcol,"tmp_cmplx",caller)
       tmp_cmplx = e_h%evec_cmplx
 
       if(e_h%ovlp_is_sing) then
@@ -864,10 +860,10 @@ subroutine elsi_to_original_ev(e_h)
                  1,e_h%sc_desc,(0.0_r8,0.0_r8),e_h%ham_cmplx,1,1,e_h%sc_desc)
 
          success = elpa_mult_ah_b_complex_double('L','N',e_h%n_basis,&
-                      e_h%n_states,e_h%ham_cmplx,e_h%n_l_rows,e_h%n_l_cols,&
-                      tmp_cmplx,e_h%n_l_rows,e_h%n_l_cols,e_h%n_b_rows,&
+                      e_h%n_states,e_h%ham_cmplx,e_h%n_lrow,e_h%n_lcol,&
+                      tmp_cmplx,e_h%n_lrow,e_h%n_lcol,e_h%blk_row,&
                       e_h%mpi_comm_row,e_h%mpi_comm_col,e_h%evec_cmplx,&
-                      e_h%n_l_rows,e_h%n_l_cols)
+                      e_h%n_lrow,e_h%n_lcol)
 
          if(.not. success) then
             call elsi_stop(" Matrix multiplication failed.",e_h,caller)
@@ -876,8 +872,7 @@ subroutine elsi_to_original_ev(e_h)
 
       call elsi_deallocate(e_h,tmp_cmplx,"tmp_cmplx")
    case(REAL_VALUES)
-      call elsi_allocate(e_h,tmp_real,e_h%n_l_rows,e_h%n_l_cols,"tmp_real",&
-              caller)
+      call elsi_allocate(e_h,tmp_real,e_h%n_lrow,e_h%n_lcol,"tmp_real",caller)
       tmp_real = e_h%evec_real
 
       if(e_h%ovlp_is_sing) then
@@ -893,9 +888,9 @@ subroutine elsi_to_original_ev(e_h)
                  e_h%sc_desc,0.0_r8,e_h%ham_real,1,1,e_h%sc_desc)
 
          success = elpa_mult_at_b_real_double('L','N',e_h%n_basis,e_h%n_states,&
-                      e_h%ham_real,e_h%n_l_rows,e_h%n_l_cols,tmp_real,&
-                      e_h%n_l_rows,e_h%n_l_cols,e_h%n_b_rows,e_h%mpi_comm_row,&
-                      e_h%mpi_comm_col,e_h%evec_real,e_h%n_l_rows,e_h%n_l_cols)
+                      e_h%ham_real,e_h%n_lrow,e_h%n_lcol,tmp_real,e_h%n_lrow,&
+                      e_h%n_lcol,e_h%blk_row,e_h%mpi_comm_row,e_h%mpi_comm_col,&
+                      e_h%evec_real,e_h%n_lrow,e_h%n_lcol)
 
          if(.not. success) then
             call elsi_stop(" Matrix multiplication failed.",e_h,caller)
@@ -954,19 +949,18 @@ subroutine elsi_solve_evp_elpa(e_h)
       case(COMPLEX_VALUES)
          ! Convert to single precision
          call elsi_allocate(e_h,eval_single,e_h%n_basis,"eval_single",caller)
-         call elsi_allocate(e_h,ham_cmplx_single,e_h%n_l_rows,e_h%n_l_cols,&
+         call elsi_allocate(e_h,ham_cmplx_single,e_h%n_lrow,e_h%n_lcol,&
                  "ham_cmplx_single",caller)
-         call elsi_allocate(e_h,evec_cmplx_single,e_h%n_l_rows,e_h%n_l_cols,&
+         call elsi_allocate(e_h,evec_cmplx_single,e_h%n_lrow,e_h%n_lcol,&
                  "evec_cmplx_single",caller)
 
          ham_cmplx_single = cmplx(e_h%ham_cmplx,kind=r4)
 
          ! Solve with single precision
          success = elpa_solve_evp_complex_2stage_single(e_h%n_nonsing,&
-                      e_h%n_states_solve,ham_cmplx_single,e_h%n_l_rows,&
-                      eval_single,evec_cmplx_single,e_h%n_l_rows,e_h%n_b_rows,&
-                      e_h%n_l_cols,e_h%mpi_comm_row,e_h%mpi_comm_col,&
-                      e_h%mpi_comm)
+                      e_h%n_states_solve,ham_cmplx_single,e_h%n_lrow,&
+                      eval_single,evec_cmplx_single,e_h%n_lrow,e_h%blk_row,&
+                      e_h%n_lcol,e_h%mpi_comm_row,e_h%mpi_comm_col,e_h%mpi_comm)
 
          ! Convert back to double precision
          e_h%eval = real(eval_single,kind=r8)
@@ -978,19 +972,18 @@ subroutine elsi_solve_evp_elpa(e_h)
       case(REAL_VALUES)
          ! Convert to single precision
          call elsi_allocate(e_h,eval_single,e_h%n_basis,"eval_single",caller)
-         call elsi_allocate(e_h,ham_real_single,e_h%n_l_rows,e_h%n_l_cols,&
+         call elsi_allocate(e_h,ham_real_single,e_h%n_lrow,e_h%n_lcol,&
                  "ham_real_single",caller)
-         call elsi_allocate(e_h,evec_real_single,e_h%n_l_rows,e_h%n_l_cols,&
+         call elsi_allocate(e_h,evec_real_single,e_h%n_lrow,e_h%n_lcol,&
                  "evec_real_single",caller)
 
          ham_real_single = real(e_h%ham_real,kind=r4)
 
          ! Solve with single precision
          success = elpa_solve_evp_real_2stage_single(e_h%n_nonsing,&
-                      e_h%n_states_solve,ham_real_single,e_h%n_l_rows,&
-                      eval_single,evec_real_single,e_h%n_l_rows,e_h%n_b_rows,&
-                      e_h%n_l_cols,e_h%mpi_comm_row,e_h%mpi_comm_col,&
-                      e_h%mpi_comm)
+                      e_h%n_states_solve,ham_real_single,e_h%n_lrow,&
+                      eval_single,evec_real_single,e_h%n_lrow,e_h%blk_row,&
+                      e_h%n_lcol,e_h%mpi_comm_row,e_h%mpi_comm_col,e_h%mpi_comm)
 
          ! Convert back to double precision
          e_h%eval = real(eval_single,kind=r8)
@@ -1007,27 +1000,25 @@ subroutine elsi_solve_evp_elpa(e_h)
       case(COMPLEX_VALUES)
          if(e_h%elpa_solver == 2) then
             success = elpa_solve_evp_complex_2stage_double(e_h%n_nonsing,&
-                         e_h%n_states_solve,e_h%ham_cmplx,e_h%n_l_rows,&
-                         e_h%eval,e_h%evec_cmplx,e_h%n_l_rows,e_h%n_b_rows,&
-                         e_h%n_l_cols,e_h%mpi_comm_row,e_h%mpi_comm_col,&
-                         e_h%mpi_comm)
+                         e_h%n_states_solve,e_h%ham_cmplx,e_h%n_lrow,e_h%eval,&
+                         e_h%evec_cmplx,e_h%n_lrow,e_h%blk_row,e_h%n_lcol,&
+                         e_h%mpi_comm_row,e_h%mpi_comm_col,e_h%mpi_comm)
          else
             success = elpa_solve_evp_complex_1stage_double(e_h%n_nonsing,&
-                         e_h%n_states_solve,e_h%ham_cmplx,e_h%n_l_rows,&
-                         e_h%eval,e_h%evec_cmplx,e_h%n_l_rows,e_h%n_b_rows,&
-                         e_h%n_l_cols,e_h%mpi_comm_row,e_h%mpi_comm_col,&
-                         e_h%mpi_comm)
+                         e_h%n_states_solve,e_h%ham_cmplx,e_h%n_lrow,e_h%eval,&
+                         e_h%evec_cmplx,e_h%n_lrow,e_h%blk_row,e_h%n_lcol,&
+                         e_h%mpi_comm_row,e_h%mpi_comm_col,e_h%mpi_comm)
          endif
       case(REAL_VALUES)
          if(e_h%elpa_solver == 2) then
             success = elpa_solve_evp_real_2stage_double(e_h%n_nonsing,&
-                         e_h%n_states_solve,e_h%ham_real,e_h%n_l_rows,e_h%eval,&
-                         e_h%evec_real,e_h%n_l_rows,e_h%n_b_rows,e_h%n_l_cols,&
+                         e_h%n_states_solve,e_h%ham_real,e_h%n_lrow,e_h%eval,&
+                         e_h%evec_real,e_h%n_lrow,e_h%blk_row,e_h%n_lcol,&
                          e_h%mpi_comm_row,e_h%mpi_comm_col,e_h%mpi_comm)
          else
             success = elpa_solve_evp_real_1stage_double(e_h%n_nonsing,&
-                         e_h%n_states_solve,e_h%ham_real,e_h%n_l_rows,e_h%eval,&
-                         e_h%evec_real,e_h%n_l_rows,e_h%n_b_rows,e_h%n_l_cols,&
+                         e_h%n_states_solve,e_h%ham_real,e_h%n_lrow,e_h%eval,&
+                         e_h%evec_real,e_h%n_lrow,e_h%blk_row,e_h%n_lcol,&
                          e_h%mpi_comm_row,e_h%mpi_comm_col,e_h%mpi_comm)
          endif
       end select

@@ -58,10 +58,6 @@ module ELSI_CONSTANTS
    integer(kind=i4), parameter :: BLACS_DENSE = 0
    integer(kind=i4), parameter :: PEXSI_CSC   = 1
 
-   ! File formats
-   integer(kind=i4), parameter :: DENSE_FILE = 0
-   integer(kind=i4), parameter :: CSC_FILE   = 1
-
    ! Triangular matrix
    integer(kind=i4), parameter :: FULL_MAT = 0
    integer(kind=i4), parameter :: UT_MAT   = 1
@@ -77,8 +73,16 @@ module ELSI_CONSTANTS
    integer(kind=i4), parameter :: METHFESSEL_PAXTON_0 = 2
    integer(kind=i4), parameter :: METHFESSEL_PAXTON_1 = 3
 
-   ! Matrix IO
-   integer(kind=i4), parameter :: HEADER_SIZE = 10
-   integer(kind=i4), parameter :: IO_FORMAT   = 170915
+   ! Matrix reading and writing
+   integer(kind=i4), parameter :: HEADER_SIZE  = 10
+   integer(kind=i4), parameter :: FILE_VERSION = 170915
+
+   ! Reading and writing
+   integer(kind=i4), parameter :: READ_FILE  = 0
+   integer(kind=i4), parameter :: WRITE_FILE = 1
+
+   ! File formats
+   integer(kind=i4), parameter :: DENSE_FILE = 0
+   integer(kind=i4), parameter :: CSC_FILE   = 1
 
 end module ELSI_CONSTANTS

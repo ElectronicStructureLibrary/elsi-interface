@@ -71,7 +71,8 @@ program test_dm_real
    real(kind=r8), allocatable :: dm(:,:)
    real(kind=r8), allocatable :: edm(:,:)
 
-   type(elsi_handle) :: elsi_h
+   type(elsi_handle)    :: e_h
+   type(elsi_rw_handle) :: rw_h
 
    ! VY: Reference values from calculations on August 31, 2017.
    real(kind=r8), parameter :: e_elpa  = -1833.07932666530_r8
@@ -167,8 +168,11 @@ program test_dm_real
    call BLACS_Gridinit(blacs_ctxt,'r',nprow,npcol)
 
    ! Read H and S matrices
-   call elsi_read_mat_dim(arg2,mpi_comm_global,blacs_ctxt,blk,n_electrons,&
-           matrix_size,l_rows,l_cols)
+   call elsi_init_rw(rw_h,0,1,0,1,0,0.0_r8)
+   call elsi_set_rw_mpi(rw_h,mpi_comm_global)
+   call elsi_set_rw_blacs(rw_h,blacs_ctxt,blk)
+
+   call elsi_read_mat_dim(rw_h,arg2,n_electrons,matrix_size,l_rows,l_cols)
 
    allocate(ham(l_rows,l_cols))
    allocate(ham_save(l_rows,l_cols))
@@ -178,11 +182,10 @@ program test_dm_real
 
    t1 = MPI_Wtime()
 
-   call elsi_read_mat_real(arg2,mpi_comm_global,blacs_ctxt,blk,matrix_size,&
-           l_rows,l_cols,ham)
+   call elsi_read_mat_real(rw_h,arg2,ham)
+   call elsi_read_mat_real(rw_h,arg3,ovlp)
 
-   call elsi_read_mat_real(arg3,mpi_comm_global,blacs_ctxt,blk,matrix_size,&
-           l_rows,l_cols,ovlp)
+   call elsi_finalize_rw(rw_h)
 
    ham_save = ham
 
@@ -197,20 +200,20 @@ program test_dm_real
    ! Initialize ELSI
    n_states = int(n_electrons,kind=i4)
 
-   call elsi_init(elsi_h,solver,1,0,matrix_size,n_electrons,n_states)
-   call elsi_set_mpi(elsi_h,mpi_comm_global)
-   call elsi_set_blacs(elsi_h,blacs_ctxt,blk)
+   call elsi_init(e_h,solver,1,0,matrix_size,n_electrons,n_states)
+   call elsi_set_mpi(e_h,mpi_comm_global)
+   call elsi_set_blacs(e_h,blacs_ctxt,blk)
 
    ! Customize ELSI
-   call elsi_set_output(elsi_h,2)
-   call elsi_set_sing_check(elsi_h,0)
-   call elsi_set_omm_n_elpa(elsi_h,1)
-   call elsi_set_pexsi_np_per_pole(elsi_h,2)
+   call elsi_set_output(e_h,2)
+   call elsi_set_sing_check(e_h,0)
+   call elsi_set_omm_n_elpa(e_h,1)
+   call elsi_set_pexsi_np_per_pole(e_h,2)
 
    t1 = MPI_Wtime()
 
    ! Solve (pseudo SCF 1)
-   call elsi_dm_real(elsi_h,ham,ovlp,dm,e_test)
+   call elsi_dm_real(e_h,ham,ovlp,dm,e_test)
 
    t2 = MPI_Wtime()
 
@@ -225,12 +228,12 @@ program test_dm_real
    t1 = MPI_Wtime()
 
    ! Solve (pseudo SCF 2, with the same H)
-   call elsi_dm_real(elsi_h,ham,ovlp,dm,e_test)
+   call elsi_dm_real(e_h,ham,ovlp,dm,e_test)
 
    t2 = MPI_Wtime()
 
    ! Compute energy density matrix
-   call elsi_get_edm_real(elsi_h,edm)
+   call elsi_get_edm_real(e_h,edm)
 
    if(myid == 0) then
       write(*,'("  Finished SCF #2")')
@@ -249,7 +252,7 @@ program test_dm_real
    endif
 
    ! Finalize ELSI
-   call elsi_finalize(elsi_h)
+   call elsi_finalize(e_h)
 
    deallocate(ham)
    deallocate(ham_save)

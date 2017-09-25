@@ -59,7 +59,7 @@ program test_standard_ev_real
    real(kind=r8), allocatable :: mat_a(:,:),mat_b(:,:),mat_tmp(:,:),evec(:,:)
    real(kind=r8), allocatable :: eval(:)
 
-   type(elsi_handle) :: elsi_h
+   type(elsi_handle) :: e_h
 
    ! Initialize MPI
    call MPI_Init(mpierr)
@@ -165,22 +165,22 @@ program test_standard_ev_real
    endif
 
    ! Initialize ELSI
-   call elsi_init(elsi_h,solver,1,0,matrix_size,0.0_r8,n_states)
-   call elsi_set_mpi(elsi_h,mpi_comm_global)
-   call elsi_set_blacs(elsi_h,blacs_ctxt,blk)
+   call elsi_init(e_h,solver,1,0,matrix_size,0.0_r8,n_states)
+   call elsi_set_mpi(e_h,mpi_comm_global)
+   call elsi_set_blacs(e_h,blacs_ctxt,blk)
 
    allocate(mat_b(1,1)) ! Dummy allocation
    allocate(evec(local_row,local_col))
    allocate(eval(matrix_size))
 
    ! Customize ELSI
-   call elsi_set_output(elsi_h,2)
-   call elsi_set_unit_ovlp(elsi_h,1)
+   call elsi_set_output(e_h,2)
+   call elsi_set_unit_ovlp(e_h,1)
 
    t1 = MPI_Wtime()
 
    ! Solve problem
-   call elsi_ev_real(elsi_h,mat_a,mat_b,eval,evec)
+   call elsi_ev_real(e_h,mat_a,mat_b,eval,evec)
 
    t2 = MPI_Wtime()
 
@@ -191,7 +191,7 @@ program test_standard_ev_real
    endif
 
    ! Finalize ELSI
-   call elsi_finalize(elsi_h)
+   call elsi_finalize(e_h)
 
    deallocate(mat_a)
    deallocate(mat_b)

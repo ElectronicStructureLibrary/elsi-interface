@@ -32,7 +32,7 @@ module ELSI_UTILS
 
    use ELSI_CONSTANTS
    use ELSI_DATATYPE
-   use ELSI_PRECISION,     only: i4,r8
+   use ELSI_PRECISION, only: i4,r8
 
    implicit none
 
@@ -130,17 +130,10 @@ subroutine elsi_reset_handle(e_h)
    e_h%matrix_format    = UNSET
    e_h%uplo             = FULL_MAT
    e_h%parallel_mode    = UNSET
-   e_h%file_format      = UNSET
    e_h%print_info       = .false.
    e_h%print_mem        = .false.
    e_h%print_unit       = 6
    e_h%n_elsi_calls     = 0
-   e_h%n_b_rows         = UNSET
-   e_h%n_b_cols         = UNSET
-   e_h%n_p_rows         = UNSET
-   e_h%n_p_cols         = UNSET
-   e_h%n_l_rows         = UNSET
-   e_h%n_l_cols         = UNSET
    e_h%myid             = UNSET
    e_h%myid_all         = UNSET
    e_h%n_procs          = UNSET
@@ -149,17 +142,23 @@ subroutine elsi_reset_handle(e_h)
    e_h%mpi_comm_all     = UNSET
    e_h%mpi_comm_row     = UNSET
    e_h%mpi_comm_col     = UNSET
-   e_h%my_p_row         = UNSET
-   e_h%my_p_col         = UNSET
    e_h%mpi_ready        = .false.
    e_h%global_mpi_ready = .false.
    e_h%blacs_ctxt       = UNSET
    e_h%sc_desc          = UNSET
+   e_h%blk_row          = UNSET
+   e_h%blk_col          = UNSET
+   e_h%n_prow           = UNSET
+   e_h%n_pcol           = UNSET
+   e_h%my_prow          = UNSET
+   e_h%my_pcol          = UNSET
+   e_h%n_lrow           = UNSET
+   e_h%n_lcol           = UNSET
    e_h%blacs_ready      = .false.
    e_h%nnz_g            = UNSET
    e_h%nnz_l            = UNSET
    e_h%nnz_l_sp         = UNSET
-   e_h%n_l_cols_sp      = UNSET
+   e_h%n_lcol_sp        = UNSET
    e_h%zero_threshold   = 1.0e-15_r8
    e_h%sparsity_ready   = .false.
    e_h%ovlp_is_unit     = .false.
@@ -180,7 +179,6 @@ subroutine elsi_reset_handle(e_h)
    e_h%i_weight         = 1.0_r8
    e_h%energy_hdm       = 0.0_r8
    e_h%energy_sedm      = 0.0_r8
-   e_h%free_energy      = 0.0_r8
    e_h%broaden_scheme   = 0
    e_h%broaden_width    = 1.0e-2_r8
    e_h%occ_tolerance    = 1.0e-13_r8
@@ -205,12 +203,12 @@ subroutine elsi_reset_handle(e_h)
    e_h%omm_output       = .false.
    e_h%do_dealloc       = .false.
    e_h%use_psp          = .false.
-   e_h%n_p_per_pole     = UNSET
-   e_h%n_p_per_point    = UNSET
-   e_h%my_p_row_pexsi   = UNSET
-   e_h%my_p_col_pexsi   = UNSET
-   e_h%n_p_rows_pexsi   = UNSET
-   e_h%n_p_cols_pexsi   = UNSET
+   e_h%np_per_pole      = UNSET
+   e_h%np_per_point     = UNSET
+   e_h%my_prow_pexsi    = UNSET
+   e_h%my_pcol_pexsi    = UNSET
+   e_h%n_prow_pexsi     = UNSET
+   e_h%n_pcol_pexsi     = UNSET
    e_h%my_point         = UNSET
    e_h%myid_point       = UNSET
    e_h%comm_among_pole  = UNSET
@@ -228,7 +226,7 @@ subroutine elsi_reset_handle(e_h)
    e_h%ev_ovlp_max      = 0.0_r8
    e_h%beta             = 0.0_r8
    e_h%chess_started    = .false.
-   e_h%n_p_per_slice    = UNSET
+   e_h%np_per_slice     = UNSET
    e_h%n_inertia_steps  = UNSET
    e_h%slicing_method   = UNSET
    e_h%inertia_option   = UNSET
@@ -330,12 +328,12 @@ subroutine elsi_check(e_h,caller)
                  caller)
       endif
 
-      if(e_h%n_basis < e_h%n_p_per_pole) then
+      if(e_h%n_basis < e_h%np_per_pole) then
          call elsi_stop(" For this number of MPI tasks, the matrix size is"//&
                  " too small to use PEXSI.",e_h,caller)
       endif
 
-      if(e_h%n_p_per_pole == UNSET) then
+      if(e_h%np_per_pole == UNSET) then
          if(mod(e_h%n_procs,e_h%pexsi_options%numPole*&
             e_h%pexsi_options%nPoints) /= 0) then
             call elsi_stop(" To use PEXSI, the total number of MPI tasks"//&
@@ -343,14 +341,14 @@ subroutine elsi_check(e_h,caller)
                     " times the number of mu points.",e_h,caller)
          endif
       else
-         if(mod(e_h%n_procs,e_h%n_p_per_pole*&
+         if(mod(e_h%n_procs,e_h%np_per_pole*&
             e_h%pexsi_options%nPoints) /= 0) then
             call elsi_stop(" To use PEXSI, the total number of MPI tasks"//&
                     " must be a multiple of the number of MPI tasks per pole"//&
                     " times the number of mu points.",e_h,caller)
          endif
 
-         if(e_h%n_p_per_pole*e_h%pexsi_options%numPole*&
+         if(e_h%np_per_pole*e_h%pexsi_options%numPole*&
             e_h%pexsi_options%nPoints < e_h%n_procs) then
             call elsi_stop(" Specified number of MPI tasks per pole is too"//&
                     " small for the total number of MPI tasks.",e_h,caller)
@@ -412,46 +410,44 @@ end subroutine
 !>
 !! This routine computes the global row index based on the local row index.
 !!
-subroutine elsi_get_global_row(e_h,global_idx,local_idx)
+subroutine elsi_get_global_row(e_h,g_id,l_id)
 
    implicit none
 
-   type(elsi_handle), intent(in)  :: e_h        !< Handle
-   integer(kind=i4),  intent(in)  :: local_idx  !< Local index
-   integer(kind=i4),  intent(out) :: global_idx !< Global index
+   type(elsi_handle), intent(in)  :: e_h  !< Handle
+   integer(kind=i4),  intent(in)  :: l_id !< Local index
+   integer(kind=i4),  intent(out) :: g_id !< Global index
 
    integer(kind=i4) :: block
    integer(kind=i4) :: idx
 
    character*40, parameter :: caller = "elsi_get_global_row"
 
-   block = (local_idx-1)/e_h%n_b_rows
-   idx = local_idx-block*e_h%n_b_rows
-
-   global_idx = e_h%my_p_row*e_h%n_b_rows+block*e_h%n_b_rows*e_h%n_p_rows+idx
+   block = (l_id-1)/e_h%blk_row
+   idx   = l_id-block*e_h%blk_row
+   g_id  = e_h%my_prow*e_h%blk_row+block*e_h%blk_row*e_h%n_prow+idx
 
 end subroutine
 
 !>
 !! This routine computes the global column index based on the local column index.
 !!
-subroutine elsi_get_global_col(e_h,global_idx,local_idx)
+subroutine elsi_get_global_col(e_h,g_id,l_id)
 
    implicit none
 
-   type(elsi_handle), intent(in)  :: e_h        !< Handle
-   integer(kind=i4),  intent(in)  :: local_idx  !< Local index
-   integer(kind=i4),  intent(out) :: global_idx !< Global index
+   type(elsi_handle), intent(in)  :: e_h  !< Handle
+   integer(kind=i4),  intent(in)  :: l_id !< Local index
+   integer(kind=i4),  intent(out) :: g_id !< Global index
 
    integer(kind=i4) :: block
    integer(kind=i4) :: idx
 
    character*40, parameter :: caller = "elsi_get_global_col"
 
-   block = (local_idx-1)/e_h%n_b_cols
-   idx = local_idx-block*e_h%n_b_cols
-
-   global_idx = e_h%my_p_col*e_h%n_b_cols+block*e_h%n_b_cols*e_h%n_p_cols+idx
+   block = (l_id-1)/e_h%blk_col
+   idx   = l_id-block*e_h%blk_col
+   g_id  = e_h%my_pcol*e_h%blk_col+block*e_h%blk_col*e_h%n_pcol+idx
 
 end subroutine
 

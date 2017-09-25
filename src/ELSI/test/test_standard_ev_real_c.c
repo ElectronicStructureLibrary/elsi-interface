@@ -52,7 +52,7 @@ void main(int argc, char** argv) {
    double double_one,double_zero;
    double *h,*h_tmp,*s,*eval,*evec;
 
-   elsi_handle elsi_h;
+   elsi_handle e_h;
 
    // Set up MPI
    MPI_Init(&argc,&argv);
@@ -120,19 +120,19 @@ void main(int argc, char** argv) {
    mpierr = MPI_Barrier(mpi_comm_global);
 
    // Initialize ELSI
-   c_elsi_init(&elsi_h,solver,parallel,format,n_basis,n_electrons,n_states);
-   c_elsi_set_mpi(elsi_h,mpi_comm_global);
-   c_elsi_set_blacs(elsi_h,blacs_ctxt,blk);
+   c_elsi_init(&e_h,solver,parallel,format,n_basis,n_electrons,n_states);
+   c_elsi_set_mpi(e_h,mpi_comm_global);
+   c_elsi_set_blacs(e_h,blacs_ctxt,blk);
 
    // Customize ELSI
-   c_elsi_set_output(elsi_h,2);
-   c_elsi_set_unit_ovlp(elsi_h,1);
+   c_elsi_set_output(e_h,2);
+   c_elsi_set_unit_ovlp(e_h,1);
 
    // Call ELSI eigensolver
-   c_elsi_ev_real(elsi_h,h,s,eval,evec);
+   c_elsi_ev_real(e_h,h,s,eval,evec);
 
    // Finalize ELSI
-   c_elsi_finalize(elsi_h);
+   c_elsi_finalize(e_h);
 
    free(h);
    free(evec);

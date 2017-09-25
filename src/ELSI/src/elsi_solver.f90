@@ -126,11 +126,11 @@ subroutine elsi_ev_real(e_h,h_in,s_in,eval_out,evec_out)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                                 !< Handle
-   real(kind=r8),     intent(inout) :: h_in(e_h%n_l_rows,e_h%n_l_cols)     !< Hamiltonian
-   real(kind=r8),     intent(inout) :: s_in(e_h%n_l_rows,e_h%n_l_cols)     !< Overlap
-   real(kind=r8),     intent(inout) :: eval_out(e_h%n_basis)               !< Eigenvalues
-   real(kind=r8),     intent(inout) :: evec_out(e_h%n_l_rows,e_h%n_l_cols) !< Eigenvectors
+   type(elsi_handle), intent(inout) :: e_h                             !< Handle
+   real(kind=r8),     intent(inout) :: h_in(e_h%n_lrow,e_h%n_lcol)     !< Hamiltonian
+   real(kind=r8),     intent(inout) :: s_in(e_h%n_lrow,e_h%n_lcol)     !< Overlap
+   real(kind=r8),     intent(inout) :: eval_out(e_h%n_basis)           !< Eigenvalues
+   real(kind=r8),     intent(inout) :: evec_out(e_h%n_lrow,e_h%n_lcol) !< Eigenvectors
 
    character*40, parameter :: caller = "elsi_ev_real"
 
@@ -208,11 +208,11 @@ subroutine elsi_ev_complex(e_h,h_in,s_in,eval_out,evec_out)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                                 !< Handle
-   complex(kind=r8),  intent(inout) :: h_in(e_h%n_l_rows,e_h%n_l_cols)     !< Hamiltonian
-   complex(kind=r8),  intent(inout) :: s_in(e_h%n_l_rows,e_h%n_l_cols)     !< Overlap
-   real(kind=r8),     intent(inout) :: eval_out(e_h%n_basis)               !< Eigenvalues
-   complex(kind=r8),  intent(inout) :: evec_out(e_h%n_l_rows,e_h%n_l_cols) !< Eigenvectors
+   type(elsi_handle), intent(inout) :: e_h                             !< Handle
+   complex(kind=r8),  intent(inout) :: h_in(e_h%n_lrow,e_h%n_lcol)     !< Hamiltonian
+   complex(kind=r8),  intent(inout) :: s_in(e_h%n_lrow,e_h%n_lcol)     !< Overlap
+   real(kind=r8),     intent(inout) :: eval_out(e_h%n_basis)           !< Eigenvalues
+   complex(kind=r8),  intent(inout) :: evec_out(e_h%n_lrow,e_h%n_lcol) !< Eigenvectors
 
    character*40, parameter :: caller = "elsi_ev_complex"
 
@@ -268,11 +268,11 @@ subroutine elsi_ev_real_sparse(e_h,h_in,s_in,eval_out,evec_out)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                                 !< Handle
-   real(kind=r8),     intent(inout) :: h_in(e_h%nnz_l_sp)                  !< Hamiltonian
-   real(kind=r8),     intent(inout) :: s_in(e_h%nnz_l_sp)                  !< Overlap
-   real(kind=r8),     intent(inout) :: eval_out(e_h%n_basis)               !< Eigenvalues
-   real(kind=r8),     intent(inout) :: evec_out(e_h%n_l_rows,e_h%n_l_cols) !< Eigenvectors
+   type(elsi_handle), intent(inout) :: e_h                             !< Handle
+   real(kind=r8),     intent(inout) :: h_in(e_h%nnz_l_sp)              !< Hamiltonian
+   real(kind=r8),     intent(inout) :: s_in(e_h%nnz_l_sp)              !< Overlap
+   real(kind=r8),     intent(inout) :: eval_out(e_h%n_basis)           !< Eigenvalues
+   real(kind=r8),     intent(inout) :: evec_out(e_h%n_lrow,e_h%n_lcol) !< Eigenvectors
 
    character*40, parameter :: caller = "elsi_ev_real_sparse"
 
@@ -327,11 +327,11 @@ subroutine elsi_ev_complex_sparse(e_h,h_in,s_in,eval_out,evec_out)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                                 !< Handle
-   complex(kind=r8),  intent(inout) :: h_in(e_h%nnz_l_sp)                  !< Hamiltonian
-   complex(kind=r8),  intent(inout) :: s_in(e_h%nnz_l_sp)                  !< Overlap
-   real(kind=r8),     intent(inout) :: eval_out(e_h%n_basis)               !< Eigenvalues
-   complex(kind=r8),  intent(inout) :: evec_out(e_h%n_l_rows,e_h%n_l_cols) !< Eigenvectors
+   type(elsi_handle), intent(inout) :: e_h                             !< Handle
+   complex(kind=r8),  intent(inout) :: h_in(e_h%nnz_l_sp)              !< Hamiltonian
+   complex(kind=r8),  intent(inout) :: s_in(e_h%nnz_l_sp)              !< Overlap
+   real(kind=r8),     intent(inout) :: eval_out(e_h%n_basis)           !< Eigenvalues
+   complex(kind=r8),  intent(inout) :: evec_out(e_h%n_lrow,e_h%n_lcol) !< Eigenvectors
 
    character*40, parameter :: caller = "elsi_ev_real_sparse"
 
@@ -385,11 +385,11 @@ subroutine elsi_dm_real(e_h,h_in,s_in,d_out,energy_out)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                              !< Handle
-   real(kind=r8),     intent(inout) :: h_in(e_h%n_l_rows,e_h%n_l_cols)  !< Hamiltonian
-   real(kind=r8),     intent(inout) :: s_in(e_h%n_l_rows,e_h%n_l_cols)  !< Overlap
-   real(kind=r8),     intent(inout) :: d_out(e_h%n_l_rows,e_h%n_l_cols) !< Density matrix
-   real(kind=r8),     intent(inout) :: energy_out                       !< Energy
+   type(elsi_handle), intent(inout) :: e_h                          !< Handle
+   real(kind=r8),     intent(inout) :: h_in(e_h%n_lrow,e_h%n_lcol)  !< Hamiltonian
+   real(kind=r8),     intent(inout) :: s_in(e_h%n_lrow,e_h%n_lcol)  !< Overlap
+   real(kind=r8),     intent(inout) :: d_out(e_h%n_lrow,e_h%n_lcol) !< Density matrix
+   real(kind=r8),     intent(inout) :: energy_out                   !< Energy
 
    character*40, parameter :: caller = "elsi_dm_real"
 
@@ -413,7 +413,7 @@ subroutine elsi_dm_real(e_h,h_in,s_in,d_out,energy_out)
          call elsi_allocate(e_h,e_h%eval_elpa,e_h%n_basis,"eval_elpa",caller)
       endif
       if(.not. allocated(e_h%evec_real_elpa)) then
-         call elsi_allocate(e_h,e_h%evec_real_elpa,e_h%n_l_rows,e_h%n_l_cols,&
+         call elsi_allocate(e_h,e_h%evec_real_elpa,e_h%n_lrow,e_h%n_lcol,&
                  "evec_real_elpa",caller)
       endif
 
@@ -437,7 +437,7 @@ subroutine elsi_dm_real(e_h,h_in,s_in,d_out,energy_out)
       if(e_h%n_elsi_calls <= e_h%n_elpa_steps) then
          if(e_h%n_elsi_calls == 1 .and. e_h%omm_flavor == 0) then
             ! Overlap will be destroyed by Cholesky
-            call elsi_allocate(e_h,e_h%ovlp_real_omm,e_h%n_l_rows,e_h%n_l_cols,&
+            call elsi_allocate(e_h,e_h%ovlp_real_omm,e_h%n_lrow,e_h%n_lcol,&
                     "ovlp_real_omm",caller)
             e_h%ovlp_real_omm = s_in
          endif
@@ -450,8 +450,8 @@ subroutine elsi_dm_real(e_h,h_in,s_in,d_out,energy_out)
             call elsi_allocate(e_h,e_h%eval_elpa,e_h%n_basis,"eval_elpa",caller)
          endif
          if(.not. allocated(e_h%evec_real_elpa)) then
-            call elsi_allocate(e_h,e_h%evec_real_elpa,e_h%n_l_rows,&
-                    e_h%n_l_cols,"evec_real_elpa",caller)
+            call elsi_allocate(e_h,e_h%evec_real_elpa,e_h%n_lrow,e_h%n_lcol,&
+                    "evec_real_elpa",caller)
          endif
 
          ! Set matrices
@@ -612,11 +612,11 @@ subroutine elsi_dm_complex(e_h,h_in,s_in,d_out,energy_out)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                              !< Handle
-   complex(kind=r8),  intent(inout) :: h_in(e_h%n_l_rows,e_h%n_l_cols)  !< Hamiltonian
-   complex(kind=r8),  intent(inout) :: s_in(e_h%n_l_rows,e_h%n_l_cols)  !< Overlap
-   complex(kind=r8),  intent(inout) :: d_out(e_h%n_l_rows,e_h%n_l_cols) !< Density matrix
-   real(kind=r8),     intent(inout) :: energy_out                       !< Energy
+   type(elsi_handle), intent(inout) :: e_h                          !< Handle
+   complex(kind=r8),  intent(inout) :: h_in(e_h%n_lrow,e_h%n_lcol)  !< Hamiltonian
+   complex(kind=r8),  intent(inout) :: s_in(e_h%n_lrow,e_h%n_lcol)  !< Overlap
+   complex(kind=r8),  intent(inout) :: d_out(e_h%n_lrow,e_h%n_lcol) !< Density matrix
+   real(kind=r8),     intent(inout) :: energy_out                   !< Energy
 
    character*40, parameter :: caller = "elsi_dm_complex"
 
@@ -640,7 +640,7 @@ subroutine elsi_dm_complex(e_h,h_in,s_in,d_out,energy_out)
          call elsi_allocate(e_h,e_h%eval_elpa,e_h%n_basis,"eval_elpa",caller)
       endif
       if(.not. allocated(e_h%evec_cmplx_elpa)) then
-         call elsi_allocate(e_h,e_h%evec_cmplx_elpa,e_h%n_l_rows,e_h%n_l_cols,&
+         call elsi_allocate(e_h,e_h%evec_cmplx_elpa,e_h%n_lrow,e_h%n_lcol,&
                  "evec_cmplx_elpa",caller)
       endif
 
@@ -664,8 +664,8 @@ subroutine elsi_dm_complex(e_h,h_in,s_in,d_out,energy_out)
       if(e_h%n_elsi_calls <= e_h%n_elpa_steps) then
          if(e_h%n_elsi_calls == 1 .and. e_h%omm_flavor == 0) then
             ! Overlap will be destroyed by Cholesky
-            call elsi_allocate(e_h,e_h%ovlp_cmplx_omm,e_h%n_l_rows,&
-                    e_h%n_l_cols,"ovlp_cmplx_omm",caller)
+            call elsi_allocate(e_h,e_h%ovlp_cmplx_omm,e_h%n_lrow,e_h%n_lcol,&
+                    "ovlp_cmplx_omm",caller)
             e_h%ovlp_cmplx_omm = s_in
          endif
 
@@ -677,8 +677,8 @@ subroutine elsi_dm_complex(e_h,h_in,s_in,d_out,energy_out)
             call elsi_allocate(e_h,e_h%eval_elpa,e_h%n_basis,"eval_elpa",caller)
          endif
          if(.not. allocated(e_h%evec_cmplx_elpa)) then
-            call elsi_allocate(e_h,e_h%evec_cmplx_elpa,e_h%n_l_rows,&
-                    e_h%n_l_cols,"evec_cmplx_elpa",caller)
+            call elsi_allocate(e_h,e_h%evec_cmplx_elpa,e_h%n_lrow,e_h%n_lcol,&
+                    "evec_cmplx_elpa",caller)
          endif
 
          ! Set matrices
@@ -854,11 +854,11 @@ subroutine elsi_dm_real_sparse(e_h,h_in,s_in,d_out,energy_out)
          call elsi_allocate(e_h,e_h%eval_elpa,e_h%n_basis,"eval_elpa",caller)
       endif
       if(.not. allocated(e_h%evec_real_elpa)) then
-         call elsi_allocate(e_h,e_h%evec_real_elpa,e_h%n_l_rows,e_h%n_l_cols,&
+         call elsi_allocate(e_h,e_h%evec_real_elpa,e_h%n_lrow,e_h%n_lcol,&
                  "evec_real_elpa",caller)
       endif
       if(.not. allocated(e_h%dm_real_elpa)) then
-         call elsi_allocate(e_h,e_h%dm_real_elpa,e_h%n_l_rows,e_h%n_l_cols,&
+         call elsi_allocate(e_h,e_h%dm_real_elpa,e_h%n_lrow,e_h%n_lcol,&
                  "dm_real_elpa",caller)
       endif
 
@@ -891,8 +891,8 @@ subroutine elsi_dm_real_sparse(e_h,h_in,s_in,d_out,energy_out)
       if(e_h%n_elsi_calls <= e_h%n_elpa_steps) then
          if(e_h%n_elsi_calls == 1 .and. e_h%omm_flavor == 0) then
             ! Overlap will be destroyed by Cholesky
-            call elsi_allocate(e_h,e_h%ovlp_real_omm,e_h%n_l_rows,&
-                    e_h%n_l_cols,"ovlp_real_omm",caller)
+            call elsi_allocate(e_h,e_h%ovlp_real_omm,e_h%n_lrow,e_h%n_lcol,&
+                    "ovlp_real_omm",caller)
             e_h%ovlp_real_omm = e_h%ovlp_real_elpa
          endif
 
@@ -904,11 +904,11 @@ subroutine elsi_dm_real_sparse(e_h,h_in,s_in,d_out,energy_out)
             call elsi_allocate(e_h,e_h%eval_elpa,e_h%n_basis,"eval_elpa",caller)
          endif
          if(.not. allocated(e_h%evec_real_elpa)) then
-            call elsi_allocate(e_h,e_h%evec_real_elpa,e_h%n_l_rows,&
-                    e_h%n_l_cols,"evec_real_elpa",caller)
+            call elsi_allocate(e_h,e_h%evec_real_elpa,e_h%n_lrow,e_h%n_lcol,&
+                    "evec_real_elpa",caller)
          endif
          if(.not. allocated(e_h%dm_real_elpa)) then
-            call elsi_allocate(e_h,e_h%dm_real_elpa,e_h%n_l_rows,e_h%n_l_cols,&
+            call elsi_allocate(e_h,e_h%dm_real_elpa,e_h%n_lrow,e_h%n_lcol,&
                     "dm_real_elpa",caller)
          endif
 
@@ -942,7 +942,7 @@ subroutine elsi_dm_real_sparse(e_h,h_in,s_in,d_out,energy_out)
             call m_allocate(e_h%coeff,e_h%n_states_omm,e_h%n_basis,"pddbc")
          endif
          if(.not. allocated(e_h%dm_real_elpa)) then
-            call elsi_allocate(e_h,e_h%dm_real_elpa,e_h%n_l_rows,e_h%n_l_cols,&
+            call elsi_allocate(e_h,e_h%dm_real_elpa,e_h%n_lrow,e_h%n_lcol,&
                     "dm_real_elpa",caller)
          endif
 
@@ -1067,11 +1067,11 @@ subroutine elsi_dm_complex_sparse(e_h,h_in,s_in,d_out,energy_out)
          call elsi_allocate(e_h,e_h%eval_elpa,e_h%n_basis,"eval_elpa",caller)
       endif
       if(.not. allocated(e_h%evec_cmplx_elpa)) then
-         call elsi_allocate(e_h,e_h%evec_cmplx_elpa,e_h%n_l_rows,e_h%n_l_cols,&
+         call elsi_allocate(e_h,e_h%evec_cmplx_elpa,e_h%n_lrow,e_h%n_lcol,&
                  "evec_cmplx_elpa",caller)
       endif
       if(.not. allocated(e_h%dm_cmplx_elpa)) then
-         call elsi_allocate(e_h,e_h%dm_cmplx_elpa,e_h%n_l_rows,e_h%n_l_cols,&
+         call elsi_allocate(e_h,e_h%dm_cmplx_elpa,e_h%n_lrow,e_h%n_lcol,&
                  "dm_cmplx_elpa",caller)
       endif
 
@@ -1104,8 +1104,8 @@ subroutine elsi_dm_complex_sparse(e_h,h_in,s_in,d_out,energy_out)
       if(e_h%n_elsi_calls <= e_h%n_elpa_steps) then
          if(e_h%n_elsi_calls == 1 .and. e_h%omm_flavor == 0) then
             ! Overlap will be destroyed by Cholesky
-            call elsi_allocate(e_h,e_h%ovlp_cmplx_omm,e_h%n_l_rows,&
-                    e_h%n_l_cols,"ovlp_cmplx_omm",caller)
+            call elsi_allocate(e_h,e_h%ovlp_cmplx_omm,e_h%n_lrow,e_h%n_lcol,&
+                    "ovlp_cmplx_omm",caller)
             e_h%ovlp_cmplx_omm = e_h%ovlp_cmplx_elpa
          endif
 
@@ -1117,11 +1117,11 @@ subroutine elsi_dm_complex_sparse(e_h,h_in,s_in,d_out,energy_out)
             call elsi_allocate(e_h,e_h%eval_elpa,e_h%n_basis,"eval_elpa",caller)
          endif
          if(.not. allocated(e_h%evec_cmplx_elpa)) then
-            call elsi_allocate(e_h,e_h%evec_cmplx_elpa,e_h%n_l_rows,&
-                    e_h%n_l_cols,"evec_cmplx_elpa",caller)
+            call elsi_allocate(e_h,e_h%evec_cmplx_elpa,e_h%n_lrow,e_h%n_lcol,&
+                    "evec_cmplx_elpa",caller)
          endif
          if(.not. allocated(e_h%dm_cmplx_elpa)) then
-            call elsi_allocate(e_h,e_h%dm_cmplx_elpa,e_h%n_l_rows,e_h%n_l_cols,&
+            call elsi_allocate(e_h,e_h%dm_cmplx_elpa,e_h%n_lrow,e_h%n_lcol,&
                     "dm_cmplx_elpa",caller)
          endif
 
@@ -1155,7 +1155,7 @@ subroutine elsi_dm_complex_sparse(e_h,h_in,s_in,d_out,energy_out)
             call m_allocate(e_h%coeff,e_h%n_states_omm,e_h%n_basis,"pzdbc")
          endif
          if(.not. allocated(e_h%dm_cmplx_elpa)) then
-            call elsi_allocate(e_h,e_h%dm_cmplx_elpa,e_h%n_l_rows,e_h%n_l_cols,&
+            call elsi_allocate(e_h,e_h%dm_cmplx_elpa,e_h%n_lrow,e_h%n_lcol,&
                     "dm_cmplx_elpa",caller)
          endif
 

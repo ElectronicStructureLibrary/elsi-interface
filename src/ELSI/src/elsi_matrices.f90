@@ -102,8 +102,8 @@ subroutine elsi_set_real_ham(e_h,h_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout)         :: e_h                             !< Handle
-   real(kind=r8),     intent(inout), target :: h_in(e_h%n_l_rows,e_h%n_l_cols) !< Hamiltonian matrix
+   type(elsi_handle), intent(inout)         :: e_h                         !< Handle
+   real(kind=r8),     intent(inout), target :: h_in(e_h%n_lrow,e_h%n_lcol) !< Hamiltonian matrix
 
    character*40, parameter :: caller = "elsi_set_real_ham"
 
@@ -126,8 +126,8 @@ subroutine elsi_set_complex_ham(e_h,h_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout)         :: e_h                             !< Handle
-   complex(kind=r8),  intent(inout), target :: h_in(e_h%n_l_rows,e_h%n_l_cols) !< Hamiltonian matrix
+   type(elsi_handle), intent(inout)         :: e_h                         !< Handle
+   complex(kind=r8),  intent(inout), target :: h_in(e_h%n_lrow,e_h%n_lcol) !< Hamiltonian matrix
 
    character*40, parameter :: caller = "elsi_set_complex_ham"
 
@@ -182,8 +182,8 @@ subroutine elsi_set_real_ovlp(e_h,s_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout)         :: e_h                             !< Handle
-   real(kind=r8),     intent(inout), target :: s_in(e_h%n_l_rows,e_h%n_l_cols) !< Overlap matrix
+   type(elsi_handle), intent(inout)         :: e_h                         !< Handle
+   real(kind=r8),     intent(inout), target :: s_in(e_h%n_lrow,e_h%n_lcol) !< Overlap matrix
 
    character*40, parameter :: caller = "elsi_set_real_ovlp"
 
@@ -208,8 +208,8 @@ subroutine elsi_set_complex_ovlp(e_h,s_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout)         :: e_h                             !< Handle
-   complex(kind=r8),  intent(inout), target :: s_in(e_h%n_l_rows,e_h%n_l_cols) !< Overlap matrix
+   type(elsi_handle), intent(inout)         :: e_h                         !< Handle
+   complex(kind=r8),  intent(inout), target :: s_in(e_h%n_lrow,e_h%n_lcol) !< Overlap matrix
 
    character*40, parameter :: caller = "elsi_set_complex_ovlp"
 
@@ -286,8 +286,8 @@ subroutine elsi_set_real_evec(e_h,evec_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout)         :: e_h                                !< Handle
-   real(kind=r8),     intent(inout), target :: evec_in(e_h%n_l_rows,e_h%n_l_cols) !< Eigenvectors
+   type(elsi_handle), intent(inout)         :: e_h                            !< Handle
+   real(kind=r8),     intent(inout), target :: evec_in(e_h%n_lrow,e_h%n_lcol) !< Eigenvectors
 
    character*40, parameter :: caller = "elsi_set_real_evec"
 
@@ -302,8 +302,8 @@ subroutine elsi_set_complex_evec(e_h,evec_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout)         :: e_h                                !< Handle
-   complex(kind=r8),  intent(inout), target :: evec_in(e_h%n_l_rows,e_h%n_l_cols) !< Eigenvectors
+   type(elsi_handle), intent(inout)         :: e_h                            !< Handle
+   complex(kind=r8),  intent(inout), target :: evec_in(e_h%n_lrow,e_h%n_lcol) !< Eigenvectors
 
    character*40, parameter :: caller = "elsi_set_complex_evec"
 
@@ -318,8 +318,8 @@ subroutine elsi_set_real_dm(e_h,d_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout)         :: e_h                             !< Handle
-   real(kind=r8),     intent(inout), target :: d_in(e_h%n_l_rows,e_h%n_l_cols) !< Density matrix
+   type(elsi_handle), intent(inout)         :: e_h                         !< Handle
+   real(kind=r8),     intent(inout), target :: d_in(e_h%n_lrow,e_h%n_lcol) !< Density matrix
 
    character*40, parameter :: caller = "elsi_set_real_dm"
 
@@ -338,8 +338,8 @@ subroutine elsi_set_complex_dm(e_h,d_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout)         :: e_h                             !< Handle
-   complex(kind=r8),  intent(inout), target :: d_in(e_h%n_l_rows,e_h%n_l_cols) !< Density matrix
+   type(elsi_handle), intent(inout)         :: e_h                         !< Handle
+   complex(kind=r8),  intent(inout), target :: d_in(e_h%n_lrow,e_h%n_lcol) !< Density matrix
 
    character*40, parameter :: caller = "elsi_set_complex_dm"
 
@@ -406,8 +406,8 @@ subroutine elsi_set_col_ptr(e_h,col_ptr_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout)        :: e_h                           !< Handle
-   integer(kind=i4),  intent(in),   target :: col_ptr_in(e_h%n_l_cols_sp+1) !< Column pointer
+   type(elsi_handle), intent(inout)        :: e_h                         !< Handle
+   integer(kind=i4),  intent(in),   target :: col_ptr_in(e_h%n_lcol_sp+1) !< Column pointer
 
    character*40, parameter :: caller = "elsi_set_col_ptr"
 
@@ -423,8 +423,8 @@ subroutine elsi_set_full_mat_real(e_h,mat)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                            !< Handle
-   real(kind=r8),     intent(inout) :: mat(e_h%n_l_rows,e_h%n_l_cols) !< Matrix
+   type(elsi_handle), intent(inout) :: e_h                        !< Handle
+   real(kind=r8),     intent(inout) :: mat(e_h%n_lrow,e_h%n_lcol) !< Matrix
 
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
@@ -433,8 +433,7 @@ subroutine elsi_set_full_mat_real(e_h,mat)
    character*40, parameter :: caller = "elsi_set_full_mat_real"
 
    if(e_h%uplo /= FULL_MAT .and. e_h%parallel_mode == MULTI_PROC) then
-      call elsi_allocate(e_h,tmp_real,e_h%n_l_rows,e_h%n_l_cols,"tmp_real",&
-              caller)
+      call elsi_allocate(e_h,tmp_real,e_h%n_lrow,e_h%n_lcol,"tmp_real",caller)
 
       call pdtran(e_h%n_basis,e_h%n_basis,1.0_r8,mat,1,1,e_h%sc_desc,0.0_r8,&
               tmp_real,1,1,e_h%sc_desc)
@@ -476,8 +475,8 @@ subroutine elsi_set_full_mat_complex(e_h,mat)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                            !< Handle
-   complex(kind=r8),  intent(inout) :: mat(e_h%n_l_rows,e_h%n_l_cols) !< Matrix
+   type(elsi_handle), intent(inout) :: e_h                        !< Handle
+   complex(kind=r8),  intent(inout) :: mat(e_h%n_lrow,e_h%n_lcol) !< Matrix
 
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
@@ -486,8 +485,7 @@ subroutine elsi_set_full_mat_complex(e_h,mat)
    character*40, parameter :: caller = "elsi_set_full_mat_complex"
 
    if(e_h%uplo /= FULL_MAT .and. e_h%parallel_mode == MULTI_PROC) then
-      call elsi_allocate(e_h,tmp_cmplx,e_h%n_l_rows,e_h%n_l_cols,"tmp_cmplx",&
-              caller)
+      call elsi_allocate(e_h,tmp_cmplx,e_h%n_lrow,e_h%n_lcol,"tmp_cmplx",caller)
 
       call pztranc(e_h%n_basis,e_h%n_basis,(1.0_r8,0.0_r8),mat,1,1,e_h%sc_desc,&
               (0.0_r8,0.0_r8),tmp_cmplx,1,1,e_h%sc_desc)

@@ -477,7 +477,7 @@ subroutine elsi_set_pexsi_np_per_pole(e_h,np_per_pole)
 
    call elsi_check_handle(e_h,caller)
 
-   e_h%n_p_per_pole = np_per_pole
+   e_h%np_per_pole = np_per_pole
 
 end subroutine
 
@@ -795,7 +795,7 @@ subroutine elsi_set_sips_n_slice(e_h,n_slice)
 
    if(mod(e_h%n_procs,n_slice) == 0) then
       e_h%n_slices = n_slice
-      e_h%n_p_per_slice = e_h%n_procs/n_slice
+      e_h%np_per_slice = e_h%n_procs/n_slice
    else
       call elsi_stop(" The total number of MPI tasks must be a multiple of"//&
               " the number of slices.",e_h,caller)
@@ -1075,8 +1075,8 @@ subroutine elsi_get_edm_real(e_h,d_out)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                              !< Handle
-   real(kind=r8),     intent(out)   :: d_out(e_h%n_l_rows,e_h%n_l_cols) !< Energy density matrix
+   type(elsi_handle), intent(inout) :: e_h                          !< Handle
+   real(kind=r8),     intent(out)   :: d_out(e_h%n_lrow,e_h%n_lcol) !< Energy density matrix
 
    character*40, parameter :: caller = "elsi_get_edm_real"
 
@@ -1171,8 +1171,8 @@ subroutine elsi_get_edm_complex(e_h,d_out)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                              !< Handle
-   complex(kind=r8),  intent(out)   :: d_out(e_h%n_l_rows,e_h%n_l_cols) !< Energy density matrix
+   type(elsi_handle), intent(inout) :: e_h                          !< Handle
+   complex(kind=r8),  intent(out)   :: d_out(e_h%n_lrow,e_h%n_lcol) !< Energy density matrix
 
    character*40, parameter :: caller = "elsi_get_edm_complex"
 

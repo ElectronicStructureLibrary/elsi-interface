@@ -66,16 +66,16 @@ subroutine elsi_init_sips(e_h)
 
       if(e_h%n_slices == UNSET) then
          ! TODO: Number of slices
-         e_h%n_p_per_slice = 1
+         e_h%np_per_slice = 1
          e_h%n_slices = e_h%n_procs
       endif
 
       ! 1D block distribution
-      e_h%n_l_cols_sp = e_h%n_basis/e_h%n_procs
+      e_h%n_lcol_sp = e_h%n_basis/e_h%n_procs
 
       ! The last process holds all remaining columns
       if(e_h%myid == e_h%n_procs-1) then
-         e_h%n_l_cols_sp = e_h%n_basis-(e_h%n_procs-1)*e_h%n_l_cols_sp
+         e_h%n_lcol_sp = e_h%n_basis-(e_h%n_procs-1)*e_h%n_lcol_sp
       endif
 
       call elsi_allocate(e_h,e_h%slices,e_h%n_slices+1,"slices",caller)
@@ -113,12 +113,12 @@ subroutine elsi_solve_evp_sips(e_h)
 
    if(e_h%n_elsi_calls == 1) then
       ! Load H matrix
-      call eps_load_ham(e_h%n_basis,e_h%n_l_cols_sp,e_h%nnz_l_sp,&
+      call eps_load_ham(e_h%n_basis,e_h%n_lcol_sp,e_h%nnz_l_sp,&
               e_h%row_ind_ccs,e_h%col_ptr_ccs,e_h%ham_real_ccs)
 
       if(.not. e_h%ovlp_is_unit) then
          ! Load S matrix
-         call eps_load_ovlp(e_h%n_basis,e_h%n_l_cols_sp,e_h%nnz_l_sp,&
+         call eps_load_ovlp(e_h%n_basis,e_h%n_lcol_sp,e_h%nnz_l_sp,&
                  e_h%row_ind_ccs,e_h%col_ptr_ccs,e_h%ovlp_real_ccs)
 
          call set_eps(e_h%ev_min,e_h%ev_max,math,mats)
@@ -161,7 +161,7 @@ subroutine elsi_solve_evp_sips(e_h)
       endif
    else ! n_elsi_calls > 1
       ! Update H matrix
-      call eps_update_ham(e_h%n_basis,e_h%n_l_cols_sp,e_h%nnz_l_sp,&
+      call eps_update_ham(e_h%n_basis,e_h%n_lcol_sp,e_h%nnz_l_sp,&
               e_h%row_ind_ccs,e_h%col_ptr_ccs,e_h%ham_real_ccs)
 
       call update_eps(e_h%n_slices)
@@ -211,7 +211,7 @@ subroutine elsi_sips_to_blacs_ev(e_h)
    integer(kind=i4) :: i_col
    integer(kind=i4) :: g_row
    integer(kind=i4) :: g_row2
-   integer(kind=i4) :: this_p_col
+   integer(kind=i4) :: this_pcol
    real(kind=r8)    :: t0
    real(kind=r8)    :: t1
    character*200    :: info_str
@@ -229,14 +229,14 @@ subroutine elsi_sips_to_blacs_ev(e_h)
    do i_state = 1,e_h%n_states
       call get_eps_eigenvectors(e_h%n_basis,i_state,tmp_real)
 
-      this_p_col = mod((i_state-1)/e_h%n_b_cols,e_h%n_p_cols)
+      this_pcol = mod((i_state-1)/e_h%blk_col,e_h%n_pcol)
 
-      if(e_h%my_p_col == this_p_col) then
-         i_col = (i_state-1)/(e_h%n_p_cols*e_h%n_b_cols)*e_h%n_b_cols+&
-                    mod((i_state-1),e_h%n_b_cols)+1
+      if(e_h%my_pcol == this_pcol) then
+         i_col = (i_state-1)/(e_h%n_pcol*e_h%blk_col)*e_h%blk_col+&
+                    mod((i_state-1),e_h%blk_col)+1
 
-         do i_row = 1,e_h%n_l_rows,e_h%n_b_rows
-            i_row2 = i_row+e_h%n_b_rows-1
+         do i_row = 1,e_h%n_lrow,e_h%blk_row
+            i_row2 = i_row+e_h%blk_row-1
 
             call elsi_get_global_row(e_h,g_row,i_row)
             call elsi_get_global_row(e_h,g_row2,i_row2)

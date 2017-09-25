@@ -36,6 +36,7 @@
                              typedef struct name##__ *name
 
 DECLARE_HANDLE(elsi_handle);
+DECLARE_HANDLE(elsi_rw_handle);
 
 #ifdef __cplusplus
 extern "C"{
@@ -68,14 +69,14 @@ void c_elsi_set_blacs(elsi_handle handle_c,
                       int blacs_ctxt,
                       int block_size);
 
-void c_elsi_finalize(elsi_handle handle_c);
-
 void c_elsi_set_csc(elsi_handle handle_c,
                     int nnz,
                     int nnz_l,
-                    int n_l_cols,
+                    int n_lcol,
                     int *row_ind,
                     int *col_ptr);
+
+void c_elsi_finalize(elsi_handle handle_c);
 
 void c_elsi_ev_real(elsi_handle handle_c,
                     double *ham,
@@ -275,99 +276,85 @@ void c_elsi_get_edm_real_sparse(elsi_handle handle_c,
 void c_elsi_get_edm_complex_sparse(elsi_handle handle_c,
                                    double _Complex *edm);
 
-void c_elsi_read_mat_dim(char *name_c,
-                         int mpi_comm,
+void c_elsi_init_rw(elsi_rw_handle *handle_c,
+                    int rw_task,
+                    int parallel_mode,
+                    int matrix_format,
+                    int file_format,
+                    int n_basis,
+                    double n_electron);
+
+void c_elsi_set_rw_mpi(elsi_rw_handle handle_c,
+                       int mpi_comm);
+
+void c_elsi_set_rw_blacs(elsi_rw_handle handle_c,
                          int blacs_ctxt,
-                         int block_size,
+                         int block_size);
+
+void c_elsi_set_rw_csc(elsi_rw_handle handle_c,
+                       int nnz,
+                       int nnz_l,
+                       int n_lcol);
+
+void c_elsi_finalize_rw(elsi_rw_handle handle_c);
+
+void c_elsi_set_rw_output(elsi_rw_handle handle_c,
+                          int out_level);
+
+void c_elsi_set_rw_zero_def(elsi_rw_handle handle_c,
+                            double zero_def);
+
+void c_elsi_read_mat_dim(elsi_rw_handle handle_c,
+                         char *name_c,
                          double *n_electrons,
                          int *n_basis,
-                         int *n_l_rows,
-                         int *n_l_cols);
+                         int *n_lrow,
+                         int *n_lcol);
 
-void c_elsi_read_mat_dim_sparse(char *name_c,
-                                int mpi_comm,
+void c_elsi_read_mat_dim_sparse(elsi_rw_handle handle_c,
+                                char *name_c,
                                 double *n_electrons,
                                 int *n_basis,
                                 int *nnz_g,
                                 int *nnz_l,
-                                int *n_l_cols);
+                                int *n_lcol);
 
-void c_elsi_read_mat_real(char *name_c,
-                          int mpi_comm,
-                          int blacs_ctxt,
-                          int block_size,
-                          int n_basis,
-                          int n_l_rows,
-                          int n_l_cols,
+void c_elsi_read_mat_real(elsi_rw_handle handle_c,
+                          char *name_c,
                           double *mat);
 
-void c_elsi_read_mat_real_sparse(char *name_c,
-                                 int mpi_comm,
-                                 int n_basis,
-                                 int nnz_g,
-                                 int nnz_l,
-                                 int n_l_cols,
+void c_elsi_read_mat_real_sparse(elsi_rw_handle handle_c,
+                                 char *name_c,
                                  int *row_ind,
                                  int *col_ptr,
                                  double *mat);
 
-void c_elsi_write_mat_real(char *name_c,
-                           int mpi_comm,
-                           int blacs_ctxt,
-                           int block_size,
-                           double n_electrons,
-                           int n_basis,
-                           int n_l_rows,
-                           int n_l_cols,
+void c_elsi_write_mat_real(elsi_rw_handle handle_c,
+                           char *name_c,
                            double *mat);
 
-void c_elsi_write_mat_real_sparse(char *name_c,
-                                  int mpi_comm,
-                                  double n_electrons,
-                                  int n_basis,
-                                  int nnz_g,
-                                  int nnz_l,
-                                  int n_l_cols,
+void c_elsi_write_mat_real_sparse(elsi_rw_handle handle_c,
+                                  char *name_c,
                                   int *row_ind,
                                   int *col_ptr,
                                   double *mat);
 
-void c_elsi_read_mat_complex(char *name_c,
-                             int mpi_comm,
-                             int blacs_ctxt,
-                             int block_size,
-                             int n_basis,
-                             int n_l_rows,
-                             int n_l_cols,
+void c_elsi_read_mat_complex(elsi_rw_handle handle_c,
+                             char *name_c,
                              double _Complex *mat);
 
-void c_elsi_read_mat_complex_sparse(char *name_c,
-                                    int mpi_comm,
-                                    int n_basis,
-                                    int nnz_g,
-                                    int nnz_l,
-                                    int n_l_cols,
+void c_elsi_read_mat_complex_sparse(elsi_rw_handle handle_c,
+                                    char *name_c,
                                     int *row_ind,
                                     int *col_ptr,
                                     double _Complex *mat);
 
-void c_elsi_write_mat_complex(char *name_c,
-                              int mpi_comm,
-                              int blacs_ctxt,
-                              int block_size,
-                              double n_electrons,
-                              int n_basis,
-                              int n_l_rows,
-                              int n_l_cols,
+void c_elsi_write_mat_complex(elsi_rw_handle handle_c,
+                              char *name_c,
                               double _Complex *mat);
 
-void c_elsi_write_mat_complex_sparse(char *name_c,
-                                     int mpi_comm,
-                                     double n_electrons,
-                                     int n_basis,
-                                     int nnz_g,
-                                     int nnz_l,
-                                     int n_l_cols,
+void c_elsi_write_mat_complex_sparse(elsi_rw_handle handle_c,
+                                     char *name_c,
                                      int *row_ind,
                                      int *col_ptr,
                                      double _Complex *mat);

@@ -259,8 +259,8 @@ subroutine elsi_to_original_ev_sp(e_h)
    select case(e_h%data_type)
    case(COMPLEX_VALUES)
       if(e_h%ovlp_is_sing) then
-         call elsi_allocate(e_h,tmp_cmplx,e_h%n_l_rows,e_h%n_l_cols,&
-                 "tmp_cmplx",caller)
+         call elsi_allocate(e_h,tmp_cmplx,e_h%n_lrow,e_h%n_lcol,"tmp_cmplx",&
+                 caller)
          tmp_cmplx = e_h%evec_cmplx
 
          ! Transform matrix is stored in S_cmplx after elsi_to_standard_evp
@@ -278,7 +278,7 @@ subroutine elsi_to_original_ev_sp(e_h)
       endif
    case(REAL_VALUES)
       if(e_h%ovlp_is_sing) then
-         call elsi_allocate(e_h,tmp_real,e_h%n_l_rows,e_h%n_l_cols,"tmp_real",&
+         call elsi_allocate(e_h,tmp_real,e_h%n_lrow,e_h%n_lcol,"tmp_real",&
                  caller)
          tmp_real = e_h%evec_real
 
@@ -449,7 +449,7 @@ subroutine elsi_check_singularity_sp(e_h)
 
    select case(e_h%data_type)
    case(COMPLEX_VALUES)
-      call elsi_allocate(e_h,copy_cmplx,e_h%n_l_rows,e_h%n_l_cols,"copy_cmplx",&
+      call elsi_allocate(e_h,copy_cmplx,e_h%n_lrow,e_h%n_lcol,"copy_cmplx",&
               caller)
 
       ! Use copy_cmplx to store overlap matrix, otherwise it will
@@ -525,8 +525,7 @@ subroutine elsi_check_singularity_sp(e_h)
          call elsi_say("  Overlap matrix is nonsingular",e_h)
       endif ! Singular overlap?
    case(REAL_VALUES)
-      call elsi_allocate(e_h,copy_real,e_h%n_l_rows,e_h%n_l_cols,"copy_real",&
-              caller)
+      call elsi_allocate(e_h,copy_real,e_h%n_lrow,e_h%n_lcol,"copy_real",caller)
 
       ! Use copy_real to store overlap matrix, otherwise it will be
       ! destroyed by eigenvalue calculation

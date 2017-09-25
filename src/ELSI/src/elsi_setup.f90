@@ -100,10 +100,10 @@ subroutine elsi_init(e_h,solver,parallel_mode,matrix_format,n_basis,n_electron,&
    e_h%n_elsi_calls   = 0
 
    if(parallel_mode == SINGLE_PROC) then
-      e_h%n_l_rows    = n_basis
-      e_h%n_l_cols    = n_basis
-      e_h%n_b_rows    = n_basis
-      e_h%n_b_cols    = n_basis
+      e_h%n_lrow      = n_basis
+      e_h%n_lcol      = n_basis
+      e_h%blk_row     = n_basis
+      e_h%blk_col     = n_basis
       e_h%myid        = 0
       e_h%n_procs     = 1
       e_h%myid_all    = 0
@@ -254,22 +254,20 @@ subroutine elsi_set_blacs(e_h,blacs_ctxt,block_size)
 
    if(e_h%parallel_mode == MULTI_PROC) then
       e_h%blacs_ctxt = blacs_ctxt
-      e_h%n_b_rows = block_size
-      e_h%n_b_cols = block_size
+      e_h%blk_row    = block_size
+      e_h%blk_col    = block_size
 
       ! Get processor grid information
-      call blacs_gridinfo(e_h%blacs_ctxt,e_h%n_p_rows,e_h%n_p_cols,&
-              e_h%my_p_row,e_h%my_p_col)
+      call blacs_gridinfo(e_h%blacs_ctxt,e_h%n_prow,e_h%n_pcol,e_h%my_prow,&
+              e_h%my_pcol)
 
       ! Get local size of matrix
-      e_h%n_l_rows = numroc(e_h%n_basis,e_h%n_b_rows,e_h%my_p_row,0,&
-                        e_h%n_p_rows)
-      e_h%n_l_cols = numroc(e_h%n_basis,e_h%n_b_cols,e_h%my_p_col,0,&
-                        e_h%n_p_cols)
+      e_h%n_lrow = numroc(e_h%n_basis,e_h%blk_row,e_h%my_prow,0,e_h%n_prow)
+      e_h%n_lcol = numroc(e_h%n_basis,e_h%blk_col,e_h%my_pcol,0,e_h%n_pcol)
 
       ! Get BLACS descriptor
-      call descinit(e_h%sc_desc,e_h%n_basis,e_h%n_basis,e_h%n_b_rows,&
-              e_h%n_b_cols,0,0,e_h%blacs_ctxt,max(1,e_h%n_l_rows),blacs_info)
+      call descinit(e_h%sc_desc,e_h%n_basis,e_h%n_basis,e_h%blk_row,&
+              e_h%blk_col,0,0,e_h%blacs_ctxt,max(1,e_h%n_lrow),blacs_info)
 
       ! Get ELPA communicators
       call elsi_get_elpa_comms(e_h)
@@ -282,11 +280,11 @@ subroutine elsi_set_blacs(e_h,blacs_ctxt,block_size)
       i_col = 0
 
       do i = 1,e_h%n_basis
-         if(mod((i-1)/e_h%n_b_rows,e_h%n_p_rows) == e_h%my_p_row) then
+         if(mod((i-1)/e_h%blk_row,e_h%n_prow) == e_h%my_prow) then
             i_row = i_row+1
             e_h%loc_row(i) = i_row
          endif
-         if(mod((i-1)/e_h%n_b_cols,e_h%n_p_cols) == e_h%my_p_col) then
+         if(mod((i-1)/e_h%blk_col,e_h%n_pcol) == e_h%my_pcol) then
             i_col = i_col+1
             e_h%loc_col(i) = i_col
          endif
@@ -294,7 +292,7 @@ subroutine elsi_set_blacs(e_h,blacs_ctxt,block_size)
 
       ! Set up MatrixSwitch
       if(e_h%solver == OMM_SOLVER) then
-         call ms_scalapack_setup(e_h%mpi_comm,e_h%n_p_rows,'r',e_h%n_b_rows,&
+         call ms_scalapack_setup(e_h%mpi_comm,e_h%n_prow,'r',e_h%blk_row,&
                  icontxt=e_h%blacs_ctxt)
       endif
 
@@ -306,16 +304,16 @@ end subroutine
 !>
 !! This routine sets the sparsity pattern.
 !!
-subroutine elsi_set_csc(e_h,nnz_g,nnz_l,n_l_cols,row_ind,col_ptr)
+subroutine elsi_set_csc(e_h,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                 !< Handle
-   integer(kind=i4),  intent(in)    :: nnz_g               !< Global number of nonzeros
-   integer(kind=i4),  intent(in)    :: nnz_l               !< Local number of nonzeros
-   integer(kind=i4),  intent(in)    :: n_l_cols            !< Local number of columns
-   integer(kind=i4),  intent(in)    :: row_ind(nnz_l)      !< Row index
-   integer(kind=i4),  intent(in)    :: col_ptr(n_l_cols+1) !< Column pointer
+   type(elsi_handle), intent(inout) :: e_h               !< Handle
+   integer(kind=i4),  intent(in)    :: nnz_g             !< Global number of nonzeros
+   integer(kind=i4),  intent(in)    :: nnz_l             !< Local number of nonzeros
+   integer(kind=i4),  intent(in)    :: n_lcol            !< Local number of columns
+   integer(kind=i4),  intent(in)    :: row_ind(nnz_l)    !< Row index
+   integer(kind=i4),  intent(in)    :: col_ptr(n_lcol+1) !< Column pointer
 
    character*40, parameter :: caller = "elsi_set_csc"
 
@@ -323,7 +321,7 @@ subroutine elsi_set_csc(e_h,nnz_g,nnz_l,n_l_cols,row_ind,col_ptr)
 
    e_h%nnz_g       = nnz_g
    e_h%nnz_l_sp    = nnz_l
-   e_h%n_l_cols_sp = n_l_cols
+   e_h%n_lcol_sp   = n_lcol
 
    call elsi_set_row_ind(e_h,row_ind)
    call elsi_set_col_ptr(e_h,col_ptr)
