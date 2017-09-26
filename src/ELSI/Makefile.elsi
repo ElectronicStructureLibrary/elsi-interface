@@ -6,6 +6,8 @@ TEST_PROGRAMS = test_dm_complex.x \
                 test_ev_complex_sparse.x \
                 test_ev_real.x \
                 test_ev_real_sparse.x \
+                test_rw_real.x \
+                test_rw_complex.x \
                 test_standard_ev_real.x
 
 TEST_PROGRAMS += $(C_BINDING)
@@ -63,6 +65,12 @@ test_ev_real_sparse.x: test_ev_real_sparse.o libelsi.a
 test_standard_ev_real.x: test_standard_ev_real.o libelsi.a
 	$(FLINKER) $(LDFLAGS) $(FLDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
 
+test_rw_complex.x: test_rw_complex.o libelsi.a
+	$(FLINKER) $(LDFLAGS) $(FLDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
+
+test_rw_real.x: test_rw_real.o libelsi.a
+	$(FLINKER) $(LDFLAGS) $(FLDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
+
 test_dm_complex_c.x: test_dm_complex_c.o elsi_c_interface.o elsi_c2f.o libelsi.a
 	$(CLINKER) $(LDFLAGS) $(CLDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
 
@@ -103,6 +111,12 @@ test_ev_real_sparse.o: $(ELSI_DIR)/test/test_ev_real_sparse.f90 elsi_interface.o
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
 test_standard_ev_real.o: $(ELSI_DIR)/test/test_standard_ev_real.f90 elsi_interface.o elsi_precision.o
+	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
+
+test_rw_complex.o: $(ELSI_DIR)/test/test_rw_complex.f90 elsi_interface.o elsi_precision.o
+	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
+
+test_rw_real.o: $(ELSI_DIR)/test/test_rw_real.f90 elsi_interface.o elsi_precision.o
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
 test_dm_complex_c.o: $(ELSI_DIR)/test/test_dm_complex_c.c elsi_c_interface.o

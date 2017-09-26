@@ -1,6 +1,10 @@
 #!/bin/bash
 # VY: This is a simple bash script used for "make checkf"
 
+rm rw_real_serial.log 2> /dev/null
+rm rw_complex_serial.log 2> /dev/null
+rm rw_real_parallel.log 2> /dev/null
+rm rw_complex_parallel.log 2> /dev/null
 rm ev_real_serial.log 2> /dev/null
 rm ev_complex_serial.log 2> /dev/null
 rm ev_real_elpa.log 2> /dev/null
@@ -26,7 +30,91 @@ echo
 echo "Test program output may be found in $PWD"
 
 echo
-echo -n "Running the serial 'elsi_ev_real' Fortran test"
+echo -n "Running the 'serial reading/writing real matrices' Fortran test"
+${MPI_EXEC} -n 1 ./test_rw_real.x ${ELSI_DIR}/test/H_real.csc ${ELSI_DIR}/test/S_real.csc > rw_real_serial.log &
+PID=$!
+while kill -0 $PID 2>/dev/null; do
+    sleep 1
+    echo -n '.'
+done
+
+if (! grep -q "Passed" <./rw_real_serial.log); then
+   tput setaf 5
+   RED_ALART="true"
+   echo " FAILED!"
+   tput sgr0
+   echo "See `pwd`/rw_real_serial.log for details."
+else
+   tput setaf 10
+   echo " PASSED!"
+   tput sgr0
+fi
+
+echo
+echo -n "Running the 'serial reading/writing complex matrices' Fortran test"
+${MPI_EXEC} -n 1 ./test_rw_complex.x ${ELSI_DIR}/test/H_complex.csc ${ELSI_DIR}/test/S_complex.csc > rw_complex_serial.log &
+PID=$!
+while kill -0 $PID 2>/dev/null; do
+    sleep 1
+    echo -n '.'
+done
+
+if (! grep -q "Passed" <./rw_complex_serial.log); then
+   tput setaf 5
+   RED_ALART="true"
+   echo " FAILED!"
+   tput sgr0
+   echo "See `pwd`/rw_complex_serial.log for details."
+else
+   tput setaf 10
+   echo " PASSED!"
+   tput sgr0
+fi
+
+echo
+echo -n "Running the 'parallel reading/writing real matrices' Fortran test"
+${MPI_EXEC} -n 4 ./test_rw_real.x ${ELSI_DIR}/test/H_real.csc ${ELSI_DIR}/test/S_real.csc > rw_real_parallel.log &
+PID=$!
+while kill -0 $PID 2>/dev/null; do
+    sleep 1
+    echo -n '.'
+done
+
+if (! grep -q "Passed" <./rw_real_parallel.log); then
+   tput setaf 5
+   RED_ALART="true"
+   echo " FAILED!"
+   tput sgr0
+   echo "See `pwd`/rw_real_parallel.log for details."
+else
+   tput setaf 10
+   echo " PASSED!"
+   tput sgr0
+fi
+
+echo
+echo -n "Running the 'parallel reading/writing complex matrices' Fortran test"
+${MPI_EXEC} -n 4 ./test_rw_complex.x ${ELSI_DIR}/test/H_complex.csc ${ELSI_DIR}/test/S_complex.csc > rw_complex_parallel.log &
+PID=$!
+while kill -0 $PID 2>/dev/null; do
+    sleep 1
+    echo -n '.'
+done
+
+if (! grep -q "Passed" <./rw_complex_parallel.log); then
+   tput setaf 5
+   RED_ALART="true"
+   echo " FAILED!"
+   tput sgr0
+   echo "See `pwd`/rw_complex_parallel.log for details."
+else
+   tput setaf 10
+   echo " PASSED!"
+   tput sgr0
+fi
+
+echo
+echo -n "Running the 'serial real eigensolver' Fortran test"
 ${MPI_EXEC} -n 1 ./test_ev_real.x 1 ${ELSI_DIR}/test/H_real.csc ${ELSI_DIR}/test/S_real.csc 1 > ev_real_serial.log &
 PID=$!
 while kill -0 $PID 2>/dev/null; do
@@ -47,7 +135,7 @@ else
 fi
 
 echo
-echo -n "Running the serial 'elsi_ev_complex' Fortran test"
+echo -n "Running the 'serial complex eigensolver' Fortran test"
 ${MPI_EXEC} -n 1 ./test_ev_complex.x 1 ${ELSI_DIR}/test/H_complex.csc ${ELSI_DIR}/test/S_complex.csc 1 > ev_complex_serial.log &
 PID=$!
 while kill -0 $PID 2>/dev/null; do
@@ -68,7 +156,7 @@ else
 fi
 
 echo
-echo -n "Running the parallel 'elsi_ev_real + ELPA' Fortran test"
+echo -n "Running the 'parallel real eigensolver + ELPA' Fortran test"
 ${MPI_EXEC} -n 4 ./test_ev_real.x 1 ${ELSI_DIR}/test/H_real.csc ${ELSI_DIR}/test/S_real.csc 1 > ev_real_elpa.log &
 PID=$!
 while kill -0 $PID 2>/dev/null; do
@@ -89,7 +177,7 @@ else
 fi
 
 echo
-echo -n "Running the parallel 'elsi_ev_complex + ELPA' Fortran test"
+echo -n "Running the 'parallel complex eigensolver + ELPA' Fortran test"
 ${MPI_EXEC} -n 4 ./test_ev_complex.x 1 ${ELSI_DIR}/test/H_complex.csc ${ELSI_DIR}/test/S_complex.csc 1 > ev_complex_elpa.log &
 PID=$!
 while kill -0 $PID 2>/dev/null; do
@@ -110,7 +198,7 @@ else
 fi
 
 echo
-echo -n "Running the parallel 'elsi_ev_real_sparse + ELPA' Fortran test"
+echo -n "Running the 'parallel real sparse eigensolver + ELPA' Fortran test"
 ${MPI_EXEC} -n 4 ./test_ev_real_sparse.x 1 ${ELSI_DIR}/test/H_real.csc ${ELSI_DIR}/test/S_real.csc 1 > ev_real_sparse_elpa.log &
 PID=$!
 while kill -0 $PID 2>/dev/null; do
@@ -131,7 +219,7 @@ else
 fi
 
 echo
-echo -n "Running the parallel 'elsi_ev_complex_sparse + ELPA' Fortran test"
+echo -n "Running the 'parallel complex sparse eigensolver + ELPA' Fortran test"
 ${MPI_EXEC} -n 4 ./test_ev_complex_sparse.x 1 ${ELSI_DIR}/test/H_complex.csc ${ELSI_DIR}/test/S_complex.csc 1 > ev_complex_sparse_elpa.log &
 PID=$!
 while kill -0 $PID 2>/dev/null; do
@@ -154,7 +242,7 @@ fi
 if [ "$ENABLE_SIPS" = "yes" ]
 then
    echo
-   echo -n "Running the parallel 'elsi_ev_real + SIPs' Fortran test"
+   echo -n "Running the 'parallel real eigensolver + SIPs' Fortran test"
    ${MPI_EXEC} -n 4 ./test_ev_real.x 5 ${ELSI_DIR}/test/H_real.csc ${ELSI_DIR}/test/S_real.csc 1 > ev_real_sips.log &
    PID=$!
    while kill -0 $PID 2>/dev/null; do
@@ -176,7 +264,7 @@ then
 fi
 
 echo
-echo -n "Running the parallel 'elsi_dm_real + ELPA' Fortran test"
+echo -n "Running the 'parallel real density matrix solver + ELPA' Fortran test"
 ${MPI_EXEC} -n 4 ./test_dm_real.x 1 ${ELSI_DIR}/test/H_real.csc ${ELSI_DIR}/test/S_real.csc 1 > dm_real_elpa.log &
 PID=$!
 while kill -0 $PID 2>/dev/null; do
@@ -197,7 +285,7 @@ else
 fi
 
 echo
-echo -n "Running the parallel 'elsi_dm_complex + ELPA' Fortran test"
+echo -n "Running the 'parallel complex density matrix solver + ELPA' Fortran test"
 ${MPI_EXEC} -n 4 ./test_dm_complex.x 1 ${ELSI_DIR}/test/H_complex.csc ${ELSI_DIR}/test/S_complex.csc 1 > dm_complex_elpa.log &
 PID=$!
 while kill -0 $PID 2>/dev/null; do
@@ -218,7 +306,7 @@ else
 fi
 
 echo
-echo -n "Running the parallel 'elsi_dm_real_sparse + ELPA' Fortran test"
+echo -n "Running the 'parallel real sparse density matrix solver + ELPA' Fortran test"
 ${MPI_EXEC} -n 4 ./test_dm_real_sparse.x 1 ${ELSI_DIR}/test/H_real.csc ${ELSI_DIR}/test/S_real.csc 1 > dm_real_sparse_elpa.log &
 PID=$!
 while kill -0 $PID 2>/dev/null; do
@@ -239,7 +327,7 @@ else
 fi
 
 echo
-echo -n "Running the parallel 'elsi_dm_complex_sparse + ELPA' Fortran test"
+echo -n "Running the 'parallel complex sparse density matrix solver + ELPA' Fortran test"
 ${MPI_EXEC} -n 4 ./test_dm_complex_sparse.x 1 ${ELSI_DIR}/test/H_complex.csc ${ELSI_DIR}/test/S_complex.csc 1 > dm_complex_sparse_elpa.log &
 PID=$!
 while kill -0 $PID 2>/dev/null; do
@@ -260,7 +348,7 @@ else
 fi
 
 echo
-echo -n "Running the parallel 'elsi_dm_real + libOMM' Fortran test"
+echo -n "Running the 'parallel real density matrix solver + libOMM' Fortran test"
 ${MPI_EXEC} -n 4 ./test_dm_real.x 2 ${ELSI_DIR}/test/H_real.csc ${ELSI_DIR}/test/S_real.csc 1 > dm_real_libomm.log &
 PID=$!
 while kill -0 $PID 2>/dev/null; do
@@ -281,7 +369,7 @@ else
 fi
 
 echo
-echo -n "Running the parallel 'elsi_dm_complex + libOMM' Fortran test"
+echo -n "Running the 'parallel complex density matrix solver + libOMM' Fortran test"
 ${MPI_EXEC} -n 4 ./test_dm_complex.x 2 ${ELSI_DIR}/test/H_complex.csc ${ELSI_DIR}/test/S_complex.csc 1 > dm_complex_libomm.log &
 PID=$!
 while kill -0 $PID 2>/dev/null; do
@@ -302,7 +390,7 @@ else
 fi
 
 echo
-echo -n "Running the parallel 'elsi_dm_real_sparse + libOMM' Fortran test"
+echo -n "Running the 'parallel real sparse density matrix solver + libOMM' Fortran test"
 ${MPI_EXEC} -n 4 ./test_dm_real_sparse.x 2 ${ELSI_DIR}/test/H_real.csc ${ELSI_DIR}/test/S_real.csc 1 > dm_real_sparse_libomm.log &
 PID=$!
 while kill -0 $PID 2>/dev/null; do
@@ -323,7 +411,7 @@ else
 fi
 
 echo
-echo -n "Running the parallel 'elsi_dm_complex_sparse + libOMM' Fortran test"
+echo -n "Running the 'parallel complex sparse density matrix solver + libOMM' Fortran test"
 ${MPI_EXEC} -n 4 ./test_dm_complex_sparse.x 2 ${ELSI_DIR}/test/H_complex.csc ${ELSI_DIR}/test/S_complex.csc 1 > dm_complex_sparse_libomm.log &
 PID=$!
 while kill -0 $PID 2>/dev/null; do
@@ -346,7 +434,7 @@ fi
 if [ "$DISABLE_CXX" != "yes" ]
 then
    echo
-   echo -n "Running the parallel 'elsi_dm_real + PEXSI' Fortran test"
+   echo -n "Running the 'parallel real density matrix solver + PEXSI' Fortran test"
    ${MPI_EXEC} -n 4 ./test_dm_real.x 3 ${ELSI_DIR}/test/H_real.csc ${ELSI_DIR}/test/S_real.csc 1 > dm_real_pexsi.log &
    PID=$!
    while kill -0 $PID 2>/dev/null; do
@@ -367,7 +455,7 @@ then
    fi
 
    echo
-   echo -n "Running the parallel 'elsi_dm_complex + PEXSI' Fortran test"
+   echo -n "Running the 'parallel complex density matrix solver + PEXSI' Fortran test"
    ${MPI_EXEC} -n 4 ./test_dm_complex.x 3 ${ELSI_DIR}/test/H_complex.csc ${ELSI_DIR}/test/S_complex.csc 1 > dm_complex_pexsi.log &
    PID=$!
    while kill -0 $PID 2>/dev/null; do
@@ -388,7 +476,7 @@ then
    fi
 
    echo
-   echo -n "Running the parallel 'elsi_dm_real_sparse + PEXSI' Fortran test"
+   echo -n "Running the 'parallel real sparse density matrix solver + PEXSI' Fortran test"
    ${MPI_EXEC} -n 4 ./test_dm_real_sparse.x 3 ${ELSI_DIR}/test/H_real.csc ${ELSI_DIR}/test/S_real.csc 1 > dm_real_sparse_pexsi.log &
    PID=$!
    while kill -0 $PID 2>/dev/null; do
@@ -409,7 +497,7 @@ then
    fi
 
    echo
-   echo -n "Running the parallel 'elsi_dm_complex_sparse + PEXSI' Fortran test"
+   echo -n "Running the 'parallel complex sparse density matrix solver + PEXSI' Fortran test"
    ${MPI_EXEC} -n 4 ./test_dm_complex_sparse.x 3 ${ELSI_DIR}/test/H_complex.csc ${ELSI_DIR}/test/S_complex.csc 1 > dm_complex_sparse_pexsi.log &
    PID=$!
    while kill -0 $PID 2>/dev/null; do
