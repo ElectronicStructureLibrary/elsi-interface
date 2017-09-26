@@ -139,7 +139,7 @@ program test_ev_complex_sparse
          write(*,'("  4) Transforms the generalized eigenproblem to the standard")')
          write(*,'("     form by using Cholesky factorization;")')
          write(*,'("  5) Solves the standard eigenproblem;")')
-         write(*,'("  6) Back-transforms the eigenvectors to the generalized problem;")')
+         write(*,'("  6) Back-transforms the eigenvectors to the generalized problem.")')
          write(*,*)
          write(*,'("  Now start testing  elsi_ev_complex_sparse + ELPA")')
       endif
