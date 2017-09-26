@@ -1581,6 +1581,7 @@ subroutine elsi_read_mat_real_sp(rw_h,f_name,mat)
    aux_h%print_mem  = rw_h%print_mem
    aux_h%print_unit = rw_h%print_unit
 
+   call elsi_init_timer(aux_h)
    call elsi_get_time(aux_h,t0)
 
    ! Open file
