@@ -95,6 +95,8 @@ subroutine elsi_init_rw(rw_h,task,parallel_mode,file_format,n_basis,n_electron)
    rw_h%n_electrons   = n_electron
 
    if(parallel_mode == SINGLE_PROC) then
+      rw_h%n_lrow  = n_basis
+      rw_h%n_lcol  = n_basis
       rw_h%myid    = 0
       rw_h%n_procs = 1
    endif
@@ -1792,6 +1794,7 @@ subroutine elsi_write_mat_real_sp(rw_h,f_name,mat)
    aux_h%myid_all   = rw_h%myid
    aux_h%print_info = rw_h%print_info
    aux_h%print_unit = rw_h%print_unit
+   aux_h%zero_def   = rw_h%zero_def
 
    call elsi_init_timer(aux_h)
    call elsi_get_time(aux_h,t0)
@@ -1850,7 +1853,7 @@ subroutine elsi_write_mat_real_sp(rw_h,f_name,mat)
    ! Write non-zero value
    offset = 1+HEADER_SIZE*4+rw_h%n_basis*4+nnz_g*4
 
-   write(unit=99,pos=offset) row_ind
+   write(unit=99,pos=offset) nnz_val
 
    ! Close file
    close(unit=99)
@@ -1902,6 +1905,7 @@ subroutine elsi_write_mat_complex_sp(rw_h,f_name,mat)
    aux_h%myid_all   = rw_h%myid
    aux_h%print_info = rw_h%print_info
    aux_h%print_unit = rw_h%print_unit
+   aux_h%zero_def   = rw_h%zero_def
 
    call elsi_init_timer(aux_h)
    call elsi_get_time(aux_h,t0)
@@ -1952,10 +1956,15 @@ subroutine elsi_write_mat_complex_sp(rw_h,f_name,mat)
 
    write(unit=99,pos=offset) col_ptr(1:rw_h%n_basis)
 
+   ! Write row index
+   offset = 1+HEADER_SIZE*4+rw_h%n_basis*4
+
+   write(unit=99,pos=offset) row_ind
+
    ! Write non-zero value
    offset = 1+HEADER_SIZE*4+rw_h%n_basis*4+nnz_g*4
 
-   write(unit=99,pos=offset) row_ind
+   write(unit=99,pos=offset) nnz_val
 
    ! Close file
    close(unit=99)
