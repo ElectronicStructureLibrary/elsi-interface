@@ -71,15 +71,13 @@ contains
 !>
 !! This routine initializes a handle for reading and writing matrices.
 !!
-subroutine elsi_init_rw(rw_h,rw_task,parallel_mode,matrix_format,file_format,&
-              n_basis,n_electron)
+subroutine elsi_init_rw(rw_h,task,parallel_mode,file_format,n_basis,n_electron)
 
    implicit none
 
    type(elsi_rw_handle), intent(out) :: rw_h          !< Handle
-   integer(kind=i4),     intent(in)  :: rw_task       !< READ_MAT,WRITE_MAT
+   integer(kind=i4),     intent(in)  :: task          !< READ_MAT,WRITE_MAT
    integer(kind=i4),     intent(in)  :: parallel_mode !< SINGLE_PROC,MULTI_PROC
-   integer(kind=i4),     intent(in)  :: matrix_format !< BLACS_DENSE,PEXSI_CSC
    integer(kind=i4),     intent(in)  :: file_format   !< DENSE_FILE,CSC_FILE
    integer(kind=i4),     intent(in)  :: n_basis       !< Number of basis functions
    real(kind=r8),        intent(in)  :: n_electron    !< Number of electrons
@@ -90,9 +88,8 @@ subroutine elsi_init_rw(rw_h,rw_task,parallel_mode,matrix_format,file_format,&
    call elsi_reset_rw_handle(rw_h)
 
    rw_h%handle_ready  = .true.
-   rw_h%rw_task       = rw_task
+   rw_h%rw_task       = task
    rw_h%parallel_mode = parallel_mode
-   rw_h%matrix_format = matrix_format
    rw_h%file_format   = file_format
    rw_h%n_basis       = n_basis
    rw_h%n_electrons   = n_electron
@@ -308,7 +305,6 @@ subroutine elsi_reset_rw_handle(rw_h)
    rw_h%handle_ready   = .false.
    rw_h%rw_task        = UNSET
    rw_h%parallel_mode  = UNSET
-   rw_h%matrix_format  = UNSET
    rw_h%file_format    = UNSET
    rw_h%print_info     = .false.
    rw_h%print_mem      = .false.
@@ -379,6 +375,115 @@ subroutine elsi_read_mat_dim(rw_h,f_name,n_electron,n_basis,n_lrow,n_lcol)
    integer(kind=i4),     intent(out)   :: n_lrow     !< Local number of rows
    integer(kind=i4),     intent(out)   :: n_lcol     !< Local number of columns
 
+   character*40, parameter :: caller = "elsi_read_mat_dim"
+
+   if(rw_h%parallel_mode == MULTI_PROC) then
+      call elsi_read_mat_dim_mp(rw_h,f_name,n_electron,n_basis,n_lrow,n_lcol)
+   else
+      call elsi_read_mat_dim_sp(rw_h,f_name,n_electron,n_basis,n_lrow,n_lcol)
+   endif
+
+end subroutine
+
+!>
+!! This routine reads a 2D block-cyclic dense matrix from file.
+!!
+subroutine elsi_read_mat_real(rw_h,f_name,mat)
+
+   implicit none
+
+   type(elsi_rw_handle), intent(inout) :: rw_h                         !< Handle
+   character(*),         intent(in)    :: f_name                       !< File name
+   real(kind=r8),        intent(out)   :: mat(rw_h%n_lrow,rw_h%n_lcol) !< Matrix
+
+   character*40, parameter :: caller = "elsi_read_mat_real"
+
+   if(rw_h%parallel_mode == MULTI_PROC) then
+      call elsi_read_mat_real_mp(rw_h,f_name,mat)
+   else
+      call elsi_read_mat_real_sp(rw_h,f_name,mat)
+   endif
+
+end subroutine
+
+!>
+!! This routine writes a 2D block-cyclic dense matrix to file.
+!!
+subroutine elsi_write_mat_real(rw_h,f_name,mat)
+
+   implicit none
+
+   type(elsi_rw_handle), intent(in) :: rw_h                         !< Handle
+   character(*),         intent(in) :: f_name                       !< File name
+   real(kind=r8),        intent(in) :: mat(rw_h%n_lrow,rw_h%n_lcol) !< Matrix
+
+   character*40, parameter :: caller = "elsi_write_mat_real"
+
+   if(rw_h%parallel_mode == MULTI_PROC) then
+      call elsi_write_mat_real_mp(rw_h,f_name,mat)
+   else
+      call elsi_write_mat_real_sp(rw_h,f_name,mat)
+   endif
+
+end subroutine
+
+!>
+!! This routine reads a 2D block-cyclic dense matrix from file.
+!!
+subroutine elsi_read_mat_complex(rw_h,f_name,mat)
+
+   implicit none
+
+   type(elsi_rw_handle), intent(inout) :: rw_h                         !< Handle
+   character(*),         intent(in)    :: f_name                       !< File name
+   complex(kind=r8),     intent(out)   :: mat(rw_h%n_lrow,rw_h%n_lcol) !< Matrix
+
+   character*40, parameter :: caller = "elsi_read_mat_complex"
+
+   if(rw_h%parallel_mode == MULTI_PROC) then
+      call elsi_read_mat_complex_mp(rw_h,f_name,mat)
+   else
+      call elsi_read_mat_complex_sp(rw_h,f_name,mat)
+   endif
+
+end subroutine
+
+!>
+!! This routine writes a 2D block-cyclic dense matrix to file.
+!!
+subroutine elsi_write_mat_complex(rw_h,f_name,mat)
+
+   implicit none
+
+   type(elsi_rw_handle), intent(in) :: rw_h                         !< Handle
+   character(*),         intent(in) :: f_name                       !< File name
+   complex(kind=r8),     intent(in) :: mat(rw_h%n_lrow,rw_h%n_lcol) !< Matrix
+
+   character*40, parameter :: caller = "elsi_write_mat_complex"
+
+   if(rw_h%parallel_mode == MULTI_PROC) then
+      call elsi_write_mat_complex_mp(rw_h,f_name,mat)
+   else
+      call elsi_write_mat_complex_sp(rw_h,f_name,mat)
+   endif
+
+end subroutine
+
+!>
+!! This routine reads the dimensions of a 2D block-cyclic dense matrix from
+!! file.
+!!
+subroutine elsi_read_mat_dim_mp(rw_h,f_name,n_electron,n_basis,n_lrow,n_lcol)
+
+   implicit none
+
+   type(elsi_rw_handle), intent(inout) :: rw_h       !< Handle
+   character(*),         intent(in)    :: f_name     !< File name
+   real(kind=r8),        intent(out)   :: n_electron !< Number of electrons
+   integer(kind=i4),     intent(out)   :: n_basis    !< Matrix size
+   integer(kind=i4),     intent(out)   :: n_lrow     !< Local number of rows
+   integer(kind=i4),     intent(out)   :: n_lcol     !< Local number of columns
+
    integer(kind=i4) :: mpierr
    integer(kind=i4) :: f_handle
    integer(kind=i4) :: f_mode
@@ -392,7 +497,7 @@ subroutine elsi_read_mat_dim(rw_h,f_name,n_electron,n_basis,n_lrow,n_lcol)
 
    integer(kind=i4), external :: numroc
 
-   character*40, parameter :: caller = "elsi_read_mat_dim"
+   character*40, parameter :: caller = "elsi_read_mat_dim_mp"
 
    inquire(file=f_name,exist=file_ok)
 
@@ -430,6 +535,7 @@ subroutine elsi_read_mat_dim(rw_h,f_name,n_electron,n_basis,n_lrow,n_lcol)
    rw_h%n_electrons = n_electron
    rw_h%n_lrow      = n_lrow
    rw_h%n_lcol      = n_lcol
+   rw_h%nnz_g       = header(6)
 
 end subroutine
 
@@ -527,7 +633,7 @@ end subroutine
 !>
 !! This routine reads a 2D block-cyclic dense matrix from file.
 !!
-subroutine elsi_read_mat_real(rw_h,f_name,mat)
+subroutine elsi_read_mat_real_mp(rw_h,f_name,mat)
 
    implicit none
 
@@ -553,7 +659,7 @@ subroutine elsi_read_mat_real(rw_h,f_name,mat)
 
    type(elsi_handle) :: aux_h
 
-   character*40, parameter :: caller = "elsi_read_mat_real"
+   character*40, parameter :: caller = "elsi_read_mat_real_mp"
 
    inquire(file=f_name,exist=file_ok)
 
@@ -578,19 +684,6 @@ subroutine elsi_read_mat_real(rw_h,f_name,mat)
    f_mode = mpi_mode_rdonly
 
    call MPI_File_open(rw_h%mpi_comm,f_name,f_mode,mpi_info_null,f_handle,mpierr)
-
-   ! Read header
-   if(rw_h%myid == 0) then
-      offset = 0
-
-      call MPI_File_read_at(f_handle,offset,header,HEADER_SIZE,mpi_integer4,&
-              mpi_status_ignore,mpierr)
-   endif
-
-   ! Broadcast header
-   call MPI_Bcast(header,HEADER_SIZE,mpi_integer4,0,rw_h%mpi_comm,mpierr)
-
-   rw_h%nnz_g = header(6)
 
    ! Compute n_lcol_sp
    rw_h%n_lcol_sp  = rw_h%n_basis/rw_h%n_procs
@@ -753,7 +846,7 @@ end subroutine
 !>
 !! This routine reads a 2D block-cyclic dense matrix from file.
 !!
-subroutine elsi_read_mat_complex(rw_h,f_name,mat)
+subroutine elsi_read_mat_complex_mp(rw_h,f_name,mat)
 
    implicit none
 
@@ -779,7 +872,7 @@ subroutine elsi_read_mat_complex(rw_h,f_name,mat)
 
    type(elsi_handle) :: aux_h
 
-   character*40, parameter :: caller = "elsi_read_mat_complex"
+   character*40, parameter :: caller = "elsi_read_mat_complex_mp"
 
    inquire(file=f_name,exist=file_ok)
 
@@ -804,21 +897,6 @@ subroutine elsi_read_mat_complex(rw_h,f_name,mat)
    f_mode = mpi_mode_rdonly
 
    call MPI_File_open(rw_h%mpi_comm,f_name,f_mode,mpi_info_null,f_handle,mpierr)
-
-   ! Read header
-   if(rw_h%myid == 0) then
-      offset = 0
-
-      call MPI_File_read_at(f_handle,offset,header,HEADER_SIZE,mpi_integer4,&
-              mpi_status_ignore,mpierr)
-
-print *, header
-   endif
-
-   ! Broadcast header
-   call MPI_Bcast(header,HEADER_SIZE,mpi_integer4,0,rw_h%mpi_comm,mpierr)
-
-   rw_h%nnz_g = header(6)
 
    ! Compute n_lcol_sp
    rw_h%n_lcol_sp = rw_h%n_basis/rw_h%n_procs
@@ -983,7 +1061,7 @@ end subroutine
 !>
 !! This routine writes a 2D block-cyclic dense matrix to file.
 !!
-subroutine elsi_write_mat_real(rw_h,f_name,mat)
+subroutine elsi_write_mat_real_mp(rw_h,f_name,mat)
 
    implicit none
 
@@ -1006,7 +1084,7 @@ subroutine elsi_write_mat_real(rw_h,f_name,mat)
 
    type(elsi_handle) :: aux_h
 
-   character*40, parameter :: caller = "elsi_write_mat_real"
+   character*40, parameter :: caller = "elsi_write_mat_real_mp"
 
    call elsi_init(aux_h,ELPA_SOLVER,MULTI_PROC,BLACS_DENSE,rw_h%n_basis,&
            rw_h%n_electrons,0)
@@ -1097,7 +1175,7 @@ end subroutine
 !>
 !! This routine writes a 2D block-cyclic dense matrix to file.
 !!
-subroutine elsi_write_mat_complex(rw_h,f_name,mat)
+subroutine elsi_write_mat_complex_mp(rw_h,f_name,mat)
 
    implicit none
 
@@ -1120,7 +1198,7 @@ subroutine elsi_write_mat_complex(rw_h,f_name,mat)
 
    type(elsi_handle) :: aux_h
 
-   character*40, parameter :: caller = "elsi_write_mat_complex"
+   character*40, parameter :: caller = "elsi_write_mat_complex_mp"
 
    call elsi_init(aux_h,ELPA_SOLVER,MULTI_PROC,BLACS_DENSE,rw_h%n_basis,&
            rw_h%n_electrons,0)
@@ -1161,8 +1239,6 @@ subroutine elsi_write_mat_complex(rw_h,f_name,mat)
    header(6) = aux_h%nnz_g
 
    if(rw_h%myid == 0) then
-print *, header
-
       offset = 0
 
       call MPI_File_write_at(f_handle,offset,header,HEADER_SIZE,mpi_integer4,&
@@ -1404,6 +1480,488 @@ subroutine elsi_write_mat_complex_sparse(rw_h,f_name,row_ind,col_ptr,mat)
            mpi_status_ignore,mpierr)
 
    call MPI_File_close(f_handle,mpierr)
+
+   call elsi_get_time(aux_h,t1)
+
+   write(info_str,"('  Finished writing matrix')")
+   call elsi_say(info_str,aux_h)
+   write(info_str,"('  | Time :',F10.3,' s')") t1-t0
+   call elsi_say(info_str,aux_h)
+
+end subroutine
+
+!>
+!! This routine reads the dimensions of a 2D block-cyclic dense matrix from
+!! file.
+!!
+subroutine elsi_read_mat_dim_sp(rw_h,f_name,n_electron,n_basis,n_lrow,n_lcol)
+
+   implicit none
+
+   type(elsi_rw_handle), intent(inout) :: rw_h       !< Handle
+   character(*),         intent(in)    :: f_name     !< File name
+   real(kind=r8),        intent(out)   :: n_electron !< Number of electrons
+   integer(kind=i4),     intent(out)   :: n_basis    !< Matrix size
+   integer(kind=i4),     intent(out)   :: n_lrow     !< Local number of rows
+   integer(kind=i4),     intent(out)   :: n_lcol     !< Local number of columns
+
+   integer(kind=i4) :: header(HEADER_SIZE)
+   integer(kind=i8) :: offset
+   logical          :: file_ok
+
+   character*40, parameter :: caller = "elsi_read_mat_dim_mp"
+
+   inquire(file=f_name,exist=file_ok)
+
+   if(.not. file_ok) then
+      call elsi_rw_stop(" File does not exist.",rw_h,caller)
+   endif
+
+   ! Open file
+   open(file=f_name,unit=99,access="stream",form="unformatted")
+
+   ! Read header
+   offset = 1
+
+   read(unit=99,pos=offset) header
+
+   close(unit=99)
+
+   n_basis    = header(4)
+   n_electron = real(header(5),kind=r8)
+   n_lrow     = n_basis
+   n_lcol     = n_basis
+
+   rw_h%n_basis     = n_basis
+   rw_h%n_electrons = n_electron
+   rw_h%n_lrow      = n_lrow
+   rw_h%n_lcol      = n_lcol
+
+end subroutine
+
+!>
+!! This routine reads a 2D block-cyclic dense matrix from file.
+!!
+subroutine elsi_read_mat_real_sp(rw_h,f_name,mat)
+
+   implicit none
+
+   type(elsi_rw_handle), intent(inout) :: rw_h                         !< Handle
+   character(*),         intent(in)    :: f_name                       !< File name
+   real(kind=r8),        intent(out)   :: mat(rw_h%n_lrow,rw_h%n_lcol) !< Matrix
+
+   integer(kind=i4) :: header(HEADER_SIZE)
+   integer(kind=i4) :: i_val
+   integer(kind=i4) :: i
+   integer(kind=i4) :: j
+   integer(kind=i4) :: this_nnz
+   integer(kind=i8) :: offset
+   logical          :: file_ok
+   real(kind=r8)    :: t0
+   real(kind=r8)    :: t1
+   character*200    :: info_str
+
+   integer(kind=i4), allocatable :: row_ind(:)
+   integer(kind=i4), allocatable :: col_ptr(:)
+   real(kind=r8),    allocatable :: nnz_val(:)
+
+   type(elsi_handle) :: aux_h
+
+   character*40, parameter :: caller = "elsi_read_mat_real_sp"
+
+   inquire(file=f_name,exist=file_ok)
+
+   if(.not. file_ok) then
+      call elsi_rw_stop(" File does not exist.",rw_h,caller)
+   endif
+
+   ! Output
+   aux_h%myid_all   = rw_h%myid
+   aux_h%print_info = rw_h%print_info
+   aux_h%print_mem  = rw_h%print_mem
+   aux_h%print_unit = rw_h%print_unit
+
+   call elsi_get_time(aux_h,t0)
+
+   ! Open file
+   open(file=f_name,unit=99,access="stream",form="unformatted")
+
+   ! Read header
+   offset = 1
+
+   read(unit=99,pos=offset) header
+
+   rw_h%nnz_g     = header(6)
+   rw_h%nnz_l_sp  = header(6)
+   rw_h%n_lcol_sp = rw_h%n_basis
+
+   call elsi_allocate(aux_h,col_ptr,rw_h%n_lcol_sp+1,"col_ptr",caller)
+
+   ! Read column pointer
+   offset = 1+HEADER_SIZE*4
+
+   read(unit=99,pos=offset) col_ptr(1:rw_h%n_lcol_sp)
+
+   col_ptr(rw_h%n_lcol_sp+1) = rw_h%nnz_g+1
+
+   call elsi_allocate(aux_h,row_ind,rw_h%nnz_l_sp,"row_ind",caller)
+
+   ! Read row index
+   offset = 1+HEADER_SIZE*4+rw_h%n_basis*4
+
+   read(unit=99,pos=offset) row_ind
+
+   ! Read non-zero value
+   offset = 1+HEADER_SIZE*4+rw_h%n_basis*4+rw_h%nnz_g*4
+
+   call elsi_allocate(aux_h,nnz_val,rw_h%nnz_l_sp,"nnz_val",caller)
+
+   read(unit=99,pos=offset) nnz_val
+
+   ! Close file
+   close(unit=99)
+
+   ! Convert to dense
+   mat = 0.0_r8
+
+   i_val = 0
+   do i = 1,rw_h%n_basis
+      this_nnz = col_ptr(i+1)-col_ptr(i)
+
+      do j = i_val+1,i_val+this_nnz
+         mat(row_ind(j),i) = nnz_val(j)
+      enddo
+
+      i_val = i_val+this_nnz
+   enddo
+
+   call elsi_deallocate(aux_h,col_ptr,"col_ptr")
+   call elsi_deallocate(aux_h,row_ind,"row_ind")
+   call elsi_deallocate(aux_h,nnz_val,"nnz_val")
+
+   call elsi_get_time(aux_h,t1)
+
+   write(info_str,"('  Finished reading matrix')")
+   call elsi_say(info_str,aux_h)
+   write(info_str,"('  | Time :',F10.3,' s')") t1-t0
+   call elsi_say(info_str,aux_h)
+
+end subroutine
+
+!>
+!! This routine reads a 2D block-cyclic dense matrix from file.
+!!
+subroutine elsi_read_mat_complex_sp(rw_h,f_name,mat)
+
+   implicit none
+
+   type(elsi_rw_handle), intent(inout) :: rw_h                         !< Handle
+   character(*),         intent(in)    :: f_name                       !< File name
+   complex(kind=r8),     intent(out)   :: mat(rw_h%n_lrow,rw_h%n_lcol) !< Matrix
+
+   integer(kind=i4) :: header(HEADER_SIZE)
+   integer(kind=i4) :: i_val
+   integer(kind=i4) :: i
+   integer(kind=i4) :: j
+   integer(kind=i4) :: this_nnz
+   integer(kind=i8) :: offset
+   logical          :: file_ok
+   real(kind=r8)    :: t0
+   real(kind=r8)    :: t1
+   character*200    :: info_str
+
+   integer(kind=i4), allocatable :: row_ind(:)
+   integer(kind=i4), allocatable :: col_ptr(:)
+   complex(kind=r8), allocatable :: nnz_val(:)
+
+   type(elsi_handle) :: aux_h
+
+   character*40, parameter :: caller = "elsi_read_mat_complex_sp"
+
+   inquire(file=f_name,exist=file_ok)
+
+   if(.not. file_ok) then
+      call elsi_rw_stop(" File does not exist.",rw_h,caller)
+   endif
+
+   ! Output
+   aux_h%myid_all   = rw_h%myid
+   aux_h%print_info = rw_h%print_info
+   aux_h%print_unit = rw_h%print_unit
+
+   call elsi_init_timer(aux_h)
+   call elsi_get_time(aux_h,t0)
+
+   ! Open file
+   open(file=f_name,unit=99,access="stream",form="unformatted")
+
+   ! Read header
+   offset = 1
+
+   read(unit=99,pos=offset) header
+
+   rw_h%nnz_g     = header(6)
+   rw_h%nnz_l_sp  = header(6)
+   rw_h%n_lcol_sp = rw_h%n_basis
+
+   call elsi_allocate(aux_h,col_ptr,rw_h%n_lcol_sp+1,"col_ptr",caller)
+
+   ! Read column pointer
+   offset = 1+HEADER_SIZE*4
+
+   read(unit=99,pos=offset) col_ptr(1:rw_h%n_lcol_sp)
+
+   col_ptr(rw_h%n_lcol_sp+1) = rw_h%nnz_g+1
+
+   call elsi_allocate(aux_h,row_ind,rw_h%nnz_l_sp,"row_ind",caller)
+
+   ! Read row index
+   offset = 1+HEADER_SIZE*4+rw_h%n_basis*4
+
+   read(unit=99,pos=offset) row_ind
+
+   ! Read non-zero value
+   offset = 1+HEADER_SIZE*4+rw_h%n_basis*4+rw_h%nnz_g*4
+
+   call elsi_allocate(aux_h,nnz_val,rw_h%nnz_l_sp,"nnz_val",caller)
+
+   read(unit=99,pos=offset) nnz_val
+
+   ! Close file
+   close(unit=99)
+
+   ! Convert to dense
+   mat = (0.0_r8,0.0_r8)
+
+   i_val = 0
+   do i = 1,rw_h%n_basis
+      this_nnz = col_ptr(i+1)-col_ptr(i)
+
+      do j = i_val+1,i_val+this_nnz
+         mat(row_ind(j),i) = nnz_val(j)
+      enddo
+
+      i_val = i_val+this_nnz
+   enddo
+
+   call elsi_deallocate(aux_h,col_ptr,"col_ptr")
+   call elsi_deallocate(aux_h,row_ind,"row_ind")
+   call elsi_deallocate(aux_h,nnz_val,"nnz_val")
+
+   call elsi_get_time(aux_h,t1)
+
+   write(info_str,"('  Finished reading matrix')")
+   call elsi_say(info_str,aux_h)
+   write(info_str,"('  | Time :',F10.3,' s')") t1-t0
+   call elsi_say(info_str,aux_h)
+
+end subroutine
+
+!>
+!! This routine writes a 2D block-cyclic dense matrix to file.
+!!
+subroutine elsi_write_mat_real_sp(rw_h,f_name,mat)
+
+   implicit none
+
+   type(elsi_rw_handle), intent(in) :: rw_h                         !< Handle
+   character(*),         intent(in) :: f_name                       !< File name
+   real(kind=r8),        intent(in) :: mat(rw_h%n_lrow,rw_h%n_lcol) !< Matrix
+
+   integer(kind=i4) :: header(HEADER_SIZE)
+   integer(kind=i4) :: i_val
+   integer(kind=i4) :: i
+   integer(kind=i4) :: j
+   integer(kind=i4) :: this_nnz
+   integer(kind=i4) :: nnz_g
+   integer(kind=i8) :: offset
+   real(kind=r8)    :: t0
+   real(kind=r8)    :: t1
+   character*200    :: info_str
+
+   integer(kind=i4), allocatable :: row_ind(:)
+   integer(kind=i4), allocatable :: col_ptr(:)
+   real(kind=r8),    allocatable :: nnz_val(:)
+
+   type(elsi_handle) :: aux_h
+
+   character*40, parameter :: caller = "elsi_write_mat_real_sp"
+
+   ! Output
+   aux_h%myid_all   = rw_h%myid
+   aux_h%print_info = rw_h%print_info
+   aux_h%print_unit = rw_h%print_unit
+
+   call elsi_init_timer(aux_h)
+   call elsi_get_time(aux_h,t0)
+
+   ! Compute nnz
+   call elsi_get_local_nnz(aux_h,mat,rw_h%n_lrow,rw_h%n_lcol,nnz_g)
+
+   ! Convert to CSC
+   call elsi_allocate(aux_h,col_ptr,rw_h%n_basis+1,"col_ptr",caller)
+   call elsi_allocate(aux_h,row_ind,nnz_g,"row_ind",caller)
+   call elsi_allocate(aux_h,nnz_val,nnz_g,"nnz_val",caller)
+
+   i_val   = 0
+   col_ptr = 1
+
+   do i = 1,rw_h%n_lcol
+      this_nnz = 0
+
+      do j = 1,rw_h%n_lrow
+         if(abs(mat(j,i)) > rw_h%zero_def) then
+            this_nnz       = this_nnz+1
+            i_val          = i_val+1
+            nnz_val(i_val) = mat(j,i)
+            row_ind(i_val) = j
+         endif
+      enddo
+
+      col_ptr(i+1) = col_ptr(i)+this_nnz
+   enddo
+
+   ! Open file
+   open(file=f_name,unit=99,access="stream",form="unformatted")
+
+   ! Write header
+   header    = 0
+   header(1) = FILE_VERSION
+   header(2) = rw_h%file_format
+   header(3) = REAL_VALUES
+   header(4) = rw_h%n_basis
+   header(5) = int(rw_h%n_electrons,kind=i4)
+   header(6) = nnz_g
+
+   offset = 1
+   write(unit=99,pos=offset) header
+
+   ! Write column pointer
+   offset = 1+HEADER_SIZE*4
+
+   write(unit=99,pos=offset) col_ptr(1:rw_h%n_basis)
+
+   ! Write row index
+   offset = 1+HEADER_SIZE*4+rw_h%n_basis*4
+
+   write(unit=99,pos=offset) row_ind
+
+   ! Write non-zero value
+   offset = 1+HEADER_SIZE*4+rw_h%n_basis*4+nnz_g*4
+
+   write(unit=99,pos=offset) row_ind
+
+   ! Close file
+   close(unit=99)
+
+   call elsi_deallocate(aux_h,col_ptr,"col_ptr")
+   call elsi_deallocate(aux_h,row_ind,"row_ind")
+   call elsi_deallocate(aux_h,nnz_val,"nnz_val")
+
+   call elsi_get_time(aux_h,t1)
+
+   write(info_str,"('  Finished writing matrix')")
+   call elsi_say(info_str,aux_h)
+   write(info_str,"('  | Time :',F10.3,' s')") t1-t0
+   call elsi_say(info_str,aux_h)
+
+end subroutine
+
+!>
+!! This routine writes a 2D block-cyclic dense matrix to file.
+!!
+subroutine elsi_write_mat_complex_sp(rw_h,f_name,mat)
+
+   implicit none
+
+   type(elsi_rw_handle), intent(in) :: rw_h                         !< Handle
+   character(*),         intent(in) :: f_name                       !< File name
+   complex(kind=r8),     intent(in) :: mat(rw_h%n_lrow,rw_h%n_lcol) !< Matrix
+
+   integer(kind=i4) :: header(HEADER_SIZE)
+   integer(kind=i4) :: i_val
+   integer(kind=i4) :: i
+   integer(kind=i4) :: j
+   integer(kind=i4) :: this_nnz
+   integer(kind=i4) :: nnz_g
+   integer(kind=i8) :: offset
+   real(kind=r8)    :: t0
+   real(kind=r8)    :: t1
+   character*200    :: info_str
+
+   integer(kind=i4), allocatable :: row_ind(:)
+   integer(kind=i4), allocatable :: col_ptr(:)
+   complex(kind=r8), allocatable :: nnz_val(:)
+
+   type(elsi_handle) :: aux_h
+
+   character*40, parameter :: caller = "elsi_write_mat_complex_sp"
+
+   ! Output
+   aux_h%myid_all   = rw_h%myid
+   aux_h%print_info = rw_h%print_info
+   aux_h%print_unit = rw_h%print_unit
+
+   call elsi_init_timer(aux_h)
+   call elsi_get_time(aux_h,t0)
+
+   ! Compute nnz
+   call elsi_get_local_nnz(aux_h,mat,rw_h%n_lrow,rw_h%n_lcol,nnz_g)
+
+   ! Convert to CSC
+   call elsi_allocate(aux_h,col_ptr,rw_h%n_basis+1,"col_ptr",caller)
+   call elsi_allocate(aux_h,row_ind,nnz_g,"row_ind",caller)
+   call elsi_allocate(aux_h,nnz_val,nnz_g,"nnz_val",caller)
+
+   i_val   = 0
+   col_ptr = 1
+
+   do i = 1,rw_h%n_lcol
+      this_nnz = 0
+
+      do j = 1,rw_h%n_lrow
+         if(abs(mat(j,i)) > rw_h%zero_def) then
+            this_nnz       = this_nnz+1
+            i_val          = i_val+1
+            nnz_val(i_val) = mat(j,i)
+            row_ind(i_val) = j
+         endif
+      enddo
+
+      col_ptr(i+1) = col_ptr(i)+this_nnz
+   enddo
+
+   ! Open file
+   open(file=f_name,unit=99,access="stream",form="unformatted")
+
+   ! Write header
+   header    = 0
+   header(1) = FILE_VERSION
+   header(2) = rw_h%file_format
+   header(3) = COMPLEX_VALUES
+   header(4) = rw_h%n_basis
+   header(5) = int(rw_h%n_electrons,kind=i4)
+   header(6) = nnz_g
+
+   offset = 1
+   write(unit=99,pos=offset) header
+
+   ! Write column pointer
+   offset = 1+HEADER_SIZE*4
+
+   write(unit=99,pos=offset) col_ptr(1:rw_h%n_basis)
+
+   ! Write non-zero value
+   offset = 1+HEADER_SIZE*4+rw_h%n_basis*4+nnz_g*4
+
+   write(unit=99,pos=offset) row_ind
+
+   ! Close file
+   close(unit=99)
+
+   call elsi_deallocate(aux_h,col_ptr,"col_ptr")
+   call elsi_deallocate(aux_h,row_ind,"row_ind")
+   call elsi_deallocate(aux_h,nnz_val,"nnz_val")
 
    call elsi_get_time(aux_h,t1)
 

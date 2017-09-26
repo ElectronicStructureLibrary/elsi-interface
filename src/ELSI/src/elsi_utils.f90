@@ -454,15 +454,15 @@ end subroutine
 !>
 !! This routine counts the local number of non_zero elements.
 !!
-subroutine elsi_get_local_nnz_real(e_h,matrix,n_rows,n_cols,nnz)
+subroutine elsi_get_local_nnz_real(e_h,mat,n_row,n_col,nnz)
 
    implicit none
 
-   type(elsi_handle), intent(in)  :: e_h                   !< Handle
-   real(kind=r8),     intent(in)  :: matrix(n_rows,n_cols) !< Local matrix
-   integer(kind=i4),  intent(in)  :: n_rows                !< Local rows
-   integer(kind=i4),  intent(in)  :: n_cols                !< Local cols
-   integer(kind=i4),  intent(out) :: nnz                   !< Number of non-zero
+   type(elsi_handle), intent(in)  :: e_h              !< Handle
+   real(kind=r8),     intent(in)  :: mat(n_row,n_col) !< Local matrix
+   integer(kind=i4),  intent(in)  :: n_row            !< Local rows
+   integer(kind=i4),  intent(in)  :: n_col            !< Local cols
+   integer(kind=i4),  intent(out) :: nnz              !< Number of non-zero
 
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
@@ -471,9 +471,9 @@ subroutine elsi_get_local_nnz_real(e_h,matrix,n_rows,n_cols,nnz)
 
    nnz = 0
 
-   do i_col = 1,n_cols
-      do i_row = 1,n_rows
-         if(abs(matrix(i_row,i_col)) > e_h%zero_def) then
+   do i_col = 1,n_col
+      do i_row = 1,n_row
+         if(abs(mat(i_row,i_col)) > e_h%zero_def) then
             nnz = nnz+1
          endif
       enddo
@@ -484,15 +484,15 @@ end subroutine
 !>
 !! This routine counts the local number of non_zero elements.
 !!
-subroutine elsi_get_local_nnz_complex(e_h,matrix,n_rows,n_cols,nnz)
+subroutine elsi_get_local_nnz_complex(e_h,mat,n_row,n_col,nnz)
 
    implicit none
 
-   type(elsi_handle), intent(in)  :: e_h                   !< Handle
-   complex(kind=r8),  intent(in)  :: matrix(n_rows,n_cols) !< Local matrix
-   integer(kind=i4),  intent(in)  :: n_rows                !< Local rows
-   integer(kind=i4),  intent(in)  :: n_cols                !< Local cols
-   integer(kind=i4),  intent(out) :: nnz                   !< Number of non-zero
+   type(elsi_handle), intent(in)  :: e_h              !< Handle
+   complex(kind=r8),  intent(in)  :: mat(n_row,n_col) !< Local matrix
+   integer(kind=i4),  intent(in)  :: n_row            !< Local rows
+   integer(kind=i4),  intent(in)  :: n_col            !< Local cols
+   integer(kind=i4),  intent(out) :: nnz              !< Number of non-zero
 
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
@@ -501,9 +501,9 @@ subroutine elsi_get_local_nnz_complex(e_h,matrix,n_rows,n_cols,nnz)
 
    nnz = 0
 
-   do i_col = 1,n_cols
-      do i_row = 1,n_rows
-         if(abs(matrix(i_row,i_col)) > e_h%zero_def) then
+   do i_col = 1,n_col
+      do i_row = 1,n_row
+         if(abs(mat(i_row,i_col)) > e_h%zero_def) then
             nnz = nnz+1
          endif
       enddo

@@ -83,7 +83,7 @@ void main(int argc, char** argv) {
    blacs_gridinit_(&blacs_ctxt,"R",&n_prow,&n_pcol);
 
    // Read H and S matrices
-   c_elsi_init_rw(&rw_h,0,1,0,1,0,0.0);
+   c_elsi_init_rw(&rw_h,0,1,1,0,0.0);
    c_elsi_set_rw_mpi(rw_h,mpi_comm_global);
    c_elsi_set_rw_blacs(rw_h,blacs_ctxt,blk);
    c_elsi_set_rw_output(rw_h,2);
