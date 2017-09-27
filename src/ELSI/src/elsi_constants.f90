@@ -74,7 +74,7 @@ module ELSI_CONSTANTS
    integer(kind=i4), parameter :: METHFESSEL_PAXTON_1 = 3
 
    ! Matrix reading and writing
-   integer(kind=i4), parameter :: HEADER_SIZE  = 10
+   integer(kind=i4), parameter :: HEADER_SIZE  = 16
    integer(kind=i4), parameter :: FILE_VERSION = 170915
 
    ! Reading and writing

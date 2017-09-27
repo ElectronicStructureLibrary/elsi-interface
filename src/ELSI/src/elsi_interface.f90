@@ -131,6 +131,8 @@ module ELSI
    public :: elsi_set_rw_output
    public :: elsi_set_rw_write_unit
    public :: elsi_set_rw_zero_def
+   public :: elsi_set_rw_header
+   public :: elsi_get_rw_header
    public :: elsi_read_mat_dim
    public :: elsi_read_mat_dim_sparse
    public :: elsi_read_mat_real

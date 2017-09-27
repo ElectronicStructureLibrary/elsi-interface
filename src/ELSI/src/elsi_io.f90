@@ -55,6 +55,8 @@ module ELSI_IO
    public :: elsi_set_rw_output
    public :: elsi_set_rw_write_unit
    public :: elsi_set_rw_zero_def
+   public :: elsi_set_rw_header
+   public :: elsi_get_rw_header
    public :: elsi_read_mat_dim
    public :: elsi_read_mat_dim_sparse
    public :: elsi_read_mat_real
@@ -277,6 +279,42 @@ subroutine elsi_set_rw_zero_def(rw_h,zero_def)
 end subroutine
 
 !>
+!! This routine sets a matrix file header.
+!!
+subroutine elsi_set_rw_header(rw_h,header_user)
+
+   implicit none
+
+   type(elsi_rw_handle), intent(inout) :: rw_h           !< Handle
+   integer(kind=i4),     intent(in)    :: header_user(8) !< User's header
+
+   character*40, parameter :: caller = "elsi_set_rw_header"
+
+   call elsi_check_rw_handle(rw_h,caller)
+
+   rw_h%header_user = header_user
+
+end subroutine
+
+!>
+!! This routine gets a matrix file header.
+!!
+subroutine elsi_get_rw_header(rw_h,header_user)
+
+   implicit none
+
+   type(elsi_rw_handle), intent(in)  :: rw_h           !< Handle
+   integer(kind=i4),     intent(out) :: header_user(8) !< User's header
+
+   character*40, parameter :: caller = "elsi_get_rw_header"
+
+   call elsi_check_rw_handle(rw_h,caller)
+
+   header_user = rw_h%header_user
+
+end subroutine
+
+!>
 !! This routine checks whether a handle has been properly initialized for
 !! reading and writing matrices.
 !!
@@ -327,6 +365,7 @@ subroutine elsi_reset_rw_handle(rw_h)
    rw_h%sparsity_ready = .false.
    rw_h%n_electrons    = 0.0_r8
    rw_h%n_basis        = UNSET
+   rw_h%header_user    = UNSET
 
 end subroutine
 
@@ -1118,13 +1157,14 @@ subroutine elsi_write_mat_real_mp(rw_h,f_name,mat)
    call MPI_File_open(rw_h%mpi_comm,f_name,f_mode,mpi_info_null,f_handle,mpierr)
 
    ! Write header
-   header    = 0
-   header(1) = FILE_VERSION
-   header(2) = rw_h%file_format
-   header(3) = REAL_VALUES
-   header(4) = rw_h%n_basis
-   header(5) = int(rw_h%n_electrons,kind=i4)
-   header(6) = aux_h%nnz_g
+   header(1)    = FILE_VERSION
+   header(2)    = rw_h%file_format
+   header(3)    = REAL_VALUES
+   header(4)    = rw_h%n_basis
+   header(5)    = int(rw_h%n_electrons,kind=i4)
+   header(6)    = aux_h%nnz_g
+   header(7:8)  = 0
+   header(9:16) = rw_h%header_user
 
    if(rw_h%myid == 0) then
       offset = 0
@@ -1232,13 +1272,14 @@ subroutine elsi_write_mat_complex_mp(rw_h,f_name,mat)
    call MPI_File_open(rw_h%mpi_comm,f_name,f_mode,mpi_info_null,f_handle,mpierr)
 
    ! Write header
-   header    = 0
-   header(1) = FILE_VERSION
-   header(2) = rw_h%file_format
-   header(3) = COMPLEX_VALUES
-   header(4) = rw_h%n_basis
-   header(5) = int(rw_h%n_electrons,kind=i4)
-   header(6) = aux_h%nnz_g
+   header(1)    = FILE_VERSION
+   header(2)    = rw_h%file_format
+   header(3)    = COMPLEX_VALUES
+   header(4)    = rw_h%n_basis
+   header(5)    = int(rw_h%n_electrons,kind=i4)
+   header(6)    = aux_h%nnz_g
+   header(7:8)  = 0
+   header(9:16) = rw_h%header_user
 
    if(rw_h%myid == 0) then
       offset = 0
@@ -1332,13 +1373,14 @@ subroutine elsi_write_mat_real_sparse(rw_h,f_name,row_ind,col_ptr,mat)
    call MPI_File_open(rw_h%mpi_comm,f_name,f_mode,mpi_info_null,f_handle,mpierr)
 
    ! Write header
-   header    = 0
-   header(1) = FILE_VERSION
-   header(2) = rw_h%file_format
-   header(3) = REAL_VALUES
-   header(4) = rw_h%n_basis
-   header(5) = int(rw_h%n_electrons,kind=i4)
-   header(6) = rw_h%nnz_g
+   header(1)    = FILE_VERSION
+   header(2)    = rw_h%file_format
+   header(3)    = REAL_VALUES
+   header(4)    = rw_h%n_basis
+   header(5)    = int(rw_h%n_electrons,kind=i4)
+   header(6)    = rw_h%nnz_g
+   header(7:8)  = 0
+   header(9:16) = rw_h%header_user
 
    if(rw_h%myid == 0) then
       offset = 0
@@ -1434,13 +1476,14 @@ subroutine elsi_write_mat_complex_sparse(rw_h,f_name,row_ind,col_ptr,mat)
    call MPI_File_open(rw_h%mpi_comm,f_name,f_mode,mpi_info_null,f_handle,mpierr)
 
    ! Write header
-   header    = 0
-   header(1) = FILE_VERSION
-   header(2) = rw_h%file_format
-   header(3) = COMPLEX_VALUES
-   header(4) = rw_h%n_basis
-   header(5) = int(rw_h%n_electrons,kind=i4)
-   header(6) = rw_h%nnz_g
+   header(1)    = FILE_VERSION
+   header(2)    = rw_h%file_format
+   header(3)    = COMPLEX_VALUES
+   header(4)    = rw_h%n_basis
+   header(5)    = int(rw_h%n_electrons,kind=i4)
+   header(6)    = rw_h%nnz_g
+   header(7:8)  = 0
+   header(9:16) = rw_h%header_user
 
    if(rw_h%myid == 0) then
       offset = 0
@@ -1829,13 +1872,14 @@ subroutine elsi_write_mat_real_sp(rw_h,f_name,mat)
    open(file=f_name,unit=99,access="stream",form="unformatted")
 
    ! Write header
-   header    = 0
-   header(1) = FILE_VERSION
-   header(2) = rw_h%file_format
-   header(3) = REAL_VALUES
-   header(4) = rw_h%n_basis
-   header(5) = int(rw_h%n_electrons,kind=i4)
-   header(6) = nnz_g
+   header(1)    = FILE_VERSION
+   header(2)    = rw_h%file_format
+   header(3)    = REAL_VALUES
+   header(4)    = rw_h%n_basis
+   header(5)    = int(rw_h%n_electrons,kind=i4)
+   header(6)    = nnz_g
+   header(7:8)  = 0
+   header(9:16) = rw_h%header_user
 
    offset = 1
    write(unit=99,pos=offset) header
@@ -1940,13 +1984,14 @@ subroutine elsi_write_mat_complex_sp(rw_h,f_name,mat)
    open(file=f_name,unit=99,access="stream",form="unformatted")
 
    ! Write header
-   header    = 0
-   header(1) = FILE_VERSION
-   header(2) = rw_h%file_format
-   header(3) = COMPLEX_VALUES
-   header(4) = rw_h%n_basis
-   header(5) = int(rw_h%n_electrons,kind=i4)
-   header(6) = nnz_g
+   header(1)    = FILE_VERSION
+   header(2)    = rw_h%file_format
+   header(3)    = COMPLEX_VALUES
+   header(4)    = rw_h%n_basis
+   header(5)    = int(rw_h%n_electrons,kind=i4)
+   header(6)    = nnz_g
+   header(7:8)  = 0
+   header(9:16) = rw_h%header_user
 
    offset = 1
    write(unit=99,pos=offset) header

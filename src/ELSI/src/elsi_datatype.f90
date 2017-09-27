@@ -340,6 +340,9 @@ module ELSI_DATATYPE
       real(kind=r8)    :: n_electrons
       integer(kind=i4) :: n_basis
 
+      ! User header
+      integer(kind=i4) :: header_user(8)
+
    end type
 
 end module ELSI_DATATYPE
