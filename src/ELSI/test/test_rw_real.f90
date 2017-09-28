@@ -53,7 +53,6 @@ program test_rw_real
    integer(kind=i4) :: l_cols
    integer(kind=i4) :: nnz_g
    integer(kind=i4) :: nnz_l
-   integer(kind=i4) :: i
 
    real(kind=r8) :: n_electrons
    real(kind=r8) :: err

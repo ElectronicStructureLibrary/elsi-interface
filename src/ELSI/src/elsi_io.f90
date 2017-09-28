@@ -685,7 +685,6 @@ subroutine elsi_read_mat_real_mp(rw_h,f_name,mat)
    integer(kind=i4) :: mpierr
    integer(kind=i4) :: f_handle
    integer(kind=i4) :: f_mode
-   integer(kind=i4) :: header(HEADER_SIZE)
    integer(kind=i4) :: n_lcol0
    integer(kind=i4) :: prev_nnz
    integer(kind=i8) :: offset
@@ -898,7 +897,6 @@ subroutine elsi_read_mat_complex_mp(rw_h,f_name,mat)
    integer(kind=i4) :: mpierr
    integer(kind=i4) :: f_handle
    integer(kind=i4) :: f_mode
-   integer(kind=i4) :: header(HEADER_SIZE)
    integer(kind=i4) :: n_lcol0
    integer(kind=i4) :: prev_nnz
    integer(kind=i8) :: offset
