@@ -703,13 +703,19 @@ subroutine elsi_check_singularity(e_h)
       if(e_h%n_nonsing < e_h%n_basis) then ! Singular
          e_h%ovlp_is_sing = .true.
 
+         call elsi_say("  Overlap matrix is singular.",e_h)
+         write(info_str,"('  | Lowest eigenvalue of overlap  :',E10.2)")&
+            e_h%eval(1)
+         call elsi_say(info_str,e_h)
+         write(info_str,"('  | Highest eigenvalue of overlap :',E10.2)")&
+            e_h%eval(e_h%n_basis)
+         call elsi_say(info_str,e_h)
+
          if(e_h%stop_sing) then
             call elsi_stop(" Overlap matrix is singular.",e_h,caller)
          endif
 
-         call elsi_say("  Overlap matrix is singular.",e_h)
-
-         write(info_str,"('  | Number of basis functions reduced to: ',I13)")&
+         write(info_str,"('  | Number of basis functions reduced to :',I10)")&
             e_h%n_nonsing
          call elsi_say(info_str,e_h)
 
@@ -728,6 +734,12 @@ subroutine elsi_check_singularity(e_h)
       else ! Nonsingular
          e_h%ovlp_is_sing = .false.
          call elsi_say("  Overlap matrix is nonsingular",e_h)
+         write(info_str,"('  | Lowest eigenvalue of overlap  :',E10.2)")&
+            e_h%eval(1)
+         call elsi_say(info_str,e_h)
+         write(info_str,"('  | Highest eigenvalue of overlap :',E10.2)")&
+            e_h%eval(e_h%n_basis)
+         call elsi_say(info_str,e_h)
       endif ! Singular overlap?
    case(REAL_VALUES)
       call elsi_allocate(e_h,copy_real,e_h%n_lrow,e_h%n_lcol,"copy_real",&
@@ -755,13 +767,19 @@ subroutine elsi_check_singularity(e_h)
       if(e_h%n_nonsing < e_h%n_basis) then ! Singular
          e_h%ovlp_is_sing = .true.
 
+         call elsi_say("  Overlap matrix is singular.",e_h)
+         write(info_str,"('  | Lowest eigenvalue of overlap  :',E10.2)")&
+            e_h%eval(1)
+         call elsi_say(info_str,e_h)
+         write(info_str,"('  | Highest eigenvalue of overlap :',E10.2)")&
+            e_h%eval(e_h%n_basis)
+         call elsi_say(info_str,e_h)
+
          if(e_h%stop_sing) then
             call elsi_stop(" Overlap matrix is singular.",e_h,caller)
          endif
 
-         call elsi_say("  Overlap matrix is singular.",e_h)
-
-         write(info_str,"('  | Number of basis functions reduced to: ',I13)")&
+         write(info_str,"('  | Number of basis functions reduced to :',I10)")&
             e_h%n_nonsing
          call elsi_say(info_str,e_h)
 
@@ -780,6 +798,12 @@ subroutine elsi_check_singularity(e_h)
       else ! Nonsingular
          e_h%ovlp_is_sing = .false.
          call elsi_say("  Overlap matrix is nonsingular",e_h)
+         write(info_str,"('  | Lowest eigenvalue of overlap  :',E10.2)")&
+            e_h%eval(1)
+         call elsi_say(info_str,e_h)
+         write(info_str,"('  | Highest eigenvalue of overlap :',E10.2)")&
+            e_h%eval(e_h%n_basis)
+         call elsi_say(info_str,e_h)
       endif ! Singular overlap?
    end select
 
