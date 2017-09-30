@@ -368,21 +368,15 @@ subroutine elsi_final_print(e_h)
    write(info_str,"(A,I13)") "  | Number of basis functions :",e_h%n_basis
    call elsi_say(info_str,e_h)
 
-   if(e_h%parallel_mode == MULTI_PROC) then
-      write(info_str,"(A,I13)") "  | Number of nonzeros        :",e_h%nnz_g
-      call elsi_say(info_str,e_h)
-
-      sparsity = 1.0_r8-(1.0_r8*e_h%nnz_g/e_h%n_basis/e_h%n_basis)
-      write(info_str,"(A,F13.3)") "  | Sparsity                  :",sparsity
-      call elsi_say(info_str,e_h)
-   endif
-
    write(info_str,"(A,F13.1)") "  | Number of electrons       :",e_h%n_electrons
    call elsi_say(info_str,e_h)
-   write(info_str,"(A,I13)") "  | Number of spins           :",e_h%n_spins
-   call elsi_say(info_str,e_h)
-   write(info_str,"(A,I13)") "  | Number of k-points        :",e_h%n_kpts
-   call elsi_say(info_str,e_h)
+
+   if(e_h%parallel_mode == MULTI_PROC) then
+      write(info_str,"(A,I13)") "  | Number of spins           :",e_h%n_spins
+      call elsi_say(info_str,e_h)
+      write(info_str,"(A,I13)") "  | Number of k-points        :",e_h%n_kpts
+      call elsi_say(info_str,e_h)
+   endif
 
    if(e_h%solver == ELPA_SOLVER .or. e_h%solver == SIPS_SOLVER) then
       write(info_str,"(A,I13)") "  | Number of states          :",e_h%n_states
@@ -411,6 +405,12 @@ subroutine elsi_final_print(e_h)
       call elsi_say("  | Matrix format             :  BLACS_DENSE ",e_h)
    elseif(e_h%matrix_format == PEXSI_CSC) then
       call elsi_say("  | Matrix format             :    PEXSI_CSC ",e_h)
+   endif
+
+   if(e_h%parallel_mode == MULTI_PROC) then
+      sparsity = 1.0_r8-(1.0_r8*e_h%nnz_g/e_h%n_basis/e_h%n_basis)
+      write(info_str,"(A,F13.3)") "  | Matrix sparsity           :",sparsity
+      call elsi_say(info_str,e_h)
    endif
 
    call elsi_say("  |------------------------------------------",e_h)
