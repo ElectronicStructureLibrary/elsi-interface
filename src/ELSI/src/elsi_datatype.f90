@@ -83,8 +83,8 @@ module ELSI_DATATYPE
       type(Matrix)                  :: coeff   ! Coefficient matrix
       type(Matrix)                  :: dm_omm
       type(Matrix)                  :: tdm_omm ! Kinetic energy density matrix
-      real(kind=r8),    allocatable :: ovlp_real_omm(:,:)
-      complex(kind=r8), allocatable :: ovlp_cmplx_omm(:,:)
+      real(kind=r8),    allocatable :: ovlp_real_copy(:,:)
+      complex(kind=r8), allocatable :: ovlp_cmplx_copy(:,:)
 
       ! PESXI
       real(kind=r8),    allocatable :: ham_real_pexsi(:)

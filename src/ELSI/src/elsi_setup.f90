@@ -539,11 +539,11 @@ subroutine elsi_cleanup(e_h)
    if(e_h%tdm_omm%is_initialized) then
       call m_deallocate(e_h%tdm_omm)
    endif
-   if(allocated(e_h%ovlp_real_omm)) then
-      call elsi_deallocate(e_h,e_h%ovlp_real_omm,"ovlp_real_omm")
+   if(allocated(e_h%ovlp_real_copy)) then
+      call elsi_deallocate(e_h,e_h%ovlp_real_copy,"ovlp_real_copy")
    endif
-   if(allocated(e_h%ovlp_cmplx_omm)) then
-      call elsi_deallocate(e_h,e_h%ovlp_cmplx_omm,"ovlp_cmplx_omm")
+   if(allocated(e_h%ovlp_cmplx_copy)) then
+      call elsi_deallocate(e_h,e_h%ovlp_cmplx_copy,"ovlp_cmplx_copy")
    endif
 
    ! PEXSI

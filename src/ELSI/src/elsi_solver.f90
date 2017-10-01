@@ -437,9 +437,9 @@ subroutine elsi_dm_real(e_h,h_in,s_in,d_out,energy_out)
       if(e_h%n_elsi_calls <= e_h%n_elpa_steps) then
          if(e_h%n_elsi_calls == 1 .and. e_h%omm_flavor == 0) then
             ! Overlap will be destroyed by Cholesky
-            call elsi_allocate(e_h,e_h%ovlp_real_omm,e_h%n_lrow,e_h%n_lcol,&
-                    "ovlp_real_omm",caller)
-            e_h%ovlp_real_omm = s_in
+            call elsi_allocate(e_h,e_h%ovlp_real_copy,e_h%n_lrow,e_h%n_lcol,&
+                    "ovlp_real_copy",caller)
+            e_h%ovlp_real_copy = s_in
          endif
 
          ! Compute libOMM initial guess by ELPA
@@ -472,10 +472,10 @@ subroutine elsi_dm_real(e_h,h_in,s_in,d_out,energy_out)
          ! Switch back to libOMM
          e_h%solver = OMM_SOLVER
       else ! ELPA is done
-         if(allocated(e_h%ovlp_real_omm)) then
+         if(allocated(e_h%ovlp_real_copy)) then
             ! Retrieve overlap matrix that has been destroyed by Cholesky
-            s_in = e_h%ovlp_real_omm
-            call elsi_deallocate(e_h,e_h%ovlp_real_omm,"ovlp_real_omm")
+            s_in = e_h%ovlp_real_copy
+            call elsi_deallocate(e_h,e_h%ovlp_real_copy,"ovlp_real_copy")
          endif
 
          ! Allocate
@@ -664,9 +664,9 @@ subroutine elsi_dm_complex(e_h,h_in,s_in,d_out,energy_out)
       if(e_h%n_elsi_calls <= e_h%n_elpa_steps) then
          if(e_h%n_elsi_calls == 1 .and. e_h%omm_flavor == 0) then
             ! Overlap will be destroyed by Cholesky
-            call elsi_allocate(e_h,e_h%ovlp_cmplx_omm,e_h%n_lrow,e_h%n_lcol,&
-                    "ovlp_cmplx_omm",caller)
-            e_h%ovlp_cmplx_omm = s_in
+            call elsi_allocate(e_h,e_h%ovlp_cmplx_copy,e_h%n_lrow,e_h%n_lcol,&
+                    "ovlp_cmplx_copy",caller)
+            e_h%ovlp_cmplx_copy = s_in
          endif
 
          ! Compute libOMM initial guess by ELPA
@@ -699,10 +699,10 @@ subroutine elsi_dm_complex(e_h,h_in,s_in,d_out,energy_out)
          ! Switch back to libOMM
          e_h%solver = OMM_SOLVER
       else ! ELPA is done
-         if(allocated(e_h%ovlp_cmplx_omm)) then
+         if(allocated(e_h%ovlp_cmplx_copy)) then
             ! Retrieve overlap matrix that has been destroyed by Cholesky
-            s_in = e_h%ovlp_cmplx_omm
-            call elsi_deallocate(e_h,e_h%ovlp_cmplx_omm,"ovlp_cmplx_omm")
+            s_in = e_h%ovlp_cmplx_copy
+            call elsi_deallocate(e_h,e_h%ovlp_cmplx_copy,"ovlp_cmplx_copy")
          endif
 
          ! Allocate
@@ -891,9 +891,9 @@ subroutine elsi_dm_real_sparse(e_h,h_in,s_in,d_out,energy_out)
       if(e_h%n_elsi_calls <= e_h%n_elpa_steps) then
          if(e_h%n_elsi_calls == 1 .and. e_h%omm_flavor == 0) then
             ! Overlap will be destroyed by Cholesky
-            call elsi_allocate(e_h,e_h%ovlp_real_omm,e_h%n_lrow,e_h%n_lcol,&
-                    "ovlp_real_omm",caller)
-            e_h%ovlp_real_omm = e_h%ovlp_real_elpa
+            call elsi_allocate(e_h,e_h%ovlp_real_copy,e_h%n_lrow,e_h%n_lcol,&
+                    "ovlp_real_copy",caller)
+            e_h%ovlp_real_copy = e_h%ovlp_real_elpa
          endif
 
          ! Compute libOMM initial guess by ELPA
@@ -931,10 +931,10 @@ subroutine elsi_dm_real_sparse(e_h,h_in,s_in,d_out,energy_out)
          ! Switch back to libOMM
          e_h%solver = OMM_SOLVER
       else ! ELPA is done
-         if(allocated(e_h%ovlp_real_omm)) then
+         if(allocated(e_h%ovlp_real_copy)) then
             ! Retrieve overlap matrix that has been destroyed by Cholesky
-            e_h%ovlp_real_elpa = e_h%ovlp_real_omm
-            call elsi_deallocate(e_h,e_h%ovlp_real_omm,"ovlp_real_omm")
+            e_h%ovlp_real_elpa = e_h%ovlp_real_copy
+            call elsi_deallocate(e_h,e_h%ovlp_real_copy,"ovlp_real_copy")
          endif
 
          ! Allocate
@@ -1104,9 +1104,9 @@ subroutine elsi_dm_complex_sparse(e_h,h_in,s_in,d_out,energy_out)
       if(e_h%n_elsi_calls <= e_h%n_elpa_steps) then
          if(e_h%n_elsi_calls == 1 .and. e_h%omm_flavor == 0) then
             ! Overlap will be destroyed by Cholesky
-            call elsi_allocate(e_h,e_h%ovlp_cmplx_omm,e_h%n_lrow,e_h%n_lcol,&
-                    "ovlp_cmplx_omm",caller)
-            e_h%ovlp_cmplx_omm = e_h%ovlp_cmplx_elpa
+            call elsi_allocate(e_h,e_h%ovlp_cmplx_copy,e_h%n_lrow,e_h%n_lcol,&
+                    "ovlp_cmplx_copy",caller)
+            e_h%ovlp_cmplx_copy = e_h%ovlp_cmplx_elpa
          endif
 
          ! Compute libOMM initial guess by ELPA
@@ -1144,10 +1144,10 @@ subroutine elsi_dm_complex_sparse(e_h,h_in,s_in,d_out,energy_out)
          ! Switch back to libOMM
          e_h%solver = OMM_SOLVER
       else ! ELPA is done
-         if(allocated(e_h%ovlp_cmplx_omm)) then
+         if(allocated(e_h%ovlp_cmplx_copy)) then
             ! Retrieve overlap matrix that has been destroyed by Cholesky
-            e_h%ovlp_cmplx_elpa = e_h%ovlp_cmplx_omm
-            call elsi_deallocate(e_h,e_h%ovlp_cmplx_omm,"ovlp_cmplx_omm")
+            e_h%ovlp_cmplx_elpa = e_h%ovlp_cmplx_copy
+            call elsi_deallocate(e_h,e_h%ovlp_cmplx_copy,"ovlp_cmplx_copy")
          endif
 
          ! Allocate
