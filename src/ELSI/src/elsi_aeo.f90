@@ -61,6 +61,7 @@ module ELSI_ELPA
    public :: elsi_compute_occ_elpa
    public :: elsi_compute_dm_elpa
    public :: elsi_compute_edm_elpa
+   public :: elsi_normalize_dm_elpa
    public :: elsi_solve_evp_elpa
 
 contains
@@ -415,6 +416,66 @@ subroutine elsi_compute_edm_elpa(e_h)
    call elsi_say(info_str,e_h)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
    call elsi_say(info_str,e_h)
+
+end subroutine
+
+!>
+!! This routine normalizes the density matrix to the exact number of electrons.
+!!
+subroutine elsi_normalize_dm_elpa(e_h)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h !< Handle
+
+   real(kind=r8)    :: l_ne ! Local number of electrons
+   real(kind=r8)    :: g_ne ! Global number of electrons
+   real(kind=r8)    :: factor ! Normalization factor
+   complex(kind=r8) :: tmp_cmplx
+   integer(kind=i4) :: mpierr
+   character*200    :: info_str
+
+   real(kind=r8),    external :: ddot
+   complex(kind=r8), external :: zdotu
+
+   character*40, parameter :: caller = "elsi_normalize_dm_elpa"
+
+   select case(e_h%data_type)
+   case(COMPLEX_VALUES)
+      tmp_cmplx = zdotu(e_h%n_lrow*e_h%n_lcol,e_h%dm_cmplx,1,&
+                     e_h%ovlp_cmplx_copy,1)
+
+      l_ne = dble(tmp_cmplx)
+   case(REAL_VALUES)
+      l_ne = ddot(e_h%n_lrow*e_h%n_lcol,e_h%dm_real,1,e_h%ovlp_real_copy,1)
+   end select
+
+   call MPI_Allreduce(l_ne,g_ne,1,mpi_real8,mpi_sum,e_h%mpi_comm,mpierr)
+
+   if(e_h%n_spins*e_h%n_kpts > 1) then
+      if(e_h%myid == 0) then
+         l_ne = g_ne
+      else
+         l_ne = 0.0_r8
+      endif
+
+      call MPI_Allreduce(l_ne,g_ne,1,mpi_real8,mpi_sum,e_h%mpi_comm_all,mpierr)
+   endif
+
+   ! Scale density matrix
+   if(abs(g_ne-e_h%n_electrons) > e_h%occ_tolerance) then
+      factor = e_h%n_electrons/g_ne
+
+      write(info_str,"('  Scaled density matrix by factor',F10.8)") factor
+      call elsi_say(info_str,e_h)
+
+      select case(e_h%data_type)
+      case(COMPLEX_VALUES)
+         e_h%dm_cmplx = e_h%dm_cmplx*factor
+      case(REAL_VALUES)
+         e_h%dm_real = e_h%dm_real*factor
+      end select
+   endif
 
 end subroutine
 

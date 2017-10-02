@@ -38,7 +38,7 @@ module ELSI_SOLVER
                              SINGLE_PROC,UNSET
    use ELSI_DATATYPE
    use ELSI_ELPA,      only: elsi_compute_occ_elpa,elsi_compute_dm_elpa,&
-                             elsi_solve_evp_elpa
+                             elsi_normalize_dm_elpa,elsi_solve_evp_elpa
    use ELSI_LAPACK,    only: elsi_solve_evp_lapack
    use ELSI_MALLOC
    use ELSI_MATCONV
@@ -417,6 +417,13 @@ subroutine elsi_dm_real(e_h,h_in,s_in,d_out,energy_out)
                  "evec_real_elpa",caller)
       endif
 
+      ! Save a copy of overlap
+      if(e_h%n_elsi_calls==1 .and. e_h%n_single_steps > 0) then
+         call elsi_allocate(e_h,e_h%ovlp_real_copy,e_h%n_lrow,e_h%n_lcol,&
+                 "ovlp_real_copy",caller)
+         e_h%ovlp_real_copy = s_in
+      endif
+
       ! Set matrices
       call elsi_set_ham(e_h,h_in)
       call elsi_set_ovlp(e_h,s_in)
@@ -431,6 +438,11 @@ subroutine elsi_dm_real(e_h,h_in,s_in,d_out,energy_out)
       call elsi_compute_occ_elpa(e_h)
       call elsi_compute_dm_elpa(e_h)
       call elsi_get_energy(e_h,energy_out)
+
+      ! Normalize density matrix
+      if(e_h%n_elsi_calls <= e_h%n_single_steps) then
+         call elsi_normalize_dm_elpa(e_h)
+      endif
 
       e_h%mu_ready = .true.
    case(OMM_SOLVER)
@@ -644,6 +656,13 @@ subroutine elsi_dm_complex(e_h,h_in,s_in,d_out,energy_out)
                  "evec_cmplx_elpa",caller)
       endif
 
+      ! Save a copy of overlap
+      if(e_h%n_elsi_calls==1 .and. e_h%n_single_steps > 0) then
+         call elsi_allocate(e_h,e_h%ovlp_cmplx_copy,e_h%n_lrow,e_h%n_lcol,&
+                 "ovlp_cmplx_copy",caller)
+         e_h%ovlp_cmplx_copy = s_in
+      endif
+
       ! Set matrices
       call elsi_set_ham(e_h,h_in)
       call elsi_set_ovlp(e_h,s_in)
@@ -658,6 +677,11 @@ subroutine elsi_dm_complex(e_h,h_in,s_in,d_out,energy_out)
       call elsi_compute_occ_elpa(e_h)
       call elsi_compute_dm_elpa(e_h)
       call elsi_get_energy(e_h,energy_out)
+
+      ! Normalize density matrix
+      if(e_h%n_elsi_calls <= e_h%n_single_steps) then
+         call elsi_normalize_dm_elpa(e_h)
+      endif
 
       e_h%mu_ready = .true.
    case(OMM_SOLVER)
