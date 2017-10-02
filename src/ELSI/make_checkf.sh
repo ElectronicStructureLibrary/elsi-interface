@@ -520,9 +520,7 @@ then
 else
    tput setaf 5
    echo
-   echo "PEXSI has been disabled because ELSI is compiled without C++ support."
-   echo "Please recompile ELSI with C++ support to enable PEXSI, or continue"
-   echo "using ELSI without PEXSI."
+   echo "PEXSI has been disabled by user's choice."
    tput sgr0
 fi
 

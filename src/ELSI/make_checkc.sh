@@ -234,9 +234,7 @@ then
 
 else
    tput setaf 5
-   echo "PEXSI has been disabled because ELSI is compiled without C++ support."
-   echo "Please recompile ELSI with C++ support to enable PEXSI, or continue"
-   echo "using ELSI without PEXSI."
+   echo "PEXSI has been disabled by user's choice."
    tput sgr0
 fi
 
@@ -256,7 +254,6 @@ fi
 
 else
    tput setaf 5
-   echo "C interface has been disabled by user. Please recompile ELSI with"
-   echo "C interface, or continue using ELSI in Fortran."
+   echo "C interface has been disabled by user's choice."
    tput sgr0
 fi
