@@ -466,7 +466,7 @@ subroutine elsi_normalize_dm_elpa(e_h)
    if(abs(g_ne-e_h%n_electrons) > e_h%occ_tolerance) then
       factor = e_h%n_electrons/g_ne
 
-      write(info_str,"('  Scaled density matrix by factor',F10.8)") factor
+      write(info_str,"('  | Scaled density matrix by factor',F12.8)") factor
       call elsi_say(info_str,e_h)
 
       select case(e_h%data_type)

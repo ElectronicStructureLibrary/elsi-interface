@@ -234,6 +234,7 @@ then
 
 else
    tput setaf 5
+   echo
    echo "PEXSI has been disabled by user's choice."
    tput sgr0
 fi
