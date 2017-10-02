@@ -188,7 +188,7 @@ else
    tput sgr0
 fi
 
-if [ "$DISABLE_CXX" != "yes" ]
+if [ "$DISABLE_PEXSI" != "yes" ]
 then
    echo
    echo -n "Running the 'parallel real density matrix solver + PEXSI' C test"
