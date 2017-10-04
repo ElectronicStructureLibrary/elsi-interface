@@ -225,6 +225,9 @@ void c_elsi_set_sips_slice_type(elsi_handle handle_c,
 void c_elsi_set_sips_n_slice(elsi_handle handle_c,
                              int n_slice);
 
+void c_elsi_set_sips_inertia(elsi_handle handle_c,
+                             int do_inertia);
+
 void c_elsi_set_sips_left_bound(elsi_handle handle_c,
                                 int left_bound);
 

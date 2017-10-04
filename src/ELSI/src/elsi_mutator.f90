@@ -80,6 +80,7 @@ module ELSI_MUTATOR
    public :: elsi_set_chess_ev_ovlp_max
    public :: elsi_set_sips_slice_type
    public :: elsi_set_sips_n_slice
+   public :: elsi_set_sips_inertia
    public :: elsi_set_sips_left_bound
    public :: elsi_set_sips_slice_buf
    public :: elsi_set_sips_ev_min
@@ -754,6 +755,28 @@ subroutine elsi_set_chess_ev_ovlp_max(e_h,ev_max)
    call elsi_check_handle(e_h,caller)
 
    e_h%ev_ovlp_max = ev_max
+
+end subroutine
+
+!>
+!! This routine switches on and off inertia counting in SIPs.
+!!
+subroutine elsi_set_sips_inertia(e_h,do_inertia)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h        !< Handle
+   integer(kind=i4),  intent(in)    :: do_inertia !< Inertia counting option
+
+   character*40, parameter :: caller = "elsi_set_sips_inertia"
+
+   call elsi_check_handle(e_h,caller)
+
+   if(do_inertia == 0) then
+      e_h%inertia_option = 0
+   else
+      e_h%inertia_option = 1
+   endif
 
 end subroutine
 

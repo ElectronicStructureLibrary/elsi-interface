@@ -989,6 +989,22 @@ subroutine elsi_set_sips_n_slice_c_wrapper(handle_c,n_slice)&
 
 end subroutine
 
+subroutine elsi_set_sips_inertia_c_wrapper(handle_c,do_inertia)&
+   bind(C,name="c_elsi_set_sips_inertia")
+
+   implicit none
+
+   type(c_ptr),         value, intent(in) :: handle_c
+   integer(kind=c_int), value, intent(in) :: do_inertia
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_sips_inertia(handle_f,do_inertia)
+
+end subroutine
+
 subroutine elsi_set_sips_left_bound_c_wrapper(handle_c,left_bound)&
    bind(C,name="c_elsi_set_sips_left_bound")
 

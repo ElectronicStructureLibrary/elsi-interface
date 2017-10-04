@@ -93,6 +93,7 @@ module ELSI
    public :: elsi_set_chess_ev_ovlp_max
    public :: elsi_set_sips_slice_type
    public :: elsi_set_sips_n_slice
+   public :: elsi_set_sips_inertia
    public :: elsi_set_sips_left_bound
    public :: elsi_set_sips_slice_buf
    public :: elsi_set_sips_ev_min
