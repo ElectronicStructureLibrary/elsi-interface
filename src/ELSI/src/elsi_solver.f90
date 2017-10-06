@@ -1358,10 +1358,12 @@ subroutine elsi_print_settings(e_h)
          e_h%ev_ovlp_max
       call elsi_say(info_str,e_h)
    case(ELPA_SOLVER)
-      call elsi_say("  ELPA settings:",e_h)
+      if(e_h%parallel_mode == MULTI_PROC) then
+         call elsi_say("  ELPA settings:",e_h)
 
-      write(info_str,"('  | ELPA solver ',I10)") e_h%elpa_solver
-      call elsi_say(info_str,e_h)
+         write(info_str,"('  | ELPA solver ',I10)") e_h%elpa_solver
+         call elsi_say(info_str,e_h)
+      endif
    case(OMM_SOLVER)
       call elsi_say("  libOMM settings:",e_h)
 

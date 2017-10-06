@@ -504,10 +504,10 @@ subroutine elsi_check_singularity_sp(e_h)
 
          call elsi_say("  Overlap matrix is singular.",e_h)
          write(info_str,"('  | Lowest eigenvalue of overlap  :',E10.2)")&
-            e_h%eval(1)
+            e_h%eval(e_h%n_basis)
          call elsi_say(info_str,e_h)
          write(info_str,"('  | Highest eigenvalue of overlap :',E10.2)")&
-            e_h%eval(e_h%n_basis)
+            e_h%eval(1)
          call elsi_say(info_str,e_h)
 
          if(e_h%stop_sing) then
@@ -530,10 +530,10 @@ subroutine elsi_check_singularity_sp(e_h)
          e_h%ovlp_is_sing = .false.
          call elsi_say("  Overlap matrix is nonsingular",e_h)
          write(info_str,"('  | Lowest eigenvalue of overlap  :',E10.2)")&
-            e_h%eval(1)
+            e_h%eval(e_h%n_basis)
          call elsi_say(info_str,e_h)
          write(info_str,"('  | Highest eigenvalue of overlap :',E10.2)")&
-            e_h%eval(e_h%n_basis)
+            e_h%eval(1)
          call elsi_say(info_str,e_h)
       endif ! Singular overlap?
    case(REAL_VALUES)
@@ -588,10 +588,10 @@ subroutine elsi_check_singularity_sp(e_h)
 
          call elsi_say("  Overlap matrix is singular.",e_h)
          write(info_str,"('  | Lowest eigenvalue of overlap  :',E10.2)")&
-            e_h%eval(1)
+            e_h%eval(e_h%n_basis)
          call elsi_say(info_str,e_h)
          write(info_str,"('  | Highest eigenvalue of overlap :',E10.2)")&
-            e_h%eval(e_h%n_basis)
+            e_h%eval(1)
          call elsi_say(info_str,e_h)
 
          if(e_h%stop_sing) then
@@ -614,10 +614,10 @@ subroutine elsi_check_singularity_sp(e_h)
          e_h%ovlp_is_sing = .false.
          call elsi_say("  Overlap matrix is nonsingular",e_h)
          write(info_str,"('  | Lowest eigenvalue of overlap  :',E10.2)")&
-            e_h%eval(1)
+            e_h%eval(e_h%n_basis)
          call elsi_say(info_str,e_h)
          write(info_str,"('  | Highest eigenvalue of overlap :',E10.2)")&
-            e_h%eval(e_h%n_basis)
+            e_h%eval(1)
          call elsi_say(info_str,e_h)
       endif ! Singular overlap?
    end select
