@@ -345,7 +345,7 @@ subroutine elsi_solve_evp_lapack(e_h)
       call elsi_allocate(e_h,tmp_cmplx,e_h%n_nonsing,e_h%n_nonsing,"tmp_cmplx",&
               caller)
 
-      call zhetrd('U',e_h%n_nonsing,e_h%ham_cmplx,e_h%n_nonsing,e_h%eval,&
+      call zhetrd('U',e_h%n_nonsing,e_h%ham_cmplx,e_h%n_basis,e_h%eval,&
               off_diag,tau_cmplx,tmp_cmplx,e_h%n_nonsing*e_h%n_nonsing,ierr)
 
       success = elpa_solve_tridi_double(e_h%n_nonsing,e_h%n_states_solve,&
@@ -360,7 +360,7 @@ subroutine elsi_solve_evp_lapack(e_h)
          tmp_real(1:e_h%n_nonsing,1:e_h%n_states_solve)
 
       call zunmtr('L','U','N',e_h%n_nonsing,e_h%n_states_solve,e_h%ham_cmplx,&
-              e_h%n_nonsing,tau_cmplx,e_h%evec_cmplx,e_h%n_nonsing,tmp_cmplx,&
+              e_h%n_basis,tau_cmplx,e_h%evec_cmplx,e_h%n_basis,tmp_cmplx,&
               e_h%n_nonsing*e_h%n_nonsing,ierr)
 
       call elsi_deallocate(e_h,off_diag,"off_diag")
@@ -373,8 +373,8 @@ subroutine elsi_solve_evp_lapack(e_h)
       call elsi_allocate(e_h,tmp_real,e_h%n_nonsing,e_h%n_nonsing,"tmp_real",&
               caller)
 
-      call dsytrd('U',e_h%n_nonsing,e_h%ham_real,e_h%n_nonsing,e_h%eval,&
-              off_diag,tau_real,tmp_real,e_h%n_nonsing*e_h%n_nonsing,ierr)
+      call dsytrd('U',e_h%n_nonsing,e_h%ham_real,e_h%n_basis,e_h%eval,off_diag,&
+              tau_real,tmp_real,e_h%n_nonsing*e_h%n_nonsing,ierr)
 
       success = elpa_solve_tridi_double(e_h%n_nonsing,e_h%n_states_solve,&
                    e_h%eval,off_diag,tmp_real,e_h%n_nonsing,64,e_h%n_nonsing,&
@@ -388,7 +388,7 @@ subroutine elsi_solve_evp_lapack(e_h)
          tmp_real(1:e_h%n_nonsing,1:e_h%n_states_solve)
 
       call dormtr('L','U','N',e_h%n_nonsing,e_h%n_states_solve,e_h%ham_real,&
-              e_h%n_nonsing,tau_real,e_h%evec_real,e_h%n_nonsing,tmp_real,&
+              e_h%n_basis,tau_real,e_h%evec_real,e_h%n_basis,tmp_real,&
               e_h%n_nonsing*e_h%n_nonsing,ierr)
 
       call elsi_deallocate(e_h,off_diag,"off_diag")
