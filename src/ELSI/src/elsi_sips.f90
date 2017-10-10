@@ -84,7 +84,7 @@ subroutine elsi_init_sips(e_h)
    endif
 
    write(info_str,"('  | Number of slices          ',I10)") e_h%n_slices
-   call elsi_say(info_str,e_h)
+   call elsi_say(e_h,info_str)
 
 end subroutine
 
@@ -109,7 +109,7 @@ subroutine elsi_solve_evp_sips(e_h)
    character*40, parameter :: caller = "elsi_solve_evp_sips"
 
    ! Solve the eigenvalue problem
-   call elsi_say("  Starting SIPs eigensolver",e_h)
+   call elsi_say(e_h,"  Starting SIPs eigensolver")
 
    if(e_h%n_elsi_calls == 1) then
       ! Load H matrix
@@ -155,9 +155,9 @@ subroutine elsi_solve_evp_sips(e_h)
          call elsi_get_time(e_h,t1)
 
          write(info_str,"('  Finished inertia counting')")
-         call elsi_say(info_str,e_h)
+         call elsi_say(e_h,info_str)
          write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-         call elsi_say(info_str,e_h)
+         call elsi_say(e_h,info_str)
       endif
    else ! n_elsi_calls > 1
       ! Update H matrix
@@ -189,9 +189,9 @@ subroutine elsi_solve_evp_sips(e_h)
    call elsi_get_time(e_h,t1)
 
    write(info_str,"('  Finished solving generalized eigenproblem')")
-   call elsi_say(info_str,e_h)
+   call elsi_say(e_h,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(info_str,e_h)
+   call elsi_say(e_h,info_str)
 
 end subroutine
 
@@ -256,9 +256,9 @@ subroutine elsi_sips_to_blacs_ev(e_h)
    call elsi_get_time(e_h,t1)
 
    write(info_str,"('  Finished matrix redistribution')")
-   call elsi_say(info_str,e_h)
+   call elsi_say(e_h,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(info_str,e_h)
+   call elsi_say(e_h,info_str)
 
 end subroutine
 

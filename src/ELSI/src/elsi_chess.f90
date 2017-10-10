@@ -148,7 +148,7 @@ subroutine elsi_solve_evp_chess(e_h)
       calc_ovlp_inv_sqrt = .false.
    endif
 
-   call elsi_say("  Starting CheSS density matrix solver",e_h)
+   call elsi_say(e_h,"  Starting CheSS density matrix solver")
 
    call matrix_fermi_operator_expansion(e_h%myid,e_h%n_procs,e_h%mpi_comm,&
            e_h%foe_obj,e_h%ice_obj,e_h%sparse_mat(1),e_h%sparse_mat(1),&
@@ -165,9 +165,9 @@ subroutine elsi_solve_evp_chess(e_h)
    call elsi_get_time(e_h,t1)
 
    write(info_str,"('  Finished density matrix calculation')")
-   call elsi_say(info_str,e_h)
+   call elsi_say(e_h,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(info_str,e_h)
+   call elsi_say(e_h,info_str)
 
 end subroutine
 

@@ -1083,8 +1083,8 @@ subroutine elsi_get_mu(e_h,mu)
    mu = e_h%mu
 
    if(.not. e_h%mu_ready) then
-      call elsi_say("  ATTENTION! The return value of mu may be 0, since mu"//&
-              " has not been computed.",e_h)
+      call elsi_say(e_h,"  ATTENTION! The return value of mu may be 0, since"//&
+              " mu has not been computed.")
    endif
 
    e_h%mu_ready = .false.

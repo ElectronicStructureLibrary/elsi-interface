@@ -320,10 +320,10 @@ subroutine elsi_find_mu(e_h,n_electron,n_state,n_spin,n_kpt,k_weights,evals,&
       mu_out = mu_right
 
       ! ...with adjusted occupation numbers
-      call elsi_say("  Chemical potential cannot reach the"//&
-              " required accuracy by bisection method.",e_h)
-      call elsi_say("  The error will be arbitrarily removed"//&
-              " from the highest occupied states.",e_h)
+      call elsi_say(e_h,"  Chemical potential cannot reach the required"//&
+              " accuracy by bisection method.")
+      call elsi_say(e_h,"  The error will be arbitrarily removed from the"//&
+              " highest occupied states.")
 
       call elsi_adjust_occ(e_h,n_state,n_spin,n_kpt,k_weights,evals,occ_nums,&
               diff_right)

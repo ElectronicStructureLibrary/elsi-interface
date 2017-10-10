@@ -788,9 +788,9 @@ subroutine elsi_read_mat_real_mp(rw_h,f_name,mat)
    call elsi_get_time(aux_h,t1)
 
    write(info_str,"('  Finished reading matrix')")
-   call elsi_say(info_str,aux_h)
+   call elsi_say(aux_h,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(info_str,aux_h)
+   call elsi_say(aux_h,info_str)
 
    call elsi_cleanup(aux_h)
 
@@ -877,9 +877,9 @@ subroutine elsi_read_mat_real_sparse(rw_h,f_name,row_ind,col_ptr,mat)
    call elsi_get_time(aux_h,t1)
 
    write(info_str,"('  Finished reading matrix')")
-   call elsi_say(info_str,aux_h)
+   call elsi_say(aux_h,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(info_str,aux_h)
+   call elsi_say(aux_h,info_str)
 
 end subroutine
 
@@ -1000,9 +1000,9 @@ subroutine elsi_read_mat_complex_mp(rw_h,f_name,mat)
    call elsi_get_time(aux_h,t1)
 
    write(info_str,"('  Finished reading matrix')")
-   call elsi_say(info_str,aux_h)
+   call elsi_say(aux_h,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(info_str,aux_h)
+   call elsi_say(aux_h,info_str)
 
    call elsi_cleanup(aux_h)
 
@@ -1089,9 +1089,9 @@ subroutine elsi_read_mat_complex_sparse(rw_h,f_name,row_ind,col_ptr,mat)
    call elsi_get_time(aux_h,t1)
 
    write(info_str,"('  Finished reading matrix')")
-   call elsi_say(info_str,aux_h)
+   call elsi_say(aux_h,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(info_str,aux_h)
+   call elsi_say(aux_h,info_str)
 
    call elsi_cleanup(aux_h)
 
@@ -1204,9 +1204,9 @@ subroutine elsi_write_mat_real_mp(rw_h,f_name,mat)
    call elsi_get_time(aux_h,t1)
 
    write(info_str,"('  Finished writing matrix')")
-   call elsi_say(info_str,aux_h)
+   call elsi_say(aux_h,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(info_str,aux_h)
+   call elsi_say(aux_h,info_str)
 
    call elsi_cleanup(aux_h)
 
@@ -1319,9 +1319,9 @@ subroutine elsi_write_mat_complex_mp(rw_h,f_name,mat)
    call elsi_get_time(aux_h,t1)
 
    write(info_str,"('  Finished writing matrix')")
-   call elsi_say(info_str,aux_h)
+   call elsi_say(aux_h,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(info_str,aux_h)
+   call elsi_say(aux_h,info_str)
 
    call elsi_cleanup(aux_h)
 
@@ -1424,9 +1424,9 @@ subroutine elsi_write_mat_real_sparse(rw_h,f_name,row_ind,col_ptr,mat)
    call elsi_get_time(aux_h,t1)
 
    write(info_str,"('  Finished writing matrix')")
-   call elsi_say(info_str,aux_h)
+   call elsi_say(aux_h,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(info_str,aux_h)
+   call elsi_say(aux_h,info_str)
 
 end subroutine
 
@@ -1527,9 +1527,9 @@ subroutine elsi_write_mat_complex_sparse(rw_h,f_name,row_ind,col_ptr,mat)
    call elsi_get_time(aux_h,t1)
 
    write(info_str,"('  Finished writing matrix')")
-   call elsi_say(info_str,aux_h)
+   call elsi_say(aux_h,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(info_str,aux_h)
+   call elsi_say(aux_h,info_str)
 
 end subroutine
 
@@ -1686,9 +1686,9 @@ subroutine elsi_read_mat_real_sp(rw_h,f_name,mat)
    call elsi_get_time(aux_h,t1)
 
    write(info_str,"('  Finished reading matrix')")
-   call elsi_say(info_str,aux_h)
+   call elsi_say(aux_h,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(info_str,aux_h)
+   call elsi_say(aux_h,info_str)
 
 end subroutine
 
@@ -1795,9 +1795,9 @@ subroutine elsi_read_mat_complex_sp(rw_h,f_name,mat)
    call elsi_get_time(aux_h,t1)
 
    write(info_str,"('  Finished reading matrix')")
-   call elsi_say(info_str,aux_h)
+   call elsi_say(aux_h,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(info_str,aux_h)
+   call elsi_say(aux_h,info_str)
 
 end subroutine
 
@@ -1907,9 +1907,9 @@ subroutine elsi_write_mat_real_sp(rw_h,f_name,mat)
    call elsi_get_time(aux_h,t1)
 
    write(info_str,"('  Finished writing matrix')")
-   call elsi_say(info_str,aux_h)
+   call elsi_say(aux_h,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(info_str,aux_h)
+   call elsi_say(aux_h,info_str)
 
 end subroutine
 
@@ -2019,9 +2019,9 @@ subroutine elsi_write_mat_complex_sp(rw_h,f_name,mat)
    call elsi_get_time(aux_h,t1)
 
    write(info_str,"('  Finished writing matrix')")
-   call elsi_say(info_str,aux_h)
+   call elsi_say(aux_h,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(info_str,aux_h)
+   call elsi_say(aux_h,info_str)
 
 end subroutine
 

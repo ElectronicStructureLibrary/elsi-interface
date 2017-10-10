@@ -119,9 +119,9 @@ subroutine elsi_solve_evp_omm(e_h)
             call elsi_get_time(e_h,t1)
 
             write(info_str,"('  Finished Cholesky decomposition')")
-            call elsi_say(info_str,e_h)
+            call elsi_say(e_h,info_str)
             write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-            call elsi_say(info_str,e_h)
+            call elsi_say(e_h,info_str)
          endif
 
          if(e_h%n_elsi_calls > e_h%n_elpa_steps+1) then
@@ -156,7 +156,7 @@ subroutine elsi_solve_evp_omm(e_h)
 
    call elsi_get_time(e_h,t0)
 
-   call elsi_say("  Starting OMM density matrix solver",e_h)
+   call elsi_say(e_h,"  Starting OMM density matrix solver")
 
    select case(e_h%data_type)
    case(COMPLEX_VALUES)
@@ -179,9 +179,9 @@ subroutine elsi_solve_evp_omm(e_h)
    call elsi_get_time(e_h,t1)
 
    write(info_str,"('  Finished density matrix calculation')")
-   call elsi_say(info_str,e_h)
+   call elsi_say(e_h,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(info_str,e_h)
+   call elsi_say(e_h,info_str)
 
 end subroutine
 
@@ -224,9 +224,9 @@ subroutine elsi_compute_edm_omm(e_h)
    call elsi_get_time(e_h,t1)
 
    write(info_str,"('  Finished energy density matrix calculation')")
-   call elsi_say(info_str,e_h)
+   call elsi_say(e_h,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(info_str,e_h)
+   call elsi_say(e_h,info_str)
 
 end subroutine
 

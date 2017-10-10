@@ -58,12 +58,12 @@ contains
 !>
 !! This routine prints a message.
 !!
-subroutine elsi_say(info_str,e_h)
+subroutine elsi_say(e_h,info_str)
 
    implicit none
 
-   character(len=*),  intent(in) :: info_str !< Message to print
    type(elsi_handle), intent(in) :: e_h      !< Handle
+   character(len=*),  intent(in) :: info_str !< Message to print
 
    if(e_h%print_info) then
       if(e_h%myid_all == 0) then
@@ -355,7 +355,7 @@ subroutine elsi_check(e_h,caller)
          endif
       endif
    case(CHESS_SOLVER)
-      call elsi_say("  ATTENTION! CheSS is EXPERIMENTAL.",e_h)
+      call elsi_say(e_h,"  ATTENTION! CheSS is EXPERIMENTAL.")
 
       if(e_h%n_basis < e_h%n_procs) then
          call elsi_stop(" For this number of MPI tasks, the matrix size is"//&
@@ -372,7 +372,7 @@ subroutine elsi_check(e_h,caller)
                  " yet available.",e_h,caller)
       endif
    case(SIPS_SOLVER)
-      call elsi_say("  ATTENTION! SIPs is EXPERIMENTAL.",e_h)
+      call elsi_say(e_h,"  ATTENTION! SIPs is EXPERIMENTAL.")
 
       if(e_h%n_basis < e_h%n_procs) then
          call elsi_stop(" For this number of MPI tasks, the matrix size is"//&
