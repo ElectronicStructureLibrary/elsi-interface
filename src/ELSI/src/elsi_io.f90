@@ -33,7 +33,7 @@ module ELSI_IO
    use, intrinsic :: ISO_C_BINDING
    use ELSI_CONSTANTS, only: HEADER_SIZE,BLACS_DENSE,DENSE_FILE,CSC_FILE,&
                              READ_FILE,WRITE_FILE,REAL_VALUES,COMPLEX_VALUES,&
-                             FILE_VERSION
+                             FILE_VERSION,UNSET
    use ELSI_DATATYPE
    use ELSI_MALLOC
    use ELSI_MATCONV,   only: elsi_pexsi_to_blacs_dm,elsi_blacs_to_sips_hs
@@ -645,7 +645,7 @@ subroutine elsi_read_mat_dim_sparse(rw_h,f_name,n_electron,n_basis,nnz_g,&
    allocate(col_ptr(n_lcol_sp+1))
 
    ! Read column pointer
-   offset = HEADER_SIZE*4+rw_h%myid*n_lcol0*4
+   offset = int(HEADER_SIZE,kind=i8)*4+rw_h%myid*n_lcol0*4
 
    call MPI_File_read_at_all(f_handle,offset,col_ptr,n_lcol_sp+1,mpi_integer4,&
            mpi_status_ignore,mpierr)
@@ -735,7 +735,7 @@ subroutine elsi_read_mat_real_mp(rw_h,f_name,mat)
    call elsi_allocate(aux_h,col_ptr,rw_h%n_lcol_sp+1,"col_ptr",caller)
 
    ! Read column pointer
-   offset = HEADER_SIZE*4+rw_h%myid*n_lcol0*4
+   offset = int(HEADER_SIZE,kind=i8)*4+rw_h%myid*n_lcol0*4
 
    call MPI_File_read_at_all(f_handle,offset,col_ptr,rw_h%n_lcol_sp+1,&
            mpi_integer4,mpi_status_ignore,mpierr)
@@ -754,13 +754,13 @@ subroutine elsi_read_mat_real_mp(rw_h,f_name,mat)
    call elsi_allocate(aux_h,row_ind,rw_h%nnz_l_sp,"row_ind",caller)
 
    ! Read row index
-   offset = HEADER_SIZE*4+rw_h%n_basis*4+prev_nnz*4
+   offset = int(HEADER_SIZE,kind=i8)*4+rw_h%n_basis*4+prev_nnz*4
 
    call MPI_File_read_at_all(f_handle,offset,row_ind,rw_h%nnz_l_sp,&
            mpi_integer4,mpi_status_ignore,mpierr)
 
    ! Read non-zero value
-   offset = HEADER_SIZE*4+rw_h%n_basis*4+rw_h%nnz_g*4+prev_nnz*8
+   offset = int(HEADER_SIZE,kind=i8)*4+rw_h%n_basis*4+rw_h%nnz_g*4+prev_nnz*8
 
    call elsi_allocate(aux_h,nnz_val,rw_h%nnz_l_sp,"nnz_val",caller)
 
@@ -847,7 +847,7 @@ subroutine elsi_read_mat_real_sparse(rw_h,f_name,row_ind,col_ptr,mat)
    n_lcol0 = rw_h%n_basis/rw_h%n_procs
 
    ! Read column pointer
-   offset = HEADER_SIZE*4+rw_h%myid*n_lcol0*4
+   offset = int(HEADER_SIZE,kind=i8)*4+rw_h%myid*n_lcol0*4
 
    call MPI_File_read_at_all(f_handle,offset,col_ptr,rw_h%n_lcol_sp+1,&
            mpi_integer4,mpi_status_ignore,mpierr)
@@ -861,13 +861,13 @@ subroutine elsi_read_mat_real_sparse(rw_h,f_name,row_ind,col_ptr,mat)
    col_ptr  = col_ptr-prev_nnz
 
    ! Read row index
-   offset = HEADER_SIZE*4+rw_h%n_basis*4+prev_nnz*4
+   offset = int(HEADER_SIZE,kind=i8)*4+rw_h%n_basis*4+prev_nnz*4
 
    call MPI_File_read_at_all(f_handle,offset,row_ind,rw_h%nnz_l_sp,&
            mpi_integer4,mpi_status_ignore,mpierr)
 
    ! Read non-zero value
-   offset = HEADER_SIZE*4+rw_h%n_basis*4+rw_h%nnz_g*4+prev_nnz*8
+   offset = int(HEADER_SIZE,kind=i8)*4+rw_h%n_basis*4+rw_h%nnz_g*4+prev_nnz*8
 
    call MPI_File_read_at_all(f_handle,offset,mat,rw_h%nnz_l_sp,mpi_real8,&
            mpi_status_ignore,mpierr)
@@ -947,7 +947,7 @@ subroutine elsi_read_mat_complex_mp(rw_h,f_name,mat)
    call elsi_allocate(aux_h,col_ptr,rw_h%n_lcol_sp+1,"col_ptr",caller)
 
    ! Read column pointer
-   offset = HEADER_SIZE*4+rw_h%myid*n_lcol0*4
+   offset = int(HEADER_SIZE,kind=i8)*4+rw_h%myid*n_lcol0*4
 
    call MPI_File_read_at_all(f_handle,offset,col_ptr,rw_h%n_lcol_sp+1,&
            mpi_integer4,mpi_status_ignore,mpierr)
@@ -966,13 +966,13 @@ subroutine elsi_read_mat_complex_mp(rw_h,f_name,mat)
    call elsi_allocate(aux_h,row_ind,rw_h%nnz_l_sp,"row_ind",caller)
 
    ! Read row index
-   offset = HEADER_SIZE*4+rw_h%n_basis*4+prev_nnz*4
+   offset = int(HEADER_SIZE,kind=i8)*4+rw_h%n_basis*4+prev_nnz*4
 
    call MPI_File_read_at_all(f_handle,offset,row_ind,rw_h%nnz_l_sp,&
            mpi_integer4,mpi_status_ignore,mpierr)
 
    ! Read non-zero value
-   offset = HEADER_SIZE*4+rw_h%n_basis*4+rw_h%nnz_g*4+prev_nnz*16
+   offset = int(HEADER_SIZE,kind=i8)*4+rw_h%n_basis*4+rw_h%nnz_g*4+prev_nnz*16
 
    call elsi_allocate(aux_h,nnz_val,rw_h%nnz_l_sp,"nnz_val",caller)
 
@@ -1059,7 +1059,7 @@ subroutine elsi_read_mat_complex_sparse(rw_h,f_name,row_ind,col_ptr,mat)
    n_lcol0 = rw_h%n_basis/rw_h%n_procs
 
    ! Read column pointer
-   offset = HEADER_SIZE*4+rw_h%myid*n_lcol0*4
+   offset = int(HEADER_SIZE,kind=i8)*4+rw_h%myid*n_lcol0*4
 
    call MPI_File_read_at_all(f_handle,offset,col_ptr,rw_h%n_lcol_sp+1,&
            mpi_integer4,mpi_status_ignore,mpierr)
@@ -1073,13 +1073,13 @@ subroutine elsi_read_mat_complex_sparse(rw_h,f_name,row_ind,col_ptr,mat)
    col_ptr  = col_ptr-prev_nnz
 
    ! Read row index
-   offset = HEADER_SIZE*4+rw_h%n_basis*4+prev_nnz*4
+   offset = int(HEADER_SIZE,kind=i8)*4+rw_h%n_basis*4+prev_nnz*4
 
    call MPI_File_read_at_all(f_handle,offset,row_ind,rw_h%nnz_l_sp,&
            mpi_integer4,mpi_status_ignore,mpierr)
 
    ! Read non-zero value
-   offset = HEADER_SIZE*4+rw_h%n_basis*4+rw_h%nnz_g*4+prev_nnz*16
+   offset = int(HEADER_SIZE,kind=i8)*4+rw_h%n_basis*4+rw_h%nnz_g*4+prev_nnz*16
 
    call MPI_File_read_at_all(f_handle,offset,mat,rw_h%nnz_l_sp,mpi_complex16,&
            mpi_status_ignore,mpierr)
@@ -1161,7 +1161,7 @@ subroutine elsi_write_mat_real_mp(rw_h,f_name,mat)
    header(4)    = rw_h%n_basis
    header(5)    = int(rw_h%n_electrons,kind=i4)
    header(6)    = aux_h%nnz_g
-   header(7:8)  = 0
+   header(7:8)  = UNSET
    header(9:16) = rw_h%header_user
 
    if(rw_h%myid == 0) then
@@ -1182,19 +1182,19 @@ subroutine elsi_write_mat_real_mp(rw_h,f_name,mat)
 
    ! Write column pointer
    n_lcol0 = rw_h%n_basis/rw_h%n_procs
-   offset  = HEADER_SIZE*4+rw_h%myid*n_lcol0*4
+   offset  = int(HEADER_SIZE,kind=i8)*4+rw_h%myid*n_lcol0*4
 
    call MPI_File_write_at_all(f_handle,offset,aux_h%col_ptr_sips,&
            aux_h%n_lcol_sp,mpi_integer4,mpi_status_ignore,mpierr)
 
    ! Write row index
-   offset = HEADER_SIZE*4+rw_h%n_basis*4+prev_nnz*4
+   offset = int(HEADER_SIZE,kind=i8)*4+rw_h%n_basis*4+prev_nnz*4
 
    call MPI_File_write_at_all(f_handle,offset,aux_h%row_ind_sips,&
            aux_h%nnz_l_sp,mpi_integer4,mpi_status_ignore,mpierr)
 
    ! Write non-zero value
-   offset = HEADER_SIZE*4+rw_h%n_basis*4+aux_h%nnz_g*4+prev_nnz*8
+   offset = int(HEADER_SIZE,kind=i8)*4+rw_h%n_basis*4+aux_h%nnz_g*4+prev_nnz*8
 
    call MPI_File_write_at_all(f_handle,offset,aux_h%ham_real_sips,&
            aux_h%nnz_l_sp,mpi_real8,mpi_status_ignore,mpierr)
@@ -1276,7 +1276,7 @@ subroutine elsi_write_mat_complex_mp(rw_h,f_name,mat)
    header(4)    = rw_h%n_basis
    header(5)    = int(rw_h%n_electrons,kind=i4)
    header(6)    = aux_h%nnz_g
-   header(7:8)  = 0
+   header(7:8)  = UNSET
    header(9:16) = rw_h%header_user
 
    if(rw_h%myid == 0) then
@@ -1297,19 +1297,19 @@ subroutine elsi_write_mat_complex_mp(rw_h,f_name,mat)
 
    ! Write column pointer
    n_lcol0 = rw_h%n_basis/rw_h%n_procs
-   offset  = HEADER_SIZE*4+rw_h%myid*n_lcol0*4
+   offset  = int(HEADER_SIZE,kind=i8)*4+rw_h%myid*n_lcol0*4
 
    call MPI_File_write_at_all(f_handle,offset,aux_h%col_ptr_sips,&
            aux_h%n_lcol_sp,mpi_integer4,mpi_status_ignore,mpierr)
 
    ! Write row index
-   offset = HEADER_SIZE*4+rw_h%n_basis*4+prev_nnz*4
+   offset = int(HEADER_SIZE,kind=i8)*4+rw_h%n_basis*4+prev_nnz*4
 
    call MPI_File_write_at_all(f_handle,offset,aux_h%row_ind_sips,&
            aux_h%nnz_l_sp,mpi_integer4,mpi_status_ignore,mpierr)
 
    ! Write non-zero value
-   offset = HEADER_SIZE*4+rw_h%n_basis*4+aux_h%nnz_g*4+prev_nnz*16
+   offset = int(HEADER_SIZE,kind=i8)*4+rw_h%n_basis*4+aux_h%nnz_g*4+prev_nnz*16
 
    call MPI_File_write_at_all(f_handle,offset,aux_h%ham_cmplx_sips,&
            aux_h%nnz_l_sp,mpi_complex16,mpi_status_ignore,mpierr)
@@ -1377,7 +1377,7 @@ subroutine elsi_write_mat_real_sparse(rw_h,f_name,row_ind,col_ptr,mat)
    header(4)    = rw_h%n_basis
    header(5)    = int(rw_h%n_electrons,kind=i4)
    header(6)    = rw_h%nnz_g
-   header(7:8)  = 0
+   header(7:8)  = UNSET
    header(9:16) = rw_h%header_user
 
    if(rw_h%myid == 0) then
@@ -1400,7 +1400,7 @@ subroutine elsi_write_mat_real_sparse(rw_h,f_name,row_ind,col_ptr,mat)
 
    ! Write column pointer
    n_lcol0 = rw_h%n_basis/rw_h%n_procs
-   offset  = HEADER_SIZE*4+rw_h%myid*n_lcol0*4
+   offset  = int(HEADER_SIZE,kind=i8)*4+rw_h%myid*n_lcol0*4
 
    call MPI_File_write_at_all(f_handle,offset,col_ptr_shift,rw_h%n_lcol_sp,&
            mpi_integer4,mpi_status_ignore,mpierr)
@@ -1408,13 +1408,13 @@ subroutine elsi_write_mat_real_sparse(rw_h,f_name,row_ind,col_ptr,mat)
    deallocate(col_ptr_shift)
 
    ! Write row index
-   offset = HEADER_SIZE*4+rw_h%n_basis*4+prev_nnz*4
+   offset = int(HEADER_SIZE,kind=i8)*4+rw_h%n_basis*4+prev_nnz*4
 
    call MPI_File_write_at_all(f_handle,offset,row_ind,rw_h%nnz_l_sp,&
            mpi_integer4,mpi_status_ignore,mpierr)
 
    ! Write non-zero value
-   offset = HEADER_SIZE*4+rw_h%n_basis*4+rw_h%nnz_g*4+prev_nnz*8
+   offset = int(HEADER_SIZE,kind=i8)*4+rw_h%n_basis*4+rw_h%nnz_g*4+prev_nnz*8
 
    call MPI_File_write_at_all(f_handle,offset,mat,rw_h%nnz_l_sp,mpi_real8,&
            mpi_status_ignore,mpierr)
@@ -1480,7 +1480,7 @@ subroutine elsi_write_mat_complex_sparse(rw_h,f_name,row_ind,col_ptr,mat)
    header(4)    = rw_h%n_basis
    header(5)    = int(rw_h%n_electrons,kind=i4)
    header(6)    = rw_h%nnz_g
-   header(7:8)  = 0
+   header(7:8)  = UNSET
    header(9:16) = rw_h%header_user
 
    if(rw_h%myid == 0) then
@@ -1503,7 +1503,7 @@ subroutine elsi_write_mat_complex_sparse(rw_h,f_name,row_ind,col_ptr,mat)
 
    ! Write column pointer
    n_lcol0 = rw_h%n_basis/rw_h%n_procs
-   offset  = HEADER_SIZE*4+rw_h%myid*n_lcol0*4
+   offset  = int(HEADER_SIZE,kind=i8)*4+rw_h%myid*n_lcol0*4
 
    call MPI_File_write_at_all(f_handle,offset,col_ptr_shift,rw_h%n_lcol_sp,&
            mpi_integer4,mpi_status_ignore,mpierr)
@@ -1511,13 +1511,13 @@ subroutine elsi_write_mat_complex_sparse(rw_h,f_name,row_ind,col_ptr,mat)
    deallocate(col_ptr_shift)
 
    ! Write row index
-   offset = HEADER_SIZE*4+rw_h%n_basis*4+prev_nnz*4
+   offset = int(HEADER_SIZE,kind=i8)*4+rw_h%n_basis*4+prev_nnz*4
 
    call MPI_File_write_at_all(f_handle,offset,row_ind,rw_h%nnz_l_sp,&
            mpi_integer4,mpi_status_ignore,mpierr)
 
    ! Write non-zero value
-   offset = HEADER_SIZE*4+rw_h%n_basis*4+rw_h%nnz_g*4+prev_nnz*16
+   offset = int(HEADER_SIZE,kind=i8)*4+rw_h%n_basis*4+rw_h%nnz_g*4+prev_nnz*16
 
    call MPI_File_write_at_all(f_handle,offset,mat,rw_h%nnz_l_sp,mpi_complex16,&
            mpi_status_ignore,mpierr)
@@ -1642,7 +1642,7 @@ subroutine elsi_read_mat_real_sp(rw_h,f_name,mat)
    call elsi_allocate(aux_h,col_ptr,rw_h%n_lcol_sp+1,"col_ptr",caller)
 
    ! Read column pointer
-   offset = 1+HEADER_SIZE*4
+   offset = int(1,kind=i8)+HEADER_SIZE*4
 
    read(unit=99,pos=offset) col_ptr(1:rw_h%n_lcol_sp)
 
@@ -1651,12 +1651,12 @@ subroutine elsi_read_mat_real_sp(rw_h,f_name,mat)
    call elsi_allocate(aux_h,row_ind,rw_h%nnz_l_sp,"row_ind",caller)
 
    ! Read row index
-   offset = 1+HEADER_SIZE*4+rw_h%n_basis*4
+   offset = int(1,kind=i8)+HEADER_SIZE*4+rw_h%n_basis*4
 
    read(unit=99,pos=offset) row_ind
 
    ! Read non-zero value
-   offset = 1+HEADER_SIZE*4+rw_h%n_basis*4+rw_h%nnz_g*4
+   offset = int(1,kind=i8)+HEADER_SIZE*4+rw_h%n_basis*4+rw_h%nnz_g*4
 
    call elsi_allocate(aux_h,nnz_val,rw_h%nnz_l_sp,"nnz_val",caller)
 
@@ -1751,7 +1751,7 @@ subroutine elsi_read_mat_complex_sp(rw_h,f_name,mat)
    call elsi_allocate(aux_h,col_ptr,rw_h%n_lcol_sp+1,"col_ptr",caller)
 
    ! Read column pointer
-   offset = 1+HEADER_SIZE*4
+   offset = int(1,kind=i8)+HEADER_SIZE*4
 
    read(unit=99,pos=offset) col_ptr(1:rw_h%n_lcol_sp)
 
@@ -1760,12 +1760,12 @@ subroutine elsi_read_mat_complex_sp(rw_h,f_name,mat)
    call elsi_allocate(aux_h,row_ind,rw_h%nnz_l_sp,"row_ind",caller)
 
    ! Read row index
-   offset = 1+HEADER_SIZE*4+rw_h%n_basis*4
+   offset = int(1,kind=i8)+HEADER_SIZE*4+rw_h%n_basis*4
 
    read(unit=99,pos=offset) row_ind
 
    ! Read non-zero value
-   offset = 1+HEADER_SIZE*4+rw_h%n_basis*4+rw_h%nnz_g*4
+   offset = int(1,kind=i8)+HEADER_SIZE*4+rw_h%n_basis*4+rw_h%nnz_g*4
 
    call elsi_allocate(aux_h,nnz_val,rw_h%nnz_l_sp,"nnz_val",caller)
 
@@ -1876,24 +1876,24 @@ subroutine elsi_write_mat_real_sp(rw_h,f_name,mat)
    header(4)    = rw_h%n_basis
    header(5)    = int(rw_h%n_electrons,kind=i4)
    header(6)    = nnz_g
-   header(7:8)  = 0
+   header(7:8)  = UNSET
    header(9:16) = rw_h%header_user
 
    offset = 1
    write(unit=99,pos=offset) header
 
    ! Write column pointer
-   offset = 1+HEADER_SIZE*4
+   offset = int(1,kind=i8)+HEADER_SIZE*4
 
    write(unit=99,pos=offset) col_ptr(1:rw_h%n_basis)
 
    ! Write row index
-   offset = 1+HEADER_SIZE*4+rw_h%n_basis*4
+   offset = int(1,kind=i8)+HEADER_SIZE*4+rw_h%n_basis*4
 
    write(unit=99,pos=offset) row_ind
 
    ! Write non-zero value
-   offset = 1+HEADER_SIZE*4+rw_h%n_basis*4+nnz_g*4
+   offset = int(1,kind=i8)+HEADER_SIZE*4+rw_h%n_basis*4+nnz_g*4
 
    write(unit=99,pos=offset) nnz_val
 
@@ -1988,24 +1988,24 @@ subroutine elsi_write_mat_complex_sp(rw_h,f_name,mat)
    header(4)    = rw_h%n_basis
    header(5)    = int(rw_h%n_electrons,kind=i4)
    header(6)    = nnz_g
-   header(7:8)  = 0
+   header(7:8)  = UNSET
    header(9:16) = rw_h%header_user
 
    offset = 1
    write(unit=99,pos=offset) header
 
    ! Write column pointer
-   offset = 1+HEADER_SIZE*4
+   offset = int(1,kind=i8)+HEADER_SIZE*4
 
    write(unit=99,pos=offset) col_ptr(1:rw_h%n_basis)
 
    ! Write row index
-   offset = 1+HEADER_SIZE*4+rw_h%n_basis*4
+   offset = int(1,kind=i8)+HEADER_SIZE*4+rw_h%n_basis*4
 
    write(unit=99,pos=offset) row_ind
 
    ! Write non-zero value
-   offset = 1+HEADER_SIZE*4+rw_h%n_basis*4+nnz_g*4
+   offset = int(1,kind=i8)+HEADER_SIZE*4+rw_h%n_basis*4+nnz_g*4
 
    write(unit=99,pos=offset) nnz_val
 
