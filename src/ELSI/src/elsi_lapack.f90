@@ -70,11 +70,9 @@ subroutine elsi_to_standard_evp_sp(e_h)
 
    select case(e_h%data_type)
    case(COMPLEX_VALUES)
-      if(e_h%n_elsi_calls == 1) then
-         if(.not. e_h%no_sing_check) then
-            call elsi_check_singularity_sp(e_h)
-         endif
-      endif ! n_elsi_calls == 1
+      if(.not. e_h%no_sing_check) then
+         call elsi_check_singularity_sp(e_h)
+      endif
 
       if(e_h%n_nonsing == e_h%n_basis) then ! Not singular
          call elsi_get_time(e_h,t0)
@@ -152,11 +150,9 @@ subroutine elsi_to_standard_evp_sp(e_h)
       write(info_str,"('  | Time :',F10.3,' s')") t1-t0
       call elsi_say(info_str,e_h)
    case(REAL_VALUES)
-      if(e_h%n_elsi_calls == 1) then
-         if(.not. e_h%no_sing_check) then
-            call elsi_check_singularity_sp(e_h)
-         endif
-      endif ! n_elsi_calls == 1
+      if(.not. e_h%no_sing_check) then
+         call elsi_check_singularity_sp(e_h)
+      endif
 
       if(e_h%n_nonsing == e_h%n_basis) then ! Not singular
          call elsi_get_time(e_h,t0)
