@@ -168,11 +168,6 @@ subroutine elsi_solve_evp_sips(e_h)
          call elsi_say(e_h,info_str)
       endif
    else
-      ! FIXME
-      if(e_h%myid == 0) then
-         print *,"eval:",e_h%eval(1:10)
-      endif
-
       e_h%interval(1) = e_h%eval(1)-e_h%slice_buffer
       e_h%interval(2) = e_h%eval(e_h%n_states)+e_h%slice_buffer
 
