@@ -305,10 +305,10 @@ subroutine elsi_set_sips_default(e_h)
    e_h%slice_buffer = 1.0_r8
 
    ! Lower bound of eigenvalue
-   e_h%ev_min = -1.0e3_r8
+   e_h%ev_min = -1.0e2_r8
 
    ! Upper bound of eigenvalue
-   e_h%ev_max = 3.0e1_r8
+   e_h%ev_max = 1.0e1_r8
 
 end subroutine
 

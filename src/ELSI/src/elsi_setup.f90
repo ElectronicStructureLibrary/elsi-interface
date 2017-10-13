@@ -133,6 +133,7 @@ subroutine elsi_init(e_h,solver,parallel_mode,matrix_format,n_basis,n_electron,&
 
    ! Set SIPs default
    if(solver == SIPS_SOLVER) then
+      call elsi_set_elpa_default(e_h)
       call elsi_set_sips_default(e_h)
    endif
 
