@@ -192,7 +192,7 @@ subroutine elsi_reset_handle(e_h)
    e_h%n_single_steps   = UNSET
    e_h%elpa_output      = .false.
    e_h%n_states_omm     = UNSET
-   e_h%n_elpa_steps     = UNSET
+   e_h%omm_n_elpa       = UNSET
    e_h%new_overlap      = .true.
    e_h%coeff_ready      = .false.
    e_h%omm_flavor       = UNSET
@@ -226,6 +226,7 @@ subroutine elsi_reset_handle(e_h)
    e_h%ev_ovlp_max      = 0.0_r8
    e_h%beta             = 0.0_r8
    e_h%chess_started    = .false.
+   e_h%sips_n_elpa      = UNSET
    e_h%np_per_slice     = UNSET
    e_h%n_inertia_steps  = UNSET
    e_h%slicing_method   = UNSET

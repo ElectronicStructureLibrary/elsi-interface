@@ -124,7 +124,7 @@ subroutine elsi_solve_evp_omm(e_h)
             call elsi_say(e_h,info_str)
          endif
 
-         if(e_h%n_elsi_calls > e_h%n_elpa_steps+1) then
+         if(e_h%n_elsi_calls > e_h%omm_n_elpa+1) then
             ! Invert one more time
             select case(e_h%data_type)
             case(COMPLEX_VALUES)
@@ -148,7 +148,7 @@ subroutine elsi_solve_evp_omm(e_h)
       e_h%coeff_ready = .true.
    endif
 
-   if(e_h%n_elsi_calls == e_h%n_elpa_steps+1) then
+   if(e_h%n_elsi_calls == e_h%omm_n_elpa+1) then
       e_h%new_overlap = .true.
    else
       e_h%new_overlap = .false.
@@ -242,7 +242,7 @@ subroutine elsi_set_omm_default(e_h)
    character*40, parameter :: caller = "elsi_set_omm_default"
 
    ! How many steps of ELPA to run before OMM
-   e_h%n_elpa_steps = 6
+   e_h%omm_n_elpa = 6
 
    ! How do we perform the calculation
    ! 0 = Basic

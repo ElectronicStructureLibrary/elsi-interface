@@ -225,7 +225,7 @@ module ELSI_DATATYPE
 
       ! libOMM
       integer(kind=i4) :: n_states_omm  ! Number of states used in libOMM
-      integer(kind=i4) :: n_elpa_steps  ! Number of ELPA steps
+      integer(kind=i4) :: omm_n_elpa    ! Number of ELPA steps
       logical          :: new_overlap
       logical          :: coeff_ready   ! Is coefficient initialized?
       integer(kind=i4) :: omm_flavor    ! 0 = Basic
@@ -270,6 +270,7 @@ module ELSI_DATATYPE
       logical          :: chess_started = .false.
 
       ! SIPs
+      integer(kind=i4) :: sips_n_elpa    ! Number of ELPA steps
       integer(kind=i4) :: np_per_slice
       integer(kind=i4) :: n_inertia_steps
       integer(kind=i4) :: slicing_method ! 0 = Equally spaced
