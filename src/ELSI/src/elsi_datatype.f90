@@ -274,7 +274,6 @@ module ELSI_DATATYPE
       integer(kind=i4) :: np_per_slice
       integer(kind=i4) :: n_inertia_steps
       integer(kind=i4) :: slicing_method ! 0 = Equally spaced
-                                         ! 1 = K-means + equally spaced
                                          ! 2 = Equally populated
                                          ! 3 = K-means + equally populated
       integer(kind=i4) :: inertia_option ! Do inertia counting?

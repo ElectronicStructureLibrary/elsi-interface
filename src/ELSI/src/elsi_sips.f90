@@ -280,10 +280,9 @@ subroutine elsi_set_sips_default(e_h)
 
    ! Type of slices
    ! 0 = Equally spaced subintervals
-   ! 1 = K-meaans after equally spaced subintervals
    ! 2 = Equally populated subintervals
    ! 3 = K-means after equally populated
-   e_h%slicing_method = 3
+   e_h%slicing_method = 2
 
    ! Extra inertia computations before solve?
    ! 0 = No
@@ -297,10 +296,10 @@ subroutine elsi_set_sips_default(e_h)
 
    ! Small buffer to expand the eigenvalue interval
    ! Smaller values improve performance if eigenvalue range known
-   e_h%slice_buffer = 1.0_r8
+   e_h%slice_buffer = 0.5_r8
 
    ! Lower bound of eigenvalue
-   e_h%ev_min = -1.0e2_r8
+   e_h%ev_min = -1.0e1_r8
 
    ! Upper bound of eigenvalue
    e_h%ev_max = 1.0e1_r8
