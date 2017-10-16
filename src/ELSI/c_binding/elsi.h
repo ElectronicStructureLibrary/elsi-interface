@@ -219,6 +219,9 @@ void c_elsi_set_chess_ev_ovlp_min(elsi_handle handle_c,
 void c_elsi_set_chess_ev_ovlp_max(elsi_handle handle_c,
                                   double ev_max);
 
+void c_elsi_set_sips_n_elpa(elsi_handle handle_c,
+                            int n_elpa);
+
 void c_elsi_set_sips_slice_type(elsi_handle handle_c,
                                 int inertia_tol);
 

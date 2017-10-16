@@ -957,6 +957,22 @@ subroutine elsi_set_chess_ev_ovlp_max_c_wrapper(handle_c,ev_max)&
 
 end subroutine
 
+subroutine elsi_set_sips_n_elpa_c_wrapper(handle_c,n_elpa)&
+   bind(C,name="c_elsi_set_sips_n_elpa")
+
+   implicit none
+
+   type(c_ptr),         value, intent(in) :: handle_c
+   integer(kind=c_int), value, intent(in) :: n_elpa
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_sips_n_elpa(handle_f,n_elpa)
+
+end subroutine
+
 subroutine elsi_set_sips_slice_type_c_wrapper(handle_c,slice_type)&
    bind(C,name="c_elsi_set_sips_slice_type")
 
