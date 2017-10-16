@@ -631,6 +631,12 @@ subroutine elsi_cleanup(e_h)
       call elsi_deallocate(e_h,e_h%loc_col,"loc_col")
    endif
 
+   ! Finalize ELPA
+   if(e_h%elpa_started) then
+      call MPI_Comm_free(e_h%mpi_comm_row,ierr)
+      call MPI_Comm_free(e_h%mpi_comm_col,ierr)
+   endif
+
    ! Finalize PEXSI
    if(e_h%pexsi_started) then
       call f_ppexsi_plan_finalize(e_h%pexsi_plan,ierr)

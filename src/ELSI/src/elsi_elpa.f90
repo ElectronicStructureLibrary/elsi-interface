@@ -84,6 +84,8 @@ subroutine elsi_get_elpa_comms(e_h)
       call elsi_stop(" Failed to get MPI communicators.",e_h,caller)
    endif
 
+   e_h%elpa_started = .true.
+
 end subroutine
 
 !>

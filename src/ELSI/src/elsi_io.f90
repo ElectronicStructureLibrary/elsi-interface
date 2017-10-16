@@ -1621,7 +1621,6 @@ subroutine elsi_read_mat_real_sp(rw_h,f_name,mat)
    ! Output
    aux_h%myid_all   = rw_h%myid
    aux_h%print_info = rw_h%print_info
-   aux_h%print_mem  = rw_h%print_mem
    aux_h%print_unit = rw_h%print_unit
 
    call elsi_init_timer(aux_h)

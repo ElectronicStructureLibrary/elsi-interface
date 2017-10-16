@@ -222,6 +222,7 @@ module ELSI_DATATYPE
       integer(kind=i4) :: elpa_solver
       integer(kind=i4) :: n_single_steps
       logical          :: elpa_output
+      logical          :: elpa_started = .false.
 
       ! libOMM
       integer(kind=i4) :: n_states_omm  ! Number of states used in libOMM

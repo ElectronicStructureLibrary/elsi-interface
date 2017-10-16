@@ -191,6 +191,7 @@ subroutine elsi_reset_handle(e_h)
    e_h%elpa_solver      = UNSET
    e_h%n_single_steps   = UNSET
    e_h%elpa_output      = .false.
+   e_h%elpa_started     = .false.
    e_h%n_states_omm     = UNSET
    e_h%n_elpa_steps     = UNSET
    e_h%new_overlap      = .true.
