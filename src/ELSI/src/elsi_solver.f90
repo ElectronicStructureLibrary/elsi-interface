@@ -168,29 +168,60 @@ subroutine elsi_ev_real(e_h,h_in,s_in,eval_out,evec_out)
    case(CHESS_SOLVER)
       call elsi_stop(" CHESS is not an eigensolver.",e_h,caller)
    case(SIPS_SOLVER)
-      ! Initialize SIPs
-      call elsi_init_sips(e_h)
+      if(e_h%n_elsi_calls <= e_h%sips_n_elpa) then
+         if(e_h%n_elsi_calls == 1) then
+            ! Overlap will be destroyed by Cholesky
+            call elsi_allocate(e_h,e_h%ovlp_real_copy,e_h%n_lrow,e_h%n_lcol,&
+                    "ovlp_real_copy",caller)
+            e_h%ovlp_real_copy = s_in
+         endif
 
-      ! Convert 2D dense to 1D CSC
-      if(.not. e_h%ovlp_is_unit .and. e_h%n_elsi_calls == 1) then
-         call elsi_set_full_mat(e_h,s_in)
+         ! Compute eigenvalue distribution by ELPA
+         e_h%solver = ELPA_SOLVER
+
+         ! Set matrices
+         call elsi_set_ham(e_h,h_in)
+         call elsi_set_ovlp(e_h,s_in)
+         call elsi_set_evec(e_h,evec_out)
+         call elsi_set_eval(e_h,eval_out)
+
+         ! Solve
+         call elsi_solve_evp_elpa(e_h)
+
+         ! Switch back to SIPs
+         e_h%solver = SIPS_SOLVER
+      else ! ELPA is done
+         if(allocated(e_h%ovlp_real_copy)) then
+            ! Retrieve overlap matrix that has been destroyed by Cholesky
+            s_in = e_h%ovlp_real_copy
+            call elsi_deallocate(e_h,e_h%ovlp_real_copy,"ovlp_real_copy")
+         endif
+
+         ! Initialize SIPs
+         call elsi_init_sips(e_h)
+
+         ! Convert 2D dense to 1D CSC
+         if(.not. e_h%ovlp_is_unit .and. &
+            e_h%n_elsi_calls == e_h%sips_n_elpa+1) then
+            call elsi_set_full_mat(e_h,s_in)
+         endif
+         call elsi_set_full_mat(e_h,h_in)
+         call elsi_blacs_to_sips_hs(e_h,h_in,s_in)
+
+         ! Set matrices
+         call elsi_set_sparse_ham(e_h,e_h%ham_real_sips)
+         call elsi_set_sparse_ovlp(e_h,e_h%ovlp_real_sips)
+         call elsi_set_row_ind(e_h,e_h%row_ind_sips)
+         call elsi_set_col_ptr(e_h,e_h%col_ptr_sips)
+         call elsi_set_eval(e_h,eval_out)
+         call elsi_set_evec(e_h,evec_out)
+
+         ! Solve
+         call elsi_solve_evp_sips(e_h)
+
+         ! Convert non-distributed dense to 2D dense
+         call elsi_sips_to_blacs_ev(e_h)
       endif
-      call elsi_set_full_mat(e_h,h_in)
-      call elsi_blacs_to_sips_hs(e_h,h_in,s_in)
-
-      ! Set matrices
-      call elsi_set_sparse_ham(e_h,e_h%ham_real_sips)
-      call elsi_set_sparse_ovlp(e_h,e_h%ovlp_real_sips)
-      call elsi_set_row_ind(e_h,e_h%row_ind_sips)
-      call elsi_set_col_ptr(e_h,e_h%col_ptr_sips)
-      call elsi_set_eval(e_h,eval_out)
-      call elsi_set_evec(e_h,evec_out)
-
-      ! Solve
-      call elsi_solve_evp_sips(e_h)
-
-      ! Convert non-distributed dense to 2D dense
-      call elsi_sips_to_blacs_ev(e_h)
    case default
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
@@ -446,7 +477,7 @@ subroutine elsi_dm_real(e_h,h_in,s_in,d_out,energy_out)
 
       e_h%mu_ready = .true.
    case(OMM_SOLVER)
-      if(e_h%n_elsi_calls <= e_h%n_elpa_steps) then
+      if(e_h%n_elsi_calls <= e_h%omm_n_elpa) then
          if(e_h%n_elsi_calls == 1 .and. e_h%omm_flavor == 0) then
             ! Overlap will be destroyed by Cholesky
             call elsi_allocate(e_h,e_h%ovlp_real_copy,e_h%n_lrow,e_h%n_lcol,&
@@ -501,8 +532,7 @@ subroutine elsi_dm_real(e_h,h_in,s_in,d_out,energy_out)
          call elsi_set_dm(e_h,d_out)
 
          ! Initialize coefficient matrix with ELPA eigenvectors if possible
-         if(e_h%n_elpa_steps > 0 .and. &
-            e_h%n_elsi_calls == e_h%n_elpa_steps+1) then
+         if(e_h%omm_n_elpa > 0 .and. e_h%n_elsi_calls == e_h%omm_n_elpa+1) then
             ! libOMM coefficient matrix is the transpose of ELPA eigenvectors
             call pdtran(e_h%n_basis,e_h%n_basis,1.0_r8,e_h%evec_real,1,1,&
                     e_h%sc_desc,0.0_r8,d_out,1,1,e_h%sc_desc)
@@ -685,7 +715,7 @@ subroutine elsi_dm_complex(e_h,h_in,s_in,d_out,energy_out)
 
       e_h%mu_ready = .true.
    case(OMM_SOLVER)
-      if(e_h%n_elsi_calls <= e_h%n_elpa_steps) then
+      if(e_h%n_elsi_calls <= e_h%omm_n_elpa) then
          if(e_h%n_elsi_calls == 1 .and. e_h%omm_flavor == 0) then
             ! Overlap will be destroyed by Cholesky
             call elsi_allocate(e_h,e_h%ovlp_cmplx_copy,e_h%n_lrow,e_h%n_lcol,&
@@ -740,8 +770,7 @@ subroutine elsi_dm_complex(e_h,h_in,s_in,d_out,energy_out)
          call elsi_set_dm(e_h,d_out)
 
          ! Initialize coefficient matrix with ELPA eigenvectors if possible
-         if(e_h%n_elpa_steps > 0 .and. &
-            e_h%n_elsi_calls == e_h%n_elpa_steps+1) then
+         if(e_h%omm_n_elpa > 0 .and. e_h%n_elsi_calls == e_h%omm_n_elpa+1) then
             ! libOMM coefficient matrix is the transpose of ELPA eigenvectors
             call pztranc(e_h%n_basis,e_h%n_basis,(1.0_r8,0.0_r8),&
                     e_h%evec_cmplx,1,1,e_h%sc_desc,(0.0_r8,0.0_r8),d_out,1,1,&
@@ -912,7 +941,7 @@ subroutine elsi_dm_real_sparse(e_h,h_in,s_in,d_out,energy_out)
       ! Convert 1D CSC to 2D dense
       call elsi_sips_to_blacs_hs(e_h,h_in,s_in)
 
-      if(e_h%n_elsi_calls <= e_h%n_elpa_steps) then
+      if(e_h%n_elsi_calls <= e_h%omm_n_elpa) then
          if(e_h%n_elsi_calls == 1 .and. e_h%omm_flavor == 0) then
             ! Overlap will be destroyed by Cholesky
             call elsi_allocate(e_h,e_h%ovlp_real_copy,e_h%n_lrow,e_h%n_lcol,&
@@ -976,8 +1005,7 @@ subroutine elsi_dm_real_sparse(e_h,h_in,s_in,d_out,energy_out)
          call elsi_set_dm(e_h,e_h%dm_real_elpa)
 
          ! Initialize coefficient matrix with ELPA eigenvectors if possible
-         if(e_h%n_elpa_steps > 0 .and. &
-            e_h%n_elsi_calls == e_h%n_elpa_steps+1) then
+         if(e_h%omm_n_elpa > 0 .and. e_h%n_elsi_calls == e_h%omm_n_elpa+1) then
             ! libOMM coefficient matrix is the transpose of ELPA eigenvectors
             call pdtran(e_h%n_basis,e_h%n_basis,1.0_r8,e_h%evec_real,1,1,&
                     e_h%sc_desc,0.0_r8,e_h%dm_real_elpa,1,1,e_h%sc_desc)
@@ -1125,7 +1153,7 @@ subroutine elsi_dm_complex_sparse(e_h,h_in,s_in,d_out,energy_out)
       ! Convert 1D CSC to 2D dense
       call elsi_sips_to_blacs_hs(e_h,h_in,s_in)
 
-      if(e_h%n_elsi_calls <= e_h%n_elpa_steps) then
+      if(e_h%n_elsi_calls <= e_h%omm_n_elpa) then
          if(e_h%n_elsi_calls == 1 .and. e_h%omm_flavor == 0) then
             ! Overlap will be destroyed by Cholesky
             call elsi_allocate(e_h,e_h%ovlp_cmplx_copy,e_h%n_lrow,e_h%n_lcol,&
@@ -1189,8 +1217,7 @@ subroutine elsi_dm_complex_sparse(e_h,h_in,s_in,d_out,energy_out)
          call elsi_set_dm(e_h,e_h%dm_cmplx_elpa)
 
          ! Initialize coefficient matrix with ELPA eigenvectors if possible
-         if(e_h%n_elpa_steps > 0 .and. &
-            e_h%n_elsi_calls == e_h%n_elpa_steps+1) then
+         if(e_h%omm_n_elpa > 0 .and. e_h%n_elsi_calls == e_h%omm_n_elpa+1) then
             ! libOMM coefficient matrix is the transpose of ELPA eigenvectors
             call pztranc(e_h%n_basis,e_h%n_basis,(1.0_r8,0.0_r8),&
                     e_h%evec_cmplx,1,1,e_h%sc_desc,(0.0_r8,0.0_r8),&
@@ -1367,7 +1394,7 @@ subroutine elsi_print_settings(e_h)
    case(OMM_SOLVER)
       call elsi_say(e_h,"  libOMM settings:")
 
-      write(info_str,"('  | Number of ELPA steps       ',I10)") e_h%n_elpa_steps
+      write(info_str,"('  | Number of ELPA steps       ',I10)") e_h%omm_n_elpa
       call elsi_say(e_h,info_str)
 
       write(info_str,"('  | OMM minimization flavor    ',I10)") e_h%omm_flavor

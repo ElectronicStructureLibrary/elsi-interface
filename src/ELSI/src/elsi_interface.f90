@@ -91,6 +91,7 @@ module ELSI
    public :: elsi_set_chess_ev_ham_max
    public :: elsi_set_chess_ev_ovlp_min
    public :: elsi_set_chess_ev_ovlp_max
+   public :: elsi_set_sips_n_elpa
    public :: elsi_set_sips_slice_type
    public :: elsi_set_sips_n_slice
    public :: elsi_set_sips_inertia

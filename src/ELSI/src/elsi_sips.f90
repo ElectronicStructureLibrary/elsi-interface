@@ -61,7 +61,7 @@ subroutine elsi_init_sips(e_h)
 
    character*40, parameter :: caller = "elsi_init_sips"
 
-   if(e_h%n_elsi_calls == 1) then
+   if(e_h%n_elsi_calls == e_h%sips_n_elpa+1) then
       call initialize_qetsc()
 
       if(e_h%n_slices == UNSET) then
@@ -111,7 +111,7 @@ subroutine elsi_solve_evp_sips(e_h)
    ! Solve the eigenvalue problem
    call elsi_say(e_h,"  Starting SIPs eigensolver")
 
-   if(e_h%n_elsi_calls == 1) then
+   if(e_h%n_elsi_calls == e_h%sips_n_elpa+1) then
       ! Load H matrix
       call eps_load_ham(e_h%n_basis,e_h%n_lcol_sp,e_h%nnz_l_sp,&
               e_h%row_ind_ccs,e_h%col_ptr_ccs,e_h%ham_real_ccs)
@@ -125,7 +125,15 @@ subroutine elsi_solve_evp_sips(e_h)
       else
          call set_eps(e_h%ev_min,e_h%ev_max,math)
       endif
+   else ! n_elsi_calls > sips_n_elpa+1
+      ! Update H matrix
+      call eps_update_ham(e_h%n_basis,e_h%n_lcol_sp,e_h%nnz_l_sp,&
+              e_h%row_ind_ccs,e_h%col_ptr_ccs,e_h%ham_real_ccs)
 
+      call update_eps(e_h%n_slices)
+   endif
+
+   if(e_h%sips_n_elpa < 1 .and. e_h%n_elsi_calls == 1) then
       ! Estimate the lower and upper bounds of eigenvalues
       e_h%interval = get_eps_interval()
 
@@ -159,13 +167,7 @@ subroutine elsi_solve_evp_sips(e_h)
          write(info_str,"('  | Time :',F10.3,' s')") t1-t0
          call elsi_say(e_h,info_str)
       endif
-   else ! n_elsi_calls > 1
-      ! Update H matrix
-      call eps_update_ham(e_h%n_basis,e_h%n_lcol_sp,e_h%nnz_l_sp,&
-              e_h%row_ind_ccs,e_h%col_ptr_ccs,e_h%ham_real_ccs)
-
-      call update_eps(e_h%n_slices)
-
+   else
       e_h%interval(1) = e_h%eval(1)-e_h%slice_buffer
       e_h%interval(2) = e_h%eval(e_h%n_states)+e_h%slice_buffer
 
@@ -273,12 +275,14 @@ subroutine elsi_set_sips_default(e_h)
 
    character*40, parameter :: caller = "elsi_set_sips_default"
 
+   ! How many steps of ELPA to run before SIPs
+   e_h%sips_n_elpa = 0
+
    ! Type of slices
    ! 0 = Equally spaced subintervals
-   ! 1 = K-meaans after equally spaced subintervals
    ! 2 = Equally populated subintervals
    ! 3 = K-means after equally populated
-   e_h%slicing_method = 3
+   e_h%slicing_method = 2
 
    ! Extra inertia computations before solve?
    ! 0 = No
@@ -295,10 +299,10 @@ subroutine elsi_set_sips_default(e_h)
    e_h%slice_buffer = 0.5_r8
 
    ! Lower bound of eigenvalue
-   e_h%ev_min = -1.0e3_r8
+   e_h%ev_min = -1.0e1_r8
 
    ! Upper bound of eigenvalue
-   e_h%ev_max = 3.0e1_r8
+   e_h%ev_max = 1.0e1_r8
 
 end subroutine
 

@@ -78,6 +78,7 @@ module ELSI_MUTATOR
    public :: elsi_set_chess_ev_ham_max
    public :: elsi_set_chess_ev_ovlp_min
    public :: elsi_set_chess_ev_ovlp_max
+   public :: elsi_set_sips_n_elpa
    public :: elsi_set_sips_slice_type
    public :: elsi_set_sips_n_slice
    public :: elsi_set_sips_inertia
@@ -354,11 +355,11 @@ subroutine elsi_set_omm_n_elpa(e_h,n_elpa)
    type(elsi_handle), intent(inout) :: e_h    !< Handle
    integer(kind=i4),  intent(in)    :: n_elpa !< ELPA steps
 
-   character*40, parameter :: caller = "elsi_set_n_elpa"
+   character*40, parameter :: caller = "elsi_set_omm_n_elpa"
 
    call elsi_check_handle(e_h,caller)
 
-   e_h%n_elpa_steps = n_elpa
+   e_h%omm_n_elpa = n_elpa
 
 end subroutine
 
@@ -759,6 +760,24 @@ subroutine elsi_set_chess_ev_ovlp_max(e_h,ev_max)
 end subroutine
 
 !>
+!! This routine sets the number of ELPA steps when using SIPs.
+!!
+subroutine elsi_set_sips_n_elpa(e_h,n_elpa)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h    !< Handle
+   integer(kind=i4),  intent(in)    :: n_elpa !< ELPA steps
+
+   character*40, parameter :: caller = "elsi_set_sips_n_elpa"
+
+   call elsi_check_handle(e_h,caller)
+
+   e_h%sips_n_elpa = n_elpa
+
+end subroutine
+
+!>
 !! This routine switches on and off inertia counting in SIPs.
 !!
 subroutine elsi_set_sips_inertia(e_h,do_inertia)
@@ -794,7 +813,7 @@ subroutine elsi_set_sips_slice_type(e_h,slice_type)
 
    call elsi_check_handle(e_h,caller)
 
-   if(slice_type < 0 .or. slice_type > 5) then
+   if(slice_type < 2 .or. slice_type > 3) then
       call elsi_stop(" Unsupported slice_type.",e_h,caller)
    endif
 
