@@ -111,6 +111,8 @@ subroutine elsi_solve_evp_sips(e_h)
    ! Solve the eigenvalue problem
    call elsi_say(e_h,"  Starting SIPs eigensolver")
 
+   call elsi_get_time(e_h,t0)
+
    if(e_h%n_elsi_calls == e_h%sips_n_elpa+1) then
       ! Load H matrix
       call eps_load_ham(e_h%n_basis,e_h%n_lcol_sp,e_h%nnz_l_sp,&
@@ -132,6 +134,13 @@ subroutine elsi_solve_evp_sips(e_h)
 
       call update_eps(e_h%n_slices)
    endif
+
+   call elsi_get_time(e_h,t1)
+
+   write(info_str,"('  Finished loading matrices')")
+   call elsi_say(e_h,info_str)
+   write(info_str,"('  | Time :',F10.3,' s')") t1-t0
+   call elsi_say(e_h,info_str)
 
    if(e_h%sips_n_elpa < 1 .and. e_h%n_elsi_calls == 1) then
       ! Estimate the lower and upper bounds of eigenvalues
@@ -183,6 +192,15 @@ subroutine elsi_solve_evp_sips(e_h)
    ! Solve
    call solve_eps_check(e_h%n_states,e_h%n_slices,e_h%slices,n_solve_steps)
 
+   call elsi_get_time(e_h,t1)
+
+   write(info_str,"('  Finished solving generalized eigenproblem')")
+   call elsi_say(e_h,info_str)
+   write(info_str,"('  | Time :',F10.3,' s')") t1-t0
+   call elsi_say(e_h,info_str)
+
+   call elsi_get_time(e_h,t0)
+
    ! Get eigenvalues
    e_h%eval(1:e_h%n_states) = get_eps_eigenvalues(e_h%n_states)
 
@@ -190,7 +208,7 @@ subroutine elsi_solve_evp_sips(e_h)
 
    call elsi_get_time(e_h,t1)
 
-   write(info_str,"('  Finished solving generalized eigenproblem')")
+   write(info_str,"('  Finished retrieving eigenvalues')")
    call elsi_say(e_h,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
    call elsi_say(e_h,info_str)
