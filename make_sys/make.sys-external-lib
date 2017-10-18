@@ -1,6 +1,6 @@
 # PLATFORM  : TIMEWARP @DUKE
 # COMPILERS : INTEL
-# VERIFIED  : SEPT 22, 2017
+# VERIFIED  : OCT 18, 2017
 # DO READ ../INSTALL CAREFULLY!
 
 # Note:  This make.sys is provided to demonstrate external linkage against

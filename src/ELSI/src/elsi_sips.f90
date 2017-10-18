@@ -192,15 +192,6 @@ subroutine elsi_solve_evp_sips(e_h)
    ! Solve
    call solve_eps_check(e_h%n_states,e_h%n_slices,e_h%slices,n_solve_steps)
 
-   call elsi_get_time(e_h,t1)
-
-   write(info_str,"('  Finished solving generalized eigenproblem')")
-   call elsi_say(e_h,info_str)
-   write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h,info_str)
-
-   call elsi_get_time(e_h,t0)
-
    ! Get eigenvalues
    e_h%eval(1:e_h%n_states) = get_eps_eigenvalues(e_h%n_states)
 
@@ -208,7 +199,7 @@ subroutine elsi_solve_evp_sips(e_h)
 
    call elsi_get_time(e_h,t1)
 
-   write(info_str,"('  Finished retrieving eigenvalues')")
+   write(info_str,"('  Finished solving generalized eigenproblem')")
    call elsi_say(e_h,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
    call elsi_say(e_h,info_str)
