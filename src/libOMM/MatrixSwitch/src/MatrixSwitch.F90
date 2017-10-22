@@ -890,7 +890,16 @@ contains
        else
           i=A%dim2
        end if
-       call dgemm(opA,opB,C%dim1,C%dim2,i,alpha,A%dval,A%dim1,B%dval,B%dim1,beta,C%dval,C%dim1)
+        if ((A%is_symm) .and. (opB=='n')) then
+            call dsymm('l','u',C%dim1,C%dim2,alpha, &
+            A%dval,A%dim1,B%dval,B%dim1,beta,C%dval,C%dim1)
+        else if ((B%is_symm) .and. (opA=='n')) then
+            call dsymm('r','u',C%dim1,C%dim2,alpha, &
+            B%dval,B%dim1,A%dval,A%dim1,beta,C%dval,C%dim1)
+        else
+            call dgemm(opA,opB,C%dim1,C%dim2,i,alpha, &
+            A%dval,A%dim1,B%dval,B%dim1,beta,C%dval,C%dim1)
+        end if
 #else
        call die('mm_dmultiply: compile with LAPACK')
 #endif
@@ -901,7 +910,16 @@ contains
        else
           i=A%dim2
        end if
-       call pdgemm(opA,opB,C%dim1,C%dim2,i,alpha,A%dval,1,1,A%iaux1,B%dval,1,1,B%iaux1,beta,C%dval,1,1,C%iaux1)
+        if ((A%is_symm) .and. (opB=='n')) then
+            call pdsymm('l','u',C%dim1,C%dim2,alpha, &
+            A%dval,1,1,A%iaux1,B%dval,1,1,B%iaux1,beta,C%dval,1,1,C%iaux1)
+        else if ((B%is_symm) .and. (opA=='n')) then
+            call pdsymm('r','u',C%dim1,C%dim2,alpha, &
+            B%dval,1,1,B%iaux1,A%dval,1,1,A%iaux1,beta,C%dval,1,1,C%iaux1)
+        else
+            call pdgemm(opA,opB,C%dim1,C%dim2,i,alpha, &
+            A%dval,1,1,A%iaux1,B%dval,1,1,B%iaux1,beta,C%dval,1,1,C%iaux1)
+        end if
 #else
        call die('mm_dmultiply: compile with ScaLAPACK')
 #endif
@@ -1223,7 +1241,16 @@ contains
        else
           i=A%dim2
        end if
-       call zgemm(opA,opB,C%dim1,C%dim2,i,alpha,A%zval,A%dim1,B%zval,B%dim1,beta,C%zval,C%dim1)
+        if ((A%is_symm) .and. (opB=='n')) then
+            call zsymm('l','u',C%dim1,C%dim2,alpha, &
+            A%zval,A%dim1,B%zval,B%dim1,beta,C%zval,C%dim1)
+        else if ((B%is_symm) .and. (opA=='n')) then
+            call zsymm('r','u',C%dim1,C%dim2,alpha, &
+            B%zval,B%dim1,A%zval,A%dim1,beta,C%zval,C%dim1)
+        else
+            call zgemm(opA,opB,C%dim1,C%dim2,i,alpha, &
+            A%zval,A%dim1,B%zval,B%dim1,beta,C%zval,C%dim1)
+        end if
 #else
        call die('mm_zmultiply: compile with LAPACK')
 #endif
@@ -1234,7 +1261,16 @@ contains
        else
           i=A%dim2
        end if
-       call pzgemm(opA,opB,C%dim1,C%dim2,i,alpha,A%zval,1,1,A%iaux1,B%zval,1,1,B%iaux1,beta,C%zval,1,1,C%iaux1)
+        if ((A%is_symm) .and. (opB=='n')) then
+            call pzsymm('l','u',C%dim1,C%dim2,alpha, &
+            A%zval,1,1,A%iaux1,B%zval,1,1,B%iaux1,beta,C%zval,1,1,C%iaux1)
+        else if ((B%is_symm) .and. (opA=='n')) then
+            call pzsymm('r','u',C%dim1,C%dim2,alpha, &
+            B%zval,1,1,B%iaux1,A%zval,1,1,A%iaux1,beta,C%zval,1,1,C%iaux1)
+        else
+            call pzgemm(opA,opB,C%dim1,C%dim2,i,alpha, &
+            A%zval,1,1,A%iaux1,B%zval,1,1,B%iaux1,beta,C%zval,1,1,C%iaux1)
+        end if
 #else
        call die('mm_zmultiply: compile with ScaLAPACK')
 #endif

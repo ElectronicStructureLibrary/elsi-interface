@@ -41,6 +41,7 @@ module MatrixSwitch_ops
      logical :: is_serial ! is the matrix serial or parallel distributed?
      logical :: is_real ! is the matrix real or complex (both kind dp)?
      logical :: is_square ! is the matrix square?
+     logical :: is_symm ! is the matrix symmetric?
      logical :: is_sparse ! is the matrix sparse?
      logical :: iaux1_is_allocated=.false. ! is iaux1 directly allocated?
      logical :: iaux2_is_allocated=.false. ! is iaux2 directly allocated?
