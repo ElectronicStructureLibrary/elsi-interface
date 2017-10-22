@@ -113,7 +113,6 @@ subroutine elsi_set_real_ham(e_h,h_in)
 
    if(e_h%solver == OMM_SOLVER) then
       call m_register_pdbc(e_h%ham_omm,h_in,e_h%sc_desc)
-      e_h%ham_omm%is_symm = .true.
    else
       e_h%ham_real => h_in
    endif
@@ -138,7 +137,6 @@ subroutine elsi_set_complex_ham(e_h,h_in)
 
    if(e_h%solver == OMM_SOLVER) then
       call m_register_pdbc(e_h%ham_omm,h_in,e_h%sc_desc)
-      e_h%ham_omm%is_symm = .true.
    else
       e_h%ham_cmplx => h_in
    endif
@@ -196,7 +194,6 @@ subroutine elsi_set_real_ovlp(e_h,s_in)
 
       if(e_h%solver == OMM_SOLVER) then
          call m_register_pdbc(e_h%ovlp_omm,s_in,e_h%sc_desc)
-         e_h%ham_omm%is_symm = .true.
       else
          e_h%ovlp_real => s_in
       endif
@@ -223,7 +220,6 @@ subroutine elsi_set_complex_ovlp(e_h,s_in)
 
       if(e_h%solver == OMM_SOLVER) then
          call m_register_pdbc(e_h%ovlp_omm,s_in,e_h%sc_desc)
-         e_h%ham_omm%is_symm = .true.
       else
          e_h%ovlp_cmplx => s_in
       endif
@@ -329,7 +325,6 @@ subroutine elsi_set_real_dm(e_h,d_in)
 
    if(e_h%solver == OMM_SOLVER) then
       call m_register_pdbc(e_h%dm_omm,d_in,e_h%sc_desc)
-      e_h%ham_omm%is_symm = .true.
    else
       e_h%dm_real => d_in
    endif
@@ -350,7 +345,6 @@ subroutine elsi_set_complex_dm(e_h,d_in)
 
    if(e_h%solver == OMM_SOLVER) then
       call m_register_pdbc(e_h%dm_omm,d_in,e_h%sc_desc)
-      e_h%ham_omm%is_symm = .true.
    else
       e_h%dm_cmplx => d_in
    endif

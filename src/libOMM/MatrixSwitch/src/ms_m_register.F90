@@ -61,7 +61,6 @@ contains
     else
        m_name%is_square=.false.
     end if
-    m_name%is_symm=.false.
     m_name%str_type='den'
     m_name%is_serial=.true.
     m_name%is_real=.true.
@@ -98,7 +97,6 @@ contains
     else
        m_name%is_square=.false.
     end if
-    m_name%is_symm=.false.
     m_name%str_type='den'
     m_name%is_serial=.true.
     m_name%is_real=.false.
@@ -146,7 +144,6 @@ contains
     else
        m_name%is_square=.false.
     end if
-    m_name%is_symm=.false.
     m_name%str_type='dbc'
     m_name%is_serial=.false.
     m_name%is_real=.true.
@@ -194,7 +191,6 @@ contains
     else
        m_name%is_square=.false.
     end if
-    m_name%is_symm=.false.
     m_name%str_type='dbc'
     m_name%is_serial=.false.
     m_name%is_real=.false.
@@ -251,7 +247,6 @@ contains
     else
        m_name%is_square=.false.
     end if
-    m_name%is_symm=.false.
     m_name%str_type=spm_storage
     m_name%is_serial=.false.
     m_name%is_real=.true.
@@ -303,7 +298,6 @@ contains
     else
        m_name%is_square=.false.
     end if
-    m_name%is_symm=.false.
     m_name%str_type=spm_storage
     m_name%is_serial=.false.
     m_name%is_real=.false.
@@ -369,7 +363,6 @@ contains
     else
        m_name%is_square=.false.
     end if
-    m_name%is_symm=.false.
     m_name%str_type=spm_storage
     m_name%is_serial=.false.
     m_name%is_real=.true.
@@ -430,7 +423,6 @@ contains
     else
        m_name%is_square=.false.
     end if
-    m_name%is_symm=.false.
     m_name%str_type=spm_storage
     m_name%is_serial=.false.
     m_name%is_real=.true.
