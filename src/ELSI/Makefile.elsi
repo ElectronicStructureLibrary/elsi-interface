@@ -229,6 +229,6 @@ clean:
 	rm -f *.o *.mod *.x *.a *log*
 
 install:
-	mv $(BUILD_DIR)/*.a $(LIB_DIR)
-	mv $(BUILD_DIR)/*.mod $(INC_DIR)
-	mv $(BUILD_DIR)/*.x $(BIN_DIR)
+	cp $(BUILD_DIR)/*.a $(LIB_DIR)
+	cp $(BUILD_DIR)/*.mod $(INC_DIR)
+	cp $(BUILD_DIR)/*.x $(BIN_DIR)
