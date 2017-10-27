@@ -122,6 +122,14 @@ module ELSI_DATATYPE
       integer(kind=i4), allocatable :: col_ptr_sips(:)
       real(kind=r8),    allocatable :: slices(:)
 
+      ! DMP
+      real(kind=r8),    allocatable :: ham_real_dmp(:,:)
+      real(kind=r8),    allocatable :: ovlp_real_dmp(:,:)
+      real(kind=r8),    allocatable :: dm_real_dmp(:,:)
+      real(kind=r8),    allocatable :: ham_real_copy(:,:)
+      real(kind=r8),    allocatable :: evec1(:)
+      real(kind=r8),    allocatable :: evec2(:)
+
       ! Local-global index mapping
       integer(kind=i4), allocatable :: loc_row(:)
       integer(kind=i4), allocatable :: loc_col(:)
@@ -210,7 +218,6 @@ module ELSI_DATATYPE
       ! Chemical potential
       integer(kind=i4) :: broaden_scheme
       real(kind=r8)    :: broaden_width
-      real(kind=r8)    :: broaden_delta
       real(kind=r8)    :: occ_tolerance
       integer(kind=i4) :: max_mu_steps
       real(kind=r8)    :: spin_degen

@@ -31,7 +31,7 @@
 module ELSI_MU
 
    use ELSI_CONSTANTS, only: GAUSSIAN,FERMI,METHFESSEL_PAXTON_0,&
-                             METHFESSEL_PAXTON_1,CUBIC,INVERT_SQRT_PI
+                             METHFESSEL_PAXTON_1,CUBIC,SQRT_PI,INVERT_SQRT_PI
    use ELSI_DATATYPE
    use ELSI_MALLOC
    use ELSI_PRECISION, only: r8,i4
@@ -168,10 +168,10 @@ subroutine elsi_check_electrons(e_h,n_electron,n_state,n_spin,n_kpt,k_weights,&
    character*40, parameter :: caller = "elsi_check_electrons"
 
    ! To have a consistent slope of the occupation function at the chemical
-   ! potential the parameters for GAUSSIAN and CUBIC occupations should be
-   ! related as broaden_delta = 3/4*sqrt(pi)*broaden_width
+   ! potential, the parameters for GAUSSIAN and CUBIC should be related as:
+   ! delta = 3/4*sqrt(pi)*broaden_width
+   delta        = 0.75_r8*SQRT_PI*e_h%broaden_width
    invert_width = 1.0_r8/e_h%broaden_width
-   delta        = e_h%broaden_delta
    diff_ne_out  = 0.0_r8
 
    if(.not. e_h%spin_is_set) then
