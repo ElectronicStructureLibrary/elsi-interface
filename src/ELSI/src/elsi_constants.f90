@@ -73,6 +73,7 @@ module ELSI_CONSTANTS
    integer(kind=i4), parameter :: FERMI               = 1
    integer(kind=i4), parameter :: METHFESSEL_PAXTON_0 = 2
    integer(kind=i4), parameter :: METHFESSEL_PAXTON_1 = 3
+   integer(kind=i4), parameter :: CUBIC               = 4
 
    ! Density matrix purification methods
    integer(kind=i4), parameter :: TRACE_CORRECTING = 0
