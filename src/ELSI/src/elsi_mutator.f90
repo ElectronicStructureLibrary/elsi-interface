@@ -1146,6 +1146,8 @@ subroutine elsi_get_edm_real(e_h,d_out)
          call elsi_stop(" CHESS not yet implemented.",e_h,caller)
       case(SIPS_SOLVER)
          call elsi_stop(" SIPS not yet implemented.",e_h,caller)
+      case(DMP_SOLVER)
+         call elsi_stop(" DMP not yet implemented.",e_h,caller)
       case default
          call elsi_stop(" Unsupported solver.",e_h,caller)
       end select
@@ -1194,6 +1196,8 @@ subroutine elsi_get_edm_real_sparse(e_h,d_out)
          call elsi_stop(" CHESS not yet implemented.",e_h,caller)
       case(SIPS_SOLVER)
          call elsi_stop(" SIPS not yet implemented.",e_h,caller)
+      case(DMP_SOLVER)
+         call elsi_stop(" DMP not yet implemented.",e_h,caller)
       case default
          call elsi_stop(" Unsupported solver.",e_h,caller)
       end select
@@ -1242,6 +1246,8 @@ subroutine elsi_get_edm_complex(e_h,d_out)
          call elsi_stop(" CHESS not yet implemented.",e_h,caller)
       case(SIPS_SOLVER)
          call elsi_stop(" SIPS not yet implemented.",e_h,caller)
+      case(DMP_SOLVER)
+         call elsi_stop(" DMP not yet implemented.",e_h,caller)
       case default
          call elsi_stop(" Unsupported solver.",e_h,caller)
       end select
@@ -1290,6 +1296,8 @@ subroutine elsi_get_edm_complex_sparse(e_h,d_out)
          call elsi_stop(" CHESS not yet implemented.",e_h,caller)
       case(SIPS_SOLVER)
          call elsi_stop(" SIPS not yet implemented.",e_h,caller)
+      case(DMP_SOLVER)
+         call elsi_stop(" DMP not yet implemented.",e_h,caller)
       case default
          call elsi_stop(" Unsupported solver.",e_h,caller)
       end select

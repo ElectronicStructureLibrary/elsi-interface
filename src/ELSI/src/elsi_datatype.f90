@@ -129,7 +129,7 @@ module ELSI_DATATYPE
       ! Is this a valid handle?
       logical          :: handle_ready = .false.
 
-      ! Solver (AUTO=0,ELPA=1,OMM=2,PEXSI=3,CHESS=4,SIPS=5)
+      ! Solver (AUTO=0,ELPA=1,OMM=2,PEXSI=3,CHESS=4,SIPS=5,DMP=6)
       integer(kind=i4) :: solver
 
       ! Real or complex data (REAL_VALUES=0,COMPLEX_VALUES=1)
@@ -290,7 +290,16 @@ module ELSI_DATATYPE
       real(kind=r8)    :: ev_max         ! Upper bound of eigenvalue
       logical          :: sips_started = .false.
 
-      ! Timer 
+      ! DMP
+      integer(kind=i4) :: n_states_dmp   ! Number of states used in DMP
+      integer(kind=i4) :: dmp_method     ! 0 = Trace correcting
+                                         ! 1 = Canonical
+      integer(kind=i4) :: max_power_iter ! Maximum number of power iterations
+      integer(kind=i4) :: max_dmp_iter   ! Maximum number of purification steps
+      real(kind=r8)    :: dmp_tol        ! Tolerance for purification
+      real(kind=r8)    :: ne_dmp         ! Number of electrons computed by DMP
+
+      ! Timer
       integer(kind=i4) :: clock_rate
 
    end type

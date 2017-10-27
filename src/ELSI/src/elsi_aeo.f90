@@ -30,27 +30,27 @@
 !!
 module ELSI_ELPA
 
-   use ELSI_CONSTANTS,    only: REAL_VALUES,COMPLEX_VALUES
+   use ELSI_CONSTANTS, only: REAL_VALUES,COMPLEX_VALUES
    use ELSI_DATATYPE
    use ELSI_MALLOC
-   use ELSI_MU,           only: elsi_compute_mu_and_occ
-   use ELSI_PRECISION,    only: r4,r8,i4
+   use ELSI_MU,        only: elsi_compute_mu_and_occ
+   use ELSI_PRECISION, only: r4,r8,i4
    use ELSI_UTILS
    use ELPA
-   use ELPA1,             only: elpa_print_times,elpa_get_communicators,&
-                                elpa_solve_tridi_double,&
-                                elpa_solve_evp_real_1stage_double,&
-                                elpa_solve_evp_complex_1stage_double,&
-                                elpa_cholesky_real_double,&
-                                elpa_cholesky_complex_double,&
-                                elpa_invert_trm_real_double,&
-                                elpa_invert_trm_complex_double,&
-                                elpa_mult_at_b_real_double,&
-                                elpa_mult_ah_b_complex_double
-   use ELPA2,             only: elpa_solve_evp_real_2stage_double,&
-                                elpa_solve_evp_complex_2stage_double,&
-                                elpa_solve_evp_real_2stage_single,&
-                                elpa_solve_evp_complex_2stage_single
+   use ELPA1,          only: elpa_print_times,elpa_get_communicators,&
+                             elpa_solve_tridi_double,&
+                             elpa_solve_evp_real_1stage_double,&
+                             elpa_solve_evp_complex_1stage_double,&
+                             elpa_cholesky_real_double,&
+                             elpa_cholesky_complex_double,&
+                             elpa_invert_trm_real_double,&
+                             elpa_invert_trm_complex_double,&
+                             elpa_mult_at_b_real_double,&
+                             elpa_mult_ah_b_complex_double
+   use ELPA2,          only: elpa_solve_evp_real_2stage_double,&
+                             elpa_solve_evp_complex_2stage_double,&
+                             elpa_solve_evp_real_2stage_single,&
+                             elpa_solve_evp_complex_2stage_single
 
    implicit none
 

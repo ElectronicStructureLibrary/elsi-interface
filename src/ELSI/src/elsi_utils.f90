@@ -385,6 +385,13 @@ subroutine elsi_check(e_h,caller)
          call elsi_stop(" SIPs solver requires MULTI_PROC parallel mode.",e_h,&
                  caller)
       endif
+   case(DMP_SOLVER)
+      call elsi_say(e_h,"  ATTENTION! DMP is EXPERIMENTAL.")
+
+      if(e_h%parallel_mode /= MULTI_PROC) then
+         call elsi_stop(" DMP solver requires MULTI_PROC parallel mode.",e_h,&
+                 caller)
+      endif
    case default
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
