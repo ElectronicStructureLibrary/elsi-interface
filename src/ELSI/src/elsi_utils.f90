@@ -181,7 +181,7 @@ subroutine elsi_reset_handle(e_h)
    e_h%energy_sedm      = 0.0_r8
    e_h%broaden_scheme   = 0
    e_h%broaden_width    = 1.0e-2_r8
-   e_h%broaden_delta    = 1.329340388e-2_r8 ! 3/4*sqrt(pi)*broaden_width
+   e_h%broaden_delta    = 7.5e-2_r8*SQRT_PI
    e_h%occ_tolerance    = 1.0e-13_r8
    e_h%max_mu_steps     = 100
    e_h%spin_degen       = 0.0_r8

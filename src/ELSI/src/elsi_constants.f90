@@ -34,13 +34,13 @@ module ELSI_CONSTANTS
 
    implicit none
 
+   real(kind=r8), parameter :: SQRT_PI        = 1.7724538509055160273_r8 ! sqrt(pi)
    real(kind=r8), parameter :: INVERT_SQRT_PI = 0.5641895835477563275_r8 ! 1/sqrt(pi)
 
-   integer(kind=i4), parameter :: UNSET                = -910910
-   integer(kind=i4), parameter :: N_SOLVERS            = 7
-   integer(kind=i4), parameter :: N_MATRIX_FORMATS     = 2
-   integer(kind=i4), parameter :: N_PARALLEL_MODES     = 2
-   integer(kind=i4), parameter :: N_BROADENING_SCHEMES = 4
+   integer(kind=i4), parameter :: UNSET            = -910910
+   integer(kind=i4), parameter :: N_SOLVERS        = 7
+   integer(kind=i4), parameter :: N_MATRIX_FORMATS = 2
+   integer(kind=i4), parameter :: N_PARALLEL_MODES = 2
 
    ! Method names
    integer(kind=i4), parameter :: AUTO         = 0

@@ -167,12 +167,12 @@ subroutine elsi_check_electrons(e_h,n_electron,n_state,n_spin,n_kpt,k_weights,&
 
    character*40, parameter :: caller = "elsi_check_electrons"
 
-   ! To have a consistent slope of the occupation function at the chemical potential the
-   ! parameters for GAUSSIAN and CUBIC occupations should be related as
-   ! broaden_delta = 3/4*sqrt(pi)*broaden_width
+   ! To have a consistent slope of the occupation function at the chemical
+   ! potential the parameters for GAUSSIAN and CUBIC occupations should be
+   ! related as broaden_delta = 3/4*sqrt(pi)*broaden_width
    invert_width = 1.0_r8/e_h%broaden_width
-   delta = e_h%broaden_delta
-   diff_ne_out = 0.0_r8
+   delta        = e_h%broaden_delta
+   diff_ne_out  = 0.0_r8
 
    if(.not. e_h%spin_is_set) then
       if(n_spin == 2) then
@@ -246,18 +246,21 @@ subroutine elsi_check_electrons(e_h,n_electron,n_state,n_spin,n_kpt,k_weights,&
       do i_kpt = 1,n_kpt
          do i_spin = 1,n_spin
             do i_state = 1,n_state
-               if (evals(i_state,i_spin,i_kpt) <= mu_in - delta) then
+               if(evals(i_state,i_spin,i_kpt) <= mu_in-delta) then
                   occ_nums(i_state,i_spin,i_kpt) = 1.0_r8
-               elseif (evals(i_state,i_spin,i_kpt) >= mu_in + delta) then
+               elseif(evals(i_state,i_spin,i_kpt) >= mu_in+delta) then
                   occ_nums(i_state,i_spin,i_kpt) = 0.0_r8
                else
                   occ_nums(i_state,i_spin,i_kpt) = (0.25_r8/delta**3)*&
-                       (evals(i_state,i_spin,i_kpt) - mu_in + 2*delta)*&
-                       (evals(i_state,i_spin,i_kpt) - mu_in - delta)**2
-               end if
-            end do
-         end do
-      end do
+                     (evals(i_state,i_spin,i_kpt)-mu_in+2*delta)*&
+                     (evals(i_state,i_spin,i_kpt)-mu_in-delta)**2
+               endif
+
+               diff_ne_out = diff_ne_out+occ_nums(i_state,i_spin,i_kpt)*&
+                                k_weights(i_kpt)
+            enddo
+         enddo
+      enddo
    end select
 
    diff_ne_out = diff_ne_out-n_electron
