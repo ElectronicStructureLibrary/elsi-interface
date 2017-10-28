@@ -62,6 +62,7 @@ module ELSI_ELPA
    public :: elsi_compute_dm_elpa
    public :: elsi_compute_edm_elpa
    public :: elsi_normalize_dm_elpa
+   public :: elsi_to_standard_evp
    public :: elsi_solve_evp_elpa
 
 contains
