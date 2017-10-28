@@ -1085,6 +1085,54 @@ subroutine elsi_set_sips_ev_max_c_wrapper(handle_c,ev_max)&
 
 end subroutine
 
+subroutine elsi_set_dmp_method_c_wrapper(handle_c,dmp_method)&
+   bind(C,name="c_elsi_set_dmp_method")
+
+   implicit none
+
+   type(c_ptr),         value, intent(in) :: handle_c
+   integer(kind=c_int), value, intent(in) :: dmp_method
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_dmp_method(handle_f,dmp_method)
+
+end subroutine
+
+subroutine elsi_set_dmp_max_step_c_wrapper(handle_c,max_step)&
+   bind(C,name="c_elsi_set_dmp_max_step")
+
+   implicit none
+
+   type(c_ptr),         value, intent(in) :: handle_c
+   integer(kind=c_int), value, intent(in) :: max_step
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_dmp_max_step(handle_f,max_step)
+
+end subroutine
+
+subroutine elsi_set_dmp_tol_c_wrapper(handle_c,dmp_tol)&
+   bind(C,name="c_elsi_set_dmp_tol")
+
+   implicit none
+
+   type(c_ptr),         value, intent(in) :: handle_c
+   real(kind=c_double), value, intent(in) :: dmp_tol
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_dmp_tol(handle_f,dmp_tol)
+
+end subroutine
+
 subroutine elsi_set_mu_broaden_scheme_c_wrapper(handle_c,broaden_scheme)&
    bind(C,name="c_elsi_set_mu_broaden_scheme")
 
