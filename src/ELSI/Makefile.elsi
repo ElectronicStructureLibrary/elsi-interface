@@ -193,13 +193,13 @@ elsi_pexsi.o: $(ELSI_DIR)/src/elsi_pexsi.f90 elsi_constants.o elsi_datatype.o el
 elsi_precision.o: $(ELSI_DIR)/src/elsi_precision.f90
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
-elsi_setup.o: $(ELSI_DIR)/src/elsi_setup.f90 elsi_chess.o elsi_constants.o elsi_datatype.o elsi_malloc.o elsi_matrices.o elsi_omm.o elsi_pexsi.o elsi_precision.o elsi_sips.o elsi_utils.o $(ELSI_ELPA)
+elsi_setup.o: $(ELSI_DIR)/src/elsi_setup.f90 elsi_chess.o elsi_constants.o elsi_datatype.o elsi_dmp.o elsi_malloc.o elsi_matrices.o elsi_omm.o elsi_pexsi.o elsi_precision.o elsi_sips.o elsi_utils.o $(ELSI_ELPA)
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
 elsi_sips.o: $(ELSI_DIR)/src/elsi_sips.f90 elsi_constants.o elsi_datatype.o elsi_malloc.o elsi_precision.o elsi_utils.o $(STUBS)
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
-elsi_solver.o: $(ELSI_DIR)/src/elsi_solver.f90 elsi_chess.o elsi_constants.o elsi_datatype.o elsi_lapack.o elsi_malloc.o elsi_matconv.o elsi_matrices.o elsi_omm.o elsi_pexsi.o elsi_precision.o elsi_setup.o elsi_sips.o elsi_utils.o $(ELSI_ELPA)
+elsi_solver.o: $(ELSI_DIR)/src/elsi_solver.f90 elsi_chess.o elsi_constants.o elsi_datatype.o elsi_dmp.o elsi_lapack.o elsi_malloc.o elsi_matconv.o elsi_matrices.o elsi_omm.o elsi_pexsi.o elsi_precision.o elsi_setup.o elsi_sips.o elsi_utils.o $(ELSI_ELPA)
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
 elsi_sort.o: $(ELSI_DIR)/src/elsi_sort.f90 elsi_precision.o
