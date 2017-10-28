@@ -331,17 +331,15 @@ subroutine elsi_solve_evp_dmp(e_h)
 
          call elsi_trace_mat(e_h,e_h%ham_real,c1)
 
-         if(e_h%n_states_dmp-c1 > 0.0_r8) then
-            call pdgemm('N','N',e_h%n_basis,e_h%n_basis,e_h%n_basis,-1.0_r8,&
-                    e_h%ham_real,1,1,e_h%sc_desc,e_h%dm_real,1,1,e_h%sc_desc,&
-                    2.0_r8,dsd,1,1,e_h%sc_desc)
-         else
-            call pdgemm('N','N',e_h%n_basis,e_h%n_basis,e_h%n_basis,1.0_r8,&
-                    e_h%ham_real,1,1,e_h%sc_desc,e_h%dm_real,1,1,e_h%sc_desc,&
-                    0.0_r8,dsd,1,1,e_h%sc_desc)
-         endif
+         call pdgemm('N','N',e_h%n_basis,e_h%n_basis,e_h%n_basis,1.0_r8,&
+                 e_h%ham_real,1,1,e_h%sc_desc,e_h%dm_real,1,1,e_h%sc_desc,&
+                 0.0_r8,dsd,1,1,e_h%sc_desc)
 
-         e_h%dm_real = dsd
+         if(e_h%n_states_dmp-c1 > 0.0_r8) then
+            e_h%dm_real = 2*e_h%dm_real-dsd
+         else
+            e_h%dm_real = dsd
+         endif
       case(CANONICAL)
          call pdgemm('N','N',e_h%n_basis,e_h%n_basis,e_h%n_basis,1.0_r8,&
                  e_h%ovlp_real_copy,1,1,e_h%sc_desc,e_h%dm_real,1,1,&
@@ -441,13 +439,13 @@ subroutine elsi_set_dmp_default(e_h)
    character*40, parameter :: caller = "elsi_set_dmp_default"
 
    ! Purification method
-   e_h%dmp_method = 1
+   e_h%dmp_method = 0
 
    ! Maximum number of power iterations
    e_h%max_power_iter = 50
 
    ! Maximum number of purification steps
-   e_h%max_dmp_iter = 200
+   e_h%max_dmp_iter = 500
 
    ! Tolerance for purification
    e_h%dmp_tol = 1.0e-10_r8

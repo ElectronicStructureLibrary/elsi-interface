@@ -139,7 +139,7 @@ program test_dm_complex
          write(*,*)
          write(*,'("  Now start testing  elsi_dm_complex + libOMM")')
          e_ref = e_omm
-      else
+      elseif(solver == 3) then
          write(*,'("  This test program performs the following computational steps:")')
          write(*,*)
          write(*,'("  1) Reads Hamiltonian and overlap matrices;")')
@@ -233,7 +233,9 @@ program test_dm_complex
    t2 = MPI_Wtime()
 
    ! Compute energy density matrix
-   call elsi_get_edm_complex(e_h,edm)
+   if(solver == 1 .or. solver == 2 .or. solver == 3) then
+      call elsi_get_edm_complex(e_h,edm)
+   endif
 
    if(myid == 0) then
       write(*,'("  Finished SCF #2")')
