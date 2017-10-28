@@ -533,12 +533,6 @@ subroutine elsi_cleanup(e_h)
    if(e_h%tdm_omm%is_initialized) then
       call m_deallocate(e_h%tdm_omm)
    endif
-   if(allocated(e_h%ovlp_real_copy)) then
-      call elsi_deallocate(e_h,e_h%ovlp_real_copy,"ovlp_real_copy")
-   endif
-   if(allocated(e_h%ovlp_cmplx_copy)) then
-      call elsi_deallocate(e_h,e_h%ovlp_cmplx_copy,"ovlp_cmplx_copy")
-   endif
 
    ! PEXSI
    if(allocated(e_h%ham_real_pexsi)) then
@@ -618,6 +612,27 @@ subroutine elsi_cleanup(e_h)
       call elsi_deallocate(e_h,e_h%slices,"slices")
    endif
 
+   ! DMP
+   if(allocated(e_h%ovlp_real_inv)) then
+      call elsi_deallocate(e_h,e_h%ovlp_real_inv,"ovlp_real_inv")
+   endif
+   if(allocated(e_h%evec1)) then
+      call elsi_deallocate(e_h,e_h%evec1,"evec1")
+   endif
+   if(allocated(e_h%evec2)) then
+      call elsi_deallocate(e_h,e_h%evec2,"evec2")
+   endif
+
+   ! Auxiliary
+   if(allocated(e_h%ham_real_copy)) then
+      call elsi_deallocate(e_h,e_h%ham_real_copy,"ham_real_copy")
+   endif
+   if(allocated(e_h%ovlp_real_copy)) then
+      call elsi_deallocate(e_h,e_h%ovlp_real_copy,"ovlp_real_copy")
+   endif
+   if(allocated(e_h%ovlp_cmplx_copy)) then
+      call elsi_deallocate(e_h,e_h%ovlp_cmplx_copy,"ovlp_cmplx_copy")
+   endif
    if(allocated(e_h%loc_row)) then
       call elsi_deallocate(e_h,e_h%loc_row,"loc_row")
    endif

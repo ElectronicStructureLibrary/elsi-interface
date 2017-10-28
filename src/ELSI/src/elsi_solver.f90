@@ -102,7 +102,7 @@ subroutine elsi_get_energy(e_h,energy)
    case(SIPS_SOLVER)
       call elsi_stop(" SIPS not yet implemented.",e_h,caller)
    case(DMP_SOLVER)
-      energy = e_h%energy_hdm*e_h%i_weight
+      energy = e_h%spin_degen*e_h%energy_hdm*e_h%i_weight
    case default
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select

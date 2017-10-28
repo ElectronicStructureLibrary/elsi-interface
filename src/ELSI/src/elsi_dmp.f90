@@ -34,6 +34,7 @@ module ELSI_DMP
    use ELSI_DATATYPE
    use ELSI_ELPA,      only: elsi_to_standard_evp
    use ELSI_MALLOC
+   use ELSI_MATRICES,  only: elsi_set_full_mat
    use ELSI_PRECISION, only: r8,i4
    use ELSI_UTILS
 
@@ -59,7 +60,9 @@ subroutine elsi_solve_evp_dmp(e_h)
    integer(kind=i4) :: i
    integer(kind=i4) :: j
    integer(kind=i4) :: i_iter
+   integer(kind=i4) :: uplo_save
    integer(kind=i4) :: mpierr
+   integer(kind=i4) :: ierr
    logical          :: ev_min_found
    logical          :: dmp_conv
    real(kind=r8)    :: this_ev
@@ -87,6 +90,15 @@ subroutine elsi_solve_evp_dmp(e_h)
 
    character*40, parameter :: caller = "elsi_solve_evp_dmp"
 
+   ! Compute sparsity
+   if(e_h%n_elsi_calls == 1) then
+      call elsi_get_local_nnz_real(e_h,e_h%ham_real,e_h%n_lrow,e_h%n_lcol,&
+              e_h%nnz_l)
+
+      call MPI_Allreduce(e_h%nnz_l,e_h%nnz_g,1,mpi_integer4,mpi_sum,&
+              e_h%mpi_comm,mpierr)
+   endif
+
    call elsi_get_time(e_h,t0)
 
    call elsi_say(e_h,"  Starting density matrix purification")
@@ -101,6 +113,24 @@ subroutine elsi_solve_evp_dmp(e_h)
    call elsi_to_standard_evp(e_h)
 
    nullify(e_h%evec_real)
+
+   ! Compute inverse of overlap
+   if(e_h%n_elsi_calls == 1) then
+      call elsi_allocate(e_h,e_h%ovlp_real_inv,e_h%n_lrow,e_h%n_lcol,&
+              "ovlp_real_inv",caller)
+
+      e_h%ovlp_real_inv = e_h%ovlp_real_copy
+
+      call pdpotrf('U',e_h%n_basis,e_h%ovlp_real_inv,1,1,e_h%sc_desc,ierr)
+      call pdpotri('U',e_h%n_basis,e_h%ovlp_real_inv,1,1,e_h%sc_desc,ierr)
+
+      uplo_save = e_h%uplo
+      e_h%uplo  = UT_MAT
+
+      call elsi_set_full_mat(e_h,e_h%ovlp_real_inv)
+
+      e_h%uplo = uplo_save
+   endif
 
    ! Use Gershgorin's theorem to find the bounds of the spectrum
    if(e_h%n_elsi_calls == 1) then
@@ -278,14 +308,14 @@ subroutine elsi_solve_evp_dmp(e_h)
 
    ! ham_real used as tmp after this point
    call pdgemm('N','N',e_h%n_basis,e_h%n_basis,e_h%n_basis,1.0_r8,&
-           e_h%ham_real_copy,1,1,e_h%sc_desc,e_h%ovlp_real,1,1,e_h%sc_desc,&
+           e_h%ham_real_copy,1,1,e_h%sc_desc,e_h%ovlp_real_inv,1,1,e_h%sc_desc,&
            0.0_r8,e_h%ham_real,1,1,e_h%sc_desc)
    call pdgemm('N','N',e_h%n_basis,e_h%n_basis,e_h%n_basis,1.0_r8,&
-           e_h%ovlp_real,1,1,e_h%sc_desc,e_h%ham_real,1,1,e_h%sc_desc,0.0_r8,&
-           e_h%dm_real,1,1,e_h%sc_desc)
+           e_h%ovlp_real_inv,1,1,e_h%sc_desc,e_h%ham_real,1,1,e_h%sc_desc,&
+           0.0_r8,e_h%dm_real,1,1,e_h%sc_desc)
 
-   e_h%dm_real = (mu*e_h%ovlp_real-e_h%dm_real)*lambda/e_h%n_basis
-   e_h%dm_real = e_h%dm_real+e_h%ovlp_real*e_h%n_states_dmp/e_h%n_basis
+   e_h%dm_real = (mu*e_h%ovlp_real_inv-e_h%dm_real)*lambda/e_h%n_basis
+   e_h%dm_real = e_h%dm_real+e_h%ovlp_real_inv*e_h%n_states_dmp/e_h%n_basis
 
    ! Start main density matrix purification loop
    dmp_conv = .false.
@@ -375,7 +405,8 @@ subroutine elsi_solve_evp_dmp(e_h)
       call elsi_trace_mat_mat(e_h,e_h%ham_real_copy,e_h%dm_real,e_h%energy_hdm)
 
       ! n_electrons = Trace(S * DM)
-      call elsi_trace_mat_mat(e_h,e_h%ovlp_real_copy,e_h%dm_real,e_h%energy_hdm)
+      call elsi_trace_mat_mat(e_h,e_h%ovlp_real_copy,e_h%dm_real,e_h%ne_dmp)
+      e_h%ne_dmp = e_h%spin_degen*e_h%ne_dmp
 
       call elsi_say(e_h,"  Density matrix purification converged")
       write(info_str,"('  | Number of iterations :',I10)") i_iter
@@ -410,7 +441,7 @@ subroutine elsi_set_dmp_default(e_h)
    character*40, parameter :: caller = "elsi_set_dmp_default"
 
    ! Purification method
-   e_h%dmp_method = 0
+   e_h%dmp_method = 1
 
    ! Maximum number of power iterations
    e_h%max_power_iter = 50
