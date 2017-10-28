@@ -83,8 +83,6 @@ subroutine elsi_solve_evp_dmp(e_h)
    real(kind=r8), allocatable :: diag(:)
    real(kind=r8), allocatable :: tmp_real1(:)
    real(kind=r8), allocatable :: tmp_real2(:)
-   real(kind=r8), allocatable :: tmp_real3(:,:)
-   real(kind=r8), allocatable :: dm_prev(:,:)
    real(kind=r8), allocatable :: dsd(:,:)
    real(kind=r8), allocatable :: dsdsd(:,:)
 
@@ -102,10 +100,6 @@ subroutine elsi_solve_evp_dmp(e_h)
    call elsi_get_time(e_h,t0)
 
    call elsi_say(e_h,"  Starting density matrix purification")
-
-   call elsi_allocate(e_h,row_sum,e_h%n_basis,"row_sum",caller)
-   call elsi_allocate(e_h,diag,e_h%n_basis,"diag",caller)
-   call elsi_allocate(e_h,tmp_real1,e_h%n_basis,"tmp_real1",caller)
 
    ! Transform the generalized evp to the standard form
    e_h%evec_real => e_h%dm_real
@@ -134,6 +128,10 @@ subroutine elsi_solve_evp_dmp(e_h)
 
    ! Use Gershgorin's theorem to find the bounds of the spectrum
    if(e_h%n_elsi_calls == 1) then
+      call elsi_allocate(e_h,row_sum,e_h%n_basis,"row_sum",caller)
+      call elsi_allocate(e_h,diag,e_h%n_basis,"diag",caller)
+      call elsi_allocate(e_h,tmp_real1,e_h%n_basis,"tmp_real1",caller)
+
       do i = 1,e_h%n_basis
          do j = 1,e_h%n_basis
             if(e_h%loc_row(i) > 0 .and. e_h%loc_col(j) > 0) then
@@ -159,11 +157,11 @@ subroutine elsi_solve_evp_dmp(e_h)
 
       e_h%ev_ham_min = minval(diag-row_sum)
       e_h%ev_ham_max = maxval(diag+row_sum)
-   endif
 
-   call elsi_deallocate(e_h,row_sum,"row_sum")
-   call elsi_deallocate(e_h,diag,"diag")
-   call elsi_deallocate(e_h,tmp_real1,"tmp_real1")
+      call elsi_deallocate(e_h,row_sum,"row_sum")
+      call elsi_deallocate(e_h,diag,"diag")
+      call elsi_deallocate(e_h,tmp_real1,"tmp_real1")
+   endif
 
    ! Use power iteration to find the largest in magnitude eigenvalue
    ! Usually this is the smallest, which is a better estimate of ev_ham_min
@@ -225,8 +223,6 @@ subroutine elsi_solve_evp_dmp(e_h)
 
    e_h%evec1 = tmp_real1
 
-   call elsi_allocate(e_h,tmp_real3,e_h%n_lrow,e_h%n_lcol,"tmp_real3",caller)
-
    if(e_h%n_elsi_calls == 1) then
       tmp_real1 = 1.0_r8/sqrt(real(e_h%n_basis,kind=r8))
    else
@@ -234,20 +230,21 @@ subroutine elsi_solve_evp_dmp(e_h)
    endif
 
    ! Shift H and use power iteration to find a better estimate of ev_ham_max
-   tmp_real3 = e_h%ham_real
+   e_h%dm_real = e_h%ham_real
 
    do i = 1,e_h%n_basis
       if(e_h%loc_row(i) > 0 .and. e_h%loc_col(i) > 0) then
-         tmp_real3(e_h%loc_row(i),e_h%loc_col(i)) = &
-            tmp_real3(e_h%loc_row(i),e_h%loc_col(i))+abs(e_h%ev_ham_min)
+         e_h%ham_real(e_h%loc_row(i),e_h%loc_col(i)) = &
+            e_h%ham_real(e_h%loc_row(i),e_h%loc_col(i))+abs(e_h%ev_ham_min)
       endif
    enddo
 
    prev_ev = 0.0_r8
 
    do i_iter = 1,e_h%max_power_iter
-      call pdgemv('N',e_h%n_basis,e_h%n_basis,1.0_r8,tmp_real3,1,1,e_h%sc_desc,&
-              tmp_real1,1,1,e_h%sc_desc,1,0.0_r8,tmp_real2,1,1,e_h%sc_desc,1)
+      call pdgemv('N',e_h%n_basis,e_h%n_basis,1.0_r8,e_h%ham_real,1,1,&
+              e_h%sc_desc,tmp_real1,1,1,e_h%sc_desc,1,0.0_r8,tmp_real2,1,1,&
+              e_h%sc_desc,1)
 
       this_ev = 0.0_r8
       nrm2    = 0.0_r8
@@ -282,7 +279,11 @@ subroutine elsi_solve_evp_dmp(e_h)
       e_h%ev_ham_min = this_ev+abs(e_h%ev_ham_max)
    endif
 
-   e_h%evec2 = tmp_real1
+   e_h%evec2    = tmp_real1
+   e_h%ham_real = e_h%dm_real
+
+   call elsi_deallocate(e_h,tmp_real1,"tmp_real1")
+   call elsi_deallocate(e_h,tmp_real2,"tmp_real2")
 
    call elsi_get_time(e_h,t1)
 
@@ -300,7 +301,6 @@ subroutine elsi_solve_evp_dmp(e_h)
    lambda = min(e_h%n_states_dmp/(e_h%ev_ham_max-mu),&
                (e_h%n_basis-e_h%n_states_dmp)/(mu-e_h%ev_ham_min))
 
-   call elsi_allocate(e_h,dm_prev,e_h%n_lrow,e_h%n_lcol,"dm_prev",caller)
    call elsi_allocate(e_h,dsd,e_h%n_lrow,e_h%n_lcol,"dsd",caller)
    if(e_h%dmp_method == CANONICAL) then
       call elsi_allocate(e_h,dsdsd,e_h%n_lrow,e_h%n_lcol,"dsdsd",caller)
@@ -321,51 +321,51 @@ subroutine elsi_solve_evp_dmp(e_h)
    dmp_conv = .false.
 
    do i_iter = 1,e_h%max_dmp_iter
-      dm_prev = e_h%dm_real
+      e_h%ham_real = e_h%dm_real
 
       select case(e_h%dmp_method)
       case(TRACE_CORRECTING)
          call pdgemm('N','N',e_h%n_basis,e_h%n_basis,e_h%n_basis,1.0_r8,&
-                 e_h%dm_real,1,1,e_h%sc_desc,e_h%ovlp_real_copy,1,1,&
-                 e_h%sc_desc,0.0_r8,e_h%ham_real,1,1,e_h%sc_desc)
+                 e_h%ham_real,1,1,e_h%sc_desc,e_h%ovlp_real_copy,1,1,&
+                 e_h%sc_desc,0.0_r8,e_h%dm_real,1,1,e_h%sc_desc)
 
-         call elsi_trace_mat(e_h,e_h%ham_real,c1)
+         call elsi_trace_mat(e_h,e_h%dm_real,c1)
 
          call pdgemm('N','N',e_h%n_basis,e_h%n_basis,e_h%n_basis,1.0_r8,&
-                 e_h%ham_real,1,1,e_h%sc_desc,e_h%dm_real,1,1,e_h%sc_desc,&
+                 e_h%dm_real,1,1,e_h%sc_desc,e_h%ham_real,1,1,e_h%sc_desc,&
                  0.0_r8,dsd,1,1,e_h%sc_desc)
 
          if(e_h%n_states_dmp-c1 > 0.0_r8) then
-            e_h%dm_real = 2*e_h%dm_real-dsd
+            e_h%dm_real = 2*e_h%ham_real-dsd
          else
             e_h%dm_real = dsd
          endif
       case(CANONICAL)
          call pdgemm('N','N',e_h%n_basis,e_h%n_basis,e_h%n_basis,1.0_r8,&
-                 e_h%ovlp_real_copy,1,1,e_h%sc_desc,e_h%dm_real,1,1,&
-                 e_h%sc_desc,0.0_r8,e_h%ham_real,1,1,e_h%sc_desc)
+                 e_h%ovlp_real_copy,1,1,e_h%sc_desc,e_h%ham_real,1,1,&
+                 e_h%sc_desc,0.0_r8,e_h%dm_real,1,1,e_h%sc_desc)
          call pdgemm('N','N',e_h%n_basis,e_h%n_basis,e_h%n_basis,1.0_r8,&
-                 e_h%dm_real,1,1,e_h%sc_desc,e_h%ham_real,1,1,e_h%sc_desc,&
+                 e_h%ham_real,1,1,e_h%sc_desc,e_h%dm_real,1,1,e_h%sc_desc,&
                  0.0_r8,dsd,1,1,e_h%sc_desc)
          call pdgemm('N','N',e_h%n_basis,e_h%n_basis,e_h%n_basis,1.0_r8,&
                  e_h%ovlp_real_copy,1,1,e_h%sc_desc,dsd,1,1,e_h%sc_desc,0.0_r8,&
-                 e_h%ham_real,1,1,e_h%sc_desc)
+                 e_h%dm_real,1,1,e_h%sc_desc)
          call pdgemm('N','N',e_h%n_basis,e_h%n_basis,e_h%n_basis,1.0_r8,&
-                 e_h%dm_real,1,1,e_h%sc_desc,e_h%ham_real,1,1,e_h%sc_desc,&
+                 e_h%ham_real,1,1,e_h%sc_desc,e_h%dm_real,1,1,e_h%sc_desc,&
                  0.0_r8,dsdsd,1,1,e_h%sc_desc)
 
-         e_h%ham_real = dsd-dsdsd
+         e_h%dm_real = dsd-dsdsd
 
-         call elsi_trace_mat_mat(e_h,e_h%ham_real,e_h%ovlp_real_copy,c1)
+         call elsi_trace_mat_mat(e_h,e_h%dm_real,e_h%ovlp_real_copy,c1)
 
-         e_h%ham_real = e_h%dm_real-dsd
+         e_h%dm_real = e_h%ham_real-dsd
 
-         call elsi_trace_mat_mat(e_h,e_h%ham_real,e_h%ovlp_real_copy,c2)
+         call elsi_trace_mat_mat(e_h,e_h%dm_real,e_h%ovlp_real_copy,c2)
 
          c = c1/c2
 
          if(c <= 0.5) then
-            e_h%dm_real = ((1-2*c)*e_h%dm_real+(1+c)*dsd-dsdsd)/(1-c)
+            e_h%dm_real = ((1-2*c)*e_h%ham_real+(1+c)*dsd-dsdsd)/(1-c)
          else
             e_h%dm_real = ((1+c)*dsd-dsdsd)/c
          endif
@@ -373,12 +373,9 @@ subroutine elsi_solve_evp_dmp(e_h)
 
       diff = 0.0_r8
 
-      do i = 1,e_h%n_basis
-         do j = 1,e_h%n_basis
-            if(e_h%loc_row(i) > 0 .and. e_h%loc_col(j) > 0) then
-               diff = diff+(e_h%dm_real(e_h%loc_row(i),e_h%loc_col(j))-&
-                         dm_prev(e_h%loc_row(i),e_h%loc_col(j)))**2
-            endif
+      do j = 1,e_h%n_lcol
+         do i = 1,e_h%n_lrow
+            diff = diff+(e_h%dm_real(i,j)-e_h%ham_real(i,j))**2
          enddo
       enddo
 
@@ -392,7 +389,6 @@ subroutine elsi_solve_evp_dmp(e_h)
       endif
    enddo
 
-   call elsi_deallocate(e_h,dm_prev,"dm_prev")
    call elsi_deallocate(e_h,dsd,"dsd")
    if(e_h%dmp_method == CANONICAL) then
       call elsi_deallocate(e_h,dsdsd,"dsdsd")
