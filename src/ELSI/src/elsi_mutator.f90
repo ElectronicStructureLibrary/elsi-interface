@@ -86,6 +86,9 @@ module ELSI_MUTATOR
    public :: elsi_set_sips_slice_buf
    public :: elsi_set_sips_ev_min
    public :: elsi_set_sips_ev_max
+   public :: elsi_set_dmp_method
+   public :: elsi_set_dmp_max_step
+   public :: elsi_set_dmp_tol
    public :: elsi_set_mu_broaden_scheme
    public :: elsi_set_mu_broaden_width
    public :: elsi_set_mu_tol
@@ -117,29 +120,29 @@ subroutine elsi_set_output(e_h,out_level)
    call elsi_check_handle(e_h,caller)
 
    if(out_level <= 0) then
-      e_h%print_info = .false.
-      e_h%print_mem  = .false.
-      e_h%omm_output = .false.
+      e_h%print_info              = .false.
+      e_h%print_mem               = .false.
+      e_h%omm_output              = .false.
       e_h%pexsi_options%verbosity = 1
-      e_h%elpa_output = .false.
+      e_h%elpa_output             = .false.
    elseif(out_level == 1) then
-      e_h%print_info = .true.
-      e_h%print_mem  = .false.
-      e_h%omm_output = .false.
+      e_h%print_info              = .true.
+      e_h%print_mem               = .false.
+      e_h%omm_output              = .false.
       e_h%pexsi_options%verbosity = 1
-      e_h%elpa_output = .false.
+      e_h%elpa_output             = .false.
    elseif(out_level == 2) then
-      e_h%print_info = .true.
-      e_h%print_mem  = .false.
-      e_h%omm_output = .true.
+      e_h%print_info              = .true.
+      e_h%print_mem               = .false.
+      e_h%omm_output              = .true.
       e_h%pexsi_options%verbosity = 2
-      e_h%elpa_output = .true.
+      e_h%elpa_output             = .true.
    else
-      e_h%print_info = .true.
-      e_h%print_mem  = .true.
-      e_h%omm_output = .true.
+      e_h%print_info              = .true.
+      e_h%print_mem               = .true.
+      e_h%omm_output              = .true.
       e_h%pexsi_options%verbosity = 2
-      e_h%elpa_output = .true.
+      e_h%elpa_output             = .true.
    endif
 
 end subroutine
@@ -836,7 +839,7 @@ subroutine elsi_set_sips_n_slice(e_h,n_slice)
    call elsi_check_handle(e_h,caller)
 
    if(mod(e_h%n_procs,n_slice) == 0) then
-      e_h%n_slices = n_slice
+      e_h%n_slices     = n_slice
       e_h%np_per_slice = e_h%n_procs/n_slice
    else
       call elsi_stop(" The total number of MPI tasks must be a multiple of"//&
@@ -916,6 +919,60 @@ subroutine elsi_set_sips_ev_max(e_h,ev_max)
    call elsi_check_handle(e_h,caller)
 
    e_h%ev_max = ev_max
+
+end subroutine
+
+!>
+!! This routine sets the density matrix purification method.
+!!
+subroutine elsi_set_dmp_method(e_h,dmp_method)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h        !< Handle
+   integer(kind=i4),  intent(in)    :: dmp_method !< Purification method
+
+   character*40, parameter :: caller = "elsi_set_dmp_method"
+
+   call elsi_check_handle(e_h,caller)
+
+   e_h%dmp_method = dmp_method
+
+end subroutine
+
+!>
+!! This routine sets the maximum number of density matrix purification steps.
+!!
+subroutine elsi_set_dmp_max_step(e_h,max_step)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h      !< Handle
+   integer(kind=i4),  intent(in)    :: max_step !< Maximum number of steps
+
+   character*40, parameter :: caller = "elsi_set_dmp_max_step"
+
+   call elsi_check_handle(e_h,caller)
+
+   e_h%max_dmp_iter = max_step
+
+end subroutine
+
+!>
+!! This routine sets the tolerance of the density matrix purification.
+!!
+subroutine elsi_set_dmp_tol(e_h,dmp_tol)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h     !< Handle
+   real(kind=r8),     intent(in)    :: dmp_tol !< Tolerance
+
+   character*40, parameter :: caller = "elsi_set_dmp_tol"
+
+   call elsi_check_handle(e_h,caller)
+
+   e_h%dmp_tol = dmp_tol
 
 end subroutine
 
@@ -1000,7 +1057,7 @@ subroutine elsi_set_mu_spin_degen(e_h,spin_degen)
 
    call elsi_check_handle(e_h,caller)
 
-   e_h%spin_degen = spin_degen
+   e_h%spin_degen  = spin_degen
    e_h%spin_is_set = .true.
 
 end subroutine
@@ -1153,7 +1210,7 @@ subroutine elsi_get_edm_real(e_h,d_out)
       end select
 
       e_h%edm_ready_real = .false.
-      e_h%data_type = UNSET
+      e_h%data_type      = UNSET
    else
       call elsi_stop(" Energy-weighted density matrix not computed.",e_h,caller)
    endif
@@ -1203,7 +1260,7 @@ subroutine elsi_get_edm_real_sparse(e_h,d_out)
       end select
 
       e_h%edm_ready_real = .false.
-      e_h%data_type = UNSET
+      e_h%data_type      = UNSET
    else
       call elsi_stop(" Energy-weighted density matrix not computed.",e_h,caller)
    endif
@@ -1253,7 +1310,7 @@ subroutine elsi_get_edm_complex(e_h,d_out)
       end select
 
       e_h%edm_ready_cmplx = .false.
-      e_h%data_type = UNSET
+      e_h%data_type       = UNSET
    else
       call elsi_stop(" Energy-weighted density matrix not computed.",e_h,caller)
    endif
@@ -1303,7 +1360,7 @@ subroutine elsi_get_edm_complex_sparse(e_h,d_out)
       end select
 
       e_h%edm_ready_cmplx = .false.
-      e_h%data_type = UNSET
+      e_h%data_type       = UNSET
    else
       call elsi_stop(" Energy-weighted density matrix not computed.",e_h,caller)
    endif

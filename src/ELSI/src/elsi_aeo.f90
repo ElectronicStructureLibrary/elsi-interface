@@ -1065,7 +1065,7 @@ subroutine elsi_solve_evp_elpa(e_h)
                       e_h%n_lcol,e_h%mpi_comm_row,e_h%mpi_comm_col,e_h%mpi_comm)
 
          ! Convert back to double precision
-         e_h%eval = real(eval_single,kind=r8)
+         e_h%eval      = real(eval_single,kind=r8)
          e_h%evec_real = real(evec_real_single,kind=r8)
 
          call elsi_deallocate(e_h,eval_single,"eval_single")

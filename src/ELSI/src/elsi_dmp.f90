@@ -44,10 +44,6 @@ module ELSI_DMP
    public :: elsi_solve_evp_dmp
    public :: elsi_set_dmp_default
 
-! TODO
-!  - H, S need to be stored
-!  - dm = spin * dm
-
 contains
 
 !>
@@ -100,7 +96,11 @@ subroutine elsi_solve_evp_dmp(e_h)
    call elsi_allocate(e_h,tmp_real1,e_h%n_basis,"tmp_real1",caller)
 
    ! Transform the generalized evp to the standard form
+   e_h%evec_real => e_h%dm_real
+
    call elsi_to_standard_evp(e_h)
+
+   nullify(e_h%evec_real)
 
    ! Use Gershgorin's theorem to find the bounds of the spectrum
    if(e_h%n_elsi_calls == 1) then
@@ -190,7 +190,7 @@ subroutine elsi_solve_evp_dmp(e_h)
       e_h%ev_ham_max = this_ev
    else
       e_h%ev_ham_min = this_ev
-      ev_min_found = .true.
+      ev_min_found   = .true.
    endif
 
    e_h%evec1 = tmp_real1
@@ -261,13 +261,10 @@ subroutine elsi_solve_evp_dmp(e_h)
    lambda = min(e_h%n_states_dmp/(e_h%ev_ham_max-mu),&
                (e_h%n_basis-e_h%n_states_dmp)/(mu-e_h%ev_ham_min))
 
-   if(e_h%n_elsi_calls == 1) then
-      call elsi_allocate(e_h,dm_prev,e_h%n_lrow,e_h%n_lcol,"dm_prev",caller)
-      call elsi_allocate(e_h,dsd,e_h%n_lrow,e_h%n_lcol,"dsd",caller)
-
-      if(e_h%dmp_method == CANONICAL) then
-         call elsi_allocate(e_h,dsdsd,e_h%n_lrow,e_h%n_lcol,"dsdsd",caller)
-      endif
+   call elsi_allocate(e_h,dm_prev,e_h%n_lrow,e_h%n_lcol,"dm_prev",caller)
+   call elsi_allocate(e_h,dsd,e_h%n_lrow,e_h%n_lcol,"dsd",caller)
+   if(e_h%dmp_method == CANONICAL) then
+      call elsi_allocate(e_h,dsdsd,e_h%n_lrow,e_h%n_lcol,"dsdsd",caller)
    endif
 
    ! ham_real used as tmp after this point
@@ -357,6 +354,12 @@ subroutine elsi_solve_evp_dmp(e_h)
          exit
       endif
    enddo
+
+   call elsi_deallocate(e_h,dm_prev,"dm_prev")
+   call elsi_deallocate(e_h,dsd,"dsd")
+   if(e_h%dmp_method == CANONICAL) then
+      call elsi_deallocate(e_h,dsdsd,"dsdsd")
+   endif
 
    if(dmp_conv) then
       ! E = Trace(H * DM)

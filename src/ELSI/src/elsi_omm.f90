@@ -246,9 +246,7 @@ subroutine elsi_set_omm_default(e_h)
 
    ! How do we perform the calculation
    ! 0 = Basic
-   ! 1 = Cholesky factorisation of S requested
    ! 2 = Cholesky already performed, U is provided in S
-   ! 3 = Use preconditioning based on the energy density
    e_h%omm_flavor = 0
 
    ! How to scale the kinetic energy matrix

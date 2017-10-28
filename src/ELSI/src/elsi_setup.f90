@@ -312,9 +312,9 @@ subroutine elsi_set_csc(e_h,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)
 
    call elsi_check_handle(e_h,caller)
 
-   e_h%nnz_g       = nnz_g
-   e_h%nnz_l_sp    = nnz_l
-   e_h%n_lcol_sp   = n_lcol
+   e_h%nnz_g     = nnz_g
+   e_h%nnz_l_sp  = nnz_l
+   e_h%n_lcol_sp = n_lcol
 
    call elsi_set_row_ind(e_h,row_ind)
    call elsi_set_col_ptr(e_h,col_ptr)

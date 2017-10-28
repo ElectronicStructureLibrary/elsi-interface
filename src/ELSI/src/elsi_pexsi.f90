@@ -245,21 +245,13 @@ subroutine elsi_solve_evp_pexsi(e_h)
    call elsi_get_time(e_h,t0)
 
    n_iner_steps = 0
-   mu_range = e_h%pexsi_options%muMax0-e_h%pexsi_options%muMin0
-   n_shift = max(10,e_h%n_procs/e_h%np_per_pole)
+   mu_range     = e_h%pexsi_options%muMax0-e_h%pexsi_options%muMin0
+   n_shift      = max(10,e_h%n_procs/e_h%np_per_pole)
 
    call elsi_allocate(e_h,shifts,n_shift,"shifts",caller)
    call elsi_allocate(e_h,inertias,n_shift,"inertias",caller)
    call elsi_allocate(e_h,ne_lower,n_shift,"ne_lower",caller)
    call elsi_allocate(e_h,ne_upper,n_shift,"ne_upper",caller)
-
-   if(.not. e_h%spin_is_set) then
-      if(e_h%n_spins == 2) then
-         e_h%spin_degen = 1.0_r8
-      else
-         e_h%spin_degen = 2.0_r8
-      endif
-   endif
 
    do while(n_iner_steps < 10 .and. &
             mu_range > e_h%pexsi_options%muInertiaTolerance)
@@ -271,7 +263,7 @@ subroutine elsi_solve_evp_pexsi(e_h)
       ne_upper = e_h%n_basis*e_h%spin_degen
 
       do i = 1,n_shift
-         shifts(i)   = e_h%pexsi_options%muMin0+(i-1)*shift_width
+         shifts(i) = e_h%pexsi_options%muMin0+(i-1)*shift_width
       enddo
 
       select case(e_h%data_type)
@@ -304,7 +296,7 @@ subroutine elsi_solve_evp_pexsi(e_h)
       idx = ceiling(3*e_h%pexsi_options%temperature/shift_width)
 
       do i = idx+1,n_shift
-         ne_lower(i) = 0.5_r8*(inertias(i-idx)+inertias(i))
+         ne_lower(i)     = 0.5_r8*(inertias(i-idx)+inertias(i))
          ne_upper(i-idx) = ne_lower(i)
       enddo
 
@@ -328,6 +320,7 @@ subroutine elsi_solve_evp_pexsi(e_h)
       else
          e_h%pexsi_options%muMin0 = shifts(aux_min)
          e_h%pexsi_options%muMax0 = shifts(aux_max)
+
          mu_range = e_h%pexsi_options%muMax0-e_h%pexsi_options%muMin0
       endif
    enddo
@@ -436,8 +429,8 @@ subroutine elsi_solve_evp_pexsi(e_h)
 
    ! Check convergence
    converged = .false.
-   aux_min = 0
-   aux_max = e_h%pexsi_options%nPoints+1
+   aux_min   = 0
+   aux_max   = e_h%pexsi_options%nPoints+1
 
    do i = 1,e_h%pexsi_options%nPoints
       if(e_h%ne_vec(i) < e_h%n_electrons-&
@@ -465,7 +458,7 @@ subroutine elsi_solve_evp_pexsi(e_h)
       end select
 
       converged = .true.
-      e_h%mu = shifts(1)
+      e_h%mu    = shifts(1)
    else
       ! Safety check
       if(aux_min == 0) then
@@ -487,7 +480,7 @@ subroutine elsi_solve_evp_pexsi(e_h)
       do i = aux_min,aux_max
          if(abs(e_h%ne_vec(i)-e_h%n_electrons) < &
             e_h%pexsi_options%numElectronPEXSITolerance) then
-            e_h%mu = shifts(i)
+            e_h%mu    = shifts(i)
             converged = .true.
 
             select case(e_h%data_type)
@@ -691,7 +684,7 @@ subroutine elsi_compute_edm_pexsi(e_h)
       end select
 
       converged = .true.
-      e_h%mu = shifts(1)
+      e_h%mu    = shifts(1)
    else
       ! Safety check
       if(aux_min == 0) then
@@ -713,7 +706,7 @@ subroutine elsi_compute_edm_pexsi(e_h)
       do i = aux_min,aux_max
          if(abs(e_h%ne_vec(i)-e_h%n_electrons) < &
             e_h%pexsi_options%numElectronPEXSITolerance) then
-            e_h%mu = shifts(i)
+            e_h%mu    = shifts(i)
             converged = .true.
 
             select case(e_h%data_type)

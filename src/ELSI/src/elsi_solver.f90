@@ -94,7 +94,7 @@ subroutine elsi_get_energy(e_h,energy)
                      e_h%occ_num(i_state,e_h%i_spin,e_h%i_kpt)
       enddo
    case(OMM_SOLVER)
-      energy = 2.0_r8*e_h%energy_hdm*e_h%i_weight
+      energy = e_h%spin_degen*e_h%energy_hdm*e_h%i_weight
    case(PEXSI_SOLVER)
       energy = e_h%energy_hdm*e_h%i_weight
    case(CHESS_SOLVER)
@@ -587,7 +587,7 @@ subroutine elsi_dm_real(e_h,h_in,s_in,d_out,energy_out)
          ! Solve
          call elsi_solve_evp_omm(e_h)
 
-         e_h%dm_omm%dval = 2.0_r8*e_h%dm_omm%dval
+         e_h%dm_omm%dval = e_h%spin_degen*e_h%dm_omm%dval
          call elsi_get_energy(e_h,energy_out)
       endif
    case(PEXSI_SOLVER)
@@ -667,12 +667,13 @@ subroutine elsi_dm_real(e_h,h_in,s_in,d_out,energy_out)
       ! Solve
       call elsi_solve_evp_dmp(e_h)
 
+      e_h%dm_real = e_h%spin_degen*e_h%dm_real
       call elsi_get_energy(e_h,energy_out)
    case default
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
-   e_h%data_type = UNSET
+   e_h%data_type      = UNSET
    e_h%edm_ready_real = .true.
 
 end subroutine
@@ -846,7 +847,7 @@ subroutine elsi_dm_complex(e_h,h_in,s_in,d_out,energy_out)
          ! Solve
          call elsi_solve_evp_omm(e_h)
 
-         e_h%dm_omm%zval = 2.0_r8*e_h%dm_omm%zval
+         e_h%dm_omm%zval = e_h%spin_degen*e_h%dm_omm%zval
          call elsi_get_energy(e_h,energy_out)
       endif
    case(PEXSI_SOLVER)
@@ -891,7 +892,7 @@ subroutine elsi_dm_complex(e_h,h_in,s_in,d_out,energy_out)
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
-   e_h%data_type = UNSET
+   e_h%data_type       = UNSET
    e_h%edm_ready_cmplx = .true.
 
 end subroutine
@@ -1076,7 +1077,7 @@ subroutine elsi_dm_real_sparse(e_h,h_in,s_in,d_out,energy_out)
          ! Solve
          call elsi_solve_evp_omm(e_h)
 
-         e_h%dm_omm%dval = 2.0_r8*e_h%dm_omm%dval
+         e_h%dm_omm%dval = e_h%spin_degen*e_h%dm_omm%dval
          call elsi_blacs_to_sips_dm(e_h,d_out)
          call elsi_get_energy(e_h,energy_out)
       endif
@@ -1105,7 +1106,7 @@ subroutine elsi_dm_real_sparse(e_h,h_in,s_in,d_out,energy_out)
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
-   e_h%data_type = UNSET
+   e_h%data_type      = UNSET
    e_h%edm_ready_real = .true.
 
 end subroutine
@@ -1291,7 +1292,7 @@ subroutine elsi_dm_complex_sparse(e_h,h_in,s_in,d_out,energy_out)
          ! Solve
          call elsi_solve_evp_omm(e_h)
 
-         e_h%dm_omm%zval = 2.0_r8*e_h%dm_omm%zval
+         e_h%dm_omm%zval = e_h%spin_degen*e_h%dm_omm%zval
          call elsi_blacs_to_sips_dm(e_h,d_out)
          call elsi_get_energy(e_h,energy_out)
       endif
@@ -1320,13 +1321,14 @@ subroutine elsi_dm_complex_sparse(e_h,h_in,s_in,d_out,energy_out)
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
-   e_h%data_type = UNSET
+   e_h%data_type       = UNSET
    e_h%edm_ready_cmplx = .true.
 
 end subroutine
 
 !>
-!! This routine initializes BLACS.
+!! This routine initializes BLACS, in case that the user selects a sparse format
+!! and BLACS is still used internally.
 !!
 subroutine elsi_init_blacs(e_h)
 

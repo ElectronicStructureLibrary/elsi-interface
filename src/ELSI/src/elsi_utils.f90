@@ -302,6 +302,14 @@ subroutine elsi_check(e_h,caller)
       endif
    endif
 
+   if(.not. e_h%spin_is_set) then
+      if(e_h%n_spins == 2) then
+         e_h%spin_degen = 1.0_r8
+      else
+         e_h%spin_degen = 2.0_r8
+      endif
+   endif
+
    if(.not. e_h%global_mpi_ready) then
       e_h%mpi_comm_all = e_h%mpi_comm
       e_h%n_procs_all  = e_h%n_procs
@@ -550,6 +558,8 @@ subroutine elsi_trace_mat_real(e_h,mat,trace)
 
    character*40, parameter :: caller = "elsi_trace_mat_real"
 
+   l_trace = 0.0_r8
+
    do i = 1,e_h%n_basis
       if(e_h%loc_row(i) > 0 .and. e_h%loc_col(i) > 0) then
          l_trace = l_trace + mat(e_h%loc_row(i),e_h%loc_col(i))
@@ -577,6 +587,8 @@ subroutine elsi_trace_mat_complex(e_h,mat,trace)
    complex(kind=r8) :: l_trace ! Local result
 
    character*40, parameter :: caller = "elsi_trace_mat_complex"
+
+   l_trace = 0.0_r8
 
    do i = 1,e_h%n_basis
       if(e_h%loc_row(i) > 0 .and. e_h%loc_col(i) > 0) then

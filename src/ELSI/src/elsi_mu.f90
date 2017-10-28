@@ -77,7 +77,7 @@ subroutine elsi_compute_mu_and_occ(e_h,n_electron,n_state,n_spin,n_kpt,&
    character*40, parameter :: caller = "elsi_compute_mu_and_occ"
 
    ! Determine smallest and largest eivenvalues
-   e_low = evals(1,1,1)
+   e_low  = evals(1,1,1)
    e_high = evals(n_state,1,1)
 
    do i_kpt = 1,n_kpt
@@ -298,10 +298,9 @@ subroutine elsi_find_mu(e_h,n_electron,n_state,n_spin,n_kpt,k_weights,evals,&
 
    character*40, parameter :: caller = "elsi_find_mu"
 
-   n_steps = 0
+   n_steps  = 0
    found_mu = .false.
-
-   mu_left = mu_lower_in
+   mu_left  = mu_lower_in
    mu_right = mu_upper_in
 
    do while(.not. found_mu .and. n_steps < e_h%max_mu_steps)
@@ -311,21 +310,20 @@ subroutine elsi_find_mu(e_h,n_electron,n_state,n_spin,n_kpt,k_weights,evals,&
               evals,occ_nums,mu_right,diff_right)
 
       if(abs(diff_left) < e_h%occ_tolerance) then
-         mu_out = mu_left
+         mu_out   = mu_left
          found_mu = .true.
       elseif(abs(diff_right) < e_h%occ_tolerance) then
-         mu_out = mu_right
+         mu_out   = mu_right
          found_mu = .true.
       else
          n_steps = n_steps+1
-
-         mu_mid = 0.5_r8*(mu_left+mu_right)
+         mu_mid  = 0.5_r8*(mu_left+mu_right)
 
          call elsi_check_electrons(e_h,n_electron,n_state,n_spin,n_kpt,&
                  k_weights,evals,occ_nums,mu_mid,diff_mid)
 
          if(abs(diff_mid) < e_h%occ_tolerance) then
-            mu_out = mu_mid
+            mu_out   = mu_mid
             found_mu = .true.
          elseif(diff_mid < 0) then
             mu_left = mu_mid
@@ -407,9 +405,9 @@ subroutine elsi_adjust_occ(e_h,n_state,n_spin,n_kpt,k_weights,evals,occ_nums,&
       max_id           = maxloc(eval_aux,1)
       eval_aux(max_id) = min_eval-1.0_r8
 
-      i_kpt = (i_val-1)/(n_spin*n_state)+1
-      i_spin   = mod((i_val-1)/n_state,n_spin)+1
-      i_state  = mod(i_val-1,n_state)+1
+      i_kpt   = (i_val-1)/(n_spin*n_state)+1
+      i_spin  = mod((i_val-1)/n_state,n_spin)+1
+      i_state = mod(i_val-1,n_state)+1
 
       if(k_weights(i_kpt)*occ_nums(i_state,i_spin,i_kpt) > diff_ne) then
          occ_nums(i_state,i_spin,i_kpt) = occ_nums(i_state,i_spin,i_kpt)-&
