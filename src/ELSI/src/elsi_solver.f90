@@ -37,6 +37,7 @@ module ELSI_SOLVER
                              SIPS_SOLVER,REAL_VALUES,COMPLEX_VALUES,MULTI_PROC,&
                              SINGLE_PROC,UNSET
    use ELSI_DATATYPE
+   use ELSI_DMP,       only: elsi_solve_evp_dmp
    use ELSI_ELPA,      only: elsi_compute_occ_elpa,elsi_compute_dm_elpa,&
                              elsi_normalize_dm_elpa,elsi_solve_evp_elpa
    use ELSI_LAPACK,    only: elsi_solve_evp_lapack
@@ -458,19 +459,19 @@ subroutine elsi_dm_real(e_h,h_in,s_in,d_out,energy_out)
                  "evec_real_elpa",caller)
       endif
 
-      ! Save a copy of overlap
-      if(e_h%n_elsi_calls==1 .and. e_h%n_single_steps > 0) then
-         call elsi_allocate(e_h,e_h%ovlp_real_copy,e_h%n_lrow,e_h%n_lcol,&
-                 "ovlp_real_copy",caller)
-         e_h%ovlp_real_copy = s_in
-      endif
-
       ! Set matrices
       call elsi_set_ham(e_h,h_in)
       call elsi_set_ovlp(e_h,s_in)
       call elsi_set_evec(e_h,e_h%evec_real_elpa)
       call elsi_set_eval(e_h,e_h%eval_elpa)
       call elsi_set_dm(e_h,d_out)
+
+      ! Save a copy of overlap
+      if(e_h%n_elsi_calls==1 .and. e_h%n_single_steps > 0) then
+         call elsi_allocate(e_h,e_h%ovlp_real_copy,e_h%n_lrow,e_h%n_lcol,&
+                 "ovlp_real_copy",caller)
+         e_h%ovlp_real_copy = s_in
+      endif
 
       ! Solve
       call elsi_solve_evp_elpa(e_h)
@@ -648,7 +649,25 @@ subroutine elsi_dm_real(e_h,h_in,s_in,d_out,energy_out)
    case(SIPS_SOLVER)
       call elsi_stop(" SIPS not yet implemented.",e_h,caller)
    case(DMP_SOLVER)
-      call elsi_stop(" DMP not yet implemented.",e_h,caller)
+      ! Set matrices
+      call elsi_set_ham(e_h,h_in)
+      call elsi_set_ovlp(e_h,s_in)
+      call elsi_set_dm(e_h,d_out)
+
+      ! Save a copy of Hamiltonian and overlap
+      if(e_h%n_elsi_calls==1) then
+         call elsi_allocate(e_h,e_h%ham_real_copy,e_h%n_lrow,e_h%n_lcol,&
+                 "ham_real_copy",caller)
+         call elsi_allocate(e_h,e_h%ovlp_real_copy,e_h%n_lrow,e_h%n_lcol,&
+                 "ovlp_real_copy",caller)
+         e_h%ham_real_copy  = h_in
+         e_h%ovlp_real_copy = s_in
+      endif
+
+      ! Solve
+      call elsi_solve_evp_dmp(e_h)
+
+      call elsi_get_energy(e_h,energy_out)
    case default
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
@@ -698,19 +717,19 @@ subroutine elsi_dm_complex(e_h,h_in,s_in,d_out,energy_out)
                  "evec_cmplx_elpa",caller)
       endif
 
-      ! Save a copy of overlap
-      if(e_h%n_elsi_calls==1 .and. e_h%n_single_steps > 0) then
-         call elsi_allocate(e_h,e_h%ovlp_cmplx_copy,e_h%n_lrow,e_h%n_lcol,&
-                 "ovlp_cmplx_copy",caller)
-         e_h%ovlp_cmplx_copy = s_in
-      endif
-
       ! Set matrices
       call elsi_set_ham(e_h,h_in)
       call elsi_set_ovlp(e_h,s_in)
       call elsi_set_evec(e_h,e_h%evec_cmplx_elpa)
       call elsi_set_eval(e_h,e_h%eval_elpa)
       call elsi_set_dm(e_h,d_out)
+
+      ! Save a copy of overlap
+      if(e_h%n_elsi_calls==1 .and. e_h%n_single_steps > 0) then
+         call elsi_allocate(e_h,e_h%ovlp_cmplx_copy,e_h%n_lrow,e_h%n_lcol,&
+                 "ovlp_cmplx_copy",caller)
+         e_h%ovlp_cmplx_copy = s_in
+      endif
 
       ! Solve
       call elsi_solve_evp_elpa(e_h)
@@ -1480,6 +1499,24 @@ subroutine elsi_print_settings(e_h)
 
       write(info_str,"('  | Slice buffer              ',E10.2)")&
          e_h%slice_buffer
+      call elsi_say(e_h,info_str)
+   case(DMP_SOLVER)
+      call elsi_say(e_h,"  DMP settings:")
+
+      write(info_str,"('  | Purification method              ',I10)")&
+         e_h%dmp_method
+      call elsi_say(e_h,info_str)
+
+      write(info_str,"('  | Max number of power iterations   ',I10)")&
+         e_h%max_power_iter
+      call elsi_say(e_h,info_str)
+
+      write(info_str,"('  | Max number of purification steps ',I10)")&
+         e_h%max_dmp_iter
+      call elsi_say(e_h,info_str)
+
+      write(info_str,"('  | Convergence tolerance            ',E10.2)")&
+         e_h%dmp_tol
       call elsi_say(e_h,info_str)
    end select
 

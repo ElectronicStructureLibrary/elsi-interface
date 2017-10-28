@@ -34,7 +34,7 @@ module ELSI_SETUP
    use ELSI_CONSTANTS,     only: ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,&
                                  CHESS_SOLVER,SIPS_SOLVER,SINGLE_PROC,MULTI_PROC
    use ELSI_DATATYPE
-!   use ELSI_DMP,           only: elsi_set_dmp_default
+   use ELSI_DMP,           only: elsi_set_dmp_default
    use ELSI_ELPA,          only: elsi_set_elpa_default,elsi_get_elpa_comms
    use ELSI_MALLOC
    use ELSI_MATRICES,      only: elsi_set_row_ind,elsi_set_col_ptr
@@ -126,7 +126,7 @@ subroutine elsi_init(e_h,solver,parallel_mode,matrix_format,n_basis,n_electron,&
       call elsi_set_elpa_default(e_h)
       call elsi_set_sips_default(e_h)
    case(DMP_SOLVER)
-!      call elsi_set_dmp_default(e_h)
+      call elsi_set_dmp_default(e_h)
    end select
 
    call elsi_init_timer(e_h)
