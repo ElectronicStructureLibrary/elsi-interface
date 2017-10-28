@@ -95,6 +95,7 @@ subroutine elsi_init(e_h,solver,parallel_mode,matrix_format,n_basis,n_electron,&
    e_h%n_states       = n_state
    e_h%n_states_solve = n_state
    e_h%n_states_omm   = nint(n_electron/2.0_r8)
+   e_h%n_states_dmp   = nint(n_electron/2.0_r8)
    e_h%solver         = solver
    e_h%matrix_format  = matrix_format
    e_h%parallel_mode  = parallel_mode

@@ -254,7 +254,16 @@ subroutine elsi_solve_evp_dmp(e_h)
 
    e_h%evec2 = tmp_real1
 
+   call elsi_get_time(e_h,t1)
+
+   write(info_str,"('  Finished power iteration')")
+   call elsi_say(e_h,info_str)
+   write(info_str,"('  | Time :',F10.3,' s')") t1-t0
+   call elsi_say(e_h,info_str)
+
    ! Initialization
+   call elsi_get_time(e_h,t0)
+
    call elsi_trace_mat(e_h,e_h%ham_real,mu)
 
    mu     = mu/e_h%n_basis
@@ -382,7 +391,7 @@ subroutine elsi_solve_evp_dmp(e_h)
 
    call elsi_get_time(e_h,t1)
 
-   write(info_str,"('  Finished density matrix calculation')")
+   write(info_str,"('  Finished density matrix purification')")
    call elsi_say(e_h,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
    call elsi_say(e_h,info_str)
