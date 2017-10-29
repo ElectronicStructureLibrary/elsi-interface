@@ -79,7 +79,7 @@ program test_standard_ev_real
       endif
 
       read(arg2,*) n_states
-      if((n_states < 0) .or. n_states > matrix_size) then
+      if(n_states < 0 .or. n_states > matrix_size) then
          n_states = matrix_size
       endif
 

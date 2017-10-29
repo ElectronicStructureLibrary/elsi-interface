@@ -30,7 +30,7 @@
 !!
 module ELSI_MATCONV
 
-   use ELSI_CONSTANTS, only: ELPA_SOLVER,OMM_SOLVER
+   use ELSI_CONSTANTS, only: ELPA_SOLVER,OMM_SOLVER,DMP_SOLVER
    use ELSI_DATATYPE
    use ELSI_MALLOC
    use ELSI_PRECISION, only: r8,i4,i8
@@ -241,8 +241,8 @@ subroutine elsi_blacs_to_pexsi_hs_real(e_h,h_in,s_in)
             call elsi_get_global_row(e_h,g_row_id,i_row)
 
             ! Pack global id and data into bufs
-            row_send_buf(i_val) = g_row_id
-            col_send_buf(i_val) = g_col_id
+            row_send_buf(i_val)   = g_row_id
+            col_send_buf(i_val)   = g_col_id
             h_val_send_buf(i_val) = h_in(i_row,i_col)
             if(e_h%n_elsi_calls == 1 .and. .not. e_h%ovlp_is_unit) then
                s_val_send_buf(i_val) = s_in(i_row,i_col)
@@ -597,8 +597,8 @@ subroutine elsi_blacs_to_pexsi_hs_complex(e_h,h_in,s_in)
             call elsi_get_global_row(e_h,g_row_id,i_row)
 
             ! Pack global id and data into bufs
-            row_send_buf(i_val) = g_row_id
-            col_send_buf(i_val) = g_col_id
+            row_send_buf(i_val)   = g_row_id
+            col_send_buf(i_val)   = g_col_id
             h_val_send_buf(i_val) = h_in(i_row,i_col)
             if(e_h%n_elsi_calls == 1 .and. .not. e_h%ovlp_is_unit) then
                s_val_send_buf(i_val) = s_in(i_row,i_col)
@@ -1182,8 +1182,8 @@ subroutine elsi_blacs_to_sips_hs_real(e_h,h_in,s_in)
             call elsi_get_global_row(e_h,g_row_id,i_row)
 
             ! Pack global id and data into bufs
-            row_send_buf(i_val) = g_row_id
-            col_send_buf(i_val) = g_col_id
+            row_send_buf(i_val)   = g_row_id
+            col_send_buf(i_val)   = g_col_id
             h_val_send_buf(i_val) = h_in(i_row,i_col)
             if(e_h%n_elsi_calls == 1+e_h%sips_n_elpa &
                .and. .not. e_h%ovlp_is_unit) then
@@ -1406,8 +1406,8 @@ subroutine elsi_blacs_to_sips_hs_complex(e_h,h_in,s_in)
             call elsi_get_global_row(e_h,g_row_id,i_row)
 
             ! Pack global id and data into bufs
-            row_send_buf(i_val) = g_row_id
-            col_send_buf(i_val) = g_col_id
+            row_send_buf(i_val)   = g_row_id
+            col_send_buf(i_val)   = g_col_id
             h_val_send_buf(i_val) = h_in(i_row,i_col)
             if(e_h%n_elsi_calls == 1+e_h%sips_n_elpa &
                .and. .not. e_h%ovlp_is_unit) then
@@ -1610,8 +1610,8 @@ subroutine elsi_sips_to_blacs_hs_real(e_h,h_in,s_in)
       i_row = e_h%row_ind_ccs(i_val)
 
       ! Compute global id
-      row_send_buf(i_val) = i_row
-      col_send_buf(i_val) = i_col+e_h%myid*(e_h%n_basis/e_h%n_procs)
+      row_send_buf(i_val)   = i_row
+      col_send_buf(i_val)   = i_col+e_h%myid*(e_h%n_basis/e_h%n_procs)
       h_val_send_buf(i_val) = h_in(i_val)
       if(e_h%n_elsi_calls == 1 .and. .not. e_h%ovlp_is_unit) then
          s_val_send_buf(i_val) = s_in(i_val)
@@ -1710,7 +1710,7 @@ subroutine elsi_sips_to_blacs_hs_real(e_h,h_in,s_in)
                        mod((col_recv_buf(i_val)-1),e_h%blk_col)+1
 
          ! Put value to correct position
-         e_h%ham_real_elpa(l_row_id,l_col_id) = h_val_recv_buf(i_val)
+         e_h%ham_real_elpa(l_row_id,l_col_id)  = h_val_recv_buf(i_val)
          e_h%ovlp_real_elpa(l_row_id,l_col_id) = s_val_recv_buf(i_val)
       enddo
 
@@ -1817,8 +1817,8 @@ subroutine elsi_sips_to_blacs_hs_complex(e_h,h_in,s_in)
       i_row = e_h%row_ind_ccs(i_val)
 
       ! Compute global id
-      row_send_buf(i_val) = i_row
-      col_send_buf(i_val) = i_col+e_h%myid*(e_h%n_basis/e_h%n_procs)
+      row_send_buf(i_val)   = i_row
+      col_send_buf(i_val)   = i_col+e_h%myid*(e_h%n_basis/e_h%n_procs)
       h_val_send_buf(i_val) = h_in(i_val)
       if(e_h%n_elsi_calls == 1 .and. .not. e_h%ovlp_is_unit) then
          s_val_send_buf(i_val) = s_in(i_val)
@@ -1918,7 +1918,7 @@ subroutine elsi_sips_to_blacs_hs_complex(e_h,h_in,s_in)
                        mod((col_recv_buf(i_val)-1),e_h%blk_col)+1
 
          ! Put value to correct position
-         e_h%ham_cmplx_elpa(l_row_id,l_col_id) = h_val_recv_buf(i_val)
+         e_h%ham_cmplx_elpa(l_row_id,l_col_id)  = h_val_recv_buf(i_val)
          e_h%ovlp_cmplx_elpa(l_row_id,l_col_id) = s_val_recv_buf(i_val)
       enddo
 
@@ -2004,7 +2004,7 @@ subroutine elsi_blacs_to_sips_dm_real(e_h,d_out)
 
    call elsi_get_time(e_h,t0)
 
-   if(e_h%solver == ELPA_SOLVER) then
+   if(e_h%solver == ELPA_SOLVER .or. e_h%solver == DMP_SOLVER) then
       ref => e_h%dm_real
    elseif(e_h%solver == OMM_SOLVER) then
       ref => e_h%dm_omm%dval
@@ -2169,7 +2169,7 @@ subroutine elsi_blacs_to_sips_dm_complex(e_h,d_out)
 
    call elsi_get_time(e_h,t0)
 
-   if(e_h%solver == ELPA_SOLVER) then
+   if(e_h%solver == ELPA_SOLVER .or. e_h%solver == DMP_SOLVER) then
       ref => e_h%dm_cmplx
    elseif(e_h%solver == OMM_SOLVER) then
       ref => e_h%dm_omm%zval
@@ -2322,7 +2322,7 @@ subroutine elsi_blacs_to_chess_hs_real(e_h,h_in,s_in)
    ! Then get the global matrices
    call elsi_sips_to_chess_hs(e_h)
 
-   e_h%nnz_l_sp = e_h%nnz_g
+   e_h%nnz_l_sp  = e_h%nnz_g
    e_h%n_lcol_sp = e_h%n_basis
 
    call elsi_get_time(e_h,t1)
@@ -2400,7 +2400,7 @@ subroutine elsi_sips_to_chess_hs(e_h)
    if(e_h%n_elsi_calls == 1) then
       ! Set recv_count and recv_displ
       recv_count(1:e_h%n_procs-1) = e_h%n_basis/e_h%n_procs
-      recv_count(e_h%n_procs) = e_h%n_basis-(e_h%n_procs-1)*recv_count(1)
+      recv_count(e_h%n_procs)     = e_h%n_basis-(e_h%n_procs-1)*recv_count(1)
 
       do i_proc = 2,e_h%n_procs
          recv_displ(i_proc) = sum(recv_count(1:i_proc-1),1)

@@ -67,7 +67,7 @@ subroutine elsi_init_sips(e_h)
       if(e_h%n_slices == UNSET) then
          ! TODO: Number of slices
          e_h%np_per_slice = 1
-         e_h%n_slices = e_h%n_procs
+         e_h%n_slices     = e_h%n_procs
       endif
 
       ! 1D block distribution

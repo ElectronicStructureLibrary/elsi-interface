@@ -140,12 +140,11 @@ program test_dm_complex_sparse
          write(*,*)
          write(*,'("  1) Reads Hamiltonian and overlap matrices;")')
          write(*,'("  2) Converts the matrices to 2D block-cyclic dense format;")')
-         write(*,'("  3) Computes the Cholesky factorization of the overlap matrix;")')
-         write(*,'("  4) Computes the density matrix with orbital minimization method.")')
+         write(*,'("  3) Computes the density matrix with orbital minimization method.")')
          write(*,*)
          write(*,'("  Now start testing  elsi_dm_complex_sparse + libOMM")')
          e_ref = e_omm
-      else
+      elseif(solver == 3) then
          write(*,'("  This test program performs the following computational steps:")')
          write(*,*)
          write(*,'("  1) Reads Hamiltonian and overlap matrices;")')
@@ -159,7 +158,7 @@ program test_dm_complex_sparse
       write(*,*)
    endif
 
-   if((solver == 1) .or. (solver == 2)) then
+   if(solver == 1 .or. solver == 2) then
       task_id    = 0
       id_in_task = myid
    elseif(solver == 3) then
@@ -263,7 +262,9 @@ program test_dm_complex_sparse
    t2 = MPI_Wtime()
 
    ! Compute energy density matrix
-   call elsi_get_edm_complex_sparse(e_h,edm)
+   if(solver == 1 .or. solver == 2 .or. solver == 3) then
+      call elsi_get_edm_complex_sparse(e_h,edm)
+   endif
 
    if(myid == 0) then
       write(*,'("  Finished SCF #2")')

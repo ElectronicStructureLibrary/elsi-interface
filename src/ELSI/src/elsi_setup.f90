@@ -34,6 +34,7 @@ module ELSI_SETUP
    use ELSI_CONSTANTS,     only: ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,&
                                  CHESS_SOLVER,SIPS_SOLVER,SINGLE_PROC,MULTI_PROC
    use ELSI_DATATYPE
+   use ELSI_DMP,           only: elsi_set_dmp_default
    use ELSI_ELPA,          only: elsi_set_elpa_default,elsi_get_elpa_comms
    use ELSI_MALLOC
    use ELSI_MATRICES,      only: elsi_set_row_ind,elsi_set_col_ptr
@@ -75,7 +76,7 @@ subroutine elsi_init(e_h,solver,parallel_mode,matrix_format,n_basis,n_electron,&
    implicit none
 
    type(elsi_handle), intent(out) :: e_h           !< Handle
-   integer(kind=i4),  intent(in)  :: solver        !< AUTO,ELPA,LIBOMM,PEXSI,CHESS,SIPS
+   integer(kind=i4),  intent(in)  :: solver        !< AUTO,ELPA,LIBOMM,PEXSI,CHESS,SIPS,DMP
    integer(kind=i4),  intent(in)  :: parallel_mode !< SINGLE_PROC,MULTI_PROC
    integer(kind=i4),  intent(in)  :: matrix_format !< BLACS_DENSE,PEXSI_CSC
    integer(kind=i4),  intent(in)  :: n_basis       !< Number of basis functions
@@ -94,6 +95,7 @@ subroutine elsi_init(e_h,solver,parallel_mode,matrix_format,n_basis,n_electron,&
    e_h%n_states       = n_state
    e_h%n_states_solve = n_state
    e_h%n_states_omm   = nint(n_electron/2.0_r8)
+   e_h%n_states_dmp   = nint(n_electron/2.0_r8)
    e_h%solver         = solver
    e_h%matrix_format  = matrix_format
    e_h%parallel_mode  = parallel_mode
@@ -110,32 +112,23 @@ subroutine elsi_init(e_h,solver,parallel_mode,matrix_format,n_basis,n_electron,&
       e_h%n_procs_all = 1
    endif
 
-   ! Set ELPA default
-   if(solver == ELPA_SOLVER) then
+   ! Set default paramters
+   select case(solver)
+   case(ELPA_SOLVER)
       call elsi_set_elpa_default(e_h)
-   endif
-
-   ! Set libOMM default
-   if(solver == OMM_SOLVER) then
+   case(OMM_SOLVER)
       call elsi_set_elpa_default(e_h)
       call elsi_set_omm_default(e_h)
-   endif
-
-   ! Set PEXSI default
-   if(solver == PEXSI_SOLVER) then
+   case(PEXSI_SOLVER)
       call elsi_set_pexsi_default(e_h)
-   endif
-
-   ! Set CheSS default
-   if(solver == CHESS_SOLVER) then
+   case(CHESS_SOLVER)
       call elsi_set_chess_default(e_h)
-   endif
-
-   ! Set SIPs default
-   if(solver == SIPS_SOLVER) then
+   case(SIPS_SOLVER)
       call elsi_set_elpa_default(e_h)
       call elsi_set_sips_default(e_h)
-   endif
+   case(DMP_SOLVER)
+      call elsi_set_dmp_default(e_h)
+   end select
 
    call elsi_init_timer(e_h)
 
@@ -320,9 +313,9 @@ subroutine elsi_set_csc(e_h,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)
 
    call elsi_check_handle(e_h,caller)
 
-   e_h%nnz_g       = nnz_g
-   e_h%nnz_l_sp    = nnz_l
-   e_h%n_lcol_sp   = n_lcol
+   e_h%nnz_g     = nnz_g
+   e_h%nnz_l_sp  = nnz_l
+   e_h%n_lcol_sp = n_lcol
 
    call elsi_set_row_ind(e_h,row_ind)
    call elsi_set_col_ptr(e_h,col_ptr)
@@ -540,12 +533,6 @@ subroutine elsi_cleanup(e_h)
    if(e_h%tdm_omm%is_initialized) then
       call m_deallocate(e_h%tdm_omm)
    endif
-   if(allocated(e_h%ovlp_real_copy)) then
-      call elsi_deallocate(e_h,e_h%ovlp_real_copy,"ovlp_real_copy")
-   endif
-   if(allocated(e_h%ovlp_cmplx_copy)) then
-      call elsi_deallocate(e_h,e_h%ovlp_cmplx_copy,"ovlp_cmplx_copy")
-   endif
 
    ! PEXSI
    if(allocated(e_h%ham_real_pexsi)) then
@@ -625,6 +612,27 @@ subroutine elsi_cleanup(e_h)
       call elsi_deallocate(e_h,e_h%slices,"slices")
    endif
 
+   ! DMP
+   if(allocated(e_h%ovlp_real_inv)) then
+      call elsi_deallocate(e_h,e_h%ovlp_real_inv,"ovlp_real_inv")
+   endif
+   if(allocated(e_h%evec1)) then
+      call elsi_deallocate(e_h,e_h%evec1,"evec1")
+   endif
+   if(allocated(e_h%evec2)) then
+      call elsi_deallocate(e_h,e_h%evec2,"evec2")
+   endif
+
+   ! Auxiliary
+   if(allocated(e_h%ham_real_copy)) then
+      call elsi_deallocate(e_h,e_h%ham_real_copy,"ham_real_copy")
+   endif
+   if(allocated(e_h%ovlp_real_copy)) then
+      call elsi_deallocate(e_h,e_h%ovlp_real_copy,"ovlp_real_copy")
+   endif
+   if(allocated(e_h%ovlp_cmplx_copy)) then
+      call elsi_deallocate(e_h,e_h%ovlp_cmplx_copy,"ovlp_cmplx_copy")
+   endif
    if(allocated(e_h%loc_row)) then
       call elsi_deallocate(e_h,e_h%loc_row,"loc_row")
    endif

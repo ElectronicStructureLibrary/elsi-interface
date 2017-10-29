@@ -380,8 +380,8 @@ subroutine elsi_rw_stop(info,rw_h,caller)
    type(elsi_rw_handle), intent(in) :: rw_h   !< Handle
    character(len=*),     intent(in) :: caller !< Caller
 
-   character*800 :: info_str
-   integer       :: mpierr
+   character*800    :: info_str
+   integer(kind=i4) :: mpierr
 
    if(rw_h%mpi_ready) then
       write(info_str,"(A,I7,5A)") "**Error! MPI task ",rw_h%myid," in ",&

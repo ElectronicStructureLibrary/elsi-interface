@@ -49,11 +49,12 @@ void main(int argc, char** argv) {
 
    double n_electrons;
    double *h,*s,*dm;
-   double e_elpa,e_omm,e_pexsi,e_test,e_tol,e_ref;
+   double e_elpa,e_omm,e_pexsi,e_dmp,e_test,e_tol,e_ref;
 
    e_elpa  = -1833.07932666530;
    e_omm   = -1833.07932666692;
    e_pexsi = -1833.07837980666;
+   e_dmp   = -1833.07932666691;
 
    elsi_handle    e_h;
    elsi_rw_handle rw_h;
@@ -83,6 +84,10 @@ void main(int argc, char** argv) {
    if (solver == 3) {
        e_ref = e_pexsi;
        e_tol = 0.0001;
+   }
+   if (solver == 6) {
+       e_ref = e_dmp;
+       e_tol = 0.00000001;
    }
 
    tmp = (int) round(sqrt((double) n_proc));

@@ -83,8 +83,6 @@ module ELSI_DATATYPE
       type(Matrix)                  :: coeff   ! Coefficient matrix
       type(Matrix)                  :: dm_omm
       type(Matrix)                  :: tdm_omm ! Kinetic energy density matrix
-      real(kind=r8),    allocatable :: ovlp_real_copy(:,:)
-      complex(kind=r8), allocatable :: ovlp_cmplx_copy(:,:)
 
       ! PESXI
       real(kind=r8),    allocatable :: ham_real_pexsi(:)
@@ -122,14 +120,25 @@ module ELSI_DATATYPE
       integer(kind=i4), allocatable :: col_ptr_sips(:)
       real(kind=r8),    allocatable :: slices(:)
 
-      ! Local-global index mapping
+      ! DMP
+      real(kind=r8),    allocatable :: ham_real_dmp(:,:)
+      real(kind=r8),    allocatable :: ovlp_real_dmp(:,:)
+      real(kind=r8),    allocatable :: dm_real_dmp(:,:)
+      real(kind=r8),    allocatable :: ovlp_real_inv(:,:)
+      real(kind=r8),    allocatable :: evec1(:)
+      real(kind=r8),    allocatable :: evec2(:)
+
+      ! Auxiliary
+      real(kind=r8),    allocatable :: ham_real_copy(:,:)
+      real(kind=r8),    allocatable :: ovlp_real_copy(:,:)
+      complex(kind=r8), allocatable :: ovlp_cmplx_copy(:,:)
       integer(kind=i4), allocatable :: loc_row(:)
       integer(kind=i4), allocatable :: loc_col(:)
 
       ! Is this a valid handle?
       logical          :: handle_ready = .false.
 
-      ! Solver (AUTO=0,ELPA=1,OMM=2,PEXSI=3,CHESS=4,SIPS=5)
+      ! Solver (AUTO=0,ELPA=1,OMM=2,PEXSI=3,CHESS=4,SIPS=5,DMP=6)
       integer(kind=i4) :: solver
 
       ! Real or complex data (REAL_VALUES=0,COMPLEX_VALUES=1)
@@ -210,7 +219,6 @@ module ELSI_DATATYPE
       ! Chemical potential
       integer(kind=i4) :: broaden_scheme
       real(kind=r8)    :: broaden_width
-      real(kind=r8)    :: broaden_delta
       real(kind=r8)    :: occ_tolerance
       integer(kind=i4) :: max_mu_steps
       real(kind=r8)    :: spin_degen
@@ -291,7 +299,16 @@ module ELSI_DATATYPE
       real(kind=r8)    :: ev_max         ! Upper bound of eigenvalue
       logical          :: sips_started = .false.
 
-      ! Timer 
+      ! DMP
+      integer(kind=i4) :: n_states_dmp   ! Number of states used in DMP
+      integer(kind=i4) :: dmp_method     ! 0 = Trace correcting
+                                         ! 1 = Canonical
+      integer(kind=i4) :: max_power_iter ! Maximum number of power iterations
+      integer(kind=i4) :: max_dmp_iter   ! Maximum number of purification steps
+      real(kind=r8)    :: dmp_tol        ! Tolerance for purification
+      real(kind=r8)    :: ne_dmp         ! Number of electrons computed by DMP
+
+      ! Timer
       integer(kind=i4) :: clock_rate
 
    end type

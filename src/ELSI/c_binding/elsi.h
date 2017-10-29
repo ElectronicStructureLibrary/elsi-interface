@@ -243,6 +243,15 @@ void c_elsi_set_sips_ev_min(elsi_handle handle_c,
 void c_elsi_set_sips_ev_max(elsi_handle handle_c,
                             double ev_max);
 
+void c_elsi_set_dmp_method(elsi_handle handle_c,
+                           int dmp_method);
+
+void c_elsi_set_dmp_max_step(elsi_handle handle_c,
+                             int max_step);
+
+void c_elsi_set_dmp_tol(elsi_handle handle_c,
+                        double dmp_tol);
+
 void c_elsi_set_mu_broaden_scheme(elsi_handle handle_c,
                                   int broaden_scheme);
 

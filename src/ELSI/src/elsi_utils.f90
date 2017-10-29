@@ -45,12 +45,24 @@ module ELSI_UTILS
    public :: elsi_get_global_row
    public :: elsi_get_global_col
    public :: elsi_get_local_nnz
+   public :: elsi_trace_mat
+   public :: elsi_trace_mat_mat
    public :: elsi_init_timer
    public :: elsi_get_time
 
    interface elsi_get_local_nnz
       module procedure elsi_get_local_nnz_real,&
                        elsi_get_local_nnz_complex
+   end interface
+
+   interface elsi_trace_mat
+      module procedure elsi_trace_mat_real,&
+                       elsi_trace_mat_complex
+   end interface
+
+   interface elsi_trace_mat_mat
+      module procedure elsi_trace_mat_mat_real,&
+                       elsi_trace_mat_mat_complex
    end interface
 
 contains
@@ -84,8 +96,8 @@ subroutine elsi_stop(info,e_h,caller)
    type(elsi_handle), intent(in) :: e_h    !< Handle
    character(len=*),  intent(in) :: caller !< Caller
 
-   character*800 :: info_str
-   integer       :: mpierr
+   character*800    :: info_str
+   integer(kind=i4) :: mpierr
 
    if(e_h%global_mpi_ready) then
       write(info_str,"(A,I7,5A)") "**Error! MPI task ",e_h%myid_all," in ",&
@@ -181,7 +193,6 @@ subroutine elsi_reset_handle(e_h)
    e_h%energy_sedm      = 0.0_r8
    e_h%broaden_scheme   = 0
    e_h%broaden_width    = 1.0e-2_r8
-   e_h%broaden_delta    = 1.329340388e-2_r8 ! 3/4*sqrt(pi)*broaden_width
    e_h%occ_tolerance    = 1.0e-13_r8
    e_h%max_mu_steps     = 100
    e_h%spin_degen       = 0.0_r8
@@ -291,6 +302,14 @@ subroutine elsi_check(e_h,caller)
       endif
    endif
 
+   if(.not. e_h%spin_is_set) then
+      if(e_h%n_spins == 2) then
+         e_h%spin_degen = 1.0_r8
+      else
+         e_h%spin_degen = 2.0_r8
+      endif
+   endif
+
    if(.not. e_h%global_mpi_ready) then
       e_h%mpi_comm_all = e_h%mpi_comm
       e_h%n_procs_all  = e_h%n_procs
@@ -384,6 +403,13 @@ subroutine elsi_check(e_h,caller)
 
       if(e_h%parallel_mode /= MULTI_PROC) then
          call elsi_stop(" SIPs solver requires MULTI_PROC parallel mode.",e_h,&
+                 caller)
+      endif
+   case(DMP_SOLVER)
+      call elsi_say(e_h,"  ATTENTION! DMP is EXPERIMENTAL.")
+
+      if(e_h%parallel_mode /= MULTI_PROC) then
+         call elsi_stop(" DMP solver requires MULTI_PROC parallel mode.",e_h,&
                  caller)
       endif
    case default
@@ -511,6 +537,118 @@ subroutine elsi_get_local_nnz_complex(e_h,mat,n_row,n_col,nnz)
          endif
       enddo
    enddo
+
+end subroutine
+
+!>
+!! This routine computes the trace of a matrix. The size of the matrix is
+!! restricted to be identical to Hamiltonian.
+!!
+subroutine elsi_trace_mat_real(e_h,mat,trace)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h                        !< Handle
+   real(kind=r8),     intent(in)    :: mat(e_h%n_lrow,e_h%n_lcol) !< Matrix
+   real(kind=r8),     intent(out)   :: trace                      !< Trace(mat)
+
+   integer(kind=i4) :: i
+   integer(kind=i4) :: mpierr
+   real(kind=r8)    :: l_trace ! Local result
+
+   character*40, parameter :: caller = "elsi_trace_mat_real"
+
+   l_trace = 0.0_r8
+
+   do i = 1,e_h%n_basis
+      if(e_h%loc_row(i) > 0 .and. e_h%loc_col(i) > 0) then
+         l_trace = l_trace + mat(e_h%loc_row(i),e_h%loc_col(i))
+      endif
+   enddo
+
+   call MPI_Allreduce(l_trace,trace,1,mpi_real8,mpi_sum,e_h%mpi_comm,mpierr)
+
+end subroutine
+
+!>
+!! This routine computes the trace of a matrix. The size of the matrix is
+!! restricted to be identical to Hamiltonian.
+!!
+subroutine elsi_trace_mat_complex(e_h,mat,trace)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h                        !< Handle
+   complex(kind=r8),  intent(in)    :: mat(e_h%n_lrow,e_h%n_lcol) !< Matrix
+   complex(kind=r8),  intent(out)   :: trace                      !< Trace(mat)
+
+   integer(kind=i4) :: i
+   integer(kind=i4) :: mpierr
+   complex(kind=r8) :: l_trace ! Local result
+
+   character*40, parameter :: caller = "elsi_trace_mat_complex"
+
+   l_trace = 0.0_r8
+
+   do i = 1,e_h%n_basis
+      if(e_h%loc_row(i) > 0 .and. e_h%loc_col(i) > 0) then
+         l_trace = l_trace + mat(e_h%loc_row(i),e_h%loc_col(i))
+      endif
+   enddo
+
+   call MPI_Allreduce(l_trace,trace,1,mpi_complex16,mpi_sum,e_h%mpi_comm,mpierr)
+
+end subroutine
+
+!>
+!! This routine computes the trace of the product of two matrices. The size of
+!! the two matrices is restricted to be identical to Hamiltonian.
+!!
+subroutine elsi_trace_mat_mat_real(e_h,mat1,mat2,trace)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h                         !< Handle
+   real(kind=r8),     intent(in)    :: mat1(e_h%n_lrow,e_h%n_lcol) !< Matrix
+   real(kind=r8),     intent(in)    :: mat2(e_h%n_lrow,e_h%n_lcol) !< Matrix
+   real(kind=r8),     intent(out)   :: trace                       !< Trace(mat1*mat2)
+
+   real(kind=r8)    :: l_trace ! Local result
+   integer(kind=i4) :: mpierr
+
+   real(kind=r8), external :: ddot
+
+   character*40, parameter :: caller = "elsi_trace_mat_mat_real"
+
+   l_trace = ddot(e_h%n_lrow*e_h%n_lcol,mat1,1,mat2,1)
+
+   call MPI_Allreduce(l_trace,trace,1,mpi_real8,mpi_sum,e_h%mpi_comm,mpierr)
+
+end subroutine
+
+!>
+!! This routine computes the trace of the product of two matrices. The size of
+!! the two matrices is restricted to be identical to Hamiltonian.
+!!
+subroutine elsi_trace_mat_mat_complex(e_h,mat1,mat2,trace)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h                         !< Handle
+   complex(kind=r8),  intent(in)    :: mat1(e_h%n_lrow,e_h%n_lcol) !< Matrix
+   complex(kind=r8),  intent(in)    :: mat2(e_h%n_lrow,e_h%n_lcol) !< Matrix
+   complex(kind=r8),  intent(out)   :: trace                       !< Trace(mat1*mat2)
+
+   complex(kind=r8) :: l_trace ! Local result
+   integer(kind=i4) :: mpierr
+
+   complex(kind=r8), external :: zdotu
+
+   character*40, parameter :: caller = "elsi_trace_mat_mat_complex"
+
+   l_trace = zdotu(e_h%n_lrow*e_h%n_lcol,mat1,1,mat2,1)
+
+   call MPI_Allreduce(l_trace,trace,1,mpi_complex16,mpi_sum,e_h%mpi_comm,mpierr)
 
 end subroutine
 

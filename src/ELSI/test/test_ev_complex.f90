@@ -134,15 +134,6 @@ program test_ev_complex
          write(*,'("  5) Back-transforms the eigenvectors to the generalized problem.")')
          write(*,*)
          write(*,'("  Now start testing  elsi_ev_complex + ELPA")')
-      elseif(solver == 5) then
-         write(*,'("  This test program performs the following computational steps:")')
-         write(*,*)
-         write(*,'("  1) Reads Hamiltonian and overlap matrices;")')
-         write(*,'("  2) Converts the matrices to 1D block CSC format;")')
-         write(*,'("  3) Solves the generalized eigenproblem with shift-and-invert")')
-         write(*,'("     parallel spectral transformation.")')
-         write(*,*)
-         write(*,'("  Now start testing  elsi_ev_complex + SIPs")')
       endif
       write(*,*)
    endif

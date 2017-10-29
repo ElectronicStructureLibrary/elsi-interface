@@ -100,7 +100,7 @@ function f_ppexsi_plan_initialize(fcomm,numProcRow,numProcCol,outputFileIndex,in
 
    implicit none
 
-   integer                  :: fcomm
+   integer(kind=i4)         :: fcomm
    integer(kind=i4)         :: numProcRow
    integer(kind=i4)         :: numProcCol
    integer(kind=i4)         :: outputFileIndex

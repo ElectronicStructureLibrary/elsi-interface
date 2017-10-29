@@ -34,21 +34,22 @@ module ELSI_CONSTANTS
 
    implicit none
 
+   real(kind=r8), parameter :: SQRT_PI        = 1.7724538509055160273_r8 ! sqrt(pi)
    real(kind=r8), parameter :: INVERT_SQRT_PI = 0.5641895835477563275_r8 ! 1/sqrt(pi)
 
-   integer(kind=i4), parameter :: UNSET                = -910910
-   integer(kind=i4), parameter :: N_SOLVERS            = 6
-   integer(kind=i4), parameter :: N_MATRIX_FORMATS     = 2
-   integer(kind=i4), parameter :: N_PARALLEL_MODES     = 2
-   integer(kind=i4), parameter :: N_BROADENING_SCHEMES = 4
+   integer(kind=i4), parameter :: UNSET            = -910910
+   integer(kind=i4), parameter :: N_SOLVERS        = 7
+   integer(kind=i4), parameter :: N_MATRIX_FORMATS = 2
+   integer(kind=i4), parameter :: N_PARALLEL_MODES = 2
 
    ! Method names
-   integer(kind=i4), parameter :: AUTO   = 0
+   integer(kind=i4), parameter :: AUTO         = 0
    integer(kind=i4), parameter :: ELPA_SOLVER  = 1
    integer(kind=i4), parameter :: OMM_SOLVER   = 2
    integer(kind=i4), parameter :: PEXSI_SOLVER = 3
    integer(kind=i4), parameter :: CHESS_SOLVER = 4
    integer(kind=i4), parameter :: SIPS_SOLVER  = 5
+   integer(kind=i4), parameter :: DMP_SOLVER   = 6
 
    ! Real or complex data
    integer(kind=i4), parameter :: REAL_VALUES    = 0
@@ -74,11 +75,15 @@ module ELSI_CONSTANTS
    integer(kind=i4), parameter :: METHFESSEL_PAXTON_1 = 3
    integer(kind=i4), parameter :: CUBIC               = 4
 
+   ! Density matrix purification methods
+   integer(kind=i4), parameter :: TRACE_CORRECTING = 0
+   integer(kind=i4), parameter :: CANONICAL        = 1
+
    ! Matrix reading and writing
    integer(kind=i4), parameter :: HEADER_SIZE  = 16
    integer(kind=i4), parameter :: FILE_VERSION = 170915
 
-   ! Reading and writing
+   ! Reading and writing tasks
    integer(kind=i4), parameter :: READ_FILE  = 0
    integer(kind=i4), parameter :: WRITE_FILE = 1
 

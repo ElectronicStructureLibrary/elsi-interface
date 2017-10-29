@@ -30,7 +30,7 @@
 !!
 module ELSI_ELPA
 
-   use ELSI_CONSTANTS,    only: REAL_VALUES,COMPLEX_VALUES
+   use ELSI_CONSTANTS,    only: REAL_VALUES,COMPLEX_VALUES,BLACS_DENSE
    use ELSI_DATATYPE
    use ELSI_MALLOC
    use ELSI_MU,           only: elsi_compute_mu_and_occ
@@ -60,6 +60,7 @@ module ELSI_ELPA
    public :: elsi_compute_dm_elpa
    public :: elsi_compute_edm_elpa
    public :: elsi_normalize_dm_elpa
+   public :: elsi_to_standard_evp
    public :: elsi_solve_evp_elpa
 
 contains
@@ -437,22 +438,16 @@ subroutine elsi_normalize_dm_elpa(e_h)
    integer(kind=i4) :: mpierr
    character*200    :: info_str
 
-   real(kind=r8),    external :: ddot
-   complex(kind=r8), external :: zdotu
-
    character*40, parameter :: caller = "elsi_normalize_dm_elpa"
 
    select case(e_h%data_type)
    case(COMPLEX_VALUES)
-      tmp_cmplx = zdotu(e_h%n_lrow*e_h%n_lcol,e_h%dm_cmplx,1,&
-                     e_h%ovlp_cmplx_copy,1)
+      call elsi_trace_mat_mat(e_h,e_h%dm_cmplx,e_h%ovlp_cmplx_copy,tmp_cmplx)
 
-      l_ne = dble(tmp_cmplx)
+      g_ne = real(tmp_cmplx,kind=r8)
    case(REAL_VALUES)
-      l_ne = ddot(e_h%n_lrow*e_h%n_lcol,e_h%dm_real,1,e_h%ovlp_real_copy,1)
+      call elsi_trace_mat_mat(e_h,e_h%dm_real,e_h%ovlp_real_copy,g_ne)
    end select
-
-   call MPI_Allreduce(l_ne,g_ne,1,mpi_real8,mpi_sum,e_h%mpi_comm,mpierr)
 
    if(e_h%n_spins*e_h%n_kpts > 1) then
       if(e_h%myid == 0) then
@@ -990,7 +985,7 @@ subroutine elsi_solve_evp_elpa(e_h)
    elpa_print_times = e_h%elpa_output
 
    ! Compute sparsity
-   if(e_h%n_elsi_calls == 1) then
+   if(e_h%n_elsi_calls == 1 .and. e_h%matrix_format == BLACS_DENSE) then
       select case(e_h%data_type)
       case(COMPLEX_VALUES)
          call elsi_get_local_nnz_complex(e_h,e_h%ham_cmplx,e_h%n_lrow,&
