@@ -956,7 +956,7 @@ subroutine elsi_dm_real_sparse(e_h,h_in,s_in,d_out,energy_out)
       call elsi_set_eval(e_h,e_h%eval_elpa)
       call elsi_set_dm(e_h,e_h%dm_real_elpa)
 
-      ! Solve eigenvalue problem
+      ! Solve
       call elsi_solve_evp_elpa(e_h)
 
       ! Compute density matrix
@@ -1006,7 +1006,7 @@ subroutine elsi_dm_real_sparse(e_h,h_in,s_in,d_out,energy_out)
          call elsi_set_eval(e_h,e_h%eval_elpa)
          call elsi_set_dm(e_h,e_h%dm_real_elpa)
 
-         ! Solve eigenvalue problem
+         ! Solve
          call elsi_solve_evp_elpa(e_h)
 
          ! Compute density matrix
@@ -1101,7 +1101,41 @@ subroutine elsi_dm_real_sparse(e_h,h_in,s_in,d_out,energy_out)
    case(SIPS_SOLVER)
       call elsi_stop(" SIPS not yet implemented.",e_h,caller)
    case(DMP_SOLVER)
-      call elsi_stop(" DMP not yet implemented.",e_h,caller)
+      ! Set up BLACS if not done by user
+      if(.not. e_h%blacs_ready) then
+         call elsi_init_blacs(e_h)
+      endif
+
+      ! Convert 1D CSC to 2D dense
+      call elsi_sips_to_blacs_hs(e_h,h_in,s_in)
+
+      ! Allocate
+      if(.not. allocated(e_h%dm_real_elpa)) then
+         call elsi_allocate(e_h,e_h%dm_real_elpa,e_h%n_lrow,e_h%n_lcol,&
+                 "dm_real_elpa",caller)
+      endif
+
+      ! Set matrices
+      call elsi_set_ham(e_h,e_h%ham_real_elpa)
+      call elsi_set_ovlp(e_h,e_h%ovlp_real_elpa)
+      call elsi_set_dm(e_h,e_h%dm_real_elpa)
+
+      ! Save a copy of Hamiltonian and overlap
+      if(e_h%n_elsi_calls==1) then
+         call elsi_allocate(e_h,e_h%ham_real_copy,e_h%n_lrow,e_h%n_lcol,&
+                 "ham_real_copy",caller)
+         call elsi_allocate(e_h,e_h%ovlp_real_copy,e_h%n_lrow,e_h%n_lcol,&
+                 "ovlp_real_copy",caller)
+         e_h%ham_real_copy  = e_h%ham_real_elpa
+         e_h%ovlp_real_copy = e_h%ovlp_real_elpa
+      endif
+
+      ! Solve
+      call elsi_solve_evp_dmp(e_h)
+
+      e_h%dm_real = e_h%spin_degen*e_h%dm_real
+      call elsi_blacs_to_sips_dm(e_h,d_out)
+      call elsi_get_energy(e_h,energy_out)
    case default
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
@@ -1170,7 +1204,7 @@ subroutine elsi_dm_complex_sparse(e_h,h_in,s_in,d_out,energy_out)
       call elsi_set_eval(e_h,e_h%eval_elpa)
       call elsi_set_dm(e_h,e_h%dm_cmplx_elpa)
 
-      ! Solve eigenvalue problem
+      ! Solve
       call elsi_solve_evp_elpa(e_h)
 
       ! Compute density matrix
@@ -1220,7 +1254,7 @@ subroutine elsi_dm_complex_sparse(e_h,h_in,s_in,d_out,energy_out)
          call elsi_set_eval(e_h,e_h%eval_elpa)
          call elsi_set_dm(e_h,e_h%dm_cmplx_elpa)
 
-         ! Solve eigenvalue problem
+         ! Solve
          call elsi_solve_evp_elpa(e_h)
 
          ! Compute density matrix

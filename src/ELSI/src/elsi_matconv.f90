@@ -30,7 +30,7 @@
 !!
 module ELSI_MATCONV
 
-   use ELSI_CONSTANTS, only: ELPA_SOLVER,OMM_SOLVER
+   use ELSI_CONSTANTS, only: ELPA_SOLVER,OMM_SOLVER,DMP_SOLVER
    use ELSI_DATATYPE
    use ELSI_MALLOC
    use ELSI_PRECISION, only: r8,i4,i8
@@ -2004,7 +2004,7 @@ subroutine elsi_blacs_to_sips_dm_real(e_h,d_out)
 
    call elsi_get_time(e_h,t0)
 
-   if(e_h%solver == ELPA_SOLVER) then
+   if(e_h%solver == ELPA_SOLVER .or. e_h%solver == DMP_SOLVER) then
       ref => e_h%dm_real
    elseif(e_h%solver == OMM_SOLVER) then
       ref => e_h%dm_omm%dval
@@ -2169,7 +2169,7 @@ subroutine elsi_blacs_to_sips_dm_complex(e_h,d_out)
 
    call elsi_get_time(e_h,t0)
 
-   if(e_h%solver == ELPA_SOLVER) then
+   if(e_h%solver == ELPA_SOLVER .or. e_h%solver == DMP_SOLVER) then
       ref => e_h%dm_cmplx
    elseif(e_h%solver == OMM_SOLVER) then
       ref => e_h%dm_omm%zval

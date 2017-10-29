@@ -134,8 +134,7 @@ program test_dm_complex
          write(*,'("  This test program performs the following computational steps:")')
          write(*,*)
          write(*,'("  1) Reads Hamiltonian and overlap matrices;")')
-         write(*,'("  2) Computes the Cholesky factorization of the overlap matrix;")')
-         write(*,'("  3) Computes the density matrix with orbital minimization method.")')
+         write(*,'("  2) Computes the density matrix with orbital minimization method.")')
          write(*,*)
          write(*,'("  Now start testing  elsi_dm_complex + libOMM")')
          e_ref = e_omm

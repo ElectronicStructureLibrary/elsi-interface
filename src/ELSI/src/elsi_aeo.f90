@@ -30,7 +30,7 @@
 !!
 module ELSI_ELPA
 
-   use ELSI_CONSTANTS, only: REAL_VALUES,COMPLEX_VALUES
+   use ELSI_CONSTANTS, only: REAL_VALUES,COMPLEX_VALUES,BLACS_DENSE
    use ELSI_DATATYPE
    use ELSI_MALLOC
    use ELSI_MU,        only: elsi_compute_mu_and_occ
@@ -1013,6 +1013,24 @@ subroutine elsi_solve_evp_elpa(e_h)
    character*40, parameter :: caller = "elsi_solve_evp_elpa"
 
    elpa_print_times = e_h%elpa_output
+
+   ! Compute sparsity
+   if(e_h%n_elsi_calls == 1 .and. e_h%matrix_format == BLACS_DENSE) then
+      select case(e_h%data_type)
+      case(COMPLEX_VALUES)
+         call elsi_get_local_nnz_complex(e_h,e_h%ham_cmplx,e_h%n_lrow,&
+                 e_h%n_lcol,e_h%nnz_l)
+
+         call MPI_Allreduce(e_h%nnz_l,e_h%nnz_g,1,mpi_integer4,mpi_sum,&
+                 e_h%mpi_comm,mpierr)
+      case(REAL_VALUES)
+         call elsi_get_local_nnz_real(e_h,e_h%ham_real,e_h%n_lrow,&
+                 e_h%n_lcol,e_h%nnz_l)
+
+         call MPI_Allreduce(e_h%nnz_l,e_h%nnz_g,1,mpi_integer4,mpi_sum,&
+                 e_h%mpi_comm,mpierr)
+      end select
+   endif
 
    ! Transform to standard form
    if(.not. e_h%ovlp_is_unit) then

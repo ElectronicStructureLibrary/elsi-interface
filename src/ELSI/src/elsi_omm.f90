@@ -30,7 +30,7 @@
 !!
 module ELSI_OMM
 
-   use ELSI_CONSTANTS, only: REAL_VALUES,COMPLEX_VALUES
+   use ELSI_CONSTANTS, only: REAL_VALUES,COMPLEX_VALUES,BLACS_DENSE
    use ELSI_DATATYPE
    use ELSI_PRECISION, only: r8,i4
    use ELSI_UTILS
@@ -68,7 +68,7 @@ subroutine elsi_solve_evp_omm(e_h)
    character*40, parameter :: caller = "elsi_solve_evp_omm"
 
    ! Compute sparsity
-   if(e_h%n_elsi_calls == 1) then
+   if(e_h%n_elsi_calls == 1 .and. e_h%matrix_format == BLACS_DENSE) then
       select case(e_h%data_type)
       case(COMPLEX_VALUES)
          call elsi_get_local_nnz_complex(e_h,e_h%ham_omm%zval,e_h%n_lrow,&

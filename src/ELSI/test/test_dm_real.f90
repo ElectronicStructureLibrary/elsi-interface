@@ -135,8 +135,7 @@ program test_dm_real
          write(*,'("  This test program performs the following computational steps:")')
          write(*,*)
          write(*,'("  1) Reads Hamiltonian and overlap matrices;")')
-         write(*,'("  2) Computes the Cholesky factorization of the overlap matrix;")')
-         write(*,'("  3) Computes the density matrix with orbital minimization method.")')
+         write(*,'("  2) Computes the density matrix with orbital minimization method.")')
          write(*,*)
          write(*,'("  Now start testing  elsi_dm_real + libOMM")')
          e_ref = e_omm
@@ -155,8 +154,7 @@ program test_dm_real
          write(*,'("  This test program performs the following computational steps:")')
          write(*,*)
          write(*,'("  1) Reads Hamiltonian and overlap matrices;")')
-         write(*,'("  2) Computes the Cholesky factorization of the overlap matrix;")')
-         write(*,'("  3) Computes the density matrix with density matrix purification.")')
+         write(*,'("  2) Computes the density matrix with density matrix purification.")')
          write(*,*)
          write(*,'("  Now start testing  elsi_dm_real + DMP")')
          e_ref = e_dmp

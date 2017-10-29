@@ -30,7 +30,7 @@
 !!
 module ELSI_DMP
 
-   use ELSI_CONSTANTS
+   use ELSI_CONSTANTS, only: BLACS_DENSE
    use ELSI_DATATYPE
    use ELSI_ELPA,      only: elsi_to_standard_evp
    use ELSI_MALLOC
@@ -89,7 +89,7 @@ subroutine elsi_solve_evp_dmp(e_h)
    character*40, parameter :: caller = "elsi_solve_evp_dmp"
 
    ! Compute sparsity
-   if(e_h%n_elsi_calls == 1) then
+   if(e_h%n_elsi_calls == 1 .and. e_h%matrix_format == BLACS_DENSE) then
       call elsi_get_local_nnz_real(e_h,e_h%ham_real,e_h%n_lrow,e_h%n_lcol,&
               e_h%nnz_l)
 
