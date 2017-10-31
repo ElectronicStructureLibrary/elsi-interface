@@ -660,9 +660,9 @@ subroutine elsi_dm_real(e_h,h_in,s_in,d_out,energy_out)
                  "ham_real_copy",caller)
          call elsi_allocate(e_h,e_h%ovlp_real_copy,e_h%n_lrow,e_h%n_lcol,&
                  "ovlp_real_copy",caller)
-         e_h%ham_real_copy  = h_in
          e_h%ovlp_real_copy = s_in
       endif
+      e_h%ham_real_copy = h_in
 
       ! Solve
       call elsi_solve_evp_dmp(e_h)
