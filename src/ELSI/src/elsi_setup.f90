@@ -387,6 +387,8 @@ subroutine elsi_final_print(e_h)
       call elsi_say(e_h,"  | Solver                    :        CheSS ")
    elseif(e_h%solver == SIPS_SOLVER) then
       call elsi_say(e_h,"  | Solver                    :         SIPs ")
+   elseif(e_h%solver == DMP_SOLVER) then
+      call elsi_say(e_h,"  | Solver                    :          DMP ")
    endif
 
    if(e_h%parallel_mode == MULTI_PROC) then

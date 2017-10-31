@@ -103,6 +103,7 @@ subroutine elsi_solve_evp_dmp(e_h)
 
    ! Transform the generalized evp to the standard form
    e_h%evec_real => e_h%dm_real
+   e_h%no_sing_check = .true.
 
    call elsi_to_standard_evp(e_h)
 

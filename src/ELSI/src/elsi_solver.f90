@@ -1543,10 +1543,6 @@ subroutine elsi_print_settings(e_h)
          e_h%dmp_method
       call elsi_say(e_h,info_str)
 
-      write(info_str,"('  | Max number of power iterations   ',I10)")&
-         e_h%max_power_iter
-      call elsi_say(e_h,info_str)
-
       write(info_str,"('  | Max number of purification steps ',I10)")&
          e_h%max_dmp_iter
       call elsi_say(e_h,info_str)

@@ -167,10 +167,6 @@ subroutine elsi_check_electrons(e_h,n_electron,n_state,n_spin,n_kpt,k_weights,&
 
    character*40, parameter :: caller = "elsi_check_electrons"
 
-   ! To have a consistent slope of the occupation function at the chemical
-   ! potential, the parameters for GAUSSIAN and CUBIC should be related as:
-   ! delta = 3/4*sqrt(pi)*broaden_width
-   delta        = 0.75_r8*SQRT_PI*e_h%broaden_width
    invert_width = 1.0_r8/e_h%broaden_width
    diff_ne_out  = 0.0_r8
 
@@ -243,6 +239,10 @@ subroutine elsi_check_electrons(e_h,n_electron,n_state,n_spin,n_kpt,k_weights,&
          enddo
       enddo
    case(CUBIC)
+      ! To have a consistent slope of the occupation function at the chemical
+      ! potential, the parameters for GAUSSIAN and CUBIC should be related as:
+      delta = 0.75_r8*SQRT_PI*e_h%broaden_width
+
       do i_kpt = 1,n_kpt
          do i_spin = 1,n_spin
             do i_state = 1,n_state
