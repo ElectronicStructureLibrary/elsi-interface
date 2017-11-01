@@ -247,11 +247,12 @@ subroutine elsi_check_electrons(e_h,n_electron,n_state,n_spin,n_kpt,k_weights,&
          do i_spin = 1,n_spin
             do i_state = 1,n_state
                if(evals(i_state,i_spin,i_kpt) <= mu_in-delta) then
-                  occ_nums(i_state,i_spin,i_kpt) = 1.0_r8
+                  occ_nums(i_state,i_spin,i_kpt) = e_h%spin_degen*1.0_r8
                elseif(evals(i_state,i_spin,i_kpt) >= mu_in+delta) then
                   occ_nums(i_state,i_spin,i_kpt) = 0.0_r8
                else
-                  occ_nums(i_state,i_spin,i_kpt) = (0.25_r8/delta**3)*&
+                  occ_nums(i_state,i_spin,i_kpt) = e_h%spin_degen*&
+                     (0.25_r8/delta**3)*&
                      (evals(i_state,i_spin,i_kpt)-mu_in+2*delta)*&
                      (evals(i_state,i_spin,i_kpt)-mu_in-delta)**2
                endif
