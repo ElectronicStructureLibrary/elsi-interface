@@ -74,16 +74,15 @@ LINKER     ?= $(MPIFC)
 FLINKER    ?= $(LINKER)
 CLINKER    ?= $(LINKER)
 LDFLAGS    ?= $(FFLAGS_I)
-FLDFLAGS   ?= $(LDFLAGS)
-CLDFLAGS   ?= $(LDFLAGS)
 
 # Default architecture settings
 ELPA_OMP      ?= no
 ELPA_GPU      ?= no
 ELPA2_KERNEL  ?= Generic
 
-# Name of MPI executable
+# MPI for "make check"
 MPI_EXEC ?= mpirun
+MPI_SIZE ?= 4
 
 # Create C interfaces
 C_INTERFACE ?= yes
