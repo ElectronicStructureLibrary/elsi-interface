@@ -20,13 +20,7 @@ contains
         integer :: seed
         character(10) :: system_time
         real(dp) :: rtime
-#ifdef NORAND
         seed=123456
-#else
-        call date_and_time(time=system_time)
-        read (system_time,*) rtime
-        seed = int(rtime*1000.0_dp)
-#endif
 
     end function omm_rand_seed
 

@@ -88,17 +88,11 @@ subroutine omm_solve_quartic(c,x_min,fail)
 
   fail=.false.
 
-  !if (c(4)<0.0_dp) then
-  !  if (Node==0) print*, '#WARNING: Function is unbounded!'
-  !  !stop
-  !end if
-
   ! in order to find the minimum of the quartic equation, we have to solve a cubic equation; the
   ! following method is taken from Numerical Recipes
   a=3.0_dp*c(3)/(4.0_dp*c(4))
   b=2.0_dp*c(2)/(4.0_dp*c(4))
   if ((abs(b)>=1.0d11) .or. (abs(c(4))<=1.0d-11)) then
-    !if (Node==0) print*, '#WARNING: Function is quadratic!'
     x_min=-0.5_dp*c(1)/c(2)
     return
   end if

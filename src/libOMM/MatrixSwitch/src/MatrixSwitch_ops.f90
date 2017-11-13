@@ -1,7 +1,4 @@
 module MatrixSwitch_ops
-#ifdef PSP
-  use pspBLAS
-#endif
 
   implicit none
 
@@ -17,7 +14,6 @@ module MatrixSwitch_ops
 
   !**** VARIABLES *********************************!
 
-#ifdef MPI
   character(1), save :: ms_lap_order
 
   integer, save :: ms_mpi_comm
@@ -29,7 +25,6 @@ module MatrixSwitch_ops
   integer, save :: ms_lap_bs_num
   integer, save :: ms_lap_icontxt ! BLACS context handle used by MatrixSwitch
   integer, allocatable, save :: ms_lap_bs_list(:,:)
-#endif
 
   !**** TYPES *************************************!
 
@@ -60,9 +55,6 @@ module MatrixSwitch_ops
 
      complex(dp), pointer :: zval(:,:) => null() ! matrix elements for a complex matrix
 
-#ifdef PSP
-     type(psp_matrix_spm) :: spm ! a sparse matrix in pspBLAS
-#endif
   end type matrix
 
   !**** INTERFACES ********************************!
@@ -172,9 +164,7 @@ contains
     open(newunit=err_unit,file='MatrixSwitch.err',status='replace')
     write(err_unit,'(a)') 'FATAL ERROR in matrix_switch!'
     if (present(message)) write(err_unit,'(a)') message
-#ifdef MPI
     write(err_unit,'(a,1x,i5)') 'MPI rank:', ms_mpi_rank
-#endif
     close(err_unit)
     stop
 
