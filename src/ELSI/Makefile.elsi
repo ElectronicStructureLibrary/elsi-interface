@@ -154,7 +154,7 @@ elsi_constants.o: $(ELSI_DIR)/src/elsi_constants.f90 elsi_precision.o
 elsi_datatype.o: $(ELSI_DIR)/src/elsi_datatype.f90 elsi_precision.o $(STUBS)
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
-elsi_dmp.o: $(ELSI_DIR)/src/elsi_dmp.f90 elsi_constants.o elsi_datatype.o elsi_elpa.o elsi_malloc.o elsi_matrices.o elsi_precision.o elsi_utils.o
+elsi_dmp.o: $(ELSI_DIR)/src/elsi_dmp.f90 elsi_constants.o elsi_datatype.o $(ELSI_ELPA) elsi_malloc.o elsi_matrices.o elsi_precision.o elsi_utils.o
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
 elsi_elpa.o: $(ELSI_DIR)/src/elsi_elpa.f90 elsi_constants.o elsi_datatype.o elsi_malloc.o elsi_mu.o elsi_precision.o elsi_utils.o
