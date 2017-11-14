@@ -60,7 +60,8 @@ OMM_LIB   ?= -L$(LIB_DIR) -lOMM -lMatrixSwitch
 
 PEXSI_DIR ?= $(THIS_DIR)/src/PEXSI
 PEXSI_INC ?= -I$(INC_DIR)
-PEXSI_LIB ?= -L$(LIB_DIR) -lpexsi $(SUPERLU_LIB) $(PARMETIS_LIB) $(METIS_LIB)
+PEXSI_LIB ?= -L$(LIB_DIR) -lpexsi
+PEXSI_LIB += $(SUPERLU_LIB) $(PARMETIS_LIB) $(METIS_LIB)
 
 # Default compiler settings
 FFLAGS_I   ?= $(FFLAGS) $(SCALAPACK_INC)
