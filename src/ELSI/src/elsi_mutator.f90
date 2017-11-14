@@ -65,6 +65,7 @@ module ELSI_MUTATOR
    public :: elsi_set_pexsi_n_pole
    public :: elsi_set_pexsi_np_per_pole
    public :: elsi_set_pexsi_np_symbo
+   public :: elsi_set_pexsi_ordering
    public :: elsi_set_pexsi_temp
    public :: elsi_set_pexsi_gap
    public :: elsi_set_pexsi_delta_e
@@ -506,6 +507,24 @@ subroutine elsi_set_pexsi_np_symbo(e_h,np_symbo)
    endif
 
    e_h%pexsi_options%npSymbFact = np_symbo
+
+end subroutine
+
+!>
+!! This routine sets the matrix reordering method.
+!!
+subroutine elsi_set_pexsi_ordering(e_h,ordering)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h      !< Handle
+   integer(kind=i4),  intent(in)    :: ordering !< Matrix reordering method
+
+   character*40, parameter :: caller = "elsi_set_pexsi_ordering"
+
+   call elsi_check_handle(e_h,caller)
+
+   e_h%pexsi_options%ordering = ordering
 
 end subroutine
 

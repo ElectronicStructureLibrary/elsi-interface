@@ -797,8 +797,9 @@ subroutine elsi_set_pexsi_default(e_h)
    ! Use the PEXSI Default options
    call f_ppexsi_set_default_options(e_h%pexsi_options)
 
-   ! Use 1 process in symbolic factorization
+   ! Use 1 process in matrix reordering and symbolic factorization
    e_h%pexsi_options%npSymbFact = 1
+   e_h%pexsi_options%ordering = 1
 
 end subroutine
 

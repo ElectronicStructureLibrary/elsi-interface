@@ -78,6 +78,7 @@ module ELSI
    public :: elsi_set_pexsi_n_pole
    public :: elsi_set_pexsi_np_per_pole
    public :: elsi_set_pexsi_np_symbo
+   public :: elsi_set_pexsi_ordering
    public :: elsi_set_pexsi_temp
    public :: elsi_set_pexsi_gap
    public :: elsi_set_pexsi_delta_e
