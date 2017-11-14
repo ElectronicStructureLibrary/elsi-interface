@@ -60,7 +60,8 @@ OMM_LIB   ?= -L$(LIB_DIR) -lOMM -lMatrixSwitch
 
 PEXSI_DIR ?= $(THIS_DIR)/src/PEXSI
 PEXSI_INC ?= -I$(INC_DIR)
-PEXSI_LIB ?= -L$(LIB_DIR) -lpexsi $(SUPERLU_LIB) $(PARMETIS_LIB) $(METIS_LIB)
+PEXSI_LIB ?= -L$(LIB_DIR) -lpexsi
+PEXSI_LIB += $(SUPERLU_LIB) $(PARMETIS_LIB) $(METIS_LIB)
 
 # Default compiler settings
 FFLAGS_I   ?= $(FFLAGS) $(SCALAPACK_INC)
@@ -74,16 +75,15 @@ LINKER     ?= $(MPIFC)
 FLINKER    ?= $(LINKER)
 CLINKER    ?= $(LINKER)
 LDFLAGS    ?= $(FFLAGS_I)
-FLDFLAGS   ?= $(LDFLAGS)
-CLDFLAGS   ?= $(LDFLAGS)
 
 # Default architecture settings
 ELPA_OMP      ?= no
 ELPA_GPU      ?= no
 ELPA2_KERNEL  ?= Generic
 
-# Name of MPI executable
+# MPI for "make check"
 MPI_EXEC ?= mpirun
+MPI_SIZE ?= 4
 
 # Create C interfaces
 C_INTERFACE ?= yes

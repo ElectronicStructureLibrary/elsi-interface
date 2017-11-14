@@ -300,19 +300,11 @@ subroutine m_dfactorize(C,label)
 
   select case (ot)
     case (1)
-#ifdef LAP
       call dpotrf('u',C%dim1,C%dval,C%dim1,info)
       if (info/=0) call die('m_dfactorize: error in dpotrf')
-#else
-      call die('m_dfactorize: compile with LAPACK')
-#endif
     case (2)
-#ifdef SLAP
       call pdpotrf('u',C%dim1,C%dval,1,1,C%iaux1,info)
       if (info/=0) call die('m_dfactorize: error in pdpotrf')
-#else
-      call die('m_dfactorize: compile with ScaLAPACK')
-#endif
   end select
 
 end subroutine m_dfactorize
@@ -369,19 +361,11 @@ subroutine m_zfactorize(C,label)
 
   select case (ot)
     case (1)
-#ifdef LAP
       call zpotrf('u',C%dim1,C%zval,C%dim1,info)
       if (info/=0) call die('m_zfactorize: error in zpotrf')
-#else
-      call die('m_zfactorize: compile with LAPACK')
-#endif
     case (2)
-#ifdef SLAP
       call pzpotrf('u',C%dim1,C%zval,1,1,C%iaux1,info)
       if (info/=0) call die('m_zfactorize: error in pzpotrf')
-#else
-      call die('m_zfactorize: compile with ScaLAPACK')
-#endif
   end select
 
 end subroutine m_zfactorize
@@ -486,7 +470,6 @@ subroutine m_dreduce(A,C,label)
 
   select case (ot)
     case (1)
-#ifdef LAP
       call dsygst(1,'u',C%dim1,C%dval,C%dim1,A%dval,A%dim1,info)
       if (info/=0) call die('m_dreduce: error in dsygst')
       do i=1,C%dim1-1
@@ -494,11 +477,7 @@ subroutine m_dreduce(A,C,label)
           C%dval(j,i)=C%dval(i,j)
         end do
       end do
-#else
-      call die('m_dreduce: compile with LAPACK')
-#endif
     case (2)
-#ifdef SLAP
 !      call pdsygst(1,'u',C%dim1,C%dval,1,1,C%iaux1,A%dval,1,1,A%iaux1,scale_Cholesky,info)
 !      if (info/=0) call die('m_dreduce: error in pdsygst')
 !      if (C%is_serial) then
@@ -605,9 +584,6 @@ subroutine m_dreduce(A,C,label)
       call m_deallocate(work1)
       deallocate(local_row_list)
       deallocate(local_col_list)
-#else
-      call die('m_dreduce: compile with ScaLAPACK')
-#endif
 
   end select
 
@@ -674,7 +650,6 @@ subroutine m_zreduce(A,C,label)
 
   select case (ot)
     case (1)
-#ifdef LAP
       call zhegst(1,'u',C%dim1,C%zval,C%dim1,A%zval,A%dim1,info)
       if (info/=0) call die('m_zreduce: error in zhegst')
       do i=1,C%dim1-1
@@ -682,11 +657,7 @@ subroutine m_zreduce(A,C,label)
           C%zval(j,i)=conjg(C%zval(i,j))
         end do
       end do
-#else
-      call die('m_zreduce: compile with LAPACK')
-#endif
     case (2)
-#ifdef SLAP
       call pzhegst(1,'u',C%dim1,C%zval,1,1,C%iaux1,A%zval,1,1,A%iaux1,scale_Cholesky,info)
       if (info/=0) call die('m_zreduce: error in pzhegst')
       if (C%is_serial) then
@@ -713,9 +684,6 @@ subroutine m_zreduce(A,C,label)
       end do
       call m_add(work1,'n',C,1.0_dp,1.0_dp)
       call m_deallocate(work1)
-#else
-      call die('m_zreduce: compile with ScaLAPACK')
-#endif
   end select
 
 end subroutine m_zreduce
@@ -802,17 +770,9 @@ subroutine m_dtransform(A,C,label)
 
   select case (ot)
     case (1)
-#ifdef LAP
       call dtrmm('r','u','t','n',C%dim1,C%dim2,1.0_dp,A%dval,A%dim1,C%dval,C%dim1)
-#else
-      call die('m_dtransform: compile with LAPACK')
-#endif
     case (2)
-#ifdef SLAP
       call pdtrmm('r','u','t','n',C%dim1,C%dim2,1.0_dp,A%dval,1,1,A%iaux1,C%dval,1,1,C%iaux1)
-#else
-      call die('m_dtransform: compile with ScaLAPACK')
-#endif
   end select
 
 end subroutine m_dtransform
@@ -870,17 +830,9 @@ subroutine m_ztransform(A,C,label)
 
   select case (ot)
     case (1)
-#ifdef LAP
       call ztrmm('r','u','c','n',C%dim1,C%dim2,cmplx_1,A%zval,A%dim1,C%zval,C%dim1)
-#else
-      call die('m_ztransform: compile with LAPACK')
-#endif
     case (2)
-#ifdef SLAP
       call pztrmm('r','u','c','n',C%dim1,C%dim2,cmplx_1,A%zval,1,1,A%iaux1,C%zval,1,1,C%iaux1)
-#else
-      call die('m_ztransform: compile with ScaLAPACK')
-#endif
   end select
 
 end subroutine m_ztransform
@@ -967,17 +919,9 @@ subroutine m_dback_transform(A,C,label)
 
   select case (ot)
     case (1)
-#ifdef LAP
       call dtrsm('r','u','t','n',C%dim1,C%dim2,1.0_dp,A%dval,A%dim1,C%dval,C%dim1)
-#else
-      call die('m_dback_transform: compile with LAPACK')
-#endif
     case (2)
-#ifdef SLAP
       call pdtrsm('r','u','t','n',C%dim1,C%dim2,1.0_dp,A%dval,1,1,A%iaux1,C%dval,1,1,C%iaux1)
-#else
-      call die('m_dback_transform: compile with ScaLAPACK')
-#endif
   end select
 
 end subroutine m_dback_transform
@@ -1035,17 +979,9 @@ subroutine m_zback_transform(A,C,label)
 
   select case (ot)
     case (1)
-#ifdef LAP
       call ztrsm('r','u','c','n',C%dim1,C%dim2,cmplx_1,A%zval,A%dim1,C%zval,C%dim1)
-#else
-      call die('m_zback_transform: compile with LAPACK')
-#endif
     case (2)
-#ifdef SLAP
       call pztrsm('r','u','c','n',C%dim1,C%dim2,cmplx_1,A%zval,1,1,A%iaux1,C%zval,1,1,C%iaux1)
-#else
-      call die('m_zback_transform: compile with ScaLAPACK')
-#endif
   end select
 
 end subroutine m_zback_transform
@@ -1090,18 +1026,14 @@ subroutine m_dinverse(C,label)
 
   integer :: ot, lwork, i, j, info
   integer, allocatable :: ipiv(:)
-#ifdef SLAP
   integer :: liwork
   integer, allocatable :: iwork(:)
-#endif
 
   real(dp), allocatable :: work(:)
 
   !**** EXTERNAL ********************************!
 
-#ifdef LAP
   integer, external :: ilaenv
-#endif
 
   !**********************************************!
 
@@ -1142,7 +1074,6 @@ subroutine m_dinverse(C,label)
 
   select case (ot)
     case (1)
-#ifdef LAP
       allocate(ipiv(C%dim1))
       lwork=C%dim1*ilaenv(1,'dsytrf','u',C%dim1,-1,-1,-1)
       allocate(work(lwork))
@@ -1159,11 +1090,7 @@ subroutine m_dinverse(C,label)
           C%dval(j,i)=C%dval(i,j)
         end do
       end do
-#else
-      call die('m_dinverse: compile with LAPACK')
-#endif
     case (2)
-#ifdef SLAP
       allocate(ipiv(C%iaux1(3)+C%iaux1(5)))
       call pdgetrf(C%dim1,C%dim2,C%dval,1,1,C%iaux1,ipiv,info)
       if (info/=0) call die('m_dinverse: error in pdgetrf')
@@ -1182,9 +1109,6 @@ subroutine m_dinverse(C,label)
       deallocate(iwork)
       deallocate(work)
       deallocate(ipiv)
-#else
-      call die('m_dinverse: compile with ScaLAPACK')
-#endif
   end select
 
 end subroutine m_dinverse
@@ -1204,18 +1128,14 @@ subroutine m_zinverse(C,label)
 
   integer :: ot, lwork, i, j, info
   integer, allocatable :: ipiv(:)
-#ifdef SLAP
   integer :: liwork
   integer, allocatable :: iwork(:)
-#endif
 
   complex(dp), allocatable :: work(:)
 
   !**** EXTERNAL ********************************!
 
-#ifdef LAP
   integer, external :: ilaenv
-#endif
 
   !**********************************************!
 
@@ -1256,7 +1176,6 @@ subroutine m_zinverse(C,label)
 
   select case (ot)
     case (1)
-#ifdef LAP
       allocate(ipiv(C%dim1))
       lwork=C%dim1*ilaenv(1,'zhetrf','u',C%dim1,-1,-1,-1)
       allocate(work(lwork))
@@ -1273,11 +1192,7 @@ subroutine m_zinverse(C,label)
           C%zval(j,i)=conjg(C%zval(i,j))
         end do
       end do
-#else
-      call die('m_zinverse: compile with LAPACK')
-#endif
     case (2)
-#ifdef SLAP
       allocate(ipiv(C%iaux1(3)+C%iaux1(5)))
       call pzgetrf(C%dim1,C%dim2,C%zval,1,1,C%iaux1,ipiv,info)
       if (info/=0) call die('m_zinverse: error in pzgetrf')
@@ -1296,9 +1211,6 @@ subroutine m_zinverse(C,label)
       deallocate(iwork)
       deallocate(work)
       deallocate(ipiv)
-#else
-      call die('m_zinverse: compile with ScaLAPACK')
-#endif
   end select
 
 end subroutine m_zinverse
@@ -1359,16 +1271,7 @@ subroutine dcalc_PW_precon(T,scale_T,P)
 
   select case (ot)
     case (1)
-#ifdef PSP
-      do i=1,T%spm%nnz
-        !P%spm%dval(i)=1.0_dp/(1.0_dp+T%spm%dval(i)/scale_T)
-        s=2.0_dp*T%spm%dval(i)/scale_T
-        P%spm%dval(i)=(27.0_dp+18.0_dp*s+12.0_dp*(s**2)+8.0_dp*(s**3))/&
-                      (27.0_dp+18.0_dp*s+12.0_dp*(s**2)+8.0_dp*(s**3)+16.0_dp*(s**4))
-      end do
-#else
       call die('dcalc_PW_precon: compile with pspBLAS')
-#endif
   end select
 
 end subroutine dcalc_PW_precon
@@ -1402,13 +1305,7 @@ subroutine zcalc_PW_precon(T,scale_T,P)
 
   select case (ot)
     case (1)
-#ifdef PSP
-      do i=1,T%spm%nnz
-        P%spm%zval(i)=1.0_dp/(1.0_dp+abs(T%spm%zval(i))/scale_T)
-      end do
-#else
       call die('zcalc_PW_precon: compile with pspBLAS')
-#endif
   end select
 
 end subroutine zcalc_PW_precon
@@ -1429,9 +1326,7 @@ subroutine die(message)
   open(newunit=err_unit,file='libOMM.err',status='replace')
   write(err_unit,'(a)') 'FATAL ERROR in libOMM!'
   if (present(message)) write(err_unit,'(a)') message
-#ifdef MPI
-  write(err_unit,'(a,1x,i5)') 'MPI rank:', mpi_rank
-#endif
+  write(err_unit,'(a,1x,i5)') 'MPI rank:', ms_mpi_rank
   close(err_unit)
   stop
 

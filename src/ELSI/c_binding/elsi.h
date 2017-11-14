@@ -180,6 +180,9 @@ void c_elsi_set_pexsi_np_per_pole(elsi_handle handle_c,
 void c_elsi_set_pexsi_np_symbo(elsi_handle handle_c,
                                int np_symbo);
 
+void c_elsi_set_pexsi_ordering(elsi_handle handle_c,
+                               int ordering);
+
 void c_elsi_set_pexsi_temp(elsi_handle handle_c,
                            double temp);
 

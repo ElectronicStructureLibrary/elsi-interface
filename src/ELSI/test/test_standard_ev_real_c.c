@@ -36,7 +36,6 @@
 void main(int argc, char** argv) {
 
    int n_proc,n_prow,n_pcol,myid,my_prow,my_pcol;
-   int mpi_comm_global;
    int mpierr;
    int blacs_ctxt;
    int info,*sc_desc;
@@ -47,6 +46,8 @@ void main(int argc, char** argv) {
    int success;
    int tmp;
    int i;
+
+   MPI_Comm mpi_comm_global;
 
    double n_electrons;
    double double_one,double_zero;

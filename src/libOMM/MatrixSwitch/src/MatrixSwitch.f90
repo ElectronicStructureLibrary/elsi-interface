@@ -5,9 +5,6 @@ module MatrixSwitch
   use ms_m_set
   use ms_m_copy
   use ms_m_register
-#ifdef PSP
-  use pspBLAS
-#endif
 
   implicit none
 
@@ -71,15 +68,9 @@ module MatrixSwitch
   public :: m_set_element
   public :: m_get_element
   public :: m_register_sden
-#ifdef MPI
   public :: m_register_pdbc
   public :: ms_scalapack_setup
   public :: ms_lap_icontxt
-#endif
-#ifdef PSP
-  public :: m_register_psp_thre
-  public :: m_register_psp_st
-#endif
 
 contains
 
@@ -128,9 +119,6 @@ contains
        m_name%is_serial=.true.
     else if (c1 .eq. 'p') then
        m_name%is_serial=.false.
-#ifndef MPI
-       call die('m_allocate: compile with MPI')
-#endif
     else
        call die('m_allocate: invalid label')
     end if
@@ -180,11 +168,7 @@ contains
           m_name%zval=cmplx_0
        end if
     case (2)
-#if defined(MPI) && defined(SLAP)
        call ms_scalapack_allocate(m_name)
-#else
-       call die('m_allocate: compile with ScaLAPACK')
-#endif
     case (3)
        allocate(m_name%iaux2(1))
        m_name%iaux2_is_allocated=.true.
@@ -258,12 +242,6 @@ contains
        end if
     end if
 
-#ifdef PSP
-    if (((m_name%str_type .eq. 'coo') .or. &
-         (m_name%str_type .eq. 'csc')) .and. &
-        (.not. m_name%is_serial)) call psp_deallocate_spm(m_name%spm)
-#endif
-
     m_name%is_initialized=.false.
 
   end subroutine m_deallocate
@@ -308,9 +286,6 @@ contains
           m_name%is_serial=.true.
        else if (c1 .eq. 'p') then
           m_name%is_serial=.false.
-#ifndef MPI
-          call die('m_copy: compile with MPI')
-#endif
        else
           call die('m_copy: invalid label')
        end if
@@ -538,15 +513,7 @@ contains
           if (present(threshold_is_soft) .and. (threshold_is_soft)) then
              call die('m_copy: soft thresholding not yet implemented')
           else
-#ifdef PSP
-             if (A%is_real) then
-                call m_register_pdsp_thre(m_name,A%dval,A%iaux1,'coo',threshold)
-             else
-                call m_register_pzsp_thre(m_name,A%zval,A%iaux1,'coo',threshold)
-             end if
-#else
              call die('mm_dmultiply: compile with pspBLAS')
-#endif
           end if
        end if
     case (17)
@@ -556,15 +523,7 @@ contains
           if (present(threshold_is_soft) .and. (threshold_is_soft)) then
              call die('m_copy: soft thresholding not yet implemented')
           else
-#ifdef PSP
-             if (A%is_real) then
-                call m_register_pdsp_thre(m_name,A%dval,A%iaux1,'csc',threshold)
-             else
-                call m_register_pzsp_thre(m_name,A%zval,A%iaux1,'csc',threshold)
-             end if
-#else
              call die('mm_dmultiply: compile with pspBLAS')
-#endif
           end if
        end if
     end select
@@ -663,20 +622,16 @@ contains
 
     integer :: ot, i
 
-#ifdef CONV
     complex(dp) :: cmplx_alpha, cmplx_beta
-#endif
 
     !**********************************************!
 
-#ifdef CONV
     if ((.not. A%is_real) .and. (.not. B%is_real) .and. (.not. C%is_real)) then
        cmplx_alpha=cmplx(alpha,0.0_dp,dp)
        cmplx_beta=cmplx(beta,0.0_dp,dp)
        call mm_zmultiply(A,opA,B,opB,C,cmplx_alpha,cmplx_beta,label)
        return
     end if
-#endif
     if (.not. A%is_real) call die('mm_dmultiply: matrix A is complex')
     if (.not. B%is_real) call die('mm_dmultiply: matrix B is complex')
     if (.not. C%is_real) call die('mm_dmultiply: matrix C is complex')
@@ -884,69 +839,27 @@ contains
     case (1)
        call mm_multiply_sddenref(A,trA,B,trB,C,alpha,beta)
     case (2)
-#ifdef LAP
        if (trA) then
           i=A%dim1
        else
           i=A%dim2
        end if
        call dgemm(opA,opB,C%dim1,C%dim2,i,alpha,A%dval,A%dim1,B%dval,B%dim1,beta,C%dval,C%dim1)
-#else
-       call die('mm_dmultiply: compile with LAPACK')
-#endif
     case (3)
-#if defined(MPI) && defined(SLAP)
        if (trA) then
           i=A%dim1
        else
           i=A%dim2
        end if
        call pdgemm(opA,opB,C%dim1,C%dim2,i,alpha,A%dval,1,1,A%iaux1,B%dval,1,1,B%iaux1,beta,C%dval,1,1,C%iaux1)
-#else
-       call die('mm_dmultiply: compile with ScaLAPACK')
-#endif
     case (4)
-#ifdef PSP
-       if (trA) then
-          i=A%dim1
-       else
-          i=A%dim2
-       end if
-       call psp_gespmm(C%dim1,C%dim2,i,A%spm,opA,B%dval,opB,C%dval,alpha,beta)
-#else
        call die('mm_dmultiply: compile with pspBLAS')
-#endif
     case (5)
-#ifdef PSP
-       if (trA) then
-          i=A%dim1
-       else
-          i=A%dim2
-       end if
-       call psp_gemspm(C%dim1,C%dim2,i,A%dval,opA,B%spm,opB,C%dval,alpha,beta)
-#else
        call die('mm_dmultiply: compile with pspBLAS')
-#endif
     case (6)
-#ifdef PSP
-       if (trB) then
-          call die('mm_dmultiply: not implemented for transposed B')
-       else
-          call mm_multiply_pdcscpddbcpddbct1D(A,trA,B,C,alpha,beta)
-       end if
-#else
        call die('mm_dmultiply: compile with pspBLAS')
-#endif
     case (7)
-#ifdef PSP
-       if (trA) then
-          call die('mm_dmultiply: not implemented for transposed A')
-       else
-          call mm_multiply_pddbcpdcscpddbct1D(A,B,trB,C,alpha,beta)
-       end if
-#else
        call die('mm_dmultiply: compile with pspBLAS')
-#endif
     case (8)
        call mm_multiply_sdcscsddensddenref(A,trA,B,trB,C,alpha,beta)
     case (9)
@@ -960,15 +873,7 @@ contains
     case (13)
        call mm_multiply_sddensddensdcsrref(A,trA,B,trB,C,alpha,beta)
     case (14)
-#ifdef PSP
-       if (trA .eqv. trB) then
-          call die('mm_dmultiply: not implemented for combination of op(A) and op(B)')
-       else
-          call mm_multiply_pddbcpddbcpdcsct1D(A,trA,B,trB,C,alpha,beta)
-       end if
-#else
        call die('mm_dmultiply: compile with pspBLAS')
-#endif
     end select
 
   end subroutine mm_dmultiply
@@ -996,20 +901,16 @@ contains
 
     integer :: tcA, tcB, ot, i
 
-#ifdef CONV
     real(dp) :: real_alpha, real_beta
-#endif
 
     !**********************************************!
 
-#ifdef CONV
     if (A%is_real .and. B%is_real .and. C%is_real) then
        real_alpha=real(alpha,dp)
        real_beta=real(beta,dp)
        call mm_dmultiply(A,opA,B,opB,C,real_alpha,real_beta,label)
        return
     end if
-#endif
     if (A%is_real) call die('mm_zmultiply: matrix A is real')
     if (B%is_real) call die('mm_zmultiply: matrix B is real')
     if (C%is_real) call die('mm_zmultiply: matrix C is real')
@@ -1217,69 +1118,27 @@ contains
     case (1)
        call mm_multiply_szdenref(A,tcA,B,tcB,C,alpha,beta)
     case (2)
-#ifdef LAP
        if (tcA>0) then
           i=A%dim1
        else
           i=A%dim2
        end if
        call zgemm(opA,opB,C%dim1,C%dim2,i,alpha,A%zval,A%dim1,B%zval,B%dim1,beta,C%zval,C%dim1)
-#else
-       call die('mm_zmultiply: compile with LAPACK')
-#endif
     case (3)
-#if defined(MPI) && defined(SLAP)
        if (tcA>0) then
           i=A%dim1
        else
           i=A%dim2
        end if
        call pzgemm(opA,opB,C%dim1,C%dim2,i,alpha,A%zval,1,1,A%iaux1,B%zval,1,1,B%iaux1,beta,C%zval,1,1,C%iaux1)
-#else
-       call die('mm_zmultiply: compile with ScaLAPACK')
-#endif
     case (4)
-#ifdef PSP
-       if (tcA>0) then
-          i=A%dim1
-       else
-          i=A%dim2
-       end if
-       call psp_gespmm(C%dim1,C%dim2,i,A%spm,opA,B%zval,opB,C%zval,alpha,beta)
-#else
        call die('mm_zmultiply: compile with pspBLAS')
-#endif
     case (5)
-#ifdef PSP
-       if (tcA>0) then
-          i=A%dim1
-       else
-          i=A%dim2
-       end if
-       call psp_gemspm(C%dim1,C%dim2,i,A%zval,opA,B%spm,opB,C%zval,alpha,beta)
-#else
        call die('mm_zmultiply: compile with pspBLAS')
-#endif
     case (6)
-#ifdef PSP
-       if (tcB>0) then
-          call die('mm_zmultiply: not implemented for transposed B')
-       else
-          call mm_multiply_pzcscpzdbcpzdbct1D(A,tcA,B,C,alpha,beta)
-       end if
-#else
        call die('mm_zmultiply: compile with pspBLAS')
-#endif
     case (7)
-#ifdef PSP
-       if (tcA>0) then
-          call die('mm_zmultiply: not implemented for transposed A')
-       else
-          call mm_multiply_pzdbcpzcscpzdbct1D(A,B,tcB,C,alpha,beta)
-       end if
-#else
        call die('mm_zmultiply: compile with pspBLAS')
-#endif
     case (8)
        call mm_multiply_szcscszdenszdenref(A,tcA,B,tcB,C,alpha,beta)
     case (9)
@@ -1293,15 +1152,7 @@ contains
     case (13)
        call mm_multiply_szdenszdenszcsrref(A,tcA,B,tcB,C,alpha,beta)
     case (14)
-#ifdef PSP
-       if ((tcA==tcB) .or. (tcA+tcB>2)) then
-          call die('mm_zmultiply: not implemented for combination of op(A) and op(B)')
-       else
-          call mm_multiply_pzdbcpzdbcpzcsct1D(A,tcA,B,tcB,C,alpha,beta)
-       end if
-#else
        call die('mm_zmultiply: compile with pspBLAS')
-#endif
     end select
 
   end subroutine mm_zmultiply
@@ -1334,20 +1185,16 @@ contains
 
     integer :: ot
 
-#ifdef CONV
     complex(dp) :: cmplx_alpha, cmplx_beta
-#endif
 
     !**********************************************!
 
-#ifdef CONV
     if ((.not. A%is_real) .and. (.not. C%is_real)) then
        cmplx_alpha=cmplx(alpha,0.0_dp,dp)
        cmplx_beta=cmplx(beta,0.0_dp,dp)
        call m_zadd(A,opA,C,cmplx_alpha,cmplx_beta,label)
        return
     end if
-#endif
     if (.not. A%is_real) call die('m_dadd: matrix A is complex')
     if (.not. C%is_real) call die('m_dadd: matrix C is complex')
     call process_opM(opA,trA)
@@ -1441,20 +1288,9 @@ contains
     case (1)
        call m_add_sddenref(A,trA,C,alpha,beta)
     case (2)
-#if defined(MPI) && defined(SLAP)
        call pdgeadd(opA,C%dim1,C%dim2,alpha,A%dval,1,1,A%iaux1,beta,C%dval,1,1,C%iaux1)
-#else
-       call die('m_dadd: compile with ScaLAPACK')
-#endif
     case (3)
-#ifdef PSP
-       if (trA) call die('m_dadd: implementation only valid for opA=''n''')
-       if ((A%spm%loc_dim1/=C%iaux2(1)) .or. &
-           (A%spm%loc_dim2/=C%iaux2(2))) call die('m_dadd: matrices A and C must have identical parallel distributions')
-       call m_add_pdcscpddbcref(A,C,alpha,beta)
-#else
        call die('m_dadd: compile with pspBLAS')
-#endif
     case (4)
        call m_add_sdcscsddenref(A,trA,C,alpha,beta)
     case (5)
@@ -1484,20 +1320,16 @@ contains
 
     integer :: tcA, ot
 
-#ifdef CONV
     real(dp) :: real_alpha, real_beta
-#endif
 
     !**********************************************!
 
-#ifdef CONV
     if (A%is_real .and. C%is_real) then
        real_alpha=real(alpha,dp)
        real_beta=real(beta,dp)
        call m_dadd(A,opA,C,real_alpha,real_beta,label)
        return
     end if
-#endif
     if (A%is_real) call die('m_zadd: matrix A is real')
     if (C%is_real) call die('m_zadd: matrix C is real')
     call process_opM(opA,tcA)
@@ -1591,20 +1423,9 @@ contains
     case (1)
        call m_add_szdenref(A,tcA,C,alpha,beta)
     case (2)
-#if defined(MPI) && defined(SLAP)
        call pzgeadd(opA,C%dim1,C%dim2,alpha,A%zval,1,1,A%iaux1,beta,C%zval,1,1,C%iaux1)
-#else
-       call die('m_zadd: compile with ScaLAPACK')
-#endif
     case (3)
-#ifdef PSP
-       if (tcA>0) call die('m_zadd: implementation only valid for opA=''n''')
-       if ((A%spm%loc_dim1/=C%iaux2(1)) .or. &
-           (A%spm%loc_dim2/=C%iaux2(2))) call die('m_zadd: matrices A and C must have identical parallel distributions')
-       call m_add_pzcscpzdbcref(A,C,alpha,beta)
-#else
        call die('m_dadd: compile with pspBLAS')
-#endif
     case (4)
        call m_add_szcscszdenref(A,tcA,C,alpha,beta)
     case (5)
@@ -1634,27 +1455,19 @@ contains
 
     integer :: ot, i
 
-#ifdef CONV
     complex(dp) :: cmplx_alpha
-#endif
 
     !**** EXTERNAL ********************************!
 
-#if defined(MPI) && defined(SLAP)
     real(dp), external :: pdlatra
-#endif
 
     !**********************************************!
 
-#ifdef CONV
     if (.not. A%is_real) then
        call m_ztrace(A,cmplx_alpha,label)
        alpha=real(cmplx_alpha,dp)
        return
     end if
-#else
-    if (.not. A%is_real) call die('m_dtrace: matrix A is complex')
-#endif
     if (.not. A%is_square) call die('m_dtrace: matrix A is not square')
 
     ! operation table
@@ -1697,20 +1510,14 @@ contains
           alpha=alpha+A%dval(i,i)
        end do
     case (2)
-#if defined(MPI) && defined(SLAP)
        alpha=pdlatra(A%dim1,A%dval,1,1,A%iaux1)
-#else
-       call die('m_dtrace: compile with ScaLAPACK')
-#endif
     end select
 
   end subroutine m_dtrace
 
   subroutine m_ztrace(A,alpha,label)
     implicit none
-#ifdef MPI
     include 'mpif.h'
-#endif
 
     !**** INPUT ***********************************!
 
@@ -1726,9 +1533,7 @@ contains
 
     integer :: ot, i, j
 
-#ifdef CONV
     real(dp) :: real_alpha
-#endif
 
     complex(dp) :: alpha_loc
 
@@ -1739,23 +1544,17 @@ contains
 
     !**** EXTERNAL ********************************!
 
-#if defined(MPI) && defined(SLAP)
     complex(dp), external :: pzlatra
 
     integer, external :: numroc
-#endif
 
     !**********************************************!
 
-#ifdef CONV
     if (A%is_real) then
        call m_dtrace(A,real_alpha,label)
        alpha=cmplx(real_alpha,0.0_dp,dp)
        return
     end if
-#else
-    if (A%is_real) call die('m_ztrace: matrix A is real')
-#endif
     if (.not. A%is_square) call die('m_ztrace: matrix A is not square')
 
     ! operation table
@@ -1798,7 +1597,6 @@ contains
           alpha=alpha+A%zval(i,i)
        end do
     case (2)
-#if defined(MPI) && defined(SLAP)
 !       alpha=pzlatra(A%dim1,A%zval,1,1,A%iaux1)
 
        alpha_loc = (0.0_dp,0.0_dp)
@@ -1825,9 +1623,6 @@ contains
        enddo
 
        call mpi_allreduce(alpha_loc,alpha,1,mpi_complex16,mpi_sum,ms_mpi_comm,mpierr)
-#else
-       call die('m_ztrace: compile with ScaLAPACK')
-#endif
     end select
 
   end subroutine m_ztrace
@@ -1838,9 +1633,7 @@ contains
   !================================================!
   subroutine mm_dtrace(A,B,alpha,label)
     implicit none
-#ifdef MPI
     include 'mpif.h'
-#endif
 
     !**** INPUT ***********************************!
 
@@ -1857,30 +1650,22 @@ contains
 
     integer :: ot, i, j
 
-#ifdef CONV
     complex(dp) :: cmplx_alpha
-#endif
 
     !**** EXTERNAL ********************************!
 
-#ifdef MPI
     integer :: info
 
     real(dp) :: alpha_loc
-#endif
-#ifdef LAP
     real(dp), external :: ddot
-#endif
 
     !**********************************************!
 
-#ifdef CONV
     if ((.not. A%is_real) .and. (.not. B%is_real)) then
        call mm_ztrace(A,B,cmplx_alpha,label)
        alpha=real(cmplx_alpha,dp)
        return
     end if
-#endif
     if (.not. A%is_real) call die('mm_dtrace: matrix A is complex')
     if (.not. B%is_real) call die('mm_dtrace: matrix B is complex')
     if ((A%dim1/=B%dim1) .or. &
@@ -1932,30 +1717,20 @@ contains
           end do
        end do
     case (2)
-#ifdef LAP
        alpha=ddot(A%dim1*A%dim2,A%dval,1,B%dval,1)
-#else
-       call die('mm_dtrace: compile with LAPACK')
-#endif
     case (3)
-#if defined(MPI) && defined(LAP)
        if ((A%iaux2(1)/=B%iaux2(1)) .or. &
            (A%iaux2(2)/=B%iaux2(2))) call die('mm_dtrace: matrices A and B must have identical parallel distributions')
        alpha_loc=ddot(A%iaux2(1)*A%iaux2(2),A%dval,1,B%dval,1)
        call mpi_allreduce(alpha_loc,alpha,1,mpi_double_precision,mpi_sum,ms_mpi_comm,info)
        if (info/=0) call die('mm_dtrace: error in mpi_allreduce')
-#else
-       call die('mm_dtrace: compile with MPI + LAPACK')
-#endif
     end select
 
   end subroutine mm_dtrace
 
   subroutine mm_ztrace(A,B,alpha,label)
     implicit none
-#ifdef MPI
     include 'mpif.h'
-#endif
 
     !**** INPUT ***********************************!
 
@@ -1972,27 +1747,21 @@ contains
 
     integer :: ot, i, j
 
-#ifdef CONV
     real(dp) :: real_alpha
-#endif
 
     !**** EXTERNAL ********************************!
 
-#ifdef MPI
     integer :: info
 
     complex(dp) :: alpha_loc
-#endif
 
     !**********************************************!
 
-#ifdef CONV
     if (A%is_real .and. B%is_real) then
        call mm_dtrace(A,B,real_alpha,label)
        alpha=cmplx(real_alpha,0.0_dp,dp)
        return
     end if
-#endif
     if (A%is_real) call die('mm_ztrace: matrix A is real')
     if (B%is_real) call die('mm_ztrace: matrix B is real')
     if ((A%dim1/=B%dim1) .or. &
@@ -2044,7 +1813,6 @@ contains
           end do
        end do
     case (3)
-#ifdef MPI
        if ((A%iaux2(1)/=B%iaux2(1)) .or. &
            (A%iaux2(2)/=B%iaux2(2))) call die('mm_ztrace: matrices A and B must have identical parallel distributions')
        alpha_loc=cmplx_0
@@ -2055,9 +1823,6 @@ contains
        end do
        call mpi_allreduce(alpha_loc,alpha,1,mpi_double_complex,mpi_sum,ms_mpi_comm,info)
        if (info/=0) call die('mm_ztrace: error in mpi_allreduce')
-#else
-       call die('mm_ztrace: compile with MPI')
-#endif
     end select
 
   end subroutine mm_ztrace
@@ -2083,21 +1848,15 @@ contains
 
     integer :: ot
 
-#ifdef CONV
     complex(dp) :: cmplx_beta
-#endif
 
     !**********************************************!
 
-#ifdef CONV
     if (.not. C%is_real) then
        cmplx_beta=cmplx(beta,0.0_dp,dp)
        call m_zscale(C,cmplx_beta,label)
        return
     end if
-#else
-    if (.not. C%is_real) call die('m_dscale: matrix C is complex')
-#endif
 
     ! operation table
     if ((C%str_type .eq. 'den') .and. &
@@ -2201,21 +1960,15 @@ contains
 
     integer :: ot
 
-#ifdef CONV
     real(dp) :: real_beta
-#endif
 
     !**********************************************!
 
-#ifdef CONV
     if (C%is_real) then
        real_beta=real(beta,dp)
        call m_dscale(C,real_beta,label)
        return
     end if
-#else
-    if (C%is_real) call die('m_zscale: matrix C is complex')
-#endif
 
     ! operation table
     if ((C%str_type .eq. 'den') .and. &
@@ -2326,22 +2079,16 @@ contains
 
     integer :: ot
 
-#ifdef CONV
     complex(dp) :: cmplx_alpha, cmplx_beta
-#endif
 
     !**********************************************!
 
-#ifdef CONV
     if (.not. C%is_real) then
        cmplx_alpha=cmplx(alpha,0.0_dp,dp)
        cmplx_beta=cmplx(beta,0.0_dp,dp)
        call m_zset(C,seC,cmplx_alpha,cmplx_beta,label)
        return
     end if
-#else
-    if (.not. C%is_real) call die('m_dset: matrix C is complex')
-#endif
 
     ! operation table
     if ((C%str_type .eq. 'den') .and. &
@@ -2380,11 +2127,7 @@ contains
     case (1)
        call m_set_sddenref(C,seC,alpha,beta)
     case (2)
-#if defined(MPI) && defined(SLAP)
        call pdlaset(seC,C%dim1,C%dim2,alpha,beta,C%dval,1,1,C%iaux1)
-#else
-       call die('m_dset: compile with ScaLAPACK')
-#endif
     end select
 
   end subroutine m_dset
@@ -2408,22 +2151,16 @@ contains
 
     integer :: ot
 
-#ifdef CONV
     real(dp) :: real_alpha, real_beta
-#endif
 
     !**********************************************!
 
-#ifdef CONV
     if (C%is_real) then
        real_alpha=real(alpha,dp)
        real_beta=real(beta,dp)
        call m_dset(C,seC,real_alpha,real_beta,label)
        return
     end if
-#else
-    if (C%is_real) call die('m_zset: matrix C is real')
-#endif
 
     ! operation table
     if ((C%str_type .eq. 'den') .and. &
@@ -2462,11 +2199,7 @@ contains
     case (1)
        call m_set_szdenref(C,seC,alpha,beta)
     case (2)
-#if defined(MPI) && defined(SLAP)
        call pzlaset(seC,C%dim1,C%dim2,alpha,beta,C%zval,1,1,C%iaux1)
-#else
-       call die('m_zset: compile with ScaLAPACK')
-#endif
     end select
 
   end subroutine m_zset
@@ -2502,22 +2235,16 @@ contains
     real(dp) :: el
     real(dp), allocatable :: dval_temp(:,:)
 
-#ifdef CONV
     complex(dp) :: cmplx_alpha, cmplx_beta
-#endif
 
     !**********************************************!
 
-#ifdef CONV
     if (.not. C%is_real) then
        cmplx_alpha=cmplx(alpha,0.0_dp,dp)
        cmplx_beta=cmplx(beta,0.0_dp,dp)
        call m_zset_element(C,i,j,cmplx_alpha,cmplx_beta,label)
        return
     end if
-#else
-    if (.not. C%is_real) call die('m_dset_element: matrix C is complex')
-#endif
     if ((i<1) .or. &
          (i>C%dim1) .or. &
          (j<1) .or. &
@@ -2575,16 +2302,12 @@ contains
     case (1)
        C%dval(i,j)=alpha+beta*C%dval(i,j)
     case (2)
-#if defined(MPI) && defined(SLAP)
        if (beta==0.0_dp) then
           call pdelset(C%dval,i,j,C%iaux1,alpha)
        else
           call pdelget('a',' ',el,C%dval,i,j,C%iaux1)
           call pdelset(C%dval,i,j,C%iaux1,alpha+beta*el)
        end if
-#else
-       call die('m_dset_element: compile with ScaLAPACK')
-#endif
     case (3)
        if (C%iaux2(1)==0) then
           C%iaux2(1)=1
@@ -2670,25 +2393,19 @@ contains
     integer :: ot, k, buffer
     integer, allocatable :: iaux3_temp(:), iaux4_temp(:)
 
-#ifdef CONV
     real(dp) :: real_alpha, real_beta
-#endif
 
     complex(dp) :: el
     complex(dp), allocatable :: zval_temp(:,:)
 
     !**********************************************!
 
-#ifdef CONV
     if (C%is_real) then
        real_alpha=real(alpha,dp)
        real_beta=real(beta,dp)
        call m_dset_element(C,i,j,real_alpha,real_beta,label)
        return
     end if
-#else
-    if (C%is_real) call die('m_zset_element: matrix C is real')
-#endif
     if ((i<1) .or. &
          (i>C%dim1) .or. &
          (j<1) .or. &
@@ -2746,16 +2463,12 @@ contains
     case (1)
        C%zval(i,j)=alpha+beta*C%zval(i,j)
     case (2)
-#if defined(MPI) && defined(SLAP)
        if (beta==cmplx_0) then
           call pzelset(C%zval,i,j,C%iaux1,alpha)
        else
           call pzelget('a',' ',el,C%zval,i,j,C%iaux1)
           call pzelset(C%zval,i,j,C%iaux1,alpha+beta*el)
        end if
-#else
-       call die('m_zset_element: compile with ScaLAPACK')
-#endif
     case (3)
        if (C%iaux2(1)==0) then
           C%iaux2(1)=1
@@ -2841,21 +2554,15 @@ contains
 
     integer :: ot, k
 
-#ifdef CONV
     complex(dp) :: cmplx_alpha
-#endif
 
     !**********************************************!
 
-#ifdef CONV
     if (.not. C%is_real) then
        call m_zget_element(C,i,j,cmplx_alpha,label)
        alpha=real(cmplx_alpha,dp)
        return
     end if
-#else
-    if (.not. C%is_real) call die('m_dget_element: matrix C is complex')
-#endif
     if ((i<1) .or. &
          (i>C%dim1) .or. &
          (j<1) .or. &
@@ -2913,11 +2620,7 @@ contains
     case (1)
        alpha=C%dval(i,j)
     case (2)
-#if defined(MPI) && defined(SLAP)
        call pdelget('a',' ',alpha,C%dval,i,j,C%iaux1)
-#else
-       call die('m_dget_element: compile with ScaLAPACK')
-#endif
     case (3)
        alpha=0.0_dp
        do k=1,C%iaux2(1)
@@ -2951,21 +2654,15 @@ contains
 
     integer :: ot, k
 
-#ifdef CONV
     real(dp) :: real_alpha
-#endif
 
     !**********************************************!
 
-#ifdef CONV
     if (C%is_real) then
        call m_dget_element(C,i,j,real_alpha,label)
        alpha=cmplx(real_alpha,0.0_dp,dp)
        return
     end if
-#else
-    if (C%is_real) call die('m_zget_element: matrix C is real')
-#endif
     if ((i<1) .or. &
          (i>C%dim1) .or. &
          (j<1) .or. &
@@ -3023,11 +2720,7 @@ contains
     case (1)
        alpha=C%zval(i,j)
     case (2)
-#if defined(MPI) && defined(SLAP)
        call pzelget('a',' ',alpha,C%zval,i,j,C%iaux1)
-#else
-       call die('m_zget_element: compile with ScaLAPACK')
-#endif
     case (3)
        alpha=cmplx_0
        do k=1,C%iaux2(1)
@@ -3044,7 +2737,6 @@ contains
   !================================================!
   ! implementation: ScaLAPACK                      !
   !================================================!
-#if defined(MPI) && defined(SLAP)
   subroutine ms_scalapack_setup(mpi_comm,nprow,order,bs_def,bs_list,icontxt)
     implicit none
     include 'mpif.h'
@@ -3096,15 +2788,8 @@ contains
        call blacs_gridinit(ms_lap_icontxt,ms_lap_order,ms_lap_nprow,ms_lap_npcol)
     end if
 
-#ifdef PSP
-    ! initialized grid information in pspBLAS
-    call psp_gridinit_2D(ms_mpi_comm,ms_mpi_size,ms_lap_nprow,ms_lap_order,ms_lap_bs_def,ms_lap_bs_def,ms_lap_icontxt)
-#endif
-
   end subroutine ms_scalapack_setup
-#endif
 
-#if defined(MPI) && defined(SLAP)
   subroutine ms_scalapack_allocate(A)
     implicit none
 
@@ -3156,6 +2841,5 @@ contains
     end if
 
   end subroutine ms_scalapack_allocate
-#endif
 
 end module MatrixSwitch

@@ -255,7 +255,7 @@ subroutine elsi_blacs_to_pexsi_hs_real(e_h,h_in,s_in)
    enddo
 
    nullify(ref)
-
+   call elsi_deallocate(e_h,locat,"locat")
    call elsi_allocate(e_h,recv_count,e_h%n_procs,"recv_count",caller)
 
    ! Set recv_count
@@ -389,6 +389,9 @@ subroutine elsi_blacs_to_pexsi_hs_real(e_h,h_in,s_in)
       else
          call elsi_allocate(e_h,e_h%ovlp_real_pexsi,1,"dummy",caller)
       endif
+   else
+      call elsi_deallocate(e_h,row_recv_buf,"row_recv_buf")
+      call elsi_deallocate(e_h,col_recv_buf,"col_recv_buf")
    endif
 
    e_h%ham_real_pexsi = 0.0_r8
@@ -611,7 +614,7 @@ subroutine elsi_blacs_to_pexsi_hs_complex(e_h,h_in,s_in)
    enddo
 
    nullify(ref)
-
+   call elsi_deallocate(e_h,locat,"locat")
    call elsi_allocate(e_h,recv_count,e_h%n_procs,"recv_count",caller)
 
    ! Set recv_count
@@ -746,6 +749,9 @@ subroutine elsi_blacs_to_pexsi_hs_complex(e_h,h_in,s_in)
       else
          call elsi_allocate(e_h,e_h%ovlp_cmplx_pexsi,1,"dummy",caller)
       endif
+   else
+      call elsi_deallocate(e_h,row_recv_buf,"row_recv_buf")
+      call elsi_deallocate(e_h,col_recv_buf,"col_recv_buf")
    endif
 
    e_h%ham_cmplx_pexsi = (0.0_r8,0.0_r8)

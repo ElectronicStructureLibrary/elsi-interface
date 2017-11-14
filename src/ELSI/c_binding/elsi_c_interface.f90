@@ -749,6 +749,22 @@ subroutine elsi_set_pexsi_np_symbo_c_wrapper(handle_c,np_symbo)&
 
 end subroutine
 
+subroutine elsi_set_pexsi_ordering_c_wrapper(handle_c,ordering)&
+   bind(C,name="c_elsi_set_pexsi_ordering")
+
+   implicit none
+
+   type(c_ptr),         value, intent(in) :: handle_c
+   integer(kind=c_int), value, intent(in) :: ordering
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_pexsi_ordering(handle_f,ordering)
+
+end subroutine
+
 subroutine elsi_set_pexsi_temp_c_wrapper(handle_c,temp)&
    bind(C,name="c_elsi_set_pexsi_temp")
 
