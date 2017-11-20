@@ -53,7 +53,7 @@ void main(int argc, char** argv) {
    double _Complex *h,*s,*evec;
    double e_elpa,e_test,e_tol;
 
-   e_elpa = -2217.76186674317;
+   e_elpa = -2564.61963724048;
    e_tol = 0.00000001;
 
    elsi_handle    e_h;
