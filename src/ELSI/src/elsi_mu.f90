@@ -406,9 +406,9 @@ subroutine elsi_adjust_occ(e_h,n_state,n_spin,n_kpt,k_weights,evals,occ_nums,&
       max_id           = maxloc(eval_aux,1)
       eval_aux(max_id) = min_eval-1.0_r8
 
-      i_kpt   = (i_val-1)/(n_spin*n_state)+1
-      i_spin  = mod((i_val-1)/n_state,n_spin)+1
-      i_state = mod(i_val-1,n_state)+1
+      i_kpt   = (max_id-1)/(n_spin*n_state)+1
+      i_spin  = mod((max_id-1)/n_state,n_spin)+1
+      i_state = mod(max_id-1,n_state)+1
 
       if(k_weights(i_kpt)*occ_nums(i_state,i_spin,i_kpt) > diff_ne) then
          occ_nums(i_state,i_spin,i_kpt) = occ_nums(i_state,i_spin,i_kpt)-&

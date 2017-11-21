@@ -118,7 +118,7 @@ subroutine elsi_compute_occ_elpa(e_h)
       if(e_h%n_kpts > 1) then
          call elsi_allocate(e_h,tmp_real1,e_h%n_kpts,"tmp_real",caller)
 
-         if(e_h%myid == 0) then
+         if(e_h%myid == 0 .and. e_h%i_spin == 1) then
             tmp_real1(e_h%i_kpt) = e_h%i_weight
          endif
 
@@ -507,16 +507,16 @@ subroutine elsi_to_standard_evp(e_h)
 
             e_h%ovlp_is_sing = .false.
 
-            ! Compute S = (U^T)U, U -> S
+            ! S = (U^T)U, U -> S
             success = elpa_cholesky_complex_double(e_h%n_basis,e_h%ovlp_cmplx,&
-                         e_h%n_lrow,e_h%blk_row,e_h%n_lcol,&
-                         e_h%mpi_comm_row,e_h%mpi_comm_col,.false.)
+                         e_h%n_lrow,e_h%blk_row,e_h%n_lcol,e_h%mpi_comm_row,&
+                         e_h%mpi_comm_col,.false.)
 
             if(.not. success) then
                call elsi_stop(" Cholesky failed.",e_h,caller)
             endif
 
-            ! compute U^-1 -> S
+            ! U^-1 -> S
             success = elpa_invert_trm_complex_double(e_h%n_basis,&
                          e_h%ovlp_cmplx,e_h%n_lrow,e_h%blk_row,e_h%n_lcol,&
                          e_h%mpi_comm_row,e_h%mpi_comm_col,.false.)
@@ -616,19 +616,19 @@ subroutine elsi_to_standard_evp(e_h)
 
             e_h%ovlp_is_sing = .false.
 
-            ! Compute S = (U^T)U, U -> S
+            ! S = (U^T)U, U -> S
             success = elpa_cholesky_real_double(e_h%n_basis,e_h%ovlp_real,&
-                         e_h%n_lrow,e_h%blk_row,e_h%n_lcol,&
-                         e_h%mpi_comm_row,e_h%mpi_comm_col,.false.)
+                         e_h%n_lrow,e_h%blk_row,e_h%n_lcol,e_h%mpi_comm_row,&
+                         e_h%mpi_comm_col,.false.)
 
             if(.not. success) then
                call elsi_stop(" Cholesky failed.",e_h,caller)
             endif
 
-            ! compute U^-1 -> S
+            ! U^-1 -> S
             success = elpa_invert_trm_real_double(e_h%n_basis,e_h%ovlp_real,&
-                         e_h%n_lrow,e_h%blk_row,e_h%n_lcol,&
-                         e_h%mpi_comm_row,e_h%mpi_comm_col,.false.)
+                         e_h%n_lrow,e_h%blk_row,e_h%n_lcol,e_h%mpi_comm_row,&
+                         e_h%mpi_comm_col,.false.)
 
             if(.not. success) then
                call elsi_stop(" Matrix inversion failed.",e_h,caller)
@@ -746,9 +746,9 @@ subroutine elsi_check_singularity(e_h)
       ! Use customized ELPA 2-stage solver to check overlap singularity
       ! Eigenvectors computed only for singular overlap matrix
       success = elpa_check_singularity_complex_double(e_h%n_basis,e_h%n_basis,&
-                   copy_cmplx,e_h%n_lrow,e_h%eval,e_h%evec_cmplx,&
-                   e_h%n_lrow,e_h%blk_row,e_h%n_lcol,e_h%mpi_comm_row,&
-                   e_h%mpi_comm_col,e_h%mpi_comm,e_h%sing_tol,e_h%n_nonsing)
+                   copy_cmplx,e_h%n_lrow,e_h%eval,e_h%evec_cmplx,e_h%n_lrow,&
+                   e_h%blk_row,e_h%n_lcol,e_h%mpi_comm_row,e_h%mpi_comm_col,&
+                   e_h%mpi_comm,e_h%sing_tol,e_h%n_nonsing)
 
       if(.not. success) then
          call elsi_stop(" Singularity check failed.",e_h,caller)
@@ -927,8 +927,7 @@ subroutine elsi_to_original_ev(e_h)
 
       call elsi_deallocate(e_h,tmp_cmplx,"tmp_cmplx")
    case(REAL_VALUES)
-      call elsi_allocate(e_h,tmp_real,e_h%n_lrow,e_h%n_lcol,"tmp_real",&
-              caller)
+      call elsi_allocate(e_h,tmp_real,e_h%n_lrow,e_h%n_lcol,"tmp_real",caller)
       tmp_real = e_h%evec_real
 
       if(e_h%ovlp_is_sing) then
@@ -944,9 +943,9 @@ subroutine elsi_to_original_ev(e_h)
                  e_h%sc_desc,0.0_r8,e_h%ham_real,1,1,e_h%sc_desc)
 
          success = elpa_mult_at_b_real_double('L','N',e_h%n_basis,e_h%n_states,&
-                      e_h%ham_real,e_h%n_lrow,e_h%n_lcol,tmp_real,&
-                      e_h%n_lrow,e_h%n_lcol,e_h%blk_row,e_h%mpi_comm_row,&
-                      e_h%mpi_comm_col,e_h%evec_real,e_h%n_lrow,e_h%n_lcol)
+                      e_h%ham_real,e_h%n_lrow,e_h%n_lcol,tmp_real,e_h%n_lrow,&
+                      e_h%n_lcol,e_h%blk_row,e_h%mpi_comm_row,e_h%mpi_comm_col,&
+                      e_h%evec_real,e_h%n_lrow,e_h%n_lcol)
 
          if(.not. success) then
             call elsi_stop(" Matrix multiplication failed.",e_h,caller)
@@ -994,8 +993,8 @@ subroutine elsi_solve_evp_elpa(e_h)
          call MPI_Allreduce(e_h%nnz_l,e_h%nnz_g,1,mpi_integer4,mpi_sum,&
                  e_h%mpi_comm,mpierr)
       case(REAL_VALUES)
-         call elsi_get_local_nnz_real(e_h,e_h%ham_real,e_h%n_lrow,&
-                 e_h%n_lcol,e_h%nnz_l)
+         call elsi_get_local_nnz_real(e_h,e_h%ham_real,e_h%n_lrow,e_h%n_lcol,&
+                 e_h%nnz_l)
 
          call MPI_Allreduce(e_h%nnz_l,e_h%nnz_g,1,mpi_integer4,mpi_sum,&
                  e_h%mpi_comm,mpierr)

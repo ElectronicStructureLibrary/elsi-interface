@@ -52,9 +52,9 @@ void main(int argc, char** argv) {
    double _Complex *h,*s,*dm;
    double e_elpa,e_omm,e_pexsi,e_test,e_tol,e_ref;
 
-   e_elpa  = -1833.07932666530;
-   e_omm   = -1833.07932666692;
-   e_pexsi = -1833.07836497809;
+   e_elpa  = -2622.88214509316;
+   e_omm   = -2622.88214509316;
+   e_pexsi = -2622.88143358352;
 
    elsi_handle    e_h;
    elsi_rw_handle rw_h;
@@ -66,12 +66,12 @@ void main(int argc, char** argv) {
    MPI_Comm_rank(mpi_comm_global,&myid);
 
    // Parameters
-   blk         = 16;
-   solver      = atoi(argv[1]);
-   format      = 0; // BLACS_DENSE
-   parallel    = 1; // MULTI_PROC
-   int_one     = 1;
-   int_zero    = 0;
+   blk      = 16;
+   solver   = atoi(argv[1]);
+   format   = 0; // BLACS_DENSE
+   parallel = 1; // MULTI_PROC
+   int_one  = 1;
+   int_zero = 0;
 
    if (solver == 1) {
        e_ref = e_elpa;
@@ -126,7 +126,9 @@ void main(int argc, char** argv) {
    // Customize ELSI
    c_elsi_set_output(e_h,2);
    c_elsi_set_sing_check(e_h,0);
+   c_elsi_set_mu_broaden_width(e_h,0.000001);
    c_elsi_set_omm_n_elpa(e_h,1);
+   c_elsi_set_pexsi_delta_e(e_h,80.0);
    c_elsi_set_pexsi_np_per_pole(e_h,2);
 
    // Call ELSI density matrix solver

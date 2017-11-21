@@ -74,10 +74,10 @@ program test_dm_complex
    type(elsi_handle)    :: e_h
    type(elsi_rw_handle) :: rw_h
 
-   ! VY: Reference values from calculations on August 31, 2017.
-   real(kind=r8), parameter :: e_elpa  = -1833.07932666530_r8
-   real(kind=r8), parameter :: e_omm   = -1833.07932666692_r8
-   real(kind=r8), parameter :: e_pexsi = -1833.07836497809_r8
+   ! VY: Reference values from calculations on November 20, 2017.
+   real(kind=r8), parameter :: e_elpa  = -2622.88214509316_r8
+   real(kind=r8), parameter :: e_omm   = -2622.88214509316_r8
+   real(kind=r8), parameter :: e_pexsi = -2622.88194292325_r8
 
    ! Initialize MPI
    call MPI_Init(mpierr)
@@ -206,7 +206,9 @@ program test_dm_complex
    ! Customize ELSI
    call elsi_set_output(e_h,2)
    call elsi_set_sing_check(e_h,0)
+   call elsi_set_mu_broaden_width(e_h,1.0e-6_r8)
    call elsi_set_omm_n_elpa(e_h,1)
+   call elsi_set_pexsi_delta_e(e_h,80.0_r8)
    call elsi_set_pexsi_np_per_pole(e_h,2)
 
    t1 = MPI_Wtime()

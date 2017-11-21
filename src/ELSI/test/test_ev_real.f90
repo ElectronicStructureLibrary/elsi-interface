@@ -79,8 +79,8 @@ program test_ev_real
    type(elsi_handle)    :: e_h
    type(elsi_rw_handle) :: rw_h
 
-   ! VY: Reference value from calculations on August 31, 2017.
-   real(kind=r8), parameter :: e_elpa = -1833.07932666530_r8
+   ! VY: Reference values from calculations on November 20, 2017.
+   real(kind=r8), parameter :: e_elpa  = -2622.88214509316_r8
 
    ! Initialize MPI
    call MPI_Init(mpierr)
@@ -216,6 +216,7 @@ program test_ev_real
 
    ! Customize ELSI
    call elsi_set_output(e_h,2)
+   call elsi_set_mu_broaden_width(e_h,1.0e-6_r8)
    call elsi_set_sips_ev_min(e_h,-70.0_r8)
    call elsi_set_sips_ev_max(e_h,0.0_r8)
 

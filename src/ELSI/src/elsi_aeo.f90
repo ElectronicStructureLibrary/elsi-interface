@@ -505,7 +505,7 @@ subroutine elsi_to_standard_evp(e_h)
 
             e_h%ovlp_is_sing = .false.
 
-            ! Compute S = (U^T)U, U -> S
+            ! S = (U^T)U, U -> S
             success = elpa_cholesky_complex_double(e_h%n_basis,e_h%ovlp_cmplx,&
                          e_h%n_lrow,e_h%blk_row,e_h%n_lcol,e_h%mpi_comm_row,&
                          e_h%mpi_comm_col,.false.)
@@ -514,7 +514,7 @@ subroutine elsi_to_standard_evp(e_h)
                call elsi_stop(" Cholesky failed.",e_h,caller)
             endif
 
-            ! compute U^-1 -> S
+            ! U^-1 -> S
             success = elpa_invert_trm_complex_double(e_h%n_basis,&
                          e_h%ovlp_cmplx,e_h%n_lrow,e_h%blk_row,e_h%n_lcol,&
                          e_h%mpi_comm_row,e_h%mpi_comm_col,.false.)
@@ -614,7 +614,7 @@ subroutine elsi_to_standard_evp(e_h)
 
             e_h%ovlp_is_sing = .false.
 
-            ! Compute S = (U^T)U, U -> S
+            ! S = (U^T)U, U -> S
             success = elpa_cholesky_real_double(e_h%n_basis,e_h%ovlp_real,&
                          e_h%n_lrow,e_h%blk_row,e_h%n_lcol,e_h%mpi_comm_row,&
                          e_h%mpi_comm_col,.false.)
@@ -623,7 +623,7 @@ subroutine elsi_to_standard_evp(e_h)
                call elsi_stop(" Cholesky failed.",e_h,caller)
             endif
 
-            ! compute U^-1 -> S
+            ! U^-1 -> S
             success = elpa_invert_trm_real_double(e_h%n_basis,e_h%ovlp_real,&
                          e_h%n_lrow,e_h%blk_row,e_h%n_lcol,e_h%mpi_comm_row,&
                          e_h%mpi_comm_col,.false.)
@@ -1024,8 +1024,8 @@ subroutine elsi_solve_evp_elpa(e_h)
          call MPI_Allreduce(e_h%nnz_l,e_h%nnz_g,1,mpi_integer4,mpi_sum,&
                  e_h%mpi_comm,mpierr)
       case(REAL_VALUES)
-         call elsi_get_local_nnz_real(e_h,e_h%ham_real,e_h%n_lrow,&
-                 e_h%n_lcol,e_h%nnz_l)
+         call elsi_get_local_nnz_real(e_h,e_h%ham_real,e_h%n_lrow,e_h%n_lcol,&
+                 e_h%nnz_l)
 
          call MPI_Allreduce(e_h%nnz_l,e_h%nnz_g,1,mpi_integer4,mpi_sum,&
                  e_h%mpi_comm,mpierr)

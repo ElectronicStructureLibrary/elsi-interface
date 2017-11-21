@@ -86,7 +86,7 @@ MPI_EXEC ?= mpirun
 MPI_SIZE ?= 4
 
 # Create C interfaces
-C_INTERFACE ?= yes
+C_INTERFACE ?= no
 ifeq ($(strip $(C_INTERFACE)),yes)
   C_BINDING += test_dm_complex_c.x
   C_BINDING += test_dm_real_c.x
