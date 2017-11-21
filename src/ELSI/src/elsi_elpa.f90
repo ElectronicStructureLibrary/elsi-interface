@@ -118,7 +118,7 @@ subroutine elsi_compute_occ_elpa(e_h)
       if(e_h%n_kpts > 1) then
          call elsi_allocate(e_h,tmp_real1,e_h%n_kpts,"tmp_real",caller)
 
-         if(e_h%myid == 0) then
+         if(e_h%myid == 0 .and. e_h%i_spin == 1) then
             tmp_real1(e_h%i_kpt) = e_h%i_weight
          endif
 
