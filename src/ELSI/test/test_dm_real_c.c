@@ -54,7 +54,7 @@ void main(int argc, char** argv) {
 
    e_elpa  = -2622.88214509316;
    e_omm   = -2622.88214509316;
-   e_pexsi = -2622.88194292325;
+   e_pexsi = -2622.88143358352;
    e_dmp   = -2622.88214509316;
 
    elsi_handle    e_h;
@@ -67,12 +67,12 @@ void main(int argc, char** argv) {
    MPI_Comm_rank(mpi_comm_global,&myid);
 
    // Parameters
-   blk         = 16;
-   solver      = atoi(argv[1]);
-   format      = 0; // BLACS_DENSE
-   parallel    = 1; // MULTI_PROC
-   int_one     = 1;
-   int_zero    = 0;
+   blk      = 16;
+   solver   = atoi(argv[1]);
+   format   = 0; // BLACS_DENSE
+   parallel = 1; // MULTI_PROC
+   int_one  = 1;
+   int_zero = 0;
 
    if (solver == 1) {
        e_ref = e_elpa;
