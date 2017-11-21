@@ -1,5 +1,6 @@
 TEST_PROGRAMS = test_dm_complex.x \
                 test_dm_complex_sparse.x \
+                test_dm_kpt_spin_complex.x \
                 test_dm_real.x \
                 test_dm_real_sparse.x \
                 test_ev_complex.x \
@@ -43,6 +44,9 @@ test_dm_complex.x: test_dm_complex.o libelsi.a
 	$(FLINKER) $(LDFLAGS) $(FLDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
 
 test_dm_complex_sparse.x: test_dm_complex_sparse.o libelsi.a
+	$(FLINKER) $(LDFLAGS) $(FLDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
+
+test_dm_kpt_spin_complex.x: test_dm_kpt_spin_complex.o libelsi.a
 	$(FLINKER) $(LDFLAGS) $(FLDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
 
 test_dm_real.x: test_dm_real.o libelsi.a
@@ -91,6 +95,9 @@ test_dm_complex.o: $(ELSI_DIR)/test/test_dm_complex.f90 elsi_interface.o elsi_pr
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
 test_dm_complex_sparse.o: $(ELSI_DIR)/test/test_dm_complex_sparse.f90 elsi_interface.o elsi_precision.o
+	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
+
+test_dm_kpt_spin_complex.o: $(ELSI_DIR)/test/test_dm_kpt_spin_complex.f90 elsi_interface.o elsi_precision.o
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
 test_dm_real.o: $(ELSI_DIR)/test/test_dm_real.f90 elsi_interface.o elsi_precision.o

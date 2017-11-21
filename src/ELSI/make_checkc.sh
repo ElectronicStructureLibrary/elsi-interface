@@ -255,6 +255,6 @@ fi
 
 else
    tput setaf 5
-   echo "C interface has been disabled by user's choice."
+   echo "C interface may be enabled by setting 'C_INTERFACE = yes' in the make.sys file."
    tput sgr0
 fi
