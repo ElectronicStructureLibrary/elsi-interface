@@ -3,6 +3,7 @@ gnu-j1-generic:
     - module purge
     - module load gcc-7.1
     - cp /home/wy29/elsi_make_check/check_gnu ./make.sys
+    - cat make.sys
     - make
     - make install
     - make clean
@@ -12,6 +13,7 @@ gnu-j8-generic:
     - module purge
     - module load gcc-7.1
     - cp /home/wy29/elsi_make_check/check_gnu ./make.sys
+    - cat make.sys
     - make -j 8
     - make check
     - make checkc
@@ -24,6 +26,7 @@ pgi-j1-generic:
     - module load gcc-7.1
     - module load pgi-17.4
     - cp /home/wy29/elsi_make_check/check_pgi ./make.sys
+    - cat make.sys
     - make
     - make install
     - make clean
@@ -34,6 +37,7 @@ pgi-j8-generic:
     - module load gcc-7.1
     - module load pgi-17.4
     - cp /home/wy29/elsi_make_check/check_pgi ./make.sys
+    - cat make.sys
     - make -j 8
     - make check
     - make checkc
@@ -45,6 +49,7 @@ intel-j1-debug:
     - module purge
     - module load gcc-7.1
     - cp /home/wy29/elsi_make_check/check_intel_debug ./make.sys
+    - cat make.sys
     - make
     - make install
     - make clean
@@ -54,6 +59,7 @@ intel-j8-debug:
     - module purge
     - module load gcc-7.1
     - cp /home/wy29/elsi_make_check/check_intel_debug ./make.sys
+    - cat make.sys
     - make -j 8
     - make check
     - make checkc
@@ -66,6 +72,7 @@ intel-j8-gpu:
     - module load gcc-7.1
     - module load cuda-8.0
     - cp /home/wy29/elsi_make_check/check_intel_gpu ./make.sys
+    - cat make.sys
     - make -j 8
     - make check
     - make install
@@ -76,6 +83,7 @@ intel-j1-generic:
     - module purge
     - module load gcc-7.1
     - cp /home/wy29/elsi_make_check/check_intel ./make.sys
+    - cat make.sys
     - make
     - make install
     - make clean
@@ -85,6 +93,7 @@ intel-j8-generic:
     - module purge
     - module load gcc-7.1
     - cp /home/wy29/elsi_make_check/check_intel ./make.sys
+    - cat make.sys
     - make -j 8
     - make check
     - make checkc
@@ -100,6 +109,7 @@ intel-j8-external-linkage:
     - module purge
     - module load gcc-7.1
     - cp /home/wy29/elsi_make_check/check_external ./make.sys
+    - cat make.sys
     - make -j 8
     - make install
     - make clean
