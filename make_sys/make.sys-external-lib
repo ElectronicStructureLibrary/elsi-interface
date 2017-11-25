@@ -1,12 +1,11 @@
 # PLATFORM  : TIMEWARP @DUKE
 # COMPILERS : INTEL
-# VERIFIED  : OCT 18, 2017
+# VERIFIED  : NOV 24, 2017
 # DO READ ../INSTALL CAREFULLY!
 
-# Note:  This make.sys is provided to demonstrate external linkage against
-#        preinstalled solver libraries.  When linking against preinstalled
-#        solver libraries, it is the responsibility of the user to compile
-#        and verify the libraries that they are linking ELSI against.
+# Note: When linking against preinstalled solver libraries, it is the
+#       responsibility of the user to compile and verify the libraries
+#       that they are linking ELSI against.
 
 # ====== ELSI ======
 MPIFC          = mpiifort
@@ -27,19 +26,18 @@ SCALAPACK_LIB  = -L/opt/intel/mkl/lib/intel64 -lmkl_scalapack_lp64 \
 
 # ====== libOMM ======
 EXTERNAL_OMM   = yes
-OMM_INC        = -I/home/wph6/opt/libOMM/0.0.1/build/include
-OMM_LIB        = -L/home/wph6/opt/libOMM/0.0.1/build/lib -lOMM -lMatrixSwitch
+OMM_INC        = -I/home/wy29/opt/omm/include
+OMM_LIB        = -L/home/wy29/opt/omm/lib -lOMM -lMatrixSwitch
 
 # ====== PEXSI  ======
 EXTERNAL_PEXSI = yes
-METIS_LIB      = -L/home/wph6/opt/ParMETIS/4.0.3/build/Linux-x86_64/libmetis -lmetis
-PARMETIS_LIB   = -L/home/wph6/opt/ParMETIS/4.0.3/build/Linux-x86_64/libparmetis -lparmetis
-SUPERLU_INC    = -I/home/wph6/opt/SuperLU_DIST/5.1.3/SRC
-SUPERLU_LIB    = -L/home/wph6/opt/SuperLU_DIST/5.1.3/lib -lsuperlu_dist
-PEXSI_INC      = -I/home/wy29/pexsi_new/include $(SUPERLU_INC)
-PEXSI_LIB      = -L/home/wy29/pexsi_new/lib -lpexsi $(SUPERLU_LIB) $(PARMETIS_LIB) $(METIS_LIB)
+PARMETIS_LIB   = -L/home/wy29/opt/parmetis-4.0.3/lib -lparmetis -lmetis
+SUPERLU_INC    = -I/home/wy29/opt/SuperLU_DIST_5.2.2/SRC
+SUPERLU_LIB    = -L/home/wy29/opt/SuperLU_DIST_5.2.2/lib -lsuperlu_dist
+PEXSI_INC      = -I/home/wy29/opt/pexsi/include
+PEXSI_LIB      = -L/home/wy29/opt/pexsi/lib -lpexsi
 
 # ======  ELPA  ======
 EXTERNAL_ELPA  = yes
-ELPA_INC       = -I/home/wy29/ELPA/elpa-2017.05.001/build/include/elpa-2017.05.001/modules
-ELPA_LIB       = -L/home/wy29/ELPA/elpa-2017.05.001/build/lib -lelpa
+ELPA_INC       = -I/home/wy29/opt/elpa-2017.05.001/include/elpa-2017.05.001/modules
+ELPA_LIB       = -L/home/wy29/opt/elpa-2017.05.001/lib -lelpa

@@ -799,7 +799,7 @@ subroutine elsi_set_pexsi_default(e_h)
 
    ! Use 1 process in matrix reordering and symbolic factorization
    e_h%pexsi_options%npSymbFact = 1
-   e_h%pexsi_options%ordering = 1
+   e_h%pexsi_options%ordering   = 1
 
 end subroutine
 

@@ -1,6 +1,6 @@
 # PLATFORM  : TITAN @OLCF
 # COMPILERS : PGI + NVIDIA
-# VERIFIED  : JUL 19, 2017
+# VERIFIED  : NOV 22, 2017
 # DO READ ../INSTALL CAREFULLY!
 
 # ====== ELSI ======
@@ -15,18 +15,17 @@ CXX_LIB      = -lstdc++
 
 # ====== ELPA ======
 ELPA_GPU     = yes
-ELPA2_KERNEL = SSE # Change to "GPU" to enable GPU acceleration for
-                   # eigenvector back-transformation step
+ELPA2_KERNEL = SSE # Change to "GPU" to enable GPU acceleration
+                   # for the back-transformation of eigenvectors
                    # (known buggy!)
 NVCC         = nvcc
 NVCCFLAGS    = -arch sm_35 -O3
 CUDA_LIB     = -lcudart -lcublas
 
 # ====== PEXSI ======
-METIS_LIB    = -L/ccs/home/huhn/Titan/opt/parmetis-4.0.3/metis/lib -lmetis
-PARMETIS_LIB = -L/ccs/home/huhn/Titan/opt/parmetis-4.0.3/lib -lparmetis
-SUPERLU_LIB  = -L/ccs/home/huhn/Titan/opt/SuperLU_DIST/5.1.2/lib -lsuperlu_dist
-SUPERLU_INC  = -I/ccs/home/huhn/Titan/opt/SuperLU_DIST/5.1.2/SRC
+PARMETIS_LIB = -L/ccs/home/vwzyu/opt/parmetis-4.0.3/lib -lparmetis -lmetis
+SUPERLU_LIB  = -L/ccs/home/vwzyu/opt/SuperLU_DIST/5.2.2/lib -lsuperlu_dist
+SUPERLU_INC  = -I/ccs/home/vwzyu/opt/SuperLU_DIST/5.2.2/SRC
 
 # ====== MAKE CHECK ======
 MPI_EXEC     = aprun

@@ -1,6 +1,6 @@
 # PLATFORM  : THETA @ALCF
 # COMPILERS : INTEL
-# VERIFIED  : OCT 18, 2017
+# VERIFIED  : NOV 24, 2017
 # DO READ ../INSTALL CAREFULLY!
 
 # ====== ELSI ======
@@ -22,10 +22,9 @@ SCALAPACK_LIB = -mkl=cluster
 ELPA2_KERNEL  = AVX512
 
 # ====== PEXSI ======
-METIS_LIB     = -L/home/huhn/opt/ParMETIS/4.0.3/lib -lmetis
-PARMETIS_LIB  = -L/home/huhn/opt/ParMETIS/4.0.3/lib -lparmetis
-SUPERLU_LIB   = -L/home/huhn/opt/SuperLU_DIST/5.1.2/lib -lsuperlu_dist
-SUPERLU_INC   = -I/home/huhn/opt/SuperLU_DIST/5.1.2/SRC
+PARMETIS_LIB  = -L/home/wzvyu/opt/parmetis-4.0.3/lib -lparmetis -lmetis
+SUPERLU_LIB   = -L/home/wzvyu/opt/SuperLU_DIST_5.2.2/lib -lsuperlu_dist
+SUPERLU_INC   = -I/home/wzvyu/opt/SuperLU_DIST_5.2.2/SRC
 
 # ====== MAKE CHECK ======
 MPI_EXEC      = aprun
