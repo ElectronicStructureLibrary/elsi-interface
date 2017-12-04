@@ -1,6 +1,6 @@
 # PLATFORM  : TITAN @OLCF
 # COMPILERS : PGI + NVIDIA
-# VERIFIED  : NOV 22, 2017
+# VERIFIED  : DEC 4, 2017
 # DO READ ../INSTALL CAREFULLY!
 
 # ====== ELSI ======
@@ -23,9 +23,14 @@ NVCCFLAGS    = -arch sm_35 -O3
 CUDA_LIB     = -lcudart -lcublas
 
 # ====== PEXSI ======
+# WPH, 4 December 2017: PEXSI compilation stalls for me when compiling getPole.cpp
+#                       using the default pgi/16.10.0 module.  Swapping to pgi/17.9.0 
+#                       fixes this issue, changing the level of optimization does not.
 PARMETIS_LIB = -L/ccs/home/vwzyu/opt/parmetis-4.0.3/lib -lparmetis -lmetis
 SUPERLU_LIB  = -L/ccs/home/vwzyu/opt/SuperLU_DIST/5.2.2/lib -lsuperlu_dist
 SUPERLU_INC  = -I/ccs/home/vwzyu/opt/SuperLU_DIST/5.2.2/SRC
 
 # ====== MAKE CHECK ======
+# If using GPU acceleration on Titan, make sure that the CUDA Proxy is enabled by setting
+# the environment flag "export CRAY_CUDA_PROXY=1"
 MPI_EXEC     = aprun
