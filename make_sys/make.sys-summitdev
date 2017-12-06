@@ -1,0 +1,43 @@
+# PLATFORM  : SUMMITDEV @OLCF
+# COMPILERS : XL + NVIDIA
+# VERIFIED  : DEC 6, 2017
+# DO READ ../INSTALL CAREFULLY!
+
+# WPH:  Because summitdev is a development platform, it is considered unstable and system policies may change over time.
+#       The following make.sys worked as of December 6th, 2017, but it will likely not be representative of the final Summit make.sys.
+#       The following modules were loaded:
+# Currently Loaded Modules:
+#   1) hsi/5.0.2.p5   2) xalt/0.7.5   3) lsf-tools/1.0   4) DefApps   5) cmake/3.9.2   6) xl/20170914-beta   7) spectrum-mpi/10.1.0.4-20170915   8) cuda/9.0.69   9) netlib-lapack/3.6.1  10) netlib-scalapack/2.0.2  11) essl/5.5.0-20161110
+
+# ====== ELSI ======
+MPIFC         = mpixlf
+MPICC         = mpixlc
+MPICXX        = mpixlC
+LINKER        = mpixlf
+
+FFLAGS        = -qxlf2003=polymorphic
+CXXFLAGS      =
+CLDFLAGS      =
+CXX_LIB       = -lstdc++
+
+SCALAPACK_LIB = -lblas -llapack -lscalapack \
+                -L${OLCF_XLC_ROOT}/lib -libmc++
+
+# ====== ELPA ======
+ELPA_GPU      = yes
+ELPA2_KERNEL  = Generic # Change to "GPU" to enable GPU acceleration
+                        # for the back-transformation of eigenvectors
+                        # (known buggy!)
+NVCC          = ${CUDAPATH}/bin/nvcc
+NVCCFLAGS     = -ccbin xlc_r -Xcompiler -O3 -c -m64 -arch=sm_60
+CUDA_LIB      = -lstdc++ -L${CUDAPATH}/lib64 -lcudart -lcublas
+
+# ====== PEXSI ======
+PEXSI_ADD_UNDERSCORE = no # Needed when compiling PEXSI with XL
+METIS_LIB            = -L/ccs/home/huhn/summitdev/opt/ParMETIS/4.0.3/metis/lib -lmetis
+PARMETIS_LIB         = -L/ccs/home/huhn/summitdev/opt/ParMETIS/4.0.3/lib -lparmetis
+SUPERLU_LIB          = -L/ccs/home/huhn/summitdev/opt/SuperLU_DIST/5.2.2/lib -lsuperlu_dist
+SUPERLU_INC          = -I/ccs/home/huhn/summitdev/opt/SuperLU_DIST/5.2.2/SRC
+
+# ====== MAKE CHECK ======
+MPI_EXEC      = jsrun
