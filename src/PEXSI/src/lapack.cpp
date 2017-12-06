@@ -267,6 +267,9 @@ extern "C" {
     ( const Int* n, dcomplex* A, const Int* lda, const Int* ipiv, dcomplex* work,
       const Int* lwork, Int* info );
 
+  int LAPACK(lsame)
+    ( const char* ca, const char* cb);
+
 } // extern "C"
 
 
@@ -1385,7 +1388,9 @@ double Lange ( char norm, Int m, Int n, dcomplex * A, Int lda, dcomplex* work){
 
 
 
-
+int Lsame (char ca, char cb){
+  return LAPACK(lsame)(&ca, &cb);
+}
 
 
 

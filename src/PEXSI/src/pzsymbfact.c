@@ -258,13 +258,13 @@ pzsymbfact(superlu_dist_options_t *options, SuperMatrix *A,
 			/* Equilibrate matrix A if it is badly-scaled. */
 			pzlaqgs(A, R, C, rowcnd, colcnd, amax, equed);
 
-			if ( lsame_(equed, "R") ) {
+			if ( lsame(equed, "R") ) {
 				ScalePermstruct->DiagScale = rowequ = ROW;
         rowequ = ROW;
-			} else if ( lsame_(equed, "C") ) {
+			} else if ( lsame(equed, "C") ) {
 				ScalePermstruct->DiagScale = colequ = COL;
         colequ = COL;
-			} else if ( lsame_(equed, "B") ) {
+			} else if ( lsame(equed, "B") ) {
 				ScalePermstruct->DiagScale = BOTH;
 				rowequ = ROW;
 				colequ = COL;

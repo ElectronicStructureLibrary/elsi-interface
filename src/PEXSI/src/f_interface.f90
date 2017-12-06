@@ -736,20 +736,27 @@ interface
     integer(c_int),             intent(out) :: info
   end subroutine
 
-  subroutine f_ppexsi_retrieve_complex_dm_edm(&
-      plan,&
-      DMnzvalLocal,&
-      EDMnzvalLocal,&
-      nnzLocal,&
-      info) &
-      bind(C, Name="PPEXSIRetrieveComplexDFTMatrix")
-    use, intrinsic :: iso_c_binding
-    implicit none
-    integer(c_intptr_t), value, intent(in)  :: plan
-    real(c_double),             intent(out) :: DMnzvalLocal(*), EDMnzvalLocal(*)
-    integer(c_int),             intent(out) :: nnzLocal
-    integer(c_int),             intent(out) :: info
-  end subroutine 
+! WPH: f_ppexsi_retrieve_complex_dft_matrix already binds to
+!      PPEXSIRetrieveComplexDFTMatrix, and the Fortran 2003 standard
+!      specifies that "the binding label of an entity must not be the
+!      same as the binding label of another entity", thus this does
+!      not compile with XLF.  Additionally, the interface does not match
+!      PPEXSIRetrieveComplexDFTMatrix.
+!      Since this subroutine is not being used with ELSI,commenting out.
+!  subroutine f_ppexsi_retrieve_complex_dm_edm(&
+!      plan,&
+!      DMnzvalLocal,&
+!      EDMnzvalLocal,&
+!      nnzLocal,&
+!      info) &
+!      bind(C, Name="PPEXSIRetrieveComplexDFTMatrix")
+!    use, intrinsic :: iso_c_binding
+!    implicit none
+!    integer(c_intptr_t), value, intent(in)  :: plan
+!    real(c_double),             intent(out) :: DMnzvalLocal(*), EDMnzvalLocal(*)
+!    integer(c_int),             intent(out) :: nnzLocal
+!    integer(c_int),             intent(out) :: info
+!  end subroutine 
 
    subroutine f_ppexsi_retrieve_real_dm(&
       plan,&

@@ -6227,7 +6227,7 @@ void PPEXSIData::CalculateFermiOperatorReal2(
   SetValue(traceAinvS, Z_ZERO);
   // Need to store all Ainv matrices. If empty then Ainv corresponding
   // to this pole is not used.
-  std::vector<DistSparseMatrix<Complex>> AinvMatVec(numPole);
+  std::vector<DistSparseMatrix<Complex> > AinvMatVec(numPole);
 
   for(Int lidx = 0; lidx < numPole; lidx++){
     if( MYROW( gridPole_ ) == PROW( lidx, gridPole_ ) ){

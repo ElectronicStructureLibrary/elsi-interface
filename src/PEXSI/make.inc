@@ -7,7 +7,11 @@ INCLUDES      = $(PEXSI_INCLUDE) $(SUPERLU_INC)
 
 PEXSI_LIB     = $(PEXSI_DIR)/src/libpexsi.a
 
-COMPILE_DEF  = -DRELEASE -DAdd_
+ifeq ($(strip $(PEXSI_ADD_UNDERSCORE)),no)
+  COMPILE_DEF  = -DRELEASE
+else
+  COMPILE_DEF  = -DRELEASE -DAdd_
+endif
 
 CFLAGS    = $(CFLAGS_P) $(INCLUDES)
 FFLAGS    = $(FFLAGS_P) $(INCLUDES)
