@@ -1319,11 +1319,11 @@ subroutine die(message)
 
   !**** INTERNAL ********************************!
 
-  integer :: err_unit
+  integer :: err_unit=377
 
   !**********************************************!
 
-  open(newunit=err_unit,file='libOMM.err',status='replace')
+  open(unit=err_unit,file='libOMM.err')
   write(err_unit,'(a)') 'FATAL ERROR in libOMM!'
   if (present(message)) write(err_unit,'(a)') message
   write(err_unit,'(a,1x,i5)') 'MPI rank:', ms_mpi_rank

@@ -64,7 +64,7 @@ subroutine omm(m,n,H,S,new_S,e_min,D_min,calc_ED,eta,C_min,init_C,T,scale_T,flav
   integer :: icg ! CG step num.
   integer :: n_step_max=100
   integer :: n_step_max2
-  integer, save :: log_unit
+  integer, save :: log_unit=666
 
   real(dp) :: rn(2)
   real(dp) :: el
@@ -105,9 +105,9 @@ subroutine omm(m,n,H,S,new_S,e_min,D_min,calc_ED,eta,C_min,init_C,T,scale_T,flav
   conv = .false.
 
   if (log_start) then
-    open(newunit=log_unit,file='libOMM.log',position='append')
+    open(unit=log_unit,file='libOMM.log',position='append')
   else
-    open(newunit=log_unit,file='libOMM.log',status='replace')
+    open(unit=log_unit,file='libOMM.log')
     log_start=.true.
   end if
 

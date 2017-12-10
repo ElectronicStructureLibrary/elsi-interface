@@ -157,11 +157,11 @@ contains
 
     !**** INTERNAL ********************************!
 
-    integer :: err_unit
+    integer :: err_unit=377
 
     !**********************************************!
 
-    open(newunit=err_unit,file='MatrixSwitch.err',status='replace')
+    open(unit=err_unit,file='MatrixSwitch.err')
     write(err_unit,'(a)') 'FATAL ERROR in matrix_switch!'
     if (present(message)) write(err_unit,'(a)') message
     write(err_unit,'(a,1x,i5)') 'MPI rank:', ms_mpi_rank
