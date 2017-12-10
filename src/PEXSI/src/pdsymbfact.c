@@ -12,6 +12,10 @@
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #endif
 
+#ifndef Add_
+#define lsame_ lsame
+#endif
+
 /// @brief pdsymbfact performs symbolic factorization that can be
 /// reused.
 ///
@@ -258,13 +262,13 @@ pdsymbfact(superlu_dist_options_t *options, SuperMatrix *A,
 			/* Equilibrate matrix A if it is badly-scaled. */
 			pdlaqgs(A, R, C, rowcnd, colcnd, amax, equed);
 
-			if ( lsame(equed, "R") ) {
+			if ( lsame_(equed, "R") ) {
 				ScalePermstruct->DiagScale = rowequ = ROW;
         rowequ = ROW;
-			} else if ( lsame(equed, "C") ) {
+			} else if ( lsame_(equed, "C") ) {
 				ScalePermstruct->DiagScale = colequ = COL;
         colequ = COL;
-			} else if ( lsame(equed, "B") ) {
+			} else if ( lsame_(equed, "B") ) {
 				ScalePermstruct->DiagScale = BOTH;
 				rowequ = ROW;
 				colequ = COL;
