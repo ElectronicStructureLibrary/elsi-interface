@@ -7,16 +7,16 @@ include make.sys
 
 # Pre-compiled external libraries
 ifneq ($(strip $(EXTERNAL_ELPA)),yes)
-  ALL_OBJ += elpa
+  ALL_OBJ   += elpa
   CLEAN_OBJ += cleanelpa
-  ELPA_OMM = elpa
-  ELSI_ELPA = elsi_elpa.o
+  ELPA_OMM   = elpa
+  ELSI_ELPA  = elsi_elpa.o
 else
   ELSI_ELPA = elsi_aeo.o
 endif
 
 ifneq ($(strip $(EXTERNAL_OMM)),yes)
-  ALL_OBJ += omm
+  ALL_OBJ   += omm
   CLEAN_OBJ += cleanomm
 endif
 
@@ -26,7 +26,7 @@ endif
 
 ifneq ($(strip $(EXTERNAL_PEXSI)),yes)
   ifneq ($(strip $(DISABLE_PEXSI)),yes)
-    ALL_OBJ += pexsi
+    ALL_OBJ   += pexsi
     CLEAN_OBJ += cleanpexsi
   else
     $(info ====================================)
@@ -41,45 +41,39 @@ ARCHIVE      ?= ar
 ARCHIVEFLAGS ?= cr
 RANLIB       ?= ranlib
 
-# Default external libraries
+# Default installation directories
 THIS_DIR   = $(shell pwd)
 ELSI_DIR   = $(THIS_DIR)/src/ELSI
-
 BIN_DIR    = $(THIS_DIR)/bin
 LIB_DIR    = $(THIS_DIR)/lib
 INC_DIR    = $(THIS_DIR)/include
 BUILD_DIR  = $(THIS_DIR)/build
 
+# Default external libraries
 ELPA_DIR  ?= $(THIS_DIR)/src/ELPA
-ELPA_INC  ?= -I$(INC_DIR)
 ELPA_LIB  ?= -L$(LIB_DIR) -lelpa
-
 OMM_DIR   ?= $(THIS_DIR)/src/libOMM
-OMM_INC   ?= -I$(INC_DIR)
 OMM_LIB   ?= -L$(LIB_DIR) -lOMM -lMatrixSwitch
-
 PEXSI_DIR ?= $(THIS_DIR)/src/PEXSI
-PEXSI_INC ?= -I$(INC_DIR)
 PEXSI_LIB ?= -L$(LIB_DIR) -lpexsi
 PEXSI_LIB += $(SUPERLU_LIB) $(PARMETIS_LIB) $(METIS_LIB)
 
 # Default compiler settings
-FFLAGS_I   ?= $(FFLAGS) $(SCALAPACK_INC)
-FFLAGS_E   ?= $(FFLAGS) $(SCALAPACK_INC)
-CFLAGS_E   ?= $(CFLAGS) $(SCALAPACK_INC)
-FFLAGS_O   ?= $(FFLAGS) $(SCALAPACK_INC)
-FFLAGS_P   ?= $(FFLAGS) $(SCALAPACK_INC)
-CFLAGS_P   ?= $(CFLAGS) $(SCALAPACK_INC)
-CXXFLAGS_P ?= $(CXXFLAGS) $(SCALAPACK_INC)
+FFLAGS_I   ?= $(FFLAGS)
+FFLAGS_E   ?= $(FFLAGS)
+CFLAGS_E   ?= $(CFLAGS)
+FFLAGS_O   ?= $(FFLAGS)
+FFLAGS_P   ?= $(FFLAGS)
+CFLAGS_P   ?= $(CFLAGS)
+CXXFLAGS_P ?= $(CXXFLAGS)
 LINKER     ?= $(MPIFC)
 FLINKER    ?= $(LINKER)
 CLINKER    ?= $(LINKER)
-LDFLAGS    ?= $(FFLAGS_I)
 
 # Default architecture settings
-ELPA_OMP      ?= no
-ELPA_GPU      ?= no
-ELPA2_KERNEL  ?= Generic
+ELPA_OMP     ?= no
+ELPA_GPU     ?= no
+ELPA2_KERNEL ?= Generic
 
 # MPI for "make check"
 MPI_EXEC ?= mpirun
@@ -97,8 +91,8 @@ endif
 
 export
 
-LIBS = $(ELPA_LIB) $(OMM_LIB)
-INCS = $(ELPA_INC) $(OMM_INC) -I$(INC_DIR)
+LIBS = $(OMM_LIB) $(ELPA_LIB)
+INCS = $(OMM_INC) $(ELPA_INC) -I$(INC_DIR)
 
 ifneq ($(strip $(DISABLE_PEXSI)),yes)
   LIBS += $(PEXSI_LIB)

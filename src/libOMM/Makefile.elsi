@@ -1,15 +1,12 @@
 # libOMM Makefile used in ELSI.
-# Victor Yu, ELSI team.
-# Nov 11, 2017
+# Dec 11, 2017
 
 MSOBJ  = MatrixSwitch_ops.o ms_mm_multiply.o ms_m_add.o ms_m_set.o ms_m_copy.o ms_m_register.o MatrixSwitch.o
 OMMOBJ = omm_params.o omm_rand.o omm_quartic.o omm_ops.o omm.o omm_callback.o
 
-.PHONY: all MatrixSwitch_lib libOMM_lib install clean
+.PHONY: all install clean
 
-all: MatrixSwitch_lib libOMM_lib
-
-MatrixSwitch_lib: libMatrixSwitch.a
+all: $(MSOBJ) $(OMMOBJ)
 
 libMatrixSwitch.a: $(MSOBJ)
 	$(ARCHIVE) $(ARCHIVEFLAGS) $@ $(MSOBJ)
@@ -36,9 +33,7 @@ ms_m_register.o: ./MatrixSwitch/src/ms_m_register.f90 MatrixSwitch_ops.o
 MatrixSwitch.o: ./MatrixSwitch/src/MatrixSwitch.f90 MatrixSwitch_ops.o ms_mm_multiply.o ms_m_add.o ms_m_set.o ms_m_copy.o ms_m_register.o
 	$(MPIFC) $(FFLAGS_O) -c $< -o $@
 
-libOMM_lib: libOMM.a MatrixSwitch_lib
-
-libOMM.a: $(OMMOBJ)
+libOMM.a: $(OMMOBJ) libMatrixSwitch.a
 	$(ARCHIVE) $(ARCHIVEFLAGS) $@ $(OMMOBJ)
 	$(RANLIB) $@
 
@@ -52,15 +47,15 @@ omm_quartic.o: ./libOMM/src/omm_quartic.f90 omm_params.o
 	$(MPIFC) $(FFLAGS_O) -c $< -o $@
 
 omm_ops.o: ./libOMM/src/omm_ops.f90 omm_params.o MatrixSwitch.o
-	$(MPIFC) $(FFLAGS_O) $(ELPA_INC) -c $< -o $@
+	$(MPIFC) $(FFLAGS_O) $(INCS) -c $< -o $@
 
 omm.o: ./libOMM/src/omm.f90 omm_ops.o omm_rand.o MatrixSwitch.o MatrixSwitch_ops.o
-	$(MPIFC) $(FFLAGS_O) $(ELPA_INC) -c $< -o $@
+	$(MPIFC) $(FFLAGS_O) $(INCS) -c $< -o $@
 
 omm_callback.o: ./libOMM/src/omm_callback.f90 omm_ops.o omm_rand.o MatrixSwitch.o MatrixSwitch_ops.o
-	$(MPIFC) $(FFLAGS_O) $(ELPA_INC) -c $< -o $@
+	$(MPIFC) $(FFLAGS_O) $(INCS) -c $< -o $@
 
-install: MatrixSwitch_lib libOMM_lib
+install: libMatrixSwitch.a libOMM.a
 	cp *.a $(LIB_DIR)
 	cp *.mod $(INC_DIR)
 

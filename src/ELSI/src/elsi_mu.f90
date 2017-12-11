@@ -296,6 +296,7 @@ subroutine elsi_find_mu(e_h,n_electron,n_state,n_spin,n_kpt,k_weights,evals,&
    real(kind=r8)    :: diff_mid   ! Difference in number of electrons on middle point
    logical          :: found_mu
    integer(kind=i4) :: n_steps
+   character*200    :: info_str
 
    character*40, parameter :: caller = "elsi_find_mu"
 
@@ -334,9 +335,11 @@ subroutine elsi_find_mu(e_h,n_electron,n_state,n_spin,n_kpt,k_weights,evals,&
       endif
    enddo
 
-   ! Special treatment if mu cannot reach the required accuracy
-   if(.not. found_mu) then
-      ! Use the chemical potential of the right bound...
+   if(found_mu) then
+      call elsi_check_electrons(e_h,n_electron,n_state,n_spin,n_kpt,k_weights,&
+              evals,occ_nums,mu_out,diff_right)
+   else ! mu cannot reach required accuracy
+      ! Use mu of the right bound...
       call elsi_check_electrons(e_h,n_electron,n_state,n_spin,n_kpt,k_weights,&
               evals,occ_nums,mu_right,diff_right)
 
@@ -345,6 +348,8 @@ subroutine elsi_find_mu(e_h,n_electron,n_state,n_spin,n_kpt,k_weights,evals,&
       ! ...with adjusted occupation numbers
       call elsi_say(e_h,"  Chemical potential cannot reach the required"//&
               " accuracy by bisection method.")
+      write(info_str,"('  | Residual error :',E10.2)") diff_right
+      call elsi_say(e_h,info_str)
       call elsi_say(e_h,"  The error will be arbitrarily removed from the"//&
               " highest occupied states.")
 

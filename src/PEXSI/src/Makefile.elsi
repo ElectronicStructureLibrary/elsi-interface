@@ -1,6 +1,5 @@
-# PEXSI Makefile designed for ELSI installer.
-# Victor Yu, ELSI team.
-# Jun 25, 2017
+# PEXSI Makefile used in ELSI.
+# Dec 11, 2017
 
 include ../make.inc
 
@@ -29,15 +28,15 @@ DEPS = $(SRCS_CPP:.cpp=.d) $(SRCS_C:.c=.d) $(SRCS_F90:.f90=.d)
 %.o: %.F90
 	$(FC) -c $(FFLAGS) $<
 
-all: $(PEXSI_LIB)
+all: $(OBJS)
 
 -include $(DEPS)
 
-$(PEXSI_LIB): $(OBJS)
-	$(ARCHIVE) $(ARCHIVEFLAGS) $(PEXSI_LIB) $(OBJS)
-	$(RANLIB) $(PEXSI_LIB)
+libpexsi.a: $(OBJS)
+	$(ARCHIVE) $(ARCHIVEFLAGS) $@ $(OBJS)
+	$(RANLIB) $@
 
-install: $(PEXSI_LIB)
+install: libpexsi.a
 	cp *.a $(LIB_DIR)
 	cp *.mod $(INC_DIR)
 

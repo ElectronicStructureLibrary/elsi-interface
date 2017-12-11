@@ -1,23 +1,18 @@
-CC      = $(MPICC)
-CXX     = $(MPICXX)
-FC      = $(MPIFC)
-
-PEXSI_INCLUDE = -I$(PEXSI_DIR)/include
-INCLUDES      = $(PEXSI_INCLUDE) $(SUPERLU_INC)
-
-PEXSI_LIB     = $(PEXSI_DIR)/src/libpexsi.a
+CC  = $(MPICC)
+CXX = $(MPICXX)
+FC  = $(MPIFC)
 
 ifeq ($(strip $(PEXSI_ADD_UNDERSCORE)),no)
-  COMPILE_DEF  = -DRELEASE
+  COMPILE_DEF = -DRELEASE
 else
-  COMPILE_DEF  = -DRELEASE -DAdd_
+  COMPILE_DEF = -DRELEASE -DAdd_
 endif
 
-CFLAGS    = $(CFLAGS_P) $(INCLUDES)
-FFLAGS    = $(FFLAGS_P) $(INCLUDES)
-CXXFLAGS  = $(CXXFLAGS_P) $(CPPFLAG) $(INCLUDES)
-CCDEFS    = $(COMPILE_DEF)
-CPPDEFS   = $(COMPILE_DEF)
+CFLAGS   = $(CFLAGS_P) -I$(PEXSI_DIR)/include $(SUPERLU_INC)
+FFLAGS   = $(FFLAGS_P) -I$(PEXSI_DIR)/include $(SUPERLU_INC)
+CXXFLAGS = $(CXXFLAGS_P) -I$(PEXSI_DIR)/include $(SUPERLU_INC)
+CCDEFS   = $(COMPILE_DEF)
+CPPDEFS  = $(COMPILE_DEF)
 
 # Generate auto-dependencies
 %.d: %.c
