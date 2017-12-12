@@ -642,7 +642,7 @@ subroutine elsi_compute_edm_pexsi(e_h)
    end select
 
    if(ierr /= 0) then
-      call elsi_stop(" Failed to get energy density matirx failed.",e_h,caller)
+      call elsi_stop(" Failed to get energy density matirx.",e_h,caller)
    endif
 
    ! Check convergence
