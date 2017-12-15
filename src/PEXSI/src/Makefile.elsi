@@ -1,7 +1,28 @@
 # PEXSI Makefile used in ELSI.
-# Dec 11, 2017
+# Dec 14, 2017
 
-include ../make.inc
+ifeq ($(strip $(PEXSI_ADD_UNDERSCORE)),no)
+  DEFS_P = -DRELEASE
+else
+  DEFS_P = -DRELEASE -DAdd_
+endif
+
+CFLAGS_P   += $(DEFS_P) -I$(PEXSI_DIR)/include $(SUPERLU_INC)
+CXXFLAGS_P += $(DEFS_P) -I$(PEXSI_DIR)/include $(SUPERLU_INC)
+FFLAGS_P   += $(DEFS_P) -I$(PEXSI_DIR)/include $(SUPERLU_INC)
+
+# Generate dependencies
+%.d: %.c
+	@set -e; rm -f $@; \
+	$(MPICC) -M $(CFLAGS_P) $< > $@.$$$$; \
+	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@;\
+	rm -f $@.$$$$
+
+%.d: %.cpp
+	@set -e; rm -f $@; \
+	$(MPICXX) -M $(CXXFLAGS_P) $< > $@.$$$$; \
+	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@;\
+	rm -f $@.$$$$
 
 SRCS_C   = pdsymbfact.c pzsymbfact.c get_perm_c_parmetis.c
 SRCS_CPP = interface.cpp ppexsi.cpp pole.cpp TreeBcast.cpp \
@@ -16,17 +37,11 @@ DEPS = $(SRCS_CPP:.cpp=.d) $(SRCS_C:.c=.d) $(SRCS_F90:.f90=.d)
 .PHONY: all install clean
 
 %.o: %.c
-	$(CC) -c $(CFLAGS) $(CCDEFS) $<
+	$(MPICC) -c $(CFLAGS_P) $<
 %.o: %.cpp
-	$(CXX) -c $< $(CXXFLAGS) $(CPPDEFS)
-%.o: %.f
-	$(FC) -c $(FFLAGS) $<
-%.o: %.F
-	$(FC) -c $(FFLAGS) $<
+	$(MPICXX) -c $(CXXFLAGS_P) $<
 %.o: %.f90
-	$(FC) -c $(FFLAGS) $<
-%.o: %.F90
-	$(FC) -c $(FFLAGS) $<
+	$(MPIFC) -c $(FFLAGS_P) $<
 
 all: $(OBJS)
 

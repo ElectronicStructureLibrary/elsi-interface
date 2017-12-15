@@ -8234,6 +8234,9 @@ void PPEXSIData::CalculateFermiOperatorReal3(
     mpi::Allreduce( &numElecLocal, &numElectron, 1, MPI_SUM, gridPole_->rowComm); 
   }
 
+  MPI_Comm_free(&pointColComm);
+  MPI_Comm_free(&pointRowComm);
+
   return ;
 }    // -----  end of method PPEXSIData::CalculateFermiOperatorReal3  ----- 
 
