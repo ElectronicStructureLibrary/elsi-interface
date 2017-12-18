@@ -47,8 +47,6 @@ module ELSI_UTILS
    public :: elsi_get_local_nnz
    public :: elsi_trace_mat
    public :: elsi_trace_mat_mat
-   public :: elsi_init_timer
-   public :: elsi_get_time
 
    interface elsi_get_local_nnz
       module procedure elsi_get_local_nnz_real,&
@@ -649,44 +647,6 @@ subroutine elsi_trace_mat_mat_complex(e_h,mat1,mat2,trace)
    l_trace = zdotu(e_h%n_lrow*e_h%n_lcol,mat1,1,mat2,1)
 
    call MPI_Allreduce(l_trace,trace,1,mpi_complex16,mpi_sum,e_h%mpi_comm,mpierr)
-
-end subroutine
-
-!>
-!! This routine initializes the timer.
-!!
-subroutine elsi_init_timer(e_h)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: e_h !< Handle
-
-   integer(kind=i4) :: initial_time
-   integer(kind=i4) :: clock_max
-
-   character*40, parameter :: caller = "elsi_init_timer"
-
-   call system_clock(initial_time,e_h%clock_rate,clock_max)
-
-end subroutine
-
-!>
-!! This routine gets the current wallclock time.
-!!
-subroutine elsi_get_time(e_h,wtime)
-
-   implicit none
-
-   type(elsi_handle), intent(in)  :: e_h   !< Handle
-   real(kind=r8),     intent(out) :: wtime !< Time
-
-   integer(kind=i4) :: tics
-
-   character*40, parameter :: caller = "elsi_get_time"
-
-   call system_clock(tics)
-
-   wtime = 1.0_r8*tics/e_h%clock_rate
 
 end subroutine
 

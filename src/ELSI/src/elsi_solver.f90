@@ -232,7 +232,7 @@ subroutine elsi_ev_real(e_h,h_in,s_in,eval_out,evec_out)
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
-   call elsi_add_timing(e_h,0.0_r8)
+   call elsi_add_timing(e_h%solver_timings,0.0_r8,"BAKA")
 
    e_h%data_type = UNSET
 
@@ -296,7 +296,7 @@ subroutine elsi_ev_complex(e_h,h_in,s_in,eval_out,evec_out)
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
-   call elsi_add_timing(e_h,0.0_r8)
+   call elsi_add_timing(e_h%solver_timings,0.0_r8,"BAKA")
 
    e_h%data_type = UNSET
 
@@ -359,7 +359,7 @@ subroutine elsi_ev_real_sparse(e_h,h_in,s_in,eval_out,evec_out)
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
-   call elsi_add_timing(e_h,0.0_r8)
+   call elsi_add_timing(e_h%solver_timings,0.0_r8,"BAKA")
 
    e_h%data_type = UNSET
 
@@ -422,7 +422,7 @@ subroutine elsi_ev_complex_sparse(e_h,h_in,s_in,eval_out,evec_out)
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
-   call elsi_add_timing(e_h,0.0_r8)
+   call elsi_add_timing(e_h%solver_timings,0.0_r8,"BAKA")
 
    e_h%data_type = UNSET
 
@@ -682,7 +682,7 @@ subroutine elsi_dm_real(e_h,h_in,s_in,d_out,energy_out)
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
-   call elsi_add_timing(e_h,0.0_r8)
+   call elsi_add_timing(e_h%solver_timings,0.0_r8,"BAKA")
 
    e_h%data_type      = UNSET
    e_h%edm_ready_real = .true.
@@ -903,7 +903,7 @@ subroutine elsi_dm_complex(e_h,h_in,s_in,d_out,energy_out)
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
-   call elsi_add_timing(e_h,0.0_r8)
+   call elsi_add_timing(e_h%solver_timings,0.0_r8,"BAKA")
 
    e_h%data_type       = UNSET
    e_h%edm_ready_cmplx = .true.
@@ -1153,7 +1153,7 @@ subroutine elsi_dm_real_sparse(e_h,h_in,s_in,d_out,energy_out)
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
-   call elsi_add_timing(e_h,0.0_r8)
+   call elsi_add_timing(e_h%solver_timings,0.0_r8,"BAKA")
 
    e_h%data_type      = UNSET
    e_h%edm_ready_real = .true.
@@ -1370,7 +1370,7 @@ subroutine elsi_dm_complex_sparse(e_h,h_in,s_in,d_out,energy_out)
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
-   call elsi_add_timing(e_h,0.0_r8)
+   call elsi_add_timing(e_h%solver_timings,0.0_r8,"BAKA")
 
    e_h%data_type       = UNSET
    e_h%edm_ready_cmplx = .true.

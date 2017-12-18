@@ -36,11 +36,25 @@ module ELSI_DATATYPE
    use F_PPEXSI_INTERFACE, only: f_ppexsi_options
    use MATRIXSWITCH,       only: matrix
    use SPARSEMATRIX_BASE,  only: matrices,sparse_matrix
-   use ELSI_CONSTANTS,     only: TIMER_STRING_LEN
+   use ELSI_CONSTANTS,     only: TIMING_STRING_LEN
 
    implicit none
 
    private
+
+   !---------------------------------------------------------------------------------------------!
+
+   type, public :: elsi_timings_handle
+
+      real(kind=r8),                     allocatable :: times(:)     ! System times
+      character(len=TIMING_STRING_LEN),  allocatable :: elsi_tags(:) ! Tags assigned by ELSI
+      character(len=TIMING_STRING_LEN),  allocatable :: user_tags(:) ! Tags provided by user
+      integer                                        :: size_timings ! Dimension for arrays
+      integer                                        :: n_timings    ! Number of timings so far
+
+   end type
+
+   !---------------------------------------------------------------------------------------------!
 
    type, public :: elsi_handle
 
@@ -310,15 +324,12 @@ module ELSI_DATATYPE
       real(kind=r8)    :: ne_dmp         ! Number of electrons computed by DMP
 
       ! Timer and timings
-      integer(kind=i4)              :: clock_rate
-      real(kind=r8),    allocatable :: solver_timings_times(:)
-      integer(kind=i4), allocatable :: solver_timings_solvers(:)
-      character(len=TIMER_STRING_LEN), &
-                         allocatable :: solver_timings_tags(:)
-      integer                        :: n_timings 
-      integer                        :: max_n_timings
+      integer(kind=i4)          :: clock_rate
+      type(elsi_timings_handle) :: solver_timings          
 
    end type
+
+   !---------------------------------------------------------------------------------------------!
 
    type, public :: elsi_rw_handle
 
@@ -370,5 +381,7 @@ module ELSI_DATATYPE
       integer(kind=i4) :: header_user(8)
 
    end type
+
+   !---------------------------------------------------------------------------------------------!
 
 end module ELSI_DATATYPE

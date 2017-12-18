@@ -92,6 +92,6 @@ module ELSI_CONSTANTS
    integer(kind=i4), parameter :: CSC_FILE   = 1
 
    ! String lengths for tags
-   integer(kind=i4), parameter :: TIMER_STRING_LEN = 100
+   integer(kind=i4), parameter :: TIMING_STRING_LEN = 20
 
 end module ELSI_CONSTANTS

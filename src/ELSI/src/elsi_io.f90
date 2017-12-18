@@ -41,6 +41,7 @@ module ELSI_IO
    use ELSI_PRECISION, only: r8,i4,i8
    use ELSI_SETUP,     only: elsi_init,elsi_set_mpi,elsi_set_blacs,&
                              elsi_set_csc,elsi_cleanup
+   use ELSI_TIMINGS,   only: elsi_init_timer,elsi_get_time
    use ELSI_UTILS
 
    implicit none
