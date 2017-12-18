@@ -36,6 +36,12 @@ ifneq ($(strip $(EXTERNAL_PEXSI)),yes)
   endif
 endif
 
+ifneq ($(strip $(PTSCOTCH_LIB)),)
+  ORDERING_LIB = $(PTSCOTCH_LIB)
+else
+  ORDERING_LIB = $(PARMETIS_LIB) $(METIS_LIB)
+endif
+
 # Default archive tools
 ARCHIVE      ?= ar
 ARCHIVEFLAGS ?= cr
@@ -56,7 +62,7 @@ OMM_DIR   ?= $(THIS_DIR)/src/libOMM
 OMM_LIB   ?= -L$(LIB_DIR) -lOMM -lMatrixSwitch
 PEXSI_DIR ?= $(THIS_DIR)/src/PEXSI
 PEXSI_LIB ?= -L$(LIB_DIR) -lpexsi
-PEXSI_LIB += $(SUPERLU_LIB) $(PARMETIS_LIB) $(METIS_LIB)
+PEXSI_LIB += $(SUPERLU_LIB) $(ORDERING_LIB)
 
 # Default compiler settings
 FFLAGS_I   ?= $(FFLAGS)
