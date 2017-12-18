@@ -23,7 +23,7 @@ A) BASIC
      CXX_LIB       =  # C++ standard library flags, e.g. -lstdc++
      SCALAPACK_LIB =  # BLAS, LAPACK, BLACS, ScaLAPACK library flags
 
-     PARMETIS_LIB  =  # METIS and ParMETIS library flags
+     PTSCOTCH_LIB  =  # Scotch and PtScotch library flags
      SUPERLU_LIB   =  # SuperLU_DIST library flags
      SUPERLU_INC   =  # SuperLU_DIST include flags
 
