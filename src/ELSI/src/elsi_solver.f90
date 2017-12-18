@@ -50,6 +50,7 @@ module ELSI_SOLVER
    use ELSI_SETUP,     only: elsi_set_blacs
    use ELSI_SIPS,      only: elsi_init_sips,elsi_solve_evp_sips,&
                              elsi_sips_to_blacs_ev
+   use ELSI_TIMINGS,   only: elsi_add_timing
    use ELSI_UTILS
    use MATRIXSWITCH,   only: m_allocate
 
@@ -231,6 +232,8 @@ subroutine elsi_ev_real(e_h,h_in,s_in,eval_out,evec_out)
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
+   call elsi_add_timing(e_h,0.0_r8)
+
    e_h%data_type = UNSET
 
 end subroutine
@@ -293,6 +296,8 @@ subroutine elsi_ev_complex(e_h,h_in,s_in,eval_out,evec_out)
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
+   call elsi_add_timing(e_h,0.0_r8)
+
    e_h%data_type = UNSET
 
 end subroutine
@@ -354,6 +359,8 @@ subroutine elsi_ev_real_sparse(e_h,h_in,s_in,eval_out,evec_out)
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
+   call elsi_add_timing(e_h,0.0_r8)
+
    e_h%data_type = UNSET
 
 end subroutine
@@ -414,6 +421,8 @@ subroutine elsi_ev_complex_sparse(e_h,h_in,s_in,eval_out,evec_out)
    case default
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
+
+   call elsi_add_timing(e_h,0.0_r8)
 
    e_h%data_type = UNSET
 
@@ -673,6 +682,8 @@ subroutine elsi_dm_real(e_h,h_in,s_in,d_out,energy_out)
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
+   call elsi_add_timing(e_h,0.0_r8)
+
    e_h%data_type      = UNSET
    e_h%edm_ready_real = .true.
 
@@ -891,6 +902,8 @@ subroutine elsi_dm_complex(e_h,h_in,s_in,d_out,energy_out)
    case default
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
+
+   call elsi_add_timing(e_h,0.0_r8)
 
    e_h%data_type       = UNSET
    e_h%edm_ready_cmplx = .true.
@@ -1140,6 +1153,8 @@ subroutine elsi_dm_real_sparse(e_h,h_in,s_in,d_out,energy_out)
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
+   call elsi_add_timing(e_h,0.0_r8)
+
    e_h%data_type      = UNSET
    e_h%edm_ready_real = .true.
 
@@ -1354,6 +1369,8 @@ subroutine elsi_dm_complex_sparse(e_h,h_in,s_in,d_out,energy_out)
    case default
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
+
+   call elsi_add_timing(e_h,0.0_r8)
 
    e_h%data_type       = UNSET
    e_h%edm_ready_cmplx = .true.

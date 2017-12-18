@@ -36,6 +36,7 @@ module ELSI_DATATYPE
    use F_PPEXSI_INTERFACE, only: f_ppexsi_options
    use MATRIXSWITCH,       only: matrix
    use SPARSEMATRIX_BASE,  only: matrices,sparse_matrix
+   use ELSI_CONSTANTS,     only: TIMER_STRING_LEN
 
    implicit none
 
@@ -308,8 +309,14 @@ module ELSI_DATATYPE
       real(kind=r8)    :: dmp_tol        ! Tolerance for purification
       real(kind=r8)    :: ne_dmp         ! Number of electrons computed by DMP
 
-      ! Timer
-      integer(kind=i4) :: clock_rate
+      ! Timer and timings
+      integer(kind=i4)              :: clock_rate
+      real(kind=r8),    allocatable :: solver_timings_times(:)
+      integer(kind=i4), allocatable :: solver_timings_solvers(:)
+      character(len=TIMER_STRING_LEN), &
+                         allocatable :: solver_timings_tags(:)
+      integer                        :: n_timings 
+      integer                        :: max_n_timings
 
    end type
 

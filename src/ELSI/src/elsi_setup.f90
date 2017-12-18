@@ -42,6 +42,8 @@ module ELSI_SETUP
    use ELSI_PEXSI,         only: elsi_set_pexsi_default
    use ELSI_PRECISION,     only: r8,i4
    use ELSI_SIPS,          only: elsi_set_sips_default
+   use ELSI_TIMINGS,       only: elsi_init_timings,elsi_print_timings,&
+                                 elsi_finalize_timings
    use ELSI_UTILS
    use FOE_BASE,           only: foe_data_deallocate
    use F_PPEXSI_INTERFACE, only: f_ppexsi_plan_finalize
@@ -130,7 +132,9 @@ subroutine elsi_init(e_h,solver,parallel_mode,matrix_format,n_basis,n_electron,&
       call elsi_set_dmp_default(e_h)
    end select
 
+   ! Initialize timer information
    call elsi_init_timer(e_h)
+   call elsi_init_timings(e_h)
 
 end subroutine
 
@@ -336,6 +340,7 @@ subroutine elsi_finalize(e_h)
    character*40, parameter :: caller = "elsi_finalize"
 
    call elsi_check_handle(e_h,caller)
+   call elsi_print_timings(e_h)
    call elsi_final_print(e_h)
    call elsi_cleanup(e_h)
 
@@ -675,6 +680,9 @@ subroutine elsi_cleanup(e_h)
    if(e_h%sips_started) then
       call clean_qetsc()
    endif
+
+   ! Finalize timings
+   call elsi_finalize_timings(e_h) 
 
    ! Reset e_h
    call elsi_reset_handle(e_h)
