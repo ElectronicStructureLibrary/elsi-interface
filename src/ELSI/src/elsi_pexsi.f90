@@ -485,10 +485,10 @@ subroutine elsi_solve_evp_pexsi(e_h)
 
             select case(e_h%data_type)
             case(REAL_VALUES)
-               call MPI_Bcast(tmp_real,e_h%nnz_l_sp,mpi_real8,i,&
+               call MPI_Bcast(tmp_real,e_h%nnz_l_sp,mpi_real8,i-1,&
                        e_h%comm_among_point,mpierr)
             case(COMPLEX_VALUES)
-               call MPI_Bcast(tmp_cmplx,e_h%nnz_l_sp,mpi_complex16,i,&
+               call MPI_Bcast(tmp_cmplx,e_h%nnz_l_sp,mpi_complex16,i-1,&
                        e_h%comm_among_point,mpierr)
             end select
 
@@ -523,12 +523,7 @@ subroutine elsi_solve_evp_pexsi(e_h)
          call MPI_Allreduce(send_buf,tmp_real,e_h%nnz_l_sp,mpi_real8,mpi_sum,&
                  e_h%comm_among_point,mpierr)
 
-         if(e_h%my_prow_pexsi == 0) then
-            e_h%dm_real_ccs = tmp_real
-         endif
-
          call elsi_deallocate(e_h,send_buf,"send_buf")
-         call elsi_deallocate(e_h,tmp_real,"tmp_real")
       case(COMPLEX_VALUES)
          call elsi_allocate(e_h,send_buf_cmplx,e_h%nnz_l_sp,"send_buf_cmplx",&
                  caller)
@@ -542,14 +537,24 @@ subroutine elsi_solve_evp_pexsi(e_h)
          call MPI_Allreduce(send_buf_cmplx,tmp_cmplx,e_h%nnz_l_sp,&
                  mpi_complex16,mpi_sum,e_h%comm_among_point,mpierr)
 
-         if(e_h%my_prow_pexsi == 0) then
-            e_h%dm_cmplx_ccs = tmp_cmplx
-         endif
-
          call elsi_deallocate(e_h,send_buf_cmplx,"send_buf_cmplx")
-         call elsi_deallocate(e_h,tmp_cmplx,"tmp_cmplx")
       end select
    endif
+
+   select case(e_h%data_type)
+   case(REAL_VALUES)
+      if(e_h%my_prow_pexsi == 0) then
+         e_h%dm_real_ccs = tmp_real
+      endif
+
+      call elsi_deallocate(e_h,tmp_real,"tmp_real")
+   case(COMPLEX_VALUES)
+      if(e_h%my_prow_pexsi == 0) then
+         e_h%dm_cmplx_ccs = tmp_cmplx
+      endif
+
+      call elsi_deallocate(e_h,tmp_cmplx,"tmp_cmplx")
+   end select
 
    call elsi_deallocate(e_h,shifts,"shifts")
 
@@ -711,10 +716,10 @@ subroutine elsi_compute_edm_pexsi(e_h)
 
             select case(e_h%data_type)
             case(REAL_VALUES)
-               call MPI_Bcast(tmp_real,e_h%nnz_l_sp,mpi_real8,i,&
+               call MPI_Bcast(tmp_real,e_h%nnz_l_sp,mpi_real8,i-1,&
                        e_h%comm_among_point,mpierr)
             case(COMPLEX_VALUES)
-               call MPI_Bcast(tmp_cmplx,e_h%nnz_l_sp,mpi_complex16,i,&
+               call MPI_Bcast(tmp_cmplx,e_h%nnz_l_sp,mpi_complex16,i-1,&
                        e_h%comm_among_point,mpierr)
             end select
 
@@ -744,12 +749,7 @@ subroutine elsi_compute_edm_pexsi(e_h)
          call MPI_Allreduce(send_buf,tmp_real,e_h%nnz_l_sp,mpi_real8,mpi_sum,&
                  e_h%comm_among_point,mpierr)
 
-         if(e_h%my_prow_pexsi == 0) then
-            e_h%dm_real_ccs = tmp_real
-         endif
-
          call elsi_deallocate(e_h,send_buf,"send_buf")
-         call elsi_deallocate(e_h,tmp_real,"tmp_real")
       case(COMPLEX_VALUES)
          call elsi_allocate(e_h,send_buf_cmplx,e_h%nnz_l_sp,"send_buf_cmplx",&
                  caller)
@@ -763,14 +763,24 @@ subroutine elsi_compute_edm_pexsi(e_h)
          call MPI_Allreduce(send_buf_cmplx,tmp_cmplx,e_h%nnz_l_sp,&
                  mpi_complex16,mpi_sum,e_h%comm_among_point,mpierr)
 
-         if(e_h%my_prow_pexsi == 0) then
-            e_h%dm_cmplx_ccs = tmp_cmplx
-         endif
-
          call elsi_deallocate(e_h,send_buf_cmplx,"send_buf_cmplx")
-         call elsi_deallocate(e_h,tmp_cmplx,"tmp_cmplx")
       end select
    endif
+
+   select case(e_h%data_type)
+   case(REAL_VALUES)
+      if(e_h%my_prow_pexsi == 0) then
+         e_h%dm_real_ccs = tmp_real
+      endif
+
+      call elsi_deallocate(e_h,tmp_real,"tmp_real")
+   case(COMPLEX_VALUES)
+      if(e_h%my_prow_pexsi == 0) then
+         e_h%dm_cmplx_ccs = tmp_cmplx
+      endif
+
+      call elsi_deallocate(e_h,tmp_cmplx,"tmp_cmplx")
+   end select
 
    call elsi_deallocate(e_h,shifts,"shifts")
 
