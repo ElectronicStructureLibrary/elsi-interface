@@ -35,6 +35,10 @@
 !   The latter makes sense for the decision layer, and the former for solver
 !   development.  Both are useful.  Should do both.
 ! - Eliminate hard-coded format string in elsi_print_timings
+! - Add ELSI interface subroutines for solver timings, i.e. elsi_print_solver_timings
+!   as a wrapper around elsi_print_timings(e_h,e_h%solver_timings).  The calling code
+!   should not have access to any ELSI timing handle, it should always go through an
+!   interface subroutine defined on the ELSI handle.
 
 !>
 !! This module contains a collection of utilities related to timings in ELSI.
@@ -55,6 +59,9 @@ module ELSI_TIMINGS
    ! Global timing subroutines (i.e. those not attached to any timing handle)
    public :: elsi_init_timer
    public :: elsi_get_time
+   ! ELSI Interface subroutines (for modifying a timing handle via the ELSI
+   ! interface, but without exposing the timing API to the calling code)
+   public :: elsi_set_solver_timing_tag
    ! Timing handle subroutines
    public :: elsi_init_timings
    public :: elsi_add_timing
@@ -105,6 +112,24 @@ subroutine elsi_get_time(e_h,wtime)
 
 end subroutine
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! ELSI INTERFACE SUBROUTINES !
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!>
+!! This routine sets the next user_tag for the solver timings
+!!
+subroutine elsi_set_solver_timing_tag(e_h,user_tag)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h   !< Handle
+   character(len=*),  intent(in)    :: user_tag
+
+   e_h%solver_timings%next_user_tag = user_tag
+
+end subroutine
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! TIMING HANDLE SUBROUTINES !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -120,8 +145,9 @@ subroutine elsi_init_timings(t_h)
 
    character*40, parameter :: caller = "elsi_init_timings"
 
-   t_h%size_timings = STARTING_SIZE_TIMINGS
-   t_h%n_timings    = 0
+   t_h%size_timings  = STARTING_SIZE_TIMINGS
+   t_h%n_timings     = 0
+   t_h%next_user_tag = "UNSET"
    allocate( t_h%times(t_h%size_timings) )
    allocate( t_h%elsi_tags(t_h%size_timings) )
    allocate( t_h%user_tags(t_h%size_timings) )
@@ -160,11 +186,11 @@ subroutine elsi_add_timing(t_h,time,elsi_tag,user_tag_in,iter_in)
    ! Temporary check to make sure we don't have more timings than
    ! the array size.  Arrays should be resized on-the-fly instead. 
    if(iter.le.t_h%size_timings) then
-      ! By default, use UNSET for the user tag
       if(present(user_tag_in)) then
          user_tag = user_tag_in
       else
-         user_tag = "UNSET"
+         user_tag           = t_h%next_user_tag
+         t_h%next_user_tag  = "UNSET"
       endif
   
       t_h%times(iter)     = time
@@ -197,9 +223,11 @@ subroutine elsi_print_timings(e_h,t_h)
    call elsi_say(e_h,"  |------------------------------------------")
 
    do iter = 1, t_h%n_timings
-      write(info_str,"(I7,1X,F13.3,1X,A,1X,A)") &
+      write(info_str,"(2X,A,I4,1X,F13.3,A,1X,A,1X,A)") &
+           "|", &
            iter, &
            t_h%times(iter), &
+           " s ", &
            t_h%elsi_tags(iter), &
            t_h%user_tags(iter)
       call elsi_say(e_h,info_str)
@@ -229,7 +257,8 @@ subroutine elsi_finalize_timings(t_h)
       deallocate(t_h%user_tags)
    endif
    t_h%n_timings     = 0
-   t_h%size_timings = UNSET
+   t_h%size_timings  = UNSET
+   t_h%next_user_tag = "UNSET"
 
 end subroutine
 

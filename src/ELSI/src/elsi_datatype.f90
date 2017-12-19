@@ -46,11 +46,13 @@ module ELSI_DATATYPE
 
    type, public :: elsi_timings_handle
 
-      real(kind=r8),                     allocatable :: times(:)     ! System times
-      character(len=TIMING_STRING_LEN),  allocatable :: elsi_tags(:) ! Tags assigned by ELSI
-      character(len=TIMING_STRING_LEN),  allocatable :: user_tags(:) ! Tags provided by user
-      integer                                        :: size_timings ! Dimension for arrays
-      integer                                        :: n_timings    ! Number of timings so far
+      integer                                        :: size_timings  ! Dimension for arrays
+      integer                                        :: n_timings     ! Number of timings so far
+      character(len=TIMING_STRING_LEN)               :: next_user_tag
+
+      real(kind=r8),                     allocatable :: times(:)      ! System times
+      character(len=TIMING_STRING_LEN),  allocatable :: elsi_tags(:)  ! Tags assigned by ELSI
+      character(len=TIMING_STRING_LEN),  allocatable :: user_tags(:)  ! Tags provided by user
 
    end type
 

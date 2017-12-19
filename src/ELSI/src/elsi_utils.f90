@@ -47,6 +47,7 @@ module ELSI_UTILS
    public :: elsi_get_local_nnz
    public :: elsi_trace_mat
    public :: elsi_trace_mat_mat
+   public :: elsi_get_solver_tag
 
    interface elsi_get_local_nnz
       module procedure elsi_get_local_nnz_real,&
@@ -647,6 +648,47 @@ subroutine elsi_trace_mat_mat_complex(e_h,mat1,mat2,trace)
    l_trace = zdotu(e_h%n_lrow*e_h%n_lcol,mat1,1,mat2,1)
 
    call MPI_Allreduce(l_trace,trace,1,mpi_complex16,mpi_sum,e_h%mpi_comm,mpierr)
+
+end subroutine
+
+!>
+!! This routine generates a string identifying the current solver.
+!!
+subroutine elsi_get_solver_tag(e_h,solver_tag)
+
+   implicit none
+
+   type(elsi_handle),                intent(in)  :: e_h         !< Handle
+   character(len=TIMING_STRING_LEN), intent(out) :: solver_tag
+
+   character*40, parameter :: caller = "elsi_get_solver_tag"
+
+   select case(e_h%solver)
+   case(ELPA_SOLVER)
+      if(e_h%parallel_mode == SINGLE_PROC) then
+         solver_tag = "LAPACK"
+      else ! MULTI_PROC
+         if(e_h%elpa_solver.eq.1) then 
+            solver_tag = "ELPA_1Stage"
+         elseif(e_h%elpa_solver.eq.2) then 
+            solver_tag = "ELPA_2Stage"
+         else
+            call elsi_stop(" Unsupported ELPA flavor.",e_h,caller)
+         end if
+      endif
+   case(OMM_SOLVER)
+      solver_tag = "libOMM"
+   case(PEXSI_SOLVER)
+      solver_tag = "PEXSI"
+   case(CHESS_SOLVER)
+      solver_tag = "CheSS"
+   case(SIPS_SOLVER)
+      solver_tag = "SIPS"
+   case(DMP_SOLVER)
+      solver_tag = "DMP"
+   case default
+      call elsi_stop(" Unsupported solver.",e_h,caller)
+   end select
 
 end subroutine
 

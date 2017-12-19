@@ -35,7 +35,7 @@ module ELSI_SOLVER
    use ELSI_CHESS,     only: elsi_init_chess,elsi_solve_evp_chess
    use ELSI_CONSTANTS, only: ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,CHESS_SOLVER,&
                              SIPS_SOLVER,REAL_VALUES,COMPLEX_VALUES,MULTI_PROC,&
-                             SINGLE_PROC,UNSET
+                             SINGLE_PROC,UNSET,TIMING_STRING_LEN
    use ELSI_DATATYPE
    use ELSI_DMP,       only: elsi_solve_evp_dmp
    use ELSI_ELPA,      only: elsi_compute_occ_elpa,elsi_compute_dm_elpa,&
@@ -50,7 +50,7 @@ module ELSI_SOLVER
    use ELSI_SETUP,     only: elsi_set_blacs
    use ELSI_SIPS,      only: elsi_init_sips,elsi_solve_evp_sips,&
                              elsi_sips_to_blacs_ev
-   use ELSI_TIMINGS,   only: elsi_add_timing
+   use ELSI_TIMINGS,   only: elsi_get_time, elsi_add_timing
    use ELSI_UTILS
    use MATRIXSWITCH,   only: m_allocate
 
@@ -136,7 +136,13 @@ subroutine elsi_ev_real(e_h,h_in,s_in,eval_out,evec_out)
    real(kind=r8),     intent(inout) :: eval_out(e_h%n_basis)           !< Eigenvalues
    real(kind=r8),     intent(inout) :: evec_out(e_h%n_lrow,e_h%n_lcol) !< Eigenvectors
 
+   ! Timing-related variable
+   character(len=TIMING_STRING_LEN) :: solver_tag = "UNSET"
+   real(kind=r8)                    :: t0, t1
+
    character*40, parameter :: caller = "elsi_ev_real"
+
+   call elsi_get_time(e_h,t0)
 
    call elsi_check_handle(e_h,caller)
 
@@ -165,6 +171,8 @@ subroutine elsi_ev_real(e_h,h_in,s_in,eval_out,evec_out)
       else ! MULTI_PROC
          call elsi_solve_evp_elpa(e_h)
       endif
+
+      call elsi_get_solver_tag(e_h,solver_tag)
    case(OMM_SOLVER)
       call elsi_stop(" LIBOMM is not an eigensolver.",e_h,caller)
    case(PEXSI_SOLVER)
@@ -192,6 +200,7 @@ subroutine elsi_ev_real(e_h,h_in,s_in,eval_out,evec_out)
          ! Solve
          call elsi_solve_evp_elpa(e_h)
 
+         call elsi_get_solver_tag(e_h,solver_tag)
          ! Switch back to SIPs
          e_h%solver = SIPS_SOLVER
       else ! ELPA is done
@@ -223,6 +232,7 @@ subroutine elsi_ev_real(e_h,h_in,s_in,eval_out,evec_out)
          ! Solve
          call elsi_solve_evp_sips(e_h)
 
+         call elsi_get_solver_tag(e_h,solver_tag)
          ! Convert non-distributed dense to 2D dense
          call elsi_sips_to_blacs_ev(e_h)
       endif
@@ -232,7 +242,8 @@ subroutine elsi_ev_real(e_h,h_in,s_in,eval_out,evec_out)
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
-   call elsi_add_timing(e_h%solver_timings,0.0_r8,"BAKA")
+   call elsi_get_time(e_h,t1)
+   call elsi_add_timing(e_h%solver_timings,t1-t0,solver_tag)
 
    e_h%data_type = UNSET
 
@@ -253,7 +264,13 @@ subroutine elsi_ev_complex(e_h,h_in,s_in,eval_out,evec_out)
    real(kind=r8),     intent(inout) :: eval_out(e_h%n_basis)           !< Eigenvalues
    complex(kind=r8),  intent(inout) :: evec_out(e_h%n_lrow,e_h%n_lcol) !< Eigenvectors
 
+   ! Timing-related variable
+   character(len=TIMING_STRING_LEN) :: solver_tag = "UNSET"
+   real(kind=r8)                    :: t0, t1
+
    character*40, parameter :: caller = "elsi_ev_complex"
+
+   call elsi_get_time(e_h,t0)
 
    call elsi_check_handle(e_h,caller)
 
@@ -282,6 +299,8 @@ subroutine elsi_ev_complex(e_h,h_in,s_in,eval_out,evec_out)
       else ! MULTI_PROC
          call elsi_solve_evp_elpa(e_h)
       endif
+
+      call elsi_get_solver_tag(e_h,solver_tag)
    case(OMM_SOLVER)
       call elsi_stop(" LIBOMM is not an eigensolver.",e_h,caller)
    case(PEXSI_SOLVER)
@@ -296,7 +315,8 @@ subroutine elsi_ev_complex(e_h,h_in,s_in,eval_out,evec_out)
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
-   call elsi_add_timing(e_h%solver_timings,0.0_r8,"BAKA")
+   call elsi_get_time(e_h,t1)
+   call elsi_add_timing(e_h%solver_timings,t1-t0,solver_tag)
 
    e_h%data_type = UNSET
 
@@ -317,7 +337,13 @@ subroutine elsi_ev_real_sparse(e_h,h_in,s_in,eval_out,evec_out)
    real(kind=r8),     intent(inout) :: eval_out(e_h%n_basis)           !< Eigenvalues
    real(kind=r8),     intent(inout) :: evec_out(e_h%n_lrow,e_h%n_lcol) !< Eigenvectors
 
+   ! Timing-related variable
+   character(len=TIMING_STRING_LEN) :: solver_tag = "UNSET"
+   real(kind=r8)                    :: t0, t1
+
    character*40, parameter :: caller = "elsi_ev_real_sparse"
+
+   call elsi_get_time(e_h,t0)
 
    call elsi_check_handle(e_h,caller)
 
@@ -345,6 +371,8 @@ subroutine elsi_ev_real_sparse(e_h,h_in,s_in,eval_out,evec_out)
 
       ! Solve
       call elsi_solve_evp_elpa(e_h)
+
+      call elsi_get_solver_tag(e_h,solver_tag)
    case(OMM_SOLVER)
       call elsi_stop(" LIBOMM is not an eigensolver.",e_h,caller)
    case(PEXSI_SOLVER)
@@ -359,7 +387,8 @@ subroutine elsi_ev_real_sparse(e_h,h_in,s_in,eval_out,evec_out)
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
-   call elsi_add_timing(e_h%solver_timings,0.0_r8,"BAKA")
+   call elsi_get_time(e_h,t1)
+   call elsi_add_timing(e_h%solver_timings,t1-t0,solver_tag)
 
    e_h%data_type = UNSET
 
@@ -380,7 +409,13 @@ subroutine elsi_ev_complex_sparse(e_h,h_in,s_in,eval_out,evec_out)
    real(kind=r8),     intent(inout) :: eval_out(e_h%n_basis)           !< Eigenvalues
    complex(kind=r8),  intent(inout) :: evec_out(e_h%n_lrow,e_h%n_lcol) !< Eigenvectors
 
+   ! Timing-related variable
+   character(len=TIMING_STRING_LEN) :: solver_tag = "UNSET"
+   real(kind=r8)                    :: t0, t1
+
    character*40, parameter :: caller = "elsi_ev_real_sparse"
+
+   call elsi_get_time(e_h,t0)
 
    call elsi_check_handle(e_h,caller)
 
@@ -408,6 +443,8 @@ subroutine elsi_ev_complex_sparse(e_h,h_in,s_in,eval_out,evec_out)
 
       ! Solve
       call elsi_solve_evp_elpa(e_h)
+
+      call elsi_get_solver_tag(e_h,solver_tag)
    case(OMM_SOLVER)
       call elsi_stop(" LIBOMM is not an eigensolver.",e_h,caller)
    case(PEXSI_SOLVER)
@@ -422,7 +459,8 @@ subroutine elsi_ev_complex_sparse(e_h,h_in,s_in,eval_out,evec_out)
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
-   call elsi_add_timing(e_h%solver_timings,0.0_r8,"BAKA")
+   call elsi_get_time(e_h,t1)
+   call elsi_add_timing(e_h%solver_timings,t1-t0,solver_tag)
 
    e_h%data_type = UNSET
 
@@ -442,7 +480,13 @@ subroutine elsi_dm_real(e_h,h_in,s_in,d_out,energy_out)
    real(kind=r8),     intent(inout) :: d_out(e_h%n_lrow,e_h%n_lcol) !< Density matrix
    real(kind=r8),     intent(inout) :: energy_out                   !< Energy
 
+   ! Timing-related variable
+   character(len=TIMING_STRING_LEN) :: solver_tag = "UNSET"
+   real(kind=r8)                    :: t0, t1
+
    character*40, parameter :: caller = "elsi_dm_real"
+
+   call elsi_get_time(e_h,t0)
 
    call elsi_check_handle(e_h,caller)
 
@@ -485,6 +529,7 @@ subroutine elsi_dm_real(e_h,h_in,s_in,d_out,energy_out)
       ! Solve
       call elsi_solve_evp_elpa(e_h)
 
+      call elsi_get_solver_tag(e_h,solver_tag)
       ! Compute density matrix
       call elsi_compute_occ_elpa(e_h)
       call elsi_compute_dm_elpa(e_h)
@@ -527,6 +572,7 @@ subroutine elsi_dm_real(e_h,h_in,s_in,d_out,energy_out)
          ! Solve
          call elsi_solve_evp_elpa(e_h)
 
+         call elsi_get_solver_tag(e_h,solver_tag)
          ! Compute density matrix
          call elsi_compute_occ_elpa(e_h)
          call elsi_compute_dm_elpa(e_h)
@@ -596,6 +642,7 @@ subroutine elsi_dm_real(e_h,h_in,s_in,d_out,energy_out)
          ! Solve
          call elsi_solve_evp_omm(e_h)
 
+         call elsi_get_solver_tag(e_h,solver_tag)
          e_h%dm_omm%dval = e_h%spin_degen*e_h%dm_omm%dval
          call elsi_get_energy(e_h,energy_out)
       endif
@@ -627,6 +674,7 @@ subroutine elsi_dm_real(e_h,h_in,s_in,d_out,energy_out)
       ! Solve
       call elsi_solve_evp_pexsi(e_h)
 
+      call elsi_get_solver_tag(e_h,solver_tag)
       call elsi_pexsi_to_blacs_dm(e_h,d_out)
       call elsi_get_energy(e_h,energy_out)
 
@@ -651,6 +699,7 @@ subroutine elsi_dm_real(e_h,h_in,s_in,d_out,energy_out)
       ! Solve
       call elsi_solve_evp_chess(e_h)
 
+      call elsi_get_solver_tag(e_h,solver_tag)
       call elsi_chess_to_blacs_dm(e_h,d_out)
       call elsi_get_energy(e_h,energy_out)
 
@@ -676,13 +725,15 @@ subroutine elsi_dm_real(e_h,h_in,s_in,d_out,energy_out)
       ! Solve
       call elsi_solve_evp_dmp(e_h)
 
+      call elsi_get_solver_tag(e_h,solver_tag)
       e_h%dm_real = e_h%spin_degen*e_h%dm_real
       call elsi_get_energy(e_h,energy_out)
    case default
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
-   call elsi_add_timing(e_h%solver_timings,0.0_r8,"BAKA")
+   call elsi_get_time(e_h,t1)
+   call elsi_add_timing(e_h%solver_timings,t1-t0,solver_tag)
 
    e_h%data_type      = UNSET
    e_h%edm_ready_real = .true.
@@ -703,7 +754,13 @@ subroutine elsi_dm_complex(e_h,h_in,s_in,d_out,energy_out)
    complex(kind=r8),  intent(inout) :: d_out(e_h%n_lrow,e_h%n_lcol) !< Density matrix
    real(kind=r8),     intent(inout) :: energy_out                   !< Energy
 
+   ! Timing-related variable
+   character(len=TIMING_STRING_LEN) :: solver_tag = "UNSET"
+   real(kind=r8)                    :: t0, t1
+
    character*40, parameter :: caller = "elsi_dm_complex"
+
+   call elsi_get_time(e_h,t0)
 
    call elsi_check_handle(e_h,caller)
 
@@ -746,6 +803,7 @@ subroutine elsi_dm_complex(e_h,h_in,s_in,d_out,energy_out)
       ! Solve
       call elsi_solve_evp_elpa(e_h)
 
+      call elsi_get_solver_tag(e_h,solver_tag)
       ! Compute density matrix
       call elsi_compute_occ_elpa(e_h)
       call elsi_compute_dm_elpa(e_h)
@@ -788,6 +846,7 @@ subroutine elsi_dm_complex(e_h,h_in,s_in,d_out,energy_out)
          ! Solve
          call elsi_solve_evp_elpa(e_h)
 
+         call elsi_get_solver_tag(e_h,solver_tag)
          ! Compute density matrix
          call elsi_compute_occ_elpa(e_h)
          call elsi_compute_dm_elpa(e_h)
@@ -858,6 +917,7 @@ subroutine elsi_dm_complex(e_h,h_in,s_in,d_out,energy_out)
          ! Solve
          call elsi_solve_evp_omm(e_h)
 
+         call elsi_get_solver_tag(e_h,solver_tag)
          e_h%dm_omm%zval = e_h%spin_degen*e_h%dm_omm%zval
          call elsi_get_energy(e_h,energy_out)
       endif
@@ -889,6 +949,7 @@ subroutine elsi_dm_complex(e_h,h_in,s_in,d_out,energy_out)
       ! Solve
       call elsi_solve_evp_pexsi(e_h)
 
+      call elsi_get_solver_tag(e_h,solver_tag)
       call elsi_pexsi_to_blacs_dm(e_h,d_out)
       call elsi_get_energy(e_h,energy_out)
 
@@ -903,7 +964,8 @@ subroutine elsi_dm_complex(e_h,h_in,s_in,d_out,energy_out)
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
-   call elsi_add_timing(e_h%solver_timings,0.0_r8,"BAKA")
+   call elsi_get_time(e_h,t1)
+   call elsi_add_timing(e_h%solver_timings,t1-t0,solver_tag)
 
    e_h%data_type       = UNSET
    e_h%edm_ready_cmplx = .true.
@@ -924,7 +986,13 @@ subroutine elsi_dm_real_sparse(e_h,h_in,s_in,d_out,energy_out)
    real(kind=r8),     intent(inout) :: d_out(e_h%nnz_l_sp) !< Density matrix
    real(kind=r8),     intent(inout) :: energy_out          !< Energy
 
+   ! Timing-related variable
+   character(len=TIMING_STRING_LEN) :: solver_tag = "UNSET"
+   real(kind=r8)                    :: t0, t1
+
    character*40, parameter :: caller = "elsi_dm_real_sparse"
+
+   call elsi_get_time(e_h,t0)
 
    call elsi_check_handle(e_h,caller)
 
@@ -972,6 +1040,7 @@ subroutine elsi_dm_real_sparse(e_h,h_in,s_in,d_out,energy_out)
       ! Solve
       call elsi_solve_evp_elpa(e_h)
 
+      call elsi_get_solver_tag(e_h,solver_tag)
       ! Compute density matrix
       call elsi_compute_occ_elpa(e_h)
       call elsi_compute_dm_elpa(e_h)
@@ -1022,6 +1091,7 @@ subroutine elsi_dm_real_sparse(e_h,h_in,s_in,d_out,energy_out)
          ! Solve
          call elsi_solve_evp_elpa(e_h)
 
+         call elsi_get_solver_tag(e_h,solver_tag)
          ! Compute density matrix
          call elsi_compute_occ_elpa(e_h)
          call elsi_compute_dm_elpa(e_h)
@@ -1090,6 +1160,7 @@ subroutine elsi_dm_real_sparse(e_h,h_in,s_in,d_out,energy_out)
          ! Solve
          call elsi_solve_evp_omm(e_h)
 
+         call elsi_get_solver_tag(e_h,solver_tag)
          e_h%dm_omm%dval = e_h%spin_degen*e_h%dm_omm%dval
          call elsi_blacs_to_sips_dm(e_h,d_out)
          call elsi_get_energy(e_h,energy_out)
@@ -1106,6 +1177,7 @@ subroutine elsi_dm_real_sparse(e_h,h_in,s_in,d_out,energy_out)
       ! Solve
       call elsi_solve_evp_pexsi(e_h)
 
+      call elsi_get_solver_tag(e_h,solver_tag)
       call elsi_get_energy(e_h,energy_out)
 
       e_h%mu_ready = .true.
@@ -1146,6 +1218,7 @@ subroutine elsi_dm_real_sparse(e_h,h_in,s_in,d_out,energy_out)
       ! Solve
       call elsi_solve_evp_dmp(e_h)
 
+      call elsi_get_solver_tag(e_h,solver_tag)
       e_h%dm_real = e_h%spin_degen*e_h%dm_real
       call elsi_blacs_to_sips_dm(e_h,d_out)
       call elsi_get_energy(e_h,energy_out)
@@ -1153,7 +1226,8 @@ subroutine elsi_dm_real_sparse(e_h,h_in,s_in,d_out,energy_out)
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
-   call elsi_add_timing(e_h%solver_timings,0.0_r8,"BAKA")
+   call elsi_get_time(e_h,t1)
+   call elsi_add_timing(e_h%solver_timings,t1-t0,solver_tag)
 
    e_h%data_type      = UNSET
    e_h%edm_ready_real = .true.
@@ -1174,7 +1248,13 @@ subroutine elsi_dm_complex_sparse(e_h,h_in,s_in,d_out,energy_out)
    complex(kind=r8),  intent(inout) :: d_out(e_h%nnz_l_sp) !< Density matrix
    real(kind=r8),     intent(inout) :: energy_out          !< Energy
 
+   ! Timing-related variable
+   character(len=TIMING_STRING_LEN) :: solver_tag = "UNSET"
+   real(kind=r8)                    :: t0, t1
+
    character*40, parameter :: caller = "elsi_dm_complex_sparse"
+
+   call elsi_get_time(e_h,t0)
 
    call elsi_check_handle(e_h,caller)
 
@@ -1222,6 +1302,7 @@ subroutine elsi_dm_complex_sparse(e_h,h_in,s_in,d_out,energy_out)
       ! Solve
       call elsi_solve_evp_elpa(e_h)
 
+      call elsi_get_solver_tag(e_h,solver_tag)
       ! Compute density matrix
       call elsi_compute_occ_elpa(e_h)
       call elsi_compute_dm_elpa(e_h)
@@ -1272,6 +1353,7 @@ subroutine elsi_dm_complex_sparse(e_h,h_in,s_in,d_out,energy_out)
          ! Solve
          call elsi_solve_evp_elpa(e_h)
 
+         call elsi_get_solver_tag(e_h,solver_tag)
          ! Compute density matrix
          call elsi_compute_occ_elpa(e_h)
          call elsi_compute_dm_elpa(e_h)
@@ -1341,6 +1423,7 @@ subroutine elsi_dm_complex_sparse(e_h,h_in,s_in,d_out,energy_out)
          ! Solve
          call elsi_solve_evp_omm(e_h)
 
+         call elsi_get_solver_tag(e_h,solver_tag)
          e_h%dm_omm%zval = e_h%spin_degen*e_h%dm_omm%zval
          call elsi_blacs_to_sips_dm(e_h,d_out)
          call elsi_get_energy(e_h,energy_out)
@@ -1357,6 +1440,7 @@ subroutine elsi_dm_complex_sparse(e_h,h_in,s_in,d_out,energy_out)
       ! Solve
       call elsi_solve_evp_pexsi(e_h)
 
+      call elsi_get_solver_tag(e_h,solver_tag)
       call elsi_get_energy(e_h,energy_out)
 
       e_h%mu_ready = .true.
@@ -1370,7 +1454,8 @@ subroutine elsi_dm_complex_sparse(e_h,h_in,s_in,d_out,energy_out)
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
-   call elsi_add_timing(e_h%solver_timings,0.0_r8,"BAKA")
+   call elsi_get_time(e_h,t1)
+   call elsi_add_timing(e_h%solver_timings,t1-t0,solver_tag)
 
    e_h%data_type       = UNSET
    e_h%edm_ready_cmplx = .true.
