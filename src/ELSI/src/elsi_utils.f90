@@ -663,32 +663,65 @@ subroutine elsi_get_solver_tag(e_h,solver_tag)
 
    character*40, parameter :: caller = "elsi_get_solver_tag"
 
-   select case(e_h%solver)
-   case(ELPA_SOLVER)
-      if(e_h%parallel_mode == SINGLE_PROC) then
-         solver_tag = "LAPACK"
-      else ! MULTI_PROC
-         if(e_h%elpa_solver.eq.1) then 
-            solver_tag = "ELPA_1Stage"
-         elseif(e_h%elpa_solver.eq.2) then 
-            solver_tag = "ELPA_2Stage"
-         else
-            call elsi_stop(" Unsupported ELPA flavor.",e_h,caller)
-         end if
-      endif
-   case(OMM_SOLVER)
-      solver_tag = "libOMM"
-   case(PEXSI_SOLVER)
-      solver_tag = "PEXSI"
-   case(CHESS_SOLVER)
-      solver_tag = "CheSS"
-   case(SIPS_SOLVER)
-      solver_tag = "SIPS"
-   case(DMP_SOLVER)
-      solver_tag = "DMP"
-   case default
-      call elsi_stop(" Unsupported solver.",e_h,caller)
-   end select
+   ! It is necessary to specify whether the solver is real or complex here,
+   ! because a given ELSI instance may freely switch between data types
+   if (e_h%data_type.eq.REAL_VALUES) then
+      select case(e_h%solver)
+      case(ELPA_SOLVER)
+         if(e_h%parallel_mode == SINGLE_PROC) then
+            solver_tag = "LAPACK_REAL"
+         else ! MULTI_PROC
+            if(e_h%elpa_solver.eq.1) then 
+               solver_tag = "ELPA_1STAGE_REAL"
+            elseif(e_h%elpa_solver.eq.2) then 
+               solver_tag = "ELPA_2STAGE_REAL"
+            else
+               call elsi_stop(" Unsupported ELPA flavor.",e_h,caller)
+            end if
+         endif
+      case(OMM_SOLVER)
+         solver_tag = "LIBOMM_REAL"
+      case(PEXSI_SOLVER)
+         solver_tag = "PEXSI_REAL"
+      case(CHESS_SOLVER)
+         solver_tag = "CHESS_REAL"
+      case(SIPS_SOLVER)
+         solver_tag = "SIPS_REAL"
+      case(DMP_SOLVER)
+         solver_tag = "DMP_REAL"
+      case default
+         call elsi_stop(" Unsupported solver.",e_h,caller)
+      end select
+   elseif (e_h%data_type.eq.COMPLEX_VALUES) then
+      select case(e_h%solver)
+      case(ELPA_SOLVER)
+         if(e_h%parallel_mode == SINGLE_PROC) then
+            solver_tag = "LAPACK_CMPLX"
+         else ! MULTI_PROC
+            if(e_h%elpa_solver.eq.1) then 
+               solver_tag = "ELPA_1STAGE_CMPLX"
+            elseif(e_h%elpa_solver.eq.2) then 
+               solver_tag = "ELPA_2STAGE_CMPLX"
+            else
+               call elsi_stop(" Unsupported ELPA flavor.",e_h,caller)
+            end if
+         endif
+      case(OMM_SOLVER)
+         solver_tag = "LIBOMM_CMPLX"
+      case(PEXSI_SOLVER)
+         solver_tag = "PEXSI_CMPLX"
+      case(CHESS_SOLVER)
+         solver_tag = "CHESS_CMPLX"
+      case(SIPS_SOLVER)
+         solver_tag = "SIPS_CMPLX"
+      case(DMP_SOLVER)
+         solver_tag = "DMP_CMPLX"
+      case default
+         call elsi_stop(" Unsupported solver.",e_h,caller)
+      end select
+   else
+      call elsi_stop(" Unsupported data type.",e_h,caller)
+   end if
 
 end subroutine
 

@@ -137,17 +137,24 @@ end subroutine
 !>
 !! This routine initializes a timing handle.
 !!
-subroutine elsi_init_timings(t_h)
+subroutine elsi_init_timings(t_h,set_label)
 
    implicit none
 
-   type(elsi_timings_handle), intent(inout) :: t_h !< Handle
+   type(elsi_timings_handle),  intent(inout) :: t_h       !< Handle
+   character(len=*), optional, intent(in)    :: set_label 
 
    character*40, parameter :: caller = "elsi_init_timings"
 
    t_h%size_timings  = STARTING_SIZE_TIMINGS
    t_h%n_timings     = 0
    t_h%next_user_tag = "UNSET"
+   if(present(set_label)) then
+      t_h%set_label = set_label
+   else
+      t_h%set_label = "UNSET"
+   endif
+
    allocate( t_h%times(t_h%size_timings) )
    allocate( t_h%elsi_tags(t_h%size_timings) )
    allocate( t_h%user_tags(t_h%size_timings) )
@@ -218,9 +225,14 @@ subroutine elsi_print_timings(e_h,t_h)
 
    character*40, parameter :: caller = "elsi_print_timings"
 
-   call elsi_say(e_h,"  |------------------------------------------")
-   call elsi_say(e_h,"  | ELSI Timings                             ")
-   call elsi_say(e_h,"  |------------------------------------------")
+   call elsi_say(e_h,"  |-------------------------------------------")
+   call elsi_say(e_h,"  | ELSI Timings                              ")
+   call elsi_say(e_h,"  |-------------------------------------------")
+   write(info_str,"(2X,A,A)")  "| Timing Set:        ", t_h%set_label
+   call elsi_say(e_h,info_str)
+   write(info_str,"(2X,A,I4)") "| Number of timings: ", t_h%n_timings
+   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,"  |")
 
    do iter = 1, t_h%n_timings
       write(info_str,"(2X,A,I4,1X,F13.3,A,1X,A,1X,A)") &
@@ -259,6 +271,7 @@ subroutine elsi_finalize_timings(t_h)
    t_h%n_timings     = 0
    t_h%size_timings  = UNSET
    t_h%next_user_tag = "UNSET"
+   t_h%set_label     = "UNSET"
 
 end subroutine
 
