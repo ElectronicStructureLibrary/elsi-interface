@@ -43,7 +43,6 @@ module ELSI_SOLVER
    use ELSI_LAPACK,    only: elsi_solve_evp_lapack
    use ELSI_MALLOC
    use ELSI_MATCONV
-   use ELSI_MATRICES
    use ELSI_OMM,       only: elsi_solve_evp_omm
    use ELSI_PEXSI,     only: elsi_init_pexsi,elsi_solve_evp_pexsi
    use ELSI_PRECISION, only: r8,i4

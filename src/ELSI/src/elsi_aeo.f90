@@ -440,11 +440,12 @@ subroutine elsi_normalize_dm_elpa(e_h)
 
    select case(e_h%data_type)
    case(COMPLEX_VALUES)
-      call elsi_trace_mat_mat(e_h,e_h%dm_cmplx,e_h%ovlp_cmplx_copy,tmp_cmplx)
+      call elsi_trace_mat_mat_cmplx(e_h,e_h%dm_cmplx,e_h%ovlp_cmplx_copy,&
+              tmp_cmplx)
 
       g_ne = real(tmp_cmplx,kind=r8)
    case(REAL_VALUES)
-      call elsi_trace_mat_mat(e_h,e_h%dm_real,e_h%ovlp_real_copy,g_ne)
+      call elsi_trace_mat_mat_real(e_h,e_h%dm_real,e_h%ovlp_real_copy,g_ne)
    end select
 
    if(e_h%n_spins*e_h%n_kpts > 1) then
@@ -1018,7 +1019,7 @@ subroutine elsi_solve_evp_elpa(e_h)
    if(e_h%n_elsi_calls == 1 .and. e_h%matrix_format == BLACS_DENSE) then
       select case(e_h%data_type)
       case(COMPLEX_VALUES)
-         call elsi_get_local_nnz_complex(e_h,e_h%ham_cmplx,e_h%n_lrow,&
+         call elsi_get_local_nnz_cmplx(e_h,e_h%ham_cmplx,e_h%n_lrow,&
                  e_h%n_lcol,e_h%nnz_l)
 
          call MPI_Allreduce(e_h%nnz_l,e_h%nnz_g,1,mpi_integer4,mpi_sum,&

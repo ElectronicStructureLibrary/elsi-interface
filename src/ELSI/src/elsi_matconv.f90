@@ -41,46 +41,18 @@ module ELSI_MATCONV
 
    private
 
-   public :: elsi_blacs_to_pexsi_hs
-   public :: elsi_pexsi_to_blacs_dm
-   public :: elsi_blacs_to_sips_hs
-   public :: elsi_sips_to_blacs_hs
-   public :: elsi_blacs_to_sips_dm
-   public :: elsi_blacs_to_chess_hs
-   public :: elsi_chess_to_blacs_dm
-
-   interface elsi_blacs_to_chess_hs
-      module procedure elsi_blacs_to_chess_hs_real
-   end interface
-
-   interface elsi_blacs_to_sips_dm
-      module procedure elsi_blacs_to_sips_dm_real,&
-                       elsi_blacs_to_sips_dm_complex
-   end interface
-
-   interface elsi_blacs_to_pexsi_hs
-      module procedure elsi_blacs_to_pexsi_hs_real,&
-                       elsi_blacs_to_pexsi_hs_complex
-   end interface
-
-   interface elsi_blacs_to_sips_hs
-      module procedure elsi_blacs_to_sips_hs_real,&
-                       elsi_blacs_to_sips_hs_complex
-   end interface
-
-   interface elsi_chess_to_blacs_dm
-      module procedure elsi_chess_to_blacs_dm_real
-   end interface
-
-   interface elsi_pexsi_to_blacs_dm
-      module procedure elsi_pexsi_to_blacs_dm_real,&
-                       elsi_pexsi_to_blacs_dm_complex
-   end interface
-
-   interface elsi_sips_to_blacs_hs
-      module procedure elsi_sips_to_blacs_hs_real,&
-                       elsi_sips_to_blacs_hs_complex
-   end interface
+   public :: elsi_blacs_to_chess_hs_real
+   public :: elsi_blacs_to_pexsi_hs_real
+   public :: elsi_blacs_to_pexsi_hs_cmplx
+   public :: elsi_blacs_to_sips_dm_real
+   public :: elsi_blacs_to_sips_dm_cmplx
+   public :: elsi_blacs_to_sips_hs_real
+   public :: elsi_blacs_to_sips_hs_cmplx
+   public :: elsi_chess_to_blacs_dm_real
+   public :: elsi_pexsi_to_blacs_dm_real
+   public :: elsi_pexsi_to_blacs_dm_cmplx
+   public :: elsi_sips_to_blacs_hs_real
+   public :: elsi_sips_to_blacs_hs_cmplx
 
 contains
 
@@ -149,7 +121,7 @@ subroutine elsi_blacs_to_pexsi_hs_real(e_h,h_in,s_in)
    endif
 
    if(e_h%n_elsi_calls == 1) then
-      call elsi_get_local_nnz(e_h,ref,e_h%n_lrow,e_h%n_lcol,e_h%nnz_l)
+      call elsi_get_local_nnz_real(e_h,ref,e_h%n_lrow,e_h%n_lcol,e_h%nnz_l)
 
       if(.not. e_h%ovlp_is_unit) then
          call elsi_allocate(e_h,s_val_send_buf,e_h%nnz_l,"s_val_send_buf",&
@@ -448,7 +420,7 @@ end subroutine
 !! cyclic dense format to 1D block sparse CCS format, which can be used as input
 !! by PEXSI.
 !!
-subroutine elsi_blacs_to_pexsi_hs_complex(e_h,h_in,s_in)
+subroutine elsi_blacs_to_pexsi_hs_cmplx(e_h,h_in,s_in)
 
    implicit none
 
@@ -495,7 +467,7 @@ subroutine elsi_blacs_to_pexsi_hs_complex(e_h,h_in,s_in)
    integer(kind=i4), allocatable :: locat(:) ! Location of each global column
    integer(kind=i8), allocatable :: global_id(:) ! Global 1D id
 
-   character*40, parameter :: caller = "elsi_blacs_to_pexsi_hs_complex"
+   character*40, parameter :: caller = "elsi_blacs_to_pexsi_hs_cmplx"
 
    call elsi_get_time(e_h,t0)
 
@@ -508,7 +480,7 @@ subroutine elsi_blacs_to_pexsi_hs_complex(e_h,h_in,s_in)
    endif
 
    if(e_h%n_elsi_calls == 1) then
-      call elsi_get_local_nnz(e_h,ref,e_h%n_lrow,e_h%n_lcol,e_h%nnz_l)
+      call elsi_get_local_nnz_cmplx(e_h,ref,e_h%n_lrow,e_h%n_lcol,e_h%nnz_l)
 
       if(.not. e_h%ovlp_is_unit) then
          call elsi_allocate(e_h,s_val_send_buf,e_h%nnz_l,"s_val_send_buf",&
@@ -957,7 +929,7 @@ end subroutine
 !! This routine converts density matrix computed by PEXSI, stored in 1D block
 !! sparse CCS format to 2D block-cyclic dense format.
 !!
-subroutine elsi_pexsi_to_blacs_dm_complex(e_h,d_out)
+subroutine elsi_pexsi_to_blacs_dm_cmplx(e_h,d_out)
 
    implicit none
 
@@ -990,7 +962,7 @@ subroutine elsi_pexsi_to_blacs_dm_complex(e_h,d_out)
    integer(kind=i4), allocatable :: recv_displ(:)
    integer(kind=i4), allocatable :: dest(:) ! Destination of each element
 
-   character*40, parameter :: caller = "elsi_pexsi_to_blacs_dm_complex"
+   character*40, parameter :: caller = "elsi_pexsi_to_blacs_dm_cmplx"
 
    call elsi_get_time(e_h,t0)
 
@@ -1158,7 +1130,7 @@ subroutine elsi_blacs_to_sips_hs_real(e_h,h_in,s_in)
    endif
 
    if(e_h%n_elsi_calls == 1+e_h%sips_n_elpa) then
-      call elsi_get_local_nnz(e_h,ref,e_h%n_lrow,e_h%n_lcol,e_h%nnz_l)
+      call elsi_get_local_nnz_real(e_h,ref,e_h%n_lrow,e_h%n_lcol,e_h%nnz_l)
 
       if(.not. e_h%ovlp_is_unit) then
          call elsi_allocate(e_h,s_val_send_buf,e_h%nnz_l,"s_val_send_buf",&
@@ -1332,7 +1304,7 @@ end subroutine
 !! cyclic dense format to 1D block sparse CCS format, which can be used as input
 !! by SIPs.
 !!
-subroutine elsi_blacs_to_sips_hs_complex(e_h,h_in,s_in)
+subroutine elsi_blacs_to_sips_hs_cmplx(e_h,h_in,s_in)
 
    implicit none
 
@@ -1367,7 +1339,7 @@ subroutine elsi_blacs_to_sips_hs_complex(e_h,h_in,s_in)
    integer(kind=i4), allocatable :: recv_displ(:)
    integer(kind=i8), allocatable :: global_id(:)
 
-   character*40, parameter :: caller = "elsi_blacs_to_sips_hs_complex"
+   character*40, parameter :: caller = "elsi_blacs_to_sips_hs_cmplx"
 
    call elsi_get_time(e_h,t0)
 
@@ -1382,7 +1354,7 @@ subroutine elsi_blacs_to_sips_hs_complex(e_h,h_in,s_in)
    endif
 
    if(e_h%n_elsi_calls == 1+e_h%sips_n_elpa) then
-      call elsi_get_local_nnz(e_h,ref,e_h%n_lrow,e_h%n_lcol,e_h%nnz_l)
+      call elsi_get_local_nnz_cmplx(e_h,ref,e_h%n_lrow,e_h%n_lcol,e_h%nnz_l)
 
       if(.not. e_h%ovlp_is_unit) then
          call elsi_allocate(e_h,s_val_send_buf,e_h%nnz_l,"s_val_send_buf",&
@@ -1763,7 +1735,7 @@ end subroutine
 !! sparse CCS format to 2D block-cyclic dense format, which can be used as input
 !! by ELPA.
 !!
-subroutine elsi_sips_to_blacs_hs_complex(e_h,h_in,s_in)
+subroutine elsi_sips_to_blacs_hs_cmplx(e_h,h_in,s_in)
 
    implicit none
 
@@ -1799,7 +1771,7 @@ subroutine elsi_sips_to_blacs_hs_complex(e_h,h_in,s_in)
    integer(kind=i4), allocatable :: recv_displ(:)
    integer(kind=i4), allocatable :: dest(:) ! Destination of each element
 
-   character*40, parameter :: caller = "elsi_sips_to_blacs_hs_complex"
+   character*40, parameter :: caller = "elsi_sips_to_blacs_hs_cmplx"
 
    call elsi_get_time(e_h,t0)
 
@@ -2016,7 +1988,7 @@ subroutine elsi_blacs_to_sips_dm_real(e_h,d_out)
       ref => e_h%dm_omm%dval
    endif
 
-   call elsi_get_local_nnz(e_h,ref,e_h%n_lrow,e_h%n_lcol,e_h%nnz_l)
+   call elsi_get_local_nnz_real(e_h,ref,e_h%n_lrow,e_h%n_lcol,e_h%nnz_l)
 
    call elsi_allocate(e_h,val_send_buf,e_h%nnz_l,"val_send_buf",caller)
    call elsi_allocate(e_h,row_send_buf,e_h%nnz_l,"row_send_buf",caller)
@@ -2135,7 +2107,7 @@ end subroutine
 !! This routine converts density matrix in 2D block-cyclic dense format to 1D
 !! block sparse CCS format.
 !!
-subroutine elsi_blacs_to_sips_dm_complex(e_h,d_out)
+subroutine elsi_blacs_to_sips_dm_cmplx(e_h,d_out)
 
    implicit none
 
@@ -2171,7 +2143,7 @@ subroutine elsi_blacs_to_sips_dm_complex(e_h,d_out)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
 
-   character*40, parameter :: caller = "elsi_blacs_to_sips_dm_complex"
+   character*40, parameter :: caller = "elsi_blacs_to_sips_dm_cmplx"
 
    call elsi_get_time(e_h,t0)
 
@@ -2181,7 +2153,7 @@ subroutine elsi_blacs_to_sips_dm_complex(e_h,d_out)
       ref => e_h%dm_omm%zval
    endif
 
-   call elsi_get_local_nnz(e_h,ref,e_h%n_lrow,e_h%n_lcol,e_h%nnz_l)
+   call elsi_get_local_nnz_cmplx(e_h,ref,e_h%n_lrow,e_h%n_lcol,e_h%nnz_l)
 
    call elsi_allocate(e_h,val_send_buf,e_h%nnz_l,"val_send_buf",caller)
    call elsi_allocate(e_h,row_send_buf,e_h%nnz_l,"row_send_buf",caller)

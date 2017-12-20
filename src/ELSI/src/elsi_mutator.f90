@@ -35,7 +35,6 @@ module ELSI_MUTATOR
    use ELSI_DATATYPE
    use ELSI_ELPA,      only: elsi_compute_edm_elpa
    use ELSI_MATCONV,   only: elsi_pexsi_to_blacs_dm,elsi_blacs_to_sips_dm
-   use ELSI_MATRICES,  only: elsi_set_dm,elsi_set_sparse_dm
    use ELSI_OMM,       only: elsi_compute_edm_omm
    use ELSI_PEXSI,     only: elsi_compute_edm_pexsi
    use ELSI_PRECISION, only: r8,i4

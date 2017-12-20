@@ -44,26 +44,14 @@ module ELSI_UTILS
    public :: elsi_check_handle
    public :: elsi_get_global_row
    public :: elsi_get_global_col
-   public :: elsi_get_local_nnz
-   public :: elsi_trace_mat
-   public :: elsi_trace_mat_mat
+   public :: elsi_get_local_nnz_real
+   public :: elsi_get_local_nnz_cmplx
+   public :: elsi_set_full_mat_real
+   public :: elsi_set_full_mat_cmplx
+   public :: elsi_trace_mat_real
+   public :: elsi_trace_mat_mat_cmplx
    public :: elsi_init_timer
    public :: elsi_get_time
-
-   interface elsi_get_local_nnz
-      module procedure elsi_get_local_nnz_real,&
-                       elsi_get_local_nnz_complex
-   end interface
-
-   interface elsi_trace_mat
-      module procedure elsi_trace_mat_real,&
-                       elsi_trace_mat_complex
-   end interface
-
-   interface elsi_trace_mat_mat
-      module procedure elsi_trace_mat_mat_real,&
-                       elsi_trace_mat_mat_complex
-   end interface
 
 contains
 
@@ -206,7 +194,7 @@ subroutine elsi_reset_handle(e_h)
    e_h%elpa_started     = .false.
    e_h%n_states_omm     = UNSET
    e_h%omm_n_elpa       = UNSET
-   e_h%new_overlap      = .true.
+   e_h%new_ovlp         = .true.
    e_h%coeff_ready      = .false.
    e_h%omm_flavor       = UNSET
    e_h%scale_kinetic    = 0.0_r8
@@ -513,7 +501,7 @@ end subroutine
 !>
 !! This routine counts the local number of non_zero elements.
 !!
-subroutine elsi_get_local_nnz_complex(e_h,mat,n_row,n_col,nnz)
+subroutine elsi_get_local_nnz_cmplx(e_h,mat,n_row,n_col,nnz)
 
    implicit none
 
@@ -526,7 +514,7 @@ subroutine elsi_get_local_nnz_complex(e_h,mat,n_row,n_col,nnz)
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
 
-   character*40, parameter :: caller = "elsi_get_local_nnz_complex"
+   character*40, parameter :: caller = "elsi_get_local_nnz_cmplx"
 
    nnz = 0
 
@@ -574,7 +562,7 @@ end subroutine
 !! This routine computes the trace of a matrix. The size of the matrix is
 !! restricted to be identical to Hamiltonian.
 !!
-subroutine elsi_trace_mat_complex(e_h,mat,trace)
+subroutine elsi_trace_mat_cmplx(e_h,mat,trace)
 
    implicit none
 
@@ -586,7 +574,7 @@ subroutine elsi_trace_mat_complex(e_h,mat,trace)
    integer(kind=i4) :: mpierr
    complex(kind=r8) :: l_trace ! Local result
 
-   character*40, parameter :: caller = "elsi_trace_mat_complex"
+   character*40, parameter :: caller = "elsi_trace_mat_cmplx"
 
    l_trace = 0.0_r8
 
@@ -630,7 +618,7 @@ end subroutine
 !! This routine computes the trace of the product of two matrices. The size of
 !! the two matrices is restricted to be identical to Hamiltonian.
 !!
-subroutine elsi_trace_mat_mat_complex(e_h,mat1,mat2,trace)
+subroutine elsi_trace_mat_mat_cmplx(e_h,mat1,mat2,trace)
 
    implicit none
 
@@ -644,11 +632,123 @@ subroutine elsi_trace_mat_mat_complex(e_h,mat1,mat2,trace)
 
    complex(kind=r8), external :: zdotu
 
-   character*40, parameter :: caller = "elsi_trace_mat_mat_complex"
+   character*40, parameter :: caller = "elsi_trace_mat_mat_cmplx"
 
    l_trace = zdotu(e_h%n_lrow*e_h%n_lcol,mat1,1,mat2,1)
 
    call MPI_Allreduce(l_trace,trace,1,mpi_complex16,mpi_sum,e_h%mpi_comm,mpierr)
+
+end subroutine
+
+!>
+!! This routine sets a full matrix from a (upper or lower) triangular matrix.
+!! The size of matrix should be the same as the Hamiltonian matrix.
+!!
+subroutine elsi_set_full_mat_real(e_h,mat)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h                        !< Handle
+   real(kind=r8),     intent(inout) :: mat(e_h%n_lrow,e_h%n_lcol) !< Matrix
+
+   integer(kind=i4) :: i_row
+   integer(kind=i4) :: i_col
+   real(kind=r8), allocatable :: tmp_real(:,:)
+
+   character*40, parameter :: caller = "elsi_set_full_mat_real"
+
+   if(e_h%uplo /= FULL_MAT .and. e_h%parallel_mode == MULTI_PROC) then
+      call elsi_allocate(e_h,tmp_real,e_h%n_lrow,e_h%n_lcol,"tmp_real",caller)
+
+      call pdtran(e_h%n_basis,e_h%n_basis,1.0_r8,mat,1,1,e_h%sc_desc,0.0_r8,&
+              tmp_real,1,1,e_h%sc_desc)
+
+      if(e_h%uplo == UT_MAT) then ! Upper triangular
+         do i_col = 1,e_h%n_basis-1
+            if(e_h%loc_col(i_col) == 0) cycle
+
+            do i_row = i_col+1,e_h%n_basis
+               if(e_h%loc_row(i_row) > 0) then
+                  mat(e_h%loc_row(i_row),e_h%loc_col(i_col)) = &
+                     tmp_real(e_h%loc_row(i_row),e_h%loc_col(i_col))
+               endif
+            enddo
+         enddo
+      elseif(e_h%uplo == LT_MAT) then ! Lower triangular
+         do i_col = 2,e_h%n_basis
+            if(e_h%loc_col(i_col) == 0) cycle
+
+            do i_row = 1,i_col-1
+               if(e_h%loc_row(i_row) > 0) then
+                  mat(e_h%loc_row(i_row),e_h%loc_col(i_col)) = &
+                     tmp_real(e_h%loc_row(i_row),e_h%loc_col(i_col))
+               endif
+            enddo
+         enddo
+      endif
+
+      call elsi_deallocate(e_h,tmp_real,"tmp_real")
+   endif
+
+end subroutine
+
+!>
+!! This routine sets a full matrix from a (upper or lower) triangular matrix.
+!! The size of matrix should be the same as the Hamiltonian matrix.
+!!
+subroutine elsi_set_full_mat_cmplx(e_h,mat)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h                        !< Handle
+   complex(kind=r8),  intent(inout) :: mat(e_h%n_lrow,e_h%n_lcol) !< Matrix
+
+   integer(kind=i4) :: i_row
+   integer(kind=i4) :: i_col
+   complex(kind=r8), allocatable :: tmp_cmplx(:,:)
+
+   character*40, parameter :: caller = "elsi_set_full_mat_cmplx"
+
+   if(e_h%uplo /= FULL_MAT .and. e_h%parallel_mode == MULTI_PROC) then
+      call elsi_allocate(e_h,tmp_cmplx,e_h%n_lrow,e_h%n_lcol,"tmp_cmplx",caller)
+
+      call pztranc(e_h%n_basis,e_h%n_basis,(1.0_r8,0.0_r8),mat,1,1,e_h%sc_desc,&
+              (0.0_r8,0.0_r8),tmp_cmplx,1,1,e_h%sc_desc)
+
+      if(e_h%uplo == UT_MAT) then ! Upper triangular
+         do i_col = 1,e_h%n_basis-1
+            if(e_h%loc_col(i_col) == 0) cycle
+
+            do i_row = i_col+1,e_h%n_basis
+               if(e_h%loc_row(i_row) > 0) then
+                  mat(e_h%loc_row(i_row),e_h%loc_col(i_col)) = &
+                     tmp_cmplx(e_h%loc_row(i_row),e_h%loc_col(i_col))
+               endif
+            enddo
+         enddo
+      elseif(e_h%uplo == LT_MAT) then ! Lower triangular
+         do i_col = 2,e_h%n_basis
+            if(e_h%loc_col(i_col) == 0) cycle
+
+            do i_row = 1,i_col-1
+               if(e_h%loc_row(i_row) > 0) then
+                  mat(e_h%loc_row(i_row),e_h%loc_col(i_col)) = &
+                     tmp_cmplx(e_h%loc_row(i_row),e_h%loc_col(i_col))
+               endif
+            enddo
+         enddo
+      endif
+
+      call elsi_deallocate(e_h,tmp_cmplx,"tmp_cmplx")
+
+      ! Make diagonal real
+      do i_col = 1,e_h%n_basis
+         if(e_h%loc_col(i_col) == 0 .or. e_h%loc_row(i_col) == 0) cycle
+
+         mat(e_h%loc_row(i_col),e_h%loc_col(i_col)) = &
+            real(mat(e_h%loc_row(i_col),e_h%loc_col(i_col)),kind=r8)
+      enddo
+   endif
 
 end subroutine
 

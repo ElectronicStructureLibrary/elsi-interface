@@ -37,7 +37,6 @@ module ELSI_SETUP
    use ELSI_DMP,           only: elsi_set_dmp_default
    use ELSI_ELPA,          only: elsi_set_elpa_default,elsi_get_elpa_comms
    use ELSI_MALLOC
-   use ELSI_MATRICES,      only: elsi_set_row_ind,elsi_set_col_ptr
    use ELSI_OMM,           only: elsi_set_omm_default
    use ELSI_PEXSI,         only: elsi_set_pexsi_default
    use ELSI_PRECISION,     only: r8,i4

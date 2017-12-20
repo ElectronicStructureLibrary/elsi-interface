@@ -236,7 +236,7 @@ module ELSI_DATATYPE
       ! libOMM
       integer(kind=i4) :: n_states_omm  ! Number of states used in libOMM
       integer(kind=i4) :: omm_n_elpa    ! Number of ELPA steps
-      logical          :: new_overlap
+      logical          :: new_ovlp
       logical          :: coeff_ready   ! Is coefficient initialized?
       integer(kind=i4) :: omm_flavor    ! 0 = Basic
                                         ! 2 = Cholesky already performed

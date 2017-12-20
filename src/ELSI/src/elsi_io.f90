@@ -37,7 +37,6 @@ module ELSI_IO
    use ELSI_DATATYPE
    use ELSI_MALLOC
    use ELSI_MATCONV,   only: elsi_pexsi_to_blacs_dm,elsi_blacs_to_sips_hs
-   use ELSI_MATRICES,  only: elsi_set_sparse_dm
    use ELSI_PRECISION, only: r8,i4,i8
    use ELSI_SETUP,     only: elsi_init,elsi_set_mpi,elsi_set_blacs,&
                              elsi_set_csc,elsi_cleanup
@@ -1840,7 +1839,7 @@ subroutine elsi_write_mat_real_sp(rw_h,f_name,mat)
    call elsi_get_time(aux_h,t0)
 
    ! Compute nnz
-   call elsi_get_local_nnz(aux_h,mat,rw_h%n_lrow,rw_h%n_lcol,nnz_g)
+   call elsi_get_local_nnz_real(aux_h,mat,rw_h%n_lrow,rw_h%n_lcol,nnz_g)
 
    ! Convert to CSC
    call elsi_allocate(aux_h,col_ptr,rw_h%n_basis+1,"col_ptr",caller)
@@ -1952,7 +1951,7 @@ subroutine elsi_write_mat_complex_sp(rw_h,f_name,mat)
    call elsi_get_time(aux_h,t0)
 
    ! Compute nnz
-   call elsi_get_local_nnz(aux_h,mat,rw_h%n_lrow,rw_h%n_lcol,nnz_g)
+   call elsi_get_local_nnz_cmplx(aux_h,mat,rw_h%n_lrow,rw_h%n_lcol,nnz_g)
 
    ! Convert to CSC
    call elsi_allocate(aux_h,col_ptr,rw_h%n_basis+1,"col_ptr",caller)

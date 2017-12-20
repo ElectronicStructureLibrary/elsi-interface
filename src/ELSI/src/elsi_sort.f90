@@ -50,10 +50,10 @@ module ELSI_SORT
                        downheap_real_v2,&
                        downheap_real_v3,&
                        downheap_real_v4,&
-                       downheap_complex_v1,&
-                       downheap_complex_v2,&
-                       downheap_complex_v3,&
-                       downheap_complex_v4
+                       downheap_cmplx_v1,&
+                       downheap_cmplx_v2,&
+                       downheap_cmplx_v3,&
+                       downheap_cmplx_v4
    end interface
 
    interface elsi_heapsort
@@ -61,10 +61,10 @@ module ELSI_SORT
                        heapsort_real_v2,&
                        heapsort_real_v3,&
                        heapsort_real_v4,&
-                       heapsort_complex_v1,&
-                       heapsort_complex_v2,&
-                       heapsort_complex_v3,&
-                       heapsort_complex_v4
+                       heapsort_cmplx_v1,&
+                       heapsort_cmplx_v2,&
+                       heapsort_cmplx_v3,&
+                       heapsort_cmplx_v4
    end interface
 
 contains
@@ -409,7 +409,7 @@ end subroutine
 !! This routine sorts an integer(kind=i8) array by heapsort, moves two
 !! complex(kind=r8) arrays and two integer(kind=i4) arrays accordingly.
 !!
-subroutine heapsort_complex_v1(length,a_i8,b_c16,c_c16,d_i4,e_i4)
+subroutine heapsort_cmplx_v1(length,a_i8,b_c16,c_c16,d_i4,e_i4)
 
    implicit none
 
@@ -449,7 +449,7 @@ end subroutine
 !>
 !! This routine restores the max-heap structure.
 !!
-subroutine downheap_complex_v1(length,a_i8,b_c16,c_c16,d_i4,e_i4,top,bottom)
+subroutine downheap_cmplx_v1(length,a_i8,b_c16,c_c16,d_i4,e_i4,top,bottom)
 
    implicit none
 
@@ -495,7 +495,7 @@ end subroutine
 !! This routine sorts an integer(kind=i8) array by heapsort, moves one
 !! complex(kind=r8) array and two integer(kind=i4) arrays accordingly.
 !!
-subroutine heapsort_complex_v2(length,a_i8,b_c16,c_i4,d_i4)
+subroutine heapsort_cmplx_v2(length,a_i8,b_c16,c_i4,d_i4)
 
    implicit none
 
@@ -533,7 +533,7 @@ end subroutine
 !>
 !! This routine restores the max-heap structure.
 !!
-subroutine downheap_complex_v2(length,a_i8,b_c16,c_i4,d_i4,top,bottom)
+subroutine downheap_cmplx_v2(length,a_i8,b_c16,c_i4,d_i4,top,bottom)
 
    implicit none
 
@@ -577,7 +577,7 @@ end subroutine
 !! This routine sorts an integer(kind=i4) array by heapsort, moves two
 !! complex(kind=r8) arrays and two integer(kind=i4) arrays accordingly.
 !!
-subroutine heapsort_complex_v3(length,a_i4,b_c16,c_c16,d_i4,e_i4)
+subroutine heapsort_cmplx_v3(length,a_i4,b_c16,c_c16,d_i4,e_i4)
 
    implicit none
 
@@ -617,7 +617,7 @@ end subroutine
 !>
 !! This routine restores the max-heap structure.
 !!
-subroutine downheap_complex_v3(length,a_i4,b_c16,c_c16,d_i4,e_i4,top,bottom)
+subroutine downheap_cmplx_v3(length,a_i4,b_c16,c_c16,d_i4,e_i4,top,bottom)
 
    implicit none
 
@@ -663,7 +663,7 @@ end subroutine
 !! This routine sorts an integer(kind=i4) array by heapsort, moves one
 !! complex(kind=r8) array and two integer(kind=i4) arrays accordingly.
 !!
-subroutine heapsort_complex_v4(length,a_i4,b_c16,c_i4,d_i4)
+subroutine heapsort_cmplx_v4(length,a_i4,b_c16,c_i4,d_i4)
 
    implicit none
 
@@ -701,7 +701,7 @@ end subroutine
 !>
 !! This routine restores the max-heap structure.
 !!
-subroutine downheap_complex_v4(length,a_i4,b_c16,c_i4,d_i4,top,bottom)
+subroutine downheap_cmplx_v4(length,a_i4,b_c16,c_i4,d_i4,top,bottom)
 
    implicit none
 
