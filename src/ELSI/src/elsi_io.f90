@@ -36,7 +36,10 @@ module ELSI_IO
                              FILE_VERSION,UNSET
    use ELSI_DATATYPE
    use ELSI_MALLOC
-   use ELSI_MATCONV,   only: elsi_pexsi_to_blacs_dm,elsi_blacs_to_sips_hs
+   use ELSI_MATCONV,   only: elsi_pexsi_to_blacs_dm_real,&
+                             elsi_pexsi_to_blacs_dm_cmplx,&
+                             elsi_blacs_to_sips_hs_real,&
+                             elsi_blacs_to_sips_hs_cmplx
    use ELSI_PRECISION, only: r8,i4,i8
    use ELSI_SETUP,     only: elsi_init,elsi_set_mpi,elsi_set_blacs,&
                              elsi_set_csc,elsi_cleanup
@@ -778,7 +781,7 @@ subroutine elsi_read_mat_real_mp(rw_h,f_name,mat)
    aux_h%my_prow_pexsi = 0
    aux_h%np_per_pole   = rw_h%n_procs
 
-   call elsi_pexsi_to_blacs_dm(aux_h,mat)
+   call elsi_pexsi_to_blacs_dm_real(aux_h,mat)
 
    call elsi_deallocate(aux_h,col_ptr,"col_ptr")
    call elsi_deallocate(aux_h,row_ind,"row_ind")
@@ -990,7 +993,7 @@ subroutine elsi_read_mat_complex_mp(rw_h,f_name,mat)
    aux_h%my_prow_pexsi = 0
    aux_h%np_per_pole   = rw_h%n_procs
 
-   call elsi_pexsi_to_blacs_dm(aux_h,mat)
+   call elsi_pexsi_to_blacs_dm_cmplx(aux_h,mat)
 
    call elsi_deallocate(aux_h,col_ptr,"col_ptr")
    call elsi_deallocate(aux_h,row_ind,"row_ind")
@@ -1145,7 +1148,7 @@ subroutine elsi_write_mat_real_mp(rw_h,f_name,mat)
    endif
 
    call elsi_allocate(aux_h,dummy,1,1,"dummy",caller)
-   call elsi_blacs_to_sips_hs(aux_h,mat,dummy)
+   call elsi_blacs_to_sips_hs_real(aux_h,mat,dummy)
    call elsi_deallocate(aux_h,dummy,"dummy")
 
    ! Open file
@@ -1260,7 +1263,7 @@ subroutine elsi_write_mat_complex_mp(rw_h,f_name,mat)
    endif
 
    call elsi_allocate(aux_h,dummy,1,1,"dummy",caller)
-   call elsi_blacs_to_sips_hs(aux_h,mat,dummy)
+   call elsi_blacs_to_sips_hs_cmplx(aux_h,mat,dummy)
    call elsi_deallocate(aux_h,dummy,"dummy")
 
    ! Open file

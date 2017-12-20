@@ -835,7 +835,7 @@ subroutine elsi_pexsi_to_blacs_dm_real(e_h,d_out)
          ! Compute global id
          row_send_buf(i_val) = i_row
          col_send_buf(i_val) = i_col+e_h%myid*(e_h%n_basis/e_h%np_per_pole)
-         val_send_buf(i_val) = e_h%dm_real_ccs(i_val)
+         val_send_buf(i_val) = e_h%dm_real_pexsi(i_val)
 
          ! Compute destination
          proc_row_id = mod((row_send_buf(i_val)-1)/e_h%blk_row,e_h%n_prow)
@@ -985,7 +985,7 @@ subroutine elsi_pexsi_to_blacs_dm_cmplx(e_h,d_out)
          ! Compute global id
          row_send_buf(i_val) = i_row
          col_send_buf(i_val) = i_col+e_h%myid*(e_h%n_basis/e_h%np_per_pole)
-         val_send_buf(i_val) = e_h%dm_cmplx_ccs(i_val)
+         val_send_buf(i_val) = e_h%dm_cmplx_pexsi(i_val)
 
          ! Compute destination
          proc_row_id = mod((row_send_buf(i_val)-1)/e_h%blk_row,e_h%n_prow)
