@@ -65,9 +65,9 @@ subroutine elsi_blacs_to_pexsi_hs_real(e_h,h_in,s_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout)        :: e_h                         !< Handle
-   real(kind=r8),     intent(in),   target :: h_in(e_h%n_lrow,e_h%n_lcol) !< Hamiltonian
-   real(kind=r8),     intent(in),   target :: s_in(e_h%n_lrow,e_h%n_lcol) !< Overlap
+   type(elsi_handle), intent(inout)        :: e_h
+   real(kind=r8),     intent(in),   target :: h_in(e_h%n_lrow,e_h%n_lcol)
+   real(kind=r8),     intent(in),   target :: s_in(e_h%n_lrow,e_h%n_lcol)
 
    real(kind=r8), pointer :: ref(:,:) ! Sparsity pattern
 
@@ -424,9 +424,9 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(e_h,h_in,s_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout)        :: e_h                         !< Handle
-   complex(kind=r8),  intent(in),   target :: h_in(e_h%n_lrow,e_h%n_lcol) !< Hamiltonian
-   complex(kind=r8),  intent(in),   target :: s_in(e_h%n_lrow,e_h%n_lcol) !< Overlap
+   type(elsi_handle), intent(inout)        :: e_h
+   complex(kind=r8),  intent(in),   target :: h_in(e_h%n_lrow,e_h%n_lcol)
+   complex(kind=r8),  intent(in),   target :: s_in(e_h%n_lrow,e_h%n_lcol)
 
    complex(kind=r8), pointer :: ref(:,:) ! Sparsity pattern
 
@@ -783,8 +783,8 @@ subroutine elsi_pexsi_to_blacs_dm_real(e_h,d_out)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                          !< Handle
-   real(kind=r8),     intent(out)   :: d_out(e_h%n_lrow,e_h%n_lcol) !< Density matrix
+   type(elsi_handle), intent(inout) :: e_h
+   real(kind=r8),     intent(out)   :: d_out(e_h%n_lrow,e_h%n_lcol)
 
    integer(kind=i4) :: mpierr
    integer(kind=i4) :: i_row
@@ -933,8 +933,8 @@ subroutine elsi_pexsi_to_blacs_dm_cmplx(e_h,d_out)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                          !< Handle
-   complex(kind=r8),  intent(out)   :: d_out(e_h%n_lrow,e_h%n_lcol) !< Density matrix
+   type(elsi_handle), intent(inout) :: e_h
+   complex(kind=r8),  intent(out)   :: d_out(e_h%n_lrow,e_h%n_lcol)
 
    integer(kind=i4) :: mpierr
    integer(kind=i4) :: i_row
@@ -1084,9 +1084,9 @@ subroutine elsi_blacs_to_sips_hs_real(e_h,h_in,s_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout)        :: e_h                         !< Handle
-   real(kind=r8),     intent(in),   target :: h_in(e_h%n_lrow,e_h%n_lcol) !< Hamiltonian
-   real(kind=r8),     intent(in),   target :: s_in(e_h%n_lrow,e_h%n_lcol) !< Overlap
+   type(elsi_handle), intent(inout)        :: e_h
+   real(kind=r8),     intent(in),   target :: h_in(e_h%n_lrow,e_h%n_lcol)
+   real(kind=r8),     intent(in),   target :: s_in(e_h%n_lrow,e_h%n_lcol)
 
    real(kind=r8), pointer :: ref(:,:) ! Sparsity pattern
 
@@ -1308,9 +1308,9 @@ subroutine elsi_blacs_to_sips_hs_cmplx(e_h,h_in,s_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout)      :: e_h                         !< Handle
-   complex(kind=r8),  intent(in), target :: h_in(e_h%n_lrow,e_h%n_lcol) !< Hamiltonian
-   complex(kind=r8),  intent(in), target :: s_in(e_h%n_lrow,e_h%n_lcol) !< Overlap
+   type(elsi_handle), intent(inout)      :: e_h
+   complex(kind=r8),  intent(in), target :: h_in(e_h%n_lrow,e_h%n_lcol)
+   complex(kind=r8),  intent(in), target :: s_in(e_h%n_lrow,e_h%n_lcol)
 
    complex(kind=r8), pointer :: ref(:,:) ! Sparsity pattern
 
@@ -1532,9 +1532,9 @@ subroutine elsi_sips_to_blacs_hs_real(e_h,h_in,s_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                !< Handle
-   real(kind=r8),     intent(in)    :: h_in(e_h%nnz_l_sp) !< Hamiltonian
-   real(kind=r8),     intent(in)    :: s_in(e_h%nnz_l_sp) !< Overlap
+   type(elsi_handle), intent(inout) :: e_h
+   real(kind=r8),     intent(in)    :: h_in(e_h%nnz_l_sp)
+   real(kind=r8),     intent(in)    :: s_in(e_h%nnz_l_sp)
 
    integer(kind=i4) :: mpierr
    integer(kind=i4) :: i_row
@@ -1739,9 +1739,9 @@ subroutine elsi_sips_to_blacs_hs_cmplx(e_h,h_in,s_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                !< Handle
-   complex(kind=r8),  intent(in)    :: h_in(e_h%nnz_l_sp) !< Hamiltonian
-   complex(kind=r8),  intent(in)    :: s_in(e_h%nnz_l_sp) !< Overlap
+   type(elsi_handle), intent(inout) :: e_h
+   complex(kind=r8),  intent(in)    :: h_in(e_h%nnz_l_sp)
+   complex(kind=r8),  intent(in)    :: s_in(e_h%nnz_l_sp)
 
    integer(kind=i4) :: mpierr
    integer(kind=i4) :: i_row
@@ -1946,8 +1946,8 @@ subroutine elsi_blacs_to_sips_dm_real(e_h,d_out)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                 !< Handle
-   real(kind=r8),     intent(out)   :: d_out(e_h%nnz_l_sp) !< Density matrix
+   type(elsi_handle), intent(inout) :: e_h
+   real(kind=r8),     intent(out)   :: d_out(e_h%nnz_l_sp)
 
    real(kind=r8), pointer :: ref(:,:) ! Sparsity pattern
 
@@ -2111,8 +2111,8 @@ subroutine elsi_blacs_to_sips_dm_cmplx(e_h,d_out)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                 !< Handle
-   complex(kind=r8),  intent(out)   :: d_out(e_h%nnz_l_sp) !< Density matrix
+   type(elsi_handle), intent(inout) :: e_h
+   complex(kind=r8),  intent(out)   :: d_out(e_h%nnz_l_sp)
 
    complex(kind=r8), pointer :: ref(:,:) ! Sparsity pattern
 
@@ -2275,9 +2275,9 @@ subroutine elsi_blacs_to_chess_hs_real(e_h,h_in,s_in)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                         !< Handle
-   real(kind=r8),     intent(in)    :: h_in(e_h%n_lrow,e_h%n_lcol) !< Hamiltonian
-   real(kind=r8),     intent(in)    :: s_in(e_h%n_lrow,e_h%n_lcol) !< Overlap
+   type(elsi_handle), intent(inout) :: e_h
+   real(kind=r8),     intent(in)    :: h_in(e_h%n_lrow,e_h%n_lcol)
+   real(kind=r8),     intent(in)    :: s_in(e_h%n_lrow,e_h%n_lcol)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
@@ -2319,7 +2319,7 @@ subroutine elsi_sips_to_chess_hs(e_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h !< Handle
+   type(elsi_handle), intent(inout) :: e_h
 
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
@@ -2418,8 +2418,8 @@ subroutine elsi_chess_to_blacs_dm_real(e_h,d_out)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                          !< Handle
-   real(kind=r8),     intent(out)   :: d_out(e_h%n_lrow,e_h%n_lcol) !< Density matrix
+   type(elsi_handle), intent(inout) :: e_h
+   real(kind=r8),     intent(out)   :: d_out(e_h%n_lrow,e_h%n_lcol)
 
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col

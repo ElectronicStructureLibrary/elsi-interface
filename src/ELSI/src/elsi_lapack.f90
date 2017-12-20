@@ -153,12 +153,11 @@ end subroutine
 !! This routine back-transforms eigenvectors in the standard form to the
 !! original generalized form.
 !!
-subroutine elsi_to_original_ev_sp_real(e_h,ham,ovlp,evec)
+subroutine elsi_to_original_ev_sp_real(e_h,ovlp,evec)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: e_h
-   real(kind=r8),     intent(inout) :: ham(e_h%n_lrow,e_h%n_lcol)
    real(kind=r8),     intent(inout) :: ovlp(e_h%n_lrow,e_h%n_lcol)
    real(kind=r8),     intent(inout) :: evec(e_h%n_lrow,e_h%n_lcol)
 
@@ -268,7 +267,7 @@ subroutine elsi_solve_evp_lapack_real(e_h,ham,ovlp,eval,evec)
 
    ! Back-transform eigenvectors
    if(.not. e_h%ovlp_is_unit) then
-      call elsi_to_original_ev_sp_real(e_h,ham,ovlp,evec)
+      call elsi_to_original_ev_sp_real(e_h,ovlp,evec)
    endif
 
 end subroutine
@@ -472,7 +471,7 @@ subroutine elsi_to_standard_evp_sp_cmplx(e_h,ham,ovlp,eval,evec)
             nwork = e_h%n_basis-n+1
          endif
 
-         call zgemm('N','N',n+nwork-1,nwork,n+nwork-1,(1.0_r8,0.0_r8),ham,
+         call zgemm('N','N',n+nwork-1,nwork,n+nwork-1,(1.0_r8,0.0_r8),ham,&
                  e_h%n_basis,ovlp(1,n),e_h%n_basis,(0.0_r8,0.0_r8),evec(1,n),&
                  e_h%n_basis)
       enddo
@@ -504,13 +503,12 @@ end subroutine
 !! This routine back-transforms eigenvectors in the standard form to the
 !! original generalized form.
 !!
-subroutine elsi_to_original_ev_sp_cmplx(e_h,ovlp,eval,evec)
+subroutine elsi_to_original_ev_sp_cmplx(e_h,ovlp,evec)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: e_h
    complex(kind=r8),  intent(inout) :: ovlp(e_h%n_lrow,e_h%n_lcol)
-   real(kind=r8),     intent(inout) :: eval(e_h%n_basis)
    complex(kind=r8),  intent(inout) :: evec(e_h%n_lrow,e_h%n_lcol)
 
    real(kind=r8) :: t0
@@ -625,7 +623,7 @@ subroutine elsi_solve_evp_lapack_cmplx(e_h,ham,ovlp,eval,evec)
 
    ! Back-transform eigenvectors
    if(.not. e_h%ovlp_is_unit) then
-      call elsi_to_original_ev_sp_cmplx(e_h,ham,ovlp,evec)
+      call elsi_to_original_ev_sp_cmplx(e_h,ovlp,evec)
    endif
 
 end subroutine

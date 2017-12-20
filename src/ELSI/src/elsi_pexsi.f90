@@ -55,7 +55,7 @@ subroutine elsi_init_pexsi(e_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h !< Handle
+   type(elsi_handle), intent(inout) :: e_h
 
    integer(kind=i4) :: n_rows_tmp
    integer(kind=i4) :: output_id
@@ -140,7 +140,7 @@ subroutine elsi_solve_evp_pexsi(e_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h !< Handle
+   type(elsi_handle), intent(inout) :: e_h
 
    real(kind=r8)    :: ne_drv
    real(kind=r8)    :: mu_range
@@ -593,7 +593,7 @@ subroutine elsi_compute_edm_pexsi(e_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h !< Handle
+   type(elsi_handle), intent(inout) :: e_h
 
    real(kind=r8)    :: mu_range
    real(kind=r8)    :: shift_width
@@ -800,7 +800,7 @@ subroutine elsi_set_pexsi_default(e_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h !< Handle
+   type(elsi_handle), intent(inout) :: e_h
 
    character*40, parameter :: caller = "elsi_set_pexsi_default"
 

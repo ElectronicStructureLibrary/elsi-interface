@@ -301,12 +301,12 @@ subroutine elsi_set_csc(e_h,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h               !< Handle
-   integer(kind=i4),  intent(in)    :: nnz_g             !< Global number of nonzeros
-   integer(kind=i4),  intent(in)    :: nnz_l             !< Local number of nonzeros
-   integer(kind=i4),  intent(in)    :: n_lcol            !< Local number of columns
-   integer(kind=i4),  intent(in)    :: row_ind(nnz_l)    !< Row index
-   integer(kind=i4),  intent(in)    :: col_ptr(n_lcol+1) !< Column pointer
+   type(elsi_handle), intent(inout)      :: e_h               !< Handle
+   integer(kind=i4),  intent(in)         :: nnz_g             !< Global number of nonzeros
+   integer(kind=i4),  intent(in)         :: nnz_l             !< Local number of nonzeros
+   integer(kind=i4),  intent(in)         :: n_lcol            !< Local number of columns
+   integer(kind=i4),  intent(in), target :: row_ind(nnz_l)    !< Row index
+   integer(kind=i4),  intent(in), target :: col_ptr(n_lcol+1) !< Column pointer
 
    character*40, parameter :: caller = "elsi_set_csc"
 
@@ -316,8 +316,8 @@ subroutine elsi_set_csc(e_h,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)
    e_h%nnz_l_sp  = nnz_l
    e_h%n_lcol_sp = n_lcol
 
-   call elsi_set_row_ind(e_h,row_ind)
-   call elsi_set_col_ptr(e_h,col_ptr)
+   e_h%row_ind_ccs => row_ind
+   e_h%col_ptr_ccs => col_ptr
 
    e_h%sparsity_ready = .true.
 

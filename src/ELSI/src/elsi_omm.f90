@@ -127,9 +127,9 @@ subroutine elsi_solve_evp_omm_real(e_h,ham,ovlp,dm)
    endif
 
    if(e_h%n_elsi_calls == e_h%omm_n_elpa+1) then
-      e_h%new_overlap = .true.
+      e_h%new_ovlp = .true.
    else
-      e_h%new_overlap = .false.
+      e_h%new_ovlp = .false.
    endif
 
    call elsi_get_time(e_h,t0)
@@ -155,11 +155,12 @@ end subroutine
 !>
 !! This routine computes the energy-weighted density matrix.
 !!
-subroutine elsi_compute_edm_omm_real(e_h)
+subroutine elsi_compute_edm_omm_real(e_h,edm)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: e_h
+   real(kind=r8),     intent(inout) :: edm(e_h%n_lrow,e_h%n_lcol)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
@@ -169,6 +170,8 @@ subroutine elsi_compute_edm_omm_real(e_h)
 
    call elsi_get_time(e_h,t0)
 
+   call m_register_pdbc(e_h%dm_omm,edm,e_h%sc_desc)
+
    e_h%calc_ed = .true.
 
    call omm(e_h%n_basis,e_h%n_states_omm,e_h%ham_omm,e_h%ovlp_omm,e_h%new_ovlp,&
@@ -177,6 +180,8 @@ subroutine elsi_compute_edm_omm_real(e_h)
            e_h%min_tol,e_h%omm_output,e_h%do_dealloc,"pddbc","lap")
 
    e_h%calc_ed = .false.
+
+   edm = e_h%spin_degen*edm
 
    call elsi_get_time(e_h,t1)
 
@@ -262,9 +267,9 @@ subroutine elsi_solve_evp_omm_cmplx(e_h,ham,ovlp,dm)
    endif
 
    if(e_h%n_elsi_calls == e_h%omm_n_elpa+1) then
-      e_h%new_overlap = .true.
+      e_h%new_ovlp = .true.
    else
-      e_h%new_overlap = .false.
+      e_h%new_ovlp = .false.
    endif
 
    call elsi_get_time(e_h,t0)
@@ -290,11 +295,12 @@ end subroutine
 !>
 !! This routine computes the energy-weighted density matrix.
 !!
-subroutine elsi_compute_edm_omm_cmplx(e_h)
+subroutine elsi_compute_edm_omm_cmplx(e_h,edm)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: e_h
+   complex(kind=r8),  intent(inout) :: edm(e_h%n_lrow,e_h%n_lcol)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
@@ -304,6 +310,8 @@ subroutine elsi_compute_edm_omm_cmplx(e_h)
 
    call elsi_get_time(e_h,t0)
 
+   call m_register_pdbc(e_h%dm_omm,edm,e_h%sc_desc)
+
    e_h%calc_ed = .true.
 
    call omm(e_h%n_basis,e_h%n_states_omm,e_h%ham_omm,e_h%ovlp_omm,e_h%new_ovlp,&
@@ -312,6 +320,8 @@ subroutine elsi_compute_edm_omm_cmplx(e_h)
            e_h%min_tol,e_h%omm_output,e_h%do_dealloc,"pzdbc","lap")
 
    e_h%calc_ed = .false.
+
+   edm = e_h%spin_degen*edm
 
    call elsi_get_time(e_h,t1)
 
@@ -329,7 +339,7 @@ subroutine elsi_set_omm_default(e_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h !< Handle
+   type(elsi_handle), intent(inout) :: e_h
 
    character*40, parameter :: caller = "elsi_set_omm_default"
 

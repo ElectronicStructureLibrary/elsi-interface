@@ -1276,7 +1276,7 @@ subroutine elsi_set_elpa_default(e_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h !< Handle
+   type(elsi_handle), intent(inout) :: e_h
 
    character*40, parameter :: caller = "elsi_set_elpa_default"
 

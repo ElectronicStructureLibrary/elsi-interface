@@ -82,11 +82,11 @@ subroutine elsi_allocate_real4_1d(e_h,array,dim1,arrayname,caller)
 
    implicit none
 
-   type(elsi_handle), intent(in)                 :: e_h       !< Handle
-   real(kind=r4),     intent(inout), allocatable :: array(:)  !< Data
-   integer(kind=i4),  intent(in)                 :: dim1      !< Size
-   character(len=*),  intent(in)                 :: arrayname !< Name
-   character(len=*),  intent(in)                 :: caller    !< Caller
+   type(elsi_handle), intent(in)                 :: e_h
+   real(kind=r4),     intent(inout), allocatable :: array(:)
+   integer(kind=i4),  intent(in)                 :: dim1
+   character(len=*),  intent(in)                 :: arrayname
+   character(len=*),  intent(in)                 :: caller
 
    real(kind=r8)    :: arraysize
    integer(kind=i4) :: error
@@ -118,11 +118,11 @@ subroutine elsi_allocate_real8_1d(e_h,array,dim1,arrayname,caller)
 
    implicit none
 
-   type(elsi_handle), intent(in)                 :: e_h       !< Handle
-   real(kind=r8),     intent(inout), allocatable :: array(:)  !< Data
-   integer(kind=i4),  intent(in)                 :: dim1      !< Size
-   character(len=*),  intent(in)                 :: arrayname !< Name
-   character(len=*),  intent(in)                 :: caller    !< Caller
+   type(elsi_handle), intent(in)                 :: e_h
+   real(kind=r8),     intent(inout), allocatable :: array(:)
+   integer(kind=i4),  intent(in)                 :: dim1
+   character(len=*),  intent(in)                 :: arrayname
+   character(len=*),  intent(in)                 :: caller
 
    real(kind=r8)    :: arraysize
    integer(kind=i4) :: error
@@ -154,11 +154,11 @@ subroutine elsi_allocate_integer4_1d(e_h,array,dim1,arrayname,caller)
 
    implicit none
 
-   type(elsi_handle), intent(in)                 :: e_h       !< Handle
-   integer(kind=i4),  intent(inout), allocatable :: array(:)  !< Data
-   integer(kind=i4),  intent(in)                 :: dim1      !< Size
-   character(len=*),  intent(in)                 :: arrayname !< Name
-   character(len=*),  intent(in)                 :: caller    !< Caller
+   type(elsi_handle), intent(in)                 :: e_h
+   integer(kind=i4),  intent(inout), allocatable :: array(:)
+   integer(kind=i4),  intent(in)                 :: dim1
+   character(len=*),  intent(in)                 :: arrayname
+   character(len=*),  intent(in)                 :: caller
 
    real(kind=r8)    :: arraysize
    integer(kind=i4) :: error
@@ -190,11 +190,11 @@ subroutine elsi_allocate_integer8_1d(e_h,array,dim1,arrayname,caller)
 
    implicit none
 
-   type(elsi_handle), intent(in)                 :: e_h       !< Handle
-   integer(kind=i8),  intent(inout), allocatable :: array(:)  !< Data
-   integer(kind=i4),  intent(in)                 :: dim1      !< Size
-   character(len=*),  intent(in)                 :: arrayname !< Name
-   character(len=*),  intent(in)                 :: caller    !< Caller
+   type(elsi_handle), intent(in)                 :: e_h
+   integer(kind=i8),  intent(inout), allocatable :: array(:)
+   integer(kind=i4),  intent(in)                 :: dim1
+   character(len=*),  intent(in)                 :: arrayname
+   character(len=*),  intent(in)                 :: caller
 
    real(kind=r8)    :: arraysize
    integer(kind=i4) :: error
@@ -226,11 +226,11 @@ subroutine elsi_allocate_complex16_1d(e_h,array,dim1,arrayname,caller)
 
    implicit none
 
-   type(elsi_handle), intent(in)                 :: e_h       !< Handle
-   complex(kind=r8),  intent(inout), allocatable :: array(:)  !< Data
-   integer(kind=i4),  intent(in)                 :: dim1      !< Size
-   character(len=*),  intent(in)                 :: arrayname !< Name
-   character(len=*),  intent(in)                 :: caller    !< Caller
+   type(elsi_handle), intent(in)                 :: e_h
+   complex(kind=r8),  intent(inout), allocatable :: array(:)
+   integer(kind=i4),  intent(in)                 :: dim1
+   character(len=*),  intent(in)                 :: arrayname
+   character(len=*),  intent(in)                 :: caller
 
    real(kind=r8)    :: arraysize
    integer(kind=i4) :: error
@@ -262,12 +262,12 @@ subroutine elsi_allocate_real4_2d(e_h,array,dim1,dim2,arrayname,caller)
 
    implicit none
 
-   type(elsi_handle), intent(in)                 :: e_h        !< Handle
-   real(kind=r4),     intent(inout), allocatable :: array(:,:) !< Data
-   integer(kind=i4),  intent(in)                 :: dim1       !< Size
-   integer(kind=i4),  intent(in)                 :: dim2       !< Size
-   character(len=*),  intent(in)                 :: arrayname  !< Name
-   character(len=*),  intent(in)                 :: caller     !< Caller
+   type(elsi_handle), intent(in)                 :: e_h
+   real(kind=r4),     intent(inout), allocatable :: array(:,:)
+   integer(kind=i4),  intent(in)                 :: dim1
+   integer(kind=i4),  intent(in)                 :: dim2
+   character(len=*),  intent(in)                 :: arrayname
+   character(len=*),  intent(in)                 :: caller
 
    real(kind=r8)    :: arraysize
    integer(kind=i4) :: error
@@ -299,12 +299,12 @@ subroutine elsi_allocate_real8_2d(e_h,array,dim1,dim2,arrayname,caller)
 
    implicit none
 
-   type(elsi_handle), intent(in)                 :: e_h        !< Handle
-   real(kind=r8),     intent(inout), allocatable :: array(:,:) !< Data
-   integer(kind=i4),  intent(in)                 :: dim1       !< Size
-   integer(kind=i4),  intent(in)                 :: dim2       !< Size
-   character(len=*),  intent(in)                 :: arrayname  !< Name
-   character(len=*),  intent(in)                 :: caller     !< Caller
+   type(elsi_handle), intent(in)                 :: e_h
+   real(kind=r8),     intent(inout), allocatable :: array(:,:)
+   integer(kind=i4),  intent(in)                 :: dim1
+   integer(kind=i4),  intent(in)                 :: dim2
+   character(len=*),  intent(in)                 :: arrayname
+   character(len=*),  intent(in)                 :: caller
 
    real(kind=r8)    :: arraysize
    integer(kind=i4) :: error
@@ -336,12 +336,12 @@ subroutine elsi_allocate_integer4_2d(e_h,array,dim1,dim2,arrayname,caller)
 
    implicit none
 
-   type(elsi_handle), intent(in)                 :: e_h        !< Handle
-   integer(kind=i4),  intent(inout), allocatable :: array(:,:) !< Data
-   integer(kind=i4),  intent(in)                 :: dim1       !< Size
-   integer(kind=i4),  intent(in)                 :: dim2       !< Size
-   character(len=*),  intent(in)                 :: arrayname  !< Name
-   character(len=*),  intent(in)                 :: caller     !< Caller
+   type(elsi_handle), intent(in)                 :: e_h
+   integer(kind=i4),  intent(inout), allocatable :: array(:,:)
+   integer(kind=i4),  intent(in)                 :: dim1
+   integer(kind=i4),  intent(in)                 :: dim2
+   character(len=*),  intent(in)                 :: arrayname
+   character(len=*),  intent(in)                 :: caller
 
    real(kind=r8)    :: arraysize
    integer(kind=i4) :: error
@@ -373,12 +373,12 @@ subroutine elsi_allocate_complex8_2d(e_h,array,dim1,dim2,arrayname,caller)
 
    implicit none
 
-   type(elsi_handle), intent(in)                 :: e_h        !< Handle
-   complex(kind=r4),  intent(inout), allocatable :: array(:,:) !< Data
-   integer(kind=i4),  intent(in)                 :: dim1       !< Size
-   integer(kind=i4),  intent(in)                 :: dim2       !< Size
-   character(len=*),  intent(in)                 :: arrayname  !< Name
-   character(len=*),  intent(in)                 :: caller     !< Caller
+   type(elsi_handle), intent(in)                 :: e_h
+   complex(kind=r4),  intent(inout), allocatable :: array(:,:)
+   integer(kind=i4),  intent(in)                 :: dim1
+   integer(kind=i4),  intent(in)                 :: dim2
+   character(len=*),  intent(in)                 :: arrayname
+   character(len=*),  intent(in)                 :: caller
 
    real(kind=r8)    :: arraysize
    integer(kind=i4) :: error
@@ -410,12 +410,12 @@ subroutine elsi_allocate_complex16_2d(e_h,array,dim1,dim2,arrayname,caller)
 
    implicit none
 
-   type(elsi_handle), intent(in)                 :: e_h        !< Handle
-   complex(kind=r8),  intent(inout), allocatable :: array(:,:) !< Data
-   integer(kind=i4),  intent(in)                 :: dim1       !< Size
-   integer(kind=i4),  intent(in)                 :: dim2       !< Size
-   character(len=*),  intent(in)                 :: arrayname  !< Name
-   character(len=*),  intent(in)                 :: caller     !< Caller
+   type(elsi_handle), intent(in)                 :: e_h
+   complex(kind=r8),  intent(inout), allocatable :: array(:,:)
+   integer(kind=i4),  intent(in)                 :: dim1
+   integer(kind=i4),  intent(in)                 :: dim2
+   character(len=*),  intent(in)                 :: arrayname
+   character(len=*),  intent(in)                 :: caller
 
    real(kind=r8)    :: arraysize
    integer(kind=i4) :: error
@@ -447,13 +447,13 @@ subroutine elsi_allocate_real8_3d(e_h,array,dim1,dim2,dim3,arrayname,caller)
 
    implicit none
 
-   type(elsi_handle), intent(in)                 :: e_h          !< Handle
-   real(kind=r8),     intent(inout), allocatable :: array(:,:,:) !< Data
-   integer(kind=i4),  intent(in)                 :: dim1         !< Size
-   integer(kind=i4),  intent(in)                 :: dim2         !< Size
-   integer(kind=i4),  intent(in)                 :: dim3         !< Size
-   character(len=*),  intent(in)                 :: arrayname    !< Name
-   character(len=*),  intent(in)                 :: caller       !< Caller
+   type(elsi_handle), intent(in)                 :: e_h
+   real(kind=r8),     intent(inout), allocatable :: array(:,:,:)
+   integer(kind=i4),  intent(in)                 :: dim1
+   integer(kind=i4),  intent(in)                 :: dim2
+   integer(kind=i4),  intent(in)                 :: dim3
+   character(len=*),  intent(in)                 :: arrayname
+   character(len=*),  intent(in)                 :: caller
 
    real(kind=r8)    :: arraysize
    integer(kind=i4) :: error
@@ -485,13 +485,13 @@ subroutine elsi_allocate_integer4_3d(e_h,array,dim1,dim2,dim3,arrayname,caller)
 
    implicit none
 
-   type(elsi_handle), intent(in)                 :: e_h          !< Handle
-   integer(kind=i4),  intent(inout), allocatable :: array(:,:,:) !< Data
-   integer(kind=i4),  intent(in)                 :: dim1         !< Size
-   integer(kind=i4),  intent(in)                 :: dim2         !< Size
-   integer(kind=i4),  intent(in)                 :: dim3         !< Size
-   character(len=*),  intent(in)                 :: arrayname    !< Name
-   character(len=*),  intent(in)                 :: caller       !< Caller
+   type(elsi_handle), intent(in)                 :: e_h
+   integer(kind=i4),  intent(inout), allocatable :: array(:,:,:)
+   integer(kind=i4),  intent(in)                 :: dim1
+   integer(kind=i4),  intent(in)                 :: dim2
+   integer(kind=i4),  intent(in)                 :: dim3
+   character(len=*),  intent(in)                 :: arrayname
+   character(len=*),  intent(in)                 :: caller
 
    real(kind=r8)    :: arraysize
    integer(kind=i4) :: error
@@ -523,13 +523,13 @@ subroutine elsi_allocate_complex16_3d(e_h,array,dim1,dim2,dim3,arrayname,caller)
 
    implicit none
 
-   type(elsi_handle), intent(in)                 :: e_h          !< Handle
-   complex(kind=r8),  intent(inout), allocatable :: array(:,:,:) !< Data
-   integer(kind=i4),  intent(in)                 :: dim1         !< Size
-   integer(kind=i4),  intent(in)                 :: dim2         !< Size
-   integer(kind=i4),  intent(in)                 :: dim3         !< Size
-   character(len=*),  intent(in)                 :: arrayname    !< Name
-   character(len=*),  intent(in)                 :: caller       !< Caller
+   type(elsi_handle), intent(in)                 :: e_h
+   complex(kind=r8),  intent(inout), allocatable :: array(:,:,:)
+   integer(kind=i4),  intent(in)                 :: dim1
+   integer(kind=i4),  intent(in)                 :: dim2
+   integer(kind=i4),  intent(in)                 :: dim3
+   character(len=*),  intent(in)                 :: arrayname
+   character(len=*),  intent(in)                 :: caller
 
    real(kind=r8)    :: arraysize
    integer(kind=i4) :: error
@@ -561,9 +561,9 @@ subroutine elsi_deallocate_real4_1d(e_h,array,arrayname)
 
    implicit none
 
-   type(elsi_handle), intent(in)                 :: e_h       !< Handle
-   real(kind=r4),     intent(inout), allocatable :: array(:)  !< Data
-   character(len=*),  intent(in)                 :: arrayname !< Name
+   type(elsi_handle), intent(in)                 :: e_h
+   real(kind=r4),     intent(inout), allocatable :: array(:)
+   character(len=*),  intent(in)                 :: arrayname
 
    character*200 :: info_str
 
@@ -583,9 +583,9 @@ subroutine elsi_deallocate_real8_1d(e_h,array,arrayname)
 
    implicit none
 
-   type(elsi_handle), intent(in)                 :: e_h       !< Handle
-   real(kind=r8),     intent(inout), allocatable :: array(:)  !< Data
-   character(len=*),  intent(in)                 :: arrayname !< Name
+   type(elsi_handle), intent(in)                 :: e_h
+   real(kind=r8),     intent(inout), allocatable :: array(:)
+   character(len=*),  intent(in)                 :: arrayname
 
    character*200 :: info_str
 
@@ -605,9 +605,9 @@ subroutine elsi_deallocate_integer4_1d(e_h,array,arrayname)
 
    implicit none
 
-   type(elsi_handle), intent(in)                 :: e_h       !< Handle
-   integer(kind=i4),  intent(inout), allocatable :: array(:)  !< Data
-   character(len=*),  intent(in)                 :: arrayname !< Name
+   type(elsi_handle), intent(in)                 :: e_h
+   integer(kind=i4),  intent(inout), allocatable :: array(:)
+   character(len=*),  intent(in)                 :: arrayname
 
    character*200 :: info_str
 
@@ -627,9 +627,9 @@ subroutine elsi_deallocate_integer8_1d(e_h,array,arrayname)
 
    implicit none
 
-   type(elsi_handle), intent(in)                 :: e_h       !< Handle
-   integer(kind=i8),  intent(inout), allocatable :: array(:)  !< Data
-   character(len=*),  intent(in)                 :: arrayname !< Name
+   type(elsi_handle), intent(in)                 :: e_h
+   integer(kind=i8),  intent(inout), allocatable :: array(:)
+   character(len=*),  intent(in)                 :: arrayname
 
    character*200 :: info_str
 
@@ -649,9 +649,9 @@ subroutine elsi_deallocate_complex16_1d(e_h,array,arrayname)
 
    implicit none
 
-   type(elsi_handle), intent(in)                 :: e_h       !< Handle
-   complex(kind=r8),  intent(inout), allocatable :: array(:)  !< Data
-   character(len=*),  intent(in)                 :: arrayname !< Name
+   type(elsi_handle), intent(in)                 :: e_h
+   complex(kind=r8),  intent(inout), allocatable :: array(:)
+   character(len=*),  intent(in)                 :: arrayname
 
    character*200 :: info_str
 
@@ -671,9 +671,9 @@ subroutine elsi_deallocate_real4_2d(e_h,array,arrayname)
 
    implicit none
 
-   type(elsi_handle), intent(in)                 :: e_h        !< Handle
-   real(kind=r4),     intent(inout), allocatable :: array(:,:) !< Data
-   character(len=*),  intent(in)                 :: arrayname  !< Name
+   type(elsi_handle), intent(in)                 :: e_h
+   real(kind=r4),     intent(inout), allocatable :: array(:,:)
+   character(len=*),  intent(in)                 :: arrayname
 
    character*200 :: info_str
 
@@ -693,9 +693,9 @@ subroutine elsi_deallocate_real8_2d(e_h,array,arrayname)
 
    implicit none
 
-   type(elsi_handle), intent(in)                 :: e_h        !< Handle
-   real(kind=r8),     intent(inout), allocatable :: array(:,:) !< Data
-   character(len=*),  intent(in)                 :: arrayname  !< Name
+   type(elsi_handle), intent(in)                 :: e_h
+   real(kind=r8),     intent(inout), allocatable :: array(:,:)
+   character(len=*),  intent(in)                 :: arrayname
 
    character*200 :: info_str
 
@@ -715,9 +715,9 @@ subroutine elsi_deallocate_integer4_2d(e_h,array,arrayname)
 
    implicit none
 
-   type(elsi_handle), intent(in)                 :: e_h        !< Handle
-   integer(kind=i4),  intent(inout), allocatable :: array(:,:) !< Data
-   character(len=*),  intent(in)                 :: arrayname  !< Name
+   type(elsi_handle), intent(in)                 :: e_h
+   integer(kind=i4),  intent(inout), allocatable :: array(:,:)
+   character(len=*),  intent(in)                 :: arrayname
 
    character*200 :: info_str
 
@@ -737,9 +737,9 @@ subroutine elsi_deallocate_complex8_2d(e_h,array,arrayname)
 
    implicit none
 
-   type(elsi_handle), intent(in)                 :: e_h        !< Handle
-   complex(kind=r4),  intent(inout), allocatable :: array(:,:) !< Data
-   character(len=*),  intent(in)                 :: arrayname  !< Name
+   type(elsi_handle), intent(in)                 :: e_h
+   complex(kind=r4),  intent(inout), allocatable :: array(:,:)
+   character(len=*),  intent(in)                 :: arrayname
 
    character*200 :: info_str
 
@@ -760,9 +760,9 @@ subroutine elsi_deallocate_complex16_2d(e_h,array,arrayname)
 
    implicit none
 
-   type(elsi_handle), intent(in)                 :: e_h        !< Handle
-   complex(kind=r8),  intent(inout), allocatable :: array(:,:) !< Data
-   character(len=*),  intent(in)                 :: arrayname  !< Name
+   type(elsi_handle), intent(in)                 :: e_h
+   complex(kind=r8),  intent(inout), allocatable :: array(:,:)
+   character(len=*),  intent(in)                 :: arrayname
 
    character*200 :: info_str
 
@@ -782,9 +782,9 @@ subroutine elsi_deallocate_real8_3d(e_h,array,arrayname)
 
    implicit none
 
-   type(elsi_handle), intent(in)                 :: e_h          !< Handle
-   real(kind=r8),     intent(inout), allocatable :: array(:,:,:) !< Data
-   character(len=*),  intent(in)                 :: arrayname    !< Name
+   type(elsi_handle), intent(in)                 :: e_h
+   real(kind=r8),     intent(inout), allocatable :: array(:,:,:)
+   character(len=*),  intent(in)                 :: arrayname
 
    character*200 :: info_str
 
@@ -804,9 +804,9 @@ subroutine elsi_deallocate_integer4_3d(e_h,array,arrayname)
 
    implicit none
 
-   type(elsi_handle), intent(in)                 :: e_h          !< Handle
-   integer(kind=i4),  intent(inout), allocatable :: array(:,:,:) !< Data
-   character(len=*),  intent(in)                 :: arrayname    !< Name
+   type(elsi_handle), intent(in)                 :: e_h
+   integer(kind=i4),  intent(inout), allocatable :: array(:,:,:)
+   character(len=*),  intent(in)                 :: arrayname
 
    character*200 :: info_str
 
@@ -826,9 +826,9 @@ subroutine elsi_deallocate_complex16_3d(e_h,array,arrayname)
 
    implicit none
 
-   type(elsi_handle), intent(in)                 :: e_h          !< Handle
-   complex(kind=r8),  intent(inout), allocatable :: array(:,:,:) !< Data
-   character(len=*),  intent(in)                 :: arrayname    !< Name
+   type(elsi_handle), intent(in)                 :: e_h
+   complex(kind=r8),  intent(inout), allocatable :: array(:,:,:)
+   character(len=*),  intent(in)                 :: arrayname
 
    character*200 :: info_str
 

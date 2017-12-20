@@ -31,12 +31,18 @@
 module ELSI_MUTATOR
 
    use ELSI_CONSTANTS, only: ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,CHESS_SOLVER,&
-                             SIPS_SOLVER,REAL_VALUES,COMPLEX_VALUES,UNSET
+                             SIPS_SOLVER
    use ELSI_DATATYPE
-   use ELSI_ELPA,      only: elsi_compute_edm_elpa
-   use ELSI_MATCONV,   only: elsi_pexsi_to_blacs_dm,elsi_blacs_to_sips_dm
-   use ELSI_OMM,       only: elsi_compute_edm_omm
-   use ELSI_PEXSI,     only: elsi_compute_edm_pexsi
+   use ELSI_ELPA,      only: elsi_compute_edm_elpa_real,&
+                             elsi_compute_edm_elpa_cmplx
+   use ELSI_MATCONV,   only: elsi_pexsi_to_blacs_dm_real,&
+                             elsi_pexsi_to_blacs_dm_cmplx,&
+                             elsi_blacs_to_sips_dm_real,&
+                             elsi_pexsi_to_blacs_dm_cmplx
+   use ELSI_OMM,       only: elsi_compute_edm_omm_real,&
+                             elsi_compute_edm_omm_cmplx
+   use ELSI_PEXSI,     only: elsi_compute_edm_pexsi_real,&
+                             elsi_compute_edm_pexsi_cmplx
    use ELSI_PRECISION, only: r8,i4
    use ELSI_UTILS
 
@@ -494,7 +500,7 @@ subroutine elsi_set_pexsi_np_symbo(e_h,np_symbo)
    implicit none
 
    type(elsi_handle), intent(inout) :: e_h      !< Handle
-   integer(kind=i4),  intent(in)    :: np_symbo !< Number of tasks for symbolic factorization
+   integer(kind=i4),  intent(in)    :: np_symbo !< Number of tasks for symbolic
 
    character*40, parameter :: caller = "elsi_set_pexsi_np_symbo"
 
@@ -1195,28 +1201,25 @@ subroutine elsi_get_edm_real(e_h,d_out)
    type(elsi_handle), intent(inout) :: e_h                          !< Handle
    real(kind=r8),     intent(out)   :: d_out(e_h%n_lrow,e_h%n_lcol) !< Energy density matrix
 
+   real(kind=r8), allocatable :: tmp_real(:,:)
+
    character*40, parameter :: caller = "elsi_get_edm_real"
 
    call elsi_check_handle(e_h,caller)
 
    if(e_h%edm_ready_real) then
-      e_h%data_type = REAL_VALUES
-
       select case(e_h%solver)
       case(ELPA_SOLVER)
-         call elsi_set_dm(e_h,d_out)
-
-         call elsi_compute_edm_elpa(e_h)
+         call elsi_allocate(e_h,tmp_real,e_h%n_lrow,e_h%n_lcol,"tmp_real",&
+                 caller)
+         call elsi_compute_edm_elpa_real(e_h,e_h%eval_elpa,e_h%evec_real_elpa,&
+                 d_out,tmp_real)
+         call elsi_deallocate(e_h,tmp_real,"tmp_real")
       case(OMM_SOLVER)
-         call elsi_set_dm(e_h,d_out)
-
-         call elsi_compute_edm_omm(e_h)
-
-         e_h%dm_omm%dval = 2.0_r8*e_h%dm_omm%dval
+         call elsi_compute_edm_omm(e_h,d_out)
       case(PEXSI_SOLVER)
          call elsi_compute_edm_pexsi(e_h)
-
-         call elsi_pexsi_to_blacs_dm(e_h,d_out)
+         call elsi_pexsi_to_blacs_dm_real(e_h,d_out)
       case(CHESS_SOLVER)
          call elsi_stop(" CHESS not yet implemented.",e_h,caller)
       case(SIPS_SOLVER)
@@ -1228,7 +1231,6 @@ subroutine elsi_get_edm_real(e_h,d_out)
       end select
 
       e_h%edm_ready_real = .false.
-      e_h%data_type      = UNSET
    else
       call elsi_stop(" Energy-weighted density matrix not computed.",e_h,caller)
    endif
@@ -1245,27 +1247,26 @@ subroutine elsi_get_edm_real_sparse(e_h,d_out)
    type(elsi_handle), intent(inout) :: e_h                 !< Handle
    real(kind=r8),     intent(out)   :: d_out(e_h%nnz_l_sp) !< Energy density matrix
 
+   real(kind=r8), allocatable :: tmp_real(:,:)
+
    character*40, parameter :: caller = "elsi_get_edm_real_sparse"
 
    call elsi_check_handle(e_h,caller)
 
    if(e_h%edm_ready_real) then
-      e_h%data_type = REAL_VALUES
-
       select case(e_h%solver)
       case(ELPA_SOLVER)
-         call elsi_compute_edm_elpa(e_h)
-
-         call elsi_blacs_to_sips_dm(e_h,d_out)
+         call elsi_allocate(e_h,tmp_real,e_h%n_lrow,e_h%n_lcol,"tmp_real",&
+                 caller)
+         call elsi_compute_edm_elpa_real(e_h,e_h%eval_elpa,e_h%evec_real_elpa,&
+                 d_out,tmp_real)
+         call elsi_deallocate(e_h,tmp_real,"tmp_real")
+         call elsi_blacs_to_sips_dm_real(e_h,d_out)
       case(OMM_SOLVER)
-         call elsi_compute_edm_omm(e_h)
-
-         e_h%dm_omm%dval = 2.0_r8*e_h%dm_omm%dval
-
-         call elsi_blacs_to_sips_dm(e_h,d_out)
+         call elsi_compute_edm_omm(e_h,e_h%dm_real_elpa)
+         call elsi_blacs_to_sips_dm_real(e_h,d_out)
       case(PEXSI_SOLVER)
          call elsi_set_sparse_dm(e_h,d_out)
-
          call elsi_compute_edm_pexsi(e_h)
       case(CHESS_SOLVER)
          call elsi_stop(" CHESS not yet implemented.",e_h,caller)
@@ -1278,7 +1279,6 @@ subroutine elsi_get_edm_real_sparse(e_h,d_out)
       end select
 
       e_h%edm_ready_real = .false.
-      e_h%data_type      = UNSET
    else
       call elsi_stop(" Energy-weighted density matrix not computed.",e_h,caller)
    endif
@@ -1294,29 +1294,25 @@ subroutine elsi_get_edm_complex(e_h,d_out)
 
    type(elsi_handle), intent(inout) :: e_h                          !< Handle
    complex(kind=r8),  intent(out)   :: d_out(e_h%n_lrow,e_h%n_lcol) !< Energy density matrix
+   complex(kind=r8), allocatable :: tmp_cmplx(:,:)
 
    character*40, parameter :: caller = "elsi_get_edm_complex"
 
    call elsi_check_handle(e_h,caller)
 
    if(e_h%edm_ready_cmplx) then
-      e_h%data_type = COMPLEX_VALUES
-
       select case(e_h%solver)
       case(ELPA_SOLVER)
-         call elsi_set_dm(e_h,d_out)
-
-         call elsi_compute_edm_elpa(e_h)
+         call elsi_allocate(e_h,tmp_cmplx,e_h%n_lrow,e_h%n_lcol,"tmp_cmplx",&
+                 caller)
+         call elsi_compute_edm_elpa_cmplx(e_h,e_h%eval_elpa,&
+                 e_h%evec_cmplx_elpa,d_out,tmp_cmplx)
+         call elsi_deallocate(e_h,tmp_cmplx,"tmp_cmplx")
       case(OMM_SOLVER)
-         call elsi_set_dm(e_h,d_out)
-
-         call elsi_compute_edm_omm(e_h)
-
-         e_h%dm_omm%zval = (2.0_r8,0.0_r8)*e_h%dm_omm%zval
+         call elsi_compute_edm_omm(e_h,d_out)
       case(PEXSI_SOLVER)
          call elsi_compute_edm_pexsi(e_h)
-
-         call elsi_pexsi_to_blacs_dm(e_h,d_out)
+         call elsi_pexsi_to_blacs_dm_cmplx(e_h,d_out)
       case(CHESS_SOLVER)
          call elsi_stop(" CHESS not yet implemented.",e_h,caller)
       case(SIPS_SOLVER)
@@ -1328,7 +1324,6 @@ subroutine elsi_get_edm_complex(e_h,d_out)
       end select
 
       e_h%edm_ready_cmplx = .false.
-      e_h%data_type       = UNSET
    else
       call elsi_stop(" Energy-weighted density matrix not computed.",e_h,caller)
    endif
@@ -1345,27 +1340,26 @@ subroutine elsi_get_edm_complex_sparse(e_h,d_out)
    type(elsi_handle), intent(inout) :: e_h                 !< Handle
    complex(kind=r8),  intent(out)   :: d_out(e_h%nnz_l_sp) !< Energy density matrix
 
+   complex(kind=r8), allocatable :: tmp_cmplx(:,:)
+
    character*40, parameter :: caller = "elsi_get_edm_complex_sparse"
 
    call elsi_check_handle(e_h,caller)
 
    if(e_h%edm_ready_cmplx) then
-      e_h%data_type = COMPLEX_VALUES
-
       select case(e_h%solver)
       case(ELPA_SOLVER)
-         call elsi_compute_edm_elpa(e_h)
-
-         call elsi_blacs_to_sips_dm(e_h,d_out)
+         call elsi_allocate(e_h,tmp_cmplx,e_h%n_lrow,e_h%n_lcol,"tmp_cmplx",&
+                 caller)
+         call elsi_compute_edm_elpa_cmplx(e_h,e_h%eval_elpa,&
+                 e_h%evec_cmplx_elpa,d_out,tmp_cmplx)
+         call elsi_deallocate(e_h,tmp_cmplx,"tmp_cmplx")
+         call elsi_blacs_to_sips_dm_cmplx(e_h,d_out)
       case(OMM_SOLVER)
-         call elsi_compute_edm_omm(e_h)
-
-         e_h%dm_omm%zval = 2.0_r8*e_h%dm_omm%zval
-
-         call elsi_blacs_to_sips_dm(e_h,d_out)
+         call elsi_compute_edm_omm(e_h,e_h%dm_cmplx_elpa)
+         call elsi_blacs_to_sips_dm_cmplx(e_h,d_out)
       case(PEXSI_SOLVER)
          call elsi_set_sparse_dm(e_h,d_out)
-
          call elsi_compute_edm_pexsi(e_h)
       case(CHESS_SOLVER)
          call elsi_stop(" CHESS not yet implemented.",e_h,caller)
@@ -1378,7 +1372,6 @@ subroutine elsi_get_edm_complex_sparse(e_h,d_out)
       end select
 
       e_h%edm_ready_cmplx = .false.
-      e_h%data_type       = UNSET
    else
       call elsi_stop(" Energy-weighted density matrix not computed.",e_h,caller)
    endif

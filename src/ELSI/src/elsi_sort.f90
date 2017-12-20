@@ -77,12 +77,12 @@ subroutine heapsort_real_v1(length,a_i8,b_r8,c_r8,d_i4,e_i4)
 
    implicit none
 
-   integer(kind=i4), intent(in)    :: length       !< Length of array
-   integer(kind=i8), intent(inout) :: a_i8(length) !< i8 array to be sorted
-   real(kind=r8)   , intent(inout) :: b_r8(length) !< r8 array to be moved
-   real(kind=r8)   , intent(inout) :: c_r8(length) !< r8 array to be moved
-   integer(kind=i4), intent(inout) :: d_i4(length) !< i4 array to be moved
-   integer(kind=i4), intent(inout) :: e_i4(length) !< i4 array to be moved
+   integer(kind=i4), intent(in)    :: length
+   integer(kind=i8), intent(inout) :: a_i8(length)
+   real(kind=r8)   , intent(inout) :: b_r8(length)
+   real(kind=r8)   , intent(inout) :: c_r8(length)
+   integer(kind=i4), intent(inout) :: d_i4(length)
+   integer(kind=i4), intent(inout) :: e_i4(length)
 
    integer(kind=i4) :: top
    integer(kind=i4) :: i
@@ -117,14 +117,14 @@ subroutine downheap_real_v1(length,a_i8,b_r8,c_r8,d_i4,e_i4,top,bottom)
 
    implicit none
 
-   integer(kind=i4), intent(in)    :: length       !< Length of array
-   integer(kind=i8), intent(inout) :: a_i8(length) !< i8 array to be sorted
-   real(kind=r8)   , intent(inout) :: b_r8(length) !< r8 array to be moved
-   real(kind=r8)   , intent(inout) :: c_r8(length) !< r8 array to be moved
-   integer(kind=i4), intent(inout) :: d_i4(length) !< i4 array to be moved
-   integer(kind=i4), intent(inout) :: e_i4(length) !< i4 array to be moved
-   integer(kind=i4), intent(in)    :: top          !< Top of heap
-   integer(kind=i4), intent(in)    :: bottom       !< Bottom of heap
+   integer(kind=i4), intent(in)    :: length
+   integer(kind=i8), intent(inout) :: a_i8(length)
+   real(kind=r8)   , intent(inout) :: b_r8(length)
+   real(kind=r8)   , intent(inout) :: c_r8(length)
+   integer(kind=i4), intent(inout) :: d_i4(length)
+   integer(kind=i4), intent(inout) :: e_i4(length)
+   integer(kind=i4), intent(in)    :: top
+   integer(kind=i4), intent(in)    :: bottom
 
    integer(kind=i4) :: v
    integer(kind=i4) :: w
@@ -163,11 +163,11 @@ subroutine heapsort_real_v2(length,a_i8,b_r8,c_i4,d_i4)
 
    implicit none
 
-   integer(kind=i4), intent(in)    :: length       !< Length of array
-   integer(kind=i8), intent(inout) :: a_i8(length) !< i8 array to be sorted
-   real(kind=r8)   , intent(inout) :: b_r8(length) !< r8 array to be moved
-   integer(kind=i4), intent(inout) :: c_i4(length) !< i4 array to be moved
-   integer(kind=i4), intent(inout) :: d_i4(length) !< i4 array to be moved
+   integer(kind=i4), intent(in)    :: length
+   integer(kind=i8), intent(inout) :: a_i8(length)
+   real(kind=r8)   , intent(inout) :: b_r8(length)
+   integer(kind=i4), intent(inout) :: c_i4(length)
+   integer(kind=i4), intent(inout) :: d_i4(length)
 
    integer(kind=i4) :: top
    integer(kind=i4) :: i
@@ -201,13 +201,13 @@ subroutine downheap_real_v2(length,a_i8,b_r8,c_i4,d_i4,top,bottom)
 
    implicit none
 
-   integer(kind=i4), intent(in)    :: length       !< Length of array
-   integer(kind=i8), intent(inout) :: a_i8(length) !< i8 array to be sorted
-   real(kind=r8)   , intent(inout) :: b_r8(length) !< r8 array to be moved
-   integer(kind=i4), intent(inout) :: c_i4(length) !< i4 array to be moved
-   integer(kind=i4), intent(inout) :: d_i4(length) !< i4 array to be moved
-   integer(kind=i4), intent(in)    :: top          !< Top of heap
-   integer(kind=i4), intent(in)    :: bottom       !< Bottom of heap
+   integer(kind=i4), intent(in)    :: length
+   integer(kind=i8), intent(inout) :: a_i8(length)
+   real(kind=r8)   , intent(inout) :: b_r8(length)
+   integer(kind=i4), intent(inout) :: c_i4(length)
+   integer(kind=i4), intent(inout) :: d_i4(length)
+   integer(kind=i4), intent(in)    :: top
+   integer(kind=i4), intent(in)    :: bottom
 
    integer(kind=i4) :: v
    integer(kind=i4) :: w
@@ -245,12 +245,12 @@ subroutine heapsort_real_v3(length,a_i4,b_r8,c_r8,d_i4,e_i4)
 
    implicit none
 
-   integer(kind=i4), intent(in)    :: length       !< Length of array
-   integer(kind=i4), intent(inout) :: a_i4(length) !< i4 array to be sorted
-   real(kind=r8)   , intent(inout) :: b_r8(length) !< r8 array to be moved
-   real(kind=r8)   , intent(inout) :: c_r8(length) !< r8 array to be moved
-   integer(kind=i4), intent(inout) :: d_i4(length) !< i4 array to be moved
-   integer(kind=i4), intent(inout) :: e_i4(length) !< i4 array to be moved
+   integer(kind=i4), intent(in)    :: length
+   integer(kind=i4), intent(inout) :: a_i4(length)
+   real(kind=r8)   , intent(inout) :: b_r8(length)
+   real(kind=r8)   , intent(inout) :: c_r8(length)
+   integer(kind=i4), intent(inout) :: d_i4(length)
+   integer(kind=i4), intent(inout) :: e_i4(length)
 
    integer(kind=i4) :: top
    integer(kind=i4) :: i
@@ -285,14 +285,14 @@ subroutine downheap_real_v3(length,a_i4,b_r8,c_r8,d_i4,e_i4,top,bottom)
 
    implicit none
 
-   integer(kind=i4), intent(in)    :: length       !< Length of array
-   integer(kind=i4), intent(inout) :: a_i4(length) !< i4 array to be sorted
-   real(kind=r8)   , intent(inout) :: b_r8(length) !< r8 array to be moved
-   real(kind=r8)   , intent(inout) :: c_r8(length) !< r8 array to be moved
-   integer(kind=i4), intent(inout) :: d_i4(length) !< i4 array to be moved
-   integer(kind=i4), intent(inout) :: e_i4(length) !< i4 array to be moved
-   integer(kind=i4), intent(in)    :: top          !< Top of heap
-   integer(kind=i4), intent(in)    :: bottom       !< Bottom of heap
+   integer(kind=i4), intent(in)    :: length
+   integer(kind=i4), intent(inout) :: a_i4(length)
+   real(kind=r8)   , intent(inout) :: b_r8(length)
+   real(kind=r8)   , intent(inout) :: c_r8(length)
+   integer(kind=i4), intent(inout) :: d_i4(length)
+   integer(kind=i4), intent(inout) :: e_i4(length)
+   integer(kind=i4), intent(in)    :: top
+   integer(kind=i4), intent(in)    :: bottom
 
    integer(kind=i4) :: v
    integer(kind=i4) :: w
@@ -331,11 +331,11 @@ subroutine heapsort_real_v4(length,a_i4,b_r8,c_i4,d_i4)
 
    implicit none
 
-   integer(kind=i4), intent(in)    :: length       !< Length of array
-   integer(kind=i4), intent(inout) :: a_i4(length) !< i4 array to be sorted
-   real(kind=r8)   , intent(inout) :: b_r8(length) !< r8 array to be moved
-   integer(kind=i4), intent(inout) :: c_i4(length) !< i4 array to be moved
-   integer(kind=i4), intent(inout) :: d_i4(length) !< i4 array to be moved
+   integer(kind=i4), intent(in)    :: length
+   integer(kind=i4), intent(inout) :: a_i4(length)
+   real(kind=r8)   , intent(inout) :: b_r8(length)
+   integer(kind=i4), intent(inout) :: c_i4(length)
+   integer(kind=i4), intent(inout) :: d_i4(length)
 
    integer(kind=i4) :: top
    integer(kind=i4) :: i
@@ -369,13 +369,13 @@ subroutine downheap_real_v4(length,a_i4,b_r8,c_i4,d_i4,top,bottom)
 
    implicit none
 
-   integer(kind=i4), intent(in)    :: length       !< Length of array
-   integer(kind=i4), intent(inout) :: a_i4(length) !< i4 array to be sorted
-   real(kind=r8)   , intent(inout) :: b_r8(length) !< r8 array to be moved
-   integer(kind=i4), intent(inout) :: c_i4(length) !< i4 array to be moved
-   integer(kind=i4), intent(inout) :: d_i4(length) !< i4 array to be moved
-   integer(kind=i4), intent(in)    :: top          !< Top of heap
-   integer(kind=i4), intent(in)    :: bottom       !< Bottom of heap
+   integer(kind=i4), intent(in)    :: length
+   integer(kind=i4), intent(inout) :: a_i4(length)
+   real(kind=r8)   , intent(inout) :: b_r8(length)
+   integer(kind=i4), intent(inout) :: c_i4(length)
+   integer(kind=i4), intent(inout) :: d_i4(length)
+   integer(kind=i4), intent(in)    :: top
+   integer(kind=i4), intent(in)    :: bottom
 
    integer(kind=i4) :: v
    integer(kind=i4) :: w
@@ -413,12 +413,12 @@ subroutine heapsort_cmplx_v1(length,a_i8,b_c16,c_c16,d_i4,e_i4)
 
    implicit none
 
-   integer(kind=i4), intent(in)    :: length        !< Length of array
-   integer(kind=i8), intent(inout) :: a_i8(length)  !< i8 array to be sorted
-   complex(kind=r8), intent(inout) :: b_c16(length) !< c16 array to be moved
-   complex(kind=r8), intent(inout) :: c_c16(length) !< c16 array to be moved
-   integer(kind=i4), intent(inout) :: d_i4(length)  !< i4 array to be moved
-   integer(kind=i4), intent(inout) :: e_i4(length)  !< i4 array to be moved
+   integer(kind=i4), intent(in)    :: length
+   integer(kind=i8), intent(inout) :: a_i8(length)
+   complex(kind=r8), intent(inout) :: b_c16(length)
+   complex(kind=r8), intent(inout) :: c_c16(length)
+   integer(kind=i4), intent(inout) :: d_i4(length)
+   integer(kind=i4), intent(inout) :: e_i4(length)
 
    integer(kind=i4) :: top
    integer(kind=i4) :: i
@@ -453,14 +453,14 @@ subroutine downheap_cmplx_v1(length,a_i8,b_c16,c_c16,d_i4,e_i4,top,bottom)
 
    implicit none
 
-   integer(kind=i4), intent(in)    :: length        !< Length of array
-   integer(kind=i8), intent(inout) :: a_i8(length)  !< i8 array to be sorted
-   complex(kind=r8), intent(inout) :: b_c16(length) !< c16 array to be moved
-   complex(kind=r8), intent(inout) :: c_c16(length) !< c16 array to be moved
-   integer(kind=i4), intent(inout) :: d_i4(length)  !< i4 array to be moved
-   integer(kind=i4), intent(inout) :: e_i4(length)  !< i4 array to be moved
-   integer(kind=i4), intent(in)    :: top           !< Top of heap
-   integer(kind=i4), intent(in)    :: bottom        !< Bottom of heap
+   integer(kind=i4), intent(in)    :: length
+   integer(kind=i8), intent(inout) :: a_i8(length)
+   complex(kind=r8), intent(inout) :: b_c16(length)
+   complex(kind=r8), intent(inout) :: c_c16(length)
+   integer(kind=i4), intent(inout) :: d_i4(length)
+   integer(kind=i4), intent(inout) :: e_i4(length)
+   integer(kind=i4), intent(in)    :: top
+   integer(kind=i4), intent(in)    :: bottom
 
    integer(kind=i4) :: v
    integer(kind=i4) :: w
@@ -499,11 +499,11 @@ subroutine heapsort_cmplx_v2(length,a_i8,b_c16,c_i4,d_i4)
 
    implicit none
 
-   integer(kind=i4), intent(in)    :: length        !< Length of array
-   integer(kind=i8), intent(inout) :: a_i8(length)  !< i8 array to be sorted
-   complex(kind=r8), intent(inout) :: b_c16(length) !< c16 array to be moved
-   integer(kind=i4), intent(inout) :: c_i4(length)  !< i4 array to be moved
-   integer(kind=i4), intent(inout) :: d_i4(length)  !< i4 array to be moved
+   integer(kind=i4), intent(in)    :: length
+   integer(kind=i8), intent(inout) :: a_i8(length)
+   complex(kind=r8), intent(inout) :: b_c16(length)
+   integer(kind=i4), intent(inout) :: c_i4(length)
+   integer(kind=i4), intent(inout) :: d_i4(length)
 
    integer(kind=i4) :: top
    integer(kind=i4) :: i
@@ -537,13 +537,13 @@ subroutine downheap_cmplx_v2(length,a_i8,b_c16,c_i4,d_i4,top,bottom)
 
    implicit none
 
-   integer(kind=i4), intent(in)    :: length        !< Length of array
-   integer(kind=i8), intent(inout) :: a_i8(length)  !< i8 array to be sorted
-   complex(kind=r8), intent(inout) :: b_c16(length) !< c16 array to be moved
-   integer(kind=i4), intent(inout) :: c_i4(length)  !< i4 array to be moved
-   integer(kind=i4), intent(inout) :: d_i4(length)  !< i4 array to be moved
-   integer(kind=i4), intent(in)    :: top           !< Top of heap
-   integer(kind=i4), intent(in)    :: bottom        !< Bottom of heap
+   integer(kind=i4), intent(in)    :: length
+   integer(kind=i8), intent(inout) :: a_i8(length)
+   complex(kind=r8), intent(inout) :: b_c16(length)
+   integer(kind=i4), intent(inout) :: c_i4(length)
+   integer(kind=i4), intent(inout) :: d_i4(length)
+   integer(kind=i4), intent(in)    :: top
+   integer(kind=i4), intent(in)    :: bottom
 
    integer(kind=i4) :: v
    integer(kind=i4) :: w
@@ -581,12 +581,12 @@ subroutine heapsort_cmplx_v3(length,a_i4,b_c16,c_c16,d_i4,e_i4)
 
    implicit none
 
-   integer(kind=i4), intent(in)    :: length        !< Length of array
-   integer(kind=i4), intent(inout) :: a_i4(length)  !< i4 array to be sorted
-   complex(kind=r8), intent(inout) :: b_c16(length) !< c16 array to be moved
-   complex(kind=r8), intent(inout) :: c_c16(length) !< c16 array to be moved
-   integer(kind=i4), intent(inout) :: d_i4(length)  !< i4 array to be moved
-   integer(kind=i4), intent(inout) :: e_i4(length)  !< i4 array to be moved
+   integer(kind=i4), intent(in)    :: length
+   integer(kind=i4), intent(inout) :: a_i4(length)
+   complex(kind=r8), intent(inout) :: b_c16(length)
+   complex(kind=r8), intent(inout) :: c_c16(length)
+   integer(kind=i4), intent(inout) :: d_i4(length)
+   integer(kind=i4), intent(inout) :: e_i4(length)
 
    integer(kind=i4) :: top
    integer(kind=i4) :: i
@@ -621,14 +621,14 @@ subroutine downheap_cmplx_v3(length,a_i4,b_c16,c_c16,d_i4,e_i4,top,bottom)
 
    implicit none
 
-   integer(kind=i4), intent(in)    :: length        !< Length of array
-   integer(kind=i4), intent(inout) :: a_i4(length)  !< i4 array to be sorted
-   complex(kind=r8), intent(inout) :: b_c16(length) !< c16 array to be moved
-   complex(kind=r8), intent(inout) :: c_c16(length) !< c16 array to be moved
-   integer(kind=i4), intent(inout) :: d_i4(length)  !< i4 array to be moved
-   integer(kind=i4), intent(inout) :: e_i4(length)  !< i4 array to be moved
-   integer(kind=i4), intent(in)    :: top           !< Top of heap
-   integer(kind=i4), intent(in)    :: bottom        !< Bottom of heap
+   integer(kind=i4), intent(in)    :: length
+   integer(kind=i4), intent(inout) :: a_i4(length)
+   complex(kind=r8), intent(inout) :: b_c16(length)
+   complex(kind=r8), intent(inout) :: c_c16(length)
+   integer(kind=i4), intent(inout) :: d_i4(length)
+   integer(kind=i4), intent(inout) :: e_i4(length)
+   integer(kind=i4), intent(in)    :: top
+   integer(kind=i4), intent(in)    :: bottom
 
    integer(kind=i4) :: v
    integer(kind=i4) :: w
@@ -667,11 +667,11 @@ subroutine heapsort_cmplx_v4(length,a_i4,b_c16,c_i4,d_i4)
 
    implicit none
 
-   integer(kind=i4), intent(in)    :: length        !< Length of array
-   integer(kind=i4), intent(inout) :: a_i4(length)  !< i4 array to be sorted
-   complex(kind=r8), intent(inout) :: b_c16(length) !< c16 array to be moved
-   integer(kind=i4), intent(inout) :: c_i4(length)  !< i4 array to be moved
-   integer(kind=i4), intent(inout) :: d_i4(length)  !< i4 array to be moved
+   integer(kind=i4), intent(in)    :: length
+   integer(kind=i4), intent(inout) :: a_i4(length)
+   complex(kind=r8), intent(inout) :: b_c16(length)
+   integer(kind=i4), intent(inout) :: c_i4(length)
+   integer(kind=i4), intent(inout) :: d_i4(length)
 
    integer(kind=i4) :: top
    integer(kind=i4) :: i
@@ -705,13 +705,13 @@ subroutine downheap_cmplx_v4(length,a_i4,b_c16,c_i4,d_i4,top,bottom)
 
    implicit none
 
-   integer(kind=i4), intent(in)    :: length        !< Length of array
-   integer(kind=i4), intent(inout) :: a_i4(length)  !< i4 array to be sorted
-   complex(kind=r8), intent(inout) :: b_c16(length) !< c16 array to be moved
-   integer(kind=i4), intent(inout) :: c_i4(length)  !< i4 array to be moved
-   integer(kind=i4), intent(inout) :: d_i4(length)  !< i4 array to be moved
-   integer(kind=i4), intent(in)    :: top           !< Top of heap
-   integer(kind=i4), intent(in)    :: bottom        !< Bottom of heap
+   integer(kind=i4), intent(in)    :: length
+   integer(kind=i4), intent(inout) :: a_i4(length)
+   complex(kind=r8), intent(inout) :: b_c16(length)
+   integer(kind=i4), intent(inout) :: c_i4(length)
+   integer(kind=i4), intent(inout) :: d_i4(length)
+   integer(kind=i4), intent(in)    :: top
+   integer(kind=i4), intent(in)    :: bottom
 
    integer(kind=i4) :: v
    integer(kind=i4) :: w
@@ -748,10 +748,10 @@ subroutine swap_i8(length,array,i,j)
 
    implicit none
 
-   integer(kind=i4), intent(in)    :: length        !< Length of array
-   integer(kind=i8), intent(inout) :: array(length) !< i8 array
-   integer(kind=i4), intent(in)    :: i             !< Index to be swapped
-   integer(kind=i4), intent(in)    :: j             !< Index to be swapped
+   integer(kind=i4), intent(in)    :: length
+   integer(kind=i8), intent(inout) :: array(length)
+   integer(kind=i4), intent(in)    :: i
+   integer(kind=i4), intent(in)    :: j
 
    integer(kind=i8) :: tmp
 
@@ -768,10 +768,10 @@ subroutine swap_i4(length,array,i,j)
 
    implicit none
 
-   integer(kind=i4), intent(in)    :: length        !< Length of array
-   integer(kind=i4), intent(inout) :: array(length) !< i4 array
-   integer(kind=i4), intent(in)    :: i             !< Index to be swapped
-   integer(kind=i4), intent(in)    :: j             !< Index to be swapped
+   integer(kind=i4), intent(in)    :: length
+   integer(kind=i4), intent(inout) :: array(length)
+   integer(kind=i4), intent(in)    :: i
+   integer(kind=i4), intent(in)    :: j
 
    integer(kind=i4) :: tmp
 
@@ -788,10 +788,10 @@ subroutine swap_r8(length,array,i,j)
 
    implicit none
 
-   integer(kind=i4), intent(in)    :: length        !< Length of array
-   real(kind=r8),    intent(inout) :: array(length) !< r8 array
-   integer(kind=i4), intent(in)    :: i             !< Index to be swapped
-   integer(kind=i4), intent(in)    :: j             !< Index to be swapped
+   integer(kind=i4), intent(in)    :: length
+   real(kind=r8),    intent(inout) :: array(length)
+   integer(kind=i4), intent(in)    :: i
+   integer(kind=i4), intent(in)    :: j
 
    real(kind=r8) :: tmp
 
@@ -808,10 +808,10 @@ subroutine swap_c16(length,array,i,j)
 
    implicit none
 
-   integer(kind=i4), intent(in)    :: length        !< Length of array
-   complex(kind=r8), intent(inout) :: array(length) !< c16 array
-   integer(kind=i4), intent(in)    :: i             !< Index to be swapped
-   integer(kind=i4), intent(in)    :: j             !< Index to be swapped
+   integer(kind=i4), intent(in)    :: length
+   complex(kind=r8), intent(inout) :: array(length)
+   integer(kind=i4), intent(in)    :: i
+   integer(kind=i4), intent(in)    :: j
 
    complex(kind=r8) :: tmp
 

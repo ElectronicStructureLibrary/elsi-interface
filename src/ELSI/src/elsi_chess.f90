@@ -49,8 +49,8 @@ module ELSI_CHESS
 
    public :: elsi_set_chess_default
    public :: elsi_init_chess
-   public :: elsi_solve_evp_chess
-   public :: elsi_compute_edm_chess
+   public :: elsi_solve_evp_chess_real
+   public :: elsi_compute_edm_chess_real
 
 contains
 
@@ -61,7 +61,7 @@ subroutine elsi_init_chess(e_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h !< Handle
+   type(elsi_handle), intent(inout) :: e_h
 
    real(kind=r8) :: n_electron(1)
 
@@ -126,11 +126,11 @@ end subroutine
 !>
 !! This routine interfaces to CheSS.
 !!
-subroutine elsi_solve_evp_chess(e_h)
+subroutine elsi_solve_evp_chess_real(e_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h !< Handle
+   type(elsi_handle), intent(inout) :: e_h
 
    logical          :: calc_ovlp_inv_sqrt
    real(kind=r8)    :: t0
@@ -138,7 +138,7 @@ subroutine elsi_solve_evp_chess(e_h)
    integer(kind=i4) :: mpierr
    character*200    :: info_str
 
-   character*40, parameter :: caller = "elsi_solve_evp_chess"
+   character*40, parameter :: caller = "elsi_solve_evp_chess_real"
 
    call elsi_get_time(e_h,t0)
 
@@ -174,13 +174,13 @@ end subroutine
 !>
 !! This routine computes the energy-weighted density matrix.
 !!
-subroutine elsi_compute_edm_chess(e_h)
+subroutine elsi_compute_edm_chess_real(e_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h !< Handle
+   type(elsi_handle), intent(inout) :: e_h
 
-   character*40, parameter :: caller = "elsi_compute_edm_chess"
+   character*40, parameter :: caller = "elsi_compute_edm_chess_real"
 
    ! TODO: Compute edm
 
@@ -193,7 +193,7 @@ subroutine elsi_set_chess_default(e_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h !< Handle
+   type(elsi_handle), intent(inout) :: e_h
 
    character*40, parameter :: caller = "elsi_set_chess_default"
 
