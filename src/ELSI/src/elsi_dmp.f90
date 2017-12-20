@@ -414,6 +414,8 @@ subroutine elsi_solve_evp_dmp_real(e_h,ham,ovlp,dm)
               caller)
    endif
 
+   dm = e_h%spin_degen*dm
+
    call MPI_Barrier(e_h%mpi_comm,mpierr)
 
    call elsi_get_time(e_h,t1)

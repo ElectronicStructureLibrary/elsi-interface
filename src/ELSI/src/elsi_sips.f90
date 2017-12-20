@@ -43,8 +43,8 @@ module ELSI_SIPS
 
    public :: elsi_set_sips_default
    public :: elsi_init_sips
-   public :: elsi_solve_evp_sips
-   public :: elsi_sips_to_blacs_ev
+   public :: elsi_solve_evp_sips_real
+   public :: elsi_sips_to_blacs_ev_real
 
 contains
 
@@ -91,7 +91,7 @@ end subroutine
 !>
 !! This routine interfaces to SIPs via QETSC.
 !!
-subroutine elsi_solve_evp_sips(e_h,ham,ovlp,eval)
+subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
 
    implicit none
 
@@ -109,7 +109,7 @@ subroutine elsi_solve_evp_sips(e_h,ham,ovlp,eval)
    real(kind=r8),    allocatable :: shifts(:)
    integer(kind=i4), allocatable :: inertias(:)
 
-   character*40, parameter :: caller = "elsi_solve_evp_sips"
+   character*40, parameter :: caller = "elsi_solve_evp_sips_real"
 
    ! Solve the eigenvalue problem
    call elsi_say(e_h,"  Starting SIPs eigensolver")
@@ -213,12 +213,12 @@ end subroutine
 !! This routine gets the eigenvectors computed by SIPs and distributes them in a
 !! 2D block-cyclic fashion.
 !!
-subroutine elsi_sips_to_blacs_ev(e_h,evec)
+subroutine elsi_sips_to_blacs_ev_real(e_h,evec)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: e_h
-   type(elsi_handle), intent(out)   :: evec(e_h%n_lrow,e_h%n_lcol)
+   real(kind=r8),     intent(out)   :: evec(e_h%n_lrow,e_h%n_lcol)
 
    integer(kind=i4) :: i_state
    integer(kind=i4) :: i_row
@@ -233,7 +233,7 @@ subroutine elsi_sips_to_blacs_ev(e_h,evec)
 
    real(kind=r8), allocatable :: tmp_real(:)
 
-   character*40, parameter :: caller = "elsi_distribute_ev"
+   character*40, parameter :: caller = "elsi_sips_to_blacs_ev_real"
 
    call elsi_get_time(e_h,t0)
 

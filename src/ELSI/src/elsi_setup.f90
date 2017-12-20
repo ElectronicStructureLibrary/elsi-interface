@@ -427,59 +427,6 @@ subroutine elsi_cleanup(e_h)
 
    character*40, parameter :: caller = "elsi_cleanup"
 
-   ! Nullify pointers
-   if(associated(e_h%ham_real)) then
-      nullify(e_h%ham_real)
-   endif
-   if(associated(e_h%ham_cmplx)) then
-      nullify(e_h%ham_cmplx)
-   endif
-   if(associated(e_h%ovlp_real)) then
-      nullify(e_h%ovlp_real)
-   endif
-   if(associated(e_h%ovlp_cmplx)) then
-      nullify(e_h%ovlp_cmplx)
-   endif
-   if(associated(e_h%eval)) then
-      nullify(e_h%eval)
-   endif
-   if(associated(e_h%evec_real)) then
-      nullify(e_h%evec_real)
-   endif
-   if(associated(e_h%evec_cmplx)) then
-      nullify(e_h%evec_cmplx)
-   endif
-   if(associated(e_h%dm_real)) then
-      nullify(e_h%dm_real)
-   endif
-   if(associated(e_h%dm_cmplx)) then
-      nullify(e_h%dm_cmplx)
-   endif
-   if(associated(e_h%ham_real_ccs)) then
-      nullify(e_h%ham_real_ccs)
-   endif
-   if(associated(e_h%ham_cmplx_ccs)) then
-      nullify(e_h%ham_cmplx_ccs)
-   endif
-   if(associated(e_h%ovlp_real_ccs)) then
-      nullify(e_h%ovlp_real_ccs)
-   endif
-   if(associated(e_h%ovlp_cmplx_ccs)) then
-      nullify(e_h%ovlp_cmplx_ccs)
-   endif
-   if(associated(e_h%dm_real_ccs)) then
-      nullify(e_h%dm_real_ccs)
-   endif
-   if(associated(e_h%dm_cmplx_ccs)) then
-      nullify(e_h%dm_cmplx_ccs)
-   endif
-   if(associated(e_h%row_ind_ccs)) then
-      nullify(e_h%row_ind_ccs)
-   endif
-   if(associated(e_h%col_ptr_ccs)) then
-      nullify(e_h%col_ptr_ccs)
-   endif
-
    ! ELPA
    if(allocated(e_h%ham_real_elpa)) then
       call elsi_deallocate(e_h,e_h%ham_real_elpa,"ham_real_elpa")
@@ -639,6 +586,12 @@ subroutine elsi_cleanup(e_h)
    endif
    if(allocated(e_h%loc_col)) then
       call elsi_deallocate(e_h,e_h%loc_col,"loc_col")
+   endif
+   if(associated(e_h%row_ind_ccs)) then
+      nullify(e_h%row_ind_ccs)
+   endif
+   if(associated(e_h%col_ptr_ccs)) then
+      nullify(e_h%col_ptr_ccs)
    endif
 
    ! Finalize ELPA

@@ -1037,7 +1037,6 @@ subroutine elsi_compute_edm_pexsi_cmplx(e_h,edm)
 
    real(kind=r8),    allocatable :: shifts(:)
    complex(kind=r8), allocatable :: tmp_cmplx(:)
-   real(kind=r8),    allocatable :: send_buf(:)
    complex(kind=r8), allocatable :: send_buf_cmplx(:)
 
    character*40, parameter :: caller = "elsi_compute_edm_pexsi_cmplx"
@@ -1151,7 +1150,7 @@ subroutine elsi_compute_edm_pexsi_cmplx(e_h,edm)
    endif
 
    if(e_h%my_prow_pexsi == 0) then
-      dm = tmp_cmplx
+      edm = tmp_cmplx
    endif
 
    call elsi_deallocate(e_h,tmp_cmplx,"tmp_cmplx")

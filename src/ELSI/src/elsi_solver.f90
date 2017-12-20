@@ -32,23 +32,30 @@
 !!
 module ELSI_SOLVER
 
-   use ELSI_CHESS,     only: elsi_init_chess,elsi_solve_evp_chess
+   use ELSI_CHESS,     only: elsi_init_chess,elsi_solve_evp_chess_real
    use ELSI_CONSTANTS, only: ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,CHESS_SOLVER,&
                              SIPS_SOLVER,REAL_VALUES,COMPLEX_VALUES,MULTI_PROC,&
                              SINGLE_PROC,UNSET
    use ELSI_DATATYPE
-   use ELSI_DMP,       only: elsi_solve_evp_dmp
-   use ELSI_ELPA,      only: elsi_compute_occ_elpa,elsi_compute_dm_elpa,&
-                             elsi_normalize_dm_elpa,elsi_solve_evp_elpa
-   use ELSI_LAPACK,    only: elsi_solve_evp_lapack
+   use ELSI_DMP,       only: elsi_solve_evp_dmp_real
+   use ELSI_ELPA,      only: elsi_compute_occ_elpa,elsi_compute_dm_elpa_real,&
+                             elsi_normalize_dm_elpa_real,&
+                             elsi_solve_evp_elpa_real,&
+                             elsi_compute_dm_elpa_cmplx,&
+                             elsi_normalize_dm_elpa_cmplx,&
+                             elsi_solve_evp_elpa_cmplx
+   use ELSI_LAPACK,    only: elsi_solve_evp_lapack_real,&
+                             elsi_solve_evp_lapack_cmplx
    use ELSI_MALLOC
    use ELSI_MATCONV
-   use ELSI_OMM,       only: elsi_solve_evp_omm
-   use ELSI_PEXSI,     only: elsi_init_pexsi,elsi_solve_evp_pexsi
+   use ELSI_OMM,       only: elsi_solve_evp_omm_real,&
+                             elsi_solve_evp_omm_cmplx
+   use ELSI_PEXSI,     only: elsi_init_pexsi,elsi_solve_evp_pexsi_real,&
+                             elsi_solve_evp_pexsi_cmplx
    use ELSI_PRECISION, only: r8,i4
    use ELSI_SETUP,     only: elsi_set_blacs
-   use ELSI_SIPS,      only: elsi_init_sips,elsi_solve_evp_sips,&
-                             elsi_sips_to_blacs_ev
+   use ELSI_SIPS,      only: elsi_init_sips,elsi_solve_evp_sips_real,&
+                             elsi_sips_to_blacs_ev_real
    use ELSI_UTILS
    use MATRIXSWITCH,   only: m_allocate
 
@@ -89,7 +96,7 @@ subroutine elsi_get_energy(e_h,energy)
       energy = 0.0_r8
 
       do i_state = 1,e_h%n_states_solve
-         energy = energy+e_h%i_weight*e_h%eval(i_state)*&
+         energy = energy+e_h%i_weight*e_h%eval_elpa(i_state)*&
                      e_h%occ_num(i_state,e_h%i_spin,e_h%i_kpt)
       enddo
    case(OMM_SOLVER)
@@ -544,28 +551,13 @@ subroutine elsi_dm_real(e_h,h_in,s_in,d_out,energy_out)
          ! Initialize coefficient matrix with ELPA eigenvectors if possible
          if(e_h%omm_n_elpa > 0 .and. e_h%n_elsi_calls == e_h%omm_n_elpa+1) then
             ! libOMM coefficient matrix is the transpose of ELPA eigenvectors
-            call pdtran(e_h%n_basis,e_h%n_basis,1.0_r8,e_h%evec_real,1,1,&
+            call pdtran(e_h%n_basis,e_h%n_basis,1.0_r8,e_h%evec_real_elpa,1,1,&
                     e_h%sc_desc,0.0_r8,d_out,1,1,e_h%sc_desc)
 
             e_h%coeff%dval(1:e_h%coeff%iaux2(1),1:e_h%coeff%iaux2(2)) = &
                d_out(1:e_h%coeff%iaux2(1),1:e_h%coeff%iaux2(2))
 
             ! ELPA matrices are no longer needed
-            if(associated(e_h%ham_real)) then
-               nullify(e_h%ham_real)
-            endif
-            if(associated(e_h%ovlp_real)) then
-               nullify(e_h%ovlp_real)
-            endif
-            if(associated(e_h%evec_real)) then
-               nullify(e_h%evec_real)
-            endif
-            if(associated(e_h%eval)) then
-               nullify(e_h%eval)
-            endif
-            if(associated(e_h%dm_real)) then
-               nullify(e_h%dm_real)
-            endif
             if(allocated(e_h%evec_real_elpa)) then
                call elsi_deallocate(e_h,e_h%evec_real_elpa,"evec_real_elpa")
             endif
@@ -585,8 +577,6 @@ subroutine elsi_dm_real(e_h,h_in,s_in,d_out,energy_out)
 
          ! Solve
          call elsi_solve_evp_omm(e_h)
-
-         e_h%dm_omm%dval = e_h%spin_degen*e_h%dm_omm%dval
          call elsi_get_energy(e_h,energy_out)
       endif
    case(PEXSI_SOLVER)
@@ -665,8 +655,6 @@ subroutine elsi_dm_real(e_h,h_in,s_in,d_out,energy_out)
 
       ! Solve
       call elsi_solve_evp_dmp(e_h)
-
-      e_h%dm_real = e_h%spin_degen*e_h%dm_real
       call elsi_get_energy(e_h,energy_out)
    case default
       call elsi_stop(" Unsupported solver.",e_h,caller)
@@ -804,28 +792,13 @@ subroutine elsi_dm_complex(e_h,h_in,s_in,d_out,energy_out)
          if(e_h%omm_n_elpa > 0 .and. e_h%n_elsi_calls == e_h%omm_n_elpa+1) then
             ! libOMM coefficient matrix is the transpose of ELPA eigenvectors
             call pztranc(e_h%n_basis,e_h%n_basis,(1.0_r8,0.0_r8),&
-                    e_h%evec_cmplx,1,1,e_h%sc_desc,(0.0_r8,0.0_r8),d_out,1,1,&
-                    e_h%sc_desc)
+                    e_h%evec_cmplx_elpa,1,1,e_h%sc_desc,(0.0_r8,0.0_r8),d_out,&
+                    1,1,e_h%sc_desc)
 
             e_h%coeff%zval(1:e_h%coeff%iaux2(1),1:e_h%coeff%iaux2(2)) = &
                d_out(1:e_h%coeff%iaux2(1),1:e_h%coeff%iaux2(2))
 
             ! ELPA matrices are no longer needed
-            if(associated(e_h%ham_cmplx)) then
-               nullify(e_h%ham_cmplx)
-            endif
-            if(associated(e_h%ovlp_cmplx)) then
-               nullify(e_h%ovlp_cmplx)
-            endif
-            if(associated(e_h%evec_cmplx)) then
-               nullify(e_h%evec_cmplx)
-            endif
-            if(associated(e_h%eval)) then
-               nullify(e_h%eval)
-            endif
-            if(associated(e_h%dm_cmplx)) then
-               nullify(e_h%dm_cmplx)
-            endif
             if(allocated(e_h%evec_cmplx_elpa)) then
                call elsi_deallocate(e_h,e_h%evec_cmplx_elpa,"evec_cmplx_elpa")
             endif
@@ -845,8 +818,6 @@ subroutine elsi_dm_complex(e_h,h_in,s_in,d_out,energy_out)
 
          ! Solve
          call elsi_solve_evp_omm(e_h)
-
-         e_h%dm_omm%zval = e_h%spin_degen*e_h%dm_omm%zval
          call elsi_get_energy(e_h,energy_out)
       endif
    case(PEXSI_SOLVER)
@@ -1040,28 +1011,13 @@ subroutine elsi_dm_real_sparse(e_h,h_in,s_in,d_out,energy_out)
          ! Initialize coefficient matrix with ELPA eigenvectors if possible
          if(e_h%omm_n_elpa > 0 .and. e_h%n_elsi_calls == e_h%omm_n_elpa+1) then
             ! libOMM coefficient matrix is the transpose of ELPA eigenvectors
-            call pdtran(e_h%n_basis,e_h%n_basis,1.0_r8,e_h%evec_real,1,1,&
+            call pdtran(e_h%n_basis,e_h%n_basis,1.0_r8,e_h%evec_real_elpa,1,1,&
                     e_h%sc_desc,0.0_r8,e_h%dm_real_elpa,1,1,e_h%sc_desc)
 
             e_h%coeff%dval(1:e_h%coeff%iaux2(1),1:e_h%coeff%iaux2(2)) = &
                e_h%dm_real_elpa(1:e_h%coeff%iaux2(1),1:e_h%coeff%iaux2(2))
 
             ! ELPA matrices are no longer needed
-            if(associated(e_h%ham_real)) then
-               nullify(e_h%ham_real)
-            endif
-            if(associated(e_h%ovlp_real)) then
-               nullify(e_h%ovlp_real)
-            endif
-            if(associated(e_h%evec_real)) then
-               nullify(e_h%evec_real)
-            endif
-            if(associated(e_h%dm_real)) then
-               nullify(e_h%dm_real)
-            endif
-            if(associated(e_h%eval)) then
-               nullify(e_h%eval)
-            endif
             if(allocated(e_h%evec_real_elpa)) then
                call elsi_deallocate(e_h,e_h%evec_real_elpa,"evec_real_elpa")
             endif
@@ -1075,8 +1031,6 @@ subroutine elsi_dm_real_sparse(e_h,h_in,s_in,d_out,energy_out)
 
          ! Solve
          call elsi_solve_evp_omm(e_h)
-
-         e_h%dm_omm%dval = e_h%spin_degen*e_h%dm_omm%dval
          call elsi_blacs_to_sips_dm(e_h,d_out)
          call elsi_get_energy(e_h,energy_out)
       endif
@@ -1131,8 +1085,6 @@ subroutine elsi_dm_real_sparse(e_h,h_in,s_in,d_out,energy_out)
 
       ! Solve
       call elsi_solve_evp_dmp(e_h)
-
-      e_h%dm_real = e_h%spin_degen*e_h%dm_real
       call elsi_blacs_to_sips_dm(e_h,d_out)
       call elsi_get_energy(e_h,energy_out)
    case default
@@ -1289,28 +1241,13 @@ subroutine elsi_dm_complex_sparse(e_h,h_in,s_in,d_out,energy_out)
          if(e_h%omm_n_elpa > 0 .and. e_h%n_elsi_calls == e_h%omm_n_elpa+1) then
             ! libOMM coefficient matrix is the transpose of ELPA eigenvectors
             call pztranc(e_h%n_basis,e_h%n_basis,(1.0_r8,0.0_r8),&
-                    e_h%evec_cmplx,1,1,e_h%sc_desc,(0.0_r8,0.0_r8),&
+                    e_h%evec_cmplx_elpa,1,1,e_h%sc_desc,(0.0_r8,0.0_r8),&
                     e_h%dm_cmplx_elpa,1,1,e_h%sc_desc)
 
             e_h%coeff%zval(1:e_h%coeff%iaux2(1),1:e_h%coeff%iaux2(2)) = &
                e_h%dm_cmplx_elpa(1:e_h%coeff%iaux2(1),1:e_h%coeff%iaux2(2))
 
             ! ELPA matrices are no longer needed
-            if(associated(e_h%ham_cmplx)) then
-               nullify(e_h%ham_cmplx)
-            endif
-            if(associated(e_h%ovlp_cmplx)) then
-               nullify(e_h%ovlp_cmplx)
-            endif
-            if(associated(e_h%evec_cmplx)) then
-               nullify(e_h%evec_cmplx)
-            endif
-            if(associated(e_h%dm_cmplx)) then
-               nullify(e_h%dm_cmplx)
-            endif
-            if(associated(e_h%eval)) then
-               nullify(e_h%eval)
-            endif
             if(allocated(e_h%evec_cmplx_elpa)) then
                call elsi_deallocate(e_h,e_h%evec_cmplx_elpa,"evec_cmplx_elpa")
             endif
@@ -1324,8 +1261,6 @@ subroutine elsi_dm_complex_sparse(e_h,h_in,s_in,d_out,energy_out)
 
          ! Solve
          call elsi_solve_evp_omm(e_h)
-
-         e_h%dm_omm%zval = e_h%spin_degen*e_h%dm_omm%zval
          call elsi_blacs_to_sips_dm(e_h,d_out)
          call elsi_get_energy(e_h,energy_out)
       endif

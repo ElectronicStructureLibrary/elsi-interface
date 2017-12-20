@@ -813,7 +813,6 @@ subroutine elsi_compute_edm_elpa_cmplx(e_h,eval,evec,edm,work)
    character*200    :: info_str
 
    real(kind=r8),    allocatable :: factor(:)
-   complex(kind=r8), allocatable :: tmp_cmplx(:,:)
 
    character*40, parameter :: caller = "elsi_compute_edm_elpa_cmplx"
 

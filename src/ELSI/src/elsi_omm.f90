@@ -141,6 +141,8 @@ subroutine elsi_solve_evp_omm_real(e_h,ham,ovlp,dm)
            e_h%coeff_ready,e_h%tdm_omm,e_h%scale_kinetic,e_h%omm_flavor,1,1,&
            e_h%min_tol,e_h%omm_output,e_h%do_dealloc,"pddbc","lap")
 
+   dm = e_h%spin_degen*dm
+
    call MPI_Barrier(e_h%mpi_comm,mpierr)
 
    call elsi_get_time(e_h,t1)
@@ -280,6 +282,8 @@ subroutine elsi_solve_evp_omm_cmplx(e_h,ham,ovlp,dm)
            e_h%energy_hdm,e_h%dm_omm,e_h%calc_ed,e_h%eta,e_h%coeff,&
            e_h%coeff_ready,e_h%tdm_omm,e_h%scale_kinetic,e_h%omm_flavor,1,1,&
            e_h%min_tol,e_h%omm_output,e_h%do_dealloc,"pzdbc","lap")
+
+   dm = e_h%spin_degen*dm
 
    call MPI_Barrier(e_h%mpi_comm,mpierr)
 

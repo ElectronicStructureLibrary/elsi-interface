@@ -115,9 +115,9 @@ subroutine elsi_blacs_to_pexsi_hs_real(e_h,h_in,s_in)
    n_para_task = e_h%n_procs/e_h%np_per_pole
 
    if(.not. e_h%ovlp_is_unit) then
-      ref => s_in
+!      ref => s_in
    else
-      ref => h_in
+!      ref => h_in
    endif
 
    if(e_h%n_elsi_calls == 1) then
@@ -226,7 +226,7 @@ subroutine elsi_blacs_to_pexsi_hs_real(e_h,h_in,s_in)
       enddo
    enddo
 
-   nullify(ref)
+!   nullify(ref)
    call elsi_deallocate(e_h,locat,"locat")
    call elsi_allocate(e_h,recv_count,e_h%n_procs,"recv_count",caller)
 
@@ -474,9 +474,9 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(e_h,h_in,s_in)
    n_para_task = e_h%n_procs/e_h%np_per_pole
 
    if(.not. e_h%ovlp_is_unit) then
-      ref => s_in
+!      ref => s_in
    else
-      ref => h_in
+!      ref => h_in
    endif
 
    if(e_h%n_elsi_calls == 1) then
@@ -585,7 +585,7 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(e_h,h_in,s_in)
       enddo
    enddo
 
-   nullify(ref)
+!   nullify(ref)
    call elsi_deallocate(e_h,locat,"locat")
    call elsi_allocate(e_h,recv_count,e_h%n_procs,"recv_count",caller)
 
@@ -1124,9 +1124,9 @@ subroutine elsi_blacs_to_sips_hs_real(e_h,h_in,s_in)
    endif
 
    if(.not. e_h%ovlp_is_unit) then
-      ref => s_in
+!      ref => s_in
    else
-      ref => h_in
+!      ref => h_in
    endif
 
    if(e_h%n_elsi_calls == 1+e_h%sips_n_elpa) then
@@ -1174,7 +1174,7 @@ subroutine elsi_blacs_to_sips_hs_real(e_h,h_in,s_in)
      enddo
    enddo
 
-   nullify(ref)
+!   nullify(ref)
 
    call elsi_allocate(e_h,recv_count,e_h%n_procs,"recv_count",caller)
 
@@ -1348,9 +1348,9 @@ subroutine elsi_blacs_to_sips_hs_cmplx(e_h,h_in,s_in)
    endif
 
    if(.not. e_h%ovlp_is_unit) then
-      ref => s_in
+!      ref => s_in
    else
-      ref => h_in
+!      ref => h_in
    endif
 
    if(e_h%n_elsi_calls == 1+e_h%sips_n_elpa) then
@@ -1398,7 +1398,7 @@ subroutine elsi_blacs_to_sips_hs_cmplx(e_h,h_in,s_in)
      enddo
    enddo
 
-   nullify(ref)
+!   nullify(ref)
 
    call elsi_allocate(e_h,recv_count,e_h%n_procs,"recv_count",caller)
 
@@ -1983,9 +1983,9 @@ subroutine elsi_blacs_to_sips_dm_real(e_h,d_out)
    call elsi_get_time(e_h,t0)
 
    if(e_h%solver == ELPA_SOLVER .or. e_h%solver == DMP_SOLVER) then
-      ref => e_h%dm_real
+!      ref => e_h%dm_real_elpa
    elseif(e_h%solver == OMM_SOLVER) then
-      ref => e_h%dm_omm%dval
+!      ref => e_h%dm_omm%dval
    endif
 
    call elsi_get_local_nnz_real(e_h,ref,e_h%n_lrow,e_h%n_lcol,e_h%nnz_l)
@@ -2019,7 +2019,7 @@ subroutine elsi_blacs_to_sips_dm_real(e_h,d_out)
       enddo
    enddo
 
-   nullify(ref)
+!   nullify(ref)
 
    call elsi_allocate(e_h,recv_count,e_h%n_procs,"recv_count",caller)
 
@@ -2148,9 +2148,9 @@ subroutine elsi_blacs_to_sips_dm_cmplx(e_h,d_out)
    call elsi_get_time(e_h,t0)
 
    if(e_h%solver == ELPA_SOLVER .or. e_h%solver == DMP_SOLVER) then
-      ref => e_h%dm_cmplx
+!      ref => e_h%dm_cmplx_elpa
    elseif(e_h%solver == OMM_SOLVER) then
-      ref => e_h%dm_omm%zval
+!      ref => e_h%dm_omm%zval
    endif
 
    call elsi_get_local_nnz_cmplx(e_h,ref,e_h%n_lrow,e_h%n_lcol,e_h%nnz_l)
@@ -2184,7 +2184,7 @@ subroutine elsi_blacs_to_sips_dm_cmplx(e_h,d_out)
       enddo
    enddo
 
-   nullify(ref)
+!   nullify(ref)
 
    call elsi_allocate(e_h,recv_count,e_h%n_procs,"recv_count",caller)
 
