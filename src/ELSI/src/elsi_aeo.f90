@@ -1159,11 +1159,7 @@ subroutine elsi_set_elpa_default(e_h)
    character*40, parameter :: caller = "elsi_set_elpa_default"
 
    ! ELPA solver
-   if(e_h%n_basis < 250) then
-      e_h%elpa_solver = 1
-   else
-      e_h%elpa_solver = 2
-   endif
+   e_h%elpa_solver = 2
 
    ! How many single precision steps?
    e_h%n_single_steps = 0
