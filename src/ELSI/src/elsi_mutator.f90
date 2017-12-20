@@ -221,9 +221,9 @@ subroutine elsi_set_sing_check(e_h,sing_check)
    call elsi_check_handle(e_h,caller)
 
    if(sing_check == 0) then
-      e_h%no_sing_check = .true.
+      e_h%check_sing = .false.
    else
-      e_h%no_sing_check = .false.
+      e_h%check_sing = .true.
    endif
 
 end subroutine

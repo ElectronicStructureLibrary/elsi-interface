@@ -70,7 +70,7 @@ subroutine elsi_to_standard_evp_sp(e_h)
 
    select case(e_h%data_type)
    case(COMPLEX_VALUES)
-      if(.not. e_h%no_sing_check) then
+      if(e_h%check_sing) then
          call elsi_check_singularity_sp(e_h)
       endif
 
@@ -150,7 +150,7 @@ subroutine elsi_to_standard_evp_sp(e_h)
       write(info_str,"('  | Time :',F10.3,' s')") t1-t0
       call elsi_say(e_h,info_str)
    case(REAL_VALUES)
-      if(.not. e_h%no_sing_check) then
+      if(e_h%check_sing) then
          call elsi_check_singularity_sp(e_h)
       endif
 

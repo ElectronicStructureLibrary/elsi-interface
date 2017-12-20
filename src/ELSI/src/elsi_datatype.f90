@@ -196,11 +196,11 @@ module ELSI_DATATYPE
 
       ! Overlap
       logical          :: ovlp_is_unit
-      logical          :: ovlp_is_sing  ! Is overlap singular?
-      logical          :: no_sing_check ! Disable singularity check?
-      real(kind=r8)    :: sing_tol      ! Overlap singularity tolerance
-      logical          :: stop_sing     ! Always stop if overlap is singular?
-      integer(kind=i4) :: n_nonsing     ! Number of nonsingular basis functions
+      logical          :: ovlp_is_sing ! Is overlap singular?
+      logical          :: check_sing   ! Check overlap singularity?
+      real(kind=r8)    :: sing_tol     ! Overlap singularity tolerance
+      logical          :: stop_sing    ! Always stop if overlap is singular?
+      integer(kind=i4) :: n_nonsing    ! Number of nonsingular basis functions
 
       ! Physics
       real(kind=r8)    :: n_electrons

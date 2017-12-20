@@ -175,7 +175,7 @@ subroutine elsi_reset_handle(e_h)
    e_h%sparsity_ready   = .false.
    e_h%ovlp_is_unit     = .false.
    e_h%ovlp_is_sing     = .false.
-   e_h%no_sing_check    = .false.
+   e_h%check_sing       = .true.
    e_h%sing_tol         = 1.0e-5_r8
    e_h%stop_sing        = .false.
    e_h%n_nonsing        = UNSET
