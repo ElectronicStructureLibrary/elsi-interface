@@ -114,8 +114,6 @@ module ELSI_DATATYPE
       complex(kind=r8), allocatable :: ovlp_cmplx_copy(:,:)
       integer(kind=i4), allocatable :: loc_row(:)
       integer(kind=i4), allocatable :: loc_col(:)
-      integer(kind=i4), pointer     :: row_ind_ccs(:)
-      integer(kind=i4), pointer     :: col_ptr_ccs(:)
 
       ! Is this a valid handle?
       logical          :: handle_ready = .false.

@@ -62,7 +62,6 @@ subroutine elsi_solve_evp_dmp_real(e_h,ham,ovlp,dm)
    integer(kind=i4) :: i
    integer(kind=i4) :: j
    integer(kind=i4) :: i_iter
-   integer(kind=i4) :: uplo_save
    integer(kind=i4) :: mpierr
    integer(kind=i4) :: ierr
    logical          :: ev_min_found
@@ -90,12 +89,6 @@ subroutine elsi_solve_evp_dmp_real(e_h,ham,ovlp,dm)
 
    character*40, parameter :: caller = "elsi_solve_evp_dmp_real"
 
-   call elsi_set_full_mat_real(e_h,ham)
-
-   if(e_h%n_elsi_calls == 1 .and. .not. e_h%ovlp_is_unit) then
-      call elsi_set_full_mat_real(e_h,ovlp)
-   endif
-
    ! Compute sparsity
    if(e_h%n_elsi_calls == 1 .and. e_h%matrix_format == BLACS_DENSE) then
       call elsi_get_local_nnz_real(e_h,ham,e_h%n_lrow,e_h%n_lcol,e_h%nnz_l)
@@ -112,7 +105,7 @@ subroutine elsi_solve_evp_dmp_real(e_h,ham,ovlp,dm)
    e_h%check_sing = .false.
 
    call elsi_allocate(e_h,tmp_real1,e_h%n_basis,"tmp_real1",caller)
-   call elsi_to_standard_evp(e_h,ham,ovlp,tmp_real1,dm)
+   call elsi_to_standard_evp_real(e_h,ham,ovlp,tmp_real1,dm)
    call elsi_deallocate(e_h,tmp_real1,"tmp_real1")
 
    ! Compute inverse of overlap
@@ -125,12 +118,7 @@ subroutine elsi_solve_evp_dmp_real(e_h,ham,ovlp,dm)
       call pdpotrf('U',e_h%n_basis,e_h%ovlp_real_inv,1,1,e_h%sc_desc,ierr)
       call pdpotri('U',e_h%n_basis,e_h%ovlp_real_inv,1,1,e_h%sc_desc,ierr)
 
-      uplo_save = e_h%uplo
-      e_h%uplo  = UT_MAT
-
-      call elsi_set_full_mat_real(e_h,e_h%ovlp_real_inv)
-
-      e_h%uplo = uplo_save
+      call elsi_set_full_mat_real(e_h,e_h%ovlp_real_inv,UT_MAT)
    endif
 
    ! Use Gershgorin's theorem to find the bounds of the spectrum
@@ -424,6 +412,57 @@ subroutine elsi_solve_evp_dmp_real(e_h,ham,ovlp,dm)
    call elsi_say(e_h,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
    call elsi_say(e_h,info_str)
+
+end subroutine
+
+!>
+!! This routine sets a full matrix from a (upper or lower) triangular matrix.
+!! The size of matrix should be the same as the Hamiltonian matrix.
+!!
+subroutine elsi_set_full_mat_real(e_h,mat,uplo)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h
+   real(kind=r8),     intent(inout) :: mat(e_h%n_lrow,e_h%n_lcol)
+   integer(kind=i4),  intent(in)    :: uplo
+
+   integer(kind=i4) :: i_row
+   integer(kind=i4) :: i_col
+   real(kind=r8), allocatable :: tmp_real(:,:)
+
+   character*40, parameter :: caller = "elsi_set_full_mat_real"
+
+   call elsi_allocate(e_h,tmp_real,e_h%n_lrow,e_h%n_lcol,"tmp_real",caller)
+
+   call pdtran(e_h%n_basis,e_h%n_basis,1.0_r8,mat,1,1,e_h%sc_desc,0.0_r8,&
+           tmp_real,1,1,e_h%sc_desc)
+
+   if(uplo == UT_MAT) then ! Upper triangular
+      do i_col = 1,e_h%n_basis-1
+         if(e_h%loc_col(i_col) == 0) cycle
+
+         do i_row = i_col+1,e_h%n_basis
+            if(e_h%loc_row(i_row) > 0) then
+               mat(e_h%loc_row(i_row),e_h%loc_col(i_col)) = &
+                  tmp_real(e_h%loc_row(i_row),e_h%loc_col(i_col))
+            endif
+         enddo
+      enddo
+   elseif(uplo == LT_MAT) then ! Lower triangular
+      do i_col = 2,e_h%n_basis
+         if(e_h%loc_col(i_col) == 0) cycle
+
+         do i_row = 1,i_col-1
+            if(e_h%loc_row(i_row) > 0) then
+               mat(e_h%loc_row(i_row),e_h%loc_col(i_col)) = &
+                  tmp_real(e_h%loc_row(i_row),e_h%loc_col(i_col))
+            endif
+         enddo
+      enddo
+   endif
+
+   call elsi_deallocate(e_h,tmp_real,"tmp_real")
 
 end subroutine
 

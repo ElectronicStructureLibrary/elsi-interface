@@ -46,8 +46,6 @@ module ELSI_UTILS
    public :: elsi_get_global_col
    public :: elsi_get_local_nnz_real
    public :: elsi_get_local_nnz_cmplx
-   public :: elsi_set_full_mat_real
-   public :: elsi_set_full_mat_cmplx
    public :: elsi_trace_mat_real
    public :: elsi_trace_mat_mat_cmplx
    public :: elsi_init_timer
@@ -637,118 +635,6 @@ subroutine elsi_trace_mat_mat_cmplx(e_h,mat1,mat2,trace)
    l_trace = zdotu(e_h%n_lrow*e_h%n_lcol,mat1,1,mat2,1)
 
    call MPI_Allreduce(l_trace,trace,1,mpi_complex16,mpi_sum,e_h%mpi_comm,mpierr)
-
-end subroutine
-
-!>
-!! This routine sets a full matrix from a (upper or lower) triangular matrix.
-!! The size of matrix should be the same as the Hamiltonian matrix.
-!!
-subroutine elsi_set_full_mat_real(e_h,mat)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: e_h
-   real(kind=r8),     intent(inout) :: mat(e_h%n_lrow,e_h%n_lcol)
-
-   integer(kind=i4) :: i_row
-   integer(kind=i4) :: i_col
-   real(kind=r8), allocatable :: tmp_real(:,:)
-
-   character*40, parameter :: caller = "elsi_set_full_mat_real"
-
-   if(e_h%uplo /= FULL_MAT .and. e_h%parallel_mode == MULTI_PROC) then
-      call elsi_allocate(e_h,tmp_real,e_h%n_lrow,e_h%n_lcol,"tmp_real",caller)
-
-      call pdtran(e_h%n_basis,e_h%n_basis,1.0_r8,mat,1,1,e_h%sc_desc,0.0_r8,&
-              tmp_real,1,1,e_h%sc_desc)
-
-      if(e_h%uplo == UT_MAT) then ! Upper triangular
-         do i_col = 1,e_h%n_basis-1
-            if(e_h%loc_col(i_col) == 0) cycle
-
-            do i_row = i_col+1,e_h%n_basis
-               if(e_h%loc_row(i_row) > 0) then
-                  mat(e_h%loc_row(i_row),e_h%loc_col(i_col)) = &
-                     tmp_real(e_h%loc_row(i_row),e_h%loc_col(i_col))
-               endif
-            enddo
-         enddo
-      elseif(e_h%uplo == LT_MAT) then ! Lower triangular
-         do i_col = 2,e_h%n_basis
-            if(e_h%loc_col(i_col) == 0) cycle
-
-            do i_row = 1,i_col-1
-               if(e_h%loc_row(i_row) > 0) then
-                  mat(e_h%loc_row(i_row),e_h%loc_col(i_col)) = &
-                     tmp_real(e_h%loc_row(i_row),e_h%loc_col(i_col))
-               endif
-            enddo
-         enddo
-      endif
-
-      call elsi_deallocate(e_h,tmp_real,"tmp_real")
-   endif
-
-end subroutine
-
-!>
-!! This routine sets a full matrix from a (upper or lower) triangular matrix.
-!! The size of matrix should be the same as the Hamiltonian matrix.
-!!
-subroutine elsi_set_full_mat_cmplx(e_h,mat)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: e_h
-   complex(kind=r8),  intent(inout) :: mat(e_h%n_lrow,e_h%n_lcol)
-
-   integer(kind=i4) :: i_row
-   integer(kind=i4) :: i_col
-   complex(kind=r8), allocatable :: tmp_cmplx(:,:)
-
-   character*40, parameter :: caller = "elsi_set_full_mat_cmplx"
-
-   if(e_h%uplo /= FULL_MAT .and. e_h%parallel_mode == MULTI_PROC) then
-      call elsi_allocate(e_h,tmp_cmplx,e_h%n_lrow,e_h%n_lcol,"tmp_cmplx",caller)
-
-      call pztranc(e_h%n_basis,e_h%n_basis,(1.0_r8,0.0_r8),mat,1,1,e_h%sc_desc,&
-              (0.0_r8,0.0_r8),tmp_cmplx,1,1,e_h%sc_desc)
-
-      if(e_h%uplo == UT_MAT) then ! Upper triangular
-         do i_col = 1,e_h%n_basis-1
-            if(e_h%loc_col(i_col) == 0) cycle
-
-            do i_row = i_col+1,e_h%n_basis
-               if(e_h%loc_row(i_row) > 0) then
-                  mat(e_h%loc_row(i_row),e_h%loc_col(i_col)) = &
-                     tmp_cmplx(e_h%loc_row(i_row),e_h%loc_col(i_col))
-               endif
-            enddo
-         enddo
-      elseif(e_h%uplo == LT_MAT) then ! Lower triangular
-         do i_col = 2,e_h%n_basis
-            if(e_h%loc_col(i_col) == 0) cycle
-
-            do i_row = 1,i_col-1
-               if(e_h%loc_row(i_row) > 0) then
-                  mat(e_h%loc_row(i_row),e_h%loc_col(i_col)) = &
-                     tmp_cmplx(e_h%loc_row(i_row),e_h%loc_col(i_col))
-               endif
-            enddo
-         enddo
-      endif
-
-      call elsi_deallocate(e_h,tmp_cmplx,"tmp_cmplx")
-
-      ! Make diagonal real
-      do i_col = 1,e_h%n_basis
-         if(e_h%loc_col(i_col) == 0 .or. e_h%loc_row(i_col) == 0) cycle
-
-         mat(e_h%loc_row(i_col),e_h%loc_col(i_col)) = &
-            real(mat(e_h%loc_row(i_col),e_h%loc_col(i_col)),kind=r8)
-      enddo
-   endif
 
 end subroutine
 

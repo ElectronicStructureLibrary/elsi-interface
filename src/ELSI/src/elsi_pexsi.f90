@@ -181,11 +181,11 @@ subroutine elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
    if(e_h%ovlp_is_unit) then
       call f_ppexsi_load_real_hs_matrix(e_h%pexsi_plan,e_h%pexsi_options,&
               e_h%n_basis,e_h%nnz_g,e_h%nnz_l_sp,e_h%n_lcol_sp,&
-              e_h%col_ptr_ccs,e_h%row_ind_ccs,ham,1,ovlp,ierr)
+              e_h%col_ptr_pexsi,e_h%row_ind_pexsi,ham,1,ovlp,ierr)
    else
       call f_ppexsi_load_real_hs_matrix(e_h%pexsi_plan,e_h%pexsi_options,&
               e_h%n_basis,e_h%nnz_g,e_h%nnz_l_sp,e_h%n_lcol_sp,&
-              e_h%col_ptr_ccs,e_h%row_ind_ccs,ham,0,ovlp,ierr)
+              e_h%col_ptr_pexsi,e_h%row_ind_pexsi,ham,0,ovlp,ierr)
    endif
 
    if(ierr /= 0) then
@@ -695,11 +695,11 @@ subroutine elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
    if(e_h%ovlp_is_unit) then
       call f_ppexsi_load_complex_hs_matrix(e_h%pexsi_plan,e_h%pexsi_options,&
               e_h%n_basis,e_h%nnz_g,e_h%nnz_l_sp,e_h%n_lcol_sp,&
-              e_h%col_ptr_ccs,e_h%row_ind_ccs,ham,1,ovlp,ierr)
+              e_h%col_ptr_pexsi,e_h%row_ind_pexsi,ham,1,ovlp,ierr)
    else
       call f_ppexsi_load_complex_hs_matrix(e_h%pexsi_plan,e_h%pexsi_options,&
               e_h%n_basis,e_h%nnz_g,e_h%nnz_l_sp,e_h%n_lcol_sp,&
-              e_h%col_ptr_ccs,e_h%row_ind_ccs,ham,0,ovlp,ierr)
+              e_h%col_ptr_pexsi,e_h%row_ind_pexsi,ham,0,ovlp,ierr)
    endif
 
    if(ierr /= 0) then

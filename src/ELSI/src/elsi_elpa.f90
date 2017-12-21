@@ -641,12 +641,6 @@ subroutine elsi_solve_evp_elpa_real(e_h,ham,ovlp,eval,evec)
 
    elpa_print_times = e_h%elpa_output
 
-   call elsi_set_full_mat_real(e_h,ham)
-
-   if(e_h%n_elsi_calls == 1 .and. .not. e_h%ovlp_is_unit) then
-      call elsi_set_full_mat_real(e_h,ovlp)
-   endif
-
    ! Compute sparsity
    if(e_h%n_elsi_calls == 1 .and. e_h%matrix_format == BLACS_DENSE) then
       call elsi_get_local_nnz_real(e_h,ham,e_h%n_lrow,e_h%n_lcol,e_h%nnz_l)
@@ -1206,12 +1200,6 @@ subroutine elsi_solve_evp_elpa_cmplx(e_h,ham,ovlp,eval,evec)
    character*40, parameter :: caller = "elsi_solve_evp_elpa_cmplx"
 
    elpa_print_times = e_h%elpa_output
-
-   call elsi_set_full_mat_cmplx(e_h,ham)
-
-   if(e_h%n_elsi_calls == 1 .and. .not. e_h%ovlp_is_unit) then
-      call elsi_set_full_mat_cmplx(e_h,ovlp)
-   endif
 
    ! Compute sparsity
    if(e_h%n_elsi_calls == 1 .and. e_h%matrix_format == BLACS_DENSE) then

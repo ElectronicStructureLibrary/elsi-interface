@@ -35,10 +35,11 @@ module ELSI_MUTATOR
    use ELSI_DATATYPE
    use ELSI_ELPA,      only: elsi_compute_edm_elpa_real,&
                              elsi_compute_edm_elpa_cmplx
+   use ELSI_MALLOC
    use ELSI_MATCONV,   only: elsi_pexsi_to_blacs_dm_real,&
                              elsi_pexsi_to_blacs_dm_cmplx,&
                              elsi_blacs_to_sips_dm_real,&
-                             elsi_pexsi_to_blacs_dm_cmplx
+                             elsi_blacs_to_sips_dm_cmplx
    use ELSI_OMM,       only: elsi_compute_edm_omm_real,&
                              elsi_compute_edm_omm_cmplx
    use ELSI_PEXSI,     only: elsi_compute_edm_pexsi_real,&
@@ -1216,7 +1217,7 @@ subroutine elsi_get_edm_real(e_h,d_out)
                  d_out,tmp_real)
          call elsi_deallocate(e_h,tmp_real,"tmp_real")
       case(OMM_SOLVER)
-         call elsi_compute_edm_omm(e_h,d_out)
+         call elsi_compute_edm_omm_real(e_h,d_out)
       case(PEXSI_SOLVER)
          call elsi_compute_edm_pexsi_real(e_h,e_h%dm_real_pexsi)
          call elsi_pexsi_to_blacs_dm_real(e_h,d_out)
@@ -1263,7 +1264,7 @@ subroutine elsi_get_edm_real_sparse(e_h,d_out)
          call elsi_deallocate(e_h,tmp_real,"tmp_real")
          call elsi_blacs_to_sips_dm_real(e_h,d_out)
       case(OMM_SOLVER)
-         call elsi_compute_edm_omm(e_h,e_h%dm_real_elpa)
+         call elsi_compute_edm_omm_real(e_h,e_h%dm_real_elpa)
          call elsi_blacs_to_sips_dm_real(e_h,d_out)
       case(PEXSI_SOLVER)
          call elsi_compute_edm_pexsi_real(e_h,d_out)
@@ -1308,7 +1309,7 @@ subroutine elsi_get_edm_complex(e_h,d_out)
                  e_h%evec_cmplx_elpa,d_out,tmp_cmplx)
          call elsi_deallocate(e_h,tmp_cmplx,"tmp_cmplx")
       case(OMM_SOLVER)
-         call elsi_compute_edm_omm(e_h,d_out)
+         call elsi_compute_edm_omm_cmplx(e_h,d_out)
       case(PEXSI_SOLVER)
          call elsi_compute_edm_pexsi_cmplx(e_h,e_h%dm_cmplx_pexsi)
          call elsi_pexsi_to_blacs_dm_cmplx(e_h,d_out)
@@ -1355,7 +1356,7 @@ subroutine elsi_get_edm_complex_sparse(e_h,d_out)
          call elsi_deallocate(e_h,tmp_cmplx,"tmp_cmplx")
          call elsi_blacs_to_sips_dm_cmplx(e_h,d_out)
       case(OMM_SOLVER)
-         call elsi_compute_edm_omm(e_h,e_h%dm_cmplx_elpa)
+         call elsi_compute_edm_omm_cmplx(e_h,e_h%dm_cmplx_elpa)
          call elsi_blacs_to_sips_dm_cmplx(e_h,d_out)
       case(PEXSI_SOLVER)
          call elsi_compute_edm_pexsi_cmplx(e_h,d_out)

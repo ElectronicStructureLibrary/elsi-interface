@@ -301,12 +301,12 @@ subroutine elsi_set_csc(e_h,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)
 
    implicit none
 
-   type(elsi_handle), intent(inout)      :: e_h               !< Handle
-   integer(kind=i4),  intent(in)         :: nnz_g             !< Global number of nonzeros
-   integer(kind=i4),  intent(in)         :: nnz_l             !< Local number of nonzeros
-   integer(kind=i4),  intent(in)         :: n_lcol            !< Local number of columns
-   integer(kind=i4),  intent(in), target :: row_ind(nnz_l)    !< Row index
-   integer(kind=i4),  intent(in), target :: col_ptr(n_lcol+1) !< Column pointer
+   type(elsi_handle), intent(inout) :: e_h               !< Handle
+   integer(kind=i4),  intent(in)    :: nnz_g             !< Global number of nonzeros
+   integer(kind=i4),  intent(in)    :: nnz_l             !< Local number of nonzeros
+   integer(kind=i4),  intent(in)    :: n_lcol            !< Local number of columns
+   integer(kind=i4),  intent(in)    :: row_ind(nnz_l)    !< Row index
+   integer(kind=i4),  intent(in)    :: col_ptr(n_lcol+1) !< Column pointer
 
    character*40, parameter :: caller = "elsi_set_csc"
 
@@ -316,8 +316,46 @@ subroutine elsi_set_csc(e_h,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)
    e_h%nnz_l_sp  = nnz_l
    e_h%n_lcol_sp = n_lcol
 
-   e_h%row_ind_ccs => row_ind
-   e_h%col_ptr_ccs => col_ptr
+   if(e_h%solver == PEXSI_SOLVER) then
+      if(allocated(e_h%row_ind_pexsi)) then
+         call elsi_deallocate(e_h,e_h%row_ind_pexsi,"row_ind_pexsi")
+      endif
+      if(allocated(e_h%col_ptr_pexsi)) then
+         call elsi_deallocate(e_h,e_h%col_ptr_pexsi,"col_ptr_pexsi")
+      endif
+
+      call elsi_allocate(e_h,e_h%row_ind_pexsi,nnz_l,"row_ind_pexsi",caller)
+      call elsi_allocate(e_h,e_h%col_ptr_pexsi,n_lcol+1,"col_ptr_pexsi",caller)
+
+      e_h%row_ind_pexsi = row_ind
+      e_h%col_ptr_pexsi = col_ptr
+   elseif(e_h%solver == CHESS_SOLVER) then
+      if(allocated(e_h%row_ind_chess)) then
+         call elsi_deallocate(e_h,e_h%row_ind_chess,"row_ind_chess")
+      endif
+      if(allocated(e_h%col_ptr_chess)) then
+         call elsi_deallocate(e_h,e_h%col_ptr_chess,"col_ptr_chess")
+      endif
+
+      call elsi_allocate(e_h,e_h%row_ind_chess,nnz_l,"row_ind_chess",caller)
+      call elsi_allocate(e_h,e_h%col_ptr_chess,n_lcol+1,"col_ptr_chess",caller)
+
+      e_h%row_ind_chess = row_ind
+      e_h%col_ptr_chess = col_ptr
+   else
+      if(allocated(e_h%row_ind_sips)) then
+         call elsi_deallocate(e_h,e_h%row_ind_sips,"row_ind_sips")
+      endif
+      if(allocated(e_h%col_ptr_sips)) then
+         call elsi_deallocate(e_h,e_h%col_ptr_sips,"col_ptr_sips")
+      endif
+
+      call elsi_allocate(e_h,e_h%row_ind_sips,nnz_l,"row_ind_sips",caller)
+      call elsi_allocate(e_h,e_h%col_ptr_sips,nnz_l,"col_ptr_sips",caller)
+
+      e_h%row_ind_sips = row_ind
+      e_h%col_ptr_sips = col_ptr
+   endif
 
    e_h%sparsity_ready = .true.
 
@@ -586,12 +624,6 @@ subroutine elsi_cleanup(e_h)
    endif
    if(allocated(e_h%loc_col)) then
       call elsi_deallocate(e_h,e_h%loc_col,"loc_col")
-   endif
-   if(associated(e_h%row_ind_ccs)) then
-      nullify(e_h%row_ind_ccs)
-   endif
-   if(associated(e_h%col_ptr_ccs)) then
-      nullify(e_h%col_ptr_ccs)
    endif
 
    ! Finalize ELPA

@@ -72,12 +72,6 @@ subroutine elsi_solve_evp_omm_real(e_h,ham,ovlp,dm)
 
    character*40, parameter :: caller = "elsi_solve_evp_omm_real"
 
-   call elsi_set_full_mat_real(e_h,ham)
-
-   if(e_h%n_elsi_calls == 1 .and. .not. e_h%ovlp_is_unit) then
-      call elsi_set_full_mat_real(e_h,ovlp)
-   endif
-
    call m_register_pdbc(e_h%ham_omm,ham,e_h%sc_desc)
    call m_register_pdbc(e_h%ovlp_omm,ovlp,e_h%sc_desc)
    call m_register_pdbc(e_h%dm_omm,dm,e_h%sc_desc)
@@ -213,12 +207,6 @@ subroutine elsi_solve_evp_omm_cmplx(e_h,ham,ovlp,dm)
    character*200    :: info_str
 
    character*40, parameter :: caller = "elsi_solve_evp_omm_cmplx"
-
-   call elsi_set_full_mat_cmplx(e_h,ham)
-
-   if(e_h%n_elsi_calls == 1 .and. .not. e_h%ovlp_is_unit) then
-      call elsi_set_full_mat_cmplx(e_h,ovlp)
-   endif
 
    call m_register_pdbc(e_h%ham_omm,ham,e_h%sc_desc)
    call m_register_pdbc(e_h%ovlp_omm,ovlp,e_h%sc_desc)
