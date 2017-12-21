@@ -379,7 +379,7 @@ end subroutine
 !! This routine transforms a generalized eigenproblem to standard and returns
 !! the Cholesky factor for later use.
 !!
-subroutine elsi_to_standard_evp(e_h,ham,ovlp,eval,evec)
+subroutine elsi_to_standard_evp_real(e_h,ham,ovlp,eval,evec)
 
    implicit none
 
