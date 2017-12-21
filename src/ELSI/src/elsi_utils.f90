@@ -44,26 +44,12 @@ module ELSI_UTILS
    public :: elsi_check_handle
    public :: elsi_get_global_row
    public :: elsi_get_global_col
-   public :: elsi_get_local_nnz
-   public :: elsi_trace_mat
-   public :: elsi_trace_mat_mat
+   public :: elsi_get_local_nnz_real
+   public :: elsi_get_local_nnz_cmplx
+   public :: elsi_trace_mat_real
+   public :: elsi_trace_mat_mat_cmplx
    public :: elsi_init_timer
    public :: elsi_get_time
-
-   interface elsi_get_local_nnz
-      module procedure elsi_get_local_nnz_real,&
-                       elsi_get_local_nnz_complex
-   end interface
-
-   interface elsi_trace_mat
-      module procedure elsi_trace_mat_real,&
-                       elsi_trace_mat_complex
-   end interface
-
-   interface elsi_trace_mat_mat
-      module procedure elsi_trace_mat_mat_real,&
-                       elsi_trace_mat_mat_complex
-   end interface
 
 contains
 
@@ -74,8 +60,8 @@ subroutine elsi_say(e_h,info_str)
 
    implicit none
 
-   type(elsi_handle), intent(in) :: e_h      !< Handle
-   character(len=*),  intent(in) :: info_str !< Message to print
+   type(elsi_handle), intent(in) :: e_h
+   character(len=*),  intent(in) :: info_str
 
    if(e_h%print_info) then
       if(e_h%myid_all == 0) then
@@ -92,9 +78,9 @@ subroutine elsi_stop(info,e_h,caller)
 
    implicit none
 
-   character(len=*),  intent(in) :: info   !< Error message
-   type(elsi_handle), intent(in) :: e_h    !< Handle
-   character(len=*),  intent(in) :: caller !< Caller
+   character(len=*),  intent(in) :: info
+   type(elsi_handle), intent(in) :: e_h
+   character(len=*),  intent(in) :: caller
 
    character*800    :: info_str
    integer(kind=i4) :: mpierr
@@ -132,7 +118,7 @@ subroutine elsi_reset_handle(e_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h !< Handle
+   type(elsi_handle), intent(inout) :: e_h
 
    character*40, parameter :: caller = "elsi_reset_handle"
 
@@ -206,7 +192,7 @@ subroutine elsi_reset_handle(e_h)
    e_h%elpa_started     = .false.
    e_h%n_states_omm     = UNSET
    e_h%omm_n_elpa       = UNSET
-   e_h%new_overlap      = .true.
+   e_h%new_ovlp         = .true.
    e_h%coeff_ready      = .false.
    e_h%omm_flavor       = UNSET
    e_h%scale_kinetic    = 0.0_r8
@@ -262,20 +248,16 @@ subroutine elsi_check(e_h,caller)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h    !< Handle
-   character(len=*),  intent(in)    :: caller !< Caller
+   type(elsi_handle), intent(inout) :: e_h
+   character(len=*),  intent(in)    :: caller
 
-   ! General check of solver, parallel mode, data type, matrix format
+   ! General check of solver, parallel mode, matrix format
    if(e_h%solver < 0 .or. e_h%solver >= N_SOLVERS) then
       call elsi_stop(" Unsupported solver.",e_h,caller)
    endif
 
    if(e_h%parallel_mode < 0 .or. e_h%parallel_mode >= N_PARALLEL_MODES) then
       call elsi_stop(" Unsupported parallel mode.",e_h,caller)
-   endif
-
-   if(e_h%data_type < 0 .or. e_h%data_type >= 2) then
-      call elsi_stop(" Unsupported matirx data type.",e_h,caller)
    endif
 
    if(e_h%matrix_format < 0 .or. e_h%matrix_format >= N_MATRIX_FORMATS) then
@@ -427,8 +409,8 @@ subroutine elsi_check_handle(e_h,caller)
 
    implicit none
 
-   type(elsi_handle), intent(in) :: e_h    !< Handle
-   character(len=*),  intent(in) :: caller !< Caller
+   type(elsi_handle), intent(in) :: e_h
+   character(len=*),  intent(in) :: caller
 
    if(.not. e_h%handle_ready) then
       call elsi_stop(" Invalid handle! Not initialized.",e_h,caller)
@@ -443,9 +425,9 @@ subroutine elsi_get_global_row(e_h,g_id,l_id)
 
    implicit none
 
-   type(elsi_handle), intent(in)  :: e_h  !< Handle
-   integer(kind=i4),  intent(in)  :: l_id !< Local index
-   integer(kind=i4),  intent(out) :: g_id !< Global index
+   type(elsi_handle), intent(in)  :: e_h
+   integer(kind=i4),  intent(in)  :: l_id
+   integer(kind=i4),  intent(out) :: g_id
 
    integer(kind=i4) :: block
    integer(kind=i4) :: idx
@@ -465,9 +447,9 @@ subroutine elsi_get_global_col(e_h,g_id,l_id)
 
    implicit none
 
-   type(elsi_handle), intent(in)  :: e_h  !< Handle
-   integer(kind=i4),  intent(in)  :: l_id !< Local index
-   integer(kind=i4),  intent(out) :: g_id !< Global index
+   type(elsi_handle), intent(in)  :: e_h
+   integer(kind=i4),  intent(in)  :: l_id
+   integer(kind=i4),  intent(out) :: g_id
 
    integer(kind=i4) :: block
    integer(kind=i4) :: idx
@@ -487,11 +469,11 @@ subroutine elsi_get_local_nnz_real(e_h,mat,n_row,n_col,nnz)
 
    implicit none
 
-   type(elsi_handle), intent(in)  :: e_h              !< Handle
-   real(kind=r8),     intent(in)  :: mat(n_row,n_col) !< Local matrix
-   integer(kind=i4),  intent(in)  :: n_row            !< Local rows
-   integer(kind=i4),  intent(in)  :: n_col            !< Local cols
-   integer(kind=i4),  intent(out) :: nnz              !< Number of non-zero
+   type(elsi_handle), intent(in)  :: e_h
+   real(kind=r8),     intent(in)  :: mat(n_row,n_col)
+   integer(kind=i4),  intent(in)  :: n_row
+   integer(kind=i4),  intent(in)  :: n_col
+   integer(kind=i4),  intent(out) :: nnz
 
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
@@ -513,20 +495,20 @@ end subroutine
 !>
 !! This routine counts the local number of non_zero elements.
 !!
-subroutine elsi_get_local_nnz_complex(e_h,mat,n_row,n_col,nnz)
+subroutine elsi_get_local_nnz_cmplx(e_h,mat,n_row,n_col,nnz)
 
    implicit none
 
-   type(elsi_handle), intent(in)  :: e_h              !< Handle
-   complex(kind=r8),  intent(in)  :: mat(n_row,n_col) !< Local matrix
-   integer(kind=i4),  intent(in)  :: n_row            !< Local rows
-   integer(kind=i4),  intent(in)  :: n_col            !< Local cols
-   integer(kind=i4),  intent(out) :: nnz              !< Number of non-zero
+   type(elsi_handle), intent(in)  :: e_h
+   complex(kind=r8),  intent(in)  :: mat(n_row,n_col)
+   integer(kind=i4),  intent(in)  :: n_row
+   integer(kind=i4),  intent(in)  :: n_col
+   integer(kind=i4),  intent(out) :: nnz
 
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
 
-   character*40, parameter :: caller = "elsi_get_local_nnz_complex"
+   character*40, parameter :: caller = "elsi_get_local_nnz_cmplx"
 
    nnz = 0
 
@@ -548,9 +530,9 @@ subroutine elsi_trace_mat_real(e_h,mat,trace)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                        !< Handle
-   real(kind=r8),     intent(in)    :: mat(e_h%n_lrow,e_h%n_lcol) !< Matrix
-   real(kind=r8),     intent(out)   :: trace                      !< Trace(mat)
+   type(elsi_handle), intent(inout) :: e_h
+   real(kind=r8),     intent(in)    :: mat(e_h%n_lrow,e_h%n_lcol)
+   real(kind=r8),     intent(out)   :: trace
 
    integer(kind=i4) :: i
    integer(kind=i4) :: mpierr
@@ -574,19 +556,19 @@ end subroutine
 !! This routine computes the trace of a matrix. The size of the matrix is
 !! restricted to be identical to Hamiltonian.
 !!
-subroutine elsi_trace_mat_complex(e_h,mat,trace)
+subroutine elsi_trace_mat_cmplx(e_h,mat,trace)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                        !< Handle
-   complex(kind=r8),  intent(in)    :: mat(e_h%n_lrow,e_h%n_lcol) !< Matrix
-   complex(kind=r8),  intent(out)   :: trace                      !< Trace(mat)
+   type(elsi_handle), intent(inout) :: e_h
+   complex(kind=r8),  intent(in)    :: mat(e_h%n_lrow,e_h%n_lcol)
+   complex(kind=r8),  intent(out)   :: trace
 
    integer(kind=i4) :: i
    integer(kind=i4) :: mpierr
    complex(kind=r8) :: l_trace ! Local result
 
-   character*40, parameter :: caller = "elsi_trace_mat_complex"
+   character*40, parameter :: caller = "elsi_trace_mat_cmplx"
 
    l_trace = 0.0_r8
 
@@ -608,10 +590,10 @@ subroutine elsi_trace_mat_mat_real(e_h,mat1,mat2,trace)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                         !< Handle
-   real(kind=r8),     intent(in)    :: mat1(e_h%n_lrow,e_h%n_lcol) !< Matrix
-   real(kind=r8),     intent(in)    :: mat2(e_h%n_lrow,e_h%n_lcol) !< Matrix
-   real(kind=r8),     intent(out)   :: trace                       !< Trace(mat1*mat2)
+   type(elsi_handle), intent(inout) :: e_h
+   real(kind=r8),     intent(in)    :: mat1(e_h%n_lrow,e_h%n_lcol)
+   real(kind=r8),     intent(in)    :: mat2(e_h%n_lrow,e_h%n_lcol)
+   real(kind=r8),     intent(out)   :: trace
 
    real(kind=r8)    :: l_trace ! Local result
    integer(kind=i4) :: mpierr
@@ -630,21 +612,21 @@ end subroutine
 !! This routine computes the trace of the product of two matrices. The size of
 !! the two matrices is restricted to be identical to Hamiltonian.
 !!
-subroutine elsi_trace_mat_mat_complex(e_h,mat1,mat2,trace)
+subroutine elsi_trace_mat_mat_cmplx(e_h,mat1,mat2,trace)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                         !< Handle
-   complex(kind=r8),  intent(in)    :: mat1(e_h%n_lrow,e_h%n_lcol) !< Matrix
-   complex(kind=r8),  intent(in)    :: mat2(e_h%n_lrow,e_h%n_lcol) !< Matrix
-   complex(kind=r8),  intent(out)   :: trace                       !< Trace(mat1*mat2)
+   type(elsi_handle), intent(inout) :: e_h
+   complex(kind=r8),  intent(in)    :: mat1(e_h%n_lrow,e_h%n_lcol)
+   complex(kind=r8),  intent(in)    :: mat2(e_h%n_lrow,e_h%n_lcol)
+   complex(kind=r8),  intent(out)   :: trace
 
    complex(kind=r8) :: l_trace ! Local result
    integer(kind=i4) :: mpierr
 
    complex(kind=r8), external :: zdotu
 
-   character*40, parameter :: caller = "elsi_trace_mat_mat_complex"
+   character*40, parameter :: caller = "elsi_trace_mat_mat_cmplx"
 
    l_trace = zdotu(e_h%n_lrow*e_h%n_lcol,mat1,1,mat2,1)
 
@@ -659,7 +641,7 @@ subroutine elsi_init_timer(e_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h !< Handle
+   type(elsi_handle), intent(inout) :: e_h
 
    integer(kind=i4) :: initial_time
    integer(kind=i4) :: clock_max
@@ -677,8 +659,8 @@ subroutine elsi_get_time(e_h,wtime)
 
    implicit none
 
-   type(elsi_handle), intent(in)  :: e_h   !< Handle
-   real(kind=r8),     intent(out) :: wtime !< Time
+   type(elsi_handle), intent(in)  :: e_h
+   real(kind=r8),     intent(out) :: wtime
 
    integer(kind=i4) :: tics
 

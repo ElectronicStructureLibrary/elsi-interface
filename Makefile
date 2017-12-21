@@ -24,16 +24,16 @@ ifeq ($(strip $(DISABLE_CXX)),yes)
   DISABLE_PEXSI = yes
 endif
 
-ifneq ($(strip $(EXTERNAL_PEXSI)),yes)
-  ifneq ($(strip $(DISABLE_PEXSI)),yes)
+ifneq ($(strip $(DISABLE_PEXSI)),yes)
+  ifneq ($(strip $(EXTERNAL_PEXSI)),yes)
     ALL_OBJ   += pexsi
     CLEAN_OBJ += cleanpexsi
-  else
+  endif
+else
     $(info ====================================)
     $(info = PEXSI disabled by DISABLE_PEXSI. =)
     $(info ====================================)
     STUBS += stub_pexsi.o
-  endif
 endif
 
 ifneq ($(strip $(PTSCOTCH_LIB)),)

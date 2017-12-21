@@ -43,26 +43,6 @@ module ELSI_DATATYPE
 
    type, public :: elsi_handle
 
-      ! Pointers used when input format compatible with chosen solver
-      real(kind=r8),    pointer :: ham_real(:,:)
-      complex(kind=r8), pointer :: ham_cmplx(:,:)
-      real(kind=r8),    pointer :: ovlp_real(:,:)
-      complex(kind=r8), pointer :: ovlp_cmplx(:,:)
-      real(kind=r8),    pointer :: eval(:)
-      real(kind=r8),    pointer :: evec_real(:,:)
-      complex(kind=r8), pointer :: evec_cmplx(:,:)
-      real(kind=r8),    pointer :: dm_real(:,:)
-      complex(kind=r8), pointer :: dm_cmplx(:,:)
-      real(kind=r8),    pointer :: ham_real_ccs(:)
-      complex(kind=r8), pointer :: ham_cmplx_ccs(:)
-      real(kind=r8),    pointer :: ovlp_real_ccs(:)
-      complex(kind=r8), pointer :: ovlp_cmplx_ccs(:)
-      real(kind=r8),    pointer :: dm_real_ccs(:)
-      complex(kind=r8), pointer :: dm_cmplx_ccs(:)
-      integer(kind=i4), pointer :: row_ind_ccs(:)
-      integer(kind=i4), pointer :: col_ptr_ccs(:)
-
-      ! Allocatables
       ! ELPA
       real(kind=r8),    allocatable :: ham_real_elpa(:,:)
       complex(kind=r8), allocatable :: ham_cmplx_elpa(:,:)
@@ -236,7 +216,7 @@ module ELSI_DATATYPE
       ! libOMM
       integer(kind=i4) :: n_states_omm  ! Number of states used in libOMM
       integer(kind=i4) :: omm_n_elpa    ! Number of ELPA steps
-      logical          :: new_overlap
+      logical          :: new_ovlp
       logical          :: coeff_ready   ! Is coefficient initialized?
       integer(kind=i4) :: omm_flavor    ! 0 = Basic
                                         ! 2 = Cholesky already performed
