@@ -331,11 +331,13 @@ end subroutine
 !>
 !! This routine normalizes the density matrix to the exact number of electrons.
 !!
-subroutine elsi_normalize_dm_elpa_real(e_h)
+subroutine elsi_normalize_dm_elpa_real(e_h,ovlp,dm)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: e_h
+   real(kind=r8),     intent(inout) :: ovlp(e_h%n_lrow,e_h%n_lcol)
+   real(kind=r8),     intent(inout) :: dm(e_h%n_lrow,e_h%n_lcol)
 
    character*40, parameter :: caller = "elsi_normalize_dm_elpa_real"
 
@@ -883,11 +885,13 @@ end subroutine
 !>
 !! This routine normalizes the density matrix to the exact number of electrons.
 !!
-subroutine elsi_normalize_dm_elpa_cmplx(e_h)
+subroutine elsi_normalize_dm_elpa_cmplx(e_h,ovlp,dm)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: e_h
+   complex(kind=r8),  intent(inout) :: ovlp(e_h%n_lrow,e_h%n_lcol)
+   complex(kind=r8),  intent(inout) :: dm(e_h%n_lrow,e_h%n_lcol)
 
    character*40, parameter :: caller = "elsi_normalize_dm_elpa_cmplx"
 

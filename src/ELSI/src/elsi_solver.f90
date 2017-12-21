@@ -395,7 +395,7 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
 
       ! Normalize density matrix
       if(e_h%n_elsi_calls <= e_h%n_single_steps) then
-         call elsi_normalize_dm_elpa_real(e_h)
+         call elsi_normalize_dm_elpa_real(e_h,e_h%ovlp_real_copy,dm)
       endif
 
       e_h%mu_ready = .true.
@@ -562,7 +562,7 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
 
       ! Normalize density matrix
       if(e_h%n_elsi_calls <= e_h%n_single_steps) then
-         call elsi_normalize_dm_elpa_cmplx(e_h)
+         call elsi_normalize_dm_elpa_cmplx(e_h,e_h%ovlp_cmplx_copy,dm)
       endif
 
       e_h%mu_ready = .true.
