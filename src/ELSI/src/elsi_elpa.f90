@@ -30,7 +30,7 @@
 !!
 module ELSI_ELPA
 
-   use ELSI_CONSTANTS,    only: REAL_VALUES,COMPLEX_VALUES,BLACS_DENSE
+   use ELSI_CONSTANTS,    only: BLACS_DENSE
    use ELSI_DATATYPE
    use ELSI_MALLOC
    use ELSI_MU,           only: elsi_compute_mu_and_occ

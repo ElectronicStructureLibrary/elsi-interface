@@ -1195,12 +1195,12 @@ end subroutine
 !>
 !! This routine gets the energy-weighted density matrix.
 !!
-subroutine elsi_get_edm_real(e_h,d_out)
+subroutine elsi_get_edm_real(e_h,edm)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                          !< Handle
-   real(kind=r8),     intent(out)   :: d_out(e_h%n_lrow,e_h%n_lcol) !< Energy density matrix
+   type(elsi_handle), intent(inout) :: e_h                        !< Handle
+   real(kind=r8),     intent(out)   :: edm(e_h%n_lrow,e_h%n_lcol) !< Energy density matrix
 
    real(kind=r8), allocatable :: tmp_real(:,:)
 
@@ -1214,13 +1214,13 @@ subroutine elsi_get_edm_real(e_h,d_out)
          call elsi_allocate(e_h,tmp_real,e_h%n_lrow,e_h%n_lcol,"tmp_real",&
                  caller)
          call elsi_compute_edm_elpa_real(e_h,e_h%eval_elpa,e_h%evec_real_elpa,&
-                 d_out,tmp_real)
+                 edm,tmp_real)
          call elsi_deallocate(e_h,tmp_real,"tmp_real")
       case(OMM_SOLVER)
-         call elsi_compute_edm_omm_real(e_h,d_out)
+         call elsi_compute_edm_omm_real(e_h,edm)
       case(PEXSI_SOLVER)
          call elsi_compute_edm_pexsi_real(e_h,e_h%dm_real_pexsi)
-         call elsi_pexsi_to_blacs_dm_real(e_h,d_out)
+         call elsi_pexsi_to_blacs_dm_real(e_h,edm)
       case(CHESS_SOLVER)
          call elsi_stop(" CHESS not yet implemented.",e_h,caller)
       case(SIPS_SOLVER)
@@ -1241,12 +1241,12 @@ end subroutine
 !>
 !! This routine gets the energy-weighted density matrix.
 !!
-subroutine elsi_get_edm_real_sparse(e_h,d_out)
+subroutine elsi_get_edm_real_sparse(e_h,edm)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                 !< Handle
-   real(kind=r8),     intent(out)   :: d_out(e_h%nnz_l_sp) !< Energy density matrix
+   type(elsi_handle), intent(inout) :: e_h               !< Handle
+   real(kind=r8),     intent(out)   :: edm(e_h%nnz_l_sp) !< Energy density matrix
 
    real(kind=r8), allocatable :: tmp_real(:,:)
 
@@ -1260,14 +1260,14 @@ subroutine elsi_get_edm_real_sparse(e_h,d_out)
          call elsi_allocate(e_h,tmp_real,e_h%n_lrow,e_h%n_lcol,"tmp_real",&
                  caller)
          call elsi_compute_edm_elpa_real(e_h,e_h%eval_elpa,e_h%evec_real_elpa,&
-                 d_out,tmp_real)
+                 e_h%dm_real_elpa,tmp_real)
          call elsi_deallocate(e_h,tmp_real,"tmp_real")
-         call elsi_blacs_to_sips_dm_real(e_h,d_out)
+         call elsi_blacs_to_sips_dm_real(e_h,edm)
       case(OMM_SOLVER)
          call elsi_compute_edm_omm_real(e_h,e_h%dm_real_elpa)
-         call elsi_blacs_to_sips_dm_real(e_h,d_out)
+         call elsi_blacs_to_sips_dm_real(e_h,edm)
       case(PEXSI_SOLVER)
-         call elsi_compute_edm_pexsi_real(e_h,d_out)
+         call elsi_compute_edm_pexsi_real(e_h,edm)
       case(CHESS_SOLVER)
          call elsi_stop(" CHESS not yet implemented.",e_h,caller)
       case(SIPS_SOLVER)
@@ -1288,12 +1288,12 @@ end subroutine
 !>
 !! This routine gets the energy-weighted density matrix.
 !!
-subroutine elsi_get_edm_complex(e_h,d_out)
+subroutine elsi_get_edm_complex(e_h,edm)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                          !< Handle
-   complex(kind=r8),  intent(out)   :: d_out(e_h%n_lrow,e_h%n_lcol) !< Energy density matrix
+   type(elsi_handle), intent(inout) :: e_h                        !< Handle
+   complex(kind=r8),  intent(out)   :: edm(e_h%n_lrow,e_h%n_lcol) !< Energy density matrix
    complex(kind=r8), allocatable :: tmp_cmplx(:,:)
 
    character*40, parameter :: caller = "elsi_get_edm_complex"
@@ -1306,13 +1306,13 @@ subroutine elsi_get_edm_complex(e_h,d_out)
          call elsi_allocate(e_h,tmp_cmplx,e_h%n_lrow,e_h%n_lcol,"tmp_cmplx",&
                  caller)
          call elsi_compute_edm_elpa_cmplx(e_h,e_h%eval_elpa,&
-                 e_h%evec_cmplx_elpa,d_out,tmp_cmplx)
+                 e_h%evec_cmplx_elpa,edm,tmp_cmplx)
          call elsi_deallocate(e_h,tmp_cmplx,"tmp_cmplx")
       case(OMM_SOLVER)
-         call elsi_compute_edm_omm_cmplx(e_h,d_out)
+         call elsi_compute_edm_omm_cmplx(e_h,edm)
       case(PEXSI_SOLVER)
          call elsi_compute_edm_pexsi_cmplx(e_h,e_h%dm_cmplx_pexsi)
-         call elsi_pexsi_to_blacs_dm_cmplx(e_h,d_out)
+         call elsi_pexsi_to_blacs_dm_cmplx(e_h,edm)
       case(CHESS_SOLVER)
          call elsi_stop(" CHESS not yet implemented.",e_h,caller)
       case(SIPS_SOLVER)
@@ -1333,12 +1333,12 @@ end subroutine
 !>
 !! This routine gets the energy-weighted density matrix.
 !!
-subroutine elsi_get_edm_complex_sparse(e_h,d_out)
+subroutine elsi_get_edm_complex_sparse(e_h,edm)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                 !< Handle
-   complex(kind=r8),  intent(out)   :: d_out(e_h%nnz_l_sp) !< Energy density matrix
+   type(elsi_handle), intent(inout) :: e_h               !< Handle
+   complex(kind=r8),  intent(out)   :: edm(e_h%nnz_l_sp) !< Energy density matrix
 
    complex(kind=r8), allocatable :: tmp_cmplx(:,:)
 
@@ -1352,14 +1352,14 @@ subroutine elsi_get_edm_complex_sparse(e_h,d_out)
          call elsi_allocate(e_h,tmp_cmplx,e_h%n_lrow,e_h%n_lcol,"tmp_cmplx",&
                  caller)
          call elsi_compute_edm_elpa_cmplx(e_h,e_h%eval_elpa,&
-                 e_h%evec_cmplx_elpa,d_out,tmp_cmplx)
+                 e_h%evec_cmplx_elpa,e_h%dm_cmplx_elpa,tmp_cmplx)
          call elsi_deallocate(e_h,tmp_cmplx,"tmp_cmplx")
-         call elsi_blacs_to_sips_dm_cmplx(e_h,d_out)
+         call elsi_blacs_to_sips_dm_cmplx(e_h,edm)
       case(OMM_SOLVER)
          call elsi_compute_edm_omm_cmplx(e_h,e_h%dm_cmplx_elpa)
-         call elsi_blacs_to_sips_dm_cmplx(e_h,d_out)
+         call elsi_blacs_to_sips_dm_cmplx(e_h,edm)
       case(PEXSI_SOLVER)
-         call elsi_compute_edm_pexsi_cmplx(e_h,d_out)
+         call elsi_compute_edm_pexsi_cmplx(e_h,edm)
       case(CHESS_SOLVER)
          call elsi_stop(" CHESS not yet implemented.",e_h,caller)
       case(SIPS_SOLVER)

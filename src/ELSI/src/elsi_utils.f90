@@ -251,17 +251,13 @@ subroutine elsi_check(e_h,caller)
    type(elsi_handle), intent(inout) :: e_h
    character(len=*),  intent(in)    :: caller
 
-   ! General check of solver, parallel mode, data type, matrix format
+   ! General check of solver, parallel mode, matrix format
    if(e_h%solver < 0 .or. e_h%solver >= N_SOLVERS) then
       call elsi_stop(" Unsupported solver.",e_h,caller)
    endif
 
    if(e_h%parallel_mode < 0 .or. e_h%parallel_mode >= N_PARALLEL_MODES) then
       call elsi_stop(" Unsupported parallel mode.",e_h,caller)
-   endif
-
-   if(e_h%data_type < 0 .or. e_h%data_type >= 2) then
-      call elsi_stop(" Unsupported matirx data type.",e_h,caller)
    endif
 
    if(e_h%matrix_format < 0 .or. e_h%matrix_format >= N_MATRIX_FORMATS) then

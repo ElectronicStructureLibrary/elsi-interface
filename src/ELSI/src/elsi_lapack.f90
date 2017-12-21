@@ -31,7 +31,6 @@
 !!
 module ELSI_LAPACK
 
-   use ELSI_CONSTANTS, only: REAL_VALUES,COMPLEX_VALUES
    use ELSI_DATATYPE
    use ELSI_MALLOC
    use ELSI_PRECISION, only: r8,i4
@@ -308,7 +307,7 @@ subroutine elsi_check_singularity_sp_real(e_h,ovlp,eval,evec)
 
    ! Use copy_real to store overlap matrix, otherwise it will be
    ! destroyed by eigenvalue calculation
-   copy_real = ovlp
+   copy_real = -ovlp
 
    call elsi_allocate(e_h,off_diag,e_h%n_basis,"off_diag",caller)
    call elsi_allocate(e_h,tau_real,e_h%n_basis,"tau_real",caller)
