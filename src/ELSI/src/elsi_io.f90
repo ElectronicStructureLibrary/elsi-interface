@@ -347,6 +347,7 @@ subroutine elsi_reset_rw_handle(rw_h)
 
    rw_h%handle_init    = .false.
    rw_h%handle_ready   = .false.
+   rw_h%handle_changed = .false.
    rw_h%rw_task        = UNSET
    rw_h%parallel_mode  = UNSET
    rw_h%file_format    = UNSET

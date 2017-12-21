@@ -91,7 +91,7 @@ subroutine elsi_init(e_h,solver,parallel_mode,matrix_format,n_basis,n_electron,&
    ! For safety
    call elsi_cleanup(e_h)
 
-   e_h%handle_init   = .true.
+   e_h%handle_init    = .true.
    e_h%n_basis        = n_basis
    e_h%n_nonsing      = n_basis
    e_h%n_electrons    = n_electron
@@ -135,12 +135,6 @@ subroutine elsi_init(e_h,solver,parallel_mode,matrix_format,n_basis,n_electron,&
 
    ! Initialize timer information
    call elsi_init_timer(e_h)
-!   if(e_h%myid_all == 0) then
-!      e_h%solver_unit = SOLVER_UNIT_DEFAULT
-!      open(unit = e_h%solver_unit, file = SOLVER_FILE_NAME_DEFAULT)
-!   else
-!      e_h%solver_unit = UNSET
-!   endif
    call elsi_init_timings(e_h%solver_timings, "Solver timings")
 
 end subroutine
@@ -171,6 +165,8 @@ subroutine elsi_set_mpi(e_h,mpi_comm)
       call MPI_Comm_size(mpi_comm,e_h%n_procs,mpierr)
 
       e_h%mpi_ready = .true.
+
+      if (e_h%handle_ready) e_h%handle_changed = .true.
    endif
 
 end subroutine
@@ -199,6 +195,8 @@ subroutine elsi_set_mpi_global(e_h,mpi_comm_all)
       call MPI_Comm_size(mpi_comm_all,e_h%n_procs_all,mpierr)
 
       e_h%global_mpi_ready = .true.
+
+      if (e_h%handle_ready) e_h%handle_changed = .true.
    endif
 
 end subroutine
@@ -213,6 +211,8 @@ subroutine elsi_set_spin(e_h,n_spin,i_spin)
    type(elsi_handle), intent(inout) :: e_h    !< Handle
    integer(kind=i4),  intent(in)    :: n_spin !< Number of spin channels
    integer(kind=i4),  intent(in)    :: i_spin !< Spin index
+
+   if (e_h%handle_ready) e_h%handle_changed = .true.
 
    e_h%n_spins = n_spin
    e_h%i_spin  = i_spin
@@ -230,6 +230,8 @@ subroutine elsi_set_kpoint(e_h,n_kpt,i_kpt,weight)
    integer(kind=i4),  intent(in)    :: n_kpt  !< Number of k-points
    integer(kind=i4),  intent(in)    :: i_kpt  !< K-point index
    real(kind=r8),     intent(in)    :: weight !< Weight
+
+   if (e_h%handle_ready) e_h%handle_changed = .true.
 
    e_h%n_kpts   = n_kpt
    e_h%i_kpt    = i_kpt
@@ -302,6 +304,8 @@ subroutine elsi_set_blacs(e_h,blacs_ctxt,block_size)
       endif
 
       e_h%blacs_ready = .true.
+   
+      if (e_h%handle_ready) e_h%handle_changed = .true.
    endif
 
 end subroutine
@@ -323,6 +327,7 @@ subroutine elsi_set_csc(e_h,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)
    character*40, parameter :: caller = "elsi_set_csc"
 
    call elsi_check_handle(e_h,caller)
+   if (e_h%handle_ready) e_h%handle_changed = .true.
 
    e_h%nnz_g     = nnz_g
    e_h%nnz_l_sp  = nnz_l
@@ -409,6 +414,13 @@ subroutine elsi_final_print(e_h)
    call elsi_say(e_h,"  |--------------------------------------------------------------------")
 
    call elsi_print_handle_summary(e_h,"  | ")
+
+   if(e_h%handle_changed) then
+      write(info_str,"(A,I13)") "  |   Was ELSI changed mid-run? :          YES"
+   else
+      write(info_str,"(A,I13)") "  |   Was ELSI changed mid-run? :           NO"
+   endif
+   call elsi_say(e_h,info_str)
 
    write(info_str,"(A,I13)") "  |   Number of ELSI calls      :",e_h%n_elsi_calls
    call elsi_say(e_h,info_str)
@@ -632,11 +644,13 @@ subroutine elsi_cleanup(e_h)
    endif
 
    ! Print final details of handle to timing file, then finalize
-!   if(e_h%myid_all.eq.0) then
-!      call elsi_print_handle_summary(e_h,"",e_h%solver_unit)
-!      close(e_h%solver_unit)
-!   endif
-!   e_h%solver_unit = UNSET
+   if(e_h%handle_ready) then
+      if(e_h%myid_all.eq.0) then
+         call elsi_print_handle_summary(e_h,"",e_h%solver_unit)
+         close(e_h%solver_unit)
+      endif
+      e_h%solver_unit = UNSET
+   end if
    call elsi_finalize_timings(e_h%solver_timings) 
 
    ! Reset e_h

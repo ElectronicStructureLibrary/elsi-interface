@@ -1446,6 +1446,8 @@ subroutine elsi_set_elpa_default(e_h)
    type(elsi_handle), intent(inout) :: e_h !< Handle
 
    character*40, parameter :: caller = "elsi_set_elpa_default"
+      
+   if (e_h%handle_ready) e_h%handle_changed = .true.
 
    ! ELPA solver
    e_h%elpa_solver = 2

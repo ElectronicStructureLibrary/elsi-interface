@@ -477,6 +477,8 @@ subroutine elsi_set_dmp_default(e_h)
    type(elsi_handle), intent(inout) :: e_h
 
    character*40, parameter :: caller = "elsi_set_dmp_default"
+      
+   if (e_h%handle_ready) e_h%handle_changed = .true.
 
    ! Purification method
    e_h%dmp_method = 0

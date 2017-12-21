@@ -134,9 +134,11 @@ module ELSI_DATATYPE
       integer(kind=i4), allocatable :: loc_col(:)
 
       ! Is this a valid handle?
-      logical          :: handle_init  = .false.
+      logical          :: handle_init    = .false.
       ! Is this handle ready to be used?
-      logical          :: handle_ready = .false.
+      logical          :: handle_ready   = .false.
+      ! Was the handle modified AFTER it was declared to be ready?
+      logical          :: handle_changed = .false.
 
       ! Solver (AUTO=0,ELPA=1,OMM=2,PEXSI=3,CHESS=4,SIPS=5,DMP=6)
       integer(kind=i4) :: solver
@@ -321,9 +323,11 @@ module ELSI_DATATYPE
    type, public :: elsi_rw_handle
 
       ! Is this a valid handle?
-      logical          :: handle_init  = .false.
+      logical          :: handle_init    = .false.
       ! Is this handle ready to be used?
-      logical          :: handle_ready = .false.
+      logical          :: handle_ready   = .false.
+      ! Was the handle modified AFTER it was declared to be ready?
+      logical          :: handle_changed = .false.
 
       ! Reading and writing task (READ_FILE=0,WRITE_FILE=1)
       integer(kind=i4) :: rw_task

@@ -67,6 +67,8 @@ subroutine elsi_init_pexsi(e_h)
    character*200    :: info_str
 
    character*40, parameter :: caller = "elsi_init_pexsi"
+      
+   if (e_h%handle_ready) e_h%handle_changed = .true.
 
    if(e_h%n_elsi_calls == 1) then
       if(e_h%np_per_pole == UNSET) then
@@ -1176,6 +1178,8 @@ subroutine elsi_set_pexsi_default(e_h)
    type(elsi_handle), intent(inout) :: e_h
 
    character*40, parameter :: caller = "elsi_set_pexsi_default"
+      
+   if (e_h%handle_ready) e_h%handle_changed = .true.
 
    ! Use the PEXSI Default options
    call f_ppexsi_set_default_options(e_h%pexsi_options)

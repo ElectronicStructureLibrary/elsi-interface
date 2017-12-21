@@ -134,6 +134,7 @@ subroutine elsi_reset_handle(e_h)
 
    e_h%handle_init      = .false.
    e_h%handle_ready     = .false.
+   e_h%handle_changed   = .false.
    e_h%solver           = UNSET
    e_h%matrix_format    = UNSET
    e_h%uplo             = FULL_MAT
@@ -460,7 +461,8 @@ subroutine elsi_ready_handle(e_h,caller)
       endif
       call elsi_print_handle_summary(e_h,"",e_h%solver_unit)
 
-      e_h%handle_ready = .true.
+      e_h%handle_ready   = .true.
+      e_h%handle_changed = .false.
    endif
 
 end subroutine

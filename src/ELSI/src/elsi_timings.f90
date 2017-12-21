@@ -92,6 +92,8 @@ subroutine elsi_init_timer(e_h)
 
    character*40, parameter :: caller = "elsi_init_timer"
 
+   if (e_h%handle_ready) e_h%handle_changed = .true.
+      
    call system_clock(initial_time,e_h%clock_rate,clock_max)
 
 end subroutine
@@ -131,6 +133,8 @@ subroutine elsi_set_solver_timing_tag(e_h,user_tag)
    character(len=*),  intent(in)    :: user_tag
 
    character*40, parameter :: caller = "elsi_set_solver_timing_tag"
+
+   ! Note:  This does not change the state of the handle
 
    e_h%solver_timings%next_user_tag = user_tag
 
