@@ -55,15 +55,18 @@ module ELSI_SETUP
 
    private
 
-   public :: elsi_init
-   public :: elsi_finalize
-   public :: elsi_set_mpi
-   public :: elsi_set_mpi_global
-   public :: elsi_set_spin
-   public :: elsi_set_kpoint
-   public :: elsi_set_blacs
-   public :: elsi_set_csc
-   public :: elsi_cleanup
+   public  :: elsi_init
+   public  :: elsi_finalize
+   public  :: elsi_set_mpi
+   public  :: elsi_set_mpi_global
+   public  :: elsi_set_spin
+   public  :: elsi_set_kpoint
+   public  :: elsi_set_blacs
+   public  :: elsi_set_csc
+   public  :: elsi_cleanup
+
+   public  :: elsi_basics_print  ! TODO: This is misnamed for now.
+   private :: elsi_final_print   ! TODO: This is actually elsi_final_summary_print
 
 contains
 
@@ -134,6 +137,12 @@ subroutine elsi_init(e_h,solver,parallel_mode,matrix_format,n_basis,n_electron,&
 
    ! Initialize timer information
    call elsi_init_timer(e_h)
+   if(e_h%myid_all == 0) then
+      e_h%solver_unit = SOLVER_UNIT_DEFAULT
+      open(unit = e_h%solver_unit, file = SOLVER_FILE_NAME_DEFAULT)
+   else
+      e_h%solver_unit = UNSET
+   endif
    call elsi_init_timings(e_h%solver_timings, "Solver timings")
 
 end subroutine
@@ -340,9 +349,84 @@ subroutine elsi_finalize(e_h)
    character*40, parameter :: caller = "elsi_finalize"
 
    call elsi_check_handle(e_h,caller)
-   call elsi_print_timings(e_h,e_h%solver_timings)
    call elsi_final_print(e_h)
    call elsi_cleanup(e_h)
+
+end subroutine
+
+!>
+!! This routine prints the state of the handle
+!!
+subroutine elsi_basics_print(e_h,use_unit)
+
+   implicit none
+
+   type(elsi_handle),          intent(in) :: e_h !< Handle
+   integer(kind=i4), optional, intent(in) :: use_unit
+
+   real(kind=r8)    :: sparsity
+   character*200    :: info_str
+   integer(kind=i4) :: my_unit
+
+   character*40, parameter :: caller = "elsi_basics_print"
+
+   if(present(use_unit)) then
+      my_unit = use_unit
+   else
+      my_unit = e_h%print_unit
+   endif
+
+   call elsi_say(e_h,"  | Physical Properties",my_unit)
+   write(info_str,"(A,F13.1)") "  |   Number of electrons       :",e_h%n_electrons
+   call elsi_say(e_h,info_str,my_unit)
+   if(e_h%parallel_mode == MULTI_PROC) then
+      write(info_str,"(A,I13)") "  |   Number of spins           :",e_h%n_spins
+      call elsi_say(e_h,info_str,my_unit)
+      write(info_str,"(A,I13)") "  |   Number of k-points        :",e_h%n_kpts
+      call elsi_say(e_h,info_str,my_unit)
+   endif
+   if(e_h%solver == ELPA_SOLVER .or. e_h%solver == SIPS_SOLVER) then
+      write(info_str,"(A,I13)") "  |   Number of states          :",e_h%n_states
+      call elsi_say(e_h,info_str,my_unit)
+   endif
+
+   call elsi_say(e_h,"  |",my_unit)
+   call elsi_say(e_h,"  | Matrix Properties",my_unit)
+   write(info_str,"(A,I13)") "  |   Number of basis functions :",e_h%n_basis
+   call elsi_say(e_h,info_str,my_unit)
+   if(e_h%parallel_mode == MULTI_PROC) then
+      sparsity = 1.0_r8-(1.0_r8*e_h%nnz_g/e_h%n_basis/e_h%n_basis)
+      write(info_str,"(A,F13.3)") "  |   Matrix sparsity           :",sparsity
+      call elsi_say(e_h,info_str,my_unit)
+   endif
+
+   call elsi_say(e_h,"  |",my_unit)
+   call elsi_say(e_h,"  | Computational Details",my_unit)
+   if(e_h%parallel_mode == MULTI_PROC) then
+      call elsi_say(e_h,"  |   Parallel mode             :   MULTI_PROC ",my_unit)
+   elseif(e_h%parallel_mode == SINGLE_PROC) then
+      call elsi_say(e_h,"  |   Parallel mode             :  SINGLE_PROC ",my_unit)
+   endif
+   write(info_str,"(A,I13)") "  |   Number of MPI tasks       :",e_h%n_procs
+   call elsi_say(e_h,info_str,my_unit)
+   if(e_h%matrix_format == BLACS_DENSE) then
+      call elsi_say(e_h,"  |   Matrix format             :  BLACS_DENSE ",my_unit)
+   elseif(e_h%matrix_format == PEXSI_CSC) then
+      call elsi_say(e_h,"  |   Matrix format             :    PEXSI_CSC ",my_unit)
+   endif
+   if(e_h%solver == ELPA_SOLVER) then
+      call elsi_say(e_h,"  |   Solver requested          :         ELPA ",my_unit)
+   elseif(e_h%solver == OMM_SOLVER) then
+      call elsi_say(e_h,"  |   Solver requested          :       libOMM ",my_unit)
+   elseif(e_h%solver == PEXSI_SOLVER) then
+      call elsi_say(e_h,"  |   Solver requested          :        PEXSI ",my_unit)
+
+      call elsi_say(e_h,"  |   Solver requested          :        CheSS ",my_unit)
+   elseif(e_h%solver == SIPS_SOLVER) then
+      call elsi_say(e_h,"  |   Solver requested          :         SIPs ",my_unit)
+   elseif(e_h%solver == DMP_SOLVER) then
+      call elsi_say(e_h,"  |   Solver requested          :          DMP ",my_unit)
+   endif
 
 end subroutine
 
@@ -360,9 +444,9 @@ subroutine elsi_final_print(e_h)
 
    character*40, parameter :: caller = "elsi_final_print"
 
-   call elsi_say(e_h,"  |-------------------------------------------")
+   call elsi_say(e_h,"  |--------------------------------------------------------------------")
    call elsi_say(e_h,"  | Final ELSI Output                        ")
-   call elsi_say(e_h,"  |-------------------------------------------")
+   call elsi_say(e_h,"  |--------------------------------------------------------------------")
 
    call elsi_say(e_h,"  | Physical Properties")
    write(info_str,"(A,F13.1)") "  |   Number of electrons       :",e_h%n_electrons
@@ -418,9 +502,13 @@ subroutine elsi_final_print(e_h)
    write(info_str,"(A,I13)") "  |   Number of ELSI calls      :",e_h%n_elsi_calls
    call elsi_say(e_h,info_str)
 
-   call elsi_say(e_h,"  |-------------------------------------------")
+   call elsi_say(e_h,"  |")
+   call elsi_say(e_h,"  | Timings")
+   call elsi_print_timings(e_h,e_h%solver_timings)
+
+   call elsi_say(e_h,"  |--------------------------------------------------------------------")
    call elsi_say(e_h,"  | ELSI Project (c)  elsi-interchange.org   ")
-   call elsi_say(e_h,"  |-------------------------------------------")
+   call elsi_say(e_h,"  |--------------------------------------------------------------------")
 
 end subroutine
 
@@ -686,6 +774,8 @@ subroutine elsi_cleanup(e_h)
    endif
 
    ! Finalize timings
+   if(e_h%myid_all.eq.0) close(e_h%solver_unit)
+   e_h%solver_unit = UNSET
    call elsi_finalize_timings(e_h%solver_timings) 
 
    ! Reset e_h

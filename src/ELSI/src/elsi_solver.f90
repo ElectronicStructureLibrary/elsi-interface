@@ -137,7 +137,7 @@ subroutine elsi_ev_real(e_h,h_in,s_in,eval_out,evec_out)
    real(kind=r8),     intent(inout) :: evec_out(e_h%n_lrow,e_h%n_lcol) !< Eigenvectors
 
    ! Timing-related variable
-   character(len=TIMING_STRING_LEN) :: solver_tag = "UNSET"
+   character(len=TIMING_STRING_LEN) :: solver_tag = UNSET_STRING
    real(kind=r8)                    :: t0, t1
 
    character*40, parameter :: caller = "elsi_ev_real"
@@ -265,7 +265,7 @@ subroutine elsi_ev_complex(e_h,h_in,s_in,eval_out,evec_out)
    complex(kind=r8),  intent(inout) :: evec_out(e_h%n_lrow,e_h%n_lcol) !< Eigenvectors
 
    ! Timing-related variable
-   character(len=TIMING_STRING_LEN) :: solver_tag = "UNSET"
+   character(len=TIMING_STRING_LEN) :: solver_tag = UNSET_STRING
    real(kind=r8)                    :: t0, t1
 
    character*40, parameter :: caller = "elsi_ev_complex"
@@ -338,7 +338,7 @@ subroutine elsi_ev_real_sparse(e_h,h_in,s_in,eval_out,evec_out)
    real(kind=r8),     intent(inout) :: evec_out(e_h%n_lrow,e_h%n_lcol) !< Eigenvectors
 
    ! Timing-related variable
-   character(len=TIMING_STRING_LEN) :: solver_tag = "UNSET"
+   character(len=TIMING_STRING_LEN) :: solver_tag = UNSET_STRING
    real(kind=r8)                    :: t0, t1
 
    character*40, parameter :: caller = "elsi_ev_real_sparse"
@@ -410,7 +410,7 @@ subroutine elsi_ev_complex_sparse(e_h,h_in,s_in,eval_out,evec_out)
    complex(kind=r8),  intent(inout) :: evec_out(e_h%n_lrow,e_h%n_lcol) !< Eigenvectors
 
    ! Timing-related variable
-   character(len=TIMING_STRING_LEN) :: solver_tag = "UNSET"
+   character(len=TIMING_STRING_LEN) :: solver_tag = UNSET_STRING
    real(kind=r8)                    :: t0, t1
 
    character*40, parameter :: caller = "elsi_ev_real_sparse"
@@ -481,7 +481,7 @@ subroutine elsi_dm_real(e_h,h_in,s_in,d_out,energy_out)
    real(kind=r8),     intent(inout) :: energy_out                   !< Energy
 
    ! Timing-related variable
-   character(len=TIMING_STRING_LEN) :: solver_tag = "UNSET"
+   character(len=TIMING_STRING_LEN) :: solver_tag = UNSET_STRING
    real(kind=r8)                    :: t0, t1
 
    character*40, parameter :: caller = "elsi_dm_real"
@@ -755,7 +755,7 @@ subroutine elsi_dm_complex(e_h,h_in,s_in,d_out,energy_out)
    real(kind=r8),     intent(inout) :: energy_out                   !< Energy
 
    ! Timing-related variable
-   character(len=TIMING_STRING_LEN) :: solver_tag = "UNSET"
+   character(len=TIMING_STRING_LEN) :: solver_tag = UNSET_STRING
    real(kind=r8)                    :: t0, t1
 
    character*40, parameter :: caller = "elsi_dm_complex"
@@ -987,7 +987,7 @@ subroutine elsi_dm_real_sparse(e_h,h_in,s_in,d_out,energy_out)
    real(kind=r8),     intent(inout) :: energy_out          !< Energy
 
    ! Timing-related variable
-   character(len=TIMING_STRING_LEN) :: solver_tag = "UNSET"
+   character(len=TIMING_STRING_LEN) :: solver_tag = UNSET_STRING
    real(kind=r8)                    :: t0, t1
 
    character*40, parameter :: caller = "elsi_dm_real_sparse"
@@ -1249,7 +1249,7 @@ subroutine elsi_dm_complex_sparse(e_h,h_in,s_in,d_out,energy_out)
    real(kind=r8),     intent(inout) :: energy_out          !< Energy
 
    ! Timing-related variable
-   character(len=TIMING_STRING_LEN) :: solver_tag = "UNSET"
+   character(len=TIMING_STRING_LEN) :: solver_tag = UNSET_STRING
    real(kind=r8)                    :: t0, t1
 
    character*40, parameter :: caller = "elsi_dm_complex_sparse"

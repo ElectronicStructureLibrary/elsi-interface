@@ -91,7 +91,10 @@ module ELSI_CONSTANTS
    integer(kind=i4), parameter :: DENSE_FILE = 0
    integer(kind=i4), parameter :: CSC_FILE   = 1
 
-   ! String lengths for tags
-   integer(kind=i4), parameter :: TIMING_STRING_LEN = 20
+   ! Constants for timings
+   integer(kind=i4), parameter :: TIMING_STRING_LEN        = 20
+   integer(kind=i4), parameter :: SOLVER_UNIT_DEFAULT      = 66
+   character(len=*), parameter :: SOLVER_FILE_NAME_DEFAULT = "elsi_solver_timings.out"
+   character(len=*), parameter :: UNSET_STRING             = "N/A"
 
 end module ELSI_CONSTANTS

@@ -29,25 +29,27 @@
 ! - Create subroutines to resize arrays on-the-fly, should STARTING_SIZE_TIMINGS be
 !   too small.
 ! - Add error checking to elsi_add_timing to make sure input strings aren't too long.
-! - Extend the elsi_{,de}allocate subroutines to arrays used here and replace bare
-!   {,de}allocate statements.
 ! - Do we time the solver itself, or the ELSI wrapper around the subroutine?
 !   The latter makes sense for the decision layer, and the former for solver
 !   development.  Both are useful.  Should do both.
-! - Eliminate hard-coded format string in elsi_print_timings
 ! - Add ELSI interface subroutines for solver timings, i.e. elsi_print_solver_timings
 !   as a wrapper around elsi_print_timings(e_h,e_h%solver_timings).  The calling code
 !   should not have access to any ELSI timing handle, it should always go through an
 !   interface subroutine defined on the ELSI handle.
+
+! NOTES:
+! - I've made the choice to not use elsi_malloc, because it considerably increases the
+!   code density for little payoff; the allocated arrays here will be on the order of
+!   kB, if that
 
 !>
 !! This module contains a collection of utilities related to timings in ELSI.
 !!
 module ELSI_TIMINGS
 
-   use ELSI_CONSTANTS, only: TIMING_STRING_LEN,UNSET
+   use ELSI_CONSTANTS, only: TIMING_STRING_LEN,UNSET,UNSET_STRING
    use ELSI_DATATYPE,  only: elsi_handle,elsi_timings_handle
-   use ELSI_PRECISION, only: i4, r8
+   use ELSI_PRECISION, only: i4,r8
    use ELSI_UTILS,     only: elsi_say
 
    implicit none
@@ -57,16 +59,18 @@ module ELSI_TIMINGS
    integer(kind=i4), parameter :: STARTING_SIZE_TIMINGS = 1024
 
    ! Global timing subroutines (i.e. those not attached to any timing handle)
-   public :: elsi_init_timer
-   public :: elsi_get_time
+   public  :: elsi_init_timer
+   public  :: elsi_get_time
    ! ELSI Interface subroutines (for modifying a timing handle via the ELSI
    ! interface, but without exposing the timing API to the calling code)
-   public :: elsi_set_solver_timing_tag
+   public  :: elsi_set_solver_timing_tag
    ! Timing handle subroutines
-   public :: elsi_init_timings
-   public :: elsi_add_timing
-   public :: elsi_print_timings
-   public :: elsi_finalize_timings
+   public  :: elsi_init_timings
+   public  :: elsi_add_timing
+   public  :: elsi_print_timings
+   public  :: elsi_finalize_timings
+!   ! Error checking subroutines (private to this module)
+!   private :: check_string_length
 
 contains
 
@@ -126,6 +130,8 @@ subroutine elsi_set_solver_timing_tag(e_h,user_tag)
    type(elsi_handle), intent(inout) :: e_h   !< Handle
    character(len=*),  intent(in)    :: user_tag
 
+   character*40, parameter :: caller = "elsi_set_solver_timing_tag"
+
    e_h%solver_timings%next_user_tag = user_tag
 
 end subroutine
@@ -148,11 +154,11 @@ subroutine elsi_init_timings(t_h,set_label)
 
    t_h%size_timings  = STARTING_SIZE_TIMINGS
    t_h%n_timings     = 0
-   t_h%next_user_tag = "UNSET"
+   t_h%next_user_tag = UNSET_STRING
    if(present(set_label)) then
       t_h%set_label = set_label
    else
-      t_h%set_label = "UNSET"
+      t_h%set_label = UNSET_STRING
    endif
 
    allocate( t_h%times(t_h%size_timings) )
@@ -197,7 +203,7 @@ subroutine elsi_add_timing(t_h,time,elsi_tag,user_tag_in,iter_in)
          user_tag = user_tag_in
       else
          user_tag           = t_h%next_user_tag
-         t_h%next_user_tag  = "UNSET"
+         t_h%next_user_tag  = UNSET_STRING
       endif
   
       t_h%times(iter)     = time
@@ -217,29 +223,25 @@ subroutine elsi_print_timings(e_h,t_h)
 
    implicit none
 
-   type(elsi_handle),         intent(in) :: e_h       !< Handle
-   type(elsi_timings_handle), intent(in) :: t_h !< Handle
+   type(elsi_handle),          intent(in) :: e_h       !< Handle
+   type(elsi_timings_handle),  intent(in) :: t_h !< Handle
 
-   character*200 :: info_str
-   integer       :: iter
+   character*200    :: info_str
+   integer          :: iter
 
    character*40, parameter :: caller = "elsi_print_timings"
 
-   call elsi_say(e_h,"  |-------------------------------------------")
-   call elsi_say(e_h,"  | ELSI Timings                              ")
-   call elsi_say(e_h,"  |-------------------------------------------")
-   write(info_str,"(2X,A,A)")  "| Timing Set:        ", t_h%set_label
+   write(info_str,"(2X,A,A)")  "|   Timing Set:        ", t_h%set_label
    call elsi_say(e_h,info_str)
-   write(info_str,"(2X,A,I4)") "| Number of timings: ", t_h%n_timings
+   write(info_str,"(2X,A,I4)") "|   Number of timings: ", t_h%n_timings
    call elsi_say(e_h,info_str)
-   call elsi_say(e_h,"  |")
 
+   call elsi_say(e_h,"  |      #  system_clock [s]  elsi_tag             user_tag            ")
    do iter = 1, t_h%n_timings
-      write(info_str,"(2X,A,I4,1X,F13.3,A,1X,A,1X,A)") &
-           "|", &
+      write(info_str,"(2X,A,I4,1X,F17.3,2X,A,1X,A)") &
+           "|   ", &
            iter, &
            t_h%times(iter), &
-           " s ", &
            t_h%elsi_tags(iter), &
            t_h%user_tags(iter)
       call elsi_say(e_h,info_str)
@@ -270,9 +272,36 @@ subroutine elsi_finalize_timings(t_h)
    endif
    t_h%n_timings     = 0
    t_h%size_timings  = UNSET
-   t_h%next_user_tag = "UNSET"
-   t_h%set_label     = "UNSET"
+   t_h%next_user_tag = UNSET_STRING
+   t_h%set_label     = UNSET_STRING
 
 end subroutine
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!! ERROR CHECKING SUBROUTINES !
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+!
+! WPH:  I don't like the following because it would need a dependence on e_h
+!       due to MPI_Abort in subroutines which really shouldn't depend on e_h
+!subroutine check_string_length(e_h,string_in,my_caller)
+!
+!   implicit none
+!
+!   type(elsi_handle), intent(in) :: e_h       !< Handle
+!   character(len=*),  intent(in) :: string_in
+!   character(len=*),  intent(in) :: my_caller
+!
+!   character*200 :: info_str
+!
+!   character*40, parameter :: caller = "check_string_length"
+!
+!   if (len(string_in).gt.TIMING_STRING_LEN) then
+!      write(info_str,"(A,A,A,I4)") "String ", string_in, " exceeds the &
+!           &maximum string length of ", TIMING_STRING_LEN
+!      call elsi_stop(info_str,e_h,my_caller)
+!   endif
+!
+!end subroutine
 
 end module ELSI_TIMINGS
