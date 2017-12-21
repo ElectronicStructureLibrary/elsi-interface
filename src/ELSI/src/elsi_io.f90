@@ -33,7 +33,7 @@ module ELSI_IO
    use, intrinsic :: ISO_C_BINDING
    use ELSI_CONSTANTS, only: HEADER_SIZE,BLACS_DENSE,DENSE_FILE,CSC_FILE,&
                              READ_FILE,WRITE_FILE,REAL_VALUES,COMPLEX_VALUES,&
-                             FILE_VERSION,UNSET
+                             FILE_VERSION,PEXSI_SOLVER,SIPS_SOLVER,UNSET
    use ELSI_DATATYPE
    use ELSI_MALLOC
    use ELSI_MATCONV,   only: elsi_pexsi_to_blacs_dm_real,&
@@ -709,7 +709,7 @@ subroutine elsi_read_mat_real_mp(rw_h,f_name,mat)
       call elsi_rw_stop(" File does not exist.",rw_h,caller)
    endif
 
-   call elsi_init(aux_h,ELPA_SOLVER,MULTI_PROC,BLACS_DENSE,rw_h%n_basis,&
+   call elsi_init(aux_h,PEXSI_SOLVER,MULTI_PROC,BLACS_DENSE,rw_h%n_basis,&
            rw_h%n_electrons,0)
    call elsi_set_mpi(aux_h,rw_h%mpi_comm)
    call elsi_set_blacs(aux_h,rw_h%blacs_ctxt,rw_h%blk)
@@ -775,8 +775,8 @@ subroutine elsi_read_mat_real_mp(rw_h,f_name,mat)
    ! Redistribute matrix
    call elsi_set_csc(aux_h,rw_h%nnz_g,rw_h%nnz_l_sp,rw_h%n_lcol_sp,row_ind,&
            col_ptr)
-   call elsi_set_sparse_dm(aux_h,nnz_val)
-
+   
+   aux_h%dm_real_pexsi = nnz_val
    aux_h%n_elsi_calls  = 1
    aux_h%my_prow_pexsi = 0
    aux_h%np_per_pole   = rw_h%n_procs
@@ -921,7 +921,7 @@ subroutine elsi_read_mat_complex_mp(rw_h,f_name,mat)
       call elsi_rw_stop(" File does not exist.",rw_h,caller)
    endif
 
-   call elsi_init(aux_h,ELPA_SOLVER,MULTI_PROC,BLACS_DENSE,rw_h%n_basis,&
+   call elsi_init(aux_h,PEXSI_SOLVER,MULTI_PROC,BLACS_DENSE,rw_h%n_basis,&
            rw_h%n_electrons,0)
    call elsi_set_mpi(aux_h,rw_h%mpi_comm)
    call elsi_set_blacs(aux_h,rw_h%blacs_ctxt,rw_h%blk)
@@ -987,11 +987,11 @@ subroutine elsi_read_mat_complex_mp(rw_h,f_name,mat)
    ! Redistribute matrix
    call elsi_set_csc(aux_h,rw_h%nnz_g,rw_h%nnz_l_sp,rw_h%n_lcol_sp,row_ind,&
            col_ptr)
-   call elsi_set_sparse_dm(aux_h,nnz_val)
 
-   aux_h%n_elsi_calls  = 1
-   aux_h%my_prow_pexsi = 0
-   aux_h%np_per_pole   = rw_h%n_procs
+   aux_h%dm_cmplx_pexsi = nnz_val
+   aux_h%n_elsi_calls   = 1
+   aux_h%my_prow_pexsi  = 0
+   aux_h%np_per_pole    = rw_h%n_procs
 
    call elsi_pexsi_to_blacs_dm_cmplx(aux_h,mat)
 
@@ -1127,7 +1127,7 @@ subroutine elsi_write_mat_real_mp(rw_h,f_name,mat)
 
    character*40, parameter :: caller = "elsi_write_mat_real_mp"
 
-   call elsi_init(aux_h,ELPA_SOLVER,MULTI_PROC,BLACS_DENSE,rw_h%n_basis,&
+   call elsi_init(aux_h,SIPS_SOLVER,MULTI_PROC,BLACS_DENSE,rw_h%n_basis,&
            rw_h%n_electrons,0)
    call elsi_set_mpi(aux_h,rw_h%mpi_comm)
    call elsi_set_blacs(aux_h,rw_h%blacs_ctxt,rw_h%blk)
@@ -1242,7 +1242,7 @@ subroutine elsi_write_mat_complex_mp(rw_h,f_name,mat)
 
    character*40, parameter :: caller = "elsi_write_mat_complex_mp"
 
-   call elsi_init(aux_h,ELPA_SOLVER,MULTI_PROC,BLACS_DENSE,rw_h%n_basis,&
+   call elsi_init(aux_h,SIPS_SOLVER,MULTI_PROC,BLACS_DENSE,rw_h%n_basis,&
            rw_h%n_electrons,0)
    call elsi_set_mpi(aux_h,rw_h%mpi_comm)
    call elsi_set_blacs(aux_h,rw_h%blacs_ctxt,rw_h%blk)
