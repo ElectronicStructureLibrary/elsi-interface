@@ -48,6 +48,7 @@ module ELSI_UTILS
    public :: elsi_trace_mat
    public :: elsi_trace_mat_mat
    public :: elsi_get_solver_tag
+   public :: elsi_print_handle_summary
 
    interface elsi_get_local_nnz
       module procedure elsi_get_local_nnz_real,&
@@ -731,6 +732,98 @@ subroutine elsi_get_solver_tag(e_h,solver_tag)
    else
       call elsi_stop(" Unsupported data type.",e_h,caller)
    end if
+
+end subroutine
+
+!>
+!! This routine prints the state of the handle
+!!
+subroutine elsi_print_handle_summary(e_h,prefix,use_unit)
+
+   implicit none
+
+   type(elsi_handle),          intent(in) :: e_h      !< Handle
+   character(len=*),           intent(in) :: prefix   !< Prefix for every line
+   integer(kind=i4), optional, intent(in) :: use_unit
+
+   real(kind=r8)    :: sparsity
+   character*200    :: info_str
+   integer(kind=i4) :: my_unit
+
+   character*40, parameter :: caller = "elsi_print_handle_summary"
+
+   if(present(use_unit)) then
+      my_unit = use_unit
+   else
+      my_unit = e_h%print_unit
+   endif
+
+   write(info_str,"(A,A)") prefix,          "Physical Properties"
+   call elsi_say(e_h,info_str,my_unit)
+   write(info_str,"(A,A,F13.1)") prefix,    "  Number of electrons       :",e_h%n_electrons
+   call elsi_say(e_h,info_str,my_unit)
+   if(e_h%parallel_mode == MULTI_PROC) then
+      write(info_str,"(A,A,I13)") prefix,   "  Number of spins           :",e_h%n_spins
+      call elsi_say(e_h,info_str,my_unit)
+      write(info_str,"(A,A,I13)") prefix,   "  Number of k-points        :",e_h%n_kpts
+      call elsi_say(e_h,info_str,my_unit)
+   endif
+   if(e_h%solver == ELPA_SOLVER .or. e_h%solver == SIPS_SOLVER) then
+      write(info_str,"(A,A,I13)") prefix,     "  Number of states          :",e_h%n_states
+      call elsi_say(e_h,info_str,my_unit)
+   endif
+
+   write(info_str,"(A,A)") prefix,          ""
+   call elsi_say(e_h,info_str,my_unit)
+   write(info_str,"(A,A)") prefix,          "Matrix Properties"
+   call elsi_say(e_h,info_str,my_unit)
+   write(info_str,"(A,A,I13)") prefix,      "  Number of basis functions :",e_h%n_basis
+   call elsi_say(e_h,info_str,my_unit)
+   if(e_h%parallel_mode == MULTI_PROC) then
+      sparsity = 1.0_r8-(1.0_r8*e_h%nnz_g/e_h%n_basis/e_h%n_basis)
+      write(info_str,"(A,A,F13.3)") prefix, "  Matrix sparsity           :",sparsity
+      call elsi_say(e_h,info_str,my_unit)
+   endif
+
+   write(info_str,"(A,A)") prefix,          ""
+   call elsi_say(e_h,info_str,my_unit)
+   write(info_str,"(A,A)") prefix,          "Computational Details"
+   call elsi_say(e_h,info_str,my_unit)
+   if(e_h%parallel_mode == MULTI_PROC) then
+      write(info_str,"(A,A)") prefix,       "  Parallel mode             :   MULTI_PROC "
+      call elsi_say(e_h,info_str,my_unit)
+   elseif(e_h%parallel_mode == SINGLE_PROC) then
+      write(info_str,"(A,A)") prefix,       "  Parallel mode             :  SINGLE_PROC "
+      call elsi_say(e_h,info_str,my_unit)
+   endif
+   write(info_str,"(A,A,I13)") prefix,      "  Number of MPI tasks       :",e_h%n_procs
+   call elsi_say(e_h,info_str,my_unit)
+   if(e_h%matrix_format == BLACS_DENSE) then
+      write(info_str,"(A,A)") prefix,       "  Matrix format             :  BLACS_DENSE "
+      call elsi_say(e_h,info_str,my_unit)
+   elseif(e_h%matrix_format == PEXSI_CSC) then
+      write(info_str,"(A,A)") prefix,       "  Matrix format             :    PEXSI_CSC "
+      call elsi_say(e_h,info_str,my_unit)
+   endif
+   if(e_h%solver == ELPA_SOLVER) then
+      write(info_str,"(A,A)") prefix,       "  Solver requested          :         ELPA "
+      call elsi_say(e_h,info_str,my_unit)
+   elseif(e_h%solver == OMM_SOLVER) then
+      write(info_str,"(A,A)") prefix,       "  Solver requested          :       libOMM "
+      call elsi_say(e_h,info_str,my_unit)
+   elseif(e_h%solver == PEXSI_SOLVER) then
+      write(info_str,"(A,A)") prefix,       "  Solver requested          :        PEXSI "
+      call elsi_say(e_h,info_str,my_unit)
+   elseif(e_h%solver == CHESS_SOLVER) then
+      write(info_str,"(A,A)") prefix,       "  Solver requested          :        CheSS "
+      call elsi_say(e_h,info_str,my_unit)
+   elseif(e_h%solver == SIPS_SOLVER) then
+      write(info_str,"(A,A)") prefix,       "  Solver requested          :         SIPs "
+      call elsi_say(e_h,info_str,my_unit)
+   elseif(e_h%solver == DMP_SOLVER) then
+      write(info_str,"(A,A)") prefix,       "  Solver requested          :          DMP "
+      call elsi_say(e_h,info_str,my_unit)
+   endif
 
 end subroutine
 
