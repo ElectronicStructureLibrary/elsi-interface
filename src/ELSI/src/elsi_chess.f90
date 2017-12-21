@@ -32,6 +32,7 @@ module ELSI_CHESS
 
    use ELSI_DATATYPE
    use ELSI_PRECISION,         only: r8,i4
+   use ELSI_TIMINGS,           only: elsi_get_time
    use ELSI_UTILS
    use FOE_BASE,               only: foe_data_get_real
    use FOE_COMMON,             only: init_foe

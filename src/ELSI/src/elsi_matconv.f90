@@ -34,6 +34,7 @@ module ELSI_MATCONV
    use ELSI_MALLOC
    use ELSI_PRECISION, only: r8,i4,i8
    use ELSI_SORT
+   use ELSI_TIMINGS,   only: elsi_get_time
    use ELSI_UTILS
 
    implicit none

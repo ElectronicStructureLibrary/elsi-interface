@@ -35,6 +35,7 @@ module ELSI_ELPA
    use ELSI_MALLOC
    use ELSI_MU,           only: elsi_compute_mu_and_occ
    use ELSI_PRECISION,    only: r8,i4
+   use ELSI_TIMINGS,      only: elsi_get_time
    use ELSI_UTILS
    use CHECK_SINGULARITY, only: elpa_check_singularity_real_double,&
                                 elpa_check_singularity_complex_double

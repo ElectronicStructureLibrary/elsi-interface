@@ -37,6 +37,7 @@ module ELSI
    use ELSI_MUTATOR
    use ELSI_SETUP
    use ELSI_SOLVER
+   use ELSI_TIMINGS
 
    implicit none
 
@@ -149,5 +150,8 @@ module ELSI
    public :: elsi_write_mat_real_sparse
    public :: elsi_write_mat_complex
    public :: elsi_write_mat_complex_sparse
+
+   ! Timing
+   public :: elsi_set_solver_timing_tag
 
 end module ELSI

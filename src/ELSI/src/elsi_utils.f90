@@ -48,24 +48,33 @@ module ELSI_UTILS
    public :: elsi_get_local_nnz_cmplx
    public :: elsi_trace_mat_real
    public :: elsi_trace_mat_mat_cmplx
-   public :: elsi_init_timer
-   public :: elsi_get_time
+   public :: elsi_get_solver_tag
+   public :: elsi_print_handle_summary
 
 contains
 
 !>
 !! This routine prints a message.
 !!
-subroutine elsi_say(e_h,info_str)
+subroutine elsi_say(e_h,info_str,use_unit)
 
    implicit none
 
-   type(elsi_handle), intent(in) :: e_h
-   character(len=*),  intent(in) :: info_str
+   type(elsi_handle),           intent(in) :: e_h      !< Handle
+   character(len=*),            intent(in) :: info_str !< Message to print
+   integer(kind=i4),  optional, intent(in) :: use_unit !< Unit to print to
+
+   integer(kind=i4) :: my_unit
+
+   if(present(use_unit)) then
+      my_unit = use_unit
+   else
+      my_unit = e_h%print_unit
+   endif
 
    if(e_h%print_info) then
       if(e_h%myid_all == 0) then
-         write(e_h%print_unit,"(A)") trim(info_str)
+         write(my_unit,"(A)") trim(info_str)
       endif
    endif
 
@@ -124,7 +133,6 @@ subroutine elsi_reset_handle(e_h)
 
    e_h%handle_ready     = .false.
    e_h%solver           = UNSET
-   e_h%data_type        = UNSET
    e_h%matrix_format    = UNSET
    e_h%uplo             = FULL_MAT
    e_h%parallel_mode    = UNSET
@@ -635,40 +643,171 @@ subroutine elsi_trace_mat_mat_cmplx(e_h,mat1,mat2,trace)
 end subroutine
 
 !>
-!! This routine initializes the timer.
+!! This routine generates a string identifying the current solver.
 !!
-subroutine elsi_init_timer(e_h)
+subroutine elsi_get_solver_tag(e_h,solver_tag,data_type)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h
+   type(elsi_handle),                intent(in)  :: e_h         !< Handle
+   character(len=TIMING_STRING_LEN), intent(out) :: solver_tag
+   integer(kind=i4),                 intent(in)  :: data_type
 
-   integer(kind=i4) :: initial_time
-   integer(kind=i4) :: clock_max
+   ! Note:  I've deliberately put data_type at the end of the list, as I have the
+   !        uneasy gut feeling that it could be optional in the future, even though 
+   !        I can't see how 
 
-   character*40, parameter :: caller = "elsi_init_timer"
+   character*40, parameter :: caller = "elsi_get_solver_tag"
 
-   call system_clock(initial_time,e_h%clock_rate,clock_max)
+   if (data_type.eq.REAL_VALUES) then
+      select case(e_h%solver)
+      case(ELPA_SOLVER)
+         if(e_h%parallel_mode == SINGLE_PROC) then
+            solver_tag = "LAPACK_REAL"
+         else ! MULTI_PROC
+            if(e_h%elpa_solver.eq.1) then 
+               solver_tag = "ELPA_1STAGE_REAL"
+            elseif(e_h%elpa_solver.eq.2) then 
+               solver_tag = "ELPA_2STAGE_REAL"
+            else
+               call elsi_stop(" Unsupported ELPA flavor.",e_h,caller)
+            end if
+         endif
+      case(OMM_SOLVER)
+         solver_tag = "LIBOMM_REAL"
+      case(PEXSI_SOLVER)
+         solver_tag = "PEXSI_REAL"
+      case(CHESS_SOLVER)
+         solver_tag = "CHESS_REAL"
+      case(SIPS_SOLVER)
+         solver_tag = "SIPS_REAL"
+      case(DMP_SOLVER)
+         solver_tag = "DMP_REAL"
+      case default
+         call elsi_stop(" Unsupported solver.",e_h,caller)
+      end select
+   elseif (data_type.eq.COMPLEX_VALUES) then
+      select case(e_h%solver)
+      case(ELPA_SOLVER)
+         if(e_h%parallel_mode == SINGLE_PROC) then
+            solver_tag = "LAPACK_CMPLX"
+         else ! MULTI_PROC
+            if(e_h%elpa_solver.eq.1) then 
+               solver_tag = "ELPA_1STAGE_CMPLX"
+            elseif(e_h%elpa_solver.eq.2) then 
+               solver_tag = "ELPA_2STAGE_CMPLX"
+            else
+               call elsi_stop(" Unsupported ELPA flavor.",e_h,caller)
+            end if
+         endif
+      case(OMM_SOLVER)
+         solver_tag = "LIBOMM_CMPLX"
+      case(PEXSI_SOLVER)
+         solver_tag = "PEXSI_CMPLX"
+      case(CHESS_SOLVER)
+         solver_tag = "CHESS_CMPLX"
+      case(SIPS_SOLVER)
+         solver_tag = "SIPS_CMPLX"
+      case(DMP_SOLVER)
+         solver_tag = "DMP_CMPLX"
+      case default
+         call elsi_stop(" Unsupported solver.",e_h,caller)
+      end select
+   else
+      call elsi_stop(" Unsupported data type.",e_h,caller)
+   end if
 
 end subroutine
 
 !>
-!! This routine gets the current wallclock time.
+!! This routine prints the state of the handle
 !!
-subroutine elsi_get_time(e_h,wtime)
+subroutine elsi_print_handle_summary(e_h,prefix,use_unit)
 
    implicit none
 
-   type(elsi_handle), intent(in)  :: e_h
-   real(kind=r8),     intent(out) :: wtime
+   type(elsi_handle),          intent(in) :: e_h      !< Handle
+   character(len=*),           intent(in) :: prefix   !< Prefix for every line
+   integer(kind=i4), optional, intent(in) :: use_unit
 
-   integer(kind=i4) :: tics
+   real(kind=r8)    :: sparsity
+   character*200    :: info_str
+   integer(kind=i4) :: my_unit
 
-   character*40, parameter :: caller = "elsi_get_time"
+   character*40, parameter :: caller = "elsi_print_handle_summary"
 
-   call system_clock(tics)
+   if(present(use_unit)) then
+      my_unit = use_unit
+   else
+      my_unit = e_h%print_unit
+   endif
 
-   wtime = 1.0_r8*tics/e_h%clock_rate
+   write(info_str,"(A,A)") prefix,          "Physical Properties"
+   call elsi_say(e_h,info_str,my_unit)
+   write(info_str,"(A,A,F13.1)") prefix,    "  Number of electrons       :",e_h%n_electrons
+   call elsi_say(e_h,info_str,my_unit)
+   if(e_h%parallel_mode == MULTI_PROC) then
+      write(info_str,"(A,A,I13)") prefix,   "  Number of spins           :",e_h%n_spins
+      call elsi_say(e_h,info_str,my_unit)
+      write(info_str,"(A,A,I13)") prefix,   "  Number of k-points        :",e_h%n_kpts
+      call elsi_say(e_h,info_str,my_unit)
+   endif
+   if(e_h%solver == ELPA_SOLVER .or. e_h%solver == SIPS_SOLVER) then
+      write(info_str,"(A,A,I13)") prefix,     "  Number of states          :",e_h%n_states
+      call elsi_say(e_h,info_str,my_unit)
+   endif
+
+   write(info_str,"(A,A)") prefix,          ""
+   call elsi_say(e_h,info_str,my_unit)
+   write(info_str,"(A,A)") prefix,          "Matrix Properties"
+   call elsi_say(e_h,info_str,my_unit)
+   write(info_str,"(A,A,I13)") prefix,      "  Number of basis functions :",e_h%n_basis
+   call elsi_say(e_h,info_str,my_unit)
+   if(e_h%parallel_mode == MULTI_PROC) then
+      sparsity = 1.0_r8-(1.0_r8*e_h%nnz_g/e_h%n_basis/e_h%n_basis)
+      write(info_str,"(A,A,F13.3)") prefix, "  Matrix sparsity           :",sparsity
+      call elsi_say(e_h,info_str,my_unit)
+   endif
+
+   write(info_str,"(A,A)") prefix,          ""
+   call elsi_say(e_h,info_str,my_unit)
+   write(info_str,"(A,A)") prefix,          "Computational Details"
+   call elsi_say(e_h,info_str,my_unit)
+   if(e_h%parallel_mode == MULTI_PROC) then
+      write(info_str,"(A,A)") prefix,       "  Parallel mode             :   MULTI_PROC "
+      call elsi_say(e_h,info_str,my_unit)
+   elseif(e_h%parallel_mode == SINGLE_PROC) then
+      write(info_str,"(A,A)") prefix,       "  Parallel mode             :  SINGLE_PROC "
+      call elsi_say(e_h,info_str,my_unit)
+   endif
+   write(info_str,"(A,A,I13)") prefix,      "  Number of MPI tasks       :",e_h%n_procs
+   call elsi_say(e_h,info_str,my_unit)
+   if(e_h%matrix_format == BLACS_DENSE) then
+      write(info_str,"(A,A)") prefix,       "  Matrix format             :  BLACS_DENSE "
+      call elsi_say(e_h,info_str,my_unit)
+   elseif(e_h%matrix_format == PEXSI_CSC) then
+      write(info_str,"(A,A)") prefix,       "  Matrix format             :    PEXSI_CSC "
+      call elsi_say(e_h,info_str,my_unit)
+   endif
+   if(e_h%solver == ELPA_SOLVER) then
+      write(info_str,"(A,A)") prefix,       "  Solver requested          :         ELPA "
+      call elsi_say(e_h,info_str,my_unit)
+   elseif(e_h%solver == OMM_SOLVER) then
+      write(info_str,"(A,A)") prefix,       "  Solver requested          :       libOMM "
+      call elsi_say(e_h,info_str,my_unit)
+   elseif(e_h%solver == PEXSI_SOLVER) then
+      write(info_str,"(A,A)") prefix,       "  Solver requested          :        PEXSI "
+      call elsi_say(e_h,info_str,my_unit)
+   elseif(e_h%solver == CHESS_SOLVER) then
+      write(info_str,"(A,A)") prefix,       "  Solver requested          :        CheSS "
+      call elsi_say(e_h,info_str,my_unit)
+   elseif(e_h%solver == SIPS_SOLVER) then
+      write(info_str,"(A,A)") prefix,       "  Solver requested          :         SIPs "
+      call elsi_say(e_h,info_str,my_unit)
+   elseif(e_h%solver == DMP_SOLVER) then
+      write(info_str,"(A,A)") prefix,       "  Solver requested          :          DMP "
+      call elsi_say(e_h,info_str,my_unit)
+   endif
 
 end subroutine
 

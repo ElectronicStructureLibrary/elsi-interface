@@ -33,6 +33,7 @@ module ELSI_OMM
    use ELSI_CONSTANTS, only: BLACS_DENSE
    use ELSI_DATATYPE
    use ELSI_PRECISION, only: r8,i4
+   use ELSI_TIMINGS,   only: elsi_get_time
    use ELSI_UTILS
    use ELPA1,          only: elpa_cholesky_real_double,&
                              elpa_cholesky_complex_double,&

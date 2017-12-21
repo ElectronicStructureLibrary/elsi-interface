@@ -36,10 +36,28 @@ module ELSI_DATATYPE
    use F_PPEXSI_INTERFACE, only: f_ppexsi_options
    use MATRIXSWITCH,       only: matrix
    use SPARSEMATRIX_BASE,  only: matrices,sparse_matrix
+   use ELSI_CONSTANTS,     only: TIMING_STRING_LEN
 
    implicit none
 
    private
+
+   !---------------------------------------------------------------------------------------------!
+
+   type, public :: elsi_timings_handle
+
+      integer                           :: size_timings  ! Dimension for arrays
+      integer                           :: n_timings     ! Number of timings so far
+      character(len=TIMING_STRING_LEN)  :: next_user_tag ! User tag to be added to next timing
+      character(len=TIMING_STRING_LEN)  :: set_label     ! String identifying type of timings
+
+      real(kind=r8),                     allocatable :: times(:)      ! System times
+      character(len=TIMING_STRING_LEN),  allocatable :: elsi_tags(:)  ! Tags assigned by ELSI
+      character(len=TIMING_STRING_LEN),  allocatable :: user_tags(:)  ! Tags provided by user
+
+   end type
+
+   !---------------------------------------------------------------------------------------------!
 
    type, public :: elsi_handle
 
@@ -121,8 +139,8 @@ module ELSI_DATATYPE
       ! Solver (AUTO=0,ELPA=1,OMM=2,PEXSI=3,CHESS=4,SIPS=5,DMP=6)
       integer(kind=i4) :: solver
 
-      ! Real or complex data (REAL_VALUES=0,COMPLEX_VALUES=1)
-      integer(kind=i4) :: data_type
+      ! data_type has been removed, as it is not a property of the handle
+      ! (a given instance of the handle can solve real or complex problems)
 
       ! Matrix format (BLACS_DENSE=0,PEXSI_CSC=1)
       integer(kind=i4) :: matrix_format
@@ -288,10 +306,15 @@ module ELSI_DATATYPE
       real(kind=r8)    :: dmp_tol        ! Tolerance for purification
       real(kind=r8)    :: ne_dmp         ! Number of electrons computed by DMP
 
-      ! Timer
-      integer(kind=i4) :: clock_rate
+      ! Timer and timings
+      integer(kind=i4)          :: clock_rate
+      type(elsi_timings_handle) :: solver_timings          
+      integer(kind=i4)          :: solver_unit    ! Unit to which we output verbose timing information
+                                                  ! for solver invocations
 
    end type
+
+   !---------------------------------------------------------------------------------------------!
 
    type, public :: elsi_rw_handle
 
@@ -343,5 +366,7 @@ module ELSI_DATATYPE
       integer(kind=i4) :: header_user(8)
 
    end type
+
+   !---------------------------------------------------------------------------------------------!
 
 end module ELSI_DATATYPE

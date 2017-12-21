@@ -41,6 +41,8 @@ module ELSI_SETUP
    use ELSI_PEXSI,         only: elsi_set_pexsi_default
    use ELSI_PRECISION,     only: r8,i4
    use ELSI_SIPS,          only: elsi_set_sips_default
+   use ELSI_TIMINGS,       only: elsi_init_timer,elsi_init_timings,&
+                                 elsi_print_timings,elsi_finalize_timings
    use ELSI_UTILS
    use FOE_BASE,           only: foe_data_deallocate
    use F_PPEXSI_INTERFACE, only: f_ppexsi_plan_finalize
@@ -52,15 +54,17 @@ module ELSI_SETUP
 
    private
 
-   public :: elsi_init
-   public :: elsi_finalize
-   public :: elsi_set_mpi
-   public :: elsi_set_mpi_global
-   public :: elsi_set_spin
-   public :: elsi_set_kpoint
-   public :: elsi_set_blacs
-   public :: elsi_set_csc
-   public :: elsi_cleanup
+   public  :: elsi_init
+   public  :: elsi_finalize
+   public  :: elsi_set_mpi
+   public  :: elsi_set_mpi_global
+   public  :: elsi_set_spin
+   public  :: elsi_set_kpoint
+   public  :: elsi_set_blacs
+   public  :: elsi_set_csc
+   public  :: elsi_cleanup
+
+   private :: elsi_final_print   ! TODO: This is actually elsi_final_summary_print
 
 contains
 
@@ -129,7 +133,15 @@ subroutine elsi_init(e_h,solver,parallel_mode,matrix_format,n_basis,n_electron,&
       call elsi_set_dmp_default(e_h)
    end select
 
+   ! Initialize timer information
    call elsi_init_timer(e_h)
+!   if(e_h%myid_all == 0) then
+!      e_h%solver_unit = SOLVER_UNIT_DEFAULT
+!      open(unit = e_h%solver_unit, file = SOLVER_FILE_NAME_DEFAULT)
+!   else
+!      e_h%solver_unit = UNSET
+!   endif
+   call elsi_init_timings(e_h%solver_timings, "Solver timings")
 
 end subroutine
 
@@ -392,63 +404,22 @@ subroutine elsi_final_print(e_h)
 
    character*40, parameter :: caller = "elsi_final_print"
 
-   call elsi_say(e_h,"  |------------------------------------------")
+   call elsi_say(e_h,"  |--------------------------------------------------------------------")
    call elsi_say(e_h,"  | Final ELSI Output                        ")
-   call elsi_say(e_h,"  |------------------------------------------")
+   call elsi_say(e_h,"  |--------------------------------------------------------------------")
 
-   write(info_str,"(A,I13)") "  | Number of basis functions :",e_h%n_basis
+   call elsi_print_handle_summary(e_h,"  | ")
+
+   write(info_str,"(A,I13)") "  |   Number of ELSI calls      :",e_h%n_elsi_calls
    call elsi_say(e_h,info_str)
 
-   write(info_str,"(A,F13.1)") "  | Number of electrons       :",e_h%n_electrons
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,"  |")
+   call elsi_say(e_h,"  | Timings")
+   call elsi_print_timings(e_h,e_h%solver_timings)
 
-   if(e_h%parallel_mode == MULTI_PROC) then
-      write(info_str,"(A,I13)") "  | Number of spins           :",e_h%n_spins
-      call elsi_say(e_h,info_str)
-      write(info_str,"(A,I13)") "  | Number of k-points        :",e_h%n_kpts
-      call elsi_say(e_h,info_str)
-   endif
-
-   if(e_h%solver == ELPA_SOLVER .or. e_h%solver == SIPS_SOLVER) then
-      write(info_str,"(A,I13)") "  | Number of states          :",e_h%n_states
-      call elsi_say(e_h,info_str)
-   endif
-
-   if(e_h%solver == ELPA_SOLVER) then
-      call elsi_say(e_h,"  | Solver                    :         ELPA ")
-   elseif(e_h%solver == OMM_SOLVER) then
-      call elsi_say(e_h,"  | Solver                    :       libOMM ")
-   elseif(e_h%solver == PEXSI_SOLVER) then
-      call elsi_say(e_h,"  | Solver                    :        PEXSI ")
-   elseif(e_h%solver == CHESS_SOLVER) then
-      call elsi_say(e_h,"  | Solver                    :        CheSS ")
-   elseif(e_h%solver == SIPS_SOLVER) then
-      call elsi_say(e_h,"  | Solver                    :         SIPs ")
-   elseif(e_h%solver == DMP_SOLVER) then
-      call elsi_say(e_h,"  | Solver                    :          DMP ")
-   endif
-
-   if(e_h%parallel_mode == MULTI_PROC) then
-      call elsi_say(e_h,"  | Parallel mode             :   MULTI_PROC ")
-   elseif(e_h%parallel_mode == SINGLE_PROC) then
-      call elsi_say(e_h,"  | Parallel mode             :  SINGLE_PROC ")
-   endif
-
-   if(e_h%matrix_format == BLACS_DENSE) then
-      call elsi_say(e_h,"  | Matrix format             :  BLACS_DENSE ")
-   elseif(e_h%matrix_format == PEXSI_CSC) then
-      call elsi_say(e_h,"  | Matrix format             :    PEXSI_CSC ")
-   endif
-
-   if(e_h%parallel_mode == MULTI_PROC) then
-      sparsity = 1.0_r8-(1.0_r8*e_h%nnz_g/e_h%n_basis/e_h%n_basis)
-      write(info_str,"(A,F13.3)") "  | Matrix sparsity           :",sparsity
-      call elsi_say(e_h,info_str)
-   endif
-
-   call elsi_say(e_h,"  |------------------------------------------")
+   call elsi_say(e_h,"  |--------------------------------------------------------------------")
    call elsi_say(e_h,"  | ELSI Project (c)  elsi-interchange.org   ")
-   call elsi_say(e_h,"  |------------------------------------------")
+   call elsi_say(e_h,"  |--------------------------------------------------------------------")
 
 end subroutine
 
@@ -659,6 +630,14 @@ subroutine elsi_cleanup(e_h)
    if(e_h%sips_started) then
       call clean_qetsc()
    endif
+
+   ! Print final details of handle to timing file, then finalize
+!   if(e_h%myid_all.eq.0) then
+!      call elsi_print_handle_summary(e_h,"",e_h%solver_unit)
+!      close(e_h%solver_unit)
+!   endif
+!   e_h%solver_unit = UNSET
+   call elsi_finalize_timings(e_h%solver_timings) 
 
    ! Reset e_h
    call elsi_reset_handle(e_h)

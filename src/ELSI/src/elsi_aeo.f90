@@ -35,6 +35,7 @@ module ELSI_ELPA
    use ELSI_MALLOC
    use ELSI_MU,        only: elsi_compute_mu_and_occ
    use ELSI_PRECISION, only: r4,r8,i4
+   use ELSI_TIMINGS,   only: elsi_get_time
    use ELSI_UTILS
    use ELPA
    use ELPA1,          only: elpa_print_times,elpa_get_communicators,&

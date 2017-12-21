@@ -75,6 +75,10 @@ module ELSI_MALLOC
 
 contains
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! ELSI_ALLOCATE MODULE PROCEDURES !
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 !>
 !! This routine allocates a 1D array with real(kind=r4).
 !!
@@ -553,6 +557,10 @@ subroutine elsi_allocate_complex16_3d(e_h,array,dim1,dim2,dim3,arrayname,caller)
    array = (0.0_r8,0.0_r8)
 
 end subroutine
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! ELSI_DEALLOCATE MODULE PROCEDURES !
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !>
 !! This routine deallocates a 1D array with real(kind=r4).

@@ -35,6 +35,7 @@ module ELSI_DMP
    use ELSI_ELPA,      only: elsi_to_standard_evp_real
    use ELSI_MALLOC
    use ELSI_PRECISION, only: r8,i4
+   use ELSI_TIMINGS,   only: elsi_get_time
    use ELSI_UTILS
 
    implicit none
