@@ -91,7 +91,7 @@ subroutine elsi_init(e_h,solver,parallel_mode,matrix_format,n_basis,n_electron,&
    ! For safety
    call elsi_cleanup(e_h)
 
-   e_h%handle_ready   = .true.
+   e_h%handle_init   = .true.
    e_h%n_basis        = n_basis
    e_h%n_nonsing      = n_basis
    e_h%n_electrons    = n_electron

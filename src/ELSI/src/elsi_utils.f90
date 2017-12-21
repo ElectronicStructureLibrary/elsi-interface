@@ -42,6 +42,7 @@ module ELSI_UTILS
    public :: elsi_stop
    public :: elsi_check
    public :: elsi_check_handle
+   public :: elsi_ready_handle
    public :: elsi_get_global_row
    public :: elsi_get_global_col
    public :: elsi_get_local_nnz_real
@@ -131,6 +132,7 @@ subroutine elsi_reset_handle(e_h)
 
    character*40, parameter :: caller = "elsi_reset_handle"
 
+   e_h%handle_init      = .false.
    e_h%handle_ready     = .false.
    e_h%solver           = UNSET
    e_h%matrix_format    = UNSET
@@ -420,11 +422,49 @@ subroutine elsi_check_handle(e_h,caller)
    type(elsi_handle), intent(in) :: e_h
    character(len=*),  intent(in) :: caller
 
-   if(.not. e_h%handle_ready) then
+   if(.not. e_h%handle_init) then
       call elsi_stop(" Invalid handle! Not initialized.",e_h,caller)
    endif
 
 end subroutine
+
+!>
+!! This subroutine signifies that a handle is believed to be ready to be used.  
+!! There are certain tasks (such as IO) that are only possible once the user has 
+!! specified sufficient information about the problem, but they may call the
+!! relevant mutators in any order, making it difficult to pin down exactly when
+!! we can perform certain initialization-like tasks.
+!! Thus, we call this subroutine at the beginning of all public-facing subroutines 
+!! in which ELSI is executing a task that would require it to have been 
+!! sufficiently initialized by the user: currently, only solver.  This does not 
+!! apply to mutators, initalization, finalization, or matrix IO.
+!!
+subroutine elsi_ready_handle(e_h,caller)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h
+   character(len=*),  intent(in)    :: caller
+ 
+   call elsi_check_handle(e_h,caller)
+
+   if(.not.e_h%handle_ready) then
+      call elsi_check(e_h,caller)
+
+      ! We can now perform initialization-like tasks which require
+      ! the usage of MPI
+      if (e_h%myid_all == 0) then
+         e_h%solver_unit = SOLVER_UNIT_DEFAULT 
+      else
+         e_h%solver_unit = UNSET
+      endif
+      call elsi_print_handle_summary(e_h,"",e_h%solver_unit)
+
+      e_h%handle_ready = .true.
+   endif
+
+end subroutine
+
 
 !>
 !! This routine computes the global row index based on the local row index.

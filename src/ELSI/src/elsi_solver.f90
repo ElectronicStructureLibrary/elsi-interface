@@ -152,6 +152,7 @@ subroutine elsi_ev_real(e_h,ham,ovlp,eval,evec)
    call elsi_get_time(e_h,t0)
 
    call elsi_check_handle(e_h,caller)
+   call elsi_ready_handle(e_h,caller)
 
    ! Update counter
    e_h%n_elsi_calls = e_h%n_elsi_calls+1
@@ -243,6 +244,7 @@ subroutine elsi_ev_complex(e_h,ham,ovlp,eval,evec)
    call elsi_get_time(e_h,t0)
 
    call elsi_check_handle(e_h,caller)
+   call elsi_ready_handle(e_h,caller)
 
    ! Update counter
    e_h%n_elsi_calls = e_h%n_elsi_calls+1
@@ -304,6 +306,7 @@ subroutine elsi_ev_real_sparse(e_h,ham,ovlp,eval,evec)
    call elsi_get_time(e_h,t0)
 
    call elsi_check_handle(e_h,caller)
+   call elsi_ready_handle(e_h,caller)
 
    ! Update counter
    e_h%n_elsi_calls = e_h%n_elsi_calls+1
@@ -362,6 +365,7 @@ subroutine elsi_ev_complex_sparse(e_h,ham,ovlp,eval,evec)
    call elsi_get_time(e_h,t0)
 
    call elsi_check_handle(e_h,caller)
+   call elsi_ready_handle(e_h,caller)
 
    ! Update counter
    e_h%n_elsi_calls = e_h%n_elsi_calls+1
@@ -419,6 +423,7 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
    call elsi_get_time(e_h,t0)
 
    call elsi_check_handle(e_h,caller)
+   call elsi_ready_handle(e_h,caller)
 
    ! Update counter
    e_h%n_elsi_calls = e_h%n_elsi_calls+1
@@ -606,6 +611,7 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
    call elsi_get_time(e_h,t0)
 
    call elsi_check_handle(e_h,caller)
+   call elsi_ready_handle(e_h,caller)
 
    ! Update counter
    e_h%n_elsi_calls = e_h%n_elsi_calls+1
@@ -772,6 +778,7 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
    call elsi_get_time(e_h,t0)
 
    call elsi_check_handle(e_h,caller)
+   call elsi_ready_handle(e_h,caller)
 
    ! Update counter
    e_h%n_elsi_calls = e_h%n_elsi_calls+1
@@ -968,6 +975,7 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
    call elsi_get_time(e_h,t0)
 
    call elsi_check_handle(e_h,caller)
+   call elsi_ready_handle(e_h,caller)
 
    ! Update counter
    e_h%n_elsi_calls = e_h%n_elsi_calls+1

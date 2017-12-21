@@ -92,7 +92,7 @@ subroutine elsi_init_rw(rw_h,task,parallel_mode,file_format,n_basis,n_electron)
    ! For safety
    call elsi_reset_rw_handle(rw_h)
 
-   rw_h%handle_ready  = .true.
+   rw_h%handle_init  = .true.
    rw_h%rw_task       = task
    rw_h%parallel_mode = parallel_mode
    rw_h%file_format   = file_format
@@ -328,7 +328,7 @@ subroutine elsi_check_rw_handle(rw_h,caller)
    type(elsi_rw_handle), intent(in) :: rw_h   !< Handle
    character(len=*),     intent(in) :: caller !< Caller
 
-   if(.not. rw_h%handle_ready) then
+   if(.not. rw_h%handle_init) then
       call elsi_rw_stop(" Invalid handle! Not initialized.",rw_h,caller)
    endif
 
@@ -345,6 +345,7 @@ subroutine elsi_reset_rw_handle(rw_h)
 
    character*40, parameter :: caller = "elsi_reset_rw_handle"
 
+   rw_h%handle_init    = .false.
    rw_h%handle_ready   = .false.
    rw_h%rw_task        = UNSET
    rw_h%parallel_mode  = UNSET
