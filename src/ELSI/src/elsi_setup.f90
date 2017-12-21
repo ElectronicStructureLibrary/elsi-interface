@@ -37,7 +37,6 @@ module ELSI_SETUP
    use ELSI_DMP,           only: elsi_set_dmp_default
    use ELSI_ELPA,          only: elsi_set_elpa_default,elsi_get_elpa_comms
    use ELSI_MALLOC
-   use ELSI_MATRICES,      only: elsi_set_row_ind,elsi_set_col_ptr
    use ELSI_OMM,           only: elsi_set_omm_default
    use ELSI_PEXSI,         only: elsi_set_pexsi_default
    use ELSI_PRECISION,     only: r8,i4
@@ -329,8 +328,46 @@ subroutine elsi_set_csc(e_h,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)
    e_h%nnz_l_sp  = nnz_l
    e_h%n_lcol_sp = n_lcol
 
-   call elsi_set_row_ind(e_h,row_ind)
-   call elsi_set_col_ptr(e_h,col_ptr)
+   if(e_h%solver == PEXSI_SOLVER) then
+      if(allocated(e_h%row_ind_pexsi)) then
+         call elsi_deallocate(e_h,e_h%row_ind_pexsi,"row_ind_pexsi")
+      endif
+      if(allocated(e_h%col_ptr_pexsi)) then
+         call elsi_deallocate(e_h,e_h%col_ptr_pexsi,"col_ptr_pexsi")
+      endif
+
+      call elsi_allocate(e_h,e_h%row_ind_pexsi,nnz_l,"row_ind_pexsi",caller)
+      call elsi_allocate(e_h,e_h%col_ptr_pexsi,n_lcol+1,"col_ptr_pexsi",caller)
+
+      e_h%row_ind_pexsi = row_ind
+      e_h%col_ptr_pexsi = col_ptr
+   elseif(e_h%solver == CHESS_SOLVER) then
+      if(allocated(e_h%row_ind_chess)) then
+         call elsi_deallocate(e_h,e_h%row_ind_chess,"row_ind_chess")
+      endif
+      if(allocated(e_h%col_ptr_chess)) then
+         call elsi_deallocate(e_h,e_h%col_ptr_chess,"col_ptr_chess")
+      endif
+
+      call elsi_allocate(e_h,e_h%row_ind_chess,nnz_l,"row_ind_chess",caller)
+      call elsi_allocate(e_h,e_h%col_ptr_chess,n_lcol+1,"col_ptr_chess",caller)
+
+      e_h%row_ind_chess = row_ind
+      e_h%col_ptr_chess = col_ptr
+   else
+      if(allocated(e_h%row_ind_sips)) then
+         call elsi_deallocate(e_h,e_h%row_ind_sips,"row_ind_sips")
+      endif
+      if(allocated(e_h%col_ptr_sips)) then
+         call elsi_deallocate(e_h,e_h%col_ptr_sips,"col_ptr_sips")
+      endif
+
+      call elsi_allocate(e_h,e_h%row_ind_sips,nnz_l,"row_ind_sips",caller)
+      call elsi_allocate(e_h,e_h%col_ptr_sips,nnz_l,"col_ptr_sips",caller)
+
+      e_h%row_ind_sips = row_ind
+      e_h%col_ptr_sips = col_ptr
+   endif
 
    e_h%sparsity_ready = .true.
 
@@ -398,59 +435,6 @@ subroutine elsi_cleanup(e_h)
    integer(kind=i4) :: ierr
 
    character*40, parameter :: caller = "elsi_cleanup"
-
-   ! Nullify pointers
-   if(associated(e_h%ham_real)) then
-      nullify(e_h%ham_real)
-   endif
-   if(associated(e_h%ham_cmplx)) then
-      nullify(e_h%ham_cmplx)
-   endif
-   if(associated(e_h%ovlp_real)) then
-      nullify(e_h%ovlp_real)
-   endif
-   if(associated(e_h%ovlp_cmplx)) then
-      nullify(e_h%ovlp_cmplx)
-   endif
-   if(associated(e_h%eval)) then
-      nullify(e_h%eval)
-   endif
-   if(associated(e_h%evec_real)) then
-      nullify(e_h%evec_real)
-   endif
-   if(associated(e_h%evec_cmplx)) then
-      nullify(e_h%evec_cmplx)
-   endif
-   if(associated(e_h%dm_real)) then
-      nullify(e_h%dm_real)
-   endif
-   if(associated(e_h%dm_cmplx)) then
-      nullify(e_h%dm_cmplx)
-   endif
-   if(associated(e_h%ham_real_ccs)) then
-      nullify(e_h%ham_real_ccs)
-   endif
-   if(associated(e_h%ham_cmplx_ccs)) then
-      nullify(e_h%ham_cmplx_ccs)
-   endif
-   if(associated(e_h%ovlp_real_ccs)) then
-      nullify(e_h%ovlp_real_ccs)
-   endif
-   if(associated(e_h%ovlp_cmplx_ccs)) then
-      nullify(e_h%ovlp_cmplx_ccs)
-   endif
-   if(associated(e_h%dm_real_ccs)) then
-      nullify(e_h%dm_real_ccs)
-   endif
-   if(associated(e_h%dm_cmplx_ccs)) then
-      nullify(e_h%dm_cmplx_ccs)
-   endif
-   if(associated(e_h%row_ind_ccs)) then
-      nullify(e_h%row_ind_ccs)
-   endif
-   if(associated(e_h%col_ptr_ccs)) then
-      nullify(e_h%col_ptr_ccs)
-   endif
 
    ! ELPA
    if(allocated(e_h%ham_real_elpa)) then

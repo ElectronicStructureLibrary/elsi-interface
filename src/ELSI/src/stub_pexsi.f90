@@ -93,6 +93,8 @@ subroutine f_ppexsi_set_default_options(options)
    type(f_ppexsi_options) :: options
 
    ! Do not stop here!
+   options%numPole = 1
+   options%nPoints = 1
 
 end subroutine
 

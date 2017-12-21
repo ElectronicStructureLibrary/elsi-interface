@@ -24,16 +24,22 @@ ifeq ($(strip $(DISABLE_CXX)),yes)
   DISABLE_PEXSI = yes
 endif
 
-ifneq ($(strip $(EXTERNAL_PEXSI)),yes)
-  ifneq ($(strip $(DISABLE_PEXSI)),yes)
+ifneq ($(strip $(DISABLE_PEXSI)),yes)
+  ifneq ($(strip $(EXTERNAL_PEXSI)),yes)
     ALL_OBJ   += pexsi
     CLEAN_OBJ += cleanpexsi
-  else
+  endif
+else
     $(info ====================================)
     $(info = PEXSI disabled by DISABLE_PEXSI. =)
     $(info ====================================)
     STUBS += stub_pexsi.o
-  endif
+endif
+
+ifneq ($(strip $(PTSCOTCH_LIB)),)
+  ORDERING_LIB = $(PTSCOTCH_LIB)
+else
+  ORDERING_LIB = $(PARMETIS_LIB) $(METIS_LIB)
 endif
 
 # Default archive tools
@@ -56,7 +62,7 @@ OMM_DIR   ?= $(THIS_DIR)/src/libOMM
 OMM_LIB   ?= -L$(LIB_DIR) -lOMM -lMatrixSwitch
 PEXSI_DIR ?= $(THIS_DIR)/src/PEXSI
 PEXSI_LIB ?= -L$(LIB_DIR) -lpexsi
-PEXSI_LIB += $(SUPERLU_LIB) $(PARMETIS_LIB) $(METIS_LIB)
+PEXSI_LIB += $(SUPERLU_LIB) $(ORDERING_LIB)
 
 # Default compiler settings
 FFLAGS_I   ?= $(FFLAGS)

@@ -44,8 +44,8 @@ module ELSI_SIPS
 
    public :: elsi_set_sips_default
    public :: elsi_init_sips
-   public :: elsi_solve_evp_sips
-   public :: elsi_sips_to_blacs_ev
+   public :: elsi_solve_evp_sips_real
+   public :: elsi_sips_to_blacs_ev_real
 
 contains
 
@@ -56,7 +56,7 @@ subroutine elsi_init_sips(e_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h !< Handle
+   type(elsi_handle), intent(inout) :: e_h
 
    character*200 :: info_str
 
@@ -92,11 +92,14 @@ end subroutine
 !>
 !! This routine interfaces to SIPs via QETSC.
 !!
-subroutine elsi_solve_evp_sips(e_h)
+subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h !< Handle
+   type(elsi_handle), intent(inout) :: e_h
+   real(kind=r8),     intent(inout) :: ham(e_h%nnz_l_sp)
+   real(kind=r8),     intent(inout) :: ovlp(e_h%nnz_l_sp)
+   real(kind=r8),     intent(inout) :: eval(e_h%n_states)
 
    integer(kind=i4) :: n_solve_steps
    real(kind=r8)    :: t0
@@ -107,7 +110,7 @@ subroutine elsi_solve_evp_sips(e_h)
    real(kind=r8),    allocatable :: shifts(:)
    integer(kind=i4), allocatable :: inertias(:)
 
-   character*40, parameter :: caller = "elsi_solve_evp_sips"
+   character*40, parameter :: caller = "elsi_solve_evp_sips_real"
 
    ! Solve the eigenvalue problem
    call elsi_say(e_h,"  Starting SIPs eigensolver")
@@ -117,12 +120,12 @@ subroutine elsi_solve_evp_sips(e_h)
    if(e_h%n_elsi_calls == e_h%sips_n_elpa+1) then
       ! Load H matrix
       call eps_load_ham(e_h%n_basis,e_h%n_lcol_sp,e_h%nnz_l_sp,&
-              e_h%row_ind_ccs,e_h%col_ptr_ccs,e_h%ham_real_ccs)
+              e_h%row_ind_sips,e_h%col_ptr_sips,ham)
 
       if(.not. e_h%ovlp_is_unit) then
          ! Load S matrix
          call eps_load_ovlp(e_h%n_basis,e_h%n_lcol_sp,e_h%nnz_l_sp,&
-                 e_h%row_ind_ccs,e_h%col_ptr_ccs,e_h%ovlp_real_ccs)
+                 e_h%row_ind_sips,e_h%col_ptr_sips,ovlp)
 
          call set_eps(e_h%ev_min,e_h%ev_max,math,mats)
       else
@@ -131,7 +134,7 @@ subroutine elsi_solve_evp_sips(e_h)
    else ! n_elsi_calls > sips_n_elpa+1
       ! Update H matrix
       call eps_update_ham(e_h%n_basis,e_h%n_lcol_sp,e_h%nnz_l_sp,&
-              e_h%row_ind_ccs,e_h%col_ptr_ccs,e_h%ham_real_ccs)
+              e_h%row_ind_sips,e_h%col_ptr_sips,ham)
 
       call update_eps(e_h%n_slices)
    endif
@@ -162,10 +165,10 @@ subroutine elsi_solve_evp_sips(e_h)
                  e_h%slices,shifts,inertias,n_solve_steps)
 
          call inertias_to_eigenvalues(e_h%n_slices+1,e_h%n_states,&
-                 e_h%slice_buffer,shifts,inertias,e_h%eval(1:e_h%n_states))
+                 e_h%slice_buffer,shifts,inertias,eval(1:e_h%n_states))
 
          call compute_subintervals(e_h%n_slices,e_h%slicing_method,e_h%unbound,&
-                 e_h%interval,0.0_r8,0.0_r8,e_h%slices,e_h%eval(1:e_h%n_states))
+                 e_h%interval,0.0_r8,0.0_r8,e_h%slices,eval(1:e_h%n_states))
 
          call elsi_deallocate(e_h,inertias,"inertias")
          call elsi_deallocate(e_h,shifts,"shifts")
@@ -178,12 +181,12 @@ subroutine elsi_solve_evp_sips(e_h)
          call elsi_say(e_h,info_str)
       endif
    else
-      e_h%interval(1) = e_h%eval(1)-e_h%slice_buffer
-      e_h%interval(2) = e_h%eval(e_h%n_states)+e_h%slice_buffer
+      e_h%interval(1) = eval(1)-e_h%slice_buffer
+      e_h%interval(2) = eval(e_h%n_states)+e_h%slice_buffer
 
       call compute_subintervals(e_h%n_slices,e_h%slicing_method,e_h%unbound,&
               e_h%interval,e_h%slice_buffer,1.0e-6_r8,e_h%slices,&
-              e_h%eval(1:e_h%n_states))
+              eval(1:e_h%n_states))
    endif
 
    call set_eps_subintervals(e_h%n_slices,e_h%slices)
@@ -194,7 +197,7 @@ subroutine elsi_solve_evp_sips(e_h)
    call solve_eps_check(e_h%n_states,e_h%n_slices,e_h%slices,n_solve_steps)
 
    ! Get eigenvalues
-   e_h%eval(1:e_h%n_states) = get_eps_eigenvalues(e_h%n_states)
+   eval(1:e_h%n_states) = get_eps_eigenvalues(e_h%n_states)
 
    call MPI_Barrier(e_h%mpi_comm,mpierr)
 
@@ -211,11 +214,12 @@ end subroutine
 !! This routine gets the eigenvectors computed by SIPs and distributes them in a
 !! 2D block-cyclic fashion.
 !!
-subroutine elsi_sips_to_blacs_ev(e_h)
+subroutine elsi_sips_to_blacs_ev_real(e_h,evec)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h !< Handle
+   type(elsi_handle), intent(inout) :: e_h
+   real(kind=r8),     intent(out)   :: evec(e_h%n_lrow,e_h%n_lcol)
 
    integer(kind=i4) :: i_state
    integer(kind=i4) :: i_row
@@ -230,13 +234,13 @@ subroutine elsi_sips_to_blacs_ev(e_h)
 
    real(kind=r8), allocatable :: tmp_real(:)
 
-   character*40, parameter :: caller = "elsi_distribute_ev"
+   character*40, parameter :: caller = "elsi_sips_to_blacs_ev_real"
 
    call elsi_get_time(e_h,t0)
 
    call elsi_allocate(e_h,tmp_real,e_h%n_basis,"tmp_real",caller)
 
-   e_h%evec_real = 0.0_r8
+   evec = 0.0_r8
 
    do i_state = 1,e_h%n_states
       call get_eps_eigenvectors(e_h%n_basis,i_state,tmp_real)
@@ -258,7 +262,7 @@ subroutine elsi_sips_to_blacs_ev(e_h)
                i_row2 = i_row+g_row2-g_row
             endif
 
-            e_h%evec_real(i_row:i_row2,i_col) = tmp_real(g_row:g_row2)
+            evec(i_row:i_row2,i_col) = tmp_real(g_row:g_row2)
          enddo
       endif
    enddo
@@ -281,7 +285,7 @@ subroutine elsi_set_sips_default(e_h)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h !< Handle
+   type(elsi_handle), intent(inout) :: e_h
 
    character*40, parameter :: caller = "elsi_set_sips_default"
 
