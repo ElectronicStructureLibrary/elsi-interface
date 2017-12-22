@@ -52,10 +52,17 @@ module ELSI_UTILS
    public :: elsi_get_solver_tag
    public :: elsi_print_handle_summary
    public :: elsi_say_setting
+   public :: elsi_print_chess_settings
+   public :: elsi_print_dmp_settings
+   public :: elsi_print_elpa_settings
+   public :: elsi_print_omm_settings
+   public :: elsi_print_pexsi_settings
+   public :: elsi_print_sips_settings
 
    interface elsi_say_setting
       module procedure elsi_say_setting_i4,&
                        elsi_say_setting_r8,&
+                       elsi_say_setting_log,&
                        elsi_say_setting_str
    end interface
 
@@ -943,6 +950,43 @@ subroutine elsi_say_setting_r8(e_h,prefix,label,setting,use_unit)
 
 end subroutine
 
+subroutine elsi_say_setting_log(e_h,prefix,label,setting,use_unit)
+
+   implicit none
+
+   type(elsi_handle),           intent(in) :: e_h      !< Handle
+   character(len=*),            intent(in) :: prefix   !< Prefix before label
+   character(len=*),            intent(in) :: label    !< Label for setting to print
+   logical,                     intent(in) :: setting  !< Value for setting to print
+   integer(kind=i4),  optional, intent(in) :: use_unit !< Unit to print to
+
+   integer(kind=i4)  :: my_unit
+   character(len=27) :: label_ljust
+   character(len=20) :: truth
+
+   if(present(use_unit)) then
+      my_unit = use_unit
+   else
+      my_unit = e_h%print_unit
+   endif
+
+   label_ljust = label ! Store the label string in a fixed-length character array 
+                       ! so that it is right-justified when output.
+
+   if(setting) then
+      truth = "                TRUE"
+   else
+      truth = "               FALSE" ! TIME PARADOX
+   endif
+
+   if(e_h%print_info) then
+      if(e_h%myid_all == 0) then
+         write(my_unit,"(A,A27,A3,A20)") prefix, label_ljust, " : ", truth
+      endif
+   endif
+
+end subroutine
+
 subroutine elsi_say_setting_str(e_h,prefix,label,setting,use_unit)
 
    implicit none
@@ -970,6 +1014,211 @@ subroutine elsi_say_setting_str(e_h,prefix,label,setting,use_unit)
          write(my_unit,"(A,A27,A3,A20)") prefix, label_ljust, " : ", setting
       endif
    endif
+
+end subroutine
+
+!>
+!! This routine prints out settings for CheSS.
+!!
+subroutine elsi_print_chess_settings(e_h,prefix,use_unit)
+
+   implicit none
+
+   type(elsi_handle),           intent(in) :: e_h      !< Handle
+   character(len=*),            intent(in) :: prefix   !< Prefix for every line
+   integer(kind=i4),  optional, intent(in) :: use_unit !< Unit to write to
+
+   integer(kind=i4) :: my_unit
+
+   character*40, parameter :: caller = "elsi_print_chess_settings"
+
+   if(present(use_unit)) then
+      my_unit = use_unit
+   else
+      my_unit = e_h%print_unit
+   endif
+
+   call elsi_say_setting(e_h,prefix,"erf_decay",e_h%erf_decay,my_unit)
+   call elsi_say_setting(e_h,prefix,"erf_decay_min",e_h%erf_decay_min,my_unit)
+   call elsi_say_setting(e_h,prefix,"erf_decay_max",e_h%erf_decay_max,my_unit)
+   call elsi_say_setting(e_h,prefix,"ev_ham_min",e_h%ev_ham_min,my_unit)
+   call elsi_say_setting(e_h,prefix,"ev_ham_max",e_h%ev_ham_max,my_unit)
+   call elsi_say_setting(e_h,prefix,"ev_ovlp_min",e_h%ev_ovlp_min,my_unit)
+   call elsi_say_setting(e_h,prefix,"ev_ovlp_max",e_h%ev_ovlp_max,my_unit)
+   call elsi_say_setting(e_h,prefix,"beta",e_h%beta,my_unit)
+   call elsi_say_setting(e_h,prefix,"chess_started",e_h%chess_started,my_unit)
+
+end subroutine
+
+!>
+!! This routine prints out settings for DMP.
+!!
+subroutine elsi_print_dmp_settings(e_h,prefix,use_unit)
+
+   implicit none
+
+   type(elsi_handle),           intent(in) :: e_h      !< Handle
+   character(len=*),            intent(in) :: prefix   !< Prefix for every line
+   integer(kind=i4),  optional, intent(in) :: use_unit !< Unit to write to
+
+   integer(kind=i4) :: my_unit
+
+   character*40, parameter :: caller = "elsi_print_dmp_settings"
+
+   if(present(use_unit)) then
+      my_unit = use_unit
+   else
+      my_unit = e_h%print_unit
+   endif
+
+   call elsi_say_setting(e_h,prefix,"n_states_dmp",e_h%n_states_dmp,my_unit)
+   call elsi_say_setting(e_h,prefix,"dmp_method",e_h%dmp_method,my_unit)
+   call elsi_say_setting(e_h,prefix,"max_power_iter",e_h%max_power_iter,my_unit)
+   call elsi_say_setting(e_h,prefix,"max_dmp_iter",e_h%max_dmp_iter,my_unit)
+   call elsi_say_setting(e_h,prefix,"dmp_tol",e_h%dmp_tol,my_unit)
+   call elsi_say_setting(e_h,prefix,"ne_dmp",e_h%ne_dmp,my_unit)
+
+end subroutine
+
+!>
+!! This routine prints out settings for ELPA.
+!!
+subroutine elsi_print_elpa_settings(e_h,prefix,use_unit)
+
+   implicit none
+
+   type(elsi_handle),           intent(in) :: e_h      !< Handle
+   character(len=*),            intent(in) :: prefix   !< Prefix for every line
+   integer(kind=i4),  optional, intent(in) :: use_unit !< Unit to write to
+
+   integer(kind=i4) :: my_unit
+
+   character*40, parameter :: caller = "elsi_print_elpa_settings"
+
+   if(present(use_unit)) then
+      my_unit = use_unit
+   else
+      my_unit = e_h%print_unit
+   endif
+
+   call elsi_say_setting(e_h,prefix,"elpa_solver",e_h%elpa_solver,my_unit)
+   call elsi_say_setting(e_h,prefix,"n_single_steps",e_h%n_single_steps,my_unit)
+   call elsi_say_setting(e_h,prefix,"elpa_output",e_h%elpa_output,my_unit)
+   call elsi_say_setting(e_h,prefix,"elpa_started",e_h%elpa_started,my_unit)
+
+end subroutine
+
+!>
+!! This routine prints out settings for libOMM.
+!!
+subroutine elsi_print_omm_settings(e_h,prefix,use_unit)
+
+   implicit none
+
+   type(elsi_handle),           intent(in) :: e_h      !< Handle
+   character(len=*),            intent(in) :: prefix   !< Prefix for every line
+   integer(kind=i4),  optional, intent(in) :: use_unit !< Unit to write to
+
+   integer(kind=i4) :: my_unit
+
+   character*40, parameter :: caller = "elsi_print_omm_settings"
+
+   if(present(use_unit)) then
+      my_unit = use_unit
+   else
+      my_unit = e_h%print_unit
+   endif
+
+   call elsi_say_setting(e_h,prefix,"n_states_omm",e_h%n_states_omm,my_unit)
+   call elsi_say_setting(e_h,prefix,"omm_n_elpa",e_h%omm_n_elpa,my_unit)
+   call elsi_say_setting(e_h,prefix,"new_ovlp",e_h%new_ovlp,my_unit)
+   call elsi_say_setting(e_h,prefix,"coeff_ready",e_h%coeff_ready,my_unit)
+   call elsi_say_setting(e_h,prefix,"omm_flavor",e_h%omm_flavor,my_unit)
+   call elsi_say_setting(e_h,prefix,"scale_kinetic",e_h%scale_kinetic,my_unit)
+   call elsi_say_setting(e_h,prefix,"calc_ed",e_h%calc_ed,my_unit)
+   call elsi_say_setting(e_h,prefix,"eta",e_h%eta,my_unit)
+   call elsi_say_setting(e_h,prefix,"min_tol",e_h%min_tol,my_unit)
+   call elsi_say_setting(e_h,prefix,"omm_output",e_h%omm_output,my_unit)
+   call elsi_say_setting(e_h,prefix,"do_dealloc",e_h%do_dealloc,my_unit)
+   call elsi_say_setting(e_h,prefix,"use_psp",e_h%use_psp,my_unit)
+
+end subroutine
+
+!>
+!! This routine prints out settings for PEXSI.
+!!
+subroutine elsi_print_pexsi_settings(e_h,prefix,use_unit)
+
+   implicit none
+
+   type(elsi_handle),           intent(in) :: e_h      !< Handle
+   character(len=*),            intent(in) :: prefix   !< Prefix for every line
+   integer(kind=i4),  optional, intent(in) :: use_unit !< Unit to write to
+
+   integer(kind=i4) :: my_unit
+
+   character*40, parameter :: caller = "elsi_print_pexsi_settings"
+
+   if(present(use_unit)) then
+      my_unit = use_unit
+   else
+      my_unit = e_h%print_unit
+   endif
+
+   call elsi_say_setting(e_h,prefix,"np_per_pole",e_h%np_per_pole,my_unit)
+   call elsi_say_setting(e_h,prefix,"np_per_point",e_h%np_per_point,my_unit)
+   call elsi_say_setting(e_h,prefix,"n_prow_pexsi",e_h%n_prow_pexsi,my_unit)
+   call elsi_say_setting(e_h,prefix,"n_pcol_pexsi",e_h%n_pcol_pexsi,my_unit)
+   call elsi_say_setting(e_h,prefix,"ne_pexsi",e_h%ne_pexsi,my_unit)
+   call elsi_say_setting(e_h,prefix,"pexsi_started",e_h%pexsi_started,my_unit)
+
+   ! The following are specific to PEXSI parallelization and vary from task to task.
+   ! I'm leaving them in, but commented out, should we ever need debug-level output.
+   ! This would required patterned IO be written.
+   !call elsi_say_setting(e_h,prefix,"my_prow_pexsi",e_h%my_prow_pexsi,my_unit)
+   !call elsi_say_setting(e_h,prefix,"my_pcol_pexsi",e_h%my_pcol_pexsi,my_unit)
+   !call elsi_say_setting(e_h,prefix,"my_point",e_h%my_point,my_unit)
+   !call elsi_say_setting(e_h,prefix,"myid_point",e_h%myid_point,my_unit)
+   !call elsi_say_setting(e_h,prefix,"comm_among_pole",e_h%comm_among_pole,my_unit)
+   !call elsi_say_setting(e_h,prefix,"comm_in_pole",e_h%comm_in_pole,my_unit)
+   !call elsi_say_setting(e_h,prefix,"comm_among_point",e_h%comm_among_point,my_unit)
+   !call elsi_say_setting(e_h,prefix,"comm_in_point",e_h%comm_in_point,my_unit)
+end subroutine
+
+!>
+!! This routine prints out settings for SIPs.
+!!
+subroutine elsi_print_sips_settings(e_h,prefix,use_unit)
+
+   implicit none
+
+   type(elsi_handle),           intent(in) :: e_h      !< Handle
+   character(len=*),            intent(in) :: prefix   !< Prefix for every line
+   integer(kind=i4),  optional, intent(in) :: use_unit !< Unit to write to
+
+   integer(kind=i4) :: my_unit
+
+   character*40, parameter :: caller = "elsi_print_sips_settings"
+
+   if(present(use_unit)) then
+      my_unit = use_unit
+   else
+      my_unit = e_h%print_unit
+   endif
+
+   call elsi_say_setting(e_h,prefix,"sips_n_elpa",e_h%sips_n_elpa,my_unit)
+   call elsi_say_setting(e_h,prefix,"np_per_slice",e_h%np_per_slice,my_unit)
+   call elsi_say_setting(e_h,prefix,"n_inertia_steps",e_h%n_inertia_steps,my_unit)
+   call elsi_say_setting(e_h,prefix,"slicing_method",e_h%slicing_method,my_unit)
+   call elsi_say_setting(e_h,prefix,"inertia_option",e_h%inertia_option,my_unit)
+   call elsi_say_setting(e_h,prefix,"unbound",e_h%unbound,my_unit)
+   call elsi_say_setting(e_h,prefix,"n_slices",e_h%n_slices,my_unit)
+   call elsi_say_setting(e_h,prefix,"interval(1)",e_h%interval(1),my_unit)
+   call elsi_say_setting(e_h,prefix,"interval(2)",e_h%interval(2),my_unit)
+   call elsi_say_setting(e_h,prefix,"slice_buffer",e_h%slice_buffer,my_unit)
+   call elsi_say_setting(e_h,prefix,"ev_min",e_h%ev_min,my_unit)
+   call elsi_say_setting(e_h,prefix,"ev_max",e_h%ev_max,my_unit)
+   call elsi_say_setting(e_h,prefix,"sips_started",e_h%sips_started,my_unit)
 
 end subroutine
 
