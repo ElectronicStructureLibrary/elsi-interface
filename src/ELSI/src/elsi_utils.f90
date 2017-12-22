@@ -51,6 +51,13 @@ module ELSI_UTILS
    public :: elsi_trace_mat_mat_cmplx
    public :: elsi_get_solver_tag
    public :: elsi_print_handle_summary
+   public :: elsi_say_setting
+
+   interface elsi_say_setting
+      module procedure elsi_say_setting_i4,&
+                       elsi_say_setting_r8,&
+                       elsi_say_setting_str
+   end interface
 
 contains
 
@@ -58,6 +65,33 @@ contains
 !! This routine prints a message.
 !!
 subroutine elsi_say(e_h,info_str,use_unit)
+
+   implicit none
+
+   type(elsi_handle),           intent(in) :: e_h      !< Handle
+   character(len=*),            intent(in) :: info_str !< Message to print
+   integer(kind=i4),  optional, intent(in) :: use_unit !< Unit to print to
+
+   integer(kind=i4) :: my_unit
+
+   if(present(use_unit)) then
+      my_unit = use_unit
+   else
+      my_unit = e_h%print_unit
+   endif
+
+   if(e_h%print_info) then
+      if(e_h%myid_all == 0) then
+         write(my_unit,"(A)") trim(info_str)
+      endif
+   endif
+
+end subroutine
+
+!>
+!! This routine prints a setting in a preformatted manner.
+!!
+subroutine elsi_say_setting(e_h,info_str,use_unit)
 
    implicit none
 
@@ -786,69 +820,155 @@ subroutine elsi_print_handle_summary(e_h,prefix,use_unit)
 
    write(info_str,"(A,A)") prefix,          "Physical Properties"
    call elsi_say(e_h,info_str,my_unit)
-   write(info_str,"(A,A,F13.1)") prefix,    "  Number of electrons       :",e_h%n_electrons
-   call elsi_say(e_h,info_str,my_unit)
+
+   call elsi_say_setting(e_h,prefix,        "  Number of electrons",e_h%n_electrons,my_unit)
    if(e_h%parallel_mode == MULTI_PROC) then
-      write(info_str,"(A,A,I13)") prefix,   "  Number of spins           :",e_h%n_spins
-      call elsi_say(e_h,info_str,my_unit)
-      write(info_str,"(A,A,I13)") prefix,   "  Number of k-points        :",e_h%n_kpts
-      call elsi_say(e_h,info_str,my_unit)
+      call elsi_say_setting(e_h,prefix,     "  Number of spins",e_h%n_spins,my_unit)
+      call elsi_say_setting(e_h,prefix,     "  Number of k-points",e_h%n_kpts,my_unit)
    endif
    if(e_h%solver == ELPA_SOLVER .or. e_h%solver == SIPS_SOLVER) then
-      write(info_str,"(A,A,I13)") prefix,     "  Number of states          :",e_h%n_states
-      call elsi_say(e_h,info_str,my_unit)
+      call elsi_say_setting(e_h,prefix,     "  Number of states",e_h%n_states,my_unit)
    endif
 
    write(info_str,"(A,A)") prefix,          ""
    call elsi_say(e_h,info_str,my_unit)
    write(info_str,"(A,A)") prefix,          "Matrix Properties"
    call elsi_say(e_h,info_str,my_unit)
-   write(info_str,"(A,A,I13)") prefix,      "  Number of basis functions :",e_h%n_basis
-   call elsi_say(e_h,info_str,my_unit)
+
+   call elsi_say_setting(e_h,prefix,        "  Number of basis functions",e_h%n_basis,my_unit)
    if(e_h%parallel_mode == MULTI_PROC) then
       sparsity = 1.0_r8-(1.0_r8*e_h%nnz_g/e_h%n_basis/e_h%n_basis)
-      write(info_str,"(A,A,F13.3)") prefix, "  Matrix sparsity           :",sparsity
-      call elsi_say(e_h,info_str,my_unit)
+      call elsi_say_setting(e_h,prefix,     "  Matrix sparsity",sparsity,my_unit)
    endif
 
    write(info_str,"(A,A)") prefix,          ""
    call elsi_say(e_h,info_str,my_unit)
    write(info_str,"(A,A)") prefix,          "Computational Details"
    call elsi_say(e_h,info_str,my_unit)
+
    if(e_h%parallel_mode == MULTI_PROC) then
-      write(info_str,"(A,A)") prefix,       "  Parallel mode             :   MULTI_PROC "
-      call elsi_say(e_h,info_str,my_unit)
+      call elsi_say_setting(e_h,prefix,     "  Parallel mode","MULTI_PROC",my_unit)
    elseif(e_h%parallel_mode == SINGLE_PROC) then
-      write(info_str,"(A,A)") prefix,       "  Parallel mode             :  SINGLE_PROC "
-      call elsi_say(e_h,info_str,my_unit)
+      call elsi_say_setting(e_h,prefix,     "  Parallel mode","SINGLE_PROC",my_unit)
    endif
-   write(info_str,"(A,A,I13)") prefix,      "  Number of MPI tasks       :",e_h%n_procs
-   call elsi_say(e_h,info_str,my_unit)
+   call elsi_say_setting(e_h,prefix,        "  Number of MPI tasks",e_h%n_procs,my_unit)
    if(e_h%matrix_format == BLACS_DENSE) then
-      write(info_str,"(A,A)") prefix,       "  Matrix format             :  BLACS_DENSE "
-      call elsi_say(e_h,info_str,my_unit)
+      call elsi_say_setting(e_h,prefix,     "  Matrix format","BLACS_DENSE",my_unit)
    elseif(e_h%matrix_format == PEXSI_CSC) then
-      write(info_str,"(A,A)") prefix,       "  Matrix format             :    PEXSI_CSC "
-      call elsi_say(e_h,info_str,my_unit)
+      call elsi_say_setting(e_h,prefix,     "  Matrix format","PEXSI_CSC",my_unit)
    endif
    if(e_h%solver == ELPA_SOLVER) then
-      write(info_str,"(A,A)") prefix,       "  Solver requested          :         ELPA "
-      call elsi_say(e_h,info_str,my_unit)
+      call elsi_say_setting(e_h,prefix,     "  Solver requested","ELPA",my_unit)
    elseif(e_h%solver == OMM_SOLVER) then
-      write(info_str,"(A,A)") prefix,       "  Solver requested          :       libOMM "
-      call elsi_say(e_h,info_str,my_unit)
+      call elsi_say_setting(e_h,prefix,     "  Solver requested","libOMM",my_unit)
    elseif(e_h%solver == PEXSI_SOLVER) then
-      write(info_str,"(A,A)") prefix,       "  Solver requested          :        PEXSI "
-      call elsi_say(e_h,info_str,my_unit)
+      call elsi_say_setting(e_h,prefix,     "  Solver requested","PEXSI",my_unit)
    elseif(e_h%solver == CHESS_SOLVER) then
-      write(info_str,"(A,A)") prefix,       "  Solver requested          :        CheSS "
-      call elsi_say(e_h,info_str,my_unit)
+      call elsi_say_setting(e_h,prefix,     "  Solver requested","CheSS",my_unit)
    elseif(e_h%solver == SIPS_SOLVER) then
-      write(info_str,"(A,A)") prefix,       "  Solver requested          :         SIPs "
-      call elsi_say(e_h,info_str,my_unit)
+      call elsi_say_setting(e_h,prefix,     "  Solver requested","SIPs",my_unit)
    elseif(e_h%solver == DMP_SOLVER) then
-      write(info_str,"(A,A)") prefix,       "  Solver requested          :          DMP "
-      call elsi_say(e_h,info_str,my_unit)
+      call elsi_say_setting(e_h,prefix,     "  Solver requested","DMP",my_unit)
+   endif
+
+end subroutine
+
+!!!!!!!!!!!!!!!!!!!!
+! ELSI_SAY_SETTING ! 
+!!!!!!!!!!!!!!!!!!!!
+
+!>
+!! This module procedure is used to print out ELSI settings in a systematic fashion.
+!! TODO:  Generate formatting strings on-the-fly so that we can rid of hard-coded
+!!        constants outside of ELSI_CONSTANTS
+!!
+
+subroutine elsi_say_setting_i4(e_h,prefix,label,setting,use_unit)
+
+   implicit none
+
+   type(elsi_handle),           intent(in) :: e_h      !< Handle
+   character(len=*),            intent(in) :: prefix   !< Prefix before label
+   character(len=*),            intent(in) :: label    !< Label for setting to print
+   integer(kind=i4),            intent(in) :: setting  !< Value for setting to print
+   integer(kind=i4),  optional, intent(in) :: use_unit !< Unit to print to
+
+   integer(kind=i4)  :: my_unit
+   character(len=27) :: label_ljust
+
+   if(present(use_unit)) then
+      my_unit = use_unit
+   else
+      my_unit = e_h%print_unit
+   endif
+
+   label_ljust = label ! Store the label string in a fixed-length character array 
+                       ! so that it is right-justified when output.
+
+   if(e_h%print_info) then
+      if(e_h%myid_all == 0) then
+         write(my_unit,"(A,A27,A3,I20)") prefix, label_ljust, " : ", setting
+      endif
+   endif
+
+end subroutine
+
+subroutine elsi_say_setting_r8(e_h,prefix,label,setting,use_unit)
+
+   implicit none
+
+   type(elsi_handle),           intent(in) :: e_h      !< Handle
+   character(len=*),            intent(in) :: prefix   !< Prefix before label
+   character(len=*),            intent(in) :: label    !< Label for setting to print
+   real(kind=r8),               intent(in) :: setting  !< Value for setting to print
+   integer(kind=i4),  optional, intent(in) :: use_unit !< Unit to print to
+
+   integer(kind=i4)  :: my_unit
+   character(len=27) :: label_ljust
+
+   if(present(use_unit)) then
+      my_unit = use_unit
+   else
+      my_unit = e_h%print_unit
+   endif
+
+   label_ljust = label ! Store the label string in a fixed-length character array 
+                       ! so that it is right-justified when output.
+
+   if(e_h%print_info) then
+      if(e_h%myid_all == 0) then
+         write(my_unit,"(A,A27,A3,F20.3)") prefix, label_ljust, " : ", setting
+      endif
+   endif
+
+end subroutine
+
+subroutine elsi_say_setting_str(e_h,prefix,label,setting,use_unit)
+
+   implicit none
+
+   type(elsi_handle),           intent(in) :: e_h      !< Handle
+   character(len=*),            intent(in) :: prefix   !< Prefix before label
+   character(len=*),            intent(in) :: label    !< Label for setting to print
+   character(len=*),            intent(in) :: setting  !< Value for setting to print
+   integer(kind=i4),  optional, intent(in) :: use_unit !< Unit to print to
+
+   integer(kind=i4)  :: my_unit
+   character(len=27) :: label_ljust
+
+   if(present(use_unit)) then
+      my_unit = use_unit
+   else
+      my_unit = e_h%print_unit
+   endif
+
+   label_ljust = label ! Store the label string in a fixed-length character array 
+                       ! so that it is right-justified when output.
+
+   if(e_h%print_info) then
+      if(e_h%myid_all == 0) then
+         write(my_unit,"(A,A27,A3,A20)") prefix, label_ljust, " : ", setting
+      endif
    endif
 
 end subroutine

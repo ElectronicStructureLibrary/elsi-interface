@@ -409,21 +409,18 @@ subroutine elsi_final_print(e_h)
 
    character*40, parameter :: caller = "elsi_final_print"
 
-   call elsi_say(e_h,"  |--------------------------------------------------------------------")
+   call elsi_say(e_h,"  |---------------------------------------------------------------------")
    call elsi_say(e_h,"  | Final ELSI Output                        ")
-   call elsi_say(e_h,"  |--------------------------------------------------------------------")
+   call elsi_say(e_h,"  |---------------------------------------------------------------------")
 
    call elsi_print_handle_summary(e_h,"  | ")
 
    if(e_h%handle_changed) then
-      write(info_str,"(A,I13)") "  |   Was ELSI changed mid-run? :          YES"
+      call elsi_say_setting(e_h,"  | ","  Was ELSI changed mid-run?","YES")
    else
-      write(info_str,"(A,I13)") "  |   Was ELSI changed mid-run? :           NO"
+      call elsi_say_setting(e_h,"  | ","  Was ELSI changed mid-run?","NO")
    endif
-   call elsi_say(e_h,info_str)
-
-   write(info_str,"(A,I13)") "  |   Number of ELSI calls      :",e_h%n_elsi_calls
-   call elsi_say(e_h,info_str)
+   call elsi_say_setting(e_h,"  | ","  Number of ELSI calls",e_h%n_elsi_calls)
 
    call elsi_say(e_h,"  |")
    call elsi_say(e_h,"  | Timings")
