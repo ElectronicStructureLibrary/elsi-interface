@@ -96,33 +96,6 @@ subroutine elsi_say(e_h,info_str,use_unit)
 end subroutine
 
 !>
-!! This routine prints a setting in a preformatted manner.
-!!
-subroutine elsi_say_setting(e_h,info_str,use_unit)
-
-   implicit none
-
-   type(elsi_handle),           intent(in) :: e_h      !< Handle
-   character(len=*),            intent(in) :: info_str !< Message to print
-   integer(kind=i4),  optional, intent(in) :: use_unit !< Unit to print to
-
-   integer(kind=i4) :: my_unit
-
-   if(present(use_unit)) then
-      my_unit = use_unit
-   else
-      my_unit = e_h%print_unit
-   endif
-
-   if(e_h%print_info) then
-      if(e_h%myid_all == 0) then
-         write(my_unit,"(A)") trim(info_str)
-      endif
-   endif
-
-end subroutine
-
-!>
 !! Clean shutdown in case of errors.
 !!
 subroutine elsi_stop(info,e_h,caller)
