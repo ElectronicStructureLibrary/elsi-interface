@@ -1421,18 +1421,15 @@ subroutine elsi_print_solver_timing(e_h,time,elsi_tag,iter,prefix,use_unit,user_
       user_tag  = UNSET_STRING
    endif
 
-   write(info_str,"(A,A)")       prefix, "--------------------------------------------------------"
+   write(info_str,"(A,A)")       prefix, "--------------------------------------------------"
    call elsi_say(e_h,info_str,my_unit)
    write(info_str,"(A,A,I10)")   prefix, "Start of Iteration ",  iter
    call elsi_say(e_h,info_str,my_unit)
-   write(info_str,"(A,A,I10)")   prefix
+   write(info_str,"(A,A)")       prefix, "Timing Details"
    call elsi_say(e_h,info_str,my_unit)
-   write(info_str,"(A,A,F13.3)") prefix, "Timing ", time
-   call elsi_say(e_h,info_str,my_unit)
-   write(info_str,"(A,A,A)")     prefix, "ELSI Tag ", elsi_tag
-   call elsi_say(e_h,info_str,my_unit)
-   write(info_str,"(A,A,A)")     prefix, "User Tag ", user_tag
-   call elsi_say(e_h,info_str,my_unit)
+   call elsi_say_setting(e_h,    prefix, "  Timing",time,my_unit)
+   call elsi_say_setting(e_h,    prefix, "  ELSI Tag",elsi_tag,my_unit)
+   call elsi_say_setting(e_h,    prefix, "  User Tag",user_tag,my_unit)
    write(info_str,"(A)")         prefix
    call elsi_say(e_h,info_str,my_unit)
 
@@ -1445,7 +1442,7 @@ subroutine elsi_print_solver_timing(e_h,time,elsi_tag,iter,prefix,use_unit,user_
    call elsi_say(e_h,info_str,my_unit)
    write(info_str,"(A,A,I10)")   prefix, "End of Iteration   ",  iter
    call elsi_say(e_h,info_str,my_unit)
-   write(info_str,"(A,A)")       prefix, "--------------------------------------------------------"
+   write(info_str,"(A,A)")       prefix, "--------------------------------------------------"
    call elsi_say(e_h,info_str,my_unit)
    write(info_str,"(A)")         prefix
    call elsi_say(e_h,info_str,my_unit)
