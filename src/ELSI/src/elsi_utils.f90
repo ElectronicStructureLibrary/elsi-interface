@@ -32,16 +32,15 @@ module ELSI_UTILS
 
    use ELSI_CONSTANTS
    use ELSI_DATATYPE
+   use ELSI_IO,        only: elsi_say
+   use ELSI_MPI
    use ELSI_PRECISION, only: i4,r8
 
    implicit none
 
-   include "mpif.h"
-
-   public :: elsi_say
-   public :: elsi_stop
    public :: elsi_check
    public :: elsi_check_handle
+   public :: elsi_ready_handle
    public :: elsi_get_global_row
    public :: elsi_get_global_col
    public :: elsi_get_local_nnz_real
@@ -49,76 +48,8 @@ module ELSI_UTILS
    public :: elsi_trace_mat_real
    public :: elsi_trace_mat_mat_cmplx
    public :: elsi_get_solver_tag
-   public :: elsi_print_handle_summary
 
 contains
-
-!>
-!! This routine prints a message.
-!!
-subroutine elsi_say(e_h,info_str,use_unit)
-
-   implicit none
-
-   type(elsi_handle),           intent(in) :: e_h      !< Handle
-   character(len=*),            intent(in) :: info_str !< Message to print
-   integer(kind=i4),  optional, intent(in) :: use_unit !< Unit to print to
-
-   integer(kind=i4) :: my_unit
-
-   if(present(use_unit)) then
-      my_unit = use_unit
-   else
-      my_unit = e_h%print_unit
-   endif
-
-   if(e_h%print_info) then
-      if(e_h%myid_all == 0) then
-         write(my_unit,"(A)") trim(info_str)
-      endif
-   endif
-
-end subroutine
-
-!>
-!! Clean shutdown in case of errors.
-!!
-subroutine elsi_stop(info,e_h,caller)
-
-   implicit none
-
-   character(len=*),  intent(in) :: info
-   type(elsi_handle), intent(in) :: e_h
-   character(len=*),  intent(in) :: caller
-
-   character*800    :: info_str
-   integer(kind=i4) :: mpierr
-
-   if(e_h%global_mpi_ready) then
-      write(info_str,"(A,I7,5A)") "**Error! MPI task ",e_h%myid_all," in ",&
-         trim(caller),": ",trim(info)," Exiting..."
-      write(e_h%print_unit,"(A)") trim(info_str)
-
-      if(e_h%n_procs_all > 1) then
-         call MPI_Abort(e_h%mpi_comm_all,0,mpierr)
-      endif
-   elseif(e_h%mpi_ready) then
-      write(info_str,"(A,I7,5A)") "**Error! MPI task ",e_h%myid," in ",&
-         trim(caller),": ",trim(info)," Exiting..."
-      write(e_h%print_unit,"(A)") trim(info_str)
-
-      if(e_h%n_procs > 1) then
-         call MPI_Abort(e_h%mpi_comm,0,mpierr)
-      endif
-   else
-      write(info_str,"(5A)") "**Error! ",trim(caller),": ",trim(info),&
-         " Exiting..."
-      write(e_h%print_unit,"(A)") trim(info_str)
-   endif
-
-   stop
-
-end subroutine
 
 !>
 !! This routine resets an ELSI handle.
@@ -131,7 +62,9 @@ subroutine elsi_reset_handle(e_h)
 
    character*40, parameter :: caller = "elsi_reset_handle"
 
+   e_h%handle_init      = .false.
    e_h%handle_ready     = .false.
+   e_h%handle_changed   = .false.
    e_h%solver           = UNSET
    e_h%matrix_format    = UNSET
    e_h%uplo             = FULL_MAT
@@ -420,11 +353,51 @@ subroutine elsi_check_handle(e_h,caller)
    type(elsi_handle), intent(in) :: e_h
    character(len=*),  intent(in) :: caller
 
-   if(.not. e_h%handle_ready) then
+   if(.not. e_h%handle_init) then
       call elsi_stop(" Invalid handle! Not initialized.",e_h,caller)
    endif
 
 end subroutine
+
+!>
+!! This subroutine signifies that a handle is believed to be ready to be used.  
+!! There are certain tasks (such as IO) that are only possible once the user has 
+!! specified sufficient information about the problem, but they may call the
+!! relevant mutators in any order, making it difficult to pin down exactly when
+!! we can perform certain initialization-like tasks.
+!! Thus, we call this subroutine at the beginning of all public-facing subroutines 
+!! in which ELSI is executing a task that would require it to have been 
+!! sufficiently initialized by the user: currently, only solver.  This does not 
+!! apply to mutators, initalization, finalization, or matrix IO.
+!!
+subroutine elsi_ready_handle(e_h,caller)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h
+   character(len=*),  intent(in)    :: caller
+ 
+   call elsi_check_handle(e_h,caller)
+
+   if(.not.e_h%handle_ready) then
+      call elsi_check(e_h,caller)
+
+      ! We can now perform initialization-like tasks which require
+      ! the usage of MPI
+      ! TODO: Use unit file name specified in handle, not global constant
+      if (e_h%myid_all == 0) then
+         e_h%solver_unit = SOLVER_UNIT_DEFAULT 
+         open(unit=e_h%solver_unit, file=SOLVER_FILE_NAME_DEFAULT)
+      else
+         e_h%solver_unit = UNSET
+      endif
+
+      e_h%handle_ready   = .true.
+      e_h%handle_changed = .false.
+   endif
+
+end subroutine
+
 
 !>
 !! This routine computes the global row index based on the local row index.
@@ -716,98 +689,6 @@ subroutine elsi_get_solver_tag(e_h,solver_tag,data_type)
    else
       call elsi_stop(" Unsupported data type.",e_h,caller)
    end if
-
-end subroutine
-
-!>
-!! This routine prints the state of the handle
-!!
-subroutine elsi_print_handle_summary(e_h,prefix,use_unit)
-
-   implicit none
-
-   type(elsi_handle),          intent(in) :: e_h      !< Handle
-   character(len=*),           intent(in) :: prefix   !< Prefix for every line
-   integer(kind=i4), optional, intent(in) :: use_unit
-
-   real(kind=r8)    :: sparsity
-   character*200    :: info_str
-   integer(kind=i4) :: my_unit
-
-   character*40, parameter :: caller = "elsi_print_handle_summary"
-
-   if(present(use_unit)) then
-      my_unit = use_unit
-   else
-      my_unit = e_h%print_unit
-   endif
-
-   write(info_str,"(A,A)") prefix,          "Physical Properties"
-   call elsi_say(e_h,info_str,my_unit)
-   write(info_str,"(A,A,F13.1)") prefix,    "  Number of electrons       :",e_h%n_electrons
-   call elsi_say(e_h,info_str,my_unit)
-   if(e_h%parallel_mode == MULTI_PROC) then
-      write(info_str,"(A,A,I13)") prefix,   "  Number of spins           :",e_h%n_spins
-      call elsi_say(e_h,info_str,my_unit)
-      write(info_str,"(A,A,I13)") prefix,   "  Number of k-points        :",e_h%n_kpts
-      call elsi_say(e_h,info_str,my_unit)
-   endif
-   if(e_h%solver == ELPA_SOLVER .or. e_h%solver == SIPS_SOLVER) then
-      write(info_str,"(A,A,I13)") prefix,     "  Number of states          :",e_h%n_states
-      call elsi_say(e_h,info_str,my_unit)
-   endif
-
-   write(info_str,"(A,A)") prefix,          ""
-   call elsi_say(e_h,info_str,my_unit)
-   write(info_str,"(A,A)") prefix,          "Matrix Properties"
-   call elsi_say(e_h,info_str,my_unit)
-   write(info_str,"(A,A,I13)") prefix,      "  Number of basis functions :",e_h%n_basis
-   call elsi_say(e_h,info_str,my_unit)
-   if(e_h%parallel_mode == MULTI_PROC) then
-      sparsity = 1.0_r8-(1.0_r8*e_h%nnz_g/e_h%n_basis/e_h%n_basis)
-      write(info_str,"(A,A,F13.3)") prefix, "  Matrix sparsity           :",sparsity
-      call elsi_say(e_h,info_str,my_unit)
-   endif
-
-   write(info_str,"(A,A)") prefix,          ""
-   call elsi_say(e_h,info_str,my_unit)
-   write(info_str,"(A,A)") prefix,          "Computational Details"
-   call elsi_say(e_h,info_str,my_unit)
-   if(e_h%parallel_mode == MULTI_PROC) then
-      write(info_str,"(A,A)") prefix,       "  Parallel mode             :   MULTI_PROC "
-      call elsi_say(e_h,info_str,my_unit)
-   elseif(e_h%parallel_mode == SINGLE_PROC) then
-      write(info_str,"(A,A)") prefix,       "  Parallel mode             :  SINGLE_PROC "
-      call elsi_say(e_h,info_str,my_unit)
-   endif
-   write(info_str,"(A,A,I13)") prefix,      "  Number of MPI tasks       :",e_h%n_procs
-   call elsi_say(e_h,info_str,my_unit)
-   if(e_h%matrix_format == BLACS_DENSE) then
-      write(info_str,"(A,A)") prefix,       "  Matrix format             :  BLACS_DENSE "
-      call elsi_say(e_h,info_str,my_unit)
-   elseif(e_h%matrix_format == PEXSI_CSC) then
-      write(info_str,"(A,A)") prefix,       "  Matrix format             :    PEXSI_CSC "
-      call elsi_say(e_h,info_str,my_unit)
-   endif
-   if(e_h%solver == ELPA_SOLVER) then
-      write(info_str,"(A,A)") prefix,       "  Solver requested          :         ELPA "
-      call elsi_say(e_h,info_str,my_unit)
-   elseif(e_h%solver == OMM_SOLVER) then
-      write(info_str,"(A,A)") prefix,       "  Solver requested          :       libOMM "
-      call elsi_say(e_h,info_str,my_unit)
-   elseif(e_h%solver == PEXSI_SOLVER) then
-      write(info_str,"(A,A)") prefix,       "  Solver requested          :        PEXSI "
-      call elsi_say(e_h,info_str,my_unit)
-   elseif(e_h%solver == CHESS_SOLVER) then
-      write(info_str,"(A,A)") prefix,       "  Solver requested          :        CheSS "
-      call elsi_say(e_h,info_str,my_unit)
-   elseif(e_h%solver == SIPS_SOLVER) then
-      write(info_str,"(A,A)") prefix,       "  Solver requested          :         SIPs "
-      call elsi_say(e_h,info_str,my_unit)
-   elseif(e_h%solver == DMP_SOLVER) then
-      write(info_str,"(A,A)") prefix,       "  Solver requested          :          DMP "
-      call elsi_say(e_h,info_str,my_unit)
-   endif
 
 end subroutine
 

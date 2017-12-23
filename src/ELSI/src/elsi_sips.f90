@@ -32,6 +32,7 @@ module ELSI_SIPS
 
    use ELSI_CONSTANTS, only: UNSET
    use ELSI_DATATYPE
+   use ELSI_IO,        only: elsi_say
    use ELSI_MALLOC
    use ELSI_PRECISION, only: r8,i4
    use ELSI_TIMINGS,   only: elsi_get_time
@@ -62,6 +63,8 @@ subroutine elsi_init_sips(e_h)
 
    character*40, parameter :: caller = "elsi_init_sips"
 
+   ! Note:  This does not change the state of the handle
+      
    if(e_h%n_elsi_calls == e_h%sips_n_elpa+1) then
       call initialize_qetsc()
 
@@ -288,6 +291,8 @@ subroutine elsi_set_sips_default(e_h)
    type(elsi_handle), intent(inout) :: e_h
 
    character*40, parameter :: caller = "elsi_set_sips_default"
+   
+   if (e_h%handle_ready) e_h%handle_changed = .true.
 
    ! How many steps of ELPA to run before SIPs
    e_h%sips_n_elpa = 0

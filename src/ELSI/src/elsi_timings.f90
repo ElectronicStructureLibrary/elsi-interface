@@ -49,8 +49,9 @@ module ELSI_TIMINGS
 
    use ELSI_CONSTANTS, only: TIMING_STRING_LEN,UNSET,UNSET_STRING
    use ELSI_DATATYPE,  only: elsi_handle,elsi_timings_handle
+   use ELSI_IO,        only: elsi_say
+   use ELSI_MPI,       only: elsi_stop
    use ELSI_PRECISION, only: i4,r8
-   use ELSI_UTILS,     only: elsi_say
 
    implicit none
 
@@ -92,6 +93,8 @@ subroutine elsi_init_timer(e_h)
 
    character*40, parameter :: caller = "elsi_init_timer"
 
+   if (e_h%handle_ready) e_h%handle_changed = .true.
+      
    call system_clock(initial_time,e_h%clock_rate,clock_max)
 
 end subroutine
@@ -131,6 +134,8 @@ subroutine elsi_set_solver_timing_tag(e_h,user_tag)
    character(len=*),  intent(in)    :: user_tag
 
    character*40, parameter :: caller = "elsi_set_solver_timing_tag"
+
+   ! Note:  This does not change the state of the handle
 
    e_h%solver_timings%next_user_tag = user_tag
 
@@ -248,7 +253,6 @@ subroutine elsi_print_timings(e_h,t_h)
    end do
 
 end subroutine
-
 
 !>
 !! This routine deallocates the timings handle.

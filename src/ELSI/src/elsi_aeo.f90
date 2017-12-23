@@ -32,7 +32,9 @@ module ELSI_ELPA
 
    use ELSI_CONSTANTS, only: REAL_VALUES,COMPLEX_VALUES,BLACS_DENSE
    use ELSI_DATATYPE
+   use ELSI_IO,        only: elsi_say
    use ELSI_MALLOC
+   use ELSI_MPI,       only: elsi_stop
    use ELSI_MU,        only: elsi_compute_mu_and_occ
    use ELSI_PRECISION, only: r4,r8,i4
    use ELSI_TIMINGS,   only: elsi_get_time
@@ -1446,6 +1448,8 @@ subroutine elsi_set_elpa_default(e_h)
    type(elsi_handle), intent(inout) :: e_h !< Handle
 
    character*40, parameter :: caller = "elsi_set_elpa_default"
+      
+   if (e_h%handle_ready) e_h%handle_changed = .true.
 
    ! ELPA solver
    e_h%elpa_solver = 2

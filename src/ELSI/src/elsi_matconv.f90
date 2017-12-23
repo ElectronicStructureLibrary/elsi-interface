@@ -31,6 +31,7 @@
 module ELSI_MATCONV
 
    use ELSI_DATATYPE
+   use ELSI_IO,        only: elsi_say
    use ELSI_MALLOC
    use ELSI_PRECISION, only: r8,i4,i8
    use ELSI_SORT

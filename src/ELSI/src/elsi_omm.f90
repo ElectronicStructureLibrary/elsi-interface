@@ -32,6 +32,7 @@ module ELSI_OMM
 
    use ELSI_CONSTANTS, only: BLACS_DENSE
    use ELSI_DATATYPE
+   use ELSI_IO,        only: elsi_say
    use ELSI_PRECISION, only: r8,i4
    use ELSI_TIMINGS,   only: elsi_get_time
    use ELSI_UTILS
@@ -335,6 +336,8 @@ subroutine elsi_set_omm_default(e_h)
    type(elsi_handle), intent(inout) :: e_h
 
    character*40, parameter :: caller = "elsi_set_omm_default"
+      
+   if (e_h%handle_ready) e_h%handle_changed = .true.
 
    ! How many steps of ELPA to run before OMM
    e_h%omm_n_elpa = 6
