@@ -36,6 +36,7 @@ module ELSI_SETUP
    use ELSI_DATATYPE
    use ELSI_DMP,           only: elsi_set_dmp_default
    use ELSI_ELPA,          only: elsi_set_elpa_default,elsi_get_elpa_comms
+   use ELSI_IO,            only: elsi_print_handle_summary,elsi_say,elsi_say_setting
    use ELSI_MALLOC
    use ELSI_OMM,           only: elsi_set_omm_default
    use ELSI_PEXSI,         only: elsi_set_pexsi_default

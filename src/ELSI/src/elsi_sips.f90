@@ -32,6 +32,7 @@ module ELSI_SIPS
 
    use ELSI_CONSTANTS, only: UNSET
    use ELSI_DATATYPE
+   use ELSI_IO,        only: elsi_say
    use ELSI_MALLOC
    use ELSI_PRECISION, only: r8,i4
    use ELSI_TIMINGS,   only: elsi_get_time

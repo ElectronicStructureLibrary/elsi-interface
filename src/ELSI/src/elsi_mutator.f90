@@ -35,7 +35,9 @@ module ELSI_MUTATOR
    use ELSI_DATATYPE
    use ELSI_ELPA,      only: elsi_compute_edm_elpa_real,&
                              elsi_compute_edm_elpa_cmplx
+   use ELSI_IO,        only: elsi_say
    use ELSI_MALLOC
+   use ELSI_MPI,       only: elsi_stop
    use ELSI_MATCONV,   only: elsi_pexsi_to_blacs_dm_real,&
                              elsi_pexsi_to_blacs_dm_cmplx,&
                              elsi_blacs_to_sips_dm_real,&

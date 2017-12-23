@@ -46,8 +46,11 @@ module ELSI_SOLVER
                              elsi_solve_evp_elpa_cmplx
    use ELSI_LAPACK,    only: elsi_solve_evp_lapack_real,&
                              elsi_solve_evp_lapack_cmplx
+   use ELSI_IO,        only: elsi_print_handle_summary,elsi_print_solver_settings,&
+                             elsi_print_settings,elsi_say,elsi_say_setting
    use ELSI_MALLOC
    use ELSI_MATCONV
+   use ELSI_MPI,       only: elsi_stop
    use ELSI_OMM,       only: elsi_solve_evp_omm_real,&
                              elsi_solve_evp_omm_cmplx
    use ELSI_PEXSI,     only: elsi_init_pexsi,elsi_solve_evp_pexsi_real,&
@@ -1244,146 +1247,6 @@ subroutine elsi_init_blacs(e_h)
 
       call elsi_set_blacs(e_h,blacs_ctxt,block_size)
    endif
-
-end subroutine
-
-!>
-!! This routine prints ELSI settings.
-!!
-subroutine elsi_print_settings(e_h)
-
-   implicit none
-
-   type(elsi_handle), intent(in) :: e_h !< Handle
-
-   character*200 :: info_str
-
-   character*40, parameter :: caller = "elsi_print_settings"
-
-   select case(e_h%solver)
-   case(CHESS_SOLVER)
-      call elsi_say(e_h,"  CheSS settings:")
-
-      write(info_str,"('  | Error function decay length ',E10.2)") e_h%erf_decay
-      call elsi_say(e_h,info_str)
-
-      write(info_str,"('  | Lower bound of decay length ',E10.2)")&
-         e_h%erf_decay_min
-      call elsi_say(e_h,info_str)
-
-      write(info_str,"('  | Upper bound of decay length ',E10.2)")&
-         e_h%erf_decay_max
-      call elsi_say(e_h,info_str)
-
-      write(info_str,"('  | Lower bound of H eigenvalue ',E10.2)")&
-         e_h%ev_ham_min
-      call elsi_say(e_h,info_str)
-
-      write(info_str,"('  | Upper bound of H eigenvalue ',E10.2)")&
-         e_h%ev_ham_max
-      call elsi_say(e_h,info_str)
-
-      write(info_str,"('  | Lower bound of S eigenvalue ',E10.2)")&
-         e_h%ev_ovlp_min
-      call elsi_say(e_h,info_str)
-
-      write(info_str,"('  | Upper bound of S eigenvalue ',E10.2)") &
-         e_h%ev_ovlp_max
-      call elsi_say(e_h,info_str)
-   case(ELPA_SOLVER)
-      if(e_h%parallel_mode == MULTI_PROC) then
-         call elsi_say(e_h,"  ELPA settings:")
-
-         write(info_str,"('  | ELPA solver ',I10)") e_h%elpa_solver
-         call elsi_say(e_h,info_str)
-      endif
-   case(OMM_SOLVER)
-      call elsi_say(e_h,"  libOMM settings:")
-
-      write(info_str,"('  | Number of ELPA steps       ',I10)") e_h%omm_n_elpa
-      call elsi_say(e_h,info_str)
-
-      write(info_str,"('  | OMM minimization flavor    ',I10)") e_h%omm_flavor
-      call elsi_say(e_h,info_str)
-
-      write(info_str,"('  | OMM minimization tolerance ',E10.2)") e_h%min_tol
-      call elsi_say(e_h,info_str)
-   case(PEXSI_SOLVER)
-      call elsi_say(e_h,"  PEXSI settings:")
-
-      write(info_str,"('  | Electron temperature       ',E10.2)")&
-         e_h%pexsi_options%temperature
-      call elsi_say(e_h,info_str)
-
-      write(info_str,"('  | Spectral gap               ',F10.3)")&
-         e_h%pexsi_options%gap
-      call elsi_say(e_h,info_str)
-
-      write(info_str,"('  | Spectral width             ',F10.3)")&
-         e_h%pexsi_options%deltaE
-      call elsi_say(e_h,info_str)
-
-      write(info_str,"('  | Number of poles            ',I10)")&
-         e_h%pexsi_options%numPole
-      call elsi_say(e_h,info_str)
-
-      write(info_str,"('  | Number of mu points        ',I10)")&
-         e_h%pexsi_options%nPoints
-      call elsi_say(e_h,info_str)
-
-      write(info_str,"('  | Lower bound of mu          ',E10.2)")&
-         e_h%pexsi_options%muMin0
-      call elsi_say(e_h,info_str)
-
-      write(info_str,"('  | Upper bound of mu          ',E10.2)")&
-         e_h%pexsi_options%muMax0
-      call elsi_say(e_h,info_str)
-
-      write(info_str,"('  | Inertia counting tolerance ',E10.2)")&
-         e_h%pexsi_options%muInertiaTolerance
-      call elsi_say(e_h,info_str)
-
-      write(info_str,"('  | MPI tasks for symbolic     ',I10)")&
-         e_h%pexsi_options%npSymbFact
-      call elsi_say(e_h,info_str)
-   case(SIPS_SOLVER)
-      call elsi_say(e_h,"  SIPs settings:")
-
-      write(info_str,"('  | Slicing method            ',I10)")&
-         e_h%slicing_method
-      call elsi_say(e_h,info_str)
-
-      write(info_str,"('  | Lower bound of eigenvalue ',E10.2)") e_h%ev_min
-      call elsi_say(e_h,info_str)
-
-      write(info_str,"('  | Upper bound of eigenvalue ',E10.2)") e_h%ev_max
-      call elsi_say(e_h,info_str)
-
-      write(info_str,"('  | Inertia counting          ',I10)")&
-         e_h%inertia_option
-      call elsi_say(e_h,info_str)
-
-      write(info_str,"('  | Left bound option         ',I10)") e_h%unbound
-      call elsi_say(e_h,info_str)
-
-      write(info_str,"('  | Slice buffer              ',E10.2)")&
-         e_h%slice_buffer
-      call elsi_say(e_h,info_str)
-   case(DMP_SOLVER)
-      call elsi_say(e_h,"  DMP settings:")
-
-      write(info_str,"('  | Purification method              ',I10)")&
-         e_h%dmp_method
-      call elsi_say(e_h,info_str)
-
-      write(info_str,"('  | Max number of purification steps ',I10)")&
-         e_h%max_dmp_iter
-      call elsi_say(e_h,info_str)
-
-      write(info_str,"('  | Convergence tolerance            ',E10.2)")&
-         e_h%dmp_tol
-      call elsi_say(e_h,info_str)
-   end select
 
 end subroutine
 

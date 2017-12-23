@@ -32,7 +32,9 @@ module ELSI_ELPA
 
    use ELSI_CONSTANTS, only: REAL_VALUES,COMPLEX_VALUES,BLACS_DENSE
    use ELSI_DATATYPE
+   use ELSI_IO,        only: elsi_say
    use ELSI_MALLOC
+   use ELSI_MPI,       only: elsi_stop
    use ELSI_MU,        only: elsi_compute_mu_and_occ
    use ELSI_PRECISION, only: r4,r8,i4
    use ELSI_TIMINGS,   only: elsi_get_time

@@ -49,8 +49,9 @@ module ELSI_TIMINGS
 
    use ELSI_CONSTANTS, only: TIMING_STRING_LEN,UNSET,UNSET_STRING
    use ELSI_DATATYPE,  only: elsi_handle,elsi_timings_handle
+   use ELSI_IO,        only: elsi_say
+   use ELSI_MPI,       only: elsi_stop
    use ELSI_PRECISION, only: i4,r8
-   use ELSI_UTILS,     only: elsi_say
 
    implicit none
 

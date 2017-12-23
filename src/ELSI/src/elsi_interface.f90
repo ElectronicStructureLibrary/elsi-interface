@@ -32,7 +32,7 @@
 module ELSI
 
    use ELSI_DATATYPE
-   use ELSI_IO
+   use ELSI_MATIO
    use ELSI_MU
    use ELSI_MUTATOR
    use ELSI_SETUP

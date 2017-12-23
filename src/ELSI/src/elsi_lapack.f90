@@ -32,7 +32,9 @@
 module ELSI_LAPACK
 
    use ELSI_DATATYPE
+   use ELSI_IO,        only: elsi_say
    use ELSI_MALLOC
+   use ELSI_MPI,       only: elsi_stop
    use ELSI_PRECISION, only: r8,i4
    use ELSI_TIMINGS,   only: elsi_get_time
    use ELSI_UTILS
