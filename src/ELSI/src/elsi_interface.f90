@@ -108,6 +108,8 @@ module ELSI
    public :: elsi_set_mu_broaden_width
    public :: elsi_set_mu_tol
    public :: elsi_set_mu_spin_degen
+   public :: elsi_set_solver_timings_unit
+   public :: elsi_set_solver_timings_file
    public :: elsi_get_pexsi_mu_min
    public :: elsi_get_pexsi_mu_max
    public :: elsi_get_ovlp_sing

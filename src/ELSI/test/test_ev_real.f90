@@ -219,6 +219,7 @@ program test_ev_real
    call elsi_set_mu_broaden_width(e_h,1.0e-6_r8)
    call elsi_set_sips_ev_min(e_h,-70.0_r8)
    call elsi_set_sips_ev_max(e_h,0.0_r8)
+   call elsi_set_solver_timings_file(e_h,"ev_real_timings.out")
 
    t1 = MPI_Wtime()
 

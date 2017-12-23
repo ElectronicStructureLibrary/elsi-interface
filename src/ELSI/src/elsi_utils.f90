@@ -179,6 +179,8 @@ subroutine elsi_reset_handle(e_h)
    e_h%ev_max           = 0.0_r8
    e_h%sips_started     = .false.
    e_h%clock_rate       = UNSET
+   e_h%solver_timings_unit = UNSET
+   e_h%solver_timings_file = UNSET_STRING
 
 end subroutine
 
@@ -384,12 +386,10 @@ subroutine elsi_ready_handle(e_h,caller)
 
       ! We can now perform initialization-like tasks which require
       ! the usage of MPI
-      ! TODO: Use unit file name specified in handle, not global constant
       if (e_h%myid_all == 0) then
-         e_h%solver_unit = SOLVER_UNIT_DEFAULT 
-         open(unit=e_h%solver_unit, file=SOLVER_FILE_NAME_DEFAULT)
+         open(unit=e_h%solver_timings_unit, file=e_h%solver_timings_file)
       else
-         e_h%solver_unit = UNSET
+         e_h%solver_timings_unit = UNSET
       endif
 
       e_h%handle_ready   = .true.

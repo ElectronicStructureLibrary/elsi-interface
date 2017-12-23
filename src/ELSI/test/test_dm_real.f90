@@ -219,6 +219,8 @@ program test_dm_real
    call elsi_set_omm_n_elpa(e_h,1)
    call elsi_set_pexsi_delta_e(e_h,80.0_r8)
    call elsi_set_pexsi_np_per_pole(e_h,2)
+   call elsi_set_solver_timings_unit(e_h,67)
+   call elsi_set_solver_timings_file(e_h,"dm_real_timings.out")
 
    t1 = MPI_Wtime()
 

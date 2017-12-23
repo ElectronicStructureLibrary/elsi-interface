@@ -226,7 +226,7 @@ subroutine elsi_ev_real(e_h,ham,ovlp,eval,evec)
    call elsi_get_solver_tag(e_h,solver_tag,data_type)
    call elsi_add_timing(e_h%solver_timings,time,solver_tag)
    call elsi_print_solver_timing(e_h,time,solver_tag,e_h%solver_timings%n_timings,&
-                                 "",e_h%solver_unit)
+                                 "",e_h%solver_timings_unit)
    e_h%solver = temp_int
 
 end subroutine
@@ -298,7 +298,7 @@ subroutine elsi_ev_complex(e_h,ham,ovlp,eval,evec)
    call elsi_get_solver_tag(e_h,solver_tag,data_type)
    call elsi_add_timing(e_h%solver_timings,time,solver_tag)
    call elsi_print_solver_timing(e_h,time,solver_tag,e_h%solver_timings%n_timings,&
-                                 "",e_h%solver_unit)
+                                 "",e_h%solver_timings_unit)
    e_h%solver = temp_int
 
 end subroutine
@@ -367,7 +367,7 @@ subroutine elsi_ev_real_sparse(e_h,ham,ovlp,eval,evec)
    call elsi_get_solver_tag(e_h,solver_tag,data_type)
    call elsi_add_timing(e_h%solver_timings,time,solver_tag)
    call elsi_print_solver_timing(e_h,time,solver_tag,e_h%solver_timings%n_timings,&
-                                 "",e_h%solver_unit)
+                                 "",e_h%solver_timings_unit)
    e_h%solver = temp_int
 
 end subroutine
@@ -436,7 +436,7 @@ subroutine elsi_ev_complex_sparse(e_h,ham,ovlp,eval,evec)
    call elsi_get_solver_tag(e_h,solver_tag,data_type)
    call elsi_add_timing(e_h%solver_timings,time,solver_tag)
    call elsi_print_solver_timing(e_h,time,solver_tag,e_h%solver_timings%n_timings,&
-                                 "",e_h%solver_unit)
+                                 "",e_h%solver_timings_unit)
    e_h%solver = temp_int
 
 end subroutine
@@ -630,7 +630,7 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
    call elsi_get_solver_tag(e_h,solver_tag,data_type)
    call elsi_add_timing(e_h%solver_timings,time,solver_tag)
    call elsi_print_solver_timing(e_h,time,solver_tag,e_h%solver_timings%n_timings,&
-                                 "",e_h%solver_unit)
+                                 "",e_h%solver_timings_unit)
    e_h%solver = temp_int
 
    e_h%edm_ready_real = .true.
@@ -805,7 +805,7 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
    call elsi_get_solver_tag(e_h,solver_tag,data_type)
    call elsi_add_timing(e_h%solver_timings,time,solver_tag)
    call elsi_print_solver_timing(e_h,time,solver_tag,e_h%solver_timings%n_timings,&
-                                 "",e_h%solver_unit)
+                                 "",e_h%solver_timings_unit)
    e_h%solver = temp_int
 
    e_h%edm_ready_cmplx = .true.
@@ -1010,7 +1010,7 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
    call elsi_get_solver_tag(e_h,solver_tag,data_type)
    call elsi_add_timing(e_h%solver_timings,time,solver_tag)
    call elsi_print_solver_timing(e_h,time,solver_tag,e_h%solver_timings%n_timings,&
-                                 "",e_h%solver_unit)
+                                 "",e_h%solver_timings_unit)
    e_h%solver = temp_int
 
    e_h%edm_ready_real = .true.
@@ -1189,7 +1189,7 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
    call elsi_get_solver_tag(e_h,solver_tag,data_type)
    call elsi_add_timing(e_h%solver_timings,time,solver_tag)
    call elsi_print_solver_timing(e_h,time,solver_tag,e_h%solver_timings%n_timings,&
-                                 "",e_h%solver_unit)
+                                 "",e_h%solver_timings_unit)
    e_h%solver = temp_int
 
    e_h%edm_ready_cmplx = .true.

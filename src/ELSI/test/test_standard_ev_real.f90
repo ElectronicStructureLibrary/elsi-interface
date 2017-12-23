@@ -176,6 +176,7 @@ program test_standard_ev_real
    ! Customize ELSI
    call elsi_set_output(e_h,2)
    call elsi_set_unit_ovlp(e_h,1)
+   call elsi_set_solver_timings_file(e_h,"standard_ev_real.out")
 
    t1 = MPI_Wtime()
 

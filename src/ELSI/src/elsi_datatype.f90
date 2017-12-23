@@ -36,7 +36,7 @@ module ELSI_DATATYPE
    use F_PPEXSI_INTERFACE, only: f_ppexsi_options
    use MATRIXSWITCH,       only: matrix
    use SPARSEMATRIX_BASE,  only: matrices,sparse_matrix
-   use ELSI_CONSTANTS,     only: TIMING_STRING_LEN
+   use ELSI_CONSTANTS,     only: FILE_NAME_LEN, TIMING_STRING_LEN
 
    implicit none
 
@@ -311,10 +311,12 @@ module ELSI_DATATYPE
       real(kind=r8)    :: ne_dmp         ! Number of electrons computed by DMP
 
       ! Timer and timings
-      integer(kind=i4)          :: clock_rate
-      type(elsi_timings_handle) :: solver_timings          
-      integer(kind=i4)          :: solver_unit    ! Unit to which we output verbose timing information
-                                                  ! for solver invocations
+      integer(kind=i4)             :: clock_rate
+      type(elsi_timings_handle)    :: solver_timings          
+      integer(kind=i4)             :: solver_timings_unit ! Unit to which we output verbose timing
+                                                          ! information for solver invocations
+      character(len=FILE_NAME_LEN) :: solver_timings_file ! File to which we output verbose timing
+                                                          ! information for solver invocations
 
    end type
 

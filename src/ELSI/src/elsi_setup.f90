@@ -32,7 +32,8 @@ module ELSI_SETUP
 
    use ELSI_CHESS,         only: elsi_set_chess_default
    use ELSI_CONSTANTS,     only: ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,&
-                                 CHESS_SOLVER,SIPS_SOLVER,SINGLE_PROC,MULTI_PROC
+                                 CHESS_SOLVER,SIPS_SOLVER,SINGLE_PROC,MULTI_PROC,&
+                                 SOLVER_TIMINGS_UNIT_DEFAULT,SOLVER_TIMINGS_FILE_DEFAULT
    use ELSI_DATATYPE
    use ELSI_DMP,           only: elsi_set_dmp_default
    use ELSI_ELPA,          only: elsi_set_elpa_default,elsi_get_elpa_comms
@@ -105,6 +106,7 @@ subroutine elsi_init(e_h,solver,parallel_mode,matrix_format,n_basis,n_electron,&
    e_h%parallel_mode  = parallel_mode
    e_h%n_elsi_calls   = 0
 
+
    if(parallel_mode == SINGLE_PROC) then
       e_h%n_lrow      = n_basis
       e_h%n_lcol      = n_basis
@@ -133,6 +135,10 @@ subroutine elsi_init(e_h,solver,parallel_mode,matrix_format,n_basis,n_electron,&
    case(DMP_SOLVER)
       call elsi_set_dmp_default(e_h)
    end select
+
+   ! Initialize file IO
+   e_h%solver_timings_unit = SOLVER_TIMINGS_UNIT_DEFAULT
+   e_h%solver_timings_file = SOLVER_TIMINGS_FILE_DEFAULT
 
    ! Initialize timer information
    call elsi_init_timer(e_h)
@@ -644,9 +650,9 @@ subroutine elsi_cleanup(e_h)
    ! Print final timings
    if(e_h%handle_ready) then
       if(e_h%myid_all.eq.0) then
-         close(e_h%solver_unit)
+         close(e_h%solver_timings_unit)
       endif
-      e_h%solver_unit = UNSET
+      e_h%solver_timings_unit = UNSET
    end if
    call elsi_finalize_timings(e_h%solver_timings) 
 

@@ -102,6 +102,8 @@ module ELSI_MUTATOR
    public :: elsi_set_mu_broaden_width
    public :: elsi_set_mu_tol
    public :: elsi_set_mu_spin_degen
+   public :: elsi_set_solver_timings_unit
+   public :: elsi_set_solver_timings_file
    public :: elsi_get_pexsi_mu_min
    public :: elsi_get_pexsi_mu_max
    public :: elsi_get_ovlp_sing
@@ -1134,6 +1136,46 @@ subroutine elsi_set_mu_spin_degen(e_h,spin_degen)
 
    e_h%spin_degen  = spin_degen
    e_h%spin_is_set = .true.
+
+end subroutine
+
+!>
+!! This routine sets the unit to which detailed solver timings are
+!! output.
+!!
+subroutine elsi_set_solver_timings_unit(e_h,solver_timings_unit)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h                 !< Handle
+   integer(kind=i4),  intent(in)    :: solver_timings_unit !< Unit
+
+   character*40, parameter :: caller = "elsi_set_solver_timings_unit"
+
+   call elsi_check_handle(e_h,caller)
+   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   e_h%solver_timings_unit = solver_timings_unit
+
+end subroutine
+
+!>
+!! This routine sets the file to which detailed solver timings are
+!! output.
+!!
+subroutine elsi_set_solver_timings_file(e_h,solver_timings_file)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h                 !< Handle
+   character(len=*),  intent(in)    :: solver_timings_file !< File
+
+   character*40, parameter :: caller = "elsi_set_solver_timings_file"
+
+   call elsi_check_handle(e_h,caller)
+   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   e_h%solver_timings_file = solver_timings_file
 
 end subroutine
 
