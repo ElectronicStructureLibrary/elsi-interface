@@ -253,7 +253,6 @@ subroutine elsi_print_timings(e_h,t_h)
 
 end subroutine
 
-
 !>
 !! This routine deallocates the timings handle.
 !!

@@ -145,7 +145,9 @@ subroutine elsi_ev_real(e_h,ham,ovlp,eval,evec)
 
    ! Timing-related variable
    character(len=TIMING_STRING_LEN) :: solver_tag = UNSET_STRING
-   real(kind=r8)                    :: t0, t1
+   real(kind=r8)                    :: t0, t1, time
+   integer(kind=i4)                 :: solver_used, temp_int
+   integer(kind=i4), parameter      :: data_type  = REAL_VALUES
 
    character*40, parameter :: caller = "elsi_ev_real"
 
@@ -170,7 +172,7 @@ subroutine elsi_ev_real(e_h,ham,ovlp,eval,evec)
          call elsi_solve_evp_elpa_real(e_h,ham,ovlp,eval,evec)
       endif
 
-      call elsi_get_solver_tag(e_h,solver_tag,REAL_VALUES)
+      solver_used = ELPA_SOLVER
    case(OMM_SOLVER)
       call elsi_stop(" LIBOMM is not an eigensolver.",e_h,caller)
    case(PEXSI_SOLVER)
@@ -191,9 +193,7 @@ subroutine elsi_ev_real(e_h,ham,ovlp,eval,evec)
          ! Solve
          call elsi_solve_evp_elpa_real(e_h,ham,ovlp,eval,evec)
 
-         e_h%solver = ELPA_SOLVER
-         call elsi_get_solver_tag(e_h,solver_tag,REAL_VALUES)
-         e_h%solver = SIPS_SOLVER
+         solver_used = ELPA_SOLVER
       else ! ELPA is done
          if(allocated(e_h%ovlp_real_copy)) then
             ! Retrieve overlap matrix that has been destroyed by Cholesky
@@ -207,7 +207,7 @@ subroutine elsi_ev_real(e_h,ham,ovlp,eval,evec)
          call elsi_solve_evp_sips_real(e_h,e_h%ham_real_sips,&
                  e_h%ovlp_real_sips,eval)
          call elsi_sips_to_blacs_ev_real(e_h,evec)
-         call elsi_get_solver_tag(e_h,solver_tag,REAL_VALUES)
+         solver_used = SIPS_SOLVER
       endif
    case(DMP_SOLVER)
       call elsi_stop(" DMP is not an eigensolver.",e_h,caller)
@@ -216,7 +216,15 @@ subroutine elsi_ev_real(e_h,ham,ovlp,eval,evec)
    end select
 
    call elsi_get_time(e_h,t1)
-   call elsi_add_timing(e_h%solver_timings,t1-t0,solver_tag)
+   temp_int   = e_h%solver
+   e_h%solver = solver_used
+   time       = t1-t0
+   ! Output information about this solver invocation
+   call elsi_get_solver_tag(e_h,solver_tag,data_type)
+   call elsi_add_timing(e_h%solver_timings,time,solver_tag)
+   call elsi_print_solver_timing(e_h,time,solver_tag,e_h%solver_timings%n_timings,&
+                                 "",e_h%solver_unit)
+   e_h%solver = temp_int
 
 end subroutine
 
@@ -237,7 +245,9 @@ subroutine elsi_ev_complex(e_h,ham,ovlp,eval,evec)
 
    ! Timing-related variable
    character(len=TIMING_STRING_LEN) :: solver_tag = UNSET_STRING
-   real(kind=r8)                    :: t0, t1
+   real(kind=r8)                    :: t0, t1, time
+   integer(kind=i4)                 :: solver_used, temp_int
+   integer(kind=i4), parameter      :: data_type  = COMPLEX_VALUES
 
    character*40, parameter :: caller = "elsi_ev_complex"
 
@@ -262,7 +272,7 @@ subroutine elsi_ev_complex(e_h,ham,ovlp,eval,evec)
          call elsi_solve_evp_elpa_cmplx(e_h,ham,ovlp,eval,evec)
       endif
 
-      call elsi_get_solver_tag(e_h,solver_tag,COMPLEX_VALUES)
+      solver_used = ELPA_SOLVER
    case(OMM_SOLVER)
       call elsi_stop(" LIBOMM is not an eigensolver.",e_h,caller)
    case(PEXSI_SOLVER)
@@ -278,7 +288,15 @@ subroutine elsi_ev_complex(e_h,ham,ovlp,eval,evec)
    end select
 
    call elsi_get_time(e_h,t1)
-   call elsi_add_timing(e_h%solver_timings,t1-t0,solver_tag)
+   temp_int   = e_h%solver
+   e_h%solver = solver_used
+   time       = t1-t0
+   ! Output information about this solver invocation
+   call elsi_get_solver_tag(e_h,solver_tag,data_type)
+   call elsi_add_timing(e_h%solver_timings,time,solver_tag)
+   call elsi_print_solver_timing(e_h,time,solver_tag,e_h%solver_timings%n_timings,&
+                                 "",e_h%solver_unit)
+   e_h%solver = temp_int
 
 end subroutine
 
@@ -299,7 +317,9 @@ subroutine elsi_ev_real_sparse(e_h,ham,ovlp,eval,evec)
 
    ! Timing-related variable
    character(len=TIMING_STRING_LEN) :: solver_tag = UNSET_STRING
-   real(kind=r8)                    :: t0, t1
+   real(kind=r8)                    :: t0, t1, time
+   integer(kind=i4)                 :: solver_used, temp_int
+   integer(kind=i4), parameter      :: data_type  = REAL_VALUES
 
    character*40, parameter :: caller = "elsi_ev_real_sparse"
 
@@ -321,7 +341,7 @@ subroutine elsi_ev_real_sparse(e_h,ham,ovlp,eval,evec)
       call elsi_sips_to_blacs_hs_real(e_h,ham,ovlp)
       call elsi_solve_evp_elpa_real(e_h,e_h%ham_real_elpa,e_h%ovlp_real_elpa,&
               eval,evec)
-      call elsi_get_solver_tag(e_h,solver_tag,REAL_VALUES)
+      solver_used = ELPA_SOLVER
    case(OMM_SOLVER)
       call elsi_stop(" LIBOMM is not an eigensolver.",e_h,caller)
    case(PEXSI_SOLVER)
@@ -337,7 +357,15 @@ subroutine elsi_ev_real_sparse(e_h,ham,ovlp,eval,evec)
    end select
 
    call elsi_get_time(e_h,t1)
-   call elsi_add_timing(e_h%solver_timings,t1-t0,solver_tag)
+   temp_int   = e_h%solver
+   e_h%solver = solver_used
+   time       = t1-t0
+   ! Output information about this solver invocation
+   call elsi_get_solver_tag(e_h,solver_tag,data_type)
+   call elsi_add_timing(e_h%solver_timings,time,solver_tag)
+   call elsi_print_solver_timing(e_h,time,solver_tag,e_h%solver_timings%n_timings,&
+                                 "",e_h%solver_unit)
+   e_h%solver = temp_int
 
 end subroutine
 
@@ -358,7 +386,9 @@ subroutine elsi_ev_complex_sparse(e_h,ham,ovlp,eval,evec)
 
    ! Timing-related variable
    character(len=TIMING_STRING_LEN) :: solver_tag = UNSET_STRING
-   real(kind=r8)                    :: t0, t1
+   real(kind=r8)                    :: t0, t1, time
+   integer(kind=i4)                 :: solver_used, temp_int
+   integer(kind=i4), parameter      :: data_type  = COMPLEX_VALUES
 
    character*40, parameter :: caller = "elsi_ev_complex_sparse"
 
@@ -380,7 +410,7 @@ subroutine elsi_ev_complex_sparse(e_h,ham,ovlp,eval,evec)
       call elsi_sips_to_blacs_hs_cmplx(e_h,ham,ovlp)
       call elsi_solve_evp_elpa_cmplx(e_h,e_h%ham_cmplx_elpa,&
               e_h%ovlp_cmplx_elpa,eval,evec)
-      call elsi_get_solver_tag(e_h,solver_tag,COMPLEX_VALUES)
+      solver_used = ELPA_SOLVER
    case(OMM_SOLVER)
       call elsi_stop(" LIBOMM is not an eigensolver.",e_h,caller)
    case(PEXSI_SOLVER)
@@ -396,7 +426,15 @@ subroutine elsi_ev_complex_sparse(e_h,ham,ovlp,eval,evec)
    end select
 
    call elsi_get_time(e_h,t1)
-   call elsi_add_timing(e_h%solver_timings,t1-t0,solver_tag)
+   temp_int   = e_h%solver
+   e_h%solver = solver_used
+   time       = t1-t0
+   ! Output information about this solver invocation
+   call elsi_get_solver_tag(e_h,solver_tag,data_type)
+   call elsi_add_timing(e_h%solver_timings,time,solver_tag)
+   call elsi_print_solver_timing(e_h,time,solver_tag,e_h%solver_timings%n_timings,&
+                                 "",e_h%solver_unit)
+   e_h%solver = temp_int
 
 end subroutine
 
@@ -416,7 +454,9 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
 
    ! Timing-related variable
    character(len=TIMING_STRING_LEN) :: solver_tag = UNSET_STRING
-   real(kind=r8)                    :: t0, t1
+   real(kind=r8)                    :: t0, t1, time
+   integer(kind=i4)                 :: solver_used, temp_int
+   integer(kind=i4), parameter      :: data_type  = REAL_VALUES
 
    character*40, parameter :: caller = "elsi_dm_real"
 
@@ -456,7 +496,7 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
       call elsi_compute_occ_elpa(e_h,e_h%eval_elpa)
       call elsi_compute_dm_elpa_real(e_h,e_h%evec_real_elpa,dm,ham)
       call elsi_get_energy(e_h,energy,ELPA_SOLVER)
-      call elsi_get_solver_tag(e_h,solver_tag,REAL_VALUES)
+      solver_used = ELPA_SOLVER
 
       ! Normalize density matrix
       if(e_h%n_elsi_calls <= e_h%n_single_steps) then
@@ -488,9 +528,7 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
          call elsi_compute_dm_elpa_real(e_h,e_h%evec_real_elpa,dm,ham)
          call elsi_get_energy(e_h,energy,ELPA_SOLVER)
 
-         e_h%solver = ELPA_SOLVER
-         call elsi_get_solver_tag(e_h,solver_tag,REAL_VALUES)
-         e_h%solver = OMM_SOLVER
+         solver_used = ELPA_SOLVER
       else ! ELPA is done
          if(allocated(e_h%ovlp_real_copy)) then
             ! Retrieve overlap matrix that has been destroyed by Cholesky
@@ -531,7 +569,7 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
 
          call elsi_solve_evp_omm_real(e_h,ham,ovlp,dm)
          call elsi_get_energy(e_h,energy,OMM_SOLVER)
-         call elsi_get_solver_tag(e_h,solver_tag,REAL_VALUES)
+         solver_used = OMM_SOLVER
       endif
    case(PEXSI_SOLVER)
       call elsi_init_pexsi(e_h)
@@ -547,7 +585,7 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
               e_h%ovlp_real_pexsi,e_h%dm_real_pexsi)
       call elsi_pexsi_to_blacs_dm_real(e_h,dm)
       call elsi_get_energy(e_h,energy,PEXSI_SOLVER)
-      call elsi_get_solver_tag(e_h,solver_tag,REAL_VALUES)
+      solver_used = PEXSI_SOLVER
 
       e_h%mu_ready = .true.
    case(CHESS_SOLVER)
@@ -557,7 +595,7 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
       call elsi_solve_evp_chess_real(e_h)
       call elsi_chess_to_blacs_dm_real(e_h,dm)
       call elsi_get_energy(e_h,energy,CHESS_SOLVER)
-      call elsi_get_solver_tag(e_h,solver_tag,REAL_VALUES)
+      solver_used = CHESS_SOLVER
 
       e_h%mu_ready = .true.
    case(SIPS_SOLVER)
@@ -576,13 +614,21 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
       ! Solve
       call elsi_solve_evp_dmp_real(e_h,ham,ovlp,dm)
       call elsi_get_energy(e_h,energy,DMP_SOLVER)
-      call elsi_get_solver_tag(e_h,solver_tag,REAL_VALUES)
+      solver_used = DMP_SOLVER
    case default
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
    call elsi_get_time(e_h,t1)
-   call elsi_add_timing(e_h%solver_timings,t1-t0,solver_tag)
+   temp_int   = e_h%solver
+   e_h%solver = solver_used
+   time       = t1-t0
+   ! Output information about this solver invocation
+   call elsi_get_solver_tag(e_h,solver_tag,data_type)
+   call elsi_add_timing(e_h%solver_timings,time,solver_tag)
+   call elsi_print_solver_timing(e_h,time,solver_tag,e_h%solver_timings%n_timings,&
+                                 "",e_h%solver_unit)
+   e_h%solver = temp_int
 
    e_h%edm_ready_real = .true.
 
@@ -604,7 +650,9 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
 
    ! Timing-related variable
    character(len=TIMING_STRING_LEN) :: solver_tag = UNSET_STRING
-   real(kind=r8)                    :: t0, t1
+   real(kind=r8)                    :: t0, t1, time
+   integer(kind=i4)                 :: solver_used, temp_int
+   integer(kind=i4), parameter      :: data_type  = COMPLEX_VALUES
 
    character*40, parameter :: caller = "elsi_dm_complex"
 
@@ -643,7 +691,7 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
       call elsi_compute_occ_elpa(e_h,e_h%eval_elpa)
       call elsi_compute_dm_elpa_cmplx(e_h,e_h%evec_cmplx_elpa,dm,ham)
       call elsi_get_energy(e_h,energy,ELPA_SOLVER)
-      call elsi_get_solver_tag(e_h,solver_tag,COMPLEX_VALUES)
+      solver_used = ELPA_SOLVER
 
       ! Normalize density matrix
       if(e_h%n_elsi_calls <= e_h%n_single_steps) then
@@ -675,9 +723,7 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
          call elsi_compute_dm_elpa_cmplx(e_h,e_h%evec_cmplx_elpa,dm,ham)
          call elsi_get_energy(e_h,energy,ELPA_SOLVER)
 
-         e_h%solver = ELPA_SOLVER
-         call elsi_get_solver_tag(e_h,solver_tag,COMPLEX_VALUES)
-         e_h%solver = OMM_SOLVER
+         solver_used = ELPA_SOLVER
       else ! ELPA is done
          if(allocated(e_h%ovlp_cmplx_copy)) then
             ! Retrieve overlap matrix that has been destroyed by Cholesky
@@ -719,7 +765,7 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
 
          call elsi_solve_evp_omm_cmplx(e_h,ham,ovlp,dm)
          call elsi_get_energy(e_h,energy,OMM_SOLVER)
-         call elsi_get_solver_tag(e_h,solver_tag,COMPLEX_VALUES)
+         solver_used = OMM_SOLVER
       endif
    case(PEXSI_SOLVER)
       call elsi_init_pexsi(e_h)
@@ -735,7 +781,7 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
               e_h%ovlp_cmplx_pexsi,e_h%dm_cmplx_pexsi)
       call elsi_pexsi_to_blacs_dm_cmplx(e_h,dm)
       call elsi_get_energy(e_h,energy,PEXSI_SOLVER)
-      call elsi_get_solver_tag(e_h,solver_tag,COMPLEX_VALUES)
+      solver_used = PEXSI_SOLVER
 
       e_h%mu_ready = .true.
    case(CHESS_SOLVER)
@@ -749,7 +795,15 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
    end select
 
    call elsi_get_time(e_h,t1)
-   call elsi_add_timing(e_h%solver_timings,t1-t0,solver_tag)
+   temp_int   = e_h%solver
+   e_h%solver = solver_used
+   time       = t1-t0
+   ! Output information about this solver invocation
+   call elsi_get_solver_tag(e_h,solver_tag,data_type)
+   call elsi_add_timing(e_h%solver_timings,time,solver_tag)
+   call elsi_print_solver_timing(e_h,time,solver_tag,e_h%solver_timings%n_timings,&
+                                 "",e_h%solver_unit)
+   e_h%solver = temp_int
 
    e_h%edm_ready_cmplx = .true.
 
@@ -771,7 +825,9 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
 
    ! Timing-related variable
    character(len=TIMING_STRING_LEN) :: solver_tag = UNSET_STRING
-   real(kind=r8)                    :: t0, t1
+   real(kind=r8)                    :: t0, t1, time
+   integer(kind=i4)                 :: solver_used, temp_int
+   integer(kind=i4), parameter      :: data_type  = REAL_VALUES
 
    character*40, parameter :: caller = "elsi_dm_real_sparse"
 
@@ -816,7 +872,7 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
               e_h%ham_real_elpa)
       call elsi_blacs_to_sips_dm_real(e_h,dm)
       call elsi_get_energy(e_h,energy,ELPA_SOLVER)
-      call elsi_get_solver_tag(e_h,solver_tag,REAL_VALUES)
+      solver_used = ELPA_SOLVER
 
       e_h%mu_ready = .true.
    case(OMM_SOLVER)
@@ -856,9 +912,7 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
          call elsi_blacs_to_sips_dm_real(e_h,dm)
          call elsi_get_energy(e_h,energy,ELPA_SOLVER)
 
-         e_h%solver = ELPA_SOLVER
-         call elsi_get_solver_tag(e_h,solver_tag,REAL_VALUES)
-         e_h%solver = OMM_SOLVER
+         solver_used = ELPA_SOLVER
       else ! ELPA is done
          if(allocated(e_h%ovlp_real_copy)) then
             ! Retrieve overlap matrix that has been destroyed by Cholesky
@@ -899,14 +953,14 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
                  e_h%dm_real_elpa)
          call elsi_blacs_to_sips_dm_real(e_h,dm)
          call elsi_get_energy(e_h,energy,OMM_SOLVER)
-         call elsi_get_solver_tag(e_h,solver_tag,REAL_VALUES)
+         solver_used = OMM_SOLVER
       endif
    case(PEXSI_SOLVER)
       call elsi_init_pexsi(e_h)
 
       call elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
       call elsi_get_energy(e_h,energy,PEXSI_SOLVER)
-      call elsi_get_solver_tag(e_h,solver_tag,REAL_VALUES)
+      solver_used = PEXSI_SOLVER
 
       e_h%mu_ready = .true.
    case(CHESS_SOLVER) ! TODO
@@ -940,13 +994,21 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
               e_h%dm_real_elpa)
       call elsi_blacs_to_sips_dm_real(e_h,dm)
       call elsi_get_energy(e_h,energy,DMP_SOLVER)
-      call elsi_get_solver_tag(e_h,solver_tag,REAL_VALUES)
+      solver_used = DMP_SOLVER
    case default
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
    call elsi_get_time(e_h,t1)
-   call elsi_add_timing(e_h%solver_timings,t1-t0,solver_tag)
+   temp_int   = e_h%solver
+   e_h%solver = solver_used
+   time       = t1-t0
+   ! Output information about this solver invocation
+   call elsi_get_solver_tag(e_h,solver_tag,data_type)
+   call elsi_add_timing(e_h%solver_timings,time,solver_tag)
+   call elsi_print_solver_timing(e_h,time,solver_tag,e_h%solver_timings%n_timings,&
+                                 "",e_h%solver_unit)
+   e_h%solver = temp_int
 
    e_h%edm_ready_real = .true.
 
@@ -968,7 +1030,9 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
 
    ! Timing-related variable
    character(len=TIMING_STRING_LEN) :: solver_tag = UNSET_STRING
-   real(kind=r8)                    :: t0, t1
+   real(kind=r8)                    :: t0, t1, time
+   integer(kind=i4)                 :: solver_used, temp_int
+   integer(kind=i4), parameter      :: data_type  = COMPLEX_VALUES
 
    character*40, parameter :: caller = "elsi_dm_complex_sparse"
 
@@ -1013,7 +1077,7 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
               e_h%dm_cmplx_elpa,e_h%ham_cmplx_elpa)
       call elsi_blacs_to_sips_dm_cmplx(e_h,dm)
       call elsi_get_energy(e_h,energy,ELPA_SOLVER)
-      call elsi_get_solver_tag(e_h,solver_tag,COMPLEX_VALUES)
+      solver_used = ELPA_SOLVER
 
       e_h%mu_ready = .true.
    case(OMM_SOLVER)
@@ -1052,9 +1116,7 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
          call elsi_blacs_to_sips_dm_cmplx(e_h,dm)
          call elsi_get_energy(e_h,energy,ELPA_SOLVER)
 
-         e_h%solver = ELPA_SOLVER
-         call elsi_get_solver_tag(e_h,solver_tag,COMPLEX_VALUES)
-         e_h%solver = OMM_SOLVER
+         solver_used = ELPA_SOLVER
       else ! ELPA is done
          if(allocated(e_h%ovlp_cmplx_copy)) then
             ! Retrieve overlap matrix that has been destroyed by Cholesky
@@ -1096,14 +1158,14 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
                  e_h%ovlp_cmplx_elpa,e_h%dm_cmplx_elpa)
          call elsi_blacs_to_sips_dm_cmplx(e_h,dm)
          call elsi_get_energy(e_h,energy,OMM_SOLVER)
-         call elsi_get_solver_tag(e_h,solver_tag,COMPLEX_VALUES)
+         solver_used = OMM_SOLVER
       endif
    case(PEXSI_SOLVER)
       call elsi_init_pexsi(e_h)
 
       call elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
       call elsi_get_energy(e_h,energy,PEXSI_SOLVER)
-      call elsi_get_solver_tag(e_h,solver_tag,COMPLEX_VALUES)
+      solver_used = PEXSI_SOLVER
 
       e_h%mu_ready = .true.
    case(CHESS_SOLVER)
@@ -1117,7 +1179,15 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
    end select
 
    call elsi_get_time(e_h,t1)
-   call elsi_add_timing(e_h%solver_timings,t1-t0,solver_tag)
+   temp_int   = e_h%solver
+   e_h%solver = solver_used
+   time       = t1-t0
+   ! Output information about this solver invocation
+   call elsi_get_solver_tag(e_h,solver_tag,data_type)
+   call elsi_add_timing(e_h%solver_timings,time,solver_tag)
+   call elsi_print_solver_timing(e_h,time,solver_tag,e_h%solver_timings%n_timings,&
+                                 "",e_h%solver_unit)
+   e_h%solver = temp_int
 
    e_h%edm_ready_cmplx = .true.
 
@@ -1315,6 +1385,71 @@ subroutine elsi_print_settings(e_h)
       call elsi_say(e_h,info_str)
    end select
 
+end subroutine
+
+!>
+!! This routine prints the timing of the current solver and all relevant information.
+!! TODO:  This routine's interface is rough.  Needs to be cleaned up.
+!!
+subroutine elsi_print_solver_timing(e_h,time,elsi_tag,iter,prefix,use_unit,user_tag_in)
+
+   implicit none
+
+   type(elsi_handle),           intent(inout) :: e_h   !< Handle
+   real(kind=r8),               intent(in)    :: time
+   character(len=*),            intent(in)    :: elsi_tag
+   integer(kind=i4),            intent(in)    :: iter
+   character(len=*),            intent(in)    :: prefix
+   integer(kind=i4),  optional, intent(in)    :: use_unit
+   character(len=*),  optional, intent(in)    :: user_tag_in
+
+   character*200                    :: info_str
+   character(len=TIMING_STRING_LEN) :: user_tag
+   integer(kind=i4)                 :: my_unit
+
+   character*40, parameter :: caller = "elsi_print_solver_timings"
+
+   if(present(use_unit)) then
+      my_unit = use_unit
+   else
+      my_unit = e_h%print_unit
+   endif
+
+   if(present(user_tag_in)) then
+      user_tag = user_tag_in
+   else
+      user_tag  = UNSET_STRING
+   endif
+
+   write(info_str,"(A,A)")       prefix, "--------------------------------------------------------"
+   call elsi_say(e_h,info_str,my_unit)
+   write(info_str,"(A,A,I10)")   prefix, "Start of Iteration ",  iter
+   call elsi_say(e_h,info_str,my_unit)
+   write(info_str,"(A,A,I10)")   prefix
+   call elsi_say(e_h,info_str,my_unit)
+   write(info_str,"(A,A,F13.3)") prefix, "Timing ", time
+   call elsi_say(e_h,info_str,my_unit)
+   write(info_str,"(A,A,A)")     prefix, "ELSI Tag ", elsi_tag
+   call elsi_say(e_h,info_str,my_unit)
+   write(info_str,"(A,A,A)")     prefix, "User Tag ", user_tag
+   call elsi_say(e_h,info_str,my_unit)
+   write(info_str,"(A)")         prefix
+   call elsi_say(e_h,info_str,my_unit)
+
+   call elsi_print_handle_summary (e_h,prefix,my_unit)
+   write(info_str,"(A)")         prefix
+   call elsi_say(e_h,info_str,my_unit)
+   call elsi_print_solver_settings(e_h,prefix,my_unit)
+
+   write(info_str,"(A)")         prefix
+   call elsi_say(e_h,info_str,my_unit)
+   write(info_str,"(A,A,I10)")   prefix, "End of Iteration   ",  iter
+   call elsi_say(e_h,info_str,my_unit)
+   write(info_str,"(A,A)")       prefix, "--------------------------------------------------------"
+   call elsi_say(e_h,info_str,my_unit)
+   write(info_str,"(A)")         prefix
+   call elsi_say(e_h,info_str,my_unit)
+ 
 end subroutine
 
 end module ELSI_SOLVER

@@ -640,10 +640,9 @@ subroutine elsi_cleanup(e_h)
       call clean_qetsc()
    endif
 
-   ! Print final details of handle to timing file, then finalize
+   ! Print final timings
    if(e_h%handle_ready) then
       if(e_h%myid_all.eq.0) then
-         call elsi_print_handle_summary(e_h,"",e_h%solver_unit)
          close(e_h%solver_unit)
       endif
       e_h%solver_unit = UNSET

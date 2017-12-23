@@ -52,6 +52,7 @@ module ELSI_UTILS
    public :: elsi_get_solver_tag
    public :: elsi_print_handle_summary
    public :: elsi_say_setting
+   public :: elsi_print_solver_settings
    public :: elsi_print_chess_settings
    public :: elsi_print_dmp_settings
    public :: elsi_print_elpa_settings
@@ -468,12 +469,13 @@ subroutine elsi_ready_handle(e_h,caller)
 
       ! We can now perform initialization-like tasks which require
       ! the usage of MPI
+      ! TODO: Use unit file name specified in handle, not global constant
       if (e_h%myid_all == 0) then
          e_h%solver_unit = SOLVER_UNIT_DEFAULT 
+         open(unit=e_h%solver_unit, file=SOLVER_FILE_NAME_DEFAULT)
       else
          e_h%solver_unit = UNSET
       endif
-      call elsi_print_handle_summary(e_h,"",e_h%solver_unit)
 
       e_h%handle_ready   = .true.
       e_h%handle_changed = .false.
@@ -991,6 +993,60 @@ subroutine elsi_say_setting_str(e_h,prefix,label,setting,use_unit)
 end subroutine
 
 !>
+!! This routine prints out settings for the current (user-indicated) solver.
+!!
+subroutine elsi_print_solver_settings(e_h,prefix,use_unit)
+
+   implicit none
+
+   type(elsi_handle),           intent(in) :: e_h      !< Handle
+   character(len=*),            intent(in) :: prefix   !< Prefix for every line
+   integer(kind=i4),  optional, intent(in) :: use_unit !< Unit to write to
+
+   integer(kind=i4) :: my_unit
+   character*200    :: info_str
+
+   character*40, parameter :: caller = "elsi_print_solver_settings"
+
+   if(present(use_unit)) then
+      my_unit = use_unit
+   else
+      my_unit = e_h%print_unit
+   endif
+
+   select case(e_h%solver)
+   case(CHESS_SOLVER)
+      write(info_str,"(A,A)") prefix, "Solver Settings (CheSS)"
+      call elsi_say(e_h,info_str,my_unit)
+      call elsi_print_chess_settings(e_h,prefix,my_unit)
+   case(DMP_SOLVER)
+      write(info_str,"(A,A)") prefix, "Solver Settings (DMP)"
+      call elsi_say(e_h,info_str,my_unit)
+      call elsi_print_dmp_settings(e_h,prefix,my_unit)
+   case(ELPA_SOLVER)
+      write(info_str,"(A,A)") prefix, "Solver Settings (ELPA)"
+      call elsi_say(e_h,info_str,my_unit)
+      call elsi_print_elpa_settings(e_h,prefix,my_unit)
+   case(OMM_SOLVER)
+      write(info_str,"(A,A)") prefix, "Solver Settings (libOMM)"
+      call elsi_say(e_h,info_str,my_unit)
+      call elsi_print_omm_settings(e_h,prefix,my_unit)
+   case(PEXSI_SOLVER)
+      write(info_str,"(A,A)") prefix, "Solver Settings (PEXSI)"
+      call elsi_say(e_h,info_str,my_unit)
+      call elsi_print_pexsi_settings(e_h,prefix,my_unit)
+   case(SIPS_SOLVER)
+      write(info_str,"(A,A)") prefix, "Solver Settings (SIPs)"
+      call elsi_say(e_h,info_str,my_unit)
+      call elsi_print_sips_settings(e_h,prefix,my_unit)
+   case default
+      call elsi_stop(" Unsupported solver.",e_h,caller)
+   end select
+
+end subroutine
+
+
+!>
 !! This routine prints out settings for CheSS.
 !!
 subroutine elsi_print_chess_settings(e_h,prefix,use_unit)
@@ -1170,6 +1226,8 @@ subroutine elsi_print_sips_settings(e_h,prefix,use_unit)
    integer(kind=i4),  optional, intent(in) :: use_unit !< Unit to write to
 
    integer(kind=i4) :: my_unit
+
+   character*200 :: info_str
 
    character*40, parameter :: caller = "elsi_print_sips_settings"
 
