@@ -49,8 +49,8 @@ module ELSI_IO
    public :: elsi_say_setting
    ! IO for ELSI handle settings
    public :: elsi_print_handle_summary
-   public :: elsi_print_settings
    ! IO for solver settings 
+   public :: elsi_print_settings
    public :: elsi_print_solver_settings
    public :: elsi_print_chess_settings
    public :: elsi_print_dmp_settings
@@ -759,7 +759,7 @@ subroutine elsi_say_setting_r8(e_h,prefix,label,setting,use_unit)
 
    if(e_h%print_info) then
       if(e_h%myid_all == 0) then
-         write(my_unit,"(A,A27,A3,F20.3)") prefix, label_ljust, " : ", setting
+         write(my_unit,"(A,A27,A3,E20.8)") prefix, label_ljust, " : ", setting
       endif
    endif
 

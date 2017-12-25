@@ -312,11 +312,15 @@ module ELSI_DATATYPE
 
       ! Timer and timings
       integer(kind=i4)             :: clock_rate
-      type(elsi_timings_handle)    :: solver_timings          
-      integer(kind=i4)             :: solver_timings_unit ! Unit to which we output verbose timing
-                                                          ! information for solver invocations
-      character(len=FILE_NAME_LEN) :: solver_timings_file ! File to which we output verbose timing
-                                                          ! information for solver invocations
+      type(elsi_timings_handle)    :: solver_timings
+      logical                      :: output_solver_timings ! Whether we output the solver
+                                                            ! timings 
+      integer(kind=i4)             :: solver_timings_unit   ! Unit to which we output verbose
+                                                            ! timing information for solver 
+                                                            ! invocations
+      character(len=FILE_NAME_LEN) :: solver_timings_file   ! File to which we output verbose 
+                                                            ! timing information for solver 
+                                                            ! invocations
 
    end type
 

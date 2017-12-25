@@ -137,8 +137,13 @@ subroutine elsi_init(e_h,solver,parallel_mode,matrix_format,n_basis,n_electron,&
    end select
 
    ! Initialize file IO
-   e_h%solver_timings_unit = SOLVER_TIMINGS_UNIT_DEFAULT
-   e_h%solver_timings_file = SOLVER_TIMINGS_FILE_DEFAULT
+   e_h%output_solver_timings = .true.
+   ! These variables should only have meaning for myid_all.eq.0
+   ! as a precautionary measure
+   ! However, we don't know which process has myid_all.eq.0 yet,
+   ! so we'll unset them once we actually open the file
+   e_h%solver_timings_unit   = SOLVER_TIMINGS_UNIT_DEFAULT
+   e_h%solver_timings_file   = SOLVER_TIMINGS_FILE_DEFAULT
 
    ! Initialize timer information
    call elsi_init_timer(e_h)
@@ -648,12 +653,8 @@ subroutine elsi_cleanup(e_h)
    endif
 
    ! Print final timings
-   if(e_h%handle_ready) then
-      if(e_h%myid_all.eq.0) then
+   if(e_h%handle_ready.and.e_h%output_solver_timings.and.e_h%myid_all.eq.0) &
          close(e_h%solver_timings_unit)
-      endif
-      e_h%solver_timings_unit = UNSET
-   end if
    call elsi_finalize_timings(e_h%solver_timings) 
 
    ! Reset e_h

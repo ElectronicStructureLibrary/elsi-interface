@@ -102,6 +102,7 @@ module ELSI_MUTATOR
    public :: elsi_set_mu_broaden_width
    public :: elsi_set_mu_tol
    public :: elsi_set_mu_spin_degen
+   public :: elsi_set_output_solver_timings
    public :: elsi_set_solver_timings_unit
    public :: elsi_set_solver_timings_file
    public :: elsi_get_pexsi_mu_min
@@ -1136,6 +1137,30 @@ subroutine elsi_set_mu_spin_degen(e_h,spin_degen)
 
    e_h%spin_degen  = spin_degen
    e_h%spin_is_set = .true.
+
+end subroutine
+
+!>
+!! This routine sets whether the detailed solver timings file should
+!! be output.
+!!
+subroutine elsi_set_output_solver_timings(e_h,output_solver_timings)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h                   !< Handle
+   integer(kind=i4),  intent(in)    :: output_solver_timings !< Unit
+
+   character*40, parameter :: caller = "elsi_set_output_solver_timings"
+
+   call elsi_check_handle(e_h,caller)
+   if (e_h%handle_ready) e_h%handle_changed = .true.
+   
+   if(output_solver_timings == 0) then
+      e_h%output_solver_timings = .false.
+   else
+      e_h%output_solver_timings = .true.
+   end if 
 
 end subroutine
 

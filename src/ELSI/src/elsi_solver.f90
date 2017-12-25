@@ -227,9 +227,11 @@ subroutine elsi_ev_real(e_h,ham,ovlp,eval,evec)
    ! Output information about this solver invocation
    call elsi_get_solver_tag(e_h,solver_tag,data_type)
    call elsi_add_timing(e_h%solver_timings,time,solver_tag)
-   call elsi_print_solver_timing(e_h,output_type,data_type,time,&
-                                 solver_tag,e_h%solver_timings%n_timings,&
-                                 "",e_h%solver_timings_unit)
+   if(e_h%output_solver_timings) then
+      call elsi_print_solver_timing(e_h,output_type,data_type,time,&
+                                    solver_tag,e_h%solver_timings%n_timings,&
+                                    "",e_h%solver_timings_unit)
+   endif
    e_h%solver = temp_int
 
 end subroutine
@@ -301,9 +303,11 @@ subroutine elsi_ev_complex(e_h,ham,ovlp,eval,evec)
    ! Output information about this solver invocation
    call elsi_get_solver_tag(e_h,solver_tag,data_type)
    call elsi_add_timing(e_h%solver_timings,time,solver_tag)
-   call elsi_print_solver_timing(e_h,output_type,data_type,time,&
-                                 solver_tag,e_h%solver_timings%n_timings,&
-                                 "",e_h%solver_timings_unit)
+   if(e_h%output_solver_timings) then
+      call elsi_print_solver_timing(e_h,output_type,data_type,time,&
+                                    solver_tag,e_h%solver_timings%n_timings,&
+                                    "",e_h%solver_timings_unit)
+   endif
    e_h%solver = temp_int
 
 end subroutine
@@ -372,9 +376,11 @@ subroutine elsi_ev_real_sparse(e_h,ham,ovlp,eval,evec)
    ! Output information about this solver invocation
    call elsi_get_solver_tag(e_h,solver_tag,data_type)
    call elsi_add_timing(e_h%solver_timings,time,solver_tag)
-   call elsi_print_solver_timing(e_h,output_type,data_type,time,&
-                                 solver_tag,e_h%solver_timings%n_timings,&
-                                 "",e_h%solver_timings_unit)
+   if(e_h%output_solver_timings) then
+      call elsi_print_solver_timing(e_h,output_type,data_type,time,&
+                                    solver_tag,e_h%solver_timings%n_timings,&
+                                    "",e_h%solver_timings_unit)
+   endif
    e_h%solver = temp_int
 
 end subroutine
@@ -443,9 +449,11 @@ subroutine elsi_ev_complex_sparse(e_h,ham,ovlp,eval,evec)
    ! Output information about this solver invocation
    call elsi_get_solver_tag(e_h,solver_tag,data_type)
    call elsi_add_timing(e_h%solver_timings,time,solver_tag)
-   call elsi_print_solver_timing(e_h,output_type,data_type,time,&
-                                 solver_tag,e_h%solver_timings%n_timings,&
-                                 "",e_h%solver_timings_unit)
+   if(e_h%output_solver_timings) then
+      call elsi_print_solver_timing(e_h,output_type,data_type,time,&
+                                    solver_tag,e_h%solver_timings%n_timings,&
+                                    "",e_h%solver_timings_unit)
+   endif
    e_h%solver = temp_int
 
 end subroutine
@@ -639,9 +647,11 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
    ! Output information about this solver invocation
    call elsi_get_solver_tag(e_h,solver_tag,data_type)
    call elsi_add_timing(e_h%solver_timings,time,solver_tag)
-   call elsi_print_solver_timing(e_h,output_type,data_type,time,&
-                                 solver_tag,e_h%solver_timings%n_timings,&
-                                 "",e_h%solver_timings_unit)
+   if(e_h%output_solver_timings) then
+      call elsi_print_solver_timing(e_h,output_type,data_type,time,&
+                                    solver_tag,e_h%solver_timings%n_timings,&
+                                    "",e_h%solver_timings_unit)
+   endif
    e_h%solver = temp_int
 
    e_h%edm_ready_real = .true.
@@ -816,9 +826,11 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
    ! Output information about this solver invocation
    call elsi_get_solver_tag(e_h,solver_tag,data_type)
    call elsi_add_timing(e_h%solver_timings,time,solver_tag)
-   call elsi_print_solver_timing(e_h,output_type,data_type,time,&
-                                 solver_tag,e_h%solver_timings%n_timings,&
-                                 "",e_h%solver_timings_unit)
+   if(e_h%output_solver_timings) then
+      call elsi_print_solver_timing(e_h,output_type,data_type,time,&
+                                    solver_tag,e_h%solver_timings%n_timings,&
+                                    "",e_h%solver_timings_unit)
+   endif
    e_h%solver = temp_int
 
    e_h%edm_ready_cmplx = .true.
@@ -1023,9 +1035,11 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
    ! Output information about this solver invocation
    call elsi_get_solver_tag(e_h,solver_tag,data_type)
    call elsi_add_timing(e_h%solver_timings,time,solver_tag)
-   call elsi_print_solver_timing(e_h,output_type,data_type,time,&
-                                 solver_tag,e_h%solver_timings%n_timings,&
-                                 "",e_h%solver_timings_unit)
+   if(e_h%output_solver_timings) then
+      call elsi_print_solver_timing(e_h,output_type,data_type,time,&
+                                    solver_tag,e_h%solver_timings%n_timings,&
+                                    "",e_h%solver_timings_unit)
+   endif
    e_h%solver = temp_int
 
    e_h%edm_ready_real = .true.
@@ -1204,9 +1218,11 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
    ! Output information about this solver invocation
    call elsi_get_solver_tag(e_h,solver_tag,data_type)
    call elsi_add_timing(e_h%solver_timings,time,solver_tag)
-   call elsi_print_solver_timing(e_h,output_type,data_type,time,&
-                                 solver_tag,e_h%solver_timings%n_timings,&
-                                 "",e_h%solver_timings_unit)
+   if(e_h%output_solver_timings) then
+      call elsi_print_solver_timing(e_h,output_type,data_type,time,&
+                                    solver_tag,e_h%solver_timings%n_timings,&
+                                    "",e_h%solver_timings_unit)
+   endif
    e_h%solver = temp_int
 
    e_h%edm_ready_cmplx = .true.
@@ -1272,7 +1288,7 @@ end subroutine
 !! TODO:  This routine's interface is rough.  Needs to be cleaned up.
 !!
 subroutine elsi_print_solver_timing(e_h,output_type,data_type,time,&
-                                    elsi_tag,iter,&
+                                    elsi_tag_in,iter,&
                                     prefix,use_unit,user_tag_in)
 
    implicit none
@@ -1281,13 +1297,14 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,time,&
    integer(kind=i4),            intent(in)    :: output_type
    integer(kind=i4),            intent(in)    :: data_type
    real(kind=r8),               intent(in)    :: time
-   character(len=*),            intent(in)    :: elsi_tag
+   character(len=*),            intent(in)    :: elsi_tag_in
    integer(kind=i4),            intent(in)    :: iter
    character(len=*),            intent(in)    :: prefix
    integer(kind=i4),  optional, intent(in)    :: use_unit
    character(len=*),  optional, intent(in)    :: user_tag_in
 
    character*200                    :: info_str
+   character(len=TIMING_STRING_LEN) :: elsi_tag
    character(len=TIMING_STRING_LEN) :: user_tag
    integer(kind=i4)                 :: my_unit
 
@@ -1300,10 +1317,14 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,time,&
    endif
 
    if(present(user_tag_in)) then
-      user_tag = user_tag_in
+      user_tag = trim(user_tag_in)
    else
-      user_tag  = UNSET_STRING
+      user_tag = trim(UNSET_STRING)
    endif
+   user_tag = adjustr(user_tag)
+
+   elsi_tag = trim(elsi_tag_in)
+   elsi_tag = adjustr(elsi_tag)
 
    ! Print out patterned header and solver invocation details
    write(info_str,"(A,A)")       prefix, "--------------------------------------------------"
@@ -1330,7 +1351,7 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,time,&
    end if
    call elsi_say_setting(e_h,    prefix, "  ELSI Tag",elsi_tag,my_unit)
    call elsi_say_setting(e_h,    prefix, "  User Tag",user_tag,my_unit)
-   call elsi_say_setting(e_h,    prefix, "  Timing",time,my_unit)
+   call elsi_say_setting(e_h,    prefix, "  Timing (s)",time,my_unit)
    write(info_str,"(A)")         prefix
    call elsi_say(e_h,info_str,my_unit)
 

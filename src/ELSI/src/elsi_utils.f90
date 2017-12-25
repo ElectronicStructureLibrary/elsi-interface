@@ -179,8 +179,9 @@ subroutine elsi_reset_handle(e_h)
    e_h%ev_max           = 0.0_r8
    e_h%sips_started     = .false.
    e_h%clock_rate       = UNSET
-   e_h%solver_timings_unit = UNSET
-   e_h%solver_timings_file = UNSET_STRING
+   e_h%output_solver_timings = .true.
+   e_h%solver_timings_unit   = UNSET
+   e_h%solver_timings_file   = UNSET_STRING
 
 end subroutine
 
@@ -386,10 +387,15 @@ subroutine elsi_ready_handle(e_h,caller)
 
       ! We can now perform initialization-like tasks which require
       ! the usage of MPI
-      if (e_h%myid_all == 0) then
-         open(unit=e_h%solver_timings_unit, file=e_h%solver_timings_file)
-      else
-         e_h%solver_timings_unit = UNSET
+      if(e_h%output_solver_timings) then
+         if (e_h%myid_all == 0) then
+            open(unit=e_h%solver_timings_unit, file=e_h%solver_timings_file)
+         else
+            ! We know which process has myid_all.eq.0 now, we can 
+            ! de-initialize the rest
+            e_h%solver_timings_unit = UNSET
+            e_h%solver_timings_file = UNSET_STRING
+         endif
       endif
 
       e_h%handle_ready   = .true.
