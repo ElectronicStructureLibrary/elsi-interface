@@ -55,6 +55,10 @@ module ELSI_CONSTANTS
    integer(kind=i4), parameter :: REAL_VALUES    = 0
    integer(kind=i4), parameter :: COMPLEX_VALUES = 1
 
+   ! Output for solver subroutines (density matrix or eigenvectors)
+   integer(kind=i4), parameter :: OUTPUT_EV = 0
+   integer(kind=i4), parameter :: OUTPUT_DM = 1
+
    ! Matrix formats
    integer(kind=i4), parameter :: BLACS_DENSE = 0
    integer(kind=i4), parameter :: PEXSI_CSC   = 1

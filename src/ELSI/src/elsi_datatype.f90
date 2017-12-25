@@ -188,7 +188,7 @@ module ELSI_DATATYPE
       integer(kind=i4) :: n_lcol
       logical          :: blacs_ready
 
-      ! Sparse matrix information
+      ! Sparse matrix information (aka PEXSI_CSC)
       integer(kind=i4) :: nnz_g     ! Global number of nonzeros
       integer(kind=i4) :: nnz_l     ! Local number of nonzeros
       integer(kind=i4) :: nnz_l_sp  ! Local number of nonzeros

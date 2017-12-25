@@ -40,12 +40,17 @@ module ELSI_IO
 
    private
 
+   ! WPH:  I'm using "IO" to describe these subroutines for now, but at the time
+   !       of this writing (25 December 2017), we only support output to non-matrix
+   !       files.  I expect this will change eventually.
+
    ! Core IO Subroutines
    public :: elsi_say
    public :: elsi_say_setting
-   ! IO for ELSI Handle
+   ! IO for ELSI handle settings
    public :: elsi_print_handle_summary
    public :: elsi_print_settings
+   ! IO for solver settings 
    public :: elsi_print_solver_settings
    public :: elsi_print_chess_settings
    public :: elsi_print_dmp_settings
@@ -53,7 +58,10 @@ module ELSI_IO
    public :: elsi_print_omm_settings
    public :: elsi_print_pexsi_settings
    public :: elsi_print_sips_settings
-   ! TODO: Add IO for matrix storage format settings
+   ! IO for matrix storage format settings
+   public :: elsi_print_matrix_format_settings
+   public :: elsi_print_blacs_dense_settings
+   public :: elsi_print_pexsi_csc_settings
 
    interface elsi_say_setting
       module procedure elsi_say_setting_i4,&
@@ -64,9 +72,9 @@ module ELSI_IO
 
 contains
 
-!!!!!!!!!!!!!!!!!!!!!!!
-! CORE IO SUBROUTINES !
-!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!                           CORE IO SUBROUTINES                             !
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !>
 !! This routine prints a message.
@@ -95,9 +103,9 @@ subroutine elsi_say(e_h,info_str,use_unit)
 
 end subroutine
 
-!!!!!!!!!!!!!!!!!!!!!!!!!
-! HANDLE IO SUBROUTINES !
-!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!                         IO FOR HANDLE SETTINGS                            !
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !>
 !! This routine prints the state of the handle
@@ -139,6 +147,11 @@ subroutine elsi_print_handle_summary(e_h,prefix,use_unit)
    write(info_str,"(A,A)") prefix,          "Matrix Properties"
    call elsi_say(e_h,info_str,my_unit)
 
+   if(e_h%matrix_format == BLACS_DENSE) then
+      call elsi_say_setting(e_h,prefix,     "  Matrix format","BLACS_DENSE",my_unit)
+   elseif(e_h%matrix_format == PEXSI_CSC) then
+      call elsi_say_setting(e_h,prefix,     "  Matrix format","PEXSI_CSC",my_unit)
+   endif
    call elsi_say_setting(e_h,prefix,        "  Number of basis functions",e_h%n_basis,my_unit)
    if(e_h%parallel_mode == MULTI_PROC) then
       sparsity = 1.0_r8-(1.0_r8*e_h%nnz_g/e_h%n_basis/e_h%n_basis)
@@ -156,11 +169,6 @@ subroutine elsi_print_handle_summary(e_h,prefix,use_unit)
       call elsi_say_setting(e_h,prefix,     "  Parallel mode","SINGLE_PROC",my_unit)
    endif
    call elsi_say_setting(e_h,prefix,        "  Number of MPI tasks",e_h%n_procs,my_unit)
-   if(e_h%matrix_format == BLACS_DENSE) then
-      call elsi_say_setting(e_h,prefix,     "  Matrix format","BLACS_DENSE",my_unit)
-   elseif(e_h%matrix_format == PEXSI_CSC) then
-      call elsi_say_setting(e_h,prefix,     "  Matrix format","PEXSI_CSC",my_unit)
-   endif
    if(e_h%solver == ELPA_SOLVER) then
       call elsi_say_setting(e_h,prefix,     "  Solver requested","ELPA",my_unit)
    elseif(e_h%solver == OMM_SOLVER) then
@@ -319,6 +327,10 @@ subroutine elsi_print_settings(e_h)
 
 end subroutine
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!                         IO FOR SOLVER SETTINGS                            !
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 !>
 !! This routine prints out settings for the current (user-indicated) solver.
 !!
@@ -454,6 +466,7 @@ subroutine elsi_print_elpa_settings(e_h,prefix,use_unit)
    write(info_str,"(A,A)")   prefix,"Solver Settings (ELPA)"
    call elsi_say(e_h,info_str,my_unit)
    call elsi_say_setting(e_h,prefix,"  elpa_solver",e_h%elpa_solver,my_unit)
+   call elsi_say_setting(e_h,prefix,"  n_states",e_h%n_states,my_unit)
    call elsi_say_setting(e_h,prefix,"  n_single_steps",e_h%n_single_steps,my_unit)
    call elsi_say_setting(e_h,prefix,"  elpa_output",e_h%elpa_output,my_unit)
    call elsi_say_setting(e_h,prefix,"  elpa_started",e_h%elpa_started,my_unit)
@@ -567,6 +580,7 @@ subroutine elsi_print_sips_settings(e_h,prefix,use_unit)
 
    write(info_str,"(A,A)")   prefix,"Solver Settings (SIPs)"
    call elsi_say(e_h,info_str,my_unit)
+   call elsi_say_setting(e_h,prefix,"  n_states",e_h%n_states,my_unit)
    call elsi_say_setting(e_h,prefix,"  sips_n_elpa",e_h%sips_n_elpa,my_unit)
    call elsi_say_setting(e_h,prefix,"  np_per_slice",e_h%np_per_slice,my_unit)
    call elsi_say_setting(e_h,prefix,"  n_inertia_steps",e_h%n_inertia_steps,my_unit)
@@ -583,9 +597,107 @@ subroutine elsi_print_sips_settings(e_h,prefix,use_unit)
 
 end subroutine
 
-!!!!!!!!!!!!!!!!!!!!
-! ELSI_SAY_SETTING ! 
-!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!                  IO FOR MATRIX STORGE FORMAT SETTINGS                     !
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!>
+!! This routine prints out settings for the current (user-indicated) solver.
+!!
+subroutine elsi_print_matrix_format_settings(e_h,prefix,use_unit)
+
+   implicit none
+
+   type(elsi_handle),           intent(in) :: e_h      !< Handle
+   character(len=*),            intent(in) :: prefix   !< Prefix for every line
+   integer(kind=i4),  optional, intent(in) :: use_unit !< Unit to write to
+
+   integer(kind=i4) :: my_unit
+
+   character*40, parameter :: caller = "elsi_print_matrix_format_settings"
+
+   if(present(use_unit)) then
+      my_unit = use_unit
+   else
+      my_unit = e_h%print_unit
+   endif
+
+   select case(e_h%matrix_format)
+   case(BLACS_DENSE)
+      call elsi_print_blacs_dense_settings(e_h,prefix,my_unit)
+   case(PEXSI_CSC)
+      call elsi_print_pexsi_csc_settings(e_h,prefix,my_unit)
+   case default
+      call elsi_stop(" Unsupported matrix storage format.",e_h,caller)
+   end select
+
+end subroutine
+
+!>
+!! This routine prints out settings for the BLACS_DENSE matrix storage format.
+!!
+subroutine elsi_print_blacs_dense_settings(e_h,prefix,use_unit)
+
+   implicit none
+
+   type(elsi_handle),           intent(in) :: e_h      !< Handle
+   character(len=*),            intent(in) :: prefix   !< Prefix for every line
+   integer(kind=i4),  optional, intent(in) :: use_unit !< Unit to write to
+
+   integer(kind=i4) :: my_unit
+   character*200    :: info_str
+
+   character*40, parameter :: caller = "elsi_print_blacs_dense_settings"
+
+   if(present(use_unit)) then
+      my_unit = use_unit
+   else
+      my_unit = e_h%print_unit
+   endif
+
+   write(info_str,"(A,A)")   prefix,"Matrix Storage Format Settings (BLACS_DENSE)"
+   call elsi_say(e_h,info_str,my_unit)
+   call elsi_say_setting(e_h,prefix,"  blk_row",e_h%blk_row,my_unit)
+   call elsi_say_setting(e_h,prefix,"  blk_col",e_h%blk_col,my_unit)
+   call elsi_say_setting(e_h,prefix,"  n_prow",e_h%n_prow,my_unit)
+   call elsi_say_setting(e_h,prefix,"  n_pcol",e_h%n_pcol,my_unit)
+   call elsi_say_setting(e_h,prefix,"  blacs_ready",e_h%blacs_ready,my_unit)
+
+end subroutine
+
+!>
+!! This routine prints out settings for the PEXSI_CSC matrix storage format.
+!!
+subroutine elsi_print_pexsi_csc_settings(e_h,prefix,use_unit)
+
+   implicit none
+
+   type(elsi_handle),           intent(in) :: e_h      !< Handle
+   character(len=*),            intent(in) :: prefix   !< Prefix for every line
+   integer(kind=i4),  optional, intent(in) :: use_unit !< Unit to write to
+
+   integer(kind=i4) :: my_unit
+   character*200    :: info_str
+
+   character*40, parameter :: caller = "elsi_print_pexsi_csc_settings"
+
+   if(present(use_unit)) then
+      my_unit = use_unit
+   else
+      my_unit = e_h%print_unit
+   endif
+
+   write(info_str,"(A,A)")   prefix,"Matrix Storage Format Settings (PESXI_CSC)"
+   call elsi_say(e_h,info_str,my_unit)
+   call elsi_say_setting(e_h,prefix,"  nnz_g",e_h%nnz_g,my_unit)
+   call elsi_say_setting(e_h,prefix,"  zero_def",e_h%zero_def,my_unit)
+   call elsi_say_setting(e_h,prefix,"  sparsity_ready",e_h%sparsity_ready,my_unit)
+
+end subroutine
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!                            ELSI_SAY_SETTINGS                              !
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !>
 !! This module procedure is used to print out ELSI settings in a systematic fashion.

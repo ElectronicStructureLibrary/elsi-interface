@@ -47,7 +47,8 @@ module ELSI_SOLVER
    use ELSI_LAPACK,    only: elsi_solve_evp_lapack_real,&
                              elsi_solve_evp_lapack_cmplx
    use ELSI_IO,        only: elsi_print_handle_summary,elsi_print_solver_settings,&
-                             elsi_print_settings,elsi_say,elsi_say_setting
+                             elsi_print_settings,elsi_say,elsi_say_setting,&
+                             elsi_print_matrix_format_settings
    use ELSI_MALLOC
    use ELSI_MATCONV
    use ELSI_MPI,       only: elsi_stop
@@ -150,7 +151,8 @@ subroutine elsi_ev_real(e_h,ham,ovlp,eval,evec)
    character(len=TIMING_STRING_LEN) :: solver_tag = UNSET_STRING
    real(kind=r8)                    :: t0, t1, time
    integer(kind=i4)                 :: solver_used, temp_int
-   integer(kind=i4), parameter      :: data_type  = REAL_VALUES
+   integer(kind=i4), parameter      :: output_type = OUTPUT_EV
+   integer(kind=i4), parameter      :: data_type   = REAL_VALUES
 
    character*40, parameter :: caller = "elsi_ev_real"
 
@@ -225,7 +227,8 @@ subroutine elsi_ev_real(e_h,ham,ovlp,eval,evec)
    ! Output information about this solver invocation
    call elsi_get_solver_tag(e_h,solver_tag,data_type)
    call elsi_add_timing(e_h%solver_timings,time,solver_tag)
-   call elsi_print_solver_timing(e_h,time,solver_tag,e_h%solver_timings%n_timings,&
+   call elsi_print_solver_timing(e_h,output_type,data_type,time,&
+                                 solver_tag,e_h%solver_timings%n_timings,&
                                  "",e_h%solver_timings_unit)
    e_h%solver = temp_int
 
@@ -250,7 +253,8 @@ subroutine elsi_ev_complex(e_h,ham,ovlp,eval,evec)
    character(len=TIMING_STRING_LEN) :: solver_tag = UNSET_STRING
    real(kind=r8)                    :: t0, t1, time
    integer(kind=i4)                 :: solver_used, temp_int
-   integer(kind=i4), parameter      :: data_type  = COMPLEX_VALUES
+   integer(kind=i4), parameter      :: output_type = OUTPUT_EV
+   integer(kind=i4), parameter      :: data_type   = COMPLEX_VALUES
 
    character*40, parameter :: caller = "elsi_ev_complex"
 
@@ -297,7 +301,8 @@ subroutine elsi_ev_complex(e_h,ham,ovlp,eval,evec)
    ! Output information about this solver invocation
    call elsi_get_solver_tag(e_h,solver_tag,data_type)
    call elsi_add_timing(e_h%solver_timings,time,solver_tag)
-   call elsi_print_solver_timing(e_h,time,solver_tag,e_h%solver_timings%n_timings,&
+   call elsi_print_solver_timing(e_h,output_type,data_type,time,&
+                                 solver_tag,e_h%solver_timings%n_timings,&
                                  "",e_h%solver_timings_unit)
    e_h%solver = temp_int
 
@@ -322,7 +327,8 @@ subroutine elsi_ev_real_sparse(e_h,ham,ovlp,eval,evec)
    character(len=TIMING_STRING_LEN) :: solver_tag = UNSET_STRING
    real(kind=r8)                    :: t0, t1, time
    integer(kind=i4)                 :: solver_used, temp_int
-   integer(kind=i4), parameter      :: data_type  = REAL_VALUES
+   integer(kind=i4), parameter      :: output_type = OUTPUT_EV
+   integer(kind=i4), parameter      :: data_type   = REAL_VALUES
 
    character*40, parameter :: caller = "elsi_ev_real_sparse"
 
@@ -366,7 +372,8 @@ subroutine elsi_ev_real_sparse(e_h,ham,ovlp,eval,evec)
    ! Output information about this solver invocation
    call elsi_get_solver_tag(e_h,solver_tag,data_type)
    call elsi_add_timing(e_h%solver_timings,time,solver_tag)
-   call elsi_print_solver_timing(e_h,time,solver_tag,e_h%solver_timings%n_timings,&
+   call elsi_print_solver_timing(e_h,output_type,data_type,time,&
+                                 solver_tag,e_h%solver_timings%n_timings,&
                                  "",e_h%solver_timings_unit)
    e_h%solver = temp_int
 
@@ -391,7 +398,8 @@ subroutine elsi_ev_complex_sparse(e_h,ham,ovlp,eval,evec)
    character(len=TIMING_STRING_LEN) :: solver_tag = UNSET_STRING
    real(kind=r8)                    :: t0, t1, time
    integer(kind=i4)                 :: solver_used, temp_int
-   integer(kind=i4), parameter      :: data_type  = COMPLEX_VALUES
+   integer(kind=i4), parameter      :: output_type = OUTPUT_EV
+   integer(kind=i4), parameter      :: data_type   = COMPLEX_VALUES
 
    character*40, parameter :: caller = "elsi_ev_complex_sparse"
 
@@ -435,7 +443,8 @@ subroutine elsi_ev_complex_sparse(e_h,ham,ovlp,eval,evec)
    ! Output information about this solver invocation
    call elsi_get_solver_tag(e_h,solver_tag,data_type)
    call elsi_add_timing(e_h%solver_timings,time,solver_tag)
-   call elsi_print_solver_timing(e_h,time,solver_tag,e_h%solver_timings%n_timings,&
+   call elsi_print_solver_timing(e_h,output_type,data_type,time,&
+                                 solver_tag,e_h%solver_timings%n_timings,&
                                  "",e_h%solver_timings_unit)
    e_h%solver = temp_int
 
@@ -459,7 +468,8 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
    character(len=TIMING_STRING_LEN) :: solver_tag = UNSET_STRING
    real(kind=r8)                    :: t0, t1, time
    integer(kind=i4)                 :: solver_used, temp_int
-   integer(kind=i4), parameter      :: data_type  = REAL_VALUES
+   integer(kind=i4), parameter      :: output_type = OUTPUT_DM
+   integer(kind=i4), parameter      :: data_type   = REAL_VALUES
 
    character*40, parameter :: caller = "elsi_dm_real"
 
@@ -629,7 +639,8 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
    ! Output information about this solver invocation
    call elsi_get_solver_tag(e_h,solver_tag,data_type)
    call elsi_add_timing(e_h%solver_timings,time,solver_tag)
-   call elsi_print_solver_timing(e_h,time,solver_tag,e_h%solver_timings%n_timings,&
+   call elsi_print_solver_timing(e_h,output_type,data_type,time,&
+                                 solver_tag,e_h%solver_timings%n_timings,&
                                  "",e_h%solver_timings_unit)
    e_h%solver = temp_int
 
@@ -655,7 +666,8 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
    character(len=TIMING_STRING_LEN) :: solver_tag = UNSET_STRING
    real(kind=r8)                    :: t0, t1, time
    integer(kind=i4)                 :: solver_used, temp_int
-   integer(kind=i4), parameter      :: data_type  = COMPLEX_VALUES
+   integer(kind=i4), parameter      :: output_type = OUTPUT_DM
+   integer(kind=i4), parameter      :: data_type   = COMPLEX_VALUES
 
    character*40, parameter :: caller = "elsi_dm_complex"
 
@@ -804,7 +816,8 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
    ! Output information about this solver invocation
    call elsi_get_solver_tag(e_h,solver_tag,data_type)
    call elsi_add_timing(e_h%solver_timings,time,solver_tag)
-   call elsi_print_solver_timing(e_h,time,solver_tag,e_h%solver_timings%n_timings,&
+   call elsi_print_solver_timing(e_h,output_type,data_type,time,&
+                                 solver_tag,e_h%solver_timings%n_timings,&
                                  "",e_h%solver_timings_unit)
    e_h%solver = temp_int
 
@@ -830,7 +843,8 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
    character(len=TIMING_STRING_LEN) :: solver_tag = UNSET_STRING
    real(kind=r8)                    :: t0, t1, time
    integer(kind=i4)                 :: solver_used, temp_int
-   integer(kind=i4), parameter      :: data_type  = REAL_VALUES
+   integer(kind=i4), parameter      :: output_type = OUTPUT_DM
+   integer(kind=i4), parameter      :: data_type   = REAL_VALUES
 
    character*40, parameter :: caller = "elsi_dm_real_sparse"
 
@@ -1009,7 +1023,8 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
    ! Output information about this solver invocation
    call elsi_get_solver_tag(e_h,solver_tag,data_type)
    call elsi_add_timing(e_h%solver_timings,time,solver_tag)
-   call elsi_print_solver_timing(e_h,time,solver_tag,e_h%solver_timings%n_timings,&
+   call elsi_print_solver_timing(e_h,output_type,data_type,time,&
+                                 solver_tag,e_h%solver_timings%n_timings,&
                                  "",e_h%solver_timings_unit)
    e_h%solver = temp_int
 
@@ -1035,7 +1050,8 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
    character(len=TIMING_STRING_LEN) :: solver_tag = UNSET_STRING
    real(kind=r8)                    :: t0, t1, time
    integer(kind=i4)                 :: solver_used, temp_int
-   integer(kind=i4), parameter      :: data_type  = COMPLEX_VALUES
+   integer(kind=i4), parameter      :: output_type = OUTPUT_DM
+   integer(kind=i4), parameter      :: data_type   = COMPLEX_VALUES
 
    character*40, parameter :: caller = "elsi_dm_complex_sparse"
 
@@ -1188,7 +1204,8 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
    ! Output information about this solver invocation
    call elsi_get_solver_tag(e_h,solver_tag,data_type)
    call elsi_add_timing(e_h%solver_timings,time,solver_tag)
-   call elsi_print_solver_timing(e_h,time,solver_tag,e_h%solver_timings%n_timings,&
+   call elsi_print_solver_timing(e_h,output_type,data_type,time,&
+                                 solver_tag,e_h%solver_timings%n_timings,&
                                  "",e_h%solver_timings_unit)
    e_h%solver = temp_int
 
@@ -1254,11 +1271,15 @@ end subroutine
 !! This routine prints the timing of the current solver and all relevant information.
 !! TODO:  This routine's interface is rough.  Needs to be cleaned up.
 !!
-subroutine elsi_print_solver_timing(e_h,time,elsi_tag,iter,prefix,use_unit,user_tag_in)
+subroutine elsi_print_solver_timing(e_h,output_type,data_type,time,&
+                                    elsi_tag,iter,&
+                                    prefix,use_unit,user_tag_in)
 
    implicit none
 
    type(elsi_handle),           intent(inout) :: e_h   !< Handle
+   integer(kind=i4),            intent(in)    :: output_type
+   integer(kind=i4),            intent(in)    :: data_type
    real(kind=r8),               intent(in)    :: time
    character(len=*),            intent(in)    :: elsi_tag
    integer(kind=i4),            intent(in)    :: iter
@@ -1270,7 +1291,7 @@ subroutine elsi_print_solver_timing(e_h,time,elsi_tag,iter,prefix,use_unit,user_
    character(len=TIMING_STRING_LEN) :: user_tag
    integer(kind=i4)                 :: my_unit
 
-   character*40, parameter :: caller = "elsi_print_solver_timings"
+   character*40, parameter :: caller = "elsi_print_solver_timing"
 
    if(present(use_unit)) then
       my_unit = use_unit
@@ -1284,26 +1305,52 @@ subroutine elsi_print_solver_timing(e_h,time,elsi_tag,iter,prefix,use_unit,user_
       user_tag  = UNSET_STRING
    endif
 
+   ! Print out patterned header and solver invocation details
    write(info_str,"(A,A)")       prefix, "--------------------------------------------------"
    call elsi_say(e_h,info_str,my_unit)
-   write(info_str,"(A,A,I10)")   prefix, "Start of Iteration ",  iter
+   write(info_str,"(A,A,I10)")   prefix, "Start of ELSI Solver Iteration ",  iter
+   call elsi_say(e_h,info_str,my_unit)
+   write(info_str,"(A)")         prefix
    call elsi_say(e_h,info_str,my_unit)
    write(info_str,"(A,A)")       prefix, "Timing Details"
    call elsi_say(e_h,info_str,my_unit)
-   call elsi_say_setting(e_h,    prefix, "  Timing",time,my_unit)
+   if(output_type.eq.OUTPUT_EV) then
+      call elsi_say_setting(e_h, prefix, "  Output Type","EIGENVECTORS",my_unit)
+   elseif(output_type.eq.OUTPUT_DM) then
+      call elsi_say_setting(e_h, prefix, "  Output Type","DENSITY MATRIX",my_unit)
+   else
+      call elsi_stop("Unsupported output type.",e_h,caller)
+   end if
+   if(data_type.eq.REAL_VALUES) then
+      call elsi_say_setting(e_h, prefix, "  Data Type","REAL",my_unit)
+   elseif(data_type.eq.COMPLEX_VALUES) then
+      call elsi_say_setting(e_h, prefix, "  Data Type","COMPLEX",my_unit)
+   else
+      call elsi_stop("Unsupported data type.",e_h,caller)
+   end if
    call elsi_say_setting(e_h,    prefix, "  ELSI Tag",elsi_tag,my_unit)
    call elsi_say_setting(e_h,    prefix, "  User Tag",user_tag,my_unit)
+   call elsi_say_setting(e_h,    prefix, "  Timing",time,my_unit)
    write(info_str,"(A)")         prefix
    call elsi_say(e_h,info_str,my_unit)
 
+   ! Print out handle summary
    call elsi_print_handle_summary (e_h,prefix,my_unit)
+
+   ! Print out matrix storage format settings
+   write(info_str,"(A)")         prefix
+   call elsi_say(e_h,info_str,my_unit)
+   call elsi_print_matrix_format_settings(e_h,prefix,my_unit)
+
+   ! Print out solver settings
    write(info_str,"(A)")         prefix
    call elsi_say(e_h,info_str,my_unit)
    call elsi_print_solver_settings(e_h,prefix,my_unit)
 
+   ! Print out patterned footer
    write(info_str,"(A)")         prefix
    call elsi_say(e_h,info_str,my_unit)
-   write(info_str,"(A,A,I10)")   prefix, "End of Iteration   ",  iter
+   write(info_str,"(A,A,I10)")   prefix, "End of ELSI Solver Iteration   ",  iter
    call elsi_say(e_h,info_str,my_unit)
    write(info_str,"(A,A)")       prefix, "--------------------------------------------------"
    call elsi_say(e_h,info_str,my_unit)
