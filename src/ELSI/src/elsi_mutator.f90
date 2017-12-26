@@ -236,7 +236,9 @@ subroutine elsi_set_sing_check(e_h,sing_check)
    if (e_h%handle_ready) e_h%handle_changed = .true.
 
    if(sing_check == 0) then
-      e_h%check_sing = .false.
+      e_h%check_sing   = .false.
+      e_h%ovlp_is_sing = .false.
+      e_h%n_nonsing    = e_h%n_basis
    else
       e_h%check_sing = .true.
    endif
