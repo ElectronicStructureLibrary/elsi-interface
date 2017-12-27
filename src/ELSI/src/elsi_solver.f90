@@ -1288,25 +1288,30 @@ end subroutine
 !! TODO:  This routine's interface is rough.  Needs to be cleaned up.
 !!
 subroutine elsi_print_solver_timing(e_h,output_type,data_type,time,&
-                                    elsi_tag_in,iter,&
-                                    prefix,use_unit,user_tag_in)
+                                    elsi_tag_in,iter,prefix,&
+                                    use_unit,format,comma_json,user_tag_in)
 
    implicit none
 
-   type(elsi_handle),           intent(inout) :: e_h   !< Handle
-   integer(kind=i4),            intent(in)    :: output_type
-   integer(kind=i4),            intent(in)    :: data_type
-   real(kind=r8),               intent(in)    :: time
-   character(len=*),            intent(in)    :: elsi_tag_in
-   integer(kind=i4),            intent(in)    :: iter
-   character(len=*),            intent(in)    :: prefix
-   integer(kind=i4),  optional, intent(in)    :: use_unit
-   character(len=*),  optional, intent(in)    :: user_tag_in
+   type(elsi_handle),          intent(inout) :: e_h   !< Handle
+   integer(kind=i4),           intent(in)    :: output_type
+   integer(kind=i4),           intent(in)    :: data_type
+   real(kind=r8),              intent(in)    :: time
+   character(len=*),           intent(in)    :: elsi_tag_in
+   integer(kind=i4),           intent(in)    :: iter
+   character(len=*),           intent(in)    :: prefix
+   integer(kind=i4), optional, intent(in)    :: use_unit
+   integer(kind=i4), optional, intent(in)    :: format     !< Format for output
+   logical,          optional, intent(in)    :: comma_json !< Add comma to JSON?
+   character(len=*), optional, intent(in)    :: user_tag_in
 
    character*200                    :: info_str
    character(len=TIMING_STRING_LEN) :: elsi_tag
    character(len=TIMING_STRING_LEN) :: user_tag
+   character, allocatable           :: prefix_s(:)
    integer(kind=i4)                 :: my_unit
+   integer(kind=i4)                 :: my_format
+   logical                          :: my_comma_json
 
    character*40, parameter :: caller = "elsi_print_solver_timing"
 
@@ -1316,6 +1321,18 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,time,&
       my_unit = e_h%print_unit
    endif
 
+   if(present(format)) then
+      my_format = format
+   else
+      my_format = e_h%default_output_format
+   endif
+
+   if(present(comma_json)) then
+      my_comma_json = comma_json
+   else
+      my_comma_json = .true.
+   endif
+
    if(present(user_tag_in)) then
       user_tag = trim(user_tag_in)
    else
@@ -1323,61 +1340,95 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,time,&
    endif
    user_tag = adjustr(user_tag)
 
+   ! Allocate the prefix for settings within blocks, with two additional
+   ! trailing spaces
+   allocate(prefix_s(len(prefix)+2))
+   prefix_s = prefix
+
    elsi_tag = trim(elsi_tag_in)
    elsi_tag = adjustr(elsi_tag)
 
-   ! Print out patterned header and solver invocation details
-   write(info_str,"(A,A)")       prefix, "--------------------------------------------------"
-   call elsi_say(e_h,info_str,my_unit)
-   write(info_str,"(A,A,I10)")   prefix, "Start of ELSI Solver Iteration ",  iter
-   call elsi_say(e_h,info_str,my_unit)
-   write(info_str,"(A)")         prefix
-   call elsi_say(e_h,info_str,my_unit)
-   write(info_str,"(A,A)")       prefix, "Timing Details"
-   call elsi_say(e_h,info_str,my_unit)
+   ! Print out patterned header
+   if(my_format == HUMAN_READ) then
+      write(info_str,"(A,A)")       prefix, "--------------------------------------------------"
+      call elsi_say(e_h,info_str,my_unit)
+      write(info_str,"(A,A,I10)")   prefix, "Start of ELSI Solver Iteration ",  iter
+      call elsi_say(e_h,info_str,my_unit)
+      write(info_str,"(A)")         prefix
+      call elsi_say(e_h,info_str,my_unit)
+      write(info_str,"(A,A)")       prefix, "Timing Details"
+      call elsi_say(e_h,info_str,my_unit)
+   elseif (my_format == JSON) then
+      write(info_str,"(A,A)")       prefix, '{"ELSISolverTiming": {'
+      call elsi_say(e_h,info_str,my_unit)
+      call elsi_say_setting(e_h, prefix, "iteration",iter,my_unit,my_format)
+   else
+      call elsi_stop("Unsupported output format.",e_h,caller)
+   endif
+
+   ! Print out sovler invocation details
    if(output_type.eq.OUTPUT_EV) then
-      call elsi_say_setting(e_h, prefix, "  Output Type","EIGENVECTORS",my_unit)
+      call elsi_say_setting(e_h, prefix, "  Output Type","EIGENVECTORS",my_unit,my_format)
    elseif(output_type.eq.OUTPUT_DM) then
-      call elsi_say_setting(e_h, prefix, "  Output Type","DENSITY MATRIX",my_unit)
+      call elsi_say_setting(e_h, prefix, "  Output Type","DENSITY MATRIX",my_unit,my_format)
    else
       call elsi_stop("Unsupported output type.",e_h,caller)
    end if
    if(data_type.eq.REAL_VALUES) then
-      call elsi_say_setting(e_h, prefix, "  Data Type","REAL",my_unit)
+      call elsi_say_setting(e_h, prefix, "  Data Type","REAL",my_unit,my_format)
    elseif(data_type.eq.COMPLEX_VALUES) then
-      call elsi_say_setting(e_h, prefix, "  Data Type","COMPLEX",my_unit)
+      call elsi_say_setting(e_h, prefix, "  Data Type","COMPLEX",my_unit,my_format)
    else
       call elsi_stop("Unsupported data type.",e_h,caller)
    end if
-   call elsi_say_setting(e_h,    prefix, "  ELSI Tag",elsi_tag,my_unit)
-   call elsi_say_setting(e_h,    prefix, "  User Tag",user_tag,my_unit)
-   call elsi_say_setting(e_h,    prefix, "  Timing (s)",time,my_unit)
-   write(info_str,"(A)")         prefix
-   call elsi_say(e_h,info_str,my_unit)
+   call elsi_say_setting(e_h,    prefix, "  ELSI Tag",elsi_tag,my_unit,my_format)
+   call elsi_say_setting(e_h,    prefix, "  User Tag",user_tag,my_unit,my_format)
+   call elsi_say_setting(e_h,    prefix, "  Timing (s)",time,my_unit,my_format)
 
    ! Print out handle summary
-   call elsi_print_handle_summary (e_h,prefix,my_unit)
+   if(my_format == HUMAN_READ) then
+      write(info_str,"(A)")         prefix
+      call elsi_say(e_h,info_str,my_unit)
+   endif
+   call elsi_print_handle_summary (e_h,prefix,my_unit,my_format)
 
    ! Print out matrix storage format settings
-   write(info_str,"(A)")         prefix
-   call elsi_say(e_h,info_str,my_unit)
-   call elsi_print_matrix_format_settings(e_h,prefix,my_unit)
+   if(my_format == HUMAN_READ) then
+      write(info_str,"(A)")         prefix
+      call elsi_say(e_h,info_str,my_unit)
+   endif
+   call elsi_print_matrix_format_settings(e_h,prefix,my_unit,my_format)
 
    ! Print out solver settings
-   write(info_str,"(A)")         prefix
-   call elsi_say(e_h,info_str,my_unit)
-   call elsi_print_solver_settings(e_h,prefix,my_unit)
+   if(my_format == HUMAN_READ) then
+      write(info_str,"(A)")         prefix
+      call elsi_say(e_h,info_str,my_unit)
+   endif
+   call elsi_print_solver_settings(e_h,prefix,my_unit,my_format,.false.)
 
    ! Print out patterned footer
-   write(info_str,"(A)")         prefix
-   call elsi_say(e_h,info_str,my_unit)
-   write(info_str,"(A,A,I10)")   prefix, "End of ELSI Solver Iteration   ",  iter
-   call elsi_say(e_h,info_str,my_unit)
-   write(info_str,"(A,A)")       prefix, "--------------------------------------------------"
-   call elsi_say(e_h,info_str,my_unit)
-   write(info_str,"(A)")         prefix
-   call elsi_say(e_h,info_str,my_unit)
- 
+   if(my_format == HUMAN_READ) then
+      write(info_str,"(A)")         prefix
+      call elsi_say(e_h,info_str,my_unit)
+      write(info_str,"(A,A,I10)")   prefix, "End of ELSI Solver Iteration   ",  iter
+      call elsi_say(e_h,info_str,my_unit)
+      write(info_str,"(A,A)")       prefix, "--------------------------------------------------"
+      call elsi_say(e_h,info_str,my_unit)
+      write(info_str,"(A)")         prefix
+      call elsi_say(e_h,info_str,my_unit)
+   elseif (my_format == JSON) then
+      if(my_comma_json) then
+         write(info_str,"(A,A)")       prefix, '}},'
+         call elsi_say(e_h,info_str,my_unit)
+      else
+         write(info_str,"(A,A)")       prefix, '}}'
+         call elsi_say(e_h,info_str,my_unit)
+      endif
+   else
+      call elsi_stop("Unsupported output format.",e_h,caller)
+   endif
+
+
 end subroutine
 
 end module ELSI_SOLVER

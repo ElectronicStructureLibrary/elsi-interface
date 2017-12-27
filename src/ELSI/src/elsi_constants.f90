@@ -34,8 +34,8 @@ module ELSI_CONSTANTS
 
    implicit none
 
-   real(kind=r8), parameter :: SQRT_PI        = 1.7724538509055160273_r8 ! sqrt(pi)
-   real(kind=r8), parameter :: INVERT_SQRT_PI = 0.5641895835477563275_r8 ! 1/sqrt(pi)
+   real(kind=r8), parameter :: SQRT_PI        = 1.7724538509055160273_r8
+   real(kind=r8), parameter :: INVERT_SQRT_PI = 0.5641895835477563275_r8
 
    integer(kind=i4), parameter :: UNSET            = -910910
    integer(kind=i4), parameter :: N_SOLVERS        = 7
@@ -98,6 +98,8 @@ module ELSI_CONSTANTS
    ! Constants for ELSI file IO
    character(len=*), parameter :: UNSET_STRING  = "N/A"
    integer(kind=i4), parameter :: FILE_NAME_LEN = 80
+   integer(kind=i4), parameter :: HUMAN_READ    = 0
+   integer(kind=i4), parameter :: JSON          = 1
 
    ! Constants for ELSI timings
    integer(kind=i4),             parameter :: &

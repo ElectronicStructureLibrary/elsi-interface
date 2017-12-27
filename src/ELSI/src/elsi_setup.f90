@@ -144,6 +144,7 @@ subroutine elsi_init(e_h,solver,parallel_mode,matrix_format,n_basis,n_electron,&
    ! so we'll unset them once we actually open the file
    e_h%solver_timings_unit   = SOLVER_TIMINGS_UNIT_DEFAULT
    e_h%solver_timings_file   = SOLVER_TIMINGS_FILE_DEFAULT
+   e_h%default_output_format = HUMAN_READ
 
    ! Initialize timer information
    call elsi_init_timer(e_h)

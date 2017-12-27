@@ -182,6 +182,7 @@ subroutine elsi_reset_handle(e_h)
    e_h%output_solver_timings = .true.
    e_h%solver_timings_unit   = UNSET
    e_h%solver_timings_file   = UNSET_STRING
+   e_h%default_output_format = UNSET
 
 end subroutine
 

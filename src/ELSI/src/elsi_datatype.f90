@@ -321,6 +321,7 @@ module ELSI_DATATYPE
       character(len=FILE_NAME_LEN) :: solver_timings_file   ! File to which we output verbose 
                                                             ! timing information for solver 
                                                             ! invocations
+      integer(kind=i4)             :: default_output_format
 
    end type
 
