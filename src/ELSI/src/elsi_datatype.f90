@@ -44,6 +44,18 @@ module ELSI_DATATYPE
 
    !---------------------------------------------------------------------------------------------!
 
+   type, public :: elsi_file_io_handle
+
+      integer(kind=i4)                 :: use_unit   !< Unit to print to
+      character(len=FILE_NAME_LEN)     :: file_name  !< Unit to print to
+      integer(kind=i4)                 :: format !< Format type for output
+      character(len=TIMING_STRING_LEN) :: prefix !< Prefix for each line output
+      logical                          :: comma_json !< Add comma to JSON?
+
+   end type
+
+   !---------------------------------------------------------------------------------------------!
+
    type, public :: elsi_timings_handle
 
       integer                           :: size_timings  ! Dimension for arrays
@@ -310,18 +322,15 @@ module ELSI_DATATYPE
       real(kind=r8)    :: dmp_tol        ! Tolerance for purification
       real(kind=r8)    :: ne_dmp         ! Number of electrons computed by DMP
 
+      ! ELSI IO files
+      type(elsi_file_io_handle) :: stdio
+
       ! Timer and timings
       integer(kind=i4)             :: clock_rate
       type(elsi_timings_handle)    :: solver_timings
       logical                      :: output_solver_timings ! Whether we output the solver
                                                             ! timings 
-      integer(kind=i4)             :: solver_timings_unit   ! Unit to which we output verbose
-                                                            ! timing information for solver 
-                                                            ! invocations
-      character(len=FILE_NAME_LEN) :: solver_timings_file   ! File to which we output verbose 
-                                                            ! timing information for solver 
-                                                            ! invocations
-      integer(kind=i4)             :: default_output_format
+      type(elsi_file_io_handle)    :: solver_timings_file
 
    end type
 

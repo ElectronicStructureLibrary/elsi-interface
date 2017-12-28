@@ -1180,7 +1180,7 @@ subroutine elsi_set_solver_timings_unit(e_h,solver_timings_unit)
    call elsi_check_handle(e_h,caller)
    if (e_h%handle_ready) e_h%handle_changed = .true.
 
-   e_h%solver_timings_unit = solver_timings_unit
+   e_h%solver_timings_file%use_unit = solver_timings_unit
 
 end subroutine
 
@@ -1200,7 +1200,7 @@ subroutine elsi_set_solver_timings_file(e_h,solver_timings_file)
    call elsi_check_handle(e_h,caller)
    if (e_h%handle_ready) e_h%handle_changed = .true.
 
-   e_h%solver_timings_file = solver_timings_file
+   e_h%solver_timings_file%file_name = solver_timings_file
 
 end subroutine
 

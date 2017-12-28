@@ -136,15 +136,24 @@ subroutine elsi_init(e_h,solver,parallel_mode,matrix_format,n_basis,n_electron,&
       call elsi_set_dmp_default(e_h)
    end select
 
+   ! Initialize stdio handle
+   e_h%stdio%use_unit   = 6
+   e_h%stdio%file_name  = UNSET_STRING
+   e_h%stdio%format     = HUMAN_READ
+   e_h%stdio%prefix     = ""
+   e_h%stdio%comma_json = .false.
+
    ! Initialize file IO
    e_h%output_solver_timings = .true.
    ! These variables should only have meaning for myid_all.eq.0
    ! as a precautionary measure
    ! However, we don't know which process has myid_all.eq.0 yet,
    ! so we'll unset them once we actually open the file
-   e_h%solver_timings_unit   = SOLVER_TIMINGS_UNIT_DEFAULT
-   e_h%solver_timings_file   = SOLVER_TIMINGS_FILE_DEFAULT
-   e_h%default_output_format = HUMAN_READ
+   e_h%solver_timings_file%use_unit   = SOLVER_TIMINGS_UNIT_DEFAULT
+   e_h%solver_timings_file%file_name  = SOLVER_TIMINGS_FILE_DEFAULT
+   e_h%solver_timings_file%format     = JSON
+   e_h%solver_timings_file%prefix     = ""
+   e_h%solver_timings_file%comma_json = .true.
 
    ! Initialize timer information
    call elsi_init_timer(e_h)
@@ -426,14 +435,14 @@ subroutine elsi_final_print(e_h)
    call elsi_say(e_h,"  | Final ELSI Output                        ")
    call elsi_say(e_h,"  |---------------------------------------------------------------------")
 
-   call elsi_print_handle_summary(e_h,"  | ")
+   call elsi_print_handle_summary(e_h)
 
    if(e_h%handle_changed) then
-      call elsi_say_setting(e_h,"  | ","  Was ELSI changed mid-run?","YES")
+      call elsi_say_setting(e_h,"  |   Was ELSI changed mid-run?","YES")
    else
-      call elsi_say_setting(e_h,"  | ","  Was ELSI changed mid-run?","NO")
+      call elsi_say_setting(e_h,"  |   Was ELSI changed mid-run?","NO")
    endif
-   call elsi_say_setting(e_h,"  | ","  Number of ELSI calls",e_h%n_elsi_calls)
+   call elsi_say_setting(e_h,"  |   Number of ELSI calls",e_h%n_elsi_calls)
 
    call elsi_say(e_h,"  |")
    call elsi_say(e_h,"  | Timings")
@@ -655,7 +664,7 @@ subroutine elsi_cleanup(e_h)
 
    ! Print final timings
    if(e_h%handle_ready.and.e_h%output_solver_timings.and.e_h%myid_all.eq.0) &
-         close(e_h%solver_timings_unit)
+         close(e_h%solver_timings_file%use_unit)
    call elsi_finalize_timings(e_h%solver_timings) 
 
    ! Reset e_h
