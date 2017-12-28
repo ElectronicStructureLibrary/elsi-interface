@@ -133,25 +133,25 @@ subroutine elsi_set_output(e_h,out_level)
    if (e_h%handle_ready) e_h%handle_changed = .true.
 
    if(out_level <= 0) then
-      e_h%print_info              = .false.
+      e_h%stdio%print_info        = .false.
       e_h%print_mem               = .false.
       e_h%omm_output              = .false.
       e_h%pexsi_options%verbosity = 1
       e_h%elpa_output             = .false.
    elseif(out_level == 1) then
-      e_h%print_info              = .true.
+      e_h%stdio%print_info        = .true.
       e_h%print_mem               = .false.
       e_h%omm_output              = .false.
       e_h%pexsi_options%verbosity = 1
       e_h%elpa_output             = .false.
    elseif(out_level == 2) then
-      e_h%print_info              = .true.
+      e_h%stdio%print_info        = .true.
       e_h%print_mem               = .false.
       e_h%omm_output              = .true.
       e_h%pexsi_options%verbosity = 2
       e_h%elpa_output             = .true.
    else
-      e_h%print_info              = .true.
+      e_h%stdio%print_info        = .true.
       e_h%print_mem               = .true.
       e_h%omm_output              = .true.
       e_h%pexsi_options%verbosity = 2
@@ -175,7 +175,7 @@ subroutine elsi_set_write_unit(e_h,write_unit)
    call elsi_check_handle(e_h,caller)
    if (e_h%handle_ready) e_h%handle_changed = .true.
 
-   e_h%print_unit = write_unit
+   e_h%stdio%print_unit = write_unit
 
 end subroutine
 
@@ -1180,7 +1180,7 @@ subroutine elsi_set_solver_timings_unit(e_h,solver_timings_unit)
    call elsi_check_handle(e_h,caller)
    if (e_h%handle_ready) e_h%handle_changed = .true.
 
-   e_h%solver_timings_file%use_unit = solver_timings_unit
+   e_h%solver_timings_file%print_unit = solver_timings_unit
 
 end subroutine
 

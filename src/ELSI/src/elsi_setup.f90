@@ -37,7 +37,8 @@ module ELSI_SETUP
    use ELSI_DATATYPE
    use ELSI_DMP,           only: elsi_set_dmp_default
    use ELSI_ELPA,          only: elsi_set_elpa_default,elsi_get_elpa_comms
-   use ELSI_IO,            only: elsi_print_handle_summary,elsi_say,elsi_say_setting
+   use ELSI_IO,            only: elsi_print_handle_summary,elsi_say,elsi_say_setting,&
+                                 append_string,truncate_string
    use ELSI_MALLOC
    use ELSI_OMM,           only: elsi_set_omm_default
    use ELSI_PEXSI,         only: elsi_set_pexsi_default
@@ -137,10 +138,11 @@ subroutine elsi_init(e_h,solver,parallel_mode,matrix_format,n_basis,n_electron,&
    end select
 
    ! Initialize stdio handle
-   e_h%stdio%use_unit   = 6
+   e_h%stdio%print_unit   = 6
    e_h%stdio%file_name  = UNSET_STRING
    e_h%stdio%format     = HUMAN_READ
-   e_h%stdio%prefix     = ""
+   ! By default, ELSI is silent to stdio unless user requests output
+   if(allocated(e_h%stdio%prefix)) deallocate(e_h%stdio%prefix)
    e_h%stdio%comma_json = .false.
 
    ! Initialize file IO
@@ -149,10 +151,12 @@ subroutine elsi_init(e_h,solver,parallel_mode,matrix_format,n_basis,n_electron,&
    ! as a precautionary measure
    ! However, we don't know which process has myid_all.eq.0 yet,
    ! so we'll unset them once we actually open the file
-   e_h%solver_timings_file%use_unit   = SOLVER_TIMINGS_UNIT_DEFAULT
+   e_h%solver_timings_file%print_unit   = SOLVER_TIMINGS_UNIT_DEFAULT
    e_h%solver_timings_file%file_name  = SOLVER_TIMINGS_FILE_DEFAULT
    e_h%solver_timings_file%format     = JSON
-   e_h%solver_timings_file%prefix     = ""
+   e_h%solver_timings_file%print_info = .true.
+   if(allocated(e_h%solver_timings_file%prefix)) &
+        deallocate(e_h%solver_timings_file%prefix)
    e_h%solver_timings_file%comma_json = .true.
 
    ! Initialize timer information
@@ -424,7 +428,7 @@ subroutine elsi_final_print(e_h)
 
    implicit none
 
-   type(elsi_handle), intent(in) :: e_h !< Handle
+   type(elsi_handle), intent(inout) :: e_h !< Handle
 
    real(kind=r8) :: sparsity
    character*200 :: info_str
@@ -435,7 +439,9 @@ subroutine elsi_final_print(e_h)
    call elsi_say(e_h,"  | Final ELSI Output                        ")
    call elsi_say(e_h,"  |---------------------------------------------------------------------")
 
+   call append_string(e_h%stdio%prefix,"  | ")
    call elsi_print_handle_summary(e_h)
+   call truncate_string(e_h%stdio%prefix,4)
 
    if(e_h%handle_changed) then
       call elsi_say_setting(e_h,"  |   Was ELSI changed mid-run?","YES")
@@ -664,7 +670,7 @@ subroutine elsi_cleanup(e_h)
 
    ! Print final timings
    if(e_h%handle_ready.and.e_h%output_solver_timings.and.e_h%myid_all.eq.0) &
-         close(e_h%solver_timings_file%use_unit)
+         close(e_h%solver_timings_file%print_unit)
    call elsi_finalize_timings(e_h%solver_timings) 
 
    ! Reset e_h

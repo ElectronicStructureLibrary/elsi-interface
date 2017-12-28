@@ -69,9 +69,7 @@ subroutine elsi_reset_handle(e_h)
    e_h%matrix_format    = UNSET
    e_h%uplo             = FULL_MAT
    e_h%parallel_mode    = UNSET
-   e_h%print_info       = .false.
    e_h%print_mem        = .false.
-   e_h%print_unit       = 6
    e_h%n_elsi_calls     = 0
    e_h%myid             = UNSET
    e_h%myid_all         = UNSET
@@ -179,16 +177,20 @@ subroutine elsi_reset_handle(e_h)
    e_h%ev_max           = 0.0_r8
    e_h%sips_started     = .false.
    e_h%clock_rate       = UNSET
-   e_h%stdio%use_unit   = UNSET
+   e_h%stdio%print_unit   = UNSET
    e_h%stdio%file_name  = UNSET_STRING
    e_h%stdio%format     = UNSET
-   e_h%stdio%prefix     = ""
+   e_h%stdio%print_info = .false.
+   if(allocated(e_h%stdio%prefix)) &
+        deallocate(e_h%stdio%prefix)
    e_h%stdio%comma_json = .false.
    e_h%output_solver_timings = .true.
-   e_h%solver_timings_file%use_unit   = UNSET
+   e_h%solver_timings_file%print_unit   = UNSET
    e_h%solver_timings_file%file_name  = UNSET_STRING
    e_h%solver_timings_file%format     = UNSET
-   e_h%solver_timings_file%prefix     = ""
+   e_h%solver_timings_file%print_info = .false.
+   if(allocated(e_h%solver_timings_file%prefix)) &
+        deallocate(e_h%solver_timings_file%prefix)
    e_h%solver_timings_file%comma_json = .false.
 
 end subroutine
@@ -397,12 +399,12 @@ subroutine elsi_ready_handle(e_h,caller)
       ! the usage of MPI
       if(e_h%output_solver_timings) then
          if (e_h%myid_all == 0) then
-            open(unit=e_h%solver_timings_file%use_unit,&
+            open(unit=e_h%solver_timings_file%print_unit,&
                  file=e_h%solver_timings_file%file_name)
          else
             ! We know which process has myid_all.eq.0 now, we can 
             ! de-initialize the rest
-            e_h%solver_timings_file%use_unit   = UNSET
+            e_h%solver_timings_file%print_unit = UNSET
             e_h%solver_timings_file%file_name  = UNSET_STRING
          endif
       endif

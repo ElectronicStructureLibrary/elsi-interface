@@ -46,11 +46,12 @@ module ELSI_DATATYPE
 
    type, public :: elsi_file_io_handle
 
-      integer(kind=i4)                 :: use_unit   !< Unit to print to
-      character(len=FILE_NAME_LEN)     :: file_name  !< Unit to print to
-      integer(kind=i4)                 :: format !< Format type for output
-      character(len=TIMING_STRING_LEN) :: prefix !< Prefix for each line output
-      logical                          :: comma_json !< Add comma to JSON?
+      integer(kind=i4)              :: print_unit !< Unit to print to
+      character(len=FILE_NAME_LEN)  :: file_name  !< Unit to print to
+      integer(kind=i4)              :: format     !< Format type for output
+      logical                       :: print_info !< Whether to output 
+      character(len=:), allocatable :: prefix     !< Prefix for each line output
+      logical                       :: comma_json !< Add comma to JSON?
 
    end type
 
@@ -168,9 +169,7 @@ module ELSI_DATATYPE
       integer(kind=i4) :: parallel_mode
 
       ! Output
-      logical          :: print_info
       logical          :: print_mem
-      integer(kind=i4) :: print_unit
 
       ! Number of ELSI being called
       integer(kind=i4) :: n_elsi_calls
@@ -324,13 +323,13 @@ module ELSI_DATATYPE
 
       ! ELSI IO files
       type(elsi_file_io_handle) :: stdio
+      type(elsi_file_io_handle) :: solver_timings_file
 
       ! Timer and timings
       integer(kind=i4)             :: clock_rate
       type(elsi_timings_handle)    :: solver_timings
       logical                      :: output_solver_timings ! Whether we output the solver
                                                             ! timings 
-      type(elsi_file_io_handle)    :: solver_timings_file
 
    end type
 

@@ -48,7 +48,8 @@ module ELSI_SOLVER
                              elsi_solve_evp_lapack_cmplx
    use ELSI_IO,        only: elsi_print_handle_summary,elsi_print_solver_settings,&
                              elsi_print_settings,elsi_say,elsi_say_setting,&
-                             elsi_print_matrix_format_settings
+                             elsi_print_matrix_format_settings,&
+                             append_string,truncate_string
    use ELSI_MALLOC
    use ELSI_MATCONV
    use ELSI_MPI,       only: elsi_stop
@@ -1327,78 +1328,84 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,time,&
 
    ! Print out patterned header
    if(io_h%format == HUMAN_READ) then
-      write(info_str,"(A,A)")       io_h%prefix, "--------------------------------------------------"
+      write(info_str,"(A)")       "--------------------------------------------------"
       call elsi_say(e_h,info_str,io_h)
-      write(info_str,"(A,A,I10)")   io_h%prefix, "Start of ELSI Solver Iteration ",  iter
+      write(info_str,"(A,I10)")  "Start of ELSI Solver Iteration ",  iter
       call elsi_say(e_h,info_str,io_h)
-      write(info_str,"(A)")         io_h%prefix
+      write(info_str,"(A)")       ""
       call elsi_say(e_h,info_str,io_h)
-      write(info_str,"(A,A)")       io_h%prefix, "Timing Details"
+      write(info_str,"(A)")      "Timing Details"
       call elsi_say(e_h,info_str,io_h)
    elseif (io_h%format == JSON) then
-      write(info_str,"(A,A)")       io_h%prefix, '{"ELSISolverTiming": {'
+      write(info_str,"(A)")      '{"ELSISolverTiming": {'
       call elsi_say(e_h,info_str,io_h)
+      call append_string(io_h%prefix,"  ")
       call elsi_say_setting(e_h, "iteration",iter,io_h)
+      call truncate_string(io_h%prefix,2)
    else
       call elsi_stop("Unsupported output format.",e_h,caller)
    endif
 
+   call append_string(io_h%prefix,"  ")
+
    ! Print out sovler invocation details
    if(output_type.eq.OUTPUT_EV) then
-      call elsi_say_setting(e_h, "  Output Type","EIGENVECTORS",io_h)
+      call elsi_say_setting(e_h,   "Output Type","EIGENVECTORS",io_h)
    elseif(output_type.eq.OUTPUT_DM) then
-      call elsi_say_setting(e_h, "  Output Type","DENSITY MATRIX",io_h)
+      call elsi_say_setting(e_h,   "Output Type","DENSITY MATRIX",io_h)
    else
       call elsi_stop("Unsupported output type.",e_h,caller)
    end if
    if(data_type.eq.REAL_VALUES) then
-      call elsi_say_setting(e_h, "  Data Type","REAL",io_h)
+      call elsi_say_setting(e_h,   "Data Type","REAL",io_h)
    elseif(data_type.eq.COMPLEX_VALUES) then
-      call elsi_say_setting(e_h, "  Data Type","COMPLEX",io_h)
+      call elsi_say_setting(e_h,   "Data Type","COMPLEX",io_h)
    else
       call elsi_stop("Unsupported data type.",e_h,caller)
    end if
-   call elsi_say_setting(e_h,    "  ELSI Tag",elsi_tag,io_h)
-   call elsi_say_setting(e_h,    "  User Tag",user_tag,io_h)
-   call elsi_say_setting(e_h,    "  Timing (s)",time,io_h)
+   call elsi_say_setting(e_h,      "ELSI Tag",elsi_tag,io_h)
+   call elsi_say_setting(e_h,      "User Tag",user_tag,io_h)
+   call elsi_say_setting(e_h,      "Timing (s)",time,io_h)
 
    ! Print out handle summary
    if(io_h%format == HUMAN_READ) then
-      write(info_str,"(A)")         io_h%prefix
+      write(info_str,"(A)")      ""
       call elsi_say(e_h,info_str,io_h)
    endif
    call elsi_print_handle_summary (e_h,io_h)
 
    ! Print out matrix storage format settings
    if(io_h%format == HUMAN_READ) then
-      write(info_str,"(A)")         io_h%prefix
+      write(info_str,"(A)")      ""
       call elsi_say(e_h,info_str,io_h)
    endif
    call elsi_print_matrix_format_settings(e_h,io_h)
 
    ! Print out solver settings
    if(io_h%format == HUMAN_READ) then
-      write(info_str,"(A)")         io_h%prefix
+      write(info_str,"(A)")      ""
       call elsi_say(e_h,info_str,io_h)
    endif
    call elsi_print_solver_settings(e_h,io_h)
 
+   call truncate_string(io_h%prefix,2)
+
    ! Print out patterned footer
    if(io_h%format == HUMAN_READ) then
-      write(info_str,"(A)")         io_h%prefix
+      write(info_str,"(A)")      ""
       call elsi_say(e_h,info_str,io_h)
-      write(info_str,"(A,A,I10)")   io_h%prefix, "End of ELSI Solver Iteration   ",  iter
+      write(info_str,"(A,I10)")  "End of ELSI Solver Iteration   ",  iter
       call elsi_say(e_h,info_str,io_h)
-      write(info_str,"(A,A)")       io_h%prefix, "--------------------------------------------------"
+      write(info_str,"(A)")      "--------------------------------------------------"
       call elsi_say(e_h,info_str,io_h)
-      write(info_str,"(A)")         io_h%prefix
+      write(info_str,"(A)")      ""
       call elsi_say(e_h,info_str,io_h)
    elseif (io_h%format == JSON) then
       if(io_h%comma_json) then
-         write(info_str,"(A,A)")       io_h%prefix, '}},'
+         write(info_str,"(A)")   '}},'
          call elsi_say(e_h,info_str,io_h)
       else
-         write(info_str,"(A,A)")       io_h%prefix, '}}'
+         write(info_str,"(A)")   '}}'
          call elsi_say(e_h,info_str,io_h)
       endif
    else

@@ -58,7 +58,7 @@ subroutine elsi_stop(info,e_h,caller)
    if(e_h%global_mpi_ready) then
       write(info_str,"(A,I7,5A)") "**Error! MPI task ",e_h%myid_all," in ",&
          trim(caller),": ",trim(info)," Exiting..."
-      write(e_h%print_unit,"(A)") trim(info_str)
+      write(e_h%stdio%print_unit,"(A)") trim(info_str)
 
       if(e_h%n_procs_all > 1) then
          call MPI_Abort(e_h%mpi_comm_all,0,mpierr)
@@ -66,7 +66,7 @@ subroutine elsi_stop(info,e_h,caller)
    elseif(e_h%mpi_ready) then
       write(info_str,"(A,I7,5A)") "**Error! MPI task ",e_h%myid," in ",&
          trim(caller),": ",trim(info)," Exiting..."
-      write(e_h%print_unit,"(A)") trim(info_str)
+      write(e_h%stdio%print_unit,"(A)") trim(info_str)
 
       if(e_h%n_procs > 1) then
          call MPI_Abort(e_h%mpi_comm,0,mpierr)
@@ -74,7 +74,7 @@ subroutine elsi_stop(info,e_h,caller)
    else
       write(info_str,"(5A)") "**Error! ",trim(caller),": ",trim(info),&
          " Exiting..."
-      write(e_h%print_unit,"(A)") trim(info_str)
+      write(e_h%stdio%print_unit,"(A)") trim(info_str)
    endif
 
    stop
