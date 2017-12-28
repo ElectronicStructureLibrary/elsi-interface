@@ -1306,6 +1306,7 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,time,&
    character*200                    :: info_str
    character(len=TIMING_STRING_LEN) :: elsi_tag
    character(len=TIMING_STRING_LEN) :: user_tag
+   logical                          :: comma_json_save
    type(elsi_file_io_handle) :: io_h
 
    character*40, parameter :: caller = "elsi_print_solver_timing"
@@ -1326,7 +1327,10 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,time,&
    elsi_tag = trim(elsi_tag_in)
    elsi_tag = adjustr(elsi_tag)
 
-   ! Print out patterned header
+   comma_json_save = io_h%comma_json
+   io_h%comma_json = .true. ! Add commas behind all records before final
+
+   ! Print out patterned header and timing details
    if(io_h%format == HUMAN_READ) then
       write(info_str,"(A)")       "--------------------------------------------------"
       call elsi_say(e_h,info_str,io_h)
@@ -1334,38 +1338,57 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,time,&
       call elsi_say(e_h,info_str,io_h)
       write(info_str,"(A)")       ""
       call elsi_say(e_h,info_str,io_h)
+
       write(info_str,"(A)")      "Timing Details"
       call elsi_say(e_h,info_str,io_h)
+
+      call append_string(io_h%prefix,"  ")
+      if(output_type.eq.OUTPUT_EV) then
+         call elsi_say_setting(e_h,   "Output Type","EIGENVECTORS",io_h)
+      elseif(output_type.eq.OUTPUT_DM) then
+         call elsi_say_setting(e_h,   "Output Type","DENSITY MATRIX",io_h)
+      else
+         call elsi_stop("Unsupported output type.",e_h,caller)
+      end if
+      if(data_type.eq.REAL_VALUES) then
+         call elsi_say_setting(e_h,   "Data Type","REAL",io_h)
+      elseif(data_type.eq.COMPLEX_VALUES) then
+         call elsi_say_setting(e_h,   "Data Type","COMPLEX",io_h)
+      else
+         call elsi_stop("Unsupported data type.",e_h,caller)
+      end if
+      call elsi_say_setting(e_h,      "ELSI Tag",elsi_tag,io_h)
+      call elsi_say_setting(e_h,      "User Tag",user_tag,io_h)
+      call elsi_say_setting(e_h,      "Timing (s)",time,io_h)
+      call truncate_string(io_h%prefix,2)
    elseif (io_h%format == JSON) then
-      write(info_str,"(A)")      '{"ELSISolverTiming": {'
+      write(info_str,"(A)")       '{"ELSISolverTiming": {'
       call elsi_say(e_h,info_str,io_h)
       call append_string(io_h%prefix,"  ")
-      call elsi_say_setting(e_h, "iteration",iter,io_h)
+      call elsi_say_setting(e_h,    "iteration",iter,io_h)
+      if(output_type.eq.OUTPUT_EV) then
+         call elsi_say_setting(e_h, "output_type","EIGENVECTORS",io_h)
+      elseif(output_type.eq.OUTPUT_DM) then
+         call elsi_say_setting(e_h, "output_type","DENSITY MATRIX",io_h)
+      else
+         call elsi_stop("Unsupported output type.",e_h,caller)
+      end if
+      if(data_type.eq.REAL_VALUES) then
+         call elsi_say_setting(e_h,  "data_type","REAL",io_h)
+      elseif(data_type.eq.COMPLEX_VALUES) then
+         call elsi_say_setting(e_h,  "data_type","COMPLEX",io_h)
+      else
+         call elsi_stop("Unsupported data type.",e_h,caller)
+      end if
+      call elsi_say_setting(e_h,     "elsi_tag",elsi_tag,io_h)
+      call elsi_say_setting(e_h,     "user_tag",user_tag,io_h)
+      call elsi_say_setting(e_h,     "time",time,io_h)
       call truncate_string(io_h%prefix,2)
    else
       call elsi_stop("Unsupported output format.",e_h,caller)
    endif
 
    call append_string(io_h%prefix,"  ")
-
-   ! Print out sovler invocation details
-   if(output_type.eq.OUTPUT_EV) then
-      call elsi_say_setting(e_h,   "Output Type","EIGENVECTORS",io_h)
-   elseif(output_type.eq.OUTPUT_DM) then
-      call elsi_say_setting(e_h,   "Output Type","DENSITY MATRIX",io_h)
-   else
-      call elsi_stop("Unsupported output type.",e_h,caller)
-   end if
-   if(data_type.eq.REAL_VALUES) then
-      call elsi_say_setting(e_h,   "Data Type","REAL",io_h)
-   elseif(data_type.eq.COMPLEX_VALUES) then
-      call elsi_say_setting(e_h,   "Data Type","COMPLEX",io_h)
-   else
-      call elsi_stop("Unsupported data type.",e_h,caller)
-   end if
-   call elsi_say_setting(e_h,      "ELSI Tag",elsi_tag,io_h)
-   call elsi_say_setting(e_h,      "User Tag",user_tag,io_h)
-   call elsi_say_setting(e_h,      "Timing (s)",time,io_h)
 
    ! Print out handle summary
    if(io_h%format == HUMAN_READ) then
@@ -1382,6 +1405,7 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,time,&
    call elsi_print_matrix_format_settings(e_h,io_h)
 
    ! Print out solver settings
+   io_h%comma_json = .false. ! Final record in this scope
    if(io_h%format == HUMAN_READ) then
       write(info_str,"(A)")      ""
       call elsi_say(e_h,info_str,io_h)
@@ -1391,6 +1415,7 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,time,&
    call truncate_string(io_h%prefix,2)
 
    ! Print out patterned footer
+   io_h%comma_json = comma_json_save
    if(io_h%format == HUMAN_READ) then
       write(info_str,"(A)")      ""
       call elsi_say(e_h,info_str,io_h)

@@ -435,25 +435,33 @@ subroutine elsi_final_print(e_h)
 
    character*40, parameter :: caller = "elsi_final_print"
 
+   if(e_h%stdio%format.eq.JSON) then
+      call elsi_stop("elsi_final_print only supports HUMAN_READ format.",e_h,caller)
+   endif
+
    call elsi_say(e_h,"  |---------------------------------------------------------------------")
    call elsi_say(e_h,"  | Final ELSI Output                        ")
    call elsi_say(e_h,"  |---------------------------------------------------------------------")
 
    call append_string(e_h%stdio%prefix,"  | ")
    call elsi_print_handle_summary(e_h)
-   call truncate_string(e_h%stdio%prefix,4)
 
+   call append_string(e_h%stdio%prefix,"  ")
    if(e_h%handle_changed) then
-      call elsi_say_setting(e_h,"  |   Was ELSI changed mid-run?","YES")
+      call elsi_say_setting(e_h,"Was ELSI changed mid-run?","YES")
    else
-      call elsi_say_setting(e_h,"  |   Was ELSI changed mid-run?","NO")
+      call elsi_say_setting(e_h,"Was ELSI changed mid-run?","NO")
    endif
-   call elsi_say_setting(e_h,"  |   Number of ELSI calls",e_h%n_elsi_calls)
+   call elsi_say_setting(e_h,"Number of ELSI calls",e_h%n_elsi_calls)
+   call truncate_string(e_h%stdio%prefix,2)
 
-   call elsi_say(e_h,"  |")
-   call elsi_say(e_h,"  | Timings")
+   call elsi_say(e_h,"")
+   call elsi_say(e_h,"Timings")
+   call append_string(e_h%stdio%prefix,"  ")
    call elsi_print_timings(e_h,e_h%solver_timings)
+   call truncate_string(e_h%stdio%prefix,2)
 
+   call truncate_string(e_h%stdio%prefix,4)
    call elsi_say(e_h,"  |--------------------------------------------------------------------")
    call elsi_say(e_h,"  | ELSI Project (c)  elsi-interchange.org   ")
    call elsi_say(e_h,"  |--------------------------------------------------------------------")
@@ -669,8 +677,16 @@ subroutine elsi_cleanup(e_h)
    endif
 
    ! Print final timings
-   if(e_h%handle_ready.and.e_h%output_solver_timings.and.e_h%myid_all.eq.0) &
+   if(e_h%handle_ready.and.e_h%output_solver_timings) then
+      if(e_h%solver_timings_file%format == JSON) then
+         ! Closing bracket to signify end of JSON array
+         call truncate_string(e_h%solver_timings_file%prefix,2)
+         call elsi_say(e_h, "]", e_h%solver_timings_file)
+      end if
+      if(e_h%myid_all.eq.0) then
          close(e_h%solver_timings_file%print_unit)
+      end if
+   end if
    call elsi_finalize_timings(e_h%solver_timings) 
 
    ! Reset e_h

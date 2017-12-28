@@ -236,15 +236,14 @@ subroutine elsi_print_timings(e_h,t_h)
 
    character*40, parameter :: caller = "elsi_print_timings"
 
-   write(info_str,"(2X,A,A)")  "|   Timing Set:        ", t_h%set_label
+   write(info_str,"(A,A)")  "Timing Set:        ", t_h%set_label
    call elsi_say(e_h,info_str)
-   write(info_str,"(2X,A,I4)") "|   Number of timings: ", t_h%n_timings
+   write(info_str,"(A,I4)") "Number of timings: ", t_h%n_timings
    call elsi_say(e_h,info_str)
 
-   call elsi_say(e_h,"  |      #  system_clock [s]  elsi_tag             user_tag            ")
+   call elsi_say(e_h,"   #  system_clock [s]  elsi_tag             user_tag            ")
    do iter = 1, t_h%n_timings
-      write(info_str,"(2X,A,I4,1X,F17.3,2X,A,1X,A)") &
-           "|   ", &
+      write(info_str,"(I4,1X,F17.3,2X,A,1X,A)") &
            iter, &
            t_h%times(iter), &
            t_h%elsi_tags(iter), &

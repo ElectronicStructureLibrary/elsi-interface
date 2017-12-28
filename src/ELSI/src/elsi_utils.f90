@@ -32,7 +32,7 @@ module ELSI_UTILS
 
    use ELSI_CONSTANTS
    use ELSI_DATATYPE
-   use ELSI_IO,        only: elsi_say
+   use ELSI_IO,        only: elsi_say, append_string, truncate_string
    use ELSI_MPI
    use ELSI_PRECISION, only: i4,r8
 
@@ -407,6 +407,11 @@ subroutine elsi_ready_handle(e_h,caller)
             e_h%solver_timings_file%print_unit = UNSET
             e_h%solver_timings_file%file_name  = UNSET_STRING
          endif
+         if(e_h%solver_timings_file%format == JSON) then
+            ! Opening bracket to signify JSON array
+            call elsi_say(e_h, "[", e_h%solver_timings_file)
+            call append_string(e_h%solver_timings_file%prefix,"  ")
+         end if
       endif
 
       e_h%handle_ready   = .true.
