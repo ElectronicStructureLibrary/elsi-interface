@@ -51,7 +51,7 @@ module ELSI_DATATYPE
       integer(kind=i4)              :: format     !< Format type for output
       logical                       :: print_info !< Whether to output 
       character(len=:), allocatable :: prefix     !< Prefix for each line output
-      logical                       :: comma_json !< Add comma to JSON?
+      integer(kind=i4)              :: comma_json !< Comma placement in JSON
 
    end type
 

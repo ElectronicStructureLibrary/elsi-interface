@@ -143,7 +143,7 @@ subroutine elsi_init(e_h,solver,parallel_mode,matrix_format,n_basis,n_electron,&
    e_h%stdio%format     = HUMAN_READ
    ! By default, ELSI is silent to stdio unless user requests output
    if(allocated(e_h%stdio%prefix)) deallocate(e_h%stdio%prefix)
-   e_h%stdio%comma_json = .false.
+   e_h%stdio%comma_json = NO_COMMA
 
    ! Initialize file IO
    e_h%output_solver_timings = .true.
@@ -157,7 +157,7 @@ subroutine elsi_init(e_h,solver,parallel_mode,matrix_format,n_basis,n_electron,&
    e_h%solver_timings_file%print_info = .true.
    if(allocated(e_h%solver_timings_file%prefix)) &
         deallocate(e_h%solver_timings_file%prefix)
-   e_h%solver_timings_file%comma_json = .true.
+   e_h%solver_timings_file%comma_json = COMMA_AFTER
 
    ! Initialize timer information
    call elsi_init_timer(e_h)

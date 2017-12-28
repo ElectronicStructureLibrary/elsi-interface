@@ -124,7 +124,7 @@ subroutine elsi_print_handle_summary(e_h,io_h_in)
 
    real(kind=r8)             :: sparsity
    character*200             :: info_str
-   logical                   :: comma_json_save          
+   integer(kind=i4)          :: comma_json_save          
    type(elsi_file_io_handle) :: io_h
 
    character*40, parameter :: caller = "elsi_print_handle_summary"
@@ -198,7 +198,7 @@ subroutine elsi_print_handle_summary(e_h,io_h_in)
       call truncate_string(io_h%prefix,2)
    elseif (io_h%format == JSON) then
       comma_json_save = io_h%comma_json
-      io_h%comma_json = .true. ! Add commas behind all records before final
+      io_h%comma_json = COMMA_AFTER ! Add commas behind all records before final
 
       call elsi_say_setting(e_h,        "n_electrons",e_h%n_electrons,io_h)
       if(e_h%parallel_mode == MULTI_PROC) then
@@ -444,8 +444,8 @@ subroutine elsi_print_chess_settings(e_h,io_h_in)
    type(elsi_handle),           intent(in) :: e_h      !< Handle
    type(elsi_file_io_handle), optional, intent(in) :: io_h_in
 
-   character*200    :: info_str
-   logical          :: comma_json_save          
+   character*200             :: info_str
+   integer(kind=i4)          :: comma_json_save          
    type(elsi_file_io_handle) :: io_h
 
    character*40, parameter :: caller = "elsi_print_chess_settings"
@@ -457,7 +457,7 @@ subroutine elsi_print_chess_settings(e_h,io_h_in)
    endif
       
    comma_json_save = io_h%comma_json
-   io_h%comma_json = .true. ! Add commas behind all records before final
+   io_h%comma_json = COMMA_AFTER ! Add commas behind all records before final
 
    ! Header
    if(io_h%format.eq.HUMAN_READ) then
@@ -477,14 +477,14 @@ subroutine elsi_print_chess_settings(e_h,io_h_in)
    call elsi_say_setting(e_h,"ev_ovlp_min",e_h%ev_ovlp_min,io_h)
    call elsi_say_setting(e_h,"ev_ovlp_max",e_h%ev_ovlp_max,io_h)
    call elsi_say_setting(e_h,"beta",e_h%beta,io_h)
-   io_h%comma_json = .false. ! Final record in this scope
+   io_h%comma_json = NO_COMMA ! Final record in this scope
    call elsi_say_setting(e_h,"chess_started",e_h%chess_started,io_h)
    call truncate_string(io_h%prefix,2)
 
    ! Footer (only for JSON)
    io_h%comma_json = comma_json_save ! Final record, restore comma_json
    if(io_h%format.eq.JSON) then
-      if(io_h%comma_json) then
+      if(io_h%comma_json == COMMA_AFTER) then
          write(info_str,"(A)")   '},'
       else
          write(info_str,"(A)")   '}'
@@ -504,8 +504,8 @@ subroutine elsi_print_dmp_settings(e_h,io_h_in)
    type(elsi_handle),           intent(in) :: e_h      !< Handle
    type(elsi_file_io_handle), optional, intent(in) :: io_h_in
 
-   character*200    :: info_str
-   logical          :: comma_json_save          
+   character*200             :: info_str
+   integer(kind=i4)          :: comma_json_save          
    type(elsi_file_io_handle) :: io_h
 
    character*40, parameter :: caller = "elsi_print_dmp_settings"
@@ -517,7 +517,7 @@ subroutine elsi_print_dmp_settings(e_h,io_h_in)
    endif
       
    comma_json_save = io_h%comma_json
-   io_h%comma_json = .true. ! Add commas behind all records before final
+   io_h%comma_json = COMMA_AFTER ! Add commas behind all records before final
 
    ! Header
    if(io_h%format.eq.HUMAN_READ) then
@@ -534,14 +534,14 @@ subroutine elsi_print_dmp_settings(e_h,io_h_in)
    call elsi_say_setting(e_h,"max_power_iter",e_h%max_power_iter,io_h)
    call elsi_say_setting(e_h,"max_dmp_iter",e_h%max_dmp_iter,io_h)
    call elsi_say_setting(e_h,"dmp_tol",e_h%dmp_tol,io_h)
-   io_h%comma_json = .false. ! Final record in this scope
+   io_h%comma_json = NO_COMMA ! Final record in this scope
    call elsi_say_setting(e_h,"ne_dmp",e_h%ne_dmp,io_h)
    call truncate_string(io_h%prefix,2)
 
    ! Footer (only for JSON)
    io_h%comma_json = comma_json_save ! Final record, restore comma_json
    if(io_h%format.eq.JSON) then
-      if(io_h%comma_json) then
+      if(io_h%comma_json == COMMA_AFTER) then
          write(info_str,"(A)")   '},'
       else
          write(info_str,"(A)")   '}'
@@ -562,7 +562,7 @@ subroutine elsi_print_elpa_settings(e_h,io_h_in)
    type(elsi_file_io_handle), optional, intent(in) :: io_h_in
 
    character*200             :: info_str
-   logical                   :: comma_json_save          
+   integer(kind=i4)          :: comma_json_save          
    type(elsi_file_io_handle) :: io_h
 
    character*40, parameter :: caller = "elsi_print_elpa_settings"
@@ -574,7 +574,7 @@ subroutine elsi_print_elpa_settings(e_h,io_h_in)
    endif
       
    comma_json_save = io_h%comma_json
-   io_h%comma_json = .true. ! Add commas behind all records before final
+   io_h%comma_json = COMMA_AFTER ! Add commas behind all records before final
 
    ! Header
    if(io_h%format.eq.HUMAN_READ) then
@@ -590,14 +590,14 @@ subroutine elsi_print_elpa_settings(e_h,io_h_in)
    call elsi_say_setting(e_h,"n_states",e_h%n_states,io_h)
    call elsi_say_setting(e_h,"n_single_steps",e_h%n_single_steps,io_h)
    call elsi_say_setting(e_h,"elpa_output",e_h%elpa_output,io_h)
-   io_h%comma_json = .false. ! Final record in this scope
+   io_h%comma_json = NO_COMMA ! Final record in this scope
    call elsi_say_setting(e_h,"elpa_started",e_h%elpa_started,io_h)
    call truncate_string(io_h%prefix,2)
 
    ! Footer (only for JSON)
    io_h%comma_json = comma_json_save ! Final record, restore comma_json
    if(io_h%format.eq.JSON) then
-      if(io_h%comma_json) then
+      if(io_h%comma_json == COMMA_AFTER) then
          write(info_str,"(A)")   '},'
       else
          write(info_str,"(A)")   '}'
@@ -618,7 +618,7 @@ subroutine elsi_print_omm_settings(e_h,io_h_in)
    type(elsi_file_io_handle), optional, intent(in) :: io_h_in
 
    character*200             :: info_str
-   logical                   :: comma_json_save          
+   integer(kind=i4)          :: comma_json_save          
    type(elsi_file_io_handle) :: io_h
 
    character*40, parameter :: caller = "elsi_print_omm_settings"
@@ -630,7 +630,7 @@ subroutine elsi_print_omm_settings(e_h,io_h_in)
    endif
       
    comma_json_save = io_h%comma_json
-   io_h%comma_json = .true. ! Add commas behind all records before final
+   io_h%comma_json = COMMA_AFTER ! Add commas behind all records before final
 
    ! Header
    if(io_h%format.eq.HUMAN_READ) then
@@ -653,14 +653,14 @@ subroutine elsi_print_omm_settings(e_h,io_h_in)
    call elsi_say_setting(e_h,"min_tol",e_h%min_tol,io_h)
    call elsi_say_setting(e_h,"omm_output",e_h%omm_output,io_h)
    call elsi_say_setting(e_h,"do_dealloc",e_h%do_dealloc,io_h)
-   io_h%comma_json = .false. ! Final record in this scope
+   io_h%comma_json = NO_COMMA ! Final record in this scope
    call elsi_say_setting(e_h,"use_psp",e_h%use_psp,io_h)
    call truncate_string(io_h%prefix,2)
 
    ! Footer (only for JSON)
    io_h%comma_json = comma_json_save ! Final record, restore comma_json
    if(io_h%format.eq.JSON) then
-      if(io_h%comma_json) then
+      if(io_h%comma_json == COMMA_AFTER) then
          write(info_str,"(A)")   '},'
       else
          write(info_str,"(A)")   '}'
@@ -681,7 +681,7 @@ subroutine elsi_print_pexsi_settings(e_h,io_h_in)
    type(elsi_file_io_handle), optional, intent(in) :: io_h_in
 
    character*200             :: info_str
-   logical                   :: comma_json_save          
+   integer(kind=i4)          :: comma_json_save          
    type(elsi_file_io_handle) :: io_h
 
    character*40, parameter :: caller = "elsi_print_pexsi_settings"
@@ -693,7 +693,7 @@ subroutine elsi_print_pexsi_settings(e_h,io_h_in)
    endif
       
    comma_json_save = io_h%comma_json
-   io_h%comma_json = .true. ! Add commas behind all records before final
+   io_h%comma_json = COMMA_AFTER ! Add commas behind all records before final
 
    ! Header
    if(io_h%format.eq.HUMAN_READ) then
@@ -710,14 +710,14 @@ subroutine elsi_print_pexsi_settings(e_h,io_h_in)
    call elsi_say_setting(e_h,"n_prow_pexsi",e_h%n_prow_pexsi,io_h)
    call elsi_say_setting(e_h,"n_pcol_pexsi",e_h%n_pcol_pexsi,io_h)
    call elsi_say_setting(e_h,"ne_pexsi",e_h%ne_pexsi,io_h)
-   io_h%comma_json = .false. ! Final record in this scope
+   io_h%comma_json = NO_COMMA ! Final record in this scope
    call elsi_say_setting(e_h,"pexsi_started",e_h%pexsi_started,io_h)
    call truncate_string(io_h%prefix,2)
 
    ! Footer (only for JSON)
    io_h%comma_json = comma_json_save ! Final record, restore comma_json
    if(io_h%format.eq.JSON) then
-      if(io_h%comma_json) then
+      if(io_h%comma_json == COMMA_AFTER) then
          write(info_str,"(A)")   '},'
       else
          write(info_str,"(A)")   '}'
@@ -738,7 +738,7 @@ subroutine elsi_print_sips_settings(e_h,io_h_in)
    type(elsi_file_io_handle), optional, intent(in) :: io_h_in
 
    character*200             :: info_str
-   logical                   :: comma_json_save          
+   integer(kind=i4)          :: comma_json_save          
    type(elsi_file_io_handle) :: io_h
 
    character*40, parameter :: caller = "elsi_print_sips_settings"
@@ -750,7 +750,7 @@ subroutine elsi_print_sips_settings(e_h,io_h_in)
    endif
       
    comma_json_save = io_h%comma_json
-   io_h%comma_json = .true. ! Add commas behind all records before final
+   io_h%comma_json = COMMA_AFTER ! Add commas behind all records before final
 
    ! Header
    if(io_h%format.eq.HUMAN_READ) then
@@ -775,14 +775,14 @@ subroutine elsi_print_sips_settings(e_h,io_h_in)
    call elsi_say_setting(e_h,"slice_buffer",e_h%slice_buffer,io_h)
    call elsi_say_setting(e_h,"ev_min",e_h%ev_min,io_h)
    call elsi_say_setting(e_h,"ev_max",e_h%ev_max,io_h)
-   io_h%comma_json = .false. ! Final record in this scope
+   io_h%comma_json = NO_COMMA ! Final record in this scope
    call elsi_say_setting(e_h,"sips_started",e_h%sips_started,io_h)
    call truncate_string(io_h%prefix,2)
 
    ! Footer (only for JSON)
    io_h%comma_json = comma_json_save ! Final record, restore comma_json
    if(io_h%format.eq.JSON) then
-      if(io_h%comma_json) then
+      if(io_h%comma_json == COMMA_AFTER) then
          write(info_str,"(A)")   '},'
       else
          write(info_str,"(A)")   '}'
@@ -838,7 +838,7 @@ subroutine elsi_print_blacs_dense_settings(e_h,io_h_in)
    type(elsi_file_io_handle), optional, intent(in) :: io_h_in
 
    character*200             :: info_str
-   logical                   :: comma_json_save          
+   integer(kind=i4)          :: comma_json_save          
    type(elsi_file_io_handle) :: io_h
 
    character*40, parameter :: caller = "elsi_print_blacs_dense_settings"
@@ -850,7 +850,7 @@ subroutine elsi_print_blacs_dense_settings(e_h,io_h_in)
    endif
       
    comma_json_save = io_h%comma_json
-   io_h%comma_json = .true. ! Add commas behind all records before final
+   io_h%comma_json = COMMA_AFTER ! Add commas behind all records before final
 
    ! Header
    if(io_h%format.eq.HUMAN_READ) then
@@ -866,14 +866,14 @@ subroutine elsi_print_blacs_dense_settings(e_h,io_h_in)
    call elsi_say_setting(e_h,"blk_col",e_h%blk_col,io_h)
    call elsi_say_setting(e_h,"n_prow",e_h%n_prow,io_h)
    call elsi_say_setting(e_h,"n_pcol",e_h%n_pcol,io_h)
-   io_h%comma_json = .false. ! Final record in this scope
+   io_h%comma_json = NO_COMMA ! Final record in this scope
    call elsi_say_setting(e_h,"blacs_ready",e_h%blacs_ready,io_h)
    call truncate_string(io_h%prefix,2)
 
    ! Footer (only for JSON)
    io_h%comma_json = comma_json_save ! Final record, restore comma_json
    if(io_h%format.eq.JSON) then
-      if(io_h%comma_json) then
+      if(io_h%comma_json == COMMA_AFTER) then
          write(info_str,"(A,A)")   '},'
       else
          write(info_str,"(A,A)")   '}'
@@ -894,7 +894,7 @@ subroutine elsi_print_pexsi_csc_settings(e_h,io_h_in)
    type(elsi_file_io_handle), optional, intent(in) :: io_h_in
 
    character*200             :: info_str
-   logical                   :: comma_json_save          
+   integer(kind=i4)          :: comma_json_save          
    type(elsi_file_io_handle) :: io_h
 
    character*40, parameter :: caller = "elsi_print_pexsi_csc_settings"
@@ -906,7 +906,7 @@ subroutine elsi_print_pexsi_csc_settings(e_h,io_h_in)
    endif
       
    comma_json_save = io_h%comma_json
-   io_h%comma_json = .true. ! Add commas behind all records before final
+   io_h%comma_json = COMMA_AFTER ! Add commas behind all records before final
 
    ! Header
    if(io_h%format.eq.HUMAN_READ) then
@@ -920,14 +920,14 @@ subroutine elsi_print_pexsi_csc_settings(e_h,io_h_in)
    call append_string(io_h%prefix,"  ")
    call elsi_say_setting(e_h,"nnz_g",e_h%nnz_g,io_h)
    call elsi_say_setting(e_h,"zero_def",e_h%zero_def,io_h)
-   io_h%comma_json = .false. ! Final record in this scope
+   io_h%comma_json = NO_COMMA ! Final record in this scope
    call elsi_say_setting(e_h,"sparsity_ready",e_h%sparsity_ready,io_h)
    call truncate_string(io_h%prefix,2)
 
    ! Footer (only for JSON)
    io_h%comma_json = comma_json_save ! Final record, restore comma_json
    if(io_h%format.eq.JSON) then
-      if(io_h%comma_json) then
+      if(io_h%comma_json == COMMA_AFTER) then
          write(info_str,"(A,A)")   '},'
       else
          write(info_str,"(A,A)")   '}'
@@ -983,7 +983,7 @@ subroutine elsi_say_setting_i4(e_h,label,setting,io_h_in)
                  label_ljust, " : ", setting
          endif
       elseif(io_h%format == JSON) then
-         if(io_h%comma_json) then
+         if(io_h%comma_json == COMMA_AFTER) then
             if(allocated(io_h%prefix)) then
                write(io_h%print_unit,"(A)") &
                     io_h%prefix // '"' // trim(adjustl(label_ljust)) // '": ' &
@@ -1047,7 +1047,7 @@ subroutine elsi_say_setting_r8(e_h,label,setting,io_h_in)
                  label_ljust, " : ", setting
          endif
       elseif(io_h%format == JSON) then
-         if(io_h%comma_json) then
+         if(io_h%comma_json == COMMA_AFTER) then
             if(allocated(io_h%prefix)) then
                write(io_h%print_unit,"(A)") &
                     io_h%prefix // '"' // trim(adjustl(label_ljust)) // '": ' &
@@ -1126,7 +1126,7 @@ subroutine elsi_say_setting_log(e_h,label,setting,io_h_in)
                  label_ljust, " : ", log_string
          endif
       elseif(io_h%format == JSON) then
-         if(io_h%comma_json) then
+         if(io_h%comma_json == COMMA_AFTER) then
             if(allocated(io_h%prefix)) then
                write(io_h%print_unit,"(A)") &
                     io_h%prefix // '"' // trim(adjustl(label_ljust)) // '": ' &
@@ -1189,7 +1189,7 @@ subroutine elsi_say_setting_str(e_h,label,setting,io_h_in)
                  label_ljust, " : ", setting
          endif
       elseif(io_h%format == JSON) then
-         if(io_h%comma_json) then
+         if(io_h%comma_json == COMMA_AFTER) then
             if(allocated(io_h%prefix)) then
                write(io_h%print_unit,"(A)") &
                     io_h%prefix // '"' // trim(adjustl(label_ljust)) // '": "' &

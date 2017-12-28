@@ -38,12 +38,11 @@ module ELSI
    use ELSI_SETUP
    use ELSI_SOLVER
    use ELSI_TIMINGS
+   use ELSI_CONSTANTS, only : release_date
 
    implicit none
 
    private
-
-   character*8, parameter, public :: release_date = "20170527"
 
    ! Data type
    public :: elsi_handle

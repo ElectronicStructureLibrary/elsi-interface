@@ -183,7 +183,7 @@ subroutine elsi_reset_handle(e_h)
    e_h%stdio%print_info = .false.
    if(allocated(e_h%stdio%prefix)) &
         deallocate(e_h%stdio%prefix)
-   e_h%stdio%comma_json = .false.
+   e_h%stdio%comma_json = NO_COMMA
    e_h%output_solver_timings = .true.
    e_h%solver_timings_file%print_unit   = UNSET
    e_h%solver_timings_file%file_name  = UNSET_STRING
@@ -191,7 +191,7 @@ subroutine elsi_reset_handle(e_h)
    e_h%solver_timings_file%print_info = .false.
    if(allocated(e_h%solver_timings_file%prefix)) &
         deallocate(e_h%solver_timings_file%prefix)
-   e_h%solver_timings_file%comma_json = .false.
+   e_h%solver_timings_file%comma_json = NO_COMMA
 
 end subroutine
 
