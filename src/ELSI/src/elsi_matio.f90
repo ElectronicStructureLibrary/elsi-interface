@@ -780,7 +780,10 @@ subroutine elsi_read_mat_real_mp(rw_h,f_name,mat)
    ! Redistribute matrix
    call elsi_set_csc(aux_h,rw_h%nnz_g,rw_h%nnz_l_sp,rw_h%n_lcol_sp,row_ind,&
            col_ptr)
-   
+   if(.not.allocated(aux_h%dm_real_pexsi)) then
+      call elsi_allocate(aux_h,aux_h%dm_real_pexsi,rw_h%nnz_l_sp,&
+                         "dm_real_pexsi",caller)
+   end if 
    aux_h%dm_real_pexsi = nnz_val
    aux_h%n_elsi_calls  = 1
    aux_h%my_prow_pexsi = 0
@@ -994,6 +997,10 @@ subroutine elsi_read_mat_complex_mp(rw_h,f_name,mat)
    call elsi_set_csc(aux_h,rw_h%nnz_g,rw_h%nnz_l_sp,rw_h%n_lcol_sp,row_ind,&
            col_ptr)
 
+   if(.not.allocated(aux_h%dm_cmplx_pexsi)) then
+      call elsi_allocate(aux_h,aux_h%dm_cmplx_pexsi,rw_h%nnz_l_sp,&
+                         "dm_cmplx_pexsi",caller)
+   endif
    aux_h%dm_cmplx_pexsi = nnz_val
    aux_h%n_elsi_calls   = 1
    aux_h%my_prow_pexsi  = 0
