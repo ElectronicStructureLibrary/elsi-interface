@@ -1330,6 +1330,7 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,time,&
       comma_json_save = io_h%comma_json
       io_h%comma_json = COMMA_AFTER ! Add commas behind all records before final
       call append_string(io_h%prefix,"  ")
+      call elsi_say_setting(e_h,    "data_source","ELSI",io_h)
       call elsi_say_setting(e_h,    "release_date",release_date,io_h)
       call elsi_say_setting(e_h,    "iteration",iter,io_h)
       if(output_type.eq.OUTPUT_EV) then
