@@ -6,41 +6,41 @@ rm rw_complex_serial.log 2> /dev/null
 rm rw_real_parallel.log 2> /dev/null
 rm rw_complex_parallel.log 2> /dev/null
 rm ev_real_serial.log 2> /dev/null
-rm ev_real_serial_timings.out 2> /dev/null
+rm ev_real_serial_timings.json 2> /dev/null
 rm ev_complex_serial.log 2> /dev/null
-rm ev_complex_serial_timings.out 2> /dev/null
+rm ev_complex_serial_timings.json 2> /dev/null
 rm ev_real_elpa.log 2> /dev/null
-rm ev_real_elpa_timings.out 2> /dev/null
+rm ev_real_elpa_timings.json 2> /dev/null
 rm ev_complex_elpa.log 2> /dev/null
-rm ev_complex_elpa_timings.out 2> /dev/null
+rm ev_complex_elpa_timings.json 2> /dev/null
 rm ev_real_sparse_elpa.log 2> /dev/null
-rm ev_real_sparse_elpa_timings.out 2> /dev/null
+rm ev_real_sparse_elpa_timings.json 2> /dev/null
 rm ev_complex_sparse_elpa.log 2> /dev/null
-rm ev_complex_sparse_elpa_timings.out 2> /dev/null
+rm ev_complex_sparse_elpa_timings.json 2> /dev/null
 rm dm_real_elpa.log 2> /dev/null
-rm dm_real_elpa_timings.out 2> /dev/null
+rm dm_real_elpa_timings.json 2> /dev/null
 rm dm_complex_elpa.log 2> /dev/null
-rm dm_complex_elpa_timings.out 2> /dev/null
+rm dm_complex_elpa_timings.json 2> /dev/null
 rm dm_real_sparse_elpa.log 2> /dev/null
-rm dm_real_sparse_elpa_timings.out 2> /dev/null
+rm dm_real_sparse_elpa_timings.json 2> /dev/null
 rm dm_complex_sparse_elpa.log 2> /dev/null
-rm dm_complex_sparse_elpa_timings.out 2> /dev/null
+rm dm_complex_sparse_elpa_timings.json 2> /dev/null
 rm dm_real_libomm.log libOMM.log 2> /dev/null
-rm dm_real_libomm_timings.out 2> /dev/null
+rm dm_real_libomm_timings.json 2> /dev/null
 rm dm_complex_libomm.log libOMM.log 2> /dev/null
-rm dm_complex_libomm_timings.out 2> /dev/null
+rm dm_complex_libomm_timings.json 2> /dev/null
 rm dm_real_sparse_libomm.log 2> /dev/null
-rm dm_real_sparse_libomm_timings.out 2> /dev/null
+rm dm_real_sparse_libomm_timings.json 2> /dev/null
 rm dm_complex_sparse_libomm.log 2> /dev/null
-rm dm_complex_sparse_libomm_timings.out 2> /dev/null
+rm dm_complex_sparse_libomm_timings.json 2> /dev/null
 rm dm_real_pexsi.log logPEXSI0 2> /dev/null
-rm dm_real_pexsi_timings.out 2> /dev/null
+rm dm_real_pexsi_timings.json 2> /dev/null
 rm dm_complex_pexsi.log logPEXSI0 2> /dev/null
-rm dm_complex_pexsi_timings.out 2> /dev/null
+rm dm_complex_pexsi_timings.json 2> /dev/null
 rm dm_real_sparse_pexsi.log 2> /dev/null
-rm dm_real_sparse_pexsi_timings.out 2> /dev/null
+rm dm_real_sparse_pexsi_timings.json 2> /dev/null
 rm dm_complex_sparse_pexsi.log 2> /dev/null
-rm dm_complex_sparse_pexsi_timings.out 2> /dev/null
+rm dm_complex_sparse_pexsi_timings.json 2> /dev/null
 set -e # Stop on error
 
 RED_ALART="false"
@@ -139,7 +139,7 @@ while kill -0 $PID 2>/dev/null; do
     sleep 1
     echo -n '.'
 done
-mv ev_real_timings.out ev_real_serial_timings.out 2>/dev/null
+mv ev_real_timings.json ev_real_serial_timings.json 2>/dev/null
 
 if (! grep -q "Passed" <./ev_real_serial.log); then
    tput setaf 5
@@ -161,7 +161,7 @@ while kill -0 $PID 2>/dev/null; do
     sleep 1
     echo -n '.'
 done
-mv ev_complex_timings.out ev_complex_serial_timings.out 2>/dev/null
+mv ev_complex_timings.json ev_complex_serial_timings.json 2>/dev/null
 
 if (! grep -q "Passed" <./ev_complex_serial.log); then
    tput setaf 5
@@ -183,7 +183,7 @@ while kill -0 $PID 2>/dev/null; do
     sleep 1
     echo -n '.'
 done
-mv ev_real_timings.out ev_real_elpa_timings.out 2>/dev/null
+mv ev_real_timings.json ev_real_elpa_timings.json 2>/dev/null
 
 if (! grep -q "Passed" <./ev_real_elpa.log); then
    tput setaf 5
@@ -205,7 +205,7 @@ while kill -0 $PID 2>/dev/null; do
     sleep 1
     echo -n '.'
 done
-mv ev_complex_timings.out ev_complex_elpa_timings.out 2>/dev/null
+mv ev_complex_timings.json ev_complex_elpa_timings.json 2>/dev/null
 
 if (! grep -q "Passed" <./ev_complex_elpa.log); then
    tput setaf 5
@@ -227,7 +227,7 @@ while kill -0 $PID 2>/dev/null; do
     sleep 1
     echo -n '.'
 done
-mv ev_real_sparse_timings.out ev_real_sparse_elpa_timings.out 2>/dev/null
+mv ev_real_sparse_timings.json ev_real_sparse_elpa_timings.json 2>/dev/null
 
 if (! grep -q "Passed" <./ev_real_sparse_elpa.log); then
    tput setaf 5
@@ -249,7 +249,7 @@ while kill -0 $PID 2>/dev/null; do
     sleep 1
     echo -n '.'
 done
-mv ev_complex_sparse_timings.out ev_complex_sparse_elpa_timings.out 2>/dev/null
+mv ev_complex_sparse_timings.json ev_complex_sparse_elpa_timings.json 2>/dev/null
 
 if (! grep -q "Passed" <./ev_complex_sparse_elpa.log); then
    tput setaf 5
@@ -295,7 +295,7 @@ while kill -0 $PID 2>/dev/null; do
     sleep 1
     echo -n '.'
 done
-mv dm_real_timings.out dm_real_elpa_timings.out 2>/dev/null
+mv dm_real_timings.json dm_real_elpa_timings.json 2>/dev/null
 
 if (! grep -q "Passed" <./dm_real_elpa.log); then
    tput setaf 5
@@ -317,7 +317,7 @@ while kill -0 $PID 2>/dev/null; do
     sleep 1
     echo -n '.'
 done
-mv dm_complex_timings.out dm_complex_elpa_timings.out 2>/dev/null
+mv dm_complex_timings.json dm_complex_elpa_timings.json 2>/dev/null
 
 if (! grep -q "Passed" <./dm_complex_elpa.log); then
    tput setaf 5
@@ -339,7 +339,7 @@ while kill -0 $PID 2>/dev/null; do
     sleep 1
     echo -n '.'
 done
-mv dm_real_sparse_timings.out dm_real_sparse_elpa_timings.out 2>/dev/null
+mv dm_real_sparse_timings.json dm_real_sparse_elpa_timings.json 2>/dev/null
 
 if (! grep -q "Passed" <./dm_real_sparse_elpa.log); then
    tput setaf 5
@@ -361,7 +361,7 @@ while kill -0 $PID 2>/dev/null; do
     sleep 1
     echo -n '.'
 done
-mv dm_complex_sparse_timings.out dm_complex_sparse_elpa_timings.out 2>/dev/null
+mv dm_complex_sparse_timings.json dm_complex_sparse_elpa_timings.json 2>/dev/null
 
 if (! grep -q "Passed" <./dm_complex_sparse_elpa.log); then
    tput setaf 5
@@ -383,7 +383,7 @@ while kill -0 $PID 2>/dev/null; do
    sleep 1
    echo -n '.'
 done
-mv dm_real_timings.out dm_real_libomm_timings.out 2>/dev/null
+mv dm_real_timings.json dm_real_libomm_timings.json 2>/dev/null
 
 if (! grep -q "Passed" <./dm_real_libomm.log); then
    tput setaf 5
@@ -405,7 +405,7 @@ while kill -0 $PID 2>/dev/null; do
    sleep 1
    echo -n '.'
 done
-mv dm_complex_timings.out dm_complex_libomm_timings.out 2>/dev/null
+mv dm_complex_timings.json dm_complex_libomm_timings.json 2>/dev/null
 
 if (! grep -q "Passed" <./dm_complex_libomm.log); then
    tput setaf 5
@@ -427,7 +427,7 @@ while kill -0 $PID 2>/dev/null; do
    sleep 1
    echo -n '.'
 done
-mv dm_real_sparse_timings.out dm_real_sparse_libomm_timings.out 2>/dev/null
+mv dm_real_sparse_timings.json dm_real_sparse_libomm_timings.json 2>/dev/null
 
 if (! grep -q "Passed" <./dm_real_sparse_libomm.log); then
    tput setaf 5
@@ -449,7 +449,7 @@ while kill -0 $PID 2>/dev/null; do
    sleep 1
    echo -n '.'
 done
-mv dm_complex_sparse_timings.out dm_complex_sparse_libomm_timings.out 2>/dev/null
+mv dm_complex_sparse_timings.json dm_complex_sparse_libomm_timings.json 2>/dev/null
 
 if (! grep -q "Passed" <./dm_complex_sparse_libomm.log); then
    tput setaf 5
@@ -473,7 +473,7 @@ then
       sleep 1
       echo -n '.'
    done
-   mv dm_real_timings.out dm_real_pexsi_timings.out 2>/dev/null
+   mv dm_real_timings.json dm_real_pexsi_timings.json 2>/dev/null
 
    if (! grep -q "Passed" <./dm_real_pexsi.log); then
       tput setaf 5
@@ -495,7 +495,7 @@ then
       sleep 1
       echo -n '.'
    done
-   mv dm_complex_timings.out dm_complex_pexsi_timings.out 2>/dev/null
+   mv dm_complex_timings.json dm_complex_pexsi_timings.json 2>/dev/null
 
    if (! grep -q "Passed" <./dm_complex_pexsi.log); then
       tput setaf 5
@@ -517,7 +517,7 @@ then
       sleep 1
       echo -n '.'
    done
-   mv dm_real_sparse_timings.out dm_real_sparse_pexsi_timings.out 2>/dev/null
+   mv dm_real_sparse_timings.json dm_real_sparse_pexsi_timings.json 2>/dev/null
 
    if (! grep -q "Passed" <./dm_real_sparse_pexsi.log); then
       tput setaf 5
@@ -539,7 +539,7 @@ then
       sleep 1
       echo -n '.'
    done
-   mv dm_complex_sparse_timings.out dm_complex_sparse_pexsi_timings.out 2>/dev/null
+   mv dm_complex_sparse_timings.json dm_complex_sparse_pexsi_timings.json 2>/dev/null
 
    if (! grep -q "Passed" <./dm_complex_sparse_pexsi.log); then
       tput setaf 5

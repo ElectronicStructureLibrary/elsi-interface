@@ -169,7 +169,7 @@ elsi_dmp.o: $(ELSI_DIR)/src/elsi_dmp.f90 elsi_constants.o elsi_datatype.o $(ELSI
 elsi_elpa.o: $(ELSI_DIR)/src/elsi_elpa.f90 elsi_constants.o elsi_datatype.o elsi_io.o elsi_malloc.o elsi_mpi.o elsi_mu.o elsi_precision.o elsi_timings.o elsi_utils.o
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
-elsi_interface.o: $(ELSI_DIR)/src/elsi_interface.f90 elsi_setup.o elsi_solver.o elsi_mutator.o elsi_matio.o elsi_mu.o elsi_datatype.o
+elsi_interface.o: $(ELSI_DIR)/src/elsi_interface.f90 elsi_constants.o elsi_setup.o elsi_solver.o elsi_mutator.o elsi_matio.o elsi_mu.o elsi_datatype.o
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
 elsi_io.o: $(ELSI_DIR)/src/elsi_io.f90 elsi_constants.o elsi_datatype.o elsi_mpi.o elsi_precision.o

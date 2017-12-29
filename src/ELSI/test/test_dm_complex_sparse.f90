@@ -239,7 +239,7 @@ program test_dm_complex_sparse
    call elsi_set_pexsi_delta_e(e_h,80.0_r8)
    call elsi_set_pexsi_np_per_pole(e_h,2)
    call elsi_set_solver_timings_unit(e_h,67)
-   call elsi_set_solver_timings_file(e_h,"dm_complex_sparse_timings.out")
+   call elsi_set_solver_timings_file(e_h,"dm_complex_sparse_timings.json")
 
    t1 = MPI_Wtime()
 

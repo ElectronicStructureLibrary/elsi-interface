@@ -102,6 +102,7 @@ module ELSI_MUTATOR
    public :: elsi_set_mu_broaden_width
    public :: elsi_set_mu_tol
    public :: elsi_set_mu_spin_degen
+   public :: elsi_set_output_solver_timings
    public :: elsi_set_solver_timings_unit
    public :: elsi_set_solver_timings_file
    public :: elsi_get_pexsi_mu_min
@@ -132,25 +133,25 @@ subroutine elsi_set_output(e_h,out_level)
    if (e_h%handle_ready) e_h%handle_changed = .true.
 
    if(out_level <= 0) then
-      e_h%print_info              = .false.
+      e_h%stdio%print_info        = .false.
       e_h%print_mem               = .false.
       e_h%omm_output              = .false.
       e_h%pexsi_options%verbosity = 1
       e_h%elpa_output             = .false.
    elseif(out_level == 1) then
-      e_h%print_info              = .true.
+      e_h%stdio%print_info        = .true.
       e_h%print_mem               = .false.
       e_h%omm_output              = .false.
       e_h%pexsi_options%verbosity = 1
       e_h%elpa_output             = .false.
    elseif(out_level == 2) then
-      e_h%print_info              = .true.
+      e_h%stdio%print_info        = .true.
       e_h%print_mem               = .false.
       e_h%omm_output              = .true.
       e_h%pexsi_options%verbosity = 2
       e_h%elpa_output             = .true.
    else
-      e_h%print_info              = .true.
+      e_h%stdio%print_info        = .true.
       e_h%print_mem               = .true.
       e_h%omm_output              = .true.
       e_h%pexsi_options%verbosity = 2
@@ -174,7 +175,7 @@ subroutine elsi_set_write_unit(e_h,write_unit)
    call elsi_check_handle(e_h,caller)
    if (e_h%handle_ready) e_h%handle_changed = .true.
 
-   e_h%print_unit = write_unit
+   e_h%stdio%print_unit = write_unit
 
 end subroutine
 
@@ -1142,6 +1143,30 @@ subroutine elsi_set_mu_spin_degen(e_h,spin_degen)
 end subroutine
 
 !>
+!! This routine sets whether the detailed solver timings file should
+!! be output.
+!!
+subroutine elsi_set_output_solver_timings(e_h,output_solver_timings)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h                   !< Handle
+   integer(kind=i4),  intent(in)    :: output_solver_timings !< Unit
+
+   character*40, parameter :: caller = "elsi_set_output_solver_timings"
+
+   call elsi_check_handle(e_h,caller)
+   if (e_h%handle_ready) e_h%handle_changed = .true.
+   
+   if(output_solver_timings == 0) then
+      e_h%output_solver_timings = .false.
+   else
+      e_h%output_solver_timings = .true.
+   end if 
+
+end subroutine
+
+!>
 !! This routine sets the unit to which detailed solver timings are
 !! output.
 !!
@@ -1157,7 +1182,7 @@ subroutine elsi_set_solver_timings_unit(e_h,solver_timings_unit)
    call elsi_check_handle(e_h,caller)
    if (e_h%handle_ready) e_h%handle_changed = .true.
 
-   e_h%solver_timings_unit = solver_timings_unit
+   e_h%solver_timings_file%print_unit = solver_timings_unit
 
 end subroutine
 
@@ -1177,7 +1202,7 @@ subroutine elsi_set_solver_timings_file(e_h,solver_timings_file)
    call elsi_check_handle(e_h,caller)
    if (e_h%handle_ready) e_h%handle_changed = .true.
 
-   e_h%solver_timings_file = solver_timings_file
+   e_h%solver_timings_file%file_name = solver_timings_file
 
 end subroutine
 

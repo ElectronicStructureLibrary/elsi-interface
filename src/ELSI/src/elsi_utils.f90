@@ -32,7 +32,7 @@ module ELSI_UTILS
 
    use ELSI_CONSTANTS
    use ELSI_DATATYPE
-   use ELSI_IO,        only: elsi_say
+   use ELSI_IO,        only: elsi_say, append_string, truncate_string
    use ELSI_MPI
    use ELSI_PRECISION, only: i4,r8
 
@@ -69,9 +69,7 @@ subroutine elsi_reset_handle(e_h)
    e_h%matrix_format    = UNSET
    e_h%uplo             = FULL_MAT
    e_h%parallel_mode    = UNSET
-   e_h%print_info       = .false.
    e_h%print_mem        = .false.
-   e_h%print_unit       = 6
    e_h%n_elsi_calls     = 0
    e_h%myid             = UNSET
    e_h%myid_all         = UNSET
@@ -179,8 +177,7 @@ subroutine elsi_reset_handle(e_h)
    e_h%ev_max           = 0.0_r8
    e_h%sips_started     = .false.
    e_h%clock_rate       = UNSET
-   e_h%solver_timings_unit = UNSET
-   e_h%solver_timings_file = UNSET_STRING
+   e_h%output_solver_timings = .true.
 
 end subroutine
 
@@ -386,10 +383,21 @@ subroutine elsi_ready_handle(e_h,caller)
 
       ! We can now perform initialization-like tasks which require
       ! the usage of MPI
-      if (e_h%myid_all == 0) then
-         open(unit=e_h%solver_timings_unit, file=e_h%solver_timings_file)
-      else
-         e_h%solver_timings_unit = UNSET
+      if(e_h%output_solver_timings) then
+         if (e_h%myid_all == 0) then
+            open(unit=e_h%solver_timings_file%print_unit,&
+                 file=e_h%solver_timings_file%file_name)
+         else
+            ! We know which process has myid_all.eq.0 now, we can 
+            ! de-initialize the rest
+            e_h%solver_timings_file%print_unit = UNSET
+            e_h%solver_timings_file%file_name  = UNSET_STRING
+         endif
+         if(e_h%solver_timings_file%format == JSON) then
+            ! Opening bracket to signify JSON array
+            call elsi_say(e_h, "[", e_h%solver_timings_file)
+            call append_string(e_h%solver_timings_file%prefix,"  ")
+         end if
       endif
 
       e_h%handle_ready   = .true.
@@ -625,10 +633,6 @@ subroutine elsi_get_solver_tag(e_h,solver_tag,data_type)
    type(elsi_handle),                intent(in)  :: e_h         !< Handle
    character(len=TIMING_STRING_LEN), intent(out) :: solver_tag
    integer(kind=i4),                 intent(in)  :: data_type
-
-   ! Note:  I've deliberately put data_type at the end of the list, as I have the
-   !        uneasy gut feeling that it could be optional in the future, even though 
-   !        I can't see how 
 
    character*40, parameter :: caller = "elsi_get_solver_tag"
 

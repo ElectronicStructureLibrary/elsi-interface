@@ -26,21 +26,18 @@
 ! EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ! WPH: Since this is in progress, I'm putting my todo list directly in the code:
-! - Create subroutines to resize arrays on-the-fly, should STARTING_SIZE_TIMINGS be
-!   too small.
-! - Add error checking to elsi_add_timing to make sure input strings aren't too long.
+! - Create subroutines to resize arrays on-the-fly, should STARTING_SIZE_TIMINGS
+!   be too small.
+! - Add error checking to elsi_add_timing to make sure input strings aren't too
+!   log
 ! - Do we time the solver itself, or the ELSI wrapper around the subroutine?
 !   The latter makes sense for the decision layer, and the former for solver
 !   development.  Both are useful.  Should do both.
-! - Add ELSI interface subroutines for solver timings, i.e. elsi_print_solver_timings
-!   as a wrapper around elsi_print_timings(e_h,e_h%solver_timings).  The calling code
-!   should not have access to any ELSI timing handle, it should always go through an
-!   interface subroutine defined on the ELSI handle.
 
 ! NOTES:
-! - I've made the choice to not use elsi_malloc, because it considerably increases the
-!   code density for little payoff; the allocated arrays here will be on the order of
-!   kB, if that
+! - I've made the choice to not use elsi_malloc, because it considerably 
+!   increases the code density for little payoff; the allocated arrays here will
+!   be on the order of kB, if that
 
 !>
 !! This module contains a collection of utilities related to timings in ELSI.
@@ -236,15 +233,14 @@ subroutine elsi_print_timings(e_h,t_h)
 
    character*40, parameter :: caller = "elsi_print_timings"
 
-   write(info_str,"(2X,A,A)")  "|   Timing Set:        ", t_h%set_label
+   write(info_str,"(A,A)")  "Timing Set:        ", t_h%set_label
    call elsi_say(e_h,info_str)
-   write(info_str,"(2X,A,I4)") "|   Number of timings: ", t_h%n_timings
+   write(info_str,"(A,I4)") "Number of timings: ", t_h%n_timings
    call elsi_say(e_h,info_str)
 
-   call elsi_say(e_h,"  |      #  system_clock [s]  elsi_tag             user_tag            ")
+   call elsi_say(e_h,"   #  system_clock [s]  elsi_tag             user_tag            ")
    do iter = 1, t_h%n_timings
-      write(info_str,"(2X,A,I4,1X,F17.3,2X,A,1X,A)") &
-           "|   ", &
+      write(info_str,"(I4,1X,F17.3,2X,A,1X,A)") &
            iter, &
            t_h%times(iter), &
            t_h%elsi_tags(iter), &

@@ -34,8 +34,10 @@ module ELSI_CONSTANTS
 
    implicit none
 
-   real(kind=r8), parameter :: SQRT_PI        = 1.7724538509055160273_r8 ! sqrt(pi)
-   real(kind=r8), parameter :: INVERT_SQRT_PI = 0.5641895835477563275_r8 ! 1/sqrt(pi)
+   character*8, parameter, public :: release_date = "20170527"
+
+   real(kind=r8), parameter :: SQRT_PI        = 1.7724538509055160273_r8
+   real(kind=r8), parameter :: INVERT_SQRT_PI = 0.5641895835477563275_r8
 
    integer(kind=i4), parameter :: UNSET            = -910910
    integer(kind=i4), parameter :: N_SOLVERS        = 7
@@ -54,6 +56,10 @@ module ELSI_CONSTANTS
    ! Real or complex data
    integer(kind=i4), parameter :: REAL_VALUES    = 0
    integer(kind=i4), parameter :: COMPLEX_VALUES = 1
+
+   ! Output for solver subroutines (density matrix or eigenvectors)
+   integer(kind=i4), parameter :: OUTPUT_EV = 0
+   integer(kind=i4), parameter :: OUTPUT_DM = 1
 
    ! Matrix formats
    integer(kind=i4), parameter :: BLACS_DENSE = 0
@@ -94,6 +100,13 @@ module ELSI_CONSTANTS
    ! Constants for ELSI file IO
    character(len=*), parameter :: UNSET_STRING  = "N/A"
    integer(kind=i4), parameter :: FILE_NAME_LEN = 80
+   integer(kind=i4), parameter :: HUMAN_READ    = 0
+   integer(kind=i4), parameter :: JSON          = 1
+
+   ! Control placement of commas in JSON records
+   integer(kind=i4), parameter :: COMMA_AFTER  = 0 
+   integer(kind=i4), parameter :: COMMA_BEFORE = 1
+   integer(kind=i4), parameter :: NO_COMMA     = 2
 
    ! Constants for ELSI timings
    integer(kind=i4),             parameter :: &
@@ -101,6 +114,6 @@ module ELSI_CONSTANTS
    integer(kind=i4),             parameter :: &
         SOLVER_TIMINGS_UNIT_DEFAULT = 66
    character(len=FILE_NAME_LEN), parameter :: &
-        SOLVER_TIMINGS_FILE_DEFAULT = "elsi_solver_timings.out"
+        SOLVER_TIMINGS_FILE_DEFAULT = "elsi_solver_timings.json"
 
 end module ELSI_CONSTANTS
