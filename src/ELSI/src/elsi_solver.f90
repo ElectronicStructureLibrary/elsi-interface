@@ -1225,6 +1225,7 @@ subroutine elsi_process_solver_timing(e_h,output_type,data_type,solver_used,&
    real(kind=r8)                    :: t1, total_time
    integer(kind=i4)                 :: temp_int
    integer(kind=i4)                 :: comma_json_save
+   integer(kind=i4)                 :: iteration
    type(elsi_file_io_handle)        :: io_h
 
    character*40, parameter :: caller = "elsi_dm_complex_sparse"
@@ -1239,6 +1240,10 @@ subroutine elsi_process_solver_timing(e_h,output_type,data_type,solver_used,&
    call elsi_get_solver_tag(e_h,solver_tag,data_type)
    call elsi_add_timing(e_h%solver_timings,total_time,solver_tag)
    if(e_h%output_solver_timings) then
+      ! Both the iteration number and user tag for this iteration is taken
+      ! from the top of the solver_timings struct
+      iteration = e_h%solver_timings%n_timings
+
       ! The following block exists because we don't know what the final entry
       ! of the JSON format will be in advance.  So if we append a comma to the
       ! end of every entry, we will trigger a parser error when it parses
@@ -1255,8 +1260,8 @@ subroutine elsi_process_solver_timing(e_h,output_type,data_type,solver_used,&
       endif
 
       call elsi_print_solver_timing(e_h,output_type,data_type,start_datetime,&
-                                    total_time,solver_tag,&
-                                    e_h%solver_timings%n_timings,io_h)
+                                    total_time,solver_tag,iteration,io_h,&
+                                    e_h%solver_timings%user_tags(iteration))
 
       io_h%comma_json = comma_json_save
    endif

@@ -214,6 +214,7 @@ program test_ev_complex
    t1 = MPI_Wtime()
 
    ! Solve (pseudo SCF 1)
+   call elsi_set_solver_timing_tag(e_h,"TEST")
    call elsi_ev_complex(e_h,ham,ovlp,eval,evec)
 
    t2 = MPI_Wtime()
@@ -233,6 +234,7 @@ program test_ev_complex
    t1 = MPI_Wtime()
 
    ! Solve (pseudo SCF 2, with the same H)
+   call elsi_set_solver_timing_tag(e_h,"TEST")
    call elsi_ev_complex(e_h,ham,ovlp,eval,evec)
 
    t2 = MPI_Wtime()
