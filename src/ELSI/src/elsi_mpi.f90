@@ -26,7 +26,11 @@
 ! EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 !>
-!! This module contains a collection of basic utility routines.
+!! This module contains a collection of basic utility routines related to MPI.
+!! Since the user may specify local and global communicators independently,
+!! we can only assume that MPI is *fully* initialized when elsi_ready_handle has
+!! been called, and initialization requiring the usage of MPI should be done
+!! in that subroutine.
 !!
 module ELSI_MPI
 
@@ -38,6 +42,7 @@ module ELSI_MPI
    include "mpif.h"
 
    public :: elsi_stop
+   public :: elsi_get_processor_name
 
 contains
 
@@ -78,6 +83,30 @@ subroutine elsi_stop(info,e_h,caller)
    endif
 
    stop
+
+end subroutine
+
+!>
+!! Get processor name
+!!
+subroutine elsi_get_processor_name(e_h,proc_name,proc_name_len)
+
+   implicit none
+
+   type(elsi_handle), intent(in) :: e_h
+
+   character(len=MPI_MAX_PROCESSOR_NAME), intent(out) :: proc_name
+   integer,                               intent(out) :: proc_name_len
+
+   character*40, parameter :: caller = "elsi_get_processor_name"
+
+   integer :: mpierr
+
+   call MPI_GET_PROCESSOR_NAME(proc_name,proc_name_len,mpierr)
+
+   if(mpierr .ne. MPI_SUCCESS) then
+      call elsi_stop ("MPI_GET_PROCESSOR_NAME failed",e_h,caller)
+   endif
 
 end subroutine
 

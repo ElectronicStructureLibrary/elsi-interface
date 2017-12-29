@@ -334,6 +334,9 @@ module ELSI_DATATYPE
       logical                      :: output_solver_timings ! Whether we output 
                                                             ! the solver timings 
 
+      ! Versioning
+      character(len=:), allocatable :: processor_name ! MPI name for processor
+
    end type
 
    !---------------------------------------------------------------------------!

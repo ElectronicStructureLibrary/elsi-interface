@@ -151,6 +151,7 @@ subroutine elsi_ev_real(e_h,ham,ovlp,eval,evec)
 
    ! Timing-related variable
    real(kind=r8)                    :: t0
+   character(len=DATETIME_LEN)      :: start_datetime
    integer(kind=i4)                 :: solver_used
    integer(kind=i4), parameter      :: output_type = OUTPUT_EV
    integer(kind=i4), parameter      :: data_type   = REAL_VALUES
@@ -158,6 +159,7 @@ subroutine elsi_ev_real(e_h,ham,ovlp,eval,evec)
    character*40, parameter :: caller = "elsi_ev_real"
 
    call elsi_get_time(e_h,t0)
+   call elsi_get_datetime_rfc3339(start_datetime)
 
    call elsi_check_handle(e_h,caller)
    call elsi_ready_handle(e_h,caller)
@@ -221,7 +223,8 @@ subroutine elsi_ev_real(e_h,ham,ovlp,eval,evec)
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
-   call elsi_process_solver_timing(e_h,output_type,data_type,solver_used,t0)
+   call elsi_process_solver_timing(e_h,output_type,data_type,solver_used,&
+                                   start_datetime,t0)
 
 end subroutine
 
@@ -242,6 +245,7 @@ subroutine elsi_ev_complex(e_h,ham,ovlp,eval,evec)
 
    ! Timing-related variable
    real(kind=r8)                    :: t0
+   character(len=DATETIME_LEN)      :: start_datetime
    integer(kind=i4)                 :: solver_used
    integer(kind=i4), parameter      :: output_type = OUTPUT_EV
    integer(kind=i4), parameter      :: data_type   = COMPLEX_VALUES
@@ -249,6 +253,7 @@ subroutine elsi_ev_complex(e_h,ham,ovlp,eval,evec)
    character*40, parameter :: caller = "elsi_ev_complex"
 
    call elsi_get_time(e_h,t0)
+   call elsi_get_datetime_rfc3339(start_datetime)
 
    call elsi_check_handle(e_h,caller)
    call elsi_ready_handle(e_h,caller)
@@ -284,7 +289,8 @@ subroutine elsi_ev_complex(e_h,ham,ovlp,eval,evec)
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
-   call elsi_process_solver_timing(e_h,output_type,data_type,solver_used,t0)
+   call elsi_process_solver_timing(e_h,output_type,data_type,solver_used,&
+                                   start_datetime,t0)
 
 end subroutine
 
@@ -305,6 +311,7 @@ subroutine elsi_ev_real_sparse(e_h,ham,ovlp,eval,evec)
 
    ! Timing-related variable
    real(kind=r8)                    :: t0
+   character(len=DATETIME_LEN)      :: start_datetime
    integer(kind=i4)                 :: solver_used
    integer(kind=i4), parameter      :: output_type = OUTPUT_EV
    integer(kind=i4), parameter      :: data_type   = REAL_VALUES
@@ -312,6 +319,7 @@ subroutine elsi_ev_real_sparse(e_h,ham,ovlp,eval,evec)
    character*40, parameter :: caller = "elsi_ev_real_sparse"
 
    call elsi_get_time(e_h,t0)
+   call elsi_get_datetime_rfc3339(start_datetime)
 
    call elsi_check_handle(e_h,caller)
    call elsi_ready_handle(e_h,caller)
@@ -344,7 +352,8 @@ subroutine elsi_ev_real_sparse(e_h,ham,ovlp,eval,evec)
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
-   call elsi_process_solver_timing(e_h,output_type,data_type,solver_used,t0)
+   call elsi_process_solver_timing(e_h,output_type,data_type,solver_used,&
+                                   start_datetime,t0)
 
 end subroutine
 
@@ -365,6 +374,7 @@ subroutine elsi_ev_complex_sparse(e_h,ham,ovlp,eval,evec)
 
    ! Timing-related variable
    real(kind=r8)                    :: t0
+   character(len=DATETIME_LEN)      :: start_datetime
    integer(kind=i4)                 :: solver_used
    integer(kind=i4), parameter      :: output_type = OUTPUT_EV
    integer(kind=i4), parameter      :: data_type   = COMPLEX_VALUES
@@ -372,6 +382,7 @@ subroutine elsi_ev_complex_sparse(e_h,ham,ovlp,eval,evec)
    character*40, parameter :: caller = "elsi_ev_complex_sparse"
 
    call elsi_get_time(e_h,t0)
+   call elsi_get_datetime_rfc3339(start_datetime)
 
    call elsi_check_handle(e_h,caller)
    call elsi_ready_handle(e_h,caller)
@@ -404,7 +415,8 @@ subroutine elsi_ev_complex_sparse(e_h,ham,ovlp,eval,evec)
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
-   call elsi_process_solver_timing(e_h,output_type,data_type,solver_used,t0)
+   call elsi_process_solver_timing(e_h,output_type,data_type,solver_used,&
+                                   start_datetime,t0)
 
 end subroutine
 
@@ -424,6 +436,7 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
 
    ! Timing-related variable
    real(kind=r8)                    :: t0
+   character(len=DATETIME_LEN)      :: start_datetime
    integer(kind=i4)                 :: solver_used
    integer(kind=i4), parameter      :: output_type = OUTPUT_DM
    integer(kind=i4), parameter      :: data_type   = REAL_VALUES
@@ -431,6 +444,7 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
    character*40, parameter :: caller = "elsi_dm_real"
 
    call elsi_get_time(e_h,t0)
+   call elsi_get_datetime_rfc3339(start_datetime)
 
    call elsi_check_handle(e_h,caller)
    call elsi_ready_handle(e_h,caller)
@@ -589,7 +603,8 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
-   call elsi_process_solver_timing(e_h,output_type,data_type,solver_used,t0)
+   call elsi_process_solver_timing(e_h,output_type,data_type,solver_used,&
+                                   start_datetime,t0)
 
    e_h%edm_ready_real = .true.
 
@@ -611,6 +626,7 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
 
    ! Timing-related variable
    real(kind=r8)                    :: t0
+   character(len=DATETIME_LEN)      :: start_datetime
    integer(kind=i4)                 :: solver_used
    integer(kind=i4), parameter      :: output_type = OUTPUT_DM
    integer(kind=i4), parameter      :: data_type   = COMPLEX_VALUES
@@ -618,6 +634,7 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
    character*40, parameter :: caller = "elsi_dm_complex"
 
    call elsi_get_time(e_h,t0)
+   call elsi_get_datetime_rfc3339(start_datetime)
 
    call elsi_check_handle(e_h,caller)
    call elsi_ready_handle(e_h,caller)
@@ -755,7 +772,8 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
-   call elsi_process_solver_timing(e_h,output_type,data_type,solver_used,t0)
+   call elsi_process_solver_timing(e_h,output_type,data_type,solver_used,&
+                                   start_datetime,t0)
 
    e_h%edm_ready_cmplx = .true.
 
@@ -777,6 +795,7 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
 
    ! Timing-related variable
    real(kind=r8)                    :: t0
+   character(len=DATETIME_LEN)      :: start_datetime
    integer(kind=i4)                 :: solver_used
    integer(kind=i4), parameter      :: output_type = OUTPUT_DM
    integer(kind=i4), parameter      :: data_type   = REAL_VALUES
@@ -784,6 +803,7 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
    character*40, parameter :: caller = "elsi_dm_real_sparse"
 
    call elsi_get_time(e_h,t0)
+   call elsi_get_datetime_rfc3339(start_datetime)
 
    call elsi_check_handle(e_h,caller)
    call elsi_ready_handle(e_h,caller)
@@ -951,7 +971,8 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
-   call elsi_process_solver_timing(e_h,output_type,data_type,solver_used,t0)
+   call elsi_process_solver_timing(e_h,output_type,data_type,solver_used,&
+                                   start_datetime,t0)
 
    e_h%edm_ready_real = .true.
 
@@ -973,6 +994,7 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
 
    ! Timing-related variable
    real(kind=r8)                    :: t0
+   character(len=DATETIME_LEN)      :: start_datetime
    integer(kind=i4)                 :: solver_used
    integer(kind=i4), parameter      :: output_type = OUTPUT_DM
    integer(kind=i4), parameter      :: data_type   = COMPLEX_VALUES
@@ -980,6 +1002,7 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
    character*40, parameter :: caller = "elsi_dm_complex_sparse"
 
    call elsi_get_time(e_h,t0)
+   call elsi_get_datetime_rfc3339(start_datetime)
 
    call elsi_check_handle(e_h,caller)
    call elsi_ready_handle(e_h,caller)
@@ -1121,7 +1144,8 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
-   call elsi_process_solver_timing(e_h,output_type,data_type,solver_used,t0)
+   call elsi_process_solver_timing(e_h,output_type,data_type,solver_used,&
+                                   start_datetime,t0)
 
    e_h%edm_ready_cmplx = .true.
 
@@ -1185,20 +1209,23 @@ end subroutine
 !! This routine acts on the timing information, both to add it to the solver
 !! timing summary and print it to the solver timing file.
 !!
-subroutine elsi_process_solver_timing(e_h,output_type,data_type,solver_used,t0)
+subroutine elsi_process_solver_timing(e_h,output_type,data_type,solver_used,&
+                                      start_datetime,t0)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h !< Handle
-   integer(kind=i4),  intent(in)    :: output_type
-   integer(kind=i4),  intent(in)    :: data_type
-   integer(kind=i4),  intent(in)    :: solver_used
-   real(kind=r8),     intent(in)    :: t0
+   type(elsi_handle),           intent(inout) :: e_h !< Handle
+   integer(kind=i4),            intent(in)    :: output_type
+   integer(kind=i4),            intent(in)    :: data_type
+   integer(kind=i4),            intent(in)    :: solver_used
+   real(kind=r8),               intent(in)    :: t0
+   character(len=DATETIME_LEN), intent(in)    :: start_datetime
 
    character(len=TIMING_STRING_LEN) :: solver_tag
-   real(kind=r8)                    :: t1, time
+   real(kind=r8)                    :: t1, total_time
    integer(kind=i4)                 :: temp_int
    integer(kind=i4)                 :: comma_json_save
+   integer(kind=i4)                 :: iteration
    type(elsi_file_io_handle)        :: io_h
 
    character*40, parameter :: caller = "elsi_dm_complex_sparse"
@@ -1208,11 +1235,15 @@ subroutine elsi_process_solver_timing(e_h,output_type,data_type,solver_used,t0)
    call elsi_get_time(e_h,t1)
    temp_int   = e_h%solver
    e_h%solver = solver_used
-   time       = t1-t0
+   total_time       = t1-t0
    ! Output information about this solver invocation
    call elsi_get_solver_tag(e_h,solver_tag,data_type)
-   call elsi_add_timing(e_h%solver_timings,time,solver_tag)
+   call elsi_add_timing(e_h%solver_timings,total_time,solver_tag)
    if(e_h%output_solver_timings) then
+      ! Both the iteration number and user tag for this iteration is taken
+      ! from the top of the solver_timings struct
+      iteration = e_h%solver_timings%n_timings
+
       ! The following block exists because we don't know what the final entry
       ! of the JSON format will be in advance.  So if we append a comma to the
       ! end of every entry, we will trigger a parser error when it parses
@@ -1228,9 +1259,9 @@ subroutine elsi_process_solver_timing(e_h,output_type,data_type,solver_used,t0)
          io_h%comma_json = COMMA_BEFORE
       endif
 
-      call elsi_print_solver_timing(e_h,output_type,data_type,time,&
-                                    solver_tag,e_h%solver_timings%n_timings,&
-                                    io_h)
+      call elsi_print_solver_timing(e_h,output_type,data_type,start_datetime,&
+                                    total_time,solver_tag,iteration,io_h,&
+                                    e_h%solver_timings%user_tags(iteration))
 
       io_h%comma_json = comma_json_save
    endif
@@ -1244,26 +1275,28 @@ end subroutine
 !! TODO (wph6@duke.edu):  This routine's interface is rough.  Needs to be 
 !! cleaned up.
 !!
-subroutine elsi_print_solver_timing(e_h,output_type,data_type,time,&
-                                    elsi_tag_in,iter,&
-                                    io_h_in,user_tag_in)
+subroutine elsi_print_solver_timing(e_h,output_type,data_type,start_datetime,&
+                                    total_time,elsi_tag_in,iter,io_h_in,&
+                                    user_tag_in)
 
    implicit none
 
-   type(elsi_handle),          intent(inout) :: e_h   !< Handle
-   integer(kind=i4),           intent(in)    :: output_type
-   integer(kind=i4),           intent(in)    :: data_type
-   real(kind=r8),              intent(in)    :: time
-   character(len=*),           intent(in)    :: elsi_tag_in
-   integer(kind=i4),           intent(in)    :: iter
+   type(elsi_handle),           intent(inout) :: e_h   !< Handle
+   integer(kind=i4),            intent(in)    :: output_type
+   integer(kind=i4),            intent(in)    :: data_type
+   character(len=DATETIME_LEN), intent(in)    :: start_datetime
+   real(kind=r8),               intent(in)    :: total_time
+   character(len=*),            intent(in)    :: elsi_tag_in
+   integer(kind=i4),            intent(in)    :: iter
    type(elsi_file_io_handle), optional, intent(in) :: io_h_in
-   character(len=*), optional, intent(in)    :: user_tag_in
+   character(len=*), optional,  intent(in)    :: user_tag_in
 
    character*200                    :: info_str
    character(len=TIMING_STRING_LEN) :: elsi_tag
    character(len=TIMING_STRING_LEN) :: user_tag
+   character(len=DATETIME_LEN)      :: record_datetime
    integer(kind=i4)                 :: comma_json_save
-   type(elsi_file_io_handle) :: io_h
+   type(elsi_file_io_handle)        :: io_h
 
    character*40, parameter :: caller = "elsi_print_solver_timing"
 
@@ -1282,6 +1315,8 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,time,&
 
    elsi_tag = trim(elsi_tag_in)
    elsi_tag = adjustr(elsi_tag)
+
+   call elsi_get_datetime_rfc3339(record_datetime)
 
    ! Print out patterned header and timing details
    if(io_h%format == HUMAN_READ) then
@@ -1317,7 +1352,7 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,time,&
       end if
       call elsi_say_setting(e_h,      "ELSI Tag",elsi_tag,io_h)
       call elsi_say_setting(e_h,      "User Tag",user_tag,io_h)
-      call elsi_say_setting(e_h,      "Timing (s)",time,io_h)
+      call elsi_say_setting(e_h,      "Timing (s)",total_time,io_h)
       call truncate_string(io_h%prefix,2)
    elseif (io_h%format == JSON) then
       if(io_h%comma_json == COMMA_BEFORE) then
@@ -1332,6 +1367,11 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,time,&
       call append_string(io_h%prefix,"  ")
       call elsi_say_setting(e_h,    "data_source","ELSI",io_h)
       call elsi_say_setting(e_h,    "release_date",release_date,io_h)
+      call elsi_say_setting(e_h,    "elsi_tag",elsi_tag,io_h)
+      call elsi_say_setting(e_h,    "proc_0_name",e_h%processor_name,io_h)
+      call elsi_say_setting(e_h,    "start_datetime",start_datetime,io_h)
+      call elsi_say_setting(e_h,    "record_datetime",record_datetime,io_h)
+      call elsi_say_setting(e_h,    "user_tag",user_tag,io_h)
       call elsi_say_setting(e_h,    "iteration",iter,io_h)
       if(output_type.eq.OUTPUT_EV) then
          call elsi_say_setting(e_h, "output_type","EIGENVECTORS",io_h)
@@ -1347,9 +1387,10 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,time,&
       else
          call elsi_stop("Unsupported data type.",e_h,caller)
       end if
-      call elsi_say_setting(e_h,     "elsi_tag",elsi_tag,io_h)
-      call elsi_say_setting(e_h,     "user_tag",user_tag,io_h)
-      call elsi_say_setting(e_h,     "time",time,io_h)
+      ! I'm not using ISO 8601 for time duration, because A) it doesn't include
+      ! milliseconds, B) timings in seconds is well-understood in the electronic
+      ! structure community and most importantly C) it's ugly as hell
+      call elsi_say_setting(e_h,     "total_time",total_time,io_h)
       call truncate_string(io_h%prefix,2)
    else
       call elsi_stop("Unsupported output format.",e_h,caller)

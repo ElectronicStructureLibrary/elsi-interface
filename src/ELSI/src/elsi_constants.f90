@@ -115,5 +115,7 @@ module ELSI_CONSTANTS
         SOLVER_TIMINGS_UNIT_DEFAULT = 66
    character(len=FILE_NAME_LEN), parameter :: &
         SOLVER_TIMINGS_FILE_DEFAULT = "elsi_solver_timings.json"
+   integer(kind=i4),             parameter :: &
+        DATETIME_LEN                = 29
 
 end module ELSI_CONSTANTS
