@@ -46,8 +46,9 @@ module ELSI_SOLVER
                              elsi_solve_evp_elpa_cmplx
    use ELSI_LAPACK,    only: elsi_solve_evp_lapack_real,&
                              elsi_solve_evp_lapack_cmplx
-   use ELSI_IO,        only: elsi_print_handle_summary,elsi_print_solver_settings,&
-                             elsi_print_settings,elsi_say,elsi_say_setting,&
+   use ELSI_IO,        only: elsi_print_handle_summary,&
+                             elsi_print_solver_settings,elsi_print_settings,&
+                             elsi_say,elsi_say_setting,&
                              elsi_print_matrix_format_settings,&
                              append_string,truncate_string
    use ELSI_MALLOC
@@ -1238,8 +1239,10 @@ subroutine elsi_process_solver_timing(e_h,output_type,data_type,solver_used,t0)
 end subroutine
 
 !>
-!! This routine prints the timing of the current solver and all relevant information.
-!! TODO:  This routine's interface is rough.  Needs to be cleaned up.
+!! This routine prints the timing of the current solver and all relevant
+!! information.
+!! TODO (wph6@duke.edu):  This routine's interface is rough.  Needs to be 
+!! cleaned up.
 !!
 subroutine elsi_print_solver_timing(e_h,output_type,data_type,time,&
                                     elsi_tag_in,iter,&
@@ -1318,9 +1321,9 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,time,&
       call truncate_string(io_h%prefix,2)
    elseif (io_h%format == JSON) then
       if(io_h%comma_json == COMMA_BEFORE) then
-         write(info_str,"(A)")       ',{"ELSISolverTiming": {'
+         write(info_str,"(A)")       ',{'
       else
-         write(info_str,"(A)")       '{"ELSISolverTiming": {'
+         write(info_str,"(A)")       '{'
       endif
       call elsi_say(e_h,info_str,io_h)
 
@@ -1390,10 +1393,10 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,time,&
       call elsi_say(e_h,info_str,io_h)
    elseif (io_h%format == JSON) then
       if(io_h%comma_json == COMMA_AFTER) then
-         write(info_str,"(A)")   '}},'
+         write(info_str,"(A)")   '},'
          call elsi_say(e_h,info_str,io_h)
       else
-         write(info_str,"(A)")   '}}'
+         write(info_str,"(A)")   '}'
          call elsi_say(e_h,info_str,io_h)
       endif
    else

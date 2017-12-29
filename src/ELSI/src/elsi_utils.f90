@@ -177,21 +177,7 @@ subroutine elsi_reset_handle(e_h)
    e_h%ev_max           = 0.0_r8
    e_h%sips_started     = .false.
    e_h%clock_rate       = UNSET
-   e_h%stdio%print_unit   = UNSET
-   e_h%stdio%file_name  = UNSET_STRING
-   e_h%stdio%format     = UNSET
-   e_h%stdio%print_info = .false.
-   if(allocated(e_h%stdio%prefix)) &
-        deallocate(e_h%stdio%prefix)
-   e_h%stdio%comma_json = NO_COMMA
    e_h%output_solver_timings = .true.
-   e_h%solver_timings_file%print_unit   = UNSET
-   e_h%solver_timings_file%file_name  = UNSET_STRING
-   e_h%solver_timings_file%format     = UNSET
-   e_h%solver_timings_file%print_info = .false.
-   if(allocated(e_h%solver_timings_file%prefix)) &
-        deallocate(e_h%solver_timings_file%prefix)
-   e_h%solver_timings_file%comma_json = NO_COMMA
 
 end subroutine
 
@@ -647,10 +633,6 @@ subroutine elsi_get_solver_tag(e_h,solver_tag,data_type)
    type(elsi_handle),                intent(in)  :: e_h         !< Handle
    character(len=TIMING_STRING_LEN), intent(out) :: solver_tag
    integer(kind=i4),                 intent(in)  :: data_type
-
-   ! Note:  I've deliberately put data_type at the end of the list, as I have the
-   !        uneasy gut feeling that it could be optional in the future, even though 
-   !        I can't see how 
 
    character*40, parameter :: caller = "elsi_get_solver_tag"
 

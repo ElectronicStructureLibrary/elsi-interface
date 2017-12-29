@@ -32,13 +32,16 @@ module ELSI_SETUP
 
    use ELSI_CHESS,         only: elsi_set_chess_default
    use ELSI_CONSTANTS,     only: ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,&
-                                 CHESS_SOLVER,SIPS_SOLVER,SINGLE_PROC,MULTI_PROC,&
-                                 SOLVER_TIMINGS_UNIT_DEFAULT,SOLVER_TIMINGS_FILE_DEFAULT
+                                 CHESS_SOLVER,SIPS_SOLVER,SINGLE_PROC,&
+                                 MULTI_PROC,SOLVER_TIMINGS_UNIT_DEFAULT,&
+                                 SOLVER_TIMINGS_FILE_DEFAULT
    use ELSI_DATATYPE
    use ELSI_DMP,           only: elsi_set_dmp_default
    use ELSI_ELPA,          only: elsi_set_elpa_default,elsi_get_elpa_comms
-   use ELSI_IO,            only: elsi_print_handle_summary,elsi_say,elsi_say_setting,&
-                                 append_string,truncate_string
+   use ELSI_IO,            only: elsi_print_handle_summary,elsi_say,&
+                                 elsi_say_setting,elsi_init_file_io,&
+                                 elsi_reset_file_io_handle,append_string,&
+                                 truncate_string
    use ELSI_MALLOC
    use ELSI_OMM,           only: elsi_set_omm_default
    use ELSI_PEXSI,         only: elsi_set_pexsi_default
@@ -67,7 +70,7 @@ module ELSI_SETUP
    public  :: elsi_set_csc
    public  :: elsi_cleanup
 
-   private :: elsi_final_print   ! TODO: This is actually elsi_final_summary_print
+   private :: elsi_final_print
 
 contains
 
@@ -138,26 +141,19 @@ subroutine elsi_init(e_h,solver,parallel_mode,matrix_format,n_basis,n_electron,&
    end select
 
    ! Initialize stdio handle
-   e_h%stdio%print_unit   = 6
-   e_h%stdio%file_name  = UNSET_STRING
-   e_h%stdio%format     = HUMAN_READ
    ! By default, ELSI is silent to stdio unless user requests output
-   if(allocated(e_h%stdio%prefix)) deallocate(e_h%stdio%prefix)
-   e_h%stdio%comma_json = NO_COMMA
+   call elsi_init_file_io(e_h%stdio,6,format=HUMAN_READ,print_info=.false.)
 
-   ! Initialize file IO
+   ! Initialize solver timings file handle
    e_h%output_solver_timings = .true.
-   ! These variables should only have meaning for myid_all.eq.0
+   ! print_unit and file_name should only have meaning for myid_all.eq.0
    ! as a precautionary measure
    ! However, we don't know which process has myid_all.eq.0 yet,
    ! so we'll unset them once we actually open the file
-   e_h%solver_timings_file%print_unit   = SOLVER_TIMINGS_UNIT_DEFAULT
-   e_h%solver_timings_file%file_name  = SOLVER_TIMINGS_FILE_DEFAULT
-   e_h%solver_timings_file%format     = JSON
-   e_h%solver_timings_file%print_info = .true.
-   if(allocated(e_h%solver_timings_file%prefix)) &
-        deallocate(e_h%solver_timings_file%prefix)
-   e_h%solver_timings_file%comma_json = COMMA_AFTER
+   call elsi_init_file_io(e_h%solver_timings_file,SOLVER_TIMINGS_UNIT_DEFAULT,&
+                          file_name=SOLVER_TIMINGS_FILE_DEFAULT,&
+                          format=JSON,print_info=.true.,&
+                          comma_json=COMMA_AFTER)
 
    ! Initialize timer information
    call elsi_init_timer(e_h)
@@ -436,7 +432,8 @@ subroutine elsi_final_print(e_h)
    character*40, parameter :: caller = "elsi_final_print"
 
    if(e_h%stdio%format.eq.JSON) then
-      call elsi_stop("elsi_final_print only supports HUMAN_READ format.",e_h,caller)
+      call elsi_stop("elsi_final_print only supports HUMAN_READ format.",&
+                     e_h,caller)
    endif
 
    call elsi_say(e_h,"  |---------------------------------------------------------------------")
@@ -683,13 +680,17 @@ subroutine elsi_cleanup(e_h)
          call truncate_string(e_h%solver_timings_file%prefix,2)
          call elsi_say(e_h, "]", e_h%solver_timings_file)
       end if
-      if(e_h%myid_all.eq.0) then
-         close(e_h%solver_timings_file%print_unit)
-      end if
    end if
    call elsi_finalize_timings(e_h%solver_timings) 
 
-   ! Reset e_h
+   ! Close open files and finalize file IO handles other than stdio
+   if(e_h%handle_ready.and.e_h%output_solver_timings.and.e_h%myid_all.eq.0) then
+      close(e_h%solver_timings_file%print_unit)
+   end if
+   call elsi_reset_file_io_handle(e_h%solver_timings_file)
+
+   ! Close the stdio file handle, then reset e_h
+   call elsi_reset_file_io_handle(e_h%stdio)
    call elsi_reset_handle(e_h)
 
 end subroutine

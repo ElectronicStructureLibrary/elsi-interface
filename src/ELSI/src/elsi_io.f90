@@ -47,6 +47,10 @@ module ELSI_IO
    ! Core IO Subroutines
    public :: elsi_say
    public :: elsi_say_setting
+   ! Constructor/deconstructors for file IO handle
+   public :: elsi_init_file_io
+   public :: elsi_reset_file_io_handle
+   public :: elsi_finalize_file_io
    ! IO for ELSI handle settings
    public :: elsi_print_handle_summary
    ! IO for solver settings 
@@ -108,8 +112,128 @@ subroutine elsi_say(e_h,info_str,io_h_in)
 
 end subroutine
 
+! The various elsi_say_setting module procedures have been moved to the end of
+! the file.
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!                         IO FOR HANDLE SETTINGS                            !
+!                        FILE IO HANDLE SUBROUTINES                         !
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!>
+!! This routine initializes a handle for reading and writing to files.
+!!
+subroutine elsi_init_file_io(io_h,print_unit,file_name,format,print_info,&
+                             prefix,comma_json)
+
+   implicit none
+
+   type(elsi_file_io_handle),  intent(out) :: io_h       !< File IO Handle
+   integer(kind=i4),           intent(in)  :: print_unit    
+   character(len=*), optional, intent(in)  :: file_name
+   integer(kind=i4), optional, intent(in)  :: format
+   logical,          optional, intent(in)  :: print_info
+   character(len=*), optional, intent(in)  :: prefix
+   integer(kind=i4), optional, intent(in)  :: comma_json
+
+   character*40, parameter :: caller = "elsi_init_io"
+
+   ! For safety
+   call elsi_reset_file_io_handle(io_h)
+
+   io_h%handle_init = .true.
+   io_h%print_unit  = print_unit
+   
+   if(present(file_name)) then
+      io_h%file_name = file_name
+   else
+      io_h%file_name = UNSET_STRING
+   endif
+
+   if(present(format)) then
+      io_h%format = format
+   else
+      io_h%format = HUMAN_READ
+   endif
+
+   if(present(print_info)) then
+      io_h%print_info = print_info
+   else
+      io_h%print_info = .true.
+   endif
+
+   if(present(prefix)) then
+      io_h%prefix = prefix
+   else
+      if(allocated(io_h%prefix)) deallocate(io_h%prefix)
+   endif
+
+   if(present(comma_json)) then
+      io_h%comma_json = comma_json
+   else
+      io_h%comma_json = UNSET
+   endif
+
+end subroutine
+
+!>
+!! This routine finalizes a file io handle.  Note the this subroutine does NOT
+!! close file units.
+!!
+subroutine elsi_finalize_file_io(e_h,io_h)
+
+   implicit none
+
+   type(elsi_handle),         intent(in)    :: e_h  !< ELSI Handle
+   type(elsi_file_io_handle), intent(inout) :: io_h !< File IO Handle
+
+   character*40, parameter :: caller = "elsi_finalize_file_io"
+
+   call elsi_check_file_io_handle(e_h,io_h,caller)
+   call elsi_reset_file_io_handle(io_h)
+
+end subroutine
+
+!>
+!! This routine checks whether a handle has been properly initialized for
+!! reading and writing to files.
+!!
+subroutine elsi_check_file_io_handle(e_h,io_h,caller)
+
+   implicit none
+
+   type(elsi_handle),         intent(in) :: e_h    !< ELSI Handle
+   type(elsi_file_io_handle), intent(in) :: io_h   !< File IO Handle
+   character(len=*),          intent(in) :: caller !< Caller
+
+   if(.not.io_h%handle_init) then
+      call elsi_stop(" Invalid handle! Not initialized.",e_h,caller)
+   endif
+
+end subroutine
+
+!>
+!! This routine resets a handle.
+!!
+subroutine elsi_reset_file_io_handle(io_h)
+
+   implicit none
+
+   type(elsi_file_io_handle), intent(inout) :: io_h   !< File IO Handle
+
+   character*40, parameter :: caller = "elsi_reset_file_io_handle"
+
+   io_h%handle_init = .false.
+   io_h%print_unit = UNSET
+   io_h%file_name  = UNSET_STRING
+   io_h%format = UNSET
+   io_h%print_info = .false.
+   if(allocated(io_h%prefix)) deallocate(io_h%prefix)
+   io_h%comma_json = UNSET
+
+end subroutine
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!                       IO FOR ELSI HANDLE SETTINGS                         !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !>
@@ -136,62 +260,62 @@ subroutine elsi_print_handle_summary(e_h,io_h_in)
    endif
 
    if(io_h%format == HUMAN_READ) then
-      write(info_str,"(A)")        "Physical Properties"
+      write(info_str,"(A)")       "Physical Properties"
       call elsi_say(e_h,info_str,io_h)
    
       call append_string(io_h%prefix,"  ")
-      call elsi_say_setting(e_h,        "Number of electrons",e_h%n_electrons,io_h)
+      call elsi_say_setting(e_h,    "Number of electrons",e_h%n_electrons,io_h)
       if(e_h%parallel_mode == MULTI_PROC) then
-         call elsi_say_setting(e_h,     "Number of spins",e_h%n_spins,io_h)
-         call elsi_say_setting(e_h,     "Number of k-points",e_h%n_kpts,io_h)
+         call elsi_say_setting(e_h, "Number of spins",e_h%n_spins,io_h)
+         call elsi_say_setting(e_h, "Number of k-points",e_h%n_kpts,io_h)
       endif
       if(e_h%solver == ELPA_SOLVER .or. e_h%solver == SIPS_SOLVER) then
-         call elsi_say_setting(e_h,     "Number of states",e_h%n_states,io_h)
+         call elsi_say_setting(e_h, "Number of states",e_h%n_states,io_h)
       endif
       call truncate_string(io_h%prefix,2)
    
       write(info_str,"(A)")        ""
       call elsi_say(e_h,info_str,io_h)
-      write(info_str,"(A)")        "Matrix Properties"
+      write(info_str,"(A)")       "Matrix Properties"
       call elsi_say(e_h,info_str,io_h)
    
       call append_string(io_h%prefix,"  ")
       if(e_h%matrix_format == BLACS_DENSE) then
-         call elsi_say_setting(e_h,     "Matrix format","BLACS_DENSE",io_h)
+         call elsi_say_setting(e_h, "Matrix format","BLACS_DENSE",io_h)
       elseif(e_h%matrix_format == PEXSI_CSC) then
-         call elsi_say_setting(e_h,     "Matrix format","PEXSI_CSC",io_h)
+         call elsi_say_setting(e_h, "Matrix format","PEXSI_CSC",io_h)
       endif
-      call elsi_say_setting(e_h,        "Number of basis functions",e_h%n_basis,io_h)
+      call elsi_say_setting(e_h,    "Number of basis functions",e_h%n_basis,io_h)
       if(e_h%parallel_mode == MULTI_PROC) then
          sparsity = 1.0_r8-(1.0_r8*e_h%nnz_g/e_h%n_basis/e_h%n_basis)
-         call elsi_say_setting(e_h,     "Matrix sparsity",sparsity,io_h)
+         call elsi_say_setting(e_h, "Matrix sparsity",sparsity,io_h)
       endif
       call truncate_string(io_h%prefix,2)
    
       write(info_str,"(A)")        ""
       call elsi_say(e_h,info_str,io_h)
-      write(info_str,"(A)")        "Computational Details"
+      write(info_str,"(A)")       "Computational Details"
       call elsi_say(e_h,info_str,io_h)
    
       call append_string(io_h%prefix,"  ")
       if(e_h%parallel_mode == MULTI_PROC) then
-         call elsi_say_setting(e_h,     "Parallel mode","MULTI_PROC",io_h)
+         call elsi_say_setting(e_h, "Parallel mode","MULTI_PROC",io_h)
       elseif(e_h%parallel_mode == SINGLE_PROC) then
-         call elsi_say_setting(e_h,     "Parallel mode","SINGLE_PROC",io_h)
+         call elsi_say_setting(e_h, "Parallel mode","SINGLE_PROC",io_h)
       endif
-      call elsi_say_setting(e_h,        "Number of MPI tasks",e_h%n_procs,io_h)
+      call elsi_say_setting(e_h,     "Number of MPI tasks",e_h%n_procs,io_h)
       if(e_h%solver == ELPA_SOLVER) then
-         call elsi_say_setting(e_h,     "Solver requested","ELPA",io_h)
+         call elsi_say_setting(e_h,  "Solver requested","ELPA",io_h)
       elseif(e_h%solver == OMM_SOLVER) then
-         call elsi_say_setting(e_h,     "Solver requested","libOMM",io_h)
+         call elsi_say_setting(e_h,  "Solver requested","libOMM",io_h)
       elseif(e_h%solver == PEXSI_SOLVER) then
-         call elsi_say_setting(e_h,     "Solver requested","PEXSI",io_h)
+         call elsi_say_setting(e_h,  "Solver requested","PEXSI",io_h)
       elseif(e_h%solver == CHESS_SOLVER) then
-         call elsi_say_setting(e_h,     "Solver requested","CheSS",io_h)
+         call elsi_say_setting(e_h,  "Solver requested","CheSS",io_h)
       elseif(e_h%solver == SIPS_SOLVER) then
-         call elsi_say_setting(e_h,     "Solver requested","SIPs",io_h)
+         call elsi_say_setting(e_h,  "Solver requested","SIPs",io_h)
       elseif(e_h%solver == DMP_SOLVER) then
-         call elsi_say_setting(e_h,     "Solver requested","DMP",io_h)
+         call elsi_say_setting(e_h,  "Solver requested","DMP",io_h)
       else
          call elsi_stop("Unsupported solver.",e_h,caller)
       endif

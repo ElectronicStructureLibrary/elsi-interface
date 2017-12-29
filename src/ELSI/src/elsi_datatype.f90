@@ -42,35 +42,38 @@ module ELSI_DATATYPE
 
    private
 
-   !---------------------------------------------------------------------------------------------!
+   !---------------------------------------------------------------------------!
 
    type, public :: elsi_file_io_handle
 
-      integer(kind=i4)              :: print_unit !< Unit to print to
-      character(len=FILE_NAME_LEN)  :: file_name  !< Unit to print to
-      integer(kind=i4)              :: format     !< Format type for output
-      logical                       :: print_info !< Whether to output 
-      character(len=:), allocatable :: prefix     !< Prefix for each line output
-      integer(kind=i4)              :: comma_json !< Comma placement in JSON
+      logical                       :: handle_init !< Is this a valid handle?
+      integer(kind=i4)              :: print_unit  !< Unit to print to
+      character(len=FILE_NAME_LEN)  :: file_name   !< Unit to print to
+      integer(kind=i4)              :: format      !< Format type for output
+      logical                       :: print_info  !< Whether to output 
+      character(len=:), allocatable :: prefix      !< Prefix for each line
+      integer(kind=i4)              :: comma_json  !< Comma placement in JSON
 
    end type
 
-   !---------------------------------------------------------------------------------------------!
+   !---------------------------------------------------------------------------!
 
    type, public :: elsi_timings_handle
 
       integer                           :: size_timings  ! Dimension for arrays
-      integer                           :: n_timings     ! Number of timings so far
-      character(len=TIMING_STRING_LEN)  :: next_user_tag ! User tag to be added to next timing
-      character(len=TIMING_STRING_LEN)  :: set_label     ! String identifying type of timings
+      integer                           :: n_timings     ! Current # of timings
+      character(len=TIMING_STRING_LEN)  :: next_user_tag ! User tag added to 
+                                                         ! next timing
+      character(len=TIMING_STRING_LEN)  :: set_label     ! String identifying 
+                                                         ! timing set
 
-      real(kind=r8),                     allocatable :: times(:)      ! System times
-      character(len=TIMING_STRING_LEN),  allocatable :: elsi_tags(:)  ! Tags assigned by ELSI
-      character(len=TIMING_STRING_LEN),  allocatable :: user_tags(:)  ! Tags provided by user
+      real(kind=r8),                     allocatable :: times(:)     ! System times
+      character(len=TIMING_STRING_LEN),  allocatable :: elsi_tags(:) ! Tags assigned by ELSI
+      character(len=TIMING_STRING_LEN),  allocatable :: user_tags(:) ! Tags provided by user
 
    end type
 
-   !---------------------------------------------------------------------------------------------!
+   !---------------------------------------------------------------------------!
 
    type, public :: elsi_handle
 
@@ -328,12 +331,12 @@ module ELSI_DATATYPE
       ! Timer and timings
       integer(kind=i4)             :: clock_rate
       type(elsi_timings_handle)    :: solver_timings
-      logical                      :: output_solver_timings ! Whether we output the solver
-                                                            ! timings 
+      logical                      :: output_solver_timings ! Whether we output 
+                                                            ! the solver timings 
 
    end type
 
-   !---------------------------------------------------------------------------------------------!
+   !---------------------------------------------------------------------------!
 
    type, public :: elsi_rw_handle
 
@@ -390,6 +393,6 @@ module ELSI_DATATYPE
 
    end type
 
-   !---------------------------------------------------------------------------------------------!
+   !---------------------------------------------------------------------------!
 
 end module ELSI_DATATYPE

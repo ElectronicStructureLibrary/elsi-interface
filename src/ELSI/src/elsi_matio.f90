@@ -719,6 +719,7 @@ subroutine elsi_read_mat_real_mp(rw_h,f_name,mat)
    call elsi_set_blacs(aux_h,rw_h%blacs_ctxt,rw_h%blk)
 
    ! Output
+   aux_h%output_solver_timings = .false.
    aux_h%myid_all         = rw_h%myid
    aux_h%stdio%print_info = rw_h%print_info
    aux_h%print_mem        = rw_h%print_mem
@@ -931,6 +932,7 @@ subroutine elsi_read_mat_complex_mp(rw_h,f_name,mat)
    call elsi_set_blacs(aux_h,rw_h%blacs_ctxt,rw_h%blk)
 
    ! Output
+   aux_h%output_solver_timings = .false.
    aux_h%myid_all         = rw_h%myid
    aux_h%stdio%print_info = rw_h%print_info
    aux_h%print_mem        = rw_h%print_mem
@@ -1138,6 +1140,7 @@ subroutine elsi_write_mat_real_mp(rw_h,f_name,mat)
    call elsi_get_time(aux_h,t0)
 
    ! Output
+   aux_h%output_solver_timings = .false.
    aux_h%myid_all         = rw_h%myid
    aux_h%stdio%print_info = rw_h%print_info
    aux_h%print_mem        = rw_h%print_mem
@@ -1253,6 +1256,7 @@ subroutine elsi_write_mat_complex_mp(rw_h,f_name,mat)
    call elsi_get_time(aux_h,t0)
 
    ! Output
+   aux_h%output_solver_timings = .false.
    aux_h%myid_all         = rw_h%myid
    aux_h%stdio%print_info = rw_h%print_info
    aux_h%print_mem        = rw_h%print_mem
