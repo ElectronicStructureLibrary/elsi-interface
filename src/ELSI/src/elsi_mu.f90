@@ -307,33 +307,33 @@ subroutine elsi_find_mu(e_h,n_electron,n_state,n_spin,n_kpt,k_weights,evals,&
    mu_left  = mu_lower_in
    mu_right = mu_upper_in
 
+   call elsi_check_electrons(e_h,n_electron,n_state,n_spin,n_kpt,k_weights,&
+           evals,occ_nums,mu_left,diff_left)
+   call elsi_check_electrons(e_h,n_electron,n_state,n_spin,n_kpt,k_weights,&
+           evals,occ_nums,mu_right,diff_right)
+
+   if(abs(diff_left) < e_h%occ_tolerance) then
+      mu_out   = mu_left
+      found_mu = .true.
+   elseif(abs(diff_right) < e_h%occ_tolerance) then
+      mu_out   = mu_right
+      found_mu = .true.
+   endif
+
    do while(.not. found_mu .and. n_steps < e_h%max_mu_steps)
+      n_steps = n_steps+1
+      mu_mid  = 0.5_r8*(mu_left+mu_right)
+
       call elsi_check_electrons(e_h,n_electron,n_state,n_spin,n_kpt,k_weights,&
-              evals,occ_nums,mu_left,diff_left)
-      call elsi_check_electrons(e_h,n_electron,n_state,n_spin,n_kpt,k_weights,&
-              evals,occ_nums,mu_right,diff_right)
+              evals,occ_nums,mu_mid,diff_mid)
 
-      if(abs(diff_left) < e_h%occ_tolerance) then
-         mu_out   = mu_left
+      if(abs(diff_mid) < e_h%occ_tolerance) then
+         mu_out   = mu_mid
          found_mu = .true.
-      elseif(abs(diff_right) < e_h%occ_tolerance) then
-         mu_out   = mu_right
-         found_mu = .true.
-      else
-         n_steps = n_steps+1
-         mu_mid  = 0.5_r8*(mu_left+mu_right)
-
-         call elsi_check_electrons(e_h,n_electron,n_state,n_spin,n_kpt,&
-                 k_weights,evals,occ_nums,mu_mid,diff_mid)
-
-         if(abs(diff_mid) < e_h%occ_tolerance) then
-            mu_out   = mu_mid
-            found_mu = .true.
-         elseif(diff_mid < 0) then
-            mu_left = mu_mid
-         elseif(diff_mid > 0) then
-            mu_right = mu_mid
-         endif
+      elseif(diff_mid < 0) then
+         mu_left = mu_mid
+      elseif(diff_mid > 0) then
+         mu_right = mu_mid
       endif
    enddo
 

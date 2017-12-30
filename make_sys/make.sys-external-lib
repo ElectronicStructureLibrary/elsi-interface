@@ -39,5 +39,5 @@ PTSCOTCH_LIB   = -L/home/wy29/opt/scotch_6.0.4/lib \
 
 # ======  ELPA  ======
 EXTERNAL_ELPA  = yes
-ELPA_INC       = -I/home/wy29/opt/elpa-2017.05.001/include/elpa-2017.05.001/modules
-ELPA_LIB       = -L/home/wy29/opt/elpa-2017.05.001/lib -lelpa
+ELPA_INC       = -I/home/wy29/opt/elpa-2017.11.001.rc1/include
+ELPA_LIB       = -L/home/wy29/opt/elpa-2017.11.001.rc1/lib -lelpa

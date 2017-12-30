@@ -530,7 +530,7 @@ subroutine elsi_check_singularity_real(e_h,ovlp,eval,evec)
 
    call elsi_get_time(e_h,t0)
 
-   ierr = elpa_init(20170403)
+   ierr = elpa_init(20171201)
 
    elpa_t => elpa_allocate()
 
@@ -1179,7 +1179,7 @@ subroutine elsi_check_singularity_cmplx(e_h,ovlp,eval,evec)
 
    call elsi_get_time(e_h,t0)
 
-   ierr = elpa_init(20170403)
+   ierr = elpa_init(20171201)
 
    elpa_t => elpa_allocate()
 

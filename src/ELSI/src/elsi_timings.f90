@@ -59,9 +59,6 @@ module ELSI_TIMINGS
    ! Global timing subroutines (i.e. those not attached to any timing handle)
    public  :: elsi_init_timer
    public  :: elsi_get_time
-   ! ELSI Interface subroutines (for modifying a timing handle via the ELSI
-   ! interface, but without exposing the timing API to the calling code)
-   public  :: elsi_set_solver_timing_tag
    ! Timing handle subroutines
    public  :: elsi_init_timings
    public  :: elsi_add_timing
@@ -113,28 +110,6 @@ subroutine elsi_get_time(e_h,wtime)
    call system_clock(tics)
 
    wtime = 1.0_r8*tics/e_h%clock_rate
-
-end subroutine
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! ELSI INTERFACE SUBROUTINES !
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-!>
-!! This routine sets the next user_tag for the solver timings
-!!
-subroutine elsi_set_solver_timing_tag(e_h,user_tag)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: e_h   !< Handle
-   character(len=*),  intent(in)    :: user_tag
-
-   character*40, parameter :: caller = "elsi_set_solver_timing_tag"
-
-   ! Note:  This does not change the state of the handle
-
-   e_h%solver_timings%next_user_tag = user_tag
 
 end subroutine
 

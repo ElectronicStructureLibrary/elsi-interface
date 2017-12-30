@@ -105,6 +105,7 @@ module ELSI_MUTATOR
    public :: elsi_set_output_solver_timings
    public :: elsi_set_solver_timings_unit
    public :: elsi_set_solver_timings_file
+   public :: elsi_set_solver_timing_tag
    public :: elsi_get_pexsi_mu_min
    public :: elsi_get_pexsi_mu_max
    public :: elsi_get_ovlp_sing
@@ -289,8 +290,8 @@ subroutine elsi_set_sing_stop(e_h,sing_stop)
 end subroutine
 
 !>
-!! This routine sets the input matrices to be full, upper triangular, or
-!! lower triangular.
+!! This routine sets the input matrices to be full, upper triangular, or lower
+!! triangular.
 !!
 subroutine elsi_set_uplo(e_h,uplo)
 
@@ -665,8 +666,8 @@ subroutine elsi_set_pexsi_mu_max(e_h,mu_max)
 end subroutine
 
 !>
-!! This routine sets the tolerance of the estimation of the chemical
-!! potential in the inertia counting procedure.
+!! This routine sets the tolerance of the estimation of the chemical potential
+!! in the inertia counting procedure.
 !!
 subroutine elsi_set_pexsi_inertia_tol(e_h,inertia_tol)
 
@@ -690,8 +691,8 @@ subroutine elsi_set_pexsi_inertia_tol(e_h,inertia_tol)
 end subroutine
 
 !>
-!! This routine sets the initial guess of the error function decay
-!! length in CheSS.
+!! This routine sets the initial guess of the error function decay length in
+!! CheSS.
 !!
 subroutine elsi_set_chess_erf_decay(e_h,decay)
 
@@ -748,8 +749,7 @@ subroutine elsi_set_chess_erf_decay_max(e_h,decay_max)
 end subroutine
 
 !>
-!! This routine sets the lower bound of the eigenvalues of the
-!! Hamiltonian matrix.
+!! This routine sets the lower bound of the eigenvalues of the Hamiltonian.
 !!
 subroutine elsi_set_chess_ev_ham_min(e_h,ev_min)
 
@@ -768,8 +768,7 @@ subroutine elsi_set_chess_ev_ham_min(e_h,ev_min)
 end subroutine
 
 !>
-!! This routine sets the upper bound of the eigenvalues of the
-!! Hamiltonian matrix.
+!! This routine sets the upper bound of the eigenvalues of the Hamiltonian.
 !!
 subroutine elsi_set_chess_ev_ham_max(e_h,ev_max)
 
@@ -788,8 +787,7 @@ subroutine elsi_set_chess_ev_ham_max(e_h,ev_max)
 end subroutine
 
 !>
-!! This routine sets the lower bound of the eigenvalues of the
-!! overlap matrix.
+!! This routine sets the lower bound of the eigenvalues of the overlap matrix.
 !!
 subroutine elsi_set_chess_ev_ovlp_min(e_h,ev_min)
 
@@ -808,8 +806,7 @@ subroutine elsi_set_chess_ev_ovlp_min(e_h,ev_min)
 end subroutine
 
 !>
-!! This routine sets the upper bound of the eigenvalues of the
-!! overlap matrix.
+!! This routine sets the upper bound of the eigenvalues of the overlap matrix.
 !!
 subroutine elsi_set_chess_ev_ovlp_max(e_h,ev_max)
 
@@ -938,8 +935,7 @@ subroutine elsi_set_sips_left_bound(e_h,left_bound)
 end subroutine
 
 !>
-!! This routine sets a small buffer to expand the eigenvalue interval
-!! in SIPs.
+!! This routine sets a small buffer to expand the eigenvalue interval in SIPs.
 !!
 subroutine elsi_set_sips_slice_buf(e_h,slice_buffer)
 
@@ -1053,8 +1049,8 @@ subroutine elsi_set_dmp_tol(e_h,dmp_tol)
 end subroutine
 
 !>
-!! This routine sets the broadening scheme to determine the chemical
-!! potential and the occupation numbers.
+!! This routine sets the broadening scheme to determine the chemical potential
+!! and the occupation numbers.
 !!
 subroutine elsi_set_mu_broaden_scheme(e_h,broaden_scheme)
 
@@ -1073,8 +1069,8 @@ subroutine elsi_set_mu_broaden_scheme(e_h,broaden_scheme)
 end subroutine
 
 !>
-!! This routine sets the broadening width to determine the chemical
-!! potential and the occupation numbers.
+!! This routine sets the broadening width to determine the chemical potential
+!! and the occupation numbers.
 !!
 subroutine elsi_set_mu_broaden_width(e_h,broaden_width)
 
@@ -1097,8 +1093,8 @@ subroutine elsi_set_mu_broaden_width(e_h,broaden_width)
 end subroutine
 
 !>
-!! This routine sets the desired accuracy of the determination of the
-!! chemical potential and the occupation numbers.
+!! This routine sets the desired accuracy of the determination of the chemical
+!! potential and the occupation numbers.
 !!
 subroutine elsi_set_mu_tol(e_h,mu_tol)
 
@@ -1122,8 +1118,8 @@ subroutine elsi_set_mu_tol(e_h,mu_tol)
 end subroutine
 
 !>
-!! This routine sets the spin degeneracy in the determination of the
-!! chemical potential and the occupation numbers.
+!! This routine sets the spin degeneracy in the determination of the chemical
+!! potential and the occupation numbers.
 !!
 subroutine elsi_set_mu_spin_degen(e_h,spin_degen)
 
@@ -1143,32 +1139,30 @@ subroutine elsi_set_mu_spin_degen(e_h,spin_degen)
 end subroutine
 
 !>
-!! This routine sets whether the detailed solver timings file should
-!! be output.
+!! This routine sets whether the detailed solver timings file should be output.
 !!
 subroutine elsi_set_output_solver_timings(e_h,output_solver_timings)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: e_h                   !< Handle
-   integer(kind=i4),  intent(in)    :: output_solver_timings !< Unit
+   integer(kind=i4),  intent(in)    :: output_solver_timings !< Output timings?
 
    character*40, parameter :: caller = "elsi_set_output_solver_timings"
 
    call elsi_check_handle(e_h,caller)
    if (e_h%handle_ready) e_h%handle_changed = .true.
-   
+
    if(output_solver_timings == 0) then
       e_h%output_solver_timings = .false.
    else
       e_h%output_solver_timings = .true.
-   end if 
+   endif
 
 end subroutine
 
 !>
-!! This routine sets the unit to which detailed solver timings are
-!! output.
+!! This routine sets the unit to which detailed solver timings are output.
 !!
 subroutine elsi_set_solver_timings_unit(e_h,solver_timings_unit)
 
@@ -1187,8 +1181,7 @@ subroutine elsi_set_solver_timings_unit(e_h,solver_timings_unit)
 end subroutine
 
 !>
-!! This routine sets the file to which detailed solver timings are
-!! output.
+!! This routine sets the file to which detailed solver timings are output.
 !!
 subroutine elsi_set_solver_timings_file(e_h,solver_timings_file)
 
@@ -1207,8 +1200,24 @@ subroutine elsi_set_solver_timings_file(e_h,solver_timings_file)
 end subroutine
 
 !>
-!! This routine gets the lower bound of the chemical potential
-!! returned by the inertia counting in PEXSI.
+!! This routine sets the next user_tag for the solver timings.
+!!
+subroutine elsi_set_solver_timing_tag(e_h,user_tag)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h      !< Handle
+   character(len=*),  intent(in)    :: user_tag !< Tag
+
+   character*40, parameter :: caller = "elsi_set_solver_timing_tag"
+
+   e_h%solver_timings%next_user_tag = user_tag
+
+end subroutine
+
+!>
+!! This routine gets the lower bound of the chemical potential returned by the
+!! inertia counting in PEXSI.
 !!
 subroutine elsi_get_pexsi_mu_min(e_h,mu_min)
 
@@ -1226,8 +1235,8 @@ subroutine elsi_get_pexsi_mu_min(e_h,mu_min)
 end subroutine
 
 !>
-!! This routine gets the upper bound of the chemical potential
-!! returned by the inertia counting in PEXSI.
+!! This routine gets the upper bound of the chemical potential returned by the
+!! inertia counting in PEXSI.
 !!
 subroutine elsi_get_pexsi_mu_max(e_h,mu_max)
 
@@ -1245,8 +1254,7 @@ subroutine elsi_get_pexsi_mu_max(e_h,mu_max)
 end subroutine
 
 !>
-!! This routine gets the result of the singularity check of the
-!! overlap matrix.
+!! This routine gets the result of the singularity check of the overlap matrix.
 !!
 subroutine elsi_get_ovlp_sing(e_h,ovlp_sing)
 
@@ -1268,8 +1276,8 @@ subroutine elsi_get_ovlp_sing(e_h,ovlp_sing)
 end subroutine
 
 !>
-!! This routine gets the number of basis functions that are removed
-!! due to overlap singularity.
+!! This routine gets the number of basis functions that are removed due to
+!! overlap singularity.
 !!
 subroutine elsi_get_n_sing(e_h,n_sing)
 

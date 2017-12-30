@@ -79,8 +79,9 @@ program test_ev_real
    type(elsi_handle)    :: e_h
    type(elsi_rw_handle) :: rw_h
 
-   ! VY: Reference values from calculations on November 20, 2017.
-   real(kind=r8), parameter :: e_elpa  = -2622.88214509316_r8
+   ! VY: Reference values from calculations on December 29, 2017.
+   real(kind=r8), parameter :: e_elpa = -2622.88214509316_r8
+   real(kind=r8), parameter :: e_sips = -2622.88214512501_r8
 
    ! Initialize MPI
    call MPI_Init(mpierr)
@@ -133,6 +134,7 @@ program test_ev_real
          write(*,'("  5) Back-transforms the eigenvectors to the generalized problem.")')
          write(*,*)
          write(*,'("  Now start testing  elsi_ev_real + ELPA")')
+         e_ref = e_elpa
       elseif(solver == 5) then
          write(*,'("  This test program performs the following computational steps:")')
          write(*,*)
@@ -142,11 +144,11 @@ program test_ev_real
          write(*,'("     parallel spectral transformation.")')
          write(*,*)
          write(*,'("  Now start testing  elsi_ev_real + SIPs")')
+         e_ref = e_sips
+         e_tol = 1.0e-6_r8
       endif
       write(*,*)
    endif
-
-   e_ref = e_elpa
 
    ! Set up square-like processor grid
    do npcol = nint(sqrt(real(n_proc))),2,-1

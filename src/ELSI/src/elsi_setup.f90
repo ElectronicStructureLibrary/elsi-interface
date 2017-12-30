@@ -274,8 +274,10 @@ subroutine elsi_set_blacs(e_h,blacs_ctxt,block_size)
    integer(kind=i4),  intent(in)    :: blacs_ctxt !< BLACS context
    integer(kind=i4),  intent(in)    :: block_size !< Block size
 
-   integer(kind=i4) :: i,i_row,i_col
-   integer(kind=i4) :: blacs_info
+   integer(kind=i4) :: i
+   integer(kind=i4) :: i_row
+   integer(kind=i4) :: i_col
+   integer(kind=i4) :: ierr
 
    integer(kind=i4), external :: numroc
 
@@ -298,7 +300,7 @@ subroutine elsi_set_blacs(e_h,blacs_ctxt,block_size)
 
       ! Get BLACS descriptor
       call descinit(e_h%sc_desc,e_h%n_basis,e_h%n_basis,e_h%blk_row,&
-              e_h%blk_col,0,0,e_h%blacs_ctxt,max(1,e_h%n_lrow),blacs_info)
+              e_h%blk_col,0,0,e_h%blacs_ctxt,max(1,e_h%n_lrow),ierr)
 
       ! Get ELPA communicators
       call elsi_get_elpa_comms(e_h)

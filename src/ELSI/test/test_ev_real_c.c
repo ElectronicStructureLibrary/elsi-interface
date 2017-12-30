@@ -53,7 +53,7 @@ void main(int argc, char** argv) {
    double e_elpa,e_test,e_tol;
 
    e_elpa = -2564.61963724048;
-   e_tol = 0.00000001;
+   e_tol  = 0.00000001;
 
    elsi_handle    e_h;
    elsi_rw_handle rw_h;
@@ -65,11 +65,11 @@ void main(int argc, char** argv) {
    MPI_Comm_rank(mpi_comm_global,&myid);
 
    // Parameters
-   blk         = 16;
-   solver      = 1; // ELPA
-   format      = 0; // BLACS_DENSE
-   int_one     = 1;
-   int_zero    = 0;
+   blk      = 16;
+   solver   = 1; // ELPA
+   format   = 0; // BLACS_DENSE
+   int_one  = 1;
+   int_zero = 0;
 
    tmp = (int) round(sqrt((double) n_proc));
    for (n_pcol=tmp; n_pcol>1; n_pcol--) {
