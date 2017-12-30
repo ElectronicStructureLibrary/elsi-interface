@@ -32,7 +32,7 @@ module ELSI_UTILS
 
    use ELSI_CONSTANTS
    use ELSI_DATATYPE
-   use ELSI_IO,        only: elsi_say
+   use ELSI_IO,        only: elsi_say, append_string, truncate_string
    use ELSI_MPI
    use ELSI_PRECISION, only: i4,r8
 
@@ -69,9 +69,7 @@ subroutine elsi_reset_handle(e_h)
    e_h%matrix_format    = UNSET
    e_h%uplo             = FULL_MAT
    e_h%parallel_mode    = UNSET
-   e_h%print_info       = .false.
    e_h%print_mem        = .false.
-   e_h%print_unit       = 6
    e_h%n_elsi_calls     = 0
    e_h%myid             = UNSET
    e_h%myid_all         = UNSET
@@ -179,8 +177,8 @@ subroutine elsi_reset_handle(e_h)
    e_h%ev_max           = 0.0_r8
    e_h%sips_started     = .false.
    e_h%clock_rate       = UNSET
-   e_h%solver_timings_unit = UNSET
-   e_h%solver_timings_file = UNSET_STRING
+   e_h%output_solver_timings = .true.
+   if(allocated(e_h%processor_name)) deallocate(e_h%processor_name)
 
 end subroutine
 
@@ -379,6 +377,9 @@ subroutine elsi_ready_handle(e_h,caller)
    type(elsi_handle), intent(inout) :: e_h
    character(len=*),  intent(in)    :: caller
  
+   character(len=MPI_MAX_PROCESSOR_NAME) :: proc_name
+   integer                               :: proc_name_len
+ 
    call elsi_check_handle(e_h,caller)
 
    if(.not.e_h%handle_ready) then
@@ -386,11 +387,29 @@ subroutine elsi_ready_handle(e_h,caller)
 
       ! We can now perform initialization-like tasks which require
       ! the usage of MPI
-      if (e_h%myid_all == 0) then
-         open(unit=e_h%solver_timings_unit, file=e_h%solver_timings_file)
-      else
-         e_h%solver_timings_unit = UNSET
+
+      ! First, solver timings
+      if(e_h%output_solver_timings) then
+         if (e_h%myid_all == 0) then
+            open(unit=e_h%solver_timings_file%print_unit,&
+                 file=e_h%solver_timings_file%file_name)
+         else
+            ! We know which process has myid_all.eq.0 now, we can 
+            ! de-initialize the rest
+            e_h%solver_timings_file%print_unit = UNSET
+            e_h%solver_timings_file%file_name  = UNSET_STRING
+         endif
+         if(e_h%solver_timings_file%format == JSON) then
+            ! Opening bracket to signify JSON array
+            call elsi_say(e_h, "[", e_h%solver_timings_file)
+            call append_string(e_h%solver_timings_file%prefix,"  ")
+         end if
       endif
+
+      ! Next, get the (MPI) name of the current processor
+      call elsi_get_processor_name(e_h,proc_name,proc_name_len)
+      if(allocated(e_h%processor_name)) deallocate(e_h%processor_name)
+      e_h%processor_name = proc_name
 
       e_h%handle_ready   = .true.
       e_h%handle_changed = .false.
@@ -626,10 +645,6 @@ subroutine elsi_get_solver_tag(e_h,solver_tag,data_type)
    character(len=TIMING_STRING_LEN), intent(out) :: solver_tag
    integer(kind=i4),                 intent(in)  :: data_type
 
-   ! Note:  I've deliberately put data_type at the end of the list, as I have the
-   !        uneasy gut feeling that it could be optional in the future, even though 
-   !        I can't see how 
-
    character*40, parameter :: caller = "elsi_get_solver_tag"
 
    if (data_type.eq.REAL_VALUES) then
@@ -689,6 +704,57 @@ subroutine elsi_get_solver_tag(e_h,solver_tag,data_type)
    else
       call elsi_stop(" Unsupported data type.",e_h,caller)
    end if
+
+end subroutine
+
+!>
+!! This routine returns the current date and time, formatted as an RFC3339
+!! string with time zone offset.
+!!
+subroutine elsi_get_datetime_rfc3339(datetime_rfc3339)
+
+   implicit none
+
+   character(len=DATETIME_LEN), intent(out)   :: datetime_rfc3339
+
+   integer(kind=i4), dimension(8)   :: datetime
+   integer                          :: temp_int
+   character(len=1)                 :: timezone_sign
+   character(len=2)                 :: timezone_hour
+   character(len=2)                 :: timezone_min
+
+   character*40, parameter :: caller = "elsi_get_datetime_rfc3339"
+
+   call date_and_time(values=datetime)
+ 
+   ! Get time zone sign (ahead or behind UTC)
+   if(datetime(4) < 0) then
+      timezone_sign = "-"
+      datetime(4) = -1*datetime(4)
+   else
+      timezone_sign = "+"
+   endif
+
+   ! Get timezone minutes
+   temp_int  = MOD(datetime(4),60)
+   if(temp_int < 10) then
+      write(timezone_min,'(A1,I1)') "0", temp_int
+   else
+      write(timezone_min,'(I2)') temp_int
+   endif
+
+   ! Get timezone hours
+   temp_int  = datetime(4)/60
+   if(temp_int < 10) then
+      write(timezone_hour,'(A1,I1)') "0", temp_int
+   else
+      write(timezone_hour,'(I2)') temp_int
+   endif
+
+   write(datetime_rfc3339,"(I4,A1,I2,A1,I2,A1,I2,A1,I2,A1,I2,A1,I3,A1,A2,A1,A2)")&
+        datetime(1),"-",datetime(2),"-",datetime(3),"T",datetime(5),":",&
+        datetime(6),":",datetime(7),".",datetime(8),timezone_sign,&
+        timezone_hour,":",timezone_min
 
 end subroutine
 

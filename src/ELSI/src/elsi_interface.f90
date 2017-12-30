@@ -38,12 +38,11 @@ module ELSI
    use ELSI_SETUP
    use ELSI_SOLVER
    use ELSI_TIMINGS
+   use ELSI_CONSTANTS, only: release_date
 
    implicit none
 
    private
-
-   character*8, parameter, public :: release_date = "20170527"
 
    ! Data type
    public :: elsi_handle
@@ -108,8 +107,10 @@ module ELSI
    public :: elsi_set_mu_broaden_width
    public :: elsi_set_mu_tol
    public :: elsi_set_mu_spin_degen
+   public :: elsi_set_output_solver_timings
    public :: elsi_set_solver_timings_unit
    public :: elsi_set_solver_timings_file
+   public :: elsi_set_solver_timing_tag
    public :: elsi_get_pexsi_mu_min
    public :: elsi_get_pexsi_mu_max
    public :: elsi_get_ovlp_sing
@@ -152,8 +153,5 @@ module ELSI
    public :: elsi_write_mat_real_sparse
    public :: elsi_write_mat_complex
    public :: elsi_write_mat_complex_sparse
-
-   ! Timing
-   public :: elsi_set_solver_timing_tag
 
 end module ELSI

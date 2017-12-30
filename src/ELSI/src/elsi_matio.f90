@@ -719,10 +719,11 @@ subroutine elsi_read_mat_real_mp(rw_h,f_name,mat)
    call elsi_set_blacs(aux_h,rw_h%blacs_ctxt,rw_h%blk)
 
    ! Output
-   aux_h%myid_all   = rw_h%myid
-   aux_h%print_info = rw_h%print_info
-   aux_h%print_mem  = rw_h%print_mem
-   aux_h%print_unit = rw_h%print_unit
+   aux_h%output_solver_timings = .false.
+   aux_h%myid_all         = rw_h%myid
+   aux_h%stdio%print_info = rw_h%print_info
+   aux_h%print_mem        = rw_h%print_mem
+   aux_h%stdio%print_unit  = rw_h%print_unit
 
    call elsi_get_time(aux_h,t0)
 
@@ -779,7 +780,10 @@ subroutine elsi_read_mat_real_mp(rw_h,f_name,mat)
    ! Redistribute matrix
    call elsi_set_csc(aux_h,rw_h%nnz_g,rw_h%nnz_l_sp,rw_h%n_lcol_sp,row_ind,&
            col_ptr)
-   
+   if(.not.allocated(aux_h%dm_real_pexsi)) then
+      call elsi_allocate(aux_h,aux_h%dm_real_pexsi,rw_h%nnz_l_sp,&
+                         "dm_real_pexsi",caller)
+   end if 
    aux_h%dm_real_pexsi = nnz_val
    aux_h%n_elsi_calls  = 1
    aux_h%my_prow_pexsi = 0
@@ -837,9 +841,9 @@ subroutine elsi_read_mat_real_sparse(rw_h,f_name,row_ind,col_ptr,mat)
    endif
 
    ! Output
-   aux_h%myid_all   = rw_h%myid
-   aux_h%print_info = rw_h%print_info
-   aux_h%print_unit = rw_h%print_unit
+   aux_h%myid_all         = rw_h%myid
+   aux_h%stdio%print_info = rw_h%print_info
+   aux_h%stdio%print_unit = rw_h%print_unit
 
    call elsi_init_timer(aux_h)
    call elsi_get_time(aux_h,t0)
@@ -931,10 +935,11 @@ subroutine elsi_read_mat_complex_mp(rw_h,f_name,mat)
    call elsi_set_blacs(aux_h,rw_h%blacs_ctxt,rw_h%blk)
 
    ! Output
-   aux_h%myid_all   = rw_h%myid
-   aux_h%print_info = rw_h%print_info
-   aux_h%print_mem  = rw_h%print_mem
-   aux_h%print_unit = rw_h%print_unit
+   aux_h%output_solver_timings = .false.
+   aux_h%myid_all         = rw_h%myid
+   aux_h%stdio%print_info = rw_h%print_info
+   aux_h%print_mem        = rw_h%print_mem
+   aux_h%stdio%print_unit = rw_h%print_unit
 
    call elsi_get_time(aux_h,t0)
 
@@ -992,6 +997,10 @@ subroutine elsi_read_mat_complex_mp(rw_h,f_name,mat)
    call elsi_set_csc(aux_h,rw_h%nnz_g,rw_h%nnz_l_sp,rw_h%n_lcol_sp,row_ind,&
            col_ptr)
 
+   if(.not.allocated(aux_h%dm_cmplx_pexsi)) then
+      call elsi_allocate(aux_h,aux_h%dm_cmplx_pexsi,rw_h%nnz_l_sp,&
+                         "dm_cmplx_pexsi",caller)
+   endif
    aux_h%dm_cmplx_pexsi = nnz_val
    aux_h%n_elsi_calls   = 1
    aux_h%my_prow_pexsi  = 0
@@ -1049,9 +1058,9 @@ subroutine elsi_read_mat_complex_sparse(rw_h,f_name,row_ind,col_ptr,mat)
    endif
 
    ! Output
-   aux_h%myid_all   = rw_h%myid
-   aux_h%print_info = rw_h%print_info
-   aux_h%print_unit = rw_h%print_unit
+   aux_h%myid_all         = rw_h%myid
+   aux_h%stdio%print_info = rw_h%print_info
+   aux_h%stdio%print_unit = rw_h%print_unit
 
    call elsi_init_timer(aux_h)
    call elsi_get_time(aux_h,t0)
@@ -1138,10 +1147,11 @@ subroutine elsi_write_mat_real_mp(rw_h,f_name,mat)
    call elsi_get_time(aux_h,t0)
 
    ! Output
-   aux_h%myid_all   = rw_h%myid
-   aux_h%print_info = rw_h%print_info
-   aux_h%print_mem  = rw_h%print_mem
-   aux_h%print_unit = rw_h%print_unit
+   aux_h%output_solver_timings = .false.
+   aux_h%myid_all         = rw_h%myid
+   aux_h%stdio%print_info = rw_h%print_info
+   aux_h%print_mem        = rw_h%print_mem
+   aux_h%stdio%print_unit = rw_h%print_unit
 
    aux_h%zero_def     = rw_h%zero_def
    aux_h%ovlp_is_unit = .true.
@@ -1253,10 +1263,11 @@ subroutine elsi_write_mat_complex_mp(rw_h,f_name,mat)
    call elsi_get_time(aux_h,t0)
 
    ! Output
-   aux_h%myid_all   = rw_h%myid
-   aux_h%print_info = rw_h%print_info
-   aux_h%print_mem  = rw_h%print_mem
-   aux_h%print_unit = rw_h%print_unit
+   aux_h%output_solver_timings = .false.
+   aux_h%myid_all         = rw_h%myid
+   aux_h%stdio%print_info = rw_h%print_info
+   aux_h%print_mem        = rw_h%print_mem
+   aux_h%stdio%print_unit = rw_h%print_unit
 
    aux_h%zero_def     = rw_h%zero_def
    aux_h%ovlp_is_unit = .true.
@@ -1364,9 +1375,9 @@ subroutine elsi_write_mat_real_sparse(rw_h,f_name,row_ind,col_ptr,mat)
    character*40, parameter :: caller = "elsi_write_mat_real_sparse"
 
    ! Output
-   aux_h%myid_all   = rw_h%myid
-   aux_h%print_info = rw_h%print_info
-   aux_h%print_unit = rw_h%print_unit
+   aux_h%myid_all         = rw_h%myid
+   aux_h%stdio%print_info = rw_h%print_info
+   aux_h%stdio%print_unit = rw_h%print_unit
 
    call elsi_init_timer(aux_h)
    call elsi_get_time(aux_h,t0)
@@ -1467,9 +1478,9 @@ subroutine elsi_write_mat_complex_sparse(rw_h,f_name,row_ind,col_ptr,mat)
    character*40, parameter :: caller = "elsi_write_mat_complex_sparse"
 
    ! Output
-   aux_h%myid_all   = rw_h%myid
-   aux_h%print_info = rw_h%print_info
-   aux_h%print_unit = rw_h%print_unit
+   aux_h%myid_all         = rw_h%myid
+   aux_h%stdio%print_info = rw_h%print_info
+   aux_h%stdio%print_unit = rw_h%print_unit
 
    call elsi_init_timer(aux_h)
    call elsi_get_time(aux_h,t0)
@@ -1625,9 +1636,9 @@ subroutine elsi_read_mat_real_sp(rw_h,f_name,mat)
    endif
 
    ! Output
-   aux_h%myid_all   = rw_h%myid
-   aux_h%print_info = rw_h%print_info
-   aux_h%print_unit = rw_h%print_unit
+   aux_h%myid_all         = rw_h%myid
+   aux_h%stdio%print_info = rw_h%print_info
+   aux_h%stdio%print_unit = rw_h%print_unit
 
    call elsi_init_timer(aux_h)
    call elsi_get_time(aux_h,t0)
@@ -1734,9 +1745,9 @@ subroutine elsi_read_mat_complex_sp(rw_h,f_name,mat)
    endif
 
    ! Output
-   aux_h%myid_all   = rw_h%myid
-   aux_h%print_info = rw_h%print_info
-   aux_h%print_unit = rw_h%print_unit
+   aux_h%myid_all         = rw_h%myid
+   aux_h%stdio%print_info = rw_h%print_info
+   aux_h%stdio%print_unit = rw_h%print_unit
 
    call elsi_init_timer(aux_h)
    call elsi_get_time(aux_h,t0)
@@ -1837,10 +1848,10 @@ subroutine elsi_write_mat_real_sp(rw_h,f_name,mat)
    character*40, parameter :: caller = "elsi_write_mat_real_sp"
 
    ! Output
-   aux_h%myid_all   = rw_h%myid
-   aux_h%print_info = rw_h%print_info
-   aux_h%print_unit = rw_h%print_unit
-   aux_h%zero_def   = rw_h%zero_def
+   aux_h%myid_all         = rw_h%myid
+   aux_h%stdio%print_info = rw_h%print_info
+   aux_h%stdio%print_unit = rw_h%print_unit
+   aux_h%zero_def         = rw_h%zero_def
 
    call elsi_init_timer(aux_h)
    call elsi_get_time(aux_h,t0)
@@ -1949,10 +1960,10 @@ subroutine elsi_write_mat_complex_sp(rw_h,f_name,mat)
    character*40, parameter :: caller = "elsi_write_mat_complex_sp"
 
    ! Output
-   aux_h%myid_all   = rw_h%myid
-   aux_h%print_info = rw_h%print_info
-   aux_h%print_unit = rw_h%print_unit
-   aux_h%zero_def   = rw_h%zero_def
+   aux_h%myid_all         = rw_h%myid
+   aux_h%stdio%print_info = rw_h%print_info
+   aux_h%stdio%print_unit = rw_h%print_unit
+   aux_h%zero_def         = rw_h%zero_def
 
    call elsi_init_timer(aux_h)
    call elsi_get_time(aux_h,t0)

@@ -42,22 +42,38 @@ module ELSI_DATATYPE
 
    private
 
-   !---------------------------------------------------------------------------------------------!
+   !---------------------------------------------------------------------------!
+
+   type, public :: elsi_file_io_handle
+
+      logical                       :: handle_init !< Is this a valid handle?
+      integer(kind=i4)              :: print_unit  !< Unit to print to
+      character(len=FILE_NAME_LEN)  :: file_name   !< Unit to print to
+      integer(kind=i4)              :: format      !< Format type for output
+      logical                       :: print_info  !< Whether to output 
+      character(len=:), allocatable :: prefix      !< Prefix for each line
+      integer(kind=i4)              :: comma_json  !< Comma placement in JSON
+
+   end type
+
+   !---------------------------------------------------------------------------!
 
    type, public :: elsi_timings_handle
 
       integer                           :: size_timings  ! Dimension for arrays
-      integer                           :: n_timings     ! Number of timings so far
-      character(len=TIMING_STRING_LEN)  :: next_user_tag ! User tag to be added to next timing
-      character(len=TIMING_STRING_LEN)  :: set_label     ! String identifying type of timings
+      integer                           :: n_timings     ! Current # of timings
+      character(len=TIMING_STRING_LEN)  :: next_user_tag ! User tag added to 
+                                                         ! next timing
+      character(len=TIMING_STRING_LEN)  :: set_label     ! String identifying 
+                                                         ! timing set
 
-      real(kind=r8),                     allocatable :: times(:)      ! System times
-      character(len=TIMING_STRING_LEN),  allocatable :: elsi_tags(:)  ! Tags assigned by ELSI
-      character(len=TIMING_STRING_LEN),  allocatable :: user_tags(:)  ! Tags provided by user
+      real(kind=r8),                     allocatable :: times(:)     ! System times
+      character(len=TIMING_STRING_LEN),  allocatable :: elsi_tags(:) ! Tags assigned by ELSI
+      character(len=TIMING_STRING_LEN),  allocatable :: user_tags(:) ! Tags provided by user
 
    end type
 
-   !---------------------------------------------------------------------------------------------!
+   !---------------------------------------------------------------------------!
 
    type, public :: elsi_handle
 
@@ -156,9 +172,7 @@ module ELSI_DATATYPE
       integer(kind=i4) :: parallel_mode
 
       ! Output
-      logical          :: print_info
       logical          :: print_mem
-      integer(kind=i4) :: print_unit
 
       ! Number of ELSI being called
       integer(kind=i4) :: n_elsi_calls
@@ -188,7 +202,7 @@ module ELSI_DATATYPE
       integer(kind=i4) :: n_lcol
       logical          :: blacs_ready
 
-      ! Sparse matrix information
+      ! Sparse matrix information (aka PEXSI_CSC)
       integer(kind=i4) :: nnz_g     ! Global number of nonzeros
       integer(kind=i4) :: nnz_l     ! Local number of nonzeros
       integer(kind=i4) :: nnz_l_sp  ! Local number of nonzeros
@@ -310,17 +324,22 @@ module ELSI_DATATYPE
       real(kind=r8)    :: dmp_tol        ! Tolerance for purification
       real(kind=r8)    :: ne_dmp         ! Number of electrons computed by DMP
 
+      ! ELSI IO files
+      type(elsi_file_io_handle) :: stdio
+      type(elsi_file_io_handle) :: solver_timings_file
+
       ! Timer and timings
       integer(kind=i4)             :: clock_rate
-      type(elsi_timings_handle)    :: solver_timings          
-      integer(kind=i4)             :: solver_timings_unit ! Unit to which we output verbose timing
-                                                          ! information for solver invocations
-      character(len=FILE_NAME_LEN) :: solver_timings_file ! File to which we output verbose timing
-                                                          ! information for solver invocations
+      type(elsi_timings_handle)    :: solver_timings
+      logical                      :: output_solver_timings ! Whether we output 
+                                                            ! the solver timings 
+
+      ! Versioning
+      character(len=:), allocatable :: processor_name ! MPI name for processor
 
    end type
 
-   !---------------------------------------------------------------------------------------------!
+   !---------------------------------------------------------------------------!
 
    type, public :: elsi_rw_handle
 
@@ -377,6 +396,6 @@ module ELSI_DATATYPE
 
    end type
 
-   !---------------------------------------------------------------------------------------------!
+   !---------------------------------------------------------------------------!
 
 end module ELSI_DATATYPE
