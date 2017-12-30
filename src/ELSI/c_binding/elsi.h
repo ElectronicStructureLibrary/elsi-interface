@@ -31,6 +31,7 @@
 #define ELSI_H_INCLUDED
 
 #include <complex.h>
+#include <mpi.h>
 
 #define DECLARE_HANDLE(name) struct name##__ { int unused; }; \
                              typedef struct name##__ *name
@@ -51,10 +52,10 @@ void c_elsi_init(elsi_handle *handle_c,
                  int n_state);
 
 void c_elsi_set_mpi(elsi_handle handle_c,
-                    int mpi_comm);
+                    MPI_Comm mpi_comm);
 
 void c_elsi_set_mpi_global(elsi_handle handle_c,
-                           int mpi_comm_global);
+                           MPI_Comm mpi_comm_global);
 
 void c_elsi_set_spin(elsi_handle handle_c,
                      int n_spin,
@@ -302,7 +303,7 @@ void c_elsi_init_rw(elsi_rw_handle *handle_c,
                     double n_electron);
 
 void c_elsi_set_rw_mpi(elsi_rw_handle handle_c,
-                       int mpi_comm);
+                       MPI_Comm mpi_comm);
 
 void c_elsi_set_rw_blacs(elsi_rw_handle handle_c,
                          int blacs_ctxt,
