@@ -116,6 +116,8 @@ subroutine elsi_init(e_h,solver,parallel_mode,matrix_format,n_basis,n_electron,&
       e_h%n_lcol      = n_basis
       e_h%blk_row     = n_basis
       e_h%blk_col     = n_basis
+      e_h%n_prow      = 1
+      e_h%n_pcol      = 1
       e_h%myid        = 0
       e_h%n_procs     = 1
       e_h%myid_all    = 0
@@ -326,7 +328,7 @@ subroutine elsi_set_blacs(e_h,blacs_ctxt,block_size)
       endif
 
       e_h%blacs_ready = .true.
-   
+
       if (e_h%handle_ready) e_h%handle_changed = .true.
    endif
 
@@ -681,7 +683,7 @@ subroutine elsi_cleanup(e_h)
          call elsi_say(e_h, "]", e_h%solver_timings_file)
       end if
    end if
-   call elsi_finalize_timings(e_h%solver_timings) 
+   call elsi_finalize_timings(e_h%solver_timings)
 
    ! Close open files and finalize file IO handles other than stdio
    if(e_h%handle_ready.and.e_h%output_solver_timings.and.e_h%myid_all.eq.0) then
