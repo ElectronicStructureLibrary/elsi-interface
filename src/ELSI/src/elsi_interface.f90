@@ -38,7 +38,7 @@ module ELSI
    use ELSI_SETUP
    use ELSI_SOLVER
    use ELSI_TIMINGS
-   use ELSI_CONSTANTS, only: release_date
+   use ELSI_CONSTANTS, only: RELEASE_DATE
 
    implicit none
 

@@ -131,7 +131,10 @@ subroutine elsi_set_output(e_h,out_level)
    character*40, parameter :: caller = "elsi_set_output"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    if(out_level <= 0) then
       e_h%stdio%print_info        = .false.
@@ -174,7 +177,10 @@ subroutine elsi_set_write_unit(e_h,write_unit)
    character*40, parameter :: caller = "elsi_set_write_unit"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    e_h%stdio%print_unit = write_unit
 
@@ -193,7 +199,10 @@ subroutine elsi_set_unit_ovlp(e_h,unit_ovlp)
    character*40, parameter :: caller = "elsi_set_unit_ovlp"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    if(unit_ovlp == 0) then
       e_h%ovlp_is_unit = .false.
@@ -216,7 +225,10 @@ subroutine elsi_set_zero_def(e_h,zero_def)
    character*40, parameter :: caller = "elsi_set_zero_def"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    e_h%zero_def = zero_def
 
@@ -235,7 +247,10 @@ subroutine elsi_set_sing_check(e_h,sing_check)
    character*40, parameter :: caller = "elsi_set_sing_check"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    if(sing_check == 0) then
       e_h%check_sing   = .false.
@@ -260,7 +275,10 @@ subroutine elsi_set_sing_tol(e_h,sing_tol)
    character*40, parameter :: caller = "elsi_set_sing_tol"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    e_h%sing_tol = sing_tol
 
@@ -279,7 +297,10 @@ subroutine elsi_set_sing_stop(e_h,sing_stop)
    character*40, parameter :: caller = "elsi_set_sing_stop"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    if(sing_stop == 0) then
       e_h%stop_sing = .false.
@@ -303,7 +324,10 @@ subroutine elsi_set_uplo(e_h,uplo)
    character*40, parameter :: caller = "elsi_set_uplo"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    e_h%uplo = uplo
 
@@ -322,7 +346,10 @@ subroutine elsi_set_elpa_solver(e_h,elpa_solver)
    character*40, parameter :: caller = "elsi_set_elpa_solver"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    if(elpa_solver < 1 .or. elpa_solver > 2) then
       call elsi_stop(" Unsupported elpa_solver.",e_h,caller)
@@ -345,7 +372,10 @@ subroutine elsi_set_elpa_n_single(e_h,n_single)
    character*40, parameter :: caller = "elsi_set_elpa_n_single"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    e_h%n_single_steps = n_single
 
@@ -364,7 +394,10 @@ subroutine elsi_set_omm_flavor(e_h,omm_flavor)
    character*40, parameter :: caller = "elsi_set_omm_flavor"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    if(omm_flavor /= 0 .and. omm_flavor /= 2) then
       call elsi_stop(" Unsupported omm_flavor.",e_h,caller)
@@ -387,7 +420,10 @@ subroutine elsi_set_omm_n_elpa(e_h,n_elpa)
    character*40, parameter :: caller = "elsi_set_omm_n_elpa"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    e_h%omm_n_elpa = n_elpa
 
@@ -406,7 +442,10 @@ subroutine elsi_set_omm_tol(e_h,min_tol)
    character*40, parameter :: caller = "elsi_set_omm_tol"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    e_h%min_tol = min_tol
 
@@ -425,7 +464,10 @@ subroutine elsi_set_omm_ev_shift(e_h,ev_shift)
    character*40, parameter :: caller = "elsi_set_omm_ev_shift"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    e_h%eta = ev_shift
 
@@ -444,7 +486,10 @@ subroutine elsi_set_omm_psp(e_h,use_psp)
    character*40, parameter :: caller = "elsi_set_omm_psp"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    if(use_psp == 0) then
       e_h%use_psp = .false.
@@ -467,7 +512,10 @@ subroutine elsi_set_pexsi_n_mu(e_h,n_mu)
    character*40, parameter :: caller = "elsi_set_pexsi_n_mu"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    if(n_mu < 1) then
       call elsi_stop(" Number of mu points should be at least 1.",e_h,caller)
@@ -490,7 +538,10 @@ subroutine elsi_set_pexsi_n_pole(e_h,n_pole)
    character*40, parameter :: caller = "elsi_set_pexsi_n_pole"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    if(n_pole < 1) then
       call elsi_stop(" Number of poles should be at least 1.",e_h,caller)
@@ -513,7 +564,10 @@ subroutine elsi_set_pexsi_np_per_pole(e_h,np_per_pole)
    character*40, parameter :: caller = "elsi_set_pexsi_np_per_pole"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    e_h%np_per_pole = np_per_pole
 
@@ -532,7 +586,10 @@ subroutine elsi_set_pexsi_np_symbo(e_h,np_symbo)
    character*40, parameter :: caller = "elsi_set_pexsi_np_symbo"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    if(np_symbo < 1) then
       call elsi_stop(" Number of MPI tasks for symbolic factorization should"//&
@@ -556,7 +613,10 @@ subroutine elsi_set_pexsi_ordering(e_h,ordering)
    character*40, parameter :: caller = "elsi_set_pexsi_ordering"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    e_h%pexsi_options%ordering = ordering
 
@@ -575,7 +635,10 @@ subroutine elsi_set_pexsi_temp(e_h,temp)
    character*40, parameter :: caller = "elsi_set_pexsi_temp"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    e_h%pexsi_options%temperature = temp
 
@@ -594,7 +657,10 @@ subroutine elsi_set_pexsi_gap(e_h,gap)
    character*40, parameter :: caller = "elsi_set_pexsi_gap"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    if(gap < 0.0_r8) then
       call elsi_stop(" Gap cannot be negative.",e_h,caller)
@@ -617,7 +683,10 @@ subroutine elsi_set_pexsi_delta_e(e_h,delta_e)
    character*40, parameter :: caller = "elsi_set_pexsi_delta_e"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    if(delta_e < 0.0_r8) then
       call elsi_stop(" Spectrum width cannot be negative.",e_h,caller)
@@ -640,7 +709,10 @@ subroutine elsi_set_pexsi_mu_min(e_h,mu_min)
    character*40, parameter :: caller = "elsi_set_pexsi_mu_min"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    e_h%pexsi_options%muMin0 = mu_min
 
@@ -659,7 +731,10 @@ subroutine elsi_set_pexsi_mu_max(e_h,mu_max)
    character*40, parameter :: caller = "elsi_set_pexsi_mu_max"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    e_h%pexsi_options%muMax0 = mu_max
 
@@ -679,7 +754,10 @@ subroutine elsi_set_pexsi_inertia_tol(e_h,inertia_tol)
    character*40, parameter :: caller = "elsi_set_pexsi_inertia_tol"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    if(inertia_tol < 0.0_r8) then
       call elsi_stop(" Inertia counting tolerance cannot be negative.",e_h,&
@@ -704,7 +782,10 @@ subroutine elsi_set_chess_erf_decay(e_h,decay)
    character*40, parameter :: caller = "elsi_set_chess_erf_decay"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    e_h%erf_decay = decay
 
@@ -723,7 +804,10 @@ subroutine elsi_set_chess_erf_decay_min(e_h,decay_min)
    character*40, parameter :: caller = "elsi_set_chess_erf_decay_min"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    e_h%erf_decay_min = decay_min
 
@@ -742,7 +826,10 @@ subroutine elsi_set_chess_erf_decay_max(e_h,decay_max)
    character*40, parameter :: caller = "elsi_set_chess_erf_decay_max"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    e_h%erf_decay_max = decay_max
 
@@ -761,7 +848,10 @@ subroutine elsi_set_chess_ev_ham_min(e_h,ev_min)
    character*40, parameter :: caller = "elsi_set_chess_ev_ham_min"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    e_h%ev_ham_min = ev_min
 
@@ -780,7 +870,10 @@ subroutine elsi_set_chess_ev_ham_max(e_h,ev_max)
    character*40, parameter :: caller = "elsi_set_chess_ev_ham_max"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    e_h%ev_ham_max = ev_max
 
@@ -799,7 +892,10 @@ subroutine elsi_set_chess_ev_ovlp_min(e_h,ev_min)
    character*40, parameter :: caller = "elsi_set_chess_ev_ovlp_min"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    e_h%ev_ovlp_min = ev_min
 
@@ -818,7 +914,10 @@ subroutine elsi_set_chess_ev_ovlp_max(e_h,ev_max)
    character*40, parameter :: caller = "elsi_set_chess_ev_ovlp_max"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    e_h%ev_ovlp_max = ev_max
 
@@ -837,7 +936,10 @@ subroutine elsi_set_sips_n_elpa(e_h,n_elpa)
    character*40, parameter :: caller = "elsi_set_sips_n_elpa"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    e_h%sips_n_elpa = n_elpa
 
@@ -856,7 +958,10 @@ subroutine elsi_set_sips_inertia(e_h,do_inertia)
    character*40, parameter :: caller = "elsi_set_sips_inertia"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    if(do_inertia == 0) then
       e_h%inertia_option = 0
@@ -879,7 +984,10 @@ subroutine elsi_set_sips_slice_type(e_h,slice_type)
    character*40, parameter :: caller = "elsi_set_sips_slice_type"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    if(slice_type < 2 .or. slice_type > 3) then
       call elsi_stop(" Unsupported slice_type.",e_h,caller)
@@ -902,7 +1010,10 @@ subroutine elsi_set_sips_n_slice(e_h,n_slice)
    character*40, parameter :: caller = "elsi_set_sips_n_slice"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    if(mod(e_h%n_procs,n_slice) == 0) then
       e_h%n_slices     = n_slice
@@ -928,7 +1039,10 @@ subroutine elsi_set_sips_left_bound(e_h,left_bound)
    character*40, parameter :: caller = "elsi_set_sips_left_bound"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    e_h%unbound = left_bound
 
@@ -947,7 +1061,10 @@ subroutine elsi_set_sips_slice_buf(e_h,slice_buffer)
    character*40, parameter :: caller = "elsi_set_sips_slice_buf"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    e_h%slice_buffer = slice_buffer
 
@@ -966,7 +1083,10 @@ subroutine elsi_set_sips_ev_min(e_h,ev_min)
    character*40, parameter :: caller = "elsi_set_sips_ev_min"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    e_h%ev_min = ev_min
 
@@ -985,7 +1105,10 @@ subroutine elsi_set_sips_ev_max(e_h,ev_max)
    character*40, parameter :: caller = "elsi_set_sips_ev_max"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    e_h%ev_max = ev_max
 
@@ -1004,7 +1127,10 @@ subroutine elsi_set_dmp_method(e_h,dmp_method)
    character*40, parameter :: caller = "elsi_set_dmp_method"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    e_h%dmp_method = dmp_method
 
@@ -1023,7 +1149,10 @@ subroutine elsi_set_dmp_max_step(e_h,max_step)
    character*40, parameter :: caller = "elsi_set_dmp_max_step"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    e_h%max_dmp_iter = max_step
 
@@ -1042,7 +1171,10 @@ subroutine elsi_set_dmp_tol(e_h,dmp_tol)
    character*40, parameter :: caller = "elsi_set_dmp_tol"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    e_h%dmp_tol = dmp_tol
 
@@ -1062,7 +1194,10 @@ subroutine elsi_set_mu_broaden_scheme(e_h,broaden_scheme)
    character*40, parameter :: caller = "elsi_set_mu_broaden_method"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    e_h%broaden_scheme = broaden_scheme
 
@@ -1082,7 +1217,10 @@ subroutine elsi_set_mu_broaden_width(e_h,broaden_width)
    character*40, parameter :: caller = "elsi_set_mu_broaden_width"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    if(broaden_width < 0.0_r8) then
       call elsi_stop(" Broadening width cannot be negative.",e_h,caller)
@@ -1106,7 +1244,10 @@ subroutine elsi_set_mu_tol(e_h,mu_tol)
    character*40, parameter :: caller = "elsi_set_mu_tol"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    if(mu_tol < 0.0_r8) then
       call elsi_stop(" Occupation number accuracy cannot be negative.",e_h,&
@@ -1131,7 +1272,10 @@ subroutine elsi_set_mu_spin_degen(e_h,spin_degen)
    character*40, parameter :: caller = "elsi_set_mu_spin_degen"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    e_h%spin_degen  = spin_degen
    e_h%spin_is_set = .true.
@@ -1151,7 +1295,10 @@ subroutine elsi_set_output_solver_timings(e_h,output_solver_timings)
    character*40, parameter :: caller = "elsi_set_output_solver_timings"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    if(output_solver_timings == 0) then
       e_h%output_solver_timings = .false.
@@ -1174,7 +1321,10 @@ subroutine elsi_set_solver_timings_unit(e_h,solver_timings_unit)
    character*40, parameter :: caller = "elsi_set_solver_timings_unit"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    e_h%solver_timings_file%print_unit = solver_timings_unit
 
@@ -1193,7 +1343,10 @@ subroutine elsi_set_solver_timings_file(e_h,solver_timings_file)
    character*40, parameter :: caller = "elsi_set_solver_timings_file"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    e_h%solver_timings_file%file_name = solver_timings_file
 

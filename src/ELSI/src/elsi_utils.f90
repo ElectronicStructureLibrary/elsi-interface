@@ -178,7 +178,6 @@ subroutine elsi_reset_handle(e_h)
    e_h%sips_started     = .false.
    e_h%clock_rate       = UNSET
    e_h%output_solver_timings = .true.
-   if(allocated(e_h%processor_name)) deallocate(e_h%processor_name)
 
 end subroutine
 
@@ -392,14 +391,14 @@ subroutine elsi_ready_handle(e_h,caller)
       if(e_h%output_solver_timings) then
          if(e_h%myid_all == 0) then
             open(unit=e_h%solver_timings_file%print_unit,&
-                 file=e_h%solver_timings_file%file_name)
+               file=e_h%solver_timings_file%file_name)
          else
             ! We know which process has myid_all.eq.0 now, we can
             ! de-initialize the rest
             e_h%solver_timings_file%print_unit = UNSET
             e_h%solver_timings_file%file_name  = UNSET_STRING
          endif
-         if(e_h%solver_timings_file%format == JSON) then
+         if(e_h%solver_timings_file%file_format == JSON) then
             ! Opening bracket to signify JSON array
             call elsi_say(e_h,"[",e_h%solver_timings_file)
             call append_string(e_h%solver_timings_file%prefix,"  ")
@@ -408,7 +407,10 @@ subroutine elsi_ready_handle(e_h,caller)
 
       ! Next, get the (MPI) name of the current processor
       call elsi_get_processor_name(e_h,proc_name,proc_name_len)
-      if(allocated(e_h%processor_name)) deallocate(e_h%processor_name)
+
+      if(allocated(e_h%processor_name)) then
+         deallocate(e_h%processor_name)
+      endif
       e_h%processor_name = proc_name
 
       e_h%handle_ready   = .true.

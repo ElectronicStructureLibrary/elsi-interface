@@ -31,12 +31,12 @@
 module ELSI_DATATYPE
 
    use, intrinsic :: ISO_C_BINDING
+   use ELSI_CONSTANTS,     only: FILE_NAME_LEN,TIMING_STRING_LEN
    use ELSI_PRECISION,     only: r8,i4
    use FOE_BASE,           only: foe_data
    use F_PPEXSI_INTERFACE, only: f_ppexsi_options
    use MATRIXSWITCH,       only: matrix
    use SPARSEMATRIX_BASE,  only: matrices,sparse_matrix
-   use ELSI_CONSTANTS,     only: FILE_NAME_LEN, TIMING_STRING_LEN
 
    implicit none
 
@@ -49,7 +49,7 @@ module ELSI_DATATYPE
       logical                       :: handle_init !< Is this a valid handle?
       integer(kind=i4)              :: print_unit  !< Unit to print to
       character(len=FILE_NAME_LEN)  :: file_name   !< Unit to print to
-      integer(kind=i4)              :: format      !< Format type for output
+      integer(kind=i4)              :: file_format !< Format type for output
       logical                       :: print_info  !< Whether to output
       character(len=:), allocatable :: prefix      !< Prefix for each line
       integer(kind=i4)              :: comma_json  !< Comma placement in JSON
@@ -61,11 +61,10 @@ module ELSI_DATATYPE
    type, public :: elsi_timings_handle
 
       integer(kind=i4)                  :: size_timings  ! Dimension for arrays
-      integer(kind=i4)                  :: n_timings     ! Current # of timings
+      integer(kind=i4)                  :: n_timings     ! Current number of timings
       character(len=TIMING_STRING_LEN)  :: next_user_tag ! User tag added to
                                                          ! next timing
-      character(len=TIMING_STRING_LEN)  :: set_label     ! String identifying
-                                                         ! timing set
+      character(len=TIMING_STRING_LEN)  :: set_label     ! String identifying timing set
 
       real(kind=r8),                     allocatable :: times(:)     ! System times
       character(len=TIMING_STRING_LEN),  allocatable :: elsi_tags(:) ! Tags assigned by ELSI
@@ -329,9 +328,9 @@ module ELSI_DATATYPE
       type(elsi_file_io_handle) :: solver_timings_file
 
       ! Timer and timings
-      integer(kind=i4)             :: clock_rate
-      type(elsi_timings_handle)    :: solver_timings
-      logical                      :: output_solver_timings ! Whether we output
+      integer(kind=i4)          :: clock_rate
+      type(elsi_timings_handle) :: solver_timings
+      logical                   :: output_solver_timings ! Whether we output
                                                             ! the solver timings
 
       ! Versioning
