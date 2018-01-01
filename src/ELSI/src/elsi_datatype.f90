@@ -60,15 +60,14 @@ module ELSI_DATATYPE
 
    type, public :: elsi_timings_handle
 
-      integer(kind=i4)                  :: size_timings  ! Dimension for arrays
-      integer(kind=i4)                  :: n_timings     ! Current number of timings
-      character(len=TIMING_STRING_LEN)  :: next_user_tag ! User tag added to
-                                                         ! next timing
-      character(len=TIMING_STRING_LEN)  :: set_label     ! String identifying timing set
+      integer(kind=i4)                 :: size_timings  ! Dimension for arrays
+      integer(kind=i4)                 :: n_timings     ! Current number of timings
+      character(len=TIMING_STRING_LEN) :: next_user_tag ! User tag added to next timing
+      character(len=TIMING_STRING_LEN) :: set_label     ! String identifying timing set
 
-      real(kind=r8),                     allocatable :: times(:)     ! System times
-      character(len=TIMING_STRING_LEN),  allocatable :: elsi_tags(:) ! Tags assigned by ELSI
-      character(len=TIMING_STRING_LEN),  allocatable :: user_tags(:) ! Tags provided by user
+      real(kind=r8),                    allocatable :: times(:)     ! System times
+      character(len=TIMING_STRING_LEN), allocatable :: elsi_tags(:) ! Tags assigned by ELSI
+      character(len=TIMING_STRING_LEN), allocatable :: user_tags(:) ! Tags provided by user
 
    end type
 
@@ -330,8 +329,7 @@ module ELSI_DATATYPE
       ! Timer and timings
       integer(kind=i4)          :: clock_rate
       type(elsi_timings_handle) :: solver_timings
-      logical                   :: output_solver_timings ! Whether we output
-                                                            ! the solver timings
+      logical                   :: output_solver_timings
 
       ! Versioning
       character(len=:), allocatable :: processor_name ! MPI name for processor
