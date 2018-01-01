@@ -1,4 +1,4 @@
-! Copyright (c) 2015-2017, the ELSI team. All rights reserved.
+! Copyright (c) 2015-2018, the ELSI team. All rights reserved.
 !
 ! Redistribution and use in source and binary forms, with or without
 ! modification, are permitted provided that the following conditions are met:
@@ -53,8 +53,8 @@ module M_QETSC
    public :: get_eps_eigenvalues
    public :: get_eps_eigenvectors
 
-   integer, public :: math
-   integer, public :: mats
+   integer(kind=i4), public :: math
+   integer(kind=i4), public :: mats
 
 contains
 

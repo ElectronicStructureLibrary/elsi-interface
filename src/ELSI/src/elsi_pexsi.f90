@@ -1,4 +1,4 @@
-! Copyright (c) 2015-2017, the ELSI team. All rights reserved.
+! Copyright (c) 2015-2018, the ELSI team. All rights reserved.
 !
 ! Redistribution and use in source and binary forms, with or without
 ! modification, are permitted provided that the following conditions are met:
@@ -34,7 +34,7 @@ module ELSI_PEXSI
    use ELSI_DATATYPE
    use ELSI_IO,        only: elsi_say
    use ELSI_MALLOC
-   use ELSI_MPI,       only: elsi_stop
+   use ELSI_MPI
    use ELSI_PRECISION, only: r8,i4
    use ELSI_TIMINGS,   only: elsi_get_time
    use ELSI_UTILS
@@ -102,14 +102,22 @@ subroutine elsi_init_pexsi(e_h)
       call MPI_Comm_split(e_h%mpi_comm,e_h%my_pcol_pexsi,e_h%my_prow_pexsi,&
               e_h%comm_among_pole,mpierr)
 
+      call elsi_check_mpi(e_h,"MPI_Comm_split",mpierr,caller)
+
       call MPI_Comm_split(e_h%mpi_comm,e_h%my_prow_pexsi,e_h%my_pcol_pexsi,&
               e_h%comm_in_pole,mpierr)
+
+      call elsi_check_mpi(e_h,"MPI_Comm_split",mpierr,caller)
 
       call MPI_Comm_split(e_h%mpi_comm,e_h%myid_point,e_h%my_point,&
               e_h%comm_among_point,mpierr)
 
+      call elsi_check_mpi(e_h,"MPI_Comm_split",mpierr,caller)
+
       call MPI_Comm_split(e_h%mpi_comm,e_h%my_point,e_h%myid_point,&
               e_h%comm_in_point,mpierr)
+
+      call elsi_check_mpi(e_h,"MPI_Comm_split",mpierr,caller)
 
       if(.not. e_h%sparsity_ready) then
          ! Set up 1D block distribution
@@ -264,6 +272,8 @@ subroutine elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
          call MPI_Allreduce(send_buf,inertias,n_shift,mpi_real8,mpi_sum,&
                  e_h%mpi_comm_all,mpierr)
 
+         call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
+
          call elsi_deallocate(e_h,send_buf,"send_buf")
       endif
 
@@ -350,6 +360,8 @@ subroutine elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
    call MPI_Allreduce(send_buf,e_h%ne_vec,e_h%pexsi_options%nPoints,mpi_real8,&
            mpi_sum,e_h%comm_among_point,mpierr)
 
+   call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
+
    ! Get global number of electrons
    if(e_h%n_spins*e_h%n_kpts > 1) then
       if(e_h%myid == 0) then
@@ -360,6 +372,8 @@ subroutine elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
 
       call MPI_Allreduce(send_buf,e_h%ne_vec,e_h%pexsi_options%nPoints,&
               mpi_real8,mpi_sum,e_h%mpi_comm_all,mpierr)
+
+      call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
    endif
 
    call elsi_deallocate(e_h,send_buf,"send_buf")
@@ -439,6 +453,8 @@ subroutine elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
             call MPI_Bcast(tmp_real,e_h%nnz_l_sp,mpi_real8,i-1,&
                     e_h%comm_among_point,mpierr)
 
+            call elsi_check_mpi(e_h,"MPI_Bcast",mpierr,caller)
+
             exit
          endif
       enddo
@@ -468,6 +484,8 @@ subroutine elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
       call MPI_Allreduce(send_buf,tmp_real,e_h%nnz_l_sp,mpi_real8,mpi_sum,&
               e_h%comm_among_point,mpierr)
 
+      call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
+
       call elsi_deallocate(e_h,send_buf,"send_buf")
    endif
 
@@ -484,6 +502,8 @@ subroutine elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
 
       call MPI_Reduce(local_energy,e_h%energy_hdm,1,mpi_real8,mpi_sum,0,&
               e_h%comm_in_pole,mpierr)
+
+      call elsi_check_mpi(e_h,"MPI_Reduce",mpierr,caller)
    endif
 
    call MPI_Bcast(e_h%energy_hdm,1,mpi_real8,0,e_h%mpi_comm,mpierr)
@@ -496,6 +516,8 @@ subroutine elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
    call elsi_say(e_h,info_str)
 
    call MPI_Barrier(e_h%mpi_comm,mpierr)
+
+   call elsi_check_mpi(e_h,"MPI_Barrier",mpierr,caller)
 
 end subroutine
 
@@ -609,6 +631,8 @@ subroutine elsi_compute_edm_pexsi_real(e_h,edm)
             call MPI_Bcast(tmp_real,e_h%nnz_l_sp,mpi_real8,i-1,&
                     e_h%comm_among_point,mpierr)
 
+            call elsi_check_mpi(e_h,"MPI_Bcast",mpierr,caller)
+
             exit
          endif
       enddo
@@ -632,6 +656,8 @@ subroutine elsi_compute_edm_pexsi_real(e_h,edm)
 
       call MPI_Allreduce(send_buf,tmp_real,e_h%nnz_l_sp,mpi_real8,mpi_sum,&
               e_h%comm_among_point,mpierr)
+
+      call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
 
       call elsi_deallocate(e_h,send_buf,"send_buf")
    endif
@@ -778,6 +804,8 @@ subroutine elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
          call MPI_Allreduce(send_buf,inertias,n_shift,mpi_real8,mpi_sum,&
                  e_h%mpi_comm_all,mpierr)
 
+         call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
+
          call elsi_deallocate(e_h,send_buf,"send_buf")
       endif
 
@@ -864,6 +892,8 @@ subroutine elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
    call MPI_Allreduce(send_buf,e_h%ne_vec,e_h%pexsi_options%nPoints,mpi_real8,&
            mpi_sum,e_h%comm_among_point,mpierr)
 
+   call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
+
    ! Get global number of electrons
    if(e_h%n_spins*e_h%n_kpts > 1) then
       if(e_h%myid == 0) then
@@ -874,6 +904,8 @@ subroutine elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
 
       call MPI_Allreduce(send_buf,e_h%ne_vec,e_h%pexsi_options%nPoints,&
               mpi_real8,mpi_sum,e_h%mpi_comm_all,mpierr)
+
+      call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
    endif
 
    call elsi_deallocate(e_h,send_buf,"send_buf")
@@ -953,6 +985,8 @@ subroutine elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
             call MPI_Bcast(tmp_cmplx,e_h%nnz_l_sp,mpi_complex16,i-1,&
                     e_h%comm_among_point,mpierr)
 
+            call elsi_check_mpi(e_h,"MPI_Bcast",mpierr,caller)
+
             exit
          endif
       enddo
@@ -983,6 +1017,8 @@ subroutine elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
       call MPI_Allreduce(send_buf_cmplx,tmp_cmplx,e_h%nnz_l_sp,mpi_complex16,&
               mpi_sum,e_h%comm_among_point,mpierr)
 
+      call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
+
       call elsi_deallocate(e_h,send_buf_cmplx,"send_buf_cmplx")
    endif
 
@@ -1000,9 +1036,13 @@ subroutine elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
 
       call MPI_Reduce(local_energy,e_h%energy_hdm,1,mpi_real8,mpi_sum,0,&
               e_h%comm_in_pole,mpierr)
+
+      call elsi_check_mpi(e_h,"MPI_Reduce",mpierr,caller)
    endif
 
    call MPI_Bcast(e_h%energy_hdm,1,mpi_real8,0,e_h%mpi_comm,mpierr)
+
+   call elsi_check_mpi(e_h,"MPI_Bcast",mpierr,caller)
 
    call elsi_get_time(e_h,t1)
 
@@ -1012,6 +1052,8 @@ subroutine elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
    call elsi_say(e_h,info_str)
 
    call MPI_Barrier(e_h%mpi_comm,mpierr)
+
+   call elsi_check_mpi(e_h,"MPI_Barrier",mpierr,caller)
 
 end subroutine
 
@@ -1126,6 +1168,8 @@ subroutine elsi_compute_edm_pexsi_cmplx(e_h,edm)
             call MPI_Bcast(tmp_cmplx,e_h%nnz_l_sp,mpi_complex16,i-1,&
                     e_h%comm_among_point,mpierr)
 
+            call elsi_check_mpi(e_h,"MPI_Bcast",mpierr,caller)
+
             exit
          endif
       enddo
@@ -1150,6 +1194,8 @@ subroutine elsi_compute_edm_pexsi_cmplx(e_h,edm)
 
       call MPI_Allreduce(send_buf_cmplx,tmp_cmplx,e_h%nnz_l_sp,mpi_complex16,&
               mpi_sum,e_h%comm_among_point,mpierr)
+
+      call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
 
       call elsi_deallocate(e_h,send_buf_cmplx,"send_buf_cmplx")
    endif

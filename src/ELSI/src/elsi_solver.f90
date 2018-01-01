@@ -1,4 +1,4 @@
-! Copyright (c) 2015-2017, the ELSI team. All rights reserved.
+! Copyright (c) 2015-2018, the ELSI team. All rights reserved.
 !
 ! Redistribution and use in source and binary forms, with or without
 ! modification, are permitted provided that the following conditions are met:
@@ -53,7 +53,7 @@ module ELSI_SOLVER
                              append_string,truncate_string
    use ELSI_MALLOC
    use ELSI_MATCONV
-   use ELSI_MPI,       only: elsi_stop
+   use ELSI_MPI
    use ELSI_OMM,       only: elsi_solve_evp_omm_real,&
                              elsi_solve_evp_omm_cmplx
    use ELSI_PEXSI,     only: elsi_init_pexsi,elsi_solve_evp_pexsi_real,&
@@ -128,6 +128,8 @@ subroutine elsi_get_energy(e_h,energy,solver)
 
       call MPI_Allreduce(energy,tmp_real,1,mpi_real8,mpi_sum,e_h%mpi_comm_all,&
               mpierr)
+
+      call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
 
       energy = tmp_real
    endif

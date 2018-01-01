@@ -1,4 +1,4 @@
-! Copyright (c) 2015-2017, the ELSI team. All rights reserved.
+! Copyright (c) 2015-2018, the ELSI team. All rights reserved.
 !
 ! Redistribution and use in source and binary forms, with or without
 ! modification, are permitted provided that the following conditions are met:
@@ -360,14 +360,14 @@ subroutine elsi_check_handle(e_h,caller)
 end subroutine
 
 !>
-!! This subroutine signifies that a handle is believed to be ready to be used.  
-!! There are certain tasks (such as IO) that are only possible once the user has 
+!! This subroutine signifies that a handle is believed to be ready to be used.
+!! There are certain tasks (such as IO) that are only possible once the user has
 !! specified sufficient information about the problem, but they may call the
 !! relevant mutators in any order, making it difficult to pin down exactly when
 !! we can perform certain initialization-like tasks.
-!! Thus, we call this subroutine at the beginning of all public-facing subroutines 
-!! in which ELSI is executing a task that would require it to have been 
-!! sufficiently initialized by the user: currently, only solver.  This does not 
+!! Thus, we call this subroutine at the beginning of all public-facing subroutines
+!! in which ELSI is executing a task that would require it to have been
+!! sufficiently initialized by the user: currently, only solver. This does not
 !! apply to mutators, initalization, finalization, or matrix IO.
 !!
 subroutine elsi_ready_handle(e_h,caller)
@@ -376,13 +376,13 @@ subroutine elsi_ready_handle(e_h,caller)
 
    type(elsi_handle), intent(inout) :: e_h
    character(len=*),  intent(in)    :: caller
- 
+
    character(len=MPI_MAX_PROCESSOR_NAME) :: proc_name
-   integer                               :: proc_name_len
- 
+   integer(kind=i4)                      :: proc_name_len
+
    call elsi_check_handle(e_h,caller)
 
-   if(.not.e_h%handle_ready) then
+   if(.not. e_h%handle_ready) then
       call elsi_check(e_h,caller)
 
       ! We can now perform initialization-like tasks which require
@@ -390,20 +390,20 @@ subroutine elsi_ready_handle(e_h,caller)
 
       ! First, solver timings
       if(e_h%output_solver_timings) then
-         if (e_h%myid_all == 0) then
+         if(e_h%myid_all == 0) then
             open(unit=e_h%solver_timings_file%print_unit,&
                  file=e_h%solver_timings_file%file_name)
          else
-            ! We know which process has myid_all.eq.0 now, we can 
+            ! We know which process has myid_all.eq.0 now, we can
             ! de-initialize the rest
             e_h%solver_timings_file%print_unit = UNSET
             e_h%solver_timings_file%file_name  = UNSET_STRING
          endif
          if(e_h%solver_timings_file%format == JSON) then
             ! Opening bracket to signify JSON array
-            call elsi_say(e_h, "[", e_h%solver_timings_file)
+            call elsi_say(e_h,"[",e_h%solver_timings_file)
             call append_string(e_h%solver_timings_file%prefix,"  ")
-         end if
+         endif
       endif
 
       ! Next, get the (MPI) name of the current processor
@@ -416,7 +416,6 @@ subroutine elsi_ready_handle(e_h,caller)
    endif
 
 end subroutine
-
 
 !>
 !! This routine computes the global row index based on the local row index.
@@ -550,6 +549,8 @@ subroutine elsi_trace_mat_real(e_h,mat,trace)
 
    call MPI_Allreduce(l_trace,trace,1,mpi_real8,mpi_sum,e_h%mpi_comm,mpierr)
 
+   call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
+
 end subroutine
 
 !>
@@ -580,6 +581,8 @@ subroutine elsi_trace_mat_cmplx(e_h,mat,trace)
 
    call MPI_Allreduce(l_trace,trace,1,mpi_complex16,mpi_sum,e_h%mpi_comm,mpierr)
 
+   call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
+
 end subroutine
 
 !>
@@ -605,6 +608,8 @@ subroutine elsi_trace_mat_mat_real(e_h,mat1,mat2,trace)
    l_trace = ddot(e_h%n_lrow*e_h%n_lcol,mat1,1,mat2,1)
 
    call MPI_Allreduce(l_trace,trace,1,mpi_real8,mpi_sum,e_h%mpi_comm,mpierr)
+
+   call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
 
 end subroutine
 
@@ -632,6 +637,8 @@ subroutine elsi_trace_mat_mat_cmplx(e_h,mat1,mat2,trace)
 
    call MPI_Allreduce(l_trace,trace,1,mpi_complex16,mpi_sum,e_h%mpi_comm,mpierr)
 
+   call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
+
 end subroutine
 
 !>
@@ -641,25 +648,25 @@ subroutine elsi_get_solver_tag(e_h,solver_tag,data_type)
 
    implicit none
 
-   type(elsi_handle),                intent(in)  :: e_h         !< Handle
+   type(elsi_handle),                intent(in)  :: e_h
    character(len=TIMING_STRING_LEN), intent(out) :: solver_tag
    integer(kind=i4),                 intent(in)  :: data_type
 
    character*40, parameter :: caller = "elsi_get_solver_tag"
 
-   if (data_type.eq.REAL_VALUES) then
+   if(data_type == REAL_VALUES) then
       select case(e_h%solver)
       case(ELPA_SOLVER)
          if(e_h%parallel_mode == SINGLE_PROC) then
             solver_tag = "LAPACK_REAL"
          else ! MULTI_PROC
-            if(e_h%elpa_solver.eq.1) then 
+            if(e_h%elpa_solver == 1) then
                solver_tag = "ELPA_1STAGE_REAL"
-            elseif(e_h%elpa_solver.eq.2) then 
+            elseif(e_h%elpa_solver == 2) then
                solver_tag = "ELPA_2STAGE_REAL"
             else
                call elsi_stop(" Unsupported ELPA flavor.",e_h,caller)
-            end if
+            endif
          endif
       case(OMM_SOLVER)
          solver_tag = "LIBOMM_REAL"
@@ -674,19 +681,19 @@ subroutine elsi_get_solver_tag(e_h,solver_tag,data_type)
       case default
          call elsi_stop(" Unsupported solver.",e_h,caller)
       end select
-   elseif (data_type.eq.COMPLEX_VALUES) then
+   elseif(data_type == COMPLEX_VALUES) then
       select case(e_h%solver)
       case(ELPA_SOLVER)
          if(e_h%parallel_mode == SINGLE_PROC) then
             solver_tag = "LAPACK_CMPLX"
          else ! MULTI_PROC
-            if(e_h%elpa_solver.eq.1) then 
+            if(e_h%elpa_solver == 1) then
                solver_tag = "ELPA_1STAGE_CMPLX"
-            elseif(e_h%elpa_solver.eq.2) then 
+            elseif(e_h%elpa_solver == 2) then
                solver_tag = "ELPA_2STAGE_CMPLX"
             else
                call elsi_stop(" Unsupported ELPA flavor.",e_h,caller)
-            end if
+            endif
          endif
       case(OMM_SOLVER)
          solver_tag = "LIBOMM_CMPLX"
@@ -703,7 +710,7 @@ subroutine elsi_get_solver_tag(e_h,solver_tag,data_type)
       end select
    else
       call elsi_stop(" Unsupported data type.",e_h,caller)
-   end if
+   endif
 
 end subroutine
 
@@ -715,18 +722,18 @@ subroutine elsi_get_datetime_rfc3339(datetime_rfc3339)
 
    implicit none
 
-   character(len=DATETIME_LEN), intent(out)   :: datetime_rfc3339
+   character(len=DATETIME_LEN), intent(out) :: datetime_rfc3339
 
-   integer(kind=i4), dimension(8)   :: datetime
-   integer                          :: temp_int
-   character(len=1)                 :: timezone_sign
-   character(len=2)                 :: timezone_hour
-   character(len=2)                 :: timezone_min
+   integer(kind=i4) :: datetime(8)
+   integer(kind=i4) :: temp_int
+   character(len=1) :: timezone_sign
+   character(len=2) :: timezone_hour
+   character(len=2) :: timezone_min
 
    character*40, parameter :: caller = "elsi_get_datetime_rfc3339"
 
    call date_and_time(values=datetime)
- 
+
    ! Get time zone sign (ahead or behind UTC)
    if(datetime(4) < 0) then
       timezone_sign = "-"
@@ -736,25 +743,26 @@ subroutine elsi_get_datetime_rfc3339(datetime_rfc3339)
    endif
 
    ! Get timezone minutes
-   temp_int  = MOD(datetime(4),60)
+   temp_int = mod(datetime(4),60)
    if(temp_int < 10) then
-      write(timezone_min,'(A1,I1)') "0", temp_int
+      write(timezone_min,'(A1,I1)') "0",temp_int
    else
       write(timezone_min,'(I2)') temp_int
    endif
 
    ! Get timezone hours
-   temp_int  = datetime(4)/60
+   temp_int = datetime(4)/60
    if(temp_int < 10) then
-      write(timezone_hour,'(A1,I1)') "0", temp_int
+      write(timezone_hour,'(A1,I1)') "0",temp_int
    else
       write(timezone_hour,'(I2)') temp_int
    endif
 
-   write(datetime_rfc3339,"(I4,A1,I2,A1,I2,A1,I2,A1,I2,A1,I2,A1,I3,A1,A2,A1,A2)")&
-        datetime(1),"-",datetime(2),"-",datetime(3),"T",datetime(5),":",&
-        datetime(6),":",datetime(7),".",datetime(8),timezone_sign,&
-        timezone_hour,":",timezone_min
+   write(datetime_rfc3339,&
+      '(I4,A1,I2,A1,I2,A1,I2,A1,I2,A1,I2,A1,I3,A1,A2,A1,A2)')&
+      datetime(1),"-",datetime(2),"-",datetime(3),"T",datetime(5),":",&
+      datetime(6),":",datetime(7),".",datetime(8),timezone_sign,timezone_hour,&
+      ":",timezone_min
 
 end subroutine
 

@@ -1,4 +1,4 @@
-! Copyright (c) 2015-2017, the ELSI team. All rights reserved.
+! Copyright (c) 2015-2018, the ELSI team. All rights reserved.
 !
 ! Redistribution and use in source and binary forms, with or without
 ! modification, are permitted provided that the following conditions are met:
@@ -33,6 +33,7 @@ module ELSI_OMM
    use ELSI_CONSTANTS, only: BLACS_DENSE
    use ELSI_DATATYPE
    use ELSI_IO,        only: elsi_say
+   use ELSI_MPI
    use ELSI_PRECISION, only: r8,i4
    use ELSI_TIMINGS,   only: elsi_get_time
    use ELSI_UTILS
@@ -84,6 +85,8 @@ subroutine elsi_solve_evp_omm_real(e_h,ham,ovlp,dm)
 
       call MPI_Allreduce(e_h%nnz_l,e_h%nnz_g,1,mpi_integer4,mpi_sum,&
               e_h%mpi_comm,mpierr)
+
+      call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
    endif
 
    if(.not. e_h%ovlp_is_unit) then
@@ -140,6 +143,8 @@ subroutine elsi_solve_evp_omm_real(e_h,ham,ovlp,dm)
    dm = e_h%spin_degen*dm
 
    call MPI_Barrier(e_h%mpi_comm,mpierr)
+
+   call elsi_check_mpi(e_h,"MPI_Barrier",mpierr,caller)
 
    call elsi_get_time(e_h,t1)
 
@@ -220,6 +225,8 @@ subroutine elsi_solve_evp_omm_cmplx(e_h,ham,ovlp,dm)
 
       call MPI_Allreduce(e_h%nnz_l,e_h%nnz_g,1,mpi_integer4,mpi_sum,&
               e_h%mpi_comm,mpierr)
+
+      call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
    endif
 
    if(.not. e_h%ovlp_is_unit) then
@@ -276,6 +283,8 @@ subroutine elsi_solve_evp_omm_cmplx(e_h,ham,ovlp,dm)
    dm = e_h%spin_degen*dm
 
    call MPI_Barrier(e_h%mpi_comm,mpierr)
+
+   call elsi_check_mpi(e_h,"MPI_Barrier",mpierr,caller)
 
    call elsi_get_time(e_h,t1)
 

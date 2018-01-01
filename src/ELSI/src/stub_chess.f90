@@ -1,4 +1,4 @@
-! Copyright (c) 2015-2017, the ELSI team. All rights reserved.
+! Copyright (c) 2015-2018, the ELSI team. All rights reserved.
 !
 ! Redistribution and use in source and binary forms, with or without
 ! modification, are permitted provided that the following conditions are met:
@@ -62,10 +62,10 @@ function foe_data_get_real(foe_obj,fieldname,ind) result(val)
 
    implicit none
 
-   type(foe_data)    :: foe_obj
-   character(len=*)  :: fieldname
-   integer, optional :: ind
-   real(kind=r8)     :: val
+   type(foe_data)             :: foe_obj
+   character(len=*)           :: fieldname
+   integer(kind=i4), optional :: ind
+   real(kind=r8)              :: val
 
    val = 0.0_r8
 
@@ -223,9 +223,9 @@ subroutine matrices_init(smat,mat,matsize)
 
    implicit none
 
-   type(sparse_matrix) :: smat
-   type(matrices)      :: mat
-   integer, optional   :: matsize
+   type(sparse_matrix)        :: smat
+   type(matrices)             :: mat
+   integer(kind=i4), optional :: matsize
 
    write(*,"(A)") " A CheSS stub routine was called. Check ELSI installation."
    write(*,"(A)") " Exiting..."
