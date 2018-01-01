@@ -1,4 +1,4 @@
-! Copyright (c) 2015-2017, the ELSI team. All rights reserved.
+! Copyright (c) 2015-2018, the ELSI team. All rights reserved.
 !
 ! Redistribution and use in source and binary forms, with or without
 ! modification, are permitted provided that the following conditions are met:
@@ -41,6 +41,7 @@ module ELSI_MATIO
                              elsi_pexsi_to_blacs_dm_cmplx,&
                              elsi_blacs_to_sips_hs_real,&
                              elsi_blacs_to_sips_hs_cmplx
+   use ELSI_MPI
    use ELSI_PRECISION, only: r8,i4,i8
    use ELSI_SETUP,     only: elsi_init,elsi_set_mpi,elsi_set_blacs,&
                              elsi_set_csc,elsi_cleanup
@@ -780,10 +781,12 @@ subroutine elsi_read_mat_real_mp(rw_h,f_name,mat)
    ! Redistribute matrix
    call elsi_set_csc(aux_h,rw_h%nnz_g,rw_h%nnz_l_sp,rw_h%n_lcol_sp,row_ind,&
            col_ptr)
-   if(.not.allocated(aux_h%dm_real_pexsi)) then
+
+   if(.not. allocated(aux_h%dm_real_pexsi)) then
       call elsi_allocate(aux_h,aux_h%dm_real_pexsi,rw_h%nnz_l_sp,&
-                         "dm_real_pexsi",caller)
-   end if 
+              "dm_real_pexsi",caller)
+   endif
+
    aux_h%dm_real_pexsi = nnz_val
    aux_h%n_elsi_calls  = 1
    aux_h%my_prow_pexsi = 0
@@ -997,10 +1000,11 @@ subroutine elsi_read_mat_complex_mp(rw_h,f_name,mat)
    call elsi_set_csc(aux_h,rw_h%nnz_g,rw_h%nnz_l_sp,rw_h%n_lcol_sp,row_ind,&
            col_ptr)
 
-   if(.not.allocated(aux_h%dm_cmplx_pexsi)) then
+   if(.not. allocated(aux_h%dm_cmplx_pexsi)) then
       call elsi_allocate(aux_h,aux_h%dm_cmplx_pexsi,rw_h%nnz_l_sp,&
-                         "dm_cmplx_pexsi",caller)
+              "dm_cmplx_pexsi",caller)
    endif
+
    aux_h%dm_cmplx_pexsi = nnz_val
    aux_h%n_elsi_calls   = 1
    aux_h%my_prow_pexsi  = 0

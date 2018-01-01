@@ -1,4 +1,4 @@
-! Copyright (c) 2015-2017, the ELSI team. All rights reserved.
+! Copyright (c) 2015-2018, the ELSI team. All rights reserved.
 !
 ! Redistribution and use in source and binary forms, with or without
 ! modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
 !   development.  Both are useful.  Should do both.
 
 ! NOTES:
-! - I've made the choice to not use elsi_malloc, because it considerably 
+! - I've made the choice to not use elsi_malloc, because it considerably
 !   increases the code density for little payoff; the allocated arrays here will
 !   be on the order of kB, if that
 
@@ -88,7 +88,7 @@ subroutine elsi_init_timer(e_h)
    character*40, parameter :: caller = "elsi_init_timer"
 
    if (e_h%handle_ready) e_h%handle_changed = .true.
-      
+
    call system_clock(initial_time,e_h%clock_rate,clock_max)
 
 end subroutine
@@ -125,13 +125,13 @@ subroutine elsi_init_timings(t_h,set_label)
    implicit none
 
    type(elsi_timings_handle),  intent(inout) :: t_h       !< Handle
-   character(len=*), optional, intent(in)    :: set_label 
+   character(len=*), optional, intent(in)    :: set_label
 
    character*40, parameter :: caller = "elsi_init_timings"
 
    t_h%size_timings  = STARTING_SIZE_TIMINGS
    t_h%n_timings     = 0
-   t_h%next_user_tag = UNSET_STRING
+   t_h%user_tag = UNSET_STRING
    if(present(set_label)) then
       t_h%set_label = set_label
    else
@@ -161,28 +161,27 @@ subroutine elsi_add_timing(t_h,time,elsi_tag,user_tag_in,iter_in)
    integer(kind=i4)                 :: iter
 
    character*40, parameter :: caller = "elsi_add_timings"
-   
+
    ! By default, increment the number of iterations and update
    ! the next iteration
-   ! If the iteration is manually specified, the number of 
+   ! If the iteration is manually specified, the number of
    ! iterations will NOT be updated.
    if(present(iter_in)) then
       iter = iter_in
    else
       t_h%n_timings = t_h%n_timings + 1
-      iter = t_h%n_timings 
+      iter = t_h%n_timings
    endif
 
    ! Temporary check to make sure we don't have more timings than
-   ! the array size.  Arrays should be resized on-the-fly instead. 
+   ! the array size.  Arrays should be resized on-the-fly instead.
    if(iter.le.t_h%size_timings) then
       if(present(user_tag_in)) then
          user_tag = user_tag_in
       else
-         user_tag           = t_h%next_user_tag
-         t_h%next_user_tag  = UNSET_STRING
+         user_tag = t_h%user_tag
       endif
-  
+
       t_h%times(iter)     = time
       t_h%elsi_tags(iter) = elsi_tag
       t_h%user_tags(iter) = user_tag
@@ -204,7 +203,7 @@ subroutine elsi_print_timings(e_h,t_h)
    type(elsi_timings_handle),  intent(in) :: t_h !< Handle
 
    character*200    :: info_str
-   integer          :: iter
+   integer(kind=i4) :: iter
 
    character*40, parameter :: caller = "elsi_print_timings"
 
@@ -247,7 +246,7 @@ subroutine elsi_finalize_timings(t_h)
    endif
    t_h%n_timings     = 0
    t_h%size_timings  = UNSET
-   t_h%next_user_tag = UNSET_STRING
+   t_h%user_tag      = UNSET_STRING
    t_h%set_label     = UNSET_STRING
 
 end subroutine

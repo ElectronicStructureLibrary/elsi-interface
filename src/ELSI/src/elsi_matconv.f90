@@ -1,4 +1,4 @@
-! Copyright (c) 2015-2017, the ELSI team. All rights reserved.
+! Copyright (c) 2015-2018, the ELSI team. All rights reserved.
 !
 ! Redistribution and use in source and binary forms, with or without
 ! modification, are permitted provided that the following conditions are met:
@@ -33,6 +33,7 @@ module ELSI_MATCONV
    use ELSI_DATATYPE
    use ELSI_IO,        only: elsi_say
    use ELSI_MALLOC
+   use ELSI_MPI
    use ELSI_PRECISION, only: r8,i4,i8
    use ELSI_SORT
    use ELSI_TIMINGS,   only: elsi_get_time
@@ -254,6 +255,8 @@ subroutine elsi_blacs_to_pexsi_hs_real(e_h,ham,ovlp)
    call MPI_Alltoall(send_count,1,mpi_integer4,recv_count,1,mpi_integer4,&
            e_h%mpi_comm,mpierr)
 
+   call elsi_check_mpi(e_h,"MPI_Alltoall",mpierr,caller)
+
    ! Set local/global number of nonzero
    nnz_l_aux = sum(recv_count,1)
    call MPI_Allreduce(nnz_l_aux,e_h%nnz_g,1,mpi_integer4,mpi_sum,e_h%mpi_comm,&
@@ -275,6 +278,8 @@ subroutine elsi_blacs_to_pexsi_hs_real(e_h,ham,ovlp)
    call MPI_Alltoallv(row_send_buf,send_count,send_displ,mpi_integer4,&
            row_recv_buf,recv_count,recv_displ,mpi_integer4,e_h%mpi_comm,mpierr)
 
+   call elsi_check_mpi(e_h,"MPI_Alltoallv",mpierr,caller)
+
    call elsi_deallocate(e_h,row_send_buf,"row_send_buf")
 
    ! Column id
@@ -283,6 +288,8 @@ subroutine elsi_blacs_to_pexsi_hs_real(e_h,ham,ovlp)
    call MPI_Alltoallv(col_send_buf,send_count,send_displ,mpi_integer4,&
            col_recv_buf,recv_count,recv_displ,mpi_integer4,e_h%mpi_comm,mpierr)
 
+   call elsi_check_mpi(e_h,"MPI_Alltoallv",mpierr,caller)
+
    call elsi_deallocate(e_h,col_send_buf,"col_send_buf")
 
    ! Hamiltonian value
@@ -290,6 +297,8 @@ subroutine elsi_blacs_to_pexsi_hs_real(e_h,ham,ovlp)
 
    call MPI_Alltoallv(h_val_send_buf,send_count,send_displ,mpi_real8,&
            h_val_recv_buf,recv_count,recv_displ,mpi_real8,e_h%mpi_comm,mpierr)
+
+   call elsi_check_mpi(e_h,"MPI_Alltoallv",mpierr,caller)
 
    call elsi_deallocate(e_h,h_val_send_buf,"h_val_send_buf")
 
@@ -300,6 +309,8 @@ subroutine elsi_blacs_to_pexsi_hs_real(e_h,ham,ovlp)
       call MPI_Alltoallv(s_val_send_buf,send_count,send_displ,mpi_real8,&
               s_val_recv_buf,recv_count,recv_displ,mpi_real8,e_h%mpi_comm,&
               mpierr)
+
+      call elsi_check_mpi(e_h,"MPI_Alltoallv",mpierr,caller)
 
       call elsi_deallocate(e_h,s_val_send_buf,"s_val_send_buf")
    endif
@@ -332,11 +343,15 @@ subroutine elsi_blacs_to_pexsi_hs_real(e_h,ham,ovlp)
    call MPI_Alltoall(send_count,1,mpi_integer4,recv_count,1,mpi_integer4,&
            e_h%mpi_comm,mpierr)
 
+   call elsi_check_mpi(e_h,"MPI_Alltoall",mpierr,caller)
+
    if(e_h%n_elsi_calls == 1) then
       ! Only the first pole knows nnz_l_sp
       e_h%nnz_l_sp = sum(recv_count,1)
 
       call MPI_Bcast(e_h%nnz_l_sp,1,mpi_integer4,0,e_h%comm_among_pole,mpierr)
+
+      call elsi_check_mpi(e_h,"MPI_Bcast",mpierr,caller)
    endif
 
    ! Set send and receive displacement
@@ -354,6 +369,8 @@ subroutine elsi_blacs_to_pexsi_hs_real(e_h,ham,ovlp)
               row_send_buf,recv_count,recv_displ,mpi_integer4,e_h%mpi_comm,&
               mpierr)
 
+      call elsi_check_mpi(e_h,"MPI_Alltoallv",mpierr,caller)
+
       call elsi_deallocate(e_h,row_recv_buf,"row_recv_buf")
 
       ! Column id
@@ -362,6 +379,8 @@ subroutine elsi_blacs_to_pexsi_hs_real(e_h,ham,ovlp)
       call MPI_Alltoallv(col_recv_buf,send_count,send_displ,mpi_integer4,&
               col_send_buf,recv_count,recv_displ,mpi_integer4,e_h%mpi_comm,&
               mpierr)
+
+      call elsi_check_mpi(e_h,"MPI_Alltoallv",mpierr,caller)
 
       call elsi_deallocate(e_h,col_recv_buf,"col_recv_buf")
 
@@ -373,6 +392,8 @@ subroutine elsi_blacs_to_pexsi_hs_real(e_h,ham,ovlp)
          call MPI_Alltoallv(s_val_recv_buf,send_count,send_displ,mpi_real8,&
                  e_h%ovlp_real_pexsi,recv_count,recv_displ,mpi_real8,&
                  e_h%mpi_comm,mpierr)
+
+         call elsi_check_mpi(e_h,"MPI_Alltoallv",mpierr,caller)
 
          call elsi_deallocate(e_h,s_val_recv_buf,"s_val_recv_buf")
 
@@ -392,6 +413,8 @@ subroutine elsi_blacs_to_pexsi_hs_real(e_h,ham,ovlp)
    call MPI_Alltoallv(h_val_recv_buf,send_count,send_displ,mpi_real8,&
            e_h%ham_real_pexsi,recv_count,recv_displ,mpi_real8,e_h%mpi_comm,&
            mpierr)
+
+   call elsi_check_mpi(e_h,"MPI_Alltoallv",mpierr,caller)
 
    call elsi_deallocate(e_h,h_val_recv_buf,"h_val_recv_buf")
    call elsi_deallocate(e_h,send_count,"send_count")
@@ -631,10 +654,14 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(e_h,ham,ovlp)
    call MPI_Alltoall(send_count,1,mpi_integer4,recv_count,1,mpi_integer4,&
            e_h%mpi_comm,mpierr)
 
+   call elsi_check_mpi(e_h,"MPI_Alltoall",mpierr,caller)
+
    ! Set local/global number of nonzero
    nnz_l_aux = sum(recv_count,1)
    call MPI_Allreduce(nnz_l_aux,e_h%nnz_g,1,mpi_integer4,mpi_sum,e_h%mpi_comm,&
            mpierr)
+
+   call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
 
    ! Set send and receive displacement
    call elsi_allocate(e_h,send_displ,e_h%n_procs,"send_displ",caller)
@@ -652,6 +679,8 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(e_h,ham,ovlp)
    call MPI_Alltoallv(row_send_buf,send_count,send_displ,mpi_integer4,&
            row_recv_buf,recv_count,recv_displ,mpi_integer4,e_h%mpi_comm,mpierr)
 
+   call elsi_check_mpi(e_h,"MPI_Alltoallv",mpierr,caller)
+
    call elsi_deallocate(e_h,row_send_buf,"row_send_buf")
 
    ! Column id
@@ -659,6 +688,8 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(e_h,ham,ovlp)
 
    call MPI_Alltoallv(col_send_buf,send_count,send_displ,mpi_integer4,&
            col_recv_buf,recv_count,recv_displ,mpi_integer4,e_h%mpi_comm,mpierr)
+
+   call elsi_check_mpi(e_h,"MPI_Alltoallv",mpierr,caller)
 
    call elsi_deallocate(e_h,col_send_buf,"col_send_buf")
 
@@ -669,6 +700,8 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(e_h,ham,ovlp)
            h_val_recv_buf,recv_count,recv_displ,mpi_complex16,e_h%mpi_comm,&
            mpierr)
 
+   call elsi_check_mpi(e_h,"MPI_Alltoallv",mpierr,caller)
+
    call elsi_deallocate(e_h,h_val_send_buf,"h_val_send_buf")
 
    ! Overlap value
@@ -678,6 +711,8 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(e_h,ham,ovlp)
       call MPI_Alltoallv(s_val_send_buf,send_count,send_displ,mpi_complex16,&
               s_val_recv_buf,recv_count,recv_displ,mpi_complex16,e_h%mpi_comm,&
               mpierr)
+
+      call elsi_check_mpi(e_h,"MPI_Alltoallv",mpierr,caller)
 
       call elsi_deallocate(e_h,s_val_send_buf,"s_val_send_buf")
    endif
@@ -710,11 +745,15 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(e_h,ham,ovlp)
    call MPI_Alltoall(send_count,1,mpi_integer4,recv_count,1,mpi_integer4,&
            e_h%mpi_comm,mpierr)
 
+   call elsi_check_mpi(e_h,"MPI_Alltoall",mpierr,caller)
+
    if(e_h%n_elsi_calls == 1) then
       ! Only the first pole knows nnz_l_sp
       e_h%nnz_l_sp = sum(recv_count,1)
 
       call MPI_Bcast(e_h%nnz_l_sp,1,mpi_integer4,0,e_h%comm_among_pole,mpierr)
+
+      call elsi_check_mpi(e_h,"MPI_Bcast",mpierr,caller)
    endif
 
    ! Set send and receive displacement
@@ -732,6 +771,8 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(e_h,ham,ovlp)
               row_send_buf,recv_count,recv_displ,mpi_integer4,e_h%mpi_comm,&
               mpierr)
 
+      call elsi_check_mpi(e_h,"MPI_Alltoallv",mpierr,caller)
+
       call elsi_deallocate(e_h,row_recv_buf,"row_recv_buf")
 
       ! Column id
@@ -740,6 +781,8 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(e_h,ham,ovlp)
       call MPI_Alltoallv(col_recv_buf,send_count,send_displ,mpi_integer4,&
               col_send_buf,recv_count,recv_displ,mpi_integer4,e_h%mpi_comm,&
               mpierr)
+
+      call elsi_check_mpi(e_h,"MPI_Alltoallv",mpierr,caller)
 
       call elsi_deallocate(e_h,col_recv_buf,"col_recv_buf")
 
@@ -751,6 +794,8 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(e_h,ham,ovlp)
          call MPI_Alltoallv(s_val_recv_buf,send_count,send_displ,mpi_complex16,&
                  e_h%ovlp_cmplx_pexsi,recv_count,recv_displ,mpi_complex16,&
                  e_h%mpi_comm,mpierr)
+
+         call elsi_check_mpi(e_h,"MPI_Alltoallv",mpierr,caller)
 
          call elsi_deallocate(e_h,s_val_recv_buf,"s_val_recv_buf")
 
@@ -770,6 +815,8 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(e_h,ham,ovlp)
    call MPI_Alltoallv(h_val_recv_buf,send_count,send_displ,mpi_complex16,&
            e_h%ham_cmplx_pexsi,recv_count,recv_displ,mpi_complex16,&
            e_h%mpi_comm,mpierr)
+
+   call elsi_check_mpi(e_h,"MPI_Alltoallv",mpierr,caller)
 
    call elsi_deallocate(e_h,h_val_recv_buf,"h_val_recv_buf")
    call elsi_deallocate(e_h,send_count,"send_count")
@@ -897,6 +944,8 @@ subroutine elsi_pexsi_to_blacs_dm_real(e_h,dm)
    call MPI_Alltoall(send_count,1,mpi_integer4,recv_count,1,mpi_integer4,&
            e_h%mpi_comm,mpierr)
 
+   call elsi_check_mpi(e_h,"MPI_Alltoall",mpierr,caller)
+
    e_h%nnz_l = sum(recv_count,1)
 
    ! Set send and receive displacement
@@ -915,6 +964,8 @@ subroutine elsi_pexsi_to_blacs_dm_real(e_h,dm)
    call MPI_Alltoallv(val_send_buf,send_count,send_displ,mpi_real8,&
            val_recv_buf,recv_count,recv_displ,mpi_real8,e_h%mpi_comm,mpierr)
 
+   call elsi_check_mpi(e_h,"MPI_Alltoallv",mpierr,caller)
+
    call elsi_deallocate(e_h,val_send_buf,"val_send_buf")
 
    ! Row index
@@ -923,6 +974,8 @@ subroutine elsi_pexsi_to_blacs_dm_real(e_h,dm)
    call MPI_Alltoallv(row_send_buf,send_count,send_displ,mpi_integer4,&
            row_recv_buf,recv_count,recv_displ,mpi_integer4,e_h%mpi_comm,mpierr)
 
+   call elsi_check_mpi(e_h,"MPI_Alltoallv",mpierr,caller)
+
    call elsi_deallocate(e_h,row_send_buf,"row_send_buf")
 
    ! Column index
@@ -930,6 +983,8 @@ subroutine elsi_pexsi_to_blacs_dm_real(e_h,dm)
 
    call MPI_Alltoallv(col_send_buf,send_count,send_displ,mpi_integer4,&
            col_recv_buf,recv_count,recv_displ,mpi_integer4,e_h%mpi_comm,mpierr)
+
+   call elsi_check_mpi(e_h,"MPI_Alltoallv",mpierr,caller)
 
    call elsi_deallocate(e_h,col_send_buf,"col_send_buf")
    call elsi_deallocate(e_h,send_count,"send_count")
@@ -1048,6 +1103,8 @@ subroutine elsi_pexsi_to_blacs_dm_cmplx(e_h,dm)
    call MPI_Alltoall(send_count,1,mpi_integer4,recv_count,1,mpi_integer4,&
            e_h%mpi_comm,mpierr)
 
+   call elsi_check_mpi(e_h,"MPI_Alltoall",mpierr,caller)
+
    e_h%nnz_l = sum(recv_count,1)
 
    ! Set send and receive displacement
@@ -1066,6 +1123,8 @@ subroutine elsi_pexsi_to_blacs_dm_cmplx(e_h,dm)
    call MPI_Alltoallv(val_send_buf,send_count,send_displ,mpi_complex16,&
            val_recv_buf,recv_count,recv_displ,mpi_complex16,e_h%mpi_comm,mpierr)
 
+   call elsi_check_mpi(e_h,"MPI_Alltoallv",mpierr,caller)
+
    call elsi_deallocate(e_h,val_send_buf,"val_send_buf")
 
    ! Row index
@@ -1074,6 +1133,8 @@ subroutine elsi_pexsi_to_blacs_dm_cmplx(e_h,dm)
    call MPI_Alltoallv(row_send_buf,send_count,send_displ,mpi_integer4,&
            row_recv_buf,recv_count,recv_displ,mpi_integer4,e_h%mpi_comm,mpierr)
 
+   call elsi_check_mpi(e_h,"MPI_Alltoallv",mpierr,caller)
+
    call elsi_deallocate(e_h,row_send_buf,"row_send_buf")
 
    ! Column index
@@ -1081,6 +1142,8 @@ subroutine elsi_pexsi_to_blacs_dm_cmplx(e_h,dm)
 
    call MPI_Alltoallv(col_send_buf,send_count,send_displ,mpi_integer4,&
            col_recv_buf,recv_count,recv_displ,mpi_integer4,e_h%mpi_comm,mpierr)
+
+   call elsi_check_mpi(e_h,"MPI_Alltoallv",mpierr,caller)
 
    call elsi_deallocate(e_h,col_send_buf,"col_send_buf")
    call elsi_deallocate(e_h,send_count,"send_count")
@@ -1241,10 +1304,14 @@ subroutine elsi_blacs_to_sips_hs_real(e_h,ham,ovlp)
    call MPI_Alltoall(send_count,1,mpi_integer4,recv_count,1,mpi_integer4,&
            e_h%mpi_comm,mpierr)
 
+   call elsi_check_mpi(e_h,"MPI_Alltoall",mpierr,caller)
+
    ! Set local/global number of nonzero
    e_h%nnz_l_sp = sum(recv_count,1)
    call MPI_Allreduce(e_h%nnz_l_sp,e_h%nnz_g,1,mpi_integer4,mpi_sum,&
            e_h%mpi_comm,mpierr)
+
+   call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
 
    ! Set send and receive displacement
    call elsi_allocate(e_h,send_displ,e_h%n_procs,"send_displ",caller)
@@ -1262,6 +1329,8 @@ subroutine elsi_blacs_to_sips_hs_real(e_h,ham,ovlp)
    call MPI_Alltoallv(row_send_buf,send_count,send_displ,mpi_integer4,&
            row_recv_buf,recv_count,recv_displ,mpi_integer4,e_h%mpi_comm,mpierr)
 
+   call elsi_check_mpi(e_h,"MPI_Alltoallv",mpierr,caller)
+
    call elsi_deallocate(e_h,row_send_buf,"row_send_buf")
 
    ! Column id
@@ -1269,6 +1338,8 @@ subroutine elsi_blacs_to_sips_hs_real(e_h,ham,ovlp)
 
    call MPI_Alltoallv(col_send_buf,send_count,send_displ,mpi_integer4,&
            col_recv_buf,recv_count,recv_displ,mpi_integer4,e_h%mpi_comm,mpierr)
+
+   call elsi_check_mpi(e_h,"MPI_Alltoallv",mpierr,caller)
 
    call elsi_deallocate(e_h,col_send_buf,"col_send_buf")
 
@@ -1282,6 +1353,8 @@ subroutine elsi_blacs_to_sips_hs_real(e_h,ham,ovlp)
            e_h%ham_real_sips,recv_count,recv_displ,mpi_real8,e_h%mpi_comm,&
            mpierr)
 
+   call elsi_check_mpi(e_h,"MPI_Alltoallv",mpierr,caller)
+
    call elsi_deallocate(e_h,h_val_send_buf,"h_val_send_buf")
 
    ! Overlap value
@@ -1293,6 +1366,8 @@ subroutine elsi_blacs_to_sips_hs_real(e_h,ham,ovlp)
          call MPI_Alltoallv(s_val_send_buf,send_count,send_displ,mpi_real8,&
                  e_h%ovlp_real_sips,recv_count,recv_displ,mpi_real8,&
                  e_h%mpi_comm,mpierr)
+
+         call elsi_check_mpi(e_h,"MPI_Alltoallv",mpierr,caller)
 
          call elsi_deallocate(e_h,s_val_send_buf,"s_val_send_buf")
       else
@@ -1484,10 +1559,14 @@ subroutine elsi_blacs_to_sips_hs_cmplx(e_h,ham,ovlp)
    call MPI_Alltoall(send_count,1,mpi_integer4,recv_count,1,mpi_integer4,&
            e_h%mpi_comm,mpierr)
 
+   call elsi_check_mpi(e_h,"MPI_Alltoall",mpierr,caller)
+
    ! Set local/global number of nonzero
    e_h%nnz_l_sp = sum(recv_count,1)
    call MPI_Allreduce(e_h%nnz_l_sp,e_h%nnz_g,1,mpi_integer4,mpi_sum,&
            e_h%mpi_comm,mpierr)
+
+   call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
 
    ! Set send and receive displacement
    call elsi_allocate(e_h,send_displ,e_h%n_procs,"send_displ",caller)
@@ -1505,6 +1584,8 @@ subroutine elsi_blacs_to_sips_hs_cmplx(e_h,ham,ovlp)
    call MPI_Alltoallv(row_send_buf,send_count,send_displ,mpi_integer4,&
            row_recv_buf,recv_count,recv_displ,mpi_integer4,e_h%mpi_comm,mpierr)
 
+   call elsi_check_mpi(e_h,"MPI_Alltoallv",mpierr,caller)
+
    call elsi_deallocate(e_h,row_send_buf,"row_send_buf")
 
    ! Column id
@@ -1512,6 +1593,8 @@ subroutine elsi_blacs_to_sips_hs_cmplx(e_h,ham,ovlp)
 
    call MPI_Alltoallv(col_send_buf,send_count,send_displ,mpi_integer4,&
            col_recv_buf,recv_count,recv_displ,mpi_integer4,e_h%mpi_comm,mpierr)
+
+   call elsi_check_mpi(e_h,"MPI_Alltoallv",mpierr,caller)
 
    call elsi_deallocate(e_h,col_send_buf,"col_send_buf")
 
@@ -1525,6 +1608,8 @@ subroutine elsi_blacs_to_sips_hs_cmplx(e_h,ham,ovlp)
            e_h%ham_cmplx_sips,recv_count,recv_displ,mpi_complex16,e_h%mpi_comm,&
            mpierr)
 
+   call elsi_check_mpi(e_h,"MPI_Alltoallv",mpierr,caller)
+
    call elsi_deallocate(e_h,h_val_send_buf,"h_val_send_buf")
 
    ! Overlap value
@@ -1536,6 +1621,8 @@ subroutine elsi_blacs_to_sips_hs_cmplx(e_h,ham,ovlp)
          call MPI_Alltoallv(s_val_send_buf,send_count,send_displ,mpi_complex16,&
                  e_h%ovlp_cmplx_sips,recv_count,recv_displ,mpi_complex16,&
                  e_h%mpi_comm,mpierr)
+
+         call elsi_check_mpi(e_h,"MPI_Alltoallv",mpierr,caller)
 
          call elsi_deallocate(e_h,s_val_send_buf,"s_val_send_buf")
       else
@@ -1698,6 +1785,8 @@ subroutine elsi_sips_to_blacs_hs_real(e_h,ham,ovlp)
    call MPI_Alltoall(send_count,1,mpi_integer4,recv_count,1,mpi_integer4,&
            e_h%mpi_comm,mpierr)
 
+   call elsi_check_mpi(e_h,"MPI_Alltoall",mpierr,caller)
+
    e_h%nnz_l = sum(recv_count,1)
 
    ! Set send and receive displacement
@@ -1716,6 +1805,8 @@ subroutine elsi_sips_to_blacs_hs_real(e_h,ham,ovlp)
    call MPI_Alltoallv(row_send_buf,send_count,send_displ,mpi_integer4,&
            row_recv_buf,recv_count,recv_displ,mpi_integer4,e_h%mpi_comm,mpierr)
 
+   call elsi_check_mpi(e_h,"MPI_Alltoallv",mpierr,caller)
+
    call elsi_deallocate(e_h,row_send_buf,"row_send_buf")
 
    ! Column index
@@ -1724,6 +1815,8 @@ subroutine elsi_sips_to_blacs_hs_real(e_h,ham,ovlp)
    call MPI_Alltoallv(col_send_buf,send_count,send_displ,mpi_integer4,&
            col_recv_buf,recv_count,recv_displ,mpi_integer4,e_h%mpi_comm,mpierr)
 
+   call elsi_check_mpi(e_h,"MPI_Alltoallv",mpierr,caller)
+
    call elsi_deallocate(e_h,col_send_buf,"col_send_buf")
 
    ! Hamiltonian Value
@@ -1731,6 +1824,8 @@ subroutine elsi_sips_to_blacs_hs_real(e_h,ham,ovlp)
 
    call MPI_Alltoallv(h_val_send_buf,send_count,send_displ,mpi_real8,&
            h_val_recv_buf,recv_count,recv_displ,mpi_real8,e_h%mpi_comm,mpierr)
+
+   call elsi_check_mpi(e_h,"MPI_Alltoallv",mpierr,caller)
 
    call elsi_deallocate(e_h,h_val_send_buf,"h_val_send_buf")
 
@@ -1741,6 +1836,8 @@ subroutine elsi_sips_to_blacs_hs_real(e_h,ham,ovlp)
       call MPI_Alltoallv(s_val_send_buf,send_count,send_displ,mpi_real8,&
               s_val_recv_buf,recv_count,recv_displ,mpi_real8,e_h%mpi_comm,&
               mpierr)
+
+   call elsi_check_mpi(e_h,"MPI_Alltoallv",mpierr,caller)
    endif
 
    call elsi_deallocate(e_h,send_count,"send_count")
@@ -1905,6 +2002,8 @@ subroutine elsi_sips_to_blacs_hs_cmplx(e_h,ham,ovlp)
    call MPI_Alltoall(send_count,1,mpi_integer4,recv_count,1,mpi_integer4,&
            e_h%mpi_comm,mpierr)
 
+   call elsi_check_mpi(e_h,"MPI_Alltoall",mpierr,caller)
+
    e_h%nnz_l = sum(recv_count,1)
 
    ! Set send and receive displacement
@@ -1923,6 +2022,8 @@ subroutine elsi_sips_to_blacs_hs_cmplx(e_h,ham,ovlp)
    call MPI_Alltoallv(row_send_buf,send_count,send_displ,mpi_integer4,&
            row_recv_buf,recv_count,recv_displ,mpi_integer4,e_h%mpi_comm,mpierr)
 
+   call elsi_check_mpi(e_h,"MPI_Alltoallv",mpierr,caller)
+
    call elsi_deallocate(e_h,row_send_buf,"row_send_buf")
 
    ! Column index
@@ -1930,6 +2031,8 @@ subroutine elsi_sips_to_blacs_hs_cmplx(e_h,ham,ovlp)
 
    call MPI_Alltoallv(col_send_buf,send_count,send_displ,mpi_integer4,&
            col_recv_buf,recv_count,recv_displ,mpi_integer4,e_h%mpi_comm,mpierr)
+
+   call elsi_check_mpi(e_h,"MPI_Alltoallv",mpierr,caller)
 
    call elsi_deallocate(e_h,col_send_buf,"col_send_buf")
 
@@ -1940,6 +2043,8 @@ subroutine elsi_sips_to_blacs_hs_cmplx(e_h,ham,ovlp)
            h_val_recv_buf,recv_count,recv_displ,mpi_complex16,e_h%mpi_comm,&
            mpierr)
 
+   call elsi_check_mpi(e_h,"MPI_Alltoallv",mpierr,caller)
+
    call elsi_deallocate(e_h,h_val_send_buf,"h_val_send_buf")
 
    ! Overlap value
@@ -1949,6 +2054,8 @@ subroutine elsi_sips_to_blacs_hs_cmplx(e_h,ham,ovlp)
       call MPI_Alltoallv(s_val_send_buf,send_count,send_displ,mpi_complex16,&
               s_val_recv_buf,recv_count,recv_displ,mpi_complex16,e_h%mpi_comm,&
               mpierr)
+
+      call elsi_check_mpi(e_h,"MPI_Alltoallv",mpierr,caller)
    endif
 
    call elsi_deallocate(e_h,send_count,"send_count")
@@ -2097,6 +2204,8 @@ subroutine elsi_blacs_to_sips_dm_real(e_h,dm)
    call MPI_Alltoall(send_count,1,mpi_integer4,recv_count,1,mpi_integer4,&
            e_h%mpi_comm,mpierr)
 
+   call elsi_check_mpi(e_h,"MPI_Alltoall",mpierr,caller)
+
    ! Set local number of nonzero
    nnz_l_aux = sum(recv_count,1)
 
@@ -2116,6 +2225,8 @@ subroutine elsi_blacs_to_sips_dm_real(e_h,dm)
    call MPI_Alltoallv(row_send_buf,send_count,send_displ,mpi_integer4,&
            row_recv_buf,recv_count,recv_displ,mpi_integer4,e_h%mpi_comm,mpierr)
 
+   call elsi_check_mpi(e_h,"MPI_Alltoallv",mpierr,caller)
+
    call elsi_deallocate(e_h,row_send_buf,"row_send_buf")
 
    ! Column id
@@ -2124,6 +2235,8 @@ subroutine elsi_blacs_to_sips_dm_real(e_h,dm)
    call MPI_Alltoallv(col_send_buf,send_count,send_displ,mpi_integer4,&
            col_recv_buf,recv_count,recv_displ,mpi_integer4,e_h%mpi_comm,mpierr)
 
+   call elsi_check_mpi(e_h,"MPI_Alltoallv",mpierr,caller)
+
    call elsi_deallocate(e_h,col_send_buf,"col_send_buf")
 
    ! Density matrix value
@@ -2131,6 +2244,8 @@ subroutine elsi_blacs_to_sips_dm_real(e_h,dm)
 
    call MPI_Alltoallv(val_send_buf,send_count,send_displ,mpi_real8,&
            val_recv_buf,recv_count,recv_displ,mpi_real8,e_h%mpi_comm,mpierr)
+
+   call elsi_check_mpi(e_h,"MPI_Alltoallv",mpierr,caller)
 
    call elsi_deallocate(e_h,val_send_buf,"val_send_buf")
 
@@ -2254,6 +2369,8 @@ subroutine elsi_blacs_to_sips_dm_cmplx(e_h,dm)
    call MPI_Alltoall(send_count,1,mpi_integer4,recv_count,1,mpi_integer4,&
            e_h%mpi_comm,mpierr)
 
+   call elsi_check_mpi(e_h,"MPI_Alltoall",mpierr,caller)
+
    ! Set local number of nonzero
    nnz_l_aux = sum(recv_count,1)
 
@@ -2273,6 +2390,8 @@ subroutine elsi_blacs_to_sips_dm_cmplx(e_h,dm)
    call MPI_Alltoallv(row_send_buf,send_count,send_displ,mpi_integer4,&
            row_recv_buf,recv_count,recv_displ,mpi_integer4,e_h%mpi_comm,mpierr)
 
+   call elsi_check_mpi(e_h,"MPI_Alltoallv",mpierr,caller)
+
    call elsi_deallocate(e_h,row_send_buf,"row_send_buf")
 
    ! Column id
@@ -2281,6 +2400,8 @@ subroutine elsi_blacs_to_sips_dm_cmplx(e_h,dm)
    call MPI_Alltoallv(col_send_buf,send_count,send_displ,mpi_integer4,&
            col_recv_buf,recv_count,recv_displ,mpi_integer4,e_h%mpi_comm,mpierr)
 
+   call elsi_check_mpi(e_h,"MPI_Alltoallv",mpierr,caller)
+
    call elsi_deallocate(e_h,col_send_buf,"col_send_buf")
 
    ! Density matrix value
@@ -2288,6 +2409,8 @@ subroutine elsi_blacs_to_sips_dm_cmplx(e_h,dm)
 
    call MPI_Alltoallv(val_send_buf,send_count,send_displ,mpi_complex16,&
            val_recv_buf,recv_count,recv_displ,mpi_complex16,e_h%mpi_comm,mpierr)
+
+   call elsi_check_mpi(e_h,"MPI_Alltoallv",mpierr,caller)
 
    call elsi_deallocate(e_h,val_send_buf,"val_send_buf")
 
@@ -2399,6 +2522,8 @@ subroutine elsi_sips_to_chess_hs(e_h)
    call MPI_Allgather(e_h%nnz_l_sp,1,mpi_integer4,recv_count,1,mpi_integer4,&
            e_h%mpi_comm,mpierr)
 
+   call elsi_check_mpi(e_h,"MPI_Allgather",mpierr,caller)
+
    do i_proc = 2,e_h%n_procs
       recv_displ(i_proc) = sum(recv_count(1:i_proc-1),1)
    enddo
@@ -2414,6 +2539,8 @@ subroutine elsi_sips_to_chess_hs(e_h)
                  e_h%ovlp_real_chess,recv_count,recv_displ,mpi_real8,&
                  e_h%mpi_comm,mpierr)
 
+         call elsi_check_mpi(e_h,"MPI_Allgatherv",mpierr,caller)
+
          call elsi_deallocate(e_h,e_h%ovlp_real_sips,"ovlp_real_sips")
       else
          call elsi_allocate(e_h,e_h%ovlp_real_chess,1,"dummy",caller)
@@ -2426,6 +2553,8 @@ subroutine elsi_sips_to_chess_hs(e_h)
               e_h%row_ind_chess,recv_count,recv_displ,mpi_integer4,&
               e_h%mpi_comm,mpierr)
 
+      call elsi_check_mpi(e_h,"MPI_Allgatherv",mpierr,caller)
+
       call elsi_deallocate(e_h,e_h%row_ind_sips,"row_ind_sips")
 
       call elsi_allocate(e_h,e_h%ham_real_chess,e_h%nnz_g,"ham_real_chess",&
@@ -2436,6 +2565,8 @@ subroutine elsi_sips_to_chess_hs(e_h)
    call MPI_Allgatherv(e_h%ham_real_sips,e_h%nnz_l_sp,mpi_real8,&
            e_h%ham_real_chess,recv_count,recv_displ,mpi_real8,e_h%mpi_comm,&
            mpierr)
+
+   call elsi_check_mpi(e_h,"MPI_Allgatherv",mpierr,caller)
 
    if(e_h%n_elsi_calls == 1) then
       ! Set recv_count and recv_displ
@@ -2452,6 +2583,8 @@ subroutine elsi_sips_to_chess_hs(e_h)
       call MPI_Exscan(e_h%nnz_l_sp,prev_nnz,1,mpi_integer4,mpi_sum,&
               e_h%mpi_comm,mpierr)
 
+      call elsi_check_mpi(e_h,"MPI_Exscan",mpierr,caller)
+
       e_h%col_ptr_sips = e_h%col_ptr_sips+prev_nnz
 
       ! Column pointer
@@ -2461,6 +2594,8 @@ subroutine elsi_sips_to_chess_hs(e_h)
       call MPI_Allgatherv(e_h%col_ptr_sips,e_h%n_lcol_sp,mpi_integer4,&
               e_h%col_ptr_chess,recv_count,recv_displ,mpi_integer4,&
               e_h%mpi_comm,mpierr)
+
+      call elsi_check_mpi(e_h,"MPI_Allgatherv",mpierr,caller)
 
       e_h%col_ptr_chess(e_h%n_basis+1) = e_h%nnz_g+1
 

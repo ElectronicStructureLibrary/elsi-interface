@@ -1,4 +1,4 @@
-! Copyright (c) 2015-2017, the ELSI team. All rights reserved.
+! Copyright (c) 2015-2018, the ELSI team. All rights reserved.
 !
 ! Redistribution and use in source and binary forms, with or without
 ! modification, are permitted provided that the following conditions are met:
@@ -34,7 +34,7 @@ module ELSI_CONSTANTS
 
    implicit none
 
-   character*8, parameter, public :: release_date = "20170527"
+   character*8, parameter :: RELEASE_DATE = "20170527"
 
    real(kind=r8), parameter :: SQRT_PI        = 1.7724538509055160273_r8
    real(kind=r8), parameter :: INVERT_SQRT_PI = 0.5641895835477563275_r8
@@ -104,7 +104,7 @@ module ELSI_CONSTANTS
    integer(kind=i4), parameter :: JSON          = 1
 
    ! Control placement of commas in JSON records
-   integer(kind=i4), parameter :: COMMA_AFTER  = 0 
+   integer(kind=i4), parameter :: COMMA_AFTER  = 0
    integer(kind=i4), parameter :: COMMA_BEFORE = 1
    integer(kind=i4), parameter :: NO_COMMA     = 2
 
