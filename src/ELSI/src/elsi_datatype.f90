@@ -62,8 +62,8 @@ module ELSI_DATATYPE
 
       integer(kind=i4)                  :: size_timings  ! Dimension for arrays
       integer(kind=i4)                  :: n_timings     ! Current # of timings
-      character(len=TIMING_STRING_LEN)  :: next_user_tag ! User tag added to
-                                                         ! next timing
+      character(len=TIMING_STRING_LEN)  :: user_tag      ! User tag added to
+                                                         ! timings
       character(len=TIMING_STRING_LEN)  :: set_label     ! String identifying
                                                          ! timing set
 
