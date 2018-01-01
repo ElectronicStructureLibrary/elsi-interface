@@ -32,7 +32,7 @@ module ELSI_UTILS
 
    use ELSI_CONSTANTS
    use ELSI_DATATYPE
-   use ELSI_IO,        only: elsi_say, append_string, truncate_string
+   use ELSI_IO,        only: elsi_say,append_string,truncate_string
    use ELSI_MPI
    use ELSI_PRECISION, only: i4,r8
 
@@ -40,14 +40,14 @@ module ELSI_UTILS
 
    public :: elsi_check
    public :: elsi_check_handle
-   public :: elsi_ready_handle
    public :: elsi_get_global_row
    public :: elsi_get_global_col
    public :: elsi_get_local_nnz_real
    public :: elsi_get_local_nnz_cmplx
+   public :: elsi_get_solver_tag
+   public :: elsi_ready_handle
    public :: elsi_trace_mat_real
    public :: elsi_trace_mat_mat_cmplx
-   public :: elsi_get_solver_tag
 
 contains
 
@@ -211,15 +211,7 @@ subroutine elsi_check(e_h,caller)
    endif
 
    if(e_h%uplo /= FULL_MAT) then
-      if(e_h%matrix_format /= BLACS_DENSE .or. &
-         e_h%parallel_mode /= MULTI_PROC) then
-         call elsi_stop(" Triangular matrix input only supported with BLACS_"//&
-                 "DENSE matrix format and MULTI_PROC parallel mode.",e_h,caller)
-      endif
-
-      if(e_h%uplo /= UT_MAT .and. e_h%uplo /= LT_MAT) then
-         call elsi_stop(" Invalid choice of uplo.",e_h,caller)
-      endif
+      call elsi_stop(" Triangular matrix input not yet supported.",e_h,caller)
    endif
 
    ! Spin and k-point
@@ -369,11 +361,11 @@ end subroutine
 !! There are certain tasks (such as IO) that are only possible once the user has
 !! specified sufficient information about the problem, but they may call the
 !! relevant mutators in any order, making it difficult to pin down exactly when
-!! we can perform certain initialization-like tasks.
-!! Thus, we call this subroutine at the beginning of all public-facing subroutines
-!! in which ELSI is executing a task that would require it to have been
-!! sufficiently initialized by the user: currently, only solver. This does not
-!! apply to mutators, initalization, finalization, or matrix IO.
+!! certain initialization-like tasks can be done. Thus, this subroutine is
+!! called at the beginning of all public-facing subroutines in which ELSI is
+!! executing a task that would require it to have been sufficiently initialized
+!! by the user: currently, only solver. This does not apply to mutators,
+!! initalization, finalization, or matrix IO.
 !!
 subroutine elsi_ready_handle(e_h,caller)
 
@@ -390,20 +382,18 @@ subroutine elsi_ready_handle(e_h,caller)
    if(.not. e_h%handle_ready) then
       call elsi_check(e_h,caller)
 
-      ! We can now perform initialization-like tasks which require
-      ! the usage of MPI
-
+      ! Perform initialization-like tasks which require MPI
       ! First, solver timings
       if(e_h%output_solver_timings) then
          if(e_h%myid_all == 0) then
             open(unit=e_h%solver_timings_file%print_unit,&
                file=e_h%solver_timings_file%file_name)
          else
-            ! We know which process has myid_all.eq.0 now, we can
-            ! de-initialize the rest
+            ! De-initialize e_h%myid_all /= 0
             e_h%solver_timings_file%print_unit = UNSET
             e_h%solver_timings_file%file_name  = UNSET_STRING
          endif
+
          if(e_h%solver_timings_file%file_format == JSON) then
             ! Opening bracket to signify JSON array
             call elsi_say(e_h,"[",e_h%solver_timings_file)
@@ -436,14 +426,14 @@ subroutine elsi_get_global_row(e_h,g_id,l_id)
    integer(kind=i4),  intent(in)  :: l_id
    integer(kind=i4),  intent(out) :: g_id
 
-   integer(kind=i4) :: block
+   integer(kind=i4) :: blk
    integer(kind=i4) :: idx
 
    character*40, parameter :: caller = "elsi_get_global_row"
 
-   block = (l_id-1)/e_h%blk_row
-   idx   = l_id-block*e_h%blk_row
-   g_id  = e_h%my_prow*e_h%blk_row+block*e_h%blk_row*e_h%n_prow+idx
+   blk  = (l_id-1)/e_h%blk_row
+   idx  = l_id-blk*e_h%blk_row
+   g_id = e_h%my_prow*e_h%blk_row+blk*e_h%blk_row*e_h%n_prow+idx
 
 end subroutine
 
@@ -458,14 +448,14 @@ subroutine elsi_get_global_col(e_h,g_id,l_id)
    integer(kind=i4),  intent(in)  :: l_id
    integer(kind=i4),  intent(out) :: g_id
 
-   integer(kind=i4) :: block
+   integer(kind=i4) :: blk
    integer(kind=i4) :: idx
 
    character*40, parameter :: caller = "elsi_get_global_col"
 
-   block = (l_id-1)/e_h%blk_col
-   idx   = l_id-block*e_h%blk_col
-   g_id  = e_h%my_pcol*e_h%blk_col+block*e_h%blk_col*e_h%n_pcol+idx
+   blk  = (l_id-1)/e_h%blk_col
+   idx  = l_id-blk*e_h%blk_col
+   g_id = e_h%my_pcol*e_h%blk_col+blk*e_h%blk_col*e_h%n_pcol+idx
 
 end subroutine
 
@@ -745,7 +735,7 @@ subroutine elsi_get_datetime_rfc3339(datetime_rfc3339)
    ! Get time zone sign (ahead or behind UTC)
    if(datetime(4) < 0) then
       timezone_sign = "-"
-      datetime(4) = -1*datetime(4)
+      datetime(4)   = -1*datetime(4)
    else
       timezone_sign = "+"
    endif
