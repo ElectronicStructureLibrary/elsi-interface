@@ -26,8 +26,6 @@
 ! EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ! WPH: Since this is in progress, I'm putting my todo list directly in the code:
-! - Create subroutines to resize arrays on-the-fly, should STARTING_SIZE_TIMINGS
-!   be too small.
 ! - Add error checking to elsi_add_timing to make sure input strings aren't too
 !   log
 ! - Do we time the solver itself, or the ELSI wrapper around the subroutine?
@@ -54,7 +52,7 @@ module ELSI_TIMINGS
 
    private
 
-   integer(kind=i4), parameter :: STARTING_SIZE_TIMINGS = 1024
+   integer(kind=i4), parameter :: STARTING_SIZE_TIMINGS = 1
 
    ! Global timing subroutines (i.e. those not attached to any timing handle)
    public  :: elsi_init_timer
@@ -145,6 +143,56 @@ subroutine elsi_init_timings(t_h,set_label)
 end subroutine
 
 !>
+!! This routine resizes arrays in the timing handle by a factor of two.
+!!
+subroutine elsi_resize_timing_arrays(t_h)
+
+   implicit none
+
+   type(elsi_timings_handle),  intent(inout) :: t_h       !< Handle
+
+   integer :: i_timing
+   real(kind=r8),                     allocatable :: tmp_times(:)
+   character(len=TIMING_STRING_LEN),  allocatable :: tmp_elsi_tags(:)
+   character(len=TIMING_STRING_LEN),  allocatable :: tmp_user_tags(:)
+
+   character*40, parameter :: caller = "elsi_resize_timing_arrays"
+
+   allocate( tmp_times(t_h%size_timings) )
+   allocate( tmp_elsi_tags(t_h%size_timings) )
+   allocate( tmp_user_tags(t_h%size_timings) )
+
+   ! Save old timings
+   do i_timing = 1, t_h%size_timings
+      tmp_times(i_timing)     = t_h%times(i_timing)
+      tmp_elsi_tags(i_timing) = t_h%elsi_tags(i_timing)
+      tmp_user_tags(i_timing) = t_h%user_tags(i_timing)
+   end do
+
+   ! Resize arrays by factor of two
+   deallocate( t_h%times )
+   deallocate( t_h%elsi_tags )
+   deallocate( t_h%user_tags )
+
+   t_h%size_timings  = 2*t_h%size_timings
+   allocate( t_h%times(t_h%size_timings) )
+   allocate( t_h%elsi_tags(t_h%size_timings) )
+   allocate( t_h%user_tags(t_h%size_timings) )
+
+   ! Fill in arrays with old timings
+   do i_timing = 1, t_h%size_timings/2
+      t_h%times(i_timing)     = tmp_times(i_timing)
+      t_h%elsi_tags(i_timing) = tmp_elsi_tags(i_timing)
+      t_h%user_tags(i_timing) = tmp_user_tags(i_timing)
+   end do
+
+   deallocate( tmp_times )
+   deallocate( tmp_elsi_tags )
+   deallocate( tmp_user_tags )
+
+end subroutine
+
+!>
 !! This routine adds provided timing to current handle.
 !!
 subroutine elsi_add_timing(t_h,time,elsi_tag,user_tag_in,iter_in)
@@ -173,22 +221,21 @@ subroutine elsi_add_timing(t_h,time,elsi_tag,user_tag_in,iter_in)
       iter = t_h%n_timings
    endif
 
-   ! Temporary check to make sure we don't have more timings than
-   ! the array size.  Arrays should be resized on-the-fly instead.
-   if(iter.le.t_h%size_timings) then
-      if(present(user_tag_in)) then
-         user_tag = user_tag_in
-      else
-         user_tag = t_h%user_tag
-      endif
+   ! If we've collected more timings than the maximum array size, resize the
+   ! arrays.
+   do while (iter >= t_h%size_timings)
+     call elsi_resize_timing_arrays(t_h)
+   enddo
 
-      t_h%times(iter)     = time
-      t_h%elsi_tags(iter) = elsi_tag
-      t_h%user_tags(iter) = user_tag
+   if(present(user_tag_in)) then
+      user_tag = user_tag_in
    else
-      t_h%n_timings = t_h%n_timings - 1
-   !   call elsi_resize_timing_arrays(t_h)
+      user_tag = t_h%user_tag
    endif
+
+   t_h%times(iter)     = time
+   t_h%elsi_tags(iter) = elsi_tag
+   t_h%user_tags(iter) = user_tag
 
 end subroutine
 
