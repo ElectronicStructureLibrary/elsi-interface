@@ -154,7 +154,7 @@ elsi_c_interface.o: $(ELSI_DIR)/c_binding/elsi_c_interface.f90 elsi_interface.o 
 elsi_c2f.o: $(ELSI_DIR)/c_binding/elsi_c2f.f90
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
-elsi_chess.o: $(ELSI_DIR)/src/elsi_chess.f90 elsi_datatype.o elsi_io.o elsi_precision.o elsi_timings.o elsi_utils.o $(STUBS)
+elsi_chess.o: $(ELSI_DIR)/src/elsi_chess.f90 elsi_datatype.o elsi_io.o elsi_mpi.o elsi_precision.o elsi_timings.o elsi_utils.o $(STUBS)
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
 elsi_constants.o: $(ELSI_DIR)/src/elsi_constants.f90 elsi_precision.o
@@ -169,7 +169,7 @@ elsi_dmp.o: $(ELSI_DIR)/src/elsi_dmp.f90 elsi_constants.o elsi_datatype.o $(ELSI
 elsi_elpa.o: $(ELSI_DIR)/src/elsi_elpa.f90 elsi_constants.o elsi_datatype.o elsi_io.o elsi_malloc.o elsi_mpi.o elsi_mu.o elsi_precision.o elsi_timings.o elsi_utils.o
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
-elsi_interface.o: $(ELSI_DIR)/src/elsi_interface.f90 elsi_constants.o elsi_setup.o elsi_solver.o elsi_mutator.o elsi_matio.o elsi_mu.o elsi_datatype.o
+elsi_interface.o: $(ELSI_DIR)/src/elsi_interface.f90 elsi_constants.o elsi_datatype.o elsi_matio.o elsi_mu.o elsi_mutator.o elsi_setup.o elsi_solver.o
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
 elsi_io.o: $(ELSI_DIR)/src/elsi_io.f90 elsi_constants.o elsi_datatype.o elsi_mpi.o elsi_precision.o
@@ -178,13 +178,13 @@ elsi_io.o: $(ELSI_DIR)/src/elsi_io.f90 elsi_constants.o elsi_datatype.o elsi_mpi
 elsi_lapack.o: $(ELSI_DIR)/src/elsi_lapack.f90 elsi_datatype.o elsi_io.o elsi_malloc.o elsi_mpi.o elsi_precision.o elsi_timings.o elsi_utils.o
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
-elsi_malloc.o: $(ELSI_DIR)/src/elsi_malloc.f90 elsi_datatype.o elsi_io.o elsi_precision.o elsi_utils.o
+elsi_malloc.o: $(ELSI_DIR)/src/elsi_malloc.f90 elsi_datatype.o elsi_io.o elsi_mpi.o elsi_precision.o elsi_utils.o
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
-elsi_matconv.o: $(ELSI_DIR)/src/elsi_matconv.f90 elsi_datatype.o elsi_io.o elsi_malloc.o elsi_precision.o elsi_sort.o elsi_timings.o elsi_utils.o
+elsi_matconv.o: $(ELSI_DIR)/src/elsi_matconv.f90 elsi_datatype.o elsi_io.o elsi_malloc.o elsi_mpi.o elsi_precision.o elsi_sort.o elsi_timings.o elsi_utils.o
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
-elsi_matio.o: $(ELSI_DIR)/src/elsi_matio.f90 elsi_constants.o elsi_datatype.o elsi_io.o elsi_malloc.o elsi_matconv.o elsi_precision.o elsi_setup.o elsi_timings.o elsi_utils.o
+elsi_matio.o: $(ELSI_DIR)/src/elsi_matio.f90 elsi_constants.o elsi_datatype.o elsi_io.o elsi_malloc.o elsi_matconv.o elsi_mpi.o elsi_precision.o elsi_setup.o elsi_timings.o elsi_utils.o
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
 elsi_mpi.o: $(ELSI_DIR)/src/elsi_mpi.f90 elsi_datatype.o elsi_precision.o
@@ -196,7 +196,7 @@ elsi_mu.o: $(ELSI_DIR)/src/elsi_mu.f90 elsi_constants.o elsi_datatype.o elsi_io.
 elsi_mutator.o: $(ELSI_DIR)/src/elsi_mutator.f90 elsi_constants.o elsi_datatype.o $(ELSI_ELPA) elsi_io.o elsi_malloc.o elsi_matconv.o elsi_mpi.o elsi_omm.o elsi_pexsi.o elsi_precision.o elsi_utils.o
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
-elsi_omm.o: $(ELSI_DIR)/src/elsi_omm.f90 elsi_constants.o elsi_datatype.o elsi_io.o elsi_precision.o elsi_timings.o elsi_utils.o
+elsi_omm.o: $(ELSI_DIR)/src/elsi_omm.f90 elsi_constants.o elsi_datatype.o elsi_io.o elsi_mpi.o elsi_precision.o elsi_timings.o elsi_utils.o
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
 elsi_pexsi.o: $(ELSI_DIR)/src/elsi_pexsi.f90 elsi_constants.o elsi_datatype.o elsi_io.o elsi_malloc.o elsi_mpi.o elsi_precision.o elsi_timings.o elsi_utils.o $(STUBS)
@@ -205,10 +205,10 @@ elsi_pexsi.o: $(ELSI_DIR)/src/elsi_pexsi.f90 elsi_constants.o elsi_datatype.o el
 elsi_precision.o: $(ELSI_DIR)/src/elsi_precision.f90
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
-elsi_setup.o: $(ELSI_DIR)/src/elsi_setup.f90 elsi_chess.o elsi_constants.o elsi_datatype.o elsi_dmp.o $(ELSI_ELPA) elsi_io.o elsi_malloc.o elsi_omm.o elsi_pexsi.o elsi_precision.o elsi_sips.o elsi_timings.o elsi_utils.o
+elsi_setup.o: $(ELSI_DIR)/src/elsi_setup.f90 elsi_chess.o elsi_constants.o elsi_datatype.o elsi_dmp.o $(ELSI_ELPA) elsi_io.o elsi_malloc.o elsi_mpi.o elsi_omm.o elsi_pexsi.o elsi_precision.o elsi_sips.o elsi_timings.o elsi_utils.o
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
-elsi_sips.o: $(ELSI_DIR)/src/elsi_sips.f90 elsi_constants.o elsi_datatype.o elsi_io.o elsi_malloc.o elsi_precision.o elsi_timings.o elsi_utils.o $(STUBS)
+elsi_sips.o: $(ELSI_DIR)/src/elsi_sips.f90 elsi_constants.o elsi_datatype.o elsi_io.o elsi_malloc.o elsi_mpi.o elsi_precision.o elsi_timings.o elsi_utils.o $(STUBS)
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
 elsi_solver.o: $(ELSI_DIR)/src/elsi_solver.f90 elsi_chess.o elsi_constants.o elsi_datatype.o elsi_dmp.o $(ELSI_ELPA) elsi_io.o elsi_lapack.o elsi_malloc.o elsi_matconv.o elsi_mpi.o elsi_omm.o elsi_pexsi.o elsi_precision.o elsi_setup.o elsi_sips.o elsi_timings.o elsi_utils.o
