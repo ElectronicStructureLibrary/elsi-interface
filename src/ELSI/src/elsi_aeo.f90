@@ -1,4 +1,4 @@
-! Copyright (c) 2015-2017, the ELSI team. All rights reserved.
+! Copyright (c) 2015-2018, the ELSI team. All rights reserved.
 !
 ! Redistribution and use in source and binary forms, with or without
 ! modification, are permitted provided that the following conditions are met:
@@ -34,7 +34,7 @@ module ELSI_ELPA
    use ELSI_DATATYPE
    use ELSI_IO,        only: elsi_say
    use ELSI_MALLOC
-   use ELSI_MPI,       only: elsi_stop
+   use ELSI_MPI
    use ELSI_MU,        only: elsi_compute_mu_and_occ
    use ELSI_PRECISION, only: r4,r8,i4
    use ELSI_TIMINGS,   only: elsi_get_time
@@ -134,6 +134,8 @@ subroutine elsi_compute_occ_elpa(e_h,eval)
          call MPI_Allreduce(tmp_real1,e_h%k_weight,e_h%n_kpts,mpi_real8,&
                  mpi_sum,e_h%mpi_comm_all,mpierr)
 
+         call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
+
          call elsi_deallocate(e_h,tmp_real1,"tmp_real")
       else
          e_h%k_weight = e_h%i_weight
@@ -151,6 +153,8 @@ subroutine elsi_compute_occ_elpa(e_h,eval)
       call MPI_Allreduce(tmp_real2,e_h%eval_all,&
               e_h%n_states*e_h%n_spins*e_h%n_kpts,mpi_real8,mpi_sum,&
               e_h%mpi_comm_all,mpierr)
+
+      call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
 
       call elsi_deallocate(e_h,tmp_real2,"tmp_real")
    else
@@ -364,6 +368,8 @@ subroutine elsi_normalize_dm_elpa_real(e_h,ovlp,dm)
       endif
 
       call MPI_Allreduce(l_ne,g_ne,1,mpi_real8,mpi_sum,e_h%mpi_comm_all,mpierr)
+
+      call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
    endif
 
    ! Scale density matrix
@@ -713,6 +719,8 @@ subroutine elsi_solve_evp_elpa_real(e_h,ham,ovlp,eval,evec)
 
       call MPI_Allreduce(e_h%nnz_l,e_h%nnz_g,1,mpi_integer4,mpi_sum,&
               e_h%mpi_comm,mpierr)
+
+      call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
    endif
 
    ! Transform to standard form
@@ -786,6 +794,8 @@ subroutine elsi_solve_evp_elpa_real(e_h,ham,ovlp,eval,evec)
    endif
 
    call MPI_Barrier(e_h%mpi_comm,mpierr)
+
+   call elsi_check_mpi(e_h,"MPI_Barrier",mpierr,caller)
 
 end subroutine
 
@@ -1005,6 +1015,8 @@ subroutine elsi_normalize_dm_elpa_cmplx(e_h,ovlp,dm)
       endif
 
       call MPI_Allreduce(l_ne,g_ne,1,mpi_real8,mpi_sum,e_h%mpi_comm_all,mpierr)
+
+      call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
    endif
 
    ! Scale density matrix
@@ -1362,6 +1374,8 @@ subroutine elsi_solve_evp_elpa_cmplx(e_h,ham,ovlp,eval,evec)
 
       call MPI_Allreduce(e_h%nnz_l,e_h%nnz_g,1,mpi_integer4,mpi_sum,&
               e_h%mpi_comm,mpierr)
+
+      call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
    endif
 
    ! Transform to standard form
@@ -1435,6 +1449,8 @@ subroutine elsi_solve_evp_elpa_cmplx(e_h,ham,ovlp,eval,evec)
    endif
 
    call MPI_Barrier(e_h%mpi_comm,mpierr)
+
+   call elsi_check_mpi(e_h,"MPI_Barrier",mpierr,caller)
 
 end subroutine
 

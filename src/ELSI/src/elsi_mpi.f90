@@ -1,4 +1,4 @@
-! Copyright (c) 2015-2017, the ELSI team. All rights reserved.
+! Copyright (c) 2015-2018, the ELSI team. All rights reserved.
 !
 ! Redistribution and use in source and binary forms, with or without
 ! modification, are permitted provided that the following conditions are met:
@@ -43,6 +43,7 @@ module ELSI_MPI
 
    public :: elsi_stop
    public :: elsi_get_processor_name
+   public :: elsi_check_mpi
 
 contains
 
@@ -57,7 +58,7 @@ subroutine elsi_stop(info,e_h,caller)
    type(elsi_handle), intent(in) :: e_h
    character(len=*),  intent(in) :: caller
 
-   character*800    :: info_str
+   character*200    :: info_str
    integer(kind=i4) :: mpierr
 
    if(e_h%global_mpi_ready) then
@@ -87,7 +88,7 @@ subroutine elsi_stop(info,e_h,caller)
 end subroutine
 
 !>
-!! Get processor name
+!! Get processor name.
 !!
 subroutine elsi_get_processor_name(e_h,proc_name,proc_name_len)
 
@@ -96,16 +97,34 @@ subroutine elsi_get_processor_name(e_h,proc_name,proc_name_len)
    type(elsi_handle), intent(in) :: e_h
 
    character(len=MPI_MAX_PROCESSOR_NAME), intent(out) :: proc_name
-   integer,                               intent(out) :: proc_name_len
+   integer(kind=i4),                      intent(out) :: proc_name_len
+
+   integer(kind=i4) :: mpierr
 
    character*40, parameter :: caller = "elsi_get_processor_name"
 
-   integer :: mpierr
+   call MPI_Get_processor_name(proc_name,proc_name_len,mpierr)
 
-   call MPI_GET_PROCESSOR_NAME(proc_name,proc_name_len,mpierr)
+   call elsi_check_mpi(e_h,"MPI_Get_processor_name",mpierr,caller)
 
-   if(mpierr .ne. MPI_SUCCESS) then
-      call elsi_stop ("MPI_GET_PROCESSOR_NAME failed",e_h,caller)
+end subroutine
+
+!>
+!! Checks if an MPI call is successful.
+!!
+subroutine elsi_check_mpi(e_h,routine,mpierr,caller)
+
+   implicit none
+
+   type(elsi_handle), intent(in) :: e_h
+   character(len=*),  intent(in) :: routine
+   integer(kind=i4),  intent(in) :: mpierr
+   character(len=*),  intent(in) :: caller
+
+   character*200 :: info_str
+
+   if(mpierr /= MPI_SUCCESS) then
+      call elsi_stop(routine,e_h,caller)
    endif
 
 end subroutine

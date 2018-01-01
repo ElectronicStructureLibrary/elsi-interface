@@ -1,4 +1,4 @@
-! Copyright (c) 2015-2017, the ELSI team. All rights reserved.
+! Copyright (c) 2015-2018, the ELSI team. All rights reserved.
 !
 ! Redistribution and use in source and binary forms, with or without
 ! modification, are permitted provided that the following conditions are met:
@@ -32,6 +32,7 @@ module ELSI_CHESS
 
    use ELSI_DATATYPE
    use ELSI_IO,                only: elsi_say
+   use ELSI_MPI
    use ELSI_PRECISION,         only: r8,i4
    use ELSI_TIMINGS,           only: elsi_get_time
    use ELSI_UTILS
@@ -165,6 +166,8 @@ subroutine elsi_solve_evp_chess_real(e_h)
    e_h%mu = foe_data_get_real(e_h%foe_obj,"ef",1)
 
    call MPI_Barrier(e_h%mpi_comm,mpierr)
+
+   call elsi_check_mpi(e_h,"MPI_Barrier",mpierr,caller)
 
    call elsi_get_time(e_h,t1)
 

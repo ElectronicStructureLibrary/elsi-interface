@@ -1,4 +1,4 @@
-! Copyright (c) 2015-2017, the ELSI team. All rights reserved.
+! Copyright (c) 2015-2018, the ELSI team. All rights reserved.
 !
 ! Redistribution and use in source and binary forms, with or without
 ! modification, are permitted provided that the following conditions are met:
@@ -1378,9 +1378,10 @@ subroutine truncate_string(l_string, n_chars_to_remove)
    implicit none
 
    character(len=:), allocatable, intent(inout) :: l_string
-   integer,                       intent(in)    :: n_chars_to_remove
+   integer(kind=i4),              intent(in)    :: n_chars_to_remove
 
-   integer :: size_new_string
+   integer(kind=i4) :: size_new_string
+
    character(len=:), allocatable :: temp_string
 
    ! Find size of new character array

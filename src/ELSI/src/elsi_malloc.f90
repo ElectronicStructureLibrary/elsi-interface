@@ -1,4 +1,4 @@
-! Copyright (c) 2015-2017, the ELSI team. All rights reserved.
+! Copyright (c) 2015-2018, the ELSI team. All rights reserved.
 !
 ! Redistribution and use in source and binary forms, with or without
 ! modification, are permitted provided that the following conditions are met:
@@ -32,6 +32,7 @@ module ELSI_MALLOC
 
    use ELSI_DATATYPE
    use ELSI_IO,       only: elsi_say
+   use ELSI_MPI
    use ELSI_PRECISION
    use ELSI_UTILS
 
