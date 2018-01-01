@@ -52,6 +52,7 @@ contains
 
 !>
 !! This routine initializes SIPs.
+!! This does not change the state of the handle.
 !!
 subroutine elsi_init_sips(e_h)
 
@@ -63,8 +64,6 @@ subroutine elsi_init_sips(e_h)
 
    character*40, parameter :: caller = "elsi_init_sips"
 
-   ! Note:  This does not change the state of the handle
-      
    if(e_h%n_elsi_calls == e_h%sips_n_elpa+1) then
       call initialize_qetsc()
 
@@ -121,17 +120,17 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
    call elsi_get_time(e_h,t0)
 
    if(e_h%n_elsi_calls == e_h%sips_n_elpa+1) then
-      ! Load H matrix
-      call eps_load_ham(e_h%n_basis,e_h%n_lcol_sp,e_h%nnz_l_sp,&
-              e_h%row_ind_sips,e_h%col_ptr_sips,ham)
-
       if(.not. e_h%ovlp_is_unit) then
-         ! Load S matrix
-         call eps_load_ovlp(e_h%n_basis,e_h%n_lcol_sp,e_h%nnz_l_sp,&
-                 e_h%row_ind_sips,e_h%col_ptr_sips,ovlp)
+         ! Load H and S
+         call eps_load_ham_ovlp(e_h%n_basis,e_h%n_lcol_sp,e_h%nnz_l_sp,&
+                 e_h%row_ind_sips,e_h%col_ptr_sips,ham,ovlp)
 
          call set_eps(e_h%ev_min,e_h%ev_max,math,mats)
       else
+         ! Load H
+         call eps_load_ham(e_h%n_basis,e_h%n_lcol_sp,e_h%nnz_l_sp,&
+                 e_h%row_ind_sips,e_h%col_ptr_sips,ham)
+
          call set_eps(e_h%ev_min,e_h%ev_max,math)
       endif
    else ! n_elsi_calls > sips_n_elpa+1
@@ -291,8 +290,10 @@ subroutine elsi_set_sips_default(e_h)
    type(elsi_handle), intent(inout) :: e_h
 
    character*40, parameter :: caller = "elsi_set_sips_default"
-   
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    ! How many steps of ELPA to run before SIPs
    e_h%sips_n_elpa = 0

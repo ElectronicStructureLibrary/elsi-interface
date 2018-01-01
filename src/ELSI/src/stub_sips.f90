@@ -39,9 +39,9 @@ module M_QETSC
 
    public :: initialize_qetsc
    public :: clean_qetsc
+   public :: eps_load_ham_ovlp
    public :: eps_load_ham
    public :: eps_update_ham
-   public :: eps_load_ovlp
    public :: set_eps
    public :: update_eps
    public :: get_eps_interval
@@ -78,6 +78,25 @@ subroutine clean_qetsc()
 
 end subroutine
 
+subroutine eps_load_ham_ovlp(global_size,local_size,local_nnz,col_idx,row_ptr,&
+              ham_val,ovlp_val)
+
+   implicit none
+
+   integer(kind=i4) :: global_size
+   integer(kind=i4) :: local_size
+   integer(kind=i4) :: local_nnz
+   integer(kind=i4) :: col_idx(local_nnz)
+   integer(kind=i4) :: row_ptr(local_size+1)
+   real(kind=r8)    :: ham_val(local_size+1)
+   real(kind=r8)    :: ovlp_val(local_size+1)
+
+   write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
+   write(*,"(A)") " Exiting..."
+   stop
+
+end subroutine
+
 subroutine eps_load_ham(global_size,local_size,local_nnz,col_idx,row_ptr,&
               ham_val)
 
@@ -107,24 +126,6 @@ subroutine eps_update_ham(global_size,local_size,local_nnz,col_idx,row_ptr,&
    integer(kind=i4) :: col_idx(local_nnz)
    integer(kind=i4) :: row_ptr(local_size+1)
    real(kind=r8)    :: ham_val(local_size+1)
-
-   write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
-   write(*,"(A)") " Exiting..."
-   stop
-
-end subroutine
-
-subroutine eps_load_ovlp(global_size,local_size,local_nnz,col_idx,row_ptr,&
-              ovlp_val)
-
-   implicit none
-
-   integer(kind=i4) :: global_size
-   integer(kind=i4) :: local_size
-   integer(kind=i4) :: local_nnz
-   integer(kind=i4) :: col_idx(local_nnz)
-   integer(kind=i4) :: row_ptr(local_size+1)
-   real(kind=r8)    :: ovlp_val(local_size+1)
 
    write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
    write(*,"(A)") " Exiting..."
