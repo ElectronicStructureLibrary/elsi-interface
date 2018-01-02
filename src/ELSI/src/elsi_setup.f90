@@ -336,13 +336,9 @@ subroutine elsi_set_blacs(e_h,blacs_ctxt,block_size)
 
       e_h%blacs_ready = .true.
 
-<<<<<<< src/ELSI/src/elsi_setup.f90
-      if (e_h%handle_ready) e_h%handle_changed = .true.
-=======
       if(e_h%handle_ready) then
          e_h%handle_changed = .true.
       endif
->>>>>>> src/ELSI/src/elsi_setup.f90
    endif
 
 end subroutine

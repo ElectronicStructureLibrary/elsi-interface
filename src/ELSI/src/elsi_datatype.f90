@@ -60,7 +60,6 @@ module ELSI_DATATYPE
 
    type, public :: elsi_timings_handle
 
-<<<<<<< src/ELSI/src/elsi_datatype.f90
       integer(kind=i4)                 :: size_timings ! Dimension for arrays
       integer(kind=i4)                 :: n_timings    ! Number of timings
       character(len=TIMING_STRING_LEN) :: user_tag     ! User's tag
