@@ -31,7 +31,7 @@
 module ELSI_MALLOC
 
    use ELSI_DATATYPE
-   use ELSI_IO,       only: elsi_say
+   use ELSI_IO, only: elsi_say
    use ELSI_MPI
    use ELSI_PRECISION
    use ELSI_UTILS

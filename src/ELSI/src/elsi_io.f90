@@ -122,7 +122,7 @@ end subroutine
 !>
 !! This routine initializes a handle for reading and writing to files.
 !!
-subroutine elsi_init_file_io(io_h,print_unit,file_name,format,print_info,&
+subroutine elsi_init_file_io(io_h,print_unit,file_name,file_format,print_info,&
                              prefix,comma_json)
 
    implicit none
@@ -130,7 +130,7 @@ subroutine elsi_init_file_io(io_h,print_unit,file_name,format,print_info,&
    type(elsi_file_io_handle),  intent(out) :: io_h       !< File IO Handle
    integer(kind=i4),           intent(in)  :: print_unit    
    character(len=*), optional, intent(in)  :: file_name
-   integer(kind=i4), optional, intent(in)  :: format
+   integer(kind=i4), optional, intent(in)  :: file_format
    logical,          optional, intent(in)  :: print_info
    character(len=*), optional, intent(in)  :: prefix
    integer(kind=i4), optional, intent(in)  :: comma_json
@@ -149,10 +149,10 @@ subroutine elsi_init_file_io(io_h,print_unit,file_name,format,print_info,&
       io_h%file_name = UNSET_STRING
    endif
 
-   if(present(format)) then
-      io_h%format = format
+   if(present(file_format)) then
+      io_h%file_format = file_format
    else
-      io_h%format = HUMAN_READ
+      io_h%file_format = HUMAN_READ
    endif
 
    if(present(print_info)) then
@@ -225,7 +225,7 @@ subroutine elsi_reset_file_io_handle(io_h)
    io_h%handle_init = .false.
    io_h%print_unit = UNSET
    io_h%file_name  = UNSET_STRING
-   io_h%format = UNSET
+   io_h%file_format = UNSET
    io_h%print_info = .false.
    if(allocated(io_h%prefix)) deallocate(io_h%prefix)
    io_h%comma_json = UNSET
@@ -259,7 +259,7 @@ subroutine elsi_print_handle_summary(e_h,io_h_in)
       io_h = e_h%stdio
    endif
 
-   if(io_h%format == HUMAN_READ) then
+   if(io_h%file_format == HUMAN_READ) then
       write(info_str,"(A)")       "Physical Properties"
       call elsi_say(e_h,info_str,io_h)
    
@@ -317,10 +317,10 @@ subroutine elsi_print_handle_summary(e_h,io_h_in)
       elseif(e_h%solver == DMP_SOLVER) then
          call elsi_say_setting(e_h,  "Solver requested","DMP",io_h)
       else
-         call elsi_stop("Unsupported solver.",e_h,caller)
+         call elsi_stop(" Unsupported solver.",e_h,caller)
       endif
       call truncate_string(io_h%prefix,2)
-   elseif (io_h%format == JSON) then
+   elseif (io_h%file_format == JSON) then
       comma_json_save = io_h%comma_json
       io_h%comma_json = COMMA_AFTER ! Add commas behind all records before final
 
@@ -364,10 +364,10 @@ subroutine elsi_print_handle_summary(e_h,io_h_in)
       elseif(e_h%solver == DMP_SOLVER) then
          call elsi_say_setting(e_h,     "solver","DMP",io_h)
       else
-         call elsi_stop("Unsupported solver.",e_h,caller)
+         call elsi_stop(" Unsupported solver.",e_h,caller)
       endif
    else
-      call elsi_stop("Unsupported output format.",e_h,caller)
+      call elsi_stop(" Unsupported output format.",e_h,caller)
    endif
 
 end subroutine
@@ -584,7 +584,7 @@ subroutine elsi_print_chess_settings(e_h,io_h_in)
    io_h%comma_json = COMMA_AFTER ! Add commas behind all records before final
 
    ! Header
-   if(io_h%format.eq.HUMAN_READ) then
+   if(io_h%file_format.eq.HUMAN_READ) then
      write(info_str,"(A)")   "Solver Settings (CheSS)"
    else
       write(info_str,"(A)") '"solver_settings": {'
@@ -607,7 +607,7 @@ subroutine elsi_print_chess_settings(e_h,io_h_in)
 
    ! Footer (only for JSON)
    io_h%comma_json = comma_json_save ! Final record, restore comma_json
-   if(io_h%format.eq.JSON) then
+   if(io_h%file_format.eq.JSON) then
       if(io_h%comma_json == COMMA_AFTER) then
          write(info_str,"(A)")   '},'
       else
@@ -644,7 +644,7 @@ subroutine elsi_print_dmp_settings(e_h,io_h_in)
    io_h%comma_json = COMMA_AFTER ! Add commas behind all records before final
 
    ! Header
-   if(io_h%format.eq.HUMAN_READ) then
+   if(io_h%file_format.eq.HUMAN_READ) then
       write(info_str,"(A)")   "Solver Settings (DMP)"
    else
       write(info_str,"(A)") '"solver_settings": {'
@@ -664,7 +664,7 @@ subroutine elsi_print_dmp_settings(e_h,io_h_in)
 
    ! Footer (only for JSON)
    io_h%comma_json = comma_json_save ! Final record, restore comma_json
-   if(io_h%format.eq.JSON) then
+   if(io_h%file_format.eq.JSON) then
       if(io_h%comma_json == COMMA_AFTER) then
          write(info_str,"(A)")   '},'
       else
@@ -701,7 +701,7 @@ subroutine elsi_print_elpa_settings(e_h,io_h_in)
    io_h%comma_json = COMMA_AFTER ! Add commas behind all records before final
 
    ! Header
-   if(io_h%format.eq.HUMAN_READ) then
+   if(io_h%file_format.eq.HUMAN_READ) then
       write(info_str,"(A)")   "Solver Settings (ELPA)"
    else
       write(info_str,"(A)") '"solver_settings": {'
@@ -720,7 +720,7 @@ subroutine elsi_print_elpa_settings(e_h,io_h_in)
 
    ! Footer (only for JSON)
    io_h%comma_json = comma_json_save ! Final record, restore comma_json
-   if(io_h%format.eq.JSON) then
+   if(io_h%file_format.eq.JSON) then
       if(io_h%comma_json == COMMA_AFTER) then
          write(info_str,"(A)")   '},'
       else
@@ -757,7 +757,7 @@ subroutine elsi_print_omm_settings(e_h,io_h_in)
    io_h%comma_json = COMMA_AFTER ! Add commas behind all records before final
 
    ! Header
-   if(io_h%format.eq.HUMAN_READ) then
+   if(io_h%file_format.eq.HUMAN_READ) then
       write(info_str,"(A)") "Solver Settings (libOMM)"
    else
       write(info_str,"(A)") '"solver_settings": {'
@@ -783,7 +783,7 @@ subroutine elsi_print_omm_settings(e_h,io_h_in)
 
    ! Footer (only for JSON)
    io_h%comma_json = comma_json_save ! Final record, restore comma_json
-   if(io_h%format.eq.JSON) then
+   if(io_h%file_format.eq.JSON) then
       if(io_h%comma_json == COMMA_AFTER) then
          write(info_str,"(A)")   '},'
       else
@@ -820,7 +820,7 @@ subroutine elsi_print_pexsi_settings(e_h,io_h_in)
    io_h%comma_json = COMMA_AFTER ! Add commas behind all records before final
 
    ! Header
-   if(io_h%format.eq.HUMAN_READ) then
+   if(io_h%file_format.eq.HUMAN_READ) then
       write(info_str,"(A)") "Solver Settings (PEXSI)"
    else
       write(info_str,"(A)") '"solver_settings": {'
@@ -840,7 +840,7 @@ subroutine elsi_print_pexsi_settings(e_h,io_h_in)
 
    ! Footer (only for JSON)
    io_h%comma_json = comma_json_save ! Final record, restore comma_json
-   if(io_h%format.eq.JSON) then
+   if(io_h%file_format.eq.JSON) then
       if(io_h%comma_json == COMMA_AFTER) then
          write(info_str,"(A)")   '},'
       else
@@ -877,7 +877,7 @@ subroutine elsi_print_sips_settings(e_h,io_h_in)
    io_h%comma_json = COMMA_AFTER ! Add commas behind all records before final
 
    ! Header
-   if(io_h%format.eq.HUMAN_READ) then
+   if(io_h%file_format.eq.HUMAN_READ) then
       write(info_str,"(A)") "Solver Settings (SIPs)"
    else
       write(info_str,"(A)") '"solver_settings": {'
@@ -905,7 +905,7 @@ subroutine elsi_print_sips_settings(e_h,io_h_in)
 
    ! Footer (only for JSON)
    io_h%comma_json = comma_json_save ! Final record, restore comma_json
-   if(io_h%format.eq.JSON) then
+   if(io_h%file_format.eq.JSON) then
       if(io_h%comma_json == COMMA_AFTER) then
          write(info_str,"(A)")   '},'
       else
@@ -977,7 +977,7 @@ subroutine elsi_print_blacs_dense_settings(e_h,io_h_in)
    io_h%comma_json = COMMA_AFTER ! Add commas behind all records before final
 
    ! Header
-   if(io_h%format.eq.HUMAN_READ) then
+   if(io_h%file_format.eq.HUMAN_READ) then
       write(info_str,"(A)") "Matrix Storage Format Settings (BLACS_DENSE)"
    else
       write(info_str,"(A)") '"matrix_format_settings": {'
@@ -996,7 +996,7 @@ subroutine elsi_print_blacs_dense_settings(e_h,io_h_in)
 
    ! Footer (only for JSON)
    io_h%comma_json = comma_json_save ! Final record, restore comma_json
-   if(io_h%format.eq.JSON) then
+   if(io_h%file_format.eq.JSON) then
       if(io_h%comma_json == COMMA_AFTER) then
          write(info_str,"(A,A)")   '},'
       else
@@ -1033,7 +1033,7 @@ subroutine elsi_print_pexsi_csc_settings(e_h,io_h_in)
    io_h%comma_json = COMMA_AFTER ! Add commas behind all records before final
 
    ! Header
-   if(io_h%format.eq.HUMAN_READ) then
+   if(io_h%file_format.eq.HUMAN_READ) then
       write(info_str,"(A)") "Matrix Storage Format Settings (PESXI_CSC)"
    else
       write(info_str,"(A)") '"matrix_format_settings": {'
@@ -1050,7 +1050,7 @@ subroutine elsi_print_pexsi_csc_settings(e_h,io_h_in)
 
    ! Footer (only for JSON)
    io_h%comma_json = comma_json_save ! Final record, restore comma_json
-   if(io_h%format.eq.JSON) then
+   if(io_h%file_format.eq.JSON) then
       if(io_h%comma_json == COMMA_AFTER) then
          write(info_str,"(A,A)")   '},'
       else
@@ -1098,7 +1098,7 @@ subroutine elsi_say_setting_i4(e_h,label,setting,io_h_in)
                        ! so that it is right-justified when output.
 
    if(io_h%print_info.and.e_h%myid_all == 0) then
-      if(io_h%format == HUMAN_READ) then
+      if(io_h%file_format == HUMAN_READ) then
          if(allocated(io_h%prefix)) then
             write(io_h%print_unit,"(A,A27,A3,I20)") &
                  io_h%prefix, label_ljust, " : ", setting
@@ -1106,7 +1106,7 @@ subroutine elsi_say_setting_i4(e_h,label,setting,io_h_in)
             write(io_h%print_unit,"(A27,A3,I20)") &
                  label_ljust, " : ", setting
          endif
-      elseif(io_h%format == JSON) then
+      elseif(io_h%file_format == JSON) then
          if(io_h%comma_json == COMMA_AFTER) then
             if(allocated(io_h%prefix)) then
                write(io_h%print_unit,"(A)") &
@@ -1129,7 +1129,7 @@ subroutine elsi_say_setting_i4(e_h,label,setting,io_h_in)
             endif
          endif
       else
-         call elsi_stop("Unsupported output format.",e_h,caller)
+         call elsi_stop(" Unsupported output format.",e_h,caller)
       end if
    endif
 
@@ -1162,7 +1162,7 @@ subroutine elsi_say_setting_r8(e_h,label,setting,io_h_in)
                        ! so that it is right-justified when output.
 
    if(io_h%print_info.and.e_h%myid_all == 0) then
-      if(io_h%format == HUMAN_READ) then
+      if(io_h%file_format == HUMAN_READ) then
          if(allocated(io_h%prefix)) then
             write(io_h%print_unit,"(A,A27,A3,E20.8)") &
                  io_h%prefix, label_ljust, " : ", setting
@@ -1170,7 +1170,7 @@ subroutine elsi_say_setting_r8(e_h,label,setting,io_h_in)
             write(io_h%print_unit,"(A27,A3,E20.8)") &
                  label_ljust, " : ", setting
          endif
-      elseif(io_h%format == JSON) then
+      elseif(io_h%file_format == JSON) then
          if(io_h%comma_json == COMMA_AFTER) then
             if(allocated(io_h%prefix)) then
                write(io_h%print_unit,"(A)") &
@@ -1193,7 +1193,7 @@ subroutine elsi_say_setting_r8(e_h,label,setting,io_h_in)
             endif
          end if
       else
-         call elsi_stop("Unsupported output format.",e_h,caller)
+         call elsi_stop(" Unsupported output format.",e_h,caller)
       end if
    endif
 
@@ -1220,13 +1220,13 @@ subroutine elsi_say_setting_log(e_h,label,setting,io_h_in)
       io_h = e_h%stdio
    endif
 
-   if(io_h%format == HUMAN_READ) then
+   if(io_h%file_format == HUMAN_READ) then
       if(setting) then
          log_string = "                TRUE"
       else
          log_string = "               FALSE" ! TIME PARADOX
       endif
-   elseif(io_h%format == JSON) then
+   elseif(io_h%file_format == JSON) then
       ! By convention, JSON strings are lower-case
       if(setting) then
          log_string = "                true"
@@ -1234,14 +1234,14 @@ subroutine elsi_say_setting_log(e_h,label,setting,io_h_in)
          log_string = "               false" ! TIME PARADOX
       endif
    else
-      call elsi_stop("Unsupported output format.",e_h,caller)
+      call elsi_stop(" Unsupported output format.",e_h,caller)
    endif
 
    label_ljust = label ! Store the label string in fixed-length character array 
                        ! so that it is right-justified when output.
 
    if(io_h%print_info.and.e_h%myid_all == 0) then
-      if(io_h%format == HUMAN_READ) then
+      if(io_h%file_format == HUMAN_READ) then
          if(allocated(io_h%prefix)) then
             write(io_h%print_unit,"(A,A27,A3,A20)") &
                  io_h%prefix, label_ljust, " : ", log_string
@@ -1249,7 +1249,7 @@ subroutine elsi_say_setting_log(e_h,label,setting,io_h_in)
             write(io_h%print_unit,"(A27,A3,A20)") &
                  label_ljust, " : ", log_string
          endif
-      elseif(io_h%format == JSON) then
+      elseif(io_h%file_format == JSON) then
          if(io_h%comma_json == COMMA_AFTER) then
             if(allocated(io_h%prefix)) then
                write(io_h%print_unit,"(A)") &
@@ -1272,7 +1272,7 @@ subroutine elsi_say_setting_log(e_h,label,setting,io_h_in)
             endif
          endif
       else
-         call elsi_stop("Unsupported output format.",e_h,caller)
+         call elsi_stop(" Unsupported output format.",e_h,caller)
       end if
    endif
 
@@ -1304,7 +1304,7 @@ subroutine elsi_say_setting_str(e_h,label,setting,io_h_in)
                        ! so that it is right-justified when output.
 
    if(io_h%print_info.and.e_h%myid_all == 0) then
-      if(io_h%format == HUMAN_READ) then
+      if(io_h%file_format == HUMAN_READ) then
          if(allocated(io_h%prefix)) then
             write(io_h%print_unit,"(A,A27,A3,A20)") &
                  io_h%prefix, label_ljust, " : ", setting
@@ -1312,7 +1312,7 @@ subroutine elsi_say_setting_str(e_h,label,setting,io_h_in)
             write(io_h%print_unit,"(A27,A3,A20)") &
                  label_ljust, " : ", setting
          endif
-      elseif(io_h%format == JSON) then
+      elseif(io_h%file_format == JSON) then
          if(io_h%comma_json == COMMA_AFTER) then
             if(allocated(io_h%prefix)) then
                write(io_h%print_unit,"(A)") &
@@ -1335,7 +1335,7 @@ subroutine elsi_say_setting_str(e_h,label,setting,io_h_in)
             endif
          endif
       else
-         call elsi_stop("Unsupported output format.",e_h,caller)
+         call elsi_stop(" Unsupported output format.",e_h,caller)
       end if
    endif
 

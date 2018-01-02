@@ -69,8 +69,10 @@ subroutine elsi_init_chess(e_h)
    real(kind=r8) :: n_electron(1)
 
    character*40, parameter :: caller = "elsi_init_chess"
-      
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    if(e_h%n_elsi_calls == 1) then
       ! Initialize f_lib
@@ -203,8 +205,10 @@ subroutine elsi_set_chess_default(e_h)
    type(elsi_handle), intent(inout) :: e_h
 
    character*40, parameter :: caller = "elsi_set_chess_default"
-      
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    ! Initial guess of the decay length of the error function
    e_h%erf_decay = 5.0e-2_r8

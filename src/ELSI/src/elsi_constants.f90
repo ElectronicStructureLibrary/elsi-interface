@@ -109,13 +109,9 @@ module ELSI_CONSTANTS
    integer(kind=i4), parameter :: NO_COMMA     = 2
 
    ! Constants for ELSI timings
-   integer(kind=i4),             parameter :: &
-        TIMING_STRING_LEN           = 20
-   integer(kind=i4),             parameter :: &
-        SOLVER_TIMINGS_UNIT_DEFAULT = 66
-   character(len=FILE_NAME_LEN), parameter :: &
-        SOLVER_TIMINGS_FILE_DEFAULT = "elsi_solver_timings.json"
-   integer(kind=i4),             parameter :: &
-        DATETIME_LEN                = 29
+   integer(kind=i4),             parameter :: TIMING_STRING_LEN           = 20
+   integer(kind=i4),             parameter :: SOLVER_TIMINGS_UNIT_DEFAULT = 66
+   character(len=FILE_NAME_LEN), parameter :: SOLVER_TIMINGS_FILE_DEFAULT = "elsi_solver_timings.json"
+   integer(kind=i4),             parameter :: DATETIME_LEN                = 29
 
 end module ELSI_CONSTANTS

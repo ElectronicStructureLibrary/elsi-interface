@@ -61,17 +61,15 @@ module ELSI_SETUP
 
    private
 
-   public  :: elsi_init
-   public  :: elsi_finalize
-   public  :: elsi_set_mpi
-   public  :: elsi_set_mpi_global
-   public  :: elsi_set_spin
-   public  :: elsi_set_kpoint
-   public  :: elsi_set_blacs
-   public  :: elsi_set_csc
-   public  :: elsi_cleanup
-
-   private :: elsi_final_print
+   public :: elsi_init
+   public :: elsi_finalize
+   public :: elsi_set_mpi
+   public :: elsi_set_mpi_global
+   public :: elsi_set_spin
+   public :: elsi_set_kpoint
+   public :: elsi_set_blacs
+   public :: elsi_set_csc
+   public :: elsi_cleanup
 
 contains
 
@@ -145,22 +143,20 @@ subroutine elsi_init(e_h,solver,parallel_mode,matrix_format,n_basis,n_electron,&
 
    ! Initialize stdio handle
    ! By default, ELSI is silent to stdio unless user requests output
-   call elsi_init_file_io(e_h%stdio,6,format=HUMAN_READ,print_info=.false.)
+   call elsi_init_file_io(e_h%stdio,6,file_format=HUMAN_READ,print_info=.false.)
 
    ! Initialize solver timings file handle
    e_h%output_solver_timings = .true.
-   ! print_unit and file_name should only have meaning for myid_all.eq.0
-   ! as a precautionary measure
-   ! However, we don't know which process has myid_all.eq.0 yet,
-   ! so we'll unset them once we actually open the file
+   ! print_unit and file_name should only have meaning for myid_all == 0 as a
+   ! precautionary measure. However, which process has myid_all == 0 yet, so
+   ! they'll be unset once the file is actually open
    call elsi_init_file_io(e_h%solver_timings_file,SOLVER_TIMINGS_UNIT_DEFAULT,&
-                          file_name=SOLVER_TIMINGS_FILE_DEFAULT,&
-                          format=JSON,print_info=.true.,&
-                          comma_json=COMMA_AFTER)
+           file_name=SOLVER_TIMINGS_FILE_DEFAULT,file_format=JSON,&
+           print_info=.true.,comma_json=COMMA_AFTER)
 
    ! Initialize timer information
    call elsi_init_timer(e_h)
-   call elsi_init_timings(e_h%solver_timings, "Solver timings")
+   call elsi_init_timings(e_h%solver_timings,"Solver timings")
 
 end subroutine
 
@@ -191,7 +187,9 @@ subroutine elsi_set_mpi(e_h,mpi_comm)
 
       e_h%mpi_ready = .true.
 
-      if (e_h%handle_ready) e_h%handle_changed = .true.
+      if(e_h%handle_ready) then
+         e_h%handle_changed = .true.
+      endif
    endif
 
 end subroutine
@@ -221,7 +219,9 @@ subroutine elsi_set_mpi_global(e_h,mpi_comm_all)
 
       e_h%global_mpi_ready = .true.
 
-      if (e_h%handle_ready) e_h%handle_changed = .true.
+      if(e_h%handle_ready) then
+         e_h%handle_changed = .true.
+      endif
    endif
 
 end subroutine
@@ -237,7 +237,9 @@ subroutine elsi_set_spin(e_h,n_spin,i_spin)
    integer(kind=i4),  intent(in)    :: n_spin !< Number of spin channels
    integer(kind=i4),  intent(in)    :: i_spin !< Spin index
 
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    e_h%n_spins = n_spin
    e_h%i_spin  = i_spin
@@ -256,7 +258,9 @@ subroutine elsi_set_kpoint(e_h,n_kpt,i_kpt,weight)
    integer(kind=i4),  intent(in)    :: i_kpt  !< K-point index
    real(kind=r8),     intent(in)    :: weight !< Weight
 
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    e_h%n_kpts   = n_kpt
    e_h%i_kpt    = i_kpt
@@ -332,7 +336,13 @@ subroutine elsi_set_blacs(e_h,blacs_ctxt,block_size)
 
       e_h%blacs_ready = .true.
 
+<<<<<<< src/ELSI/src/elsi_setup.f90
       if (e_h%handle_ready) e_h%handle_changed = .true.
+=======
+      if(e_h%handle_ready) then
+         e_h%handle_changed = .true.
+      endif
+>>>>>>> src/ELSI/src/elsi_setup.f90
    endif
 
 end subroutine
@@ -354,7 +364,10 @@ subroutine elsi_set_csc(e_h,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)
    character*40, parameter :: caller = "elsi_set_csc"
 
    call elsi_check_handle(e_h,caller)
-   if (e_h%handle_ready) e_h%handle_changed = .true.
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
 
    e_h%nnz_g     = nnz_g
    e_h%nnz_l_sp  = nnz_l
@@ -431,14 +444,11 @@ subroutine elsi_final_print(e_h)
 
    type(elsi_handle), intent(inout) :: e_h !< Handle
 
-   real(kind=r8) :: sparsity
-   character*200 :: info_str
-
    character*40, parameter :: caller = "elsi_final_print"
 
-   if(e_h%stdio%format.eq.JSON) then
-      call elsi_stop("elsi_final_print only supports HUMAN_READ format.",&
-                     e_h,caller)
+   if(e_h%stdio%file_format == JSON) then
+      call elsi_stop(" elsi_final_print only supports HUMAN_READ format.",e_h,&
+              caller)
    endif
 
    call elsi_say(e_h,"  |---------------------------------------------------------------------")
@@ -643,6 +653,9 @@ subroutine elsi_cleanup(e_h)
    if(allocated(e_h%loc_col)) then
       call elsi_deallocate(e_h,e_h%loc_col,"loc_col")
    endif
+   if(allocated(e_h%processor_name)) then
+      deallocate(e_h%processor_name)
+   endif
 
    ! Finalize ELPA
    if(e_h%elpa_started) then
@@ -679,19 +692,23 @@ subroutine elsi_cleanup(e_h)
    endif
 
    ! Print final timings
-   if(e_h%handle_ready.and.e_h%output_solver_timings) then
-      if(e_h%solver_timings_file%format == JSON) then
+   if(e_h%handle_ready .and. e_h%output_solver_timings) then
+      if(e_h%solver_timings_file%file_format == JSON) then
          ! Closing bracket to signify end of JSON array
          call truncate_string(e_h%solver_timings_file%prefix,2)
-         call elsi_say(e_h, "]", e_h%solver_timings_file)
-      end if
-   end if
+
+         call elsi_say(e_h,"]",e_h%solver_timings_file)
+      endif
+   endif
+
    call elsi_finalize_timings(e_h%solver_timings)
 
    ! Close open files and finalize file IO handles other than stdio
-   if(e_h%handle_ready.and.e_h%output_solver_timings.and.e_h%myid_all.eq.0) then
+   if(e_h%handle_ready .and. e_h%output_solver_timings .and. &
+      e_h%myid_all == 0) then
       close(e_h%solver_timings_file%print_unit)
-   end if
+   endif
+
    call elsi_reset_file_io_handle(e_h%solver_timings_file)
 
    ! Close the stdio file handle, then reset e_h
