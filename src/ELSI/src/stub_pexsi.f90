@@ -57,7 +57,8 @@ module F_PPEXSI_INTERFACE
    public :: f_ppexsi_retrieve_complex_edm
    public :: f_ppexsi_plan_finalize
 
-   type, public, bind(C) :: f_ppexsi_options
+   type, public :: f_ppexsi_options
+      real(kind=r8)    :: spin
       real(kind=r8)    :: temperature
       real(kind=r8)    :: gap
       real(kind=r8)    :: deltaE
@@ -74,6 +75,8 @@ module F_PPEXSI_INTERFACE
       integer(kind=i4) :: matrixType
       integer(kind=i4) :: isSymbolicFactorize
       integer(kind=i4) :: isConstructCommPattern
+      integer(kind=i4) :: solver
+      integer(kind=i4) :: symmetricStorage
       integer(kind=i4) :: ordering
       integer(kind=i4) :: rowOrdering
       integer(kind=i4) :: npSymbFact
