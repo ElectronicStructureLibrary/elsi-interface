@@ -109,7 +109,6 @@ subroutine elsi_init(e_h,solver,parallel_mode,matrix_format,n_basis,n_electron,&
    e_h%parallel_mode  = parallel_mode
    e_h%n_elsi_calls   = 0
 
-
    if(parallel_mode == SINGLE_PROC) then
       e_h%n_lrow      = n_basis
       e_h%n_lcol      = n_basis

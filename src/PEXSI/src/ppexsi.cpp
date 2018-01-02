@@ -3774,7 +3774,8 @@ void PPEXSIData::CalculateFermiOperatorComplex(
     Real& numElectron,
     Real& numElectronDrvMu,
     Int   method,
-    Int   nPoints) {
+    Int   nPoints,
+    Real  spin) {
 
   // These are needed in the point-pole-pexsi parallelization
   Int npPerPoint  = gridPole_->mpisize / nPoints;
@@ -3836,7 +3837,7 @@ void PPEXSIData::CalculateFermiOperatorComplex(
   bool isFreeEnergyDensityMatrix = true;
   bool isEnergyDensityMatrix     = true;
   bool isDerivativeTMatrix       = false;
-  Real numSpin = 2.0;  // FIXME: numSpin to be an input parameter
+  Real numSpin = spin;
 
   // Copy the pattern
   CopyPattern( PatternMat_, AMat );
@@ -5328,7 +5329,8 @@ PPEXSIData::DFTDriver2 (
     Real&      muMaxInertia,             
     Int&       numTotalInertiaIter,
     Int        method,
-    Int        nPoints) 
+    Int        nPoints,
+    Real       spin) 
 {
   Real timeSta, timeEnd;
   Real timeInertiaSta, timeInertiaEnd;
@@ -5506,7 +5508,8 @@ PPEXSIData::DFTDriver2 (
       Real hsShift = ( muMax - muMin ) / (numShift - 1);
 
       Int matrix_size = HRealMat_.size;  // CHECK CHECK
-      Int numSpin = 2.0;  // LL: numSpin hard coded
+      Int numSpin = spin;
+
       for(Int l = 0; l < numShift; l ++)
       {
         NeLower[l] = 0.0;
@@ -5667,7 +5670,8 @@ PPEXSIData::DFTDriver2 (
              muPEXSI, 
              numElectronPEXSI, 
              method,
-             nPoints);
+             nPoints,
+             spin);
 
          // exact numElectron for the correspoding muPEXSI
          NeVec_temp[l] = numElectronPEXSI;
@@ -5679,7 +5683,8 @@ PPEXSIData::DFTDriver2 (
     CalculateEDMCorrectionReal(
         numPole,
         verbosity,
-        nPoints);
+        nPoints,
+        spin);
 
     MPI_Allreduce(NeVec_temp, NeVec, numShift, MPI_DOUBLE, MPI_SUM, pointRowComm); 
 
@@ -7849,7 +7854,8 @@ void PPEXSIData::CalculateFermiOperatorReal3(
     Real  mu,
     Real& numElectron,
     Int   method,
-    Int   nPoints) {
+    Int   nPoints,
+    Real  spin) {
 
   // These are needed in the point-pole-pexsi parallelization
   Int npPerPoint  = gridPole_->mpisize / nPoints;
@@ -7909,7 +7915,7 @@ void PPEXSIData::CalculateFermiOperatorReal3(
   bool isFreeEnergyDensityMatrix = true;
   bool isEnergyDensityMatrix     = true;
   bool isDerivativeTMatrix       = false;
-  Real numSpin = 2.0;  // FIXME: numSpin to be an input parameter
+  Real numSpin = spin;
 
   // Copy the pattern
   CopyPattern( PatternMat_, AMat );
@@ -8243,7 +8249,8 @@ void PPEXSIData::CalculateFermiOperatorReal3(
 void PPEXSIData::CalculateEDMCorrectionReal(
     Int   numPole,
     Int   verbosity,
-    Int   nPoints) {
+    Int   nPoints,
+    Real  spin) {
 
   // add the points parallelization.
   Int npPerPoint  = gridPole_->mpisize / nPoints;
@@ -8287,7 +8294,7 @@ void PPEXSIData::CalculateEDMCorrectionReal(
   bool isFreeEnergyDensityMatrix = true;
   bool isEnergyDensityMatrix     = true;
   bool isDerivativeTMatrix       = false;
-  Real numSpin = 2.0;  // FIXME: numSpin to be an input parameter
+  Real numSpin = spin;
 
   // Copy the pattern
   CopyPattern( PatternMat_, AMat );
@@ -8439,7 +8446,8 @@ void PPEXSIData::CalculateEDMCorrectionReal(
  void PPEXSIData::CalculateEDMCorrectionComplex(
     Int   numPole,
     Int   verbosity,
-    Int   nPoints) {
+    Int   nPoints,
+    Real  spin) {
 
   // add the points parallelization.
   Int npPerPoint  = gridPole_->mpisize / nPoints;
@@ -8483,7 +8491,7 @@ void PPEXSIData::CalculateEDMCorrectionReal(
   bool isFreeEnergyDensityMatrix = true;
   bool isEnergyDensityMatrix     = true;
   bool isDerivativeTMatrix       = false;
-  Real numSpin = 2.0;  // FIXME: numSpin to be an input parameter
+  Real numSpin = spin;
 
   // Copy the pattern
   CopyPattern( PatternMat_, AMat );

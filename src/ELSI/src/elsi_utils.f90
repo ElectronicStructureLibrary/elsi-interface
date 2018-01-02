@@ -296,11 +296,6 @@ subroutine elsi_check(e_h,caller)
                     " small for the total number of MPI tasks.",e_h,caller)
          endif
       endif
-
-      if(e_h%n_spins > 1) then
-         call elsi_stop(" Spin-polarized case not yet supported with PEXSI.",&
-                 e_h,caller)
-      endif
    case(CHESS_SOLVER)
       call elsi_say(e_h,"  ATTENTION! CheSS is EXPERIMENTAL.")
 

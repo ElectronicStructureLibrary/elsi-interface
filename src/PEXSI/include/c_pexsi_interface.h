@@ -179,6 +179,10 @@ typedef intptr_t  PPEXSIPlan;
  */
 typedef struct {
     /** 
+     * @brief  NumSpin, default is 2.0
+     */ 
+    double        spin;  
+    /** 
      * @brief  Temperature, in the same unit as H 
      */ 
     double        temperature;  
@@ -257,6 +261,13 @@ typedef struct {
      * - = 1   : symPACK (For symmetric matrices only).
      */ 
     int           solver;
+
+    /** 
+     * @brief  Storage space used by the Selected Inversion algorithm for symmetric matrices.  
+     * - = 0   : Non symmetric storage.
+     * - = 1   : Symmetric storage (lower memory usage).
+     */ 
+    int           symmetricStorage;
 
     /** 
      * @brief  Ordering strategy for factorization and selected

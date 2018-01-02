@@ -75,6 +75,8 @@ subroutine elsi_init_pexsi(e_h)
    endif
 
    if(e_h%n_elsi_calls == 1) then
+      e_h%pexsi_options%spin = e_h%spin_degen
+
       if(e_h%np_per_pole == UNSET) then
          e_h%np_per_pole = e_h%n_procs/(e_h%pexsi_options%numPole*&
                                e_h%pexsi_options%nPoints)
