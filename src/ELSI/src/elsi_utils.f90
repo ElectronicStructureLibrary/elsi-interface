@@ -724,6 +724,13 @@ subroutine elsi_get_datetime_rfc3339(datetime_rfc3339)
 
    integer(kind=i4) :: datetime(8)
    integer(kind=i4) :: temp_int
+   character(len=4) :: year
+   character(len=2) :: month
+   character(len=2) :: day
+   character(len=2) :: hour
+   character(len=2) :: minute
+   character(len=2) :: second
+   character(len=3) :: millisecond
    character(len=1) :: timezone_sign
    character(len=2) :: timezone_hour
    character(len=2) :: timezone_min
@@ -731,6 +738,61 @@ subroutine elsi_get_datetime_rfc3339(datetime_rfc3339)
    character*40, parameter :: caller = "elsi_get_datetime_rfc3339"
 
    call date_and_time(values=datetime)
+
+   ! Get year
+   if(datetime(1) < 10) then
+      write(year,'(A3,I1)') "000",datetime(1)
+   elseif(datetime(1) < 100) then
+      write(year,'(A2,I2)') "00",datetime(1)
+   elseif(datetime(1) < 1000) then
+      write(year,'(A1,I3)') "0",datetime(1)
+   else
+      write(year,'(I4)'   ) datetime(1)
+   endif
+
+   ! Get month
+   if(datetime(2) < 10) then
+      write(month,'(A1,I1)') "0",datetime(2)
+   else
+      write(month,'(I2)'   ) datetime(2)
+   endif
+
+   ! Get day
+   if(datetime(3) < 10) then
+      write(day,'(A1,I1)') "0",datetime(3)
+   else
+      write(day,'(I2)'   ) datetime(3)
+   endif
+
+   ! Get hour
+   if(datetime(5) < 10) then
+      write(hour,'(A1,I1)') "0",datetime(5)
+   else
+      write(hour,'(I2)'   ) datetime(5)
+   endif
+
+   ! Get minute
+   if(datetime(6) < 10) then
+      write(minute,'(A1,I1)') "0",datetime(6)
+   else
+      write(minute,'(I2)'   ) datetime(6)
+   endif
+
+   ! Get second
+   if(datetime(7) < 10) then
+      write(second,'(A1,I1)') "0",datetime(7)
+   else
+      write(second,'(I2)'   ) datetime(7)
+   endif
+
+   ! Get millisecond
+   if(datetime(8) < 10) then
+      write(millisecond,'(A2,I1)') "00",datetime(8)
+   elseif (datetime(8) < 100) then
+      write(millisecond,'(A1,I2)') "0",datetime(8)
+   else
+      write(millisecond,'(I3)'   ) datetime(8)
+   endif
 
    ! Get time zone sign (ahead or behind UTC)
    if(datetime(4) < 0) then
@@ -757,10 +819,9 @@ subroutine elsi_get_datetime_rfc3339(datetime_rfc3339)
    endif
 
    write(datetime_rfc3339,&
-      '(I4,A1,I2,A1,I2,A1,I2,A1,I2,A1,I2,A1,I3,A1,A2,A1,A2)')&
-      datetime(1),"-",datetime(2),"-",datetime(3),"T",datetime(5),":",&
-      datetime(6),":",datetime(7),".",datetime(8),timezone_sign,timezone_hour,&
-      ":",timezone_min
+      '(A4,A1,A2,A1,A2,A1,A2,A1,A2,A1,A2,A1,A3,A1,A2,A1,A2)')&
+      year,"-",month,"-",day,"T",hour,":",minute,":",second,".",millisecond,&
+      timezone_sign,timezone_hour,":",timezone_min
 
 end subroutine
 

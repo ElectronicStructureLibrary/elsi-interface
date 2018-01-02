@@ -115,6 +115,8 @@ subroutine elsi_init(e_h,solver,parallel_mode,matrix_format,n_basis,n_electron,&
       e_h%n_lcol      = n_basis
       e_h%blk_row     = n_basis
       e_h%blk_col     = n_basis
+      e_h%n_prow      = 1
+      e_h%n_pcol      = 1
       e_h%myid        = 0
       e_h%n_procs     = 1
       e_h%myid_all    = 0
@@ -690,7 +692,8 @@ subroutine elsi_cleanup(e_h)
       if(e_h%solver_timings_file%file_format == JSON) then
          ! Closing bracket to signify end of JSON array
          call truncate_string(e_h%solver_timings_file%prefix,2)
-         call elsi_say(e_h, "]",e_h%solver_timings_file)
+
+         call elsi_say(e_h,"]",e_h%solver_timings_file)
       endif
    endif
 

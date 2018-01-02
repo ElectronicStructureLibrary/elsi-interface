@@ -48,7 +48,7 @@ module ELSI_DATATYPE
 
       logical                       :: handle_init !< Is this a valid handle?
       integer(kind=i4)              :: print_unit  !< Unit to print to
-      character(len=FILE_NAME_LEN)  :: file_name   !< Unit to print to
+      character(len=FILE_NAME_LEN)  :: file_name   !< File to print to
       integer(kind=i4)              :: file_format !< Format type for output
       logical                       :: print_info  !< Whether to output
       character(len=:), allocatable :: prefix      !< Prefix for each line
@@ -60,10 +60,10 @@ module ELSI_DATATYPE
 
    type, public :: elsi_timings_handle
 
-      integer(kind=i4)                 :: size_timings  ! Dimension for arrays
-      integer(kind=i4)                 :: n_timings     ! Current number of timings
-      character(len=TIMING_STRING_LEN) :: next_user_tag ! User tag added to next timing
-      character(len=TIMING_STRING_LEN) :: set_label     ! String identifying timing set
+      integer(kind=i4)                 :: size_timings ! Dimension for arrays
+      integer(kind=i4)                 :: n_timings    ! Number of timings
+      character(len=TIMING_STRING_LEN) :: user_tag     ! User's tag
+      character(len=TIMING_STRING_LEN) :: set_label    ! Timing set identifier
 
       real(kind=r8),                    allocatable :: times(:)     ! System times
       character(len=TIMING_STRING_LEN), allocatable :: elsi_tags(:) ! Tags assigned by ELSI

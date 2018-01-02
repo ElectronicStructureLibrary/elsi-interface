@@ -1364,7 +1364,7 @@ subroutine elsi_set_solver_timing_tag(e_h,user_tag)
 
    character*40, parameter :: caller = "elsi_set_solver_timing_tag"
 
-   e_h%solver_timings%next_user_tag = user_tag
+   e_h%solver_timings%user_tag = user_tag
 
 end subroutine
 
