@@ -1,4 +1,4 @@
-gnu-j1-generic:
+gnu-j1:
   script:
     - module purge
     - module load gcc-7.1
@@ -8,7 +8,7 @@ gnu-j1-generic:
     - make install
     - make clean
 
-gnu-j8-generic:
+gnu-j8:
   script:
     - module purge
     - module load gcc-7.1
@@ -20,7 +20,7 @@ gnu-j8-generic:
     - make install
     - make clean
 
-pgi-j1-generic:
+pgi-j1:
   script:
     - module purge
     - module load gcc-7.1
@@ -31,7 +31,7 @@ pgi-j1-generic:
     - make install
     - make clean
 
-pgi-j8-generic:
+pgi-j8:
   script:
     - module purge
     - module load gcc-7.1
@@ -78,7 +78,7 @@ intel-j8-gpu:
     - make install
     - make clean
 
-intel-j1-generic:
+intel-j1:
   script:
     - module purge
     - module load gcc-7.1
@@ -88,7 +88,7 @@ intel-j1-generic:
     - make install
     - make clean
 
-intel-j8-generic:
+intel-j8:
   script:
     - module purge
     - module load gcc-7.1
@@ -100,11 +100,23 @@ intel-j8-generic:
     - make install
     - make clean
 
+intel-j8-sips:
+  script:
+    - module purge
+    - module load gcc-7.1
+    - cp /home/wy29/elsi_make_check/check_sips ./make.sys
+    - cat make.sys
+    - make -j 8
+    - make check
+    - make checkc
+    - make install
+    - make clean
+
 # We do not run make check for external linkage.  Not our circus, not our monkey.
 # We've also marked this test as optional, as it is acceptable for this test to
 # break during normal development work, but nevertheless we should know what
 # commits broke it and when.
-intel-j8-external-linkage:
+intel-j8-external:
   script:
     - module purge
     - module load gcc-7.1
