@@ -198,6 +198,7 @@ module ELSI_DATATYPE
       integer(kind=i4) :: my_pcol
       integer(kind=i4) :: n_lrow
       integer(kind=i4) :: n_lcol
+      logical          :: blacs_internal ! BLACS started within ELSI
       logical          :: blacs_ready
 
       ! Sparse matrix information (aka PEXSI_CSC)

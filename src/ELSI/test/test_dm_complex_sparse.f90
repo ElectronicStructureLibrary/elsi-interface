@@ -299,6 +299,8 @@ program test_dm_complex_sparse
    deallocate(row_ind)
    deallocate(col_ptr)
 
+   call MPI_Comm_free(comm_in_task,mpierr)
+   call MPI_Comm_free(comm_among_task,mpierr)
    call MPI_Finalize(mpierr)
 
 end program
