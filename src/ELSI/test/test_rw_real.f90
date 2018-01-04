@@ -314,6 +314,8 @@ program test_rw_real
    deallocate(row_ind)
    deallocate(col_ptr)
 
+   call BLACS_Gridexit(blacs_ctxt)
+   call BLACS_Exit(1)
    call MPI_Finalize(mpierr)
 
 end program

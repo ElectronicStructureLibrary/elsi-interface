@@ -276,6 +276,8 @@ program test_dm_real
    deallocate(dm)
    deallocate(edm)
 
+   call BLACS_Gridexit(blacs_ctxt)
+   call BLACS_Exit(1)
    call MPI_Finalize(mpierr)
 
 end program
