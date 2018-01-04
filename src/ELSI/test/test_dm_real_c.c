@@ -155,6 +155,8 @@ void main(int argc, char** argv) {
    free(s);
    free(dm);
 
+   blacs_gridexit_(&blacs_ctxt);
+   blacs_exit_(1);
    MPI_Finalize();
 
    return;
