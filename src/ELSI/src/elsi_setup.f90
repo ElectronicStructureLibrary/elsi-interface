@@ -686,11 +686,6 @@ subroutine elsi_cleanup(e_h)
       call clean_qetsc()
    endif
 
-   ! Finalize BLACS
-   if(e_h%blacs_internal) then
-      call BLACS_Gridexit(e_h%blacs_ctxt)
-   endif
-
    ! Print final timings
    if(e_h%handle_ready .and. e_h%output_solver_timings) then
       if(e_h%solver_timings_file%file_format == JSON) then

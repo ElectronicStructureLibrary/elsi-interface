@@ -91,7 +91,6 @@ subroutine elsi_reset_handle(e_h)
    e_h%my_pcol               = UNSET
    e_h%n_lrow                = UNSET
    e_h%n_lcol                = UNSET
-   e_h%blacs_internal        = .false.
    e_h%blacs_ready           = .false.
    e_h%nnz_g                 = UNSET
    e_h%nnz_l                 = UNSET

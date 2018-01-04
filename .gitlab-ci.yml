@@ -108,7 +108,6 @@ intel-j8-sips:
     - cat make.sys
     - make -j 8
     - make check
-    - make checkc
     - make install
     - make clean
 

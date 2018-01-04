@@ -1221,8 +1221,6 @@ subroutine elsi_init_blacs(e_h)
       endif
 
       call elsi_set_blacs(e_h,blacs_ctxt,block_size)
-
-      e_h%blacs_internal = .true.
    endif
 
 end subroutine
