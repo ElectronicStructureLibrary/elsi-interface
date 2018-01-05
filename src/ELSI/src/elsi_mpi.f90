@@ -121,8 +121,6 @@ subroutine elsi_check_mpi(e_h,routine,mpierr,caller)
    integer(kind=i4),  intent(in) :: mpierr
    character(len=*),  intent(in) :: caller
 
-   character*200 :: info_str
-
    if(mpierr /= MPI_SUCCESS) then
       call elsi_stop(routine,e_h,caller)
    endif

@@ -316,6 +316,9 @@ program test_dm_kpt_spin_complex
    deallocate(dm)
    deallocate(edm)
 
+   call BLACS_Gridexit(blacs_ctxt)
+   call BLACS_Exit(1)
+   call MPI_Comm_free(mpi_comm_group,mpierr)
    call MPI_Finalize(mpierr)
 
 end program

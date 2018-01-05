@@ -69,6 +69,7 @@ use, intrinsic :: iso_c_binding
 ! NOTE: The order and the type of the parameters must be strictly the same as in
 ! PPEXSIOptions in c_pexsi_interface.h
 type, bind(C) :: f_ppexsi_options
+  real(c_double) :: spin
   real(c_double) :: temperature
   real(c_double) :: gap
   real(c_double) :: deltaE
@@ -86,6 +87,7 @@ type, bind(C) :: f_ppexsi_options
   integer(c_int) :: isSymbolicFactorize
   integer(c_int) :: isConstructCommPattern
   integer(c_int) :: solver
+  integer(c_int) :: symmetricStorage
   integer(c_int) :: ordering
   integer(c_int) :: rowOrdering
   integer(c_int) :: npSymbFact

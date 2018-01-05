@@ -250,6 +250,7 @@ void ParaReadDistSparseMatrixInterface(
 extern "C"
 void PPEXSISetDefaultOptions(
     PPEXSIOptions*   options ){
+  options->spin                  = 2.0;
   options->temperature           = 0.0019;   // 300K 
   options->gap                   = 0.0;      // no gap 
   options->deltaE                = 10.0; 
@@ -266,6 +267,7 @@ void PPEXSISetDefaultOptions(
   options->matrixType            = 0;
   options->isSymbolicFactorize   = 1;
   options->solver                = 0;
+  options->symmetricStorage      = 0;
   options->ordering              = 0;
   options->rowOrdering           = 0;
   options->npSymbFact            = 1;
@@ -851,7 +853,8 @@ void PPEXSICalculateFermiOperatorReal3(
         mu,
         *numElectronPEXSI,
         options.method,
-        options.nPoints);
+        options.nPoints,
+        options.spin);
   }
   catch( std::exception& e )
   {
@@ -891,8 +894,9 @@ void PPEXSICalculateFermiOperatorComplex(
         options.verbosity,
         *numElectronPEXSI,
         *numElectronDrvMuPEXSI,
-         options.method,
-         options.nPoints);
+        options.method,
+        options.nPoints,
+        options.spin);
   }
   catch( std::exception& e )
   {
@@ -919,7 +923,8 @@ void PPEXSICalculateEDMCorrectionReal(
     reinterpret_cast<PPEXSIData*>(plan)->CalculateEDMCorrectionReal(
         options.numPole,
         options.verbosity,
-        options.nPoints);
+        options.nPoints,
+        options.spin);
   }
   catch( std::exception& e )
   {
@@ -946,7 +951,8 @@ void PPEXSICalculateEDMCorrectionComplex(
     reinterpret_cast<PPEXSIData*>(plan)->CalculateEDMCorrectionComplex(
         options.numPole,
         options.verbosity,
-        options.nPoints);
+        options.nPoints,
+        options.spin);
   }
   catch( std::exception& e )
   {
@@ -1306,8 +1312,9 @@ void PPEXSIDFTDriver2(
         options->muMin0,
         options->muMax0,
         *numTotalInertiaIter,
-         method,
-         nPoints);
+        method,
+        nPoints,
+        options->spin);
   }
   catch( std::exception& e )
   {

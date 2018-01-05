@@ -566,6 +566,9 @@ subroutine elsi_read_mat_dim_mp(rw_h,f_name,n_electron,n_basis,n_lrow,n_lcol)
               mpi_status_ignore,mpierr)
    endif
 
+   ! Close file
+   call MPI_File_close(f_handle,mpierr)
+
    ! Broadcast header
    call MPI_Bcast(header,HEADER_SIZE,mpi_integer4,0,rw_h%mpi_comm,mpierr)
 
@@ -656,6 +659,9 @@ subroutine elsi_read_mat_dim_sparse(rw_h,f_name,n_electron,n_basis,nnz_g,&
 
    call MPI_File_read_at_all(f_handle,offset,col_ptr,n_lcol_sp+1,mpi_integer4,&
            mpi_status_ignore,mpierr)
+
+   ! Close file
+   call MPI_File_close(f_handle,mpierr)
 
    if(rw_h%myid == rw_h%n_procs-1) then
       col_ptr(n_lcol_sp+1) = nnz_g+1
@@ -885,6 +891,7 @@ subroutine elsi_read_mat_real_sparse(rw_h,f_name,row_ind,col_ptr,mat)
    call MPI_File_read_at_all(f_handle,offset,mat,rw_h%nnz_l_sp,mpi_real8,&
            mpi_status_ignore,mpierr)
 
+   ! Close file
    call MPI_File_close(f_handle,mpierr)
 
    call elsi_get_time(aux_h,t1)
@@ -1103,6 +1110,7 @@ subroutine elsi_read_mat_complex_sparse(rw_h,f_name,row_ind,col_ptr,mat)
    call MPI_File_read_at_all(f_handle,offset,mat,rw_h%nnz_l_sp,mpi_complex16,&
            mpi_status_ignore,mpierr)
 
+   ! Close file
    call MPI_File_close(f_handle,mpierr)
 
    call elsi_get_time(aux_h,t1)
@@ -1219,6 +1227,7 @@ subroutine elsi_write_mat_real_mp(rw_h,f_name,mat)
    call MPI_File_write_at_all(f_handle,offset,aux_h%ham_real_sips,&
            aux_h%nnz_l_sp,mpi_real8,mpi_status_ignore,mpierr)
 
+   ! Close file
    call MPI_File_close(f_handle,mpierr)
 
    call elsi_get_time(aux_h,t1)
@@ -1335,6 +1344,7 @@ subroutine elsi_write_mat_complex_mp(rw_h,f_name,mat)
    call MPI_File_write_at_all(f_handle,offset,aux_h%ham_cmplx_sips,&
            aux_h%nnz_l_sp,mpi_complex16,mpi_status_ignore,mpierr)
 
+   ! Close file
    call MPI_File_close(f_handle,mpierr)
 
    call elsi_get_time(aux_h,t1)
@@ -1440,6 +1450,7 @@ subroutine elsi_write_mat_real_sparse(rw_h,f_name,row_ind,col_ptr,mat)
    call MPI_File_write_at_all(f_handle,offset,mat,rw_h%nnz_l_sp,mpi_real8,&
            mpi_status_ignore,mpierr)
 
+   ! Close file
    call MPI_File_close(f_handle,mpierr)
 
    call elsi_get_time(aux_h,t1)
@@ -1543,6 +1554,7 @@ subroutine elsi_write_mat_complex_sparse(rw_h,f_name,row_ind,col_ptr,mat)
    call MPI_File_write_at_all(f_handle,offset,mat,rw_h%nnz_l_sp,mpi_complex16,&
            mpi_status_ignore,mpierr)
 
+   ! Close file
    call MPI_File_close(f_handle,mpierr)
 
    call elsi_get_time(aux_h,t1)

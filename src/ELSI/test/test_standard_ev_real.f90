@@ -162,6 +162,7 @@ program test_standard_ev_real
 
    if(myid == 0) then
       write(*,'("  Finished test matrices generation")')
+      write(*,*)
    endif
 
    ! Initialize ELSI
@@ -200,6 +201,8 @@ program test_standard_ev_real
    deallocate(eval)
    deallocate(evec)
 
+   call BLACS_Gridexit(blacs_ctxt)
+   call BLACS_Exit(1)
    call MPI_Finalize(mpierr)
 
 end program

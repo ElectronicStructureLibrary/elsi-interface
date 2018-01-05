@@ -154,7 +154,7 @@ subroutine elsi_ev_real(e_h,ham,ovlp,eval,evec)
    ! Timing-related variable
    real(kind=r8)               :: t0
    character(len=DATETIME_LEN) :: start_datetime
-   integer(kind=i4)            :: solver_used
+   integer(kind=i4)            :: solver_used = UNSET
    integer(kind=i4), parameter :: output_type = OUTPUT_EV
    integer(kind=i4), parameter :: data_type   = REAL_VALUES
 
@@ -217,6 +217,7 @@ subroutine elsi_ev_real(e_h,ham,ovlp,eval,evec)
          call elsi_solve_evp_sips_real(e_h,e_h%ham_real_sips,&
                  e_h%ovlp_real_sips,eval)
          call elsi_sips_to_blacs_ev_real(e_h,evec)
+
          solver_used = SIPS_SOLVER
       endif
    case(DMP_SOLVER)
@@ -248,7 +249,7 @@ subroutine elsi_ev_complex(e_h,ham,ovlp,eval,evec)
    ! Timing-related variable
    real(kind=r8)               :: t0
    character(len=DATETIME_LEN) :: start_datetime
-   integer(kind=i4)            :: solver_used
+   integer(kind=i4)            :: solver_used = UNSET
    integer(kind=i4), parameter :: output_type = OUTPUT_EV
    integer(kind=i4), parameter :: data_type   = COMPLEX_VALUES
 
@@ -314,7 +315,7 @@ subroutine elsi_ev_real_sparse(e_h,ham,ovlp,eval,evec)
    ! Timing-related variable
    real(kind=r8)               :: t0
    character(len=DATETIME_LEN) :: start_datetime
-   integer(kind=i4)            :: solver_used
+   integer(kind=i4)            :: solver_used = UNSET
    integer(kind=i4), parameter :: output_type = OUTPUT_EV
    integer(kind=i4), parameter :: data_type   = REAL_VALUES
 
@@ -339,6 +340,7 @@ subroutine elsi_ev_real_sparse(e_h,ham,ovlp,eval,evec)
       call elsi_sips_to_blacs_hs_real(e_h,ham,ovlp)
       call elsi_solve_evp_elpa_real(e_h,e_h%ham_real_elpa,e_h%ovlp_real_elpa,&
               eval,evec)
+
       solver_used = ELPA_SOLVER
    case(OMM_SOLVER)
       call elsi_stop(" LIBOMM is not an eigensolver.",e_h,caller)
@@ -377,7 +379,7 @@ subroutine elsi_ev_complex_sparse(e_h,ham,ovlp,eval,evec)
    ! Timing-related variable
    real(kind=r8)               :: t0
    character(len=DATETIME_LEN) :: start_datetime
-   integer(kind=i4)            :: solver_used
+   integer(kind=i4)            :: solver_used = UNSET
    integer(kind=i4), parameter :: output_type = OUTPUT_EV
    integer(kind=i4), parameter :: data_type   = COMPLEX_VALUES
 
@@ -402,6 +404,7 @@ subroutine elsi_ev_complex_sparse(e_h,ham,ovlp,eval,evec)
       call elsi_sips_to_blacs_hs_cmplx(e_h,ham,ovlp)
       call elsi_solve_evp_elpa_cmplx(e_h,e_h%ham_cmplx_elpa,&
               e_h%ovlp_cmplx_elpa,eval,evec)
+
       solver_used = ELPA_SOLVER
    case(OMM_SOLVER)
       call elsi_stop(" LIBOMM is not an eigensolver.",e_h,caller)
@@ -439,7 +442,7 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
    ! Timing-related variable
    real(kind=r8)               :: t0
    character(len=DATETIME_LEN) :: start_datetime
-   integer(kind=i4)            :: solver_used
+   integer(kind=i4)            :: solver_used = UNSET
    integer(kind=i4), parameter :: output_type = OUTPUT_DM
    integer(kind=i4), parameter :: data_type   = REAL_VALUES
 
@@ -482,6 +485,7 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
       call elsi_compute_occ_elpa(e_h,e_h%eval_elpa)
       call elsi_compute_dm_elpa_real(e_h,e_h%evec_real_elpa,dm,ham)
       call elsi_get_energy(e_h,energy,ELPA_SOLVER)
+
       solver_used = ELPA_SOLVER
 
       ! Normalize density matrix
@@ -555,6 +559,7 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
 
          call elsi_solve_evp_omm_real(e_h,ham,ovlp,dm)
          call elsi_get_energy(e_h,energy,OMM_SOLVER)
+
          solver_used = OMM_SOLVER
       endif
    case(PEXSI_SOLVER)
@@ -571,6 +576,7 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
               e_h%ovlp_real_pexsi,e_h%dm_real_pexsi)
       call elsi_pexsi_to_blacs_dm_real(e_h,dm)
       call elsi_get_energy(e_h,energy,PEXSI_SOLVER)
+
       solver_used = PEXSI_SOLVER
 
       e_h%mu_ready = .true.
@@ -581,6 +587,7 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
       call elsi_solve_evp_chess_real(e_h)
       call elsi_chess_to_blacs_dm_real(e_h,dm)
       call elsi_get_energy(e_h,energy,CHESS_SOLVER)
+
       solver_used = CHESS_SOLVER
 
       e_h%mu_ready = .true.
@@ -600,6 +607,7 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
       ! Solve
       call elsi_solve_evp_dmp_real(e_h,ham,ovlp,dm)
       call elsi_get_energy(e_h,energy,DMP_SOLVER)
+
       solver_used = DMP_SOLVER
    case default
       call elsi_stop(" Unsupported solver.",e_h,caller)
@@ -629,7 +637,7 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
    ! Timing-related variable
    real(kind=r8)               :: t0
    character(len=DATETIME_LEN) :: start_datetime
-   integer(kind=i4)            :: solver_used
+   integer(kind=i4)            :: solver_used = UNSET
    integer(kind=i4), parameter :: output_type = OUTPUT_DM
    integer(kind=i4), parameter :: data_type   = COMPLEX_VALUES
 
@@ -671,6 +679,7 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
       call elsi_compute_occ_elpa(e_h,e_h%eval_elpa)
       call elsi_compute_dm_elpa_cmplx(e_h,e_h%evec_cmplx_elpa,dm,ham)
       call elsi_get_energy(e_h,energy,ELPA_SOLVER)
+
       solver_used = ELPA_SOLVER
 
       ! Normalize density matrix
@@ -745,6 +754,7 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
 
          call elsi_solve_evp_omm_cmplx(e_h,ham,ovlp,dm)
          call elsi_get_energy(e_h,energy,OMM_SOLVER)
+
          solver_used = OMM_SOLVER
       endif
    case(PEXSI_SOLVER)
@@ -761,6 +771,7 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
               e_h%ovlp_cmplx_pexsi,e_h%dm_cmplx_pexsi)
       call elsi_pexsi_to_blacs_dm_cmplx(e_h,dm)
       call elsi_get_energy(e_h,energy,PEXSI_SOLVER)
+
       solver_used = PEXSI_SOLVER
 
       e_h%mu_ready = .true.
@@ -798,7 +809,7 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
    ! Timing-related variable
    real(kind=r8)               :: t0
    character(len=DATETIME_LEN) :: start_datetime
-   integer(kind=i4)            :: solver_used
+   integer(kind=i4)            :: solver_used = UNSET
    integer(kind=i4), parameter :: output_type = OUTPUT_DM
    integer(kind=i4), parameter :: data_type   = REAL_VALUES
 
@@ -846,6 +857,7 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
               e_h%ham_real_elpa)
       call elsi_blacs_to_sips_dm_real(e_h,dm)
       call elsi_get_energy(e_h,energy,ELPA_SOLVER)
+
       solver_used = ELPA_SOLVER
 
       e_h%mu_ready = .true.
@@ -927,6 +939,7 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
                  e_h%dm_real_elpa)
          call elsi_blacs_to_sips_dm_real(e_h,dm)
          call elsi_get_energy(e_h,energy,OMM_SOLVER)
+
          solver_used = OMM_SOLVER
       endif
    case(PEXSI_SOLVER)
@@ -934,6 +947,7 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
 
       call elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
       call elsi_get_energy(e_h,energy,PEXSI_SOLVER)
+
       solver_used = PEXSI_SOLVER
 
       e_h%mu_ready = .true.
@@ -968,6 +982,7 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
               e_h%dm_real_elpa)
       call elsi_blacs_to_sips_dm_real(e_h,dm)
       call elsi_get_energy(e_h,energy,DMP_SOLVER)
+
       solver_used = DMP_SOLVER
    case default
       call elsi_stop(" Unsupported solver.",e_h,caller)
@@ -997,7 +1012,7 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
    ! Timing-related variable
    real(kind=r8)               :: t0
    character(len=DATETIME_LEN) :: start_datetime
-   integer(kind=i4)            :: solver_used
+   integer(kind=i4)            :: solver_used = UNSET
    integer(kind=i4), parameter :: output_type = OUTPUT_DM
    integer(kind=i4), parameter :: data_type   = COMPLEX_VALUES
 
@@ -1045,6 +1060,7 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
               e_h%dm_cmplx_elpa,e_h%ham_cmplx_elpa)
       call elsi_blacs_to_sips_dm_cmplx(e_h,dm)
       call elsi_get_energy(e_h,energy,ELPA_SOLVER)
+
       solver_used = ELPA_SOLVER
 
       e_h%mu_ready = .true.
@@ -1126,6 +1142,7 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
                  e_h%ovlp_cmplx_elpa,e_h%dm_cmplx_elpa)
          call elsi_blacs_to_sips_dm_cmplx(e_h,dm)
          call elsi_get_energy(e_h,energy,OMM_SOLVER)
+
          solver_used = OMM_SOLVER
       endif
    case(PEXSI_SOLVER)
@@ -1133,6 +1150,7 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
 
       call elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
       call elsi_get_energy(e_h,energy,PEXSI_SOLVER)
+
       solver_used = PEXSI_SOLVER
 
       e_h%mu_ready = .true.
@@ -1249,15 +1267,16 @@ subroutine elsi_process_solver_timing(e_h,output_type,data_type,solver_used,&
       ! from the top of the solver_timings struct
       iteration = e_h%solver_timings%n_timings
 
-      ! The following block exists because we don't know what the final entry
-      ! of the JSON format will be in advance.  So if we append a comma to the
-      ! end of every entry, we will trigger a parser error when it parses
-      ! the final entry and expects another.  However, we DO know what the first
-      ! entry is.  So, instead of appending a comma to the end of each entry
-      ! except the last one, we prefix each entry by a comma except for the
-      ! first one.  This makes the output slightly non-standard, but the
-      ! whitespace makes it human readable anyway and the parser doesn't care.
+      ! The following block exists because we don't know what the final entry of
+      ! the JSON format will be in advance.  So if we append a comma to the end
+      ! of every entry, we will trigger a parser error when it parses the final
+      ! entry and expects another.  However, we DO know what the first entry is.
+      ! So, instead of appending a comma to the end of each entry except the
+      ! last one, we prefix each entry by a comma except for the first one.
+      ! This makes the output slightly non-standard, but the whitespace makes it
+      ! human readable anyway and the parser doesn't care.
       comma_json_save = io_h%comma_json
+
       if(e_h%solver_timings%n_timings == 1) then
          io_h%comma_json = NO_COMMA
       else

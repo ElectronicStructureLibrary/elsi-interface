@@ -139,6 +139,8 @@ void main(int argc, char** argv) {
    free(evec);
    free(eval);
 
+   blacs_gridexit_(&blacs_ctxt);
+   blacs_exit_(1);
    MPI_Finalize();
 
    return;

@@ -274,6 +274,8 @@ program test_ev_complex
    deallocate(eval)
    deallocate(occ)
 
+   call BLACS_Gridexit(blacs_ctxt)
+   call BLACS_Exit(1)
    call MPI_Finalize(mpierr)
 
 end program

@@ -313,6 +313,15 @@ subroutine elsi_check(e_h,caller)
          call elsi_stop(" CheSS solver with an identity overlap matrix not"//&
                  " yet available.",e_h,caller)
       endif
+
+      if(e_h%n_spins > 1) then
+         call elsi_stop(" Spin-polarized case not yet supported with CheSS.",&
+                 e_h,caller)
+      endif
+
+      if(e_h%n_kpts > 1) then
+         call elsi_stop(" k-points not yet supported with CheSS.",e_h,caller)
+      endif
    case(SIPS_SOLVER)
       call elsi_say(e_h,"  ATTENTION! SIPs is EXPERIMENTAL.")
 
@@ -325,12 +334,30 @@ subroutine elsi_check(e_h,caller)
          call elsi_stop(" SIPs solver requires MULTI_PROC parallel mode.",e_h,&
                  caller)
       endif
+
+      if(e_h%n_spins > 1) then
+         call elsi_stop(" Spin-polarized case not yet supported with SIPs.",&
+                 e_h,caller)
+      endif
+
+      if(e_h%n_kpts > 1) then
+         call elsi_stop(" k-points not yet supported with SIPs.",e_h,caller)
+      endif
    case(DMP_SOLVER)
       call elsi_say(e_h,"  ATTENTION! DMP is EXPERIMENTAL.")
 
       if(e_h%parallel_mode /= MULTI_PROC) then
          call elsi_stop(" DMP solver requires MULTI_PROC parallel mode.",e_h,&
                  caller)
+      endif
+
+      if(e_h%n_spins > 1) then
+         call elsi_stop(" Spin-polarized case not yet supported with DMP.",e_h,&
+                 caller)
+      endif
+
+      if(e_h%n_kpts > 1) then
+         call elsi_stop(" k-points not yet supported with DMP.",e_h,caller)
       endif
    case default
       call elsi_stop(" Unsupported solver.",e_h,caller)
