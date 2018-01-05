@@ -54,7 +54,7 @@ module ELSI_SETUP
    use FOE_BASE,           only: foe_data_deallocate
    use F_PPEXSI_INTERFACE, only: f_ppexsi_plan_finalize
    use MATRIXSWITCH,       only: ms_scalapack_setup,m_deallocate
-   use M_QETSC,            only: clean_qetsc
+   use M_QETSC,            only: sips_finalize
    use SPARSEMATRIX_BASE,  only: deallocate_sparse_matrix,deallocate_matrices
 
    implicit none
@@ -683,7 +683,7 @@ subroutine elsi_cleanup(e_h)
 
    ! Finalize SIPs
    if(e_h%sips_started) then
-      call clean_qetsc()
+      call sips_finalize()
    endif
 
    ! Print final timings

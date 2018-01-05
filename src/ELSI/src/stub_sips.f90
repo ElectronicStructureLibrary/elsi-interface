@@ -37,28 +37,25 @@ module M_QETSC
 
    private
 
-   public :: initialize_qetsc
-   public :: clean_qetsc
-   public :: eps_load_ham_ovlp
-   public :: eps_load_ham
-   public :: eps_update_ham
-   public :: set_eps
-   public :: update_eps
-   public :: get_eps_interval
-   public :: compute_subintervals
-   public :: run_eps_inertias_check
-   public :: inertias_to_eigenvalues
-   public :: set_eps_subintervals
-   public :: solve_eps_check
-   public :: get_eps_eigenvalues
-   public :: get_eps_eigenvectors
-
-   integer(kind=i4), public :: math
-   integer(kind=i4), public :: mats
+   public :: sips_initialize
+   public :: sips_finalize
+   public :: sips_load_ham_ovlp
+   public :: sips_load_ham
+   public :: sips_update_ham
+   public :: sips_set_eps
+   public :: sips_update_eps
+   public :: sips_get_slices
+   public :: sips_get_inertias
+   public :: sips_inertias_to_eigenvalues
+   public :: sips_set_slices
+   public :: sips_set_interval
+   public :: sips_solve_eps
+   public :: sips_get_eigenvalues
+   public :: sips_get_eigenvectors
 
 contains
 
-subroutine initialize_qetsc()
+subroutine sips_initialize()
 
    implicit none
 
@@ -68,7 +65,7 @@ subroutine initialize_qetsc()
 
 end subroutine
 
-subroutine clean_qetsc()
+subroutine sips_finalize()
 
    implicit none
 
@@ -78,7 +75,7 @@ subroutine clean_qetsc()
 
 end subroutine
 
-subroutine eps_load_ham_ovlp(global_size,local_size,local_nnz,col_idx,row_ptr,&
+subroutine sips_load_ham_ovlp(global_size,local_size,local_nnz,col_idx,row_ptr,&
               ham_val,ovlp_val)
 
    implicit none
@@ -97,7 +94,7 @@ subroutine eps_load_ham_ovlp(global_size,local_size,local_nnz,col_idx,row_ptr,&
 
 end subroutine
 
-subroutine eps_load_ham(global_size,local_size,local_nnz,col_idx,row_ptr,&
+subroutine sips_load_ham(global_size,local_size,local_nnz,col_idx,row_ptr,&
               ham_val)
 
    implicit none
@@ -115,7 +112,7 @@ subroutine eps_load_ham(global_size,local_size,local_nnz,col_idx,row_ptr,&
 
 end subroutine
 
-subroutine eps_update_ham(global_size,local_size,local_nnz,col_idx,row_ptr,&
+subroutine sips_update_ham(global_size,local_size,local_nnz,col_idx,row_ptr,&
               ham_val)
 
    implicit none
@@ -133,14 +130,11 @@ subroutine eps_update_ham(global_size,local_size,local_nnz,col_idx,row_ptr,&
 
 end subroutine
 
-subroutine set_eps(a,b,mata,matb)
+subroutine sips_set_eps(stdevp)
 
    implicit none
 
-   real(kind=r8)              :: a
-   real(kind=r8)              :: b
-   integer(kind=i4)           :: mata
-   integer(kind=i4), optional :: matb
+   integer(kind=i4) :: stdevp
 
    write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
    write(*,"(A)") " Exiting..."
@@ -148,7 +142,7 @@ subroutine set_eps(a,b,mata,matb)
 
 end subroutine
 
-subroutine update_eps(nsub)
+subroutine sips_update_eps(nsub)
 
    implicit none
 
@@ -160,20 +154,8 @@ subroutine update_eps(nsub)
 
 end subroutine
 
-function get_eps_interval() result(interval)
-
-   implicit none
-
-   real(kind=r8) :: interval(2)
-
-   write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
-   write(*,"(A)") " Exiting..."
-   stop
-
-end function
-
-subroutine compute_subintervals(nsub,subtype,lefttype,interval,buffer,&
-              subbuffer,subs,evals)
+subroutine sips_get_slices(nsub,subtype,lefttype,interval,buffer,subbuffer,&
+              subs,evals)
 
    implicit none
 
@@ -192,7 +174,7 @@ subroutine compute_subintervals(nsub,subtype,lefttype,interval,buffer,&
 
 end subroutine
 
-subroutine set_eps_subintervals(nslice,subs)
+subroutine sips_set_slices(nslice,subs)
 
    implicit none
 
@@ -205,8 +187,20 @@ subroutine set_eps_subintervals(nslice,subs)
 
 end subroutine
 
-subroutine run_eps_inertias_check(unbound,nreq,nsub,subs,shifts,inertias,&
-              nsolve)
+subroutine sips_set_interval(evmin,evmax)
+
+   implicit none
+
+   real(kind=r8) :: evmin
+   real(kind=r8) :: evmax
+
+   write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
+   write(*,"(A)") " Exiting..."
+   stop
+
+end subroutine
+
+subroutine sips_get_inertias(unbound,nreq,nsub,subs,shifts,inertias)
 
    implicit none
 
@@ -216,7 +210,6 @@ subroutine run_eps_inertias_check(unbound,nreq,nsub,subs,shifts,inertias,&
    real(kind=r8)    :: subs(:)
    real(kind=r8)    :: shifts(:)
    integer(kind=i4) :: inertias(:)
-   integer(kind=i4) :: nsolve
 
    write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
    write(*,"(A)") " Exiting..."
@@ -224,7 +217,8 @@ subroutine run_eps_inertias_check(unbound,nreq,nsub,subs,shifts,inertias,&
 
 end subroutine
 
-subroutine inertias_to_eigenvalues(nshift,nreq,buffer,shifts,inertias,evals)
+subroutine sips_inertias_to_eigenvalues(nshift,nreq,buffer,shifts,inertias,&
+              evals)
 
    implicit none
 
@@ -241,14 +235,13 @@ subroutine inertias_to_eigenvalues(nshift,nreq,buffer,shifts,inertias,evals)
 
 end subroutine
 
-subroutine solve_eps_check(nreq,nsub,subs,nsolve)
+subroutine sips_solve_eps(nreq,nsub,subs)
 
    implicit none
 
    integer(kind=i4) :: nreq
    integer(kind=i4) :: nsub
    real(kind=r8)    :: subs(nsub)
-   integer(kind=i4) :: nsolve
 
    write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
    write(*,"(A)") " Exiting..."
@@ -256,7 +249,7 @@ subroutine solve_eps_check(nreq,nsub,subs,nsolve)
 
 end subroutine
 
-function get_eps_eigenvalues(n) result(eigs)
+function sips_get_eigenvalues(n) result(eigs)
 
    implicit none
 
@@ -269,7 +262,7 @@ function get_eps_eigenvalues(n) result(eigs)
 
 end function
 
-subroutine get_eps_eigenvectors(n_basis,idx,evec)
+subroutine sips_get_eigenvectors(n_basis,idx,evec)
 
    implicit none
 
