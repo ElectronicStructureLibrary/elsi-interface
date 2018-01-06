@@ -989,7 +989,7 @@ subroutine elsi_set_sips_slice_type(e_h,slice_type)
       e_h%handle_changed = .true.
    endif
 
-   if(slice_type < 2 .or. slice_type > 3) then
+   if(slice_type < 0 .or. slice_type > 3) then
       call elsi_stop(" Unsupported slice_type.",e_h,caller)
    endif
 
