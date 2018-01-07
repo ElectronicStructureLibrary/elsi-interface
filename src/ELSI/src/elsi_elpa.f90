@@ -211,7 +211,7 @@ subroutine elsi_compute_dm_elpa_real(e_h,evec,dm,work)
          if(e_h%loc_col(i) > 0) then
             work(:,e_h%loc_col(i)) = work(:,e_h%loc_col(i))*factor(i)
          endif
-      elseif(e_h%loc_col(i) .ne. 0) then
+      elseif(e_h%loc_col(i) /= 0) then
          work(:,e_h%loc_col(i)) = 0.0_r8
       endif
    enddo
@@ -296,7 +296,7 @@ subroutine elsi_compute_edm_elpa_real(e_h,eval,evec,edm,work)
          if(e_h%loc_col(i) > 0) then
             work(:,e_h%loc_col(i)) = work(:,e_h%loc_col(i))*factor(i)
          endif
-      elseif(e_h%loc_col(i) .ne. 0) then
+      elseif(e_h%loc_col(i) /= 0) then
          work(:,e_h%loc_col(i)) = 0.0_r8
       endif
    enddo
@@ -753,7 +753,7 @@ subroutine elsi_compute_dm_elpa_cmplx(e_h,evec,dm,work)
          if(e_h%loc_col(i) > 0) then
             work(:,e_h%loc_col(i)) = work(:,e_h%loc_col(i))*factor(i)
          endif
-      elseif(e_h%loc_col(i) .ne. 0) then
+      elseif(e_h%loc_col(i) /= 0) then
          work(:,e_h%loc_col(i)) = (0.0_r8,0.0_r8)
       endif
    enddo
@@ -846,7 +846,7 @@ subroutine elsi_compute_edm_elpa_cmplx(e_h,eval,evec,edm,work)
          if(e_h%loc_col(i) > 0) then
             work(:,e_h%loc_col(i)) = work(:,e_h%loc_col(i))*factor(i)
          endif
-      elseif(e_h%loc_col(i) .ne. 0) then
+      elseif(e_h%loc_col(i) /= 0) then
          work(:,e_h%loc_col(i)) = (0.0_r8,0.0_r8)
       endif
    enddo

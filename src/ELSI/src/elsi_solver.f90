@@ -1267,14 +1267,7 @@ subroutine elsi_process_solver_timing(e_h,output_type,data_type,solver_used,&
       ! from the top of the solver_timings struct
       iteration = e_h%solver_timings%n_timings
 
-      ! The following block exists because we don't know what the final entry of
-      ! the JSON format will be in advance.  So if we append a comma to the end
-      ! of every entry, we will trigger a parser error when it parses the final
-      ! entry and expects another.  However, we DO know what the first entry is.
-      ! So, instead of appending a comma to the end of each entry except the
-      ! last one, we prefix each entry by a comma except for the first one.
-      ! This makes the output slightly non-standard, but the whitespace makes it
-      ! human readable anyway and the parser doesn't care.
+      ! Avoid comma at the end of the last entry
       comma_json_save = io_h%comma_json
 
       if(e_h%solver_timings%n_timings == 1) then
@@ -1295,10 +1288,8 @@ subroutine elsi_process_solver_timing(e_h,output_type,data_type,solver_used,&
 end subroutine
 
 !>
-!! This routine prints the timing of the current solver and all relevant
-!! information.
-!! TODO (wph6@duke.edu):  This routine's interface is rough.  Needs to be
-!! cleaned up.
+!! This routine prints solver timing and relevant information.
+!! TODO: Clean up interface.
 !!
 subroutine elsi_print_solver_timing(e_h,output_type,data_type,start_datetime,&
               total_time,elsi_tag_in,iter,io_h_in,user_tag_in)
@@ -1335,6 +1326,7 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,start_datetime,&
    else
       user_tag = trim(UNSET_STRING)
    endif
+
    user_tag = adjustr(user_tag)
    elsi_tag = trim(elsi_tag_in)
    elsi_tag = adjustr(elsi_tag)
@@ -1347,14 +1339,13 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,start_datetime,&
       comma_json_save = io_h%comma_json
       io_h%comma_json = COMMA_AFTER
 
-      write(info_str,"(A)")       "--------------------------------------------------"
+      write(info_str,"(A)") "--------------------------------------------------"
       call elsi_say(e_h,info_str,io_h)
-      write(info_str,"(A,I10)")  "Start of ELSI Solver Iteration ",iter
+      write(info_str,"(A,I10)") "Start of ELSI Solver Iteration ",iter
       call elsi_say(e_h,info_str,io_h)
-      write(info_str,"(A)")       ""
+      write(info_str,"(A)") ""
       call elsi_say(e_h,info_str,io_h)
-
-      write(info_str,"(A)")      "Timing Details"
+      write(info_str,"(A)") "Timing Details"
       call elsi_say(e_h,info_str,io_h)
 
       call append_string(io_h%prefix,"  ")
@@ -1410,9 +1401,6 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,start_datetime,&
       else
          call elsi_stop(" Unsupported data type.",e_h,caller)
       endif
-      ! I'm not using ISO 8601 for time duration, because A) it doesn't include
-      ! milliseconds, B) timings in seconds is well-understood in the electronic
-      ! structure community and most importantly C) it's ugly as hell
       call elsi_say_setting(e_h,"total_time",total_time,io_h)
       call truncate_string(io_h%prefix,2)
    else
