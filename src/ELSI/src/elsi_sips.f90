@@ -148,59 +148,31 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
    call elsi_say(e_h,info_str)
 
-   if(e_h%sips_n_elpa < 1 .and. e_h%n_elsi_calls == 1) then
-      e_h%interval(1) = e_h%ev_min
-      e_h%interval(2) = e_h%ev_max
+   call sips_set_slices(1.0_r8,0.1_r8,e_h%n_states,eval(1:e_h%n_states),&
+           e_h%n_slices,e_h%slices)
 
-      ! Compute slicing
-      call sips_get_slices(e_h%n_slices,0,e_h%unbound,e_h%interval,0.0_r8,&
-              0.0_r8,e_h%slices)
-
-      ! Run inertia counting
-      if(e_h%inertia_option > 0 .and. e_h%n_slices > 1) then
-         call elsi_get_time(e_h,t0)
-
-         call elsi_allocate(e_h,inertias,e_h%n_slices+1,"inertias",caller)
-         call elsi_allocate(e_h,shifts,e_h%n_slices+1,"shifts",caller)
-
-         call sips_get_inertias(e_h%unbound,e_h%n_states,e_h%n_slices,&
-                 e_h%slices,shifts,inertias)
-
-         call sips_inertias_to_eigenvalues(e_h%n_slices+1,e_h%n_states,&
-                 e_h%slice_buffer,shifts,inertias,eval(1:e_h%n_states))
-
-         call sips_get_slices(e_h%n_slices,e_h%slicing_method,e_h%unbound,&
-                 e_h%interval,0.0_r8,0.0_r8,e_h%slices,eval(1:e_h%n_states))
-
-         call elsi_deallocate(e_h,inertias,"inertias")
-         call elsi_deallocate(e_h,shifts,"shifts")
-
-         call elsi_get_time(e_h,t1)
-
-         write(info_str,"('  Finished inertia counting')")
-         call elsi_say(e_h,info_str)
-         write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-         call elsi_say(e_h,info_str)
-      endif
-   else
-      e_h%interval(1) = eval(1)-e_h%slice_buffer
-      e_h%interval(2) = eval(e_h%n_states)+e_h%slice_buffer
-
-      call sips_get_slices(e_h%n_slices,e_h%slicing_method,e_h%unbound,&
-              e_h%interval,e_h%slice_buffer,1.0e-6_r8,e_h%slices,&
-              eval(1:e_h%n_states))
-   endif
-
-   call sips_set_interval(e_h%ev_min,e_h%ev_max)
-   call sips_set_slices(e_h%n_slices,e_h%slices)
+! DEBUG
+if(e_h%myid == 0) then
+   do mpierr = 1,e_h%n_slices+1
+      print *,e_h%slices(mpierr)
+   enddo
+   print *
+endif
 
    call elsi_get_time(e_h,t0)
 
    ! Solve
-   call sips_solve_eps(e_h%n_states,e_h%n_slices,e_h%slices)
+   call sips_solve_eps(e_h%n_states)
 
    ! Get eigenvalues
-   eval(1:e_h%n_states) = sips_get_eigenvalues(e_h%n_states)
+   call sips_get_eigenvalues(e_h%n_states,eval(1:e_h%n_states))
+
+! DEBUG
+if(e_h%myid == 0) then
+   do mpierr = 1,e_h%n_states
+      print *,eval(mpierr)
+   enddo
+endif
 
    call MPI_Barrier(e_h%mpi_comm,mpierr)
 

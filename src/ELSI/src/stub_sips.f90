@@ -44,11 +44,7 @@ module M_QETSC
    public :: sips_update_ham
    public :: sips_set_eps
    public :: sips_update_eps
-   public :: sips_get_slices
-   public :: sips_get_inertias
-   public :: sips_inertias_to_eigenvalues
    public :: sips_set_slices
-   public :: sips_set_interval
    public :: sips_solve_eps
    public :: sips_get_eigenvalues
    public :: sips_get_eigenvectors
@@ -154,62 +150,16 @@ subroutine sips_update_eps(nsub)
 
 end subroutine
 
-subroutine sips_get_slices(nsub,subtype,lefttype,interval,buffer,subbuffer,&
-              subs,evals)
+subroutine sips_set_slices(tol,buf,nev,eigs,nsub,subs)
 
    implicit none
 
-   integer(kind=i4)        :: nsub
-   real(kind=r8)           :: subs(nsub+1)
-   integer(kind=i4)        :: subtype
-   integer(kind=i4)        :: lefttype
-   real(kind=r8)           :: interval(2)
-   real(kind=r8)           :: buffer
-   real(kind=r8)           :: subbuffer
-   real(kind=r8), optional :: evals(:)
-
-   write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
-   write(*,"(A)") " Exiting..."
-   stop
-
-end subroutine
-
-subroutine sips_set_slices(nslice,subs)
-
-   implicit none
-
-   integer(kind=i4) :: nslice
-   real(kind=r8)    :: subs(nslice+1)
-
-   write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
-   write(*,"(A)") " Exiting..."
-   stop
-
-end subroutine
-
-subroutine sips_set_interval(evmin,evmax)
-
-   implicit none
-
-   real(kind=r8) :: evmin
-   real(kind=r8) :: evmax
-
-   write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
-   write(*,"(A)") " Exiting..."
-   stop
-
-end subroutine
-
-subroutine sips_get_inertias(unbound,nreq,nsub,subs,shifts,inertias)
-
-   implicit none
-
-   integer(kind=i4) :: unbound
-   integer(kind=i4) :: nreq
+   real(kind=r8)    :: tol
+   real(kind=r8)    :: buf
+   integer(kind=i4) :: nev
+   real(kind=r8)    :: eigs(nev)
    integer(kind=i4) :: nsub
-   real(kind=r8)    :: subs(:)
-   real(kind=r8)    :: shifts(:)
-   integer(kind=i4) :: inertias(:)
+   real(kind=r8)    :: subs(nsub+1)
 
    write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
    write(*,"(A)") " Exiting..."
@@ -217,31 +167,11 @@ subroutine sips_get_inertias(unbound,nreq,nsub,subs,shifts,inertias)
 
 end subroutine
 
-subroutine sips_inertias_to_eigenvalues(nshift,nreq,buffer,shifts,inertias,&
-              evals)
-
-   implicit none
-
-   integer(kind=i4) :: nshift
-   integer(kind=i4) :: nreq
-   real(kind=r8)    :: buffer
-   real(kind=r8)    :: shifts(nshift)
-   integer(kind=i4) :: inertias(nshift)
-   real(kind=r8)    :: evals(nreq)
-
-   write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
-   write(*,"(A)") " Exiting..."
-   stop
-
-end subroutine
-
-subroutine sips_solve_eps(nreq,nsub,subs)
+subroutine sips_solve_eps(nreq)
 
    implicit none
 
    integer(kind=i4) :: nreq
-   integer(kind=i4) :: nsub
-   real(kind=r8)    :: subs(nsub)
 
    write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
    write(*,"(A)") " Exiting..."
@@ -249,18 +179,18 @@ subroutine sips_solve_eps(nreq,nsub,subs)
 
 end subroutine
 
-function sips_get_eigenvalues(n) result(eigs)
+subroutine sips_get_eigenvalues(nev,eigs)
 
    implicit none
 
-   integer(kind=i4) :: n
-   real(kind=r8)    :: eigs(n)
+   integer(kind=i4) :: nev
+   real(kind=r8)    :: eigs(nev)
 
    write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
    write(*,"(A)") " Exiting..."
    stop
 
-end function
+end subroutine
 
 subroutine sips_get_eigenvectors(n_basis,idx,evec)
 
