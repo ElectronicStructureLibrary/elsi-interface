@@ -40,8 +40,7 @@ module ELSI_ELPA
    use ELSI_PRECISION,    only: r8,i4
    use ELSI_TIMINGS,      only: elsi_get_time
    use ELSI_UTILS,        only: elsi_get_local_nnz_real,&
-                                elsi_get_local_nnz_cmplx,&
-                                elsi_trace_mat_mat_real
+                                elsi_get_local_nnz_cmplx
    use CHECK_SINGULARITY, only: elpa_check_singularity_real_double,&
                                 elpa_check_singularity_complex_double
    use ELPA1,             only: elpa_print_times,elpa_get_communicators,&
