@@ -30,16 +30,26 @@
 !!
 module ELSI_UTILS
 
-   use ELSI_CONSTANTS
-   use ELSI_DATATYPE
+   use ELSI_CONSTANTS, only: UNSET,FULL_MAT,N_SOLVERS,N_PARALLEL_MODES,&
+                             N_MATRIX_FORMATS,MULTI_PROC,SINGLE_PROC,&
+                             BLACS_DENSE,AUTO,ELPA_SOLVER,OMM_SOLVER,&
+                             PEXSI_SOLVER,CHESS_SOLVER,SIPS_SOLVER,DMP_SOLVER,&
+                             UNSET_STRING,JSON,REAL_VALUES,COMPLEX_VALUES,&
+                             TIMING_STRING_LEN,DATETIME_LEN
+   use ELSI_DATATYPE,  only: elsi_handle
    use ELSI_IO,        only: elsi_say,append_string,truncate_string
-   use ELSI_MPI
+   use ELSI_MPI,       only: elsi_stop,elsi_check_mpi,elsi_get_processor_name,&
+                             mpi_sum,mpi_real8,mpi_complex16,&
+                             mpi_max_processor_name
    use ELSI_PRECISION, only: i4,r8
 
    implicit none
 
+   private
+
    public :: elsi_check
    public :: elsi_check_handle
+   public :: elsi_reset_handle
    public :: elsi_get_global_row
    public :: elsi_get_global_col
    public :: elsi_get_local_nnz_real
@@ -47,7 +57,10 @@ module ELSI_UTILS
    public :: elsi_get_solver_tag
    public :: elsi_ready_handle
    public :: elsi_trace_mat_real
+   public :: elsi_trace_mat_cmplx
+   public :: elsi_trace_mat_mat_real
    public :: elsi_trace_mat_mat_cmplx
+   public :: elsi_get_datetime_rfc3339
 
 contains
 
@@ -166,15 +179,8 @@ subroutine elsi_reset_handle(e_h)
    e_h%chess_started         = .false.
    e_h%sips_n_elpa           = UNSET
    e_h%np_per_slice          = UNSET
-   e_h%n_inertia_steps       = UNSET
-   e_h%slicing_method        = UNSET
-   e_h%inertia_option        = UNSET
-   e_h%unbound               = UNSET
    e_h%n_slices              = UNSET
-   e_h%interval              = 0.0_r8
    e_h%slice_buffer          = 0.0_r8
-   e_h%ev_min                = 0.0_r8
-   e_h%ev_max                = 0.0_r8
    e_h%sips_started          = .false.
    e_h%n_states_dmp          = UNSET
    e_h%dmp_method            = UNSET

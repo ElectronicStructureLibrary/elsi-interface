@@ -294,23 +294,10 @@ module ELSI_DATATYPE
       logical          :: chess_started = .false.
 
       ! SIPs
-      integer(kind=i4) :: sips_n_elpa    ! Number of ELPA steps
+      integer(kind=i4) :: sips_n_elpa
       integer(kind=i4) :: np_per_slice
-      integer(kind=i4) :: n_inertia_steps
-      integer(kind=i4) :: slicing_method ! 0 = Equally spaced
-                                         ! 2 = Equally populated
-                                         ! 3 = K-means + equally populated
-      integer(kind=i4) :: inertia_option ! Do inertia counting?
-                                         ! 0 = No
-                                         ! 1 = Yes
-      integer(kind=i4) :: unbound        ! How to bound left side?
-                                         ! 0 = Bound interval
-                                         ! 1 = -infinity
       integer(kind=i4) :: n_slices
-      real(kind=r8)    :: interval(2)    ! Interval to search eigenvalues
-      real(kind=r8)    :: slice_buffer   ! Small buffer to expand interval
-      real(kind=r8)    :: ev_min         ! Lower bound of eigenvalue
-      real(kind=r8)    :: ev_max         ! Upper bound of eigenvalue
+      real(kind=r8)    :: slice_buffer ! Adjust interval on-the-fly
       logical          :: sips_started = .false.
 
       ! DMP
