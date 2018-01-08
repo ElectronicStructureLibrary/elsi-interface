@@ -32,12 +32,11 @@ module ELSI_MU
 
    use ELSI_CONSTANTS, only: GAUSSIAN,FERMI,METHFESSEL_PAXTON_0,&
                              METHFESSEL_PAXTON_1,CUBIC,SQRT_PI,INVERT_SQRT_PI
-   use ELSI_DATATYPE
+   use ELSI_DATATYPE,  only: elsi_handle
    use ELSI_IO,        only: elsi_say
-   use ELSI_MALLOC
+   use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
    use ELSI_MPI,       only: elsi_stop
    use ELSI_PRECISION, only: r8,i4
-   use ELSI_UTILS
 
    implicit none
 

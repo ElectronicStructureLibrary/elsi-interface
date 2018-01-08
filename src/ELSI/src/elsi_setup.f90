@@ -32,25 +32,26 @@ module ELSI_SETUP
 
    use ELSI_CHESS,         only: elsi_set_chess_default
    use ELSI_CONSTANTS,     only: ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,&
-                                 CHESS_SOLVER,SIPS_SOLVER,SINGLE_PROC,&
-                                 MULTI_PROC,SOLVER_TIMINGS_UNIT_DEFAULT,&
+                                 CHESS_SOLVER,SIPS_SOLVER,DMP_SOLVER,&
+                                 SINGLE_PROC,MULTI_PROC,HUMAN_READ,JSON,&
+                                 COMMA_AFTER,SOLVER_TIMINGS_UNIT_DEFAULT,&
                                  SOLVER_TIMINGS_FILE_DEFAULT
-   use ELSI_DATATYPE
+   use ELSI_DATATYPE,      only: elsi_handle
    use ELSI_DMP,           only: elsi_set_dmp_default
    use ELSI_ELPA,          only: elsi_set_elpa_default,elsi_get_elpa_comms
    use ELSI_IO,            only: elsi_print_handle_summary,elsi_say,&
                                  elsi_say_setting,elsi_init_file_io,&
                                  elsi_reset_file_io_handle,append_string,&
                                  truncate_string
-   use ELSI_MALLOC
-   use ELSI_MPI
+   use ELSI_MALLOC,        only: elsi_allocate,elsi_deallocate
+   use ELSI_MPI,           only: elsi_stop
    use ELSI_OMM,           only: elsi_set_omm_default
    use ELSI_PEXSI,         only: elsi_set_pexsi_default
    use ELSI_PRECISION,     only: r8,i4
    use ELSI_SIPS,          only: elsi_set_sips_default
    use ELSI_TIMINGS,       only: elsi_init_timer,elsi_init_timings,&
                                  elsi_print_timings,elsi_finalize_timings
-   use ELSI_UTILS
+   use ELSI_UTILS,         only: elsi_check_handle,elsi_reset_handle
    use FOE_BASE,           only: foe_data_deallocate
    use F_PPEXSI_INTERFACE, only: f_ppexsi_plan_finalize
    use MATRIXSWITCH,       only: ms_scalapack_setup,m_deallocate

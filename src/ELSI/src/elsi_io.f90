@@ -30,8 +30,11 @@
 !!
 module ELSI_IO
 
-   use ELSI_CONSTANTS
-   use ELSI_DATATYPE
+   use ELSI_CONSTANTS, only: UNSET,UNSET_STRING,HUMAN_READ,JSON,MULTI_PROC,&
+                             SINGLE_PROC,ELPA_SOLVER,SIPS_SOLVER,OMM_SOLVER,&
+                             PEXSI_SOLVER,CHESS_SOLVER,DMP_SOLVER,BLACS_DENSE,&
+                             PEXSI_CSC,COMMA_AFTER,NO_COMMA
+   use ELSI_DATATYPE,  only: elsi_handle,elsi_file_io_handle,elsi_timings_handle
    use ELSI_MPI,       only: elsi_stop
    use ELSI_PRECISION, only: r8,i4
 
@@ -453,25 +456,10 @@ subroutine elsi_print_settings(e_h)
    case(SIPS_SOLVER)
       call elsi_say(e_h,"  SIPs settings:")
 
-      write(info_str,"('  | Slicing method            ',I10)")&
-         e_h%slicing_method
+      write(info_str,"('  | Number of ELPA steps ',I10)") e_h%sips_n_elpa
       call elsi_say(e_h,info_str)
 
-      write(info_str,"('  | Lower bound of eigenvalue ',E10.2)") e_h%ev_min
-      call elsi_say(e_h,info_str)
-
-      write(info_str,"('  | Upper bound of eigenvalue ',E10.2)") e_h%ev_max
-      call elsi_say(e_h,info_str)
-
-      write(info_str,"('  | Inertia counting          ',I10)")&
-         e_h%inertia_option
-      call elsi_say(e_h,info_str)
-
-      write(info_str,"('  | Left bound option         ',I10)") e_h%unbound
-      call elsi_say(e_h,info_str)
-
-      write(info_str,"('  | Slice buffer              ',E10.2)")&
-         e_h%slice_buffer
+      write(info_str,"('  | Slice buffer         ',E10.2)") e_h%slice_buffer
       call elsi_say(e_h,info_str)
    case(DMP_SOLVER)
       call elsi_say(e_h,"  DMP settings:")
@@ -867,16 +855,10 @@ subroutine elsi_print_sips_settings(e_h,io_h_in)
    call append_string(io_h%prefix,"  ")
    call elsi_say_setting(e_h,"n_states",e_h%n_states,io_h)
    call elsi_say_setting(e_h,"sips_n_elpa",e_h%sips_n_elpa,io_h)
-   call elsi_say_setting(e_h,"np_per_slice",e_h%np_per_slice,io_h)
-   call elsi_say_setting(e_h,"n_inertia_steps",e_h%n_inertia_steps,io_h)
-   call elsi_say_setting(e_h,"slicing_method",e_h%slicing_method,io_h)
-   call elsi_say_setting(e_h,"inertia_option",e_h%inertia_option,io_h)
-   call elsi_say_setting(e_h,"unbound",e_h%unbound,io_h)
    call elsi_say_setting(e_h,"n_slices",e_h%n_slices,io_h)
-   call elsi_say_setting(e_h,"slice_buffer",e_h%slice_buffer,io_h)
-   call elsi_say_setting(e_h,"ev_min",e_h%ev_min,io_h)
+   call elsi_say_setting(e_h,"np_per_slice",e_h%np_per_slice,io_h)
    io_h%comma_json = NO_COMMA ! Final record in this scope
-   call elsi_say_setting(e_h,"ev_max",e_h%ev_max,io_h)
+   call elsi_say_setting(e_h,"slice_buffer",e_h%slice_buffer,io_h)
    call truncate_string(io_h%prefix,2)
 
    ! Footer (only for JSON)

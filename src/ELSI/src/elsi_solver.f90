@@ -34,9 +34,12 @@ module ELSI_SOLVER
 
    use ELSI_CHESS,     only: elsi_init_chess,elsi_solve_evp_chess_real
    use ELSI_CONSTANTS, only: ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,CHESS_SOLVER,&
-                             SIPS_SOLVER,REAL_VALUES,COMPLEX_VALUES,MULTI_PROC,&
-                             SINGLE_PROC,UNSET,TIMING_STRING_LEN
-   use ELSI_DATATYPE
+                             SIPS_SOLVER,DMP_SOLVER,REAL_VALUES,COMPLEX_VALUES,&
+                             MULTI_PROC,SINGLE_PROC,UNSET,TIMING_STRING_LEN,&
+                             OUTPUT_EV,OUTPUT_DM,DATETIME_LEN,COMMA_BEFORE,&
+                             COMMA_AFTER,NO_COMMA,UNSET_STRING,HUMAN_READ,JSON,&
+                             RELEASE_DATE
+   use ELSI_DATATYPE,  only: elsi_handle,elsi_file_io_handle
    use ELSI_DMP,       only: elsi_solve_evp_dmp_real
    use ELSI_ELPA,      only: elsi_compute_occ_elpa,elsi_compute_dm_elpa_real,&
                              elsi_normalize_dm_elpa_real,&
@@ -51,9 +54,20 @@ module ELSI_SOLVER
                              elsi_say,elsi_say_setting,&
                              elsi_print_matrix_format_settings,&
                              append_string,truncate_string
-   use ELSI_MALLOC
-   use ELSI_MATCONV
-   use ELSI_MPI
+   use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
+   use ELSI_MATCONV,   only: elsi_blacs_to_sips_hs_real,&
+                             elsi_sips_to_blacs_hs_real,&
+                             elsi_blacs_to_sips_hs_cmplx,&
+                             elsi_sips_to_blacs_hs_cmplx,&
+                             elsi_blacs_to_chess_hs_real,&
+                             elsi_chess_to_blacs_dm_real,&
+                             elsi_blacs_to_pexsi_hs_real,&
+                             elsi_pexsi_to_blacs_dm_real,&
+                             elsi_blacs_to_pexsi_hs_cmplx,&
+                             elsi_pexsi_to_blacs_dm_cmplx,&
+                             elsi_blacs_to_sips_dm_real,&
+                             elsi_blacs_to_sips_dm_cmplx
+   use ELSI_MPI,       only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8
    use ELSI_OMM,       only: elsi_solve_evp_omm_real,&
                              elsi_solve_evp_omm_cmplx
    use ELSI_PEXSI,     only: elsi_init_pexsi,elsi_solve_evp_pexsi_real,&
@@ -63,7 +77,8 @@ module ELSI_SOLVER
    use ELSI_SIPS,      only: elsi_init_sips,elsi_solve_evp_sips_real,&
                              elsi_sips_to_blacs_ev_real
    use ELSI_TIMINGS,   only: elsi_get_time, elsi_add_timing
-   use ELSI_UTILS
+   use ELSI_UTILS,     only: elsi_check,elsi_check_handle,elsi_ready_handle,&
+                             elsi_get_solver_tag,elsi_get_datetime_rfc3339
    use MATRIXSWITCH,   only: m_allocate
 
    implicit none

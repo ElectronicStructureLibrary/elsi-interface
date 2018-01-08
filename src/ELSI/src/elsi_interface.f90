@@ -31,14 +31,13 @@
 !!
 module ELSI
 
-   use ELSI_DATATYPE
+   use ELSI_DATATYPE, only: elsi_handle,elsi_rw_handle
    use ELSI_MATIO
    use ELSI_MU
    use ELSI_MUTATOR
    use ELSI_SETUP
    use ELSI_SOLVER
    use ELSI_TIMINGS
-   use ELSI_CONSTANTS, only: RELEASE_DATE
 
    implicit none
 
@@ -93,13 +92,7 @@ module ELSI
    public :: elsi_set_chess_ev_ovlp_min
    public :: elsi_set_chess_ev_ovlp_max
    public :: elsi_set_sips_n_elpa
-   public :: elsi_set_sips_slice_type
    public :: elsi_set_sips_n_slice
-   public :: elsi_set_sips_inertia
-   public :: elsi_set_sips_left_bound
-   public :: elsi_set_sips_slice_buf
-   public :: elsi_set_sips_ev_min
-   public :: elsi_set_sips_ev_max
    public :: elsi_set_dmp_method
    public :: elsi_set_dmp_max_step
    public :: elsi_set_dmp_tol

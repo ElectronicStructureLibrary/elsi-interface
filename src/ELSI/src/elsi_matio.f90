@@ -33,20 +33,23 @@ module ELSI_MATIO
    use, intrinsic :: ISO_C_BINDING
    use ELSI_CONSTANTS, only: HEADER_SIZE,BLACS_DENSE,DENSE_FILE,CSC_FILE,&
                              READ_FILE,WRITE_FILE,REAL_VALUES,COMPLEX_VALUES,&
-                             FILE_VERSION,PEXSI_SOLVER,SIPS_SOLVER,UNSET
-   use ELSI_DATATYPE
+                             FILE_VERSION,PEXSI_SOLVER,SIPS_SOLVER,MULTI_PROC,&
+                             SINGLE_PROC,UNSET
+   use ELSI_DATATYPE,  only: elsi_handle,elsi_rw_handle
    use ELSI_IO,        only: elsi_say
-   use ELSI_MALLOC
+   use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
    use ELSI_MATCONV,   only: elsi_pexsi_to_blacs_dm_real,&
                              elsi_pexsi_to_blacs_dm_cmplx,&
                              elsi_blacs_to_sips_hs_real,&
                              elsi_blacs_to_sips_hs_cmplx
-   use ELSI_MPI
+   use ELSI_MPI,       only: mpi_sum,mpi_real8,mpi_complex16,mpi_integer4,&
+                             mpi_mode_rdonly,mpi_mode_wronly,mpi_mode_create,&
+                             mpi_info_null,mpi_status_ignore
    use ELSI_PRECISION, only: r8,i4,i8
    use ELSI_SETUP,     only: elsi_init,elsi_set_mpi,elsi_set_blacs,&
                              elsi_set_csc,elsi_cleanup
    use ELSI_TIMINGS,   only: elsi_init_timer,elsi_get_time
-   use ELSI_UTILS
+   use ELSI_UTILS,     only: elsi_get_local_nnz_real,elsi_get_local_nnz_cmplx
 
    implicit none
 
