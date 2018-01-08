@@ -30,12 +30,11 @@
 !!
 module ELSI_CHESS
 
-   use ELSI_DATATYPE
+   use ELSI_DATATYPE,          only: elsi_handle
    use ELSI_IO,                only: elsi_say
-   use ELSI_MPI
+   use ELSI_MPI,               only: elsi_check_mpi
    use ELSI_PRECISION,         only: r8,i4
    use ELSI_TIMINGS,           only: elsi_get_time
-   use ELSI_UTILS
    use FOE_BASE,               only: foe_data_get_real
    use FOE_COMMON,             only: init_foe
    use SPARSEMATRIX_BASE,      only: sparsematrix_init_errors,&

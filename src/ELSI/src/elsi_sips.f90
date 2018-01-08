@@ -31,14 +31,17 @@
 module ELSI_SIPS
 
    use ELSI_CONSTANTS, only: UNSET
-   use ELSI_DATATYPE
+   use ELSI_DATATYPE,  only: elsi_handle
    use ELSI_IO,        only: elsi_say
-   use ELSI_MALLOC
-   use ELSI_MPI
+   use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
+   use ELSI_MPI,       only: elsi_check_mpi,mpi_real8
    use ELSI_PRECISION, only: r8,i4
    use ELSI_TIMINGS,   only: elsi_get_time
-   use ELSI_UTILS
-   use M_QETSC
+   use ELSI_UTILS,     only: elsi_get_global_row
+   use M_QETSC,        only: sips_initialize,sips_finalize,sips_load_ham_ovlp,&
+                             sips_load_ham,sips_update_ham,sips_set_eps,&
+                             sips_update_eps,sips_set_slices,sips_solve_eps,&
+                             sips_get_eigenvalues,sips_get_eigenvectors
 
    implicit none
 
@@ -104,13 +107,14 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
    real(kind=r8),     intent(inout) :: ovlp(e_h%nnz_l_sp)
    real(kind=r8),     intent(inout) :: eval(e_h%n_states)
 
+   real(kind=r8)    :: first_ham
+   real(kind=r8)    :: g_shift ! Global shift of eigenspectrum
    real(kind=r8)    :: t0
    real(kind=r8)    :: t1
    integer(kind=i4) :: mpierr
    character*200    :: info_str
 
-   real(kind=r8),    allocatable :: shifts(:)
-   integer(kind=i4), allocatable :: inertias(:)
+   real(kind=r8), allocatable :: shifts(:)
 
    character*40, parameter :: caller = "elsi_solve_evp_sips_real"
 
@@ -148,11 +152,23 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
    call elsi_say(e_h,info_str)
 
-   call sips_set_slices(1.0_r8,0.1_r8,e_h%n_states,eval(1:e_h%n_states),&
-           e_h%n_slices,e_h%slices)
+   first_ham = ham(1)
+
+   call MPI_Bcast(first_ham,1,mpi_real8,0,e_h%mpi_comm,mpierr)
+
+   call elsi_check_mpi(e_h,"MPI_Bcast",mpierr,caller)
+
+   g_shift            = first_ham-eval(1)
+   eval               = eval+g_shift
+   eval(1)            = eval(1)-e_h%slice_buffer
+   eval(e_h%n_states) = eval(e_h%n_states)+e_h%slice_buffer
+
+   call sips_set_slices(1.0_r8,e_h%n_states,eval(1:e_h%n_states),e_h%n_slices,&
+           e_h%slices)
 
 ! DEBUG
 if(e_h%myid == 0) then
+   print *,"VY: slices"
    do mpierr = 1,e_h%n_slices+1
       print *,e_h%slices(mpierr)
    enddo
@@ -169,9 +185,11 @@ endif
 
 ! DEBUG
 if(e_h%myid == 0) then
+   print *,"VY: eigenvalues"
    do mpierr = 1,e_h%n_states
       print *,eval(mpierr)
    enddo
+   print *
 endif
 
    call MPI_Barrier(e_h%mpi_comm,mpierr)
@@ -273,31 +291,8 @@ subroutine elsi_set_sips_default(e_h)
    ! How many steps of ELPA to run before SIPs
    e_h%sips_n_elpa = 0
 
-   ! Type of slices
-   ! 0 = Equally spaced subintervals
-   ! 2 = Equally populated subintervals
-   ! 3 = K-means after equally populated
-   e_h%slicing_method = 2
-
-   ! Extra inertia computations before solve?
-   ! 0 = No
-   ! 1 = Yes
-   e_h%inertia_option = 0
-
-   ! How to bound the left side of the interval
-   ! 0 = Bounded
-   ! 1 = -infinity
-   e_h%unbound = 0
-
-   ! Small buffer to expand the eigenvalue interval
-   ! Smaller values improve performance if eigenvalue range known
-   e_h%slice_buffer = 0.5_r8
-
-   ! Lower bound of eigenvalue
-   e_h%ev_min = -1.0e1_r8
-
-   ! Upper bound of eigenvalue
-   e_h%ev_max = 1.0e1_r8
+   ! Buffer to adjust global interval
+   e_h%slice_buffer = 0.2_r8
 
 end subroutine
 

@@ -30,15 +30,17 @@
 !!
 module ELSI_ELPA
 
-   use ELSI_CONSTANTS, only: REAL_VALUES,COMPLEX_VALUES,BLACS_DENSE
-   use ELSI_DATATYPE
+   use ELSI_CONSTANTS, only: BLACS_DENSE
+   use ELSI_DATATYPE,  only: elsi_handle
    use ELSI_IO,        only: elsi_say
-   use ELSI_MALLOC
-   use ELSI_MPI
+   use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
+   use ELSI_MPI,       only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8,&
+                             mpi_integer4
    use ELSI_MU,        only: elsi_compute_mu_and_occ
    use ELSI_PRECISION, only: r4,r8,i4
    use ELSI_TIMINGS,   only: elsi_get_time
-   use ELSI_UTILS
+   use ELSI_UTILS,     only: elsi_get_local_nnz_real,elsi_get_local_nnz_cmplx,&
+                             elsi_trace_mat_mat_real
    use ELPA
    use ELPA1,          only: elpa_print_times,elpa_get_communicators,&
                              elpa_solve_tridi_double,&
