@@ -31,12 +31,12 @@
 module ELSI_MUTATOR
 
    use ELSI_CONSTANTS, only: ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,CHESS_SOLVER,&
-                             SIPS_SOLVER
-   use ELSI_DATATYPE
+                             SIPS_SOLVER,DMP_SOLVER
+   use ELSI_DATATYPE,  only: elsi_handle
    use ELSI_ELPA,      only: elsi_compute_edm_elpa_real,&
                              elsi_compute_edm_elpa_cmplx
    use ELSI_IO,        only: elsi_say
-   use ELSI_MALLOC
+   use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
    use ELSI_MPI,       only: elsi_stop
    use ELSI_MATCONV,   only: elsi_pexsi_to_blacs_dm_real,&
                              elsi_pexsi_to_blacs_dm_cmplx,&
@@ -47,7 +47,7 @@ module ELSI_MUTATOR
    use ELSI_PEXSI,     only: elsi_compute_edm_pexsi_real,&
                              elsi_compute_edm_pexsi_cmplx
    use ELSI_PRECISION, only: r8,i4
-   use ELSI_UTILS
+   use ELSI_UTILS,     only: elsi_check_handle
 
    implicit none
 
@@ -88,13 +88,8 @@ module ELSI_MUTATOR
    public :: elsi_set_chess_ev_ovlp_min
    public :: elsi_set_chess_ev_ovlp_max
    public :: elsi_set_sips_n_elpa
-   public :: elsi_set_sips_slice_type
    public :: elsi_set_sips_n_slice
-   public :: elsi_set_sips_inertia
-   public :: elsi_set_sips_left_bound
-   public :: elsi_set_sips_slice_buf
-   public :: elsi_set_sips_ev_min
-   public :: elsi_set_sips_ev_max
+   public :: elsi_set_sips_buffer
    public :: elsi_set_dmp_method
    public :: elsi_set_dmp_max_step
    public :: elsi_set_dmp_tol
@@ -946,58 +941,6 @@ subroutine elsi_set_sips_n_elpa(e_h,n_elpa)
 end subroutine
 
 !>
-!! This routine switches on and off inertia counting in SIPs.
-!!
-subroutine elsi_set_sips_inertia(e_h,do_inertia)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: e_h        !< Handle
-   integer(kind=i4),  intent(in)    :: do_inertia !< Inertia counting option
-
-   character*40, parameter :: caller = "elsi_set_sips_inertia"
-
-   call elsi_check_handle(e_h,caller)
-
-   if(e_h%handle_ready) then
-      e_h%handle_changed = .true.
-   endif
-
-   if(do_inertia == 0) then
-      e_h%inertia_option = 0
-   else
-      e_h%inertia_option = 1
-   endif
-
-end subroutine
-
-!>
-!! This routine sets the slicing method when using SIPs.
-!!
-subroutine elsi_set_sips_slice_type(e_h,slice_type)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: e_h        !< Handle
-   integer(kind=i4),  intent(in)    :: slice_type !< Method of slicing
-
-   character*40, parameter :: caller = "elsi_set_sips_slice_type"
-
-   call elsi_check_handle(e_h,caller)
-
-   if(e_h%handle_ready) then
-      e_h%handle_changed = .true.
-   endif
-
-   if(slice_type < 0 .or. slice_type > 3) then
-      call elsi_stop(" Unsupported slice_type.",e_h,caller)
-   endif
-
-   e_h%slicing_method = slice_type
-
-end subroutine
-
-!>
 !! This routine sets the number of slices in SIPs.
 !!
 subroutine elsi_set_sips_n_slice(e_h,n_slice)
@@ -1026,83 +969,16 @@ subroutine elsi_set_sips_n_slice(e_h,n_slice)
 end subroutine
 
 !>
-!! This routine sets the method to bound the left side of the eigenvalue
-!! interval in SIPs.
-!!
-subroutine elsi_set_sips_left_bound(e_h,left_bound)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: e_h        !< Handle
-   integer(kind=i4),  intent(in)    :: left_bound !< How to bound left side?
-
-   character*40, parameter :: caller = "elsi_set_sips_left_bound"
-
-   call elsi_check_handle(e_h,caller)
-
-   if(e_h%handle_ready) then
-      e_h%handle_changed = .true.
-   endif
-
-   e_h%unbound = left_bound
-
-end subroutine
-
-!>
 !! This routine sets a small buffer to expand the eigenvalue interval in SIPs.
 !!
-subroutine elsi_set_sips_slice_buf(e_h,slice_buffer)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: e_h          !< Handle
-   real(kind=r8),     intent(in)    :: slice_buffer !< Buffer to expand interval
-
-   character*40, parameter :: caller = "elsi_set_sips_slice_buf"
-
-   call elsi_check_handle(e_h,caller)
-
-   if(e_h%handle_ready) then
-      e_h%handle_changed = .true.
-   endif
-
-   e_h%slice_buffer = slice_buffer
-
-end subroutine
-
-!>
-!! This routine sets the lower bound of eigenvalues to be solved by SIPs.
-!!
-subroutine elsi_set_sips_ev_min(e_h,ev_min)
+subroutine elsi_set_sips_buffer(e_h,buffer)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: e_h    !< Handle
-   real(kind=r8),     intent(in)    :: ev_min !< Minimum eigenvalue
+   real(kind=r8),     intent(in)    :: buffer !< Buffer to expand interval
 
-   character*40, parameter :: caller = "elsi_set_sips_ev_min"
-
-   call elsi_check_handle(e_h,caller)
-
-   if(e_h%handle_ready) then
-      e_h%handle_changed = .true.
-   endif
-
-   e_h%ev_min = ev_min
-
-end subroutine
-
-!>
-!! This routine sets the upper bound of eigenvalues to be solved by SIPs.
-!!
-subroutine elsi_set_sips_ev_max(e_h,ev_max)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: e_h    !< Handle
-   real(kind=r8),     intent(in)    :: ev_max !< Maximum eigenvalue
-
-   character*40, parameter :: caller = "elsi_set_sips_ev_max"
+   character*40, parameter :: caller = "elsi_set_sips_buffer"
 
    call elsi_check_handle(e_h,caller)
 
@@ -1110,7 +986,7 @@ subroutine elsi_set_sips_ev_max(e_h,ev_max)
       e_h%handle_changed = .true.
    endif
 
-   e_h%ev_max = ev_max
+   e_h%slice_buffer = buffer
 
 end subroutine
 

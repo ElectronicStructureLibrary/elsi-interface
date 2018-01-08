@@ -158,13 +158,11 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
 
    call elsi_check_mpi(e_h,"MPI_Bcast",mpierr,caller)
 
-   g_shift            = first_ham-eval(1)
-   eval               = eval+g_shift
-   eval(1)            = eval(1)-e_h%slice_buffer
-   eval(e_h%n_states) = eval(e_h%n_states)+e_h%slice_buffer
+   g_shift = first_ham-eval(1)
+   eval    = eval+g_shift
 
-   call sips_set_slices(1.0_r8,e_h%n_states,eval(1:e_h%n_states),e_h%n_slices,&
-           e_h%slices)
+   call sips_set_slices(1.0_r8,e_h%slice_buffer,e_h%n_states,&
+           eval(1:e_h%n_states),e_h%n_slices,e_h%slices)
 
 ! DEBUG
 if(e_h%myid == 0) then
@@ -292,7 +290,7 @@ subroutine elsi_set_sips_default(e_h)
    e_h%sips_n_elpa = 0
 
    ! Buffer to adjust global interval
-   e_h%slice_buffer = 0.2_r8
+   e_h%slice_buffer = 0.02_r8
 
 end subroutine
 

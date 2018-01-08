@@ -226,26 +226,11 @@ void c_elsi_set_chess_ev_ovlp_max(elsi_handle handle_c,
 void c_elsi_set_sips_n_elpa(elsi_handle handle_c,
                             int n_elpa);
 
-void c_elsi_set_sips_slice_type(elsi_handle handle_c,
-                                int inertia_tol);
-
 void c_elsi_set_sips_n_slice(elsi_handle handle_c,
                              int n_slice);
 
-void c_elsi_set_sips_inertia(elsi_handle handle_c,
-                             int do_inertia);
-
-void c_elsi_set_sips_left_bound(elsi_handle handle_c,
-                                int left_bound);
-
-void c_elsi_set_sips_slice_buf(elsi_handle handle_c,
-                               double slice_buffer);
-
-void c_elsi_set_sips_ev_min(elsi_handle handle_c,
-                            double ev_min);
-
-void c_elsi_set_sips_ev_max(elsi_handle handle_c,
-                            double ev_max);
+void c_elsi_set_sips_buffer(elsi_handle handle_c,
+                            double buffer);
 
 void c_elsi_set_dmp_method(elsi_handle handle_c,
                            int dmp_method);
