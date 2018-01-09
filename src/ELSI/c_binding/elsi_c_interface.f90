@@ -1005,6 +1005,22 @@ subroutine elsi_set_sips_n_slice_c_wrapper(handle_c,n_slice)&
 
 end subroutine
 
+subroutine elsi_set_sips_slice_type_c_wrapper(handle_c,slice_type)&
+   bind(C,name="c_elsi_set_sips_slice_type")
+
+   implicit none
+
+   type(c_ptr),         value, intent(in) :: handle_c
+   integer(kind=c_int), value, intent(in) :: slice_type
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_sips_slice_type(handle_f,slice_type)
+
+end subroutine
+
 subroutine elsi_set_sips_buffer_c_wrapper(handle_c,buffer)&
    bind(C,name="c_elsi_set_sips_buffer")
 
@@ -1018,6 +1034,55 @@ subroutine elsi_set_sips_buffer_c_wrapper(handle_c,buffer)&
    call c_f_pointer(handle_c,handle_f)
 
    call elsi_set_sips_buffer(handle_f,buffer)
+
+end subroutine
+
+subroutine elsi_set_sips_inertia_c_wrapper(handle_c,n_inertia)&
+   bind(C,name="c_elsi_set_sips_inertia")
+
+   implicit none
+
+   type(c_ptr),         value, intent(in) :: handle_c
+   integer(kind=c_int), value, intent(in) :: n_inertia
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_sips_inertia(handle_f,n_inertia)
+
+end subroutine
+
+subroutine elsi_set_sips_ev_shift_c_wrapper(handle_c,ev_shift)&
+   bind(C,name="c_elsi_set_sips_ev_shift")
+
+   implicit none
+
+   type(c_ptr),         value, intent(in) :: handle_c
+   real(kind=c_double), value, intent(in) :: ev_shift
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_sips_ev_shift(handle_f,ev_shift)
+
+end subroutine
+
+subroutine elsi_set_sips_interval_c_wrapper(handle_c,lower,upper)&
+   bind(C,name="c_elsi_set_sips_interval")
+
+   implicit none
+
+   type(c_ptr),         value, intent(in) :: handle_c
+   real(kind=c_double), value, intent(in) :: lower
+   real(kind=c_double), value, intent(in) :: upper
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_sips_interval(handle_f,lower,upper)
 
 end subroutine
 
