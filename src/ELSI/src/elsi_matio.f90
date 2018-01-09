@@ -97,7 +97,7 @@ subroutine elsi_init_rw(rw_h,task,parallel_mode,file_format,n_basis,n_electron)
    ! For safety
    call elsi_reset_rw_handle(rw_h)
 
-   rw_h%handle_init  = .true.
+   rw_h%handle_init   = .true.
    rw_h%rw_task       = task
    rw_h%parallel_mode = parallel_mode
    rw_h%file_format   = file_format
@@ -729,11 +729,11 @@ subroutine elsi_read_mat_real_mp(rw_h,f_name,mat)
    call elsi_set_blacs(aux_h,rw_h%blacs_ctxt,rw_h%blk)
 
    ! Output
-   aux_h%output_solver_timings = .false.
+   aux_h%output_timings   = .false.
    aux_h%myid_all         = rw_h%myid
    aux_h%stdio%print_info = rw_h%print_info
    aux_h%print_mem        = rw_h%print_mem
-   aux_h%stdio%print_unit  = rw_h%print_unit
+   aux_h%stdio%print_unit = rw_h%print_unit
 
    call elsi_get_time(aux_h,t0)
 
@@ -948,7 +948,7 @@ subroutine elsi_read_mat_complex_mp(rw_h,f_name,mat)
    call elsi_set_blacs(aux_h,rw_h%blacs_ctxt,rw_h%blk)
 
    ! Output
-   aux_h%output_solver_timings = .false.
+   aux_h%output_timings   = .false.
    aux_h%myid_all         = rw_h%myid
    aux_h%stdio%print_info = rw_h%print_info
    aux_h%print_mem        = rw_h%print_mem
@@ -1162,7 +1162,7 @@ subroutine elsi_write_mat_real_mp(rw_h,f_name,mat)
    call elsi_get_time(aux_h,t0)
 
    ! Output
-   aux_h%output_solver_timings = .false.
+   aux_h%output_timings   = .false.
    aux_h%myid_all         = rw_h%myid
    aux_h%stdio%print_info = rw_h%print_info
    aux_h%print_mem        = rw_h%print_mem
@@ -1172,6 +1172,8 @@ subroutine elsi_write_mat_real_mp(rw_h,f_name,mat)
    aux_h%ovlp_is_unit = .true.
    aux_h%n_elsi_calls = 1
    aux_h%n_lcol_sp    = rw_h%n_basis/rw_h%n_procs
+   aux_h%sips_n_elpa  = 0
+
    if(rw_h%myid == rw_h%n_procs-1) then
       aux_h%n_lcol_sp = rw_h%n_basis-(rw_h%n_procs-1)*aux_h%n_lcol_sp
    endif
@@ -1279,7 +1281,7 @@ subroutine elsi_write_mat_complex_mp(rw_h,f_name,mat)
    call elsi_get_time(aux_h,t0)
 
    ! Output
-   aux_h%output_solver_timings = .false.
+   aux_h%output_timings   = .false.
    aux_h%myid_all         = rw_h%myid
    aux_h%stdio%print_info = rw_h%print_info
    aux_h%print_mem        = rw_h%print_mem
@@ -1289,6 +1291,7 @@ subroutine elsi_write_mat_complex_mp(rw_h,f_name,mat)
    aux_h%ovlp_is_unit = .true.
    aux_h%n_elsi_calls = 1
    aux_h%n_lcol_sp    = rw_h%n_basis/rw_h%n_procs
+   aux_h%sips_n_elpa  = 0
    if(rw_h%myid == rw_h%n_procs-1) then
       aux_h%n_lcol_sp = rw_h%n_basis-(rw_h%n_procs-1)*aux_h%n_lcol_sp
    endif

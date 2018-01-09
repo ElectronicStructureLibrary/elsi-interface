@@ -101,10 +101,10 @@ module ELSI_MUTATOR
    public :: elsi_set_mu_broaden_width
    public :: elsi_set_mu_tol
    public :: elsi_set_mu_spin_degen
-   public :: elsi_set_output_solver_timings
-   public :: elsi_set_solver_timings_unit
-   public :: elsi_set_solver_timings_file
-   public :: elsi_set_solver_timing_tag
+   public :: elsi_set_output_timings
+   public :: elsi_set_timings_unit
+   public :: elsi_set_timings_file
+   public :: elsi_set_timings_tag
    public :: elsi_get_pexsi_mu_min
    public :: elsi_get_pexsi_mu_max
    public :: elsi_get_ovlp_sing
@@ -1264,14 +1264,14 @@ end subroutine
 !>
 !! This routine sets whether the detailed solver timings file should be output.
 !!
-subroutine elsi_set_output_solver_timings(e_h,output_solver_timings)
+subroutine elsi_set_output_timings(e_h,output_timings)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                   !< Handle
-   integer(kind=i4),  intent(in)    :: output_solver_timings !< Output timings?
+   type(elsi_handle), intent(inout) :: e_h            !< Handle
+   integer(kind=i4),  intent(in)    :: output_timings !< Output timings?
 
-   character*40, parameter :: caller = "elsi_set_output_solver_timings"
+   character*40, parameter :: caller = "elsi_set_output_timings"
 
    call elsi_check_handle(e_h,caller)
 
@@ -1279,10 +1279,10 @@ subroutine elsi_set_output_solver_timings(e_h,output_solver_timings)
       e_h%handle_changed = .true.
    endif
 
-   if(output_solver_timings == 0) then
-      e_h%output_solver_timings = .false.
+   if(output_timings == 0) then
+      e_h%output_timings = .false.
    else
-      e_h%output_solver_timings = .true.
+      e_h%output_timings = .true.
    endif
 
 end subroutine
@@ -1290,14 +1290,14 @@ end subroutine
 !>
 !! This routine sets the unit to which detailed solver timings are output.
 !!
-subroutine elsi_set_solver_timings_unit(e_h,solver_timings_unit)
+subroutine elsi_set_timings_unit(e_h,timings_unit)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                 !< Handle
-   integer(kind=i4),  intent(in)    :: solver_timings_unit !< Unit
+   type(elsi_handle), intent(inout) :: e_h          !< Handle
+   integer(kind=i4),  intent(in)    :: timings_unit !< Unit
 
-   character*40, parameter :: caller = "elsi_set_solver_timings_unit"
+   character*40, parameter :: caller = "elsi_set_timings_unit"
 
    call elsi_check_handle(e_h,caller)
 
@@ -1305,21 +1305,21 @@ subroutine elsi_set_solver_timings_unit(e_h,solver_timings_unit)
       e_h%handle_changed = .true.
    endif
 
-   e_h%solver_timings_file%print_unit = solver_timings_unit
+   e_h%timings_file%print_unit = timings_unit
 
 end subroutine
 
 !>
 !! This routine sets the file to which detailed solver timings are output.
 !!
-subroutine elsi_set_solver_timings_file(e_h,solver_timings_file)
+subroutine elsi_set_timings_file(e_h,timings_file)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h                 !< Handle
-   character(len=*),  intent(in)    :: solver_timings_file !< File
+   type(elsi_handle), intent(inout) :: e_h          !< Handle
+   character(len=*),  intent(in)    :: timings_file !< File
 
-   character*40, parameter :: caller = "elsi_set_solver_timings_file"
+   character*40, parameter :: caller = "elsi_set_timings_file"
 
    call elsi_check_handle(e_h,caller)
 
@@ -1327,23 +1327,23 @@ subroutine elsi_set_solver_timings_file(e_h,solver_timings_file)
       e_h%handle_changed = .true.
    endif
 
-   e_h%solver_timings_file%file_name = solver_timings_file
+   e_h%timings_file%file_name = timings_file
 
 end subroutine
 
 !>
 !! This routine sets the next user_tag for the solver timings.
 !!
-subroutine elsi_set_solver_timing_tag(e_h,user_tag)
+subroutine elsi_set_timings_tag(e_h,user_tag)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: e_h      !< Handle
    character(len=*),  intent(in)    :: user_tag !< Tag
 
-   character*40, parameter :: caller = "elsi_set_solver_timing_tag"
+   character*40, parameter :: caller = "elsi_set_timings_tag"
 
-   e_h%solver_timings%user_tag = user_tag
+   e_h%timings%user_tag = user_tag
 
 end subroutine
 

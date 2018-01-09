@@ -209,12 +209,12 @@ program test_ev_complex
    ! Customize ELSI
    call elsi_set_output(e_h,2)
    call elsi_set_mu_broaden_width(e_h,1.0e-6_r8)
-   call elsi_set_solver_timings_file(e_h,"ev_complex_timings.json")
+   call elsi_set_timings_file(e_h,"ev_complex_timings.json")
 
    t1 = MPI_Wtime()
 
    ! Solve (pseudo SCF 1)
-   call elsi_set_solver_timing_tag(e_h,"TEST")
+   call elsi_set_timings_tag(e_h,"TEST")
    call elsi_ev_complex(e_h,ham,ovlp,eval,evec)
 
    t2 = MPI_Wtime()
@@ -234,7 +234,7 @@ program test_ev_complex
    t1 = MPI_Wtime()
 
    ! Solve (pseudo SCF 2, with the same H)
-   call elsi_set_solver_timing_tag(e_h,"TEST")
+   call elsi_set_timings_tag(e_h,"TEST")
    call elsi_ev_complex(e_h,ham,ovlp,eval,evec)
 
    t2 = MPI_Wtime()

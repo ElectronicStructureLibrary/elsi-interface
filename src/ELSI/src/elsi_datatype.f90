@@ -42,8 +42,6 @@ module ELSI_DATATYPE
 
    private
 
-   !---------------------------------------------------------------------------!
-
    type, public :: elsi_file_io_handle
 
       logical                       :: handle_init !< Is this a valid handle?
@@ -55,8 +53,6 @@ module ELSI_DATATYPE
       integer(kind=i4)              :: comma_json  !< Comma placement in JSON
 
    end type
-
-   !---------------------------------------------------------------------------!
 
    type, public :: elsi_timings_handle
 
@@ -70,8 +66,6 @@ module ELSI_DATATYPE
       character(len=TIMING_STRING_LEN), allocatable :: user_tags(:) ! Tags provided by user
 
    end type
-
-   !---------------------------------------------------------------------------!
 
    type, public :: elsi_handle
 
@@ -315,19 +309,17 @@ module ELSI_DATATYPE
 
       ! ELSI IO files
       type(elsi_file_io_handle) :: stdio
-      type(elsi_file_io_handle) :: solver_timings_file
+      type(elsi_file_io_handle) :: timings_file
 
       ! Timer and timings
       integer(kind=i4)          :: clock_rate
-      type(elsi_timings_handle) :: solver_timings
-      logical                   :: output_solver_timings
+      type(elsi_timings_handle) :: timings
+      logical                   :: output_timings
 
       ! Versioning
       character(len=:), allocatable :: processor_name ! MPI name for processor
 
    end type
-
-   !---------------------------------------------------------------------------!
 
    type, public :: elsi_rw_handle
 
@@ -383,7 +375,5 @@ module ELSI_DATATYPE
       integer(kind=i4) :: header_user(8)
 
    end type
-
-   !---------------------------------------------------------------------------!
 
 end module ELSI_DATATYPE

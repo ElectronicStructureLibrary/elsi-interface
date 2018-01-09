@@ -1265,7 +1265,7 @@ subroutine elsi_process_solver_timing(e_h,output_type,data_type,solver_used,&
 
    character*40, parameter :: caller = "elsi_dm_complex_sparse"
 
-   io_h = e_h%solver_timings_file
+   io_h = e_h%timings_file
 
    call elsi_get_time(e_h,t1)
 
@@ -1275,17 +1275,15 @@ subroutine elsi_process_solver_timing(e_h,output_type,data_type,solver_used,&
 
    ! Output information about this solver invocation
    call elsi_get_solver_tag(e_h,solver_tag,data_type)
-   call elsi_add_timing(e_h%solver_timings,total_time,solver_tag)
+   call elsi_add_timing(e_h%timings,total_time,solver_tag)
 
-   if(e_h%output_solver_timings) then
-      ! Both the iteration number and user tag for this iteration is taken
-      ! from the top of the solver_timings struct
-      iteration = e_h%solver_timings%n_timings
+   if(e_h%output_timings) then
+      iteration = e_h%timings%n_timings
 
       ! Avoid comma at the end of the last entry
       comma_json_save = io_h%comma_json
 
-      if(e_h%solver_timings%n_timings == 1) then
+      if(e_h%timings%n_timings == 1) then
          io_h%comma_json = NO_COMMA
       else
          io_h%comma_json = COMMA_BEFORE
@@ -1293,7 +1291,7 @@ subroutine elsi_process_solver_timing(e_h,output_type,data_type,solver_used,&
 
       call elsi_print_solver_timing(e_h,output_type,data_type,start_datetime,&
               total_time,solver_tag,iteration,io_h,&
-              e_h%solver_timings%user_tags(iteration))
+              e_h%timings%user_tags(iteration))
 
       io_h%comma_json = comma_json_save
    endif
