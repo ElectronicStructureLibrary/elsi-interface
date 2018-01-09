@@ -94,6 +94,10 @@ module ELSI
    public :: elsi_set_sips_n_elpa
    public :: elsi_set_sips_n_slice
    public :: elsi_set_sips_buffer
+   public :: elsi_set_sips_ev_shift
+   public :: elsi_set_sips_slice_type
+   public :: elsi_set_sips_interval
+   public :: elsi_set_sips_inertia
    public :: elsi_set_dmp_method
    public :: elsi_set_dmp_max_step
    public :: elsi_set_dmp_tol

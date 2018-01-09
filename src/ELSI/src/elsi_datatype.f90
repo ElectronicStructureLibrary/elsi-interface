@@ -297,7 +297,11 @@ module ELSI_DATATYPE
       integer(kind=i4) :: sips_n_elpa
       integer(kind=i4) :: np_per_slice
       integer(kind=i4) :: n_slices
+      integer(kind=i4) :: slice_type
+      integer(kind=i4) :: sips_inertia ! Number of inertia counting steps
       real(kind=r8)    :: slice_buffer ! Adjust interval on-the-fly
+      real(kind=r8)    :: ev_shift     ! Adjust interval between SCF steps
+      real(kind=r8)    :: sips_interval(2)
       logical          :: sips_started = .false.
 
       ! DMP

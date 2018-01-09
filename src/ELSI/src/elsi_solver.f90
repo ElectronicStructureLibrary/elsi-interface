@@ -1383,7 +1383,7 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,start_datetime,&
       call elsi_say_setting(e_h,"User Tag",user_tag,io_h)
       call elsi_say_setting(e_h,"Timing (s)",total_time,io_h)
       call truncate_string(io_h%prefix,2)
-   elseif (io_h%file_format == JSON) then
+   elseif(io_h%file_format == JSON) then
       if(io_h%comma_json == COMMA_BEFORE) then
          write(info_str,"(A)") ',{'
       else
@@ -1459,7 +1459,7 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,start_datetime,&
       call elsi_say(e_h,info_str,io_h)
       write(info_str,"(A)") ""
       call elsi_say(e_h,info_str,io_h)
-   elseif (io_h%file_format == JSON) then
+   elseif(io_h%file_format == JSON) then
       if(io_h%comma_json == COMMA_AFTER) then
          write(info_str,"(A)") '},'
          call elsi_say(e_h,info_str,io_h)

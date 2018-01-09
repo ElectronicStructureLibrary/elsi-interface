@@ -107,8 +107,6 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
    real(kind=r8),     intent(inout) :: ovlp(e_h%nnz_l_sp)
    real(kind=r8),     intent(inout) :: eval(e_h%n_states)
 
-   real(kind=r8)    :: first_ham
-   real(kind=r8)    :: g_shift ! Global shift of eigenspectrum
    real(kind=r8)    :: t0
    real(kind=r8)    :: t1
    integer(kind=i4) :: mpierr
@@ -152,14 +150,7 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
    call elsi_say(e_h,info_str)
 
-   first_ham = ham(1)
-
-   call MPI_Bcast(first_ham,1,mpi_real8,0,e_h%mpi_comm,mpierr)
-
-   call elsi_check_mpi(e_h,"MPI_Bcast",mpierr,caller)
-
-   g_shift = first_ham-eval(1)
-   eval    = eval+g_shift
+   eval = eval+e_h%ev_shift
 
    call sips_set_slices(1.0_r8,e_h%slice_buffer,e_h%n_states,&
            eval(1:e_h%n_states),e_h%n_slices,e_h%slices)
@@ -287,10 +278,19 @@ subroutine elsi_set_sips_default(e_h)
    endif
 
    ! How many steps of ELPA to run before SIPs
-   e_h%sips_n_elpa = 0
+   e_h%sips_n_elpa = 1
 
    ! Buffer to adjust global interval
    e_h%slice_buffer = 0.02_r8
+
+   ! Shift of eigenspectrum between SCF steps
+   e_h%ev_shift = 0.0_r8
+
+   ! Slice type (not used)
+   e_h%slice_type = 0
+
+   ! Number of inertia steps (not used)
+   e_h%sips_inertia = 0
 
 end subroutine
 

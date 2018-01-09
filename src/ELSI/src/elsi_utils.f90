@@ -180,7 +180,11 @@ subroutine elsi_reset_handle(e_h)
    e_h%sips_n_elpa           = UNSET
    e_h%np_per_slice          = UNSET
    e_h%n_slices              = UNSET
+   e_h%slice_type            = UNSET
+   e_h%sips_inertia          = UNSET
    e_h%slice_buffer          = 0.0_r8
+   e_h%ev_shift              = 0.0_r8
+   e_h%sips_interval         = 0.0_r8
    e_h%sips_started          = .false.
    e_h%n_states_dmp          = UNSET
    e_h%dmp_method            = UNSET
@@ -821,7 +825,7 @@ subroutine elsi_get_datetime_rfc3339(datetime_rfc3339)
    ! Get millisecond
    if(datetime(8) < 10) then
       write(millisecond,'(A2,I1)') "00",datetime(8)
-   elseif (datetime(8) < 100) then
+   elseif(datetime(8) < 100) then
       write(millisecond,'(A1,I2)') "0",datetime(8)
    else
       write(millisecond,'(I3)'   ) datetime(8)

@@ -90,6 +90,10 @@ module ELSI_MUTATOR
    public :: elsi_set_sips_n_elpa
    public :: elsi_set_sips_n_slice
    public :: elsi_set_sips_buffer
+   public :: elsi_set_sips_ev_shift
+   public :: elsi_set_sips_slice_type
+   public :: elsi_set_sips_interval
+   public :: elsi_set_sips_inertia
    public :: elsi_set_dmp_method
    public :: elsi_set_dmp_max_step
    public :: elsi_set_dmp_tol
@@ -987,6 +991,100 @@ subroutine elsi_set_sips_buffer(e_h,buffer)
    endif
 
    e_h%slice_buffer = buffer
+
+end subroutine
+
+!>
+!! This routine specifies a shift to the eigenspectrum between SCF steps.
+!!
+subroutine elsi_set_sips_ev_shift(e_h,ev_shift)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h      !< Handle
+   real(kind=r8),     intent(in)    :: ev_shift !< Shift value
+
+   character*40, parameter :: caller = "elsi_set_sips_ev_shift"
+
+   call elsi_check_handle(e_h,caller)
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
+
+   e_h%ev_shift = ev_shift
+
+end subroutine
+
+!>
+!! This routine sets the slicing method when using SIPs.
+!!
+subroutine elsi_set_sips_slice_type(e_h,slice_type)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h        !< Handle
+   integer(kind=i4),  intent(in)    :: slice_type !< Method of slicing
+
+   character*40, parameter :: caller = "elsi_set_sips_slice_type"
+
+   call elsi_check_handle(e_h,caller)
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
+
+   if(slice_type < 0 .or. slice_type > 3) then
+      call elsi_stop(" Unsupported slice_type.",e_h,caller)
+   endif
+
+   e_h%slice_type = slice_type
+
+end subroutine
+
+!>
+!! This routine switches on and off inertia counting in SIPs.
+!!
+subroutine elsi_set_sips_inertia(e_h,n_inertia)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h       !< Handle
+   integer(kind=i4),  intent(in)    :: n_inertia !< Number of inertia steps
+
+   character*40, parameter :: caller = "elsi_set_sips_inertia"
+
+   call elsi_check_handle(e_h,caller)
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
+
+   e_h%sips_inertia = n_inertia
+
+end subroutine
+
+!>
+!! This routine sets the global interval to be solved by SIPs.
+!!
+subroutine elsi_set_sips_interval(e_h,lower,upper)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h   !< Handle
+   real(kind=r8),     intent(in)    :: lower !< Lower bound
+   real(kind=r8),     intent(in)    :: upper !< Upper bound
+
+   character*40, parameter :: caller = "elsi_set_sips_interval"
+
+   call elsi_check_handle(e_h,caller)
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
+
+   e_h%sips_interval(1) = lower
+   e_h%sips_interval(2) = upper
 
 end subroutine
 
