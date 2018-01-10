@@ -37,7 +37,6 @@ module ELSI
    use ELSI_MUTATOR
    use ELSI_SETUP
    use ELSI_SOLVER
-   use ELSI_TIMINGS
 
    implicit none
 

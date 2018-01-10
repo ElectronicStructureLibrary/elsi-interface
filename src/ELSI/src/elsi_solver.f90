@@ -47,13 +47,13 @@ module ELSI_SOLVER
                              elsi_compute_dm_elpa_cmplx,&
                              elsi_normalize_dm_elpa_cmplx,&
                              elsi_solve_evp_elpa_cmplx
-   use ELSI_LAPACK,    only: elsi_solve_evp_lapack_real,&
-                             elsi_solve_evp_lapack_cmplx
    use ELSI_IO,        only: elsi_print_handle_summary,&
                              elsi_print_solver_settings,elsi_print_settings,&
                              elsi_say,elsi_say_setting,&
                              elsi_print_matrix_format_settings,&
                              append_string,truncate_string
+   use ELSI_LAPACK,    only: elsi_solve_evp_lapack_real,&
+                             elsi_solve_evp_lapack_cmplx
    use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
    use ELSI_MATCONV,   only: elsi_blacs_to_sips_hs_real,&
                              elsi_sips_to_blacs_hs_real,&
