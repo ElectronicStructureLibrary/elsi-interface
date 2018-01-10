@@ -216,7 +216,7 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
          n_iner_steps   = 0
          slices_changed = .true.
 
-         do while(n_iner_steps < 10 .and. slices_changed)
+         do while(n_iner_steps < 5 .and. slices_changed)
             n_iner_steps = n_iner_steps+1
 
             call sips_get_inertias(e_h%sips_n_slices,slices,inertias)
@@ -244,13 +244,13 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
                         slices(clst(i,2)) = slices(j-1)
                         slices_changed    = .true.
                      endif
-                  endif
 
-                  exit
+                     exit
+                  endif
                enddo
 
                do j = clst(i,3),clst(i,2),-1
-                  if(inertias(j) < clst(i,1)-1) then
+                  if(inertias(j) < clst(i+1,1)-1) then
                      if(j == clst(i,3)) then
                         slices(clst(i,3)) = slices(clst(i,3))+0.1_r8
                         slices_changed    = .true.
@@ -258,9 +258,9 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
                         slices(clst(i,3)) = slices(j+1)
                         slices_changed    = .true.
                      endif
-                  endif
 
-                  exit
+                     exit
+                  endif
                enddo
 
                lower = slices(clst(i,2))
