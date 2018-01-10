@@ -34,14 +34,15 @@ module ELSI_SIPS
    use ELSI_DATATYPE,  only: elsi_handle
    use ELSI_IO,        only: elsi_say
    use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
-   use ELSI_MPI,       only: elsi_check_mpi
+   use ELSI_MPI,       only: elsi_stop,elsi_check_mpi
    use ELSI_PRECISION, only: r8,i4
    use ELSI_TIMINGS,   only: elsi_get_time
    use ELSI_UTILS,     only: elsi_get_global_row
    use M_QETSC,        only: sips_initialize,sips_finalize,sips_load_ham_ovlp,&
                              sips_load_ham,sips_update_ham,sips_set_eps,&
                              sips_update_eps,sips_set_slices,sips_solve_eps,&
-                             sips_get_eigenvalues,sips_get_eigenvectors
+                             sips_get_eigenvalues,sips_get_eigenvectors,&
+                             sips_get_inertias
 
    implicit none
 
@@ -109,19 +110,18 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
    real(kind=r8)    :: t1
    real(kind=r8)    :: lower
    real(kind=r8)    :: upper
-   real(kind=r8)    :: max_diff
+   real(kind=r8)    :: prev_sum
+   real(kind=r8)    :: new_sum
    integer(kind=i4) :: i
-   integer(kind=i4) :: n_solved
-   integer(kind=i4) :: n_grp
-   integer(kind=i4) :: grp_ptr(100)
    integer(kind=i4) :: this
    integer(kind=i4) :: tmp
+   integer(kind=i4) :: n_solved
+   integer(kind=i4) :: n_grp
+   integer(kind=i4) :: grp_ptr(200)
    integer(kind=i4) :: mpierr
    character*200    :: info_str
 
    real(kind=r8),    allocatable :: slices(:)
-   real(kind=r8),    allocatable :: shifts(:)
-   real(kind=r8),    allocatable :: eval_save(:)
    integer(kind=i4), allocatable :: inertias(:)
 
    character*40, parameter :: caller = "elsi_solve_evp_sips_real"
@@ -175,7 +175,7 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
       endif
    enddo
 
-   if(e_h%sips_n_slices-n_grp+1 < n_grp) then
+   if(e_h%sips_n_slices-n_grp+1 < n_grp) then ! Simple slicing
       lower = eval(1)-e_h%sips_buffer
       upper = eval(e_h%n_states)+e_h%sips_buffer
 
@@ -201,14 +201,30 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
 
       call elsi_linspace(lower,upper,this+1,slices(tmp+1:e_h%sips_n_slices+1))
 
-      if(e_h%sips_do_inertia) then
-         call elsi_allocate(e_h,shifts,e_h%sips_n_slices+1,"shifts",caller)
+      if(e_h%sips_do_inertia) then ! Inertia counting
+         call elsi_get_time(e_h,t0)
+
          call elsi_allocate(e_h,inertias,e_h%sips_n_slices+1,"inertias",caller)
 
-!         call sips_get_inertia(e_h%sips_n_slices,slices,inertias)
+         call sips_get_inertias(e_h%sips_n_slices,slices,inertias)
 
-         call elsi_deallocate(e_h,shifts,"shifts")
+         ! DEBUG
+         if(e_h%myid == 0) then
+            print *,"QETSc shifts and inertias"
+            do i = 1,e_h%sips_n_slices+1
+               print *,slices(i),":",inertias(i)
+            enddo
+            print *
+         endif
+
          call elsi_deallocate(e_h,inertias,"inertias")
+
+         call elsi_get_time(e_h,t1)
+
+         write(info_str,"('  Finished inertia counting')")
+         call elsi_say(e_h,info_str)
+         write(info_str,"('  | Time :',F10.3,' s')") t1-t0
+         call elsi_say(e_h,info_str)
       endif
    endif
 
@@ -219,34 +235,33 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
    ! Solve
    call sips_solve_eps(e_h%n_states,n_solved)
 
+   if(n_solved < e_h%n_states) then
+      call elsi_stop(" SIPs solver failed.",e_h,caller)
+   endif
+
    ! Get eigenvalues
-   call elsi_allocate(e_h,eval_save,e_h%n_states,"eval_save",caller)
-   eval_save = eval
+   prev_sum = sum(eval(1:e_h%n_states))/e_h%n_states
 
    call sips_get_eigenvalues(e_h%n_states,eval(1:e_h%n_states))
 
-   max_diff = maxval(abs(eval-eval_save))
+   new_sum = sum(eval(1:e_h%n_states))/e_h%n_states
 
-   if(max_diff < e_h%sips_inertia_tol) then
+   if(abs(new_sum-prev_sum) < e_h%sips_inertia_tol) then
       e_h%sips_do_inertia = .false.
+   else
+      e_h%sips_do_inertia = .true.
    endif
 
-! DEBUG
-if(e_h%myid == 0) then
-   print *,"VY: slices"
-   do i = 1,e_h%sips_n_slices+1
-      print *,slices(i)
-   enddo
-   print *
-
-   print *,"VY: eigenvalues"
-   do i = 1,n_grp-1
-      print *,eval(grp_ptr(i))
-      print *,eval(grp_ptr(i+1)-1)
-   enddo
-   print *,eval(e_h%n_states)
-   print *
-endif
+   ! DEBUG
+   if(e_h%myid == 0) then
+      print *,"QETSc eigenvalues"
+      do i = 1,n_grp-1
+         print *,eval(grp_ptr(i))
+         print *,eval(grp_ptr(i+1)-1)
+      enddo
+      print *,eval(e_h%n_states)
+      print *
+   endif
 
    call MPI_Barrier(e_h%mpi_comm,mpierr)
 
@@ -379,7 +394,7 @@ subroutine elsi_set_sips_default(e_h)
    e_h%sips_ev_shift = 0.0_r8
 
    ! Tolerance to stop inertia counting
-   e_h%sips_inertia_tol = 1.0e-4_r8
+   e_h%sips_inertia_tol = 1.0e-3_r8
 
    ! Do inertia counting
    e_h%sips_do_inertia = .true.
