@@ -72,7 +72,6 @@ module ELSI
    public :: elsi_set_omm_n_elpa
    public :: elsi_set_omm_tol
    public :: elsi_set_omm_ev_shift
-   public :: elsi_set_omm_psp
    public :: elsi_set_pexsi_n_mu
    public :: elsi_set_pexsi_n_pole
    public :: elsi_set_pexsi_np_per_pole
@@ -97,7 +96,7 @@ module ELSI
    public :: elsi_set_sips_ev_shift
    public :: elsi_set_sips_slice_type
    public :: elsi_set_sips_interval
-   public :: elsi_set_sips_inertia
+   public :: elsi_set_sips_inertia_tol
    public :: elsi_set_dmp_method
    public :: elsi_set_dmp_max_step
    public :: elsi_set_dmp_tol

@@ -84,40 +84,41 @@ subroutine elsi_init_chess(e_h)
       ! Initialize sparse matrices
       call sparse_matrix_init_from_data_ccs(e_h%myid,e_h%n_procs,e_h%mpi_comm,&
               e_h%n_basis,e_h%nnz_g,e_h%row_ind_chess,e_h%col_ptr_chess,&
-              e_h%sparse_mat(1),init_matmul=.false.)
+              e_h%sparse_mat_chess(1),init_matmul=.false.)
 
       ! TODO: Sparsity buffer
       call sparse_matrix_init_from_data_ccs(e_h%myid,e_h%n_procs,e_h%mpi_comm,&
               e_h%n_basis,e_h%nnz_g,e_h%row_ind_chess,e_h%col_ptr_chess,&
-              e_h%sparse_mat(2),init_matmul=.true.,nvctr_mult=e_h%nnz_g,&
+              e_h%sparse_mat_chess(2),init_matmul=.true.,nvctr_mult=e_h%nnz_g,&
               row_ind_mult=e_h%row_ind_chess,&
               col_ptr_mult=e_h%col_ptr_chess(1:e_h%n_basis))
 
       ! Initialize task groups
       call init_matrix_taskgroups_wrapper(e_h%myid,e_h%n_procs,e_h%mpi_comm,&
-              .false.,2,e_h%sparse_mat)
+              .false.,2,e_h%sparse_mat_chess)
 
       n_electron = e_h%n_electrons
 
       ! Initialize FOE objects
-      call init_foe(e_h%myid,e_h%n_procs,1,n_electron,e_h%foe_obj,&
-              fscale=e_h%erf_decay,fscale_lowerbound=e_h%erf_decay_min,&
-              fscale_upperbound=e_h%erf_decay_max,evlow=e_h%ev_ham_min,&
-              evhigh=e_h%ev_ham_max,betax=e_h%beta)
+      call init_foe(e_h%myid,e_h%n_procs,1,n_electron,e_h%chess_foe,&
+              fscale=e_h%chess_erf_decay,fscale_lowerbound=e_h%chess_erf_min,&
+              fscale_upperbound=e_h%chess_erf_max,evlow=e_h%chess_ev_ham_min,&
+              evhigh=e_h%chess_ev_ham_max,betax=e_h%chess_beta)
 
-      call init_foe(e_h%myid,e_h%n_procs,1,n_electron,e_h%ice_obj,&
-              evlow=e_h%ev_ovlp_min,evhigh=e_h%ev_ovlp_max,betax=e_h%beta)
+      call init_foe(e_h%myid,e_h%n_procs,1,n_electron,e_h%chess_ice,&
+              evlow=e_h%chess_ev_ovlp_min,evhigh=e_h%chess_ev_ovlp_max,&
+              betax=e_h%chess_beta)
 
       ! Allocate CheSS matrices
-      call matrices_init(e_h%sparse_mat(1),e_h%ham_chess,&
+      call matrices_init(e_h%sparse_mat_chess(1),e_h%ham_chess,&
               matsize=SPARSE_TASKGROUP)
-      call matrices_init(e_h%sparse_mat(1),e_h%ovlp_chess,&
+      call matrices_init(e_h%sparse_mat_chess(1),e_h%ovlp_chess,&
               matsize=SPARSE_TASKGROUP)
-      call matrices_init(e_h%sparse_mat(2),e_h%dm_chess,&
+      call matrices_init(e_h%sparse_mat_chess(2),e_h%dm_chess,&
               matsize=SPARSE_TASKGROUP)
-      call matrices_init(e_h%sparse_mat(2),e_h%edm_chess,&
+      call matrices_init(e_h%sparse_mat_chess(2),e_h%edm_chess,&
               matsize=SPARSE_TASKGROUP)
-      call matrices_init(e_h%sparse_mat(2),e_h%ovlp_inv_sqrt(1),&
+      call matrices_init(e_h%sparse_mat_chess(2),e_h%ovlp_inv_sqrt_chess(1),&
               matsize=SPARSE_TASKGROUP)
 
       e_h%ovlp_chess%matrix_compr = e_h%ovlp_real_chess
@@ -157,14 +158,14 @@ subroutine elsi_solve_evp_chess_real(e_h)
    call elsi_say(e_h,"  Starting CheSS density matrix solver")
 
    call matrix_fermi_operator_expansion(e_h%myid,e_h%n_procs,e_h%mpi_comm,&
-           e_h%foe_obj,e_h%ice_obj,e_h%sparse_mat(1),e_h%sparse_mat(1),&
-           e_h%sparse_mat(2),e_h%ovlp_chess,e_h%ham_chess,e_h%ovlp_inv_sqrt,&
-           e_h%dm_chess,e_h%energy_hdm,&
+           e_h%chess_foe,e_h%chess_ice,e_h%sparse_mat_chess(1),&
+           e_h%sparse_mat_chess(1),e_h%sparse_mat_chess(2),e_h%ovlp_chess,&
+           e_h%ham_chess,e_h%ovlp_inv_sqrt_chess,e_h%dm_chess,e_h%energy_hdm,&
            calculate_minusonehalf=calc_ovlp_inv_sqrt,foe_verbosity=0,&
            symmetrize_kernel=.true.,calculate_energy_density_kernel=.false.,&
            energy_kernel=e_h%edm_chess)
 
-   e_h%mu = foe_data_get_real(e_h%foe_obj,"ef",1)
+   e_h%mu = foe_data_get_real(e_h%chess_foe,"ef",1)
 
    call MPI_Barrier(e_h%mpi_comm,mpierr)
 
@@ -210,28 +211,28 @@ subroutine elsi_set_chess_default(e_h)
    endif
 
    ! Initial guess of the decay length of the error function
-   e_h%erf_decay = 5.0e-2_r8
+   e_h%chess_erf_decay = 5.0e-2_r8
 
    ! Lower bound of the decay length
-   e_h%erf_decay_min = 5.0e-3_r8
+   e_h%chess_erf_min = 5.0e-3_r8
 
    ! Upper bound of the decay length
-   e_h%erf_decay_max = 5.0e-2_r8
+   e_h%chess_erf_max = 5.0e-2_r8
 
    ! Lower bound of the eigenvalues of H
-   e_h%ev_ham_min = -2.0_r8
+   e_h%chess_ev_ham_min = -2.0_r8
 
    ! Upper bound of the eigenvalues of H
-   e_h%ev_ham_max = 2.0_r8
+   e_h%chess_ev_ham_max = 2.0_r8
 
    ! Lower bound of the eigenvalues of S
-   e_h%ev_ovlp_min = 1.0e-4_r8
+   e_h%chess_ev_ovlp_min = 1.0e-4_r8
 
    ! Upper bound of the eigenvalues of S
-   e_h%ev_ovlp_max = 2.0_r8
+   e_h%chess_ev_ovlp_max = 2.0_r8
 
    ! A patameter used to estimate eigenspectrum
-   e_h%beta = -1.0e3_r8
+   e_h%chess_beta = -1.0e3_r8
 
 end subroutine
 

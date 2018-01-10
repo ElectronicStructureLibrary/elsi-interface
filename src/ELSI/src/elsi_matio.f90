@@ -796,10 +796,10 @@ subroutine elsi_read_mat_real_mp(rw_h,f_name,mat)
               "dm_real_pexsi",caller)
    endif
 
-   aux_h%dm_real_pexsi = nnz_val
-   aux_h%n_elsi_calls  = 1
-   aux_h%my_prow_pexsi = 0
-   aux_h%np_per_pole   = rw_h%n_procs
+   aux_h%dm_real_pexsi     = nnz_val
+   aux_h%n_elsi_calls      = 1
+   aux_h%pexsi_my_prow     = 0
+   aux_h%pexsi_np_per_pole = rw_h%n_procs
 
    call elsi_pexsi_to_blacs_dm_real(aux_h,mat)
 
@@ -1015,10 +1015,10 @@ subroutine elsi_read_mat_complex_mp(rw_h,f_name,mat)
               "dm_cmplx_pexsi",caller)
    endif
 
-   aux_h%dm_cmplx_pexsi = nnz_val
-   aux_h%n_elsi_calls   = 1
-   aux_h%my_prow_pexsi  = 0
-   aux_h%np_per_pole    = rw_h%n_procs
+   aux_h%dm_cmplx_pexsi    = nnz_val
+   aux_h%n_elsi_calls      = 1
+   aux_h%pexsi_my_prow     = 0
+   aux_h%pexsi_np_per_pole = rw_h%n_procs
 
    call elsi_pexsi_to_blacs_dm_cmplx(aux_h,mat)
 

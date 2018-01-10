@@ -1296,7 +1296,7 @@ subroutine elsi_set_elpa_default(e_h)
    e_h%elpa_solver = 2
 
    ! How many single precision steps?
-   e_h%n_single_steps = 0
+   e_h%elpa_n_single = 0
 
    ! ELPA output?
    e_h%elpa_output = .false.

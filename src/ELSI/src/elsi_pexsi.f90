@@ -94,59 +94,60 @@ subroutine elsi_init_pexsi(e_h)
    if(e_h%n_elsi_calls == 1) then
       e_h%pexsi_options%spin = e_h%spin_degen
 
-      if(e_h%np_per_pole == UNSET) then
-         e_h%np_per_pole = e_h%n_procs/(e_h%pexsi_options%numPole*&
-                               e_h%pexsi_options%nPoints)
+      if(e_h%pexsi_np_per_pole == UNSET) then
+         e_h%pexsi_np_per_pole = e_h%n_procs/(e_h%pexsi_options%numPole*&
+                                    e_h%pexsi_options%nPoints)
       endif
 
-      write(info_str,"('  | MPI tasks per pole         ',I10)") e_h%np_per_pole
+      write(info_str,"('  | MPI tasks per pole         ',I10)")&
+         e_h%pexsi_np_per_pole
       call elsi_say(e_h,info_str)
 
       ! Set square-like process grid for selected inversion of each pole
-      do n_rows_tmp = nint(sqrt(real(e_h%np_per_pole))),2,-1
-         if(mod(e_h%np_per_pole,n_rows_tmp) == 0) exit
+      do n_rows_tmp = nint(sqrt(real(e_h%pexsi_np_per_pole))),2,-1
+         if(mod(e_h%pexsi_np_per_pole,n_rows_tmp) == 0) exit
       enddo
 
-      e_h%n_prow_pexsi = n_rows_tmp
-      e_h%n_pcol_pexsi = e_h%np_per_pole/n_rows_tmp
+      e_h%pexsi_n_prow = n_rows_tmp
+      e_h%pexsi_n_pcol = e_h%pexsi_np_per_pole/n_rows_tmp
 
       ! PEXSI process grid
-      e_h%my_pcol_pexsi = mod(e_h%myid,e_h%np_per_pole)
-      e_h%my_prow_pexsi = e_h%myid/e_h%np_per_pole
+      e_h%pexsi_my_pcol = mod(e_h%myid,e_h%pexsi_np_per_pole)
+      e_h%pexsi_my_prow = e_h%myid/e_h%pexsi_np_per_pole
 
       ! Point parallelization
-      e_h%np_per_point = e_h%n_procs/e_h%pexsi_options%nPoints
-      e_h%my_point     = e_h%myid/e_h%np_per_point
-      e_h%myid_point   = mod(e_h%myid,e_h%np_per_point)
+      e_h%pexsi_np_per_point = e_h%n_procs/e_h%pexsi_options%nPoints
+      e_h%pexsi_my_point     = e_h%myid/e_h%pexsi_np_per_point
+      e_h%pexsi_myid_point   = mod(e_h%myid,e_h%pexsi_np_per_point)
 
       ! PEXSI MPI communicators
-      call MPI_Comm_split(e_h%mpi_comm,e_h%my_pcol_pexsi,e_h%my_prow_pexsi,&
-              e_h%comm_among_pole,mpierr)
+      call MPI_Comm_split(e_h%mpi_comm,e_h%pexsi_my_pcol,e_h%pexsi_my_prow,&
+              e_h%pexsi_comm_among_pole,mpierr)
 
       call elsi_check_mpi(e_h,"MPI_Comm_split",mpierr,caller)
 
-      call MPI_Comm_split(e_h%mpi_comm,e_h%my_prow_pexsi,e_h%my_pcol_pexsi,&
-              e_h%comm_in_pole,mpierr)
+      call MPI_Comm_split(e_h%mpi_comm,e_h%pexsi_my_prow,e_h%pexsi_my_pcol,&
+              e_h%pexsi_comm_in_pole,mpierr)
 
       call elsi_check_mpi(e_h,"MPI_Comm_split",mpierr,caller)
 
-      call MPI_Comm_split(e_h%mpi_comm,e_h%myid_point,e_h%my_point,&
-              e_h%comm_among_point,mpierr)
+      call MPI_Comm_split(e_h%mpi_comm,e_h%pexsi_myid_point,e_h%pexsi_my_point,&
+              e_h%pexsi_comm_among_point,mpierr)
 
       call elsi_check_mpi(e_h,"MPI_Comm_split",mpierr,caller)
 
-      call MPI_Comm_split(e_h%mpi_comm,e_h%my_point,e_h%myid_point,&
-              e_h%comm_in_point,mpierr)
+      call MPI_Comm_split(e_h%mpi_comm,e_h%pexsi_my_point,e_h%pexsi_myid_point,&
+              e_h%pexsi_comm_in_point,mpierr)
 
       call elsi_check_mpi(e_h,"MPI_Comm_split",mpierr,caller)
 
       if(.not. e_h%sparsity_ready) then
          ! Set up 1D block distribution
-         e_h%n_lcol_sp = e_h%n_basis/e_h%np_per_pole
+         e_h%n_lcol_sp = e_h%n_basis/e_h%pexsi_np_per_pole
 
          ! The last process holds all remaining columns
-         if(e_h%my_pcol_pexsi == e_h%np_per_pole-1) then
-            e_h%n_lcol_sp = e_h%n_basis-(e_h%np_per_pole-1)*e_h%n_lcol_sp
+         if(e_h%pexsi_my_pcol == e_h%pexsi_np_per_pole-1) then
+            e_h%n_lcol_sp = e_h%n_basis-(e_h%pexsi_np_per_pole-1)*e_h%n_lcol_sp
          endif
       endif
 
@@ -157,8 +158,8 @@ subroutine elsi_init_pexsi(e_h)
          output_id = -1
       endif
 
-      e_h%pexsi_plan = f_ppexsi_plan_initialize(e_h%mpi_comm,e_h%n_prow_pexsi,&
-                          e_h%n_pcol_pexsi,output_id,ierr)
+      e_h%pexsi_plan = f_ppexsi_plan_initialize(e_h%mpi_comm,e_h%pexsi_n_prow,&
+                          e_h%pexsi_n_pcol,output_id,ierr)
 
       if(ierr /= 0) then
          call elsi_stop(" Initialization failed.",e_h,caller)
@@ -255,7 +256,7 @@ subroutine elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
 
    n_iner_steps = 0
    mu_range     = e_h%pexsi_options%muMax0-e_h%pexsi_options%muMin0
-   n_shift      = max(10,e_h%n_procs/e_h%np_per_pole)
+   n_shift      = max(10,e_h%n_procs/e_h%pexsi_np_per_pole)
 
    call elsi_allocate(e_h,shifts,n_shift,"shifts",caller)
    call elsi_allocate(e_h,inertias,n_shift,"inertias",caller)
@@ -362,9 +363,9 @@ subroutine elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
    do i = 1,e_h%pexsi_options%nPoints
       e_h%mu = shifts(i)
 
-      if(e_h%my_point == i-1) then
+      if(e_h%pexsi_my_point == i-1) then
          call f_ppexsi_calculate_fermi_operator_real3(e_h%pexsi_plan,&
-                 e_h%pexsi_options,e_h%mu,e_h%n_electrons,e_h%ne_pexsi,ne_drv,&
+                 e_h%pexsi_options,e_h%mu,e_h%n_electrons,e_h%pexsi_ne,ne_drv,&
                  ierr)
       endif
    enddo
@@ -372,26 +373,26 @@ subroutine elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
    call elsi_allocate(e_h,send_buf,e_h%pexsi_options%nPoints,"send_buf",caller)
 
    if(e_h%n_elsi_calls == 1) then
-      call elsi_allocate(e_h,e_h%ne_vec,e_h%pexsi_options%nPoints,"ne_vec",&
-              caller)
+      call elsi_allocate(e_h,e_h%ne_vec_pexsi,e_h%pexsi_options%nPoints,&
+              "ne_vec_pexsi",caller)
    endif
 
-   send_buf(e_h%my_point+1) = e_h%ne_pexsi*e_h%i_weight
+   send_buf(e_h%pexsi_my_point+1) = e_h%pexsi_ne*e_h%i_weight
 
-   call MPI_Allreduce(send_buf,e_h%ne_vec,e_h%pexsi_options%nPoints,mpi_real8,&
-           mpi_sum,e_h%comm_among_point,mpierr)
+   call MPI_Allreduce(send_buf,e_h%ne_vec_pexsi,e_h%pexsi_options%nPoints,&
+           mpi_real8,mpi_sum,e_h%pexsi_comm_among_point,mpierr)
 
    call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
 
    ! Get global number of electrons
    if(e_h%n_spins*e_h%n_kpts > 1) then
       if(e_h%myid == 0) then
-         send_buf = e_h%ne_vec
+         send_buf = e_h%ne_vec_pexsi
       else
          send_buf = 0.0_r8
       endif
 
-      call MPI_Allreduce(send_buf,e_h%ne_vec,e_h%pexsi_options%nPoints,&
+      call MPI_Allreduce(send_buf,e_h%ne_vec_pexsi,e_h%pexsi_options%nPoints,&
               mpi_real8,mpi_sum,e_h%mpi_comm_all,mpierr)
 
       call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
@@ -427,7 +428,7 @@ subroutine elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
    aux_max   = e_h%pexsi_options%nPoints+1
 
    do i = 1,e_h%pexsi_options%nPoints
-      if(e_h%ne_vec(i) < e_h%n_electrons-&
+      if(e_h%ne_vec_pexsi(i) < e_h%n_electrons-&
          e_h%pexsi_options%numElectronPEXSITolerance) then
          e_h%pexsi_options%muMin0 = shifts(i)
          aux_min = i
@@ -435,7 +436,7 @@ subroutine elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
    enddo
 
    do i = e_h%pexsi_options%nPoints,1,-1
-      if(e_h%ne_vec(i) > e_h%n_electrons+&
+      if(e_h%ne_vec_pexsi(i) > e_h%n_electrons+&
          e_h%pexsi_options%numElectronPEXSITolerance) then
          e_h%pexsi_options%muMax0 = shifts(i)
          aux_max = i
@@ -444,7 +445,7 @@ subroutine elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
 
    if(e_h%pexsi_options%nPoints == 1) then
       ! Scale density matrix
-      tmp_real  = (e_h%n_electrons/e_h%ne_pexsi)*tmp_real
+      tmp_real  = (e_h%n_electrons/e_h%pexsi_ne)*tmp_real
       converged = .true.
       e_h%mu    = shifts(1)
    else
@@ -466,13 +467,13 @@ subroutine elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
       endif
 
       do i = aux_min,aux_max
-         if(abs(e_h%ne_vec(i)-e_h%n_electrons) < &
+         if(abs(e_h%ne_vec_pexsi(i)-e_h%n_electrons) < &
             e_h%pexsi_options%numElectronPEXSITolerance) then
             e_h%mu    = shifts(i)
             converged = .true.
 
             call MPI_Bcast(tmp_real,e_h%nnz_l_sp,mpi_real8,i-1,&
-                    e_h%comm_among_point,mpierr)
+                    e_h%pexsi_comm_among_point,mpierr)
 
             call elsi_check_mpi(e_h,"MPI_Bcast",mpierr,caller)
 
@@ -484,33 +485,33 @@ subroutine elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
    ! Adjust to exact number of electrons
    if(.not. converged) then
       ! Chemical potential
-      e_h%mu = shifts(aux_min)+(e_h%n_electrons-e_h%ne_vec(aux_min))/&
-                  (e_h%ne_vec(aux_max)-e_h%ne_vec(aux_min))*&
+      e_h%mu = shifts(aux_min)+(e_h%n_electrons-e_h%ne_vec_pexsi(aux_min))/&
+                  (e_h%ne_vec_pexsi(aux_max)-e_h%ne_vec_pexsi(aux_min))*&
                   (shifts(aux_max)-shifts(aux_min))
 
       ! Density matrix
-      factor_min = (e_h%ne_vec(aux_max)-e_h%n_electrons)/&
-                      (e_h%ne_vec(aux_max)-e_h%ne_vec(aux_min))
-      factor_max = (e_h%n_electrons-e_h%ne_vec(aux_min))/&
-                      (e_h%ne_vec(aux_max)-e_h%ne_vec(aux_min))
+      factor_min = (e_h%ne_vec_pexsi(aux_max)-e_h%n_electrons)/&
+                      (e_h%ne_vec_pexsi(aux_max)-e_h%ne_vec_pexsi(aux_min))
+      factor_max = (e_h%n_electrons-e_h%ne_vec_pexsi(aux_min))/&
+                      (e_h%ne_vec_pexsi(aux_max)-e_h%ne_vec_pexsi(aux_min))
 
       call elsi_allocate(e_h,send_buf,e_h%nnz_l_sp,"send_buf",caller)
 
-      if(e_h%my_point == aux_min-1) then
+      if(e_h%pexsi_my_point == aux_min-1) then
          send_buf = factor_min*tmp_real
-      elseif(e_h%my_point == aux_max-1) then
+      elseif(e_h%pexsi_my_point == aux_max-1) then
          send_buf = factor_max*tmp_real
       endif
 
       call MPI_Allreduce(send_buf,tmp_real,e_h%nnz_l_sp,mpi_real8,mpi_sum,&
-              e_h%comm_among_point,mpierr)
+              e_h%pexsi_comm_among_point,mpierr)
 
       call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
 
       call elsi_deallocate(e_h,send_buf,"send_buf")
    endif
 
-   if(e_h%my_prow_pexsi == 0) then
+   if(e_h%pexsi_my_prow == 0) then
       dm = tmp_real
    endif
 
@@ -518,11 +519,11 @@ subroutine elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
    call elsi_deallocate(e_h,shifts,"shifts")
 
    ! Compute energy = Tr(H*DM)
-   if(e_h%my_prow_pexsi == 0) then
+   if(e_h%pexsi_my_prow == 0) then
       local_energy = ddot(e_h%nnz_l_sp,ham,1,dm,1)
 
       call MPI_Reduce(local_energy,e_h%energy_hdm,1,mpi_real8,mpi_sum,0,&
-              e_h%comm_in_pole,mpierr)
+              e_h%pexsi_comm_in_pole,mpierr)
 
       call elsi_check_mpi(e_h,"MPI_Reduce",mpierr,caller)
    endif
@@ -605,7 +606,7 @@ subroutine elsi_compute_edm_pexsi_real(e_h,edm)
    enddo
 
    do i = 1,e_h%pexsi_options%nPoints
-      if(e_h%ne_vec(i) < e_h%n_electrons-&
+      if(e_h%ne_vec_pexsi(i) < e_h%n_electrons-&
          e_h%pexsi_options%numElectronPEXSITolerance) then
          e_h%pexsi_options%muMin0 = shifts(i)
          aux_min = i
@@ -613,7 +614,7 @@ subroutine elsi_compute_edm_pexsi_real(e_h,edm)
    enddo
 
    do i = e_h%pexsi_options%nPoints,1,-1
-      if(e_h%ne_vec(i) > e_h%n_electrons+&
+      if(e_h%ne_vec_pexsi(i) > e_h%n_electrons+&
          e_h%pexsi_options%numElectronPEXSITolerance) then
          e_h%pexsi_options%muMax0 = shifts(i)
          aux_max = i
@@ -622,7 +623,7 @@ subroutine elsi_compute_edm_pexsi_real(e_h,edm)
 
    if(e_h%pexsi_options%nPoints == 1) then
       ! Scale energy density matrix
-      tmp_real  = (e_h%n_electrons/e_h%ne_pexsi)*tmp_real
+      tmp_real  = (e_h%n_electrons/e_h%pexsi_ne)*tmp_real
       converged = .true.
       e_h%mu    = shifts(1)
    else
@@ -644,13 +645,13 @@ subroutine elsi_compute_edm_pexsi_real(e_h,edm)
       endif
 
       do i = aux_min,aux_max
-         if(abs(e_h%ne_vec(i)-e_h%n_electrons) < &
+         if(abs(e_h%ne_vec_pexsi(i)-e_h%n_electrons) < &
             e_h%pexsi_options%numElectronPEXSITolerance) then
             e_h%mu    = shifts(i)
             converged = .true.
 
             call MPI_Bcast(tmp_real,e_h%nnz_l_sp,mpi_real8,i-1,&
-                    e_h%comm_among_point,mpierr)
+                    e_h%pexsi_comm_among_point,mpierr)
 
             call elsi_check_mpi(e_h,"MPI_Bcast",mpierr,caller)
 
@@ -662,28 +663,28 @@ subroutine elsi_compute_edm_pexsi_real(e_h,edm)
    ! Adjust to exact number of electrons
    if(.not. converged) then
       ! Energy density matrix
-      factor_min = (e_h%ne_vec(aux_max)-e_h%n_electrons)/&
-                      (e_h%ne_vec(aux_max)-e_h%ne_vec(aux_min))
-      factor_max = (e_h%n_electrons-e_h%ne_vec(aux_min))/&
-                      (e_h%ne_vec(aux_max)-e_h%ne_vec(aux_min))
+      factor_min = (e_h%ne_vec_pexsi(aux_max)-e_h%n_electrons)/&
+                      (e_h%ne_vec_pexsi(aux_max)-e_h%ne_vec_pexsi(aux_min))
+      factor_max = (e_h%n_electrons-e_h%ne_vec_pexsi(aux_min))/&
+                      (e_h%ne_vec_pexsi(aux_max)-e_h%ne_vec_pexsi(aux_min))
 
       call elsi_allocate(e_h,send_buf,e_h%nnz_l_sp,"send_buf",caller)
 
-      if(e_h%my_point == aux_min-1) then
+      if(e_h%pexsi_my_point == aux_min-1) then
          send_buf = factor_min*tmp_real
-      elseif(e_h%my_point == aux_max-1) then
+      elseif(e_h%pexsi_my_point == aux_max-1) then
          send_buf = factor_max*tmp_real
       endif
 
       call MPI_Allreduce(send_buf,tmp_real,e_h%nnz_l_sp,mpi_real8,mpi_sum,&
-              e_h%comm_among_point,mpierr)
+              e_h%pexsi_comm_among_point,mpierr)
 
       call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
 
       call elsi_deallocate(e_h,send_buf,"send_buf")
    endif
 
-   if(e_h%my_prow_pexsi == 0) then
+   if(e_h%pexsi_my_prow == 0) then
       edm = tmp_real
    endif
 
@@ -787,7 +788,7 @@ subroutine elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
 
    n_iner_steps = 0
    mu_range     = e_h%pexsi_options%muMax0-e_h%pexsi_options%muMin0
-   n_shift      = max(10,e_h%n_procs/e_h%np_per_pole)
+   n_shift      = max(10,e_h%n_procs/e_h%pexsi_np_per_pole)
 
    call elsi_allocate(e_h,shifts,n_shift,"shifts",caller)
    call elsi_allocate(e_h,inertias,n_shift,"inertias",caller)
@@ -894,9 +895,9 @@ subroutine elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
    do i = 1,e_h%pexsi_options%nPoints
       e_h%mu = shifts(i)
 
-      if(e_h%my_point == i-1) then
+      if(e_h%pexsi_my_point == i-1) then
          call f_ppexsi_calculate_fermi_operator_complex(e_h%pexsi_plan,&
-                 e_h%pexsi_options,e_h%mu,e_h%n_electrons,e_h%ne_pexsi,&
+                 e_h%pexsi_options,e_h%mu,e_h%n_electrons,e_h%pexsi_ne,&
                  ne_drv,ierr)
       endif
    enddo
@@ -904,26 +905,26 @@ subroutine elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
    call elsi_allocate(e_h,send_buf,e_h%pexsi_options%nPoints,"send_buf",caller)
 
    if(e_h%n_elsi_calls == 1) then
-      call elsi_allocate(e_h,e_h%ne_vec,e_h%pexsi_options%nPoints,"ne_vec",&
-              caller)
+      call elsi_allocate(e_h,e_h%ne_vec_pexsi,e_h%pexsi_options%nPoints,&
+              "ne_vec_pexsi",caller)
    endif
 
-   send_buf(e_h%my_point+1) = e_h%ne_pexsi*e_h%i_weight
+   send_buf(e_h%pexsi_my_point+1) = e_h%pexsi_ne*e_h%i_weight
 
-   call MPI_Allreduce(send_buf,e_h%ne_vec,e_h%pexsi_options%nPoints,mpi_real8,&
-           mpi_sum,e_h%comm_among_point,mpierr)
+   call MPI_Allreduce(send_buf,e_h%ne_vec_pexsi,e_h%pexsi_options%nPoints,&
+           mpi_real8,mpi_sum,e_h%pexsi_comm_among_point,mpierr)
 
    call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
 
    ! Get global number of electrons
    if(e_h%n_spins*e_h%n_kpts > 1) then
       if(e_h%myid == 0) then
-         send_buf = e_h%ne_vec
+         send_buf = e_h%ne_vec_pexsi
       else
          send_buf = 0.0_r8
       endif
 
-      call MPI_Allreduce(send_buf,e_h%ne_vec,e_h%pexsi_options%nPoints,&
+      call MPI_Allreduce(send_buf,e_h%ne_vec_pexsi,e_h%pexsi_options%nPoints,&
               mpi_real8,mpi_sum,e_h%mpi_comm_all,mpierr)
 
       call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
@@ -959,7 +960,7 @@ subroutine elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
    aux_max   = e_h%pexsi_options%nPoints+1
 
    do i = 1,e_h%pexsi_options%nPoints
-      if(e_h%ne_vec(i) < e_h%n_electrons-&
+      if(e_h%ne_vec_pexsi(i) < e_h%n_electrons-&
          e_h%pexsi_options%numElectronPEXSITolerance) then
          e_h%pexsi_options%muMin0 = shifts(i)
          aux_min = i
@@ -967,7 +968,7 @@ subroutine elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
    enddo
 
    do i = e_h%pexsi_options%nPoints,1,-1
-      if(e_h%ne_vec(i) > e_h%n_electrons+&
+      if(e_h%ne_vec_pexsi(i) > e_h%n_electrons+&
          e_h%pexsi_options%numElectronPEXSITolerance) then
          e_h%pexsi_options%muMax0 = shifts(i)
          aux_max = i
@@ -976,7 +977,7 @@ subroutine elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
 
    if(e_h%pexsi_options%nPoints == 1) then
       ! Scale density matrix
-      tmp_cmplx = (e_h%n_electrons/e_h%ne_pexsi)*tmp_cmplx
+      tmp_cmplx = (e_h%n_electrons/e_h%pexsi_ne)*tmp_cmplx
       converged = .true.
       e_h%mu    = shifts(1)
    else
@@ -998,13 +999,13 @@ subroutine elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
       endif
 
       do i = aux_min,aux_max
-         if(abs(e_h%ne_vec(i)-e_h%n_electrons) < &
+         if(abs(e_h%ne_vec_pexsi(i)-e_h%n_electrons) < &
             e_h%pexsi_options%numElectronPEXSITolerance) then
             e_h%mu    = shifts(i)
             converged = .true.
 
             call MPI_Bcast(tmp_cmplx,e_h%nnz_l_sp,mpi_complex16,i-1,&
-                    e_h%comm_among_point,mpierr)
+                    e_h%pexsi_comm_among_point,mpierr)
 
             call elsi_check_mpi(e_h,"MPI_Bcast",mpierr,caller)
 
@@ -1016,34 +1017,34 @@ subroutine elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
    ! Adjust to exact number of electrons
    if(.not. converged) then
       ! Chemical potential
-      e_h%mu = shifts(aux_min)+(e_h%n_electrons-e_h%ne_vec(aux_min))/&
-                  (e_h%ne_vec(aux_max)-e_h%ne_vec(aux_min))*&
+      e_h%mu = shifts(aux_min)+(e_h%n_electrons-e_h%ne_vec_pexsi(aux_min))/&
+                  (e_h%ne_vec_pexsi(aux_max)-e_h%ne_vec_pexsi(aux_min))*&
                   (shifts(aux_max)-shifts(aux_min))
 
       ! Density matrix
-      factor_min = (e_h%ne_vec(aux_max)-e_h%n_electrons)/&
-                      (e_h%ne_vec(aux_max)-e_h%ne_vec(aux_min))
-      factor_max = (e_h%n_electrons-e_h%ne_vec(aux_min))/&
-                      (e_h%ne_vec(aux_max)-e_h%ne_vec(aux_min))
+      factor_min = (e_h%ne_vec_pexsi(aux_max)-e_h%n_electrons)/&
+                      (e_h%ne_vec_pexsi(aux_max)-e_h%ne_vec_pexsi(aux_min))
+      factor_max = (e_h%n_electrons-e_h%ne_vec_pexsi(aux_min))/&
+                      (e_h%ne_vec_pexsi(aux_max)-e_h%ne_vec_pexsi(aux_min))
 
       call elsi_allocate(e_h,send_buf_cmplx,e_h%nnz_l_sp,"send_buf_cmplx",&
               caller)
 
-      if(e_h%my_point == aux_min-1) then
+      if(e_h%pexsi_my_point == aux_min-1) then
          send_buf_cmplx = factor_min*tmp_cmplx
-      elseif(e_h%my_point == aux_max-1) then
+      elseif(e_h%pexsi_my_point == aux_max-1) then
          send_buf_cmplx = factor_max*tmp_cmplx
       endif
 
       call MPI_Allreduce(send_buf_cmplx,tmp_cmplx,e_h%nnz_l_sp,mpi_complex16,&
-              mpi_sum,e_h%comm_among_point,mpierr)
+              mpi_sum,e_h%pexsi_comm_among_point,mpierr)
 
       call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
 
       call elsi_deallocate(e_h,send_buf_cmplx,"send_buf_cmplx")
    endif
 
-   if(e_h%my_prow_pexsi == 0) then
+   if(e_h%pexsi_my_prow == 0) then
       dm = tmp_cmplx
    endif
 
@@ -1051,12 +1052,12 @@ subroutine elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
    call elsi_deallocate(e_h,shifts,"shifts")
 
    ! Compute energy = Tr(H*DM)
-   if(e_h%my_prow_pexsi == 0) then
+   if(e_h%pexsi_my_prow == 0) then
       local_cmplx  = zdotu(e_h%nnz_l_sp,ham,1,dm,1)
       local_energy = real(local_cmplx,kind=r8)
 
       call MPI_Reduce(local_energy,e_h%energy_hdm,1,mpi_real8,mpi_sum,0,&
-              e_h%comm_in_pole,mpierr)
+              e_h%pexsi_comm_in_pole,mpierr)
 
       call elsi_check_mpi(e_h,"MPI_Reduce",mpierr,caller)
    endif
@@ -1142,7 +1143,7 @@ subroutine elsi_compute_edm_pexsi_cmplx(e_h,edm)
    enddo
 
    do i = 1,e_h%pexsi_options%nPoints
-      if(e_h%ne_vec(i) < e_h%n_electrons-&
+      if(e_h%ne_vec_pexsi(i) < e_h%n_electrons-&
          e_h%pexsi_options%numElectronPEXSITolerance) then
          e_h%pexsi_options%muMin0 = shifts(i)
          aux_min = i
@@ -1150,7 +1151,7 @@ subroutine elsi_compute_edm_pexsi_cmplx(e_h,edm)
    enddo
 
    do i = e_h%pexsi_options%nPoints,1,-1
-      if(e_h%ne_vec(i) > e_h%n_electrons+&
+      if(e_h%ne_vec_pexsi(i) > e_h%n_electrons+&
          e_h%pexsi_options%numElectronPEXSITolerance) then
          e_h%pexsi_options%muMax0 = shifts(i)
          aux_max = i
@@ -1159,7 +1160,7 @@ subroutine elsi_compute_edm_pexsi_cmplx(e_h,edm)
 
    if(e_h%pexsi_options%nPoints == 1) then
       ! Scale energy density matrix
-      tmp_cmplx = (e_h%n_electrons/e_h%ne_pexsi)*tmp_cmplx
+      tmp_cmplx = (e_h%n_electrons/e_h%pexsi_ne)*tmp_cmplx
       converged = .true.
       e_h%mu    = shifts(1)
    else
@@ -1181,13 +1182,13 @@ subroutine elsi_compute_edm_pexsi_cmplx(e_h,edm)
       endif
 
       do i = aux_min,aux_max
-         if(abs(e_h%ne_vec(i)-e_h%n_electrons) < &
+         if(abs(e_h%ne_vec_pexsi(i)-e_h%n_electrons) < &
             e_h%pexsi_options%numElectronPEXSITolerance) then
             e_h%mu    = shifts(i)
             converged = .true.
 
             call MPI_Bcast(tmp_cmplx,e_h%nnz_l_sp,mpi_complex16,i-1,&
-                    e_h%comm_among_point,mpierr)
+                    e_h%pexsi_comm_among_point,mpierr)
 
             call elsi_check_mpi(e_h,"MPI_Bcast",mpierr,caller)
 
@@ -1199,29 +1200,29 @@ subroutine elsi_compute_edm_pexsi_cmplx(e_h,edm)
    ! Adjust to exact number of electrons
    if(.not. converged) then
       ! Energy density matrix
-      factor_min = (e_h%ne_vec(aux_max)-e_h%n_electrons)/&
-                      (e_h%ne_vec(aux_max)-e_h%ne_vec(aux_min))
-      factor_max = (e_h%n_electrons-e_h%ne_vec(aux_min))/&
-                      (e_h%ne_vec(aux_max)-e_h%ne_vec(aux_min))
+      factor_min = (e_h%ne_vec_pexsi(aux_max)-e_h%n_electrons)/&
+                      (e_h%ne_vec_pexsi(aux_max)-e_h%ne_vec_pexsi(aux_min))
+      factor_max = (e_h%n_electrons-e_h%ne_vec_pexsi(aux_min))/&
+                      (e_h%ne_vec_pexsi(aux_max)-e_h%ne_vec_pexsi(aux_min))
 
       call elsi_allocate(e_h,send_buf_cmplx,e_h%nnz_l_sp,"send_buf_cmplx",&
               caller)
 
-      if(e_h%my_point == aux_min-1) then
+      if(e_h%pexsi_my_point == aux_min-1) then
          send_buf_cmplx = factor_min*tmp_cmplx
-      elseif(e_h%my_point == aux_max-1) then
+      elseif(e_h%pexsi_my_point == aux_max-1) then
          send_buf_cmplx = factor_max*tmp_cmplx
       endif
 
       call MPI_Allreduce(send_buf_cmplx,tmp_cmplx,e_h%nnz_l_sp,mpi_complex16,&
-              mpi_sum,e_h%comm_among_point,mpierr)
+              mpi_sum,e_h%pexsi_comm_among_point,mpierr)
 
       call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
 
       call elsi_deallocate(e_h,send_buf_cmplx,"send_buf_cmplx")
    endif
 
-   if(e_h%my_prow_pexsi == 0) then
+   if(e_h%pexsi_my_prow == 0) then
       edm = tmp_cmplx
    endif
 

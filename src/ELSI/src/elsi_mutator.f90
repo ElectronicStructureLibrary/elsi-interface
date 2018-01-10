@@ -68,7 +68,6 @@ module ELSI_MUTATOR
    public :: elsi_set_omm_n_elpa
    public :: elsi_set_omm_tol
    public :: elsi_set_omm_ev_shift
-   public :: elsi_set_omm_psp
    public :: elsi_set_pexsi_n_mu
    public :: elsi_set_pexsi_n_pole
    public :: elsi_set_pexsi_np_per_pole
@@ -93,7 +92,7 @@ module ELSI_MUTATOR
    public :: elsi_set_sips_ev_shift
    public :: elsi_set_sips_slice_type
    public :: elsi_set_sips_interval
-   public :: elsi_set_sips_inertia
+   public :: elsi_set_sips_inertia_tol
    public :: elsi_set_dmp_method
    public :: elsi_set_dmp_max_step
    public :: elsi_set_dmp_tol
@@ -376,7 +375,7 @@ subroutine elsi_set_elpa_n_single(e_h,n_single)
       e_h%handle_changed = .true.
    endif
 
-   e_h%n_single_steps = n_single
+   e_h%elpa_n_single = n_single
 
 end subroutine
 
@@ -446,7 +445,7 @@ subroutine elsi_set_omm_tol(e_h,min_tol)
       e_h%handle_changed = .true.
    endif
 
-   e_h%min_tol = min_tol
+   e_h%omm_tol = min_tol
 
 end subroutine
 
@@ -468,33 +467,7 @@ subroutine elsi_set_omm_ev_shift(e_h,ev_shift)
       e_h%handle_changed = .true.
    endif
 
-   e_h%eta = ev_shift
-
-end subroutine
-
-!>
-!! This routine switches on/off the matrix multiplications using PSP.
-!!
-subroutine elsi_set_omm_psp(e_h,use_psp)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: e_h     !< Handle
-   integer(kind=i4),  intent(in)    :: use_psp !< Use pspBLAS?
-
-   character*40, parameter :: caller = "elsi_set_omm_psp"
-
-   call elsi_check_handle(e_h,caller)
-
-   if(e_h%handle_ready) then
-      e_h%handle_changed = .true.
-   endif
-
-   if(use_psp == 0) then
-      e_h%use_psp = .false.
-   else
-      e_h%use_psp = .false.
-   endif
+   e_h%omm_ev_shift = ev_shift
 
 end subroutine
 
@@ -568,7 +541,7 @@ subroutine elsi_set_pexsi_np_per_pole(e_h,np_per_pole)
       e_h%handle_changed = .true.
    endif
 
-   e_h%np_per_pole = np_per_pole
+   e_h%pexsi_np_per_pole = np_per_pole
 
 end subroutine
 
@@ -786,7 +759,7 @@ subroutine elsi_set_chess_erf_decay(e_h,decay)
       e_h%handle_changed = .true.
    endif
 
-   e_h%erf_decay = decay
+   e_h%chess_erf_decay = decay
 
 end subroutine
 
@@ -808,7 +781,7 @@ subroutine elsi_set_chess_erf_decay_min(e_h,decay_min)
       e_h%handle_changed = .true.
    endif
 
-   e_h%erf_decay_min = decay_min
+   e_h%chess_erf_min = decay_min
 
 end subroutine
 
@@ -830,7 +803,7 @@ subroutine elsi_set_chess_erf_decay_max(e_h,decay_max)
       e_h%handle_changed = .true.
    endif
 
-   e_h%erf_decay_max = decay_max
+   e_h%chess_erf_max = decay_max
 
 end subroutine
 
@@ -852,7 +825,7 @@ subroutine elsi_set_chess_ev_ham_min(e_h,ev_min)
       e_h%handle_changed = .true.
    endif
 
-   e_h%ev_ham_min = ev_min
+   e_h%chess_ev_ham_min = ev_min
 
 end subroutine
 
@@ -874,7 +847,7 @@ subroutine elsi_set_chess_ev_ham_max(e_h,ev_max)
       e_h%handle_changed = .true.
    endif
 
-   e_h%ev_ham_max = ev_max
+   e_h%chess_ev_ham_max = ev_max
 
 end subroutine
 
@@ -896,7 +869,7 @@ subroutine elsi_set_chess_ev_ovlp_min(e_h,ev_min)
       e_h%handle_changed = .true.
    endif
 
-   e_h%ev_ovlp_min = ev_min
+   e_h%chess_ev_ovlp_min = ev_min
 
 end subroutine
 
@@ -918,7 +891,7 @@ subroutine elsi_set_chess_ev_ovlp_max(e_h,ev_max)
       e_h%handle_changed = .true.
    endif
 
-   e_h%ev_ovlp_max = ev_max
+   e_h%chess_ev_ovlp_max = ev_max
 
 end subroutine
 
@@ -968,8 +941,8 @@ subroutine elsi_set_sips_n_slice(e_h,n_slice)
    endif
 
    if(mod(e_h%n_procs,n_slice) == 0) then
-      e_h%n_slices     = n_slice
-      e_h%np_per_slice = e_h%n_procs/n_slice
+      e_h%sips_n_slices     = n_slice
+      e_h%sips_np_per_slice = e_h%n_procs/n_slice
    else
       call elsi_stop(" The total number of MPI tasks must be a multiple of"//&
               " the number of slices.",e_h,caller)
@@ -995,7 +968,7 @@ subroutine elsi_set_sips_buffer(e_h,buffer)
       e_h%handle_changed = .true.
    endif
 
-   e_h%slice_buffer = buffer
+   e_h%sips_buffer = buffer
 
 end subroutine
 
@@ -1017,7 +990,7 @@ subroutine elsi_set_sips_ev_shift(e_h,ev_shift)
       e_h%handle_changed = .true.
    endif
 
-   e_h%ev_shift = ev_shift
+   e_h%sips_ev_shift = ev_shift
 
 end subroutine
 
@@ -1043,21 +1016,22 @@ subroutine elsi_set_sips_slice_type(e_h,slice_type)
       call elsi_stop(" Unsupported slice_type.",e_h,caller)
    endif
 
-   e_h%slice_type = slice_type
+   e_h%sips_slice_type = slice_type
 
 end subroutine
 
 !>
-!! This routine switches on and off inertia counting in SIPs.
+!! This routine sets the tolerance in terms of the change of eigenvalues in two
+!! consecutive steps to turn off the inertia counting procedure in SIPs.
 !!
-subroutine elsi_set_sips_inertia(e_h,n_inertia)
+subroutine elsi_set_sips_inertia_tol(e_h,inertia_tol)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h       !< Handle
-   integer(kind=i4),  intent(in)    :: n_inertia !< Number of inertia steps
+   type(elsi_handle), intent(inout) :: e_h         !< Handle
+   real(kind=r8),     intent(in)    :: inertia_tol !< Tolerance
 
-   character*40, parameter :: caller = "elsi_set_sips_inertia"
+   character*40, parameter :: caller = "elsi_set_sips_inertia_tol"
 
    call elsi_check_handle(e_h,caller)
 
@@ -1065,7 +1039,7 @@ subroutine elsi_set_sips_inertia(e_h,n_inertia)
       e_h%handle_changed = .true.
    endif
 
-   e_h%sips_inertia = n_inertia
+   e_h%sips_inertia_tol = inertia_tol
 
 end subroutine
 
@@ -1133,7 +1107,7 @@ subroutine elsi_set_dmp_max_step(e_h,max_step)
       e_h%handle_changed = .true.
    endif
 
-   e_h%max_dmp_iter = max_step
+   e_h%dmp_max_iter = max_step
 
 end subroutine
 

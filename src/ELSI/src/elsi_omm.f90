@@ -67,6 +67,8 @@ subroutine elsi_solve_evp_omm_real(e_h,ham,ovlp,dm)
    real(kind=r8),     intent(inout) :: ovlp(e_h%n_lrow,e_h%n_lcol)
    real(kind=r8),     intent(inout) :: dm(e_h%n_lrow,e_h%n_lcol)
 
+   logical          :: coeff_ready
+   logical          :: new_ovlp
    logical          :: success
    real(kind=r8)    :: t0
    real(kind=r8)    :: t1
@@ -120,25 +122,25 @@ subroutine elsi_solve_evp_omm_real(e_h,ham,ovlp,dm)
    endif ! ovlp_is_unit
 
    if(e_h%n_elsi_calls == 1) then
-      e_h%coeff_ready = .false.
+      coeff_ready = .false.
    else
-      e_h%coeff_ready = .true.
+      coeff_ready = .true.
    endif
 
    if(e_h%n_elsi_calls == e_h%omm_n_elpa+1) then
-      e_h%new_ovlp = .true.
+      new_ovlp = .true.
    else
-      e_h%new_ovlp = .false.
+      new_ovlp = .false.
    endif
 
    call elsi_get_time(e_h,t0)
 
    call elsi_say(e_h,"  Starting OMM density matrix solver")
 
-   call omm(e_h%n_basis,e_h%n_states_omm,e_h%ham_omm,e_h%ovlp_omm,e_h%new_ovlp,&
-           e_h%energy_hdm,e_h%dm_omm,e_h%calc_ed,e_h%eta,e_h%coeff,&
-           e_h%coeff_ready,e_h%tdm_omm,e_h%scale_kinetic,e_h%omm_flavor,1,1,&
-           e_h%min_tol,e_h%omm_output,e_h%do_dealloc,"pddbc","lap")
+   call omm(e_h%n_basis,e_h%omm_n_states,e_h%ham_omm,e_h%ovlp_omm,new_ovlp,&
+           e_h%energy_hdm,e_h%dm_omm,.false.,e_h%omm_ev_shift,e_h%c_omm,&
+           coeff_ready,e_h%tdm_omm,0.0_r8,e_h%omm_flavor,1,1,e_h%omm_tol,&
+           e_h%omm_output,.false.,"pddbc","lap")
 
    dm = e_h%spin_degen*dm
 
@@ -175,14 +177,10 @@ subroutine elsi_compute_edm_omm_real(e_h,edm)
 
    call m_register_pdbc(e_h%dm_omm,edm,e_h%sc_desc)
 
-   e_h%calc_ed = .true.
-
-   call omm(e_h%n_basis,e_h%n_states_omm,e_h%ham_omm,e_h%ovlp_omm,e_h%new_ovlp,&
-           e_h%energy_hdm,e_h%dm_omm,e_h%calc_ed,e_h%eta,e_h%coeff,&
-           e_h%coeff_ready,e_h%tdm_omm,e_h%scale_kinetic,e_h%omm_flavor,1,1,&
-           e_h%min_tol,e_h%omm_output,e_h%do_dealloc,"pddbc","lap")
-
-   e_h%calc_ed = .false.
+   call omm(e_h%n_basis,e_h%omm_n_states,e_h%ham_omm,e_h%ovlp_omm,.false.,&
+           e_h%energy_hdm,e_h%dm_omm,.true.,e_h%omm_ev_shift,e_h%c_omm,.true.,&
+           e_h%tdm_omm,0.0_r8,e_h%omm_flavor,1,1,e_h%omm_tol,e_h%omm_output,&
+           .false.,"pddbc","lap")
 
    edm = e_h%spin_degen*edm
 
@@ -207,6 +205,8 @@ subroutine elsi_solve_evp_omm_cmplx(e_h,ham,ovlp,dm)
    complex(kind=r8),  intent(inout) :: ovlp(e_h%n_lrow,e_h%n_lcol)
    complex(kind=r8),  intent(inout) :: dm(e_h%n_lrow,e_h%n_lcol)
 
+   logical          :: coeff_ready
+   logical          :: new_ovlp
    logical          :: success
    real(kind=r8)    :: t0
    real(kind=r8)    :: t1
@@ -260,25 +260,25 @@ subroutine elsi_solve_evp_omm_cmplx(e_h,ham,ovlp,dm)
    endif ! ovlp_is_unit
 
    if(e_h%n_elsi_calls == 1) then
-      e_h%coeff_ready = .false.
+      coeff_ready = .false.
    else
-      e_h%coeff_ready = .true.
+      coeff_ready = .true.
    endif
 
    if(e_h%n_elsi_calls == e_h%omm_n_elpa+1) then
-      e_h%new_ovlp = .true.
+      new_ovlp = .true.
    else
-      e_h%new_ovlp = .false.
+      new_ovlp = .false.
    endif
 
    call elsi_get_time(e_h,t0)
 
    call elsi_say(e_h,"  Starting OMM density matrix solver")
 
-   call omm(e_h%n_basis,e_h%n_states_omm,e_h%ham_omm,e_h%ovlp_omm,e_h%new_ovlp,&
-           e_h%energy_hdm,e_h%dm_omm,e_h%calc_ed,e_h%eta,e_h%coeff,&
-           e_h%coeff_ready,e_h%tdm_omm,e_h%scale_kinetic,e_h%omm_flavor,1,1,&
-           e_h%min_tol,e_h%omm_output,e_h%do_dealloc,"pzdbc","lap")
+   call omm(e_h%n_basis,e_h%omm_n_states,e_h%ham_omm,e_h%ovlp_omm,new_ovlp,&
+           e_h%energy_hdm,e_h%dm_omm,.false.,e_h%omm_ev_shift,e_h%c_omm,&
+           coeff_ready,e_h%tdm_omm,0.0_r8,e_h%omm_flavor,1,1,e_h%omm_tol,&
+           e_h%omm_output,.false.,"pzdbc","lap")
 
    dm = e_h%spin_degen*dm
 
@@ -315,14 +315,10 @@ subroutine elsi_compute_edm_omm_cmplx(e_h,edm)
 
    call m_register_pdbc(e_h%dm_omm,edm,e_h%sc_desc)
 
-   e_h%calc_ed = .true.
-
-   call omm(e_h%n_basis,e_h%n_states_omm,e_h%ham_omm,e_h%ovlp_omm,e_h%new_ovlp,&
-           e_h%energy_hdm,e_h%dm_omm,e_h%calc_ed,e_h%eta,e_h%coeff,&
-           e_h%coeff_ready,e_h%tdm_omm,e_h%scale_kinetic,e_h%omm_flavor,1,1,&
-           e_h%min_tol,e_h%omm_output,e_h%do_dealloc,"pzdbc","lap")
-
-   e_h%calc_ed = .false.
+   call omm(e_h%n_basis,e_h%omm_n_states,e_h%ham_omm,e_h%ovlp_omm,.false.,&
+           e_h%energy_hdm,e_h%dm_omm,.true.,e_h%omm_ev_shift,e_h%c_omm,.true.,&
+           e_h%tdm_omm,0.0_r8,e_h%omm_flavor,1,1,e_h%omm_tol,e_h%omm_output,&
+           .false.,"pzdbc","lap")
 
    edm = e_h%spin_degen*edm
 
@@ -358,26 +354,14 @@ subroutine elsi_set_omm_default(e_h)
    ! 2 = Cholesky already performed, U is provided in S
    e_h%omm_flavor = 0
 
-   ! How to scale the kinetic energy matrix
-   e_h%scale_kinetic = 5.0_r8
-
-   ! Calculate the energy density matrix
-   e_h%calc_ed = .false.
-
    ! Eigenspectrum shift parameter
-   e_h%eta = 0.0_r8
+   e_h%omm_ev_shift = 0.0_r8
 
    ! Tolerance for minimization
-   e_h%min_tol = 1.0e-12_r8
+   e_h%omm_tol = 1.0e-12_r8
 
    ! Output level?
    e_h%omm_output = .false.
-
-   ! Deallocate temporary arrays?
-   e_h%do_dealloc = .false.
-
-   ! Use pspBLAS sparse linear algebra?
-   e_h%use_psp = .false.
 
 end subroutine
 

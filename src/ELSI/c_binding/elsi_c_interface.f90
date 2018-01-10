@@ -669,22 +669,6 @@ subroutine elsi_set_omm_ev_shift_c_wrapper(handle_c,ev_shift)&
 
 end subroutine
 
-subroutine elsi_set_omm_psp_c_wrapper(handle_c,use_psp)&
-   bind(C,name="c_elsi_set_omm_psp")
-
-   implicit none
-
-   type(c_ptr),         value, intent(in) :: handle_c
-   integer(kind=c_int), value, intent(in) :: use_psp
-
-   type(elsi_handle), pointer :: handle_f
-
-   call c_f_pointer(handle_c,handle_f)
-
-   call elsi_set_omm_psp(handle_f,use_psp)
-
-end subroutine
-
 subroutine elsi_set_pexsi_n_mu_c_wrapper(handle_c,n_mu)&
    bind(C,name="c_elsi_set_pexsi_n_mu")
 
@@ -1037,19 +1021,19 @@ subroutine elsi_set_sips_buffer_c_wrapper(handle_c,buffer)&
 
 end subroutine
 
-subroutine elsi_set_sips_inertia_c_wrapper(handle_c,n_inertia)&
-   bind(C,name="c_elsi_set_sips_inertia")
+subroutine elsi_set_sips_inertia_tol_c_wrapper(handle_c,inertia_tol)&
+   bind(C,name="c_elsi_set_sips_inertia_tol")
 
    implicit none
 
    type(c_ptr),         value, intent(in) :: handle_c
-   integer(kind=c_int), value, intent(in) :: n_inertia
+   real(kind=c_double), value, intent(in) :: inertia_tol
 
    type(elsi_handle), pointer :: handle_f
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_set_sips_inertia(handle_f,n_inertia)
+   call elsi_set_sips_inertia_tol(handle_f,inertia_tol)
 
 end subroutine
 

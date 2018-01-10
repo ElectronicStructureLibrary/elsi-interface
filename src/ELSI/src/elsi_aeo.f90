@@ -733,7 +733,7 @@ subroutine elsi_solve_evp_elpa_real(e_h,ham,ovlp,eval,evec)
    call elsi_get_time(e_h,t0)
 
    ! Solve evp, return eigenvalues and eigenvectors
-   if(e_h%n_elsi_calls <= e_h%n_single_steps) then
+   if(e_h%n_elsi_calls <= e_h%elpa_n_single) then
       call elsi_say(e_h,"  Starting ELPA eigensolver (single precision)")
 
       ! Convert to single precision
@@ -1388,7 +1388,7 @@ subroutine elsi_solve_evp_elpa_cmplx(e_h,ham,ovlp,eval,evec)
    call elsi_get_time(e_h,t0)
 
    ! Solve evp, return eigenvalues and eigenvectors
-   if(e_h%n_elsi_calls <= e_h%n_single_steps) then
+   if(e_h%n_elsi_calls <= e_h%elpa_n_single) then
       call elsi_say(e_h,"  Starting ELPA eigensolver (single precision)")
 
       ! Convert to single precision
@@ -1475,7 +1475,7 @@ subroutine elsi_set_elpa_default(e_h)
    e_h%elpa_solver = 2
 
    ! How many single precision steps?
-   e_h%n_single_steps = 0
+   e_h%elpa_n_single = 0
 
    ! ELPA output?
    e_h%elpa_output = .false.

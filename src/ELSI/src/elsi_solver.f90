@@ -489,7 +489,7 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
       endif
 
       ! Save overlap
-      if(e_h%n_elsi_calls==1 .and. e_h%n_single_steps > 0) then
+      if(e_h%n_elsi_calls==1 .and. e_h%elpa_n_single > 0) then
          call elsi_allocate(e_h,e_h%ovlp_real_copy,e_h%n_lrow,e_h%n_lcol,&
                  "ovlp_real_copy",caller)
          e_h%ovlp_real_copy = ovlp
@@ -504,7 +504,7 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
       solver_used = ELPA_SOLVER
 
       ! Normalize density matrix
-      if(e_h%n_elsi_calls <= e_h%n_single_steps) then
+      if(e_h%n_elsi_calls <= e_h%elpa_n_single) then
          call elsi_normalize_dm_elpa_real(e_h,e_h%ovlp_real_copy,dm)
       endif
 
@@ -541,8 +541,8 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
             call elsi_deallocate(e_h,e_h%ovlp_real_copy,"ovlp_real_copy")
          endif
 
-         if(.not. e_h%coeff%is_initialized) then
-            call m_allocate(e_h%coeff,e_h%n_states_omm,e_h%n_basis,"pddbc")
+         if(.not. e_h%c_omm%is_initialized) then
+            call m_allocate(e_h%c_omm,e_h%omm_n_states,e_h%n_basis,"pddbc")
          endif
 
          ! Initialize coefficient matrix with ELPA eigenvectors if possible
@@ -551,8 +551,8 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
             call pdtran(e_h%n_basis,e_h%n_basis,1.0_r8,e_h%evec_real_elpa,1,1,&
                     e_h%sc_desc,0.0_r8,dm,1,1,e_h%sc_desc)
 
-            e_h%coeff%dval(1:e_h%coeff%iaux2(1),1:e_h%coeff%iaux2(2)) = &
-               dm(1:e_h%coeff%iaux2(1),1:e_h%coeff%iaux2(2))
+            e_h%c_omm%dval(1:e_h%c_omm%iaux2(1),1:e_h%c_omm%iaux2(2)) = &
+               dm(1:e_h%c_omm%iaux2(1),1:e_h%c_omm%iaux2(2))
 
             ! ELPA matrices are no longer needed
             if(allocated(e_h%evec_real_elpa)) then
@@ -683,7 +683,7 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
       endif
 
       ! Save overlap
-      if(e_h%n_elsi_calls==1 .and. e_h%n_single_steps > 0) then
+      if(e_h%n_elsi_calls==1 .and. e_h%elpa_n_single > 0) then
          call elsi_allocate(e_h,e_h%ovlp_cmplx_copy,e_h%n_lrow,e_h%n_lcol,&
                  "ovlp_cmplx_copy",caller)
          e_h%ovlp_cmplx_copy = ovlp
@@ -698,7 +698,7 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
       solver_used = ELPA_SOLVER
 
       ! Normalize density matrix
-      if(e_h%n_elsi_calls <= e_h%n_single_steps) then
+      if(e_h%n_elsi_calls <= e_h%elpa_n_single) then
          call elsi_normalize_dm_elpa_cmplx(e_h,e_h%ovlp_cmplx_copy,dm)
       endif
 
@@ -735,8 +735,8 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
             call elsi_deallocate(e_h,e_h%ovlp_cmplx_copy,"ovlp_cmplx_copy")
          endif
 
-         if(.not. e_h%coeff%is_initialized) then
-            call m_allocate(e_h%coeff,e_h%n_states_omm,e_h%n_basis,"pzdbc")
+         if(.not. e_h%c_omm%is_initialized) then
+            call m_allocate(e_h%c_omm,e_h%omm_n_states,e_h%n_basis,"pzdbc")
          endif
 
          ! Initialize coefficient matrix with ELPA eigenvectors if possible
@@ -746,8 +746,8 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
                     e_h%evec_cmplx_elpa,1,1,e_h%sc_desc,(0.0_r8,0.0_r8),dm,1,1,&
                     e_h%sc_desc)
 
-            e_h%coeff%zval(1:e_h%coeff%iaux2(1),1:e_h%coeff%iaux2(2)) = &
-               dm(1:e_h%coeff%iaux2(1),1:e_h%coeff%iaux2(2))
+            e_h%c_omm%zval(1:e_h%c_omm%iaux2(1),1:e_h%c_omm%iaux2(2)) = &
+               dm(1:e_h%c_omm%iaux2(1),1:e_h%c_omm%iaux2(2))
 
             ! ELPA matrices are no longer needed
             if(allocated(e_h%evec_cmplx_elpa)) then
@@ -921,8 +921,8 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
             call elsi_deallocate(e_h,e_h%ovlp_real_copy,"ovlp_real_copy")
          endif
 
-         if(.not. e_h%coeff%is_initialized) then
-            call m_allocate(e_h%coeff,e_h%n_states_omm,e_h%n_basis,"pddbc")
+         if(.not. e_h%c_omm%is_initialized) then
+            call m_allocate(e_h%c_omm,e_h%omm_n_states,e_h%n_basis,"pddbc")
          endif
          if(.not. allocated(e_h%dm_real_elpa)) then
             call elsi_allocate(e_h,e_h%dm_real_elpa,e_h%n_lrow,e_h%n_lcol,&
@@ -935,8 +935,8 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
             call pdtran(e_h%n_basis,e_h%n_basis,1.0_r8,e_h%evec_real_elpa,1,1,&
                     e_h%sc_desc,0.0_r8,e_h%dm_real_elpa,1,1,e_h%sc_desc)
 
-            e_h%coeff%dval(1:e_h%coeff%iaux2(1),1:e_h%coeff%iaux2(2)) = &
-               e_h%dm_real_elpa(1:e_h%coeff%iaux2(1),1:e_h%coeff%iaux2(2))
+            e_h%c_omm%dval(1:e_h%c_omm%iaux2(1),1:e_h%c_omm%iaux2(2)) = &
+               e_h%dm_real_elpa(1:e_h%c_omm%iaux2(1),1:e_h%c_omm%iaux2(2))
 
             ! ELPA matrices are no longer needed
             if(allocated(e_h%evec_real_elpa)) then
@@ -1123,8 +1123,8 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
             call elsi_deallocate(e_h,e_h%ovlp_cmplx_copy,"ovlp_cmplx_copy")
          endif
 
-         if(.not. e_h%coeff%is_initialized) then
-            call m_allocate(e_h%coeff,e_h%n_states_omm,e_h%n_basis,"pzdbc")
+         if(.not. e_h%c_omm%is_initialized) then
+            call m_allocate(e_h%c_omm,e_h%omm_n_states,e_h%n_basis,"pzdbc")
          endif
          if(.not. allocated(e_h%dm_cmplx_elpa)) then
             call elsi_allocate(e_h,e_h%dm_cmplx_elpa,e_h%n_lrow,e_h%n_lcol,&
@@ -1138,8 +1138,8 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
                     e_h%evec_cmplx_elpa,1,1,e_h%sc_desc,(0.0_r8,0.0_r8),&
                     e_h%dm_cmplx_elpa,1,1,e_h%sc_desc)
 
-            e_h%coeff%zval(1:e_h%coeff%iaux2(1),1:e_h%coeff%iaux2(2)) = &
-               e_h%dm_cmplx_elpa(1:e_h%coeff%iaux2(1),1:e_h%coeff%iaux2(2))
+            e_h%c_omm%zval(1:e_h%c_omm%iaux2(1),1:e_h%c_omm%iaux2(2)) = &
+               e_h%dm_cmplx_elpa(1:e_h%c_omm%iaux2(1),1:e_h%c_omm%iaux2(2))
 
             ! ELPA matrices are no longer needed
             if(allocated(e_h%evec_cmplx_elpa)) then

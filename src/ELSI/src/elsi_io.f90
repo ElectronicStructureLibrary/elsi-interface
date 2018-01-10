@@ -371,31 +371,32 @@ subroutine elsi_print_settings(e_h)
    case(CHESS_SOLVER)
       call elsi_say(e_h,"  CheSS settings:")
 
-      write(info_str,"('  | Error function decay length ',E10.2)") e_h%erf_decay
+      write(info_str,"('  | Error function decay length ',E10.2)")&
+         e_h%chess_erf_decay
       call elsi_say(e_h,info_str)
 
       write(info_str,"('  | Lower bound of decay length ',E10.2)")&
-         e_h%erf_decay_min
+         e_h%chess_erf_min
       call elsi_say(e_h,info_str)
 
       write(info_str,"('  | Upper bound of decay length ',E10.2)")&
-         e_h%erf_decay_max
+         e_h%chess_erf_max
       call elsi_say(e_h,info_str)
 
       write(info_str,"('  | Lower bound of H eigenvalue ',E10.2)")&
-         e_h%ev_ham_min
+         e_h%chess_ev_ham_min
       call elsi_say(e_h,info_str)
 
       write(info_str,"('  | Upper bound of H eigenvalue ',E10.2)")&
-         e_h%ev_ham_max
+         e_h%chess_ev_ham_max
       call elsi_say(e_h,info_str)
 
       write(info_str,"('  | Lower bound of S eigenvalue ',E10.2)")&
-         e_h%ev_ovlp_min
+         e_h%chess_ev_ovlp_min
       call elsi_say(e_h,info_str)
 
       write(info_str,"('  | Upper bound of S eigenvalue ',E10.2)") &
-         e_h%ev_ovlp_max
+         e_h%chess_ev_ovlp_max
       call elsi_say(e_h,info_str)
    case(ELPA_SOLVER)
       if(e_h%parallel_mode == MULTI_PROC) then
@@ -413,7 +414,7 @@ subroutine elsi_print_settings(e_h)
       write(info_str,"('  | OMM minimization flavor    ',I10)") e_h%omm_flavor
       call elsi_say(e_h,info_str)
 
-      write(info_str,"('  | OMM minimization tolerance ',E10.2)") e_h%min_tol
+      write(info_str,"('  | OMM minimization tolerance ',E10.2)") e_h%omm_tol
       call elsi_say(e_h,info_str)
    case(PEXSI_SOLVER)
       call elsi_say(e_h,"  PEXSI settings:")
@@ -459,7 +460,7 @@ subroutine elsi_print_settings(e_h)
       write(info_str,"('  | Number of ELPA steps ',I10)") e_h%sips_n_elpa
       call elsi_say(e_h,info_str)
 
-      write(info_str,"('  | Slice buffer         ',E10.2)") e_h%slice_buffer
+      write(info_str,"('  | Slice buffer         ',E10.2)") e_h%sips_buffer
       call elsi_say(e_h,info_str)
    case(DMP_SOLVER)
       call elsi_say(e_h,"  DMP settings:")
@@ -469,7 +470,7 @@ subroutine elsi_print_settings(e_h)
       call elsi_say(e_h,info_str)
 
       write(info_str,"('  | Max number of purification steps ',I10)")&
-         e_h%max_dmp_iter
+         e_h%dmp_max_iter
       call elsi_say(e_h,info_str)
 
       write(info_str,"('  | Convergence tolerance            ',E10.2)")&
@@ -554,15 +555,15 @@ subroutine elsi_print_chess_settings(e_h,io_h_in)
 
    ! Settings
    call append_string(io_h%prefix,"  ")
-   call elsi_say_setting(e_h,"erf_decay",e_h%erf_decay,io_h)
-   call elsi_say_setting(e_h,"erf_decay_min",e_h%erf_decay_min,io_h)
-   call elsi_say_setting(e_h,"erf_decay_max",e_h%erf_decay_max,io_h)
-   call elsi_say_setting(e_h,"ev_ham_min",e_h%ev_ham_min,io_h)
-   call elsi_say_setting(e_h,"ev_ham_max",e_h%ev_ham_max,io_h)
-   call elsi_say_setting(e_h,"ev_ovlp_min",e_h%ev_ovlp_min,io_h)
-   call elsi_say_setting(e_h,"ev_ovlp_max",e_h%ev_ovlp_max,io_h)
+   call elsi_say_setting(e_h,"chess_erf_decay",e_h%chess_erf_decay,io_h)
+   call elsi_say_setting(e_h,"chess_erf_min",e_h%chess_erf_min,io_h)
+   call elsi_say_setting(e_h,"chess_erf_max",e_h%chess_erf_max,io_h)
+   call elsi_say_setting(e_h,"chess_ev_ham_min",e_h%chess_ev_ham_min,io_h)
+   call elsi_say_setting(e_h,"chess_ev_ham_max",e_h%chess_ev_ham_max,io_h)
+   call elsi_say_setting(e_h,"chess_ev_ovlp_min",e_h%chess_ev_ovlp_min,io_h)
+   call elsi_say_setting(e_h,"chess_ev_ovlp_max",e_h%chess_ev_ovlp_max,io_h)
    io_h%comma_json = NO_COMMA ! Final record in this scope
-   call elsi_say_setting(e_h,"beta",e_h%beta,io_h)
+   call elsi_say_setting(e_h,"chess_beta",e_h%chess_beta,io_h)
    call truncate_string(io_h%prefix,2)
 
    ! Footer (only for JSON)
@@ -616,10 +617,10 @@ subroutine elsi_print_dmp_settings(e_h,io_h_in)
 
    ! Settings
    call append_string(io_h%prefix,"  ")
-   call elsi_say_setting(e_h,"n_states_dmp",e_h%n_states_dmp,io_h)
+   call elsi_say_setting(e_h,"dmp_n_states",e_h%dmp_n_states,io_h)
    call elsi_say_setting(e_h,"dmp_method",e_h%dmp_method,io_h)
-   call elsi_say_setting(e_h,"max_power_iter",e_h%max_power_iter,io_h)
-   call elsi_say_setting(e_h,"max_dmp_iter",e_h%max_dmp_iter,io_h)
+   call elsi_say_setting(e_h,"dmp_max_power",e_h%dmp_max_power,io_h)
+   call elsi_say_setting(e_h,"dmp_max_iter",e_h%dmp_max_iter,io_h)
    io_h%comma_json = NO_COMMA ! Final record in this scope
    call elsi_say_setting(e_h,"dmp_tol",e_h%dmp_tol,io_h)
    call truncate_string(io_h%prefix,2)
@@ -676,9 +677,9 @@ subroutine elsi_print_elpa_settings(e_h,io_h_in)
    ! Settings
    call append_string(io_h%prefix,"  ")
    call elsi_say_setting(e_h,"elpa_solver",e_h%elpa_solver,io_h)
-   call elsi_say_setting(e_h,"n_states",e_h%n_states,io_h)
+   call elsi_say_setting(e_h,"elpa_n_states",e_h%n_states,io_h)
    io_h%comma_json = NO_COMMA ! Final record in this scope
-   call elsi_say_setting(e_h,"n_single_steps",e_h%n_single_steps,io_h)
+   call elsi_say_setting(e_h,"elpa_n_single",e_h%elpa_n_single,io_h)
    call truncate_string(io_h%prefix,2)
 
    ! Footer (only for JSON)
@@ -732,11 +733,11 @@ subroutine elsi_print_omm_settings(e_h,io_h_in)
 
   ! Settings
    call append_string(io_h%prefix,"  ")
-   call elsi_say_setting(e_h,"n_states_omm",e_h%n_states_omm,io_h)
+   call elsi_say_setting(e_h,"omm_n_states",e_h%omm_n_states,io_h)
    call elsi_say_setting(e_h,"omm_n_elpa",e_h%omm_n_elpa,io_h)
    call elsi_say_setting(e_h,"omm_flavor",e_h%omm_flavor,io_h)
    io_h%comma_json = NO_COMMA ! Final record in this scope
-   call elsi_say_setting(e_h,"min_tol",e_h%min_tol,io_h)
+   call elsi_say_setting(e_h,"omm_tol",e_h%omm_tol,io_h)
    call truncate_string(io_h%prefix,2)
 
    ! Footer (only for JSON)
@@ -790,16 +791,17 @@ subroutine elsi_print_pexsi_settings(e_h,io_h_in)
 
    ! Settings
    call append_string(io_h%prefix,"  ")
-   call elsi_say_setting(e_h,"np_per_pole",e_h%np_per_pole,io_h)
-   call elsi_say_setting(e_h,"np_per_point",e_h%np_per_point,io_h)
-   call elsi_say_setting(e_h,"n_prow_pexsi",e_h%n_prow_pexsi,io_h)
-   call elsi_say_setting(e_h,"n_pcol_pexsi",e_h%n_pcol_pexsi,io_h)
-   call elsi_say_setting(e_h,"delta_e",e_h%pexsi_options%deltaE,io_h)
-   call elsi_say_setting(e_h,"gap",e_h%pexsi_options%gap,io_h)
-   call elsi_say_setting(e_h,"n_pole",e_h%pexsi_options%numPole,io_h)
-   call elsi_say_setting(e_h,"n_point",e_h%pexsi_options%nPoints,io_h)
+   call elsi_say_setting(e_h,"pexsi_np_per_pole",e_h%pexsi_np_per_pole,io_h)
+   call elsi_say_setting(e_h,"pexsi_np_per_point",e_h%pexsi_np_per_point,io_h)
+   call elsi_say_setting(e_h,"pexsi_n_prow_pexsi",e_h%pexsi_n_prow,io_h)
+   call elsi_say_setting(e_h,"pexsi_n_pcol_pexsi",e_h%pexsi_n_pcol,io_h)
+   call elsi_say_setting(e_h,"pexsi_delta_e",e_h%pexsi_options%deltaE,io_h)
+   call elsi_say_setting(e_h,"pexsi_gap",e_h%pexsi_options%gap,io_h)
+   call elsi_say_setting(e_h,"pexsi_n_pole",e_h%pexsi_options%numPole,io_h)
+   call elsi_say_setting(e_h,"pexsi_n_point",e_h%pexsi_options%nPoints,io_h)
    io_h%comma_json = NO_COMMA ! Final record in this scope
-   call elsi_say_setting(e_h,"np_symbfact",e_h%pexsi_options%npSymbFact,io_h)
+   call elsi_say_setting(e_h,"pexsi_np_symbfact",e_h%pexsi_options%npSymbFact,&
+           io_h)
    call truncate_string(io_h%prefix,2)
 
    ! Footer (only for JSON)
@@ -853,12 +855,13 @@ subroutine elsi_print_sips_settings(e_h,io_h_in)
 
    ! Settings
    call append_string(io_h%prefix,"  ")
-   call elsi_say_setting(e_h,"n_states",e_h%n_states,io_h)
+   call elsi_say_setting(e_h,"sips_n_states",e_h%n_states,io_h)
    call elsi_say_setting(e_h,"sips_n_elpa",e_h%sips_n_elpa,io_h)
-   call elsi_say_setting(e_h,"n_slices",e_h%n_slices,io_h)
-   call elsi_say_setting(e_h,"np_per_slice",e_h%np_per_slice,io_h)
+   call elsi_say_setting(e_h,"sips_n_slices",e_h%sips_n_slices,io_h)
+   call elsi_say_setting(e_h,"sips_np_per_slice",e_h%sips_np_per_slice,io_h)
+   call elsi_say_setting(e_h,"sips_buffer",e_h%sips_buffer,io_h)
    io_h%comma_json = NO_COMMA ! Final record in this scope
-   call elsi_say_setting(e_h,"slice_buffer",e_h%slice_buffer,io_h)
+   call elsi_say_setting(e_h,"sips_inertia_tol",e_h%sips_inertia_tol,io_h)
    call truncate_string(io_h%prefix,2)
 
    ! Footer (only for JSON)
