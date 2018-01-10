@@ -113,12 +113,15 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
    real(kind=r8)    :: prev_sum
    real(kind=r8)    :: new_sum
    integer(kind=i4) :: i
+   integer(kind=i4) :: j
    integer(kind=i4) :: this
    integer(kind=i4) :: tmp
+   integer(kind=i4) :: n_iner_steps
    integer(kind=i4) :: n_solved
-   integer(kind=i4) :: n_grp
-   integer(kind=i4) :: grp_ptr(200)
+   integer(kind=i4) :: n_clst
+   integer(kind=i4) :: clst(100,3) ! Eigenvalue clusters
    integer(kind=i4) :: mpierr
+   logical          :: slices_changed
    character*200    :: info_str
 
    real(kind=r8),    allocatable :: slices(:)
@@ -164,18 +167,20 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
 
    eval = eval+e_h%sips_ev_shift
 
-   n_grp      = 1
-   grp_ptr    = 0
-   grp_ptr(1) = 1
+   n_clst    = 1
+   clst      = 0
+   clst(1,1) = 1
 
    do i = 1,e_h%n_states-1
       if(eval(i+1)-eval(i) > 1.0_r8) then
-         n_grp          = n_grp+1
-         grp_ptr(n_grp) = i+1
+         n_clst         = n_clst+1
+         clst(n_clst,1) = i+1
       endif
    enddo
 
-   if(e_h%sips_n_slices-n_grp+1 < n_grp) then ! Simple slicing
+   clst(n_clst+1,1) = e_h%n_states+1
+
+   if(e_h%sips_n_slices-n_clst+1 < n_clst .or. n_clst == 1) then ! One slice
       lower = eval(1)-e_h%sips_buffer
       upper = eval(e_h%n_states)+e_h%sips_buffer
 
@@ -183,39 +188,88 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
    else
       tmp = 0
 
-      do i = 1,n_grp-1
-         lower = eval(grp_ptr(i))-e_h%sips_buffer
-         upper = eval(grp_ptr(i+1)-1)+e_h%sips_buffer
-         this  = (grp_ptr(i+1)-grp_ptr(i))*(e_h%sips_n_slices-n_grp+1)&
-                    /e_h%n_states
-         this  = max(1,this)
-
-         call elsi_linspace(lower,upper,this+1,slices(tmp+1:tmp+this+1))
-
-         tmp = tmp+this+1
+      do i = 1,n_clst-1
+         this      = (clst(i+1,1)-clst(i,1))*(e_h%sips_n_slices-n_clst+1)/&
+                        e_h%n_states
+         this      = max(1,this)
+         clst(i,2) = tmp+1
+         clst(i,3) = tmp+this+1
+         tmp       = tmp+this+1
       enddo
 
-      lower = eval(grp_ptr(n_grp))-e_h%sips_buffer
-      upper = eval(e_h%n_states)+e_h%sips_buffer
-      this  = e_h%sips_n_slices-tmp
+      clst(n_clst,2) = tmp+1
+      clst(n_clst,3) = e_h%sips_n_slices+1
 
-      call elsi_linspace(lower,upper,this+1,slices(tmp+1:e_h%sips_n_slices+1))
+      do i = 1,n_clst
+         lower = eval(clst(i,1))-e_h%sips_buffer
+         upper = eval(clst(i+1,1)-1)+e_h%sips_buffer
+         this  = clst(i,3)-clst(i,2)+1
+
+         call elsi_linspace(lower,upper,this,slices(clst(i,2):clst(i,3)))
+      enddo
 
       if(e_h%sips_do_inertia) then ! Inertia counting
          call elsi_get_time(e_h,t0)
 
          call elsi_allocate(e_h,inertias,e_h%sips_n_slices+1,"inertias",caller)
 
-         call sips_get_inertias(e_h%sips_n_slices,slices,inertias)
+         n_iner_steps   = 0
+         slices_changed = .true.
 
-         ! DEBUG
-         if(e_h%myid == 0) then
-            print *,"QETSc shifts and inertias"
-            do i = 1,e_h%sips_n_slices+1
-               print *,slices(i),":",inertias(i)
+         do while(n_iner_steps < 10 .and. slices_changed)
+            n_iner_steps = n_iner_steps+1
+
+            call sips_get_inertias(e_h%sips_n_slices,slices,inertias)
+
+            ! DEBUG
+            if(e_h%myid == 0) then
+               print *
+               print *,"QETSc inertia counting iteration",n_iner_steps
+               print *,"Shifts                  :    Inertias"
+               do i = 1,e_h%sips_n_slices+1
+                  print *,slices(i),":",inertias(i)
+               enddo
+               print *
+            endif
+
+            slices_changed = .false.
+
+            do i = 1,n_clst
+               do j = clst(i,2),clst(i,3)
+                  if(inertias(j) > clst(i,1)-1) then
+                     if(j == clst(i,2)) then
+                        slices(clst(i,2)) = slices(clst(i,2))-0.1_r8
+                        slices_changed    = .true.
+                     elseif(j-1 /= clst(i,2)) then
+                        slices(clst(i,2)) = slices(j-1)
+                        slices_changed    = .true.
+                     endif
+                  endif
+
+                  exit
+               enddo
+
+               do j = clst(i,3),clst(i,2),-1
+                  if(inertias(j) < clst(i,1)-1) then
+                     if(j == clst(i,3)) then
+                        slices(clst(i,3)) = slices(clst(i,3))+0.1_r8
+                        slices_changed    = .true.
+                     elseif(j+1 /= clst(i,3)) then
+                        slices(clst(i,3)) = slices(j+1)
+                        slices_changed    = .true.
+                     endif
+                  endif
+
+                  exit
+               enddo
+
+               lower = slices(clst(i,2))
+               upper = slices(clst(i,3))
+               this  = clst(i,3)-clst(i,2)+1
+
+               call elsi_linspace(lower,upper,this,slices(clst(i,2):clst(i,3)))
             enddo
-            print *
-         endif
+         enddo
 
          call elsi_deallocate(e_h,inertias,"inertias")
 
@@ -254,10 +308,11 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
 
    ! DEBUG
    if(e_h%myid == 0) then
+      print *
       print *,"QETSc eigenvalues"
-      do i = 1,n_grp-1
-         print *,eval(grp_ptr(i))
-         print *,eval(grp_ptr(i+1)-1)
+      do i = 1,n_clst-1
+         print *,eval(clst(i,1))
+         print *,eval(clst(i+1,1)-1)
       enddo
       print *,eval(e_h%n_states)
       print *
