@@ -30,15 +30,18 @@
 !!
 module ELSI_DMP
 
-   use ELSI_CONSTANTS, only: BLACS_DENSE
-   use ELSI_DATATYPE
+   use ELSI_CONSTANTS, only: BLACS_DENSE,UNSET,UT_MAT,LT_MAT,CANONICAL,&
+                             TRACE_CORRECTING
+   use ELSI_DATATYPE,  only: elsi_handle
    use ELSI_ELPA,      only: elsi_to_standard_evp_real
    use ELSI_IO,        only: elsi_say
-   use ELSI_MALLOC
-   use ELSI_MPI
+   use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
+   use ELSI_MPI,       only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8,&
+                             mpi_integer4
    use ELSI_PRECISION, only: r8,i4
    use ELSI_TIMINGS,   only: elsi_get_time
-   use ELSI_UTILS
+   use ELSI_UTILS,     only: elsi_get_local_nnz_real,elsi_trace_mat_real,&
+                             elsi_trace_mat_mat_real
 
    implicit none
 
@@ -115,15 +118,15 @@ subroutine elsi_solve_evp_dmp_real(e_h,ham,ovlp,dm)
 
    ! Compute inverse of overlap
    if(e_h%n_elsi_calls == 1) then
-      call elsi_allocate(e_h,e_h%ovlp_real_inv,e_h%n_lrow,e_h%n_lcol,&
-              "ovlp_real_inv",caller)
+      call elsi_allocate(e_h,e_h%ovlp_real_inv_dmp,e_h%n_lrow,e_h%n_lcol,&
+              "ovlp_real_inv_dmp",caller)
 
-      e_h%ovlp_real_inv = e_h%ovlp_real_copy
+      e_h%ovlp_real_inv_dmp = e_h%ovlp_real_copy
 
-      call pdpotrf('U',e_h%n_basis,e_h%ovlp_real_inv,1,1,e_h%sc_desc,ierr)
-      call pdpotri('U',e_h%n_basis,e_h%ovlp_real_inv,1,1,e_h%sc_desc,ierr)
+      call pdpotrf('U',e_h%n_basis,e_h%ovlp_real_inv_dmp,1,1,e_h%sc_desc,ierr)
+      call pdpotri('U',e_h%n_basis,e_h%ovlp_real_inv_dmp,1,1,e_h%sc_desc,ierr)
 
-      call elsi_set_full_mat_real(e_h,e_h%ovlp_real_inv,UT_MAT)
+      call elsi_set_full_mat_real(e_h,e_h%ovlp_real_inv_dmp,UT_MAT)
    endif
 
    ! Use Gershgorin's theorem to find the bounds of the spectrum
@@ -159,8 +162,8 @@ subroutine elsi_solve_evp_dmp_real(e_h,ham,ovlp,dm)
 
       call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
 
-      e_h%ev_ham_min = minval(diag-row_sum)
-      e_h%ev_ham_max = maxval(diag+row_sum)
+      e_h%dmp_ev_ham_min = minval(diag-row_sum)
+      e_h%dmp_ev_ham_max = maxval(diag+row_sum)
 
       call elsi_deallocate(e_h,row_sum,"row_sum")
       call elsi_deallocate(e_h,diag,"diag")
@@ -168,24 +171,24 @@ subroutine elsi_solve_evp_dmp_real(e_h,ham,ovlp,dm)
    endif
 
    ! Use power iteration to find the largest in magnitude eigenvalue
-   ! Usually this is the smallest, which is a better estimate of ev_ham_min
+   ! Usually this is the smallest, which is a better estimate of dmp_ev_ham_min
    ev_min_found = .false.
 
    call elsi_allocate(e_h,tmp_real1,e_h%n_lrow,"tmp_real1",caller)
    call elsi_allocate(e_h,tmp_real2,e_h%n_lrow,"tmp_real2",caller)
 
    if(e_h%n_elsi_calls == 1) then
-      call elsi_allocate(e_h,e_h%evec1,e_h%n_lrow,"e_h%evec1",caller)
-      call elsi_allocate(e_h,e_h%evec2,e_h%n_lrow,"e_h%evec2",caller)
+      call elsi_allocate(e_h,e_h%evec1_dmp,e_h%n_lrow,"evec1_dmp",caller)
+      call elsi_allocate(e_h,e_h%evec2_dmp,e_h%n_lrow,"evec2_dmp",caller)
 
       tmp_real1 = 1.0_r8/sqrt(real(e_h%n_basis,kind=r8))
    else
-      tmp_real1 = e_h%evec1
+      tmp_real1 = e_h%evec1_dmp
    endif
 
    prev_ev = 0.0_r8
 
-   do i_iter = 1,e_h%max_power_iter
+   do i_iter = 1,e_h%dmp_max_power
       call pdgemv('N',e_h%n_basis,e_h%n_basis,1.0_r8,ham,1,1,e_h%sc_desc,&
               tmp_real1,1,1,e_h%sc_desc,1,0.0_r8,tmp_real2,1,1,e_h%sc_desc,1)
 
@@ -222,18 +225,18 @@ subroutine elsi_solve_evp_dmp_real(e_h,ham,ovlp,dm)
    enddo
 
    if(this_ev > 0) then
-      e_h%ev_ham_max = this_ev
+      e_h%dmp_ev_ham_max = this_ev
    else
-      e_h%ev_ham_min = this_ev
+      e_h%dmp_ev_ham_min = this_ev
       ev_min_found   = .true.
    endif
 
-   e_h%evec1 = tmp_real1
+   e_h%evec1_dmp = tmp_real1
 
    if(e_h%n_elsi_calls == 1) then
       tmp_real1 = 1.0_r8/sqrt(real(e_h%n_basis,kind=r8))
    else
-      tmp_real1 = e_h%evec2
+      tmp_real1 = e_h%evec2_dmp
    endif
 
    ! Shift H and use power iteration to find a better estimate of ev_ham_max
@@ -242,13 +245,13 @@ subroutine elsi_solve_evp_dmp_real(e_h,ham,ovlp,dm)
    do i = 1,e_h%n_basis
       if(e_h%loc_row(i) > 0 .and. e_h%loc_col(i) > 0) then
          ham(e_h%loc_row(i),e_h%loc_col(i)) = &
-            ham(e_h%loc_row(i),e_h%loc_col(i))+abs(e_h%ev_ham_min)
+            ham(e_h%loc_row(i),e_h%loc_col(i))+abs(e_h%dmp_ev_ham_min)
       endif
    enddo
 
    prev_ev = 0.0_r8
 
-   do i_iter = 1,e_h%max_power_iter
+   do i_iter = 1,e_h%dmp_max_power
       call pdgemv('N',e_h%n_basis,e_h%n_basis,1.0_r8,ham,1,1,e_h%sc_desc,&
               tmp_real1,1,1,e_h%sc_desc,1,0.0_r8,tmp_real2,1,1,e_h%sc_desc,1)
 
@@ -284,13 +287,13 @@ subroutine elsi_solve_evp_dmp_real(e_h,ham,ovlp,dm)
    enddo
 
    if(ev_min_found .and. this_ev > 0) then
-      e_h%ev_ham_max = this_ev-abs(e_h%ev_ham_min)
+      e_h%dmp_ev_ham_max = this_ev-abs(e_h%dmp_ev_ham_min)
    elseif(this_ev < 0) then
-      e_h%ev_ham_min = this_ev+abs(e_h%ev_ham_max)
+      e_h%dmp_ev_ham_min = this_ev+abs(e_h%dmp_ev_ham_max)
    endif
 
-   e_h%evec2 = tmp_real1
-   ham       = dm
+   e_h%evec2_dmp = tmp_real1
+   ham           = dm
 
    call elsi_deallocate(e_h,tmp_real1,"tmp_real1")
    call elsi_deallocate(e_h,tmp_real2,"tmp_real2")
@@ -308,8 +311,8 @@ subroutine elsi_solve_evp_dmp_real(e_h,ham,ovlp,dm)
    call elsi_trace_mat_real(e_h,ham,mu)
 
    mu     = mu/e_h%n_basis
-   lambda = min(e_h%n_states_dmp/(e_h%ev_ham_max-mu),&
-               (e_h%n_basis-e_h%n_states_dmp)/(mu-e_h%ev_ham_min))
+   lambda = min(e_h%dmp_n_states/(e_h%dmp_ev_ham_max-mu),&
+               (e_h%n_basis-e_h%dmp_n_states)/(mu-e_h%dmp_ev_ham_min))
 
    call elsi_allocate(e_h,dsd,e_h%n_lrow,e_h%n_lcol,"dsd",caller)
    if(e_h%dmp_method == CANONICAL) then
@@ -318,19 +321,19 @@ subroutine elsi_solve_evp_dmp_real(e_h,ham,ovlp,dm)
 
    ! ham_real used as tmp after this point
    call pdgemm('N','N',e_h%n_basis,e_h%n_basis,e_h%n_basis,1.0_r8,&
-           e_h%ham_real_copy,1,1,e_h%sc_desc,e_h%ovlp_real_inv,1,1,e_h%sc_desc,&
-           0.0_r8,ham,1,1,e_h%sc_desc)
+           e_h%ham_real_copy,1,1,e_h%sc_desc,e_h%ovlp_real_inv_dmp,1,1,&
+           e_h%sc_desc,0.0_r8,ham,1,1,e_h%sc_desc)
    call pdgemm('N','N',e_h%n_basis,e_h%n_basis,e_h%n_basis,1.0_r8,&
-           e_h%ovlp_real_inv,1,1,e_h%sc_desc,ham,1,1,e_h%sc_desc,0.0_r8,dm,1,1,&
-           e_h%sc_desc)
+           e_h%ovlp_real_inv_dmp,1,1,e_h%sc_desc,ham,1,1,e_h%sc_desc,0.0_r8,dm,&
+           1,1,e_h%sc_desc)
 
-   dm = (mu*e_h%ovlp_real_inv-dm)*lambda/e_h%n_basis
-   dm = dm+e_h%ovlp_real_inv*e_h%n_states_dmp/e_h%n_basis
+   dm = (mu*e_h%ovlp_real_inv_dmp-dm)*lambda/e_h%n_basis
+   dm = dm+e_h%ovlp_real_inv_dmp*e_h%dmp_n_states/e_h%n_basis
 
    ! Start main density matrix purification loop
    dmp_conv = .false.
 
-   do i_iter = 1,e_h%max_dmp_iter
+   do i_iter = 1,e_h%dmp_max_iter
       ham = dm
 
       select case(e_h%dmp_method)
@@ -344,7 +347,7 @@ subroutine elsi_solve_evp_dmp_real(e_h,ham,ovlp,dm)
          call pdgemm('N','N',e_h%n_basis,e_h%n_basis,e_h%n_basis,1.0_r8,dm,1,1,&
                  e_h%sc_desc,ham,1,1,e_h%sc_desc,0.0_r8,dsd,1,1,e_h%sc_desc)
 
-         if(e_h%n_states_dmp-c1 > 0.0_r8) then
+         if(e_h%dmp_n_states-c1 > 0.0_r8) then
             dm = 2*ham-dsd
          else
             dm = dsd
@@ -408,13 +411,13 @@ subroutine elsi_solve_evp_dmp_real(e_h,ham,ovlp,dm)
       call elsi_trace_mat_mat_real(e_h,e_h%ham_real_copy,dm,e_h%energy_hdm)
 
       ! n_electrons = Trace(S * DM)
-      call elsi_trace_mat_mat_real(e_h,e_h%ovlp_real_copy,dm,e_h%ne_dmp)
-      e_h%ne_dmp = e_h%spin_degen*e_h%ne_dmp
+      call elsi_trace_mat_mat_real(e_h,e_h%ovlp_real_copy,dm,e_h%dmp_ne)
+      e_h%dmp_ne = e_h%spin_degen*e_h%dmp_ne
 
       call elsi_say(e_h,"  Density matrix purification converged")
       write(info_str,"('  | Number of iterations :',I10)") i_iter
       call elsi_say(e_h,info_str)
-      write(info_str,"('  | Number of electrons  :',F10.3)") e_h%ne_dmp
+      write(info_str,"('  | Number of electrons  :',F10.3)") e_h%dmp_ne
       call elsi_say(e_h,info_str)
    else
       call elsi_stop(" Density matrix purification failed to converge.",e_h,&
@@ -506,10 +509,10 @@ subroutine elsi_set_dmp_default(e_h)
    e_h%dmp_method = 0
 
    ! Maximum number of power iterations
-   e_h%max_power_iter = 50
+   e_h%dmp_max_power = 50
 
    ! Maximum number of purification steps
-   e_h%max_dmp_iter = 500
+   e_h%dmp_max_iter = 500
 
    ! Tolerance for purification
    e_h%dmp_tol = 1.0e-10_r8

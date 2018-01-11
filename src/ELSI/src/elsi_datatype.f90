@@ -42,8 +42,6 @@ module ELSI_DATATYPE
 
    private
 
-   !---------------------------------------------------------------------------!
-
    type, public :: elsi_file_io_handle
 
       logical                       :: handle_init !< Is this a valid handle?
@@ -55,8 +53,6 @@ module ELSI_DATATYPE
       integer(kind=i4)              :: comma_json  !< Comma placement in JSON
 
    end type
-
-   !---------------------------------------------------------------------------!
 
    type, public :: elsi_timings_handle
 
@@ -70,8 +66,6 @@ module ELSI_DATATYPE
       character(len=TIMING_STRING_LEN), allocatable :: user_tags(:) ! Tags provided by user
 
    end type
-
-   !---------------------------------------------------------------------------!
 
    type, public :: elsi_handle
 
@@ -92,9 +86,9 @@ module ELSI_DATATYPE
       ! libOMM
       type(Matrix)                  :: ham_omm
       type(Matrix)                  :: ovlp_omm
-      type(Matrix)                  :: coeff   ! Coefficient matrix
+      type(Matrix)                  :: c_omm     ! Coefficient matrix
       type(Matrix)                  :: dm_omm
-      type(Matrix)                  :: tdm_omm ! Kinetic energy density matrix
+      type(Matrix)                  :: tdm_omm   ! Kinetic energy matrix
 
       ! PESXI
       real(kind=r8),    allocatable :: ham_real_pexsi(:)
@@ -105,7 +99,7 @@ module ELSI_DATATYPE
       complex(kind=r8), allocatable :: dm_cmplx_pexsi(:)
       integer(kind=i4), allocatable :: row_ind_pexsi(:)
       integer(kind=i4), allocatable :: col_ptr_pexsi(:)
-      real(kind=r8),    allocatable :: ne_vec(:) ! Electron count at mu points
+      real(kind=r8),    allocatable :: ne_vec_pexsi(:)
 
       ! CheSS
       real(kind=r8),    allocatable :: ham_real_chess(:)
@@ -118,8 +112,8 @@ module ELSI_DATATYPE
       type(matrices)                :: ovlp_chess
       type(matrices)                :: dm_chess
       type(matrices)                :: edm_chess
-      type(matrices)                :: ovlp_inv_sqrt(1) ! ovlp^(-1/2)
-      type(sparse_matrix)           :: sparse_mat(2)
+      type(matrices)                :: ovlp_inv_sqrt_chess(1) ! ovlp^(-1/2)
+      type(sparse_matrix)           :: sparse_mat_chess(2)
 
       ! SIPs
       real(kind=r8),    allocatable :: ham_real_sips(:)
@@ -130,15 +124,14 @@ module ELSI_DATATYPE
       complex(kind=r8), allocatable :: dm_cmplx_sips(:)
       integer(kind=i4), allocatable :: row_ind_sips(:)
       integer(kind=i4), allocatable :: col_ptr_sips(:)
-      real(kind=r8),    allocatable :: slices(:)
 
       ! DMP
       real(kind=r8),    allocatable :: ham_real_dmp(:,:)
       real(kind=r8),    allocatable :: ovlp_real_dmp(:,:)
       real(kind=r8),    allocatable :: dm_real_dmp(:,:)
-      real(kind=r8),    allocatable :: ovlp_real_inv(:,:)
-      real(kind=r8),    allocatable :: evec1(:)
-      real(kind=r8),    allocatable :: evec2(:)
+      real(kind=r8),    allocatable :: ovlp_real_inv_dmp(:,:)
+      real(kind=r8),    allocatable :: evec1_dmp(:)
+      real(kind=r8),    allocatable :: evec2_dmp(:)
 
       ! Auxiliary
       real(kind=r8),    allocatable :: ham_real_copy(:,:)
@@ -243,100 +236,86 @@ module ELSI_DATATYPE
 
       ! ELPA
       integer(kind=i4) :: elpa_solver
-      integer(kind=i4) :: n_single_steps
+      integer(kind=i4) :: elpa_n_single ! Number of single-precision steps
       logical          :: elpa_output
       logical          :: elpa_started = .false.
 
       ! libOMM
-      integer(kind=i4) :: n_states_omm  ! Number of states used in libOMM
+      integer(kind=i4) :: omm_n_states  ! Number of states used in libOMM
       integer(kind=i4) :: omm_n_elpa    ! Number of ELPA steps
-      logical          :: new_ovlp
-      logical          :: coeff_ready   ! Is coefficient initialized?
       integer(kind=i4) :: omm_flavor    ! 0 = Basic
                                         ! 2 = Cholesky already performed
-      real(kind=r8)    :: scale_kinetic ! Factor to scale kinetic energy matrix
-      logical          :: calc_ed       ! Calculate energy density matrix?
-      real(kind=r8)    :: eta           ! Eigenspectrum shift parameter
-      real(kind=r8)    :: min_tol       ! Tolerance for minimization
+      real(kind=r8)    :: omm_ev_shift  ! Eigenspectrum shift parameter
+      real(kind=r8)    :: omm_tol       ! Tolerance for minimization
       logical          :: omm_output
-      logical          :: do_dealloc
-      logical          :: use_psp
 
       ! PEXSI
-      integer(kind=i4) :: np_per_pole
-      integer(kind=i4) :: np_per_point
-      integer(kind=i4) :: my_prow_pexsi
-      integer(kind=i4) :: my_pcol_pexsi
-      integer(kind=i4) :: n_prow_pexsi
-      integer(kind=i4) :: n_pcol_pexsi
-      integer(kind=i4) :: my_point
-      integer(kind=i4) :: myid_point
-      integer(kind=i4) :: comm_among_pole
-      integer(kind=i4) :: comm_in_pole
-      integer(kind=i4) :: comm_among_point
-      integer(kind=i4) :: comm_in_point
-      real(kind=r8)    :: ne_pexsi ! Number of electrons computed by PEXSI
+      integer(kind=i4) :: pexsi_np_per_pole
+      integer(kind=i4) :: pexsi_np_per_point
+      integer(kind=i4) :: pexsi_my_prow
+      integer(kind=i4) :: pexsi_my_pcol
+      integer(kind=i4) :: pexsi_n_prow
+      integer(kind=i4) :: pexsi_n_pcol
+      integer(kind=i4) :: pexsi_my_point
+      integer(kind=i4) :: pexsi_myid_point
+      integer(kind=i4) :: pexsi_comm_among_pole
+      integer(kind=i4) :: pexsi_comm_in_pole
+      integer(kind=i4) :: pexsi_comm_among_point
+      integer(kind=i4) :: pexsi_comm_in_point
+      real(kind=r8)    :: pexsi_ne ! Number of electrons computed by PEXSI
       logical          :: pexsi_started = .false.
       integer(kind=c_intptr_t) :: pexsi_plan
       type(f_ppexsi_options)   :: pexsi_options
 
       ! CheSS
-      type(foe_data)   :: foe_obj
-      type(foe_data)   :: ice_obj
-      real(kind=r8)    :: erf_decay     ! Error function decay length
-      real(kind=r8)    :: erf_decay_min ! Lower bound of decay length
-      real(kind=r8)    :: erf_decay_max ! Upper bound of decay length
-      real(kind=r8)    :: ev_ham_min
-      real(kind=r8)    :: ev_ham_max
-      real(kind=r8)    :: ev_ovlp_min
-      real(kind=r8)    :: ev_ovlp_max
-      real(kind=r8)    :: beta          ! A patameter for eigenspectrum estimate
+      type(foe_data)   :: chess_foe
+      type(foe_data)   :: chess_ice
+      real(kind=r8)    :: chess_erf_decay ! Error function decay length
+      real(kind=r8)    :: chess_erf_min   ! Lower bound of decay length
+      real(kind=r8)    :: chess_erf_max   ! Upper bound of decay length
+      real(kind=r8)    :: chess_ev_ham_min
+      real(kind=r8)    :: chess_ev_ham_max
+      real(kind=r8)    :: chess_ev_ovlp_min
+      real(kind=r8)    :: chess_ev_ovlp_max
+      real(kind=r8)    :: chess_beta      ! Eigenspectrum estimate parameter
       logical          :: chess_started = .false.
 
       ! SIPs
-      integer(kind=i4) :: sips_n_elpa    ! Number of ELPA steps
-      integer(kind=i4) :: np_per_slice
-      integer(kind=i4) :: n_inertia_steps
-      integer(kind=i4) :: slicing_method ! 0 = Equally spaced
-                                         ! 2 = Equally populated
-                                         ! 3 = K-means + equally populated
-      integer(kind=i4) :: inertia_option ! Do inertia counting?
-                                         ! 0 = No
-                                         ! 1 = Yes
-      integer(kind=i4) :: unbound        ! How to bound left side?
-                                         ! 0 = Bound interval
-                                         ! 1 = -infinity
-      integer(kind=i4) :: n_slices
-      real(kind=r8)    :: interval(2)    ! Interval to search eigenvalues
-      real(kind=r8)    :: slice_buffer   ! Small buffer to expand interval
-      real(kind=r8)    :: ev_min         ! Lower bound of eigenvalue
-      real(kind=r8)    :: ev_max         ! Upper bound of eigenvalue
+      integer(kind=i4) :: sips_n_elpa
+      integer(kind=i4) :: sips_np_per_slice
+      integer(kind=i4) :: sips_n_slices
+      integer(kind=i4) :: sips_slice_type
+      integer(kind=i4) :: sips_inertia_tol ! Tolerance to stop inertia counting
+      real(kind=r8)    :: sips_buffer      ! Adjust interval on-the-fly
+      real(kind=r8)    :: sips_ev_shift    ! Adjust interval between SCF steps
+      real(kind=r8)    :: sips_interval(2)
+      logical          :: sips_do_inertia
       logical          :: sips_started = .false.
 
       ! DMP
-      integer(kind=i4) :: n_states_dmp   ! Number of states used in DMP
+      integer(kind=i4) :: dmp_n_states   ! Number of states used in DMP
       integer(kind=i4) :: dmp_method     ! 0 = Trace correcting
                                          ! 1 = Canonical
-      integer(kind=i4) :: max_power_iter ! Maximum number of power iterations
-      integer(kind=i4) :: max_dmp_iter   ! Maximum number of purification steps
+      integer(kind=i4) :: dmp_max_power  ! Maximum number of power iterations
+      integer(kind=i4) :: dmp_max_iter   ! Maximum number of purification steps
+      real(kind=r8)    :: dmp_ev_ham_max
+      real(kind=r8)    :: dmp_ev_ham_min
       real(kind=r8)    :: dmp_tol        ! Tolerance for purification
-      real(kind=r8)    :: ne_dmp         ! Number of electrons computed by DMP
+      real(kind=r8)    :: dmp_ne         ! Number of electrons computed by DMP
 
       ! ELSI IO files
       type(elsi_file_io_handle) :: stdio
-      type(elsi_file_io_handle) :: solver_timings_file
+      type(elsi_file_io_handle) :: timings_file
 
       ! Timer and timings
       integer(kind=i4)          :: clock_rate
-      type(elsi_timings_handle) :: solver_timings
-      logical                   :: output_solver_timings
+      type(elsi_timings_handle) :: timings
+      logical                   :: output_timings
 
       ! Versioning
       character(len=:), allocatable :: processor_name ! MPI name for processor
 
    end type
-
-   !---------------------------------------------------------------------------!
 
    type, public :: elsi_rw_handle
 
@@ -392,7 +371,5 @@ module ELSI_DATATYPE
       integer(kind=i4) :: header_user(8)
 
    end type
-
-   !---------------------------------------------------------------------------!
 
 end module ELSI_DATATYPE

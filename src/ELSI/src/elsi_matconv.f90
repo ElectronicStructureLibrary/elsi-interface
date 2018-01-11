@@ -30,14 +30,17 @@
 !!
 module ELSI_MATCONV
 
-   use ELSI_DATATYPE
+   use ELSI_CONSTANTS, only: UNSET
+   use ELSI_DATATYPE,  only: elsi_handle
    use ELSI_IO,        only: elsi_say
-   use ELSI_MALLOC
-   use ELSI_MPI
+   use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
+   use ELSI_MPI,       only: elsi_stop,elsi_check_mpi,mpi_real8,mpi_complex16,&
+                             mpi_integer4,mpi_sum
    use ELSI_PRECISION, only: r8,i4,i8
-   use ELSI_SORT
+   use ELSI_SORT,      only: elsi_heapsort
    use ELSI_TIMINGS,   only: elsi_get_time
-   use ELSI_UTILS
+   use ELSI_UTILS,     only: elsi_get_local_nnz_real,elsi_get_local_nnz_cmplx,&
+                             elsi_get_global_col,elsi_get_global_row
 
    implicit none
 
@@ -112,7 +115,7 @@ subroutine elsi_blacs_to_pexsi_hs_real(e_h,ham,ovlp)
 
    call elsi_get_time(e_h,t0)
 
-   n_para_task = e_h%n_procs/e_h%np_per_pole
+   n_para_task = e_h%n_procs/e_h%pexsi_np_per_pole
 
    if(e_h%n_elsi_calls == 1) then
       if(.not. e_h%ovlp_is_unit) then
@@ -131,8 +134,8 @@ subroutine elsi_blacs_to_pexsi_hs_real(e_h,ham,ovlp)
    call elsi_allocate(e_h,h_val_send_buf,e_h%nnz_l,"h_val_send_buf",caller)
 
    ! Compute d1,d2,d11,d12,d21,d22 (need explanation)
-   d1  = e_h%n_basis/e_h%np_per_pole
-   d2  = e_h%n_basis-(e_h%np_per_pole-1)*d1
+   d1  = e_h%n_basis/e_h%pexsi_np_per_pole
+   d2  = e_h%n_basis-(e_h%pexsi_np_per_pole-1)*d1
    d11 = d1/n_para_task
    d12 = d1-(n_para_task-1)*d11
    d21 = d2/n_para_task
@@ -349,7 +352,8 @@ subroutine elsi_blacs_to_pexsi_hs_real(e_h,ham,ovlp)
       ! Only the first pole knows nnz_l_sp
       e_h%nnz_l_sp = sum(recv_count,1)
 
-      call MPI_Bcast(e_h%nnz_l_sp,1,mpi_integer4,0,e_h%comm_among_pole,mpierr)
+      call MPI_Bcast(e_h%nnz_l_sp,1,mpi_integer4,0,e_h%pexsi_comm_among_pole,&
+              mpierr)
 
       call elsi_check_mpi(e_h,"MPI_Bcast",mpierr,caller)
    endif
@@ -430,7 +434,7 @@ subroutine elsi_blacs_to_pexsi_hs_real(e_h,ham,ovlp)
               "col_ptr_pexsi",caller)
 
       ! Only the first pole computes row index and column pointer
-      if(e_h%my_prow_pexsi == 0) then
+      if(e_h%pexsi_my_prow == 0) then
          ! Compute row index and column pointer
          i_col = col_send_buf(1)-1
          do i_val = 1,e_h%nnz_l_sp
@@ -512,7 +516,7 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(e_h,ham,ovlp)
 
    call elsi_get_time(e_h,t0)
 
-   n_para_task = e_h%n_procs/e_h%np_per_pole
+   n_para_task = e_h%n_procs/e_h%pexsi_np_per_pole
 
    if(e_h%n_elsi_calls == 1) then
       if(.not. e_h%ovlp_is_unit) then
@@ -531,8 +535,8 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(e_h,ham,ovlp)
    call elsi_allocate(e_h,h_val_send_buf,e_h%nnz_l,"h_val_send_buf",caller)
 
    ! Compute d1,d2,d11,d12,d21,d22 (need explanation)
-   d1  = e_h%n_basis/e_h%np_per_pole
-   d2  = e_h%n_basis-(e_h%np_per_pole-1)*d1
+   d1  = e_h%n_basis/e_h%pexsi_np_per_pole
+   d2  = e_h%n_basis-(e_h%pexsi_np_per_pole-1)*d1
    d11 = d1/n_para_task
    d12 = d1-(n_para_task-1)*d11
    d21 = d2/n_para_task
@@ -751,7 +755,8 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(e_h,ham,ovlp)
       ! Only the first pole knows nnz_l_sp
       e_h%nnz_l_sp = sum(recv_count,1)
 
-      call MPI_Bcast(e_h%nnz_l_sp,1,mpi_integer4,0,e_h%comm_among_pole,mpierr)
+      call MPI_Bcast(e_h%nnz_l_sp,1,mpi_integer4,0,e_h%pexsi_comm_among_pole,&
+              mpierr)
 
       call elsi_check_mpi(e_h,"MPI_Bcast",mpierr,caller)
    endif
@@ -832,7 +837,7 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(e_h,ham,ovlp)
               "col_ptr_pexsi",caller)
 
       ! Only the first pole computes row index and column pointer
-      if(e_h%my_prow_pexsi == 0) then
+      if(e_h%pexsi_my_prow == 0) then
          ! Compute row index and column pointer
          i_col = col_send_buf(1)-1
          do i_val = 1,e_h%nnz_l_sp
@@ -906,7 +911,7 @@ subroutine elsi_pexsi_to_blacs_dm_real(e_h,dm)
    call elsi_allocate(e_h,col_send_buf,e_h%nnz_l_sp,"col_send_buf",caller)
    call elsi_allocate(e_h,send_count,e_h%n_procs,"send_count",caller)
 
-   if(e_h%my_prow_pexsi == 0) then
+   if(e_h%pexsi_my_prow == 0) then
       call elsi_allocate(e_h,dest,e_h%nnz_l_sp,"dest",caller)
 
       i_col = 0
@@ -920,7 +925,8 @@ subroutine elsi_pexsi_to_blacs_dm_real(e_h,dm)
 
          ! Compute global id
          row_send_buf(i_val) = i_row
-         col_send_buf(i_val) = i_col+e_h%myid*(e_h%n_basis/e_h%np_per_pole)
+         col_send_buf(i_val) = i_col+&
+                                  e_h%myid*(e_h%n_basis/e_h%pexsi_np_per_pole)
          val_send_buf(i_val) = e_h%dm_real_pexsi(i_val)
 
          ! Compute destination
@@ -1065,7 +1071,7 @@ subroutine elsi_pexsi_to_blacs_dm_cmplx(e_h,dm)
    call elsi_allocate(e_h,col_send_buf,e_h%nnz_l_sp,"col_send_buf",caller)
    call elsi_allocate(e_h,send_count,e_h%n_procs,"send_count",caller)
 
-   if(e_h%my_prow_pexsi == 0) then
+   if(e_h%pexsi_my_prow == 0) then
       call elsi_allocate(e_h,dest,e_h%nnz_l_sp,"dest",caller)
 
       i_col = 0
@@ -1079,7 +1085,8 @@ subroutine elsi_pexsi_to_blacs_dm_cmplx(e_h,dm)
 
          ! Compute global id
          row_send_buf(i_val) = i_row
-         col_send_buf(i_val) = i_col+e_h%myid*(e_h%n_basis/e_h%np_per_pole)
+         col_send_buf(i_val) = i_col+&
+                                  e_h%myid*(e_h%n_basis/e_h%pexsi_np_per_pole)
          val_send_buf(i_val) = e_h%dm_cmplx_pexsi(i_val)
 
          ! Compute destination

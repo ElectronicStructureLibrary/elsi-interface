@@ -32,29 +32,30 @@ module ELSI_SETUP
 
    use ELSI_CHESS,         only: elsi_set_chess_default
    use ELSI_CONSTANTS,     only: ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,&
-                                 CHESS_SOLVER,SIPS_SOLVER,SINGLE_PROC,&
-                                 MULTI_PROC,SOLVER_TIMINGS_UNIT_DEFAULT,&
+                                 CHESS_SOLVER,SIPS_SOLVER,DMP_SOLVER,&
+                                 SINGLE_PROC,MULTI_PROC,HUMAN_READ,JSON,&
+                                 COMMA_AFTER,SOLVER_TIMINGS_UNIT_DEFAULT,&
                                  SOLVER_TIMINGS_FILE_DEFAULT
-   use ELSI_DATATYPE
+   use ELSI_DATATYPE,      only: elsi_handle
    use ELSI_DMP,           only: elsi_set_dmp_default
    use ELSI_ELPA,          only: elsi_set_elpa_default,elsi_get_elpa_comms
    use ELSI_IO,            only: elsi_print_handle_summary,elsi_say,&
                                  elsi_say_setting,elsi_init_file_io,&
                                  elsi_reset_file_io_handle,append_string,&
                                  truncate_string
-   use ELSI_MALLOC
-   use ELSI_MPI
+   use ELSI_MALLOC,        only: elsi_allocate,elsi_deallocate
+   use ELSI_MPI,           only: elsi_stop
    use ELSI_OMM,           only: elsi_set_omm_default
    use ELSI_PEXSI,         only: elsi_set_pexsi_default
    use ELSI_PRECISION,     only: r8,i4
    use ELSI_SIPS,          only: elsi_set_sips_default
    use ELSI_TIMINGS,       only: elsi_init_timer,elsi_init_timings,&
                                  elsi_print_timings,elsi_finalize_timings
-   use ELSI_UTILS
+   use ELSI_UTILS,         only: elsi_check_handle,elsi_reset_handle
    use FOE_BASE,           only: foe_data_deallocate
    use F_PPEXSI_INTERFACE, only: f_ppexsi_plan_finalize
    use MATRIXSWITCH,       only: ms_scalapack_setup,m_deallocate
-   use M_QETSC,            only: clean_qetsc
+   use M_QETSC,            only: sips_finalize
    use SPARSEMATRIX_BASE,  only: deallocate_sparse_matrix,deallocate_matrices
 
    implicit none
@@ -102,8 +103,8 @@ subroutine elsi_init(e_h,solver,parallel_mode,matrix_format,n_basis,n_electron,&
    e_h%n_electrons    = n_electron
    e_h%n_states       = n_state
    e_h%n_states_solve = n_state
-   e_h%n_states_omm   = nint(n_electron/2.0_r8)
-   e_h%n_states_dmp   = nint(n_electron/2.0_r8)
+   e_h%omm_n_states   = nint(n_electron/2.0_r8)
+   e_h%dmp_n_states   = nint(n_electron/2.0_r8)
    e_h%solver         = solver
    e_h%matrix_format  = matrix_format
    e_h%parallel_mode  = parallel_mode
@@ -140,22 +141,21 @@ subroutine elsi_init(e_h,solver,parallel_mode,matrix_format,n_basis,n_electron,&
       call elsi_set_dmp_default(e_h)
    end select
 
-   ! Initialize stdio handle
-   ! By default, ELSI is silent to stdio unless user requests output
+   ! Initialize stdio handle, silent by default
    call elsi_init_file_io(e_h%stdio,6,file_format=HUMAN_READ,print_info=.false.)
 
    ! Initialize solver timings file handle
-   e_h%output_solver_timings = .true.
+   e_h%output_timings = .true.
    ! print_unit and file_name should only have meaning for myid_all == 0 as a
    ! precautionary measure. However, which process has myid_all == 0 yet, so
    ! they'll be unset once the file is actually open
-   call elsi_init_file_io(e_h%solver_timings_file,SOLVER_TIMINGS_UNIT_DEFAULT,&
+   call elsi_init_file_io(e_h%timings_file,SOLVER_TIMINGS_UNIT_DEFAULT,&
            file_name=SOLVER_TIMINGS_FILE_DEFAULT,file_format=JSON,&
            print_info=.true.,comma_json=COMMA_AFTER)
 
    ! Initialize timer information
    call elsi_init_timer(e_h)
-   call elsi_init_timings(e_h%solver_timings,"Solver timings")
+   call elsi_init_timings(e_h%timings,"Solver timings")
 
 end subroutine
 
@@ -465,7 +465,7 @@ subroutine elsi_final_print(e_h)
    call elsi_say(e_h,"")
    call elsi_say(e_h,"Timings")
    call append_string(e_h%stdio%prefix,"  ")
-   call elsi_print_timings(e_h,e_h%solver_timings)
+   call elsi_print_timings(e_h,e_h%timings)
    call truncate_string(e_h%stdio%prefix,2)
 
    call truncate_string(e_h%stdio%prefix,4)
@@ -536,8 +536,8 @@ subroutine elsi_cleanup(e_h)
    if(e_h%dm_omm%is_initialized) then
       call m_deallocate(e_h%dm_omm)
    endif
-   if(e_h%coeff%is_initialized) then
-      call m_deallocate(e_h%coeff)
+   if(e_h%c_omm%is_initialized) then
+      call m_deallocate(e_h%c_omm)
    endif
    if(e_h%tdm_omm%is_initialized) then
       call m_deallocate(e_h%tdm_omm)
@@ -568,8 +568,8 @@ subroutine elsi_cleanup(e_h)
    if(allocated(e_h%col_ptr_pexsi)) then
       call elsi_deallocate(e_h,e_h%col_ptr_pexsi,"col_ptr_pexsi")
    endif
-   if(allocated(e_h%ne_vec)) then
-      call elsi_deallocate(e_h,e_h%ne_vec,"ne_vec")
+   if(allocated(e_h%ne_vec_pexsi)) then
+      call elsi_deallocate(e_h,e_h%ne_vec_pexsi,"ne_vec_pexsi")
    endif
 
    ! CheSS
@@ -617,19 +617,16 @@ subroutine elsi_cleanup(e_h)
    if(allocated(e_h%col_ptr_sips)) then
       call elsi_deallocate(e_h,e_h%col_ptr_sips,"col_ptr_sips")
    endif
-   if(allocated(e_h%slices)) then
-      call elsi_deallocate(e_h,e_h%slices,"slices")
-   endif
 
    ! DMP
-   if(allocated(e_h%ovlp_real_inv)) then
-      call elsi_deallocate(e_h,e_h%ovlp_real_inv,"ovlp_real_inv")
+   if(allocated(e_h%ovlp_real_inv_dmp)) then
+      call elsi_deallocate(e_h,e_h%ovlp_real_inv_dmp,"ovlp_real_inv_dmp")
    endif
-   if(allocated(e_h%evec1)) then
-      call elsi_deallocate(e_h,e_h%evec1,"evec1")
+   if(allocated(e_h%evec1_dmp)) then
+      call elsi_deallocate(e_h,e_h%evec1_dmp,"evec1_dmp")
    endif
-   if(allocated(e_h%evec2)) then
-      call elsi_deallocate(e_h,e_h%evec2,"evec2")
+   if(allocated(e_h%evec2_dmp)) then
+      call elsi_deallocate(e_h,e_h%evec2_dmp,"evec2_dmp")
    endif
 
    ! Auxiliary
@@ -661,50 +658,49 @@ subroutine elsi_cleanup(e_h)
    ! Finalize PEXSI
    if(e_h%pexsi_started) then
       call f_ppexsi_plan_finalize(e_h%pexsi_plan,ierr)
-      call MPI_Comm_free(e_h%comm_among_pole,ierr)
-      call MPI_Comm_free(e_h%comm_in_pole,ierr)
-      call MPI_Comm_free(e_h%comm_among_point,ierr)
-      call MPI_Comm_free(e_h%comm_in_point,ierr)
+      call MPI_Comm_free(e_h%pexsi_comm_among_pole,ierr)
+      call MPI_Comm_free(e_h%pexsi_comm_in_pole,ierr)
+      call MPI_Comm_free(e_h%pexsi_comm_among_point,ierr)
+      call MPI_Comm_free(e_h%pexsi_comm_in_point,ierr)
    endif
 
    ! Finalize CheSS
    if(e_h%chess_started) then
-      call deallocate_sparse_matrix(e_h%sparse_mat(1))
-      call deallocate_sparse_matrix(e_h%sparse_mat(2))
-      call foe_data_deallocate(e_h%ice_obj)
-      call foe_data_deallocate(e_h%foe_obj)
+      call deallocate_sparse_matrix(e_h%sparse_mat_chess(1))
+      call deallocate_sparse_matrix(e_h%sparse_mat_chess(2))
+      call foe_data_deallocate(e_h%chess_ice)
+      call foe_data_deallocate(e_h%chess_foe)
       call deallocate_matrices(e_h%ham_chess)
       call deallocate_matrices(e_h%ovlp_chess)
       call deallocate_matrices(e_h%dm_chess)
       call deallocate_matrices(e_h%edm_chess)
-      call deallocate_matrices(e_h%ovlp_inv_sqrt(1))
+      call deallocate_matrices(e_h%ovlp_inv_sqrt_chess(1))
       call f_lib_finalize()
    endif
 
    ! Finalize SIPs
    if(e_h%sips_started) then
-      call clean_qetsc()
+      call sips_finalize()
    endif
 
    ! Print final timings
-   if(e_h%handle_ready .and. e_h%output_solver_timings) then
-      if(e_h%solver_timings_file%file_format == JSON) then
+   if(e_h%handle_ready .and. e_h%output_timings) then
+      if(e_h%timings_file%file_format == JSON) then
          ! Closing bracket to signify end of JSON array
-         call truncate_string(e_h%solver_timings_file%prefix,2)
+         call truncate_string(e_h%timings_file%prefix,2)
 
-         call elsi_say(e_h,"]",e_h%solver_timings_file)
+         call elsi_say(e_h,"]",e_h%timings_file)
       endif
    endif
 
-   call elsi_finalize_timings(e_h%solver_timings)
+   call elsi_finalize_timings(e_h%timings)
 
    ! Close open files and finalize file IO handles other than stdio
-   if(e_h%handle_ready .and. e_h%output_solver_timings .and. &
-      e_h%myid_all == 0) then
-      close(e_h%solver_timings_file%print_unit)
+   if(e_h%handle_ready .and. e_h%output_timings .and. e_h%myid_all == 0) then
+      close(e_h%timings_file%print_unit)
    endif
 
-   call elsi_reset_file_io_handle(e_h%solver_timings_file)
+   call elsi_reset_file_io_handle(e_h%timings_file)
 
    ! Close the stdio file handle, then reset e_h
    call elsi_reset_file_io_handle(e_h%stdio)

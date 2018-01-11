@@ -34,7 +34,7 @@
 !!
 module ELSI_MPI
 
-   use ELSI_DATATYPE
+   use ELSI_DATATYPE,  only: elsi_handle
    use ELSI_PRECISION, only: i4
 
    implicit none

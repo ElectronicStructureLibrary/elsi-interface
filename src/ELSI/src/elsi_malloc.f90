@@ -30,11 +30,10 @@
 !!
 module ELSI_MALLOC
 
-   use ELSI_DATATYPE
-   use ELSI_IO, only: elsi_say
-   use ELSI_MPI
-   use ELSI_PRECISION
-   use ELSI_UTILS
+   use ELSI_DATATYPE,  only: elsi_handle
+   use ELSI_IO,        only: elsi_say
+   use ELSI_MPI,       only: elsi_stop
+   use ELSI_PRECISION, only: i4,i8,r4,r8
 
    implicit none
 

@@ -31,14 +31,18 @@
 module ELSI_SIPS
 
    use ELSI_CONSTANTS, only: UNSET
-   use ELSI_DATATYPE
+   use ELSI_DATATYPE,  only: elsi_handle
    use ELSI_IO,        only: elsi_say
-   use ELSI_MALLOC
-   use ELSI_MPI
+   use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
+   use ELSI_MPI,       only: elsi_stop,elsi_check_mpi
    use ELSI_PRECISION, only: r8,i4
    use ELSI_TIMINGS,   only: elsi_get_time
-   use ELSI_UTILS
-   use M_QETSC
+   use ELSI_UTILS,     only: elsi_get_global_row
+   use M_QETSC,        only: sips_initialize,sips_finalize,sips_load_ham_ovlp,&
+                             sips_load_ham,sips_update_ham,sips_set_eps,&
+                             sips_update_eps,sips_set_slices,sips_solve_eps,&
+                             sips_get_eigenvalues,sips_get_eigenvectors,&
+                             sips_get_inertias
 
    implicit none
 
@@ -66,12 +70,12 @@ subroutine elsi_init_sips(e_h)
    character*40, parameter :: caller = "elsi_init_sips"
 
    if(e_h%n_elsi_calls == e_h%sips_n_elpa+1) then
-      call initialize_qetsc()
+      call sips_initialize()
 
-      if(e_h%n_slices == UNSET) then
+      if(e_h%sips_n_slices == UNSET) then
          ! TODO: Number of slices
-         e_h%np_per_slice = 1
-         e_h%n_slices     = e_h%n_procs
+         e_h%sips_np_per_slice = 1
+         e_h%sips_n_slices     = e_h%n_procs
       endif
 
       ! 1D block distribution
@@ -82,12 +86,10 @@ subroutine elsi_init_sips(e_h)
          e_h%n_lcol_sp = e_h%n_basis-(e_h%n_procs-1)*e_h%n_lcol_sp
       endif
 
-      call elsi_allocate(e_h,e_h%slices,e_h%n_slices+1,"slices",caller)
-
       e_h%sips_started = .true.
    endif
 
-   write(info_str,"('  | Number of slices          ',I10)") e_h%n_slices
+   write(info_str,"('  | Number of slices     ',I10)") e_h%sips_n_slices
    call elsi_say(e_h,info_str)
 
 end subroutine
@@ -104,13 +106,25 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
    real(kind=r8),     intent(inout) :: ovlp(e_h%nnz_l_sp)
    real(kind=r8),     intent(inout) :: eval(e_h%n_states)
 
-   integer(kind=i4) :: n_solve_steps
    real(kind=r8)    :: t0
    real(kind=r8)    :: t1
+   real(kind=r8)    :: lower
+   real(kind=r8)    :: upper
+   real(kind=r8)    :: prev_sum
+   real(kind=r8)    :: new_sum
+   integer(kind=i4) :: i
+   integer(kind=i4) :: j
+   integer(kind=i4) :: this
+   integer(kind=i4) :: tmp
+   integer(kind=i4) :: n_iner_steps
+   integer(kind=i4) :: n_solved
+   integer(kind=i4) :: n_clst
+   integer(kind=i4) :: clst(100,3) ! Eigenvalue clusters
    integer(kind=i4) :: mpierr
+   logical          :: slices_changed
    character*200    :: info_str
 
-   real(kind=r8),    allocatable :: shifts(:)
+   real(kind=r8),    allocatable :: slices(:)
    integer(kind=i4), allocatable :: inertias(:)
 
    character*40, parameter :: caller = "elsi_solve_evp_sips_real"
@@ -123,23 +137,23 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
    if(e_h%n_elsi_calls == e_h%sips_n_elpa+1) then
       if(.not. e_h%ovlp_is_unit) then
          ! Load H and S
-         call eps_load_ham_ovlp(e_h%n_basis,e_h%n_lcol_sp,e_h%nnz_l_sp,&
+         call sips_load_ham_ovlp(e_h%n_basis,e_h%n_lcol_sp,e_h%nnz_l_sp,&
                  e_h%row_ind_sips,e_h%col_ptr_sips,ham,ovlp)
 
-         call set_eps(e_h%ev_min,e_h%ev_max,math,mats)
+         call sips_set_eps(0)
       else
          ! Load H
-         call eps_load_ham(e_h%n_basis,e_h%n_lcol_sp,e_h%nnz_l_sp,&
+         call sips_load_ham(e_h%n_basis,e_h%n_lcol_sp,e_h%nnz_l_sp,&
                  e_h%row_ind_sips,e_h%col_ptr_sips,ham)
 
-         call set_eps(e_h%ev_min,e_h%ev_max,math)
+         call sips_set_eps(1)
       endif
    else ! n_elsi_calls > sips_n_elpa+1
       ! Update H matrix
-      call eps_update_ham(e_h%n_basis,e_h%n_lcol_sp,e_h%nnz_l_sp,&
+      call sips_update_ham(e_h%n_basis,e_h%n_lcol_sp,e_h%nnz_l_sp,&
               e_h%row_ind_sips,e_h%col_ptr_sips,ham)
 
-      call update_eps(e_h%n_slices)
+      call sips_update_eps(e_h%sips_n_slices)
    endif
 
    call elsi_get_time(e_h,t1)
@@ -149,32 +163,115 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
    call elsi_say(e_h,info_str)
 
-   if(e_h%sips_n_elpa < 1 .and. e_h%n_elsi_calls == 1) then
-      ! Estimate the lower and upper bounds of eigenvalues
-      e_h%interval = get_eps_interval()
+   call elsi_allocate(e_h,slices,e_h%sips_n_slices+1,"slices",caller)
 
-      ! Compute slicing
-      call compute_subintervals(e_h%n_slices,0,e_h%unbound,e_h%interval,0.0_r8,&
-              0.0_r8,e_h%slices)
+   eval = eval+e_h%sips_ev_shift
 
-      ! Run inertia counting
-      if(e_h%inertia_option > 0 .and. e_h%n_slices > 1) then
+   n_clst    = 1
+   clst      = 0
+   clst(1,1) = 1
+
+   do i = 1,e_h%n_states-1
+      if(eval(i+1)-eval(i) > 1.0_r8) then
+         n_clst         = n_clst+1
+         clst(n_clst,1) = i+1
+      endif
+   enddo
+
+   clst(n_clst+1,1) = e_h%n_states+1
+
+   if(e_h%sips_n_slices-n_clst+1 < n_clst .or. n_clst == 1) then ! One slice
+      lower = eval(1)-e_h%sips_buffer
+      upper = eval(e_h%n_states)+e_h%sips_buffer
+
+      call elsi_linspace(lower,upper,e_h%sips_n_slices+1,slices)
+   else
+      tmp = 0
+
+      do i = 1,n_clst-1
+         this      = (clst(i+1,1)-clst(i,1))*(e_h%sips_n_slices-n_clst+1)/&
+                        e_h%n_states
+         this      = max(1,this)
+         clst(i,2) = tmp+1
+         clst(i,3) = tmp+this+1
+         tmp       = tmp+this+1
+      enddo
+
+      clst(n_clst,2) = tmp+1
+      clst(n_clst,3) = e_h%sips_n_slices+1
+
+      do i = 1,n_clst
+         lower = eval(clst(i,1))-e_h%sips_buffer
+         upper = eval(clst(i+1,1)-1)+e_h%sips_buffer
+         this  = clst(i,3)-clst(i,2)+1
+
+         call elsi_linspace(lower,upper,this,slices(clst(i,2):clst(i,3)))
+      enddo
+
+      if(e_h%sips_do_inertia) then ! Inertia counting
          call elsi_get_time(e_h,t0)
 
-         call elsi_allocate(e_h,inertias,e_h%n_slices+1,"inertias",caller)
-         call elsi_allocate(e_h,shifts,e_h%n_slices+1,"shifts",caller)
+         call elsi_allocate(e_h,inertias,e_h%sips_n_slices+1,"inertias",caller)
 
-         call run_eps_inertias_check(e_h%unbound,e_h%n_states,e_h%n_slices,&
-                 e_h%slices,shifts,inertias,n_solve_steps)
+         n_iner_steps   = 0
+         slices_changed = .true.
 
-         call inertias_to_eigenvalues(e_h%n_slices+1,e_h%n_states,&
-                 e_h%slice_buffer,shifts,inertias,eval(1:e_h%n_states))
+         do while(n_iner_steps < 5 .and. slices_changed)
+            n_iner_steps = n_iner_steps+1
 
-         call compute_subintervals(e_h%n_slices,e_h%slicing_method,e_h%unbound,&
-                 e_h%interval,0.0_r8,0.0_r8,e_h%slices,eval(1:e_h%n_states))
+            call sips_get_inertias(e_h%sips_n_slices,slices,inertias)
+
+            ! DEBUG
+            if(e_h%myid == 0) then
+               print *
+               print *,"QETSc inertia counting iteration",n_iner_steps
+               print *,"Shifts                  :    Inertias"
+               do i = 1,e_h%sips_n_slices+1
+                  print *,slices(i),":",inertias(i)
+               enddo
+               print *
+            endif
+
+            slices_changed = .false.
+
+            do i = 1,n_clst
+               do j = clst(i,2),clst(i,3)
+                  if(inertias(j) > clst(i,1)-1) then
+                     if(j == clst(i,2)) then
+                        slices(clst(i,2)) = slices(clst(i,2))-0.1_r8
+                        slices_changed    = .true.
+                     elseif(j-1 /= clst(i,2)) then
+                        slices(clst(i,2)) = slices(j-1)
+                        slices_changed    = .true.
+                     endif
+
+                     exit
+                  endif
+               enddo
+
+               do j = clst(i,3),clst(i,2),-1
+                  if(inertias(j) < clst(i+1,1)-1) then
+                     if(j == clst(i,3)) then
+                        slices(clst(i,3)) = slices(clst(i,3))+0.1_r8
+                        slices_changed    = .true.
+                     elseif(j+1 /= clst(i,3)) then
+                        slices(clst(i,3)) = slices(j+1)
+                        slices_changed    = .true.
+                     endif
+
+                     exit
+                  endif
+               enddo
+
+               lower = slices(clst(i,2))
+               upper = slices(clst(i,3))
+               this  = clst(i,3)-clst(i,2)+1
+
+               call elsi_linspace(lower,upper,this,slices(clst(i,2):clst(i,3)))
+            enddo
+         enddo
 
          call elsi_deallocate(e_h,inertias,"inertias")
-         call elsi_deallocate(e_h,shifts,"shifts")
 
          call elsi_get_time(e_h,t1)
 
@@ -183,24 +280,43 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
          write(info_str,"('  | Time :',F10.3,' s')") t1-t0
          call elsi_say(e_h,info_str)
       endif
-   else
-      e_h%interval(1) = eval(1)-e_h%slice_buffer
-      e_h%interval(2) = eval(e_h%n_states)+e_h%slice_buffer
-
-      call compute_subintervals(e_h%n_slices,e_h%slicing_method,e_h%unbound,&
-              e_h%interval,e_h%slice_buffer,1.0e-6_r8,e_h%slices,&
-              eval(1:e_h%n_states))
    endif
 
-   call set_eps_subintervals(e_h%n_slices,e_h%slices)
+   call sips_set_slices(e_h%sips_n_slices,slices)
 
    call elsi_get_time(e_h,t0)
 
    ! Solve
-   call solve_eps_check(e_h%n_states,e_h%n_slices,e_h%slices,n_solve_steps)
+   call sips_solve_eps(e_h%n_states,n_solved)
+
+   if(n_solved < e_h%n_states) then
+      call elsi_stop(" SIPs solver failed.",e_h,caller)
+   endif
 
    ! Get eigenvalues
-   eval(1:e_h%n_states) = get_eps_eigenvalues(e_h%n_states)
+   prev_sum = sum(eval(1:e_h%n_states))/e_h%n_states
+
+   call sips_get_eigenvalues(e_h%n_states,eval(1:e_h%n_states))
+
+   new_sum = sum(eval(1:e_h%n_states))/e_h%n_states
+
+   if(abs(new_sum-prev_sum) < e_h%sips_inertia_tol) then
+      e_h%sips_do_inertia = .false.
+   else
+      e_h%sips_do_inertia = .true.
+   endif
+
+   ! DEBUG
+   if(e_h%myid == 0) then
+      print *
+      print *,"QETSc eigenvalues"
+      do i = 1,n_clst-1
+         print *,eval(clst(i,1))
+         print *,eval(clst(i+1,1)-1)
+      enddo
+      print *,eval(e_h%n_states)
+      print *
+   endif
 
    call MPI_Barrier(e_h%mpi_comm,mpierr)
 
@@ -248,7 +364,7 @@ subroutine elsi_sips_to_blacs_ev_real(e_h,evec)
    evec = 0.0_r8
 
    do i_state = 1,e_h%n_states
-      call get_eps_eigenvectors(e_h%n_basis,i_state,tmp_real)
+      call sips_get_eigenvectors(e_h%n_basis,i_state,tmp_real)
 
       this_pcol = mod((i_state-1)/e_h%blk_col,e_h%n_pcol)
 
@@ -284,6 +400,31 @@ subroutine elsi_sips_to_blacs_ev_real(e_h,evec)
 end subroutine
 
 !>
+!! This routine gets a linearly spaced vector.
+!!
+subroutine elsi_linspace(lower,upper,length,vec)
+
+   implicit none
+
+   real(kind=r8),    intent(in)  :: lower
+   real(kind=r8),    intent(in)  :: upper
+   integer(kind=i4), intent(in)  :: length
+   real(kind=r8),    intent(out) :: vec(length)
+
+   character*40, parameter :: caller = "elsi_linspace"
+
+   real(kind=r8)    :: step
+   integer(kind=i4) :: i
+
+   step = (upper-lower)/(length-1)
+
+   do i = 1,length
+      vec(i) = lower+(i-1)*step
+   enddo
+
+end subroutine
+
+!>
 !! This routine sets default SIPs parameters.
 !!
 subroutine elsi_set_sips_default(e_h)
@@ -299,33 +440,22 @@ subroutine elsi_set_sips_default(e_h)
    endif
 
    ! How many steps of ELPA to run before SIPs
-   e_h%sips_n_elpa = 0
+   e_h%sips_n_elpa = 1
 
-   ! Type of slices
-   ! 0 = Equally spaced subintervals
-   ! 2 = Equally populated subintervals
-   ! 3 = K-means after equally populated
-   e_h%slicing_method = 2
+   ! Buffer to adjust global interval
+   e_h%sips_buffer = 0.02_r8
 
-   ! Extra inertia computations before solve?
-   ! 0 = No
-   ! 1 = Yes
-   e_h%inertia_option = 0
+   ! Shift of eigenspectrum between SCF steps
+   e_h%sips_ev_shift = 0.0_r8
 
-   ! How to bound the left side of the interval
-   ! 0 = Bounded
-   ! 1 = -infinity
-   e_h%unbound = 0
+   ! Tolerance to stop inertia counting
+   e_h%sips_inertia_tol = 1.0e-3_r8
 
-   ! Small buffer to expand the eigenvalue interval
-   ! Smaller values improve performance if eigenvalue range known
-   e_h%slice_buffer = 0.5_r8
+   ! Do inertia counting
+   e_h%sips_do_inertia = .true.
 
-   ! Lower bound of eigenvalue
-   e_h%ev_min = -1.0e1_r8
-
-   ! Upper bound of eigenvalue
-   e_h%ev_max = 1.0e1_r8
+   ! Slice type (not used)
+   e_h%sips_slice_type = 0
 
 end subroutine
 

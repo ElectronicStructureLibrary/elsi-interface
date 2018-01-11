@@ -31,14 +31,12 @@
 !!
 module ELSI
 
-   use ELSI_DATATYPE
+   use ELSI_DATATYPE, only: elsi_handle,elsi_rw_handle
    use ELSI_MATIO
    use ELSI_MU
    use ELSI_MUTATOR
    use ELSI_SETUP
    use ELSI_SOLVER
-   use ELSI_TIMINGS
-   use ELSI_CONSTANTS, only: RELEASE_DATE
 
    implicit none
 
@@ -73,7 +71,6 @@ module ELSI
    public :: elsi_set_omm_n_elpa
    public :: elsi_set_omm_tol
    public :: elsi_set_omm_ev_shift
-   public :: elsi_set_omm_psp
    public :: elsi_set_pexsi_n_mu
    public :: elsi_set_pexsi_n_pole
    public :: elsi_set_pexsi_np_per_pole
@@ -93,13 +90,12 @@ module ELSI
    public :: elsi_set_chess_ev_ovlp_min
    public :: elsi_set_chess_ev_ovlp_max
    public :: elsi_set_sips_n_elpa
-   public :: elsi_set_sips_slice_type
    public :: elsi_set_sips_n_slice
-   public :: elsi_set_sips_inertia
-   public :: elsi_set_sips_left_bound
-   public :: elsi_set_sips_slice_buf
-   public :: elsi_set_sips_ev_min
-   public :: elsi_set_sips_ev_max
+   public :: elsi_set_sips_buffer
+   public :: elsi_set_sips_ev_shift
+   public :: elsi_set_sips_slice_type
+   public :: elsi_set_sips_interval
+   public :: elsi_set_sips_inertia_tol
    public :: elsi_set_dmp_method
    public :: elsi_set_dmp_max_step
    public :: elsi_set_dmp_tol
@@ -107,10 +103,10 @@ module ELSI
    public :: elsi_set_mu_broaden_width
    public :: elsi_set_mu_tol
    public :: elsi_set_mu_spin_degen
-   public :: elsi_set_output_solver_timings
-   public :: elsi_set_solver_timings_unit
-   public :: elsi_set_solver_timings_file
-   public :: elsi_set_solver_timing_tag
+   public :: elsi_set_output_timings
+   public :: elsi_set_timings_unit
+   public :: elsi_set_timings_file
+   public :: elsi_set_timings_tag
    public :: elsi_get_pexsi_mu_min
    public :: elsi_get_pexsi_mu_max
    public :: elsi_get_ovlp_sing

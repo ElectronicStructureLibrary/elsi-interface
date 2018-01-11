@@ -31,14 +31,16 @@
 module ELSI_ELPA
 
    use ELSI_CONSTANTS,    only: BLACS_DENSE
-   use ELSI_DATATYPE
+   use ELSI_DATATYPE,     only: elsi_handle
    use ELSI_IO,           only: elsi_say
-   use ELSI_MALLOC
-   use ELSI_MPI
+   use ELSI_MALLOC,       only: elsi_allocate,elsi_deallocate
+   use ELSI_MPI,          only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8,&
+                                mpi_integer4
    use ELSI_MU,           only: elsi_compute_mu_and_occ
    use ELSI_PRECISION,    only: r8,i4
    use ELSI_TIMINGS,      only: elsi_get_time
-   use ELSI_UTILS
+   use ELSI_UTILS,        only: elsi_get_local_nnz_real,&
+                                elsi_get_local_nnz_cmplx
    use CHECK_SINGULARITY, only: elpa_check_singularity_real_double,&
                                 elpa_check_singularity_complex_double
    use ELPA1,             only: elpa_print_times,elpa_get_communicators,&
@@ -211,7 +213,7 @@ subroutine elsi_compute_dm_elpa_real(e_h,evec,dm,work)
          if(e_h%loc_col(i) > 0) then
             work(:,e_h%loc_col(i)) = work(:,e_h%loc_col(i))*factor(i)
          endif
-      elseif(e_h%loc_col(i) .ne. 0) then
+      elseif(e_h%loc_col(i) /= 0) then
          work(:,e_h%loc_col(i)) = 0.0_r8
       endif
    enddo
@@ -296,7 +298,7 @@ subroutine elsi_compute_edm_elpa_real(e_h,eval,evec,edm,work)
          if(e_h%loc_col(i) > 0) then
             work(:,e_h%loc_col(i)) = work(:,e_h%loc_col(i))*factor(i)
          endif
-      elseif(e_h%loc_col(i) .ne. 0) then
+      elseif(e_h%loc_col(i) /= 0) then
          work(:,e_h%loc_col(i)) = 0.0_r8
       endif
    enddo
@@ -753,7 +755,7 @@ subroutine elsi_compute_dm_elpa_cmplx(e_h,evec,dm,work)
          if(e_h%loc_col(i) > 0) then
             work(:,e_h%loc_col(i)) = work(:,e_h%loc_col(i))*factor(i)
          endif
-      elseif(e_h%loc_col(i) .ne. 0) then
+      elseif(e_h%loc_col(i) /= 0) then
          work(:,e_h%loc_col(i)) = (0.0_r8,0.0_r8)
       endif
    enddo
@@ -846,7 +848,7 @@ subroutine elsi_compute_edm_elpa_cmplx(e_h,eval,evec,edm,work)
          if(e_h%loc_col(i) > 0) then
             work(:,e_h%loc_col(i)) = work(:,e_h%loc_col(i))*factor(i)
          endif
-      elseif(e_h%loc_col(i) .ne. 0) then
+      elseif(e_h%loc_col(i) /= 0) then
          work(:,e_h%loc_col(i)) = (0.0_r8,0.0_r8)
       endif
    enddo
@@ -1294,7 +1296,7 @@ subroutine elsi_set_elpa_default(e_h)
    e_h%elpa_solver = 2
 
    ! How many single precision steps?
-   e_h%n_single_steps = 0
+   e_h%elpa_n_single = 0
 
    ! ELPA output?
    e_h%elpa_output = .false.

@@ -669,22 +669,6 @@ subroutine elsi_set_omm_ev_shift_c_wrapper(handle_c,ev_shift)&
 
 end subroutine
 
-subroutine elsi_set_omm_psp_c_wrapper(handle_c,use_psp)&
-   bind(C,name="c_elsi_set_omm_psp")
-
-   implicit none
-
-   type(c_ptr),         value, intent(in) :: handle_c
-   integer(kind=c_int), value, intent(in) :: use_psp
-
-   type(elsi_handle), pointer :: handle_f
-
-   call c_f_pointer(handle_c,handle_f)
-
-   call elsi_set_omm_psp(handle_f,use_psp)
-
-end subroutine
-
 subroutine elsi_set_pexsi_n_mu_c_wrapper(handle_c,n_mu)&
    bind(C,name="c_elsi_set_pexsi_n_mu")
 
@@ -989,22 +973,6 @@ subroutine elsi_set_sips_n_elpa_c_wrapper(handle_c,n_elpa)&
 
 end subroutine
 
-subroutine elsi_set_sips_slice_type_c_wrapper(handle_c,slice_type)&
-   bind(C,name="c_elsi_set_sips_slice_type")
-
-   implicit none
-
-   type(c_ptr),         value, intent(in) :: handle_c
-   integer(kind=c_int), value, intent(in) :: slice_type
-
-   type(elsi_handle), pointer :: handle_f
-
-   call c_f_pointer(handle_c,handle_f)
-
-   call elsi_set_sips_slice_type(handle_f,slice_type)
-
-end subroutine
-
 subroutine elsi_set_sips_n_slice_c_wrapper(handle_c,n_slice)&
    bind(C,name="c_elsi_set_sips_n_slice")
 
@@ -1021,83 +989,84 @@ subroutine elsi_set_sips_n_slice_c_wrapper(handle_c,n_slice)&
 
 end subroutine
 
-subroutine elsi_set_sips_inertia_c_wrapper(handle_c,do_inertia)&
-   bind(C,name="c_elsi_set_sips_inertia")
+subroutine elsi_set_sips_slice_type_c_wrapper(handle_c,slice_type)&
+   bind(C,name="c_elsi_set_sips_slice_type")
 
    implicit none
 
    type(c_ptr),         value, intent(in) :: handle_c
-   integer(kind=c_int), value, intent(in) :: do_inertia
+   integer(kind=c_int), value, intent(in) :: slice_type
 
    type(elsi_handle), pointer :: handle_f
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_set_sips_inertia(handle_f,do_inertia)
+   call elsi_set_sips_slice_type(handle_f,slice_type)
 
 end subroutine
 
-subroutine elsi_set_sips_left_bound_c_wrapper(handle_c,left_bound)&
-   bind(C,name="c_elsi_set_sips_left_bound")
+subroutine elsi_set_sips_buffer_c_wrapper(handle_c,buffer)&
+   bind(C,name="c_elsi_set_sips_buffer")
 
    implicit none
 
    type(c_ptr),         value, intent(in) :: handle_c
-   integer(kind=c_int), value, intent(in) :: left_bound
+   real(kind=c_double), value, intent(in) :: buffer
 
    type(elsi_handle), pointer :: handle_f
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_set_sips_left_bound(handle_f,left_bound)
+   call elsi_set_sips_buffer(handle_f,buffer)
 
 end subroutine
 
-subroutine elsi_set_sips_slice_buf_c_wrapper(handle_c,slice_buffer)&
-   bind(C,name="c_elsi_set_sips_slice_buf")
+subroutine elsi_set_sips_inertia_tol_c_wrapper(handle_c,inertia_tol)&
+   bind(C,name="c_elsi_set_sips_inertia_tol")
 
    implicit none
 
    type(c_ptr),         value, intent(in) :: handle_c
-   real(kind=c_double), value, intent(in) :: slice_buffer
+   real(kind=c_double), value, intent(in) :: inertia_tol
 
    type(elsi_handle), pointer :: handle_f
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_set_sips_slice_buf(handle_f,slice_buffer)
+   call elsi_set_sips_inertia_tol(handle_f,inertia_tol)
 
 end subroutine
 
-subroutine elsi_set_sips_ev_min_c_wrapper(handle_c,ev_min)&
-   bind(C,name="c_elsi_set_sips_ev_min")
+subroutine elsi_set_sips_ev_shift_c_wrapper(handle_c,ev_shift)&
+   bind(C,name="c_elsi_set_sips_ev_shift")
 
    implicit none
 
    type(c_ptr),         value, intent(in) :: handle_c
-   real(kind=c_double), value, intent(in) :: ev_min
+   real(kind=c_double), value, intent(in) :: ev_shift
 
    type(elsi_handle), pointer :: handle_f
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_set_sips_ev_min(handle_f,ev_min)
+   call elsi_set_sips_ev_shift(handle_f,ev_shift)
 
 end subroutine
 
-subroutine elsi_set_sips_ev_max_c_wrapper(handle_c,ev_max)&
-   bind(C,name="c_elsi_set_sips_ev_max")
+subroutine elsi_set_sips_interval_c_wrapper(handle_c,lower,upper)&
+   bind(C,name="c_elsi_set_sips_interval")
 
    implicit none
 
    type(c_ptr),         value, intent(in) :: handle_c
-   real(kind=c_double), value, intent(in) :: ev_max
+   real(kind=c_double), value, intent(in) :: lower
+   real(kind=c_double), value, intent(in) :: upper
 
    type(elsi_handle), pointer :: handle_f
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_set_sips_ev_max(handle_f,ev_max)
+   call elsi_set_sips_interval(handle_f,lower,upper)
 
 end subroutine
 

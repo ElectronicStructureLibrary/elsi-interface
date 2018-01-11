@@ -26,13 +26,15 @@
 ! EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 !>
-!! This module performs IO to stdout and files.  For matrix IO, see the
-!! ELSI_MATIO module.
+!! This module performs IO to stdout and files.
 !!
 module ELSI_IO
 
-   use ELSI_CONSTANTS
-   use ELSI_DATATYPE
+   use ELSI_CONSTANTS, only: UNSET,UNSET_STRING,HUMAN_READ,JSON,MULTI_PROC,&
+                             SINGLE_PROC,ELPA_SOLVER,SIPS_SOLVER,OMM_SOLVER,&
+                             PEXSI_SOLVER,CHESS_SOLVER,DMP_SOLVER,BLACS_DENSE,&
+                             PEXSI_CSC,COMMA_AFTER,NO_COMMA
+   use ELSI_DATATYPE,  only: elsi_handle,elsi_file_io_handle,elsi_timings_handle
    use ELSI_MPI,       only: elsi_stop
    use ELSI_PRECISION, only: r8,i4
 
@@ -40,20 +42,12 @@ module ELSI_IO
 
    private
 
-   ! WPH:  I'm using "IO" to describe these subroutines for now, but at the time
-   !       of this writing (25 December 2017), we only support output to
-   !       non-matrix files.  I expect this will change eventually.
-
-   ! Core IO Subroutines
    public :: elsi_say
    public :: elsi_say_setting
-   ! Constructor/deconstructors for file IO handle
    public :: elsi_init_file_io
    public :: elsi_reset_file_io_handle
    public :: elsi_finalize_file_io
-   ! IO for ELSI handle settings
    public :: elsi_print_handle_summary
-   ! IO for solver settings 
    public :: elsi_print_settings
    public :: elsi_print_solver_settings
    public :: elsi_print_chess_settings
@@ -62,11 +56,9 @@ module ELSI_IO
    public :: elsi_print_omm_settings
    public :: elsi_print_pexsi_settings
    public :: elsi_print_sips_settings
-   ! IO for matrix storage format settings
    public :: elsi_print_matrix_format_settings
    public :: elsi_print_blacs_dense_settings
    public :: elsi_print_pexsi_csc_settings
-   ! Miscellaneous
    public :: append_string
    public :: truncate_string
 
@@ -79,10 +71,6 @@ module ELSI_IO
 
 contains
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!                           CORE IO SUBROUTINES                             !
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 !>
 !! This routine prints a message.
 !!
@@ -90,9 +78,9 @@ subroutine elsi_say(e_h,info_str,io_h_in)
 
    implicit none
 
-   type(elsi_handle),           intent(in) :: e_h      !< Handle
-   character(len=*),            intent(in) :: info_str !< Message to print
-   type(elsi_file_io_handle), optional, intent(in) :: io_h_in
+   type(elsi_handle),         intent(in)           :: e_h
+   character(len=*),          intent(in)           :: info_str
+   type(elsi_file_io_handle), intent(in), optional :: io_h_in
 
    type(elsi_file_io_handle) :: io_h
 
@@ -102,9 +90,9 @@ subroutine elsi_say(e_h,info_str,io_h_in)
       io_h = e_h%stdio
    endif
 
-   if(io_h%print_info.and.e_h%myid_all == 0) then
+   if(io_h%print_info .and. e_h%myid_all == 0) then
       if(allocated(io_h%prefix)) then
-         write(io_h%print_unit,"(A,A)") io_h%prefix, trim(info_str)
+         write(io_h%print_unit,"(A,A)") io_h%prefix,trim(info_str)
       else
          write(io_h%print_unit,"(A)") trim(info_str)
       endif
@@ -112,28 +100,21 @@ subroutine elsi_say(e_h,info_str,io_h_in)
 
 end subroutine
 
-! The various elsi_say_setting module procedures have been moved to the end of
-! the file.
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!                        FILE IO HANDLE SUBROUTINES                         !
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 !>
 !! This routine initializes a handle for reading and writing to files.
 !!
 subroutine elsi_init_file_io(io_h,print_unit,file_name,file_format,print_info,&
-                             prefix,comma_json)
+              prefix,comma_json)
 
    implicit none
 
-   type(elsi_file_io_handle),  intent(out) :: io_h       !< File IO Handle
-   integer(kind=i4),           intent(in)  :: print_unit    
-   character(len=*), optional, intent(in)  :: file_name
-   integer(kind=i4), optional, intent(in)  :: file_format
-   logical,          optional, intent(in)  :: print_info
-   character(len=*), optional, intent(in)  :: prefix
-   integer(kind=i4), optional, intent(in)  :: comma_json
+   type(elsi_file_io_handle), intent(out)          :: io_h
+   integer(kind=i4),          intent(in)           :: print_unit
+   character(len=*),          intent(in), optional :: file_name
+   integer(kind=i4),          intent(in), optional :: file_format
+   logical,                   intent(in), optional :: print_info
+   character(len=*),          intent(in), optional :: prefix
+   integer(kind=i4),          intent(in), optional :: comma_json
 
    character*40, parameter :: caller = "elsi_init_io"
 
@@ -142,7 +123,7 @@ subroutine elsi_init_file_io(io_h,print_unit,file_name,file_format,print_info,&
 
    io_h%handle_init = .true.
    io_h%print_unit  = print_unit
-   
+
    if(present(file_name)) then
       io_h%file_name = file_name
    else
@@ -164,7 +145,9 @@ subroutine elsi_init_file_io(io_h,print_unit,file_name,file_format,print_info,&
    if(present(prefix)) then
       io_h%prefix = prefix
    else
-      if(allocated(io_h%prefix)) deallocate(io_h%prefix)
+      if(allocated(io_h%prefix)) then
+         deallocate(io_h%prefix)
+      endif
    endif
 
    if(present(comma_json)) then
@@ -176,15 +159,15 @@ subroutine elsi_init_file_io(io_h,print_unit,file_name,file_format,print_info,&
 end subroutine
 
 !>
-!! This routine finalizes a file io handle.  Note the this subroutine does NOT
-!! close file units.
+!! This routine finalizes a file io handle. Note this subroutine does NOT close
+!! file units.
 !!
 subroutine elsi_finalize_file_io(e_h,io_h)
 
    implicit none
 
-   type(elsi_handle),         intent(in)    :: e_h  !< ELSI Handle
-   type(elsi_file_io_handle), intent(inout) :: io_h !< File IO Handle
+   type(elsi_handle),         intent(in)    :: e_h
+   type(elsi_file_io_handle), intent(inout) :: io_h
 
    character*40, parameter :: caller = "elsi_finalize_file_io"
 
@@ -201,11 +184,11 @@ subroutine elsi_check_file_io_handle(e_h,io_h,caller)
 
    implicit none
 
-   type(elsi_handle),         intent(in) :: e_h    !< ELSI Handle
-   type(elsi_file_io_handle), intent(in) :: io_h   !< File IO Handle
-   character(len=*),          intent(in) :: caller !< Caller
+   type(elsi_handle),         intent(in) :: e_h
+   type(elsi_file_io_handle), intent(in) :: io_h
+   character(len=*),          intent(in) :: caller
 
-   if(.not.io_h%handle_init) then
+   if(.not. io_h%handle_init) then
       call elsi_stop(" Invalid handle! Not initialized.",e_h,caller)
    endif
 
@@ -218,23 +201,22 @@ subroutine elsi_reset_file_io_handle(io_h)
 
    implicit none
 
-   type(elsi_file_io_handle), intent(inout) :: io_h   !< File IO Handle
+   type(elsi_file_io_handle), intent(inout) :: io_h
 
    character*40, parameter :: caller = "elsi_reset_file_io_handle"
 
    io_h%handle_init = .false.
-   io_h%print_unit = UNSET
-   io_h%file_name  = UNSET_STRING
+   io_h%print_unit  = UNSET
+   io_h%file_name   = UNSET_STRING
    io_h%file_format = UNSET
-   io_h%print_info = .false.
-   if(allocated(io_h%prefix)) deallocate(io_h%prefix)
-   io_h%comma_json = UNSET
+   io_h%print_info  = .false.
+   io_h%comma_json  = UNSET
+
+   if(allocated(io_h%prefix)) then
+      deallocate(io_h%prefix)
+   endif
 
 end subroutine
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!                       IO FOR ELSI HANDLE SETTINGS                         !
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !>
 !! This routine prints the state of the handle
@@ -243,13 +225,13 @@ subroutine elsi_print_handle_summary(e_h,io_h_in)
 
    implicit none
 
-   type(elsi_handle),                   intent(in) :: e_h      !< Handle
-   type(elsi_file_io_handle), optional, intent(in) :: io_h_in
+   type(elsi_handle),         intent(in)           :: e_h
+   type(elsi_file_io_handle), intent(in), optional :: io_h_in
 
    real(kind=r8)             :: sparsity
-   character*200             :: info_str
-   integer(kind=i4)          :: comma_json_save          
+   integer(kind=i4)          :: comma_json_save
    type(elsi_file_io_handle) :: io_h
+   character*200             :: info_str
 
    character*40, parameter :: caller = "elsi_print_handle_summary"
 
@@ -260,109 +242,109 @@ subroutine elsi_print_handle_summary(e_h,io_h_in)
    endif
 
    if(io_h%file_format == HUMAN_READ) then
-      write(info_str,"(A)")       "Physical Properties"
+      write(info_str,"(A)") "Physical Properties"
       call elsi_say(e_h,info_str,io_h)
-   
+
       call append_string(io_h%prefix,"  ")
-      call elsi_say_setting(e_h,    "Number of electrons",e_h%n_electrons,io_h)
+      call elsi_say_setting(e_h,"Number of electrons",e_h%n_electrons,io_h)
       if(e_h%parallel_mode == MULTI_PROC) then
-         call elsi_say_setting(e_h, "Number of spins",e_h%n_spins,io_h)
-         call elsi_say_setting(e_h, "Number of k-points",e_h%n_kpts,io_h)
+         call elsi_say_setting(e_h,"Number of spins",e_h%n_spins,io_h)
+         call elsi_say_setting(e_h,"Number of k-points",e_h%n_kpts,io_h)
       endif
       if(e_h%solver == ELPA_SOLVER .or. e_h%solver == SIPS_SOLVER) then
-         call elsi_say_setting(e_h, "Number of states",e_h%n_states,io_h)
+         call elsi_say_setting(e_h,"Number of states",e_h%n_states,io_h)
       endif
       call truncate_string(io_h%prefix,2)
-   
-      write(info_str,"(A)")        ""
+
+      write(info_str,"(A)") ""
       call elsi_say(e_h,info_str,io_h)
-      write(info_str,"(A)")       "Matrix Properties"
+      write(info_str,"(A)") "Matrix Properties"
       call elsi_say(e_h,info_str,io_h)
-   
+
       call append_string(io_h%prefix,"  ")
       if(e_h%matrix_format == BLACS_DENSE) then
-         call elsi_say_setting(e_h, "Matrix format","BLACS_DENSE",io_h)
+         call elsi_say_setting(e_h,"Matrix format","BLACS_DENSE",io_h)
       elseif(e_h%matrix_format == PEXSI_CSC) then
-         call elsi_say_setting(e_h, "Matrix format","PEXSI_CSC",io_h)
+         call elsi_say_setting(e_h,"Matrix format","PEXSI_CSC",io_h)
       endif
-      call elsi_say_setting(e_h,    "Number of basis functions",e_h%n_basis,io_h)
+      call elsi_say_setting(e_h,"Number of basis functions",e_h%n_basis,io_h)
       if(e_h%parallel_mode == MULTI_PROC) then
          sparsity = 1.0_r8-(1.0_r8*e_h%nnz_g/e_h%n_basis/e_h%n_basis)
-         call elsi_say_setting(e_h, "Matrix sparsity",sparsity,io_h)
+         call elsi_say_setting(e_h,"Matrix sparsity",sparsity,io_h)
       endif
       call truncate_string(io_h%prefix,2)
-   
-      write(info_str,"(A)")        ""
+
+      write(info_str,"(A)") ""
       call elsi_say(e_h,info_str,io_h)
-      write(info_str,"(A)")       "Computational Details"
+      write(info_str,"(A)") "Computational Details"
       call elsi_say(e_h,info_str,io_h)
-   
+
       call append_string(io_h%prefix,"  ")
       if(e_h%parallel_mode == MULTI_PROC) then
-         call elsi_say_setting(e_h, "Parallel mode","MULTI_PROC",io_h)
+         call elsi_say_setting(e_h,"Parallel mode","MULTI_PROC",io_h)
       elseif(e_h%parallel_mode == SINGLE_PROC) then
-         call elsi_say_setting(e_h, "Parallel mode","SINGLE_PROC",io_h)
+         call elsi_say_setting(e_h,"Parallel mode","SINGLE_PROC",io_h)
       endif
-      call elsi_say_setting(e_h,     "Number of MPI tasks",e_h%n_procs,io_h)
+      call elsi_say_setting(e_h,"Number of MPI tasks",e_h%n_procs,io_h)
       if(e_h%solver == ELPA_SOLVER) then
-         call elsi_say_setting(e_h,  "Solver requested","ELPA",io_h)
+         call elsi_say_setting(e_h,"Solver requested","ELPA",io_h)
       elseif(e_h%solver == OMM_SOLVER) then
-         call elsi_say_setting(e_h,  "Solver requested","libOMM",io_h)
+         call elsi_say_setting(e_h,"Solver requested","libOMM",io_h)
       elseif(e_h%solver == PEXSI_SOLVER) then
-         call elsi_say_setting(e_h,  "Solver requested","PEXSI",io_h)
+         call elsi_say_setting(e_h,"Solver requested","PEXSI",io_h)
       elseif(e_h%solver == CHESS_SOLVER) then
-         call elsi_say_setting(e_h,  "Solver requested","CheSS",io_h)
+         call elsi_say_setting(e_h,"Solver requested","CheSS",io_h)
       elseif(e_h%solver == SIPS_SOLVER) then
-         call elsi_say_setting(e_h,  "Solver requested","SIPs",io_h)
+         call elsi_say_setting(e_h,"Solver requested","SIPs",io_h)
       elseif(e_h%solver == DMP_SOLVER) then
-         call elsi_say_setting(e_h,  "Solver requested","DMP",io_h)
+         call elsi_say_setting(e_h,"Solver requested","DMP",io_h)
       else
          call elsi_stop(" Unsupported solver.",e_h,caller)
       endif
       call truncate_string(io_h%prefix,2)
-   elseif (io_h%file_format == JSON) then
+   elseif(io_h%file_format == JSON) then
       comma_json_save = io_h%comma_json
       io_h%comma_json = COMMA_AFTER ! Add commas behind all records before final
 
-      call elsi_say_setting(e_h,        "n_electrons",e_h%n_electrons,io_h)
+      call elsi_say_setting(e_h,"n_electrons",e_h%n_electrons,io_h)
       if(e_h%parallel_mode == MULTI_PROC) then
-         call elsi_say_setting(e_h,     "n_spin",e_h%n_spins,io_h)
-         call elsi_say_setting(e_h,     "n_kpts",e_h%n_kpts,io_h)
+         call elsi_say_setting(e_h,"n_spin",e_h%n_spins,io_h)
+         call elsi_say_setting(e_h,"n_kpts",e_h%n_kpts,io_h)
       endif
       if(e_h%solver == ELPA_SOLVER .or. e_h%solver == SIPS_SOLVER) then
-         call elsi_say_setting(e_h,     "n_states",e_h%n_states,io_h)
+         call elsi_say_setting(e_h,"n_states",e_h%n_states,io_h)
       endif
-   
+
       if(e_h%matrix_format == BLACS_DENSE) then
-         call elsi_say_setting(e_h,     "matrix_format","BLACS_DENSE",io_h)
+         call elsi_say_setting(e_h,"matrix_format","BLACS_DENSE",io_h)
       elseif(e_h%matrix_format == PEXSI_CSC) then
-         call elsi_say_setting(e_h,     "matrix_format","PEXSI_CSC",io_h)
+         call elsi_say_setting(e_h,"matrix_format","PEXSI_CSC",io_h)
       endif
-      call elsi_say_setting(e_h,        "n_basis",e_h%n_basis,io_h)
+      call elsi_say_setting(e_h,"n_basis",e_h%n_basis,io_h)
       if(e_h%parallel_mode == MULTI_PROC) then
          sparsity = 1.0_r8-(1.0_r8*e_h%nnz_g/e_h%n_basis/e_h%n_basis)
-         call elsi_say_setting(e_h,     "sparsity",sparsity,io_h)
+         call elsi_say_setting(e_h,"sparsity",sparsity,io_h)
       endif
-   
+
       if(e_h%parallel_mode == MULTI_PROC) then
-         call elsi_say_setting(e_h,     "parallel_mode","MULTI_PROC",io_h)
+         call elsi_say_setting(e_h,"parallel_mode","MULTI_PROC",io_h)
       elseif(e_h%parallel_mode == SINGLE_PROC) then
-         call elsi_say_setting(e_h,     "parallel_mode","SINGLE_PROC",io_h)
+         call elsi_say_setting(e_h,"parallel_mode","SINGLE_PROC",io_h)
       endif
       io_h%comma_json = comma_json_save ! Final record, restore comma_json
-      call elsi_say_setting(e_h,        "n_procs",e_h%n_procs,io_h)
+      call elsi_say_setting(e_h,"n_procs",e_h%n_procs,io_h)
       if(e_h%solver == ELPA_SOLVER) then
-         call elsi_say_setting(e_h,     "solver","ELPA",io_h)
+         call elsi_say_setting(e_h,"solver","ELPA",io_h)
       elseif(e_h%solver == OMM_SOLVER) then
-         call elsi_say_setting(e_h,     "solver","libOMM",io_h)
+         call elsi_say_setting(e_h,"solver","libOMM",io_h)
       elseif(e_h%solver == PEXSI_SOLVER) then
-         call elsi_say_setting(e_h,     "solver","PEXSI",io_h)
+         call elsi_say_setting(e_h,"solver","PEXSI",io_h)
       elseif(e_h%solver == CHESS_SOLVER) then
-         call elsi_say_setting(e_h,     "solver","CheSS",io_h)
+         call elsi_say_setting(e_h,"solver","CheSS",io_h)
       elseif(e_h%solver == SIPS_SOLVER) then
-         call elsi_say_setting(e_h,     "solver","SIPs",io_h)
+         call elsi_say_setting(e_h,"solver","SIPs",io_h)
       elseif(e_h%solver == DMP_SOLVER) then
-         call elsi_say_setting(e_h,     "solver","DMP",io_h)
+         call elsi_say_setting(e_h,"solver","DMP",io_h)
       else
          call elsi_stop(" Unsupported solver.",e_h,caller)
       endif
@@ -374,8 +356,6 @@ end subroutine
 
 !>
 !! This routine prints ELSI settings.
-!! NOTE:  This subroutine duplicates elsi_print_solver_settings and should be
-!!        deprecated in favor of it.
 !!
 subroutine elsi_print_settings(e_h)
 
@@ -391,31 +371,32 @@ subroutine elsi_print_settings(e_h)
    case(CHESS_SOLVER)
       call elsi_say(e_h,"  CheSS settings:")
 
-      write(info_str,"('  | Error function decay length ',E10.2)") e_h%erf_decay
+      write(info_str,"('  | Error function decay length ',E10.2)")&
+         e_h%chess_erf_decay
       call elsi_say(e_h,info_str)
 
       write(info_str,"('  | Lower bound of decay length ',E10.2)")&
-         e_h%erf_decay_min
+         e_h%chess_erf_min
       call elsi_say(e_h,info_str)
 
       write(info_str,"('  | Upper bound of decay length ',E10.2)")&
-         e_h%erf_decay_max
+         e_h%chess_erf_max
       call elsi_say(e_h,info_str)
 
       write(info_str,"('  | Lower bound of H eigenvalue ',E10.2)")&
-         e_h%ev_ham_min
+         e_h%chess_ev_ham_min
       call elsi_say(e_h,info_str)
 
       write(info_str,"('  | Upper bound of H eigenvalue ',E10.2)")&
-         e_h%ev_ham_max
+         e_h%chess_ev_ham_max
       call elsi_say(e_h,info_str)
 
       write(info_str,"('  | Lower bound of S eigenvalue ',E10.2)")&
-         e_h%ev_ovlp_min
+         e_h%chess_ev_ovlp_min
       call elsi_say(e_h,info_str)
 
       write(info_str,"('  | Upper bound of S eigenvalue ',E10.2)") &
-         e_h%ev_ovlp_max
+         e_h%chess_ev_ovlp_max
       call elsi_say(e_h,info_str)
    case(ELPA_SOLVER)
       if(e_h%parallel_mode == MULTI_PROC) then
@@ -433,7 +414,7 @@ subroutine elsi_print_settings(e_h)
       write(info_str,"('  | OMM minimization flavor    ',I10)") e_h%omm_flavor
       call elsi_say(e_h,info_str)
 
-      write(info_str,"('  | OMM minimization tolerance ',E10.2)") e_h%min_tol
+      write(info_str,"('  | OMM minimization tolerance ',E10.2)") e_h%omm_tol
       call elsi_say(e_h,info_str)
    case(PEXSI_SOLVER)
       call elsi_say(e_h,"  PEXSI settings:")
@@ -476,25 +457,10 @@ subroutine elsi_print_settings(e_h)
    case(SIPS_SOLVER)
       call elsi_say(e_h,"  SIPs settings:")
 
-      write(info_str,"('  | Slicing method            ',I10)")&
-         e_h%slicing_method
+      write(info_str,"('  | Number of ELPA steps ',I10)") e_h%sips_n_elpa
       call elsi_say(e_h,info_str)
 
-      write(info_str,"('  | Lower bound of eigenvalue ',E10.2)") e_h%ev_min
-      call elsi_say(e_h,info_str)
-
-      write(info_str,"('  | Upper bound of eigenvalue ',E10.2)") e_h%ev_max
-      call elsi_say(e_h,info_str)
-
-      write(info_str,"('  | Inertia counting          ',I10)")&
-         e_h%inertia_option
-      call elsi_say(e_h,info_str)
-
-      write(info_str,"('  | Left bound option         ',I10)") e_h%unbound
-      call elsi_say(e_h,info_str)
-
-      write(info_str,"('  | Slice buffer              ',E10.2)")&
-         e_h%slice_buffer
+      write(info_str,"('  | Slice buffer         ',E10.2)") e_h%sips_buffer
       call elsi_say(e_h,info_str)
    case(DMP_SOLVER)
       call elsi_say(e_h,"  DMP settings:")
@@ -504,7 +470,7 @@ subroutine elsi_print_settings(e_h)
       call elsi_say(e_h,info_str)
 
       write(info_str,"('  | Max number of purification steps ',I10)")&
-         e_h%max_dmp_iter
+         e_h%dmp_max_iter
       call elsi_say(e_h,info_str)
 
       write(info_str,"('  | Convergence tolerance            ',E10.2)")&
@@ -514,10 +480,6 @@ subroutine elsi_print_settings(e_h)
 
 end subroutine
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!                         IO FOR SOLVER SETTINGS                            !
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 !>
 !! This routine prints out settings for the current (user-indicated) solver.
 !!
@@ -525,8 +487,8 @@ subroutine elsi_print_solver_settings(e_h,io_h_in)
 
    implicit none
 
-   type(elsi_handle),                   intent(in) :: e_h      !< Handle
-   type(elsi_file_io_handle), optional, intent(in) :: io_h_in
+   type(elsi_handle),         intent(in)           :: e_h
+   type(elsi_file_io_handle), intent(in), optional :: io_h_in
 
    type(elsi_file_io_handle) :: io_h
 
@@ -557,7 +519,6 @@ subroutine elsi_print_solver_settings(e_h,io_h_in)
 
 end subroutine
 
-
 !>
 !! This routine prints out settings for CheSS.
 !!
@@ -565,12 +526,12 @@ subroutine elsi_print_chess_settings(e_h,io_h_in)
 
    implicit none
 
-   type(elsi_handle),           intent(in) :: e_h      !< Handle
-   type(elsi_file_io_handle), optional, intent(in) :: io_h_in
+   type(elsi_handle),         intent(in)           :: e_h
+   type(elsi_file_io_handle), intent(in), optional :: io_h_in
 
-   character*200             :: info_str
-   integer(kind=i4)          :: comma_json_save          
+   integer(kind=i4)          :: comma_json_save
    type(elsi_file_io_handle) :: io_h
+   character*200             :: info_str
 
    character*40, parameter :: caller = "elsi_print_chess_settings"
 
@@ -579,40 +540,42 @@ subroutine elsi_print_chess_settings(e_h,io_h_in)
    else
       io_h = e_h%stdio
    endif
-      
+
    comma_json_save = io_h%comma_json
    io_h%comma_json = COMMA_AFTER ! Add commas behind all records before final
 
    ! Header
-   if(io_h%file_format.eq.HUMAN_READ) then
-     write(info_str,"(A)")   "Solver Settings (CheSS)"
+   if(io_h%file_format == HUMAN_READ) then
+      write(info_str,"(A)") "Solver Settings (CheSS)"
    else
       write(info_str,"(A)") '"solver_settings": {'
-   end if
+   endif
+
    call elsi_say(e_h,info_str,io_h)
 
-    ! Settings
+   ! Settings
    call append_string(io_h%prefix,"  ")
-   call elsi_say_setting(e_h,"erf_decay",e_h%erf_decay,io_h)
-   call elsi_say_setting(e_h,"erf_decay_min",e_h%erf_decay_min,io_h)
-   call elsi_say_setting(e_h,"erf_decay_max",e_h%erf_decay_max,io_h)
-   call elsi_say_setting(e_h,"ev_ham_min",e_h%ev_ham_min,io_h)
-   call elsi_say_setting(e_h,"ev_ham_max",e_h%ev_ham_max,io_h)
-   call elsi_say_setting(e_h,"ev_ovlp_min",e_h%ev_ovlp_min,io_h)
-   call elsi_say_setting(e_h,"ev_ovlp_max",e_h%ev_ovlp_max,io_h)
-   call elsi_say_setting(e_h,"beta",e_h%beta,io_h)
+   call elsi_say_setting(e_h,"chess_erf_decay",e_h%chess_erf_decay,io_h)
+   call elsi_say_setting(e_h,"chess_erf_min",e_h%chess_erf_min,io_h)
+   call elsi_say_setting(e_h,"chess_erf_max",e_h%chess_erf_max,io_h)
+   call elsi_say_setting(e_h,"chess_ev_ham_min",e_h%chess_ev_ham_min,io_h)
+   call elsi_say_setting(e_h,"chess_ev_ham_max",e_h%chess_ev_ham_max,io_h)
+   call elsi_say_setting(e_h,"chess_ev_ovlp_min",e_h%chess_ev_ovlp_min,io_h)
+   call elsi_say_setting(e_h,"chess_ev_ovlp_max",e_h%chess_ev_ovlp_max,io_h)
    io_h%comma_json = NO_COMMA ! Final record in this scope
-   call elsi_say_setting(e_h,"chess_started",e_h%chess_started,io_h)
+   call elsi_say_setting(e_h,"chess_beta",e_h%chess_beta,io_h)
    call truncate_string(io_h%prefix,2)
 
    ! Footer (only for JSON)
    io_h%comma_json = comma_json_save ! Final record, restore comma_json
-   if(io_h%file_format.eq.JSON) then
+
+   if(io_h%file_format == JSON) then
       if(io_h%comma_json == COMMA_AFTER) then
-         write(info_str,"(A)")   '},'
+         write(info_str,"(A)") '},'
       else
-         write(info_str,"(A)")   '}'
-      end if
+         write(info_str,"(A)") '}'
+      endif
+
       call elsi_say(e_h,info_str,io_h)
    endif
 
@@ -625,12 +588,12 @@ subroutine elsi_print_dmp_settings(e_h,io_h_in)
 
    implicit none
 
-   type(elsi_handle),           intent(in) :: e_h      !< Handle
-   type(elsi_file_io_handle), optional, intent(in) :: io_h_in
+   type(elsi_handle),         intent(in)           :: e_h
+   type(elsi_file_io_handle), intent(in), optional :: io_h_in
 
-   character*200             :: info_str
-   integer(kind=i4)          :: comma_json_save          
+   integer(kind=i4)          :: comma_json_save
    type(elsi_file_io_handle) :: io_h
+   character*200             :: info_str
 
    character*40, parameter :: caller = "elsi_print_dmp_settings"
 
@@ -639,37 +602,39 @@ subroutine elsi_print_dmp_settings(e_h,io_h_in)
    else
       io_h = e_h%stdio
    endif
-      
+
    comma_json_save = io_h%comma_json
    io_h%comma_json = COMMA_AFTER ! Add commas behind all records before final
 
    ! Header
-   if(io_h%file_format.eq.HUMAN_READ) then
-      write(info_str,"(A)")   "Solver Settings (DMP)"
+   if(io_h%file_format == HUMAN_READ) then
+      write(info_str,"(A)") "Solver Settings (DMP)"
    else
       write(info_str,"(A)") '"solver_settings": {'
-   end if
+   endif
+
    call elsi_say(e_h,info_str,io_h)
 
    ! Settings
    call append_string(io_h%prefix,"  ")
-   call elsi_say_setting(e_h,"n_states_dmp",e_h%n_states_dmp,io_h)
+   call elsi_say_setting(e_h,"dmp_n_states",e_h%dmp_n_states,io_h)
    call elsi_say_setting(e_h,"dmp_method",e_h%dmp_method,io_h)
-   call elsi_say_setting(e_h,"max_power_iter",e_h%max_power_iter,io_h)
-   call elsi_say_setting(e_h,"max_dmp_iter",e_h%max_dmp_iter,io_h)
-   call elsi_say_setting(e_h,"dmp_tol",e_h%dmp_tol,io_h)
+   call elsi_say_setting(e_h,"dmp_max_power",e_h%dmp_max_power,io_h)
+   call elsi_say_setting(e_h,"dmp_max_iter",e_h%dmp_max_iter,io_h)
    io_h%comma_json = NO_COMMA ! Final record in this scope
-   call elsi_say_setting(e_h,"ne_dmp",e_h%ne_dmp,io_h)
+   call elsi_say_setting(e_h,"dmp_tol",e_h%dmp_tol,io_h)
    call truncate_string(io_h%prefix,2)
 
    ! Footer (only for JSON)
    io_h%comma_json = comma_json_save ! Final record, restore comma_json
-   if(io_h%file_format.eq.JSON) then
+
+   if(io_h%file_format == JSON) then
       if(io_h%comma_json == COMMA_AFTER) then
-         write(info_str,"(A)")   '},'
+         write(info_str,"(A)") '},'
       else
-         write(info_str,"(A)")   '}'
-      end if
+         write(info_str,"(A)") '}'
+      endif
+
       call elsi_say(e_h,info_str,io_h)
    endif
 
@@ -682,12 +647,12 @@ subroutine elsi_print_elpa_settings(e_h,io_h_in)
 
    implicit none
 
-   type(elsi_handle),           intent(in) :: e_h        !< Handle
-   type(elsi_file_io_handle), optional, intent(in) :: io_h_in
+   type(elsi_handle),         intent(in)           :: e_h
+   type(elsi_file_io_handle), intent(in), optional :: io_h_in
 
-   character*200             :: info_str
-   integer(kind=i4)          :: comma_json_save          
+   integer(kind=i4)          :: comma_json_save
    type(elsi_file_io_handle) :: io_h
+   character*200             :: info_str
 
    character*40, parameter :: caller = "elsi_print_elpa_settings"
 
@@ -696,36 +661,37 @@ subroutine elsi_print_elpa_settings(e_h,io_h_in)
    else
       io_h = e_h%stdio
    endif
-      
+
    comma_json_save = io_h%comma_json
    io_h%comma_json = COMMA_AFTER ! Add commas behind all records before final
 
    ! Header
-   if(io_h%file_format.eq.HUMAN_READ) then
-      write(info_str,"(A)")   "Solver Settings (ELPA)"
+   if(io_h%file_format == HUMAN_READ) then
+      write(info_str,"(A)") "Solver Settings (ELPA)"
    else
       write(info_str,"(A)") '"solver_settings": {'
-   end if
+   endif
+
    call elsi_say(e_h,info_str,io_h)
 
    ! Settings
    call append_string(io_h%prefix,"  ")
    call elsi_say_setting(e_h,"elpa_solver",e_h%elpa_solver,io_h)
-   call elsi_say_setting(e_h,"n_states",e_h%n_states,io_h)
-   call elsi_say_setting(e_h,"n_single_steps",e_h%n_single_steps,io_h)
-   call elsi_say_setting(e_h,"elpa_output",e_h%elpa_output,io_h)
+   call elsi_say_setting(e_h,"elpa_n_states",e_h%n_states,io_h)
    io_h%comma_json = NO_COMMA ! Final record in this scope
-   call elsi_say_setting(e_h,"elpa_started",e_h%elpa_started,io_h)
+   call elsi_say_setting(e_h,"elpa_n_single",e_h%elpa_n_single,io_h)
    call truncate_string(io_h%prefix,2)
 
    ! Footer (only for JSON)
    io_h%comma_json = comma_json_save ! Final record, restore comma_json
-   if(io_h%file_format.eq.JSON) then
+
+   if(io_h%file_format == JSON) then
       if(io_h%comma_json == COMMA_AFTER) then
-         write(info_str,"(A)")   '},'
+         write(info_str,"(A)") '},'
       else
-         write(info_str,"(A)")   '}'
-      end if
+         write(info_str,"(A)") '}'
+      endif
+
       call elsi_say(e_h,info_str,io_h)
    endif
 
@@ -738,12 +704,12 @@ subroutine elsi_print_omm_settings(e_h,io_h_in)
 
    implicit none
 
-   type(elsi_handle),           intent(in) :: e_h      !< Handle
-   type(elsi_file_io_handle), optional, intent(in) :: io_h_in
+   type(elsi_handle),         intent(in)           :: e_h
+   type(elsi_file_io_handle), intent(in), optional :: io_h_in
 
-   character*200             :: info_str
-   integer(kind=i4)          :: comma_json_save          
+   integer(kind=i4)          :: comma_json_save
    type(elsi_file_io_handle) :: io_h
+   character*200             :: info_str
 
    character*40, parameter :: caller = "elsi_print_omm_settings"
 
@@ -752,43 +718,38 @@ subroutine elsi_print_omm_settings(e_h,io_h_in)
    else
       io_h = e_h%stdio
    endif
-      
+
    comma_json_save = io_h%comma_json
    io_h%comma_json = COMMA_AFTER ! Add commas behind all records before final
 
    ! Header
-   if(io_h%file_format.eq.HUMAN_READ) then
+   if(io_h%file_format == HUMAN_READ) then
       write(info_str,"(A)") "Solver Settings (libOMM)"
    else
       write(info_str,"(A)") '"solver_settings": {'
-   end if
+   endif
+
    call elsi_say(e_h,info_str,io_h)
- 
+
   ! Settings
    call append_string(io_h%prefix,"  ")
-   call elsi_say_setting(e_h,"n_states_omm",e_h%n_states_omm,io_h)
+   call elsi_say_setting(e_h,"omm_n_states",e_h%omm_n_states,io_h)
    call elsi_say_setting(e_h,"omm_n_elpa",e_h%omm_n_elpa,io_h)
-   call elsi_say_setting(e_h,"new_ovlp",e_h%new_ovlp,io_h)
-   call elsi_say_setting(e_h,"coeff_ready",e_h%coeff_ready,io_h)
    call elsi_say_setting(e_h,"omm_flavor",e_h%omm_flavor,io_h)
-   call elsi_say_setting(e_h,"scale_kinetic",e_h%scale_kinetic,io_h)
-   call elsi_say_setting(e_h,"calc_ed",e_h%calc_ed,io_h)
-   call elsi_say_setting(e_h,"eta",e_h%eta,io_h)
-   call elsi_say_setting(e_h,"min_tol",e_h%min_tol,io_h)
-   call elsi_say_setting(e_h,"omm_output",e_h%omm_output,io_h)
-   call elsi_say_setting(e_h,"do_dealloc",e_h%do_dealloc,io_h)
    io_h%comma_json = NO_COMMA ! Final record in this scope
-   call elsi_say_setting(e_h,"use_psp",e_h%use_psp,io_h)
+   call elsi_say_setting(e_h,"omm_tol",e_h%omm_tol,io_h)
    call truncate_string(io_h%prefix,2)
 
    ! Footer (only for JSON)
    io_h%comma_json = comma_json_save ! Final record, restore comma_json
-   if(io_h%file_format.eq.JSON) then
+
+   if(io_h%file_format == JSON) then
       if(io_h%comma_json == COMMA_AFTER) then
-         write(info_str,"(A)")   '},'
+         write(info_str,"(A)") '},'
       else
-         write(info_str,"(A)")   '}'
-      end if
+         write(info_str,"(A)") '}'
+      endif
+
       call elsi_say(e_h,info_str,io_h)
    endif
 
@@ -801,12 +762,12 @@ subroutine elsi_print_pexsi_settings(e_h,io_h_in)
 
    implicit none
 
-   type(elsi_handle),           intent(in) :: e_h      !< Handle
-   type(elsi_file_io_handle), optional, intent(in) :: io_h_in
+   type(elsi_handle),         intent(in)           :: e_h
+   type(elsi_file_io_handle), intent(in), optional :: io_h_in
 
-   character*200             :: info_str
-   integer(kind=i4)          :: comma_json_save          
+   integer(kind=i4)          :: comma_json_save
    type(elsi_file_io_handle) :: io_h
+   character*200             :: info_str
 
    character*40, parameter :: caller = "elsi_print_pexsi_settings"
 
@@ -815,37 +776,44 @@ subroutine elsi_print_pexsi_settings(e_h,io_h_in)
    else
       io_h = e_h%stdio
    endif
-      
+
    comma_json_save = io_h%comma_json
    io_h%comma_json = COMMA_AFTER ! Add commas behind all records before final
 
    ! Header
-   if(io_h%file_format.eq.HUMAN_READ) then
+   if(io_h%file_format == HUMAN_READ) then
       write(info_str,"(A)") "Solver Settings (PEXSI)"
    else
       write(info_str,"(A)") '"solver_settings": {'
-   end if
+   endif
+
    call elsi_say(e_h,info_str,io_h)
- 
+
    ! Settings
    call append_string(io_h%prefix,"  ")
-   call elsi_say_setting(e_h,"np_per_pole",e_h%np_per_pole,io_h)
-   call elsi_say_setting(e_h,"np_per_point",e_h%np_per_point,io_h)
-   call elsi_say_setting(e_h,"n_prow_pexsi",e_h%n_prow_pexsi,io_h)
-   call elsi_say_setting(e_h,"n_pcol_pexsi",e_h%n_pcol_pexsi,io_h)
-   call elsi_say_setting(e_h,"ne_pexsi",e_h%ne_pexsi,io_h)
+   call elsi_say_setting(e_h,"pexsi_np_per_pole",e_h%pexsi_np_per_pole,io_h)
+   call elsi_say_setting(e_h,"pexsi_np_per_point",e_h%pexsi_np_per_point,io_h)
+   call elsi_say_setting(e_h,"pexsi_n_prow_pexsi",e_h%pexsi_n_prow,io_h)
+   call elsi_say_setting(e_h,"pexsi_n_pcol_pexsi",e_h%pexsi_n_pcol,io_h)
+   call elsi_say_setting(e_h,"pexsi_delta_e",e_h%pexsi_options%deltaE,io_h)
+   call elsi_say_setting(e_h,"pexsi_gap",e_h%pexsi_options%gap,io_h)
+   call elsi_say_setting(e_h,"pexsi_n_pole",e_h%pexsi_options%numPole,io_h)
+   call elsi_say_setting(e_h,"pexsi_n_point",e_h%pexsi_options%nPoints,io_h)
    io_h%comma_json = NO_COMMA ! Final record in this scope
-   call elsi_say_setting(e_h,"pexsi_started",e_h%pexsi_started,io_h)
+   call elsi_say_setting(e_h,"pexsi_np_symbfact",e_h%pexsi_options%npSymbFact,&
+           io_h)
    call truncate_string(io_h%prefix,2)
 
    ! Footer (only for JSON)
    io_h%comma_json = comma_json_save ! Final record, restore comma_json
-   if(io_h%file_format.eq.JSON) then
+
+   if(io_h%file_format == JSON) then
       if(io_h%comma_json == COMMA_AFTER) then
-         write(info_str,"(A)")   '},'
+         write(info_str,"(A)") '},'
       else
-         write(info_str,"(A)")   '}'
-      end if
+         write(info_str,"(A)") '}'
+      endif
+
       call elsi_say(e_h,info_str,io_h)
    endif
 
@@ -858,12 +826,12 @@ subroutine elsi_print_sips_settings(e_h,io_h_in)
 
    implicit none
 
-   type(elsi_handle),           intent(in) :: e_h      !< Handle
-   type(elsi_file_io_handle), optional, intent(in) :: io_h_in
+   type(elsi_handle),         intent(in)           :: e_h
+   type(elsi_file_io_handle), intent(in), optional :: io_h_in
 
-   character*200             :: info_str
-   integer(kind=i4)          :: comma_json_save          
+   integer(kind=i4)          :: comma_json_save
    type(elsi_file_io_handle) :: io_h
+   character*200             :: info_str
 
    character*40, parameter :: caller = "elsi_print_sips_settings"
 
@@ -872,53 +840,44 @@ subroutine elsi_print_sips_settings(e_h,io_h_in)
    else
       io_h = e_h%stdio
    endif
-      
+
    comma_json_save = io_h%comma_json
    io_h%comma_json = COMMA_AFTER ! Add commas behind all records before final
 
    ! Header
-   if(io_h%file_format.eq.HUMAN_READ) then
+   if(io_h%file_format == HUMAN_READ) then
       write(info_str,"(A)") "Solver Settings (SIPs)"
    else
       write(info_str,"(A)") '"solver_settings": {'
-   end if
+   endif
+
    call elsi_say(e_h,info_str,io_h)
 
    ! Settings
    call append_string(io_h%prefix,"  ")
-   call elsi_say_setting(e_h,"n_states",e_h%n_states,io_h)
+   call elsi_say_setting(e_h,"sips_n_states",e_h%n_states,io_h)
    call elsi_say_setting(e_h,"sips_n_elpa",e_h%sips_n_elpa,io_h)
-   call elsi_say_setting(e_h,"np_per_slice",e_h%np_per_slice,io_h)
-   call elsi_say_setting(e_h,"n_inertia_steps",e_h%n_inertia_steps,io_h)
-   call elsi_say_setting(e_h,"slicing_method",e_h%slicing_method,io_h)
-   call elsi_say_setting(e_h,"inertia_option",e_h%inertia_option,io_h)
-   call elsi_say_setting(e_h,"unbound",e_h%unbound,io_h)
-   call elsi_say_setting(e_h,"n_slices",e_h%n_slices,io_h)
-   call elsi_say_setting(e_h,"interval(1)",e_h%interval(1),io_h)
-   call elsi_say_setting(e_h,"interval(2)",e_h%interval(2),io_h)
-   call elsi_say_setting(e_h,"slice_buffer",e_h%slice_buffer,io_h)
-   call elsi_say_setting(e_h,"ev_min",e_h%ev_min,io_h)
-   call elsi_say_setting(e_h,"ev_max",e_h%ev_max,io_h)
+   call elsi_say_setting(e_h,"sips_n_slices",e_h%sips_n_slices,io_h)
+   call elsi_say_setting(e_h,"sips_np_per_slice",e_h%sips_np_per_slice,io_h)
+   call elsi_say_setting(e_h,"sips_buffer",e_h%sips_buffer,io_h)
    io_h%comma_json = NO_COMMA ! Final record in this scope
-   call elsi_say_setting(e_h,"sips_started",e_h%sips_started,io_h)
+   call elsi_say_setting(e_h,"sips_inertia_tol",e_h%sips_inertia_tol,io_h)
    call truncate_string(io_h%prefix,2)
 
    ! Footer (only for JSON)
    io_h%comma_json = comma_json_save ! Final record, restore comma_json
-   if(io_h%file_format.eq.JSON) then
+
+   if(io_h%file_format == JSON) then
       if(io_h%comma_json == COMMA_AFTER) then
-         write(info_str,"(A)")   '},'
+         write(info_str,"(A)") '},'
       else
-         write(info_str,"(A)")   '}'
-      end if
+         write(info_str,"(A)") '}'
+      endif
+
       call elsi_say(e_h,info_str,io_h)
    endif
 
 end subroutine
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!                  IO FOR MATRIX STORGE FORMAT SETTINGS                     !
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !>
 !! This routine prints out settings for the current (user-indicated) solver.
@@ -927,8 +886,8 @@ subroutine elsi_print_matrix_format_settings(e_h,io_h_in)
 
    implicit none
 
-   type(elsi_handle),           intent(in) :: e_h      !< Handle
-   type(elsi_file_io_handle), optional, intent(in) :: io_h_in
+   type(elsi_handle),         intent(in)           :: e_h
+   type(elsi_file_io_handle), intent(in), optional :: io_h_in
 
    type(elsi_file_io_handle) :: io_h
 
@@ -958,12 +917,12 @@ subroutine elsi_print_blacs_dense_settings(e_h,io_h_in)
 
    implicit none
 
-   type(elsi_handle),           intent(in) :: e_h        !< Handle
-   type(elsi_file_io_handle), optional, intent(in) :: io_h_in
+   type(elsi_handle),         intent(in)           :: e_h
+   type(elsi_file_io_handle), intent(in), optional :: io_h_in
 
-   character*200             :: info_str
-   integer(kind=i4)          :: comma_json_save          
+   integer(kind=i4)          :: comma_json_save
    type(elsi_file_io_handle) :: io_h
+   character*200             :: info_str
 
    character*40, parameter :: caller = "elsi_print_blacs_dense_settings"
 
@@ -972,16 +931,17 @@ subroutine elsi_print_blacs_dense_settings(e_h,io_h_in)
    else
       io_h = e_h%stdio
    endif
-      
+
    comma_json_save = io_h%comma_json
    io_h%comma_json = COMMA_AFTER ! Add commas behind all records before final
 
    ! Header
-   if(io_h%file_format.eq.HUMAN_READ) then
+   if(io_h%file_format == HUMAN_READ) then
       write(info_str,"(A)") "Matrix Storage Format Settings (BLACS_DENSE)"
    else
       write(info_str,"(A)") '"matrix_format_settings": {'
-   end if
+   endif
+
    call elsi_say(e_h,info_str,io_h)
 
    ! Settings
@@ -996,12 +956,14 @@ subroutine elsi_print_blacs_dense_settings(e_h,io_h_in)
 
    ! Footer (only for JSON)
    io_h%comma_json = comma_json_save ! Final record, restore comma_json
-   if(io_h%file_format.eq.JSON) then
+
+   if(io_h%file_format == JSON) then
       if(io_h%comma_json == COMMA_AFTER) then
-         write(info_str,"(A,A)")   '},'
+         write(info_str,"(A,A)") '},'
       else
-         write(info_str,"(A,A)")   '}'
-      end if
+         write(info_str,"(A,A)") '}'
+      endif
+
       call elsi_say(e_h,info_str,io_h)
    endif
 
@@ -1014,12 +976,12 @@ subroutine elsi_print_pexsi_csc_settings(e_h,io_h_in)
 
    implicit none
 
-   type(elsi_handle),           intent(in) :: e_h      !< Handle
-   type(elsi_file_io_handle), optional, intent(in) :: io_h_in
+   type(elsi_handle),         intent(in)           :: e_h
+   type(elsi_file_io_handle), intent(in), optional :: io_h_in
 
-   character*200             :: info_str
-   integer(kind=i4)          :: comma_json_save          
+   integer(kind=i4)          :: comma_json_save
    type(elsi_file_io_handle) :: io_h
+   character*200             :: info_str
 
    character*40, parameter :: caller = "elsi_print_pexsi_csc_settings"
 
@@ -1028,16 +990,17 @@ subroutine elsi_print_pexsi_csc_settings(e_h,io_h_in)
    else
       io_h = e_h%stdio
    endif
-      
+
    comma_json_save = io_h%comma_json
    io_h%comma_json = COMMA_AFTER ! Add commas behind all records before final
 
    ! Header
-   if(io_h%file_format.eq.HUMAN_READ) then
+   if(io_h%file_format == HUMAN_READ) then
       write(info_str,"(A)") "Matrix Storage Format Settings (PESXI_CSC)"
    else
       write(info_str,"(A)") '"matrix_format_settings": {'
-   end if
+   endif
+
    call elsi_say(e_h,info_str,io_h)
 
    ! Settings
@@ -1050,38 +1013,34 @@ subroutine elsi_print_pexsi_csc_settings(e_h,io_h_in)
 
    ! Footer (only for JSON)
    io_h%comma_json = comma_json_save ! Final record, restore comma_json
-   if(io_h%file_format.eq.JSON) then
+
+   if(io_h%file_format == JSON) then
       if(io_h%comma_json == COMMA_AFTER) then
-         write(info_str,"(A,A)")   '},'
+         write(info_str,"(A,A)") '},'
       else
-         write(info_str,"(A,A)")   '}'
-      end if
+         write(info_str,"(A,A)") '}'
+      endif
+
       call elsi_say(e_h,info_str,io_h)
    endif
 
 end subroutine
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!                            ELSI_SAY_SETTINGS                              !
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 !>
 !! This module procedure prints out ELSI settings in a systematic fashion.
-!! TODO:  Generate formatting strings on-the-fly so we can eliminate hard-coded
-!!        constants outside of ELSI_CONSTANTS
 !!
-
 subroutine elsi_say_setting_i4(e_h,label,setting,io_h_in)
 
    implicit none
 
-   type(elsi_handle),           intent(in) :: e_h        !< Handle
-   character(len=*),            intent(in) :: label      !< Label for setting
-   integer(kind=i4),            intent(in) :: setting    !< Value for setting
-   type(elsi_file_io_handle), optional, intent(in) :: io_h_in
+   type(elsi_handle),         intent(in)           :: e_h
+   character(len=*),          intent(in)           :: label
+   integer(kind=i4),          intent(in)           :: setting
+   type(elsi_file_io_handle), intent(in), optional :: io_h_in
 
    character(len=27) :: label_ljust
    character(len=20) :: int_string
+
    type(elsi_file_io_handle) :: io_h
 
    character*40, parameter :: caller = "elsi_say_setting_i4"
@@ -1094,43 +1053,41 @@ subroutine elsi_say_setting_i4(e_h,label,setting,io_h_in)
 
    write(int_string,'(I20)') setting
 
-   label_ljust = label ! Store the label string in fixed-length character array 
-                       ! so that it is right-justified when output.
+   label_ljust = label ! Store the label string in fixed-length character array
 
-   if(io_h%print_info.and.e_h%myid_all == 0) then
+   if(io_h%print_info .and. e_h%myid_all == 0) then
       if(io_h%file_format == HUMAN_READ) then
          if(allocated(io_h%prefix)) then
-            write(io_h%print_unit,"(A,A27,A3,I20)") &
-                 io_h%prefix, label_ljust, " : ", setting
+            write(io_h%print_unit,"(A,A27,A3,I20)") io_h%prefix,label_ljust,&
+               " : ",setting
          else
-            write(io_h%print_unit,"(A27,A3,I20)") &
-                 label_ljust, " : ", setting
+            write(io_h%print_unit,"(A27,A3,I20)") label_ljust," : ",setting
          endif
       elseif(io_h%file_format == JSON) then
          if(io_h%comma_json == COMMA_AFTER) then
             if(allocated(io_h%prefix)) then
-               write(io_h%print_unit,"(A)") &
-                    io_h%prefix // '"' // trim(adjustl(label_ljust)) // '": ' &
-                    // trim(adjustl(int_string)) // ","
+               write(io_h%print_unit,"(A)") io_h%prefix // '"' // &
+                  trim(adjustl(label_ljust)) // '": ' // &
+                  trim(adjustl(int_string)) // ","
             else
-               write(io_h%print_unit,"(A)") &
-                    '"' // trim(adjustl(label_ljust)) // '": ' &
-                    // trim(adjustl(int_string)) // ","
+               write(io_h%print_unit,"(A)") '"' // &
+                  trim(adjustl(label_ljust)) // '": ' // &
+                  trim(adjustl(int_string)) // ","
             endif
          else
             if(allocated(io_h%prefix)) then
-               write(io_h%print_unit,"(A)") &
-                    io_h%prefix // '"' // trim(adjustl(label_ljust)) // '": ' &
-                    // trim(adjustl(int_string))
+               write(io_h%print_unit,"(A)") io_h%prefix // '"' // &
+                  trim(adjustl(label_ljust)) // '": ' // &
+                  trim(adjustl(int_string))
             else
-               write(io_h%print_unit,"(A)") &
-                    '"' // trim(adjustl(label_ljust)) // '": ' &
-                    // trim(adjustl(int_string))
+               write(io_h%print_unit,"(A)") '"' // &
+                  trim(adjustl(label_ljust)) // '": ' // &
+                  trim(adjustl(int_string))
             endif
          endif
       else
          call elsi_stop(" Unsupported output format.",e_h,caller)
-      end if
+      endif
    endif
 
 end subroutine
@@ -1139,13 +1096,14 @@ subroutine elsi_say_setting_r8(e_h,label,setting,io_h_in)
 
    implicit none
 
-   type(elsi_handle),           intent(in) :: e_h        !< Handle
-   character(len=*),            intent(in) :: label      !< Label for setting
-   real(kind=r8),               intent(in) :: setting    !< Value for setting
-   type(elsi_file_io_handle), optional, intent(in) :: io_h_in
+   type(elsi_handle),         intent(in)           :: e_h
+   character(len=*),          intent(in)           :: label
+   real(kind=r8),             intent(in)           :: setting
+   type(elsi_file_io_handle), intent(in), optional :: io_h_in
 
    character(len=27) :: label_ljust
    character(len=20) :: real_string
+
    type(elsi_file_io_handle) :: io_h
 
    character*40, parameter :: caller = "elsi_say_setting_r8"
@@ -1158,43 +1116,41 @@ subroutine elsi_say_setting_r8(e_h,label,setting,io_h_in)
 
    write(real_string,'(E20.8)') setting
 
-   label_ljust = label ! Store the label string in fixed-length character array 
-                       ! so that it is right-justified when output.
+   label_ljust = label ! Store the label string in fixed-length character array
 
-   if(io_h%print_info.and.e_h%myid_all == 0) then
+   if(io_h%print_info .and. e_h%myid_all == 0) then
       if(io_h%file_format == HUMAN_READ) then
          if(allocated(io_h%prefix)) then
-            write(io_h%print_unit,"(A,A27,A3,E20.8)") &
-                 io_h%prefix, label_ljust, " : ", setting
+            write(io_h%print_unit,"(A,A27,A3,E20.8)") io_h%prefix,label_ljust,&
+               " : ",setting
          else
-            write(io_h%print_unit,"(A27,A3,E20.8)") &
-                 label_ljust, " : ", setting
+            write(io_h%print_unit,"(A27,A3,E20.8)") label_ljust," : ",setting
          endif
       elseif(io_h%file_format == JSON) then
          if(io_h%comma_json == COMMA_AFTER) then
             if(allocated(io_h%prefix)) then
-               write(io_h%print_unit,"(A)") &
-                    io_h%prefix // '"' // trim(adjustl(label_ljust)) // '": ' &
-                    // trim(adjustl(real_string)) // ","
+               write(io_h%print_unit,"(A)") io_h%prefix // '"' // &
+                  trim(adjustl(label_ljust)) // '": ' // &
+                  trim(adjustl(real_string)) // ","
             else
-               write(io_h%print_unit,"(A)") &
-                    '"' // trim(adjustl(label_ljust)) // '": ' &
-                    // trim(adjustl(real_string)) // ","
+               write(io_h%print_unit,"(A)") '"' // &
+                  trim(adjustl(label_ljust)) // '": ' // &
+                  trim(adjustl(real_string)) // ","
             endif
          else
             if(allocated(io_h%prefix)) then
-               write(io_h%print_unit,"(A)") &
-                    io_h%prefix // '"' // trim(adjustl(label_ljust)) // '": ' &
-                    // trim(adjustl(real_string))
+               write(io_h%print_unit,"(A)") io_h%prefix // '"' // &
+                  trim(adjustl(label_ljust)) // '": ' // &
+                  trim(adjustl(real_string))
             else
-               write(io_h%print_unit,"(A)") &
-                    '"' // trim(adjustl(label_ljust)) // '": ' &
-                    // trim(adjustl(real_string))
+               write(io_h%print_unit,"(A)") '"' // &
+                  trim(adjustl(label_ljust)) // '": ' // &
+                  trim(adjustl(real_string))
             endif
-         end if
+         endif
       else
          call elsi_stop(" Unsupported output format.",e_h,caller)
-      end if
+      endif
    endif
 
 end subroutine
@@ -1203,13 +1159,14 @@ subroutine elsi_say_setting_log(e_h,label,setting,io_h_in)
 
    implicit none
 
-   type(elsi_handle),           intent(in) :: e_h        !< Handle
-   character(len=*),            intent(in) :: label      !< Label for setting
-   logical,                     intent(in) :: setting    !< Prefix before label
-   type(elsi_file_io_handle), optional, intent(in) :: io_h_in
+   type(elsi_handle),         intent(in)           :: e_h
+   character(len=*),          intent(in)           :: label
+   logical,                   intent(in)           :: setting
+   type(elsi_file_io_handle), intent(in), optional :: io_h_in
 
    character(len=27) :: label_ljust
    character(len=20) :: log_string
+
    type(elsi_file_io_handle) :: io_h
 
    character*40, parameter :: caller = "elsi_say_setting_log"
@@ -1237,43 +1194,41 @@ subroutine elsi_say_setting_log(e_h,label,setting,io_h_in)
       call elsi_stop(" Unsupported output format.",e_h,caller)
    endif
 
-   label_ljust = label ! Store the label string in fixed-length character array 
-                       ! so that it is right-justified when output.
+   label_ljust = label ! Store the label string in fixed-length character array
 
-   if(io_h%print_info.and.e_h%myid_all == 0) then
+   if(io_h%print_info .and. e_h%myid_all == 0) then
       if(io_h%file_format == HUMAN_READ) then
          if(allocated(io_h%prefix)) then
-            write(io_h%print_unit,"(A,A27,A3,A20)") &
-                 io_h%prefix, label_ljust, " : ", log_string
+            write(io_h%print_unit,"(A,A27,A3,A20)") io_h%prefix,label_ljust,&
+               " : ",log_string
          else
-            write(io_h%print_unit,"(A27,A3,A20)") &
-                 label_ljust, " : ", log_string
+            write(io_h%print_unit,"(A27,A3,A20)") label_ljust," : ",log_string
          endif
       elseif(io_h%file_format == JSON) then
          if(io_h%comma_json == COMMA_AFTER) then
             if(allocated(io_h%prefix)) then
-               write(io_h%print_unit,"(A)") &
-                    io_h%prefix // '"' // trim(adjustl(label_ljust)) // '": ' &
-                    // trim(adjustl(log_string)) // ","
+               write(io_h%print_unit,"(A)") io_h%prefix // '"' // &
+                  trim(adjustl(label_ljust)) // '": ' // &
+                  trim(adjustl(log_string)) // ","
             else
-               write(io_h%print_unit,"(A)") &
-                    '"' // trim(adjustl(label_ljust)) // '": ' &
-                    // trim(adjustl(log_string)) // ","
+               write(io_h%print_unit,"(A)") '"' // &
+                  trim(adjustl(label_ljust)) // '": ' // &
+                  trim(adjustl(log_string)) // ","
             endif
          else
             if(allocated(io_h%prefix)) then
-               write(io_h%print_unit,"(A)") &
-                    io_h%prefix // '"' // trim(adjustl(label_ljust)) // '": ' &
-                    // trim(adjustl(log_string))
+               write(io_h%print_unit,"(A)") io_h%prefix // '"' // &
+                  trim(adjustl(label_ljust)) // '": ' // &
+                  trim(adjustl(log_string))
             else
-               write(io_h%print_unit,"(A)") &
-                    '"' // trim(adjustl(label_ljust)) // '": ' &
-                    // trim(adjustl(log_string))
+               write(io_h%print_unit,"(A)") '"' // &
+                  trim(adjustl(label_ljust)) // '": ' // &
+                  trim(adjustl(log_string))
             endif
          endif
       else
          call elsi_stop(" Unsupported output format.",e_h,caller)
-      end if
+      endif
    endif
 
 end subroutine
@@ -1282,12 +1237,13 @@ subroutine elsi_say_setting_str(e_h,label,setting,io_h_in)
 
    implicit none
 
-   type(elsi_handle),           intent(in) :: e_h        !< Handle
-   character(len=*),            intent(in) :: label      !< Label for setting
-   character(len=*),            intent(in) :: setting    !< Value for setting
-   type(elsi_file_io_handle), optional, intent(in) :: io_h_in
+   type(elsi_handle),         intent(in)           :: e_h
+   character(len=*),          intent(in)           :: label
+   character(len=*),          intent(in)           :: setting
+   type(elsi_file_io_handle), intent(in), optional :: io_h_in
 
    character(len=27) :: label_ljust
+
    type(elsi_file_io_handle) :: io_h
 
    character*40, parameter :: caller = "elsi_say_setting_str"
@@ -1298,59 +1254,55 @@ subroutine elsi_say_setting_str(e_h,label,setting,io_h_in)
       io_h = e_h%stdio
    endif
 
-   ! No need to convert to a string here, since it's already a string
+   label_ljust = label ! Store the label string in fixed-length character array
 
-   label_ljust = label ! Store the label string in fixed-length character array 
-                       ! so that it is right-justified when output.
-
-   if(io_h%print_info.and.e_h%myid_all == 0) then
+   if(io_h%print_info .and. e_h%myid_all == 0) then
       if(io_h%file_format == HUMAN_READ) then
          if(allocated(io_h%prefix)) then
-            write(io_h%print_unit,"(A,A27,A3,A20)") &
-                 io_h%prefix, label_ljust, " : ", setting
+            write(io_h%print_unit,"(A,A27,A3,A20)") io_h%prefix,label_ljust,&
+               " : ",setting
          else
-            write(io_h%print_unit,"(A27,A3,A20)") &
-                 label_ljust, " : ", setting
+            write(io_h%print_unit,"(A27,A3,A20)") label_ljust," : ",setting
          endif
       elseif(io_h%file_format == JSON) then
          if(io_h%comma_json == COMMA_AFTER) then
             if(allocated(io_h%prefix)) then
-               write(io_h%print_unit,"(A)") &
-                    io_h%prefix // '"' // trim(adjustl(label_ljust)) // '": "' &
-                    // trim(adjustl(setting)) // '",'
+               write(io_h%print_unit,"(A)") io_h%prefix // '"' // &
+                  trim(adjustl(label_ljust)) // '": "' // &
+                  trim(adjustl(setting)) // '",'
             else
-               write(io_h%print_unit,"(A)") &
-                    '"' // trim(adjustl(label_ljust)) // '": "' &
-                    // trim(adjustl(setting)) // '",'
+               write(io_h%print_unit,"(A)") '"' // &
+                  trim(adjustl(label_ljust)) // '": "' // &
+                  trim(adjustl(setting)) // '",'
             endif
          else
             if(allocated(io_h%prefix)) then
-               write(io_h%print_unit,"(A)") &
-                    io_h%prefix // '"' // trim(adjustl(label_ljust)) // '": "' &
-                    // trim(adjustl(setting)) // '"'
+               write(io_h%print_unit,"(A)") io_h%prefix // '"' // &
+                  trim(adjustl(label_ljust)) // '": "' // &
+                  trim(adjustl(setting)) // '"'
             else
-               write(io_h%print_unit,"(A)") &
-                    '"' // trim(adjustl(label_ljust)) // '": "' &
-                    // trim(adjustl(setting)) // '"'
+               write(io_h%print_unit,"(A)") '"' // &
+                  trim(adjustl(label_ljust)) // '": "' // &
+                  trim(adjustl(setting)) // '"'
             endif
          endif
       else
          call elsi_stop(" Unsupported output format.",e_h,caller)
-      end if
+      endif
    endif
 
 end subroutine
 
 !>
-!! This routine generates a new (dynamic) string with another string
-!! appended to the end.  Whitespace is preserved deliberately.
+!! This routine generates a new (dynamic) string with another string appended to
+!! the end. Whitespace is preserved deliberately.
 !!
-subroutine append_string(l_string, r_string)
+subroutine append_string(l_string,r_string)
 
    implicit none
 
-   character(len=:), allocatable, intent(inout) :: l_string
-   character(len=*),              intent(in)    :: r_string
+   character(len=:), intent(inout), allocatable :: l_string
+   character(len=*), intent(in)                 :: r_string
 
    character(len=:), allocatable :: temp_string
 
@@ -1362,7 +1314,10 @@ subroutine append_string(l_string, r_string)
    endif
 
    ! Now deallocate the old character array and replace with the new one
-   if(allocated(l_string)) deallocate(l_string)
+   if(allocated(l_string)) then
+      deallocate(l_string)
+   endif
+
    l_string = temp_string
 
    deallocate(temp_string)
@@ -1370,28 +1325,28 @@ subroutine append_string(l_string, r_string)
 end subroutine
 
 !>
-!! This routine generates a new string with the indicated number of
-!! characters removed from the end.
+!! This routine generates a new string with the indicated number of characters
+!! removed from the end.
 !!
-subroutine truncate_string(l_string, n_chars_to_remove)
+subroutine truncate_string(l_string,n_chars_to_remove)
 
    implicit none
 
-   character(len=:), allocatable, intent(inout) :: l_string
-   integer(kind=i4),              intent(in)    :: n_chars_to_remove
+   character(len=:), intent(inout), allocatable :: l_string
+   integer(kind=i4), intent(in)                 :: n_chars_to_remove
 
    integer(kind=i4) :: size_new_string
 
    character(len=:), allocatable :: temp_string
 
    ! Find size of new character array
-   if(allocated(l_string)) then 
-      size_new_string = len(l_string) - n_chars_to_remove
+   if(allocated(l_string)) then
+      size_new_string = len(l_string)-n_chars_to_remove
    else
       return
    endif
 
-   if(size_new_string.lt.1) then
+   if(size_new_string < 1) then
       deallocate(l_string)
       return
    endif
@@ -1401,6 +1356,7 @@ subroutine truncate_string(l_string, n_chars_to_remove)
 
    ! Now deallocate the old character array and replace with the new one
    deallocate(l_string)
+
    l_string = temp_string
 
    deallocate(temp_string)

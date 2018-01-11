@@ -30,16 +30,26 @@
 !!
 module ELSI_UTILS
 
-   use ELSI_CONSTANTS
-   use ELSI_DATATYPE
+   use ELSI_CONSTANTS, only: UNSET,FULL_MAT,N_SOLVERS,N_PARALLEL_MODES,&
+                             N_MATRIX_FORMATS,MULTI_PROC,SINGLE_PROC,&
+                             BLACS_DENSE,AUTO,ELPA_SOLVER,OMM_SOLVER,&
+                             PEXSI_SOLVER,CHESS_SOLVER,SIPS_SOLVER,DMP_SOLVER,&
+                             UNSET_STRING,JSON,REAL_VALUES,COMPLEX_VALUES,&
+                             TIMING_STRING_LEN,DATETIME_LEN
+   use ELSI_DATATYPE,  only: elsi_handle
    use ELSI_IO,        only: elsi_say,append_string,truncate_string
-   use ELSI_MPI
+   use ELSI_MPI,       only: elsi_stop,elsi_check_mpi,elsi_get_processor_name,&
+                             mpi_sum,mpi_real8,mpi_complex16,&
+                             mpi_max_processor_name
    use ELSI_PRECISION, only: i4,r8
 
    implicit none
 
+   private
+
    public :: elsi_check
    public :: elsi_check_handle
+   public :: elsi_reset_handle
    public :: elsi_get_global_row
    public :: elsi_get_global_col
    public :: elsi_get_local_nnz_real
@@ -47,7 +57,10 @@ module ELSI_UTILS
    public :: elsi_get_solver_tag
    public :: elsi_ready_handle
    public :: elsi_trace_mat_real
+   public :: elsi_trace_mat_cmplx
+   public :: elsi_trace_mat_mat_real
    public :: elsi_trace_mat_mat_cmplx
+   public :: elsi_get_datetime_rfc3339
 
 contains
 
@@ -62,128 +75,122 @@ subroutine elsi_reset_handle(e_h)
 
    character*40, parameter :: caller = "elsi_reset_handle"
 
-   e_h%handle_init           = .false.
-   e_h%handle_ready          = .false.
-   e_h%handle_changed        = .false.
-   e_h%solver                = UNSET
-   e_h%matrix_format         = UNSET
-   e_h%uplo                  = FULL_MAT
-   e_h%parallel_mode         = UNSET
-   e_h%print_mem             = .false.
-   e_h%n_elsi_calls          = 0
-   e_h%myid                  = UNSET
-   e_h%myid_all              = UNSET
-   e_h%n_procs               = UNSET
-   e_h%n_procs_all           = UNSET
-   e_h%mpi_comm              = UNSET
-   e_h%mpi_comm_all          = UNSET
-   e_h%mpi_comm_row          = UNSET
-   e_h%mpi_comm_col          = UNSET
-   e_h%mpi_ready             = .false.
-   e_h%global_mpi_ready      = .false.
-   e_h%blacs_ctxt            = UNSET
-   e_h%sc_desc               = UNSET
-   e_h%blk_row               = UNSET
-   e_h%blk_col               = UNSET
-   e_h%n_prow                = UNSET
-   e_h%n_pcol                = UNSET
-   e_h%my_prow               = UNSET
-   e_h%my_pcol               = UNSET
-   e_h%n_lrow                = UNSET
-   e_h%n_lcol                = UNSET
-   e_h%blacs_ready           = .false.
-   e_h%nnz_g                 = UNSET
-   e_h%nnz_l                 = UNSET
-   e_h%nnz_l_sp              = UNSET
-   e_h%n_lcol_sp             = UNSET
-   e_h%zero_def              = 1.0e-15_r8
-   e_h%sparsity_ready        = .false.
-   e_h%ovlp_is_unit          = .false.
-   e_h%ovlp_is_sing          = .false.
-   e_h%check_sing            = .true.
-   e_h%sing_tol              = 1.0e-5_r8
-   e_h%stop_sing             = .false.
-   e_h%n_nonsing             = UNSET
-   e_h%n_electrons           = 0.0_r8
-   e_h%mu                    = 0.0_r8
-   e_h%n_basis               = UNSET
-   e_h%n_spins               = 1
-   e_h%n_kpts                = 1
-   e_h%n_states              = UNSET
-   e_h%n_states_solve        = UNSET
-   e_h%i_spin                = 1
-   e_h%i_kpt                 = 1
-   e_h%i_weight              = 1.0_r8
-   e_h%energy_hdm            = 0.0_r8
-   e_h%energy_sedm           = 0.0_r8
-   e_h%broaden_scheme        = 0
-   e_h%broaden_width         = 1.0e-2_r8
-   e_h%occ_tolerance         = 1.0e-13_r8
-   e_h%max_mu_steps          = 100
-   e_h%spin_degen            = 0.0_r8
-   e_h%spin_is_set           = .false.
-   e_h%mu_ready              = .false.
-   e_h%edm_ready_real        = .false.
-   e_h%edm_ready_cmplx       = .false.
-   e_h%elpa_solver           = UNSET
-   e_h%n_single_steps        = UNSET
-   e_h%elpa_output           = .false.
-   e_h%elpa_started          = .false.
-   e_h%n_states_omm          = UNSET
-   e_h%omm_n_elpa            = UNSET
-   e_h%new_ovlp              = .true.
-   e_h%coeff_ready           = .false.
-   e_h%omm_flavor            = UNSET
-   e_h%scale_kinetic         = 0.0_r8
-   e_h%calc_ed               = .false.
-   e_h%eta                   = 0.0_r8
-   e_h%min_tol               = 1.0e-12_r8
-   e_h%omm_output            = .false.
-   e_h%do_dealloc            = .false.
-   e_h%use_psp               = .false.
-   e_h%np_per_pole           = UNSET
-   e_h%np_per_point          = UNSET
-   e_h%my_prow_pexsi         = UNSET
-   e_h%my_pcol_pexsi         = UNSET
-   e_h%n_prow_pexsi          = UNSET
-   e_h%n_pcol_pexsi          = UNSET
-   e_h%my_point              = UNSET
-   e_h%myid_point            = UNSET
-   e_h%comm_among_pole       = UNSET
-   e_h%comm_in_pole          = UNSET
-   e_h%comm_among_point      = UNSET
-   e_h%comm_in_point         = UNSET
-   e_h%ne_pexsi              = 0.0_r8
-   e_h%pexsi_started         = .false.
-   e_h%erf_decay             = 0.0_r8
-   e_h%erf_decay_min         = 0.0_r8
-   e_h%erf_decay_max         = 0.0_r8
-   e_h%ev_ham_min            = 0.0_r8
-   e_h%ev_ham_max            = 0.0_r8
-   e_h%ev_ovlp_min           = 0.0_r8
-   e_h%ev_ovlp_max           = 0.0_r8
-   e_h%beta                  = 0.0_r8
-   e_h%chess_started         = .false.
-   e_h%sips_n_elpa           = UNSET
-   e_h%np_per_slice          = UNSET
-   e_h%n_inertia_steps       = UNSET
-   e_h%slicing_method        = UNSET
-   e_h%inertia_option        = UNSET
-   e_h%unbound               = UNSET
-   e_h%n_slices              = UNSET
-   e_h%interval              = 0.0_r8
-   e_h%slice_buffer          = 0.0_r8
-   e_h%ev_min                = 0.0_r8
-   e_h%ev_max                = 0.0_r8
-   e_h%sips_started          = .false.
-   e_h%n_states_dmp          = UNSET
-   e_h%dmp_method            = UNSET
-   e_h%max_power_iter        = UNSET
-   e_h%max_dmp_iter          = UNSET
-   e_h%dmp_tol               = 1e-8_r8
-   e_h%ne_dmp                = 0.0_r8
-   e_h%clock_rate            = UNSET
-   e_h%output_solver_timings = .true.
+   e_h%handle_init            = .false.
+   e_h%handle_ready           = .false.
+   e_h%handle_changed         = .false.
+   e_h%solver                 = UNSET
+   e_h%matrix_format          = UNSET
+   e_h%uplo                   = FULL_MAT
+   e_h%parallel_mode          = UNSET
+   e_h%print_mem              = .false.
+   e_h%n_elsi_calls           = 0
+   e_h%myid                   = UNSET
+   e_h%myid_all               = UNSET
+   e_h%n_procs                = UNSET
+   e_h%n_procs_all            = UNSET
+   e_h%mpi_comm               = UNSET
+   e_h%mpi_comm_all           = UNSET
+   e_h%mpi_comm_row           = UNSET
+   e_h%mpi_comm_col           = UNSET
+   e_h%mpi_ready              = .false.
+   e_h%global_mpi_ready       = .false.
+   e_h%blacs_ctxt             = UNSET
+   e_h%sc_desc                = UNSET
+   e_h%blk_row                = UNSET
+   e_h%blk_col                = UNSET
+   e_h%n_prow                 = UNSET
+   e_h%n_pcol                 = UNSET
+   e_h%my_prow                = UNSET
+   e_h%my_pcol                = UNSET
+   e_h%n_lrow                 = UNSET
+   e_h%n_lcol                 = UNSET
+   e_h%blacs_ready            = .false.
+   e_h%nnz_g                  = UNSET
+   e_h%nnz_l                  = UNSET
+   e_h%nnz_l_sp               = UNSET
+   e_h%n_lcol_sp              = UNSET
+   e_h%zero_def               = 1.0e-15_r8
+   e_h%sparsity_ready         = .false.
+   e_h%ovlp_is_unit           = .false.
+   e_h%ovlp_is_sing           = .false.
+   e_h%check_sing             = .true.
+   e_h%sing_tol               = 1.0e-5_r8
+   e_h%stop_sing              = .false.
+   e_h%n_nonsing              = UNSET
+   e_h%n_electrons            = 0.0_r8
+   e_h%mu                     = 0.0_r8
+   e_h%n_basis                = UNSET
+   e_h%n_spins                = 1
+   e_h%n_kpts                 = 1
+   e_h%n_states               = UNSET
+   e_h%n_states_solve         = UNSET
+   e_h%i_spin                 = 1
+   e_h%i_kpt                  = 1
+   e_h%i_weight               = 1.0_r8
+   e_h%energy_hdm             = 0.0_r8
+   e_h%energy_sedm            = 0.0_r8
+   e_h%broaden_scheme         = 0
+   e_h%broaden_width          = 1.0e-2_r8
+   e_h%occ_tolerance          = 1.0e-13_r8
+   e_h%max_mu_steps           = 100
+   e_h%spin_degen             = 0.0_r8
+   e_h%spin_is_set            = .false.
+   e_h%mu_ready               = .false.
+   e_h%edm_ready_real         = .false.
+   e_h%edm_ready_cmplx        = .false.
+   e_h%elpa_solver            = UNSET
+   e_h%elpa_n_single          = UNSET
+   e_h%elpa_output            = .false.
+   e_h%elpa_started           = .false.
+   e_h%omm_n_states           = UNSET
+   e_h%omm_n_elpa             = UNSET
+   e_h%omm_flavor             = UNSET
+   e_h%omm_ev_shift           = 0.0_r8
+   e_h%omm_tol                = 1.0e-12_r8
+   e_h%omm_output             = .false.
+   e_h%pexsi_np_per_pole      = UNSET
+   e_h%pexsi_np_per_point     = UNSET
+   e_h%pexsi_my_prow          = UNSET
+   e_h%pexsi_my_pcol          = UNSET
+   e_h%pexsi_n_prow           = UNSET
+   e_h%pexsi_n_pcol           = UNSET
+   e_h%pexsi_my_point         = UNSET
+   e_h%pexsi_myid_point       = UNSET
+   e_h%pexsi_comm_among_pole  = UNSET
+   e_h%pexsi_comm_in_pole     = UNSET
+   e_h%pexsi_comm_among_point = UNSET
+   e_h%pexsi_comm_in_point    = UNSET
+   e_h%pexsi_ne               = 0.0_r8
+   e_h%pexsi_started          = .false.
+   e_h%chess_erf_decay        = 0.0_r8
+   e_h%chess_erf_min          = 0.0_r8
+   e_h%chess_erf_max          = 0.0_r8
+   e_h%chess_ev_ham_min       = 0.0_r8
+   e_h%chess_ev_ham_max       = 0.0_r8
+   e_h%chess_ev_ovlp_min      = 0.0_r8
+   e_h%chess_ev_ovlp_max      = 0.0_r8
+   e_h%chess_beta             = 0.0_r8
+   e_h%chess_started          = .false.
+   e_h%sips_n_elpa            = UNSET
+   e_h%sips_np_per_slice      = UNSET
+   e_h%sips_n_slices          = UNSET
+   e_h%sips_slice_type        = UNSET
+   e_h%sips_inertia_tol       = 0.0_r8
+   e_h%sips_buffer            = 0.0_r8
+   e_h%sips_ev_shift          = 0.0_r8
+   e_h%sips_interval          = 0.0_r8
+   e_h%sips_do_inertia        = .false.
+   e_h%sips_started           = .false.
+   e_h%dmp_n_states           = UNSET
+   e_h%dmp_method             = UNSET
+   e_h%dmp_max_power          = UNSET
+   e_h%dmp_max_iter           = UNSET
+   e_h%dmp_ev_ham_max         = 0.0_r8
+   e_h%dmp_ev_ham_min         = 0.0_r8
+   e_h%dmp_tol                = 1e-8_r8
+   e_h%dmp_ne                 = 0.0_r8
+   e_h%clock_rate             = UNSET
+   e_h%output_timings         = .true.
 
 end subroutine
 
@@ -270,12 +277,12 @@ subroutine elsi_check(e_h,caller)
                  caller)
       endif
 
-      if(e_h%n_basis < e_h%np_per_pole) then
+      if(e_h%n_basis < e_h%pexsi_np_per_pole) then
          call elsi_stop(" For this number of MPI tasks, the matrix size is"//&
                  " too small to use PEXSI.",e_h,caller)
       endif
 
-      if(e_h%np_per_pole == UNSET) then
+      if(e_h%pexsi_np_per_pole == UNSET) then
          if(mod(e_h%n_procs,e_h%pexsi_options%numPole*&
             e_h%pexsi_options%nPoints) /= 0) then
             call elsi_stop(" To use PEXSI, the total number of MPI tasks"//&
@@ -283,14 +290,14 @@ subroutine elsi_check(e_h,caller)
                     " times the number of mu points.",e_h,caller)
          endif
       else
-         if(mod(e_h%n_procs,e_h%np_per_pole*&
+         if(mod(e_h%n_procs,e_h%pexsi_np_per_pole*&
             e_h%pexsi_options%nPoints) /= 0) then
             call elsi_stop(" To use PEXSI, the total number of MPI tasks"//&
                     " must be a multiple of the number of MPI tasks per pole"//&
                     " times the number of mu points.",e_h,caller)
          endif
 
-         if(e_h%np_per_pole*e_h%pexsi_options%numPole*&
+         if(e_h%pexsi_np_per_pole*e_h%pexsi_options%numPole*&
             e_h%pexsi_options%nPoints < e_h%n_procs) then
             call elsi_stop(" Specified number of MPI tasks per pole is too"//&
                     " small for the total number of MPI tasks.",e_h,caller)
@@ -411,20 +418,20 @@ subroutine elsi_ready_handle(e_h,caller)
 
       ! Perform initialization-like tasks which require MPI
       ! First, solver timings
-      if(e_h%output_solver_timings) then
+      if(e_h%output_timings) then
          if(e_h%myid_all == 0) then
-            open(unit=e_h%solver_timings_file%print_unit,&
-               file=e_h%solver_timings_file%file_name)
+            open(unit=e_h%timings_file%print_unit,&
+               file=e_h%timings_file%file_name)
          else
             ! De-initialize e_h%myid_all /= 0
-            e_h%solver_timings_file%print_unit = UNSET
-            e_h%solver_timings_file%file_name  = UNSET_STRING
+            e_h%timings_file%print_unit = UNSET
+            e_h%timings_file%file_name  = UNSET_STRING
          endif
 
-         if(e_h%solver_timings_file%file_format == JSON) then
+         if(e_h%timings_file%file_format == JSON) then
             ! Opening bracket to signify JSON array
-            call elsi_say(e_h,"[",e_h%solver_timings_file)
-            call append_string(e_h%solver_timings_file%prefix,"  ")
+            call elsi_say(e_h,"[",e_h%timings_file)
+            call append_string(e_h%timings_file%prefix,"  ")
          endif
       endif
 
@@ -815,7 +822,7 @@ subroutine elsi_get_datetime_rfc3339(datetime_rfc3339)
    ! Get millisecond
    if(datetime(8) < 10) then
       write(millisecond,'(A2,I1)') "00",datetime(8)
-   elseif (datetime(8) < 100) then
+   elseif(datetime(8) < 100) then
       write(millisecond,'(A1,I2)') "0",datetime(8)
    else
       write(millisecond,'(I3)'   ) datetime(8)

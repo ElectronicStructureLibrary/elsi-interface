@@ -33,20 +33,23 @@ module ELSI_MATIO
    use, intrinsic :: ISO_C_BINDING
    use ELSI_CONSTANTS, only: HEADER_SIZE,BLACS_DENSE,DENSE_FILE,CSC_FILE,&
                              READ_FILE,WRITE_FILE,REAL_VALUES,COMPLEX_VALUES,&
-                             FILE_VERSION,PEXSI_SOLVER,SIPS_SOLVER,UNSET
-   use ELSI_DATATYPE
+                             FILE_VERSION,PEXSI_SOLVER,SIPS_SOLVER,MULTI_PROC,&
+                             SINGLE_PROC,UNSET
+   use ELSI_DATATYPE,  only: elsi_handle,elsi_rw_handle
    use ELSI_IO,        only: elsi_say
-   use ELSI_MALLOC
+   use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
    use ELSI_MATCONV,   only: elsi_pexsi_to_blacs_dm_real,&
                              elsi_pexsi_to_blacs_dm_cmplx,&
                              elsi_blacs_to_sips_hs_real,&
                              elsi_blacs_to_sips_hs_cmplx
-   use ELSI_MPI
+   use ELSI_MPI,       only: mpi_sum,mpi_real8,mpi_complex16,mpi_integer4,&
+                             mpi_mode_rdonly,mpi_mode_wronly,mpi_mode_create,&
+                             mpi_info_null,mpi_status_ignore
    use ELSI_PRECISION, only: r8,i4,i8
    use ELSI_SETUP,     only: elsi_init,elsi_set_mpi,elsi_set_blacs,&
                              elsi_set_csc,elsi_cleanup
    use ELSI_TIMINGS,   only: elsi_init_timer,elsi_get_time
-   use ELSI_UTILS
+   use ELSI_UTILS,     only: elsi_get_local_nnz_real,elsi_get_local_nnz_cmplx
 
    implicit none
 
@@ -94,7 +97,7 @@ subroutine elsi_init_rw(rw_h,task,parallel_mode,file_format,n_basis,n_electron)
    ! For safety
    call elsi_reset_rw_handle(rw_h)
 
-   rw_h%handle_init  = .true.
+   rw_h%handle_init   = .true.
    rw_h%rw_task       = task
    rw_h%parallel_mode = parallel_mode
    rw_h%file_format   = file_format
@@ -726,11 +729,11 @@ subroutine elsi_read_mat_real_mp(rw_h,f_name,mat)
    call elsi_set_blacs(aux_h,rw_h%blacs_ctxt,rw_h%blk)
 
    ! Output
-   aux_h%output_solver_timings = .false.
+   aux_h%output_timings   = .false.
    aux_h%myid_all         = rw_h%myid
    aux_h%stdio%print_info = rw_h%print_info
    aux_h%print_mem        = rw_h%print_mem
-   aux_h%stdio%print_unit  = rw_h%print_unit
+   aux_h%stdio%print_unit = rw_h%print_unit
 
    call elsi_get_time(aux_h,t0)
 
@@ -793,10 +796,10 @@ subroutine elsi_read_mat_real_mp(rw_h,f_name,mat)
               "dm_real_pexsi",caller)
    endif
 
-   aux_h%dm_real_pexsi = nnz_val
-   aux_h%n_elsi_calls  = 1
-   aux_h%my_prow_pexsi = 0
-   aux_h%np_per_pole   = rw_h%n_procs
+   aux_h%dm_real_pexsi     = nnz_val
+   aux_h%n_elsi_calls      = 1
+   aux_h%pexsi_my_prow     = 0
+   aux_h%pexsi_np_per_pole = rw_h%n_procs
 
    call elsi_pexsi_to_blacs_dm_real(aux_h,mat)
 
@@ -945,7 +948,7 @@ subroutine elsi_read_mat_complex_mp(rw_h,f_name,mat)
    call elsi_set_blacs(aux_h,rw_h%blacs_ctxt,rw_h%blk)
 
    ! Output
-   aux_h%output_solver_timings = .false.
+   aux_h%output_timings   = .false.
    aux_h%myid_all         = rw_h%myid
    aux_h%stdio%print_info = rw_h%print_info
    aux_h%print_mem        = rw_h%print_mem
@@ -1012,10 +1015,10 @@ subroutine elsi_read_mat_complex_mp(rw_h,f_name,mat)
               "dm_cmplx_pexsi",caller)
    endif
 
-   aux_h%dm_cmplx_pexsi = nnz_val
-   aux_h%n_elsi_calls   = 1
-   aux_h%my_prow_pexsi  = 0
-   aux_h%np_per_pole    = rw_h%n_procs
+   aux_h%dm_cmplx_pexsi    = nnz_val
+   aux_h%n_elsi_calls      = 1
+   aux_h%pexsi_my_prow     = 0
+   aux_h%pexsi_np_per_pole = rw_h%n_procs
 
    call elsi_pexsi_to_blacs_dm_cmplx(aux_h,mat)
 
@@ -1159,7 +1162,7 @@ subroutine elsi_write_mat_real_mp(rw_h,f_name,mat)
    call elsi_get_time(aux_h,t0)
 
    ! Output
-   aux_h%output_solver_timings = .false.
+   aux_h%output_timings   = .false.
    aux_h%myid_all         = rw_h%myid
    aux_h%stdio%print_info = rw_h%print_info
    aux_h%print_mem        = rw_h%print_mem
@@ -1169,6 +1172,8 @@ subroutine elsi_write_mat_real_mp(rw_h,f_name,mat)
    aux_h%ovlp_is_unit = .true.
    aux_h%n_elsi_calls = 1
    aux_h%n_lcol_sp    = rw_h%n_basis/rw_h%n_procs
+   aux_h%sips_n_elpa  = 0
+
    if(rw_h%myid == rw_h%n_procs-1) then
       aux_h%n_lcol_sp = rw_h%n_basis-(rw_h%n_procs-1)*aux_h%n_lcol_sp
    endif
@@ -1276,7 +1281,7 @@ subroutine elsi_write_mat_complex_mp(rw_h,f_name,mat)
    call elsi_get_time(aux_h,t0)
 
    ! Output
-   aux_h%output_solver_timings = .false.
+   aux_h%output_timings   = .false.
    aux_h%myid_all         = rw_h%myid
    aux_h%stdio%print_info = rw_h%print_info
    aux_h%print_mem        = rw_h%print_mem
@@ -1286,6 +1291,7 @@ subroutine elsi_write_mat_complex_mp(rw_h,f_name,mat)
    aux_h%ovlp_is_unit = .true.
    aux_h%n_elsi_calls = 1
    aux_h%n_lcol_sp    = rw_h%n_basis/rw_h%n_procs
+   aux_h%sips_n_elpa  = 0
    if(rw_h%myid == rw_h%n_procs-1) then
       aux_h%n_lcol_sp = rw_h%n_basis-(rw_h%n_procs-1)*aux_h%n_lcol_sp
    endif

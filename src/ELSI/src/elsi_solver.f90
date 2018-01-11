@@ -34,9 +34,12 @@ module ELSI_SOLVER
 
    use ELSI_CHESS,     only: elsi_init_chess,elsi_solve_evp_chess_real
    use ELSI_CONSTANTS, only: ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,CHESS_SOLVER,&
-                             SIPS_SOLVER,REAL_VALUES,COMPLEX_VALUES,MULTI_PROC,&
-                             SINGLE_PROC,UNSET,TIMING_STRING_LEN
-   use ELSI_DATATYPE
+                             SIPS_SOLVER,DMP_SOLVER,REAL_VALUES,COMPLEX_VALUES,&
+                             MULTI_PROC,SINGLE_PROC,UNSET,TIMING_STRING_LEN,&
+                             OUTPUT_EV,OUTPUT_DM,DATETIME_LEN,COMMA_BEFORE,&
+                             COMMA_AFTER,NO_COMMA,UNSET_STRING,HUMAN_READ,JSON,&
+                             RELEASE_DATE
+   use ELSI_DATATYPE,  only: elsi_handle,elsi_file_io_handle
    use ELSI_DMP,       only: elsi_solve_evp_dmp_real
    use ELSI_ELPA,      only: elsi_compute_occ_elpa,elsi_compute_dm_elpa_real,&
                              elsi_normalize_dm_elpa_real,&
@@ -44,16 +47,27 @@ module ELSI_SOLVER
                              elsi_compute_dm_elpa_cmplx,&
                              elsi_normalize_dm_elpa_cmplx,&
                              elsi_solve_evp_elpa_cmplx
-   use ELSI_LAPACK,    only: elsi_solve_evp_lapack_real,&
-                             elsi_solve_evp_lapack_cmplx
    use ELSI_IO,        only: elsi_print_handle_summary,&
                              elsi_print_solver_settings,elsi_print_settings,&
                              elsi_say,elsi_say_setting,&
                              elsi_print_matrix_format_settings,&
                              append_string,truncate_string
-   use ELSI_MALLOC
-   use ELSI_MATCONV
-   use ELSI_MPI
+   use ELSI_LAPACK,    only: elsi_solve_evp_lapack_real,&
+                             elsi_solve_evp_lapack_cmplx
+   use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
+   use ELSI_MATCONV,   only: elsi_blacs_to_sips_hs_real,&
+                             elsi_sips_to_blacs_hs_real,&
+                             elsi_blacs_to_sips_hs_cmplx,&
+                             elsi_sips_to_blacs_hs_cmplx,&
+                             elsi_blacs_to_chess_hs_real,&
+                             elsi_chess_to_blacs_dm_real,&
+                             elsi_blacs_to_pexsi_hs_real,&
+                             elsi_pexsi_to_blacs_dm_real,&
+                             elsi_blacs_to_pexsi_hs_cmplx,&
+                             elsi_pexsi_to_blacs_dm_cmplx,&
+                             elsi_blacs_to_sips_dm_real,&
+                             elsi_blacs_to_sips_dm_cmplx
+   use ELSI_MPI,       only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8
    use ELSI_OMM,       only: elsi_solve_evp_omm_real,&
                              elsi_solve_evp_omm_cmplx
    use ELSI_PEXSI,     only: elsi_init_pexsi,elsi_solve_evp_pexsi_real,&
@@ -63,7 +77,8 @@ module ELSI_SOLVER
    use ELSI_SIPS,      only: elsi_init_sips,elsi_solve_evp_sips_real,&
                              elsi_sips_to_blacs_ev_real
    use ELSI_TIMINGS,   only: elsi_get_time, elsi_add_timing
-   use ELSI_UTILS
+   use ELSI_UTILS,     only: elsi_check,elsi_check_handle,elsi_ready_handle,&
+                             elsi_get_solver_tag,elsi_get_datetime_rfc3339
    use MATRIXSWITCH,   only: m_allocate
 
    implicit none
@@ -474,7 +489,7 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
       endif
 
       ! Save overlap
-      if(e_h%n_elsi_calls==1 .and. e_h%n_single_steps > 0) then
+      if(e_h%n_elsi_calls==1 .and. e_h%elpa_n_single > 0) then
          call elsi_allocate(e_h,e_h%ovlp_real_copy,e_h%n_lrow,e_h%n_lcol,&
                  "ovlp_real_copy",caller)
          e_h%ovlp_real_copy = ovlp
@@ -489,7 +504,7 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
       solver_used = ELPA_SOLVER
 
       ! Normalize density matrix
-      if(e_h%n_elsi_calls <= e_h%n_single_steps) then
+      if(e_h%n_elsi_calls <= e_h%elpa_n_single) then
          call elsi_normalize_dm_elpa_real(e_h,e_h%ovlp_real_copy,dm)
       endif
 
@@ -526,8 +541,8 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
             call elsi_deallocate(e_h,e_h%ovlp_real_copy,"ovlp_real_copy")
          endif
 
-         if(.not. e_h%coeff%is_initialized) then
-            call m_allocate(e_h%coeff,e_h%n_states_omm,e_h%n_basis,"pddbc")
+         if(.not. e_h%c_omm%is_initialized) then
+            call m_allocate(e_h%c_omm,e_h%omm_n_states,e_h%n_basis,"pddbc")
          endif
 
          ! Initialize coefficient matrix with ELPA eigenvectors if possible
@@ -536,8 +551,8 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
             call pdtran(e_h%n_basis,e_h%n_basis,1.0_r8,e_h%evec_real_elpa,1,1,&
                     e_h%sc_desc,0.0_r8,dm,1,1,e_h%sc_desc)
 
-            e_h%coeff%dval(1:e_h%coeff%iaux2(1),1:e_h%coeff%iaux2(2)) = &
-               dm(1:e_h%coeff%iaux2(1),1:e_h%coeff%iaux2(2))
+            e_h%c_omm%dval(1:e_h%c_omm%iaux2(1),1:e_h%c_omm%iaux2(2)) = &
+               dm(1:e_h%c_omm%iaux2(1),1:e_h%c_omm%iaux2(2))
 
             ! ELPA matrices are no longer needed
             if(allocated(e_h%evec_real_elpa)) then
@@ -668,7 +683,7 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
       endif
 
       ! Save overlap
-      if(e_h%n_elsi_calls==1 .and. e_h%n_single_steps > 0) then
+      if(e_h%n_elsi_calls==1 .and. e_h%elpa_n_single > 0) then
          call elsi_allocate(e_h,e_h%ovlp_cmplx_copy,e_h%n_lrow,e_h%n_lcol,&
                  "ovlp_cmplx_copy",caller)
          e_h%ovlp_cmplx_copy = ovlp
@@ -683,7 +698,7 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
       solver_used = ELPA_SOLVER
 
       ! Normalize density matrix
-      if(e_h%n_elsi_calls <= e_h%n_single_steps) then
+      if(e_h%n_elsi_calls <= e_h%elpa_n_single) then
          call elsi_normalize_dm_elpa_cmplx(e_h,e_h%ovlp_cmplx_copy,dm)
       endif
 
@@ -720,8 +735,8 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
             call elsi_deallocate(e_h,e_h%ovlp_cmplx_copy,"ovlp_cmplx_copy")
          endif
 
-         if(.not. e_h%coeff%is_initialized) then
-            call m_allocate(e_h%coeff,e_h%n_states_omm,e_h%n_basis,"pzdbc")
+         if(.not. e_h%c_omm%is_initialized) then
+            call m_allocate(e_h%c_omm,e_h%omm_n_states,e_h%n_basis,"pzdbc")
          endif
 
          ! Initialize coefficient matrix with ELPA eigenvectors if possible
@@ -731,8 +746,8 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
                     e_h%evec_cmplx_elpa,1,1,e_h%sc_desc,(0.0_r8,0.0_r8),dm,1,1,&
                     e_h%sc_desc)
 
-            e_h%coeff%zval(1:e_h%coeff%iaux2(1),1:e_h%coeff%iaux2(2)) = &
-               dm(1:e_h%coeff%iaux2(1),1:e_h%coeff%iaux2(2))
+            e_h%c_omm%zval(1:e_h%c_omm%iaux2(1),1:e_h%c_omm%iaux2(2)) = &
+               dm(1:e_h%c_omm%iaux2(1),1:e_h%c_omm%iaux2(2))
 
             ! ELPA matrices are no longer needed
             if(allocated(e_h%evec_cmplx_elpa)) then
@@ -906,8 +921,8 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
             call elsi_deallocate(e_h,e_h%ovlp_real_copy,"ovlp_real_copy")
          endif
 
-         if(.not. e_h%coeff%is_initialized) then
-            call m_allocate(e_h%coeff,e_h%n_states_omm,e_h%n_basis,"pddbc")
+         if(.not. e_h%c_omm%is_initialized) then
+            call m_allocate(e_h%c_omm,e_h%omm_n_states,e_h%n_basis,"pddbc")
          endif
          if(.not. allocated(e_h%dm_real_elpa)) then
             call elsi_allocate(e_h,e_h%dm_real_elpa,e_h%n_lrow,e_h%n_lcol,&
@@ -920,8 +935,8 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
             call pdtran(e_h%n_basis,e_h%n_basis,1.0_r8,e_h%evec_real_elpa,1,1,&
                     e_h%sc_desc,0.0_r8,e_h%dm_real_elpa,1,1,e_h%sc_desc)
 
-            e_h%coeff%dval(1:e_h%coeff%iaux2(1),1:e_h%coeff%iaux2(2)) = &
-               e_h%dm_real_elpa(1:e_h%coeff%iaux2(1),1:e_h%coeff%iaux2(2))
+            e_h%c_omm%dval(1:e_h%c_omm%iaux2(1),1:e_h%c_omm%iaux2(2)) = &
+               e_h%dm_real_elpa(1:e_h%c_omm%iaux2(1),1:e_h%c_omm%iaux2(2))
 
             ! ELPA matrices are no longer needed
             if(allocated(e_h%evec_real_elpa)) then
@@ -1108,8 +1123,8 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
             call elsi_deallocate(e_h,e_h%ovlp_cmplx_copy,"ovlp_cmplx_copy")
          endif
 
-         if(.not. e_h%coeff%is_initialized) then
-            call m_allocate(e_h%coeff,e_h%n_states_omm,e_h%n_basis,"pzdbc")
+         if(.not. e_h%c_omm%is_initialized) then
+            call m_allocate(e_h%c_omm,e_h%omm_n_states,e_h%n_basis,"pzdbc")
          endif
          if(.not. allocated(e_h%dm_cmplx_elpa)) then
             call elsi_allocate(e_h,e_h%dm_cmplx_elpa,e_h%n_lrow,e_h%n_lcol,&
@@ -1123,8 +1138,8 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
                     e_h%evec_cmplx_elpa,1,1,e_h%sc_desc,(0.0_r8,0.0_r8),&
                     e_h%dm_cmplx_elpa,1,1,e_h%sc_desc)
 
-            e_h%coeff%zval(1:e_h%coeff%iaux2(1),1:e_h%coeff%iaux2(2)) = &
-               e_h%dm_cmplx_elpa(1:e_h%coeff%iaux2(1),1:e_h%coeff%iaux2(2))
+            e_h%c_omm%zval(1:e_h%c_omm%iaux2(1),1:e_h%c_omm%iaux2(2)) = &
+               e_h%dm_cmplx_elpa(1:e_h%c_omm%iaux2(1),1:e_h%c_omm%iaux2(2))
 
             ! ELPA matrices are no longer needed
             if(allocated(e_h%evec_cmplx_elpa)) then
@@ -1250,7 +1265,7 @@ subroutine elsi_process_solver_timing(e_h,output_type,data_type,solver_used,&
 
    character*40, parameter :: caller = "elsi_dm_complex_sparse"
 
-   io_h = e_h%solver_timings_file
+   io_h = e_h%timings_file
 
    call elsi_get_time(e_h,t1)
 
@@ -1260,24 +1275,15 @@ subroutine elsi_process_solver_timing(e_h,output_type,data_type,solver_used,&
 
    ! Output information about this solver invocation
    call elsi_get_solver_tag(e_h,solver_tag,data_type)
-   call elsi_add_timing(e_h%solver_timings,total_time,solver_tag)
+   call elsi_add_timing(e_h%timings,total_time,solver_tag)
 
-   if(e_h%output_solver_timings) then
-      ! Both the iteration number and user tag for this iteration is taken
-      ! from the top of the solver_timings struct
-      iteration = e_h%solver_timings%n_timings
+   if(e_h%output_timings) then
+      iteration = e_h%timings%n_timings
 
-      ! The following block exists because we don't know what the final entry of
-      ! the JSON format will be in advance.  So if we append a comma to the end
-      ! of every entry, we will trigger a parser error when it parses the final
-      ! entry and expects another.  However, we DO know what the first entry is.
-      ! So, instead of appending a comma to the end of each entry except the
-      ! last one, we prefix each entry by a comma except for the first one.
-      ! This makes the output slightly non-standard, but the whitespace makes it
-      ! human readable anyway and the parser doesn't care.
+      ! Avoid comma at the end of the last entry
       comma_json_save = io_h%comma_json
 
-      if(e_h%solver_timings%n_timings == 1) then
+      if(e_h%timings%n_timings == 1) then
          io_h%comma_json = NO_COMMA
       else
          io_h%comma_json = COMMA_BEFORE
@@ -1285,7 +1291,7 @@ subroutine elsi_process_solver_timing(e_h,output_type,data_type,solver_used,&
 
       call elsi_print_solver_timing(e_h,output_type,data_type,start_datetime,&
               total_time,solver_tag,iteration,io_h,&
-              e_h%solver_timings%user_tags(iteration))
+              e_h%timings%user_tags(iteration))
 
       io_h%comma_json = comma_json_save
    endif
@@ -1295,10 +1301,8 @@ subroutine elsi_process_solver_timing(e_h,output_type,data_type,solver_used,&
 end subroutine
 
 !>
-!! This routine prints the timing of the current solver and all relevant
-!! information.
-!! TODO (wph6@duke.edu):  This routine's interface is rough.  Needs to be
-!! cleaned up.
+!! This routine prints solver timing and relevant information.
+!! TODO: Clean up interface.
 !!
 subroutine elsi_print_solver_timing(e_h,output_type,data_type,start_datetime,&
               total_time,elsi_tag_in,iter,io_h_in,user_tag_in)
@@ -1335,6 +1339,7 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,start_datetime,&
    else
       user_tag = trim(UNSET_STRING)
    endif
+
    user_tag = adjustr(user_tag)
    elsi_tag = trim(elsi_tag_in)
    elsi_tag = adjustr(elsi_tag)
@@ -1347,14 +1352,13 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,start_datetime,&
       comma_json_save = io_h%comma_json
       io_h%comma_json = COMMA_AFTER
 
-      write(info_str,"(A)")       "--------------------------------------------------"
+      write(info_str,"(A)") "--------------------------------------------------"
       call elsi_say(e_h,info_str,io_h)
-      write(info_str,"(A,I10)")  "Start of ELSI Solver Iteration ",iter
+      write(info_str,"(A,I10)") "Start of ELSI Solver Iteration ",iter
       call elsi_say(e_h,info_str,io_h)
-      write(info_str,"(A)")       ""
+      write(info_str,"(A)") ""
       call elsi_say(e_h,info_str,io_h)
-
-      write(info_str,"(A)")      "Timing Details"
+      write(info_str,"(A)") "Timing Details"
       call elsi_say(e_h,info_str,io_h)
 
       call append_string(io_h%prefix,"  ")
@@ -1377,7 +1381,7 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,start_datetime,&
       call elsi_say_setting(e_h,"User Tag",user_tag,io_h)
       call elsi_say_setting(e_h,"Timing (s)",total_time,io_h)
       call truncate_string(io_h%prefix,2)
-   elseif (io_h%file_format == JSON) then
+   elseif(io_h%file_format == JSON) then
       if(io_h%comma_json == COMMA_BEFORE) then
          write(info_str,"(A)") ',{'
       else
@@ -1410,9 +1414,6 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,start_datetime,&
       else
          call elsi_stop(" Unsupported data type.",e_h,caller)
       endif
-      ! I'm not using ISO 8601 for time duration, because A) it doesn't include
-      ! milliseconds, B) timings in seconds is well-understood in the electronic
-      ! structure community and most importantly C) it's ugly as hell
       call elsi_say_setting(e_h,"total_time",total_time,io_h)
       call truncate_string(io_h%prefix,2)
    else
@@ -1456,7 +1457,7 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,start_datetime,&
       call elsi_say(e_h,info_str,io_h)
       write(info_str,"(A)") ""
       call elsi_say(e_h,info_str,io_h)
-   elseif (io_h%file_format == JSON) then
+   elseif(io_h%file_format == JSON) then
       if(io_h%comma_json == COMMA_AFTER) then
          write(info_str,"(A)") '},'
          call elsi_say(e_h,info_str,io_h)
