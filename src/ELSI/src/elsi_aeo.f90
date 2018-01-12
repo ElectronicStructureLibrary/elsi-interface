@@ -112,7 +112,7 @@ subroutine elsi_compute_occ_elpa(e_h,eval)
    real(kind=r8), allocatable :: tmp_real1(:)
    real(kind=r8), allocatable :: tmp_real2(:,:,:)
 
-   integer(kind=i4) :: mpierr
+   integer(kind=i4) :: ierr
 
    character*40, parameter :: caller = "elsi_compute_occ_elpa"
 
@@ -134,9 +134,9 @@ subroutine elsi_compute_occ_elpa(e_h,eval)
          endif
 
          call MPI_Allreduce(tmp_real1,e_h%k_weight,e_h%n_kpts,mpi_real8,&
-                 mpi_sum,e_h%mpi_comm_all,mpierr)
+                 mpi_sum,e_h%mpi_comm_all,ierr)
 
-         call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
+         call elsi_check_mpi(e_h,"MPI_Allreduce",ierr,caller)
 
          call elsi_deallocate(e_h,tmp_real1,"tmp_real")
       else
@@ -154,9 +154,9 @@ subroutine elsi_compute_occ_elpa(e_h,eval)
 
       call MPI_Allreduce(tmp_real2,e_h%eval_all,&
               e_h%n_states*e_h%n_spins*e_h%n_kpts,mpi_real8,mpi_sum,&
-              e_h%mpi_comm_all,mpierr)
+              e_h%mpi_comm_all,ierr)
 
-      call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
+      call elsi_check_mpi(e_h,"MPI_Allreduce",ierr,caller)
 
       call elsi_deallocate(e_h,tmp_real2,"tmp_real")
    else
@@ -355,7 +355,7 @@ subroutine elsi_normalize_dm_elpa_real(e_h,ovlp,dm)
    real(kind=r8)    :: g_ne ! Global number of electrons
    real(kind=r8)    :: factor ! Normalization factor
    complex(kind=r8) :: tmp_cmplx
-   integer(kind=i4) :: mpierr
+   integer(kind=i4) :: ierr
    character*200    :: info_str
 
    character*40, parameter :: caller = "elsi_normalize_dm_elpa_real"
@@ -369,9 +369,9 @@ subroutine elsi_normalize_dm_elpa_real(e_h,ovlp,dm)
          l_ne = 0.0_r8
       endif
 
-      call MPI_Allreduce(l_ne,g_ne,1,mpi_real8,mpi_sum,e_h%mpi_comm_all,mpierr)
+      call MPI_Allreduce(l_ne,g_ne,1,mpi_real8,mpi_sum,e_h%mpi_comm_all,ierr)
 
-      call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
+      call elsi_check_mpi(e_h,"MPI_Allreduce",ierr,caller)
    endif
 
    ! Scale density matrix
@@ -703,7 +703,7 @@ subroutine elsi_solve_evp_elpa_real(e_h,ham,ovlp,eval,evec)
 
    real(kind=r8)    :: t0
    real(kind=r8)    :: t1
-   integer(kind=i4) :: mpierr
+   integer(kind=i4) :: ierr
    logical          :: success
    character*200    :: info_str
 
@@ -720,9 +720,9 @@ subroutine elsi_solve_evp_elpa_real(e_h,ham,ovlp,eval,evec)
       call elsi_get_local_nnz_real(e_h,ham,e_h%n_lrow,e_h%n_lcol,e_h%nnz_l)
 
       call MPI_Allreduce(e_h%nnz_l,e_h%nnz_g,1,mpi_integer4,mpi_sum,&
-              e_h%mpi_comm,mpierr)
+              e_h%mpi_comm,ierr)
 
-      call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
+      call elsi_check_mpi(e_h,"MPI_Allreduce",ierr,caller)
    endif
 
    ! Transform to standard form
@@ -795,9 +795,9 @@ subroutine elsi_solve_evp_elpa_real(e_h,ham,ovlp,eval,evec)
       call elsi_to_original_ev_real(e_h,ham,ovlp,evec)
    endif
 
-   call MPI_Barrier(e_h%mpi_comm,mpierr)
+   call MPI_Barrier(e_h%mpi_comm,ierr)
 
-   call elsi_check_mpi(e_h,"MPI_Barrier",mpierr,caller)
+   call elsi_check_mpi(e_h,"MPI_Barrier",ierr,caller)
 
 end subroutine
 
@@ -1000,7 +1000,7 @@ subroutine elsi_normalize_dm_elpa_cmplx(e_h,ovlp,dm)
    real(kind=r8)    :: g_ne ! Global number of electrons
    real(kind=r8)    :: factor ! Normalization factor
    complex(kind=r8) :: tmp_cmplx
-   integer(kind=i4) :: mpierr
+   integer(kind=i4) :: ierr
    character*200    :: info_str
 
    character*40, parameter :: caller = "elsi_normalize_dm_elpa_cmplx"
@@ -1016,9 +1016,9 @@ subroutine elsi_normalize_dm_elpa_cmplx(e_h,ovlp,dm)
          l_ne = 0.0_r8
       endif
 
-      call MPI_Allreduce(l_ne,g_ne,1,mpi_real8,mpi_sum,e_h%mpi_comm_all,mpierr)
+      call MPI_Allreduce(l_ne,g_ne,1,mpi_real8,mpi_sum,e_h%mpi_comm_all,ierr)
 
-      call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
+      call elsi_check_mpi(e_h,"MPI_Allreduce",ierr,caller)
    endif
 
    ! Scale density matrix
@@ -1358,7 +1358,7 @@ subroutine elsi_solve_evp_elpa_cmplx(e_h,ham,ovlp,eval,evec)
 
    real(kind=r8)    :: t0
    real(kind=r8)    :: t1
-   integer(kind=i4) :: mpierr
+   integer(kind=i4) :: ierr
    logical          :: success
    character*200    :: info_str
 
@@ -1375,9 +1375,9 @@ subroutine elsi_solve_evp_elpa_cmplx(e_h,ham,ovlp,eval,evec)
       call elsi_get_local_nnz_cmplx(e_h,ham,e_h%n_lrow,e_h%n_lcol,e_h%nnz_l)
 
       call MPI_Allreduce(e_h%nnz_l,e_h%nnz_g,1,mpi_integer4,mpi_sum,&
-              e_h%mpi_comm,mpierr)
+              e_h%mpi_comm,ierr)
 
-      call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
+      call elsi_check_mpi(e_h,"MPI_Allreduce",ierr,caller)
    endif
 
    ! Transform to standard form
@@ -1450,9 +1450,9 @@ subroutine elsi_solve_evp_elpa_cmplx(e_h,ham,ovlp,eval,evec)
       call elsi_to_original_ev_cmplx(e_h,ham,ovlp,evec)
    endif
 
-   call MPI_Barrier(e_h%mpi_comm,mpierr)
+   call MPI_Barrier(e_h%mpi_comm,ierr)
 
-   call elsi_check_mpi(e_h,"MPI_Barrier",mpierr,caller)
+   call elsi_check_mpi(e_h,"MPI_Barrier",ierr,caller)
 
 end subroutine
 

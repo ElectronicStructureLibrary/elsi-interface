@@ -110,7 +110,7 @@ subroutine elsi_get_energy(e_h,energy,solver)
 
    real(kind=r8)    :: tmp_real
    integer(kind=i4) :: i_state
-   integer(kind=i4) :: mpierr
+   integer(kind=i4) :: ierr
 
    character*40, parameter :: caller = "elsi_get_energy"
 
@@ -142,9 +142,9 @@ subroutine elsi_get_energy(e_h,energy,solver)
       endif
 
       call MPI_Allreduce(energy,tmp_real,1,mpi_real8,mpi_sum,e_h%mpi_comm_all,&
-              mpierr)
+              ierr)
 
-      call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
+      call elsi_check_mpi(e_h,"MPI_Allreduce",ierr,caller)
 
       energy = tmp_real
    endif

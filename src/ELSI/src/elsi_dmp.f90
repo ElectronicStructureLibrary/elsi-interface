@@ -68,7 +68,6 @@ subroutine elsi_solve_evp_dmp_real(e_h,ham,ovlp,dm)
    integer(kind=i4) :: i
    integer(kind=i4) :: j
    integer(kind=i4) :: i_iter
-   integer(kind=i4) :: mpierr
    integer(kind=i4) :: ierr
    logical          :: ev_min_found
    logical          :: dmp_conv
@@ -100,9 +99,9 @@ subroutine elsi_solve_evp_dmp_real(e_h,ham,ovlp,dm)
       call elsi_get_local_nnz_real(e_h,ham,e_h%n_lrow,e_h%n_lcol,e_h%nnz_l)
 
       call MPI_Allreduce(e_h%nnz_l,e_h%nnz_g,1,mpi_integer4,mpi_sum,&
-              e_h%mpi_comm,mpierr)
+              e_h%mpi_comm,ierr)
 
-      call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
+      call elsi_check_mpi(e_h,"MPI_Allreduce",ierr,caller)
    endif
 
    call elsi_get_time(e_h,t0)
@@ -151,16 +150,16 @@ subroutine elsi_solve_evp_dmp_real(e_h,ham,ovlp,dm)
       tmp_real1 = row_sum
 
       call MPI_Allreduce(tmp_real1,row_sum,e_h%n_basis,mpi_real8,mpi_sum,&
-              e_h%mpi_comm,mpierr)
+              e_h%mpi_comm,ierr)
 
-      call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
+      call elsi_check_mpi(e_h,"MPI_Allreduce",ierr,caller)
 
       tmp_real1 = diag
 
       call MPI_Allreduce(tmp_real1,diag,e_h%n_basis,mpi_real8,mpi_sum,&
-              e_h%mpi_comm,mpierr)
+              e_h%mpi_comm,ierr)
 
-      call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
+      call elsi_check_mpi(e_h,"MPI_Allreduce",ierr,caller)
 
       e_h%dmp_ev_ham_min = minval(diag-row_sum)
       e_h%dmp_ev_ham_max = maxval(diag+row_sum)
@@ -205,15 +204,15 @@ subroutine elsi_solve_evp_dmp_real(e_h,ham,ovlp,dm)
 
       tmp = this_ev
 
-      call MPI_Allreduce(tmp,this_ev,1,mpi_real8,mpi_sum,e_h%mpi_comm,mpierr)
+      call MPI_Allreduce(tmp,this_ev,1,mpi_real8,mpi_sum,e_h%mpi_comm,ierr)
 
-      call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
+      call elsi_check_mpi(e_h,"MPI_Allreduce",ierr,caller)
 
       tmp = nrm2
 
-      call MPI_Allreduce(tmp,nrm2,1,mpi_real8,mpi_sum,e_h%mpi_comm,mpierr)
+      call MPI_Allreduce(tmp,nrm2,1,mpi_real8,mpi_sum,e_h%mpi_comm,ierr)
 
-      call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
+      call elsi_check_mpi(e_h,"MPI_Allreduce",ierr,caller)
 
       tmp_real1 = tmp_real2/sqrt(nrm2)
 
@@ -267,15 +266,15 @@ subroutine elsi_solve_evp_dmp_real(e_h,ham,ovlp,dm)
 
       tmp = this_ev
 
-      call MPI_Allreduce(tmp,this_ev,1,mpi_real8,mpi_sum,e_h%mpi_comm,mpierr)
+      call MPI_Allreduce(tmp,this_ev,1,mpi_real8,mpi_sum,e_h%mpi_comm,ierr)
 
-      call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
+      call elsi_check_mpi(e_h,"MPI_Allreduce",ierr,caller)
 
       tmp = nrm2
 
-      call MPI_Allreduce(tmp,nrm2,1,mpi_real8,mpi_sum,e_h%mpi_comm,mpierr)
+      call MPI_Allreduce(tmp,nrm2,1,mpi_real8,mpi_sum,e_h%mpi_comm,ierr)
 
-      call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
+      call elsi_check_mpi(e_h,"MPI_Allreduce",ierr,caller)
 
       tmp_real1 = tmp_real2/sqrt(nrm2)
 
@@ -391,9 +390,9 @@ subroutine elsi_solve_evp_dmp_real(e_h,ham,ovlp,dm)
 
       tmp = sqrt(diff)
 
-      call MPI_Allreduce(tmp,diff,1,mpi_real8,mpi_sum,e_h%mpi_comm,mpierr)
+      call MPI_Allreduce(tmp,diff,1,mpi_real8,mpi_sum,e_h%mpi_comm,ierr)
 
-      call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
+      call elsi_check_mpi(e_h,"MPI_Allreduce",ierr,caller)
 
       if(diff < e_h%dmp_tol) then
          dmp_conv = .true.
@@ -426,9 +425,9 @@ subroutine elsi_solve_evp_dmp_real(e_h,ham,ovlp,dm)
 
    dm = e_h%spin_degen*dm
 
-   call MPI_Barrier(e_h%mpi_comm,mpierr)
+   call MPI_Barrier(e_h%mpi_comm,ierr)
 
-   call elsi_check_mpi(e_h,"MPI_Barrier",mpierr,caller)
+   call elsi_check_mpi(e_h,"MPI_Barrier",ierr,caller)
 
    call elsi_get_time(e_h,t1)
 

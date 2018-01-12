@@ -142,7 +142,7 @@ subroutine elsi_solve_evp_chess_real(e_h)
    logical          :: calc_ovlp_inv_sqrt
    real(kind=r8)    :: t0
    real(kind=r8)    :: t1
-   integer(kind=i4) :: mpierr
+   integer(kind=i4) :: ierr
    character*200    :: info_str
 
    character*40, parameter :: caller = "elsi_solve_evp_chess_real"
@@ -167,9 +167,9 @@ subroutine elsi_solve_evp_chess_real(e_h)
 
    e_h%mu = foe_data_get_real(e_h%chess_foe,"ef",1)
 
-   call MPI_Barrier(e_h%mpi_comm,mpierr)
+   call MPI_Barrier(e_h%mpi_comm,ierr)
 
-   call elsi_check_mpi(e_h,"MPI_Barrier",mpierr,caller)
+   call elsi_check_mpi(e_h,"MPI_Barrier",ierr,caller)
 
    call elsi_get_time(e_h,t1)
 

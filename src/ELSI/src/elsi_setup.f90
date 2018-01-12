@@ -169,7 +169,7 @@ subroutine elsi_set_mpi(e_h,mpi_comm)
    type(elsi_handle), intent(inout) :: e_h      !< Handle
    integer(kind=i4),  intent(in)    :: mpi_comm !< Unit ELSI communicator
 
-   integer(kind=i4) :: mpierr
+   integer(kind=i4) :: ierr
 
    character*40, parameter :: caller = "elsi_set_mpi"
 
@@ -181,8 +181,8 @@ subroutine elsi_set_mpi(e_h,mpi_comm)
       ! solves one KS problem
       e_h%mpi_comm = mpi_comm
 
-      call MPI_Comm_rank(mpi_comm,e_h%myid,mpierr)
-      call MPI_Comm_size(mpi_comm,e_h%n_procs,mpierr)
+      call MPI_Comm_rank(mpi_comm,e_h%myid,ierr)
+      call MPI_Comm_size(mpi_comm,e_h%n_procs,ierr)
 
       e_h%mpi_ready = .true.
 
@@ -203,7 +203,7 @@ subroutine elsi_set_mpi_global(e_h,mpi_comm_all)
    type(elsi_handle), intent(inout) :: e_h          !< Handle
    integer(kind=i4),  intent(in)    :: mpi_comm_all !< Unit ELSI communicator
 
-   integer(kind=i4) :: mpierr
+   integer(kind=i4) :: ierr
 
    character*40, parameter :: caller = "elsi_set_mpi_global"
 
@@ -213,8 +213,8 @@ subroutine elsi_set_mpi_global(e_h,mpi_comm_all)
       ! Global ELSI communicator
       e_h%mpi_comm_all = mpi_comm_all
 
-      call MPI_Comm_rank(mpi_comm_all,e_h%myid_all,mpierr)
-      call MPI_Comm_size(mpi_comm_all,e_h%n_procs_all,mpierr)
+      call MPI_Comm_rank(mpi_comm_all,e_h%myid_all,ierr)
+      call MPI_Comm_size(mpi_comm_all,e_h%n_procs_all,ierr)
 
       e_h%global_mpi_ready = .true.
 

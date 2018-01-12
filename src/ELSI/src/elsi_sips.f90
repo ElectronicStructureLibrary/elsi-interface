@@ -122,7 +122,7 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
    integer(kind=i4) :: n_solved
    integer(kind=i4) :: n_clst
    integer(kind=i4) :: clst(100,3) ! Eigenvalue clusters
-   integer(kind=i4) :: mpierr
+   integer(kind=i4) :: ierr
    logical          :: slices_changed
    character*200    :: info_str
 
@@ -352,9 +352,9 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
    ! Get eigenvectors
    call sips_get_eigenvectors(e_h%n_states,e_h%n_lcol_sp,e_h%evec_real_sips)
 
-   call MPI_Barrier(e_h%mpi_comm,mpierr)
+   call MPI_Barrier(e_h%mpi_comm,ierr)
 
-   call elsi_check_mpi(e_h,"MPI_Barrier",mpierr,caller)
+   call elsi_check_mpi(e_h,"MPI_Barrier",ierr,caller)
 
    call elsi_get_time(e_h,t1)
 
@@ -362,13 +362,6 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
    call elsi_say(e_h,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
    call elsi_say(e_h,info_str)
-
-! DEBUG
-do i = 1,e_h%n_states
-   print *,e_h%evec_real_sips(:,i)
-   print *
-enddo
-stop
 
 end subroutine
 

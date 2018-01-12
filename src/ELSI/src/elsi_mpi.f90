@@ -59,7 +59,7 @@ subroutine elsi_stop(info,e_h,caller)
    character(len=*),  intent(in) :: caller
 
    character*200    :: info_str
-   integer(kind=i4) :: mpierr
+   integer(kind=i4) :: ierr
 
    if(e_h%global_mpi_ready) then
       write(info_str,"(A,I7,5A)") "**Error! MPI task ",e_h%myid_all," in ",&
@@ -67,7 +67,7 @@ subroutine elsi_stop(info,e_h,caller)
       write(e_h%stdio%print_unit,"(A)") trim(info_str)
 
       if(e_h%n_procs_all > 1) then
-         call MPI_Abort(e_h%mpi_comm_all,0,mpierr)
+         call MPI_Abort(e_h%mpi_comm_all,0,ierr)
       endif
    elseif(e_h%mpi_ready) then
       write(info_str,"(A,I7,5A)") "**Error! MPI task ",e_h%myid," in ",&
@@ -75,7 +75,7 @@ subroutine elsi_stop(info,e_h,caller)
       write(e_h%stdio%print_unit,"(A)") trim(info_str)
 
       if(e_h%n_procs > 1) then
-         call MPI_Abort(e_h%mpi_comm,0,mpierr)
+         call MPI_Abort(e_h%mpi_comm,0,ierr)
       endif
    else
       write(info_str,"(5A)") "**Error! ",trim(caller),": ",trim(info),&
@@ -99,29 +99,29 @@ subroutine elsi_get_processor_name(e_h,proc_name,proc_name_len)
    character(len=MPI_MAX_PROCESSOR_NAME), intent(out) :: proc_name
    integer(kind=i4),                      intent(out) :: proc_name_len
 
-   integer(kind=i4) :: mpierr
+   integer(kind=i4) :: ierr
 
    character*40, parameter :: caller = "elsi_get_processor_name"
 
-   call MPI_Get_processor_name(proc_name,proc_name_len,mpierr)
+   call MPI_Get_processor_name(proc_name,proc_name_len,ierr)
 
-   call elsi_check_mpi(e_h,"MPI_Get_processor_name",mpierr,caller)
+   call elsi_check_mpi(e_h,"MPI_Get_processor_name",ierr,caller)
 
 end subroutine
 
 !>
 !! Checks if an MPI call is successful.
 !!
-subroutine elsi_check_mpi(e_h,routine,mpierr,caller)
+subroutine elsi_check_mpi(e_h,routine,ierr,caller)
 
    implicit none
 
    type(elsi_handle), intent(in) :: e_h
    character(len=*),  intent(in) :: routine
-   integer(kind=i4),  intent(in) :: mpierr
+   integer(kind=i4),  intent(in) :: ierr
    character(len=*),  intent(in) :: caller
 
-   if(mpierr /= MPI_SUCCESS) then
+   if(ierr /= MPI_SUCCESS) then
       call elsi_stop(routine,e_h,caller)
    endif
 
