@@ -51,7 +51,6 @@ module ELSI_SIPS
    public :: elsi_set_sips_default
    public :: elsi_init_sips
    public :: elsi_solve_evp_sips_real
-   public :: elsi_sips_to_blacs_ev_real
 
 contains
 
@@ -85,6 +84,9 @@ subroutine elsi_init_sips(e_h)
       if(e_h%myid == e_h%n_procs-1) then
          e_h%n_lcol_sp = e_h%n_basis-(e_h%n_procs-1)*e_h%n_lcol_sp
       endif
+
+      call elsi_allocate(e_h,e_h%evec_real_sips,e_h%n_lcol_sp,e_h%n_states,&
+              "evec_real_sips",caller)
 
       e_h%sips_started = .true.
    endif
@@ -185,6 +187,42 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
       upper = eval(e_h%n_states)+e_h%sips_buffer
 
       call elsi_linspace(lower,upper,e_h%sips_n_slices+1,slices)
+
+      if(e_h%sips_do_inertia) then ! Inertia counting
+         call elsi_get_time(e_h,t0)
+
+         call elsi_allocate(e_h,inertias,e_h%sips_n_slices+1,"inertias",caller)
+
+         n_iner_steps   = 0
+         slices_changed = .true.
+
+         do while(n_iner_steps < 5 .and. slices_changed)
+            n_iner_steps = n_iner_steps+1
+
+            call sips_get_inertias(e_h%sips_n_slices,slices,inertias)
+
+            slices_changed = .false.
+
+            if(inertias(1) > 0) then
+               slices(1)      = slices(1)-0.1_r8
+               slices_changed = .true.
+            endif
+         enddo
+
+         call elsi_deallocate(e_h,inertias,"inertias")
+
+         lower = slices(1)
+         upper = slices(e_h%sips_n_slices+1)
+
+         call elsi_linspace(lower,upper,e_h%sips_n_slices+1,slices)
+
+         call elsi_get_time(e_h,t1)
+
+         write(info_str,"('  Finished inertia counting')")
+         call elsi_say(e_h,info_str)
+         write(info_str,"('  | Time :',F10.3,' s')") t1-t0
+         call elsi_say(e_h,info_str)
+      endif
    else
       tmp = 0
 
@@ -293,35 +331,6 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
       call elsi_stop(" SIPs solver failed.",e_h,caller)
    endif
 
-   ! Get eigenvalues
-   prev_sum = sum(eval(1:e_h%n_states))/e_h%n_states
-
-   call sips_get_eigenvalues(e_h%n_states,eval(1:e_h%n_states))
-
-   new_sum = sum(eval(1:e_h%n_states))/e_h%n_states
-
-   if(abs(new_sum-prev_sum) < e_h%sips_inertia_tol) then
-      e_h%sips_do_inertia = .false.
-   else
-      e_h%sips_do_inertia = .true.
-   endif
-
-   ! DEBUG
-   if(e_h%myid == 0) then
-      print *
-      print *,"QETSc eigenvalues"
-      do i = 1,n_clst-1
-         print *,eval(clst(i,1))
-         print *,eval(clst(i+1,1)-1)
-      enddo
-      print *,eval(e_h%n_states)
-      print *
-   endif
-
-   call MPI_Barrier(e_h%mpi_comm,mpierr)
-
-   call elsi_check_mpi(e_h,"MPI_Barrier",mpierr,caller)
-
    call elsi_get_time(e_h,t1)
 
    write(info_str,"('  Finished solving generalized eigenproblem')")
@@ -329,73 +338,37 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
    call elsi_say(e_h,info_str)
 
-end subroutine
-
-!>
-!! This routine gets the eigenvectors computed by SIPs and distributes them in a
-!! 2D block-cyclic fashion.
-!!
-subroutine elsi_sips_to_blacs_ev_real(e_h,evec)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: e_h
-   real(kind=r8),     intent(out)   :: evec(e_h%n_lrow,e_h%n_lcol)
-
-   integer(kind=i4) :: i_state
-   integer(kind=i4) :: i_row
-   integer(kind=i4) :: i_row2
-   integer(kind=i4) :: i_col
-   integer(kind=i4) :: g_row
-   integer(kind=i4) :: g_row2
-   integer(kind=i4) :: this_pcol
-   real(kind=r8)    :: t0
-   real(kind=r8)    :: t1
-   character*200    :: info_str
-
-   real(kind=r8), allocatable :: tmp_real(:)
-
-   character*40, parameter :: caller = "elsi_sips_to_blacs_ev_real"
-
    call elsi_get_time(e_h,t0)
 
-   call elsi_allocate(e_h,tmp_real,e_h%n_basis,"tmp_real",caller)
+   ! Get eigenvalues
+   prev_sum = sum(eval(1:e_h%n_states))/e_h%n_states
 
-   evec = 0.0_r8
+   call sips_get_eigenvalues(e_h%n_states,eval(1:e_h%n_states))
 
-   do i_state = 1,e_h%n_states
-      call sips_get_eigenvectors(e_h%n_basis,i_state,tmp_real)
+   ! Adjust slice buffer
+   new_sum         = sum(eval(1:e_h%n_states))/e_h%n_states
+   e_h%sips_buffer = min(e_h%sips_buffer,abs(new_sum-prev_sum))
 
-      this_pcol = mod((i_state-1)/e_h%blk_col,e_h%n_pcol)
+   ! Get eigenvectors
+   call sips_get_eigenvectors(e_h%n_states,e_h%n_lcol_sp,e_h%evec_real_sips)
 
-      if(e_h%my_pcol == this_pcol) then
-         i_col = (i_state-1)/(e_h%n_pcol*e_h%blk_col)*e_h%blk_col+&
-                    mod((i_state-1),e_h%blk_col)+1
+   call MPI_Barrier(e_h%mpi_comm,mpierr)
 
-         do i_row = 1,e_h%n_lrow,e_h%blk_row
-            i_row2 = i_row+e_h%blk_row-1
-
-            call elsi_get_global_row(e_h,g_row,i_row)
-            call elsi_get_global_row(e_h,g_row2,i_row2)
-
-            if(g_row2 > e_h%n_basis) then
-               g_row2 = e_h%n_basis
-               i_row2 = i_row+g_row2-g_row
-            endif
-
-            evec(i_row:i_row2,i_col) = tmp_real(g_row:g_row2)
-         enddo
-      endif
-   enddo
-
-   call elsi_deallocate(e_h,tmp_real,"tmp_real")
+   call elsi_check_mpi(e_h,"MPI_Barrier",mpierr,caller)
 
    call elsi_get_time(e_h,t1)
 
-   write(info_str,"('  Finished matrix redistribution')")
+   write(info_str,"('  Finished retrieving eigensolutions')")
    call elsi_say(e_h,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
    call elsi_say(e_h,info_str)
+
+! DEBUG
+do i = 1,e_h%n_states
+   print *,e_h%evec_real_sips(:,i)
+   print *
+enddo
+stop
 
 end subroutine
 

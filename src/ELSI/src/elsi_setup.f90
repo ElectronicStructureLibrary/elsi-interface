@@ -605,6 +605,15 @@ subroutine elsi_cleanup(e_h)
    if(allocated(e_h%ovlp_cmplx_sips)) then
       call elsi_deallocate(e_h,e_h%ovlp_cmplx_sips,"ovlp_cmplx_sips")
    endif
+   if(allocated(e_h%eval_sips)) then
+      call elsi_deallocate(e_h,e_h%eval_sips,"eval_sips")
+   endif
+   if(allocated(e_h%evec_real_sips)) then
+      call elsi_deallocate(e_h,e_h%evec_real_sips,"evec_real_sips")
+   endif
+   if(allocated(e_h%evec_cmplx_sips)) then
+      call elsi_deallocate(e_h,e_h%evec_cmplx_sips,"evec_cmplx_sips")
+   endif
    if(allocated(e_h%dm_real_sips)) then
       call elsi_deallocate(e_h,e_h%dm_real_sips,"dm_real_sips")
    endif

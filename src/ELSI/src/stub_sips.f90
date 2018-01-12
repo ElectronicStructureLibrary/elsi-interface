@@ -190,13 +190,13 @@ subroutine sips_get_eigenvalues(nev,eigs)
 
 end subroutine
 
-subroutine sips_get_eigenvectors(n_basis,idx,evec)
+subroutine sips_get_eigenvectors(nev,lrow,evec)
 
    implicit none
 
-   integer(kind=i4) :: n_basis
-   integer(kind=i4) :: idx
-   real(kind=r8)    :: evec(n_basis)
+   integer(kind=i4) :: nev
+   integer(kind=i4) :: lrow
+   real(kind=r8)    :: evec(lrow,nev)
 
    write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
    write(*,"(A)") " Exiting..."

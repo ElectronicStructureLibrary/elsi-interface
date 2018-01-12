@@ -58,6 +58,7 @@ module ELSI_MATCONV
    public :: elsi_pexsi_to_blacs_dm_cmplx
    public :: elsi_sips_to_blacs_hs_real
    public :: elsi_sips_to_blacs_hs_cmplx
+   public :: elsi_sips_to_blacs_ev_real
 
 contains
 
@@ -2127,6 +2128,22 @@ subroutine elsi_sips_to_blacs_hs_cmplx(e_h,ham,ovlp)
    call elsi_say(e_h,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
    call elsi_say(e_h,info_str)
+
+end subroutine
+
+!>
+!! This routine converts eigenvectors stored in 1D block dense format to 2D
+!! block-cyclic dense format.
+!!
+subroutine elsi_sips_to_blacs_ev_real(e_h,evec)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h
+   real(kind=r8),     intent(out)   :: evec(e_h%n_lrow,e_h%n_lcol)
+
+   ! TODO
+   evec = 0.0_r8
 
 end subroutine
 
