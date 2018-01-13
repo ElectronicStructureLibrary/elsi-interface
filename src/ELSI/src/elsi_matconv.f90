@@ -2132,6 +2132,8 @@ subroutine elsi_sips_to_blacs_ev_real(e_h,evec)
    type(elsi_handle), intent(inout) :: e_h
    real(kind=r8),     intent(out)   :: evec(e_h%n_lrow,e_h%n_lcol)
 
+   integer(kind=i4) :: n_row1
+   integer(kind=i4) :: n_row2
    integer(kind=i4) :: ierr
    integer(kind=i4) :: aux_ctxt
    integer(kind=i4) :: aux_desc(9)
@@ -2146,25 +2148,35 @@ subroutine elsi_sips_to_blacs_ev_real(e_h,evec)
 
    aux_ctxt = e_h%mpi_comm
    aux_blk  = e_h%n_basis/e_h%n_procs
+   n_row2   = mod(e_h%n_basis,e_h%n_procs)
+   n_row1   = e_h%n_basis-n_row2
 
-   ! Create an auxillary BLACS context
    call BLACS_Gridinit(aux_ctxt,"r",e_h%n_procs,1)
-   call descinit(aux_desc,e_h%n_basis,e_h%n_states,aux_blk,e_h%n_states,0,0,&
+   call descinit(aux_desc,n_row1,e_h%n_states,aux_blk,e_h%n_states,0,0,&
            aux_ctxt,max(1,aux_blk),ierr)
 
    evec = 0.0_r8
 
    ! Redistribute matrix
-   call pdgemr2d(e_h%n_basis,e_h%n_states,e_h%evec_real_sips,1,1,aux_desc,&
-           evec,1,1,e_h%sc_desc,aux_ctxt)
-
-   ! Destroy BLACS context
-   call BLACS_Gridexit(aux_ctxt)
+   call pdgemr2d(n_row1,e_h%n_states,e_h%evec_real_sips,1,1,aux_desc,evec,1,1,&
+           e_h%sc_desc,aux_ctxt)
 
    ! Last process may have more data
-   if(mod(e_h%n_basis,e_h%n_procs) /= 0) then
-      ! TODO
+   if(n_row2 > 0) then
+      ! Use a dummy descriptor to reshuffle remaining data
+      call descinit(aux_desc,e_h%n_procs*n_row2,e_h%n_states,n_row2,&
+              e_h%n_states,0,0,aux_ctxt,n_row2,ierr)
+
+      if(e_h%myid /= e_h%n_procs-1) then
+         aux_blk = 0
+      endif
+
+      call pdgemr2d(n_row2,e_h%n_states,e_h%evec_real_sips(aux_blk+1,1),&
+              (e_h%n_procs-1)*n_row2+1,1,aux_desc,evec,n_row1+1,1,e_h%sc_desc,&
+              aux_ctxt)
    endif
+
+   call BLACS_Gridexit(aux_ctxt)
 
    call elsi_get_time(e_h,t1)
 
