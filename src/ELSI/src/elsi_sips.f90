@@ -112,8 +112,6 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
    real(kind=r8)    :: t1
    real(kind=r8)    :: lower
    real(kind=r8)    :: upper
-   real(kind=r8)    :: prev_sum
-   real(kind=r8)    :: new_sum
    integer(kind=i4) :: i
    integer(kind=i4) :: j
    integer(kind=i4) :: this
@@ -167,8 +165,8 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
 
    call elsi_allocate(e_h,slices,e_h%sips_n_slices+1,"slices",caller)
 
-   eval = eval+e_h%sips_ev_shift
-
+   ! Generate new slices based on previous eigenvalues
+   eval      = eval+e_h%sips_ev_shift
    n_clst    = 1
    clst      = 0
    clst(1,1) = 1
@@ -340,16 +338,8 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
 
    call elsi_get_time(e_h,t0)
 
-   ! Get eigenvalues
-   prev_sum = sum(eval(1:e_h%n_states))/e_h%n_states
-
+   ! Get solutions
    call sips_get_eigenvalues(e_h%n_states,eval(1:e_h%n_states))
-
-   ! Adjust slice buffer
-   new_sum         = sum(eval(1:e_h%n_states))/e_h%n_states
-   e_h%sips_buffer = min(e_h%sips_buffer,abs(new_sum-prev_sum))
-
-   ! Get eigenvectors
    call sips_get_eigenvectors(e_h%n_states,e_h%n_lcol_sp,e_h%evec_real_sips)
 
    call MPI_Barrier(e_h%mpi_comm,ierr)
@@ -409,7 +399,7 @@ subroutine elsi_set_sips_default(e_h)
    e_h%sips_n_elpa = 1
 
    ! Buffer to adjust global interval
-   e_h%sips_buffer = 0.02_r8
+   e_h%sips_buffer = 0.01_r8
 
    ! Shift of eigenspectrum between SCF steps
    e_h%sips_ev_shift = 0.0_r8
