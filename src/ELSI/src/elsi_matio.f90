@@ -184,7 +184,7 @@ subroutine elsi_set_rw_blacs(rw_h,blacs_ctxt,block_size)
 
       if(rw_h%rw_task == WRITE_FILE) then
          ! Get processor grid information
-         call blacs_gridinfo(rw_h%blacs_ctxt,n_prow,n_pcol,my_prow,my_pcol)
+         call BLACS_Gridinfo(rw_h%blacs_ctxt,n_prow,n_pcol,my_prow,my_pcol)
 
          ! Get local size of matrix
          rw_h%n_lrow = numroc(rw_h%n_basis,rw_h%blk,my_prow,0,n_prow)
@@ -579,7 +579,7 @@ subroutine elsi_read_mat_dim_mp(rw_h,f_name,n_electron,n_basis,n_lrow,n_lcol)
    n_electron = real(header(5),kind=r8)
 
    ! Get processor grid information
-   call blacs_gridinfo(rw_h%blacs_ctxt,n_prow,n_pcol,my_prow,my_pcol)
+   call BLACS_Gridinfo(rw_h%blacs_ctxt,n_prow,n_pcol,my_prow,my_pcol)
 
    ! Get local size of matrix
    n_lrow = numroc(n_basis,rw_h%blk,my_prow,0,n_prow)

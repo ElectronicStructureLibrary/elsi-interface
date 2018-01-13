@@ -295,7 +295,7 @@ subroutine elsi_set_blacs(e_h,blacs_ctxt,block_size)
       e_h%blk_col    = block_size
 
       ! Get processor grid information
-      call blacs_gridinfo(e_h%blacs_ctxt,e_h%n_prow,e_h%n_pcol,e_h%my_prow,&
+      call BLACS_Gridinfo(e_h%blacs_ctxt,e_h%n_prow,e_h%n_pcol,e_h%my_prow,&
               e_h%my_pcol)
 
       ! Get local size of matrix
