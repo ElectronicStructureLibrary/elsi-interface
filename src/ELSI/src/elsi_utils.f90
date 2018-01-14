@@ -175,7 +175,6 @@ subroutine elsi_reset_handle(e_h)
    e_h%sips_np_per_slice      = UNSET
    e_h%sips_n_slices          = UNSET
    e_h%sips_slice_type        = UNSET
-   e_h%sips_inertia_tol       = 0.0_r8
    e_h%sips_buffer            = 0.0_r8
    e_h%sips_ev_shift          = 0.0_r8
    e_h%sips_interval          = 0.0_r8

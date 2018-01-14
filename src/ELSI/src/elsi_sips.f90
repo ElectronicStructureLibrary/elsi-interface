@@ -122,6 +122,7 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
    integer(kind=i4) :: clst(100,3) ! Eigenvalue clusters
    integer(kind=i4) :: ierr
    logical          :: slices_changed
+   logical          :: stop_inertia
    character*200    :: info_str
 
    real(kind=r8),    allocatable :: slices(:)
@@ -191,19 +192,21 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
 
          call elsi_allocate(e_h,inertias,e_h%sips_n_slices+1,"inertias",caller)
 
-         n_iner_steps   = 0
-         slices_changed = .true.
+         stop_inertia = .false.
 
-         do while(n_iner_steps < 5 .and. slices_changed)
-            n_iner_steps = n_iner_steps+1
+         do while(.not. stop_inertia)
+            stop_inertia = .true.
 
             call sips_get_inertias(e_h%sips_n_slices,slices,inertias)
 
-            slices_changed = .false.
-
             if(inertias(1) > 0) then
-               slices(1)      = slices(1)-0.1_r8
-               slices_changed = .true.
+               slices(1)    = slices(1)-0.1_r8
+               stop_inertia = .false.
+            endif
+
+            if(inertias(e_h%sips_n_slices+1) < e_h%n_states) then
+               slices(e_h%sips_n_slices+1) = slices(e_h%sips_n_slices+1)+0.1_r8
+               stop_inertia                = .false.
             endif
          enddo
 
@@ -249,11 +252,12 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
 
          call elsi_allocate(e_h,inertias,e_h%sips_n_slices+1,"inertias",caller)
 
-         n_iner_steps   = 0
-         slices_changed = .true.
+         n_iner_steps = 0
+         stop_inertia = .false.
 
-         do while(n_iner_steps < 5 .and. slices_changed)
+         do while(.not. stop_inertia)
             n_iner_steps = n_iner_steps+1
+            stop_inertia = .true.
 
             call sips_get_inertias(e_h%sips_n_slices,slices,inertias)
 
@@ -266,6 +270,11 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
                   print *,slices(i),":",inertias(i)
                enddo
                print *
+            endif
+
+            if(inertias(1) > 0 .or. &
+               inertias(e_h%sips_n_slices+1) < e_h%n_states) then
+               stop_inertia = .false.
             endif
 
             slices_changed = .false.
@@ -305,6 +314,10 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
 
                call elsi_linspace(lower,upper,this,slices(clst(i,2):clst(i,3)))
             enddo
+
+            if(slices_changed .and. n_iner_steps < 5) then
+               stop_inertia = .false.
+            endif
          enddo
 
          call elsi_deallocate(e_h,inertias,"inertias")
@@ -403,9 +416,6 @@ subroutine elsi_set_sips_default(e_h)
 
    ! Shift of eigenspectrum between SCF steps
    e_h%sips_ev_shift = 0.0_r8
-
-   ! Tolerance to stop inertia counting
-   e_h%sips_inertia_tol = 1.0e-3_r8
 
    ! Do inertia counting
    e_h%sips_do_inertia = .true.
