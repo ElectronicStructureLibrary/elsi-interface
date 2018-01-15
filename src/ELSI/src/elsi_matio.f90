@@ -743,8 +743,8 @@ subroutine elsi_read_mat_real_mp(rw_h,f_name,mat)
    call MPI_File_open(rw_h%mpi_comm,f_name,f_mode,mpi_info_null,f_handle,ierr)
 
    ! Compute n_lcol_sp
-   rw_h%n_lcol_sp  = rw_h%n_basis/rw_h%n_procs
-   n_lcol0         = rw_h%n_lcol_sp
+   rw_h%n_lcol_sp = rw_h%n_basis/rw_h%n_procs
+   n_lcol0        = rw_h%n_lcol_sp
    if(rw_h%myid == rw_h%n_procs-1) then
       rw_h%n_lcol_sp = rw_h%n_basis-(rw_h%n_procs-1)*n_lcol0
    endif

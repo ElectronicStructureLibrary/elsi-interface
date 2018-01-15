@@ -877,8 +877,8 @@ subroutine elsi_pexsi_to_blacs_dm_real(e_h,dm)
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: l_col_id ! Local column id in 1D block distribution
    integer(kind=i4) :: l_row_id ! Local row id in 1D block distribution
-   integer(kind=i4) :: proc_col_id ! Column id in process grid
-   integer(kind=i4) :: proc_row_id ! Row id in process grid
+   integer(kind=i4) :: proc_col_id
+   integer(kind=i4) :: proc_row_id
    real(kind=r8)    :: t0
    real(kind=r8)    :: t1
    character*200    :: info_str
@@ -1037,8 +1037,8 @@ subroutine elsi_pexsi_to_blacs_dm_cmplx(e_h,dm)
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: l_col_id ! Local column id in 1D block distribution
    integer(kind=i4) :: l_row_id ! Local row id in 1D block distribution
-   integer(kind=i4) :: proc_col_id ! Column id in process grid
-   integer(kind=i4) :: proc_row_id ! Row id in process grid
+   integer(kind=i4) :: proc_col_id
+   integer(kind=i4) :: proc_row_id
    real(kind=r8)    :: t0
    real(kind=r8)    :: t1
    character*200    :: info_str
@@ -1708,8 +1708,8 @@ subroutine elsi_sips_to_blacs_hs_real(e_h,ham,ovlp)
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: l_col_id ! Local column id in 1D block distribution
    integer(kind=i4) :: l_row_id ! Local row id in 1D block distribution
-   integer(kind=i4) :: proc_col_id ! Column id in process grid
-   integer(kind=i4) :: proc_row_id ! Row id in process grid
+   integer(kind=i4) :: proc_col_id
+   integer(kind=i4) :: proc_row_id
    real(kind=r8)    :: t0
    real(kind=r8)    :: t1
    character*200    :: info_str
@@ -1924,8 +1924,8 @@ subroutine elsi_sips_to_blacs_hs_cmplx(e_h,ham,ovlp)
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: l_col_id ! Local column id in 1D block distribution
    integer(kind=i4) :: l_row_id ! Local row id in 1D block distribution
-   integer(kind=i4) :: proc_col_id ! Column id in process grid
-   integer(kind=i4) :: proc_row_id ! Row id in process grid
+   integer(kind=i4) :: proc_col_id
+   integer(kind=i4) :: proc_row_id
    real(kind=r8)    :: t0
    real(kind=r8)    :: t1
    character*200    :: info_str
@@ -2132,51 +2132,153 @@ subroutine elsi_sips_to_blacs_ev_real(e_h,evec)
    type(elsi_handle), intent(inout) :: e_h
    real(kind=r8),     intent(out)   :: evec(e_h%n_lrow,e_h%n_lcol)
 
-   integer(kind=i4) :: n_row1
-   integer(kind=i4) :: n_row2
    integer(kind=i4) :: ierr
-   integer(kind=i4) :: aux_ctxt
-   integer(kind=i4) :: aux_desc(9)
-   integer(kind=i4) :: aux_blk
+   integer(kind=i4) :: i_row
+   integer(kind=i4) :: i_col
+   integer(kind=i4) :: i_val
+   integer(kind=i4) :: i_proc
+   integer(kind=i4) :: l_col_id ! Local column id in 1D block distribution
+   integer(kind=i4) :: l_row_id ! Local row id in 1D block distribution
+   integer(kind=i4) :: proc_col_id
+   integer(kind=i4) :: proc_row_id
+   integer(kind=i4) :: nnz_before
+   integer(kind=i4) :: nnz_after
+   integer(kind=i4) :: n_lrow_aux
    real(kind=r8)    :: t0
    real(kind=r8)    :: t1
    character*200    :: info_str
+
+   ! See documentation of MPI_Alltoallv
+   real(kind=r8),    allocatable :: val_send_buf(:)
+   integer(kind=i4), allocatable :: row_send_buf(:)
+   integer(kind=i4), allocatable :: col_send_buf(:)
+   integer(kind=i4), allocatable :: send_count(:)
+   integer(kind=i4), allocatable :: send_displ(:)
+   real(kind=r8),    allocatable :: val_recv_buf(:)
+   integer(kind=i4), allocatable :: row_recv_buf(:)
+   integer(kind=i4), allocatable :: col_recv_buf(:)
+   integer(kind=i4), allocatable :: recv_count(:)
+   integer(kind=i4), allocatable :: recv_displ(:)
+   integer(kind=i4), allocatable :: dest(:) ! Destination of each element
 
    character*40, parameter :: caller = "elsi_sips_to_blacs_ev_real"
 
    call elsi_get_time(e_h,t0)
 
-   aux_ctxt = e_h%mpi_comm
-   aux_blk  = e_h%n_basis/e_h%n_procs
-   n_row2   = mod(e_h%n_basis,e_h%n_procs)
-   n_row1   = e_h%n_basis-n_row2
+   n_lrow_aux = e_h%n_basis/e_h%n_procs
+   nnz_before = 0
 
-   call BLACS_Gridinit(aux_ctxt,"r",e_h%n_procs,1)
-   call descinit(aux_desc,n_row1,e_h%n_states,aux_blk,e_h%n_states,0,0,&
-           aux_ctxt,max(1,aux_blk),ierr)
+   do i_col = 1,e_h%n_states
+      do i_row = 1,e_h%n_lcol_sp
+         if(abs(e_h%evec_real_sips(i_row,i_col)) > 1.0e-20_r8) then
+            nnz_before = nnz_before+1
+         endif
+      enddo
+   enddo
+
+   call elsi_allocate(e_h,val_send_buf,nnz_before,"val_send_buf",caller)
+   call elsi_allocate(e_h,row_send_buf,nnz_before,"row_send_buf",caller)
+   call elsi_allocate(e_h,col_send_buf,nnz_before,"col_send_buf",caller)
+   call elsi_allocate(e_h,send_count,e_h%n_procs,"send_count",caller)
+   call elsi_allocate(e_h,dest,nnz_before,"dest",caller)
+
+   i_val = 0
+   ! Compute destination and global id
+   do i_col = 1,e_h%n_states
+      do i_row = 1,e_h%n_lcol_sp
+         if(abs(e_h%evec_real_sips(i_row,i_col)) > 1.0e-18_r8) then
+            i_val = i_val+1
+
+            ! Compute global id
+            col_send_buf(i_val) = i_col
+            row_send_buf(i_val) = e_h%myid*n_lrow_aux+i_row
+            val_send_buf(i_val) = e_h%evec_real_sips(i_row,i_col)
+
+            ! Compute destination
+            proc_row_id = mod((row_send_buf(i_val)-1)/e_h%blk_row,e_h%n_prow)
+            proc_col_id = mod((col_send_buf(i_val)-1)/e_h%blk_col,e_h%n_pcol)
+            dest(i_val) = proc_col_id+proc_row_id*e_h%n_pcol
+
+            ! Set send_count
+            send_count(dest(i_val)+1) = send_count(dest(i_val)+1)+1
+         endif
+      enddo
+   enddo
+
+   call elsi_heapsort(nnz_before,dest,val_send_buf,row_send_buf,col_send_buf)
+
+   call elsi_deallocate(e_h,dest,"dest")
+   call elsi_allocate(e_h,recv_count,e_h%n_procs,"recv_count",caller)
+
+   ! Set recv_count
+   call MPI_Alltoall(send_count,1,mpi_integer4,recv_count,1,mpi_integer4,&
+           e_h%mpi_comm,ierr)
+
+   call elsi_check_mpi(e_h,"MPI_Alltoall",ierr,caller)
+
+   nnz_after = sum(recv_count,1)
+
+   ! Set send and receive displacement
+   call elsi_allocate(e_h,send_displ,e_h%n_procs,"send_displ",caller)
+   call elsi_allocate(e_h,recv_displ,e_h%n_procs,"recv_displ",caller)
+
+   do i_proc = 2,e_h%n_procs
+      send_displ(i_proc) = sum(send_count(1:i_proc-1),1)
+      recv_displ(i_proc) = sum(recv_count(1:i_proc-1),1)
+   enddo
+
+   ! Send and receive the packed data
+   ! Value
+   call elsi_allocate(e_h,val_recv_buf,nnz_after,"val_recv_buf",caller)
+
+   call MPI_Alltoallv(val_send_buf,send_count,send_displ,mpi_real8,&
+           val_recv_buf,recv_count,recv_displ,mpi_real8,e_h%mpi_comm,ierr)
+
+   call elsi_check_mpi(e_h,"MPI_Alltoallv",ierr,caller)
+
+   call elsi_deallocate(e_h,val_send_buf,"val_send_buf")
+
+   ! Row index
+   call elsi_allocate(e_h,row_recv_buf,nnz_after,"row_recv_buf",caller)
+
+   call MPI_Alltoallv(row_send_buf,send_count,send_displ,mpi_integer4,&
+           row_recv_buf,recv_count,recv_displ,mpi_integer4,e_h%mpi_comm,ierr)
+
+   call elsi_check_mpi(e_h,"MPI_Alltoallv",ierr,caller)
+
+   call elsi_deallocate(e_h,row_send_buf,"row_send_buf")
+
+   ! Column index
+   call elsi_allocate(e_h,col_recv_buf,nnz_after,"col_recv_buf",caller)
+
+   call MPI_Alltoallv(col_send_buf,send_count,send_displ,mpi_integer4,&
+           col_recv_buf,recv_count,recv_displ,mpi_integer4,e_h%mpi_comm,ierr)
+
+   call elsi_check_mpi(e_h,"MPI_Alltoallv",ierr,caller)
+
+   call elsi_deallocate(e_h,col_send_buf,"col_send_buf")
+   call elsi_deallocate(e_h,send_count,"send_count")
+   call elsi_deallocate(e_h,recv_count,"recv_count")
+   call elsi_deallocate(e_h,send_displ,"send_displ")
+   call elsi_deallocate(e_h,recv_displ,"recv_displ")
 
    evec = 0.0_r8
 
-   ! Redistribute matrix
-   call pdgemr2d(n_row1,e_h%n_states,e_h%evec_real_sips,1,1,aux_desc,evec,1,1,&
-           e_h%sc_desc,aux_ctxt)
+   ! Unpack eigenvectors
+   do i_val = 1,nnz_after
+      ! Compute local 2d id
+      l_row_id = (row_recv_buf(i_val)-1)/(e_h%n_prow*e_h%blk_row)*e_h%blk_row+&
+                    mod((row_recv_buf(i_val)-1),e_h%blk_row)+1
+      l_col_id = (col_recv_buf(i_val)-1)/(e_h%n_pcol*e_h%blk_col)*e_h%blk_col+&
+                    mod((col_recv_buf(i_val)-1),e_h%blk_col)+1
 
-   ! Last process may have more data
-   if(n_row2 > 0) then
-      ! Use a dummy descriptor to reshuffle remaining data
-      call descinit(aux_desc,e_h%n_procs*n_row2,e_h%n_states,n_row2,&
-              e_h%n_states,0,0,aux_ctxt,n_row2,ierr)
+      ! Put value to correct position
+      evec(l_row_id,l_col_id) = val_recv_buf(i_val)
+   enddo
 
-      if(e_h%myid /= e_h%n_procs-1) then
-         aux_blk = 0
-      endif
-
-      call pdgemr2d(n_row2,e_h%n_states,e_h%evec_real_sips(aux_blk+1,1),&
-              (e_h%n_procs-1)*n_row2+1,1,aux_desc,evec,n_row1+1,1,e_h%sc_desc,&
-              aux_ctxt)
-   endif
-
-   call BLACS_Gridexit(aux_ctxt)
+   call elsi_deallocate(e_h,val_recv_buf,"val_recv_buf")
+   call elsi_deallocate(e_h,row_recv_buf,"row_recv_buf")
+   call elsi_deallocate(e_h,col_recv_buf,"col_recv_buf")
 
    call elsi_get_time(e_h,t1)
 
