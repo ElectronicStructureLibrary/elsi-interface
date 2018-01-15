@@ -2170,7 +2170,7 @@ subroutine elsi_sips_to_blacs_ev_real(e_h,evec)
 
    do i_col = 1,e_h%n_states
       do i_row = 1,e_h%n_lcol_sp
-         if(abs(e_h%evec_real_sips(i_row,i_col)) > 1.0e-20_r8) then
+         if(abs(e_h%evec_real_sips(i_row,i_col)) > e_h%zero_def) then
             nnz_before = nnz_before+1
          endif
       enddo
@@ -2186,7 +2186,7 @@ subroutine elsi_sips_to_blacs_ev_real(e_h,evec)
    ! Compute destination and global id
    do i_col = 1,e_h%n_states
       do i_row = 1,e_h%n_lcol_sp
-         if(abs(e_h%evec_real_sips(i_row,i_col)) > 1.0e-18_r8) then
+         if(abs(e_h%evec_real_sips(i_row,i_col)) > e_h%zero_def) then
             i_val = i_val+1
 
             ! Compute global id
