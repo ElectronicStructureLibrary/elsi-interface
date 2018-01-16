@@ -72,7 +72,7 @@ subroutine elsi_solve_evp_omm_real(e_h,ham,ovlp,dm)
    logical          :: success
    real(kind=r8)    :: t0
    real(kind=r8)    :: t1
-   integer(kind=i4) :: mpierr
+   integer(kind=i4) :: ierr
    character*200    :: info_str
 
    character*40, parameter :: caller = "elsi_solve_evp_omm_real"
@@ -86,9 +86,9 @@ subroutine elsi_solve_evp_omm_real(e_h,ham,ovlp,dm)
       call elsi_get_local_nnz_real(e_h,ham,e_h%n_lrow,e_h%n_lcol,e_h%nnz_l)
 
       call MPI_Allreduce(e_h%nnz_l,e_h%nnz_g,1,mpi_integer4,mpi_sum,&
-              e_h%mpi_comm,mpierr)
+              e_h%mpi_comm,ierr)
 
-      call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
+      call elsi_check_mpi(e_h,"MPI_Allreduce",ierr,caller)
    endif
 
    if(.not. e_h%ovlp_is_unit) then
@@ -144,9 +144,9 @@ subroutine elsi_solve_evp_omm_real(e_h,ham,ovlp,dm)
 
    dm = e_h%spin_degen*dm
 
-   call MPI_Barrier(e_h%mpi_comm,mpierr)
+   call MPI_Barrier(e_h%mpi_comm,ierr)
 
-   call elsi_check_mpi(e_h,"MPI_Barrier",mpierr,caller)
+   call elsi_check_mpi(e_h,"MPI_Barrier",ierr,caller)
 
    call elsi_get_time(e_h,t1)
 
@@ -210,7 +210,7 @@ subroutine elsi_solve_evp_omm_cmplx(e_h,ham,ovlp,dm)
    logical          :: success
    real(kind=r8)    :: t0
    real(kind=r8)    :: t1
-   integer(kind=i4) :: mpierr
+   integer(kind=i4) :: ierr
    character*200    :: info_str
 
    character*40, parameter :: caller = "elsi_solve_evp_omm_cmplx"
@@ -224,9 +224,9 @@ subroutine elsi_solve_evp_omm_cmplx(e_h,ham,ovlp,dm)
       call elsi_get_local_nnz_cmplx(e_h,ham,e_h%n_lrow,e_h%n_lcol,e_h%nnz_l)
 
       call MPI_Allreduce(e_h%nnz_l,e_h%nnz_g,1,mpi_integer4,mpi_sum,&
-              e_h%mpi_comm,mpierr)
+              e_h%mpi_comm,ierr)
 
-      call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
+      call elsi_check_mpi(e_h,"MPI_Allreduce",ierr,caller)
    endif
 
    if(.not. e_h%ovlp_is_unit) then
@@ -282,9 +282,9 @@ subroutine elsi_solve_evp_omm_cmplx(e_h,ham,ovlp,dm)
 
    dm = e_h%spin_degen*dm
 
-   call MPI_Barrier(e_h%mpi_comm,mpierr)
+   call MPI_Barrier(e_h%mpi_comm,ierr)
 
-   call elsi_check_mpi(e_h,"MPI_Barrier",mpierr,caller)
+   call elsi_check_mpi(e_h,"MPI_Barrier",ierr,caller)
 
    call elsi_get_time(e_h,t1)
 

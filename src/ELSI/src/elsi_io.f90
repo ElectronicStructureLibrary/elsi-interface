@@ -859,9 +859,8 @@ subroutine elsi_print_sips_settings(e_h,io_h_in)
    call elsi_say_setting(e_h,"sips_n_elpa",e_h%sips_n_elpa,io_h)
    call elsi_say_setting(e_h,"sips_n_slices",e_h%sips_n_slices,io_h)
    call elsi_say_setting(e_h,"sips_np_per_slice",e_h%sips_np_per_slice,io_h)
-   call elsi_say_setting(e_h,"sips_buffer",e_h%sips_buffer,io_h)
    io_h%comma_json = NO_COMMA ! Final record in this scope
-   call elsi_say_setting(e_h,"sips_inertia_tol",e_h%sips_inertia_tol,io_h)
+   call elsi_say_setting(e_h,"sips_buffer",e_h%sips_buffer,io_h)
    call truncate_string(io_h%prefix,2)
 
    ! Footer (only for JSON)

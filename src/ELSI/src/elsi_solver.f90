@@ -66,7 +66,8 @@ module ELSI_SOLVER
                              elsi_blacs_to_pexsi_hs_cmplx,&
                              elsi_pexsi_to_blacs_dm_cmplx,&
                              elsi_blacs_to_sips_dm_real,&
-                             elsi_blacs_to_sips_dm_cmplx
+                             elsi_blacs_to_sips_dm_cmplx,&
+                             elsi_sips_to_blacs_ev_real
    use ELSI_MPI,       only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8
    use ELSI_OMM,       only: elsi_solve_evp_omm_real,&
                              elsi_solve_evp_omm_cmplx
@@ -74,8 +75,7 @@ module ELSI_SOLVER
                              elsi_solve_evp_pexsi_cmplx
    use ELSI_PRECISION, only: r8,i4
    use ELSI_SETUP,     only: elsi_set_blacs
-   use ELSI_SIPS,      only: elsi_init_sips,elsi_solve_evp_sips_real,&
-                             elsi_sips_to_blacs_ev_real
+   use ELSI_SIPS,      only: elsi_init_sips,elsi_solve_evp_sips_real
    use ELSI_TIMINGS,   only: elsi_get_time, elsi_add_timing
    use ELSI_UTILS,     only: elsi_check,elsi_check_handle,elsi_ready_handle,&
                              elsi_get_solver_tag,elsi_get_datetime_rfc3339
@@ -110,7 +110,7 @@ subroutine elsi_get_energy(e_h,energy,solver)
 
    real(kind=r8)    :: tmp_real
    integer(kind=i4) :: i_state
-   integer(kind=i4) :: mpierr
+   integer(kind=i4) :: ierr
 
    character*40, parameter :: caller = "elsi_get_energy"
 
@@ -142,9 +142,9 @@ subroutine elsi_get_energy(e_h,energy,solver)
       endif
 
       call MPI_Allreduce(energy,tmp_real,1,mpi_real8,mpi_sum,e_h%mpi_comm_all,&
-              mpierr)
+              ierr)
 
-      call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
+      call elsi_check_mpi(e_h,"MPI_Allreduce",ierr,caller)
 
       energy = tmp_real
    endif
@@ -1340,16 +1340,15 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,start_datetime,&
       user_tag = trim(UNSET_STRING)
    endif
 
-   user_tag = adjustr(user_tag)
-   elsi_tag = trim(elsi_tag_in)
-   elsi_tag = adjustr(elsi_tag)
+   user_tag        = adjustr(user_tag)
+   elsi_tag        = trim(elsi_tag_in)
+   elsi_tag        = adjustr(elsi_tag)
+   comma_json_save = io_h%comma_json
 
    call elsi_get_datetime_rfc3339(record_datetime)
 
    ! Print out patterned header and timing details
    if(io_h%file_format == HUMAN_READ) then
-      ! Shouldn't be relevant, but to be safe.
-      comma_json_save = io_h%comma_json
       io_h%comma_json = COMMA_AFTER
 
       write(info_str,"(A)") "--------------------------------------------------"
@@ -1389,7 +1388,6 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,start_datetime,&
       endif
       call elsi_say(e_h,info_str,io_h)
 
-      comma_json_save = io_h%comma_json
       io_h%comma_json = COMMA_AFTER ! Add commas behind all records before final
       call append_string(io_h%prefix,"  ")
       call elsi_say_setting(e_h,"data_source","ELSI",io_h)

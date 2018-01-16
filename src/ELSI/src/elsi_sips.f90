@@ -51,7 +51,6 @@ module ELSI_SIPS
    public :: elsi_set_sips_default
    public :: elsi_init_sips
    public :: elsi_solve_evp_sips_real
-   public :: elsi_sips_to_blacs_ev_real
 
 contains
 
@@ -86,6 +85,9 @@ subroutine elsi_init_sips(e_h)
          e_h%n_lcol_sp = e_h%n_basis-(e_h%n_procs-1)*e_h%n_lcol_sp
       endif
 
+      call elsi_allocate(e_h,e_h%evec_real_sips,e_h%n_lcol_sp,e_h%n_states,&
+              "evec_real_sips",caller)
+
       e_h%sips_started = .true.
    endif
 
@@ -110,8 +112,6 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
    real(kind=r8)    :: t1
    real(kind=r8)    :: lower
    real(kind=r8)    :: upper
-   real(kind=r8)    :: prev_sum
-   real(kind=r8)    :: new_sum
    integer(kind=i4) :: i
    integer(kind=i4) :: j
    integer(kind=i4) :: this
@@ -120,8 +120,9 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
    integer(kind=i4) :: n_solved
    integer(kind=i4) :: n_clst
    integer(kind=i4) :: clst(100,3) ! Eigenvalue clusters
-   integer(kind=i4) :: mpierr
+   integer(kind=i4) :: ierr
    logical          :: slices_changed
+   logical          :: stop_inertia
    character*200    :: info_str
 
    real(kind=r8),    allocatable :: slices(:)
@@ -165,8 +166,8 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
 
    call elsi_allocate(e_h,slices,e_h%sips_n_slices+1,"slices",caller)
 
-   eval = eval+e_h%sips_ev_shift
-
+   ! Generate new slices based on previous eigenvalues
+   eval      = eval+e_h%sips_ev_shift
    n_clst    = 1
    clst      = 0
    clst(1,1) = 1
@@ -185,6 +186,44 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
       upper = eval(e_h%n_states)+e_h%sips_buffer
 
       call elsi_linspace(lower,upper,e_h%sips_n_slices+1,slices)
+
+      if(e_h%sips_do_inertia) then ! Inertia counting
+         call elsi_get_time(e_h,t0)
+
+         call elsi_allocate(e_h,inertias,e_h%sips_n_slices+1,"inertias",caller)
+
+         stop_inertia = .false.
+
+         do while(.not. stop_inertia)
+            stop_inertia = .true.
+
+            call sips_get_inertias(e_h%sips_n_slices,slices,inertias)
+
+            if(inertias(1) > 0) then
+               slices(1)    = slices(1)-0.1_r8
+               stop_inertia = .false.
+            endif
+
+            if(inertias(e_h%sips_n_slices+1) < e_h%n_states) then
+               slices(e_h%sips_n_slices+1) = slices(e_h%sips_n_slices+1)+0.1_r8
+               stop_inertia                = .false.
+            endif
+         enddo
+
+         call elsi_deallocate(e_h,inertias,"inertias")
+
+         lower = slices(1)
+         upper = slices(e_h%sips_n_slices+1)
+
+         call elsi_linspace(lower,upper,e_h%sips_n_slices+1,slices)
+
+         call elsi_get_time(e_h,t1)
+
+         write(info_str,"('  Finished inertia counting')")
+         call elsi_say(e_h,info_str)
+         write(info_str,"('  | Time :',F10.3,' s')") t1-t0
+         call elsi_say(e_h,info_str)
+      endif
    else
       tmp = 0
 
@@ -213,11 +252,12 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
 
          call elsi_allocate(e_h,inertias,e_h%sips_n_slices+1,"inertias",caller)
 
-         n_iner_steps   = 0
-         slices_changed = .true.
+         n_iner_steps = 0
+         stop_inertia = .false.
 
-         do while(n_iner_steps < 5 .and. slices_changed)
+         do while(.not. stop_inertia)
             n_iner_steps = n_iner_steps+1
+            stop_inertia = .true.
 
             call sips_get_inertias(e_h%sips_n_slices,slices,inertias)
 
@@ -230,6 +270,11 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
                   print *,slices(i),":",inertias(i)
                enddo
                print *
+            endif
+
+            if(inertias(1) > 0 .or. &
+               inertias(e_h%sips_n_slices+1) < e_h%n_states) then
+               stop_inertia = .false.
             endif
 
             slices_changed = .false.
@@ -269,6 +314,10 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
 
                call elsi_linspace(lower,upper,this,slices(clst(i,2):clst(i,3)))
             enddo
+
+            if(slices_changed .and. n_iner_steps < 5) then
+               stop_inertia = .false.
+            endif
          enddo
 
          call elsi_deallocate(e_h,inertias,"inertias")
@@ -293,35 +342,6 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
       call elsi_stop(" SIPs solver failed.",e_h,caller)
    endif
 
-   ! Get eigenvalues
-   prev_sum = sum(eval(1:e_h%n_states))/e_h%n_states
-
-   call sips_get_eigenvalues(e_h%n_states,eval(1:e_h%n_states))
-
-   new_sum = sum(eval(1:e_h%n_states))/e_h%n_states
-
-   if(abs(new_sum-prev_sum) < e_h%sips_inertia_tol) then
-      e_h%sips_do_inertia = .false.
-   else
-      e_h%sips_do_inertia = .true.
-   endif
-
-   ! DEBUG
-   if(e_h%myid == 0) then
-      print *
-      print *,"QETSc eigenvalues"
-      do i = 1,n_clst-1
-         print *,eval(clst(i,1))
-         print *,eval(clst(i+1,1)-1)
-      enddo
-      print *,eval(e_h%n_states)
-      print *
-   endif
-
-   call MPI_Barrier(e_h%mpi_comm,mpierr)
-
-   call elsi_check_mpi(e_h,"MPI_Barrier",mpierr,caller)
-
    call elsi_get_time(e_h,t1)
 
    write(info_str,"('  Finished solving generalized eigenproblem')")
@@ -329,70 +349,19 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
    call elsi_say(e_h,info_str)
 
-end subroutine
-
-!>
-!! This routine gets the eigenvectors computed by SIPs and distributes them in a
-!! 2D block-cyclic fashion.
-!!
-subroutine elsi_sips_to_blacs_ev_real(e_h,evec)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: e_h
-   real(kind=r8),     intent(out)   :: evec(e_h%n_lrow,e_h%n_lcol)
-
-   integer(kind=i4) :: i_state
-   integer(kind=i4) :: i_row
-   integer(kind=i4) :: i_row2
-   integer(kind=i4) :: i_col
-   integer(kind=i4) :: g_row
-   integer(kind=i4) :: g_row2
-   integer(kind=i4) :: this_pcol
-   real(kind=r8)    :: t0
-   real(kind=r8)    :: t1
-   character*200    :: info_str
-
-   real(kind=r8), allocatable :: tmp_real(:)
-
-   character*40, parameter :: caller = "elsi_sips_to_blacs_ev_real"
-
    call elsi_get_time(e_h,t0)
 
-   call elsi_allocate(e_h,tmp_real,e_h%n_basis,"tmp_real",caller)
+   ! Get solutions
+   call sips_get_eigenvalues(e_h%n_states,eval(1:e_h%n_states))
+   call sips_get_eigenvectors(e_h%n_states,e_h%n_lcol_sp,e_h%evec_real_sips)
 
-   evec = 0.0_r8
+   call MPI_Barrier(e_h%mpi_comm,ierr)
 
-   do i_state = 1,e_h%n_states
-      call sips_get_eigenvectors(e_h%n_basis,i_state,tmp_real)
-
-      this_pcol = mod((i_state-1)/e_h%blk_col,e_h%n_pcol)
-
-      if(e_h%my_pcol == this_pcol) then
-         i_col = (i_state-1)/(e_h%n_pcol*e_h%blk_col)*e_h%blk_col+&
-                    mod((i_state-1),e_h%blk_col)+1
-
-         do i_row = 1,e_h%n_lrow,e_h%blk_row
-            i_row2 = i_row+e_h%blk_row-1
-
-            call elsi_get_global_row(e_h,g_row,i_row)
-            call elsi_get_global_row(e_h,g_row2,i_row2)
-
-            if(g_row2 > e_h%n_basis) then
-               g_row2 = e_h%n_basis
-               i_row2 = i_row+g_row2-g_row
-            endif
-
-            evec(i_row:i_row2,i_col) = tmp_real(g_row:g_row2)
-         enddo
-      endif
-   enddo
-
-   call elsi_deallocate(e_h,tmp_real,"tmp_real")
+   call elsi_check_mpi(e_h,"MPI_Barrier",ierr,caller)
 
    call elsi_get_time(e_h,t1)
 
-   write(info_str,"('  Finished matrix redistribution')")
+   write(info_str,"('  Finished retrieving eigensolutions')")
    call elsi_say(e_h,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
    call elsi_say(e_h,info_str)
@@ -443,13 +412,10 @@ subroutine elsi_set_sips_default(e_h)
    e_h%sips_n_elpa = 1
 
    ! Buffer to adjust global interval
-   e_h%sips_buffer = 0.02_r8
+   e_h%sips_buffer = 0.01_r8
 
    ! Shift of eigenspectrum between SCF steps
    e_h%sips_ev_shift = 0.0_r8
-
-   ! Tolerance to stop inertia counting
-   e_h%sips_inertia_tol = 1.0e-3_r8
 
    ! Do inertia counting
    e_h%sips_do_inertia = .true.

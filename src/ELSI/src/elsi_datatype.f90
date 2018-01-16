@@ -44,26 +44,26 @@ module ELSI_DATATYPE
 
    type, public :: elsi_file_io_handle
 
-      logical                       :: handle_init !< Is this a valid handle?
-      integer(kind=i4)              :: print_unit  !< Unit to print to
-      character(len=FILE_NAME_LEN)  :: file_name   !< File to print to
-      integer(kind=i4)              :: file_format !< Format type for output
-      logical                       :: print_info  !< Whether to output
-      character(len=:), allocatable :: prefix      !< Prefix for each line
-      integer(kind=i4)              :: comma_json  !< Comma placement in JSON
+      logical                       :: handle_init ! Is this a valid handle?
+      integer(kind=i4)              :: print_unit  ! Unit to print to
+      character(len=FILE_NAME_LEN)  :: file_name
+      integer(kind=i4)              :: file_format
+      logical                       :: print_info
+      character(len=:), allocatable :: prefix      ! Prefix for each line
+      integer(kind=i4)              :: comma_json  ! Comma placement in JSON
 
    end type
 
    type, public :: elsi_timings_handle
 
-      integer(kind=i4)                 :: size_timings ! Dimension for arrays
-      integer(kind=i4)                 :: n_timings    ! Number of timings
-      character(len=TIMING_STRING_LEN) :: user_tag     ! User's tag
+      integer(kind=i4)                 :: size_timings ! Array dimension
+      integer(kind=i4)                 :: n_timings
+      character(len=TIMING_STRING_LEN) :: user_tag
       character(len=TIMING_STRING_LEN) :: set_label    ! Timing set identifier
 
-      real(kind=r8),                    allocatable :: times(:)     ! System times
-      character(len=TIMING_STRING_LEN), allocatable :: elsi_tags(:) ! Tags assigned by ELSI
-      character(len=TIMING_STRING_LEN), allocatable :: user_tags(:) ! Tags provided by user
+      real(kind=r8),                    allocatable :: times(:)
+      character(len=TIMING_STRING_LEN), allocatable :: elsi_tags(:)
+      character(len=TIMING_STRING_LEN), allocatable :: user_tags(:)
 
    end type
 
@@ -81,14 +81,14 @@ module ELSI_DATATYPE
       complex(kind=r8), allocatable :: dm_cmplx_elpa(:,:)
       real(kind=r8),    allocatable :: occ_num(:,:,:)
       real(kind=r8),    allocatable :: eval_all(:,:,:) ! All eigenvalues
-      real(kind=r8),    allocatable :: k_weight(:)     ! K-point weights
+      real(kind=r8),    allocatable :: k_weight(:)
 
       ! libOMM
       type(Matrix)                  :: ham_omm
       type(Matrix)                  :: ovlp_omm
-      type(Matrix)                  :: c_omm     ! Coefficient matrix
+      type(Matrix)                  :: c_omm   ! Coefficient matrix
       type(Matrix)                  :: dm_omm
-      type(Matrix)                  :: tdm_omm   ! Kinetic energy matrix
+      type(Matrix)                  :: tdm_omm ! Kinetic energy matrix
 
       ! PESXI
       real(kind=r8),    allocatable :: ham_real_pexsi(:)
@@ -120,6 +120,9 @@ module ELSI_DATATYPE
       complex(kind=r8), allocatable :: ham_cmplx_sips(:)
       real(kind=r8),    allocatable :: ovlp_real_sips(:)
       complex(kind=r8), allocatable :: ovlp_cmplx_sips(:)
+      real(kind=r8),    allocatable :: eval_sips(:)
+      real(kind=r8),    allocatable :: evec_real_sips(:,:)
+      complex(kind=r8), allocatable :: evec_cmplx_sips(:,:)
       real(kind=r8),    allocatable :: dm_real_sips(:)
       complex(kind=r8), allocatable :: dm_cmplx_sips(:)
       integer(kind=i4), allocatable :: row_ind_sips(:)
@@ -285,23 +288,22 @@ module ELSI_DATATYPE
       integer(kind=i4) :: sips_np_per_slice
       integer(kind=i4) :: sips_n_slices
       integer(kind=i4) :: sips_slice_type
-      integer(kind=i4) :: sips_inertia_tol ! Tolerance to stop inertia counting
-      real(kind=r8)    :: sips_buffer      ! Adjust interval on-the-fly
-      real(kind=r8)    :: sips_ev_shift    ! Adjust interval between SCF steps
+      real(kind=r8)    :: sips_buffer   ! Adjust interval on-the-fly
+      real(kind=r8)    :: sips_ev_shift ! Adjust interval between SCF steps
       real(kind=r8)    :: sips_interval(2)
       logical          :: sips_do_inertia
       logical          :: sips_started = .false.
 
       ! DMP
-      integer(kind=i4) :: dmp_n_states   ! Number of states used in DMP
-      integer(kind=i4) :: dmp_method     ! 0 = Trace correcting
-                                         ! 1 = Canonical
-      integer(kind=i4) :: dmp_max_power  ! Maximum number of power iterations
-      integer(kind=i4) :: dmp_max_iter   ! Maximum number of purification steps
+      integer(kind=i4) :: dmp_n_states  ! Number of states used in DMP
+      integer(kind=i4) :: dmp_method    ! 0 = Trace correcting
+                                        ! 1 = Canonical
+      integer(kind=i4) :: dmp_max_power ! Maximum number of power iterations
+      integer(kind=i4) :: dmp_max_iter  ! Maximum number of purification steps
       real(kind=r8)    :: dmp_ev_ham_max
       real(kind=r8)    :: dmp_ev_ham_min
-      real(kind=r8)    :: dmp_tol        ! Tolerance for purification
-      real(kind=r8)    :: dmp_ne         ! Number of electrons computed by DMP
+      real(kind=r8)    :: dmp_tol       ! Tolerance for purification
+      real(kind=r8)    :: dmp_ne        ! Number of electrons computed by DMP
 
       ! ELSI IO files
       type(elsi_file_io_handle) :: stdio

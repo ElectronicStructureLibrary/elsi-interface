@@ -82,7 +82,6 @@ subroutine elsi_init_pexsi(e_h)
    integer(kind=i4) :: n_rows_tmp
    integer(kind=i4) :: output_id
    integer(kind=i4) :: ierr
-   integer(kind=i4) :: mpierr
    character*200    :: info_str
 
    character*40, parameter :: caller = "elsi_init_pexsi"
@@ -122,24 +121,24 @@ subroutine elsi_init_pexsi(e_h)
 
       ! PEXSI MPI communicators
       call MPI_Comm_split(e_h%mpi_comm,e_h%pexsi_my_pcol,e_h%pexsi_my_prow,&
-              e_h%pexsi_comm_among_pole,mpierr)
+              e_h%pexsi_comm_among_pole,ierr)
 
-      call elsi_check_mpi(e_h,"MPI_Comm_split",mpierr,caller)
+      call elsi_check_mpi(e_h,"MPI_Comm_split",ierr,caller)
 
       call MPI_Comm_split(e_h%mpi_comm,e_h%pexsi_my_prow,e_h%pexsi_my_pcol,&
-              e_h%pexsi_comm_in_pole,mpierr)
+              e_h%pexsi_comm_in_pole,ierr)
 
-      call elsi_check_mpi(e_h,"MPI_Comm_split",mpierr,caller)
+      call elsi_check_mpi(e_h,"MPI_Comm_split",ierr,caller)
 
       call MPI_Comm_split(e_h%mpi_comm,e_h%pexsi_myid_point,e_h%pexsi_my_point,&
-              e_h%pexsi_comm_among_point,mpierr)
+              e_h%pexsi_comm_among_point,ierr)
 
-      call elsi_check_mpi(e_h,"MPI_Comm_split",mpierr,caller)
+      call elsi_check_mpi(e_h,"MPI_Comm_split",ierr,caller)
 
       call MPI_Comm_split(e_h%mpi_comm,e_h%pexsi_my_point,e_h%pexsi_myid_point,&
-              e_h%pexsi_comm_in_point,mpierr)
+              e_h%pexsi_comm_in_point,ierr)
 
-      call elsi_check_mpi(e_h,"MPI_Comm_split",mpierr,caller)
+      call elsi_check_mpi(e_h,"MPI_Comm_split",ierr,caller)
 
       if(.not. e_h%sparsity_ready) then
          ! Set up 1D block distribution
@@ -196,7 +195,6 @@ subroutine elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
    integer(kind=i4) :: aux_max
    integer(kind=i4) :: i
    integer(kind=i4) :: idx
-   integer(kind=i4) :: mpierr
    integer(kind=i4) :: ierr
    logical          :: converged
    character*200    :: info_str
@@ -292,9 +290,9 @@ subroutine elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
          endif
 
          call MPI_Allreduce(send_buf,inertias,n_shift,mpi_real8,mpi_sum,&
-                 e_h%mpi_comm_all,mpierr)
+                 e_h%mpi_comm_all,ierr)
 
-         call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
+         call elsi_check_mpi(e_h,"MPI_Allreduce",ierr,caller)
 
          call elsi_deallocate(e_h,send_buf,"send_buf")
       endif
@@ -380,9 +378,9 @@ subroutine elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
    send_buf(e_h%pexsi_my_point+1) = e_h%pexsi_ne*e_h%i_weight
 
    call MPI_Allreduce(send_buf,e_h%ne_vec_pexsi,e_h%pexsi_options%nPoints,&
-           mpi_real8,mpi_sum,e_h%pexsi_comm_among_point,mpierr)
+           mpi_real8,mpi_sum,e_h%pexsi_comm_among_point,ierr)
 
-   call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
+   call elsi_check_mpi(e_h,"MPI_Allreduce",ierr,caller)
 
    ! Get global number of electrons
    if(e_h%n_spins*e_h%n_kpts > 1) then
@@ -393,9 +391,9 @@ subroutine elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
       endif
 
       call MPI_Allreduce(send_buf,e_h%ne_vec_pexsi,e_h%pexsi_options%nPoints,&
-              mpi_real8,mpi_sum,e_h%mpi_comm_all,mpierr)
+              mpi_real8,mpi_sum,e_h%mpi_comm_all,ierr)
 
-      call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
+      call elsi_check_mpi(e_h,"MPI_Allreduce",ierr,caller)
    endif
 
    call elsi_deallocate(e_h,send_buf,"send_buf")
@@ -473,9 +471,9 @@ subroutine elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
             converged = .true.
 
             call MPI_Bcast(tmp_real,e_h%nnz_l_sp,mpi_real8,i-1,&
-                    e_h%pexsi_comm_among_point,mpierr)
+                    e_h%pexsi_comm_among_point,ierr)
 
-            call elsi_check_mpi(e_h,"MPI_Bcast",mpierr,caller)
+            call elsi_check_mpi(e_h,"MPI_Bcast",ierr,caller)
 
             exit
          endif
@@ -504,9 +502,9 @@ subroutine elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
       endif
 
       call MPI_Allreduce(send_buf,tmp_real,e_h%nnz_l_sp,mpi_real8,mpi_sum,&
-              e_h%pexsi_comm_among_point,mpierr)
+              e_h%pexsi_comm_among_point,ierr)
 
-      call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
+      call elsi_check_mpi(e_h,"MPI_Allreduce",ierr,caller)
 
       call elsi_deallocate(e_h,send_buf,"send_buf")
    endif
@@ -523,12 +521,12 @@ subroutine elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
       local_energy = ddot(e_h%nnz_l_sp,ham,1,dm,1)
 
       call MPI_Reduce(local_energy,e_h%energy_hdm,1,mpi_real8,mpi_sum,0,&
-              e_h%pexsi_comm_in_pole,mpierr)
+              e_h%pexsi_comm_in_pole,ierr)
 
-      call elsi_check_mpi(e_h,"MPI_Reduce",mpierr,caller)
+      call elsi_check_mpi(e_h,"MPI_Reduce",ierr,caller)
    endif
 
-   call MPI_Bcast(e_h%energy_hdm,1,mpi_real8,0,e_h%mpi_comm,mpierr)
+   call MPI_Bcast(e_h%energy_hdm,1,mpi_real8,0,e_h%mpi_comm,ierr)
 
    call elsi_get_time(e_h,t1)
 
@@ -537,9 +535,9 @@ subroutine elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
    call elsi_say(e_h,info_str)
 
-   call MPI_Barrier(e_h%mpi_comm,mpierr)
+   call MPI_Barrier(e_h%mpi_comm,ierr)
 
-   call elsi_check_mpi(e_h,"MPI_Barrier",mpierr,caller)
+   call elsi_check_mpi(e_h,"MPI_Barrier",ierr,caller)
 
 end subroutine
 
@@ -563,7 +561,6 @@ subroutine elsi_compute_edm_pexsi_real(e_h,edm)
    integer(kind=i4) :: aux_min
    integer(kind=i4) :: aux_max
    integer(kind=i4) :: i
-   integer(kind=i4) :: mpierr
    integer(kind=i4) :: ierr
    logical          :: converged
    character*200    :: info_str
@@ -651,9 +648,9 @@ subroutine elsi_compute_edm_pexsi_real(e_h,edm)
             converged = .true.
 
             call MPI_Bcast(tmp_real,e_h%nnz_l_sp,mpi_real8,i-1,&
-                    e_h%pexsi_comm_among_point,mpierr)
+                    e_h%pexsi_comm_among_point,ierr)
 
-            call elsi_check_mpi(e_h,"MPI_Bcast",mpierr,caller)
+            call elsi_check_mpi(e_h,"MPI_Bcast",ierr,caller)
 
             exit
          endif
@@ -677,9 +674,9 @@ subroutine elsi_compute_edm_pexsi_real(e_h,edm)
       endif
 
       call MPI_Allreduce(send_buf,tmp_real,e_h%nnz_l_sp,mpi_real8,mpi_sum,&
-              e_h%pexsi_comm_among_point,mpierr)
+              e_h%pexsi_comm_among_point,ierr)
 
-      call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
+      call elsi_check_mpi(e_h,"MPI_Allreduce",ierr,caller)
 
       call elsi_deallocate(e_h,send_buf,"send_buf")
    endif
@@ -727,7 +724,6 @@ subroutine elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
    integer(kind=i4) :: aux_max
    integer(kind=i4) :: i
    integer(kind=i4) :: idx
-   integer(kind=i4) :: mpierr
    integer(kind=i4) :: ierr
    logical          :: converged
    character*200    :: info_str
@@ -824,9 +820,9 @@ subroutine elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
          endif
 
          call MPI_Allreduce(send_buf,inertias,n_shift,mpi_real8,mpi_sum,&
-                 e_h%mpi_comm_all,mpierr)
+                 e_h%mpi_comm_all,ierr)
 
-         call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
+         call elsi_check_mpi(e_h,"MPI_Allreduce",ierr,caller)
 
          call elsi_deallocate(e_h,send_buf,"send_buf")
       endif
@@ -912,9 +908,9 @@ subroutine elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
    send_buf(e_h%pexsi_my_point+1) = e_h%pexsi_ne*e_h%i_weight
 
    call MPI_Allreduce(send_buf,e_h%ne_vec_pexsi,e_h%pexsi_options%nPoints,&
-           mpi_real8,mpi_sum,e_h%pexsi_comm_among_point,mpierr)
+           mpi_real8,mpi_sum,e_h%pexsi_comm_among_point,ierr)
 
-   call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
+   call elsi_check_mpi(e_h,"MPI_Allreduce",ierr,caller)
 
    ! Get global number of electrons
    if(e_h%n_spins*e_h%n_kpts > 1) then
@@ -925,9 +921,9 @@ subroutine elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
       endif
 
       call MPI_Allreduce(send_buf,e_h%ne_vec_pexsi,e_h%pexsi_options%nPoints,&
-              mpi_real8,mpi_sum,e_h%mpi_comm_all,mpierr)
+              mpi_real8,mpi_sum,e_h%mpi_comm_all,ierr)
 
-      call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
+      call elsi_check_mpi(e_h,"MPI_Allreduce",ierr,caller)
    endif
 
    call elsi_deallocate(e_h,send_buf,"send_buf")
@@ -1005,9 +1001,9 @@ subroutine elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
             converged = .true.
 
             call MPI_Bcast(tmp_cmplx,e_h%nnz_l_sp,mpi_complex16,i-1,&
-                    e_h%pexsi_comm_among_point,mpierr)
+                    e_h%pexsi_comm_among_point,ierr)
 
-            call elsi_check_mpi(e_h,"MPI_Bcast",mpierr,caller)
+            call elsi_check_mpi(e_h,"MPI_Bcast",ierr,caller)
 
             exit
          endif
@@ -1037,9 +1033,9 @@ subroutine elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
       endif
 
       call MPI_Allreduce(send_buf_cmplx,tmp_cmplx,e_h%nnz_l_sp,mpi_complex16,&
-              mpi_sum,e_h%pexsi_comm_among_point,mpierr)
+              mpi_sum,e_h%pexsi_comm_among_point,ierr)
 
-      call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
+      call elsi_check_mpi(e_h,"MPI_Allreduce",ierr,caller)
 
       call elsi_deallocate(e_h,send_buf_cmplx,"send_buf_cmplx")
    endif
@@ -1057,14 +1053,14 @@ subroutine elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
       local_energy = real(local_cmplx,kind=r8)
 
       call MPI_Reduce(local_energy,e_h%energy_hdm,1,mpi_real8,mpi_sum,0,&
-              e_h%pexsi_comm_in_pole,mpierr)
+              e_h%pexsi_comm_in_pole,ierr)
 
-      call elsi_check_mpi(e_h,"MPI_Reduce",mpierr,caller)
+      call elsi_check_mpi(e_h,"MPI_Reduce",ierr,caller)
    endif
 
-   call MPI_Bcast(e_h%energy_hdm,1,mpi_real8,0,e_h%mpi_comm,mpierr)
+   call MPI_Bcast(e_h%energy_hdm,1,mpi_real8,0,e_h%mpi_comm,ierr)
 
-   call elsi_check_mpi(e_h,"MPI_Bcast",mpierr,caller)
+   call elsi_check_mpi(e_h,"MPI_Bcast",ierr,caller)
 
    call elsi_get_time(e_h,t1)
 
@@ -1073,9 +1069,9 @@ subroutine elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
    call elsi_say(e_h,info_str)
 
-   call MPI_Barrier(e_h%mpi_comm,mpierr)
+   call MPI_Barrier(e_h%mpi_comm,ierr)
 
-   call elsi_check_mpi(e_h,"MPI_Barrier",mpierr,caller)
+   call elsi_check_mpi(e_h,"MPI_Barrier",ierr,caller)
 
 end subroutine
 
@@ -1099,7 +1095,6 @@ subroutine elsi_compute_edm_pexsi_cmplx(e_h,edm)
    integer(kind=i4) :: aux_min
    integer(kind=i4) :: aux_max
    integer(kind=i4) :: i
-   integer(kind=i4) :: mpierr
    integer(kind=i4) :: ierr
    logical          :: converged
    character*200    :: info_str
@@ -1188,9 +1183,9 @@ subroutine elsi_compute_edm_pexsi_cmplx(e_h,edm)
             converged = .true.
 
             call MPI_Bcast(tmp_cmplx,e_h%nnz_l_sp,mpi_complex16,i-1,&
-                    e_h%pexsi_comm_among_point,mpierr)
+                    e_h%pexsi_comm_among_point,ierr)
 
-            call elsi_check_mpi(e_h,"MPI_Bcast",mpierr,caller)
+            call elsi_check_mpi(e_h,"MPI_Bcast",ierr,caller)
 
             exit
          endif
@@ -1215,9 +1210,9 @@ subroutine elsi_compute_edm_pexsi_cmplx(e_h,edm)
       endif
 
       call MPI_Allreduce(send_buf_cmplx,tmp_cmplx,e_h%nnz_l_sp,mpi_complex16,&
-              mpi_sum,e_h%pexsi_comm_among_point,mpierr)
+              mpi_sum,e_h%pexsi_comm_among_point,ierr)
 
-      call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
+      call elsi_check_mpi(e_h,"MPI_Allreduce",ierr,caller)
 
       call elsi_deallocate(e_h,send_buf_cmplx,"send_buf_cmplx")
    endif

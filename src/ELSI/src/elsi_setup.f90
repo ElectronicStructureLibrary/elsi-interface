@@ -169,7 +169,7 @@ subroutine elsi_set_mpi(e_h,mpi_comm)
    type(elsi_handle), intent(inout) :: e_h      !< Handle
    integer(kind=i4),  intent(in)    :: mpi_comm !< Unit ELSI communicator
 
-   integer(kind=i4) :: mpierr
+   integer(kind=i4) :: ierr
 
    character*40, parameter :: caller = "elsi_set_mpi"
 
@@ -181,8 +181,8 @@ subroutine elsi_set_mpi(e_h,mpi_comm)
       ! solves one KS problem
       e_h%mpi_comm = mpi_comm
 
-      call MPI_Comm_rank(mpi_comm,e_h%myid,mpierr)
-      call MPI_Comm_size(mpi_comm,e_h%n_procs,mpierr)
+      call MPI_Comm_rank(mpi_comm,e_h%myid,ierr)
+      call MPI_Comm_size(mpi_comm,e_h%n_procs,ierr)
 
       e_h%mpi_ready = .true.
 
@@ -203,7 +203,7 @@ subroutine elsi_set_mpi_global(e_h,mpi_comm_all)
    type(elsi_handle), intent(inout) :: e_h          !< Handle
    integer(kind=i4),  intent(in)    :: mpi_comm_all !< Unit ELSI communicator
 
-   integer(kind=i4) :: mpierr
+   integer(kind=i4) :: ierr
 
    character*40, parameter :: caller = "elsi_set_mpi_global"
 
@@ -213,8 +213,8 @@ subroutine elsi_set_mpi_global(e_h,mpi_comm_all)
       ! Global ELSI communicator
       e_h%mpi_comm_all = mpi_comm_all
 
-      call MPI_Comm_rank(mpi_comm_all,e_h%myid_all,mpierr)
-      call MPI_Comm_size(mpi_comm_all,e_h%n_procs_all,mpierr)
+      call MPI_Comm_rank(mpi_comm_all,e_h%myid_all,ierr)
+      call MPI_Comm_size(mpi_comm_all,e_h%n_procs_all,ierr)
 
       e_h%global_mpi_ready = .true.
 
@@ -295,7 +295,7 @@ subroutine elsi_set_blacs(e_h,blacs_ctxt,block_size)
       e_h%blk_col    = block_size
 
       ! Get processor grid information
-      call blacs_gridinfo(e_h%blacs_ctxt,e_h%n_prow,e_h%n_pcol,e_h%my_prow,&
+      call BLACS_Gridinfo(e_h%blacs_ctxt,e_h%n_prow,e_h%n_pcol,e_h%my_prow,&
               e_h%my_pcol)
 
       ! Get local size of matrix
@@ -604,6 +604,15 @@ subroutine elsi_cleanup(e_h)
    endif
    if(allocated(e_h%ovlp_cmplx_sips)) then
       call elsi_deallocate(e_h,e_h%ovlp_cmplx_sips,"ovlp_cmplx_sips")
+   endif
+   if(allocated(e_h%eval_sips)) then
+      call elsi_deallocate(e_h,e_h%eval_sips,"eval_sips")
+   endif
+   if(allocated(e_h%evec_real_sips)) then
+      call elsi_deallocate(e_h,e_h%evec_real_sips,"evec_real_sips")
+   endif
+   if(allocated(e_h%evec_cmplx_sips)) then
+      call elsi_deallocate(e_h,e_h%evec_cmplx_sips,"evec_cmplx_sips")
    endif
    if(allocated(e_h%dm_real_sips)) then
       call elsi_deallocate(e_h,e_h%dm_real_sips,"dm_real_sips")

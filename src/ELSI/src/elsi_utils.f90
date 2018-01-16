@@ -175,7 +175,6 @@ subroutine elsi_reset_handle(e_h)
    e_h%sips_np_per_slice      = UNSET
    e_h%sips_n_slices          = UNSET
    e_h%sips_slice_type        = UNSET
-   e_h%sips_inertia_tol       = 0.0_r8
    e_h%sips_buffer            = 0.0_r8
    e_h%sips_ev_shift          = 0.0_r8
    e_h%sips_interval          = 0.0_r8
@@ -566,7 +565,7 @@ subroutine elsi_trace_mat_real(e_h,mat,trace)
    real(kind=r8),     intent(out)   :: trace
 
    integer(kind=i4) :: i
-   integer(kind=i4) :: mpierr
+   integer(kind=i4) :: ierr
    real(kind=r8)    :: l_trace ! Local result
 
    character*40, parameter :: caller = "elsi_trace_mat_real"
@@ -579,9 +578,9 @@ subroutine elsi_trace_mat_real(e_h,mat,trace)
       endif
    enddo
 
-   call MPI_Allreduce(l_trace,trace,1,mpi_real8,mpi_sum,e_h%mpi_comm,mpierr)
+   call MPI_Allreduce(l_trace,trace,1,mpi_real8,mpi_sum,e_h%mpi_comm,ierr)
 
-   call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
+   call elsi_check_mpi(e_h,"MPI_Allreduce",ierr,caller)
 
 end subroutine
 
@@ -598,7 +597,7 @@ subroutine elsi_trace_mat_cmplx(e_h,mat,trace)
    complex(kind=r8),  intent(out)   :: trace
 
    integer(kind=i4) :: i
-   integer(kind=i4) :: mpierr
+   integer(kind=i4) :: ierr
    complex(kind=r8) :: l_trace ! Local result
 
    character*40, parameter :: caller = "elsi_trace_mat_cmplx"
@@ -611,9 +610,9 @@ subroutine elsi_trace_mat_cmplx(e_h,mat,trace)
       endif
    enddo
 
-   call MPI_Allreduce(l_trace,trace,1,mpi_complex16,mpi_sum,e_h%mpi_comm,mpierr)
+   call MPI_Allreduce(l_trace,trace,1,mpi_complex16,mpi_sum,e_h%mpi_comm,ierr)
 
-   call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
+   call elsi_check_mpi(e_h,"MPI_Allreduce",ierr,caller)
 
 end subroutine
 
@@ -631,7 +630,7 @@ subroutine elsi_trace_mat_mat_real(e_h,mat1,mat2,trace)
    real(kind=r8),     intent(out)   :: trace
 
    real(kind=r8)    :: l_trace ! Local result
-   integer(kind=i4) :: mpierr
+   integer(kind=i4) :: ierr
 
    real(kind=r8), external :: ddot
 
@@ -639,9 +638,9 @@ subroutine elsi_trace_mat_mat_real(e_h,mat1,mat2,trace)
 
    l_trace = ddot(e_h%n_lrow*e_h%n_lcol,mat1,1,mat2,1)
 
-   call MPI_Allreduce(l_trace,trace,1,mpi_real8,mpi_sum,e_h%mpi_comm,mpierr)
+   call MPI_Allreduce(l_trace,trace,1,mpi_real8,mpi_sum,e_h%mpi_comm,ierr)
 
-   call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
+   call elsi_check_mpi(e_h,"MPI_Allreduce",ierr,caller)
 
 end subroutine
 
@@ -659,7 +658,7 @@ subroutine elsi_trace_mat_mat_cmplx(e_h,mat1,mat2,trace)
    complex(kind=r8),  intent(out)   :: trace
 
    complex(kind=r8) :: l_trace ! Local result
-   integer(kind=i4) :: mpierr
+   integer(kind=i4) :: ierr
 
    complex(kind=r8), external :: zdotu
 
@@ -667,9 +666,9 @@ subroutine elsi_trace_mat_mat_cmplx(e_h,mat1,mat2,trace)
 
    l_trace = zdotu(e_h%n_lrow*e_h%n_lcol,mat1,1,mat2,1)
 
-   call MPI_Allreduce(l_trace,trace,1,mpi_complex16,mpi_sum,e_h%mpi_comm,mpierr)
+   call MPI_Allreduce(l_trace,trace,1,mpi_complex16,mpi_sum,e_h%mpi_comm,ierr)
 
-   call elsi_check_mpi(e_h,"MPI_Allreduce",mpierr,caller)
+   call elsi_check_mpi(e_h,"MPI_Allreduce",ierr,caller)
 
 end subroutine
 
