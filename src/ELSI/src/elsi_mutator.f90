@@ -125,7 +125,7 @@ subroutine elsi_set_output(e_h,out_level)
    type(elsi_handle), intent(inout) :: e_h       !< Handle
    integer(kind=i4),  intent(in)    :: out_level !< Output level
 
-   character*40, parameter :: caller = "elsi_set_output"
+   character(len=40), parameter :: caller = "elsi_set_output"
 
    call elsi_check_handle(e_h,caller)
 
@@ -171,7 +171,7 @@ subroutine elsi_set_write_unit(e_h,write_unit)
    type(elsi_handle), intent(inout) :: e_h        !< Handle
    integer(kind=i4),  intent(in)    :: write_unit !< Unit
 
-   character*40, parameter :: caller = "elsi_set_write_unit"
+   character(len=40), parameter :: caller = "elsi_set_write_unit"
 
    call elsi_check_handle(e_h,caller)
 
@@ -193,7 +193,7 @@ subroutine elsi_set_unit_ovlp(e_h,unit_ovlp)
    type(elsi_handle), intent(inout) :: e_h       !< Handle
    integer(kind=i4),  intent(in)    :: unit_ovlp !< Overlap is identity?
 
-   character*40, parameter :: caller = "elsi_set_unit_ovlp"
+   character(len=40), parameter :: caller = "elsi_set_unit_ovlp"
 
    call elsi_check_handle(e_h,caller)
 
@@ -219,7 +219,7 @@ subroutine elsi_set_zero_def(e_h,zero_def)
    type(elsi_handle), intent(inout) :: e_h      !< Handle
    real(kind=r8),     intent(in)    :: zero_def !< Zero tolerance
 
-   character*40, parameter :: caller = "elsi_set_zero_def"
+   character(len=40), parameter :: caller = "elsi_set_zero_def"
 
    call elsi_check_handle(e_h,caller)
 
@@ -241,7 +241,7 @@ subroutine elsi_set_sing_check(e_h,sing_check)
    type(elsi_handle), intent(inout) :: e_h        !< Handle
    integer(kind=i4),  intent(in)    :: sing_check !< Check singularity?
 
-   character*40, parameter :: caller = "elsi_set_sing_check"
+   character(len=40), parameter :: caller = "elsi_set_sing_check"
 
    call elsi_check_handle(e_h,caller)
 
@@ -269,7 +269,7 @@ subroutine elsi_set_sing_tol(e_h,sing_tol)
    type(elsi_handle), intent(inout) :: e_h      !< Handle
    real(kind=r8),     intent(in)    :: sing_tol !< Singularity tolerance
 
-   character*40, parameter :: caller = "elsi_set_sing_tol"
+   character(len=40), parameter :: caller = "elsi_set_sing_tol"
 
    call elsi_check_handle(e_h,caller)
 
@@ -291,7 +291,7 @@ subroutine elsi_set_sing_stop(e_h,sing_stop)
    type(elsi_handle), intent(inout) :: e_h       !< Handle
    integer(kind=i4),  intent(in)    :: sing_stop !< Stop if overlap is singular
 
-   character*40, parameter :: caller = "elsi_set_sing_stop"
+   character(len=40), parameter :: caller = "elsi_set_sing_stop"
 
    call elsi_check_handle(e_h,caller)
 
@@ -318,7 +318,7 @@ subroutine elsi_set_uplo(e_h,uplo)
    type(elsi_handle), intent(inout) :: e_h  !< Handle
    integer(kind=i4),  intent(in)    :: uplo !< Input matrix triangular?
 
-   character*40, parameter :: caller = "elsi_set_uplo"
+   character(len=40), parameter :: caller = "elsi_set_uplo"
 
    call elsi_check_handle(e_h,caller)
 
@@ -340,7 +340,7 @@ subroutine elsi_set_elpa_solver(e_h,elpa_solver)
    type(elsi_handle), intent(inout) :: e_h         !< Handle
    integer(kind=i4),  intent(in)    :: elpa_solver !< ELPA solver
 
-   character*40, parameter :: caller = "elsi_set_elpa_solver"
+   character(len=40), parameter :: caller = "elsi_set_elpa_solver"
 
    call elsi_check_handle(e_h,caller)
 
@@ -366,7 +366,7 @@ subroutine elsi_set_elpa_n_single(e_h,n_single)
    type(elsi_handle), intent(inout) :: e_h      !< Handle
    integer(kind=i4),  intent(in)    :: n_single !< Single precision steps
 
-   character*40, parameter :: caller = "elsi_set_elpa_n_single"
+   character(len=40), parameter :: caller = "elsi_set_elpa_n_single"
 
    call elsi_check_handle(e_h,caller)
 
@@ -388,7 +388,7 @@ subroutine elsi_set_omm_flavor(e_h,omm_flavor)
    type(elsi_handle), intent(inout) :: e_h        !< Handle
    integer(kind=i4),  intent(in)    :: omm_flavor !< libOMM flavor
 
-   character*40, parameter :: caller = "elsi_set_omm_flavor"
+   character(len=40), parameter :: caller = "elsi_set_omm_flavor"
 
    call elsi_check_handle(e_h,caller)
 
@@ -414,7 +414,7 @@ subroutine elsi_set_omm_n_elpa(e_h,n_elpa)
    type(elsi_handle), intent(inout) :: e_h    !< Handle
    integer(kind=i4),  intent(in)    :: n_elpa !< ELPA steps
 
-   character*40, parameter :: caller = "elsi_set_omm_n_elpa"
+   character(len=40), parameter :: caller = "elsi_set_omm_n_elpa"
 
    call elsi_check_handle(e_h,caller)
 
@@ -436,7 +436,7 @@ subroutine elsi_set_omm_tol(e_h,min_tol)
    type(elsi_handle), intent(inout) :: e_h     !< Handle
    real(kind=r8),     intent(in)    :: min_tol !< Tolerance of OMM minimization
 
-   character*40, parameter :: caller = "elsi_set_omm_tol"
+   character(len=40), parameter :: caller = "elsi_set_omm_tol"
 
    call elsi_check_handle(e_h,caller)
 
@@ -458,7 +458,7 @@ subroutine elsi_set_omm_ev_shift(e_h,ev_shift)
    type(elsi_handle), intent(inout) :: e_h      !< Handle
    real(kind=r8),     intent(in)    :: ev_shift !< Shift of the eigenspectrum
 
-   character*40, parameter :: caller = "elsi_set_omm_ev_shift"
+   character(len=40), parameter :: caller = "elsi_set_omm_ev_shift"
 
    call elsi_check_handle(e_h,caller)
 
@@ -480,7 +480,7 @@ subroutine elsi_set_pexsi_n_mu(e_h,n_mu)
    type(elsi_handle), intent(inout) :: e_h  !< Handle
    integer(kind=i4),  intent(in)    :: n_mu !< Number of mu points
 
-   character*40, parameter :: caller = "elsi_set_pexsi_n_mu"
+   character(len=40), parameter :: caller = "elsi_set_pexsi_n_mu"
 
    call elsi_check_handle(e_h,caller)
 
@@ -506,7 +506,7 @@ subroutine elsi_set_pexsi_n_pole(e_h,n_pole)
    type(elsi_handle), intent(inout) :: e_h    !< Handle
    integer(kind=i4),  intent(in)    :: n_pole !< Number of poles
 
-   character*40, parameter :: caller = "elsi_set_pexsi_n_pole"
+   character(len=40), parameter :: caller = "elsi_set_pexsi_n_pole"
 
    call elsi_check_handle(e_h,caller)
 
@@ -532,7 +532,7 @@ subroutine elsi_set_pexsi_np_per_pole(e_h,np_per_pole)
    type(elsi_handle), intent(inout) :: e_h         !< Handle
    integer(kind=i4),  intent(in)    :: np_per_pole !< Number of tasks per pole
 
-   character*40, parameter :: caller = "elsi_set_pexsi_np_per_pole"
+   character(len=40), parameter :: caller = "elsi_set_pexsi_np_per_pole"
 
    call elsi_check_handle(e_h,caller)
 
@@ -554,7 +554,7 @@ subroutine elsi_set_pexsi_np_symbo(e_h,np_symbo)
    type(elsi_handle), intent(inout) :: e_h      !< Handle
    integer(kind=i4),  intent(in)    :: np_symbo !< Number of tasks for symbolic
 
-   character*40, parameter :: caller = "elsi_set_pexsi_np_symbo"
+   character(len=40), parameter :: caller = "elsi_set_pexsi_np_symbo"
 
    call elsi_check_handle(e_h,caller)
 
@@ -581,7 +581,7 @@ subroutine elsi_set_pexsi_ordering(e_h,ordering)
    type(elsi_handle), intent(inout) :: e_h      !< Handle
    integer(kind=i4),  intent(in)    :: ordering !< Matrix reordering method
 
-   character*40, parameter :: caller = "elsi_set_pexsi_ordering"
+   character(len=40), parameter :: caller = "elsi_set_pexsi_ordering"
 
    call elsi_check_handle(e_h,caller)
 
@@ -603,7 +603,7 @@ subroutine elsi_set_pexsi_temp(e_h,temp)
    type(elsi_handle), intent(inout) :: e_h  !< Handle
    real(kind=r8),     intent(in)    :: temp !< Temperature
 
-   character*40, parameter :: caller = "elsi_set_pexsi_temp"
+   character(len=40), parameter :: caller = "elsi_set_pexsi_temp"
 
    call elsi_check_handle(e_h,caller)
 
@@ -625,7 +625,7 @@ subroutine elsi_set_pexsi_gap(e_h,gap)
    type(elsi_handle), intent(inout) :: e_h !< Handle
    real(kind=r8),     intent(in)    :: gap !< Gap
 
-   character*40, parameter :: caller = "elsi_set_pexsi_gap"
+   character(len=40), parameter :: caller = "elsi_set_pexsi_gap"
 
    call elsi_check_handle(e_h,caller)
 
@@ -651,7 +651,7 @@ subroutine elsi_set_pexsi_delta_e(e_h,delta_e)
    type(elsi_handle), intent(inout) :: e_h     !< Handle
    real(kind=r8),     intent(in)    :: delta_e !< Spectrum width
 
-   character*40, parameter :: caller = "elsi_set_pexsi_delta_e"
+   character(len=40), parameter :: caller = "elsi_set_pexsi_delta_e"
 
    call elsi_check_handle(e_h,caller)
 
@@ -677,7 +677,7 @@ subroutine elsi_set_pexsi_mu_min(e_h,mu_min)
    type(elsi_handle), intent(inout) :: e_h    !< Handle
    real(kind=r8),     intent(in)    :: mu_min !< Lower bound of mu
 
-   character*40, parameter :: caller = "elsi_set_pexsi_mu_min"
+   character(len=40), parameter :: caller = "elsi_set_pexsi_mu_min"
 
    call elsi_check_handle(e_h,caller)
 
@@ -699,7 +699,7 @@ subroutine elsi_set_pexsi_mu_max(e_h,mu_max)
    type(elsi_handle), intent(inout) :: e_h    !< Handle
    real(kind=r8),     intent(in)    :: mu_max !< Upper bound of mu
 
-   character*40, parameter :: caller = "elsi_set_pexsi_mu_max"
+   character(len=40), parameter :: caller = "elsi_set_pexsi_mu_max"
 
    call elsi_check_handle(e_h,caller)
 
@@ -722,7 +722,7 @@ subroutine elsi_set_pexsi_inertia_tol(e_h,inertia_tol)
    type(elsi_handle), intent(inout) :: e_h         !< Handle
    real(kind=r8),     intent(in)    :: inertia_tol !< Tolerance of inertia counting
 
-   character*40, parameter :: caller = "elsi_set_pexsi_inertia_tol"
+   character(len=40), parameter :: caller = "elsi_set_pexsi_inertia_tol"
 
    call elsi_check_handle(e_h,caller)
 
@@ -750,7 +750,7 @@ subroutine elsi_set_chess_erf_decay(e_h,decay)
    type(elsi_handle), intent(inout) :: e_h   !< Handle
    real(kind=r8),     intent(in)    :: decay !< Decay length
 
-   character*40, parameter :: caller = "elsi_set_chess_erf_decay"
+   character(len=40), parameter :: caller = "elsi_set_chess_erf_decay"
 
    call elsi_check_handle(e_h,caller)
 
@@ -772,7 +772,7 @@ subroutine elsi_set_chess_erf_decay_min(e_h,decay_min)
    type(elsi_handle), intent(inout) :: e_h       !< Handle
    real(kind=r8),     intent(in)    :: decay_min !< Minimum decay length
 
-   character*40, parameter :: caller = "elsi_set_chess_erf_decay_min"
+   character(len=40), parameter :: caller = "elsi_set_chess_erf_decay_min"
 
    call elsi_check_handle(e_h,caller)
 
@@ -794,7 +794,7 @@ subroutine elsi_set_chess_erf_decay_max(e_h,decay_max)
    type(elsi_handle), intent(inout) :: e_h       !< Handle
    real(kind=r8),     intent(in)    :: decay_max !< Maximum decay length
 
-   character*40, parameter :: caller = "elsi_set_chess_erf_decay_max"
+   character(len=40), parameter :: caller = "elsi_set_chess_erf_decay_max"
 
    call elsi_check_handle(e_h,caller)
 
@@ -816,7 +816,7 @@ subroutine elsi_set_chess_ev_ham_min(e_h,ev_min)
    type(elsi_handle), intent(inout) :: e_h    !< Handle
    real(kind=r8),     intent(in)    :: ev_min !< Minimum eigenvalue
 
-   character*40, parameter :: caller = "elsi_set_chess_ev_ham_min"
+   character(len=40), parameter :: caller = "elsi_set_chess_ev_ham_min"
 
    call elsi_check_handle(e_h,caller)
 
@@ -838,7 +838,7 @@ subroutine elsi_set_chess_ev_ham_max(e_h,ev_max)
    type(elsi_handle), intent(inout) :: e_h    !< Handle
    real(kind=r8),     intent(in)    :: ev_max !< Maximum eigenvalue
 
-   character*40, parameter :: caller = "elsi_set_chess_ev_ham_max"
+   character(len=40), parameter :: caller = "elsi_set_chess_ev_ham_max"
 
    call elsi_check_handle(e_h,caller)
 
@@ -860,7 +860,7 @@ subroutine elsi_set_chess_ev_ovlp_min(e_h,ev_min)
    type(elsi_handle), intent(inout) :: e_h    !< Handle
    real(kind=r8),     intent(in)    :: ev_min !< Minimum eigenvalue
 
-   character*40, parameter :: caller = "elsi_set_chess_ev_ovlp_min"
+   character(len=40), parameter :: caller = "elsi_set_chess_ev_ovlp_min"
 
    call elsi_check_handle(e_h,caller)
 
@@ -882,7 +882,7 @@ subroutine elsi_set_chess_ev_ovlp_max(e_h,ev_max)
    type(elsi_handle), intent(inout) :: e_h    !< Handle
    real(kind=r8),     intent(in)    :: ev_max !< Maximum eigenvalue
 
-   character*40, parameter :: caller = "elsi_set_chess_ev_ovlp_max"
+   character(len=40), parameter :: caller = "elsi_set_chess_ev_ovlp_max"
 
    call elsi_check_handle(e_h,caller)
 
@@ -904,7 +904,7 @@ subroutine elsi_set_sips_n_elpa(e_h,n_elpa)
    type(elsi_handle), intent(inout) :: e_h    !< Handle
    integer(kind=i4),  intent(in)    :: n_elpa !< ELPA steps
 
-   character*40, parameter :: caller = "elsi_set_sips_n_elpa"
+   character(len=40), parameter :: caller = "elsi_set_sips_n_elpa"
 
    call elsi_check_handle(e_h,caller)
 
@@ -931,7 +931,7 @@ subroutine elsi_set_sips_n_slice(e_h,n_slice)
    type(elsi_handle), intent(inout) :: e_h     !< Handle
    integer(kind=i4),  intent(in)    :: n_slice !< Number of slices
 
-   character*40, parameter :: caller = "elsi_set_sips_n_slice"
+   character(len=40), parameter :: caller = "elsi_set_sips_n_slice"
 
    call elsi_check_handle(e_h,caller)
 
@@ -959,7 +959,7 @@ subroutine elsi_set_sips_buffer(e_h,buffer)
    type(elsi_handle), intent(inout) :: e_h    !< Handle
    real(kind=r8),     intent(in)    :: buffer !< Buffer to expand interval
 
-   character*40, parameter :: caller = "elsi_set_sips_buffer"
+   character(len=40), parameter :: caller = "elsi_set_sips_buffer"
 
    call elsi_check_handle(e_h,caller)
 
@@ -981,7 +981,7 @@ subroutine elsi_set_sips_ev_shift(e_h,ev_shift)
    type(elsi_handle), intent(inout) :: e_h      !< Handle
    real(kind=r8),     intent(in)    :: ev_shift !< Shift value
 
-   character*40, parameter :: caller = "elsi_set_sips_ev_shift"
+   character(len=40), parameter :: caller = "elsi_set_sips_ev_shift"
 
    call elsi_check_handle(e_h,caller)
 
@@ -1003,7 +1003,7 @@ subroutine elsi_set_sips_slice_type(e_h,slice_type)
    type(elsi_handle), intent(inout) :: e_h        !< Handle
    integer(kind=i4),  intent(in)    :: slice_type !< Method of slicing
 
-   character*40, parameter :: caller = "elsi_set_sips_slice_type"
+   character(len=40), parameter :: caller = "elsi_set_sips_slice_type"
 
    call elsi_check_handle(e_h,caller)
 
@@ -1030,7 +1030,7 @@ subroutine elsi_set_sips_interval(e_h,lower,upper)
    real(kind=r8),     intent(in)    :: lower !< Lower bound
    real(kind=r8),     intent(in)    :: upper !< Upper bound
 
-   character*40, parameter :: caller = "elsi_set_sips_interval"
+   character(len=40), parameter :: caller = "elsi_set_sips_interval"
 
    call elsi_check_handle(e_h,caller)
 
@@ -1053,7 +1053,7 @@ subroutine elsi_set_dmp_method(e_h,dmp_method)
    type(elsi_handle), intent(inout) :: e_h        !< Handle
    integer(kind=i4),  intent(in)    :: dmp_method !< Purification method
 
-   character*40, parameter :: caller = "elsi_set_dmp_method"
+   character(len=40), parameter :: caller = "elsi_set_dmp_method"
 
    call elsi_check_handle(e_h,caller)
 
@@ -1075,7 +1075,7 @@ subroutine elsi_set_dmp_max_step(e_h,max_step)
    type(elsi_handle), intent(inout) :: e_h      !< Handle
    integer(kind=i4),  intent(in)    :: max_step !< Maximum number of steps
 
-   character*40, parameter :: caller = "elsi_set_dmp_max_step"
+   character(len=40), parameter :: caller = "elsi_set_dmp_max_step"
 
    call elsi_check_handle(e_h,caller)
 
@@ -1097,7 +1097,7 @@ subroutine elsi_set_dmp_tol(e_h,dmp_tol)
    type(elsi_handle), intent(inout) :: e_h     !< Handle
    real(kind=r8),     intent(in)    :: dmp_tol !< Tolerance
 
-   character*40, parameter :: caller = "elsi_set_dmp_tol"
+   character(len=40), parameter :: caller = "elsi_set_dmp_tol"
 
    call elsi_check_handle(e_h,caller)
 
@@ -1120,7 +1120,7 @@ subroutine elsi_set_mu_broaden_scheme(e_h,broaden_scheme)
    type(elsi_handle), intent(inout) :: e_h            !< Handle
    integer(kind=i4),  intent(in)    :: broaden_scheme !< Broadening method
 
-   character*40, parameter :: caller = "elsi_set_mu_broaden_method"
+   character(len=40), parameter :: caller = "elsi_set_mu_broaden_method"
 
    call elsi_check_handle(e_h,caller)
 
@@ -1143,7 +1143,7 @@ subroutine elsi_set_mu_broaden_width(e_h,broaden_width)
    type(elsi_handle), intent(inout) :: e_h           !< Handle
    real(kind=r8),     intent(in)    :: broaden_width !< Broadening width
 
-   character*40, parameter :: caller = "elsi_set_mu_broaden_width"
+   character(len=40), parameter :: caller = "elsi_set_mu_broaden_width"
 
    call elsi_check_handle(e_h,caller)
 
@@ -1170,7 +1170,7 @@ subroutine elsi_set_mu_tol(e_h,mu_tol)
    type(elsi_handle), intent(inout) :: e_h    !< Handle
    real(kind=r8),     intent(in)    :: mu_tol !< Accuracy of mu
 
-   character*40, parameter :: caller = "elsi_set_mu_tol"
+   character(len=40), parameter :: caller = "elsi_set_mu_tol"
 
    call elsi_check_handle(e_h,caller)
 
@@ -1198,7 +1198,7 @@ subroutine elsi_set_mu_spin_degen(e_h,spin_degen)
    type(elsi_handle), intent(inout) :: e_h        !< Handle
    real(kind=r8),     intent(in)    :: spin_degen !< Spin degeneracy
 
-   character*40, parameter :: caller = "elsi_set_mu_spin_degen"
+   character(len=40), parameter :: caller = "elsi_set_mu_spin_degen"
 
    call elsi_check_handle(e_h,caller)
 
@@ -1221,7 +1221,7 @@ subroutine elsi_set_output_timings(e_h,output_timings)
    type(elsi_handle), intent(inout) :: e_h            !< Handle
    integer(kind=i4),  intent(in)    :: output_timings !< Output timings?
 
-   character*40, parameter :: caller = "elsi_set_output_timings"
+   character(len=40), parameter :: caller = "elsi_set_output_timings"
 
    call elsi_check_handle(e_h,caller)
 
@@ -1247,7 +1247,7 @@ subroutine elsi_set_timings_unit(e_h,timings_unit)
    type(elsi_handle), intent(inout) :: e_h          !< Handle
    integer(kind=i4),  intent(in)    :: timings_unit !< Unit
 
-   character*40, parameter :: caller = "elsi_set_timings_unit"
+   character(len=40), parameter :: caller = "elsi_set_timings_unit"
 
    call elsi_check_handle(e_h,caller)
 
@@ -1269,7 +1269,7 @@ subroutine elsi_set_timings_file(e_h,timings_file)
    type(elsi_handle), intent(inout) :: e_h          !< Handle
    character(len=*),  intent(in)    :: timings_file !< File
 
-   character*40, parameter :: caller = "elsi_set_timings_file"
+   character(len=40), parameter :: caller = "elsi_set_timings_file"
 
    call elsi_check_handle(e_h,caller)
 
@@ -1291,7 +1291,7 @@ subroutine elsi_set_timings_tag(e_h,user_tag)
    type(elsi_handle), intent(inout) :: e_h      !< Handle
    character(len=*),  intent(in)    :: user_tag !< Tag
 
-   character*40, parameter :: caller = "elsi_set_timings_tag"
+   character(len=40), parameter :: caller = "elsi_set_timings_tag"
 
    e_h%timings%user_tag = user_tag
 
@@ -1308,7 +1308,7 @@ subroutine elsi_get_pexsi_mu_min(e_h,mu_min)
    type(elsi_handle), intent(inout) :: e_h    !< Handle
    real(kind=r8),     intent(out)   :: mu_min !< Lower bound of mu
 
-   character*40, parameter :: caller = "elsi_get_pexsi_mu_min"
+   character(len=40), parameter :: caller = "elsi_get_pexsi_mu_min"
 
    call elsi_check_handle(e_h,caller)
 
@@ -1327,7 +1327,7 @@ subroutine elsi_get_pexsi_mu_max(e_h,mu_max)
    type(elsi_handle), intent(inout) :: e_h    !< Handle
    real(kind=r8),     intent(out)   :: mu_max !< Upper bound of mu
 
-   character*40, parameter :: caller = "elsi_get_pexsi_mu_max"
+   character(len=40), parameter :: caller = "elsi_get_pexsi_mu_max"
 
    call elsi_check_handle(e_h,caller)
 
@@ -1345,7 +1345,7 @@ subroutine elsi_get_ovlp_sing(e_h,ovlp_sing)
    type(elsi_handle), intent(inout) :: e_h       !< Handle
    integer(kind=i4),  intent(out)   :: ovlp_sing !< Is overlap singular?
 
-   character*40, parameter :: caller = "elsi_get_ovlp_sing"
+   character(len=40), parameter :: caller = "elsi_get_ovlp_sing"
 
    call elsi_check_handle(e_h,caller)
 
@@ -1368,7 +1368,7 @@ subroutine elsi_get_n_sing(e_h,n_sing)
    type(elsi_handle), intent(inout) :: e_h    !< Handle
    integer(kind=i4),  intent(out)   :: n_sing !< Number of singular basis
 
-   character*40, parameter :: caller = "elsi_get_n_sing"
+   character(len=40), parameter :: caller = "elsi_get_n_sing"
 
    call elsi_check_handle(e_h,caller)
 
@@ -1386,7 +1386,7 @@ subroutine elsi_get_mu(e_h,mu)
    type(elsi_handle), intent(inout) :: e_h !< Handle
    real(kind=r8),     intent(out)   :: mu  !< Chemical potential
 
-   character*40, parameter :: caller = "elsi_get_mu"
+   character(len=40), parameter :: caller = "elsi_get_mu"
 
    call elsi_check_handle(e_h,caller)
 
@@ -1413,7 +1413,7 @@ subroutine elsi_get_edm_real(e_h,edm)
 
    real(kind=r8), allocatable :: tmp_real(:,:)
 
-   character*40, parameter :: caller = "elsi_get_edm_real"
+   character(len=40), parameter :: caller = "elsi_get_edm_real"
 
    call elsi_check_handle(e_h,caller)
 
@@ -1459,7 +1459,7 @@ subroutine elsi_get_edm_real_sparse(e_h,edm)
 
    real(kind=r8), allocatable :: tmp_real(:,:)
 
-   character*40, parameter :: caller = "elsi_get_edm_real_sparse"
+   character(len=40), parameter :: caller = "elsi_get_edm_real_sparse"
 
    call elsi_check_handle(e_h,caller)
 
@@ -1505,7 +1505,7 @@ subroutine elsi_get_edm_complex(e_h,edm)
    complex(kind=r8),  intent(out)   :: edm(e_h%n_lrow,e_h%n_lcol) !< Energy density matrix
    complex(kind=r8), allocatable :: tmp_cmplx(:,:)
 
-   character*40, parameter :: caller = "elsi_get_edm_complex"
+   character(len=40), parameter :: caller = "elsi_get_edm_complex"
 
    call elsi_check_handle(e_h,caller)
 
@@ -1551,7 +1551,7 @@ subroutine elsi_get_edm_complex_sparse(e_h,edm)
 
    complex(kind=r8), allocatable :: tmp_cmplx(:,:)
 
-   character*40, parameter :: caller = "elsi_get_edm_complex_sparse"
+   character(len=40), parameter :: caller = "elsi_get_edm_complex_sparse"
 
    call elsi_check_handle(e_h,caller)
 

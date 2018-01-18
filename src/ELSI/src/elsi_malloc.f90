@@ -93,9 +93,9 @@ subroutine elsi_allocate_real4_1d(e_h,array,dim1,arrayname,caller)
    character(len=*),  intent(in)                 :: arrayname
    character(len=*),  intent(in)                 :: caller
 
-   real(kind=r8)    :: arraysize
-   integer(kind=i4) :: error
-   character*200    :: info_str
+   real(kind=r8)      :: arraysize
+   integer(kind=i4)   :: error
+   character(len=200) :: info_str
 
    if(e_h%print_mem) then
       arraysize = 1.0e-6_r8*dim1*4
@@ -129,9 +129,9 @@ subroutine elsi_allocate_real8_1d(e_h,array,dim1,arrayname,caller)
    character(len=*),  intent(in)                 :: arrayname
    character(len=*),  intent(in)                 :: caller
 
-   real(kind=r8)    :: arraysize
-   integer(kind=i4) :: error
-   character*200    :: info_str
+   real(kind=r8)      :: arraysize
+   integer(kind=i4)   :: error
+   character(len=200) :: info_str
 
    if(e_h%print_mem) then
       arraysize = 1.0e-6_r8*dim1*8
@@ -165,9 +165,9 @@ subroutine elsi_allocate_integer4_1d(e_h,array,dim1,arrayname,caller)
    character(len=*),  intent(in)                 :: arrayname
    character(len=*),  intent(in)                 :: caller
 
-   real(kind=r8)    :: arraysize
-   integer(kind=i4) :: error
-   character*200    :: info_str
+   real(kind=r8)      :: arraysize
+   integer(kind=i4)   :: error
+   character(len=200) :: info_str
 
    if(e_h%print_mem) then
       arraysize = 1.0e-6_r8*dim1*4
@@ -201,9 +201,9 @@ subroutine elsi_allocate_integer8_1d(e_h,array,dim1,arrayname,caller)
    character(len=*),  intent(in)                 :: arrayname
    character(len=*),  intent(in)                 :: caller
 
-   real(kind=r8)    :: arraysize
-   integer(kind=i4) :: error
-   character*200    :: info_str
+   real(kind=r8)      :: arraysize
+   integer(kind=i4)   :: error
+   character(len=200) :: info_str
 
    if(e_h%print_mem) then
       arraysize = 1.0e-6_r8*dim1*8
@@ -237,9 +237,9 @@ subroutine elsi_allocate_complex16_1d(e_h,array,dim1,arrayname,caller)
    character(len=*),  intent(in)                 :: arrayname
    character(len=*),  intent(in)                 :: caller
 
-   real(kind=r8)    :: arraysize
-   integer(kind=i4) :: error
-   character*200    :: info_str
+   real(kind=r8)      :: arraysize
+   integer(kind=i4)   :: error
+   character(len=200) :: info_str
 
    if(e_h%print_mem) then
       arraysize = 1.0e-6_r8*dim1*16
@@ -274,9 +274,9 @@ subroutine elsi_allocate_real4_2d(e_h,array,dim1,dim2,arrayname,caller)
    character(len=*),  intent(in)                 :: arrayname
    character(len=*),  intent(in)                 :: caller
 
-   real(kind=r8)    :: arraysize
-   integer(kind=i4) :: error
-   character*200    :: info_str
+   real(kind=r8)      :: arraysize
+   integer(kind=i4)   :: error
+   character(len=200) :: info_str
 
    if(e_h%print_mem) then
       arraysize = 1.0e-6_r8*dim1*dim2*4
@@ -311,9 +311,9 @@ subroutine elsi_allocate_real8_2d(e_h,array,dim1,dim2,arrayname,caller)
    character(len=*),  intent(in)                 :: arrayname
    character(len=*),  intent(in)                 :: caller
 
-   real(kind=r8)    :: arraysize
-   integer(kind=i4) :: error
-   character*200    :: info_str
+   real(kind=r8)      :: arraysize
+   integer(kind=i4)   :: error
+   character(len=200) :: info_str
 
    if(e_h%print_mem) then
       arraysize = 1.0e-6_r8*dim1*dim2*8
@@ -348,9 +348,9 @@ subroutine elsi_allocate_integer4_2d(e_h,array,dim1,dim2,arrayname,caller)
    character(len=*),  intent(in)                 :: arrayname
    character(len=*),  intent(in)                 :: caller
 
-   real(kind=r8)    :: arraysize
-   integer(kind=i4) :: error
-   character*200    :: info_str
+   real(kind=r8)      :: arraysize
+   integer(kind=i4)   :: error
+   character(len=200) :: info_str
 
    if(e_h%print_mem) then
       arraysize = 1.0e-6_r8*dim1*dim2*4
@@ -385,9 +385,9 @@ subroutine elsi_allocate_complex8_2d(e_h,array,dim1,dim2,arrayname,caller)
    character(len=*),  intent(in)                 :: arrayname
    character(len=*),  intent(in)                 :: caller
 
-   real(kind=r8)    :: arraysize
-   integer(kind=i4) :: error
-   character*200    :: info_str
+   real(kind=r8)      :: arraysize
+   integer(kind=i4)   :: error
+   character(len=200) :: info_str
 
    if(e_h%print_mem) then
       arraysize = 1.0e-6_r8*dim1*dim2*8
@@ -422,9 +422,9 @@ subroutine elsi_allocate_complex16_2d(e_h,array,dim1,dim2,arrayname,caller)
    character(len=*),  intent(in)                 :: arrayname
    character(len=*),  intent(in)                 :: caller
 
-   real(kind=r8)    :: arraysize
-   integer(kind=i4) :: error
-   character*200    :: info_str
+   real(kind=r8)      :: arraysize
+   integer(kind=i4)   :: error
+   character(len=200) :: info_str
 
    if(e_h%print_mem) then
       arraysize = 1.0e-6_r8*dim1*dim2*16
@@ -460,9 +460,9 @@ subroutine elsi_allocate_real8_3d(e_h,array,dim1,dim2,dim3,arrayname,caller)
    character(len=*),  intent(in)                 :: arrayname
    character(len=*),  intent(in)                 :: caller
 
-   real(kind=r8)    :: arraysize
-   integer(kind=i4) :: error
-   character*200    :: info_str
+   real(kind=r8)      :: arraysize
+   integer(kind=i4)   :: error
+   character(len=200) :: info_str
 
    if(e_h%print_mem) then
       arraysize = 1.0e-6_r8*dim1*dim2*dim3*8
@@ -498,9 +498,9 @@ subroutine elsi_allocate_integer4_3d(e_h,array,dim1,dim2,dim3,arrayname,caller)
    character(len=*),  intent(in)                 :: arrayname
    character(len=*),  intent(in)                 :: caller
 
-   real(kind=r8)    :: arraysize
-   integer(kind=i4) :: error
-   character*200    :: info_str
+   real(kind=r8)      :: arraysize
+   integer(kind=i4)   :: error
+   character(len=200) :: info_str
 
    if(e_h%print_mem) then
       arraysize = 1.0e-6_r8*dim1*dim2*dim3*4
@@ -536,9 +536,9 @@ subroutine elsi_allocate_complex16_3d(e_h,array,dim1,dim2,dim3,arrayname,caller)
    character(len=*),  intent(in)                 :: arrayname
    character(len=*),  intent(in)                 :: caller
 
-   real(kind=r8)    :: arraysize
-   integer(kind=i4) :: error
-   character*200    :: info_str
+   real(kind=r8)      :: arraysize
+   integer(kind=i4)   :: error
+   character(len=200) :: info_str
 
    if(e_h%print_mem) then
       arraysize = 1.0e-6_r8*dim1*dim2*dim3*16
@@ -574,7 +574,7 @@ subroutine elsi_deallocate_real4_1d(e_h,array,arrayname)
    real(kind=r4),     intent(inout), allocatable :: array(:)
    character(len=*),  intent(in)                 :: arrayname
 
-   character*200 :: info_str
+   character(len=200) :: info_str
 
    if(e_h%print_mem) then
       write(info_str,"(2A)") "    Deallocating ",trim(arrayname)
@@ -596,7 +596,7 @@ subroutine elsi_deallocate_real8_1d(e_h,array,arrayname)
    real(kind=r8),     intent(inout), allocatable :: array(:)
    character(len=*),  intent(in)                 :: arrayname
 
-   character*200 :: info_str
+   character(len=200) :: info_str
 
    if(e_h%print_mem) then
       write(info_str,"(2A)") "    Deallocating ",trim(arrayname)
@@ -618,7 +618,7 @@ subroutine elsi_deallocate_integer4_1d(e_h,array,arrayname)
    integer(kind=i4),  intent(inout), allocatable :: array(:)
    character(len=*),  intent(in)                 :: arrayname
 
-   character*200 :: info_str
+   character(len=200) :: info_str
 
    if(e_h%print_mem) then
       write(info_str,"(2A)") "    Deallocating ",trim(arrayname)
@@ -640,7 +640,7 @@ subroutine elsi_deallocate_integer8_1d(e_h,array,arrayname)
    integer(kind=i8),  intent(inout), allocatable :: array(:)
    character(len=*),  intent(in)                 :: arrayname
 
-   character*200 :: info_str
+   character(len=200) :: info_str
 
    if(e_h%print_mem) then
       write(info_str,"(2A)") "    Deallocating ",trim(arrayname)
@@ -662,7 +662,7 @@ subroutine elsi_deallocate_complex16_1d(e_h,array,arrayname)
    complex(kind=r8),  intent(inout), allocatable :: array(:)
    character(len=*),  intent(in)                 :: arrayname
 
-   character*200 :: info_str
+   character(len=200) :: info_str
 
    if(e_h%print_mem) then
       write(info_str,"(2A)") "    Deallocating ",trim(arrayname)
@@ -684,7 +684,7 @@ subroutine elsi_deallocate_real4_2d(e_h,array,arrayname)
    real(kind=r4),     intent(inout), allocatable :: array(:,:)
    character(len=*),  intent(in)                 :: arrayname
 
-   character*200 :: info_str
+   character(len=200) :: info_str
 
    if(e_h%print_mem) then
       write(info_str,"(2A)") "    Deallocating ",trim(arrayname)
@@ -706,7 +706,7 @@ subroutine elsi_deallocate_real8_2d(e_h,array,arrayname)
    real(kind=r8),     intent(inout), allocatable :: array(:,:)
    character(len=*),  intent(in)                 :: arrayname
 
-   character*200 :: info_str
+   character(len=200) :: info_str
 
    if(e_h%print_mem) then
       write(info_str,"(2A)") "    Deallocating ",trim(arrayname)
@@ -728,7 +728,7 @@ subroutine elsi_deallocate_integer4_2d(e_h,array,arrayname)
    integer(kind=i4),  intent(inout), allocatable :: array(:,:)
    character(len=*),  intent(in)                 :: arrayname
 
-   character*200 :: info_str
+   character(len=200) :: info_str
 
    if(e_h%print_mem) then
       write(info_str,"(2A)") "    Deallocating ",trim(arrayname)
@@ -750,7 +750,7 @@ subroutine elsi_deallocate_complex8_2d(e_h,array,arrayname)
    complex(kind=r4),  intent(inout), allocatable :: array(:,:)
    character(len=*),  intent(in)                 :: arrayname
 
-   character*200 :: info_str
+   character(len=200) :: info_str
 
    if(e_h%print_mem) then
       write(info_str,"(2A)") "    Deallocating ",trim(arrayname)
@@ -773,7 +773,7 @@ subroutine elsi_deallocate_complex16_2d(e_h,array,arrayname)
    complex(kind=r8),  intent(inout), allocatable :: array(:,:)
    character(len=*),  intent(in)                 :: arrayname
 
-   character*200 :: info_str
+   character(len=200) :: info_str
 
    if(e_h%print_mem) then
       write(info_str,"(2A)") "    Deallocating ",trim(arrayname)
@@ -795,7 +795,7 @@ subroutine elsi_deallocate_real8_3d(e_h,array,arrayname)
    real(kind=r8),     intent(inout), allocatable :: array(:,:,:)
    character(len=*),  intent(in)                 :: arrayname
 
-   character*200 :: info_str
+   character(len=200) :: info_str
 
    if(e_h%print_mem) then
       write(info_str,"(2A)") "    Deallocating ",trim(arrayname)
@@ -817,7 +817,7 @@ subroutine elsi_deallocate_integer4_3d(e_h,array,arrayname)
    integer(kind=i4),  intent(inout), allocatable :: array(:,:,:)
    character(len=*),  intent(in)                 :: arrayname
 
-   character*200 :: info_str
+   character(len=200) :: info_str
 
    if(e_h%print_mem) then
       write(info_str,"(2A)") "    Deallocating ",trim(arrayname)
@@ -839,7 +839,7 @@ subroutine elsi_deallocate_complex16_3d(e_h,array,arrayname)
    complex(kind=r8),  intent(inout), allocatable :: array(:,:,:)
    character(len=*),  intent(in)                 :: arrayname
 
-   character*200 :: info_str
+   character(len=200) :: info_str
 
    if(e_h%print_mem) then
       write(info_str,"(2A)") "    Deallocating ",trim(arrayname)

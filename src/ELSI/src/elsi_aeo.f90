@@ -88,7 +88,7 @@ subroutine elsi_get_elpa_comms(e_h)
 
    integer(kind=i4) :: success
 
-   character*40, parameter :: caller = "elsi_get_elpa_comms"
+   character(len=40), parameter :: caller = "elsi_get_elpa_comms"
 
    success = elpa_get_communicators(e_h%mpi_comm,e_h%my_prow,e_h%my_pcol,&
                 e_h%mpi_comm_row,e_h%mpi_comm_col)
@@ -109,12 +109,12 @@ subroutine elsi_compute_occ_elpa(e_h,eval)
    type(elsi_handle), intent(inout) :: e_h
    real(kind=r8),     intent(in)    :: eval(e_h%n_basis)
 
+   integer(kind=i4) :: ierr
+
    real(kind=r8), allocatable :: tmp_real1(:)
    real(kind=r8), allocatable :: tmp_real2(:,:,:)
 
-   integer(kind=i4) :: ierr
-
-   character*40, parameter :: caller = "elsi_compute_occ_elpa"
+   character(len=40), parameter :: caller = "elsi_compute_occ_elpa"
 
    ! Gather eigenvalues and occupation numbers
    if(e_h%n_elsi_calls == 1) then
@@ -181,17 +181,17 @@ subroutine elsi_compute_dm_elpa_real(e_h,evec,dm,work)
    real(kind=r8),     intent(inout) :: dm(e_h%n_lrow,e_h%n_lcol)
    real(kind=r8),     intent(inout) :: work(e_h%n_lrow,e_h%n_lcol)
 
-   integer(kind=i4) :: i
-   integer(kind=i4) :: i_col
-   integer(kind=i4) :: i_row
-   integer(kind=i4) :: max_state
-   real(kind=r8)    :: t0
-   real(kind=r8)    :: t1
-   character*200    :: info_str
+   integer(kind=i4)   :: i
+   integer(kind=i4)   :: i_col
+   integer(kind=i4)   :: i_row
+   integer(kind=i4)   :: max_state
+   real(kind=r8)      :: t0
+   real(kind=r8)      :: t1
+   character(len=200) :: info_str
 
    real(kind=r8), allocatable :: factor(:)
 
-   character*40, parameter :: caller = "elsi_compute_dm_elpa_real"
+   character(len=40), parameter :: caller = "elsi_compute_dm_elpa_real"
 
    call elsi_get_time(e_h,t0)
 
@@ -266,17 +266,17 @@ subroutine elsi_compute_edm_elpa_real(e_h,eval,evec,edm,work)
    real(kind=r8),     intent(inout) :: edm(e_h%n_lrow,e_h%n_lcol)
    real(kind=r8),     intent(inout) :: work(e_h%n_lrow,e_h%n_lcol)
 
-   integer(kind=i4) :: i
-   integer(kind=i4) :: i_col
-   integer(kind=i4) :: i_row
-   integer(kind=i4) :: max_state
-   real(kind=r8)    :: t0
-   real(kind=r8)    :: t1
-   character*200    :: info_str
+   integer(kind=i4)   :: i
+   integer(kind=i4)   :: i_col
+   integer(kind=i4)   :: i_row
+   integer(kind=i4)   :: max_state
+   real(kind=r8)      :: t0
+   real(kind=r8)      :: t1
+   character(len=200) :: info_str
 
    real(kind=r8), allocatable :: factor(:)
 
-   character*40, parameter :: caller = "elsi_compute_edm_elpa_real"
+   character(len=40), parameter :: caller = "elsi_compute_edm_elpa_real"
 
    call elsi_get_time(e_h,t0)
 
@@ -351,14 +351,14 @@ subroutine elsi_normalize_dm_elpa_real(e_h,ovlp,dm)
    real(kind=r8),     intent(inout) :: ovlp(e_h%n_lrow,e_h%n_lcol)
    real(kind=r8),     intent(inout) :: dm(e_h%n_lrow,e_h%n_lcol)
 
-   real(kind=r8)    :: l_ne ! Local number of electrons
-   real(kind=r8)    :: g_ne ! Global number of electrons
-   real(kind=r8)    :: factor ! Normalization factor
-   complex(kind=r8) :: tmp_cmplx
-   integer(kind=i4) :: ierr
-   character*200    :: info_str
+   real(kind=r8)      :: l_ne ! Local number of electrons
+   real(kind=r8)      :: g_ne ! Global number of electrons
+   real(kind=r8)      :: factor ! Normalization factor
+   complex(kind=r8)   :: tmp_cmplx
+   integer(kind=i4)   :: ierr
+   character(len=200) :: info_str
 
-   character*40, parameter :: caller = "elsi_normalize_dm_elpa_real"
+   character(len=40), parameter :: caller = "elsi_normalize_dm_elpa_real"
 
    call elsi_trace_mat_mat_real(e_h,dm,ovlp,g_ne)
 
@@ -400,14 +400,14 @@ subroutine elsi_to_standard_evp_real(e_h,ham,ovlp,eval,evec)
    real(kind=r8),     intent(inout) :: eval(e_h%n_basis)
    real(kind=r8),     intent(inout) :: evec(e_h%n_lrow,e_h%n_lcol)
 
-   integer(kind=i4) :: i_row
-   integer(kind=i4) :: i_col
-   logical          :: success
-   real(kind=r8)    :: t0
-   real(kind=r8)    :: t1
-   character*200    :: info_str
+   integer(kind=i4)   :: i_row
+   integer(kind=i4)   :: i_col
+   logical            :: success
+   real(kind=r8)      :: t0
+   real(kind=r8)      :: t1
+   character(len=200) :: info_str
 
-   character*40, parameter :: caller = "elsi_to_standard_evp_real"
+   character(len=40), parameter :: caller = "elsi_to_standard_evp_real"
 
    if(e_h%n_elsi_calls == 1) then
       if(e_h%check_sing) then
@@ -523,18 +523,17 @@ subroutine elsi_check_singularity_real(e_h,ovlp,eval,evec)
    real(kind=r8),     intent(inout) :: eval(e_h%n_basis)
    real(kind=r8),     intent(inout) :: evec(e_h%n_lrow,e_h%n_lcol)
 
-   integer(kind=i4) :: i
-   integer(kind=i4) :: ierr
-   real(kind=r8)    :: ev_sqrt
-   real(kind=r8)    :: t0
-   real(kind=r8)    :: t1
-   character*200    :: info_str
+   integer(kind=i4)   :: i
+   integer(kind=i4)   :: ierr
+   real(kind=r8)      :: ev_sqrt
+   real(kind=r8)      :: t0
+   real(kind=r8)      :: t1
+   character(len=200) :: info_str
 
-   real(kind=r8),    allocatable :: copy_real(:,:)
+   real(kind=r8), allocatable :: copy_real(:,:)
+   class(elpa_t), pointer     :: elpa_t
 
-   class(elpa_t), pointer :: elpa_t
-
-   character*40, parameter :: caller = "elsi_check_singularity_real"
+   character(len=40), parameter :: caller = "elsi_check_singularity_real"
 
    call elsi_get_time(e_h,t0)
 
@@ -645,14 +644,14 @@ subroutine elsi_to_original_ev_real(e_h,ham,ovlp,evec)
    real(kind=r8),     intent(inout) :: ovlp(e_h%n_lrow,e_h%n_lcol)
    real(kind=r8),     intent(inout) :: evec(e_h%n_lrow,e_h%n_lcol)
 
-   logical       :: success
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
-   character*200 :: info_str
+   logical            :: success
+   real(kind=r8)      :: t0
+   real(kind=r8)      :: t1
+   character(len=200) :: info_str
 
    real(kind=r8), allocatable :: tmp_real(:,:)
 
-   character*40, parameter :: caller = "elsi_to_original_ev_real"
+   character(len=40), parameter :: caller = "elsi_to_original_ev_real"
 
    call elsi_get_time(e_h,t0)
 
@@ -701,17 +700,17 @@ subroutine elsi_solve_evp_elpa_real(e_h,ham,ovlp,eval,evec)
    real(kind=r8),     intent(inout) :: eval(e_h%n_basis)
    real(kind=r8),     intent(inout) :: evec(e_h%n_lrow,e_h%n_lcol)
 
-   real(kind=r8)    :: t0
-   real(kind=r8)    :: t1
-   integer(kind=i4) :: ierr
-   logical          :: success
-   character*200    :: info_str
+   real(kind=r8)      :: t0
+   real(kind=r8)      :: t1
+   integer(kind=i4)   :: ierr
+   logical            :: success
+   character(len=200) :: info_str
 
-   real(kind=r4),    allocatable :: eval_single(:)
-   real(kind=r4),    allocatable :: ham_real_single(:,:)
-   real(kind=r4),    allocatable :: evec_real_single(:,:)
+   real(kind=r4), allocatable :: eval_single(:)
+   real(kind=r4), allocatable :: ham_real_single(:,:)
+   real(kind=r4), allocatable :: evec_real_single(:,:)
 
-   character*40, parameter :: caller = "elsi_solve_evp_elpa_real"
+   character(len=40), parameter :: caller = "elsi_solve_evp_elpa_real"
 
    elpa_print_times = e_h%elpa_output
 
@@ -813,17 +812,17 @@ subroutine elsi_compute_dm_elpa_cmplx(e_h,evec,dm,work)
    complex(kind=r8),  intent(inout) :: dm(e_h%n_lrow,e_h%n_lcol)
    complex(kind=r8),  intent(inout) :: work(e_h%n_lrow,e_h%n_lcol)
 
-   integer(kind=i4) :: i
-   integer(kind=i4) :: i_col
-   integer(kind=i4) :: i_row
-   integer(kind=i4) :: max_state
-   real(kind=r8)    :: t0
-   real(kind=r8)    :: t1
-   character*200    :: info_str
+   integer(kind=i4)   :: i
+   integer(kind=i4)   :: i_col
+   integer(kind=i4)   :: i_row
+   integer(kind=i4)   :: max_state
+   real(kind=r8)      :: t0
+   real(kind=r8)      :: t1
+   character(len=200) :: info_str
 
    real(kind=r8), allocatable :: factor(:)
 
-   character*40, parameter :: caller = "elsi_compute_dm_elpa_cmplx"
+   character(len=40), parameter :: caller = "elsi_compute_dm_elpa_cmplx"
 
    call elsi_get_time(e_h,t0)
 
@@ -903,17 +902,17 @@ subroutine elsi_compute_edm_elpa_cmplx(e_h,eval,evec,edm,work)
    complex(kind=r8),  intent(inout) :: edm(e_h%n_lrow,e_h%n_lcol)
    complex(kind=r8),  intent(inout) :: work(e_h%n_lrow,e_h%n_lcol)
 
-   integer(kind=i4) :: i
-   integer(kind=i4) :: i_col
-   integer(kind=i4) :: i_row
-   integer(kind=i4) :: max_state
-   real(kind=r8)    :: t0
-   real(kind=r8)    :: t1
-   character*200    :: info_str
+   integer(kind=i4)   :: i
+   integer(kind=i4)   :: i_col
+   integer(kind=i4)   :: i_row
+   integer(kind=i4)   :: max_state
+   real(kind=r8)      :: t0
+   real(kind=r8)      :: t1
+   character(len=200) :: info_str
 
-   real(kind=r8),    allocatable :: factor(:)
+   real(kind=r8), allocatable :: factor(:)
 
-   character*40, parameter :: caller = "elsi_compute_edm_elpa_cmplx"
+   character(len=40), parameter :: caller = "elsi_compute_edm_elpa_cmplx"
 
    call elsi_get_time(e_h,t0)
 
@@ -996,14 +995,14 @@ subroutine elsi_normalize_dm_elpa_cmplx(e_h,ovlp,dm)
    complex(kind=r8),  intent(inout) :: ovlp(e_h%n_lrow,e_h%n_lcol)
    complex(kind=r8),  intent(inout) :: dm(e_h%n_lrow,e_h%n_lcol)
 
-   real(kind=r8)    :: l_ne ! Local number of electrons
-   real(kind=r8)    :: g_ne ! Global number of electrons
-   real(kind=r8)    :: factor ! Normalization factor
-   complex(kind=r8) :: tmp_cmplx
-   integer(kind=i4) :: ierr
-   character*200    :: info_str
+   real(kind=r8)      :: l_ne ! Local number of electrons
+   real(kind=r8)      :: g_ne ! Global number of electrons
+   real(kind=r8)      :: factor ! Normalization factor
+   complex(kind=r8)   :: tmp_cmplx
+   integer(kind=i4)   :: ierr
+   character(len=200) :: info_str
 
-   character*40, parameter :: caller = "elsi_normalize_dm_elpa_cmplx"
+   character(len=40), parameter :: caller = "elsi_normalize_dm_elpa_cmplx"
 
    call elsi_trace_mat_mat_cmplx(e_h,dm,ovlp,tmp_cmplx)
 
@@ -1047,14 +1046,14 @@ subroutine elsi_to_standard_evp_cmplx(e_h,ham,ovlp,eval,evec)
    real(kind=r8),     intent(inout) :: eval(e_h%n_basis)
    complex(kind=r8),  intent(inout) :: evec(e_h%n_lrow,e_h%n_lcol)
 
-   integer(kind=i4) :: i_row
-   integer(kind=i4) :: i_col
-   logical          :: success
-   real(kind=r8)    :: t0
-   real(kind=r8)    :: t1
-   character*200    :: info_str
+   integer(kind=i4)   :: i_row
+   integer(kind=i4)   :: i_col
+   logical            :: success
+   real(kind=r8)      :: t0
+   real(kind=r8)      :: t1
+   character(len=200) :: info_str
 
-   character*40, parameter :: caller = "elsi_to_standard_evp_cmplx"
+   character(len=40), parameter :: caller = "elsi_to_standard_evp_cmplx"
 
    if(e_h%n_elsi_calls == 1) then
       if(e_h%check_sing) then
@@ -1178,18 +1177,17 @@ subroutine elsi_check_singularity_cmplx(e_h,ovlp,eval,evec)
    real(kind=r8),     intent(inout) :: eval(e_h%n_basis)
    complex(kind=r8),  intent(inout) :: evec(e_h%n_lrow,e_h%n_lcol)
 
-   integer(kind=i4) :: i
-   integer(kind=i4) :: ierr
-   real(kind=r8)    :: ev_sqrt
-   real(kind=r8)    :: t0
-   real(kind=r8)    :: t1
-   character*200    :: info_str
+   integer(kind=i4)   :: i
+   integer(kind=i4)   :: ierr
+   real(kind=r8)      :: ev_sqrt
+   real(kind=r8)      :: t0
+   real(kind=r8)      :: t1
+   character(len=200) :: info_str
 
    complex(kind=r8), allocatable :: copy_cmplx(:,:)
+   class(elpa_t),    pointer :: elpa_t
 
-   class(elpa_t), pointer :: elpa_t
-
-   character*40, parameter :: caller = "elsi_check_singularity_cmplx"
+   character(len=40), parameter :: caller = "elsi_check_singularity_cmplx"
 
    call elsi_get_time(e_h,t0)
 
@@ -1300,14 +1298,14 @@ subroutine elsi_to_original_ev_cmplx(e_h,ham,ovlp,evec)
    complex(kind=r8),  intent(inout) :: ovlp(e_h%n_lrow,e_h%n_lcol)
    complex(kind=r8),  intent(inout) :: evec(e_h%n_lrow,e_h%n_lcol)
 
-   logical       :: success
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
-   character*200 :: info_str
+   logical            :: success
+   real(kind=r8)      :: t0
+   real(kind=r8)      :: t1
+   character(len=200) :: info_str
 
    complex(kind=r8), allocatable :: tmp_cmplx(:,:)
 
-   character*40, parameter :: caller = "elsi_to_original_ev_cmplx"
+   character(len=40), parameter :: caller = "elsi_to_original_ev_cmplx"
 
    call elsi_get_time(e_h,t0)
 
@@ -1356,17 +1354,17 @@ subroutine elsi_solve_evp_elpa_cmplx(e_h,ham,ovlp,eval,evec)
    real(kind=r8),     intent(inout) :: eval(e_h%n_basis)
    complex(kind=r8),  intent(inout) :: evec(e_h%n_lrow,e_h%n_lcol)
 
-   real(kind=r8)    :: t0
-   real(kind=r8)    :: t1
-   integer(kind=i4) :: ierr
-   logical          :: success
-   character*200    :: info_str
+   real(kind=r8)      :: t0
+   real(kind=r8)      :: t1
+   integer(kind=i4)   :: ierr
+   logical            :: success
+   character(len=200) :: info_str
 
    real(kind=r4),    allocatable :: eval_single(:)
    complex(kind=r4), allocatable :: ham_cmplx_single(:,:)
    complex(kind=r4), allocatable :: evec_cmplx_single(:,:)
 
-   character*40, parameter :: caller = "elsi_solve_evp_elpa_cmplx"
+   character(len=40), parameter :: caller = "elsi_solve_evp_elpa_cmplx"
 
    elpa_print_times = e_h%elpa_output
 
@@ -1465,7 +1463,7 @@ subroutine elsi_set_elpa_default(e_h)
 
    type(elsi_handle), intent(inout) :: e_h !< Handle
 
-   character*40, parameter :: caller = "elsi_set_elpa_default"
+   character(len=40), parameter :: caller = "elsi_set_elpa_default"
 
    if(e_h%handle_ready) then
       e_h%handle_changed = .true.
