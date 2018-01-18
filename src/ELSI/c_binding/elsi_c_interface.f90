@@ -1342,8 +1342,8 @@ subroutine elsi_get_edm_complex_sparse_c_wrapper(handle_c,edm_c)&
 
 end subroutine
 
-subroutine elsi_init_rw_c_wrapper(handle_c,rw_task,parallel_mode,file_format,&
-              n_basis,n_electron)&
+subroutine elsi_init_rw_c_wrapper(handle_c,rw_task,parallel_mode,n_basis,&
+              n_electron)&
    bind(C,name="c_elsi_init_rw")
 
    implicit none
@@ -1351,7 +1351,6 @@ subroutine elsi_init_rw_c_wrapper(handle_c,rw_task,parallel_mode,file_format,&
    type(c_ptr)                            :: handle_c
    integer(kind=c_int), value, intent(in) :: rw_task
    integer(kind=c_int), value, intent(in) :: parallel_mode
-   integer(kind=c_int), value, intent(in) :: file_format
    integer(kind=c_int), value, intent(in) :: n_basis
    real(kind=c_double), value, intent(in) :: n_electron
 
@@ -1359,8 +1358,7 @@ subroutine elsi_init_rw_c_wrapper(handle_c,rw_task,parallel_mode,file_format,&
 
    allocate(handle_f)
 
-   call elsi_init_rw(handle_f,rw_task,parallel_mode,file_format,n_basis,&
-           n_electron)
+   call elsi_init_rw(handle_f,rw_task,parallel_mode,n_basis,n_electron)
 
    handle_c = c_loc(handle_f)
 

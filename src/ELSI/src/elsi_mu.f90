@@ -68,14 +68,14 @@ subroutine elsi_compute_mu_and_occ(e_h,n_electron,n_state,n_spin,n_kpt,&
    real(kind=r8)    :: e_high        ! Highest eigenvalue
    real(kind=r8)    :: mu_lower      ! Lower bound of chemical potential
    real(kind=r8)    :: mu_upper      ! Upper bound of chemical potential
-   real(kind=r8)    :: diff_ne_lower ! Difference in number of electrons on lower bound
-   real(kind=r8)    :: diff_ne_upper ! Difference in number of electrons on upper bound
+   real(kind=r8)    :: diff_ne_lower ! Electron count error on lower bound
+   real(kind=r8)    :: diff_ne_upper ! Electron count error on upper bound
    integer(kind=i4) :: i_state
    integer(kind=i4) :: i_kpt
    integer(kind=i4) :: i_spin
    integer(kind=i4) :: n_steps
 
-   character*40, parameter :: caller = "elsi_compute_mu_and_occ"
+   character(len=40), parameter :: caller = "elsi_compute_mu_and_occ"
 
    ! Determine smallest and largest eivenvalues
    e_low  = evals(1,1,1)
@@ -156,17 +156,16 @@ subroutine elsi_check_electrons(e_h,n_electron,n_state,n_spin,n_kpt,k_weights,&
    real(kind=r8),     intent(in)    :: mu_in                          !< Input chemical potential
    real(kind=r8),     intent(out)   :: diff_ne_out                    !< Electron count error
 
-   real(kind=r8) :: invert_width ! 1/broaden_width
-   real(kind=r8) :: delta
-   real(kind=r8) :: max_exp ! Maximum possible exponent
-   real(kind=r8) :: this_exp
-   real(kind=r8) :: this_hermite
-
+   real(kind=r8)    :: invert_width ! 1/broaden_width
+   real(kind=r8)    :: delta
+   real(kind=r8)    :: max_exp ! Maximum possible exponent
+   real(kind=r8)    :: this_exp
+   real(kind=r8)    :: this_hermite
    integer(kind=i4) :: i_state
    integer(kind=i4) :: i_kpt
    integer(kind=i4) :: i_spin
 
-   character*40, parameter :: caller = "elsi_check_electrons"
+   character(len=40), parameter :: caller = "elsi_check_electrons"
 
    invert_width = 1.0_r8/e_h%broaden_width
    diff_ne_out  = 0.0_r8
@@ -289,17 +288,17 @@ subroutine elsi_find_mu(e_h,n_electron,n_state,n_spin,n_kpt,k_weights,evals,&
    real(kind=r8),     intent(in)    :: mu_upper_in                    !< Upper bound of mu
    real(kind=r8),     intent(out)   :: mu_out                         !< Solution
 
-   real(kind=r8)    :: mu_left    ! Left bound of chemical potential interval
-   real(kind=r8)    :: mu_right   ! Right bound of chemical potential interval
-   real(kind=r8)    :: mu_mid     ! Middle point of chemical potential interval
-   real(kind=r8)    :: diff_left  ! Difference in number of electrons on left bound
-   real(kind=r8)    :: diff_right ! Difference in number of electrons on right bound
-   real(kind=r8)    :: diff_mid   ! Difference in number of electrons on middle point
-   logical          :: found_mu
-   integer(kind=i4) :: n_steps
-   character*200    :: info_str
+   real(kind=r8)      :: mu_left
+   real(kind=r8)      :: mu_right
+   real(kind=r8)      :: mu_mid
+   real(kind=r8)      :: diff_left  ! Electron count error on left bound
+   real(kind=r8)      :: diff_right ! Electron count error on right bound
+   real(kind=r8)      :: diff_mid   ! Electron count error on middle point
+   logical            :: found_mu
+   integer(kind=i4)   :: n_steps
+   character(len=200) :: info_str
 
-   character*40, parameter :: caller = "elsi_find_mu"
+   character(len=40), parameter :: caller = "elsi_find_mu"
 
    n_steps  = 0
    found_mu = .false.
@@ -387,7 +386,7 @@ subroutine elsi_adjust_occ(e_h,n_state,n_spin,n_kpt,k_weights,evals,occ_nums,&
    integer(kind=i4) :: i_val
    integer(kind=i4) :: n_total
 
-   character*40, parameter :: caller = "elsi_adjust_occ"
+   character(len=40), parameter :: caller = "elsi_adjust_occ"
 
    n_total = n_state*n_spin*n_kpt
 

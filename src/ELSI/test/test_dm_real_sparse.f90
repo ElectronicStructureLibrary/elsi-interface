@@ -182,7 +182,7 @@ program test_dm_real_sparse
 
    if(task_id == 0) then
       ! Read H and S matrices
-      call elsi_init_rw(rw_h,0,1,1,0,0.0_r8)
+      call elsi_init_rw(rw_h,0,1,0,0.0_r8)
       call elsi_set_rw_mpi(rw_h,comm_in_task)
 
       call elsi_read_mat_dim_sparse(rw_h,arg2,n_electrons,matrix_size,nnz_g,&

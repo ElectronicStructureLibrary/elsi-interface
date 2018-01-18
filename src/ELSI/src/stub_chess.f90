@@ -298,7 +298,7 @@ end module
 
 module SPARSEMATRIX_INIT
 
-   use ELSI_PRECISION, only: r8,i4
+   use ELSI_PRECISION, only: i4
    use SPARSEMATRIX_BASE, only: sparse_matrix
 
    implicit none

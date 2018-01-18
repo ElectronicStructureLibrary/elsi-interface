@@ -30,7 +30,7 @@
 !!
 module ELSI_DMP
 
-   use ELSI_CONSTANTS, only: BLACS_DENSE,UNSET,UT_MAT,LT_MAT,CANONICAL,&
+   use ELSI_CONSTANTS, only: BLACS_DENSE,UT_MAT,LT_MAT,CANONICAL,&
                              TRACE_CORRECTING
    use ELSI_DATATYPE,  only: elsi_handle
    use ELSI_ELPA,      only: elsi_to_standard_evp_real
@@ -65,25 +65,25 @@ subroutine elsi_solve_evp_dmp_real(e_h,ham,ovlp,dm)
    real(kind=r8),     intent(inout) :: ovlp(e_h%n_lrow,e_h%n_lcol)
    real(kind=r8),     intent(inout) :: dm(e_h%n_lrow,e_h%n_lcol)
 
-   integer(kind=i4) :: i
-   integer(kind=i4) :: j
-   integer(kind=i4) :: i_iter
-   integer(kind=i4) :: ierr
-   logical          :: ev_min_found
-   logical          :: dmp_conv
-   real(kind=r8)    :: this_ev
-   real(kind=r8)    :: prev_ev
-   real(kind=r8)    :: nrm2
-   real(kind=r8)    :: diff
-   real(kind=r8)    :: mu
-   real(kind=r8)    :: lambda
-   real(kind=r8)    :: c1
-   real(kind=r8)    :: c2
-   real(kind=r8)    :: c
-   real(kind=r8)    :: tmp
-   real(kind=r8)    :: t0
-   real(kind=r8)    :: t1
-   character*200    :: info_str
+   integer(kind=i4)   :: i
+   integer(kind=i4)   :: j
+   integer(kind=i4)   :: i_iter
+   integer(kind=i4)   :: ierr
+   logical            :: ev_min_found
+   logical            :: dmp_conv
+   real(kind=r8)      :: this_ev
+   real(kind=r8)      :: prev_ev
+   real(kind=r8)      :: nrm2
+   real(kind=r8)      :: diff
+   real(kind=r8)      :: mu
+   real(kind=r8)      :: lambda
+   real(kind=r8)      :: c1
+   real(kind=r8)      :: c2
+   real(kind=r8)      :: c
+   real(kind=r8)      :: tmp
+   real(kind=r8)      :: t0
+   real(kind=r8)      :: t1
+   character(len=200) :: info_str
 
    real(kind=r8), allocatable :: row_sum(:)
    real(kind=r8), allocatable :: diag(:)
@@ -92,7 +92,7 @@ subroutine elsi_solve_evp_dmp_real(e_h,ham,ovlp,dm)
    real(kind=r8), allocatable :: dsd(:,:)
    real(kind=r8), allocatable :: dsdsd(:,:)
 
-   character*40, parameter :: caller = "elsi_solve_evp_dmp_real"
+   character(len=40), parameter :: caller = "elsi_solve_evp_dmp_real"
 
    ! Compute sparsity
    if(e_h%n_elsi_calls == 1 .and. e_h%matrix_format == BLACS_DENSE) then
@@ -454,7 +454,7 @@ subroutine elsi_set_full_mat_real(e_h,mat,uplo)
    integer(kind=i4) :: i_col
    real(kind=r8), allocatable :: tmp_real(:,:)
 
-   character*40, parameter :: caller = "elsi_set_full_mat_real"
+   character(len=40), parameter :: caller = "elsi_set_full_mat_real"
 
    call elsi_allocate(e_h,tmp_real,e_h%n_lrow,e_h%n_lcol,"tmp_real",caller)
 
@@ -498,7 +498,7 @@ subroutine elsi_set_dmp_default(e_h)
 
    type(elsi_handle), intent(inout) :: e_h
 
-   character*40, parameter :: caller = "elsi_set_dmp_default"
+   character(len=40), parameter :: caller = "elsi_set_dmp_default"
 
    if(e_h%handle_ready) then
       e_h%handle_changed = .true.

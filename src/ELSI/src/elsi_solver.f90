@@ -112,7 +112,7 @@ subroutine elsi_get_energy(e_h,energy,solver)
    integer(kind=i4) :: i_state
    integer(kind=i4) :: ierr
 
-   character*40, parameter :: caller = "elsi_get_energy"
+   character(len=40), parameter :: caller = "elsi_get_energy"
 
    select case(solver)
    case(ELPA_SOLVER)
@@ -166,14 +166,13 @@ subroutine elsi_ev_real(e_h,ham,ovlp,eval,evec)
    real(kind=r8),     intent(inout) :: eval(e_h%n_basis)           !< Eigenvalues
    real(kind=r8),     intent(inout) :: evec(e_h%n_lrow,e_h%n_lcol) !< Eigenvectors
 
-   ! Timing-related variable
    real(kind=r8)               :: t0
-   character(len=DATETIME_LEN) :: start_datetime
    integer(kind=i4)            :: solver_used = UNSET
-   integer(kind=i4), parameter :: output_type = OUTPUT_EV
-   integer(kind=i4), parameter :: data_type   = REAL_VALUES
+   character(len=DATETIME_LEN) :: start_datetime
 
-   character*40, parameter :: caller = "elsi_ev_real"
+   integer(kind=i4),  parameter :: output_type = OUTPUT_EV
+   integer(kind=i4),  parameter :: data_type = REAL_VALUES
+   character(len=40), parameter :: caller = "elsi_ev_real"
 
    call elsi_get_time(e_h,t0)
    call elsi_get_datetime_rfc3339(start_datetime)
@@ -261,14 +260,13 @@ subroutine elsi_ev_complex(e_h,ham,ovlp,eval,evec)
    real(kind=r8),     intent(inout) :: eval(e_h%n_basis)           !< Eigenvalues
    complex(kind=r8),  intent(inout) :: evec(e_h%n_lrow,e_h%n_lcol) !< Eigenvectors
 
-   ! Timing-related variable
    real(kind=r8)               :: t0
-   character(len=DATETIME_LEN) :: start_datetime
    integer(kind=i4)            :: solver_used = UNSET
-   integer(kind=i4), parameter :: output_type = OUTPUT_EV
-   integer(kind=i4), parameter :: data_type   = COMPLEX_VALUES
+   character(len=DATETIME_LEN) :: start_datetime
 
-   character*40, parameter :: caller = "elsi_ev_complex"
+   integer(kind=i4),  parameter :: output_type = OUTPUT_EV
+   integer(kind=i4),  parameter :: data_type = COMPLEX_VALUES
+   character(len=40), parameter :: caller = "elsi_ev_complex"
 
    call elsi_get_time(e_h,t0)
    call elsi_get_datetime_rfc3339(start_datetime)
@@ -327,14 +325,13 @@ subroutine elsi_ev_real_sparse(e_h,ham,ovlp,eval,evec)
    real(kind=r8),     intent(inout) :: eval(e_h%n_basis)           !< Eigenvalues
    real(kind=r8),     intent(inout) :: evec(e_h%n_lrow,e_h%n_lcol) !< Eigenvectors
 
-   ! Timing-related variable
    real(kind=r8)               :: t0
-   character(len=DATETIME_LEN) :: start_datetime
    integer(kind=i4)            :: solver_used = UNSET
-   integer(kind=i4), parameter :: output_type = OUTPUT_EV
-   integer(kind=i4), parameter :: data_type   = REAL_VALUES
+   character(len=DATETIME_LEN) :: start_datetime
 
-   character*40, parameter :: caller = "elsi_ev_real_sparse"
+   integer(kind=i4),  parameter :: output_type = OUTPUT_EV
+   integer(kind=i4),  parameter :: data_type = REAL_VALUES
+   character(len=40), parameter :: caller = "elsi_ev_real_sparse"
 
    call elsi_get_time(e_h,t0)
    call elsi_get_datetime_rfc3339(start_datetime)
@@ -391,14 +388,13 @@ subroutine elsi_ev_complex_sparse(e_h,ham,ovlp,eval,evec)
    real(kind=r8),     intent(inout) :: eval(e_h%n_basis)           !< Eigenvalues
    complex(kind=r8),  intent(inout) :: evec(e_h%n_lrow,e_h%n_lcol) !< Eigenvectors
 
-   ! Timing-related variable
    real(kind=r8)               :: t0
-   character(len=DATETIME_LEN) :: start_datetime
    integer(kind=i4)            :: solver_used = UNSET
-   integer(kind=i4), parameter :: output_type = OUTPUT_EV
-   integer(kind=i4), parameter :: data_type   = COMPLEX_VALUES
+   character(len=DATETIME_LEN) :: start_datetime
 
-   character*40, parameter :: caller = "elsi_ev_complex_sparse"
+   integer(kind=i4),  parameter :: output_type = OUTPUT_EV
+   integer(kind=i4),  parameter :: data_type = COMPLEX_VALUES
+   character(len=40), parameter :: caller = "elsi_ev_complex_sparse"
 
    call elsi_get_time(e_h,t0)
    call elsi_get_datetime_rfc3339(start_datetime)
@@ -454,14 +450,13 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
    real(kind=r8),     intent(inout) :: dm(e_h%n_lrow,e_h%n_lcol)   !< Density matrix
    real(kind=r8),     intent(inout) :: energy                      !< Energy
 
-   ! Timing-related variable
    real(kind=r8)               :: t0
-   character(len=DATETIME_LEN) :: start_datetime
    integer(kind=i4)            :: solver_used = UNSET
-   integer(kind=i4), parameter :: output_type = OUTPUT_DM
-   integer(kind=i4), parameter :: data_type   = REAL_VALUES
+   character(len=DATETIME_LEN) :: start_datetime
 
-   character*40, parameter :: caller = "elsi_dm_real"
+   integer(kind=i4),  parameter :: output_type = OUTPUT_DM
+   integer(kind=i4),  parameter :: data_type = REAL_VALUES
+   character(len=40), parameter :: caller = "elsi_dm_real"
 
    call elsi_get_time(e_h,t0)
    call elsi_get_datetime_rfc3339(start_datetime)
@@ -649,14 +644,13 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
    complex(kind=r8),  intent(inout) :: dm(e_h%n_lrow,e_h%n_lcol)   !< Density matrix
    real(kind=r8),     intent(inout) :: energy                      !< Energy
 
-   ! Timing-related variable
    real(kind=r8)               :: t0
-   character(len=DATETIME_LEN) :: start_datetime
    integer(kind=i4)            :: solver_used = UNSET
-   integer(kind=i4), parameter :: output_type = OUTPUT_DM
-   integer(kind=i4), parameter :: data_type   = COMPLEX_VALUES
+   character(len=DATETIME_LEN) :: start_datetime
 
-   character*40, parameter :: caller = "elsi_dm_complex"
+   integer(kind=i4),  parameter :: output_type = OUTPUT_DM
+   integer(kind=i4),  parameter :: data_type = COMPLEX_VALUES
+   character(len=40), parameter :: caller = "elsi_dm_complex"
 
    call elsi_get_time(e_h,t0)
    call elsi_get_datetime_rfc3339(start_datetime)
@@ -821,14 +815,13 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
    real(kind=r8),     intent(inout) :: dm(e_h%nnz_l_sp)   !< Density matrix
    real(kind=r8),     intent(inout) :: energy             !< Energy
 
-   ! Timing-related variable
    real(kind=r8)               :: t0
-   character(len=DATETIME_LEN) :: start_datetime
    integer(kind=i4)            :: solver_used = UNSET
-   integer(kind=i4), parameter :: output_type = OUTPUT_DM
-   integer(kind=i4), parameter :: data_type   = REAL_VALUES
+   character(len=DATETIME_LEN) :: start_datetime
 
-   character*40, parameter :: caller = "elsi_dm_real_sparse"
+   integer(kind=i4),  parameter :: output_type = OUTPUT_DM
+   integer(kind=i4),  parameter :: data_type = REAL_VALUES
+   character(len=40), parameter :: caller = "elsi_dm_real_sparse"
 
    call elsi_get_time(e_h,t0)
    call elsi_get_datetime_rfc3339(start_datetime)
@@ -1024,14 +1017,13 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
    complex(kind=r8),  intent(inout) :: dm(e_h%nnz_l_sp)   !< Density matrix
    real(kind=r8),     intent(inout) :: energy             !< Energy
 
-   ! Timing-related variable
    real(kind=r8)               :: t0
-   character(len=DATETIME_LEN) :: start_datetime
    integer(kind=i4)            :: solver_used = UNSET
-   integer(kind=i4), parameter :: output_type = OUTPUT_DM
-   integer(kind=i4), parameter :: data_type   = COMPLEX_VALUES
+   character(len=DATETIME_LEN) :: start_datetime
 
-   character*40, parameter :: caller = "elsi_dm_complex_sparse"
+   integer(kind=i4),  parameter :: output_type = OUTPUT_DM
+   integer(kind=i4),  parameter :: data_type = COMPLEX_VALUES
+   character(len=40), parameter :: caller = "elsi_dm_complex_sparse"
 
    call elsi_get_time(e_h,t0)
    call elsi_get_datetime_rfc3339(start_datetime)
@@ -1201,7 +1193,7 @@ subroutine elsi_init_blacs(e_h)
    integer(kind=i4) :: blacs_ctxt
    integer(kind=i4) :: block_size
 
-   character*40, parameter :: caller = "elsi_init_blacs"
+   character(len=40), parameter :: caller = "elsi_init_blacs"
 
    if(e_h%parallel_mode == MULTI_PROC .and. .not. e_h%blacs_ready) then
       ! Set square-like process grid
@@ -1263,7 +1255,7 @@ subroutine elsi_process_solver_timing(e_h,output_type,data_type,solver_used,&
    integer(kind=i4)                 :: iteration
    type(elsi_file_io_handle)        :: io_h
 
-   character*40, parameter :: caller = "elsi_dm_complex_sparse"
+   character(len=40), parameter :: caller = "elsi_dm_complex_sparse"
 
    io_h = e_h%timings_file
 
@@ -1319,14 +1311,14 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,start_datetime,&
    type(elsi_file_io_handle),   intent(in), optional :: io_h_in
    character(len=*),            intent(in), optional :: user_tag_in
 
-   character*200                    :: info_str
+   character(len=200)               :: info_str
    character(len=TIMING_STRING_LEN) :: elsi_tag
    character(len=TIMING_STRING_LEN) :: user_tag
    character(len=DATETIME_LEN)      :: record_datetime
    integer(kind=i4)                 :: comma_json_save
    type(elsi_file_io_handle)        :: io_h
 
-   character*40, parameter :: caller = "elsi_print_solver_timing"
+   character(len=40), parameter :: caller = "elsi_print_solver_timing"
 
    if(present(io_h_in)) then
       io_h = io_h_in

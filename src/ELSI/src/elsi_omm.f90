@@ -33,7 +33,7 @@ module ELSI_OMM
    use ELSI_CONSTANTS, only: BLACS_DENSE
    use ELSI_DATATYPE,  only: elsi_handle
    use ELSI_IO,        only: elsi_say
-   use ELSI_MPI,       only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_integer4
+   use ELSI_MPI,       only: elsi_check_mpi,mpi_sum,mpi_integer4
    use ELSI_PRECISION, only: r8,i4
    use ELSI_TIMINGS,   only: elsi_get_time
    use ELSI_UTILS,     only: elsi_get_local_nnz_real,elsi_get_local_nnz_cmplx
@@ -67,15 +67,15 @@ subroutine elsi_solve_evp_omm_real(e_h,ham,ovlp,dm)
    real(kind=r8),     intent(inout) :: ovlp(e_h%n_lrow,e_h%n_lcol)
    real(kind=r8),     intent(inout) :: dm(e_h%n_lrow,e_h%n_lcol)
 
-   logical          :: coeff_ready
-   logical          :: new_ovlp
-   logical          :: success
-   real(kind=r8)    :: t0
-   real(kind=r8)    :: t1
-   integer(kind=i4) :: ierr
-   character*200    :: info_str
+   logical            :: coeff_ready
+   logical            :: new_ovlp
+   logical            :: success
+   real(kind=r8)      :: t0
+   real(kind=r8)      :: t1
+   integer(kind=i4)   :: ierr
+   character(len=200) :: info_str
 
-   character*40, parameter :: caller = "elsi_solve_evp_omm_real"
+   character(len=40), parameter :: caller = "elsi_solve_evp_omm_real"
 
    call m_register_pdbc(e_h%ham_omm,ham,e_h%sc_desc)
    call m_register_pdbc(e_h%ovlp_omm,ovlp,e_h%sc_desc)
@@ -167,11 +167,11 @@ subroutine elsi_compute_edm_omm_real(e_h,edm)
    type(elsi_handle), intent(inout) :: e_h
    real(kind=r8),     intent(inout) :: edm(e_h%n_lrow,e_h%n_lcol)
 
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
-   character*200 :: info_str
+   real(kind=r8)      :: t0
+   real(kind=r8)      :: t1
+   character(len=200) :: info_str
 
-   character*40, parameter :: caller = "elsi_compute_edm_omm_real"
+   character(len=40), parameter :: caller = "elsi_compute_edm_omm_real"
 
    call elsi_get_time(e_h,t0)
 
@@ -205,15 +205,15 @@ subroutine elsi_solve_evp_omm_cmplx(e_h,ham,ovlp,dm)
    complex(kind=r8),  intent(inout) :: ovlp(e_h%n_lrow,e_h%n_lcol)
    complex(kind=r8),  intent(inout) :: dm(e_h%n_lrow,e_h%n_lcol)
 
-   logical          :: coeff_ready
-   logical          :: new_ovlp
-   logical          :: success
-   real(kind=r8)    :: t0
-   real(kind=r8)    :: t1
-   integer(kind=i4) :: ierr
-   character*200    :: info_str
+   logical            :: coeff_ready
+   logical            :: new_ovlp
+   logical            :: success
+   real(kind=r8)      :: t0
+   real(kind=r8)      :: t1
+   integer(kind=i4)   :: ierr
+   character(len=200) :: info_str
 
-   character*40, parameter :: caller = "elsi_solve_evp_omm_cmplx"
+   character(len=40), parameter :: caller = "elsi_solve_evp_omm_cmplx"
 
    call m_register_pdbc(e_h%ham_omm,ham,e_h%sc_desc)
    call m_register_pdbc(e_h%ovlp_omm,ovlp,e_h%sc_desc)
@@ -305,11 +305,11 @@ subroutine elsi_compute_edm_omm_cmplx(e_h,edm)
    type(elsi_handle), intent(inout) :: e_h
    complex(kind=r8),  intent(inout) :: edm(e_h%n_lrow,e_h%n_lcol)
 
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
-   character*200 :: info_str
+   real(kind=r8)      :: t0
+   real(kind=r8)      :: t1
+   character(len=200) :: info_str
 
-   character*40, parameter :: caller = "elsi_compute_edm_omm_cmplx"
+   character(len=40), parameter :: caller = "elsi_compute_edm_omm_cmplx"
 
    call elsi_get_time(e_h,t0)
 
@@ -340,7 +340,7 @@ subroutine elsi_set_omm_default(e_h)
 
    type(elsi_handle), intent(inout) :: e_h
 
-   character*40, parameter :: caller = "elsi_set_omm_default"
+   character(len=40), parameter :: caller = "elsi_set_omm_default"
 
    if(e_h%handle_ready) then
       e_h%handle_changed = .true.

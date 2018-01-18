@@ -34,7 +34,7 @@ module ELSI_CONSTANTS
 
    implicit none
 
-   character*8, parameter :: RELEASE_DATE = "20170527"
+   character(len=8), parameter :: RELEASE_DATE = "20170527"
 
    real(kind=r8), parameter :: SQRT_PI        = 1.7724538509055160273_r8
    real(kind=r8), parameter :: INVERT_SQRT_PI = 0.5641895835477563275_r8
@@ -92,10 +92,6 @@ module ELSI_CONSTANTS
    ! Reading and writing tasks
    integer(kind=i4), parameter :: READ_FILE  = 0
    integer(kind=i4), parameter :: WRITE_FILE = 1
-
-   ! File formats
-   integer(kind=i4), parameter :: DENSE_FILE = 0
-   integer(kind=i4), parameter :: CSC_FILE   = 1
 
    ! Constants for ELSI file IO
    character(len=*), parameter :: UNSET_STRING  = "N/A"

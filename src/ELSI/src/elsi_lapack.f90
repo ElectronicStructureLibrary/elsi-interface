@@ -31,7 +31,6 @@
 !!
 module ELSI_LAPACK
 
-   use ELSI_CONSTANTS, only: UNSET
    use ELSI_DATATYPE,  only: elsi_handle
    use ELSI_IO,        only: elsi_say
    use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate

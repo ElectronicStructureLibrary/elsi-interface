@@ -58,8 +58,8 @@ subroutine elsi_stop(info,e_h,caller)
    type(elsi_handle), intent(in) :: e_h
    character(len=*),  intent(in) :: caller
 
-   character*200    :: info_str
-   integer(kind=i4) :: ierr
+   character(len=200) :: info_str
+   integer(kind=i4)   :: ierr
 
    if(e_h%global_mpi_ready) then
       write(info_str,"(A,I7,5A)") "**Error! MPI task ",e_h%myid_all," in ",&
@@ -101,7 +101,7 @@ subroutine elsi_get_processor_name(e_h,proc_name,proc_name_len)
 
    integer(kind=i4) :: ierr
 
-   character*40, parameter :: caller = "elsi_get_processor_name"
+   character(len=40), parameter :: caller = "elsi_get_processor_name"
 
    call MPI_Get_processor_name(proc_name,proc_name_len,ierr)
 

@@ -290,7 +290,6 @@ void c_elsi_get_edm_complex_sparse(elsi_handle handle_c,
 void c_elsi_init_rw(elsi_rw_handle *handle_c,
                     int rw_task,
                     int parallel_mode,
-                    int file_format,
                     int n_basis,
                     double n_electron);
 

@@ -34,8 +34,8 @@ module ELSI_MATCONV
    use ELSI_DATATYPE,  only: elsi_handle
    use ELSI_IO,        only: elsi_say
    use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
-   use ELSI_MPI,       only: elsi_stop,elsi_check_mpi,mpi_real8,mpi_complex16,&
-                             mpi_integer4,mpi_sum
+   use ELSI_MPI,       only: elsi_check_mpi,mpi_sum,mpi_real8,mpi_complex16,&
+                             mpi_integer4
    use ELSI_PRECISION, only: r8,i4,i8
    use ELSI_SORT,      only: elsi_heapsort
    use ELSI_TIMINGS,   only: elsi_get_time

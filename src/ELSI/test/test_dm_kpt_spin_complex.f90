@@ -209,7 +209,7 @@ program test_dm_kpt_spin_complex
 
    ! Read H and S matrices
    ! H and S are the same for all k-points and spin channels in this example
-   call elsi_init_rw(rw_h,0,1,1,0,0.0_r8)
+   call elsi_init_rw(rw_h,0,1,0,0.0_r8)
    call elsi_set_rw_mpi(rw_h,mpi_comm_group)
    call elsi_set_rw_blacs(rw_h,blacs_ctxt,blk)
 

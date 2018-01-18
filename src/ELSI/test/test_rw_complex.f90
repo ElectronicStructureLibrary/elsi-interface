@@ -124,10 +124,10 @@ program test_rw_complex
    ! Read H and S matrices
    if(n_proc == 1) then
       ! Test SINGLE_PROC mode
-      call elsi_init_rw(rw_h,0,0,1,0,0.0_r8)
+      call elsi_init_rw(rw_h,0,0,0,0.0_r8)
    else
       ! Test MULTI_PROC mode
-      call elsi_init_rw(rw_h,0,1,1,0,0.0_r8)
+      call elsi_init_rw(rw_h,0,1,0,0.0_r8)
       call elsi_set_rw_mpi(rw_h,mpi_comm_global)
       call elsi_set_rw_blacs(rw_h,blacs_ctxt,blk)
    endif
@@ -159,10 +159,10 @@ program test_rw_complex
 
    if(n_proc == 1) then
       ! Test SINGLE_PROC mode
-      call elsi_init_rw(rw_h,1,0,1,matrix_size,n_electrons)
+      call elsi_init_rw(rw_h,1,0,matrix_size,n_electrons)
    else
       ! Test MULTI_PROC mode
-      call elsi_init_rw(rw_h,1,1,1,matrix_size,n_electrons)
+      call elsi_init_rw(rw_h,1,1,matrix_size,n_electrons)
       call elsi_set_rw_mpi(rw_h,mpi_comm_global)
       call elsi_set_rw_blacs(rw_h,blacs_ctxt,blk)
    endif
@@ -185,10 +185,10 @@ program test_rw_complex
    ! Read H and S matrices
    if(n_proc == 1) then
       ! Test SINGLE_PROC mode
-      call elsi_init_rw(rw_h,0,0,1,0,0.0_r8)
+      call elsi_init_rw(rw_h,0,0,0,0.0_r8)
    else
       ! Test MULTI_PROC mode
-      call elsi_init_rw(rw_h,0,1,1,0,0.0_r8)
+      call elsi_init_rw(rw_h,0,1,0,0.0_r8)
       call elsi_set_rw_mpi(rw_h,mpi_comm_global)
       call elsi_set_rw_blacs(rw_h,blacs_ctxt,blk)
    endif
@@ -226,7 +226,7 @@ program test_rw_complex
    deallocate(ovlp_save)
 
    ! Read H and S matrices
-   call elsi_init_rw(rw_h,0,1,1,0,0.0_r8)
+   call elsi_init_rw(rw_h,0,1,0,0.0_r8)
    call elsi_set_rw_mpi(rw_h,mpi_comm_global)
 
    call elsi_read_mat_dim_sparse(rw_h,arg1,n_electrons,matrix_size,nnz_g,&
@@ -258,7 +258,7 @@ program test_rw_complex
    endif
 
    ! Test MULTI_PROC mode
-   call elsi_init_rw(rw_h,1,1,1,matrix_size,n_electrons)
+   call elsi_init_rw(rw_h,1,1,matrix_size,n_electrons)
    call elsi_set_rw_mpi(rw_h,mpi_comm_global)
    call elsi_set_rw_csc(rw_h,nnz_g,nnz_l,l_cols)
 
@@ -276,7 +276,7 @@ program test_rw_complex
    endif
 
    ! Read H and S matrices
-   call elsi_init_rw(rw_h,0,1,1,0,0.0_r8)
+   call elsi_init_rw(rw_h,0,1,0,0.0_r8)
    call elsi_set_rw_mpi(rw_h,mpi_comm_global)
 
    call elsi_read_mat_dim_sparse(rw_h,"H_complex.tmp",n_electrons,matrix_size,&

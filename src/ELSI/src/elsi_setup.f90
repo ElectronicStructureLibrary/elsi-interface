@@ -92,7 +92,7 @@ subroutine elsi_init(e_h,solver,parallel_mode,matrix_format,n_basis,n_electron,&
    real(kind=r8),     intent(in)  :: n_electron    !< Number of electrons
    integer(kind=i4),  intent(in)  :: n_state       !< Number of states
 
-   character*40, parameter :: caller = "elsi_init"
+   character(len=40), parameter :: caller = "elsi_init"
 
    ! For safety
    call elsi_cleanup(e_h)
@@ -171,7 +171,7 @@ subroutine elsi_set_mpi(e_h,mpi_comm)
 
    integer(kind=i4) :: ierr
 
-   character*40, parameter :: caller = "elsi_set_mpi"
+   character(len=40), parameter :: caller = "elsi_set_mpi"
 
    call elsi_check_handle(e_h,caller)
 
@@ -205,7 +205,7 @@ subroutine elsi_set_mpi_global(e_h,mpi_comm_all)
 
    integer(kind=i4) :: ierr
 
-   character*40, parameter :: caller = "elsi_set_mpi_global"
+   character(len=40), parameter :: caller = "elsi_set_mpi_global"
 
    call elsi_check_handle(e_h,caller)
 
@@ -285,7 +285,7 @@ subroutine elsi_set_blacs(e_h,blacs_ctxt,block_size)
 
    integer(kind=i4), external :: numroc
 
-   character*40, parameter :: caller = "elsi_set_blacs"
+   character(len=40), parameter :: caller = "elsi_set_blacs"
 
    call elsi_check_handle(e_h,caller)
 
@@ -356,7 +356,7 @@ subroutine elsi_set_csc(e_h,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)
    integer(kind=i4),  intent(in)    :: row_ind(nnz_l)    !< Row index
    integer(kind=i4),  intent(in)    :: col_ptr(n_lcol+1) !< Column pointer
 
-   character*40, parameter :: caller = "elsi_set_csc"
+   character(len=40), parameter :: caller = "elsi_set_csc"
 
    call elsi_check_handle(e_h,caller)
 
@@ -422,7 +422,7 @@ subroutine elsi_finalize(e_h)
 
    type(elsi_handle), intent(inout) :: e_h !< Handle
 
-   character*40, parameter :: caller = "elsi_finalize"
+   character(len=40), parameter :: caller = "elsi_finalize"
 
    call elsi_check_handle(e_h,caller)
    call elsi_final_print(e_h)
@@ -439,7 +439,7 @@ subroutine elsi_final_print(e_h)
 
    type(elsi_handle), intent(inout) :: e_h !< Handle
 
-   character*40, parameter :: caller = "elsi_final_print"
+   character(len=40), parameter :: caller = "elsi_final_print"
 
    if(e_h%stdio%file_format == JSON) then
       call elsi_stop(" elsi_final_print only supports HUMAN_READ format.",e_h,&
@@ -486,7 +486,7 @@ subroutine elsi_cleanup(e_h)
 
    integer(kind=i4) :: ierr
 
-   character*40, parameter :: caller = "elsi_cleanup"
+   character(len=40), parameter :: caller = "elsi_cleanup"
 
    ! ELPA
    if(allocated(e_h%ham_real_elpa)) then

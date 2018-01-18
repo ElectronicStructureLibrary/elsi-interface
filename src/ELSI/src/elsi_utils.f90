@@ -73,7 +73,7 @@ subroutine elsi_reset_handle(e_h)
 
    type(elsi_handle), intent(inout) :: e_h
 
-   character*40, parameter :: caller = "elsi_reset_handle"
+   character(len=40), parameter :: caller = "elsi_reset_handle"
 
    e_h%handle_init            = .false.
    e_h%handle_ready           = .false.
@@ -462,7 +462,7 @@ subroutine elsi_get_global_row(e_h,g_id,l_id)
    integer(kind=i4) :: blk
    integer(kind=i4) :: idx
 
-   character*40, parameter :: caller = "elsi_get_global_row"
+   character(len=40), parameter :: caller = "elsi_get_global_row"
 
    blk  = (l_id-1)/e_h%blk_row
    idx  = l_id-blk*e_h%blk_row
@@ -484,7 +484,7 @@ subroutine elsi_get_global_col(e_h,g_id,l_id)
    integer(kind=i4) :: blk
    integer(kind=i4) :: idx
 
-   character*40, parameter :: caller = "elsi_get_global_col"
+   character(len=40), parameter :: caller = "elsi_get_global_col"
 
    blk  = (l_id-1)/e_h%blk_col
    idx  = l_id-blk*e_h%blk_col
@@ -508,7 +508,7 @@ subroutine elsi_get_local_nnz_real(e_h,mat,n_row,n_col,nnz)
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
 
-   character*40, parameter :: caller = "elsi_get_local_nnz_real"
+   character(len=40), parameter :: caller = "elsi_get_local_nnz_real"
 
    nnz = 0
 
@@ -538,7 +538,7 @@ subroutine elsi_get_local_nnz_cmplx(e_h,mat,n_row,n_col,nnz)
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
 
-   character*40, parameter :: caller = "elsi_get_local_nnz_cmplx"
+   character(len=40), parameter :: caller = "elsi_get_local_nnz_cmplx"
 
    nnz = 0
 
@@ -568,7 +568,7 @@ subroutine elsi_trace_mat_real(e_h,mat,trace)
    integer(kind=i4) :: ierr
    real(kind=r8)    :: l_trace ! Local result
 
-   character*40, parameter :: caller = "elsi_trace_mat_real"
+   character(len=40), parameter :: caller = "elsi_trace_mat_real"
 
    l_trace = 0.0_r8
 
@@ -600,7 +600,7 @@ subroutine elsi_trace_mat_cmplx(e_h,mat,trace)
    integer(kind=i4) :: ierr
    complex(kind=r8) :: l_trace ! Local result
 
-   character*40, parameter :: caller = "elsi_trace_mat_cmplx"
+   character(len=40), parameter :: caller = "elsi_trace_mat_cmplx"
 
    l_trace = 0.0_r8
 
@@ -634,7 +634,7 @@ subroutine elsi_trace_mat_mat_real(e_h,mat1,mat2,trace)
 
    real(kind=r8), external :: ddot
 
-   character*40, parameter :: caller = "elsi_trace_mat_mat_real"
+   character(len=40), parameter :: caller = "elsi_trace_mat_mat_real"
 
    l_trace = ddot(e_h%n_lrow*e_h%n_lcol,mat1,1,mat2,1)
 
@@ -662,7 +662,7 @@ subroutine elsi_trace_mat_mat_cmplx(e_h,mat1,mat2,trace)
 
    complex(kind=r8), external :: zdotu
 
-   character*40, parameter :: caller = "elsi_trace_mat_mat_cmplx"
+   character(len=40), parameter :: caller = "elsi_trace_mat_mat_cmplx"
 
    l_trace = zdotu(e_h%n_lrow*e_h%n_lcol,mat1,1,mat2,1)
 
@@ -683,7 +683,7 @@ subroutine elsi_get_solver_tag(e_h,solver_tag,data_type)
    character(len=TIMING_STRING_LEN), intent(out) :: solver_tag
    integer(kind=i4),                 intent(in)  :: data_type
 
-   character*40, parameter :: caller = "elsi_get_solver_tag"
+   character(len=40), parameter :: caller = "elsi_get_solver_tag"
 
    if(data_type == REAL_VALUES) then
       select case(e_h%solver)
@@ -768,7 +768,7 @@ subroutine elsi_get_datetime_rfc3339(datetime_rfc3339)
    character(len=2) :: timezone_hour
    character(len=2) :: timezone_min
 
-   character*40, parameter :: caller = "elsi_get_datetime_rfc3339"
+   character(len=40), parameter :: caller = "elsi_get_datetime_rfc3339"
 
    call date_and_time(values=datetime)
 

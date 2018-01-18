@@ -37,12 +37,10 @@ module ELSI_SIPS
    use ELSI_MPI,       only: elsi_stop,elsi_check_mpi
    use ELSI_PRECISION, only: r8,i4
    use ELSI_TIMINGS,   only: elsi_get_time
-   use ELSI_UTILS,     only: elsi_get_global_row
-   use M_QETSC,        only: sips_initialize,sips_finalize,sips_load_ham_ovlp,&
-                             sips_load_ham,sips_update_ham,sips_set_eps,&
-                             sips_update_eps,sips_set_slices,sips_solve_eps,&
-                             sips_get_eigenvalues,sips_get_eigenvectors,&
-                             sips_get_inertias
+   use M_QETSC,        only: sips_initialize,sips_load_ham_ovlp,sips_load_ham,&
+                             sips_update_ham,sips_set_eps,sips_update_eps,&
+                             sips_set_slices,sips_solve_eps,sips_get_inertias,&
+                             sips_get_eigenvalues,sips_get_eigenvectors
 
    implicit none
 
@@ -64,9 +62,9 @@ subroutine elsi_init_sips(e_h)
 
    type(elsi_handle), intent(inout) :: e_h
 
-   character*200 :: info_str
+   character(len=200) :: info_str
 
-   character*40, parameter :: caller = "elsi_init_sips"
+   character(len=40), parameter :: caller = "elsi_init_sips"
 
    if(e_h%n_elsi_calls == e_h%sips_n_elpa+1) then
       call sips_initialize()
@@ -108,27 +106,27 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
    real(kind=r8),     intent(inout) :: ovlp(e_h%nnz_l_sp)
    real(kind=r8),     intent(inout) :: eval(e_h%n_states)
 
-   real(kind=r8)    :: t0
-   real(kind=r8)    :: t1
-   real(kind=r8)    :: lower
-   real(kind=r8)    :: upper
-   integer(kind=i4) :: i
-   integer(kind=i4) :: j
-   integer(kind=i4) :: this
-   integer(kind=i4) :: tmp
-   integer(kind=i4) :: n_iner_steps
-   integer(kind=i4) :: n_solved
-   integer(kind=i4) :: n_clst
-   integer(kind=i4) :: clst(100,3) ! Eigenvalue clusters
-   integer(kind=i4) :: ierr
-   logical          :: slices_changed
-   logical          :: stop_inertia
-   character*200    :: info_str
+   real(kind=r8)      :: t0
+   real(kind=r8)      :: t1
+   real(kind=r8)      :: lower
+   real(kind=r8)      :: upper
+   integer(kind=i4)   :: i
+   integer(kind=i4)   :: j
+   integer(kind=i4)   :: this
+   integer(kind=i4)   :: tmp
+   integer(kind=i4)   :: n_iner_steps
+   integer(kind=i4)   :: n_solved
+   integer(kind=i4)   :: n_clst
+   integer(kind=i4)   :: clst(100,3) ! Eigenvalue clusters
+   integer(kind=i4)   :: ierr
+   logical            :: slices_changed
+   logical            :: stop_inertia
+   character(len=200) :: info_str
 
    real(kind=r8),    allocatable :: slices(:)
    integer(kind=i4), allocatable :: inertias(:)
 
-   character*40, parameter :: caller = "elsi_solve_evp_sips_real"
+   character(len=40), parameter :: caller = "elsi_solve_evp_sips_real"
 
    ! Solve the eigenvalue problem
    call elsi_say(e_h,"  Starting SIPs eigensolver")
@@ -380,7 +378,7 @@ subroutine elsi_linspace(lower,upper,length,vec)
    integer(kind=i4), intent(in)  :: length
    real(kind=r8),    intent(out) :: vec(length)
 
-   character*40, parameter :: caller = "elsi_linspace"
+   character(len=40), parameter :: caller = "elsi_linspace"
 
    real(kind=r8)    :: step
    integer(kind=i4) :: i
@@ -402,7 +400,7 @@ subroutine elsi_set_sips_default(e_h)
 
    type(elsi_handle), intent(inout) :: e_h
 
-   character*40, parameter :: caller = "elsi_set_sips_default"
+   character(len=40), parameter :: caller = "elsi_set_sips_default"
 
    if(e_h%handle_ready) then
       e_h%handle_changed = .true.

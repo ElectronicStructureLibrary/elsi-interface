@@ -31,10 +31,9 @@
 module ELSI_MATIO
 
    use, intrinsic :: ISO_C_BINDING
-   use ELSI_CONSTANTS, only: HEADER_SIZE,BLACS_DENSE,DENSE_FILE,CSC_FILE,&
-                             READ_FILE,WRITE_FILE,REAL_VALUES,COMPLEX_VALUES,&
-                             FILE_VERSION,PEXSI_SOLVER,SIPS_SOLVER,MULTI_PROC,&
-                             SINGLE_PROC,UNSET
+   use ELSI_CONSTANTS, only: HEADER_SIZE,BLACS_DENSE,WRITE_FILE,REAL_VALUES,&
+                             COMPLEX_VALUES,FILE_VERSION,PEXSI_SOLVER,&
+                             SIPS_SOLVER,MULTI_PROC,SINGLE_PROC,UNSET
    use ELSI_DATATYPE,  only: elsi_handle,elsi_rw_handle
    use ELSI_IO,        only: elsi_say
    use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
@@ -81,14 +80,13 @@ contains
 !>
 !! This routine initializes a handle for reading and writing matrices.
 !!
-subroutine elsi_init_rw(rw_h,task,parallel_mode,file_format,n_basis,n_electron)
+subroutine elsi_init_rw(rw_h,task,parallel_mode,n_basis,n_electron)
 
    implicit none
 
    type(elsi_rw_handle), intent(out) :: rw_h          !< Handle
    integer(kind=i4),     intent(in)  :: task          !< READ_MAT,WRITE_MAT
    integer(kind=i4),     intent(in)  :: parallel_mode !< SINGLE_PROC,MULTI_PROC
-   integer(kind=i4),     intent(in)  :: file_format   !< DENSE_FILE,CSC_FILE
    integer(kind=i4),     intent(in)  :: n_basis       !< Number of basis functions
    real(kind=r8),        intent(in)  :: n_electron    !< Number of electrons
 
@@ -100,7 +98,6 @@ subroutine elsi_init_rw(rw_h,task,parallel_mode,file_format,n_basis,n_electron)
    rw_h%handle_init   = .true.
    rw_h%rw_task       = task
    rw_h%parallel_mode = parallel_mode
-   rw_h%file_format   = file_format
    rw_h%n_basis       = n_basis
    rw_h%n_electrons   = n_electron
 
@@ -355,7 +352,6 @@ subroutine elsi_reset_rw_handle(rw_h)
    rw_h%handle_changed = .false.
    rw_h%rw_task        = UNSET
    rw_h%parallel_mode  = UNSET
-   rw_h%file_format    = UNSET
    rw_h%print_info     = .false.
    rw_h%print_mem      = .false.
    rw_h%print_unit     = 6
@@ -1189,7 +1185,7 @@ subroutine elsi_write_mat_real_mp(rw_h,f_name,mat)
 
    ! Write header
    header(1)    = FILE_VERSION
-   header(2)    = rw_h%file_format
+   header(2)    = UNSET
    header(3)    = REAL_VALUES
    header(4)    = rw_h%n_basis
    header(5)    = int(rw_h%n_electrons,kind=i4)
@@ -1307,7 +1303,7 @@ subroutine elsi_write_mat_complex_mp(rw_h,f_name,mat)
 
    ! Write header
    header(1)    = FILE_VERSION
-   header(2)    = rw_h%file_format
+   header(2)    = UNSET
    header(3)    = COMPLEX_VALUES
    header(4)    = rw_h%n_basis
    header(5)    = int(rw_h%n_electrons,kind=i4)
@@ -1409,7 +1405,7 @@ subroutine elsi_write_mat_real_sparse(rw_h,f_name,row_ind,col_ptr,mat)
 
    ! Write header
    header(1)    = FILE_VERSION
-   header(2)    = rw_h%file_format
+   header(2)    = UNSET
    header(3)    = REAL_VALUES
    header(4)    = rw_h%n_basis
    header(5)    = int(rw_h%n_electrons,kind=i4)
@@ -1513,7 +1509,7 @@ subroutine elsi_write_mat_complex_sparse(rw_h,f_name,row_ind,col_ptr,mat)
 
    ! Write header
    header(1)    = FILE_VERSION
-   header(2)    = rw_h%file_format
+   header(2)    = UNSET
    header(3)    = COMPLEX_VALUES
    header(4)    = rw_h%n_basis
    header(5)    = int(rw_h%n_electrons,kind=i4)
@@ -1909,7 +1905,7 @@ subroutine elsi_write_mat_real_sp(rw_h,f_name,mat)
 
    ! Write header
    header(1)    = FILE_VERSION
-   header(2)    = rw_h%file_format
+   header(2)    = UNSET
    header(3)    = REAL_VALUES
    header(4)    = rw_h%n_basis
    header(5)    = int(rw_h%n_electrons,kind=i4)
@@ -2021,7 +2017,7 @@ subroutine elsi_write_mat_complex_sp(rw_h,f_name,mat)
 
    ! Write header
    header(1)    = FILE_VERSION
-   header(2)    = rw_h%file_format
+   header(2)    = UNSET
    header(3)    = COMPLEX_VALUES
    header(4)    = rw_h%n_basis
    header(5)    = int(rw_h%n_electrons,kind=i4)

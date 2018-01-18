@@ -337,9 +337,6 @@ module ELSI_DATATYPE
       ! Matrix format (BLACS_DENSE=0,PEXSI_CSC=1)
       integer(kind=i4) :: matrix_format
 
-      ! File format (DENSE_FILE=0,CSC_FILE=1)
-      integer(kind=i4) :: file_format
-
       ! Output
       logical          :: print_info
       logical          :: print_mem

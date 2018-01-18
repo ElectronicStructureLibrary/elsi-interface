@@ -34,7 +34,7 @@ module ELSI_IO
                              SINGLE_PROC,ELPA_SOLVER,SIPS_SOLVER,OMM_SOLVER,&
                              PEXSI_SOLVER,CHESS_SOLVER,DMP_SOLVER,BLACS_DENSE,&
                              PEXSI_CSC,COMMA_AFTER,NO_COMMA
-   use ELSI_DATATYPE,  only: elsi_handle,elsi_file_io_handle,elsi_timings_handle
+   use ELSI_DATATYPE,  only: elsi_handle,elsi_file_io_handle
    use ELSI_MPI,       only: elsi_stop
    use ELSI_PRECISION, only: r8,i4
 
@@ -84,6 +84,8 @@ subroutine elsi_say(e_h,info_str,io_h_in)
 
    type(elsi_file_io_handle) :: io_h
 
+   character(len=40), parameter :: caller = "elsi_init_io"
+
    if(present(io_h_in)) then
       io_h = io_h_in
    else
@@ -116,7 +118,7 @@ subroutine elsi_init_file_io(io_h,print_unit,file_name,file_format,print_info,&
    character(len=*),          intent(in), optional :: prefix
    integer(kind=i4),          intent(in), optional :: comma_json
 
-   character*40, parameter :: caller = "elsi_init_io"
+   character(len=40), parameter :: caller = "elsi_init_io"
 
    ! For safety
    call elsi_reset_file_io_handle(io_h)
@@ -169,7 +171,7 @@ subroutine elsi_finalize_file_io(e_h,io_h)
    type(elsi_handle),         intent(in)    :: e_h
    type(elsi_file_io_handle), intent(inout) :: io_h
 
-   character*40, parameter :: caller = "elsi_finalize_file_io"
+   character(len=40), parameter :: caller = "elsi_finalize_file_io"
 
    call elsi_check_file_io_handle(e_h,io_h,caller)
    call elsi_reset_file_io_handle(io_h)
@@ -203,7 +205,7 @@ subroutine elsi_reset_file_io_handle(io_h)
 
    type(elsi_file_io_handle), intent(inout) :: io_h
 
-   character*40, parameter :: caller = "elsi_reset_file_io_handle"
+   character(len=40), parameter :: caller = "elsi_reset_file_io_handle"
 
    io_h%handle_init = .false.
    io_h%print_unit  = UNSET
@@ -231,9 +233,9 @@ subroutine elsi_print_handle_summary(e_h,io_h_in)
    real(kind=r8)             :: sparsity
    integer(kind=i4)          :: comma_json_save
    type(elsi_file_io_handle) :: io_h
-   character*200             :: info_str
+   character(len=200)        :: info_str
 
-   character*40, parameter :: caller = "elsi_print_handle_summary"
+   character(len=40), parameter :: caller = "elsi_print_handle_summary"
 
    if(present(io_h_in)) then
       io_h = io_h_in
@@ -363,9 +365,9 @@ subroutine elsi_print_settings(e_h)
 
    type(elsi_handle), intent(in) :: e_h !< Handle
 
-   character*200 :: info_str
+   character(len=200) :: info_str
 
-   character*40, parameter :: caller = "elsi_print_settings"
+   character(len=40), parameter :: caller = "elsi_print_settings"
 
    select case(e_h%solver)
    case(CHESS_SOLVER)
@@ -492,7 +494,7 @@ subroutine elsi_print_solver_settings(e_h,io_h_in)
 
    type(elsi_file_io_handle) :: io_h
 
-   character*40, parameter :: caller = "elsi_print_solver_settings"
+   character(len=40), parameter :: caller = "elsi_print_solver_settings"
 
    if(present(io_h_in)) then
       io_h = io_h_in
@@ -531,9 +533,9 @@ subroutine elsi_print_chess_settings(e_h,io_h_in)
 
    integer(kind=i4)          :: comma_json_save
    type(elsi_file_io_handle) :: io_h
-   character*200             :: info_str
+   character(len=200)        :: info_str
 
-   character*40, parameter :: caller = "elsi_print_chess_settings"
+   character(len=40), parameter :: caller = "elsi_print_chess_settings"
 
    if(present(io_h_in)) then
       io_h = io_h_in
@@ -593,9 +595,9 @@ subroutine elsi_print_dmp_settings(e_h,io_h_in)
 
    integer(kind=i4)          :: comma_json_save
    type(elsi_file_io_handle) :: io_h
-   character*200             :: info_str
+   character(len=200)        :: info_str
 
-   character*40, parameter :: caller = "elsi_print_dmp_settings"
+   character(len=40), parameter :: caller = "elsi_print_dmp_settings"
 
    if(present(io_h_in)) then
       io_h = io_h_in
@@ -652,9 +654,9 @@ subroutine elsi_print_elpa_settings(e_h,io_h_in)
 
    integer(kind=i4)          :: comma_json_save
    type(elsi_file_io_handle) :: io_h
-   character*200             :: info_str
+   character(len=200)        :: info_str
 
-   character*40, parameter :: caller = "elsi_print_elpa_settings"
+   character(len=40), parameter :: caller = "elsi_print_elpa_settings"
 
    if(present(io_h_in)) then
       io_h = io_h_in
@@ -709,9 +711,9 @@ subroutine elsi_print_omm_settings(e_h,io_h_in)
 
    integer(kind=i4)          :: comma_json_save
    type(elsi_file_io_handle) :: io_h
-   character*200             :: info_str
+   character(len=200)        :: info_str
 
-   character*40, parameter :: caller = "elsi_print_omm_settings"
+   character(len=40), parameter :: caller = "elsi_print_omm_settings"
 
    if(present(io_h_in)) then
       io_h = io_h_in
@@ -767,9 +769,9 @@ subroutine elsi_print_pexsi_settings(e_h,io_h_in)
 
    integer(kind=i4)          :: comma_json_save
    type(elsi_file_io_handle) :: io_h
-   character*200             :: info_str
+   character(len=200)        :: info_str
 
-   character*40, parameter :: caller = "elsi_print_pexsi_settings"
+   character(len=40), parameter :: caller = "elsi_print_pexsi_settings"
 
    if(present(io_h_in)) then
       io_h = io_h_in
@@ -831,9 +833,9 @@ subroutine elsi_print_sips_settings(e_h,io_h_in)
 
    integer(kind=i4)          :: comma_json_save
    type(elsi_file_io_handle) :: io_h
-   character*200             :: info_str
+   character(len=200)        :: info_str
 
-   character*40, parameter :: caller = "elsi_print_sips_settings"
+   character(len=40), parameter :: caller = "elsi_print_sips_settings"
 
    if(present(io_h_in)) then
       io_h = io_h_in
@@ -890,7 +892,7 @@ subroutine elsi_print_matrix_format_settings(e_h,io_h_in)
 
    type(elsi_file_io_handle) :: io_h
 
-   character*40, parameter :: caller = "elsi_print_matrix_format_settings"
+   character(len=40), parameter :: caller = "elsi_print_matrix_format_settings"
 
    if(present(io_h_in)) then
       io_h = io_h_in
@@ -921,9 +923,9 @@ subroutine elsi_print_blacs_dense_settings(e_h,io_h_in)
 
    integer(kind=i4)          :: comma_json_save
    type(elsi_file_io_handle) :: io_h
-   character*200             :: info_str
+   character(len=200)        :: info_str
 
-   character*40, parameter :: caller = "elsi_print_blacs_dense_settings"
+   character(len=40), parameter :: caller = "elsi_print_blacs_dense_settings"
 
    if(present(io_h_in)) then
       io_h = io_h_in
@@ -980,9 +982,9 @@ subroutine elsi_print_pexsi_csc_settings(e_h,io_h_in)
 
    integer(kind=i4)          :: comma_json_save
    type(elsi_file_io_handle) :: io_h
-   character*200             :: info_str
+   character(len=200)        :: info_str
 
-   character*40, parameter :: caller = "elsi_print_pexsi_csc_settings"
+   character(len=40), parameter :: caller = "elsi_print_pexsi_csc_settings"
 
    if(present(io_h_in)) then
       io_h = io_h_in
@@ -1037,12 +1039,11 @@ subroutine elsi_say_setting_i4(e_h,label,setting,io_h_in)
    integer(kind=i4),          intent(in)           :: setting
    type(elsi_file_io_handle), intent(in), optional :: io_h_in
 
-   character(len=27) :: label_ljust
-   character(len=20) :: int_string
-
+   character(len=27)         :: label_ljust
+   character(len=20)         :: int_string
    type(elsi_file_io_handle) :: io_h
 
-   character*40, parameter :: caller = "elsi_say_setting_i4"
+   character(len=40), parameter :: caller = "elsi_say_setting_i4"
 
    if(present(io_h_in)) then
       io_h = io_h_in
@@ -1100,12 +1101,11 @@ subroutine elsi_say_setting_r8(e_h,label,setting,io_h_in)
    real(kind=r8),             intent(in)           :: setting
    type(elsi_file_io_handle), intent(in), optional :: io_h_in
 
-   character(len=27) :: label_ljust
-   character(len=20) :: real_string
-
+   character(len=27)         :: label_ljust
+   character(len=20)         :: real_string
    type(elsi_file_io_handle) :: io_h
 
-   character*40, parameter :: caller = "elsi_say_setting_r8"
+   character(len=40), parameter :: caller = "elsi_say_setting_r8"
 
    if(present(io_h_in)) then
       io_h = io_h_in
@@ -1163,12 +1163,11 @@ subroutine elsi_say_setting_log(e_h,label,setting,io_h_in)
    logical,                   intent(in)           :: setting
    type(elsi_file_io_handle), intent(in), optional :: io_h_in
 
-   character(len=27) :: label_ljust
-   character(len=20) :: log_string
-
+   character(len=27)         :: label_ljust
+   character(len=20)         :: log_string
    type(elsi_file_io_handle) :: io_h
 
-   character*40, parameter :: caller = "elsi_say_setting_log"
+   character(len=40), parameter :: caller = "elsi_say_setting_log"
 
    if(present(io_h_in)) then
       io_h = io_h_in
@@ -1241,11 +1240,10 @@ subroutine elsi_say_setting_str(e_h,label,setting,io_h_in)
    character(len=*),          intent(in)           :: setting
    type(elsi_file_io_handle), intent(in), optional :: io_h_in
 
-   character(len=27) :: label_ljust
-
+   character(len=27)         :: label_ljust
    type(elsi_file_io_handle) :: io_h
 
-   character*40, parameter :: caller = "elsi_say_setting_str"
+   character(len=40), parameter :: caller = "elsi_say_setting_str"
 
    if(present(io_h_in)) then
       io_h = io_h_in

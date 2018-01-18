@@ -79,12 +79,12 @@ subroutine elsi_init_pexsi(e_h)
 
    type(elsi_handle), intent(inout) :: e_h
 
-   integer(kind=i4) :: n_rows_tmp
-   integer(kind=i4) :: output_id
-   integer(kind=i4) :: ierr
-   character*200    :: info_str
+   integer(kind=i4)   :: n_rows_tmp
+   integer(kind=i4)   :: output_id
+   integer(kind=i4)   :: ierr
+   character(len=200) :: info_str
 
-   character*40, parameter :: caller = "elsi_init_pexsi"
+   character(len=40), parameter :: caller = "elsi_init_pexsi"
 
    if(e_h%handle_ready) then
       e_h%handle_changed = .true.
@@ -181,34 +181,34 @@ subroutine elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
    real(kind=r8),     intent(inout) :: ovlp(e_h%nnz_l_sp)
    real(kind=r8),     intent(inout) :: dm(e_h%nnz_l_sp)
 
-   real(kind=r8)    :: ne_drv
-   real(kind=r8)    :: mu_range
-   real(kind=r8)    :: shift_width
-   real(kind=r8)    :: local_energy
-   real(kind=r8)    :: factor_min
-   real(kind=r8)    :: factor_max
-   real(kind=r8)    :: t0
-   real(kind=r8)    :: t1
-   integer(kind=i4) :: n_iner_steps
-   integer(kind=i4) :: n_shift
-   integer(kind=i4) :: aux_min
-   integer(kind=i4) :: aux_max
-   integer(kind=i4) :: i
-   integer(kind=i4) :: idx
-   integer(kind=i4) :: ierr
-   logical          :: converged
-   character*200    :: info_str
+   real(kind=r8)      :: ne_drv
+   real(kind=r8)      :: mu_range
+   real(kind=r8)      :: shift_width
+   real(kind=r8)      :: local_energy
+   real(kind=r8)      :: factor_min
+   real(kind=r8)      :: factor_max
+   real(kind=r8)      :: t0
+   real(kind=r8)      :: t1
+   integer(kind=i4)   :: n_iner_steps
+   integer(kind=i4)   :: n_shift
+   integer(kind=i4)   :: aux_min
+   integer(kind=i4)   :: aux_max
+   integer(kind=i4)   :: i
+   integer(kind=i4)   :: idx
+   integer(kind=i4)   :: ierr
+   logical            :: converged
+   character(len=200) :: info_str
 
-   real(kind=r8),    allocatable :: shifts(:)
-   real(kind=r8),    allocatable :: inertias(:)
-   real(kind=r8),    allocatable :: ne_lower(:)
-   real(kind=r8),    allocatable :: ne_upper(:)
-   real(kind=r8),    allocatable :: tmp_real(:)
-   real(kind=r8),    allocatable :: send_buf(:)
+   real(kind=r8), allocatable :: shifts(:)
+   real(kind=r8), allocatable :: inertias(:)
+   real(kind=r8), allocatable :: ne_lower(:)
+   real(kind=r8), allocatable :: ne_upper(:)
+   real(kind=r8), allocatable :: tmp_real(:)
+   real(kind=r8), allocatable :: send_buf(:)
 
-   real(kind=r8),    external :: ddot
+   real(kind=r8), external :: ddot
 
-   character*40,  parameter :: caller = "elsi_solve_evp_pexsi_real"
+   character(len=40), parameter :: caller = "elsi_solve_evp_pexsi_real"
 
    ! Load sparse matrices for PEXSI
    if(e_h%ovlp_is_unit) then
@@ -551,25 +551,25 @@ subroutine elsi_compute_edm_pexsi_real(e_h,edm)
    type(elsi_handle), intent(inout) :: e_h
    real(kind=r8),     intent(inout) :: edm(e_h%nnz_l_sp)
 
-   real(kind=r8)    :: mu_range
-   real(kind=r8)    :: shift_width
-   real(kind=r8)    :: local_energy
-   real(kind=r8)    :: factor_min
-   real(kind=r8)    :: factor_max
-   real(kind=r8)    :: t0
-   real(kind=r8)    :: t1
-   integer(kind=i4) :: aux_min
-   integer(kind=i4) :: aux_max
-   integer(kind=i4) :: i
-   integer(kind=i4) :: ierr
-   logical          :: converged
-   character*200    :: info_str
+   real(kind=r8)      :: mu_range
+   real(kind=r8)      :: shift_width
+   real(kind=r8)      :: local_energy
+   real(kind=r8)      :: factor_min
+   real(kind=r8)      :: factor_max
+   real(kind=r8)      :: t0
+   real(kind=r8)      :: t1
+   integer(kind=i4)   :: aux_min
+   integer(kind=i4)   :: aux_max
+   integer(kind=i4)   :: i
+   integer(kind=i4)   :: ierr
+   logical            :: converged
+   character(len=200) :: info_str
 
-   real(kind=r8),    allocatable :: shifts(:)
-   real(kind=r8),    allocatable :: tmp_real(:)
-   real(kind=r8),    allocatable :: send_buf(:)
+   real(kind=r8), allocatable :: shifts(:)
+   real(kind=r8), allocatable :: tmp_real(:)
+   real(kind=r8), allocatable :: send_buf(:)
 
-   character*40, parameter :: caller = "elsi_compute_edm_pexsi_real"
+   character(len=40), parameter :: caller = "elsi_compute_edm_pexsi_real"
 
    call elsi_get_time(e_h,t0)
 
@@ -709,24 +709,24 @@ subroutine elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
    complex(kind=r8),  intent(inout) :: ovlp(e_h%nnz_l_sp)
    complex(kind=r8),  intent(inout) :: dm(e_h%nnz_l_sp)
 
-   real(kind=r8)    :: ne_drv
-   real(kind=r8)    :: mu_range
-   real(kind=r8)    :: shift_width
-   real(kind=r8)    :: local_energy
-   real(kind=r8)    :: factor_min
-   real(kind=r8)    :: factor_max
-   real(kind=r8)    :: t0
-   real(kind=r8)    :: t1
-   complex(kind=r8) :: local_cmplx
-   integer(kind=i4) :: n_iner_steps
-   integer(kind=i4) :: n_shift
-   integer(kind=i4) :: aux_min
-   integer(kind=i4) :: aux_max
-   integer(kind=i4) :: i
-   integer(kind=i4) :: idx
-   integer(kind=i4) :: ierr
-   logical          :: converged
-   character*200    :: info_str
+   real(kind=r8)      :: ne_drv
+   real(kind=r8)      :: mu_range
+   real(kind=r8)      :: shift_width
+   real(kind=r8)      :: local_energy
+   real(kind=r8)      :: factor_min
+   real(kind=r8)      :: factor_max
+   real(kind=r8)      :: t0
+   real(kind=r8)      :: t1
+   complex(kind=r8)   :: local_cmplx
+   integer(kind=i4)   :: n_iner_steps
+   integer(kind=i4)   :: n_shift
+   integer(kind=i4)   :: aux_min
+   integer(kind=i4)   :: aux_max
+   integer(kind=i4)   :: i
+   integer(kind=i4)   :: idx
+   integer(kind=i4)   :: ierr
+   logical            :: converged
+   character(len=200) :: info_str
 
    real(kind=r8),    allocatable :: shifts(:)
    real(kind=r8),    allocatable :: inertias(:)
@@ -738,7 +738,7 @@ subroutine elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
 
    complex(kind=r8), external :: zdotu
 
-   character*40,  parameter :: caller = "elsi_solve_evp_pexsi_cmplx"
+   character(len=40), parameter :: caller = "elsi_solve_evp_pexsi_cmplx"
 
    ! Load sparse matrices for PEXSI
    if(e_h%ovlp_is_unit) then
@@ -1085,25 +1085,25 @@ subroutine elsi_compute_edm_pexsi_cmplx(e_h,edm)
    type(elsi_handle), intent(inout) :: e_h
    complex(kind=r8),  intent(inout) :: edm(e_h%nnz_l_sp)
 
-   real(kind=r8)    :: mu_range
-   real(kind=r8)    :: shift_width
-   real(kind=r8)    :: local_energy
-   real(kind=r8)    :: factor_min
-   real(kind=r8)    :: factor_max
-   real(kind=r8)    :: t0
-   real(kind=r8)    :: t1
-   integer(kind=i4) :: aux_min
-   integer(kind=i4) :: aux_max
-   integer(kind=i4) :: i
-   integer(kind=i4) :: ierr
-   logical          :: converged
-   character*200    :: info_str
+   real(kind=r8)      :: mu_range
+   real(kind=r8)      :: shift_width
+   real(kind=r8)      :: local_energy
+   real(kind=r8)      :: factor_min
+   real(kind=r8)      :: factor_max
+   real(kind=r8)      :: t0
+   real(kind=r8)      :: t1
+   integer(kind=i4)   :: aux_min
+   integer(kind=i4)   :: aux_max
+   integer(kind=i4)   :: i
+   integer(kind=i4)   :: ierr
+   logical            :: converged
+   character(len=200) :: info_str
 
    real(kind=r8),    allocatable :: shifts(:)
    complex(kind=r8), allocatable :: tmp_cmplx(:)
    complex(kind=r8), allocatable :: send_buf_cmplx(:)
 
-   character*40, parameter :: caller = "elsi_compute_edm_pexsi_cmplx"
+   character(len=40), parameter :: caller = "elsi_compute_edm_pexsi_cmplx"
 
    call elsi_get_time(e_h,t0)
 
@@ -1242,7 +1242,7 @@ subroutine elsi_set_pexsi_default(e_h)
 
    type(elsi_handle), intent(inout) :: e_h
 
-   character*40, parameter :: caller = "elsi_set_pexsi_default"
+   character(len=40), parameter :: caller = "elsi_set_pexsi_default"
 
    if(e_h%handle_ready) then
       e_h%handle_changed = .true.

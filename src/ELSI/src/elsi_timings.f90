@@ -33,7 +33,6 @@ module ELSI_TIMINGS
    use ELSI_CONSTANTS, only: TIMING_STRING_LEN,UNSET,UNSET_STRING
    use ELSI_DATATYPE,  only: elsi_handle,elsi_timings_handle
    use ELSI_IO,        only: elsi_say
-   use ELSI_MPI,       only: elsi_stop
    use ELSI_PRECISION, only: i4,r8
 
    implicit none
@@ -63,7 +62,7 @@ subroutine elsi_init_timer(e_h)
    integer(kind=i4) :: initial_time
    integer(kind=i4) :: clock_max
 
-   character*40, parameter :: caller = "elsi_init_timer"
+   character(len=40), parameter :: caller = "elsi_init_timer"
 
    if(e_h%handle_ready) then
       e_h%handle_changed = .true.
@@ -85,7 +84,7 @@ subroutine elsi_get_time(e_h,wtime)
 
    integer(kind=i4) :: tics
 
-   character*40, parameter :: caller = "elsi_get_time"
+   character(len=40), parameter :: caller = "elsi_get_time"
 
    call system_clock(tics)
 
@@ -103,7 +102,7 @@ subroutine elsi_init_timings(t_h,set_label)
    type(elsi_timings_handle),  intent(inout)        :: t_h
    character(len=*),           intent(in), optional :: set_label
 
-   character*40, parameter :: caller = "elsi_init_timings"
+   character(len=40), parameter :: caller = "elsi_init_timings"
 
    t_h%size_timings = STARTING_SIZE_TIMINGS
    t_h%n_timings    = 0
@@ -135,7 +134,7 @@ subroutine elsi_resize_timing_arrays(t_h)
    character(len=TIMING_STRING_LEN), allocatable :: tmp_elsi_tags(:)
    character(len=TIMING_STRING_LEN), allocatable :: tmp_user_tags(:)
 
-   character*40, parameter :: caller = "elsi_resize_timing_arrays"
+   character(len=40), parameter :: caller = "elsi_resize_timing_arrays"
 
    allocate(tmp_times(t_h%size_timings))
    allocate(tmp_elsi_tags(t_h%size_timings))
@@ -188,7 +187,7 @@ subroutine elsi_add_timing(t_h,time,elsi_tag,user_tag_in,iter_in)
    character(len=TIMING_STRING_LEN) :: user_tag
    integer(kind=i4)                 :: iter
 
-   character*40, parameter :: caller = "elsi_add_timings"
+   character(len=40), parameter :: caller = "elsi_add_timings"
 
    if(present(iter_in)) then
       iter = iter_in
@@ -224,10 +223,10 @@ subroutine elsi_print_timings(e_h,t_h)
    type(elsi_handle),         intent(in) :: e_h
    type(elsi_timings_handle), intent(in) :: t_h
 
-   character*200    :: info_str
-   integer(kind=i4) :: iter
+   character(len=200) :: info_str
+   integer(kind=i4)   :: iter
 
-   character*40, parameter :: caller = "elsi_print_timings"
+   character(len=40), parameter :: caller = "elsi_print_timings"
 
    write(info_str,"(A,A)") "Timing Set:        ",t_h%set_label
    call elsi_say(e_h,info_str)
@@ -252,7 +251,7 @@ subroutine elsi_finalize_timings(t_h)
 
    type(elsi_timings_handle), intent(inout) :: t_h
 
-   character*40, parameter :: caller = "elsi_finalize_timings"
+   character(len=40), parameter :: caller = "elsi_finalize_timings"
 
    if(allocated(t_h%times)) then
       deallocate(t_h%times)
