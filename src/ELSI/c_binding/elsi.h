@@ -232,9 +232,6 @@ void c_elsi_set_sips_slice_type(elsi_handle handle_c,
 void c_elsi_set_sips_buffer(elsi_handle handle_c,
                             double buffer);
 
-void c_elsi_set_sips_ev_shift(elsi_handle handle_c,
-                              double ev_shift);
-
 void c_elsi_set_sips_interval(elsi_handle handle_c,
                               double lower,
                               double upper);

@@ -89,7 +89,6 @@ module ELSI_MUTATOR
    public :: elsi_set_sips_n_elpa
    public :: elsi_set_sips_n_slice
    public :: elsi_set_sips_buffer
-   public :: elsi_set_sips_ev_shift
    public :: elsi_set_sips_slice_type
    public :: elsi_set_sips_interval
    public :: elsi_set_dmp_method
@@ -968,28 +967,6 @@ subroutine elsi_set_sips_buffer(e_h,buffer)
    endif
 
    e_h%sips_buffer = buffer
-
-end subroutine
-
-!>
-!! This routine specifies a shift to the eigenspectrum between SCF steps.
-!!
-subroutine elsi_set_sips_ev_shift(e_h,ev_shift)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: e_h      !< Handle
-   real(kind=r8),     intent(in)    :: ev_shift !< Shift value
-
-   character(len=40), parameter :: caller = "elsi_set_sips_ev_shift"
-
-   call elsi_check_handle(e_h,caller)
-
-   if(e_h%handle_ready) then
-      e_h%handle_changed = .true.
-   endif
-
-   e_h%sips_ev_shift = ev_shift
 
 end subroutine
 

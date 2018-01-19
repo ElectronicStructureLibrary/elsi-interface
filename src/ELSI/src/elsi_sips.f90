@@ -113,11 +113,10 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
    integer(kind=i4)   :: i
    integer(kind=i4)   :: j
    integer(kind=i4)   :: this
-   integer(kind=i4)   :: tmp
    integer(kind=i4)   :: n_iner_steps
    integer(kind=i4)   :: n_solved
    integer(kind=i4)   :: n_clst
-   integer(kind=i4)   :: clst(100,3) ! Eigenvalue clusters
+   integer(kind=i4)   :: clst(50,2) ! Eigenvalue clusters
    integer(kind=i4)   :: ierr
    logical            :: slices_changed
    logical            :: stop_inertia
@@ -165,10 +164,10 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
    call elsi_allocate(e_h,slices,e_h%sips_n_slices+1,"slices",caller)
 
    ! Generate new slices based on previous eigenvalues
-   eval      = eval+e_h%sips_ev_shift
    n_clst    = 1
    clst      = 0
    clst(1,1) = 1
+   clst(1,2) = 1
 
    do i = 1,e_h%n_states-1
       if(eval(i+1)-eval(i) > 1.0_r8) then
@@ -198,12 +197,12 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
             call sips_get_inertias(e_h%sips_n_slices,slices,inertias)
 
             if(inertias(1) > 0) then
-               slices(1)    = slices(1)-0.1_r8
+               slices(1)    = slices(1)-0.1
                stop_inertia = .false.
             endif
 
             if(inertias(e_h%sips_n_slices+1) < e_h%n_states) then
-               slices(e_h%sips_n_slices+1) = slices(e_h%sips_n_slices+1)+0.1_r8
+               slices(e_h%sips_n_slices+1) = slices(e_h%sips_n_slices+1)+0.1
                stop_inertia                = .false.
             endif
          enddo
@@ -223,26 +222,20 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
          call elsi_say(e_h,info_str)
       endif
    else
-      tmp = 0
-
       do i = 1,n_clst-1
-         this      = (clst(i+1,1)-clst(i,1))*(e_h%sips_n_slices-n_clst+1)/&
-                        e_h%n_states
-         this      = max(1,this)
-         clst(i,2) = tmp+1
-         clst(i,3) = tmp+this+1
-         tmp       = tmp+this+1
+         this        = (clst(i+1,1)-clst(i,1))/e_h%n_states
+         this        = max(1,this*(e_h%sips_n_slices+1))
+         clst(i+1,2) = clst(i,2)+this+1
       enddo
 
-      clst(n_clst,2) = tmp+1
-      clst(n_clst,3) = e_h%sips_n_slices+1
+      clst(n_clst+1,2) = e_h%sips_n_slices+2
 
       do i = 1,n_clst
          lower = eval(clst(i,1))-e_h%sips_buffer
          upper = eval(clst(i+1,1)-1)+e_h%sips_buffer
-         this  = clst(i,3)-clst(i,2)+1
+         this  = clst(i+1,2)-clst(i,2)
 
-         call elsi_linspace(lower,upper,this,slices(clst(i,2):clst(i,3)))
+         call elsi_linspace(lower,upper,this,slices(clst(i,2):clst(i+1,2)-1))
       enddo
 
       if(e_h%sips_do_inertia) then ! Inertia counting
@@ -262,8 +255,7 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
             ! DEBUG
             if(e_h%myid == 0) then
                print *
-               print *,"QETSc inertia counting iteration",n_iner_steps
-               print *,"Shifts                  :    Inertias"
+               print *,"SIPs inertia counting #",n_iner_steps
                do i = 1,e_h%sips_n_slices+1
                   print *,slices(i),":",inertias(i)
                enddo
@@ -278,7 +270,7 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
             slices_changed = .false.
 
             do i = 1,n_clst
-               do j = clst(i,2),clst(i,3)
+               do j = clst(i,2),clst(i+1,2)-1
                   if(inertias(j) > clst(i,1)-1) then
                      if(j == clst(i,2)) then
                         slices(clst(i,2)) = slices(clst(i,2))-0.1_r8
@@ -292,14 +284,14 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
                   endif
                enddo
 
-               do j = clst(i,3),clst(i,2),-1
+               do j = clst(i+1,2)-1,clst(i,2),-1
                   if(inertias(j) < clst(i+1,1)-1) then
-                     if(j == clst(i,3)) then
-                        slices(clst(i,3)) = slices(clst(i,3))+0.1_r8
-                        slices_changed    = .true.
-                     elseif(j+1 /= clst(i,3)) then
-                        slices(clst(i,3)) = slices(j+1)
-                        slices_changed    = .true.
+                     if(j == clst(i+1,2)-1) then
+                        slices(clst(i+1,2)-1) = slices(clst(i+1,2)-1)+0.1_r8
+                        slices_changed        = .true.
+                     elseif(j+1 /= clst(i+1,2)-1) then
+                        slices(clst(i+1,2)-1) = slices(j+1)
+                        slices_changed        = .true.
                      endif
 
                      exit
@@ -307,10 +299,11 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
                enddo
 
                lower = slices(clst(i,2))
-               upper = slices(clst(i,3))
-               this  = clst(i,3)-clst(i,2)+1
+               upper = slices(clst(i+1,2)-1)
+               this  = clst(i+1,2)-clst(i,2)
 
-               call elsi_linspace(lower,upper,this,slices(clst(i,2):clst(i,3)))
+               call elsi_linspace(lower,upper,this,&
+                       slices(clst(i,2):clst(i+1,2)-1))
             enddo
 
             if(slices_changed .and. n_iner_steps < 5) then
@@ -409,11 +402,8 @@ subroutine elsi_set_sips_default(e_h)
    ! How many steps of ELPA to run before SIPs
    e_h%sips_n_elpa = 1
 
-   ! Buffer to adjust global interval
+   ! Buffer to adjust interval
    e_h%sips_buffer = 0.01_r8
-
-   ! Shift of eigenspectrum between SCF steps
-   e_h%sips_ev_shift = 0.0_r8
 
    ! Do inertia counting
    e_h%sips_do_inertia = .true.
