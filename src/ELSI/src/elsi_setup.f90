@@ -42,7 +42,7 @@ module ELSI_SETUP
    use ELSI_IO,            only: elsi_print_handle_summary,elsi_say,&
                                  elsi_say_setting,elsi_init_file_io,&
                                  elsi_reset_file_io_handle,append_string,&
-                                 truncate_string
+                                 truncate_string,elsi_print_versioning
    use ELSI_MALLOC,        only: elsi_allocate,elsi_deallocate
    use ELSI_MPI,           only: elsi_stop
    use ELSI_OMM,           only: elsi_set_omm_default
@@ -446,11 +446,14 @@ subroutine elsi_final_print(e_h)
               caller)
    endif
 
-   call elsi_say(e_h,"  |---------------------------------------------------------------------")
+   call elsi_say(e_h,"  |-------------------------------------------------------------------------")
    call elsi_say(e_h,"  | Final ELSI Output                        ")
-   call elsi_say(e_h,"  |---------------------------------------------------------------------")
+   call elsi_say(e_h,"  |-------------------------------------------------------------------------")
 
    call append_string(e_h%stdio%prefix,"  | ")
+   call elsi_print_versioning(e_h)
+
+   call elsi_say(e_h,"")
    call elsi_print_handle_summary(e_h)
 
    call append_string(e_h%stdio%prefix,"  ")
@@ -469,9 +472,9 @@ subroutine elsi_final_print(e_h)
    call truncate_string(e_h%stdio%prefix,2)
 
    call truncate_string(e_h%stdio%prefix,4)
-   call elsi_say(e_h,"  |--------------------------------------------------------------------")
+   call elsi_say(e_h,"  |------------------------------------------------------------------------")
    call elsi_say(e_h,"  | ELSI Project (c)  elsi-interchange.org   ")
-   call elsi_say(e_h,"  |--------------------------------------------------------------------")
+   call elsi_say(e_h,"  |------------------------------------------------------------------------")
 
 end subroutine
 

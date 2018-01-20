@@ -37,8 +37,7 @@ module ELSI_SOLVER
                              SIPS_SOLVER,DMP_SOLVER,REAL_VALUES,COMPLEX_VALUES,&
                              MULTI_PROC,SINGLE_PROC,UNSET,TIMING_STRING_LEN,&
                              OUTPUT_EV,OUTPUT_DM,DATETIME_LEN,COMMA_BEFORE,&
-                             COMMA_AFTER,NO_COMMA,UNSET_STRING,HUMAN_READ,JSON,&
-                             RELEASE_DATE
+                             COMMA_AFTER,NO_COMMA,UNSET_STRING,HUMAN_READ,JSON
    use ELSI_DATATYPE,  only: elsi_handle,elsi_file_io_handle
    use ELSI_DMP,       only: elsi_solve_evp_dmp_real
    use ELSI_ELPA,      only: elsi_compute_occ_elpa,elsi_compute_dm_elpa_real,&
@@ -51,7 +50,8 @@ module ELSI_SOLVER
                              elsi_print_solver_settings,elsi_print_settings,&
                              elsi_say,elsi_say_setting,&
                              elsi_print_matrix_format_settings,&
-                             append_string,truncate_string
+                             append_string,truncate_string,&
+                             elsi_print_versioning
    use ELSI_LAPACK,    only: elsi_solve_evp_lapack_real,&
                              elsi_solve_evp_lapack_cmplx
    use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
@@ -1347,21 +1347,22 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,start_datetime,&
 
    call elsi_get_datetime_rfc3339(record_datetime)
 
-   ! Print out patterned header and timing details
+   ! Print out patterned header, versioning information, and timing details
    if(io_h%file_format == HUMAN_READ) then
-      io_h%comma_json = COMMA_AFTER
-
       write(info_str,"(A)") "--------------------------------------------------"
       call elsi_say(e_h,info_str,io_h)
       write(info_str,"(A,I10)") "Start of ELSI Solver Iteration ",iter
       call elsi_say(e_h,info_str,io_h)
+
+      write(info_str,"(A)") ""
+      call elsi_say(e_h,info_str,io_h)
+      call elsi_print_versioning(e_h,io_h)
+
       write(info_str,"(A)") ""
       call elsi_say(e_h,info_str,io_h)
       write(info_str,"(A)") "Timing Details"
       call elsi_say(e_h,info_str,io_h)
-
       call append_string(io_h%prefix,"  ")
-       call elsi_say_setting(e_h,"ELSI Release Date",release_date,io_h)
       if(output_type == OUTPUT_EV) then
          call elsi_say_setting(e_h,"Output Type","EIGENVECTORS",io_h)
       elseif(output_type == OUTPUT_DM) then
@@ -1390,13 +1391,9 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,start_datetime,&
 
       io_h%comma_json = COMMA_AFTER ! Add commas behind all records before final
       call append_string(io_h%prefix,"  ")
-      call elsi_say_setting(e_h,"data_source","ELSI",io_h)
-      call elsi_say_setting(e_h,"release_date",release_date,io_h)
-      call elsi_say_setting(e_h,"elsi_tag",elsi_tag,io_h)
-      call elsi_say_setting(e_h,"proc_0_name",e_h%processor_name,io_h)
-      call elsi_say_setting(e_h,"start_datetime",start_datetime,io_h)
-      call elsi_say_setting(e_h,"record_datetime",record_datetime,io_h)
-      call elsi_say_setting(e_h,"user_tag",user_tag,io_h)
+
+      call elsi_print_versioning(e_h,io_h)
+
       call elsi_say_setting(e_h,"iteration",iter,io_h)
       if(output_type == OUTPUT_EV) then
          call elsi_say_setting(e_h,"output_type","EIGENVECTORS",io_h)
@@ -1412,6 +1409,11 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,start_datetime,&
       else
          call elsi_stop(" Unsupported data type.",e_h,caller)
       endif
+      call elsi_say_setting(e_h,"elsi_tag",elsi_tag,io_h)
+      call elsi_say_setting(e_h,"user_tag",user_tag,io_h)
+      call elsi_say_setting(e_h,"proc_0_name",e_h%processor_name,io_h)
+      call elsi_say_setting(e_h,"start_datetime",start_datetime,io_h)
+      call elsi_say_setting(e_h,"record_datetime",record_datetime,io_h)
       call elsi_say_setting(e_h,"total_time",total_time,io_h)
       call truncate_string(io_h%prefix,2)
    else

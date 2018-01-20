@@ -31,7 +31,7 @@
 module ELSI_DATATYPE
 
    use, intrinsic :: ISO_C_BINDING
-   use ELSI_CONSTANTS,     only: FILE_NAME_LEN,TIMING_STRING_LEN
+   use ELSI_CONSTANTS,     only: FILE_NAME_LEN,TIMING_STRING_LEN,UUID_LEN
    use ELSI_PRECISION,     only: r8,i4
    use FOE_BASE,           only: foe_data
    use F_PPEXSI_INTERFACE, only: f_ppexsi_options
@@ -316,6 +316,8 @@ module ELSI_DATATYPE
 
       ! Versioning
       character(len=:), allocatable :: processor_name ! MPI name for processor
+      character(len=UUID_LEN)       :: uuid ! Unique ID for ELSI run, stored in
+                                            ! an RFC 4122 format
 
    end type
 
