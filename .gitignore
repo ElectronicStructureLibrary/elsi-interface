@@ -1,4 +1,6 @@
 make.sys*
+.Rhistory
+*.json
 *.[oaxd]
 *.mod
 *.tmp

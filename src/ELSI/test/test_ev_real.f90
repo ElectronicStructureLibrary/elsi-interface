@@ -219,12 +219,13 @@ program test_ev_real
    ! Customize ELSI
    call elsi_set_output(e_h,2)
    call elsi_set_mu_broaden_width(e_h,1.0e-6_r8)
+   call elsi_set_output_timings(e_h,1)
    call elsi_set_timings_file(e_h,"ev_real_timings.json")
 
    t1 = MPI_Wtime()
 
    ! Solve (pseudo SCF 1)
-   call elsi_set_timings_tag(e_h,"TEST")
+   call elsi_set_timings_tag(e_h,"TEST1")
    call elsi_ev_real(e_h,ham,ovlp,eval,evec)
 
    t2 = MPI_Wtime()
@@ -244,7 +245,7 @@ program test_ev_real
    t1 = MPI_Wtime()
 
    ! Solve (pseudo SCF 2, with the same H)
-   call elsi_set_timings_tag(e_h,"TEST")
+   call elsi_set_timings_tag(e_h,"TEST2")
    call elsi_ev_real(e_h,ham,ovlp,eval,evec)
 
    t2 = MPI_Wtime()

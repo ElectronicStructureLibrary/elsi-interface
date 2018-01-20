@@ -145,10 +145,10 @@ subroutine elsi_init(e_h,solver,parallel_mode,matrix_format,n_basis,n_electron,&
    call elsi_init_file_io(e_h%stdio,6,file_format=HUMAN_READ,print_info=.false.)
 
    ! Initialize solver timings file handle
-   e_h%output_timings = .true.
+   e_h%output_timings = .false.
    ! print_unit and file_name should only have meaning for myid_all == 0 as a
-   ! precautionary measure. However, which process has myid_all == 0 yet, so
-   ! they'll be unset once the file is actually open
+   ! precautionary measure. However, which process has myid_all == 0 has not
+   ! been determined yet, so they'll be unset once the file is actually open
    call elsi_init_file_io(e_h%timings_file,SOLVER_TIMINGS_UNIT_DEFAULT,&
            file_name=SOLVER_TIMINGS_FILE_DEFAULT,file_format=JSON,&
            print_info=.true.,comma_json=COMMA_AFTER)

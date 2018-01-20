@@ -189,7 +189,7 @@ subroutine elsi_reset_handle(e_h)
    e_h%dmp_tol                = 1e-8_r8
    e_h%dmp_ne                 = 0.0_r8
    e_h%clock_rate             = UNSET
-   e_h%output_timings         = .true.
+   e_h%output_timings         = .false.
 
 end subroutine
 
