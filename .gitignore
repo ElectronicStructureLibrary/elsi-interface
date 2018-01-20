@@ -8,6 +8,7 @@ make.sys*
 *.log
 *.err
 logPEXSI*
+elsi_version.f90
 /src/ELSI/doc/html/
 /src/ELSI/doc/latex/
 /include/
