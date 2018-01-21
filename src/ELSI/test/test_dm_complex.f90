@@ -213,6 +213,7 @@ program test_dm_complex
    call elsi_set_output_timings(e_h,1)
    call elsi_set_timings_unit(e_h,67)
    call elsi_set_timings_file(e_h,"dm_complex_timings.json")
+   call elsi_set_calling_code_name(e_h,"ELSI_TEST_SUITE")
 
    t1 = MPI_Wtime()
 

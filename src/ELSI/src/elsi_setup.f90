@@ -472,9 +472,9 @@ subroutine elsi_final_print(e_h)
    call truncate_string(e_h%stdio%prefix,2)
 
    call truncate_string(e_h%stdio%prefix,4)
-   call elsi_say(e_h,"  |-------------------------------------------------------------------------")
+   call elsi_say(e_h,"  |--------------------------------------------------------------------------")
    call elsi_say(e_h,"  | ELSI Project (c)  elsi-interchange.org   ")
-   call elsi_say(e_h,"  |-------------------------------------------------------------------------")
+   call elsi_say(e_h,"  |--------------------------------------------------------------------------")
 
 end subroutine
 

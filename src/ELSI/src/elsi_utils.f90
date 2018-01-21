@@ -35,7 +35,7 @@ module ELSI_UTILS
                              BLACS_DENSE,AUTO,ELPA_SOLVER,OMM_SOLVER,&
                              PEXSI_SOLVER,CHESS_SOLVER,SIPS_SOLVER,DMP_SOLVER,&
                              UNSET_STRING,JSON,REAL_VALUES,COMPLEX_VALUES,&
-                             TIMING_STRING_LEN,DATETIME_LEN,UUID_LEN
+                             SETTING_STR_LEN,DATETIME_LEN,UUID_LEN
    use ELSI_DATATYPE,  only: elsi_handle
    use ELSI_IO,        only: elsi_say,append_string,truncate_string
    use ELSI_MPI,       only: elsi_stop,elsi_check_mpi,elsi_get_processor_name,&
@@ -193,6 +193,10 @@ subroutine elsi_reset_handle(e_h)
    e_h%dmp_ne                 = 0.0_r8
    e_h%clock_rate             = UNSET
    e_h%output_timings         = .false.
+   e_h%uuid                   = UNSET_STRING
+   e_h%uuid_exists            = .false.
+   e_h%calling_code           = UNSET_STRING
+   e_h%calling_code_ver       = UNSET_STRING
 
 end subroutine
 
@@ -419,6 +423,8 @@ subroutine elsi_ready_handle(e_h,caller)
    if(.not. e_h%handle_ready) then
       call elsi_check(e_h,caller)
 
+      e_h%handle_ready   = .true.
+
       ! Perform initialization-like tasks which require MPI
       ! First, solver timings
       if(e_h%output_timings) then
@@ -447,13 +453,17 @@ subroutine elsi_ready_handle(e_h,caller)
       e_h%processor_name = proc_name
 
       ! Generate the UUID for this ELSI instance
-      call elsi_init_random_seed()
-      call elsi_gen_uuid(uuid_temp)
-      e_h%uuid = uuid_temp
-      ! And broadcast the UUID on task 0 to all other tasks
-      call elsi_sync_uuid(e_h)
+      ! If the UUID already exists (for example, if the user supplied it
+      ! themselves), then skip this step
+      if (.not.e_h%uuid_exists) then
+         call elsi_init_random_seed()
+         call elsi_gen_uuid(uuid_temp)
+         e_h%uuid = uuid_temp
+         e_h%uuid_exists = .true.
+         ! And broadcast the UUID on task 0 to all other tasks
+         call elsi_sync_uuid(e_h)
+      endif
 
-      e_h%handle_ready   = .true.
       e_h%handle_changed = .false.
    endif
 
@@ -690,9 +700,9 @@ subroutine elsi_get_solver_tag(e_h,solver_tag,data_type)
 
    implicit none
 
-   type(elsi_handle),                intent(in)  :: e_h
-   character(len=TIMING_STRING_LEN), intent(out) :: solver_tag
-   integer(kind=i4),                 intent(in)  :: data_type
+   type(elsi_handle),              intent(in)  :: e_h
+   character(len=SETTING_STR_LEN), intent(out) :: solver_tag
+   integer(kind=i4),               intent(in)  :: data_type
 
    character*40, parameter :: caller = "elsi_get_solver_tag"
 
@@ -1044,6 +1054,15 @@ subroutine elsi_sync_uuid(e_h)
    integer(kind=i4) :: ierr
 
    character*40, parameter :: caller = "elsi_sync_uuid"
+
+   if(.not.e_h%uuid_exists) then
+      call elsi_stop(" UUID has not been generated yet.",e_h,caller)
+   endif
+
+   if(.not.e_h%handle_ready) then
+      call elsi_stop(" The ELSI handle is not ready; we don't know whether MPI &
+           &is initialized.",e_h,caller)
+   endif
 
    if(e_h%parallel_mode == MULTI_PROC) then
       call MPI_Bcast(e_h%uuid,UUID_LEN,mpi_character,0,e_h%mpi_comm_all,ierr)

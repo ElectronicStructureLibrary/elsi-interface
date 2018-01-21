@@ -30,7 +30,7 @@
 !!
 module ELSI_TIMINGS
 
-   use ELSI_CONSTANTS, only: TIMING_STRING_LEN,UNSET,UNSET_STRING,&
+   use ELSI_CONSTANTS, only: SETTING_STR_LEN,UNSET,UNSET_STRING,&
                              MAX_FINAL_TIMING_ITERS
    use ELSI_DATATYPE,  only: elsi_handle,elsi_timings_handle
    use ELSI_IO,        only: elsi_say
@@ -132,9 +132,9 @@ subroutine elsi_resize_timing_arrays(t_h)
    type(elsi_timings_handle), intent(inout) :: t_h
 
    integer :: i_timing
-   real(kind=r8),                    allocatable :: tmp_times(:)
-   character(len=TIMING_STRING_LEN), allocatable :: tmp_elsi_tags(:)
-   character(len=TIMING_STRING_LEN), allocatable :: tmp_user_tags(:)
+   real(kind=r8),                  allocatable :: tmp_times(:)
+   character(len=SETTING_STR_LEN), allocatable :: tmp_elsi_tags(:)
+   character(len=SETTING_STR_LEN), allocatable :: tmp_user_tags(:)
 
    character*40, parameter :: caller = "elsi_resize_timing_arrays"
 
@@ -186,8 +186,8 @@ subroutine elsi_add_timing(t_h,time,elsi_tag,user_tag_in,iter_in)
    character(len=*),          intent(in), optional :: user_tag_in
    integer(kind=i4),          intent(in), optional :: iter_in
 
-   character(len=TIMING_STRING_LEN) :: user_tag
-   integer(kind=i4)                 :: iter
+   character(len=SETTING_STR_LEN) :: user_tag
+   integer(kind=i4)               :: iter
 
    character*40, parameter :: caller = "elsi_add_timings"
 

@@ -107,14 +107,13 @@ module ELSI_CONSTANTS
    integer(kind=i4), parameter :: NO_COMMA     = 2
 
    ! Constants for ELSI timings
-   integer(kind=i4),             parameter :: TIMING_STRING_LEN           = 20
    integer(kind=i4),             parameter :: SOLVER_TIMINGS_UNIT_DEFAULT = 66
    character(len=FILE_NAME_LEN), parameter :: SOLVER_TIMINGS_FILE_DEFAULT = "elsi_solver_timings.json"
    integer(kind=i4),             parameter :: MAX_FINAL_TIMING_ITERS      = 200
 
    ! Constants for ELSI versioning
-   integer(kind=i4), parameter :: DATETIME_LEN = 29
-   integer, parameter          :: UUID_LEN     = 36 ! Length for ELSI's uuid,
-                                                    ! stored in RFC 4122 format
+   integer(kind=i4), parameter :: SETTING_STR_LEN = 20
+   integer(kind=i4), parameter :: DATETIME_LEN    = 29
+   integer(kind=i4), parameter :: UUID_LEN        = 36 ! RFC 4122 format
 
 end module ELSI_CONSTANTS

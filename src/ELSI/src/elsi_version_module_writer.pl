@@ -94,8 +94,7 @@ if ($isgitrepos) {
     $gitrev =~ s/\@/[at]/g;
     $gitrev =~ s/[^A-Za-z 0-9\.,\[\]:\/-_]//g;
     if ( length($gitrev) > 48){
-    	$gitrev = substr( $gitrev, 0, 43);
-	$gitrev = $gitrev."[...]";
+    	$gitrev = substr( $gitrev, 0, 48);
     };
     $gitmsg = substr( $gitrev, 8, length($gitrev));
 

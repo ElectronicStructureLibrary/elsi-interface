@@ -35,7 +35,7 @@ module ELSI_SOLVER
    use ELSI_CHESS,     only: elsi_init_chess,elsi_solve_evp_chess_real
    use ELSI_CONSTANTS, only: ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,CHESS_SOLVER,&
                              SIPS_SOLVER,DMP_SOLVER,REAL_VALUES,COMPLEX_VALUES,&
-                             MULTI_PROC,SINGLE_PROC,UNSET,TIMING_STRING_LEN,&
+                             MULTI_PROC,SINGLE_PROC,UNSET,SETTING_STR_LEN,&
                              OUTPUT_EV,OUTPUT_DM,DATETIME_LEN,COMMA_BEFORE,&
                              COMMA_AFTER,NO_COMMA,UNSET_STRING,HUMAN_READ,JSON
    use ELSI_DATATYPE,  only: elsi_handle,elsi_file_io_handle
@@ -1256,12 +1256,12 @@ subroutine elsi_process_solver_timing(e_h,output_type,data_type,solver_used,&
    real(kind=r8),               intent(in)    :: t0
    character(len=DATETIME_LEN), intent(in)    :: start_datetime
 
-   character(len=TIMING_STRING_LEN) :: solver_tag
-   real(kind=r8)                    :: t1, total_time
-   integer(kind=i4)                 :: temp_int
-   integer(kind=i4)                 :: comma_json_save
-   integer(kind=i4)                 :: iteration
-   type(elsi_file_io_handle)        :: io_h
+   character(len=SETTING_STR_LEN) :: solver_tag
+   real(kind=r8)                  :: t1, total_time
+   integer(kind=i4)               :: temp_int
+   integer(kind=i4)               :: comma_json_save
+   integer(kind=i4)               :: iteration
+   type(elsi_file_io_handle)      :: io_h
 
    character*40, parameter :: caller = "elsi_dm_complex_sparse"
 
@@ -1319,12 +1319,12 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,start_datetime,&
    type(elsi_file_io_handle),   intent(in), optional :: io_h_in
    character(len=*),            intent(in), optional :: user_tag_in
 
-   character*200                    :: info_str
-   character(len=TIMING_STRING_LEN) :: elsi_tag
-   character(len=TIMING_STRING_LEN) :: user_tag
-   character(len=DATETIME_LEN)      :: record_datetime
-   integer(kind=i4)                 :: comma_json_save
-   type(elsi_file_io_handle)        :: io_h
+   character*200                  :: info_str
+   character(len=SETTING_STR_LEN) :: elsi_tag
+   character(len=SETTING_STR_LEN) :: user_tag
+   character(len=DATETIME_LEN)    :: record_datetime
+   integer(kind=i4)               :: comma_json_save
+   type(elsi_file_io_handle)      :: io_h
 
    character*40, parameter :: caller = "elsi_print_solver_timing"
 

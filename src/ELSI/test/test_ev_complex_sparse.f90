@@ -208,6 +208,7 @@ program test_ev_complex_sparse
    call elsi_set_blacs(e_h,blacs_ctxt,blk)
    call elsi_set_output_timings(e_h,1)
    call elsi_set_timings_file(e_h,"ev_complex_sparse_timings.json")
+   call elsi_set_calling_code_name(e_h,"ELSI_TEST_SUITE")
 
    ! Customize ELSI
    call elsi_set_output(e_h,2)

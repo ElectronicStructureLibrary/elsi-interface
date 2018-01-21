@@ -220,6 +220,7 @@ program test_ev_real_sparse
    call elsi_set_mu_broaden_width(e_h,1.0e-6_r8)
    call elsi_set_output_timings(e_h,1)
    call elsi_set_timings_file(e_h,"ev_real_sparse_timings.json")
+   call elsi_set_calling_code_name(e_h,"ELSI_TEST_SUITE")
 
    t1 = MPI_Wtime()
 
