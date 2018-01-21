@@ -33,10 +33,14 @@ module ELSI_IO
    use ELSI_CONSTANTS, only: UNSET,UNSET_STRING,HUMAN_READ,JSON,MULTI_PROC,&
                              SINGLE_PROC,ELPA_SOLVER,SIPS_SOLVER,OMM_SOLVER,&
                              PEXSI_SOLVER,CHESS_SOLVER,DMP_SOLVER,BLACS_DENSE,&
-                             PEXSI_CSC,COMMA_AFTER,NO_COMMA,RELEASE_DATE
+                             PEXSI_CSC,COMMA_AFTER,NO_COMMA
    use ELSI_DATATYPE,  only: elsi_handle,elsi_file_io_handle,elsi_timings_handle
    use ELSI_MPI,       only: elsi_stop
    use ELSI_PRECISION, only: r8,i4
+   use ELSI_VERSION,   only: RELEASE_DATE, GIT_COMMIT, GIT_COMMIT_ABBREV, &
+                             GIT_COMMIT_WAS_MODIFIED, GIT_COMMIT_MSG_ABBREV, &
+                             SOURCE_HOSTNAME, SOURCE_LOCAL_DATE, &
+                             SOURCE_LOCAL_TIME, SOURCE_DATETIME
 
    implicit none
 
@@ -382,8 +386,14 @@ subroutine elsi_print_versioning(e_h,io_h_in)
       call elsi_say(e_h,info_str,io_h)
       call append_string(io_h%prefix,"  ")
 
+      call elsi_say_setting(e_h,"ELSI release date",RELEASE_DATE,io_h)
+      call elsi_say_setting(e_h,"ELSI git commit (abbrev.)",GIT_COMMIT_ABBREV,io_h)
+      call elsi_say_setting(e_h,"Was git commit modified?",GIT_COMMIT_WAS_MODIFIED,io_h)
+      call elsi_say_setting(e_h,"git commit message (abbrev.)",trim(GIT_COMMIT_MSG_ABBREV),io_h)
+      call elsi_say_setting(e_h,"Source created on hostname",SOURCE_HOSTNAME,io_h)
+      call elsi_say_setting(e_h,"Source created at local date",SOURCE_LOCAL_DATE,io_h)
+      call elsi_say_setting(e_h,"Source created at local time",SOURCE_LOCAL_TIME,io_h)
       call elsi_say_setting(e_h,"UUID for this run",e_h%uuid,io_h)
-      call elsi_say_setting(e_h,"ELSI release date",release_date,io_h)
 
       call truncate_string(io_h%prefix,2)
    elseif(io_h%file_format == JSON) then
@@ -391,10 +401,15 @@ subroutine elsi_print_versioning(e_h,io_h_in)
       io_h%comma_json = COMMA_AFTER ! Add commas behind all records before final
 
       call elsi_say_setting(e_h,"data_source","ELSI",io_h)
-      call elsi_say_setting(e_h,"uuid",e_h%uuid,io_h)
+      call elsi_say_setting(e_h,"release_date",RELEASE_DATE,io_h)
+      call elsi_say_setting(e_h,"git_commit",GIT_COMMIT,io_h)
+      call elsi_say_setting(e_h,"git_commit_modified",GIT_COMMIT_WAS_MODIFIED,io_h)
+      call elsi_say_setting(e_h,"git_message_abbrev",GIT_COMMIT_MSG_ABBREV,io_h)
+      call elsi_say_setting(e_h,"source_created_on_hostname",SOURCE_HOSTNAME,io_h)
+      call elsi_say_setting(e_h,"source_created_at_datetime",SOURCE_DATETIME,io_h)
 
       io_h%comma_json = comma_json_save ! Final record, restore comma_json
-      call elsi_say_setting(e_h,"release_date",release_date,io_h)
+      call elsi_say_setting(e_h,"uuid",e_h%uuid,io_h)
    else
       call elsi_stop(" Unsupported output format.",e_h,caller)
    endif
@@ -1084,7 +1099,7 @@ subroutine elsi_say_setting_i4(e_h,label,setting,io_h_in)
    integer(kind=i4),          intent(in)           :: setting
    type(elsi_file_io_handle), intent(in), optional :: io_h_in
 
-   character(len=27) :: label_ljust
+   character(len=28) :: label_ljust
    character(len=20) :: int_string
 
    type(elsi_file_io_handle) :: io_h
@@ -1104,10 +1119,10 @@ subroutine elsi_say_setting_i4(e_h,label,setting,io_h_in)
    if(io_h%print_info .and. e_h%myid_all == 0) then
       if(io_h%file_format == HUMAN_READ) then
          if(allocated(io_h%prefix)) then
-            write(io_h%print_unit,"(A,A27,A3,I40)") io_h%prefix,label_ljust,&
+            write(io_h%print_unit,"(A,A28,A3,I40)") io_h%prefix,label_ljust,&
                " : ",setting
          else
-            write(io_h%print_unit,"(A27,A3,I40)") label_ljust," : ",setting
+            write(io_h%print_unit,"(A28,A3,I40)") label_ljust," : ",setting
          endif
       elseif(io_h%file_format == JSON) then
          if(io_h%comma_json == COMMA_AFTER) then
@@ -1147,7 +1162,7 @@ subroutine elsi_say_setting_r8(e_h,label,setting,io_h_in)
    real(kind=r8),             intent(in)           :: setting
    type(elsi_file_io_handle), intent(in), optional :: io_h_in
 
-   character(len=27) :: label_ljust
+   character(len=28) :: label_ljust
    character(len=20) :: real_string
 
    type(elsi_file_io_handle) :: io_h
@@ -1167,10 +1182,10 @@ subroutine elsi_say_setting_r8(e_h,label,setting,io_h_in)
    if(io_h%print_info .and. e_h%myid_all == 0) then
       if(io_h%file_format == HUMAN_READ) then
          if(allocated(io_h%prefix)) then
-            write(io_h%print_unit,"(A,A27,A3,E40.8)") io_h%prefix,label_ljust,&
+            write(io_h%print_unit,"(A,A28,A3,E40.8)") io_h%prefix,label_ljust,&
                " : ",setting
          else
-            write(io_h%print_unit,"(A27,A3,E40.8)") label_ljust," : ",setting
+            write(io_h%print_unit,"(A28,A3,E40.8)") label_ljust," : ",setting
          endif
       elseif(io_h%file_format == JSON) then
          if(io_h%comma_json == COMMA_AFTER) then
@@ -1210,7 +1225,7 @@ subroutine elsi_say_setting_log(e_h,label,setting,io_h_in)
    logical,                   intent(in)           :: setting
    type(elsi_file_io_handle), intent(in), optional :: io_h_in
 
-   character(len=27) :: label_ljust
+   character(len=28) :: label_ljust
    character(len=20) :: log_string
 
    type(elsi_file_io_handle) :: io_h
@@ -1245,10 +1260,10 @@ subroutine elsi_say_setting_log(e_h,label,setting,io_h_in)
    if(io_h%print_info .and. e_h%myid_all == 0) then
       if(io_h%file_format == HUMAN_READ) then
          if(allocated(io_h%prefix)) then
-            write(io_h%print_unit,"(A,A27,A3,A40)") io_h%prefix,label_ljust,&
+            write(io_h%print_unit,"(A,A28,A3,A40)") io_h%prefix,label_ljust,&
                " : ",log_string
          else
-            write(io_h%print_unit,"(A27,A3,A40)") label_ljust," : ",log_string
+            write(io_h%print_unit,"(A28,A3,A40)") label_ljust," : ",log_string
          endif
       elseif(io_h%file_format == JSON) then
          if(io_h%comma_json == COMMA_AFTER) then
@@ -1288,7 +1303,7 @@ subroutine elsi_say_setting_str(e_h,label,setting,io_h_in)
    character(len=*),          intent(in)           :: setting
    type(elsi_file_io_handle), intent(in), optional :: io_h_in
 
-   character(len=27) :: label_ljust
+   character(len=28) :: label_ljust
 
    type(elsi_file_io_handle) :: io_h
 
@@ -1305,10 +1320,10 @@ subroutine elsi_say_setting_str(e_h,label,setting,io_h_in)
    if(io_h%print_info .and. e_h%myid_all == 0) then
       if(io_h%file_format == HUMAN_READ) then
          if(allocated(io_h%prefix)) then
-            write(io_h%print_unit,"(A,A27,A3,A40)") io_h%prefix,label_ljust,&
+            write(io_h%print_unit,"(A,A28,A3,A40)") io_h%prefix,label_ljust,&
                " : ",setting
          else
-            write(io_h%print_unit,"(A27,A3,A40)") label_ljust," : ",setting
+            write(io_h%print_unit,"(A28,A3,A40)") label_ljust," : ",setting
          endif
       elseif(io_h%file_format == JSON) then
          if(io_h%comma_json == COMMA_AFTER) then

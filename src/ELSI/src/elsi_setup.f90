@@ -446,9 +446,9 @@ subroutine elsi_final_print(e_h)
               caller)
    endif
 
-   call elsi_say(e_h,"  |-------------------------------------------------------------------------")
+   call elsi_say(e_h,"  |--------------------------------------------------------------------------")
    call elsi_say(e_h,"  | Final ELSI Output                        ")
-   call elsi_say(e_h,"  |-------------------------------------------------------------------------")
+   call elsi_say(e_h,"  |--------------------------------------------------------------------------")
 
    call append_string(e_h%stdio%prefix,"  | ")
    call elsi_print_versioning(e_h)
@@ -458,9 +458,9 @@ subroutine elsi_final_print(e_h)
 
    call append_string(e_h%stdio%prefix,"  ")
    if(e_h%handle_changed) then
-      call elsi_say_setting(e_h,"Was ELSI changed mid-run?","YES")
+      call elsi_say_setting(e_h,"Was ELSI changed mid-run?","TRUE")
    else
-      call elsi_say_setting(e_h,"Was ELSI changed mid-run?","NO")
+      call elsi_say_setting(e_h,"Was ELSI changed mid-run?","FALSE")
    endif
    call elsi_say_setting(e_h,"Number of ELSI calls",e_h%n_elsi_calls)
    call truncate_string(e_h%stdio%prefix,2)
@@ -472,9 +472,9 @@ subroutine elsi_final_print(e_h)
    call truncate_string(e_h%stdio%prefix,2)
 
    call truncate_string(e_h%stdio%prefix,4)
-   call elsi_say(e_h,"  |------------------------------------------------------------------------")
+   call elsi_say(e_h,"  |-------------------------------------------------------------------------")
    call elsi_say(e_h,"  | ELSI Project (c)  elsi-interchange.org   ")
-   call elsi_say(e_h,"  |------------------------------------------------------------------------")
+   call elsi_say(e_h,"  |-------------------------------------------------------------------------")
 
 end subroutine
 

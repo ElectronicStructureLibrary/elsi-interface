@@ -2,6 +2,8 @@
 # TOP-LEVEL MAKEFILE FOR ELSI #
 ###############################
 
+RELEASE_DATE = 2017-05-27
+
 # A "make.sys" file is mandatory
 include make.sys
 

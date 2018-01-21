@@ -34,8 +34,6 @@ module ELSI_CONSTANTS
 
    implicit none
 
-   character*8, parameter :: RELEASE_DATE = "20170527"
-
    real(kind=r8), parameter :: SQRT_PI        = 1.7724538509055160273_r8
    real(kind=r8), parameter :: INVERT_SQRT_PI = 0.5641895835477563275_r8
 
