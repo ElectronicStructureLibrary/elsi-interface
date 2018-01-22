@@ -111,15 +111,9 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
    real(kind=r8)      :: lower
    real(kind=r8)      :: upper
    integer(kind=i4)   :: i
-   integer(kind=i4)   :: j
-   integer(kind=i4)   :: this
-   integer(kind=i4)   :: n_iner_steps
    integer(kind=i4)   :: n_solved
-   integer(kind=i4)   :: n_clst
-   integer(kind=i4)   :: clst(50,2) ! Eigenvalue clusters
    integer(kind=i4)   :: ierr
-   logical            :: slices_changed
-   logical            :: stop_inertia
+   logical            :: inertia_ok
    character(len=200) :: info_str
 
    real(kind=r8),    allocatable :: slices(:)
@@ -163,163 +157,54 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
 
    call elsi_allocate(e_h,slices,e_h%sips_n_slices+1,"slices",caller)
 
-   ! Generate new slices based on previous eigenvalues
-   n_clst    = 1
-   clst      = 0
-   clst(1,1) = 1
-   clst(1,2) = 1
+   lower = eval(1)-e_h%sips_buffer
+   upper = eval(e_h%n_states)+e_h%sips_buffer
 
-   do i = 1,e_h%n_states-1
-      if(eval(i+1)-eval(i) > 1.0_r8) then
-         n_clst         = n_clst+1
-         clst(n_clst,1) = i+1
-      endif
-   enddo
+   if(e_h%sips_do_inertia) then ! Inertia counting
+      call elsi_get_time(e_h,t0)
 
-   clst(n_clst+1,1) = e_h%n_states+1
+      call elsi_allocate(e_h,inertias,e_h%sips_n_slices+1,"inertias",caller)
 
-   if(e_h%sips_n_slices-n_clst+1 < n_clst .or. n_clst == 1) then ! One slice
-      lower = eval(1)-e_h%sips_buffer
-      upper = eval(e_h%n_states)+e_h%sips_buffer
+      inertia_ok = .false.
 
-      call elsi_linspace(lower,upper,e_h%sips_n_slices+1,slices)
-
-      if(e_h%sips_do_inertia) then ! Inertia counting
-         call elsi_get_time(e_h,t0)
-
-         call elsi_allocate(e_h,inertias,e_h%sips_n_slices+1,"inertias",caller)
-
-         stop_inertia = .false.
-
-         do while(.not. stop_inertia)
-            stop_inertia = .true.
-
-            call sips_get_inertias(e_h%sips_n_slices,slices,inertias)
-
-            if(inertias(1) > 0) then
-               slices(1)    = slices(1)-0.1
-               stop_inertia = .false.
-            endif
-
-            if(inertias(e_h%sips_n_slices+1) < e_h%n_states) then
-               slices(e_h%sips_n_slices+1) = slices(e_h%sips_n_slices+1)+0.1
-               stop_inertia                = .false.
-            endif
-         enddo
-
-         call elsi_deallocate(e_h,inertias,"inertias")
-
-         lower = slices(1)
-         upper = slices(e_h%sips_n_slices+1)
+      do while(.not. inertia_ok)
+         inertia_ok = .true.
 
          call elsi_linspace(lower,upper,e_h%sips_n_slices+1,slices)
 
-         call elsi_get_time(e_h,t1)
+         call sips_get_inertias(e_h%sips_n_slices,slices,inertias)
 
-         write(info_str,"('  Finished inertia counting')")
-         call elsi_say(e_h,info_str)
-         write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-         call elsi_say(e_h,info_str)
-      endif
-   else
-      do i = 1,n_clst-1
-         this        = (clst(i+1,1)-clst(i,1))/e_h%n_states
-         this        = max(1,this*(e_h%sips_n_slices+1))
-         clst(i+1,2) = clst(i,2)+this+1
-      enddo
+         if(inertias(1) > e_h%sips_first_ev-1) then
+            lower      = lower-e_h%sips_buffer
+            inertia_ok = .false.
+         elseif(inertias(1) < e_h%sips_first_ev-1) then
+            lower      = lower+e_h%sips_buffer
+            inertia_ok = .false.
+         endif
 
-      clst(n_clst+1,2) = e_h%sips_n_slices+2
+         if(inertias(e_h%sips_n_slices+1) < e_h%n_states) then
+            upper      = upper+e_h%sips_buffer
+            inertia_ok = .false.
+         endif
 
-      do i = 1,n_clst
-         lower = eval(clst(i,1))-e_h%sips_buffer
-         upper = eval(clst(i+1,1)-1)+e_h%sips_buffer
-         this  = clst(i+1,2)-clst(i,2)
-
-         call elsi_linspace(lower,upper,this,slices(clst(i,2):clst(i+1,2)-1))
-      enddo
-
-      if(e_h%sips_do_inertia) then ! Inertia counting
-         call elsi_get_time(e_h,t0)
-
-         call elsi_allocate(e_h,inertias,e_h%sips_n_slices+1,"inertias",caller)
-
-         n_iner_steps = 0
-         stop_inertia = .false.
-
-         do while(.not. stop_inertia)
-            n_iner_steps = n_iner_steps+1
-            stop_inertia = .true.
-
-            call sips_get_inertias(e_h%sips_n_slices,slices,inertias)
-
-            ! DEBUG
-            if(e_h%myid == 0) then
-               print *
-               print *,"SIPs inertia counting #",n_iner_steps
-               do i = 1,e_h%sips_n_slices+1
-                  print *,slices(i),":",inertias(i)
-               enddo
-               print *
-            endif
-
-            if(inertias(1) > 0 .or. &
-               inertias(e_h%sips_n_slices+1) < e_h%n_states) then
-               stop_inertia = .false.
-            endif
-
-            slices_changed = .false.
-
-            do i = 1,n_clst
-               do j = clst(i,2),clst(i+1,2)-1
-                  if(inertias(j) > clst(i,1)-1) then
-                     if(j == clst(i,2)) then
-                        slices(clst(i,2)) = slices(clst(i,2))-0.1_r8
-                        slices_changed    = .true.
-                     elseif(j-1 /= clst(i,2)) then
-                        slices(clst(i,2)) = slices(j-1)
-                        slices_changed    = .true.
-                     endif
-
-                     exit
-                  endif
-               enddo
-
-               do j = clst(i+1,2)-1,clst(i,2),-1
-                  if(inertias(j) < clst(i+1,1)-1) then
-                     if(j == clst(i+1,2)-1) then
-                        slices(clst(i+1,2)-1) = slices(clst(i+1,2)-1)+0.1_r8
-                        slices_changed        = .true.
-                     elseif(j+1 /= clst(i+1,2)-1) then
-                        slices(clst(i+1,2)-1) = slices(j+1)
-                        slices_changed        = .true.
-                     endif
-
-                     exit
-                  endif
-               enddo
-
-               lower = slices(clst(i,2))
-               upper = slices(clst(i+1,2)-1)
-               this  = clst(i+1,2)-clst(i,2)
-
-               call elsi_linspace(lower,upper,this,&
-                       slices(clst(i,2):clst(i+1,2)-1))
+         ! DEBUG
+         if(e_h%myid == 0) then
+            print *
+            do i = 1,e_h%sips_n_slices+1
+               print *,slices(i),":",inertias(i)
             enddo
+            print *
+         endif
+      enddo
 
-            if(slices_changed .and. n_iner_steps < 5) then
-               stop_inertia = .false.
-            endif
-         enddo
+      call elsi_deallocate(e_h,inertias,"inertias")
 
-         call elsi_deallocate(e_h,inertias,"inertias")
+      call elsi_get_time(e_h,t1)
 
-         call elsi_get_time(e_h,t1)
-
-         write(info_str,"('  Finished inertia counting')")
-         call elsi_say(e_h,info_str)
-         write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-         call elsi_say(e_h,info_str)
-      endif
+      write(info_str,"('  Finished inertia counting')")
+      call elsi_say(e_h,info_str)
+      write(info_str,"('  | Time :',F10.3,' s')") t1-t0
+      call elsi_say(e_h,info_str)
    endif
 
    call sips_set_slices(e_h%sips_n_slices,slices)
@@ -403,13 +288,13 @@ subroutine elsi_set_sips_default(e_h)
    e_h%sips_n_elpa = 1
 
    ! Buffer to adjust interval
-   e_h%sips_buffer = 0.01_r8
+   e_h%sips_buffer = 0.02_r8
 
    ! Do inertia counting
    e_h%sips_do_inertia = .true.
 
-   ! Slice type (not used)
-   e_h%sips_slice_type = 0
+   ! Index of 1st eigensolution to be solved
+   e_h%sips_first_ev = 1
 
 end subroutine
 

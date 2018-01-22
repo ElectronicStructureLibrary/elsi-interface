@@ -89,8 +89,7 @@ module ELSI_MUTATOR
    public :: elsi_set_sips_n_elpa
    public :: elsi_set_sips_n_slice
    public :: elsi_set_sips_buffer
-   public :: elsi_set_sips_slice_type
-   public :: elsi_set_sips_interval
+   public :: elsi_set_sips_first_ev
    public :: elsi_set_dmp_method
    public :: elsi_set_dmp_max_step
    public :: elsi_set_dmp_tol
@@ -971,16 +970,16 @@ subroutine elsi_set_sips_buffer(e_h,buffer)
 end subroutine
 
 !>
-!! This routine sets the slicing method when using SIPs.
+!! This routine sets the index of the first eigensolution to be solved.
 !!
-subroutine elsi_set_sips_slice_type(e_h,slice_type)
+subroutine elsi_set_sips_first_ev(e_h,first_ev)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h        !< Handle
-   integer(kind=i4),  intent(in)    :: slice_type !< Method of slicing
+   type(elsi_handle), intent(inout) :: e_h      !< Handle
+   integer(kind=i4),  intent(in)    :: first_ev !< Index of first eigensolution
 
-   character(len=40), parameter :: caller = "elsi_set_sips_slice_type"
+   character(len=40), parameter :: caller = "elsi_set_sips_first_ev"
 
    call elsi_check_handle(e_h,caller)
 
@@ -988,35 +987,13 @@ subroutine elsi_set_sips_slice_type(e_h,slice_type)
       e_h%handle_changed = .true.
    endif
 
-   if(slice_type < 0 .or. slice_type > 3) then
-      call elsi_stop(" Unsupported slice_type.",e_h,caller)
+   if(first_ev < 1) then
+      e_h%sips_first_ev = 1
+   elseif(first_ev > e_h%n_basis-e_h%n_states+1) then
+      e_h%sips_first_ev = e_h%n_basis-e_h%n_states+1
+   else
+      e_h%sips_first_ev = first_ev
    endif
-
-   e_h%sips_slice_type = slice_type
-
-end subroutine
-
-!>
-!! This routine sets the global interval to be solved by SIPs.
-!!
-subroutine elsi_set_sips_interval(e_h,lower,upper)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: e_h   !< Handle
-   real(kind=r8),     intent(in)    :: lower !< Lower bound
-   real(kind=r8),     intent(in)    :: upper !< Upper bound
-
-   character(len=40), parameter :: caller = "elsi_set_sips_interval"
-
-   call elsi_check_handle(e_h,caller)
-
-   if(e_h%handle_ready) then
-      e_h%handle_changed = .true.
-   endif
-
-   e_h%sips_interval(1) = lower
-   e_h%sips_interval(2) = upper
 
 end subroutine
 
