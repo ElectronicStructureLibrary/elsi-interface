@@ -101,6 +101,9 @@ module ELSI_MUTATOR
    public :: elsi_set_timings_unit
    public :: elsi_set_timings_file
    public :: elsi_set_timings_tag
+   public :: elsi_set_uuid
+   public :: elsi_set_calling_code_name
+   public :: elsi_set_calling_code_version
    public :: elsi_get_pexsi_mu_min
    public :: elsi_get_pexsi_mu_max
    public :: elsi_get_ovlp_sing
@@ -110,6 +113,7 @@ module ELSI_MUTATOR
    public :: elsi_get_edm_complex
    public :: elsi_get_edm_real_sparse
    public :: elsi_get_edm_complex_sparse
+   public :: elsi_get_uuid
 
 contains
 
@@ -1236,7 +1240,7 @@ subroutine elsi_set_timings_file(e_h,timings_file)
 end subroutine
 
 !>
-!! This routine sets the next user_tag for the solver timings.
+!! This routine sets the user_tag for the solver timings.
 !!
 subroutine elsi_set_timings_tag(e_h,user_tag)
 
@@ -1248,6 +1252,61 @@ subroutine elsi_set_timings_tag(e_h,user_tag)
    character(len=40), parameter :: caller = "elsi_set_timings_tag"
 
    e_h%timings%user_tag = user_tag
+
+end subroutine
+
+!>
+!! This routine sets the UUID for ELSI to the value specified by the calling
+!! code.  When the UUID is set in this fashion, ELSI will not generate its own
+!! UUID, and it will not synchronize the UUID across tasks.  (Doing so would
+!! require MPI be initialized, which is not guaranteed.)
+!!
+subroutine elsi_set_uuid(e_h,uuid)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h  !< Handle
+   character(len=*),  intent(in)    :: uuid !< UUID
+
+   character(len=40), parameter :: caller = "elsi_set_uuid"
+
+   e_h%uuid_exists = .true.
+   e_h%uuid        = uuid
+
+end subroutine
+
+!>
+!! This routine sets the name of the code which is invoking ELSI.  This is used
+!! only for outputting versioning information; ELSI internally is code-agnostic.
+!!
+subroutine elsi_set_calling_code_name(e_h,calling_code)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h          !< Handle
+   character(len=*),  intent(in)    :: calling_code !< Name of calling code
+
+   character(len=40), parameter :: caller = "elsi_set_calling_code_name"
+
+   e_h%calling_code = calling_code
+
+end subroutine
+
+!>
+!! This routine sets the version of the code which is invoking ELSI.  This is
+!! used only for outputting versioning information; ELSI internally is
+!! code-agnostic.
+!!
+subroutine elsi_set_calling_code_version(e_h,calling_code_ver)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h              !< Handle
+   character(len=*),  intent(in)    :: calling_code_ver !< Version of calling code
+
+   character(len=40), parameter :: caller = "elsi_set_calling_code_version"
+
+   e_h%calling_code_ver = calling_code_ver
 
 end subroutine
 
@@ -1537,6 +1596,27 @@ subroutine elsi_get_edm_complex_sparse(e_h,edm)
    else
       call elsi_stop(" Energy-weighted density matrix not computed.",e_h,caller)
    endif
+
+end subroutine
+
+!>
+!! This routine gets the UUID being used by ELSI.  If the UUID has not been
+!! generated yet, ELSI will stop.
+!!
+subroutine elsi_get_uuid(e_h,uuid)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h  !< Handle
+   character(len=*),  intent(out)   :: uuid !< UUID
+
+   character(len=40), parameter :: caller = "elsi_get_uuid"
+
+   if(.not. e_h%uuid_exists) then
+      call elsi_stop(" UUID has not been generated yet.",e_h,caller)
+   endif
+
+   uuid = e_h%uuid
 
 end subroutine
 

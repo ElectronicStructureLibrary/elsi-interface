@@ -248,13 +248,15 @@ program test_dm_real_sparse
    call elsi_set_omm_n_elpa(e_h,1)
    call elsi_set_pexsi_delta_e(e_h,80.0_r8)
    call elsi_set_pexsi_np_per_pole(e_h,2)
+   call elsi_set_output_timings(e_h,1)
    call elsi_set_timings_unit(e_h,67)
    call elsi_set_timings_file(e_h,"dm_real_sparse_timings.json")
+   call elsi_set_calling_code_name(e_h,"ELSI_TEST_SUITE")
 
    t1 = MPI_Wtime()
 
    ! Solve (pseudo SCF 1)
-   call elsi_set_timings_tag(e_h,"TEST")
+   call elsi_set_timings_tag(e_h,"TEST1")
    call elsi_dm_real_sparse(e_h,ham,ovlp,dm,e_test)
 
    t2 = MPI_Wtime()
@@ -272,7 +274,7 @@ program test_dm_real_sparse
    t1 = MPI_Wtime()
 
    ! Solve (pseudo SCF 2, with the same H)
-   call elsi_set_timings_tag(e_h,"TEST")
+   call elsi_set_timings_tag(e_h,"TEST2")
    call elsi_dm_real_sparse(e_h,ham,ovlp,dm,e_test)
 
    t2 = MPI_Wtime()

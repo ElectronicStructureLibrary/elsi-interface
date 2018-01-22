@@ -27,7 +27,7 @@
 
 !>
 !! This module provides routines for solving the Kohn-Sham electronic structure
-!! using ELPA, libOMM, PEXSI, CheSS, SIPs.
+!! using ELPA, libOMM, PEXSI, CheSS, SIPs, DMP.
 !!
 module ELSI
 
@@ -104,6 +104,9 @@ module ELSI
    public :: elsi_set_timings_unit
    public :: elsi_set_timings_file
    public :: elsi_set_timings_tag
+   public :: elsi_set_uuid
+   public :: elsi_set_calling_code_name
+   public :: elsi_set_calling_code_version
    public :: elsi_get_pexsi_mu_min
    public :: elsi_get_pexsi_mu_max
    public :: elsi_get_ovlp_sing
@@ -113,6 +116,7 @@ module ELSI
    public :: elsi_get_edm_complex
    public :: elsi_get_edm_real_sparse
    public :: elsi_get_edm_complex_sparse
+   public :: elsi_get_uuid
 
    ! Solver
    public :: elsi_ev_real

@@ -35,13 +35,13 @@ module ELSI_UTILS
                              BLACS_DENSE,AUTO,ELPA_SOLVER,OMM_SOLVER,&
                              PEXSI_SOLVER,CHESS_SOLVER,SIPS_SOLVER,DMP_SOLVER,&
                              UNSET_STRING,JSON,REAL_VALUES,COMPLEX_VALUES,&
-                             TIMING_STRING_LEN,DATETIME_LEN
+                             SETTING_STR_LEN,DATETIME_LEN,UUID_LEN
    use ELSI_DATATYPE,  only: elsi_handle
    use ELSI_IO,        only: elsi_say,append_string,truncate_string
    use ELSI_MPI,       only: elsi_stop,elsi_check_mpi,elsi_get_processor_name,&
                              mpi_sum,mpi_real8,mpi_complex16,&
-                             mpi_max_processor_name
-   use ELSI_PRECISION, only: i4,r8
+                             mpi_max_processor_name,mpi_character
+   use ELSI_PRECISION, only: i4,i8,r8
 
    implicit none
 
@@ -189,7 +189,11 @@ subroutine elsi_reset_handle(e_h)
    e_h%dmp_tol                = 1e-8_r8
    e_h%dmp_ne                 = 0.0_r8
    e_h%clock_rate             = UNSET
-   e_h%output_timings         = .true.
+   e_h%output_timings         = .false.
+   e_h%uuid                   = UNSET_STRING
+   e_h%uuid_exists            = .false.
+   e_h%calling_code           = UNSET_STRING
+   e_h%calling_code_ver       = UNSET_STRING
 
 end subroutine
 
@@ -397,7 +401,7 @@ end subroutine
 !! certain initialization-like tasks can be done. Thus, this subroutine is
 !! called at the beginning of all public-facing subroutines in which ELSI is
 !! executing a task that would require it to have been sufficiently initialized
-!! by the user: currently, only solver. This does not apply to mutators,
+!! by the user: currently, only solvers. This does not apply to mutators,
 !! initalization, finalization, or matrix IO.
 !!
 subroutine elsi_ready_handle(e_h,caller)
@@ -407,6 +411,7 @@ subroutine elsi_ready_handle(e_h,caller)
    type(elsi_handle), intent(inout) :: e_h
    character(len=*),  intent(in)    :: caller
 
+   character(len=UUID_LEN)               :: uuid_temp
    character(len=MPI_MAX_PROCESSOR_NAME) :: proc_name
    integer(kind=i4)                      :: proc_name_len
 
@@ -414,6 +419,8 @@ subroutine elsi_ready_handle(e_h,caller)
 
    if(.not. e_h%handle_ready) then
       call elsi_check(e_h,caller)
+
+      e_h%handle_ready   = .true.
 
       ! Perform initialization-like tasks which require MPI
       ! First, solver timings
@@ -442,7 +449,18 @@ subroutine elsi_ready_handle(e_h,caller)
       endif
       e_h%processor_name = proc_name
 
-      e_h%handle_ready   = .true.
+      ! Generate the UUID for this ELSI instance
+      ! If the UUID already exists (for example, if the user supplied it
+      ! themselves), then skip this step
+      if (.not. e_h%uuid_exists) then
+         call elsi_init_random_seed()
+         call elsi_gen_uuid(uuid_temp)
+         e_h%uuid        = uuid_temp
+         e_h%uuid_exists = .true.
+         ! And broadcast the UUID on task 0 to all other tasks
+         call elsi_sync_uuid(e_h)
+      endif
+
       e_h%handle_changed = .false.
    endif
 
@@ -679,9 +697,9 @@ subroutine elsi_get_solver_tag(e_h,solver_tag,data_type)
 
    implicit none
 
-   type(elsi_handle),                intent(in)  :: e_h
-   character(len=TIMING_STRING_LEN), intent(out) :: solver_tag
-   integer(kind=i4),                 intent(in)  :: data_type
+   type(elsi_handle),              intent(in)  :: e_h
+   character(len=SETTING_STR_LEN), intent(out) :: solver_tag
+   integer(kind=i4),               intent(in)  :: data_type
 
    character(len=40), parameter :: caller = "elsi_get_solver_tag"
 
@@ -780,42 +798,42 @@ subroutine elsi_get_datetime_rfc3339(datetime_rfc3339)
    elseif(datetime(1) < 1000) then
       write(year,'(A1,I3)') "0",datetime(1)
    else
-      write(year,'(I4)'   ) datetime(1)
+      write(year,'(I4)') datetime(1)
    endif
 
    ! Get month
    if(datetime(2) < 10) then
       write(month,'(A1,I1)') "0",datetime(2)
    else
-      write(month,'(I2)'   ) datetime(2)
+      write(month,'(I2)') datetime(2)
    endif
 
    ! Get day
    if(datetime(3) < 10) then
       write(day,'(A1,I1)') "0",datetime(3)
    else
-      write(day,'(I2)'   ) datetime(3)
+      write(day,'(I2)') datetime(3)
    endif
 
    ! Get hour
    if(datetime(5) < 10) then
       write(hour,'(A1,I1)') "0",datetime(5)
    else
-      write(hour,'(I2)'   ) datetime(5)
+      write(hour,'(I2)') datetime(5)
    endif
 
    ! Get minute
    if(datetime(6) < 10) then
       write(minute,'(A1,I1)') "0",datetime(6)
    else
-      write(minute,'(I2)'   ) datetime(6)
+      write(minute,'(I2)') datetime(6)
    endif
 
    ! Get second
    if(datetime(7) < 10) then
       write(second,'(A1,I1)') "0",datetime(7)
    else
-      write(second,'(I2)'   ) datetime(7)
+      write(second,'(I2)') datetime(7)
    endif
 
    ! Get millisecond
@@ -824,7 +842,7 @@ subroutine elsi_get_datetime_rfc3339(datetime_rfc3339)
    elseif(datetime(8) < 100) then
       write(millisecond,'(A1,I2)') "0",datetime(8)
    else
-      write(millisecond,'(I3)'   ) datetime(8)
+      write(millisecond,'(I3)') datetime(8)
    endif
 
    ! Get time zone sign (ahead or behind UTC)
@@ -855,6 +873,159 @@ subroutine elsi_get_datetime_rfc3339(datetime_rfc3339)
       '(A4,A1,A2,A1,A2,A1,A2,A1,A2,A1,A2,A1,A3,A1,A2,A1,A2)')&
       year,"-",month,"-",day,"T",hour,":",minute,":",second,".",millisecond,&
       timezone_sign,timezone_hour,":",timezone_min
+
+end subroutine
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Subroutines for generating unique identifiers (UUIDs) in an RFC 4122 format, !
+! a type 4 Standard with 5 hexadecimal numbers as a 37 character long string,  !
+! where 4 stands for the uuid type and 'a' is a reserved character:            !
+!                        ********-****-4***-a***-************                  !
+! Details can be found at https://tools.ietf.org/html/rfc4122                  !
+!                                                                              !
+! These subroutines were been taken from FHI-aims (with permission of          !
+! copyright holders) and modified to make them more general.                   !
+!                                                                              !
+! With the exception of elsi_sync_uuid() which syncs the UUID across MPI       !
+! tasks, these subroutines do not import the ELSI handle.  This is a           !
+! deliberate design choice to allow this functionality to be re-used by codes  !
+! which import ELSI.                                                           !
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!>
+!! WPH: My guess is that this is a linear congruential generator?
+!!
+integer(kind=i4) function lcg(s)
+
+   implicit none
+
+   integer(kind=i8) :: s
+
+   if(s == 0) then
+      s = 104729
+   else
+      s = mod(s,int(huge(0_2)*2,kind=i8))
+   endif
+
+   s   = mod(s*int(huge(0_2),kind=i8),int(huge(0_2)*2,kind=i8))
+   lcg = int(mod(s,int(huge(0),kind=i8)),kind(0))
+
+end function
+
+!>
+!! Set the seed in the built-in random_seed subroutine using the system clock
+!! modified by lcg().
+!!
+subroutine elsi_init_random_seed()
+
+   implicit none
+
+   integer(kind=i4) :: i
+   integer(kind=i4) :: n
+   integer(kind=i4) :: un
+   integer(kind=i4) :: istat
+   integer(kind=i4) :: dt(8)
+   integer(kind=i8) :: t
+
+   integer(kind=i4), allocatable :: seed(:)
+
+   call random_seed(size=n)
+
+   allocate(seed(n))
+
+   call system_clock(t)
+
+   ! In case that the system_clock is 0 and therefore
+   ! not a helpful choice to generate a seed
+   if(t == 0) then
+      call date_and_time(values=dt)
+
+      t = (dt(1)-1970)*365*24*60*60*1000+dt(2)*31*24*60*60*1000+&
+             dt(3)*24*60*60*1000+dt(5)*60*60*1000+dt(6)*60*1000+&
+             dt(7)*1000+dt(8)
+   endif
+
+   ! Writting the array with seeds
+   do i = 1,n
+      seed(i) = lcg(t)
+   enddo
+
+   call random_seed(put=seed)
+
+end subroutine
+
+!>
+!! Generate a UUID and return it through the subroutine interface.  This
+!! subroutine assumes that the seed has already been set via the random_seed
+!! subroutine.  There is state change associated with generating random numbers
+!! from the seed.  The ELSI handle is not used as part of this subroutine.
+!!
+subroutine elsi_gen_uuid(uuid)
+
+   implicit none
+
+   character(len=UUID_LEN), intent(out) :: uuid
+
+   integer(kind=i4) :: ii3
+   integer(kind=i4) :: ii4
+   integer(kind=i4) :: i_entry
+   integer(kind=i4) :: error
+   real(kind=r8)    :: rr(8)
+   character(len=3) :: ss3
+   character(len=4) :: ss4
+
+   ii3 = 4095
+   ii4 = 65535
+
+   call random_number(rr)
+
+   do i_entry=1,8
+      write(ss3,"(Z3.3)") transfer(int(rr(i_entry)*ii3),16)
+      write(ss4,"(Z4.4)") transfer(int(rr(i_entry)*ii4),16)
+
+      if(i_entry == 1) then
+         write(uuid,'(A)') ss4
+      elseif(i_entry == 2) then
+         write(uuid,'(A,A)') trim(uuid),ss4
+      elseif(i_entry == 3) then
+         write(uuid,'(A,A,A)') trim(uuid),'-',ss4
+      elseif(i_entry == 4) then
+         write(uuid,'(A,A,A)') trim(uuid),'-4',ss3
+      elseif(i_entry == 5) then
+         write(uuid,'(A,A,A,A)') trim(uuid),'-A',ss3,'-'
+      else
+         write(uuid,'(A,A)') trim(uuid),ss4
+      endif
+   enddo
+
+end subroutine
+
+!>
+!! Broadcast the UUID stored on the ELSI instance on task 0 to all other tasks.
+!!
+subroutine elsi_sync_uuid(e_h)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h
+
+   integer(kind=i4) :: ierr
+
+   character(len=40), parameter :: caller = "elsi_sync_uuid"
+
+   if(.not. e_h%uuid_exists) then
+      call elsi_stop(" UUID has not been generated yet.",e_h,caller)
+   endif
+
+   if(.not. e_h%handle_ready) then
+      call elsi_stop(" The ELSI handle is not ready; we don't know whether MPI &
+           &is initialized.",e_h,caller)
+   endif
+
+   if(e_h%parallel_mode == MULTI_PROC) then
+      call MPI_Bcast(e_h%uuid,UUID_LEN,mpi_character,0,e_h%mpi_comm_all,ierr)
+      call elsi_check_mpi(e_h,"MPI_Bcast",ierr,caller)
+   endif
 
 end subroutine
 

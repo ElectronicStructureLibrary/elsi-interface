@@ -989,19 +989,19 @@ subroutine elsi_set_sips_n_slice_c_wrapper(handle_c,n_slice)&
 
 end subroutine
 
-subroutine elsi_set_sips_slice_type_c_wrapper(handle_c,slice_type)&
-   bind(C,name="c_elsi_set_sips_slice_type")
+subroutine elsi_set_sips_first_ev_c_wrapper(handle_c,first_ev)&
+   bind(C,name="c_elsi_set_sips_first_ev")
 
    implicit none
 
    type(c_ptr),         value, intent(in) :: handle_c
-   integer(kind=c_int), value, intent(in) :: slice_type
+   integer(kind=c_int), value, intent(in) :: first_ev
 
    type(elsi_handle), pointer :: handle_f
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_set_sips_slice_type(handle_f,slice_type)
+   call elsi_set_sips_first_ev(handle_f,first_ev)
 
 end subroutine
 
@@ -1018,23 +1018,6 @@ subroutine elsi_set_sips_buffer_c_wrapper(handle_c,buffer)&
    call c_f_pointer(handle_c,handle_f)
 
    call elsi_set_sips_buffer(handle_f,buffer)
-
-end subroutine
-
-subroutine elsi_set_sips_interval_c_wrapper(handle_c,lower,upper)&
-   bind(C,name="c_elsi_set_sips_interval")
-
-   implicit none
-
-   type(c_ptr),         value, intent(in) :: handle_c
-   real(kind=c_double), value, intent(in) :: lower
-   real(kind=c_double), value, intent(in) :: upper
-
-   type(elsi_handle), pointer :: handle_f
-
-   call c_f_pointer(handle_c,handle_f)
-
-   call elsi_set_sips_interval(handle_f,lower,upper)
 
 end subroutine
 

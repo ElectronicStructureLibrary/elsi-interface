@@ -31,7 +31,7 @@
 module ELSI_DATATYPE
 
    use, intrinsic :: ISO_C_BINDING
-   use ELSI_CONSTANTS,     only: FILE_NAME_LEN,TIMING_STRING_LEN
+   use ELSI_CONSTANTS,     only: FILE_NAME_LEN,SETTING_STR_LEN,UUID_LEN
    use ELSI_PRECISION,     only: r8,i4
    use FOE_BASE,           only: foe_data
    use F_PPEXSI_INTERFACE, only: f_ppexsi_options
@@ -56,14 +56,14 @@ module ELSI_DATATYPE
 
    type, public :: elsi_timings_handle
 
-      integer(kind=i4)                 :: size_timings ! Array dimension
-      integer(kind=i4)                 :: n_timings
-      character(len=TIMING_STRING_LEN) :: user_tag
-      character(len=TIMING_STRING_LEN) :: set_label    ! Timing set identifier
+      integer(kind=i4)               :: size_timings ! Array dimension
+      integer(kind=i4)               :: n_timings
+      character(len=SETTING_STR_LEN) :: user_tag
+      character(len=SETTING_STR_LEN) :: set_label    ! Timing set identifier
 
-      real(kind=r8),                    allocatable :: times(:)
-      character(len=TIMING_STRING_LEN), allocatable :: elsi_tags(:)
-      character(len=TIMING_STRING_LEN), allocatable :: user_tags(:)
+      real(kind=r8),                  allocatable :: times(:)
+      character(len=SETTING_STR_LEN), allocatable :: elsi_tags(:)
+      character(len=SETTING_STR_LEN), allocatable :: user_tags(:)
 
    end type
 
@@ -315,7 +315,14 @@ module ELSI_DATATYPE
       logical                   :: output_timings
 
       ! Versioning
-      character(len=:), allocatable :: processor_name ! MPI name for processor
+      character(len=:), allocatable  :: processor_name   ! MPI name of processor
+      character(len=SETTING_STR_LEN) :: calling_code     ! Code invoking ELSI
+      character(len=SETTING_STR_LEN) :: calling_code_ver ! Version of code
+                                                         ! invoking ELSI
+      character(len=UUID_LEN)        :: uuid             ! UUID for ELSI run in
+                                                         ! an RFC 4122 format
+      logical                        :: uuid_exists      ! Whether the UUID has
+                                                         ! been set
 
    end type
 

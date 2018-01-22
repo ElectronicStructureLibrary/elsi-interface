@@ -42,7 +42,7 @@ module ELSI_SETUP
    use ELSI_IO,            only: elsi_print_handle_summary,elsi_say,&
                                  elsi_say_setting,elsi_init_file_io,&
                                  elsi_reset_file_io_handle,append_string,&
-                                 truncate_string
+                                 truncate_string,elsi_print_versioning
    use ELSI_MALLOC,        only: elsi_allocate,elsi_deallocate
    use ELSI_MPI,           only: elsi_stop
    use ELSI_OMM,           only: elsi_set_omm_default
@@ -145,10 +145,10 @@ subroutine elsi_init(e_h,solver,parallel_mode,matrix_format,n_basis,n_electron,&
    call elsi_init_file_io(e_h%stdio,6,file_format=HUMAN_READ,print_info=.false.)
 
    ! Initialize solver timings file handle
-   e_h%output_timings = .true.
+   e_h%output_timings = .false.
    ! print_unit and file_name should only have meaning for myid_all == 0 as a
-   ! precautionary measure. However, which process has myid_all == 0 yet, so
-   ! they'll be unset once the file is actually open
+   ! precautionary measure. However, which process has myid_all == 0 has not
+   ! been determined yet, so they'll be unset once the file is actually open
    call elsi_init_file_io(e_h%timings_file,SOLVER_TIMINGS_UNIT_DEFAULT,&
            file_name=SOLVER_TIMINGS_FILE_DEFAULT,file_format=JSON,&
            print_info=.true.,comma_json=COMMA_AFTER)
@@ -446,18 +446,21 @@ subroutine elsi_final_print(e_h)
               caller)
    endif
 
-   call elsi_say(e_h,"  |---------------------------------------------------------------------")
+   call elsi_say(e_h,"  |--------------------------------------------------------------------------")
    call elsi_say(e_h,"  | Final ELSI Output                        ")
-   call elsi_say(e_h,"  |---------------------------------------------------------------------")
+   call elsi_say(e_h,"  |--------------------------------------------------------------------------")
 
    call append_string(e_h%stdio%prefix,"  | ")
+   call elsi_print_versioning(e_h)
+
+   call elsi_say(e_h,"")
    call elsi_print_handle_summary(e_h)
 
    call append_string(e_h%stdio%prefix,"  ")
    if(e_h%handle_changed) then
-      call elsi_say_setting(e_h,"Was ELSI changed mid-run?","YES")
+      call elsi_say_setting(e_h,"Was ELSI changed mid-run?","TRUE")
    else
-      call elsi_say_setting(e_h,"Was ELSI changed mid-run?","NO")
+      call elsi_say_setting(e_h,"Was ELSI changed mid-run?","FALSE")
    endif
    call elsi_say_setting(e_h,"Number of ELSI calls",e_h%n_elsi_calls)
    call truncate_string(e_h%stdio%prefix,2)
@@ -469,9 +472,9 @@ subroutine elsi_final_print(e_h)
    call truncate_string(e_h%stdio%prefix,2)
 
    call truncate_string(e_h%stdio%prefix,4)
-   call elsi_say(e_h,"  |--------------------------------------------------------------------")
+   call elsi_say(e_h,"  |--------------------------------------------------------------------------")
    call elsi_say(e_h,"  | ELSI Project (c)  elsi-interchange.org   ")
-   call elsi_say(e_h,"  |--------------------------------------------------------------------")
+   call elsi_say(e_h,"  |--------------------------------------------------------------------------")
 
 end subroutine
 

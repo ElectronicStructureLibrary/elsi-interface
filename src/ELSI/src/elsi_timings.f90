@@ -30,7 +30,8 @@
 !!
 module ELSI_TIMINGS
 
-   use ELSI_CONSTANTS, only: TIMING_STRING_LEN,UNSET,UNSET_STRING
+   use ELSI_CONSTANTS, only: SETTING_STR_LEN,UNSET,UNSET_STRING,&
+                             MAX_FINAL_TIMING_ITERS
    use ELSI_DATATYPE,  only: elsi_handle,elsi_timings_handle
    use ELSI_IO,        only: elsi_say
    use ELSI_PRECISION, only: i4,r8
@@ -130,9 +131,9 @@ subroutine elsi_resize_timing_arrays(t_h)
    type(elsi_timings_handle), intent(inout) :: t_h
 
    integer :: i_timing
-   real(kind=r8),                    allocatable :: tmp_times(:)
-   character(len=TIMING_STRING_LEN), allocatable :: tmp_elsi_tags(:)
-   character(len=TIMING_STRING_LEN), allocatable :: tmp_user_tags(:)
+   real(kind=r8),                  allocatable :: tmp_times(:)
+   character(len=SETTING_STR_LEN), allocatable :: tmp_elsi_tags(:)
+   character(len=SETTING_STR_LEN), allocatable :: tmp_user_tags(:)
 
    character(len=40), parameter :: caller = "elsi_resize_timing_arrays"
 
@@ -184,8 +185,8 @@ subroutine elsi_add_timing(t_h,time,elsi_tag,user_tag_in,iter_in)
    character(len=*),          intent(in), optional :: user_tag_in
    integer(kind=i4),          intent(in), optional :: iter_in
 
-   character(len=TIMING_STRING_LEN) :: user_tag
-   integer(kind=i4)                 :: iter
+   character(len=SETTING_STR_LEN) :: user_tag
+   integer(kind=i4)               :: iter
 
    character(len=40), parameter :: caller = "elsi_add_timings"
 
@@ -233,8 +234,14 @@ subroutine elsi_print_timings(e_h,t_h)
    write(info_str,"(A,I4)") "Number of timings: ",t_h%n_timings
    call elsi_say(e_h,info_str)
    call elsi_say(e_h,"   #  system_clock [s]  elsi_tag             user_tag            ")
-
    do iter = 1,t_h%n_timings
+      if (iter > MAX_FINAL_TIMING_ITERS) then
+         write(info_str,"(A,I3,A)") "*** TO AVOID EXCESSIVE OUTPUT, ONLY ",&
+              MAX_FINAL_TIMING_ITERS, " TIMINGS ARE SHOWN. ***"
+         call elsi_say(e_h,info_str)
+         exit
+      endif
+
       write(info_str,"(I4,1X,F17.3,2X,A,1X,A)") iter,t_h%times(iter),&
          t_h%elsi_tags(iter),t_h%user_tags(iter)
       call elsi_say(e_h,info_str)

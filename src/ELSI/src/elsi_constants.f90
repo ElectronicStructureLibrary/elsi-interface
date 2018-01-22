@@ -34,8 +34,6 @@ module ELSI_CONSTANTS
 
    implicit none
 
-   character(len=8), parameter :: RELEASE_DATE = "20170527"
-
    real(kind=r8), parameter :: SQRT_PI        = 1.7724538509055160273_r8
    real(kind=r8), parameter :: INVERT_SQRT_PI = 0.5641895835477563275_r8
 
@@ -105,9 +103,13 @@ module ELSI_CONSTANTS
    integer(kind=i4), parameter :: NO_COMMA     = 2
 
    ! Constants for ELSI timings
-   integer(kind=i4),             parameter :: TIMING_STRING_LEN           = 20
    integer(kind=i4),             parameter :: SOLVER_TIMINGS_UNIT_DEFAULT = 66
    character(len=FILE_NAME_LEN), parameter :: SOLVER_TIMINGS_FILE_DEFAULT = "elsi_solver_timings.json"
-   integer(kind=i4),             parameter :: DATETIME_LEN                = 29
+   integer(kind=i4),             parameter :: MAX_FINAL_TIMING_ITERS      = 200
+
+   ! Constants for ELSI versioning
+   integer(kind=i4), parameter :: SETTING_STR_LEN = 20
+   integer(kind=i4), parameter :: DATETIME_LEN    = 29
+   integer(kind=i4), parameter :: UUID_LEN        = 36 ! RFC 4122 format
 
 end module ELSI_CONSTANTS
