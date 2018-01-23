@@ -46,9 +46,9 @@ module ELSI_DATATYPE
 
       logical                       :: handle_init ! Is this a valid handle?
       integer(kind=i4)              :: print_unit  ! Unit to print to
-      character(len=FILE_NAME_LEN)  :: file_name
-      integer(kind=i4)              :: file_format
-      logical                       :: print_info
+      character(len=FILE_NAME_LEN)  :: file_name   ! Name of file
+      integer(kind=i4)              :: file_format ! Human-readable, JSON, etc.?
+      logical                       :: print_info  ! Are we actually printing?
       character(len=:), allocatable :: prefix      ! Prefix for each line
       integer(kind=i4)              :: comma_json  ! Comma placement in JSON
 

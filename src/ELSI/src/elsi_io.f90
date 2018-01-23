@@ -66,6 +66,10 @@ module ELSI_IO
    public :: elsi_print_pexsi_csc_settings
    public :: append_string
    public :: truncate_string
+   public :: elsi_open_json_file
+   public :: elsi_close_json_file
+   public :: elsi_start_json_record
+   public :: elsi_finish_json_record
 
    interface elsi_say_setting
       module procedure elsi_say_setting_i4,&
@@ -1427,5 +1431,110 @@ subroutine truncate_string(l_string,n_chars_to_remove)
    deallocate(temp_string)
 
 end subroutine
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Subroutines for streamlining the patterned output of JSON files with ELSI.   !
+! These subroutines create the relevant file IO handle and write the various   !
+! opening/closing brackets for the JSON arrays and records.  The actual        !
+! name/value pairs contained in the records are written by elsi_say_setting,   !
+! which is not included in this set of subroutines as it is also used for      !
+! human-readable output.                                                       !
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!>
+!! This routine generates a file IO handle for the JSON file and opens the file
+!!
+subroutine elsi_open_json_file(e_h,print_unit,file_name,opening_bracket,io_h)
+
+   implicit none
+
+   type(elsi_handle),         intent(in)  :: e_h
+   integer(kind=i4),          intent(in)  :: print_unit
+   character(len=*),          intent(in)  :: file_name
+   logical,                   intent(in)  :: opening_bracket
+   type(elsi_file_io_handle), intent(out) :: io_h
+
+   call elsi_init_file_io(io_h,print_unit,file_name,JSON,.true.,"",COMMA_AFTER)
+
+   open(unit=io_h%print_unit, file=io_h%file_name)
+
+   if(opening_bracket) then
+      call elsi_say(e_h,"[",io_h)
+      call append_string(io_h%prefix,"  ")
+   endif
+
+end subroutine elsi_open_json_file
+
+!>
+!! This routine closes the JSON file and tears down the file IO handle
+!!
+subroutine elsi_close_json_file(e_h,closing_bracket,io_h)
+
+   implicit none
+
+   type(elsi_handle),         intent(in)    :: e_h
+   logical,                   intent(in)    :: closing_bracket
+   type(elsi_file_io_handle), intent(inout) :: io_h
+
+   ! ADD CHECK THAT THIS IS JSON FILE
+
+   ! Closing bracket to signify end of JSON array
+   if(closing_bracket) then
+      call truncate_string(io_h%prefix,2)
+      call elsi_say(e_h,"]",io_h)
+   endif
+
+   close(io_h%print_unit)
+
+   call elsi_reset_file_io_handle(io_h)
+   call elsi_finalize_file_io(e_h,io_h)
+
+end subroutine elsi_close_json_file
+
+!>
+!! This routine starts a new record in the JSON file
+!!
+subroutine elsi_start_json_record(e_h,comma_before,io_h)
+
+   implicit none
+
+   type(elsi_handle),         intent(in)    :: e_h
+   logical,                   intent(in)    :: comma_before
+   type(elsi_file_io_handle), intent(inout) :: io_h
+
+   if(comma_before) then
+      call elsi_say(e_h,',{',io_h)
+   else
+      call elsi_say(e_h,'{',io_h)
+   endif
+
+   call append_string(io_h%prefix,"  ")
+
+end subroutine elsi_start_json_record
+
+!>
+!! This routine finishes the current record in the JSON file
+!!
+subroutine elsi_finish_json_record(e_h,comma_after,io_h)
+
+   implicit none
+
+   type(elsi_handle),         intent(in)    :: e_h
+   logical,                   intent(in)    :: comma_after
+   type(elsi_file_io_handle), intent(inout) :: io_h
+
+   call truncate_string(io_h%prefix,2)
+
+   if(comma_after) then
+      call elsi_say(e_h,'},',io_h)
+   else
+      call elsi_say(e_h,'}',io_h)
+   endif
+
+end subroutine elsi_finish_json_record
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!                              End of JSON Code                                !
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 end module ELSI_IO
