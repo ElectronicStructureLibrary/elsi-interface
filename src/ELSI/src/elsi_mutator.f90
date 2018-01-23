@@ -914,11 +914,6 @@ subroutine elsi_set_sips_n_elpa(e_h,n_elpa)
       e_h%handle_changed = .true.
    endif
 
-   if(n_elpa < 1) then
-      call elsi_stop(" Currently at least 1 ELPA step is needed to use SIPs.",&
-              e_h,caller)
-   endif
-
    e_h%sips_n_elpa = n_elpa
 
 end subroutine

@@ -217,6 +217,7 @@ program test_ev_real
    endif
 
    ! Customize ELSI
+   call elsi_set_sips_n_elpa(e_h,1)
    call elsi_set_output(e_h,2)
    call elsi_set_mu_broaden_width(e_h,1.0e-6_r8)
    call elsi_set_output_timings(e_h,1)

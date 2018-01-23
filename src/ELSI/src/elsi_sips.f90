@@ -157,8 +157,13 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
 
    call elsi_allocate(e_h,slices,e_h%sips_n_slices+1,"slices",caller)
 
-   lower = eval(1)-e_h%sips_buffer
-   upper = eval(e_h%n_states)+e_h%sips_buffer
+   if(e_h%n_elsi_calls == 1) then
+      lower = -2.0_r8
+      upper = 2.0_r8
+   else
+      lower = eval(1)-e_h%sips_buffer
+      upper = eval(e_h%n_states)+e_h%sips_buffer
+   endif
 
    if(e_h%sips_do_inertia) then ! Inertia counting
       call elsi_get_time(e_h,t0)

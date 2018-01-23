@@ -922,8 +922,6 @@ subroutine elsi_init_random_seed()
 
    integer(kind=i4) :: i
    integer(kind=i4) :: n
-   integer(kind=i4) :: un
-   integer(kind=i4) :: istat
    integer(kind=i4) :: dt(8)
    integer(kind=i8) :: t
 
@@ -969,7 +967,6 @@ subroutine elsi_gen_uuid(uuid)
    integer(kind=i4) :: ii3
    integer(kind=i4) :: ii4
    integer(kind=i4) :: i_entry
-   integer(kind=i4) :: error
    real(kind=r8)    :: rr(8)
    character(len=3) :: ss3
    character(len=4) :: ss4
