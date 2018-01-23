@@ -158,8 +158,8 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
    call elsi_allocate(e_h,slices,e_h%sips_n_slices+1,"slices",caller)
 
    if(e_h%n_elsi_calls == 1) then
-      lower = -2.0_r8
-      upper = 2.0_r8
+      lower = e_h%sips_interval(1)
+      upper = e_h%sips_interval(2)
    else
       lower = eval(1)-e_h%sips_buffer
       upper = eval(e_h%n_states)+e_h%sips_buffer
@@ -182,14 +182,33 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
          if(inertias(1) > e_h%sips_first_ev-1) then
             lower      = lower-e_h%sips_buffer
             inertia_ok = .false.
-         elseif(inertias(1) < e_h%sips_first_ev-1) then
-            lower      = lower+e_h%sips_buffer
-            inertia_ok = .false.
+         else
+            do i = 1,e_h%sips_n_slices+1
+               if(inertias(i+1) > e_h%sips_first_ev) then
+                  lower = slices(i)
+
+                  exit
+               endif
+            enddo
+
+            if(inertias(i) < e_h%sips_first_ev-1) then
+               lower      = lower+e_h%sips_buffer
+               inertia_ok = .false.
+            endif
          endif
 
-         if(inertias(e_h%sips_n_slices+1) < e_h%n_states) then
+         if(inertias(e_h%sips_n_slices+1) < &
+            e_h%n_states+e_h%sips_first_ev-1) then
             upper      = upper+e_h%sips_buffer
             inertia_ok = .false.
+         else
+            do i = e_h%sips_n_slices+1,1,-1
+               if(inertias(i-1) < e_h%n_states+e_h%sips_first_ev-1) then
+                  upper = slices(i)
+
+                  exit
+               endif
+            enddo
          endif
 
          ! DEBUG
@@ -210,6 +229,18 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
       call elsi_say(e_h,info_str)
       write(info_str,"('  | Time :',F10.3,' s')") t1-t0
       call elsi_say(e_h,info_str)
+   endif
+
+   call elsi_linspace(lower,upper,e_h%sips_n_slices+1,slices)
+
+   ! DEBUG
+   if(e_h%myid == 0) then
+      print *
+      print *,"Final slices:"
+      do i = 1,e_h%sips_n_slices+1
+         print *,slices(i)
+      enddo
+      print *
    endif
 
    call sips_set_slices(e_h%sips_n_slices,slices)
@@ -235,6 +266,8 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
    ! Get solutions
    call sips_get_eigenvalues(e_h%n_states,eval(1:e_h%n_states))
    call sips_get_eigenvectors(e_h%n_states,e_h%n_lcol_sp,e_h%evec_real_sips)
+
+   call elsi_deallocate(e_h,slices,"slices")
 
    call MPI_Barrier(e_h%mpi_comm,ierr)
 
@@ -297,6 +330,10 @@ subroutine elsi_set_sips_default(e_h)
 
    ! Do inertia counting
    e_h%sips_do_inertia = .true.
+
+   ! Initial global interval
+   e_h%sips_interval(1) = -2.0_r8
+   e_h%sips_interval(2) = 2.0_r8
 
    ! Index of 1st eigensolution to be solved
    e_h%sips_first_ev = 1

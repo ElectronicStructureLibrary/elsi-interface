@@ -287,9 +287,9 @@ module ELSI_DATATYPE
       integer(kind=i4) :: sips_n_elpa
       integer(kind=i4) :: sips_np_per_slice
       integer(kind=i4) :: sips_n_slices
-      integer(kind=i4) :: sips_slice_type
+      integer(kind=i4) :: sips_slice_type ! Currently not used
       integer(kind=i4) :: sips_first_ev
-      real(kind=r8)    :: sips_buffer ! Adjust interval on-the-fly
+      real(kind=r8)    :: sips_buffer     ! Adjust interval
       real(kind=r8)    :: sips_interval(2)
       logical          :: sips_do_inertia
       logical          :: sips_started = .false.

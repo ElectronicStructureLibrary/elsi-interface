@@ -1021,6 +1021,23 @@ subroutine elsi_set_sips_buffer_c_wrapper(handle_c,buffer)&
 
 end subroutine
 
+subroutine elsi_set_sips_interval_c_wrapper(handle_c,lower,upper)&
+   bind(C,name="c_elsi_set_sips_interval")
+
+   implicit none
+
+   type(c_ptr),         value, intent(in) :: handle_c
+   real(kind=c_double), value, intent(in) :: lower
+   real(kind=c_double), value, intent(in) :: upper
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_sips_interval(handle_f,lower,upper)
+
+end subroutine
+
 subroutine elsi_set_dmp_method_c_wrapper(handle_c,dmp_method)&
    bind(C,name="c_elsi_set_dmp_method")
 
