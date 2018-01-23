@@ -980,7 +980,7 @@ subroutine elsi_set_sips_interval(e_h,lower,upper)
    real(kind=r8),     intent(in)    :: lower !< Lower bound
    real(kind=r8),     intent(in)    :: upper !< Upper bound
 
-   character*40, parameter :: caller = "elsi_set_sips_interval"
+   character(len=40), parameter :: caller = "elsi_set_sips_interval"
 
    call elsi_check_handle(e_h,caller)
 

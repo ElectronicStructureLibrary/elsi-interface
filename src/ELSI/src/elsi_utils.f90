@@ -883,17 +883,11 @@ end subroutine
 !                        ********-****-4***-a***-************                  !
 ! Details can be found at https://tools.ietf.org/html/rfc4122                  !
 !                                                                              !
-! These subroutines were been taken from FHI-aims (with permission of          !
-! copyright holders) and modified to make them more general.                   !
-!                                                                              !
-! With the exception of elsi_sync_uuid() which syncs the UUID across MPI       !
-! tasks, these subroutines do not import the ELSI handle.  This is a           !
-! deliberate design choice to allow this functionality to be re-used by codes  !
-! which import ELSI.                                                           !
+! Taken from FHI-aims with permission of copyright holders.                    !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !>
-!! WPH: My guess is that this is a linear congruential generator?
+!! Linear congruential generator.
 !!
 integer(kind=i4) function lcg(s)
 
@@ -953,10 +947,7 @@ subroutine elsi_init_random_seed()
 end subroutine
 
 !>
-!! Generate a UUID and return it through the subroutine interface.  This
-!! subroutine assumes that the seed has already been set via the random_seed
-!! subroutine.  There is state change associated with generating random numbers
-!! from the seed.  The ELSI handle is not used as part of this subroutine.
+!! Generate a UUID. The random seed must have been set.
 !!
 subroutine elsi_gen_uuid(uuid)
 
@@ -998,7 +989,7 @@ subroutine elsi_gen_uuid(uuid)
 end subroutine
 
 !>
-!! Broadcast the UUID stored on the ELSI instance on task 0 to all other tasks.
+!! Broadcast UUID from task 0 to all other tasks.
 !!
 subroutine elsi_sync_uuid(e_h)
 
@@ -1009,15 +1000,6 @@ subroutine elsi_sync_uuid(e_h)
    integer(kind=i4) :: ierr
 
    character(len=40), parameter :: caller = "elsi_sync_uuid"
-
-   if(.not. e_h%uuid_exists) then
-      call elsi_stop(" UUID has not been generated yet.",e_h,caller)
-   endif
-
-   if(.not. e_h%handle_ready) then
-      call elsi_stop(" The ELSI handle is not ready; we don't know whether MPI &
-           &is initialized.",e_h,caller)
-   endif
 
    if(e_h%parallel_mode == MULTI_PROC) then
       call MPI_Bcast(e_h%uuid,UUID_LEN,mpi_character,0,e_h%mpi_comm_all,ierr)

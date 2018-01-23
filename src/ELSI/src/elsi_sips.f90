@@ -233,16 +233,6 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
 
    call elsi_linspace(lower,upper,e_h%sips_n_slices+1,slices)
 
-   ! DEBUG
-   if(e_h%myid == 0) then
-      print *
-      print *,"Final slices:"
-      do i = 1,e_h%sips_n_slices+1
-         print *,slices(i)
-      enddo
-      print *
-   endif
-
    call sips_set_slices(e_h%sips_n_slices,slices)
 
    call elsi_get_time(e_h,t0)
