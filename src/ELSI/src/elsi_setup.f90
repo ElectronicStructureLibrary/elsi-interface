@@ -34,7 +34,7 @@ module ELSI_SETUP
    use ELSI_CONSTANTS,     only: ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,&
                                  CHESS_SOLVER,SIPS_SOLVER,DMP_SOLVER,&
                                  SINGLE_PROC,MULTI_PROC,HUMAN_READ,JSON,&
-                                 COMMA_AFTER,SOLVER_TIMINGS_UNIT_DEFAULT,&
+                                 SOLVER_TIMINGS_UNIT_DEFAULT,&
                                  SOLVER_TIMINGS_FILE_DEFAULT
    use ELSI_DATATYPE,      only: elsi_handle
    use ELSI_DMP,           only: elsi_set_dmp_default
@@ -42,7 +42,8 @@ module ELSI_SETUP
    use ELSI_IO,            only: elsi_print_handle_summary,elsi_say,&
                                  elsi_say_setting,elsi_init_file_io,&
                                  elsi_reset_file_io_handle,append_string,&
-                                 truncate_string,elsi_print_versioning
+                                 truncate_string,elsi_print_versioning,&
+                                 elsi_close_json_file
    use ELSI_MALLOC,        only: elsi_allocate,elsi_deallocate
    use ELSI_MPI,           only: elsi_stop
    use ELSI_OMM,           only: elsi_set_omm_default
@@ -144,11 +145,11 @@ subroutine elsi_init(e_h,solver,parallel_mode,matrix_format,n_basis,n_electron,&
    ! Initialize stdio handle, silent by default
    call elsi_init_file_io(e_h%stdio,6,file_format=HUMAN_READ,print_info=.false.)
 
-   ! Initialize solver timings file handle
-   e_h%output_timings = .false.
-   call elsi_init_file_io(e_h%timings_file,SOLVER_TIMINGS_UNIT_DEFAULT,&
-           file_name=SOLVER_TIMINGS_FILE_DEFAULT,file_format=JSON,&
-           print_info=.true.,comma_json=COMMA_AFTER)
+   ! Initialize defaults for solver timings file
+   ! The file IO handle won't be initialized until the ELSI handle is readied
+   e_h%output_timings_file = .false.
+   e_h%solver_timings_name = SOLVER_TIMINGS_FILE_DEFAULT
+   e_h%solver_timings_unit = SOLVER_TIMINGS_UNIT_DEFAULT
 
    ! Initialize timer information
    call elsi_init_timer(e_h)
@@ -692,24 +693,20 @@ subroutine elsi_cleanup(e_h)
       call sips_finalize()
    endif
 
-   ! Print final timings
-   if(e_h%handle_ready .and. e_h%output_timings) then
-      if(e_h%timings_file%file_format == JSON) then
-         ! Closing bracket to signify end of JSON array
-         call truncate_string(e_h%timings_file%prefix,2)
-
-         call elsi_say(e_h,"]",e_h%timings_file)
-      endif
+   ! Close solver timings file
+   if(e_h%handle_ready .and. e_h%output_timings_file .and. e_h%myid_all == 0) then
+      select case(e_h%timings_file%file_format)
+      case(JSON)
+         call elsi_close_json_file(e_h,.true.,e_h%timings_file)
+      case(HUMAN_READ)
+         close(e_h%timings_file%print_unit)
+         call elsi_reset_file_io_handle(e_h%timings_file)
+      case default
+         call elsi_stop(" Unsupported output format.",e_h,caller)
+      end select
    endif
 
    call elsi_finalize_timings(e_h%timings)
-
-   ! Close open files and finalize file IO handles other than stdio
-   if(e_h%handle_ready .and. e_h%output_timings .and. e_h%myid_all == 0) then
-      close(e_h%timings_file%print_unit)
-   endif
-
-   call elsi_reset_file_io_handle(e_h%timings_file)
 
    ! Close the stdio file handle, then reset e_h
    call elsi_reset_file_io_handle(e_h%stdio)

@@ -310,9 +310,11 @@ module ELSI_DATATYPE
       type(elsi_file_io_handle) :: timings_file
 
       ! Timer and timings
-      integer(kind=i4)          :: clock_rate
-      type(elsi_timings_handle) :: timings
-      logical                   :: output_timings
+      integer(kind=i4)             :: clock_rate
+      type(elsi_timings_handle)    :: timings
+      logical                      :: output_timings_file
+      integer(kind=i4)             :: solver_timings_unit
+      character(len=FILE_NAME_LEN) :: solver_timings_name
 
       ! Versioning
       character(len=:), allocatable  :: processor_name   ! MPI name of processor

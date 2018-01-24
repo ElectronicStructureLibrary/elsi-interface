@@ -1278,7 +1278,7 @@ subroutine elsi_process_solver_timing(e_h,output_type,data_type,solver_used,&
    call elsi_get_solver_tag(e_h,solver_tag,data_type)
    call elsi_add_timing(e_h%timings,total_time,solver_tag)
 
-   if(e_h%output_timings) then
+   if(e_h%output_timings_file) then
       iteration = e_h%timings%n_timings
 
       ! Avoid comma at the end of the last entry
