@@ -52,7 +52,6 @@ RANLIB       ?= ranlib
 # Default installation directories
 THIS_DIR   = $(shell pwd)
 ELSI_DIR   = $(THIS_DIR)/src/ELSI
-BIN_DIR    = $(THIS_DIR)/bin
 LIB_DIR    = $(THIS_DIR)/lib
 INC_DIR    = $(THIS_DIR)/include
 BUILD_DIR  = $(THIS_DIR)/build
@@ -164,7 +163,6 @@ elsi: $(ALL_OBJ)
 	@echo ==========================
 	mkdir -p $(INC_DIR)
 	mkdir -p $(LIB_DIR)
-	mkdir -p $(BIN_DIR)
 	mkdir -p $(BUILD_DIR)
 	cd $(BUILD_DIR) && $(MAKE) -f $(ELSI_DIR)/Makefile.elsi
 	@echo ===============================
@@ -203,7 +201,6 @@ cleanelsi:
 	@echo ====================
 	rm -rf $(INC_DIR)
 	rm -rf $(LIB_DIR)
-	rm -rf $(BIN_DIR)
 	rm -rf $(BUILD_DIR)
 	@echo =========
 	@echo = Done. =

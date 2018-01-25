@@ -262,4 +262,3 @@ clean:
 install:
 	cp $(BUILD_DIR)/*.a $(LIB_DIR)
 	cp $(BUILD_DIR)/*.mod $(INC_DIR)
-	cp $(BUILD_DIR)/*.x $(BIN_DIR)
