@@ -169,13 +169,15 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
 
       call elsi_allocate(e_h,inertias,e_h%sips_n_slices+1,"inertias",caller)
 
-      inertia_ok = .false.
-      changed    = .false.
+      inertia_ok         = .false.
+      changed            = .false.
+      eval(1)            = eval(1)-e_h%sips_buffer
+      eval(e_h%n_states) = eval(e_h%n_states)+e_h%sips_buffer
 
       do while(.not. inertia_ok)
          inertia_ok = .true.
 
-         call sips_get_slices(0,e_h%n_states,e_h%sips_n_slices,e_h%sips_buffer,&
+         call sips_get_slices(0,e_h%n_states,e_h%sips_n_slices,0.0_r8,&
                  1.0e-5_r8,eval,slices)
 
          call sips_get_inertias(e_h%sips_n_slices,slices,inertias)
