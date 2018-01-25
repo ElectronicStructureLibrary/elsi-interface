@@ -31,7 +31,8 @@
 !!
 module ELSI
 
-   use ELSI_DATATYPE, only: elsi_handle,elsi_rw_handle
+   use ELSI_DATATYPE, only: elsi_file_io_handle,elsi_handle,elsi_rw_handle
+   use ELSI_IO
    use ELSI_MATIO
    use ELSI_MU
    use ELSI_MUTATOR
@@ -43,6 +44,7 @@ module ELSI
    private
 
    ! Data type
+   public :: elsi_file_io_handle
    public :: elsi_handle
    public :: elsi_rw_handle
 
@@ -151,5 +153,12 @@ module ELSI
    public :: elsi_write_mat_real_sparse
    public :: elsi_write_mat_complex
    public :: elsi_write_mat_complex_sparse
+
+   ! JSON file writing
+   public :: elsi_open_json_file
+   public :: elsi_close_json_file
+   public :: elsi_start_json_record
+   public :: elsi_say_setting
+   public :: elsi_finish_json_record
 
 end module ELSI

@@ -51,7 +51,8 @@ module ELSI_SOLVER
                              elsi_say,elsi_say_setting,&
                              elsi_print_matrix_format_settings,&
                              append_string,truncate_string,&
-                             elsi_print_versioning
+                             elsi_print_versioning,&
+                             elsi_start_json_record,elsi_finish_json_record
    use ELSI_LAPACK,    only: elsi_solve_evp_lapack_real,&
                              elsi_solve_evp_lapack_cmplx
    use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
@@ -1269,7 +1270,7 @@ subroutine elsi_process_solver_timing(e_h,output_type,data_type,solver_used,&
    call elsi_get_solver_tag(e_h,solver_tag,data_type)
    call elsi_add_timing(e_h%timings,total_time,solver_tag)
 
-   if(e_h%output_timings) then
+   if(e_h%output_timings_file) then
       iteration = e_h%timings%n_timings
 
       ! Avoid comma at the end of the last entry
@@ -1341,19 +1342,15 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,start_datetime,&
 
    ! Print out patterned header, versioning information, and timing details
    if(io_h%file_format == HUMAN_READ) then
-      write(info_str,"(A)") "--------------------------------------------------"
-      call elsi_say(e_h,info_str,io_h)
+      call elsi_say(e_h,"-------------------------------------------------------------------------",io_h)
       write(info_str,"(A,I10)") "Start of ELSI Solver Iteration ",iter
       call elsi_say(e_h,info_str,io_h)
 
-      write(info_str,"(A)") ""
-      call elsi_say(e_h,info_str,io_h)
+      call elsi_say(e_h,"",io_h)
       call elsi_print_versioning(e_h,io_h)
 
-      write(info_str,"(A)") ""
-      call elsi_say(e_h,info_str,io_h)
-      write(info_str,"(A)") "Timing Details"
-      call elsi_say(e_h,info_str,io_h)
+      call elsi_say(e_h,"",io_h)
+      call elsi_say(e_h,"Timing Details",io_h)
       call append_string(io_h%prefix,"  ")
       if(output_type == OUTPUT_EV) then
          call elsi_say_setting(e_h,"Output Type","EIGENVECTORS",io_h)
@@ -1374,15 +1371,8 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,start_datetime,&
       call elsi_say_setting(e_h,"Timing (s)",total_time,io_h)
       call truncate_string(io_h%prefix,2)
    elseif(io_h%file_format == JSON) then
-      if(io_h%comma_json == COMMA_BEFORE) then
-         write(info_str,"(A)") ',{'
-      else
-         write(info_str,"(A)") '{'
-      endif
-      call elsi_say(e_h,info_str,io_h)
-
+      call elsi_start_json_record(e_h,io_h%comma_json.eq.COMMA_BEFORE,io_h)
       io_h%comma_json = COMMA_AFTER ! Add commas behind all records before final
-      call append_string(io_h%prefix,"  ")
 
       call elsi_print_versioning(e_h,io_h)
 
@@ -1407,56 +1397,33 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,start_datetime,&
       call elsi_say_setting(e_h,"start_datetime",start_datetime,io_h)
       call elsi_say_setting(e_h,"record_datetime",record_datetime,io_h)
       call elsi_say_setting(e_h,"total_time",total_time,io_h)
-      call truncate_string(io_h%prefix,2)
    else
       call elsi_stop(" Unsupported output format.",e_h,caller)
    endif
 
-   call append_string(io_h%prefix,"  ")
-
    ! Print out handle summary
-   if(io_h%file_format == HUMAN_READ) then
-      write(info_str,"(A)") ""
-      call elsi_say(e_h,info_str,io_h)
-   endif
+   if(io_h%file_format == HUMAN_READ) call elsi_say(e_h,"",io_h)
    call elsi_print_handle_summary(e_h,io_h)
 
    ! Print out matrix storage format settings
-   if(io_h%file_format == HUMAN_READ) then
-      write(info_str,"(A)") ""
-      call elsi_say(e_h,info_str,io_h)
-   endif
+   if(io_h%file_format == HUMAN_READ) call elsi_say(e_h,"",io_h)
    call elsi_print_matrix_format_settings(e_h,io_h)
 
    ! Print out solver settings
    io_h%comma_json = NO_COMMA ! Final record in this scope
-   if(io_h%file_format == HUMAN_READ) then
-      write(info_str,"(A)") ""
-      call elsi_say(e_h,info_str,io_h)
-   endif
+   if(io_h%file_format == HUMAN_READ) call elsi_say(e_h,"",io_h)
    call elsi_print_solver_settings(e_h,io_h)
-
-   call truncate_string(io_h%prefix,2)
 
    ! Print out patterned footer
    io_h%comma_json = comma_json_save
    if(io_h%file_format == HUMAN_READ) then
-      write(info_str,"(A)") ""
-      call elsi_say(e_h,info_str,io_h)
+      call elsi_say(e_h,"",io_h)
       write(info_str,"(A,I10)") "End of ELSI Solver Iteration   ",iter
       call elsi_say(e_h,info_str,io_h)
-      write(info_str,"(A)") "--------------------------------------------------"
-      call elsi_say(e_h,info_str,io_h)
-      write(info_str,"(A)") ""
-      call elsi_say(e_h,info_str,io_h)
+      call elsi_say(e_h,"-------------------------------------------------------------------------",io_h)
+      call elsi_say(e_h,"",io_h)
    elseif(io_h%file_format == JSON) then
-      if(io_h%comma_json == COMMA_AFTER) then
-         write(info_str,"(A)") '},'
-         call elsi_say(e_h,info_str,io_h)
-      else
-         write(info_str,"(A)") '}'
-         call elsi_say(e_h,info_str,io_h)
-      endif
+      call elsi_finish_json_record(e_h,io_h%comma_json.eq.COMMA_AFTER,io_h)
    else
       call elsi_stop(" Unsupported output format.",e_h,caller)
    endif

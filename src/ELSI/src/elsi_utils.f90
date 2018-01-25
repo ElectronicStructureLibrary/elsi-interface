@@ -35,9 +35,11 @@ module ELSI_UTILS
                              BLACS_DENSE,AUTO,ELPA_SOLVER,OMM_SOLVER,&
                              PEXSI_SOLVER,CHESS_SOLVER,SIPS_SOLVER,DMP_SOLVER,&
                              UNSET_STRING,JSON,REAL_VALUES,COMPLEX_VALUES,&
-                             SETTING_STR_LEN,DATETIME_LEN,UUID_LEN
+                             SETTING_STR_LEN,DATETIME_LEN,UUID_LEN,COMMA_AFTER,&
+                             HUMAN_READ
    use ELSI_DATATYPE,  only: elsi_handle
-   use ELSI_IO,        only: elsi_say,append_string,truncate_string
+   use ELSI_IO,        only: elsi_say,append_string,truncate_string,&
+                             elsi_init_file_io,elsi_open_json_file
    use ELSI_MPI,       only: elsi_stop,elsi_check_mpi,elsi_get_processor_name,&
                              mpi_sum,mpi_real8,mpi_complex16,&
                              mpi_max_processor_name,mpi_character
@@ -190,7 +192,9 @@ subroutine elsi_reset_handle(e_h)
    e_h%dmp_tol                = 1e-8_r8
    e_h%dmp_ne                 = 0.0_r8
    e_h%clock_rate             = UNSET
-   e_h%output_timings         = .false.
+   e_h%output_timings_file    = .false.
+   e_h%solver_timings_unit    = UNSET
+   e_h%solver_timings_name    = UNSET_STRING
    e_h%uuid                   = UNSET_STRING
    e_h%uuid_exists            = .false.
    e_h%calling_code           = UNSET_STRING
@@ -424,21 +428,25 @@ subroutine elsi_ready_handle(e_h,caller)
       e_h%handle_ready   = .true.
 
       ! Perform initialization-like tasks which require MPI
+
       ! First, solver timings
-      if(e_h%output_timings) then
+      if(e_h%output_timings_file) then
          if(e_h%myid_all == 0) then
-            open(unit=e_h%timings_file%print_unit,&
-               file=e_h%timings_file%file_name)
+            ! Open the JSON file to output timings to (the .false. statement
+            ! selects human-readable output, kept for debugging purposes)
+            if(.true.) then
+               call elsi_open_json_file(e_h,e_h%solver_timings_unit,&
+                    e_h%solver_timings_name,.true.,e_h%timings_file)
+            else
+               call elsi_init_file_io(e_h%timings_file,e_h%solver_timings_unit,&
+                     e_h%solver_timings_name,HUMAN_READ,.true.,"",COMMA_AFTER)
+               open(unit=e_h%timings_file%print_unit, &
+                    file=e_h%timings_file%file_name)
+            endif
          else
             ! De-initialize e_h%myid_all /= 0
             e_h%timings_file%print_unit = UNSET
             e_h%timings_file%file_name  = UNSET_STRING
-         endif
-
-         if(e_h%timings_file%file_format == JSON) then
-            ! Opening bracket to signify JSON array
-            call elsi_say(e_h,"[",e_h%timings_file)
-            call append_string(e_h%timings_file%prefix,"  ")
          endif
       endif
 
@@ -1008,5 +1016,9 @@ subroutine elsi_sync_uuid(e_h)
    endif
 
 end subroutine
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!                              End of UUID Code                                !
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 end module ELSI_UTILS

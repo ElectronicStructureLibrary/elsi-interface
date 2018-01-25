@@ -1208,9 +1208,9 @@ subroutine elsi_set_output_timings(e_h,output_timings)
    endif
 
    if(output_timings == 0) then
-      e_h%output_timings = .false.
+      e_h%output_timings_file = .false.
    else
-      e_h%output_timings = .true.
+      e_h%output_timings_file = .true.
    endif
 
 end subroutine
@@ -1233,7 +1233,7 @@ subroutine elsi_set_timings_unit(e_h,timings_unit)
       e_h%handle_changed = .true.
    endif
 
-   e_h%timings_file%print_unit = timings_unit
+   e_h%solver_timings_unit = timings_unit
 
 end subroutine
 
@@ -1255,7 +1255,7 @@ subroutine elsi_set_timings_file(e_h,timings_file)
       e_h%handle_changed = .true.
    endif
 
-   e_h%timings_file%file_name = timings_file
+   e_h%solver_timings_name = timings_file
 
 end subroutine
 

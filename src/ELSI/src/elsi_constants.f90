@@ -98,9 +98,9 @@ module ELSI_CONSTANTS
    integer(kind=i4), parameter :: JSON          = 1
 
    ! Control placement of commas in JSON records
-   integer(kind=i4), parameter :: COMMA_AFTER  = 0
-   integer(kind=i4), parameter :: COMMA_BEFORE = 1
-   integer(kind=i4), parameter :: NO_COMMA     = 2
+   integer(kind=i4), parameter :: NO_COMMA     = 0
+   integer(kind=i4), parameter :: COMMA_AFTER  = 1
+   integer(kind=i4), parameter :: COMMA_BEFORE = 2
 
    ! Constants for ELSI timings
    integer(kind=i4),             parameter :: SOLVER_TIMINGS_UNIT_DEFAULT = 66
