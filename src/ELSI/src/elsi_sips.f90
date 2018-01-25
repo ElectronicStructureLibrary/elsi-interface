@@ -109,13 +109,12 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
 
    real(kind=r8)      :: t0
    real(kind=r8)      :: t1
-   real(kind=r8)      :: lower
-   real(kind=r8)      :: upper
    real(kind=r8)      :: max_diff
    integer(kind=i4)   :: i
    integer(kind=i4)   :: n_solved
    integer(kind=i4)   :: ierr
    logical            :: inertia_ok
+   logical            :: changed
    character(len=200) :: info_str
 
    real(kind=r8),    allocatable :: eval_save(:)
@@ -161,11 +160,8 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
    call elsi_allocate(e_h,slices,e_h%sips_n_slices+1,"slices",caller)
 
    if(e_h%n_elsi_calls == 1) then
-      lower = e_h%sips_interval(1)
-      upper = e_h%sips_interval(2)
-   else
-      lower = eval(1)-e_h%sips_buffer
-      upper = eval(e_h%n_states)+e_h%sips_buffer
+      eval    = e_h%sips_interval(2)
+      eval(1) = e_h%sips_interval(1)
    endif
 
    if(e_h%sips_do_inertia) then ! Inertia counting
@@ -174,40 +170,53 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
       call elsi_allocate(e_h,inertias,e_h%sips_n_slices+1,"inertias",caller)
 
       inertia_ok = .false.
+      changed    = .false.
 
       do while(.not. inertia_ok)
          inertia_ok = .true.
 
-         call elsi_linspace(lower,upper,e_h%sips_n_slices+1,slices)
+         call sips_get_slices(0,e_h%n_states,e_h%sips_n_slices,e_h%sips_buffer,&
+                 1.0e-5_r8,eval,slices)
 
          call sips_get_inertias(e_h%sips_n_slices,slices,inertias)
 
          if(inertias(1) > e_h%sips_first_ev-1) then
-            lower      = lower-e_h%sips_buffer
+            eval(1)    = eval(1)-e_h%sips_buffer
             inertia_ok = .false.
+            changed    = .true.
          else
             do i = 1,e_h%sips_n_slices+1
                if(inertias(i+1) > e_h%sips_first_ev-1) then
-                  lower = slices(i)
+                  eval(1) = slices(i)
+
+                  if(i /= 1) then
+                     changed = .true.
+                  endif
 
                   exit
                endif
             enddo
 
             if(inertias(i) < e_h%sips_first_ev-1) then
-               lower      = lower+e_h%sips_buffer
+               eval(1)    = eval(1)+e_h%sips_buffer
                inertia_ok = .false.
+               changed    = .true.
             endif
          endif
 
          if(inertias(e_h%sips_n_slices+1) < &
             e_h%n_states+e_h%sips_first_ev-1) then
-            upper      = upper+e_h%sips_buffer
-            inertia_ok = .false.
+            eval(e_h%n_states) = eval(e_h%n_states)+e_h%sips_buffer
+            inertia_ok         = .false.
+            changed            = .true.
          else
             do i = e_h%sips_n_slices+1,1,-1
                if(inertias(i-1) < e_h%n_states+e_h%sips_first_ev-1) then
-                  upper = slices(i)
+                  eval(e_h%n_states) = slices(i)
+
+                  if(i /= e_h%sips_n_slices+1) then
+                     changed = .true.
+                  endif
 
                   exit
                endif
@@ -224,7 +233,13 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
          endif
       enddo
 
-      call elsi_linspace(lower,upper,e_h%sips_n_slices+1,slices)
+      if(changed) then
+         call sips_get_slices(0,e_h%n_states,e_h%sips_n_slices,0.0_r8,&
+                 1.0e-5_r8,eval,slices)
+      else
+         call sips_get_slices(2,e_h%n_states,e_h%sips_n_slices,0.0_r8,&
+                 1.0e-5_r8,eval,slices)
+      endif
 
       call elsi_deallocate(e_h,inertias,"inertias")
 
@@ -287,31 +302,6 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
    call elsi_say(e_h,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
    call elsi_say(e_h,info_str)
-
-end subroutine
-
-!>
-!! This routine gets a linearly spaced vector.
-!!
-subroutine elsi_linspace(lower,upper,length,vec)
-
-   implicit none
-
-   real(kind=r8),    intent(in)  :: lower
-   real(kind=r8),    intent(in)  :: upper
-   integer(kind=i4), intent(in)  :: length
-   real(kind=r8),    intent(out) :: vec(length)
-
-   character(len=40), parameter :: caller = "elsi_linspace"
-
-   real(kind=r8)    :: step
-   integer(kind=i4) :: i
-
-   step = (upper-lower)/(length-1)
-
-   do i = 1,length
-      vec(i) = lower+(i-1)*step
-   enddo
 
 end subroutine
 
