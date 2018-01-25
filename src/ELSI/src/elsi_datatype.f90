@@ -291,6 +291,7 @@ module ELSI_DATATYPE
       integer(kind=i4) :: sips_first_ev
       real(kind=r8)    :: sips_buffer     ! Adjust interval
       real(kind=r8)    :: sips_interval(2)
+      real(kind=r8)    :: sips_inertia_tol
       logical          :: sips_do_inertia
       logical          :: sips_started = .false.
 

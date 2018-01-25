@@ -178,6 +178,7 @@ subroutine elsi_reset_handle(e_h)
    e_h%sips_first_ev          = UNSET
    e_h%sips_buffer            = 0.0_r8
    e_h%sips_interval          = 0.0_r8
+   e_h%sips_inertia_tol       = 0.0_r8
    e_h%sips_do_inertia        = .false.
    e_h%sips_started           = .false.
    e_h%dmp_n_states           = UNSET

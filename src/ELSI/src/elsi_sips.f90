@@ -40,7 +40,8 @@ module ELSI_SIPS
    use M_QETSC,        only: sips_initialize,sips_load_ham_ovlp,sips_load_ham,&
                              sips_update_ham,sips_set_eps,sips_update_eps,&
                              sips_set_slices,sips_solve_eps,sips_get_inertias,&
-                             sips_get_eigenvalues,sips_get_eigenvectors
+                             sips_get_eigenvalues,sips_get_eigenvectors,&
+                             sips_get_equally_populated_slices
 
    implicit none
 
@@ -110,12 +111,14 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
    real(kind=r8)      :: t1
    real(kind=r8)      :: lower
    real(kind=r8)      :: upper
+   real(kind=r8)      :: max_diff
    integer(kind=i4)   :: i
    integer(kind=i4)   :: n_solved
    integer(kind=i4)   :: ierr
    logical            :: inertia_ok
    character(len=200) :: info_str
 
+   real(kind=r8),    allocatable :: eval_save(:)
    real(kind=r8),    allocatable :: slices(:)
    integer(kind=i4), allocatable :: inertias(:)
 
@@ -221,6 +224,8 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
          endif
       enddo
 
+      call elsi_linspace(lower,upper,e_h%sips_n_slices+1,slices)
+
       call elsi_deallocate(e_h,inertias,"inertias")
 
       call elsi_get_time(e_h,t1)
@@ -229,9 +234,10 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
       call elsi_say(e_h,info_str)
       write(info_str,"('  | Time :',F10.3,' s')") t1-t0
       call elsi_say(e_h,info_str)
+   else
+      call sips_get_equally_populated_slices(e_h%n_states,e_h%sips_n_slices,&
+              e_h%sips_inertia_tol*2,1.0e-5_r8,eval,slices)
    endif
-
-   call elsi_linspace(lower,upper,e_h%sips_n_slices+1,slices)
 
    call sips_set_slices(e_h%sips_n_slices,slices)
 
@@ -254,9 +260,21 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
    call elsi_get_time(e_h,t0)
 
    ! Get solutions
+   call elsi_allocate(e_h,eval_save,e_h%n_states,"eval_save",caller)
+   eval_save = eval
+
    call sips_get_eigenvalues(e_h%n_states,eval(1:e_h%n_states))
    call sips_get_eigenvectors(e_h%n_states,e_h%n_lcol_sp,e_h%evec_real_sips)
 
+   max_diff = maxval(abs(eval_save-eval))
+
+   if(max_diff > e_h%sips_inertia_tol) then
+      e_h%sips_do_inertia = .true.
+   else
+      e_h%sips_do_inertia = .false.
+   endif
+
+   call elsi_deallocate(e_h,eval_save,"eval_save")
    call elsi_deallocate(e_h,slices,"slices")
 
    call MPI_Barrier(e_h%mpi_comm,ierr)
@@ -320,6 +338,9 @@ subroutine elsi_set_sips_default(e_h)
 
    ! Do inertia counting
    e_h%sips_do_inertia = .true.
+
+   ! Criterion to stop inertia counting
+   e_h%sips_inertia_tol = 0.001_r8
 
    ! Initial global interval
    e_h%sips_interval(1) = -2.0_r8
