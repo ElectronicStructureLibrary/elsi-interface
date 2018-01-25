@@ -41,7 +41,7 @@ module ELSI_SIPS
                              sips_update_ham,sips_set_eps,sips_update_eps,&
                              sips_set_slices,sips_solve_eps,sips_get_inertias,&
                              sips_get_eigenvalues,sips_get_eigenvectors,&
-                             sips_get_equally_populated_slices
+                             sips_get_slices
 
    implicit none
 
@@ -235,7 +235,7 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
       write(info_str,"('  | Time :',F10.3,' s')") t1-t0
       call elsi_say(e_h,info_str)
    else
-      call sips_get_equally_populated_slices(e_h%n_states,e_h%sips_n_slices,&
+      call sips_get_slices(2,e_h%n_states,e_h%sips_n_slices,&
               e_h%sips_inertia_tol*2,1.0e-5_r8,eval,slices)
    endif
 
