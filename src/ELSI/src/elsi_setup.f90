@@ -694,7 +694,8 @@ subroutine elsi_cleanup(e_h)
    endif
 
    ! Close solver timings file
-   if(e_h%handle_ready .and. e_h%output_timings_file .and. e_h%myid_all == 0) then
+   if(e_h%handle_ready .and. e_h%output_timings_file .and. &
+      e_h%myid_all == 0) then
       select case(e_h%timings_file%file_format)
       case(JSON)
          call elsi_close_json_file(e_h,.true.,e_h%timings_file)

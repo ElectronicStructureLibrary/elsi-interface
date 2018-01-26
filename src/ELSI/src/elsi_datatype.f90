@@ -244,12 +244,12 @@ module ELSI_DATATYPE
       logical          :: elpa_started = .false.
 
       ! libOMM
-      integer(kind=i4) :: omm_n_states  ! Number of states used in libOMM
-      integer(kind=i4) :: omm_n_elpa    ! Number of ELPA steps
-      integer(kind=i4) :: omm_flavor    ! 0 = Basic
-                                        ! 2 = Cholesky already performed
-      real(kind=r8)    :: omm_ev_shift  ! Eigenspectrum shift parameter
-      real(kind=r8)    :: omm_tol       ! Tolerance for minimization
+      integer(kind=i4) :: omm_n_states ! Number of states used in libOMM
+      integer(kind=i4) :: omm_n_elpa   ! Number of ELPA steps
+      integer(kind=i4) :: omm_flavor   ! 0 = Basic
+                                       ! 2 = Cholesky already performed
+      real(kind=r8)    :: omm_ev_shift ! Eigenspectrum shift parameter
+      real(kind=r8)    :: omm_tol      ! Tolerance for minimization
       logical          :: omm_output
 
       ! PEXSI
@@ -287,7 +287,7 @@ module ELSI_DATATYPE
       integer(kind=i4) :: sips_n_elpa
       integer(kind=i4) :: sips_np_per_slice
       integer(kind=i4) :: sips_n_slices
-      integer(kind=i4) :: sips_slice_type ! Currently not used
+      integer(kind=i4) :: sips_slice_type
       integer(kind=i4) :: sips_first_ev
       real(kind=r8)    :: sips_buffer     ! Adjust interval
       real(kind=r8)    :: sips_interval(2)
@@ -318,14 +318,11 @@ module ELSI_DATATYPE
       character(len=FILE_NAME_LEN) :: solver_timings_name
 
       ! Versioning
-      character(len=:), allocatable  :: processor_name   ! MPI name of processor
-      character(len=SETTING_STR_LEN) :: calling_code     ! Code invoking ELSI
-      character(len=SETTING_STR_LEN) :: calling_code_ver ! Version of code
-                                                         ! invoking ELSI
-      character(len=UUID_LEN)        :: uuid             ! UUID for ELSI run in
-                                                         ! an RFC 4122 format
-      logical                        :: uuid_exists      ! Whether the UUID has
-                                                         ! been set
+      character(len=:), allocatable  :: processor_name
+      character(len=SETTING_STR_LEN) :: calling_code
+      character(len=SETTING_STR_LEN) :: calling_code_ver
+      character(len=UUID_LEN)        :: uuid ! UUID in RFC 4122 format
+      logical                        :: uuid_exists
 
    end type
 

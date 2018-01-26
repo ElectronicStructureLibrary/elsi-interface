@@ -235,9 +235,9 @@ subroutine elsi_print_timings(e_h,t_h)
    call elsi_say(e_h,info_str)
    call elsi_say(e_h,"   #  system_clock [s]  elsi_tag             user_tag            ")
    do iter = 1,t_h%n_timings
-      if (iter > MAX_FINAL_TIMING_ITERS) then
+      if(iter > MAX_FINAL_TIMING_ITERS) then
          write(info_str,"(A,I3,A)") "*** TO AVOID EXCESSIVE OUTPUT, ONLY ",&
-              MAX_FINAL_TIMING_ITERS, " TIMINGS ARE SHOWN. ***"
+            MAX_FINAL_TIMING_ITERS," TIMINGS ARE SHOWN. ***"
          call elsi_say(e_h,info_str)
          exit
       endif

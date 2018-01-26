@@ -1005,6 +1005,22 @@ subroutine elsi_set_sips_first_ev_c_wrapper(handle_c,first_ev)&
 
 end subroutine
 
+subroutine elsi_set_sips_slice_type_c_wrapper(handle_c,slice_type)&
+   bind(C,name="c_elsi_set_sips_slice_type")
+
+   implicit none
+
+   type(c_ptr),         value, intent(in) :: handle_c
+   integer(kind=c_int), value, intent(in) :: slice_type
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_sips_slice_type(handle_f,slice_type)
+
+end subroutine
+
 subroutine elsi_set_sips_buffer_c_wrapper(handle_c,buffer)&
    bind(C,name="c_elsi_set_sips_buffer")
 
@@ -1018,6 +1034,22 @@ subroutine elsi_set_sips_buffer_c_wrapper(handle_c,buffer)&
    call c_f_pointer(handle_c,handle_f)
 
    call elsi_set_sips_buffer(handle_f,buffer)
+
+end subroutine
+
+subroutine elsi_set_sips_inertia_tol_c_wrapper(handle_c,inertia_tol)&
+   bind(C,name="c_elsi_set_sips_inertia_tol")
+
+   implicit none
+
+   type(c_ptr),         value, intent(in) :: handle_c
+   real(kind=c_double), value, intent(in) :: inertia_tol
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_sips_inertia_tol(handle_f,inertia_tol)
 
 end subroutine
 

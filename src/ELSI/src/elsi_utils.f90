@@ -436,12 +436,12 @@ subroutine elsi_ready_handle(e_h,caller)
             ! selects human-readable output, kept for debugging purposes)
             if(.true.) then
                call elsi_open_json_file(e_h,e_h%solver_timings_unit,&
-                    e_h%solver_timings_name,.true.,e_h%timings_file)
+                       e_h%solver_timings_name,.true.,e_h%timings_file)
             else
                call elsi_init_file_io(e_h%timings_file,e_h%solver_timings_unit,&
-                     e_h%solver_timings_name,HUMAN_READ,.true.,"",COMMA_AFTER)
-               open(unit=e_h%timings_file%print_unit, &
-                    file=e_h%timings_file%file_name)
+                       e_h%solver_timings_name,HUMAN_READ,.true.,"",COMMA_AFTER)
+               open(unit=e_h%timings_file%print_unit,&
+                  file=e_h%timings_file%file_name)
             endif
          else
             ! De-initialize e_h%myid_all /= 0

@@ -51,8 +51,8 @@ module ELSI_SOLVER
                              elsi_say,elsi_say_setting,&
                              elsi_print_matrix_format_settings,&
                              append_string,truncate_string,&
-                             elsi_print_versioning,&
-                             elsi_start_json_record,elsi_finish_json_record
+                             elsi_print_versioning,elsi_start_json_record,&
+                             elsi_finish_json_record
    use ELSI_LAPACK,    only: elsi_solve_evp_lapack_real,&
                              elsi_solve_evp_lapack_cmplx
    use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
@@ -70,8 +70,7 @@ module ELSI_SOLVER
                              elsi_blacs_to_sips_dm_cmplx,&
                              elsi_sips_to_blacs_ev_real
    use ELSI_MPI,       only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8
-   use ELSI_OMM,       only: elsi_solve_evp_omm_real,&
-                             elsi_solve_evp_omm_cmplx
+   use ELSI_OMM,       only: elsi_solve_evp_omm_real,elsi_solve_evp_omm_cmplx
    use ELSI_PEXSI,     only: elsi_init_pexsi,elsi_solve_evp_pexsi_real,&
                              elsi_solve_evp_pexsi_cmplx
    use ELSI_PRECISION, only: r8,i4
@@ -1371,7 +1370,7 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,start_datetime,&
       call elsi_say_setting(e_h,"Timing (s)",total_time,io_h)
       call truncate_string(io_h%prefix,2)
    elseif(io_h%file_format == JSON) then
-      call elsi_start_json_record(e_h,io_h%comma_json.eq.COMMA_BEFORE,io_h)
+      call elsi_start_json_record(e_h,io_h%comma_json==COMMA_BEFORE,io_h)
       io_h%comma_json = COMMA_AFTER ! Add commas behind all records before final
 
       call elsi_print_versioning(e_h,io_h)
@@ -1402,16 +1401,22 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,start_datetime,&
    endif
 
    ! Print out handle summary
-   if(io_h%file_format == HUMAN_READ) call elsi_say(e_h,"",io_h)
+   if(io_h%file_format == HUMAN_READ) then
+      call elsi_say(e_h,"",io_h)
+   endif
    call elsi_print_handle_summary(e_h,io_h)
 
    ! Print out matrix storage format settings
-   if(io_h%file_format == HUMAN_READ) call elsi_say(e_h,"",io_h)
+   if(io_h%file_format == HUMAN_READ) then
+      call elsi_say(e_h,"",io_h)
+   endif
    call elsi_print_matrix_format_settings(e_h,io_h)
 
    ! Print out solver settings
+   if(io_h%file_format == HUMAN_READ) then
+      call elsi_say(e_h,"",io_h)
+   endif
    io_h%comma_json = NO_COMMA ! Final record in this scope
-   if(io_h%file_format == HUMAN_READ) call elsi_say(e_h,"",io_h)
    call elsi_print_solver_settings(e_h,io_h)
 
    ! Print out patterned footer
@@ -1423,7 +1428,7 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,start_datetime,&
       call elsi_say(e_h,"-------------------------------------------------------------------------",io_h)
       call elsi_say(e_h,"",io_h)
    elseif(io_h%file_format == JSON) then
-      call elsi_finish_json_record(e_h,io_h%comma_json.eq.COMMA_AFTER,io_h)
+      call elsi_finish_json_record(e_h,io_h%comma_json==COMMA_AFTER,io_h)
    else
       call elsi_stop(" Unsupported output format.",e_h,caller)
    endif

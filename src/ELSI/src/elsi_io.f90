@@ -1461,18 +1461,18 @@ subroutine elsi_open_json_file(e_h,print_unit,file_name,opening_bracket,io_h)
    logical,                   intent(in)  :: opening_bracket
    type(elsi_file_io_handle), intent(out) :: io_h
 
-   character*40, parameter :: caller = "elsi_open_json_file"
+   character(len=40), parameter :: caller = "elsi_open_json_file"
 
    call elsi_init_file_io(io_h,print_unit,file_name,JSON,.true.,"",COMMA_AFTER)
 
-   open(unit=io_h%print_unit, file=io_h%file_name)
+   open(unit=io_h%print_unit,file=io_h%file_name)
 
    if(opening_bracket) then
       call elsi_say(e_h,"[",io_h)
       call append_string(io_h%prefix,"  ")
    endif
 
-end subroutine elsi_open_json_file
+end subroutine
 
 !>
 !! This routine closes the JSON file and tears down the file IO handle
@@ -1485,11 +1485,11 @@ subroutine elsi_close_json_file(e_h,closing_bracket,io_h)
    logical,                   intent(in)    :: closing_bracket
    type(elsi_file_io_handle), intent(inout) :: io_h
 
-   character*40, parameter :: caller = "elsi_close_json_file"
+   character(len=40), parameter :: caller = "elsi_close_json_file"
 
    if(io_h%file_format /= JSON) then
-        call elsi_stop(" This routine requires a file handle using a JSON &
-                      &format",e_h,caller)
+      call elsi_stop(" This routine requires a file handle using JSON format.",&
+              e_h,caller)
    endif
 
    ! Closing bracket to signify end of JSON array
@@ -1502,7 +1502,7 @@ subroutine elsi_close_json_file(e_h,closing_bracket,io_h)
 
    call elsi_finalize_file_io(e_h,io_h)
 
-end subroutine elsi_close_json_file
+end subroutine
 
 !>
 !! This routine starts a new record in the JSON file
@@ -1515,11 +1515,11 @@ subroutine elsi_start_json_record(e_h,comma_before,io_h)
    logical,                   intent(in)    :: comma_before
    type(elsi_file_io_handle), intent(inout) :: io_h
 
-   character*40, parameter :: caller = "elsi_start_json_record"
+   character(len=40), parameter :: caller = "elsi_start_json_record"
 
    if(io_h%file_format /= JSON) then
-        call elsi_stop(" This routine requires a file handle using a JSON &
-                      &format",e_h,caller)
+      call elsi_stop(" This routine requires a file handle using JSON format.",&
+              e_h,caller)
    endif
 
    if(comma_before) then
@@ -1530,7 +1530,7 @@ subroutine elsi_start_json_record(e_h,comma_before,io_h)
 
    call append_string(io_h%prefix,"  ")
 
-end subroutine elsi_start_json_record
+end subroutine
 
 !>
 !! This routine finishes the current record in the JSON file
@@ -1543,11 +1543,11 @@ subroutine elsi_finish_json_record(e_h,comma_after,io_h)
    logical,                   intent(in)    :: comma_after
    type(elsi_file_io_handle), intent(inout) :: io_h
 
-   character*40, parameter :: caller = "elsi_finish_json_record"
+   character(len=40), parameter :: caller = "elsi_finish_json_record"
 
    if(io_h%file_format /= JSON) then
-        call elsi_stop(" This routine requires a file handle using a JSON &
-                      &format",e_h,caller)
+      call elsi_stop(" This routine requires a file handle using JSON format.",&
+              e_h,caller)
    endif
 
    call truncate_string(io_h%prefix,2)
@@ -1558,7 +1558,7 @@ subroutine elsi_finish_json_record(e_h,comma_after,io_h)
       call elsi_say(e_h,'}',io_h)
    endif
 
-end subroutine elsi_finish_json_record
+end subroutine
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !                              End of JSON Code                                !

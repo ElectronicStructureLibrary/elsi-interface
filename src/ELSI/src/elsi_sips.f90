@@ -239,8 +239,8 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
          call sips_get_slices(0,e_h%n_states,e_h%sips_n_slices,0.0_r8,&
                  1.0e-5_r8,eval,slices)
       else
-         call sips_get_slices(2,e_h%n_states,e_h%sips_n_slices,0.0_r8,&
-                 1.0e-5_r8,eval,slices)
+         call sips_get_slices(e_h%sips_slice_type,e_h%n_states,&
+                 e_h%sips_n_slices,0.0_r8,1.0e-5_r8,eval,slices)
       endif
 
       call elsi_deallocate(e_h,inertias,"inertias")
@@ -252,7 +252,7 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
       write(info_str,"('  | Time :',F10.3,' s')") t1-t0
       call elsi_say(e_h,info_str)
    else
-      call sips_get_slices(2,e_h%n_states,e_h%sips_n_slices,&
+      call sips_get_slices(e_h%sips_slice_type,e_h%n_states,e_h%sips_n_slices,&
               e_h%sips_inertia_tol*2,1.0e-5_r8,eval,slices)
    endif
 
@@ -337,6 +337,9 @@ subroutine elsi_set_sips_default(e_h)
    ! Initial global interval
    e_h%sips_interval(1) = -2.0_r8
    e_h%sips_interval(2) = 2.0_r8
+
+   ! Slice type
+   e_h%sips_slice_type = 2
 
    ! Index of 1st eigensolution to be solved
    e_h%sips_first_ev = 1
