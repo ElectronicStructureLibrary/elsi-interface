@@ -46,6 +46,7 @@ module M_QETSC
    public :: sips_update_eps
    public :: sips_get_inertias
    public :: sips_get_slices
+   public :: sips_get_slices_from_inertias
    public :: sips_set_slices
    public :: sips_solve_eps
    public :: sips_get_eigenvalues
@@ -229,6 +230,21 @@ subroutine sips_get_slices(algr,nev,nsub,buf,subbuf,evals,subs)
    real(kind=r8)    :: buf
    real(kind=r8)    :: subbuf
    real(kind=r8)    :: evals(nev)
+   real(kind=r8)    :: subs(nsub+1)
+
+   write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
+   write(*,"(A)") " Exiting..."
+   stop
+
+end subroutine
+
+subroutine sips_get_slices_from_inertias(nev,nsub,inertias,subs)
+
+   implicit none
+
+   integer(kind=i4) :: nev
+   integer(kind=i4) :: nsub
+   integer(kind=i4) :: inertias(nsub+1)
    real(kind=r8)    :: subs(nsub+1)
 
    write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."

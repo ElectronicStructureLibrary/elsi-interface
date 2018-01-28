@@ -41,7 +41,7 @@ module ELSI_SIPS
                              sips_update_ham,sips_set_eps,sips_update_eps,&
                              sips_set_slices,sips_solve_eps,sips_get_inertias,&
                              sips_get_eigenvalues,sips_get_eigenvectors,&
-                             sips_get_slices
+                             sips_get_slices,sips_get_slices_from_inertias
 
    implicit none
 
@@ -114,7 +114,6 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
    integer(kind=i4)   :: n_solved
    integer(kind=i4)   :: ierr
    logical            :: inertia_ok
-   logical            :: changed
    character(len=200) :: info_str
 
    real(kind=r8),    allocatable :: eval_save(:)
@@ -170,7 +169,6 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
       call elsi_allocate(e_h,inertias,e_h%sips_n_slices+1,"inertias",caller)
 
       inertia_ok         = .false.
-      changed            = .false.
       eval(1)            = eval(1)-e_h%sips_buffer
       eval(e_h%n_states) = eval(e_h%n_states)+e_h%sips_buffer
 
@@ -185,15 +183,10 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
          if(inertias(1) > e_h%sips_first_ev-1) then
             eval(1)    = eval(1)-e_h%sips_buffer
             inertia_ok = .false.
-            changed    = .true.
          else
             do i = 1,e_h%sips_n_slices+1
                if(inertias(i+1) > e_h%sips_first_ev-1) then
                   eval(1) = slices(i)
-
-                  if(i /= 1) then
-                     changed = .true.
-                  endif
 
                   exit
                endif
@@ -202,7 +195,6 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
             if(inertias(i) < e_h%sips_first_ev-1) then
                eval(1)    = eval(1)+e_h%sips_buffer
                inertia_ok = .false.
-               changed    = .true.
             endif
          endif
 
@@ -210,37 +202,30 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
             e_h%n_states+e_h%sips_first_ev-1) then
             eval(e_h%n_states) = eval(e_h%n_states)+e_h%sips_buffer
             inertia_ok         = .false.
-            changed            = .true.
          else
             do i = e_h%sips_n_slices+1,1,-1
                if(inertias(i-1) < e_h%n_states+e_h%sips_first_ev-1) then
                   eval(e_h%n_states) = slices(i)
 
-                  if(i /= e_h%sips_n_slices+1) then
-                     changed = .true.
-                  endif
-
                   exit
                endif
             enddo
          endif
-
-         ! DEBUG
-         if(e_h%myid == 0) then
-            print *
-            do i = 1,e_h%sips_n_slices+1
-               print *,slices(i),":",inertias(i)
-            enddo
-            print *
-         endif
       enddo
 
-      if(changed) then
-         call sips_get_slices(0,e_h%n_states,e_h%sips_n_slices,0.0_r8,&
-                 1.0e-5_r8,eval,slices)
-      else
-         call sips_get_slices(e_h%sips_slice_type,e_h%n_states,&
-                 e_h%sips_n_slices,0.0_r8,1.0e-5_r8,eval,slices)
+      call sips_get_slices_from_inertias(e_h%n_states,e_h%sips_n_slices,&
+              inertias,slices)
+
+      ! DEBUG
+      call sips_get_inertias(e_h%sips_n_slices,slices,inertias)
+
+      if(e_h%myid == 0) then
+         print *
+         print *,"Final:"
+         do i = 1,e_h%sips_n_slices+1
+            print *,slices(i),":",inertias(i)
+         enddo
+         print *
       endif
 
       call elsi_deallocate(e_h,inertias,"inertias")
