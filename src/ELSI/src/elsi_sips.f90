@@ -228,6 +228,16 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
          print *
       endif
 
+      ! DEBUG
+      if(e_h%myid == 0) then
+         print *
+         print *,"Slices:"
+         do i = 1,e_h%sips_n_slices+1
+            print *,slices(i)
+         enddo
+         print *
+      endif
+
       call elsi_deallocate(e_h,inertias,"inertias")
 
       call elsi_get_time(e_h,t1)
@@ -308,7 +318,7 @@ subroutine elsi_set_sips_default(e_h)
    endif
 
    ! How many steps of ELPA to run before SIPs
-   e_h%sips_n_elpa = 1
+   e_h%sips_n_elpa = 0
 
    ! Buffer to adjust interval
    e_h%sips_buffer = 0.02_r8

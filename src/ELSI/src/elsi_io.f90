@@ -535,6 +535,9 @@ subroutine elsi_print_settings(e_h)
       write(info_str,"('  | Slice buffer         ',E10.2)") e_h%sips_buffer
       call elsi_say(e_h,info_str)
 
+      write(info_str,"('  | Slice type           ',I10)") e_h%sips_slice_type
+      call elsi_say(e_h,info_str)
+
       write(info_str,"('  | First eigensolution  ',I10)") e_h%sips_first_ev
       call elsi_say(e_h,info_str)
    case(DMP_SOLVER)
@@ -933,6 +936,7 @@ subroutine elsi_print_sips_settings(e_h,io_h_in)
    call elsi_say_setting(e_h,"sips_n_states",e_h%n_states,io_h)
    call elsi_say_setting(e_h,"sips_n_elpa",e_h%sips_n_elpa,io_h)
    call elsi_say_setting(e_h,"sips_n_slices",e_h%sips_n_slices,io_h)
+   call elsi_say_setting(e_h,"sips_slice_type",e_h%sips_slice_type,io_h)
    call elsi_say_setting(e_h,"sips_np_per_slice",e_h%sips_np_per_slice,io_h)
    call elsi_say_setting(e_h,"sips_buffer",e_h%sips_buffer,io_h)
    io_h%comma_json = NO_COMMA ! Final record in this scope
