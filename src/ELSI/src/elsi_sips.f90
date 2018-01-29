@@ -217,25 +217,17 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
               inertias,slices)
 
       ! DEBUG
-      call sips_get_inertias(e_h%sips_n_slices,slices,inertias)
+      if(.false.) then
+         call sips_get_inertias(e_h%sips_n_slices,slices,inertias)
 
-      if(e_h%myid == 0) then
-         print *
-         print *,"Final:"
-         do i = 1,e_h%sips_n_slices+1
-            print *,slices(i),":",inertias(i)
-         enddo
-         print *
-      endif
-
-      ! DEBUG
-      if(e_h%myid == 0) then
-         print *
-         print *,"Slices:"
-         do i = 1,e_h%sips_n_slices+1
-            print *,slices(i)
-         enddo
-         print *
+         if(e_h%myid == 0) then
+            print *
+            print *,"Final:"
+            do i = 1,e_h%sips_n_slices+1
+               print *,slices(i),":",inertias(i)
+            enddo
+            print *
+         endif
       endif
 
       call elsi_deallocate(e_h,inertias,"inertias")
@@ -321,7 +313,7 @@ subroutine elsi_set_sips_default(e_h)
    e_h%sips_n_elpa = 0
 
    ! Buffer to adjust interval
-   e_h%sips_buffer = 0.02_r8
+   e_h%sips_buffer = 0.01_r8
 
    ! Do inertia counting
    e_h%sips_do_inertia = .true.
