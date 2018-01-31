@@ -184,7 +184,7 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
             eval(1)    = eval(1)-e_h%sips_buffer
             inertia_ok = .false.
          else
-            do i = 1,e_h%sips_n_slices+1
+            do i = 1,e_h%sips_n_slices
                if(inertias(i+1) > e_h%sips_first_ev-1) then
                   eval(1) = slices(i)
 
