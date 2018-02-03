@@ -30,8 +30,7 @@
 !!
 module ELSI_TIMINGS
 
-   use ELSI_CONSTANTS, only: SETTING_STR_LEN,UNSET,UNSET_STRING,&
-                             MAX_FINAL_TIMING_ITERS
+   use ELSI_CONSTANTS, only: SETTING_STR_LEN,UNSET,UNSET_STRING
    use ELSI_DATATYPE,  only: elsi_handle,elsi_timings_handle
    use ELSI_IO,        only: elsi_say
    use ELSI_PRECISION, only: i4,r8
@@ -215,7 +214,7 @@ subroutine elsi_add_timing(t_h,time,elsi_tag,user_tag_in,iter_in)
 end subroutine
 
 !>
-!! This routine prints out timings collected so far for current handle.
+!! This routine prints out timings collected so far.
 !!
 subroutine elsi_print_timings(e_h,t_h)
 
@@ -224,28 +223,32 @@ subroutine elsi_print_timings(e_h,t_h)
    type(elsi_handle),         intent(in) :: e_h
    type(elsi_timings_handle), intent(in) :: t_h
 
-   character(len=200) :: info_str
    integer(kind=i4)   :: iter
+   real(kind=r8)      :: tmp
+   character(len=200) :: info_str
 
    character(len=40), parameter :: caller = "elsi_print_timings"
 
-   write(info_str,"(A,A)") "Timing Set:        ",t_h%set_label
-   call elsi_say(e_h,info_str)
-   write(info_str,"(A,I4)") "Number of timings: ",t_h%n_timings
-   call elsi_say(e_h,info_str)
-   call elsi_say(e_h,"   #  system_clock [s]  elsi_tag             user_tag            ")
-   do iter = 1,t_h%n_timings
-      if(iter > MAX_FINAL_TIMING_ITERS) then
-         write(info_str,"(A,I3,A)") "*** TO AVOID EXCESSIVE OUTPUT, ONLY ",&
-            MAX_FINAL_TIMING_ITERS," TIMINGS ARE SHOWN. ***"
-         call elsi_say(e_h,info_str)
-         exit
-      endif
+   call elsi_say(e_h,t_h%set_label)
+   call elsi_say(e_h,"   #  system_clock [s]     elsi_tag             user_tag")
 
-      write(info_str,"(I4,1X,F17.3,2X,A,1X,A)") iter,t_h%times(iter),&
+   do iter = 1,min(3,t_h%n_timings)
+      write(info_str,"(I4,2X,F12.3,9X,A,1X,A)") iter,t_h%times(iter),&
          t_h%elsi_tags(iter),t_h%user_tags(iter)
       call elsi_say(e_h,info_str)
    enddo
+
+   tmp = maxval(t_h%times(1:t_h%n_timings))
+   write(info_str,"(6X,F12.3,9X,A,18X,A)") tmp,"MAX",UNSET_STRING
+   call elsi_say(e_h,info_str)
+
+   tmp = minval(t_h%times(1:t_h%n_timings))
+   write(info_str,"(6X,F12.3,9X,A,18X,A)") tmp,"MIN",UNSET_STRING
+   call elsi_say(e_h,info_str)
+
+   tmp = sum(t_h%times(1:t_h%n_timings))/t_h%n_timings
+   write(info_str,"(6X,F12.3,9X,A,14X,A)") tmp,"AVERAGE",UNSET_STRING
+   call elsi_say(e_h,info_str)
 
 end subroutine
 

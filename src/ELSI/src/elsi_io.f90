@@ -37,10 +37,9 @@ module ELSI_IO
    use ELSI_DATATYPE,  only: elsi_handle,elsi_file_io_handle
    use ELSI_MPI,       only: elsi_stop
    use ELSI_PRECISION, only: r8,i4
-   use ELSI_VERSION,   only: RELEASE_DATE, GIT_COMMIT, GIT_COMMIT_ABBREV, &
-                             GIT_COMMIT_WAS_MODIFIED, GIT_COMMIT_MSG_ABBREV, &
-                             SOURCE_HOSTNAME, SOURCE_LOCAL_DATE, &
-                             SOURCE_LOCAL_TIME, SOURCE_DATETIME
+   use ELSI_VERSION,   only: RELEASE_DATE,GIT_COMMIT,GIT_COMMIT_ABBREV,&
+                             GIT_COMMIT_WAS_MODIFIED,GIT_COMMIT_MSG_ABBREV,&
+                             SOURCE_HOSTNAME,SOURCE_DATETIME
 
    implicit none
 
@@ -103,7 +102,7 @@ subroutine elsi_say(e_h,info_str,io_h_in)
 
    if(io_h%print_info .and. e_h%myid_all == 0) then
       if(allocated(io_h%prefix)) then
-         write(io_h%print_unit,"(A,A)") io_h%prefix,trim(info_str)
+         write(io_h%print_unit,"(2A)") io_h%prefix,trim(info_str)
       else
          write(io_h%print_unit,"(A)") trim(info_str)
       endif
@@ -387,20 +386,14 @@ subroutine elsi_print_versioning(e_h,io_h_in)
       io_h = e_h%stdio
    endif
 
-   if(io_h%file_format == HUMAN_READ) then
-      write(info_str,"(A)") "ELSI Versioning Information:"
+   if(io_h%file_format == HUMAN_READ) then ! Full info available in JSON
+      write(info_str,"(A)") "ELSI Versioning Information"
       call elsi_say(e_h,info_str,io_h)
       call append_string(io_h%prefix,"  ")
 
       call elsi_say_setting(e_h,"ELSI release date",trim(RELEASE_DATE),io_h)
       call elsi_say_setting(e_h,"ELSI git commit (abbrev.)",trim(GIT_COMMIT_ABBREV),io_h)
       call elsi_say_setting(e_h,"Was git commit modified?",GIT_COMMIT_WAS_MODIFIED,io_h)
-      call elsi_say_setting(e_h,"git commit message (abbrev.)",trim(GIT_COMMIT_MSG_ABBREV),io_h)
-      call elsi_say_setting(e_h,"Source created on hostname",trim(SOURCE_HOSTNAME),io_h)
-      call elsi_say_setting(e_h,"Source created at local date",trim(SOURCE_LOCAL_DATE),io_h)
-      call elsi_say_setting(e_h,"Source created at local time",trim(SOURCE_LOCAL_TIME),io_h)
-      call elsi_say_setting(e_h,"Name of code calling ELSI",trim(e_h%calling_code),io_h)
-      call elsi_say_setting(e_h,"Version of code calling ELSI",trim(e_h%calling_code_ver),io_h)
       call elsi_say_setting(e_h,"UUID for this run",trim(e_h%uuid),io_h)
 
       call truncate_string(io_h%prefix,2)
@@ -1038,9 +1031,9 @@ subroutine elsi_print_blacs_dense_settings(e_h,io_h_in)
 
    if(io_h%file_format == JSON) then
       if(io_h%comma_json == COMMA_AFTER) then
-         write(info_str,"(A,A)") '},'
+         write(info_str,"(2A)") '},'
       else
-         write(info_str,"(A,A)") '}'
+         write(info_str,"(2A)") '}'
       endif
 
       call elsi_say(e_h,info_str,io_h)
@@ -1095,9 +1088,9 @@ subroutine elsi_print_pexsi_csc_settings(e_h,io_h_in)
 
    if(io_h%file_format == JSON) then
       if(io_h%comma_json == COMMA_AFTER) then
-         write(info_str,"(A,A)") '},'
+         write(info_str,"(2A)") '},'
       else
-         write(info_str,"(A,A)") '}'
+         write(info_str,"(2A)") '}'
       endif
 
       call elsi_say(e_h,info_str,io_h)

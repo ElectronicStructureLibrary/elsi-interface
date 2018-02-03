@@ -983,15 +983,15 @@ subroutine elsi_gen_uuid(uuid)
       if(i_entry == 1) then
          write(uuid,'(A)') ss4
       elseif(i_entry == 2) then
-         write(uuid,'(A,A)') trim(uuid),ss4
+         write(uuid,'(2A)') trim(uuid),ss4
       elseif(i_entry == 3) then
-         write(uuid,'(A,A,A)') trim(uuid),'-',ss4
+         write(uuid,'(3A)') trim(uuid),'-',ss4
       elseif(i_entry == 4) then
-         write(uuid,'(A,A,A)') trim(uuid),'-4',ss3
+         write(uuid,'(3A)') trim(uuid),'-4',ss3
       elseif(i_entry == 5) then
-         write(uuid,'(A,A,A,A)') trim(uuid),'-A',ss3,'-'
+         write(uuid,'(4A)') trim(uuid),'-A',ss3,'-'
       else
-         write(uuid,'(A,A)') trim(uuid),ss4
+         write(uuid,'(2A)') trim(uuid),ss4
       endif
    enddo
 

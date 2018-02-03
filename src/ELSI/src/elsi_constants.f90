@@ -105,7 +105,6 @@ module ELSI_CONSTANTS
    ! Constants for ELSI timings
    integer(kind=i4),             parameter :: SOLVER_TIMINGS_UNIT_DEFAULT = 66
    character(len=FILE_NAME_LEN), parameter :: SOLVER_TIMINGS_FILE_DEFAULT = "elsi_solver_timings.json"
-   integer(kind=i4),             parameter :: MAX_FINAL_TIMING_ITERS      = 200
 
    ! Constants for ELSI versioning
    integer(kind=i4), parameter :: SETTING_STR_LEN = 20

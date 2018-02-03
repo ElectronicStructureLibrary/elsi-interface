@@ -350,6 +350,9 @@ subroutine elsi_normalize_dm_elpa_real(e_h,ovlp,dm)
 
    character(len=40), parameter :: caller = "elsi_normalize_dm_elpa_real"
 
+   ovlp = 0.0_r8
+   dm   = 0.0_r8
+
    call elsi_stop(" A stub routine was called.",e_h,caller)
 
 end subroutine
@@ -907,6 +910,9 @@ subroutine elsi_normalize_dm_elpa_cmplx(e_h,ovlp,dm)
    complex(kind=r8),  intent(inout) :: dm(e_h%n_lrow,e_h%n_lcol)
 
    character(len=40), parameter :: caller = "elsi_normalize_dm_elpa_cmplx"
+
+   ovlp = (0.0_r8,0.0_r8)
+   dm   = (0.0_r8,0.0_r8)
 
    call elsi_stop(" A stub routine was called.",e_h,caller)
 
