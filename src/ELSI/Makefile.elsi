@@ -176,7 +176,7 @@ elsi_interface.o: $(ELSI_DIR)/src/elsi_interface.f90 elsi_datatype.o elsi_io.o e
 elsi_io.o: $(ELSI_DIR)/src/elsi_io.f90 elsi_constants.o elsi_datatype.o elsi_mpi.o elsi_precision.o elsi_version.o
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
-elsi_lapack.o: $(ELSI_DIR)/src/elsi_lapack.f90 elsi_constants.o elsi_datatype.o elsi_io.o elsi_malloc.o elsi_mpi.o elsi_precision.o elsi_timings.o
+elsi_lapack.o: $(ELSI_DIR)/src/elsi_lapack.f90 elsi_datatype.o elsi_io.o elsi_malloc.o elsi_mpi.o elsi_precision.o elsi_timings.o
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
 elsi_malloc.o: $(ELSI_DIR)/src/elsi_malloc.f90 elsi_datatype.o elsi_io.o elsi_mpi.o elsi_precision.o
@@ -209,7 +209,7 @@ elsi_precision.o: $(ELSI_DIR)/src/elsi_precision.f90
 elsi_setup.o: $(ELSI_DIR)/src/elsi_setup.f90 elsi_chess.o elsi_constants.o elsi_datatype.o elsi_dmp.o $(ELSI_ELPA) elsi_io.o elsi_malloc.o elsi_mpi.o elsi_omm.o elsi_pexsi.o elsi_precision.o elsi_sips.o elsi_timings.o elsi_utils.o
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
-elsi_sips.o: $(ELSI_DIR)/src/elsi_sips.f90 elsi_constants.o elsi_datatype.o elsi_io.o elsi_malloc.o elsi_mpi.o elsi_precision.o elsi_timings.o elsi_utils.o $(STUBS)
+elsi_sips.o: $(ELSI_DIR)/src/elsi_sips.f90 elsi_constants.o elsi_datatype.o elsi_io.o elsi_malloc.o elsi_mpi.o elsi_precision.o elsi_timings.o $(STUBS)
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
 elsi_solver.o: $(ELSI_DIR)/src/elsi_solver.f90 elsi_chess.o elsi_constants.o elsi_datatype.o elsi_dmp.o $(ELSI_ELPA) elsi_io.o elsi_lapack.o elsi_malloc.o elsi_matconv.o elsi_mpi.o elsi_omm.o elsi_pexsi.o elsi_precision.o elsi_setup.o elsi_sips.o elsi_timings.o elsi_utils.o
@@ -218,7 +218,7 @@ elsi_solver.o: $(ELSI_DIR)/src/elsi_solver.f90 elsi_chess.o elsi_constants.o els
 elsi_sort.o: $(ELSI_DIR)/src/elsi_sort.f90 elsi_precision.o
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
-elsi_timings.o: $(ELSI_DIR)/src/elsi_timings.f90 elsi_constants.o elsi_datatype.o elsi_io.o elsi_mpi.o elsi_precision.o $(STUBS)
+elsi_timings.o: $(ELSI_DIR)/src/elsi_timings.f90 elsi_constants.o elsi_datatype.o elsi_io.o elsi_precision.o $(STUBS)
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
 elsi_utils.o: $(ELSI_DIR)/src/elsi_utils.f90 elsi_constants.o elsi_datatype.o elsi_io.o elsi_mpi.o elsi_precision.o $(STUBS)
@@ -262,4 +262,3 @@ clean:
 install:
 	cp $(BUILD_DIR)/*.a $(LIB_DIR)
 	cp $(BUILD_DIR)/*.mod $(INC_DIR)
-	cp $(BUILD_DIR)/*.x $(BIN_DIR)

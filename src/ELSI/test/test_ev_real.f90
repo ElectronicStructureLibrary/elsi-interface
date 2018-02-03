@@ -166,10 +166,10 @@ program test_ev_real
    ! Read H and S matrices
    if(n_proc == 1) then
       ! Test SINGLE_PROC mode
-      call elsi_init_rw(rw_h,0,0,1,0,0.0_r8)
+      call elsi_init_rw(rw_h,0,0,0,0.0_r8)
    else
       ! Test MULTI_PROC mode
-      call elsi_init_rw(rw_h,0,1,1,0,0.0_r8)
+      call elsi_init_rw(rw_h,0,1,0,0.0_r8)
       call elsi_set_rw_mpi(rw_h,mpi_comm_global)
       call elsi_set_rw_blacs(rw_h,blacs_ctxt,blk)
    endif
@@ -217,6 +217,7 @@ program test_ev_real
    endif
 
    ! Customize ELSI
+   call elsi_set_sips_n_elpa(e_h,1)
    call elsi_set_output(e_h,2)
    call elsi_set_mu_broaden_width(e_h,1.0e-6_r8)
    call elsi_set_output_timings(e_h,1)

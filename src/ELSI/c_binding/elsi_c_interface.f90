@@ -989,6 +989,22 @@ subroutine elsi_set_sips_n_slice_c_wrapper(handle_c,n_slice)&
 
 end subroutine
 
+subroutine elsi_set_sips_first_ev_c_wrapper(handle_c,first_ev)&
+   bind(C,name="c_elsi_set_sips_first_ev")
+
+   implicit none
+
+   type(c_ptr),         value, intent(in) :: handle_c
+   integer(kind=c_int), value, intent(in) :: first_ev
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_sips_first_ev(handle_f,first_ev)
+
+end subroutine
+
 subroutine elsi_set_sips_slice_type_c_wrapper(handle_c,slice_type)&
    bind(C,name="c_elsi_set_sips_slice_type")
 
@@ -1021,19 +1037,19 @@ subroutine elsi_set_sips_buffer_c_wrapper(handle_c,buffer)&
 
 end subroutine
 
-subroutine elsi_set_sips_ev_shift_c_wrapper(handle_c,ev_shift)&
-   bind(C,name="c_elsi_set_sips_ev_shift")
+subroutine elsi_set_sips_inertia_tol_c_wrapper(handle_c,inertia_tol)&
+   bind(C,name="c_elsi_set_sips_inertia_tol")
 
    implicit none
 
    type(c_ptr),         value, intent(in) :: handle_c
-   real(kind=c_double), value, intent(in) :: ev_shift
+   real(kind=c_double), value, intent(in) :: inertia_tol
 
    type(elsi_handle), pointer :: handle_f
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_set_sips_ev_shift(handle_f,ev_shift)
+   call elsi_set_sips_inertia_tol(handle_f,inertia_tol)
 
 end subroutine
 
@@ -1342,8 +1358,8 @@ subroutine elsi_get_edm_complex_sparse_c_wrapper(handle_c,edm_c)&
 
 end subroutine
 
-subroutine elsi_init_rw_c_wrapper(handle_c,rw_task,parallel_mode,file_format,&
-              n_basis,n_electron)&
+subroutine elsi_init_rw_c_wrapper(handle_c,rw_task,parallel_mode,n_basis,&
+              n_electron)&
    bind(C,name="c_elsi_init_rw")
 
    implicit none
@@ -1351,7 +1367,6 @@ subroutine elsi_init_rw_c_wrapper(handle_c,rw_task,parallel_mode,file_format,&
    type(c_ptr)                            :: handle_c
    integer(kind=c_int), value, intent(in) :: rw_task
    integer(kind=c_int), value, intent(in) :: parallel_mode
-   integer(kind=c_int), value, intent(in) :: file_format
    integer(kind=c_int), value, intent(in) :: n_basis
    real(kind=c_double), value, intent(in) :: n_electron
 
@@ -1359,8 +1374,7 @@ subroutine elsi_init_rw_c_wrapper(handle_c,rw_task,parallel_mode,file_format,&
 
    allocate(handle_f)
 
-   call elsi_init_rw(handle_f,rw_task,parallel_mode,file_format,n_basis,&
-           n_electron)
+   call elsi_init_rw(handle_f,rw_task,parallel_mode,n_basis,n_electron)
 
    handle_c = c_loc(handle_f)
 

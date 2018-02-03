@@ -229,11 +229,14 @@ void c_elsi_set_sips_n_slice(elsi_handle handle_c,
 void c_elsi_set_sips_slice_type(elsi_handle handle_c,
                                 int slice_type);
 
+void c_elsi_set_sips_first_ev(elsi_handle handle_c,
+                              int first_ev);
+
 void c_elsi_set_sips_buffer(elsi_handle handle_c,
                             double buffer);
 
-void c_elsi_set_sips_ev_shift(elsi_handle handle_c,
-                              double ev_shift);
+void c_elsi_set_sips_inertia_tol(elsi_handle handle_c,
+                                 double inertia_tol);
 
 void c_elsi_set_sips_interval(elsi_handle handle_c,
                               double lower,
@@ -290,7 +293,6 @@ void c_elsi_get_edm_complex_sparse(elsi_handle handle_c,
 void c_elsi_init_rw(elsi_rw_handle *handle_c,
                     int rw_task,
                     int parallel_mode,
-                    int file_format,
                     int n_basis,
                     double n_electron);
 

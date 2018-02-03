@@ -34,13 +34,12 @@ module ELSI_IO
                              SINGLE_PROC,ELPA_SOLVER,SIPS_SOLVER,OMM_SOLVER,&
                              PEXSI_SOLVER,CHESS_SOLVER,DMP_SOLVER,BLACS_DENSE,&
                              PEXSI_CSC,COMMA_AFTER,NO_COMMA
-   use ELSI_DATATYPE,  only: elsi_handle,elsi_file_io_handle,elsi_timings_handle
+   use ELSI_DATATYPE,  only: elsi_handle,elsi_file_io_handle
    use ELSI_MPI,       only: elsi_stop
    use ELSI_PRECISION, only: r8,i4
-   use ELSI_VERSION,   only: RELEASE_DATE, GIT_COMMIT, GIT_COMMIT_ABBREV, &
-                             GIT_COMMIT_WAS_MODIFIED, GIT_COMMIT_MSG_ABBREV, &
-                             SOURCE_HOSTNAME, SOURCE_LOCAL_DATE, &
-                             SOURCE_LOCAL_TIME, SOURCE_DATETIME
+   use ELSI_VERSION,   only: RELEASE_DATE,GIT_COMMIT,GIT_COMMIT_ABBREV,&
+                             GIT_COMMIT_WAS_MODIFIED,GIT_COMMIT_MSG_ABBREV,&
+                             SOURCE_HOSTNAME,SOURCE_DATETIME
 
    implicit none
 
@@ -93,6 +92,8 @@ subroutine elsi_say(e_h,info_str,io_h_in)
 
    type(elsi_file_io_handle) :: io_h
 
+   character(len=40), parameter :: caller = "elsi_init_io"
+
    if(present(io_h_in)) then
       io_h = io_h_in
    else
@@ -101,7 +102,7 @@ subroutine elsi_say(e_h,info_str,io_h_in)
 
    if(io_h%print_info .and. e_h%myid_all == 0) then
       if(allocated(io_h%prefix)) then
-         write(io_h%print_unit,"(A,A)") io_h%prefix,trim(info_str)
+         write(io_h%print_unit,"(2A)") io_h%prefix,trim(info_str)
       else
          write(io_h%print_unit,"(A)") trim(info_str)
       endif
@@ -125,7 +126,7 @@ subroutine elsi_init_file_io(io_h,print_unit,file_name,file_format,print_info,&
    character(len=*),          intent(in), optional :: prefix
    integer(kind=i4),          intent(in), optional :: comma_json
 
-   character*40, parameter :: caller = "elsi_init_io"
+   character(len=40), parameter :: caller = "elsi_init_io"
 
    ! For safety
    call elsi_reset_file_io_handle(io_h)
@@ -178,7 +179,7 @@ subroutine elsi_finalize_file_io(e_h,io_h)
    type(elsi_handle),         intent(in)    :: e_h
    type(elsi_file_io_handle), intent(inout) :: io_h
 
-   character*40, parameter :: caller = "elsi_finalize_file_io"
+   character(len=40), parameter :: caller = "elsi_finalize_file_io"
 
    call elsi_check_file_io_handle(e_h,io_h,caller)
    call elsi_reset_file_io_handle(io_h)
@@ -212,7 +213,7 @@ subroutine elsi_reset_file_io_handle(io_h)
 
    type(elsi_file_io_handle), intent(inout) :: io_h
 
-   character*40, parameter :: caller = "elsi_reset_file_io_handle"
+   character(len=40), parameter :: caller = "elsi_reset_file_io_handle"
 
    io_h%handle_init = .false.
    io_h%print_unit  = UNSET
@@ -240,9 +241,9 @@ subroutine elsi_print_handle_summary(e_h,io_h_in)
    real(kind=r8)             :: sparsity
    integer(kind=i4)          :: comma_json_save
    type(elsi_file_io_handle) :: io_h
-   character*200             :: info_str
+   character(len=200)        :: info_str
 
-   character*40, parameter :: caller = "elsi_print_handle_summary"
+   character(len=40), parameter :: caller = "elsi_print_handle_summary"
 
    if(present(io_h_in)) then
       io_h = io_h_in
@@ -375,9 +376,9 @@ subroutine elsi_print_versioning(e_h,io_h_in)
 
    integer(kind=i4)          :: comma_json_save
    type(elsi_file_io_handle) :: io_h
-   character*200             :: info_str
+   character(len=200)        :: info_str
 
-   character*40, parameter :: caller = "elsi_print_versioning"
+   character(len=40), parameter :: caller = "elsi_print_versioning"
 
    if(present(io_h_in)) then
       io_h = io_h_in
@@ -385,20 +386,14 @@ subroutine elsi_print_versioning(e_h,io_h_in)
       io_h = e_h%stdio
    endif
 
-   if(io_h%file_format == HUMAN_READ) then
-      write(info_str,"(A)") "ELSI Versioning Information:"
+   if(io_h%file_format == HUMAN_READ) then ! Full info available in JSON
+      write(info_str,"(A)") "ELSI Versioning Information"
       call elsi_say(e_h,info_str,io_h)
       call append_string(io_h%prefix,"  ")
 
       call elsi_say_setting(e_h,"ELSI release date",trim(RELEASE_DATE),io_h)
       call elsi_say_setting(e_h,"ELSI git commit (abbrev.)",trim(GIT_COMMIT_ABBREV),io_h)
       call elsi_say_setting(e_h,"Was git commit modified?",GIT_COMMIT_WAS_MODIFIED,io_h)
-      call elsi_say_setting(e_h,"git commit message (abbrev.)",trim(GIT_COMMIT_MSG_ABBREV),io_h)
-      call elsi_say_setting(e_h,"Source created on hostname",trim(SOURCE_HOSTNAME),io_h)
-      call elsi_say_setting(e_h,"Source created at local date",trim(SOURCE_LOCAL_DATE),io_h)
-      call elsi_say_setting(e_h,"Source created at local time",trim(SOURCE_LOCAL_TIME),io_h)
-      call elsi_say_setting(e_h,"Name of code calling ELSI",trim(e_h%calling_code),io_h)
-      call elsi_say_setting(e_h,"Version of code calling ELSI",trim(e_h%calling_code_ver),io_h)
       call elsi_say_setting(e_h,"UUID for this run",trim(e_h%uuid),io_h)
 
       call truncate_string(io_h%prefix,2)
@@ -433,9 +428,9 @@ subroutine elsi_print_settings(e_h)
 
    type(elsi_handle), intent(in) :: e_h !< Handle
 
-   character*200 :: info_str
+   character(len=200) :: info_str
 
-   character*40, parameter :: caller = "elsi_print_settings"
+   character(len=40), parameter :: caller = "elsi_print_settings"
 
    select case(e_h%solver)
    case(CHESS_SOLVER)
@@ -532,6 +527,12 @@ subroutine elsi_print_settings(e_h)
 
       write(info_str,"('  | Slice buffer         ',E10.2)") e_h%sips_buffer
       call elsi_say(e_h,info_str)
+
+      write(info_str,"('  | Slice type           ',I10)") e_h%sips_slice_type
+      call elsi_say(e_h,info_str)
+
+      write(info_str,"('  | First eigensolution  ',I10)") e_h%sips_first_ev
+      call elsi_say(e_h,info_str)
    case(DMP_SOLVER)
       call elsi_say(e_h,"  DMP settings:")
 
@@ -562,7 +563,7 @@ subroutine elsi_print_solver_settings(e_h,io_h_in)
 
    type(elsi_file_io_handle) :: io_h
 
-   character*40, parameter :: caller = "elsi_print_solver_settings"
+   character(len=40), parameter :: caller = "elsi_print_solver_settings"
 
    if(present(io_h_in)) then
       io_h = io_h_in
@@ -601,9 +602,9 @@ subroutine elsi_print_chess_settings(e_h,io_h_in)
 
    integer(kind=i4)          :: comma_json_save
    type(elsi_file_io_handle) :: io_h
-   character*200             :: info_str
+   character(len=200)        :: info_str
 
-   character*40, parameter :: caller = "elsi_print_chess_settings"
+   character(len=40), parameter :: caller = "elsi_print_chess_settings"
 
    if(present(io_h_in)) then
       io_h = io_h_in
@@ -663,9 +664,9 @@ subroutine elsi_print_dmp_settings(e_h,io_h_in)
 
    integer(kind=i4)          :: comma_json_save
    type(elsi_file_io_handle) :: io_h
-   character*200             :: info_str
+   character(len=200)        :: info_str
 
-   character*40, parameter :: caller = "elsi_print_dmp_settings"
+   character(len=40), parameter :: caller = "elsi_print_dmp_settings"
 
    if(present(io_h_in)) then
       io_h = io_h_in
@@ -722,9 +723,9 @@ subroutine elsi_print_elpa_settings(e_h,io_h_in)
 
    integer(kind=i4)          :: comma_json_save
    type(elsi_file_io_handle) :: io_h
-   character*200             :: info_str
+   character(len=200)        :: info_str
 
-   character*40, parameter :: caller = "elsi_print_elpa_settings"
+   character(len=40), parameter :: caller = "elsi_print_elpa_settings"
 
    if(present(io_h_in)) then
       io_h = io_h_in
@@ -779,9 +780,9 @@ subroutine elsi_print_omm_settings(e_h,io_h_in)
 
    integer(kind=i4)          :: comma_json_save
    type(elsi_file_io_handle) :: io_h
-   character*200             :: info_str
+   character(len=200)        :: info_str
 
-   character*40, parameter :: caller = "elsi_print_omm_settings"
+   character(len=40), parameter :: caller = "elsi_print_omm_settings"
 
    if(present(io_h_in)) then
       io_h = io_h_in
@@ -837,9 +838,9 @@ subroutine elsi_print_pexsi_settings(e_h,io_h_in)
 
    integer(kind=i4)          :: comma_json_save
    type(elsi_file_io_handle) :: io_h
-   character*200             :: info_str
+   character(len=200)        :: info_str
 
-   character*40, parameter :: caller = "elsi_print_pexsi_settings"
+   character(len=40), parameter :: caller = "elsi_print_pexsi_settings"
 
    if(present(io_h_in)) then
       io_h = io_h_in
@@ -901,9 +902,9 @@ subroutine elsi_print_sips_settings(e_h,io_h_in)
 
    integer(kind=i4)          :: comma_json_save
    type(elsi_file_io_handle) :: io_h
-   character*200             :: info_str
+   character(len=200)        :: info_str
 
-   character*40, parameter :: caller = "elsi_print_sips_settings"
+   character(len=40), parameter :: caller = "elsi_print_sips_settings"
 
    if(present(io_h_in)) then
       io_h = io_h_in
@@ -928,9 +929,11 @@ subroutine elsi_print_sips_settings(e_h,io_h_in)
    call elsi_say_setting(e_h,"sips_n_states",e_h%n_states,io_h)
    call elsi_say_setting(e_h,"sips_n_elpa",e_h%sips_n_elpa,io_h)
    call elsi_say_setting(e_h,"sips_n_slices",e_h%sips_n_slices,io_h)
+   call elsi_say_setting(e_h,"sips_slice_type",e_h%sips_slice_type,io_h)
    call elsi_say_setting(e_h,"sips_np_per_slice",e_h%sips_np_per_slice,io_h)
-   io_h%comma_json = NO_COMMA ! Final record in this scope
    call elsi_say_setting(e_h,"sips_buffer",e_h%sips_buffer,io_h)
+   io_h%comma_json = NO_COMMA ! Final record in this scope
+   call elsi_say_setting(e_h,"sips_first_ev",e_h%sips_first_ev,io_h)
    call truncate_string(io_h%prefix,2)
 
    ! Footer (only for JSON)
@@ -960,7 +963,7 @@ subroutine elsi_print_matrix_format_settings(e_h,io_h_in)
 
    type(elsi_file_io_handle) :: io_h
 
-   character*40, parameter :: caller = "elsi_print_matrix_format_settings"
+   character(len=40), parameter :: caller = "elsi_print_matrix_format_settings"
 
    if(present(io_h_in)) then
       io_h = io_h_in
@@ -991,9 +994,9 @@ subroutine elsi_print_blacs_dense_settings(e_h,io_h_in)
 
    integer(kind=i4)          :: comma_json_save
    type(elsi_file_io_handle) :: io_h
-   character*200             :: info_str
+   character(len=200)        :: info_str
 
-   character*40, parameter :: caller = "elsi_print_blacs_dense_settings"
+   character(len=40), parameter :: caller = "elsi_print_blacs_dense_settings"
 
    if(present(io_h_in)) then
       io_h = io_h_in
@@ -1028,9 +1031,9 @@ subroutine elsi_print_blacs_dense_settings(e_h,io_h_in)
 
    if(io_h%file_format == JSON) then
       if(io_h%comma_json == COMMA_AFTER) then
-         write(info_str,"(A,A)") '},'
+         write(info_str,"(2A)") '},'
       else
-         write(info_str,"(A,A)") '}'
+         write(info_str,"(2A)") '}'
       endif
 
       call elsi_say(e_h,info_str,io_h)
@@ -1050,9 +1053,9 @@ subroutine elsi_print_pexsi_csc_settings(e_h,io_h_in)
 
    integer(kind=i4)          :: comma_json_save
    type(elsi_file_io_handle) :: io_h
-   character*200             :: info_str
+   character(len=200)        :: info_str
 
-   character*40, parameter :: caller = "elsi_print_pexsi_csc_settings"
+   character(len=40), parameter :: caller = "elsi_print_pexsi_csc_settings"
 
    if(present(io_h_in)) then
       io_h = io_h_in
@@ -1085,9 +1088,9 @@ subroutine elsi_print_pexsi_csc_settings(e_h,io_h_in)
 
    if(io_h%file_format == JSON) then
       if(io_h%comma_json == COMMA_AFTER) then
-         write(info_str,"(A,A)") '},'
+         write(info_str,"(2A)") '},'
       else
-         write(info_str,"(A,A)") '}'
+         write(info_str,"(2A)") '}'
       endif
 
       call elsi_say(e_h,info_str,io_h)
@@ -1112,7 +1115,7 @@ subroutine elsi_say_setting_i4(e_h,label,setting,io_h_in)
 
    type(elsi_file_io_handle) :: io_h
 
-   character*40, parameter :: caller = "elsi_say_setting_i4"
+   character(len=40), parameter :: caller = "elsi_say_setting_i4"
 
    if(present(io_h_in)) then
       io_h = io_h_in
@@ -1175,7 +1178,7 @@ subroutine elsi_say_setting_r8(e_h,label,setting,io_h_in)
 
    type(elsi_file_io_handle) :: io_h
 
-   character*40, parameter :: caller = "elsi_say_setting_r8"
+   character(len=40), parameter :: caller = "elsi_say_setting_r8"
 
    if(present(io_h_in)) then
       io_h = io_h_in
@@ -1238,7 +1241,7 @@ subroutine elsi_say_setting_log(e_h,label,setting,io_h_in)
 
    type(elsi_file_io_handle) :: io_h
 
-   character*40, parameter :: caller = "elsi_say_setting_log"
+   character(len=40), parameter :: caller = "elsi_say_setting_log"
 
    if(present(io_h_in)) then
       io_h = io_h_in
@@ -1315,7 +1318,7 @@ subroutine elsi_say_setting_str(e_h,label,setting,io_h_in)
 
    type(elsi_file_io_handle) :: io_h
 
-   character*40, parameter :: caller = "elsi_say_setting_str"
+   character(len=40), parameter :: caller = "elsi_say_setting_str"
 
    if(present(io_h_in)) then
       io_h = io_h_in
@@ -1455,18 +1458,18 @@ subroutine elsi_open_json_file(e_h,print_unit,file_name,opening_bracket,io_h)
    logical,                   intent(in)  :: opening_bracket
    type(elsi_file_io_handle), intent(out) :: io_h
 
-   character*40, parameter :: caller = "elsi_open_json_file"
+   character(len=40), parameter :: caller = "elsi_open_json_file"
 
    call elsi_init_file_io(io_h,print_unit,file_name,JSON,.true.,"",COMMA_AFTER)
 
-   open(unit=io_h%print_unit, file=io_h%file_name)
+   open(unit=io_h%print_unit,file=io_h%file_name)
 
    if(opening_bracket) then
       call elsi_say(e_h,"[",io_h)
       call append_string(io_h%prefix,"  ")
    endif
 
-end subroutine elsi_open_json_file
+end subroutine
 
 !>
 !! This routine closes the JSON file and tears down the file IO handle
@@ -1479,11 +1482,11 @@ subroutine elsi_close_json_file(e_h,closing_bracket,io_h)
    logical,                   intent(in)    :: closing_bracket
    type(elsi_file_io_handle), intent(inout) :: io_h
 
-   character*40, parameter :: caller = "elsi_close_json_file"
+   character(len=40), parameter :: caller = "elsi_close_json_file"
 
    if(io_h%file_format /= JSON) then
-        call elsi_stop(" This routine requires a file handle using a JSON &
-                      &format",e_h,caller)
+      call elsi_stop(" This routine requires a file handle using JSON format.",&
+              e_h,caller)
    endif
 
    ! Closing bracket to signify end of JSON array
@@ -1496,7 +1499,7 @@ subroutine elsi_close_json_file(e_h,closing_bracket,io_h)
 
    call elsi_finalize_file_io(e_h,io_h)
 
-end subroutine elsi_close_json_file
+end subroutine
 
 !>
 !! This routine starts a new record in the JSON file
@@ -1509,11 +1512,11 @@ subroutine elsi_start_json_record(e_h,comma_before,io_h)
    logical,                   intent(in)    :: comma_before
    type(elsi_file_io_handle), intent(inout) :: io_h
 
-   character*40, parameter :: caller = "elsi_start_json_record"
+   character(len=40), parameter :: caller = "elsi_start_json_record"
 
    if(io_h%file_format /= JSON) then
-        call elsi_stop(" This routine requires a file handle using a JSON &
-                      &format",e_h,caller)
+      call elsi_stop(" This routine requires a file handle using JSON format.",&
+              e_h,caller)
    endif
 
    if(comma_before) then
@@ -1524,7 +1527,7 @@ subroutine elsi_start_json_record(e_h,comma_before,io_h)
 
    call append_string(io_h%prefix,"  ")
 
-end subroutine elsi_start_json_record
+end subroutine
 
 !>
 !! This routine finishes the current record in the JSON file
@@ -1537,11 +1540,11 @@ subroutine elsi_finish_json_record(e_h,comma_after,io_h)
    logical,                   intent(in)    :: comma_after
    type(elsi_file_io_handle), intent(inout) :: io_h
 
-   character*40, parameter :: caller = "elsi_finish_json_record"
+   character(len=40), parameter :: caller = "elsi_finish_json_record"
 
    if(io_h%file_format /= JSON) then
-        call elsi_stop(" This routine requires a file handle using a JSON &
-                      &format",e_h,caller)
+      call elsi_stop(" This routine requires a file handle using JSON format.",&
+              e_h,caller)
    endif
 
    call truncate_string(io_h%prefix,2)
@@ -1552,7 +1555,7 @@ subroutine elsi_finish_json_record(e_h,comma_after,io_h)
       call elsi_say(e_h,'}',io_h)
    endif
 
-end subroutine elsi_finish_json_record
+end subroutine
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !                              End of JSON Code                                !

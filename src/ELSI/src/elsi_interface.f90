@@ -27,7 +27,7 @@
 
 !>
 !! This module provides routines for solving the Kohn-Sham electronic structure
-!! using ELPA, libOMM, PEXSI, CheSS, SIPs.
+!! using ELPA, libOMM, PEXSI, CheSS, SIPs, DMP.
 !!
 module ELSI
 
@@ -93,10 +93,11 @@ module ELSI
    public :: elsi_set_chess_ev_ovlp_max
    public :: elsi_set_sips_n_elpa
    public :: elsi_set_sips_n_slice
-   public :: elsi_set_sips_buffer
-   public :: elsi_set_sips_ev_shift
    public :: elsi_set_sips_slice_type
+   public :: elsi_set_sips_buffer
+   public :: elsi_set_sips_inertia_tol
    public :: elsi_set_sips_interval
+   public :: elsi_set_sips_first_ev
    public :: elsi_set_dmp_method
    public :: elsi_set_dmp_max_step
    public :: elsi_set_dmp_tol

@@ -163,7 +163,8 @@ if ($RELEASE_DATE eq "--only-gitstr") {
     print "  implicit none\n";
     print "\n";
     print "  public\n";
-    print "  character(len=10),  parameter :: RELEASE_DATE           = \"$RELEASE_DATE\"\n";
+    print "\n";
+    print "  character(len=10), parameter :: RELEASE_DATE            = \"$RELEASE_DATE\"\n";
     print "  character(len=40), parameter :: GIT_COMMIT              = \"$gitcommit\"\n";
     print "  character(len=7),  parameter :: GIT_COMMIT_ABBREV       = \"$gitcommitabbrev\"\n";
     print "  logical,           parameter :: GIT_COMMIT_WAS_MODIFIED = $modlog\n";

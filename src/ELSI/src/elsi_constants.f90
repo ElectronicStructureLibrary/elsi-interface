@@ -91,10 +91,6 @@ module ELSI_CONSTANTS
    integer(kind=i4), parameter :: READ_FILE  = 0
    integer(kind=i4), parameter :: WRITE_FILE = 1
 
-   ! File formats
-   integer(kind=i4), parameter :: DENSE_FILE = 0
-   integer(kind=i4), parameter :: CSC_FILE   = 1
-
    ! Constants for ELSI file IO
    character(len=*), parameter :: UNSET_STRING  = "N/A"
    integer(kind=i4), parameter :: FILE_NAME_LEN = 80
@@ -109,7 +105,6 @@ module ELSI_CONSTANTS
    ! Constants for ELSI timings
    integer(kind=i4),             parameter :: SOLVER_TIMINGS_UNIT_DEFAULT = 66
    character(len=FILE_NAME_LEN), parameter :: SOLVER_TIMINGS_FILE_DEFAULT = "elsi_solver_timings.json"
-   integer(kind=i4),             parameter :: MAX_FINAL_TIMING_ITERS      = 200
 
    ! Constants for ELSI versioning
    integer(kind=i4), parameter :: SETTING_STR_LEN = 20

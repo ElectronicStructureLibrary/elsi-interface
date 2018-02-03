@@ -31,7 +31,6 @@
 !!
 module ELSI_LAPACK
 
-   use ELSI_CONSTANTS, only: UNSET
    use ELSI_DATATYPE,  only: elsi_handle
    use ELSI_IO,        only: elsi_say
    use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
@@ -63,17 +62,17 @@ subroutine elsi_to_standard_evp_sp_real(e_h,ham,ovlp,eval,evec)
    real(kind=r8),     intent(inout) :: eval(e_h%n_basis)
    real(kind=r8),     intent(inout) :: evec(e_h%n_lrow,e_h%n_lcol)
 
-   integer(kind=i4) :: nwork
-   integer(kind=i4) :: n
-   integer(kind=i4) :: i
-   integer(kind=i4) :: j
-   integer(kind=i4) :: ierr
-   real(kind=r8)    :: t0
-   real(kind=r8)    :: t1
-   character*200    :: info_str
+   integer(kind=i4)   :: nwork
+   integer(kind=i4)   :: n
+   integer(kind=i4)   :: i
+   integer(kind=i4)   :: j
+   integer(kind=i4)   :: ierr
+   real(kind=r8)      :: t0
+   real(kind=r8)      :: t1
+   character(len=200) :: info_str
 
-   integer(kind=i4), parameter :: nblk = 128
-   character*40,     parameter :: caller = "elsi_to_standard_evp_sp_real"
+   integer(kind=i4),  parameter :: nblk = 128
+   character(len=40), parameter :: caller = "elsi_to_standard_evp_sp_real"
 
    if(e_h%check_sing) then
       call elsi_check_singularity_sp_real(e_h,ovlp,eval,evec)
@@ -163,13 +162,13 @@ subroutine elsi_to_original_ev_sp_real(e_h,ovlp,evec)
    real(kind=r8),     intent(inout) :: ovlp(e_h%n_lrow,e_h%n_lcol)
    real(kind=r8),     intent(inout) :: evec(e_h%n_lrow,e_h%n_lcol)
 
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
-   character*200 :: info_str
+   real(kind=r8)      :: t0
+   real(kind=r8)      :: t1
+   character(len=200) :: info_str
 
    real(kind=r8), allocatable :: tmp_real(:,:)
 
-   character*40, parameter :: caller = "elsi_to_original_ev_sp_real"
+   character(len=40), parameter :: caller = "elsi_to_original_ev_sp_real"
 
    call elsi_get_time(e_h,t0)
 
@@ -212,13 +211,13 @@ subroutine elsi_solve_evp_lapack_real(e_h,ham,ovlp,eval,evec)
    real(kind=r8), allocatable :: tau_real(:)
    real(kind=r8), allocatable :: tmp_real(:,:)
 
-   logical          :: success
-   integer(kind=i4) :: ierr
-   real(kind=r8)    :: t0
-   real(kind=r8)    :: t1
-   character*200    :: info_str
+   logical            :: success
+   integer(kind=i4)   :: ierr
+   real(kind=r8)      :: t0
+   real(kind=r8)      :: t1
+   character(len=200) :: info_str
 
-   character*40, parameter :: caller = "elsi_solve_evp_lapack_real"
+   character(len=40), parameter :: caller = "elsi_solve_evp_lapack_real"
 
    ! Transform to standard form
    if(.not. e_h%ovlp_is_unit) then
@@ -289,20 +288,20 @@ subroutine elsi_check_singularity_sp_real(e_h,ovlp,eval,evec)
    real(kind=r8),     intent(inout) :: eval(e_h%n_basis)
    real(kind=r8),     intent(inout) :: evec(e_h%n_lrow,e_h%n_lcol)
 
-   integer(kind=i4) :: i
-   integer(kind=i4) :: ierr
-   real(kind=r8)    :: ev_sqrt
-   real(kind=r8)    :: t0
-   real(kind=r8)    :: t1
-   logical          :: success
-   character*200    :: info_str
+   integer(kind=i4)   :: i
+   integer(kind=i4)   :: ierr
+   real(kind=r8)      :: ev_sqrt
+   real(kind=r8)      :: t0
+   real(kind=r8)      :: t1
+   logical            :: success
+   character(len=200) :: info_str
 
    real(kind=r8), allocatable :: off_diag(:)
    real(kind=r8), allocatable :: tau_real(:)
    real(kind=r8), allocatable :: tmp_real(:,:)
    real(kind=r8), allocatable :: copy_real(:,:)
 
-   character*40, parameter :: caller = "elsi_check_singularity_sp_real"
+   character(len=40), parameter :: caller = "elsi_check_singularity_sp_real"
 
    call elsi_get_time(e_h,t0)
 
@@ -410,17 +409,17 @@ subroutine elsi_to_standard_evp_sp_cmplx(e_h,ham,ovlp,eval,evec)
    real(kind=r8),     intent(inout) :: eval(e_h%n_basis)
    complex(kind=r8),  intent(inout) :: evec(e_h%n_lrow,e_h%n_lcol)
 
-   integer(kind=i4) :: nwork
-   integer(kind=i4) :: n
-   integer(kind=i4) :: i
-   integer(kind=i4) :: j
-   integer(kind=i4) :: ierr
-   real(kind=r8)    :: t0
-   real(kind=r8)    :: t1
-   character*200    :: info_str
+   integer(kind=i4)   :: nwork
+   integer(kind=i4)   :: n
+   integer(kind=i4)   :: i
+   integer(kind=i4)   :: j
+   integer(kind=i4)   :: ierr
+   real(kind=r8)      :: t0
+   real(kind=r8)      :: t1
+   character(len=200) :: info_str
 
-   integer(kind=i4), parameter :: nblk = 128
-   character*40,     parameter :: caller = "elsi_to_standard_evp_sp_cmplx"
+   integer(kind=i4),  parameter :: nblk = 128
+   character(len=40), parameter :: caller = "elsi_to_standard_evp_sp_cmplx"
 
    if(e_h%check_sing) then
       call elsi_check_singularity_sp_cmplx(e_h,ovlp,eval,evec)
@@ -513,13 +512,13 @@ subroutine elsi_to_original_ev_sp_cmplx(e_h,ovlp,evec)
    complex(kind=r8),  intent(inout) :: ovlp(e_h%n_lrow,e_h%n_lcol)
    complex(kind=r8),  intent(inout) :: evec(e_h%n_lrow,e_h%n_lcol)
 
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
-   character*200 :: info_str
+   real(kind=r8)      :: t0
+   real(kind=r8)      :: t1
+   character(len=200) :: info_str
 
    complex(kind=r8), allocatable :: tmp_cmplx(:,:)
 
-   character*40, parameter :: caller = "elsi_to_original_ev_sp_cmplx"
+   character(len=40), parameter :: caller = "elsi_to_original_ev_sp_cmplx"
 
    call elsi_get_time(e_h,t0)
 
@@ -564,13 +563,13 @@ subroutine elsi_solve_evp_lapack_cmplx(e_h,ham,ovlp,eval,evec)
    real(kind=r8),    allocatable :: tmp_real(:,:)
    complex(kind=r8), allocatable :: tmp_cmplx(:,:)
 
-   logical          :: success
-   integer(kind=i4) :: ierr
-   real(kind=r8)    :: t0
-   real(kind=r8)    :: t1
-   character*200    :: info_str
+   logical            :: success
+   integer(kind=i4)   :: ierr
+   real(kind=r8)      :: t0
+   real(kind=r8)      :: t1
+   character(len=200) :: info_str
 
-   character*40, parameter :: caller = "elsi_solve_evp_lapack_cmplx"
+   character(len=40), parameter :: caller = "elsi_solve_evp_lapack_cmplx"
 
    ! Transform to standard form
    if(.not. e_h%ovlp_is_unit) then
@@ -645,13 +644,13 @@ subroutine elsi_check_singularity_sp_cmplx(e_h,ovlp,eval,evec)
    real(kind=r8),     intent(inout) :: eval(e_h%n_basis)
    complex(kind=r8),  intent(inout) :: evec(e_h%n_lrow,e_h%n_lcol)
 
-   integer(kind=i4) :: i
-   integer(kind=i4) :: ierr
-   real(kind=r8)    :: ev_sqrt
-   real(kind=r8)    :: t0
-   real(kind=r8)    :: t1
-   logical          :: success
-   character*200    :: info_str
+   integer(kind=i4)   :: i
+   integer(kind=i4)   :: ierr
+   real(kind=r8)      :: ev_sqrt
+   real(kind=r8)      :: t0
+   real(kind=r8)      :: t1
+   logical            :: success
+   character(len=200) :: info_str
 
    real(kind=r8),    allocatable :: off_diag(:)
    complex(kind=r8), allocatable :: tau_cmplx(:)
@@ -659,7 +658,7 @@ subroutine elsi_check_singularity_sp_cmplx(e_h,ovlp,eval,evec)
    complex(kind=r8), allocatable :: tmp_cmplx(:,:)
    complex(kind=r8), allocatable :: copy_cmplx(:,:)
 
-   character*40, parameter :: caller = "elsi_check_singularity_sp_cmplx"
+   character(len=40), parameter :: caller = "elsi_check_singularity_sp_cmplx"
 
    call elsi_get_time(e_h,t0)
 

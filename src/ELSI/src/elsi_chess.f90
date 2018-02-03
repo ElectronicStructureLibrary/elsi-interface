@@ -67,7 +67,7 @@ subroutine elsi_init_chess(e_h)
 
    real(kind=r8) :: n_electron(1)
 
-   character*40, parameter :: caller = "elsi_init_chess"
+   character(len=40), parameter :: caller = "elsi_init_chess"
 
    if(e_h%handle_ready) then
       e_h%handle_changed = .true.
@@ -139,13 +139,13 @@ subroutine elsi_solve_evp_chess_real(e_h)
 
    type(elsi_handle), intent(inout) :: e_h
 
-   logical          :: calc_ovlp_inv_sqrt
-   real(kind=r8)    :: t0
-   real(kind=r8)    :: t1
-   integer(kind=i4) :: ierr
-   character*200    :: info_str
+   logical            :: calc_ovlp_inv_sqrt
+   real(kind=r8)      :: t0
+   real(kind=r8)      :: t1
+   integer(kind=i4)   :: ierr
+   character(len=200) :: info_str
 
-   character*40, parameter :: caller = "elsi_solve_evp_chess_real"
+   character(len=40), parameter :: caller = "elsi_solve_evp_chess_real"
 
    call elsi_get_time(e_h,t0)
 
@@ -189,7 +189,7 @@ subroutine elsi_compute_edm_chess_real(e_h)
 
    type(elsi_handle), intent(inout) :: e_h
 
-   character*40, parameter :: caller = "elsi_compute_edm_chess_real"
+   character(len=40), parameter :: caller = "elsi_compute_edm_chess_real"
 
    ! TODO: Compute edm
 
@@ -204,7 +204,7 @@ subroutine elsi_set_chess_default(e_h)
 
    type(elsi_handle), intent(inout) :: e_h
 
-   character*40, parameter :: caller = "elsi_set_chess_default"
+   character(len=40), parameter :: caller = "elsi_set_chess_default"
 
    if(e_h%handle_ready) then
       e_h%handle_changed = .true.

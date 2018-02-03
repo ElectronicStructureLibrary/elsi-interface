@@ -34,8 +34,8 @@ module ELSI_MATCONV
    use ELSI_DATATYPE,  only: elsi_handle
    use ELSI_IO,        only: elsi_say
    use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
-   use ELSI_MPI,       only: elsi_stop,elsi_check_mpi,mpi_real8,mpi_complex16,&
-                             mpi_integer4,mpi_sum
+   use ELSI_MPI,       only: elsi_check_mpi,mpi_sum,mpi_real8,mpi_complex16,&
+                             mpi_integer4
    use ELSI_PRECISION, only: r8,i4,i8
    use ELSI_SORT,      only: elsi_heapsort
    use ELSI_TIMINGS,   only: elsi_get_time
@@ -75,26 +75,26 @@ subroutine elsi_blacs_to_pexsi_hs_real(e_h,ham,ovlp)
    real(kind=r8),     intent(in)    :: ham(e_h%n_lrow,e_h%n_lcol)
    real(kind=r8),     intent(in)    :: ovlp(e_h%n_lrow,e_h%n_lcol)
 
-   integer(kind=i4) :: n_para_task
-   integer(kind=i4) :: ierr
-   integer(kind=i4) :: i_row
-   integer(kind=i4) :: i_col
-   integer(kind=i4) :: i_val
-   integer(kind=i4) :: i_proc
-   integer(kind=i4) :: g_col_id
-   integer(kind=i4) :: g_row_id
-   integer(kind=i4) :: d1
-   integer(kind=i4) :: d2
-   integer(kind=i4) :: d11
-   integer(kind=i4) :: d12
-   integer(kind=i4) :: d21
-   integer(kind=i4) :: d22
-   integer(kind=i4) :: dest ! Destination of an element
-   integer(kind=i4) :: this_n_cols
-   integer(kind=i4) :: nnz_l_aux
-   real(kind=r8)    :: t0
-   real(kind=r8)    :: t1
-   character*200    :: info_str
+   integer(kind=i4)   :: n_para_task
+   integer(kind=i4)   :: ierr
+   integer(kind=i4)   :: i_row
+   integer(kind=i4)   :: i_col
+   integer(kind=i4)   :: i_val
+   integer(kind=i4)   :: i_proc
+   integer(kind=i4)   :: g_col_id
+   integer(kind=i4)   :: g_row_id
+   integer(kind=i4)   :: d1
+   integer(kind=i4)   :: d2
+   integer(kind=i4)   :: d11
+   integer(kind=i4)   :: d12
+   integer(kind=i4)   :: d21
+   integer(kind=i4)   :: d22
+   integer(kind=i4)   :: dest ! Destination of an element
+   integer(kind=i4)   :: this_n_cols
+   integer(kind=i4)   :: nnz_l_aux
+   real(kind=r8)      :: t0
+   real(kind=r8)      :: t1
+   character(len=200) :: info_str
 
    ! See documentation of MPI_Alltoallv
    real(kind=r8),    allocatable :: h_val_send_buf(:)
@@ -112,7 +112,7 @@ subroutine elsi_blacs_to_pexsi_hs_real(e_h,ham,ovlp)
    integer(kind=i4), allocatable :: locat(:) ! Location of each global column
    integer(kind=i8), allocatable :: global_id(:) ! Global 1D id
 
-   character*40, parameter :: caller = "elsi_blacs_to_pexsi_hs_real"
+   character(len=40), parameter :: caller = "elsi_blacs_to_pexsi_hs_real"
 
    call elsi_get_time(e_h,t0)
 
@@ -472,26 +472,26 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(e_h,ham,ovlp)
    complex(kind=r8),  intent(in)    :: ham(e_h%n_lrow,e_h%n_lcol)
    complex(kind=r8),  intent(in)    :: ovlp(e_h%n_lrow,e_h%n_lcol)
 
-   integer(kind=i4) :: n_para_task
-   integer(kind=i4) :: ierr
-   integer(kind=i4) :: i_row
-   integer(kind=i4) :: i_col
-   integer(kind=i4) :: i_val
-   integer(kind=i4) :: i_proc
-   integer(kind=i4) :: g_col_id
-   integer(kind=i4) :: g_row_id
-   integer(kind=i4) :: d1
-   integer(kind=i4) :: d2
-   integer(kind=i4) :: d11
-   integer(kind=i4) :: d12
-   integer(kind=i4) :: d21
-   integer(kind=i4) :: d22
-   integer(kind=i4) :: dest ! Destination of an element
-   integer(kind=i4) :: this_n_cols
-   integer(kind=i4) :: nnz_l_aux
-   real(kind=r8)    :: t0
-   real(kind=r8)    :: t1
-   character*200    :: info_str
+   integer(kind=i4)   :: n_para_task
+   integer(kind=i4)   :: ierr
+   integer(kind=i4)   :: i_row
+   integer(kind=i4)   :: i_col
+   integer(kind=i4)   :: i_val
+   integer(kind=i4)   :: i_proc
+   integer(kind=i4)   :: g_col_id
+   integer(kind=i4)   :: g_row_id
+   integer(kind=i4)   :: d1
+   integer(kind=i4)   :: d2
+   integer(kind=i4)   :: d11
+   integer(kind=i4)   :: d12
+   integer(kind=i4)   :: d21
+   integer(kind=i4)   :: d22
+   integer(kind=i4)   :: dest ! Destination of an element
+   integer(kind=i4)   :: this_n_cols
+   integer(kind=i4)   :: nnz_l_aux
+   real(kind=r8)      :: t0
+   real(kind=r8)      :: t1
+   character(len=200) :: info_str
 
    ! See documentation of MPI_Alltoallv
    complex(kind=r8), allocatable :: h_val_send_buf(:)
@@ -509,7 +509,7 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(e_h,ham,ovlp)
    integer(kind=i4), allocatable :: locat(:) ! Location of each global column
    integer(kind=i8), allocatable :: global_id(:) ! Global 1D id
 
-   character*40, parameter :: caller = "elsi_blacs_to_pexsi_hs_cmplx"
+   character(len=40), parameter :: caller = "elsi_blacs_to_pexsi_hs_cmplx"
 
    call elsi_get_time(e_h,t0)
 
@@ -870,18 +870,18 @@ subroutine elsi_pexsi_to_blacs_dm_real(e_h,dm)
    type(elsi_handle), intent(inout) :: e_h
    real(kind=r8),     intent(out)   :: dm(e_h%n_lrow,e_h%n_lcol)
 
-   integer(kind=i4) :: ierr
-   integer(kind=i4) :: i_row
-   integer(kind=i4) :: i_col
-   integer(kind=i4) :: i_val
-   integer(kind=i4) :: i_proc
-   integer(kind=i4) :: l_col_id ! Local column id in 1D block distribution
-   integer(kind=i4) :: l_row_id ! Local row id in 1D block distribution
-   integer(kind=i4) :: proc_col_id
-   integer(kind=i4) :: proc_row_id
-   real(kind=r8)    :: t0
-   real(kind=r8)    :: t1
-   character*200    :: info_str
+   integer(kind=i4)   :: ierr
+   integer(kind=i4)   :: i_row
+   integer(kind=i4)   :: i_col
+   integer(kind=i4)   :: i_val
+   integer(kind=i4)   :: i_proc
+   integer(kind=i4)   :: l_col_id ! Local column id in 1D block distribution
+   integer(kind=i4)   :: l_row_id ! Local row id in 1D block distribution
+   integer(kind=i4)   :: proc_col_id
+   integer(kind=i4)   :: proc_row_id
+   real(kind=r8)      :: t0
+   real(kind=r8)      :: t1
+   character(len=200) :: info_str
 
    ! See documentation of MPI_Alltoallv
    real(kind=r8),    allocatable :: val_send_buf(:)
@@ -896,7 +896,7 @@ subroutine elsi_pexsi_to_blacs_dm_real(e_h,dm)
    integer(kind=i4), allocatable :: recv_displ(:)
    integer(kind=i4), allocatable :: dest(:) ! Destination of each element
 
-   character*40, parameter :: caller = "elsi_pexsi_to_blacs_dm_real"
+   character(len=40), parameter :: caller = "elsi_pexsi_to_blacs_dm_real"
 
    call elsi_get_time(e_h,t0)
 
@@ -1030,18 +1030,18 @@ subroutine elsi_pexsi_to_blacs_dm_cmplx(e_h,dm)
    type(elsi_handle), intent(inout) :: e_h
    complex(kind=r8),  intent(out)   :: dm(e_h%n_lrow,e_h%n_lcol)
 
-   integer(kind=i4) :: ierr
-   integer(kind=i4) :: i_row
-   integer(kind=i4) :: i_col
-   integer(kind=i4) :: i_val
-   integer(kind=i4) :: i_proc
-   integer(kind=i4) :: l_col_id ! Local column id in 1D block distribution
-   integer(kind=i4) :: l_row_id ! Local row id in 1D block distribution
-   integer(kind=i4) :: proc_col_id
-   integer(kind=i4) :: proc_row_id
-   real(kind=r8)    :: t0
-   real(kind=r8)    :: t1
-   character*200    :: info_str
+   integer(kind=i4)   :: ierr
+   integer(kind=i4)   :: i_row
+   integer(kind=i4)   :: i_col
+   integer(kind=i4)   :: i_val
+   integer(kind=i4)   :: i_proc
+   integer(kind=i4)   :: l_col_id ! Local column id in 1D block distribution
+   integer(kind=i4)   :: l_row_id ! Local row id in 1D block distribution
+   integer(kind=i4)   :: proc_col_id
+   integer(kind=i4)   :: proc_row_id
+   real(kind=r8)      :: t0
+   real(kind=r8)      :: t1
+   character(len=200) :: info_str
 
    ! See documentation of MPI_Alltoallv
    complex(kind=r8), allocatable :: val_send_buf(:)
@@ -1056,7 +1056,7 @@ subroutine elsi_pexsi_to_blacs_dm_cmplx(e_h,dm)
    integer(kind=i4), allocatable :: recv_displ(:)
    integer(kind=i4), allocatable :: dest(:) ! Destination of each element
 
-   character*40, parameter :: caller = "elsi_pexsi_to_blacs_dm_cmplx"
+   character(len=40), parameter :: caller = "elsi_pexsi_to_blacs_dm_cmplx"
 
    call elsi_get_time(e_h,t0)
 
@@ -1192,17 +1192,17 @@ subroutine elsi_blacs_to_sips_hs_real(e_h,ham,ovlp)
    real(kind=r8),     intent(in)    :: ham(e_h%n_lrow,e_h%n_lcol)
    real(kind=r8),     intent(in)    :: ovlp(e_h%n_lrow,e_h%n_lcol)
 
-   integer(kind=i4) :: ierr
-   integer(kind=i4) :: i_row
-   integer(kind=i4) :: i_col
-   integer(kind=i4) :: i_val
-   integer(kind=i4) :: i_proc
-   integer(kind=i4) :: g_col_id
-   integer(kind=i4) :: g_row_id
-   integer(kind=i4) :: dest ! Destination of an element
-   real(kind=r8)    :: t0
-   real(kind=r8)    :: t1
-   character*200    :: info_str
+   integer(kind=i4)   :: ierr
+   integer(kind=i4)   :: i_row
+   integer(kind=i4)   :: i_col
+   integer(kind=i4)   :: i_val
+   integer(kind=i4)   :: i_proc
+   integer(kind=i4)   :: g_col_id
+   integer(kind=i4)   :: g_row_id
+   integer(kind=i4)   :: dest ! Destination of an element
+   real(kind=r8)      :: t0
+   real(kind=r8)      :: t1
+   character(len=200) :: info_str
 
    ! See documentation of MPI_Alltoallv
    real(kind=r8),    allocatable :: h_val_send_buf(:)
@@ -1217,7 +1217,7 @@ subroutine elsi_blacs_to_sips_hs_real(e_h,ham,ovlp)
    integer(kind=i4), allocatable :: recv_displ(:)
    integer(kind=i8), allocatable :: global_id(:)
 
-   character*40, parameter :: caller = "elsi_blacs_to_sips_hs_real"
+   character(len=40), parameter :: caller = "elsi_blacs_to_sips_hs_real"
 
    call elsi_get_time(e_h,t0)
 
@@ -1446,17 +1446,17 @@ subroutine elsi_blacs_to_sips_hs_cmplx(e_h,ham,ovlp)
    complex(kind=r8),  intent(in)    :: ham(e_h%n_lrow,e_h%n_lcol)
    complex(kind=r8),  intent(in)    :: ovlp(e_h%n_lrow,e_h%n_lcol)
 
-   integer(kind=i4) :: ierr
-   integer(kind=i4) :: i_row
-   integer(kind=i4) :: i_col
-   integer(kind=i4) :: i_val
-   integer(kind=i4) :: i_proc
-   integer(kind=i4) :: g_col_id
-   integer(kind=i4) :: g_row_id
-   integer(kind=i4) :: dest ! Destination of an element
-   real(kind=r8)    :: t0
-   real(kind=r8)    :: t1
-   character*200    :: info_str
+   integer(kind=i4)   :: ierr
+   integer(kind=i4)   :: i_row
+   integer(kind=i4)   :: i_col
+   integer(kind=i4)   :: i_val
+   integer(kind=i4)   :: i_proc
+   integer(kind=i4)   :: g_col_id
+   integer(kind=i4)   :: g_row_id
+   integer(kind=i4)   :: dest ! Destination of an element
+   real(kind=r8)      :: t0
+   real(kind=r8)      :: t1
+   character(len=200) :: info_str
 
    ! See documentation of MPI_Alltoallv
    complex(kind=r8), allocatable :: h_val_send_buf(:)
@@ -1471,7 +1471,7 @@ subroutine elsi_blacs_to_sips_hs_cmplx(e_h,ham,ovlp)
    integer(kind=i4), allocatable :: recv_displ(:)
    integer(kind=i8), allocatable :: global_id(:)
 
-   character*40, parameter :: caller = "elsi_blacs_to_sips_hs_cmplx"
+   character(len=40), parameter :: caller = "elsi_blacs_to_sips_hs_cmplx"
 
    call elsi_get_time(e_h,t0)
 
@@ -1701,18 +1701,18 @@ subroutine elsi_sips_to_blacs_hs_real(e_h,ham,ovlp)
    real(kind=r8),     intent(in)    :: ham(e_h%nnz_l_sp)
    real(kind=r8),     intent(in)    :: ovlp(e_h%nnz_l_sp)
 
-   integer(kind=i4) :: ierr
-   integer(kind=i4) :: i_row
-   integer(kind=i4) :: i_col
-   integer(kind=i4) :: i_val
-   integer(kind=i4) :: i_proc
-   integer(kind=i4) :: l_col_id ! Local column id in 1D block distribution
-   integer(kind=i4) :: l_row_id ! Local row id in 1D block distribution
-   integer(kind=i4) :: proc_col_id
-   integer(kind=i4) :: proc_row_id
-   real(kind=r8)    :: t0
-   real(kind=r8)    :: t1
-   character*200    :: info_str
+   integer(kind=i4)   :: ierr
+   integer(kind=i4)   :: i_row
+   integer(kind=i4)   :: i_col
+   integer(kind=i4)   :: i_val
+   integer(kind=i4)   :: i_proc
+   integer(kind=i4)   :: l_col_id ! Local column id in 1D block distribution
+   integer(kind=i4)   :: l_row_id ! Local row id in 1D block distribution
+   integer(kind=i4)   :: proc_col_id
+   integer(kind=i4)   :: proc_row_id
+   real(kind=r8)      :: t0
+   real(kind=r8)      :: t1
+   character(len=200) :: info_str
 
    ! See documentation of MPI_Alltoallv
    real(kind=r8),    allocatable :: h_val_send_buf(:)
@@ -1729,7 +1729,7 @@ subroutine elsi_sips_to_blacs_hs_real(e_h,ham,ovlp)
    integer(kind=i4), allocatable :: recv_displ(:)
    integer(kind=i4), allocatable :: dest(:) ! Destination of each element
 
-   character*40, parameter :: caller = "elsi_sips_to_blacs_hs_real"
+   character(len=40), parameter :: caller = "elsi_sips_to_blacs_hs_real"
 
    call elsi_get_time(e_h,t0)
 
@@ -1917,18 +1917,18 @@ subroutine elsi_sips_to_blacs_hs_cmplx(e_h,ham,ovlp)
    complex(kind=r8),  intent(in)    :: ham(e_h%nnz_l_sp)
    complex(kind=r8),  intent(in)    :: ovlp(e_h%nnz_l_sp)
 
-   integer(kind=i4) :: ierr
-   integer(kind=i4) :: i_row
-   integer(kind=i4) :: i_col
-   integer(kind=i4) :: i_val
-   integer(kind=i4) :: i_proc
-   integer(kind=i4) :: l_col_id ! Local column id in 1D block distribution
-   integer(kind=i4) :: l_row_id ! Local row id in 1D block distribution
-   integer(kind=i4) :: proc_col_id
-   integer(kind=i4) :: proc_row_id
-   real(kind=r8)    :: t0
-   real(kind=r8)    :: t1
-   character*200    :: info_str
+   integer(kind=i4)   :: ierr
+   integer(kind=i4)   :: i_row
+   integer(kind=i4)   :: i_col
+   integer(kind=i4)   :: i_val
+   integer(kind=i4)   :: i_proc
+   integer(kind=i4)   :: l_col_id ! Local column id in 1D block distribution
+   integer(kind=i4)   :: l_row_id ! Local row id in 1D block distribution
+   integer(kind=i4)   :: proc_col_id
+   integer(kind=i4)   :: proc_row_id
+   real(kind=r8)      :: t0
+   real(kind=r8)      :: t1
+   character(len=200) :: info_str
 
    ! See documentation of MPI_Alltoallv
    complex(kind=r8), allocatable :: h_val_send_buf(:)
@@ -1945,7 +1945,7 @@ subroutine elsi_sips_to_blacs_hs_cmplx(e_h,ham,ovlp)
    integer(kind=i4), allocatable :: recv_displ(:)
    integer(kind=i4), allocatable :: dest(:) ! Destination of each element
 
-   character*40, parameter :: caller = "elsi_sips_to_blacs_hs_cmplx"
+   character(len=40), parameter :: caller = "elsi_sips_to_blacs_hs_cmplx"
 
    call elsi_get_time(e_h,t0)
 
@@ -2132,21 +2132,21 @@ subroutine elsi_sips_to_blacs_ev_real(e_h,evec)
    type(elsi_handle), intent(inout) :: e_h
    real(kind=r8),     intent(out)   :: evec(e_h%n_lrow,e_h%n_lcol)
 
-   integer(kind=i4) :: ierr
-   integer(kind=i4) :: i_row
-   integer(kind=i4) :: i_col
-   integer(kind=i4) :: i_val
-   integer(kind=i4) :: i_proc
-   integer(kind=i4) :: l_col_id ! Local column id in 1D block distribution
-   integer(kind=i4) :: l_row_id ! Local row id in 1D block distribution
-   integer(kind=i4) :: proc_col_id
-   integer(kind=i4) :: proc_row_id
-   integer(kind=i4) :: nnz_before
-   integer(kind=i4) :: nnz_after
-   integer(kind=i4) :: n_lrow_aux
-   real(kind=r8)    :: t0
-   real(kind=r8)    :: t1
-   character*200    :: info_str
+   integer(kind=i4)   :: ierr
+   integer(kind=i4)   :: i_row
+   integer(kind=i4)   :: i_col
+   integer(kind=i4)   :: i_val
+   integer(kind=i4)   :: i_proc
+   integer(kind=i4)   :: l_col_id ! Local column id in 1D block distribution
+   integer(kind=i4)   :: l_row_id ! Local row id in 1D block distribution
+   integer(kind=i4)   :: proc_col_id
+   integer(kind=i4)   :: proc_row_id
+   integer(kind=i4)   :: nnz_before
+   integer(kind=i4)   :: nnz_after
+   integer(kind=i4)   :: n_lrow_aux
+   real(kind=r8)      :: t0
+   real(kind=r8)      :: t1
+   character(len=200) :: info_str
 
    ! See documentation of MPI_Alltoallv
    real(kind=r8),    allocatable :: val_send_buf(:)
@@ -2161,7 +2161,7 @@ subroutine elsi_sips_to_blacs_ev_real(e_h,evec)
    integer(kind=i4), allocatable :: recv_displ(:)
    integer(kind=i4), allocatable :: dest(:) ! Destination of each element
 
-   character*40, parameter :: caller = "elsi_sips_to_blacs_ev_real"
+   character(len=40), parameter :: caller = "elsi_sips_to_blacs_ev_real"
 
    call elsi_get_time(e_h,t0)
 
@@ -2190,7 +2190,7 @@ subroutine elsi_sips_to_blacs_ev_real(e_h,evec)
             i_val = i_val+1
 
             ! Compute global id
-            col_send_buf(i_val) = i_col
+            col_send_buf(i_val) = i_col+e_h%sips_first_ev-1
             row_send_buf(i_val) = e_h%myid*n_lrow_aux+i_row
             val_send_buf(i_val) = e_h%evec_real_sips(i_row,i_col)
 
@@ -2300,20 +2300,20 @@ subroutine elsi_blacs_to_sips_dm_real(e_h,dm)
    type(elsi_handle), intent(inout) :: e_h
    real(kind=r8),     intent(out)   :: dm(e_h%nnz_l_sp)
 
-   integer(kind=i4) :: ierr
-   integer(kind=i4) :: i_row
-   integer(kind=i4) :: i_col
-   integer(kind=i4) :: i_val
-   integer(kind=i4) :: j_val
-   integer(kind=i4) :: i_proc
-   integer(kind=i4) :: l_col_id ! Local column id in 1D block distribution
-   integer(kind=i4) :: l_row_id ! Local row id in 1D block distribution
-   integer(kind=i4) :: dest ! Destination of an element
-   integer(kind=i4) :: nnz_l_aux
-   integer(kind=i4) :: n_lcol_aux
-   real(kind=r8)    :: t0
-   real(kind=r8)    :: t1
-   character*200    :: info_str
+   integer(kind=i4)   :: ierr
+   integer(kind=i4)   :: i_row
+   integer(kind=i4)   :: i_col
+   integer(kind=i4)   :: i_val
+   integer(kind=i4)   :: j_val
+   integer(kind=i4)   :: i_proc
+   integer(kind=i4)   :: l_col_id ! Local column id in 1D block distribution
+   integer(kind=i4)   :: l_row_id ! Local row id in 1D block distribution
+   integer(kind=i4)   :: dest ! Destination of an element
+   integer(kind=i4)   :: nnz_l_aux
+   integer(kind=i4)   :: n_lcol_aux
+   real(kind=r8)      :: t0
+   real(kind=r8)      :: t1
+   character(len=200) :: info_str
 
    ! See documentation of MPI_Alltoallv
    real(kind=r8),    allocatable :: val_send_buf(:)
@@ -2327,7 +2327,7 @@ subroutine elsi_blacs_to_sips_dm_real(e_h,dm)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
 
-   character*40, parameter :: caller = "elsi_blacs_to_sips_dm_real"
+   character(len=40), parameter :: caller = "elsi_blacs_to_sips_dm_real"
 
    call elsi_get_time(e_h,t0)
 
@@ -2465,20 +2465,20 @@ subroutine elsi_blacs_to_sips_dm_cmplx(e_h,dm)
    type(elsi_handle), intent(inout) :: e_h
    complex(kind=r8),  intent(out)   :: dm(e_h%nnz_l_sp)
 
-   integer(kind=i4) :: ierr
-   integer(kind=i4) :: i_row
-   integer(kind=i4) :: i_col
-   integer(kind=i4) :: i_val
-   integer(kind=i4) :: j_val
-   integer(kind=i4) :: i_proc
-   integer(kind=i4) :: l_col_id ! Local column id in 1D block distribution
-   integer(kind=i4) :: l_row_id ! Local row id in 1D block distribution
-   integer(kind=i4) :: dest ! Destination of an element
-   integer(kind=i4) :: nnz_l_aux
-   integer(kind=i4) :: n_lcol_aux
-   real(kind=r8)    :: t0
-   real(kind=r8)    :: t1
-   character*200    :: info_str
+   integer(kind=i4)   :: ierr
+   integer(kind=i4)   :: i_row
+   integer(kind=i4)   :: i_col
+   integer(kind=i4)   :: i_val
+   integer(kind=i4)   :: j_val
+   integer(kind=i4)   :: i_proc
+   integer(kind=i4)   :: l_col_id ! Local column id in 1D block distribution
+   integer(kind=i4)   :: l_row_id ! Local row id in 1D block distribution
+   integer(kind=i4)   :: dest ! Destination of an element
+   integer(kind=i4)   :: nnz_l_aux
+   integer(kind=i4)   :: n_lcol_aux
+   real(kind=r8)      :: t0
+   real(kind=r8)      :: t1
+   character(len=200) :: info_str
 
    ! See documentation of MPI_Alltoallv
    complex(kind=r8), allocatable :: val_send_buf(:)
@@ -2492,7 +2492,7 @@ subroutine elsi_blacs_to_sips_dm_cmplx(e_h,dm)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
 
-   character*40, parameter :: caller = "elsi_blacs_to_sips_dm_cmplx"
+   character(len=40), parameter :: caller = "elsi_blacs_to_sips_dm_cmplx"
 
    call elsi_get_time(e_h,t0)
 
@@ -2630,11 +2630,11 @@ subroutine elsi_blacs_to_chess_hs_real(e_h,ham,ovlp)
    real(kind=r8),     intent(in)    :: ham(e_h%n_lrow,e_h%n_lcol)
    real(kind=r8),     intent(in)    :: ovlp(e_h%n_lrow,e_h%n_lcol)
 
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
-   character*200 :: info_str
+   real(kind=r8)      :: t0
+   real(kind=r8)      :: t1
+   character(len=200) :: info_str
 
-   character*40, parameter :: caller = "elsi_blacs_to_chess_hs_real"
+   character(len=40), parameter :: caller = "elsi_blacs_to_chess_hs_real"
 
    call elsi_get_time(e_h,t0)
 
@@ -2679,7 +2679,7 @@ subroutine elsi_sips_to_chess_hs(e_h)
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: ierr
 
-   character*40, parameter :: caller = "elsi_sips_to_chess_hs"
+   character(len=40), parameter :: caller = "elsi_sips_to_chess_hs"
 
    ! Set recv_count and recv_displ
    call elsi_allocate(e_h,recv_count,e_h%n_procs,"recv_count",caller)
@@ -2789,7 +2789,7 @@ subroutine elsi_chess_to_blacs_dm_real(e_h,dm)
    integer(kind=i4) :: g_row
    integer(kind=i4) :: g_col
 
-   character*40, parameter :: caller = "elsi_chess_to_blacs_dm_real"
+   character(len=40), parameter :: caller = "elsi_chess_to_blacs_dm_real"
 
    dm = 0.0_r8
 
