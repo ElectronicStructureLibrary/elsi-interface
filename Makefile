@@ -35,7 +35,13 @@ else
     $(info ====================================)
     $(info = PEXSI disabled by DISABLE_PEXSI. =)
     $(info ====================================)
-    STUBS += stub_pexsi.o
+endif
+
+ifeq ($(strip $(ENABLE_SIPS)),yes)
+  ifneq ($(strip $(EXTERNAL_SIPS)),yes)
+    ALL_OBJ   += sips
+    CLEAN_OBJ += cleansips
+  endif
 endif
 
 ifneq ($(strip $(PTSCOTCH_LIB)),)
@@ -64,6 +70,10 @@ OMM_LIB   ?= -L$(LIB_DIR) -lOMM -lMatrixSwitch
 PEXSI_DIR ?= $(THIS_DIR)/src/PEXSI
 PEXSI_LIB ?= -L$(LIB_DIR) -lpexsi
 PEXSI_LIB += $(SUPERLU_LIB) $(ORDERING_LIB)
+SIPS_DIR  ?= $(THIS_DIR)/src/SIPs
+SIPS_LIB  ?= -L$(LIB_DIR) -lqetsc
+SIPS_LIB  += $(SLEPC_LIB) $(PETSC_LIB)
+SIPS_INC  += $(SLEPC_INC) $(PETSC_INC)
 
 # Default compiler settings
 FFLAGS_I   ?= $(FFLAGS)
@@ -104,6 +114,8 @@ INCS = $(OMM_INC) $(ELPA_INC) -I$(INC_DIR)
 ifneq ($(strip $(DISABLE_PEXSI)),yes)
   LIBS += $(PEXSI_LIB)
   INCS += $(PEXSI_INC)
+else
+  STUBS += stub_pexsi.o
 endif
 
 ifeq ($(strip $(ENABLE_SIPS)),yes)
@@ -120,7 +132,7 @@ else
   STUBS += stub_chess.o
 endif
 
-.PHONY: all elpa omm pexsi elsi install check checkc clean cleanelsi cleanelpa cleanomm cleanpexsi
+.PHONY: all elpa omm pexsi sips elsi install check checkc clean cleanelsi cleanelpa cleanomm cleanpexsi cleansips
 
 all: $(ALL_OBJ) elsi
 
@@ -156,6 +168,17 @@ pexsi:
 	@echo ====================
 	@echo = PEXSI installed. =
 	@echo ====================
+
+sips:
+	@echo ==========================
+	@echo = Start building SIPs... =
+	@echo ==========================
+	mkdir -p $(INC_DIR)
+	mkdir -p $(LIB_DIR)
+	cd $(SIPS_DIR) && $(MAKE) -f Makefile.elsi install
+	@echo ===================
+	@echo = SIPs installed. =
+	@echo ===================
 
 elsi: $(ALL_OBJ)
 	@echo ==========================
@@ -231,3 +254,11 @@ cleanpexsi:
 	rm -f $(PEXSI_DIR)/src/*.d.*
 	rm -f $(PEXSI_DIR)/src/*.mod
 	rm -f $(PEXSI_DIR)/src/*.a
+
+cleansips:
+	@echo ====================
+	@echo = Removing SIPs... =
+	@echo ====================
+	rm -f $(SIPS_DIR)/*.o
+	rm -f $(SIPS_DIR)/*.mod
+	rm -f $(SIPS_DIR)/*.a

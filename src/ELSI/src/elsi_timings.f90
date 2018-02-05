@@ -238,17 +238,19 @@ subroutine elsi_print_timings(e_h,t_h)
       call elsi_say(e_h,info_str)
    enddo
 
-   tmp = maxval(t_h%times(1:t_h%n_timings))
-   write(info_str,"(6X,F12.3,9X,A,18X,A)") tmp,"MAX",UNSET_STRING
-   call elsi_say(e_h,info_str)
+   if(t_h%n_timings > 0) then
+      tmp = maxval(t_h%times(1:t_h%n_timings))
+      write(info_str,"(6X,F12.3,9X,A,18X,A)") tmp,"MAX",UNSET_STRING
+      call elsi_say(e_h,info_str)
 
-   tmp = minval(t_h%times(1:t_h%n_timings))
-   write(info_str,"(6X,F12.3,9X,A,18X,A)") tmp,"MIN",UNSET_STRING
-   call elsi_say(e_h,info_str)
+      tmp = minval(t_h%times(1:t_h%n_timings))
+      write(info_str,"(6X,F12.3,9X,A,18X,A)") tmp,"MIN",UNSET_STRING
+      call elsi_say(e_h,info_str)
 
-   tmp = sum(t_h%times(1:t_h%n_timings))/t_h%n_timings
-   write(info_str,"(6X,F12.3,9X,A,14X,A)") tmp,"AVERAGE",UNSET_STRING
-   call elsi_say(e_h,info_str)
+      tmp = sum(t_h%times(1:t_h%n_timings))/t_h%n_timings
+      write(info_str,"(6X,F12.3,9X,A,14X,A)") tmp,"AVERAGE",UNSET_STRING
+      call elsi_say(e_h,info_str)
+   endif
 
 end subroutine
 
