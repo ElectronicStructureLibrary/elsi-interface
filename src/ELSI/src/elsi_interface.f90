@@ -133,6 +133,7 @@ module ELSI
    public :: elsi_dm_real_sparse
    public :: elsi_dm_complex_sparse
    public :: elsi_compute_mu_and_occ
+   public :: elsi_compute_entropy
 
    ! Reading and writing
    public :: elsi_init_rw

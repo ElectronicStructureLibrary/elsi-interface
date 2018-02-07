@@ -232,6 +232,7 @@ module ELSI_DATATYPE
       real(kind=r8)    :: occ_tolerance
       integer(kind=i4) :: max_mu_steps
       real(kind=r8)    :: spin_degen
+      integer(kind=i4) :: mp_order
       logical          :: spin_is_set
       logical          :: mu_ready
       logical          :: edm_ready_real

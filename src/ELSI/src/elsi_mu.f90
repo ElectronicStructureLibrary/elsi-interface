@@ -43,6 +43,7 @@ module ELSI_MU
    private
 
    public :: elsi_compute_mu_and_occ
+   public :: elsi_compute_entropy
 
 contains
 
@@ -159,11 +160,15 @@ subroutine elsi_check_electrons(e_h,n_electron,n_state,n_spin,n_kpt,k_weights,&
    real(kind=r8)    :: invert_width ! 1/broaden_width
    real(kind=r8)    :: delta
    real(kind=r8)    :: max_exp ! Maximum possible exponent
-   real(kind=r8)    :: this_exp
-   real(kind=r8)    :: this_hermite
+   real(kind=r8)    :: arg
+   real(kind=r8)    :: weight
+   real(kind=r8)    :: A
+   real(kind=r8)    :: H_even
+   real(kind=r8)    :: H_odd
    integer(kind=i4) :: i_state
    integer(kind=i4) :: i_kpt
    integer(kind=i4) :: i_spin
+   integer(kind=i4) :: i_mp
 
    character(len=40), parameter :: caller = "elsi_check_electrons"
 
@@ -197,11 +202,11 @@ subroutine elsi_check_electrons(e_h,n_electron,n_state,n_spin,n_kpt,k_weights,&
       do i_kpt = 1,n_kpt
          do i_spin = 1,n_spin
             do i_state = 1,n_state
-               this_exp = (evals(i_state,i_spin,i_kpt)-mu_in)*invert_width
+               arg = (evals(i_state,i_spin,i_kpt)-mu_in)*invert_width
 
-               if(this_exp < max_exp) then
+               if(arg < max_exp) then
                   occ_nums(i_state,i_spin,i_kpt) = e_h%spin_degen/&
-                                                      (1.0_r8+exp(this_exp))
+                                                      (1.0_r8+exp(arg))
 
                   diff_ne_out = diff_ne_out+&
                      occ_nums(i_state,i_spin,i_kpt)*k_weights(i_kpt)
@@ -215,11 +220,33 @@ subroutine elsi_check_electrons(e_h,n_electron,n_state,n_spin,n_kpt,k_weights,&
       do i_kpt = 1,n_kpt
          do i_spin = 1,n_spin
             do i_state = 1,n_state
-               this_hermite = (evals(i_state,i_spin,i_kpt)-mu_in)*invert_width
+               arg    = (evals(i_state,i_spin,i_kpt)-mu_in)*invert_width
+               weight = exp(-arg*arg)
 
-               occ_nums(i_state,i_spin,i_kpt) = e_h%spin_degen*0.5_r8*&
-                  (1.0_r8-erf(this_hermite))-0.5_r8*INVERT_SQRT_PI*&
-                  this_hermite*exp(-this_hermite*this_hermite)
+               occ_nums(i_state,i_spin,i_kpt) = &
+                  0.5_r8*(1.0_r8-erf(arg))*e_h%spin_degen
+
+               if(e_h%mp_order > 0) then ! 1st order
+                  A      = -0.25_r8*INVERT_SQRT_PI
+                  H_even = 1.0_r8
+                  H_odd  = 2.0_r8*arg
+
+                  occ_nums(i_state,i_spin,i_kpt) = &
+                     occ_nums(i_state,i_spin,i_kpt)+&
+                     A*H_odd*weight*e_h%spin_degen
+               endif
+
+               if(e_h%mp_order > 1) then ! higher order
+                  do i_mp = 2,e_h%mp_order
+                     A      = -1.0_r8/real(4*i_mp,kind=r8)*A
+                     H_even = 2.0_r8*arg*H_odd-2.0_r8*i_mp*H_even
+                     H_odd  = 2.0_r8*arg*H_even-2.0_r8*(i_mp+1)*H_odd
+
+                     occ_nums(i_state,i_spin,i_kpt) = &
+                        occ_nums(i_state,i_spin,i_kpt)+&
+                        A*H_odd*weight*e_h%spin_degen
+                  enddo
+               endif
 
                diff_ne_out = diff_ne_out+occ_nums(i_state,i_spin,i_kpt)*&
                                 k_weights(i_kpt)
@@ -416,6 +443,125 @@ subroutine elsi_adjust_occ(e_h,n_state,n_spin,n_kpt,k_weights,evals,occ_nums,&
    enddo
 
    call elsi_deallocate(e_h,eval_aux,"eval_aux")
+
+end subroutine
+
+!>
+!! This routine computes the entropy.
+!!
+subroutine elsi_compute_entropy(e_h,n_state,n_spin,n_kpt,k_weights,evals,&
+              occ_nums,mu,entropy)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h                            !< Handle
+   integer(kind=i4),  intent(in)    :: n_state                        !< Number of states
+   integer(kind=i4),  intent(in)    :: n_spin                         !< Number of spins
+   integer(kind=i4),  intent(in)    :: n_kpt                          !< Number of k-points
+   real(kind=r8),     intent(in)    :: k_weights(n_kpt)               !< K-points weights
+   real(kind=r8),     intent(in)    :: evals(n_state,n_spin,n_kpt)    !< Eigenvalues
+   real(kind=r8),     intent(in)    :: occ_nums(n_state,n_spin,n_kpt) !< Occupation numbers
+   real(kind=r8),     intent(in)    :: mu                             !< Input chemical potential
+   real(kind=r8),     intent(out)   :: entropy                        !< Entropy
+
+   real(kind=r8)    :: invert_width ! 1/broaden_width
+   real(kind=r8)    :: delta
+   real(kind=r8)    :: const
+   real(kind=r8)    :: pre
+   real(kind=r8)    :: arg
+   real(kind=r8)    :: weight
+   real(kind=r8)    :: A
+   real(kind=r8)    :: H_even
+   real(kind=r8)    :: H_odd
+   integer(kind=i4) :: i_state
+   integer(kind=i4) :: i_kpt
+   integer(kind=i4) :: i_spin
+   integer(kind=i4) :: i_mp
+
+   real(kind=r8),     parameter :: entropy_thr = 1.0e-15_r8
+   character(len=40), parameter :: caller = "elsi_compute_entropy"
+
+   invert_width = 1.0_r8/e_h%broaden_width
+   entropy      = 0.0_r8
+
+   if(.not. e_h%spin_is_set) then
+      if(n_spin == 2) then
+         e_h%spin_degen = 1.0_r8
+      else
+         e_h%spin_degen = 2.0_r8
+      endif
+   endif
+
+   select case(e_h%broaden_scheme)
+   case(GAUSSIAN)
+      pre = e_h%spin_degen*0.25_r8*e_h%broaden_width*INVERT_SQRT_PI
+
+      do i_kpt = 1,n_kpt
+         do i_spin = 1,n_spin
+            do i_state = 1,n_state
+               arg     = (evals(i_state,i_spin,i_kpt)-mu)*invert_width
+               arg     = -arg*arg
+               entropy = entropy+exp(arg)*k_weights(i_kpt)
+            enddo
+         enddo
+      enddo
+   case(FERMI)
+      pre = e_h%spin_degen*0.5_r8*e_h%broaden_width
+
+      do i_kpt = 1,n_kpt
+         do i_spin = 1,n_spin
+            do i_state = 1,n_state
+               arg = occ_nums(i_state,i_spin,i_kpt)/e_h%spin_degen
+
+               if(1-arg > entropy_thr .and. arg > entropy_thr) then
+                  entropy = entropy-&
+                               k_weights(i_kpt)*arg*log(arg)+(1-arg)*log(1-arg)
+               endif
+            enddo
+         enddo
+      enddo
+   case(METHFESSEL_PAXTON)
+      pre = e_h%spin_degen*0.25_r8*e_h%broaden_width
+
+      do i_kpt = 1,n_kpt
+         do i_spin = 1,n_spin
+            do i_state = 1,n_state
+               arg     = (evals(i_state,i_spin,i_kpt)-mu)*invert_width
+               weight  = exp(-arg*arg)
+               A       = INVERT_SQRT_PI
+               H_even  = 1.0_r8
+               H_odd   = 2.0_r8*arg
+               entropy = entropy+INVERT_SQRT_PI*weight*k_weights(i_kpt)
+
+               do i_mp = 1,e_h%mp_order
+                  A      = -1.0_r8/real(4*i_mp,kind=i4)*A
+                  H_even = 2.0_r8*arg*H_odd-2.0_r8*i_mp*H_even
+                  H_odd  = 2.0_r8*arg*H_even-2.0_r8*(i_mp+1)*H_odd
+
+                  entropy = entropy+A*H_even*weight*k_weights(i_kpt)
+               enddo
+            enddo
+         enddo
+      enddo
+   case(CUBIC)
+      delta = 0.75_r8*SQRT_PI*e_h%broaden_width
+      pre   = e_h%spin_degen*0.5_r8*e_h%broaden_width*0.1875_r8/(delta**4)
+      const = delta**2
+
+      do i_kpt = 1,n_kpt
+         do i_spin = 1,n_spin
+            do i_state = 1,n_state
+               if(evals(i_state,i_spin,i_kpt) > mu-delta .and. &
+                  evals(i_state,i_spin,i_kpt) < mu+delta) then
+                  arg     = evals(i_state,i_spin,i_kpt)-mu
+                  entropy = entropy+k_weights(i_kpt)*(((arg**2)-const)**2)
+               endif
+            enddo
+         enddo
+      enddo
+   end select
+
+   entropy = -1.0_r8*pre*entropy
 
 end subroutine
 

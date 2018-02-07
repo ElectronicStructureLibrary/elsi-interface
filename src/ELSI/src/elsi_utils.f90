@@ -136,6 +136,7 @@ subroutine elsi_reset_handle(e_h)
    e_h%occ_tolerance          = 1.0e-13_r8
    e_h%max_mu_steps           = 100
    e_h%spin_degen             = 0.0_r8
+   e_h%mp_order               = 1
    e_h%spin_is_set            = .false.
    e_h%mu_ready               = .false.
    e_h%edm_ready_real         = .false.
