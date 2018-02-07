@@ -73,11 +73,10 @@ module ELSI_CONSTANTS
    integer(kind=i4), parameter :: MULTI_PROC  = 1
 
    ! Broadening schemes
-   integer(kind=i4), parameter :: GAUSSIAN            = 0
-   integer(kind=i4), parameter :: FERMI               = 1
-   integer(kind=i4), parameter :: METHFESSEL_PAXTON_0 = 2
-   integer(kind=i4), parameter :: METHFESSEL_PAXTON_1 = 3
-   integer(kind=i4), parameter :: CUBIC               = 4
+   integer(kind=i4), parameter :: GAUSSIAN          = 0
+   integer(kind=i4), parameter :: FERMI             = 1
+   integer(kind=i4), parameter :: METHFESSEL_PAXTON = 2 ! 1st order only
+   integer(kind=i4), parameter :: CUBIC             = 3
 
    ! Density matrix purification methods
    integer(kind=i4), parameter :: TRACE_CORRECTING = 0

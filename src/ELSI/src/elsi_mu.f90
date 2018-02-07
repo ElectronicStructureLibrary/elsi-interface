@@ -30,8 +30,8 @@
 !!
 module ELSI_MU
 
-   use ELSI_CONSTANTS, only: GAUSSIAN,FERMI,METHFESSEL_PAXTON_0,&
-                             METHFESSEL_PAXTON_1,CUBIC,SQRT_PI,INVERT_SQRT_PI
+   use ELSI_CONSTANTS, only: GAUSSIAN,FERMI,METHFESSEL_PAXTON,CUBIC,SQRT_PI,&
+                             INVERT_SQRT_PI
    use ELSI_DATATYPE,  only: elsi_handle
    use ELSI_IO,        only: elsi_say
    use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
@@ -211,19 +211,7 @@ subroutine elsi_check_electrons(e_h,n_electron,n_state,n_spin,n_kpt,k_weights,&
             enddo
          enddo
       enddo
-   case(METHFESSEL_PAXTON_0)
-      do i_kpt = 1,n_kpt
-         do i_spin = 1,n_spin
-            do i_state = 1,n_state
-               occ_nums(i_state,i_spin,i_kpt) = e_h%spin_degen*0.5_r8*&
-                  (1.0_r8-erf((evals(i_state,i_spin,i_kpt)-mu_in)*invert_width))
-
-               diff_ne_out = diff_ne_out+occ_nums(i_state,i_spin,i_kpt)*&
-                                k_weights(i_kpt)
-            enddo
-         enddo
-      enddo
-   case(METHFESSEL_PAXTON_1)
+   case(METHFESSEL_PAXTON)
       do i_kpt = 1,n_kpt
          do i_spin = 1,n_spin
             do i_state = 1,n_state
