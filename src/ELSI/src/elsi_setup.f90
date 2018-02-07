@@ -401,7 +401,7 @@ subroutine elsi_set_csc(e_h,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)
       endif
 
       call elsi_allocate(e_h,e_h%row_ind_sips,nnz_l,"row_ind_sips",caller)
-      call elsi_allocate(e_h,e_h%col_ptr_sips,nnz_l,"col_ptr_sips",caller)
+      call elsi_allocate(e_h,e_h%col_ptr_sips,n_lcol+1,"col_ptr_sips",caller)
 
       e_h%row_ind_sips = row_ind
       e_h%col_ptr_sips = col_ptr
