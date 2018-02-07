@@ -1182,6 +1182,22 @@ subroutine elsi_set_mu_spin_degen_c_wrapper(handle_c,spin_degen)&
 
 end subroutine
 
+subroutine elsi_set_mu_mp_order_c_wrapper(handle_c,mp_order)&
+   bind(C,name="c_elsi_set_mu_mp_order")
+
+   implicit none
+
+   type(c_ptr),         value, intent(in) :: handle_c
+   integer(kind=c_int), value, intent(in) :: mp_order
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_mu_mp_order(handle_f,mp_order)
+
+end subroutine
+
 subroutine elsi_get_pexsi_mu_min_c_wrapper(handle_c,mu_min)&
    bind(C,name="c_elsi_get_pexsi_mu_min")
 

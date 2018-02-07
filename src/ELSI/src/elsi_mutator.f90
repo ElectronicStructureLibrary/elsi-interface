@@ -100,6 +100,7 @@ module ELSI_MUTATOR
    public :: elsi_set_mu_broaden_width
    public :: elsi_set_mu_tol
    public :: elsi_set_mu_spin_degen
+   public :: elsi_set_mu_mp_order
    public :: elsi_set_output_timings
    public :: elsi_set_timings_unit
    public :: elsi_set_timings_file
@@ -1236,6 +1237,28 @@ subroutine elsi_set_mu_spin_degen(e_h,spin_degen)
 
    e_h%spin_degen  = spin_degen
    e_h%spin_is_set = .true.
+
+end subroutine
+
+!>
+!! This routine sets the order of the Methfessel-Paxton broadening scheme.
+!!
+subroutine elsi_set_mu_mp_order(e_h,mp_order)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h      !< Handle
+   integer(kind=i4),  intent(in)    :: mp_order !< Order
+
+   character(len=40), parameter :: caller = "elsi_set_mu_mp_order"
+
+   call elsi_check_handle(e_h,caller)
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
+
+   e_h%mp_order = mp_order
 
 end subroutine
 

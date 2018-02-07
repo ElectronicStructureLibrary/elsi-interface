@@ -105,6 +105,7 @@ module ELSI
    public :: elsi_set_mu_broaden_width
    public :: elsi_set_mu_tol
    public :: elsi_set_mu_spin_degen
+   public :: elsi_set_mu_mp_order
    public :: elsi_set_output_timings
    public :: elsi_set_timings_unit
    public :: elsi_set_timings_file

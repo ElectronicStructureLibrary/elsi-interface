@@ -263,6 +263,9 @@ void c_elsi_set_mu_tol(elsi_handle handle_c,
 void c_elsi_set_mu_spin_degen(elsi_handle handle_c,
                               double spin_degen);
 
+void c_elsi_set_mu_mp_order(elsi_handle handle_c,
+                            int mp_order);
+
 void c_elsi_get_pexsi_mu_min(elsi_handle handle_c,
                              double *mu_min);
 
