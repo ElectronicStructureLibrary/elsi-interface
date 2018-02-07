@@ -195,10 +195,10 @@ subroutine elsi_reset_handle(e_h)
    e_h%output_timings_file    = .false.
    e_h%solver_timings_unit    = UNSET
    e_h%solver_timings_name    = UNSET_STRING
-   e_h%uuid                   = UNSET_STRING
-   e_h%uuid_exists            = .false.
    e_h%calling_code           = UNSET_STRING
    e_h%calling_code_ver       = UNSET_STRING
+   e_h%uuid                   = UNSET_STRING
+   e_h%uuid_exists            = .false.
 
 end subroutine
 

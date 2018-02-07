@@ -241,7 +241,7 @@ module ELSI_DATATYPE
       integer(kind=i4) :: elpa_solver
       integer(kind=i4) :: elpa_n_single ! Number of single-precision steps
       logical          :: elpa_output
-      logical          :: elpa_started = .false.
+      logical          :: elpa_started
 
       ! libOMM
       integer(kind=i4) :: omm_n_states ! Number of states used in libOMM
@@ -266,7 +266,7 @@ module ELSI_DATATYPE
       integer(kind=i4) :: pexsi_comm_among_point
       integer(kind=i4) :: pexsi_comm_in_point
       real(kind=r8)    :: pexsi_ne ! Number of electrons computed by PEXSI
-      logical          :: pexsi_started = .false.
+      logical          :: pexsi_started
       integer(kind=c_intptr_t) :: pexsi_plan
       type(f_ppexsi_options)   :: pexsi_options
 
@@ -281,7 +281,7 @@ module ELSI_DATATYPE
       real(kind=r8)    :: chess_ev_ovlp_min
       real(kind=r8)    :: chess_ev_ovlp_max
       real(kind=r8)    :: chess_beta      ! Eigenspectrum estimate parameter
-      logical          :: chess_started = .false.
+      logical          :: chess_started
 
       ! SIPs
       integer(kind=i4) :: sips_n_elpa
@@ -293,7 +293,7 @@ module ELSI_DATATYPE
       real(kind=r8)    :: sips_interval(2)
       real(kind=r8)    :: sips_inertia_tol
       logical          :: sips_do_inertia
-      logical          :: sips_started = .false.
+      logical          :: sips_started
 
       ! DMP
       integer(kind=i4) :: dmp_n_states  ! Number of states used in DMP
