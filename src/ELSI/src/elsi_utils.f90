@@ -267,14 +267,12 @@ subroutine elsi_check(e_h,caller)
          call elsi_stop(" BLACS not properly set up.",e_h,caller)
       endif
    elseif(e_h%matrix_format == SIESTA_CSC) then
-      if(e_h%blk_sp2 == UNSET) then
+      if(e_h%blk_sp2 == UNSET .or. .not. e_h%sparsity_ready) then
          call elsi_stop(" SIESTA_CSC format not properly set up.",e_h,caller)
       endif
-   endif
-
-   if(e_h%matrix_format /= BLACS_DENSE) then
+   elseif(e_h%matrix_format == PEXSI_CSC) then
       if(.not. e_h%sparsity_ready) then
-         call elsi_stop(" Sparse matrix format not properly set up.",e_h,caller)
+         call elsi_stop(" PEXSI_CSC format not properly set up.",e_h,caller)
       endif
    endif
 

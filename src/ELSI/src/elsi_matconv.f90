@@ -2419,7 +2419,6 @@ subroutine elsi_blacs_to_sips_dm_real(e_h,dm)
    call elsi_check_mpi(e_h,"MPI_Alltoallv",ierr,caller)
 
    call elsi_deallocate(e_h,val_send_buf,"val_send_buf")
-
    call elsi_deallocate(e_h,send_count,"send_count")
    call elsi_deallocate(e_h,recv_count,"recv_count")
    call elsi_deallocate(e_h,send_displ,"send_displ")
@@ -2584,7 +2583,6 @@ subroutine elsi_blacs_to_sips_dm_cmplx(e_h,dm)
    call elsi_check_mpi(e_h,"MPI_Alltoallv",ierr,caller)
 
    call elsi_deallocate(e_h,val_send_buf,"val_send_buf")
-
    call elsi_deallocate(e_h,send_count,"send_count")
    call elsi_deallocate(e_h,recv_count,"recv_count")
    call elsi_deallocate(e_h,send_displ,"send_displ")
@@ -2904,7 +2902,6 @@ subroutine elsi_siesta_to_blacs_hs_real(e_h,ham,ovlp)
    endif
 
    call elsi_deallocate(e_h,dest,"dest")
-
    call elsi_allocate(e_h,recv_count,e_h%n_procs,"recv_count",caller)
 
    ! Set recv_count
@@ -3119,7 +3116,6 @@ subroutine elsi_siesta_to_blacs_hs_cmplx(e_h,ham,ovlp)
    endif
 
    call elsi_deallocate(e_h,dest,"dest")
-
    call elsi_allocate(e_h,recv_count,e_h%n_procs,"recv_count",caller)
 
    ! Set recv_count
@@ -3372,7 +3368,6 @@ subroutine elsi_blacs_to_siesta_dm_real(e_h,dm)
    call elsi_check_mpi(e_h,"MPI_Alltoallv",ierr,caller)
 
    call elsi_deallocate(e_h,val_send_buf,"val_send_buf")
-
    call elsi_deallocate(e_h,send_count,"send_count")
    call elsi_deallocate(e_h,recv_count,"recv_count")
    call elsi_deallocate(e_h,send_displ,"send_displ")
@@ -3532,7 +3527,6 @@ subroutine elsi_blacs_to_siesta_dm_cmplx(e_h,dm)
    call elsi_check_mpi(e_h,"MPI_Alltoallv",ierr,caller)
 
    call elsi_deallocate(e_h,val_send_buf,"val_send_buf")
-
    call elsi_deallocate(e_h,send_count,"send_count")
    call elsi_deallocate(e_h,recv_count,"recv_count")
    call elsi_deallocate(e_h,send_displ,"send_displ")
