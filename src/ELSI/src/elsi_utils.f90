@@ -54,6 +54,7 @@ module ELSI_UTILS
    public :: elsi_reset_handle
    public :: elsi_get_global_row
    public :: elsi_get_global_col
+   public :: elsi_get_global_col_sp2
    public :: elsi_get_local_nnz_real
    public :: elsi_get_local_nnz_cmplx
    public :: elsi_get_solver_tag
@@ -106,13 +107,16 @@ subroutine elsi_reset_handle(e_h)
    e_h%my_pcol                = UNSET
    e_h%n_lrow                 = UNSET
    e_h%n_lcol                 = UNSET
+   e_h%nnz_l                  = UNSET
    e_h%blacs_ready            = .false.
    e_h%nnz_g                  = UNSET
-   e_h%nnz_l                  = UNSET
    e_h%nnz_l_sp               = UNSET
    e_h%n_lcol_sp              = UNSET
    e_h%zero_def               = 1.0e-15_r8
    e_h%sparsity_ready         = .false.
+   e_h%nnz_l_sp2              = UNSET
+   e_h%n_lcol_sp2             = UNSET
+   e_h%blk_sp2                = UNSET
    e_h%ovlp_is_unit           = .false.
    e_h%ovlp_is_sing           = .false.
    e_h%check_sing             = .true.
@@ -517,6 +521,28 @@ subroutine elsi_get_global_col(e_h,g_id,l_id)
    blk  = (l_id-1)/e_h%blk_col
    idx  = l_id-blk*e_h%blk_col
    g_id = e_h%my_pcol*e_h%blk_col+blk*e_h%blk_col*e_h%n_pcol+idx
+
+end subroutine
+
+!>
+!! This routine computes the global column index based on the local column index.
+!!
+subroutine elsi_get_global_col_sp2(e_h,g_id,l_id)
+
+   implicit none
+
+   type(elsi_handle), intent(in)  :: e_h
+   integer(kind=i4),  intent(in)  :: l_id
+   integer(kind=i4),  intent(out) :: g_id
+
+   integer(kind=i4) :: blk
+   integer(kind=i4) :: idx
+
+   character(len=40), parameter :: caller = "elsi_get_global_col_sp2"
+
+   blk  = (l_id-1)/e_h%blk_sp2
+   idx  = l_id-blk*e_h%blk_sp2
+   g_id = e_h%myid*e_h%blk_sp2+blk*e_h%blk_sp2*e_h%n_procs+idx
 
 end subroutine
 

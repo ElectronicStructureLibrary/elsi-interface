@@ -39,7 +39,7 @@ module ELSI_CONSTANTS
 
    integer(kind=i4), parameter :: UNSET            = -910910
    integer(kind=i4), parameter :: N_SOLVERS        = 7
-   integer(kind=i4), parameter :: N_MATRIX_FORMATS = 2
+   integer(kind=i4), parameter :: N_MATRIX_FORMATS = 4
    integer(kind=i4), parameter :: N_PARALLEL_MODES = 2
 
    ! Method names
@@ -61,7 +61,9 @@ module ELSI_CONSTANTS
 
    ! Matrix formats
    integer(kind=i4), parameter :: BLACS_DENSE = 0
-   integer(kind=i4), parameter :: PEXSI_CSC   = 1
+   integer(kind=i4), parameter :: ELSI_CSC    = 1
+   integer(kind=i4), parameter :: PEXSI_CSC   = 2
+   integer(kind=i4), parameter :: SIESTA_CSC  = 3
 
    ! Triangular matrix
    integer(kind=i4), parameter :: FULL_MAT = 0
@@ -75,7 +77,7 @@ module ELSI_CONSTANTS
    ! Broadening schemes
    integer(kind=i4), parameter :: GAUSSIAN          = 0
    integer(kind=i4), parameter :: FERMI             = 1
-   integer(kind=i4), parameter :: METHFESSEL_PAXTON = 2 ! 1st order only
+   integer(kind=i4), parameter :: METHFESSEL_PAXTON = 2
    integer(kind=i4), parameter :: CUBIC             = 3
 
    ! Density matrix purification methods

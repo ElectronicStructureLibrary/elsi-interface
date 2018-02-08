@@ -62,6 +62,7 @@ module ELSI_MUTATOR
    public :: elsi_set_sing_tol
    public :: elsi_set_sing_stop
    public :: elsi_set_uplo
+   public :: elsi_set_csc_blk
    public :: elsi_set_elpa_solver
    public :: elsi_set_elpa_n_single
    public :: elsi_set_omm_flavor
@@ -333,6 +334,28 @@ subroutine elsi_set_uplo(e_h,uplo)
    endif
 
    e_h%uplo = uplo
+
+end subroutine
+
+!>
+!! This routine sets the block size in 1D block-cyclic distributed CSC format.
+!!
+subroutine elsi_set_csc_blk(e_h,blk)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h !< Handle
+   integer(kind=i4),  intent(in)    :: blk !< Block size
+
+   character(len=40), parameter :: caller = "elsi_set_csc_blk"
+
+   call elsi_check_handle(e_h,caller)
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
+
+   e_h%blk_sp2 = blk
 
 end subroutine
 

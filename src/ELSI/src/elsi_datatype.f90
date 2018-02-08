@@ -142,6 +142,8 @@ module ELSI_DATATYPE
       complex(kind=r8), allocatable :: ovlp_cmplx_copy(:,:)
       integer(kind=i4), allocatable :: loc_row(:)
       integer(kind=i4), allocatable :: loc_col(:)
+      integer(kind=i4), allocatable :: row_ind_sp2(:)
+      integer(kind=i4), allocatable :: col_ptr_sp2(:)
 
       ! Is this a valid handle?
       logical          :: handle_init    = .false.
@@ -194,15 +196,20 @@ module ELSI_DATATYPE
       integer(kind=i4) :: my_pcol
       integer(kind=i4) :: n_lrow
       integer(kind=i4) :: n_lcol
+      integer(kind=i4) :: nnz_l ! Local number of nonzeros
       logical          :: blacs_ready
 
-      ! Sparse matrix information (aka PEXSI_CSC)
+      ! Sparse matrix information (1D block)
       integer(kind=i4) :: nnz_g     ! Global number of nonzeros
-      integer(kind=i4) :: nnz_l     ! Local number of nonzeros
       integer(kind=i4) :: nnz_l_sp  ! Local number of nonzeros
       integer(kind=i4) :: n_lcol_sp ! Local number of columns
       real(kind=r8)    :: zero_def
       logical          :: sparsity_ready
+
+      ! Sparse matrix information (1D block-cyclic)
+      integer(kind=i4) :: nnz_l_sp2  ! Local number of nonzeros
+      integer(kind=i4) :: n_lcol_sp2 ! Local number of columns
+      integer(kind=i4) :: blk_sp2
 
       ! Overlap
       logical          :: ovlp_is_unit
