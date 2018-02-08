@@ -33,7 +33,7 @@ module ELSI_IO
    use ELSI_CONSTANTS, only: UNSET,UNSET_STRING,HUMAN_READ,JSON,MULTI_PROC,&
                              SINGLE_PROC,ELPA_SOLVER,SIPS_SOLVER,OMM_SOLVER,&
                              PEXSI_SOLVER,CHESS_SOLVER,DMP_SOLVER,BLACS_DENSE,&
-                             PEXSI_CSC,COMMA_AFTER,NO_COMMA
+                             ELSI_CSC,PEXSI_CSC,SIESTA_CSC,COMMA_AFTER,NO_COMMA
    use ELSI_DATATYPE,  only: elsi_handle,elsi_file_io_handle
    use ELSI_MPI,       only: elsi_stop
    use ELSI_PRECISION, only: r8,i4
@@ -274,8 +274,12 @@ subroutine elsi_print_handle_summary(e_h,io_h_in)
       call append_string(io_h%prefix,"  ")
       if(e_h%matrix_format == BLACS_DENSE) then
          call elsi_say_setting(e_h,"Matrix format","BLACS_DENSE",io_h)
+      elseif(e_h%matrix_format == ELSI_CSC) then
+         call elsi_say_setting(e_h,"Matrix format","ELSI_CSC",io_h)
       elseif(e_h%matrix_format == PEXSI_CSC) then
          call elsi_say_setting(e_h,"Matrix format","PEXSI_CSC",io_h)
+      elseif(e_h%matrix_format == SIESTA_CSC) then
+         call elsi_say_setting(e_h,"Matrix format","SIESTA_CSC",io_h)
       endif
       call elsi_say_setting(e_h,"Number of basis functions",e_h%n_basis,io_h)
       if(e_h%parallel_mode == MULTI_PROC) then
@@ -327,8 +331,12 @@ subroutine elsi_print_handle_summary(e_h,io_h_in)
 
       if(e_h%matrix_format == BLACS_DENSE) then
          call elsi_say_setting(e_h,"matrix_format","BLACS_DENSE",io_h)
+      elseif(e_h%matrix_format == ELSI_CSC) then
+         call elsi_say_setting(e_h,"matrix_format","ELSI_CSC",io_h)
       elseif(e_h%matrix_format == PEXSI_CSC) then
          call elsi_say_setting(e_h,"matrix_format","PEXSI_CSC",io_h)
+      elseif(e_h%matrix_format == SIESTA_CSC) then
+         call elsi_say_setting(e_h,"matrix_format","SIESTA_CSC",io_h)
       endif
       call elsi_say_setting(e_h,"n_basis",e_h%n_basis,io_h)
       if(e_h%parallel_mode == MULTI_PROC) then

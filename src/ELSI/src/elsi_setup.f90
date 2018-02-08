@@ -89,7 +89,7 @@ subroutine elsi_init(e_h,solver,parallel_mode,matrix_format,n_basis,n_electron,&
    type(elsi_handle), intent(out) :: e_h           !< Handle
    integer(kind=i4),  intent(in)  :: solver        !< AUTO,ELPA,LIBOMM,PEXSI,CHESS,SIPS,DMP
    integer(kind=i4),  intent(in)  :: parallel_mode !< SINGLE_PROC,MULTI_PROC
-   integer(kind=i4),  intent(in)  :: matrix_format !< BLACS_DENSE,PEXSI_CSC
+   integer(kind=i4),  intent(in)  :: matrix_format !< BLACS_DENSE,ELSI_CSC,PEXSI_CSC,SIESTA_CSC
    integer(kind=i4),  intent(in)  :: n_basis       !< Number of basis functions
    real(kind=r8),     intent(in)  :: n_electron    !< Number of electrons
    integer(kind=i4),  intent(in)  :: n_state       !< Number of states
