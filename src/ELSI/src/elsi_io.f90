@@ -62,7 +62,7 @@ module ELSI_IO
    public :: elsi_print_sips_settings
    public :: elsi_print_matrix_format_settings
    public :: elsi_print_blacs_dense_settings
-   public :: elsi_print_pexsi_csc_settings
+   public :: elsi_print_csc_settings
    public :: append_string
    public :: truncate_string
    public :: elsi_open_json_file
@@ -971,14 +971,11 @@ subroutine elsi_print_matrix_format_settings(e_h,io_h_in)
       io_h = e_h%stdio
    endif
 
-   select case(e_h%matrix_format)
-   case(BLACS_DENSE)
+   if(e_h%matrix_format == BLACS_DENSE) then
       call elsi_print_blacs_dense_settings(e_h,io_h)
-   case(PEXSI_CSC)
-      call elsi_print_pexsi_csc_settings(e_h,io_h)
-   case default
-      call elsi_stop(" Unsupported matrix storage format.",e_h,caller)
-   end select
+   else
+      call elsi_print_csc_settings(e_h,io_h)
+   endif
 
 end subroutine
 
@@ -1042,9 +1039,9 @@ subroutine elsi_print_blacs_dense_settings(e_h,io_h_in)
 end subroutine
 
 !>
-!! This routine prints out settings for the PEXSI_CSC matrix storage format.
+!! This routine prints out settings for the CSC matrix storage format.
 !!
-subroutine elsi_print_pexsi_csc_settings(e_h,io_h_in)
+subroutine elsi_print_csc_settings(e_h,io_h_in)
 
    implicit none
 
@@ -1055,7 +1052,7 @@ subroutine elsi_print_pexsi_csc_settings(e_h,io_h_in)
    type(elsi_file_io_handle) :: io_h
    character(len=200)        :: info_str
 
-   character(len=40), parameter :: caller = "elsi_print_pexsi_csc_settings"
+   character(len=40), parameter :: caller = "elsi_print_csc_settings"
 
    if(present(io_h_in)) then
       io_h = io_h_in

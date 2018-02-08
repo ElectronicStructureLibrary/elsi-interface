@@ -31,9 +31,10 @@
 module ELSI_MATIO
 
    use, intrinsic :: ISO_C_BINDING
-   use ELSI_CONSTANTS, only: HEADER_SIZE,BLACS_DENSE,WRITE_FILE,REAL_VALUES,&
-                             COMPLEX_VALUES,FILE_VERSION,PEXSI_SOLVER,&
-                             SIPS_SOLVER,MULTI_PROC,SINGLE_PROC,UNSET
+   use ELSI_CONSTANTS, only: HEADER_SIZE,BLACS_DENSE,PEXSI_CSC,WRITE_FILE,&
+                             REAL_VALUES,COMPLEX_VALUES,FILE_VERSION,&
+                             PEXSI_SOLVER,SIPS_SOLVER,MULTI_PROC,SINGLE_PROC,&
+                             UNSET
    use ELSI_DATATYPE,  only: elsi_handle,elsi_rw_handle
    use ELSI_IO,        only: elsi_say
    use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
@@ -784,6 +785,7 @@ subroutine elsi_read_mat_real_mp(rw_h,f_name,mat)
    call MPI_File_close(f_handle,ierr)
 
    ! Redistribute matrix
+   aux_h%matrix_format = PEXSI_CSC
    call elsi_set_csc(aux_h,rw_h%nnz_g,rw_h%nnz_l_sp,rw_h%n_lcol_sp,row_ind,&
            col_ptr)
 
@@ -1003,6 +1005,7 @@ subroutine elsi_read_mat_complex_mp(rw_h,f_name,mat)
    call MPI_File_close(f_handle,ierr)
 
    ! Redistribute matrix
+   aux_h%matrix_format = PEXSI_CSC
    call elsi_set_csc(aux_h,rw_h%nnz_g,rw_h%nnz_l_sp,rw_h%n_lcol_sp,row_ind,&
            col_ptr)
 
