@@ -31,7 +31,8 @@
 module ELSI_MUTATOR
 
    use ELSI_CONSTANTS, only: ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,CHESS_SOLVER,&
-                             SIPS_SOLVER,DMP_SOLVER
+                             SIPS_SOLVER,DMP_SOLVER,ELSI_CSC,PEXSI_CSC,&
+                             SIESTA_CSC
    use ELSI_DATATYPE,  only: elsi_handle
    use ELSI_ELPA,      only: elsi_compute_edm_elpa_real,&
                              elsi_compute_edm_elpa_cmplx
@@ -40,7 +41,9 @@ module ELSI_MUTATOR
    use ELSI_MATCONV,   only: elsi_pexsi_to_blacs_dm_real,&
                              elsi_pexsi_to_blacs_dm_cmplx,&
                              elsi_blacs_to_sips_dm_real,&
-                             elsi_blacs_to_sips_dm_cmplx
+                             elsi_blacs_to_sips_dm_cmplx,&
+                             elsi_blacs_to_siesta_dm_real,&
+                             elsi_blacs_to_siesta_dm_cmplx
    use ELSI_MPI,       only: elsi_stop
    use ELSI_OMM,       only: elsi_compute_edm_omm_real,&
                              elsi_compute_edm_omm_cmplx
@@ -1600,12 +1603,39 @@ subroutine elsi_get_edm_real_sparse(e_h,edm)
          call elsi_compute_edm_elpa_real(e_h,e_h%eval_elpa,e_h%evec_real_elpa,&
                  e_h%dm_real_elpa,tmp_real)
          call elsi_deallocate(e_h,tmp_real,"tmp_real")
-         call elsi_blacs_to_sips_dm_real(e_h,edm)
+
+         select case(e_h%matrix_format)
+         case(ELSI_CSC)
+            call elsi_blacs_to_sips_dm_real(e_h,edm)
+         case(SIESTA_CSC)
+            call elsi_blacs_to_siesta_dm_real(e_h,edm)
+         case default
+            call elsi_stop(" Unsupported matrix format.",e_h,caller)
+         end select
       case(OMM_SOLVER)
          call elsi_compute_edm_omm_real(e_h,e_h%dm_real_elpa)
-         call elsi_blacs_to_sips_dm_real(e_h,edm)
+
+         select case(e_h%matrix_format)
+         case(ELSI_CSC)
+            call elsi_blacs_to_sips_dm_real(e_h,edm)
+         case(SIESTA_CSC)
+            call elsi_blacs_to_siesta_dm_real(e_h,edm)
+         case default
+            call elsi_stop(" Unsupported matrix format.",e_h,caller)
+         end select
       case(PEXSI_SOLVER)
          call elsi_compute_edm_pexsi_real(e_h,edm)
+
+         select case(e_h%matrix_format)
+!         case(ELSI_CSC)
+!            call elsi_pexsi_to_sips_dm_real(e_h,edm)
+         case(PEXSI_CSC)
+            ! Nothing
+!         case(SIESTA_CSC)
+!            call elsi_pexsi_to_siesta_dm_real(e_h,edm)
+         case default
+            call elsi_stop(" Unsupported matrix format.",e_h,caller)
+         end select
       case(CHESS_SOLVER)
          call elsi_stop(" CHESS not yet implemented.",e_h,caller)
       case(SIPS_SOLVER)
@@ -1692,12 +1722,39 @@ subroutine elsi_get_edm_complex_sparse(e_h,edm)
          call elsi_compute_edm_elpa_cmplx(e_h,e_h%eval_elpa,&
                  e_h%evec_cmplx_elpa,e_h%dm_cmplx_elpa,tmp_cmplx)
          call elsi_deallocate(e_h,tmp_cmplx,"tmp_cmplx")
-         call elsi_blacs_to_sips_dm_cmplx(e_h,edm)
+
+         select case(e_h%matrix_format)
+         case(ELSI_CSC)
+            call elsi_blacs_to_sips_dm_cmplx(e_h,edm)
+         case(SIESTA_CSC)
+            call elsi_blacs_to_siesta_dm_cmplx(e_h,edm)
+         case default
+            call elsi_stop(" Unsupported matrix format.",e_h,caller)
+         end select
       case(OMM_SOLVER)
          call elsi_compute_edm_omm_cmplx(e_h,e_h%dm_cmplx_elpa)
-         call elsi_blacs_to_sips_dm_cmplx(e_h,edm)
+
+         select case(e_h%matrix_format)
+         case(ELSI_CSC)
+            call elsi_blacs_to_sips_dm_cmplx(e_h,edm)
+         case(SIESTA_CSC)
+            call elsi_blacs_to_siesta_dm_cmplx(e_h,edm)
+         case default
+            call elsi_stop(" Unsupported matrix format.",e_h,caller)
+         end select
       case(PEXSI_SOLVER)
          call elsi_compute_edm_pexsi_cmplx(e_h,edm)
+
+         select case(e_h%matrix_format)
+!         case(ELSI_CSC)
+!            call elsi_pexsi_to_sips_dm_cmplx(e_h,edm)
+         case(PEXSI_CSC)
+            ! Nothing
+!         case(SIESTA_CSC)
+!            call elsi_pexsi_to_siesta_dm_cmplx(e_h,edm)
+         case default
+            call elsi_stop(" Unsupported matrix format.",e_h,caller)
+         end select
       case(CHESS_SOLVER)
          call elsi_stop(" CHESS not yet implemented.",e_h,caller)
       case(SIPS_SOLVER)
