@@ -237,11 +237,7 @@ program test_dm_real_sparse
    ! Initialize ELSI
    n_states = int(n_electrons,kind=i4)
 
-   if(solver == 3) then
-      call elsi_init(e_h,solver,1,2,matrix_size,n_electrons,n_states)
-   else
-      call elsi_init(e_h,solver,1,1,matrix_size,n_electrons,n_states)
-   endif
+   call elsi_init(e_h,solver,1,1,matrix_size,n_electrons,n_states)
    call elsi_set_mpi(e_h,mpi_comm_global)
    call elsi_set_csc(e_h,nnz_g,nnz_l,n_l_cols,row_ind,col_ptr)
 

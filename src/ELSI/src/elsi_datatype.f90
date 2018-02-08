@@ -158,7 +158,7 @@ module ELSI_DATATYPE
       ! data_type has been removed, as it is not a property of the handle
       ! (a given instance of the handle can solve real or complex problems)
 
-      ! Matrix format (BLACS_DENSE=0,ELSI_CSC=1,PEXSI_CSC=2,SIESTA_CSC=3)
+      ! Matrix format (BLACS_DENSE=0,PEXSI_CSC=1,SIESTA_CSC=2)
       integer(kind=i4) :: matrix_format
 
       ! Is input matrix triangular? (FULL_MAT=0,UT_MAT=1,LT_MAT=2)
@@ -349,7 +349,7 @@ module ELSI_DATATYPE
       ! Parallel mode (SINGLE_PROC=0,MULTI_PROC=1)
       integer(kind=i4) :: parallel_mode
 
-      ! Matrix format (BLACS_DENSE=0,ELSI_CSC=1,PEXSI_CSC=2,SIESTA_CSC=3)
+      ! Matrix format (BLACS_DENSE=0,PEXSI_CSC=1,SIESTA_CSC=2)
       integer(kind=i4) :: matrix_format
 
       ! Output

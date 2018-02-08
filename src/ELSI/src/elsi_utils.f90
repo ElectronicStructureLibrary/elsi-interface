@@ -270,10 +270,6 @@ subroutine elsi_check(e_h,caller)
       if(e_h%blk_sp2 == UNSET) then
          call elsi_stop(" SIESTA_CSC format not properly set up.",e_h,caller)
       endif
-   elseif(e_h%matrix_format == PEXSI_CSC) then
-      if(e_h%pexsi_np_per_pole == UNSET) then
-         call elsi_stop(" PEXSI_CSC format not properly set up.",e_h,caller)
-      endif
    endif
 
    if(e_h%matrix_format /= BLACS_DENSE) then

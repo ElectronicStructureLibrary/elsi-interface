@@ -61,17 +61,15 @@ module ELSI_MATCONV
    public :: elsi_pexsi_to_blacs_dm_cmplx
 !   public :: elsi_pexsi_to_siesta_dm_real
 !   public :: elsi_pexsi_to_siesta_dm_cmplx
-!   public :: elsi_pexsi_to_sips_dm_real
-!   public :: elsi_pexsi_to_sips_dm_cmplx
    public :: elsi_siesta_to_blacs_hs_real
    public :: elsi_siesta_to_blacs_hs_cmplx
 !   public :: elsi_siesta_to_pexsi_hs_real
 !   public :: elsi_siesta_to_pexsi_hs_cmplx
+!   public :: elsi_siesta_to_sips_hs_real
+!   public :: elsi_siesta_to_sips_hs_cmplx
    public :: elsi_sips_to_blacs_ev_real
    public :: elsi_sips_to_blacs_hs_real
    public :: elsi_sips_to_blacs_hs_cmplx
-!   public :: elsi_sips_to_pexsi_hs_real
-!   public :: elsi_sips_to_pexsi_hs_cmplx
 
 contains
 

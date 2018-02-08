@@ -35,10 +35,10 @@ module ELSI_SOLVER
    use ELSI_CHESS,     only: elsi_init_chess,elsi_solve_evp_chess_real
    use ELSI_CONSTANTS, only: ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,CHESS_SOLVER,&
                              SIPS_SOLVER,DMP_SOLVER,REAL_VALUES,COMPLEX_VALUES,&
-                             MULTI_PROC,SINGLE_PROC,ELSI_CSC,PEXSI_CSC,&
-                             SIESTA_CSC,UNSET,SETTING_STR_LEN,OUTPUT_EV,&
-                             OUTPUT_DM,DATETIME_LEN,COMMA_BEFORE,COMMA_AFTER,&
-                             NO_COMMA,UNSET_STRING,HUMAN_READ,JSON
+                             MULTI_PROC,SINGLE_PROC,PEXSI_CSC,SIESTA_CSC,UNSET,&
+                             SETTING_STR_LEN,OUTPUT_EV,OUTPUT_DM,DATETIME_LEN,&
+                             COMMA_BEFORE,COMMA_AFTER,NO_COMMA,UNSET_STRING,&
+                             HUMAN_READ,JSON
    use ELSI_DATATYPE,  only: elsi_handle,elsi_file_io_handle
    use ELSI_DMP,       only: elsi_solve_evp_dmp_real
    use ELSI_ELPA,      only: elsi_compute_occ_elpa,elsi_compute_dm_elpa_real,&
@@ -355,7 +355,7 @@ subroutine elsi_ev_real_sparse(e_h,ham,ovlp,eval,evec)
    select case(e_h%solver)
    case(ELPA_SOLVER)
       select case(e_h%matrix_format)
-      case(ELSI_CSC)
+      case(PEXSI_CSC)
          call elsi_sips_to_blacs_hs_real(e_h,ham,ovlp)
       case(SIESTA_CSC)
          call elsi_siesta_to_blacs_hs_real(e_h,ham,ovlp)
@@ -426,7 +426,7 @@ subroutine elsi_ev_complex_sparse(e_h,ham,ovlp,eval,evec)
    select case(e_h%solver)
    case(ELPA_SOLVER)
       select case(e_h%matrix_format)
-      case(ELSI_CSC)
+      case(PEXSI_CSC)
          call elsi_sips_to_blacs_hs_cmplx(e_h,ham,ovlp)
       case(SIESTA_CSC)
          call elsi_siesta_to_blacs_hs_cmplx(e_h,ham,ovlp)
@@ -866,7 +866,7 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
       endif
 
       select case(e_h%matrix_format)
-      case(ELSI_CSC)
+      case(PEXSI_CSC)
          call elsi_sips_to_blacs_hs_real(e_h,ham,ovlp)
       case(SIESTA_CSC)
          call elsi_siesta_to_blacs_hs_real(e_h,ham,ovlp)
@@ -893,7 +893,7 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
               e_h%ham_real_elpa)
 
       select case(e_h%matrix_format)
-      case(ELSI_CSC)
+      case(PEXSI_CSC)
          call elsi_blacs_to_sips_dm_real(e_h,dm)
       case(SIESTA_CSC)
          call elsi_blacs_to_siesta_dm_real(e_h,dm)
@@ -913,7 +913,7 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
       endif
 
       select case(e_h%matrix_format)
-      case(ELSI_CSC)
+      case(PEXSI_CSC)
          call elsi_sips_to_blacs_hs_real(e_h,ham,ovlp)
       case(SIESTA_CSC)
          call elsi_siesta_to_blacs_hs_real(e_h,ham,ovlp)
@@ -949,7 +949,7 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
                  e_h%dm_real_elpa,e_h%ham_real_elpa)
 
          select case(e_h%matrix_format)
-         case(ELSI_CSC)
+         case(PEXSI_CSC)
             call elsi_blacs_to_sips_dm_real(e_h,dm)
          case(SIESTA_CSC)
             call elsi_blacs_to_siesta_dm_real(e_h,dm)
@@ -1000,7 +1000,7 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
                  e_h%dm_real_elpa)
 
          select case(e_h%matrix_format)
-         case(ELSI_CSC)
+         case(PEXSI_CSC)
             call elsi_blacs_to_sips_dm_real(e_h,dm)
          case(SIESTA_CSC)
             call elsi_blacs_to_siesta_dm_real(e_h,dm)
@@ -1016,8 +1016,6 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
       call elsi_init_pexsi(e_h)
 
       select case(e_h%matrix_format)
-!      case(ELSI_CSC)
-!         call elsi_sips_to_pexsi_hs_real(e_h,ham,ovlp)
       case(PEXSI_CSC)
          ! Nothing
 !      case(SIESTA_CSC)
@@ -1029,8 +1027,6 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
       call elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
 
       select case(e_h%matrix_format)
-!      case(ELSI_CSC)
-!         call elsi_pexsi_to_sips_dm_real(e_h,dm)
       case(PEXSI_CSC)
          ! Nothing
 !      case(SIESTA_CSC)
@@ -1055,7 +1051,7 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
       endif
 
       select case(e_h%matrix_format)
-      case(ELSI_CSC)
+      case(PEXSI_CSC)
          call elsi_sips_to_blacs_hs_real(e_h,ham,ovlp)
       case(SIESTA_CSC)
          call elsi_siesta_to_blacs_hs_real(e_h,ham,ovlp)
@@ -1082,7 +1078,7 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
               e_h%dm_real_elpa)
 
       select case(e_h%matrix_format)
-      case(ELSI_CSC)
+      case(PEXSI_CSC)
          call elsi_blacs_to_sips_dm_real(e_h,dm)
       case(SIESTA_CSC)
          call elsi_blacs_to_siesta_dm_real(e_h,dm)
@@ -1148,7 +1144,7 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
       endif
 
       select case(e_h%matrix_format)
-      case(ELSI_CSC)
+      case(PEXSI_CSC)
          call elsi_sips_to_blacs_hs_cmplx(e_h,ham,ovlp)
       case(SIESTA_CSC)
          call elsi_siesta_to_blacs_hs_cmplx(e_h,ham,ovlp)
@@ -1175,7 +1171,7 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
               e_h%dm_cmplx_elpa,e_h%ham_cmplx_elpa)
 
       select case(e_h%matrix_format)
-      case(ELSI_CSC)
+      case(PEXSI_CSC)
          call elsi_blacs_to_sips_dm_cmplx(e_h,dm)
       case(SIESTA_CSC)
          call elsi_blacs_to_siesta_dm_cmplx(e_h,dm)
@@ -1195,7 +1191,7 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
       endif
 
       select case(e_h%matrix_format)
-      case(ELSI_CSC)
+      case(PEXSI_CSC)
          call elsi_sips_to_blacs_hs_cmplx(e_h,ham,ovlp)
       case(SIESTA_CSC)
          call elsi_siesta_to_blacs_hs_cmplx(e_h,ham,ovlp)
@@ -1230,7 +1226,7 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
                  e_h%dm_cmplx_elpa,e_h%ham_cmplx_elpa)
 
          select case(e_h%matrix_format)
-         case(ELSI_CSC)
+         case(PEXSI_CSC)
             call elsi_blacs_to_sips_dm_cmplx(e_h,dm)
          case(SIESTA_CSC)
             call elsi_blacs_to_siesta_dm_cmplx(e_h,dm)
@@ -1282,7 +1278,7 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
                  e_h%ovlp_cmplx_elpa,e_h%dm_cmplx_elpa)
 
          select case(e_h%matrix_format)
-         case(ELSI_CSC)
+         case(PEXSI_CSC)
             call elsi_blacs_to_sips_dm_cmplx(e_h,dm)
          case(SIESTA_CSC)
             call elsi_blacs_to_siesta_dm_cmplx(e_h,dm)
@@ -1298,8 +1294,6 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
       call elsi_init_pexsi(e_h)
 
       select case(e_h%matrix_format)
-!      case(ELSI_CSC)
-!         call elsi_sips_to_pexsi_hs_cmplx(e_h,ham,ovlp)
       case(PEXSI_CSC)
          ! Nothing
 !      case(SIESTA_CSC)
@@ -1311,8 +1305,6 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
       call elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
 
       select case(e_h%matrix_format)
-!      case(ELSI_CSC)
-!         call elsi_pexsi_to_sips_dm_cmplx(e_h,dm)
       case(PEXSI_CSC)
          ! Nothing
 !      case(SIESTA_CSC)
