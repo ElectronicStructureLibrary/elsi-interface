@@ -1435,16 +1435,6 @@ subroutine truncate_string(l_string,n_chars_to_remove)
 
 end subroutine
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! Subroutines for streamlining the patterned output of JSON files with ELSI.   !
-! These subroutines create the relevant file IO handle and write the various   !
-! opening/closing brackets for the JSON arrays and records.  The actual        !
-! name/value pairs contained in the records are written by elsi_say_setting,   !
-! which is not included in this set of subroutines as it is also used for      !
-! human-readable output.                                                       !
-! These subroutines require the ELSI handle only to specify the MPI layout.    !
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 !>
 !! This routine generates a file IO handle for the JSON file and opens the file
 !!
@@ -1556,9 +1546,5 @@ subroutine elsi_finish_json_record(e_h,comma_after,io_h)
    endif
 
 end subroutine
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!                              End of JSON Code                                !
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 end module ELSI_IO

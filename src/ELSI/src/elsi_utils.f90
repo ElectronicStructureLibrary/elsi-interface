@@ -32,11 +32,11 @@ module ELSI_UTILS
 
    use ELSI_CONSTANTS, only: UNSET,FULL_MAT,N_SOLVERS,N_PARALLEL_MODES,&
                              N_MATRIX_FORMATS,MULTI_PROC,SINGLE_PROC,&
-                             BLACS_DENSE,AUTO,ELPA_SOLVER,OMM_SOLVER,&
-                             PEXSI_SOLVER,CHESS_SOLVER,SIPS_SOLVER,DMP_SOLVER,&
-                             UNSET_STRING,JSON,REAL_VALUES,COMPLEX_VALUES,&
-                             SETTING_STR_LEN,DATETIME_LEN,UUID_LEN,COMMA_AFTER,&
-                             HUMAN_READ
+                             BLACS_DENSE,PEXSI_CSC,SIESTA_CSC,AUTO,ELPA_SOLVER,&
+                             OMM_SOLVER,PEXSI_SOLVER,CHESS_SOLVER,SIPS_SOLVER,&
+                             DMP_SOLVER,UNSET_STRING,JSON,REAL_VALUES,&
+                             COMPLEX_VALUES,SETTING_STR_LEN,DATETIME_LEN,&
+                             UUID_LEN,COMMA_AFTER,HUMAN_READ
    use ELSI_DATATYPE,  only: elsi_handle
    use ELSI_IO,        only: elsi_say,append_string,truncate_string,&
                              elsi_init_file_io,elsi_open_json_file
@@ -264,12 +264,21 @@ subroutine elsi_check(e_h,caller)
 
    if(e_h%matrix_format == BLACS_DENSE) then
       if(.not. e_h%blacs_ready .and. e_h%parallel_mode /= SINGLE_PROC) then
-         call elsi_stop(" BLACS_DENSE matrix format requires BLACS.",e_h,caller)
+         call elsi_stop(" BLACS not properly set up.",e_h,caller)
       endif
-   else
+   elseif(e_h%matrix_format == SIESTA_CSC) then
+      if(e_h%blk_sp2 == UNSET) then
+         call elsi_stop(" SIESTA_CSC format not properly set up.",e_h,caller)
+      endif
+   elseif(e_h%matrix_format == PEXSI_CSC) then
+      if(e_h%pexsi_np_per_pole == UNSET) then
+         call elsi_stop(" PEXSI_CSC format not properly set up.",e_h,caller)
+      endif
+   endif
+
+   if(e_h%matrix_format /= BLACS_DENSE) then
       if(.not. e_h%sparsity_ready) then
-         call elsi_stop(" PEXSI_CSC matrix format requires a sparsity"//&
-                 " pattern.",e_h,caller)
+         call elsi_stop(" Sparse matrix format not properly set up.",e_h,caller)
       endif
    endif
 
@@ -343,8 +352,6 @@ subroutine elsi_check(e_h,caller)
          call elsi_stop(" k-points not yet supported with CheSS.",e_h,caller)
       endif
    case(SIPS_SOLVER)
-      call elsi_say(e_h,"  ATTENTION! SIPs is EXPERIMENTAL.")
-
       if(e_h%n_basis < e_h%n_procs) then
          call elsi_stop(" For this number of MPI tasks, the matrix size is"//&
                  " too small to use SIPs.",e_h,caller)
@@ -364,8 +371,6 @@ subroutine elsi_check(e_h,caller)
          call elsi_stop(" k-points not yet supported with SIPs.",e_h,caller)
       endif
    case(DMP_SOLVER)
-      call elsi_say(e_h,"  ATTENTION! DMP is EXPERIMENTAL.")
-
       if(e_h%parallel_mode /= MULTI_PROC) then
          call elsi_stop(" DMP solver requires MULTI_PROC parallel mode.",e_h,&
                  caller)
@@ -912,15 +917,48 @@ subroutine elsi_get_datetime_rfc3339(datetime_rfc3339)
 
 end subroutine
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! Subroutines for generating unique identifiers (UUIDs) in an RFC 4122 format, !
-! a type 4 Standard with 5 hexadecimal numbers as a 37 character long string,  !
-! where 4 stands for the uuid type and 'a' is a reserved character:            !
-!                        ********-****-4***-a***-************                  !
-! Details can be found at https://tools.ietf.org/html/rfc4122                  !
-!                                                                              !
-! Taken from FHI-aims with permission of copyright holders.                    !
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!>
+!! Generate a UUID (unique identifier) in RFC 4122 format. The random seed must
+!! have been set. Taken from FHI-aims with permission of copyright holders.
+!!
+subroutine elsi_gen_uuid(uuid)
+
+   implicit none
+
+   character(len=UUID_LEN), intent(out) :: uuid
+
+   integer(kind=i4) :: ii3
+   integer(kind=i4) :: ii4
+   integer(kind=i4) :: i_entry
+   real(kind=r8)    :: rr(8)
+   character(len=3) :: ss3
+   character(len=4) :: ss4
+
+   ii3 = 4095
+   ii4 = 65535
+
+   call random_number(rr)
+
+   do i_entry=1,8
+      write(ss3,"(Z3.3)") transfer(int(rr(i_entry)*ii3),16)
+      write(ss4,"(Z4.4)") transfer(int(rr(i_entry)*ii4),16)
+
+      if(i_entry == 1) then
+         write(uuid,'(A)') ss4
+      elseif(i_entry == 2) then
+         write(uuid,'(2A)') trim(uuid),ss4
+      elseif(i_entry == 3) then
+         write(uuid,'(3A)') trim(uuid),'-',ss4
+      elseif(i_entry == 4) then
+         write(uuid,'(3A)') trim(uuid),'-4',ss3
+      elseif(i_entry == 5) then
+         write(uuid,'(4A)') trim(uuid),'-A',ss3,'-'
+      else
+         write(uuid,'(2A)') trim(uuid),ss4
+      endif
+   enddo
+
+end subroutine
 
 !>
 !! Linear congruential generator.
@@ -983,48 +1021,6 @@ subroutine elsi_init_random_seed()
 end subroutine
 
 !>
-!! Generate a UUID. The random seed must have been set.
-!!
-subroutine elsi_gen_uuid(uuid)
-
-   implicit none
-
-   character(len=UUID_LEN), intent(out) :: uuid
-
-   integer(kind=i4) :: ii3
-   integer(kind=i4) :: ii4
-   integer(kind=i4) :: i_entry
-   real(kind=r8)    :: rr(8)
-   character(len=3) :: ss3
-   character(len=4) :: ss4
-
-   ii3 = 4095
-   ii4 = 65535
-
-   call random_number(rr)
-
-   do i_entry=1,8
-      write(ss3,"(Z3.3)") transfer(int(rr(i_entry)*ii3),16)
-      write(ss4,"(Z4.4)") transfer(int(rr(i_entry)*ii4),16)
-
-      if(i_entry == 1) then
-         write(uuid,'(A)') ss4
-      elseif(i_entry == 2) then
-         write(uuid,'(2A)') trim(uuid),ss4
-      elseif(i_entry == 3) then
-         write(uuid,'(3A)') trim(uuid),'-',ss4
-      elseif(i_entry == 4) then
-         write(uuid,'(3A)') trim(uuid),'-4',ss3
-      elseif(i_entry == 5) then
-         write(uuid,'(4A)') trim(uuid),'-A',ss3,'-'
-      else
-         write(uuid,'(2A)') trim(uuid),ss4
-      endif
-   enddo
-
-end subroutine
-
-!>
 !! Broadcast UUID from task 0 to all other tasks.
 !!
 subroutine elsi_sync_uuid(e_h)
@@ -1043,9 +1039,5 @@ subroutine elsi_sync_uuid(e_h)
    endif
 
 end subroutine
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!                              End of UUID Code                                !
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 end module ELSI_UTILS
