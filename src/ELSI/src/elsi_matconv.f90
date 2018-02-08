@@ -3219,7 +3219,7 @@ subroutine elsi_siesta_to_blacs_hs_cmplx(e_h,ham,ovlp)
          call elsi_allocate(e_h,e_h%ovlp_cmplx_elpa,1,1,"dummy",caller)
       endif
 
-      e_h%ham_cmplx_elpa = 0.0_r8
+      e_h%ham_cmplx_elpa = (0.0_r8,0.0_r8)
 
       do i_val = 1,e_h%nnz_l
          ! Compute local 2d id
