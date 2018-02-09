@@ -1,5 +1,5 @@
 # PEXSI Makefile used in ELSI.
-# Dec 14, 2017
+# Feb 9, 2018
 
 ifeq ($(strip $(PEXSI_ADD_UNDERSCORE)),no)
   DEFS_P = -DRELEASE
@@ -12,13 +12,13 @@ CXXFLAGS_P += $(DEFS_P) -I$(PEXSI_DIR)/include $(SUPERLU_INC)
 FFLAGS_P   += $(DEFS_P) -I$(PEXSI_DIR)/include $(SUPERLU_INC)
 
 # Generate dependencies
-%.d: %.c
+%.d: $(PEXSI_DIR)/src/%.c
 	@set -e; rm -f $@; \
 	$(MPICC) -M $(CFLAGS_P) $< > $@.$$$$; \
 	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@;\
 	rm -f $@.$$$$
 
-%.d: %.cpp
+%.d: $(PEXSI_DIR)/src/%.cpp
 	@set -e; rm -f $@; \
 	$(MPICXX) -M $(CXXFLAGS_P) $< > $@.$$$$; \
 	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@;\
@@ -34,13 +34,13 @@ SRCS_F90 = f_interface.f90
 OBJS = $(SRCS_CPP:.cpp=.o) $(SRCS_C:.c=.o) $(SRCS_F90:.f90=.o)
 DEPS = $(SRCS_CPP:.cpp=.d) $(SRCS_C:.c=.d) $(SRCS_F90:.f90=.d)
 
-.PHONY: all install clean
+.PHONY: all install
 
-%.o: %.c
+%.o: $(PEXSI_DIR)/src/%.c
 	$(MPICC) -c $(CFLAGS_P) $<
-%.o: %.cpp
+%.o: $(PEXSI_DIR)/src/%.cpp
 	$(MPICXX) -c $(CXXFLAGS_P) $<
-%.o: %.f90
+%.o: $(PEXSI_DIR)/src/%.f90
 	$(MPIFC) -c $(FFLAGS_P) $<
 
 all: $(OBJS)
@@ -52,8 +52,5 @@ libpexsi.a: $(OBJS)
 	$(RANLIB) $@
 
 install: libpexsi.a
-	cp *.a $(LIB_DIR)
-	cp *.mod $(INC_DIR)
-
-clean:
-	rm -f *.o *.d *.a *.d.* *.mod
+	cp $(BUILD_DIR)/PEXSI/*.a $(LIB_DIR)
+	cp $(BUILD_DIR)/PEXSI/*.mod $(INC_DIR)
