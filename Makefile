@@ -58,9 +58,10 @@ RANLIB       ?= ranlib
 # Default installation directories
 THIS_DIR   = $(shell pwd)
 ELSI_DIR   = $(THIS_DIR)/src/ELSI
-LIB_DIR    = $(THIS_DIR)/lib
-INC_DIR    = $(THIS_DIR)/include
-BUILD_DIR  = $(THIS_DIR)/build
+PREFIX    ?= $(THIS_DIR)
+LIB_DIR    = $(PREFIX)/lib
+INC_DIR    = $(PREFIX)/include
+BUILD_DIR ?= $(THIS_DIR)/build
 
 # Default external libraries
 ELPA_DIR  ?= $(THIS_DIR)/src/ELPA
