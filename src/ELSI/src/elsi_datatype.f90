@@ -221,7 +221,6 @@ module ELSI_DATATYPE
 
       ! Physics
       real(kind=r8)    :: n_electrons
-      real(kind=r8)    :: mu
       integer(kind=i4) :: n_basis
       integer(kind=i4) :: n_spins
       integer(kind=i4) :: n_kpts
@@ -230,18 +229,21 @@ module ELSI_DATATYPE
       integer(kind=i4) :: i_spin
       integer(kind=i4) :: i_kpt
       real(kind=r8)    :: i_weight
+      real(kind=r8)    :: spin_degen
       real(kind=r8)    :: energy_hdm
       real(kind=r8)    :: energy_sedm
+      real(kind=r8)    :: mu
+      real(kind=r8)    :: ts ! Entropy
 
       ! Chemical potential
       integer(kind=i4) :: broaden_scheme
       real(kind=r8)    :: broaden_width
       real(kind=r8)    :: occ_tolerance
       integer(kind=i4) :: max_mu_steps
-      real(kind=r8)    :: spin_degen
       integer(kind=i4) :: mp_order
       logical          :: spin_is_set
       logical          :: mu_ready
+      logical          :: ts_ready
       logical          :: edm_ready_real
       logical          :: edm_ready_cmplx
 

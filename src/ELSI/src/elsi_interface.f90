@@ -119,6 +119,7 @@ module ELSI
    public :: elsi_get_ovlp_sing
    public :: elsi_get_n_sing
    public :: elsi_get_mu
+   public :: elsi_get_entropy
    public :: elsi_get_edm_real
    public :: elsi_get_edm_complex
    public :: elsi_get_edm_real_sparse

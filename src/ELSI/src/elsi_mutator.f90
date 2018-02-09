@@ -116,6 +116,7 @@ module ELSI_MUTATOR
    public :: elsi_get_ovlp_sing
    public :: elsi_get_n_sing
    public :: elsi_get_mu
+   public :: elsi_get_entropy
    public :: elsi_get_edm_real
    public :: elsi_get_edm_complex
    public :: elsi_get_edm_real_sparse
@@ -1529,6 +1530,31 @@ subroutine elsi_get_mu(e_h,mu)
    endif
 
    e_h%mu_ready = .false.
+
+end subroutine
+
+!>
+!! This routine gets the entropy.
+!!
+subroutine elsi_get_entropy(e_h,ts)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h !< Handle
+   real(kind=r8),     intent(out)   :: ts  !< Entropy
+
+   character(len=40), parameter :: caller = "elsi_get_entropy"
+
+   call elsi_check_handle(e_h,caller)
+
+   ts = e_h%ts
+
+   if(.not. e_h%ts_ready) then
+      call elsi_say(e_h,"  ATTENTION! The return value of ts may be 0, since"//&
+              " ts has not been computed.")
+   endif
+
+   e_h%ts_ready = .false.
 
 end subroutine
 

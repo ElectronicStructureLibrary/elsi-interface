@@ -36,7 +36,7 @@ module ELSI_ELPA
    use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
    use ELSI_MPI,       only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8,&
                              mpi_integer4
-   use ELSI_MU,        only: elsi_compute_mu_and_occ
+   use ELSI_MU,        only: elsi_compute_mu_and_occ,elsi_compute_entropy
    use ELSI_PRECISION, only: r4,r8,i4
    use ELSI_TIMINGS,   only: elsi_get_time
    use ELSI_UTILS,     only: elsi_get_local_nnz_real,elsi_get_local_nnz_cmplx,&
@@ -166,6 +166,10 @@ subroutine elsi_compute_occ_elpa(e_h,eval)
    ! Calculate mu and occupation numbers
    call elsi_compute_mu_and_occ(e_h,e_h%n_electrons,e_h%n_states,e_h%n_spins,&
            e_h%n_kpts,e_h%k_weight,e_h%eval_all,e_h%occ_num,e_h%mu)
+
+   ! Calculate entropy
+   call elsi_compute_entropy(e_h,e_h%n_states,e_h%n_spins,e_h%n_kpts,&
+           e_h%k_weight,e_h%eval_all,e_h%occ_num,e_h%mu,e_h%ts)
 
 end subroutine
 

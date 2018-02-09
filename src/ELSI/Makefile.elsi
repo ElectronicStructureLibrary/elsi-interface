@@ -248,6 +248,7 @@ libelsi.a: $(SOURCES) $(STUBS)
 	$(RANLIB) $@
 
 .PHONY: check checkc clean install force
+
 force:
 
 check:

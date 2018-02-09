@@ -525,6 +525,7 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
       endif
 
       e_h%mu_ready = .true.
+      e_h%ts_ready = .true.
    case(OMM_SOLVER)
       if(e_h%n_elsi_calls <= e_h%omm_n_elpa) then
          if(e_h%n_elsi_calls == 1 .and. e_h%omm_flavor == 0) then
@@ -718,6 +719,7 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
       endif
 
       e_h%mu_ready = .true.
+      e_h%ts_ready = .true.
    case(OMM_SOLVER)
       if(e_h%n_elsi_calls <= e_h%omm_n_elpa) then
          if(e_h%n_elsi_calls == 1 .and. e_h%omm_flavor == 0) then
@@ -906,6 +908,7 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
       solver_used = ELPA_SOLVER
 
       e_h%mu_ready = .true.
+      e_h%ts_ready = .true.
    case(OMM_SOLVER)
       ! Set up BLACS if not done by user
       if(.not. e_h%blacs_ready) then
@@ -1184,6 +1187,7 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
       solver_used = ELPA_SOLVER
 
       e_h%mu_ready = .true.
+      e_h%ts_ready = .true.
    case(OMM_SOLVER)
       ! Set up BLACS if not done by user
       if(.not. e_h%blacs_ready) then
