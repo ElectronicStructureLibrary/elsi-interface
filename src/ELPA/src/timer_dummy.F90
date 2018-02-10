@@ -1,12 +1,12 @@
 module timings_dummy
   implicit none
-  
-  type, public :: timer_dummy_t
-      contains
-      procedure, pass :: start => timer_start
-      procedure, pass :: stop => timer_stop
-  end type 
 
+  type :: timer_dummy_t
+        contains
+        procedure, pass :: start => timer_start
+        procedure, pass :: stop => timer_stop
+  end type timer_dummy_t 
+  
   type(timer_dummy_t) :: timer
 
   contains

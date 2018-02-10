@@ -47,16 +47,12 @@
 ! with their original authors, but shall adhere to the licensing terms
 ! distributed along with the original code in the file "COPYING".
 
-
-
 ! ELPA2 -- 2-stage solver for ELPA
 !
 ! Copyright of the original code rests with the authors inside the ELPA
 ! consortium. The copyright of any additional modifications shall rest
 ! with their original authors, but shall adhere to the licensing terms
 ! distributed along with the original code in the file "COPYING".
-
-#include <elpa/elpa_kernel_constants.h>
 
 module ELPA2_utilities
   use ELPA_utilities
@@ -110,27 +106,7 @@ module ELPA2_utilities
   integer, parameter :: REAL_ELPA_KERNEL_AVX512_BLOCK6  = 17
   integer(kind=ik), parameter :: REAL_ELPA_KERNEL_GPU   = 18
 
-#ifdef WITH_REAL_GENERIC_KERNEL
   integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_GENERIC
-#endif
-#ifdef WITH_REAL_SSE_ASSEMBLY_KERNEL
-  integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_SSE
-#endif
-#ifdef WITH_REAL_AVX_BLOCK2_KERNEL
-  integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_AVX_BLOCK2
-#endif
-#ifdef WITH_REAL_AVX2_BLOCK2_KERNEL
-  integer, parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_AVX2_BLOCK2
-#endif
-#ifdef WITH_REAL_AVX512_BLOCK2_KERNEL
-  integer, parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_AVX512_BLOCK2
-#endif
-#ifdef WITH_REAL_BGQ_KERNEL
-  integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_BGQ
-#endif
-#ifdef WITH_REAL_GPU_KERNEL
-  integer(kind=ik), parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_GPU
-#endif
 
   integer, parameter :: number_of_complex_kernels          = 14
   integer, parameter :: COMPLEX_ELPA_KERNEL_GENERIC        = 1
@@ -148,24 +124,7 @@ module ELPA2_utilities
   integer, parameter :: COMPLEX_ELPA_KERNEL_AVX512_BLOCK2  = 13
   integer(kind=ik), parameter :: COMPLEX_ELPA_KERNEL_GPU   = 14
 
-#ifdef WITH_COMPLEX_GENERIC_KERNEL
   integer(kind=ik), parameter :: DEFAULT_COMPLEX_ELPA_KERNEL = COMPLEX_ELPA_KERNEL_GENERIC
-#endif
-#ifdef WITH_COMPLEX_SSE_ASSEMBLY_KERNEL
-  integer(kind=ik), parameter :: DEFAULT_COMPLEX_ELPA_KERNEL = COMPLEX_ELPA_KERNEL_SSE
-#endif
-#ifdef WITH_COMPLEX_AVX_BLOCK1_KERNEL
-  integer(kind=ik), parameter :: DEFAULT_COMPLEX_ELPA_KERNEL = COMPLEX_ELPA_KERNEL_AVX_BLOCK1
-#endif
-#ifdef WITH_COMPLEX_AVX2_BLOCK1_KERNEL
-  integer, parameter :: DEFAULT_COMPLEX_ELPA_KERNEL = COMPLEX_ELPA_KERNEL_AVX2_BLOCK1
-#endif
-#ifdef WITH_COMPLEX_AVX512_BLOCK1_KERNEL
-  integer, parameter :: DEFAULT_COMPLEX_ELPA_KERNEL = COMPLEX_ELPA_KERNEL_AVX512_BLOCK1
-#endif
-#ifdef WITH_COMPLEX_GPU_KERNEL
-  integer(kind=ik), parameter :: DEFAULT_COMPLEX_ELPA_KERNEL = COMPLEX_ELPA_KERNEL_GPU
-#endif
 
 contains
 

@@ -41,7 +41,7 @@
 ! This file was written by A. Marek, MPCDF
 
 module precision
-  use iso_c_binding, only : C_FLOAT, C_DOUBLE, C_INT32_T, C_INT64_T, C_FLOAT
+  use, intrinsic :: iso_c_binding, only : C_FLOAT, C_DOUBLE, C_INT32_T, C_INT64_T, C_FLOAT
 
   implicit none
   integer, parameter :: rk8  = C_DOUBLE

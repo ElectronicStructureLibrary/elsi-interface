@@ -63,17 +63,15 @@ module ELPA1_utilities
 
   PRIVATE ! By default, all routines contained are private
 
-  ! The following routines are public:
+! The following routines are public:
   public :: gpu_usage_via_environment_variable
- !******
+!******
   contains
 
    function gpu_usage_via_environment_variable() result(useGPU)
-#ifdef HAVE_DETAILED_TIMINGS
-     use timings
-#else
+
      use timings_dummy
-#endif
+
      use precision
      implicit none
      logical            :: useGPU
@@ -82,9 +80,7 @@ module ELPA1_utilities
      call timer%start("gpu_usage_via_environment_variable")
 
      useGPU = .false.
-#if defined(HAVE_ENVIRONMENT_CHECKING)
-     call get_environment_variable("ELPA_USE_GPU",ELPA_USE_GPU_ENVIRONMENT)
-#endif
+
      if (trim(ELPA_USE_GPU_ENVIRONMENT) .eq. "YES" .or. trim(ELPA_USE_GPU_ENVIRONMENT) .eq. "yes") then
        useGPU = .true.
      endif

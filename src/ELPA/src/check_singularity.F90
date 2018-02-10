@@ -50,8 +50,6 @@
 ! with their original authors, but shall adhere to the licensing terms
 ! distributed along with the original code in the file "COPYING".
 
-
-
 ! ELPA2 -- 2-stage solver for ELPA
 !
 ! Copyright of the original code rests with the authors inside the ELPA
@@ -59,8 +57,6 @@
 ! with their original authors, but shall adhere to the licensing terms
 ! distributed along with the original code in the file "COPYING".
 
-
-!> \brief Fortran module which provides the routines to use the 2-stage ELPA solver
 module CHECK_SINGULARITY
 
 ! Version 1.1.2, 2011-02-21
@@ -144,19 +140,6 @@ function elpa_check_singularity_real_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCol
       do_useGPU_4 = .true.
    endif
 
-#ifdef WITH_GPU_VERSION
-   if(check_for_gpu(my_pe,numberOfGPUDevices,wantDebug=wantDebug)) then
-      do_useGPU = .true.
-   endif
-
-   ! Set GPU/CUDA parameters
-   cudaMemcpyHostToDevice   = cuda_memcpyHostToDevice()
-   cudaMemcpyDeviceToHost   = cuda_memcpyDeviceToHost()
-   cudaMemcpyDeviceToDevice = cuda_memcpyDeviceToDevice()
-   cudaHostRegisterPortable = cuda_hostRegisterPortable()
-   cudaHostRegisterMapped   = cuda_hostRegisterMapped()
-#endif
-
    ! Bandwidth must be a multiple of nblk
    ! Set to a value >= 32
    if(do_useGPU) then
@@ -180,7 +163,7 @@ function elpa_check_singularity_real_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCol
    if(.not.(success)) return
    ttt1 = MPI_Wtime()
    if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-      write(*,"(A,F10.3,A)") "  | Time full => band           :",ttt1-ttt0," s"
+      write(use_unit,"(A,F10.3,A)") "  | Time full => band           :",ttt1-ttt0," s"
 
    ! Reduction band -> tridiagonal
    allocate(e(na),stat=istat)
@@ -194,7 +177,7 @@ function elpa_check_singularity_real_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCol
                                  mpi_comm_rows,mpi_comm_cols,mpi_comm_all)
    ttt1 = MPI_Wtime()
    if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-      write(*,"(A,F10.3,A)") "  | Time band => tridiagonal    :",ttt1-ttt0," s"
+      write(use_unit,"(A,F10.3,A)") "  | Time band => tridiagonal    :",ttt1-ttt0," s"
 
    call mpi_bcast(ev,na,MPI_REAL8,0,mpi_comm_all,mpierr)
    call mpi_bcast(e,na,MPI_REAL8,0,mpi_comm_all,mpierr)
@@ -206,7 +189,7 @@ function elpa_check_singularity_real_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCol
    if(.not.success) return
    ttt1 = MPI_Wtime()
    if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-      write(*,"(A,F10.3,A)") "  | Time solve tridiagonal      :",ttt1-ttt0," s"
+      write(use_unit,"(A,F10.3,A)") "  | Time solve tridiagonal      :",ttt1-ttt0," s"
 
    deallocate(e)
 
@@ -227,7 +210,7 @@ function elpa_check_singularity_real_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCol
       if(.not.success) return
       ttt1 = MPI_Wtime()
       if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-         write(*,"(A,F10.3,A)") "  | Time ev tridiagonal => band :",ttt1-ttt0," s"
+         write(use_unit,"(A,F10.3,A)") "  | Time ev tridiagonal => band :",ttt1-ttt0," s"
 
       deallocate(hh_trans_real)
 
@@ -238,7 +221,7 @@ function elpa_check_singularity_real_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCol
                                              mpi_comm_cols,do_useGPU,useQRActual)
       ttt1 = MPI_Wtime()
       if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-         write(*,"(A,F10.3,A)") "  | Time ev band => full        :",ttt1-ttt0," s"
+         write(use_unit,"(A,F10.3,A)") "  | Time ev band => full        :",ttt1-ttt0," s"
 
       deallocate(tmat)
    else
@@ -317,19 +300,6 @@ function elpa_check_singularity_complex_double(na,nev,a,lda,ev,q,ldq,nblk,matrix
       do_useGPU_4 = .true.
    endif
 
-#ifdef WITH_GPU_VERSION
-   if(check_for_gpu(my_pe,numberOfGPUDevices,wantDebug=wantDebug)) then
-      do_useGPU = .true.
-   endif
-
-   ! Set GPU/CUDA parameters
-   cudaMemcpyHostToDevice   = cuda_memcpyHostToDevice()
-   cudaMemcpyDeviceToHost   = cuda_memcpyDeviceToHost()
-   cudaMemcpyDeviceToDevice = cuda_memcpyDeviceToDevice()
-   cudaHostRegisterPortable = cuda_hostRegisterPortable()
-   cudaHostRegisterMapped   = cuda_hostRegisterMapped()
-#endif
-
    ! Bandwidth must be a multiple of nblk
    ! Set to a value >= 32
    nbw = (31/nblk+1)*nblk
@@ -348,7 +318,7 @@ function elpa_check_singularity_complex_double(na,nev,a,lda,ev,q,ldq,nblk,matrix
    if(.not.success) return
    ttt1 = MPI_Wtime()
    if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-      write(*,"(A,F10.3,A)") "  | Time full => band           :",ttt1-ttt0," s"
+      write(use_unit,"(A,F10.3,A)") "  | Time full => band           :",ttt1-ttt0," s"
 
    ! Reduction band -> tridiagonal
    allocate(e(na),stat=istat)
@@ -362,7 +332,7 @@ function elpa_check_singularity_complex_double(na,nev,a,lda,ev,q,ldq,nblk,matrix
                                     mpi_comm_rows,mpi_comm_cols,mpi_comm_all)
    ttt1 = MPI_Wtime()
    if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-      write(*,"(A,F10.3,A)") "  | Time band => tridiagonal    :",ttt1-ttt0," s"
+      write(use_unit,"(A,F10.3,A)") "  | Time band => tridiagonal    :",ttt1-ttt0," s"
 
    call mpi_bcast(ev,na,mpi_real8,0,mpi_comm_all,mpierr)
    call mpi_bcast(e,na,mpi_real8,0,mpi_comm_all,mpierr)
@@ -384,7 +354,7 @@ function elpa_check_singularity_complex_double(na,nev,a,lda,ev,q,ldq,nblk,matrix
    if(.not.success) return
    ttt1 = MPI_Wtime()
    if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-      write(*,"(A,F10.3,A)") "  | Time solve tridiagonal      :",ttt1-ttt0," s"
+      write(use_unit,"(A,F10.3,A)") "  | Time solve tridiagonal      :",ttt1-ttt0," s"
 
    q(1:l_rows,1:l_cols_nev) = q_real(1:l_rows,1:l_cols_nev)
 
@@ -409,7 +379,7 @@ function elpa_check_singularity_complex_double(na,nev,a,lda,ev,q,ldq,nblk,matrix
       if(.not.success) return
       ttt1 = MPI_Wtime()
       if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-         write(*,"(A,F10.3,A)") "  | Time ev tridiagonal => band :",ttt1-ttt0," s"
+         write(use_unit,"(A,F10.3,A)") "  | Time ev tridiagonal => band :",ttt1-ttt0," s"
 
       deallocate(hh_trans_complex)
 
@@ -420,7 +390,7 @@ function elpa_check_singularity_complex_double(na,nev,a,lda,ev,q,ldq,nblk,matrix
                                                 mpi_comm_cols,do_useGPU)
       ttt1 = MPI_Wtime()
       if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-         write(*,"(A,F10.3,A)") "  | Time ev band => full        :",ttt1-ttt0," s"
+         write(use_unit,"(A,F10.3,A)") "  | Time ev band => full        :",ttt1-ttt0," s"
 
       deallocate(tmat)
    else

@@ -49,46 +49,32 @@
 
 module ELPA_utilities
 
-#ifdef HAVE_ISO_FORTRAN_ENV
-  use iso_fortran_env, only : error_unit
-#endif
   implicit none
 
   private ! By default, all routines contained are private
 
-  public :: debug_messages_via_environment_variable, error_unit
+  public :: debug_messages_via_environment_variable, error_unit, use_unit
   public :: check_alloc, check_alloc_CUDA_f, check_memcpy_CUDA_f, check_dealloc_CUDA_f
   public :: map_global_array_index_to_local_index
   public :: pcol, prow
   public :: local_index                ! Get local index of a block cyclic distributed matrix
   public :: least_common_multiple      ! Get least common multiple
 
-#ifndef HAVE_ISO_FORTRAN_ENV
   integer, parameter :: error_unit = 0
-#endif
+  integer, parameter :: use_unit = 6
 
-
-  !******
+!******
   contains
 
    function debug_messages_via_environment_variable() result(isSet)
-#ifdef HAVE_DETAILED_TIMINGS
-     use timings
-#endif
+
      use precision
      implicit none
      logical              :: isSet
      CHARACTER(len=255)   :: ELPA_DEBUG_MESSAGES
 
-#ifdef HAVE_DETAILED_TIMINGS
-     call timer%start("debug_messages_via_environment_variable")
-#endif
-
      isSet = .false.
 
-#if defined(HAVE_ENVIRONMENT_CHECKING)
-     call get_environment_variable("ELPA_DEBUG_MESSAGES",ELPA_DEBUG_MESSAGES)
-#endif
      if (trim(ELPA_DEBUG_MESSAGES) .eq. "yes") then
        isSet = .true.
      endif
@@ -96,15 +82,11 @@ module ELPA_utilities
        isSet = .true.
      endif
 
-#ifdef HAVE_DETAILED_TIMINGS
-     call timer%stop("debug_messages_via_environment_variable")
-#endif
-
    end function debug_messages_via_environment_variable
 
 !-------------------------------------------------------------------------------
 
-  !Processor col for global col number
+!Processor col for global col number
   pure function pcol(global_col, nblk, np_cols) result(local_col)
     use precision
     implicit none
@@ -115,7 +97,7 @@ module ELPA_utilities
 
 !-------------------------------------------------------------------------------
 
-  !Processor row for global row number
+!Processor row for global row number
   pure function prow(global_row, nblk, np_rows) result(local_row)
     use precision
     implicit none
@@ -198,13 +180,13 @@ module ELPA_utilities
 
     if (mod(iblk,num_procs) == my_proc) then
 
-    ! block is local, always return local row/col number
+! block is local, always return local row/col number
 
     local_index = (iblk/num_procs)*nblk + mod(idx-1,nblk) + 1
 
     else
 
-    ! non local block
+! non local block
 
     if (iflag == 0) then
 
@@ -224,8 +206,8 @@ module ELPA_utilities
 
  integer function least_common_multiple(a, b)
 
-    ! Returns the least common multiple of a and b
-    ! There may be more efficient ways to do this, we use the most simple approach
+! Returns the least common multiple of a and b
+! There may be more efficient ways to do this, we use the most simple approach
     use precision
     implicit none
     integer(kind=ik), intent(in) :: a, b
@@ -233,12 +215,10 @@ module ELPA_utilities
     do least_common_multiple = a, a*(b-1), a
     if(mod(least_common_multiple,b)==0) exit
     enddo
-    ! if the loop is left regularly, least_common_multiple = a*b
+! if the loop is left regularly, least_common_multiple = a*b
 
  end function least_common_multiple
 
- 
-     
  subroutine check_alloc(function_name, variable_name, istat, errorMessage)
     use precision
     
