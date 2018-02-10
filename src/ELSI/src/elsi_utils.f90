@@ -32,11 +32,11 @@ module ELSI_UTILS
 
    use ELSI_CONSTANTS, only: UNSET,FULL_MAT,N_SOLVERS,N_PARALLEL_MODES,&
                              N_MATRIX_FORMATS,MULTI_PROC,SINGLE_PROC,&
-                             BLACS_DENSE,AUTO,ELPA_SOLVER,OMM_SOLVER,&
-                             PEXSI_SOLVER,CHESS_SOLVER,SIPS_SOLVER,DMP_SOLVER,&
-                             UNSET_STRING,JSON,REAL_VALUES,COMPLEX_VALUES,&
-                             SETTING_STR_LEN,DATETIME_LEN,UUID_LEN,COMMA_AFTER,&
-                             HUMAN_READ
+                             BLACS_DENSE,PEXSI_CSC,SIESTA_CSC,AUTO,ELPA_SOLVER,&
+                             OMM_SOLVER,PEXSI_SOLVER,CHESS_SOLVER,SIPS_SOLVER,&
+                             DMP_SOLVER,UNSET_STRING,JSON,REAL_VALUES,&
+                             COMPLEX_VALUES,SETTING_STR_LEN,DATETIME_LEN,&
+                             UUID_LEN,COMMA_AFTER,HUMAN_READ
    use ELSI_DATATYPE,  only: elsi_handle
    use ELSI_IO,        only: elsi_say,append_string,truncate_string,&
                              elsi_init_file_io,elsi_open_json_file
@@ -54,6 +54,7 @@ module ELSI_UTILS
    public :: elsi_reset_handle
    public :: elsi_get_global_row
    public :: elsi_get_global_col
+   public :: elsi_get_global_col_sp2
    public :: elsi_get_local_nnz_real
    public :: elsi_get_local_nnz_cmplx
    public :: elsi_get_solver_tag
@@ -106,13 +107,16 @@ subroutine elsi_reset_handle(e_h)
    e_h%my_pcol                = UNSET
    e_h%n_lrow                 = UNSET
    e_h%n_lcol                 = UNSET
+   e_h%nnz_l                  = UNSET
    e_h%blacs_ready            = .false.
    e_h%nnz_g                  = UNSET
-   e_h%nnz_l                  = UNSET
    e_h%nnz_l_sp               = UNSET
    e_h%n_lcol_sp              = UNSET
    e_h%zero_def               = 1.0e-15_r8
    e_h%sparsity_ready         = .false.
+   e_h%nnz_l_sp2              = UNSET
+   e_h%n_lcol_sp2             = UNSET
+   e_h%blk_sp2                = UNSET
    e_h%ovlp_is_unit           = .false.
    e_h%ovlp_is_sing           = .false.
    e_h%check_sing             = .true.
@@ -120,7 +124,6 @@ subroutine elsi_reset_handle(e_h)
    e_h%stop_sing              = .false.
    e_h%n_nonsing              = UNSET
    e_h%n_electrons            = 0.0_r8
-   e_h%mu                     = 0.0_r8
    e_h%n_basis                = UNSET
    e_h%n_spins                = 1
    e_h%n_kpts                 = 1
@@ -129,15 +132,19 @@ subroutine elsi_reset_handle(e_h)
    e_h%i_spin                 = 1
    e_h%i_kpt                  = 1
    e_h%i_weight               = 1.0_r8
+   e_h%spin_degen             = 0.0_r8
    e_h%energy_hdm             = 0.0_r8
    e_h%energy_sedm            = 0.0_r8
+   e_h%mu                     = 0.0_r8
+   e_h%ts                     = 0.0_r8
    e_h%broaden_scheme         = 0
    e_h%broaden_width          = 1.0e-2_r8
    e_h%occ_tolerance          = 1.0e-13_r8
    e_h%max_mu_steps           = 100
-   e_h%spin_degen             = 0.0_r8
+   e_h%mp_order               = 1
    e_h%spin_is_set            = .false.
    e_h%mu_ready               = .false.
+   e_h%ts_ready               = .false.
    e_h%edm_ready_real         = .false.
    e_h%edm_ready_cmplx        = .false.
    e_h%elpa_solver            = UNSET
@@ -195,10 +202,10 @@ subroutine elsi_reset_handle(e_h)
    e_h%output_timings_file    = .false.
    e_h%solver_timings_unit    = UNSET
    e_h%solver_timings_name    = UNSET_STRING
-   e_h%uuid                   = UNSET_STRING
-   e_h%uuid_exists            = .false.
    e_h%calling_code           = UNSET_STRING
    e_h%calling_code_ver       = UNSET_STRING
+   e_h%uuid                   = UNSET_STRING
+   e_h%uuid_exists            = .false.
 
 end subroutine
 
@@ -259,12 +266,15 @@ subroutine elsi_check(e_h,caller)
 
    if(e_h%matrix_format == BLACS_DENSE) then
       if(.not. e_h%blacs_ready .and. e_h%parallel_mode /= SINGLE_PROC) then
-         call elsi_stop(" BLACS_DENSE matrix format requires BLACS.",e_h,caller)
+         call elsi_stop(" BLACS not properly set up.",e_h,caller)
       endif
-   else
+   elseif(e_h%matrix_format == SIESTA_CSC) then
+      if(e_h%blk_sp2 == UNSET .or. .not. e_h%sparsity_ready) then
+         call elsi_stop(" SIESTA_CSC format not properly set up.",e_h,caller)
+      endif
+   elseif(e_h%matrix_format == PEXSI_CSC) then
       if(.not. e_h%sparsity_ready) then
-         call elsi_stop(" PEXSI_CSC matrix format requires a sparsity"//&
-                 " pattern.",e_h,caller)
+         call elsi_stop(" PEXSI_CSC format not properly set up.",e_h,caller)
       endif
    endif
 
@@ -338,8 +348,6 @@ subroutine elsi_check(e_h,caller)
          call elsi_stop(" k-points not yet supported with CheSS.",e_h,caller)
       endif
    case(SIPS_SOLVER)
-      call elsi_say(e_h,"  ATTENTION! SIPs is EXPERIMENTAL.")
-
       if(e_h%n_basis < e_h%n_procs) then
          call elsi_stop(" For this number of MPI tasks, the matrix size is"//&
                  " too small to use SIPs.",e_h,caller)
@@ -359,8 +367,6 @@ subroutine elsi_check(e_h,caller)
          call elsi_stop(" k-points not yet supported with SIPs.",e_h,caller)
       endif
    case(DMP_SOLVER)
-      call elsi_say(e_h,"  ATTENTION! DMP is EXPERIMENTAL.")
-
       if(e_h%parallel_mode /= MULTI_PROC) then
          call elsi_stop(" DMP solver requires MULTI_PROC parallel mode.",e_h,&
                  caller)
@@ -516,6 +522,28 @@ subroutine elsi_get_global_col(e_h,g_id,l_id)
    blk  = (l_id-1)/e_h%blk_col
    idx  = l_id-blk*e_h%blk_col
    g_id = e_h%my_pcol*e_h%blk_col+blk*e_h%blk_col*e_h%n_pcol+idx
+
+end subroutine
+
+!>
+!! This routine computes the global column index based on the local column index.
+!!
+subroutine elsi_get_global_col_sp2(e_h,g_id,l_id)
+
+   implicit none
+
+   type(elsi_handle), intent(in)  :: e_h
+   integer(kind=i4),  intent(in)  :: l_id
+   integer(kind=i4),  intent(out) :: g_id
+
+   integer(kind=i4) :: blk
+   integer(kind=i4) :: idx
+
+   character(len=40), parameter :: caller = "elsi_get_global_col_sp2"
+
+   blk  = (l_id-1)/e_h%blk_sp2
+   idx  = l_id-blk*e_h%blk_sp2
+   g_id = e_h%myid*e_h%blk_sp2+blk*e_h%blk_sp2*e_h%n_procs+idx
 
 end subroutine
 
@@ -885,15 +913,48 @@ subroutine elsi_get_datetime_rfc3339(datetime_rfc3339)
 
 end subroutine
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! Subroutines for generating unique identifiers (UUIDs) in an RFC 4122 format, !
-! a type 4 Standard with 5 hexadecimal numbers as a 37 character long string,  !
-! where 4 stands for the uuid type and 'a' is a reserved character:            !
-!                        ********-****-4***-a***-************                  !
-! Details can be found at https://tools.ietf.org/html/rfc4122                  !
-!                                                                              !
-! Taken from FHI-aims with permission of copyright holders.                    !
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!>
+!! Generate a UUID (unique identifier) in RFC 4122 format. The random seed must
+!! have been set. Taken from FHI-aims with permission of copyright holders.
+!!
+subroutine elsi_gen_uuid(uuid)
+
+   implicit none
+
+   character(len=UUID_LEN), intent(out) :: uuid
+
+   integer(kind=i4) :: ii3
+   integer(kind=i4) :: ii4
+   integer(kind=i4) :: i_entry
+   real(kind=r8)    :: rr(8)
+   character(len=3) :: ss3
+   character(len=4) :: ss4
+
+   ii3 = 4095
+   ii4 = 65535
+
+   call random_number(rr)
+
+   do i_entry=1,8
+      write(ss3,"(Z3.3)") transfer(int(rr(i_entry)*ii3),16)
+      write(ss4,"(Z4.4)") transfer(int(rr(i_entry)*ii4),16)
+
+      if(i_entry == 1) then
+         write(uuid,'(A)') ss4
+      elseif(i_entry == 2) then
+         write(uuid,'(2A)') trim(uuid),ss4
+      elseif(i_entry == 3) then
+         write(uuid,'(3A)') trim(uuid),'-',ss4
+      elseif(i_entry == 4) then
+         write(uuid,'(3A)') trim(uuid),'-4',ss3
+      elseif(i_entry == 5) then
+         write(uuid,'(4A)') trim(uuid),'-A',ss3,'-'
+      else
+         write(uuid,'(2A)') trim(uuid),ss4
+      endif
+   enddo
+
+end subroutine
 
 !>
 !! Linear congruential generator.
@@ -956,48 +1017,6 @@ subroutine elsi_init_random_seed()
 end subroutine
 
 !>
-!! Generate a UUID. The random seed must have been set.
-!!
-subroutine elsi_gen_uuid(uuid)
-
-   implicit none
-
-   character(len=UUID_LEN), intent(out) :: uuid
-
-   integer(kind=i4) :: ii3
-   integer(kind=i4) :: ii4
-   integer(kind=i4) :: i_entry
-   real(kind=r8)    :: rr(8)
-   character(len=3) :: ss3
-   character(len=4) :: ss4
-
-   ii3 = 4095
-   ii4 = 65535
-
-   call random_number(rr)
-
-   do i_entry=1,8
-      write(ss3,"(Z3.3)") transfer(int(rr(i_entry)*ii3),16)
-      write(ss4,"(Z4.4)") transfer(int(rr(i_entry)*ii4),16)
-
-      if(i_entry == 1) then
-         write(uuid,'(A)') ss4
-      elseif(i_entry == 2) then
-         write(uuid,'(2A)') trim(uuid),ss4
-      elseif(i_entry == 3) then
-         write(uuid,'(3A)') trim(uuid),'-',ss4
-      elseif(i_entry == 4) then
-         write(uuid,'(3A)') trim(uuid),'-4',ss3
-      elseif(i_entry == 5) then
-         write(uuid,'(4A)') trim(uuid),'-A',ss3,'-'
-      else
-         write(uuid,'(2A)') trim(uuid),ss4
-      endif
-   enddo
-
-end subroutine
-
-!>
 !! Broadcast UUID from task 0 to all other tasks.
 !!
 subroutine elsi_sync_uuid(e_h)
@@ -1016,9 +1035,5 @@ subroutine elsi_sync_uuid(e_h)
    endif
 
 end subroutine
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!                              End of UUID Code                                !
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 end module ELSI_UTILS

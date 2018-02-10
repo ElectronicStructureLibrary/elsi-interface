@@ -1,20 +1,17 @@
 # SIPs Makefile used in ELSI.
-# Feb 3, 2018
+# Feb 9, 2018
 
-.PHONY: all clean install
+.PHONY: all install
 
 all: m_qetsc.o
 
-m_qetsc.o: m_qetsc.F90
+m_qetsc.o: $(SIPS_DIR)/src/m_qetsc.F90
 	$(MPIFC) $(FFLAGS_S) $(SLEPC_INC) $(PETSC_INC) -c $<
-
-clean:
-	rm -f *.o *.mod *.a
 
 libqetsc.a: m_qetsc.o
 	$(ARCHIVE) $(ARCHIVEFLAGS) $@ m_qetsc.o
 	$(RANLIB) $@
 
 install: libqetsc.a
-	cp *.a $(LIB_DIR)
-	cp *.mod $(INC_DIR)
+	cp $(BUILD_DIR)/SIPS/*.a $(LIB_DIR)
+	cp $(BUILD_DIR)/SIPS/*.mod $(INC_DIR)

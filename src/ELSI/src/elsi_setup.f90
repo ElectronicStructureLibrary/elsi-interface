@@ -33,8 +33,8 @@ module ELSI_SETUP
    use ELSI_CHESS,         only: elsi_set_chess_default
    use ELSI_CONSTANTS,     only: ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,&
                                  CHESS_SOLVER,SIPS_SOLVER,DMP_SOLVER,&
-                                 SINGLE_PROC,MULTI_PROC,HUMAN_READ,JSON,&
-                                 SOLVER_TIMINGS_UNIT_DEFAULT,&
+                                 SINGLE_PROC,MULTI_PROC,PEXSI_CSC,SIESTA_CSC,&
+                                 HUMAN_READ,JSON,SOLVER_TIMINGS_UNIT_DEFAULT,&
                                  SOLVER_TIMINGS_FILE_DEFAULT
    use ELSI_DATATYPE,      only: elsi_handle
    use ELSI_DMP,           only: elsi_set_dmp_default
@@ -88,7 +88,7 @@ subroutine elsi_init(e_h,solver,parallel_mode,matrix_format,n_basis,n_electron,&
    type(elsi_handle), intent(out) :: e_h           !< Handle
    integer(kind=i4),  intent(in)  :: solver        !< AUTO,ELPA,LIBOMM,PEXSI,CHESS,SIPS,DMP
    integer(kind=i4),  intent(in)  :: parallel_mode !< SINGLE_PROC,MULTI_PROC
-   integer(kind=i4),  intent(in)  :: matrix_format !< BLACS_DENSE,PEXSI_CSC
+   integer(kind=i4),  intent(in)  :: matrix_format !< BLACS_DENSE,PEXSI_CSC,SIESTA_CSC
    integer(kind=i4),  intent(in)  :: n_basis       !< Number of basis functions
    real(kind=r8),     intent(in)  :: n_electron    !< Number of electrons
    integer(kind=i4),  intent(in)  :: n_state       !< Number of states
@@ -366,46 +366,50 @@ subroutine elsi_set_csc(e_h,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)
    e_h%nnz_l_sp  = nnz_l
    e_h%n_lcol_sp = n_lcol
 
-   if(e_h%solver == PEXSI_SOLVER) then
-      if(allocated(e_h%row_ind_pexsi)) then
-         call elsi_deallocate(e_h,e_h%row_ind_pexsi,"row_ind_pexsi")
+   select case(e_h%matrix_format)
+   case(PEXSI_CSC)
+      if(e_h%solver == PEXSI_SOLVER) then
+         if(allocated(e_h%row_ind_pexsi)) then
+            call elsi_deallocate(e_h,e_h%row_ind_pexsi,"row_ind_pexsi")
+         endif
+         if(allocated(e_h%col_ptr_pexsi)) then
+            call elsi_deallocate(e_h,e_h%col_ptr_pexsi,"col_ptr_pexsi")
+         endif
+
+         call elsi_allocate(e_h,e_h%row_ind_pexsi,nnz_l,"row_ind_pexsi",caller)
+         call elsi_allocate(e_h,e_h%col_ptr_pexsi,n_lcol+1,"col_ptr_pexsi",&
+                 caller)
+
+         e_h%row_ind_pexsi = row_ind
+         e_h%col_ptr_pexsi = col_ptr
+      else
+         if(allocated(e_h%row_ind_sips)) then
+            call elsi_deallocate(e_h,e_h%row_ind_sips,"row_ind_sips")
+         endif
+         if(allocated(e_h%col_ptr_sips)) then
+            call elsi_deallocate(e_h,e_h%col_ptr_sips,"col_ptr_sips")
+         endif
+
+         call elsi_allocate(e_h,e_h%row_ind_sips,nnz_l,"row_ind_sips",caller)
+         call elsi_allocate(e_h,e_h%col_ptr_sips,n_lcol+1,"col_ptr_sips",caller)
+
+         e_h%row_ind_sips = row_ind
+         e_h%col_ptr_sips = col_ptr
       endif
-      if(allocated(e_h%col_ptr_pexsi)) then
-         call elsi_deallocate(e_h,e_h%col_ptr_pexsi,"col_ptr_pexsi")
+   case(SIESTA_CSC)
+      if(allocated(e_h%row_ind_sp2)) then
+         call elsi_deallocate(e_h,e_h%row_ind_sp2,"row_ind_sp2")
+      endif
+      if(allocated(e_h%col_ptr_sp2)) then
+         call elsi_deallocate(e_h,e_h%col_ptr_sp2,"col_ptr_sp2")
       endif
 
-      call elsi_allocate(e_h,e_h%row_ind_pexsi,nnz_l,"row_ind_pexsi",caller)
-      call elsi_allocate(e_h,e_h%col_ptr_pexsi,n_lcol+1,"col_ptr_pexsi",caller)
+      call elsi_allocate(e_h,e_h%row_ind_sp2,nnz_l,"row_ind_sp2",caller)
+      call elsi_allocate(e_h,e_h%col_ptr_sp2,n_lcol+1,"col_ptr_sp2",caller)
 
-      e_h%row_ind_pexsi = row_ind
-      e_h%col_ptr_pexsi = col_ptr
-   elseif(e_h%solver == CHESS_SOLVER) then
-      if(allocated(e_h%row_ind_chess)) then
-         call elsi_deallocate(e_h,e_h%row_ind_chess,"row_ind_chess")
-      endif
-      if(allocated(e_h%col_ptr_chess)) then
-         call elsi_deallocate(e_h,e_h%col_ptr_chess,"col_ptr_chess")
-      endif
-
-      call elsi_allocate(e_h,e_h%row_ind_chess,nnz_l,"row_ind_chess",caller)
-      call elsi_allocate(e_h,e_h%col_ptr_chess,n_lcol+1,"col_ptr_chess",caller)
-
-      e_h%row_ind_chess = row_ind
-      e_h%col_ptr_chess = col_ptr
-   else
-      if(allocated(e_h%row_ind_sips)) then
-         call elsi_deallocate(e_h,e_h%row_ind_sips,"row_ind_sips")
-      endif
-      if(allocated(e_h%col_ptr_sips)) then
-         call elsi_deallocate(e_h,e_h%col_ptr_sips,"col_ptr_sips")
-      endif
-
-      call elsi_allocate(e_h,e_h%row_ind_sips,nnz_l,"row_ind_sips",caller)
-      call elsi_allocate(e_h,e_h%col_ptr_sips,nnz_l,"col_ptr_sips",caller)
-
-      e_h%row_ind_sips = row_ind
-      e_h%col_ptr_sips = col_ptr
-   endif
+      e_h%row_ind_sp2 = row_ind
+      e_h%col_ptr_sp2 = col_ptr
+   end select
 
    e_h%sparsity_ready = .true.
 
@@ -654,6 +658,12 @@ subroutine elsi_cleanup(e_h)
    endif
    if(allocated(e_h%loc_col)) then
       call elsi_deallocate(e_h,e_h%loc_col,"loc_col")
+   endif
+   if(allocated(e_h%row_ind_sp2)) then
+      call elsi_deallocate(e_h,e_h%row_ind_sp2,"row_ind_sp2")
+   endif
+   if(allocated(e_h%col_ptr_sp2)) then
+      call elsi_deallocate(e_h,e_h%col_ptr_sp2,"col_ptr_sp2")
    endif
    if(allocated(e_h%processor_name)) then
       deallocate(e_h%processor_name)

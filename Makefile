@@ -58,9 +58,10 @@ RANLIB       ?= ranlib
 # Default installation directories
 THIS_DIR   = $(shell pwd)
 ELSI_DIR   = $(THIS_DIR)/src/ELSI
-LIB_DIR    = $(THIS_DIR)/lib
-INC_DIR    = $(THIS_DIR)/include
-BUILD_DIR  = $(THIS_DIR)/build
+PREFIX    ?= $(THIS_DIR)
+LIB_DIR    = $(PREFIX)/lib
+INC_DIR    = $(PREFIX)/include
+BUILD_DIR ?= $(THIS_DIR)/build
 
 # Default external libraries
 ELPA_DIR  ?= $(THIS_DIR)/src/ELPA
@@ -142,7 +143,9 @@ elpa:
 	@echo ==========================
 	mkdir -p $(INC_DIR)
 	mkdir -p $(LIB_DIR)
-	cd $(ELPA_DIR) && $(MAKE) -f Makefile.elsi install
+	mkdir -p $(BUILD_DIR)
+	mkdir -p $(BUILD_DIR)/ELPA
+	cd $(BUILD_DIR)/ELPA && $(MAKE) -f $(ELPA_DIR)/Makefile.elsi install
 	@echo ===================
 	@echo = ELPA installed. =
 	@echo ===================
@@ -153,7 +156,9 @@ omm: $(ELPA_OMM)
 	@echo ============================
 	mkdir -p $(INC_DIR)
 	mkdir -p $(LIB_DIR)
-	cd $(OMM_DIR) && $(MAKE) -f Makefile.elsi install
+	mkdir -p $(BUILD_DIR)
+	mkdir -p $(BUILD_DIR)/OMM
+	cd $(BUILD_DIR)/OMM && $(MAKE) -f $(OMM_DIR)/Makefile.elsi install
 	@echo =====================
 	@echo = libOMM installed. =
 	@echo =====================
@@ -164,7 +169,9 @@ pexsi:
 	@echo ===========================
 	mkdir -p $(INC_DIR)
 	mkdir -p $(LIB_DIR)
-	cd $(PEXSI_DIR)/src && $(MAKE) -f Makefile.elsi install
+	mkdir -p $(BUILD_DIR)
+	mkdir -p $(BUILD_DIR)/PEXSI
+	cd $(BUILD_DIR)/PEXSI && $(MAKE) -f $(PEXSI_DIR)/Makefile.elsi install
 	@echo ====================
 	@echo = PEXSI installed. =
 	@echo ====================
@@ -175,7 +182,9 @@ sips:
 	@echo ==========================
 	mkdir -p $(INC_DIR)
 	mkdir -p $(LIB_DIR)
-	cd $(SIPS_DIR) && $(MAKE) -f Makefile.elsi install
+	mkdir -p $(BUILD_DIR)
+	mkdir -p $(BUILD_DIR)/SIPS
+	cd $(BUILD_DIR)/SIPS && $(MAKE) -f $(SIPS_DIR)/Makefile.elsi install
 	@echo ===================
 	@echo = SIPs installed. =
 	@echo ===================
@@ -187,13 +196,14 @@ elsi: $(ALL_OBJ)
 	mkdir -p $(INC_DIR)
 	mkdir -p $(LIB_DIR)
 	mkdir -p $(BUILD_DIR)
-	cd $(BUILD_DIR) && $(MAKE) -f $(ELSI_DIR)/Makefile.elsi
+	mkdir -p $(BUILD_DIR)/ELSI
+	cd $(BUILD_DIR)/ELSI && $(MAKE) -f $(ELSI_DIR)/Makefile.elsi
 	@echo ===============================
 	@echo = ELSI compiled successfully. =
 	@echo ===============================
 
 install:
-	cd $(BUILD_DIR) && $(MAKE) -f $(ELSI_DIR)/Makefile.elsi install
+	cd $(BUILD_DIR)/ELSI && $(MAKE) -f $(ELSI_DIR)/Makefile.elsi install
 	@echo ================================
 	@echo = ELSI installed successfully. =
 	@echo ================================
@@ -202,7 +212,7 @@ check:
 	@echo ========================================
 	@echo = Running ELSI Fortran test programs.. =
 	@echo ========================================
-	cd $(BUILD_DIR) && $(MAKE) -f $(ELSI_DIR)/Makefile.elsi check
+	cd $(BUILD_DIR)/ELSI && $(MAKE) -f $(ELSI_DIR)/Makefile.elsi check
 	@echo ========================================
 	@echo = ELSI Fortran test programs finished. =
 	@echo ========================================
@@ -211,14 +221,12 @@ checkc:
 	@echo ==================================
 	@echo = Running ELSI C test programs.. =
 	@echo ==================================
-	cd $(BUILD_DIR) && $(MAKE) -f $(ELSI_DIR)/Makefile.elsi checkc
+	cd $(BUILD_DIR)/ELSI && $(MAKE) -f $(ELSI_DIR)/Makefile.elsi checkc
 	@echo ==================================
 	@echo = ELSI C test programs finished. =
 	@echo ==================================
 
-clean: $(CLEAN_OBJ) cleanelsi
-
-cleanelsi:
+clean:
 	@echo ====================
 	@echo = Removing ELSI... =
 	@echo ====================
@@ -229,36 +237,32 @@ cleanelsi:
 	@echo = Done. =
 	@echo =========
 
+cleanelsi:
+	@echo ====================
+	@echo = Removing ELSI... =
+	@echo ====================
+	rm -rf $(BUILD_DIR)/ELSI
+
 cleanelpa:
 	@echo ====================
 	@echo = Removing ELPA... =
 	@echo ====================
-	rm -f $(ELPA_DIR)/*.o
-	rm -f $(ELPA_DIR)/*.mod
-	rm -f $(ELPA_DIR)/*.a
+	rm -rf $(BUILD_DIR)/ELPA
 
 cleanomm:
 	@echo ======================
 	@echo = Removing libOMM... =
 	@echo ======================
-	rm -f $(OMM_DIR)/*.o
-	rm -f $(OMM_DIR)/*.mod
-	rm -f $(OMM_DIR)/*.a
+	rm -rf $(BUILD_DIR)/OMM
 
 cleanpexsi:
 	@echo =====================
 	@echo = Removing PEXSI... =
 	@echo =====================
-	rm -f $(PEXSI_DIR)/src/*.o
-	rm -f $(PEXSI_DIR)/src/*.d
-	rm -f $(PEXSI_DIR)/src/*.d.*
-	rm -f $(PEXSI_DIR)/src/*.mod
-	rm -f $(PEXSI_DIR)/src/*.a
+	rm -rf $(BUILD_DIR)/PEXSI
 
 cleansips:
 	@echo ====================
 	@echo = Removing SIPs... =
 	@echo ====================
-	rm -f $(SIPS_DIR)/*.o
-	rm -f $(SIPS_DIR)/*.mod
-	rm -f $(SIPS_DIR)/*.a
+	rm -rf $(BUILD_DIR)/SIPS

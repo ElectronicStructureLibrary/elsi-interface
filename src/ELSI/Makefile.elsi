@@ -248,6 +248,7 @@ libelsi.a: $(SOURCES) $(STUBS)
 	$(RANLIB) $@
 
 .PHONY: check checkc clean install force
+
 force:
 
 check:
@@ -260,5 +261,5 @@ clean:
 	rm -f *.o *.mod *.x *.a *log*
 
 install:
-	cp $(BUILD_DIR)/*.a $(LIB_DIR)
-	cp $(BUILD_DIR)/*.mod $(INC_DIR)
+	cp $(BUILD_DIR)/ELSI/*.a $(LIB_DIR)
+	cp $(BUILD_DIR)/ELSI/*.mod $(INC_DIR)

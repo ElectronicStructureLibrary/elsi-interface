@@ -67,6 +67,7 @@ module ELSI
    public :: elsi_set_sing_tol
    public :: elsi_set_sing_stop
    public :: elsi_set_uplo
+   public :: elsi_set_csc_blk
    public :: elsi_set_elpa_solver
    public :: elsi_set_elpa_n_single
    public :: elsi_set_omm_flavor
@@ -105,6 +106,7 @@ module ELSI
    public :: elsi_set_mu_broaden_width
    public :: elsi_set_mu_tol
    public :: elsi_set_mu_spin_degen
+   public :: elsi_set_mu_mp_order
    public :: elsi_set_output_timings
    public :: elsi_set_timings_unit
    public :: elsi_set_timings_file
@@ -117,6 +119,7 @@ module ELSI
    public :: elsi_get_ovlp_sing
    public :: elsi_get_n_sing
    public :: elsi_get_mu
+   public :: elsi_get_entropy
    public :: elsi_get_edm_real
    public :: elsi_get_edm_complex
    public :: elsi_get_edm_real_sparse
@@ -133,6 +136,7 @@ module ELSI
    public :: elsi_dm_real_sparse
    public :: elsi_dm_complex_sparse
    public :: elsi_compute_mu_and_occ
+   public :: elsi_compute_entropy
 
    ! Reading and writing
    public :: elsi_init_rw

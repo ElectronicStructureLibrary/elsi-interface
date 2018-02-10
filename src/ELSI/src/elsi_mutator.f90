@@ -31,7 +31,7 @@
 module ELSI_MUTATOR
 
    use ELSI_CONSTANTS, only: ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,CHESS_SOLVER,&
-                             SIPS_SOLVER,DMP_SOLVER
+                             SIPS_SOLVER,DMP_SOLVER,PEXSI_CSC,SIESTA_CSC
    use ELSI_DATATYPE,  only: elsi_handle
    use ELSI_ELPA,      only: elsi_compute_edm_elpa_real,&
                              elsi_compute_edm_elpa_cmplx
@@ -40,7 +40,9 @@ module ELSI_MUTATOR
    use ELSI_MATCONV,   only: elsi_pexsi_to_blacs_dm_real,&
                              elsi_pexsi_to_blacs_dm_cmplx,&
                              elsi_blacs_to_sips_dm_real,&
-                             elsi_blacs_to_sips_dm_cmplx
+                             elsi_blacs_to_sips_dm_cmplx,&
+                             elsi_blacs_to_siesta_dm_real,&
+                             elsi_blacs_to_siesta_dm_cmplx
    use ELSI_MPI,       only: elsi_stop
    use ELSI_OMM,       only: elsi_compute_edm_omm_real,&
                              elsi_compute_edm_omm_cmplx
@@ -62,6 +64,7 @@ module ELSI_MUTATOR
    public :: elsi_set_sing_tol
    public :: elsi_set_sing_stop
    public :: elsi_set_uplo
+   public :: elsi_set_csc_blk
    public :: elsi_set_elpa_solver
    public :: elsi_set_elpa_n_single
    public :: elsi_set_omm_flavor
@@ -100,6 +103,7 @@ module ELSI_MUTATOR
    public :: elsi_set_mu_broaden_width
    public :: elsi_set_mu_tol
    public :: elsi_set_mu_spin_degen
+   public :: elsi_set_mu_mp_order
    public :: elsi_set_output_timings
    public :: elsi_set_timings_unit
    public :: elsi_set_timings_file
@@ -112,6 +116,7 @@ module ELSI_MUTATOR
    public :: elsi_get_ovlp_sing
    public :: elsi_get_n_sing
    public :: elsi_get_mu
+   public :: elsi_get_entropy
    public :: elsi_get_edm_real
    public :: elsi_get_edm_complex
    public :: elsi_get_edm_real_sparse
@@ -332,6 +337,28 @@ subroutine elsi_set_uplo(e_h,uplo)
    endif
 
    e_h%uplo = uplo
+
+end subroutine
+
+!>
+!! This routine sets the block size in 1D block-cyclic distributed CSC format.
+!!
+subroutine elsi_set_csc_blk(e_h,blk)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h !< Handle
+   integer(kind=i4),  intent(in)    :: blk !< Block size
+
+   character(len=40), parameter :: caller = "elsi_set_csc_blk"
+
+   call elsi_check_handle(e_h,caller)
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
+
+   e_h%blk_sp2 = blk
 
 end subroutine
 
@@ -1240,6 +1267,28 @@ subroutine elsi_set_mu_spin_degen(e_h,spin_degen)
 end subroutine
 
 !>
+!! This routine sets the order of the Methfessel-Paxton broadening scheme.
+!!
+subroutine elsi_set_mu_mp_order(e_h,mp_order)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h      !< Handle
+   integer(kind=i4),  intent(in)    :: mp_order !< Order
+
+   character(len=40), parameter :: caller = "elsi_set_mu_mp_order"
+
+   call elsi_check_handle(e_h,caller)
+
+   if(e_h%handle_ready) then
+      e_h%handle_changed = .true.
+   endif
+
+   e_h%mp_order = mp_order
+
+end subroutine
+
+!>
 !! This routine sets whether the detailed solver timings file should be output.
 !!
 subroutine elsi_set_output_timings(e_h,output_timings)
@@ -1485,6 +1534,31 @@ subroutine elsi_get_mu(e_h,mu)
 end subroutine
 
 !>
+!! This routine gets the entropy.
+!!
+subroutine elsi_get_entropy(e_h,ts)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h !< Handle
+   real(kind=r8),     intent(out)   :: ts  !< Entropy
+
+   character(len=40), parameter :: caller = "elsi_get_entropy"
+
+   call elsi_check_handle(e_h,caller)
+
+   ts = e_h%ts
+
+   if(.not. e_h%ts_ready) then
+      call elsi_say(e_h,"  ATTENTION! The return value of ts may be 0, since"//&
+              " ts has not been computed.")
+   endif
+
+   e_h%ts_ready = .false.
+
+end subroutine
+
+!>
 !! This routine gets the energy-weighted density matrix.
 !!
 subroutine elsi_get_edm_real(e_h,edm)
@@ -1554,12 +1628,37 @@ subroutine elsi_get_edm_real_sparse(e_h,edm)
          call elsi_compute_edm_elpa_real(e_h,e_h%eval_elpa,e_h%evec_real_elpa,&
                  e_h%dm_real_elpa,tmp_real)
          call elsi_deallocate(e_h,tmp_real,"tmp_real")
-         call elsi_blacs_to_sips_dm_real(e_h,edm)
+
+         select case(e_h%matrix_format)
+         case(PEXSI_CSC)
+            call elsi_blacs_to_sips_dm_real(e_h,edm)
+         case(SIESTA_CSC)
+            call elsi_blacs_to_siesta_dm_real(e_h,edm)
+         case default
+            call elsi_stop(" Unsupported matrix format.",e_h,caller)
+         end select
       case(OMM_SOLVER)
          call elsi_compute_edm_omm_real(e_h,e_h%dm_real_elpa)
-         call elsi_blacs_to_sips_dm_real(e_h,edm)
+
+         select case(e_h%matrix_format)
+         case(PEXSI_CSC)
+            call elsi_blacs_to_sips_dm_real(e_h,edm)
+         case(SIESTA_CSC)
+            call elsi_blacs_to_siesta_dm_real(e_h,edm)
+         case default
+            call elsi_stop(" Unsupported matrix format.",e_h,caller)
+         end select
       case(PEXSI_SOLVER)
          call elsi_compute_edm_pexsi_real(e_h,edm)
+
+         select case(e_h%matrix_format)
+         case(PEXSI_CSC)
+            ! Nothing
+!         case(SIESTA_CSC)
+!            call elsi_pexsi_to_siesta_dm_real(e_h,edm)
+         case default
+            call elsi_stop(" Unsupported matrix format.",e_h,caller)
+         end select
       case(CHESS_SOLVER)
          call elsi_stop(" CHESS not yet implemented.",e_h,caller)
       case(SIPS_SOLVER)
@@ -1646,12 +1745,37 @@ subroutine elsi_get_edm_complex_sparse(e_h,edm)
          call elsi_compute_edm_elpa_cmplx(e_h,e_h%eval_elpa,&
                  e_h%evec_cmplx_elpa,e_h%dm_cmplx_elpa,tmp_cmplx)
          call elsi_deallocate(e_h,tmp_cmplx,"tmp_cmplx")
-         call elsi_blacs_to_sips_dm_cmplx(e_h,edm)
+
+         select case(e_h%matrix_format)
+         case(PEXSI_CSC)
+            call elsi_blacs_to_sips_dm_cmplx(e_h,edm)
+         case(SIESTA_CSC)
+            call elsi_blacs_to_siesta_dm_cmplx(e_h,edm)
+         case default
+            call elsi_stop(" Unsupported matrix format.",e_h,caller)
+         end select
       case(OMM_SOLVER)
          call elsi_compute_edm_omm_cmplx(e_h,e_h%dm_cmplx_elpa)
-         call elsi_blacs_to_sips_dm_cmplx(e_h,edm)
+
+         select case(e_h%matrix_format)
+         case(PEXSI_CSC)
+            call elsi_blacs_to_sips_dm_cmplx(e_h,edm)
+         case(SIESTA_CSC)
+            call elsi_blacs_to_siesta_dm_cmplx(e_h,edm)
+         case default
+            call elsi_stop(" Unsupported matrix format.",e_h,caller)
+         end select
       case(PEXSI_SOLVER)
          call elsi_compute_edm_pexsi_cmplx(e_h,edm)
+
+         select case(e_h%matrix_format)
+         case(PEXSI_CSC)
+            ! Nothing
+!         case(SIESTA_CSC)
+!            call elsi_pexsi_to_siesta_dm_cmplx(e_h,edm)
+         case default
+            call elsi_stop(" Unsupported matrix format.",e_h,caller)
+         end select
       case(CHESS_SOLVER)
          call elsi_stop(" CHESS not yet implemented.",e_h,caller)
       case(SIPS_SOLVER)

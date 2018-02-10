@@ -142,6 +142,8 @@ module ELSI_DATATYPE
       complex(kind=r8), allocatable :: ovlp_cmplx_copy(:,:)
       integer(kind=i4), allocatable :: loc_row(:)
       integer(kind=i4), allocatable :: loc_col(:)
+      integer(kind=i4), allocatable :: row_ind_sp2(:)
+      integer(kind=i4), allocatable :: col_ptr_sp2(:)
 
       ! Is this a valid handle?
       logical          :: handle_init    = .false.
@@ -156,7 +158,7 @@ module ELSI_DATATYPE
       ! data_type has been removed, as it is not a property of the handle
       ! (a given instance of the handle can solve real or complex problems)
 
-      ! Matrix format (BLACS_DENSE=0,PEXSI_CSC=1)
+      ! Matrix format (BLACS_DENSE=0,PEXSI_CSC=1,SIESTA_CSC=2)
       integer(kind=i4) :: matrix_format
 
       ! Is input matrix triangular? (FULL_MAT=0,UT_MAT=1,LT_MAT=2)
@@ -194,15 +196,20 @@ module ELSI_DATATYPE
       integer(kind=i4) :: my_pcol
       integer(kind=i4) :: n_lrow
       integer(kind=i4) :: n_lcol
+      integer(kind=i4) :: nnz_l ! Local number of nonzeros
       logical          :: blacs_ready
 
-      ! Sparse matrix information (aka PEXSI_CSC)
+      ! Sparse matrix information (1D block)
       integer(kind=i4) :: nnz_g     ! Global number of nonzeros
-      integer(kind=i4) :: nnz_l     ! Local number of nonzeros
       integer(kind=i4) :: nnz_l_sp  ! Local number of nonzeros
       integer(kind=i4) :: n_lcol_sp ! Local number of columns
       real(kind=r8)    :: zero_def
       logical          :: sparsity_ready
+
+      ! Sparse matrix information (1D block-cyclic)
+      integer(kind=i4) :: nnz_l_sp2  ! Local number of nonzeros
+      integer(kind=i4) :: n_lcol_sp2 ! Local number of columns
+      integer(kind=i4) :: blk_sp2
 
       ! Overlap
       logical          :: ovlp_is_unit
@@ -214,7 +221,6 @@ module ELSI_DATATYPE
 
       ! Physics
       real(kind=r8)    :: n_electrons
-      real(kind=r8)    :: mu
       integer(kind=i4) :: n_basis
       integer(kind=i4) :: n_spins
       integer(kind=i4) :: n_kpts
@@ -223,17 +229,21 @@ module ELSI_DATATYPE
       integer(kind=i4) :: i_spin
       integer(kind=i4) :: i_kpt
       real(kind=r8)    :: i_weight
+      real(kind=r8)    :: spin_degen
       real(kind=r8)    :: energy_hdm
       real(kind=r8)    :: energy_sedm
+      real(kind=r8)    :: mu
+      real(kind=r8)    :: ts ! Entropy
 
       ! Chemical potential
       integer(kind=i4) :: broaden_scheme
       real(kind=r8)    :: broaden_width
       real(kind=r8)    :: occ_tolerance
       integer(kind=i4) :: max_mu_steps
-      real(kind=r8)    :: spin_degen
+      integer(kind=i4) :: mp_order
       logical          :: spin_is_set
       logical          :: mu_ready
+      logical          :: ts_ready
       logical          :: edm_ready_real
       logical          :: edm_ready_cmplx
 
@@ -341,7 +351,7 @@ module ELSI_DATATYPE
       ! Parallel mode (SINGLE_PROC=0,MULTI_PROC=1)
       integer(kind=i4) :: parallel_mode
 
-      ! Matrix format (BLACS_DENSE=0,PEXSI_CSC=1)
+      ! Matrix format (BLACS_DENSE=0,PEXSI_CSC=1,SIESTA_CSC=2)
       integer(kind=i4) :: matrix_format
 
       ! Output

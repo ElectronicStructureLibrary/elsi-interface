@@ -33,7 +33,7 @@ module ELSI_IO
    use ELSI_CONSTANTS, only: UNSET,UNSET_STRING,HUMAN_READ,JSON,MULTI_PROC,&
                              SINGLE_PROC,ELPA_SOLVER,SIPS_SOLVER,OMM_SOLVER,&
                              PEXSI_SOLVER,CHESS_SOLVER,DMP_SOLVER,BLACS_DENSE,&
-                             PEXSI_CSC,COMMA_AFTER,NO_COMMA
+                             PEXSI_CSC,SIESTA_CSC,COMMA_AFTER,NO_COMMA
    use ELSI_DATATYPE,  only: elsi_handle,elsi_file_io_handle
    use ELSI_MPI,       only: elsi_stop
    use ELSI_PRECISION, only: r8,i4
@@ -62,7 +62,7 @@ module ELSI_IO
    public :: elsi_print_sips_settings
    public :: elsi_print_matrix_format_settings
    public :: elsi_print_blacs_dense_settings
-   public :: elsi_print_pexsi_csc_settings
+   public :: elsi_print_csc_settings
    public :: append_string
    public :: truncate_string
    public :: elsi_open_json_file
@@ -276,6 +276,8 @@ subroutine elsi_print_handle_summary(e_h,io_h_in)
          call elsi_say_setting(e_h,"Matrix format","BLACS_DENSE",io_h)
       elseif(e_h%matrix_format == PEXSI_CSC) then
          call elsi_say_setting(e_h,"Matrix format","PEXSI_CSC",io_h)
+      elseif(e_h%matrix_format == SIESTA_CSC) then
+         call elsi_say_setting(e_h,"Matrix format","SIESTA_CSC",io_h)
       endif
       call elsi_say_setting(e_h,"Number of basis functions",e_h%n_basis,io_h)
       if(e_h%parallel_mode == MULTI_PROC) then
@@ -329,6 +331,8 @@ subroutine elsi_print_handle_summary(e_h,io_h_in)
          call elsi_say_setting(e_h,"matrix_format","BLACS_DENSE",io_h)
       elseif(e_h%matrix_format == PEXSI_CSC) then
          call elsi_say_setting(e_h,"matrix_format","PEXSI_CSC",io_h)
+      elseif(e_h%matrix_format == SIESTA_CSC) then
+         call elsi_say_setting(e_h,"matrix_format","SIESTA_CSC",io_h)
       endif
       call elsi_say_setting(e_h,"n_basis",e_h%n_basis,io_h)
       if(e_h%parallel_mode == MULTI_PROC) then
@@ -971,14 +975,11 @@ subroutine elsi_print_matrix_format_settings(e_h,io_h_in)
       io_h = e_h%stdio
    endif
 
-   select case(e_h%matrix_format)
-   case(BLACS_DENSE)
+   if(e_h%matrix_format == BLACS_DENSE) then
       call elsi_print_blacs_dense_settings(e_h,io_h)
-   case(PEXSI_CSC)
-      call elsi_print_pexsi_csc_settings(e_h,io_h)
-   case default
-      call elsi_stop(" Unsupported matrix storage format.",e_h,caller)
-   end select
+   else
+      call elsi_print_csc_settings(e_h,io_h)
+   endif
 
 end subroutine
 
@@ -1042,9 +1043,9 @@ subroutine elsi_print_blacs_dense_settings(e_h,io_h_in)
 end subroutine
 
 !>
-!! This routine prints out settings for the PEXSI_CSC matrix storage format.
+!! This routine prints out settings for the CSC matrix storage format.
 !!
-subroutine elsi_print_pexsi_csc_settings(e_h,io_h_in)
+subroutine elsi_print_csc_settings(e_h,io_h_in)
 
    implicit none
 
@@ -1055,7 +1056,7 @@ subroutine elsi_print_pexsi_csc_settings(e_h,io_h_in)
    type(elsi_file_io_handle) :: io_h
    character(len=200)        :: info_str
 
-   character(len=40), parameter :: caller = "elsi_print_pexsi_csc_settings"
+   character(len=40), parameter :: caller = "elsi_print_csc_settings"
 
    if(present(io_h_in)) then
       io_h = io_h_in
@@ -1435,16 +1436,6 @@ subroutine truncate_string(l_string,n_chars_to_remove)
 
 end subroutine
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! Subroutines for streamlining the patterned output of JSON files with ELSI.   !
-! These subroutines create the relevant file IO handle and write the various   !
-! opening/closing brackets for the JSON arrays and records.  The actual        !
-! name/value pairs contained in the records are written by elsi_say_setting,   !
-! which is not included in this set of subroutines as it is also used for      !
-! human-readable output.                                                       !
-! These subroutines require the ELSI handle only to specify the MPI layout.    !
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 !>
 !! This routine generates a file IO handle for the JSON file and opens the file
 !!
@@ -1556,9 +1547,5 @@ subroutine elsi_finish_json_record(e_h,comma_after,io_h)
    endif
 
 end subroutine
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!                              End of JSON Code                                !
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 end module ELSI_IO
