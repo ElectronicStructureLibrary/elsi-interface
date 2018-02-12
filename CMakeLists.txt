@@ -70,6 +70,7 @@ set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 set(ARCHIVE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 
 find_package(MPI REQUIRED)
+#TODO Added elseif for the failure of finding mpi
 if(MPI_CXX_FOUND)
   message(STATUS "Found CXX MPI compiler: ${MPI_CXX_COMPILER}")
   include_directories(${MPI_CXX_INCLUDE_PATH})
