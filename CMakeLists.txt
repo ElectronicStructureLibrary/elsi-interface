@@ -15,6 +15,7 @@ set(pexsi_dir ${CMAKE_SOURCE_DIR}/src/PEXSI)
 set(sips_dir ${CMAKE_SOURCE_DIR}/src/SIPs)
 
 option(ENABLE_C_INTERFACE "Enable ELSI C interface" OFF)
+option(ENABLE_TESTS "Enable ELSI tests" OFF)
 option(ENABLE_PEXSI "Enable PEXSI" OFF)
 option(ENABLE_SIPS "Enable SIPs" OFF)
 option(ENABLE_ELPA_GPU "Use ELPA GPU" OFF)
@@ -148,3 +149,7 @@ else()
 endif()
 
 add_subdirectory(${elsi_dir})
+
+if(ENABLE_TESTS)
+  add_subdirectory(${elsi_dir}/test)
+endif()

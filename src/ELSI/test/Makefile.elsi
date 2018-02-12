@@ -95,7 +95,9 @@ test: elsi_test.x elsi_test_rw.x
 testc: elsi_test_c.x
 
 checkf: test
-	chmod u+x $(ELSI_DIR)/test/make_checkf.sh && $(ELSI_DIR)/test/make_checkf.sh
+	chmod u+x $(ELSI_DIR)/test/Fortran/make_checkf.sh
+	$(ELSI_DIR)/test/Fortran/make_checkf.sh
 
 checkc: testc
-	chmod u+x $(ELSI_DIR)/test/make_checkc.sh && $(ELSI_DIR)/test/make_checkc.sh
+	chmod u+x $(ELSI_DIR)/test/C/make_checkc.sh
+	$(ELSI_DIR)/test/C/make_checkc.sh
