@@ -234,20 +234,20 @@ install: $(INST_OBJ)
 test:
 	cd $(BUILD_DIR)/ELSI && $(MAKE) -f $(ELSI_DIR)/test/Makefile.elsi
 
-check:
+check: test
 	@echo ========================================
 	@echo = Running ELSI Fortran test programs.. =
 	@echo ========================================
-	cd $(BUILD_DIR)/ELSI && $(MAKE) -f $(ELSI_DIR)/Makefile.elsi check
+	cd $(BUILD_DIR)/ELSI && $(MAKE) -f $(ELSI_DIR)/test/Makefile.elsi checkf
 	@echo ========================================
 	@echo = ELSI Fortran test programs finished. =
 	@echo ========================================
 
-checkc:
+checkc: test
 	@echo ==================================
 	@echo = Running ELSI C test programs.. =
 	@echo ==================================
-	cd $(BUILD_DIR)/ELSI && $(MAKE) -f $(ELSI_DIR)/Makefile.elsi checkc
+	cd $(BUILD_DIR)/ELSI && $(MAKE) -f $(ELSI_DIR)/test/Makefile.elsi checkc
 	@echo ==================================
 	@echo = ELSI C test programs finished. =
 	@echo ==================================
