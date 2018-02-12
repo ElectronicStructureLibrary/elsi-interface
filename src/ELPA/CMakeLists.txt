@@ -24,7 +24,7 @@ list(APPEND elpa_src
   ${elpa_dir}/src/timer_dummy.f90
   )
 
-if(enable_elpa_avx512)
+if(ENABLE_ELPA_AVX512)
   list(APPEND elpa_src
     ${elpa_dir}/src/mod_compute_hh_trafo_real_avx512.f90
     ${elpa_dir}/src/mod_compute_hh_trafo_complex_avx512.f90
@@ -33,7 +33,7 @@ if(enable_elpa_avx512)
     ${elpa_dir}/src/elpa2_kernels_real_avx512_2hv.c
     ${elpa_dir}/src/elpa2_kernels_complex_avx512_1hv.c
     )
-elseif(enable_elpa_avx2)
+elseif(ENABLE_ELPA_AVX2)
   list(APPEND elpa_src
     ${elpa_dir}/src/mod_compute_hh_trafo_real_avx2.f90
     ${elpa_dir}/src/mod_compute_hh_trafo_complex_avx2.f90
@@ -42,7 +42,7 @@ elseif(enable_elpa_avx2)
     ${elpa_dir}/src/elpa2_kernels_real_avx2_2hv.c
     ${elpa_dir}/src/elpa2_kernels_complex_avx2_1hv.c
     )
-elseif(enable_elpa_avx)
+elseif(ENABLE_ELPA_AVX)
   list(APPEND elpa_src
     ${elpa_dir}/src/mod_compute_hh_trafo_real_avx.f90
     ${elpa_dir}/src/mod_compute_hh_trafo_complex_avx.f90
@@ -51,7 +51,7 @@ elseif(enable_elpa_avx)
     ${elpa_dir}/src/elpa2_kernels_real_avx_2hv.c
     ${elpa_dir}/src/elpa2_kernels_complex_avx_1hv.c
     )
-elseif(enable_elpa_bgq)
+elseif(ENABLE_ELPA_BGQ)
   list(APPEND elpa_src
     ${elpa_dir}/src/mod_compute_hh_trafo_bgq.f90
     ${elpa_dir}/src/mod_compute_hh_trafo_complex.f90
@@ -72,8 +72,5 @@ else()
 endif()
 
 add_library(elpa ${elpa_src})
-
-target_include_directories(elpa PUBLIC)
-target_compile_options(elpa PUBLIC)
 
 install(TARGETS elpa DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)

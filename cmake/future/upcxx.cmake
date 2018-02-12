@@ -1,5 +1,5 @@
 set(UPCXX_PREFIX $ENV{UPCXX_DIR})
-if (UPCXX_PREFIX)
+if(UPCXX_PREFIX)
   message("UPCXX has been provided, not compiling local version.")
 
   set(UPCXX_INCLUDE_DIR ${UPCXX_PREFIX}/include ${GASNET_INCLUDE_DIR} ${GASNET_CONDUIT_INCLUDE_DIR})
@@ -18,23 +18,23 @@ else()
   set(UPCXX_NAME upcxx)
   set(UPCXX_REPO https://bitbucket.org/upcxx/upcxx.git)
 
-  if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+  if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(UPCXX_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -g")
     ExternalProject_Add(${UPCXX_NAME}
-    DEPENDS ${GASNET_NAME}
-    GIT_REPOSITORY ${UPCXX_REPO}
-    UPDATE_COMMAND ""
-    INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}/external/upcxx_install
-    CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> --with-gasnet=${GASNET_CONDUIT} CC=${MPI_C_COMPILER} CXX=${MPI_CXX_COMPILER} CFLAGS=${CMAKE_C_FLAGS} CXXFLAGS=${UPCXX_CXX_FLAGS}
-    )
+      DEPENDS ${GASNET_NAME}
+      GIT_REPOSITORY ${UPCXX_REPO}
+      UPDATE_COMMAND ""
+      INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}/external/upcxx_install
+      CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> --with-gasnet=${GASNET_CONDUIT} CC=${MPI_C_COMPILER} CXX=${MPI_CXX_COMPILER} CFLAGS=${CMAKE_C_FLAGS} CXXFLAGS=${UPCXX_CXX_FLAGS}
+      )
   else()
     ExternalProject_Add(${UPCXX_NAME}
-    DEPENDS ${GASNET_NAME}
-    GIT_REPOSITORY ${UPCXX_REPO}
-    UPDATE_COMMAND ""
-    INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}/external/upcxx_install
-    CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> --with-gasnet=${GASNET_CONDUIT} CC=${MPI_C_COMPILER} CXX=${MPI_CXX_COMPILER} CFLAGS=${CMAKE_C_FLAGS} CXXFLAGS=${CMAKE_CXX_FLAGS}
-    )
+      DEPENDS ${GASNET_NAME}
+      GIT_REPOSITORY ${UPCXX_REPO}
+      UPDATE_COMMAND ""
+      INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}/external/upcxx_install
+      CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> --with-gasnet=${GASNET_CONDUIT} CC=${MPI_C_COMPILER} CXX=${MPI_CXX_COMPILER} CFLAGS=${CMAKE_C_FLAGS} CXXFLAGS=${CMAKE_CXX_FLAGS}
+      )
   endif()
 
   ExternalProject_Add_Step(${UPCXX_NAME} bootstrap

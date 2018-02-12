@@ -1,0 +1,68 @@
+================================================
+   ELSI - ELectronic Structure Infrastructure
+
+   Authors: ELSI team
+   Version: Development
+================================================
+
+============================================================================
+A) ABOUT ELSI
+============================================================================
+
+   ELSI provides and enhances open-source software packages which solve or
+   circumvent the Kohn-Sham eigenvalue problems in the self-consistent field
+   cycle of density-functional theory.
+
+   Visit the ELSI Interchange website for more information:
+
+     http://elsi-interchange.org
+
+   For questions, please email:
+
+     elsi-team@duke.edu
+
+============================================================================
+B) INSTALLATION OF ELSI
+============================================================================
+
+   The standard installation process of ELSI requires:
+
+   * A Fortran 2003 compiler
+   * A C compiler supporting the C99 standard
+   * A C++ compiler supporting the C++11 standard
+   * An MPI library
+   * LAPACK and ScaLAPACK
+   * PtScotch 6.0.4
+     (recommended, availabel at https//gforge.inria.fr/projects/scotch)
+     or ParMETIS 4.0.3
+     (available at http://glaros.dtc.umn.edu/gkhome/views/metis)
+   * SuperLU_DIST 5.1.3
+     (available at http://crd-legacy.lbl.gov/~xiaoye/SuperLU)
+
+   GNU, Intel, PGI, XL, and Cray compilers are supported.
+
+   The user specifies their system environment via flags set in a "make.sys"
+   file, which should be placed in the root directory of ELSI alongside the
+   Makefile.  Some example "make.sys" files that the user may adapt for
+   their own system environment are available in the "./make_sys" folder.
+
+   The compilation process is:
+
+   * make
+   * make check (optional)
+   * make install
+
+   Please refer to the "INSTALL" file for the complete installation process.
+
+============================================================================
+C) USAGE OF ELSI
+============================================================================
+
+   More information may be found in the User's Guide
+
+     ./src/ELSI/doc/elsi_manual.pdf
+
+   and on the ELSI GitLab wiki pages, which may be accessed via the ELSI
+   Interchange website.
+
+   Copyright (c) 2015-2018, the ELSI team.  All rights reserved.

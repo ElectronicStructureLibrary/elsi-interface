@@ -1,5 +1,5 @@
 set(GASNET_PREFIX $ENV{GASNET_DIR})
-if (GASNET_PREFIX)
+if(GASNET_PREFIX)
   message("GASNET has been provided, not compiling local version.")
   set(GASNET_INCLUDE_DIR ${GASNET_PREFIX}/include)
   set(GASNET_LIBRARY_PATH ${GASNET_PREFIX}/lib)
@@ -20,7 +20,6 @@ if (GASNET_PREFIX)
 
   add_library(gasnet STATIC IMPORTED)
 else()
-
   set(GASNET_NAME gasnet)
   set(GASNET_URL https://gasnet.lbl.gov/)
   set(GASNET_GZ  GASNet-1.26.3.tar.gz)
@@ -29,12 +28,11 @@ else()
 
   if(ENABLE_ARIES)
     ExternalProject_Add(${GASNET_NAME}
-    URL ${GASNET_URL}/${GASNET_GZ}
-    URL_MD5 ${GASNET_MD5}
-    INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}/external/gasnet_install
-    CONFIGURE_COMMAND <SOURCE_DIR>/configure --enable-pshm-hugetlbfs --enable-pshm-xpmem --enable-pshm --disable-pshm-posix --enable-aries --prefix=<INSTALL_DIR> CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} MPI_CC=${MPI_C_COMPILER} CFLAGS=${GASNET_CFLAGS} CXXFLAGS=${CMAKE_CXX_FLAGS}
-
-        )
+      URL ${GASNET_URL}/${GASNET_GZ}
+      URL_MD5 ${GASNET_MD5}
+      INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}/external/gasnet_install
+      CONFIGURE_COMMAND <SOURCE_DIR>/configure --enable-pshm-hugetlbfs --enable-pshm-xpmem --enable-pshm --disable-pshm-posix --enable-aries --prefix=<INSTALL_DIR> CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} MPI_CC=${MPI_C_COMPILER} CFLAGS=${GASNET_CFLAGS} CXXFLAGS=${CMAKE_CXX_FLAGS}
+      )
 
     set(GASNET_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/external/gasnet_install/include)
     set(GASNET_LIBRARY_PATH ${CMAKE_CURRENT_BINARY_DIR}/external/gasnet_install/lib)
@@ -47,21 +45,16 @@ else()
     set(GASNET_DEFINES ${GASNET_DEFINES} "-DGASNET_CONDUIT_ARIES -DGASNET_SEQ -DUSE_GASNET_FAST_SEGMENT -DONLY_MSPACES -DGASNET_ALLOW_OPTIMIZED_DEBUG")
     set_property(TARGET libgasnet-conduit PROPERTY IMPORTED_LOCATION ${install_dir}/lib/libgasnet-aries-seq.a)
 
-    if(APPLE)
-      SET(GASNET_LIBRARIES -lammpi ${MPI_CXX_LIBRARIES} -lpthread )
-    else()
-      SET(GASNET_LIBRARIES -lammpi ${MPI_CXX_LIBRARIES} -lpthread -lrt )
-    endif()
+    set(GASNET_LIBRARIES -lammpi ${MPI_CXX_LIBRARIES} -lpthread -lrt)
 
     add_dependencies(libgasnet-conduit ${GASNET_NAME})
-
   else()
     ExternalProject_Add(${GASNET_NAME}
-        URL ${GASNET_URL}/${GASNET_GZ}
-        URL_MD5 ${GASNET_MD5}
-        INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}/external/gasnet_install
-        CONFIGURE_COMMAND <SOURCE_DIR>/configure --disable-aligned-segments --prefix=<INSTALL_DIR> CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} MPI_CC=${MPI_C_COMPILER} CFLAGS=${GASNET_CFLAGS} CXXFLAGS=${CMAKE_CXX_FLAGS}
-        )
+      URL ${GASNET_URL}/${GASNET_GZ}
+      URL_MD5 ${GASNET_MD5}
+      INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}/external/gasnet_install
+      CONFIGURE_COMMAND <SOURCE_DIR>/configure --disable-aligned-segments --prefix=<INSTALL_DIR> CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} MPI_CC=${MPI_C_COMPILER} CFLAGS=${GASNET_CFLAGS} CXXFLAGS=${CMAKE_CXX_FLAGS}
+      )
 
     set(GASNET_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/external/gasnet_install/include)
     set(GASNET_LIBRARY_PATH ${CMAKE_CURRENT_BINARY_DIR}/external/gasnet_install/lib)
@@ -75,11 +68,7 @@ else()
     set_property(TARGET libgasnet-conduit PROPERTY IMPORTED_LOCATION ${install_dir}/lib/libgasnet-mpi-seq.a)
     set(GASNET_DEFINES ${GASNET_DEFINES} "-DGASNET_SEQ -DGASNETT_USE_GCC_ATTRIBUTE_MAYALIAS=1")
 
-    if(APPLE)
-      SET(GASNET_LIBRARIES -lammpi ${MPI_CXX_LIBRARIES} -lpthread )
-    else()
-      SET(GASNET_LIBRARIES -lammpi ${MPI_CXX_LIBRARIES} -lpthread -lrt )
-    endif()
+    set(GASNET_LIBRARIES -lammpi ${MPI_CXX_LIBRARIES} -lpthread -lrt)
 
     add_dependencies(libgasnet-conduit ${GASNET_NAME})
   endif()

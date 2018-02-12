@@ -1,0 +1,18 @@
+===================
+   ELSI May 2017
+===================
+
+   Initial release of ELSI
+
+   Solvers:
+   * ELPA   (version 2016.11.001.pre)
+   * libOMM (version 0.0.1)
+   * PEXSI  (version 0.10.2)
+
+   Matrix Storage Formats:
+   * 2D block-cyclic dense (BLACS format)
+   * 1D block compressed sparse column (PEXSI format)
+
+   Supported Programming Languages for Interfacing:
+   * Fortran 90 and later
+   * C/C++

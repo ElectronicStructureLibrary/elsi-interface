@@ -1,47 +1,36 @@
 find_path(SCOTCH_INCLUDE_DIR scotch.h
   HINTS ${SCOTCH_INCLUDE_DIR} ENV SCOTCH_INCLUDE_DIR ${SCOTCH_DIR} ENV SCOTCH_DIR
   PATH_SUFFIXES include
-  DOC "Directory where the scotch header files are located"
   )
 
 find_library(PTSCOTCH_LIBRARY
   NAMES ptscotch ptscotch${SCOTCH_LIB_SUFFIX}
   HINTS ${SCOTCH_LIB_DIR} ENV SCOTCH_LIB_DIR ${SCOTCH_DIR} ENV SCOTCH_DIR
   PATH_SUFFIXES lib
-  DOC "Directory where the ptscotch library is located"
   )
 
 find_library(SCOTCH_LIBRARY
   NAMES scotch scotch${SCOTCH_LIB_SUFFIX}
   HINTS ${SCOTCH_LIB_DIR} ENV SCOTCH_LIB_DIR ${SCOTCH_DIR} ENV SCOTCH_DIR
   PATH_SUFFIXES lib
-  DOC "Directory where the scotch library is located"
   )
 
 find_library(PTSCOTCHERR_LIBRARY
   NAMES ptscotcherr ptscotcherr${SCOTCH_LIB_SUFFIX}
   HINTS ${SCOTCH_LIB_DIR} ENV SCOTCH_LIB_DIR ${SCOTCH_DIR} ENV SCOTCH_DIR
   PATH_SUFFIXES lib
-  DOC "Directory where the ptscotcherr library is located"
   )
 
 find_library(SCOTCHERR_LIBRARY
   NAMES scotcherr scotcherr${SCOTCH_LIB_SUFFIX}
   HINTS ${SCOTCH_LIB_DIR} ENV SCOTCH_LIB_DIR ${SCOTCH_DIR} ENV SCOTCH_DIR
   PATH_SUFFIXES lib
-  DOC "Directory where the scotcherr library is located"
   )
 
-# Standard package handling
 include(FindPackageHandleStandardArgs)
-if(CMAKE_VERSION VERSION_GREATER 2.8.2)
-  find_package_handle_standard_args(SCOTCH
-        REQUIRED_VARS PTSCOTCH_LIBRARY SCOTCH_LIBRARY PTSCOTCHERR_LIBRARY SCOTCHERR_LIBRARY SCOTCH_INCLUDE_DIR)
 
-else()
-  find_package_handle_standard_args(SCOTCH
-        REQUIRED_VARS PTSCOTCH_LIBRARY SCOTCH_LIBRARY PTSCOTCHERR_LIBRARY SCOTCHERR_LIBRARY SCOTCH_INCLUDE_DIR)
-endif()
+find_package_handle_standard_args(SCOTCH
+  REQUIRED_VARS PTSCOTCH_LIBRARY SCOTCH_LIBRARY PTSCOTCHERR_LIBRARY SCOTCHERR_LIBRARY SCOTCH_INCLUDE_DIR)
 
 if(SCOTCH_FOUND)
   set(SCOTCH_LIBRARIES ${SCOTCH_LIBRARY} ${PTSCOTCH_LIBRARY} ${SCOTCHERR_LIBRARY} ${PTSCOTCHERR_LIBRARY})
