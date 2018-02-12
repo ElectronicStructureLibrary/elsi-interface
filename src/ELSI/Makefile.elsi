@@ -1,18 +1,3 @@
-TEST_PROGRAMS = test_dm_complex.x \
-                test_dm_complex_sparse.x \
-                test_dm_kpt_spin_complex.x \
-                test_dm_real.x \
-                test_dm_real_sparse.x \
-                test_ev_complex.x \
-                test_ev_complex_sparse.x \
-                test_ev_real.x \
-                test_ev_real_sparse.x \
-                test_rw_real.x \
-                test_rw_complex.x \
-                test_standard_ev_real.x
-
-TEST_PROGRAMS += $(C_BINDING)
-
 SOURCES = elsi_c_interface.o \
           elsi_c2f.o \
           elsi_chess.o \
@@ -41,116 +26,14 @@ SOURCES = elsi_c_interface.o \
 
 SOURCES += $(ELSI_ELPA)
 
-all: libelsi.a $(TEST_PROGRAMS)
-
-test_dm_complex.x: test_dm_complex.o libelsi.a
-	$(FLINKER) $(LDFLAGS) $(FLDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
-
-test_dm_complex_sparse.x: test_dm_complex_sparse.o libelsi.a
-	$(FLINKER) $(LDFLAGS) $(FLDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
-
-test_dm_kpt_spin_complex.x: test_dm_kpt_spin_complex.o libelsi.a
-	$(FLINKER) $(LDFLAGS) $(FLDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
-
-test_dm_real.x: test_dm_real.o libelsi.a
-	$(FLINKER) $(LDFLAGS) $(FLDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
-
-test_dm_real_sparse.x: test_dm_real_sparse.o libelsi.a
-	$(FLINKER) $(LDFLAGS) $(FLDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
-
-test_ev_complex.x: test_ev_complex.o libelsi.a
-	$(FLINKER) $(LDFLAGS) $(FLDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
-
-test_ev_complex_sparse.x: test_ev_complex_sparse.o libelsi.a
-	$(FLINKER) $(LDFLAGS) $(FLDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
-
-test_ev_real.x: test_ev_real.o libelsi.a
-	$(FLINKER) $(LDFLAGS) $(FLDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
-
-test_ev_real_sparse.x: test_ev_real_sparse.o libelsi.a
-	$(FLINKER) $(LDFLAGS) $(FLDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
-
-test_standard_ev_real.x: test_standard_ev_real.o libelsi.a
-	$(FLINKER) $(LDFLAGS) $(FLDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
-
-test_rw_complex.x: test_rw_complex.o libelsi.a
-	$(FLINKER) $(LDFLAGS) $(FLDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
-
-test_rw_real.x: test_rw_real.o libelsi.a
-	$(FLINKER) $(LDFLAGS) $(FLDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
-
-test_dm_complex_c.x: test_dm_complex_c.o elsi_c_interface.o elsi_c2f.o libelsi.a
-	$(CLINKER) $(LDFLAGS) $(CLDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
-
-test_dm_real_c.x: test_dm_real_c.o elsi_c_interface.o elsi_c2f.o libelsi.a
-	$(CLINKER) $(LDFLAGS) $(CLDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
-
-test_ev_complex_c.x: test_ev_complex_c.o elsi_c_interface.o elsi_c2f.o libelsi.a
-	$(CLINKER) $(LDFLAGS) $(CLDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
-
-test_ev_real_c.x: test_ev_real_c.o elsi_c_interface.o elsi_c2f.o libelsi.a
-	$(CLINKER) $(LDFLAGS) $(CLDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
-
-test_standard_ev_real_c.x: test_standard_ev_real_c.o elsi_c_interface.o elsi_c2f.o libelsi.a
-	$(CLINKER) $(LDFLAGS) $(CLDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
-
-test_dm_complex.o: $(ELSI_DIR)/test/test_dm_complex.f90 elsi_interface.o elsi_precision.o
-	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
-
-test_dm_complex_sparse.o: $(ELSI_DIR)/test/test_dm_complex_sparse.f90 elsi_interface.o elsi_precision.o
-	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
-
-test_dm_kpt_spin_complex.o: $(ELSI_DIR)/test/test_dm_kpt_spin_complex.f90 elsi_interface.o elsi_precision.o
-	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
-
-test_dm_real.o: $(ELSI_DIR)/test/test_dm_real.f90 elsi_interface.o elsi_precision.o
-	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
-
-test_dm_real_sparse.o: $(ELSI_DIR)/test/test_dm_real_sparse.f90 elsi_interface.o elsi_precision.o
-	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
-
-test_ev_complex.o: $(ELSI_DIR)/test/test_ev_complex.f90 elsi_interface.o elsi_precision.o
-	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
-
-test_ev_complex_sparse.o: $(ELSI_DIR)/test/test_ev_complex_sparse.f90 elsi_interface.o elsi_precision.o
-	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
-
-test_ev_real.o: $(ELSI_DIR)/test/test_ev_real.f90 elsi_interface.o elsi_precision.o
-	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
-
-test_ev_real_sparse.o: $(ELSI_DIR)/test/test_ev_real_sparse.f90 elsi_interface.o elsi_precision.o
-	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
-
-test_standard_ev_real.o: $(ELSI_DIR)/test/test_standard_ev_real.f90 elsi_interface.o elsi_precision.o
-	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
-
-test_rw_complex.o: $(ELSI_DIR)/test/test_rw_complex.f90 elsi_interface.o elsi_precision.o
-	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
-
-test_rw_real.o: $(ELSI_DIR)/test/test_rw_real.f90 elsi_interface.o elsi_precision.o
-	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
-
-test_dm_complex_c.o: $(ELSI_DIR)/test/test_dm_complex_c.c elsi_c_interface.o
-	$(MPICC) $(CFLAGS_I) $(INCS) -I$(ELSI_DIR)/c_binding -c $<
-
-test_dm_real_c.o: $(ELSI_DIR)/test/test_dm_real_c.c elsi_c_interface.o
-	$(MPICC) $(CFLAGS_I) $(INCS) -I$(ELSI_DIR)/c_binding -c $<
-
-test_ev_complex_c.o: $(ELSI_DIR)/test/test_ev_complex_c.c elsi_c_interface.o
-	$(MPICC) $(CFLAGS_I) $(INCS) -I$(ELSI_DIR)/c_binding -c $<
-
-test_ev_real_c.o: $(ELSI_DIR)/test/test_ev_real_c.c elsi_c_interface.o
-	$(MPICC) $(CFLAGS_I) $(INCS) -I$(ELSI_DIR)/c_binding -c $<
-
-test_standard_ev_real_c.o: $(ELSI_DIR)/test/test_standard_ev_real_c.c elsi_c_interface.o
-	$(MPICC) $(CFLAGS_I) $(INCS) -I$(ELSI_DIR)/c_binding -c $<
+all: libelsi.a
 
 elsi_aeo.o: $(ELSI_DIR)/src/elsi_aeo.f90 elsi_constants.o elsi_datatype.o elsi_io.o elsi_malloc.o elsi_mpi.o elsi_mu.o elsi_precision.o elsi_timings.o elsi_utils.o
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
 elsi_c_interface.o: $(ELSI_DIR)/c_binding/elsi_c_interface.f90 elsi_interface.o elsi_c2f.o
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
-	cp $(ELSI_DIR)/c_binding/elsi.h $(INC_DIR)
+	cp $(ELSI_DIR)/c_binding/elsi.h $(BUILD_DIR)/ELSI
 
 elsi_c2f.o: $(ELSI_DIR)/c_binding/elsi_c2f.f90
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
@@ -247,19 +130,11 @@ libelsi.a: $(SOURCES) $(STUBS)
 	$(ARCHIVE) $(ARCHIVEFLAGS) $@ $(SOURCES) $(STUBS)
 	$(RANLIB) $@
 
-.PHONY: check checkc clean install force
+.PHONY: install force
 
 force:
-
-check:
-	chmod u+x $(ELSI_DIR)/make_checkf.sh && $(ELSI_DIR)/make_checkf.sh
-
-checkc:
-	chmod u+x $(ELSI_DIR)/make_checkc.sh && $(ELSI_DIR)/make_checkc.sh
-
-clean:
-	rm -f *.o *.mod *.x *.a *log*
 
 install:
 	cp $(BUILD_DIR)/ELSI/*.a $(LIB_DIR)
 	cp $(BUILD_DIR)/ELSI/*.mod $(INC_DIR)
+	cp $(BUILD_DIR)/ELSI/*.h $(INC_DIR)

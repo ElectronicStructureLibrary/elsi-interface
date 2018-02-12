@@ -9,17 +9,17 @@ include make.sys
 
 # Pre-compiled external libraries
 ifneq ($(strip $(EXTERNAL_ELPA)),yes)
-  ALL_OBJ   += elpa
-  CLEAN_OBJ += cleanelpa
-  ELPA_OMM   = elpa
-  ELSI_ELPA  = elsi_elpa.o
+  ALL_OBJ  += elpa
+  INST_OBJ += installelpa
+  ELPA_OMM  = elpa
+  ELSI_ELPA = elsi_elpa.o
 else
   ELSI_ELPA = elsi_aeo.o
 endif
 
 ifneq ($(strip $(EXTERNAL_OMM)),yes)
-  ALL_OBJ   += omm
-  CLEAN_OBJ += cleanomm
+  ALL_OBJ  += omm
+  INST_OBJ += installomm
 endif
 
 ifeq ($(strip $(DISABLE_CXX)),yes)
@@ -28,8 +28,8 @@ endif
 
 ifneq ($(strip $(DISABLE_PEXSI)),yes)
   ifneq ($(strip $(EXTERNAL_PEXSI)),yes)
-    ALL_OBJ   += pexsi
-    CLEAN_OBJ += cleanpexsi
+    ALL_OBJ  += pexsi
+    INST_OBJ += installpexsi
   endif
 else
     $(info ====================================)
@@ -39,8 +39,8 @@ endif
 
 ifeq ($(strip $(ENABLE_SIPS)),yes)
   ifneq ($(strip $(EXTERNAL_SIPS)),yes)
-    ALL_OBJ   += sips
-    CLEAN_OBJ += cleansips
+    ALL_OBJ  += sips
+    INST_OBJ += installsips
   endif
 endif
 
@@ -57,24 +57,30 @@ RANLIB       ?= ranlib
 
 # Default installation directories
 THIS_DIR   = $(shell pwd)
-ELSI_DIR   = $(THIS_DIR)/src/ELSI
 PREFIX    ?= $(THIS_DIR)
 LIB_DIR    = $(PREFIX)/lib
 INC_DIR    = $(PREFIX)/include
 BUILD_DIR ?= $(THIS_DIR)/build
+ELSI_DIR   = $(THIS_DIR)/src/ELSI
+ELSI_LIB   = -L$(BUILD_DIR)/ELSI -lelsi
+ELSI_INC   = -I$(BUILD_DIR)/ELSI
 
 # Default external libraries
 ELPA_DIR  ?= $(THIS_DIR)/src/ELPA
-ELPA_LIB  ?= -L$(LIB_DIR) -lelpa
+ELPA_LIB  ?= -L$(BUILD_DIR)/ELPA -lelpa
+ELPA_INC  ?= -I$(BUILD_DIR)/ELPA
 OMM_DIR   ?= $(THIS_DIR)/src/libOMM
-OMM_LIB   ?= -L$(LIB_DIR) -lOMM -lMatrixSwitch
+OMM_LIB   ?= -L$(BUILD_DIR)/OMM -lOMM -lMatrixSwitch
+OMM_INC   ?= -I$(BUILD_DIR)/OMM
 PEXSI_DIR ?= $(THIS_DIR)/src/PEXSI
-PEXSI_LIB ?= -L$(LIB_DIR) -lpexsi
+PEXSI_LIB ?= -L$(BUILD_DIR)/PEXSI -lpexsi
 PEXSI_LIB += $(SUPERLU_LIB) $(ORDERING_LIB)
+PEXSI_INC ?= -I$(BUILD_DIR)/PEXSI
 SIPS_DIR  ?= $(THIS_DIR)/src/SIPs
-SIPS_LIB  ?= -L$(LIB_DIR) -lqetsc
+SIPS_LIB  ?= -L$(BUILD_DIR)/SIPS -lqetsc
 SIPS_LIB  += $(SLEPC_LIB) $(PETSC_LIB)
 SIPS_INC  += $(SLEPC_INC) $(PETSC_INC)
+SIPS_INC  += -I$(BUILD_DIR)/SIPS
 
 # Default compiler settings
 FFLAGS_I   ?= $(FFLAGS)
@@ -100,17 +106,13 @@ MPI_SIZE ?= 4
 # Create C interfaces
 C_INTERFACE ?= no
 ifeq ($(strip $(C_INTERFACE)),yes)
-  C_BINDING += test_dm_complex_c.x
-  C_BINDING += test_dm_real_c.x
-  C_BINDING += test_ev_complex_c.x
-  C_BINDING += test_ev_real_c.x
-  C_BINDING += test_standard_ev_real_c.x
+  C_BINDING += elsi_test_c.x
 endif
 
 export
 
-LIBS = $(OMM_LIB) $(ELPA_LIB)
-INCS = $(OMM_INC) $(ELPA_INC) -I$(INC_DIR)
+LIBS = $(ELSI_LIB) $(OMM_LIB) $(ELPA_LIB)
+INCS = $(ELSI_INC) $(OMM_INC) $(ELPA_INC)
 
 ifneq ($(strip $(DISABLE_PEXSI)),yes)
   LIBS += $(PEXSI_LIB)
@@ -133,7 +135,10 @@ else
   STUBS += stub_chess.o
 endif
 
-.PHONY: all elpa omm pexsi sips elsi install check checkc clean cleanelsi cleanelpa cleanomm cleanpexsi cleansips
+.PHONY: all elpa omm pexsi sips elsi \
+        install installelpa installomm installpexsi installsips \
+        clean cleanelsi cleanelpa cleanomm cleanpexsi cleansips \
+        check checkc
 
 all: $(ALL_OBJ) elsi
 
@@ -145,7 +150,7 @@ elpa:
 	mkdir -p $(LIB_DIR)
 	mkdir -p $(BUILD_DIR)
 	mkdir -p $(BUILD_DIR)/ELPA
-	cd $(BUILD_DIR)/ELPA && $(MAKE) -f $(ELPA_DIR)/Makefile.elsi install
+	cd $(BUILD_DIR)/ELPA && $(MAKE) -f $(ELPA_DIR)/Makefile.elsi
 	@echo ===================
 	@echo = ELPA installed. =
 	@echo ===================
@@ -158,7 +163,7 @@ omm: $(ELPA_OMM)
 	mkdir -p $(LIB_DIR)
 	mkdir -p $(BUILD_DIR)
 	mkdir -p $(BUILD_DIR)/OMM
-	cd $(BUILD_DIR)/OMM && $(MAKE) -f $(OMM_DIR)/Makefile.elsi install
+	cd $(BUILD_DIR)/OMM && $(MAKE) -f $(OMM_DIR)/Makefile.elsi
 	@echo =====================
 	@echo = libOMM installed. =
 	@echo =====================
@@ -171,7 +176,7 @@ pexsi:
 	mkdir -p $(LIB_DIR)
 	mkdir -p $(BUILD_DIR)
 	mkdir -p $(BUILD_DIR)/PEXSI
-	cd $(BUILD_DIR)/PEXSI && $(MAKE) -f $(PEXSI_DIR)/Makefile.elsi install
+	cd $(BUILD_DIR)/PEXSI && $(MAKE) -f $(PEXSI_DIR)/Makefile.elsi
 	@echo ====================
 	@echo = PEXSI installed. =
 	@echo ====================
@@ -184,7 +189,7 @@ sips:
 	mkdir -p $(LIB_DIR)
 	mkdir -p $(BUILD_DIR)
 	mkdir -p $(BUILD_DIR)/SIPS
-	cd $(BUILD_DIR)/SIPS && $(MAKE) -f $(SIPS_DIR)/Makefile.elsi install
+	cd $(BUILD_DIR)/SIPS && $(MAKE) -f $(SIPS_DIR)/Makefile.elsi
 	@echo ===================
 	@echo = SIPs installed. =
 	@echo ===================
@@ -202,11 +207,32 @@ elsi: $(ALL_OBJ)
 	@echo = ELSI compiled successfully. =
 	@echo ===============================
 
-install:
-	cd $(BUILD_DIR)/ELSI && $(MAKE) -f $(ELSI_DIR)/Makefile.elsi install
+installelpa:
+	cp $(BUILD_DIR)/ELPA/*.mod $(INC_DIR)
+	cp $(BUILD_DIR)/ELPA/*.a $(LIB_DIR)
+
+installomm:
+	cp $(BUILD_DIR)/OMM/*.mod $(INC_DIR)
+	cp $(BUILD_DIR)/OMM/*.a $(LIB_DIR)
+
+installpexsi:
+	cp $(BUILD_DIR)/PEXSI/*.mod $(INC_DIR)
+	cp $(BUILD_DIR)/PEXSI/*.a $(LIB_DIR)
+
+installsips:
+	cp $(BUILD_DIR)/SIPS/*.mod $(INC_DIR)
+	cp $(BUILD_DIR)/SIPS/*.a $(LIB_DIR)
+
+install: $(INST_OBJ)
+	cp $(BUILD_DIR)/ELSI/*.mod $(INC_DIR)
+	cp $(BUILD_DIR)/ELSI/*.h $(INC_DIR)
+	cp $(BUILD_DIR)/ELSI/*.a $(LIB_DIR)
 	@echo ================================
 	@echo = ELSI installed successfully. =
 	@echo ================================
+
+test:
+	cd $(BUILD_DIR)/ELSI && $(MAKE) -f $(ELSI_DIR)/test/Makefile.elsi
 
 check:
 	@echo ========================================
@@ -233,9 +259,6 @@ clean:
 	rm -rf $(INC_DIR)
 	rm -rf $(LIB_DIR)
 	rm -rf $(BUILD_DIR)
-	@echo =========
-	@echo = Done. =
-	@echo =========
 
 cleanelsi:
 	@echo ====================

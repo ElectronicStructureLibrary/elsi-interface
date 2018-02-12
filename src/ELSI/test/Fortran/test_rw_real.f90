@@ -1,34 +1,13 @@
-! Copyright (c) 2015-2018, the ELSI team. All rights reserved.
+! Copyright (c) 2015-2018, the ELSI team.
+! All rights reserved.
 !
-! Redistribution and use in source and binary forms, with or without
-! modification, are permitted provided that the following conditions are met:
-!
-!  * Redistributions of source code must retain the above copyright notice,
-!    this list of conditions and the following disclaimer.
-!
-!  * Redistributions in binary form must reproduce the above copyright notice,
-!    this list of conditions and the following disclaimer in the documentation
-!    and/or other materials provided with the distribution.
-!
-!  * Neither the name of the "ELectronic Structure Infrastructure" project nor
-!    the names of its contributors may be used to endorse or promote products
-!    derived from this software without specific prior written permission.
-!
-! THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-! AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-! IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-! ARE DISCLAIMED. IN NO EVENT SHALL COPYRIGHT HOLDER BE LIABLE FOR ANY DIRECT,
-! INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-! BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-! DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
-! OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-! NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-! EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+! This file is part of ELSI and is distributed under the BSD 3-clause license,
+! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! This program tests reading and writing matrices.
+!! This subroutine tests reading and writing matrices.
 !!
-program test_rw_real
+subroutine test_rw_real(mpi_comm,h_file,s_file)
 
    use ELSI_PRECISION, only: r8,i4
    use ELSI
@@ -37,14 +16,14 @@ program test_rw_real
 
    include "mpif.h"
 
-   character(128) :: arg1 ! H file
-   character(128) :: arg2 ! S file
+   integer(kind=i4), intent(in) :: mpi_comm
+   character(*),     intent(in) :: h_file
+   character(*),     intent(in) :: s_file
 
    integer(kind=i4) :: n_proc
    integer(kind=i4) :: nprow
    integer(kind=i4) :: npcol
    integer(kind=i4) :: myid
-   integer(kind=i4) :: mpi_comm_global
    integer(kind=i4) :: mpierr
    integer(kind=i4) :: blk
    integer(kind=i4) :: blacs_ctxt
@@ -59,42 +38,24 @@ program test_rw_real
    real(kind=r8) :: t1
    real(kind=r8) :: t2
 
-   real(kind=r8),    allocatable :: ham(:,:)
-   real(kind=r8),    allocatable :: ham_save(:,:)
-   real(kind=r8),    allocatable :: ovlp(:,:)
-   real(kind=r8),    allocatable :: ovlp_save(:,:)
-   real(kind=r8),    allocatable :: ham_csc(:)
-   real(kind=r8),    allocatable :: ham_csc_save(:)
-   real(kind=r8),    allocatable :: ovlp_csc(:)
-   real(kind=r8),    allocatable :: ovlp_csc_save(:)
    integer(kind=i4), allocatable :: row_ind(:)
    integer(kind=i4), allocatable :: col_ptr(:)
+
+   real(kind=r8), allocatable :: ham(:,:)
+   real(kind=r8), allocatable :: ham_save(:,:)
+   real(kind=r8), allocatable :: ovlp(:,:)
+   real(kind=r8), allocatable :: ovlp_save(:,:)
+   real(kind=r8), allocatable :: ham_csc(:)
+   real(kind=r8), allocatable :: ham_csc_save(:)
+   real(kind=r8), allocatable :: ovlp_csc(:)
+   real(kind=r8), allocatable :: ovlp_csc_save(:)
 
    type(elsi_rw_handle) :: rw_h
 
    real(kind=r8), parameter :: tol = 1.0e-20_r8
 
-   ! Initialize MPI
-   call MPI_Init(mpierr)
-   mpi_comm_global = MPI_COMM_WORLD
-   call MPI_Comm_size(mpi_comm_global,n_proc,mpierr)
-   call MPI_Comm_rank(mpi_comm_global,myid,mpierr)
-
-   ! Read command line arguments
-   if(COMMAND_ARGUMENT_COUNT() == 2) then
-      call GET_COMMAND_ARGUMENT(1,arg1)
-      call GET_COMMAND_ARGUMENT(2,arg2)
-   else
-      if(myid == 0) then
-         write(*,'("  ################################################")')
-         write(*,'("  ##  Wrong number of command line arguments!!  ##")')
-         write(*,'("  ##  Arg#1: H matrix file.                     ##")')
-         write(*,'("  ##  Arg#2: S matrix file.                     ##")')
-         write(*,'("  ################################################")')
-         call MPI_Abort(mpi_comm_global,0,mpierr)
-         stop
-      endif
-   endif
+   call MPI_Comm_size(mpi_comm,n_proc,mpierr)
+   call MPI_Comm_rank(mpi_comm,myid,mpierr)
 
    if(myid == 0) then
       write(*,'("  ################################")')
@@ -118,7 +79,7 @@ program test_rw_real
    blk = 32
 
    ! Set up BLACS
-   blacs_ctxt = mpi_comm_global
+   blacs_ctxt = mpi_comm
    call BLACS_Gridinit(blacs_ctxt,'r',nprow,npcol)
 
    ! Read H and S matrices
@@ -128,11 +89,11 @@ program test_rw_real
    else
       ! Test MULTI_PROC mode
       call elsi_init_rw(rw_h,0,1,0,0.0_r8)
-      call elsi_set_rw_mpi(rw_h,mpi_comm_global)
+      call elsi_set_rw_mpi(rw_h,mpi_comm)
       call elsi_set_rw_blacs(rw_h,blacs_ctxt,blk)
    endif
 
-   call elsi_read_mat_dim(rw_h,arg1,n_electrons,matrix_size,l_rows,l_cols)
+   call elsi_read_mat_dim(rw_h,h_file,n_electrons,matrix_size,l_rows,l_cols)
 
    allocate(ham(l_rows,l_cols))
    allocate(ham_save(l_rows,l_cols))
@@ -141,8 +102,8 @@ program test_rw_real
 
    t1 = MPI_Wtime()
 
-   call elsi_read_mat_real(rw_h,arg1,ham)
-   call elsi_read_mat_real(rw_h,arg2,ovlp)
+   call elsi_read_mat_real(rw_h,h_file,ham)
+   call elsi_read_mat_real(rw_h,s_file,ovlp)
 
    call elsi_finalize_rw(rw_h)
 
@@ -163,7 +124,7 @@ program test_rw_real
    else
       ! Test MULTI_PROC mode
       call elsi_init_rw(rw_h,1,1,matrix_size,n_electrons)
-      call elsi_set_rw_mpi(rw_h,mpi_comm_global)
+      call elsi_set_rw_mpi(rw_h,mpi_comm)
       call elsi_set_rw_blacs(rw_h,blacs_ctxt,blk)
    endif
 
@@ -189,7 +150,7 @@ program test_rw_real
    else
       ! Test MULTI_PROC mode
       call elsi_init_rw(rw_h,0,1,0,0.0_r8)
-      call elsi_set_rw_mpi(rw_h,mpi_comm_global)
+      call elsi_set_rw_mpi(rw_h,mpi_comm)
       call elsi_set_rw_blacs(rw_h,blacs_ctxt,blk)
    endif
 
@@ -227,9 +188,9 @@ program test_rw_real
 
    ! Read H and S matrices
    call elsi_init_rw(rw_h,0,1,0,0.0_r8)
-   call elsi_set_rw_mpi(rw_h,mpi_comm_global)
+   call elsi_set_rw_mpi(rw_h,mpi_comm)
 
-   call elsi_read_mat_dim_sparse(rw_h,arg1,n_electrons,matrix_size,nnz_g,&
+   call elsi_read_mat_dim_sparse(rw_h,h_file,n_electrons,matrix_size,nnz_g,&
            nnz_l,l_cols)
 
    allocate(ham_csc(nnz_l))
@@ -241,8 +202,8 @@ program test_rw_real
 
    t1 = MPI_Wtime()
 
-   call elsi_read_mat_real_sparse(rw_h,arg1,row_ind,col_ptr,ham_csc)
-   call elsi_read_mat_real_sparse(rw_h,arg2,row_ind,col_ptr,ovlp_csc)
+   call elsi_read_mat_real_sparse(rw_h,h_file,row_ind,col_ptr,ham_csc)
+   call elsi_read_mat_real_sparse(rw_h,s_file,row_ind,col_ptr,ovlp_csc)
 
    call elsi_finalize_rw(rw_h)
 
@@ -259,7 +220,7 @@ program test_rw_real
 
    ! Test MULTI_PROC mode
    call elsi_init_rw(rw_h,1,1,matrix_size,n_electrons)
-   call elsi_set_rw_mpi(rw_h,mpi_comm_global)
+   call elsi_set_rw_mpi(rw_h,mpi_comm)
    call elsi_set_rw_csc(rw_h,nnz_g,nnz_l,l_cols)
 
    call elsi_write_mat_real_sparse(rw_h,"H_real.tmp",row_ind,col_ptr,ham_csc)
@@ -277,7 +238,7 @@ program test_rw_real
 
    ! Read H and S matrices
    call elsi_init_rw(rw_h,0,1,0,0.0_r8)
-   call elsi_set_rw_mpi(rw_h,mpi_comm_global)
+   call elsi_set_rw_mpi(rw_h,mpi_comm)
 
    call elsi_read_mat_dim_sparse(rw_h,"H_real.tmp",n_electrons,matrix_size,&
            nnz_g,nnz_l,l_cols)
@@ -316,6 +277,5 @@ program test_rw_real
 
    call BLACS_Gridexit(blacs_ctxt)
    call BLACS_Exit(1)
-   call MPI_Finalize(mpierr)
 
-end program
+end subroutine
