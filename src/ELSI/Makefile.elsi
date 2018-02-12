@@ -130,11 +130,6 @@ libelsi.a: $(SOURCES) $(STUBS)
 	$(ARCHIVE) $(ARCHIVEFLAGS) $@ $(SOURCES) $(STUBS)
 	$(RANLIB) $@
 
-.PHONY: install force
+.PHONY: all force
 
 force:
-
-install:
-	cp $(BUILD_DIR)/ELSI/*.a $(LIB_DIR)
-	cp $(BUILD_DIR)/ELSI/*.mod $(INC_DIR)
-	cp $(BUILD_DIR)/ELSI/*.h $(INC_DIR)
