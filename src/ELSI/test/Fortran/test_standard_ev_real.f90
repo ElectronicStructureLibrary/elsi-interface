@@ -1,29 +1,8 @@
-! Copyright (c) 2015-2018, the ELSI team. All rights reserved.
+! Copyright (c) 2015-2018, the ELSI team.
+! All rights reserved.
 !
-! Redistribution and use in source and binary forms, with or without
-! modification, are permitted provided that the following conditions are met:
-!
-!  * Redistributions of source code must retain the above copyright notice,
-!    this list of conditions and the following disclaimer.
-!
-!  * Redistributions in binary form must reproduce the above copyright notice,
-!    this list of conditions and the following disclaimer in the documentation
-!    and/or other materials provided with the distribution.
-!
-!  * Neither the name of the "ELectronic Structure Infrastructure" project nor
-!    the names of its contributors may be used to endorse or promote products
-!    derived from this software without specific prior written permission.
-!
-! THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-! AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-! IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-! ARE DISCLAIMED. IN NO EVENT SHALL COPYRIGHT HOLDER BE LIABLE FOR ANY DIRECT,
-! INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-! BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-! DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
-! OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-! NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-! EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+! This file is part of ELSI and is distributed under the BSD 3-clause license,
+! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
 !! This program tests elsi_ev_real.
@@ -41,8 +20,14 @@ program test_standard_ev_real
    character(128) :: arg2
    character(128) :: arg3
 
-   integer(kind=i4) :: n_proc,nprow,npcol,myid,myprow,mypcol
-   integer(kind=i4) :: mpi_comm_global,mpierr
+   integer(kind=i4) :: n_proc
+   integer(kind=i4) :: nprow
+   integer(kind=i4) :: npcol
+   integer(kind=i4) :: myid
+   integer(kind=i4) :: myprow
+   integer(kind=i4) :: mypcol
+   integer(kind=i4) :: mpi_comm
+   integer(kind=i4) :: mpierr
    integer(kind=i4) :: blk
    integer(kind=i4) :: blacs_ctxt
    integer(kind=i4) :: sc_desc(9)
@@ -50,22 +35,28 @@ program test_standard_ev_real
    integer(kind=i4) :: matrix_size
    integer(kind=i4) :: n_states
    integer(kind=i4) :: solver
-   integer(kind=i4) :: local_row,local_col,ldm
+   integer(kind=i4) :: local_row
+   integer(kind=i4) :: local_col
+   integer(kind=i4) :: ldm
    integer(kind=i4) :: n
    integer(kind=i4), allocatable :: seed(:)
    integer(kind=i4), external :: numroc
 
-   real(kind=r8) :: t1,t2
-   real(kind=r8), allocatable :: mat_a(:,:),mat_b(:,:),mat_tmp(:,:),evec(:,:)
+   real(kind=r8) :: t1
+   real(kind=r8) :: t2
+   real(kind=r8), allocatable :: mat_a(:,:)
+   real(kind=r8), allocatable :: mat_b(:,:)
+   real(kind=r8), allocatable :: mat_tmp(:,:)
+   real(kind=r8), allocatable :: evec(:,:)
    real(kind=r8), allocatable :: eval(:)
 
    type(elsi_handle) :: e_h
 
    ! Initialize MPI
    call MPI_Init(mpierr)
-   mpi_comm_global = MPI_COMM_WORLD
-   call MPI_Comm_size(mpi_comm_global,n_proc,mpierr)
-   call MPI_Comm_rank(mpi_comm_global,myid,mpierr)
+   mpi_comm = MPI_COMM_WORLD
+   call MPI_Comm_size(mpi_comm,n_proc,mpierr)
+   call MPI_Comm_rank(mpi_comm,myid,mpierr)
 
    ! Read command line arguments
    if(COMMAND_ARGUMENT_COUNT() == 3) then
@@ -93,7 +84,7 @@ program test_standard_ev_real
          write(*,'("  ##  Arg#3: Choice of solver.                  ##")')
          write(*,'("  ##         (ELPA = 1; SIPs = 5)               ##")')
          write(*,'("  ################################################")')
-         call MPI_Abort(mpi_comm_global,0,mpierr)
+         call MPI_Abort(mpi_comm,0,mpierr)
          stop
       endif
    endif
@@ -127,7 +118,7 @@ program test_standard_ev_real
    blk = 32
 
    ! Set up BLACS
-   blacs_ctxt = mpi_comm_global
+   blacs_ctxt = mpi_comm
 
    call BLACS_Gridinit(blacs_ctxt,'r',nprow,npcol)
    call BLACS_Gridinfo(blacs_ctxt,nprow,npcol,myprow,mypcol)
@@ -167,7 +158,7 @@ program test_standard_ev_real
 
    ! Initialize ELSI
    call elsi_init(e_h,solver,1,0,matrix_size,0.0_r8,n_states)
-   call elsi_set_mpi(e_h,mpi_comm_global)
+   call elsi_set_mpi(e_h,mpi_comm)
    call elsi_set_blacs(e_h,blacs_ctxt,blk)
 
    allocate(mat_b(1,1)) ! Dummy allocation
@@ -177,9 +168,6 @@ program test_standard_ev_real
    ! Customize ELSI
    call elsi_set_output(e_h,2)
    call elsi_set_unit_ovlp(e_h,1)
-   call elsi_set_output_timings(e_h,1)
-   call elsi_set_timings_file(e_h,"standard_ev_real.json")
-   call elsi_set_calling_code_name(e_h,"ELSI_TEST_SUITE")
 
    t1 = MPI_Wtime()
 

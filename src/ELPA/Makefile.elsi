@@ -1,0 +1,188 @@
+# ELPA Makefile used in ELSI.
+# Feb 9, 2018
+
+ifeq ($(strip $(XLF)),yes)
+  XLFPP = -WF,
+endif
+
+FFLAGS_E += -I$(ELPA_DIR)
+FPP += $(XLFPP)-DWITH_MPI $(XLFPP)-DUSE_ASSUMED_SIZE $(XLFPP)-DWITH_ONE_SPECIFIC_REAL_KERNEL $(XLFPP)-DWITH_ONE_SPECIFIC_COMPLEX_KERNEL
+
+ifeq ($(strip $(ELPA_GPU)),no)
+  ifeq ($(strip $(ELPA2_KERNEL)),GPU)
+    $(error ELPA_GPU must be yes to use ELPA2 GPU kernel.)
+  endif
+else
+  FPP += $(XLFPP)-DWITH_GPU_VERSION
+endif
+
+ifeq ($(strip $(ELPA2_KERNEL)),GPU)
+  FPP += $(XLFPP)-DWITH_REAL_GPU_KERNEL $(XLFPP)-DWITH_COMPLEX_GPU_KERNEL
+endif
+ifeq ($(strip $(ELPA2_KERNEL)),Generic)
+  ELPA2_KERNELS_O ?= elpa2_kernels_real.o elpa2_kernels_complex.o
+  FPP += $(XLFPP)-DWITH_REAL_GENERIC_KERNEL $(XLFPP)-DWITH_COMPLEX_GENERIC_KERNEL
+endif
+ifeq ($(strip $(ELPA2_KERNEL)),BGQ)
+  ELPA2_KERNELS_O ?= elpa2_kernels_real_bgq.o elpa2_kernels_complex.o
+  FPP += $(XLFPP)-DWITH_REAL_BGQ_KERNEL $(XLFPP)-DWITH_COMPLEX_GENERIC_KERNEL
+endif
+ifeq ($(strip $(ELPA2_KERNEL)),SSE)
+  ELPA2_KERNELS_O ?= elpa2_kernels_asm_x86_64_double.o
+  FPP += $(XLFPP)-DHAVE_SSE_ASSEMBLY $(XLFPP)-DWITH_REAL_SSE_ASSEMBLY_KERNEL $(XLFPP)-DWITH_COMPLEX_SSE_ASSEMBLY_KERNEL
+endif
+ifeq ($(strip $(ELPA2_KERNEL)),AVX)
+  ELPA2_KERNELS_O ?= elpa2_kernels_real_avx_avx2_2hv_double.o elpa2_kernels_complex_avx_avx2_1hv_double.o
+  FPP += $(XLFPP)-DHAVE_AVX $(XLFPP)-DWITH_REAL_AVX_BLOCK2_KERNEL $(XLFPP)-DWITH_COMPLEX_AVX_BLOCK1_KERNEL
+endif
+ifeq ($(strip $(ELPA2_KERNEL)),AVX2)
+  ELPA2_KERNELS_O ?= elpa2_kernels_real_avx_avx2_2hv_double.o elpa2_kernels_complex_avx_avx2_1hv_double.o
+  FPP += $(XLFPP)-DHAVE_AVX $(XLFPP)-DHAVE_AVX2 $(XLFPP)-DWITH_REAL_AVX2_BLOCK2_KERNEL $(XLFPP)-DWITH_COMPLEX_AVX2_BLOCK1_KERNEL
+endif
+ifeq ($(strip $(ELPA2_KERNEL)),AVX512)
+  ELPA2_KERNELS_O ?= elpa2_kernels_real_avx512_2hv_double.o elpa2_kernels_complex_avx512_1hv_double.o
+  FPP += $(XLFPP)-DHAVE_AVX512 $(XLFPP)-DWITH_REAL_AVX512_BLOCK2_KERNEL $(XLFPP)-DWITH_COMPLEX_AVX512_BLOCK1_KERNEL
+endif
+ifneq ($(strip $(ELPA2_KERNEL)),GPU)
+  ifeq ($(strip $(ELPA2_KERNELS_O)),)
+    $(error Invalid ELPA2_KERNEL.)
+  endif
+endif
+
+ifeq ($(strip $(ELPA_OMP)),yes)
+  $(error OpenMP: not yet available.)
+else
+  ifneq ($(strip $(ELPA_OMP)),no)
+    $(error Please set ELPA_OMP to yes/no.)
+  endif
+endif
+
+
+ALL_OBJECTS = $(ELPA2_KERNELS_O) aligned_mem.o check_for_gpu.o check_singularity.o elpa1_auxiliary.o elpa1_compute_private.o elpa1.o elpa1_utilities.o elpa2_compute.o elpa2.o elpa2_utilities.o elpa_pdgeqrf.o elpa_pdlarfb.o elpa_qrkernels.o elpa_utilities.o interface_c_kernel.o mod_compute_hh_trafo_complex.o mod_compute_hh_trafo_real.o mod_cuda.o mod_fortran_interfaces.o mod_mpi.o mod_pack_unpack_complex.o mod_pack_unpack_real_gpu.o mod_pack_unpack_real.o mod_precision.o mod_single_hh_trafo_real.o qr_utils.o timer_dummy.o
+GPU_OBJECTS = cudaFunctions.o cuUtils.o ev_tridi_band_gpu_c_v2.o
+
+ifeq ($(strip $(ELPA_GPU)),yes)
+  ALL_OBJECTS += $(GPU_OBJECTS)
+endif
+
+.PHONY: all
+
+all: libelpa.a
+
+elpa1.o: $(ELPA_DIR)/src/elpa1.F90 elpa_utilities.o elpa1_utilities.o elpa1_auxiliary.o elpa1_compute_private.o mod_mpi.o check_for_gpu.o mod_cuda.o
+	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
+
+elpa1_auxiliary.o: $(ELPA_DIR)/src/elpa1_auxiliary.F90 elpa_utilities.o elpa1_compute_private.o elpa_utilities.o mod_mpi.o mod_precision.o
+	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
+
+elpa1_compute_private.o: $(ELPA_DIR)/src/elpa1_compute_private.F90 mod_mpi.o elpa_utilities.o timer_dummy.o mod_cuda.o mod_precision.o
+	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
+
+elpa1_utilities.o: $(ELPA_DIR)/src/elpa1_utilities.F90 elpa_utilities.o mod_precision.o timer_dummy.o
+	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
+
+elpa2.o: $(ELPA_DIR)/src/elpa2.F90 elpa1.o elpa_utilities.o elpa2_utilities.o elpa1_compute_private.o elpa2_compute.o check_for_gpu.o mod_mpi.o mod_cuda.o
+	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
+
+check_singularity.o: $(ELPA_DIR)/src/check_singularity.F90 elpa2.o elpa1.o elpa_utilities.o elpa2_utilities.o elpa1_compute_private.o elpa2_compute.o check_for_gpu.o mod_mpi.o mod_cuda.o
+	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
+
+elpa2_compute.o: $(ELPA_DIR)/src/elpa2_compute.F90 aligned_mem.o mod_compute_hh_trafo_complex.o mod_compute_hh_trafo_real.o mod_pack_unpack_complex.o mod_pack_unpack_real.o mod_pack_unpack_real_gpu.o elpa_pdgeqrf.o elpa1.o elpa2_utilities.o elpa1_compute_private.o mod_mpi.o mod_precision.o elpa_utilities.o mod_cuda.o
+	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
+
+aligned_mem.o: $(ELPA_DIR)/src/aligned_mem.F90
+	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
+
+mod_compute_hh_trafo_complex.o: $(ELPA_DIR)/src/mod_compute_hh_trafo_complex.F90 mod_single_hh_trafo_real.o $(ELPA2_KERNELS_O) elpa2_utilities.o interface_c_kernel.o mod_cuda.o mod_fortran_interfaces.o mod_mpi.o mod_precision.o
+	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
+
+mod_compute_hh_trafo_real.o: $(ELPA_DIR)/src/mod_compute_hh_trafo_real.F90 mod_single_hh_trafo_real.o $(ELPA2_KERNELS_O) elpa2_utilities.o interface_c_kernel.o mod_cuda.o mod_fortran_interfaces.o mod_mpi.o mod_precision.o
+	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
+
+mod_fortran_interfaces.o: $(ELPA_DIR)/src/elpa2_kernels/mod_fortran_interfaces.F90
+	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
+
+mod_single_hh_trafo_real.o: $(ELPA_DIR)/src/elpa2_kernels/mod_single_hh_trafo_real.F90 mod_precision.o
+	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
+
+interface_c_kernel.o: $(ELPA_DIR)/src/interface_c_kernel.F90 mod_precision.o
+	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
+
+mod_cuda.o: $(ELPA_DIR)/src/mod_cuda.F90 mod_precision.o
+	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
+
+mod_pack_unpack_complex.o: $(ELPA_DIR)/src/mod_pack_unpack_complex.F90 mod_precision.o
+	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
+
+mod_pack_unpack_real.o: $(ELPA_DIR)/src/mod_pack_unpack_real.F90 mod_precision.o
+	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
+
+mod_pack_unpack_real_gpu.o: $(ELPA_DIR)/src/mod_pack_unpack_real_gpu.F90 interface_c_kernel.o mod_precision.o mod_cuda.o
+	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
+
+check_for_gpu.o: $(ELPA_DIR)/src/check_for_gpu.F90 mod_cuda.o mod_precision.o mod_mpi.o
+	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
+
+elpa2_kernels_real.o: $(ELPA_DIR)/src/elpa2_kernels/elpa2_kernels_real.F90 mod_precision.o
+	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
+
+elpa2_kernels_complex.o: $(ELPA_DIR)/src/elpa2_kernels/elpa2_kernels_complex.F90 mod_precision.o
+	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
+
+elpa2_kernels_complex_avx_avx2_1hv_double.o: $(ELPA_DIR)/src/elpa2_kernels/elpa2_kernels_complex_avx_avx2_1hv_double.c
+	$(MPICC) $(CFLAGS_E) $(FPP) -c $<
+
+elpa2_kernels_real_avx_avx2_2hv_double.o: $(ELPA_DIR)/src/elpa2_kernels/elpa2_kernels_real_avx_avx2_2hv_double.c
+	$(MPICC) $(CFLAGS_E) $(FPP) -c $<
+
+elpa2_kernels_complex_avx512_1hv_double.o: $(ELPA_DIR)/src/elpa2_kernels/elpa2_kernels_complex_avx512_1hv_double.c
+	$(MPICC) $(CFLAGS_E) $(FPP) -c $<
+
+elpa2_kernels_real_avx512_2hv_double.o: $(ELPA_DIR)/src/elpa2_kernels/elpa2_kernels_real_avx512_2hv_double.c
+	$(MPICC) $(CFLAGS_E) $(FPP) -c $<
+
+elpa2_kernels_asm_x86_64_double.o: $(ELPA_DIR)/src/elpa2_kernels/elpa2_kernels_asm_x86_64_double.s
+	$(MPIFC) $(FFLAGS_E) -c $<
+
+elpa2_kernels_real_bgq.o: $(ELPA_DIR)/src/elpa2_kernels/elpa2_kernels_real_bgq.f90 mod_precision.o mod_mpi.o
+	$(MPIFC) $(FFLAGS_E) -c $<
+
+elpa_utilities.o: $(ELPA_DIR)/src/elpa_utilities.F90 mod_precision.o
+	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
+
+elpa2_utilities.o: $(ELPA_DIR)/src/elpa2_utilities.F90 elpa_utilities.o mod_precision.o
+	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
+
+mod_precision.o: $(ELPA_DIR)/src/mod_precision.F90
+	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
+
+mod_mpi.o: $(ELPA_DIR)/src/mod_mpi.F90
+	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
+
+timer_dummy.o: $(ELPA_DIR)/src/timer_dummy.F90
+	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
+
+elpa_pdgeqrf.o: $(ELPA_DIR)/src/elpa_qr/elpa_pdgeqrf.F90 elpa_utilities.o elpa1_compute_private.o elpa_pdlarfb.o qr_utils.o mod_mpi.o mod_precision.o elpa1.o
+	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
+
+elpa_pdlarfb.o: $(ELPA_DIR)/src/elpa_qr/elpa_pdlarfb.F90 elpa1_compute_private.o qr_utils.o elpa1.o mod_precision.o mod_mpi.o
+	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
+
+qr_utils.o: $(ELPA_DIR)/src/elpa_qr/qr_utils.F90 elpa1_compute_private.o mod_precision.o elpa_utilities.o mod_mpi.o
+	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
+
+elpa_qrkernels.o: $(ELPA_DIR)/src/elpa_qr/elpa_qrkernels.F90 mod_precision.o
+	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
+
+cudaFunctions.o: $(ELPA_DIR)/src/cudaFunctions.cu
+	$(NVCC) $(NVCCFLAGS) $(FPP) $(CUDA_INC) -c $<
+
+cuUtils.o: $(ELPA_DIR)/src/cuUtils.cu
+	$(NVCC) $(NVCCFLAGS) $(FPP) $(CUDA_INC) -c $<
+
+ev_tridi_band_gpu_c_v2.o: $(ELPA_DIR)/src/ev_tridi_band_gpu_c_v2.cu
+	$(NVCC) $(NVCCFLAGS) $(FPP) $(CUDA_INC) -c $<
+
+libelpa.a: $(ALL_OBJECTS)
+	$(ARCHIVE) $(ARCHIVEFLAGS) $@ $(ALL_OBJECTS)
+	$(RANLIB) $@
