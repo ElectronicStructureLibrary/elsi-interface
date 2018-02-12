@@ -175,8 +175,6 @@ subroutine test_rw_real(mpi_comm,h_file,s_file)
    if(myid == 0) then
       if(err <= tol) then
          write(*,'("  Passed.")')
-      else
-         write(*,'("  Failed!!")')
       endif
       write(*,*)
    endif
@@ -262,8 +260,6 @@ subroutine test_rw_real(mpi_comm,h_file,s_file)
    if(myid == 0) then
       if(err <= tol) then
          write(*,'("  Passed.")')
-      else
-         write(*,'("  Failed!!")')
       endif
       write(*,*)
    endif

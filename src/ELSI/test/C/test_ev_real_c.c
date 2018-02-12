@@ -1,31 +1,8 @@
-/* Copyright (c) 2015-2018, the ELSI team. All rights reserved.
+/* Copyright (c) 2015-2018, the ELSI team.
+   All rights reserved.
 
- Redistribution and use in source and binary forms, with or without
- modification, are permitted provided that the following conditions are met:
-
-  * Redistributions of source code must retain the above copyright notice,
-    this list of conditions and the following disclaimer.
-
-  * Redistributions in binary form must reproduce the above copyright notice,
-    this list of conditions and the following disclaimer in the documentation
-    and/or other materials provided with the distribution.
-
-  * Neither the name of the "ELectronic Structure Infrastructure" project nor
-    the names of its contributors may be used to endorse or promote products
-    derived from this software without specific prior written permission.
-
- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- ARE DISCLAIMED. IN NO EVENT SHALL COPYRIGHT HOLDER BE LIABLE FOR ANY DIRECT,
- INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
- OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
- EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
-
-// This program tests elsi_ev_real.
+   This file is part of ELSI and is distributed under the BSD 3-clause license,
+   which may be found in the LICENSE file in the ELSI root directory. */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,40 +10,37 @@
 #include <mpi.h>
 #include <elsi.h>
 
-void main(int argc, char** argv) {
+void test_ev_real_c(int mpi_comm,
+                    int solver,
+                    char *h_file,
+                    char *s_file) {
 
    int n_proc,n_prow,n_pcol,myid;
    int mpierr;
    int blacs_ctxt;
    int blk,l_row,l_col,l_size;
    int n_basis,n_states;
-   int solver,format,parallel;
+   int format,parallel;
    int int_one,int_zero;
    int success;
    int tmp;
    int i;
 
-   MPI_Comm mpi_comm_global;
-
    double n_electrons;
    double *h,*s,*eval,*evec;
    double e_elpa,e_test,e_tol;
 
-   e_elpa = -2564.61963724048;
-   e_tol  = 0.00000001;
-
    elsi_handle    e_h;
    elsi_rw_handle rw_h;
 
-   // Set up MPI
-   MPI_Init(&argc,&argv);
-   mpi_comm_global = MPI_COMM_WORLD;
-   MPI_Comm_size(mpi_comm_global,&n_proc);
-   MPI_Comm_rank(mpi_comm_global,&myid);
+   e_elpa = -2564.61963724048;
+   e_tol  = 0.00000001;
+
+   MPI_Comm_size(mpi_comm,&n_proc);
+   MPI_Comm_rank(mpi_comm,&myid);
 
    // Parameters
    blk      = 16;
-   solver   = 1; // ELPA
    format   = 0; // BLACS_DENSE
    int_one  = 1;
    int_zero = 0;
@@ -80,16 +54,16 @@ void main(int argc, char** argv) {
    n_prow = n_proc/n_pcol;
 
    // Set up BLACS
-   blacs_ctxt = mpi_comm_global;
+   blacs_ctxt = mpi_comm;
    blacs_gridinit_(&blacs_ctxt,"R",&n_prow,&n_pcol);
 
    // Read H and S matrices
    c_elsi_init_rw(&rw_h,0,1,0,0.0);
-   c_elsi_set_rw_mpi(rw_h,mpi_comm_global);
+   c_elsi_set_rw_mpi(rw_h,mpi_comm);
    c_elsi_set_rw_blacs(rw_h,blacs_ctxt,blk);
    c_elsi_set_rw_output(rw_h,2);
 
-   c_elsi_read_mat_dim(rw_h,argv[2],&n_electrons,&n_basis,&l_row,&l_col);
+   c_elsi_read_mat_dim(rw_h,h_file,&n_electrons,&n_basis,&l_row,&l_col);
 
    l_size = l_row * l_col;
    h      = malloc(l_size * sizeof(double));
@@ -97,8 +71,8 @@ void main(int argc, char** argv) {
    evec   = malloc(l_size * sizeof(double));
    eval   = malloc(n_basis * sizeof(double));
 
-   c_elsi_read_mat_real(rw_h,argv[2],h);
-   c_elsi_read_mat_real(rw_h,argv[3],s);
+   c_elsi_read_mat_real(rw_h,h_file,h);
+   c_elsi_read_mat_real(rw_h,s_file,s);
 
    c_elsi_finalize_rw(rw_h);
 
@@ -114,7 +88,7 @@ void main(int argc, char** argv) {
        parallel = 1; // Test MULTI_PROC mode
 
        c_elsi_init(&e_h,solver,parallel,format,n_basis,n_electrons,n_states);
-       c_elsi_set_mpi(e_h,mpi_comm_global);
+       c_elsi_set_mpi(e_h,mpi_comm);
        c_elsi_set_blacs(e_h,blacs_ctxt,blk);
    }
 
@@ -136,9 +110,6 @@ void main(int argc, char** argv) {
        if (fabs(e_test-e_elpa) < e_tol) {
            printf("  Passed.\n");
        }
-       else {
-           printf("  Failed!!\n");
-       }
    }
 
    free(h);
@@ -147,8 +118,6 @@ void main(int argc, char** argv) {
    free(eval);
 
    blacs_gridexit_(&blacs_ctxt);
-   blacs_exit_(1);
-   MPI_Finalize();
 
    return;
 }

@@ -22,9 +22,6 @@ program elsi_test
    character(128) :: arg5 ! H file
    character(128) :: arg6 ! S file
 
-   integer(kind=i4) :: ev_dm
-   integer(kind=i4) :: real_cmplx
-   integer(kind=i4) :: den_sp
    integer(kind=i4) :: solver
    integer(kind=i4) :: myid
    integer(kind=i4) :: mpierr

@@ -266,8 +266,6 @@ program test_dm_kpt_spin_complex
       write(*,*)
       if(abs(e_test-e_ref) < e_tol) then
          write(*,'("  Passed.")')
-      else
-         write(*,'("  Failed!!")')
       endif
       write(*,*)
    endif

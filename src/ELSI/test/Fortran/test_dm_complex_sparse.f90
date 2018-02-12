@@ -222,8 +222,6 @@ subroutine test_dm_complex_sparse(mpi_comm,solver,h_file,s_file)
       write(*,*)
       if(abs(e_test-e_ref) < e_tol) then
          write(*,'("  Passed.")')
-      else
-         write(*,'("  Failed!!")')
       endif
       write(*,*)
    endif

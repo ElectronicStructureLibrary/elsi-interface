@@ -103,12 +103,6 @@ ELPA2_KERNEL ?= Generic
 MPI_EXEC ?= mpirun
 MPI_SIZE ?= 4
 
-# Create C interfaces
-C_INTERFACE ?= no
-ifeq ($(strip $(C_INTERFACE)),yes)
-  C_BINDING += elsi_test_c.x
-endif
-
 export
 
 LIBS = $(ELSI_LIB) $(OMM_LIB) $(ELPA_LIB)
@@ -136,9 +130,9 @@ else
 endif
 
 .PHONY: all elpa omm pexsi sips elsi \
-        install installelpa installomm installpexsi installsips \
+        create_dir install installelpa installomm installpexsi installsips \
         clean cleanelsi cleanelpa cleanomm cleanpexsi cleansips \
-        check checkc
+        test testc check checkc
 
 all: $(ALL_OBJ) elsi
 
@@ -146,8 +140,6 @@ elpa:
 	@echo ==========================
 	@echo = Start building ELPA... =
 	@echo ==========================
-	mkdir -p $(INC_DIR)
-	mkdir -p $(LIB_DIR)
 	mkdir -p $(BUILD_DIR)
 	mkdir -p $(BUILD_DIR)/ELPA
 	cd $(BUILD_DIR)/ELPA && $(MAKE) -f $(ELPA_DIR)/Makefile.elsi
@@ -159,8 +151,6 @@ omm: $(ELPA_OMM)
 	@echo ============================
 	@echo = Start building libOMM... =
 	@echo ============================
-	mkdir -p $(INC_DIR)
-	mkdir -p $(LIB_DIR)
 	mkdir -p $(BUILD_DIR)
 	mkdir -p $(BUILD_DIR)/OMM
 	cd $(BUILD_DIR)/OMM && $(MAKE) -f $(OMM_DIR)/Makefile.elsi
@@ -172,8 +162,6 @@ pexsi:
 	@echo ===========================
 	@echo = Start building PEXSI... =
 	@echo ===========================
-	mkdir -p $(INC_DIR)
-	mkdir -p $(LIB_DIR)
 	mkdir -p $(BUILD_DIR)
 	mkdir -p $(BUILD_DIR)/PEXSI
 	cd $(BUILD_DIR)/PEXSI && $(MAKE) -f $(PEXSI_DIR)/Makefile.elsi
@@ -185,8 +173,6 @@ sips:
 	@echo ==========================
 	@echo = Start building SIPs... =
 	@echo ==========================
-	mkdir -p $(INC_DIR)
-	mkdir -p $(LIB_DIR)
 	mkdir -p $(BUILD_DIR)
 	mkdir -p $(BUILD_DIR)/SIPS
 	cd $(BUILD_DIR)/SIPS && $(MAKE) -f $(SIPS_DIR)/Makefile.elsi
@@ -198,8 +184,6 @@ elsi: $(ALL_OBJ)
 	@echo ==========================
 	@echo = Start building ELSI... =
 	@echo ==========================
-	mkdir -p $(INC_DIR)
-	mkdir -p $(LIB_DIR)
 	mkdir -p $(BUILD_DIR)
 	mkdir -p $(BUILD_DIR)/ELSI
 	cd $(BUILD_DIR)/ELSI && $(MAKE) -f $(ELSI_DIR)/Makefile.elsi
@@ -207,23 +191,23 @@ elsi: $(ALL_OBJ)
 	@echo = ELSI compiled successfully. =
 	@echo ===============================
 
-installelpa:
+installelpa: create_dir
 	cp $(BUILD_DIR)/ELPA/*.mod $(INC_DIR)
 	cp $(BUILD_DIR)/ELPA/*.a $(LIB_DIR)
 
-installomm:
+installomm: create_dir
 	cp $(BUILD_DIR)/OMM/*.mod $(INC_DIR)
 	cp $(BUILD_DIR)/OMM/*.a $(LIB_DIR)
 
-installpexsi:
+installpexsi: create_dir
 	cp $(BUILD_DIR)/PEXSI/*.mod $(INC_DIR)
 	cp $(BUILD_DIR)/PEXSI/*.a $(LIB_DIR)
 
-installsips:
+installsips: create_dir
 	cp $(BUILD_DIR)/SIPS/*.mod $(INC_DIR)
 	cp $(BUILD_DIR)/SIPS/*.a $(LIB_DIR)
 
-install: $(INST_OBJ)
+install: create_dir $(INST_OBJ)
 	cp $(BUILD_DIR)/ELSI/*.mod $(INC_DIR)
 	cp $(BUILD_DIR)/ELSI/*.h $(INC_DIR)
 	cp $(BUILD_DIR)/ELSI/*.a $(LIB_DIR)
@@ -231,26 +215,39 @@ install: $(INST_OBJ)
 	@echo = ELSI installed successfully. =
 	@echo ================================
 
-test:
-	cd $(BUILD_DIR)/ELSI && $(MAKE) -f $(ELSI_DIR)/test/Makefile.elsi
+create_dir:
+	mkdir -p $(INC_DIR)
+	mkdir -p $(LIB_DIR)
 
-check: test
+test:
+	cd $(BUILD_DIR)/ELSI && $(MAKE) -f $(ELSI_DIR)/test/Makefile.elsi test
+	@echo =========
+	@echo = Done. =
+	@echo =========
+
+testc:
+	cd $(BUILD_DIR)/ELSI && $(MAKE) -f $(ELSI_DIR)/test/Makefile.elsi testc
+	@echo =========
+	@echo = Done. =
+	@echo =========
+
+check:
 	@echo ========================================
 	@echo = Running ELSI Fortran test programs.. =
 	@echo ========================================
 	cd $(BUILD_DIR)/ELSI && $(MAKE) -f $(ELSI_DIR)/test/Makefile.elsi checkf
-	@echo ========================================
-	@echo = ELSI Fortran test programs finished. =
-	@echo ========================================
+	@echo =========
+	@echo = Done. =
+	@echo =========
 
-checkc: test
+checkc:
 	@echo ==================================
 	@echo = Running ELSI C test programs.. =
 	@echo ==================================
 	cd $(BUILD_DIR)/ELSI && $(MAKE) -f $(ELSI_DIR)/test/Makefile.elsi checkc
-	@echo ==================================
-	@echo = ELSI C test programs finished. =
-	@echo ==================================
+	@echo =========
+	@echo = Done. =
+	@echo =========
 
 clean:
 	@echo ====================
@@ -259,6 +256,9 @@ clean:
 	rm -rf $(INC_DIR)
 	rm -rf $(LIB_DIR)
 	rm -rf $(BUILD_DIR)
+	@echo =========
+	@echo = Done. =
+	@echo =========
 
 cleanelsi:
 	@echo ====================
