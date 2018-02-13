@@ -1,0 +1,12 @@
+set(OMM_LIB $ENV{OMM_LIB})
+set(OMM_INC $ENV{OMM_INC})
+
+if(OMM_INC AND OMM_LIB)
+  message(STATUS "Using external libOMM")
+  message(STATUS "  OMM_LIB: ${OMM_LIB}")
+  message(STATUS "  OMM_INC: ${OMM_INC}")
+  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${OMM_INC}")
+  set(EXTERNAL_OMM True)
+else()
+  set(EXTERNAL_OMM False)
+endif()

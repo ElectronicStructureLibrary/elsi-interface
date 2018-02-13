@@ -50,11 +50,11 @@ endif()
 
 add_library(elsi ${elsi_src})
 
-if(INTERNAL_ELPA)
+if(NOT EXTERNAL_ELPA)
   add_dependencies(elsi elpa)
 endif()
 
-if(INTERNAL_OMM)
+if(NOT EXTERNAL_OMM)
   add_dependencies(elsi OMM)
 endif()
 

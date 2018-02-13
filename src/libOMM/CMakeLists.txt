@@ -22,7 +22,7 @@ add_library(MatrixSwitch ${ms_src})
 
 add_dependencies(OMM MatrixSwitch)
 
-if(INTERNAL_ELPA)
+if(NOT EXTERNAL_ELPA)
   add_dependencies(OMM elpa)
 endif()
 

@@ -25,6 +25,7 @@ list(APPEND elpa_src
   )
 
 if(ENABLE_ELPA_AVX512)
+  message(STATUS "Enabling ELPA AVX 512 kernel")
   list(APPEND elpa_src
     ${elpa_dir}/src/mod_compute_hh_trafo_real_avx512.f90
     ${elpa_dir}/src/mod_compute_hh_trafo_complex_avx512.f90
@@ -34,6 +35,7 @@ if(ENABLE_ELPA_AVX512)
     ${elpa_dir}/src/elpa2_kernels_complex_avx512_1hv.c
     )
 elseif(ENABLE_ELPA_AVX2)
+  message(STATUS "Enabling ELPA AVX 2 kernel")
   list(APPEND elpa_src
     ${elpa_dir}/src/mod_compute_hh_trafo_real_avx2.f90
     ${elpa_dir}/src/mod_compute_hh_trafo_complex_avx2.f90
@@ -43,6 +45,7 @@ elseif(ENABLE_ELPA_AVX2)
     ${elpa_dir}/src/elpa2_kernels_complex_avx2_1hv.c
     )
 elseif(ENABLE_ELPA_AVX)
+  message(STATUS "Enabling ELPA AVX kernel")
   list(APPEND elpa_src
     ${elpa_dir}/src/mod_compute_hh_trafo_real_avx.f90
     ${elpa_dir}/src/mod_compute_hh_trafo_complex_avx.f90
@@ -52,6 +55,7 @@ elseif(ENABLE_ELPA_AVX)
     ${elpa_dir}/src/elpa2_kernels_complex_avx_1hv.c
     )
 elseif(ENABLE_ELPA_BGQ)
+  message(STATUS "Enabling ELPA Blue Gene Q kernel")
   list(APPEND elpa_src
     ${elpa_dir}/src/mod_compute_hh_trafo_bgq.f90
     ${elpa_dir}/src/mod_compute_hh_trafo_complex.f90
@@ -61,6 +65,7 @@ elseif(ENABLE_ELPA_BGQ)
     ${elpa_dir}/src/elpa2_kernels_complex.f90
     )
 else()
+  message(STATUS "Using ELPA generic kernel")
   list(APPEND elpa_src
     ${elpa_dir}/src/mod_compute_hh_trafo_real.f90
     ${elpa_dir}/src/mod_compute_hh_trafo_complex.f90

@@ -1,0 +1,12 @@
+set(ELPA_LIB $ENV{ELPA_LIB})
+set(ELPA_INC $ENV{ELPA_INC})
+
+if(ELPA_INC AND ELPA_LIB)
+  message(STATUS "Using external ELPA")
+  message(STATUS "  ELPA_LIB: ${ELPA_LIB}")
+  message(STATUS "  ELPA_INC: ${ELPA_INC}")
+  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${ELPA_INC}")
+  set(EXTERNAL_ELPA True)
+else()
+  set(EXTERNAL_ELPA False)
+endif()
