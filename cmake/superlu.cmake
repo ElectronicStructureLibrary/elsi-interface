@@ -1,0 +1,12 @@
+set(SUPERLU_LIB $ENV{SUPERLU_LIB})
+set(SUPERLU_INC $ENV{SUPERLU_INC})
+
+if(SUPERLU_INC AND SUPERLU_LIB)
+  message(STATUS "Using external SuperLU_DIST")
+  message(STATUS "  SUPERLU_LIB: ${SUPERLU_LIB}")
+  message(STATUS "  SUPERLU_INC: ${SUPERLU_INC}")
+  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${SUPERLU_INC}")
+  set(EXTERNAL_SUPERLU True)
+else()
+  set(EXTERNAL_SUPERLU False)
+endif()
