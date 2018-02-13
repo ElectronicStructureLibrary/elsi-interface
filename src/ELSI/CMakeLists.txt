@@ -55,7 +55,7 @@ if(INTERNAL_ELPA)
 endif()
 
 if(INTERNAL_OMM)
-  add_dependencies(elsi omm)
+  add_dependencies(elsi OMM)
 endif()
 
 install(TARGETS elsi
@@ -64,5 +64,3 @@ install(DIRECTORY ${CMAKE_BINARY_DIR}/include
   DESTINATION ${CMAKE_INSTALL_PREFIX})
 install(FILES ${elsi_dir}/c_binding/elsi.h
   DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
-
-set(LIBS ${LIBS} elsi)

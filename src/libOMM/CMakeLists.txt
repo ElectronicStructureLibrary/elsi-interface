@@ -17,14 +17,14 @@ list(APPEND omm_src
   ${omm_dir}/libOMM/src/omm_callback.f90
   )
 
-add_library(omm ${omm_src})
+add_library(OMM ${omm_src})
 add_library(MatrixSwitch ${ms_src})
 
-add_dependencies(omm MatrixSwitch)
+add_dependencies(OMM MatrixSwitch)
 
 if(INTERNAL_ELPA)
-  add_dependencies(omm elpa)
+  add_dependencies(OMM elpa)
 endif()
 
 install(TARGETS MatrixSwitch DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
-install(TARGETS omm DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+install(TARGETS OMM DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)

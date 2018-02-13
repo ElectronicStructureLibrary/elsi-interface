@@ -49,8 +49,6 @@
 
 module ELPA_utilities
 
-  use localorb_io, only: use_unit
-
   implicit none
 
   private ! By default, all routines contained are private
@@ -63,6 +61,7 @@ module ELPA_utilities
   public :: least_common_multiple      ! Get least common multiple
 
   integer, parameter :: error_unit = 0
+  integer, parameter :: use_unit = 6
 
 !******
   contains

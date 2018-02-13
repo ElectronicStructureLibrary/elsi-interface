@@ -2719,7 +2719,7 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
         info = 0
 
         DO i = my_proc+1, na1, n_procs ! work distributed over all processors
-          call DLAED4_OWN(na1, i, d1, z1, delta, rho, s, info) ! s is not used!
+          call DLAED4(na1, i, d1, z1, delta, rho, s, info) ! s is not used!
           if (info/=0) then
 ! If DLAED4 fails (may happen especially for LAPACK versions before 3.2)
 ! use the more stable bisection algorithm in solve_secular_equation
