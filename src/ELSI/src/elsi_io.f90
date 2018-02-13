@@ -37,9 +37,6 @@ module ELSI_IO
    use ELSI_DATATYPE,  only: elsi_handle,elsi_file_io_handle
    use ELSI_MPI,       only: elsi_stop
    use ELSI_PRECISION, only: r8,i4
-   use ELSI_VERSION,   only: RELEASE_DATE,GIT_COMMIT,GIT_COMMIT_ABBREV,&
-                             GIT_COMMIT_WAS_MODIFIED,GIT_COMMIT_MSG_ABBREV,&
-                             SOURCE_HOSTNAME,SOURCE_DATETIME
 
    implicit none
 
@@ -380,9 +377,22 @@ subroutine elsi_print_versioning(e_h,io_h_in)
 
    integer(kind=i4)          :: comma_json_save
    type(elsi_file_io_handle) :: io_h
+   logical                   :: GIT_COMMIT_WAS_MODIFIED
+   character(len=10)         :: RELEASE_DATE
+   character(len=40)         :: GIT_COMMIT
+   character(len=7)          :: GIT_COMMIT_ABBREV
+   character(len=40)         :: GIT_COMMIT_MSG_ABBREV
+   character(len=40)         :: SOURCE_HOSTNAME
+   character(len=10)         :: SOURCE_LOCAL_DATE
+   character(len=8)          :: SOURCE_LOCAL_TIME
+   character(len=20)         :: SOURCE_DATETIME
    character(len=200)        :: info_str
 
    character(len=40), parameter :: caller = "elsi_print_versioning"
+
+   call elsi_version_info(RELEASE_DATE,GIT_COMMIT,GIT_COMMIT_ABBREV,&
+           GIT_COMMIT_WAS_MODIFIED,GIT_COMMIT_MSG_ABBREV,SOURCE_HOSTNAME,&
+           SOURCE_LOCAL_DATE,SOURCE_LOCAL_TIME,SOURCE_DATETIME)
 
    if(present(io_h_in)) then
       io_h = io_h_in
