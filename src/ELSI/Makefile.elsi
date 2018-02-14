@@ -56,7 +56,7 @@ elsi_elpa.o: $(ELSI_DIR)/src/elsi_elpa.f90 elsi_constants.o elsi_datatype.o elsi
 elsi_interface.o: $(ELSI_DIR)/src/elsi_interface.f90 elsi_datatype.o elsi_io.o elsi_matio.o elsi_mu.o elsi_mutator.o elsi_setup.o elsi_solver.o
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
-elsi_io.o: $(ELSI_DIR)/src/elsi_io.f90 elsi_constants.o elsi_datatype.o elsi_mpi.o elsi_precision.o elsi_version.o
+elsi_io.o: $(ELSI_DIR)/src/elsi_io.f90 elsi_constants.o elsi_datatype.o elsi_mpi.o elsi_precision.o
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
 elsi_lapack.o: $(ELSI_DIR)/src/elsi_lapack.f90 elsi_datatype.o elsi_io.o elsi_malloc.o elsi_mpi.o elsi_precision.o elsi_timings.o
@@ -107,12 +107,9 @@ elsi_timings.o: $(ELSI_DIR)/src/elsi_timings.f90 elsi_constants.o elsi_datatype.
 elsi_utils.o: $(ELSI_DIR)/src/elsi_utils.f90 elsi_constants.o elsi_datatype.o elsi_io.o elsi_mpi.o elsi_precision.o $(STUBS)
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
-# Every time we run the make process, we recreate the elsi_version module, which
-# contains information about the ELSI make process, by running a perl script.
-# The RELEASE_DATE environmental variable is set in the Makefile in the root
-# directory.
+# Generate elsi_version.f90 which contains subroutine elsi_version_inf0.
 $(ELSI_DIR)/src/elsi_version.f90: force
-	$(ELSI_DIR)/src/elsi_version_module_writer.pl $(RELEASE_DATE) >$@
+	$(ELSI_DIR)/src/elsi_version_writer.pl $(RELEASE_DATE) >$@
 
 elsi_version.o: $(ELSI_DIR)/src/elsi_version.f90
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
