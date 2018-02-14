@@ -674,7 +674,7 @@ subroutine elsi_cleanup(e_h)
       call deallocate_matrices(e_h%dm_chess)
       call deallocate_matrices(e_h%edm_chess)
       call deallocate_matrices(e_h%ovlp_inv_sqrt_chess(1))
-      call f_lib_finalize()
+      call f_lib_finalize_stub()
    endif
 
    ! Finalize SIPs

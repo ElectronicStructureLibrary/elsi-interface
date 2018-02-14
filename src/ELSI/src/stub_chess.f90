@@ -309,7 +309,7 @@ end subroutine
 
 end module
 
-subroutine f_lib_initialize()
+subroutine f_lib_initialize_stub()
 
    implicit none
 
@@ -319,7 +319,7 @@ subroutine f_lib_initialize()
 
 end subroutine
 
-subroutine f_lib_finalize()
+subroutine f_lib_finalize_stub()
 
    implicit none
 

@@ -54,7 +54,7 @@ subroutine elsi_init_chess(e_h)
 
    if(e_h%n_elsi_calls == 1) then
       ! Initialize f_lib
-      call f_lib_initialize()
+      call f_lib_initialize_stub()
 
       ! Initialize sparsematrix error handling and timing
       call sparsematrix_init_errors()
