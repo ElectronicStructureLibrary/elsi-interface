@@ -219,13 +219,13 @@ create_dir:
 	mkdir -p $(INC_DIR)
 	mkdir -p $(LIB_DIR)
 
-test:
+test: elsi
 	cd $(BUILD_DIR)/ELSI && $(MAKE) -f $(ELSI_DIR)/test/Makefile.elsi test
 	@echo =========
 	@echo = Done. =
 	@echo =========
 
-testc:
+testc: elsi
 	cd $(BUILD_DIR)/ELSI && $(MAKE) -f $(ELSI_DIR)/test/Makefile.elsi testc
 	@echo =========
 	@echo = Done. =
