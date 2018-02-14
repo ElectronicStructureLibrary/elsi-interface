@@ -9,8 +9,8 @@
 !!
 module ELSI_MU
 
-   use ELSI_CONSTANTS, only: GAUSSIAN,FERMI,METHFESSEL_PAXTON,CUBIC,SQRT_PI,&
-                             INVERT_SQRT_PI
+   use ELSI_CONSTANTS, only: GAUSSIAN,FERMI,METHFESSEL_PAXTON,COLD,CUBIC,&
+                             SQRT_PI,INVERT_SQRT_PI
    use ELSI_DATATYPE,  only: elsi_handle
    use ELSI_IO,        only: elsi_say
    use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
@@ -250,6 +250,21 @@ subroutine elsi_check_electrons(e_h,n_electron,n_state,n_spin,n_kpt,k_weights,&
                      (evals(i_state,i_spin,i_kpt)-mu_in+2*delta)*&
                      (evals(i_state,i_spin,i_kpt)-mu_in-delta)**2
                endif
+
+               diff_ne_out = diff_ne_out+occ_nums(i_state,i_spin,i_kpt)*&
+                                k_weights(i_kpt)
+            enddo
+         enddo
+      enddo
+   case(COLD)
+      do i_kpt = 1,n_kpt
+         do i_spin = 1,n_spin
+            do i_state = 1,n_state
+               arg = (evals(i_state,i_spin,i_kpt)-mu_in)*invert_width
+               arg = -arg-sqrt(0.5_r8)
+
+               occ_nums(i_state,i_spin,i_kpt) = (0.5_r8+erf(arg)*0.5_r8+&
+                  INVERT_SQRT_PI*sqrt(0.5_r8)*exp(-arg**2))*e_h%spin_degen
 
                diff_ne_out = diff_ne_out+occ_nums(i_state,i_spin,i_kpt)*&
                                 k_weights(i_kpt)
@@ -535,6 +550,19 @@ subroutine elsi_compute_entropy(e_h,n_state,n_spin,n_kpt,k_weights,evals,&
                   arg     = evals(i_state,i_spin,i_kpt)-mu
                   entropy = entropy+k_weights(i_kpt)*(((arg**2)-const)**2)
                endif
+            enddo
+         enddo
+      enddo
+   case(COLD)
+      pre = e_h%spin_degen*INVERT_SQRT_PI*sqrt(0.5_r8)*e_h%broaden_width
+
+      do i_kpt = 1,n_kpt
+         do i_spin = 1,n_spin
+            do i_state = 1,n_state
+               arg = (evals(i_state,i_spin,i_kpt)-mu)*invert_width
+               arg = -arg-sqrt(0.5_r8)
+
+               entropy = entropy-arg*exp(-arg**2)
             enddo
          enddo
       enddo
