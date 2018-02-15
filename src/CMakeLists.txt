@@ -1,3 +1,10 @@
+### Generate version info ###
+message(STATUS "Getting ELSI version")
+execute_process(COMMAND rm -f ${CMAKE_SOURCE_DIR}/src/elsi_version.f90)
+execute_process(COMMAND ${CMAKE_SOURCE_DIR}/src/elsi_version_writer.pl ${elsi_VERSION}
+  COMMAND tee ${CMAKE_SOURCE_DIR}/src/elsi_version.f90
+  OUTPUT_QUIET)
+
 ### Source files ###
 list(APPEND elsi_src
   elsi_c_interface.f90
