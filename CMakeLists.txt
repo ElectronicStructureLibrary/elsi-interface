@@ -1,4 +1,6 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
+
+### Project ###
 project(elsi
   VERSION 2018.02
   LANGUAGES Fortran C)
@@ -7,22 +9,25 @@ set(elsi_EMAIL "elsi-team@duke.edu")
 set(elsi_LICENSE "BSD-3")
 set(elsi_DESCRIPTION "Electronic Structure Infrastructure")
 
+### Installation paths ###
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
-set(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/include)
+set(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/modules)
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 set(ARCHIVE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
+if(NOT DEFINED CMAKE_INSTALL_INCLUDEDIR)
+  set(CMAKE_INSTALL_INCLUDEDIR "include" CACHE PATH "Location to install module and header files")
+endif()
+if(NOT DEFINED CMAKE_INSTALL_LIBDIR)
+  set(CMAKE_INSTALL_LIBDIR "lib" CACHE PATH "Location to install library files")
+endif()
+if(NOT DEFINED CMAKE_INSTALL_BINDIR)
+  set(CMAKE_INSTALL_BINDIR "bin" CACHE PATH "Location to install binary files")
+endif()
 
-set(elpa_dir ${CMAKE_SOURCE_DIR}/src/ELPA)
-set(elsi_dir ${CMAKE_SOURCE_DIR}/src/ELSI)
-set(omm_dir ${CMAKE_SOURCE_DIR}/src/libOMM)
-set(pexsi_dir ${CMAKE_SOURCE_DIR}/src/PEXSI)
-#set(ptscotch_dir ${CMAKE_SOURCE_DIR}/src/PtScotch)
-set(sips_dir ${CMAKE_SOURCE_DIR}/src/SIPs)
-#set(superlu_dir ${CMAKE_SOURCE_DIR}/src/SuperLU_DIST)
-
+### Options ###
+option(ENABLE_TESTS "Build ELSI tests" OFF)
 option(ENABLE_PEXSI "Enable PEXSI" OFF)
 option(ENABLE_SIPS "Enable SIPs" OFF)
-#option(ENABLE_ELPA_GPU "Use ELPA GPU" OFF)
 option(ENABLE_ELPA_BGQ "Use ELPA BlueGene Q kernel" OFF)
 option(ENABLE_ELPA_AVX "Use ELPA AVX kernel" OFF)
 option(ENABLE_ELPA_AVX2 "Use ELPA AVX2 kernel" OFF)
@@ -32,6 +37,7 @@ if(ENABLE_PEXSI)
   enable_language(CXX)
 endif()
 
+### MPI ###
 find_package(MPI REQUIRED)
 if(MPI_CXX_FOUND)
   message(STATUS "Found MPI CXX compiler: ${MPI_CXX_COMPILER}")
@@ -61,32 +67,37 @@ else()
   message(FATAL_ERROR "MPI Fortran compiler not found")
 endif()
 
+### Compilations ###
 include(elpa)
 if(NOT EXTERNAL_ELPA)
-  message(STATUS "Enabling internal version of ELPA")
-  add_subdirectory(${elpa_dir})
+  add_subdirectory(external/ELPA)
 endif()
 
 include(libomm)
 if(NOT EXTERNAL_OMM)
-  message(STATUS "Enabling internal version of libOMM")
-  add_subdirectory(${omm_dir})
+  add_subdirectory(external/libOMM)
 endif()
 
 if(ENABLE_PEXSI)
   include(pexsi)
+
+  if(NOT EXTERNAL_SUPERLU)
+    add_subdirectory(external/PtScotch)
+    add_subdirectory(external/SuperLU_DIST)
+  endif()
+
   message(STATUS "Enabling PEXSI")
-  add_subdirectory(${pexsi_dir})
+  add_subdirectory(external/PEXSI)
 endif()
 
-#if(ENABLE_SIPS)
-#  include(sips)
-#  message(STATUS "Enabling SIPs")
-#  add_subdirectory(${sips_dir})
-#endif()
+if(ENABLE_SIPS)
+  include(sips)
+  message(STATUS "Enabling SIPs")
+  add_subdirectory(external/SIPs)
+endif()
 
-add_subdirectory(${elsi_dir})
+add_subdirectory(src)
 
-#if(ENABLE_TESTS)
-#  add_subdirectory(${elsi_dir}/test)
-#endif()
+if(ENABLE_TESTS)
+  add_subdirectory(test)
+endif()
