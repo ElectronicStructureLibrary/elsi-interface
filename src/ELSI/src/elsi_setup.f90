@@ -341,12 +341,12 @@ subroutine elsi_set_csc(e_h,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)
       e_h%handle_changed = .true.
    endif
 
-   e_h%nnz_g     = nnz_g
-   e_h%nnz_l_sp  = nnz_l
-   e_h%n_lcol_sp = n_lcol
-
    select case(e_h%matrix_format)
    case(PEXSI_CSC)
+      e_h%nnz_g     = nnz_g
+      e_h%nnz_l_sp  = nnz_l
+      e_h%n_lcol_sp = n_lcol
+
       if(e_h%solver == PEXSI_SOLVER) then
          if(allocated(e_h%row_ind_pexsi)) then
             call elsi_deallocate(e_h,e_h%row_ind_pexsi,"row_ind_pexsi")
@@ -376,6 +376,10 @@ subroutine elsi_set_csc(e_h,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)
          e_h%col_ptr_sips = col_ptr
       endif
    case(SIESTA_CSC)
+      e_h%nnz_g      = nnz_g
+      e_h%nnz_l_sp2  = nnz_l
+      e_h%n_lcol_sp2 = n_lcol
+
       if(allocated(e_h%row_ind_sp2)) then
          call elsi_deallocate(e_h,e_h%row_ind_sp2,"row_ind_sp2")
       endif
