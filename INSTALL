@@ -6,122 +6,40 @@
 A) BASIC
 ===========================================================================
 
-1) The installation of ELSI is controlled by a user-specified "make.sys"
-   file.  Example make.sys files can be found in the "./make_sys" subfolder
-   of the root directory, which the user may adapt to their own system.
-
-   A standard ELSI make.sys file includes the following keywords:
-
-     MPIFC         =  # MPI Fortran compiler
-     MPICC         =  # MPI C compiler
-     MPICXX        =  # MPI C++ compiler
-
-     FFLAGS        =  # Fortran compiler flags
-     CFLAGS        =  # C compiler flags
-     CXXFLAGS      =  # C++ compiler flags
-
-     CXX_LIB       =  # C++ standard library flags, e.g. -lstdc++
-     SCALAPACK_LIB =  # BLAS, LAPACK, BLACS, ScaLAPACK library flags
-
-     PTSCOTCH_LIB  =  # Scotch and PtScotch library flags
-     SUPERLU_LIB   =  # SuperLU_DIST library flags
-     SUPERLU_INC   =  # SuperLU_DIST include flags
-
-2) Once a suitable make.sys has been provided by the user, the unified ELSI
-   build system is run by typing
-
-     make
-
-   in the root directory.
-
-   By default, the unified ELSI build system will build the ELPA, libOMM,
-   and PEXSI solver libraries redistributed with ELSI, as well as the ELSI
-   interface itself.  Optionally, the user may link ELSI directly against
-   preinstalled version of any supported solver library.  For more
-   information how to link ELSI against a preinstalled solver library,
-   please see the User's Guide (./src/ELSI/doc/elsi_manual.pdf).  A sample
-   make.sys file is provided (./make_sys/make.sys-external-lib), which
-   demonstrates external linkage of ELSI against preinstalled ELPA, libOMM,
-   and PEXSI libraries.
-
-3) (Optional, but highly recommended) Once compiled, the ELSI libraries
-   may be sanity-checked using a quick set of tests by typing
-
-     make check
-
-   in the root directory.
-
-   The default MPI wrapper executable used by the ELSI suite is "mpirun".
-   This may be changed by the user by setting the following keyword in the
-   make.sys file:
-
-     MPI_EXEC =  # Default: mpirun
-
-   The ELSI test suite requires the ability to run MPI calculations.  Many
-   clusters do not allow MPI calculations to be run on login/compile nodes.
-   If this is the case for the user's cluster, please see the cluster's
-   documentation for information about requesting an interactive job or,
-   alternatively, submitting a custom script to the queuing system.
-
-4) To finalize the ELSI installation, type
-
-     make install
-
-   in the root directory.
-
-5) If the installation finishes without any fatal errors, the library files
-   will be put in the "./lib" subfolder, module files in the "./include"
-   subfolder, and executables in the "./bin" subfolder.
+   TODO
 
 ===========================================================================
-B) ELPA-SPECIFIC NOTES
+B) EXTERNAL LIBRARIES
 ===========================================================================
 
-   We highly recommend that the user specifies an ELPA2 kernel (used for
-   optimization of the 4th stage of ELPA's 2-stage solver) appropriate for
-   their system architecture.  Available kernels for ELPA2 as redistributed
-   by ELSI are set by the ELPA2_KERNEL keyword in the make.sys file.
-
-   Options include:
-
-     ELPA2_KERNEL =  # Default: Generic
-                     # Options: SSE
-                     #          AVX
-                     #          AVX2
-                     #          AVX512
-                     #          BGQ
-
-   The default "Generic" kernel should work for all system architectures.
-
-   For clusters with NVIDIA GPUs, GPU acceleration of the 1st and 5th steps
-   of the ELPA 2-stage solver may be enabled using the following keywords
-   in the make.sys file:
-
-     ELPA_GPU  =  yes  # Default: no
-     NVCC      =  NVIDIA CUDA C compiler
-     NVCCFLAGS =  NVIDIA CUDA C compiler flags
-     CUDA_LIB  =  NVIDIA cuBLAS and CUDA runtime libraries
-     CUDA_INC  =  NVIDIA CUDA include path
-
-   Please see your cluster's documentation for the flags appropriate for
-   your cluster's GPU architecture.
+   TODO
 
 ===========================================================================
-C) PEXSI-SPECIFIC NOTES
+C) TOOLCHAIN FILES
 ===========================================================================
 
-   PEXSI, one of the solvers supported by ELSI, requires two pre-installed
-   external libraries: ParMETIS and SuperLU_DIST.  If the user is unable
-   to compile these external libraries, the user may compile ELSI without
-   PEXSI support by adding the following keyword to the make.sys file:
-
-     DISABLE_PEXSI =  yes  # Default: no
-
-   When DISABLE_PEXSI is set to "yes", the user does not need to specify
-   the PARMETIS_LIB, SUPERLU_LIB, and SUPERLU_INC keywords in the make.sys.
+   TODO
 
 ===========================================================================
-D) BEYOND THIS GUIDE
+D) PEXSI-SPECIFIC NOTES
+===========================================================================
+
+   TODO
+
+===========================================================================
+E) ELPA-SPECIFIC NOTES
+===========================================================================
+
+   TODO
+
+===========================================================================
+F) TOOLCHAIN FILES
+===========================================================================
+
+   TODO
+
+===========================================================================
+G) BEYOND THIS GUIDE
 ===========================================================================
 
    More information may be found in the User's Guide
@@ -132,7 +50,7 @@ D) BEYOND THIS GUIDE
    Interchange website.
 
 ===========================================================================
-E) TROUBLESHOOTING
+H) TROUBLESHOOTING
 ===========================================================================
 
    For comments, feedback, and suggestions, please contact the ELSI team

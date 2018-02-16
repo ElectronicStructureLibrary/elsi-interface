@@ -2,7 +2,8 @@
 # ctest
 # GitLab CI
 # Custom color output
-# Documentation
+# Documentation (psi4)
+# pkg-config
 # PtScotch support
 
 CMAKE_MINIMUM_REQUIRED(VERSION 3.0 FATAL_ERROR)
