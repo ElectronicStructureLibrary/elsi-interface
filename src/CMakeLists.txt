@@ -33,7 +33,7 @@ list(APPEND elsi_src
   elsi_version.f90
   elsi_utils.f90
   stub_chess.f90
-  )
+)
 
 if(NOT ENABLE_PEXSI)
   list(APPEND elsi_src stub_pexsi.f90)

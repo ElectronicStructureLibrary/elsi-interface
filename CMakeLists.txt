@@ -79,14 +79,15 @@ if(NOT EXTERNAL_OMM)
 endif()
 
 if(ENABLE_PEXSI)
-  include(pexsi)
+  message(STATUS "Enabling PEXSI")
+
+  include(superlu)
 
   if(NOT EXTERNAL_SUPERLU)
-    add_subdirectory(external/PtScotch)
+#    add_subdirectory(external/PtScotch)
     add_subdirectory(external/SuperLU_DIST)
   endif()
 
-  message(STATUS "Enabling PEXSI")
   add_subdirectory(external/PEXSI)
 endif()
 

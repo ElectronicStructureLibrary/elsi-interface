@@ -9,7 +9,7 @@ list(APPEND ftest_src
   Fortran/test_ev_complex_sparse.f90
   Fortran/test_ev_real.f90
   Fortran/test_ev_real_sparse.f90
-  )
+)
 
 add_executable(elsi_test ${ftest_src})
 add_dependencies(elsi_test elsi)
@@ -22,7 +22,7 @@ list(APPEND ftestrw_src
   Fortran/elsi_test_rw.f90
   Fortran/test_rw_complex.f90
   Fortran/test_rw_real.f90
-  )
+)
 
 add_executable(elsi_test_rw ${ftestrw_src})
 add_dependencies(elsi_test_rw elsi)
@@ -37,7 +37,7 @@ list(APPEND ctest_src
   C/test_dm_real_c.c
   C/test_ev_complex_c.c
   C/test_ev_real_c.c
-  )
+)
 
 add_executable(elsi_test_c ${ctest_src})
 add_dependencies(elsi_test_c elsi)

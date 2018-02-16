@@ -7,7 +7,7 @@ list(APPEND ms_src
   MatrixSwitch/ms_m_copy.f90
   MatrixSwitch/ms_m_register.f90
   MatrixSwitch/MatrixSwitch.f90
-  )
+)
 
 ### libOMM source files ###
 list(APPEND omm_src
@@ -17,7 +17,7 @@ list(APPEND omm_src
   libOMM/omm_ops.f90
   libOMM/omm.f90
   libOMM/omm_callback.f90
-  )
+)
 
 add_library(OMM ${omm_src})
 add_library(MatrixSwitch ${ms_src})

@@ -20,9 +20,13 @@ list(APPEND pexsi_src
   src/superlu_dist_internal_real.cpp
   src/timer.cpp
   src/utility.cpp
-  )
+)
 
 add_library(pexsi ${pexsi_src})
+
+if(NOT EXTERNAL_SUPERLU)
+  add_dependencies(pexsi superlu_dist)
+endif()
 
 install(TARGETS pexsi
   DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})

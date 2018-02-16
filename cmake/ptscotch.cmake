@@ -1,0 +1,13 @@
+set(PTSCOTCH_LIB $ENV{PTSCOTCH_LIB})
+set(PTSCOTCH_INC $ENV{PTSCOTCH_INC})
+
+if(PTSCOTCH_INC AND PTSCOTCH_LIB)
+  message(STATUS "Using external PtScotch")
+  message(STATUS "  PTSCOTCH_LIB: ${PTSCOTCH_LIB}")
+  message(STATUS "  PTSCOTCH_INC: ${PTSCOTCH_INC}")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${PTSCOTCH_INC}")
+  set(EXTERNAL_PTSCOTCH True)
+else()
+  message(FATAL_ERROR "PtScotch not provided!")
+  set(EXTERNAL_PTSCOTCH False)
+endif()
