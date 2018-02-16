@@ -31,6 +31,7 @@ ENDIF()
 IF(NOT DEFINED CMAKE_INSTALL_BINDIR)
   SET(CMAKE_INSTALL_BINDIR "bin" CACHE PATH "Location to install binary files")
 ENDIF()
+MESSAGE(STATUS "ELSI will be installed to: ${CMAKE_INSTALL_PREFIX}")
 
 ### Options ###
 OPTION(ENABLE_TESTS "Build ELSI tests" OFF)
