@@ -1,7 +1,7 @@
-include_directories(src)
+INCLUDE_DIRECTORIES(src)
 
 ### Header files ###
-set(superlu_h
+LIST(APPEND superlu_h
   src/Cnames.h
   src/colamd.h
   src/cublas_utils.h
@@ -18,7 +18,7 @@ set(superlu_h
 )
 
 ### Source files ###
-set(superlu_src
+LIST(APPEND superlu_src
   src/colamd.c
   src/comm.c
   src/dcomplex_dist.c
@@ -110,16 +110,14 @@ set(superlu_src
   src/zutil_dist.c
 )
 
-set_source_files_properties(src/superlu_timer.c
-  PROPERTIES COMPILE_FLAGS -O0
-)
+ADD_LIBRARY(superlu_dist ${superlu_src} ${superlu_h})
 
-add_library(superlu_dist ${superlu_src} ${superlu_h})
-
-install(TARGETS superlu_dist
+INSTALL(TARGETS superlu_dist
   DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}
 )
 
-install(FILES ${superlu_h}
+INSTALL(FILES ${superlu_h}
   DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}
 )
+
+SET(SUPERLU_LIB "${CMAKE_BINARY_DIR}/lib/libsuperlu_dist.a")

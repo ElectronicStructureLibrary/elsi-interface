@@ -1,5 +1,5 @@
 ### Source files ###
-list(APPEND elpa_src
+LIST(APPEND elpa_src
   src/aligned_mem.f90
   src/check_for_gpu.f90
   src/check_singularity.f90
@@ -26,9 +26,9 @@ list(APPEND elpa_src
 )
 
 ### Kernels ###
-if(ENABLE_ELPA_AVX512)
-  message(STATUS "Enabling ELPA AVX 512 kernel")
-  list(APPEND elpa_src
+IF(ENABLE_ELPA_AVX512)
+  MESSAGE(STATUS "Enabling ELPA AVX 512 kernel")
+  LIST(APPEND elpa_src
     src/mod_compute_hh_trafo_real_avx512.f90
     src/mod_compute_hh_trafo_complex_avx512.f90
     src/mod_fortran_interfaces_avx512.f90
@@ -36,9 +36,9 @@ if(ENABLE_ELPA_AVX512)
     src/elpa2_kernels_real_avx512_2hv.c
     src/elpa2_kernels_complex_avx512_1hv.c
   )
-elseif(ENABLE_ELPA_AVX2)
-  message(STATUS "Enabling ELPA AVX 2 kernel")
-  list(APPEND elpa_src
+ELSEIF(ENABLE_ELPA_AVX2)
+  MESSAGE(STATUS "Enabling ELPA AVX 2 kernel")
+  LIST(APPEND elpa_src
     src/mod_compute_hh_trafo_real_avx2.f90
     src/mod_compute_hh_trafo_complex_avx2.f90
     src/mod_fortran_interfaces_avx2.f90
@@ -46,9 +46,9 @@ elseif(ENABLE_ELPA_AVX2)
     src/elpa2_kernels_real_avx2_2hv.c
     src/elpa2_kernels_complex_avx2_1hv.c
   )
-elseif(ENABLE_ELPA_AVX)
-  message(STATUS "Enabling ELPA AVX kernel")
-  list(APPEND elpa_src
+ELSEIF(ENABLE_ELPA_AVX)
+  MESSAGE(STATUS "Enabling ELPA AVX kernel")
+  LIST(APPEND elpa_src
     src/mod_compute_hh_trafo_real_avx.f90
     src/mod_compute_hh_trafo_complex_avx.f90
     src/mod_fortran_interfaces_avx.f90
@@ -56,9 +56,9 @@ elseif(ENABLE_ELPA_AVX)
     src/elpa2_kernels_real_avx_2hv.c
     src/elpa2_kernels_complex_avx_1hv.c
   )
-elseif(ENABLE_ELPA_BGQ)
-  message(STATUS "Enabling ELPA Blue Gene Q kernel")
-  list(APPEND elpa_src
+ELSEIF(ENABLE_ELPA_BGQ)
+  MESSAGE(STATUS "Enabling ELPA Blue Gene Q kernel")
+  LIST(APPEND elpa_src
     src/mod_compute_hh_trafo_bgq.f90
     src/mod_compute_hh_trafo_complex.f90
     src/mod_fortran_interfaces.f90
@@ -66,9 +66,9 @@ elseif(ENABLE_ELPA_BGQ)
     src/elpa2_kernels_real_bgq.f90
     src/elpa2_kernels_complex.f90
   )
-else()
-  message(STATUS "Using ELPA generic kernel")
-  list(APPEND elpa_src
+ELSE()
+  MESSAGE(STATUS "Using ELPA generic kernel")
+  LIST(APPEND elpa_src
     src/mod_compute_hh_trafo_real.f90
     src/mod_compute_hh_trafo_complex.f90
     src/mod_fortran_interfaces.f90
@@ -76,9 +76,11 @@ else()
     src/elpa2_kernels_real.f90
     src/elpa2_kernels_complex.f90
   )
-endif()
+ENDIF()
 
-add_library(elpa ${elpa_src})
+ADD_LIBRARY(elpa ${elpa_src})
 
-install(TARGETS elpa
+INSTALL(TARGETS elpa
   DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
+
+SET(ELPA_LIB "${CMAKE_BINARY_DIR}/lib/libelpa.a")

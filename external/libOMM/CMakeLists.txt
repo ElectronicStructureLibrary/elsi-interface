@@ -1,5 +1,5 @@
 ### MatrixSwitch source files ###
-list(APPEND ms_src
+LIST(APPEND ms_src
   MatrixSwitch/MatrixSwitch_ops.f90
   MatrixSwitch/ms_mm_multiply.f90
   MatrixSwitch/ms_m_add.f90
@@ -10,7 +10,7 @@ list(APPEND ms_src
 )
 
 ### libOMM source files ###
-list(APPEND omm_src
+LIST(APPEND omm_src
   libOMM/omm_params.f90
   libOMM/omm_rand.f90
   libOMM/omm_quartic.f90
@@ -19,17 +19,19 @@ list(APPEND omm_src
   libOMM/omm_callback.f90
 )
 
-add_library(OMM ${omm_src})
-add_library(MatrixSwitch ${ms_src})
+ADD_LIBRARY(OMM ${omm_src})
+ADD_LIBRARY(MatrixSwitch ${ms_src})
 
-add_dependencies(OMM MatrixSwitch)
+ADD_DEPENDENCIES(OMM MatrixSwitch)
 
-if(NOT EXTERNAL_ELPA)
-  add_dependencies(OMM elpa)
-endif()
+IF(NOT ELPA_FOUND)
+  ADD_DEPENDENCIES(OMM elpa)
+ENDIF()
 
-install(TARGETS MatrixSwitch
+INSTALL(TARGETS MatrixSwitch
   DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
 
-install(TARGETS OMM
+INSTALL(TARGETS OMM
   DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
+
+SET(OMM_LIB "${CMAKE_BINARY_DIR}/lib/libOMM.a;${CMAKE_BINARY_DIR}/lib/libMatrixSwitch.a")

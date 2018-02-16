@@ -1,7 +1,9 @@
 ### Source file ###
-list(APPEND sips_src src/m_qetsc.F90)
+LIST(APPEND sips_src src/m_qetsc.F90)
 
-add_library(sips ${sips_src})
+ADD_LIBRARY(sips ${sips_src})
 
-install(TARGETS sips
+INSTALL(TARGETS sips
   DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
+
+SET(SIPS_LIB "${CMAKE_BINARY_DIR}/lib/libsips.a")

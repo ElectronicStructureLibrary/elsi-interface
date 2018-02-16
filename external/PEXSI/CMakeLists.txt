@@ -1,8 +1,7 @@
-enable_language(CXX)
-include_directories(include)
+INCLUDE_DIRECTORIES(include)
 
 ### Source files ###
-list(APPEND pexsi_src
+LIST(APPEND pexsi_src
   src/TreeBcast.cpp
   src/blas.cpp
   src/f_interface.f90
@@ -22,11 +21,13 @@ list(APPEND pexsi_src
   src/utility.cpp
 )
 
-add_library(pexsi ${pexsi_src})
+ADD_LIBRARY(pexsi ${pexsi_src})
 
-if(NOT EXTERNAL_SUPERLU)
-  add_dependencies(pexsi superlu_dist)
-endif()
+IF(NOT SUPERLU_FOUND)
+  ADD_DEPENDENCIES(pexsi superlu_dist)
+ENDIF()
 
-install(TARGETS pexsi
+INSTALL(TARGETS pexsi
   DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
+
+SET(PEXSI_LIB "${CMAKE_BINARY_DIR}/lib/libpexsi.a")

@@ -1,12 +1,13 @@
 ### Generate version info ###
-message(STATUS "Getting ELSI version")
-execute_process(COMMAND rm -f ${CMAKE_SOURCE_DIR}/src/elsi_version.f90)
-execute_process(COMMAND ${CMAKE_SOURCE_DIR}/src/elsi_version_writer.pl ${elsi_VERSION}
+MESSAGE(STATUS "Getting ELSI version")
+EXECUTE_PROCESS(COMMAND rm -f ${CMAKE_SOURCE_DIR}/src/elsi_version.f90)
+EXECUTE_PROCESS(COMMAND ${CMAKE_SOURCE_DIR}/src/elsi_version_writer.pl ${elsi_VERSION}
   COMMAND tee ${CMAKE_SOURCE_DIR}/src/elsi_version.f90
-  OUTPUT_QUIET)
+  OUTPUT_QUIET
+)
 
 ### Source files ###
-list(APPEND elsi_src
+LIST(APPEND elsi_src
   elsi_c_interface.f90
   elsi_c2f.f90
   elsi_chess.f90
@@ -35,37 +36,45 @@ list(APPEND elsi_src
   stub_chess.f90
 )
 
-if(NOT ENABLE_PEXSI)
-  list(APPEND elsi_src stub_pexsi.f90)
-endif()
+IF(NOT ENABLE_PEXSI)
+  LIST(APPEND elsi_src stub_pexsi.f90)
+ENDIF()
 
-if(NOT ENABLE_SIPS)
-  list(APPEND elsi_src stub_sips.f90)
-endif()
+IF(NOT ENABLE_SIPS)
+  LIST(APPEND elsi_src stub_sips.f90)
+ENDIF()
 
-if(NOT EXTERNAL_ELPA)
-  list(APPEND elsi_src elsi_elpa.f90)
-else()
-  list(APPEND elsi_src elsi_aeo.f90)
-endif()
+IF(NOT ELPA_FOUND)
+  LIST(APPEND elsi_src elsi_elpa.f90)
+ELSE()
+  LIST(APPEND elsi_src elsi_aeo.f90)
+ENDIF()
 
-add_library(elsi ${elsi_src})
+ADD_LIBRARY(elsi ${elsi_src})
 
-if(NOT EXTERNAL_ELPA)
-  add_dependencies(elsi elpa)
-endif()
+IF(NOT ELPA_FOUND)
+  ADD_DEPENDENCIES(elsi elpa)
+ENDIF()
 
-if(NOT EXTERNAL_OMM)
-  add_dependencies(elsi OMM)
-endif()
+IF(NOT OMM_FOUND)
+  ADD_DEPENDENCIES(elsi OMM)
+ENDIF()
+
+IF(ENABLE_PEXSI)
+  ADD_DEPENDENCIES(elsi pexsi)
+ENDIF()
+
+IF(ENABLE_SIPS)
+  ADD_DEPENDENCIES(elsi sips)
+ENDIF()
 
 ### Installation ###
-install(TARGETS elsi
+INSTALL(TARGETS elsi
   DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
 
-install(FILES elsi.h
+INSTALL(FILES elsi.h
   DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR})
 
-install(DIRECTORY ${CMAKE_Fortran_MODULE_DIRECTORY}
+INSTALL(DIRECTORY ${CMAKE_Fortran_MODULE_DIRECTORY}
   DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}
   PATTERN "*.mod")
