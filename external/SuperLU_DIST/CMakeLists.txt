@@ -112,6 +112,8 @@ LIST(APPEND superlu_src
 
 ADD_LIBRARY(superlu_dist ${superlu_src} ${superlu_h})
 
+TARGET_COMPILE_FEATURES(superlu_dist PRIVATE c_std_99)
+
 INSTALL(TARGETS superlu_dist
   DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}
 )

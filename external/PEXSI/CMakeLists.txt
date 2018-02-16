@@ -23,6 +23,9 @@ LIST(APPEND pexsi_src
 
 ADD_LIBRARY(pexsi ${pexsi_src})
 
+TARGET_COMPILE_FEATURES(pexsi PRIVATE c_std_99)
+TARGET_COMPILE_FEATURES(pexsi PRIVATE cxx_std_11)
+
 IF(NOT SUPERLU_FOUND)
   ADD_DEPENDENCIES(pexsi superlu_dist)
 ENDIF()

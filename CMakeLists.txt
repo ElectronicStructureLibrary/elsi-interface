@@ -1,11 +1,9 @@
 ### TODO ###
-# 1 - Documentation
-# 2 - SuperLU_DIST needs c99
-# 3 - PEXSI needs c++11
-# 4 - Add custom color output
-# 5 - Add toolchains
-# 6 - Add ctest
-# 7 - PtScotch support
+# Add custom color output
+# Add toolchains
+# Documentation
+# Add ctest
+# PtScotch support
 
 CMAKE_MINIMUM_REQUIRED(VERSION 3.0 FATAL_ERROR)
 
