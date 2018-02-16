@@ -1,7 +1,18 @@
 ### Link line ###
-SET(LINK_LIB "${OMM_LIB} ${ELPA_LIB} ${PEXSI_LIB} ${SUPERLU_LIB} ${PTSCOTCH_LIB} ${MATH_LIB}")
+SET(LINK_LIB_STR "${OMM_LIB};${ELPA_LIB}")
+IF(ENABLE_PEXSI)
+  SET(LINK_LIB_STR "${LINK_LIB_STR};${PEXSI_LIB};${SUPERLU_LIB};${PTSCOTCH_LIB}")
+ENDIF()
+IF(ENABLE_SIPS)
+  SET(LINK_LIB_STR "${LINK_LIB_STR};${SIPS_LIB}")
+ENDIF()
+SET(LINK_LIB_STR "${LINK_LIB_STR};${MATH_LIB};${MPI_C_LIBRARIES};${MPI_Fortran_LIBRARIES}")
+IF(ENABLE_PEXSI)
+  SET(LINK_LIB_STR "${LINK_LIB_STR};${MPI_CXX_LIBRARIES}")
+ENDIF()
+STRING(STRIP "${LINK_LIB_STR}" LINK_LIB)
 
-### Core Fortran tests ###
+### Fortran tests ###
 LIST(APPEND ftest_src
   Fortran/elsi_test.f90
   Fortran/test_dm_complex.f90
@@ -20,7 +31,7 @@ TARGET_LINK_LIBRARIES(elsi_test elsi ${LINK_LIB})
 INSTALL(TARGETS elsi_test
   DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
 
-### Matrix reading/writing tests ###
+### Matrix IO tests ###
 LIST(APPEND ftestrw_src
   Fortran/elsi_test_rw.f90
   Fortran/test_rw_complex.f90
@@ -33,7 +44,7 @@ TARGET_LINK_LIBRARIES(elsi_test_rw elsi ${LINK_LIB})
 INSTALL(TARGETS elsi_test_rw
   DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
 
-### Core C tests ###
+### C tests ###
 LIST(APPEND ctest_src
   C/elsi_test_c.c
   C/test_dm_complex_c.c
