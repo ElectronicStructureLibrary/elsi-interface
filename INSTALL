@@ -21,40 +21,22 @@ C) TOOLCHAIN FILES
    TODO
 
 ===========================================================================
-D) PEXSI-SPECIFIC NOTES
+D) BEYOND THIS GUIDE
 ===========================================================================
 
-   TODO
+   A User's Guide is available at
 
-===========================================================================
-E) ELPA-SPECIFIC NOTES
-===========================================================================
-
-   TODO
-
-===========================================================================
-F) TOOLCHAIN FILES
-===========================================================================
-
-   TODO
-
-===========================================================================
-G) BEYOND THIS GUIDE
-===========================================================================
-
-   More information may be found in the User's Guide
-
-     ./src/ELSI/doc/elsi_manual.pdf
+     ./doc/elsi_manual.pdf
 
    and on the ELSI GitLab wiki pages, which may be accessed via the ELSI
    Interchange website.
 
 ===========================================================================
-H) TROUBLESHOOTING
+E) TROUBLESHOOTING
 ===========================================================================
 
    For comments, feedback, and suggestions, please contact the ELSI team
-   via e-mail at
+   via email at
 
      elsi-team@duke.edu
 

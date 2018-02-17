@@ -27,35 +27,27 @@ B) INSTALLATION OF ELSI
 
    The standard installation of ELSI requires:
 
-   *  CMake 3.0 or newer
-   *  A Fortran compiler supporting the Fortran 2003 standard
-   *  A C compiler supporting the C99 standard
-   *  A C++ compiler supporting the C++11 standard
-   *  An MPI library
-   *  BLAS, LAPACK, (BLACS,) and ScaLAPACK libraries
-   *  PtScotch 6.0.4 or newer
-      (available at https//gforge.inria.fr/projects/scotch)
+   *  CMake             [version 3.0 or newer]
+   *  Fortran compiler  [with Fortran 2003 standard]
+   *  C compiler        [with C99 standard]
+   *  C++ compiler      [C++11 standard]
+   *  MPI library
+   *  Math libraries    [BLAS, LAPACK, (BLACS,) and ScaLAPACK]
+   *  PtScotch library  [version 6.0.4 or newer]
 
-   The installation process is:
-
-   *  mkdir build
-   *  cd build
-   *  cmake [options] ..
-   *  make
-   *  make install
-
-   Installation of ELSI with GNU, Intel, PGI, XL, and Cray compilers has
+   Installation of ELSI with GNU and Intel, PGI, XL, and Cray compilers has
    been tested.
 
-   Please refer to the "INSTALL" file for a complete description.
+   For a complete description of the installation process, please refer to
+   the "INSTALL" file.
 
 ============================================================================
 C) USAGE OF ELSI
 ============================================================================
 
-   More information may be found in the User's Guide
+   A User's Guide is available at
 
-     ./src/ELSI/doc/elsi_manual.pdf
+     ./doc/elsi_manual.pdf
 
    and on the ELSI GitLab wiki pages, which may be accessed via the ELSI
    Interchange website.
