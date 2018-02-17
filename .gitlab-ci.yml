@@ -1,0 +1,84 @@
+### GCC 7.1 + OpenMPI 3.0.0 + Netlib libraries (debug) ###
+#gnu-debug:
+#  script:
+#    - module purge
+#    - module load gcc-7.1
+#    - cat ./toolchains/gnu-debug.tc
+#    - rm -rf build
+#    - mkdir build
+#    - cd build
+#    - cmake .. -DCMAKE_TOOLCHAIN_FILE=../toolchains/gnu-debug.tc -DCMAKE_INSTALL_PREFIX=./
+#    - make -j8
+#    - ctest --output-on-failure
+#    - make install
+
+### GCC 7.1 + OpenMPI 3.0.0 + Netlib libraries ###
+#gnu:
+#  script:
+#    - module purge
+#    - module load gcc-7.1
+#    - cat ./toolchains/gnu.tc
+#    - rm -rf build
+#    - mkdir build
+#    - cd build
+#    - cmake .. -DCMAKE_TOOLCHAIN_FILE=../toolchains/gnu.tc -DCMAKE_INSTALL_PREFIX=./
+#    - make -j8
+#    - ctest --output-on-failure
+#    - make install
+
+### PGI 17.4 + ??? + ??? ###
+#pgi:
+#  script:
+#    - module purge
+#    - module load gcc-7.1
+#    - module load pgi-17.4
+#    - cat ./toolchains/pgi.tc
+#    - rm -rf build
+#    - mkdir build
+#    - cd build
+#    - cmake .. -DCMAKE_TOOLCHAIN_FILE=../toolchains/pgi.tc -DCMAKE_INSTALL_PREFIX=./
+#    - make -j8
+#    - ctest --output-on-failure
+#    - make install
+
+### Intel 2017 + Intel MPI + Intel MKL (debug) ###
+#intel-debug:
+#  script:
+#    - module purge
+#    - module load gcc-7.1
+#    - cat ./toolchains/intel_debug.tc
+#    - rm -rf build
+#    - mkdir build
+#    - cd build
+#    - cmake .. -DCMAKE_TOOLCHAIN_FILE=../toolchains/intel_debug.tc -DCMAKE_INSTALL_PREFIX=./
+#    - make -j8
+#    - ctest --output-on-failure
+#    - make install
+
+### Intel 2017 + Intel MPI + Intel MKL ###
+intel:
+  script:
+    - module purge
+    - module load gcc-7.1
+    - cat ./toolchains/intel.tc
+    - rm -rf build
+    - mkdir build
+    - cd build
+    - cmake .. -DCMAKE_TOOLCHAIN_FILE=../toolchains/intel.tc -DCMAKE_INSTALL_PREFIX=./
+    - make -j8
+    - ctest --output-on-failure
+    - make install
+
+### Intel 2017 + Intel MPI + Intel MKL + external libraries (optional) ###
+#intel-external:
+#  script:
+#    - module purge
+#    - module load gcc-7.1
+#    - cat ./toolchains/external.tc
+#    - rm -rf build
+#    - mkdir build
+#    - cd build
+#    - cmake .. -DCMAKE_TOOLCHAIN_FILE=../toolchains/external.tc -DCMAKE_INSTALL_PREFIX=./
+#    - make -j8
+#    - make install
+#  allow_failure: true

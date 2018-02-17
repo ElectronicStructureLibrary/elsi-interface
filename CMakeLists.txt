@@ -1,7 +1,7 @@
 ### TODO ###
-# Define "Add_" systematically
-# GitLab CI
+# Define "Add_" for SuperLU_DIST and PEXSI
 # pkg-config
+# CPack
 # PtScotch support
 
 #  <<<  CMake build overview  >>>
