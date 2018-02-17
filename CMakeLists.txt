@@ -1,5 +1,4 @@
 ### TODO ###
-# ctest
 # GitLab CI
 # pkg-config
 # PtScotch support
@@ -45,6 +44,7 @@
 #
 #  <<<  Comfiguration options  >>>
 #
+#    - CMAKE_TOOLCHAIN_FILE  "Use pre-defined toolchain file"
 #    - BUILD_SHARED_LIBRARY  "Build ELSI as a shared library (todo)
 #    - ENABLE_TESTS          "Build ELSI test programs"
 #    - ENABLE_PEXSI          "Enable PEXSI (requires PtScotch library)"
@@ -107,7 +107,8 @@ INCLUDE(color_message)
 MESSAGE(STATUS "ELSI will be installed to: ${CMAKE_INSTALL_PREFIX}")
 
 ### Options ###
-OPTION(ENABLE_TESTS "Build ELSI tests" OFF)
+OPTION(ENABLE_TESTS "Build ELSI Fortran test programs" OFF)
+OPTION(ENABLE_C_TESTS "Build ELSI C test programs" OFF)
 OPTION(ENABLE_PEXSI "Enable PEXSI" OFF)
 OPTION(ENABLE_SIPS "Enable SIPs" OFF)
 OPTION(ENABLE_ELPA_BGQ "Use ELPA BlueGene Q kernel" OFF)
@@ -182,7 +183,11 @@ ENDIF()
 ADD_SUBDIRECTORY(src)
 
 IF(ENABLE_TESTS)
-  MESSAGE(STATUS "Enabling test programs")
+  MESSAGE(STATUS "Enabling Fortran test programs")
+  IF(ENABLE_C_TESTS)
+    MESSAGE(STATUS "Enabling C test programs")
+  ENDIF()
+  ENABLE_TESTING()
   INCLUDE(mathlib)
   INCLUDE_DIRECTORIES(src)
   ADD_SUBDIRECTORY(test)
