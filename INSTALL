@@ -6,10 +6,10 @@
 A) CMAKE BASICS
 ===========================================================================
 
-   Starting from Feb 17th, 2018, the installation of the ELSI software is
-   managed by the CMake system.
+   Starting from Feb 17th, 2018, the installation of ELSI is managed by the
+   CMake build system.
 
-   Below is a typical workflow to build a package with CMake:
+   Typical workflow:
 
    $ ls
 
@@ -28,6 +28,8 @@ A) CMAKE BASICS
    $ make test
    $ make install
 
+   TODO: How to define variables
+
 ===========================================================================
 B) REQUIREMENTS
 ===========================================================================
@@ -40,15 +42,19 @@ B) REQUIREMENTS
      - C compiler (C99)
      - MPI
 
-   The following additional components are highly recommended, as they are
-   employed to enable PEXSI support and to compile ELSI test programs:
+   The following two additions are highly recommended, as they enable the
+   PEXSI solver:
 
      - C++ compiler (C++11)
      - PtScotch 6.0.4 or newer
-     - BLAS/LAPACK(/BLACS)/ScaLAPACK
 
-   Optionally, redistributed solver libraries may be disabled and replaced
-   by externally optimized versions:
+   To test the installed ELSI library, linear algebra libraries should be
+   provided for the ELSI test programs to link against:
+
+     - BLAS, LAPACK, (BLACS,) ScaLAPACK
+
+   Optionally, redistributed solver libraries may be substituted by user's
+   optimized versions:
 
      - ELPA 2017.05.003 or newer
      - libOMM and MatrixSwitch
@@ -58,61 +64,87 @@ B) REQUIREMENTS
 C) CONFIGURATION
 ===========================================================================
 
-#  <<<  Compilers and flags  >>>
-#
-#    - CMAKE_Fortran_COMPILER  "Fortran compiler"
-#    - CMAKE_Fortran_FLAGS     "Fortran flags"
-#    - CMAKE_C_COMPILER        "C compiler"
-#    - CMAKE_C_FLAGS           "C flags"
-#    - CMAKE_CXX_COMPILER      "C++ compiler"
-#    - CMAKE_CXX_FLAGS         "C++ flags"
-#
-#  <<<  Comfiguration options  >>>
-#
-#    - CMAKE_TOOLCHAIN_FILE  "Use pre-defined toolchain file"
-#    - BUILD_SHARED_LIBRARY  "Build ELSI as a shared library (todo)
-#    - ENABLE_TESTS          "Build ELSI test programs"
-#    - ENABLE_PEXSI          "Enable PEXSI (requires PtScotch library)"
-#    - ENABLE_SIPS           "Enable SIPs (todo)"
-#    - ENABLE_ELPA_BGQ       "When ELPA library not provided, build internal ELPA BGQ kernel"
-#    - ENABLE_ELPA_AVX       "When ELPA library not provided, build internal ELPA AVX kernel"
-#    - ENABLE_ELPA_AVX2      "When ELPA library not provided, build internal ELPA AVX2 kernel"
-#    - ENABLE_ELPA_AVX512    "When ELPA library not provided, build internal ELPA AVX512 kernel"
+   1) Compilers
 
-#    - ELPA_LIB              "External ELPA libraries as a ";"-separated list"
-#    - ELPA_INC              "External ELPA include directories as a ";"-separated list"
-#    - OMM_LIB               "External libOMM and MatrixSwitch libraries as a ";"-separated list"
-#    - OMM_INC               "External libOMM and MatrixSwitch include directories as a ";"-separated list"
-#    - SUPERLU_LIB           "External SUPERLU_DIST libraries as a ";"-separated list"
-#    - SUPERLU_INC           "External SUPERLU_DIST include directories as a ";"-separated list"
-#    - PTSCOTCH_LIB          "External PtScotch libraries as a ";"-separated list"
-#    - PTSCOTCH_INC          "External PtScotch include directories as a ";"-separated list"
-#    - MATH_LIB              "External BLAS, LAPACK, (BLACS,) ScaLAPACK libraries as a ";"-separated list"
-#    - MATH_INC              "External BLAS, LAPACK, (BLACS,) ScaLAPACK include directories as a ";"-separated list"
-#
-#    * If ENABLE_TESTS=ON, MATH_LIB must be valid
-#    * If ENABLE_PEXSI=ON, PTSCOTCH_LIB and PTSCOTCH_INC must be valid
-#    * If and only if both "xxx_LIB" and "xxx_INC" are provided, internal version will not be built
+   CMake automatically searches and sets default compilers.  The choices
+   made by CMake often work, but not necessarily guarantee the optimal
+   performance.  Therefore, it is highly recommended to explicitly set the
+   compilers and their flags, in particular the optimization flags, via the
+   following options:
 
-#  <<<  Installation  >>>
-#
-#    - CMAKE_INSTALL_PREFIX      "Location to install ELSI"
-#    - CMAKE_INSTALL_BINDIR      "Location within CMAKE_INSTALL_PREFIX to install executables"
-#    - CMAKE_INSTALL_LIBDIR      "Location within CMAKE_INSTALL_PREFIX to install libraries"
-#    - CMAKE_INSTALL_INCLUDEDIR  "Location within CMAKE_INSTALL_PREFIX to install modules and headers"
-#
-#    * Defaults are: usr/local, CMAKE_INSTALL_PREFIX/bin, CMAKE_INSTALL_PREFIX/lib, CMAKE_INSTALL_PREFIX/include
+     - CMAKE_Fortran_COMPILER     [Fortran compiler]
+     - CMAKE_Fortran_FLAGS        [Fortran compilation flags]
+     - CMAKE_C_COMPILER           [C compiler]
+     - CMAKE_C_FLAGS              [C compilation flags]
+     - CMAKE_CXX_COMPILER         [C++ compiler]
+     - CMAKE_CXX_FLAGS            [C++ compilation flags]
+
+   And additionally, the MPI-aware compilers:
+
+     - MPI_Fortran_COMPILER       [MPI Fortran compiler]
+     - MPI_Fortran_COMPILE_FLAGS  [MPI Fortran compilation flags]
+     - MPI_C_COMPILER             [MPI C compiler]
+     - MPI_C_COMPILE_FLAGS        [MPI C compilation flags]
+     - MPI_CXX_COMPILER           [MPI C++ compiler]
+     - MPI_CXX_COMPILE_FLAGS      [MPI C++ compilation flags]
+
+   The C++ and MPI C++ compilers not needed if building ELSI without PEXSI.
+
+   2) Solver libraries
+
+     - ELPA_LIB                   [External ELPA library]
+     - ELPA_INC                   [External ELPA include path]
+
+     - ENABLE_ELPA_BGQ            [Build ELPA with BlueGene Q kernel]
+     - ENABLE_ELPA_AVX            [Build ELPA with AVX kernel]
+     - ENABLE_ELPA_AVX2           [Build ELPA with AVX2 kernel]
+     - ENABLE_ELPA_AVX512         [Build ELPA with AVX512 kernel]
+
+     - OMM_LIB                    [External libOMM library]
+     - OMM_INC                    [External libOMM include path]
+
+     - ENABLE_PEXSI               [Enable PEXSI support]
+
+     - PTSCOTCH_LIB               [External PtScotch library]
+     - PTSCOTCH_INC               [External PtScotch include path]
+
+     - SUPERLU_LIB                [External SUPERLU_DIST library]
+     - SUPERLU_INC                [External SUPERLU_DIST include path]
+
+   3) ELSI tests
+
+   By default, a static library (libelsi.a) will be created as the target
+   of the installation.  Since no executable is linked, there is no need
+   for the user to provide linear algebra libraries, i.e., BLAS, LAPACK,
+   BLACS, and ScaLAPACK.  Building ELSI test programs may be requested by
+
+     - ENABLE_TESTS               [Build ELSI test programs]
+
+   In this case, the linear algebra libraries must be valid through
+
+     - MATH_LIB                   [External linear algebra library]
+
+   4) "Toolchain" files
+
+   To avoid specifying too many options on the command line, it is often
+   convenient to edit and store settings in a file.  In CMake, this is done
+   by using "toolchains" that may be passed to CMake via
+
+     - CMAKE_TOOLCHAIN_FILE       [Pre-defined toolchain file]
+
+   Example toolchain files are provided in the "./toolchains" directory,
+   which the user may use as templates to create new ones.
 
 ===========================================================================
 D) BEYOND THIS GUIDE
 ===========================================================================
 
-   A User's Guide is available at
+   A more complete and detailed description of the ELSI installation is
+   available in the User's Guide:
 
      ./doc/elsi_manual.pdf
 
-   and on the ELSI GitLab wiki pages, which may be accessed via the ELSI
-   Interchange website.
+   and on the ELSI GitLab wiki pages.
 
 ===========================================================================
 E) TROUBLESHOOTING
