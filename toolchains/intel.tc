@@ -1,8 +1,25 @@
+### Intel compilers, Intel MPI library, Intel MKL library ###
+
 SET(CMAKE_Fortran_COMPILER "ifort")
 SET(CMAKE_C_COMPILER "icc")
 SET(CMAKE_CXX_COMPILER "icpc")
+
 SET(CMAKE_Fortran_FLAGS "-fast -no-ipo")
 SET(CMAKE_C_FLAGS "-fast -no-ipo")
 SET(CMAKE_CXX_FLAGS "-fast -no-ipo")
-SET(ENABLE_TESTS "ON" CACHE BOOL "Enable tests")
-SET(MATH_LIB "/Users/vyu/Soft/scalapack-2.0.2/libscalapack.a;/opt/intel/mkl/lib/libmkl_intel_lp64.a;/opt/intel/mkl/lib/libmkl_sequential.a;/opt/intel/mkl/lib/libmkl_core.a" CACHE STRING "Linear algebra libraries")
+
+SET(MPI_Fortran_COMPILER "mpiifort")
+SET(MPI_C_COMPILER "mpiicc")
+SET(MPI_CXX_COMPILER "mpiicpc")
+
+SET(MPI_Fortran_COMPILE_FLAGS "-mkl=cluster")
+SET(MPI_C_COMPILE_FLAGS "-mkl=cluster")
+SET(MPI_CXX_COMPILE_FLAGS "-mkl=cluster")
+
+SET(ENABLE_TESTS "ON" CACHE BOOL "Enable Fortran tests")
+SET(ENABLE_ELPA_AVX "ON" CACHE BOOL "Enable ELPA AVX kernel")
+SET(ENABLE_PEXSI "ON" CACHE BOOL "Enable PEXSI")
+
+SET(PTSCOTCH_DIR "/home/wy29/opt/scotch_6.0.4" CACHE PATH "PtScotch directory")
+SET(PTSCOTCH_LIB "${PTSCOTCH_DIR}/lib/libptscotchparmetis.a;${PTSCOTCH_DIR}/lib/libptscotch.a;${PTSCOTCH_DIR}/lib/libptscotcherr.a;${PTSCOTCH_DIR}/lib/libscotchmetis.a;${PTSCOTCH_DIR}/lib/libscotch.a;${PTSCOTCH_DIR}/lib/libscotcherr.a" CACHE STRING "PtScotch Libraries")
+SET(PTSCOTCH_INC "${PTSCOTCH_DIR}/include" CACHE STRING "PtScotch include directory")

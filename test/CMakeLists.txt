@@ -7,8 +7,8 @@ SET(LINK_LIB
   ${SUPERLU_LIB}
   ${PTSCOTCH_LIB}
   ${MATH_LIB}
-  ${MPI_C_LIBRARIES}
   ${MPI_Fortran_LIBRARIES}
+  ${MPI_C_LIBRARIES}
   ${MPI_CXX_LIBRARIES}
 )
 
@@ -69,8 +69,6 @@ SET(s_cmplx "${CMAKE_SOURCE_DIR}/test/matrices/S_complex.csc")
 
 ### CTest ###
 INCLUDE(CTest)
-
-SET(MPIEXEC_MAX_NUMPROCS "2")
 
 MACRO(test_fortran arg1 arg2 arg3 arg4 arg5 arg6 arg7)
   ADD_TEST(test_fortran_${arg1}
