@@ -1,7 +1,6 @@
 ### TODO ###
 # Define "Add_"
 # Minimum required version
-# pkg-config
 # CPack
 # PtScotch
 
@@ -123,3 +122,27 @@ IF(ENABLE_TESTS)
   INCLUDE_DIRECTORIES(src)
   ADD_SUBDIRECTORY(test)
 ENDIF()
+
+### pkg-config support ###
+SET(PC_LIBS "-lelsi")
+
+IF(NOT OMM_FOUND)
+  SET(PC_LIBS "${PC_LIBS} -lOMM -lMatrixSwitch")
+ENDIF()
+
+IF(NOT ELPA_FOUND)
+  SET(PC_LIBS "${PC_LIBS} -lelpa")
+ENDIF()
+
+IF(ENABLE_PEXSI)
+  SET(PC_LIBS "${PC_LIBS} -lpexsi")
+
+  IF(NOT SUPERLU_FOUND)
+    SET(PC_LIBS "${PC_LIBS} -lsuperlu_dist")
+  ENDIF()
+ENDIF()
+
+CONFIGURE_FILE(.elsi.pc.in
+  ${ARCHIVE_OUTPUT_PATH}/pkgconfig/elsi.pc
+  @ONLY
+)

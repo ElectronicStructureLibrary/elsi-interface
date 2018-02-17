@@ -7,6 +7,6 @@ Description: Electronic structure infrastructure
 Version: @PROJECT_VERSION@
 URL: http://elsi-interchange.org
 
-Libs: -L${libdir} -lelsi # TODO
-Libs.private: # TODO
-Cflags: -I${includedir} # TODO
+Libs: -L${libdir} @PC_LIBS@
+Libs.private:
+Cflags: -I${includedir}
