@@ -27,7 +27,7 @@ B) INSTALLATION OF ELSI
 
    The standard installation of ELSI requires:
 
-   *  CMake             [version 3.0 or newer]
+   *  CMake             [version 3.0.2 or newer]
    *  Fortran compiler  [with Fortran 2003 standard]
    *  C compiler        [with C99 standard]
    *  C++ compiler      [C++11 standard]

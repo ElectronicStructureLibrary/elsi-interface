@@ -3,22 +3,105 @@
 =========================
 
 ===========================================================================
-A) BASIC
+A) CMAKE BASICS
 ===========================================================================
 
-   TODO
+   Starting from Feb 17th, 2018, the installation of the ELSI software is
+   managed by the CMake system.
+
+   Below is a typical workflow to build a package with CMake:
+
+   $ ls
+
+     CMakeLists.txt external/  src/  test/ ...
+
+   $ mkdir build
+   $ cd build
+   $ cmake .. -DCMAKE_INSTALL_PREFIX=/path/to/install/elsi [options ...]
+
+     ...
+     ...
+     -- Generating done
+     -- Build files have been written to: /current/dir
+
+   $ make [-j np]
+   $ make test
+   $ make install
 
 ===========================================================================
-B) EXTERNAL LIBRARIES
+B) REQUIREMENTS
 ===========================================================================
 
-   TODO
+   To compile and install the ELSI interface and the redistributed solver
+   libraries, minimum requirements include:
+
+     - CMake 3.0.2 or newer
+     - Fortran compiler (Fortran 2003)
+     - C compiler (C99)
+     - MPI
+
+   The following additional components are highly recommended, as they are
+   employed to enable PEXSI support and to compile ELSI test programs:
+
+     - C++ compiler (C++11)
+     - PtScotch 6.0.4 or newer
+     - BLAS/LAPACK(/BLACS)/ScaLAPACK
+
+   Optionally, redistributed solver libraries may be disabled and replaced
+   by externally optimized versions:
+
+     - ELPA 2017.05.003 or newer
+     - libOMM and MatrixSwitch
+     - SuperLU_DIST 5.1.3 or newer
 
 ===========================================================================
-C) TOOLCHAIN FILES
+C) CONFIGURATION
 ===========================================================================
 
-   TODO
+#  <<<  Compilers and flags  >>>
+#
+#    - CMAKE_Fortran_COMPILER  "Fortran compiler"
+#    - CMAKE_Fortran_FLAGS     "Fortran flags"
+#    - CMAKE_C_COMPILER        "C compiler"
+#    - CMAKE_C_FLAGS           "C flags"
+#    - CMAKE_CXX_COMPILER      "C++ compiler"
+#    - CMAKE_CXX_FLAGS         "C++ flags"
+#
+#  <<<  Comfiguration options  >>>
+#
+#    - CMAKE_TOOLCHAIN_FILE  "Use pre-defined toolchain file"
+#    - BUILD_SHARED_LIBRARY  "Build ELSI as a shared library (todo)
+#    - ENABLE_TESTS          "Build ELSI test programs"
+#    - ENABLE_PEXSI          "Enable PEXSI (requires PtScotch library)"
+#    - ENABLE_SIPS           "Enable SIPs (todo)"
+#    - ENABLE_ELPA_BGQ       "When ELPA library not provided, build internal ELPA BGQ kernel"
+#    - ENABLE_ELPA_AVX       "When ELPA library not provided, build internal ELPA AVX kernel"
+#    - ENABLE_ELPA_AVX2      "When ELPA library not provided, build internal ELPA AVX2 kernel"
+#    - ENABLE_ELPA_AVX512    "When ELPA library not provided, build internal ELPA AVX512 kernel"
+
+#    - ELPA_LIB              "External ELPA libraries as a ";"-separated list"
+#    - ELPA_INC              "External ELPA include directories as a ";"-separated list"
+#    - OMM_LIB               "External libOMM and MatrixSwitch libraries as a ";"-separated list"
+#    - OMM_INC               "External libOMM and MatrixSwitch include directories as a ";"-separated list"
+#    - SUPERLU_LIB           "External SUPERLU_DIST libraries as a ";"-separated list"
+#    - SUPERLU_INC           "External SUPERLU_DIST include directories as a ";"-separated list"
+#    - PTSCOTCH_LIB          "External PtScotch libraries as a ";"-separated list"
+#    - PTSCOTCH_INC          "External PtScotch include directories as a ";"-separated list"
+#    - MATH_LIB              "External BLAS, LAPACK, (BLACS,) ScaLAPACK libraries as a ";"-separated list"
+#    - MATH_INC              "External BLAS, LAPACK, (BLACS,) ScaLAPACK include directories as a ";"-separated list"
+#
+#    * If ENABLE_TESTS=ON, MATH_LIB must be valid
+#    * If ENABLE_PEXSI=ON, PTSCOTCH_LIB and PTSCOTCH_INC must be valid
+#    * If and only if both "xxx_LIB" and "xxx_INC" are provided, internal version will not be built
+
+#  <<<  Installation  >>>
+#
+#    - CMAKE_INSTALL_PREFIX      "Location to install ELSI"
+#    - CMAKE_INSTALL_BINDIR      "Location within CMAKE_INSTALL_PREFIX to install executables"
+#    - CMAKE_INSTALL_LIBDIR      "Location within CMAKE_INSTALL_PREFIX to install libraries"
+#    - CMAKE_INSTALL_INCLUDEDIR  "Location within CMAKE_INSTALL_PREFIX to install modules and headers"
+#
+#    * Defaults are: usr/local, CMAKE_INSTALL_PREFIX/bin, CMAKE_INSTALL_PREFIX/lib, CMAKE_INSTALL_PREFIX/include
 
 ===========================================================================
 D) BEYOND THIS GUIDE
