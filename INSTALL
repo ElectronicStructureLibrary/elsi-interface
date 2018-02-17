@@ -28,7 +28,27 @@ A) CMAKE BASICS
    $ make test
    $ make install
 
-   TODO: How to define variables
+   whenever cmake is invoked, one of the command line arguments must point
+   to the path where the CMakeLists.txt file exists, hence the ".." in the
+   above example.
+
+   To define an option:
+
+   $ cmake -DKeyword=Value
+
+   If "Keyword" is of type boolean, its "Value" can be "ON" or "OFF".  If
+   "Keyword" defines a list of libraries or include directories, the items
+   should be separated with ";".
+
+   Examples:
+
+   $ -DCMAKE_C_COMPILER=gcc
+   $ -DENABLE_TESTS=OFF
+   $ -DENABLE_PEXSI=ON
+   $ -DMATH_LIB="/path/to/libscalapack.a;/path/to/lapack.a;/path/to/blas.a"
+   $ -DELPA_INC="/path/to/include;/another/path/to/include"
+
+   Available options are introduced in part C).
 
 ===========================================================================
 B) REQUIREMENTS
@@ -42,8 +62,8 @@ B) REQUIREMENTS
      - C compiler (C99)
      - MPI
 
-   The following two additions are highly recommended, as they enable the
-   PEXSI solver:
+   The following two additional components enable the PEXSI solver, thus
+   are highly recommended:
 
      - C++ compiler (C++11)
      - PtScotch 6.0.4 or newer
@@ -92,31 +112,44 @@ C) CONFIGURATION
 
    2) Solver libraries
 
-     - ELPA_LIB                   [External ELPA library]
-     - ELPA_INC                   [External ELPA include path]
+   ELPA, libOMM, PEXSI, and SuperLU_DIST are redistributed with this ELSI
+   package, to ease the overall installation process.  The internal version
+   of ELPA comes with a few specifically written "kernels", which may be
+   chosen by:
 
      - ENABLE_ELPA_BGQ            [Build ELPA with BlueGene Q kernel]
      - ENABLE_ELPA_AVX            [Build ELPA with AVX kernel]
      - ENABLE_ELPA_AVX2           [Build ELPA with AVX2 kernel]
      - ENABLE_ELPA_AVX512         [Build ELPA with AVX512 kernel]
 
+   Experienced users are encouraged to link the ELSI interface against
+   external, better optimized solver libraries.  Relevant options for this
+   purpose are:
+
+     - ELPA_LIB                   [External ELPA library]
+     - ELPA_INC                   [External ELPA include path]
+
      - OMM_LIB                    [External libOMM library]
      - OMM_INC                    [External libOMM include path]
 
      - ENABLE_PEXSI               [Enable PEXSI support]
-
+     - SUPERLU_LIB                [External SUPERLU_DIST library]
+     - SUPERLU_INC                [External SUPERLU_DIST include path]
      - PTSCOTCH_LIB               [External PtScotch library]
      - PTSCOTCH_INC               [External PtScotch include path]
 
-     - SUPERLU_LIB                [External SUPERLU_DIST library]
-     - SUPERLU_INC                [External SUPERLU_DIST include path]
+   If both "XXX_LIB" and "XXX_INC" are valid, the internal version of "XXX"
+   library will not be built.  Please note that PEXSI currently needs to be
+   enabled by hand, and that an external version of PEXSI is currently not
+   supported.  When enabling PEXSI, the user should have a working PtScotch
+   library, as PtScotch is not redistributed through ELSI.
 
    3) ELSI tests
 
    By default, a static library (libelsi.a) will be created as the target
    of the installation.  Since no executable is linked, there is no need
    for the user to provide linear algebra libraries, i.e., BLAS, LAPACK,
-   BLACS, and ScaLAPACK.  Building ELSI test programs may be requested by
+   BLACS, and ScaLAPACK.  Building ELSI test programs may be requested by:
 
      - ENABLE_TESTS               [Build ELSI test programs]
 
@@ -128,7 +161,7 @@ C) CONFIGURATION
 
    To avoid specifying too many options on the command line, it is often
    convenient to edit and store settings in a file.  In CMake, this is done
-   by using "toolchains" that may be passed to CMake via
+   by using "toolchains" that may be passed to CMake via:
 
      - CMAKE_TOOLCHAIN_FILE       [Pre-defined toolchain file]
 
@@ -139,8 +172,8 @@ C) CONFIGURATION
 D) BEYOND THIS GUIDE
 ===========================================================================
 
-   A more complete and detailed description of the ELSI installation is
-   available in the User's Guide:
+   A complete description of the ELSI build system is available in the
+   User's Guide:
 
      ./doc/elsi_manual.pdf
 
@@ -151,7 +184,7 @@ E) TROUBLESHOOTING
 ===========================================================================
 
    For comments, feedback, and suggestions, please contact the ELSI team
-   via email at
+   via email:
 
      elsi-team@duke.edu
 
