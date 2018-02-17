@@ -4,9 +4,9 @@
 MSOBJ  = MatrixSwitch_ops.o ms_mm_multiply.o ms_m_add.o ms_m_set.o ms_m_copy.o ms_m_register.o MatrixSwitch.o
 OMMOBJ = omm_params.o omm_rand.o omm_quartic.o omm_ops.o omm.o omm_callback.o
 
-.PHONY: all install
+.PHONY: all
 
-all: $(MSOBJ) $(OMMOBJ)
+all: libMatrixSwitch.a libOMM.a
 
 libMatrixSwitch.a: $(MSOBJ)
 	$(ARCHIVE) $(ARCHIVEFLAGS) $@ $(MSOBJ)
@@ -54,7 +54,3 @@ omm.o: $(OMM_DIR)/libOMM/src/omm.f90 omm_ops.o omm_rand.o MatrixSwitch.o MatrixS
 
 omm_callback.o: $(OMM_DIR)/libOMM/src/omm_callback.f90 omm_ops.o omm_rand.o MatrixSwitch.o MatrixSwitch_ops.o
 	$(MPIFC) $(FFLAGS_O) $(INCS) -c $< -o $@
-
-install: libMatrixSwitch.a libOMM.a
-	cp $(BUILD_DIR)/OMM/*.a $(LIB_DIR)
-	cp $(BUILD_DIR)/OMM/*.mod $(INC_DIR)

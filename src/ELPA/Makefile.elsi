@@ -65,9 +65,9 @@ ifeq ($(strip $(ELPA_GPU)),yes)
   ALL_OBJECTS += $(GPU_OBJECTS)
 endif
 
-.PHONY: all install
+.PHONY: all
 
-all: $(ALL_OBJECTS)
+all: libelpa.a
 
 elpa1.o: $(ELPA_DIR)/src/elpa1.F90 elpa_utilities.o elpa1_utilities.o elpa1_auxiliary.o elpa1_compute_private.o mod_mpi.o check_for_gpu.o mod_cuda.o
 	$(MPIFC) $(FFLAGS_E) $(FPP) -c $<
@@ -186,7 +186,3 @@ ev_tridi_band_gpu_c_v2.o: $(ELPA_DIR)/src/ev_tridi_band_gpu_c_v2.cu
 libelpa.a: $(ALL_OBJECTS)
 	$(ARCHIVE) $(ARCHIVEFLAGS) $@ $(ALL_OBJECTS)
 	$(RANLIB) $@
-
-install: libelpa.a
-	cp $(BUILD_DIR)/ELPA/*.a $(LIB_DIR)
-	cp $(BUILD_DIR)/ELPA/*.mod $(INC_DIR)

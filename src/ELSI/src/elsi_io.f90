@@ -1,29 +1,8 @@
-! Copyright (c) 2015-2018, the ELSI team. All rights reserved.
+! Copyright (c) 2015-2018, the ELSI team.
+! All rights reserved.
 !
-! Redistribution and use in source and binary forms, with or without
-! modification, are permitted provided that the following conditions are met:
-!
-!  * Redistributions of source code must retain the above copyright notice,
-!    this list of conditions and the following disclaimer.
-!
-!  * Redistributions in binary form must reproduce the above copyright notice,
-!    this list of conditions and the following disclaimer in the documentation
-!    and/or other materials provided with the distribution.
-!
-!  * Neither the name of the "ELectronic Structure Infrastructure" project nor
-!    the names of its contributors may be used to endorse or promote products
-!    derived from this software without specific prior written permission.
-!
-! THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-! AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-! IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-! ARE DISCLAIMED. IN NO EVENT SHALL COPYRIGHT HOLDER BE LIABLE FOR ANY DIRECT,
-! INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-! BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-! DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
-! OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-! NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-! EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+! This file is part of ELSI and is distributed under the BSD 3-clause license,
+! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
 !! This module performs IO to stdout and files.
@@ -37,9 +16,6 @@ module ELSI_IO
    use ELSI_DATATYPE,  only: elsi_handle,elsi_file_io_handle
    use ELSI_MPI,       only: elsi_stop
    use ELSI_PRECISION, only: r8,i4
-   use ELSI_VERSION,   only: RELEASE_DATE,GIT_COMMIT,GIT_COMMIT_ABBREV,&
-                             GIT_COMMIT_WAS_MODIFIED,GIT_COMMIT_MSG_ABBREV,&
-                             SOURCE_HOSTNAME,SOURCE_DATETIME
 
    implicit none
 
@@ -380,9 +356,22 @@ subroutine elsi_print_versioning(e_h,io_h_in)
 
    integer(kind=i4)          :: comma_json_save
    type(elsi_file_io_handle) :: io_h
+   logical                   :: GIT_COMMIT_WAS_MODIFIED
+   character(len=10)         :: RELEASE_DATE
+   character(len=40)         :: GIT_COMMIT
+   character(len=7)          :: GIT_COMMIT_ABBREV
+   character(len=40)         :: GIT_COMMIT_MSG_ABBREV
+   character(len=40)         :: SOURCE_HOSTNAME
+   character(len=10)         :: SOURCE_LOCAL_DATE
+   character(len=8)          :: SOURCE_LOCAL_TIME
+   character(len=20)         :: SOURCE_DATETIME
    character(len=200)        :: info_str
 
    character(len=40), parameter :: caller = "elsi_print_versioning"
+
+   call elsi_version_info(RELEASE_DATE,GIT_COMMIT,GIT_COMMIT_ABBREV,&
+           GIT_COMMIT_WAS_MODIFIED,GIT_COMMIT_MSG_ABBREV,SOURCE_HOSTNAME,&
+           SOURCE_LOCAL_DATE,SOURCE_LOCAL_TIME,SOURCE_DATETIME)
 
    if(present(io_h_in)) then
       io_h = io_h_in

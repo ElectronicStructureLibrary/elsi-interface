@@ -1,29 +1,8 @@
-! Copyright (c) 2015-2018, the ELSI team. All rights reserved.
+! Copyright (c) 2015-2018, the ELSI team.
+! All rights reserved.
 !
-! Redistribution and use in source and binary forms, with or without
-! modification, are permitted provided that the following conditions are met:
-!
-!  * Redistributions of source code must retain the above copyright notice,
-!    this list of conditions and the following disclaimer.
-!
-!  * Redistributions in binary form must reproduce the above copyright notice,
-!    this list of conditions and the following disclaimer in the documentation
-!    and/or other materials provided with the distribution.
-!
-!  * Neither the name of the "ELectronic Structure Infrastructure" project nor
-!    the names of its contributors may be used to endorse or promote products
-!    derived from this software without specific prior written permission.
-!
-! THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-! AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-! IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-! ARE DISCLAIMED. IN NO EVENT SHALL COPYRIGHT HOLDER BE LIABLE FOR ANY DIRECT,
-! INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-! BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-! DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
-! OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-! NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-! EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+! This file is part of ELSI and is distributed under the BSD 3-clause license,
+! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
 !! This module provides routines for setting up an ELSI instance.
@@ -362,12 +341,12 @@ subroutine elsi_set_csc(e_h,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)
       e_h%handle_changed = .true.
    endif
 
-   e_h%nnz_g     = nnz_g
-   e_h%nnz_l_sp  = nnz_l
-   e_h%n_lcol_sp = n_lcol
-
    select case(e_h%matrix_format)
    case(PEXSI_CSC)
+      e_h%nnz_g     = nnz_g
+      e_h%nnz_l_sp  = nnz_l
+      e_h%n_lcol_sp = n_lcol
+
       if(e_h%solver == PEXSI_SOLVER) then
          if(allocated(e_h%row_ind_pexsi)) then
             call elsi_deallocate(e_h,e_h%row_ind_pexsi,"row_ind_pexsi")
@@ -397,6 +376,10 @@ subroutine elsi_set_csc(e_h,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)
          e_h%col_ptr_sips = col_ptr
       endif
    case(SIESTA_CSC)
+      e_h%nnz_g      = nnz_g
+      e_h%nnz_l_sp2  = nnz_l
+      e_h%n_lcol_sp2 = n_lcol
+
       if(allocated(e_h%row_ind_sp2)) then
          call elsi_deallocate(e_h,e_h%row_ind_sp2,"row_ind_sp2")
       endif
@@ -695,7 +678,7 @@ subroutine elsi_cleanup(e_h)
       call deallocate_matrices(e_h%dm_chess)
       call deallocate_matrices(e_h%edm_chess)
       call deallocate_matrices(e_h%ovlp_inv_sqrt_chess(1))
-      call f_lib_finalize()
+      call f_lib_finalize_stub()
    endif
 
    ! Finalize SIPs

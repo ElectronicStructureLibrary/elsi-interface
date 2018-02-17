@@ -1,29 +1,8 @@
-! Copyright (c) 2015-2018, the ELSI team. All rights reserved.
+! Copyright (c) 2015-2018, the ELSI team.
+! All rights reserved.
 !
-! Redistribution and use in source and binary forms, with or without
-! modification, are permitted provided that the following conditions are met:
-!
-!  * Redistributions of source code must retain the above copyright notice,
-!    this list of conditions and the following disclaimer.
-!
-!  * Redistributions in binary form must reproduce the above copyright notice,
-!    this list of conditions and the following disclaimer in the documentation
-!    and/or other materials provided with the distribution.
-!
-!  * Neither the name of the "ELectronic Structure Infrastructure" project nor
-!    the names of its contributors may be used to endorse or promote products
-!    derived from this software without specific prior written permission.
-!
-! THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-! AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-! IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-! ARE DISCLAIMED. IN NO EVENT SHALL COPYRIGHT HOLDER BE LIABLE FOR ANY DIRECT,
-! INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-! BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-! DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
-! OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-! NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-! EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+! This file is part of ELSI and is distributed under the BSD 3-clause license,
+! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
 !! This program tests elsi_dm_complex with 2 k-points and 2 spin channels.
@@ -52,7 +31,7 @@ program test_dm_kpt_spin_complex
    integer(kind=i4) :: myid_in_group
    integer(kind=i4) :: n_group
    integer(kind=i4) :: group_size
-   integer(kind=i4) :: mpi_comm_global
+   integer(kind=i4) :: mpi_comm
    integer(kind=i4) :: mpi_comm_group
    integer(kind=i4) :: mpierr
    integer(kind=i4) :: blk
@@ -69,8 +48,6 @@ program test_dm_kpt_spin_complex
    real(kind=r8) :: e_tol = 0.0_r8
    real(kind=r8) :: t1
    real(kind=r8) :: t2
-
-   logical :: make_check = .false. ! Are we running "make check"?
 
    complex(kind=r8), allocatable :: ham(:,:)
    complex(kind=r8), allocatable :: ham_save(:,:)
@@ -93,19 +70,12 @@ program test_dm_kpt_spin_complex
 
    ! Initialize MPI
    call MPI_Init(mpierr)
-   mpi_comm_global = MPI_COMM_WORLD
-   call MPI_Comm_size(mpi_comm_global,n_proc,mpierr)
-   call MPI_Comm_rank(mpi_comm_global,myid,mpierr)
+   mpi_comm = MPI_COMM_WORLD
+   call MPI_Comm_size(mpi_comm,n_proc,mpierr)
+   call MPI_Comm_rank(mpi_comm,myid,mpierr)
 
    ! Read command line arguments
-   if(COMMAND_ARGUMENT_COUNT() == 4) then
-      make_check = .true.
-      call GET_COMMAND_ARGUMENT(1,arg1)
-      call GET_COMMAND_ARGUMENT(2,arg2)
-      call GET_COMMAND_ARGUMENT(3,arg3)
-      call GET_COMMAND_ARGUMENT(4,arg4)
-      read(arg1,*) solver
-   elseif(COMMAND_ARGUMENT_COUNT() == 3) then
+   if(COMMAND_ARGUMENT_COUNT() == 3) then
       call GET_COMMAND_ARGUMENT(1,arg1)
       call GET_COMMAND_ARGUMENT(2,arg2)
       call GET_COMMAND_ARGUMENT(3,arg3)
@@ -119,7 +89,7 @@ program test_dm_kpt_spin_complex
          write(*,'("  ##  Arg#2: H matrix file.                     ##")')
          write(*,'("  ##  Arg#3: S matrix file.                     ##")')
          write(*,'("  ################################################")')
-         call MPI_Abort(mpi_comm_global,0,mpierr)
+         call MPI_Abort(mpi_comm,0,mpierr)
          stop
       endif
    endif
@@ -130,7 +100,7 @@ program test_dm_kpt_spin_complex
          write(*,'("  #########################################################")')
          write(*,'("  ##  Number of MPI tasks needs to be a multiple of 4!!  ##")')
          write(*,'("  #########################################################")')
-         call MPI_Abort(mpi_comm_global,0,mpierr)
+         call MPI_Abort(mpi_comm,0,mpierr)
          stop
       endif
    endif
@@ -188,8 +158,7 @@ program test_dm_kpt_spin_complex
    my_spin       = 1+my_group/n_spin
    my_kpt        = 1+mod(my_group,n_kpt)
 
-   call MPI_Comm_split(mpi_comm_global,my_group,myid_in_group,mpi_comm_group,&
-           mpierr)
+   call MPI_Comm_split(mpi_comm,my_group,myid_in_group,mpi_comm_group,mpierr)
 
    write(*,'("  Task ",I4," solving spin channel ",I2," and k-point",I2)') &
       myid,my_spin,my_kpt
@@ -246,7 +215,7 @@ program test_dm_kpt_spin_complex
    call elsi_set_mpi(e_h,mpi_comm_group)
    call elsi_set_blacs(e_h,blacs_ctxt,blk)
    ! Required for spin/kpt calculations
-   call elsi_set_mpi_global(e_h,mpi_comm_global)
+   call elsi_set_mpi_global(e_h,mpi_comm)
    call elsi_set_kpoint(e_h,n_kpt,my_kpt,k_weights(my_kpt))
    call elsi_set_spin(e_h,n_spin,my_spin)
 
@@ -259,10 +228,6 @@ program test_dm_kpt_spin_complex
    call elsi_set_omm_n_elpa(e_h,1)
    call elsi_set_pexsi_delta_e(e_h,80.0_r8)
    call elsi_set_pexsi_np_per_pole(e_h,2)
-   call elsi_set_output_timings(e_h,1)
-   call elsi_set_timings_unit(e_h,67)
-   call elsi_set_timings_file(e_h,"dm_kpt_spin_complex_timings.json")
-   call elsi_set_calling_code_name(e_h,"ELSI_TEST_SUITE")
 
    t1 = MPI_Wtime()
 
@@ -299,14 +264,10 @@ program test_dm_kpt_spin_complex
       write(*,*)
       write(*,'("  Finished test program")')
       write(*,*)
-      if(make_check) then
-         if(abs(e_test-e_ref) < e_tol) then
-            write(*,'("  Passed.")')
-         else
-            write(*,'("  Failed!!")')
-         endif
-         write(*,*)
+      if(abs(e_test-e_ref) < e_tol) then
+         write(*,'("  Passed.")')
       endif
+      write(*,*)
    endif
 
    ! Finalize ELSI
