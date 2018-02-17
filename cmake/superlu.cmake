@@ -5,18 +5,18 @@ SET(SUPERLU_INC $ENV{SUPERLU_INC})
 
 IF(SUPERLU_INC AND SUPERLU_LIB)
   MESSAGE(STATUS "Using external SuperLU_DIST")
-  MESSAGE(STATUS "  SUPERLU_LIB: ${SUPERLU_LIB}")
-  MESSAGE(STATUS "  SUPERLU_INC: ${SUPERLU_INC}")
+  MESSAGE(STATUS "  ${GREEN}SUPERLU_LIB${COLORRESET}: ${SUPERLU_LIB}")
+  MESSAGE(STATUS "  ${GREEN}SUPERLU_INC${COLORRESET}: ${SUPERLU_INC}")
 
   FOREACH(usr_lib ${SUPERLU_LIB})
     IF(NOT EXISTS ${usr_lib})
-      MESSAGE(FATAL_ERROR "User provided SuperLU_DIST library not found: ${usr_lib}")
+      MESSAGE(FATAL_ERROR "${MAGENTA}User provided SuperLU_DIST library not found: ${usr_lib}${COLORRESET}")
     ENDIF()
   ENDFOREACH()
 
   FOREACH(usr_dir ${SUPERLU_INC})
     IF(NOT EXISTS ${usr_dir})
-      MESSAGE(FATAL_ERROR "User provided SuperLU_DIST include path not found: ${usr_dir}")
+      MESSAGE(FATAL_ERROR "${MAGENTA}User provided SuperLU_DIST include path not found: ${usr_dir}${COLORRESET}")
     ENDIF()
 
     SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I${usr_dir}")
