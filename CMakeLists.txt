@@ -1,4 +1,5 @@
 ### TODO ###
+# Add optional pkg-config
 # Define "Add_"
 # Minimum required version
 # CPack
@@ -21,10 +22,10 @@ INCLUDE(color_message)
 IF(CMAKE_BINARY_DIR STREQUAL CMAKE_SOURCE_DIR)
   MESSAGE(FATAL_ERROR "${MAGENTA}Build in the source directory is not allowed${COLORRESET}")
 ENDIF()
-SET(CMAKE_Fortran_MODULE_DIRECTORY "${CMAKE_BINARY_DIR}/include")
-SET(LIBRARY_OUTPUT_PATH "${CMAKE_BINARY_DIR}/lib")
-SET(ARCHIVE_OUTPUT_PATH "${CMAKE_BINARY_DIR}/lib")
-SET(EXECUTABLE_OUTPUT_PATH "${CMAKE_BINARY_DIR}/bin")
+SET(CMAKE_Fortran_MODULE_DIRECTORY "${CMAKE_BINARY_DIR}/elsi_build/include")
+SET(LIBRARY_OUTPUT_PATH "${CMAKE_BINARY_DIR}/elsi_build/lib")
+SET(ARCHIVE_OUTPUT_PATH "${CMAKE_BINARY_DIR}/elsi_build/lib")
+SET(EXECUTABLE_OUTPUT_PATH "${CMAKE_BINARY_DIR}/elsi_build/bin")
 IF(NOT DEFINED CMAKE_INSTALL_INCLUDEDIR)
   SET(CMAKE_INSTALL_INCLUDEDIR "include" CACHE PATH "Location to install module and header files")
 ENDIF()
