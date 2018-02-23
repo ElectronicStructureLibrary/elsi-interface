@@ -1,16 +1,20 @@
-### Intel compilers + OpenMPI + Intel MKL + Netlib ScaLAPACK ###
+### Intel compilers + OpenMPI + Intel MKL + Netlib ScaLAPACK (debug) ###
 
 SET(CMAKE_Fortran_COMPILER "ifort")
 SET(CMAKE_C_COMPILER "icc")
 SET(CMAKE_CXX_COMPILER "icpc")
 
-SET(CMAKE_Fortran_FLAGS "-fast -no-ipo")
-SET(CMAKE_C_FLAGS "-fast -no-ipo")
-SET(CMAKE_CXX_FLAGS "-fast -no-ipo")
+SET(CMAKE_Fortran_FLAGS "-fast -no-ipo -g -traceback -check bounds -check uninit -check pointers -fpe0")
+SET(CMAKE_C_FLAGS "-fast -no-ipo -g -Wall -Wno-unused-parameter")
+SET(CMAKE_CXX_FLAGS "-fast -no-ipo -g -Wall -Wno-unused-parameter")
 
 SET(MPI_Fortran_COMPILER "mpif90")
 SET(MPI_C_COMPILER "mpicc")
-SET(MPI_CXX_COMPILER "mpicxx")
+SET(MPI_CXX_COMPILER "mpic++")
+
+SET(MPI_Fortran_COMPILE_FLAGS "-g -traceback -check bounds -check uninit -check pointers -fpe0")
+SET(MPI_C_COMPILE_FLAGS "-g -Wall -Wno-unused-parameter")
+SET(MPI_CXX_COMPILE_FLAGS "-g -Wall -Wno-unused-parameter")
 
 SET(ENABLE_TESTS "ON" CACHE BOOL "Enable Fortran tests")
 SET(ENABLE_ELPA_AVX "ON" CACHE BOOL "Enable ELPA AVX kernel")

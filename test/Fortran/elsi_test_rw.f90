@@ -19,7 +19,6 @@ program elsi_test_rw
    character(128) :: arg2 ! H file
    character(128) :: arg3 ! S file
 
-   integer(kind=i4) :: real_cmplx
    integer(kind=i4) :: myid
    integer(kind=i4) :: mpierr
 
