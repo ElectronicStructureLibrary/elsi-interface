@@ -4,16 +4,16 @@ SET(CMAKE_Fortran_COMPILER "ifort")
 SET(CMAKE_C_COMPILER "icc")
 SET(CMAKE_CXX_COMPILER "icpc")
 
-SET(CMAKE_Fortran_FLAGS "-fast -no-ipo")
-SET(CMAKE_C_FLAGS "-fast -no-ipo")
-SET(CMAKE_CXX_FLAGS "-fast -no-ipo")
-
 SET(MPI_Fortran_COMPILER "mpif90")
 SET(MPI_C_COMPILER "mpicc")
 SET(MPI_CXX_COMPILER "mpicxx")
 
+SET(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fast -no-ipo" CACHE STRING "Fortran flags" FORCE)
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fast -no-ipo" CACHE STRING "C flags" FORCE)
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fast -no-ipo" CACHE STRING "C++ flags" FORCE)
+
 SET(ENABLE_TESTS "ON" CACHE BOOL "Enable Fortran tests")
-SET(ENABLE_ELPA_AVX "ON" CACHE BOOL "Enable ELPA AVX kernel")
+SET(ENABLE_ELPA_AVX "ON" CACHE BOOL "Use ELPA AVX kernel")
 SET(ENABLE_PEXSI "ON" CACHE BOOL "Enable PEXSI")
 
 SET(PTSCOTCH_DIR "/Users/vyu/Soft/scotch_6.0.5a" CACHE PATH "PtScotch directory")

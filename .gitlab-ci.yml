@@ -1,41 +1,41 @@
-### GCC compilers + OpenMPI + Netlib BLAS, LAPACK, ScaLAPACK ###
-#gnu:
-#  script:
-#    - module purge
-#    - module load gcc-7.1
-#    - cat ./toolchains/gnu.tc
-#    - rm -rf build
-#    - mkdir build
-#    - cd build
-#    - cmake .. -DCMAKE_TOOLCHAIN_FILE=../toolchains/gnu.tc -DCMAKE_INSTALL_PREFIX=./
-#    - make -j8
-#    - ctest --output-on-failure
-#    - make install
+### GNU compilers + OpenMPI + Netlib BLAS, LAPACK, ScaLAPACK ###
+gnu:
+  script:
+    - module purge
+    - module load gcc-7.1
+    - cat ./toolchains/gnu.cmake
+    - rm -rf build
+    - mkdir build
+    - cd build
+    - cmake .. -DCMAKE_TOOLCHAIN_FILE=../toolchains/gnu.cmake -DCMAKE_INSTALL_PREFIX=./
+    - make -j
+    - ctest --output-on-failure
+    - make install
 
 ### Intel compilers + MPI + MKL ###
 intel:
   script:
     - module purge
     - module load gcc-7.1
-    - cat ./toolchains/intel.tc
+    - cat ./toolchains/intel.cmake
     - rm -rf build
     - mkdir build
     - cd build
-    - cmake .. -DCMAKE_TOOLCHAIN_FILE=../toolchains/intel.tc -DCMAKE_INSTALL_PREFIX=./
-    - make -j8
+    - cmake .. -DCMAKE_TOOLCHAIN_FILE=../toolchains/intel.cmake -DCMAKE_INSTALL_PREFIX=./
+    - make -j
     - ctest --output-on-failure
     - make install
 
 ### Intel compilers + MPI + MKL + external solver libraries (debug) ###
-#intel-debug:
-#  script:
-#    - module purge
-#    - module load gcc-7.1
-#    - cat ./toolchains/intel_debug.tc
-#    - rm -rf build
-#    - mkdir build
-#    - cd build
-#    - cmake .. -DCMAKE_TOOLCHAIN_FILE=../toolchains/intel_debug.tc -DCMAKE_INSTALL_PREFIX=./
-#    - make -j8
-#    - ctest --output-on-failure
-#    - make install
+intel-debug:
+  script:
+    - module purge
+    - module load gcc-7.1
+    - cat ./toolchains/intel_debug.cmake
+    - rm -rf build
+    - mkdir build
+    - cd build
+    - cmake .. -DCMAKE_TOOLCHAIN_FILE=../toolchains/intel_debug.cmake -DCMAKE_INSTALL_PREFIX=./
+    - make -j
+    - ctest --output-on-failure
+    - make install
