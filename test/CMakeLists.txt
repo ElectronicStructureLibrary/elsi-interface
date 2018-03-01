@@ -28,6 +28,10 @@ LIST(APPEND ftest_src
 ADD_EXECUTABLE(elsi_test ${ftest_src})
 ADD_DEPENDENCIES(elsi_test elsi)
 TARGET_LINK_LIBRARIES(elsi_test elsi ${LINK_LIB})
+IF(ENABLE_MKL)
+  SET_TARGET_PROPERTIES(elsi_test
+    PROPERTIES LINK_FLAGS "-mkl=cluster")
+ENDIF()
 INSTALL(TARGETS elsi_test
   DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
 
@@ -41,6 +45,10 @@ LIST(APPEND ftestrw_src
 ADD_EXECUTABLE(elsi_test_rw ${ftestrw_src})
 ADD_DEPENDENCIES(elsi_test_rw elsi)
 TARGET_LINK_LIBRARIES(elsi_test_rw elsi ${LINK_LIB})
+IF(ENABLE_MKL)
+  SET_TARGET_PROPERTIES(elsi_test_rw
+    PROPERTIES LINK_FLAGS "-mkl=cluster")
+ENDIF()
 INSTALL(TARGETS elsi_test_rw
   DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
 
@@ -57,6 +65,10 @@ IF(ENABLE_C_TESTS)
   ADD_EXECUTABLE(elsi_test_c ${ctest_src})
   ADD_DEPENDENCIES(elsi_test_c elsi)
   TARGET_LINK_LIBRARIES(elsi_test_c elsi ${LINK_LIB})
+  IF(ENABLE_MKL)
+    SET_TARGET_PROPERTIES(elsi_test_c
+      PROPERTIES LINK_FLAGS "-mkl=cluster")
+  ENDIF()
   INSTALL(TARGETS elsi_test_c
     DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
 ENDIF()
