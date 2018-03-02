@@ -57,7 +57,7 @@ B) REQUIREMENTS
    To compile and install the ELSI interface and the redistributed solver
    libraries, minimum requirements include:
 
-     - CMake 3.0.2 or newer
+     - CMake 3.1.3 or newer
      - Fortran compiler (Fortran 2003)
      - C compiler (C99)
      - MPI
