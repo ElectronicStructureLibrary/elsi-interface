@@ -3,7 +3,7 @@ SET(MATH_INC $ENV{MATH_INC})
 
 IF(MATH_LIB)
   MESSAGE(STATUS "Using linear algebra libraries")
-  MESSAGE(STATUS "  ${GREEN}MATH_LIB${COLORRESET}: ${MATH_LIB}")
+  MESSAGE(STATUS "${GREEN}MATH_LIB${COLORRESET}: ${MATH_LIB}")
 
   FOREACH(usr_lib ${MATH_LIB})
     IF(NOT EXISTS ${usr_lib})
@@ -12,7 +12,7 @@ IF(MATH_LIB)
   ENDFOREACH()
 
   IF(MATH_INC)
-    MESSAGE(STATUS "  ${GREEN}MATH_INC${COLORRESET}: ${MATH_INC}")
+    MESSAGE(STATUS "${GREEN}MATH_INC${COLORRESET}: ${MATH_INC}")
     FOREACH(usr_dir ${MATH_INC})
       IF(NOT EXISTS ${usr_dir})
         MESSAGE(FATAL_ERROR "${MAGENTA}User provided linear algebra include path not found: ${usr_dir}${COLORRESET}")

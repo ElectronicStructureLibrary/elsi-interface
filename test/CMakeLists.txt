@@ -7,9 +7,6 @@ SET(LINK_LIB
   ${SUPERLU_LIB}
   ${PTSCOTCH_LIB}
   ${MATH_LIB}
-  ${MPI_Fortran_LIBRARIES}
-  ${MPI_C_LIBRARIES}
-  ${MPI_CXX_LIBRARIES}
 )
 
 ### Fortran tests ###
@@ -82,10 +79,13 @@ SET(s_cmplx "${CMAKE_SOURCE_DIR}/test/matrices/S_complex.csc")
 ### CTest ###
 INCLUDE(CTest)
 
+IF(NOT DEFINED MPIEXEC)
+  SET(MPIEXEC "mpiexec")
+ENDIF()
+
 MACRO(test_fortran arg1 arg2 arg3 arg4 arg5 arg6 arg7)
   ADD_TEST(test_fortran_${arg1}
-    ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
-    ${EXECUTABLE_OUTPUT_PATH}/elsi_test
+    ${MPIEXEC} -n 4 ${EXECUTABLE_OUTPUT_PATH}/elsi_test
     ${arg2} ${arg3} ${arg4} ${arg5} ${arg6} ${arg7}
   )
   SET_TESTS_PROPERTIES(test_fortran_${arg1}
@@ -159,8 +159,7 @@ SET_TESTS_PROPERTIES(test_matio_02
 )
 
 ADD_TEST(test_matio_03
-  ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
-  ${EXECUTABLE_OUTPUT_PATH}/elsi_test_rw
+  ${MPIEXEC} -n 4 ${EXECUTABLE_OUTPUT_PATH}/elsi_test_rw
   r ${h_real} ${s_real}
 )
 SET_TESTS_PROPERTIES(test_matio_03
@@ -168,8 +167,7 @@ SET_TESTS_PROPERTIES(test_matio_03
 )
 
 ADD_TEST(test_matio_04
-  ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
-  ${EXECUTABLE_OUTPUT_PATH}/elsi_test_rw
+  ${MPIEXEC} -n 4 ${EXECUTABLE_OUTPUT_PATH}/elsi_test_rw
   c ${h_cmplx} ${s_cmplx}
 )
 SET_TESTS_PROPERTIES(test_matio_04
@@ -179,8 +177,7 @@ SET_TESTS_PROPERTIES(test_matio_04
 IF(ENABLE_C_TESTS)
   MACRO(test_c arg1 arg2 arg3 arg4 arg5 arg6 arg7)
     ADD_TEST(test_c_${arg1}
-      ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
-      ${EXECUTABLE_OUTPUT_PATH}/elsi_test_c
+      ${MPIEXEC} -n 4 ${EXECUTABLE_OUTPUT_PATH}/elsi_test_c
       ${arg2} ${arg3} ${arg4} ${arg5} ${arg6} ${arg7}
     )
     SET_TESTS_PROPERTIES(test_c_${arg1}

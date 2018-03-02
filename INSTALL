@@ -92,23 +92,14 @@ C) CONFIGURATION
    compilers and their flags, in particular the optimization flags, via the
    following options:
 
-     - CMAKE_Fortran_COMPILER     [Fortran compiler]
+     - CMAKE_Fortran_COMPILER     [MPI Fortran compiler]
      - CMAKE_Fortran_FLAGS        [Fortran compilation flags]
-     - CMAKE_C_COMPILER           [C compiler]
+     - CMAKE_C_COMPILER           [MPI C compiler]
      - CMAKE_C_FLAGS              [C compilation flags]
-     - CMAKE_CXX_COMPILER         [C++ compiler]
+     - CMAKE_CXX_COMPILER         [MPI C++ compiler]
      - CMAKE_CXX_FLAGS            [C++ compilation flags]
 
-   And additionally, the MPI-aware compilers:
-
-     - MPI_Fortran_COMPILER       [MPI Fortran compiler]
-     - MPI_Fortran_COMPILE_FLAGS  [MPI Fortran compilation flags]
-     - MPI_C_COMPILER             [MPI C compiler]
-     - MPI_C_COMPILE_FLAGS        [MPI C compilation flags]
-     - MPI_CXX_COMPILER           [MPI C++ compiler]
-     - MPI_CXX_COMPILE_FLAGS      [MPI C++ compilation flags]
-
-   The C++ and MPI C++ compilers not needed if building ELSI without PEXSI.
+   The C++ compiler is not needed if building ELSI without PEXSI.
 
    2) Solver libraries
 
