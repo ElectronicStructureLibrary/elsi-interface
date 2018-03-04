@@ -2,7 +2,7 @@
 MESSAGE(STATUS "Getting ELSI version")
 EXECUTE_PROCESS(COMMAND rm -f ${CMAKE_SOURCE_DIR}/src/elsi_version.f90)
 EXECUTE_PROCESS(COMMAND ${CMAKE_SOURCE_DIR}/src/elsi_version_writer.pl ${elsi_VERSION}
-  COMMAND tee ${CMAKE_SOURCE_DIR}/src/elsi_version.f90
+  OUTPUT_FILE ${CMAKE_SOURCE_DIR}/src/elsi_version.f90
   OUTPUT_QUIET
 )
 

@@ -5,8 +5,8 @@ SET(CMAKE_C_COMPILER "/home/wy29/opt/openmpi-3.0.0/build/bin/mpicc")
 SET(CMAKE_CXX_COMPILER "/home/wy29/opt/openmpi-3.0.0/build/bin/mpic++")
 
 SET(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -O3 -mavx" CACHE STRING "Fortran flags" FORCE)
-SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -mavx" CACHE STRING "C flags" FORCE)
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -mavx" CACHE STRING "C++ flags" FORCE)
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -mavx -std=c99" CACHE STRING "C flags" FORCE)
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -mavx -std=c++11" CACHE STRING "C++ flags" FORCE)
 
 SET(ENABLE_TESTS "ON" CACHE BOOL "Enable Fortran tests")
 SET(ENABLE_ELPA_AVX "ON" CACHE BOOL "Use ELPA AVX kernel")

@@ -24,7 +24,9 @@ IF(MATH_LIB)
 
   SET(MATH_FOUND TRUE)
 ELSE()
-  MESSAGE(WARNING "${MAGENTA}Linear algebra libraries not provided${COLORRESET}")
+  IF(NOT ENABLE_MKL)
+    MESSAGE(WARNING "${MAGENTA}Linear algebra libraries not provided${COLORRESET}")
+  ENDIF()
 
   SET(MATH_FOUND FALSE)
 ENDIF()

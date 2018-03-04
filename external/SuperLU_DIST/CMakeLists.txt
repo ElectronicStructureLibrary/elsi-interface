@@ -1,22 +1,5 @@
 INCLUDE_DIRECTORIES(src)
 
-### Header files ###
-LIST(APPEND superlu_h
-  src/Cnames.h
-  src/colamd.h
-  src/cublas_utils.h
-  src/dcomplex.h
-  src/machines.h
-  src/psymbfact.h
-  src/superlu_ddefs.h
-  src/superlu_defs.h
-  src/superlu_dist_config.h
-  src/superlu_enum_consts.h
-  src/superlu_zdefs.h
-  src/supermatrix.h
-  src/util_dist.h
-)
-
 ### Source files ###
 LIST(APPEND superlu_src
   src/colamd.c
@@ -110,14 +93,13 @@ LIST(APPEND superlu_src
   src/zutil_dist.c
 )
 
-ADD_LIBRARY(superlu_dist ${superlu_src} ${superlu_h})
+ADD_LIBRARY(superlu_dist ${superlu_src})
 
 TARGET_COMPILE_DEFINITIONS(superlu_dist PRIVATE NDEBUG)
 TARGET_COMPILE_DEFINITIONS(superlu_dist PRIVATE USE_VENDOR_BLAS)
 TARGET_COMPILE_DEFINITIONS(superlu_dist PRIVATE Add_)
 TARGET_COMPILE_DEFINITIONS(superlu_dist PRIVATE PRNTlevel=0)
 TARGET_COMPILE_DEFINITIONS(superlu_dist PRIVATE DEBUGlevel=0)
-TARGET_COMPILE_FEATURES(superlu_dist PUBLIC c_std_99)
 
 INSTALL(TARGETS superlu_dist
   DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}

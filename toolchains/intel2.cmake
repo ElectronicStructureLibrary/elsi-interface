@@ -5,8 +5,8 @@ SET(CMAKE_C_COMPILER "mpicc")
 SET(CMAKE_CXX_COMPILER "mpicxx")
 
 SET(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fast -no-ipo" CACHE STRING "Fortran flags" FORCE)
-SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fast -no-ipo" CACHE STRING "C flags" FORCE)
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fast -no-ipo" CACHE STRING "C++ flags" FORCE)
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fast -no-ipo -std=c99" CACHE STRING "C flags" FORCE)
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fast -no-ipo -std=c++11" CACHE STRING "C++ flags" FORCE)
 
 SET(ENABLE_TESTS "ON" CACHE BOOL "Enable Fortran tests")
 SET(ENABLE_ELPA_AVX "ON" CACHE BOOL "Use ELPA AVX kernel")
