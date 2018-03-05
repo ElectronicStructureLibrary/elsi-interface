@@ -1,6 +1,5 @@
 ### TODO ###
 # PtScotch
-# Define "Add_"
 # CPack
 
 ### CMake ###
@@ -44,6 +43,7 @@ OPTION(ENABLE_ELPA_AVX "Use ELPA AVX kernel" OFF)
 OPTION(ENABLE_ELPA_AVX2 "Use ELPA AVX2 kernel" OFF)
 OPTION(ENABLE_ELPA_AVX512 "Use ELPA AVX512 kernel" OFF)
 OPTION(ENABLE_MKL "Use Intel MKL libraries" OFF)
+OPTION(ADD_UNDERSCORE "Suffix C functions with an underscore" OFF)
 
 ### Compilers ###
 IF(NOT DEFINED CMAKE_Fortran_COMPILER)

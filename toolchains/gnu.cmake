@@ -11,6 +11,7 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -mavx -std=c++11" CACHE STRING "C++ 
 SET(ENABLE_TESTS "ON" CACHE BOOL "Enable Fortran tests")
 SET(ENABLE_ELPA_AVX "ON" CACHE BOOL "Use ELPA AVX kernel")
 SET(ENABLE_PEXSI "ON" CACHE BOOL "Enable PEXSI")
+SET(ADD_UNDERSCORE "ON" CACHE BOOL "Add underscore")
 
 SET(PTSCOTCH_DIR "/home/wy29/opt/scotch_6.0.5a_gcc" CACHE PATH "PtScotch directory")
 SET(PTSCOTCH_LIB "${PTSCOTCH_DIR}/lib/libptscotchparmetis.a;${PTSCOTCH_DIR}/lib/libptscotch.a;${PTSCOTCH_DIR}/lib/libptscotcherr.a;${PTSCOTCH_DIR}/lib/libscotchmetis.a;${PTSCOTCH_DIR}/lib/libscotch.a;${PTSCOTCH_DIR}/lib/libscotcherr.a" CACHE STRING "PtScotch Libraries")
