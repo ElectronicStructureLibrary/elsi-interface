@@ -59,7 +59,7 @@ ELSEIF(ENABLE_ELPA_AVX)
 ELSEIF(ENABLE_ELPA_BGQ)
   MESSAGE(STATUS "Enabling ELPA Blue Gene Q kernel")
   LIST(APPEND elpa_src
-    src/mod_compute_hh_trafo_bgq.f90
+    src/mod_compute_hh_trafo_real_bgq.f90
     src/mod_compute_hh_trafo_complex.f90
     src/mod_fortran_interfaces.f90
     src/elpa2_utilities_bgq.f90
