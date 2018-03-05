@@ -1,4 +1,4 @@
-### GNU compilers + OpenMPI + Netlib libraries ###
+### Generic GNU ###
 
 SET(CMAKE_Fortran_COMPILER "/home/wy29/opt/openmpi-3.0.0/build/bin/mpif90")
 SET(CMAKE_C_COMPILER "/home/wy29/opt/openmpi-3.0.0/build/bin/mpicc")

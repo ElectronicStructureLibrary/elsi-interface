@@ -1,4 +1,4 @@
-### Intel compilers + MPI + MKL ###
+### Generic Intel ###
 
 SET(CMAKE_Fortran_COMPILER "mpiifort")
 SET(CMAKE_C_COMPILER "mpiicc")

@@ -1,4 +1,4 @@
-### Intel compilers + MPI + MKL (Cori-Haswell) ###
+### Cori-Haswell ###
 
 SET(CMAKE_Fortran_COMPILER "ftn")
 SET(CMAKE_C_COMPILER "cc")
