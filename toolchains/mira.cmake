@@ -8,7 +8,7 @@ SET(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -O3 -qstrict -qmaxmem=-1 -qsmp=n
 SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -qstrict -qlanglvl=stdc99" CACHE STRING "C flags" FORCE)
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -qstrict -qlanglvl=extended0x" CACHE STRING "C++ flags" FORCE)
 
-SET(ENABLE_ELPA_BGQ "ON" CACHE BOOL "Use ELPA AVX kernel")
+SET(ENABLE_ELPA_BGQ "ON" CACHE BOOL "Use ELPA Blue Gene Q kernel")
 SET(ENABLE_PEXSI "ON" CACHE BOOL "Enable PEXSI")
 
 SET(PTSCOTCH_DIR "/home/wzvyu/mira/scotch_6.0.5a" CACHE PATH "PtScotch directory")
