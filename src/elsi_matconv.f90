@@ -387,12 +387,12 @@ subroutine elsi_blacs_to_pexsi_hs_real(e_h,ham,ovlp)
          call elsi_check_mpi(e_h,"MPI_Alltoallv",ierr,caller)
 
          call elsi_deallocate(e_h,s_val_recv_buf,"s_val_recv_buf")
-
-         call elsi_allocate(e_h,e_h%ham_real_pexsi,e_h%nnz_l_sp,&
-                 "ham_real_pexsi",caller)
       else
          call elsi_allocate(e_h,e_h%ovlp_real_pexsi,1,"dummy",caller)
       endif
+
+      call elsi_allocate(e_h,e_h%ham_real_pexsi,e_h%nnz_l_sp,"ham_real_pexsi",&
+              caller)
    else
       call elsi_deallocate(e_h,row_recv_buf,"row_recv_buf")
       call elsi_deallocate(e_h,col_recv_buf,"col_recv_buf")
@@ -785,12 +785,12 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(e_h,ham,ovlp)
          call elsi_check_mpi(e_h,"MPI_Alltoallv",ierr,caller)
 
          call elsi_deallocate(e_h,s_val_recv_buf,"s_val_recv_buf")
-
-         call elsi_allocate(e_h,e_h%ham_cmplx_pexsi,e_h%nnz_l_sp,&
-                 "ham_cmplx_pexsi",caller)
       else
          call elsi_allocate(e_h,e_h%ovlp_cmplx_pexsi,1,"dummy",caller)
       endif
+
+      call elsi_allocate(e_h,e_h%ham_cmplx_pexsi,e_h%nnz_l_sp,&
+              "ham_cmplx_pexsi",caller)
    else
       call elsi_deallocate(e_h,row_recv_buf,"row_recv_buf")
       call elsi_deallocate(e_h,col_recv_buf,"col_recv_buf")
