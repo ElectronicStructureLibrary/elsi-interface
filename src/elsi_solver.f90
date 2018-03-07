@@ -39,7 +39,7 @@ module ELSI_SOLVER
    use ELSI_MATCONV,   only: elsi_blacs_to_chess_hs_real,&
                              elsi_blacs_to_pexsi_hs_cmplx,&
                              elsi_blacs_to_pexsi_hs_real,&
-                             elsi_blacs_to_siesta_dm_cmplx
+                             elsi_blacs_to_siesta_dm_cmplx,&
                              elsi_blacs_to_siesta_dm_real,&
                              elsi_blacs_to_sips_dm_cmplx,&
                              elsi_blacs_to_sips_dm_real,&
@@ -48,15 +48,15 @@ module ELSI_SOLVER
                              elsi_chess_to_blacs_dm_real,&
                              elsi_pexsi_to_blacs_dm_cmplx,&
                              elsi_pexsi_to_blacs_dm_real,&
-!                             elsi_pexsi_to_siesta_dm_cmplx,&
-!                             elsi_pexsi_to_siesta_dm_real,&
+                             elsi_pexsi_to_siesta_dm_cmplx,&
+                             elsi_pexsi_to_siesta_dm_real,&
                              elsi_siesta_to_blacs_hs_cmplx,&
                              elsi_siesta_to_blacs_hs_real,&
                              elsi_siesta_to_pexsi_hs_cmplx,&
                              elsi_siesta_to_pexsi_hs_real,&
                              elsi_sips_to_blacs_hs_cmplx,&
                              elsi_sips_to_blacs_hs_real,&
-                             elsi_sips_to_blacs_ev_real,&
+                             elsi_sips_to_blacs_ev_real
    use ELSI_MPI,       only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8
    use ELSI_OMM,       only: elsi_solve_evp_omm_real,elsi_solve_evp_omm_cmplx
    use ELSI_PEXSI,     only: elsi_init_pexsi,elsi_solve_evp_pexsi_real,&
@@ -1015,8 +1015,8 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
       select case(e_h%matrix_format)
       case(PEXSI_CSC)
          ! Nothing
-!      case(SIESTA_CSC)
-!         call elsi_pexsi_to_siesta_dm_real(e_h,dm)
+      case(SIESTA_CSC)
+         call elsi_pexsi_to_siesta_dm_real(e_h,dm)
       case default
          call elsi_stop(" Unsupported matrix format.",e_h,caller)
       end select
@@ -1294,8 +1294,8 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
       select case(e_h%matrix_format)
       case(PEXSI_CSC)
          ! Nothing
-!      case(SIESTA_CSC)
-!         call elsi_pexsi_to_siesta_dm_cmplx(e_h,dm)
+      case(SIESTA_CSC)
+         call elsi_pexsi_to_siesta_dm_cmplx(e_h,dm)
       case default
          call elsi_stop(" Unsupported matrix format.",e_h,caller)
       end select
