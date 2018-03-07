@@ -3571,8 +3571,6 @@ subroutine elsi_siesta_to_pexsi_hs_real(e_h,ham,ovlp)
    integer(kind=i4), allocatable :: col_send_buf(:)
    integer(kind=i4), allocatable :: send_count(:)
    integer(kind=i4), allocatable :: send_displ(:)
-   real(kind=r8),    allocatable :: h_val_recv_buf(:)
-   real(kind=r8),    allocatable :: s_val_recv_buf(:)
    integer(kind=i4), allocatable :: row_recv_buf(:)
    integer(kind=i4), allocatable :: col_recv_buf(:)
    integer(kind=i4), allocatable :: recv_count(:)
@@ -3649,6 +3647,18 @@ subroutine elsi_siesta_to_pexsi_hs_real(e_h,ham,ovlp)
    enddo
 
    ! Send and receive the packed data
+   if(e_h%n_elsi_calls == 1) then
+      call elsi_allocate(e_h,e_h%ham_real_pexsi,e_h%nnz_l_sp,"ham_real_pexsi",&
+              caller)
+
+      if(.not. e_h%ovlp_is_unit) then
+         call elsi_allocate(e_h,e_h%ovlp_real_pexsi,e_h%nnz_l_sp,&
+                 "ovlp_real_pexsi",caller)
+      else
+         call elsi_allocate(e_h,e_h%ovlp_real_pexsi,1,"dummy",caller)
+      endif
+   endif
+
    ! Row index
    call elsi_allocate(e_h,row_recv_buf,e_h%nnz_l_sp,"row_recv_buf",caller)
 
@@ -3670,10 +3680,8 @@ subroutine elsi_siesta_to_pexsi_hs_real(e_h,ham,ovlp)
    call elsi_deallocate(e_h,col_send_buf,"col_send_buf")
 
    ! Hamiltonian Value
-   call elsi_allocate(e_h,h_val_recv_buf,e_h%nnz_l_sp,"h_val_recv_buf",caller)
-
    call MPI_Alltoallv(h_val_send_buf,send_count,send_displ,mpi_real8,&
-           h_val_recv_buf,recv_count,recv_displ,mpi_real8,e_h%mpi_comm,ierr)
+           e_h%ham_real_pexsi,recv_count,recv_displ,mpi_real8,e_h%mpi_comm,ierr)
 
    call elsi_check_mpi(e_h,"MPI_Alltoallv",ierr,caller)
 
@@ -3681,13 +3689,13 @@ subroutine elsi_siesta_to_pexsi_hs_real(e_h,ham,ovlp)
 
    ! Overlap value
    if(e_h%n_elsi_calls == 1 .and. .not. e_h%ovlp_is_unit) then
-      call elsi_allocate(e_h,s_val_recv_buf,e_h%nnz_l_sp,"s_val_recv_buf",&
-              caller)
-
       call MPI_Alltoallv(s_val_send_buf,send_count,send_displ,mpi_real8,&
-              s_val_recv_buf,recv_count,recv_displ,mpi_real8,e_h%mpi_comm,ierr)
+              e_h%ovlp_real_pexsi,recv_count,recv_displ,mpi_real8,e_h%mpi_comm,&
+              ierr)
 
       call elsi_check_mpi(e_h,"MPI_Alltoallv",ierr,caller)
+
+      call elsi_deallocate(e_h,s_val_send_buf,"s_val_send_buf")
    endif
 
    call elsi_deallocate(e_h,send_count,"send_count")
@@ -3706,17 +3714,14 @@ subroutine elsi_siesta_to_pexsi_hs_real(e_h,ham,ovlp)
 
    ! Sort
    if(e_h%n_elsi_calls == 1 .and. .not. e_h%ovlp_is_unit) then
-      call elsi_heapsort(e_h%nnz_l_sp,global_id,h_val_recv_buf,s_val_recv_buf,&
-              row_recv_buf,col_recv_buf)
-
-     call elsi_deallocate(e_h,s_val_recv_buf,"s_val_recv_buf")
+      call elsi_heapsort(e_h%nnz_l_sp,global_id,e_h%ham_real_pexsi,&
+              e_h%ovlp_real_pexsi,row_recv_buf,col_recv_buf)
    else
-      call elsi_heapsort(e_h%nnz_l_sp,global_id,h_val_recv_buf,row_recv_buf,&
-              col_recv_buf)
+      call elsi_heapsort(e_h%nnz_l_sp,global_id,e_h%ham_real_pexsi,&
+              row_recv_buf,col_recv_buf)
    endif
 
    call elsi_deallocate(e_h,global_id,"global_id")
-   call elsi_deallocate(e_h,h_val_recv_buf,"h_val_recv_buf")
 
    if(e_h%n_elsi_calls == 1) then
       call elsi_allocate(e_h,e_h%row_ind_pexsi,e_h%nnz_l_sp,"row_ind_pexsi",&
@@ -3787,8 +3792,6 @@ subroutine elsi_siesta_to_pexsi_hs_cmplx(e_h,ham,ovlp)
    integer(kind=i4), allocatable :: col_send_buf(:)
    integer(kind=i4), allocatable :: send_count(:)
    integer(kind=i4), allocatable :: send_displ(:)
-   complex(kind=r8), allocatable :: h_val_recv_buf(:)
-   complex(kind=r8), allocatable :: s_val_recv_buf(:)
    integer(kind=i4), allocatable :: row_recv_buf(:)
    integer(kind=i4), allocatable :: col_recv_buf(:)
    integer(kind=i4), allocatable :: recv_count(:)
@@ -3865,6 +3868,18 @@ subroutine elsi_siesta_to_pexsi_hs_cmplx(e_h,ham,ovlp)
    enddo
 
    ! Send and receive the packed data
+   if(e_h%n_elsi_calls == 1) then
+      call elsi_allocate(e_h,e_h%ham_cmplx_pexsi,e_h%nnz_l_sp,&
+              "ham_cmplx_pexsi",caller)
+
+      if(.not. e_h%ovlp_is_unit) then
+         call elsi_allocate(e_h,e_h%ovlp_cmplx_pexsi,e_h%nnz_l_sp,&
+                 "ovlp_cmplx_pexsi",caller)
+      else
+         call elsi_allocate(e_h,e_h%ovlp_cmplx_pexsi,1,"dummy",caller)
+      endif
+   endif
+
    ! Row index
    call elsi_allocate(e_h,row_recv_buf,e_h%nnz_l_sp,"row_recv_buf",caller)
 
@@ -3886,10 +3901,9 @@ subroutine elsi_siesta_to_pexsi_hs_cmplx(e_h,ham,ovlp)
    call elsi_deallocate(e_h,col_send_buf,"col_send_buf")
 
    ! Hamiltonian Value
-   call elsi_allocate(e_h,h_val_recv_buf,e_h%nnz_l_sp,"h_val_recv_buf",caller)
-
    call MPI_Alltoallv(h_val_send_buf,send_count,send_displ,mpi_complex16,&
-           h_val_recv_buf,recv_count,recv_displ,mpi_complex16,e_h%mpi_comm,ierr)
+           e_h%ham_cmplx_pexsi,recv_count,recv_displ,mpi_complex16,&
+           e_h%mpi_comm,ierr)
 
    call elsi_check_mpi(e_h,"MPI_Alltoallv",ierr,caller)
 
@@ -3897,14 +3911,13 @@ subroutine elsi_siesta_to_pexsi_hs_cmplx(e_h,ham,ovlp)
 
    ! Overlap value
    if(e_h%n_elsi_calls == 1 .and. .not. e_h%ovlp_is_unit) then
-      call elsi_allocate(e_h,s_val_recv_buf,e_h%nnz_l_sp,"s_val_recv_buf",&
-              caller)
-
       call MPI_Alltoallv(s_val_send_buf,send_count,send_displ,mpi_complex16,&
-              s_val_recv_buf,recv_count,recv_displ,mpi_complex16,e_h%mpi_comm,&
-              ierr)
+              e_h%ovlp_cmplx_pexsi,recv_count,recv_displ,mpi_complex16,&
+              e_h%mpi_comm,ierr)
 
       call elsi_check_mpi(e_h,"MPI_Alltoallv",ierr,caller)
+
+      call elsi_deallocate(e_h,s_val_send_buf,"s_val_send_buf")
    endif
 
    call elsi_deallocate(e_h,send_count,"send_count")
@@ -3923,17 +3936,14 @@ subroutine elsi_siesta_to_pexsi_hs_cmplx(e_h,ham,ovlp)
 
    ! Sort
    if(e_h%n_elsi_calls == 1 .and. .not. e_h%ovlp_is_unit) then
-      call elsi_heapsort(e_h%nnz_l_sp,global_id,h_val_recv_buf,s_val_recv_buf,&
-              row_recv_buf,col_recv_buf)
-
-     call elsi_deallocate(e_h,s_val_recv_buf,"s_val_recv_buf")
+      call elsi_heapsort(e_h%nnz_l_sp,global_id,e_h%ham_cmplx_pexsi,&
+              e_h%ovlp_cmplx_pexsi,row_recv_buf,col_recv_buf)
    else
-      call elsi_heapsort(e_h%nnz_l_sp,global_id,h_val_recv_buf,row_recv_buf,&
-              col_recv_buf)
+      call elsi_heapsort(e_h%nnz_l_sp,global_id,e_h%ham_cmplx_pexsi,&
+              row_recv_buf,col_recv_buf)
    endif
 
    call elsi_deallocate(e_h,global_id,"global_id")
-   call elsi_deallocate(e_h,h_val_recv_buf,"h_val_recv_buf")
 
    if(e_h%n_elsi_calls == 1) then
       call elsi_allocate(e_h,e_h%row_ind_pexsi,e_h%nnz_l_sp,"row_ind_pexsi",&
