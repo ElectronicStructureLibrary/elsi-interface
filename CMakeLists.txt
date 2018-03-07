@@ -1,0 +1,140 @@
+### TODO ###
+# PtScotch
+# CPack
+
+### CMake ###
+CMAKE_MINIMUM_REQUIRED(VERSION 3.0 FATAL_ERROR)
+SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
+INCLUDE(color_message)
+
+### Project ###
+PROJECT(elsi LANGUAGES NONE)
+SET(elsi_URL "http://elsi-interchange.org")
+SET(elsi_EMAIL "elsi-team@duke.edu")
+SET(elsi_LICENSE "BSD 3")
+SET(elsi_DESCRIPTION "Electronic Structure Infrastructure")
+
+### Installation paths ###
+IF(CMAKE_BINARY_DIR STREQUAL CMAKE_SOURCE_DIR)
+  MESSAGE(FATAL_ERROR "${MAGENTA}Build in the source directory is not allowed${COLORRESET}")
+ENDIF()
+SET(CMAKE_Fortran_MODULE_DIRECTORY "${CMAKE_BINARY_DIR}/elsi_build/include")
+SET(LIBRARY_OUTPUT_PATH "${CMAKE_BINARY_DIR}/elsi_build/lib")
+SET(ARCHIVE_OUTPUT_PATH "${CMAKE_BINARY_DIR}/elsi_build/lib")
+SET(EXECUTABLE_OUTPUT_PATH "${CMAKE_BINARY_DIR}/elsi_build/bin")
+IF(NOT DEFINED CMAKE_INSTALL_INCLUDEDIR)
+  SET(CMAKE_INSTALL_INCLUDEDIR "include" CACHE PATH "Location to install module and header files")
+ENDIF()
+IF(NOT DEFINED CMAKE_INSTALL_LIBDIR)
+  SET(CMAKE_INSTALL_LIBDIR "lib" CACHE PATH "Location to install library files")
+ENDIF()
+IF(NOT DEFINED CMAKE_INSTALL_BINDIR)
+  SET(CMAKE_INSTALL_BINDIR "bin" CACHE PATH "Location to install binary files")
+ENDIF()
+MESSAGE(STATUS "ELSI will be installed to: ${CMAKE_INSTALL_PREFIX}")
+
+### Options ###
+OPTION(ENABLE_TESTS "Build ELSI Fortran test programs" OFF)
+OPTION(ENABLE_C_TESTS "Build ELSI C test programs" OFF)
+OPTION(ENABLE_PEXSI "Enable PEXSI" OFF)
+OPTION(ENABLE_SIPS "Enable SIPs" OFF)
+OPTION(ENABLE_ELPA_BGQ "Use ELPA BlueGene Q kernel" OFF)
+OPTION(ENABLE_ELPA_AVX "Use ELPA AVX kernel" OFF)
+OPTION(ENABLE_ELPA_AVX2 "Use ELPA AVX2 kernel" OFF)
+OPTION(ENABLE_ELPA_AVX512 "Use ELPA AVX512 kernel" OFF)
+OPTION(ENABLE_MKL "Use Intel MKL libraries" OFF)
+OPTION(ADD_UNDERSCORE "Suffix C functions with an underscore" OFF)
+
+### Compilers ###
+IF(NOT DEFINED CMAKE_Fortran_COMPILER)
+  MESSAGE(FATAL_ERROR "${MAGENTA}Fortran compiler must be set${COLORRESET}")
+ELSE()
+  MESSAGE(STATUS "${GREEN}Fortran compiler${COLORRESET}: ${CMAKE_Fortran_COMPILER}")
+  ENABLE_LANGUAGE(Fortran)
+ENDIF()
+IF(NOT DEFINED CMAKE_C_COMPILER)
+  MESSAGE(FATAL_ERROR "${MAGENTA}C compiler must be set${COLORRESET}")
+ELSE()
+  MESSAGE(STATUS "${GREEN}C compiler${COLORRESET}: ${CMAKE_C_COMPILER}")
+  ENABLE_LANGUAGE(C)
+ENDIF()
+IF(ENABLE_PEXSI)
+  IF(NOT DEFINED CMAKE_CXX_COMPILER)
+    MESSAGE(FATAL_ERROR "${MAGENTA}C++ compiler must be set${COLORRESET}")
+  ELSE()
+    MESSAGE(STATUS "${GREEN}C++ compiler${COLORRESET}: ${CMAKE_CXX_COMPILER}")
+    ENABLE_LANGUAGE(CXX)
+    SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Xlinker -lstdc++")
+  ENDIF()
+ENDIF()
+
+### Compilations ###
+INCLUDE_DIRECTORIES(${CMAKE_Fortran_MODULE_DIRECTORY})
+INCLUDE(elpa)
+IF(NOT ELPA_FOUND)
+  ADD_SUBDIRECTORY(external/ELPA)
+  SET(ELPA_LIB "${ARCHIVE_OUTPUT_PATH}/libelpa.a")
+ENDIF()
+
+INCLUDE(libomm)
+IF(NOT OMM_FOUND)
+  ADD_SUBDIRECTORY(external/libOMM)
+  SET(OMM_LIB "${ARCHIVE_OUTPUT_PATH}/libOMM.a;${ARCHIVE_OUTPUT_PATH}/libMatrixSwitch.a")
+ENDIF()
+
+IF(ENABLE_PEXSI)
+  MESSAGE(STATUS "Enabling PEXSI")
+
+  INCLUDE(superlu)
+  IF(NOT SUPERLU_FOUND)
+    ADD_SUBDIRECTORY(external/SuperLU_DIST)
+    SET(SUPERLU_LIB "${ARCHIVE_OUTPUT_PATH}/libsuperlu_dist.a")
+  ENDIF()
+
+  ADD_SUBDIRECTORY(external/PEXSI)
+  SET(PEXSI_LIB "${ARCHIVE_OUTPUT_PATH}/libpexsi.a")
+ENDIF()
+
+IF(ENABLE_SIPS)
+  INCLUDE(sips)
+  MESSAGE(STATUS "Enabling SIPs")
+  ADD_SUBDIRECTORY(external/SIPs)
+  SET(SIPS_LIB "${ARCHIVE_OUTPUT_PATH}/libsips.a")
+ENDIF()
+
+ADD_SUBDIRECTORY(src)
+
+IF(ENABLE_TESTS)
+  MESSAGE(STATUS "Enabling Fortran test programs")
+  IF(ENABLE_C_TESTS)
+    MESSAGE(STATUS "Enabling C test programs")
+  ENDIF()
+  ENABLE_TESTING()
+  INCLUDE(mathlib)
+  INCLUDE_DIRECTORIES(src)
+  ADD_SUBDIRECTORY(test)
+ENDIF()
+
+### pkg-config ###
+SET(PC_LIBS "-lelsi")
+
+IF(NOT OMM_FOUND)
+  SET(PC_LIBS "${PC_LIBS} -lOMM -lMatrixSwitch")
+ENDIF()
+
+IF(NOT ELPA_FOUND)
+  SET(PC_LIBS "${PC_LIBS} -lelpa")
+ENDIF()
+
+IF(ENABLE_PEXSI)
+  SET(PC_LIBS "${PC_LIBS} -lpexsi")
+
+  IF(NOT SUPERLU_FOUND)
+    SET(PC_LIBS "${PC_LIBS} -lsuperlu_dist")
+  ENDIF()
+ENDIF()
+
+CONFIGURE_FILE(.elsi.pc.in
+  ${ARCHIVE_OUTPUT_PATH}/pkgconfig/elsi.pc
+  @ONLY
+)

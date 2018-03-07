@@ -10,8 +10,8 @@ A) ABOUT ELSI
 ============================================================================
 
    ELSI provides and enhances open-source software packages which solve or
-   circumvent the Kohn-Sham eigenvalue problems in the self-consistent field
-   cycle of density-functional theory.
+   circumvent eigenvalue problems in self-consistent field calculations
+   based on the Kohn-Sham density-functional theory.
 
    Visit the ELSI Interchange website for more information:
 
@@ -25,42 +25,29 @@ A) ABOUT ELSI
 B) INSTALLATION OF ELSI
 ============================================================================
 
-   The standard installation process of ELSI requires:
+   The standard installation of ELSI requires:
 
-   * A Fortran 2003 compiler
-   * A C compiler supporting the C99 standard
-   * A C++ compiler supporting the C++11 standard
-   * An MPI library
-   * LAPACK and ScaLAPACK
-   * PtScotch 6.0.4
-     (recommended, availabel at https//gforge.inria.fr/projects/scotch)
-     or ParMETIS 4.0.3
-     (available at http://glaros.dtc.umn.edu/gkhome/views/metis)
-   * SuperLU_DIST 5.1.3
-     (available at http://crd-legacy.lbl.gov/~xiaoye/SuperLU)
+   *  CMake             [version 3.0.2 or newer]
+   *  Fortran compiler  [with Fortran 2003 standard]
+   *  C compiler        [with C99 standard]
+   *  C++ compiler      [C++11 standard]
+   *  MPI library
+   *  Math libraries    [BLAS, LAPACK, (BLACS,) and ScaLAPACK]
+   *  PtScotch library  [version 6.0.4 or newer]
 
-   GNU, Intel, PGI, XL, and Cray compilers are supported.
+   Installation of ELSI with GNU and Intel, PGI, XL, and Cray compilers has
+   been tested.
 
-   The user specifies their system environment via flags set in a "make.sys"
-   file, which should be placed in the root directory of ELSI alongside the
-   Makefile.  Some example "make.sys" files that the user may adapt for
-   their own system environment are available in the "./make_sys" folder.
-
-   The compilation process is:
-
-   * make
-   * make check (optional)
-   * make install
-
-   Please refer to the "INSTALL" file for the complete installation process.
+   For a complete description of the installation process, please refer to
+   the "INSTALL" file.
 
 ============================================================================
 C) USAGE OF ELSI
 ============================================================================
 
-   More information may be found in the User's Guide
+   A User's Guide is available at
 
-     ./src/ELSI/doc/elsi_manual.pdf
+     ./doc/elsi_manual.pdf
 
    and on the ELSI GitLab wiki pages, which may be accessed via the ELSI
    Interchange website.

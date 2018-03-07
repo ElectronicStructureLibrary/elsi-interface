@@ -1,127 +1,41 @@
-gnu-j1:
+### GNU compilers + OpenMPI + Netlib BLAS, LAPACK, ScaLAPACK ###
+gnu:
   script:
     - module purge
     - module load gcc-7.1
-    - cp /home/wy29/elsi_make_check/check_gnu ./make.sys
-    - cat make.sys
-    - make
+    - cat ./toolchains/gnu.cmake
+    - rm -rf build
+    - mkdir build
+    - cd build
+    - cmake .. -DCMAKE_TOOLCHAIN_FILE=../toolchains/gnu.cmake -DCMAKE_INSTALL_PREFIX=./
+    - make -j
+    - ctest --output-on-failure
     - make install
-    - make clean
 
-gnu-j8:
+### Intel compilers + MPI + MKL ###
+intel:
   script:
     - module purge
     - module load gcc-7.1
-    - cp /home/wy29/elsi_make_check/check_gnu ./make.sys
-    - cat make.sys
-    - make -j 8
-    - make check
-    - make checkc
+    - cat ./toolchains/intel.cmake
+    - rm -rf build
+    - mkdir build
+    - cd build
+    - cmake .. -DCMAKE_TOOLCHAIN_FILE=../toolchains/intel.cmake -DCMAKE_INSTALL_PREFIX=./
+    - make -j
+    - ctest --output-on-failure
     - make install
-    - make clean
 
-pgi-j1:
+### Intel compilers + MPI + MKL + external solver libraries (debug) ###
+intel-debug:
   script:
     - module purge
     - module load gcc-7.1
-    - module load pgi-17.4
-    - cp /home/wy29/elsi_make_check/check_pgi ./make.sys
-    - cat make.sys
-    - make
+    - cat ./toolchains/intel_debug.cmake
+    - rm -rf build
+    - mkdir build
+    - cd build
+    - cmake .. -DCMAKE_TOOLCHAIN_FILE=../toolchains/intel_debug.cmake -DCMAKE_INSTALL_PREFIX=./
+    - make -j
+    - ctest --output-on-failure
     - make install
-    - make clean
-
-pgi-j8:
-  script:
-    - module purge
-    - module load gcc-7.1
-    - module load pgi-17.4
-    - cp /home/wy29/elsi_make_check/check_pgi ./make.sys
-    - cat make.sys
-    - make -j 8
-    - make check
-    - make checkc
-    - make install
-    - make clean
-
-intel-j1-debug:
-  script:
-    - module purge
-    - module load gcc-7.1
-    - cp /home/wy29/elsi_make_check/check_intel_debug ./make.sys
-    - cat make.sys
-    - make
-    - make install
-    - make clean
-
-intel-j8-debug:
-  script:
-    - module purge
-    - module load gcc-7.1
-    - cp /home/wy29/elsi_make_check/check_intel_debug ./make.sys
-    - cat make.sys
-    - make -j 8
-    - make check
-    - make checkc
-    - make install
-    - make clean
-
-intel-j8-gpu:
-  script:
-    - module purge
-    - module load gcc-7.1
-    - module load cuda-8.0
-    - cp /home/wy29/elsi_make_check/check_intel_gpu ./make.sys
-    - cat make.sys
-    - make -j 8
-    - make check
-    - make install
-    - make clean
-
-intel-j1:
-  script:
-    - module purge
-    - module load gcc-7.1
-    - cp /home/wy29/elsi_make_check/check_intel ./make.sys
-    - cat make.sys
-    - make
-    - make install
-    - make clean
-
-intel-j8:
-  script:
-    - module purge
-    - module load gcc-7.1
-    - cp /home/wy29/elsi_make_check/check_intel ./make.sys
-    - cat make.sys
-    - make -j 8
-    - make check
-    - make checkc
-    - make install
-    - make clean
-
-intel-j8-sips:
-  script:
-    - module purge
-    - module load gcc-7.1
-    - cp /home/wy29/elsi_make_check/check_sips ./make.sys
-    - cat make.sys
-    - make -j 8
-    - make check
-    - make install
-    - make clean
-
-# We do not run make check for external linkage.  Not our circus, not our monkey.
-# We've also marked this test as optional, as it is acceptable for this test to
-# break during normal development work, but nevertheless we should know what
-# commits broke it and when.
-intel-j8-external:
-  script:
-    - module purge
-    - module load gcc-7.1
-    - cp /home/wy29/elsi_make_check/check_external ./make.sys
-    - cat make.sys
-    - make -j 8
-    - make install
-    - make clean
-  allow_failure: true
