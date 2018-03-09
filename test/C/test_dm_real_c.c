@@ -46,6 +46,7 @@ void test_dm_real_c(MPI_Comm comm,
    double e_tol;
    double e_ref;
 
+   MPI_Fint comm_f;
    elsi_handle e_h;
    elsi_rw_handle rw_h;
 
@@ -55,6 +56,9 @@ void test_dm_real_c(MPI_Comm comm,
 
    MPI_Comm_size(comm,&n_proc);
    MPI_Comm_rank(comm,&myid);
+
+   // Fortran communicator
+   comm_f = MPI_Comm_c2f(comm);
 
    // Parameters
    blk      = 16;
@@ -85,12 +89,12 @@ void test_dm_real_c(MPI_Comm comm,
    n_prow = n_proc/n_pcol;
 
    // Set up BLACS
-   blacs_ctxt = comm;
-   blacs_gridinit_(&blacs_ctxt,"R",&n_prow,&n_pcol);
+   blacs_ctxt = Csys2blacs_handle(comm);
+   Cblacs_gridinit(&blacs_ctxt,"R",n_prow,n_pcol);
 
    // Read H and S matrices
    c_elsi_init_rw(&rw_h,0,1,0,0.0);
-   c_elsi_set_rw_mpi(rw_h,comm);
+   c_elsi_set_rw_mpi(rw_h,comm_f);
    c_elsi_set_rw_blacs(rw_h,blacs_ctxt,blk);
    c_elsi_set_rw_output(rw_h,2);
 
@@ -110,7 +114,7 @@ void test_dm_real_c(MPI_Comm comm,
 
    // Initialize ELSI
    c_elsi_init(&e_h,solver,parallel,format,n_basis,n_electrons,n_states);
-   c_elsi_set_mpi(e_h,comm);
+   c_elsi_set_mpi(e_h,comm_f);
    c_elsi_set_blacs(e_h,blacs_ctxt,blk);
 
    // Customize ELSI
@@ -137,7 +141,7 @@ void test_dm_real_c(MPI_Comm comm,
    free(s);
    free(dm);
 
-   blacs_gridexit_(&blacs_ctxt);
+   Cblacs_gridexit(blacs_ctxt);
 
    return;
 }
