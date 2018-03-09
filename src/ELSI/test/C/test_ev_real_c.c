@@ -10,34 +10,52 @@
 #include <mpi.h>
 #include <elsi.h>
 
-void test_ev_real_c(int mpi_comm,
+void test_ev_real_c(MPI_Comm comm,
                     int solver,
                     char *h_file,
                     char *s_file) {
 
-   int n_proc,n_prow,n_pcol,myid;
+   int n_proc;
+   int n_prow;
+   int n_pcol;
+   int myid;
    int mpierr;
    int blacs_ctxt;
-   int blk,l_row,l_col,l_size;
-   int n_basis,n_states;
-   int format,parallel;
-   int int_one,int_zero;
+   int blk;
+   int l_row;
+   int l_col;
+   int l_size;
+   int n_basis;
+   int n_states;
+   int format;
+   int parallel;
+   int int_one;
+   int int_zero;
    int success;
    int tmp;
    int i;
 
    double n_electrons;
-   double *h,*s,*eval,*evec;
-   double e_elpa,e_test,e_tol;
+   double *h;
+   double *s;
+   double *eval;
+   double *evec;
+   double e_elpa;
+   double e_test;
+   double e_tol;
 
-   elsi_handle    e_h;
+   MPI_Fint comm_f;
+   elsi_handle e_h;
    elsi_rw_handle rw_h;
 
    e_elpa = -2564.61963724048;
    e_tol  = 0.00000001;
 
-   MPI_Comm_size(mpi_comm,&n_proc);
-   MPI_Comm_rank(mpi_comm,&myid);
+   MPI_Comm_size(comm,&n_proc);
+   MPI_Comm_rank(comm,&myid);
+
+   // Fortran communicator
+   comm_f = MPI_Comm_c2f(comm);
 
    // Parameters
    blk      = 16;
@@ -54,12 +72,12 @@ void test_ev_real_c(int mpi_comm,
    n_prow = n_proc/n_pcol;
 
    // Set up BLACS
-   blacs_ctxt = mpi_comm;
-   blacs_gridinit_(&blacs_ctxt,"R",&n_prow,&n_pcol);
+   blacs_ctxt = Csys2blacs_handle(comm);
+   Cblacs_gridinit(&blacs_ctxt,"R",n_prow,n_pcol);
 
    // Read H and S matrices
    c_elsi_init_rw(&rw_h,0,1,0,0.0);
-   c_elsi_set_rw_mpi(rw_h,mpi_comm);
+   c_elsi_set_rw_mpi(rw_h,comm_f);
    c_elsi_set_rw_blacs(rw_h,blacs_ctxt,blk);
    c_elsi_set_rw_output(rw_h,2);
 
@@ -88,7 +106,7 @@ void test_ev_real_c(int mpi_comm,
        parallel = 1; // Test MULTI_PROC mode
 
        c_elsi_init(&e_h,solver,parallel,format,n_basis,n_electrons,n_states);
-       c_elsi_set_mpi(e_h,mpi_comm);
+       c_elsi_set_mpi(e_h,comm_f);
        c_elsi_set_blacs(e_h,blacs_ctxt,blk);
    }
 
@@ -117,7 +135,7 @@ void test_ev_real_c(int mpi_comm,
    free(evec);
    free(eval);
 
-   blacs_gridexit_(&blacs_ctxt);
+   Cblacs_gridexit(blacs_ctxt);
 
    return;
 }
