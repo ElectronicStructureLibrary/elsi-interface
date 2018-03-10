@@ -162,7 +162,7 @@ subroutine elsi_ev_real(e_h,ham,ovlp,eval,evec)
    integer(kind=i4),  parameter :: data_type = REAL_VALUES
    character(len=40), parameter :: caller = "elsi_ev_real"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
    call elsi_get_datetime_rfc3339(start_datetime)
 
    call elsi_check_handle(e_h,caller)
@@ -256,7 +256,7 @@ subroutine elsi_ev_complex(e_h,ham,ovlp,eval,evec)
    integer(kind=i4),  parameter :: data_type = COMPLEX_VALUES
    character(len=40), parameter :: caller = "elsi_ev_complex"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
    call elsi_get_datetime_rfc3339(start_datetime)
 
    call elsi_check_handle(e_h,caller)
@@ -321,7 +321,7 @@ subroutine elsi_ev_real_sparse(e_h,ham,ovlp,eval,evec)
    integer(kind=i4),  parameter :: data_type = REAL_VALUES
    character(len=40), parameter :: caller = "elsi_ev_real_sparse"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
    call elsi_get_datetime_rfc3339(start_datetime)
 
    call elsi_check_handle(e_h,caller)
@@ -392,7 +392,7 @@ subroutine elsi_ev_complex_sparse(e_h,ham,ovlp,eval,evec)
    integer(kind=i4),  parameter :: data_type = COMPLEX_VALUES
    character(len=40), parameter :: caller = "elsi_ev_complex_sparse"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
    call elsi_get_datetime_rfc3339(start_datetime)
 
    call elsi_check_handle(e_h,caller)
@@ -462,7 +462,7 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
    integer(kind=i4),  parameter :: data_type = REAL_VALUES
    character(len=40), parameter :: caller = "elsi_dm_real"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
    call elsi_get_datetime_rfc3339(start_datetime)
 
    call elsi_check_handle(e_h,caller)
@@ -657,7 +657,7 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
    integer(kind=i4),  parameter :: data_type = COMPLEX_VALUES
    character(len=40), parameter :: caller = "elsi_dm_complex"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
    call elsi_get_datetime_rfc3339(start_datetime)
 
    call elsi_check_handle(e_h,caller)
@@ -829,7 +829,7 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
    integer(kind=i4),  parameter :: data_type = REAL_VALUES
    character(len=40), parameter :: caller = "elsi_dm_real_sparse"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
    call elsi_get_datetime_rfc3339(start_datetime)
 
    call elsi_check_handle(e_h,caller)
@@ -1108,7 +1108,7 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
    integer(kind=i4),  parameter :: data_type = COMPLEX_VALUES
    character(len=40), parameter :: caller = "elsi_dm_complex_sparse"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
    call elsi_get_datetime_rfc3339(start_datetime)
 
    call elsi_check_handle(e_h,caller)
@@ -1403,7 +1403,7 @@ subroutine elsi_process_solver_timing(e_h,output_type,data_type,solver_used,&
 
    io_h = e_h%timings_file
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    temp_int   = e_h%solver
    e_h%solver = solver_used

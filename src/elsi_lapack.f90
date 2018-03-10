@@ -58,7 +58,7 @@ subroutine elsi_to_standard_evp_sp_real(e_h,ham,ovlp,eval,evec)
    endif
 
    if(e_h%n_nonsing == e_h%n_basis) then ! Not singular
-      call elsi_get_time(e_h,t0)
+      call elsi_get_time(t0)
 
       e_h%ovlp_is_sing = .false.
 
@@ -75,7 +75,7 @@ subroutine elsi_to_standard_evp_sp_real(e_h,ham,ovlp,eval,evec)
       ! compute U^-1 -> S
       call dtrtri('U','N',e_h%n_basis,ovlp,e_h%n_basis,ierr)
 
-      call elsi_get_time(e_h,t1)
+      call elsi_get_time(t1)
 
       write(info_str,"('  Finished Cholesky decomposition')")
       call elsi_say(e_h,info_str)
@@ -83,7 +83,7 @@ subroutine elsi_to_standard_evp_sp_real(e_h,ham,ovlp,eval,evec)
       call elsi_say(e_h,info_str)
    endif
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    if(e_h%ovlp_is_sing) then ! Use scaled eigenvectors
       ! evec_real used as tmp_real
@@ -120,7 +120,7 @@ subroutine elsi_to_standard_evp_sp_real(e_h,ham,ovlp,eval,evec)
       enddo
    endif
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished transformation to standard eigenproblem')")
    call elsi_say(e_h,info_str)
@@ -149,7 +149,7 @@ subroutine elsi_to_original_ev_sp_real(e_h,ovlp,evec)
 
    character(len=40), parameter :: caller = "elsi_to_original_ev_sp_real"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    if(e_h%ovlp_is_sing) then
       call elsi_allocate(e_h,tmp_real,e_h%n_lrow,e_h%n_lcol,"tmp_real",caller)
@@ -164,7 +164,7 @@ subroutine elsi_to_original_ev_sp_real(e_h,ovlp,evec)
               e_h%n_basis,evec,e_h%n_basis)
    endif
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished back-transformation of eigenvectors')")
    call elsi_say(e_h,info_str)
@@ -205,7 +205,7 @@ subroutine elsi_solve_evp_lapack_real(e_h,ham,ovlp,eval,evec)
 
    ! Solve evp, return eigenvalues and eigenvectors
    call elsi_say(e_h,"  Starting LAPACK eigensolver")
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    call elsi_allocate(e_h,off_diag,e_h%n_nonsing,"off_diag",caller)
    call elsi_allocate(e_h,tau_real,e_h%n_nonsing,"tau_real",caller)
@@ -238,7 +238,7 @@ subroutine elsi_solve_evp_lapack_real(e_h,ham,ovlp,eval,evec)
       eval(e_h%n_nonsing+1:e_h%n_basis) = eval(e_h%n_nonsing)+10.0_r8
    endif
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished solving standard eigenproblem')")
    call elsi_say(e_h,info_str)
@@ -282,7 +282,7 @@ subroutine elsi_check_singularity_sp_real(e_h,ovlp,eval,evec)
 
    character(len=40), parameter :: caller = "elsi_check_singularity_sp_real"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    call elsi_allocate(e_h,copy_real,e_h%n_lrow,e_h%n_lcol,"copy_real",caller)
 
@@ -365,7 +365,7 @@ subroutine elsi_check_singularity_sp_real(e_h,ovlp,eval,evec)
       call elsi_say(e_h,info_str)
    endif ! Singular overlap?
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished singularity check of overlap matrix')")
    call elsi_say(e_h,info_str)
@@ -405,7 +405,7 @@ subroutine elsi_to_standard_evp_sp_cmplx(e_h,ham,ovlp,eval,evec)
    endif
 
    if(e_h%n_nonsing == e_h%n_basis) then ! Not singular
-      call elsi_get_time(e_h,t0)
+      call elsi_get_time(t0)
 
       e_h%ovlp_is_sing = .false.
 
@@ -422,7 +422,7 @@ subroutine elsi_to_standard_evp_sp_cmplx(e_h,ham,ovlp,eval,evec)
       ! compute U^-1 -> S
       call ztrtri('U','N',e_h%n_basis,ovlp,e_h%n_basis,ierr)
 
-      call elsi_get_time(e_h,t1)
+      call elsi_get_time(t1)
 
       write(info_str,"('  Finished Cholesky decomposition')")
       call elsi_say(e_h,info_str)
@@ -430,7 +430,7 @@ subroutine elsi_to_standard_evp_sp_cmplx(e_h,ham,ovlp,eval,evec)
       call elsi_say(e_h,info_str)
    endif
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    if(e_h%ovlp_is_sing) then ! Use scaled eigenvectors
       ! evec_cmplx used as tmp_cmplx
@@ -470,7 +470,7 @@ subroutine elsi_to_standard_evp_sp_cmplx(e_h,ham,ovlp,eval,evec)
       enddo
    endif
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished transformation to standard eigenproblem')")
    call elsi_say(e_h,info_str)
@@ -499,7 +499,7 @@ subroutine elsi_to_original_ev_sp_cmplx(e_h,ovlp,evec)
 
    character(len=40), parameter :: caller = "elsi_to_original_ev_sp_cmplx"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    if(e_h%ovlp_is_sing) then
       call elsi_allocate(e_h,tmp_cmplx,e_h%n_lrow,e_h%n_lcol,"tmp_cmplx",caller)
@@ -515,7 +515,7 @@ subroutine elsi_to_original_ev_sp_cmplx(e_h,ovlp,evec)
               e_h%n_basis,evec,e_h%n_basis)
    endif
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished back-transformation of eigenvectors')")
    call elsi_say(e_h,info_str)
@@ -557,7 +557,7 @@ subroutine elsi_solve_evp_lapack_cmplx(e_h,ham,ovlp,eval,evec)
 
    ! Solve evp, return eigenvalues and eigenvectors
    call elsi_say(e_h,"  Starting LAPACK eigensolver")
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    call elsi_allocate(e_h,off_diag,e_h%n_nonsing,"off_diag",caller)
    call elsi_allocate(e_h,tau_cmplx,e_h%n_nonsing,"tau_cmplx",caller)
@@ -594,7 +594,7 @@ subroutine elsi_solve_evp_lapack_cmplx(e_h,ham,ovlp,eval,evec)
       eval(e_h%n_nonsing+1:e_h%n_basis) = eval(e_h%n_nonsing)+10.0_r8
    endif
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished solving standard eigenproblem')")
    call elsi_say(e_h,info_str)
@@ -639,7 +639,7 @@ subroutine elsi_check_singularity_sp_cmplx(e_h,ovlp,eval,evec)
 
    character(len=40), parameter :: caller = "elsi_check_singularity_sp_cmplx"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    call elsi_allocate(e_h,copy_cmplx,e_h%n_lrow,e_h%n_lcol,"copy_cmplx",caller)
 
@@ -724,7 +724,7 @@ subroutine elsi_check_singularity_sp_cmplx(e_h,ovlp,eval,evec)
       call elsi_say(e_h,info_str)
    endif ! Singular overlap?
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished singularity check of overlap matrix')")
    call elsi_say(e_h,info_str)

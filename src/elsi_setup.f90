@@ -29,8 +29,8 @@ module ELSI_SETUP
    use ELSI_PEXSI,         only: elsi_set_pexsi_default
    use ELSI_PRECISION,     only: r8,i4
    use ELSI_SIPS,          only: elsi_set_sips_default
-   use ELSI_TIMINGS,       only: elsi_init_timer,elsi_init_timings,&
-                                 elsi_print_timings,elsi_finalize_timings
+   use ELSI_TIMINGS,       only: elsi_init_timings,elsi_print_timings,&
+                                 elsi_finalize_timings
    use ELSI_UTILS,         only: elsi_check_handle,elsi_reset_handle
    use FOE_BASE,           only: foe_data_deallocate
    use F_PPEXSI_INTERFACE, only: f_ppexsi_plan_finalize
@@ -131,7 +131,6 @@ subroutine elsi_init(e_h,solver,parallel_mode,matrix_format,n_basis,n_electron,&
    e_h%solver_timings_unit = SOLVER_TIMINGS_UNIT_DEFAULT
 
    ! Initialize timer information
-   call elsi_init_timer(e_h)
    call elsi_init_timings(e_h%timings,"Solver timings")
 
 end subroutine

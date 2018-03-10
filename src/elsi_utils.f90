@@ -894,7 +894,8 @@ end subroutine
 
 !>
 !! Generate a UUID (unique identifier) in RFC 4122 format. The random seed must
-!! have been set. Taken from FHI-aims with permission of copyright holders.
+!! have been set.
+!! (Taken from FHI-aims with permission of copyright holders)
 !!
 subroutine elsi_gen_uuid(uuid)
 
@@ -937,6 +938,7 @@ end subroutine
 
 !>
 !! Linear congruential generator.
+!! (Taken from FHI-aims with permission of copyright holders)
 !!
 integer(kind=i4) function lcg(s)
 
@@ -958,6 +960,7 @@ end function
 !>
 !! Set the seed in the built-in random_seed subroutine using the system clock
 !! modified by lcg().
+!! (Taken from FHI-aims with permission of copyright holders)
 !!
 subroutine elsi_init_random_seed()
 
@@ -972,19 +975,12 @@ subroutine elsi_init_random_seed()
 
    call random_seed(size=n)
 
+   call date_and_time(values=dt)
+
+   t = (dt(1)-1970)*365*24*60*60*1000+dt(2)*31*24*60*60*1000+&
+          dt(3)*24*60*60*1000+dt(5)*60*60*1000+dt(6)*60*1000+dt(7)*1000+dt(8)
+
    allocate(seed(n))
-
-   call system_clock(t)
-
-   ! In case that the system_clock is 0 and therefore
-   ! not a helpful choice to generate a seed
-   if(t == 0) then
-      call date_and_time(values=dt)
-
-      t = (dt(1)-1970)*365*24*60*60*1000+dt(2)*31*24*60*60*1000+&
-             dt(3)*24*60*60*1000+dt(5)*60*60*1000+dt(6)*60*1000+&
-             dt(7)*1000+dt(8)
-   endif
 
    ! Writting the array with seeds
    do i = 1,n
@@ -992,6 +988,8 @@ subroutine elsi_init_random_seed()
    enddo
 
    call random_seed(put=seed)
+
+   deallocate(seed)
 
 end subroutine
 

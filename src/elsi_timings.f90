@@ -20,7 +20,6 @@ module ELSI_TIMINGS
 
    integer(kind=i4), parameter :: STARTING_SIZE_TIMINGS = 1
 
-   public :: elsi_init_timer
    public :: elsi_get_time
    public :: elsi_init_timings
    public :: elsi_add_timing
@@ -30,44 +29,91 @@ module ELSI_TIMINGS
 contains
 
 !>
-!! This routine initializes the timer.
-!!
-subroutine elsi_init_timer(e_h)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: e_h
-
-   integer(kind=i4) :: initial_time
-   integer(kind=i4) :: clock_max
-
-   character(len=40), parameter :: caller = "elsi_init_timer"
-
-   if(e_h%handle_ready) then
-      e_h%handle_changed = .true.
-   endif
-
-   call system_clock(initial_time,e_h%clock_rate,clock_max)
-
-end subroutine
-
-!>
 !! This routine gets the current wallclock time.
+!! (Taken from FHI-aims with permission of copyright holders)
 !!
-subroutine elsi_get_time(e_h,wtime)
+subroutine elsi_get_time(wtime)
 
    implicit none
 
-   type(elsi_handle), intent(in)  :: e_h
-   real(kind=r8),     intent(out) :: wtime
+   real(kind=r8), intent(out) :: wtime
 
-   integer(kind=i4) :: tics
+   character(len=8)  :: cdate
+   character(len=10) :: ctime
+   integer(kind=i4)  :: val
+   integer(kind=i4)  :: int_year
+   real(kind=r8)     :: year
+   real(kind=r8)     :: month
+   real(kind=r8)     :: day
+   real(kind=r8)     :: hour
+   real(kind=r8)     :: minute
+   real(kind=r8)     :: second
+   real(kind=r8)     :: millisecond
 
    character(len=40), parameter :: caller = "elsi_get_time"
 
-   call system_clock(tics)
+   call date_and_time(cdate,ctime)
 
-   wtime = 1.0_r8*tics/e_h%clock_rate
+   read(cdate(1:4),'(I4)') val
+
+   int_year = val
+   year     = real(val,kind=r8)-2009.0_r8 ! 2009 is an arbitrary zero
+
+   day = year*365+floor(year/4.0_r8)
+
+   read(cdate(5:6),'(I2)') val
+
+   val = val-1
+
+   do while(val > 0)
+      if(val == 1) then
+         day = day+31
+      elseif(val == 2) then
+         if(mod(int_year,4) == 0) then
+            day = day+29
+         else
+            day = day+28
+         endif
+      elseif(val == 3) then
+         day = day+31
+      elseif(val == 4) then
+         day = day+30
+      elseif(val == 5) then
+         day = day+31
+      elseif(val == 6) then
+         day = day+30
+      elseif(val == 7) then
+         day = day+31
+      elseif(val == 8) then
+         day = day+31
+      elseif(val == 9) then
+         day = day+30
+      elseif(val == 10) then
+         day = day+31
+      elseif(val == 11) then
+         day = day+30
+      endif
+
+      val = val-1
+   enddo
+
+   read(cdate(7:8),'(I2)') val
+   day = day+real(val,kind=r8)-1
+
+   read(ctime(1:2),'(I2)') val
+   hour = real(val,kind=r8)
+
+   read(ctime(3:4),'(I2)') val
+   minute = real(val,kind=r8)
+
+   read(ctime(5:6),'(I2)') val
+   second = real(val,kind=r8)
+
+   read(ctime(8:10),'(I3)') val
+   millisecond = real(val,kind=r8)
+
+   wtime = day*24.0_r8*3600.0_r8+hour*3600.0_r8+minute*60.0_r8+second+&
+              millisecond*0.001_r8
 
 end subroutine
 
@@ -176,7 +222,7 @@ subroutine elsi_add_timing(t_h,time,elsi_tag,user_tag_in,iter_in)
    endif
 
    ! If more timings than maximum array size, resize arrays
-   do while (iter >= t_h%size_timings)
+   do while(iter >= t_h%size_timings)
      call elsi_resize_timing_arrays(t_h)
    enddo
 
@@ -209,7 +255,7 @@ subroutine elsi_print_timings(e_h,t_h)
    character(len=40), parameter :: caller = "elsi_print_timings"
 
    call elsi_say(e_h,t_h%set_label)
-   call elsi_say(e_h,"   #  system_clock [s]     elsi_tag             user_tag")
+   call elsi_say(e_h,"   #  wall_clock   [s]     elsi_tag             user_tag")
 
    do iter = 1,min(3,t_h%n_timings)
       write(info_str,"(I4,2X,F12.3,9X,A,1X,A)") iter,t_h%times(iter),&

@@ -111,7 +111,7 @@ subroutine downheap_real_v1(length,a_i8,b_r8,c_r8,d_i4,e_i4,top,bottom)
    v = top
    w = 2*v
 
-   do while (w <= bottom)
+   do while(w <= bottom)
       if(w+1 <= bottom) then
          if(a_i8(w+1) > a_i8(w)) then
             w = w+1
@@ -194,7 +194,7 @@ subroutine downheap_real_v2(length,a_i8,b_r8,c_i4,d_i4,top,bottom)
    v = top
    w = 2*v
 
-   do while (w <= bottom)
+   do while(w <= bottom)
       if(w+1 <= bottom) then
          if(a_i8(w+1) > a_i8(w)) then
             w = w+1
@@ -279,7 +279,7 @@ subroutine downheap_real_v3(length,a_i4,b_r8,c_r8,d_i4,e_i4,top,bottom)
    v = top
    w = 2*v
 
-   do while (w <= bottom)
+   do while(w <= bottom)
       if(w+1 <= bottom) then
          if(a_i4(w+1) > a_i4(w)) then
             w = w+1
@@ -362,7 +362,7 @@ subroutine downheap_real_v4(length,a_i4,b_r8,c_i4,d_i4,top,bottom)
    v = top
    w = 2*v
 
-   do while (w <= bottom)
+   do while(w <= bottom)
       if(w+1 <= bottom) then
          if(a_i4(w+1) > a_i4(w)) then
             w = w+1
@@ -447,7 +447,7 @@ subroutine downheap_cmplx_v1(length,a_i8,b_c16,c_c16,d_i4,e_i4,top,bottom)
    v = top
    w = 2*v
 
-   do while (w <= bottom)
+   do while(w <= bottom)
       if(w+1 <= bottom) then
          if(a_i8(w+1) > a_i8(w)) then
             w = w+1
@@ -530,7 +530,7 @@ subroutine downheap_cmplx_v2(length,a_i8,b_c16,c_i4,d_i4,top,bottom)
    v = top
    w = 2*v
 
-   do while (w <= bottom)
+   do while(w <= bottom)
       if(w+1 <= bottom) then
          if(a_i8(w+1) > a_i8(w)) then
             w = w+1
@@ -615,7 +615,7 @@ subroutine downheap_cmplx_v3(length,a_i4,b_c16,c_c16,d_i4,e_i4,top,bottom)
    v = top
    w = 2*v
 
-   do while (w <= bottom)
+   do while(w <= bottom)
       if(w+1 <= bottom) then
          if(a_i4(w+1) > a_i4(w)) then
             w = w+1
@@ -698,7 +698,7 @@ subroutine downheap_cmplx_v4(length,a_i4,b_c16,c_i4,d_i4,top,bottom)
    v = top
    w = 2*v
 
-   do while (w <= bottom)
+   do while(w <= bottom)
       if(w+1 <= bottom) then
          if(a_i4(w+1) > a_i4(w)) then
             w = w+1

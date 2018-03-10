@@ -103,7 +103,7 @@ subroutine elsi_blacs_to_pexsi_hs_real(e_h,ham,ovlp)
 
    character(len=40), parameter :: caller = "elsi_blacs_to_pexsi_hs_real"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    n_para_task = e_h%n_procs/e_h%pexsi_np_per_pole
 
@@ -436,7 +436,7 @@ subroutine elsi_blacs_to_pexsi_hs_real(e_h,ham,ovlp)
       call elsi_deallocate(e_h,col_send_buf,"col_send_buf")
    endif
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished matrix redistribution')")
    call elsi_say(e_h,info_str)
@@ -496,7 +496,7 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(e_h,ham,ovlp)
 
    character(len=40), parameter :: caller = "elsi_blacs_to_pexsi_hs_cmplx"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    n_para_task = e_h%n_procs/e_h%pexsi_np_per_pole
 
@@ -832,7 +832,7 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(e_h,ham,ovlp)
       call elsi_deallocate(e_h,col_send_buf,"col_send_buf")
    endif
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished matrix redistribution')")
    call elsi_say(e_h,info_str)
@@ -880,7 +880,7 @@ subroutine elsi_pexsi_to_blacs_dm_real(e_h,dm)
 
    character(len=40), parameter :: caller = "elsi_pexsi_to_blacs_dm_real"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    call elsi_allocate(e_h,val_send_buf,e_h%nnz_l_sp,"val_send_buf",caller)
    call elsi_allocate(e_h,row_send_buf,e_h%nnz_l_sp,"row_send_buf",caller)
@@ -993,7 +993,7 @@ subroutine elsi_pexsi_to_blacs_dm_real(e_h,dm)
    call elsi_deallocate(e_h,row_recv_buf,"row_recv_buf")
    call elsi_deallocate(e_h,col_recv_buf,"col_recv_buf")
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished matrix redistribution')")
    call elsi_say(e_h,info_str)
@@ -1041,7 +1041,7 @@ subroutine elsi_pexsi_to_blacs_dm_cmplx(e_h,dm)
 
    character(len=40), parameter :: caller = "elsi_pexsi_to_blacs_dm_cmplx"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    call elsi_allocate(e_h,val_send_buf,e_h%nnz_l_sp,"val_send_buf",caller)
    call elsi_allocate(e_h,row_send_buf,e_h%nnz_l_sp,"row_send_buf",caller)
@@ -1154,7 +1154,7 @@ subroutine elsi_pexsi_to_blacs_dm_cmplx(e_h,dm)
    call elsi_deallocate(e_h,row_recv_buf,"row_recv_buf")
    call elsi_deallocate(e_h,col_recv_buf,"col_recv_buf")
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished matrix redistribution')")
    call elsi_say(e_h,info_str)
@@ -1202,7 +1202,7 @@ subroutine elsi_blacs_to_sips_hs_real(e_h,ham,ovlp)
 
    character(len=40), parameter :: caller = "elsi_blacs_to_sips_hs_real"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    if(e_h%sips_n_elpa == UNSET) then
       e_h%sips_n_elpa = 0
@@ -1404,7 +1404,7 @@ subroutine elsi_blacs_to_sips_hs_real(e_h,ham,ovlp)
    call elsi_deallocate(e_h,row_recv_buf,"row_recv_buf")
    call elsi_deallocate(e_h,col_recv_buf,"col_recv_buf")
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished matrix redistribution')")
    call elsi_say(e_h,info_str)
@@ -1452,7 +1452,7 @@ subroutine elsi_blacs_to_sips_hs_cmplx(e_h,ham,ovlp)
 
    character(len=40), parameter :: caller = "elsi_blacs_to_sips_hs_cmplx"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    if(e_h%sips_n_elpa == UNSET) then
       e_h%sips_n_elpa = 0
@@ -1655,7 +1655,7 @@ subroutine elsi_blacs_to_sips_hs_cmplx(e_h,ham,ovlp)
    call elsi_deallocate(e_h,row_recv_buf,"row_recv_buf")
    call elsi_deallocate(e_h,col_recv_buf,"col_recv_buf")
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished matrix redistribution')")
    call elsi_say(e_h,info_str)
@@ -1706,7 +1706,7 @@ subroutine elsi_sips_to_blacs_hs_real(e_h,ham,ovlp)
 
    character(len=40), parameter :: caller = "elsi_sips_to_blacs_hs_real"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    if(e_h%n_elsi_calls == 1 .and. .not. e_h%ovlp_is_unit) then
       call elsi_allocate(e_h,s_val_send_buf,e_h%nnz_l_sp,"s_val_send_buf",&
@@ -1871,7 +1871,7 @@ subroutine elsi_sips_to_blacs_hs_real(e_h,ham,ovlp)
    call elsi_deallocate(e_h,row_recv_buf,"row_recv_buf")
    call elsi_deallocate(e_h,col_recv_buf,"col_recv_buf")
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished matrix redistribution')")
    call elsi_say(e_h,info_str)
@@ -1922,7 +1922,7 @@ subroutine elsi_sips_to_blacs_hs_cmplx(e_h,ham,ovlp)
 
    character(len=40), parameter :: caller = "elsi_sips_to_blacs_hs_cmplx"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    if(e_h%n_elsi_calls == 1 .and. .not. e_h%ovlp_is_unit) then
       call elsi_allocate(e_h,s_val_send_buf,e_h%nnz_l_sp,"s_val_send_buf",&
@@ -2088,7 +2088,7 @@ subroutine elsi_sips_to_blacs_hs_cmplx(e_h,ham,ovlp)
    call elsi_deallocate(e_h,row_recv_buf,"row_recv_buf")
    call elsi_deallocate(e_h,col_recv_buf,"col_recv_buf")
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished matrix redistribution')")
    call elsi_say(e_h,info_str)
@@ -2139,7 +2139,7 @@ subroutine elsi_sips_to_blacs_ev_real(e_h,evec)
 
    character(len=40), parameter :: caller = "elsi_sips_to_blacs_ev_real"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    n_lrow_aux = e_h%n_basis/e_h%n_procs
    nnz_before = 0
@@ -2257,7 +2257,7 @@ subroutine elsi_sips_to_blacs_ev_real(e_h,evec)
    call elsi_deallocate(e_h,row_recv_buf,"row_recv_buf")
    call elsi_deallocate(e_h,col_recv_buf,"col_recv_buf")
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished matrix redistribution')")
    call elsi_say(e_h,info_str)
@@ -2305,7 +2305,7 @@ subroutine elsi_blacs_to_sips_dm_real(e_h,dm)
 
    character(len=40), parameter :: caller = "elsi_blacs_to_sips_dm_real"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    call elsi_get_local_nnz_real(e_h,e_h%dm_real_elpa,e_h%n_lrow,e_h%n_lcol,&
            e_h%nnz_l)
@@ -2413,7 +2413,7 @@ subroutine elsi_blacs_to_sips_dm_real(e_h,dm)
    call elsi_deallocate(e_h,col_recv_buf,"col_recv_buf")
    call elsi_deallocate(e_h,val_recv_buf,"val_recv_buf")
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished matrix redistribution')")
    call elsi_say(e_h,info_str)
@@ -2461,7 +2461,7 @@ subroutine elsi_blacs_to_sips_dm_cmplx(e_h,dm)
 
    character(len=40), parameter :: caller = "elsi_blacs_to_sips_dm_cmplx"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    call elsi_get_local_nnz_cmplx(e_h,e_h%dm_cmplx_elpa,e_h%n_lrow,e_h%n_lcol,&
            e_h%nnz_l)
@@ -2569,7 +2569,7 @@ subroutine elsi_blacs_to_sips_dm_cmplx(e_h,dm)
    call elsi_deallocate(e_h,col_recv_buf,"col_recv_buf")
    call elsi_deallocate(e_h,val_recv_buf,"val_recv_buf")
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished matrix redistribution')")
    call elsi_say(e_h,info_str)
@@ -2595,7 +2595,7 @@ subroutine elsi_blacs_to_chess_hs_real(e_h,ham,ovlp)
 
    character(len=40), parameter :: caller = "elsi_blacs_to_chess_hs_real"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    ! First convert to SIPs 1D block distribution
    e_h%n_lcol_sp = e_h%n_basis/e_h%n_procs
@@ -2613,7 +2613,7 @@ subroutine elsi_blacs_to_chess_hs_real(e_h,ham,ovlp)
    e_h%nnz_l_sp  = e_h%nnz_g
    e_h%n_lcol_sp = e_h%n_basis
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished matrix redistribution')")
    call elsi_say(e_h,info_str)
@@ -2810,7 +2810,7 @@ subroutine elsi_siesta_to_blacs_hs_real(e_h,ham,ovlp)
 
    character(len=40), parameter :: caller = "elsi_siesta_to_blacs_hs_real"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    if(e_h%n_elsi_calls == 1 .and. .not. e_h%ovlp_is_unit) then
       call elsi_allocate(e_h,s_val_send_buf,e_h%nnz_l_sp2,"s_val_send_buf",&
@@ -2974,7 +2974,7 @@ subroutine elsi_siesta_to_blacs_hs_real(e_h,ham,ovlp)
    call elsi_deallocate(e_h,row_recv_buf,"row_recv_buf")
    call elsi_deallocate(e_h,col_recv_buf,"col_recv_buf")
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished matrix redistribution')")
    call elsi_say(e_h,info_str)
@@ -3025,7 +3025,7 @@ subroutine elsi_siesta_to_blacs_hs_cmplx(e_h,ham,ovlp)
 
    character(len=40), parameter :: caller = "elsi_siesta_to_blacs_hs_cmplx"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    if(e_h%n_elsi_calls == 1 .and. .not. e_h%ovlp_is_unit) then
       call elsi_allocate(e_h,s_val_send_buf,e_h%nnz_l_sp2,"s_val_send_buf",&
@@ -3190,7 +3190,7 @@ subroutine elsi_siesta_to_blacs_hs_cmplx(e_h,ham,ovlp)
    call elsi_deallocate(e_h,row_recv_buf,"row_recv_buf")
    call elsi_deallocate(e_h,col_recv_buf,"col_recv_buf")
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished matrix redistribution')")
    call elsi_say(e_h,info_str)
@@ -3238,7 +3238,7 @@ subroutine elsi_blacs_to_siesta_dm_real(e_h,dm)
 
    character(len=40), parameter :: caller = "elsi_blacs_to_siesta_dm_real"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    call elsi_get_local_nnz_real(e_h,e_h%dm_real_elpa,e_h%n_lrow,e_h%n_lcol,&
            e_h%nnz_l)
@@ -3350,7 +3350,7 @@ subroutine elsi_blacs_to_siesta_dm_real(e_h,dm)
    call elsi_deallocate(e_h,col_recv_buf,"col_recv_buf")
    call elsi_deallocate(e_h,val_recv_buf,"val_recv_buf")
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished matrix redistribution')")
    call elsi_say(e_h,info_str)
@@ -3398,7 +3398,7 @@ subroutine elsi_blacs_to_siesta_dm_cmplx(e_h,dm)
 
    character(len=40), parameter :: caller = "elsi_blacs_to_siesta_dm_cmplx"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    call elsi_get_local_nnz_cmplx(e_h,e_h%dm_cmplx_elpa,e_h%n_lrow,e_h%n_lcol,&
            e_h%nnz_l)
@@ -3510,7 +3510,7 @@ subroutine elsi_blacs_to_siesta_dm_cmplx(e_h,dm)
    call elsi_deallocate(e_h,col_recv_buf,"col_recv_buf")
    call elsi_deallocate(e_h,val_recv_buf,"val_recv_buf")
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished matrix redistribution')")
    call elsi_say(e_h,info_str)
@@ -3560,7 +3560,7 @@ subroutine elsi_siesta_to_pexsi_hs_real(e_h,ham,ovlp)
 
    character(len=40), parameter :: caller = "elsi_siesta_to_pexsi_hs_real"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    n_para_task = e_h%n_procs/e_h%pexsi_np_per_pole
    n_lcol_aux  = e_h%n_basis/e_h%pexsi_np_per_pole
@@ -3728,7 +3728,7 @@ subroutine elsi_siesta_to_pexsi_hs_real(e_h,ham,ovlp)
    call elsi_deallocate(e_h,row_recv_buf,"row_recv_buf")
    call elsi_deallocate(e_h,col_recv_buf,"col_recv_buf")
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished matrix redistribution')")
    call elsi_say(e_h,info_str)
@@ -3778,7 +3778,7 @@ subroutine elsi_siesta_to_pexsi_hs_cmplx(e_h,ham,ovlp)
 
    character(len=40), parameter :: caller = "elsi_siesta_to_pexsi_hs_cmplx"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    n_para_task = e_h%n_procs/e_h%pexsi_np_per_pole
    n_lcol_aux  = e_h%n_basis/e_h%pexsi_np_per_pole
@@ -3947,7 +3947,7 @@ subroutine elsi_siesta_to_pexsi_hs_cmplx(e_h,ham,ovlp)
    call elsi_deallocate(e_h,row_recv_buf,"row_recv_buf")
    call elsi_deallocate(e_h,col_recv_buf,"col_recv_buf")
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished matrix redistribution')")
    call elsi_say(e_h,info_str)
@@ -3991,7 +3991,7 @@ subroutine elsi_pexsi_to_siesta_dm_real(e_h,dm)
 
    character(len=40), parameter :: caller = "elsi_pexsi_to_siesta_dm_real"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    call elsi_allocate(e_h,val_send_buf,e_h%nnz_l_sp,"val_send_buf",caller)
    call elsi_allocate(e_h,row_send_buf,e_h%nnz_l_sp,"row_send_buf",caller)
@@ -4095,7 +4095,7 @@ subroutine elsi_pexsi_to_siesta_dm_real(e_h,dm)
    call elsi_deallocate(e_h,row_recv_buf,"row_recv_buf")
    call elsi_deallocate(e_h,col_recv_buf,"col_recv_buf")
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished matrix redistribution')")
    call elsi_say(e_h,info_str)
@@ -4139,7 +4139,7 @@ subroutine elsi_pexsi_to_siesta_dm_cmplx(e_h,dm)
 
    character(len=40), parameter :: caller = "elsi_pexsi_to_siesta_dm_cmplx"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    call elsi_allocate(e_h,val_send_buf,e_h%nnz_l_sp,"val_send_buf",caller)
    call elsi_allocate(e_h,row_send_buf,e_h%nnz_l_sp,"row_send_buf",caller)
@@ -4243,7 +4243,7 @@ subroutine elsi_pexsi_to_siesta_dm_cmplx(e_h,dm)
    call elsi_deallocate(e_h,row_recv_buf,"row_recv_buf")
    call elsi_deallocate(e_h,col_recv_buf,"col_recv_buf")
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished matrix redistribution')")
    call elsi_say(e_h,info_str)

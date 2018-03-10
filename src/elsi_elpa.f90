@@ -176,7 +176,7 @@ subroutine elsi_compute_dm_elpa_real(e_h,evec,dm,work)
 
    character(len=40), parameter :: caller = "elsi_compute_dm_elpa_real"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    call elsi_allocate(e_h,factor,e_h%n_states_solve,"factor",caller)
 
@@ -224,7 +224,7 @@ subroutine elsi_compute_dm_elpa_real(e_h,evec,dm,work)
       enddo
    enddo
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished density matrix calculation')")
    call elsi_say(e_h,info_str)
@@ -258,7 +258,7 @@ subroutine elsi_compute_edm_elpa_real(e_h,eval,evec,edm,work)
 
    character(len=40), parameter :: caller = "elsi_compute_edm_elpa_real"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    call elsi_allocate(e_h,factor,e_h%n_states_solve,"factor",caller)
 
@@ -311,7 +311,7 @@ subroutine elsi_compute_edm_elpa_real(e_h,eval,evec,edm,work)
       enddo
    enddo
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished energy density matrix calculation')")
    call elsi_say(e_h,info_str)
@@ -369,7 +369,7 @@ subroutine elsi_to_standard_evp_real(e_h,ham,ovlp,eval,evec)
       endif
 
       if(e_h%n_nonsing == e_h%n_basis) then ! Not singular
-         call elsi_get_time(e_h,t0)
+         call elsi_get_time(t0)
 
          e_h%ovlp_is_sing = .false.
 
@@ -391,7 +391,7 @@ subroutine elsi_to_standard_evp_real(e_h,ham,ovlp,eval,evec)
             call elsi_stop(" Matrix inversion failed.",e_h,caller)
          endif
 
-         call elsi_get_time(e_h,t1)
+         call elsi_get_time(t1)
 
          write(info_str,"('  Finished Cholesky decomposition')")
          call elsi_say(e_h,info_str)
@@ -400,7 +400,7 @@ subroutine elsi_to_standard_evp_real(e_h,ham,ovlp,eval,evec)
       endif
    endif ! n_elsi_calls == 1
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    if(e_h%ovlp_is_sing) then ! Use scaled eigenvectors
       ! evec_real used as tmp_real
@@ -453,7 +453,7 @@ subroutine elsi_to_standard_evp_real(e_h,ham,ovlp,eval,evec)
       enddo
    endif
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished transformation to standard eigenproblem')")
    call elsi_say(e_h,info_str)
@@ -488,7 +488,7 @@ subroutine elsi_check_singularity_real(e_h,ovlp,eval,evec)
 
    character(len=40), parameter :: caller = "elsi_check_singularity_real"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    call elsi_allocate(e_h,copy_real,e_h%n_lrow,e_h%n_lcol,"copy_real",caller)
 
@@ -550,7 +550,7 @@ subroutine elsi_check_singularity_real(e_h,ovlp,eval,evec)
       call elsi_say(e_h,info_str)
    endif ! Singular overlap?
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished singularity check of overlap matrix')")
    call elsi_say(e_h,info_str)
@@ -581,7 +581,7 @@ subroutine elsi_to_original_ev_real(e_h,ham,ovlp,evec)
 
    character(len=40), parameter :: caller = "elsi_to_original_ev_real"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    call elsi_allocate(e_h,tmp_real,e_h%n_lrow,e_h%n_lcol,"tmp_real",caller)
    tmp_real = evec
@@ -606,7 +606,7 @@ subroutine elsi_to_original_ev_real(e_h,ham,ovlp,evec)
 
    call elsi_deallocate(e_h,tmp_real,"tmp_real")
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished back-transformation of eigenvectors')")
    call elsi_say(e_h,info_str)
@@ -653,7 +653,7 @@ subroutine elsi_solve_evp_elpa_real(e_h,ham,ovlp,eval,evec)
       call elsi_to_standard_evp_real(e_h,ham,ovlp,eval,evec)
    endif
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    call elsi_say(e_h,"  Starting ELPA eigensolver")
 
@@ -679,7 +679,7 @@ subroutine elsi_solve_evp_elpa_real(e_h,ham,ovlp,eval,evec)
       eval(e_h%n_nonsing+1:e_h%n_basis) = eval(e_h%n_nonsing)+10.0_r8
    endif
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished solving standard eigenproblem')")
    call elsi_say(e_h,info_str)
@@ -721,7 +721,7 @@ subroutine elsi_compute_dm_elpa_cmplx(e_h,evec,dm,work)
 
    character(len=40), parameter :: caller = "elsi_compute_dm_elpa_cmplx"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    call elsi_allocate(e_h,factor,e_h%n_states_solve,"factor",caller)
 
@@ -777,7 +777,7 @@ subroutine elsi_compute_dm_elpa_cmplx(e_h,evec,dm,work)
          real(dm(e_h%loc_row(i_col),e_h%loc_col(i_col)),kind=r8)
    enddo
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished density matrix calculation')")
    call elsi_say(e_h,info_str)
@@ -811,7 +811,7 @@ subroutine elsi_compute_edm_elpa_cmplx(e_h,eval,evec,edm,work)
 
    character(len=40), parameter :: caller = "elsi_compute_edm_elpa_cmplx"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    call elsi_allocate(e_h,factor,e_h%n_states_solve,"factor",caller)
 
@@ -872,7 +872,7 @@ subroutine elsi_compute_edm_elpa_cmplx(e_h,eval,evec,edm,work)
          real(edm(e_h%loc_row(i_col),e_h%loc_col(i_col)),kind=r8)
    enddo
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished energy density matrix calculation')")
    call elsi_say(e_h,info_str)
@@ -930,7 +930,7 @@ subroutine elsi_to_standard_evp_cmplx(e_h,ham,ovlp,eval,evec)
       endif
 
       if(e_h%n_nonsing == e_h%n_basis) then ! Not singular
-         call elsi_get_time(e_h,t0)
+         call elsi_get_time(t0)
 
          e_h%ovlp_is_sing = .false.
 
@@ -952,7 +952,7 @@ subroutine elsi_to_standard_evp_cmplx(e_h,ham,ovlp,eval,evec)
             call elsi_stop(" Matrix inversion failed.",e_h,caller)
          endif
 
-         call elsi_get_time(e_h,t1)
+         call elsi_get_time(t1)
 
          write(info_str,"('  Finished Cholesky decomposition')")
          call elsi_say(e_h,info_str)
@@ -961,7 +961,7 @@ subroutine elsi_to_standard_evp_cmplx(e_h,ham,ovlp,eval,evec)
       endif
    endif ! n_elsi_calls == 1
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    if(e_h%ovlp_is_sing) then ! Use scaled eigenvectors
       ! evec_cmplx used as tmp_cmplx
@@ -1022,7 +1022,7 @@ subroutine elsi_to_standard_evp_cmplx(e_h,ham,ovlp,eval,evec)
       enddo
    endif
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished transformation to standard eigenproblem')")
    call elsi_say(e_h,info_str)
@@ -1057,7 +1057,7 @@ subroutine elsi_check_singularity_cmplx(e_h,ovlp,eval,evec)
 
    character(len=40), parameter :: caller = "elsi_check_singularity_cmplx"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    call elsi_allocate(e_h,copy_cmplx,e_h%n_lrow,e_h%n_lcol,"copy_cmplx",caller)
 
@@ -1119,7 +1119,7 @@ subroutine elsi_check_singularity_cmplx(e_h,ovlp,eval,evec)
       call elsi_say(e_h,info_str)
    endif ! Singular overlap?
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished singularity check of overlap matrix')")
    call elsi_say(e_h,info_str)
@@ -1150,7 +1150,7 @@ subroutine elsi_to_original_ev_cmplx(e_h,ham,ovlp,evec)
 
    character(len=40), parameter :: caller = "elsi_to_original_ev_cmplx"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    call elsi_allocate(e_h,tmp_cmplx,e_h%n_lrow,e_h%n_lcol,"tmp_cmplx",caller)
    tmp_cmplx = evec
@@ -1175,7 +1175,7 @@ subroutine elsi_to_original_ev_cmplx(e_h,ham,ovlp,evec)
 
    call elsi_deallocate(e_h,tmp_cmplx,"tmp_cmplx")
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished back-transformation of eigenvectors')")
    call elsi_say(e_h,info_str)
@@ -1222,7 +1222,7 @@ subroutine elsi_solve_evp_elpa_cmplx(e_h,ham,ovlp,eval,evec)
       call elsi_to_standard_evp_cmplx(e_h,ham,ovlp,eval,evec)
    endif
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    call elsi_say(e_h,"  Starting ELPA eigensolver")
 
@@ -1248,7 +1248,7 @@ subroutine elsi_solve_evp_elpa_cmplx(e_h,ham,ovlp,eval,evec)
       eval(e_h%n_nonsing+1:e_h%n_basis) = eval(e_h%n_nonsing)+10.0_r8
    endif
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished solving standard eigenproblem')")
    call elsi_say(e_h,info_str)

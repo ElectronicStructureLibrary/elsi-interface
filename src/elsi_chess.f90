@@ -126,7 +126,7 @@ subroutine elsi_solve_evp_chess_real(e_h)
 
    character(len=40), parameter :: caller = "elsi_solve_evp_chess_real"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    if(e_h%n_elsi_calls == 1) then
       calc_ovlp_inv_sqrt = .true.
@@ -150,7 +150,7 @@ subroutine elsi_solve_evp_chess_real(e_h)
 
    call elsi_check_mpi(e_h,"MPI_Barrier",ierr,caller)
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished density matrix calculation')")
    call elsi_say(e_h,info_str)

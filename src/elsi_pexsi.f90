@@ -208,7 +208,7 @@ subroutine elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
 
    ! Symbolic factorization
    if(e_h%n_elsi_calls == 1) then
-      call elsi_get_time(e_h,t0)
+      call elsi_get_time(t0)
 
       call f_ppexsi_symbolic_factorize_real_symmetric_matrix(e_h%pexsi_plan,&
               e_h%pexsi_options,ierr)
@@ -216,7 +216,7 @@ subroutine elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
       call f_ppexsi_symbolic_factorize_complex_symmetric_matrix(e_h%pexsi_plan,&
               e_h%pexsi_options,ierr)
 
-      call elsi_get_time(e_h,t1)
+      call elsi_get_time(t1)
 
       write(info_str,"('  Finished symbolic factorization')")
       call elsi_say(e_h,info_str)
@@ -229,7 +229,7 @@ subroutine elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
    endif
 
    ! Inertia counting
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    n_iner_steps = 0
    mu_range     = e_h%pexsi_options%muMax0-e_h%pexsi_options%muMin0
@@ -313,7 +313,7 @@ subroutine elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
    call elsi_deallocate(e_h,ne_lower,"ne_lower")
    call elsi_deallocate(e_h,ne_upper,"ne_upper")
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    if(n_iner_steps > 0) then
       write(info_str,"('  Finished inertia counting')")
@@ -327,7 +327,7 @@ subroutine elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
    endif
 
    ! Fermi operator expansion
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    shift_width = mu_range/(e_h%pexsi_options%nPoints+1)
 
@@ -377,7 +377,7 @@ subroutine elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
 
    call elsi_deallocate(e_h,send_buf,"send_buf")
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished Fermi operator calculation')")
    call elsi_say(e_h,info_str)
@@ -389,7 +389,7 @@ subroutine elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
    endif
 
    ! Get density matrix
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    call elsi_allocate(e_h,tmp_real,e_h%nnz_l_sp,"tmp_real",caller)
 
@@ -507,7 +507,7 @@ subroutine elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
 
    call MPI_Bcast(e_h%energy_hdm,1,mpi_real8,0,e_h%mpi_comm,ierr)
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished density matrix correction')")
    call elsi_say(e_h,info_str)
@@ -550,7 +550,7 @@ subroutine elsi_compute_edm_pexsi_real(e_h,edm)
 
    character(len=40), parameter :: caller = "elsi_compute_edm_pexsi_real"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    call f_ppexsi_calculate_edm_correction_real(e_h%pexsi_plan,&
            e_h%pexsi_options,ierr)
@@ -667,7 +667,7 @@ subroutine elsi_compute_edm_pexsi_real(e_h,edm)
    call elsi_deallocate(e_h,tmp_real,"tmp_real")
    call elsi_deallocate(e_h,shifts,"shifts")
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished energy density matrix calculation')")
    call elsi_say(e_h,info_str)
@@ -738,7 +738,7 @@ subroutine elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
 
    ! Symbolic factorization
    if(e_h%n_elsi_calls == 1) then
-      call elsi_get_time(e_h,t0)
+      call elsi_get_time(t0)
 
       call f_ppexsi_symbolic_factorize_complex_symmetric_matrix(&
               e_h%pexsi_plan,e_h%pexsi_options,ierr)
@@ -746,7 +746,7 @@ subroutine elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
       call f_ppexsi_symbolic_factorize_complex_unsymmetric_matrix(&
               e_h%pexsi_plan,e_h%pexsi_options,ovlp,ierr)
 
-      call elsi_get_time(e_h,t1)
+      call elsi_get_time(t1)
 
       write(info_str,"('  Finished symbolic factorization')")
       call elsi_say(e_h,info_str)
@@ -759,7 +759,7 @@ subroutine elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
    endif
 
    ! Inertia counting
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    n_iner_steps = 0
    mu_range     = e_h%pexsi_options%muMax0-e_h%pexsi_options%muMin0
@@ -843,7 +843,7 @@ subroutine elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
    call elsi_deallocate(e_h,ne_lower,"ne_lower")
    call elsi_deallocate(e_h,ne_upper,"ne_upper")
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    if(n_iner_steps > 0) then
       write(info_str,"('  Finished inertia counting')")
@@ -857,7 +857,7 @@ subroutine elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
    endif
 
    ! Fermi operator expansion
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    shift_width = mu_range/(e_h%pexsi_options%nPoints+1)
 
@@ -907,7 +907,7 @@ subroutine elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
 
    call elsi_deallocate(e_h,send_buf,"send_buf")
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished Fermi operator calculation')")
    call elsi_say(e_h,info_str)
@@ -919,7 +919,7 @@ subroutine elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
    endif
 
    ! Get density matrix
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    call elsi_allocate(e_h,tmp_cmplx,e_h%nnz_l_sp,"tmp_cmplx",caller)
 
@@ -1041,7 +1041,7 @@ subroutine elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
 
    call elsi_check_mpi(e_h,"MPI_Bcast",ierr,caller)
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished density matrix correction')")
    call elsi_say(e_h,info_str)
@@ -1084,7 +1084,7 @@ subroutine elsi_compute_edm_pexsi_cmplx(e_h,edm)
 
    character(len=40), parameter :: caller = "elsi_compute_edm_pexsi_cmplx"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    call f_ppexsi_calculate_edm_correction_complex(e_h%pexsi_plan,&
            e_h%pexsi_options,ierr)
@@ -1203,7 +1203,7 @@ subroutine elsi_compute_edm_pexsi_cmplx(e_h,edm)
    call elsi_deallocate(e_h,tmp_cmplx,"tmp_cmplx")
    call elsi_deallocate(e_h,shifts,"shifts")
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished energy density matrix calculation')")
    call elsi_say(e_h,info_str)
