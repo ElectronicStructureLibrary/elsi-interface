@@ -83,7 +83,7 @@ subroutine elsi_solve_evp_dmp_real(e_h,ham,ovlp,dm)
       call elsi_check_mpi(e_h,"MPI_Allreduce",ierr,caller)
    endif
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    call elsi_say(e_h,"  Starting density matrix purification")
 
@@ -276,7 +276,7 @@ subroutine elsi_solve_evp_dmp_real(e_h,ham,ovlp,dm)
    call elsi_deallocate(e_h,tmp_real1,"tmp_real1")
    call elsi_deallocate(e_h,tmp_real2,"tmp_real2")
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished power iteration')")
    call elsi_say(e_h,info_str)
@@ -284,7 +284,7 @@ subroutine elsi_solve_evp_dmp_real(e_h,ham,ovlp,dm)
    call elsi_say(e_h,info_str)
 
    ! Initialization
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    call elsi_trace_mat_real(e_h,ham,mu)
 
@@ -408,7 +408,7 @@ subroutine elsi_solve_evp_dmp_real(e_h,ham,ovlp,dm)
 
    call elsi_check_mpi(e_h,"MPI_Barrier",ierr,caller)
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished density matrix purification')")
    call elsi_say(e_h,info_str)

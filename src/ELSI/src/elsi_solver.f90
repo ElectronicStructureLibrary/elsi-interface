@@ -36,23 +36,27 @@ module ELSI_SOLVER
    use ELSI_LAPACK,    only: elsi_solve_evp_lapack_real,&
                              elsi_solve_evp_lapack_cmplx
    use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
-   use ELSI_MATCONV,   only: elsi_blacs_to_sips_hs_real,&
-                             elsi_sips_to_blacs_hs_real,&
-                             elsi_blacs_to_sips_hs_cmplx,&
-                             elsi_sips_to_blacs_hs_cmplx,&
-                             elsi_blacs_to_chess_hs_real,&
-                             elsi_chess_to_blacs_dm_real,&
-                             elsi_blacs_to_pexsi_hs_real,&
-                             elsi_pexsi_to_blacs_dm_real,&
+   use ELSI_MATCONV,   only: elsi_blacs_to_chess_hs_real,&
                              elsi_blacs_to_pexsi_hs_cmplx,&
-                             elsi_pexsi_to_blacs_dm_cmplx,&
-                             elsi_blacs_to_sips_dm_real,&
-                             elsi_blacs_to_sips_dm_cmplx,&
-                             elsi_sips_to_blacs_ev_real,&
-                             elsi_siesta_to_blacs_hs_real,&
+                             elsi_blacs_to_pexsi_hs_real,&
+                             elsi_blacs_to_siesta_dm_cmplx,&
                              elsi_blacs_to_siesta_dm_real,&
+                             elsi_blacs_to_sips_dm_cmplx,&
+                             elsi_blacs_to_sips_dm_real,&
+                             elsi_blacs_to_sips_hs_cmplx,&
+                             elsi_blacs_to_sips_hs_real,&
+                             elsi_chess_to_blacs_dm_real,&
+                             elsi_pexsi_to_blacs_dm_cmplx,&
+                             elsi_pexsi_to_blacs_dm_real,&
+                             elsi_pexsi_to_siesta_dm_cmplx,&
+                             elsi_pexsi_to_siesta_dm_real,&
                              elsi_siesta_to_blacs_hs_cmplx,&
-                             elsi_blacs_to_siesta_dm_cmplx
+                             elsi_siesta_to_blacs_hs_real,&
+                             elsi_siesta_to_pexsi_hs_cmplx,&
+                             elsi_siesta_to_pexsi_hs_real,&
+                             elsi_sips_to_blacs_hs_cmplx,&
+                             elsi_sips_to_blacs_hs_real,&
+                             elsi_sips_to_blacs_ev_real
    use ELSI_MPI,       only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8
    use ELSI_OMM,       only: elsi_solve_evp_omm_real,elsi_solve_evp_omm_cmplx
    use ELSI_PEXSI,     only: elsi_init_pexsi,elsi_solve_evp_pexsi_real,&
@@ -158,7 +162,7 @@ subroutine elsi_ev_real(e_h,ham,ovlp,eval,evec)
    integer(kind=i4),  parameter :: data_type = REAL_VALUES
    character(len=40), parameter :: caller = "elsi_ev_real"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
    call elsi_get_datetime_rfc3339(start_datetime)
 
    call elsi_check_handle(e_h,caller)
@@ -252,7 +256,7 @@ subroutine elsi_ev_complex(e_h,ham,ovlp,eval,evec)
    integer(kind=i4),  parameter :: data_type = COMPLEX_VALUES
    character(len=40), parameter :: caller = "elsi_ev_complex"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
    call elsi_get_datetime_rfc3339(start_datetime)
 
    call elsi_check_handle(e_h,caller)
@@ -317,7 +321,7 @@ subroutine elsi_ev_real_sparse(e_h,ham,ovlp,eval,evec)
    integer(kind=i4),  parameter :: data_type = REAL_VALUES
    character(len=40), parameter :: caller = "elsi_ev_real_sparse"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
    call elsi_get_datetime_rfc3339(start_datetime)
 
    call elsi_check_handle(e_h,caller)
@@ -388,7 +392,7 @@ subroutine elsi_ev_complex_sparse(e_h,ham,ovlp,eval,evec)
    integer(kind=i4),  parameter :: data_type = COMPLEX_VALUES
    character(len=40), parameter :: caller = "elsi_ev_complex_sparse"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
    call elsi_get_datetime_rfc3339(start_datetime)
 
    call elsi_check_handle(e_h,caller)
@@ -458,7 +462,7 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
    integer(kind=i4),  parameter :: data_type = REAL_VALUES
    character(len=40), parameter :: caller = "elsi_dm_real"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
    call elsi_get_datetime_rfc3339(start_datetime)
 
    call elsi_check_handle(e_h,caller)
@@ -653,7 +657,7 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
    integer(kind=i4),  parameter :: data_type = COMPLEX_VALUES
    character(len=40), parameter :: caller = "elsi_dm_complex"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
    call elsi_get_datetime_rfc3339(start_datetime)
 
    call elsi_check_handle(e_h,caller)
@@ -825,7 +829,7 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
    integer(kind=i4),  parameter :: data_type = REAL_VALUES
    character(len=40), parameter :: caller = "elsi_dm_real_sparse"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
    call elsi_get_datetime_rfc3339(start_datetime)
 
    call elsi_check_handle(e_h,caller)
@@ -1000,8 +1004,8 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
       select case(e_h%matrix_format)
       case(PEXSI_CSC)
          ! Nothing
-!      case(SIESTA_CSC)
-!         call elsi_siesta_to_pexsi_hs_real(e_h,ham,ovlp)
+      case(SIESTA_CSC)
+         call elsi_siesta_to_pexsi_hs_real(e_h,ham,ovlp)
       case default
          call elsi_stop(" Unsupported matrix format.",e_h,caller)
       end select
@@ -1011,8 +1015,8 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
       select case(e_h%matrix_format)
       case(PEXSI_CSC)
          ! Nothing
-!      case(SIESTA_CSC)
-!         call elsi_pexsi_to_siesta_dm_real(e_h,dm)
+      case(SIESTA_CSC)
+         call elsi_pexsi_to_siesta_dm_real(e_h,dm)
       case default
          call elsi_stop(" Unsupported matrix format.",e_h,caller)
       end select
@@ -1104,7 +1108,7 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
    integer(kind=i4),  parameter :: data_type = COMPLEX_VALUES
    character(len=40), parameter :: caller = "elsi_dm_complex_sparse"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
    call elsi_get_datetime_rfc3339(start_datetime)
 
    call elsi_check_handle(e_h,caller)
@@ -1279,8 +1283,8 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
       select case(e_h%matrix_format)
       case(PEXSI_CSC)
          ! Nothing
-!      case(SIESTA_CSC)
-!         call elsi_siesta_to_pexsi_hs_cmplx(e_h,ham,ovlp)
+      case(SIESTA_CSC)
+         call elsi_siesta_to_pexsi_hs_cmplx(e_h,ham,ovlp)
       case default
          call elsi_stop(" Unsupported matrix format.",e_h,caller)
       end select
@@ -1290,8 +1294,8 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
       select case(e_h%matrix_format)
       case(PEXSI_CSC)
          ! Nothing
-!      case(SIESTA_CSC)
-!         call elsi_pexsi_to_siesta_dm_cmplx(e_h,dm)
+      case(SIESTA_CSC)
+         call elsi_pexsi_to_siesta_dm_cmplx(e_h,dm)
       case default
          call elsi_stop(" Unsupported matrix format.",e_h,caller)
       end select
@@ -1399,7 +1403,7 @@ subroutine elsi_process_solver_timing(e_h,output_type,data_type,solver_used,&
 
    io_h = e_h%timings_file
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    temp_int   = e_h%solver
    e_h%solver = solver_used

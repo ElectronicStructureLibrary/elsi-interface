@@ -104,7 +104,7 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
    ! Solve the eigenvalue problem
    call elsi_say(e_h,"  Starting SIPs eigensolver")
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    if(e_h%n_elsi_calls == e_h%sips_n_elpa+1) then
       if(.not. e_h%ovlp_is_unit) then
@@ -128,7 +128,7 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
       call sips_update_eps(e_h%sips_n_slices)
    endif
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished loading matrices')")
    call elsi_say(e_h,info_str)
@@ -143,7 +143,7 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
    endif
 
    if(e_h%sips_do_inertia) then ! Inertia counting
-      call elsi_get_time(e_h,t0)
+      call elsi_get_time(t0)
 
       call elsi_allocate(e_h,inertias,e_h%sips_n_slices+1,"inertias",caller)
 
@@ -211,7 +211,7 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
 
       call elsi_deallocate(e_h,inertias,"inertias")
 
-      call elsi_get_time(e_h,t1)
+      call elsi_get_time(t1)
 
       write(info_str,"('  Finished inertia counting')")
       call elsi_say(e_h,info_str)
@@ -224,7 +224,7 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
 
    call sips_set_slices(e_h%sips_n_slices,slices)
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    ! Solve
    call sips_solve_eps(e_h%n_states,n_solved)
@@ -233,14 +233,14 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
       call elsi_stop(" SIPs solver failed.",e_h,caller)
    endif
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished solving generalized eigenproblem')")
    call elsi_say(e_h,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
    call elsi_say(e_h,info_str)
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    ! Get solutions
    call elsi_allocate(e_h,eval_save,e_h%n_states,"eval_save",caller)
@@ -264,7 +264,7 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
 
    call elsi_check_mpi(e_h,"MPI_Barrier",ierr,caller)
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished retrieving eigensolutions')")
    call elsi_say(e_h,info_str)

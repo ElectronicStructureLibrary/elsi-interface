@@ -27,7 +27,7 @@ module ELSI_MATIO
    use ELSI_PRECISION, only: r8,i4,i8
    use ELSI_SETUP,     only: elsi_init,elsi_set_mpi,elsi_set_blacs,&
                              elsi_set_csc,elsi_cleanup
-   use ELSI_TIMINGS,   only: elsi_init_timer,elsi_get_time
+   use ELSI_TIMINGS,   only: elsi_get_time
    use ELSI_UTILS,     only: elsi_get_local_nnz_real,elsi_get_local_nnz_cmplx
 
    implicit none
@@ -711,7 +711,7 @@ subroutine elsi_read_mat_real_mp(rw_h,f_name,mat)
    aux_h%print_mem           = rw_h%print_mem
    aux_h%stdio%print_unit    = rw_h%print_unit
 
-   call elsi_get_time(aux_h,t0)
+   call elsi_get_time(t0)
 
    ! Open file
    f_mode = mpi_mode_rdonly
@@ -784,7 +784,7 @@ subroutine elsi_read_mat_real_mp(rw_h,f_name,mat)
    call elsi_deallocate(aux_h,row_ind,"row_ind")
    call elsi_deallocate(aux_h,nnz_val,"nnz_val")
 
-   call elsi_get_time(aux_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished reading matrix')")
    call elsi_say(aux_h,info_str)
@@ -834,8 +834,7 @@ subroutine elsi_read_mat_real_sparse(rw_h,f_name,row_ind,col_ptr,mat)
    aux_h%stdio%print_info = rw_h%print_info
    aux_h%stdio%print_unit = rw_h%print_unit
 
-   call elsi_init_timer(aux_h)
-   call elsi_get_time(aux_h,t0)
+   call elsi_get_time(t0)
 
    ! Open file
    f_mode = mpi_mode_rdonly
@@ -874,7 +873,7 @@ subroutine elsi_read_mat_real_sparse(rw_h,f_name,row_ind,col_ptr,mat)
    ! Close file
    call MPI_File_close(f_handle,ierr)
 
-   call elsi_get_time(aux_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished reading matrix')")
    call elsi_say(aux_h,info_str)
@@ -931,7 +930,7 @@ subroutine elsi_read_mat_complex_mp(rw_h,f_name,mat)
    aux_h%print_mem           = rw_h%print_mem
    aux_h%stdio%print_unit    = rw_h%print_unit
 
-   call elsi_get_time(aux_h,t0)
+   call elsi_get_time(t0)
 
    ! Open file
    f_mode = mpi_mode_rdonly
@@ -1004,7 +1003,7 @@ subroutine elsi_read_mat_complex_mp(rw_h,f_name,mat)
    call elsi_deallocate(aux_h,row_ind,"row_ind")
    call elsi_deallocate(aux_h,nnz_val,"nnz_val")
 
-   call elsi_get_time(aux_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished reading matrix')")
    call elsi_say(aux_h,info_str)
@@ -1054,8 +1053,7 @@ subroutine elsi_read_mat_complex_sparse(rw_h,f_name,row_ind,col_ptr,mat)
    aux_h%stdio%print_info = rw_h%print_info
    aux_h%stdio%print_unit = rw_h%print_unit
 
-   call elsi_init_timer(aux_h)
-   call elsi_get_time(aux_h,t0)
+   call elsi_get_time(t0)
 
    ! Open file
    f_mode = mpi_mode_rdonly
@@ -1094,7 +1092,7 @@ subroutine elsi_read_mat_complex_sparse(rw_h,f_name,row_ind,col_ptr,mat)
    ! Close file
    call MPI_File_close(f_handle,ierr)
 
-   call elsi_get_time(aux_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished reading matrix')")
    call elsi_say(aux_h,info_str)
@@ -1137,7 +1135,7 @@ subroutine elsi_write_mat_real_mp(rw_h,f_name,mat)
            rw_h%n_electrons,0)
    call elsi_set_mpi(aux_h,rw_h%mpi_comm)
    call elsi_set_blacs(aux_h,rw_h%blacs_ctxt,rw_h%blk)
-   call elsi_get_time(aux_h,t0)
+   call elsi_get_time(t0)
 
    ! Output
    aux_h%output_timings_file = .false.
@@ -1213,7 +1211,7 @@ subroutine elsi_write_mat_real_mp(rw_h,f_name,mat)
    ! Close file
    call MPI_File_close(f_handle,ierr)
 
-   call elsi_get_time(aux_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished writing matrix')")
    call elsi_say(aux_h,info_str)
@@ -1256,7 +1254,7 @@ subroutine elsi_write_mat_complex_mp(rw_h,f_name,mat)
            rw_h%n_electrons,0)
    call elsi_set_mpi(aux_h,rw_h%mpi_comm)
    call elsi_set_blacs(aux_h,rw_h%blacs_ctxt,rw_h%blk)
-   call elsi_get_time(aux_h,t0)
+   call elsi_get_time(t0)
 
    ! Output
    aux_h%output_timings_file = .false.
@@ -1331,7 +1329,7 @@ subroutine elsi_write_mat_complex_mp(rw_h,f_name,mat)
    ! Close file
    call MPI_File_close(f_handle,ierr)
 
-   call elsi_get_time(aux_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished writing matrix')")
    call elsi_say(aux_h,info_str)
@@ -1377,8 +1375,7 @@ subroutine elsi_write_mat_real_sparse(rw_h,f_name,row_ind,col_ptr,mat)
    aux_h%stdio%print_info = rw_h%print_info
    aux_h%stdio%print_unit = rw_h%print_unit
 
-   call elsi_init_timer(aux_h)
-   call elsi_get_time(aux_h,t0)
+   call elsi_get_time(t0)
 
    ! Open file
    f_mode = mpi_mode_wronly+mpi_mode_create
@@ -1437,7 +1434,7 @@ subroutine elsi_write_mat_real_sparse(rw_h,f_name,row_ind,col_ptr,mat)
    ! Close file
    call MPI_File_close(f_handle,ierr)
 
-   call elsi_get_time(aux_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished writing matrix')")
    call elsi_say(aux_h,info_str)
@@ -1481,8 +1478,7 @@ subroutine elsi_write_mat_complex_sparse(rw_h,f_name,row_ind,col_ptr,mat)
    aux_h%stdio%print_info = rw_h%print_info
    aux_h%stdio%print_unit = rw_h%print_unit
 
-   call elsi_init_timer(aux_h)
-   call elsi_get_time(aux_h,t0)
+   call elsi_get_time(t0)
 
    ! Open file
    f_mode = mpi_mode_wronly+mpi_mode_create
@@ -1541,7 +1537,7 @@ subroutine elsi_write_mat_complex_sparse(rw_h,f_name,row_ind,col_ptr,mat)
    ! Close file
    call MPI_File_close(f_handle,ierr)
 
-   call elsi_get_time(aux_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished writing matrix')")
    call elsi_say(aux_h,info_str)
@@ -1640,8 +1636,7 @@ subroutine elsi_read_mat_real_sp(rw_h,f_name,mat)
    aux_h%stdio%print_info = rw_h%print_info
    aux_h%stdio%print_unit = rw_h%print_unit
 
-   call elsi_init_timer(aux_h)
-   call elsi_get_time(aux_h,t0)
+   call elsi_get_time(t0)
 
    ! Open file
    open(file=f_name,unit=99,access="stream",form="unformatted")
@@ -1699,7 +1694,7 @@ subroutine elsi_read_mat_real_sp(rw_h,f_name,mat)
    call elsi_deallocate(aux_h,row_ind,"row_ind")
    call elsi_deallocate(aux_h,nnz_val,"nnz_val")
 
-   call elsi_get_time(aux_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished reading matrix')")
    call elsi_say(aux_h,info_str)
@@ -1749,8 +1744,7 @@ subroutine elsi_read_mat_complex_sp(rw_h,f_name,mat)
    aux_h%stdio%print_info = rw_h%print_info
    aux_h%stdio%print_unit = rw_h%print_unit
 
-   call elsi_init_timer(aux_h)
-   call elsi_get_time(aux_h,t0)
+   call elsi_get_time(t0)
 
    ! Open file
    open(file=f_name,unit=99,access="stream",form="unformatted")
@@ -1808,7 +1802,7 @@ subroutine elsi_read_mat_complex_sp(rw_h,f_name,mat)
    call elsi_deallocate(aux_h,row_ind,"row_ind")
    call elsi_deallocate(aux_h,nnz_val,"nnz_val")
 
-   call elsi_get_time(aux_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished reading matrix')")
    call elsi_say(aux_h,info_str)
@@ -1853,8 +1847,7 @@ subroutine elsi_write_mat_real_sp(rw_h,f_name,mat)
    aux_h%stdio%print_unit = rw_h%print_unit
    aux_h%zero_def         = rw_h%zero_def
 
-   call elsi_init_timer(aux_h)
-   call elsi_get_time(aux_h,t0)
+   call elsi_get_time(t0)
 
    ! Compute nnz
    call elsi_get_local_nnz_real(aux_h,mat,rw_h%n_lrow,rw_h%n_lcol,nnz_g)
@@ -1920,7 +1913,7 @@ subroutine elsi_write_mat_real_sp(rw_h,f_name,mat)
    call elsi_deallocate(aux_h,row_ind,"row_ind")
    call elsi_deallocate(aux_h,nnz_val,"nnz_val")
 
-   call elsi_get_time(aux_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished writing matrix')")
    call elsi_say(aux_h,info_str)
@@ -1965,8 +1958,7 @@ subroutine elsi_write_mat_complex_sp(rw_h,f_name,mat)
    aux_h%stdio%print_unit = rw_h%print_unit
    aux_h%zero_def         = rw_h%zero_def
 
-   call elsi_init_timer(aux_h)
-   call elsi_get_time(aux_h,t0)
+   call elsi_get_time(t0)
 
    ! Compute nnz
    call elsi_get_local_nnz_cmplx(aux_h,mat,rw_h%n_lrow,rw_h%n_lcol,nnz_g)
@@ -2032,7 +2024,7 @@ subroutine elsi_write_mat_complex_sp(rw_h,f_name,mat)
    call elsi_deallocate(aux_h,row_ind,"row_ind")
    call elsi_deallocate(aux_h,nnz_val,"nnz_val")
 
-   call elsi_get_time(aux_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished writing matrix')")
    call elsi_say(aux_h,info_str)

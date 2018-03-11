@@ -73,7 +73,7 @@ subroutine elsi_solve_evp_omm_real(e_h,ham,ovlp,dm)
    if(.not. e_h%ovlp_is_unit) then
       if(e_h%omm_flavor == 2) then
          if(e_h%n_elsi_calls == 1) then
-            call elsi_get_time(e_h,t0)
+            call elsi_get_time(t0)
 
             ! Cholesky factorization
             success = elpa_cholesky_real_double(e_h%n_basis,ovlp,e_h%n_lrow,&
@@ -84,7 +84,7 @@ subroutine elsi_solve_evp_omm_real(e_h,ham,ovlp,dm)
                          e_h%blk_row,e_h%n_lcol,e_h%mpi_comm_row,&
                          e_h%mpi_comm_col,.false.)
 
-            call elsi_get_time(e_h,t1)
+            call elsi_get_time(t1)
 
             write(info_str,"('  Finished Cholesky decomposition')")
             call elsi_say(e_h,info_str)
@@ -112,7 +112,7 @@ subroutine elsi_solve_evp_omm_real(e_h,ham,ovlp,dm)
       new_ovlp = .false.
    endif
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    call elsi_say(e_h,"  Starting OMM density matrix solver")
 
@@ -127,7 +127,7 @@ subroutine elsi_solve_evp_omm_real(e_h,ham,ovlp,dm)
 
    call elsi_check_mpi(e_h,"MPI_Barrier",ierr,caller)
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished density matrix calculation')")
    call elsi_say(e_h,info_str)
@@ -152,7 +152,7 @@ subroutine elsi_compute_edm_omm_real(e_h,edm)
 
    character(len=40), parameter :: caller = "elsi_compute_edm_omm_real"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    call m_register_pdbc(e_h%dm_omm,edm,e_h%sc_desc)
 
@@ -163,7 +163,7 @@ subroutine elsi_compute_edm_omm_real(e_h,edm)
 
    edm = e_h%spin_degen*edm
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished energy density matrix calculation')")
    call elsi_say(e_h,info_str)
@@ -211,7 +211,7 @@ subroutine elsi_solve_evp_omm_cmplx(e_h,ham,ovlp,dm)
    if(.not. e_h%ovlp_is_unit) then
       if(e_h%omm_flavor == 2) then
          if(e_h%n_elsi_calls == 1) then
-            call elsi_get_time(e_h,t0)
+            call elsi_get_time(t0)
 
             ! Cholesky factorization
             success = elpa_cholesky_complex_double(e_h%n_basis,ovlp,e_h%n_lrow,&
@@ -222,7 +222,7 @@ subroutine elsi_solve_evp_omm_cmplx(e_h,ham,ovlp,dm)
                          e_h%n_lrow,e_h%blk_row,e_h%n_lcol,e_h%mpi_comm_row,&
                          e_h%mpi_comm_col,.false.)
 
-            call elsi_get_time(e_h,t1)
+            call elsi_get_time(t1)
 
             write(info_str,"('  Finished Cholesky decomposition')")
             call elsi_say(e_h,info_str)
@@ -250,7 +250,7 @@ subroutine elsi_solve_evp_omm_cmplx(e_h,ham,ovlp,dm)
       new_ovlp = .false.
    endif
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    call elsi_say(e_h,"  Starting OMM density matrix solver")
 
@@ -265,7 +265,7 @@ subroutine elsi_solve_evp_omm_cmplx(e_h,ham,ovlp,dm)
 
    call elsi_check_mpi(e_h,"MPI_Barrier",ierr,caller)
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished density matrix calculation')")
    call elsi_say(e_h,info_str)
@@ -290,7 +290,7 @@ subroutine elsi_compute_edm_omm_cmplx(e_h,edm)
 
    character(len=40), parameter :: caller = "elsi_compute_edm_omm_cmplx"
 
-   call elsi_get_time(e_h,t0)
+   call elsi_get_time(t0)
 
    call m_register_pdbc(e_h%dm_omm,edm,e_h%sc_desc)
 
@@ -301,7 +301,7 @@ subroutine elsi_compute_edm_omm_cmplx(e_h,edm)
 
    edm = e_h%spin_degen*edm
 
-   call elsi_get_time(e_h,t1)
+   call elsi_get_time(t1)
 
    write(info_str,"('  Finished energy density matrix calculation')")
    call elsi_say(e_h,info_str)
