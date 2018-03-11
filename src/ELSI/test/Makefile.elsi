@@ -18,19 +18,19 @@ TEST_SOURCES_C = test_dm_complex_c.o \
 
 all: test
 
-elsi_test.x: elsi_test.o $(TEST_SOURCES)
+elsi_test.x: elsi_test.o $(TEST_SOURCES) libelsi.a
 	$(FLINKER) $(LDFLAGS) $(FLDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
 
-elsi_test_rw.x: elsi_test_rw.o $(TEST_SOURCES)
+elsi_test_rw.x: elsi_test_rw.o $(TEST_SOURCES) libelsi.a
 	$(FLINKER) $(LDFLAGS) $(FLDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
 
-elsi_test_c.x: elsi_test_c.o $(TEST_SOURCES_C)
+elsi_test_c.x: elsi_test_c.o $(TEST_SOURCES_C) libelsi.a
 	$(CLINKER) $(LDFLAGS) $(CLDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
 
-test_dm_kpt_spin_complex.x: test_dm_kpt_spin_complex.o
+test_dm_kpt_spin_complex.x: test_dm_kpt_spin_complex.o libelsi.a
 	$(FLINKER) $(LDFLAGS) $(FLDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
 
-test_standard_ev_real.x: test_standard_ev_real.o
+test_standard_ev_real.x: test_standard_ev_real.o libelsi.a
 	$(FLINKER) $(LDFLAGS) $(FLDFLAGS) -o $@ $^ $(LIBS) $(CUDA_LIB) $(SCALAPACK_LIB) $(CXX_LIB)
 
 elsi_test.o: $(ELSI_DIR)/test/Fortran/elsi_test.f90

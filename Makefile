@@ -231,7 +231,7 @@ testc: elsi
 	@echo = Done. =
 	@echo =========
 
-check:
+check: test
 	@echo ========================================
 	@echo = Running ELSI Fortran test programs.. =
 	@echo ========================================
@@ -240,7 +240,7 @@ check:
 	@echo = Done. =
 	@echo =========
 
-checkc:
+checkc: testc
 	@echo ==================================
 	@echo = Running ELSI C test programs.. =
 	@echo ==================================
