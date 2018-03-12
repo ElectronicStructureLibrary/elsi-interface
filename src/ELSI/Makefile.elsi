@@ -22,13 +22,17 @@ SOURCES = elsi_c_interface.o \
           elsi_sort.o \
           elsi_timings.o \
           elsi_utils.o \
+          elsi_elpa_api.o \
           elsi_version.o
 
 SOURCES += $(ELSI_ELPA)
 
 all: libelsi.a
 
-elsi_aeo.o: $(ELSI_DIR)/src/elsi_aeo.f90 elsi_constants.o elsi_datatype.o elsi_io.o elsi_malloc.o elsi_mpi.o elsi_mu.o elsi_precision.o elsi_timings.o elsi_utils.o
+elsi_aeo.o: $(ELSI_DIR)/src/elsi_aeo.f90 elsi_elpa_api.o elsi_constants.o elsi_datatype.o elsi_io.o elsi_malloc.o elsi_mpi.o elsi_mu.o elsi_precision.o elsi_timings.o elsi_utils.o
+	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
+
+elsi_elpa_api.o: $(ELSI_DIR)/src/elsi_elpa_api.f90 elsi_constants.o elsi_datatype.o elsi_io.o elsi_malloc.o elsi_mpi.o elsi_mu.o elsi_precision.o elsi_timings.o elsi_utils.o
 	$(MPIFC) $(FFLAGS_I) $(INCS) -c $<
 
 elsi_c_interface.o: $(ELSI_DIR)/c_binding/elsi_c_interface.f90 elsi_interface.o elsi_c2f.o

@@ -20,9 +20,9 @@ module ELSI_ELPA
    use ELSI_TIMINGS,   only: elsi_get_time
    use ELSI_UTILS,     only: elsi_get_local_nnz_real,elsi_get_local_nnz_cmplx,&
                              elsi_trace_mat_mat_real,elsi_trace_mat_mat_cmplx
-   use ELPA,           only: elpa_t,elpa_init,elpa_allocate,elpa_uninit,&
-                             ELPA_SOLVER_1STAGE,ELPA_SOLVER_2STAGE
-   use ELPA1,          only: elpa_get_communicators
+!   use ELPA
+   use ELPA1,             only: elpa_get_communicators
+   use elsi_elpa_api
    implicit none
 
    private
@@ -376,36 +376,22 @@ subroutine elsi_to_standard_evp_real(e_h,ham,ovlp,eval,evec)
    real(kind=r8)      :: t0
    real(kind=r8)      :: t1
    character(len=200) :: info_str
-
-   class(elpa_t), pointer :: elpa_t
-
    character(len=40), parameter :: caller = "elsi_to_standard_evp_real"
-
+   call elsi_get_time(t0)
    if(e_h%n_elsi_calls == 1) then
       if(e_h%check_sing) then
          call elsi_check_singularity_real(e_h,ovlp,eval,evec)
       endif
 
       if(e_h%n_nonsing == e_h%n_basis) then ! Not singular
-         call elsi_set_elpa_new_api(e_h,elpa_t,e_h%n_nonsing,e_h%n_nonsing)
-         call elsi_get_time(t0)
 
          e_h%ovlp_is_sing = .false.
 
          ! S = (U^T)U, U -> S
-         call elpa_t%cholesky(ovlp,ierr)
-
-         if(ierr /= 0) then
-            call elsi_stop(" Cholesky failed.",e_h,caller)
-         endif
-
+         call elpa_cholesky(e_h,ovlp)
+  
          ! U^-1 -> S
-         call elpa_t%invert_triangular(ovlp,ierr)
-         call elpa_t%destroy()
-
-         if(ierr /= 0) then
-            call elsi_stop(" Matrix inversion failed.",e_h,caller)
-         endif
+         call elpa_invert_triangular(e_h,ovlp)
 
          call elsi_get_time(t1)
 
@@ -430,26 +416,14 @@ subroutine elsi_to_standard_evp_real(e_h,ham,ovlp,eval,evec)
               ovlp,1,e_h%n_basis-e_h%n_nonsing+1,e_h%sc_desc,evec,1,1,&
               e_h%sc_desc,0.0_r8,ham,1,1,e_h%sc_desc)
    else ! Use Cholesky
-      call elsi_set_elpa_new_api(e_h,elpa_t,e_h%n_basis,e_h%n_basis)
-      call elpa_t%hermitian_multiply('U','L',e_h%n_basis,ovlp,ham,e_h%n_lrow,&
-              e_h%n_lcol,evec,e_h%n_lrow,e_h%n_lcol,ierr)
-
-      if(ierr /= 0) then
-         call elsi_stop(" Matrix multiplication failed.",e_h,caller)
-      endif
+      call elpa_hermitian_multiply(e_h,'U','L',ovlp,ham,evec)
 
       call pdtran(e_h%n_basis,e_h%n_basis,1.0_r8,evec,1,1,e_h%sc_desc,0.0_r8,&
               ham,1,1,e_h%sc_desc)
 
       evec = ham
 
-      call elpa_t%hermitian_multiply('U','U',e_h%n_basis,ovlp,evec,e_h%n_lrow,&
-              e_h%n_lcol,ham,e_h%n_lrow,e_h%n_lcol,ierr)
-      call elpa_t%destroy()
-
-      if(ierr /= 0) then
-         call elsi_stop(" Matrix multiplication failed.",e_h,caller)
-      endif
+      call elpa_hermitian_multiply(e_h,'U','U',ovlp,evec,ham)
 
       call pdtran(e_h%n_basis,e_h%n_basis,1.0_r8,ham,1,1,e_h%sc_desc,0.0_r8,&
               evec,1,1,e_h%sc_desc)
@@ -498,8 +472,6 @@ subroutine elsi_check_singularity_real(e_h,ovlp,eval,evec)
    real(kind=r8)      :: t1
    character(len=200) :: info_str
 
-   real(kind=r8), allocatable :: copy_real(:,:)
-   class(elpa_t), pointer     :: elpa_t
 
    character(len=40), parameter :: caller = "elsi_check_singularity_real"
 
@@ -507,17 +479,10 @@ subroutine elsi_check_singularity_real(e_h,ovlp,eval,evec)
 
    ! TODO: ill-conditioning tolerance should be set here
 
-   call elsi_allocate(e_h,copy_real,e_h%n_lrow,e_h%n_lcol,"copy_real",caller)
-
-   ! Use copy_real to store overlap matrix, otherwise it will be destroyed by
-   ! eigenvalue calculation
-   copy_real = ovlp
-
-   call elsi_set_elpa_new_api(e_h,elpa_t,e_h%n_basis,e_h%n_basis,2)
-   call elpa_t%eigenvectors(copy_real,eval,evec,ierr)
-   call elpa_t%destroy()
-
-   do i = 1,e_h%n_basis
+   ! Use ELPA to check overlap singularity
+   call elpa_eigenvectors(e_h,ovlp,eval,evec,2)
+ 
+  do i = 1,e_h%n_basis
       if(eval(i) < e_h%sing_tol) then
          e_h%n_nonsing = e_h%n_nonsing-1
       endif
@@ -527,7 +492,6 @@ subroutine elsi_check_singularity_real(e_h,ovlp,eval,evec)
       call elsi_stop(" Singularity check failed.",e_h,caller)
    endif
 
-   call elsi_deallocate(e_h,copy_real,"copy_real")
 
    e_h%n_states_solve = min(e_h%n_nonsing,e_h%n_states)
 
@@ -578,7 +542,6 @@ subroutine elsi_check_singularity_real(e_h,ovlp,eval,evec)
    call elsi_say(e_h,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
    call elsi_say(e_h,info_str)
-
 end subroutine
 
 !>
@@ -600,8 +563,6 @@ subroutine elsi_to_original_ev_real(e_h,ham,ovlp,evec)
    integer(kind=i4)   :: ierr
    character(len=200) :: info_str
 
-   class(elpa_t), pointer :: elpa_t
-
    real(kind=r8), allocatable :: tmp_real(:,:)
 
    character(len=40), parameter :: caller = "elsi_to_original_ev_real"
@@ -618,15 +579,8 @@ subroutine elsi_to_original_ev_real(e_h,ham,ovlp,evec)
    else ! Nonsingular, use Cholesky
       call pdtran(e_h%n_basis,e_h%n_basis,1.0_r8,ovlp,1,1,e_h%sc_desc,0.0_r8,&
               ham,1,1,e_h%sc_desc)
+      call elpa_hermitian_multiply(e_h,'L','N',ham,tmp_real,evec)
 
-      call elsi_set_elpa_new_api(e_h,elpa_t,e_h%n_basis,e_h%n_basis)
-      call elpa_t%hermitian_multiply('L','N',e_h%n_states,ham,tmp_real,&
-              e_h%n_lrow,e_h%n_lcol,evec,e_h%n_lrow,e_h%n_lcol,ierr)
-      call elpa_t%destroy()
-
-      if(ierr /= 0) then
-         call elsi_stop(" Matrix multiplication failed.",e_h,caller)
-      endif
    endif
 
    call elsi_deallocate(e_h,tmp_real,"tmp_real")
@@ -659,11 +613,6 @@ subroutine elsi_solve_evp_elpa_real(e_h,ham,ovlp,eval,evec)
    logical            :: success
    character(len=200) :: info_str
 
-   class(elpa_t), pointer :: elpa_t
-
-   real(kind=r4), allocatable :: eval_single(:)
-   real(kind=r4), allocatable :: ham_real_single(:,:)
-   real(kind=r4), allocatable :: evec_real_single(:,:)
 
    character(len=40), parameter :: caller = "elsi_solve_evp_elpa_real"
 
@@ -689,42 +638,17 @@ subroutine elsi_solve_evp_elpa_real(e_h,ham,ovlp,eval,evec)
    if(e_h%n_elsi_calls <= e_h%elpa_n_single) then
       call elsi_say(e_h,"  Starting ELPA eigensolver (single precision)")
 
-      ! Convert to single precision
-      call elsi_allocate(e_h,eval_single,e_h%n_basis,"eval_single",caller)
-      call elsi_allocate(e_h,ham_real_single,e_h%n_lrow,e_h%n_lcol,&
-              "ham_real_single",caller)
-      call elsi_allocate(e_h,evec_real_single,e_h%n_lrow,e_h%n_lcol,&
-              "evec_real_single",caller)
-
-      ham_real_single = real(ham,kind=r4)
 
       ! Solve with single precision
-      call elsi_set_elpa_new_api(e_h,elpa_t,e_h%n_nonsing,e_h%n_states_solve,&
-              e_h%elpa_solver)
-      call elpa_t%print_times()
-      call elpa_t%eigenvectors(ham_real_single,eval_single,evec_real_single,&
-              ierr) !DSB check NOT YET IMPLEMENTED
-      call elpa_t%destroy()
+      call elpa_eigenvectors(e_h,real(ham,kind=r4),eval,evec)
 
-      ! Convert back to double precision
-      eval = real(eval_single,kind=r8)
-      evec = real(evec_real_single,kind=r8)
-
-      call elsi_deallocate(e_h,eval_single,"eval_single")
-      call elsi_deallocate(e_h,ham_real_single,"ham_real_single")
-      call elsi_deallocate(e_h,evec_real_single,"evec_real_single")
    else ! No single precision
       call elsi_say(e_h,"  Starting ELPA eigensolver")
 
-      call elsi_set_elpa_new_api(e_h,elpa_t,e_h%n_nonsing,e_h%n_states_solve,&
-              e_h%elpa_solver)
-      call elpa_t%print_times()
-      call elpa_t%eigenvectors(ham,eval,evec,ierr) !DSB tenho q voltar a colocar
-      call elpa_t%destroy()
-   endif
+      ! Use copy_cmplx to store overlap matrix, otherwise it will
+      ! be destroyed by eigenvalue calculation     
+      call elpa_eigenvectors(e_h,ham,eval,evec)
 
-   if(ierr /= 0) then
-      call elsi_stop(" ELPA solver failed.",e_h,caller)
    endif
 
    ! Dummy eigenvalues for correct chemical potential, no physical meaning!
@@ -1003,9 +927,10 @@ subroutine elsi_to_standard_evp_cmplx(e_h,ham,ovlp,eval,evec)
    real(kind=r8)      :: t0
    real(kind=r8)      :: t1
    character(len=200) :: info_str
-   class(elpa_t), pointer     :: elpa_t
 
    character(len=40), parameter :: caller = "elsi_to_standard_evp_cmplx"
+
+   call elsi_get_time(t0)
 
    if(e_h%n_elsi_calls == 1) then
       if(e_h%check_sing) then
@@ -1013,25 +938,13 @@ subroutine elsi_to_standard_evp_cmplx(e_h,ham,ovlp,eval,evec)
       endif
 
       if(e_h%n_nonsing == e_h%n_basis) then ! Not singular
-         call elsi_get_time(t0)
-         call elsi_set_elpa_new_api(e_h,elpa_t,e_h%n_nonsing,e_h%n_nonsing)
-
          e_h%ovlp_is_sing = .false.
 
          ! S = (U^T)U, U -> S
-         call elpa_t%cholesky(ovlp,ierr)
-
-         if(ierr /= 0) then
-            call elsi_stop(" Cholesky failed.",e_h,caller)
-         endif
+         call elpa_cholesky(e_h,ovlp)
 
          ! U^-1 -> S
-         call elpa_t%invert_triangular(ovlp,ierr)
-         call elpa_t%destroy()
-
-         if(ierr /=0) then
-            call elsi_stop(" Matrix inversion failed.",e_h,caller)
-         endif
+         call elpa_invert_triangular(e_h,ovlp)
 
          call elsi_get_time(t1)
 
@@ -1057,26 +970,13 @@ subroutine elsi_to_standard_evp_cmplx(e_h,ham,ovlp,eval,evec)
               (1.0_r8,0.0_r8),ovlp,1,e_h%n_basis-e_h%n_nonsing+1,e_h%sc_desc,&
               evec,1,1,e_h%sc_desc,(0.0_r8,0.0_r8),ham,1,1,e_h%sc_desc)
    else ! Use cholesky
-      call elsi_set_elpa_new_api(e_h,elpa_t,e_h%n_basis,e_h%n_basis)
-      call elpa_t%hermitian_multiply('U','L',e_h%n_basis,ovlp,ham,e_h%n_lrow,&
-              e_h%n_lcol,evec, e_h%n_lrow,e_h%n_lcol,ierr)
-
-      if(ierr /= 0) then
-         call elsi_stop(" Matrix multiplication failed.",e_h,caller)
-      endif
+      call elpa_hermitian_multiply(e_h,'U','L',ovlp,ham,evec)
 
       call pztranc(e_h%n_basis,e_h%n_basis,(1.0_r8,0.0_r8),evec,1,1,&
               e_h%sc_desc,(0.0_r8,0.0_r8),ham,1,1,e_h%sc_desc)
-
       evec = ham
 
-      call elpa_t%hermitian_multiply('U','U',e_h%n_basis,ovlp,evec,e_h%n_lrow,&
-              e_h%n_lcol,ham, e_h%n_lrow,e_h%n_lcol,ierr)
-      call elpa_t%destroy()
-
-      if(ierr /= 0) then
-         call elsi_stop(" Matrix multiplication failed.",e_h,caller)
-      endif
+      call elpa_hermitian_multiply(e_h,'U','U',ovlp,evec,ham)
 
       call pztranc(e_h%n_basis,e_h%n_basis,(1.0_r8,0.0_r8),ham,1,1,e_h%sc_desc,&
               (0.0_r8,0.0_r8),evec,1,1,e_h%sc_desc)
@@ -1142,17 +1042,9 @@ subroutine elsi_check_singularity_cmplx(e_h,ovlp,eval,evec)
 
    ! TODO: ill-conditioning tolerance should be set here
 
-   call elsi_allocate(e_h,copy_cmplx,e_h%n_lrow,e_h%n_lcol,"copy_cmplx",caller)
-
-   ! Use copy_cmplx to store overlap matrix, otherwise it will be destroyed by
-   ! eigenvalue calculation
-   copy_cmplx = ovlp
 
    ! Use ELPA to check overlap singularity
-   call elsi_set_elpa_new_api(e_h,elpa_t,e_h%n_basis,e_h%n_basis,e_h%solver)
-   call elpa_t%eigenvectors(copy_cmplx,eval,evec,ierr)
-   call elpa_t%destroy()
-
+   call elpa_eigenvectors(e_h,ovlp,eval,evec)
    do i = 1,e_h%n_basis
       if(eval(i) < e_h%sing_tol) then
          e_h%n_nonsing = e_h%n_nonsing-1
@@ -1163,7 +1055,6 @@ subroutine elsi_check_singularity_cmplx(e_h,ovlp,eval,evec)
       call elsi_stop(" Singularity check failed.",e_h,caller)
    endif
 
-   call elsi_deallocate(e_h,copy_cmplx,"copy_cmplx")
 
    e_h%n_states_solve = min(e_h%n_nonsing,e_h%n_states)
 
@@ -1214,7 +1105,6 @@ subroutine elsi_check_singularity_cmplx(e_h,ovlp,eval,evec)
    call elsi_say(e_h,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
    call elsi_say(e_h,info_str)
-
 end subroutine
 
 !>
@@ -1255,10 +1145,7 @@ subroutine elsi_to_original_ev_cmplx(e_h,ham,ovlp,evec)
       call pztranc(e_h%n_basis,e_h%n_basis,(1.0_r8,0.0_r8),ovlp,1,1,&
               e_h%sc_desc,(0.0_r8,0.0_r8),ham,1,1,e_h%sc_desc)
 
-      call elsi_set_elpa_new_api(e_h,elpa_t,e_h%n_basis,e_h%n_basis)
-      call elpa_t%hermitian_multiply('L','N',e_h%n_states,ham,tmp_cmplx,&
-              e_h%n_lrow,e_h%n_lcol,evec,e_h%n_lrow,e_h%n_lcol,ierr)
-      call elpa_t%destroy()
+      call elpa_hermitian_multiply(e_h,'L','N',ham,tmp_cmplx,evec)
 
       if(ierr /= 0) then
          call elsi_stop(" Matrix multiplication failed.",e_h,caller)
@@ -1295,12 +1182,6 @@ subroutine elsi_solve_evp_elpa_cmplx(e_h,ham,ovlp,eval,evec)
    logical            :: success
    character(len=200) :: info_str
 
-   class(elpa_t), pointer :: elpa_t
-
-   real(kind=r4),    allocatable :: eval_single(:)
-   complex(kind=r4), allocatable :: ham_cmplx_single(:,:)
-   complex(kind=r4), allocatable :: evec_cmplx_single(:,:)
-
    character(len=40), parameter :: caller = "elsi_solve_evp_elpa_cmplx"
 
 
@@ -1325,43 +1206,19 @@ subroutine elsi_solve_evp_elpa_cmplx(e_h,ham,ovlp,eval,evec)
    if(e_h%n_elsi_calls <= e_h%elpa_n_single) then
       call elsi_say(e_h,"  Starting ELPA eigensolver (single precision)")
 
-      ! Convert to single precision
-      call elsi_allocate(e_h,eval_single,e_h%n_basis,"eval_single",caller)
-      call elsi_allocate(e_h,ham_cmplx_single,e_h%n_lrow,e_h%n_lcol,&
-              "ham_cmplx_single",caller)
-      call elsi_allocate(e_h,evec_cmplx_single,e_h%n_lrow,e_h%n_lcol,&
-              "evec_cmplx_single",caller)
-
-      ham_cmplx_single = cmplx(ham,kind=r4)
-
       ! Solve with single precision
-      call elsi_set_elpa_new_api(e_h,elpa_t,e_h%n_nonsing,e_h%n_states_solve,&
-              e_h%elpa_solver)
-      call elpa_t%print_times()
-      call elpa_t%eigenvectors(ham_cmplx_single,eval_single,evec_cmplx_single,&
-              ierr)
-      call elpa_t%destroy()
+      call elpa_eigenvectors(e_h,cmplx(ham,kind=r4),eval,evec)
 
-      ! Convert back to double precision
-      eval = real(eval_single,kind=r8)
-      evec = cmplx(evec_cmplx_single,kind=r8)
-
-      call elsi_deallocate(e_h,eval_single,"eval_single")
-      call elsi_deallocate(e_h,ham_cmplx_single,"ham_cmplx_single")
-      call elsi_deallocate(e_h,evec_cmplx_single,"evec_cmplx_single")
    else ! No single precision
       call elsi_say(e_h,"  Starting ELPA eigensolver")
 
-      call elsi_set_elpa_new_api(e_h,elpa_t,e_h%n_nonsing,e_h%n_states_solve,&
-              e_h%elpa_solver)
-      call elpa_t%print_times()
-      call elpa_t%eigenvectors(ham,eval,evec,ierr)
-      call elpa_t%destroy()
+      call elpa_eigenvectors(e_h,ham,eval,evec)
+
    endif
 
-   if(ierr /= 0) then
-      call elsi_stop(" ELPA solver failed.",e_h,caller)
-   endif
+!   if(ierr /= 0) then
+!      call elsi_stop(" ELPA solver failed.",e_h,caller)
+!   endif
 
    ! Dummy eigenvalues for correct chemical potential, no physical meaning!
    if(e_h%n_nonsing < e_h%n_basis) then
@@ -1408,90 +1265,4 @@ subroutine elsi_set_elpa_default(e_h)
    e_h%elpa_n_single = 0
 
 end subroutine
-
-!>
-!! This routine sets the  ELPA API parameters.
-!!
-
-subroutine elsi_set_elpa_new_api(e_h,elpa_i,na,nev,solver)
-
-   implicit none
-
-   type(elsi_handle), intent(in)              :: e_h
-   class(elpa_t),     intent(inout), pointer  :: elpa_i
-   integer(kind=i4),  intent(in)              :: na
-   integer(kind=i4),  intent(in)              :: nev
-   integer(kind=i4),  intent(in),    optional :: solver
-
-   integer(kind=i4)   :: ierr
-   character(len=200) :: info_str
-
-   character(len=40), parameter :: caller = "elsi_set_elpa_new_api"
-
-   ierr = elpa_init(20170403)
-
-   elpa_i => elpa_allocate()
-
-   call elpa_i%set("na",na,ierr)
-   if(ierr /= 0) then
-      call elsi_stop(" ELPA setup of 'na' (dim of matrix) failed.",e_h,caller)
-   endif
-
-   call elpa_i%set("nev",nev,ierr)
-   if(ierr /= 0) then
-      call elsi_stop(" ELPA setup of 'nev' (number of eigenvalues) failed.",&
-              e_h,caller)
-   endif
-
-   call elpa_i%set("local_nrows",e_h%n_lrow,ierr)
-   if(ierr /= 0) then
-      call elsi_stop(" ELPA setup of 'local_nrows' failed.",e_h,caller)
-   endif
-
-   call elpa_i%set("local_ncols",e_h%n_lcol,ierr)
-   if(ierr /= 0) then
-      call elsi_stop(" ELPA setup of 'local_ncols' failed.",e_h,caller)
-   endif
-
-   call elpa_i%set("nblk",e_h%blk_row,ierr)
-   if(ierr /= 0) then
-      call elsi_stop(" ELPA setup of 'nblk' failed.",e_h,caller)
-   endif
-
-   call elpa_i%set("mpi_comm_parent",e_h%mpi_comm,ierr)
-   if(ierr /= 0) then
-      call elsi_stop(" ELPA setup of 'mpi_comm_parent' failed.",e_h,caller)
-   endif
-
-   call elpa_i%set("process_row",e_h%my_prow,ierr)
-   if(ierr /= 0) then
-      call elsi_stop(" ELPA setup of 'process_row' failed.",e_h,caller)
-   endif
-
-   call elpa_i%set("process_col",e_h%my_pcol,ierr)
-   if(ierr /= 0) then
-      call elsi_stop(" ELPA setup of 'process col' failed.",e_h,caller)
-   endif
-
-   ierr = elpa_i%setup()
-   if(ierr /= 0) then
-      call elsi_stop(" ELPA setup failed.",e_h,caller)
-   endif
-
-   if(present(solver)) then
-      if(solver == 1) then
-         call elpa_i%set("solver",ELPA_SOLVER_1STAGE,ierr)
-      else
-         call elpa_i%set("solver",ELPA_SOLVER_2STAGE,ierr)
-      endif
-
-      if(ierr /= 0) then
-         call elsi_stop(" ELPA setup of 'solver' failed.",e_h,caller)
-      endif
-
-      call elpa_i%set("check_pd",1,ierr)
-   endif
-
-end subroutine
-
 end module ELSI_ELPA
