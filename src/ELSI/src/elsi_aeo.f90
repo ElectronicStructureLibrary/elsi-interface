@@ -1032,7 +1032,6 @@ subroutine elsi_check_singularity_cmplx(e_h,ovlp,eval,evec)
    real(kind=r8)      :: t1
    character(len=200) :: info_str
 
-   class(elpa_t), pointer :: elpa_t
 
    complex(kind=r8), allocatable :: copy_cmplx(:,:)
 
@@ -1126,7 +1125,6 @@ subroutine elsi_to_original_ev_cmplx(e_h,ham,ovlp,evec)
    character(len=200) :: info_str
    integer(kind=i4)   :: ierr
 
-   class(elpa_t), pointer :: elpa_t
 
    complex(kind=r8), allocatable :: tmp_cmplx(:,:)
 

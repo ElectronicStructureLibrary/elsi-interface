@@ -15,6 +15,7 @@ ifneq ($(strip $(EXTERNAL_ELPA)),yes)
   ELSI_ELPA = elsi_elpa.o
 else
   ELSI_ELPA = elsi_aeo.o
+  ELSI_ELPA_API = elsi_elpa_api.o
 endif
 
 ifneq ($(strip $(EXTERNAL_OMM)),yes)
