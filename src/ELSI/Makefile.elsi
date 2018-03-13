@@ -26,6 +26,7 @@ SOURCES = elsi_c_interface.o \
           elsi_version.o
 
 SOURCES += $(ELSI_ELPA)
+SOURCES += $(ELSI_ELPA_API)
 
 all: libelsi.a
 
