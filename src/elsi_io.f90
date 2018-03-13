@@ -1069,8 +1069,10 @@ subroutine elsi_print_csc_settings(e_h,io_h_in)
    call append_string(io_h%prefix,"  ")
    call elsi_say_setting(e_h,"nnz_g",e_h%nnz_g,io_h)
    call elsi_say_setting(e_h,"zero_def",e_h%zero_def,io_h)
+   call elsi_say_setting(e_h,"blk_sp2",e_h%blk_sp2,io_h)
+   call elsi_say_setting(e_h,"pexsi_csc_ready",e_h%pexsi_csc_ready,io_h)
    io_h%comma_json = NO_COMMA ! Final record in this scope
-   call elsi_say_setting(e_h,"sparsity_ready",e_h%sparsity_ready,io_h)
+   call elsi_say_setting(e_h,"siesta_csc_ready",e_h%siesta_csc_ready,io_h)
    call truncate_string(io_h%prefix,2)
 
    ! Footer (only for JSON)

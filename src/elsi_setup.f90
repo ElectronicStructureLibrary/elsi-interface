@@ -374,6 +374,8 @@ subroutine elsi_set_csc(e_h,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)
          e_h%row_ind_sips = row_ind
          e_h%col_ptr_sips = col_ptr
       endif
+
+      e_h%pexsi_csc_ready = .true.
    case(SIESTA_CSC)
       e_h%nnz_g      = nnz_g
       e_h%nnz_l_sp2  = nnz_l
@@ -391,9 +393,9 @@ subroutine elsi_set_csc(e_h,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)
 
       e_h%row_ind_sp2 = row_ind
       e_h%col_ptr_sp2 = col_ptr
-   end select
 
-   e_h%sparsity_ready = .true.
+      e_h%siesta_csc_ready = .true.
+   end select
 
 end subroutine
 

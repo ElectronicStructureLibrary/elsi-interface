@@ -119,7 +119,7 @@ subroutine elsi_init_pexsi(e_h)
 
       call elsi_check_mpi(e_h,"MPI_Comm_split",ierr,caller)
 
-      if(.not. e_h%sparsity_ready) then
+      if(.not. e_h%pexsi_csc_ready) then
          ! Set up 1D block distribution
          e_h%n_lcol_sp = e_h%n_basis/e_h%pexsi_np_per_pole
 

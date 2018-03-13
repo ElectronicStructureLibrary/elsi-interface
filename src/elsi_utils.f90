@@ -92,10 +92,11 @@ subroutine elsi_reset_handle(e_h)
    e_h%nnz_l_sp               = UNSET
    e_h%n_lcol_sp              = UNSET
    e_h%zero_def               = 1.0e-15_r8
-   e_h%sparsity_ready         = .false.
+   e_h%pexsi_csc_ready        = .false.
    e_h%nnz_l_sp2              = UNSET
    e_h%n_lcol_sp2             = UNSET
    e_h%blk_sp2                = UNSET
+   e_h%siesta_csc_ready       = .false.
    e_h%ovlp_is_unit           = .false.
    e_h%ovlp_is_sing           = .false.
    e_h%check_sing             = .true.
@@ -248,11 +249,11 @@ subroutine elsi_check(e_h,caller)
          call elsi_stop(" BLACS not properly set up.",e_h,caller)
       endif
    elseif(e_h%matrix_format == SIESTA_CSC) then
-      if(e_h%blk_sp2 == UNSET .or. .not. e_h%sparsity_ready) then
+      if(e_h%blk_sp2 == UNSET .or. .not. e_h%siesta_csc_ready) then
          call elsi_stop(" SIESTA_CSC format not properly set up.",e_h,caller)
       endif
    elseif(e_h%matrix_format == PEXSI_CSC) then
-      if(.not. e_h%sparsity_ready) then
+      if(.not. e_h%pexsi_csc_ready) then
          call elsi_stop(" PEXSI_CSC format not properly set up.",e_h,caller)
       endif
    endif

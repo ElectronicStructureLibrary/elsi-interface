@@ -183,12 +183,13 @@ module ELSI_DATATYPE
       integer(kind=i4) :: nnz_l_sp  ! Local number of nonzeros
       integer(kind=i4) :: n_lcol_sp ! Local number of columns
       real(kind=r8)    :: zero_def
-      logical          :: sparsity_ready
+      logical          :: pexsi_csc_ready
 
       ! Sparse matrix information (1D block-cyclic)
       integer(kind=i4) :: nnz_l_sp2  ! Local number of nonzeros
       integer(kind=i4) :: n_lcol_sp2 ! Local number of columns
       integer(kind=i4) :: blk_sp2
+      logical          :: siesta_csc_ready
 
       ! Overlap
       logical          :: ovlp_is_unit
@@ -356,7 +357,6 @@ module ELSI_DATATYPE
       integer(kind=i4) :: nnz_l_sp  ! Local number of nonzeros
       integer(kind=i4) :: n_lcol_sp ! Local number of columns
       real(kind=r8)    :: zero_def
-      logical          :: sparsity_ready
 
       ! Physics
       real(kind=r8)    :: n_electrons

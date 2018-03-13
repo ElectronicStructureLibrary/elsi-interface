@@ -193,8 +193,6 @@ subroutine elsi_set_rw_csc(rw_h,nnz_g,nnz_l_sp,n_lcol_sp)
    rw_h%nnz_l_sp  = nnz_l_sp
    rw_h%n_lcol_sp = n_lcol_sp
 
-   rw_h%sparsity_ready = .true.
-
 end subroutine
 
 !>
@@ -348,7 +346,6 @@ subroutine elsi_reset_rw_handle(rw_h)
    rw_h%nnz_l_sp       = UNSET
    rw_h%n_lcol_sp      = UNSET
    rw_h%zero_def       = 1.0e-15_r8
-   rw_h%sparsity_ready = .false.
    rw_h%n_electrons    = 0.0_r8
    rw_h%n_basis        = UNSET
    rw_h%header_user    = UNSET
