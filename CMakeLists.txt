@@ -15,7 +15,7 @@ SET(elsi_LICENSE "BSD 3")
 SET(elsi_DESCRIPTION "Electronic Structure Infrastructure")
 
 ### Installation paths ###
-IF(CMAKE_BINARY_DIR STREQUAL CMAKE_SOURCE_DIR)
+IF(PROJECT_BINARY_DIR STREQUAL PROJECT_SOURCE_DIR)
   MESSAGE(FATAL_ERROR "${MAGENTA}Build in the source directory is not allowed${COLORRESET}")
 ENDIF()
 SET(CMAKE_Fortran_MODULE_DIRECTORY "${CMAKE_BINARY_DIR}/elsi_build/include")
