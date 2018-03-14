@@ -56,15 +56,19 @@ subroutine elsi_init_sips(e_h)
       endif
 
       ! 1D block distribution
-      e_h%n_lcol_sp = e_h%n_basis/e_h%n_procs
+      e_h%n_lcol_sp1 = e_h%n_basis/e_h%n_procs
 
       ! The last process holds all remaining columns
       if(e_h%myid == e_h%n_procs-1) then
-         e_h%n_lcol_sp = e_h%n_basis-(e_h%n_procs-1)*e_h%n_lcol_sp
+         e_h%n_lcol_sp1 = e_h%n_basis-(e_h%n_procs-1)*e_h%n_lcol_sp1
       endif
 
-      call elsi_allocate(e_h,e_h%evec_real_sips,e_h%n_lcol_sp,e_h%n_states,&
+      call elsi_allocate(e_h,e_h%evec_real_sips,e_h%n_lcol_sp1,e_h%n_states,&
               "evec_real_sips",caller)
+
+      if(e_h%n_lcol_sp == UNSET) then
+         e_h%n_lcol_sp = e_h%n_lcol_sp1
+      endif
 
       e_h%sips_started = .true.
    endif
@@ -82,8 +86,8 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
    implicit none
 
    type(elsi_handle), intent(inout) :: e_h
-   real(kind=r8),     intent(inout) :: ham(e_h%nnz_l_sp)
-   real(kind=r8),     intent(inout) :: ovlp(e_h%nnz_l_sp)
+   real(kind=r8),     intent(inout) :: ham(e_h%nnz_l_sp1)
+   real(kind=r8),     intent(inout) :: ovlp(e_h%nnz_l_sp1)
    real(kind=r8),     intent(inout) :: eval(e_h%n_states)
 
    real(kind=r8)      :: t0
@@ -109,20 +113,20 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
    if(e_h%n_elsi_calls == e_h%sips_n_elpa+1) then
       if(.not. e_h%ovlp_is_unit) then
          ! Load H and S
-         call sips_load_ham_ovlp(e_h%n_basis,e_h%n_lcol_sp,e_h%nnz_l_sp,&
+         call sips_load_ham_ovlp(e_h%n_basis,e_h%n_lcol_sp1,e_h%nnz_l_sp1,&
                  e_h%row_ind_sips,e_h%col_ptr_sips,ham,ovlp)
 
          call sips_set_eps(0)
       else
          ! Load H
-         call sips_load_ham(e_h%n_basis,e_h%n_lcol_sp,e_h%nnz_l_sp,&
+         call sips_load_ham(e_h%n_basis,e_h%n_lcol_sp1,e_h%nnz_l_sp1,&
                  e_h%row_ind_sips,e_h%col_ptr_sips,ham)
 
          call sips_set_eps(1)
       endif
    else ! n_elsi_calls > sips_n_elpa+1
       ! Update H matrix
-      call sips_update_ham(e_h%n_basis,e_h%n_lcol_sp,e_h%nnz_l_sp,&
+      call sips_update_ham(e_h%n_basis,e_h%n_lcol_sp1,e_h%nnz_l_sp1,&
               e_h%row_ind_sips,e_h%col_ptr_sips,ham)
 
       call sips_update_eps(e_h%sips_n_slices)
@@ -247,7 +251,7 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
    eval_save = eval
 
    call sips_get_eigenvalues(e_h%n_states,eval(1:e_h%n_states))
-   call sips_get_eigenvectors(e_h%n_states,e_h%n_lcol_sp,e_h%evec_real_sips)
+   call sips_get_eigenvectors(e_h%n_states,e_h%n_lcol_sp1,e_h%evec_real_sips)
 
    max_diff = maxval(abs(eval_save-eval))
 

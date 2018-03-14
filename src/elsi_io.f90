@@ -11,8 +11,8 @@ module ELSI_IO
 
    use ELSI_CONSTANTS, only: UNSET,UNSET_STRING,HUMAN_READ,JSON,MULTI_PROC,&
                              SINGLE_PROC,ELPA_SOLVER,SIPS_SOLVER,OMM_SOLVER,&
-                             PEXSI_SOLVER,CHESS_SOLVER,DMP_SOLVER,BLACS_DENSE,&
-                             PEXSI_CSC,SIESTA_CSC,COMMA_AFTER,NO_COMMA
+                             PEXSI_SOLVER,DMP_SOLVER,BLACS_DENSE,PEXSI_CSC,&
+                             SIESTA_CSC,COMMA_AFTER,NO_COMMA
    use ELSI_DATATYPE,  only: elsi_handle,elsi_file_io_handle
    use ELSI_MPI,       only: elsi_stop
    use ELSI_PRECISION, only: r8,i4
@@ -30,7 +30,6 @@ module ELSI_IO
    public :: elsi_print_versioning
    public :: elsi_print_settings
    public :: elsi_print_solver_settings
-   public :: elsi_print_chess_settings
    public :: elsi_print_dmp_settings
    public :: elsi_print_elpa_settings
    public :: elsi_print_omm_settings
@@ -280,8 +279,6 @@ subroutine elsi_print_handle_summary(e_h,io_h_in)
          call elsi_say_setting(e_h,"Solver requested","libOMM",io_h)
       elseif(e_h%solver == PEXSI_SOLVER) then
          call elsi_say_setting(e_h,"Solver requested","PEXSI",io_h)
-      elseif(e_h%solver == CHESS_SOLVER) then
-         call elsi_say_setting(e_h,"Solver requested","CheSS",io_h)
       elseif(e_h%solver == SIPS_SOLVER) then
          call elsi_say_setting(e_h,"Solver requested","SIPs",io_h)
       elseif(e_h%solver == DMP_SOLVER) then
@@ -329,8 +326,6 @@ subroutine elsi_print_handle_summary(e_h,io_h_in)
          call elsi_say_setting(e_h,"solver","libOMM",io_h)
       elseif(e_h%solver == PEXSI_SOLVER) then
          call elsi_say_setting(e_h,"solver","PEXSI",io_h)
-      elseif(e_h%solver == CHESS_SOLVER) then
-         call elsi_say_setting(e_h,"solver","CheSS",io_h)
       elseif(e_h%solver == SIPS_SOLVER) then
          call elsi_say_setting(e_h,"solver","SIPs",io_h)
       elseif(e_h%solver == DMP_SOLVER) then
@@ -426,36 +421,6 @@ subroutine elsi_print_settings(e_h)
    character(len=40), parameter :: caller = "elsi_print_settings"
 
    select case(e_h%solver)
-   case(CHESS_SOLVER)
-      call elsi_say(e_h,"  CheSS settings:")
-
-      write(info_str,"('  | Error function decay length ',E10.2)")&
-         e_h%chess_erf_decay
-      call elsi_say(e_h,info_str)
-
-      write(info_str,"('  | Lower bound of decay length ',E10.2)")&
-         e_h%chess_erf_min
-      call elsi_say(e_h,info_str)
-
-      write(info_str,"('  | Upper bound of decay length ',E10.2)")&
-         e_h%chess_erf_max
-      call elsi_say(e_h,info_str)
-
-      write(info_str,"('  | Lower bound of H eigenvalue ',E10.2)")&
-         e_h%chess_ev_ham_min
-      call elsi_say(e_h,info_str)
-
-      write(info_str,"('  | Upper bound of H eigenvalue ',E10.2)")&
-         e_h%chess_ev_ham_max
-      call elsi_say(e_h,info_str)
-
-      write(info_str,"('  | Lower bound of S eigenvalue ',E10.2)")&
-         e_h%chess_ev_ovlp_min
-      call elsi_say(e_h,info_str)
-
-      write(info_str,"('  | Upper bound of S eigenvalue ',E10.2)") &
-         e_h%chess_ev_ovlp_max
-      call elsi_say(e_h,info_str)
    case(ELPA_SOLVER)
       if(e_h%parallel_mode == MULTI_PROC) then
          call elsi_say(e_h,"  ELPA settings:")
@@ -565,8 +530,6 @@ subroutine elsi_print_solver_settings(e_h,io_h_in)
    endif
 
    select case(e_h%solver)
-   case(CHESS_SOLVER)
-      call elsi_print_chess_settings(e_h,io_h)
    case(DMP_SOLVER)
       call elsi_print_dmp_settings(e_h,io_h)
    case(ELPA_SOLVER)
@@ -580,68 +543,6 @@ subroutine elsi_print_solver_settings(e_h,io_h_in)
    case default
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
-
-end subroutine
-
-!>
-!! This routine prints out settings for CheSS.
-!!
-subroutine elsi_print_chess_settings(e_h,io_h_in)
-
-   implicit none
-
-   type(elsi_handle),         intent(in)           :: e_h
-   type(elsi_file_io_handle), intent(in), optional :: io_h_in
-
-   integer(kind=i4)          :: comma_json_save
-   type(elsi_file_io_handle) :: io_h
-   character(len=200)        :: info_str
-
-   character(len=40), parameter :: caller = "elsi_print_chess_settings"
-
-   if(present(io_h_in)) then
-      io_h = io_h_in
-   else
-      io_h = e_h%stdio
-   endif
-
-   comma_json_save = io_h%comma_json
-   io_h%comma_json = COMMA_AFTER ! Add commas behind all records before final
-
-   ! Header
-   if(io_h%file_format == HUMAN_READ) then
-      write(info_str,"(A)") "Solver Settings (CheSS)"
-   else
-      write(info_str,"(A)") '"solver_settings": {'
-   endif
-
-   call elsi_say(e_h,info_str,io_h)
-
-   ! Settings
-   call append_string(io_h%prefix,"  ")
-   call elsi_say_setting(e_h,"chess_erf_decay",e_h%chess_erf_decay,io_h)
-   call elsi_say_setting(e_h,"chess_erf_min",e_h%chess_erf_min,io_h)
-   call elsi_say_setting(e_h,"chess_erf_max",e_h%chess_erf_max,io_h)
-   call elsi_say_setting(e_h,"chess_ev_ham_min",e_h%chess_ev_ham_min,io_h)
-   call elsi_say_setting(e_h,"chess_ev_ham_max",e_h%chess_ev_ham_max,io_h)
-   call elsi_say_setting(e_h,"chess_ev_ovlp_min",e_h%chess_ev_ovlp_min,io_h)
-   call elsi_say_setting(e_h,"chess_ev_ovlp_max",e_h%chess_ev_ovlp_max,io_h)
-   io_h%comma_json = NO_COMMA ! Final record in this scope
-   call elsi_say_setting(e_h,"chess_beta",e_h%chess_beta,io_h)
-   call truncate_string(io_h%prefix,2)
-
-   ! Footer (only for JSON)
-   io_h%comma_json = comma_json_save ! Final record, restore comma_json
-
-   if(io_h%file_format == JSON) then
-      if(io_h%comma_json == COMMA_AFTER) then
-         write(info_str,"(A)") '},'
-      else
-         write(info_str,"(A)") '}'
-      endif
-
-      call elsi_say(e_h,info_str,io_h)
-   endif
 
 end subroutine
 

@@ -10,7 +10,6 @@ EXECUTE_PROCESS(COMMAND ${CMAKE_SOURCE_DIR}/src/elsi_version_writer.pl ${elsi_VE
 LIST(APPEND elsi_src
   elsi_c_interface.f90
   elsi_c2f.f90
-  elsi_chess.f90
   elsi_constants.f90
   elsi_datatype.f90
   elsi_dmp.f90
@@ -33,7 +32,6 @@ LIST(APPEND elsi_src
   elsi_timings.f90
   elsi_version.f90
   elsi_utils.f90
-  stub_chess.f90
 )
 
 IF(NOT ENABLE_PEXSI)

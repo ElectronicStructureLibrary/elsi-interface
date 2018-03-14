@@ -9,11 +9,10 @@
 !!
 module ELSI_SETUP
 
-   use ELSI_CHESS,         only: elsi_set_chess_default
    use ELSI_CONSTANTS,     only: ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,&
-                                 CHESS_SOLVER,SIPS_SOLVER,DMP_SOLVER,&
-                                 SINGLE_PROC,MULTI_PROC,PEXSI_CSC,SIESTA_CSC,&
-                                 HUMAN_READ,JSON,SOLVER_TIMINGS_UNIT_DEFAULT,&
+                                 SIPS_SOLVER,DMP_SOLVER,SINGLE_PROC,MULTI_PROC,&
+                                 PEXSI_CSC,SIESTA_CSC,HUMAN_READ,JSON,&
+                                 SOLVER_TIMINGS_UNIT_DEFAULT,&
                                  SOLVER_TIMINGS_FILE_DEFAULT
    use ELSI_DATATYPE,      only: elsi_handle
    use ELSI_DMP,           only: elsi_set_dmp_default
@@ -32,11 +31,9 @@ module ELSI_SETUP
    use ELSI_TIMINGS,       only: elsi_init_timings,elsi_print_timings,&
                                  elsi_finalize_timings
    use ELSI_UTILS,         only: elsi_check_handle,elsi_reset_handle
-   use FOE_BASE,           only: foe_data_deallocate
    use F_PPEXSI_INTERFACE, only: f_ppexsi_plan_finalize
    use MATRIXSWITCH,       only: ms_scalapack_setup,m_deallocate
    use M_QETSC,            only: sips_finalize
-   use SPARSEMATRIX_BASE,  only: deallocate_sparse_matrix,deallocate_matrices
 
    implicit none
 
@@ -112,8 +109,6 @@ subroutine elsi_init(e_h,solver,parallel_mode,matrix_format,n_basis,n_electron,&
       call elsi_set_omm_default(e_h)
    case(PEXSI_SOLVER)
       call elsi_set_pexsi_default(e_h)
-   case(CHESS_SOLVER)
-      call elsi_set_chess_default(e_h)
    case(SIPS_SOLVER)
       call elsi_set_elpa_default(e_h)
       call elsi_set_sips_default(e_h)
@@ -340,11 +335,14 @@ subroutine elsi_set_csc(e_h,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)
       e_h%handle_changed = .true.
    endif
 
+   e_h%nnz_g     = nnz_g
+   e_h%nnz_l_sp  = nnz_l
+   e_h%n_lcol_sp = n_lcol
+
    select case(e_h%matrix_format)
    case(PEXSI_CSC)
-      e_h%nnz_g     = nnz_g
-      e_h%nnz_l_sp  = nnz_l
-      e_h%n_lcol_sp = n_lcol
+      e_h%nnz_l_sp1  = nnz_l
+      e_h%n_lcol_sp1 = n_lcol
 
       if(e_h%solver == PEXSI_SOLVER) then
          if(allocated(e_h%row_ind_pexsi)) then
@@ -377,7 +375,6 @@ subroutine elsi_set_csc(e_h,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)
 
       e_h%pexsi_csc_ready = .true.
    case(SIESTA_CSC)
-      e_h%nnz_g      = nnz_g
       e_h%nnz_l_sp2  = nnz_l
       e_h%n_lcol_sp2 = n_lcol
 
@@ -561,26 +558,6 @@ subroutine elsi_cleanup(e_h)
       call elsi_deallocate(e_h,e_h%ne_vec_pexsi,"ne_vec_pexsi")
    endif
 
-   ! CheSS
-   if(allocated(e_h%ham_real_chess)) then
-      call elsi_deallocate(e_h,e_h%ham_real_chess,"ham_real_chess")
-   endif
-   if(allocated(e_h%ovlp_real_chess)) then
-      call elsi_deallocate(e_h,e_h%ovlp_real_chess,"ovlp_real_chess")
-   endif
-   if(allocated(e_h%row_ind_chess)) then
-      call elsi_deallocate(e_h,e_h%row_ind_chess,"row_ind_chess")
-   endif
-   if(allocated(e_h%col_ptr_chess)) then
-      call elsi_deallocate(e_h,e_h%col_ptr_chess,"col_ptr_chess")
-   endif
-   if(allocated(e_h%row_ind_buf)) then
-      call elsi_deallocate(e_h,e_h%row_ind_buf,"row_ind_buf")
-   endif
-   if(allocated(e_h%col_ptr_buf)) then
-      call elsi_deallocate(e_h,e_h%col_ptr_buf,"col_ptr_buf")
-   endif
-
    ! SIPs
    if(allocated(e_h%ham_real_sips)) then
       call elsi_deallocate(e_h,e_h%ham_real_sips,"ham_real_sips")
@@ -666,20 +643,6 @@ subroutine elsi_cleanup(e_h)
       call MPI_Comm_free(e_h%pexsi_comm_in_pole,ierr)
       call MPI_Comm_free(e_h%pexsi_comm_among_point,ierr)
       call MPI_Comm_free(e_h%pexsi_comm_in_point,ierr)
-   endif
-
-   ! Finalize CheSS
-   if(e_h%chess_started) then
-      call deallocate_sparse_matrix(e_h%sparse_mat_chess(1))
-      call deallocate_sparse_matrix(e_h%sparse_mat_chess(2))
-      call foe_data_deallocate(e_h%chess_ice)
-      call foe_data_deallocate(e_h%chess_foe)
-      call deallocate_matrices(e_h%ham_chess)
-      call deallocate_matrices(e_h%ovlp_chess)
-      call deallocate_matrices(e_h%dm_chess)
-      call deallocate_matrices(e_h%edm_chess)
-      call deallocate_matrices(e_h%ovlp_inv_sqrt_chess(1))
-      call f_lib_finalize_stub()
    endif
 
    ! Finalize SIPs

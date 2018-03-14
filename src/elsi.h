@@ -176,27 +176,6 @@ void c_elsi_set_pexsi_mu_max(elsi_handle handle_c,
 void c_elsi_set_pexsi_inertia_tol(elsi_handle handle_c,
                                   double inertia_tol);
 
-void c_elsi_set_chess_erf_decay(elsi_handle handle_c,
-                                double decay);
-
-void c_elsi_set_chess_erf_decay_min(elsi_handle handle_c,
-                                    double decay_min);
-
-void c_elsi_set_chess_erf_decay_max(elsi_handle handle_c,
-                                    double decay_max);
-
-void c_elsi_set_chess_ev_ham_min(elsi_handle handle_c,
-                                 double ev_min);
-
-void c_elsi_set_chess_ev_ham_max(elsi_handle handle_c,
-                                 double ev_max);
-
-void c_elsi_set_chess_ev_ovlp_min(elsi_handle handle_c,
-                                  double ev_min);
-
-void c_elsi_set_chess_ev_ovlp_max(elsi_handle handle_c,
-                                  double ev_max);
-
 void c_elsi_set_sips_n_elpa(elsi_handle handle_c,
                             int n_elpa);
 

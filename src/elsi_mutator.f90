@@ -9,8 +9,8 @@
 !!
 module ELSI_MUTATOR
 
-   use ELSI_CONSTANTS, only: ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,CHESS_SOLVER,&
-                             SIPS_SOLVER,DMP_SOLVER,PEXSI_CSC,SIESTA_CSC
+   use ELSI_CONSTANTS, only: ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,SIPS_SOLVER,&
+                             DMP_SOLVER,PEXSI_CSC,SIESTA_CSC
    use ELSI_DATATYPE,  only: elsi_handle
    use ELSI_ELPA,      only: elsi_compute_edm_elpa_real,&
                              elsi_compute_edm_elpa_cmplx
@@ -63,13 +63,6 @@ module ELSI_MUTATOR
    public :: elsi_set_pexsi_mu_min
    public :: elsi_set_pexsi_mu_max
    public :: elsi_set_pexsi_inertia_tol
-   public :: elsi_set_chess_erf_decay
-   public :: elsi_set_chess_erf_decay_min
-   public :: elsi_set_chess_erf_decay_max
-   public :: elsi_set_chess_ev_ham_min
-   public :: elsi_set_chess_ev_ham_max
-   public :: elsi_set_chess_ev_ovlp_min
-   public :: elsi_set_chess_ev_ovlp_max
    public :: elsi_set_sips_n_elpa
    public :: elsi_set_sips_n_slice
    public :: elsi_set_sips_slice_type
@@ -753,161 +746,6 @@ subroutine elsi_set_pexsi_inertia_tol(e_h,inertia_tol)
 end subroutine
 
 !>
-!! This routine sets the initial guess of the error function decay length in
-!! CheSS.
-!!
-subroutine elsi_set_chess_erf_decay(e_h,decay)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: e_h   !< Handle
-   real(kind=r8),     intent(in)    :: decay !< Decay length
-
-   character(len=40), parameter :: caller = "elsi_set_chess_erf_decay"
-
-   call elsi_check_handle(e_h,caller)
-
-   if(e_h%handle_ready) then
-      e_h%handle_changed = .true.
-   endif
-
-   e_h%chess_erf_decay = decay
-
-end subroutine
-
-!>
-!! This routine sets the lower bound of the decay length in CheSS.
-!!
-subroutine elsi_set_chess_erf_decay_min(e_h,decay_min)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: e_h       !< Handle
-   real(kind=r8),     intent(in)    :: decay_min !< Minimum decay length
-
-   character(len=40), parameter :: caller = "elsi_set_chess_erf_decay_min"
-
-   call elsi_check_handle(e_h,caller)
-
-   if(e_h%handle_ready) then
-      e_h%handle_changed = .true.
-   endif
-
-   e_h%chess_erf_min = decay_min
-
-end subroutine
-
-!>
-!! This routine sets the upper bound of the decay length in CheSS.
-!!
-subroutine elsi_set_chess_erf_decay_max(e_h,decay_max)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: e_h       !< Handle
-   real(kind=r8),     intent(in)    :: decay_max !< Maximum decay length
-
-   character(len=40), parameter :: caller = "elsi_set_chess_erf_decay_max"
-
-   call elsi_check_handle(e_h,caller)
-
-   if(e_h%handle_ready) then
-      e_h%handle_changed = .true.
-   endif
-
-   e_h%chess_erf_max = decay_max
-
-end subroutine
-
-!>
-!! This routine sets the lower bound of the eigenvalues of the Hamiltonian.
-!!
-subroutine elsi_set_chess_ev_ham_min(e_h,ev_min)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: e_h    !< Handle
-   real(kind=r8),     intent(in)    :: ev_min !< Minimum eigenvalue
-
-   character(len=40), parameter :: caller = "elsi_set_chess_ev_ham_min"
-
-   call elsi_check_handle(e_h,caller)
-
-   if(e_h%handle_ready) then
-      e_h%handle_changed = .true.
-   endif
-
-   e_h%chess_ev_ham_min = ev_min
-
-end subroutine
-
-!>
-!! This routine sets the upper bound of the eigenvalues of the Hamiltonian.
-!!
-subroutine elsi_set_chess_ev_ham_max(e_h,ev_max)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: e_h    !< Handle
-   real(kind=r8),     intent(in)    :: ev_max !< Maximum eigenvalue
-
-   character(len=40), parameter :: caller = "elsi_set_chess_ev_ham_max"
-
-   call elsi_check_handle(e_h,caller)
-
-   if(e_h%handle_ready) then
-      e_h%handle_changed = .true.
-   endif
-
-   e_h%chess_ev_ham_max = ev_max
-
-end subroutine
-
-!>
-!! This routine sets the lower bound of the eigenvalues of the overlap matrix.
-!!
-subroutine elsi_set_chess_ev_ovlp_min(e_h,ev_min)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: e_h    !< Handle
-   real(kind=r8),     intent(in)    :: ev_min !< Minimum eigenvalue
-
-   character(len=40), parameter :: caller = "elsi_set_chess_ev_ovlp_min"
-
-   call elsi_check_handle(e_h,caller)
-
-   if(e_h%handle_ready) then
-      e_h%handle_changed = .true.
-   endif
-
-   e_h%chess_ev_ovlp_min = ev_min
-
-end subroutine
-
-!>
-!! This routine sets the upper bound of the eigenvalues of the overlap matrix.
-!!
-subroutine elsi_set_chess_ev_ovlp_max(e_h,ev_max)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: e_h    !< Handle
-   real(kind=r8),     intent(in)    :: ev_max !< Maximum eigenvalue
-
-   character(len=40), parameter :: caller = "elsi_set_chess_ev_ovlp_max"
-
-   call elsi_check_handle(e_h,caller)
-
-   if(e_h%handle_ready) then
-      e_h%handle_changed = .true.
-   endif
-
-   e_h%chess_ev_ovlp_max = ev_max
-
-end subroutine
-
-!>
 !! This routine sets the number of ELPA steps when using SIPs.
 !!
 subroutine elsi_set_sips_n_elpa(e_h,n_elpa)
@@ -1576,8 +1414,6 @@ subroutine elsi_get_edm_real(e_h,edm)
       case(PEXSI_SOLVER)
          call elsi_compute_edm_pexsi_real(e_h,e_h%dm_real_pexsi)
          call elsi_pexsi_to_blacs_dm_real(e_h,edm)
-      case(CHESS_SOLVER)
-         call elsi_stop(" CHESS not yet implemented.",e_h,caller)
       case(SIPS_SOLVER)
          call elsi_stop(" SIPS not yet implemented.",e_h,caller)
       case(DMP_SOLVER)
@@ -1656,8 +1492,6 @@ subroutine elsi_get_edm_real_sparse(e_h,edm)
          case default
             call elsi_stop(" Unsupported matrix format.",e_h,caller)
          end select
-      case(CHESS_SOLVER)
-         call elsi_stop(" CHESS not yet implemented.",e_h,caller)
       case(SIPS_SOLVER)
          call elsi_stop(" SIPS not yet implemented.",e_h,caller)
       case(DMP_SOLVER)
@@ -1709,8 +1543,6 @@ subroutine elsi_get_edm_complex(e_h,edm)
       case(PEXSI_SOLVER)
          call elsi_compute_edm_pexsi_cmplx(e_h,e_h%dm_cmplx_pexsi)
          call elsi_pexsi_to_blacs_dm_cmplx(e_h,edm)
-      case(CHESS_SOLVER)
-         call elsi_stop(" CHESS not yet implemented.",e_h,caller)
       case(SIPS_SOLVER)
          call elsi_stop(" SIPS not yet implemented.",e_h,caller)
       case(DMP_SOLVER)
@@ -1789,8 +1621,6 @@ subroutine elsi_get_edm_complex_sparse(e_h,edm)
          case default
             call elsi_stop(" Unsupported matrix format.",e_h,caller)
          end select
-      case(CHESS_SOLVER)
-         call elsi_stop(" CHESS not yet implemented.",e_h,caller)
       case(SIPS_SOLVER)
          call elsi_stop(" SIPS not yet implemented.",e_h,caller)
       case(DMP_SOLVER)

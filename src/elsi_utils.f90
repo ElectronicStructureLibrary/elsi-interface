@@ -92,6 +92,8 @@ subroutine elsi_reset_handle(e_h)
    e_h%nnz_l_sp               = UNSET
    e_h%n_lcol_sp              = UNSET
    e_h%zero_def               = 1.0e-15_r8
+   e_h%nnz_l_sp1              = UNSET
+   e_h%n_lcol_sp1             = UNSET
    e_h%pexsi_csc_ready        = .false.
    e_h%nnz_l_sp2              = UNSET
    e_h%n_lcol_sp2             = UNSET
@@ -151,15 +153,6 @@ subroutine elsi_reset_handle(e_h)
    e_h%pexsi_comm_in_point    = UNSET
    e_h%pexsi_ne               = 0.0_r8
    e_h%pexsi_started          = .false.
-   e_h%chess_erf_decay        = 0.0_r8
-   e_h%chess_erf_min          = 0.0_r8
-   e_h%chess_erf_max          = 0.0_r8
-   e_h%chess_ev_ham_min       = 0.0_r8
-   e_h%chess_ev_ham_max       = 0.0_r8
-   e_h%chess_ev_ovlp_min      = 0.0_r8
-   e_h%chess_ev_ovlp_max      = 0.0_r8
-   e_h%chess_beta             = 0.0_r8
-   e_h%chess_started          = .false.
    e_h%sips_n_elpa            = UNSET
    e_h%sips_np_per_slice      = UNSET
    e_h%sips_n_slices          = UNSET
@@ -302,31 +295,7 @@ subroutine elsi_check(e_h,caller)
          endif
       endif
    case(CHESS_SOLVER)
-      call elsi_say(e_h,"  ATTENTION! CheSS is EXPERIMENTAL.")
-
-      if(e_h%n_basis < e_h%n_procs) then
-         call elsi_stop(" For this number of MPI tasks, the matrix size is"//&
-                 " too small to use CheSS.",e_h,caller)
-      endif
-
-      if(e_h%parallel_mode /= MULTI_PROC) then
-         call elsi_stop(" CheSS solver requires MULTI_PROC parallel mode.",e_h,&
-                 caller)
-      endif
-
-      if(e_h%ovlp_is_unit) then
-         call elsi_stop(" CheSS solver with an identity overlap matrix not"//&
-                 " yet available.",e_h,caller)
-      endif
-
-      if(e_h%n_spins > 1) then
-         call elsi_stop(" Spin-polarized case not yet supported with CheSS.",&
-                 e_h,caller)
-      endif
-
-      if(e_h%n_kpts > 1) then
-         call elsi_stop(" k-points not yet supported with CheSS.",e_h,caller)
-      endif
+      call elsi_stop(" CheSS solver not yet available.",e_h,caller)
    case(SIPS_SOLVER)
       if(e_h%n_basis < e_h%n_procs) then
          call elsi_stop(" For this number of MPI tasks, the matrix size is"//&
@@ -738,8 +707,6 @@ subroutine elsi_get_solver_tag(e_h,solver_tag,data_type)
          solver_tag = "LIBOMM_REAL"
       case(PEXSI_SOLVER)
          solver_tag = "PEXSI_REAL"
-      case(CHESS_SOLVER)
-         solver_tag = "CHESS_REAL"
       case(SIPS_SOLVER)
          solver_tag = "SIPS_REAL"
       case(DMP_SOLVER)
@@ -765,8 +732,6 @@ subroutine elsi_get_solver_tag(e_h,solver_tag,data_type)
          solver_tag = "LIBOMM_CMPLX"
       case(PEXSI_SOLVER)
          solver_tag = "PEXSI_CMPLX"
-      case(CHESS_SOLVER)
-         solver_tag = "CHESS_CMPLX"
       case(SIPS_SOLVER)
          solver_tag = "SIPS_CMPLX"
       case(DMP_SOLVER)

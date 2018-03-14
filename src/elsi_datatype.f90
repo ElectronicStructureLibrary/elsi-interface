@@ -12,10 +12,8 @@ module ELSI_DATATYPE
    use, intrinsic :: ISO_C_BINDING
    use ELSI_CONSTANTS,     only: FILE_NAME_LEN,SETTING_STR_LEN,UUID_LEN
    use ELSI_PRECISION,     only: r8,i4
-   use FOE_BASE,           only: foe_data
    use F_PPEXSI_INTERFACE, only: f_ppexsi_options
    use MATRIXSWITCH,       only: matrix
-   use SPARSEMATRIX_BASE,  only: matrices,sparse_matrix
 
    implicit none
 
@@ -79,20 +77,6 @@ module ELSI_DATATYPE
       integer(kind=i4), allocatable :: row_ind_pexsi(:)
       integer(kind=i4), allocatable :: col_ptr_pexsi(:)
       real(kind=r8),    allocatable :: ne_vec_pexsi(:)
-
-      ! CheSS
-      real(kind=r8),    allocatable :: ham_real_chess(:)
-      real(kind=r8),    allocatable :: ovlp_real_chess(:)
-      integer(kind=i4), allocatable :: row_ind_chess(:)
-      integer(kind=i4), allocatable :: col_ptr_chess(:)
-      integer(kind=i4), allocatable :: row_ind_buf(:)
-      integer(kind=i4), allocatable :: col_ptr_buf(:)
-      type(matrices)                :: ham_chess
-      type(matrices)                :: ovlp_chess
-      type(matrices)                :: dm_chess
-      type(matrices)                :: edm_chess
-      type(matrices)                :: ovlp_inv_sqrt_chess(1) ! ovlp^(-1/2)
-      type(sparse_matrix)           :: sparse_mat_chess(2)
 
       ! SIPs
       real(kind=r8),    allocatable :: ham_real_sips(:)
@@ -178,11 +162,15 @@ module ELSI_DATATYPE
       integer(kind=i4) :: nnz_l ! Local number of nonzeros
       logical          :: blacs_ready
 
-      ! Sparse matrix information (1D block)
+      ! Sparse matrix information (common)
       integer(kind=i4) :: nnz_g     ! Global number of nonzeros
       integer(kind=i4) :: nnz_l_sp  ! Local number of nonzeros
       integer(kind=i4) :: n_lcol_sp ! Local number of columns
       real(kind=r8)    :: zero_def
+
+      ! Sparse matrix information (1D block)
+      integer(kind=i4) :: nnz_l_sp1  ! Local number of nonzeros
+      integer(kind=i4) :: n_lcol_sp1 ! Local number of columns
       logical          :: pexsi_csc_ready
 
       ! Sparse matrix information (1D block-cyclic)
@@ -259,19 +247,6 @@ module ELSI_DATATYPE
       logical          :: pexsi_started = .false.
       integer(kind=c_intptr_t) :: pexsi_plan
       type(f_ppexsi_options)   :: pexsi_options
-
-      ! CheSS
-      type(foe_data)   :: chess_foe
-      type(foe_data)   :: chess_ice
-      real(kind=r8)    :: chess_erf_decay ! Error function decay length
-      real(kind=r8)    :: chess_erf_min   ! Lower bound of decay length
-      real(kind=r8)    :: chess_erf_max   ! Upper bound of decay length
-      real(kind=r8)    :: chess_ev_ham_min
-      real(kind=r8)    :: chess_ev_ham_max
-      real(kind=r8)    :: chess_ev_ovlp_min
-      real(kind=r8)    :: chess_ev_ovlp_max
-      real(kind=r8)    :: chess_beta      ! Eigenspectrum estimate parameter
-      logical          :: chess_started = .false.
 
       ! SIPs
       integer(kind=i4) :: sips_n_elpa
