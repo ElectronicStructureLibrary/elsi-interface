@@ -494,7 +494,7 @@ subroutine elsi_compute_entropy(e_h,n_state,n_spin,n_kpt,k_weights,evals,&
          do i_spin = 1,n_spin
             do i_state = 1,n_state
                arg     = (evals(i_state,i_spin,i_kpt)-mu)*invert_width
-               arg     = -arg*arg
+               arg     = -(arg*arg)
                entropy = entropy+exp(arg)*k_weights(i_kpt)
             enddo
          enddo
@@ -508,8 +508,8 @@ subroutine elsi_compute_entropy(e_h,n_state,n_spin,n_kpt,k_weights,evals,&
                arg = occ_nums(i_state,i_spin,i_kpt)/e_h%spin_degen
 
                if(1-arg > entropy_thr .and. arg > entropy_thr) then
-                  entropy = entropy-&
-                               k_weights(i_kpt)*arg*log(arg)+(1-arg)*log(1-arg)
+                  entropy = entropy+(arg*log(arg)+(1-arg)*log(1-arg))*&
+                               k_weights(i_kpt)
                endif
             enddo
          enddo
@@ -568,7 +568,7 @@ subroutine elsi_compute_entropy(e_h,n_state,n_spin,n_kpt,k_weights,evals,&
       enddo
    end select
 
-   entropy = -1.0_r8*pre*entropy
+   entropy = -(pre*entropy)
 
 end subroutine
 
