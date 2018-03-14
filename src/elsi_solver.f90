@@ -976,19 +976,18 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
 
       select case(e_h%matrix_format)
       case(PEXSI_CSC)
-         ! Nothing
+         call elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
       case(SIESTA_CSC)
          call elsi_siesta_to_pexsi_hs_real(e_h,ham,ovlp)
-      case default
-         call elsi_stop(" Unsupported matrix format.",e_h,caller)
-      end select
 
-      call elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
+         if(.not. allocated(e_h%dm_real_pexsi)) then
+            call elsi_allocate(e_h,e_h%dm_real_pexsi,e_h%nnz_l_sp1,&
+                    "dm_real_pexsi",caller)
+         endif
+         e_h%dm_real_pexsi = 0.0_r8
 
-      select case(e_h%matrix_format)
-      case(PEXSI_CSC)
-         ! Nothing
-      case(SIESTA_CSC)
+         call elsi_solve_evp_pexsi_real(e_h,e_h%ham_real_pexsi,&
+                 e_h%ovlp_real_pexsi,e_h%dm_real_pexsi)
          call elsi_pexsi_to_siesta_dm_real(e_h,dm)
       case default
          call elsi_stop(" Unsupported matrix format.",e_h,caller)
@@ -1253,19 +1252,18 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
 
       select case(e_h%matrix_format)
       case(PEXSI_CSC)
-         ! Nothing
+         call elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
       case(SIESTA_CSC)
          call elsi_siesta_to_pexsi_hs_cmplx(e_h,ham,ovlp)
-      case default
-         call elsi_stop(" Unsupported matrix format.",e_h,caller)
-      end select
 
-      call elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
+         if(.not. allocated(e_h%dm_cmplx_pexsi)) then
+            call elsi_allocate(e_h,e_h%dm_cmplx_pexsi,e_h%nnz_l_sp1,&
+                    "dm_cmplx_pexsi",caller)
+         endif
+         e_h%dm_cmplx_pexsi = (0.0_r8,0.0_r8)
 
-      select case(e_h%matrix_format)
-      case(PEXSI_CSC)
-         ! Nothing
-      case(SIESTA_CSC)
+         call elsi_solve_evp_pexsi_cmplx(e_h,e_h%ham_cmplx_pexsi,&
+                 e_h%ovlp_cmplx_pexsi,e_h%dm_cmplx_pexsi)
          call elsi_pexsi_to_siesta_dm_cmplx(e_h,dm)
       case default
          call elsi_stop(" Unsupported matrix format.",e_h,caller)
