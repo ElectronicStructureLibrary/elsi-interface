@@ -1482,12 +1482,11 @@ subroutine elsi_get_edm_real_sparse(e_h,edm)
             call elsi_stop(" Unsupported matrix format.",e_h,caller)
          end select
       case(PEXSI_SOLVER)
-         call elsi_compute_edm_pexsi_real(e_h,edm)
-
          select case(e_h%matrix_format)
          case(PEXSI_CSC)
-            ! Nothing
+            call elsi_compute_edm_pexsi_real(e_h,edm)
          case(SIESTA_CSC)
+            call elsi_compute_edm_pexsi_real(e_h,e_h%dm_real_pexsi)
             call elsi_pexsi_to_siesta_dm_real(e_h,edm)
          case default
             call elsi_stop(" Unsupported matrix format.",e_h,caller)
@@ -1611,12 +1610,11 @@ subroutine elsi_get_edm_complex_sparse(e_h,edm)
             call elsi_stop(" Unsupported matrix format.",e_h,caller)
          end select
       case(PEXSI_SOLVER)
-         call elsi_compute_edm_pexsi_cmplx(e_h,edm)
-
          select case(e_h%matrix_format)
          case(PEXSI_CSC)
-            ! Nothing
+            call elsi_compute_edm_pexsi_cmplx(e_h,edm)
          case(SIESTA_CSC)
+            call elsi_compute_edm_pexsi_cmplx(e_h,e_h%dm_cmplx_pexsi)
             call elsi_pexsi_to_siesta_dm_cmplx(e_h,edm)
          case default
             call elsi_stop(" Unsupported matrix format.",e_h,caller)
