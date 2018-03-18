@@ -1,14 +1,3 @@
-### Link line ###
-SET(LINK_LIB
-  ${OMM_LIB}
-  ${ELPA_LIB}
-  ${PEXSI_LIB}
-  ${SIPS_LIB}
-  ${SUPERLU_LIB}
-  ${PTSCOTCH_LIB}
-  ${MATH_LIB}
-)
-
 ### Fortran tests ###
 LIST(APPEND ftest_src
   Fortran/elsi_test.f90
@@ -22,15 +11,36 @@ LIST(APPEND ftest_src
   Fortran/test_ev_real_sparse.f90
 )
 
+MACRO(add_test_target arg1)
+  ADD_DEPENDENCIES(${arg1} elsi)
+  TARGET_LINK_LIBRARIES(${arg1} elsi ${MATH_LIB})
+  IF(NOT ELPA_FOUND)
+    TARGET_LINK_LIBRARIES(${arg1} elpa)
+  ELSE()
+    TARGET_LINK_LIBRARIES(${arg1} ${ELPA_LIB})
+  ENDIF()
+  IF(NOT OMM_FOUND)
+    TARGET_LINK_LIBRARIES(${arg1} OMM MatrixSwitch)
+  ELSE()
+    TARGET_LINK_LIBRARIES(${arg1} ${OMM_LIB})
+  ENDIF()
+  IF(ENABLE_PEXSI)
+    IF(NOT SUPERLU_FOUND)
+      TARGET_LINK_LIBRARIES(${arg1} pexsi superlu_dist ${PTSCOTCH_LIB})
+    ELSE()
+      TARGET_LINK_LIBRARIES(${arg1} pexsi ${SUPERLU_LIB} ${PTSCOTCH_LIB})
+    ENDIF()
+  ENDIF()
+  IF(ENABLE_MKL)
+    SET_TARGET_PROPERTIES(${arg1}
+      PROPERTIES LINK_FLAGS "-mkl=cluster")
+  ENDIF()
+  INSTALL(TARGETS ${arg1}
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
+ENDMACRO()
+
 ADD_EXECUTABLE(elsi_test ${ftest_src})
-ADD_DEPENDENCIES(elsi_test elsi)
-TARGET_LINK_LIBRARIES(elsi_test elsi ${LINK_LIB})
-IF(ENABLE_MKL)
-  SET_TARGET_PROPERTIES(elsi_test
-    PROPERTIES LINK_FLAGS "-mkl=cluster")
-ENDIF()
-INSTALL(TARGETS elsi_test
-  DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
+add_test_target(elsi_test)
 
 ### Matrix IO tests ###
 LIST(APPEND ftestrw_src
@@ -40,14 +50,7 @@ LIST(APPEND ftestrw_src
 )
 
 ADD_EXECUTABLE(elsi_test_rw ${ftestrw_src})
-ADD_DEPENDENCIES(elsi_test_rw elsi)
-TARGET_LINK_LIBRARIES(elsi_test_rw elsi ${LINK_LIB})
-IF(ENABLE_MKL)
-  SET_TARGET_PROPERTIES(elsi_test_rw
-    PROPERTIES LINK_FLAGS "-mkl=cluster")
-ENDIF()
-INSTALL(TARGETS elsi_test_rw
-  DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
+add_test_target(elsi_test_rw)
 
 ### C tests ###
 IF(ENABLE_C_TESTS)
@@ -60,14 +63,7 @@ IF(ENABLE_C_TESTS)
   )
 
   ADD_EXECUTABLE(elsi_test_c ${ctest_src})
-  ADD_DEPENDENCIES(elsi_test_c elsi)
-  TARGET_LINK_LIBRARIES(elsi_test_c elsi ${LINK_LIB})
-  IF(ENABLE_MKL)
-    SET_TARGET_PROPERTIES(elsi_test_c
-      PROPERTIES LINK_FLAGS "-mkl=cluster")
-  ENDIF()
-  INSTALL(TARGETS elsi_test_c
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
+  add_test_target(elsi_test_c)
 ENDIF()
 
 ### Test matrices ###
