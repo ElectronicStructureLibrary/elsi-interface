@@ -57,11 +57,11 @@ B) CMAKE BASICS
    $ make [-j np]
    $ make install
 
-   whenever cmake is invoked, one of the command line arguments must point
+   whenever CMake is invoked, one of the command line arguments must point
    to the path where the top level CMakeLists.txt file exists, hence the
    ".." in the above example.
 
-   A configure option may be defined by adding
+   An option may be defined by adding
 
    -DKeyword=Value
 
@@ -152,7 +152,7 @@ C) CONFIGURATION
 
      -DMATH_LIB=[YOUR_LINEAR_ALGEBRA_LIBRARY(-IES)]
 
-   If the test programs are enabled, check the installation with
+   If the test programs are enabled, the installation may be verified by
 
    $ ...
    $ make [-j np]
