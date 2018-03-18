@@ -30,7 +30,7 @@ B) INSTALLATION OF ELSI
    *  CMake             [version 3.0.2 or newer]
    *  Fortran compiler  [with Fortran 2003 standard]
    *  C compiler        [with C99 standard]
-   *  C++ compiler      [C++11 standard]
+   *  C++ compiler      [with C++11 standard]
    *  MPI library
    *  Math libraries    [BLAS, LAPACK, (BLACS,) and ScaLAPACK]
    *  PtScotch library  [version 6.0.4 or newer]
