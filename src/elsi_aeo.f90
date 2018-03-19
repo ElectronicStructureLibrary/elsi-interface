@@ -15,7 +15,7 @@ module ELSI_ELPA
    use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
    use ELSI_MPI,       only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8,&
                              mpi_integer4
-   use ELSI_MU,        only: elsi_compute_mu_and_occ,elsi_compute_entropy
+   use ELSI_OCC,       only: elsi_compute_mu_and_occ,elsi_compute_entropy
    use ELSI_PRECISION, only: r4,r8,i4
    use ELSI_TIMINGS,   only: elsi_get_time
    use ELSI_UTILS,     only: elsi_get_local_nnz_real,elsi_get_local_nnz_cmplx,&

@@ -7,7 +7,7 @@
 !>
 !! This module provides matrix conversion and redistribution routines.
 !!
-module ELSI_MATCONV
+module ELSI_MAT_REDIST
 
    use ELSI_CONSTANTS, only: UNSET
    use ELSI_DATATYPE,  only: elsi_handle
@@ -4090,4 +4090,4 @@ subroutine elsi_pexsi_to_siesta_dm_cmplx(e_h,dm)
 
 end subroutine
 
-end module ELSI_MATCONV
+end module ELSI_MAT_REDIST

@@ -17,8 +17,7 @@ module ELSI_UTILS
                              COMPLEX_VALUES,SETTING_STR_LEN,DATETIME_LEN,&
                              UUID_LEN,COMMA_AFTER,HUMAN_READ
    use ELSI_DATATYPE,  only: elsi_handle
-   use ELSI_IO,        only: elsi_say,append_string,truncate_string,&
-                             elsi_init_file_io,elsi_open_json_file
+   use ELSI_IO,        only: elsi_say,elsi_init_file_io,elsi_open_json_file
    use ELSI_MPI,       only: elsi_stop,elsi_check_mpi,elsi_get_processor_name,&
                              mpi_sum,mpi_real8,mpi_complex16,&
                              mpi_max_processor_name,mpi_character

@@ -25,21 +25,13 @@ module ELSI_IO
    public :: elsi_say_setting
    public :: elsi_init_file_io
    public :: elsi_reset_file_io_handle
-   public :: elsi_finalize_file_io
    public :: elsi_print_handle_summary
    public :: elsi_print_versioning
    public :: elsi_print_settings
    public :: elsi_print_solver_settings
-   public :: elsi_print_dmp_settings
-   public :: elsi_print_elpa_settings
-   public :: elsi_print_omm_settings
-   public :: elsi_print_pexsi_settings
-   public :: elsi_print_sips_settings
    public :: elsi_print_matrix_format_settings
-   public :: elsi_print_blacs_dense_settings
-   public :: elsi_print_csc_settings
-   public :: append_string
-   public :: truncate_string
+   public :: elsi_append_string
+   public :: elsi_truncate_string
    public :: elsi_open_json_file
    public :: elsi_close_json_file
    public :: elsi_start_json_record
@@ -230,7 +222,7 @@ subroutine elsi_print_handle_summary(e_h,io_h_in)
       write(info_str,"(A)") "Physical Properties"
       call elsi_say(e_h,info_str,io_h)
 
-      call append_string(io_h%prefix,"  ")
+      call elsi_append_string(io_h%prefix,"  ")
       call elsi_say_setting(e_h,"Number of electrons",e_h%n_electrons,io_h)
       if(e_h%parallel_mode == MULTI_PROC) then
          call elsi_say_setting(e_h,"Number of spins",e_h%n_spins,io_h)
@@ -239,14 +231,14 @@ subroutine elsi_print_handle_summary(e_h,io_h_in)
       if(e_h%solver == ELPA_SOLVER .or. e_h%solver == SIPS_SOLVER) then
          call elsi_say_setting(e_h,"Number of states",e_h%n_states,io_h)
       endif
-      call truncate_string(io_h%prefix,2)
+      call elsi_truncate_string(io_h%prefix,2)
 
       write(info_str,"(A)") ""
       call elsi_say(e_h,info_str,io_h)
       write(info_str,"(A)") "Matrix Properties"
       call elsi_say(e_h,info_str,io_h)
 
-      call append_string(io_h%prefix,"  ")
+      call elsi_append_string(io_h%prefix,"  ")
       if(e_h%matrix_format == BLACS_DENSE) then
          call elsi_say_setting(e_h,"Matrix format","BLACS_DENSE",io_h)
       elseif(e_h%matrix_format == PEXSI_CSC) then
@@ -259,14 +251,14 @@ subroutine elsi_print_handle_summary(e_h,io_h_in)
          sparsity = 1.0_r8-(1.0_r8*e_h%nnz_g/e_h%n_basis/e_h%n_basis)
          call elsi_say_setting(e_h,"Matrix sparsity",sparsity,io_h)
       endif
-      call truncate_string(io_h%prefix,2)
+      call elsi_truncate_string(io_h%prefix,2)
 
       write(info_str,"(A)") ""
       call elsi_say(e_h,info_str,io_h)
       write(info_str,"(A)") "Computational Details"
       call elsi_say(e_h,info_str,io_h)
 
-      call append_string(io_h%prefix,"  ")
+      call elsi_append_string(io_h%prefix,"  ")
       if(e_h%parallel_mode == MULTI_PROC) then
          call elsi_say_setting(e_h,"Parallel mode","MULTI_PROC",io_h)
       elseif(e_h%parallel_mode == SINGLE_PROC) then
@@ -286,7 +278,7 @@ subroutine elsi_print_handle_summary(e_h,io_h_in)
       else
          call elsi_stop(" Unsupported solver.",e_h,caller)
       endif
-      call truncate_string(io_h%prefix,2)
+      call elsi_truncate_string(io_h%prefix,2)
    elseif(io_h%file_format == JSON) then
       comma_json_save = io_h%comma_json
       io_h%comma_json = COMMA_AFTER ! Add commas behind all records before final
@@ -351,22 +343,21 @@ subroutine elsi_print_versioning(e_h,io_h_in)
 
    integer(kind=i4)          :: comma_json_save
    type(elsi_file_io_handle) :: io_h
-   logical                   :: GIT_COMMIT_WAS_MODIFIED
-   character(len=10)         :: RELEASE_DATE
-   character(len=40)         :: GIT_COMMIT
-   character(len=7)          :: GIT_COMMIT_ABBREV
-   character(len=40)         :: GIT_COMMIT_MSG_ABBREV
-   character(len=40)         :: SOURCE_HOSTNAME
-   character(len=10)         :: SOURCE_LOCAL_DATE
-   character(len=8)          :: SOURCE_LOCAL_TIME
-   character(len=20)         :: SOURCE_DATETIME
+   logical                   :: COMMIT_MODIFIED
+   character(len=10)         :: DATE_STAMP
+   character(len=40)         :: COMMIT
+   character(len=8)          :: COMMIT_ABBREV
+   character(len=40)         :: COMMIT_MSG_ABBREV
+   character(len=40)         :: HOSTNAME
+   character(len=10)         :: LOCAL_DATE
+   character(len=8)          :: LOCAL_TIME
+   character(len=20)         :: DATETIME
    character(len=200)        :: info_str
 
    character(len=40), parameter :: caller = "elsi_print_versioning"
 
-   call elsi_version_info(RELEASE_DATE,GIT_COMMIT,GIT_COMMIT_ABBREV,&
-           GIT_COMMIT_WAS_MODIFIED,GIT_COMMIT_MSG_ABBREV,SOURCE_HOSTNAME,&
-           SOURCE_LOCAL_DATE,SOURCE_LOCAL_TIME,SOURCE_DATETIME)
+   call elsi_version_info(DATE_STAMP,COMMIT,COMMIT_ABBREV,COMMIT_MODIFIED,&
+           COMMIT_MSG_ABBREV,HOSTNAME,LOCAL_DATE,LOCAL_TIME,DATETIME)
 
    if(present(io_h_in)) then
       io_h = io_h_in
@@ -377,27 +368,27 @@ subroutine elsi_print_versioning(e_h,io_h_in)
    if(io_h%file_format == HUMAN_READ) then ! Full info available in JSON
       write(info_str,"(A)") "ELSI Versioning Information"
       call elsi_say(e_h,info_str,io_h)
-      call append_string(io_h%prefix,"  ")
+      call elsi_append_string(io_h%prefix,"  ")
 
-      call elsi_say_setting(e_h,"ELSI release date",trim(RELEASE_DATE),io_h)
-      call elsi_say_setting(e_h,"ELSI git commit (abbrev.)",trim(GIT_COMMIT_ABBREV),io_h)
-      call elsi_say_setting(e_h,"Was git commit modified?",GIT_COMMIT_WAS_MODIFIED,io_h)
-      call elsi_say_setting(e_h,"UUID for this run",trim(e_h%uuid),io_h)
+      call elsi_say_setting(e_h,"Date stamp",trim(DATE_STAMP),io_h)
+      call elsi_say_setting(e_h,"Git commit (abbrev.)",trim(COMMIT_ABBREV),io_h)
+      call elsi_say_setting(e_h,"Git commit modified?",COMMIT_MODIFIED,io_h)
 
-      call truncate_string(io_h%prefix,2)
+      call elsi_truncate_string(io_h%prefix,2)
    elseif(io_h%file_format == JSON) then
       comma_json_save = io_h%comma_json
       io_h%comma_json = COMMA_AFTER ! Add commas behind all records before final
 
       call elsi_say_setting(e_h,"data_source","ELSI",io_h)
-      call elsi_say_setting(e_h,"release_date",RELEASE_DATE,io_h)
-      call elsi_say_setting(e_h,"git_commit",GIT_COMMIT,io_h)
-      call elsi_say_setting(e_h,"git_commit_modified",GIT_COMMIT_WAS_MODIFIED,io_h)
-      call elsi_say_setting(e_h,"git_message_abbrev",GIT_COMMIT_MSG_ABBREV,io_h)
-      call elsi_say_setting(e_h,"source_created_on_hostname",SOURCE_HOSTNAME,io_h)
-      call elsi_say_setting(e_h,"source_created_at_datetime",SOURCE_DATETIME,io_h)
+      call elsi_say_setting(e_h,"date_stamp",DATE_STAMP,io_h)
+      call elsi_say_setting(e_h,"git_commit",COMMIT,io_h)
+      call elsi_say_setting(e_h,"git_commit_modified",COMMIT_MODIFIED,io_h)
+      call elsi_say_setting(e_h,"git_message_abbrev",COMMIT_MSG_ABBREV,io_h)
+      call elsi_say_setting(e_h,"source_created_on_hostname",HOSTNAME,io_h)
+      call elsi_say_setting(e_h,"source_created_at_datetime",DATETIME,io_h)
       call elsi_say_setting(e_h,"calling_code",e_h%calling_code,io_h)
-      call elsi_say_setting(e_h,"calling_code_version",e_h%calling_code_ver,io_h)
+      call elsi_say_setting(e_h,"calling_code_version",e_h%calling_code_ver,&
+              io_h)
 
       io_h%comma_json = comma_json_save ! Final record, restore comma_json
       call elsi_say_setting(e_h,"uuid",e_h%uuid,io_h)
@@ -581,14 +572,14 @@ subroutine elsi_print_dmp_settings(e_h,io_h_in)
    call elsi_say(e_h,info_str,io_h)
 
    ! Settings
-   call append_string(io_h%prefix,"  ")
+   call elsi_append_string(io_h%prefix,"  ")
    call elsi_say_setting(e_h,"dmp_n_states",e_h%dmp_n_states,io_h)
    call elsi_say_setting(e_h,"dmp_method",e_h%dmp_method,io_h)
    call elsi_say_setting(e_h,"dmp_max_power",e_h%dmp_max_power,io_h)
    call elsi_say_setting(e_h,"dmp_max_iter",e_h%dmp_max_iter,io_h)
    io_h%comma_json = NO_COMMA ! Final record in this scope
    call elsi_say_setting(e_h,"dmp_tol",e_h%dmp_tol,io_h)
-   call truncate_string(io_h%prefix,2)
+   call elsi_truncate_string(io_h%prefix,2)
 
    ! Footer (only for JSON)
    io_h%comma_json = comma_json_save ! Final record, restore comma_json
@@ -640,12 +631,12 @@ subroutine elsi_print_elpa_settings(e_h,io_h_in)
    call elsi_say(e_h,info_str,io_h)
 
    ! Settings
-   call append_string(io_h%prefix,"  ")
+   call elsi_append_string(io_h%prefix,"  ")
    call elsi_say_setting(e_h,"elpa_solver",e_h%elpa_solver,io_h)
    call elsi_say_setting(e_h,"elpa_n_states",e_h%n_states,io_h)
    io_h%comma_json = NO_COMMA ! Final record in this scope
    call elsi_say_setting(e_h,"elpa_n_single",e_h%elpa_n_single,io_h)
-   call truncate_string(io_h%prefix,2)
+   call elsi_truncate_string(io_h%prefix,2)
 
    ! Footer (only for JSON)
    io_h%comma_json = comma_json_save ! Final record, restore comma_json
@@ -697,13 +688,13 @@ subroutine elsi_print_omm_settings(e_h,io_h_in)
    call elsi_say(e_h,info_str,io_h)
 
   ! Settings
-   call append_string(io_h%prefix,"  ")
+   call elsi_append_string(io_h%prefix,"  ")
    call elsi_say_setting(e_h,"omm_n_states",e_h%omm_n_states,io_h)
    call elsi_say_setting(e_h,"omm_n_elpa",e_h%omm_n_elpa,io_h)
    call elsi_say_setting(e_h,"omm_flavor",e_h%omm_flavor,io_h)
    io_h%comma_json = NO_COMMA ! Final record in this scope
    call elsi_say_setting(e_h,"omm_tol",e_h%omm_tol,io_h)
-   call truncate_string(io_h%prefix,2)
+   call elsi_truncate_string(io_h%prefix,2)
 
    ! Footer (only for JSON)
    io_h%comma_json = comma_json_save ! Final record, restore comma_json
@@ -755,7 +746,7 @@ subroutine elsi_print_pexsi_settings(e_h,io_h_in)
    call elsi_say(e_h,info_str,io_h)
 
    ! Settings
-   call append_string(io_h%prefix,"  ")
+   call elsi_append_string(io_h%prefix,"  ")
    call elsi_say_setting(e_h,"pexsi_np_per_pole",e_h%pexsi_np_per_pole,io_h)
    call elsi_say_setting(e_h,"pexsi_np_per_point",e_h%pexsi_np_per_point,io_h)
    call elsi_say_setting(e_h,"pexsi_n_prow_pexsi",e_h%pexsi_n_prow,io_h)
@@ -767,7 +758,7 @@ subroutine elsi_print_pexsi_settings(e_h,io_h_in)
    io_h%comma_json = NO_COMMA ! Final record in this scope
    call elsi_say_setting(e_h,"pexsi_np_symbfact",e_h%pexsi_options%npSymbFact,&
            io_h)
-   call truncate_string(io_h%prefix,2)
+   call elsi_truncate_string(io_h%prefix,2)
 
    ! Footer (only for JSON)
    io_h%comma_json = comma_json_save ! Final record, restore comma_json
@@ -819,7 +810,7 @@ subroutine elsi_print_sips_settings(e_h,io_h_in)
    call elsi_say(e_h,info_str,io_h)
 
    ! Settings
-   call append_string(io_h%prefix,"  ")
+   call elsi_append_string(io_h%prefix,"  ")
    call elsi_say_setting(e_h,"sips_n_states",e_h%n_states,io_h)
    call elsi_say_setting(e_h,"sips_n_elpa",e_h%sips_n_elpa,io_h)
    call elsi_say_setting(e_h,"sips_n_slices",e_h%sips_n_slices,io_h)
@@ -828,7 +819,7 @@ subroutine elsi_print_sips_settings(e_h,io_h_in)
    call elsi_say_setting(e_h,"sips_buffer",e_h%sips_buffer,io_h)
    io_h%comma_json = NO_COMMA ! Final record in this scope
    call elsi_say_setting(e_h,"sips_first_ev",e_h%sips_first_ev,io_h)
-   call truncate_string(io_h%prefix,2)
+   call elsi_truncate_string(io_h%prefix,2)
 
    ! Footer (only for JSON)
    io_h%comma_json = comma_json_save ! Final record, restore comma_json
@@ -866,7 +857,7 @@ subroutine elsi_print_matrix_format_settings(e_h,io_h_in)
    endif
 
    if(e_h%matrix_format == BLACS_DENSE) then
-      call elsi_print_blacs_dense_settings(e_h,io_h)
+      call elsi_print_den_settings(e_h,io_h)
    else
       call elsi_print_csc_settings(e_h,io_h)
    endif
@@ -874,9 +865,9 @@ subroutine elsi_print_matrix_format_settings(e_h,io_h_in)
 end subroutine
 
 !>
-!! This routine prints out settings for the BLACS_DENSE matrix storage format.
+!! This routine prints out settings for the dense matrix format.
 !!
-subroutine elsi_print_blacs_dense_settings(e_h,io_h_in)
+subroutine elsi_print_den_settings(e_h,io_h_in)
 
    implicit none
 
@@ -887,7 +878,7 @@ subroutine elsi_print_blacs_dense_settings(e_h,io_h_in)
    type(elsi_file_io_handle) :: io_h
    character(len=200)        :: info_str
 
-   character(len=40), parameter :: caller = "elsi_print_blacs_dense_settings"
+   character(len=40), parameter :: caller = "elsi_print_den_settings"
 
    if(present(io_h_in)) then
       io_h = io_h_in
@@ -900,7 +891,7 @@ subroutine elsi_print_blacs_dense_settings(e_h,io_h_in)
 
    ! Header
    if(io_h%file_format == HUMAN_READ) then
-      write(info_str,"(A)") "Matrix Storage Format Settings (BLACS_DENSE)"
+      write(info_str,"(A)") "Dense Matrix Format Settings"
    else
       write(info_str,"(A)") '"matrix_format_settings": {'
    endif
@@ -908,14 +899,14 @@ subroutine elsi_print_blacs_dense_settings(e_h,io_h_in)
    call elsi_say(e_h,info_str,io_h)
 
    ! Settings
-   call append_string(io_h%prefix,"  ")
+   call elsi_append_string(io_h%prefix,"  ")
    call elsi_say_setting(e_h,"blk_row",e_h%blk_row,io_h)
    call elsi_say_setting(e_h,"blk_col",e_h%blk_col,io_h)
    call elsi_say_setting(e_h,"n_prow",e_h%n_prow,io_h)
    call elsi_say_setting(e_h,"n_pcol",e_h%n_pcol,io_h)
    io_h%comma_json = NO_COMMA ! Final record in this scope
    call elsi_say_setting(e_h,"blacs_ready",e_h%blacs_ready,io_h)
-   call truncate_string(io_h%prefix,2)
+   call elsi_truncate_string(io_h%prefix,2)
 
    ! Footer (only for JSON)
    io_h%comma_json = comma_json_save ! Final record, restore comma_json
@@ -933,7 +924,7 @@ subroutine elsi_print_blacs_dense_settings(e_h,io_h_in)
 end subroutine
 
 !>
-!! This routine prints out settings for the CSC matrix storage format.
+!! This routine prints out settings for the sparse matrix format.
 !!
 subroutine elsi_print_csc_settings(e_h,io_h_in)
 
@@ -959,7 +950,7 @@ subroutine elsi_print_csc_settings(e_h,io_h_in)
 
    ! Header
    if(io_h%file_format == HUMAN_READ) then
-      write(info_str,"(A)") "Matrix Storage Format Settings (PESXI_CSC)"
+      write(info_str,"(A)") "Sparse Matrix Format Settings"
    else
       write(info_str,"(A)") '"matrix_format_settings": {'
    endif
@@ -967,14 +958,13 @@ subroutine elsi_print_csc_settings(e_h,io_h_in)
    call elsi_say(e_h,info_str,io_h)
 
    ! Settings
-   call append_string(io_h%prefix,"  ")
-   call elsi_say_setting(e_h,"nnz_g",e_h%nnz_g,io_h)
+   call elsi_append_string(io_h%prefix,"  ")
    call elsi_say_setting(e_h,"zero_def",e_h%zero_def,io_h)
    call elsi_say_setting(e_h,"blk_sp2",e_h%blk_sp2,io_h)
    call elsi_say_setting(e_h,"pexsi_csc_ready",e_h%pexsi_csc_ready,io_h)
    io_h%comma_json = NO_COMMA ! Final record in this scope
    call elsi_say_setting(e_h,"siesta_csc_ready",e_h%siesta_csc_ready,io_h)
-   call truncate_string(io_h%prefix,2)
+   call elsi_truncate_string(io_h%prefix,2)
 
    ! Footer (only for JSON)
    io_h%comma_json = comma_json_save ! Final record, restore comma_json
@@ -1262,7 +1252,7 @@ end subroutine
 !! This routine generates a new (dynamic) string with another string appended to
 !! the end. Whitespace is preserved deliberately.
 !!
-subroutine append_string(l_string,r_string)
+subroutine elsi_append_string(l_string,r_string)
 
    implicit none
 
@@ -1293,7 +1283,7 @@ end subroutine
 !! This routine generates a new string with the indicated number of characters
 !! removed from the end.
 !!
-subroutine truncate_string(l_string,n_chars_to_remove)
+subroutine elsi_truncate_string(l_string,n_chars_to_remove)
 
    implicit none
 
@@ -1349,7 +1339,7 @@ subroutine elsi_open_json_file(e_h,print_unit,file_name,opening_bracket,io_h)
 
    if(opening_bracket) then
       call elsi_say(e_h,"[",io_h)
-      call append_string(io_h%prefix,"  ")
+      call elsi_append_string(io_h%prefix,"  ")
    endif
 
 end subroutine
@@ -1374,7 +1364,7 @@ subroutine elsi_close_json_file(e_h,closing_bracket,io_h)
 
    ! Closing bracket to signify end of JSON array
    if(closing_bracket) then
-      call truncate_string(io_h%prefix,2)
+      call elsi_truncate_string(io_h%prefix,2)
       call elsi_say(e_h,"]",io_h)
    endif
 
@@ -1408,7 +1398,7 @@ subroutine elsi_start_json_record(e_h,comma_before,io_h)
       call elsi_say(e_h,'{',io_h)
    endif
 
-   call append_string(io_h%prefix,"  ")
+   call elsi_append_string(io_h%prefix,"  ")
 
 end subroutine
 
@@ -1430,7 +1420,7 @@ subroutine elsi_finish_json_record(e_h,comma_after,io_h)
               e_h,caller)
    endif
 
-   call truncate_string(io_h%prefix,2)
+   call elsi_truncate_string(io_h%prefix,2)
 
    if(comma_after) then
       call elsi_say(e_h,'},',io_h)

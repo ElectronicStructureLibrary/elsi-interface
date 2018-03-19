@@ -13,6 +13,7 @@ SET(elsi_URL "http://elsi-interchange.org")
 SET(elsi_EMAIL "elsi-team@duke.edu")
 SET(elsi_LICENSE "BSD 3")
 SET(elsi_DESCRIPTION "Electronic Structure Infrastructure")
+SET(elsi_DATESTAMP "180319")
 
 ### Installation paths ###
 IF(PROJECT_BINARY_DIR STREQUAL PROJECT_SOURCE_DIR)

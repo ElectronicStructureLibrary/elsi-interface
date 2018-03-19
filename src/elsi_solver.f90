@@ -10,60 +10,60 @@
 !!
 module ELSI_SOLVER
 
-   use ELSI_CONSTANTS, only: ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,SIPS_SOLVER,&
-                             DMP_SOLVER,REAL_VALUES,COMPLEX_VALUES,MULTI_PROC,&
-                             SINGLE_PROC,PEXSI_CSC,SIESTA_CSC,UNSET,&
-                             SETTING_STR_LEN,OUTPUT_EV,OUTPUT_DM,DATETIME_LEN,&
-                             COMMA_BEFORE,COMMA_AFTER,NO_COMMA,UNSET_STRING,&
-                             HUMAN_READ,JSON
-   use ELSI_DATATYPE,  only: elsi_handle,elsi_file_io_handle
-   use ELSI_DMP,       only: elsi_solve_evp_dmp_real
-   use ELSI_ELPA,      only: elsi_compute_occ_elpa,elsi_compute_dm_elpa_real,&
-                             elsi_normalize_dm_elpa_real,&
-                             elsi_solve_evp_elpa_real,&
-                             elsi_compute_dm_elpa_cmplx,&
-                             elsi_normalize_dm_elpa_cmplx,&
-                             elsi_solve_evp_elpa_cmplx
-   use ELSI_IO,        only: elsi_print_handle_summary,&
-                             elsi_print_solver_settings,elsi_print_settings,&
-                             elsi_say,elsi_say_setting,&
-                             elsi_print_matrix_format_settings,&
-                             append_string,truncate_string,&
-                             elsi_print_versioning,elsi_start_json_record,&
-                             elsi_finish_json_record
-   use ELSI_LAPACK,    only: elsi_solve_evp_lapack_real,&
-                             elsi_solve_evp_lapack_cmplx
-   use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
-   use ELSI_MATCONV,   only: elsi_blacs_to_pexsi_hs_cmplx,&
-                             elsi_blacs_to_pexsi_hs_real,&
-                             elsi_blacs_to_siesta_dm_cmplx,&
-                             elsi_blacs_to_siesta_dm_real,&
-                             elsi_blacs_to_sips_dm_cmplx,&
-                             elsi_blacs_to_sips_dm_real,&
-                             elsi_blacs_to_sips_hs_cmplx,&
-                             elsi_blacs_to_sips_hs_real,&
-                             elsi_pexsi_to_blacs_dm_cmplx,&
-                             elsi_pexsi_to_blacs_dm_real,&
-                             elsi_pexsi_to_siesta_dm_cmplx,&
-                             elsi_pexsi_to_siesta_dm_real,&
-                             elsi_siesta_to_blacs_hs_cmplx,&
-                             elsi_siesta_to_blacs_hs_real,&
-                             elsi_siesta_to_pexsi_hs_cmplx,&
-                             elsi_siesta_to_pexsi_hs_real,&
-                             elsi_sips_to_blacs_hs_cmplx,&
-                             elsi_sips_to_blacs_hs_real,&
-                             elsi_sips_to_blacs_ev_real
-   use ELSI_MPI,       only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8
-   use ELSI_OMM,       only: elsi_solve_evp_omm_real,elsi_solve_evp_omm_cmplx
-   use ELSI_PEXSI,     only: elsi_init_pexsi,elsi_solve_evp_pexsi_real,&
-                             elsi_solve_evp_pexsi_cmplx
-   use ELSI_PRECISION, only: r8,i4
-   use ELSI_SETUP,     only: elsi_set_blacs
-   use ELSI_SIPS,      only: elsi_init_sips,elsi_solve_evp_sips_real
-   use ELSI_TIMINGS,   only: elsi_get_time, elsi_add_timing
-   use ELSI_UTILS,     only: elsi_check,elsi_check_handle,elsi_ready_handle,&
-                             elsi_get_solver_tag,elsi_get_datetime_rfc3339
-   use MATRIXSWITCH,   only: m_allocate
+   use ELSI_CONSTANTS,  only: ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,SIPS_SOLVER,&
+                              DMP_SOLVER,REAL_VALUES,COMPLEX_VALUES,MULTI_PROC,&
+                              SINGLE_PROC,PEXSI_CSC,SIESTA_CSC,UNSET,&
+                              SETTING_STR_LEN,OUTPUT_EV,OUTPUT_DM,DATETIME_LEN,&
+                              COMMA_BEFORE,COMMA_AFTER,NO_COMMA,UNSET_STRING,&
+                              HUMAN_READ,JSON
+   use ELSI_DATATYPE,   only: elsi_handle,elsi_file_io_handle
+   use ELSI_DMP,        only: elsi_solve_evp_dmp_real
+   use ELSI_ELPA,       only: elsi_compute_occ_elpa,elsi_compute_dm_elpa_real,&
+                              elsi_normalize_dm_elpa_real,&
+                              elsi_solve_evp_elpa_real,&
+                              elsi_compute_dm_elpa_cmplx,&
+                              elsi_normalize_dm_elpa_cmplx,&
+                              elsi_solve_evp_elpa_cmplx
+   use ELSI_IO,         only: elsi_print_handle_summary,&
+                              elsi_print_solver_settings,elsi_print_settings,&
+                              elsi_say,elsi_say_setting,&
+                              elsi_print_matrix_format_settings,&
+                              elsi_append_string,elsi_truncate_string,&
+                              elsi_print_versioning,elsi_start_json_record,&
+                              elsi_finish_json_record
+   use ELSI_LAPACK,     only: elsi_solve_evp_lapack_real,&
+                              elsi_solve_evp_lapack_cmplx
+   use ELSI_MALLOC,     only: elsi_allocate,elsi_deallocate
+   use ELSI_MAT_REDIST, only: elsi_blacs_to_pexsi_hs_cmplx,&
+                              elsi_blacs_to_pexsi_hs_real,&
+                              elsi_blacs_to_siesta_dm_cmplx,&
+                              elsi_blacs_to_siesta_dm_real,&
+                              elsi_blacs_to_sips_dm_cmplx,&
+                              elsi_blacs_to_sips_dm_real,&
+                              elsi_blacs_to_sips_hs_cmplx,&
+                              elsi_blacs_to_sips_hs_real,&
+                              elsi_pexsi_to_blacs_dm_cmplx,&
+                              elsi_pexsi_to_blacs_dm_real,&
+                              elsi_pexsi_to_siesta_dm_cmplx,&
+                              elsi_pexsi_to_siesta_dm_real,&
+                              elsi_siesta_to_blacs_hs_cmplx,&
+                              elsi_siesta_to_blacs_hs_real,&
+                              elsi_siesta_to_pexsi_hs_cmplx,&
+                              elsi_siesta_to_pexsi_hs_real,&
+                              elsi_sips_to_blacs_hs_cmplx,&
+                              elsi_sips_to_blacs_hs_real,&
+                              elsi_sips_to_blacs_ev_real
+   use ELSI_MPI,        only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8
+   use ELSI_OMM,        only: elsi_solve_evp_omm_real,elsi_solve_evp_omm_cmplx
+   use ELSI_PEXSI,      only: elsi_init_pexsi,elsi_solve_evp_pexsi_real,&
+                              elsi_solve_evp_pexsi_cmplx
+   use ELSI_PRECISION,  only: r8,i4
+   use ELSI_SETUP,      only: elsi_set_blacs
+   use ELSI_SIPS,       only: elsi_init_sips,elsi_solve_evp_sips_real
+   use ELSI_TIMINGS,    only: elsi_get_time, elsi_add_timing
+   use ELSI_UTILS,      only: elsi_check,elsi_check_handle,elsi_ready_handle,&
+                              elsi_get_solver_tag,elsi_get_datetime_rfc3339
+   use MATRIXSWITCH,    only: m_allocate
 
    implicit none
 
@@ -1461,7 +1461,7 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,start_datetime,&
 
       call elsi_say(e_h,"",io_h)
       call elsi_say(e_h,"Timing Details",io_h)
-      call append_string(io_h%prefix,"  ")
+      call elsi_append_string(io_h%prefix,"  ")
       if(output_type == OUTPUT_EV) then
          call elsi_say_setting(e_h,"Output Type","EIGENVECTORS",io_h)
       elseif(output_type == OUTPUT_DM) then
@@ -1479,7 +1479,7 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,start_datetime,&
       call elsi_say_setting(e_h,"ELSI Tag",elsi_tag,io_h)
       call elsi_say_setting(e_h,"User Tag",user_tag,io_h)
       call elsi_say_setting(e_h,"Timing (s)",total_time,io_h)
-      call truncate_string(io_h%prefix,2)
+      call elsi_truncate_string(io_h%prefix,2)
    elseif(io_h%file_format == JSON) then
       call elsi_start_json_record(e_h,io_h%comma_json==COMMA_BEFORE,io_h)
       io_h%comma_json = COMMA_AFTER ! Add commas behind all records before final

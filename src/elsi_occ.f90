@@ -7,7 +7,7 @@
 !>
 !! This module provides routines for chemical potential determination.
 !!
-module ELSI_MU
+module ELSI_OCC
 
    use ELSI_CONSTANTS, only: GAUSSIAN,FERMI,METHFESSEL_PAXTON,COLD,CUBIC,&
                              SQRT_PI,INVERT_SQRT_PI
@@ -572,4 +572,4 @@ subroutine elsi_compute_entropy(e_h,n_state,n_spin,n_kpt,k_weights,evals,&
 
 end subroutine
 
-end module ELSI_MU
+end module ELSI_OCC

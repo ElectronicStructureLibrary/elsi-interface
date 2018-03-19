@@ -6,13 +6,11 @@
 # This file is part of ELSI and is distributed under the BSD 3-clause license,
 # which may be found in the LICENSE file in the ELSI root directory.
 
-# This script is based on a similar script from FHI-aims, which was modified to
-# better fit into the ELSI design philosophy.
+# Script to write a Fortran subroutine which includes the information about how
+# ELSI is compiled.
+# (Taken from FHI-aims with permission of copyright holders)
 
 use strict;
-
-# Script to write a Fortran subroutine which writes the version stamp and
-# compile time.
 
 # Obtain version stamp from input arg:
 my $RELEASE_DATE = $ARGV[0];
@@ -34,8 +32,8 @@ my $datetime = sprintf("%4d-%02d-%02dT%02d:%02d:%02dZ", $year, $mon, $mday, $hou
 my $hostname = qx/hostname/;
 chomp $hostname;
 my $host = "$hostname";
-if ( length($host) > 40){
-    $host = substr( $host, 0, 40);
+if (length($host) > 40){
+    $host = substr($host, 0, 40);
 };
 
 
@@ -65,9 +63,9 @@ if ($isgitrepos) {
     # Clean git string from special chars that can break the compilation
     $gitrev =~ s/\@/[at]/g;
     $gitrev =~ s/[^A-Za-z 0-9\.,\[\]:\/-_]//g;
-    if ( length($gitrev) > 40){
-    	$gitcommit = substr( $gitrev, 0, 40);
-    	$gitcommitabbrev = substr( $gitrev, 0, 7);
+    if (length($gitrev) > 40){
+        $gitcommit = substr($gitrev, 0, 40);
+        $gitcommitabbrev = substr($gitrev, 0, 8);
     };
 
     # Get only the git commit message
@@ -76,10 +74,10 @@ if ($isgitrepos) {
     # Clean git string from special chars that can break the compilation
     $gitrev =~ s/\@/[at]/g;
     $gitrev =~ s/[^A-Za-z 0-9\.,\[\]:\/-_]//g;
-    if ( length($gitrev) > 48){
-    	$gitrev = substr( $gitrev, 0, 48);
+    if (length($gitrev) > 48){
+        $gitrev = substr($gitrev, 0, 48);
     };
-    $gitmsg = substr( $gitrev, 8, length($gitrev));
+    $gitmsg = substr($gitrev, 8, length($gitrev));
 } else {
     $gitcommit = "UNKNOWN";
     $gitcommitabbrev = "UNKNOWN";
@@ -106,7 +104,7 @@ if ($RELEASE_DATE eq "--only-gitstr") {
     print "\n";
     print "  character(len=10), intent(out) :: s1\n";
     print "  character(len=40), intent(out) :: s2\n";
-    print "  character(len=7),  intent(out) :: s3\n";
+    print "  character(len=8),  intent(out) :: s3\n";
     print "  logical,           intent(out) :: l1\n";
     print "  character(len=40), intent(out) :: s4\n";
     print "  character(len=40), intent(out) :: s5\n";
@@ -116,7 +114,7 @@ if ($RELEASE_DATE eq "--only-gitstr") {
     print "\n";
     print "  character(len=10), parameter :: RELEASE_DATE            = \"$RELEASE_DATE\"\n";
     print "  character(len=40), parameter :: GIT_COMMIT              = \"$gitcommit\"\n";
-    print "  character(len=7),  parameter :: GIT_COMMIT_ABBREV       = \"$gitcommitabbrev\"\n";
+    print "  character(len=8),  parameter :: GIT_COMMIT_ABBREV       = \"$gitcommitabbrev\"\n";
     print "  logical,           parameter :: GIT_COMMIT_WAS_MODIFIED = $modlog\n";
     print "  character(len=40), parameter :: GIT_COMMIT_MSG_ABBREV   = \"$gitmsg\"\n";
     print "  character(len=40), parameter :: SOURCE_HOSTNAME         = \"$host\"\n";

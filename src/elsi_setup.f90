@@ -19,8 +19,8 @@ module ELSI_SETUP
    use ELSI_ELPA,          only: elsi_set_elpa_default,elsi_get_elpa_comms
    use ELSI_IO,            only: elsi_print_handle_summary,elsi_say,&
                                  elsi_say_setting,elsi_init_file_io,&
-                                 elsi_reset_file_io_handle,append_string,&
-                                 truncate_string,elsi_print_versioning,&
+                                 elsi_reset_file_io_handle,elsi_append_string,&
+                                 elsi_truncate_string,elsi_print_versioning,&
                                  elsi_close_json_file
    use ELSI_MALLOC,        only: elsi_allocate,elsi_deallocate
    use ELSI_MPI,           only: elsi_stop
@@ -433,28 +433,28 @@ subroutine elsi_final_print(e_h)
    call elsi_say(e_h,"  | Final ELSI Output                        ")
    call elsi_say(e_h,"  |--------------------------------------------------------------------------")
 
-   call append_string(e_h%stdio%prefix,"  | ")
+   call elsi_append_string(e_h%stdio%prefix,"  | ")
    call elsi_print_versioning(e_h)
 
    call elsi_say(e_h,"")
    call elsi_print_handle_summary(e_h)
 
-   call append_string(e_h%stdio%prefix,"  ")
+   call elsi_append_string(e_h%stdio%prefix,"  ")
    if(e_h%handle_changed) then
       call elsi_say_setting(e_h,"Was ELSI changed mid-run?","TRUE")
    else
       call elsi_say_setting(e_h,"Was ELSI changed mid-run?","FALSE")
    endif
    call elsi_say_setting(e_h,"Number of ELSI calls",e_h%n_elsi_calls)
-   call truncate_string(e_h%stdio%prefix,2)
+   call elsi_truncate_string(e_h%stdio%prefix,2)
 
    call elsi_say(e_h,"")
    call elsi_say(e_h,"Timings")
-   call append_string(e_h%stdio%prefix,"  ")
+   call elsi_append_string(e_h%stdio%prefix,"  ")
    call elsi_print_timings(e_h,e_h%timings)
-   call truncate_string(e_h%stdio%prefix,2)
+   call elsi_truncate_string(e_h%stdio%prefix,2)
 
-   call truncate_string(e_h%stdio%prefix,4)
+   call elsi_truncate_string(e_h%stdio%prefix,4)
    call elsi_say(e_h,"  |--------------------------------------------------------------------------")
    call elsi_say(e_h,"  | ELSI Project (c)  elsi-interchange.org   ")
    call elsi_say(e_h,"  |--------------------------------------------------------------------------")

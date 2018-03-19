@@ -1,7 +1,7 @@
 ### Generate version info ###
 MESSAGE(STATUS "Getting ELSI version")
 EXECUTE_PROCESS(COMMAND rm -f ${CMAKE_SOURCE_DIR}/src/elsi_version.f90)
-EXECUTE_PROCESS(COMMAND ${CMAKE_SOURCE_DIR}/src/elsi_version_writer.pl ${elsi_VERSION}
+EXECUTE_PROCESS(COMMAND ${CMAKE_SOURCE_DIR}/src/elsi_version_writer.pl ${elsi_DATESTAMP}
   OUTPUT_FILE ${CMAKE_SOURCE_DIR}/src/elsi_version.f90
   OUTPUT_QUIET
 )
@@ -17,11 +17,11 @@ LIST(APPEND elsi_src
   elsi_io.f90
   elsi_lapack.f90
   elsi_malloc.f90
-  elsi_matconv.f90
-  elsi_matio.f90
+  elsi_mat_io.f90
+  elsi_mat_redist.f90
   elsi_mpi.f90
-  elsi_mu.f90
   elsi_mutator.f90
+  elsi_occ.f90
   elsi_omm.f90
   elsi_pexsi.f90
   elsi_precision.f90

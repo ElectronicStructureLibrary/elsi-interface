@@ -12,8 +12,8 @@ module ELSI
 
    use ELSI_DATATYPE, only: elsi_file_io_handle,elsi_handle,elsi_rw_handle
    use ELSI_IO
-   use ELSI_MATIO
-   use ELSI_MU
+   use ELSI_MAT_IO
+   use ELSI_OCC
    use ELSI_MUTATOR
    use ELSI_SETUP
    use ELSI_SOLVER
