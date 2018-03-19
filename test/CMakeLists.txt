@@ -41,6 +41,8 @@ ENDMACRO()
 
 ADD_EXECUTABLE(elsi_test ${ftest_src})
 add_test_target(elsi_test)
+SET_TARGET_PROPERTIES(elsi_test
+  PROPERTIES LINKER_LANGUAGE Fortran)
 
 ### Matrix IO tests ###
 LIST(APPEND ftestrw_src
@@ -51,6 +53,8 @@ LIST(APPEND ftestrw_src
 
 ADD_EXECUTABLE(elsi_test_rw ${ftestrw_src})
 add_test_target(elsi_test_rw)
+SET_TARGET_PROPERTIES(elsi_test_rw
+  PROPERTIES LINKER_LANGUAGE Fortran)
 
 ### C tests ###
 IF(ENABLE_C_TESTS)
@@ -64,6 +68,8 @@ IF(ENABLE_C_TESTS)
 
   ADD_EXECUTABLE(elsi_test_c ${ctest_src})
   add_test_target(elsi_test_c)
+  SET_TARGET_PROPERTIES(elsi_test_c
+    PROPERTIES LINKER_LANGUAGE C)
 ENDIF()
 
 ### Test matrices ###
