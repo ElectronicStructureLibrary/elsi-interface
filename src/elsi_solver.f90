@@ -60,7 +60,7 @@ module ELSI_SOLVER
    use ELSI_PRECISION,  only: r8,i4
    use ELSI_SETUP,      only: elsi_set_blacs
    use ELSI_SIPS,       only: elsi_init_sips,elsi_solve_evp_sips_real
-   use ELSI_TIMINGS,    only: elsi_get_time, elsi_add_timing
+   use ELSI_TIMINGS,    only: elsi_get_time,elsi_add_timing
    use ELSI_UTILS,      only: elsi_check,elsi_check_handle,elsi_ready_handle,&
                               elsi_get_solver_tag,elsi_get_datetime_rfc3339
    use MATRIXSWITCH,    only: m_allocate
