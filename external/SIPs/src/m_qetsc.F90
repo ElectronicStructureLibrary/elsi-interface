@@ -267,17 +267,16 @@ CONTAINS
 
     END SUBROUTINE
 
-    SUBROUTINE sips_load_ham(global_size,local_size,local_nnz,col_idx,row_ptr,&
-                   ham_val)
+    SUBROUTINE sips_load_ham(ncol_g,ncol_l,nnz_l,col_idx,row_ptr,ham_val)
 
         IMPLICIT NONE
 
-        PetscInt,  INTENT(IN)    :: global_size           ! Global size of H
-        PetscInt,  INTENT(IN)    :: local_size            ! Local size
-        PetscInt,  INTENT(IN)    :: local_nnz             ! Local non-zeros
-        PetscInt,  INTENT(INOUT) :: col_idx(local_nnz)    ! Column index
-        PetscInt,  INTENT(INOUT) :: row_ptr(local_size+1) ! Row pointer
-        PetscReal, INTENT(IN)    :: ham_val(local_nnz)    ! Non-zero values
+        PetscInt,  INTENT(IN)    :: ncol_g            ! Global size of H
+        PetscInt,  INTENT(IN)    :: ncol_l            ! Local size
+        PetscInt,  INTENT(IN)    :: nnz_l             ! Local non-zeros
+        PetscInt,  INTENT(INOUT) :: col_idx(nnz_l)    ! Column index
+        PetscInt,  INTENT(INOUT) :: row_ptr(ncol_l+1) ! Row pointer
+        PetscReal, INTENT(IN)    :: ham_val(nnz_l)    ! Non-zero values
 
         PetscInt :: i
         PetscInt :: k
@@ -292,8 +291,7 @@ CONTAINS
         CALL MatCreate(PETSC_COMM_WORLD,math,ierr)
         CHKERRQ(ierr)
 
-        CALL MatSetSizes(math,local_size,local_size,global_size,global_size,&
-                 ierr)
+        CALL MatSetSizes(math,ncol_l,ncol_l,ncol_g,ncol_g,ierr)
         CHKERRQ(ierr)
 
         CALL MatSetFromOptions(math,ierr)
@@ -333,17 +331,16 @@ CONTAINS
 
     END SUBROUTINE
 
-    SUBROUTINE sips_update_ham(global_size,local_size,local_nnz,col_idx,&
-                   row_ptr,ham_val)
+    SUBROUTINE sips_update_ham(ncol_g,ncol_l,nnz_l,col_idx,row_ptr,ham_val)
 
         IMPLICIT NONE
 
-        PetscInt,  INTENT(IN)    :: global_size           ! Global size of H
-        PetscInt,  INTENT(IN)    :: local_size            ! Local size
-        PetscInt,  INTENT(IN)    :: local_nnz             ! Local non-zeros
-        PetscInt,  INTENT(INOUT) :: col_idx(local_nnz)    ! Column index
-        PetscInt,  INTENT(INOUT) :: row_ptr(local_size+1) ! Row pointer
-        PetscReal, INTENT(IN)    :: ham_val(local_nnz)    ! Non-zero values
+        PetscInt,  INTENT(IN)    :: ncol_g            ! Global size of H
+        PetscInt,  INTENT(IN)    :: ncol_l            ! Local size
+        PetscInt,  INTENT(IN)    :: nnz_l             ! Local non-zeros
+        PetscInt,  INTENT(INOUT) :: col_idx(nnz_l)    ! Column index
+        PetscInt,  INTENT(INOUT) :: row_ptr(ncol_l+1) ! Row pointer
+        PetscReal, INTENT(IN)    :: ham_val(nnz_l)    ! Non-zero values
 
         PetscInt       :: i
         PetscInt       :: k
@@ -394,18 +391,18 @@ CONTAINS
 
     END SUBROUTINE
 
-    SUBROUTINE sips_load_ham_ovlp(global_size,local_size,local_nnz,col_idx,&
-                   row_ptr,ham_val,ovlp_val)
+    SUBROUTINE sips_load_ham_ovlp(ncol_g,ncol_l,nnz_l,col_idx,row_ptr,ham_val,&
+                   ovlp_val)
 
         IMPLICIT NONE
 
-        PetscInt,  INTENT(IN)    :: global_size           ! Global size of H
-        PetscInt,  INTENT(IN)    :: local_size            ! Local size
-        PetscInt,  INTENT(IN)    :: local_nnz             ! Local non-zeros
-        PetscInt,  INTENT(INOUT) :: col_idx(local_nnz)    ! Column index
-        PetscInt,  INTENT(INOUT) :: row_ptr(local_size+1) ! Row pointer
-        PetscReal, INTENT(IN)    :: ham_val(local_nnz)    ! Non-zero values
-        PetscReal, INTENT(IN)    :: ovlp_val(local_nnz)   ! Non-zero values
+        PetscInt,  INTENT(IN)    :: ncol_g            ! Global size of H
+        PetscInt,  INTENT(IN)    :: ncol_l            ! Local size
+        PetscInt,  INTENT(IN)    :: nnz_l             ! Local non-zeros
+        PetscInt,  INTENT(INOUT) :: col_idx(nnz_l)    ! Column index
+        PetscInt,  INTENT(INOUT) :: row_ptr(ncol_l+1) ! Row pointer
+        PetscReal, INTENT(IN)    :: ham_val(nnz_l)    ! Non-zero values
+        PetscReal, INTENT(IN)    :: ovlp_val(nnz_l)   ! Non-zero values
 
         PetscInt       :: istart ! Local start point
         PetscInt       :: iend   ! Local end point
@@ -426,8 +423,7 @@ CONTAINS
             CALL MatCreate(PETSC_COMM_WORLD,mats,ierr)
             CHKERRQ(ierr)
 
-            CALL MatSetSizes(mats,local_size,local_size,global_size,&
-                     global_size,ierr)
+            CALL MatSetSizes(mats,ncol_l,ncol_l,ncol_g,ncol_g,ierr)
             CHKERRQ(ierr)
 
             CALL MatSetFromOptions(mats,ierr)
@@ -927,16 +923,17 @@ CONTAINS
 
     END SUBROUTINE
 
-    SUBROUTINE sips_get_dm(local_size,local_nnz,col_idx,row_ptr,occ,dm_val)
+    SUBROUTINE sips_get_dm(ncol_l,nnz_l,col_idx,row_ptr,nev,occ,dm_val)
 
         IMPLICIT NONE
 
-        PetscInt,  INTENT(IN)  :: local_size            ! Local size
-        PetscInt,  INTENT(IN)  :: local_nnz             ! Local non-zeros
-        PetscInt,  INTENT(IN)  :: col_idx(local_nnz)    ! Column index
-        PetscInt,  INTENT(IN)  :: row_ptr(local_size+1) ! Row pointer
-        PetscReal, INTENT(IN)  :: occ(nev)              ! Occupation numbers
-        PetscReal, INTENT(OUT) :: dm_val(local_nnz)     ! Non-zero values
+        PetscInt,  INTENT(IN)    :: ncol_l            ! Local size
+        PetscInt,  INTENT(IN)    :: nnz_l             ! Local non-zeros
+        PetscInt,  INTENT(INOUT) :: col_idx(nnz_l)    ! Column index
+        PetscInt,  INTENT(INOUT) :: row_ptr(ncol_l+1) ! Row pointer
+        PetscInt,  INTENT(IN)    :: nev               ! Number of eigenvalues
+        PetscReal, INTENT(IN)    :: occ(nev)          ! Occupation numbers
+        PetscReal, INTENT(OUT)   :: dm_val(nnz_l)     ! Non-zero values
 
         PetscInt           :: i
         PetscInt           :: j
@@ -944,7 +941,6 @@ CONTAINS
         PetscInt           :: i_val
         PetscInt           :: nnz_this_row
         PetscReal          :: tmp
-        PetscInt           :: nnz_this_row
         PetscReal, POINTER :: vec_tmp(:)
         PetscInt,  SAVE    :: counter = i0
 
@@ -967,7 +963,7 @@ CONTAINS
             CHKERRQ(ierr)
 
             CALL VecScatterBegin(ctx,xr,xrseq,INSERT_VALUES,SCATTER_FORWARD,&
-                    ierr)
+                     ierr)
             CHKERRQ(ierr)
 
             CALL VecScatterEnd(ctx,xr,xrseq,INSERT_VALUES,SCATTER_FORWARD,ierr)
@@ -995,16 +991,17 @@ CONTAINS
 
     END SUBROUTINE
 
-    SUBROUTINE sips_get_edm(local_size,local_nnz,col_idx,row_ptr,occ,edm_val)
+    SUBROUTINE sips_get_edm(ncol_l,nnz_l,col_idx,row_ptr,nev,occ,edm_val)
 
         IMPLICIT NONE
 
-        PetscInt,  INTENT(IN)  :: local_size            ! Local size
-        PetscInt,  INTENT(IN)  :: local_nnz             ! Local non-zeros
-        PetscInt,  INTENT(IN)  :: col_idx(local_nnz)    ! Column index
-        PetscInt,  INTENT(IN)  :: row_ptr(local_size+1) ! Row pointer
-        PetscReal, INTENT(IN)  :: occ(nev)              ! Occupation numbers
-        PetscReal, INTENT(OUT) :: edm_val(local_nnz)    ! Non-zero values
+        PetscInt,  INTENT(IN)    :: ncol_l            ! Local size
+        PetscInt,  INTENT(IN)    :: nnz_l             ! Local non-zeros
+        PetscInt,  INTENT(INOUT) :: col_idx(nnz_l)    ! Column index
+        PetscInt,  INTENT(INOUT) :: row_ptr(ncol_l+1) ! Row pointer
+        PetscInt,  INTENT(IN)    :: nev               ! Number of eigenvalues
+        PetscReal, INTENT(IN)    :: occ(nev)          ! Occupation numbers
+        PetscReal, INTENT(OUT)   :: edm_val(nnz_l)    ! Non-zero values
 
         PetscInt           :: i
         PetscInt           :: j
@@ -1023,11 +1020,11 @@ CONTAINS
 
         DO i = 1,nev
             CALL EPSGetEigenpair(eps,i-1,tmp,PETSC_NULL_REAL,xr,PETSC_NULL_VEC,&
-                    ierr)
+                     ierr)
             CHKERRQ(ierr)
 
             CALL VecScatterBegin(ctx,xr,xrseq,INSERT_VALUES,SCATTER_FORWARD,&
-                    ierr)
+                     ierr)
             CHKERRQ(ierr)
 
             CALL VecScatterEnd(ctx,xr,xrseq,INSERT_VALUES,SCATTER_FORWARD,ierr)
