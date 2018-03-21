@@ -50,10 +50,10 @@ function c_string_to_f_string(string_c) result(string_f)
 
    implicit none
 
-   character(kind=c_char,len=1), dimension(*), intent(in) :: string_c
-   character(len=:), allocatable                          :: string_f
+   character(kind=c_char,len=1), intent(in) :: string_c(*)
+   character(len=:), allocatable            :: string_f
 
-   integer :: string_f_len
+   integer(kind=c_int) :: string_f_len
 
    string_f_len = 0
 
@@ -63,6 +63,7 @@ function c_string_to_f_string(string_c) result(string_f)
    enddo
 
    allocate(character(len=string_f_len) :: string_f)
+
    string_f = transfer(string_c(1:string_f_len),string_f)
 
 end function

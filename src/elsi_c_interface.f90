@@ -1367,12 +1367,12 @@ subroutine elsi_read_mat_dim_c_wrapper(handle_c,name_c,n_electrons,n_basis,&
 
    implicit none
 
-   type(c_ptr), value, intent(in)               :: handle_c
-   character(kind=c_char,len=1), dimension(128) :: name_c
-   real(c_double),     intent(out)              :: n_electrons
-   integer(c_int),     intent(out)              :: n_basis
-   integer(c_int),     intent(out)              :: n_lrow
-   integer(c_int),     intent(out)              :: n_lcol
+   type(c_ptr), value,  intent(in)  :: handle_c
+   character(kind=c_char,len=1)     :: name_c(128)
+   real(kind=c_double), intent(out) :: n_electrons
+   integer(kind=c_int), intent(out) :: n_basis
+   integer(kind=c_int), intent(out) :: n_lrow
+   integer(kind=c_int), intent(out) :: n_lcol
 
    type(elsi_rw_handle), pointer :: handle_f
 
@@ -1392,13 +1392,13 @@ subroutine elsi_read_mat_dim_sparse_c_wrapper(handle_c,name_c,n_electrons,&
 
    implicit none
 
-   type(c_ptr), value, intent(in)               :: handle_c
-   character(kind=c_char,len=1), dimension(128) :: name_c
-   real(c_double),     intent(out)              :: n_electrons
-   integer(c_int),     intent(out)              :: n_basis
-   integer(c_int),     intent(out)              :: nnz_g
-   integer(c_int),     intent(out)              :: nnz_l
-   integer(c_int),     intent(out)              :: n_lcol
+   type(c_ptr), value,  intent(in)  :: handle_c
+   character(kind=c_char,len=1)     :: name_c(128)
+   real(kind=c_double), intent(out) :: n_electrons
+   integer(kind=c_int), intent(out) :: n_basis
+   integer(kind=c_int), intent(out) :: nnz_g
+   integer(kind=c_int), intent(out) :: nnz_l
+   integer(kind=c_int), intent(out) :: n_lcol
 
    type(elsi_rw_handle), pointer :: handle_f
 
@@ -1418,9 +1418,9 @@ subroutine elsi_read_mat_real_c_wrapper(handle_c,name_c,mat_c)&
 
    implicit none
 
-   type(c_ptr), value, intent(in)               :: handle_c
-   character(kind=c_char,len=1), dimension(128) :: name_c
-   type(c_ptr), value, intent(in)               :: mat_c
+   type(c_ptr), value, intent(in) :: handle_c
+   character(kind=c_char,len=1)   :: name_c(128)
+   type(c_ptr), value, intent(in) :: mat_c
 
    type(elsi_rw_handle), pointer :: handle_f
    real(kind=c_double),  pointer :: mat_f(:,:)
@@ -1449,11 +1449,11 @@ subroutine elsi_read_mat_real_sparse_c_wrapper(handle_c,name_c,row_ind_c,&
 
    implicit none
 
-   type(c_ptr), value, intent(in)               :: handle_c
-   character(kind=c_char,len=1), dimension(128) :: name_c
-   type(c_ptr), value, intent(in)               :: row_ind_c
-   type(c_ptr), value, intent(in)               :: col_ptr_c
-   type(c_ptr), value, intent(in)               :: mat_c
+   type(c_ptr), value, intent(in) :: handle_c
+   character(kind=c_char,len=1)   :: name_c(128)
+   type(c_ptr), value, intent(in) :: row_ind_c
+   type(c_ptr), value, intent(in) :: col_ptr_c
+   type(c_ptr), value, intent(in) :: mat_c
 
    type(elsi_rw_handle), pointer :: handle_f
    integer(kind=c_int),  pointer :: row_ind_f(:)
@@ -1485,9 +1485,9 @@ subroutine elsi_write_mat_real_c_wrapper(handle_c,name_c,mat_c)&
 
    implicit none
 
-   type(c_ptr), value, intent(in)               :: handle_c
-   character(kind=c_char,len=1), dimension(128) :: name_c
-   type(c_ptr), value, intent(in)               :: mat_c
+   type(c_ptr), value, intent(in) :: handle_c
+   character(kind=c_char,len=1)   :: name_c(128)
+   type(c_ptr), value, intent(in) :: mat_c
 
    type(elsi_rw_handle), pointer :: handle_f
    real(kind=c_double),  pointer :: mat_f(:,:)
@@ -1516,11 +1516,11 @@ subroutine elsi_write_mat_real_sparse_c_wrapper(handle_c,name_c,row_ind_c,&
 
    implicit none
 
-   type(c_ptr), value, intent(in)               :: handle_c
-   character(kind=c_char,len=1), dimension(128) :: name_c
-   type(c_ptr), value, intent(in)               :: row_ind_c
-   type(c_ptr), value, intent(in)               :: col_ptr_c
-   type(c_ptr), value, intent(in)               :: mat_c
+   type(c_ptr), value, intent(in) :: handle_c
+   character(kind=c_char,len=1)   :: name_c(128)
+   type(c_ptr), value, intent(in) :: row_ind_c
+   type(c_ptr), value, intent(in) :: col_ptr_c
+   type(c_ptr), value, intent(in) :: mat_c
 
    type(elsi_rw_handle), pointer :: handle_f
    integer(kind=c_int),  pointer :: row_ind_f(:)
@@ -1552,9 +1552,9 @@ subroutine elsi_read_mat_complex_c_wrapper(handle_c,name_c,mat_c)&
 
    implicit none
 
-   type(c_ptr), value, intent(in)               :: handle_c
-   character(kind=c_char,len=1), dimension(128) :: name_c
-   type(c_ptr), value, intent(in)               :: mat_c
+   type(c_ptr), value, intent(in) :: handle_c
+   character(kind=c_char,len=1)   :: name_c(128)
+   type(c_ptr), value, intent(in) :: mat_c
 
    type(elsi_rw_handle),   pointer :: handle_f
    complex(kind=c_double), pointer :: mat_f(:,:)
@@ -1583,11 +1583,11 @@ subroutine elsi_read_mat_complex_sparse_c_wrapper(handle_c,name_c,row_ind_c,&
 
    implicit none
 
-   type(c_ptr), value, intent(in)               :: handle_c
-   character(kind=c_char,len=1), dimension(128) :: name_c
-   type(c_ptr), value, intent(in)               :: row_ind_c
-   type(c_ptr), value, intent(in)               :: col_ptr_c
-   type(c_ptr), value, intent(in)               :: mat_c
+   type(c_ptr), value, intent(in) :: handle_c
+   character(kind=c_char,len=1)   :: name_c(128)
+   type(c_ptr), value, intent(in) :: row_ind_c
+   type(c_ptr), value, intent(in) :: col_ptr_c
+   type(c_ptr), value, intent(in) :: mat_c
 
    type(elsi_rw_handle),   pointer :: handle_f
    integer(kind=c_int),    pointer :: row_ind_f(:)
@@ -1619,9 +1619,9 @@ subroutine elsi_write_mat_complex_c_wrapper(handle_c,name_c,mat_c)&
 
    implicit none
 
-   type(c_ptr), value, intent(in)               :: handle_c
-   character(kind=c_char,len=1), dimension(128) :: name_c
-   type(c_ptr), value, intent(in)               :: mat_c
+   type(c_ptr), value, intent(in) :: handle_c
+   character(kind=c_char,len=1)   :: name_c(128)
+   type(c_ptr), value, intent(in) :: mat_c
 
    type(elsi_rw_handle),   pointer :: handle_f
    complex(kind=c_double), pointer :: mat_f(:,:)
@@ -1650,11 +1650,11 @@ subroutine elsi_write_mat_complex_sparse_c_wrapper(handle_c,name_c,row_ind_c,&
 
    implicit none
 
-   type(c_ptr), value, intent(in)               :: handle_c
-   character(kind=c_char,len=1), dimension(128) :: name_c
-   type(c_ptr), value, intent(in)               :: row_ind_c
-   type(c_ptr), value, intent(in)               :: col_ptr_c
-   type(c_ptr), value, intent(in)               :: mat_c
+   type(c_ptr), value, intent(in) :: handle_c
+   character(kind=c_char,len=1)   :: name_c(128)
+   type(c_ptr), value, intent(in) :: row_ind_c
+   type(c_ptr), value, intent(in) :: col_ptr_c
+   type(c_ptr), value, intent(in) :: mat_c
 
    type(elsi_rw_handle),   pointer :: handle_f
    integer(kind=c_int),    pointer :: row_ind_f(:)
