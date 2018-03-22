@@ -30,6 +30,8 @@ module M_QETSC
    public :: sips_solve_eps
    public :: sips_get_eigenvalues
    public :: sips_get_eigenvectors
+   public :: sips_get_dm
+   public :: sips_get_edm
 
 contains
 
@@ -53,18 +55,17 @@ subroutine sips_finalize()
 
 end subroutine
 
-subroutine sips_load_ham_ovlp(global_size,local_size,local_nnz,col_idx,row_ptr,&
-              ham_val,ovlp_val)
+subroutine sips_load_ham_ovlp(ncol_g,ncol_l,nnz_l,col_idx,row_ptr,ham,ovlp)
 
    implicit none
 
-   integer(kind=i4) :: global_size
-   integer(kind=i4) :: local_size
-   integer(kind=i4) :: local_nnz
-   integer(kind=i4) :: col_idx(local_nnz)
-   integer(kind=i4) :: row_ptr(local_size+1)
-   real(kind=r8)    :: ham_val(local_size+1)
-   real(kind=r8)    :: ovlp_val(local_size+1)
+   integer(kind=i4) :: ncol_g
+   integer(kind=i4) :: ncol_l
+   integer(kind=i4) :: nnz_l
+   integer(kind=i4) :: col_idx(nnz_l)
+   integer(kind=i4) :: row_ptr(ncol_l+1)
+   real(kind=r8)    :: ham(nnz_l)
+   real(kind=r8)    :: ovlp(nnz_l)
 
    write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
    write(*,"(A)") " Exiting..."
@@ -72,17 +73,16 @@ subroutine sips_load_ham_ovlp(global_size,local_size,local_nnz,col_idx,row_ptr,&
 
 end subroutine
 
-subroutine sips_load_ham(global_size,local_size,local_nnz,col_idx,row_ptr,&
-              ham_val)
+subroutine sips_load_ham(ncol_g,ncol_l,nnz_l,col_idx,row_ptr,ham)
 
    implicit none
 
-   integer(kind=i4) :: global_size
-   integer(kind=i4) :: local_size
-   integer(kind=i4) :: local_nnz
-   integer(kind=i4) :: col_idx(local_nnz)
-   integer(kind=i4) :: row_ptr(local_size+1)
-   real(kind=r8)    :: ham_val(local_size+1)
+   integer(kind=i4) :: ncol_g
+   integer(kind=i4) :: ncol_l
+   integer(kind=i4) :: nnz_l
+   integer(kind=i4) :: col_idx(nnz_l)
+   integer(kind=i4) :: row_ptr(ncol_l+1)
+   real(kind=r8)    :: ham(nnz_l)
 
    write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
    write(*,"(A)") " Exiting..."
@@ -90,17 +90,16 @@ subroutine sips_load_ham(global_size,local_size,local_nnz,col_idx,row_ptr,&
 
 end subroutine
 
-subroutine sips_update_ham(global_size,local_size,local_nnz,col_idx,row_ptr,&
-              ham_val)
+subroutine sips_update_ham(ncol_g,ncol_l,nnz_l,col_idx,row_ptr,ham)
 
    implicit none
 
-   integer(kind=i4) :: global_size
-   integer(kind=i4) :: local_size
-   integer(kind=i4) :: local_nnz
-   integer(kind=i4) :: col_idx(local_nnz)
-   integer(kind=i4) :: row_ptr(local_size+1)
-   real(kind=r8)    :: ham_val(local_size+1)
+   integer(kind=i4) :: ncol_g
+   integer(kind=i4) :: ncol_l
+   integer(kind=i4) :: nnz_l
+   integer(kind=i4) :: col_idx(nnz_l)
+   integer(kind=i4) :: row_ptr(ncol_l+1)
+   real(kind=r8)    :: ham(nnz_l)
 
    write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
    write(*,"(A)") " Exiting..."
@@ -225,6 +224,42 @@ subroutine sips_get_slices_from_inertias(nev,nsub,inertias,subs)
    integer(kind=i4) :: nsub
    integer(kind=i4) :: inertias(nsub+1)
    real(kind=r8)    :: subs(nsub+1)
+
+   write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
+   write(*,"(A)") " Exiting..."
+   stop
+
+end subroutine
+
+subroutine sips_get_dm(ncol_l,nnz_l,col_idx,row_ptr,nev,occ,dm)
+
+   implicit none
+
+   integer(kind=i4) :: ncol_l
+   integer(kind=i4) :: nnz_l
+   integer(kind=i4) :: col_idx(nnz_l)
+   integer(kind=i4) :: row_ptr(ncol_l+1)
+   integer(kind=i4) :: nev
+   real(kind=r8)    :: occ(nev)
+   real(kind=r8)    :: dm(nnz_l)
+
+   write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
+   write(*,"(A)") " Exiting..."
+   stop
+
+end subroutine
+
+subroutine sips_get_edm(ncol_l,nnz_l,col_idx,row_ptr,nev,occ,edm)
+
+   implicit none
+
+   integer(kind=i4) :: ncol_l
+   integer(kind=i4) :: nnz_l
+   integer(kind=i4) :: col_idx(nnz_l)
+   integer(kind=i4) :: row_ptr(ncol_l+1)
+   integer(kind=i4) :: nev
+   real(kind=r8)    :: occ(nev)
+   real(kind=r8)    :: edm(nnz_l)
 
    write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
    write(*,"(A)") " Exiting..."
