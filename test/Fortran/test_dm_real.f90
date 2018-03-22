@@ -53,6 +53,7 @@ subroutine test_dm_real(mpi_comm,solver,h_file,s_file)
    real(kind=r8), parameter :: e_elpa  = -2622.88214509316_r8
    real(kind=r8), parameter :: e_omm   = -2622.88214509316_r8
    real(kind=r8), parameter :: e_pexsi = -2622.88194292325_r8
+   real(kind=r8), parameter :: e_sips  = -2622.88214509316_r8
    real(kind=r8), parameter :: e_dmp   = -2622.88214509316_r8
 
    call MPI_Comm_size(mpi_comm,n_proc,mpierr)
@@ -95,6 +96,16 @@ subroutine test_dm_real(mpi_comm,solver,h_file,s_file)
          write(*,'("  Now start testing  elsi_dm_real + PEXSI")')
          e_ref = e_pexsi
          e_tol = 1.0e-4_r8
+      elseif(solver == 5) then
+         write(*,'("  This test program performs the following computational steps:")')
+         write(*,*)
+         write(*,'("  1) Reads Hamiltonian and overlap matrices;")')
+         write(*,'("  2) Converts the matrices to 1D block CSC format;")')
+         write(*,'("  3) Computes the density matrix with shift-and-invert parallal")')
+         write(*,'("     spectrum transformation method.")')
+         write(*,*)
+         write(*,'("  Now start testing  elsi_dm_real + SIPs")')
+         e_ref = e_sips
       elseif(solver == 6) then
          write(*,'("  This test program performs the following computational steps:")')
          write(*,*)
@@ -164,6 +175,7 @@ subroutine test_dm_real(mpi_comm,solver,h_file,s_file)
    call elsi_set_omm_n_elpa(e_h,1)
    call elsi_set_pexsi_delta_e(e_h,80.0_r8)
    call elsi_set_pexsi_np_per_pole(e_h,2)
+   call elsi_set_sips_n_elpa(e_h,1)
 
    t1 = MPI_Wtime()
 

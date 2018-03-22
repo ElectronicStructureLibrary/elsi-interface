@@ -50,9 +50,10 @@ module ELSI_SOLVER
                               elsi_siesta_to_blacs_hs_real,&
                               elsi_siesta_to_pexsi_hs_cmplx,&
                               elsi_siesta_to_pexsi_hs_real,&
+                              elsi_sips_to_blacs_dm_real,&
+                              elsi_sips_to_blacs_ev_real,&
                               elsi_sips_to_blacs_hs_cmplx,&
-                              elsi_sips_to_blacs_hs_real,&
-                              elsi_sips_to_blacs_ev_real
+                              elsi_sips_to_blacs_hs_real
    use ELSI_MPI,        only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8
    use ELSI_OMM,        only: elsi_solve_evp_omm_real,elsi_solve_evp_omm_cmplx
    use ELSI_PEXSI,      only: elsi_init_pexsi,elsi_solve_evp_pexsi_real,&
@@ -112,7 +113,12 @@ subroutine elsi_get_energy(e_h,energy,solver)
    case(PEXSI_SOLVER)
       energy = e_h%energy_hdm*e_h%i_weight
    case(SIPS_SOLVER)
-      call elsi_stop(" SIPS not yet implemented.",e_h,caller)
+      energy = 0.0_r8
+
+      do i_state = 1,e_h%n_states_solve
+         energy = energy+e_h%i_weight*e_h%eval_elpa(i_state)*&
+                     e_h%occ_num(i_state,e_h%i_spin,e_h%i_kpt)
+      enddo
    case(DMP_SOLVER)
       energy = e_h%spin_degen*e_h%energy_hdm*e_h%i_weight
    case default
@@ -667,7 +673,8 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
                  e_h%ovlp_real_pexsi,e_h%eval_elpa)
          call elsi_compute_occ_elpa(e_h,e_h%eval_elpa)
          call elsi_compute_dm_sips_real(e_h,e_h%dm_real_pexsi)
-! TODO:  call elsi_sips_to_blacs_dm_real(e_h,dm)
+         call elsi_sips_to_blacs_dm_real(e_h,dm)
+         call elsi_get_energy(e_h,energy,SIPS_SOLVER)
 
          solver_used = SIPS_SOLVER
       endif
@@ -1089,8 +1096,7 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
       solver_used = PEXSI_SOLVER
 
       e_h%mu_ready = .true.
-   case(SIPS_SOLVER)
-      ! TODO
+   case(SIPS_SOLVER) ! TODO
       call elsi_stop(" SIPS not yet implemented.",e_h,caller)
    case(DMP_SOLVER)
       ! Set up BLACS if not done by user

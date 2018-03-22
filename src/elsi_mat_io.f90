@@ -17,8 +17,8 @@ module ELSI_MAT_IO
    use ELSI_DATATYPE,   only: elsi_handle,elsi_rw_handle
    use ELSI_IO,         only: elsi_say
    use ELSI_MALLOC,     only: elsi_allocate,elsi_deallocate
-   use ELSI_MAT_REDIST, only: elsi_pexsi_to_blacs_dm_real,&
-                              elsi_pexsi_to_blacs_dm_cmplx,&
+   use ELSI_MAT_REDIST, only: elsi_sips_to_blacs_dm_real,&
+                              elsi_sips_to_blacs_dm_cmplx,&
                               elsi_blacs_to_sips_hs_real,&
                               elsi_blacs_to_sips_hs_cmplx
    use ELSI_MPI,        only: mpi_sum,mpi_real8,mpi_complex16,mpi_integer4,&
@@ -770,12 +770,9 @@ subroutine elsi_read_mat_real_mp(rw_h,f_name,mat)
               "dm_real_pexsi",caller)
    endif
 
-   aux_h%dm_real_pexsi     = nnz_val
-   aux_h%n_elsi_calls      = 1
-   aux_h%pexsi_my_prow     = 0
-   aux_h%pexsi_np_per_pole = rw_h%n_procs
+   aux_h%dm_real_pexsi = nnz_val
 
-   call elsi_pexsi_to_blacs_dm_real(aux_h,mat)
+   call elsi_sips_to_blacs_dm_real(aux_h,mat)
 
    call elsi_deallocate(aux_h,col_ptr,"col_ptr")
    call elsi_deallocate(aux_h,row_ind,"row_ind")
@@ -989,12 +986,9 @@ subroutine elsi_read_mat_complex_mp(rw_h,f_name,mat)
               "dm_cmplx_pexsi",caller)
    endif
 
-   aux_h%dm_cmplx_pexsi    = nnz_val
-   aux_h%n_elsi_calls      = 1
-   aux_h%pexsi_my_prow     = 0
-   aux_h%pexsi_np_per_pole = rw_h%n_procs
+   aux_h%dm_cmplx_pexsi = nnz_val
 
-   call elsi_pexsi_to_blacs_dm_cmplx(aux_h,mat)
+   call elsi_sips_to_blacs_dm_cmplx(aux_h,mat)
 
    call elsi_deallocate(aux_h,col_ptr,"col_ptr")
    call elsi_deallocate(aux_h,row_ind,"row_ind")
@@ -1146,7 +1140,6 @@ subroutine elsi_write_mat_real_mp(rw_h,f_name,mat)
    aux_h%n_elsi_calls = 1
    aux_h%n_lcol_sp    = rw_h%n_basis/rw_h%n_procs
    aux_h%sips_n_elpa  = 0
-
    if(rw_h%myid == rw_h%n_procs-1) then
       aux_h%n_lcol_sp = rw_h%n_basis-(rw_h%n_procs-1)*aux_h%n_lcol_sp
    endif
