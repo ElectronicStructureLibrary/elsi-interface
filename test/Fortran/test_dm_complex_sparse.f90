@@ -37,8 +37,8 @@ subroutine test_dm_complex_sparse(mpi_comm,solver,h_file,s_file)
 
    real(kind=r8) :: n_electrons
    real(kind=r8) :: e_test = 0.0_r8
-   real(kind=r8) :: e_ref = 0.0_r8
-   real(kind=r8) :: e_tol = 0.0_r8
+   real(kind=r8) :: e_ref  = 0.0_r8
+   real(kind=r8) :: e_tol  = 0.0_r8
    real(kind=r8) :: t1
    real(kind=r8) :: t2
 
@@ -53,7 +53,7 @@ subroutine test_dm_complex_sparse(mpi_comm,solver,h_file,s_file)
    type(elsi_handle)    :: e_h
    type(elsi_rw_handle) :: rw_h
 
-   ! VY: Reference values from calculations on November 20, 2017.
+   ! Reference values from calculations on November 20, 2017.
    real(kind=r8), parameter :: e_elpa  = -2622.88214509316_r8
    real(kind=r8), parameter :: e_omm   = -2622.88214509316_r8
    real(kind=r8), parameter :: e_pexsi = -2622.88194292325_r8

@@ -43,8 +43,8 @@ subroutine test_ev_real_sparse(mpi_comm,solver,h_file,s_file)
    real(kind=r8) :: mu
    real(kind=r8) :: weight(1)
    real(kind=r8) :: e_test = 0.0_r8
-   real(kind=r8) :: e_ref = 0.0_r8
-   real(kind=r8) :: e_tol = 0.0_r8
+   real(kind=r8) :: e_ref  = 0.0_r8
+   real(kind=r8) :: e_tol  = 0.0_r8
    real(kind=r8) :: t1
    real(kind=r8) :: t2
 
@@ -60,8 +60,9 @@ subroutine test_ev_real_sparse(mpi_comm,solver,h_file,s_file)
    type(elsi_handle)    :: e_h
    type(elsi_rw_handle) :: rw_h
 
-   ! VY: Reference values from calculations on November 20, 2017.
-   real(kind=r8), parameter :: e_elpa  = -2622.88214509316_r8
+   ! Reference values from calculations on March 21, 2018.
+   real(kind=r8), parameter :: e_elpa = -2622.88214509316_r8
+   real(kind=r8), parameter :: e_sips = -2622.88214509316_r8
 
    integer(kind=i4), external :: numroc
 
@@ -87,6 +88,7 @@ subroutine test_ev_real_sparse(mpi_comm,solver,h_file,s_file)
          write(*,'("  6) Back-transforms the eigenvectors to the generalized problem.")')
          write(*,*)
          write(*,'("  Now start testing  elsi_ev_real_sparse + ELPA")')
+         e_ref = e_elpa
       elseif(solver == 5) then
          write(*,'("  This test program performs the following computational steps:")')
          write(*,*)
@@ -95,11 +97,11 @@ subroutine test_ev_real_sparse(mpi_comm,solver,h_file,s_file)
          write(*,'("     parallel spectral transformation.")')
          write(*,*)
          write(*,'("  Now start testing  elsi_ev_real_sparse + SIPs")')
+         e_ref = e_sips
+         e_tol = 1.0e-6_r8
       endif
       write(*,*)
    endif
-
-   e_ref = e_elpa
 
    ! Set up square-like processor grid
    do npcol = nint(sqrt(real(n_proc))),2,-1
@@ -152,7 +154,7 @@ subroutine test_ev_real_sparse(mpi_comm,solver,h_file,s_file)
    endif
 
    ! Initialize ELSI
-   n_states = int(n_electrons,kind=i4)
+   n_states  = int(n_electrons,kind=i4)
    weight(1) = 1.0_r8
 
    call elsi_init(e_h,solver,1,1,matrix_size,n_electrons,n_states)
@@ -161,6 +163,7 @@ subroutine test_ev_real_sparse(mpi_comm,solver,h_file,s_file)
    call elsi_set_blacs(e_h,blacs_ctxt,blk)
 
    ! Customize ELSI
+   call elsi_set_sips_n_elpa(e_h,1)
    call elsi_set_output(e_h,2)
    call elsi_set_mu_broaden_width(e_h,1.0e-6_r8)
 

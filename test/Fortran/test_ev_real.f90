@@ -38,8 +38,8 @@ subroutine test_ev_real(mpi_comm,solver,h_file,s_file)
    real(kind=r8) :: mu
    real(kind=r8) :: weight(1)
    real(kind=r8) :: e_test = 0.0_r8
-   real(kind=r8) :: e_ref = 0.0_r8
-   real(kind=r8) :: e_tol = 0.0_r8
+   real(kind=r8) :: e_ref  = 0.0_r8
+   real(kind=r8) :: e_tol  = 0.0_r8
    real(kind=r8) :: t1
    real(kind=r8) :: t2
 
@@ -54,9 +54,9 @@ subroutine test_ev_real(mpi_comm,solver,h_file,s_file)
    type(elsi_handle)    :: e_h
    type(elsi_rw_handle) :: rw_h
 
-   ! VY: Reference values from calculations on December 29, 2017.
+   ! Reference values from calculations on December 29, 2017.
    real(kind=r8), parameter :: e_elpa = -2622.88214509316_r8
-   real(kind=r8), parameter :: e_sips = -2622.88214512501_r8
+   real(kind=r8), parameter :: e_sips = -2622.88214509316_r8
 
    call MPI_Comm_size(mpi_comm,n_proc,mpierr)
    call MPI_Comm_rank(mpi_comm,myid,mpierr)
@@ -148,7 +148,7 @@ subroutine test_ev_real(mpi_comm,solver,h_file,s_file)
    endif
 
    ! Initialize ELSI
-   n_states = int(n_electrons,kind=i4)
+   n_states  = int(n_electrons,kind=i4)
    weight(1) = 1.0_r8
 
    if(n_proc == 1) then

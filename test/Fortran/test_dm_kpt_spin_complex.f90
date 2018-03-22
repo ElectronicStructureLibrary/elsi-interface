@@ -44,8 +44,8 @@ program test_dm_kpt_spin_complex
 
    real(kind=r8) :: n_electrons
    real(kind=r8) :: e_test = 0.0_r8
-   real(kind=r8) :: e_ref = 0.0_r8
-   real(kind=r8) :: e_tol = 0.0_r8
+   real(kind=r8) :: e_ref  = 0.0_r8
+   real(kind=r8) :: e_tol  = 0.0_r8
    real(kind=r8) :: t1
    real(kind=r8) :: t2
 
@@ -63,7 +63,7 @@ program test_dm_kpt_spin_complex
 
    real(kind=r8), parameter :: k_weights(2) = 0.5_r8
 
-   ! VY: Reference values from calculations on November 20, 2017.
+   ! Reference values from calculations on November 20, 2017.
    real(kind=r8), parameter :: e_elpa  = -2622.88214509316_r8
    real(kind=r8), parameter :: e_omm   = -2622.88214509316_r8
    real(kind=r8), parameter :: e_pexsi = -2622.88194292325_r8

@@ -184,6 +184,7 @@ subroutine elsi_ev_real(e_h,ham,ovlp,eval,evec)
    case(PEXSI_SOLVER)
       call elsi_stop(" PEXSI is not an eigensolver.",e_h,caller)
    case(SIPS_SOLVER)
+      ! Compute eigenvalue distribution by ELPA
       if(e_h%n_elsi_calls <= e_h%sips_n_elpa) then
          if(e_h%n_elsi_calls == 1) then
             ! Overlap will be destroyed by Cholesky
@@ -191,8 +192,6 @@ subroutine elsi_ev_real(e_h,ham,ovlp,eval,evec)
                     "ovlp_real_copy",caller)
             e_h%ovlp_real_copy = ovlp
          endif
-
-         ! Compute eigenvalue distribution by ELPA
 
          ! Solve
          call elsi_solve_evp_elpa_real(e_h,ham,ovlp,eval,evec)
@@ -344,8 +343,46 @@ subroutine elsi_ev_real_sparse(e_h,ham,ovlp,eval,evec)
       call elsi_stop(" LIBOMM is not an eigensolver.",e_h,caller)
    case(PEXSI_SOLVER)
       call elsi_stop(" PEXSI is not an eigensolver.",e_h,caller)
-   case(SIPS_SOLVER) ! TODO
-      call elsi_stop(" SIPS not yet implemented.",e_h,caller)
+   case(SIPS_SOLVER)
+      ! Compute eigenvalue distribution by ELPA
+      if(e_h%n_elsi_calls <= e_h%sips_n_elpa) then
+         select case(e_h%matrix_format)
+         case(PEXSI_CSC)
+            call elsi_sips_to_blacs_hs_real(e_h,ham,ovlp)
+         case(SIESTA_CSC)
+            call elsi_siesta_to_blacs_hs_real(e_h,ham,ovlp)
+         case default
+            call elsi_stop(" Unsupported matrix format.",e_h,caller)
+         end select
+
+         call elsi_solve_evp_elpa_real(e_h,e_h%ham_real_elpa,&
+                 e_h%ovlp_real_elpa,eval,evec)
+
+         solver_used = ELPA_SOLVER
+      else ! ELPA is done
+         ! ELPA matrices are no longer needed
+         if(allocated(e_h%ham_real_elpa)) then
+            call elsi_deallocate(e_h,e_h%ham_real_elpa,"ham_real_elpa")
+         endif
+         if(allocated(e_h%ovlp_real_elpa)) then
+            call elsi_deallocate(e_h,e_h%ovlp_real_elpa,"ovlp_real_elpa")
+         endif
+
+         call elsi_init_sips(e_h)
+
+         select case(e_h%matrix_format)
+         case(PEXSI_CSC)
+            call elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
+! TODO
+!         case(SIESTA_CSC)
+         case default
+            call elsi_stop(" Unsupported matrix format.",e_h,caller)
+         end select
+
+         call elsi_sips_to_blacs_ev_real(e_h,evec)
+
+         solver_used = SIPS_SOLVER
+      endif
    case(DMP_SOLVER)
       call elsi_stop(" DMP is not an eigensolver.",e_h,caller)
    case default
