@@ -191,7 +191,6 @@ subroutine elsi_ev_real(e_h,ham,ovlp,eval,evec)
    case(PEXSI_SOLVER)
       call elsi_stop(" PEXSI is not an eigensolver.",e_h,caller)
    case(SIPS_SOLVER)
-      ! Compute eigenvalue distribution by ELPA
       if(e_h%n_elsi_calls <= e_h%sips_n_elpa) then
          if(e_h%n_elsi_calls == 1) then
             ! Overlap will be destroyed by Cholesky
@@ -351,7 +350,6 @@ subroutine elsi_ev_real_sparse(e_h,ham,ovlp,eval,evec)
    case(PEXSI_SOLVER)
       call elsi_stop(" PEXSI is not an eigensolver.",e_h,caller)
    case(SIPS_SOLVER)
-      ! Compute eigenvalue distribution by ELPA
       if(e_h%n_elsi_calls <= e_h%sips_n_elpa) then
          select case(e_h%matrix_format)
          case(PEXSI_CSC)
@@ -547,7 +545,6 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
             e_h%ovlp_real_copy = ovlp
          endif
 
-         ! Compute libOMM initial guess by ELPA
          if(.not. allocated(e_h%eval_elpa)) then
             call elsi_allocate(e_h,e_h%eval_elpa,e_h%n_basis,"eval_elpa",caller)
          endif
@@ -634,7 +631,6 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
                  "evec_real_elpa",caller)
       endif
 
-      ! Compute eigenvalue distribution by ELPA
       if(e_h%n_elsi_calls <= e_h%sips_n_elpa) then
          if(e_h%n_elsi_calls == 1) then
             ! Overlap will be destroyed by Cholesky
@@ -785,7 +781,6 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
             e_h%ovlp_cmplx_copy = ovlp
          endif
 
-         ! Compute libOMM initial guess by ELPA
          if(.not. allocated(e_h%eval_elpa)) then
             call elsi_allocate(e_h,e_h%eval_elpa,e_h%n_basis,"eval_elpa",caller)
          endif
@@ -986,7 +981,6 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
             e_h%ovlp_real_copy = e_h%ovlp_real_elpa
          endif
 
-         ! Compute libOMM initial guess by ELPA
          if(.not. allocated(e_h%eval_elpa)) then
             call elsi_allocate(e_h,e_h%eval_elpa,e_h%n_basis,"eval_elpa",caller)
          endif
@@ -1096,8 +1090,82 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
       solver_used = PEXSI_SOLVER
 
       e_h%mu_ready = .true.
-   case(SIPS_SOLVER) ! TODO
-      call elsi_stop(" SIPS not yet implemented.",e_h,caller)
+   case(SIPS_SOLVER)
+      if(e_h%n_elsi_calls <= e_h%sips_n_elpa) then
+         ! Set up BLACS if not done by user
+         if(.not. e_h%blacs_ready) then
+            call elsi_init_blacs(e_h)
+         endif
+
+         select case(e_h%matrix_format)
+         case(PEXSI_CSC)
+            call elsi_sips_to_blacs_hs_real(e_h,ham,ovlp)
+         case(SIESTA_CSC)
+            call elsi_siesta_to_blacs_hs_real(e_h,ham,ovlp)
+         case default
+            call elsi_stop(" Unsupported matrix format.",e_h,caller)
+         end select
+
+         if(.not. allocated(e_h%eval_elpa)) then
+            call elsi_allocate(e_h,e_h%eval_elpa,e_h%n_basis,"eval_elpa",caller)
+         endif
+         if(.not. allocated(e_h%evec_real_elpa)) then
+            call elsi_allocate(e_h,e_h%evec_real_elpa,e_h%n_lrow,e_h%n_lcol,&
+                    "evec_real_elpa",caller)
+         endif
+         if(.not. allocated(e_h%dm_real_elpa)) then
+            call elsi_allocate(e_h,e_h%dm_real_elpa,e_h%n_lrow,e_h%n_lcol,&
+                    "dm_real_elpa",caller)
+         endif
+
+         call elsi_solve_evp_elpa_real(e_h,e_h%ham_real_elpa,e_h%ovlp_real_elpa,&
+                 e_h%eval_elpa,e_h%evec_real_elpa)
+         call elsi_compute_occ_elpa(e_h,e_h%eval_elpa)
+         call elsi_compute_dm_elpa_real(e_h,e_h%evec_real_elpa,e_h%dm_real_elpa,&
+                 e_h%ham_real_elpa)
+
+         select case(e_h%matrix_format)
+         case(PEXSI_CSC)
+            call elsi_blacs_to_sips_dm_real(e_h,dm)
+         case(SIESTA_CSC)
+            call elsi_blacs_to_siesta_dm_real(e_h,dm)
+         case default
+            call elsi_stop(" Unsupported matrix format.",e_h,caller)
+         end select
+
+         call elsi_get_energy(e_h,energy,ELPA_SOLVER)
+
+         solver_used = ELPA_SOLVER
+      else ! ELPA is done
+         ! ELPA matrices are no longer needed
+         if(allocated(e_h%ham_real_elpa)) then
+            call elsi_deallocate(e_h,e_h%ham_real_elpa,"ham_real_elpa")
+         endif
+         if(allocated(e_h%ovlp_real_elpa)) then
+            call elsi_deallocate(e_h,e_h%ovlp_real_elpa,"ovlp_real_elpa")
+         endif
+         if(allocated(e_h%dm_real_elpa)) then
+            call elsi_deallocate(e_h,e_h%dm_real_elpa,"dm_real_elpa")
+         endif
+
+         call elsi_init_sips(e_h)
+
+         select case(e_h%matrix_format)
+         case(PEXSI_CSC)
+            call elsi_solve_evp_sips_real(e_h,ham,ovlp,e_h%eval_elpa)
+            call elsi_compute_occ_elpa(e_h,e_h%eval_elpa)
+            call elsi_compute_dm_sips_real(e_h,dm)
+            call elsi_get_energy(e_h,energy,SIPS_SOLVER)
+! TODO:  case(SIESTA_CSC)
+         case default
+            call elsi_stop(" Unsupported matrix format.",e_h,caller)
+         end select
+
+         solver_used = SIPS_SOLVER
+      endif
+
+      e_h%mu_ready = .true.
+      e_h%ts_ready = .true.
    case(DMP_SOLVER)
       ! Set up BLACS if not done by user
       if(.not. e_h%blacs_ready) then

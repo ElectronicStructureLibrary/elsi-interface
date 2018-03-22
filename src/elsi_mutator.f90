@@ -23,13 +23,15 @@ module ELSI_MUTATOR
                               elsi_pexsi_to_blacs_dm_cmplx,&
                               elsi_pexsi_to_blacs_dm_real,&
                               elsi_pexsi_to_siesta_dm_cmplx,&
-                              elsi_pexsi_to_siesta_dm_real
+                              elsi_pexsi_to_siesta_dm_real,&
+                              elsi_sips_to_blacs_dm_real
    use ELSI_MPI,        only: elsi_stop
    use ELSI_OMM,        only: elsi_compute_edm_omm_real,&
                               elsi_compute_edm_omm_cmplx
    use ELSI_PEXSI,      only: elsi_compute_edm_pexsi_real,&
                               elsi_compute_edm_pexsi_cmplx
    use ELSI_PRECISION,  only: r8,i4
+   use ELSI_SIPS,       only: elsi_compute_edm_sips_real
    use ELSI_UTILS,      only: elsi_check_handle
 
    implicit none
@@ -1387,11 +1389,25 @@ subroutine elsi_get_edm_real(e_h,edm)
    type(elsi_handle), intent(inout) :: e_h                        !< Handle
    real(kind=r8),     intent(out)   :: edm(e_h%n_lrow,e_h%n_lcol) !< Energy density matrix
 
+   integer(kind=i4) :: solver_save
+
    real(kind=r8), allocatable :: tmp_real(:,:)
 
    character(len=40), parameter :: caller = "elsi_get_edm_real"
 
    call elsi_check_handle(e_h,caller)
+
+   solver_save = e_h%solver
+
+   if(e_h%solver == OMM_SOLVER .and. e_h%n_elsi_calls <= e_h%omm_n_elpa) then
+      solver_save = OMM_SOLVER
+      e_h%solver  = ELPA_SOLVER
+   endif
+
+   if(e_h%solver == SIPS_SOLVER .and. e_h%n_elsi_calls <= e_h%sips_n_elpa) then
+      solver_save = SIPS_SOLVER
+      e_h%solver  = ELPA_SOLVER
+   endif
 
    if(e_h%edm_ready_real) then
       select case(e_h%solver)
@@ -1402,20 +1418,13 @@ subroutine elsi_get_edm_real(e_h,edm)
                  edm,tmp_real)
          call elsi_deallocate(e_h,tmp_real,"tmp_real")
       case(OMM_SOLVER)
-         if(e_h%n_elsi_calls > e_h%omm_n_elpa) then
-            call elsi_compute_edm_omm_real(e_h,edm)
-         else
-            call elsi_allocate(e_h,tmp_real,e_h%n_lrow,e_h%n_lcol,"tmp_real",&
-                    caller)
-            call elsi_compute_edm_elpa_real(e_h,e_h%eval_elpa,&
-                    e_h%evec_real_elpa,edm,tmp_real)
-            call elsi_deallocate(e_h,tmp_real,"tmp_real")
-         endif
+         call elsi_compute_edm_omm_real(e_h,edm)
       case(PEXSI_SOLVER)
          call elsi_compute_edm_pexsi_real(e_h,e_h%dm_real_pexsi)
          call elsi_pexsi_to_blacs_dm_real(e_h,edm)
       case(SIPS_SOLVER)
-         call elsi_stop(" SIPS not yet implemented.",e_h,caller)
+         call elsi_compute_edm_sips_real(e_h,e_h%dm_real_pexsi)
+         call elsi_sips_to_blacs_dm_real(e_h,edm)
       case(DMP_SOLVER)
          call elsi_stop(" DMP not yet implemented.",e_h,caller)
       case default
@@ -1426,6 +1435,8 @@ subroutine elsi_get_edm_real(e_h,edm)
    else
       call elsi_stop(" Energy-weighted density matrix not computed.",e_h,caller)
    endif
+
+   e_h%solver = solver_save
 
 end subroutine
 
@@ -1439,11 +1450,25 @@ subroutine elsi_get_edm_real_sparse(e_h,edm)
    type(elsi_handle), intent(inout) :: e_h               !< Handle
    real(kind=r8),     intent(out)   :: edm(e_h%nnz_l_sp) !< Energy density matrix
 
+   integer(kind=i4) :: solver_save
+
    real(kind=r8), allocatable :: tmp_real(:,:)
 
    character(len=40), parameter :: caller = "elsi_get_edm_real_sparse"
 
    call elsi_check_handle(e_h,caller)
+
+   solver_save = e_h%solver
+
+   if(e_h%solver == OMM_SOLVER .and. e_h%n_elsi_calls <= e_h%omm_n_elpa) then
+      solver_save = OMM_SOLVER
+      e_h%solver  = ELPA_SOLVER
+   endif
+
+   if(e_h%solver == SIPS_SOLVER .and. e_h%n_elsi_calls <= e_h%sips_n_elpa) then
+      solver_save = SIPS_SOLVER
+      e_h%solver  = ELPA_SOLVER
+   endif
 
    if(e_h%edm_ready_real) then
       select case(e_h%solver)
@@ -1463,15 +1488,7 @@ subroutine elsi_get_edm_real_sparse(e_h,edm)
             call elsi_stop(" Unsupported matrix format.",e_h,caller)
          end select
       case(OMM_SOLVER)
-         if(e_h%n_elsi_calls > e_h%omm_n_elpa) then
-            call elsi_compute_edm_omm_real(e_h,e_h%dm_real_elpa)
-         else
-            call elsi_allocate(e_h,tmp_real,e_h%n_lrow,e_h%n_lcol,"tmp_real",&
-                    caller)
-            call elsi_compute_edm_elpa_real(e_h,e_h%eval_elpa,&
-                    e_h%evec_real_elpa,e_h%dm_real_elpa,tmp_real)
-            call elsi_deallocate(e_h,tmp_real,"tmp_real")
-         endif
+         call elsi_compute_edm_omm_real(e_h,e_h%dm_real_elpa)
 
          select case(e_h%matrix_format)
          case(PEXSI_CSC)
@@ -1492,7 +1509,13 @@ subroutine elsi_get_edm_real_sparse(e_h,edm)
             call elsi_stop(" Unsupported matrix format.",e_h,caller)
          end select
       case(SIPS_SOLVER)
-         call elsi_stop(" SIPS not yet implemented.",e_h,caller)
+         select case(e_h%matrix_format)
+         case(PEXSI_CSC)
+            call elsi_compute_edm_sips_real(e_h,edm)
+! TODO:  case(SIESTA_CSC)
+         case default
+            call elsi_stop(" Unsupported matrix format.",e_h,caller)
+         end select
       case(DMP_SOLVER)
          call elsi_stop(" DMP not yet implemented.",e_h,caller)
       case default
@@ -1503,6 +1526,8 @@ subroutine elsi_get_edm_real_sparse(e_h,edm)
    else
       call elsi_stop(" Energy-weighted density matrix not computed.",e_h,caller)
    endif
+
+   e_h%solver = solver_save
 
 end subroutine
 
@@ -1515,11 +1540,21 @@ subroutine elsi_get_edm_complex(e_h,edm)
 
    type(elsi_handle), intent(inout) :: e_h                        !< Handle
    complex(kind=r8),  intent(out)   :: edm(e_h%n_lrow,e_h%n_lcol) !< Energy density matrix
+
+   integer(kind=i4) :: solver_save
+
    complex(kind=r8), allocatable :: tmp_cmplx(:,:)
 
    character(len=40), parameter :: caller = "elsi_get_edm_complex"
 
    call elsi_check_handle(e_h,caller)
+
+   solver_save = e_h%solver
+
+   if(e_h%solver == OMM_SOLVER .and. e_h%n_elsi_calls <= e_h%omm_n_elpa) then
+      solver_save = OMM_SOLVER
+      e_h%solver  = ELPA_SOLVER
+   endif
 
    if(e_h%edm_ready_cmplx) then
       select case(e_h%solver)
@@ -1530,15 +1565,7 @@ subroutine elsi_get_edm_complex(e_h,edm)
                  e_h%evec_cmplx_elpa,edm,tmp_cmplx)
          call elsi_deallocate(e_h,tmp_cmplx,"tmp_cmplx")
       case(OMM_SOLVER)
-         if(e_h%n_elsi_calls > e_h%omm_n_elpa) then
-            call elsi_compute_edm_omm_cmplx(e_h,edm)
-         else
-            call elsi_allocate(e_h,tmp_cmplx,e_h%n_lrow,e_h%n_lcol,"tmp_cmplx",&
-                    caller)
-            call elsi_compute_edm_elpa_cmplx(e_h,e_h%eval_elpa,&
-                    e_h%evec_cmplx_elpa,edm,tmp_cmplx)
-            call elsi_deallocate(e_h,tmp_cmplx,"tmp_cmplx")
-         endif
+         call elsi_compute_edm_omm_cmplx(e_h,edm)
       case(PEXSI_SOLVER)
          call elsi_compute_edm_pexsi_cmplx(e_h,e_h%dm_cmplx_pexsi)
          call elsi_pexsi_to_blacs_dm_cmplx(e_h,edm)
@@ -1555,6 +1582,8 @@ subroutine elsi_get_edm_complex(e_h,edm)
       call elsi_stop(" Energy-weighted density matrix not computed.",e_h,caller)
    endif
 
+   e_h%solver = solver_save
+
 end subroutine
 
 !>
@@ -1567,11 +1596,20 @@ subroutine elsi_get_edm_complex_sparse(e_h,edm)
    type(elsi_handle), intent(inout) :: e_h               !< Handle
    complex(kind=r8),  intent(out)   :: edm(e_h%nnz_l_sp) !< Energy density matrix
 
+   integer(kind=i4) :: solver_save
+
    complex(kind=r8), allocatable :: tmp_cmplx(:,:)
 
    character(len=40), parameter :: caller = "elsi_get_edm_complex_sparse"
 
    call elsi_check_handle(e_h,caller)
+
+   solver_save = e_h%solver
+
+   if(e_h%solver == OMM_SOLVER .and. e_h%n_elsi_calls <= e_h%omm_n_elpa) then
+      solver_save = OMM_SOLVER
+      e_h%solver  = ELPA_SOLVER
+   endif
 
    if(e_h%edm_ready_cmplx) then
       select case(e_h%solver)
@@ -1591,15 +1629,7 @@ subroutine elsi_get_edm_complex_sparse(e_h,edm)
             call elsi_stop(" Unsupported matrix format.",e_h,caller)
          end select
       case(OMM_SOLVER)
-         if(e_h%n_elsi_calls > e_h%omm_n_elpa) then
-            call elsi_compute_edm_omm_cmplx(e_h,e_h%dm_cmplx_elpa)
-         else
-            call elsi_allocate(e_h,tmp_cmplx,e_h%n_lrow,e_h%n_lcol,"tmp_cmplx",&
-                    caller)
-            call elsi_compute_edm_elpa_cmplx(e_h,e_h%eval_elpa,&
-                    e_h%evec_cmplx_elpa,e_h%dm_cmplx_elpa,tmp_cmplx)
-            call elsi_deallocate(e_h,tmp_cmplx,"tmp_cmplx")
-         endif
+         call elsi_compute_edm_omm_cmplx(e_h,e_h%dm_cmplx_elpa)
 
          select case(e_h%matrix_format)
          case(PEXSI_CSC)
@@ -1631,6 +1661,8 @@ subroutine elsi_get_edm_complex_sparse(e_h,edm)
    else
       call elsi_stop(" Energy-weighted density matrix not computed.",e_h,caller)
    endif
+
+   e_h%solver = solver_save
 
 end subroutine
 
