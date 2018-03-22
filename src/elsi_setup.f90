@@ -344,34 +344,18 @@ subroutine elsi_set_csc(e_h,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)
       e_h%nnz_l_sp1  = nnz_l
       e_h%n_lcol_sp1 = n_lcol
 
-      if(e_h%solver == PEXSI_SOLVER) then
-         if(allocated(e_h%row_ind_pexsi)) then
-            call elsi_deallocate(e_h,e_h%row_ind_pexsi,"row_ind_pexsi")
-         endif
-         if(allocated(e_h%col_ptr_pexsi)) then
-            call elsi_deallocate(e_h,e_h%col_ptr_pexsi,"col_ptr_pexsi")
-         endif
-
-         call elsi_allocate(e_h,e_h%row_ind_pexsi,nnz_l,"row_ind_pexsi",caller)
-         call elsi_allocate(e_h,e_h%col_ptr_pexsi,n_lcol+1,"col_ptr_pexsi",&
-                 caller)
-
-         e_h%row_ind_pexsi = row_ind
-         e_h%col_ptr_pexsi = col_ptr
-      else
-         if(allocated(e_h%row_ind_sips)) then
-            call elsi_deallocate(e_h,e_h%row_ind_sips,"row_ind_sips")
-         endif
-         if(allocated(e_h%col_ptr_sips)) then
-            call elsi_deallocate(e_h,e_h%col_ptr_sips,"col_ptr_sips")
-         endif
-
-         call elsi_allocate(e_h,e_h%row_ind_sips,nnz_l,"row_ind_sips",caller)
-         call elsi_allocate(e_h,e_h%col_ptr_sips,n_lcol+1,"col_ptr_sips",caller)
-
-         e_h%row_ind_sips = row_ind
-         e_h%col_ptr_sips = col_ptr
+      if(allocated(e_h%row_ind_pexsi)) then
+         call elsi_deallocate(e_h,e_h%row_ind_pexsi,"row_ind_pexsi")
       endif
+      if(allocated(e_h%col_ptr_pexsi)) then
+         call elsi_deallocate(e_h,e_h%col_ptr_pexsi,"col_ptr_pexsi")
+      endif
+
+      call elsi_allocate(e_h,e_h%row_ind_pexsi,nnz_l,"row_ind_pexsi",caller)
+      call elsi_allocate(e_h,e_h%col_ptr_pexsi,n_lcol+1,"col_ptr_pexsi",caller)
+
+      e_h%row_ind_pexsi = row_ind
+      e_h%col_ptr_pexsi = col_ptr
 
       e_h%pexsi_csc_ready = .true.
    case(SIESTA_CSC)
@@ -559,38 +543,11 @@ subroutine elsi_cleanup(e_h)
    endif
 
    ! SIPs
-   if(allocated(e_h%ham_real_sips)) then
-      call elsi_deallocate(e_h,e_h%ham_real_sips,"ham_real_sips")
-   endif
-   if(allocated(e_h%ham_cmplx_sips)) then
-      call elsi_deallocate(e_h,e_h%ham_cmplx_sips,"ham_cmplx_sips")
-   endif
-   if(allocated(e_h%ovlp_real_sips)) then
-      call elsi_deallocate(e_h,e_h%ovlp_real_sips,"ovlp_real_sips")
-   endif
-   if(allocated(e_h%ovlp_cmplx_sips)) then
-      call elsi_deallocate(e_h,e_h%ovlp_cmplx_sips,"ovlp_cmplx_sips")
-   endif
-   if(allocated(e_h%eval_sips)) then
-      call elsi_deallocate(e_h,e_h%eval_sips,"eval_sips")
-   endif
    if(allocated(e_h%evec_real_sips)) then
       call elsi_deallocate(e_h,e_h%evec_real_sips,"evec_real_sips")
    endif
    if(allocated(e_h%evec_cmplx_sips)) then
       call elsi_deallocate(e_h,e_h%evec_cmplx_sips,"evec_cmplx_sips")
-   endif
-   if(allocated(e_h%dm_real_sips)) then
-      call elsi_deallocate(e_h,e_h%dm_real_sips,"dm_real_sips")
-   endif
-   if(allocated(e_h%dm_cmplx_sips)) then
-      call elsi_deallocate(e_h,e_h%dm_cmplx_sips,"dm_cmplx_sips")
-   endif
-   if(allocated(e_h%row_ind_sips)) then
-      call elsi_deallocate(e_h,e_h%row_ind_sips,"row_ind_sips")
-   endif
-   if(allocated(e_h%col_ptr_sips)) then
-      call elsi_deallocate(e_h,e_h%col_ptr_sips,"col_ptr_sips")
    endif
 
    ! DMP

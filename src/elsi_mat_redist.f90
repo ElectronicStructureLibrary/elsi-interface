@@ -44,9 +44,13 @@ module ELSI_MAT_REDIST
    public :: elsi_siesta_to_pexsi_hs_cmplx
 !   public :: elsi_siesta_to_sips_hs_real
 !   public :: elsi_siesta_to_sips_hs_cmplx
+!   public :: elsi_sips_to_blacs_dm_real
+!   public :: elsi_sips_to_blacs_dm_cmplx
    public :: elsi_sips_to_blacs_ev_real
    public :: elsi_sips_to_blacs_hs_real
    public :: elsi_sips_to_blacs_hs_cmplx
+!   public :: elsi_sips_to_siesta_dm_real
+!   public :: elsi_sips_to_siesta_dm_cmplx
 
 contains
 
@@ -1333,12 +1337,12 @@ subroutine elsi_blacs_to_sips_hs_real(e_h,ham,ovlp)
 
    ! Hamiltonian value
    if(e_h%n_elsi_calls == 1+e_h%sips_n_elpa) then
-      call elsi_allocate(e_h,e_h%ham_real_sips,e_h%nnz_l_sp,"ham_real_sips",&
+      call elsi_allocate(e_h,e_h%ham_real_pexsi,e_h%nnz_l_sp,"ham_real_pexsi",&
               caller)
    endif
 
    call MPI_Alltoallv(h_val_send_buf,send_count,send_displ,mpi_real8,&
-           e_h%ham_real_sips,recv_count,recv_displ,mpi_real8,e_h%mpi_comm,ierr)
+           e_h%ham_real_pexsi,recv_count,recv_displ,mpi_real8,e_h%mpi_comm,ierr)
 
    call elsi_check_mpi(e_h,"MPI_Alltoallv",ierr,caller)
 
@@ -1347,18 +1351,18 @@ subroutine elsi_blacs_to_sips_hs_real(e_h,ham,ovlp)
    ! Overlap value
    if(e_h%n_elsi_calls == 1+e_h%sips_n_elpa) then
       if(.not. e_h%ovlp_is_unit) then
-         call elsi_allocate(e_h,e_h%ovlp_real_sips,e_h%nnz_l_sp,&
-                 "ovlp_real_sips",caller)
+         call elsi_allocate(e_h,e_h%ovlp_real_pexsi,e_h%nnz_l_sp,&
+                 "ovlp_real_pexsi",caller)
 
          call MPI_Alltoallv(s_val_send_buf,send_count,send_displ,mpi_real8,&
-                 e_h%ovlp_real_sips,recv_count,recv_displ,mpi_real8,&
+                 e_h%ovlp_real_pexsi,recv_count,recv_displ,mpi_real8,&
                  e_h%mpi_comm,ierr)
 
          call elsi_check_mpi(e_h,"MPI_Alltoallv",ierr,caller)
 
          call elsi_deallocate(e_h,s_val_send_buf,"s_val_send_buf")
       else
-         call elsi_allocate(e_h,e_h%ovlp_real_sips,1,"dummy",caller)
+         call elsi_allocate(e_h,e_h%ovlp_real_pexsi,1,"dummy",caller)
       endif
    endif
 
@@ -1375,34 +1379,34 @@ subroutine elsi_blacs_to_sips_hs_real(e_h,ham,ovlp)
 
    ! Sort
    if(e_h%n_elsi_calls == 1+e_h%sips_n_elpa .and. .not. e_h%ovlp_is_unit) then
-      call elsi_heapsort(e_h%nnz_l_sp,global_id,e_h%ham_real_sips,&
-              e_h%ovlp_real_sips,row_recv_buf,col_recv_buf)
+      call elsi_heapsort(e_h%nnz_l_sp,global_id,e_h%ham_real_pexsi,&
+              e_h%ovlp_real_pexsi,row_recv_buf,col_recv_buf)
    else
-      call elsi_heapsort(e_h%nnz_l_sp,global_id,e_h%ham_real_sips,row_recv_buf,&
-              col_recv_buf)
+      call elsi_heapsort(e_h%nnz_l_sp,global_id,e_h%ham_real_pexsi,&
+              row_recv_buf,col_recv_buf)
    endif
 
    call elsi_deallocate(e_h,global_id,"global_id")
 
    ! Compute row index and column pointer
    if(e_h%n_elsi_calls == 1+e_h%sips_n_elpa) then
-      call elsi_allocate(e_h,e_h%row_ind_sips,e_h%nnz_l_sp,"row_ind_sips",&
+      call elsi_allocate(e_h,e_h%row_ind_pexsi,e_h%nnz_l_sp,"row_ind_pexsi",&
               caller)
 
-      call elsi_allocate(e_h,e_h%col_ptr_sips,(e_h%n_lcol_sp+1),&
-              "col_ptr_sips",caller)
+      call elsi_allocate(e_h,e_h%col_ptr_pexsi,(e_h%n_lcol_sp+1),&
+              "col_ptr_pexsi",caller)
 
       i_col = col_recv_buf(1)-1
       do i_val = 1,e_h%nnz_l_sp
-         e_h%row_ind_sips(i_val) = row_recv_buf(i_val)
+         e_h%row_ind_pexsi(i_val) = row_recv_buf(i_val)
 
          if(col_recv_buf(i_val) > i_col) then
             i_col = i_col+1
-            e_h%col_ptr_sips(i_col-col_recv_buf(1)+1) = i_val
+            e_h%col_ptr_pexsi(i_col-col_recv_buf(1)+1) = i_val
          endif
       enddo
 
-      e_h%col_ptr_sips(e_h%n_lcol_sp+1) = e_h%nnz_l_sp+1
+      e_h%col_ptr_pexsi(e_h%n_lcol_sp+1) = e_h%nnz_l_sp+1
    endif
 
    call elsi_deallocate(e_h,row_recv_buf,"row_recv_buf")
@@ -1585,13 +1589,13 @@ subroutine elsi_blacs_to_sips_hs_cmplx(e_h,ham,ovlp)
 
    ! Hamiltonian value
    if(e_h%n_elsi_calls == 1+e_h%sips_n_elpa) then
-      call elsi_allocate(e_h,e_h%ham_cmplx_sips,e_h%nnz_l_sp,"ham_cmplx_sips",&
-              caller)
+      call elsi_allocate(e_h,e_h%ham_cmplx_pexsi,e_h%nnz_l_sp,&
+              "ham_cmplx_pexsi",caller)
    endif
 
    call MPI_Alltoallv(h_val_send_buf,send_count,send_displ,mpi_complex16,&
-           e_h%ham_cmplx_sips,recv_count,recv_displ,mpi_complex16,e_h%mpi_comm,&
-           ierr)
+           e_h%ham_cmplx_pexsi,recv_count,recv_displ,mpi_complex16,&
+           e_h%mpi_comm,ierr)
 
    call elsi_check_mpi(e_h,"MPI_Alltoallv",ierr,caller)
 
@@ -1600,18 +1604,18 @@ subroutine elsi_blacs_to_sips_hs_cmplx(e_h,ham,ovlp)
    ! Overlap value
    if(e_h%n_elsi_calls == 1+e_h%sips_n_elpa) then
       if(.not. e_h%ovlp_is_unit) then
-         call elsi_allocate(e_h,e_h%ovlp_cmplx_sips,e_h%nnz_l_sp,&
-                 "ovlp_cmplx_sips",caller)
+         call elsi_allocate(e_h,e_h%ovlp_cmplx_pexsi,e_h%nnz_l_sp,&
+                 "ovlp_cmplx_pexsi",caller)
 
          call MPI_Alltoallv(s_val_send_buf,send_count,send_displ,mpi_complex16,&
-                 e_h%ovlp_cmplx_sips,recv_count,recv_displ,mpi_complex16,&
+                 e_h%ovlp_cmplx_pexsi,recv_count,recv_displ,mpi_complex16,&
                  e_h%mpi_comm,ierr)
 
          call elsi_check_mpi(e_h,"MPI_Alltoallv",ierr,caller)
 
          call elsi_deallocate(e_h,s_val_send_buf,"s_val_send_buf")
       else
-         call elsi_allocate(e_h,e_h%ovlp_cmplx_sips,1,"dummy",caller)
+         call elsi_allocate(e_h,e_h%ovlp_cmplx_pexsi,1,"dummy",caller)
       endif
    endif
 
@@ -1628,10 +1632,10 @@ subroutine elsi_blacs_to_sips_hs_cmplx(e_h,ham,ovlp)
 
    ! Sort
    if(e_h%n_elsi_calls == 1+e_h%sips_n_elpa .and. .not. e_h%ovlp_is_unit) then
-      call elsi_heapsort(e_h%nnz_l_sp,global_id,e_h%ham_cmplx_sips,&
-              e_h%ovlp_cmplx_sips,row_recv_buf,col_recv_buf)
+      call elsi_heapsort(e_h%nnz_l_sp,global_id,e_h%ham_cmplx_pexsi,&
+              e_h%ovlp_cmplx_pexsi,row_recv_buf,col_recv_buf)
    else
-      call elsi_heapsort(e_h%nnz_l_sp,global_id,e_h%ham_cmplx_sips,&
+      call elsi_heapsort(e_h%nnz_l_sp,global_id,e_h%ham_cmplx_pexsi,&
               row_recv_buf,col_recv_buf)
    endif
 
@@ -1639,23 +1643,23 @@ subroutine elsi_blacs_to_sips_hs_cmplx(e_h,ham,ovlp)
 
    ! Compute row index and column pointer
    if(e_h%n_elsi_calls == 1+e_h%sips_n_elpa) then
-      call elsi_allocate(e_h,e_h%row_ind_sips,e_h%nnz_l_sp,"row_ind_sips",&
+      call elsi_allocate(e_h,e_h%row_ind_pexsi,e_h%nnz_l_sp,"row_ind_pexsi",&
               caller)
 
-      call elsi_allocate(e_h,e_h%col_ptr_sips,(e_h%n_lcol_sp+1),&
-              "col_ptr_sips",caller)
+      call elsi_allocate(e_h,e_h%col_ptr_pexsi,(e_h%n_lcol_sp+1),&
+              "col_ptr_pexsi",caller)
 
       i_col = col_recv_buf(1)-1
       do i_val = 1,e_h%nnz_l_sp
-         e_h%row_ind_sips(i_val) = row_recv_buf(i_val)
+         e_h%row_ind_pexsi(i_val) = row_recv_buf(i_val)
 
          if(col_recv_buf(i_val) > i_col) then
             i_col = i_col+1
-            e_h%col_ptr_sips(i_col-col_recv_buf(1)+1) = i_val
+            e_h%col_ptr_pexsi(i_col-col_recv_buf(1)+1) = i_val
          endif
       enddo
 
-      e_h%col_ptr_sips(e_h%n_lcol_sp+1) = e_h%nnz_l_sp+1
+      e_h%col_ptr_pexsi(e_h%n_lcol_sp+1) = e_h%nnz_l_sp+1
    endif
 
    call elsi_deallocate(e_h,row_recv_buf,"row_recv_buf")
@@ -1728,10 +1732,10 @@ subroutine elsi_sips_to_blacs_hs_real(e_h,ham,ovlp)
    i_col = 0
    ! Compute destination and global id
    do i_val = 1,e_h%nnz_l_sp
-      if(i_val == e_h%col_ptr_sips(i_col+1) .and. i_col /= e_h%n_lcol_sp) then
+      if(i_val == e_h%col_ptr_pexsi(i_col+1) .and. i_col /= e_h%n_lcol_sp) then
          i_col = i_col+1
       endif
-      i_row = e_h%row_ind_sips(i_val)
+      i_row = e_h%row_ind_pexsi(i_val)
 
       ! Compute global id
       row_send_buf(i_val)   = i_row
@@ -1944,10 +1948,10 @@ subroutine elsi_sips_to_blacs_hs_cmplx(e_h,ham,ovlp)
    i_col = 0
    ! Compute destination and global id
    do i_val = 1,e_h%nnz_l_sp
-      if(i_val == e_h%col_ptr_sips(i_col+1) .and. i_col /= e_h%n_lcol_sp) then
+      if(i_val == e_h%col_ptr_pexsi(i_col+1) .and. i_col /= e_h%n_lcol_sp) then
          i_col = i_col+1
       endif
-      i_row = e_h%row_ind_sips(i_val)
+      i_row = e_h%row_ind_pexsi(i_val)
 
       ! Compute global id
       row_send_buf(i_val)   = i_row
@@ -2408,8 +2412,8 @@ subroutine elsi_blacs_to_sips_dm_real(e_h,dm)
       l_col_id = col_recv_buf(i_val)-(e_h%n_basis/e_h%n_procs)*e_h%myid
       l_row_id = row_recv_buf(i_val)
 
-      do j_val = e_h%col_ptr_sips(l_col_id),e_h%col_ptr_sips(l_col_id+1)-1
-         if(e_h%row_ind_sips(j_val) == l_row_id) then
+      do j_val = e_h%col_ptr_pexsi(l_col_id),e_h%col_ptr_pexsi(l_col_id+1)-1
+         if(e_h%row_ind_pexsi(j_val) == l_row_id) then
             dm(j_val) = val_recv_buf(i_val)
          endif
       enddo
@@ -2564,8 +2568,8 @@ subroutine elsi_blacs_to_sips_dm_cmplx(e_h,dm)
       l_col_id = col_recv_buf(i_val)-(e_h%n_basis/e_h%n_procs)*e_h%myid
       l_row_id = row_recv_buf(i_val)
 
-      do j_val = e_h%col_ptr_sips(l_col_id),e_h%col_ptr_sips(l_col_id+1)-1
-         if(e_h%row_ind_sips(j_val) == l_row_id) then
+      do j_val = e_h%col_ptr_pexsi(l_col_id),e_h%col_ptr_pexsi(l_col_id+1)-1
+         if(e_h%row_ind_pexsi(j_val) == l_row_id) then
             dm(j_val) = val_recv_buf(i_val)
          endif
       enddo

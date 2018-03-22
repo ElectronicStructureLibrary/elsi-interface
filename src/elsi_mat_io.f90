@@ -1184,25 +1184,25 @@ subroutine elsi_write_mat_real_mp(rw_h,f_name,mat)
            rw_h%mpi_comm,ierr)
 
    ! Shift column pointer
-   aux_h%col_ptr_sips = aux_h%col_ptr_sips+prev_nnz
+   aux_h%col_ptr_pexsi = aux_h%col_ptr_pexsi+prev_nnz
 
    ! Write column pointer
    n_lcol0 = rw_h%n_basis/rw_h%n_procs
    offset  = int(HEADER_SIZE,kind=i8)*4+rw_h%myid*n_lcol0*4
 
-   call MPI_File_write_at_all(f_handle,offset,aux_h%col_ptr_sips,&
+   call MPI_File_write_at_all(f_handle,offset,aux_h%col_ptr_pexsi,&
            aux_h%n_lcol_sp,mpi_integer4,mpi_status_ignore,ierr)
 
    ! Write row index
    offset = int(HEADER_SIZE,kind=i8)*4+rw_h%n_basis*4+prev_nnz*4
 
-   call MPI_File_write_at_all(f_handle,offset,aux_h%row_ind_sips,&
+   call MPI_File_write_at_all(f_handle,offset,aux_h%row_ind_pexsi,&
            aux_h%nnz_l_sp,mpi_integer4,mpi_status_ignore,ierr)
 
    ! Write non-zero value
    offset = int(HEADER_SIZE,kind=i8)*4+rw_h%n_basis*4+aux_h%nnz_g*4+prev_nnz*8
 
-   call MPI_File_write_at_all(f_handle,offset,aux_h%ham_real_sips,&
+   call MPI_File_write_at_all(f_handle,offset,aux_h%ham_real_pexsi,&
            aux_h%nnz_l_sp,mpi_real8,mpi_status_ignore,ierr)
 
    ! Close file
@@ -1302,25 +1302,25 @@ subroutine elsi_write_mat_complex_mp(rw_h,f_name,mat)
            rw_h%mpi_comm,ierr)
 
    ! Shift column pointer
-   aux_h%col_ptr_sips = aux_h%col_ptr_sips+prev_nnz
+   aux_h%col_ptr_pexsi = aux_h%col_ptr_pexsi+prev_nnz
 
    ! Write column pointer
    n_lcol0 = rw_h%n_basis/rw_h%n_procs
    offset  = int(HEADER_SIZE,kind=i8)*4+rw_h%myid*n_lcol0*4
 
-   call MPI_File_write_at_all(f_handle,offset,aux_h%col_ptr_sips,&
+   call MPI_File_write_at_all(f_handle,offset,aux_h%col_ptr_pexsi,&
            aux_h%n_lcol_sp,mpi_integer4,mpi_status_ignore,ierr)
 
    ! Write row index
    offset = int(HEADER_SIZE,kind=i8)*4+rw_h%n_basis*4+prev_nnz*4
 
-   call MPI_File_write_at_all(f_handle,offset,aux_h%row_ind_sips,&
+   call MPI_File_write_at_all(f_handle,offset,aux_h%row_ind_pexsi,&
            aux_h%nnz_l_sp,mpi_integer4,mpi_status_ignore,ierr)
 
    ! Write non-zero value
    offset = int(HEADER_SIZE,kind=i8)*4+rw_h%n_basis*4+aux_h%nnz_g*4+prev_nnz*16
 
-   call MPI_File_write_at_all(f_handle,offset,aux_h%ham_cmplx_sips,&
+   call MPI_File_write_at_all(f_handle,offset,aux_h%ham_cmplx_pexsi,&
            aux_h%nnz_l_sp,mpi_complex16,mpi_status_ignore,ierr)
 
    ! Close file

@@ -20,7 +20,8 @@ module ELSI_SIPS
                              sips_update_ham,sips_set_eps,sips_update_eps,&
                              sips_set_slices,sips_solve_eps,sips_get_inertias,&
                              sips_get_eigenvalues,sips_get_eigenvectors,&
-                             sips_get_slices,sips_get_slices_from_inertias
+                             sips_get_slices,sips_get_slices_from_inertias,&
+                             sips_get_dm,sips_get_edm
 
    implicit none
 
@@ -29,6 +30,8 @@ module ELSI_SIPS
    public :: elsi_set_sips_default
    public :: elsi_init_sips
    public :: elsi_solve_evp_sips_real
+   public :: elsi_compute_dm_sips_real
+   public :: elsi_compute_edm_sips_real
 
 contains
 
@@ -114,20 +117,20 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
       if(.not. e_h%ovlp_is_unit) then
          ! Load H and S
          call sips_load_ham_ovlp(e_h%n_basis,e_h%n_lcol_sp1,e_h%nnz_l_sp1,&
-                 e_h%row_ind_sips,e_h%col_ptr_sips,ham,ovlp)
+                 e_h%row_ind_pexsi,e_h%col_ptr_pexsi,ham,ovlp)
 
          call sips_set_eps(0)
       else
          ! Load H
          call sips_load_ham(e_h%n_basis,e_h%n_lcol_sp1,e_h%nnz_l_sp1,&
-                 e_h%row_ind_sips,e_h%col_ptr_sips,ham)
+                 e_h%row_ind_pexsi,e_h%col_ptr_pexsi,ham)
 
          call sips_set_eps(1)
       endif
    else ! n_elsi_calls > sips_n_elpa+1
       ! Update H matrix
       call sips_update_ham(e_h%n_basis,e_h%n_lcol_sp1,e_h%nnz_l_sp1,&
-              e_h%row_ind_sips,e_h%col_ptr_sips,ham)
+              e_h%row_ind_pexsi,e_h%col_ptr_pexsi,ham)
 
       call sips_update_eps(e_h%sips_n_slices)
    endif
@@ -274,6 +277,40 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
    call elsi_say(e_h,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
    call elsi_say(e_h,info_str)
+
+end subroutine
+
+!>
+!! This routine constructs the density matrix.
+!!
+subroutine elsi_compute_dm_sips_real(e_h,dm)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h
+   real(kind=r8),     intent(inout) :: dm(e_h%nnz_l_sp)
+
+   character(len=40), parameter :: caller = "elsi_compute_dm_sips_real"
+
+   call sips_get_dm(e_h%n_lcol_sp,e_h%nnz_l_sp,e_h%row_ind_pexsi,&
+           e_h%col_ptr_pexsi,e_h%n_states,e_h%occ_num,dm)
+
+end subroutine
+
+!>
+!! This routine constructs the energy-weighted density matrix.
+!!
+subroutine elsi_compute_edm_sips_real(e_h,edm)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h
+   real(kind=r8),     intent(inout) :: edm(e_h%nnz_l_sp)
+
+   character(len=40), parameter :: caller = "elsi_compute_edm_sips_real"
+
+   call sips_get_edm(e_h%n_lcol_sp,e_h%nnz_l_sp,e_h%row_ind_pexsi,&
+           e_h%col_ptr_pexsi,e_h%n_states,e_h%occ_num,edm)
 
 end subroutine
 

@@ -79,17 +79,8 @@ module ELSI_DATATYPE
       real(kind=r8),    allocatable :: ne_vec_pexsi(:)
 
       ! SIPs
-      real(kind=r8),    allocatable :: ham_real_sips(:)
-      complex(kind=r8), allocatable :: ham_cmplx_sips(:)
-      real(kind=r8),    allocatable :: ovlp_real_sips(:)
-      complex(kind=r8), allocatable :: ovlp_cmplx_sips(:)
-      real(kind=r8),    allocatable :: eval_sips(:)
       real(kind=r8),    allocatable :: evec_real_sips(:,:)
       complex(kind=r8), allocatable :: evec_cmplx_sips(:,:)
-      real(kind=r8),    allocatable :: dm_real_sips(:)
-      complex(kind=r8), allocatable :: dm_cmplx_sips(:)
-      integer(kind=i4), allocatable :: row_ind_sips(:)
-      integer(kind=i4), allocatable :: col_ptr_sips(:)
 
       ! DMP
       real(kind=r8),    allocatable :: ham_real_dmp(:,:)

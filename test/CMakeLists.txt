@@ -128,6 +128,9 @@ ENDIF()
 ### Parallel Fortran tests: ev + SIPs ###
 IF(ENABLE_SIPS)
   test_fortran(17 e d r 5 ${h_real} ${s_real})
+  test_fortran(18 e s r 5 ${h_real} ${s_real})
+#  test_fortran(19 d d r 5 ${h_real} ${s_real})
+#  test_fortran(20 d s r 5 ${h_real} ${s_real})
 ENDIF()
 
 ### Serial Fortran tests: ev + ELPA (LAPACK) ###

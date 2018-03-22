@@ -59,7 +59,8 @@ module ELSI_SOLVER
                               elsi_solve_evp_pexsi_cmplx
    use ELSI_PRECISION,  only: r8,i4
    use ELSI_SETUP,      only: elsi_set_blacs
-   use ELSI_SIPS,       only: elsi_init_sips,elsi_solve_evp_sips_real
+   use ELSI_SIPS,       only: elsi_init_sips,elsi_solve_evp_sips_real,&
+                              elsi_compute_dm_sips_real
    use ELSI_TIMINGS,    only: elsi_get_time,elsi_add_timing
    use ELSI_UTILS,      only: elsi_check,elsi_check_handle,elsi_ready_handle,&
                               elsi_get_solver_tag,elsi_get_datetime_rfc3339
@@ -207,8 +208,8 @@ subroutine elsi_ev_real(e_h,ham,ovlp,eval,evec)
          call elsi_init_sips(e_h)
 
          call elsi_blacs_to_sips_hs_real(e_h,ham,ovlp)
-         call elsi_solve_evp_sips_real(e_h,e_h%ham_real_sips,&
-                 e_h%ovlp_real_sips,eval)
+         call elsi_solve_evp_sips_real(e_h,e_h%ham_real_pexsi,&
+                 e_h%ovlp_real_pexsi,eval)
          call elsi_sips_to_blacs_ev_real(e_h,evec)
 
          solver_used = SIPS_SOLVER
@@ -373,8 +374,7 @@ subroutine elsi_ev_real_sparse(e_h,ham,ovlp,eval,evec)
          select case(e_h%matrix_format)
          case(PEXSI_CSC)
             call elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
-! TODO
-!         case(SIESTA_CSC)
+! TODO:  case(SIESTA_CSC)
          case default
             call elsi_stop(" Unsupported matrix format.",e_h,caller)
          end select
@@ -619,7 +619,61 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
 
       e_h%mu_ready = .true.
    case(SIPS_SOLVER)
-      call elsi_stop(" SIPS not yet implemented.",e_h,caller)
+      ! Allocate
+      if(.not. allocated(e_h%eval_elpa)) then
+         call elsi_allocate(e_h,e_h%eval_elpa,e_h%n_basis,"eval_elpa",caller)
+      endif
+      if(.not. allocated(e_h%evec_real_elpa)) then
+         call elsi_allocate(e_h,e_h%evec_real_elpa,e_h%n_lrow,e_h%n_lcol,&
+                 "evec_real_elpa",caller)
+      endif
+
+      ! Compute eigenvalue distribution by ELPA
+      if(e_h%n_elsi_calls <= e_h%sips_n_elpa) then
+         if(e_h%n_elsi_calls == 1) then
+            ! Overlap will be destroyed by Cholesky
+            call elsi_allocate(e_h,e_h%ovlp_real_copy,e_h%n_lrow,e_h%n_lcol,&
+                    "ovlp_real_copy",caller)
+            e_h%ovlp_real_copy = ovlp
+         endif
+
+         ! Solve
+         call elsi_solve_evp_elpa_real(e_h,ham,ovlp,e_h%eval_elpa,&
+                 e_h%evec_real_elpa)
+
+         call elsi_compute_occ_elpa(e_h,e_h%eval_elpa)
+         call elsi_compute_dm_elpa_real(e_h,e_h%evec_real_elpa,dm,ham)
+         call elsi_get_energy(e_h,energy,ELPA_SOLVER)
+
+         solver_used = ELPA_SOLVER
+      else ! ELPA is done
+         if(allocated(e_h%ovlp_real_copy)) then
+            ! Retrieve overlap matrix that has been destroyed by Cholesky
+            ovlp = e_h%ovlp_real_copy
+            call elsi_deallocate(e_h,e_h%ovlp_real_copy,"ovlp_real_copy")
+            call elsi_deallocate(e_h,e_h%evec_real_elpa,"evec_real_elpa")
+         endif
+
+         call elsi_init_sips(e_h)
+         call elsi_blacs_to_sips_hs_real(e_h,ham,ovlp)
+
+         if(.not. allocated(e_h%dm_real_pexsi)) then
+            call elsi_allocate(e_h,e_h%dm_real_pexsi,e_h%nnz_l_sp,&
+                    "dm_real_pexsi",caller)
+         endif
+         e_h%dm_real_pexsi = 0.0_r8
+
+         call elsi_solve_evp_sips_real(e_h,e_h%ham_real_pexsi,&
+                 e_h%ovlp_real_pexsi,e_h%eval_elpa)
+         call elsi_compute_occ_elpa(e_h,e_h%eval_elpa)
+         call elsi_compute_dm_sips_real(e_h,e_h%dm_real_pexsi)
+! TODO:  call elsi_sips_to_blacs_dm_real(e_h,dm)
+
+         solver_used = SIPS_SOLVER
+      endif
+
+      e_h%mu_ready = .true.
+      e_h%ts_ready = .true.
    case(DMP_SOLVER)
       ! Save Hamiltonian and overlap
       if(e_h%n_elsi_calls==1) then
@@ -1036,6 +1090,7 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
 
       e_h%mu_ready = .true.
    case(SIPS_SOLVER)
+      ! TODO
       call elsi_stop(" SIPS not yet implemented.",e_h,caller)
    case(DMP_SOLVER)
       ! Set up BLACS if not done by user
@@ -1442,7 +1497,6 @@ end subroutine
 
 !>
 !! This routine prints solver timing and relevant information.
-!! TODO: Clean up interface.
 !!
 subroutine elsi_print_solver_timing(e_h,output_type,data_type,start_datetime,&
               total_time,elsi_tag_in,iter,io_h_in,user_tag_in)
