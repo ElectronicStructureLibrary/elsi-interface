@@ -50,10 +50,12 @@ module ELSI_SOLVER
                               elsi_siesta_to_blacs_hs_real,&
                               elsi_siesta_to_pexsi_hs_cmplx,&
                               elsi_siesta_to_pexsi_hs_real,&
+                              elsi_siesta_to_sips_hs_real,&
                               elsi_sips_to_blacs_dm_real,&
                               elsi_sips_to_blacs_ev_real,&
                               elsi_sips_to_blacs_hs_cmplx,&
-                              elsi_sips_to_blacs_hs_real
+                              elsi_sips_to_blacs_hs_real,&
+                              elsi_sips_to_siesta_dm_real
    use ELSI_MPI,        only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8
    use ELSI_OMM,        only: elsi_solve_evp_omm_real,elsi_solve_evp_omm_cmplx
    use ELSI_PEXSI,      only: elsi_init_pexsi,elsi_solve_evp_pexsi_real,&
@@ -199,7 +201,6 @@ subroutine elsi_ev_real(e_h,ham,ovlp,eval,evec)
             e_h%ovlp_real_copy = ovlp
          endif
 
-         ! Solve
          call elsi_solve_evp_elpa_real(e_h,ham,ovlp,eval,evec)
 
          solver_used = ELPA_SOLVER
@@ -365,7 +366,6 @@ subroutine elsi_ev_real_sparse(e_h,ham,ovlp,eval,evec)
 
          solver_used = ELPA_SOLVER
       else ! ELPA is done
-         ! ELPA matrices are no longer needed
          if(allocated(e_h%ham_real_elpa)) then
             call elsi_deallocate(e_h,e_h%ham_real_elpa,"ham_real_elpa")
          endif
@@ -378,7 +378,10 @@ subroutine elsi_ev_real_sparse(e_h,ham,ovlp,eval,evec)
          select case(e_h%matrix_format)
          case(PEXSI_CSC)
             call elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
-! TODO:  case(SIESTA_CSC)
+         case(SIESTA_CSC)
+            call elsi_siesta_to_sips_hs_real(e_h,ham,ovlp)
+            call elsi_solve_evp_sips_real(e_h,e_h%ham_real_pexsi,&
+                    e_h%ovlp_real_pexsi,eval)
          case default
             call elsi_stop(" Unsupported matrix format.",e_h,caller)
          end select
@@ -505,7 +508,6 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
 
    select case(e_h%solver)
    case(ELPA_SOLVER)
-      ! Allocate
       if(.not. allocated(e_h%eval_elpa)) then
          call elsi_allocate(e_h,e_h%eval_elpa,e_h%n_basis,"eval_elpa",caller)
       endif
@@ -580,7 +582,6 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
             e_h%c_omm%dval(1:e_h%c_omm%iaux2(1),1:e_h%c_omm%iaux2(2)) = &
                dm(1:e_h%c_omm%iaux2(1),1:e_h%c_omm%iaux2(2))
 
-            ! ELPA matrices are no longer needed
             if(allocated(e_h%evec_real_elpa)) then
                call elsi_deallocate(e_h,e_h%evec_real_elpa,"evec_real_elpa")
             endif
@@ -622,7 +623,6 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
 
       e_h%mu_ready = .true.
    case(SIPS_SOLVER)
-      ! Allocate
       if(.not. allocated(e_h%eval_elpa)) then
          call elsi_allocate(e_h,e_h%eval_elpa,e_h%n_basis,"eval_elpa",caller)
       endif
@@ -639,7 +639,6 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
             e_h%ovlp_real_copy = ovlp
          endif
 
-         ! Solve
          call elsi_solve_evp_elpa_real(e_h,ham,ovlp,e_h%eval_elpa,&
                  e_h%evec_real_elpa)
 
@@ -688,7 +687,6 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
       endif
       e_h%ham_real_copy = ham
 
-      ! Solve
       call elsi_solve_evp_dmp_real(e_h,ham,ovlp,dm)
       call elsi_get_energy(e_h,energy,DMP_SOLVER)
 
@@ -817,7 +815,6 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
             e_h%c_omm%zval(1:e_h%c_omm%iaux2(1),1:e_h%c_omm%iaux2(2)) = &
                dm(1:e_h%c_omm%iaux2(1),1:e_h%c_omm%iaux2(2))
 
-            ! ELPA matrices are no longer needed
             if(allocated(e_h%evec_cmplx_elpa)) then
                call elsi_deallocate(e_h,e_h%evec_cmplx_elpa,"evec_cmplx_elpa")
             endif
@@ -1035,7 +1032,6 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
             e_h%c_omm%dval(1:e_h%c_omm%iaux2(1),1:e_h%c_omm%iaux2(2)) = &
                e_h%dm_real_elpa(1:e_h%c_omm%iaux2(1),1:e_h%c_omm%iaux2(2))
 
-            ! ELPA matrices are no longer needed
             if(allocated(e_h%evec_real_elpa)) then
                call elsi_deallocate(e_h,e_h%evec_real_elpa,"evec_real_elpa")
             endif
@@ -1137,7 +1133,6 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
 
          solver_used = ELPA_SOLVER
       else ! ELPA is done
-         ! ELPA matrices are no longer needed
          if(allocated(e_h%ham_real_elpa)) then
             call elsi_deallocate(e_h,e_h%ham_real_elpa,"ham_real_elpa")
          endif
@@ -1146,6 +1141,9 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
          endif
          if(allocated(e_h%dm_real_elpa)) then
             call elsi_deallocate(e_h,e_h%dm_real_elpa,"dm_real_elpa")
+         endif
+         if(.not. allocated(e_h%eval_elpa)) then
+            call elsi_allocate(e_h,e_h%eval_elpa,e_h%n_basis,"eval_elpa",caller)
          endif
 
          call elsi_init_sips(e_h)
@@ -1156,7 +1154,22 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
             call elsi_compute_occ_elpa(e_h,e_h%eval_elpa)
             call elsi_compute_dm_sips_real(e_h,dm)
             call elsi_get_energy(e_h,energy,SIPS_SOLVER)
-! TODO:  case(SIESTA_CSC)
+         case(SIESTA_CSC)
+            call elsi_siesta_to_sips_hs_real(e_h,ham,ovlp)
+
+            if(.not. allocated(e_h%dm_real_pexsi)) then
+               call elsi_allocate(e_h,e_h%dm_real_pexsi,e_h%nnz_l_sp,&
+                       "dm_real_pexsi",caller)
+            endif
+            e_h%dm_real_pexsi = 0.0_r8
+
+            call elsi_solve_evp_sips_real(e_h,e_h%ham_real_pexsi,&
+                    e_h%ovlp_real_pexsi,e_h%eval_elpa)
+            call elsi_compute_occ_elpa(e_h,e_h%eval_elpa)
+            call elsi_compute_dm_sips_real(e_h,e_h%dm_real_pexsi)
+            call elsi_sips_to_siesta_dm_real(e_h,dm)
+            call elsi_get_energy(e_h,energy,SIPS_SOLVER)
+
          case default
             call elsi_stop(" Unsupported matrix format.",e_h,caller)
          end select
@@ -1385,7 +1398,6 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
             e_h%c_omm%zval(1:e_h%c_omm%iaux2(1),1:e_h%c_omm%iaux2(2)) = &
                e_h%dm_cmplx_elpa(1:e_h%c_omm%iaux2(1),1:e_h%c_omm%iaux2(2))
 
-            ! ELPA matrices are no longer needed
             if(allocated(e_h%evec_cmplx_elpa)) then
                call elsi_deallocate(e_h,e_h%evec_cmplx_elpa,"evec_cmplx_elpa")
             endif
@@ -1493,11 +1505,12 @@ subroutine elsi_init_blacs(e_h)
       ! Find block size
       block_size = 1
 
-      ! Maximum allowed value: 256
-      do while (2*block_size*max(nprow,npcol) <= e_h%n_basis .and. &
-                block_size < 256)
+      do while(2*block_size*max(nprow,npcol) <= e_h%n_basis)
          block_size = 2*block_size
       enddo
+
+      ! Maximum allowed value: 256
+      block_size = min(256,block_size)
 
       ! ELPA works better with a small block_size
       if(e_h%solver == ELPA_SOLVER) then

@@ -24,7 +24,8 @@ module ELSI_MUTATOR
                               elsi_pexsi_to_blacs_dm_real,&
                               elsi_pexsi_to_siesta_dm_cmplx,&
                               elsi_pexsi_to_siesta_dm_real,&
-                              elsi_sips_to_blacs_dm_real
+                              elsi_sips_to_blacs_dm_real,&
+                              elsi_sips_to_siesta_dm_real
    use ELSI_MPI,        only: elsi_stop
    use ELSI_OMM,        only: elsi_compute_edm_omm_real,&
                               elsi_compute_edm_omm_cmplx
@@ -1512,7 +1513,9 @@ subroutine elsi_get_edm_real_sparse(e_h,edm)
          select case(e_h%matrix_format)
          case(PEXSI_CSC)
             call elsi_compute_edm_sips_real(e_h,edm)
-! TODO:  case(SIESTA_CSC)
+         case(SIESTA_CSC)
+            call elsi_compute_edm_sips_real(e_h,e_h%dm_real_pexsi)
+            call elsi_sips_to_siesta_dm_real(e_h,edm)
          case default
             call elsi_stop(" Unsupported matrix format.",e_h,caller)
          end select
