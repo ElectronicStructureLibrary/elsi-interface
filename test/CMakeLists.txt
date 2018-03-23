@@ -77,10 +77,10 @@ IF(ENABLE_C_TESTS)
 ENDIF()
 
 ### Test matrices ###
-SET(h_real "${CMAKE_SOURCE_DIR}/test/matrices/H_real.csc")
-SET(s_real "${CMAKE_SOURCE_DIR}/test/matrices/S_real.csc")
-SET(h_cmplx "${CMAKE_SOURCE_DIR}/test/matrices/H_complex.csc")
-SET(s_cmplx "${CMAKE_SOURCE_DIR}/test/matrices/S_complex.csc")
+SET(h_real "${PROJECT_SOURCE_DIR}/test/matrices/H_real.csc")
+SET(s_real "${PROJECT_SOURCE_DIR}/test/matrices/S_real.csc")
+SET(h_cmplx "${PROJECT_SOURCE_DIR}/test/matrices/H_complex.csc")
+SET(s_cmplx "${PROJECT_SOURCE_DIR}/test/matrices/S_complex.csc")
 
 ### CTest ###
 INCLUDE(CTest)
@@ -129,8 +129,8 @@ ENDIF()
 IF(ENABLE_SIPS)
   test_fortran(17 e d r 5 ${h_real} ${s_real})
   test_fortran(18 e s r 5 ${h_real} ${s_real})
-#  test_fortran(19 d d r 5 ${h_real} ${s_real})
-#  test_fortran(20 d s r 5 ${h_real} ${s_real})
+  test_fortran(19 d d r 5 ${h_real} ${s_real})
+  test_fortran(20 d s r 5 ${h_real} ${s_real})
 ENDIF()
 
 ### Serial Fortran tests: ev + ELPA (LAPACK) ###
