@@ -49,8 +49,8 @@ module ELSI_MAT_REDIST
    public :: elsi_sips_to_blacs_ev_real
    public :: elsi_sips_to_blacs_hs_real
    public :: elsi_sips_to_blacs_hs_cmplx
-!   public :: elsi_sips_to_siesta_dm_real
-!   public :: elsi_sips_to_siesta_dm_cmplx
+   public :: elsi_sips_to_siesta_dm_real
+   public :: elsi_sips_to_siesta_dm_cmplx
 
 contains
 
@@ -4144,6 +4144,62 @@ subroutine elsi_sips_to_blacs_dm_cmplx(e_h,dm)
    e_h%pexsi_np_per_pole  = e_h%n_procs
 
    call elsi_pexsi_to_blacs_dm_cmplx(e_h,dm)
+
+   e_h%pexsi_my_prow     = pexsi_my_prow_save
+   e_h%pexsi_np_per_pole = pexsi_np_per_pole_save
+
+end subroutine
+
+!>
+!! This routine converts density matrix computed by SIPs, stored in 1D block
+!! CCS format to 1D block-cyclic CCS format.
+!!
+subroutine elsi_sips_to_siesta_dm_real(e_h,dm)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h
+   real(kind=r8),     intent(out)   :: dm(e_h%nnz_l_sp2)
+
+   integer(kind=i4) :: pexsi_my_prow_save
+   integer(kind=i4) :: pexsi_np_per_pole_save
+
+   character(len=40), parameter :: caller = "elsi_sips_to_siesta_dm_real"
+
+   pexsi_my_prow_save     = e_h%pexsi_my_prow
+   pexsi_np_per_pole_save = e_h%pexsi_np_per_pole
+   e_h%pexsi_my_prow      = 0
+   e_h%pexsi_np_per_pole  = e_h%n_procs
+
+   call elsi_pexsi_to_siesta_dm_real(e_h,dm)
+
+   e_h%pexsi_my_prow     = pexsi_my_prow_save
+   e_h%pexsi_np_per_pole = pexsi_np_per_pole_save
+
+end subroutine
+
+!>
+!! This routine converts density matrix computed by SIPs, stored in 1D block
+!! CCS format to 1D block-cyclic CCS format.
+!!
+subroutine elsi_sips_to_siesta_dm_cmplx(e_h,dm)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h
+   complex(kind=r8),  intent(out)   :: dm(e_h%nnz_l_sp2)
+
+   integer(kind=i4) :: pexsi_my_prow_save
+   integer(kind=i4) :: pexsi_np_per_pole_save
+
+   character(len=40), parameter :: caller = "elsi_sips_to_siesta_dm_cmplx"
+
+   pexsi_my_prow_save     = e_h%pexsi_my_prow
+   pexsi_np_per_pole_save = e_h%pexsi_np_per_pole
+   e_h%pexsi_my_prow      = 0
+   e_h%pexsi_np_per_pole  = e_h%n_procs
+
+   call elsi_pexsi_to_siesta_dm_cmplx(e_h,dm)
 
    e_h%pexsi_my_prow     = pexsi_my_prow_save
    e_h%pexsi_np_per_pole = pexsi_np_per_pole_save
