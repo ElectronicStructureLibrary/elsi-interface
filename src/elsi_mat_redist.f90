@@ -14,7 +14,7 @@ module ELSI_MAT_REDIST
    use ELSI_IO,        only: elsi_say
    use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
    use ELSI_MPI,       only: elsi_check_mpi,mpi_sum,mpi_real8,mpi_complex16,&
-                             mpi_integer4
+                             mpi_integer4,mpi_comm_self
    use ELSI_PRECISION, only: r8,i4,i8
    use ELSI_SORT,      only: elsi_heapsort
    use ELSI_TIMINGS,   only: elsi_get_time
@@ -42,8 +42,8 @@ module ELSI_MAT_REDIST
    public :: elsi_siesta_to_blacs_hs_cmplx
    public :: elsi_siesta_to_pexsi_hs_real
    public :: elsi_siesta_to_pexsi_hs_cmplx
-!   public :: elsi_siesta_to_sips_hs_real
-!   public :: elsi_siesta_to_sips_hs_cmplx
+   public :: elsi_siesta_to_sips_hs_real
+   public :: elsi_siesta_to_sips_hs_cmplx
    public :: elsi_sips_to_blacs_dm_real
    public :: elsi_sips_to_blacs_dm_cmplx
    public :: elsi_sips_to_blacs_ev_real
@@ -4105,20 +4105,12 @@ subroutine elsi_sips_to_blacs_dm_real(e_h,dm)
    type(elsi_handle), intent(inout) :: e_h
    real(kind=r8),     intent(out)   :: dm(e_h%n_lrow,e_h%n_lcol)
 
-   integer(kind=i4) :: pexsi_my_prow_save
-   integer(kind=i4) :: pexsi_np_per_pole_save
-
    character(len=40), parameter :: caller = "elsi_sips_to_blacs_dm_real"
 
-   pexsi_my_prow_save     = e_h%pexsi_my_prow
-   pexsi_np_per_pole_save = e_h%pexsi_np_per_pole
-   e_h%pexsi_my_prow      = 0
-   e_h%pexsi_np_per_pole  = e_h%n_procs
+   e_h%pexsi_my_prow     = 0
+   e_h%pexsi_np_per_pole = e_h%n_procs
 
    call elsi_pexsi_to_blacs_dm_real(e_h,dm)
-
-   e_h%pexsi_my_prow     = pexsi_my_prow_save
-   e_h%pexsi_np_per_pole = pexsi_np_per_pole_save
 
 end subroutine
 
@@ -4133,20 +4125,12 @@ subroutine elsi_sips_to_blacs_dm_cmplx(e_h,dm)
    type(elsi_handle), intent(inout) :: e_h
    complex(kind=r8),  intent(out)   :: dm(e_h%n_lrow,e_h%n_lcol)
 
-   integer(kind=i4) :: pexsi_my_prow_save
-   integer(kind=i4) :: pexsi_np_per_pole_save
-
    character(len=40), parameter :: caller = "elsi_sips_to_blacs_dm_cmplx"
 
-   pexsi_my_prow_save     = e_h%pexsi_my_prow
-   pexsi_np_per_pole_save = e_h%pexsi_np_per_pole
-   e_h%pexsi_my_prow      = 0
-   e_h%pexsi_np_per_pole  = e_h%n_procs
+   e_h%pexsi_my_prow     = 0
+   e_h%pexsi_np_per_pole = e_h%n_procs
 
    call elsi_pexsi_to_blacs_dm_cmplx(e_h,dm)
-
-   e_h%pexsi_my_prow     = pexsi_my_prow_save
-   e_h%pexsi_np_per_pole = pexsi_np_per_pole_save
 
 end subroutine
 
@@ -4161,20 +4145,12 @@ subroutine elsi_sips_to_siesta_dm_real(e_h,dm)
    type(elsi_handle), intent(inout) :: e_h
    real(kind=r8),     intent(out)   :: dm(e_h%nnz_l_sp2)
 
-   integer(kind=i4) :: pexsi_my_prow_save
-   integer(kind=i4) :: pexsi_np_per_pole_save
-
    character(len=40), parameter :: caller = "elsi_sips_to_siesta_dm_real"
 
-   pexsi_my_prow_save     = e_h%pexsi_my_prow
-   pexsi_np_per_pole_save = e_h%pexsi_np_per_pole
    e_h%pexsi_my_prow      = 0
    e_h%pexsi_np_per_pole  = e_h%n_procs
 
    call elsi_pexsi_to_siesta_dm_real(e_h,dm)
-
-   e_h%pexsi_my_prow     = pexsi_my_prow_save
-   e_h%pexsi_np_per_pole = pexsi_np_per_pole_save
 
 end subroutine
 
@@ -4189,20 +4165,74 @@ subroutine elsi_sips_to_siesta_dm_cmplx(e_h,dm)
    type(elsi_handle), intent(inout) :: e_h
    complex(kind=r8),  intent(out)   :: dm(e_h%nnz_l_sp2)
 
-   integer(kind=i4) :: pexsi_my_prow_save
-   integer(kind=i4) :: pexsi_np_per_pole_save
-
    character(len=40), parameter :: caller = "elsi_sips_to_siesta_dm_cmplx"
 
-   pexsi_my_prow_save     = e_h%pexsi_my_prow
-   pexsi_np_per_pole_save = e_h%pexsi_np_per_pole
-   e_h%pexsi_my_prow      = 0
-   e_h%pexsi_np_per_pole  = e_h%n_procs
+   e_h%pexsi_my_prow     = 0
+   e_h%pexsi_np_per_pole = e_h%n_procs
 
    call elsi_pexsi_to_siesta_dm_cmplx(e_h,dm)
 
-   e_h%pexsi_my_prow     = pexsi_my_prow_save
-   e_h%pexsi_np_per_pole = pexsi_np_per_pole_save
+end subroutine
+
+!>
+!! This routine converts Halmitonian and overlap matrixs stored in 1D block-
+!! cyclic CCS format to 1D block CSC format.
+!!
+subroutine elsi_siesta_to_sips_hs_real(e_h,ham,ovlp)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h
+   real(kind=r8),     intent(in)    :: ham(e_h%nnz_l_sp2)
+   real(kind=r8),     intent(in)    :: ovlp(e_h%nnz_l_sp2)
+
+   integer(kind=i4) :: n_elsi_calls_save
+
+   character(len=40), parameter :: caller = "elsi_siesta_to_sips_hs_real"
+
+   e_h%pexsi_my_prow         = 0
+   e_h%pexsi_np_per_pole     = e_h%n_procs
+   e_h%pexsi_comm_among_pole = mpi_comm_self
+   n_elsi_calls_save         = e_h%n_elsi_calls
+
+   if(e_h%n_elsi_calls == 1+e_h%sips_n_elpa) then
+      e_h%n_elsi_calls = 1
+   endif
+
+   call elsi_siesta_to_pexsi_hs_real(e_h,ham,ovlp)
+
+   e_h%n_elsi_calls = n_elsi_calls_save
+
+end subroutine
+
+!>
+!! This routine converts Halmitonian and overlap matrixs stored in 1D block-
+!! cyclic CCS format to 1D block CSC format.
+!!
+subroutine elsi_siesta_to_sips_hs_cmplx(e_h,ham,ovlp)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h
+   complex(kind=r8),  intent(in)    :: ham(e_h%nnz_l_sp2)
+   complex(kind=r8),  intent(in)    :: ovlp(e_h%nnz_l_sp2)
+
+   integer(kind=i4) :: n_elsi_calls_save
+
+   character(len=40), parameter :: caller = "elsi_siesta_to_sips_hs_cmplx"
+
+   e_h%pexsi_my_prow         = 0
+   e_h%pexsi_np_per_pole     = e_h%n_procs
+   e_h%pexsi_comm_among_pole = mpi_comm_self
+   n_elsi_calls_save         = e_h%n_elsi_calls
+
+   if(e_h%n_elsi_calls == 1+e_h%sips_n_elpa) then
+      e_h%n_elsi_calls = 1
+   endif
+
+   call elsi_siesta_to_pexsi_hs_cmplx(e_h,ham,ovlp)
+
+   e_h%n_elsi_calls = n_elsi_calls_save
 
 end subroutine
 
