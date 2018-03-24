@@ -2,10 +2,8 @@
 # PtScotch
 # CPack
 
-### CMake ###
+### CMake version ###
 CMAKE_MINIMUM_REQUIRED(VERSION 3.0 FATAL_ERROR)
-SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
-INCLUDE(color_message)
 
 ### Project ###
 PROJECT(elsi LANGUAGES NONE)
@@ -15,14 +13,18 @@ SET(elsi_LICENSE "BSD 3")
 SET(elsi_DESCRIPTION "Electronic Structure Infrastructure")
 SET(elsi_DATESTAMP "180319")
 
+### CMake modules ###
+LIST(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+INCLUDE(color_message)
+
 ### Installation paths ###
 IF(PROJECT_BINARY_DIR STREQUAL PROJECT_SOURCE_DIR)
   MESSAGE(FATAL_ERROR "${MAGENTA}Build in the source directory is not allowed${COLORRESET}")
 ENDIF()
-SET(CMAKE_Fortran_MODULE_DIRECTORY "${PROJECT_BINARY_DIR}/elsi_build/include")
-SET(LIBRARY_OUTPUT_PATH "${PROJECT_BINARY_DIR}/elsi_build/lib")
-SET(ARCHIVE_OUTPUT_PATH "${PROJECTE_BINARY_DIR}/elsi_build/lib")
-SET(EXECUTABLE_OUTPUT_PATH "${PROJECT_BINARY_DIR}/elsi_build/bin")
+SET(CMAKE_Fortran_MODULE_DIRECTORY "${PROJECT_BINARY_DIR}/include")
+SET(LIBRARY_OUTPUT_PATH "${PROJECT_BINARY_DIR}/lib")
+SET(ARCHIVE_OUTPUT_PATH "${PROJECTE_BINARY_DIR}/lib")
+SET(EXECUTABLE_OUTPUT_PATH "${PROJECT_BINARY_DIR}/bin")
 IF(NOT DEFINED CMAKE_INSTALL_INCLUDEDIR)
   SET(CMAKE_INSTALL_INCLUDEDIR "include" CACHE PATH "Location to install module and header files")
 ENDIF()
@@ -110,27 +112,3 @@ IF(ENABLE_TESTS OR ENABLE_C_TESTS)
   ENABLE_TESTING()
   ADD_SUBDIRECTORY(test)
 ENDIF()
-
-### pkg-config ###
-SET(PC_LIBS "-lelsi")
-
-IF(NOT OMM_FOUND)
-  SET(PC_LIBS "${PC_LIBS} -lOMM -lMatrixSwitch")
-ENDIF()
-
-IF(NOT ELPA_FOUND)
-  SET(PC_LIBS "${PC_LIBS} -lelpa")
-ENDIF()
-
-IF(ENABLE_PEXSI)
-  SET(PC_LIBS "${PC_LIBS} -lpexsi")
-
-  IF(NOT SUPERLU_FOUND)
-    SET(PC_LIBS "${PC_LIBS} -lsuperlu_dist")
-  ENDIF()
-ENDIF()
-
-CONFIGURE_FILE(.elsi.pc.in
-  ${ARCHIVE_OUTPUT_PATH}/pkgconfig/elsi.pc
-  @ONLY
-)
