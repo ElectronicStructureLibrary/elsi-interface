@@ -2,6 +2,7 @@
 gnu:
   script:
     - module purge
+    - module load cmake-3.10.2
     - module load gcc-7.1
     - cat ./toolchains/gnu.cmake
     - rm -rf build
@@ -16,7 +17,9 @@ gnu:
 intel:
   script:
     - module purge
+    - module load cmake-3.10.2
     - module load gcc-7.1
+    - module load intel-2017.4
     - cat ./toolchains/intel.cmake
     - rm -rf build
     - mkdir build
@@ -30,7 +33,9 @@ intel:
 intel-debug:
   script:
     - module purge
+    - module load cmake-3.10.2
     - module load gcc-7.1
+    - module load intel-2017.4
     - cat ./toolchains/intel_debug.cmake
     - rm -rf build
     - mkdir build
