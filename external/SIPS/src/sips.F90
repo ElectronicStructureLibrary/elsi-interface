@@ -952,6 +952,8 @@ CONTAINS
             CHKERRQ(ierr)
         END IF
 
+        dm_val = 0.0_dp
+
         DO i = 1,nev
             CALL EPSGetEigenvector(eps,i-1,xr,PETSC_NULL_VEC,ierr)
             CHKERRQ(ierr)
@@ -1012,6 +1014,8 @@ CONTAINS
         ! Index conversion
         col_idx = col_idx-1
         row_ptr = row_ptr-1
+
+        edm_val = 0.0_dp
 
         DO i = 1,nev
             CALL EPSGetEigenpair(eps,i-1,eval,PETSC_NULL_SCALAR,xr,&
