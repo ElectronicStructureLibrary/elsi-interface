@@ -112,33 +112,12 @@ program test_dm_kpt_spin_complex
       write(*,'("  ################################")')
       write(*,*)
       if(solver == 1) then
-         write(*,'("  This test program performs the following computational steps:")')
-         write(*,*)
-         write(*,'("  1) Reads Hamiltonian and overlap matrices;")')
-         write(*,'("  2) Transforms the generalized eigenproblem to the standard")')
-         write(*,'("     form by using Cholesky factorization;")')
-         write(*,'("  3) Solves the standard eigenproblem;")')
-         write(*,'("  4) Back-transforms the eigenvectors to the generalized problem;")')
-         write(*,'("  5) Constructs the density matrix from the eigen-solutions.")')
-         write(*,*)
          write(*,'("  Now start testing  elsi_dm_complex + ELPA")')
          e_ref = e_elpa
       elseif(solver == 2) then
-         write(*,'("  This test program performs the following computational steps:")')
-         write(*,*)
-         write(*,'("  1) Reads Hamiltonian and overlap matrices;")')
-         write(*,'("  2) Computes the density matrix with orbital minimization method.")')
-         write(*,*)
          write(*,'("  Now start testing  elsi_dm_complex + libOMM")')
          e_ref = e_omm
       elseif(solver == 3) then
-         write(*,'("  This test program performs the following computational steps:")')
-         write(*,*)
-         write(*,'("  1) Reads Hamiltonian and overlap matrices;")')
-         write(*,'("  2) Converts the matrices to 1D block CSC format;")')
-         write(*,'("  3) Computes the density matrix with pole expansion and selected")')
-         write(*,'("     inversion method.")')
-         write(*,*)
          write(*,'("  Now start testing  elsi_dm_complex + PEXSI")')
          e_ref = e_pexsi
          e_tol = 1.0e-4_r8

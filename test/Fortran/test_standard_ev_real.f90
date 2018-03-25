@@ -94,12 +94,6 @@ program test_standard_ev_real
       write(*,'("  ##     ELSI TEST PROGRAMS     ##")')
       write(*,'("  ################################")')
       write(*,*)
-      write(*,'("  This test program performs the following computational steps:")')
-      write(*,*)
-      write(*,'("  1) Generates a random square matrix;")')
-      write(*,'("  2) Symmetrize the random matrix;")')
-      write(*,'("  3) Computes its eigenvalues and eigenvectors.")')
-      write(*,*)
       if(solver == 1) then
          write(*,'("  Now start testing  elsi_ev_real + ELPA")')
       elseif(solver == 5) then

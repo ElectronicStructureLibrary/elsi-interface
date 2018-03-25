@@ -68,34 +68,12 @@ subroutine test_dm_complex_sparse(mpi_comm,solver,h_file,s_file)
       write(*,'("  ################################")')
       write(*,*)
       if(solver == 1) then
-         write(*,'("  This test program performs the following computational steps:")')
-         write(*,*)
-         write(*,'("  1) Reads Hamiltonian and overlap matrices;")')
-         write(*,'("  2) Converts the matrices to 2D block-cyclic dense format;")')
-         write(*,'("  3) Transforms the generalized eigenproblem to the standard")')
-         write(*,'("     form by using Cholesky factorization;")')
-         write(*,'("  4) Solves the standard eigenproblem;")')
-         write(*,'("  5) Back-transforms the eigenvectors to the generalized problem;")')
-         write(*,'("  6) Constructs the density matrix from the eigen-solutions.")')
-         write(*,*)
          write(*,'("  Now start testing  elsi_dm_complex_sparse + ELPA")')
          e_ref = e_elpa
       elseif(solver == 2) then
-         write(*,'("  This test program performs the following computational steps:")')
-         write(*,*)
-         write(*,'("  1) Reads Hamiltonian and overlap matrices;")')
-         write(*,'("  2) Converts the matrices to 2D block-cyclic dense format;")')
-         write(*,'("  3) Computes the density matrix with orbital minimization method.")')
-         write(*,*)
          write(*,'("  Now start testing  elsi_dm_complex_sparse + libOMM")')
          e_ref = e_omm
       elseif(solver == 3) then
-         write(*,'("  This test program performs the following computational steps:")')
-         write(*,*)
-         write(*,'("  1) Reads Hamiltonian and overlap matrices;")')
-         write(*,'("  2) Computes the density matrix with pole expansion and selected")')
-         write(*,'("     inversion method.")')
-         write(*,*)
          write(*,'("  Now start testing  elsi_dm_complex_sparse + PEXSI")')
          e_ref = e_pexsi
          e_tol = 1.0e-4_r8
@@ -103,12 +81,12 @@ subroutine test_dm_complex_sparse(mpi_comm,solver,h_file,s_file)
       write(*,*)
    endif
 
-   if(solver == 1 .or. solver == 2) then
-      task_id    = 0
-      id_in_task = myid
-   elseif(solver == 3) then
+   if(solver == 3) then
       task_id    = myid/2
       id_in_task = mod(myid,2)
+   else
+      task_id    = 0
+      id_in_task = myid
    endif
 
    call MPI_Comm_split(mpi_comm,task_id,id_in_task,comm_in_task,mpierr)

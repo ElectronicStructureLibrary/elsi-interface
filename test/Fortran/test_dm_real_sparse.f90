@@ -57,6 +57,7 @@ subroutine test_dm_real_sparse(mpi_comm,solver,h_file,s_file)
    real(kind=r8), parameter :: e_elpa  = -2622.88214509316_r8
    real(kind=r8), parameter :: e_omm   = -2622.88214509316_r8
    real(kind=r8), parameter :: e_pexsi = -2622.88194292325_r8
+   real(kind=r8), parameter :: e_sips  = -2622.88214509316_r8
    real(kind=r8), parameter :: e_dmp   = -1833.07932666691_r8
 
    call MPI_Comm_size(mpi_comm,n_proc,mpierr)
@@ -69,56 +70,31 @@ subroutine test_dm_real_sparse(mpi_comm,solver,h_file,s_file)
       write(*,'("  ################################")')
       write(*,*)
       if(solver == 1) then
-         write(*,'("  This test program performs the following computational steps:")')
-         write(*,*)
-         write(*,'("  1) Reads Hamiltonian and overlap matrices;")')
-         write(*,'("  2) Converts the matrices to 2D block-cyclic dense format;")')
-         write(*,'("  3) Transforms the generalized eigenproblem to the standard")')
-         write(*,'("     form by using Cholesky factorization;")')
-         write(*,'("  4) Solves the standard eigenproblem;")')
-         write(*,'("  5) Back-transforms the eigenvectors to the generalized problem;")')
-         write(*,'("  6) Constructs the density matrix from the eigen-solutions.")')
-         write(*,*)
          write(*,'("  Now start testing  elsi_dm_real_sparse + ELPA")')
          e_ref = e_elpa
       elseif(solver == 2) then
-         write(*,'("  This test program performs the following computational steps:")')
-         write(*,*)
-         write(*,'("  1) Reads Hamiltonian and overlap matrices;")')
-         write(*,'("  2) Converts the matrices to 2D block-cyclic dense format;")')
-         write(*,'("  3) Computes the density matrix with orbital minimization method.")')
-         write(*,*)
          write(*,'("  Now start testing  elsi_dm_real_sparse + libOMM")')
          e_ref = e_omm
       elseif(solver == 3) then
-         write(*,'("  This test program performs the following computational steps:")')
-         write(*,*)
-         write(*,'("  1) Reads Hamiltonian and overlap matrices;")')
-         write(*,'("  2) Computes the density matrix with pole expansion and selected")')
-         write(*,'("     inversion method.")')
-         write(*,*)
          write(*,'("  Now start testing  elsi_dm_real_sparse + PEXSI")')
          e_ref = e_pexsi
          e_tol = 1.0e-4_r8
+      elseif(solver == 5) then
+         write(*,'("  Now start testing  elsi_dm_real_sparse + SIPs")')
+         e_ref = e_sips
       elseif(solver == 6) then
-         write(*,'("  This test program performs the following computational steps:")')
-         write(*,*)
-         write(*,'("  1) Reads Hamiltonian and overlap matrices;")')
-         write(*,'("  2) Converts the matrices to 2D block-cyclic dense format;")')
-         write(*,'("  3) Computes the density matrix with density matrix purification.")')
-         write(*,*)
          write(*,'("  Now start testing  elsi_dm_real_sparse + DMP")')
          e_ref = e_dmp
       endif
       write(*,*)
    endif
 
-   if(solver == 1 .or. solver == 2 .or. solver == 6) then
-      task_id    = 0
-      id_in_task = myid
-   elseif(solver == 3) then
+   if(solver == 3) then
       task_id    = myid/2
       id_in_task = mod(myid,2)
+   else
+      task_id    = 0
+      id_in_task = myid
    endif
 
    call MPI_Comm_split(mpi_comm,task_id,id_in_task,comm_in_task,mpierr)
@@ -192,6 +168,7 @@ subroutine test_dm_real_sparse(mpi_comm,solver,h_file,s_file)
    call elsi_set_omm_n_elpa(e_h,1)
    call elsi_set_pexsi_delta_e(e_h,80.0_r8)
    call elsi_set_pexsi_np_per_pole(e_h,2)
+   call elsi_set_sips_n_elpa(e_h,1)
 
    t1 = MPI_Wtime()
 

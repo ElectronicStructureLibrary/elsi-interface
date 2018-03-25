@@ -68,26 +68,9 @@ subroutine test_ev_real(mpi_comm,solver,h_file,s_file)
       write(*,'("  ################################")')
       write(*,*)
       if(solver == 1) then
-         write(*,'("  This test program performs the following computational steps:")')
-         write(*,*)
-         write(*,'("  1) Reads Hamiltonian and overlap matrices;")')
-         write(*,'("  2) Checks the singularity of the overlap matrix by computing")')
-         write(*,'("     all its eigenvalues;")')
-         write(*,'("  3) Transforms the generalized eigenproblem to the standard")')
-         write(*,'("     form by using Cholesky factorization;")')
-         write(*,'("  4) Solves the standard eigenproblem;")')
-         write(*,'("  5) Back-transforms the eigenvectors to the generalized problem.")')
-         write(*,*)
          write(*,'("  Now start testing  elsi_ev_real + ELPA")')
          e_ref = e_elpa
       elseif(solver == 5) then
-         write(*,'("  This test program performs the following computational steps:")')
-         write(*,*)
-         write(*,'("  1) Reads Hamiltonian and overlap matrices;")')
-         write(*,'("  2) Converts the matrices to 1D block CSC format;")')
-         write(*,'("  3) Solves the generalized eigenproblem with shift-and-invert")')
-         write(*,'("     parallel spectral transformation.")')
-         write(*,*)
          write(*,'("  Now start testing  elsi_ev_real + SIPs")')
          e_ref = e_sips
          e_tol = 1.0e-6_r8

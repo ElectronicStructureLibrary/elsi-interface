@@ -76,26 +76,9 @@ subroutine test_ev_real_sparse(mpi_comm,solver,h_file,s_file)
       write(*,'("  ################################")')
       write(*,*)
       if(solver == 1) then
-         write(*,'("  This test program performs the following computational steps:")')
-         write(*,*)
-         write(*,'("  1) Reads Hamiltonian and overlap matrices;")')
-         write(*,'("  2) Converts the matrices to 2D block-cyclic dense format;")')
-         write(*,'("  3) Checks the singularity of the overlap matrix by computing")')
-         write(*,'("     all its eigenvalues;")')
-         write(*,'("  4) Transforms the generalized eigenproblem to the standard")')
-         write(*,'("     form by using Cholesky factorization;")')
-         write(*,'("  5) Solves the standard eigenproblem;")')
-         write(*,'("  6) Back-transforms the eigenvectors to the generalized problem.")')
-         write(*,*)
          write(*,'("  Now start testing  elsi_ev_real_sparse + ELPA")')
          e_ref = e_elpa
       elseif(solver == 5) then
-         write(*,'("  This test program performs the following computational steps:")')
-         write(*,*)
-         write(*,'("  1) Reads Hamiltonian and overlap matrices;")')
-         write(*,'("  2) Solves the generalized eigenproblem with shift-and-invert")')
-         write(*,'("     parallel spectral transformation.")')
-         write(*,*)
          write(*,'("  Now start testing  elsi_ev_real_sparse + SIPs")')
          e_ref = e_sips
          e_tol = 1.0e-6_r8

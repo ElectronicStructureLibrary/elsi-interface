@@ -62,11 +62,6 @@ subroutine test_rw_real(mpi_comm,h_file,s_file)
       write(*,'("  ##     ELSI TEST PROGRAMS     ##")')
       write(*,'("  ################################")')
       write(*,*)
-      write(*,'("  This test program repeats the following steps:")')
-      write(*,*)
-      write(*,'("  1) Reads Hamiltonian and overlap matrices;")')
-      write(*,'("  2) Writes Hamiltonian and overlap matrices.")')
-      write(*,*)
    endif
 
    ! Set up square-like processor grid
