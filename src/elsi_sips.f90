@@ -5,7 +5,7 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! This module provides interfaces to SIPs.
+!! This module provides interfaces to SIPS.
 !!
 module ELSI_SIPS
 
@@ -16,7 +16,7 @@ module ELSI_SIPS
    use ELSI_MPI,       only: elsi_stop,elsi_check_mpi
    use ELSI_PRECISION, only: r8,i4
    use ELSI_TIMINGS,   only: elsi_get_time
-   use M_QETSC,        only: sips_initialize,sips_load_ham_ovlp,sips_load_ham,&
+   use M_SIPS,         only: sips_initialize,sips_load_ham_ovlp,sips_load_ham,&
                              sips_update_ham,sips_set_eps,sips_update_eps,&
                              sips_set_slices,sips_solve_eps,sips_get_inertias,&
                              sips_get_eigenvalues,sips_get_eigenvectors,&
@@ -36,7 +36,7 @@ module ELSI_SIPS
 contains
 
 !>
-!! This routine initializes SIPs.
+!! This routine initializes SIPS.
 !! This does not change the state of the handle.
 !!
 subroutine elsi_init_sips(e_h)
@@ -82,7 +82,7 @@ subroutine elsi_init_sips(e_h)
 end subroutine
 
 !>
-!! This routine interfaces to SIPs via QETSC.
+!! This routine interfaces to SIPS.
 !!
 subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
 
@@ -109,7 +109,7 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
    character(len=40), parameter :: caller = "elsi_solve_evp_sips_real"
 
    ! Solve the eigenvalue problem
-   call elsi_say(e_h,"  Starting SIPs eigensolver")
+   call elsi_say(e_h,"  Starting SIPS eigensolver")
 
    call elsi_get_time(t0)
 
@@ -202,20 +202,6 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
       call sips_get_slices_from_inertias(e_h%n_states,e_h%sips_n_slices,&
               inertias,slices)
 
-      ! DEBUG
-      if(.false.) then
-         call sips_get_inertias(e_h%sips_n_slices,slices,inertias)
-
-         if(e_h%myid == 0) then
-            print *
-            print *,"Final:"
-            do i = 1,e_h%sips_n_slices+1
-               print *,slices(i),":",inertias(i)
-            enddo
-            print *
-         endif
-      endif
-
       call elsi_deallocate(e_h,inertias,"inertias")
 
       call elsi_get_time(t1)
@@ -237,7 +223,7 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
    call sips_solve_eps(e_h%n_states,n_solved)
 
    if(n_solved < e_h%n_states) then
-      call elsi_stop(" SIPs solver failed.",e_h,caller)
+      call elsi_stop(" SIPS solver failed.",e_h,caller)
    endif
 
    call elsi_get_time(t1)
@@ -292,7 +278,7 @@ subroutine elsi_compute_dm_sips_real(e_h,dm)
 
    character(len=40), parameter :: caller = "elsi_compute_dm_sips_real"
 
-   call sips_get_dm(e_h%n_lcol_sp,e_h%nnz_l_sp,e_h%row_ind_pexsi,&
+   call sips_get_dm(e_h%n_lcol_sp1,e_h%nnz_l_sp1,e_h%row_ind_pexsi,&
            e_h%col_ptr_pexsi,e_h%n_states,e_h%occ_num,dm)
 
 end subroutine
@@ -309,13 +295,13 @@ subroutine elsi_compute_edm_sips_real(e_h,edm)
 
    character(len=40), parameter :: caller = "elsi_compute_edm_sips_real"
 
-   call sips_get_edm(e_h%n_lcol_sp,e_h%nnz_l_sp,e_h%row_ind_pexsi,&
+   call sips_get_edm(e_h%n_lcol_sp1,e_h%nnz_l_sp1,e_h%row_ind_pexsi,&
            e_h%col_ptr_pexsi,e_h%n_states,e_h%occ_num,edm)
 
 end subroutine
 
 !>
-!! This routine sets default SIPs parameters.
+!! This routine sets default SIPS parameters.
 !!
 subroutine elsi_set_sips_default(e_h)
 
@@ -329,7 +315,7 @@ subroutine elsi_set_sips_default(e_h)
       e_h%handle_changed = .true.
    endif
 
-   ! How many steps of ELPA to run before SIPs
+   ! How many steps of ELPA to run before SIPS
    e_h%sips_n_elpa = 0
 
    ! Buffer to adjust interval

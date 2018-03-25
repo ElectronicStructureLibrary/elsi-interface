@@ -6,7 +6,7 @@
 
 !>
 !! This module contains subroutines to solve an eigenproblem or to compute the
-!! density matrix, using one of the solvers ELPA, libOMM, PEXSI, SIPs, DMP.
+!! density matrix, using one of the solvers ELPA, libOMM, PEXSI, SIPS, DMP.
 !!
 module ELSI_SOLVER
 
@@ -1158,7 +1158,7 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
             call elsi_siesta_to_sips_hs_real(e_h,ham,ovlp)
 
             if(.not. allocated(e_h%dm_real_pexsi)) then
-               call elsi_allocate(e_h,e_h%dm_real_pexsi,e_h%nnz_l_sp,&
+               call elsi_allocate(e_h,e_h%dm_real_pexsi,e_h%nnz_l_sp1,&
                        "dm_real_pexsi",caller)
             endif
             e_h%dm_real_pexsi = 0.0_r8

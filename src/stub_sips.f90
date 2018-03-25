@@ -5,10 +5,10 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! This module is only compiled when the actual SIPs is not available, to make
-!! the SIPs part of ELSI compile.
+!! This module is only compiled when the actual SIPS is not available, to make
+!! the SIPS part of ELSI compile.
 !!
-module M_QETSC
+module M_SIPS
 
    use ELSI_PRECISION, only: r8,i4
 
@@ -39,7 +39,7 @@ subroutine sips_initialize()
 
    implicit none
 
-   write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
+   write(*,"(A)") " A SIPS stub routine was called. Check ELSI installation."
    write(*,"(A)") " Exiting..."
    stop
 
@@ -49,7 +49,7 @@ subroutine sips_finalize()
 
    implicit none
 
-   write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
+   write(*,"(A)") " A SIPS stub routine was called. Check ELSI installation."
    write(*,"(A)") " Exiting..."
    stop
 
@@ -67,7 +67,7 @@ subroutine sips_load_ham_ovlp(ncol_g,ncol_l,nnz_l,col_idx,row_ptr,ham,ovlp)
    real(kind=r8)    :: ham(nnz_l)
    real(kind=r8)    :: ovlp(nnz_l)
 
-   write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
+   write(*,"(A)") " A SIPS stub routine was called. Check ELSI installation."
    write(*,"(A)") " Exiting..."
    stop
 
@@ -84,7 +84,7 @@ subroutine sips_load_ham(ncol_g,ncol_l,nnz_l,col_idx,row_ptr,ham)
    integer(kind=i4) :: row_ptr(ncol_l+1)
    real(kind=r8)    :: ham(nnz_l)
 
-   write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
+   write(*,"(A)") " A SIPS stub routine was called. Check ELSI installation."
    write(*,"(A)") " Exiting..."
    stop
 
@@ -101,7 +101,7 @@ subroutine sips_update_ham(ncol_g,ncol_l,nnz_l,col_idx,row_ptr,ham)
    integer(kind=i4) :: row_ptr(ncol_l+1)
    real(kind=r8)    :: ham(nnz_l)
 
-   write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
+   write(*,"(A)") " A SIPS stub routine was called. Check ELSI installation."
    write(*,"(A)") " Exiting..."
    stop
 
@@ -113,7 +113,7 @@ subroutine sips_set_eps(stdevp)
 
    integer(kind=i4) :: stdevp
 
-   write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
+   write(*,"(A)") " A SIPS stub routine was called. Check ELSI installation."
    write(*,"(A)") " Exiting..."
    stop
 
@@ -125,7 +125,7 @@ subroutine sips_update_eps(nsub)
 
    integer(kind=i4) :: nsub
 
-   write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
+   write(*,"(A)") " A SIPS stub routine was called. Check ELSI installation."
    write(*,"(A)") " Exiting..."
    stop
 
@@ -138,7 +138,7 @@ subroutine sips_set_slices(nsub,subs)
    integer(kind=i4) :: nsub
    real(kind=r8)    :: subs(nsub+1)
 
-   write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
+   write(*,"(A)") " A SIPS stub routine was called. Check ELSI installation."
    write(*,"(A)") " Exiting..."
    stop
 
@@ -151,7 +151,7 @@ subroutine sips_solve_eps(nreq,nconv)
    integer(kind=i4) :: nreq
    integer(kind=i4) :: nconv
 
-   write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
+   write(*,"(A)") " A SIPS stub routine was called. Check ELSI installation."
    write(*,"(A)") " Exiting..."
    stop
 
@@ -164,7 +164,7 @@ subroutine sips_get_eigenvalues(nev,evals)
    integer(kind=i4) :: nev
    real(kind=r8)    :: evals(nev)
 
-   write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
+   write(*,"(A)") " A SIPS stub routine was called. Check ELSI installation."
    write(*,"(A)") " Exiting..."
    stop
 
@@ -178,7 +178,7 @@ subroutine sips_get_eigenvectors(nev,lrow,evec)
    integer(kind=i4) :: lrow
    real(kind=r8)    :: evec(lrow,nev)
 
-   write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
+   write(*,"(A)") " A SIPS stub routine was called. Check ELSI installation."
    write(*,"(A)") " Exiting..."
    stop
 
@@ -192,7 +192,7 @@ subroutine sips_get_inertias(nsub,subs,inertias)
    real(kind=r8)    :: subs(nsub+1)
    integer(kind=i4) :: inertias(nsub+1)
 
-   write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
+   write(*,"(A)") " A SIPS stub routine was called. Check ELSI installation."
    write(*,"(A)") " Exiting..."
    stop
 
@@ -210,7 +210,7 @@ subroutine sips_get_slices(algr,nev,nsub,buf,subbuf,evals,subs)
    real(kind=r8)    :: evals(nev)
    real(kind=r8)    :: subs(nsub+1)
 
-   write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
+   write(*,"(A)") " A SIPS stub routine was called. Check ELSI installation."
    write(*,"(A)") " Exiting..."
    stop
 
@@ -225,7 +225,7 @@ subroutine sips_get_slices_from_inertias(nev,nsub,inertias,subs)
    integer(kind=i4) :: inertias(nsub+1)
    real(kind=r8)    :: subs(nsub+1)
 
-   write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
+   write(*,"(A)") " A SIPS stub routine was called. Check ELSI installation."
    write(*,"(A)") " Exiting..."
    stop
 
@@ -243,7 +243,7 @@ subroutine sips_get_dm(ncol_l,nnz_l,col_idx,row_ptr,nev,occ,dm)
    real(kind=r8)    :: occ(nev)
    real(kind=r8)    :: dm(nnz_l)
 
-   write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
+   write(*,"(A)") " A SIPS stub routine was called. Check ELSI installation."
    write(*,"(A)") " Exiting..."
    stop
 
@@ -261,10 +261,10 @@ subroutine sips_get_edm(ncol_l,nnz_l,col_idx,row_ptr,nev,occ,edm)
    real(kind=r8)    :: occ(nev)
    real(kind=r8)    :: edm(nnz_l)
 
-   write(*,"(A)") " A SIPs stub routine was called. Check ELSI installation."
+   write(*,"(A)") " A SIPS stub routine was called. Check ELSI installation."
    write(*,"(A)") " Exiting..."
    stop
 
 end subroutine
 
-end module M_QETSC
+end module M_SIPS

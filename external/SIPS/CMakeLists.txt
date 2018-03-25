@@ -1,5 +1,5 @@
 ### Source file ###
-LIST(APPEND sips_src src/m_qetsc.F90)
+LIST(APPEND sips_src src/sips.F90)
 
 ADD_LIBRARY(sips ${sips_src})
 

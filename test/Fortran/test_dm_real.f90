@@ -76,7 +76,7 @@ subroutine test_dm_real(mpi_comm,solver,h_file,s_file)
          e_ref = e_pexsi
          e_tol = 1.0e-4_r8
       elseif(solver == 5) then
-         write(*,'("  Now start testing  elsi_dm_real + SIPs")')
+         write(*,'("  Now start testing  elsi_dm_real + SIPS")')
          e_ref = e_sips
       elseif(solver == 6) then
          write(*,'("  Now start testing  elsi_dm_real + DMP")')

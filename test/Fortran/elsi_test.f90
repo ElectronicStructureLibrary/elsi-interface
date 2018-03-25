@@ -112,7 +112,7 @@ subroutine test_die()
       write(*,'(A)') "  ##  Arg #4: 1 = ELPA                  ##"
       write(*,'(A)') "  ##          2 = libOMM                ##"
       write(*,'(A)') "  ##          3 = PEXSI                 ##"
-      write(*,'(A)') "  ##          5 = SIPs                  ##"
+      write(*,'(A)') "  ##          5 = SIPS                  ##"
       write(*,'(A)') "  ##  Arg #5: H matrix file             ##"
       write(*,'(A)') "  ##  Arg #6: S matrix file             ##"
       write(*,'(A)') "  ##                                    ##"

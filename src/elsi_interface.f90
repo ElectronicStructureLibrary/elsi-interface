@@ -6,7 +6,7 @@
 
 !>
 !! This module provides routines for solving the Kohn-Sham electronic structure
-!! using ELPA, libOMM, PEXSI, SIPs, DMP.
+!! using ELPA, libOMM, PEXSI, SIPS, DMP.
 !!
 module ELSI
 

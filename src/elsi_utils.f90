@@ -298,21 +298,21 @@ subroutine elsi_check(e_h,caller)
    case(SIPS_SOLVER)
       if(e_h%n_basis < e_h%n_procs) then
          call elsi_stop(" For this number of MPI tasks, the matrix size is"//&
-                 " too small to use SIPs.",e_h,caller)
+                 " too small to use SIPS.",e_h,caller)
       endif
 
       if(e_h%parallel_mode /= MULTI_PROC) then
-         call elsi_stop(" SIPs solver requires MULTI_PROC parallel mode.",e_h,&
+         call elsi_stop(" SIPS solver requires MULTI_PROC parallel mode.",e_h,&
                  caller)
       endif
 
       if(e_h%n_spins > 1) then
-         call elsi_stop(" Spin-polarized case not yet supported with SIPs.",&
+         call elsi_stop(" Spin-polarized case not yet supported with SIPS.",&
                  e_h,caller)
       endif
 
       if(e_h%n_kpts > 1) then
-         call elsi_stop(" k-points not yet supported with SIPs.",e_h,caller)
+         call elsi_stop(" k-points not yet supported with SIPS.",e_h,caller)
       endif
    case(DMP_SOLVER)
       if(e_h%parallel_mode /= MULTI_PROC) then

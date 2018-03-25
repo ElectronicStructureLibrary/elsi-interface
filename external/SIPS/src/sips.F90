@@ -25,7 +25,7 @@
 !  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 !  POSSIBILITY OF SUCH DAMAGE.
 !
-MODULE M_QETSC
+MODULE M_SIPS
 
 #ifdef PETSC_3_7
 #include <slepc/finclude/slepcepsdef.h>
@@ -41,24 +41,20 @@ USE slepceps
 
     IMPLICIT NONE
 
-    INTEGER,   PARAMETER :: dp = KIND(0.0d0)
-    PetscInt,  PARAMETER :: i0 = 0
-    PetscInt,  PARAMETER :: i1 = 1
-    PetscReal, PARAMETER :: r0 = 0.0_dp
-    PetscReal, PARAMETER :: r1 = 1.0_dp
-    PetscInt             :: nrank
-    PetscInt             :: rank
-    PetscInt             :: istart
-    PetscInt             :: iend
-    Vec                  :: xr
-    Vec                  :: xrseq
-    EPS                  :: eps
-    Mat                  :: math
-    Mat                  :: mats
-    Mat                  :: newmath
-    Mat                  :: submatA
-    VecScatter           :: ctx
-    PetscErrorCode       :: ierr
+    INTEGER, PARAMETER :: dp = KIND(0.0d0)
+    PetscInt           :: nrank
+    PetscInt           :: rank
+    PetscInt           :: istart
+    PetscInt           :: iend
+    Vec                :: xr
+    Vec                :: xrseq
+    EPS                :: eps
+    Mat                :: math
+    Mat                :: mats
+    Mat                :: newmath
+    Mat                :: submatA
+    VecScatter         :: ctx
+    PetscErrorCode     :: ierr
 
 CONTAINS
 
@@ -117,7 +113,7 @@ CONTAINS
         CALL EPSCreate(PETSC_COMM_WORLD,eps,ierr)
         CHKERRQ(ierr)
 
-        IF (stdevp == i0) THEN
+        IF (stdevp == 0) THEN
             CALL EPSSetOperators(eps,math,mats,ierr)
             CHKERRQ(ierr)
 
@@ -203,12 +199,12 @@ CONTAINS
         PetscInt, INTENT(IN) :: nsub
 
         MPI_Comm, SAVE :: matcomm
-        PetscInt, SAVE :: counter = i0
+        PetscInt, SAVE :: counter = 0
         PetscBool      :: globalupdate = PETSC_FALSE
 
-        counter = counter + i1
+        counter = counter+1
 
-        IF (counter == i1) THEN
+        IF (counter == 1) THEN
             CALL EPSKrylovSchurGetSubcommMats(eps,submatA,PETSC_NULL_MAT,ierr)
             CHKERRQ(ierr)
 
@@ -224,8 +220,8 @@ CONTAINS
             CHKERRQ(ierr)
         END IF
 
-        CALL EPSKrylovSchurUpdateSubcommMats(eps,r0,r1,submatA,r1,r0,&
-                 PETSC_NULL_MAT,SAME_NONZERO_PATTERN,globalupdate,ierr)
+        CALL EPSKrylovSchurUpdateSubcommMats(eps,0.0_dp,1.0_dp,submatA,1.0_dp,&
+                 0.0_dp,PETSC_NULL_MAT,SAME_NONZERO_PATTERN,globalupdate,ierr)
         CHKERRQ(ierr)
 
     END SUBROUTINE
@@ -284,8 +280,8 @@ CONTAINS
         PetscInt :: which_row(1)
 
         ! Index conversion
-        col_idx = col_idx-i1
-        row_ptr = row_ptr-i1
+        col_idx = col_idx-1
+        row_ptr = row_ptr-1
 
         ! Create PETSC matrix
         CALL MatCreate(PETSC_COMM_WORLD,math,ierr)
@@ -304,12 +300,12 @@ CONTAINS
         CHKERRQ(ierr)
 
         ! Set values
-        k = i1
-        DO i = istart,iend-i1
+        k = 1
+        DO i = istart,iend-1
             nnz_this_row = row_ptr(k+1)-row_ptr(k)
             which_row(1) = i
 
-            CALL MatSetValues(math,i1,which_row,nnz_this_row,&
+            CALL MatSetValues(math,1,which_row,nnz_this_row,&
                      col_idx(row_ptr(k)+1:row_ptr(k+1)),&
                      ham_val(row_ptr(k)+1:row_ptr(k+1)),INSERT_VALUES,ierr)
             CHKERRQ(ierr)
@@ -322,8 +318,8 @@ CONTAINS
         CHKERRQ(ierr)
 
         ! Index conversion
-        col_idx = col_idx+i1
-        row_ptr = row_ptr+i1
+        col_idx = col_idx+1
+        row_ptr = row_ptr+1
 
         ! Assemble matrix
         CALL MatAssemblyEnd(math,MAT_FINAL_ASSEMBLY,ierr)
@@ -346,16 +342,16 @@ CONTAINS
         PetscInt       :: k
         PetscInt       :: nnz_this_row
         PetscInt       :: which_row(1)
-        PetscInt, SAVE :: counter = i0
+        PetscInt, SAVE :: counter = 0
 
-        counter = counter+i1
+        counter = counter+1
 
         ! Index conversion
-        col_idx = col_idx-i1
-        row_ptr = row_ptr-i1
+        col_idx = col_idx-1
+        row_ptr = row_ptr-1
 
         ! Create a new ham matrix from the old one
-        IF (counter == i1) THEN
+        IF (counter == 1) THEN
             CALL MatDuplicate(math,MAT_COPY_VALUES,newmath,ierr)
             CHKERRQ(ierr)
 
@@ -364,12 +360,12 @@ CONTAINS
         END IF
 
         ! Set values
-        k = i1
-        DO i = istart,iend-i1
+        k = 1
+        DO i = istart,iend-1
             nnz_this_row = row_ptr(k+1)-row_ptr(k)
             which_row(1) = i
 
-            CALL MatSetValues(newmath,i1,which_row,nnz_this_row,&
+            CALL MatSetValues(newmath,1,which_row,nnz_this_row,&
                      col_idx(row_ptr(k)+1:row_ptr(k+1)),&
                      ham_val(row_ptr(k)+1:row_ptr(k+1)),INSERT_VALUES,ierr)
             CHKERRQ(ierr)
@@ -382,8 +378,8 @@ CONTAINS
         CHKERRQ(ierr)
 
         ! Index conversion
-        col_idx = col_idx+i1
-        row_ptr = row_ptr+i1
+        col_idx = col_idx+1
+        row_ptr = row_ptr+1
 
         ! Assemble matrix
         CALL MatAssemblyEnd(newmath,MAT_FINAL_ASSEMBLY,ierr)
@@ -404,22 +400,20 @@ CONTAINS
         PetscReal, INTENT(IN)    :: ham_val(nnz_l)    ! Non-zero values
         PetscReal, INTENT(IN)    :: ovlp_val(nnz_l)   ! Non-zero values
 
-        PetscInt       :: istart ! Local start point
-        PetscInt       :: iend   ! Local end point
         PetscInt       :: i
         PetscInt       :: k
         PetscInt       :: nnz_this_row
         PetscInt       :: which_row(1)
-        PetscInt, SAVE :: counter = i0
+        PetscInt, SAVE :: counter = 0
 
-        counter = counter+i1
+        counter = counter+1
 
         ! Index conversion
-        col_idx = col_idx-i1
-        row_ptr = row_ptr-i1
+        col_idx = col_idx-1
+        row_ptr = row_ptr-1
 
         ! Create PETSc matrix
-        IF (counter == i1) THEN
+        IF (counter == 1) THEN
             CALL MatCreate(PETSC_COMM_WORLD,mats,ierr)
             CHKERRQ(ierr)
 
@@ -437,12 +431,12 @@ CONTAINS
         CHKERRQ(ierr)
 
         ! Set values
-        k = i1
-        DO i = istart,iend-i1
+        k = 1
+        DO i = istart,iend-1
             nnz_this_row = row_ptr(k+1)-row_ptr(k)
             which_row(1) = i
 
-            CALL MatSetValues(mats,i1,which_row,nnz_this_row,&
+            CALL MatSetValues(mats,1,which_row,nnz_this_row,&
                      col_idx(row_ptr(k)+1:row_ptr(k+1)),&
                      ovlp_val(row_ptr(k)+1:row_ptr(k+1)),INSERT_VALUES,ierr)
             CHKERRQ(ierr)
@@ -459,7 +453,7 @@ CONTAINS
         CHKERRQ(ierr)
 
         ! Create ham matrix from ovlp
-        IF (counter == i1) THEN
+        IF (counter == 1) THEN
             CALL MatDuplicate(mats,MAT_COPY_VALUES,math,ierr)
             CHKERRQ(ierr)
 
@@ -468,12 +462,12 @@ CONTAINS
         END IF
 
         ! Set values
-        k = i1
-        DO i = istart,iend-i1
+        k = 1
+        DO i = istart,iend-1
             nnz_this_row = row_ptr(k+1)-row_ptr(k)
             which_row(1) = i
 
-            CALL MatSetValues(math,i1,which_row,nnz_this_row,&
+            CALL MatSetValues(math,1,which_row,nnz_this_row,&
                      col_idx(row_ptr(k)+1:row_ptr(k+1)),&
                      ham_val(row_ptr(k)+1:row_ptr(k+1)),INSERT_VALUES,ierr)
             CHKERRQ(ierr)
@@ -486,8 +480,8 @@ CONTAINS
         CHKERRQ(ierr)
 
         ! Index conversion
-        col_idx = col_idx+i1
-        row_ptr = row_ptr+i1
+        col_idx = col_idx+1
+        row_ptr = row_ptr+1
 
         CALL MatAssemblyEnd(math,MAT_FINAL_ASSEMBLY,ierr)
         CHKERRQ(ierr)
@@ -546,11 +540,11 @@ CONTAINS
 
         PetscInt           :: i
         PetscReal, POINTER :: vec_tmp(:)
-        PetscInt,  SAVE    :: counter = i0
+        PetscInt,  SAVE    :: counter = 0
 
-        counter = counter+i1
+        counter = counter+1
 
-        IF (counter == i1) THEN
+        IF (counter == 1) THEN
             CALL MatCreateVecs(math,xr,PETSC_NULL_VEC,ierr)
             CHKERRQ(ierr)
         END IF
@@ -630,7 +624,7 @@ CONTAINS
             subs(1:nsub+1) = get_subs_from_cluster_ids(buf,subbuf,nsub,&
                                  ids(1:nsub),nev,evals)
         CASE DEFAULT
-            STOP "SIPs: Unknown slicing method."
+            STOP "SIPS: Unknown slicing method."
         END SELECT
 
     END SUBROUTINE
@@ -942,15 +936,15 @@ CONTAINS
         PetscInt           :: nnz_this_row
         PetscReal          :: tmp
         PetscReal, POINTER :: vec_tmp(:)
-        PetscInt,  SAVE    :: counter = i0
+        PetscInt,  SAVE    :: counter = 0
 
-        counter = counter+i1
+        counter = counter+1
 
         ! Index conversion
-        col_idx = col_idx-i1
-        row_ptr = row_ptr-i1
+        col_idx = col_idx-1
+        row_ptr = row_ptr-1
 
-        IF (counter == i1) then
+        IF (counter == 1) then
             CALL MatCreateVecs(math,xr,PETSC_NULL_VEC,ierr)
             CHKERRQ(ierr)
 
@@ -972,22 +966,25 @@ CONTAINS
             CALL VecGetArrayReadF90(xrseq,vec_tmp,ierr)
             CHKERRQ(ierr)
 
-            i_val = i0
+            i_val = 0
 
-            DO j = istart,iend-i1
-                nnz_this_row = row_ptr(j-istart+2)-row_ptr(j-istart+1)
+            DO j = istart+1,iend
+                nnz_this_row = row_ptr(j-istart+1)-row_ptr(j-istart)
 
                 DO k = 1,nnz_this_row
-                    i_val         = i_val+i1
-                    tmp           = occ(i)*vec_tmp(j)*vec_tmp(col_idx(i_val))
+                    i_val         = i_val+1
+                    tmp           = occ(i)*vec_tmp(j)*vec_tmp(col_idx(i_val)+1)
                     dm_val(i_val) = dm_val(i_val)+tmp
                 END DO
             END DO
+
+            CALL VecRestoreArrayReadF90(xrseq,vec_tmp,ierr)
+            CHKERRQ(ierr)
         END DO
 
         ! Index conversion
-        col_idx = col_idx+i1
-        row_ptr = row_ptr+i1
+        col_idx = col_idx+1
+        row_ptr = row_ptr+1
 
     END SUBROUTINE
 
@@ -1010,17 +1007,17 @@ CONTAINS
         PetscInt           :: nnz_this_row
         PetscReal          :: tmp
         PetscReal, POINTER :: vec_tmp(:)
-        PetscInt,  SAVE    :: counter = i0
+        PetscInt,  SAVE    :: counter = 0
 
-        counter = counter+i1
+        counter = counter+1
 
         ! Index conversion
-        col_idx = col_idx-i1
-        row_ptr = row_ptr-i1
+        col_idx = col_idx-1
+        row_ptr = row_ptr-1
 
         DO i = 1,nev
-            CALL EPSGetEigenpair(eps,i-1,tmp,PETSC_NULL_REAL,xr,PETSC_NULL_VEC,&
-                     ierr)
+            CALL EPSGetEigenpair(eps,i-1,tmp,PETSC_NULL_SCALAR,xr,&
+                     PETSC_NULL_VEC,ierr)
             CHKERRQ(ierr)
 
             CALL VecScatterBegin(ctx,xr,xrseq,INSERT_VALUES,SCATTER_FORWARD,&
@@ -1033,23 +1030,27 @@ CONTAINS
             CALL VecGetArrayReadF90(xrseq,vec_tmp,ierr)
             CHKERRQ(ierr)
 
-            i_val = i0
+            i_val = 0
 
-            DO j = istart,iend-i1
-                nnz_this_row = row_ptr(j-istart+2)-row_ptr(j-istart+1)
+            DO j = istart+1,iend
+                nnz_this_row = row_ptr(j-istart+1)-row_ptr(j-istart)
 
                 DO k = 1,nnz_this_row
-                    i_val          = i_val+i1
-                    tmp            = tmp*occ(i)*vec_tmp(j)*vec_tmp(col_idx(i_val))
+                    i_val          = i_val+1
+                    tmp            = tmp*occ(i)*vec_tmp(j)*&
+                                         vec_tmp(col_idx(i_val)+1)
                     edm_val(i_val) = edm_val(i_val)+tmp
                 END DO
             END DO
+
+            CALL VecRestoreArrayReadF90(xrseq,vec_tmp,ierr)
+            CHKERRQ(ierr)
         END DO
 
         ! Index conversion
-        col_idx = col_idx+i1
-        row_ptr = row_ptr+i1
+        col_idx = col_idx+1
+        row_ptr = row_ptr+1
 
     END SUBROUTINE
 
-END MODULE M_QETSC
+END MODULE M_SIPS

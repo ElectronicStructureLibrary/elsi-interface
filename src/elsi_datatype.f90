@@ -78,7 +78,7 @@ module ELSI_DATATYPE
       integer(kind=i4), allocatable :: col_ptr_pexsi(:)
       real(kind=r8),    allocatable :: ne_vec_pexsi(:)
 
-      ! SIPs
+      ! SIPS
       real(kind=r8),    allocatable :: evec_real_sips(:,:)
       complex(kind=r8), allocatable :: evec_cmplx_sips(:,:)
 
@@ -239,7 +239,7 @@ module ELSI_DATATYPE
       integer(kind=c_intptr_t) :: pexsi_plan
       type(f_ppexsi_options)   :: pexsi_options
 
-      ! SIPs
+      ! SIPS
       integer(kind=i4) :: sips_n_elpa
       integer(kind=i4) :: sips_np_per_slice
       integer(kind=i4) :: sips_n_slices

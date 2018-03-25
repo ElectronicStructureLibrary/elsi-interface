@@ -4095,7 +4095,7 @@ subroutine elsi_pexsi_to_siesta_dm_cmplx(e_h,dm)
 end subroutine
 
 !>
-!! This routine converts density matrix computed by SIPs, stored in 1D block
+!! This routine converts density matrix computed by SIPS, stored in 1D block
 !! CCS format to 2D block-cyclic dense format.
 !!
 subroutine elsi_sips_to_blacs_dm_real(e_h,dm)
@@ -4115,7 +4115,7 @@ subroutine elsi_sips_to_blacs_dm_real(e_h,dm)
 end subroutine
 
 !>
-!! This routine converts density matrix computed by SIPs, stored in 1D block
+!! This routine converts density matrix computed by SIPS, stored in 1D block
 !! CCS format to 2D block-cyclic dense format.
 !!
 subroutine elsi_sips_to_blacs_dm_cmplx(e_h,dm)
@@ -4135,7 +4135,7 @@ subroutine elsi_sips_to_blacs_dm_cmplx(e_h,dm)
 end subroutine
 
 !>
-!! This routine converts density matrix computed by SIPs, stored in 1D block
+!! This routine converts density matrix computed by SIPS, stored in 1D block
 !! CCS format to 1D block-cyclic CCS format.
 !!
 subroutine elsi_sips_to_siesta_dm_real(e_h,dm)
@@ -4155,7 +4155,7 @@ subroutine elsi_sips_to_siesta_dm_real(e_h,dm)
 end subroutine
 
 !>
-!! This routine converts density matrix computed by SIPs, stored in 1D block
+!! This routine converts density matrix computed by SIPS, stored in 1D block
 !! CCS format to 1D block-cyclic CCS format.
 !!
 subroutine elsi_sips_to_siesta_dm_cmplx(e_h,dm)

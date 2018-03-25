@@ -33,7 +33,7 @@ module ELSI_SETUP
    use ELSI_UTILS,         only: elsi_check_handle,elsi_reset_handle
    use F_PPEXSI_INTERFACE, only: f_ppexsi_plan_finalize
    use MATRIXSWITCH,       only: ms_scalapack_setup,m_deallocate
-   use M_QETSC,            only: sips_finalize
+   use M_SIPS,             only: sips_finalize
 
    implicit none
 
@@ -542,7 +542,7 @@ subroutine elsi_cleanup(e_h)
       call elsi_deallocate(e_h,e_h%ne_vec_pexsi,"ne_vec_pexsi")
    endif
 
-   ! SIPs
+   ! SIPS
    if(allocated(e_h%evec_real_sips)) then
       call elsi_deallocate(e_h,e_h%evec_real_sips,"evec_real_sips")
    endif
@@ -602,7 +602,7 @@ subroutine elsi_cleanup(e_h)
       call MPI_Comm_free(e_h%pexsi_comm_in_point,ierr)
    endif
 
-   ! Finalize SIPs
+   ! Finalize SIPS
    if(e_h%sips_started) then
       call sips_finalize()
    endif

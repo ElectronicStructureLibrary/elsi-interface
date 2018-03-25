@@ -82,7 +82,7 @@ program test_standard_ev_real
          write(*,'("  ##  Arg#1: Size of test matrix.               ##")')
          write(*,'("  ##  Arg#2: Number of eigenvectors to compute. ##")')
          write(*,'("  ##  Arg#3: Choice of solver.                  ##")')
-         write(*,'("  ##         (ELPA = 1; SIPs = 5)               ##")')
+         write(*,'("  ##         (ELPA = 1; SIPS = 5)               ##")')
          write(*,'("  ################################################")')
          call MPI_Abort(mpi_comm,0,mpierr)
          stop
@@ -97,7 +97,7 @@ program test_standard_ev_real
       if(solver == 1) then
          write(*,'("  Now start testing  elsi_ev_real + ELPA")')
       elseif(solver == 5) then
-         write(*,'("  Now start testing  elsi_ev_real + SIPs")')
+         write(*,'("  Now start testing  elsi_ev_real + SIPS")')
       endif
       write(*,*)
    endif

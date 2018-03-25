@@ -272,7 +272,7 @@ subroutine elsi_print_handle_summary(e_h,io_h_in)
       elseif(e_h%solver == PEXSI_SOLVER) then
          call elsi_say_setting(e_h,"Solver requested","PEXSI",io_h)
       elseif(e_h%solver == SIPS_SOLVER) then
-         call elsi_say_setting(e_h,"Solver requested","SIPs",io_h)
+         call elsi_say_setting(e_h,"Solver requested","SIPS",io_h)
       elseif(e_h%solver == DMP_SOLVER) then
          call elsi_say_setting(e_h,"Solver requested","DMP",io_h)
       else
@@ -319,7 +319,7 @@ subroutine elsi_print_handle_summary(e_h,io_h_in)
       elseif(e_h%solver == PEXSI_SOLVER) then
          call elsi_say_setting(e_h,"solver","PEXSI",io_h)
       elseif(e_h%solver == SIPS_SOLVER) then
-         call elsi_say_setting(e_h,"solver","SIPs",io_h)
+         call elsi_say_setting(e_h,"solver","SIPS",io_h)
       elseif(e_h%solver == DMP_SOLVER) then
          call elsi_say_setting(e_h,"solver","DMP",io_h)
       else
@@ -469,7 +469,7 @@ subroutine elsi_print_settings(e_h)
          e_h%pexsi_options%npSymbFact
       call elsi_say(e_h,info_str)
    case(SIPS_SOLVER)
-      call elsi_say(e_h,"  SIPs settings:")
+      call elsi_say(e_h,"  SIPS settings:")
 
       write(info_str,"('  | Number of ELPA steps ',I10)") e_h%sips_n_elpa
       call elsi_say(e_h,info_str)
@@ -776,7 +776,7 @@ subroutine elsi_print_pexsi_settings(e_h,io_h_in)
 end subroutine
 
 !>
-!! This routine prints out settings for SIPs.
+!! This routine prints out settings for SIPS.
 !!
 subroutine elsi_print_sips_settings(e_h,io_h_in)
 
@@ -802,7 +802,7 @@ subroutine elsi_print_sips_settings(e_h,io_h_in)
 
    ! Header
    if(io_h%file_format == HUMAN_READ) then
-      write(info_str,"(A)") "Solver Settings (SIPs)"
+      write(info_str,"(A)") "Solver Settings (SIPS)"
    else
       write(info_str,"(A)") '"solver_settings": {'
    endif

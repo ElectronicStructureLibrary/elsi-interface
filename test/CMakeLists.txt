@@ -127,7 +127,7 @@ IF(ENABLE_PEXSI)
   test_fortran(16 d s c 3 ${h_cmplx} ${s_cmplx})
 ENDIF()
 
-### Parallel Fortran tests: ev + SIPs ###
+### Parallel Fortran tests: ev + SIPS ###
 IF(ENABLE_SIPS)
   test_fortran(17 e d r 5 ${h_real} ${s_real})
   test_fortran(18 e s r 5 ${h_real} ${s_real})

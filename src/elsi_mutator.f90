@@ -749,7 +749,7 @@ subroutine elsi_set_pexsi_inertia_tol(e_h,inertia_tol)
 end subroutine
 
 !>
-!! This routine sets the number of ELPA steps when using SIPs.
+!! This routine sets the number of ELPA steps when using SIPS.
 !!
 subroutine elsi_set_sips_n_elpa(e_h,n_elpa)
 
@@ -771,7 +771,7 @@ subroutine elsi_set_sips_n_elpa(e_h,n_elpa)
 end subroutine
 
 !>
-!! This routine sets the number of slices in SIPs.
+!! This routine sets the number of slices in SIPS.
 !!
 subroutine elsi_set_sips_n_slice(e_h,n_slice)
 
@@ -799,7 +799,7 @@ subroutine elsi_set_sips_n_slice(e_h,n_slice)
 end subroutine
 
 !>
-!! This routine sets the type of slices to be used in SIPs.
+!! This routine sets the type of slices to be used in SIPS.
 !!
 subroutine elsi_set_sips_slice_type(e_h,slice_type)
 
@@ -825,7 +825,7 @@ subroutine elsi_set_sips_slice_type(e_h,slice_type)
 end subroutine
 
 !>
-!! This routine sets a small buffer to expand the eigenvalue interval in SIPs.
+!! This routine sets a small buffer to expand the eigenvalue interval in SIPS.
 !!
 subroutine elsi_set_sips_buffer(e_h,buffer)
 
@@ -847,7 +847,7 @@ subroutine elsi_set_sips_buffer(e_h,buffer)
 end subroutine
 
 !>
-!! This routine sets the tolerance to stop inertia counting in SIPs.
+!! This routine sets the tolerance to stop inertia counting in SIPS.
 !!
 subroutine elsi_set_sips_inertia_tol(e_h,inertia_tol)
 
@@ -869,7 +869,7 @@ subroutine elsi_set_sips_inertia_tol(e_h,inertia_tol)
 end subroutine
 
 !>
-!! This routine sets the global interval to be solved by SIPs.
+!! This routine sets the global interval to be solved by SIPS.
 !!
 subroutine elsi_set_sips_interval(e_h,lower,upper)
 
