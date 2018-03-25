@@ -274,7 +274,7 @@ subroutine elsi_compute_dm_sips_real(e_h,dm)
    implicit none
 
    type(elsi_handle), intent(inout) :: e_h
-   real(kind=r8),     intent(inout) :: dm(e_h%nnz_l_sp)
+   real(kind=r8),     intent(inout) :: dm(e_h%nnz_l_sp1)
 
    character(len=40), parameter :: caller = "elsi_compute_dm_sips_real"
 
@@ -291,7 +291,7 @@ subroutine elsi_compute_edm_sips_real(e_h,edm)
    implicit none
 
    type(elsi_handle), intent(inout) :: e_h
-   real(kind=r8),     intent(inout) :: edm(e_h%nnz_l_sp)
+   real(kind=r8),     intent(inout) :: edm(e_h%nnz_l_sp1)
 
    character(len=40), parameter :: caller = "elsi_compute_edm_sips_real"
 

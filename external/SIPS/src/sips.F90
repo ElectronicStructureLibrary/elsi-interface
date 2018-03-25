@@ -1006,17 +1006,15 @@ CONTAINS
         PetscInt           :: i_val
         PetscInt           :: nnz_this_row
         PetscReal          :: tmp
+        PetscReal          :: eval
         PetscReal, POINTER :: vec_tmp(:)
-        PetscInt,  SAVE    :: counter = 0
-
-        counter = counter+1
 
         ! Index conversion
         col_idx = col_idx-1
         row_ptr = row_ptr-1
 
         DO i = 1,nev
-            CALL EPSGetEigenpair(eps,i-1,tmp,PETSC_NULL_SCALAR,xr,&
+            CALL EPSGetEigenpair(eps,i-1,eval,PETSC_NULL_SCALAR,xr,&
                      PETSC_NULL_VEC,ierr)
             CHKERRQ(ierr)
 
@@ -1037,7 +1035,7 @@ CONTAINS
 
                 DO k = 1,nnz_this_row
                     i_val          = i_val+1
-                    tmp            = tmp*occ(i)*vec_tmp(j)*&
+                    tmp            = eval*occ(i)*vec_tmp(j)*&
                                          vec_tmp(col_idx(i_val)+1)
                     edm_val(i_val) = edm_val(i_val)+tmp
                 END DO
