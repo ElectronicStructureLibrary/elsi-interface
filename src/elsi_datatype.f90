@@ -19,7 +19,7 @@ module ELSI_DATATYPE
 
    private
 
-   type, public :: elsi_file_io_handle
+   type, public :: elsi_io_handle
 
       logical                       :: handle_init ! Is this a valid handle?
       integer(kind=i4)              :: print_unit  ! Unit to print to
@@ -261,14 +261,14 @@ module ELSI_DATATYPE
       real(kind=r8)    :: dmp_ne        ! Number of electrons computed by DMP
 
       ! ELSI IO files
-      type(elsi_file_io_handle) :: stdio
-      type(elsi_file_io_handle) :: timings_file
+      type(elsi_io_handle) :: stdio
+      type(elsi_io_handle) :: timings_file
 
       ! Timer and timings
       type(elsi_timings_handle)   :: timings
-      logical                     :: output_timings_file
-      integer(kind=i4)            :: solver_timings_unit
-      character(len=FILENAME_LEN) :: solver_timings_name
+      logical                     :: output_timings
+      integer(kind=i4)            :: timings_unit
+      character(len=FILENAME_LEN) :: timings_name
 
       ! Versioning
       character(len=STR_LEN)  :: caller

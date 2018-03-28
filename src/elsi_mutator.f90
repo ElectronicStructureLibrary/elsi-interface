@@ -945,7 +945,7 @@ subroutine elsi_set_mu_mp_order(e_h,mp_order)
 end subroutine
 
 !>
-!! This routine sets whether the detailed solver timings file should be output.
+!! This routine sets whether the detailed timings file should be output.
 !!
 subroutine elsi_set_output_timings(e_h,output_timings)
 
@@ -959,15 +959,15 @@ subroutine elsi_set_output_timings(e_h,output_timings)
    call elsi_check_handle(e_h,caller)
 
    if(output_timings == 0) then
-      e_h%output_timings_file = .false.
+      e_h%output_timings = .false.
    else
-      e_h%output_timings_file = .true.
+      e_h%output_timings = .true.
    endif
 
 end subroutine
 
 !>
-!! This routine sets the unit to which detailed solver timings are output.
+!! This routine sets the unit to which detailed timings are output.
 !!
 subroutine elsi_set_timings_unit(e_h,timings_unit)
 
@@ -980,12 +980,12 @@ subroutine elsi_set_timings_unit(e_h,timings_unit)
 
    call elsi_check_handle(e_h,caller)
 
-   e_h%solver_timings_unit = timings_unit
+   e_h%timings_unit = timings_unit
 
 end subroutine
 
 !>
-!! This routine sets the file to which detailed solver timings are output.
+!! This routine sets the file to which detailed timings are output.
 !!
 subroutine elsi_set_timings_file(e_h,timings_file)
 
@@ -998,12 +998,12 @@ subroutine elsi_set_timings_file(e_h,timings_file)
 
    call elsi_check_handle(e_h,caller)
 
-   e_h%solver_timings_name = timings_file
+   e_h%timings_name = timings_file
 
 end subroutine
 
 !>
-!! This routine sets the user_tag for the solver timings.
+!! This routine sets the user_tag for the timings.
 !!
 subroutine elsi_set_timings_tag(e_h,user_tag)
 
@@ -1019,10 +1019,7 @@ subroutine elsi_set_timings_tag(e_h,user_tag)
 end subroutine
 
 !>
-!! This routine sets the UUID for ELSI to the value specified by the calling
-!! code.  When the UUID is set in this fashion, ELSI will not generate its own
-!! UUID, and it will not synchronize the UUID across tasks.  (Doing so would
-!! require MPI be initialized, which is not guaranteed.)
+!! This routine sets the UUID.
 !!
 subroutine elsi_set_uuid(e_h,uuid)
 

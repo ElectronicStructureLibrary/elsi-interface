@@ -10,7 +10,7 @@
 !!
 module ELSI
 
-   use ELSI_DATATYPE, only: elsi_file_io_handle,elsi_handle,elsi_rw_handle
+   use ELSI_DATATYPE, only: elsi_io_handle,elsi_handle,elsi_rw_handle
    use ELSI_IO
    use ELSI_MAT_IO
    use ELSI_OCC
@@ -23,8 +23,8 @@ module ELSI
    private
 
    ! Data type
-   public :: elsi_file_io_handle
    public :: elsi_handle
+   public :: elsi_io_handle
    public :: elsi_rw_handle
 
    ! Setup

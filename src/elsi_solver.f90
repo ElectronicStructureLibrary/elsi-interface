@@ -12,23 +12,14 @@ module ELSI_SOLVER
 
    use ELSI_CONSTANTS,  only: ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,SIPS_SOLVER,&
                               DMP_SOLVER,REAL_DATA,CMPLX_DATA,MULTI_PROC,&
-                              SINGLE_PROC,PEXSI_CSC,SIESTA_CSC,UNSET,&
-                              STR_LEN,OUTPUT_EV,OUTPUT_DM,TIME_LEN,&
-                              COMMA_BEFORE,COMMA_AFTER,NO_COMMA,UNSET_STR,&
-                              HUMAN,JSON
-   use ELSI_DATATYPE,   only: elsi_handle,elsi_file_io_handle
+                              SINGLE_PROC,PEXSI_CSC,SIESTA_CSC,UNSET,OUTPUT_EV,&
+                              OUTPUT_DM,TIME_LEN
+   use ELSI_DATATYPE,   only: elsi_handle
    use ELSI_DMP,        only: elsi_solve_evp_dmp_real
    use ELSI_ELPA,       only: elsi_compute_occ_elpa,elsi_compute_dm_elpa_real,&
                               elsi_solve_evp_elpa_real,&
                               elsi_compute_dm_elpa_cmplx,&
                               elsi_solve_evp_elpa_cmplx
-   use ELSI_IO,         only: elsi_print_handle_summary,&
-                              elsi_print_solver_settings,elsi_print_settings,&
-                              elsi_say,elsi_say_setting,&
-                              elsi_print_matrix_format_settings,&
-                              elsi_append_string,elsi_truncate_string,&
-                              elsi_print_versioning,elsi_start_json_record,&
-                              elsi_finish_json_record
    use ELSI_LAPACK,     only: elsi_solve_evp_lapack_real,&
                               elsi_solve_evp_lapack_cmplx
    use ELSI_MALLOC,     only: elsi_allocate,elsi_deallocate
@@ -62,9 +53,9 @@ module ELSI_SOLVER
    use ELSI_SETUP,      only: elsi_set_blacs
    use ELSI_SIPS,       only: elsi_init_sips,elsi_solve_evp_sips_real,&
                               elsi_compute_dm_sips_real
-   use ELSI_TIMINGS,    only: elsi_get_time,elsi_add_timing
+   use ELSI_TIMINGS,    only: elsi_get_time,elsi_process_timing
    use ELSI_UTILS,      only: elsi_check,elsi_check_handle,elsi_ready_handle,&
-                              elsi_get_solver_tag,elsi_get_datetime_rfc3339
+                              elsi_get_datetime_rfc3339
    use MATRIXSWITCH,    only: m_allocate
 
    implicit none
@@ -156,26 +147,18 @@ subroutine elsi_ev_real(e_h,ham,ovlp,eval,evec)
    real(kind=r8),     intent(inout) :: evec(e_h%n_lrow,e_h%n_lcol) !< Eigenvectors
 
    real(kind=r8)           :: t0
-   integer(kind=i4)        :: solver_used = UNSET
-   character(len=TIME_LEN) :: start_datetime
+   integer(kind=i4)        :: sol = UNSET
+   character(len=TIME_LEN) :: dt0
 
-   integer(kind=i4),  parameter :: output_type = OUTPUT_EV
-   integer(kind=i4),  parameter :: data_type = REAL_DATA
    character(len=40), parameter :: caller = "elsi_ev_real"
-
-   call elsi_get_time(t0)
-   call elsi_get_datetime_rfc3339(start_datetime)
 
    call elsi_check_handle(e_h,caller)
    call elsi_ready_handle(e_h,caller)
-
-   ! Update counter
-   e_h%n_elsi_calls = e_h%n_elsi_calls+1
-
-   ! Safety check
    call elsi_check(e_h,caller)
+   call elsi_get_time(t0)
+   call elsi_get_datetime_rfc3339(dt0)
 
-   call elsi_print_settings(e_h)
+   e_h%n_elsi_calls = e_h%n_elsi_calls+1
 
    select case(e_h%solver)
    case(ELPA_SOLVER)
@@ -185,7 +168,7 @@ subroutine elsi_ev_real(e_h,ham,ovlp,eval,evec)
          call elsi_solve_evp_elpa_real(e_h,ham,ovlp,eval,evec)
       endif
 
-      solver_used = ELPA_SOLVER
+      sol = ELPA_SOLVER
    case(OMM_SOLVER)
       call elsi_stop(" LIBOMM is not an eigensolver.",e_h,caller)
    case(PEXSI_SOLVER)
@@ -201,7 +184,7 @@ subroutine elsi_ev_real(e_h,ham,ovlp,eval,evec)
 
          call elsi_solve_evp_elpa_real(e_h,ham,ovlp,eval,evec)
 
-         solver_used = ELPA_SOLVER
+         sol = ELPA_SOLVER
       else ! ELPA is done
          if(allocated(e_h%ovlp_real_copy)) then
             ! Retrieve overlap matrix that has been destroyed by Cholesky
@@ -216,7 +199,7 @@ subroutine elsi_ev_real(e_h,ham,ovlp,eval,evec)
                  e_h%ovlp_real_pexsi,eval)
          call elsi_sips_to_blacs_ev_real(e_h,evec)
 
-         solver_used = SIPS_SOLVER
+         sol = SIPS_SOLVER
       endif
    case(DMP_SOLVER)
       call elsi_stop(" DMP is not an eigensolver.",e_h,caller)
@@ -224,8 +207,7 @@ subroutine elsi_ev_real(e_h,ham,ovlp,eval,evec)
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
-   call elsi_process_solver_timing(e_h,output_type,data_type,solver_used,&
-           start_datetime,t0)
+   call elsi_process_timing(e_h,OUTPUT_EV,REAL_DATA,sol,dt0,t0)
 
 end subroutine
 
@@ -245,26 +227,18 @@ subroutine elsi_ev_complex(e_h,ham,ovlp,eval,evec)
    complex(kind=r8),  intent(inout) :: evec(e_h%n_lrow,e_h%n_lcol) !< Eigenvectors
 
    real(kind=r8)           :: t0
-   integer(kind=i4)        :: solver_used = UNSET
-   character(len=TIME_LEN) :: start_datetime
+   integer(kind=i4)        :: sol = UNSET
+   character(len=TIME_LEN) :: dt0
 
-   integer(kind=i4),  parameter :: output_type = OUTPUT_EV
-   integer(kind=i4),  parameter :: data_type = CMPLX_DATA
    character(len=40), parameter :: caller = "elsi_ev_complex"
-
-   call elsi_get_time(t0)
-   call elsi_get_datetime_rfc3339(start_datetime)
 
    call elsi_check_handle(e_h,caller)
    call elsi_ready_handle(e_h,caller)
-
-   ! Update counter
-   e_h%n_elsi_calls = e_h%n_elsi_calls+1
-
-   ! Safety check
    call elsi_check(e_h,caller)
+   call elsi_get_time(t0)
+   call elsi_get_datetime_rfc3339(dt0)
 
-   call elsi_print_settings(e_h)
+   e_h%n_elsi_calls = e_h%n_elsi_calls+1
 
    select case(e_h%solver)
    case(ELPA_SOLVER)
@@ -274,7 +248,7 @@ subroutine elsi_ev_complex(e_h,ham,ovlp,eval,evec)
          call elsi_solve_evp_elpa_cmplx(e_h,ham,ovlp,eval,evec)
       endif
 
-      solver_used = ELPA_SOLVER
+      sol = ELPA_SOLVER
    case(OMM_SOLVER)
       call elsi_stop(" LIBOMM is not an eigensolver.",e_h,caller)
    case(PEXSI_SOLVER)
@@ -287,8 +261,7 @@ subroutine elsi_ev_complex(e_h,ham,ovlp,eval,evec)
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
-   call elsi_process_solver_timing(e_h,output_type,data_type,solver_used,&
-           start_datetime,t0)
+   call elsi_process_timing(e_h,OUTPUT_EV,CMPLX_DATA,sol,dt0,t0)
 
 end subroutine
 
@@ -308,26 +281,18 @@ subroutine elsi_ev_real_sparse(e_h,ham,ovlp,eval,evec)
    real(kind=r8),     intent(inout) :: evec(e_h%n_lrow,e_h%n_lcol) !< Eigenvectors
 
    real(kind=r8)           :: t0
-   integer(kind=i4)        :: solver_used = UNSET
-   character(len=TIME_LEN) :: start_datetime
+   integer(kind=i4)        :: sol = UNSET
+   character(len=TIME_LEN) :: dt0
 
-   integer(kind=i4),  parameter :: output_type = OUTPUT_EV
-   integer(kind=i4),  parameter :: data_type = REAL_DATA
    character(len=40), parameter :: caller = "elsi_ev_real_sparse"
-
-   call elsi_get_time(t0)
-   call elsi_get_datetime_rfc3339(start_datetime)
 
    call elsi_check_handle(e_h,caller)
    call elsi_ready_handle(e_h,caller)
-
-   ! Update counter
-   e_h%n_elsi_calls = e_h%n_elsi_calls+1
-
-   ! Safety check
    call elsi_check(e_h,caller)
+   call elsi_get_time(t0)
+   call elsi_get_datetime_rfc3339(dt0)
 
-   call elsi_print_settings(e_h)
+   e_h%n_elsi_calls = e_h%n_elsi_calls+1
 
    select case(e_h%solver)
    case(ELPA_SOLVER)
@@ -343,7 +308,7 @@ subroutine elsi_ev_real_sparse(e_h,ham,ovlp,eval,evec)
       call elsi_solve_evp_elpa_real(e_h,e_h%ham_real_elpa,e_h%ovlp_real_elpa,&
               eval,evec)
 
-      solver_used = ELPA_SOLVER
+      sol = ELPA_SOLVER
    case(OMM_SOLVER)
       call elsi_stop(" LIBOMM is not an eigensolver.",e_h,caller)
    case(PEXSI_SOLVER)
@@ -362,7 +327,7 @@ subroutine elsi_ev_real_sparse(e_h,ham,ovlp,eval,evec)
          call elsi_solve_evp_elpa_real(e_h,e_h%ham_real_elpa,&
                  e_h%ovlp_real_elpa,eval,evec)
 
-         solver_used = ELPA_SOLVER
+         sol = ELPA_SOLVER
       else ! ELPA is done
          if(allocated(e_h%ham_real_elpa)) then
             call elsi_deallocate(e_h,e_h%ham_real_elpa,"ham_real_elpa")
@@ -386,7 +351,7 @@ subroutine elsi_ev_real_sparse(e_h,ham,ovlp,eval,evec)
 
          call elsi_sips_to_blacs_ev_real(e_h,evec)
 
-         solver_used = SIPS_SOLVER
+         sol = SIPS_SOLVER
       endif
    case(DMP_SOLVER)
       call elsi_stop(" DMP is not an eigensolver.",e_h,caller)
@@ -394,8 +359,7 @@ subroutine elsi_ev_real_sparse(e_h,ham,ovlp,eval,evec)
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
-   call elsi_process_solver_timing(e_h,output_type,data_type,solver_used,&
-           start_datetime,t0)
+   call elsi_process_timing(e_h,OUTPUT_EV,REAL_DATA,sol,dt0,t0)
 
 end subroutine
 
@@ -415,26 +379,18 @@ subroutine elsi_ev_complex_sparse(e_h,ham,ovlp,eval,evec)
    complex(kind=r8),  intent(inout) :: evec(e_h%n_lrow,e_h%n_lcol) !< Eigenvectors
 
    real(kind=r8)           :: t0
-   integer(kind=i4)        :: solver_used = UNSET
-   character(len=TIME_LEN) :: start_datetime
+   integer(kind=i4)        :: sol = UNSET
+   character(len=TIME_LEN) :: dt0
 
-   integer(kind=i4),  parameter :: output_type = OUTPUT_EV
-   integer(kind=i4),  parameter :: data_type = CMPLX_DATA
    character(len=40), parameter :: caller = "elsi_ev_complex_sparse"
-
-   call elsi_get_time(t0)
-   call elsi_get_datetime_rfc3339(start_datetime)
 
    call elsi_check_handle(e_h,caller)
    call elsi_ready_handle(e_h,caller)
-
-   ! Update counter
-   e_h%n_elsi_calls = e_h%n_elsi_calls+1
-
-   ! Safety check
    call elsi_check(e_h,caller)
+   call elsi_get_time(t0)
+   call elsi_get_datetime_rfc3339(dt0)
 
-   call elsi_print_settings(e_h)
+   e_h%n_elsi_calls = e_h%n_elsi_calls+1
 
    select case(e_h%solver)
    case(ELPA_SOLVER)
@@ -450,7 +406,7 @@ subroutine elsi_ev_complex_sparse(e_h,ham,ovlp,eval,evec)
       call elsi_solve_evp_elpa_cmplx(e_h,e_h%ham_cmplx_elpa,&
               e_h%ovlp_cmplx_elpa,eval,evec)
 
-      solver_used = ELPA_SOLVER
+      sol = ELPA_SOLVER
    case(OMM_SOLVER)
       call elsi_stop(" LIBOMM is not an eigensolver.",e_h,caller)
    case(PEXSI_SOLVER)
@@ -463,8 +419,7 @@ subroutine elsi_ev_complex_sparse(e_h,ham,ovlp,eval,evec)
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
-   call elsi_process_solver_timing(e_h,output_type,data_type,solver_used,&
-           start_datetime,t0)
+   call elsi_process_timing(e_h,OUTPUT_EV,CMPLX_DATA,sol,dt0,t0)
 
 end subroutine
 
@@ -483,26 +438,18 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
    real(kind=r8),     intent(inout) :: energy                      !< Energy
 
    real(kind=r8)           :: t0
-   integer(kind=i4)        :: solver_used = UNSET
-   character(len=TIME_LEN) :: start_datetime
+   integer(kind=i4)        :: sol = UNSET
+   character(len=TIME_LEN) :: dt0
 
-   integer(kind=i4),  parameter :: output_type = OUTPUT_DM
-   integer(kind=i4),  parameter :: data_type = REAL_DATA
    character(len=40), parameter :: caller = "elsi_dm_real"
-
-   call elsi_get_time(t0)
-   call elsi_get_datetime_rfc3339(start_datetime)
 
    call elsi_check_handle(e_h,caller)
    call elsi_ready_handle(e_h,caller)
-
-   ! Update counter
-   e_h%n_elsi_calls = e_h%n_elsi_calls+1
-
-   ! Safety check
    call elsi_check(e_h,caller)
+   call elsi_get_time(t0)
+   call elsi_get_datetime_rfc3339(dt0)
 
-   call elsi_print_settings(e_h)
+   e_h%n_elsi_calls = e_h%n_elsi_calls+1
 
    select case(e_h%solver)
    case(ELPA_SOLVER)
@@ -520,7 +467,7 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
       call elsi_compute_dm_elpa_real(e_h,e_h%evec_real_elpa,dm,ham)
       call elsi_get_energy(e_h,energy,ELPA_SOLVER)
 
-      solver_used = ELPA_SOLVER
+      sol = ELPA_SOLVER
 
       e_h%mu_ready = .true.
       e_h%ts_ready = .true.
@@ -547,7 +494,7 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
          call elsi_compute_dm_elpa_real(e_h,e_h%evec_real_elpa,dm,ham)
          call elsi_get_energy(e_h,energy,ELPA_SOLVER)
 
-         solver_used = ELPA_SOLVER
+         sol = ELPA_SOLVER
       else ! ELPA is done
          if(allocated(e_h%ovlp_real_copy)) then
             ! Retrieve overlap matrix that has been destroyed by Cholesky
@@ -588,7 +535,7 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
          call elsi_solve_evp_omm_real(e_h,ham,ovlp,dm)
          call elsi_get_energy(e_h,energy,OMM_SOLVER)
 
-         solver_used = OMM_SOLVER
+         sol = OMM_SOLVER
       endif
    case(PEXSI_SOLVER)
       call elsi_init_pexsi(e_h)
@@ -605,7 +552,7 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
       call elsi_pexsi_to_blacs_dm_real(e_h,dm)
       call elsi_get_energy(e_h,energy,PEXSI_SOLVER)
 
-      solver_used = PEXSI_SOLVER
+      sol = PEXSI_SOLVER
 
       e_h%mu_ready = .true.
    case(SIPS_SOLVER)
@@ -632,7 +579,7 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
          call elsi_compute_dm_elpa_real(e_h,e_h%evec_real_elpa,dm,ham)
          call elsi_get_energy(e_h,energy,ELPA_SOLVER)
 
-         solver_used = ELPA_SOLVER
+         sol = ELPA_SOLVER
       else ! ELPA is done
          if(allocated(e_h%ovlp_real_copy)) then
             ! Retrieve overlap matrix that has been destroyed by Cholesky
@@ -657,7 +604,7 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
          call elsi_sips_to_blacs_dm_real(e_h,dm)
          call elsi_get_energy(e_h,energy,SIPS_SOLVER)
 
-         solver_used = SIPS_SOLVER
+         sol = SIPS_SOLVER
       endif
 
       e_h%mu_ready = .true.
@@ -676,13 +623,12 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
       call elsi_solve_evp_dmp_real(e_h,ham,ovlp,dm)
       call elsi_get_energy(e_h,energy,DMP_SOLVER)
 
-      solver_used = DMP_SOLVER
+      sol = DMP_SOLVER
    case default
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
-   call elsi_process_solver_timing(e_h,output_type,data_type,solver_used,&
-           start_datetime,t0)
+   call elsi_process_timing(e_h,OUTPUT_DM,REAL_DATA,sol,dt0,t0)
 
    e_h%edm_ready_real = .true.
 
@@ -703,26 +649,18 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
    real(kind=r8),     intent(inout) :: energy                      !< Energy
 
    real(kind=r8)           :: t0
-   integer(kind=i4)        :: solver_used = UNSET
-   character(len=TIME_LEN) :: start_datetime
+   integer(kind=i4)        :: sol = UNSET
+   character(len=TIME_LEN) :: dt0
 
-   integer(kind=i4),  parameter :: output_type = OUTPUT_DM
-   integer(kind=i4),  parameter :: data_type = CMPLX_DATA
    character(len=40), parameter :: caller = "elsi_dm_complex"
-
-   call elsi_get_time(t0)
-   call elsi_get_datetime_rfc3339(start_datetime)
 
    call elsi_check_handle(e_h,caller)
    call elsi_ready_handle(e_h,caller)
-
-   ! Update counter
-   e_h%n_elsi_calls = e_h%n_elsi_calls+1
-
-   ! Safety check
    call elsi_check(e_h,caller)
+   call elsi_get_time(t0)
+   call elsi_get_datetime_rfc3339(dt0)
 
-   call elsi_print_settings(e_h)
+   e_h%n_elsi_calls = e_h%n_elsi_calls+1
 
    select case(e_h%solver)
    case(ELPA_SOLVER)
@@ -740,7 +678,7 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
       call elsi_compute_dm_elpa_cmplx(e_h,e_h%evec_cmplx_elpa,dm,ham)
       call elsi_get_energy(e_h,energy,ELPA_SOLVER)
 
-      solver_used = ELPA_SOLVER
+      sol = ELPA_SOLVER
 
       e_h%mu_ready = .true.
       e_h%ts_ready = .true.
@@ -767,7 +705,7 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
          call elsi_compute_dm_elpa_cmplx(e_h,e_h%evec_cmplx_elpa,dm,ham)
          call elsi_get_energy(e_h,energy,ELPA_SOLVER)
 
-         solver_used = ELPA_SOLVER
+         sol = ELPA_SOLVER
       else ! ELPA is done
          if(allocated(e_h%ovlp_cmplx_copy)) then
             ! Retrieve overlap matrix that has been destroyed by Cholesky
@@ -809,7 +747,7 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
          call elsi_solve_evp_omm_cmplx(e_h,ham,ovlp,dm)
          call elsi_get_energy(e_h,energy,OMM_SOLVER)
 
-         solver_used = OMM_SOLVER
+         sol = OMM_SOLVER
       endif
    case(PEXSI_SOLVER)
       call elsi_init_pexsi(e_h)
@@ -826,7 +764,7 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
       call elsi_pexsi_to_blacs_dm_cmplx(e_h,dm)
       call elsi_get_energy(e_h,energy,PEXSI_SOLVER)
 
-      solver_used = PEXSI_SOLVER
+      sol = PEXSI_SOLVER
 
       e_h%mu_ready = .true.
    case(SIPS_SOLVER)
@@ -837,8 +775,7 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
-   call elsi_process_solver_timing(e_h,output_type,data_type,solver_used,&
-           start_datetime,t0)
+   call elsi_process_timing(e_h,OUTPUT_DM,CMPLX_DATA,sol,dt0,t0)
 
    e_h%edm_ready_cmplx = .true.
 
@@ -859,26 +796,18 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
    real(kind=r8),     intent(inout) :: energy             !< Energy
 
    real(kind=r8)           :: t0
-   integer(kind=i4)        :: solver_used = UNSET
-   character(len=TIME_LEN) :: start_datetime
+   integer(kind=i4)        :: sol = UNSET
+   character(len=TIME_LEN) :: dt0
 
-   integer(kind=i4),  parameter :: output_type = OUTPUT_DM
-   integer(kind=i4),  parameter :: data_type = REAL_DATA
    character(len=40), parameter :: caller = "elsi_dm_real_sparse"
-
-   call elsi_get_time(t0)
-   call elsi_get_datetime_rfc3339(start_datetime)
 
    call elsi_check_handle(e_h,caller)
    call elsi_ready_handle(e_h,caller)
-
-   ! Update counter
-   e_h%n_elsi_calls = e_h%n_elsi_calls+1
-
-   ! Safety check
    call elsi_check(e_h,caller)
+   call elsi_get_time(t0)
+   call elsi_get_datetime_rfc3339(dt0)
 
-   call elsi_print_settings(e_h)
+   e_h%n_elsi_calls = e_h%n_elsi_calls+1
 
    select case(e_h%solver)
    case(ELPA_SOLVER)
@@ -925,7 +854,7 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
 
       call elsi_get_energy(e_h,energy,ELPA_SOLVER)
 
-      solver_used = ELPA_SOLVER
+      sol = ELPA_SOLVER
 
       e_h%mu_ready = .true.
       e_h%ts_ready = .true.
@@ -981,7 +910,7 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
 
          call elsi_get_energy(e_h,energy,ELPA_SOLVER)
 
-         solver_used = ELPA_SOLVER
+         sol = ELPA_SOLVER
       else ! ELPA is done
          if(allocated(e_h%ovlp_real_copy)) then
             ! Retrieve overlap matrix that has been destroyed by Cholesky
@@ -1031,7 +960,7 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
 
          call elsi_get_energy(e_h,energy,OMM_SOLVER)
 
-         solver_used = OMM_SOLVER
+         sol = OMM_SOLVER
       endif
    case(PEXSI_SOLVER)
       call elsi_init_pexsi(e_h)
@@ -1057,7 +986,7 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
 
       call elsi_get_energy(e_h,energy,PEXSI_SOLVER)
 
-      solver_used = PEXSI_SOLVER
+      sol = PEXSI_SOLVER
 
       e_h%mu_ready = .true.
    case(SIPS_SOLVER)
@@ -1105,7 +1034,7 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
 
          call elsi_get_energy(e_h,energy,ELPA_SOLVER)
 
-         solver_used = ELPA_SOLVER
+         sol = ELPA_SOLVER
       else ! ELPA is done
          if(allocated(e_h%ham_real_elpa)) then
             call elsi_deallocate(e_h,e_h%ham_real_elpa,"ham_real_elpa")
@@ -1148,7 +1077,7 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
             call elsi_stop(" Unsupported matrix format.",e_h,caller)
          end select
 
-         solver_used = SIPS_SOLVER
+         sol = SIPS_SOLVER
       endif
 
       e_h%mu_ready = .true.
@@ -1197,13 +1126,12 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
 
       call elsi_get_energy(e_h,energy,DMP_SOLVER)
 
-      solver_used = DMP_SOLVER
+      sol = DMP_SOLVER
    case default
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
-   call elsi_process_solver_timing(e_h,output_type,data_type,solver_used,&
-           start_datetime,t0)
+   call elsi_process_timing(e_h,OUTPUT_DM,REAL_DATA,sol,dt0,t0)
 
    e_h%edm_ready_real = .true.
 
@@ -1224,26 +1152,18 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
    real(kind=r8),     intent(inout) :: energy             !< Energy
 
    real(kind=r8)           :: t0
-   integer(kind=i4)        :: solver_used = UNSET
-   character(len=TIME_LEN) :: start_datetime
+   integer(kind=i4)        :: sol = UNSET
+   character(len=TIME_LEN) :: dt0
 
-   integer(kind=i4),  parameter :: output_type = OUTPUT_DM
-   integer(kind=i4),  parameter :: data_type = CMPLX_DATA
    character(len=40), parameter :: caller = "elsi_dm_complex_sparse"
-
-   call elsi_get_time(t0)
-   call elsi_get_datetime_rfc3339(start_datetime)
 
    call elsi_check_handle(e_h,caller)
    call elsi_ready_handle(e_h,caller)
-
-   ! Update counter
-   e_h%n_elsi_calls = e_h%n_elsi_calls+1
-
-   ! Safety check
    call elsi_check(e_h,caller)
+   call elsi_get_time(t0)
+   call elsi_get_datetime_rfc3339(dt0)
 
-   call elsi_print_settings(e_h)
+   e_h%n_elsi_calls = e_h%n_elsi_calls+1
 
    select case(e_h%solver)
    case(ELPA_SOLVER)
@@ -1290,7 +1210,7 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
 
       call elsi_get_energy(e_h,energy,ELPA_SOLVER)
 
-      solver_used = ELPA_SOLVER
+      sol = ELPA_SOLVER
 
       e_h%mu_ready = .true.
       e_h%ts_ready = .true.
@@ -1346,7 +1266,7 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
 
          call elsi_get_energy(e_h,energy,ELPA_SOLVER)
 
-         solver_used = ELPA_SOLVER
+         sol = ELPA_SOLVER
       else ! ELPA is done
          if(allocated(e_h%ovlp_cmplx_copy)) then
             ! Retrieve overlap matrix that has been destroyed by Cholesky
@@ -1397,7 +1317,7 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
 
          call elsi_get_energy(e_h,energy,OMM_SOLVER)
 
-         solver_used = OMM_SOLVER
+         sol = OMM_SOLVER
       endif
    case(PEXSI_SOLVER)
       call elsi_init_pexsi(e_h)
@@ -1423,7 +1343,7 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
 
       call elsi_get_energy(e_h,energy,PEXSI_SOLVER)
 
-      solver_used = PEXSI_SOLVER
+      sol = PEXSI_SOLVER
 
       e_h%mu_ready = .true.
    case(SIPS_SOLVER)
@@ -1434,8 +1354,7 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
       call elsi_stop(" Unsupported solver.",e_h,caller)
    end select
 
-   call elsi_process_solver_timing(e_h,output_type,data_type,solver_used,&
-           start_datetime,t0)
+   call elsi_process_timing(e_h,OUTPUT_DM,CMPLX_DATA,sol,dt0,t0)
 
    e_h%edm_ready_cmplx = .true.
 
@@ -1492,208 +1411,6 @@ subroutine elsi_init_blacs(e_h)
       endif
 
       call elsi_set_blacs(e_h,blacs_ctxt,block_size)
-   endif
-
-end subroutine
-
-!>
-!! This routine acts on the timing information, both to add it to the solver
-!! timing summary and print it to the solver timing file.
-!!
-subroutine elsi_process_solver_timing(e_h,output_type,data_type,solver_used,&
-              start_datetime,t0)
-
-   implicit none
-
-   type(elsi_handle),       intent(inout) :: e_h
-   integer(kind=i4),        intent(in)    :: output_type
-   integer(kind=i4),        intent(in)    :: data_type
-   integer(kind=i4),        intent(in)    :: solver_used
-   real(kind=r8),           intent(in)    :: t0
-   character(len=TIME_LEN), intent(in)    :: start_datetime
-
-   character(len=STR_LEN)    :: solver_tag
-   real(kind=r8)             :: t1
-   real(kind=r8)             :: total_time
-   integer(kind=i4)          :: temp_int
-   integer(kind=i4)          :: comma_json_save
-   integer(kind=i4)          :: iteration
-   type(elsi_file_io_handle) :: io_h
-
-   character(len=40), parameter :: caller = "elsi_dm_complex_sparse"
-
-   io_h = e_h%timings_file
-
-   call elsi_get_time(t1)
-
-   temp_int   = e_h%solver
-   e_h%solver = solver_used
-   total_time = t1-t0
-
-   ! Output information about this solver invocation
-   call elsi_get_solver_tag(e_h,data_type,solver_tag)
-   call elsi_add_timing(e_h%timings,total_time,solver_tag)
-
-   if(e_h%output_timings_file) then
-      iteration = e_h%timings%n_timings
-
-      ! Avoid comma at the end of the last entry
-      comma_json_save = io_h%comma_json
-
-      if(e_h%timings%n_timings == 1) then
-         io_h%comma_json = NO_COMMA
-      else
-         io_h%comma_json = COMMA_BEFORE
-      endif
-
-      call elsi_print_solver_timing(e_h,output_type,data_type,start_datetime,&
-              total_time,solver_tag,iteration,io_h,&
-              e_h%timings%user_tags(iteration))
-
-      io_h%comma_json = comma_json_save
-   endif
-
-   e_h%solver = temp_int
-
-end subroutine
-
-!>
-!! This routine prints solver timing and relevant information.
-!!
-subroutine elsi_print_solver_timing(e_h,output_type,data_type,start_datetime,&
-              total_time,elsi_tag_in,iter,io_h_in,user_tag_in)
-
-   implicit none
-
-   type(elsi_handle),         intent(inout)        :: e_h
-   integer(kind=i4),          intent(in)           :: output_type
-   integer(kind=i4),          intent(in)           :: data_type
-   character(len=TIME_LEN),   intent(in)           :: start_datetime
-   real(kind=r8),             intent(in)           :: total_time
-   character(len=*),          intent(in)           :: elsi_tag_in
-   integer(kind=i4),          intent(in)           :: iter
-   type(elsi_file_io_handle), intent(in), optional :: io_h_in
-   character(len=*),          intent(in), optional :: user_tag_in
-
-   character(len=200)        :: info_str
-   character(len=STR_LEN)    :: elsi_tag
-   character(len=STR_LEN)    :: user_tag
-   character(len=TIME_LEN)   :: record_datetime
-   integer(kind=i4)          :: comma_json_save
-   type(elsi_file_io_handle) :: io_h
-
-   character(len=40), parameter :: caller = "elsi_print_solver_timing"
-
-   if(present(io_h_in)) then
-      io_h = io_h_in
-   else
-      io_h = e_h%stdio
-   endif
-
-   if(present(user_tag_in)) then
-      user_tag = trim(user_tag_in)
-   else
-      user_tag = trim(UNSET_STR)
-   endif
-
-   user_tag        = adjustr(user_tag)
-   elsi_tag        = trim(elsi_tag_in)
-   elsi_tag        = adjustr(elsi_tag)
-   comma_json_save = io_h%comma_json
-
-   call elsi_get_datetime_rfc3339(record_datetime)
-
-   ! Print out patterned header, versioning information, and timing details
-   if(io_h%file_format == HUMAN) then
-      call elsi_say(e_h,"-------------------------------------------------------------------------",io_h)
-      write(info_str,"(A,I10)") "Start of ELSI Solver Iteration ",iter
-      call elsi_say(e_h,info_str,io_h)
-
-      call elsi_say(e_h,"",io_h)
-      call elsi_print_versioning(e_h,io_h)
-
-      call elsi_say(e_h,"",io_h)
-      call elsi_say(e_h,"Timing Details",io_h)
-      call elsi_append_string(io_h%prefix,"  ")
-      if(output_type == OUTPUT_EV) then
-         call elsi_say_setting(e_h,"Output Type","EIGENVECTORS",io_h)
-      elseif(output_type == OUTPUT_DM) then
-         call elsi_say_setting(e_h,"Output Type","DENSITY MATRIX",io_h)
-      else
-         call elsi_stop(" Unsupported output type.",e_h,caller)
-      endif
-      if(data_type == REAL_DATA) then
-         call elsi_say_setting(e_h,"Data Type","REAL",io_h)
-      elseif(data_type == CMPLX_DATA) then
-         call elsi_say_setting(e_h,"Data Type","COMPLEX",io_h)
-      else
-         call elsi_stop(" Unsupported data type.",e_h,caller)
-      endif
-      call elsi_say_setting(e_h,"ELSI Tag",elsi_tag,io_h)
-      call elsi_say_setting(e_h,"User Tag",user_tag,io_h)
-      call elsi_say_setting(e_h,"Timing (s)",total_time,io_h)
-      call elsi_truncate_string(io_h%prefix,2)
-   elseif(io_h%file_format == JSON) then
-      call elsi_start_json_record(e_h,io_h%comma_json==COMMA_BEFORE,io_h)
-      io_h%comma_json = COMMA_AFTER ! Add commas behind all records before final
-
-      call elsi_print_versioning(e_h,io_h)
-
-      call elsi_say_setting(e_h,"iteration",iter,io_h)
-      if(output_type == OUTPUT_EV) then
-         call elsi_say_setting(e_h,"output_type","EIGENVECTORS",io_h)
-      elseif(output_type == OUTPUT_DM) then
-         call elsi_say_setting(e_h,"output_type","DENSITY MATRIX",io_h)
-      else
-         call elsi_stop(" Unsupported output type.",e_h,caller)
-      endif
-      if(data_type == REAL_DATA) then
-         call elsi_say_setting(e_h,"data_type","REAL",io_h)
-      elseif(data_type == CMPLX_DATA) then
-         call elsi_say_setting(e_h,"data_type","COMPLEX",io_h)
-      else
-         call elsi_stop(" Unsupported data type.",e_h,caller)
-      endif
-      call elsi_say_setting(e_h,"elsi_tag",elsi_tag,io_h)
-      call elsi_say_setting(e_h,"user_tag",user_tag,io_h)
-      call elsi_say_setting(e_h,"start_datetime",start_datetime,io_h)
-      call elsi_say_setting(e_h,"record_datetime",record_datetime,io_h)
-      call elsi_say_setting(e_h,"total_time",total_time,io_h)
-   else
-      call elsi_stop(" Unsupported output format.",e_h,caller)
-   endif
-
-   ! Print out handle summary
-   if(io_h%file_format == HUMAN) then
-      call elsi_say(e_h,"",io_h)
-   endif
-   call elsi_print_handle_summary(e_h,io_h)
-
-   ! Print out matrix storage format settings
-   if(io_h%file_format == HUMAN) then
-      call elsi_say(e_h,"",io_h)
-   endif
-   call elsi_print_matrix_format_settings(e_h,io_h)
-
-   ! Print out solver settings
-   if(io_h%file_format == HUMAN) then
-      call elsi_say(e_h,"",io_h)
-   endif
-   io_h%comma_json = NO_COMMA ! Final record in this scope
-   call elsi_print_solver_settings(e_h,io_h)
-
-   ! Print out patterned footer
-   io_h%comma_json = comma_json_save
-   if(io_h%file_format == HUMAN) then
-      call elsi_say(e_h,"",io_h)
-      write(info_str,"(A,I10)") "End of ELSI Solver Iteration   ",iter
-      call elsi_say(e_h,info_str,io_h)
-      call elsi_say(e_h,"-------------------------------------------------------------------------",io_h)
-      call elsi_say(e_h,"",io_h)
-   elseif(io_h%file_format == JSON) then
-      call elsi_finish_json_record(e_h,io_h%comma_json==COMMA_AFTER,io_h)
-   else
-      call elsi_stop(" Unsupported output format.",e_h,caller)
    endif
 
 end subroutine

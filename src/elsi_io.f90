@@ -9,11 +9,11 @@
 !!
 module ELSI_IO
 
-   use ELSI_CONSTANTS, only: UNSET,UNSET_STR,HUMAN,JSON,MULTI_PROC,&
-                             SINGLE_PROC,ELPA_SOLVER,SIPS_SOLVER,OMM_SOLVER,&
-                             PEXSI_SOLVER,DMP_SOLVER,BLACS_DENSE,PEXSI_CSC,&
-                             SIESTA_CSC,COMMA_AFTER,NO_COMMA
-   use ELSI_DATATYPE,  only: elsi_handle,elsi_file_io_handle
+   use ELSI_CONSTANTS, only: UNSET,UNSET_STR,HUMAN,JSON,MULTI_PROC,SINGLE_PROC,&
+                             ELPA_SOLVER,SIPS_SOLVER,OMM_SOLVER,PEXSI_SOLVER,&
+                             DMP_SOLVER,BLACS_DENSE,PEXSI_CSC,SIESTA_CSC,&
+                             COMMA_AFTER,NO_COMMA
+   use ELSI_DATATYPE,  only: elsi_handle,elsi_io_handle
    use ELSI_MPI,       only: elsi_stop
    use ELSI_PRECISION, only: r8,i4
 
@@ -23,13 +23,13 @@ module ELSI_IO
 
    public :: elsi_say
    public :: elsi_say_setting
-   public :: elsi_init_file_io
-   public :: elsi_reset_file_io_handle
+   public :: elsi_init_io
+   public :: elsi_reset_io_handle
    public :: elsi_print_handle_summary
    public :: elsi_print_versioning
    public :: elsi_print_settings
    public :: elsi_print_solver_settings
-   public :: elsi_print_matrix_format_settings
+   public :: elsi_print_matrix_settings
    public :: elsi_append_string
    public :: elsi_truncate_string
    public :: elsi_open_json_file
@@ -53,11 +53,11 @@ subroutine elsi_say(e_h,info_str,io_h_in)
 
    implicit none
 
-   type(elsi_handle),         intent(in)           :: e_h
-   character(len=*),          intent(in)           :: info_str
-   type(elsi_file_io_handle), intent(in), optional :: io_h_in
+   type(elsi_handle),    intent(in)           :: e_h
+   character(len=*),     intent(in)           :: info_str
+   type(elsi_io_handle), intent(in), optional :: io_h_in
 
-   type(elsi_file_io_handle) :: io_h
+   type(elsi_io_handle) :: io_h
 
    character(len=40), parameter :: caller = "elsi_init_io"
 
@@ -80,23 +80,23 @@ end subroutine
 !>
 !! This routine initializes a handle for reading and writing to files.
 !!
-subroutine elsi_init_file_io(io_h,print_unit,file_name,file_format,print_info,&
+subroutine elsi_init_io(io_h,print_unit,file_name,file_format,print_info,&
               prefix,comma_json)
 
    implicit none
 
-   type(elsi_file_io_handle), intent(out)          :: io_h
-   integer(kind=i4),          intent(in)           :: print_unit
-   character(len=*),          intent(in), optional :: file_name
-   integer(kind=i4),          intent(in), optional :: file_format
-   logical,                   intent(in), optional :: print_info
-   character(len=*),          intent(in), optional :: prefix
-   integer(kind=i4),          intent(in), optional :: comma_json
+   type(elsi_io_handle), intent(out)          :: io_h
+   integer(kind=i4),     intent(in)           :: print_unit
+   character(len=*),     intent(in), optional :: file_name
+   integer(kind=i4),     intent(in), optional :: file_format
+   logical,              intent(in), optional :: print_info
+   character(len=*),     intent(in), optional :: prefix
+   integer(kind=i4),     intent(in), optional :: comma_json
 
    character(len=40), parameter :: caller = "elsi_init_io"
 
    ! For safety
-   call elsi_reset_file_io_handle(io_h)
+   call elsi_reset_io_handle(io_h)
 
    io_h%handle_init = .true.
    io_h%print_unit  = print_unit
@@ -139,17 +139,17 @@ end subroutine
 !! This routine finalizes a file io handle. Note this subroutine does NOT close
 !! file units.
 !!
-subroutine elsi_finalize_file_io(e_h,io_h)
+subroutine elsi_finalize_io(e_h,io_h)
 
    implicit none
 
-   type(elsi_handle),         intent(in)    :: e_h
-   type(elsi_file_io_handle), intent(inout) :: io_h
+   type(elsi_handle),    intent(in)    :: e_h
+   type(elsi_io_handle), intent(inout) :: io_h
 
-   character(len=40), parameter :: caller = "elsi_finalize_file_io"
+   character(len=40), parameter :: caller = "elsi_finalize_io"
 
-   call elsi_check_file_io_handle(e_h,io_h,caller)
-   call elsi_reset_file_io_handle(io_h)
+   call elsi_check_io_handle(e_h,io_h,caller)
+   call elsi_reset_io_handle(io_h)
 
 end subroutine
 
@@ -157,13 +157,13 @@ end subroutine
 !! This routine checks whether a handle has been properly initialized for
 !! reading and writing to files.
 !!
-subroutine elsi_check_file_io_handle(e_h,io_h,caller)
+subroutine elsi_check_io_handle(e_h,io_h,caller)
 
    implicit none
 
-   type(elsi_handle),         intent(in) :: e_h
-   type(elsi_file_io_handle), intent(in) :: io_h
-   character(len=*),          intent(in) :: caller
+   type(elsi_handle),    intent(in) :: e_h
+   type(elsi_io_handle), intent(in) :: io_h
+   character(len=*),     intent(in) :: caller
 
    if(.not. io_h%handle_init) then
       call elsi_stop(" Invalid handle! Not initialized.",e_h,caller)
@@ -174,13 +174,13 @@ end subroutine
 !>
 !! This routine resets a handle.
 !!
-subroutine elsi_reset_file_io_handle(io_h)
+subroutine elsi_reset_io_handle(io_h)
 
    implicit none
 
-   type(elsi_file_io_handle), intent(inout) :: io_h
+   type(elsi_io_handle), intent(inout) :: io_h
 
-   character(len=40), parameter :: caller = "elsi_reset_file_io_handle"
+   character(len=40), parameter :: caller = "elsi_reset_io_handle"
 
    io_h%handle_init = .false.
    io_h%print_unit  = UNSET
@@ -202,13 +202,13 @@ subroutine elsi_print_handle_summary(e_h,io_h_in)
 
    implicit none
 
-   type(elsi_handle),         intent(in)           :: e_h
-   type(elsi_file_io_handle), intent(in), optional :: io_h_in
+   type(elsi_handle),    intent(in)           :: e_h
+   type(elsi_io_handle), intent(in), optional :: io_h_in
 
-   real(kind=r8)             :: sparsity
-   integer(kind=i4)          :: comma_json_save
-   type(elsi_file_io_handle) :: io_h
-   character(len=200)        :: info_str
+   real(kind=r8)        :: sparsity
+   integer(kind=i4)     :: comma_json_save
+   type(elsi_io_handle) :: io_h
+   character(len=200)   :: info_str
 
    character(len=40), parameter :: caller = "elsi_print_handle_summary"
 
@@ -338,21 +338,21 @@ subroutine elsi_print_versioning(e_h,io_h_in)
 
    implicit none
 
-   type(elsi_handle),         intent(in)           :: e_h
-   type(elsi_file_io_handle), intent(in), optional :: io_h_in
+   type(elsi_handle),    intent(in)           :: e_h
+   type(elsi_io_handle), intent(in), optional :: io_h_in
 
-   integer(kind=i4)          :: comma_json_save
-   type(elsi_file_io_handle) :: io_h
-   logical                   :: COMMIT_MODIFIED
-   character(len=10)         :: DATE_STAMP
-   character(len=40)         :: COMMIT
-   character(len=8)          :: COMMIT_ABBREV
-   character(len=40)         :: COMMIT_MSG_ABBREV
-   character(len=40)         :: HOSTNAME
-   character(len=10)         :: LOCAL_DATE
-   character(len=8)          :: LOCAL_TIME
-   character(len=20)         :: DATETIME
-   character(len=200)        :: info_str
+   integer(kind=i4)     :: comma_json_save
+   type(elsi_io_handle) :: io_h
+   logical              :: COMMIT_MODIFIED
+   character(len=10)    :: DATE_STAMP
+   character(len=40)    :: COMMIT
+   character(len=8)     :: COMMIT_ABBREV
+   character(len=40)    :: COMMIT_MSG_ABBREV
+   character(len=40)    :: HOSTNAME
+   character(len=10)    :: LOCAL_DATE
+   character(len=8)     :: LOCAL_TIME
+   character(len=20)    :: DATETIME
+   character(len=200)   :: info_str
 
    character(len=40), parameter :: caller = "elsi_print_versioning"
 
@@ -505,10 +505,10 @@ subroutine elsi_print_solver_settings(e_h,io_h_in)
 
    implicit none
 
-   type(elsi_handle),         intent(in)           :: e_h
-   type(elsi_file_io_handle), intent(in), optional :: io_h_in
+   type(elsi_handle),    intent(in)           :: e_h
+   type(elsi_io_handle), intent(in), optional :: io_h_in
 
-   type(elsi_file_io_handle) :: io_h
+   type(elsi_io_handle) :: io_h
 
    character(len=40), parameter :: caller = "elsi_print_solver_settings"
 
@@ -542,12 +542,12 @@ subroutine elsi_print_dmp_settings(e_h,io_h_in)
 
    implicit none
 
-   type(elsi_handle),         intent(in)           :: e_h
-   type(elsi_file_io_handle), intent(in), optional :: io_h_in
+   type(elsi_handle),    intent(in)           :: e_h
+   type(elsi_io_handle), intent(in), optional :: io_h_in
 
-   integer(kind=i4)          :: comma_json_save
-   type(elsi_file_io_handle) :: io_h
-   character(len=200)        :: info_str
+   integer(kind=i4)     :: comma_json_save
+   type(elsi_io_handle) :: io_h
+   character(len=200)   :: info_str
 
    character(len=40), parameter :: caller = "elsi_print_dmp_settings"
 
@@ -601,12 +601,12 @@ subroutine elsi_print_elpa_settings(e_h,io_h_in)
 
    implicit none
 
-   type(elsi_handle),         intent(in)           :: e_h
-   type(elsi_file_io_handle), intent(in), optional :: io_h_in
+   type(elsi_handle),    intent(in)           :: e_h
+   type(elsi_io_handle), intent(in), optional :: io_h_in
 
-   integer(kind=i4)          :: comma_json_save
-   type(elsi_file_io_handle) :: io_h
-   character(len=200)        :: info_str
+   integer(kind=i4)     :: comma_json_save
+   type(elsi_io_handle) :: io_h
+   character(len=200)   :: info_str
 
    character(len=40), parameter :: caller = "elsi_print_elpa_settings"
 
@@ -658,12 +658,12 @@ subroutine elsi_print_omm_settings(e_h,io_h_in)
 
    implicit none
 
-   type(elsi_handle),         intent(in)           :: e_h
-   type(elsi_file_io_handle), intent(in), optional :: io_h_in
+   type(elsi_handle),    intent(in)           :: e_h
+   type(elsi_io_handle), intent(in), optional :: io_h_in
 
-   integer(kind=i4)          :: comma_json_save
-   type(elsi_file_io_handle) :: io_h
-   character(len=200)        :: info_str
+   integer(kind=i4)     :: comma_json_save
+   type(elsi_io_handle) :: io_h
+   character(len=200)   :: info_str
 
    character(len=40), parameter :: caller = "elsi_print_omm_settings"
 
@@ -716,12 +716,12 @@ subroutine elsi_print_pexsi_settings(e_h,io_h_in)
 
    implicit none
 
-   type(elsi_handle),         intent(in)           :: e_h
-   type(elsi_file_io_handle), intent(in), optional :: io_h_in
+   type(elsi_handle),    intent(in)           :: e_h
+   type(elsi_io_handle), intent(in), optional :: io_h_in
 
-   integer(kind=i4)          :: comma_json_save
-   type(elsi_file_io_handle) :: io_h
-   character(len=200)        :: info_str
+   integer(kind=i4)     :: comma_json_save
+   type(elsi_io_handle) :: io_h
+   character(len=200)   :: info_str
 
    character(len=40), parameter :: caller = "elsi_print_pexsi_settings"
 
@@ -780,12 +780,12 @@ subroutine elsi_print_sips_settings(e_h,io_h_in)
 
    implicit none
 
-   type(elsi_handle),         intent(in)           :: e_h
-   type(elsi_file_io_handle), intent(in), optional :: io_h_in
+   type(elsi_handle),    intent(in)           :: e_h
+   type(elsi_io_handle), intent(in), optional :: io_h_in
 
-   integer(kind=i4)          :: comma_json_save
-   type(elsi_file_io_handle) :: io_h
-   character(len=200)        :: info_str
+   integer(kind=i4)     :: comma_json_save
+   type(elsi_io_handle) :: io_h
+   character(len=200)   :: info_str
 
    character(len=40), parameter :: caller = "elsi_print_sips_settings"
 
@@ -835,18 +835,18 @@ subroutine elsi_print_sips_settings(e_h,io_h_in)
 end subroutine
 
 !>
-!! This routine prints out settings for the current (user-indicated) solver.
+!! This routine prints out settings for the matirx format.
 !!
-subroutine elsi_print_matrix_format_settings(e_h,io_h_in)
+subroutine elsi_print_matrix_settings(e_h,io_h_in)
 
    implicit none
 
-   type(elsi_handle),         intent(in)           :: e_h
-   type(elsi_file_io_handle), intent(in), optional :: io_h_in
+   type(elsi_handle),    intent(in)           :: e_h
+   type(elsi_io_handle), intent(in), optional :: io_h_in
 
-   type(elsi_file_io_handle) :: io_h
+   type(elsi_io_handle) :: io_h
 
-   character(len=40), parameter :: caller = "elsi_print_matrix_format_settings"
+   character(len=40), parameter :: caller = "elsi_print_matrix_settings"
 
    if(present(io_h_in)) then
       io_h = io_h_in
@@ -869,12 +869,12 @@ subroutine elsi_print_den_settings(e_h,io_h_in)
 
    implicit none
 
-   type(elsi_handle),         intent(in)           :: e_h
-   type(elsi_file_io_handle), intent(in), optional :: io_h_in
+   type(elsi_handle),    intent(in)           :: e_h
+   type(elsi_io_handle), intent(in), optional :: io_h_in
 
-   integer(kind=i4)          :: comma_json_save
-   type(elsi_file_io_handle) :: io_h
-   character(len=200)        :: info_str
+   integer(kind=i4)     :: comma_json_save
+   type(elsi_io_handle) :: io_h
+   character(len=200)   :: info_str
 
    character(len=40), parameter :: caller = "elsi_print_den_settings"
 
@@ -928,12 +928,12 @@ subroutine elsi_print_csc_settings(e_h,io_h_in)
 
    implicit none
 
-   type(elsi_handle),         intent(in)           :: e_h
-   type(elsi_file_io_handle), intent(in), optional :: io_h_in
+   type(elsi_handle),    intent(in)           :: e_h
+   type(elsi_io_handle), intent(in), optional :: io_h_in
 
-   integer(kind=i4)          :: comma_json_save
-   type(elsi_file_io_handle) :: io_h
-   character(len=200)        :: info_str
+   integer(kind=i4)     :: comma_json_save
+   type(elsi_io_handle) :: io_h
+   character(len=200)   :: info_str
 
    character(len=40), parameter :: caller = "elsi_print_csc_settings"
 
@@ -986,15 +986,15 @@ subroutine elsi_say_setting_i4(e_h,label,setting,io_h_in)
 
    implicit none
 
-   type(elsi_handle),         intent(in)           :: e_h
-   character(len=*),          intent(in)           :: label
-   integer(kind=i4),          intent(in)           :: setting
-   type(elsi_file_io_handle), intent(in), optional :: io_h_in
+   type(elsi_handle),    intent(in)           :: e_h
+   character(len=*),     intent(in)           :: label
+   integer(kind=i4),     intent(in)           :: setting
+   type(elsi_io_handle), intent(in), optional :: io_h_in
 
    character(len=28) :: label_ljust
    character(len=20) :: int_string
 
-   type(elsi_file_io_handle) :: io_h
+   type(elsi_io_handle) :: io_h
 
    character(len=40), parameter :: caller = "elsi_say_setting_i4"
 
@@ -1049,15 +1049,15 @@ subroutine elsi_say_setting_r8(e_h,label,setting,io_h_in)
 
    implicit none
 
-   type(elsi_handle),         intent(in)           :: e_h
-   character(len=*),          intent(in)           :: label
-   real(kind=r8),             intent(in)           :: setting
-   type(elsi_file_io_handle), intent(in), optional :: io_h_in
+   type(elsi_handle),    intent(in)           :: e_h
+   character(len=*),     intent(in)           :: label
+   real(kind=r8),        intent(in)           :: setting
+   type(elsi_io_handle), intent(in), optional :: io_h_in
 
    character(len=28) :: label_ljust
    character(len=20) :: real_string
 
-   type(elsi_file_io_handle) :: io_h
+   type(elsi_io_handle) :: io_h
 
    character(len=40), parameter :: caller = "elsi_say_setting_r8"
 
@@ -1112,15 +1112,15 @@ subroutine elsi_say_setting_log(e_h,label,setting,io_h_in)
 
    implicit none
 
-   type(elsi_handle),         intent(in)           :: e_h
-   character(len=*),          intent(in)           :: label
-   logical,                   intent(in)           :: setting
-   type(elsi_file_io_handle), intent(in), optional :: io_h_in
+   type(elsi_handle),    intent(in)           :: e_h
+   character(len=*),     intent(in)           :: label
+   logical,              intent(in)           :: setting
+   type(elsi_io_handle), intent(in), optional :: io_h_in
 
    character(len=28) :: label_ljust
    character(len=20) :: log_string
 
-   type(elsi_file_io_handle) :: io_h
+   type(elsi_io_handle) :: io_h
 
    character(len=40), parameter :: caller = "elsi_say_setting_log"
 
@@ -1190,14 +1190,14 @@ subroutine elsi_say_setting_str(e_h,label,setting,io_h_in)
 
    implicit none
 
-   type(elsi_handle),         intent(in)           :: e_h
-   character(len=*),          intent(in)           :: label
-   character(len=*),          intent(in)           :: setting
-   type(elsi_file_io_handle), intent(in), optional :: io_h_in
+   type(elsi_handle),    intent(in)           :: e_h
+   character(len=*),     intent(in)           :: label
+   character(len=*),     intent(in)           :: setting
+   type(elsi_io_handle), intent(in), optional :: io_h_in
 
    character(len=28) :: label_ljust
 
-   type(elsi_file_io_handle) :: io_h
+   type(elsi_io_handle) :: io_h
 
    character(len=40), parameter :: caller = "elsi_say_setting_str"
 
@@ -1257,13 +1257,13 @@ subroutine elsi_append_string(l_string,r_string)
    character(len=:), intent(inout), allocatable :: l_string
    character(len=*), intent(in)                 :: r_string
 
-   character(len=:), allocatable :: temp_string
+   character(len=:), allocatable :: tmp_string
 
    ! Create a temporary character array holding the new character array
    if(allocated(l_string)) then
-      temp_string = l_string // r_string
+      tmp_string = l_string // r_string
    else
-      temp_string = r_string
+      tmp_string = r_string
    endif
 
    ! Now deallocate the old character array and replace with the new one
@@ -1271,9 +1271,9 @@ subroutine elsi_append_string(l_string,r_string)
       deallocate(l_string)
    endif
 
-   l_string = temp_string
+   l_string = tmp_string
 
-   deallocate(temp_string)
+   deallocate(tmp_string)
 
 end subroutine
 
@@ -1290,7 +1290,7 @@ subroutine elsi_truncate_string(l_string,n_chars_to_remove)
 
    integer(kind=i4) :: size_new_string
 
-   character(len=:), allocatable :: temp_string
+   character(len=:), allocatable :: tmp_string
 
    ! Find size of new character array
    if(allocated(l_string)) then
@@ -1305,14 +1305,14 @@ subroutine elsi_truncate_string(l_string,n_chars_to_remove)
    endif
 
    ! Create a temporary character array holding the new character array
-   temp_string = l_string(1:size_new_string)
+   tmp_string = l_string(1:size_new_string)
 
    ! Now deallocate the old character array and replace with the new one
    deallocate(l_string)
 
-   l_string = temp_string
+   l_string = tmp_string
 
-   deallocate(temp_string)
+   deallocate(tmp_string)
 
 end subroutine
 
@@ -1323,15 +1323,15 @@ subroutine elsi_open_json_file(e_h,print_unit,file_name,opening_bracket,io_h)
 
    implicit none
 
-   type(elsi_handle),         intent(in)  :: e_h
-   integer(kind=i4),          intent(in)  :: print_unit
-   character(len=*),          intent(in)  :: file_name
-   logical,                   intent(in)  :: opening_bracket
-   type(elsi_file_io_handle), intent(out) :: io_h
+   type(elsi_handle),    intent(in)  :: e_h
+   integer(kind=i4),     intent(in)  :: print_unit
+   character(len=*),     intent(in)  :: file_name
+   logical,              intent(in)  :: opening_bracket
+   type(elsi_io_handle), intent(out) :: io_h
 
    character(len=40), parameter :: caller = "elsi_open_json_file"
 
-   call elsi_init_file_io(io_h,print_unit,file_name,JSON,.true.,"",COMMA_AFTER)
+   call elsi_init_io(io_h,print_unit,file_name,JSON,.true.,"",COMMA_AFTER)
 
    open(unit=io_h%print_unit,file=io_h%file_name)
 
@@ -1349,9 +1349,9 @@ subroutine elsi_close_json_file(e_h,closing_bracket,io_h)
 
    implicit none
 
-   type(elsi_handle),         intent(in)    :: e_h
-   logical,                   intent(in)    :: closing_bracket
-   type(elsi_file_io_handle), intent(inout) :: io_h
+   type(elsi_handle),    intent(in)    :: e_h
+   logical,              intent(in)    :: closing_bracket
+   type(elsi_io_handle), intent(inout) :: io_h
 
    character(len=40), parameter :: caller = "elsi_close_json_file"
 
@@ -1368,7 +1368,7 @@ subroutine elsi_close_json_file(e_h,closing_bracket,io_h)
 
    close(io_h%print_unit)
 
-   call elsi_finalize_file_io(e_h,io_h)
+   call elsi_finalize_io(e_h,io_h)
 
 end subroutine
 
@@ -1379,9 +1379,9 @@ subroutine elsi_start_json_record(e_h,comma_before,io_h)
 
    implicit none
 
-   type(elsi_handle),         intent(in)    :: e_h
-   logical,                   intent(in)    :: comma_before
-   type(elsi_file_io_handle), intent(inout) :: io_h
+   type(elsi_handle),    intent(in)    :: e_h
+   logical,              intent(in)    :: comma_before
+   type(elsi_io_handle), intent(inout) :: io_h
 
    character(len=40), parameter :: caller = "elsi_start_json_record"
 
@@ -1407,9 +1407,9 @@ subroutine elsi_finish_json_record(e_h,comma_after,io_h)
 
    implicit none
 
-   type(elsi_handle),         intent(in)    :: e_h
-   logical,                   intent(in)    :: comma_after
-   type(elsi_file_io_handle), intent(inout) :: io_h
+   type(elsi_handle),    intent(in)    :: e_h
+   logical,              intent(in)    :: comma_after
+   type(elsi_io_handle), intent(inout) :: io_h
 
    character(len=40), parameter :: caller = "elsi_finish_json_record"
 

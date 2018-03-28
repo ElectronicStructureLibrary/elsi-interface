@@ -13,11 +13,10 @@ module ELSI_UTILS
                              N_MATRIX_FORMATS,MULTI_PROC,SINGLE_PROC,&
                              BLACS_DENSE,PEXSI_CSC,SIESTA_CSC,AUTO,ELPA_SOLVER,&
                              OMM_SOLVER,PEXSI_SOLVER,CHESS_SOLVER,SIPS_SOLVER,&
-                             DMP_SOLVER,UNSET_STR,JSON,REAL_DATA,&
-                             CMPLX_DATA,STR_LEN,TIME_LEN,&
-                             UUID_LEN,COMMA_AFTER,HUMAN
+                             DMP_SOLVER,UNSET_STR,JSON,REAL_DATA,CMPLX_DATA,&
+                             STR_LEN,TIME_LEN,UUID_LEN,COMMA_AFTER,HUMAN
    use ELSI_DATATYPE,  only: elsi_handle
-   use ELSI_IO,        only: elsi_say,elsi_init_file_io,elsi_open_json_file
+   use ELSI_IO,        only: elsi_say,elsi_init_io,elsi_open_json_file
    use ELSI_MPI,       only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8,&
                              mpi_complex16,mpi_character
    use ELSI_PRECISION, only: i4,i8,r8
@@ -168,9 +167,9 @@ subroutine elsi_reset_handle(e_h)
    e_h%dmp_ev_ham_min         = 0.0_r8
    e_h%dmp_tol                = 1e-8_r8
    e_h%dmp_ne                 = 0.0_r8
-   e_h%output_timings_file    = .false.
-   e_h%solver_timings_unit    = UNSET
-   e_h%solver_timings_name    = UNSET_STR
+   e_h%output_timings         = .false.
+   e_h%timings_unit           = UNSET
+   e_h%timings_name           = UNSET_STR
    e_h%caller                 = UNSET_STR
    e_h%uuid                   = UNSET_STR
    e_h%uuid_exists            = .false.
@@ -350,14 +349,6 @@ end subroutine
 
 !>
 !! This subroutine signifies that a handle is believed to be ready to be used.
-!! There are certain tasks (such as IO) that are only possible once the user has
-!! specified sufficient information about the problem, but they may call the
-!! relevant mutators in any order, making it difficult to pin down exactly when
-!! certain initialization-like tasks can be done. Thus, this subroutine is
-!! called at the beginning of all public-facing subroutines in which ELSI is
-!! executing a task that would require it to have been sufficiently initialized
-!! by the user: currently, only solvers. This does not apply to mutators,
-!! initalization, finalization, or matrix IO.
 !!
 subroutine elsi_ready_handle(e_h,caller)
 
@@ -366,28 +357,23 @@ subroutine elsi_ready_handle(e_h,caller)
    type(elsi_handle), intent(inout) :: e_h
    character(len=*),  intent(in)    :: caller
 
-   character(len=UUID_LEN) :: uuid_temp
-
    call elsi_check_handle(e_h,caller)
 
    if(.not. e_h%handle_ready) then
       call elsi_check(e_h,caller)
 
-      e_h%handle_ready   = .true.
+      e_h%handle_ready = .true.
 
-      ! Perform initialization-like tasks which require MPI
-
-      ! First, solver timings
-      if(e_h%output_timings_file) then
+      if(e_h%output_timings) then
          if(e_h%myid_all == 0) then
             ! Open the JSON file to output timings to (the .false. statement
             ! selects human-readable output, kept for debugging purposes)
             if(.true.) then
-               call elsi_open_json_file(e_h,e_h%solver_timings_unit,&
-                       e_h%solver_timings_name,.true.,e_h%timings_file)
+               call elsi_open_json_file(e_h,e_h%timings_unit,e_h%timings_name,&
+                       .true.,e_h%timings_file)
             else
-               call elsi_init_file_io(e_h%timings_file,e_h%solver_timings_unit,&
-                       e_h%solver_timings_name,HUMAN,.true.,"",COMMA_AFTER)
+               call elsi_init_io(e_h%timings_file,e_h%timings_unit,&
+                       e_h%timings_name,HUMAN,.true.,"",COMMA_AFTER)
                open(unit=e_h%timings_file%print_unit,&
                   file=e_h%timings_file%file_name)
             endif
@@ -726,14 +712,14 @@ end subroutine
 !! This routine returns the current date and time, formatted as an RFC3339
 !! string with time zone offset.
 !!
-subroutine elsi_get_datetime_rfc3339(datetime_rfc3339)
+subroutine elsi_get_datetime_rfc3339(dt)
 
    implicit none
 
-   character(len=TIME_LEN), intent(out) :: datetime_rfc3339
+   character(len=TIME_LEN), intent(out) :: dt
 
    integer(kind=i4) :: datetime(8)
-   integer(kind=i4) :: temp_int
+   integer(kind=i4) :: tmp_int
    character(len=4) :: year
    character(len=2) :: month
    character(len=2) :: day
@@ -813,23 +799,22 @@ subroutine elsi_get_datetime_rfc3339(datetime_rfc3339)
    endif
 
    ! Get timezone minutes
-   temp_int = mod(datetime(4),60)
-   if(temp_int < 10) then
-      write(timezone_min,'(A1,I1)') "0",temp_int
+   tmp_int = mod(datetime(4),60)
+   if(tmp_int < 10) then
+      write(timezone_min,'(A1,I1)') "0",tmp_int
    else
-      write(timezone_min,'(I2)') temp_int
+      write(timezone_min,'(I2)') tmp_int
    endif
 
    ! Get timezone hours
-   temp_int = datetime(4)/60
-   if(temp_int < 10) then
-      write(timezone_hour,'(A1,I1)') "0",temp_int
+   tmp_int = datetime(4)/60
+   if(tmp_int < 10) then
+      write(timezone_hour,'(A1,I1)') "0",tmp_int
    else
-      write(timezone_hour,'(I2)') temp_int
+      write(timezone_hour,'(I2)') tmp_int
    endif
 
-   write(datetime_rfc3339,&
-      '(A4,A1,A2,A1,A2,A1,A2,A1,A2,A1,A2,A1,A3,A1,A2,A1,A2)')&
+   write(dt,'(A4,A1,A2,A1,A2,A1,A2,A1,A2,A1,A2,A1,A3,A1,A2,A1,A2)')&
       year,"-",month,"-",day,"T",hour,":",minute,":",second,".",millisecond,&
       timezone_sign,timezone_hour,":",timezone_min
 

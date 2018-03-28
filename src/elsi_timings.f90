@@ -9,10 +9,18 @@
 !!
 module ELSI_TIMINGS
 
-   use ELSI_CONSTANTS, only: STR_LEN,UNSET,UNSET_STR,N_TIMINGS
-   use ELSI_DATATYPE,  only: elsi_handle,elsi_timings_handle
-   use ELSI_IO,        only: elsi_say
+   use ELSI_CONSTANTS, only: STR_LEN,UNSET,UNSET_STR,N_TIMINGS,TIME_LEN,HUMAN,&
+                             NO_COMMA,COMMA_BEFORE,COMMA_AFTER,OUTPUT_EV,&
+                             REAL_DATA
+   use ELSI_DATATYPE,  only: elsi_handle,elsi_io_handle,elsi_timings_handle
+   use ELSI_IO,        only: elsi_say,elsi_say_setting,elsi_print_versioning,&
+                             elsi_print_solver_settings,&
+                             elsi_print_matrix_settings,&
+                             elsi_print_handle_summary,elsi_append_string,&
+                             elsi_truncate_string,elsi_start_json_record,&
+                             elsi_finish_json_record
    use ELSI_PRECISION, only: i4,r8
+   use ELSI_UTILS,     only: elsi_get_solver_tag,elsi_get_datetime_rfc3339
 
    implicit none
 
@@ -20,9 +28,9 @@ module ELSI_TIMINGS
 
    public :: elsi_get_time
    public :: elsi_init_timings
-   public :: elsi_add_timing
    public :: elsi_print_timings
    public :: elsi_finalize_timings
+   public :: elsi_process_timing
 
 contains
 
@@ -303,6 +311,175 @@ subroutine elsi_finalize_timings(t_h)
    t_h%size_timings = UNSET
    t_h%user_tag     = UNSET_STR
    t_h%set_label    = UNSET_STR
+
+end subroutine
+
+!>
+!! This routine acts on the timing information, both to add it to the solver
+!! timing summary and print it to the timing file.
+!!
+subroutine elsi_process_timing(e_h,output_type,data_type,solver_used,dt0,t0)
+
+   implicit none
+
+   type(elsi_handle),       intent(inout) :: e_h
+   integer(kind=i4),        intent(in)    :: output_type
+   integer(kind=i4),        intent(in)    :: data_type
+   integer(kind=i4),        intent(in)    :: solver_used
+   character(len=TIME_LEN), intent(in)    :: dt0
+   real(kind=r8),           intent(in)    :: t0
+
+   character(len=STR_LEN) :: solver_tag
+   character(len=STR_LEN) :: elsi_tag
+   character(len=STR_LEN) :: user_tag
+   real(kind=r8)          :: t1
+   real(kind=r8)          :: t_total
+   integer(kind=i4)       :: tmp_int
+   integer(kind=i4)       :: comma_json_save
+   integer(kind=i4)       :: iter
+   type(elsi_io_handle)   :: io_h
+
+   character(len=40), parameter :: caller = "elsi_dm_complex_sparse"
+
+   io_h = e_h%timings_file
+
+   call elsi_get_time(t1)
+
+   tmp_int    = e_h%solver
+   e_h%solver = solver_used
+   t_total    = t1-t0
+
+   ! Output information about this solver invocation
+   call elsi_get_solver_tag(e_h,data_type,solver_tag)
+   call elsi_add_timing(e_h%timings,t_total,solver_tag)
+
+   if(e_h%output_timings) then
+      iter = e_h%timings%n_timings
+
+      ! Avoid comma at the end of the last entry
+      comma_json_save = io_h%comma_json
+
+      if(e_h%timings%n_timings == 1) then
+         io_h%comma_json = NO_COMMA
+      else
+         io_h%comma_json = COMMA_BEFORE
+      endif
+
+      elsi_tag = adjustr(trim(solver_tag))
+      user_tag = adjustr(trim(e_h%timings%user_tags(iter)))
+
+      call elsi_print_timing(e_h,io_h,output_type,data_type,dt0,t_total,iter,&
+              elsi_tag,user_tag)
+
+      io_h%comma_json = comma_json_save
+   endif
+
+   e_h%solver = tmp_int
+
+end subroutine
+
+!>
+!! This routine prints timing and relevant information.
+!!
+subroutine elsi_print_timing(e_h,io_h,output_type,data_type,dt0,t_total,iter,&
+              elsi_tag,user_tag)
+
+   implicit none
+
+   type(elsi_handle),       intent(inout) :: e_h
+   type(elsi_io_handle),    intent(inout) :: io_h
+   integer(kind=i4),        intent(in)    :: output_type
+   integer(kind=i4),        intent(in)    :: data_type
+   character(len=TIME_LEN), intent(in)    :: dt0
+   real(kind=r8),           intent(in)    :: t_total
+   integer(kind=i4),        intent(in)    :: iter
+   character(len=*),        intent(in)    :: elsi_tag
+   character(len=*),        intent(in)    :: user_tag
+
+   integer(kind=i4)        :: comma_json_save
+   character(len=TIME_LEN) :: dt_record
+   character(len=200)      :: info_str
+
+   character(len=40), parameter :: caller = "elsi_print_timing"
+
+   call elsi_get_datetime_rfc3339(dt_record)
+
+   ! Print out patterned header, versioning information, and timing details
+   if(io_h%file_format == HUMAN) then
+      call elsi_say(e_h,"-------------------------------------------------------------------------",io_h)
+      write(info_str,"(A,I10)") "Start of ELSI Solver Iteration ",iter
+      call elsi_say(e_h,info_str,io_h)
+      call elsi_say(e_h,"",io_h)
+      call elsi_print_versioning(e_h,io_h)
+      call elsi_say(e_h,"",io_h)
+      call elsi_say(e_h,"Timing Details",io_h)
+      call elsi_append_string(io_h%prefix,"  ")
+      if(output_type == OUTPUT_EV) then
+         call elsi_say_setting(e_h,"Output Type","EIGENSOLUTION",io_h)
+      else
+         call elsi_say_setting(e_h,"Output Type","DENSITY MATRIX",io_h)
+      endif
+      if(data_type == REAL_DATA) then
+         call elsi_say_setting(e_h,"Data Type","REAL",io_h)
+      else
+         call elsi_say_setting(e_h,"Data Type","COMPLEX",io_h)
+      endif
+      call elsi_say_setting(e_h,"ELSI Tag",elsi_tag,io_h)
+      call elsi_say_setting(e_h,"User Tag",user_tag,io_h)
+      call elsi_say_setting(e_h,"Timing (s)",t_total,io_h)
+      call elsi_truncate_string(io_h%prefix,2)
+   else
+      call elsi_start_json_record(e_h,io_h%comma_json==COMMA_BEFORE,io_h)
+      io_h%comma_json = COMMA_AFTER ! Add commas behind all records before final
+      call elsi_print_versioning(e_h,io_h)
+      call elsi_say_setting(e_h,"iteration",iter,io_h)
+      if(output_type == OUTPUT_EV) then
+         call elsi_say_setting(e_h,"output_type","EIGENSOLUTION",io_h)
+      else
+         call elsi_say_setting(e_h,"output_type","DENSITY MATRIX",io_h)
+      endif
+      if(data_type == REAL_DATA) then
+         call elsi_say_setting(e_h,"data_type","REAL",io_h)
+      else
+         call elsi_say_setting(e_h,"data_type","COMPLEX",io_h)
+      endif
+      call elsi_say_setting(e_h,"elsi_tag",elsi_tag,io_h)
+      call elsi_say_setting(e_h,"user_tag",user_tag,io_h)
+      call elsi_say_setting(e_h,"start_datetime",dt0,io_h)
+      call elsi_say_setting(e_h,"record_datetime",dt_record,io_h)
+      call elsi_say_setting(e_h,"total_time",t_total,io_h)
+   endif
+
+   ! Print out handle summary
+   if(io_h%file_format == HUMAN) then
+      call elsi_say(e_h,"",io_h)
+   endif
+   call elsi_print_handle_summary(e_h,io_h)
+
+   ! Print out matrix storage format settings
+   if(io_h%file_format == HUMAN) then
+      call elsi_say(e_h,"",io_h)
+   endif
+   call elsi_print_matrix_settings(e_h,io_h)
+
+   ! Print out solver settings
+   if(io_h%file_format == HUMAN) then
+      call elsi_say(e_h,"",io_h)
+   endif
+   io_h%comma_json = NO_COMMA ! Final record in this scope
+   call elsi_print_solver_settings(e_h,io_h)
+
+   ! Print out patterned footer
+   io_h%comma_json = comma_json_save
+   if(io_h%file_format == HUMAN) then
+      call elsi_say(e_h,"",io_h)
+      write(info_str,"(A,I10)") "End of ELSI Solver Iteration   ",iter
+      call elsi_say(e_h,info_str,io_h)
+      call elsi_say(e_h,"-------------------------------------------------------------------------",io_h)
+      call elsi_say(e_h,"",io_h)
+   else
+      call elsi_finish_json_record(e_h,io_h%comma_json==COMMA_AFTER,io_h)
+   endif
 
 end subroutine
 
