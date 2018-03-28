@@ -271,9 +271,8 @@ module ELSI_DATATYPE
       character(len=FILENAME_LEN) :: solver_timings_name
 
       ! Versioning
-      character(len=STR_LEN)  :: calling_code
-      character(len=STR_LEN)  :: calling_code_ver
-      character(len=UUID_LEN) :: uuid ! UUID in RFC 4122 format
+      character(len=STR_LEN)  :: caller
+      character(len=UUID_LEN) :: uuid
       logical                 :: uuid_exists
 
    end type

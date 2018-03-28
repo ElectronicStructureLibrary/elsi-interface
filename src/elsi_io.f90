@@ -386,9 +386,7 @@ subroutine elsi_print_versioning(e_h,io_h_in)
       call elsi_say_setting(e_h,"git_message_abbrev",COMMIT_MSG_ABBREV,io_h)
       call elsi_say_setting(e_h,"source_created_on_hostname",HOSTNAME,io_h)
       call elsi_say_setting(e_h,"source_created_at_datetime",DATETIME,io_h)
-      call elsi_say_setting(e_h,"calling_code",e_h%calling_code,io_h)
-      call elsi_say_setting(e_h,"calling_code_version",e_h%calling_code_ver,&
-              io_h)
+      call elsi_say_setting(e_h,"calling_code",e_h%caller,io_h)
 
       io_h%comma_json = comma_json_save ! Final record, restore comma_json
       call elsi_say_setting(e_h,"uuid",e_h%uuid,io_h)

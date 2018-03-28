@@ -86,8 +86,7 @@ module ELSI_MUTATOR
    public :: elsi_set_timings_file
    public :: elsi_set_timings_tag
    public :: elsi_set_uuid
-   public :: elsi_set_calling_code_name
-   public :: elsi_set_calling_code_version
+   public :: elsi_set_calling_code
    public :: elsi_get_pexsi_mu_min
    public :: elsi_get_pexsi_mu_max
    public :: elsi_get_ovlp_sing
@@ -98,7 +97,6 @@ module ELSI_MUTATOR
    public :: elsi_get_edm_complex
    public :: elsi_get_edm_real_sparse
    public :: elsi_get_edm_complex_sparse
-   public :: elsi_get_uuid
 
 contains
 
@@ -1041,37 +1039,18 @@ subroutine elsi_set_uuid(e_h,uuid)
 end subroutine
 
 !>
-!! This routine sets the name of the code which is invoking ELSI.  This is used
-!! only for outputting versioning information; ELSI internally is code-agnostic.
+!! This routine sets the name of the calling code.
 !!
-subroutine elsi_set_calling_code_name(e_h,calling_code)
+subroutine elsi_set_calling_code(e_h,code)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h          !< Handle
-   character(len=*),  intent(in)    :: calling_code !< Name of calling code
+   type(elsi_handle), intent(inout) :: e_h  !< Handle
+   character(len=*),  intent(in)    :: code !< Name of calling code
 
-   character(len=40), parameter :: caller = "elsi_set_calling_code_name"
+   character(len=40), parameter :: caller = "elsi_set_calling_code"
 
-   e_h%calling_code = calling_code
-
-end subroutine
-
-!>
-!! This routine sets the version of the code which is invoking ELSI.  This is
-!! used only for outputting versioning information; ELSI internally is
-!! code-agnostic.
-!!
-subroutine elsi_set_calling_code_version(e_h,calling_code_ver)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: e_h              !< Handle
-   character(len=*),  intent(in)    :: calling_code_ver !< Version of calling code
-
-   character(len=40), parameter :: caller = "elsi_set_calling_code_version"
-
-   e_h%calling_code_ver = calling_code_ver
+   e_h%caller = code
 
 end subroutine
 
@@ -1490,27 +1469,6 @@ subroutine elsi_get_edm_complex_sparse(e_h,edm)
    endif
 
    e_h%solver = solver_save
-
-end subroutine
-
-!>
-!! This routine gets the UUID being used by ELSI.  If the UUID has not been
-!! generated yet, ELSI will stop.
-!!
-subroutine elsi_get_uuid(e_h,uuid)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: e_h  !< Handle
-   character(len=*),  intent(out)   :: uuid !< UUID
-
-   character(len=40), parameter :: caller = "elsi_get_uuid"
-
-   if(.not. e_h%uuid_exists) then
-      call elsi_stop(" UUID has not been generated yet.",e_h,caller)
-   endif
-
-   uuid = e_h%uuid
 
 end subroutine
 
