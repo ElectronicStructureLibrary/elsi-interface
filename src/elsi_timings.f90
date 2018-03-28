@@ -339,7 +339,7 @@ subroutine elsi_process_timing(e_h,output_type,data_type,solver_used,dt0,t0)
    integer(kind=i4)       :: iter
    type(elsi_io_handle)   :: io_h
 
-   character(len=40), parameter :: caller = "elsi_dm_complex_sparse"
+   character(len=40), parameter :: caller = "elsi_process_timing"
 
    io_h = e_h%timings_file
 
