@@ -477,6 +477,7 @@ subroutine elsi_compute_entropy(e_h,n_state,n_spin,n_kpt,k_weights,evals,&
 
    invert_width = 1.0_r8/e_h%broaden_width
    entropy      = 0.0_r8
+   pre          = 0.0_r8
 
    if(.not. e_h%spin_is_set) then
       if(n_spin == 2) then

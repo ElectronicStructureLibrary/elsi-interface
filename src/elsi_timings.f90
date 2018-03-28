@@ -50,7 +50,6 @@ subroutine elsi_get_time(wtime)
    integer(kind=i4)  :: val
    integer(kind=i4)  :: int_year
    real(kind=r8)     :: year
-   real(kind=r8)     :: month
    real(kind=r8)     :: day
    real(kind=r8)     :: hour
    real(kind=r8)     :: minute
@@ -514,6 +513,8 @@ subroutine elsi_print_timing(e_h,io_h,output_type,data_type,dt0,t_total,iter,&
    character(len=200)      :: info_str
 
    character(len=40), parameter :: caller = "elsi_print_timing"
+
+   comma_json_save = io_h%comma_json
 
    call elsi_get_datetime_rfc3339(dt_record)
 

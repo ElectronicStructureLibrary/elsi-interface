@@ -3357,8 +3357,6 @@ subroutine elsi_siesta_to_pexsi_hs_real(e_h,ham,ovlp)
    integer(kind=i4)   :: i_col
    integer(kind=i4)   :: i_val
    integer(kind=i4)   :: i_proc
-   integer(kind=i4)   :: l_col_id ! Local column id in 1D block distribution
-   integer(kind=i4)   :: l_row_id ! Local row id in 1D block distribution
    integer(kind=i4)   :: dest ! Destination of an element
    integer(kind=i4)   :: n_lcol_aux
    real(kind=r8)      :: t0
@@ -3575,8 +3573,6 @@ subroutine elsi_siesta_to_pexsi_hs_cmplx(e_h,ham,ovlp)
    integer(kind=i4)   :: i_col
    integer(kind=i4)   :: i_val
    integer(kind=i4)   :: i_proc
-   integer(kind=i4)   :: l_col_id ! Local column id in 1D block distribution
-   integer(kind=i4)   :: l_row_id ! Local row id in 1D block distribution
    integer(kind=i4)   :: dest ! Destination of an element
    integer(kind=i4)   :: n_lcol_aux
    real(kind=r8)      :: t0
