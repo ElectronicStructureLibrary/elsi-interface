@@ -11,9 +11,9 @@ module ELSI_SETUP
 
    use ELSI_CONSTANTS,     only: ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,&
                                  SIPS_SOLVER,DMP_SOLVER,SINGLE_PROC,MULTI_PROC,&
-                                 PEXSI_CSC,SIESTA_CSC,HUMAN_READ,JSON,&
-                                 SOLVER_TIMINGS_UNIT_DEFAULT,&
-                                 SOLVER_TIMINGS_FILE_DEFAULT
+                                 PEXSI_CSC,SIESTA_CSC,HUMAN,JSON,&
+                                 TIMINGS_UNIT,&
+                                 TIMINGS_FILE
    use ELSI_DATATYPE,      only: elsi_handle
    use ELSI_DMP,           only: elsi_set_dmp_default
    use ELSI_ELPA,          only: elsi_set_elpa_default,elsi_get_elpa_comms
@@ -117,13 +117,13 @@ subroutine elsi_init(e_h,solver,parallel_mode,matrix_format,n_basis,n_electron,&
    end select
 
    ! Initialize stdio handle, silent by default
-   call elsi_init_file_io(e_h%stdio,6,file_format=HUMAN_READ,print_info=.false.)
+   call elsi_init_file_io(e_h%stdio,6,file_format=HUMAN,print_info=.false.)
 
    ! Initialize defaults for solver timings file
    ! The file IO handle won't be initialized until the ELSI handle is readied
    e_h%output_timings_file = .false.
-   e_h%solver_timings_name = SOLVER_TIMINGS_FILE_DEFAULT
-   e_h%solver_timings_unit = SOLVER_TIMINGS_UNIT_DEFAULT
+   e_h%solver_timings_name = TIMINGS_FILE
+   e_h%solver_timings_unit = TIMINGS_UNIT
 
    ! Initialize timer information
    call elsi_init_timings(e_h%timings,"Solver timings")
@@ -385,7 +385,7 @@ subroutine elsi_final_print(e_h)
    character(len=40), parameter :: caller = "elsi_final_print"
 
    if(e_h%stdio%file_format == JSON) then
-      call elsi_stop(" elsi_final_print only supports HUMAN_READ format.",e_h,&
+      call elsi_stop(" elsi_final_print only supports HUMAN format.",e_h,&
               caller)
    endif
 
@@ -554,9 +554,6 @@ subroutine elsi_cleanup(e_h)
    if(allocated(e_h%col_ptr_sp2)) then
       call elsi_deallocate(e_h,e_h%col_ptr_sp2,"col_ptr_sp2")
    endif
-   if(allocated(e_h%processor_name)) then
-      deallocate(e_h%processor_name)
-   endif
 
    ! Finalize ELPA
    if(e_h%elpa_started) then
@@ -584,7 +581,7 @@ subroutine elsi_cleanup(e_h)
       select case(e_h%timings_file%file_format)
       case(JSON)
          call elsi_close_json_file(e_h,.true.,e_h%timings_file)
-      case(HUMAN_READ)
+      case(HUMAN)
          close(e_h%timings_file%print_unit)
          call elsi_reset_file_io_handle(e_h%timings_file)
       case default

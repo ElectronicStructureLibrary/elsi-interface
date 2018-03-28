@@ -13,14 +13,13 @@ module ELSI_UTILS
                              N_MATRIX_FORMATS,MULTI_PROC,SINGLE_PROC,&
                              BLACS_DENSE,PEXSI_CSC,SIESTA_CSC,AUTO,ELPA_SOLVER,&
                              OMM_SOLVER,PEXSI_SOLVER,CHESS_SOLVER,SIPS_SOLVER,&
-                             DMP_SOLVER,UNSET_STRING,JSON,REAL_VALUES,&
-                             COMPLEX_VALUES,SETTING_STR_LEN,DATETIME_LEN,&
-                             UUID_LEN,COMMA_AFTER,HUMAN_READ
+                             DMP_SOLVER,UNSET_STR,JSON,REAL_DATA,&
+                             CMPLX_DATA,STR_LEN,TIME_LEN,&
+                             UUID_LEN,COMMA_AFTER,HUMAN
    use ELSI_DATATYPE,  only: elsi_handle
    use ELSI_IO,        only: elsi_say,elsi_init_file_io,elsi_open_json_file
-   use ELSI_MPI,       only: elsi_stop,elsi_check_mpi,elsi_get_processor_name,&
-                             mpi_sum,mpi_real8,mpi_complex16,&
-                             mpi_max_processor_name,mpi_character
+   use ELSI_MPI,       only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8,&
+                             mpi_complex16,mpi_character
    use ELSI_PRECISION, only: i4,i8,r8
 
    implicit none
@@ -171,10 +170,10 @@ subroutine elsi_reset_handle(e_h)
    e_h%dmp_ne                 = 0.0_r8
    e_h%output_timings_file    = .false.
    e_h%solver_timings_unit    = UNSET
-   e_h%solver_timings_name    = UNSET_STRING
-   e_h%calling_code           = UNSET_STRING
-   e_h%calling_code_ver       = UNSET_STRING
-   e_h%uuid                   = UNSET_STRING
+   e_h%solver_timings_name    = UNSET_STR
+   e_h%calling_code           = UNSET_STR
+   e_h%calling_code_ver       = UNSET_STR
+   e_h%uuid                   = UNSET_STR
    e_h%uuid_exists            = .false.
 
 end subroutine
@@ -368,9 +367,7 @@ subroutine elsi_ready_handle(e_h,caller)
    type(elsi_handle), intent(inout) :: e_h
    character(len=*),  intent(in)    :: caller
 
-   character(len=UUID_LEN)               :: uuid_temp
-   character(len=MPI_MAX_PROCESSOR_NAME) :: proc_name
-   integer(kind=i4)                      :: proc_name_len
+   character(len=UUID_LEN) :: uuid_temp
 
    call elsi_check_handle(e_h,caller)
 
@@ -391,35 +388,21 @@ subroutine elsi_ready_handle(e_h,caller)
                        e_h%solver_timings_name,.true.,e_h%timings_file)
             else
                call elsi_init_file_io(e_h%timings_file,e_h%solver_timings_unit,&
-                       e_h%solver_timings_name,HUMAN_READ,.true.,"",COMMA_AFTER)
+                       e_h%solver_timings_name,HUMAN,.true.,"",COMMA_AFTER)
                open(unit=e_h%timings_file%print_unit,&
                   file=e_h%timings_file%file_name)
             endif
          else
             ! De-initialize e_h%myid_all /= 0
             e_h%timings_file%print_unit = UNSET
-            e_h%timings_file%file_name  = UNSET_STRING
+            e_h%timings_file%file_name  = UNSET_STR
          endif
       endif
 
-      ! Next, get the (MPI) name of the current processor
-      call elsi_get_processor_name(e_h,proc_name,proc_name_len)
-
-      if(allocated(e_h%processor_name)) then
-         deallocate(e_h%processor_name)
-      endif
-      e_h%processor_name = proc_name
-
-      ! Generate the UUID for this ELSI instance
-      ! If the UUID already exists (for example, if the user supplied it
-      ! themselves), then skip this step
+      ! Generate UUID
       if (.not. e_h%uuid_exists) then
-         call elsi_init_random_seed()
-         call elsi_gen_uuid(uuid_temp)
-         e_h%uuid        = uuid_temp
+         call elsi_gen_uuid(e_h)
          e_h%uuid_exists = .true.
-         ! And broadcast the UUID on task 0 to all other tasks
-         call elsi_sync_uuid(e_h)
       endif
    endif
 
@@ -674,63 +657,63 @@ end subroutine
 !>
 !! This routine generates a string identifying the current solver.
 !!
-subroutine elsi_get_solver_tag(e_h,solver_tag,data_type)
+subroutine elsi_get_solver_tag(e_h,data_type,tag)
 
    implicit none
 
-   type(elsi_handle),              intent(in)  :: e_h
-   character(len=SETTING_STR_LEN), intent(out) :: solver_tag
-   integer(kind=i4),               intent(in)  :: data_type
+   type(elsi_handle),      intent(in)  :: e_h
+   integer(kind=i4),       intent(in)  :: data_type
+   character(len=STR_LEN), intent(out) :: tag
 
    character(len=40), parameter :: caller = "elsi_get_solver_tag"
 
-   if(data_type == REAL_VALUES) then
+   if(data_type == REAL_DATA) then
       select case(e_h%solver)
       case(ELPA_SOLVER)
          if(e_h%parallel_mode == SINGLE_PROC) then
-            solver_tag = "LAPACK_REAL"
+            tag = "LAPACK_REAL"
          else ! MULTI_PROC
             if(e_h%elpa_solver == 1) then
-               solver_tag = "ELPA_1STAGE_REAL"
+               tag = "ELPA_1STAGE_REAL"
             elseif(e_h%elpa_solver == 2) then
-               solver_tag = "ELPA_2STAGE_REAL"
+               tag = "ELPA_2STAGE_REAL"
             else
                call elsi_stop(" Unsupported ELPA flavor.",e_h,caller)
             endif
          endif
       case(OMM_SOLVER)
-         solver_tag = "LIBOMM_REAL"
+         tag = "LIBOMM_REAL"
       case(PEXSI_SOLVER)
-         solver_tag = "PEXSI_REAL"
+         tag = "PEXSI_REAL"
       case(SIPS_SOLVER)
-         solver_tag = "SIPS_REAL"
+         tag = "SIPS_REAL"
       case(DMP_SOLVER)
-         solver_tag = "DMP_REAL"
+         tag = "DMP_REAL"
       case default
          call elsi_stop(" Unsupported solver.",e_h,caller)
       end select
-   elseif(data_type == COMPLEX_VALUES) then
+   elseif(data_type == CMPLX_DATA) then
       select case(e_h%solver)
       case(ELPA_SOLVER)
          if(e_h%parallel_mode == SINGLE_PROC) then
-            solver_tag = "LAPACK_CMPLX"
+            tag = "LAPACK_CMPLX"
          else ! MULTI_PROC
             if(e_h%elpa_solver == 1) then
-               solver_tag = "ELPA_1STAGE_CMPLX"
+               tag = "ELPA_1STAGE_CMPLX"
             elseif(e_h%elpa_solver == 2) then
-               solver_tag = "ELPA_2STAGE_CMPLX"
+               tag = "ELPA_2STAGE_CMPLX"
             else
                call elsi_stop(" Unsupported ELPA flavor.",e_h,caller)
             endif
          endif
       case(OMM_SOLVER)
-         solver_tag = "LIBOMM_CMPLX"
+         tag = "LIBOMM_CMPLX"
       case(PEXSI_SOLVER)
-         solver_tag = "PEXSI_CMPLX"
+         tag = "PEXSI_CMPLX"
       case(SIPS_SOLVER)
-         solver_tag = "SIPS_CMPLX"
+         tag = "SIPS_CMPLX"
       case(DMP_SOLVER)
-         solver_tag = "DMP_CMPLX"
+         tag = "DMP_CMPLX"
       case default
          call elsi_stop(" Unsupported solver.",e_h,caller)
       end select
@@ -748,7 +731,7 @@ subroutine elsi_get_datetime_rfc3339(datetime_rfc3339)
 
    implicit none
 
-   character(len=DATETIME_LEN), intent(out) :: datetime_rfc3339
+   character(len=TIME_LEN), intent(out) :: datetime_rfc3339
 
    integer(kind=i4) :: datetime(8)
    integer(kind=i4) :: temp_int
@@ -858,18 +841,23 @@ end subroutine
 !! have been set.
 !! (Taken from FHI-aims with permission of copyright holders)
 !!
-subroutine elsi_gen_uuid(uuid)
+subroutine elsi_gen_uuid(e_h)
 
    implicit none
 
-   character(len=UUID_LEN), intent(out) :: uuid
+   type(elsi_handle), intent(inout) :: e_h
 
    integer(kind=i4) :: ii3
    integer(kind=i4) :: ii4
    integer(kind=i4) :: i_entry
+   integer(kind=i4) :: ierr
    real(kind=r8)    :: rr(8)
    character(len=3) :: ss3
    character(len=4) :: ss4
+
+   character(len=40), parameter :: caller = "elsi_gen_uuid"
+
+   call elsi_init_random_seed()
 
    ii3 = 4095
    ii4 = 65535
@@ -881,19 +869,24 @@ subroutine elsi_gen_uuid(uuid)
       write(ss4,"(Z4.4)") transfer(int(rr(i_entry)*ii4),16)
 
       if(i_entry == 1) then
-         write(uuid,'(A)') ss4
+         write(e_h%uuid,'(A)') ss4
       elseif(i_entry == 2) then
-         write(uuid,'(2A)') trim(uuid),ss4
+         write(e_h%uuid,'(2A)') trim(e_h%uuid),ss4
       elseif(i_entry == 3) then
-         write(uuid,'(3A)') trim(uuid),'-',ss4
+         write(e_h%uuid,'(3A)') trim(e_h%uuid),'-',ss4
       elseif(i_entry == 4) then
-         write(uuid,'(3A)') trim(uuid),'-4',ss3
+         write(e_h%uuid,'(3A)') trim(e_h%uuid),'-4',ss3
       elseif(i_entry == 5) then
-         write(uuid,'(4A)') trim(uuid),'-A',ss3,'-'
+         write(e_h%uuid,'(4A)') trim(e_h%uuid),'-A',ss3,'-'
       else
-         write(uuid,'(2A)') trim(uuid),ss4
+         write(e_h%uuid,'(2A)') trim(e_h%uuid),ss4
       endif
    enddo
+
+   if(e_h%parallel_mode == MULTI_PROC) then
+      call MPI_Bcast(e_h%uuid,UUID_LEN,mpi_character,0,e_h%mpi_comm_all,ierr)
+      call elsi_check_mpi(e_h,"MPI_Bcast",ierr,caller)
+   endif
 
 end subroutine
 
@@ -951,26 +944,6 @@ subroutine elsi_init_random_seed()
    call random_seed(put=seed)
 
    deallocate(seed)
-
-end subroutine
-
-!>
-!! Broadcast UUID from task 0 to all other tasks.
-!!
-subroutine elsi_sync_uuid(e_h)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: e_h
-
-   integer(kind=i4) :: ierr
-
-   character(len=40), parameter :: caller = "elsi_sync_uuid"
-
-   if(e_h%parallel_mode == MULTI_PROC) then
-      call MPI_Bcast(e_h%uuid,UUID_LEN,mpi_character,0,e_h%mpi_comm_all,ierr)
-      call elsi_check_mpi(e_h,"MPI_Bcast",ierr,caller)
-   endif
 
 end subroutine
 

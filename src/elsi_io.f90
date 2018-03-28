@@ -9,7 +9,7 @@
 !!
 module ELSI_IO
 
-   use ELSI_CONSTANTS, only: UNSET,UNSET_STRING,HUMAN_READ,JSON,MULTI_PROC,&
+   use ELSI_CONSTANTS, only: UNSET,UNSET_STR,HUMAN,JSON,MULTI_PROC,&
                              SINGLE_PROC,ELPA_SOLVER,SIPS_SOLVER,OMM_SOLVER,&
                              PEXSI_SOLVER,DMP_SOLVER,BLACS_DENSE,PEXSI_CSC,&
                              SIESTA_CSC,COMMA_AFTER,NO_COMMA
@@ -104,13 +104,13 @@ subroutine elsi_init_file_io(io_h,print_unit,file_name,file_format,print_info,&
    if(present(file_name)) then
       io_h%file_name = file_name
    else
-      io_h%file_name = UNSET_STRING
+      io_h%file_name = UNSET_STR
    endif
 
    if(present(file_format)) then
       io_h%file_format = file_format
    else
-      io_h%file_format = HUMAN_READ
+      io_h%file_format = HUMAN
    endif
 
    if(present(print_info)) then
@@ -184,7 +184,7 @@ subroutine elsi_reset_file_io_handle(io_h)
 
    io_h%handle_init = .false.
    io_h%print_unit  = UNSET
-   io_h%file_name   = UNSET_STRING
+   io_h%file_name   = UNSET_STR
    io_h%file_format = UNSET
    io_h%print_info  = .false.
    io_h%comma_json  = UNSET
@@ -218,7 +218,7 @@ subroutine elsi_print_handle_summary(e_h,io_h_in)
       io_h = e_h%stdio
    endif
 
-   if(io_h%file_format == HUMAN_READ) then
+   if(io_h%file_format == HUMAN) then
       write(info_str,"(A)") "Physical Properties"
       call elsi_say(e_h,info_str,io_h)
 
@@ -365,7 +365,7 @@ subroutine elsi_print_versioning(e_h,io_h_in)
       io_h = e_h%stdio
    endif
 
-   if(io_h%file_format == HUMAN_READ) then ! Full info available in JSON
+   if(io_h%file_format == HUMAN) then ! Full info available in JSON
       write(info_str,"(A)") "ELSI Versioning Information"
       call elsi_say(e_h,info_str,io_h)
       call elsi_append_string(io_h%prefix,"  ")
@@ -563,7 +563,7 @@ subroutine elsi_print_dmp_settings(e_h,io_h_in)
    io_h%comma_json = COMMA_AFTER ! Add commas behind all records before final
 
    ! Header
-   if(io_h%file_format == HUMAN_READ) then
+   if(io_h%file_format == HUMAN) then
       write(info_str,"(A)") "Solver Settings (DMP)"
    else
       write(info_str,"(A)") '"solver_settings": {'
@@ -622,7 +622,7 @@ subroutine elsi_print_elpa_settings(e_h,io_h_in)
    io_h%comma_json = COMMA_AFTER ! Add commas behind all records before final
 
    ! Header
-   if(io_h%file_format == HUMAN_READ) then
+   if(io_h%file_format == HUMAN) then
       write(info_str,"(A)") "Solver Settings (ELPA)"
    else
       write(info_str,"(A)") '"solver_settings": {'
@@ -679,7 +679,7 @@ subroutine elsi_print_omm_settings(e_h,io_h_in)
    io_h%comma_json = COMMA_AFTER ! Add commas behind all records before final
 
    ! Header
-   if(io_h%file_format == HUMAN_READ) then
+   if(io_h%file_format == HUMAN) then
       write(info_str,"(A)") "Solver Settings (libOMM)"
    else
       write(info_str,"(A)") '"solver_settings": {'
@@ -737,7 +737,7 @@ subroutine elsi_print_pexsi_settings(e_h,io_h_in)
    io_h%comma_json = COMMA_AFTER ! Add commas behind all records before final
 
    ! Header
-   if(io_h%file_format == HUMAN_READ) then
+   if(io_h%file_format == HUMAN) then
       write(info_str,"(A)") "Solver Settings (PEXSI)"
    else
       write(info_str,"(A)") '"solver_settings": {'
@@ -801,7 +801,7 @@ subroutine elsi_print_sips_settings(e_h,io_h_in)
    io_h%comma_json = COMMA_AFTER ! Add commas behind all records before final
 
    ! Header
-   if(io_h%file_format == HUMAN_READ) then
+   if(io_h%file_format == HUMAN) then
       write(info_str,"(A)") "Solver Settings (SIPS)"
    else
       write(info_str,"(A)") '"solver_settings": {'
@@ -890,7 +890,7 @@ subroutine elsi_print_den_settings(e_h,io_h_in)
    io_h%comma_json = COMMA_AFTER ! Add commas behind all records before final
 
    ! Header
-   if(io_h%file_format == HUMAN_READ) then
+   if(io_h%file_format == HUMAN) then
       write(info_str,"(A)") "Dense Matrix Format Settings"
    else
       write(info_str,"(A)") '"matrix_format_settings": {'
@@ -949,7 +949,7 @@ subroutine elsi_print_csc_settings(e_h,io_h_in)
    io_h%comma_json = COMMA_AFTER ! Add commas behind all records before final
 
    ! Header
-   if(io_h%file_format == HUMAN_READ) then
+   if(io_h%file_format == HUMAN) then
       write(info_str,"(A)") "Sparse Matrix Format Settings"
    else
       write(info_str,"(A)") '"matrix_format_settings": {'
@@ -1011,7 +1011,7 @@ subroutine elsi_say_setting_i4(e_h,label,setting,io_h_in)
    label_ljust = label ! Store the label string in fixed-length character array
 
    if(io_h%print_info .and. e_h%myid_all == 0) then
-      if(io_h%file_format == HUMAN_READ) then
+      if(io_h%file_format == HUMAN) then
          if(allocated(io_h%prefix)) then
             write(io_h%print_unit,"(A,A28,A3,I40)") io_h%prefix,label_ljust,&
                " : ",setting
@@ -1074,7 +1074,7 @@ subroutine elsi_say_setting_r8(e_h,label,setting,io_h_in)
    label_ljust = label ! Store the label string in fixed-length character array
 
    if(io_h%print_info .and. e_h%myid_all == 0) then
-      if(io_h%file_format == HUMAN_READ) then
+      if(io_h%file_format == HUMAN) then
          if(allocated(io_h%prefix)) then
             write(io_h%print_unit,"(A,A28,A3,E40.8)") io_h%prefix,label_ljust,&
                " : ",setting
@@ -1132,7 +1132,7 @@ subroutine elsi_say_setting_log(e_h,label,setting,io_h_in)
       io_h = e_h%stdio
    endif
 
-   if(io_h%file_format == HUMAN_READ) then
+   if(io_h%file_format == HUMAN) then
       if(setting) then
          log_string = "                TRUE"
       else
@@ -1152,7 +1152,7 @@ subroutine elsi_say_setting_log(e_h,label,setting,io_h_in)
    label_ljust = label ! Store the label string in fixed-length character array
 
    if(io_h%print_info .and. e_h%myid_all == 0) then
-      if(io_h%file_format == HUMAN_READ) then
+      if(io_h%file_format == HUMAN) then
          if(allocated(io_h%prefix)) then
             write(io_h%print_unit,"(A,A28,A3,A40)") io_h%prefix,label_ljust,&
                " : ",log_string
@@ -1212,7 +1212,7 @@ subroutine elsi_say_setting_str(e_h,label,setting,io_h_in)
    label_ljust = label ! Store the label string in fixed-length character array
 
    if(io_h%print_info .and. e_h%myid_all == 0) then
-      if(io_h%file_format == HUMAN_READ) then
+      if(io_h%file_format == HUMAN) then
          if(allocated(io_h%prefix)) then
             write(io_h%print_unit,"(A,A28,A3,A40)") io_h%prefix,label_ljust,&
                " : ",setting

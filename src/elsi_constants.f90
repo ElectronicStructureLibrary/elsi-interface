@@ -31,10 +31,10 @@ module ELSI_CONSTANTS
    integer(kind=i4), parameter :: DMP_SOLVER   = 6
 
    ! Real or complex data
-   integer(kind=i4), parameter :: REAL_VALUES    = 0
-   integer(kind=i4), parameter :: COMPLEX_VALUES = 1
+   integer(kind=i4), parameter :: REAL_DATA  = 0
+   integer(kind=i4), parameter :: CMPLX_DATA = 1
 
-   ! Output for solver subroutines (density matrix or eigenvectors)
+   ! Output (density matrix or eigenvectors)
    integer(kind=i4), parameter :: OUTPUT_EV = 0
    integer(kind=i4), parameter :: OUTPUT_DM = 1
 
@@ -71,24 +71,23 @@ module ELSI_CONSTANTS
    integer(kind=i4), parameter :: READ_FILE  = 0
    integer(kind=i4), parameter :: WRITE_FILE = 1
 
-   ! Constants for ELSI file IO
-   character(len=*), parameter :: UNSET_STRING  = "N/A"
-   integer(kind=i4), parameter :: FILE_NAME_LEN = 80
-   integer(kind=i4), parameter :: HUMAN_READ    = 0
-   integer(kind=i4), parameter :: JSON          = 1
-
-   ! Control placement of commas in JSON records
+   ! IO
+   character(len=*), parameter :: UNSET_STR    = "N/A"
+   integer(kind=i4), parameter :: FILENAME_LEN = 80
+   integer(kind=i4), parameter :: HUMAN        = 0
+   integer(kind=i4), parameter :: JSON         = 1
    integer(kind=i4), parameter :: NO_COMMA     = 0
    integer(kind=i4), parameter :: COMMA_AFTER  = 1
    integer(kind=i4), parameter :: COMMA_BEFORE = 2
 
-   ! Constants for ELSI timings
-   integer(kind=i4),             parameter :: SOLVER_TIMINGS_UNIT_DEFAULT = 66
-   character(len=FILE_NAME_LEN), parameter :: SOLVER_TIMINGS_FILE_DEFAULT = "elsi_solver_timings.json"
+   ! Timings
+   integer(kind=i4),            parameter :: N_TIMINGS    = 100
+   integer(kind=i4),            parameter :: TIMINGS_UNIT = 66
+   character(len=FILENAME_LEN), parameter :: TIMINGS_FILE = "elsi_timings.json"
 
-   ! Constants for ELSI versioning
-   integer(kind=i4), parameter :: SETTING_STR_LEN = 20
-   integer(kind=i4), parameter :: DATETIME_LEN    = 29
-   integer(kind=i4), parameter :: UUID_LEN        = 36 ! RFC 4122 format
+   ! Versioning
+   integer(kind=i4), parameter :: STR_LEN  = 20
+   integer(kind=i4), parameter :: TIME_LEN = 29
+   integer(kind=i4), parameter :: UUID_LEN = 36 ! RFC 4122 format
 
 end module ELSI_CONSTANTS

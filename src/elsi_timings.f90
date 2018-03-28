@@ -9,7 +9,7 @@
 !!
 module ELSI_TIMINGS
 
-   use ELSI_CONSTANTS, only: SETTING_STR_LEN,UNSET,UNSET_STRING
+   use ELSI_CONSTANTS, only: STR_LEN,UNSET,UNSET_STR,N_TIMINGS
    use ELSI_DATATYPE,  only: elsi_handle,elsi_timings_handle
    use ELSI_IO,        only: elsi_say
    use ELSI_PRECISION, only: i4,r8
@@ -17,8 +17,6 @@ module ELSI_TIMINGS
    implicit none
 
    private
-
-   integer(kind=i4), parameter :: STARTING_SIZE_TIMINGS = 1
 
    public :: elsi_get_time
    public :: elsi_init_timings
@@ -129,14 +127,14 @@ subroutine elsi_init_timings(t_h,set_label)
 
    character(len=40), parameter :: caller = "elsi_init_timings"
 
-   t_h%size_timings = STARTING_SIZE_TIMINGS
+   t_h%size_timings = N_TIMINGS
    t_h%n_timings    = 0
-   t_h%user_tag     = UNSET_STRING
+   t_h%user_tag     = UNSET_STR
 
    if(present(set_label)) then
       t_h%set_label = set_label
    else
-      t_h%set_label = UNSET_STRING
+      t_h%set_label = UNSET_STR
    endif
 
    allocate(t_h%times(t_h%size_timings))
@@ -154,10 +152,11 @@ subroutine elsi_resize_timing_arrays(t_h)
 
    type(elsi_timings_handle), intent(inout) :: t_h
 
-   integer :: i_timing
-   real(kind=r8),                  allocatable :: tmp_times(:)
-   character(len=SETTING_STR_LEN), allocatable :: tmp_elsi_tags(:)
-   character(len=SETTING_STR_LEN), allocatable :: tmp_user_tags(:)
+   integer(kind=i4) :: i_timing
+
+   real(kind=r8),          allocatable :: tmp_times(:)
+   character(len=STR_LEN), allocatable :: tmp_elsi_tags(:)
+   character(len=STR_LEN), allocatable :: tmp_user_tags(:)
 
    character(len=40), parameter :: caller = "elsi_resize_timing_arrays"
 
@@ -209,7 +208,7 @@ subroutine elsi_add_timing(t_h,time,elsi_tag,user_tag_in,iter_in)
    character(len=*),          intent(in), optional :: user_tag_in
    integer(kind=i4),          intent(in), optional :: iter_in
 
-   character(len=SETTING_STR_LEN) :: user_tag
+   character(len=STR_LEN) :: user_tag
    integer(kind=i4)               :: iter
 
    character(len=40), parameter :: caller = "elsi_add_timings"
@@ -265,15 +264,15 @@ subroutine elsi_print_timings(e_h,t_h)
 
    if(t_h%n_timings > 0) then
       tmp = maxval(t_h%times(1:t_h%n_timings))
-      write(info_str,"(6X,F12.3,9X,A,18X,A)") tmp,"MAX",UNSET_STRING
+      write(info_str,"(6X,F12.3,9X,A,18X,A)") tmp,"MAX",UNSET_STR
       call elsi_say(e_h,info_str)
 
       tmp = minval(t_h%times(1:t_h%n_timings))
-      write(info_str,"(6X,F12.3,9X,A,18X,A)") tmp,"MIN",UNSET_STRING
+      write(info_str,"(6X,F12.3,9X,A,18X,A)") tmp,"MIN",UNSET_STR
       call elsi_say(e_h,info_str)
 
       tmp = sum(t_h%times(1:t_h%n_timings))/t_h%n_timings
-      write(info_str,"(6X,F12.3,9X,A,14X,A)") tmp,"AVERAGE",UNSET_STRING
+      write(info_str,"(6X,F12.3,9X,A,14X,A)") tmp,"AVERAGE",UNSET_STR
       call elsi_say(e_h,info_str)
    endif
 
@@ -302,8 +301,8 @@ subroutine elsi_finalize_timings(t_h)
 
    t_h%n_timings    = 0
    t_h%size_timings = UNSET
-   t_h%user_tag     = UNSET_STRING
-   t_h%set_label    = UNSET_STRING
+   t_h%user_tag     = UNSET_STR
+   t_h%set_label    = UNSET_STR
 
 end subroutine
 

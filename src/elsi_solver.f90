@@ -11,11 +11,11 @@
 module ELSI_SOLVER
 
    use ELSI_CONSTANTS,  only: ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,SIPS_SOLVER,&
-                              DMP_SOLVER,REAL_VALUES,COMPLEX_VALUES,MULTI_PROC,&
+                              DMP_SOLVER,REAL_DATA,CMPLX_DATA,MULTI_PROC,&
                               SINGLE_PROC,PEXSI_CSC,SIESTA_CSC,UNSET,&
-                              SETTING_STR_LEN,OUTPUT_EV,OUTPUT_DM,DATETIME_LEN,&
-                              COMMA_BEFORE,COMMA_AFTER,NO_COMMA,UNSET_STRING,&
-                              HUMAN_READ,JSON
+                              STR_LEN,OUTPUT_EV,OUTPUT_DM,TIME_LEN,&
+                              COMMA_BEFORE,COMMA_AFTER,NO_COMMA,UNSET_STR,&
+                              HUMAN,JSON
    use ELSI_DATATYPE,   only: elsi_handle,elsi_file_io_handle
    use ELSI_DMP,        only: elsi_solve_evp_dmp_real
    use ELSI_ELPA,       only: elsi_compute_occ_elpa,elsi_compute_dm_elpa_real,&
@@ -155,12 +155,12 @@ subroutine elsi_ev_real(e_h,ham,ovlp,eval,evec)
    real(kind=r8),     intent(inout) :: eval(e_h%n_basis)           !< Eigenvalues
    real(kind=r8),     intent(inout) :: evec(e_h%n_lrow,e_h%n_lcol) !< Eigenvectors
 
-   real(kind=r8)               :: t0
-   integer(kind=i4)            :: solver_used = UNSET
-   character(len=DATETIME_LEN) :: start_datetime
+   real(kind=r8)           :: t0
+   integer(kind=i4)        :: solver_used = UNSET
+   character(len=TIME_LEN) :: start_datetime
 
    integer(kind=i4),  parameter :: output_type = OUTPUT_EV
-   integer(kind=i4),  parameter :: data_type = REAL_VALUES
+   integer(kind=i4),  parameter :: data_type = REAL_DATA
    character(len=40), parameter :: caller = "elsi_ev_real"
 
    call elsi_get_time(t0)
@@ -244,12 +244,12 @@ subroutine elsi_ev_complex(e_h,ham,ovlp,eval,evec)
    real(kind=r8),     intent(inout) :: eval(e_h%n_basis)           !< Eigenvalues
    complex(kind=r8),  intent(inout) :: evec(e_h%n_lrow,e_h%n_lcol) !< Eigenvectors
 
-   real(kind=r8)               :: t0
-   integer(kind=i4)            :: solver_used = UNSET
-   character(len=DATETIME_LEN) :: start_datetime
+   real(kind=r8)           :: t0
+   integer(kind=i4)        :: solver_used = UNSET
+   character(len=TIME_LEN) :: start_datetime
 
    integer(kind=i4),  parameter :: output_type = OUTPUT_EV
-   integer(kind=i4),  parameter :: data_type = COMPLEX_VALUES
+   integer(kind=i4),  parameter :: data_type = CMPLX_DATA
    character(len=40), parameter :: caller = "elsi_ev_complex"
 
    call elsi_get_time(t0)
@@ -307,12 +307,12 @@ subroutine elsi_ev_real_sparse(e_h,ham,ovlp,eval,evec)
    real(kind=r8),     intent(inout) :: eval(e_h%n_basis)           !< Eigenvalues
    real(kind=r8),     intent(inout) :: evec(e_h%n_lrow,e_h%n_lcol) !< Eigenvectors
 
-   real(kind=r8)               :: t0
-   integer(kind=i4)            :: solver_used = UNSET
-   character(len=DATETIME_LEN) :: start_datetime
+   real(kind=r8)           :: t0
+   integer(kind=i4)        :: solver_used = UNSET
+   character(len=TIME_LEN) :: start_datetime
 
    integer(kind=i4),  parameter :: output_type = OUTPUT_EV
-   integer(kind=i4),  parameter :: data_type = REAL_VALUES
+   integer(kind=i4),  parameter :: data_type = REAL_DATA
    character(len=40), parameter :: caller = "elsi_ev_real_sparse"
 
    call elsi_get_time(t0)
@@ -414,12 +414,12 @@ subroutine elsi_ev_complex_sparse(e_h,ham,ovlp,eval,evec)
    real(kind=r8),     intent(inout) :: eval(e_h%n_basis)           !< Eigenvalues
    complex(kind=r8),  intent(inout) :: evec(e_h%n_lrow,e_h%n_lcol) !< Eigenvectors
 
-   real(kind=r8)               :: t0
-   integer(kind=i4)            :: solver_used = UNSET
-   character(len=DATETIME_LEN) :: start_datetime
+   real(kind=r8)           :: t0
+   integer(kind=i4)        :: solver_used = UNSET
+   character(len=TIME_LEN) :: start_datetime
 
    integer(kind=i4),  parameter :: output_type = OUTPUT_EV
-   integer(kind=i4),  parameter :: data_type = COMPLEX_VALUES
+   integer(kind=i4),  parameter :: data_type = CMPLX_DATA
    character(len=40), parameter :: caller = "elsi_ev_complex_sparse"
 
    call elsi_get_time(t0)
@@ -482,12 +482,12 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
    real(kind=r8),     intent(inout) :: dm(e_h%n_lrow,e_h%n_lcol)   !< Density matrix
    real(kind=r8),     intent(inout) :: energy                      !< Energy
 
-   real(kind=r8)               :: t0
-   integer(kind=i4)            :: solver_used = UNSET
-   character(len=DATETIME_LEN) :: start_datetime
+   real(kind=r8)           :: t0
+   integer(kind=i4)        :: solver_used = UNSET
+   character(len=TIME_LEN) :: start_datetime
 
    integer(kind=i4),  parameter :: output_type = OUTPUT_DM
-   integer(kind=i4),  parameter :: data_type = REAL_VALUES
+   integer(kind=i4),  parameter :: data_type = REAL_DATA
    character(len=40), parameter :: caller = "elsi_dm_real"
 
    call elsi_get_time(t0)
@@ -702,12 +702,12 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
    complex(kind=r8),  intent(inout) :: dm(e_h%n_lrow,e_h%n_lcol)   !< Density matrix
    real(kind=r8),     intent(inout) :: energy                      !< Energy
 
-   real(kind=r8)               :: t0
-   integer(kind=i4)            :: solver_used = UNSET
-   character(len=DATETIME_LEN) :: start_datetime
+   real(kind=r8)           :: t0
+   integer(kind=i4)        :: solver_used = UNSET
+   character(len=TIME_LEN) :: start_datetime
 
    integer(kind=i4),  parameter :: output_type = OUTPUT_DM
-   integer(kind=i4),  parameter :: data_type = COMPLEX_VALUES
+   integer(kind=i4),  parameter :: data_type = CMPLX_DATA
    character(len=40), parameter :: caller = "elsi_dm_complex"
 
    call elsi_get_time(t0)
@@ -858,12 +858,12 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
    real(kind=r8),     intent(inout) :: dm(e_h%nnz_l_sp)   !< Density matrix
    real(kind=r8),     intent(inout) :: energy             !< Energy
 
-   real(kind=r8)               :: t0
-   integer(kind=i4)            :: solver_used = UNSET
-   character(len=DATETIME_LEN) :: start_datetime
+   real(kind=r8)           :: t0
+   integer(kind=i4)        :: solver_used = UNSET
+   character(len=TIME_LEN) :: start_datetime
 
    integer(kind=i4),  parameter :: output_type = OUTPUT_DM
-   integer(kind=i4),  parameter :: data_type = REAL_VALUES
+   integer(kind=i4),  parameter :: data_type = REAL_DATA
    character(len=40), parameter :: caller = "elsi_dm_real_sparse"
 
    call elsi_get_time(t0)
@@ -1223,12 +1223,12 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
    complex(kind=r8),  intent(inout) :: dm(e_h%nnz_l_sp)   !< Density matrix
    real(kind=r8),     intent(inout) :: energy             !< Energy
 
-   real(kind=r8)               :: t0
-   integer(kind=i4)            :: solver_used = UNSET
-   character(len=DATETIME_LEN) :: start_datetime
+   real(kind=r8)           :: t0
+   integer(kind=i4)        :: solver_used = UNSET
+   character(len=TIME_LEN) :: start_datetime
 
    integer(kind=i4),  parameter :: output_type = OUTPUT_DM
-   integer(kind=i4),  parameter :: data_type = COMPLEX_VALUES
+   integer(kind=i4),  parameter :: data_type = CMPLX_DATA
    character(len=40), parameter :: caller = "elsi_dm_complex_sparse"
 
    call elsi_get_time(t0)
@@ -1505,19 +1505,20 @@ subroutine elsi_process_solver_timing(e_h,output_type,data_type,solver_used,&
 
    implicit none
 
-   type(elsi_handle),           intent(inout) :: e_h
-   integer(kind=i4),            intent(in)    :: output_type
-   integer(kind=i4),            intent(in)    :: data_type
-   integer(kind=i4),            intent(in)    :: solver_used
-   real(kind=r8),               intent(in)    :: t0
-   character(len=DATETIME_LEN), intent(in)    :: start_datetime
+   type(elsi_handle),       intent(inout) :: e_h
+   integer(kind=i4),        intent(in)    :: output_type
+   integer(kind=i4),        intent(in)    :: data_type
+   integer(kind=i4),        intent(in)    :: solver_used
+   real(kind=r8),           intent(in)    :: t0
+   character(len=TIME_LEN), intent(in)    :: start_datetime
 
-   character(len=SETTING_STR_LEN) :: solver_tag
-   real(kind=r8)                  :: t1, total_time
-   integer(kind=i4)               :: temp_int
-   integer(kind=i4)               :: comma_json_save
-   integer(kind=i4)               :: iteration
-   type(elsi_file_io_handle)      :: io_h
+   character(len=STR_LEN)    :: solver_tag
+   real(kind=r8)             :: t1
+   real(kind=r8)             :: total_time
+   integer(kind=i4)          :: temp_int
+   integer(kind=i4)          :: comma_json_save
+   integer(kind=i4)          :: iteration
+   type(elsi_file_io_handle) :: io_h
 
    character(len=40), parameter :: caller = "elsi_dm_complex_sparse"
 
@@ -1530,7 +1531,7 @@ subroutine elsi_process_solver_timing(e_h,output_type,data_type,solver_used,&
    total_time = t1-t0
 
    ! Output information about this solver invocation
-   call elsi_get_solver_tag(e_h,solver_tag,data_type)
+   call elsi_get_solver_tag(e_h,data_type,solver_tag)
    call elsi_add_timing(e_h%timings,total_time,solver_tag)
 
    if(e_h%output_timings_file) then
@@ -1564,22 +1565,22 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,start_datetime,&
 
    implicit none
 
-   type(elsi_handle),           intent(inout)        :: e_h
-   integer(kind=i4),            intent(in)           :: output_type
-   integer(kind=i4),            intent(in)           :: data_type
-   character(len=DATETIME_LEN), intent(in)           :: start_datetime
-   real(kind=r8),               intent(in)           :: total_time
-   character(len=*),            intent(in)           :: elsi_tag_in
-   integer(kind=i4),            intent(in)           :: iter
-   type(elsi_file_io_handle),   intent(in), optional :: io_h_in
-   character(len=*),            intent(in), optional :: user_tag_in
+   type(elsi_handle),         intent(inout)        :: e_h
+   integer(kind=i4),          intent(in)           :: output_type
+   integer(kind=i4),          intent(in)           :: data_type
+   character(len=TIME_LEN),   intent(in)           :: start_datetime
+   real(kind=r8),             intent(in)           :: total_time
+   character(len=*),          intent(in)           :: elsi_tag_in
+   integer(kind=i4),          intent(in)           :: iter
+   type(elsi_file_io_handle), intent(in), optional :: io_h_in
+   character(len=*),          intent(in), optional :: user_tag_in
 
-   character(len=200)             :: info_str
-   character(len=SETTING_STR_LEN) :: elsi_tag
-   character(len=SETTING_STR_LEN) :: user_tag
-   character(len=DATETIME_LEN)    :: record_datetime
-   integer(kind=i4)               :: comma_json_save
-   type(elsi_file_io_handle)      :: io_h
+   character(len=200)        :: info_str
+   character(len=STR_LEN)    :: elsi_tag
+   character(len=STR_LEN)    :: user_tag
+   character(len=TIME_LEN)   :: record_datetime
+   integer(kind=i4)          :: comma_json_save
+   type(elsi_file_io_handle) :: io_h
 
    character(len=40), parameter :: caller = "elsi_print_solver_timing"
 
@@ -1592,7 +1593,7 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,start_datetime,&
    if(present(user_tag_in)) then
       user_tag = trim(user_tag_in)
    else
-      user_tag = trim(UNSET_STRING)
+      user_tag = trim(UNSET_STR)
    endif
 
    user_tag        = adjustr(user_tag)
@@ -1603,7 +1604,7 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,start_datetime,&
    call elsi_get_datetime_rfc3339(record_datetime)
 
    ! Print out patterned header, versioning information, and timing details
-   if(io_h%file_format == HUMAN_READ) then
+   if(io_h%file_format == HUMAN) then
       call elsi_say(e_h,"-------------------------------------------------------------------------",io_h)
       write(info_str,"(A,I10)") "Start of ELSI Solver Iteration ",iter
       call elsi_say(e_h,info_str,io_h)
@@ -1621,9 +1622,9 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,start_datetime,&
       else
          call elsi_stop(" Unsupported output type.",e_h,caller)
       endif
-      if(data_type == REAL_VALUES) then
+      if(data_type == REAL_DATA) then
          call elsi_say_setting(e_h,"Data Type","REAL",io_h)
-      elseif(data_type == COMPLEX_VALUES) then
+      elseif(data_type == CMPLX_DATA) then
          call elsi_say_setting(e_h,"Data Type","COMPLEX",io_h)
       else
          call elsi_stop(" Unsupported data type.",e_h,caller)
@@ -1646,16 +1647,15 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,start_datetime,&
       else
          call elsi_stop(" Unsupported output type.",e_h,caller)
       endif
-      if(data_type == REAL_VALUES) then
+      if(data_type == REAL_DATA) then
          call elsi_say_setting(e_h,"data_type","REAL",io_h)
-      elseif(data_type == COMPLEX_VALUES) then
+      elseif(data_type == CMPLX_DATA) then
          call elsi_say_setting(e_h,"data_type","COMPLEX",io_h)
       else
          call elsi_stop(" Unsupported data type.",e_h,caller)
       endif
       call elsi_say_setting(e_h,"elsi_tag",elsi_tag,io_h)
       call elsi_say_setting(e_h,"user_tag",user_tag,io_h)
-      call elsi_say_setting(e_h,"proc_0_name",e_h%processor_name,io_h)
       call elsi_say_setting(e_h,"start_datetime",start_datetime,io_h)
       call elsi_say_setting(e_h,"record_datetime",record_datetime,io_h)
       call elsi_say_setting(e_h,"total_time",total_time,io_h)
@@ -1664,19 +1664,19 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,start_datetime,&
    endif
 
    ! Print out handle summary
-   if(io_h%file_format == HUMAN_READ) then
+   if(io_h%file_format == HUMAN) then
       call elsi_say(e_h,"",io_h)
    endif
    call elsi_print_handle_summary(e_h,io_h)
 
    ! Print out matrix storage format settings
-   if(io_h%file_format == HUMAN_READ) then
+   if(io_h%file_format == HUMAN) then
       call elsi_say(e_h,"",io_h)
    endif
    call elsi_print_matrix_format_settings(e_h,io_h)
 
    ! Print out solver settings
-   if(io_h%file_format == HUMAN_READ) then
+   if(io_h%file_format == HUMAN) then
       call elsi_say(e_h,"",io_h)
    endif
    io_h%comma_json = NO_COMMA ! Final record in this scope
@@ -1684,7 +1684,7 @@ subroutine elsi_print_solver_timing(e_h,output_type,data_type,start_datetime,&
 
    ! Print out patterned footer
    io_h%comma_json = comma_json_save
-   if(io_h%file_format == HUMAN_READ) then
+   if(io_h%file_format == HUMAN) then
       call elsi_say(e_h,"",io_h)
       write(info_str,"(A,I10)") "End of ELSI Solver Iteration   ",iter
       call elsi_say(e_h,info_str,io_h)

@@ -21,7 +21,6 @@ module ELSI_MPI
    include "mpif.h"
 
    public :: elsi_stop
-   public :: elsi_get_processor_name
    public :: elsi_check_mpi
 
 contains
@@ -63,28 +62,6 @@ subroutine elsi_stop(info,e_h,caller)
    endif
 
    stop
-
-end subroutine
-
-!>
-!! Get processor name.
-!!
-subroutine elsi_get_processor_name(e_h,proc_name,proc_name_len)
-
-   implicit none
-
-   type(elsi_handle), intent(in) :: e_h
-
-   character(len=MPI_MAX_PROCESSOR_NAME), intent(out) :: proc_name
-   integer(kind=i4),                      intent(out) :: proc_name_len
-
-   integer(kind=i4) :: ierr
-
-   character(len=40), parameter :: caller = "elsi_get_processor_name"
-
-   call MPI_Get_processor_name(proc_name,proc_name_len,ierr)
-
-   call elsi_check_mpi(e_h,"MPI_Get_processor_name",ierr,caller)
 
 end subroutine
 

@@ -10,7 +10,7 @@
 module ELSI_DATATYPE
 
    use, intrinsic :: ISO_C_BINDING
-   use ELSI_CONSTANTS,     only: FILE_NAME_LEN,SETTING_STR_LEN,UUID_LEN
+   use ELSI_CONSTANTS,     only: FILENAME_LEN,STR_LEN,UUID_LEN
    use ELSI_PRECISION,     only: r8,i4
    use F_PPEXSI_INTERFACE, only: f_ppexsi_options
    use MATRIXSWITCH,       only: matrix
@@ -23,7 +23,7 @@ module ELSI_DATATYPE
 
       logical                       :: handle_init ! Is this a valid handle?
       integer(kind=i4)              :: print_unit  ! Unit to print to
-      character(len=FILE_NAME_LEN)  :: file_name   ! Name of file
+      character(len=FILENAME_LEN)   :: file_name   ! Name of file
       integer(kind=i4)              :: file_format ! Human-readable, JSON, etc.?
       logical                       :: print_info  ! Are we actually printing?
       character(len=:), allocatable :: prefix      ! Prefix for each line
@@ -33,14 +33,14 @@ module ELSI_DATATYPE
 
    type, public :: elsi_timings_handle
 
-      integer(kind=i4)               :: size_timings ! Array dimension
-      integer(kind=i4)               :: n_timings
-      character(len=SETTING_STR_LEN) :: user_tag
-      character(len=SETTING_STR_LEN) :: set_label    ! Timing set identifier
+      integer(kind=i4)       :: size_timings ! Array dimension
+      integer(kind=i4)       :: n_timings
+      character(len=STR_LEN) :: user_tag
+      character(len=STR_LEN) :: set_label    ! Timing set identifier
 
-      real(kind=r8),                  allocatable :: times(:)
-      character(len=SETTING_STR_LEN), allocatable :: elsi_tags(:)
-      character(len=SETTING_STR_LEN), allocatable :: user_tags(:)
+      real(kind=r8),          allocatable :: times(:)
+      character(len=STR_LEN), allocatable :: elsi_tags(:)
+      character(len=STR_LEN), allocatable :: user_tags(:)
 
    end type
 
@@ -265,17 +265,16 @@ module ELSI_DATATYPE
       type(elsi_file_io_handle) :: timings_file
 
       ! Timer and timings
-      type(elsi_timings_handle)    :: timings
-      logical                      :: output_timings_file
-      integer(kind=i4)             :: solver_timings_unit
-      character(len=FILE_NAME_LEN) :: solver_timings_name
+      type(elsi_timings_handle)   :: timings
+      logical                     :: output_timings_file
+      integer(kind=i4)            :: solver_timings_unit
+      character(len=FILENAME_LEN) :: solver_timings_name
 
       ! Versioning
-      character(len=:), allocatable  :: processor_name
-      character(len=SETTING_STR_LEN) :: calling_code
-      character(len=SETTING_STR_LEN) :: calling_code_ver
-      character(len=UUID_LEN)        :: uuid ! UUID in RFC 4122 format
-      logical                        :: uuid_exists
+      character(len=STR_LEN)  :: calling_code
+      character(len=STR_LEN)  :: calling_code_ver
+      character(len=UUID_LEN) :: uuid ! UUID in RFC 4122 format
+      logical                 :: uuid_exists
 
    end type
 
