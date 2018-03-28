@@ -321,10 +321,6 @@ subroutine elsi_set_omm_default(e_h)
 
    character(len=40), parameter :: caller = "elsi_set_omm_default"
 
-   if(e_h%handle_ready) then
-      e_h%handle_changed = .true.
-   endif
-
    ! How many steps of ELPA to run before OMM
    e_h%omm_n_elpa = 6
 

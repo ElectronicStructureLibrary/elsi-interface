@@ -19,10 +19,8 @@ module ELSI_SOLVER
    use ELSI_DATATYPE,   only: elsi_handle,elsi_file_io_handle
    use ELSI_DMP,        only: elsi_solve_evp_dmp_real
    use ELSI_ELPA,       only: elsi_compute_occ_elpa,elsi_compute_dm_elpa_real,&
-                              elsi_normalize_dm_elpa_real,&
                               elsi_solve_evp_elpa_real,&
                               elsi_compute_dm_elpa_cmplx,&
-                              elsi_normalize_dm_elpa_cmplx,&
                               elsi_solve_evp_elpa_cmplx
    use ELSI_IO,         only: elsi_print_handle_summary,&
                               elsi_print_solver_settings,elsi_print_settings,&
@@ -516,13 +514,6 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
                  "evec_real_elpa",caller)
       endif
 
-      ! Save overlap
-      if(e_h%n_elsi_calls==1 .and. e_h%elpa_n_single > 0) then
-         call elsi_allocate(e_h,e_h%ovlp_real_copy,e_h%n_lrow,e_h%n_lcol,&
-                 "ovlp_real_copy",caller)
-         e_h%ovlp_real_copy = ovlp
-      endif
-
       call elsi_solve_evp_elpa_real(e_h,ham,ovlp,e_h%eval_elpa,&
               e_h%evec_real_elpa)
       call elsi_compute_occ_elpa(e_h,e_h%eval_elpa)
@@ -530,11 +521,6 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
       call elsi_get_energy(e_h,energy,ELPA_SOLVER)
 
       solver_used = ELPA_SOLVER
-
-      ! Normalize density matrix
-      if(e_h%n_elsi_calls <= e_h%elpa_n_single) then
-         call elsi_normalize_dm_elpa_real(e_h,e_h%ovlp_real_copy,dm)
-      endif
 
       e_h%mu_ready = .true.
       e_h%ts_ready = .true.
@@ -748,13 +734,6 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
                  "evec_cmplx_elpa",caller)
       endif
 
-      ! Save overlap
-      if(e_h%n_elsi_calls==1 .and. e_h%elpa_n_single > 0) then
-         call elsi_allocate(e_h,e_h%ovlp_cmplx_copy,e_h%n_lrow,e_h%n_lcol,&
-                 "ovlp_cmplx_copy",caller)
-         e_h%ovlp_cmplx_copy = ovlp
-      endif
-
       call elsi_solve_evp_elpa_cmplx(e_h,ham,ovlp,e_h%eval_elpa,&
               e_h%evec_cmplx_elpa)
       call elsi_compute_occ_elpa(e_h,e_h%eval_elpa)
@@ -762,11 +741,6 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
       call elsi_get_energy(e_h,energy,ELPA_SOLVER)
 
       solver_used = ELPA_SOLVER
-
-      ! Normalize density matrix
-      if(e_h%n_elsi_calls <= e_h%elpa_n_single) then
-         call elsi_normalize_dm_elpa_cmplx(e_h,e_h%ovlp_cmplx_copy,dm)
-      endif
 
       e_h%mu_ready = .true.
       e_h%ts_ready = .true.

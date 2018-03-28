@@ -45,12 +45,10 @@ module ELSI_ELPA
    public :: elsi_compute_occ_elpa
    public :: elsi_compute_dm_elpa_real
    public :: elsi_compute_edm_elpa_real
-   public :: elsi_normalize_dm_elpa_real
    public :: elsi_to_standard_evp_real
    public :: elsi_solve_evp_elpa_real
    public :: elsi_compute_dm_elpa_cmplx
    public :: elsi_compute_edm_elpa_cmplx
-   public :: elsi_normalize_dm_elpa_cmplx
    public :: elsi_to_standard_evp_cmplx
    public :: elsi_solve_evp_elpa_cmplx
 
@@ -320,52 +318,6 @@ subroutine elsi_compute_edm_elpa_real(e_h,eval,evec,edm,work)
    call elsi_say(e_h,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
    call elsi_say(e_h,info_str)
-
-end subroutine
-
-!>
-!! This routine normalizes the density matrix to the exact number of electrons.
-!!
-subroutine elsi_normalize_dm_elpa_real(e_h,ovlp,dm)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: e_h
-   real(kind=r8),     intent(inout) :: ovlp(e_h%n_lrow,e_h%n_lcol)
-   real(kind=r8),     intent(inout) :: dm(e_h%n_lrow,e_h%n_lcol)
-
-   real(kind=r8)      :: l_ne ! Local number of electrons
-   real(kind=r8)      :: g_ne ! Global number of electrons
-   real(kind=r8)      :: factor ! Normalization factor
-   complex(kind=r8)   :: tmp_cmplx
-   integer(kind=i4)   :: ierr
-   character(len=200) :: info_str
-
-   character(len=40), parameter :: caller = "elsi_normalize_dm_elpa_real"
-
-   call elsi_trace_mat_mat_real(e_h,dm,ovlp,g_ne)
-
-   if(e_h%n_spins*e_h%n_kpts > 1) then
-      if(e_h%myid == 0) then
-         l_ne = g_ne
-      else
-         l_ne = 0.0_r8
-      endif
-
-      call MPI_Allreduce(l_ne,g_ne,1,mpi_real8,mpi_sum,e_h%mpi_comm_all,ierr)
-
-      call elsi_check_mpi(e_h,"MPI_Allreduce",ierr,caller)
-   endif
-
-   ! Scale density matrix
-   if(abs(g_ne-e_h%n_electrons) > e_h%occ_tolerance) then
-      factor = e_h%n_electrons/g_ne
-
-      write(info_str,"('  | Scaled density matrix by factor',F12.8)") factor
-      call elsi_say(e_h,info_str)
-
-      dm = dm*factor
-   endif
 
 end subroutine
 
@@ -968,54 +920,6 @@ subroutine elsi_compute_edm_elpa_cmplx(e_h,eval,evec,edm,work)
 end subroutine
 
 !>
-!! This routine normalizes the density matrix to the exact number of electrons.
-!!
-subroutine elsi_normalize_dm_elpa_cmplx(e_h,ovlp,dm)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: e_h
-   complex(kind=r8),  intent(inout) :: ovlp(e_h%n_lrow,e_h%n_lcol)
-   complex(kind=r8),  intent(inout) :: dm(e_h%n_lrow,e_h%n_lcol)
-
-   real(kind=r8)      :: l_ne ! Local number of electrons
-   real(kind=r8)      :: g_ne ! Global number of electrons
-   real(kind=r8)      :: factor ! Normalization factor
-   complex(kind=r8)   :: tmp_cmplx
-   integer(kind=i4)   :: ierr
-   character(len=200) :: info_str
-
-   character(len=40), parameter :: caller = "elsi_normalize_dm_elpa_cmplx"
-
-   call elsi_trace_mat_mat_cmplx(e_h,dm,ovlp,tmp_cmplx)
-
-   g_ne = real(tmp_cmplx,kind=r8)
-
-   if(e_h%n_spins*e_h%n_kpts > 1) then
-      if(e_h%myid == 0) then
-         l_ne = g_ne
-      else
-         l_ne = 0.0_r8
-      endif
-
-      call MPI_Allreduce(l_ne,g_ne,1,mpi_real8,mpi_sum,e_h%mpi_comm_all,ierr)
-
-      call elsi_check_mpi(e_h,"MPI_Allreduce",ierr,caller)
-   endif
-
-   ! Scale density matrix
-   if(abs(g_ne-e_h%n_electrons) > e_h%occ_tolerance) then
-      factor = e_h%n_electrons/g_ne
-
-      write(info_str,"('  | Scaled density matrix by factor',F12.8)") factor
-      call elsi_say(e_h,info_str)
-
-      dm = dm*factor
-   endif
-
-end subroutine
-
-!>
 !! This routine transforms a generalized eigenproblem to standard and returns
 !! the Cholesky factor for later use.
 !!
@@ -1447,10 +1351,6 @@ subroutine elsi_set_elpa_default(e_h)
    type(elsi_handle), intent(inout) :: e_h !< Handle
 
    character(len=40), parameter :: caller = "elsi_set_elpa_default"
-
-   if(e_h%handle_ready) then
-      e_h%handle_changed = .true.
-   endif
 
    ! ELPA solver
    e_h%elpa_solver = 2

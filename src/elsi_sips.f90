@@ -37,7 +37,6 @@ contains
 
 !>
 !! This routine initializes SIPS.
-!! This does not change the state of the handle.
 !!
 subroutine elsi_init_sips(e_h)
 
@@ -310,10 +309,6 @@ subroutine elsi_set_sips_default(e_h)
    type(elsi_handle), intent(inout) :: e_h
 
    character(len=40), parameter :: caller = "elsi_set_sips_default"
-
-   if(e_h%handle_ready) then
-      e_h%handle_changed = .true.
-   endif
 
    ! How many steps of ELPA to run before SIPS
    e_h%sips_n_elpa = 0

@@ -43,12 +43,10 @@ module ELSI_ELPA
    public :: elsi_compute_occ_elpa
    public :: elsi_compute_dm_elpa_real
    public :: elsi_compute_edm_elpa_real
-   public :: elsi_normalize_dm_elpa_real
    public :: elsi_to_standard_evp_real
    public :: elsi_solve_evp_elpa_real
    public :: elsi_compute_dm_elpa_cmplx
    public :: elsi_compute_edm_elpa_cmplx
-   public :: elsi_normalize_dm_elpa_cmplx
    public :: elsi_to_standard_evp_cmplx
    public :: elsi_solve_evp_elpa_cmplx
 
@@ -317,26 +315,6 @@ subroutine elsi_compute_edm_elpa_real(e_h,eval,evec,edm,work)
    call elsi_say(e_h,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
    call elsi_say(e_h,info_str)
-
-end subroutine
-
-!>
-!! This routine normalizes the density matrix to the exact number of electrons.
-!!
-subroutine elsi_normalize_dm_elpa_real(e_h,ovlp,dm)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: e_h
-   real(kind=r8),     intent(inout) :: ovlp(e_h%n_lrow,e_h%n_lcol)
-   real(kind=r8),     intent(inout) :: dm(e_h%n_lrow,e_h%n_lcol)
-
-   character(len=40), parameter :: caller = "elsi_normalize_dm_elpa_real"
-
-   ovlp = 0.0_r8
-   dm   = 0.0_r8
-
-   call elsi_stop(" A stub routine was called.",e_h,caller)
 
 end subroutine
 
@@ -882,26 +860,6 @@ subroutine elsi_compute_edm_elpa_cmplx(e_h,eval,evec,edm,work)
 end subroutine
 
 !>
-!! This routine normalizes the density matrix to the exact number of electrons.
-!!
-subroutine elsi_normalize_dm_elpa_cmplx(e_h,ovlp,dm)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: e_h
-   complex(kind=r8),  intent(inout) :: ovlp(e_h%n_lrow,e_h%n_lcol)
-   complex(kind=r8),  intent(inout) :: dm(e_h%n_lrow,e_h%n_lcol)
-
-   character(len=40), parameter :: caller = "elsi_normalize_dm_elpa_cmplx"
-
-   ovlp = (0.0_r8,0.0_r8)
-   dm   = (0.0_r8,0.0_r8)
-
-   call elsi_stop(" A stub routine was called.",e_h,caller)
-
-end subroutine
-
-!>
 !! This routine transforms a generalized eigenproblem to standard and returns
 !! the Cholesky factor for later use.
 !!
@@ -1276,10 +1234,6 @@ subroutine elsi_set_elpa_default(e_h)
    type(elsi_handle), intent(inout) :: e_h
 
    character(len=40), parameter :: caller = "elsi_set_elpa_default"
-
-   if(e_h%handle_ready) then
-      e_h%handle_changed = .true.
-   endif
 
    ! ELPA solver
    e_h%elpa_solver = 2

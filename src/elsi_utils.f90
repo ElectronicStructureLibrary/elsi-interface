@@ -58,7 +58,6 @@ subroutine elsi_reset_handle(e_h)
 
    e_h%handle_init            = .false.
    e_h%handle_ready           = .false.
-   e_h%handle_changed         = .false.
    e_h%solver                 = UNSET
    e_h%matrix_format          = UNSET
    e_h%uplo                   = FULL_MAT
@@ -422,8 +421,6 @@ subroutine elsi_ready_handle(e_h,caller)
          ! And broadcast the UUID on task 0 to all other tasks
          call elsi_sync_uuid(e_h)
       endif
-
-      e_h%handle_changed = .false.
    endif
 
 end subroutine
