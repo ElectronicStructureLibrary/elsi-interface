@@ -53,9 +53,9 @@ module ELSI_SOLVER
    use ELSI_SETUP,      only: elsi_set_blacs
    use ELSI_SIPS,       only: elsi_init_sips,elsi_solve_evp_sips_real,&
                               elsi_compute_dm_sips_real
-   use ELSI_TIMINGS,    only: elsi_get_time,elsi_process_timing
-   use ELSI_UTILS,      only: elsi_check,elsi_check_handle,elsi_ready_handle,&
+   use ELSI_TIMINGS,    only: elsi_get_time,elsi_process_timing,&
                               elsi_get_datetime_rfc3339
+   use ELSI_UTILS,      only: elsi_check,elsi_check_handle,elsi_ready_handle
    use MATRIXSWITCH,    only: m_allocate
 
    implicit none

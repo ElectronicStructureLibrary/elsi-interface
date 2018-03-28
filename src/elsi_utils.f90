@@ -39,7 +39,6 @@ module ELSI_UTILS
    public :: elsi_trace_mat_cmplx
    public :: elsi_trace_mat_mat_real
    public :: elsi_trace_mat_mat_cmplx
-   public :: elsi_get_datetime_rfc3339
 
 contains
 
@@ -709,120 +708,7 @@ subroutine elsi_get_solver_tag(e_h,data_type,tag)
 end subroutine
 
 !>
-!! This routine returns the current date and time, formatted as an RFC3339
-!! string with time zone offset.
-!!
-subroutine elsi_get_datetime_rfc3339(dt)
-
-   implicit none
-
-   character(len=TIME_LEN), intent(out) :: dt
-
-   integer(kind=i4) :: datetime(8)
-   integer(kind=i4) :: tmp_int
-   character(len=4) :: year
-   character(len=2) :: month
-   character(len=2) :: day
-   character(len=2) :: hour
-   character(len=2) :: minute
-   character(len=2) :: second
-   character(len=3) :: millisecond
-   character(len=1) :: timezone_sign
-   character(len=2) :: timezone_hour
-   character(len=2) :: timezone_min
-
-   character(len=40), parameter :: caller = "elsi_get_datetime_rfc3339"
-
-   call date_and_time(values=datetime)
-
-   ! Get year
-   if(datetime(1) < 10) then
-      write(year,'(A3,I1)') "000",datetime(1)
-   elseif(datetime(1) < 100) then
-      write(year,'(A2,I2)') "00",datetime(1)
-   elseif(datetime(1) < 1000) then
-      write(year,'(A1,I3)') "0",datetime(1)
-   else
-      write(year,'(I4)') datetime(1)
-   endif
-
-   ! Get month
-   if(datetime(2) < 10) then
-      write(month,'(A1,I1)') "0",datetime(2)
-   else
-      write(month,'(I2)') datetime(2)
-   endif
-
-   ! Get day
-   if(datetime(3) < 10) then
-      write(day,'(A1,I1)') "0",datetime(3)
-   else
-      write(day,'(I2)') datetime(3)
-   endif
-
-   ! Get hour
-   if(datetime(5) < 10) then
-      write(hour,'(A1,I1)') "0",datetime(5)
-   else
-      write(hour,'(I2)') datetime(5)
-   endif
-
-   ! Get minute
-   if(datetime(6) < 10) then
-      write(minute,'(A1,I1)') "0",datetime(6)
-   else
-      write(minute,'(I2)') datetime(6)
-   endif
-
-   ! Get second
-   if(datetime(7) < 10) then
-      write(second,'(A1,I1)') "0",datetime(7)
-   else
-      write(second,'(I2)') datetime(7)
-   endif
-
-   ! Get millisecond
-   if(datetime(8) < 10) then
-      write(millisecond,'(A2,I1)') "00",datetime(8)
-   elseif(datetime(8) < 100) then
-      write(millisecond,'(A1,I2)') "0",datetime(8)
-   else
-      write(millisecond,'(I3)') datetime(8)
-   endif
-
-   ! Get time zone sign (ahead or behind UTC)
-   if(datetime(4) < 0) then
-      timezone_sign = "-"
-      datetime(4)   = -1*datetime(4)
-   else
-      timezone_sign = "+"
-   endif
-
-   ! Get timezone minutes
-   tmp_int = mod(datetime(4),60)
-   if(tmp_int < 10) then
-      write(timezone_min,'(A1,I1)') "0",tmp_int
-   else
-      write(timezone_min,'(I2)') tmp_int
-   endif
-
-   ! Get timezone hours
-   tmp_int = datetime(4)/60
-   if(tmp_int < 10) then
-      write(timezone_hour,'(A1,I1)') "0",tmp_int
-   else
-      write(timezone_hour,'(I2)') tmp_int
-   endif
-
-   write(dt,'(A4,A1,A2,A1,A2,A1,A2,A1,A2,A1,A2,A1,A3,A1,A2,A1,A2)')&
-      year,"-",month,"-",day,"T",hour,":",minute,":",second,".",millisecond,&
-      timezone_sign,timezone_hour,":",timezone_min
-
-end subroutine
-
-!>
-!! Generate a UUID (unique identifier) in RFC 4122 format. The random seed must
-!! have been set.
+!! Generate a UUID (unique identifier) in RFC 4122 format.
 !! (Taken from FHI-aims with permission of copyright holders)
 !!
 subroutine elsi_gen_uuid(e_h)
@@ -911,8 +797,9 @@ subroutine elsi_init_random_seed()
 
    integer(kind=i4), allocatable :: seed(:)
 
-   call random_seed(size=n)
+   character(len=40), parameter :: caller = "elsi_init_random_seed"
 
+   call random_seed(size=n)
    call date_and_time(values=dt)
 
    t = (dt(1)-1970)*365*24*60*60*1000+dt(2)*31*24*60*60*1000+&

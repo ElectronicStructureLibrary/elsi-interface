@@ -196,7 +196,7 @@ subroutine elsi_reset_io_handle(io_h)
 end subroutine
 
 !>
-!! This routine prints the state of the handle
+!! This routine prints the state of the handle.
 !!
 subroutine elsi_print_handle_summary(e_h,io_h_in)
 
@@ -332,7 +332,7 @@ subroutine elsi_print_handle_summary(e_h,io_h_in)
 end subroutine
 
 !>
-!! This routine prints versioning information
+!! This routine prints versioning information.
 !!
 subroutine elsi_print_versioning(e_h,io_h_in)
 
@@ -980,7 +980,7 @@ subroutine elsi_print_csc_settings(e_h,io_h_in)
 end subroutine
 
 !>
-!! This module procedure prints out ELSI settings in a systematic fashion.
+!! This routine prints out an integer-type setting.
 !!
 subroutine elsi_say_setting_i4(e_h,label,setting,io_h_in)
 
@@ -1045,6 +1045,9 @@ subroutine elsi_say_setting_i4(e_h,label,setting,io_h_in)
 
 end subroutine
 
+!>
+!! This routine prints out a real-type setting.
+!!
 subroutine elsi_say_setting_r8(e_h,label,setting,io_h_in)
 
    implicit none
@@ -1108,6 +1111,9 @@ subroutine elsi_say_setting_r8(e_h,label,setting,io_h_in)
 
 end subroutine
 
+!>
+!! This routine prints out a logical-type setting.
+!!
 subroutine elsi_say_setting_log(e_h,label,setting,io_h_in)
 
    implicit none
@@ -1186,6 +1192,9 @@ subroutine elsi_say_setting_log(e_h,label,setting,io_h_in)
 
 end subroutine
 
+!>
+!! This routine prints out a string-type setting.
+!!
 subroutine elsi_say_setting_str(e_h,label,setting,io_h_in)
 
    implicit none
@@ -1248,7 +1257,7 @@ end subroutine
 
 !>
 !! This routine generates a new (dynamic) string with another string appended to
-!! the end. Whitespace is preserved deliberately.
+!! the end.
 !!
 subroutine elsi_append_string(l_string,r_string)
 
@@ -1291,6 +1300,8 @@ subroutine elsi_truncate_string(l_string,n_chars_to_remove)
    integer(kind=i4) :: size_new_string
 
    character(len=:), allocatable :: tmp_string
+
+   character(len=40), parameter :: caller = "elsi_truncate_string"
 
    ! Find size of new character array
    if(allocated(l_string)) then
@@ -1343,7 +1354,7 @@ subroutine elsi_open_json_file(e_h,print_unit,file_name,opening_bracket,io_h)
 end subroutine
 
 !>
-!! This routine closes the JSON file and tears down the file IO handle
+!! This routine closes the JSON file and tears down the file IO handle.
 !!
 subroutine elsi_close_json_file(e_h,closing_bracket,io_h)
 
@@ -1373,7 +1384,7 @@ subroutine elsi_close_json_file(e_h,closing_bracket,io_h)
 end subroutine
 
 !>
-!! This routine starts a new record in the JSON file
+!! This routine starts a new record in the JSON file.
 !!
 subroutine elsi_start_json_record(e_h,comma_before,io_h)
 
@@ -1401,7 +1412,7 @@ subroutine elsi_start_json_record(e_h,comma_before,io_h)
 end subroutine
 
 !>
-!! This routine finishes the current record in the JSON file
+!! This routine finishes the current record in the JSON file.
 !!
 subroutine elsi_finish_json_record(e_h,comma_after,io_h)
 
