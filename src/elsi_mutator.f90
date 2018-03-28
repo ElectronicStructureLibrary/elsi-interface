@@ -50,7 +50,6 @@ module ELSI_MUTATOR
    public :: elsi_set_uplo
    public :: elsi_set_csc_blk
    public :: elsi_set_elpa_solver
-   public :: elsi_set_elpa_n_single
    public :: elsi_set_omm_flavor
    public :: elsi_set_omm_n_elpa
    public :: elsi_set_omm_tol
@@ -89,7 +88,6 @@ module ELSI_MUTATOR
    public :: elsi_set_calling_code
    public :: elsi_get_pexsi_mu_min
    public :: elsi_get_pexsi_mu_max
-   public :: elsi_get_ovlp_sing
    public :: elsi_get_n_sing
    public :: elsi_get_mu
    public :: elsi_get_entropy
@@ -320,24 +318,6 @@ subroutine elsi_set_elpa_solver(e_h,elpa_solver)
    endif
 
    e_h%elpa_solver = elpa_solver
-
-end subroutine
-
-!>
-!! This routine sets the number of steps using single precision ELPA.
-!!
-subroutine elsi_set_elpa_n_single(e_h,n_single)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: e_h      !< Handle
-   integer(kind=i4),  intent(in)    :: n_single !< Single precision steps
-
-   character(len=40), parameter :: caller = "elsi_set_elpa_n_single"
-
-   call elsi_check_handle(e_h,caller)
-
-   e_h%elpa_n_single = n_single
 
 end subroutine
 
@@ -1086,28 +1066,6 @@ subroutine elsi_get_pexsi_mu_max(e_h,mu_max)
    call elsi_check_handle(e_h,caller)
 
    mu_max = e_h%pexsi_options%muMax0
-
-end subroutine
-
-!>
-!! This routine gets the result of the singularity check of the overlap matrix.
-!!
-subroutine elsi_get_ovlp_sing(e_h,ovlp_sing)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: e_h       !< Handle
-   integer(kind=i4),  intent(out)   :: ovlp_sing !< Is overlap singular?
-
-   character(len=40), parameter :: caller = "elsi_get_ovlp_sing"
-
-   call elsi_check_handle(e_h,caller)
-
-   if(e_h%ovlp_is_sing) then
-      ovlp_sing = 1
-   else
-      ovlp_sing = 0
-   endif
 
 end subroutine
 

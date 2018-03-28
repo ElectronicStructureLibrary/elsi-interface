@@ -128,9 +128,6 @@ void c_elsi_set_uplo(elsi_handle handle_c,
 void c_elsi_set_elpa_solver(elsi_handle handle_c,
                             int elpa_solver);
 
-void c_elsi_set_elpa_n_single(elsi_handle handle_c,
-                              int n_single);
-
 void c_elsi_set_omm_flavor(elsi_handle handle_c,
                            int omm_flavor);
 
@@ -227,9 +224,6 @@ void c_elsi_get_pexsi_mu_min(elsi_handle handle_c,
 
 void c_elsi_get_pexsi_mu_max(elsi_handle handle_c,
                              double *mu_max);
-
-void c_elsi_get_ovlp_sing(elsi_handle handle_c,
-                          int *ovlp_sing);
 
 void c_elsi_get_n_sing(elsi_handle handle_c,
                        int *n_sing);

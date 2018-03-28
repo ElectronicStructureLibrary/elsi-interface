@@ -568,22 +568,6 @@ subroutine elsi_set_elpa_solver_c_wrapper(handle_c,elpa_solver)&
 
 end subroutine
 
-subroutine elsi_set_elpa_n_single_c_wrapper(handle_c,n_single)&
-   bind(C,name="c_elsi_set_elpa_n_single")
-
-   implicit none
-
-   type(c_ptr),         value, intent(in) :: handle_c
-   integer(kind=c_int), value, intent(in) :: n_single
-
-   type(elsi_handle), pointer :: handle_f
-
-   call c_f_pointer(handle_c,handle_f)
-
-   call elsi_set_elpa_n_single(handle_f,n_single)
-
-end subroutine
-
 subroutine elsi_set_omm_flavor_c_wrapper(handle_c,omm_flavor)&
    bind(C,name="c_elsi_set_omm_flavor")
 
@@ -1094,22 +1078,6 @@ subroutine elsi_get_pexsi_mu_max_c_wrapper(handle_c,mu_max)&
    call c_f_pointer(handle_c,handle_f)
 
    call elsi_get_pexsi_mu_max(handle_f,mu_max)
-
-end subroutine
-
-subroutine elsi_get_ovlp_sing_c_wrapper(handle_c,ovlp_sing)&
-   bind(C,name="c_elsi_get_ovlp_sing")
-
-   implicit none
-
-   type(c_ptr), value,  intent(in)  :: handle_c
-   integer(kind=c_int), intent(out) :: ovlp_sing
-
-   type(elsi_handle), pointer :: handle_f
-
-   call c_f_pointer(handle_c,handle_f)
-
-   call elsi_get_ovlp_sing(handle_f,ovlp_sing)
 
 end subroutine
 
