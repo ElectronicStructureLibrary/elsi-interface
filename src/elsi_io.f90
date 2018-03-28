@@ -349,15 +349,13 @@ subroutine elsi_print_versioning(e_h,io_h_in)
    character(len=8)     :: COMMIT_ABBREV
    character(len=40)    :: COMMIT_MSG_ABBREV
    character(len=40)    :: HOSTNAME
-   character(len=10)    :: LOCAL_DATE
-   character(len=8)     :: LOCAL_TIME
    character(len=20)    :: DATETIME
    character(len=200)   :: info_str
 
    character(len=40), parameter :: caller = "elsi_print_versioning"
 
    call elsi_version_info(DATE_STAMP,COMMIT,COMMIT_ABBREV,COMMIT_MODIFIED,&
-           COMMIT_MSG_ABBREV,HOSTNAME,LOCAL_DATE,LOCAL_TIME,DATETIME)
+           COMMIT_MSG_ABBREV,HOSTNAME,DATETIME)
 
    if(present(io_h_in)) then
       io_h = io_h_in
