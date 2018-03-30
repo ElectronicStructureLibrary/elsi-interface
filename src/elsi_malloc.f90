@@ -84,7 +84,7 @@ subroutine elsi_allocate_real4_1d(e_h,array,dim1,arrayname,caller)
 
    if(error > 0) then
       write(info_str,"(2A)") " Error in allocating ",trim(arrayname)
-      call elsi_stop(info_str,e_h,caller)
+      call elsi_stop(e_h,info_str,caller)
    endif
 
    array = 0.0_r4
@@ -120,7 +120,7 @@ subroutine elsi_allocate_real8_1d(e_h,array,dim1,arrayname,caller)
 
    if(error > 0) then
       write(info_str,"(2A)") " Error in allocating ",trim(arrayname)
-      call elsi_stop(info_str,e_h,caller)
+      call elsi_stop(e_h,info_str,caller)
    endif
 
    array = 0.0_r8
@@ -156,7 +156,7 @@ subroutine elsi_allocate_integer4_1d(e_h,array,dim1,arrayname,caller)
 
    if(error > 0) then
       write(info_str,"(2A)") " Error in allocating ",trim(arrayname)
-      call elsi_stop(info_str,e_h,caller)
+      call elsi_stop(e_h,info_str,caller)
    endif
 
    array = 0
@@ -192,7 +192,7 @@ subroutine elsi_allocate_integer8_1d(e_h,array,dim1,arrayname,caller)
 
    if(error > 0) then
       write(info_str,"(2A)") " Error in allocating ",trim(arrayname)
-      call elsi_stop(info_str,e_h,caller)
+      call elsi_stop(e_h,info_str,caller)
    endif
 
    array = 0
@@ -228,7 +228,7 @@ subroutine elsi_allocate_complex16_1d(e_h,array,dim1,arrayname,caller)
 
    if(error > 0) then
       write(info_str,"(2A)") " Error in allocating ",trim(arrayname)
-      call elsi_stop(info_str,e_h,caller)
+      call elsi_stop(e_h,info_str,caller)
    endif
 
    array = (0.0_r8,0.0_r8)
@@ -265,7 +265,7 @@ subroutine elsi_allocate_real4_2d(e_h,array,dim1,dim2,arrayname,caller)
 
    if(error > 0) then
       write(info_str,"(2A)") " Error in allocating ",trim(arrayname)
-      call elsi_stop(info_str,e_h,caller)
+      call elsi_stop(e_h,info_str,caller)
    endif
 
    array = 0.0_r4
@@ -302,7 +302,7 @@ subroutine elsi_allocate_real8_2d(e_h,array,dim1,dim2,arrayname,caller)
 
    if(error > 0) then
       write(info_str,"(2A)") " Error in allocating ",trim(arrayname)
-      call elsi_stop(info_str,e_h,caller)
+      call elsi_stop(e_h,info_str,caller)
    endif
 
    array = 0.0_r8
@@ -339,7 +339,7 @@ subroutine elsi_allocate_integer4_2d(e_h,array,dim1,dim2,arrayname,caller)
 
    if(error > 0) then
       write(info_str,"(2A)") " Error in allocating ",trim(arrayname)
-      call elsi_stop(info_str,e_h,caller)
+      call elsi_stop(e_h,info_str,caller)
    endif
 
    array = 0
@@ -376,7 +376,7 @@ subroutine elsi_allocate_complex8_2d(e_h,array,dim1,dim2,arrayname,caller)
 
    if(error > 0) then
       write(info_str,"(2A)") " Error in allocating ",trim(arrayname)
-      call elsi_stop(info_str,e_h,caller)
+      call elsi_stop(e_h,info_str,caller)
    endif
 
    array = (0.0_r4,0.0_r4)
@@ -413,7 +413,7 @@ subroutine elsi_allocate_complex16_2d(e_h,array,dim1,dim2,arrayname,caller)
 
    if(error > 0) then
       write(info_str,"(2A)") " Error in allocating ",trim(arrayname)
-      call elsi_stop(info_str,e_h,caller)
+      call elsi_stop(e_h,info_str,caller)
    endif
 
    array = (0.0_r8,0.0_r8)
@@ -451,7 +451,7 @@ subroutine elsi_allocate_real8_3d(e_h,array,dim1,dim2,dim3,arrayname,caller)
 
    if(error > 0) then
       write(info_str,"(2A)") " Error in allocating ",trim(arrayname)
-      call elsi_stop(info_str,e_h,caller)
+      call elsi_stop(e_h,info_str,caller)
    endif
 
    array = 0.0_r8
@@ -489,7 +489,7 @@ subroutine elsi_allocate_integer4_3d(e_h,array,dim1,dim2,dim3,arrayname,caller)
 
    if(error > 0) then
       write(info_str,"(2A)") " Error in allocating ",trim(arrayname)
-      call elsi_stop(info_str,e_h,caller)
+      call elsi_stop(e_h,info_str,caller)
    endif
 
    array = 0
@@ -527,7 +527,7 @@ subroutine elsi_allocate_complex16_3d(e_h,array,dim1,dim2,dim3,arrayname,caller)
 
    if(error > 0) then
       write(info_str,"(2A)") " Error in allocating ",trim(arrayname)
-      call elsi_stop(info_str,e_h,caller)
+      call elsi_stop(e_h,info_str,caller)
    endif
 
    array = (0.0_r8,0.0_r8)

@@ -382,8 +382,7 @@ subroutine elsi_final_print(e_h)
    character(len=40), parameter :: caller = "elsi_final_print"
 
    if(e_h%stdio%file_format == JSON) then
-      call elsi_stop(" elsi_final_print only supports HUMAN format.",e_h,&
-              caller)
+      call elsi_stop(e_h,"elsi_final_print only supports HUMAN format.",caller)
    endif
 
    call elsi_say(e_h,"  |--------------------------------------------------------------------------",e_h%stdio)
@@ -581,7 +580,7 @@ subroutine elsi_cleanup(e_h)
          close(e_h%timings_file%print_unit)
          call elsi_reset_io_handle(e_h%timings_file)
       case default
-         call elsi_stop(" Unsupported output format.",e_h,caller)
+         call elsi_stop(e_h,"Unsupported output format.",caller)
       end select
    endif
 

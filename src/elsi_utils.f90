@@ -125,7 +125,6 @@ subroutine elsi_reset_handle(e_h)
    e_h%edm_ready_real         = .false.
    e_h%edm_ready_cmplx        = .false.
    e_h%elpa_solver            = UNSET
-   e_h%elpa_n_single          = UNSET
    e_h%elpa_output            = .false.
    e_h%elpa_started           = .false.
    e_h%omm_n_states           = UNSET
@@ -187,26 +186,26 @@ subroutine elsi_check(e_h,caller)
 
    ! General check of solver, parallel mode, matrix format
    if(e_h%solver < 0 .or. e_h%solver >= N_SOLVERS) then
-      call elsi_stop(" Unsupported solver.",e_h,caller)
+      call elsi_stop(e_h,"Unsupported solver.",caller)
    endif
 
    if(e_h%parallel_mode < 0 .or. e_h%parallel_mode >= N_PARALLEL_MODES) then
-      call elsi_stop(" Unsupported parallel mode.",e_h,caller)
+      call elsi_stop(e_h,"Unsupported parallel mode.",caller)
    endif
 
    if(e_h%matrix_format < 0 .or. e_h%matrix_format >= N_MATRIX_FORMATS) then
-      call elsi_stop(" Unsupported matirx format.",e_h,caller)
+      call elsi_stop(e_h,"Unsupported matirx format.",caller)
    endif
 
    if(e_h%uplo /= FULL_MAT) then
-      call elsi_stop(" Triangular matrix input not yet supported.",e_h,caller)
+      call elsi_stop(e_h,"Triangular matrix input not yet supported.",caller)
    endif
 
    ! Spin and k-point
    if(e_h%n_spins*e_h%n_kpts > 1) then
       if(.not. e_h%global_mpi_ready) then
-         call elsi_stop(" Spin/k-point calculations require a global MPI"//&
-                 " communicator.",e_h,caller)
+         call elsi_stop(e_h,"Spin/k-point calculations require a global MPI"//&
+                 " communicator.",caller)
       endif
    endif
 
@@ -232,112 +231,110 @@ subroutine elsi_check(e_h,caller)
 
    if(e_h%parallel_mode == MULTI_PROC) then
       if(.not. e_h%mpi_ready) then
-         call elsi_stop(" MULTI_PROC parallel mode requires MPI.",e_h,caller)
+         call elsi_stop(e_h,"MULTI_PROC parallel mode requires MPI.",caller)
       endif
    endif
 
    if(e_h%matrix_format == BLACS_DENSE) then
       if(.not. e_h%blacs_ready .and. e_h%parallel_mode /= SINGLE_PROC) then
-         call elsi_stop(" BLACS not properly set up.",e_h,caller)
+         call elsi_stop(e_h,"BLACS not properly set up.",caller)
       endif
    elseif(e_h%matrix_format == SIESTA_CSC) then
       if(e_h%blk_sp2 == UNSET .or. .not. e_h%siesta_csc_ready) then
-         call elsi_stop(" SIESTA_CSC format not properly set up.",e_h,caller)
+         call elsi_stop(e_h,"SIESTA_CSC format not properly set up.",caller)
       endif
    elseif(e_h%matrix_format == PEXSI_CSC) then
       if(.not. e_h%pexsi_csc_ready) then
-         call elsi_stop(" PEXSI_CSC format not properly set up.",e_h,caller)
+         call elsi_stop(e_h,"PEXSI_CSC format not properly set up.",caller)
       endif
    endif
 
    ! Specific check for each solver
    select case(e_h%solver)
    case(AUTO)
-      call elsi_stop(" Solver auto-selection not yet available.",e_h,caller)
+      call elsi_stop(e_h,"Solver auto-selection not yet available.",caller)
    case(ELPA_SOLVER)
       ! Nothing
    case(OMM_SOLVER)
       if(e_h%parallel_mode /= MULTI_PROC) then
-         call elsi_stop(" libOMM solver requires MULTI_PROC parallel mode.",&
-                 e_h,caller)
+         call elsi_stop(e_h,"libOMM solver requires MULTI_PROC parallel mode.",&
+                 caller)
       endif
    case(PEXSI_SOLVER)
       if(e_h%parallel_mode /= MULTI_PROC) then
-         call elsi_stop(" PEXSI solver requires MULTI_PROC parallel mode.",e_h,&
+         call elsi_stop(e_h,"PEXSI solver requires MULTI_PROC parallel mode.",&
                  caller)
       endif
 
       if(e_h%n_basis < e_h%pexsi_np_per_pole) then
-         call elsi_stop(" For this number of MPI tasks, the matrix size is"//&
-                 " too small to use PEXSI.",e_h,caller)
+         call elsi_stop(e_h,"For this number of MPI tasks, the matrix size"//&
+                 " is too small to use PEXSI.",caller)
       endif
 
       if(e_h%pexsi_np_per_pole == UNSET) then
          if(mod(e_h%n_procs,e_h%pexsi_options%numPole*&
             e_h%pexsi_options%nPoints) /= 0) then
-            call elsi_stop(" To use PEXSI, the total number of MPI tasks"//&
+            call elsi_stop(e_h,"To use PEXSI, the total number of MPI tasks"//&
                     " must be a multiple of the number of MPI tasks per pole"//&
-                    " times the number of mu points.",e_h,caller)
+                    " times the number of mu points.",caller)
          endif
       else
          if(mod(e_h%n_procs,e_h%pexsi_np_per_pole*&
             e_h%pexsi_options%nPoints) /= 0) then
-            call elsi_stop(" To use PEXSI, the total number of MPI tasks"//&
+            call elsi_stop(e_h,"To use PEXSI, the total number of MPI tasks"//&
                     " must be a multiple of the number of MPI tasks per pole"//&
-                    " times the number of mu points.",e_h,caller)
+                    " times the number of mu points.",caller)
          endif
 
          if(e_h%pexsi_np_per_pole*e_h%pexsi_options%numPole*&
             e_h%pexsi_options%nPoints < e_h%n_procs) then
-            call elsi_stop(" Specified number of MPI tasks per pole is too"//&
-                    " small for the total number of MPI tasks.",e_h,caller)
+            call elsi_stop(e_h,"Specified number of MPI tasks per pole is"//&
+                    " too small for the total number of MPI tasks.",caller)
          endif
       endif
    case(CHESS_SOLVER)
-      call elsi_stop(" CheSS solver not yet available.",e_h,caller)
+      call elsi_stop(e_h,"CheSS solver not yet available.",caller)
    case(SIPS_SOLVER)
       if(e_h%n_basis < e_h%n_procs) then
-         call elsi_stop(" For this number of MPI tasks, the matrix size is"//&
-                 " too small to use SIPS.",e_h,caller)
+         call elsi_stop(e_h,"For this number of MPI tasks, the matrix size"//&
+                 " is too small to use SIPS.",caller)
       endif
 
       if(e_h%parallel_mode /= MULTI_PROC) then
-         call elsi_stop(" SIPS solver requires MULTI_PROC parallel mode.",e_h,&
+         call elsi_stop(e_h,"SIPS solver requires MULTI_PROC parallel mode.",&
                  caller)
       endif
 
       if(e_h%n_spins > 1) then
-         call elsi_stop(" Spin-polarized case not yet supported with SIPS.",&
-                 e_h,caller)
+         call elsi_stop(e_h,"Spin-polarized case not yet supported with SIPS.",&
+                 caller)
       endif
 
       if(e_h%n_kpts > 1) then
-         call elsi_stop(" k-points not yet supported with SIPS.",e_h,caller)
+         call elsi_stop(e_h,"k-points not yet supported with SIPS.",caller)
       endif
    case(DMP_SOLVER)
       if(e_h%parallel_mode /= MULTI_PROC) then
-         call elsi_stop(" DMP solver requires MULTI_PROC parallel mode.",e_h,&
+         call elsi_stop(e_h,"DMP solver requires MULTI_PROC parallel mode.",&
                  caller)
       endif
 
       if(e_h%n_spins > 1) then
-         call elsi_stop(" Spin-polarized case not yet supported with DMP.",e_h,&
+         call elsi_stop(e_h,"Spin-polarized case not yet supported with DMP.",&
                  caller)
       endif
 
       if(e_h%n_kpts > 1) then
-         call elsi_stop(" k-points not yet supported with DMP.",e_h,caller)
+         call elsi_stop(e_h,"k-points not yet supported with DMP.",caller)
       endif
    case default
-      call elsi_stop(" Unsupported solver.",e_h,caller)
+      call elsi_stop(e_h,"Unsupported solver.",caller)
    end select
 
 end subroutine
 
 !>
-!! This routine checks whether a handle has been properly initialized. This is
-!! called at the very beginning of all public-facing subroutines except the one
-!! that initializes a handle, elsi_init.
+!! This routine checks whether a handle has been properly initialized.
 !!
 subroutine elsi_check_handle(e_h,caller)
 
@@ -347,7 +344,7 @@ subroutine elsi_check_handle(e_h,caller)
    character(len=*),  intent(in) :: caller
 
    if(.not. e_h%handle_init) then
-      call elsi_stop(" Invalid handle! Not initialized.",e_h,caller)
+      call elsi_stop(e_h,"Invalid handle! Not initialized.",caller)
    endif
 
 end subroutine
@@ -668,7 +665,7 @@ subroutine elsi_get_solver_tag(e_h,data_type,tag)
             elseif(e_h%elpa_solver == 2) then
                tag = "ELPA_2STAGE_REAL"
             else
-               call elsi_stop(" Unsupported ELPA flavor.",e_h,caller)
+               call elsi_stop(e_h,"Unsupported ELPA flavor.",caller)
             endif
          endif
       case(OMM_SOLVER)
@@ -680,7 +677,7 @@ subroutine elsi_get_solver_tag(e_h,data_type,tag)
       case(DMP_SOLVER)
          tag = "DMP_REAL"
       case default
-         call elsi_stop(" Unsupported solver.",e_h,caller)
+         call elsi_stop(e_h,"Unsupported solver.",caller)
       end select
    elseif(data_type == CMPLX_DATA) then
       select case(e_h%solver)
@@ -693,7 +690,7 @@ subroutine elsi_get_solver_tag(e_h,data_type,tag)
             elseif(e_h%elpa_solver == 2) then
                tag = "ELPA_2STAGE_CMPLX"
             else
-               call elsi_stop(" Unsupported ELPA flavor.",e_h,caller)
+               call elsi_stop(e_h,"Unsupported ELPA flavor.",caller)
             endif
          endif
       case(OMM_SOLVER)
@@ -705,10 +702,10 @@ subroutine elsi_get_solver_tag(e_h,data_type,tag)
       case(DMP_SOLVER)
          tag = "DMP_CMPLX"
       case default
-         call elsi_stop(" Unsupported solver.",e_h,caller)
+         call elsi_stop(e_h,"Unsupported solver.",caller)
       end select
    else
-      call elsi_stop(" Unsupported data type.",e_h,caller)
+      call elsi_stop(e_h,"Unsupported data type.",caller)
    endif
 
 end subroutine

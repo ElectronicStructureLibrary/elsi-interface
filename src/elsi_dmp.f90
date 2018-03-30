@@ -398,7 +398,7 @@ subroutine elsi_solve_evp_dmp_real(e_h,ham,ovlp,dm)
       write(info_str,"('  | Number of electrons  :',F10.3)") e_h%dmp_ne
       call elsi_say(e_h,info_str,e_h%stdio)
    else
-      call elsi_stop(" Density matrix purification failed to converge.",e_h,&
+      call elsi_stop(e_h,"Density matrix purification failed to converge.",&
               caller)
    endif
 

@@ -220,7 +220,7 @@ subroutine elsi_solve_evp_lapack_real(e_h,ham,ovlp,eval,evec)
                 mpi_comm_self,.false.)
 
    if(.not. success) then
-      call elsi_stop(" ELPA tridiagonal solver failed.",e_h,caller)
+      call elsi_stop(e_h,"ELPA tridiagonal solver failed.",caller)
    endif
 
    evec(1:e_h%n_nonsing,1:e_h%n_states_solve) = &
@@ -302,7 +302,7 @@ subroutine elsi_check_singularity_sp_real(e_h,ovlp,eval,evec)
                 mpi_comm_self,.false.)
 
    if(.not. success) then
-      call elsi_stop(" ELPA tridiagonal solver failed.",e_h,caller)
+      call elsi_stop(e_h,"ELPA tridiagonal solver failed.",caller)
    endif
 
    ! Get the number of nonsingular eigenvalues
@@ -340,7 +340,7 @@ subroutine elsi_check_singularity_sp_real(e_h,ovlp,eval,evec)
       call elsi_say(e_h,info_str,e_h%stdio)
 
       if(e_h%stop_sing) then
-         call elsi_stop(" Overlap matrix is singular.",e_h,caller)
+         call elsi_stop(e_h,"Overlap matrix is singular.",caller)
       endif
 
       write(info_str,"('  | Number of basis functions reduced to :',I10)")&
@@ -574,7 +574,7 @@ subroutine elsi_solve_evp_lapack_cmplx(e_h,ham,ovlp,eval,evec)
                 mpi_comm_self,.false.)
 
    if(.not. success) then
-      call elsi_stop(" ELPA tridiagonal solver failed.",e_h,caller)
+      call elsi_stop(e_h,"ELPA tridiagonal solver failed.",caller)
    endif
 
    evec(1:e_h%n_nonsing,1:e_h%n_states_solve) = &
@@ -660,7 +660,7 @@ subroutine elsi_check_singularity_sp_cmplx(e_h,ovlp,eval,evec)
                 mpi_comm_self,.false.)
 
    if(.not. success) then
-      call elsi_stop(" ELPA tridiagonal solver failed.",e_h,caller)
+      call elsi_stop(e_h,"ELPA tridiagonal solver failed.",caller)
    endif
 
    ! Get the number of nonsingular eigenvalues
@@ -699,7 +699,7 @@ subroutine elsi_check_singularity_sp_cmplx(e_h,ovlp,eval,evec)
       call elsi_say(e_h,info_str,e_h%stdio)
 
       if(e_h%stop_sing) then
-         call elsi_stop(" Overlap matrix is singular.",e_h,caller)
+         call elsi_stop(e_h,"Overlap matrix is singular.",caller)
       endif
 
       write(info_str,"('  | Number of basis functions reduced to :',I10)")&

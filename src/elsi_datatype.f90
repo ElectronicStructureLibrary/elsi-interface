@@ -206,7 +206,6 @@ module ELSI_DATATYPE
 
       ! ELPA
       integer(kind=i4) :: elpa_solver
-      integer(kind=i4) :: elpa_n_single ! Number of single-precision steps
       logical          :: elpa_output
       logical          :: elpa_started = .false.
 

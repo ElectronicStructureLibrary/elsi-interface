@@ -157,7 +157,7 @@ subroutine elsi_check_io_handle(e_h,io_h,caller)
    character(len=*),     intent(in) :: caller
 
    if(.not. io_h%handle_init) then
-      call elsi_stop(" Invalid handle! Not initialized.",e_h,caller)
+      call elsi_stop(e_h,"Invalid handle! Not initialized.",caller)
    endif
 
 end subroutine
@@ -260,7 +260,7 @@ subroutine elsi_print_handle_summary(e_h,io_h)
       elseif(e_h%solver == DMP_SOLVER) then
          call elsi_say_setting(e_h,"Solver requested","DMP",io_h)
       else
-         call elsi_stop(" Unsupported solver.",e_h,caller)
+         call elsi_stop(e_h,"Unsupported solver.",caller)
       endif
       call elsi_truncate_string(io_h%prefix,2)
    elseif(io_h%file_format == JSON) then
@@ -307,10 +307,10 @@ subroutine elsi_print_handle_summary(e_h,io_h)
       elseif(e_h%solver == DMP_SOLVER) then
          call elsi_say_setting(e_h,"solver","DMP",io_h)
       else
-         call elsi_stop(" Unsupported solver.",e_h,caller)
+         call elsi_stop(e_h,"Unsupported solver.",caller)
       endif
    else
-      call elsi_stop(" Unsupported output format.",e_h,caller)
+      call elsi_stop(e_h,"Unsupported output format.",caller)
    endif
 
 end subroutine
@@ -366,7 +366,7 @@ subroutine elsi_print_versioning(e_h,io_h)
       io_h%comma_json = comma_save
       call elsi_say_setting(e_h,"uuid",e_h%uuid,io_h)
    else
-      call elsi_stop(" Unsupported output format.",e_h,caller)
+      call elsi_stop(e_h,"Unsupported output format.",caller)
    endif
 
 end subroutine
@@ -395,7 +395,7 @@ subroutine elsi_print_solver_settings(e_h,io_h)
    case(SIPS_SOLVER)
       call elsi_print_sips_settings(e_h,io_h)
    case default
-      call elsi_stop(" Unsupported solver.",e_h,caller)
+      call elsi_stop(e_h,"Unsupported solver.",caller)
    end select
 
 end subroutine
@@ -482,9 +482,8 @@ subroutine elsi_print_elpa_settings(e_h,io_h)
    ! Settings
    call elsi_append_string(io_h%prefix,"  ")
    call elsi_say_setting(e_h,"elpa_solver",e_h%elpa_solver,io_h)
-   call elsi_say_setting(e_h,"elpa_n_states",e_h%n_states,io_h)
    io_h%comma_json = NO_COMMA
-   call elsi_say_setting(e_h,"elpa_n_single",e_h%elpa_n_single,io_h)
+   call elsi_say_setting(e_h,"elpa_n_states",e_h%n_states,io_h)
    call elsi_truncate_string(io_h%prefix,2)
 
    ! Footer (only for JSON)
@@ -839,7 +838,7 @@ subroutine elsi_say_setting_i4(e_h,label,setting,io_h)
             endif
          endif
       else
-         call elsi_stop(" Unsupported output format.",e_h,caller)
+         call elsi_stop(e_h,"Unsupported output format.",caller)
       endif
    endif
 
@@ -897,7 +896,7 @@ subroutine elsi_say_setting_r8(e_h,label,setting,io_h)
             endif
          endif
       else
-         call elsi_stop(" Unsupported output format.",e_h,caller)
+         call elsi_stop(e_h,"Unsupported output format.",caller)
       endif
    endif
 
@@ -933,7 +932,7 @@ subroutine elsi_say_setting_log(e_h,label,setting,io_h)
          log_string = "               false"
       endif
    else
-      call elsi_stop(" Unsupported output format.",e_h,caller)
+      call elsi_stop(e_h,"Unsupported output format.",caller)
    endif
 
    label_ljust = label
@@ -969,7 +968,7 @@ subroutine elsi_say_setting_log(e_h,label,setting,io_h)
             endif
          endif
       else
-         call elsi_stop(" Unsupported output format.",e_h,caller)
+         call elsi_stop(e_h,"Unsupported output format.",caller)
       endif
    endif
 
@@ -1024,7 +1023,7 @@ subroutine elsi_say_setting_str(e_h,label,setting,io_h)
             endif
          endif
       else
-         call elsi_stop(" Unsupported output format.",e_h,caller)
+         call elsi_stop(e_h,"Unsupported output format.",caller)
       endif
    endif
 
@@ -1137,8 +1136,8 @@ subroutine elsi_close_json_file(e_h,closing_bracket,io_h)
    character(len=40), parameter :: caller = "elsi_close_json_file"
 
    if(io_h%file_format /= JSON) then
-      call elsi_stop(" This routine requires a file handle using JSON format.",&
-              e_h,caller)
+      call elsi_stop(e_h,"This routine requires a file handle in JSON format.",&
+              caller)
    endif
 
    if(closing_bracket) then
@@ -1166,8 +1165,8 @@ subroutine elsi_start_json_record(e_h,comma_before,io_h)
    character(len=40), parameter :: caller = "elsi_start_json_record"
 
    if(io_h%file_format /= JSON) then
-      call elsi_stop(" This routine requires a file handle using JSON format.",&
-              e_h,caller)
+      call elsi_stop(e_h,"This routine requires a file handle in JSON format.",&
+              caller)
    endif
 
    if(comma_before) then
@@ -1194,8 +1193,8 @@ subroutine elsi_finish_json_record(e_h,comma_after,io_h)
    character(len=40), parameter :: caller = "elsi_finish_json_record"
 
    if(io_h%file_format /= JSON) then
-      call elsi_stop(" This routine requires a file handle using JSON format.",&
-              e_h,caller)
+      call elsi_stop(e_h,"This routine requires a file handle in JSON format.",&
+              caller)
    endif
 
    call elsi_truncate_string(io_h%prefix,2)

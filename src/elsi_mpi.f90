@@ -6,10 +6,6 @@
 
 !>
 !! This module contains a collection of basic utility routines related to MPI.
-!! Since the user may specify local and global communicators independently,
-!! we can only assume that MPI is *fully* initialized when elsi_ready_handle has
-!! been called, and initialization requiring the usage of MPI should be done
-!! in that subroutine.
 !!
 module ELSI_MPI
 
@@ -28,12 +24,12 @@ contains
 !>
 !! Clean shutdown in case of errors.
 !!
-subroutine elsi_stop(info,e_h,caller)
+subroutine elsi_stop(e_h,info,caller)
 
    implicit none
 
-   character(len=*),  intent(in) :: info
    type(elsi_handle), intent(in) :: e_h
+   character(len=*),  intent(in) :: info
    character(len=*),  intent(in) :: caller
 
    character(len=200) :: info_str
@@ -78,7 +74,7 @@ subroutine elsi_check_mpi(e_h,routine,ierr,caller)
    character(len=*),  intent(in) :: caller
 
    if(ierr /= MPI_SUCCESS) then
-      call elsi_stop(routine,e_h,caller)
+      call elsi_stop(e_h,routine,caller)
    endif
 
 end subroutine

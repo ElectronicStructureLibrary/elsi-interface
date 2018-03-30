@@ -217,7 +217,7 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
    call sips_solve_eps(e_h%n_states,n_solved)
 
    if(n_solved < e_h%n_states) then
-      call elsi_stop(" SIPS solver failed.",e_h,caller)
+      call elsi_stop(e_h,"SIPS solver failed.",caller)
    endif
 
    call elsi_get_time(t1)

@@ -132,7 +132,7 @@ subroutine elsi_init_pexsi(e_h)
                           e_h%pexsi_n_pcol,output_id,ierr)
 
       if(ierr /= 0) then
-         call elsi_stop(" Initialization failed.",e_h,caller)
+         call elsi_stop(e_h,"Initialization failed.",caller)
       endif
 
       if(e_h%n_lcol_sp == UNSET) then
@@ -197,7 +197,7 @@ subroutine elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
    endif
 
    if(ierr /= 0) then
-      call elsi_stop(" Failed to load matrices.",e_h,caller)
+      call elsi_stop(e_h,"Failed to load matrices.",caller)
    endif
 
    call elsi_say(e_h,"  Starting PEXSI density matrix solver",e_h%stdio)
@@ -221,7 +221,7 @@ subroutine elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
    endif
 
    if(ierr /= 0) then
-      call elsi_stop(" Symbolic factorization failed.",e_h,caller)
+      call elsi_stop(e_h,"Symbolic factorization failed.",caller)
    endif
 
    ! Inertia counting
@@ -319,7 +319,7 @@ subroutine elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
    endif
 
    if(ierr /= 0) then
-      call elsi_stop(" Inertia counting failed.",e_h,caller)
+      call elsi_stop(e_h,"Inertia counting failed.",caller)
    endif
 
    ! Fermi operator expansion
@@ -381,7 +381,7 @@ subroutine elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
    call elsi_say(e_h,info_str,e_h%stdio)
 
    if(ierr /= 0) then
-      call elsi_stop(" Fermi operator calculation failed.",e_h,caller)
+      call elsi_stop(e_h,"Fermi operator calculation failed.",caller)
    endif
 
    ! Get density matrix
@@ -392,7 +392,7 @@ subroutine elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
    call f_ppexsi_retrieve_real_dm(e_h%pexsi_plan,tmp_real,local_energy,ierr)
 
    if(ierr /= 0) then
-      call elsi_stop(" Failed to get density matirx.",e_h,caller)
+      call elsi_stop(e_h,"Failed to get density matirx.",caller)
    endif
 
    ! Check convergence
@@ -552,7 +552,7 @@ subroutine elsi_compute_edm_pexsi_real(e_h,edm)
            e_h%pexsi_options,ierr)
 
    if(ierr /= 0) then
-      call elsi_stop(" Energy density matrix correction failed.",e_h,caller)
+      call elsi_stop(e_h,"Energy density matrix correction failed.",caller)
    endif
 
    ! Get energy density matrix
@@ -561,7 +561,7 @@ subroutine elsi_compute_edm_pexsi_real(e_h,edm)
    call f_ppexsi_retrieve_real_edm(e_h%pexsi_plan,tmp_real,local_energy,ierr)
 
    if(ierr /= 0) then
-      call elsi_stop(" Failed to get energy density matirx.",e_h,caller)
+      call elsi_stop(e_h,"Failed to get energy density matirx.",caller)
    endif
 
    ! Check convergence
@@ -727,7 +727,7 @@ subroutine elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
    endif
 
    if(ierr /= 0) then
-      call elsi_stop(" Failed to load matrices.",e_h,caller)
+      call elsi_stop(e_h,"Failed to load matrices.",caller)
    endif
 
    call elsi_say(e_h,"  Starting PEXSI density matrix solver",e_h%stdio)
@@ -751,7 +751,7 @@ subroutine elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
    endif
 
    if(ierr /= 0) then
-      call elsi_stop(" Symbolic factorization failed.",e_h,caller)
+      call elsi_stop(e_h,"Symbolic factorization failed.",caller)
    endif
 
    ! Inertia counting
@@ -849,7 +849,7 @@ subroutine elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
    endif
 
    if(ierr /= 0) then
-      call elsi_stop(" Inertia counting failed.",e_h,caller)
+      call elsi_stop(e_h,"Inertia counting failed.",caller)
    endif
 
    ! Fermi operator expansion
@@ -911,7 +911,7 @@ subroutine elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
    call elsi_say(e_h,info_str,e_h%stdio)
 
    if(ierr /= 0) then
-      call elsi_stop(" Fermi operator calculation failed.",e_h,caller)
+      call elsi_stop(e_h,"Fermi operator calculation failed.",caller)
    endif
 
    ! Get density matrix
@@ -922,7 +922,7 @@ subroutine elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
    call f_ppexsi_retrieve_complex_dm(e_h%pexsi_plan,tmp_cmplx,local_energy,ierr)
 
    if(ierr /= 0) then
-      call elsi_stop(" Failed to get density matirx.",e_h,caller)
+      call elsi_stop(e_h,"Failed to get density matirx.",caller)
    endif
 
    ! Check convergence
@@ -1086,7 +1086,7 @@ subroutine elsi_compute_edm_pexsi_cmplx(e_h,edm)
            e_h%pexsi_options,ierr)
 
    if(ierr /= 0) then
-      call elsi_stop(" Energy density matrix correction failed.",e_h,caller)
+      call elsi_stop(e_h,"Energy density matrix correction failed.",caller)
    endif
 
    ! Get energy density matrix
@@ -1096,7 +1096,7 @@ subroutine elsi_compute_edm_pexsi_cmplx(e_h,edm)
            ierr)
 
    if(ierr /= 0) then
-      call elsi_stop(" Failed to get energy density matirx.",e_h,caller)
+      call elsi_stop(e_h,"Failed to get energy density matirx.",caller)
    endif
 
    ! Check convergence

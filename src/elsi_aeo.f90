@@ -32,9 +32,7 @@ module ELSI_ELPA
                              elpa_mult_at_b_real_double,&
                              elpa_mult_ah_b_complex_double
    use ELPA2,          only: elpa_solve_evp_real_2stage_double,&
-                             elpa_solve_evp_complex_2stage_double,&
-                             elpa_solve_evp_real_2stage_single,&
-                             elpa_solve_evp_complex_2stage_single
+                             elpa_solve_evp_complex_2stage_double
 
    implicit none
 
@@ -71,7 +69,7 @@ subroutine elsi_get_elpa_comms(e_h)
                 e_h%mpi_comm_row,e_h%mpi_comm_col)
 
    if(success /= 0) then
-      call elsi_stop(" Failed to get MPI communicators.",e_h,caller)
+      call elsi_stop(e_h,"Failed to get MPI communicators.",caller)
    endif
 
 end subroutine
@@ -225,9 +223,9 @@ subroutine elsi_compute_dm_elpa_real(e_h,evec,dm,work)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished density matrix calculation')")
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
 
 end subroutine
 
@@ -315,9 +313,9 @@ subroutine elsi_compute_edm_elpa_real(e_h,eval,evec,edm,work)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished energy density matrix calculation')")
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
 
 end subroutine
 
@@ -360,7 +358,7 @@ subroutine elsi_to_standard_evp_real(e_h,ham,ovlp,eval,evec)
                       .false.)
 
          if(.not. success) then
-            call elsi_stop(" Cholesky failed.",e_h,caller)
+            call elsi_stop(e_h,"Cholesky failed.",caller)
          endif
 
          ! U^-1 -> S
@@ -369,15 +367,15 @@ subroutine elsi_to_standard_evp_real(e_h,ham,ovlp,eval,evec)
                       .false.)
 
          if(.not. success) then
-            call elsi_stop(" Matrix inversion failed.",e_h,caller)
+            call elsi_stop(e_h,"Matrix inversion failed.",caller)
          endif
 
          call elsi_get_time(t1)
 
          write(info_str,"('  Finished Cholesky decomposition')")
-         call elsi_say(e_h,info_str)
+         call elsi_say(e_h,info_str,e_h%stdio)
          write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-         call elsi_say(e_h,info_str)
+         call elsi_say(e_h,info_str,e_h%stdio)
       endif
    endif ! n_elsi_calls == 1
 
@@ -401,7 +399,7 @@ subroutine elsi_to_standard_evp_real(e_h,ham,ovlp,eval,evec)
                    e_h%n_lrow,e_h%n_lcol)
 
       if(.not. success) then
-         call elsi_stop(" Matrix multiplication failed.",e_h,caller)
+         call elsi_stop(e_h,"Matrix multiplication failed.",caller)
       endif
 
       call pdtran(e_h%n_basis,e_h%n_basis,1.0_r8,evec,1,1,e_h%sc_desc,0.0_r8,&
@@ -415,7 +413,7 @@ subroutine elsi_to_standard_evp_real(e_h,ham,ovlp,eval,evec)
                    e_h%n_lrow,e_h%n_lcol)
 
       if(.not. success) then
-         call elsi_stop(" Matrix multiplication failed.",e_h,caller)
+         call elsi_stop(e_h,"Matrix multiplication failed.",caller)
       endif
 
       call pdtran(e_h%n_basis,e_h%n_basis,1.0_r8,ham,1,1,e_h%sc_desc,0.0_r8,&
@@ -437,9 +435,9 @@ subroutine elsi_to_standard_evp_real(e_h,ham,ovlp,eval,evec)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished transformation to standard eigenproblem')")
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
 
 end subroutine
 
@@ -492,7 +490,7 @@ subroutine elsi_check_singularity_real(e_h,ovlp,eval,evec)
    call elpa_t%set("check_pd",1,ierr)
 
    if(ierr /= 0) then
-      call elsi_stop(" ELPA setup failed.",e_h,caller)
+      call elsi_stop(e_h,"ELPA setup failed.",caller)
    endif
 
    call elsi_allocate(e_h,copy_real,e_h%n_lrow,e_h%n_lcol,"copy_real",caller)
@@ -511,7 +509,7 @@ subroutine elsi_check_singularity_real(e_h,ovlp,eval,evec)
    enddo
 
    if(ierr /= 0) then
-      call elsi_stop(" Singularity check failed.",e_h,caller)
+      call elsi_stop(e_h,"Singularity check failed.",caller)
    endif
 
    call elsi_deallocate(e_h,copy_real,"copy_real")
@@ -521,23 +519,22 @@ subroutine elsi_check_singularity_real(e_h,ovlp,eval,evec)
    if(e_h%n_nonsing < e_h%n_basis) then ! Singular
       e_h%ovlp_is_sing = .true.
 
-      call elsi_say(e_h,"  Overlap matrix is singular")
+      call elsi_say(e_h,"  Overlap matrix is singular",e_h%stdio)
       write(info_str,"('  | Lowest eigenvalue of overlap  :',E10.2)") eval(1)
-      call elsi_say(e_h,info_str)
+      call elsi_say(e_h,info_str,e_h%stdio)
       write(info_str,"('  | Highest eigenvalue of overlap :',E10.2)")&
          eval(e_h%n_basis)
-      call elsi_say(e_h,info_str)
+      call elsi_say(e_h,info_str,e_h%stdio)
 
       if(e_h%stop_sing) then
-         call elsi_stop(" Overlap matrix is singular.",e_h,caller)
+         call elsi_stop(e_h,"Overlap matrix is singular.",caller)
       endif
 
       write(info_str,"('  | Number of basis functions reduced to :',I10)")&
          e_h%n_nonsing
-      call elsi_say(e_h,info_str)
-
+      call elsi_say(e_h,info_str,e_h%stdio)
       call elsi_say(e_h,"  Using scaled eigenvectors of overlap matrix"//&
-              " for transformation")
+              " for transformation",e_h%stdio)
 
       ! Overlap matrix is overwritten with scaled eigenvectors
       do i = e_h%n_basis-e_h%n_nonsing+1,e_h%n_basis
@@ -549,20 +546,20 @@ subroutine elsi_check_singularity_real(e_h,ovlp,eval,evec)
       enddo
    else ! Nonsingular
       e_h%ovlp_is_sing = .false.
-      call elsi_say(e_h,"  Overlap matrix is nonsingular")
+      call elsi_say(e_h,"  Overlap matrix is nonsingular",e_h%stdio)
       write(info_str,"('  | Lowest eigenvalue of overlap  :',E10.2)") eval(1)
-      call elsi_say(e_h,info_str)
+      call elsi_say(e_h,info_str,e_h%stdio)
       write(info_str,"('  | Highest eigenvalue of overlap :',E10.2)")&
          eval(e_h%n_basis)
-      call elsi_say(e_h,info_str)
+      call elsi_say(e_h,info_str,e_h%stdio)
    endif ! Singular overlap?
 
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished singularity check of overlap matrix')")
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
 
 end subroutine
 
@@ -607,7 +604,7 @@ subroutine elsi_to_original_ev_real(e_h,ham,ovlp,evec)
                    e_h%n_lrow,e_h%n_lcol)
 
       if(.not. success) then
-         call elsi_stop(" Matrix multiplication failed.",e_h,caller)
+         call elsi_stop(e_h,"Matrix multiplication failed.",caller)
       endif
    endif
 
@@ -616,9 +613,9 @@ subroutine elsi_to_original_ev_real(e_h,ham,ovlp,evec)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished back-transformation of eigenvectors')")
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
 
 end subroutine
 
@@ -640,10 +637,6 @@ subroutine elsi_solve_evp_elpa_real(e_h,ham,ovlp,eval,evec)
    integer(kind=i4)   :: ierr
    logical            :: success
    character(len=200) :: info_str
-
-   real(kind=r4), allocatable :: eval_single(:)
-   real(kind=r4), allocatable :: ham_real_single(:,:)
-   real(kind=r4), allocatable :: evec_real_single(:,:)
 
    character(len=40), parameter :: caller = "elsi_solve_evp_elpa_real"
 
@@ -667,49 +660,22 @@ subroutine elsi_solve_evp_elpa_real(e_h,ham,ovlp,eval,evec)
    call elsi_get_time(t0)
 
    ! Solve evp, return eigenvalues and eigenvectors
-   if(e_h%n_elsi_calls <= e_h%elpa_n_single) then
-      call elsi_say(e_h,"  Starting ELPA eigensolver (single precision)")
+   call elsi_say(e_h,"  Starting ELPA eigensolver",e_h%stdio)
 
-      ! Convert to single precision
-      call elsi_allocate(e_h,eval_single,e_h%n_basis,"eval_single",caller)
-      call elsi_allocate(e_h,ham_real_single,e_h%n_lrow,e_h%n_lcol,&
-              "ham_real_single",caller)
-      call elsi_allocate(e_h,evec_real_single,e_h%n_lrow,e_h%n_lcol,&
-              "evec_real_single",caller)
-
-      ham_real_single = real(ham,kind=r4)
-
-      ! Solve with single precision
-      success = elpa_solve_evp_real_2stage_single(e_h%n_nonsing,&
-                   e_h%n_states_solve,ham_real_single,e_h%n_lrow,eval_single,&
-                   evec_real_single,e_h%n_lrow,e_h%blk_row,e_h%n_lcol,&
-                   e_h%mpi_comm_row,e_h%mpi_comm_col,e_h%mpi_comm)
-
-      ! Convert back to double precision
-      eval = real(eval_single,kind=r8)
-      evec = real(evec_real_single,kind=r8)
-
-      call elsi_deallocate(e_h,eval_single,"eval_single")
-      call elsi_deallocate(e_h,ham_real_single,"ham_real_single")
-      call elsi_deallocate(e_h,evec_real_single,"evec_real_single")
-   else ! No single precision
-      call elsi_say(e_h,"  Starting ELPA eigensolver")
-
-      if(e_h%elpa_solver == 2) then
-         success = elpa_solve_evp_real_2stage_double(e_h%n_nonsing,&
-                      e_h%n_states_solve,ham,e_h%n_lrow,eval,evec,e_h%n_lrow,&
-                      e_h%blk_row,e_h%n_lcol,e_h%mpi_comm_row,e_h%mpi_comm_col,&
-                      e_h%mpi_comm)
-      else
-         success = elpa_solve_evp_real_1stage_double(e_h%n_nonsing,&
-                      e_h%n_states_solve,ham,e_h%n_lrow,eval,evec,e_h%n_lrow,&
-                      e_h%blk_row,e_h%n_lcol,e_h%mpi_comm_row,e_h%mpi_comm_col,&
-                      e_h%mpi_comm)
-      endif
+   if(e_h%elpa_solver == 2) then
+      success = elpa_solve_evp_real_2stage_double(e_h%n_nonsing,&
+                   e_h%n_states_solve,ham,e_h%n_lrow,eval,evec,e_h%n_lrow,&
+                   e_h%blk_row,e_h%n_lcol,e_h%mpi_comm_row,e_h%mpi_comm_col,&
+                   e_h%mpi_comm)
+   else
+      success = elpa_solve_evp_real_1stage_double(e_h%n_nonsing,&
+                   e_h%n_states_solve,ham,e_h%n_lrow,eval,evec,e_h%n_lrow,&
+                   e_h%blk_row,e_h%n_lcol,e_h%mpi_comm_row,e_h%mpi_comm_col,&
+                   e_h%mpi_comm)
    endif
 
    if(.not. success) then
-      call elsi_stop(" ELPA solver failed.",e_h,caller)
+      call elsi_stop(e_h,"ELPA solver failed.",caller)
    endif
 
    ! Dummy eigenvalues for correct chemical potential, no physical meaning!
@@ -720,9 +686,9 @@ subroutine elsi_solve_evp_elpa_real(e_h,ham,ovlp,eval,evec)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished solving standard eigenproblem')")
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
 
    ! Back-transform eigenvectors
    if(.not. e_h%ovlp_is_unit) then
@@ -818,9 +784,9 @@ subroutine elsi_compute_dm_elpa_cmplx(e_h,evec,dm,work)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished density matrix calculation')")
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
 
 end subroutine
 
@@ -913,9 +879,9 @@ subroutine elsi_compute_edm_elpa_cmplx(e_h,eval,evec,edm,work)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished energy density matrix calculation')")
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
 
 end subroutine
 
@@ -958,7 +924,7 @@ subroutine elsi_to_standard_evp_cmplx(e_h,ham,ovlp,eval,evec)
                       .false.)
 
          if(.not. success) then
-            call elsi_stop(" Cholesky failed.",e_h,caller)
+            call elsi_stop(e_h,"Cholesky failed.",caller)
          endif
 
          ! U^-1 -> S
@@ -967,15 +933,15 @@ subroutine elsi_to_standard_evp_cmplx(e_h,ham,ovlp,eval,evec)
                       .false.)
 
          if(.not. success) then
-            call elsi_stop(" Matrix inversion failed.",e_h,caller)
+            call elsi_stop(e_h,"Matrix inversion failed.",caller)
          endif
 
          call elsi_get_time(t1)
 
          write(info_str,"('  Finished Cholesky decomposition')")
-         call elsi_say(e_h,info_str)
+         call elsi_say(e_h,info_str,e_h%stdio)
          write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-         call elsi_say(e_h,info_str)
+         call elsi_say(e_h,info_str,e_h%stdio)
       endif
    endif ! n_elsi_calls == 1
 
@@ -1000,7 +966,7 @@ subroutine elsi_to_standard_evp_cmplx(e_h,ham,ovlp,eval,evec)
                    e_h%n_lrow,e_h%n_lcol)
 
       if(.not. success) then
-         call elsi_stop(" Matrix multiplication failed.",e_h,caller)
+         call elsi_stop(e_h,"Matrix multiplication failed.",caller)
       endif
 
       call pztranc(e_h%n_basis,e_h%n_basis,(1.0_r8,0.0_r8),evec,1,1,&
@@ -1014,7 +980,7 @@ subroutine elsi_to_standard_evp_cmplx(e_h,ham,ovlp,eval,evec)
                    e_h%n_lrow,e_h%n_lcol)
 
       if(.not. success) then
-         call elsi_stop(" Matrix multiplication failed.",e_h,caller)
+         call elsi_stop(e_h,"Matrix multiplication failed.",caller)
       endif
 
       call pztranc(e_h%n_basis,e_h%n_basis,(1.0_r8,0.0_r8),ham,1,1,e_h%sc_desc,&
@@ -1043,9 +1009,9 @@ subroutine elsi_to_standard_evp_cmplx(e_h,ham,ovlp,eval,evec)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished transformation to standard eigenproblem')")
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
 
 end subroutine
 
@@ -1098,7 +1064,7 @@ subroutine elsi_check_singularity_cmplx(e_h,ovlp,eval,evec)
    call elpa_t%set("check_pd",1,ierr)
 
    if(ierr /= 0) then
-      call elsi_stop(" ELPA setup failed.",e_h,caller)
+      call elsi_stop(e_h,"ELPA setup failed.",caller)
    endif
 
    call elsi_allocate(e_h,copy_cmplx,e_h%n_lrow,e_h%n_lcol,"copy_cmplx",caller)
@@ -1117,7 +1083,7 @@ subroutine elsi_check_singularity_cmplx(e_h,ovlp,eval,evec)
    enddo
 
    if(ierr /= 0) then
-      call elsi_stop(" Singularity check failed.",e_h,caller)
+      call elsi_stop(e_h,"Singularity check failed.",caller)
    endif
 
    call elsi_deallocate(e_h,copy_cmplx,"copy_cmplx")
@@ -1127,23 +1093,22 @@ subroutine elsi_check_singularity_cmplx(e_h,ovlp,eval,evec)
    if(e_h%n_nonsing < e_h%n_basis) then ! Singular
       e_h%ovlp_is_sing = .true.
 
-      call elsi_say(e_h,"  Overlap matrix is singular")
+      call elsi_say(e_h,"  Overlap matrix is singular",e_h%stdio)
       write(info_str,"('  | Lowest eigenvalue of overlap  :',E10.2)") eval(1)
-      call elsi_say(e_h,info_str)
+      call elsi_say(e_h,info_str,e_h%stdio)
       write(info_str,"('  | Highest eigenvalue of overlap :',E10.2)")&
          eval(e_h%n_basis)
-      call elsi_say(e_h,info_str)
+      call elsi_say(e_h,info_str,e_h%stdio)
 
       if(e_h%stop_sing) then
-         call elsi_stop(" Overlap matrix is singular.",e_h,caller)
+         call elsi_stop(e_h,"Overlap matrix is singular.",caller)
       endif
 
       write(info_str,"('  | Number of basis functions reduced to :',I10)")&
          e_h%n_nonsing
-      call elsi_say(e_h,info_str)
-
+      call elsi_say(e_h,info_str,e_h%stdio)
       call elsi_say(e_h,"  Using scaled eigenvectors of overlap matrix"//&
-              " for transformation")
+              " for transformation",e_h%stdio)
 
       ! Overlap matrix is overwritten with scaled eigenvectors
       do i = e_h%n_basis-e_h%n_nonsing+1,e_h%n_basis
@@ -1155,20 +1120,20 @@ subroutine elsi_check_singularity_cmplx(e_h,ovlp,eval,evec)
       enddo
    else ! Nonsingular
       e_h%ovlp_is_sing = .false.
-      call elsi_say(e_h,"  Overlap matrix is nonsingular")
+      call elsi_say(e_h,"  Overlap matrix is nonsingular",e_h%stdio)
       write(info_str,"('  | Lowest eigenvalue of overlap  :',E10.2)") eval(1)
-      call elsi_say(e_h,info_str)
+      call elsi_say(e_h,info_str,e_h%stdio)
       write(info_str,"('  | Highest eigenvalue of overlap :',E10.2)")&
          eval(e_h%n_basis)
-      call elsi_say(e_h,info_str)
+      call elsi_say(e_h,info_str,e_h%stdio)
    endif ! Singular overlap?
 
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished singularity check of overlap matrix')")
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
 
 end subroutine
 
@@ -1213,7 +1178,7 @@ subroutine elsi_to_original_ev_cmplx(e_h,ham,ovlp,evec)
                    e_h%n_lrow,e_h%n_lcol)
 
       if(.not. success) then
-         call elsi_stop(" Matrix multiplication failed.",e_h,caller)
+         call elsi_stop(e_h,"Matrix multiplication failed.",caller)
       endif
    endif
 
@@ -1222,9 +1187,9 @@ subroutine elsi_to_original_ev_cmplx(e_h,ham,ovlp,evec)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished back-transformation of eigenvectors')")
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
 
 end subroutine
 
@@ -1246,10 +1211,6 @@ subroutine elsi_solve_evp_elpa_cmplx(e_h,ham,ovlp,eval,evec)
    integer(kind=i4)   :: ierr
    logical            :: success
    character(len=200) :: info_str
-
-   real(kind=r4),    allocatable :: eval_single(:)
-   complex(kind=r4), allocatable :: ham_cmplx_single(:,:)
-   complex(kind=r4), allocatable :: evec_cmplx_single(:,:)
 
    character(len=40), parameter :: caller = "elsi_solve_evp_elpa_cmplx"
 
@@ -1273,49 +1234,22 @@ subroutine elsi_solve_evp_elpa_cmplx(e_h,ham,ovlp,eval,evec)
    call elsi_get_time(t0)
 
    ! Solve evp, return eigenvalues and eigenvectors
-   if(e_h%n_elsi_calls <= e_h%elpa_n_single) then
-      call elsi_say(e_h,"  Starting ELPA eigensolver (single precision)")
+   call elsi_say(e_h,"  Starting ELPA eigensolver",e_h%stdio)
 
-      ! Convert to single precision
-      call elsi_allocate(e_h,eval_single,e_h%n_basis,"eval_single",caller)
-      call elsi_allocate(e_h,ham_cmplx_single,e_h%n_lrow,e_h%n_lcol,&
-              "ham_cmplx_single",caller)
-      call elsi_allocate(e_h,evec_cmplx_single,e_h%n_lrow,e_h%n_lcol,&
-              "evec_cmplx_single",caller)
-
-      ham_cmplx_single = cmplx(ham,kind=r4)
-
-      ! Solve with single precision
-      success = elpa_solve_evp_complex_2stage_single(e_h%n_nonsing,&
-                   e_h%n_states_solve,ham_cmplx_single,e_h%n_lrow,eval_single,&
-                   evec_cmplx_single,e_h%n_lrow,e_h%blk_row,e_h%n_lcol,&
-                   e_h%mpi_comm_row,e_h%mpi_comm_col,e_h%mpi_comm)
-
-      ! Convert back to double precision
-      eval = real(eval_single,kind=r8)
-      evec = cmplx(evec_cmplx_single,kind=r8)
-
-      call elsi_deallocate(e_h,eval_single,"eval_single")
-      call elsi_deallocate(e_h,ham_cmplx_single,"ham_cmplx_single")
-      call elsi_deallocate(e_h,evec_cmplx_single,"evec_cmplx_single")
-   else ! No single precision
-      call elsi_say(e_h,"  Starting ELPA eigensolver")
-
-      if(e_h%elpa_solver == 2) then
-         success = elpa_solve_evp_complex_2stage_double(e_h%n_nonsing,&
-                      e_h%n_states_solve,ham,e_h%n_lrow,eval,evec,e_h%n_lrow,&
-                      e_h%blk_row,e_h%n_lcol,e_h%mpi_comm_row,e_h%mpi_comm_col,&
-                      e_h%mpi_comm)
-      else
-         success = elpa_solve_evp_complex_1stage_double(e_h%n_nonsing,&
-                      e_h%n_states_solve,ham,e_h%n_lrow,eval,evec,e_h%n_lrow,&
-                      e_h%blk_row,e_h%n_lcol,e_h%mpi_comm_row,e_h%mpi_comm_col,&
-                      e_h%mpi_comm)
-      endif
+   if(e_h%elpa_solver == 2) then
+      success = elpa_solve_evp_complex_2stage_double(e_h%n_nonsing,&
+                   e_h%n_states_solve,ham,e_h%n_lrow,eval,evec,e_h%n_lrow,&
+                   e_h%blk_row,e_h%n_lcol,e_h%mpi_comm_row,e_h%mpi_comm_col,&
+                   e_h%mpi_comm)
+   else
+      success = elpa_solve_evp_complex_1stage_double(e_h%n_nonsing,&
+                   e_h%n_states_solve,ham,e_h%n_lrow,eval,evec,e_h%n_lrow,&
+                   e_h%blk_row,e_h%n_lcol,e_h%mpi_comm_row,e_h%mpi_comm_col,&
+                   e_h%mpi_comm)
    endif
 
    if(.not. success) then
-      call elsi_stop(" ELPA solver failed.",e_h,caller)
+      call elsi_stop(e_h,"ELPA solver failed.",caller)
    endif
 
    ! Dummy eigenvalues for correct chemical potential, no physical meaning!
@@ -1326,9 +1260,9 @@ subroutine elsi_solve_evp_elpa_cmplx(e_h,ham,ovlp,eval,evec)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished solving standard eigenproblem')")
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
 
    ! Back-transform eigenvectors
    if(.not. e_h%ovlp_is_unit) then
@@ -1354,9 +1288,6 @@ subroutine elsi_set_elpa_default(e_h)
 
    ! ELPA solver
    e_h%elpa_solver = 2
-
-   ! How many single precision steps?
-   e_h%elpa_n_single = 0
 
    ! ELPA output?
    e_h%elpa_output = .false.
