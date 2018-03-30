@@ -5,9 +5,9 @@
    Version: Development
 ================================================
 
-============================================================================
+===========================================================================
 A) ABOUT ELSI
-============================================================================
+===========================================================================
 
    ELSI provides and enhances open-source software packages which solve or
    circumvent eigenvalue problems in self-consistent field calculations
@@ -21,9 +21,9 @@ A) ABOUT ELSI
 
      elsi-team@duke.edu
 
-============================================================================
+===========================================================================
 B) INSTALLATION OF ELSI
-============================================================================
+===========================================================================
 
    The standard installation of ELSI requires:
 
@@ -32,18 +32,18 @@ B) INSTALLATION OF ELSI
    *  C compiler        [with C99 standard]
    *  C++ compiler      [with C++11 standard]
    *  MPI library
-   *  Math libraries    [BLAS, LAPACK, (BLACS,) and ScaLAPACK]
+   *  Math libraries    [BLAS, LAPACK, BLACS, and ScaLAPACK]
    *  PtScotch library  [version 6.0.4 or newer]
 
-   Installation of ELSI with GNU and Intel, PGI, XL, and Cray compilers has
-   been tested.
+   Installation with recent versions of Cray, GNU, IBM, Intel, and PGI
+   compilers has been tested.
 
    For a complete description of the installation process, please refer to
    the "INSTALL" file.
 
-============================================================================
+===========================================================================
 C) USAGE OF ELSI
-============================================================================
+===========================================================================
 
    A User's Guide is available at
 
