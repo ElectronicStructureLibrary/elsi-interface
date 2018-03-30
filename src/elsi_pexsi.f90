@@ -11,12 +11,11 @@ module ELSI_PEXSI
 
    use ELSI_CONSTANTS,     only: UNSET
    use ELSI_DATATYPE,      only: elsi_handle
-   use ELSI_IO,            only: elsi_say
+   use ELSI_IO,            only: elsi_say,elsi_get_time
    use ELSI_MALLOC,        only: elsi_allocate,elsi_deallocate
    use ELSI_MPI,           only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8,&
                                  mpi_complex16
    use ELSI_PRECISION,     only: r8,i4
-   use ELSI_TIMINGS,       only: elsi_get_time
    use F_PPEXSI_INTERFACE, only: f_ppexsi_plan_initialize,&
                                  f_ppexsi_set_default_options,&
                                  f_ppexsi_load_real_hs_matrix,&

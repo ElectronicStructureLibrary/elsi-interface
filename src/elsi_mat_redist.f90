@@ -11,13 +11,12 @@ module ELSI_MAT_REDIST
 
    use ELSI_CONSTANTS, only: UNSET
    use ELSI_DATATYPE,  only: elsi_handle
-   use ELSI_IO,        only: elsi_say
+   use ELSI_IO,        only: elsi_say,elsi_get_time
    use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
    use ELSI_MPI,       only: elsi_check_mpi,mpi_sum,mpi_real8,mpi_complex16,&
                              mpi_integer4,mpi_comm_self
    use ELSI_PRECISION, only: r8,i4,i8
    use ELSI_SORT,      only: elsi_heapsort
-   use ELSI_TIMINGS,   only: elsi_get_time
    use ELSI_UTILS,     only: elsi_get_local_nnz_real,elsi_get_local_nnz_cmplx,&
                              elsi_get_global_col,elsi_get_global_row,&
                              elsi_get_global_col_sp2

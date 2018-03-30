@@ -11,10 +11,9 @@ module ELSI_OMM
 
    use ELSI_CONSTANTS, only: BLACS_DENSE
    use ELSI_DATATYPE,  only: elsi_handle
-   use ELSI_IO,        only: elsi_say
+   use ELSI_IO,        only: elsi_say,elsi_get_time
    use ELSI_MPI,       only: elsi_check_mpi,mpi_sum,mpi_integer4
    use ELSI_PRECISION, only: r8,i4
-   use ELSI_TIMINGS,   only: elsi_get_time
    use ELSI_UTILS,     only: elsi_get_local_nnz_real,elsi_get_local_nnz_cmplx
    use ELPA1,          only: elpa_cholesky_real_double,&
                              elpa_cholesky_complex_double,&

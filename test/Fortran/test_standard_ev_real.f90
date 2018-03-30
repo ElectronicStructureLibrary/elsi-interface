@@ -166,7 +166,6 @@ program test_standard_ev_real
    t1 = MPI_Wtime()
 
    ! Solve problem
-   call elsi_set_timings_tag(e_h,"TEST")
    call elsi_ev_real(e_h,mat_a,mat_b,eval,evec)
 
    t2 = MPI_Wtime()

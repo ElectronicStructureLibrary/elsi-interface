@@ -12,10 +12,11 @@ module ELSI_IO
    use ELSI_CONSTANTS, only: UNSET,UNSET_STR,HUMAN,JSON,MULTI_PROC,SINGLE_PROC,&
                              ELPA_SOLVER,SIPS_SOLVER,OMM_SOLVER,PEXSI_SOLVER,&
                              DMP_SOLVER,BLACS_DENSE,PEXSI_CSC,SIESTA_CSC,&
-                             COMMA_AFTER,NO_COMMA
+                             COMMA_BEFORE,COMMA_AFTER,NO_COMMA,LOG_NAME,&
+                             TIME_LEN,STR_LEN,UUID_LEN,OUTPUT_EV,REAL_DATA
    use ELSI_DATATYPE,  only: elsi_handle,elsi_io_handle
-   use ELSI_MPI,       only: elsi_stop
-   use ELSI_PRECISION, only: r8,i4
+   use ELSI_MPI,       only: elsi_stop,elsi_check_mpi,mpi_character
+   use ELSI_PRECISION, only: r8,i4,i8
 
    implicit none
 
@@ -25,6 +26,7 @@ module ELSI_IO
    public :: elsi_say_setting
    public :: elsi_init_io
    public :: elsi_reset_io_handle
+   public :: elsi_io_add_entry
    public :: elsi_print_handle_summary
    public :: elsi_print_versioning
    public :: elsi_print_solver_settings
@@ -35,6 +37,8 @@ module ELSI_IO
    public :: elsi_close_json_file
    public :: elsi_start_json_record
    public :: elsi_finish_json_record
+   public :: elsi_get_time
+   public :: elsi_get_datetime_rfc3339
 
    interface elsi_say_setting
       module procedure elsi_say_setting_i4,&
@@ -95,7 +99,7 @@ subroutine elsi_init_io(io_h,print_unit,file_name,file_format,print_info,&
    if(present(file_name)) then
       io_h%file_name = file_name
    else
-      io_h%file_name = UNSET_STR
+      io_h%file_name = LOG_NAME
    endif
 
    if(present(file_format)) then
@@ -127,42 +131,6 @@ subroutine elsi_init_io(io_h,print_unit,file_name,file_format,print_info,&
 end subroutine
 
 !>
-!! This routine finalizes a file io handle. Note this subroutine does NOT close
-!! file units.
-!!
-subroutine elsi_finalize_io(e_h,io_h)
-
-   implicit none
-
-   type(elsi_handle),    intent(in)    :: e_h
-   type(elsi_io_handle), intent(inout) :: io_h
-
-   character(len=40), parameter :: caller = "elsi_finalize_io"
-
-   call elsi_check_io_handle(e_h,io_h,caller)
-   call elsi_reset_io_handle(io_h)
-
-end subroutine
-
-!>
-!! This routine checks whether a handle has been properly initialized for
-!! reading and writing to files.
-!!
-subroutine elsi_check_io_handle(e_h,io_h,caller)
-
-   implicit none
-
-   type(elsi_handle),    intent(in) :: e_h
-   type(elsi_io_handle), intent(in) :: io_h
-   character(len=*),     intent(in) :: caller
-
-   if(.not. io_h%handle_init) then
-      call elsi_stop(e_h,"Invalid handle! Not initialized.",caller)
-   endif
-
-end subroutine
-
-!>
 !! This routine resets a handle.
 !!
 subroutine elsi_reset_io_handle(io_h)
@@ -174,14 +142,115 @@ subroutine elsi_reset_io_handle(io_h)
    character(len=40), parameter :: caller = "elsi_reset_io_handle"
 
    io_h%handle_init = .false.
-   io_h%print_unit  = UNSET
    io_h%file_name   = UNSET_STR
    io_h%file_format = UNSET
    io_h%print_info  = .false.
+   io_h%print_unit  = UNSET
    io_h%comma_json  = UNSET
+   io_h%n_records   = 0
+   io_h%user_tag    = UNSET_STR
+   io_h%elsi_tag    = UNSET_STR
 
    if(allocated(io_h%prefix)) then
       deallocate(io_h%prefix)
+   endif
+
+end subroutine
+
+!>
+!! This routine adds an entry to the log file.
+!!
+subroutine elsi_io_add_entry(e_h,output_type,data_type,solver_used,dt0,t0)
+
+   implicit none
+
+   type(elsi_handle),       intent(inout) :: e_h
+   integer(kind=i4),        intent(in)    :: output_type
+   integer(kind=i4),        intent(in)    :: data_type
+   integer(kind=i4),        intent(in)    :: solver_used
+   character(len=TIME_LEN), intent(in)    :: dt0
+   real(kind=r8),           intent(in)    :: t0
+
+   real(kind=r8)           :: t1
+   real(kind=r8)           :: t_total
+   integer(kind=i4)        :: tmp_int
+   integer(kind=i4)        :: comma_save
+   character(len=STR_LEN)  :: solver_tag
+   character(len=STR_LEN)  :: elsi_tag
+   character(len=STR_LEN)  :: user_tag
+   character(len=TIME_LEN) :: dt_record
+
+   character(len=40), parameter :: caller = "elsi_io_add_entry"
+
+   if(e_h%log_file%print_info) then
+      call elsi_get_time(t1)
+      call elsi_get_solver_tag(e_h,data_type,solver_tag)
+
+      tmp_int                = e_h%solver
+      e_h%solver             = solver_used
+      t_total                = t1-t0
+      e_h%log_file%n_records = e_h%log_file%n_records+1
+      comma_save             = e_h%log_file%comma_json
+
+      if(e_h%log_file%n_records == 1) then
+         e_h%log_file%comma_json = NO_COMMA
+
+         if(e_h%myid_all == 0) then
+            call elsi_open_json_file(e_h,e_h%log_file%print_unit,&
+                    e_h%log_file%file_name,.true.,e_h%log_file)
+         else
+            e_h%log_file%print_unit = UNSET
+            e_h%log_file%file_name  = UNSET_STR
+         endif
+
+         if(.not. e_h%uuid_exists) then
+            call elsi_gen_uuid(e_h)
+            e_h%uuid_exists = .true.
+         endif
+      else
+         e_h%log_file%comma_json = COMMA_BEFORE
+      endif
+
+      elsi_tag = adjustr(trim(solver_tag))
+      user_tag = adjustr(trim(e_h%log_file%user_tag))
+
+      call elsi_get_datetime_rfc3339(dt_record)
+
+      call elsi_start_json_record(e_h,e_h%log_file%comma_json==COMMA_BEFORE,&
+              e_h%log_file)
+      e_h%log_file%comma_json = COMMA_AFTER
+      call elsi_print_versioning(e_h,e_h%log_file)
+      call elsi_say_setting(e_h,"iteration",e_h%log_file%n_records,e_h%log_file)
+      if(output_type == OUTPUT_EV) then
+         call elsi_say_setting(e_h,"output_type","EIGENSOLUTION",e_h%log_file)
+      else
+         call elsi_say_setting(e_h,"output_type","DENSITY MATRIX",e_h%log_file)
+      endif
+      if(data_type == REAL_DATA) then
+         call elsi_say_setting(e_h,"data_type","REAL",e_h%log_file)
+      else
+         call elsi_say_setting(e_h,"data_type","COMPLEX",e_h%log_file)
+      endif
+      call elsi_say_setting(e_h,"elsi_tag",elsi_tag,e_h%log_file)
+      call elsi_say_setting(e_h,"user_tag",user_tag,e_h%log_file)
+      call elsi_say_setting(e_h,"start_datetime",dt0,e_h%log_file)
+      call elsi_say_setting(e_h,"record_datetime",dt_record,e_h%log_file)
+      call elsi_say_setting(e_h,"total_time",t_total,e_h%log_file)
+
+      call elsi_print_handle_summary(e_h,e_h%log_file)
+      call elsi_print_matrix_settings(e_h,e_h%log_file)
+
+      e_h%log_file%comma_json = NO_COMMA
+
+      call elsi_print_solver_settings(e_h,e_h%log_file)
+
+      e_h%log_file%comma_json = comma_save
+
+      call elsi_finish_json_record(e_h,e_h%log_file%comma_json==COMMA_AFTER,&
+              e_h%log_file)
+
+      e_h%log_file%comma_json = comma_save
+      e_h%solver = tmp_int
    endif
 
 end subroutine
@@ -1150,7 +1219,7 @@ subroutine elsi_close_json_file(e_h,closing_bracket,io_h)
 
    close(io_h%print_unit)
 
-   call elsi_finalize_io(e_h,io_h)
+   call elsi_reset_io_handle(io_h)
 
 end subroutine
 
@@ -1207,6 +1276,376 @@ subroutine elsi_finish_json_record(e_h,comma_after,io_h)
    else
       call elsi_say(e_h,'}',io_h)
    endif
+
+end subroutine
+
+!>
+!! This routine gets the current wallclock time.
+!! (Taken from FHI-aims with permission of copyright holders)
+!!
+subroutine elsi_get_time(wtime)
+
+   implicit none
+
+   real(kind=r8), intent(out) :: wtime
+
+   character(len=8)  :: cdate
+   character(len=10) :: ctime
+   integer(kind=i4)  :: val
+   integer(kind=i4)  :: int_year
+   real(kind=r8)     :: year
+   real(kind=r8)     :: day
+   real(kind=r8)     :: hour
+   real(kind=r8)     :: minute
+   real(kind=r8)     :: second
+   real(kind=r8)     :: millisecond
+
+   character(len=40), parameter :: caller = "elsi_get_time"
+
+   call date_and_time(cdate,ctime)
+
+   read(cdate(1:4),'(I4)') val
+
+   int_year = val
+   year     = real(val,kind=r8)-2009.0_r8 ! 2009 is an arbitrary zero
+
+   day = year*365+floor(year/4.0_r8)
+
+   read(cdate(5:6),'(I2)') val
+
+   val = val-1
+
+   do while(val > 0)
+      if(val == 1) then
+         day = day+31
+      elseif(val == 2) then
+         if(mod(int_year,4) == 0) then
+            day = day+29
+         else
+            day = day+28
+         endif
+      elseif(val == 3) then
+         day = day+31
+      elseif(val == 4) then
+         day = day+30
+      elseif(val == 5) then
+         day = day+31
+      elseif(val == 6) then
+         day = day+30
+      elseif(val == 7) then
+         day = day+31
+      elseif(val == 8) then
+         day = day+31
+      elseif(val == 9) then
+         day = day+30
+      elseif(val == 10) then
+         day = day+31
+      elseif(val == 11) then
+         day = day+30
+      endif
+
+      val = val-1
+   enddo
+
+   read(cdate(7:8),'(I2)') val
+   day = day+real(val,kind=r8)-1
+
+   read(ctime(1:2),'(I2)') val
+   hour = real(val,kind=r8)
+
+   read(ctime(3:4),'(I2)') val
+   minute = real(val,kind=r8)
+
+   read(ctime(5:6),'(I2)') val
+   second = real(val,kind=r8)
+
+   read(ctime(8:10),'(I3)') val
+   millisecond = real(val,kind=r8)
+
+   wtime = day*24.0_r8*3600.0_r8+hour*3600.0_r8+minute*60.0_r8+second+&
+              millisecond*0.001_r8
+
+end subroutine
+
+!>
+!! This routine returns the current date and time, formatted as an RFC3339
+!! string with time zone offset.
+!!
+subroutine elsi_get_datetime_rfc3339(dt)
+
+   implicit none
+
+   character(len=TIME_LEN), intent(out) :: dt
+
+   integer(kind=i4) :: datetime(8)
+   integer(kind=i4) :: tmp_int
+   character(len=4) :: year
+   character(len=2) :: month
+   character(len=2) :: day
+   character(len=2) :: hour
+   character(len=2) :: minute
+   character(len=2) :: second
+   character(len=3) :: millisecond
+   character(len=1) :: timezone_sign
+   character(len=2) :: timezone_hour
+   character(len=2) :: timezone_min
+
+   character(len=40), parameter :: caller = "elsi_get_datetime_rfc3339"
+
+   call date_and_time(values=datetime)
+
+   ! Get year
+   if(datetime(1) < 10) then
+      write(year,'(A3,I1)') "000",datetime(1)
+   elseif(datetime(1) < 100) then
+      write(year,'(A2,I2)') "00",datetime(1)
+   elseif(datetime(1) < 1000) then
+      write(year,'(A1,I3)') "0",datetime(1)
+   else
+      write(year,'(I4)') datetime(1)
+   endif
+
+   ! Get month
+   if(datetime(2) < 10) then
+      write(month,'(A1,I1)') "0",datetime(2)
+   else
+      write(month,'(I2)') datetime(2)
+   endif
+
+   ! Get day
+   if(datetime(3) < 10) then
+      write(day,'(A1,I1)') "0",datetime(3)
+   else
+      write(day,'(I2)') datetime(3)
+   endif
+
+   ! Get hour
+   if(datetime(5) < 10) then
+      write(hour,'(A1,I1)') "0",datetime(5)
+   else
+      write(hour,'(I2)') datetime(5)
+   endif
+
+   ! Get minute
+   if(datetime(6) < 10) then
+      write(minute,'(A1,I1)') "0",datetime(6)
+   else
+      write(minute,'(I2)') datetime(6)
+   endif
+
+   ! Get second
+   if(datetime(7) < 10) then
+      write(second,'(A1,I1)') "0",datetime(7)
+   else
+      write(second,'(I2)') datetime(7)
+   endif
+
+   ! Get millisecond
+   if(datetime(8) < 10) then
+      write(millisecond,'(A2,I1)') "00",datetime(8)
+   elseif(datetime(8) < 100) then
+      write(millisecond,'(A1,I2)') "0",datetime(8)
+   else
+      write(millisecond,'(I3)') datetime(8)
+   endif
+
+   ! Get time zone sign (ahead or behind UTC)
+   if(datetime(4) < 0) then
+      timezone_sign = "-"
+      datetime(4)   = -1*datetime(4)
+   else
+      timezone_sign = "+"
+   endif
+
+   ! Get timezone minutes
+   tmp_int = mod(datetime(4),60)
+   if(tmp_int < 10) then
+      write(timezone_min,'(A1,I1)') "0",tmp_int
+   else
+      write(timezone_min,'(I2)') tmp_int
+   endif
+
+   ! Get timezone hours
+   tmp_int = datetime(4)/60
+   if(tmp_int < 10) then
+      write(timezone_hour,'(A1,I1)') "0",tmp_int
+   else
+      write(timezone_hour,'(I2)') tmp_int
+   endif
+
+   write(dt,'(A4,A1,A2,A1,A2,A1,A2,A1,A2,A1,A2,A1,A3,A1,A2,A1,A2)')&
+      year,"-",month,"-",day,"T",hour,":",minute,":",second,".",millisecond,&
+      timezone_sign,timezone_hour,":",timezone_min
+
+end subroutine
+
+!>
+!! This routine generates a string identifying the current solver.
+!!
+subroutine elsi_get_solver_tag(e_h,data_type,tag)
+
+   implicit none
+
+   type(elsi_handle),      intent(in)  :: e_h
+   integer(kind=i4),       intent(in)  :: data_type
+   character(len=STR_LEN), intent(out) :: tag
+
+   character(len=40), parameter :: caller = "elsi_get_solver_tag"
+
+   if(data_type == REAL_DATA) then
+      select case(e_h%solver)
+      case(ELPA_SOLVER)
+         if(e_h%parallel_mode == SINGLE_PROC) then
+            tag = "LAPACK_REAL"
+         else ! MULTI_PROC
+            if(e_h%elpa_solver == 1) then
+               tag = "ELPA_1STAGE_REAL"
+            else
+               tag = "ELPA_2STAGE_REAL"
+            endif
+         endif
+      case(OMM_SOLVER)
+         tag = "LIBOMM_REAL"
+      case(PEXSI_SOLVER)
+         tag = "PEXSI_REAL"
+      case(SIPS_SOLVER)
+         tag = "SIPS_REAL"
+      case(DMP_SOLVER)
+         tag = "DMP_REAL"
+      end select
+   else
+      select case(e_h%solver)
+      case(ELPA_SOLVER)
+         if(e_h%parallel_mode == SINGLE_PROC) then
+            tag = "LAPACK_CMPLX"
+         else ! MULTI_PROC
+            if(e_h%elpa_solver == 1) then
+               tag = "ELPA_1STAGE_CMPLX"
+            else
+               tag = "ELPA_2STAGE_CMPLX"
+            endif
+         endif
+      case(OMM_SOLVER)
+         tag = "LIBOMM_CMPLX"
+      case(PEXSI_SOLVER)
+         tag = "PEXSI_CMPLX"
+      case(SIPS_SOLVER)
+         tag = "SIPS_CMPLX"
+      case(DMP_SOLVER)
+         tag = "DMP_CMPLX"
+      end select
+   endif
+
+end subroutine
+
+!>
+!! Generate a UUID (unique identifier) in RFC 4122 format.
+!! (Taken from FHI-aims with permission of copyright holders)
+!!
+subroutine elsi_gen_uuid(e_h)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h
+
+   integer(kind=i4) :: ii3
+   integer(kind=i4) :: ii4
+   integer(kind=i4) :: i_entry
+   integer(kind=i4) :: ierr
+   real(kind=r8)    :: rr(8)
+   character(len=3) :: ss3
+   character(len=4) :: ss4
+
+   character(len=40), parameter :: caller = "elsi_gen_uuid"
+
+   call elsi_init_random_seed()
+
+   ii3 = 4095
+   ii4 = 65535
+
+   call random_number(rr)
+
+   do i_entry=1,8
+      write(ss3,"(Z3.3)") transfer(int(rr(i_entry)*ii3),16)
+      write(ss4,"(Z4.4)") transfer(int(rr(i_entry)*ii4),16)
+
+      if(i_entry == 1) then
+         write(e_h%uuid,'(A)') ss4
+      elseif(i_entry == 2) then
+         write(e_h%uuid,'(2A)') trim(e_h%uuid),ss4
+      elseif(i_entry == 3) then
+         write(e_h%uuid,'(3A)') trim(e_h%uuid),'-',ss4
+      elseif(i_entry == 4) then
+         write(e_h%uuid,'(3A)') trim(e_h%uuid),'-4',ss3
+      elseif(i_entry == 5) then
+         write(e_h%uuid,'(4A)') trim(e_h%uuid),'-A',ss3,'-'
+      else
+         write(e_h%uuid,'(2A)') trim(e_h%uuid),ss4
+      endif
+   enddo
+
+   if(e_h%parallel_mode == MULTI_PROC) then
+      call MPI_Bcast(e_h%uuid,UUID_LEN,mpi_character,0,e_h%mpi_comm_all,ierr)
+      call elsi_check_mpi(e_h,"MPI_Bcast",ierr,caller)
+   endif
+
+end subroutine
+
+!>
+!! Linear congruential generator.
+!! (Taken from FHI-aims with permission of copyright holders)
+!!
+integer(kind=i4) function lcg(s)
+
+   implicit none
+
+   integer(kind=i8) :: s
+
+   if(s == 0) then
+      s = 104729
+   else
+      s = mod(s,int(huge(0_2)*2,kind=i8))
+   endif
+
+   s   = mod(s*int(huge(0_2),kind=i8),int(huge(0_2)*2,kind=i8))
+   lcg = int(mod(s,int(huge(0),kind=i8)),kind(0))
+
+end function
+
+!>
+!! Set the seed in the built-in random_seed subroutine using the system clock
+!! modified by lcg().
+!! (Taken from FHI-aims with permission of copyright holders)
+!!
+subroutine elsi_init_random_seed()
+
+   implicit none
+
+   integer(kind=i4) :: i
+   integer(kind=i4) :: n
+   integer(kind=i4) :: dt(8)
+   integer(kind=i8) :: t
+
+   integer(kind=i4), allocatable :: seed(:)
+
+   character(len=40), parameter :: caller = "elsi_init_random_seed"
+
+   call random_seed(size=n)
+   call date_and_time(values=dt)
+
+   t = (dt(1)-1970)*365*24*60*60*1000+dt(2)*31*24*60*60*1000+&
+          dt(3)*24*60*60*1000+dt(5)*60*60*1000+dt(6)*60*1000+dt(7)*1000+dt(8)
+
+   allocate(seed(n))
+
+   ! Writting the array with seeds
+   do i = 1,n
+      seed(i) = lcg(t)
+   enddo
+
+   call random_seed(put=seed)
+
+   deallocate(seed)
 
 end subroutine
 

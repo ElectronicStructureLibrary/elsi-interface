@@ -80,10 +80,10 @@ module ELSI_MUTATOR
    public :: elsi_set_mu_tol
    public :: elsi_set_mu_spin_degen
    public :: elsi_set_mu_mp_order
-   public :: elsi_set_output_timings
-   public :: elsi_set_timings_unit
-   public :: elsi_set_timings_file
-   public :: elsi_set_timings_tag
+   public :: elsi_set_output_log
+   public :: elsi_set_log_unit
+   public :: elsi_set_log_file
+   public :: elsi_set_log_tag
    public :: elsi_set_uuid
    public :: elsi_set_calling_code
    public :: elsi_get_pexsi_mu_min
@@ -925,76 +925,74 @@ subroutine elsi_set_mu_mp_order(e_h,mp_order)
 end subroutine
 
 !>
-!! This routine sets whether the detailed timings file should be output.
+!! This routine sets whether a log file should be output.
 !!
-subroutine elsi_set_output_timings(e_h,output_timings)
+subroutine elsi_set_output_log(e_h,output_log)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h            !< Handle
-   integer(kind=i4),  intent(in)    :: output_timings !< Output timings?
+   type(elsi_handle), intent(inout) :: e_h        !< Handle
+   integer(kind=i4),  intent(in)    :: output_log !< Output log
 
-   character(len=40), parameter :: caller = "elsi_set_output_timings"
+   character(len=40), parameter :: caller = "elsi_set_output_log"
 
    call elsi_check_handle(e_h,caller)
 
-   if(output_timings == 0) then
-      e_h%output_timings = .false.
+   if(output_log == 0) then
+      e_h%log_file%print_info = .false.
    else
-      e_h%output_timings = .true.
+      e_h%log_file%print_info = .true.
    endif
 
 end subroutine
 
 !>
-!! This routine sets the unit to which detailed timings are output.
+!! This routine sets the unit to which the log is output.
 !!
-subroutine elsi_set_timings_unit(e_h,timings_unit)
+subroutine elsi_set_log_unit(e_h,log_unit)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h          !< Handle
-   integer(kind=i4),  intent(in)    :: timings_unit !< Unit
+   type(elsi_handle), intent(inout) :: e_h      !< Handle
+   integer(kind=i4),  intent(in)    :: log_unit !< Unit
 
-   character(len=40), parameter :: caller = "elsi_set_timings_unit"
+   character(len=40), parameter :: caller = "elsi_set_log_unit"
 
    call elsi_check_handle(e_h,caller)
 
-   e_h%timings_unit = timings_unit
+   e_h%log_file%print_unit = log_unit
 
 end subroutine
 
 !>
-!! This routine sets the file to which detailed timings are output.
+!! This routine sets the name of the log file.
 !!
-subroutine elsi_set_timings_file(e_h,timings_file)
+subroutine elsi_set_log_file(e_h,file_name)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h          !< Handle
-   character(len=*),  intent(in)    :: timings_file !< File
+   type(elsi_handle), intent(inout) :: e_h       !< Handle
+   character(len=*),  intent(in)    :: file_name !< File name
 
-   character(len=40), parameter :: caller = "elsi_set_timings_file"
+   character(len=40), parameter :: caller = "elsi_set_log_file"
 
-   call elsi_check_handle(e_h,caller)
-
-   e_h%timings_name = timings_file
+   e_h%log_file%file_name = file_name
 
 end subroutine
 
 !>
-!! This routine sets the user_tag for the timings.
+!! This routine sets the user_tag for the log.
 !!
-subroutine elsi_set_timings_tag(e_h,user_tag)
+subroutine elsi_set_log_tag(e_h,user_tag)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: e_h      !< Handle
    character(len=*),  intent(in)    :: user_tag !< Tag
 
-   character(len=40), parameter :: caller = "elsi_set_timings_tag"
+   character(len=40), parameter :: caller = "elsi_set_log_tag"
 
-   e_h%timings%user_tag = user_tag
+   e_h%log_file%user_tag = user_tag
 
 end subroutine
 

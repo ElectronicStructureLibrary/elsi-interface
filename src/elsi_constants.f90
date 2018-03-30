@@ -81,9 +81,8 @@ module ELSI_CONSTANTS
    integer(kind=i4), parameter :: COMMA_BEFORE = 2
 
    ! Timings
-   integer(kind=i4),            parameter :: N_TIMINGS    = 100
-   integer(kind=i4),            parameter :: TIMINGS_UNIT = 66
-   character(len=FILENAME_LEN), parameter :: TIMINGS_FILE = "elsi_timings.json"
+   integer(kind=i4),            parameter :: LOG_UNIT = 66
+   character(len=FILENAME_LEN), parameter :: LOG_NAME = "elsi_timings.json"
 
    ! Versioning
    integer(kind=i4), parameter :: STR_LEN  = 20

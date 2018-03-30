@@ -29,7 +29,6 @@ LIST(APPEND elsi_src
   elsi_sips.f90
   elsi_solver.f90
   elsi_sort.f90
-  elsi_timings.f90
   elsi_version.f90
   elsi_utils.f90
 )

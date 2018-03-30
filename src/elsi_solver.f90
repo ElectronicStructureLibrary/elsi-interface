@@ -20,6 +20,8 @@ module ELSI_SOLVER
                               elsi_solve_evp_elpa_real,&
                               elsi_compute_dm_elpa_cmplx,&
                               elsi_solve_evp_elpa_cmplx
+   use ELSI_IO,         only: elsi_io_add_entry,elsi_get_time,&
+                              elsi_get_datetime_rfc3339
    use ELSI_LAPACK,     only: elsi_solve_evp_lapack_real,&
                               elsi_solve_evp_lapack_cmplx
    use ELSI_MALLOC,     only: elsi_allocate,elsi_deallocate
@@ -53,9 +55,7 @@ module ELSI_SOLVER
    use ELSI_SETUP,      only: elsi_set_blacs
    use ELSI_SIPS,       only: elsi_init_sips,elsi_solve_evp_sips_real,&
                               elsi_compute_dm_sips_real
-   use ELSI_TIMINGS,    only: elsi_get_time,elsi_process_timing,&
-                              elsi_get_datetime_rfc3339
-   use ELSI_UTILS,      only: elsi_check,elsi_check_handle,elsi_ready_handle
+   use ELSI_UTILS,      only: elsi_check,elsi_check_handle
    use MATRIXSWITCH,    only: m_allocate
 
    implicit none
@@ -153,7 +153,6 @@ subroutine elsi_ev_real(e_h,ham,ovlp,eval,evec)
    character(len=40), parameter :: caller = "elsi_ev_real"
 
    call elsi_check_handle(e_h,caller)
-   call elsi_ready_handle(e_h,caller)
    call elsi_check(e_h,caller)
    call elsi_get_time(t0)
    call elsi_get_datetime_rfc3339(dt0)
@@ -201,7 +200,7 @@ subroutine elsi_ev_real(e_h,ham,ovlp,eval,evec)
       call elsi_stop(e_h,"Unsupported eigensolver.",caller)
    end select
 
-   call elsi_process_timing(e_h,OUTPUT_EV,REAL_DATA,sol,dt0,t0)
+   call elsi_io_add_entry(e_h,OUTPUT_EV,REAL_DATA,sol,dt0,t0)
 
 end subroutine
 
@@ -227,7 +226,6 @@ subroutine elsi_ev_complex(e_h,ham,ovlp,eval,evec)
    character(len=40), parameter :: caller = "elsi_ev_complex"
 
    call elsi_check_handle(e_h,caller)
-   call elsi_ready_handle(e_h,caller)
    call elsi_check(e_h,caller)
    call elsi_get_time(t0)
    call elsi_get_datetime_rfc3339(dt0)
@@ -247,7 +245,7 @@ subroutine elsi_ev_complex(e_h,ham,ovlp,eval,evec)
       call elsi_stop(e_h,"Unsupported eigensolver.",caller)
    end select
 
-   call elsi_process_timing(e_h,OUTPUT_EV,CMPLX_DATA,sol,dt0,t0)
+   call elsi_io_add_entry(e_h,OUTPUT_EV,CMPLX_DATA,sol,dt0,t0)
 
 end subroutine
 
@@ -273,7 +271,6 @@ subroutine elsi_ev_real_sparse(e_h,ham,ovlp,eval,evec)
    character(len=40), parameter :: caller = "elsi_ev_real_sparse"
 
    call elsi_check_handle(e_h,caller)
-   call elsi_ready_handle(e_h,caller)
    call elsi_check(e_h,caller)
    call elsi_get_time(t0)
    call elsi_get_datetime_rfc3339(dt0)
@@ -339,7 +336,7 @@ subroutine elsi_ev_real_sparse(e_h,ham,ovlp,eval,evec)
       call elsi_stop(e_h,"Unsupported eigensolver.",caller)
    end select
 
-   call elsi_process_timing(e_h,OUTPUT_EV,REAL_DATA,sol,dt0,t0)
+   call elsi_io_add_entry(e_h,OUTPUT_EV,REAL_DATA,sol,dt0,t0)
 
 end subroutine
 
@@ -365,7 +362,6 @@ subroutine elsi_ev_complex_sparse(e_h,ham,ovlp,eval,evec)
    character(len=40), parameter :: caller = "elsi_ev_complex_sparse"
 
    call elsi_check_handle(e_h,caller)
-   call elsi_ready_handle(e_h,caller)
    call elsi_check(e_h,caller)
    call elsi_get_time(t0)
    call elsi_get_datetime_rfc3339(dt0)
@@ -391,7 +387,7 @@ subroutine elsi_ev_complex_sparse(e_h,ham,ovlp,eval,evec)
       call elsi_stop(e_h,"Unsupported eigensolver.",caller)
    end select
 
-   call elsi_process_timing(e_h,OUTPUT_EV,CMPLX_DATA,sol,dt0,t0)
+   call elsi_io_add_entry(e_h,OUTPUT_EV,CMPLX_DATA,sol,dt0,t0)
 
 end subroutine
 
@@ -416,7 +412,6 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
    character(len=40), parameter :: caller = "elsi_dm_real"
 
    call elsi_check_handle(e_h,caller)
-   call elsi_ready_handle(e_h,caller)
    call elsi_check(e_h,caller)
    call elsi_get_time(t0)
    call elsi_get_datetime_rfc3339(dt0)
@@ -600,7 +595,7 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
       call elsi_stop(e_h,"Unsupported density matrix solver.",caller)
    end select
 
-   call elsi_process_timing(e_h,OUTPUT_DM,REAL_DATA,sol,dt0,t0)
+   call elsi_io_add_entry(e_h,OUTPUT_DM,REAL_DATA,sol,dt0,t0)
 
    e_h%edm_ready_real = .true.
 
@@ -627,7 +622,6 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
    character(len=40), parameter :: caller = "elsi_dm_complex"
 
    call elsi_check_handle(e_h,caller)
-   call elsi_ready_handle(e_h,caller)
    call elsi_check(e_h,caller)
    call elsi_get_time(t0)
    call elsi_get_datetime_rfc3339(dt0)
@@ -743,7 +737,7 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
       call elsi_stop(e_h,"Unsupported density matrix solver.",caller)
    end select
 
-   call elsi_process_timing(e_h,OUTPUT_DM,CMPLX_DATA,sol,dt0,t0)
+   call elsi_io_add_entry(e_h,OUTPUT_DM,CMPLX_DATA,sol,dt0,t0)
 
    e_h%edm_ready_cmplx = .true.
 
@@ -770,7 +764,6 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
    character(len=40), parameter :: caller = "elsi_dm_real_sparse"
 
    call elsi_check_handle(e_h,caller)
-   call elsi_ready_handle(e_h,caller)
    call elsi_check(e_h,caller)
    call elsi_get_time(t0)
    call elsi_get_datetime_rfc3339(dt0)
@@ -1098,7 +1091,7 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
       call elsi_stop(e_h,"Unsupported density matrix solver.",caller)
    end select
 
-   call elsi_process_timing(e_h,OUTPUT_DM,REAL_DATA,sol,dt0,t0)
+   call elsi_io_add_entry(e_h,OUTPUT_DM,REAL_DATA,sol,dt0,t0)
 
    e_h%edm_ready_real = .true.
 
@@ -1125,7 +1118,6 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
    character(len=40), parameter :: caller = "elsi_dm_complex_sparse"
 
    call elsi_check_handle(e_h,caller)
-   call elsi_ready_handle(e_h,caller)
    call elsi_check(e_h,caller)
    call elsi_get_time(t0)
    call elsi_get_datetime_rfc3339(dt0)
@@ -1317,7 +1309,7 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
       call elsi_stop(e_h,"Unsupported density matrix solver.",caller)
    end select
 
-   call elsi_process_timing(e_h,OUTPUT_DM,CMPLX_DATA,sol,dt0,t0)
+   call elsi_io_add_entry(e_h,OUTPUT_DM,CMPLX_DATA,sol,dt0,t0)
 
    e_h%edm_ready_cmplx = .true.
 

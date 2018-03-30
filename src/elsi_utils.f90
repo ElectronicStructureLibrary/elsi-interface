@@ -13,13 +13,12 @@ module ELSI_UTILS
                              N_MATRIX_FORMATS,MULTI_PROC,SINGLE_PROC,&
                              BLACS_DENSE,PEXSI_CSC,SIESTA_CSC,AUTO,ELPA_SOLVER,&
                              OMM_SOLVER,PEXSI_SOLVER,CHESS_SOLVER,SIPS_SOLVER,&
-                             DMP_SOLVER,UNSET_STR,JSON,REAL_DATA,CMPLX_DATA,&
-                             STR_LEN,TIME_LEN,UUID_LEN,COMMA_AFTER,HUMAN
+                             DMP_SOLVER,UNSET_STR
    use ELSI_DATATYPE,  only: elsi_handle
-   use ELSI_IO,        only: elsi_say,elsi_init_io,elsi_open_json_file
+   use ELSI_IO,        only: elsi_say
    use ELSI_MPI,       only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8,&
-                             mpi_complex16,mpi_character,mpi_comm_self
-   use ELSI_PRECISION, only: i4,i8,r8
+                             mpi_complex16,mpi_comm_self
+   use ELSI_PRECISION, only: i4,r8
 
    implicit none
 
@@ -33,8 +32,6 @@ module ELSI_UTILS
    public :: elsi_get_global_col_sp2
    public :: elsi_get_local_nnz_real
    public :: elsi_get_local_nnz_cmplx
-   public :: elsi_get_solver_tag
-   public :: elsi_ready_handle
    public :: elsi_trace_mat_real
    public :: elsi_trace_mat_cmplx
    public :: elsi_trace_mat_mat_real
@@ -54,7 +51,6 @@ subroutine elsi_reset_handle(e_h)
    character(len=40), parameter :: caller = "elsi_reset_handle"
 
    e_h%handle_init            = .false.
-   e_h%handle_ready           = .false.
    e_h%solver                 = UNSET
    e_h%matrix_format          = UNSET
    e_h%uplo                   = FULL_MAT
@@ -165,9 +161,6 @@ subroutine elsi_reset_handle(e_h)
    e_h%dmp_ev_ham_min         = 0.0_r8
    e_h%dmp_tol                = 1e-8_r8
    e_h%dmp_ne                 = 0.0_r8
-   e_h%output_timings         = .false.
-   e_h%timings_unit           = UNSET
-   e_h%timings_name           = UNSET_STR
    e_h%caller                 = UNSET_STR
    e_h%uuid                   = UNSET_STR
    e_h%uuid_exists            = .false.
@@ -345,52 +338,6 @@ subroutine elsi_check_handle(e_h,caller)
 
    if(.not. e_h%handle_init) then
       call elsi_stop(e_h,"Invalid handle! Not initialized.",caller)
-   endif
-
-end subroutine
-
-!>
-!! This subroutine signifies that a handle is believed to be ready to be used.
-!!
-subroutine elsi_ready_handle(e_h,caller)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: e_h
-   character(len=*),  intent(in)    :: caller
-
-   call elsi_check_handle(e_h,caller)
-
-   if(.not. e_h%handle_ready) then
-      call elsi_check(e_h,caller)
-
-      e_h%handle_ready = .true.
-
-      if(e_h%output_timings) then
-         if(e_h%myid_all == 0) then
-            ! Open the JSON file to output timings to (the .false. statement
-            ! selects human-readable output, kept for debugging purposes)
-            if(.true.) then
-               call elsi_open_json_file(e_h,e_h%timings_unit,e_h%timings_name,&
-                       .true.,e_h%timings_file)
-            else
-               call elsi_init_io(e_h%timings_file,e_h%timings_unit,&
-                       e_h%timings_name,HUMAN,.true.,"",COMMA_AFTER)
-               open(unit=e_h%timings_file%print_unit,&
-                  file=e_h%timings_file%file_name)
-            endif
-         else
-            ! De-initialize e_h%myid_all /= 0
-            e_h%timings_file%print_unit = UNSET
-            e_h%timings_file%file_name  = UNSET_STR
-         endif
-      endif
-
-      ! Generate UUID
-      if (.not. e_h%uuid_exists) then
-         call elsi_gen_uuid(e_h)
-         e_h%uuid_exists = .true.
-      endif
    endif
 
 end subroutine
@@ -638,186 +585,6 @@ subroutine elsi_trace_mat_mat_cmplx(e_h,mat1,mat2,trace)
    call MPI_Allreduce(l_trace,trace,1,mpi_complex16,mpi_sum,e_h%mpi_comm,ierr)
 
    call elsi_check_mpi(e_h,"MPI_Allreduce",ierr,caller)
-
-end subroutine
-
-!>
-!! This routine generates a string identifying the current solver.
-!!
-subroutine elsi_get_solver_tag(e_h,data_type,tag)
-
-   implicit none
-
-   type(elsi_handle),      intent(in)  :: e_h
-   integer(kind=i4),       intent(in)  :: data_type
-   character(len=STR_LEN), intent(out) :: tag
-
-   character(len=40), parameter :: caller = "elsi_get_solver_tag"
-
-   if(data_type == REAL_DATA) then
-      select case(e_h%solver)
-      case(ELPA_SOLVER)
-         if(e_h%parallel_mode == SINGLE_PROC) then
-            tag = "LAPACK_REAL"
-         else ! MULTI_PROC
-            if(e_h%elpa_solver == 1) then
-               tag = "ELPA_1STAGE_REAL"
-            elseif(e_h%elpa_solver == 2) then
-               tag = "ELPA_2STAGE_REAL"
-            else
-               call elsi_stop(e_h,"Unsupported ELPA flavor.",caller)
-            endif
-         endif
-      case(OMM_SOLVER)
-         tag = "LIBOMM_REAL"
-      case(PEXSI_SOLVER)
-         tag = "PEXSI_REAL"
-      case(SIPS_SOLVER)
-         tag = "SIPS_REAL"
-      case(DMP_SOLVER)
-         tag = "DMP_REAL"
-      case default
-         call elsi_stop(e_h,"Unsupported solver.",caller)
-      end select
-   elseif(data_type == CMPLX_DATA) then
-      select case(e_h%solver)
-      case(ELPA_SOLVER)
-         if(e_h%parallel_mode == SINGLE_PROC) then
-            tag = "LAPACK_CMPLX"
-         else ! MULTI_PROC
-            if(e_h%elpa_solver == 1) then
-               tag = "ELPA_1STAGE_CMPLX"
-            elseif(e_h%elpa_solver == 2) then
-               tag = "ELPA_2STAGE_CMPLX"
-            else
-               call elsi_stop(e_h,"Unsupported ELPA flavor.",caller)
-            endif
-         endif
-      case(OMM_SOLVER)
-         tag = "LIBOMM_CMPLX"
-      case(PEXSI_SOLVER)
-         tag = "PEXSI_CMPLX"
-      case(SIPS_SOLVER)
-         tag = "SIPS_CMPLX"
-      case(DMP_SOLVER)
-         tag = "DMP_CMPLX"
-      case default
-         call elsi_stop(e_h,"Unsupported solver.",caller)
-      end select
-   else
-      call elsi_stop(e_h,"Unsupported data type.",caller)
-   endif
-
-end subroutine
-
-!>
-!! Generate a UUID (unique identifier) in RFC 4122 format.
-!! (Taken from FHI-aims with permission of copyright holders)
-!!
-subroutine elsi_gen_uuid(e_h)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: e_h
-
-   integer(kind=i4) :: ii3
-   integer(kind=i4) :: ii4
-   integer(kind=i4) :: i_entry
-   integer(kind=i4) :: ierr
-   real(kind=r8)    :: rr(8)
-   character(len=3) :: ss3
-   character(len=4) :: ss4
-
-   character(len=40), parameter :: caller = "elsi_gen_uuid"
-
-   call elsi_init_random_seed()
-
-   ii3 = 4095
-   ii4 = 65535
-
-   call random_number(rr)
-
-   do i_entry=1,8
-      write(ss3,"(Z3.3)") transfer(int(rr(i_entry)*ii3),16)
-      write(ss4,"(Z4.4)") transfer(int(rr(i_entry)*ii4),16)
-
-      if(i_entry == 1) then
-         write(e_h%uuid,'(A)') ss4
-      elseif(i_entry == 2) then
-         write(e_h%uuid,'(2A)') trim(e_h%uuid),ss4
-      elseif(i_entry == 3) then
-         write(e_h%uuid,'(3A)') trim(e_h%uuid),'-',ss4
-      elseif(i_entry == 4) then
-         write(e_h%uuid,'(3A)') trim(e_h%uuid),'-4',ss3
-      elseif(i_entry == 5) then
-         write(e_h%uuid,'(4A)') trim(e_h%uuid),'-A',ss3,'-'
-      else
-         write(e_h%uuid,'(2A)') trim(e_h%uuid),ss4
-      endif
-   enddo
-
-   if(e_h%parallel_mode == MULTI_PROC) then
-      call MPI_Bcast(e_h%uuid,UUID_LEN,mpi_character,0,e_h%mpi_comm_all,ierr)
-      call elsi_check_mpi(e_h,"MPI_Bcast",ierr,caller)
-   endif
-
-end subroutine
-
-!>
-!! Linear congruential generator.
-!! (Taken from FHI-aims with permission of copyright holders)
-!!
-integer(kind=i4) function lcg(s)
-
-   implicit none
-
-   integer(kind=i8) :: s
-
-   if(s == 0) then
-      s = 104729
-   else
-      s = mod(s,int(huge(0_2)*2,kind=i8))
-   endif
-
-   s   = mod(s*int(huge(0_2),kind=i8),int(huge(0_2)*2,kind=i8))
-   lcg = int(mod(s,int(huge(0),kind=i8)),kind(0))
-
-end function
-
-!>
-!! Set the seed in the built-in random_seed subroutine using the system clock
-!! modified by lcg().
-!! (Taken from FHI-aims with permission of copyright holders)
-!!
-subroutine elsi_init_random_seed()
-
-   implicit none
-
-   integer(kind=i4) :: i
-   integer(kind=i4) :: n
-   integer(kind=i4) :: dt(8)
-   integer(kind=i8) :: t
-
-   integer(kind=i4), allocatable :: seed(:)
-
-   character(len=40), parameter :: caller = "elsi_init_random_seed"
-
-   call random_seed(size=n)
-   call date_and_time(values=dt)
-
-   t = (dt(1)-1970)*365*24*60*60*1000+dt(2)*31*24*60*60*1000+&
-          dt(3)*24*60*60*1000+dt(5)*60*60*1000+dt(6)*60*1000+dt(7)*1000+dt(8)
-
-   allocate(seed(n))
-
-   ! Writting the array with seeds
-   do i = 1,n
-      seed(i) = lcg(t)
-   enddo
-
-   call random_seed(put=seed)
-
-   deallocate(seed)
 
 end subroutine
 

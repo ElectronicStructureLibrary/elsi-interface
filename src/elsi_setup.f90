@@ -9,10 +9,9 @@
 !!
 module ELSI_SETUP
 
-   use ELSI_CONSTANTS,     only: TIMINGS_UNIT,TIMINGS_FILE,HUMAN,JSON,&
-                                 ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,&
-                                 SIPS_SOLVER,DMP_SOLVER,SINGLE_PROC,MULTI_PROC,&
-                                 PEXSI_CSC,SIESTA_CSC
+   use ELSI_CONSTANTS,     only: LOG_UNIT,LOG_NAME,HUMAN,JSON,PEXSI_SOLVER,&
+                                 OMM_SOLVER,ELPA_SOLVER,SIPS_SOLVER,DMP_SOLVER,&
+                                 SINGLE_PROC,MULTI_PROC,PEXSI_CSC,SIESTA_CSC
    use ELSI_DATATYPE,      only: elsi_handle
    use ELSI_DMP,           only: elsi_set_dmp_default
    use ELSI_ELPA,          only: elsi_set_elpa_default,elsi_get_elpa_comms
@@ -27,7 +26,6 @@ module ELSI_SETUP
    use ELSI_PEXSI,         only: elsi_set_pexsi_default
    use ELSI_PRECISION,     only: r8,i4
    use ELSI_SIPS,          only: elsi_set_sips_default
-   use ELSI_TIMINGS,       only: elsi_init_timings,elsi_finalize_timings
    use ELSI_UTILS,         only: elsi_check_handle,elsi_reset_handle
    use F_PPEXSI_INTERFACE, only: f_ppexsi_plan_finalize
    use MATRIXSWITCH,       only: ms_scalapack_setup,m_deallocate
@@ -117,12 +115,9 @@ subroutine elsi_init(e_h,solver,parallel_mode,matrix_format,n_basis,n_electron,&
    ! Initialize stdio handle, silent by default
    call elsi_init_io(e_h%stdio,6,file_format=HUMAN,print_info=.false.)
 
-   e_h%output_timings = .false.
-   e_h%timings_name   = TIMINGS_FILE
-   e_h%timings_unit   = TIMINGS_UNIT
-
-   ! Initialize timer information
-   call elsi_init_timings(e_h%timings,"Solver timings")
+   e_h%log_file%print_info = .false.
+   e_h%log_file%file_name  = LOG_NAME
+   e_h%log_file%print_unit = LOG_UNIT
 
 end subroutine
 
@@ -557,22 +552,16 @@ subroutine elsi_cleanup(e_h)
       call sips_finalize()
    endif
 
-   ! Close timings file
-   if(e_h%handle_ready .and. e_h%output_timings .and. e_h%myid_all == 0) then
-      select case(e_h%timings_file%file_format)
-      case(JSON)
-         call elsi_close_json_file(e_h,.true.,e_h%timings_file)
-      case(HUMAN)
-         close(e_h%timings_file%print_unit)
-         call elsi_reset_io_handle(e_h%timings_file)
-      case default
-         call elsi_stop(e_h,"Unsupported output format.",caller)
-      end select
+   if(e_h%log_file%handle_init) then
+      if(e_h%log_file%print_info .and. e_h%log_file%n_records > 0) then
+         if(e_h%myid_all == 0) then
+            call elsi_close_json_file(e_h,.true.,e_h%log_file)
+         endif
+      endif
    endif
 
-   call elsi_finalize_timings(e_h%timings)
-
-   ! Close the stdio file handle, then reset e_h
+   ! Reset handle
+   call elsi_reset_io_handle(e_h%log_file)
    call elsi_reset_io_handle(e_h%stdio)
    call elsi_reset_handle(e_h)
 

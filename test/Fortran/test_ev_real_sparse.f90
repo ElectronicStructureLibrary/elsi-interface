@@ -153,7 +153,6 @@ subroutine test_ev_real_sparse(mpi_comm,solver,h_file,s_file)
    t1 = MPI_Wtime()
 
    ! Solve (pseudo SCF 1)
-   call elsi_set_timings_tag(e_h,"TEST1")
    call elsi_ev_real_sparse(e_h,ham,ovlp,eval,evec)
 
    t2 = MPI_Wtime()
@@ -169,7 +168,6 @@ subroutine test_ev_real_sparse(mpi_comm,solver,h_file,s_file)
    t1 = MPI_Wtime()
 
    ! Solve (pseudo SCF 2, with the same H)
-   call elsi_set_timings_tag(e_h,"TEST2")
    call elsi_ev_real_sparse(e_h,ham,ovlp,eval,evec)
 
    t2 = MPI_Wtime()

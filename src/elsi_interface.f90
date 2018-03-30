@@ -78,10 +78,10 @@ module ELSI
    public :: elsi_set_mu_tol
    public :: elsi_set_mu_spin_degen
    public :: elsi_set_mu_mp_order
-   public :: elsi_set_output_timings
-   public :: elsi_set_timings_unit
-   public :: elsi_set_timings_file
-   public :: elsi_set_timings_tag
+   public :: elsi_set_output_log
+   public :: elsi_set_log_unit
+   public :: elsi_set_log_file
+   public :: elsi_set_log_tag
    public :: elsi_set_uuid
    public :: elsi_set_calling_code
    public :: elsi_get_pexsi_mu_min

@@ -21,30 +21,24 @@ module ELSI_DATATYPE
 
    type, public :: elsi_io_handle
 
-      logical                       :: handle_init ! Is this a valid handle?
-      integer(kind=i4)              :: print_unit  ! Unit to print to
-      character(len=FILENAME_LEN)   :: file_name   ! Name of file
-      integer(kind=i4)              :: file_format ! Human-readable, JSON, etc.?
-      logical                       :: print_info  ! Are we actually printing?
-      character(len=:), allocatable :: prefix      ! Prefix for each line
-      integer(kind=i4)              :: comma_json  ! Comma placement in JSON
-
-   end type
-
-   type, public :: elsi_timings_handle
-
-      integer(kind=i4)       :: size_timings ! Array dimension
-      integer(kind=i4)       :: n_timings
-      character(len=STR_LEN) :: user_tag
-      character(len=STR_LEN) :: set_label    ! Timing set identifier
-
-      real(kind=r8),          allocatable :: times(:)
-      character(len=STR_LEN), allocatable :: elsi_tags(:)
-      character(len=STR_LEN), allocatable :: user_tags(:)
+      logical                       :: handle_init = .false.
+      character(len=FILENAME_LEN)   :: file_name
+      integer(kind=i4)              :: file_format
+      logical                       :: print_info
+      integer(kind=i4)              :: print_unit
+      character(len=:), allocatable :: prefix
+      integer(kind=i4)              :: comma_json
+      integer(kind=i4)              :: n_records
+      character(len=STR_LEN)        :: user_tag
+      character(len=STR_LEN)        :: elsi_tag
 
    end type
 
    type, public :: elsi_handle
+
+      ! ELSI IO files
+      type(elsi_io_handle) :: stdio
+      type(elsi_io_handle) :: log_file
 
       ! ELPA
       real(kind=r8),    allocatable :: ham_real_elpa(:,:)
@@ -99,30 +93,13 @@ module ELSI_DATATYPE
       integer(kind=i4), allocatable :: row_ind_sp2(:)
       integer(kind=i4), allocatable :: col_ptr_sp2(:)
 
-      ! Is this a valid handle?
-      logical          :: handle_init    = .false.
-      ! Is this handle ready to be used?
-      logical          :: handle_ready   = .false.
-
-      ! Solver (AUTO=0,ELPA=1,OMM=2,PEXSI=3,CHESS=4,SIPS=5,DMP=6)
+      ! General info
+      logical          :: handle_init = .false.
       integer(kind=i4) :: solver
-
-      ! data_type has been removed, as it is not a property of the handle
-      ! (a given instance of the handle can solve real or complex problems)
-
-      ! Matrix format (BLACS_DENSE=0,PEXSI_CSC=1,SIESTA_CSC=2)
       integer(kind=i4) :: matrix_format
-
-      ! Is input matrix triangular? (FULL_MAT=0,UT_MAT=1,LT_MAT=2)
       integer(kind=i4) :: uplo
-
-      ! Parallel mode (SINGLE_PROC=0,MULTI_PROC=1)
       integer(kind=i4) :: parallel_mode
-
-      ! Output
       logical          :: print_mem
-
-      ! Number of ELSI being called
       integer(kind=i4) :: n_elsi_calls
 
       ! MPI
@@ -134,8 +111,8 @@ module ELSI_DATATYPE
       integer(kind=i4) :: mpi_comm_all
       integer(kind=i4) :: mpi_comm_row
       integer(kind=i4) :: mpi_comm_col
-      logical          :: mpi_ready
-      logical          :: global_mpi_ready
+      logical          :: mpi_ready = .false.
+      logical          :: global_mpi_ready = .false.
 
       ! BLACS
       integer(kind=i4) :: blacs_ctxt
@@ -149,7 +126,7 @@ module ELSI_DATATYPE
       integer(kind=i4) :: n_lrow
       integer(kind=i4) :: n_lcol
       integer(kind=i4) :: nnz_l ! Local number of nonzeros
-      logical          :: blacs_ready
+      logical          :: blacs_ready = .false.
 
       ! Sparse matrix information (common)
       integer(kind=i4) :: nnz_g     ! Global number of nonzeros
@@ -160,13 +137,13 @@ module ELSI_DATATYPE
       ! Sparse matrix information (1D block)
       integer(kind=i4) :: nnz_l_sp1  ! Local number of nonzeros
       integer(kind=i4) :: n_lcol_sp1 ! Local number of columns
-      logical          :: pexsi_csc_ready
+      logical          :: pexsi_csc_ready = .false.
 
       ! Sparse matrix information (1D block-cyclic)
       integer(kind=i4) :: nnz_l_sp2  ! Local number of nonzeros
       integer(kind=i4) :: n_lcol_sp2 ! Local number of columns
       integer(kind=i4) :: blk_sp2
-      logical          :: siesta_csc_ready
+      logical          :: siesta_csc_ready = .false.
 
       ! Overlap
       logical          :: ovlp_is_unit
@@ -198,11 +175,11 @@ module ELSI_DATATYPE
       real(kind=r8)    :: occ_tolerance
       integer(kind=i4) :: max_mu_steps
       integer(kind=i4) :: mp_order
-      logical          :: spin_is_set
-      logical          :: mu_ready
-      logical          :: ts_ready
-      logical          :: edm_ready_real
-      logical          :: edm_ready_cmplx
+      logical          :: spin_is_set = .false.
+      logical          :: mu_ready = .false.
+      logical          :: ts_ready = .false.
+      logical          :: edm_ready_real = .false.
+      logical          :: edm_ready_cmplx = .false.
 
       ! ELPA
       integer(kind=i4) :: elpa_solver
@@ -259,27 +236,17 @@ module ELSI_DATATYPE
       real(kind=r8)    :: dmp_tol       ! Tolerance for purification
       real(kind=r8)    :: dmp_ne        ! Number of electrons computed by DMP
 
-      ! ELSI IO files
-      type(elsi_io_handle) :: stdio
-      type(elsi_io_handle) :: timings_file
-
-      ! Timer and timings
-      type(elsi_timings_handle)   :: timings
-      logical                     :: output_timings
-      integer(kind=i4)            :: timings_unit
-      character(len=FILENAME_LEN) :: timings_name
-
-      ! Versioning
+      ! Addtional info
       character(len=STR_LEN)  :: caller
       character(len=UUID_LEN) :: uuid
-      logical                 :: uuid_exists
+      logical                 :: uuid_exists = .false.
 
    end type
 
    type, public :: elsi_rw_handle
 
       ! Is this a valid handle?
-      logical          :: handle_init    = .false.
+      logical          :: handle_init = .false.
 
       ! Reading and writing task (READ_FILE=0,WRITE_FILE=1)
       integer(kind=i4) :: rw_task
@@ -299,14 +266,14 @@ module ELSI_DATATYPE
       integer(kind=i4) :: myid
       integer(kind=i4) :: n_procs
       integer(kind=i4) :: mpi_comm
-      logical          :: mpi_ready
+      logical          :: mpi_ready = .false.
 
       ! BLACS
       integer(kind=i4) :: blacs_ctxt
       integer(kind=i4) :: blk
       integer(kind=i4) :: n_lrow
       integer(kind=i4) :: n_lcol
-      logical          :: blacs_ready
+      logical          :: blacs_ready = .false.
 
       ! Sparse matrix information
       integer(kind=i4) :: nnz_g     ! Global number of nonzeros

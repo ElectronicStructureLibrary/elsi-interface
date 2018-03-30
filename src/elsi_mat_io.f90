@@ -14,7 +14,7 @@ module ELSI_MAT_IO
                               REAL_DATA,CMPLX_DATA,FILE_VERSION,PEXSI_SOLVER,&
                               SIPS_SOLVER,MULTI_PROC,SINGLE_PROC,UNSET
    use ELSI_DATATYPE,   only: elsi_handle,elsi_rw_handle
-   use ELSI_IO,         only: elsi_say
+   use ELSI_IO,         only: elsi_say,elsi_get_time
    use ELSI_MALLOC,     only: elsi_allocate,elsi_deallocate
    use ELSI_MAT_REDIST, only: elsi_sips_to_blacs_dm_real,&
                               elsi_sips_to_blacs_dm_cmplx,&
@@ -26,7 +26,6 @@ module ELSI_MAT_IO
    use ELSI_PRECISION,  only: r8,i4,i8
    use ELSI_SETUP,      only: elsi_init,elsi_set_mpi,elsi_set_blacs,&
                               elsi_set_csc,elsi_cleanup
-   use ELSI_TIMINGS,    only: elsi_get_time
    use ELSI_UTILS,      only: elsi_get_local_nnz_real,elsi_get_local_nnz_cmplx
 
    implicit none
@@ -699,7 +698,6 @@ subroutine elsi_read_mat_real_mp(rw_h,f_name,mat)
    call elsi_set_blacs(aux_h,rw_h%blacs_ctxt,rw_h%blk)
 
    ! Output
-   aux_h%output_timings   = .false.
    aux_h%myid_all         = rw_h%myid
    aux_h%stdio%print_info = rw_h%print_info
    aux_h%print_mem        = rw_h%print_mem
@@ -915,7 +913,6 @@ subroutine elsi_read_mat_complex_mp(rw_h,f_name,mat)
    call elsi_set_blacs(aux_h,rw_h%blacs_ctxt,rw_h%blk)
 
    ! Output
-   aux_h%output_timings   = .false.
    aux_h%myid_all         = rw_h%myid
    aux_h%stdio%print_info = rw_h%print_info
    aux_h%print_mem        = rw_h%print_mem
@@ -1126,7 +1123,6 @@ subroutine elsi_write_mat_real_mp(rw_h,f_name,mat)
    call elsi_get_time(t0)
 
    ! Output
-   aux_h%output_timings   = .false.
    aux_h%myid_all         = rw_h%myid
    aux_h%stdio%print_info = rw_h%print_info
    aux_h%print_mem        = rw_h%print_mem
@@ -1244,7 +1240,6 @@ subroutine elsi_write_mat_complex_mp(rw_h,f_name,mat)
    call elsi_get_time(t0)
 
    ! Output
-   aux_h%output_timings   = .false.
    aux_h%myid_all         = rw_h%myid
    aux_h%stdio%print_info = rw_h%print_info
    aux_h%print_mem        = rw_h%print_mem

@@ -11,11 +11,10 @@ module ELSI_SIPS
 
    use ELSI_CONSTANTS, only: UNSET
    use ELSI_DATATYPE,  only: elsi_handle
-   use ELSI_IO,        only: elsi_say
+   use ELSI_IO,        only: elsi_say,elsi_get_time
    use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
    use ELSI_MPI,       only: elsi_stop,elsi_check_mpi
    use ELSI_PRECISION, only: r8,i4
-   use ELSI_TIMINGS,   only: elsi_get_time
    use M_SIPS,         only: sips_initialize,sips_load_ham_ovlp,sips_load_ham,&
                              sips_update_ham,sips_set_eps,sips_update_eps,&
                              sips_set_slices,sips_solve_eps,sips_get_inertias,&
