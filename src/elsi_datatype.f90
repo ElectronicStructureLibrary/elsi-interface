@@ -176,8 +176,6 @@ module ELSI_DATATYPE
       integer(kind=i4) :: max_mu_steps
       integer(kind=i4) :: mp_order
       logical          :: spin_is_set = .false.
-      logical          :: mu_ready = .false.
-      logical          :: ts_ready = .false.
       logical          :: edm_ready_real = .false.
       logical          :: edm_ready_cmplx = .false.
 

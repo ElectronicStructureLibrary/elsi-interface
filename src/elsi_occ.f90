@@ -355,12 +355,14 @@ subroutine elsi_find_mu(e_h,n_electron,n_state,n_spin,n_kpt,k_weights,evals,&
       mu_out = mu_right
 
       ! ...with adjusted occupation numbers
-      call elsi_say(e_h,"  Chemical potential cannot reach the required"//&
-              " accuracy by bisection method.",e_h%stdio)
+      write(info_str,"(A)")&
+         "  Chemical potential cannot reach the required accuracy."
+      call elsi_say(e_h%stdio,info_str)
       write(info_str,"('  | Residual error :',E10.2)") diff_right
-      call elsi_say(e_h,info_str,e_h%stdio)
-      call elsi_say(e_h,"  The error will be arbitrarily removed from the"//&
-              " highest occupied states.",e_h%stdio)
+      call elsi_say(e_h%stdio,info_str)
+      write(info_str,"(A)")&
+         "  The error will be removed from the highest occupied states."
+      call elsi_say(e_h%stdio,info_str)
 
       call elsi_adjust_occ(e_h,n_state,n_spin,n_kpt,k_weights,evals,occ_nums,&
               diff_right)

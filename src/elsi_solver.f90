@@ -411,9 +411,6 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
       call elsi_compute_occ_elpa(e_h,e_h%eval_elpa)
       call elsi_compute_dm_elpa_real(e_h,e_h%evec_real_elpa,dm,ham)
       call elsi_get_energy(e_h,energy,ELPA_SOLVER)
-
-      e_h%mu_ready = .true.
-      e_h%ts_ready = .true.
    case(OMM_SOLVER)
       if(e_h%n_elsi_calls <= e_h%omm_n_elpa) then
          if(e_h%n_elsi_calls == 1 .and. e_h%omm_flavor == 0) then
@@ -490,8 +487,6 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
               e_h%ovlp_real_pexsi,e_h%dm_real_pexsi)
       call elsi_pexsi_to_blacs_dm_real(e_h,dm)
       call elsi_get_energy(e_h,energy,PEXSI_SOLVER)
-
-      e_h%mu_ready = .true.
    case(SIPS_SOLVER)
       if(.not. allocated(e_h%eval_elpa)) then
          call elsi_allocate(e_h,e_h%eval_elpa,e_h%n_basis,"eval_elpa",caller)
@@ -539,9 +534,6 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
          call elsi_sips_to_blacs_dm_real(e_h,dm)
          call elsi_get_energy(e_h,energy,SIPS_SOLVER)
       endif
-
-      e_h%mu_ready = .true.
-      e_h%ts_ready = .true.
    case(DMP_SOLVER)
       ! Save Hamiltonian and overlap
       if(e_h%n_elsi_calls==1) then
@@ -606,9 +598,6 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
       call elsi_compute_occ_elpa(e_h,e_h%eval_elpa)
       call elsi_compute_dm_elpa_cmplx(e_h,e_h%evec_cmplx_elpa,dm,ham)
       call elsi_get_energy(e_h,energy,ELPA_SOLVER)
-
-      e_h%mu_ready = .true.
-      e_h%ts_ready = .true.
    case(OMM_SOLVER)
       if(e_h%n_elsi_calls <= e_h%omm_n_elpa) then
          if(e_h%n_elsi_calls == 1 .and. e_h%omm_flavor == 0) then
@@ -686,8 +675,6 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
               e_h%ovlp_cmplx_pexsi,e_h%dm_cmplx_pexsi)
       call elsi_pexsi_to_blacs_dm_cmplx(e_h,dm)
       call elsi_get_energy(e_h,energy,PEXSI_SOLVER)
-
-      e_h%mu_ready = .true.
    case default
       call elsi_stop(e_h,"Unsupported density matrix solver.",caller)
    end select
@@ -768,9 +755,6 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
       end select
 
       call elsi_get_energy(e_h,energy,ELPA_SOLVER)
-
-      e_h%mu_ready = .true.
-      e_h%ts_ready = .true.
    case(OMM_SOLVER)
       ! Set up BLACS if not done by user
       if(.not. e_h%blacs_ready) then
@@ -894,8 +878,6 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
       end select
 
       call elsi_get_energy(e_h,energy,PEXSI_SOLVER)
-
-      e_h%mu_ready = .true.
    case(SIPS_SOLVER)
       if(e_h%n_elsi_calls <= e_h%sips_n_elpa) then
          ! Set up BLACS if not done by user
@@ -981,9 +963,6 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
             call elsi_stop(e_h,"Unsupported matrix format.",caller)
          end select
       endif
-
-      e_h%mu_ready = .true.
-      e_h%ts_ready = .true.
    case(DMP_SOLVER)
       ! Set up BLACS if not done by user
       if(.not. e_h%blacs_ready) then
@@ -1107,9 +1086,6 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
       end select
 
       call elsi_get_energy(e_h,energy,ELPA_SOLVER)
-
-      e_h%mu_ready = .true.
-      e_h%ts_ready = .true.
    case(OMM_SOLVER)
       ! Set up BLACS if not done by user
       if(.not. e_h%blacs_ready) then
@@ -1234,8 +1210,6 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
       end select
 
       call elsi_get_energy(e_h,energy,PEXSI_SOLVER)
-
-      e_h%mu_ready = .true.
    case default
       call elsi_stop(e_h,"Unsupported density matrix solver.",caller)
    end select

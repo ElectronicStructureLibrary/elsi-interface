@@ -86,9 +86,9 @@ subroutine elsi_solve_evp_omm_real(e_h,ham,ovlp,dm)
             call elsi_get_time(t1)
 
             write(info_str,"('  Finished Cholesky decomposition')")
-            call elsi_say(e_h,info_str,e_h%stdio)
+            call elsi_say(e_h%stdio,info_str)
             write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-            call elsi_say(e_h,info_str,e_h%stdio)
+            call elsi_say(e_h%stdio,info_str)
          endif
 
          if(e_h%n_elsi_calls > e_h%omm_n_elpa+1) then
@@ -113,7 +113,8 @@ subroutine elsi_solve_evp_omm_real(e_h,ham,ovlp,dm)
 
    call elsi_get_time(t0)
 
-   call elsi_say(e_h,"  Starting OMM density matrix solver",e_h%stdio)
+   write(info_str,"('  Starting OMM density matrix solver')")
+   call elsi_say(e_h%stdio,info_str)
 
    call omm(e_h%n_basis,e_h%omm_n_states,e_h%ham_omm,e_h%ovlp_omm,new_ovlp,&
            e_h%energy_hdm,e_h%dm_omm,.false.,e_h%omm_ev_shift,e_h%c_omm,&
@@ -129,9 +130,9 @@ subroutine elsi_solve_evp_omm_real(e_h,ham,ovlp,dm)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished density matrix calculation')")
-   call elsi_say(e_h,info_str,e_h%stdio)
+   call elsi_say(e_h%stdio,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h,info_str,e_h%stdio)
+   call elsi_say(e_h%stdio,info_str)
 
 end subroutine
 
@@ -165,9 +166,9 @@ subroutine elsi_compute_edm_omm_real(e_h,edm)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished energy density matrix calculation')")
-   call elsi_say(e_h,info_str,e_h%stdio)
+   call elsi_say(e_h%stdio,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h,info_str,e_h%stdio)
+   call elsi_say(e_h%stdio,info_str)
 
 end subroutine
 
@@ -224,9 +225,9 @@ subroutine elsi_solve_evp_omm_cmplx(e_h,ham,ovlp,dm)
             call elsi_get_time(t1)
 
             write(info_str,"('  Finished Cholesky decomposition')")
-            call elsi_say(e_h,info_str,e_h%stdio)
+            call elsi_say(e_h%stdio,info_str)
             write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-            call elsi_say(e_h,info_str,e_h%stdio)
+            call elsi_say(e_h%stdio,info_str)
          endif
 
          if(e_h%n_elsi_calls > e_h%omm_n_elpa+1) then
@@ -251,7 +252,8 @@ subroutine elsi_solve_evp_omm_cmplx(e_h,ham,ovlp,dm)
 
    call elsi_get_time(t0)
 
-   call elsi_say(e_h,"  Starting OMM density matrix solver",e_h%stdio)
+   write(info_str,"('  Starting OMM density matrix solver')")
+   call elsi_say(e_h%stdio,info_str)
 
    call omm(e_h%n_basis,e_h%omm_n_states,e_h%ham_omm,e_h%ovlp_omm,new_ovlp,&
            e_h%energy_hdm,e_h%dm_omm,.false.,e_h%omm_ev_shift,e_h%c_omm,&
@@ -267,9 +269,9 @@ subroutine elsi_solve_evp_omm_cmplx(e_h,ham,ovlp,dm)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished density matrix calculation')")
-   call elsi_say(e_h,info_str,e_h%stdio)
+   call elsi_say(e_h%stdio,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h,info_str,e_h%stdio)
+   call elsi_say(e_h%stdio,info_str)
 
 end subroutine
 
@@ -303,9 +305,9 @@ subroutine elsi_compute_edm_omm_cmplx(e_h,edm)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished energy density matrix calculation')")
-   call elsi_say(e_h,info_str,e_h%stdio)
+   call elsi_say(e_h%stdio,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h,info_str,e_h%stdio)
+   call elsi_say(e_h%stdio,info_str)
 
 end subroutine
 

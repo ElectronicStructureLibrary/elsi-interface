@@ -16,10 +16,9 @@ module ELSI_SETUP
    use ELSI_DMP,           only: elsi_set_dmp_default
    use ELSI_ELPA,          only: elsi_set_elpa_default,elsi_get_elpa_comms
    use ELSI_IO,            only: elsi_print_handle_summary,elsi_say,&
-                                 elsi_say_setting,elsi_init_io,&
-                                 elsi_reset_io_handle,elsi_append_string,&
-                                 elsi_truncate_string,elsi_print_versioning,&
-                                 elsi_close_json_file
+                                 elsi_init_io,elsi_reset_io_handle,&
+                                 elsi_append_string,elsi_truncate_string,&
+                                 elsi_print_versioning,elsi_close_json_file
    use ELSI_MALLOC,        only: elsi_allocate,elsi_deallocate
    use ELSI_MPI,           only: elsi_stop
    use ELSI_OMM,           only: elsi_set_omm_default
@@ -374,22 +373,26 @@ subroutine elsi_final_print(e_h)
    type(elsi_handle), intent(inout) :: e_h !< Handle
 
    character(len=200) :: ll
+   character(len=200) :: info_str
 
    character(len=40), parameter :: caller = "elsi_final_print"
 
    write(ll,"(A)")&
       "  |-----------------------------------------------------------"
-   call elsi_say(e_h,ll,e_h%stdio)
-   call elsi_say(e_h,"  | Final ELSI Output",e_h%stdio)
-   call elsi_say(e_h,ll,e_h%stdio)
+   call elsi_say(e_h%stdio,ll)
+   write(info_str,"('  | Final ELSI Output')")
+   call elsi_say(e_h%stdio,info_str)
+   call elsi_say(e_h%stdio,ll)
    call elsi_append_string(e_h%stdio%prefix,"  | ")
    call elsi_print_versioning(e_h,e_h%stdio)
-   call elsi_say(e_h,"",e_h%stdio)
+   write(info_str,"('')")
+   call elsi_say(e_h%stdio,info_str)
    call elsi_print_handle_summary(e_h,e_h%stdio)
    call elsi_truncate_string(e_h%stdio%prefix,4)
-   call elsi_say(e_h,ll,e_h%stdio)
-   call elsi_say(e_h,"  | ELSI Project (c)  elsi-interchange.org",e_h%stdio)
-   call elsi_say(e_h,ll,e_h%stdio)
+   call elsi_say(e_h%stdio,ll)
+   write(info_str,"('  | ELSI Project (c)  elsi-interchange.org')")
+   call elsi_say(e_h%stdio,info_str)
+   call elsi_say(e_h%stdio,ll)
 
 end subroutine
 
@@ -552,11 +555,9 @@ subroutine elsi_cleanup(e_h)
       call sips_finalize()
    endif
 
-   if(e_h%log_file%handle_init) then
-      if(e_h%log_file%print_info .and. e_h%log_file%n_records > 0) then
-         if(e_h%myid_all == 0) then
-            call elsi_close_json_file(e_h,.true.,e_h%log_file)
-         endif
+   if(e_h%myid_all == 0) then
+      if(e_h%log_file%handle_init) then
+         call elsi_close_json_file(e_h%log_file,.true.)
       endif
    endif
 

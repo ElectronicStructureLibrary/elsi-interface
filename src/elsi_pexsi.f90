@@ -199,7 +199,8 @@ subroutine elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
       call elsi_stop(e_h,"Failed to load matrices.",caller)
    endif
 
-   call elsi_say(e_h,"  Starting PEXSI density matrix solver",e_h%stdio)
+   write(info_str,"('  Starting PEXSI density matrix solver')")
+   call elsi_say(e_h%stdio,info_str)
 
    ! Symbolic factorization
    if(e_h%n_elsi_calls == 1) then
@@ -214,9 +215,9 @@ subroutine elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
       call elsi_get_time(t1)
 
       write(info_str,"('  Finished symbolic factorization')")
-      call elsi_say(e_h,info_str,e_h%stdio)
+      call elsi_say(e_h%stdio,info_str)
       write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-      call elsi_say(e_h,info_str,e_h%stdio)
+      call elsi_say(e_h%stdio,info_str)
    endif
 
    if(ierr /= 0) then
@@ -312,9 +313,9 @@ subroutine elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
 
    if(n_iner_steps > 0) then
       write(info_str,"('  Finished inertia counting')")
-      call elsi_say(e_h,info_str,e_h%stdio)
+      call elsi_say(e_h%stdio,info_str)
       write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-      call elsi_say(e_h,info_str,e_h%stdio)
+      call elsi_say(e_h%stdio,info_str)
    endif
 
    if(ierr /= 0) then
@@ -375,9 +376,9 @@ subroutine elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished Fermi operator calculation')")
-   call elsi_say(e_h,info_str,e_h%stdio)
+   call elsi_say(e_h%stdio,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h,info_str,e_h%stdio)
+   call elsi_say(e_h%stdio,info_str)
 
    if(ierr /= 0) then
       call elsi_stop(e_h,"Fermi operator calculation failed.",caller)
@@ -505,9 +506,9 @@ subroutine elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished density matrix correction')")
-   call elsi_say(e_h,info_str,e_h%stdio)
+   call elsi_say(e_h%stdio,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h,info_str,e_h%stdio)
+   call elsi_say(e_h%stdio,info_str)
 
    call MPI_Barrier(e_h%mpi_comm,ierr)
 
@@ -665,9 +666,9 @@ subroutine elsi_compute_edm_pexsi_real(e_h,edm)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished energy density matrix calculation')")
-   call elsi_say(e_h,info_str,e_h%stdio)
+   call elsi_say(e_h%stdio,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h,info_str,e_h%stdio)
+   call elsi_say(e_h%stdio,info_str)
 
 end subroutine
 
@@ -729,7 +730,8 @@ subroutine elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
       call elsi_stop(e_h,"Failed to load matrices.",caller)
    endif
 
-   call elsi_say(e_h,"  Starting PEXSI density matrix solver",e_h%stdio)
+   write(info_str,"('  Starting PEXSI density matrix solver')")
+   call elsi_say(e_h%stdio,info_str)
 
    ! Symbolic factorization
    if(e_h%n_elsi_calls == 1) then
@@ -744,9 +746,9 @@ subroutine elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
       call elsi_get_time(t1)
 
       write(info_str,"('  Finished symbolic factorization')")
-      call elsi_say(e_h,info_str,e_h%stdio)
+      call elsi_say(e_h%stdio,info_str)
       write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-      call elsi_say(e_h,info_str,e_h%stdio)
+      call elsi_say(e_h%stdio,info_str)
    endif
 
    if(ierr /= 0) then
@@ -842,9 +844,9 @@ subroutine elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
 
    if(n_iner_steps > 0) then
       write(info_str,"('  Finished inertia counting')")
-      call elsi_say(e_h,info_str,e_h%stdio)
+      call elsi_say(e_h%stdio,info_str)
       write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-      call elsi_say(e_h,info_str,e_h%stdio)
+      call elsi_say(e_h%stdio,info_str)
    endif
 
    if(ierr /= 0) then
@@ -905,9 +907,9 @@ subroutine elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished Fermi operator calculation')")
-   call elsi_say(e_h,info_str,e_h%stdio)
+   call elsi_say(e_h%stdio,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h,info_str,e_h%stdio)
+   call elsi_say(e_h%stdio,info_str)
 
    if(ierr /= 0) then
       call elsi_stop(e_h,"Fermi operator calculation failed.",caller)
@@ -1039,9 +1041,9 @@ subroutine elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished density matrix correction')")
-   call elsi_say(e_h,info_str,e_h%stdio)
+   call elsi_say(e_h%stdio,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h,info_str,e_h%stdio)
+   call elsi_say(e_h%stdio,info_str)
 
    call MPI_Barrier(e_h%mpi_comm,ierr)
 
@@ -1201,9 +1203,9 @@ subroutine elsi_compute_edm_pexsi_cmplx(e_h,edm)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished energy density matrix calculation')")
-   call elsi_say(e_h,info_str,e_h%stdio)
+   call elsi_say(e_h%stdio,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h,info_str,e_h%stdio)
+   call elsi_say(e_h%stdio,info_str)
 
 end subroutine
 

@@ -15,7 +15,6 @@ module ELSI_UTILS
                              OMM_SOLVER,PEXSI_SOLVER,CHESS_SOLVER,SIPS_SOLVER,&
                              DMP_SOLVER,UNSET_STR
    use ELSI_DATATYPE,  only: elsi_handle
-   use ELSI_IO,        only: elsi_say
    use ELSI_MPI,       only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8,&
                              mpi_complex16,mpi_comm_self
    use ELSI_PRECISION, only: i4,r8
@@ -116,8 +115,6 @@ subroutine elsi_reset_handle(e_h)
    e_h%max_mu_steps           = 100
    e_h%mp_order               = 1
    e_h%spin_is_set            = .false.
-   e_h%mu_ready               = .false.
-   e_h%ts_ready               = .false.
    e_h%edm_ready_real         = .false.
    e_h%edm_ready_cmplx        = .false.
    e_h%elpa_solver            = UNSET
@@ -220,6 +217,11 @@ subroutine elsi_check(e_h,caller)
       e_h%mpi_comm_all = e_h%mpi_comm
       e_h%n_procs_all  = e_h%n_procs
       e_h%myid_all     = e_h%myid
+   endif
+
+   if(e_h%myid_all /= 0) then
+      e_h%stdio%print_info    = .false.
+      e_h%log_file%print_info = .false.
    endif
 
    if(e_h%parallel_mode == MULTI_PROC) then

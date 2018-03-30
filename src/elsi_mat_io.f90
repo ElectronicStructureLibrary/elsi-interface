@@ -307,7 +307,7 @@ subroutine elsi_check_rw_handle(rw_h,caller)
    character(len=*),     intent(in) :: caller !< Caller
 
    if(.not. rw_h%handle_init) then
-      call elsi_rw_stop(" Invalid handle! Not initialized.",rw_h,caller)
+      call elsi_rw_stop(rw_h,"Invalid handle! Not initialized.",caller)
    endif
 
 end subroutine
@@ -351,16 +351,16 @@ end subroutine
 !>
 !! Clean shutdown in case of errors.
 !!
-subroutine elsi_rw_stop(info,rw_h,caller)
+subroutine elsi_rw_stop(rw_h,info,caller)
 
    implicit none
 
-   character(len=*),     intent(in) :: info   !< Error message
    type(elsi_rw_handle), intent(in) :: rw_h   !< Handle
+   character(len=*),     intent(in) :: info   !< Error message
    character(len=*),     intent(in) :: caller !< Caller
 
-   character(len=200) :: info_str
    integer(kind=i4)   :: ierr
+   character(len=200) :: info_str
 
    if(rw_h%mpi_ready) then
       write(info_str,"(A,I7,5A)") "**Error! MPI task ",rw_h%myid," in ",&
@@ -522,7 +522,7 @@ subroutine elsi_read_mat_dim_mp(rw_h,f_name,n_electron,n_basis,n_lrow,n_lcol)
    inquire(file=f_name,exist=file_ok)
 
    if(.not. file_ok) then
-      call elsi_rw_stop(" File does not exist.",rw_h,caller)
+      call elsi_rw_stop(rw_h,"File does not exist.",caller)
    endif
 
    ! Open file
@@ -594,7 +594,7 @@ subroutine elsi_read_mat_dim_sparse(rw_h,f_name,n_electron,n_basis,nnz_g,&
    inquire(file=f_name,exist=file_ok)
 
    if(.not. file_ok) then
-      call elsi_rw_stop(" File does not exist.",rw_h,caller)
+      call elsi_rw_stop(rw_h,"File does not exist.",caller)
    endif
 
    ! Open file
@@ -689,7 +689,7 @@ subroutine elsi_read_mat_real_mp(rw_h,f_name,mat)
    inquire(file=f_name,exist=file_ok)
 
    if(.not. file_ok) then
-      call elsi_rw_stop(" File does not exist.",rw_h,caller)
+      call elsi_rw_stop(rw_h,"File does not exist.",caller)
    endif
 
    call elsi_init(aux_h,PEXSI_SOLVER,MULTI_PROC,BLACS_DENSE,rw_h%n_basis,&
@@ -776,9 +776,9 @@ subroutine elsi_read_mat_real_mp(rw_h,f_name,mat)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished reading matrix')")
-   call elsi_say(aux_h,info_str,aux_h%stdio)
+   call elsi_say(aux_h%stdio,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(aux_h,info_str,aux_h%stdio)
+   call elsi_say(aux_h%stdio,info_str)
 
    call elsi_cleanup(aux_h)
 
@@ -815,7 +815,7 @@ subroutine elsi_read_mat_real_sparse(rw_h,f_name,row_ind,col_ptr,mat)
    inquire(file=f_name,exist=file_ok)
 
    if(.not. file_ok) then
-      call elsi_rw_stop(" File does not exist.",rw_h,caller)
+      call elsi_rw_stop(rw_h,"File does not exist.",caller)
    endif
 
    ! Output
@@ -865,9 +865,9 @@ subroutine elsi_read_mat_real_sparse(rw_h,f_name,row_ind,col_ptr,mat)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished reading matrix')")
-   call elsi_say(aux_h,info_str,aux_h%stdio)
+   call elsi_say(aux_h%stdio,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(aux_h,info_str,aux_h%stdio)
+   call elsi_say(aux_h%stdio,info_str)
 
 end subroutine
 
@@ -904,7 +904,7 @@ subroutine elsi_read_mat_complex_mp(rw_h,f_name,mat)
    inquire(file=f_name,exist=file_ok)
 
    if(.not. file_ok) then
-      call elsi_rw_stop(" File does not exist.",rw_h,caller)
+      call elsi_rw_stop(rw_h,"File does not exist.",caller)
    endif
 
    call elsi_init(aux_h,PEXSI_SOLVER,MULTI_PROC,BLACS_DENSE,rw_h%n_basis,&
@@ -991,9 +991,9 @@ subroutine elsi_read_mat_complex_mp(rw_h,f_name,mat)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished reading matrix')")
-   call elsi_say(aux_h,info_str,aux_h%stdio)
+   call elsi_say(aux_h%stdio,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(aux_h,info_str,aux_h%stdio)
+   call elsi_say(aux_h%stdio,info_str)
 
    call elsi_cleanup(aux_h)
 
@@ -1030,7 +1030,7 @@ subroutine elsi_read_mat_complex_sparse(rw_h,f_name,row_ind,col_ptr,mat)
    inquire(file=f_name,exist=file_ok)
 
    if(.not. file_ok) then
-      call elsi_rw_stop(" File does not exist.",rw_h,caller)
+      call elsi_rw_stop(rw_h,"File does not exist.",caller)
    endif
 
    ! Output
@@ -1080,9 +1080,9 @@ subroutine elsi_read_mat_complex_sparse(rw_h,f_name,row_ind,col_ptr,mat)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished reading matrix')")
-   call elsi_say(aux_h,info_str,aux_h%stdio)
+   call elsi_say(aux_h%stdio,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(aux_h,info_str,aux_h%stdio)
+   call elsi_say(aux_h%stdio,info_str)
 
    call elsi_cleanup(aux_h)
 
@@ -1197,9 +1197,9 @@ subroutine elsi_write_mat_real_mp(rw_h,f_name,mat)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished writing matrix')")
-   call elsi_say(aux_h,info_str,aux_h%stdio)
+   call elsi_say(aux_h%stdio,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(aux_h,info_str,aux_h%stdio)
+   call elsi_say(aux_h%stdio,info_str)
 
    call elsi_cleanup(aux_h)
 
@@ -1314,9 +1314,9 @@ subroutine elsi_write_mat_complex_mp(rw_h,f_name,mat)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished writing matrix')")
-   call elsi_say(aux_h,info_str,aux_h%stdio)
+   call elsi_say(aux_h%stdio,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(aux_h,info_str,aux_h%stdio)
+   call elsi_say(aux_h%stdio,info_str)
 
    call elsi_cleanup(aux_h)
 
@@ -1419,9 +1419,9 @@ subroutine elsi_write_mat_real_sparse(rw_h,f_name,row_ind,col_ptr,mat)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished writing matrix')")
-   call elsi_say(aux_h,info_str,aux_h%stdio)
+   call elsi_say(aux_h%stdio,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(aux_h,info_str,aux_h%stdio)
+   call elsi_say(aux_h%stdio,info_str)
 
 end subroutine
 
@@ -1522,9 +1522,9 @@ subroutine elsi_write_mat_complex_sparse(rw_h,f_name,row_ind,col_ptr,mat)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished writing matrix')")
-   call elsi_say(aux_h,info_str,aux_h%stdio)
+   call elsi_say(aux_h%stdio,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(aux_h,info_str,aux_h%stdio)
+   call elsi_say(aux_h%stdio,info_str)
 
 end subroutine
 
@@ -1552,7 +1552,7 @@ subroutine elsi_read_mat_dim_sp(rw_h,f_name,n_electron,n_basis,n_lrow,n_lcol)
    inquire(file=f_name,exist=file_ok)
 
    if(.not. file_ok) then
-      call elsi_rw_stop(" File does not exist.",rw_h,caller)
+      call elsi_rw_stop(rw_h,"File does not exist.",caller)
    endif
 
    ! Open file
@@ -1610,7 +1610,7 @@ subroutine elsi_read_mat_real_sp(rw_h,f_name,mat)
    inquire(file=f_name,exist=file_ok)
 
    if(.not. file_ok) then
-      call elsi_rw_stop(" File does not exist.",rw_h,caller)
+      call elsi_rw_stop(rw_h,"File does not exist.",caller)
    endif
 
    ! Output
@@ -1679,9 +1679,9 @@ subroutine elsi_read_mat_real_sp(rw_h,f_name,mat)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished reading matrix')")
-   call elsi_say(aux_h,info_str,aux_h%stdio)
+   call elsi_say(aux_h%stdio,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(aux_h,info_str,aux_h%stdio)
+   call elsi_say(aux_h%stdio,info_str)
 
 end subroutine
 
@@ -1718,7 +1718,7 @@ subroutine elsi_read_mat_complex_sp(rw_h,f_name,mat)
    inquire(file=f_name,exist=file_ok)
 
    if(.not. file_ok) then
-      call elsi_rw_stop(" File does not exist.",rw_h,caller)
+      call elsi_rw_stop(rw_h,"File does not exist.",caller)
    endif
 
    ! Output
@@ -1787,9 +1787,9 @@ subroutine elsi_read_mat_complex_sp(rw_h,f_name,mat)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished reading matrix')")
-   call elsi_say(aux_h,info_str,aux_h%stdio)
+   call elsi_say(aux_h%stdio,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(aux_h,info_str,aux_h%stdio)
+   call elsi_say(aux_h%stdio,info_str)
 
 end subroutine
 
@@ -1898,9 +1898,9 @@ subroutine elsi_write_mat_real_sp(rw_h,f_name,mat)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished writing matrix')")
-   call elsi_say(aux_h,info_str,aux_h%stdio)
+   call elsi_say(aux_h%stdio,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(aux_h,info_str,aux_h%stdio)
+   call elsi_say(aux_h%stdio,info_str)
 
 end subroutine
 
@@ -2009,9 +2009,9 @@ subroutine elsi_write_mat_complex_sp(rw_h,f_name,mat)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished writing matrix')")
-   call elsi_say(aux_h,info_str,aux_h%stdio)
+   call elsi_say(aux_h%stdio,info_str)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(aux_h,info_str,aux_h%stdio)
+   call elsi_say(aux_h%stdio,info_str)
 
 end subroutine
 

@@ -132,7 +132,7 @@ module ELSI
    public :: elsi_open_json_file
    public :: elsi_close_json_file
    public :: elsi_start_json_record
-   public :: elsi_say_setting
    public :: elsi_finish_json_record
+   public :: elsi_say_setting
 
 end module ELSI

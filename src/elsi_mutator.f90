@@ -14,7 +14,6 @@ module ELSI_MUTATOR
    use ELSI_DATATYPE,   only: elsi_handle
    use ELSI_ELPA,       only: elsi_compute_edm_elpa_real,&
                               elsi_compute_edm_elpa_cmplx
-   use ELSI_IO,         only: elsi_say
    use ELSI_MALLOC,     only: elsi_allocate,elsi_deallocate
    use ELSI_MAT_REDIST, only: elsi_blacs_to_siesta_dm_cmplx,&
                               elsi_blacs_to_siesta_dm_real,&
@@ -1102,13 +1101,6 @@ subroutine elsi_get_mu(e_h,mu)
 
    mu = e_h%mu
 
-   if(.not. e_h%mu_ready) then
-      call elsi_say(e_h,"  ATTENTION! The return value of mu may be 0, since"//&
-              " mu has not been computed.",e_h%stdio)
-   endif
-
-   e_h%mu_ready = .false.
-
 end subroutine
 
 !>
@@ -1126,13 +1118,6 @@ subroutine elsi_get_entropy(e_h,ts)
    call elsi_check_handle(e_h,caller)
 
    ts = e_h%ts
-
-   if(.not. e_h%ts_ready) then
-      call elsi_say(e_h,"  ATTENTION! The return value of ts may be 0, since"//&
-              " ts has not been computed.",e_h%stdio)
-   endif
-
-   e_h%ts_ready = .false.
 
 end subroutine
 
