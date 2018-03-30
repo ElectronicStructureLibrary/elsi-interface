@@ -3,140 +3,197 @@
 =========================
 
 ===========================================================================
-A) BASIC
+A) PREREQUISITES
 ===========================================================================
 
-1) The installation of ELSI is controlled by a user-specified "make.sys"
-   file.  Example make.sys files can be found in the "./make_sys" subfolder
-   of the root directory, which the user may adapt to their own system.
+   Note:  Starting from February 2018, the installation of ELSI makes use
+   of the CMake software.
 
-   A standard ELSI make.sys file includes the following keywords:
+   To build the ELSI interface, minimum requirements include:
 
-     MPIFC         =  # MPI Fortran compiler
-     MPICC         =  # MPI C compiler
-     MPICXX        =  # MPI C++ compiler
+     - CMake             [3.0 or newer]
+     - Fortran compiler  [Fortran 2003]
+     - C compiler        [C99]
+     - MPI
 
-     FFLAGS        =  # Fortran compiler flags
-     CFLAGS        =  # C compiler flags
-     CXXFLAGS      =  # C++ compiler flags
+   The following two additional components enable the PEXSI solver, thus
+   are highly recommended:
 
-     CXX_LIB       =  # C++ standard library flags, e.g. -lstdc++
-     SCALAPACK_LIB =  # BLAS, LAPACK, BLACS, ScaLAPACK library flags
+     - C++ compiler  [C++11]
+     - PtScotch      [6.0.4 or newer]
 
-     PTSCOTCH_LIB  =  # Scotch and PtScotch library flags
-     SUPERLU_LIB   =  # SuperLU_DIST library flags
-     SUPERLU_INC   =  # SuperLU_DIST include flags
+   To build ELSI as a shared library, or to build the ELSI test programs,
+   linear algebra libraries should be provided for ELSI to link against:
 
-2) Once a suitable make.sys has been provided by the user, the unified ELSI
-   build system is run by typing
+     - BLAS, LAPACK, BLACS, ScaLAPACK
 
-     make
+   By default, solver libraries redistributed within ELSI will be built.
+   Optionally, they may be substituted by user's optimized versions:
 
-   in the root directory.
-
-   By default, the unified ELSI build system will build the ELPA, libOMM,
-   and PEXSI solver libraries redistributed with ELSI, as well as the ELSI
-   interface itself.  Optionally, the user may link ELSI directly against
-   preinstalled version of any supported solver library.  For more
-   information how to link ELSI against a preinstalled solver library,
-   please see the User's Guide (./src/ELSI/doc/elsi_manual.pdf).  A sample
-   make.sys file is provided (./make_sys/make.sys-external-lib), which
-   demonstrates external linkage of ELSI against preinstalled ELPA, libOMM,
-   and PEXSI libraries.
-
-3) (Optional, but highly recommended) Once compiled, the ELSI libraries
-   may be sanity-checked using a quick set of tests by typing
-
-     make check
-
-   in the root directory.
-
-   The default MPI wrapper executable used by the ELSI suite is "mpirun".
-   This may be changed by the user by setting the following keyword in the
-   make.sys file:
-
-     MPI_EXEC =  # Default: mpirun
-
-   The ELSI test suite requires the ability to run MPI calculations.  Many
-   clusters do not allow MPI calculations to be run on login/compile nodes.
-   If this is the case for the user's cluster, please see the cluster's
-   documentation for information about requesting an interactive job or,
-   alternatively, submitting a custom script to the queuing system.
-
-4) To finalize the ELSI installation, type
-
-     make install
-
-   in the root directory.
-
-5) If the installation finishes without any fatal errors, the library files
-   will be put in the "./lib" subfolder, module files in the "./include"
-   subfolder, and executables in the "./bin" subfolder.
+     - SuperLU_DIST  [5.1.3 or newer]
+     - ELPA          [2017.05.003 or newer]
+     - libOMM
+     - MatrixSwitch
 
 ===========================================================================
-B) ELPA-SPECIFIC NOTES
+B) CMAKE BASICS
 ===========================================================================
 
-   We highly recommend that the user specifies an ELPA2 kernel (used for
-   optimization of the 4th stage of ELPA's 2-stage solver) appropriate for
-   their system architecture.  Available kernels for ELPA2 as redistributed
-   by ELSI are set by the ELPA2_KERNEL keyword in the make.sys file.
+   The typical workflow of using CMake to build ELSI looks like:
 
-   Options include:
+   $ ls
 
-     ELPA2_KERNEL =  # Default: Generic
-                     # Options: SSE
-                     #          AVX
-                     #          AVX2
-                     #          AVX512
-                     #          BGQ
+     CMakeLists.txt  external/  src/  test/  ...
 
-   The default "Generic" kernel should work for all system architectures.
+   $ mkdir build
+   $ cd build
+   $ cmake .. -DCMAKE_INSTALL_PREFIX=/path/to/install/elsi [-Doptions ...]
 
-   For clusters with NVIDIA GPUs, GPU acceleration of the 1st and 5th steps
-   of the ELPA 2-stage solver may be enabled using the following keywords
-   in the make.sys file:
+     ...
+     ...
+     -- Generating done
+     -- Build files have been written to: /current/dir
 
-     ELPA_GPU  =  yes  # Default: no
-     NVCC      =  NVIDIA CUDA C compiler
-     NVCCFLAGS =  NVIDIA CUDA C compiler flags
-     CUDA_LIB  =  NVIDIA cuBLAS and CUDA runtime libraries
-     CUDA_INC  =  NVIDIA CUDA include path
+   $ make [-j np]
+   $ make install
 
-   Please see your cluster's documentation for the flags appropriate for
-   your cluster's GPU architecture.
+   whenever CMake is invoked, one of the command line arguments must point
+   to the path where the top level CMakeLists.txt file exists, hence the
+   ".." in the above example.
+
+   An option may be defined by adding
+
+   -DKeyword=Value
+
+   to the command line when invoking CMake.
+
+   If "Keyword" is of type boolean, its "Value" can be "ON" or "OFF".  If
+   "Keyword" defines a list of libraries or include paths, the items should
+   be separated with ";" (semicolon).
+
+   For example,
+
+   -DCMAKE_C_COMPILER=gcc
+   -DENABLE_TESTS=OFF
+   -DENABLE_PEXSI=ON
+   -DMATH_LIB="/path/to/libscalapack.a;/path/to/lapack.a;/path/to/blas.a"
+   -DELPA_INC="/path/to/include;/another/path/to/include"
+
+   Available options are introduced in part C).
 
 ===========================================================================
-C) PEXSI-SPECIFIC NOTES
+C) CONFIGURATION
 ===========================================================================
 
-   PEXSI, one of the solvers supported by ELSI, requires two pre-installed
-   external libraries: ParMETIS and SuperLU_DIST.  If the user is unable
-   to compile these external libraries, the user may compile ELSI without
-   PEXSI support by adding the following keyword to the make.sys file:
+   1) Compilers
 
-     DISABLE_PEXSI =  yes  # Default: no
+   CMake automatically detects and sets default compilers.  The choices
+   made by CMake often work, but not necessarily guarantee the optimal
+   performance.  In some cases, the compilers selected by CMake may not be
+   the ones desired by the user.  Therefore, it is mandatory that the user
+   sets the identification of compilers explicitly:
 
-   When DISABLE_PEXSI is set to "yes", the user does not need to specify
-   the PARMETIS_LIB, SUPERLU_LIB, and SUPERLU_INC keywords in the make.sys.
+     -DCMAKE_Fortran_COMPILER=[YOUR_MPI_FORTRAN_COMPILER]
+     -DCMAKE_C_COMPILER=[YOUR_MPI_C_COMPILER]
+     -DCMAKE_CXX_COMPILER=[YOUR_MPI_C++_COMPILER]
+
+   In addition, it is highly recommended to specify the compiler flags, in
+   particular the optimization flags:
+
+     -DCMAKE_Fortran_FLAGS=[YOUR_FORTRAN_COMPILE_FLAGS]
+     -DCMAKE_C_FLAGS=[YOUR_C_COMPILE_FLAGS]
+     -DCMAKE_CXX_FLAGS=[YOUR_C++_COMPILE_FLAGS]
+
+   The C++ compiler is not needed if building ELSI without PEXSI.
+
+   2) Solvers
+
+   ELPA, libOMM, PEXSI, and SuperLU_DIST libraries are redistributed with
+   the current ELSI package.  Experienced users are encouraged to link the
+   ELSI interface against external, better optimized solver libraries.
+   Relevant options for this purpose are:
+
+     -DELPA_LIB=[YOUR_ELPA_LIBRARY(-IES)]
+     -DELPA_INC=[YOUR_ELPA_INCLUDE_PATH(S)]
+
+     -DOMM_LIB=[YOUR_LIBOMM_AND_MATRIXSWITCH_LIBRARY(-IES)]
+     -DOMM_INC=[YOUR_LIBOMM_AND_MATRIXSWITCH_INCLUDE_PATH(S)]
+
+     -DENABLE_PEXSI=ON
+     -DSUPERLU_LIB=[YOUR_SUPERLU_DIST_LIBRARY(-IES)]
+     -DSUPERLU_INC=[YOUR_SUPERLU_DIST_INCLUDE_PATH(S)]
+     -DPTSCOTCH_LIB=[YOUR_PTSCOTCH_LIBRARY(-IES)]
+     -DPTSCOTCH_INC=[YOUR_PTSCOTCH_INCLUDE_PATH(S)]
+
+   If both "XXX_LIB" and "XXX_INC" are valid, the internal version of "XXX"
+   library will not be built.
+
+   Please note that in the current version of ELSI, PEXSI is not enabled by
+   default, and an external version of PEXSI is not officially supported.
+   When enabling PEXSI, the user should have a working PtScotch library, as
+   PtScotch is not redistributed through ELSI.
+
+   3) Build targets
+
+   By default, a static library (libelsi.a) will be created as the target
+   of the compilation.  Since no shared library or executable is generated,
+   there is no need to provide linear algebra libraries, i.e. BLAS, LAPACK,
+   BLACS, and ScaLAPACK.  Building ELSI as a shared library may be enabled
+   by:
+
+     -DBUILD_SHARED_LIBS=ON
+
+   Building ELSI test programs may be enabled by:
+
+     -DENABLE_TESTS=ON
+
+   In either case, the linear algebra libraries mentioned above must be
+   valid through
+
+     -DMATH_LIB=[YOUR_LINEAR_ALGEBRA_LIBRARY(-IES)]
+
+   If the test programs are enabled, the installation may be verified by
+
+   $ ...
+   $ make [-j np]
+   $ make test
+
+   or
+
+   $ ...
+   $ make [-j np]
+   $ ctest
+
+   Note that the tests may not run if launching MPI jobs is prohibited on
+   the user's working platform.
+
+   4) "Toolchain" files
+
+   It is sometimes convenient to edit the settings in a "toolchain" file
+   that can be read by CMake:
+
+     -DCMAKE_TOOLCHAIN_FILE=[YOUR_TOOLCHAIN_FILE]
+
+   Example "toolchains" are provided in the "./toolchains" directory, which
+   the user may use as templates to create new ones.
 
 ===========================================================================
 D) BEYOND THIS GUIDE
 ===========================================================================
 
-   More information may be found in the User's Guide
+   A complete description of the ELSI build system is available in the
+   User's Guide:
 
-     ./src/ELSI/doc/elsi_manual.pdf
+     ./doc/elsi_manual.pdf
 
-   and on the ELSI GitLab wiki pages, which may be accessed via the ELSI
-   Interchange website.
+   and on the ELSI GitLab wiki pages.
 
 ===========================================================================
 E) TROUBLESHOOTING
 ===========================================================================
 
    For comments, feedback, and suggestions, please contact the ELSI team
-   via e-mail at
+   via email:
 
      elsi-team@duke.edu
 

@@ -1,0 +1,25 @@
+IF(SLEPC_INC AND SLEPC_LIB)
+  MESSAGE(STATUS "Using external SLEPc")
+  MESSAGE(STATUS "${GREEN}SLEPC_LIB${COLORRESET}: ${SLEPC_LIB}")
+  MESSAGE(STATUS "${GREEN}SLEPC_INC${COLORRESET}: ${SLEPC_INC}")
+
+  FOREACH(usr_lib ${SLEPC_LIB})
+    IF(NOT EXISTS ${usr_lib})
+      MESSAGE(FATAL_ERROR "${MAGENTA}User provided SLEPc library not found: ${usr_lib}${COLORRESET}")
+    ENDIF()
+  ENDFOREACH()
+
+  FOREACH(usr_dir ${SLEPC_INC})
+    IF(NOT EXISTS ${usr_dir})
+      MESSAGE(FATAL_ERROR "${MAGENTA}User provided SLEPc include path not found: ${usr_dir}${COLORRESET}")
+    ENDIF()
+
+    SET(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -I${usr_dir}")
+  ENDFOREACH()
+
+  SET(SLEPC_FOUND TRUE)
+ELSE()
+  MESSAGE(FATAL_ERROR "${MAGENTA}SLEPc not provided${COLORRESET}")
+
+  SET(SLEPC_FOUND FALSE)
+ENDIF()
