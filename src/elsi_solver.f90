@@ -11,9 +11,8 @@
 module ELSI_SOLVER
 
    use ELSI_CONSTANTS,  only: ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,SIPS_SOLVER,&
-                              DMP_SOLVER,REAL_DATA,CMPLX_DATA,MULTI_PROC,&
-                              SINGLE_PROC,PEXSI_CSC,SIESTA_CSC,UNSET,OUTPUT_EV,&
-                              OUTPUT_DM,TIME_LEN
+                              DMP_SOLVER,MULTI_PROC,SINGLE_PROC,PEXSI_CSC,&
+                              SIESTA_CSC,TIME_LEN
    use ELSI_DATATYPE,   only: elsi_handle
    use ELSI_DMP,        only: elsi_solve_evp_dmp_real
    use ELSI_ELPA,       only: elsi_compute_occ_elpa,elsi_compute_dm_elpa_real,&
@@ -147,7 +146,6 @@ subroutine elsi_ev_real(e_h,ham,ovlp,eval,evec)
    real(kind=r8),     intent(inout) :: evec(e_h%n_lrow,e_h%n_lcol) !< Eigenvectors
 
    real(kind=r8)           :: t0
-   integer(kind=i4)        :: sol = UNSET
    character(len=TIME_LEN) :: dt0
 
    character(len=40), parameter :: caller = "elsi_ev_real"
@@ -166,8 +164,6 @@ subroutine elsi_ev_real(e_h,ham,ovlp,eval,evec)
       else
          call elsi_solve_evp_elpa_real(e_h,ham,ovlp,eval,evec)
       endif
-
-      sol = ELPA_SOLVER
    case(SIPS_SOLVER)
       if(e_h%n_elsi_calls <= e_h%sips_n_elpa) then
          if(e_h%n_elsi_calls == 1) then
@@ -178,8 +174,6 @@ subroutine elsi_ev_real(e_h,ham,ovlp,eval,evec)
          endif
 
          call elsi_solve_evp_elpa_real(e_h,ham,ovlp,eval,evec)
-
-         sol = ELPA_SOLVER
       else ! ELPA is done
          if(allocated(e_h%ovlp_real_copy)) then
             ! Retrieve overlap matrix that has been destroyed by Cholesky
@@ -193,14 +187,12 @@ subroutine elsi_ev_real(e_h,ham,ovlp,eval,evec)
          call elsi_solve_evp_sips_real(e_h,e_h%ham_real_pexsi,&
                  e_h%ovlp_real_pexsi,eval)
          call elsi_sips_to_blacs_ev_real(e_h,evec)
-
-         sol = SIPS_SOLVER
       endif
    case default
       call elsi_stop(e_h,"Unsupported eigensolver.",caller)
    end select
 
-   call elsi_io_add_entry(e_h,OUTPUT_EV,REAL_DATA,sol,dt0,t0)
+   call elsi_io_add_entry(e_h,dt0,t0,caller)
 
 end subroutine
 
@@ -220,7 +212,6 @@ subroutine elsi_ev_complex(e_h,ham,ovlp,eval,evec)
    complex(kind=r8),  intent(inout) :: evec(e_h%n_lrow,e_h%n_lcol) !< Eigenvectors
 
    real(kind=r8)           :: t0
-   integer(kind=i4)        :: sol = UNSET
    character(len=TIME_LEN) :: dt0
 
    character(len=40), parameter :: caller = "elsi_ev_complex"
@@ -239,13 +230,11 @@ subroutine elsi_ev_complex(e_h,ham,ovlp,eval,evec)
       else
          call elsi_solve_evp_elpa_cmplx(e_h,ham,ovlp,eval,evec)
       endif
-
-      sol = ELPA_SOLVER
    case default
       call elsi_stop(e_h,"Unsupported eigensolver.",caller)
    end select
 
-   call elsi_io_add_entry(e_h,OUTPUT_EV,CMPLX_DATA,sol,dt0,t0)
+   call elsi_io_add_entry(e_h,dt0,t0,caller)
 
 end subroutine
 
@@ -265,7 +254,6 @@ subroutine elsi_ev_real_sparse(e_h,ham,ovlp,eval,evec)
    real(kind=r8),     intent(inout) :: evec(e_h%n_lrow,e_h%n_lcol) !< Eigenvectors
 
    real(kind=r8)           :: t0
-   integer(kind=i4)        :: sol = UNSET
    character(len=TIME_LEN) :: dt0
 
    character(len=40), parameter :: caller = "elsi_ev_real_sparse"
@@ -290,8 +278,6 @@ subroutine elsi_ev_real_sparse(e_h,ham,ovlp,eval,evec)
 
       call elsi_solve_evp_elpa_real(e_h,e_h%ham_real_elpa,e_h%ovlp_real_elpa,&
               eval,evec)
-
-      sol = ELPA_SOLVER
    case(SIPS_SOLVER)
       if(e_h%n_elsi_calls <= e_h%sips_n_elpa) then
          select case(e_h%matrix_format)
@@ -305,8 +291,6 @@ subroutine elsi_ev_real_sparse(e_h,ham,ovlp,eval,evec)
 
          call elsi_solve_evp_elpa_real(e_h,e_h%ham_real_elpa,&
                  e_h%ovlp_real_elpa,eval,evec)
-
-         sol = ELPA_SOLVER
       else ! ELPA is done
          if(allocated(e_h%ham_real_elpa)) then
             call elsi_deallocate(e_h,e_h%ham_real_elpa,"ham_real_elpa")
@@ -329,14 +313,12 @@ subroutine elsi_ev_real_sparse(e_h,ham,ovlp,eval,evec)
          end select
 
          call elsi_sips_to_blacs_ev_real(e_h,evec)
-
-         sol = SIPS_SOLVER
       endif
    case default
       call elsi_stop(e_h,"Unsupported eigensolver.",caller)
    end select
 
-   call elsi_io_add_entry(e_h,OUTPUT_EV,REAL_DATA,sol,dt0,t0)
+   call elsi_io_add_entry(e_h,dt0,t0,caller)
 
 end subroutine
 
@@ -356,7 +338,6 @@ subroutine elsi_ev_complex_sparse(e_h,ham,ovlp,eval,evec)
    complex(kind=r8),  intent(inout) :: evec(e_h%n_lrow,e_h%n_lcol) !< Eigenvectors
 
    real(kind=r8)           :: t0
-   integer(kind=i4)        :: sol = UNSET
    character(len=TIME_LEN) :: dt0
 
    character(len=40), parameter :: caller = "elsi_ev_complex_sparse"
@@ -381,13 +362,11 @@ subroutine elsi_ev_complex_sparse(e_h,ham,ovlp,eval,evec)
 
       call elsi_solve_evp_elpa_cmplx(e_h,e_h%ham_cmplx_elpa,&
               e_h%ovlp_cmplx_elpa,eval,evec)
-
-      sol = ELPA_SOLVER
    case default
       call elsi_stop(e_h,"Unsupported eigensolver.",caller)
    end select
 
-   call elsi_io_add_entry(e_h,OUTPUT_EV,CMPLX_DATA,sol,dt0,t0)
+   call elsi_io_add_entry(e_h,dt0,t0,caller)
 
 end subroutine
 
@@ -406,7 +385,6 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
    real(kind=r8),     intent(inout) :: energy                      !< Energy
 
    real(kind=r8)           :: t0
-   integer(kind=i4)        :: sol = UNSET
    character(len=TIME_LEN) :: dt0
 
    character(len=40), parameter :: caller = "elsi_dm_real"
@@ -434,8 +412,6 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
       call elsi_compute_dm_elpa_real(e_h,e_h%evec_real_elpa,dm,ham)
       call elsi_get_energy(e_h,energy,ELPA_SOLVER)
 
-      sol = ELPA_SOLVER
-
       e_h%mu_ready = .true.
       e_h%ts_ready = .true.
    case(OMM_SOLVER)
@@ -460,8 +436,6 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
          call elsi_compute_occ_elpa(e_h,e_h%eval_elpa)
          call elsi_compute_dm_elpa_real(e_h,e_h%evec_real_elpa,dm,ham)
          call elsi_get_energy(e_h,energy,ELPA_SOLVER)
-
-         sol = ELPA_SOLVER
       else ! ELPA is done
          if(allocated(e_h%ovlp_real_copy)) then
             ! Retrieve overlap matrix that has been destroyed by Cholesky
@@ -501,8 +475,6 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
 
          call elsi_solve_evp_omm_real(e_h,ham,ovlp,dm)
          call elsi_get_energy(e_h,energy,OMM_SOLVER)
-
-         sol = OMM_SOLVER
       endif
    case(PEXSI_SOLVER)
       call elsi_init_pexsi(e_h)
@@ -518,8 +490,6 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
               e_h%ovlp_real_pexsi,e_h%dm_real_pexsi)
       call elsi_pexsi_to_blacs_dm_real(e_h,dm)
       call elsi_get_energy(e_h,energy,PEXSI_SOLVER)
-
-      sol = PEXSI_SOLVER
 
       e_h%mu_ready = .true.
    case(SIPS_SOLVER)
@@ -545,8 +515,6 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
          call elsi_compute_occ_elpa(e_h,e_h%eval_elpa)
          call elsi_compute_dm_elpa_real(e_h,e_h%evec_real_elpa,dm,ham)
          call elsi_get_energy(e_h,energy,ELPA_SOLVER)
-
-         sol = ELPA_SOLVER
       else ! ELPA is done
          if(allocated(e_h%ovlp_real_copy)) then
             ! Retrieve overlap matrix that has been destroyed by Cholesky
@@ -570,8 +538,6 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
          call elsi_compute_dm_sips_real(e_h,e_h%dm_real_pexsi)
          call elsi_sips_to_blacs_dm_real(e_h,dm)
          call elsi_get_energy(e_h,energy,SIPS_SOLVER)
-
-         sol = SIPS_SOLVER
       endif
 
       e_h%mu_ready = .true.
@@ -589,13 +555,11 @@ subroutine elsi_dm_real(e_h,ham,ovlp,dm,energy)
 
       call elsi_solve_evp_dmp_real(e_h,ham,ovlp,dm)
       call elsi_get_energy(e_h,energy,DMP_SOLVER)
-
-      sol = DMP_SOLVER
    case default
       call elsi_stop(e_h,"Unsupported density matrix solver.",caller)
    end select
 
-   call elsi_io_add_entry(e_h,OUTPUT_DM,REAL_DATA,sol,dt0,t0)
+   call elsi_io_add_entry(e_h,dt0,t0,caller)
 
    e_h%edm_ready_real = .true.
 
@@ -616,7 +580,6 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
    real(kind=r8),     intent(inout) :: energy                      !< Energy
 
    real(kind=r8)           :: t0
-   integer(kind=i4)        :: sol = UNSET
    character(len=TIME_LEN) :: dt0
 
    character(len=40), parameter :: caller = "elsi_dm_complex"
@@ -644,8 +607,6 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
       call elsi_compute_dm_elpa_cmplx(e_h,e_h%evec_cmplx_elpa,dm,ham)
       call elsi_get_energy(e_h,energy,ELPA_SOLVER)
 
-      sol = ELPA_SOLVER
-
       e_h%mu_ready = .true.
       e_h%ts_ready = .true.
    case(OMM_SOLVER)
@@ -670,8 +631,6 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
          call elsi_compute_occ_elpa(e_h,e_h%eval_elpa)
          call elsi_compute_dm_elpa_cmplx(e_h,e_h%evec_cmplx_elpa,dm,ham)
          call elsi_get_energy(e_h,energy,ELPA_SOLVER)
-
-         sol = ELPA_SOLVER
       else ! ELPA is done
          if(allocated(e_h%ovlp_cmplx_copy)) then
             ! Retrieve overlap matrix that has been destroyed by Cholesky
@@ -712,8 +671,6 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
 
          call elsi_solve_evp_omm_cmplx(e_h,ham,ovlp,dm)
          call elsi_get_energy(e_h,energy,OMM_SOLVER)
-
-         sol = OMM_SOLVER
       endif
    case(PEXSI_SOLVER)
       call elsi_init_pexsi(e_h)
@@ -730,14 +687,12 @@ subroutine elsi_dm_complex(e_h,ham,ovlp,dm,energy)
       call elsi_pexsi_to_blacs_dm_cmplx(e_h,dm)
       call elsi_get_energy(e_h,energy,PEXSI_SOLVER)
 
-      sol = PEXSI_SOLVER
-
       e_h%mu_ready = .true.
    case default
       call elsi_stop(e_h,"Unsupported density matrix solver.",caller)
    end select
 
-   call elsi_io_add_entry(e_h,OUTPUT_DM,CMPLX_DATA,sol,dt0,t0)
+   call elsi_io_add_entry(e_h,dt0,t0,caller)
 
    e_h%edm_ready_cmplx = .true.
 
@@ -758,7 +713,6 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
    real(kind=r8),     intent(inout) :: energy             !< Energy
 
    real(kind=r8)           :: t0
-   integer(kind=i4)        :: sol = UNSET
    character(len=TIME_LEN) :: dt0
 
    character(len=40), parameter :: caller = "elsi_dm_real_sparse"
@@ -815,8 +769,6 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
 
       call elsi_get_energy(e_h,energy,ELPA_SOLVER)
 
-      sol = ELPA_SOLVER
-
       e_h%mu_ready = .true.
       e_h%ts_ready = .true.
    case(OMM_SOLVER)
@@ -870,8 +822,6 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
          end select
 
          call elsi_get_energy(e_h,energy,ELPA_SOLVER)
-
-         sol = ELPA_SOLVER
       else ! ELPA is done
          if(allocated(e_h%ovlp_real_copy)) then
             ! Retrieve overlap matrix that has been destroyed by Cholesky
@@ -920,8 +870,6 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
          end select
 
          call elsi_get_energy(e_h,energy,OMM_SOLVER)
-
-         sol = OMM_SOLVER
       endif
    case(PEXSI_SOLVER)
       call elsi_init_pexsi(e_h)
@@ -946,8 +894,6 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
       end select
 
       call elsi_get_energy(e_h,energy,PEXSI_SOLVER)
-
-      sol = PEXSI_SOLVER
 
       e_h%mu_ready = .true.
    case(SIPS_SOLVER)
@@ -994,8 +940,6 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
          end select
 
          call elsi_get_energy(e_h,energy,ELPA_SOLVER)
-
-         sol = ELPA_SOLVER
       else ! ELPA is done
          if(allocated(e_h%ham_real_elpa)) then
             call elsi_deallocate(e_h,e_h%ham_real_elpa,"ham_real_elpa")
@@ -1036,8 +980,6 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
          case default
             call elsi_stop(e_h,"Unsupported matrix format.",caller)
          end select
-
-         sol = SIPS_SOLVER
       endif
 
       e_h%mu_ready = .true.
@@ -1085,13 +1027,11 @@ subroutine elsi_dm_real_sparse(e_h,ham,ovlp,dm,energy)
       end select
 
       call elsi_get_energy(e_h,energy,DMP_SOLVER)
-
-      sol = DMP_SOLVER
    case default
       call elsi_stop(e_h,"Unsupported density matrix solver.",caller)
    end select
 
-   call elsi_io_add_entry(e_h,OUTPUT_DM,REAL_DATA,sol,dt0,t0)
+   call elsi_io_add_entry(e_h,dt0,t0,caller)
 
    e_h%edm_ready_real = .true.
 
@@ -1112,7 +1052,6 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
    real(kind=r8),     intent(inout) :: energy             !< Energy
 
    real(kind=r8)           :: t0
-   integer(kind=i4)        :: sol = UNSET
    character(len=TIME_LEN) :: dt0
 
    character(len=40), parameter :: caller = "elsi_dm_complex_sparse"
@@ -1169,8 +1108,6 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
 
       call elsi_get_energy(e_h,energy,ELPA_SOLVER)
 
-      sol = ELPA_SOLVER
-
       e_h%mu_ready = .true.
       e_h%ts_ready = .true.
    case(OMM_SOLVER)
@@ -1224,8 +1161,6 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
          end select
 
          call elsi_get_energy(e_h,energy,ELPA_SOLVER)
-
-         sol = ELPA_SOLVER
       else ! ELPA is done
          if(allocated(e_h%ovlp_cmplx_copy)) then
             ! Retrieve overlap matrix that has been destroyed by Cholesky
@@ -1275,8 +1210,6 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
          end select
 
          call elsi_get_energy(e_h,energy,OMM_SOLVER)
-
-         sol = OMM_SOLVER
       endif
    case(PEXSI_SOLVER)
       call elsi_init_pexsi(e_h)
@@ -1302,14 +1235,12 @@ subroutine elsi_dm_complex_sparse(e_h,ham,ovlp,dm,energy)
 
       call elsi_get_energy(e_h,energy,PEXSI_SOLVER)
 
-      sol = PEXSI_SOLVER
-
       e_h%mu_ready = .true.
    case default
       call elsi_stop(e_h,"Unsupported density matrix solver.",caller)
    end select
 
-   call elsi_io_add_entry(e_h,OUTPUT_DM,CMPLX_DATA,sol,dt0,t0)
+   call elsi_io_add_entry(e_h,dt0,t0,caller)
 
    e_h%edm_ready_cmplx = .true.
 

@@ -11,9 +11,9 @@ module ELSI_IO
 
    use ELSI_CONSTANTS, only: UNSET,UNSET_STR,HUMAN,JSON,MULTI_PROC,SINGLE_PROC,&
                              BLACS_DENSE,PEXSI_CSC,SIESTA_CSC,TIME_LEN,STR_LEN,&
-                             UUID_LEN,FILENAME_LEN,ELPA_SOLVER,PEXSI_SOLVER,&
-                             SIPS_SOLVER,OMM_SOLVER,DMP_SOLVER,COMMA_BEFORE,&
-                             COMMA_AFTER,NO_COMMA,OUTPUT_EV,REAL_DATA,LOG_NAME
+                             ELPA_SOLVER,PEXSI_SOLVER,SIPS_SOLVER,OMM_SOLVER,&
+                             DMP_SOLVER,COMMA_BEFORE,COMMA_AFTER,NO_COMMA,&
+                             FILENAME_LEN
    use ELSI_DATATYPE,  only: elsi_handle,elsi_io_handle
    use ELSI_MPI,       only: elsi_stop,elsi_check_mpi,mpi_character
    use ELSI_PRECISION, only: r8,i4,i8
@@ -133,20 +133,17 @@ end subroutine
 !>
 !! This routine adds an entry to the log file.
 !!
-subroutine elsi_io_add_entry(e_h,output_type,data_type,solver_used,dt0,t0)
+subroutine elsi_io_add_entry(e_h,dt0,t0,caller)
 
    implicit none
 
    type(elsi_handle),       intent(inout) :: e_h
-   integer(kind=i4),        intent(in)    :: output_type
-   integer(kind=i4),        intent(in)    :: data_type
-   integer(kind=i4),        intent(in)    :: solver_used
    character(len=TIME_LEN), intent(in)    :: dt0
    real(kind=r8),           intent(in)    :: t0
+   character(len=*),        intent(in)    :: caller
 
    real(kind=r8)               :: t1
    real(kind=r8)               :: t_total
-   integer(kind=i4)            :: tmp_int
    integer(kind=i4)            :: comma_save
    integer(kind=i4)            :: log_unit
    character(len=FILENAME_LEN) :: log_name
@@ -155,20 +152,12 @@ subroutine elsi_io_add_entry(e_h,output_type,data_type,solver_used,dt0,t0)
    character(len=STR_LEN)      :: user_tag
    character(len=TIME_LEN)     :: dt_record
 
-   character(len=40), parameter :: caller = "elsi_io_add_entry"
-
-   if(e_h%log_file%print_info) then
+   if(e_h%log_file%print_info .and. e_h%myid_all == 0) then
       if(.not. e_h%log_file%handle_init) then
-         if(e_h%myid_all == 0) then
-            log_unit = e_h%log_file%print_unit
-            log_name = e_h%log_file%file_name
+         log_unit = e_h%log_file%print_unit
+         log_name = e_h%log_file%file_name
 
-            call elsi_open_json_file(e_h,log_unit,log_name,.true.,e_h%log_file)
-         else
-            e_h%log_file%file_format = JSON
-            e_h%log_file%print_unit  = UNSET
-            e_h%log_file%file_name   = UNSET_STR
-         endif
+         call elsi_open_json_file(e_h,log_unit,log_name,.true.,e_h%log_file)
 
          e_h%log_file%comma_json = NO_COMMA
 
@@ -181,12 +170,10 @@ subroutine elsi_io_add_entry(e_h,output_type,data_type,solver_used,dt0,t0)
       endif
 
       call elsi_get_time(t1)
-      call elsi_get_solver_tag(e_h,data_type,solver_tag)
+      call elsi_get_solver_tag(e_h,solver_tag)
       call elsi_get_datetime_rfc3339(dt_record)
 
       t_total                = t1-t0
-      tmp_int                = e_h%solver
-      e_h%solver             = solver_used
       comma_save             = e_h%log_file%comma_json
       e_h%log_file%n_records = e_h%log_file%n_records+1
       elsi_tag               = adjustr(trim(solver_tag))
@@ -197,12 +184,12 @@ subroutine elsi_io_add_entry(e_h,output_type,data_type,solver_used,dt0,t0)
       e_h%log_file%comma_json = COMMA_AFTER
       call elsi_print_versioning(e_h,e_h%log_file)
       call elsi_say_setting(e_h,"iteration",e_h%log_file%n_records,e_h%log_file)
-      if(output_type == OUTPUT_EV) then
+      if(caller(6:6) == "e") then
          call elsi_say_setting(e_h,"output_type","EIGENSOLUTION",e_h%log_file)
       else
          call elsi_say_setting(e_h,"output_type","DENSITY MATRIX",e_h%log_file)
       endif
-      if(data_type == REAL_DATA) then
+      if(caller(9:9) == "r") then
          call elsi_say_setting(e_h,"data_type","REAL",e_h%log_file)
       else
          call elsi_say_setting(e_h,"data_type","COMPLEX",e_h%log_file)
@@ -226,7 +213,6 @@ subroutine elsi_io_add_entry(e_h,output_type,data_type,solver_used,dt0,t0)
               e_h%log_file)
 
       e_h%log_file%comma_json = comma_save
-      e_h%solver = tmp_int
    endif
 
 end subroutine
@@ -1458,59 +1444,39 @@ end subroutine
 !>
 !! This routine generates a string identifying the current solver.
 !!
-subroutine elsi_get_solver_tag(e_h,data_type,tag)
+subroutine elsi_get_solver_tag(e_h,tag)
 
    implicit none
 
    type(elsi_handle),      intent(in)  :: e_h
-   integer(kind=i4),       intent(in)  :: data_type
    character(len=STR_LEN), intent(out) :: tag
 
    character(len=40), parameter :: caller = "elsi_get_solver_tag"
 
-   if(data_type == REAL_DATA) then
-      select case(e_h%solver)
-      case(ELPA_SOLVER)
-         if(e_h%parallel_mode == SINGLE_PROC) then
-            tag = "LAPACK_REAL"
-         else ! MULTI_PROC
-            if(e_h%elpa_solver == 1) then
-               tag = "ELPA_1STAGE_REAL"
-            else
-               tag = "ELPA_2STAGE_REAL"
-            endif
-         endif
-      case(OMM_SOLVER)
-         tag = "LIBOMM_REAL"
-      case(PEXSI_SOLVER)
-         tag = "PEXSI_REAL"
-      case(SIPS_SOLVER)
-         tag = "SIPS_REAL"
-      case(DMP_SOLVER)
-         tag = "DMP_REAL"
-      end select
-   else
-      select case(e_h%solver)
-      case(ELPA_SOLVER)
-         if(e_h%parallel_mode == SINGLE_PROC) then
-            tag = "LAPACK_CMPLX"
-         else ! MULTI_PROC
-            if(e_h%elpa_solver == 1) then
-               tag = "ELPA_1STAGE_CMPLX"
-            else
-               tag = "ELPA_2STAGE_CMPLX"
-            endif
-         endif
-      case(OMM_SOLVER)
-         tag = "LIBOMM_CMPLX"
-      case(PEXSI_SOLVER)
-         tag = "PEXSI_CMPLX"
-      case(SIPS_SOLVER)
-         tag = "SIPS_CMPLX"
-      case(DMP_SOLVER)
-         tag = "DMP_CMPLX"
-      end select
-   endif
+   select case(e_h%solver)
+   case(ELPA_SOLVER)
+      if(e_h%parallel_mode == SINGLE_PROC) then
+         tag = "LAPACK"
+      else
+         tag = "ELPA"
+      endif
+   case(OMM_SOLVER)
+      if(e_h%n_elsi_calls <= e_h%omm_n_elpa) then
+         tag = "ELPA"
+      else
+         tag = "LIBOMM"
+      endif
+   case(PEXSI_SOLVER)
+      tag = "PEXSI"
+   case(SIPS_SOLVER)
+      if(e_h%n_elsi_calls <= e_h%sips_n_elpa) then
+         tag = "ELPA"
+      else
+         tag = "SIPS"
+      endif
+   case(DMP_SOLVER)
+      tag = "DMP"
+   end select
 
 end subroutine
 
@@ -1527,7 +1493,6 @@ subroutine elsi_gen_uuid(e_h)
    integer(kind=i4) :: ii3
    integer(kind=i4) :: ii4
    integer(kind=i4) :: i_entry
-   integer(kind=i4) :: ierr
    real(kind=r8)    :: rr(8)
    character(len=3) :: ss3
    character(len=4) :: ss4
@@ -1559,11 +1524,6 @@ subroutine elsi_gen_uuid(e_h)
          write(e_h%uuid,'(2A)') trim(e_h%uuid),ss4
       endif
    enddo
-
-   if(e_h%parallel_mode == MULTI_PROC) then
-      call MPI_Bcast(e_h%uuid,UUID_LEN,mpi_character,0,e_h%mpi_comm_all,ierr)
-      call elsi_check_mpi(e_h,"MPI_Bcast",ierr,caller)
-   endif
 
 end subroutine
 

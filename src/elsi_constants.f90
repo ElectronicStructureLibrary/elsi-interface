@@ -34,10 +34,6 @@ module ELSI_CONSTANTS
    integer(kind=i4), parameter :: REAL_DATA  = 0
    integer(kind=i4), parameter :: CMPLX_DATA = 1
 
-   ! Output (density matrix or eigenvectors)
-   integer(kind=i4), parameter :: OUTPUT_EV = 0
-   integer(kind=i4), parameter :: OUTPUT_DM = 1
-
    ! Matrix formats
    integer(kind=i4), parameter :: BLACS_DENSE = 0
    integer(kind=i4), parameter :: PEXSI_CSC   = 1
@@ -66,8 +62,6 @@ module ELSI_CONSTANTS
    ! Matrix reading and writing
    integer(kind=i4), parameter :: HEADER_SIZE  = 16
    integer(kind=i4), parameter :: FILE_VERSION = 170915
-
-   ! Reading and writing tasks
    integer(kind=i4), parameter :: READ_FILE  = 0
    integer(kind=i4), parameter :: WRITE_FILE = 1
 
@@ -79,14 +73,8 @@ module ELSI_CONSTANTS
    integer(kind=i4), parameter :: NO_COMMA     = 0
    integer(kind=i4), parameter :: COMMA_AFTER  = 1
    integer(kind=i4), parameter :: COMMA_BEFORE = 2
-
-   ! Timings
-   integer(kind=i4),            parameter :: LOG_UNIT = 66
-   character(len=FILENAME_LEN), parameter :: LOG_NAME = "elsi_timings.json"
-
-   ! Versioning
-   integer(kind=i4), parameter :: STR_LEN  = 20
-   integer(kind=i4), parameter :: TIME_LEN = 29
-   integer(kind=i4), parameter :: UUID_LEN = 36 ! RFC 4122 format
+   integer(kind=i4), parameter :: STR_LEN      = 20
+   integer(kind=i4), parameter :: TIME_LEN     = 29
+   integer(kind=i4), parameter :: UUID_LEN     = 36 ! RFC 4122 format
 
 end module ELSI_CONSTANTS
