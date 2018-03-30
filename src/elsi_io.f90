@@ -15,7 +15,7 @@ module ELSI_IO
                              DMP_SOLVER,COMMA_BEFORE,COMMA_AFTER,NO_COMMA,&
                              FILENAME_LEN
    use ELSI_DATATYPE,  only: elsi_handle,elsi_io_handle
-   use ELSI_MPI,       only: elsi_stop,elsi_check_mpi,mpi_character
+   use ELSI_MPI,       only: elsi_stop,elsi_check_mpi
    use ELSI_PRECISION, only: r8,i4,i8
 
    implicit none
