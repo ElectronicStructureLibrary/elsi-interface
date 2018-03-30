@@ -10,10 +10,10 @@
 module ELSI_IO
 
    use ELSI_CONSTANTS, only: UNSET,UNSET_STR,HUMAN,JSON,MULTI_PROC,SINGLE_PROC,&
-                             ELPA_SOLVER,SIPS_SOLVER,OMM_SOLVER,PEXSI_SOLVER,&
-                             DMP_SOLVER,BLACS_DENSE,PEXSI_CSC,SIESTA_CSC,&
-                             COMMA_BEFORE,COMMA_AFTER,NO_COMMA,LOG_NAME,&
-                             TIME_LEN,STR_LEN,UUID_LEN,OUTPUT_EV,REAL_DATA
+                             BLACS_DENSE,PEXSI_CSC,SIESTA_CSC,TIME_LEN,STR_LEN,&
+                             UUID_LEN,FILENAME_LEN,ELPA_SOLVER,PEXSI_SOLVER,&
+                             SIPS_SOLVER,OMM_SOLVER,DMP_SOLVER,COMMA_BEFORE,&
+                             COMMA_AFTER,NO_COMMA,OUTPUT_EV,REAL_DATA,LOG_NAME
    use ELSI_DATATYPE,  only: elsi_handle,elsi_io_handle
    use ELSI_MPI,       only: elsi_stop,elsi_check_mpi,mpi_character
    use ELSI_PRECISION, only: r8,i4,i8
@@ -80,13 +80,13 @@ subroutine elsi_init_io(io_h,print_unit,file_name,file_format,print_info,&
 
    implicit none
 
-   type(elsi_io_handle), intent(out)          :: io_h
-   integer(kind=i4),     intent(in)           :: print_unit
-   character(len=*),     intent(in), optional :: file_name
-   integer(kind=i4),     intent(in), optional :: file_format
-   logical,              intent(in), optional :: print_info
-   character(len=*),     intent(in), optional :: prefix
-   integer(kind=i4),     intent(in), optional :: comma_json
+   type(elsi_io_handle), intent(out) :: io_h
+   integer(kind=i4),     intent(in)  :: print_unit
+   character(len=*),     intent(in)  :: file_name
+   integer(kind=i4),     intent(in)  :: file_format
+   logical,              intent(in)  :: print_info
+   character(len=*),     intent(in)  :: prefix
+   integer(kind=i4),     intent(in)  :: comma_json
 
    character(len=40), parameter :: caller = "elsi_init_io"
 
@@ -95,38 +95,11 @@ subroutine elsi_init_io(io_h,print_unit,file_name,file_format,print_info,&
 
    io_h%handle_init = .true.
    io_h%print_unit  = print_unit
-
-   if(present(file_name)) then
-      io_h%file_name = file_name
-   else
-      io_h%file_name = LOG_NAME
-   endif
-
-   if(present(file_format)) then
-      io_h%file_format = file_format
-   else
-      io_h%file_format = HUMAN
-   endif
-
-   if(present(print_info)) then
-      io_h%print_info = print_info
-   else
-      io_h%print_info = .true.
-   endif
-
-   if(present(prefix)) then
-      io_h%prefix = prefix
-   else
-      if(allocated(io_h%prefix)) then
-         deallocate(io_h%prefix)
-      endif
-   endif
-
-   if(present(comma_json)) then
-      io_h%comma_json = comma_json
-   else
-      io_h%comma_json = UNSET
-   endif
+   io_h%file_name   = file_name
+   io_h%file_format = file_format
+   io_h%print_info  = print_info
+   io_h%prefix      = prefix
+   io_h%comma_json  = comma_json
 
 end subroutine
 
@@ -171,37 +144,33 @@ subroutine elsi_io_add_entry(e_h,output_type,data_type,solver_used,dt0,t0)
    character(len=TIME_LEN), intent(in)    :: dt0
    real(kind=r8),           intent(in)    :: t0
 
-   real(kind=r8)           :: t1
-   real(kind=r8)           :: t_total
-   integer(kind=i4)        :: tmp_int
-   integer(kind=i4)        :: comma_save
-   character(len=STR_LEN)  :: solver_tag
-   character(len=STR_LEN)  :: elsi_tag
-   character(len=STR_LEN)  :: user_tag
-   character(len=TIME_LEN) :: dt_record
+   real(kind=r8)               :: t1
+   real(kind=r8)               :: t_total
+   integer(kind=i4)            :: tmp_int
+   integer(kind=i4)            :: comma_save
+   integer(kind=i4)            :: log_unit
+   character(len=FILENAME_LEN) :: log_name
+   character(len=STR_LEN)      :: solver_tag
+   character(len=STR_LEN)      :: elsi_tag
+   character(len=STR_LEN)      :: user_tag
+   character(len=TIME_LEN)     :: dt_record
 
    character(len=40), parameter :: caller = "elsi_io_add_entry"
 
    if(e_h%log_file%print_info) then
-      call elsi_get_time(t1)
-      call elsi_get_solver_tag(e_h,data_type,solver_tag)
-
-      tmp_int                = e_h%solver
-      e_h%solver             = solver_used
-      t_total                = t1-t0
-      e_h%log_file%n_records = e_h%log_file%n_records+1
-      comma_save             = e_h%log_file%comma_json
-
-      if(e_h%log_file%n_records == 1) then
-         e_h%log_file%comma_json = NO_COMMA
-
+      if(.not. e_h%log_file%handle_init) then
          if(e_h%myid_all == 0) then
-            call elsi_open_json_file(e_h,e_h%log_file%print_unit,&
-                    e_h%log_file%file_name,.true.,e_h%log_file)
+            log_unit = e_h%log_file%print_unit
+            log_name = e_h%log_file%file_name
+
+            call elsi_open_json_file(e_h,log_unit,log_name,.true.,e_h%log_file)
          else
-            e_h%log_file%print_unit = UNSET
-            e_h%log_file%file_name  = UNSET_STR
+            e_h%log_file%file_format = JSON
+            e_h%log_file%print_unit  = UNSET
+            e_h%log_file%file_name   = UNSET_STR
          endif
+
+         e_h%log_file%comma_json = NO_COMMA
 
          if(.not. e_h%uuid_exists) then
             call elsi_gen_uuid(e_h)
@@ -211,10 +180,17 @@ subroutine elsi_io_add_entry(e_h,output_type,data_type,solver_used,dt0,t0)
          e_h%log_file%comma_json = COMMA_BEFORE
       endif
 
-      elsi_tag = adjustr(trim(solver_tag))
-      user_tag = adjustr(trim(e_h%log_file%user_tag))
-
+      call elsi_get_time(t1)
+      call elsi_get_solver_tag(e_h,data_type,solver_tag)
       call elsi_get_datetime_rfc3339(dt_record)
+
+      t_total                = t1-t0
+      tmp_int                = e_h%solver
+      e_h%solver             = solver_used
+      comma_save             = e_h%log_file%comma_json
+      e_h%log_file%n_records = e_h%log_file%n_records+1
+      elsi_tag               = adjustr(trim(solver_tag))
+      user_tag               = adjustr(trim(e_h%log_file%user_tag))
 
       call elsi_start_json_record(e_h,e_h%log_file%comma_json==COMMA_BEFORE,&
               e_h%log_file)

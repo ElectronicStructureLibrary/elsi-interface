@@ -9,7 +9,7 @@
 !!
 module ELSI_SETUP
 
-   use ELSI_CONSTANTS,     only: LOG_UNIT,LOG_NAME,HUMAN,JSON,PEXSI_SOLVER,&
+   use ELSI_CONSTANTS,     only: LOG_UNIT,LOG_NAME,HUMAN,UNSET,PEXSI_SOLVER,&
                                  OMM_SOLVER,ELPA_SOLVER,SIPS_SOLVER,DMP_SOLVER,&
                                  SINGLE_PROC,MULTI_PROC,PEXSI_CSC,SIESTA_CSC
    use ELSI_DATATYPE,      only: elsi_handle
@@ -113,7 +113,7 @@ subroutine elsi_init(e_h,solver,parallel_mode,matrix_format,n_basis,n_electron,&
    end select
 
    ! Initialize stdio handle, silent by default
-   call elsi_init_io(e_h%stdio,6,file_format=HUMAN,print_info=.false.)
+   call elsi_init_io(e_h%stdio,6,"",HUMAN,.false.,"",UNSET)
 
    e_h%log_file%print_info = .false.
    e_h%log_file%file_name  = LOG_NAME

@@ -146,9 +146,10 @@ subroutine test_ev_real_sparse(mpi_comm,solver,h_file,s_file)
    call elsi_set_blacs(e_h,blacs_ctxt,blk)
 
    ! Customize ELSI
-   call elsi_set_sips_n_elpa(e_h,1)
    call elsi_set_output(e_h,2)
+   call elsi_set_output_log(e_h,1)
    call elsi_set_mu_broaden_width(e_h,1.0e-6_r8)
+   call elsi_set_sips_n_elpa(e_h,1)
 
    t1 = MPI_Wtime()
 
