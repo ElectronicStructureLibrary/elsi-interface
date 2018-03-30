@@ -10,7 +10,7 @@
 !!
 module ELSI
 
-   use ELSI_DATATYPE, only: elsi_io_handle,elsi_handle,elsi_rw_handle
+   use ELSI_DATATYPE, only: elsi_handle,elsi_io_handle,elsi_rw_handle
    use ELSI_IO
    use ELSI_MAT_IO
    use ELSI_OCC
@@ -106,7 +106,7 @@ module ELSI
    public :: elsi_compute_mu_and_occ
    public :: elsi_compute_entropy
 
-   ! Reading and writing
+   ! Reading and writing matrix
    public :: elsi_init_rw
    public :: elsi_finalize_rw
    public :: elsi_set_rw_mpi
@@ -128,7 +128,7 @@ module ELSI
    public :: elsi_write_mat_complex
    public :: elsi_write_mat_complex_sparse
 
-   ! JSON file writing
+   ! Writing JSON file
    public :: elsi_open_json_file
    public :: elsi_close_json_file
    public :: elsi_start_json_record

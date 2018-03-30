@@ -69,7 +69,7 @@ subroutine elsi_init_rw(rw_h,task,parallel_mode,n_basis,n_electron)
    integer(kind=i4),     intent(in)  :: n_basis       !< Number of basis functions
    real(kind=r8),        intent(in)  :: n_electron    !< Number of electrons
 
-   character(len=40), parameter :: caller = "elsi_init_io"
+   character(len=40), parameter :: caller = "elsi_init_rw"
 
    ! For safety
    call elsi_reset_rw_handle(rw_h)
@@ -1552,7 +1552,7 @@ subroutine elsi_read_mat_dim_sp(rw_h,f_name,n_electron,n_basis,n_lrow,n_lcol)
    integer(kind=i8) :: offset
    logical          :: file_ok
 
-   character(len=40), parameter :: caller = "elsi_read_mat_dim_mp"
+   character(len=40), parameter :: caller = "elsi_read_mat_dim_sp"
 
    inquire(file=f_name,exist=file_ok)
 

@@ -262,6 +262,7 @@ subroutine elsi_print_handle_summary(e_h,io_h)
       else
          call elsi_stop(e_h,"Unsupported solver.",caller)
       endif
+      call elsi_say_setting(e_h,"Number of ELSI calls",e_h%n_elsi_calls,io_h)
       call elsi_truncate_string(io_h%prefix,2)
    elseif(io_h%file_format == JSON) then
       comma_save      = io_h%comma_json
@@ -810,10 +811,10 @@ subroutine elsi_say_setting_i4(e_h,label,setting,io_h)
    if(io_h%print_info .and. e_h%myid_all == 0) then
       if(io_h%file_format == HUMAN) then
          if(allocated(io_h%prefix)) then
-            write(io_h%print_unit,"(A,A28,A3,I40)") io_h%prefix,label_ljust,&
+            write(io_h%print_unit,"(A,A28,A3,I25)") io_h%prefix,label_ljust,&
                " : ",setting
          else
-            write(io_h%print_unit,"(A28,A3,I40)") label_ljust," : ",setting
+            write(io_h%print_unit,"(A28,A3,I25)") label_ljust," : ",setting
          endif
       elseif(io_h%file_format == JSON) then
          if(io_h%comma_json == COMMA_AFTER) then
@@ -868,10 +869,10 @@ subroutine elsi_say_setting_r8(e_h,label,setting,io_h)
    if(io_h%print_info .and. e_h%myid_all == 0) then
       if(io_h%file_format == HUMAN) then
          if(allocated(io_h%prefix)) then
-            write(io_h%print_unit,"(A,A28,A3,E40.8)") io_h%prefix,label_ljust,&
+            write(io_h%print_unit,"(A,A28,A3,E25.8)") io_h%prefix,label_ljust,&
                " : ",setting
          else
-            write(io_h%print_unit,"(A28,A3,E40.8)") label_ljust," : ",setting
+            write(io_h%print_unit,"(A28,A3,E25.8)") label_ljust," : ",setting
          endif
       elseif(io_h%file_format == JSON) then
          if(io_h%comma_json == COMMA_AFTER) then
@@ -940,10 +941,10 @@ subroutine elsi_say_setting_log(e_h,label,setting,io_h)
    if(io_h%print_info .and. e_h%myid_all == 0) then
       if(io_h%file_format == HUMAN) then
          if(allocated(io_h%prefix)) then
-            write(io_h%print_unit,"(A,A28,A3,A40)") io_h%prefix,label_ljust,&
+            write(io_h%print_unit,"(A,A28,A3,A25)") io_h%prefix,label_ljust,&
                " : ",log_string
          else
-            write(io_h%print_unit,"(A28,A3,A40)") label_ljust," : ",log_string
+            write(io_h%print_unit,"(A28,A3,A25)") label_ljust," : ",log_string
          endif
       elseif(io_h%file_format == JSON) then
          if(io_h%comma_json == COMMA_AFTER) then
@@ -995,10 +996,10 @@ subroutine elsi_say_setting_str(e_h,label,setting,io_h)
    if(io_h%print_info .and. e_h%myid_all == 0) then
       if(io_h%file_format == HUMAN) then
          if(allocated(io_h%prefix)) then
-            write(io_h%print_unit,"(A,A28,A3,A40)") io_h%prefix,label_ljust,&
+            write(io_h%print_unit,"(A,A28,A3,A25)") io_h%prefix,label_ljust,&
                " : ",setting
          else
-            write(io_h%print_unit,"(A28,A3,A40)") label_ljust," : ",setting
+            write(io_h%print_unit,"(A28,A3,A25)") label_ljust," : ",setting
          endif
       elseif(io_h%file_format == JSON) then
          if(io_h%comma_json == COMMA_AFTER) then
@@ -1041,6 +1042,8 @@ subroutine elsi_append_string(l_string,r_string)
    character(len=*), intent(in)                 :: r_string
 
    character(len=:), allocatable :: tmp_string
+
+   character(len=40), parameter :: caller = "elsi_append_string"
 
    if(allocated(l_string)) then
       tmp_string = l_string // r_string

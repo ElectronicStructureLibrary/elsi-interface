@@ -27,8 +27,7 @@ module ELSI_SETUP
    use ELSI_PEXSI,         only: elsi_set_pexsi_default
    use ELSI_PRECISION,     only: r8,i4
    use ELSI_SIPS,          only: elsi_set_sips_default
-   use ELSI_TIMINGS,       only: elsi_init_timings,elsi_print_timings,&
-                                 elsi_finalize_timings
+   use ELSI_TIMINGS,       only: elsi_init_timings,elsi_finalize_timings
    use ELSI_UTILS,         only: elsi_check_handle,elsi_reset_handle
    use F_PPEXSI_INTERFACE, only: f_ppexsi_plan_finalize
    use MATRIXSWITCH,       only: ms_scalapack_setup,m_deallocate
@@ -379,36 +378,23 @@ subroutine elsi_final_print(e_h)
 
    type(elsi_handle), intent(inout) :: e_h !< Handle
 
+   character(len=200) :: ll
+
    character(len=40), parameter :: caller = "elsi_final_print"
 
-   if(e_h%stdio%file_format == JSON) then
-      call elsi_stop(e_h,"elsi_final_print only supports HUMAN format.",caller)
-   endif
-
-   call elsi_say(e_h,"  |--------------------------------------------------------------------------",e_h%stdio)
+   write(ll,"(A)")&
+      "  |-----------------------------------------------------------"
+   call elsi_say(e_h,ll,e_h%stdio)
    call elsi_say(e_h,"  | Final ELSI Output",e_h%stdio)
-   call elsi_say(e_h,"  |--------------------------------------------------------------------------",e_h%stdio)
-
+   call elsi_say(e_h,ll,e_h%stdio)
    call elsi_append_string(e_h%stdio%prefix,"  | ")
    call elsi_print_versioning(e_h,e_h%stdio)
-
    call elsi_say(e_h,"",e_h%stdio)
    call elsi_print_handle_summary(e_h,e_h%stdio)
-
-   call elsi_append_string(e_h%stdio%prefix,"  ")
-   call elsi_say_setting(e_h,"Number of ELSI calls",e_h%n_elsi_calls,e_h%stdio)
-   call elsi_truncate_string(e_h%stdio%prefix,2)
-
-   call elsi_say(e_h,"",e_h%stdio)
-   call elsi_say(e_h,"Timings",e_h%stdio)
-   call elsi_append_string(e_h%stdio%prefix,"  ")
-   call elsi_print_timings(e_h,e_h%timings)
-   call elsi_truncate_string(e_h%stdio%prefix,2)
-
    call elsi_truncate_string(e_h%stdio%prefix,4)
-   call elsi_say(e_h,"  |--------------------------------------------------------------------------",e_h%stdio)
+   call elsi_say(e_h,ll,e_h%stdio)
    call elsi_say(e_h,"  | ELSI Project (c)  elsi-interchange.org",e_h%stdio)
-   call elsi_say(e_h,"  |--------------------------------------------------------------------------",e_h%stdio)
+   call elsi_say(e_h,ll,e_h%stdio)
 
 end subroutine
 
