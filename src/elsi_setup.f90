@@ -386,30 +386,30 @@ subroutine elsi_final_print(e_h)
               caller)
    endif
 
-   call elsi_say(e_h,"  |--------------------------------------------------------------------------")
-   call elsi_say(e_h,"  | Final ELSI Output                        ")
-   call elsi_say(e_h,"  |--------------------------------------------------------------------------")
+   call elsi_say(e_h,"  |--------------------------------------------------------------------------",e_h%stdio)
+   call elsi_say(e_h,"  | Final ELSI Output",e_h%stdio)
+   call elsi_say(e_h,"  |--------------------------------------------------------------------------",e_h%stdio)
 
    call elsi_append_string(e_h%stdio%prefix,"  | ")
-   call elsi_print_versioning(e_h)
+   call elsi_print_versioning(e_h,e_h%stdio)
 
-   call elsi_say(e_h,"")
-   call elsi_print_handle_summary(e_h)
+   call elsi_say(e_h,"",e_h%stdio)
+   call elsi_print_handle_summary(e_h,e_h%stdio)
 
    call elsi_append_string(e_h%stdio%prefix,"  ")
-   call elsi_say_setting(e_h,"Number of ELSI calls",e_h%n_elsi_calls)
+   call elsi_say_setting(e_h,"Number of ELSI calls",e_h%n_elsi_calls,e_h%stdio)
    call elsi_truncate_string(e_h%stdio%prefix,2)
 
-   call elsi_say(e_h,"")
-   call elsi_say(e_h,"Timings")
+   call elsi_say(e_h,"",e_h%stdio)
+   call elsi_say(e_h,"Timings",e_h%stdio)
    call elsi_append_string(e_h%stdio%prefix,"  ")
    call elsi_print_timings(e_h,e_h%timings)
    call elsi_truncate_string(e_h%stdio%prefix,2)
 
    call elsi_truncate_string(e_h%stdio%prefix,4)
-   call elsi_say(e_h,"  |--------------------------------------------------------------------------")
-   call elsi_say(e_h,"  | ELSI Project (c)  elsi-interchange.org   ")
-   call elsi_say(e_h,"  |--------------------------------------------------------------------------")
+   call elsi_say(e_h,"  |--------------------------------------------------------------------------",e_h%stdio)
+   call elsi_say(e_h,"  | ELSI Project (c)  elsi-interchange.org",e_h%stdio)
+   call elsi_say(e_h,"  |--------------------------------------------------------------------------",e_h%stdio)
 
 end subroutine
 

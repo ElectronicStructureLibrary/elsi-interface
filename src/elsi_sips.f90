@@ -44,8 +44,6 @@ subroutine elsi_init_sips(e_h)
 
    type(elsi_handle), intent(inout) :: e_h
 
-   character(len=200) :: info_str
-
    character(len=40), parameter :: caller = "elsi_init_sips"
 
    if(e_h%n_elsi_calls == e_h%sips_n_elpa+1) then
@@ -74,9 +72,6 @@ subroutine elsi_init_sips(e_h)
 
       e_h%sips_started = .true.
    endif
-
-   write(info_str,"('  | Number of slices     ',I10)") e_h%sips_n_slices
-   call elsi_say(e_h,info_str)
 
 end subroutine
 
@@ -108,7 +103,7 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
    character(len=40), parameter :: caller = "elsi_solve_evp_sips_real"
 
    ! Solve the eigenvalue problem
-   call elsi_say(e_h,"  Starting SIPS eigensolver")
+   call elsi_say(e_h,"  Starting SIPS eigensolver",e_h%stdio)
 
    call elsi_get_time(t0)
 
@@ -137,9 +132,9 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished loading matrices')")
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
 
    call elsi_allocate(e_h,slices,e_h%sips_n_slices+1,"slices",caller)
 
@@ -206,9 +201,9 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
       call elsi_get_time(t1)
 
       write(info_str,"('  Finished inertia counting')")
-      call elsi_say(e_h,info_str)
+      call elsi_say(e_h,info_str,e_h%stdio)
       write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-      call elsi_say(e_h,info_str)
+      call elsi_say(e_h,info_str,e_h%stdio)
    else
       call sips_get_slices(e_h%sips_slice_type,e_h%n_states,e_h%sips_n_slices,&
               e_h%sips_inertia_tol*2,1.0e-5_r8,eval,slices)
@@ -228,9 +223,9 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished solving generalized eigenproblem')")
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
 
    call elsi_get_time(t0)
 
@@ -259,9 +254,9 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished retrieving eigensolutions')")
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
 
 end subroutine
 

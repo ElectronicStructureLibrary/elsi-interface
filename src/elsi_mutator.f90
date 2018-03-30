@@ -1106,7 +1106,7 @@ subroutine elsi_get_mu(e_h,mu)
 
    if(.not. e_h%mu_ready) then
       call elsi_say(e_h,"  ATTENTION! The return value of mu may be 0, since"//&
-              " mu has not been computed.")
+              " mu has not been computed.",e_h%stdio)
    endif
 
    e_h%mu_ready = .false.
@@ -1131,7 +1131,7 @@ subroutine elsi_get_entropy(e_h,ts)
 
    if(.not. e_h%ts_ready) then
       call elsi_say(e_h,"  ATTENTION! The return value of ts may be 0, since"//&
-              " ts has not been computed.")
+              " ts has not been computed.",e_h%stdio)
    endif
 
    e_h%ts_ready = .false.

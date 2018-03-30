@@ -373,27 +373,31 @@ subroutine elsi_print_timings(e_h,t_h)
 
    character(len=40), parameter :: caller = "elsi_print_timings"
 
-   call elsi_say(e_h,t_h%set_label)
-   call elsi_say(e_h,"   #  wall_clock   [s]     elsi_tag             user_tag")
+   if(t_h%n_timings > 0) then
+      call elsi_say(e_h,t_h%set_label,e_h%stdio)
+      call elsi_say(e_h,&
+              "   #  wall_clock   [s]     elsi_tag             user_tag",&
+              e_h%stdio)
+   endif
 
    do iter = 1,min(3,t_h%n_timings)
       write(info_str,"(I4,2X,F12.3,9X,A,1X,A)") iter,t_h%times(iter),&
          t_h%elsi_tags(iter),t_h%user_tags(iter)
-      call elsi_say(e_h,info_str)
+      call elsi_say(e_h,info_str,e_h%stdio)
    enddo
 
    if(t_h%n_timings > 0) then
       tmp = maxval(t_h%times(1:t_h%n_timings))
       write(info_str,"(6X,F12.3,9X,A,18X,A)") tmp,"MAX",UNSET_STR
-      call elsi_say(e_h,info_str)
+      call elsi_say(e_h,info_str,e_h%stdio)
 
       tmp = minval(t_h%times(1:t_h%n_timings))
       write(info_str,"(6X,F12.3,9X,A,18X,A)") tmp,"MIN",UNSET_STR
-      call elsi_say(e_h,info_str)
+      call elsi_say(e_h,info_str,e_h%stdio)
 
       tmp = sum(t_h%times(1:t_h%n_timings))/t_h%n_timings
       write(info_str,"(6X,F12.3,9X,A,14X,A)") tmp,"AVERAGE",UNSET_STR
-      call elsi_say(e_h,info_str)
+      call elsi_say(e_h,info_str,e_h%stdio)
    endif
 
 end subroutine
@@ -447,7 +451,7 @@ subroutine elsi_process_timing(e_h,output_type,data_type,solver_used,dt0,t0)
    real(kind=r8)          :: t1
    real(kind=r8)          :: t_total
    integer(kind=i4)       :: tmp_int
-   integer(kind=i4)       :: comma_json_save
+   integer(kind=i4)       :: comma_save
    integer(kind=i4)       :: iter
    type(elsi_io_handle)   :: io_h
 
@@ -469,7 +473,7 @@ subroutine elsi_process_timing(e_h,output_type,data_type,solver_used,dt0,t0)
       iter = e_h%timings%n_timings
 
       ! Avoid comma at the end of the last entry
-      comma_json_save = io_h%comma_json
+      comma_save = io_h%comma_json
 
       if(e_h%timings%n_timings == 1) then
          io_h%comma_json = NO_COMMA
@@ -483,7 +487,7 @@ subroutine elsi_process_timing(e_h,output_type,data_type,solver_used,dt0,t0)
       call elsi_print_timing(e_h,io_h,output_type,data_type,dt0,t_total,iter,&
               elsi_tag,user_tag)
 
-      io_h%comma_json = comma_json_save
+      io_h%comma_json = comma_save
    endif
 
    e_h%solver = tmp_int
@@ -508,13 +512,13 @@ subroutine elsi_print_timing(e_h,io_h,output_type,data_type,dt0,t_total,iter,&
    character(len=*),        intent(in)    :: elsi_tag
    character(len=*),        intent(in)    :: user_tag
 
-   integer(kind=i4)        :: comma_json_save
+   integer(kind=i4)        :: comma_save
    character(len=TIME_LEN) :: dt_record
    character(len=200)      :: info_str
 
    character(len=40), parameter :: caller = "elsi_print_timing"
 
-   comma_json_save = io_h%comma_json
+   comma_save = io_h%comma_json
 
    call elsi_get_datetime_rfc3339(dt_record)
 
@@ -584,7 +588,7 @@ subroutine elsi_print_timing(e_h,io_h,output_type,data_type,dt0,t_total,iter,&
    call elsi_print_solver_settings(e_h,io_h)
 
    ! Print out patterned footer
-   io_h%comma_json = comma_json_save
+   io_h%comma_json = comma_save
    if(io_h%file_format == HUMAN) then
       call elsi_say(e_h,"",io_h)
       write(info_str,"(A,I10)") "End of ELSI Solver Iteration   ",iter

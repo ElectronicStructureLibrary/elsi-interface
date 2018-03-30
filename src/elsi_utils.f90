@@ -18,7 +18,7 @@ module ELSI_UTILS
    use ELSI_DATATYPE,  only: elsi_handle
    use ELSI_IO,        only: elsi_say,elsi_init_io,elsi_open_json_file
    use ELSI_MPI,       only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8,&
-                             mpi_complex16,mpi_character
+                             mpi_complex16,mpi_character,mpi_comm_self
    use ELSI_PRECISION, only: i4,i8,r8
 
    implicit none
@@ -216,6 +216,12 @@ subroutine elsi_check(e_h,caller)
       else
          e_h%spin_degen = 2.0_r8
       endif
+   endif
+
+   if(.not. e_h%mpi_ready) then
+      e_h%mpi_comm = mpi_comm_self
+      e_h%n_procs  = 1
+      e_h%myid     = 0
    endif
 
    if(.not. e_h%global_mpi_ready) then

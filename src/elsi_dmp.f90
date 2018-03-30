@@ -85,7 +85,7 @@ subroutine elsi_solve_evp_dmp_real(e_h,ham,ovlp,dm)
 
    call elsi_get_time(t0)
 
-   call elsi_say(e_h,"  Starting density matrix purification")
+   call elsi_say(e_h,"  Starting density matrix purification",e_h%stdio)
 
    ! Transform the generalized evp to the standard form
    e_h%check_sing = .false.
@@ -279,9 +279,9 @@ subroutine elsi_solve_evp_dmp_real(e_h,ham,ovlp,dm)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished power iteration')")
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
 
    ! Initialization
    call elsi_get_time(t0)
@@ -392,11 +392,11 @@ subroutine elsi_solve_evp_dmp_real(e_h,ham,ovlp,dm)
       call elsi_trace_mat_mat_real(e_h,e_h%ovlp_real_copy,dm,e_h%dmp_ne)
       e_h%dmp_ne = e_h%spin_degen*e_h%dmp_ne
 
-      call elsi_say(e_h,"  Density matrix purification converged")
+      call elsi_say(e_h,"  Density matrix purification converged",e_h%stdio)
       write(info_str,"('  | Number of iterations :',I10)") i_iter
-      call elsi_say(e_h,info_str)
+      call elsi_say(e_h,info_str,e_h%stdio)
       write(info_str,"('  | Number of electrons  :',F10.3)") e_h%dmp_ne
-      call elsi_say(e_h,info_str)
+      call elsi_say(e_h,info_str,e_h%stdio)
    else
       call elsi_stop(" Density matrix purification failed to converge.",e_h,&
               caller)
@@ -411,9 +411,9 @@ subroutine elsi_solve_evp_dmp_real(e_h,ham,ovlp,dm)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished density matrix purification')")
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
 
 end subroutine
 

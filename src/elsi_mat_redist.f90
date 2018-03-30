@@ -443,9 +443,9 @@ subroutine elsi_blacs_to_pexsi_hs_real(e_h,ham,ovlp)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished matrix redistribution')")
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
 
 end subroutine
 
@@ -841,9 +841,9 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(e_h,ham,ovlp)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished matrix redistribution')")
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
 
 end subroutine
 
@@ -1002,9 +1002,9 @@ subroutine elsi_pexsi_to_blacs_dm_real(e_h,dm)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished matrix redistribution')")
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
 
 end subroutine
 
@@ -1163,9 +1163,9 @@ subroutine elsi_pexsi_to_blacs_dm_cmplx(e_h,dm)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished matrix redistribution')")
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
 
 end subroutine
 
@@ -1415,9 +1415,9 @@ subroutine elsi_blacs_to_sips_hs_real(e_h,ham,ovlp)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished matrix redistribution')")
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
 
 end subroutine
 
@@ -1668,9 +1668,9 @@ subroutine elsi_blacs_to_sips_hs_cmplx(e_h,ham,ovlp)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished matrix redistribution')")
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
 
 end subroutine
 
@@ -1884,9 +1884,9 @@ subroutine elsi_sips_to_blacs_hs_real(e_h,ham,ovlp)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished matrix redistribution')")
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
 
 end subroutine
 
@@ -2101,9 +2101,9 @@ subroutine elsi_sips_to_blacs_hs_cmplx(e_h,ham,ovlp)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished matrix redistribution')")
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
 
 end subroutine
 
@@ -2270,9 +2270,9 @@ subroutine elsi_sips_to_blacs_ev_real(e_h,evec)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished matrix redistribution')")
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
 
 end subroutine
 
@@ -2426,9 +2426,9 @@ subroutine elsi_blacs_to_sips_dm_real(e_h,dm)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished matrix redistribution')")
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
 
 end subroutine
 
@@ -2582,9 +2582,9 @@ subroutine elsi_blacs_to_sips_dm_cmplx(e_h,dm)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished matrix redistribution')")
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
 
 end subroutine
 
@@ -2797,9 +2797,9 @@ subroutine elsi_siesta_to_blacs_hs_real(e_h,ham,ovlp)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished matrix redistribution')")
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
 
 end subroutine
 
@@ -3013,9 +3013,9 @@ subroutine elsi_siesta_to_blacs_hs_cmplx(e_h,ham,ovlp)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished matrix redistribution')")
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
 
 end subroutine
 
@@ -3173,9 +3173,9 @@ subroutine elsi_blacs_to_siesta_dm_real(e_h,dm)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished matrix redistribution')")
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
 
 end subroutine
 
@@ -3333,9 +3333,9 @@ subroutine elsi_blacs_to_siesta_dm_cmplx(e_h,dm)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished matrix redistribution')")
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
 
 end subroutine
 
@@ -3549,9 +3549,9 @@ subroutine elsi_siesta_to_pexsi_hs_real(e_h,ham,ovlp)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished matrix redistribution')")
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
 
 end subroutine
 
@@ -3766,9 +3766,9 @@ subroutine elsi_siesta_to_pexsi_hs_cmplx(e_h,ham,ovlp)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished matrix redistribution')")
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
 
 end subroutine
 
@@ -3925,9 +3925,9 @@ subroutine elsi_pexsi_to_siesta_dm_real(e_h,dm)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished matrix redistribution')")
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
 
 end subroutine
 
@@ -4084,9 +4084,9 @@ subroutine elsi_pexsi_to_siesta_dm_cmplx(e_h,dm)
    call elsi_get_time(t1)
 
    write(info_str,"('  Finished matrix redistribution')")
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
    write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h,info_str)
+   call elsi_say(e_h,info_str,e_h%stdio)
 
 end subroutine
 

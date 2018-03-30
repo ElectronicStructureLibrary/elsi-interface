@@ -55,10 +55,6 @@ module ELSI_MALLOC
 
 contains
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! ELSI_ALLOCATE MODULE PROCEDURES !
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 !>
 !! This routine allocates a 1D array with real(kind=r4).
 !!
@@ -81,7 +77,7 @@ subroutine elsi_allocate_real4_1d(e_h,array,dim1,arrayname,caller)
 
       write(info_str,"(A,F10.3,2A)") "    Allocating ",arraysize," MB for ",&
          trim(arrayname)
-      call elsi_say(e_h,info_str)
+      call elsi_say(e_h,info_str,e_h%stdio)
    endif
 
    allocate(array(dim1),stat=error)
@@ -117,7 +113,7 @@ subroutine elsi_allocate_real8_1d(e_h,array,dim1,arrayname,caller)
 
       write(info_str,"(A,F10.3,2A)") "    Allocating ",arraysize," MB for ",&
          trim(arrayname)
-      call elsi_say(e_h,info_str)
+      call elsi_say(e_h,info_str,e_h%stdio)
    endif
 
    allocate(array(dim1),stat=error)
@@ -153,7 +149,7 @@ subroutine elsi_allocate_integer4_1d(e_h,array,dim1,arrayname,caller)
 
       write(info_str,"(A,F10.3,2A)") "    Allocating ",arraysize," MB for ",&
          trim(arrayname)
-      call elsi_say(e_h,info_str)
+      call elsi_say(e_h,info_str,e_h%stdio)
    endif
 
    allocate(array(dim1),stat=error)
@@ -189,7 +185,7 @@ subroutine elsi_allocate_integer8_1d(e_h,array,dim1,arrayname,caller)
 
       write(info_str,"(A,F10.3,2A)") "    Allocating ",arraysize," MB for ",&
          trim(arrayname)
-      call elsi_say(e_h,info_str)
+      call elsi_say(e_h,info_str,e_h%stdio)
    endif
 
    allocate(array(dim1),stat=error)
@@ -225,7 +221,7 @@ subroutine elsi_allocate_complex16_1d(e_h,array,dim1,arrayname,caller)
 
       write(info_str,"(A,F10.3,2A)") "    Allocating ",arraysize," MB for ",&
          trim(arrayname)
-      call elsi_say(e_h,info_str)
+      call elsi_say(e_h,info_str,e_h%stdio)
    endif
 
    allocate(array(dim1),stat=error)
@@ -262,7 +258,7 @@ subroutine elsi_allocate_real4_2d(e_h,array,dim1,dim2,arrayname,caller)
 
       write(info_str,"(A,F10.3,2A)") "    Allocating ",arraysize," MB for ",&
          trim(arrayname)
-      call elsi_say(e_h,info_str)
+      call elsi_say(e_h,info_str,e_h%stdio)
    endif
 
    allocate(array(dim1,dim2),stat=error)
@@ -299,7 +295,7 @@ subroutine elsi_allocate_real8_2d(e_h,array,dim1,dim2,arrayname,caller)
 
       write(info_str,"(A,F10.3,2A)") "    Allocating ",arraysize," MB for ",&
          trim(arrayname)
-      call elsi_say(e_h,info_str)
+      call elsi_say(e_h,info_str,e_h%stdio)
    endif
 
    allocate(array(dim1,dim2),stat=error)
@@ -336,7 +332,7 @@ subroutine elsi_allocate_integer4_2d(e_h,array,dim1,dim2,arrayname,caller)
 
       write(info_str,"(A,F10.3,2A)") "    Allocating ",arraysize," MB for ",&
          trim(arrayname)
-      call elsi_say(e_h,info_str)
+      call elsi_say(e_h,info_str,e_h%stdio)
    endif
 
    allocate(array(dim1,dim2),stat=error)
@@ -373,7 +369,7 @@ subroutine elsi_allocate_complex8_2d(e_h,array,dim1,dim2,arrayname,caller)
 
       write(info_str,"(A,F10.3,2A)") "    Allocating ",arraysize," MB for ",&
          trim(arrayname)
-      call elsi_say(e_h,info_str)
+      call elsi_say(e_h,info_str,e_h%stdio)
    endif
 
    allocate(array(dim1,dim2),stat=error)
@@ -410,7 +406,7 @@ subroutine elsi_allocate_complex16_2d(e_h,array,dim1,dim2,arrayname,caller)
 
       write(info_str,"(A,F10.3,2A)") "    Allocating ",arraysize," MB for ",&
          trim(arrayname)
-      call elsi_say(e_h,info_str)
+      call elsi_say(e_h,info_str,e_h%stdio)
    endif
 
    allocate(array(dim1,dim2),stat=error)
@@ -448,7 +444,7 @@ subroutine elsi_allocate_real8_3d(e_h,array,dim1,dim2,dim3,arrayname,caller)
 
       write(info_str,"(A,F10.3,2A)") "    Allocating ",arraysize," MB for ",&
          trim(arrayname)
-      call elsi_say(e_h,info_str)
+      call elsi_say(e_h,info_str,e_h%stdio)
    endif
 
    allocate(array(dim1,dim2,dim3),stat=error)
@@ -486,7 +482,7 @@ subroutine elsi_allocate_integer4_3d(e_h,array,dim1,dim2,dim3,arrayname,caller)
 
       write(info_str,"(A,F10.3,2A)") "    Allocating ",arraysize," MB for ",&
          trim(arrayname)
-      call elsi_say(e_h,info_str)
+      call elsi_say(e_h,info_str,e_h%stdio)
    endif
 
    allocate(array(dim1,dim2,dim3),stat=error)
@@ -524,7 +520,7 @@ subroutine elsi_allocate_complex16_3d(e_h,array,dim1,dim2,dim3,arrayname,caller)
 
       write(info_str,"(A,F10.3,2A)") "    Allocating ",arraysize," MB for ",&
          trim(arrayname)
-      call elsi_say(e_h,info_str)
+      call elsi_say(e_h,info_str,e_h%stdio)
    endif
 
    allocate(array(dim1,dim2,dim3),stat=error)
@@ -537,10 +533,6 @@ subroutine elsi_allocate_complex16_3d(e_h,array,dim1,dim2,dim3,arrayname,caller)
    array = (0.0_r8,0.0_r8)
 
 end subroutine
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! ELSI_DEALLOCATE MODULE PROCEDURES !
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !>
 !! This routine deallocates a 1D array with real(kind=r4).
@@ -557,7 +549,7 @@ subroutine elsi_deallocate_real4_1d(e_h,array,arrayname)
 
    if(e_h%print_mem) then
       write(info_str,"(2A)") "    Deallocating ",trim(arrayname)
-      call elsi_say(e_h,info_str)
+      call elsi_say(e_h,info_str,e_h%stdio)
    endif
 
    deallocate(array)
@@ -579,7 +571,7 @@ subroutine elsi_deallocate_real8_1d(e_h,array,arrayname)
 
    if(e_h%print_mem) then
       write(info_str,"(2A)") "    Deallocating ",trim(arrayname)
-      call elsi_say(e_h,info_str)
+      call elsi_say(e_h,info_str,e_h%stdio)
    endif
 
    deallocate(array)
@@ -601,7 +593,7 @@ subroutine elsi_deallocate_integer4_1d(e_h,array,arrayname)
 
    if(e_h%print_mem) then
       write(info_str,"(2A)") "    Deallocating ",trim(arrayname)
-      call elsi_say(e_h,info_str)
+      call elsi_say(e_h,info_str,e_h%stdio)
    endif
 
    deallocate(array)
@@ -623,7 +615,7 @@ subroutine elsi_deallocate_integer8_1d(e_h,array,arrayname)
 
    if(e_h%print_mem) then
       write(info_str,"(2A)") "    Deallocating ",trim(arrayname)
-      call elsi_say(e_h,info_str)
+      call elsi_say(e_h,info_str,e_h%stdio)
    endif
 
    deallocate(array)
@@ -645,7 +637,7 @@ subroutine elsi_deallocate_complex16_1d(e_h,array,arrayname)
 
    if(e_h%print_mem) then
       write(info_str,"(2A)") "    Deallocating ",trim(arrayname)
-      call elsi_say(e_h,info_str)
+      call elsi_say(e_h,info_str,e_h%stdio)
    endif
 
    deallocate(array)
@@ -667,7 +659,7 @@ subroutine elsi_deallocate_real4_2d(e_h,array,arrayname)
 
    if(e_h%print_mem) then
       write(info_str,"(2A)") "    Deallocating ",trim(arrayname)
-      call elsi_say(e_h,info_str)
+      call elsi_say(e_h,info_str,e_h%stdio)
    endif
 
    deallocate(array)
@@ -689,7 +681,7 @@ subroutine elsi_deallocate_real8_2d(e_h,array,arrayname)
 
    if(e_h%print_mem) then
       write(info_str,"(2A)") "    Deallocating ",trim(arrayname)
-      call elsi_say(e_h,info_str)
+      call elsi_say(e_h,info_str,e_h%stdio)
    endif
 
    deallocate(array)
@@ -711,7 +703,7 @@ subroutine elsi_deallocate_integer4_2d(e_h,array,arrayname)
 
    if(e_h%print_mem) then
       write(info_str,"(2A)") "    Deallocating ",trim(arrayname)
-      call elsi_say(e_h,info_str)
+      call elsi_say(e_h,info_str,e_h%stdio)
    endif
 
    deallocate(array)
@@ -733,7 +725,7 @@ subroutine elsi_deallocate_complex8_2d(e_h,array,arrayname)
 
    if(e_h%print_mem) then
       write(info_str,"(2A)") "    Deallocating ",trim(arrayname)
-      call elsi_say(e_h,info_str)
+      call elsi_say(e_h,info_str,e_h%stdio)
    endif
 
    deallocate(array)
@@ -756,7 +748,7 @@ subroutine elsi_deallocate_complex16_2d(e_h,array,arrayname)
 
    if(e_h%print_mem) then
       write(info_str,"(2A)") "    Deallocating ",trim(arrayname)
-      call elsi_say(e_h,info_str)
+      call elsi_say(e_h,info_str,e_h%stdio)
    endif
 
    deallocate(array)
@@ -778,7 +770,7 @@ subroutine elsi_deallocate_real8_3d(e_h,array,arrayname)
 
    if(e_h%print_mem) then
       write(info_str,"(2A)") "    Deallocating ",trim(arrayname)
-      call elsi_say(e_h,info_str)
+      call elsi_say(e_h,info_str,e_h%stdio)
    endif
 
    deallocate(array)
@@ -800,7 +792,7 @@ subroutine elsi_deallocate_integer4_3d(e_h,array,arrayname)
 
    if(e_h%print_mem) then
       write(info_str,"(2A)") "    Deallocating ",trim(arrayname)
-      call elsi_say(e_h,info_str)
+      call elsi_say(e_h,info_str,e_h%stdio)
    endif
 
    deallocate(array)
@@ -822,7 +814,7 @@ subroutine elsi_deallocate_complex16_3d(e_h,array,arrayname)
 
    if(e_h%print_mem) then
       write(info_str,"(2A)") "    Deallocating ",trim(arrayname)
-      call elsi_say(e_h,info_str)
+      call elsi_say(e_h,info_str,e_h%stdio)
    endif
 
    deallocate(array)
