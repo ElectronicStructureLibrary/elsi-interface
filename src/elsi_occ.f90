@@ -76,11 +76,11 @@ subroutine elsi_compute_mu_and_occ(e_h,n_electron,n_state,n_spin,n_kpt,&
 
    ! Determine upper and lower bounds of mu
    mu_lower = e_low
+   mu_upper = e_high
 
-   if(e_low == e_high) then
-      mu_upper = 0.0_r8
-   else
-      mu_upper = e_high
+   if(mu_upper - mu_lower < e_h%occ_tolerance) then
+      mu_lower = mu_lower-1.0_r8
+      mu_upper = mu_upper+1.0_r8
    endif
 
    occ_nums = 0.0_r8
