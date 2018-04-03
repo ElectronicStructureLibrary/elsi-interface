@@ -504,16 +504,17 @@ subroutine elsi_read_mat_dim_mp(rw_h,f_name,n_electron,n_basis,n_lrow,n_lcol)
    integer(kind=i4),     intent(out)   :: n_lrow     !< Local number of rows
    integer(kind=i4),     intent(out)   :: n_lcol     !< Local number of columns
 
-   integer(kind=i4) :: ierr
-   integer(kind=i4) :: f_handle
-   integer(kind=i4) :: f_mode
-   integer(kind=i4) :: header(HEADER_SIZE)
-   integer(kind=i4) :: n_prow
-   integer(kind=i4) :: n_pcol
-   integer(kind=i4) :: my_prow
-   integer(kind=i4) :: my_pcol
-   integer(kind=i8) :: offset
-   logical          :: file_ok
+   integer(kind=i4)   :: ierr
+   integer(kind=i4)   :: f_handle
+   integer(kind=i4)   :: f_mode
+   integer(kind=i4)   :: header(HEADER_SIZE)
+   integer(kind=i4)   :: n_prow
+   integer(kind=i4)   :: n_pcol
+   integer(kind=i4)   :: my_prow
+   integer(kind=i4)   :: my_pcol
+   integer(kind=i8)   :: offset
+   logical            :: file_ok
+   character(len=200) :: info_str
 
    integer(kind=i4), external :: numroc
 
@@ -522,7 +523,8 @@ subroutine elsi_read_mat_dim_mp(rw_h,f_name,n_electron,n_basis,n_lrow,n_lcol)
    inquire(file=f_name,exist=file_ok)
 
    if(.not. file_ok) then
-      call elsi_rw_stop(rw_h,"File does not exist.",caller)
+      write(info_str,"(3A)") "File '",trim(f_name),"' does not exist."
+      call elsi_rw_stop(rw_h,info_str,caller)
    endif
 
    ! Open file
@@ -578,14 +580,15 @@ subroutine elsi_read_mat_dim_sparse(rw_h,f_name,n_electron,n_basis,nnz_g,&
    integer(kind=i4),     intent(out)   :: nnz_l_sp   !< Local number of nonzeros
    integer(kind=i4),     intent(out)   :: n_lcol_sp  !< Local number of columns
 
-   integer(kind=i4) :: ierr
-   integer(kind=i4) :: f_handle
-   integer(kind=i4) :: f_mode
-   integer(kind=i4) :: header(HEADER_SIZE)
-   integer(kind=i4) :: n_lcol0
-   integer(kind=i4) :: prev_nnz
-   integer(kind=i8) :: offset
-   logical          :: file_ok
+   integer(kind=i4)   :: ierr
+   integer(kind=i4)   :: f_handle
+   integer(kind=i4)   :: f_mode
+   integer(kind=i4)   :: header(HEADER_SIZE)
+   integer(kind=i4)   :: n_lcol0
+   integer(kind=i4)   :: prev_nnz
+   integer(kind=i8)   :: offset
+   logical            :: file_ok
+   character(len=200) :: info_str
 
    integer(kind=i4), allocatable :: col_ptr(:)
 
@@ -594,7 +597,8 @@ subroutine elsi_read_mat_dim_sparse(rw_h,f_name,n_electron,n_basis,nnz_g,&
    inquire(file=f_name,exist=file_ok)
 
    if(.not. file_ok) then
-      call elsi_rw_stop(rw_h,"File does not exist.",caller)
+      write(info_str,"(3A)") "File '",trim(f_name),"' does not exist."
+      call elsi_rw_stop(rw_h,info_str,caller)
    endif
 
    ! Open file
@@ -689,7 +693,8 @@ subroutine elsi_read_mat_real_mp(rw_h,f_name,mat)
    inquire(file=f_name,exist=file_ok)
 
    if(.not. file_ok) then
-      call elsi_rw_stop(rw_h,"File does not exist.",caller)
+      write(info_str,"(3A)") "File '",trim(f_name),"' does not exist."
+      call elsi_rw_stop(rw_h,info_str,caller)
    endif
 
    call elsi_init(aux_h,PEXSI_SOLVER,MULTI_PROC,BLACS_DENSE,rw_h%n_basis,&
@@ -815,7 +820,8 @@ subroutine elsi_read_mat_real_sparse(rw_h,f_name,row_ind,col_ptr,mat)
    inquire(file=f_name,exist=file_ok)
 
    if(.not. file_ok) then
-      call elsi_rw_stop(rw_h,"File does not exist.",caller)
+      write(info_str,"(3A)") "File '",trim(f_name),"' does not exist."
+      call elsi_rw_stop(rw_h,info_str,caller)
    endif
 
    ! Output
@@ -904,7 +910,8 @@ subroutine elsi_read_mat_complex_mp(rw_h,f_name,mat)
    inquire(file=f_name,exist=file_ok)
 
    if(.not. file_ok) then
-      call elsi_rw_stop(rw_h,"File does not exist.",caller)
+      write(info_str,"(3A)") "File '",trim(f_name),"' does not exist."
+      call elsi_rw_stop(rw_h,info_str,caller)
    endif
 
    call elsi_init(aux_h,PEXSI_SOLVER,MULTI_PROC,BLACS_DENSE,rw_h%n_basis,&
@@ -1030,7 +1037,8 @@ subroutine elsi_read_mat_complex_sparse(rw_h,f_name,row_ind,col_ptr,mat)
    inquire(file=f_name,exist=file_ok)
 
    if(.not. file_ok) then
-      call elsi_rw_stop(rw_h,"File does not exist.",caller)
+      write(info_str,"(3A)") "File '",trim(f_name),"' does not exist."
+      call elsi_rw_stop(rw_h,info_str,caller)
    endif
 
    ! Output
@@ -1543,16 +1551,18 @@ subroutine elsi_read_mat_dim_sp(rw_h,f_name,n_electron,n_basis,n_lrow,n_lcol)
    integer(kind=i4),     intent(out)   :: n_lrow     !< Local number of rows
    integer(kind=i4),     intent(out)   :: n_lcol     !< Local number of columns
 
-   integer(kind=i4) :: header(HEADER_SIZE)
-   integer(kind=i8) :: offset
-   logical          :: file_ok
+   integer(kind=i4)   :: header(HEADER_SIZE)
+   integer(kind=i8)   :: offset
+   logical            :: file_ok
+   character(len=200) :: info_str
 
    character(len=40), parameter :: caller = "elsi_read_mat_dim_sp"
 
    inquire(file=f_name,exist=file_ok)
 
    if(.not. file_ok) then
-      call elsi_rw_stop(rw_h,"File does not exist.",caller)
+      write(info_str,"(3A)") "File '",trim(f_name),"' does not exist."
+      call elsi_rw_stop(rw_h,info_str,caller)
    endif
 
    ! Open file
@@ -1610,7 +1620,8 @@ subroutine elsi_read_mat_real_sp(rw_h,f_name,mat)
    inquire(file=f_name,exist=file_ok)
 
    if(.not. file_ok) then
-      call elsi_rw_stop(rw_h,"File does not exist.",caller)
+      write(info_str,"(3A)") "File '",trim(f_name),"' does not exist."
+      call elsi_rw_stop(rw_h,info_str,caller)
    endif
 
    ! Output
@@ -1718,7 +1729,8 @@ subroutine elsi_read_mat_complex_sp(rw_h,f_name,mat)
    inquire(file=f_name,exist=file_ok)
 
    if(.not. file_ok) then
-      call elsi_rw_stop(rw_h,"File does not exist.",caller)
+      write(info_str,"(3A)") "File '",trim(f_name),"' does not exist."
+      call elsi_rw_stop(rw_h,info_str,caller)
    endif
 
    ! Output
