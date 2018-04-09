@@ -10,9 +10,10 @@
 module ELSI_MAT_IO
 
    use, intrinsic :: ISO_C_BINDING
-   use ELSI_CONSTANTS,  only: HEADER_SIZE,BLACS_DENSE,PEXSI_CSC,WRITE_FILE,&
-                              REAL_DATA,CMPLX_DATA,FILE_VERSION,PEXSI_SOLVER,&
-                              SIPS_SOLVER,MULTI_PROC,SINGLE_PROC,UNSET
+   use ELSI_CONSTANTS,  only: HEADER_SIZE,BLACS_DENSE,PEXSI_CSC,SIESTA_CSC,&
+                              WRITE_FILE,REAL_DATA,CMPLX_DATA,FILE_VERSION,&
+                              PEXSI_SOLVER,SIPS_SOLVER,MULTI_PROC,SINGLE_PROC,&
+                              UNSET,N_MATRIX_FORMATS,N_PARALLEL_MODES
    use ELSI_DATATYPE,   only: elsi_handle,elsi_rw_handle
    use ELSI_IO,         only: elsi_say,elsi_get_time
    use ELSI_MALLOC,     only: elsi_allocate,elsi_deallocate
@@ -187,9 +188,10 @@ subroutine elsi_set_rw_csc(rw_h,nnz_g,nnz_l_sp,n_lcol_sp)
 
    call elsi_check_rw_handle(rw_h,caller)
 
-   rw_h%nnz_g     = nnz_g
-   rw_h%nnz_l_sp  = nnz_l_sp
-   rw_h%n_lcol_sp = n_lcol_sp
+   rw_h%nnz_g           = nnz_g
+   rw_h%nnz_l_sp        = nnz_l_sp
+   rw_h%n_lcol_sp       = n_lcol_sp
+   rw_h%pexsi_csc_ready = .true.
 
 end subroutine
 
@@ -296,6 +298,34 @@ subroutine elsi_get_rw_header(rw_h,header_user)
 end subroutine
 
 !>
+!! This routine guarantees that there are no unsupported or mutually conflicting
+!! parameters before reading or writing data.
+!!
+subroutine elsi_check_rw(rw_h,caller)
+
+   implicit none
+
+   type(elsi_rw_handle), intent(in) :: rw_h   !< Handle
+   character(len=*),     intent(in) :: caller !< Caller
+
+   if(rw_h%parallel_mode < 0 .or. rw_h%parallel_mode >= N_PARALLEL_MODES) then
+      call elsi_rw_stop(rw_h,"Unsupported parallel mode.",caller)
+   endif
+
+   if(rw_h%parallel_mode == MULTI_PROC) then
+      if(.not. rw_h%mpi_ready) then
+         call elsi_rw_stop(rw_h,"MULTI_PROC parallel mode requires MPI.",caller)
+      endif
+   endif
+
+   if(rw_h%n_basis < rw_h%n_procs) then
+      call elsi_rw_stop(rw_h,"Matrix size too small for this number of MPI"//&
+              " tasks.",caller)
+   endif
+
+end subroutine
+
+!>
 !! This routine checks whether a handle has been properly initialized for
 !! reading and writing matrices.
 !!
@@ -323,28 +353,29 @@ subroutine elsi_reset_rw_handle(rw_h)
 
    character(len=40), parameter :: caller = "elsi_reset_rw_handle"
 
-   rw_h%handle_init    = .false.
-   rw_h%rw_task        = UNSET
-   rw_h%parallel_mode  = UNSET
-   rw_h%print_info     = .false.
-   rw_h%print_mem      = .false.
-   rw_h%print_unit     = 6
-   rw_h%myid           = UNSET
-   rw_h%n_procs        = UNSET
-   rw_h%mpi_comm       = UNSET
-   rw_h%mpi_ready      = .false.
-   rw_h%blacs_ctxt     = UNSET
-   rw_h%blk            = UNSET
-   rw_h%n_lrow         = UNSET
-   rw_h%n_lcol         = UNSET
-   rw_h%blacs_ready    = .false.
-   rw_h%nnz_g          = UNSET
-   rw_h%nnz_l_sp       = UNSET
-   rw_h%n_lcol_sp      = UNSET
-   rw_h%zero_def       = 1.0e-15_r8
-   rw_h%n_electrons    = 0.0_r8
-   rw_h%n_basis        = UNSET
-   rw_h%header_user    = UNSET
+   rw_h%handle_init     = .false.
+   rw_h%rw_task         = UNSET
+   rw_h%parallel_mode   = UNSET
+   rw_h%print_info      = .false.
+   rw_h%print_mem       = .false.
+   rw_h%print_unit      = 6
+   rw_h%myid            = UNSET
+   rw_h%n_procs         = UNSET
+   rw_h%mpi_comm        = UNSET
+   rw_h%mpi_ready       = .false.
+   rw_h%blacs_ctxt      = UNSET
+   rw_h%blk             = UNSET
+   rw_h%n_lrow          = UNSET
+   rw_h%n_lcol          = UNSET
+   rw_h%blacs_ready     = .false.
+   rw_h%nnz_g           = UNSET
+   rw_h%nnz_l_sp        = UNSET
+   rw_h%n_lcol_sp       = UNSET
+   rw_h%zero_def        = 1.0e-20_r8
+   rw_h%pexsi_csc_ready = .false.
+   rw_h%n_electrons     = 0.0_r8
+   rw_h%n_basis         = UNSET
+   rw_h%header_user     = UNSET
 
 end subroutine
 
@@ -418,6 +449,8 @@ subroutine elsi_read_mat_real(rw_h,f_name,mat)
 
    character(len=40), parameter :: caller = "elsi_read_mat_real"
 
+   call elsi_check_rw(rw_h,caller)
+
    if(rw_h%parallel_mode == MULTI_PROC) then
       call elsi_read_mat_real_mp(rw_h,f_name,mat)
    else
@@ -438,6 +471,8 @@ subroutine elsi_write_mat_real(rw_h,f_name,mat)
    real(kind=r8),        intent(in) :: mat(rw_h%n_lrow,rw_h%n_lcol) !< Matrix
 
    character(len=40), parameter :: caller = "elsi_write_mat_real"
+
+   call elsi_check_rw(rw_h,caller)
 
    if(rw_h%parallel_mode == MULTI_PROC) then
       call elsi_write_mat_real_mp(rw_h,f_name,mat)
@@ -460,6 +495,8 @@ subroutine elsi_read_mat_complex(rw_h,f_name,mat)
 
    character(len=40), parameter :: caller = "elsi_read_mat_complex"
 
+   call elsi_check_rw(rw_h,caller)
+
    if(rw_h%parallel_mode == MULTI_PROC) then
       call elsi_read_mat_complex_mp(rw_h,f_name,mat)
    else
@@ -480,6 +517,8 @@ subroutine elsi_write_mat_complex(rw_h,f_name,mat)
    complex(kind=r8),     intent(in) :: mat(rw_h%n_lrow,rw_h%n_lcol) !< Matrix
 
    character(len=40), parameter :: caller = "elsi_write_mat_complex"
+
+   call elsi_check_rw(rw_h,caller)
 
    if(rw_h%parallel_mode == MULTI_PROC) then
       call elsi_write_mat_complex_mp(rw_h,f_name,mat)
@@ -504,16 +543,17 @@ subroutine elsi_read_mat_dim_mp(rw_h,f_name,n_electron,n_basis,n_lrow,n_lcol)
    integer(kind=i4),     intent(out)   :: n_lrow     !< Local number of rows
    integer(kind=i4),     intent(out)   :: n_lcol     !< Local number of columns
 
-   integer(kind=i4) :: ierr
-   integer(kind=i4) :: f_handle
-   integer(kind=i4) :: f_mode
-   integer(kind=i4) :: header(HEADER_SIZE)
-   integer(kind=i4) :: n_prow
-   integer(kind=i4) :: n_pcol
-   integer(kind=i4) :: my_prow
-   integer(kind=i4) :: my_pcol
-   integer(kind=i8) :: offset
-   logical          :: file_ok
+   integer(kind=i4)   :: ierr
+   integer(kind=i4)   :: f_handle
+   integer(kind=i4)   :: f_mode
+   integer(kind=i4)   :: header(HEADER_SIZE)
+   integer(kind=i4)   :: n_prow
+   integer(kind=i4)   :: n_pcol
+   integer(kind=i4)   :: my_prow
+   integer(kind=i4)   :: my_pcol
+   integer(kind=i8)   :: offset
+   logical            :: file_ok
+   character(len=200) :: info_str
 
    integer(kind=i4), external :: numroc
 
@@ -522,7 +562,8 @@ subroutine elsi_read_mat_dim_mp(rw_h,f_name,n_electron,n_basis,n_lrow,n_lcol)
    inquire(file=f_name,exist=file_ok)
 
    if(.not. file_ok) then
-      call elsi_rw_stop(rw_h,"File does not exist.",caller)
+      write(info_str,"(3A)") "File '",trim(f_name),"' does not exist."
+      call elsi_rw_stop(rw_h,info_str,caller)
    endif
 
    ! Open file
@@ -578,14 +619,15 @@ subroutine elsi_read_mat_dim_sparse(rw_h,f_name,n_electron,n_basis,nnz_g,&
    integer(kind=i4),     intent(out)   :: nnz_l_sp   !< Local number of nonzeros
    integer(kind=i4),     intent(out)   :: n_lcol_sp  !< Local number of columns
 
-   integer(kind=i4) :: ierr
-   integer(kind=i4) :: f_handle
-   integer(kind=i4) :: f_mode
-   integer(kind=i4) :: header(HEADER_SIZE)
-   integer(kind=i4) :: n_lcol0
-   integer(kind=i4) :: prev_nnz
-   integer(kind=i8) :: offset
-   logical          :: file_ok
+   integer(kind=i4)   :: ierr
+   integer(kind=i4)   :: f_handle
+   integer(kind=i4)   :: f_mode
+   integer(kind=i4)   :: header(HEADER_SIZE)
+   integer(kind=i4)   :: n_lcol0
+   integer(kind=i4)   :: prev_nnz
+   integer(kind=i8)   :: offset
+   logical            :: file_ok
+   character(len=200) :: info_str
 
    integer(kind=i4), allocatable :: col_ptr(:)
 
@@ -594,7 +636,8 @@ subroutine elsi_read_mat_dim_sparse(rw_h,f_name,n_electron,n_basis,nnz_g,&
    inquire(file=f_name,exist=file_ok)
 
    if(.not. file_ok) then
-      call elsi_rw_stop(rw_h,"File does not exist.",caller)
+      write(info_str,"(3A)") "File '",trim(f_name),"' does not exist."
+      call elsi_rw_stop(rw_h,info_str,caller)
    endif
 
    ! Open file
@@ -689,7 +732,8 @@ subroutine elsi_read_mat_real_mp(rw_h,f_name,mat)
    inquire(file=f_name,exist=file_ok)
 
    if(.not. file_ok) then
-      call elsi_rw_stop(rw_h,"File does not exist.",caller)
+      write(info_str,"(3A)") "File '",trim(f_name),"' does not exist."
+      call elsi_rw_stop(rw_h,info_str,caller)
    endif
 
    call elsi_init(aux_h,PEXSI_SOLVER,MULTI_PROC,BLACS_DENSE,rw_h%n_basis,&
@@ -812,10 +856,13 @@ subroutine elsi_read_mat_real_sparse(rw_h,f_name,row_ind,col_ptr,mat)
 
    character(len=40), parameter :: caller = "elsi_read_mat_real_sparse"
 
+   call elsi_check_rw(rw_h,caller)
+
    inquire(file=f_name,exist=file_ok)
 
    if(.not. file_ok) then
-      call elsi_rw_stop(rw_h,"File does not exist.",caller)
+      write(info_str,"(3A)") "File '",trim(f_name),"' does not exist."
+      call elsi_rw_stop(rw_h,info_str,caller)
    endif
 
    ! Output
@@ -904,7 +951,8 @@ subroutine elsi_read_mat_complex_mp(rw_h,f_name,mat)
    inquire(file=f_name,exist=file_ok)
 
    if(.not. file_ok) then
-      call elsi_rw_stop(rw_h,"File does not exist.",caller)
+      write(info_str,"(3A)") "File '",trim(f_name),"' does not exist."
+      call elsi_rw_stop(rw_h,info_str,caller)
    endif
 
    call elsi_init(aux_h,PEXSI_SOLVER,MULTI_PROC,BLACS_DENSE,rw_h%n_basis,&
@@ -1027,10 +1075,13 @@ subroutine elsi_read_mat_complex_sparse(rw_h,f_name,row_ind,col_ptr,mat)
 
    character(len=40), parameter :: caller = "elsi_read_mat_complex_sparse"
 
+   call elsi_check_rw(rw_h,caller)
+
    inquire(file=f_name,exist=file_ok)
 
    if(.not. file_ok) then
-      call elsi_rw_stop(rw_h,"File does not exist.",caller)
+      write(info_str,"(3A)") "File '",trim(f_name),"' does not exist."
+      call elsi_rw_stop(rw_h,info_str,caller)
    endif
 
    ! Output
@@ -1352,6 +1403,8 @@ subroutine elsi_write_mat_real_sparse(rw_h,f_name,row_ind,col_ptr,mat)
 
    character(len=40), parameter :: caller = "elsi_write_mat_real_sparse"
 
+   call elsi_check_rw(rw_h,caller)
+
    ! Output
    aux_h%myid_all         = rw_h%myid
    aux_h%stdio%print_info = rw_h%print_info
@@ -1455,6 +1508,8 @@ subroutine elsi_write_mat_complex_sparse(rw_h,f_name,row_ind,col_ptr,mat)
 
    character(len=40), parameter :: caller = "elsi_write_mat_complex_sparse"
 
+   call elsi_check_rw(rw_h,caller)
+
    ! Output
    aux_h%myid_all         = rw_h%myid
    aux_h%stdio%print_info = rw_h%print_info
@@ -1543,16 +1598,18 @@ subroutine elsi_read_mat_dim_sp(rw_h,f_name,n_electron,n_basis,n_lrow,n_lcol)
    integer(kind=i4),     intent(out)   :: n_lrow     !< Local number of rows
    integer(kind=i4),     intent(out)   :: n_lcol     !< Local number of columns
 
-   integer(kind=i4) :: header(HEADER_SIZE)
-   integer(kind=i8) :: offset
-   logical          :: file_ok
+   integer(kind=i4)   :: header(HEADER_SIZE)
+   integer(kind=i8)   :: offset
+   logical            :: file_ok
+   character(len=200) :: info_str
 
    character(len=40), parameter :: caller = "elsi_read_mat_dim_sp"
 
    inquire(file=f_name,exist=file_ok)
 
    if(.not. file_ok) then
-      call elsi_rw_stop(rw_h,"File does not exist.",caller)
+      write(info_str,"(3A)") "File '",trim(f_name),"' does not exist."
+      call elsi_rw_stop(rw_h,info_str,caller)
    endif
 
    ! Open file
@@ -1610,7 +1667,8 @@ subroutine elsi_read_mat_real_sp(rw_h,f_name,mat)
    inquire(file=f_name,exist=file_ok)
 
    if(.not. file_ok) then
-      call elsi_rw_stop(rw_h,"File does not exist.",caller)
+      write(info_str,"(3A)") "File '",trim(f_name),"' does not exist."
+      call elsi_rw_stop(rw_h,info_str,caller)
    endif
 
    ! Output
@@ -1718,7 +1776,8 @@ subroutine elsi_read_mat_complex_sp(rw_h,f_name,mat)
    inquire(file=f_name,exist=file_ok)
 
    if(.not. file_ok) then
-      call elsi_rw_stop(rw_h,"File does not exist.",caller)
+      write(info_str,"(3A)") "File '",trim(f_name),"' does not exist."
+      call elsi_rw_stop(rw_h,info_str,caller)
    endif
 
    ! Output

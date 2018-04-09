@@ -165,7 +165,8 @@ subroutine elsi_reset_handle(e_h)
 end subroutine
 
 !>
-!! This routine guarantees that there are no mutually conflicting parameters.
+!! This routine guarantees that there are no unsupported or mutually conflicting
+!! parameters before running actual calculations.
 !!
 subroutine elsi_check(e_h,caller)
 
@@ -236,11 +237,11 @@ subroutine elsi_check(e_h,caller)
       endif
    elseif(e_h%matrix_format == SIESTA_CSC) then
       if(e_h%blk_sp2 == UNSET .or. .not. e_h%siesta_csc_ready) then
-         call elsi_stop(e_h,"SIESTA_CSC format not properly set up.",caller)
+         call elsi_stop(e_h,"SIESTA_CSC not properly set up.",caller)
       endif
    elseif(e_h%matrix_format == PEXSI_CSC) then
       if(.not. e_h%pexsi_csc_ready) then
-         call elsi_stop(e_h,"PEXSI_CSC format not properly set up.",caller)
+         call elsi_stop(e_h,"PEXSI_CSC not properly set up.",caller)
       endif
    endif
 
@@ -288,7 +289,7 @@ subroutine elsi_check(e_h,caller)
          endif
       endif
    case(CHESS_SOLVER)
-      call elsi_stop(e_h,"CheSS solver not yet available.",caller)
+      call elsi_stop(e_h,"CheSS solver not yet supported.",caller)
    case(SIPS_SOLVER)
       if(e_h%n_basis < e_h%n_procs) then
          call elsi_stop(e_h,"For this number of MPI tasks, the matrix size"//&

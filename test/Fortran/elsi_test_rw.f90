@@ -9,7 +9,7 @@
 !!
 program elsi_test_rw
 
-   use ELSI_PRECISION, only: r8,i4
+   use ELSI_PRECISION, only: i4
 
    implicit none
 
