@@ -26,7 +26,7 @@ LIST(APPEND elpa_src
 )
 
 ### Kernels ###
-IF(ENABLE_ELPA_AVX512)
+IF(ELPA2_KERNEL STREQUAL "AVX512")
   MESSAGE(STATUS "Enabling ELPA AVX 512 kernel")
   LIST(APPEND elpa_src
     src/mod_compute_hh_trafo_real_avx512.f90
@@ -36,7 +36,7 @@ IF(ENABLE_ELPA_AVX512)
     src/elpa2_kernels_real_avx512_2hv.c
     src/elpa2_kernels_complex_avx512_1hv.c
   )
-ELSEIF(ENABLE_ELPA_AVX2)
+ELSEIF(ELPA2_KERNEL STREQUAL "AVX2")
   MESSAGE(STATUS "Enabling ELPA AVX 2 kernel")
   LIST(APPEND elpa_src
     src/mod_compute_hh_trafo_real_avx2.f90
@@ -46,7 +46,7 @@ ELSEIF(ENABLE_ELPA_AVX2)
     src/elpa2_kernels_real_avx2_2hv.c
     src/elpa2_kernels_complex_avx2_1hv.c
   )
-ELSEIF(ENABLE_ELPA_AVX)
+ELSEIF(ELPA2_KERNEL STREQUAL "AVX")
   MESSAGE(STATUS "Enabling ELPA AVX kernel")
   LIST(APPEND elpa_src
     src/mod_compute_hh_trafo_real_avx.f90
@@ -56,7 +56,7 @@ ELSEIF(ENABLE_ELPA_AVX)
     src/elpa2_kernels_real_avx_2hv.c
     src/elpa2_kernels_complex_avx_1hv.c
   )
-ELSEIF(ENABLE_ELPA_BGQ)
+ELSEIF(ELPA2_KERNEL STREQUAL "BGQ")
   MESSAGE(STATUS "Enabling ELPA Blue Gene Q kernel")
   LIST(APPEND elpa_src
     src/mod_compute_hh_trafo_real_bgq.f90

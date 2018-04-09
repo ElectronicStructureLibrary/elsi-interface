@@ -8,7 +8,7 @@ SET(CMAKE_Fortran_FLAGS "-fast -no-ipo" CACHE STRING "Fortran flags")
 SET(CMAKE_C_FLAGS "-fast -no-ipo -std=c99" CACHE STRING "C flags")
 SET(CMAKE_CXX_FLAGS "-fast -no-ipo -std=c++11" CACHE STRING "C++ flags")
 
-SET(ENABLE_ELPA_AVX2 "ON" CACHE BOOL "Use ELPA AVX2 kernel")
+SET(ELPA2_KERNEL "AVX512" CACHE STRING "Use ELPA AVX512 kernel")
 SET(ENABLE_PEXSI "ON" CACHE BOOL "Enable PEXSI")
 
 SET(PTSCOTCH_DIR "/global/homes/v/vwzyu/cori_knl/soft/scotch_6.0.5a" CACHE PATH "PtScotch directory")
