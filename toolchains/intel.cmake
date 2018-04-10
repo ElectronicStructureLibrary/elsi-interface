@@ -11,8 +11,10 @@ SET(CMAKE_CXX_FLAGS "-O3 -xAVX -fp-model precise -std=c++11" CACHE STRING "C++ f
 SET(ENABLE_TESTS "ON" CACHE BOOL "Enable Fortran tests")
 SET(ENABLE_C_TESTS "ON" CACHE BOOL "Enable C tests")
 SET(ENABLE_PEXSI "ON" CACHE BOOL "Enable PEXSI")
-SET(ENABLE_MKL "ON" CACHE BOOL "Use Intel MKL libraries")
 SET(ELPA2_KERNEL "AVX" CACHE STRING "Use ELPA AVX kernel")
+SET(ENABLE_MKL "ON" CACHE BOOL "Pass -mkl=cluster to linker")
+# ENABLE_MLK is valid only if linking with Intel compiler and MKL libraries
+# exist; use "MATH_LIB" otherwise
 
 SET(PTSCOTCH_DIR "/home/wy29/opt/scotch_6.0.5a" CACHE PATH "PtScotch directory")
 SET(PTSCOTCH_LIB "${PTSCOTCH_DIR}/lib/libptscotchparmetis.a;${PTSCOTCH_DIR}/lib/libptscotch.a;${PTSCOTCH_DIR}/lib/libptscotcherr.a;${PTSCOTCH_DIR}/lib/libscotchmetis.a;${PTSCOTCH_DIR}/lib/libscotch.a;${PTSCOTCH_DIR}/lib/libscotcherr.a" CACHE STRING "PtScotch libraries")

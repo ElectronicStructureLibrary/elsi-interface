@@ -11,7 +11,9 @@ SET(CMAKE_CXX_FLAGS "-O3 -xAVX -fp-model precise -std=c++11" CACHE STRING "C++ f
 SET(ENABLE_TESTS "ON" CACHE BOOL "Enable Fortran tests")
 SET(ENABLE_C_TESTS "ON" CACHE BOOL "Enable C tests")
 SET(ENABLE_PEXSI "ON" CACHE BOOL "Enable PEXSI")
-SET(ENABLE_MKL "ON" CACHE BOOL "Use Intel MKL libraries")
+SET(ENABLE_MKL "ON" CACHE BOOL "Pass -mkl=cluster to linker")
+# ENABLE_MLK is valid only if linking with Intel compiler and MKL libraries
+# exist; use "MATH_LIB" otherwise
 
 SET(ELPA_LIB "/home/wy29/opt/elpa-2017.11.001/lib/libelpa.a" CACHE STRING "ELPA libraries")
 SET(ELPA_INC "/home/wy29/opt/elpa-2017.11.001/include" CACHE PATH "ELPA include directory")
