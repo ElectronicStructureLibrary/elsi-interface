@@ -8,10 +8,10 @@ SET(CMAKE_Fortran_FLAGS "-O3 -xAVX -fp-model precise -g -traceback -check bounds
 SET(CMAKE_C_FLAGS "-O3 -xAVX -fp-model precise -std=c99" CACHE STRING "C flags")
 SET(CMAKE_CXX_FLAGS "-O3 -xAVX -fp-model precise -std=c++11" CACHE STRING "C++ flags")
 
-SET(ENABLE_TESTS "ON" CACHE BOOL "Enable Fortran tests")
-SET(ENABLE_C_TESTS "ON" CACHE BOOL "Enable C tests")
-SET(ENABLE_PEXSI "ON" CACHE BOOL "Enable PEXSI")
-SET(ENABLE_MKL "ON" CACHE BOOL "Pass -mkl=cluster to linker")
+SET(ENABLE_TESTS ON CACHE BOOL "Enable Fortran tests")
+SET(ENABLE_C_TESTS ON CACHE BOOL "Enable C tests")
+SET(ENABLE_PEXSI ON CACHE BOOL "Enable PEXSI")
+SET(ENABLE_MKL ON CACHE BOOL "Pass -mkl=cluster to linker")
 # ENABLE_MLK is valid only if linking with Intel compiler and MKL libraries
 # exist; use "MATH_LIB" otherwise
 
