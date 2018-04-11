@@ -47,7 +47,7 @@ B) CMAKE BASICS
 
    $ mkdir build
    $ cd build
-   $ cmake .. -DCMAKE_INSTALL_PREFIX=/path/to/install/elsi [-Doptions ...]
+   $ cmake [options] ..
 
      ...
      ...
@@ -57,7 +57,7 @@ B) CMAKE BASICS
    $ make [-j np]
    $ make install
 
-   whenever CMake is invoked, one of the command line arguments must point
+   Whenever CMake is invoked, one of the command line arguments must point
    to the path where the top level CMakeLists.txt file exists, hence the
    ".." in the above example.
 
@@ -73,13 +73,12 @@ B) CMAKE BASICS
 
    For example,
 
+   -DCMAKE_INSTALL_PREFIX=/path/to/install/elsi
    -DCMAKE_C_COMPILER=gcc
    -DENABLE_TESTS=OFF
    -DENABLE_PEXSI=ON
    -DMATH_LIB="/path/to/libscalapack.a;/path/to/lapack.a;/path/to/blas.a"
    -DELPA_INC="/path/to/include;/another/path/to/include"
-
-   Available options are introduced in part C).
 
 ===========================================================================
 C) CONFIGURATION
