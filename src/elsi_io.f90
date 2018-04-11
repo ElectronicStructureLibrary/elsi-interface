@@ -17,6 +17,7 @@ module ELSI_IO
    use ELSI_DATATYPE,  only: elsi_handle,elsi_io_handle
    use ELSI_MPI,       only: elsi_stop,elsi_check_mpi
    use ELSI_PRECISION, only: r8,i4,i8
+   use FORTJSON,       only: fjson_open_file
 
    implicit none
 

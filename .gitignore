@@ -7,6 +7,7 @@
 *.swp
 *.tmp
 elsi_version.f90
+initial_cache.cmake
 logPEXSI*
 make.sys*
 /doc/html/
@@ -14,4 +15,5 @@ make.sys*
 /bin/
 /build/
 /include/
+/install/
 /lib/
