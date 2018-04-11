@@ -14,6 +14,7 @@ module ELSI_DATATYPE
    use ELSI_PRECISION,     only: r8,i4
    use F_PPEXSI_INTERFACE, only: f_ppexsi_options
    use MATRIXSWITCH,       only: matrix
+   use ELSI_JSON,          only: elsi_json_handle
 
    implicit none
 
@@ -26,8 +27,8 @@ module ELSI_DATATYPE
       integer(kind=i4)              :: file_format
       logical                       :: print_info
       integer(kind=i4)              :: print_unit
-      character(len=:), allocatable :: prefix
-      integer(kind=i4)              :: comma_json
+      character(len=:), allocatable :: prefix ! Only used for human-readable
+      type(elsi_json_handle)        :: json_h
       integer(kind=i4)              :: n_records
       character(len=STR_LEN)        :: user_tag
       character(len=STR_LEN)        :: elsi_tag

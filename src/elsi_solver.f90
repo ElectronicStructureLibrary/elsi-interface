@@ -19,8 +19,8 @@ module ELSI_SOLVER
                               elsi_solve_evp_elpa_real,&
                               elsi_compute_dm_elpa_cmplx,&
                               elsi_solve_evp_elpa_cmplx
-   use ELSI_IO,         only: elsi_io_add_entry,elsi_get_time,&
-                              elsi_get_datetime_rfc3339
+   use ELSI_IO,         only: elsi_io_add_entry,elsi_get_time
+   use ELSI_JSON,       only: elsi_get_datetime_rfc3339
    use ELSI_LAPACK,     only: elsi_solve_evp_lapack_real,&
                               elsi_solve_evp_lapack_cmplx
    use ELSI_MALLOC,     only: elsi_allocate,elsi_deallocate

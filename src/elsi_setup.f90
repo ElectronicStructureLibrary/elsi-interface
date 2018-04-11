@@ -11,14 +11,16 @@ module ELSI_SETUP
 
    use ELSI_CONSTANTS,     only: ELPA_SOLVER,OMM_SOLVER,SIPS_SOLVER,DMP_SOLVER,&
                                  PEXSI_SOLVER,HUMAN,UNSET,SINGLE_PROC,&
-                                 MULTI_PROC,PEXSI_CSC,SIESTA_CSC
+                                 MULTI_PROC,PEXSI_CSC,SIESTA_CSC,JSON
    use ELSI_DATATYPE,      only: elsi_handle
    use ELSI_DMP,           only: elsi_set_dmp_default
    use ELSI_ELPA,          only: elsi_set_elpa_default,elsi_get_elpa_comms
    use ELSI_IO,            only: elsi_print_handle_summary,elsi_say,&
                                  elsi_init_io,elsi_reset_io_handle,&
-                                 elsi_append_string,elsi_truncate_string,&
-                                 elsi_print_versioning,elsi_close_json_file
+                                 elsi_print_versioning
+   use ELSI_JSON,          only: elsi_append_string,elsi_truncate_string,&
+                                 elsi_close_json_file,elsi_finish_json_array,&
+                                 elsi_json_handle
    use ELSI_MALLOC,        only: elsi_allocate,elsi_deallocate
    use ELSI_MPI,           only: elsi_stop
    use ELSI_OMM,           only: elsi_set_omm_default
@@ -112,11 +114,12 @@ subroutine elsi_init(e_h,solver,parallel_mode,matrix_format,n_basis,n_electron,&
    end select
 
    ! Initialize stdio handle, silent by default
-   call elsi_init_io(e_h%stdio,6,"",HUMAN,.false.,"",UNSET)
+   call elsi_init_io(e_h%stdio,6,"",HUMAN,.false.,"")
 
-   e_h%log_file%print_info = .false.
-   e_h%log_file%file_name  = "elsi_log.json"
-   e_h%log_file%print_unit = 66
+   e_h%log_file%print_info  = .false.
+   e_h%log_file%file_name   = "elsi_log.json"
+   e_h%log_file%print_unit  = 66
+   e_h%log_file%file_format = JSON
 
 end subroutine
 
@@ -557,7 +560,8 @@ subroutine elsi_cleanup(e_h)
 
    if(e_h%myid_all == 0) then
       if(e_h%log_file%handle_init) then
-         call elsi_close_json_file(e_h%log_file,.true.)
+         call elsi_finish_json_array(e_h%log_file%json_h)
+         call elsi_close_json_file(e_h%log_file%json_h)
       endif
    endif
 

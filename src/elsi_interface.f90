@@ -128,11 +128,4 @@ module ELSI
    public :: elsi_write_mat_complex
    public :: elsi_write_mat_complex_sparse
 
-   ! Writing JSON file
-   public :: elsi_open_json_file
-   public :: elsi_close_json_file
-   public :: elsi_start_json_record
-   public :: elsi_finish_json_record
-   public :: elsi_say_setting
-
 end module ELSI

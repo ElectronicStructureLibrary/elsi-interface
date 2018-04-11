@@ -70,9 +70,6 @@ module ELSI_CONSTANTS
    integer(kind=i4), parameter :: FILENAME_LEN = 80
    integer(kind=i4), parameter :: HUMAN        = 0
    integer(kind=i4), parameter :: JSON         = 1
-   integer(kind=i4), parameter :: NO_COMMA     = 0
-   integer(kind=i4), parameter :: COMMA_AFTER  = 1
-   integer(kind=i4), parameter :: COMMA_BEFORE = 2
    integer(kind=i4), parameter :: STR_LEN      = 20
    integer(kind=i4), parameter :: TIME_LEN     = 29
    integer(kind=i4), parameter :: UUID_LEN     = 36 ! RFC 4122 format

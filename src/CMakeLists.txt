@@ -15,6 +15,7 @@ LIST(APPEND elsi_src
   elsi_dmp.f90
   elsi_interface.f90
   elsi_io.f90
+  elsi_json.f90
   elsi_lapack.f90
   elsi_malloc.f90
   elsi_mat_io.f90
