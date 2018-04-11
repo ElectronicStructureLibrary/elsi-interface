@@ -83,7 +83,7 @@ contains
       !> Message to be written
       character(len=*),   intent(in)    :: message
 
-      integer :: is_opened
+      logical :: is_opened
 
       !> Should there be a line break afterwards?  (default:. true..)
       logical, optional,  intent(in)    :: should_advance
