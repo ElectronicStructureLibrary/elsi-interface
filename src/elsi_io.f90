@@ -18,8 +18,8 @@ module ELSI_IO
    use ELSI_PRECISION, only: r8,i4,i8
    use ELSI_JSON,      only: elsi_append_string,elsi_truncate_string,&
                              elsi_write_json_name_value,elsi_reset_json_handle,&
-                             elsi_start_json_name_object,elsi_finish_json_object,&
-                             elsi_open_json_file,elsi_start_json_array,&
+                             elsi_start_json_name_object,elsi_start_json_array,&
+                             elsi_finish_json_object,elsi_open_json_file,&
                              elsi_start_json_object,elsi_get_datetime_rfc3339
 
    implicit none
@@ -360,19 +360,27 @@ subroutine elsi_print_versioning(e_h,io_h)
       call elsi_append_string(io_h%prefix,"  ")
 
       call elsi_say_setting(io_h,"Date stamp",trim(adjustl(DATE_STAMP)))
-      call elsi_say_setting(io_h,"Git commit (abbrev.)",trim(adjustl(COMMIT_ABBREV)))
+      call elsi_say_setting(io_h,"Git commit (abbrev.)",&
+              trim(adjustl(COMMIT_ABBREV)))
       call elsi_say_setting(io_h,"Git commit modified?",COMMIT_MODIFIED)
 
       call elsi_truncate_string(io_h%prefix,2)
    elseif(io_h%file_format == JSON) then
       call elsi_write_json_name_value(io_h%json_h,"data_source","ELSI")
-      call elsi_write_json_name_value(io_h%json_h,"date_stamp",trim(adjustl(DATE_STAMP)))
-      call elsi_write_json_name_value(io_h%json_h,"git_commit",trim(adjustl(COMMIT)))
-      call elsi_write_json_name_value(io_h%json_h,"git_commit_modified",COMMIT_MODIFIED)
-      call elsi_write_json_name_value(io_h%json_h,"git_message_abbrev",trim(adjustl(COMMIT_MSG_ABBREV)))
-      call elsi_write_json_name_value(io_h%json_h,"source_created_on_hostname",trim(adjustl(HOSTNAME)))
-      call elsi_write_json_name_value(io_h%json_h,"source_created_at_datetime",trim(adjustl(DATETIME)))
-      call elsi_write_json_name_value(io_h%json_h,"calling_code",trim(adjustl(e_h%caller)))
+      call elsi_write_json_name_value(io_h%json_h,"date_stamp",&
+              trim(adjustl(DATE_STAMP)))
+      call elsi_write_json_name_value(io_h%json_h,"git_commit",&
+              trim(adjustl(COMMIT)))
+      call elsi_write_json_name_value(io_h%json_h,"git_commit_modified",&
+              COMMIT_MODIFIED)
+      call elsi_write_json_name_value(io_h%json_h,"git_message_abbrev",&
+              trim(adjustl(COMMIT_MSG_ABBREV)))
+      call elsi_write_json_name_value(io_h%json_h,"source_created_on_hostname",&
+              trim(adjustl(HOSTNAME)))
+      call elsi_write_json_name_value(io_h%json_h,"source_created_at_datetime",&
+              trim(adjustl(DATETIME)))
+      call elsi_write_json_name_value(io_h%json_h,"calling_code",&
+              trim(adjustl(e_h%caller)))
       call elsi_write_json_name_value(io_h%json_h,"uuid",trim(adjustl(e_h%uuid)))
    else
       call elsi_stop(e_h,"Unsupported output format.",caller)
