@@ -1,4 +1,5 @@
 ### Summitdev ###
+### Need CMake 3.11.0 (see http://gitlab.kitware.com/cmake/cmake/issues/17784)
 
 SET(CMAKE_Fortran_COMPILER "mpixlf" CACHE STRING "MPI Fortran compiler")
 SET(CMAKE_C_COMPILER "mpixlc" CACHE STRING "MPI C compiler")
