@@ -96,13 +96,9 @@ IF(NOT DEFINED MPIEXEC)
   SET(MPIEXEC "mpiexec")
 ENDIF()
 
-IF(NOT DEFINED ALWAYS_USE_MPIEXEC)
-  SET(ALWAYS_USE_MPIEXEC OFF)
-ENDIF()
-
 MACRO(test_fortran arg1 arg2 arg3 arg4 arg5 arg6 arg7)
   ADD_TEST(test_fortran_${arg1}
-    ${MPIEXEC} -n 4 ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test
+    ${MPIEXEC} -n ${MPISIZE} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test
     ${arg2} ${arg3} ${arg4} ${arg5} ${arg6} ${arg7}
   )
   SET_TESTS_PROPERTIES(test_fortran_${arg1}
@@ -145,63 +141,41 @@ IF(ENABLE_SIPS)
 ENDIF()
 
 ### Serial Fortran tests: ev + ELPA (LAPACK) ###
-IF(ALWAYS_USE_MPIEXEC)
-  ADD_TEST(test_serial_01
-    ${MPIEXEC} -n 1 ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test
-    e d r 1 ${h_real} ${s_real}
-  )
-  ADD_TEST(test_serial_02
-    ${MPIEXEC} -n 1 ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test
-    e d c 1 ${h_cmplx} ${s_cmplx}
-  )
-ELSE()
-  ADD_TEST(test_serial_01
-    ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test
-    e d r 1 ${h_real} ${s_real}
-  )
-  ADD_TEST(test_serial_02
-    ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test
-    e d c 1 ${h_cmplx} ${s_cmplx}
-  )
-ENDIF()
-
-SET_TESTS_PROPERTIES(test_serial_02
-  PROPERTIES PASS_REGULAR_EXPRESSION "Passed"
+ADD_TEST(test_serial_01
+  ${MPIEXEC} -n 1 ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test
+  e d r 1 ${h_real} ${s_real}
 )
 SET_TESTS_PROPERTIES(test_serial_01
   PROPERTIES PASS_REGULAR_EXPRESSION "Passed"
 )
 
-### Fortran tests: matrix IO ###
-IF(ALWAYS_USE_MPIEXEC)
-  ADD_TEST(test_matio_01
-    ${MPIEXEC} -n 1 ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test_rw
-    r ${h_real} ${s_real}
-  )
-  ADD_TEST(test_matio_02
-    ${MPIEXEC} -n 1 ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test_rw
-    c ${h_cmplx} ${s_cmplx}
-  )
-ELSE()
-  ADD_TEST(test_matio_01
-    ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test_rw
-    r ${h_real} ${s_real}
-  )
-  ADD_TEST(test_matio_02
-    ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test_rw
-    c ${h_cmplx} ${s_cmplx}
-  )
-ENDIF()
+ADD_TEST(test_serial_02
+  ${MPIEXEC} -n 1 ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test
+  e d c 1 ${h_cmplx} ${s_cmplx}
+)
+SET_TESTS_PROPERTIES(test_serial_02
+  PROPERTIES PASS_REGULAR_EXPRESSION "Passed"
+)
 
+### Fortran tests: matrix IO ###
+ADD_TEST(test_matio_01
+  ${MPIEXEC} -n 1 ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test_rw
+  r ${h_real} ${s_real}
+)
 SET_TESTS_PROPERTIES(test_matio_01
   PROPERTIES PASS_REGULAR_EXPRESSION "Passed"
+)
+
+ADD_TEST(test_matio_02
+  ${MPIEXEC} -n 1 ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test_rw
+  c ${h_cmplx} ${s_cmplx}
 )
 SET_TESTS_PROPERTIES(test_matio_02
   PROPERTIES PASS_REGULAR_EXPRESSION "Passed"
 )
 
 ADD_TEST(test_matio_03
-  ${MPIEXEC} -n 4 ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test_rw
+  ${MPIEXEC} -n ${MPISIZE} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test_rw
   r ${h_real} ${s_real}
 )
 SET_TESTS_PROPERTIES(test_matio_03
@@ -209,7 +183,7 @@ SET_TESTS_PROPERTIES(test_matio_03
 )
 
 ADD_TEST(test_matio_04
-  ${MPIEXEC} -n 4 ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test_rw
+  ${MPIEXEC} -n ${MPISIZE} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test_rw
   c ${h_cmplx} ${s_cmplx}
 )
 SET_TESTS_PROPERTIES(test_matio_04
@@ -219,7 +193,7 @@ SET_TESTS_PROPERTIES(test_matio_04
 IF(ENABLE_C_TESTS)
   MACRO(test_c arg1 arg2 arg3 arg4 arg5 arg6 arg7)
     ADD_TEST(test_c_${arg1}
-      ${MPIEXEC} -n 4 ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test_c
+      ${MPIEXEC} -n ${MPISIZE} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test_c
       ${arg2} ${arg3} ${arg4} ${arg5} ${arg6} ${arg7}
     )
     SET_TESTS_PROPERTIES(test_c_${arg1}

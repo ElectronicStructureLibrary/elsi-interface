@@ -38,6 +38,7 @@ subroutine test_ev_real_sparse(mpi_comm,solver,h_file,s_file)
    integer(kind=i4) :: l_rows
    integer(kind=i4) :: l_cols
    integer(kind=i4) :: i
+   integer(kind=i4) :: header(8)
 
    real(kind=r8) :: n_electrons
    real(kind=r8) :: mu
@@ -106,6 +107,7 @@ subroutine test_ev_real_sparse(mpi_comm,solver,h_file,s_file)
 
    call elsi_read_mat_dim_sparse(rw_h,h_file,n_electrons,matrix_size,nnz_g,&
            nnz_l,n_l_cols)
+   call elsi_get_rw_header(rw_h,header)
 
    l_rows = numroc(matrix_size,blk,myprow,0,nprow)
    l_cols = numroc(matrix_size,blk,mypcol,0,npcol)
@@ -187,8 +189,12 @@ subroutine test_ev_real_sparse(mpi_comm,solver,h_file,s_file)
       write(*,*)
       write(*,'("  Finished test program")')
       write(*,*)
-      if(abs(e_test-e_ref) < e_tol) then
-         write(*,'("  Passed.")')
+      if(header(8) == 1111) then
+         if(abs(e_test-e_ref) < e_tol) then
+            write(*,'("  Passed.")')
+         else
+            write(*,'("  Failed.")')
+         endif
       endif
       write(*,*)
    endif
