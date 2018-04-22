@@ -40,6 +40,8 @@ OPTION(ENABLE_SIPS "Enable SIPS" OFF)
 OPTION(ENABLE_MKL "Pass -mkl=cluster to linker" OFF)
 OPTION(ADD_UNDERSCORE "Suffix C functions with an underscore" OFF)
 SET(ELPA2_KERNEL "" CACHE STRING "Use AVX/AVX2/AVX512/BGQ ELPA2 kernel")
+SET(MPIEXEC "mpiexec" CACHE STRING "Name of MPI job launcher")
+SET(MPISIZE "4" CACHE STRING "Number of MPI tasks to run tests")
 
 ### Compilers ###
 IF(NOT DEFINED CMAKE_Fortran_COMPILER)
