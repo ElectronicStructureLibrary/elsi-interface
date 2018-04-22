@@ -34,6 +34,7 @@ subroutine test_dm_complex_sparse(mpi_comm,solver,h_file,s_file)
    integer(kind=i4) :: id_in_task
    integer(kind=i4) :: task_id
    integer(kind=i4) :: buffer(5)
+   integer(kind=i4) :: header(8) = 0
 
    real(kind=r8) :: n_electrons
    real(kind=r8) :: e_test = 0.0_r8
@@ -99,6 +100,7 @@ subroutine test_dm_complex_sparse(mpi_comm,solver,h_file,s_file)
 
       call elsi_read_mat_dim_sparse(rw_h,h_file,n_electrons,matrix_size,nnz_g,&
               nnz_l,n_l_cols)
+      call elsi_get_rw_header(rw_h,header)
    endif
 
    if(solver == 3) then
@@ -197,8 +199,12 @@ subroutine test_dm_complex_sparse(mpi_comm,solver,h_file,s_file)
       write(*,*)
       write(*,'("  Finished test program")')
       write(*,*)
-      if(abs(e_test-e_ref) < e_tol) then
-         write(*,'("  Passed.")')
+      if(header(8) == 1111) then
+         if(abs(e_test-e_ref) < e_tol) then
+            write(*,'("  Passed.")')
+         else
+            write(*,'("  Failed.")')
+         endif
       endif
       write(*,*)
    endif

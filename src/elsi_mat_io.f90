@@ -626,6 +626,7 @@ subroutine elsi_read_mat_dim_mp(rw_h,f_name,n_electron,n_basis,n_lrow,n_lcol)
    rw_h%n_lrow      = n_lrow
    rw_h%n_lcol      = n_lcol
    rw_h%nnz_g       = header(6)
+   rw_h%header_user = header(9:16)
 
 end subroutine
 
@@ -732,6 +733,7 @@ subroutine elsi_read_mat_dim_sparse(rw_h,f_name,n_electron,n_basis,nnz_g,&
    rw_h%nnz_g       = nnz_g
    rw_h%nnz_l_sp    = nnz_l_sp
    rw_h%n_lcol_sp   = n_lcol_sp
+   rw_h%header_user = header(9:16)
 
 end subroutine
 
@@ -1763,6 +1765,7 @@ subroutine elsi_read_mat_dim_sp(rw_h,f_name,n_electron,n_basis,n_lrow,n_lcol)
    rw_h%n_electrons = n_electron
    rw_h%n_lrow      = n_lrow
    rw_h%n_lcol      = n_lcol
+   rw_h%header_user = header(9:16)
 
 end subroutine
 
