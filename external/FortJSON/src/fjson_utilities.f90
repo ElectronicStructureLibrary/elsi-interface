@@ -97,7 +97,7 @@ contains
       !> JSON string
       character(len=:), allocatable :: val_string
 
-      character(len=20) :: int_string ! Number of digits for unsigned 8-byte int
+      character(len=40) :: int_string ! Number of digits for unsigned 8-byte int
 
       character(len=*), parameter  :: caller = "fjson_convert_i4_to_value"
 
@@ -117,11 +117,11 @@ contains
       !> JSON string
       character(len=:), allocatable :: val_string
 
-      character(len=20) :: int_string ! Number of digits for unsigned 8-byte int
+      character(len=40) :: int_string ! Number of digits for unsigned 8-byte int
 
       character(len=*), parameter  :: caller = "fjson_convert_i8_to_value"
 
-      write(int_string, "(I20)") var
+      write(int_string, "(I30)") var
       val_string = trim(adjustl(int_string))
 
    end function
@@ -137,7 +137,7 @@ contains
       !> JSON string
       character(len=:), allocatable :: val_string
 
-      character(len=20) :: real_string ! Num. characters in format specifier
+      character(len=40) :: real_string ! Num. characters in format specifier
 
       character(len=*), parameter  :: caller = "fjson_convert_r4_to_value"
 
@@ -157,11 +157,14 @@ contains
       !> JSON string
       character(len=:), allocatable :: val_string
 
-      character(len=20) :: real_string ! Num. characters in format specifier
+      character(len=40) :: real_string ! Num. characters in format specifier
 
       character(len=*), parameter  :: caller = "fjson_convert_r8_to_value"
 
-      write(real_string, "(E20.8)") var
+      ! WPH (23 April 2018): Exponent field width of 3 needed to circumvent
+      !     a bug in ifort 14, where a negative exponent of -100 or lower will
+      !     "clip" into the E specifier, causing a malformed string.
+      write(real_string, "(E30.15E3)") var
       val_string = trim(adjustl(real_string))
 
    end function
