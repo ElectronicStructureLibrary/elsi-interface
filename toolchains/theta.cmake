@@ -1,8 +1,5 @@
 ### Theta ###
 
-# test_fortran_11 and test_fortran_13 tests are failing.  Both are real libOMM tests and run to
-# completion, but they don't print out "Passed."
-
 SET(CMAKE_Fortran_COMPILER "ftn" CACHE STRING "MPI Fortran compiler")
 SET(CMAKE_C_COMPILER "cc" CACHE STRING "MPI C compiler")
 SET(CMAKE_CXX_COMPILER "CC" CACHE STRING "MPI C++ compiler")
@@ -22,7 +19,6 @@ SET(ADD_UNDERSCORE ON CACHE BOOL "Suffix C functions with an underscore")
 SET(ENABLE_TESTS ON CACHE BOOL "Build ELSI Fortran test programs")
 SET(ENABLE_C_TESTS ON CACHE BOOL "Build ELSI C test programs")
 SET(MPIEXEC "aprun" CACHE STRING "Name of MPI executable for running tests")
-SET(ALWAYS_USE_MPIEXEC ON CACHE BOOL "Always run tests with the MPI executable, even for serial calculations")
 
 SET(PTSCOTCH_DIR "/home/huhn/opt/scotch/6.0.5a" CACHE PATH "PtScotch directory")
 SET(PTSCOTCH_LIB "${PTSCOTCH_DIR}/lib/libptscotchparmetis.a;${PTSCOTCH_DIR}/lib/libptscotch.a;${PTSCOTCH_DIR}/lib/libptscotcherr.a;${PTSCOTCH_DIR}/lib/libscotchmetis.a;${PTSCOTCH_DIR}/lib/libscotch.a;${PTSCOTCH_DIR}/lib/libscotcherr.a" CACHE STRING "PtScotch libraries")

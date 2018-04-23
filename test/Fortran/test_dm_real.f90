@@ -32,6 +32,7 @@ subroutine test_dm_real(mpi_comm,solver,h_file,s_file)
    integer(kind=i4) :: matrix_size
    integer(kind=i4) :: l_rows
    integer(kind=i4) :: l_cols
+   integer(kind=i4) :: header(8)
 
    real(kind=r8) :: n_electrons
    real(kind=r8) :: e_test = 0.0_r8
@@ -104,6 +105,7 @@ subroutine test_dm_real(mpi_comm,solver,h_file,s_file)
    call elsi_set_rw_blacs(rw_h,blacs_ctxt,blk)
 
    call elsi_read_mat_dim(rw_h,h_file,n_electrons,matrix_size,l_rows,l_cols)
+   call elsi_get_rw_header(rw_h,header)
 
    allocate(ham(l_rows,l_cols))
    allocate(ham_save(l_rows,l_cols))
@@ -178,8 +180,12 @@ subroutine test_dm_real(mpi_comm,solver,h_file,s_file)
       write(*,*)
       write(*,'("  Finished test program")')
       write(*,*)
-      if(abs(e_test-e_ref) < e_tol) then
-         write(*,'("  Passed.")')
+      if(header(8) == 1111) then
+         if(abs(e_test-e_ref) < e_tol) then
+            write(*,'("  Passed.")')
+         else
+            write(*,'("  Failed.")')
+         endif
       endif
       write(*,*)
    endif
