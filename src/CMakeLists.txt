@@ -1,13 +1,12 @@
 ### Generate version info ###
-MESSAGE(STATUS "Getting ELSI version")
-EXECUTE_PROCESS(COMMAND rm -f ${PROJECT_SOURCE_DIR}/src/elsi_version.f90)
-EXECUTE_PROCESS(COMMAND ${PROJECT_SOURCE_DIR}/src/elsi_version_writer.pl ${elsi_DATESTAMP}
-  OUTPUT_FILE ${PROJECT_SOURCE_DIR}/src/elsi_version.f90
-  OUTPUT_QUIET
+ADD_CUSTOM_COMMAND(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/elsi_version.f90
+  COMMAND perl ${PROJECT_SOURCE_DIR}/src/elsi_version_writer.pl > ${CMAKE_CURRENT_BINARY_DIR}/elsi_version.f90
+  VERBATIM
 )
 
 ### Source files ###
 LIST(APPEND elsi_src
+  ${CMAKE_CURRENT_BINARY_DIR}/elsi_version.f90
   elsi_c_interface.f90
   elsi_c2f.f90
   elsi_constants.f90
@@ -30,9 +29,11 @@ LIST(APPEND elsi_src
   elsi_sips.f90
   elsi_solver.f90
   elsi_sort.f90
-  elsi_version.f90
   elsi_utils.f90
 )
+
+SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_BINARY_DIR}/elsi_version.f90
+  PROPERTIES GENERATED TRUE)
 
 IF(NOT ENABLE_PEXSI)
   LIST(APPEND elsi_src stub_pexsi.f90)
