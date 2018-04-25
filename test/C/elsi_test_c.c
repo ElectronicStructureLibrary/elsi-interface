@@ -13,7 +13,7 @@ void test_dm_complex_c(MPI_Comm comm, int solver, char *h_file, char *s_file);
 void test_ev_real_c(MPI_Comm comm, int solver, char *h_file, char *s_file);
 void test_ev_complex_c(MPI_Comm comm, int solver, char *h_file, char *s_file);
 
-void main(int argc, char** argv) {
+int main(int argc, char** argv) {
 
    int myid;
    int mpierr;
@@ -66,5 +66,5 @@ void main(int argc, char** argv) {
 
    MPI_Finalize();
 
-   return;
+   return 0;
 }
