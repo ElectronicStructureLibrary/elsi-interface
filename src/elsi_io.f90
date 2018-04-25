@@ -10,9 +10,9 @@
 module ELSI_IO
 
    use ELSI_CONSTANTS, only: UNSET,UNSET_STR,HUMAN,JSON,MULTI_PROC,SINGLE_PROC,&
-                             BLACS_DENSE,PEXSI_CSC,SIESTA_CSC,TIME_LEN,STR_LEN,&
+                             BLACS_DENSE,PEXSI_CSC,SIESTA_CSC,STR_LEN,&
                              ELPA_SOLVER,PEXSI_SOLVER,SIPS_SOLVER,OMM_SOLVER,&
-                             DMP_SOLVER,FILENAME_LEN
+                             DMP_SOLVER,FILENAME_LEN,DATETIME_LEN
    use ELSI_DATATYPE,  only: elsi_handle,elsi_io_handle
    use ELSI_MPI,       only: elsi_stop,elsi_check_mpi
    use ELSI_PRECISION, only: r8,i4,i8
@@ -133,20 +133,19 @@ subroutine elsi_io_add_entry(e_h,dt0,t0,caller)
 
    implicit none
 
-   type(elsi_handle),       intent(inout) :: e_h
-   character(len=TIME_LEN), intent(in)    :: dt0
-   real(kind=r8),           intent(in)    :: t0
-   character(len=*),        intent(in)    :: caller
+   type(elsi_handle),           intent(inout) :: e_h
+   character(len=DATETIME_LEN), intent(in)    :: dt0
+   real(kind=r8),               intent(in)    :: t0
+   character(len=*),            intent(in)    :: caller
 
    real(kind=r8)               :: t1
    real(kind=r8)               :: t_total
-   integer(kind=i4)            :: comma_save
    integer(kind=i4)            :: log_unit
    character(len=FILENAME_LEN) :: log_name
    character(len=STR_LEN)      :: solver_tag
    character(len=STR_LEN)      :: elsi_tag
    character(len=STR_LEN)      :: user_tag
-   character(len=TIME_LEN)     :: dt_record
+   character(len=DATETIME_LEN) :: dt_record
 
    if(e_h%log_file%print_info .and. e_h%myid_all == 0) then
       if(.not. e_h%log_file%handle_init) then
@@ -214,7 +213,6 @@ subroutine elsi_print_handle_summary(e_h,io_h)
    type(elsi_io_handle), intent(inout) :: io_h
 
    real(kind=r8)      :: sparsity
-   integer(kind=i4)   :: comma_save
    character(len=200) :: info_str
 
    character(len=40), parameter :: caller = "elsi_print_handle_summary"
@@ -339,7 +337,6 @@ subroutine elsi_print_versioning(e_h,io_h)
    type(elsi_handle),    intent(in)    :: e_h
    type(elsi_io_handle), intent(inout) :: io_h
 
-   integer(kind=i4)   :: comma_save
    logical            :: COMMIT_MODIFIED
    character(len=10)  :: DATE_STAMP
    character(len=40)  :: COMMIT
@@ -427,7 +424,6 @@ subroutine elsi_print_dmp_settings(e_h,io_h)
    type(elsi_handle),    intent(in)    :: e_h
    type(elsi_io_handle), intent(inout) :: io_h
 
-   integer(kind=i4)   :: comma_save
    character(len=200) :: info_str
 
    character(len=40), parameter :: caller = "elsi_print_dmp_settings"
@@ -471,7 +467,6 @@ subroutine elsi_print_elpa_settings(e_h,io_h)
    type(elsi_handle),    intent(in)    :: e_h
    type(elsi_io_handle), intent(inout) :: io_h
 
-   integer(kind=i4)   :: comma_save
    character(len=200) :: info_str
 
    character(len=40), parameter :: caller = "elsi_print_elpa_settings"
@@ -512,7 +507,6 @@ subroutine elsi_print_omm_settings(e_h,io_h)
    type(elsi_handle),    intent(in)    :: e_h
    type(elsi_io_handle), intent(inout) :: io_h
 
-   integer(kind=i4)   :: comma_save
    character(len=200) :: info_str
 
    character(len=40), parameter :: caller = "elsi_print_omm_settings"
@@ -555,7 +549,6 @@ subroutine elsi_print_pexsi_settings(e_h,io_h)
    type(elsi_handle),    intent(in)    :: e_h
    type(elsi_io_handle), intent(inout) :: io_h
 
-   integer(kind=i4)   :: comma_save
    character(len=200) :: info_str
 
    character(len=40), parameter :: caller = "elsi_print_pexsi_settings"
@@ -603,7 +596,6 @@ subroutine elsi_print_sips_settings(e_h,io_h)
    type(elsi_handle),    intent(in)    :: e_h
    type(elsi_io_handle), intent(inout) :: io_h
 
-   integer(kind=i4)   :: comma_save
    character(len=200) :: info_str
 
    character(len=40), parameter :: caller = "elsi_print_sips_settings"
@@ -669,7 +661,6 @@ subroutine elsi_print_den_settings(e_h,io_h)
    type(elsi_handle),    intent(in)    :: e_h
    type(elsi_io_handle), intent(inout) :: io_h
 
-   integer(kind=i4)   :: comma_save
    character(len=200) :: info_str
 
    character(len=40), parameter :: caller = "elsi_print_den_settings"
@@ -713,7 +704,6 @@ subroutine elsi_print_csc_settings(e_h,io_h)
    type(elsi_handle),    intent(in)    :: e_h
    type(elsi_io_handle), intent(inout) :: io_h
 
-   integer(kind=i4)   :: comma_save
    character(len=200) :: info_str
 
    character(len=40), parameter :: caller = "elsi_print_csc_settings"

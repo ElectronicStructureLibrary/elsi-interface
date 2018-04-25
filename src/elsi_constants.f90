@@ -71,7 +71,7 @@ module ELSI_CONSTANTS
    integer(kind=i4), parameter :: HUMAN        = 0
    integer(kind=i4), parameter :: JSON         = 1
    integer(kind=i4), parameter :: STR_LEN      = 20
-   integer(kind=i4), parameter :: TIME_LEN     = 29
+   integer(kind=i4), parameter :: DATETIME_LEN = 29
    integer(kind=i4), parameter :: UUID_LEN     = 36 ! RFC 4122 format
 
 end module ELSI_CONSTANTS
