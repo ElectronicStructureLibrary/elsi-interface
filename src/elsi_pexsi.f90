@@ -39,11 +39,12 @@ module ELSI_PEXSI
 
    private
 
-   public :: elsi_set_pexsi_default
    public :: elsi_init_pexsi
-   public :: elsi_solve_evp_pexsi_real
+   public :: elsi_set_pexsi_default
+   public :: elsi_cleanup_pexsi
+   public :: elsi_solve_pexsi_real
    public :: elsi_compute_edm_pexsi_real
-   public :: elsi_solve_evp_pexsi_cmplx
+   public :: elsi_solve_pexsi_cmplx
    public :: elsi_compute_edm_pexsi_cmplx
 
 contains
@@ -63,7 +64,7 @@ subroutine elsi_init_pexsi(e_h)
 
    character(len=40), parameter :: caller = "elsi_init_pexsi"
 
-   if(e_h%n_elsi_calls == 1) then
+   if(.not. e_h%pexsi_started) then
       e_h%pexsi_options%spin = e_h%spin_degen
 
       if(e_h%pexsi_np_per_pole == UNSET) then
@@ -146,7 +147,7 @@ end subroutine
 !>
 !! This routine interfaces to PEXSI.
 !!
-subroutine elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
+subroutine elsi_solve_pexsi_real(e_h,ham,ovlp,dm)
 
    implicit none
 
@@ -182,7 +183,7 @@ subroutine elsi_solve_evp_pexsi_real(e_h,ham,ovlp,dm)
 
    real(kind=r8), external :: ddot
 
-   character(len=40), parameter :: caller = "elsi_solve_evp_pexsi_real"
+   character(len=40), parameter :: caller = "elsi_solve_pexsi_real"
 
    ! Load sparse matrices for PEXSI
    if(e_h%ovlp_is_unit) then
@@ -675,7 +676,7 @@ end subroutine
 !>
 !! This routine interfaces to PEXSI.
 !!
-subroutine elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
+subroutine elsi_solve_pexsi_cmplx(e_h,ham,ovlp,dm)
 
    implicit none
 
@@ -713,7 +714,7 @@ subroutine elsi_solve_evp_pexsi_cmplx(e_h,ham,ovlp,dm)
 
    complex(kind=r8), external :: zdotu
 
-   character(len=40), parameter :: caller = "elsi_solve_evp_pexsi_cmplx"
+   character(len=40), parameter :: caller = "elsi_solve_pexsi_cmplx"
 
    ! Load sparse matrices for PEXSI
    if(e_h%ovlp_is_unit) then
@@ -1229,6 +1230,59 @@ subroutine elsi_set_pexsi_default(e_h)
    ! Use parallel matrix ordering by ParMETIS/PtScotch
    ! Note: must use serial ordering on some platform (segfault otherwise)
    e_h%pexsi_options%ordering = 0
+
+end subroutine
+
+!>
+!! This routine cleans up PEXSI.
+!!
+subroutine elsi_cleanup_pexsi(e_h)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h
+
+   integer(kind=i4) :: ierr
+
+   character(len=40), parameter :: caller = "elsi_cleanup_pexsi"
+
+   if(allocated(e_h%ham_real_pexsi)) then
+      call elsi_deallocate(e_h,e_h%ham_real_pexsi,"ham_real_pexsi")
+   endif
+   if(allocated(e_h%ham_cmplx_pexsi)) then
+      call elsi_deallocate(e_h,e_h%ham_cmplx_pexsi,"ham_cmplx_pexsi")
+   endif
+   if(allocated(e_h%ovlp_real_pexsi)) then
+      call elsi_deallocate(e_h,e_h%ovlp_real_pexsi,"ovlp_real_pexsi")
+   endif
+   if(allocated(e_h%ovlp_cmplx_pexsi)) then
+      call elsi_deallocate(e_h,e_h%ovlp_cmplx_pexsi,"ovlp_cmplx_pexsi")
+   endif
+   if(allocated(e_h%dm_real_pexsi)) then
+      call elsi_deallocate(e_h,e_h%dm_real_pexsi,"dm_real_pexsi")
+   endif
+   if(allocated(e_h%dm_cmplx_pexsi)) then
+      call elsi_deallocate(e_h,e_h%dm_cmplx_pexsi,"dm_cmplx_pexsi")
+   endif
+   if(allocated(e_h%row_ind_pexsi)) then
+      call elsi_deallocate(e_h,e_h%row_ind_pexsi,"row_ind_pexsi")
+   endif
+   if(allocated(e_h%col_ptr_pexsi)) then
+      call elsi_deallocate(e_h,e_h%col_ptr_pexsi,"col_ptr_pexsi")
+   endif
+   if(allocated(e_h%ne_vec_pexsi)) then
+      call elsi_deallocate(e_h,e_h%ne_vec_pexsi,"ne_vec_pexsi")
+   endif
+
+   if(e_h%pexsi_started) then
+      call f_ppexsi_plan_finalize(e_h%pexsi_plan,ierr)
+      call MPI_Comm_free(e_h%pexsi_comm_among_pole,ierr)
+      call MPI_Comm_free(e_h%pexsi_comm_in_pole,ierr)
+      call MPI_Comm_free(e_h%pexsi_comm_among_point,ierr)
+      call MPI_Comm_free(e_h%pexsi_comm_in_point,ierr)
+   endif
+
+   e_h%pexsi_started = .false.
 
 end subroutine
 

@@ -126,6 +126,7 @@ subroutine elsi_reset_handle(e_h)
    e_h%omm_ev_shift           = 0.0_r8
    e_h%omm_tol                = 1.0e-12_r8
    e_h%omm_output             = .false.
+   e_h%omm_started            = .false.
    e_h%pexsi_np_per_pole      = UNSET
    e_h%pexsi_np_per_point     = UNSET
    e_h%pexsi_my_prow          = UNSET
@@ -158,6 +159,7 @@ subroutine elsi_reset_handle(e_h)
    e_h%dmp_ev_ham_min         = 0.0_r8
    e_h%dmp_tol                = 1e-8_r8
    e_h%dmp_ne                 = 0.0_r8
+   e_h%dmp_started            = .false.
    e_h%caller                 = UNSET_STR
    e_h%uuid                   = UNSET_STR
    e_h%uuid_exists            = .false.

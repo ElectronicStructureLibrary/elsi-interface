@@ -193,6 +193,7 @@ module ELSI_DATATYPE
       real(kind=r8)    :: omm_ev_shift ! Eigenspectrum shift parameter
       real(kind=r8)    :: omm_tol      ! Tolerance for minimization
       logical          :: omm_output
+      logical          :: omm_started = .false.
 
       ! PEXSI
       integer(kind=i4) :: pexsi_np_per_pole
@@ -234,6 +235,7 @@ module ELSI_DATATYPE
       real(kind=r8)    :: dmp_ev_ham_min
       real(kind=r8)    :: dmp_tol       ! Tolerance for purification
       real(kind=r8)    :: dmp_ne        ! Number of electrons computed by DMP
+      logical          :: dmp_started = .false.
 
       ! Addtional info
       character(len=STR_LEN)  :: caller

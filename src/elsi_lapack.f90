@@ -21,8 +21,8 @@ module ELSI_LAPACK
 
    private
 
-   public :: elsi_solve_evp_lapack_real
-   public :: elsi_solve_evp_lapack_cmplx
+   public :: elsi_solve_lapack_real
+   public :: elsi_solve_lapack_cmplx
 
 contains
 
@@ -175,7 +175,7 @@ end subroutine
 !>
 !! This routine interfaces to LAPACK.
 !!
-subroutine elsi_solve_evp_lapack_real(e_h,ham,ovlp,eval,evec)
+subroutine elsi_solve_lapack_real(e_h,ham,ovlp,eval,evec)
 
    implicit none
 
@@ -195,7 +195,7 @@ subroutine elsi_solve_evp_lapack_real(e_h,ham,ovlp,eval,evec)
    real(kind=r8)      :: t1
    character(len=200) :: info_str
 
-   character(len=40), parameter :: caller = "elsi_solve_evp_lapack_real"
+   character(len=40), parameter :: caller = "elsi_solve_lapack_real"
 
    ! Transform to standard form
    if(.not. e_h%ovlp_is_unit) then
@@ -528,7 +528,7 @@ end subroutine
 !>
 !! This routine interfaces to LAPACK.
 !!
-subroutine elsi_solve_evp_lapack_cmplx(e_h,ham,ovlp,eval,evec)
+subroutine elsi_solve_lapack_cmplx(e_h,ham,ovlp,eval,evec)
 
    implicit none
 
@@ -549,7 +549,7 @@ subroutine elsi_solve_evp_lapack_cmplx(e_h,ham,ovlp,eval,evec)
    real(kind=r8)      :: t1
    character(len=200) :: info_str
 
-   character(len=40), parameter :: caller = "elsi_solve_evp_lapack_cmplx"
+   character(len=40), parameter :: caller = "elsi_solve_lapack_cmplx"
 
    ! Transform to standard form
    if(.not. e_h%ovlp_is_unit) then

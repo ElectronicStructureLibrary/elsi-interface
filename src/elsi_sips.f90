@@ -20,15 +20,16 @@ module ELSI_SIPS
                              sips_set_slices,sips_solve_eps,sips_get_inertias,&
                              sips_get_eigenvalues,sips_get_eigenvectors,&
                              sips_get_slices,sips_get_slices_from_inertias,&
-                             sips_get_dm,sips_get_edm
+                             sips_get_dm,sips_get_edm,sips_finalize
 
    implicit none
 
    private
 
-   public :: elsi_set_sips_default
    public :: elsi_init_sips
-   public :: elsi_solve_evp_sips_real
+   public :: elsi_set_sips_default
+   public :: elsi_cleanup_sips
+   public :: elsi_solve_sips_real
    public :: elsi_compute_dm_sips_real
    public :: elsi_compute_edm_sips_real
 
@@ -77,7 +78,7 @@ end subroutine
 !>
 !! This routine interfaces to SIPS.
 !!
-subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
+subroutine elsi_solve_sips_real(e_h,ham,ovlp,eval)
 
    implicit none
 
@@ -99,7 +100,7 @@ subroutine elsi_solve_evp_sips_real(e_h,ham,ovlp,eval)
    real(kind=r8),    allocatable :: slices(:)
    integer(kind=i4), allocatable :: inertias(:)
 
-   character(len=40), parameter :: caller = "elsi_solve_evp_sips_real"
+   character(len=40), parameter :: caller = "elsi_solve_sips_real"
 
    ! Solve the eigenvalue problem
    write(info_str,"('  Starting SIPS eigensolver')")
@@ -326,6 +327,32 @@ subroutine elsi_set_sips_default(e_h)
 
    ! Index of 1st eigensolution to be solved
    e_h%sips_first_ev = 1
+
+end subroutine
+
+!>
+!! This routine cleans up SIPS.
+!!
+subroutine elsi_cleanup_sips(e_h)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h
+
+   character(len=40), parameter :: caller = "elsi_cleanup_sips"
+
+   if(allocated(e_h%evec_real_sips)) then
+      call elsi_deallocate(e_h,e_h%evec_real_sips,"evec_real_sips")
+   endif
+   if(allocated(e_h%evec_cmplx_sips)) then
+      call elsi_deallocate(e_h,e_h%evec_cmplx_sips,"evec_cmplx_sips")
+   endif
+
+   if(e_h%sips_started) then
+      call sips_finalize()
+   endif
+
+   e_h%sips_started = .false.
 
 end subroutine
 

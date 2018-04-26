@@ -36,24 +36,25 @@ module ELSI_ELPA
 
    private
 
-   public :: elsi_get_elpa_comms
+   public :: elsi_init_elpa
    public :: elsi_set_elpa_default
+   public :: elsi_cleanup_elpa
    public :: elsi_compute_occ_elpa
    public :: elsi_compute_dm_elpa_real
    public :: elsi_compute_edm_elpa_real
    public :: elsi_to_standard_evp_real
-   public :: elsi_solve_evp_elpa_real
+   public :: elsi_solve_elpa_real
    public :: elsi_compute_dm_elpa_cmplx
    public :: elsi_compute_edm_elpa_cmplx
    public :: elsi_to_standard_evp_cmplx
-   public :: elsi_solve_evp_elpa_cmplx
+   public :: elsi_solve_elpa_cmplx
 
 contains
 
 !>
-!! This routine gets the row and column communicators for ELPA.
+!! This routine initializes ELPA.
 !!
-subroutine elsi_get_elpa_comms(e_h)
+subroutine elsi_init_elpa(e_h)
 
    implicit none
 
@@ -61,16 +62,18 @@ subroutine elsi_get_elpa_comms(e_h)
 
    integer(kind=i4) :: success
 
-   character(len=40), parameter :: caller = "elsi_get_elpa_comms"
+   character(len=40), parameter :: caller = "elsi_init_elpa"
 
-   success = elpa_get_communicators(e_h%mpi_comm,e_h%my_prow,e_h%my_pcol,&
-                e_h%mpi_comm_row,e_h%mpi_comm_col)
+   if(.not. e_h%elpa_started) then
+      success = elpa_get_communicators(e_h%mpi_comm,e_h%my_prow,e_h%my_pcol,&
+                   e_h%mpi_comm_row,e_h%mpi_comm_col)
 
-   if(success /= 0) then
-      call elsi_stop(e_h,"Failed to get MPI communicators.",caller)
+      if(success /= 0) then
+         call elsi_stop(e_h,"Failed to get MPI communicators.",caller)
+      endif
+
+      e_h%elpa_started = .true.
    endif
-
-   e_h%elpa_started = .true.
 
 end subroutine
 
@@ -594,7 +597,7 @@ end subroutine
 !>
 !! This routine interfaces to ELPA.
 !!
-subroutine elsi_solve_evp_elpa_real(e_h,ham,ovlp,eval,evec)
+subroutine elsi_solve_elpa_real(e_h,ham,ovlp,eval,evec)
 
    implicit none
 
@@ -610,7 +613,7 @@ subroutine elsi_solve_evp_elpa_real(e_h,ham,ovlp,eval,evec)
    logical            :: success
    character(len=200) :: info_str
 
-   character(len=40), parameter :: caller = "elsi_solve_evp_elpa_real"
+   character(len=40), parameter :: caller = "elsi_solve_elpa_real"
 
    elpa_print_times = e_h%elpa_output
 
@@ -1144,7 +1147,7 @@ end subroutine
 !>
 !! This routine interfaces to ELPA.
 !!
-subroutine elsi_solve_evp_elpa_cmplx(e_h,ham,ovlp,eval,evec)
+subroutine elsi_solve_elpa_cmplx(e_h,ham,ovlp,eval,evec)
 
    implicit none
 
@@ -1160,7 +1163,7 @@ subroutine elsi_solve_evp_elpa_cmplx(e_h,ham,ovlp,eval,evec)
    logical            :: success
    character(len=200) :: info_str
 
-   character(len=40), parameter :: caller = "elsi_solve_evp_elpa_cmplx"
+   character(len=40), parameter :: caller = "elsi_solve_elpa_cmplx"
 
    elpa_print_times = e_h%elpa_output
 
@@ -1240,6 +1243,66 @@ subroutine elsi_set_elpa_default(e_h)
 
    ! ELPA output?
    e_h%elpa_output = .false.
+
+end subroutine
+
+!>
+!! This routine cleans up ELPA.
+!!
+subroutine elsi_cleanup_elpa(e_h)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h
+
+   integer(kind=i4) :: ierr
+
+   character(len=40), parameter :: caller = "elsi_cleanup_elpa"
+
+   ! ELPA
+   if(allocated(e_h%ham_real_elpa)) then
+      call elsi_deallocate(e_h,e_h%ham_real_elpa,"ham_real_elpa")
+   endif
+   if(allocated(e_h%ham_cmplx_elpa)) then
+      call elsi_deallocate(e_h,e_h%ham_cmplx_elpa,"ham_cmplx_elpa")
+   endif
+   if(allocated(e_h%ovlp_real_elpa)) then
+      call elsi_deallocate(e_h,e_h%ovlp_real_elpa,"ovlp_real_elpa")
+   endif
+   if(allocated(e_h%ovlp_cmplx_elpa)) then
+      call elsi_deallocate(e_h,e_h%ovlp_cmplx_elpa,"ovlp_cmplx_elpa")
+   endif
+   if(allocated(e_h%eval_elpa)) then
+      call elsi_deallocate(e_h,e_h%eval_elpa,"eval_elpa")
+   endif
+   if(allocated(e_h%evec_real_elpa)) then
+      call elsi_deallocate(e_h,e_h%evec_real_elpa,"evec_real_elpa")
+   endif
+   if(allocated(e_h%evec_cmplx_elpa)) then
+      call elsi_deallocate(e_h,e_h%evec_cmplx_elpa,"evec_cmplx_elpa")
+   endif
+   if(allocated(e_h%dm_real_elpa)) then
+      call elsi_deallocate(e_h,e_h%dm_real_elpa,"dm_real_elpa")
+   endif
+   if(allocated(e_h%dm_cmplx_elpa)) then
+      call elsi_deallocate(e_h,e_h%dm_cmplx_elpa,"dm_cmplx_elpa")
+   endif
+   if(allocated(e_h%occ_num)) then
+      call elsi_deallocate(e_h,e_h%occ_num,"occ_num")
+   endif
+   if(allocated(e_h%k_weight)) then
+      call elsi_deallocate(e_h,e_h%k_weight,"k_weight")
+   endif
+   if(allocated(e_h%eval_all)) then
+      call elsi_deallocate(e_h,e_h%eval_all,"eval_all")
+   endif
+
+   if(e_h%elpa_started) then
+      call MPI_Comm_free(e_h%mpi_comm_row,ierr)
+      call MPI_Comm_free(e_h%mpi_comm_col,ierr)
+   endif
+
+   e_h%elpa_started = .false.
 
 end subroutine
 
