@@ -21,17 +21,36 @@ module ELPA
 
    contains
 
-   procedure, nopass :: aeo_dummy
+   procedure, nopass :: elpa_dummy
+
+   end type
+
+   type, public :: elpa_autotune_t
+      integer(kind=i4) :: dummy
+
+   contains
+
+   procedure, nopass :: elpa_autotune_dummy
 
    end type
 
 contains
 
-subroutine aeo_dummy()
+subroutine elpa_dummy()
 
    implicit none
 
-   write(*,"(A)") " A PEXSI stub routine was called. Check ELSI installation."
+   write(*,"(A)") " An ELPA stub routine was called. Check ELSI installation."
+   write(*,"(A)") " Exiting..."
+   stop
+
+end subroutine
+
+subroutine elpa_autotune_dummy()
+
+   implicit none
+
+   write(*,"(A)") " An ELPA stub routine was called. Check ELSI installation."
    write(*,"(A)") " Exiting..."
    stop
 

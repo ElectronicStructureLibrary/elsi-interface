@@ -19,8 +19,10 @@ module ELSI_ELPA
    use ELSI_PRECISION, only: r4,r8,i4
    use ELSI_UTILS,     only: elsi_get_local_nnz_real,elsi_get_local_nnz_cmplx
    use ELPA,           only: elpa_t,elpa_init,elpa_uninit,elpa_allocate,&
-                             elpa_deallocate,ELPA_SOLVER_1STAGE,&
-                             ELPA_SOLVER_2STAGE
+                             elpa_deallocate,elpa_autotune_deallocate,&
+                             ELPA_SOLVER_1STAGE,ELPA_SOLVER_2STAGE,&
+                             ELPA_AUTOTUNE_FAST,ELPA_AUTOTUNE_DOMAIN_REAL,&
+                             ELPA_AUTOTUNE_DOMAIN_COMPLEX
    use ELPA1,          only: elpa_get_communicators
 
    implicit none
@@ -456,7 +458,7 @@ subroutine elsi_check_singularity_real(e_h,ovlp,eval,evec)
    ! TODO: ill-conditioning tolerance should be set here
 
    ! Use ELPA to check overlap singularity
-   call elsi_elpa_evec(e_h,ovlp,eval,evec,"local",.true.,2)
+   call elsi_elpa_evec(e_h,ovlp,eval,evec,"local",.true.)
 
    do i = 1,e_h%n_basis
       if(eval(i) < e_h%sing_tol) then
@@ -600,7 +602,7 @@ subroutine elsi_solve_elpa_real(e_h,ham,ovlp,eval,evec)
    call elsi_get_time(t0)
 
    ! Solve evp, return eigenvalues and eigenvectors
-   call elsi_elpa_evec(e_h,ham,eval,evec,"global",.false.,e_h%elpa_solver)
+   call elsi_elpa_evec(e_h,ham,eval,evec,"global",.false.)
 
    ! Dummy eigenvalues for correct chemical potential, no physical meaning!
    if(e_h%n_nonsing < e_h%n_basis) then
@@ -940,7 +942,7 @@ subroutine elsi_check_singularity_cmplx(e_h,ovlp,eval,evec)
    ! TODO: ill-conditioning tolerance should be set here
 
    ! Use ELPA to check overlap singularity
-   call elsi_elpa_evec(e_h,ovlp,eval,evec,"local",.true.,2)
+   call elsi_elpa_evec(e_h,ovlp,eval,evec,"local",.true.)
 
    do i = 1,e_h%n_basis
       if(eval(i) < e_h%sing_tol) then
@@ -1084,7 +1086,7 @@ subroutine elsi_solve_elpa_cmplx(e_h,ham,ovlp,eval,evec)
    call elsi_get_time(t0)
 
    ! Solve evp, return eigenvalues and eigenvectors
-   call elsi_elpa_evec(e_h,ham,eval,evec,"global",.false.,e_h%elpa_solver)
+   call elsi_elpa_evec(e_h,ham,eval,evec,"global",.false.)
 
    ! Dummy eigenvalues for correct chemical potential, no physical meaning!
    if(e_h%n_nonsing < e_h%n_basis) then
@@ -1180,7 +1182,10 @@ subroutine elsi_cleanup_elpa(e_h)
    endif
 
    if(e_h%elpa_started) then
+      nullify(e_h%elpa_main)
+
       call elpa_uninit()
+
       call MPI_Comm_free(e_h%mpi_comm_row,ierr)
       call MPI_Comm_free(e_h%mpi_comm_col,ierr)
    endif
@@ -1192,7 +1197,7 @@ end subroutine
 !>
 !! This routine calls ELPA real eigensolver.
 !!
-subroutine elsi_elpa_evec_real(e_h,ham,eval,evec,elpa_o,keep_h,solver)
+subroutine elsi_elpa_evec_real(e_h,ham,eval,evec,elpa_o,keep_h)
 
    implicit none
 
@@ -1202,7 +1207,6 @@ subroutine elsi_elpa_evec_real(e_h,ham,eval,evec,elpa_o,keep_h,solver)
    real(kind=r8),     intent(inout) :: evec(e_h%n_lrow,e_h%n_lcol)
    character(len=*),  intent(in)    :: elpa_o
    logical,           intent(in)    :: keep_h
-   integer,           intent(in)    :: solver
 
    integer(kind=i4)   :: ierr
    character(len=200) :: info_str
@@ -1217,13 +1221,12 @@ subroutine elsi_elpa_evec_real(e_h,ham,eval,evec,elpa_o,keep_h,solver)
    character(len=40), parameter :: caller = "elsi_elpa_evec_real"
 
    if(elpa_o == "global") then
-      call elsi_set_elpa_api(e_h,e_h%elpa_main,e_h%n_nonsing,&
-              e_h%n_states_solve,caller,solver)
+      call elsi_elpa_setup(e_h,e_h%elpa_main,e_h%n_nonsing,e_h%n_states_solve)
+      call elsi_elpa_autotuning(e_h,"real")
 
       elpa_main => e_h%elpa_main
    else
-      call elsi_set_elpa_api(e_h,elpa_main,e_h%n_nonsing,e_h%n_states_solve,&
-              caller,solver)
+      call elsi_elpa_setup(e_h,elpa_main,e_h%n_nonsing,e_h%n_states_solve)
    endif
 
    if(e_h%n_elsi_calls <= e_h%elpa_n_single .and. elpa_o == "global") then
@@ -1252,6 +1255,7 @@ subroutine elsi_elpa_evec_real(e_h,ham,eval,evec,elpa_o,keep_h,solver)
 
       if(keep_h) then
          call elpa_main%set("check_pd",1,ierr)
+         call elpa_main%set("solver",ELPA_SOLVER_2STAGE,ierr)
 
          call elsi_allocate(e_h,copy_ham,e_h%n_lrow,e_h%n_lcol,"copy_ham",&
                  caller)
@@ -1281,7 +1285,7 @@ end subroutine
 !>
 !! This routine calls ELPA complex eigensolver.
 !!
-subroutine elsi_elpa_evec_cmplx(e_h,ham,eval,evec,elpa_o,keep_h,solver)
+subroutine elsi_elpa_evec_cmplx(e_h,ham,eval,evec,elpa_o,keep_h)
 
    implicit none
 
@@ -1291,7 +1295,6 @@ subroutine elsi_elpa_evec_cmplx(e_h,ham,eval,evec,elpa_o,keep_h,solver)
    complex(kind=r8),  intent(inout) :: evec(e_h%n_lrow,e_h%n_lcol)
    character(len=*),  intent(in)    :: elpa_o
    logical,           intent(in)    :: keep_h
-   integer,           intent(in)    :: solver
 
    integer(kind=i4)   :: ierr
    character(len=200) :: info_str
@@ -1306,13 +1309,12 @@ subroutine elsi_elpa_evec_cmplx(e_h,ham,eval,evec,elpa_o,keep_h,solver)
    character(len=40), parameter :: caller = "elsi_elpa_evec_cmplx"
 
    if(elpa_o == "global") then
-      call elsi_set_elpa_api(e_h,e_h%elpa_main,e_h%n_nonsing,&
-              e_h%n_states_solve,caller,solver)
+      call elsi_elpa_setup(e_h,e_h%elpa_main,e_h%n_nonsing,e_h%n_states_solve)
+      call elsi_elpa_autotuning(e_h,"real")
 
       elpa_main => e_h%elpa_main
    else
-      call elsi_set_elpa_api(e_h,elpa_main,e_h%n_nonsing,e_h%n_states_solve,&
-              caller,solver)
+      call elsi_elpa_setup(e_h,elpa_main,e_h%n_nonsing,e_h%n_states_solve)
    endif
 
    if(e_h%n_elsi_calls <= e_h%elpa_n_single .and. elpa_o == "global") then
@@ -1341,6 +1343,7 @@ subroutine elsi_elpa_evec_cmplx(e_h,ham,eval,evec,elpa_o,keep_h,solver)
 
       if(keep_h) then
          call elpa_main%set("check_pd",1,ierr)
+         call elpa_main%set("solver",ELPA_SOLVER_2STAGE,ierr)
 
          call elsi_allocate(e_h,copy_ham,e_h%n_lrow,e_h%n_lcol,"copy_ham",&
                  caller)
@@ -1386,7 +1389,7 @@ subroutine elsi_elpa_mult_real(e_h,uplo,uplo2,a,b,c)
 
    character(len=40), parameter :: caller = "elsi_elpa_mult_real"
 
-   call elsi_set_elpa_api(e_h,elpa_main,e_h%n_basis,e_h%n_basis,caller,2)
+   call elsi_elpa_setup(e_h,elpa_main,e_h%n_basis,e_h%n_basis)
    call elpa_main%hermitian_multiply(uplo,uplo2,e_h%n_basis,a,b,e_h%n_lrow,&
            e_h%n_lcol,c,e_h%n_lrow,e_h%n_lcol,ierr)
    call elpa_deallocate(elpa_main)
@@ -1419,7 +1422,7 @@ subroutine elsi_elpa_mult_cmplx(e_h,uplo,uplo2,a,b,c)
 
    character(len=40), parameter :: caller = "elsi_elpa_mult_cmplx"
 
-   call elsi_set_elpa_api(e_h,elpa_main,e_h%n_basis,e_h%n_basis,caller,2)
+   call elsi_elpa_setup(e_h,elpa_main,e_h%n_basis,e_h%n_basis)
    call elpa_main%hermitian_multiply(uplo,uplo2,e_h%n_basis,a,b,e_h%n_lrow,&
            e_h%n_lcol,c,e_h%n_lrow,e_h%n_lcol,ierr)
    call elpa_deallocate(elpa_main)
@@ -1448,7 +1451,7 @@ subroutine elsi_elpa_chol_real(e_h,a)
 
    character(len=40), parameter :: caller = "elsi_elpa_chol_real"
 
-   call elsi_set_elpa_api(e_h,elpa_main,e_h%n_basis,e_h%n_basis,caller,2)
+   call elsi_elpa_setup(e_h,elpa_main,e_h%n_basis,e_h%n_basis)
    call elpa_main%cholesky(a,ierr)
    call elpa_deallocate(elpa_main)
 
@@ -1476,7 +1479,7 @@ subroutine elsi_elpa_chol_cmplx(e_h,a)
 
    character(len=40), parameter :: caller = "elsi_elpa_chol_cmplx"
 
-   call elsi_set_elpa_api(e_h,elpa_main,e_h%n_basis,e_h%n_basis,caller,2)
+   call elsi_elpa_setup(e_h,elpa_main,e_h%n_basis,e_h%n_basis)
    call elpa_main%cholesky(a,ierr)
    call elpa_deallocate(elpa_main)
 
@@ -1504,7 +1507,7 @@ subroutine elsi_elpa_invt_real(e_h,a)
 
    character(len=40), parameter :: caller = "elsi_elpa_invt_real"
 
-   call elsi_set_elpa_api(e_h,elpa_main,e_h%n_nonsing,e_h%n_nonsing,caller,2)
+   call elsi_elpa_setup(e_h,elpa_main,e_h%n_nonsing,e_h%n_nonsing)
    call elpa_main%invert_triangular(a,ierr)
    call elpa_deallocate(elpa_main)
 
@@ -1532,7 +1535,7 @@ subroutine elsi_elpa_invt_cmplx(e_h,a)
 
    character(len=40), parameter :: caller = "elsi_elpa_invt_cmplx"
 
-   call elsi_set_elpa_api(e_h,elpa_main,e_h%n_nonsing,e_h%n_nonsing,caller,2)
+   call elsi_elpa_setup(e_h,elpa_main,e_h%n_nonsing,e_h%n_nonsing)
    call elpa_main%invert_triangular(a,ierr)
    call elpa_deallocate(elpa_main)
 
@@ -1547,7 +1550,7 @@ end subroutine
 !>
 !! This routine sets ELPA-AEO parameters.
 !!
-subroutine elsi_set_elpa_api(e_h,elpa_i,na,nev,caller,solver)
+subroutine elsi_elpa_setup(e_h,elpa_i,na,nev)
 
    implicit none
 
@@ -1555,10 +1558,10 @@ subroutine elsi_set_elpa_api(e_h,elpa_i,na,nev,caller,solver)
    class(elpa_t),     intent(inout), pointer :: elpa_i
    integer,           intent(in)             :: na
    integer,           intent(in)             :: nev
-   character(len=*),  intent(in)             :: caller
-   integer,           intent(in)             :: solver
 
    integer(kind=i4) :: ierr
+
+   character(len=40), parameter :: caller = "elsi_elpa_setup"
 
    if(e_h%n_elsi_calls == e_h%elpa_n_single .and. associated(elpa_i)) then
       call elpa_deallocate(elpa_i)
@@ -1580,7 +1583,7 @@ subroutine elsi_set_elpa_api(e_h,elpa_i,na,nev,caller,solver)
 
       ierr = elpa_i%setup()
 
-      if(solver == 1) then
+      if(e_h%elpa_solver == 1) then
          call elpa_i%set("solver",ELPA_SOLVER_1STAGE,ierr)
       else
          call elpa_i%set("solver",ELPA_SOLVER_2STAGE,ierr)
@@ -1588,6 +1591,49 @@ subroutine elsi_set_elpa_api(e_h,elpa_i,na,nev,caller,solver)
 
       if(ierr /= 0) then
          call elsi_stop(e_h,"ELPA setup failed.",caller)
+      endif
+   endif
+
+end subroutine
+
+!>
+!! This routine sets up ELPA AEO auto-tuning.
+!!
+subroutine elsi_elpa_autotuning(e_h,real_cmplx)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h
+   character(len=*),  intent(in)    :: real_cmplx
+
+   integer(kind=i4) :: ierr
+
+   character(len=40), parameter :: caller = "elsi_elpa_autotuning"
+
+   if(e_h%n_elsi_calls == e_h%elpa_n_single) then
+      call elpa_autotune_deallocate(e_h%elpa_tune)
+   endif
+
+   if(e_h%n_elsi_calls == 1 .or. e_h%n_elsi_calls == e_h%elpa_n_single) then
+      if(real_cmplx == "complex") then
+         e_h%elpa_tune => e_h%elpa_main%autotune_setup(ELPA_AUTOTUNE_FAST,&
+                             ELPA_AUTOTUNE_DOMAIN_COMPLEX,ierr)
+      elseif(real_cmplx == "real") then
+         e_h%elpa_tune => e_h%elpa_main%autotune_setup(ELPA_AUTOTUNE_FAST,&
+                             ELPA_AUTOTUNE_DOMAIN_REAL,ierr)
+      endif
+
+      if(ierr /= 0) then
+         call elsi_stop(e_h,"ELPA auto-tuning failed.",caller)
+      endif
+   endif
+
+   if(associated(e_h%elpa_tune)) then
+      if(.not. e_h%elpa_main%autotune_step(e_h%elpa_tune)) then
+         call e_h%elpa_main%autotune_set_best(e_h%elpa_tune)
+         call elpa_autotune_deallocate(e_h%elpa_tune)
+
+         nullify(e_h%elpa_tune)
       endif
    endif
 
