@@ -44,7 +44,10 @@ IF(NOT ENABLE_SIPS)
 ENDIF()
 
 IF(NOT ELPA_FOUND)
-  LIST(APPEND elsi_src elsi_elpa.f90)
+  LIST(APPEND elsi_src
+    elsi_elpa.f90
+    stub_aeo.f90
+  )
 ELSE()
   LIST(APPEND elsi_src elsi_aeo.f90)
 ENDIF()

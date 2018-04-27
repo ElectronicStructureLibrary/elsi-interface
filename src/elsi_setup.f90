@@ -13,8 +13,8 @@ module ELSI_SETUP
                                  PEXSI_SOLVER,HUMAN,UNSET,SINGLE_PROC,&
                                  MULTI_PROC,PEXSI_CSC,SIESTA_CSC,JSON
    use ELSI_DATATYPE,      only: elsi_handle
-   use ELSI_DMP,           only: elsi_set_dmp_default
-   use ELSI_ELPA,          only: elsi_set_elpa_default,elsi_get_elpa_comms
+   use ELSI_DMP,           only: elsi_set_dmp_default,elsi_cleanup_dmp
+   use ELSI_ELPA,          only: elsi_set_elpa_default,elsi_cleanup_elpa
    use ELSI_IO,            only: elsi_print_handle_summary,elsi_say,&
                                  elsi_init_io,elsi_reset_io_handle,&
                                  elsi_print_versioning
@@ -23,14 +23,11 @@ module ELSI_SETUP
                                  elsi_json_handle
    use ELSI_MALLOC,        only: elsi_allocate,elsi_deallocate
    use ELSI_MPI,           only: elsi_stop
-   use ELSI_OMM,           only: elsi_set_omm_default
-   use ELSI_PEXSI,         only: elsi_set_pexsi_default
+   use ELSI_OMM,           only: elsi_set_omm_default,elsi_cleanup_omm
+   use ELSI_PEXSI,         only: elsi_set_pexsi_default,elsi_cleanup_pexsi
    use ELSI_PRECISION,     only: r8,i4
-   use ELSI_SIPS,          only: elsi_set_sips_default
+   use ELSI_SIPS,          only: elsi_set_sips_default,elsi_cleanup_sips
    use ELSI_UTILS,         only: elsi_check_handle,elsi_reset_handle
-   use F_PPEXSI_INTERFACE, only: f_ppexsi_plan_finalize
-   use MATRIXSWITCH,       only: ms_scalapack_setup,m_deallocate
-   use M_SIPS,             only: sips_finalize
 
    implicit none
 
@@ -254,9 +251,6 @@ subroutine elsi_set_blacs(e_h,blacs_ctxt,block_size)
       call descinit(e_h%sc_desc,e_h%n_basis,e_h%n_basis,e_h%blk_row,&
               e_h%blk_col,0,0,e_h%blacs_ctxt,max(1,e_h%n_lrow),ierr)
 
-      ! Get ELPA communicators
-      call elsi_get_elpa_comms(e_h)
-
       ! Create global-local mapping
       call elsi_allocate(e_h,e_h%loc_row,e_h%n_basis,"loc_row",caller)
       call elsi_allocate(e_h,e_h%loc_col,e_h%n_basis,"loc_col",caller)
@@ -274,12 +268,6 @@ subroutine elsi_set_blacs(e_h,blacs_ctxt,block_size)
             e_h%loc_col(i) = i_col
          endif
       enddo
-
-      ! Set up MatrixSwitch
-      if(e_h%solver == OMM_SOLVER) then
-         call ms_scalapack_setup(e_h%mpi_comm,e_h%n_prow,'r',e_h%blk_row,&
-                 icontxt=e_h%blacs_ctxt)
-      endif
 
       e_h%blacs_ready = .true.
    endif
@@ -408,112 +396,13 @@ subroutine elsi_cleanup(e_h)
 
    type(elsi_handle), intent(inout) :: e_h !< Handle
 
-   integer(kind=i4) :: ierr
-
    character(len=40), parameter :: caller = "elsi_cleanup"
 
-   ! ELPA
-   if(allocated(e_h%ham_real_elpa)) then
-      call elsi_deallocate(e_h,e_h%ham_real_elpa,"ham_real_elpa")
-   endif
-   if(allocated(e_h%ham_cmplx_elpa)) then
-      call elsi_deallocate(e_h,e_h%ham_cmplx_elpa,"ham_cmplx_elpa")
-   endif
-   if(allocated(e_h%ovlp_real_elpa)) then
-      call elsi_deallocate(e_h,e_h%ovlp_real_elpa,"ovlp_real_elpa")
-   endif
-   if(allocated(e_h%ovlp_cmplx_elpa)) then
-      call elsi_deallocate(e_h,e_h%ovlp_cmplx_elpa,"ovlp_cmplx_elpa")
-   endif
-   if(allocated(e_h%eval_elpa)) then
-      call elsi_deallocate(e_h,e_h%eval_elpa,"eval_elpa")
-   endif
-   if(allocated(e_h%evec_real_elpa)) then
-      call elsi_deallocate(e_h,e_h%evec_real_elpa,"evec_real_elpa")
-   endif
-   if(allocated(e_h%evec_cmplx_elpa)) then
-      call elsi_deallocate(e_h,e_h%evec_cmplx_elpa,"evec_cmplx_elpa")
-   endif
-   if(allocated(e_h%dm_real_elpa)) then
-      call elsi_deallocate(e_h,e_h%dm_real_elpa,"dm_real_elpa")
-   endif
-   if(allocated(e_h%dm_cmplx_elpa)) then
-      call elsi_deallocate(e_h,e_h%dm_cmplx_elpa,"dm_cmplx_elpa")
-   endif
-   if(allocated(e_h%occ_num)) then
-      call elsi_deallocate(e_h,e_h%occ_num,"occ_num")
-   endif
-   if(allocated(e_h%k_weight)) then
-      call elsi_deallocate(e_h,e_h%k_weight,"k_weight")
-   endif
-   if(allocated(e_h%eval_all)) then
-      call elsi_deallocate(e_h,e_h%eval_all,"eval_all")
-   endif
-
-   ! libOMM
-   if(e_h%ham_omm%is_initialized) then
-      call m_deallocate(e_h%ham_omm)
-   endif
-   if(e_h%ovlp_omm%is_initialized) then
-      call m_deallocate(e_h%ovlp_omm)
-   endif
-   if(e_h%dm_omm%is_initialized) then
-      call m_deallocate(e_h%dm_omm)
-   endif
-   if(e_h%c_omm%is_initialized) then
-      call m_deallocate(e_h%c_omm)
-   endif
-   if(e_h%tdm_omm%is_initialized) then
-      call m_deallocate(e_h%tdm_omm)
-   endif
-
-   ! PEXSI
-   if(allocated(e_h%ham_real_pexsi)) then
-      call elsi_deallocate(e_h,e_h%ham_real_pexsi,"ham_real_pexsi")
-   endif
-   if(allocated(e_h%ham_cmplx_pexsi)) then
-      call elsi_deallocate(e_h,e_h%ham_cmplx_pexsi,"ham_cmplx_pexsi")
-   endif
-   if(allocated(e_h%ovlp_real_pexsi)) then
-      call elsi_deallocate(e_h,e_h%ovlp_real_pexsi,"ovlp_real_pexsi")
-   endif
-   if(allocated(e_h%ovlp_cmplx_pexsi)) then
-      call elsi_deallocate(e_h,e_h%ovlp_cmplx_pexsi,"ovlp_cmplx_pexsi")
-   endif
-   if(allocated(e_h%dm_real_pexsi)) then
-      call elsi_deallocate(e_h,e_h%dm_real_pexsi,"dm_real_pexsi")
-   endif
-   if(allocated(e_h%dm_cmplx_pexsi)) then
-      call elsi_deallocate(e_h,e_h%dm_cmplx_pexsi,"dm_cmplx_pexsi")
-   endif
-   if(allocated(e_h%row_ind_pexsi)) then
-      call elsi_deallocate(e_h,e_h%row_ind_pexsi,"row_ind_pexsi")
-   endif
-   if(allocated(e_h%col_ptr_pexsi)) then
-      call elsi_deallocate(e_h,e_h%col_ptr_pexsi,"col_ptr_pexsi")
-   endif
-   if(allocated(e_h%ne_vec_pexsi)) then
-      call elsi_deallocate(e_h,e_h%ne_vec_pexsi,"ne_vec_pexsi")
-   endif
-
-   ! SIPS
-   if(allocated(e_h%evec_real_sips)) then
-      call elsi_deallocate(e_h,e_h%evec_real_sips,"evec_real_sips")
-   endif
-   if(allocated(e_h%evec_cmplx_sips)) then
-      call elsi_deallocate(e_h,e_h%evec_cmplx_sips,"evec_cmplx_sips")
-   endif
-
-   ! DMP
-   if(allocated(e_h%ovlp_real_inv_dmp)) then
-      call elsi_deallocate(e_h,e_h%ovlp_real_inv_dmp,"ovlp_real_inv_dmp")
-   endif
-   if(allocated(e_h%evec1_dmp)) then
-      call elsi_deallocate(e_h,e_h%evec1_dmp,"evec1_dmp")
-   endif
-   if(allocated(e_h%evec2_dmp)) then
-      call elsi_deallocate(e_h,e_h%evec2_dmp,"evec2_dmp")
-   endif
+   call elsi_cleanup_dmp(e_h)
+   call elsi_cleanup_elpa(e_h)
+   call elsi_cleanup_omm(e_h)
+   call elsi_cleanup_pexsi(e_h)
+   call elsi_cleanup_sips(e_h)
 
    ! Auxiliary
    if(allocated(e_h%ham_real_copy)) then
@@ -536,26 +425,6 @@ subroutine elsi_cleanup(e_h)
    endif
    if(allocated(e_h%col_ptr_sp2)) then
       call elsi_deallocate(e_h,e_h%col_ptr_sp2,"col_ptr_sp2")
-   endif
-
-   ! Finalize ELPA
-   if(e_h%elpa_started) then
-      call MPI_Comm_free(e_h%mpi_comm_row,ierr)
-      call MPI_Comm_free(e_h%mpi_comm_col,ierr)
-   endif
-
-   ! Finalize PEXSI
-   if(e_h%pexsi_started) then
-      call f_ppexsi_plan_finalize(e_h%pexsi_plan,ierr)
-      call MPI_Comm_free(e_h%pexsi_comm_among_pole,ierr)
-      call MPI_Comm_free(e_h%pexsi_comm_in_pole,ierr)
-      call MPI_Comm_free(e_h%pexsi_comm_among_point,ierr)
-      call MPI_Comm_free(e_h%pexsi_comm_in_point,ierr)
-   endif
-
-   ! Finalize SIPS
-   if(e_h%sips_started) then
-      call sips_finalize()
    endif
 
    if(e_h%myid_all == 0) then

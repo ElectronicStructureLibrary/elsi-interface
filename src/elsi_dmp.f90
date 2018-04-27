@@ -25,16 +25,36 @@ module ELSI_DMP
 
    private
 
-   public :: elsi_solve_evp_dmp_real
+   public :: elsi_init_dmp
    public :: elsi_set_dmp_default
+   public :: elsi_cleanup_dmp
+   public :: elsi_solve_dmp_real
 
 contains
+
+!>
+!! This routine initialzes density matrix purification.
+!!
+subroutine elsi_init_dmp(e_h)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h
+
+   character(len=40), parameter :: caller = "elsi_init_dmp"
+
+   if(.not. e_h%dmp_started) then
+      ! No initialization needed
+      e_h%dmp_started = .true.
+   endif
+
+end subroutine
 
 !>
 !! This routine computes the density matrix using the density matrix
 !! purification algorithm.
 !!
-subroutine elsi_solve_evp_dmp_real(e_h,ham,ovlp,dm)
+subroutine elsi_solve_dmp_real(e_h,ham,ovlp,dm)
 
    implicit none
 
@@ -70,7 +90,7 @@ subroutine elsi_solve_evp_dmp_real(e_h,ham,ovlp,dm)
    real(kind=r8), allocatable :: dsd(:,:)
    real(kind=r8), allocatable :: dsdsd(:,:)
 
-   character(len=40), parameter :: caller = "elsi_solve_evp_dmp_real"
+   character(len=40), parameter :: caller = "elsi_solve_dmp_real"
 
    ! Compute sparsity
    if(e_h%n_elsi_calls == 1 .and. e_h%matrix_format == BLACS_DENSE) then
@@ -491,6 +511,21 @@ subroutine elsi_set_dmp_default(e_h)
 
    ! Tolerance for purification
    e_h%dmp_tol = 1.0e-10_r8
+
+end subroutine
+
+!>
+!! This routine cleans up DMP.
+!!
+subroutine elsi_cleanup_dmp(e_h)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h
+
+   character(len=40), parameter :: caller = "elsi_cleanup_dmp"
+
+   e_h%dmp_started = .false.
 
 end subroutine
 

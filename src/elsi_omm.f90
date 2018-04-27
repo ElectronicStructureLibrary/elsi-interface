@@ -19,24 +19,66 @@ module ELSI_OMM
                              elpa_cholesky_complex_double,&
                              elpa_invert_trm_real_double,&
                              elpa_invert_trm_complex_double
-   use MATRIXSWITCH,   only: m_add,m_register_pdbc
+   use MATRIXSWITCH,   only: m_add,m_register_pdbc,ms_scalapack_setup,&
+                             m_allocate,m_deallocate
 
    implicit none
 
    private
 
+   public :: elsi_init_omm
    public :: elsi_set_omm_default
-   public :: elsi_solve_evp_omm_real
+   public :: elsi_cleanup_omm
+   public :: elsi_init_coeff_omm_real
+   public :: elsi_solve_omm_real
    public :: elsi_compute_edm_omm_real
-   public :: elsi_solve_evp_omm_cmplx
+   public :: elsi_init_coeff_omm_cmplx
+   public :: elsi_solve_omm_cmplx
    public :: elsi_compute_edm_omm_cmplx
 
 contains
 
 !>
+!! This routine initializes libOMM.
+!!
+subroutine elsi_init_omm(e_h)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h
+
+   character(len=40), parameter :: caller = "elsi_init_omm"
+
+   if(.not. e_h%omm_started) then
+      call ms_scalapack_setup(e_h%mpi_comm,e_h%n_prow,'r',e_h%blk_row,&
+              icontxt=e_h%blacs_ctxt)
+
+      e_h%omm_started = .true.
+   endif
+
+end subroutine
+
+!>
+!! This routine initializes Wannier function coefficients.
+!!
+subroutine elsi_init_coeff_omm_real(e_h)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h
+
+   character(len=40), parameter :: caller = "elsi_init_coeff_omm_real"
+
+   if(.not. e_h%c_omm%is_initialized) then
+      call m_allocate(e_h%c_omm,e_h%omm_n_states,e_h%n_basis,"pddbc")
+   endif
+
+end subroutine
+
+!>
 !! This routine interfaces to libOMM.
 !!
-subroutine elsi_solve_evp_omm_real(e_h,ham,ovlp,dm)
+subroutine elsi_solve_omm_real(e_h,ham,ovlp,dm)
 
    implicit none
 
@@ -53,7 +95,7 @@ subroutine elsi_solve_evp_omm_real(e_h,ham,ovlp,dm)
    integer(kind=i4)   :: ierr
    character(len=200) :: info_str
 
-   character(len=40), parameter :: caller = "elsi_solve_evp_omm_real"
+   character(len=40), parameter :: caller = "elsi_solve_omm_real"
 
    call m_register_pdbc(e_h%ham_omm,ham,e_h%sc_desc)
    call m_register_pdbc(e_h%ovlp_omm,ovlp,e_h%sc_desc)
@@ -175,7 +217,7 @@ end subroutine
 !>
 !! This routine interfaces to libOMM.
 !!
-subroutine elsi_solve_evp_omm_cmplx(e_h,ham,ovlp,dm)
+subroutine elsi_solve_omm_cmplx(e_h,ham,ovlp,dm)
 
    implicit none
 
@@ -192,7 +234,7 @@ subroutine elsi_solve_evp_omm_cmplx(e_h,ham,ovlp,dm)
    integer(kind=i4)   :: ierr
    character(len=200) :: info_str
 
-   character(len=40), parameter :: caller = "elsi_solve_evp_omm_cmplx"
+   character(len=40), parameter :: caller = "elsi_solve_omm_cmplx"
 
    call m_register_pdbc(e_h%ham_omm,ham,e_h%sc_desc)
    call m_register_pdbc(e_h%ovlp_omm,ovlp,e_h%sc_desc)
@@ -276,6 +318,23 @@ subroutine elsi_solve_evp_omm_cmplx(e_h,ham,ovlp,dm)
 end subroutine
 
 !>
+!! This routine initializes Wannier function coefficients.
+!!
+subroutine elsi_init_coeff_omm_cmplx(e_h)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h
+
+   character(len=40), parameter :: caller = "elsi_init_coeff_omm_cmplx"
+
+   if(.not. e_h%c_omm%is_initialized) then
+      call m_allocate(e_h%c_omm,e_h%omm_n_states,e_h%n_basis,"pzdbc")
+   endif
+
+end subroutine
+
+!>
 !! This routine computes the energy-weighted density matrix.
 !!
 subroutine elsi_compute_edm_omm_cmplx(e_h,edm)
@@ -338,6 +397,37 @@ subroutine elsi_set_omm_default(e_h)
 
    ! Output level?
    e_h%omm_output = .false.
+
+end subroutine
+
+!>
+!! This routine cleans up libOMM.
+!!
+subroutine elsi_cleanup_omm(e_h)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h
+
+   character(len=40), parameter :: caller = "elsi_cleanup_omm"
+
+   if(e_h%ham_omm%is_initialized) then
+      call m_deallocate(e_h%ham_omm)
+   endif
+   if(e_h%ovlp_omm%is_initialized) then
+      call m_deallocate(e_h%ovlp_omm)
+   endif
+   if(e_h%dm_omm%is_initialized) then
+      call m_deallocate(e_h%dm_omm)
+   endif
+   if(e_h%c_omm%is_initialized) then
+      call m_deallocate(e_h%c_omm)
+   endif
+   if(e_h%tdm_omm%is_initialized) then
+      call m_deallocate(e_h%tdm_omm)
+   endif
+
+   e_h%omm_started = .false.
 
 end subroutine
 

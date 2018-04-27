@@ -11,10 +11,11 @@ module ELSI_DATATYPE
 
    use, intrinsic :: ISO_C_BINDING
    use ELSI_CONSTANTS,     only: FILENAME_LEN,STR_LEN,UUID_LEN
+   use ELSI_JSON,          only: elsi_json_handle
    use ELSI_PRECISION,     only: r8,i4
+   use ELPA,               only: elpa_t,elpa_autotune_t
    use F_PPEXSI_INTERFACE, only: f_ppexsi_options
    use MATRIXSWITCH,       only: matrix
-   use ELSI_JSON,          only: elsi_json_handle
 
    implicit none
 
@@ -182,8 +183,11 @@ module ELSI_DATATYPE
 
       ! ELPA
       integer(kind=i4) :: elpa_solver
+      integer(kind=i4) :: elpa_n_single
       logical          :: elpa_output
       logical          :: elpa_started = .false.
+      class(elpa_t),          pointer :: elpa_main
+      class(elpa_autotune_t), pointer :: elpa_tune
 
       ! libOMM
       integer(kind=i4) :: omm_n_states ! Number of states used in libOMM
@@ -193,6 +197,7 @@ module ELSI_DATATYPE
       real(kind=r8)    :: omm_ev_shift ! Eigenspectrum shift parameter
       real(kind=r8)    :: omm_tol      ! Tolerance for minimization
       logical          :: omm_output
+      logical          :: omm_started = .false.
 
       ! PEXSI
       integer(kind=i4) :: pexsi_np_per_pole
@@ -234,6 +239,7 @@ module ELSI_DATATYPE
       real(kind=r8)    :: dmp_ev_ham_min
       real(kind=r8)    :: dmp_tol       ! Tolerance for purification
       real(kind=r8)    :: dmp_ne        ! Number of electrons computed by DMP
+      logical          :: dmp_started = .false.
 
       ! Addtional info
       character(len=STR_LEN)  :: caller
