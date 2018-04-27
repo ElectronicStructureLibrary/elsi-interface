@@ -23,7 +23,6 @@ module ELSI_ELPA
                              ELPA_SOLVER_1STAGE,ELPA_SOLVER_2STAGE,&
                              ELPA_AUTOTUNE_FAST,ELPA_AUTOTUNE_DOMAIN_REAL,&
                              ELPA_AUTOTUNE_DOMAIN_COMPLEX
-   use ELPA1,          only: elpa_get_communicators
 
    implicit none
 
@@ -80,12 +79,16 @@ subroutine elsi_init_elpa(e_h)
    if(.not. e_h%elpa_started) then
       ierr = elpa_init(20171201)
 
-      ierr = elpa_get_communicators(e_h%mpi_comm,e_h%my_prow,e_h%my_pcol,&
-                e_h%mpi_comm_row,e_h%mpi_comm_col)
-
       if(ierr /= 0) then
-         call elsi_stop(e_h,"Failed to get MPI communicators.",caller)
+         call elsi_stop(e_h,"Initialization failed.",caller)
       endif
+
+      call MPI_Comm_split(e_h%mpi_comm,e_h%my_pcol,e_h%my_prow,&
+              e_h%mpi_comm_row,ierr)
+      call MPI_Comm_split(e_h%mpi_comm,e_h%my_prow,e_h%my_pcol,&
+              e_h%mpi_comm_col,ierr)
+
+      call elsi_check_mpi(e_h,"MPI_Comm_split",ierr,caller)
 
       e_h%elpa_started = .true.
    endif
@@ -455,10 +458,8 @@ subroutine elsi_check_singularity_real(e_h,ovlp,eval,evec)
 
    call elsi_get_time(t0)
 
-   ! TODO: ill-conditioning tolerance should be set here
-
    ! Use ELPA to check overlap singularity
-   call elsi_elpa_evec(e_h,ovlp,eval,evec,"local",.true.)
+   call elsi_elpa_evec(e_h,ovlp,eval,evec,.true.)
 
    do i = 1,e_h%n_basis
       if(eval(i) < e_h%sing_tol) then
@@ -602,7 +603,7 @@ subroutine elsi_solve_elpa_real(e_h,ham,ovlp,eval,evec)
    call elsi_get_time(t0)
 
    ! Solve evp, return eigenvalues and eigenvectors
-   call elsi_elpa_evec(e_h,ham,eval,evec,"global",.false.)
+   call elsi_elpa_evec(e_h,ham,eval,evec,.false.)
 
    ! Dummy eigenvalues for correct chemical potential, no physical meaning!
    if(e_h%n_nonsing < e_h%n_basis) then
@@ -939,10 +940,8 @@ subroutine elsi_check_singularity_cmplx(e_h,ovlp,eval,evec)
 
    call elsi_get_time(t0)
 
-   ! TODO: ill-conditioning tolerance should be set here
-
    ! Use ELPA to check overlap singularity
-   call elsi_elpa_evec(e_h,ovlp,eval,evec,"local",.true.)
+   call elsi_elpa_evec(e_h,ovlp,eval,evec,.true.)
 
    do i = 1,e_h%n_basis
       if(eval(i) < e_h%sing_tol) then
@@ -1086,7 +1085,7 @@ subroutine elsi_solve_elpa_cmplx(e_h,ham,ovlp,eval,evec)
    call elsi_get_time(t0)
 
    ! Solve evp, return eigenvalues and eigenvectors
-   call elsi_elpa_evec(e_h,ham,eval,evec,"global",.false.)
+   call elsi_elpa_evec(e_h,ham,eval,evec,.false.)
 
    ! Dummy eigenvalues for correct chemical potential, no physical meaning!
    if(e_h%n_nonsing < e_h%n_basis) then
@@ -1197,7 +1196,7 @@ end subroutine
 !>
 !! This routine calls ELPA real eigensolver.
 !!
-subroutine elsi_elpa_evec_real(e_h,ham,eval,evec,elpa_o,keep_h)
+subroutine elsi_elpa_evec_real(e_h,ham,eval,evec,sing_check)
 
    implicit none
 
@@ -1205,8 +1204,7 @@ subroutine elsi_elpa_evec_real(e_h,ham,eval,evec,elpa_o,keep_h)
    real(kind=r8),     intent(in)    :: ham(e_h%n_lrow,e_h%n_lcol)
    real(kind=r8),     intent(inout) :: eval(e_h%n_basis)
    real(kind=r8),     intent(inout) :: evec(e_h%n_lrow,e_h%n_lcol)
-   character(len=*),  intent(in)    :: elpa_o
-   logical,           intent(in)    :: keep_h
+   logical,           intent(in)    :: sing_check
 
    integer(kind=i4)   :: ierr
    character(len=200) :: info_str
@@ -1220,60 +1218,55 @@ subroutine elsi_elpa_evec_real(e_h,ham,eval,evec,elpa_o,keep_h)
 
    character(len=40), parameter :: caller = "elsi_elpa_evec_real"
 
-   if(elpa_o == "global") then
-      call elsi_elpa_setup(e_h,e_h%elpa_main,e_h%n_nonsing,e_h%n_states_solve)
-      call elsi_elpa_autotuning(e_h,"real")
+   if(sing_check) then
+      call elsi_elpa_setup(e_h,elpa_main,e_h%n_basis,e_h%n_basis)
+      ! TODO: Define ill-conditioning tolerance (not yet available in ELPA)
+!      call elpa_main%set("check_pd",1,ierr)
+      call elpa_main%set("solver",ELPA_SOLVER_2STAGE,ierr)
 
-      elpa_main => e_h%elpa_main
-   else
-      call elsi_elpa_setup(e_h,elpa_main,e_h%n_nonsing,e_h%n_states_solve)
-   endif
+      call elsi_allocate(e_h,copy_ham,e_h%n_lrow,e_h%n_lcol,"copy_ham",caller)
 
-   if(e_h%n_elsi_calls <= e_h%elpa_n_single .and. elpa_o == "global") then
-      write(info_str,"('  Starting ELPA eigensolver (single precision)')")
-      call elsi_say(e_h%stdio,info_str)
+      copy_ham = ham
 
-      call elsi_allocate(e_h,eval_single,e_h%n_basis,"eval_single",caller)
-      call elsi_allocate(e_h,evec_single,e_h%n_lrow,e_h%n_lcol,"evec_single",&
-              caller)
-      call elsi_allocate(e_h,copy_ham,e_h%n_lrow,e_h%n_lcol,"copy_ham_single",&
-              caller)
-
-      copy_ham_single=real(ham,kind=r4)
-
-      call elpa_main%eigenvectors(copy_ham_single,eval_single,evec_single,ierr)
-
-      eval = real(eval_single,kind=r8)
-      evec = real(evec_single,kind=r8)
-
-      call elsi_deallocate(e_h,eval_single,"eval_single")
-      call elsi_deallocate(e_h,evec_single,"evec_single")
-      call elsi_deallocate(e_h,copy_ham_single,"copy_ham_single")
-   else
-      write(info_str,"('  Starting ELPA eigensolver')")
-      call elsi_say(e_h%stdio,info_str)
-
-      if(keep_h) then
-         call elpa_main%set("check_pd",1,ierr)
-         call elpa_main%set("solver",ELPA_SOLVER_2STAGE,ierr)
-
-         call elsi_allocate(e_h,copy_ham,e_h%n_lrow,e_h%n_lcol,"copy_ham",&
-                 caller)
-
-         copy_ham = ham
-
-         call elpa_main%eigenvectors(copy_ham,eval,evec,ierr)
-
-         call elsi_deallocate(e_h,copy_ham,"copy_ham")
-      else
-         call elpa_main%eigenvectors(ham,eval,evec,ierr)
-      endif
-   endif
-
-   if(elpa_o == "local") then
+      call elpa_main%eigenvectors(copy_ham,eval,evec,ierr)
       call elpa_deallocate(elpa_main)
 
       nullify(elpa_main)
+
+      call elsi_deallocate(e_h,copy_ham,"copy_ham")
+   else
+      call elsi_elpa_setup(e_h,e_h%elpa_main,e_h%n_nonsing,e_h%n_states_solve)
+!      call elsi_elpa_autotuning(e_h,"real")
+
+      elpa_main => e_h%elpa_main
+
+      if(e_h%n_elsi_calls <= e_h%elpa_n_single) then
+         write(info_str,"('  Starting ELPA eigensolver (single precision)')")
+         call elsi_say(e_h%stdio,info_str)
+
+         call elsi_allocate(e_h,eval_single,e_h%n_basis,"eval_single",caller)
+         call elsi_allocate(e_h,evec_single,e_h%n_lrow,e_h%n_lcol,&
+                 "evec_single",caller)
+         call elsi_allocate(e_h,copy_ham,e_h%n_lrow,e_h%n_lcol,&
+                 "copy_ham_single",caller)
+
+         copy_ham_single=real(ham,kind=r4)
+
+         call elpa_main%eigenvectors(copy_ham_single,eval_single,evec_single,&
+                 ierr)
+
+         eval = real(eval_single,kind=r8)
+         evec = real(evec_single,kind=r8)
+
+         call elsi_deallocate(e_h,eval_single,"eval_single")
+         call elsi_deallocate(e_h,evec_single,"evec_single")
+         call elsi_deallocate(e_h,copy_ham_single,"copy_ham_single")
+      else
+         write(info_str,"('  Starting ELPA eigensolver')")
+         call elsi_say(e_h%stdio,info_str)
+
+         call elpa_main%eigenvectors(ham,eval,evec,ierr)
+      endif
    endif
 
    if(ierr /= 0) then
@@ -1285,7 +1278,7 @@ end subroutine
 !>
 !! This routine calls ELPA complex eigensolver.
 !!
-subroutine elsi_elpa_evec_cmplx(e_h,ham,eval,evec,elpa_o,keep_h)
+subroutine elsi_elpa_evec_cmplx(e_h,ham,eval,evec,sing_check)
 
    implicit none
 
@@ -1293,8 +1286,7 @@ subroutine elsi_elpa_evec_cmplx(e_h,ham,eval,evec,elpa_o,keep_h)
    complex(kind=r8),  intent(in)    :: ham(e_h%n_lrow,e_h%n_lcol)
    real(kind=r8),     intent(inout) :: eval(e_h%n_basis)
    complex(kind=r8),  intent(inout) :: evec(e_h%n_lrow,e_h%n_lcol)
-   character(len=*),  intent(in)    :: elpa_o
-   logical,           intent(in)    :: keep_h
+   logical,           intent(in)    :: sing_check
 
    integer(kind=i4)   :: ierr
    character(len=200) :: info_str
@@ -1308,59 +1300,55 @@ subroutine elsi_elpa_evec_cmplx(e_h,ham,eval,evec,elpa_o,keep_h)
 
    character(len=40), parameter :: caller = "elsi_elpa_evec_cmplx"
 
-   if(elpa_o == "global") then
-      call elsi_elpa_setup(e_h,e_h%elpa_main,e_h%n_nonsing,e_h%n_states_solve)
-      call elsi_elpa_autotuning(e_h,"real")
+   if(sing_check) then
+      call elsi_elpa_setup(e_h,elpa_main,e_h%n_basis,e_h%n_basis)
+      ! TODO: Define ill-conditioning tolerance (not yet available in ELPA)
+!      call elpa_main%set("check_pd",1,ierr)
+      call elpa_main%set("solver",ELPA_SOLVER_2STAGE,ierr)
 
-      elpa_main => e_h%elpa_main
-   else
-      call elsi_elpa_setup(e_h,elpa_main,e_h%n_nonsing,e_h%n_states_solve)
-   endif
+      call elsi_allocate(e_h,copy_ham,e_h%n_lrow,e_h%n_lcol,"copy_ham",caller)
 
-   if(e_h%n_elsi_calls <= e_h%elpa_n_single .and. elpa_o == "global") then
-      write(info_str,"('  Starting ELPA eigensolver (single precision)')")
-      call elsi_say(e_h%stdio,info_str)
+      copy_ham = ham
 
-      call elsi_allocate(e_h,eval_single,e_h%n_basis,"eval_single",caller)
-      call elsi_allocate(e_h,evec_single,e_h%n_lrow,e_h%n_lcol,"evec_single",&
-              caller)
-      call elsi_allocate(e_h,copy_ham,e_h%n_lrow,e_h%n_lcol,"copy_ham_single",&
-              caller)
-
-      copy_ham_single=cmplx(ham,kind=r4)
-
-      call elpa_main%eigenvectors(copy_ham_single,eval_single,evec_single,ierr)
-
-      eval = real(eval_single,kind=r8)
-      evec = cmplx(evec_single,kind=r8)
-
-      call elsi_deallocate(e_h,eval_single,"eval_single")
-      call elsi_deallocate(e_h,evec_single,"evec_single")
-      call elsi_deallocate(e_h,copy_ham_single,"copy_ham_single")
-   else
-      write(info_str,"('  Starting ELPA eigensolver')")
-      call elsi_say(e_h%stdio,info_str)
-
-      if(keep_h) then
-         call elpa_main%set("check_pd",1,ierr)
-         call elpa_main%set("solver",ELPA_SOLVER_2STAGE,ierr)
-
-         call elsi_allocate(e_h,copy_ham,e_h%n_lrow,e_h%n_lcol,"copy_ham",&
-                 caller)
-
-         copy_ham = cmplx(ham,kind=r8)
-
-         call elpa_main%eigenvectors(copy_ham,eval,evec,ierr)
-         call elsi_deallocate(e_h,copy_ham,"copy_ham")
-      else
-         call elpa_main%eigenvectors(ham,eval,evec,ierr)
-      endif
-   endif
-
-   if(elpa_o == "local") then
+      call elpa_main%eigenvectors(copy_ham,eval,evec,ierr)
       call elpa_deallocate(elpa_main)
 
       nullify(elpa_main)
+
+      call elsi_deallocate(e_h,copy_ham,"copy_ham")
+   else
+      call elsi_elpa_setup(e_h,e_h%elpa_main,e_h%n_nonsing,e_h%n_states_solve)
+!      call elsi_elpa_autotuning(e_h,"complex")
+
+      elpa_main => e_h%elpa_main
+
+      if(e_h%n_elsi_calls <= e_h%elpa_n_single) then
+         write(info_str,"('  Starting ELPA eigensolver (single precision)')")
+         call elsi_say(e_h%stdio,info_str)
+
+         call elsi_allocate(e_h,eval_single,e_h%n_basis,"eval_single",caller)
+         call elsi_allocate(e_h,evec_single,e_h%n_lrow,e_h%n_lcol,&
+                 "evec_single",caller)
+         call elsi_allocate(e_h,copy_ham,e_h%n_lrow,e_h%n_lcol,&
+                 "copy_ham_single",caller)
+
+         copy_ham_single=cmplx(ham,kind=r4)
+
+         call elpa_main%eigenvectors(copy_ham_single,eval_single,evec_single,&
+                 ierr)
+
+         eval = real(eval_single,kind=r8)
+         evec = cmplx(evec_single,kind=r8)
+
+         call elsi_deallocate(e_h,eval_single,"eval_single")
+         call elsi_deallocate(e_h,evec_single,"evec_single")
+         call elsi_deallocate(e_h,copy_ham_single,"copy_ham_single")
+      else
+         write(info_str,"('  Starting ELPA eigensolver')")
+         call elsi_say(e_h%stdio,info_str)
+
+         call elpa_main%eigenvectors(ham,eval,evec,ierr)
+      endif
    endif
 
    if(ierr /= 0) then

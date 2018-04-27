@@ -20,7 +20,7 @@ module ELSI_ELPA
    use ELSI_UTILS,        only: elsi_get_local_nnz_real,elsi_get_local_nnz_cmplx
    use CHECK_SINGULARITY, only: elpa_check_singularity_real_double,&
                                 elpa_check_singularity_complex_double
-   use ELPA1,             only: elpa_print_times,elpa_get_communicators,&
+   use ELPA1,             only: elpa_print_times,&
                                 elpa_solve_evp_real_1stage_double,&
                                 elpa_solve_evp_complex_1stage_double,&
                                 elpa_cholesky_real_double,&
@@ -60,17 +60,17 @@ subroutine elsi_init_elpa(e_h)
 
    type(elsi_handle), intent(inout) :: e_h
 
-   integer(kind=i4) :: success
+   integer(kind=i4) :: ierr
 
    character(len=40), parameter :: caller = "elsi_init_elpa"
 
    if(.not. e_h%elpa_started) then
-      success = elpa_get_communicators(e_h%mpi_comm,e_h%my_prow,e_h%my_pcol,&
-                   e_h%mpi_comm_row,e_h%mpi_comm_col)
+      call MPI_Comm_split(e_h%mpi_comm,e_h%my_pcol,e_h%my_prow,&
+              e_h%mpi_comm_row,ierr)
+      call MPI_Comm_split(e_h%mpi_comm,e_h%my_prow,e_h%my_pcol,&
+              e_h%mpi_comm_col,ierr)
 
-      if(success /= 0) then
-         call elsi_stop(e_h,"Failed to get MPI communicators.",caller)
-      endif
+      call elsi_check_mpi(e_h,"MPI_Comm_split",ierr,caller)
 
       e_h%elpa_started = .true.
    endif
