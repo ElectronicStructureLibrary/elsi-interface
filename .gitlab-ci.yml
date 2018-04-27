@@ -2,15 +2,15 @@
 gnu:
   script:
     - module purge
-    - module load cmake-3.11.0
     - module load gcc-7.1
+    - module load cmake-3.11.0
     - module load openmpi-3.0.0
     - cat ./toolchains/gnu.cmake
     - rm -rf build
     - mkdir build
     - cd build
-    - cmake .. -DCMAKE_TOOLCHAIN_FILE=../toolchains/gnu.cmake -DCMAKE_INSTALL_PREFIX=./
-    - make -j
+    - cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/gnu.cmake -DCMAKE_INSTALL_PREFIX=./ ..
+    - make -j8
     - ctest --output-on-failure
     - make install
 
@@ -18,15 +18,15 @@ gnu:
 intel:
   script:
     - module purge
-    - module load cmake-3.11.0
     - module load gcc-7.1
+    - module load cmake-3.11.0
     - module load intel-2017.4
     - cat ./toolchains/intel.cmake
     - rm -rf build
     - mkdir build
     - cd build
-    - cmake .. -DCMAKE_TOOLCHAIN_FILE=../toolchains/intel.cmake -DCMAKE_INSTALL_PREFIX=./
-    - make -j
+    - cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/intel.cmake -DCMAKE_INSTALL_PREFIX=./ ..
+    - make -j8
     - ctest --output-on-failure
     - make install
 
@@ -34,14 +34,14 @@ intel:
 intel-debug:
   script:
     - module purge
-    - module load cmake-3.11.0
     - module load gcc-7.1
+    - module load cmake-3.11.0
     - module load intel-2017.4
     - cat ./toolchains/intel_debug.cmake
     - rm -rf build
     - mkdir build
     - cd build
-    - cmake .. -DCMAKE_TOOLCHAIN_FILE=../toolchains/intel_debug.cmake -DCMAKE_INSTALL_PREFIX=./
-    - make -j
+    - cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/intel_debug.cmake -DCMAKE_INSTALL_PREFIX=./ ..
+    - make -j8
     - ctest --output-on-failure
     - make install
