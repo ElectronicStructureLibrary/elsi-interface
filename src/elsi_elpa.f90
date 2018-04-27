@@ -1241,6 +1241,9 @@ subroutine elsi_set_elpa_default(e_h)
    ! ELPA solver
    e_h%elpa_solver = 2
 
+   ! Number of SCF steps with single precision
+   e_h%elpa_n_single = 0
+
    ! ELPA output?
    e_h%elpa_output = .false.
 

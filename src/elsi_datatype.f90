@@ -11,10 +11,11 @@ module ELSI_DATATYPE
 
    use, intrinsic :: ISO_C_BINDING
    use ELSI_CONSTANTS,     only: FILENAME_LEN,STR_LEN,UUID_LEN
+   use ELSI_JSON,          only: elsi_json_handle
    use ELSI_PRECISION,     only: r8,i4
+   use ELPA,               only: elpa_t
    use F_PPEXSI_INTERFACE, only: f_ppexsi_options
    use MATRIXSWITCH,       only: matrix
-   use ELSI_JSON,          only: elsi_json_handle
 
    implicit none
 
@@ -182,8 +183,10 @@ module ELSI_DATATYPE
 
       ! ELPA
       integer(kind=i4) :: elpa_solver
+      integer(kind=i4) :: elpa_n_single
       logical          :: elpa_output
       logical          :: elpa_started = .false.
+      class(elpa_t), pointer :: elpa_main
 
       ! libOMM
       integer(kind=i4) :: omm_n_states ! Number of states used in libOMM

@@ -16,9 +16,12 @@ module ELSI_ELPA
    use ELSI_MPI,       only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8,&
                              mpi_integer4
    use ELSI_OCC,       only: elsi_compute_mu_and_occ,elsi_compute_entropy
-   use ELSI_PRECISION, only: r8,i4
+   use ELSI_PRECISION, only: r4,r8,i4
    use ELSI_UTILS,     only: elsi_get_local_nnz_real,elsi_get_local_nnz_cmplx
-   use ELPA
+   use ELPA,           only: elpa_t,elpa_init,elpa_uninit,elpa_allocate,&
+                             elpa_deallocate,ELPA_SOLVER_1STAGE,&
+                             ELPA_SOLVER_2STAGE
+   use ELPA1,          only: elpa_get_communicators
 
    implicit none
 
@@ -37,24 +40,24 @@ module ELSI_ELPA
    public :: elsi_to_standard_evp_cmplx
    public :: elsi_solve_elpa_cmplx
 
-   interface elpa_eigenvectors
-      module procedure elpa_eigenvectors_cmplx,&
-                       elpa_eigenvectors_real
+   interface elsi_elpa_evec
+      module procedure elsi_elpa_evec_cmplx,&
+                       elsi_elpa_evec_real
    end interface
 
-   interface elpa_hermitian_multiply
-      module procedure elpa_hermitian_multiply_cmplx,&
-                       elpa_hermitian_multiply_real
+   interface elsi_elpa_mult
+      module procedure elsi_elpa_mult_cmplx,&
+                       elsi_elpa_mult_real
    end interface
 
-   interface elpa_cholesky
-      module procedure elpa_cholesky_cmplx,&
-                       elpa_cholesky_real
+   interface elsi_elpa_chol
+      module procedure elsi_elpa_chol_cmplx,&
+                       elsi_elpa_chol_real
    end interface
 
-   interface elpa_invert_triangular
-      module procedure elpa_invert_triangular_cmplx,&
-                       elpa_invert_triangular_real
+   interface elsi_elpa_invt
+      module procedure elsi_elpa_invt_cmplx,&
+                       elsi_elpa_invt_real
    end interface
 
 contains
@@ -68,15 +71,17 @@ subroutine elsi_init_elpa(e_h)
 
    type(elsi_handle), intent(inout) :: e_h
 
-   integer(kind=i4) :: success
+   integer(kind=i4) :: ierr
 
    character(len=40), parameter :: caller = "elsi_init_elpa"
 
    if(.not. e_h%elpa_started) then
-      success = elpa_get_communicators(e_h%mpi_comm,e_h%my_prow,e_h%my_pcol,&
-                   e_h%mpi_comm_row,e_h%mpi_comm_col)
+      ierr = elpa_init(20171201)
 
-      if(success /= 0) then
+      ierr = elpa_get_communicators(e_h%mpi_comm,e_h%my_prow,e_h%my_pcol,&
+                e_h%mpi_comm_row,e_h%mpi_comm_col)
+
+      if(ierr /= 0) then
          call elsi_stop(e_h,"Failed to get MPI communicators.",caller)
       endif
 
@@ -361,10 +366,10 @@ subroutine elsi_to_standard_evp_real(e_h,ham,ovlp,eval,evec)
          e_h%ovlp_is_sing = .false.
 
          ! S = (U^T)U, U -> S
-         call elpa_cholesky(e_h,ovlp)
+         call elsi_elpa_chol(e_h,ovlp)
 
          ! U^-1 -> S
-         call elpa_invert_triangular(e_h,ovlp)
+         call elsi_elpa_invt(e_h,ovlp)
 
          call elsi_get_time(t1)
 
@@ -389,14 +394,14 @@ subroutine elsi_to_standard_evp_real(e_h,ham,ovlp,eval,evec)
               ovlp,1,e_h%n_basis-e_h%n_nonsing+1,e_h%sc_desc,evec,1,1,&
               e_h%sc_desc,0.0_r8,ham,1,1,e_h%sc_desc)
    else ! Use Cholesky
-      call elpa_hermitian_multiply(e_h,'U','L',ovlp,ham,evec)
+      call elsi_elpa_mult(e_h,'U','L',ovlp,ham,evec)
 
       call pdtran(e_h%n_basis,e_h%n_basis,1.0_r8,evec,1,1,e_h%sc_desc,0.0_r8,&
               ham,1,1,e_h%sc_desc)
 
       evec = ham
 
-      call elpa_hermitian_multiply(e_h,'U','U',ovlp,evec,ham)
+      call elsi_elpa_mult(e_h,'U','U',ovlp,evec,ham)
 
       call pdtran(e_h%n_basis,e_h%n_basis,1.0_r8,ham,1,1,e_h%sc_desc,0.0_r8,&
               evec,1,1,e_h%sc_desc)
@@ -451,7 +456,7 @@ subroutine elsi_check_singularity_real(e_h,ovlp,eval,evec)
    ! TODO: ill-conditioning tolerance should be set here
 
    ! Use ELPA to check overlap singularity
-   call elpa_eigenvectors(e_h,ovlp,eval,evec,"local",.true.,2)
+   call elsi_elpa_evec(e_h,ovlp,eval,evec,"local",.true.,2)
 
    do i = 1,e_h%n_basis
       if(eval(i) < e_h%sing_tol) then
@@ -543,7 +548,7 @@ subroutine elsi_to_original_ev_real(e_h,ham,ovlp,evec)
       call pdtran(e_h%n_basis,e_h%n_basis,1.0_r8,ovlp,1,1,e_h%sc_desc,0.0_r8,&
               ham,1,1,e_h%sc_desc)
 
-      call elpa_hermitian_multiply(e_h,'L','N',ham,tmp_real,evec)
+      call elsi_elpa_mult(e_h,'L','N',ham,tmp_real,evec)
    endif
 
    call elsi_deallocate(e_h,tmp_real,"tmp_real")
@@ -560,7 +565,7 @@ end subroutine
 !>
 !! This routine interfaces to ELPA.
 !!
-subroutine elsi_solve_evp_elpa_real(e_h,ham,ovlp,eval,evec)
+subroutine elsi_solve_elpa_real(e_h,ham,ovlp,eval,evec)
 
    implicit none
 
@@ -575,7 +580,7 @@ subroutine elsi_solve_evp_elpa_real(e_h,ham,ovlp,eval,evec)
    real(kind=r8)      :: t1
    character(len=200) :: info_str
 
-   character(len=40), parameter :: caller = "elsi_solve_evp_elpa_real"
+   character(len=40), parameter :: caller = "elsi_solve_elpa_real"
 
    ! Compute sparsity
    if(e_h%n_elsi_calls == 1 .and. e_h%matrix_format == BLACS_DENSE) then
@@ -595,7 +600,7 @@ subroutine elsi_solve_evp_elpa_real(e_h,ham,ovlp,eval,evec)
    call elsi_get_time(t0)
 
    ! Solve evp, return eigenvalues and eigenvectors
-   call elpa_eigenvectors(e_h,ham,eval,evec,"global",.false.,e_h%elpa_solver)
+   call elsi_elpa_evec(e_h,ham,eval,evec,"global",.false.,e_h%elpa_solver)
 
    ! Dummy eigenvalues for correct chemical potential, no physical meaning!
    if(e_h%n_nonsing < e_h%n_basis) then
@@ -837,10 +842,10 @@ subroutine elsi_to_standard_evp_cmplx(e_h,ham,ovlp,eval,evec)
          e_h%ovlp_is_sing = .false.
 
          ! S = (U^T)U, U -> S
-         call elpa_cholesky(e_h,ovlp)
+         call elsi_elpa_chol(e_h,ovlp)
 
          ! U^-1 -> S
-         call elpa_invert_triangular(e_h,ovlp)
+         call elsi_elpa_invt(e_h,ovlp)
 
          call elsi_get_time(t1)
 
@@ -866,14 +871,14 @@ subroutine elsi_to_standard_evp_cmplx(e_h,ham,ovlp,eval,evec)
               (1.0_r8,0.0_r8),ovlp,1,e_h%n_basis-e_h%n_nonsing+1,e_h%sc_desc,&
               evec,1,1,e_h%sc_desc,(0.0_r8,0.0_r8),ham,1,1,e_h%sc_desc)
    else ! Use cholesky
-      call elpa_hermitian_multiply(e_h,'U','L',ovlp,ham,evec)
+      call elsi_elpa_mult(e_h,'U','L',ovlp,ham,evec)
 
       call pztranc(e_h%n_basis,e_h%n_basis,(1.0_r8,0.0_r8),evec,1,1,&
               e_h%sc_desc,(0.0_r8,0.0_r8),ham,1,1,e_h%sc_desc)
 
       evec = ham
 
-      call elpa_hermitian_multiply(e_h,'U','U',ovlp,evec,ham)
+      call elsi_elpa_mult(e_h,'U','U',ovlp,evec,ham)
 
       call pztranc(e_h%n_basis,e_h%n_basis,(1.0_r8,0.0_r8),ham,1,1,e_h%sc_desc,&
               (0.0_r8,0.0_r8),evec,1,1,e_h%sc_desc)
@@ -928,8 +933,6 @@ subroutine elsi_check_singularity_cmplx(e_h,ovlp,eval,evec)
    real(kind=r8)      :: t1
    character(len=200) :: info_str
 
-   complex(kind=r8), allocatable :: copy_cmplx(:,:)
-
    character(len=40), parameter :: caller = "elsi_check_singularity_cmplx"
 
    call elsi_get_time(t0)
@@ -937,7 +940,7 @@ subroutine elsi_check_singularity_cmplx(e_h,ovlp,eval,evec)
    ! TODO: ill-conditioning tolerance should be set here
 
    ! Use ELPA to check overlap singularity
-   call elpa_eigenvectors(e_h,ovlp,eval,evec,"local",.true.,2)
+   call elsi_elpa_evec(e_h,ovlp,eval,evec,"local",.true.,2)
 
    do i = 1,e_h%n_basis
       if(eval(i) < e_h%sing_tol) then
@@ -1029,7 +1032,7 @@ subroutine elsi_to_original_ev_cmplx(e_h,ham,ovlp,evec)
       call pztranc(e_h%n_basis,e_h%n_basis,(1.0_r8,0.0_r8),ovlp,1,1,&
               e_h%sc_desc,(0.0_r8,0.0_r8),ham,1,1,e_h%sc_desc)
 
-      call elpa_hermitian_multiply(e_h,'L','N',ham,tmp_cmplx,evec)
+      call elsi_elpa_mult(e_h,'L','N',ham,tmp_cmplx,evec)
    endif
 
    call elsi_deallocate(e_h,tmp_cmplx,"tmp_cmplx")
@@ -1046,7 +1049,7 @@ end subroutine
 !>
 !! This routine interfaces to ELPA.
 !!
-subroutine elsi_solve_evp_elpa_cmplx(e_h,ham,ovlp,eval,evec)
+subroutine elsi_solve_elpa_cmplx(e_h,ham,ovlp,eval,evec)
 
    implicit none
 
@@ -1061,8 +1064,7 @@ subroutine elsi_solve_evp_elpa_cmplx(e_h,ham,ovlp,eval,evec)
    real(kind=r8)      :: t1
    character(len=200) :: info_str
 
-   character(len=40), parameter :: caller = "elsi_solve_evp_elpa_cmplx"
-
+   character(len=40), parameter :: caller = "elsi_solve_elpa_cmplx"
 
    ! Compute sparsity
    if(e_h%n_elsi_calls == 1 .and. e_h%matrix_format == BLACS_DENSE) then
@@ -1082,7 +1084,7 @@ subroutine elsi_solve_evp_elpa_cmplx(e_h,ham,ovlp,eval,evec)
    call elsi_get_time(t0)
 
    ! Solve evp, return eigenvalues and eigenvectors
-   call elpa_eigenvectors(e_h,ham,eval,evec,"global",.false.,e_h%elpa_solver)
+   call elsi_elpa_evec(e_h,ham,eval,evec,"global",.false.,e_h%elpa_solver)
 
    ! Dummy eigenvalues for correct chemical potential, no physical meaning!
    if(e_h%n_nonsing < e_h%n_basis) then
@@ -1117,10 +1119,6 @@ subroutine elsi_set_elpa_default(e_h)
    type(elsi_handle), intent(inout) :: e_h !< Handle
 
    character(len=40), parameter :: caller = "elsi_set_elpa_default"
-
-   if(e_h%handle_ready) then
-      e_h%handle_changed = .true.
-   endif
 
    ! ELPA solver
    e_h%elpa_solver = 2
@@ -1182,6 +1180,7 @@ subroutine elsi_cleanup_elpa(e_h)
    endif
 
    if(e_h%elpa_started) then
+      call elpa_uninit()
       call MPI_Comm_free(e_h%mpi_comm_row,ierr)
       call MPI_Comm_free(e_h%mpi_comm_col,ierr)
    endif
@@ -1193,7 +1192,7 @@ end subroutine
 !>
 !! This routine calls ELPA real eigensolver.
 !!
-subroutine elpa_eigenvectors_real(e_h,ham,eval,evec,elpa_o,keep_h,solver)
+subroutine elsi_elpa_evec_real(e_h,ham,eval,evec,elpa_o,keep_h,solver)
 
    implicit none
 
@@ -1205,26 +1204,25 @@ subroutine elpa_eigenvectors_real(e_h,ham,eval,evec,elpa_o,keep_h,solver)
    logical,           intent(in)    :: keep_h
    integer,           intent(in)    :: solver
 
-   integer(kind=i4) :: ierr
+   integer(kind=i4)   :: ierr
+   character(len=200) :: info_str
 
-   class(elpa_t), pointer :: elpa_t
+   class(elpa_t), pointer :: elpa_main
 
    real(kind=r8), allocatable :: copy_ham(:,:)
    real(kind=r4), allocatable :: copy_ham_single(:,:)
    real(kind=r4), allocatable :: eval_single(:)
    real(kind=r4), allocatable :: evec_single(:,:)
 
-   character(len=40), parameter :: caller = "elpa_eigenvectors_real"
+   character(len=40), parameter :: caller = "elsi_elpa_evec_real"
 
    if(elpa_o == "global") then
-      call elsi_set_elpa_api(e_h,e_h%elpa_t,e_h%n_nonsing,e_h%n_states_solve,&
-              caller,solver)
+      call elsi_set_elpa_api(e_h,e_h%elpa_main,e_h%n_nonsing,&
+              e_h%n_states_solve,caller,solver)
 
-      call setup_autotuning(e_h,"real",caller)
-
-      elpa_t => e_h%elpa_t
+      elpa_main => e_h%elpa_main
    else
-      call elsi_set_elpa_api(e_h,elpa_t,e_h%n_nonsing,e_h%n_states_solve,&
+      call elsi_set_elpa_api(e_h,elpa_main,e_h%n_nonsing,e_h%n_states_solve,&
               caller,solver)
    endif
 
@@ -1240,7 +1238,7 @@ subroutine elpa_eigenvectors_real(e_h,ham,eval,evec,elpa_o,keep_h,solver)
 
       copy_ham_single=real(ham,kind=r4)
 
-      call elpa_t%eigenvectors(copy_ham_single,eval_single,evec_single,ierr)
+      call elpa_main%eigenvectors(copy_ham_single,eval_single,evec_single,ierr)
 
       eval = real(eval_single,kind=r8)
       evec = real(evec_single,kind=r8)
@@ -1253,26 +1251,25 @@ subroutine elpa_eigenvectors_real(e_h,ham,eval,evec,elpa_o,keep_h,solver)
       call elsi_say(e_h%stdio,info_str)
 
       if(keep_h) then
-         call elpa_t%set("check_pd",1,ierr)
+         call elpa_main%set("check_pd",1,ierr)
 
          call elsi_allocate(e_h,copy_ham,e_h%n_lrow,e_h%n_lcol,"copy_ham",&
                  caller)
 
          copy_ham = ham
 
-         call elpa_t%eigenvectors(copy_ham,eval,evec,ierr)
+         call elpa_main%eigenvectors(copy_ham,eval,evec,ierr)
 
          call elsi_deallocate(e_h,copy_ham,"copy_ham")
       else
-         call elpa_t%eigenvectors(ham,eval,evec,ierr)
+         call elpa_main%eigenvectors(ham,eval,evec,ierr)
       endif
    endif
 
    if(elpa_o == "local") then
-      call elpa_t%destroy()
-      call elpa_uninit()
+      call elpa_deallocate(elpa_main)
 
-      nullify(elpa_t)
+      nullify(elpa_main)
    endif
 
    if(ierr /= 0) then
@@ -1284,7 +1281,7 @@ end subroutine
 !>
 !! This routine calls ELPA complex eigensolver.
 !!
-subroutine elpa_eigenvectors_cmplx(e_h,ham,eval,evec,elpa_o,keep_h,solver)
+subroutine elsi_elpa_evec_cmplx(e_h,ham,eval,evec,elpa_o,keep_h,solver)
 
    implicit none
 
@@ -1296,26 +1293,25 @@ subroutine elpa_eigenvectors_cmplx(e_h,ham,eval,evec,elpa_o,keep_h,solver)
    logical,           intent(in)    :: keep_h
    integer,           intent(in)    :: solver
 
-   integer(kind=i4) :: ierr
+   integer(kind=i4)   :: ierr
+   character(len=200) :: info_str
 
-   class(elpa_t), pointer :: elpa_t
+   class(elpa_t), pointer :: elpa_main
 
    complex(kind=r8), allocatable :: copy_ham(:,:)
    complex(kind=r4), allocatable :: copy_ham_single(:,:)
    real(kind=r4),    allocatable :: eval_single(:)
    complex(kind=r4), allocatable :: evec_single(:,:)
 
-   character(len=40), parameter :: caller = "elpa_eigenvectors_cmplx"
+   character(len=40), parameter :: caller = "elsi_elpa_evec_cmplx"
 
    if(elpa_o == "global") then
-      call elsi_set_elpa_api(e_h,e_h%elpa_t,e_h%n_nonsing,e_h%n_states_solve,&
-              caller,solver)
+      call elsi_set_elpa_api(e_h,e_h%elpa_main,e_h%n_nonsing,&
+              e_h%n_states_solve,caller,solver)
 
-      call setup_autotuning(e_h,"complex",caller)
-
-      elpa_t => e_h%elpa_t
+      elpa_main => e_h%elpa_main
    else
-      call elsi_set_elpa_api(e_h,elpa_t,e_h%n_nonsing,e_h%n_states_solve,&
+      call elsi_set_elpa_api(e_h,elpa_main,e_h%n_nonsing,e_h%n_states_solve,&
               caller,solver)
    endif
 
@@ -1331,7 +1327,7 @@ subroutine elpa_eigenvectors_cmplx(e_h,ham,eval,evec,elpa_o,keep_h,solver)
 
       copy_ham_single=cmplx(ham,kind=r4)
 
-      call elpa_t%eigenvectors(copy_ham_single,eval_single,evec_single,ierr)
+      call elpa_main%eigenvectors(copy_ham_single,eval_single,evec_single,ierr)
 
       eval = real(eval_single,kind=r8)
       evec = cmplx(evec_single,kind=r8)
@@ -1344,25 +1340,24 @@ subroutine elpa_eigenvectors_cmplx(e_h,ham,eval,evec,elpa_o,keep_h,solver)
       call elsi_say(e_h%stdio,info_str)
 
       if(keep_h) then
-         call elpa_t%set("check_pd",1,ierr)
+         call elpa_main%set("check_pd",1,ierr)
 
          call elsi_allocate(e_h,copy_ham,e_h%n_lrow,e_h%n_lcol,"copy_ham",&
                  caller)
 
          copy_ham = cmplx(ham,kind=r8)
 
-         call elpa_t%eigenvectors(copy_ham,eval,evec,ierr)
+         call elpa_main%eigenvectors(copy_ham,eval,evec,ierr)
          call elsi_deallocate(e_h,copy_ham,"copy_ham")
       else
-         call elpa_t%eigenvectors(ham,eval,evec,ierr)
+         call elpa_main%eigenvectors(ham,eval,evec,ierr)
       endif
    endif
 
    if(elpa_o == "local") then
-      call elpa_t%destroy()
-      call elpa_uninit()
+      call elpa_deallocate(elpa_main)
 
-      nullify(elpa_t)
+      nullify(elpa_main)
    endif
 
    if(ierr /= 0) then
@@ -1374,7 +1369,7 @@ end subroutine
 !>
 !! This routine calls ELPA real hermitian_multiply.
 !!
-subroutine elpa_hermitian_multiply_real(e_h,uplo,uplo2,a,b,c)
+subroutine elsi_elpa_mult_real(e_h,uplo,uplo2,a,b,c)
 
    implicit none
 
@@ -1387,17 +1382,16 @@ subroutine elpa_hermitian_multiply_real(e_h,uplo,uplo2,a,b,c)
 
    integer(kind=i4) :: ierr
 
-   class(elpa_t), pointer :: elpa_t
+   class(elpa_t), pointer :: elpa_main
 
-   character(len=40), parameter :: caller = "elpa_hermitian_multiply_real"
+   character(len=40), parameter :: caller = "elsi_elpa_mult_real"
 
-   call elsi_set_elpa_api(e_h,elpa_t,e_h%n_basis,e_h%n_basis,caller)
-   call elpa_t%hermitian_multiply(uplo,uplo2,e_h%n_basis,a,b,e_h%n_lrow,&
+   call elsi_set_elpa_api(e_h,elpa_main,e_h%n_basis,e_h%n_basis,caller,2)
+   call elpa_main%hermitian_multiply(uplo,uplo2,e_h%n_basis,a,b,e_h%n_lrow,&
            e_h%n_lcol,c,e_h%n_lrow,e_h%n_lcol,ierr)
-   call elpa_t%destroy()
-   call elpa_uninit()
+   call elpa_deallocate(elpa_main)
 
-   nullify(elpa_t)
+   nullify(elpa_main)
 
    if(ierr /= 0) then
       call elsi_stop(e_h,"Matrix multiplication failed.",caller)
@@ -1408,7 +1402,7 @@ end subroutine
 !>
 !! This routine calls ELPA complex hermitian_multiply.
 !!
-subroutine elpa_hermitian_multiply_cmplx(e_h,uplo,uplo2,a,b,c)
+subroutine elsi_elpa_mult_cmplx(e_h,uplo,uplo2,a,b,c)
 
    implicit none
 
@@ -1421,17 +1415,16 @@ subroutine elpa_hermitian_multiply_cmplx(e_h,uplo,uplo2,a,b,c)
 
    integer(kind=i4) :: ierr
 
-   class(elpa_t), pointer :: elpa_t
+   class(elpa_t), pointer :: elpa_main
 
-   character(len=40), parameter :: caller = "elpa_hermitian_multiply_cmplx"
+   character(len=40), parameter :: caller = "elsi_elpa_mult_cmplx"
 
-   call elsi_set_elpa_api(e_h,elpa_t,e_h%n_basis,e_h%n_basis,caller)
-   call elpa_t%hermitian_multiply(uplo,uplo2,e_h%n_basis,a,b,e_h%n_lrow,&
+   call elsi_set_elpa_api(e_h,elpa_main,e_h%n_basis,e_h%n_basis,caller,2)
+   call elpa_main%hermitian_multiply(uplo,uplo2,e_h%n_basis,a,b,e_h%n_lrow,&
            e_h%n_lcol,c,e_h%n_lrow,e_h%n_lcol,ierr)
-   call elpa_t%destroy()
-   call elpa_uninit()
+   call elpa_deallocate(elpa_main)
 
-   nullify(elpa_t)
+   nullify(elpa_main)
 
    if(ierr /= 0) then
       call elsi_stop(e_h,"Matrix multiplication failed.",caller)
@@ -1442,7 +1435,7 @@ end subroutine
 !>
 !! This routine calls ELPA real cholesky.
 !!
-subroutine elpa_cholesky_real(e_h,a)
+subroutine elsi_elpa_chol_real(e_h,a)
 
    implicit none
 
@@ -1451,16 +1444,15 @@ subroutine elpa_cholesky_real(e_h,a)
 
    integer(kind=i4) :: ierr
 
-   class(elpa_t), pointer :: elpa_t
+   class(elpa_t), pointer :: elpa_main
 
-   character(len=40), parameter :: caller = "elpa_cholesky_real"
+   character(len=40), parameter :: caller = "elsi_elpa_chol_real"
 
-   call elsi_set_elpa_api(e_h,elpa_t,e_h%n_basis,e_h%n_basis,caller)
-   call elpa_t%cholesky(a,ierr)
-   call elpa_t%destroy()
-   call elpa_uninit()
+   call elsi_set_elpa_api(e_h,elpa_main,e_h%n_basis,e_h%n_basis,caller,2)
+   call elpa_main%cholesky(a,ierr)
+   call elpa_deallocate(elpa_main)
 
-   nullify(elpa_t)
+   nullify(elpa_main)
 
    if(ierr /= 0) then
       call elsi_stop(e_h,"Cholesky decomposition failed.",caller)
@@ -1471,7 +1463,7 @@ end subroutine
 !>
 !! This routine calls ELPA complex cholesky.
 !!
-subroutine elpa_cholesky_cmplx(e_h,a)
+subroutine elsi_elpa_chol_cmplx(e_h,a)
 
    implicit none
 
@@ -1480,16 +1472,15 @@ subroutine elpa_cholesky_cmplx(e_h,a)
 
    integer(kind=i4) :: ierr
 
-   class(elpa_t), pointer :: elpa_t
+   class(elpa_t), pointer :: elpa_main
 
-   character(len=40), parameter :: caller = "elpa_cholesky_cmplx"
+   character(len=40), parameter :: caller = "elsi_elpa_chol_cmplx"
 
-   call elsi_set_elpa_api(e_h,elpa_t,e_h%n_basis,e_h%n_basis,caller)
-   call elpa_t%cholesky(a,ierr)
-   call elpa_t%destroy()
-   call elpa_uninit()
+   call elsi_set_elpa_api(e_h,elpa_main,e_h%n_basis,e_h%n_basis,caller,2)
+   call elpa_main%cholesky(a,ierr)
+   call elpa_deallocate(elpa_main)
 
-   nullify(elpa_t)
+   nullify(elpa_main)
 
    if(ierr /= 0) then
       call elsi_stop(e_h,"Cholesky decomposition failed.",caller)
@@ -1500,7 +1491,7 @@ end subroutine
 !>
 !! This routine calls ELPA real invert_triangular.
 !!
-subroutine elpa_invert_triangular_real(e_h,a)
+subroutine elsi_elpa_invt_real(e_h,a)
 
    implicit none
 
@@ -1509,16 +1500,15 @@ subroutine elpa_invert_triangular_real(e_h,a)
 
    integer(kind=i4) :: ierr
 
-   class(elpa_t), pointer :: elpa_t
+   class(elpa_t), pointer :: elpa_main
 
-   character(len=40), parameter :: caller = "elpa_invert_triangular_real"
+   character(len=40), parameter :: caller = "elsi_elpa_invt_real"
 
-   call elsi_set_elpa_api(e_h,elpa_t,e_h%n_nonsing,e_h%n_nonsing,caller)
-   call elpa_t%invert_triangular(a,ierr)
-   call elpa_t%destroy()
-   call elpa_uninit()
+   call elsi_set_elpa_api(e_h,elpa_main,e_h%n_nonsing,e_h%n_nonsing,caller,2)
+   call elpa_main%invert_triangular(a,ierr)
+   call elpa_deallocate(elpa_main)
 
-   nullify(elpa_t)
+   nullify(elpa_main)
 
    if(ierr /= 0) then
       call elsi_stop(e_h,"Matrix inversion failed.",caller)
@@ -1529,7 +1519,7 @@ end subroutine
 !>
 !! This routine calls ELPA complex invert_triangular.
 !!
-subroutine elpa_invert_triangular_cmplx(e_h,a)
+subroutine elsi_elpa_invt_cmplx(e_h,a)
 
    implicit none
 
@@ -1538,16 +1528,15 @@ subroutine elpa_invert_triangular_cmplx(e_h,a)
 
    integer(kind=i4) :: ierr
 
-   class(elpa_t), pointer :: elpa_t
+   class(elpa_t), pointer :: elpa_main
 
-   character(len=40), parameter :: caller = "elpa_invert_triangular_cmplx"
+   character(len=40), parameter :: caller = "elsi_elpa_invt_cmplx"
 
-   call elsi_set_elpa_api(e_h,elpa_t,e_h%n_nonsing,e_h%n_nonsing,caller)
-   call elpa_t%invert_triangular(a,ierr)
-   call elpa_t%destroy()
-   call elpa_uninit()
+   call elsi_set_elpa_api(e_h,elpa_main,e_h%n_nonsing,e_h%n_nonsing,caller,2)
+   call elpa_main%invert_triangular(a,ierr)
+   call elpa_deallocate(elpa_main)
 
-   nullify(elpa_t)
+   nullify(elpa_main)
 
    if(ierr /= 0) then
       call elsi_stop(e_h,"Matrix inversion failed.",caller)
@@ -1571,17 +1560,13 @@ subroutine elsi_set_elpa_api(e_h,elpa_i,na,nev,caller,solver)
 
    integer(kind=i4) :: ierr
 
-   character(len=200) :: info_str
-
    if(e_h%n_elsi_calls == e_h%elpa_n_single .and. associated(elpa_i)) then
-      call elpa_i%destroy()
-      call elpa_uninit()
+      call elpa_deallocate(elpa_i)
+
       nullify(elpa_i)
    endif
 
    if(.not. associated(elpa_i)) then
-      ierr = elpa_init(20171201)
-
       elpa_i => elpa_allocate()
 
       call elpa_i%set("na",na,ierr)
@@ -1600,49 +1585,9 @@ subroutine elsi_set_elpa_api(e_h,elpa_i,na,nev,caller,solver)
       else
          call elpa_i%set("solver",ELPA_SOLVER_2STAGE,ierr)
       endif
-   endif
-
-   if(ierr /= 0) then
-      call elsi_stop(e_h,"ELPA setup failed.",caller)
-   endif
-
-end subroutine
-
-!>
-!! This routine sets up ELPA AEO auto-tuning.
-!!
-subroutine setup_autotuning(e_h,real_complex,caller)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: e_h
-   character(len=*),  intent(in)    :: real_complex
-   character(len=*),  intent(in)    :: caller
-
-   integer(kind=i4) :: ierr
-
-   if(e_h%n_elsi_calls == e_h%elpa_n_single ) then
-      call elpa_autotune_deallocate(e_h%tune_state)
-   endif
-
-   if(e_h%n_elsi_calls == 1 .or. e_h%n_elsi_calls == e_h%elpa_n_single) then
-      if(real_complex == "complex") then
-         e_h%tune_state => e_h%elpa_t%autotune_setup(ELPA_AUTOTUNE_FAST,&
-                              ELPA_AUTOTUNE_DOMAIN_COMPLEX,ierr)
-      elseif(real_complex == "real") then
-         e_h%tune_state => e_h%elpa_t%autotune_setup(ELPA_AUTOTUNE_FAST,&
-                              ELPA_AUTOTUNE_DOMAIN_REAL,ierr)
-      endif
 
       if(ierr /= 0) then
-         call elsi_stop(e_h,"ELPA auto-tuning failed.",caller)
-      endif
-   endif
-
-   if(associated(e_h%tune_state)) then
-      if(.not. e_h%elpa_t%autotune_step(e_h%tune_state)) then
-         call e_h%elpa_t%autotune_set_best(e_h%tune_state)
-         call elpa_autotune_deallocate(e_h%tune_state)
+         call elsi_stop(e_h,"ELPA setup failed.",caller)
       endif
    endif
 

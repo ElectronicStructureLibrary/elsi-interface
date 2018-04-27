@@ -118,6 +118,7 @@ subroutine elsi_reset_handle(e_h)
    e_h%edm_ready_real         = .false.
    e_h%edm_ready_cmplx        = .false.
    e_h%elpa_solver            = UNSET
+   e_h%elpa_n_single          = UNSET
    e_h%elpa_output            = .false.
    e_h%elpa_started           = .false.
    e_h%omm_n_states           = UNSET
