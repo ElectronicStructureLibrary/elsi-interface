@@ -40,6 +40,7 @@ module ELSI_ELPA
    public :: elsi_compute_edm_elpa_cmplx
    public :: elsi_to_standard_evp_cmplx
    public :: elsi_solve_elpa_cmplx
+   public :: elsi_external_elpa_is_used
 
    interface elsi_elpa_evec
       module procedure elsi_elpa_evec_cmplx,&
@@ -1127,6 +1128,9 @@ subroutine elsi_set_elpa_default(e_h)
    ! How many single precision steps?
    e_h%elpa_n_single = 0
 
+   ! Use GPU acceleration?
+   e_h%elpa_gpu = 0
+
 end subroutine
 
 !>
@@ -1568,6 +1572,7 @@ subroutine elsi_elpa_setup(e_h,elpa_i,na,nev)
       call elpa_i%set("mpi_comm_parent",e_h%mpi_comm,ierr)
       call elpa_i%set("process_row",e_h%my_prow,ierr)
       call elpa_i%set("process_col",e_h%my_pcol,ierr)
+      call elpa_i%set("gpu", e_h%elpa_gpu, ierr)
 
       ierr = elpa_i%setup()
 
@@ -1626,5 +1631,17 @@ subroutine elsi_elpa_autotuning(e_h,real_cmplx)
    endif
 
 end subroutine
+
+function elsi_external_elpa_is_used() result(external_elpa_is_used)
+
+   implicit none
+
+   character(len=40), parameter :: caller = "elsi_external_elpa_is_used"
+
+   integer(kind=i4) :: external_elpa_is_used
+
+   external_elpa_is_used = 1
+
+end function
 
 end module ELSI_ELPA

@@ -113,6 +113,7 @@ subroutine elsi_init(e_h,solver,parallel_mode,matrix_format,n_basis,n_electron,&
    ! Initialize stdio handle, silent by default
    call elsi_init_io(e_h%stdio,6,"",HUMAN,.false.,"")
 
+   ! Initialize JSON output handle
    e_h%log_file%print_info  = .false.
    e_h%log_file%file_name   = "elsi_log.json"
    e_h%log_file%print_unit  = 66

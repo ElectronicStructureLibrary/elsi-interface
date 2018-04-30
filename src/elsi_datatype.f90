@@ -186,6 +186,8 @@ module ELSI_DATATYPE
       integer(kind=i4) :: elpa_n_single
       logical          :: elpa_output
       logical          :: elpa_started = .false.
+      integer(kind=i4) :: elpa_gpu     = 0 ! Note: this does not set the GPU
+                                           ! kernel
       class(elpa_t),          pointer :: elpa_main
       class(elpa_autotune_t), pointer :: elpa_tune
 
