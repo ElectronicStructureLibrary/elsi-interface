@@ -13,7 +13,8 @@ module ELSI_MUTATOR
                               DMP_SOLVER,PEXSI_CSC,SIESTA_CSC
    use ELSI_DATATYPE,   only: elsi_handle
    use ELSI_ELPA,       only: elsi_compute_edm_elpa_real,&
-                              elsi_compute_edm_elpa_cmplx
+                              elsi_compute_edm_elpa_cmplx,&
+                              elsi_external_elpa_is_used
    use ELSI_MALLOC,     only: elsi_allocate,elsi_deallocate
    use ELSI_MAT_REDIST, only: elsi_blacs_to_siesta_dm_cmplx,&
                               elsi_blacs_to_siesta_dm_real,&
@@ -49,6 +50,7 @@ module ELSI_MUTATOR
    public :: elsi_set_uplo
    public :: elsi_set_csc_blk
    public :: elsi_set_elpa_solver
+   public :: elsi_set_elpa_gpu
    public :: elsi_set_omm_flavor
    public :: elsi_set_omm_n_elpa
    public :: elsi_set_omm_tol
@@ -317,6 +319,44 @@ subroutine elsi_set_elpa_solver(e_h,elpa_solver)
    endif
 
    e_h%elpa_solver = elpa_solver
+
+end subroutine
+
+!>
+!! This routine sets whether GPU acceleration should be used with ELPA
+!!
+subroutine elsi_set_elpa_gpu(e_h,use_gpu)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h     !< Handle
+   integer(kind=i4),  intent(in)    :: use_gpu !< Use GPU acceleration?
+
+   character(len=40), parameter :: caller = "elsi_set_elpa_gpu"
+
+   ! WPH: In the future, we should have a unified elsi_set_gpu() subroutine
+   !      which calls elsi_set_X_gpu() for all solvers, and we should
+   !      automatically turn on GPU acceleration if a GPU is found, i.e. make
+   !      the GPU opt-out in this case.  My experience from aims is that
+   !      people expect the GPU to be automagically enabled if it's compiled
+   !      into the build system.
+   !      However, since only external ELPA supports GPU acceleration, an
+   !      elsi_set_gpu subroutine would be more trouble than it's worth,
+   !      and automatic GPU detection would require CUDA be integrated into
+   !      the build system, which is tricky.
+
+   call elsi_check_handle(e_h,caller)
+
+   if(use_gpu == 0) then
+      e_h%elpa_gpu = 0
+   else
+      if(elsi_external_elpa_is_used() == 0) then
+         call elsi_stop(e_h,"At present, ELPA GPU acceleration in ELSI only &
+                            &supported for externally-compiled ELPA.",caller)
+      endif
+
+      e_h%elpa_gpu = 1
+   endif
 
 end subroutine
 
