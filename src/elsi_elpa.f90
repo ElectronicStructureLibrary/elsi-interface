@@ -48,7 +48,6 @@ module ELSI_ELPA
    public :: elsi_compute_edm_elpa_cmplx
    public :: elsi_to_standard_evp_cmplx
    public :: elsi_solve_elpa_cmplx
-   public :: elsi_external_elpa_is_used
 
 contains
 
@@ -61,7 +60,8 @@ subroutine elsi_init_elpa(e_h)
 
    type(elsi_handle), intent(inout) :: e_h
 
-   integer(kind=i4) :: ierr
+   integer(kind=i4)   :: ierr
+   character(len=200) :: info_str
 
    character(len=40), parameter :: caller = "elsi_init_elpa"
 
@@ -74,6 +74,11 @@ subroutine elsi_init_elpa(e_h)
       call elsi_check_mpi(e_h,"MPI_Comm_split",ierr,caller)
 
       e_h%elpa_started = .true.
+
+      if(e_h%elpa_gpu) then
+         write(info_str,"('  No ELPA GPU acceleration available')")
+         call elsi_say(e_h%stdio,info_str)
+      endif
    endif
 
 end subroutine
@@ -1249,30 +1254,12 @@ subroutine elsi_set_elpa_default(e_h)
    e_h%elpa_output = .false.
 
    ! Use GPU acceleration?
-   e_h%elpa_gpu = 0
+   e_h%elpa_gpu = .false.
 
    ! Use GPU kernels?
    e_h%elpa_gpu_kernels = 0
 
 end subroutine
-
-!>
-!! Returns whether ELSI are using externally-linked ELPA or
-!! not as a false-if-zero integer.
-!! We do not pass the handle deliberately: this is a property of
-!! the library, and we may need to know this before a handle is
-!! initialized.
-function elsi_external_elpa_is_used() result(external_elpa_is_used)
-
-   implicit none
-
-   character(len=40), parameter :: caller = "elsi_external_elpa_is_used"
-
-   integer(kind=i4) :: external_elpa_is_used
-
-   external_elpa_is_used = 0
-
-end function
 
 !>
 !! This routine cleans up ELPA.

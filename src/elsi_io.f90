@@ -1106,24 +1106,4 @@ subroutine elsi_init_random_seed()
 
 end subroutine
 
-!>
-!! Clean shutdown in case of errors.
-!!
-subroutine elsi_io_stop(io_h,info,caller)
-
-   implicit none
-
-   type(elsi_io_handle), intent(in) :: io_h   !< Handle
-   character(len=*),     intent(in) :: info   !< Error message
-   character(len=*),     intent(in) :: caller !< Caller
-
-   character(len=200) :: info_str
-
-   write(info_str,"(5A)") "**Error! ",trim(caller),": ",trim(info)," Exiting..."
-   write(io_h%print_unit,"(A)") trim(info_str)
-
-   stop
-
-end subroutine
-
 end module ELSI_IO

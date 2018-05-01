@@ -10,7 +10,7 @@
 !!
 module ELSI
 
-   use ELSI_DATATYPE, only: elsi_handle,elsi_io_handle,elsi_rw_handle
+   use ELSI_DATATYPE, only: elsi_handle,elsi_rw_handle
    use ELSI_IO
    use ELSI_MAT_IO
    use ELSI_OCC
@@ -24,7 +24,6 @@ module ELSI
 
    ! Data type
    public :: elsi_handle
-   public :: elsi_io_handle
    public :: elsi_rw_handle
 
    ! Setup
@@ -48,6 +47,7 @@ module ELSI
    public :: elsi_set_uplo
    public :: elsi_set_csc_blk
    public :: elsi_set_elpa_solver
+   public :: elsi_set_elpa_gpu
    public :: elsi_set_omm_flavor
    public :: elsi_set_omm_n_elpa
    public :: elsi_set_omm_tol
