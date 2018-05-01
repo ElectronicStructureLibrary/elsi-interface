@@ -1132,7 +1132,7 @@ subroutine elsi_set_elpa_default(e_h)
    e_h%elpa_gpu = .false.
 
    ! Use GPU kernels?
-   e_h%elpa_gpu_kernels = 0
+   e_h%elpa_gpu_kernels = .false.
 
 end subroutine
 
@@ -1587,30 +1587,37 @@ subroutine elsi_elpa_setup(e_h,elpa_i,na,nev)
          call elpa_i%set("solver",ELPA_SOLVER_1STAGE,ierr)
       else
          call elpa_i%set("solver",ELPA_SOLVER_2STAGE,ierr)
-         if(e_h%elpa_gpu_kernels == 1) then
-            if(e_h%elpa_gpu == 0) then
-               ! This is actually an ELPA requirement, not an ELSI one, but
-               ! it makes the problem easier to understand for users.
-               call elsi_stop(e_h,"ELPA GPU kernels in ELSI require that &
-                                  &ELPA GPU acceleration in ELSI be enabled. &
-                                  &Exiting.",caller)
-            end if
-            call elpa_i%set("real_kernel",ELPA_2STAGE_REAL_GPU,ierr)
-            call elpa_i%set("complex_kernel",ELPA_2STAGE_COMPLEX_GPU,ierr)
-         endif
       endif
 
+      ! Enable ELPA GPU acceleration
       if(e_h%elpa_gpu) then
          call elpa_i%set("gpu",1,ierr)
 
          if(ierr /= 0) then
+            ! GPU setup returned an error, assume GPU cannot be used and
+            ! continue
             call elpa_i%set("gpu",0,ierr)
 
             write(info_str,"('  No ELPA GPU acceleration available')")
             call elsi_say(e_h%stdio,info_str)
          else
+            ! GPU setup was successful
             write(info_str,"('  ELPA GPU acceleration activated')")
             call elsi_say(e_h%stdio,info_str)
+
+            ! If we are using 2-stage solver, determine whether we explicitly
+            ! enable GPU kernels or not (may still be enabled implicitly, i.e.
+            ! if user only compiled GPU kernels)
+            if(e_h%elpa_solver /= 1 .and. e_h%elpa_gpu_kernels) then
+               call elpa_i%set("real_kernel",ELPA_2STAGE_REAL_GPU,ierr)
+               call elpa_i%set("complex_kernel",ELPA_2STAGE_COMPLEX_GPU,ierr)
+
+               write(info_str,"('  ELPA GPU kernels will be used')")
+               call elsi_say(e_h%stdio,info_str)
+            else if (e_h%elpa_solver /= 1) then
+               write(info_str,"('  ELPA GPU kernels not will be used')")
+               call elsi_say(e_h%stdio,info_str)
+            endif
          endif
       endif
    endif

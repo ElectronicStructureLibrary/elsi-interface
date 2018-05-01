@@ -1257,7 +1257,7 @@ subroutine elsi_set_elpa_default(e_h)
    e_h%elpa_gpu = .false.
 
    ! Use GPU kernels?
-   e_h%elpa_gpu_kernels = 0
+   e_h%elpa_gpu_kernels = .false.
 
 end subroutine
 

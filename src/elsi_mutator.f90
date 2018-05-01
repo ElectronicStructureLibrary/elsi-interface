@@ -368,15 +368,10 @@ subroutine elsi_set_elpa_gpu_kernels(e_h,use_gpu_kernels)
    call elsi_check_handle(e_h,caller)
 
    if(use_gpu_kernels == 0) then
-      e_h%elpa_gpu_kernels = 0
+      e_h%elpa_gpu_kernels = .false.
    else
-      if(elsi_external_elpa_is_used() == 0) then
-         call elsi_stop(e_h,"At present, ELPA GPU kernels in ELSI only &
-                            &supported for externally-compiled ELPA.",caller)
-      endif
-
       call elsi_set_elpa_gpu(e_h,1)
-      e_h%elpa_gpu_kernels = 1
+      e_h%elpa_gpu_kernels = .true.
    endif
 
 end subroutine

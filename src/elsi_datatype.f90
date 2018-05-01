@@ -185,9 +185,9 @@ module ELSI_DATATYPE
       integer(kind=i4) :: elpa_solver
       integer(kind=i4) :: elpa_n_single
       logical          :: elpa_gpu
+      logical          :: elpa_gpu_kernels
       logical          :: elpa_output
       logical          :: elpa_started = .false.
-      integer(kind=i4) :: elpa_gpu_kernels = 0
       class(elpa_t),          pointer :: elpa_main
       class(elpa_autotune_t), pointer :: elpa_tune
 
