@@ -28,6 +28,7 @@ module ELSI_SETUP
    use ELSI_PRECISION,     only: r8,i4
    use ELSI_SIPS,          only: elsi_set_sips_default,elsi_cleanup_sips
    use ELSI_UTILS,         only: elsi_check_handle,elsi_reset_handle
+   use ELSI_MUTATOR,       only: elsi_set_elpa_gpu, elsi_set_elpa_gpu_kernels
 
    implicit none
 
@@ -118,6 +119,9 @@ subroutine elsi_init(e_h,solver,parallel_mode,matrix_format,n_basis,n_electron,&
    e_h%log_file%file_name   = "elsi_log.json"
    e_h%log_file%print_unit  = 66
    e_h%log_file%file_format = JSON
+
+   call elsi_set_elpa_gpu_kernels(e_h,1)
+   call elsi_set_elpa_gpu(e_h,0)
 
 end subroutine
 

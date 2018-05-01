@@ -122,6 +122,7 @@ subroutine elsi_reset_handle(e_h)
    e_h%elpa_output            = .false.
    e_h%elpa_started           = .false.
    e_h%elpa_gpu               = 0
+   e_h%elpa_gpu_kernels       = 0
    e_h%omm_n_states           = UNSET
    e_h%omm_n_elpa             = UNSET
    e_h%omm_flavor             = UNSET

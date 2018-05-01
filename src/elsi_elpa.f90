@@ -1251,6 +1251,9 @@ subroutine elsi_set_elpa_default(e_h)
    ! Use GPU acceleration?
    e_h%elpa_gpu = 0
 
+   ! Use GPU kernels?
+   e_h%elpa_gpu_kernels = 0
+
 end subroutine
 
 !>

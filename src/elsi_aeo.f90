@@ -22,7 +22,8 @@ module ELSI_ELPA
                              elpa_deallocate,elpa_autotune_deallocate,&
                              ELPA_SOLVER_1STAGE,ELPA_SOLVER_2STAGE,&
                              ELPA_AUTOTUNE_FAST,ELPA_AUTOTUNE_DOMAIN_REAL,&
-                             ELPA_AUTOTUNE_DOMAIN_COMPLEX
+                             ELPA_AUTOTUNE_DOMAIN_COMPLEX,ELPA_2STAGE_REAL_GPU,&
+                             ELPA_2STAGE_COMPLEX_GPU
 
    implicit none
 
@@ -1131,6 +1132,9 @@ subroutine elsi_set_elpa_default(e_h)
    ! Use GPU acceleration?
    e_h%elpa_gpu = 0
 
+   ! Use GPU kernels?
+   e_h%elpa_gpu_kernels = 0
+
 end subroutine
 
 !>
@@ -1580,6 +1584,17 @@ subroutine elsi_elpa_setup(e_h,elpa_i,na,nev)
          call elpa_i%set("solver",ELPA_SOLVER_1STAGE,ierr)
       else
          call elpa_i%set("solver",ELPA_SOLVER_2STAGE,ierr)
+         if(e_h%elpa_gpu_kernels == 1) then
+            if(e_h%elpa_gpu == 0) then
+               ! This is actually an ELPA requirement, not an ELSI one, but
+               ! it makes the problem easier to understand for users.
+               call elsi_stop(e_h,"ELPA GPU kernels in ELSI require that &
+                                  &ELPA GPU acceleration in ELSI be enabled. &
+                                  &Exiting.",caller)
+            end if
+            call elpa_i%set("real_kernel",ELPA_2STAGE_REAL_GPU,ierr)
+            call elpa_i%set("complex_kernel",ELPA_2STAGE_COMPLEX_GPU,ierr)
+         endif
       endif
 
       if(ierr /= 0) then
