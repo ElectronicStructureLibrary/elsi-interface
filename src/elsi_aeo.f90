@@ -1209,7 +1209,7 @@ subroutine elsi_elpa_evec_real(e_h,ham,eval,evec,sing_check)
    implicit none
 
    type(elsi_handle), intent(inout) :: e_h
-   real(kind=r8),     intent(in)    :: ham(e_h%n_lrow,e_h%n_lcol)
+   real(kind=r8),     intent(inout) :: ham(e_h%n_lrow,e_h%n_lcol)
    real(kind=r8),     intent(inout) :: eval(e_h%n_basis)
    real(kind=r8),     intent(inout) :: evec(e_h%n_lrow,e_h%n_lcol)
    logical,           intent(in)    :: sing_check
@@ -1291,7 +1291,7 @@ subroutine elsi_elpa_evec_cmplx(e_h,ham,eval,evec,sing_check)
    implicit none
 
    type(elsi_handle), intent(inout) :: e_h
-   complex(kind=r8),  intent(in)    :: ham(e_h%n_lrow,e_h%n_lcol)
+   complex(kind=r8),  intent(inout) :: ham(e_h%n_lrow,e_h%n_lcol)
    real(kind=r8),     intent(inout) :: eval(e_h%n_basis)
    complex(kind=r8),  intent(inout) :: evec(e_h%n_lrow,e_h%n_lcol)
    logical,           intent(in)    :: sing_check
@@ -1372,7 +1372,7 @@ subroutine elsi_elpa_mult_real(e_h,uplo,uplo2,a,b,c)
 
    implicit none
 
-   type(elsi_handle), intent(in)    :: e_h
+   type(elsi_handle), intent(inout) :: e_h
    character,         intent(in)    :: uplo
    character,         intent(in)    :: uplo2
    real(kind=r8),     intent(inout) :: a(e_h%n_lrow,e_h%n_lcol)
@@ -1405,7 +1405,7 @@ subroutine elsi_elpa_mult_cmplx(e_h,uplo,uplo2,a,b,c)
 
    implicit none
 
-   type(elsi_handle), intent(in)    :: e_h !< Handle
+   type(elsi_handle), intent(inout) :: e_h !< Handle
    character,         intent(in)    :: uplo
    character,         intent(in)    :: uplo2
    complex(kind=r8),  intent(inout) :: a(e_h%n_lrow,e_h%n_lcol)
@@ -1438,7 +1438,7 @@ subroutine elsi_elpa_chol_real(e_h,a)
 
    implicit none
 
-   type(elsi_handle), intent(in)    :: e_h
+   type(elsi_handle), intent(inout) :: e_h
    real(kind=r8),     intent(inout) :: a(e_h%n_lrow,e_h%n_lcol)
 
    integer(kind=i4) :: ierr
@@ -1466,7 +1466,7 @@ subroutine elsi_elpa_chol_cmplx(e_h,a)
 
    implicit none
 
-   type(elsi_handle), intent(in)    :: e_h
+   type(elsi_handle), intent(inout) :: e_h
    complex(kind=r8),  intent(inout) :: a(e_h%n_lrow,e_h%n_lcol)
 
    integer(kind=i4) :: ierr
@@ -1494,7 +1494,7 @@ subroutine elsi_elpa_invt_real(e_h,a)
 
    implicit none
 
-   type(elsi_handle), intent(in)    :: e_h
+   type(elsi_handle), intent(inout) :: e_h
    real(kind=r8),     intent(inout) :: a(e_h%n_lrow,e_h%n_lcol)
 
    integer(kind=i4) :: ierr
@@ -1522,8 +1522,8 @@ subroutine elsi_elpa_invt_cmplx(e_h,a)
 
    implicit none
 
-   type(elsi_handle), intent(in) :: e_h
-   complex(kind=r8),  intent(in) :: a(e_h%n_lrow,e_h%n_lcol)
+   type(elsi_handle), intent(inout) :: e_h
+   complex(kind=r8),  intent(inout) :: a(e_h%n_lrow,e_h%n_lcol)
 
    integer(kind=i4) :: ierr
 
