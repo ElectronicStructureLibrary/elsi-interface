@@ -323,9 +323,9 @@ subroutine elsi_set_elpa_solver(e_h,elpa_solver)
 end subroutine
 
 !>
-!! This routine sets whether GPU acceleration should be enabled in ELPA.
-!! This routine does *not* set GPU kernels for the backtransformation step;
-!! that must be done seperately with elsi_set_elpa_gpu_kernels()
+!! This routine sets whether GPU acceleration (not including GPU kernels for
+!! back-transforming eigenvectors) should be enabled in ELPA. No effect if no
+!! GPU acceleration available.
 !!
 subroutine elsi_set_elpa_gpu(e_h,use_gpu)
 
@@ -347,14 +347,9 @@ subroutine elsi_set_elpa_gpu(e_h,use_gpu)
 end subroutine
 
 !>
-!! This routine is used to explicitly tell ELPA (through the ELPA interface)
-!! that GPU kernels should be used for the backtransformation step.  When this
-!! is set to true, GPU acceleration in ELPA will also be enabled by default;
-!! see elsi_set_elpa_gpu() for more information.
-!! There are a number of qualifying statements, however: ELPA will ignore this
-!! setting if certain environment flags are set, and setting this option to
-!! false does not imply that GPU kernels won't be used; see the ELPA
-!! documentation for more information.
+!! This routine sets whether GPU acceleration (including GPU kernels for back-
+!! transforming eigenvectors) should be enabled in ELPA. No effect if no GPU
+!! acceleration available.
 !!
 subroutine elsi_set_elpa_gpu_kernels(e_h,use_gpu_kernels)
 
@@ -371,6 +366,7 @@ subroutine elsi_set_elpa_gpu_kernels(e_h,use_gpu_kernels)
       e_h%elpa_gpu_kernels = .false.
    else
       call elsi_set_elpa_gpu(e_h,1)
+
       e_h%elpa_gpu_kernels = .true.
    endif
 

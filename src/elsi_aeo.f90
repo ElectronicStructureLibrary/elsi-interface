@@ -23,7 +23,8 @@ module ELSI_ELPA
                              ELPA_SOLVER_1STAGE,ELPA_SOLVER_2STAGE,&
                              ELPA_AUTOTUNE_FAST,ELPA_AUTOTUNE_DOMAIN_REAL,&
                              ELPA_AUTOTUNE_DOMAIN_COMPLEX,ELPA_2STAGE_REAL_GPU,&
-                             ELPA_2STAGE_COMPLEX_GPU
+                             ELPA_2STAGE_COMPLEX_GPU,ELPA_2STAGE_REAL_DEFAULT,&
+                             ELPA_2STAGE_COMPLEX_DEFAULT
 
    implicit none
 
@@ -1208,7 +1209,7 @@ subroutine elsi_elpa_evec_real(e_h,ham,eval,evec,sing_check)
    implicit none
 
    type(elsi_handle), intent(inout) :: e_h
-   real(kind=r8),     intent(in)    :: ham(e_h%n_lrow,e_h%n_lcol)
+   real(kind=r8),     intent(inout) :: ham(e_h%n_lrow,e_h%n_lcol)
    real(kind=r8),     intent(inout) :: eval(e_h%n_basis)
    real(kind=r8),     intent(inout) :: evec(e_h%n_lrow,e_h%n_lcol)
    logical,           intent(in)    :: sing_check
@@ -1290,7 +1291,7 @@ subroutine elsi_elpa_evec_cmplx(e_h,ham,eval,evec,sing_check)
    implicit none
 
    type(elsi_handle), intent(inout) :: e_h
-   complex(kind=r8),  intent(in)    :: ham(e_h%n_lrow,e_h%n_lcol)
+   complex(kind=r8),  intent(inout) :: ham(e_h%n_lrow,e_h%n_lcol)
    real(kind=r8),     intent(inout) :: eval(e_h%n_basis)
    complex(kind=r8),  intent(inout) :: evec(e_h%n_lrow,e_h%n_lcol)
    logical,           intent(in)    :: sing_check
@@ -1371,7 +1372,7 @@ subroutine elsi_elpa_mult_real(e_h,uplo,uplo2,a,b,c)
 
    implicit none
 
-   type(elsi_handle), intent(in)    :: e_h
+   type(elsi_handle), intent(inout) :: e_h
    character,         intent(in)    :: uplo
    character,         intent(in)    :: uplo2
    real(kind=r8),     intent(inout) :: a(e_h%n_lrow,e_h%n_lcol)
@@ -1404,7 +1405,7 @@ subroutine elsi_elpa_mult_cmplx(e_h,uplo,uplo2,a,b,c)
 
    implicit none
 
-   type(elsi_handle), intent(in)    :: e_h !< Handle
+   type(elsi_handle), intent(inout) :: e_h !< Handle
    character,         intent(in)    :: uplo
    character,         intent(in)    :: uplo2
    complex(kind=r8),  intent(inout) :: a(e_h%n_lrow,e_h%n_lcol)
@@ -1437,7 +1438,7 @@ subroutine elsi_elpa_chol_real(e_h,a)
 
    implicit none
 
-   type(elsi_handle), intent(in)    :: e_h
+   type(elsi_handle), intent(inout) :: e_h
    real(kind=r8),     intent(inout) :: a(e_h%n_lrow,e_h%n_lcol)
 
    integer(kind=i4) :: ierr
@@ -1465,7 +1466,7 @@ subroutine elsi_elpa_chol_cmplx(e_h,a)
 
    implicit none
 
-   type(elsi_handle), intent(in)    :: e_h
+   type(elsi_handle), intent(inout) :: e_h
    complex(kind=r8),  intent(inout) :: a(e_h%n_lrow,e_h%n_lcol)
 
    integer(kind=i4) :: ierr
@@ -1493,7 +1494,7 @@ subroutine elsi_elpa_invt_real(e_h,a)
 
    implicit none
 
-   type(elsi_handle), intent(in)    :: e_h
+   type(elsi_handle), intent(inout) :: e_h
    real(kind=r8),     intent(inout) :: a(e_h%n_lrow,e_h%n_lcol)
 
    integer(kind=i4) :: ierr
@@ -1521,8 +1522,8 @@ subroutine elsi_elpa_invt_cmplx(e_h,a)
 
    implicit none
 
-   type(elsi_handle), intent(in) :: e_h
-   complex(kind=r8),  intent(in) :: a(e_h%n_lrow,e_h%n_lcol)
+   type(elsi_handle), intent(inout) :: e_h
+   complex(kind=r8),  intent(inout) :: a(e_h%n_lrow,e_h%n_lcol)
 
    integer(kind=i4) :: ierr
 
@@ -1549,12 +1550,13 @@ subroutine elsi_elpa_setup(e_h,elpa_i,na,nev)
 
    implicit none
 
-   type(elsi_handle), intent(in)             :: e_h
+   type(elsi_handle), intent(inout)          :: e_h
    class(elpa_t),     intent(inout), pointer :: elpa_i
    integer,           intent(in)             :: na
    integer,           intent(in)             :: nev
 
    integer(kind=i4)   :: ierr
+   integer(kind=i4)   :: ierr2
    character(len=200) :: info_str
 
    character(len=40), parameter :: caller = "elsi_elpa_setup"
@@ -1589,35 +1591,46 @@ subroutine elsi_elpa_setup(e_h,elpa_i,na,nev)
          call elpa_i%set("solver",ELPA_SOLVER_2STAGE,ierr)
       endif
 
-      ! Enable ELPA GPU acceleration
+      ! Try to enable ELPA GPU acceleration
       if(e_h%elpa_gpu) then
          call elpa_i%set("gpu",1,ierr)
 
-         if(ierr /= 0) then
-            ! GPU setup returned an error, assume GPU cannot be used and
-            ! continue
+         if(ierr /= 0) then ! Failed
             call elpa_i%set("gpu",0,ierr)
+
+            e_h%elpa_gpu         = .false.
+            e_h%elpa_gpu_kernels = .false.
 
             write(info_str,"('  No ELPA GPU acceleration available')")
             call elsi_say(e_h%stdio,info_str)
          else
-            ! GPU setup was successful
             write(info_str,"('  ELPA GPU acceleration activated')")
             call elsi_say(e_h%stdio,info_str)
+         endif
+      endif
 
-            ! If we are using 2-stage solver, determine whether we explicitly
-            ! enable GPU kernels or not (may still be enabled implicitly, i.e.
-            ! if user only compiled GPU kernels)
-            if(e_h%elpa_solver /= 1 .and. e_h%elpa_gpu_kernels) then
-               call elpa_i%set("real_kernel",ELPA_2STAGE_REAL_GPU,ierr)
-               call elpa_i%set("complex_kernel",ELPA_2STAGE_COMPLEX_GPU,ierr)
+      ! Try to enable ELPA2 GPU kernels
+      if(e_h%elpa_gpu_kernels) then
+         if(e_h%elpa_solver == 2) then
+            call elpa_i%set("real_kernel",ELPA_2STAGE_REAL_GPU,ierr)
+            call elpa_i%set("complex_kernel",ELPA_2STAGE_COMPLEX_GPU,ierr2)
 
+            if(ierr /= 0 .or. ierr2 /= 0) then
+               call elpa_i%set("real_kernel",ELPA_2STAGE_REAL_DEFAULT,ierr)
+               call elpa_i%set("complex_kernel",ELPA_2STAGE_COMPLEX_DEFAULT,&
+                       ierr)
+
+               e_h%elpa_gpu_kernels = .false.
+
+               write(info_str,"('  ELPA GPU kernels not available')")
+               call elsi_say(e_h%stdio,info_str)
+            else
                write(info_str,"('  ELPA GPU kernels will be used')")
                call elsi_say(e_h%stdio,info_str)
-            else if (e_h%elpa_solver /= 1) then
-               write(info_str,"('  ELPA GPU kernels not will be used')")
-               call elsi_say(e_h%stdio,info_str)
             endif
+         else ! GPU kernels currently only make sense with ELPA2
+            write(info_str,"('  No GPU kernels available with 1-stage ELPA')")
+            call elsi_say(e_h%stdio,info_str)
          endif
       endif
    endif

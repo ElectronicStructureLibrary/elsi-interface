@@ -71,8 +71,7 @@ end subroutine
 !>
 !! This routine initializes a handle for reading and writing to files.
 !!
-subroutine elsi_init_io(io_h,print_unit,file_name,file_format,print_info,&
-              prefix)
+subroutine elsi_init_io(io_h,print_unit,file_name,file_format,print_info,prefix)
 
    implicit none
 
@@ -485,6 +484,8 @@ subroutine elsi_print_elpa_settings(e_h,io_h)
    ! Settings
    call elsi_say_setting(io_h,"elpa_solver",e_h%elpa_solver)
    call elsi_say_setting(io_h,"elpa_n_states",e_h%n_states)
+   call elsi_say_setting(io_h,"elpa_gpu",e_h%elpa_gpu)
+   call elsi_say_setting(io_h,"elpa_gpu_kernels",e_h%elpa_gpu_kernels)
 
    ! Footer
    if(io_h%file_format == HUMAN) then
@@ -565,15 +566,25 @@ subroutine elsi_print_pexsi_settings(e_h,io_h)
    endif
 
    ! Settings
+   call elsi_say_setting(io_h,"pexsi_n_pole",e_h%pexsi_options%numPole)
+   call elsi_say_setting(io_h,"pexsi_n_point",e_h%pexsi_options%nPoints)
    call elsi_say_setting(io_h,"pexsi_np_per_pole",e_h%pexsi_np_per_pole)
    call elsi_say_setting(io_h,"pexsi_np_per_point",e_h%pexsi_np_per_point)
    call elsi_say_setting(io_h,"pexsi_n_prow_pexsi",e_h%pexsi_n_prow)
    call elsi_say_setting(io_h,"pexsi_n_pcol_pexsi",e_h%pexsi_n_pcol)
+   call elsi_say_setting(io_h,"pexsi_temperature",e_h%pexsi_options%temperature)
    call elsi_say_setting(io_h,"pexsi_delta_e",e_h%pexsi_options%deltaE)
    call elsi_say_setting(io_h,"pexsi_gap",e_h%pexsi_options%gap)
-   call elsi_say_setting(io_h,"pexsi_n_pole",e_h%pexsi_options%numPole)
-   call elsi_say_setting(io_h,"pexsi_n_point",e_h%pexsi_options%nPoints)
+   call elsi_say_setting(io_h,"pexsi_mu_min",e_h%pexsi_options%muMin0)
+   call elsi_say_setting(io_h,"pexsi_mu_max",e_h%pexsi_options%muMax0)
+   call elsi_say_setting(io_h,"pexsi_do_inertia",&
+           e_h%pexsi_options%isInertiaCount)
+   call elsi_say_setting(io_h,"pexsi_intertia_tol",&
+           e_h%pexsi_options%muInertiaTolerance)
+   call elsi_say_setting(io_h,"pexsi_tol",&
+           e_h%pexsi_options%numElectronPEXSITolerance)
    call elsi_say_setting(io_h,"pexsi_np_symbfact",e_h%pexsi_options%npSymbFact)
+   call elsi_say_setting(io_h,"pexsi_reordering",e_h%pexsi_options%ordering)
 
    ! Footer
    if(io_h%file_format == HUMAN) then
@@ -614,11 +625,10 @@ subroutine elsi_print_sips_settings(e_h,io_h)
    ! Settings
    call elsi_say_setting(io_h,"sips_n_states",e_h%n_states)
    call elsi_say_setting(io_h,"sips_n_elpa",e_h%sips_n_elpa)
-   call elsi_say_setting(io_h,"sips_n_slices",e_h%sips_n_slices)
    call elsi_say_setting(io_h,"sips_slice_type",e_h%sips_slice_type)
+   call elsi_say_setting(io_h,"sips_n_slices",e_h%sips_n_slices)
    call elsi_say_setting(io_h,"sips_np_per_slice",e_h%sips_np_per_slice)
    call elsi_say_setting(io_h,"sips_buffer",e_h%sips_buffer)
-   call elsi_say_setting(io_h,"sips_first_ev",e_h%sips_first_ev)
 
    ! Footer
    if(io_h%file_format == HUMAN) then
@@ -903,8 +913,7 @@ subroutine elsi_get_time(wtime)
 
    int_year = val
    year     = real(val,kind=r8)-2009.0_r8 ! 2009 is an arbitrary zero
-
-   day = year*365+floor(year/4.0_r8)
+   day      = year*365+floor(year/4.0_r8)
 
    read(cdate(5:6),"(I2)") val
 
