@@ -1550,7 +1550,7 @@ subroutine elsi_elpa_setup(e_h,elpa_i,na,nev)
 
    implicit none
 
-   type(elsi_handle), intent(in)             :: e_h
+   type(elsi_handle), intent(inout)          :: e_h
    class(elpa_t),     intent(inout), pointer :: elpa_i
    integer,           intent(in)             :: na
    integer,           intent(in)             :: nev
