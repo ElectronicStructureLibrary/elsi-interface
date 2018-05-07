@@ -13,8 +13,6 @@ IF(FORTJSON_INC AND FORTJSON_LIB)
     IF(NOT EXISTS ${usr_dir})
       MESSAGE(FATAL_ERROR "${MAGENTA}User provided FortJSON include path not found: ${usr_dir}${COLORRESET}")
     ENDIF()
-
-    SET(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -I${usr_dir}")
   ENDFOREACH()
 
   SET(FORTJSON_FOUND TRUE)
