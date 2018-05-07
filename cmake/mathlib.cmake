@@ -8,17 +8,6 @@ IF(MATH_LIB)
     ENDIF()
   ENDFOREACH()
 
-  IF(MATH_INC)
-    MESSAGE(STATUS "${GREEN}MATH_INC${COLORRESET}: ${MATH_INC}")
-    FOREACH(usr_dir ${MATH_INC})
-      IF(NOT EXISTS ${usr_dir})
-        MESSAGE(FATAL_ERROR "${MAGENTA}User provided linear algebra include path not found: ${usr_dir}${COLORRESET}")
-      ENDIF()
-
-      SET(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -I${usr_dir}")
-    ENDFOREACH()
-  ENDIF()
-
   SET(MATH_FOUND TRUE)
 ELSE()
   IF(NOT ENABLE_MKL)

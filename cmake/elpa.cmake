@@ -13,8 +13,6 @@ IF(ELPA_INC AND ELPA_LIB)
     IF(NOT EXISTS ${usr_dir})
       MESSAGE(FATAL_ERROR "${MAGENTA}User provided ELPA include path not found: ${usr_dir}${COLORRESET}")
     ENDIF()
-
-    SET(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -I${usr_dir}")
   ENDFOREACH()
 
   SET(ELPA_FOUND TRUE)

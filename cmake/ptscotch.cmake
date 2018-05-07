@@ -13,8 +13,6 @@ IF(PTSCOTCH_INC AND PTSCOTCH_LIB)
     IF(NOT EXISTS ${usr_dir})
       MESSAGE(FATAL_ERROR "${MAGENTA}User provided PtScotch include path not found: ${usr_dir}${COLORRESET}")
     ENDIF()
-
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I${usr_dir}")
   ENDFOREACH()
 
   SET(PTSCOTCH_FOUND TRUE)
