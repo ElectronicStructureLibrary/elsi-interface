@@ -20,7 +20,7 @@ A) PREREQUISITES
    are highly recommended:
 
      - C++ compiler  [C++11]
-     - PtScotch      [6.0.4 or newer]
+     - PT-SCOTCH     [6.0.4 or newer]
 
    To build ELSI as a shared library, or to build the ELSI test programs,
    linear algebra libraries should be provided for ELSI to link against:
@@ -129,8 +129,8 @@ C) CONFIGURATION
 
    Please note that in the current version of ELSI, PEXSI is not enabled by
    default, and an external version of PEXSI is not officially supported.
-   When enabling PEXSI, the user should have a working PtScotch library, as
-   PtScotch is not redistributed through ELSI.
+   When enabling PEXSI, the user should have a working PT-SCOTCH library,
+   as PT-SCOTCH is not redistributed through ELSI.
 
    3) Build targets
 
