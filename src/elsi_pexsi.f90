@@ -1227,7 +1227,7 @@ subroutine elsi_set_pexsi_default(e_h)
    ! Use 1 process in symbolic factorization
    e_h%pexsi_options%npSymbFact = 1
 
-   ! Use parallel matrix ordering by ParMETIS/PtScotch
+   ! Use parallel matrix ordering by ParMETIS/PT-SCOTCH
    ! Note: must use serial ordering on some platform (segfault otherwise)
    e_h%pexsi_options%ordering = 0
 

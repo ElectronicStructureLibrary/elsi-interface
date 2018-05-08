@@ -16,6 +16,6 @@ SET(ENABLE_MKL ON CACHE BOOL "Pass -mkl=cluster to linker")
 # ENABLE_MLK is valid only if linking with Intel compiler and MKL libraries
 # exist; use "MATH_LIB" otherwise
 
-SET(PTSCOTCH_DIR "/home/wy29/opt/scotch_6.0.5a" CACHE PATH "PtScotch directory")
-SET(PTSCOTCH_LIB "${PTSCOTCH_DIR}/lib/libptscotchparmetis.a;${PTSCOTCH_DIR}/lib/libptscotch.a;${PTSCOTCH_DIR}/lib/libptscotcherr.a;${PTSCOTCH_DIR}/lib/libscotchmetis.a;${PTSCOTCH_DIR}/lib/libscotch.a;${PTSCOTCH_DIR}/lib/libscotcherr.a" CACHE STRING "PtScotch libraries")
-SET(PTSCOTCH_INC "${PTSCOTCH_DIR}/include" CACHE STRING "PtScotch include directory")
+SET(PTSCOTCH_DIR "/home/wy29/opt/scotch_6.0.5a" CACHE PATH "PT-SCOTCH directory")
+SET(PTSCOTCH_LIB "${PTSCOTCH_DIR}/lib/libptscotchparmetis.a;${PTSCOTCH_DIR}/lib/libptscotch.a;${PTSCOTCH_DIR}/lib/libptscotcherr.a;${PTSCOTCH_DIR}/lib/libscotchmetis.a;${PTSCOTCH_DIR}/lib/libscotch.a;${PTSCOTCH_DIR}/lib/libscotcherr.a" CACHE STRING "PT-SCOTCH libraries")
+SET(PTSCOTCH_INC "${PTSCOTCH_DIR}/include" CACHE STRING "PT-SCOTCH include directory")

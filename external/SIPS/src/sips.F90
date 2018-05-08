@@ -179,7 +179,7 @@ CONTAINS
                  "-mat_mumps_icntl_24 1",ierr)
         CHKERRQ(ierr)
 
-        ! Choose PtScotch as reordering method
+        ! Choose PT-SCOTCH as reordering method
         CALL PetscOptionsInsertString(PETSC_NULL_OPTIONS,&
                  "-mat_mumps_icntl_29 1",ierr)
         CHKERRQ(ierr)
