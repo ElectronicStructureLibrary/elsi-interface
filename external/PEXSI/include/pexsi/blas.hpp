@@ -213,43 +213,6 @@ template<typename T>
     T alpha, const T* x, Int incx, const T* y, Int incy,
     T beta,        T* A, Int lda );
 
-void Hemv
-  ( char uplo, Int m,
-    float alpha, const float* A, Int lda, const float* x, Int incx,
-    float beta,        float* y, Int incy );
-void Hemv
-  ( char uplo, Int m,
-    double alpha, const double* A, Int lda, const double* x, Int incx,
-    double beta,        double* y, Int incy );
-void Hemv
-  ( char uplo, Int m,
-    scomplex alpha, const scomplex* A, Int lda, const scomplex* x, Int incx,
-    scomplex beta,        scomplex* y, Int incy );
-void Hemv
-  ( char uplo, Int m,
-    dcomplex alpha, const dcomplex* A, Int lda, const dcomplex* x, Int incx,
-    dcomplex beta,        dcomplex* y, Int incy );
-template<typename T>
-  void Hemv
-  ( char uplo, Int m,
-    T alpha, const T* A, Int lda, const T* x, Int incx,
-    T beta,        T* y, Int incy );
-
-void Her
-  ( char uplo, Int m,
-    float alpha, const float* x, Int incx, float* A, Int lda );
-void Her
-  ( char uplo, Int m,
-    double alpha, const double* x, Int incx, double* A, Int lda );
-void Her
-  ( char uplo, Int m,
-    scomplex alpha, const scomplex* x, Int incx, scomplex* A, Int lda );
-void Her
-  ( char uplo, Int m,
-    dcomplex alpha, const dcomplex* x, Int incx, dcomplex* A, Int lda );
-template<typename T>
-  void Hemv( char uplo, Int m, T alpha, const T* x, Int incx, T* A, Int lda );
-
 void Her2
   ( char uplo, Int m,
     float alpha, const float* x, Int incx, const float* y, Int incy,
@@ -271,43 +234,6 @@ template<typename T>
   ( char uplo, Int m,
     T alpha, const T* x, Int incx, const T* y, Int incy, 
     T* A, Int lda );
-
-void Symv
-  ( char uplo, Int m,
-    float alpha, const float* A, Int lda, const float* x, Int incx,
-    float beta,        float* y, Int incy );
-void Symv
-  ( char uplo, Int m, 
-    double alpha, const double* A, Int lda, const double* x, Int incx,
-    double beta,        double* y, Int incy );
-void Symv
-  ( char uplo, Int m,
-    scomplex alpha, const scomplex* A, Int lda, const scomplex* x, Int incx,
-    scomplex beta,        scomplex* y, Int incy );
-void Symv
-  ( char uplo, Int m,
-    dcomplex alpha, const dcomplex* A, Int lda, const dcomplex* x, Int incx,
-    dcomplex beta,        dcomplex* y, Int incy );
-template<typename T>
-  void Symv
-  ( char uplo, Int m,
-    T alpha, const T* A, Int lda, const T* x, Int incx,
-    T beta,        T* y, Int incy );
-
-void Syr
-  ( char uplo, Int m,
-    float alpha, const float* x, Int incx, float* A, Int lda );
-void Syr
-  ( char uplo, Int m,
-    double alpha, const double* x, Int incx, double* A, Int lda );
-void Syr
-  ( char uplo, Int m,
-    scomplex alpha, const scomplex* x, Int incx, scomplex* A, Int lda ); 
-void Syr
-  ( char uplo, Int m,
-    dcomplex alpha, const dcomplex* x, Int incx, dcomplex* A, Int lda );
-template<typename T>
-  void Syr( char uplo, Int m, T alpha, const T* x, Int incx, T* A, Int lda );
 
 void Syr2
   ( char uplo, Int m,
