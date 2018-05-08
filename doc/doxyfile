@@ -816,7 +816,7 @@ RECURSIVE              = YES
 # Note that relative paths are relative to the directory from which doxygen is
 # run.
 
-EXCLUDE                = ../src/stub_pexsi.f90 ../src/stub_sips.f90
+EXCLUDE                = ../src/stub_aeo.f90 ../src/stub_pexsi.f90 ../src/stub_sips.f90
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded

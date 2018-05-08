@@ -238,15 +238,17 @@ subroutine elsi_check(e_h,caller)
 
    if(e_h%matrix_format == BLACS_DENSE) then
       if(.not. e_h%blacs_ready .and. e_h%parallel_mode /= SINGLE_PROC) then
-         call elsi_stop(e_h,"BLACS not properly set up.",caller)
+         call elsi_stop(e_h,"BLACS matrix format not properly set up.",caller)
       endif
    elseif(e_h%matrix_format == SIESTA_CSC) then
       if(e_h%blk_sp2 == UNSET .or. .not. e_h%siesta_csc_ready) then
-         call elsi_stop(e_h,"SIESTA_CSC not properly set up.",caller)
+         call elsi_stop(e_h,"SIESTA_CSC matrix format not properly set up.",&
+                 caller)
       endif
    elseif(e_h%matrix_format == PEXSI_CSC) then
       if(.not. e_h%pexsi_csc_ready) then
-         call elsi_stop(e_h,"PEXSI_CSC not properly set up.",caller)
+         call elsi_stop(e_h,"PEXSI_CSC matrix format not properly set up.",&
+                 caller)
       endif
    endif
 
@@ -298,21 +300,22 @@ subroutine elsi_check(e_h,caller)
    case(SIPS_SOLVER)
       if(e_h%n_basis < e_h%n_procs) then
          call elsi_stop(e_h,"For this number of MPI tasks, the matrix size"//&
-                 " is too small to use SIPS.",caller)
+                 " is too small to use SLEPc-SIPs.",caller)
       endif
 
       if(e_h%parallel_mode /= MULTI_PROC) then
-         call elsi_stop(e_h,"SIPS solver requires MULTI_PROC parallel mode.",&
-                 caller)
+         call elsi_stop(e_h,"SLEPc-SIPs solver requires MULTI_PROC parallel"//&
+                 " mode.",caller)
       endif
 
       if(e_h%n_spins > 1) then
-         call elsi_stop(e_h,"Spin-polarized case not yet supported with SIPS.",&
-                 caller)
+         call elsi_stop(e_h,"Spin-polarized case not yet supported with"//&
+                 " SLEPc-SIPs.",caller)
       endif
 
       if(e_h%n_kpts > 1) then
-         call elsi_stop(e_h,"k-points not yet supported with SIPS.",caller)
+         call elsi_stop(e_h,"k-points not yet supported with SLEPc-SIPs.",&
+                 caller)
       endif
    case(DMP_SOLVER)
       if(e_h%parallel_mode /= MULTI_PROC) then

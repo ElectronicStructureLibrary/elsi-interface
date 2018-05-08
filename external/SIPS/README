@@ -1,5 +1,5 @@
 This folder contains wrapper subroutines to the shift-and-invert parallel
-spectral transformation eigensolver implemented in SLEPc.
+spectral transformation eigensolver (SIPs) implemented in SLEPc.
 
 Author :  Murat Keceli
 Web    :  http://bitbucket.org/keceli/qetsc

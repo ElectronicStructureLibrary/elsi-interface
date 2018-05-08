@@ -15,7 +15,7 @@
    * Added a unified timing framework with JSON output via the FortJSON library.
 
    New Solvers:
-   * SIPs added via external linkage.
+   * SLEPc-SIPs added via external linkage.
    * (Experimental) CheSS added via external linkage.
    * (Experimental) Density matrix purification added.
 
