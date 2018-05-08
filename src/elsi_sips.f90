@@ -103,7 +103,7 @@ subroutine elsi_solve_sips_real(e_h,ham,ovlp,eval)
    character(len=40), parameter :: caller = "elsi_solve_sips_real"
 
    ! Solve the eigenvalue problem
-   write(info_str,"('  Starting SIPS eigensolver')")
+   write(info_str,"('  Starting SLEPc-SIPs eigensolver')")
    call elsi_say(e_h%stdio,info_str)
 
    call elsi_get_time(t0)
@@ -218,7 +218,7 @@ subroutine elsi_solve_sips_real(e_h,ham,ovlp,eval)
    call sips_solve_eps(e_h%n_states,n_solved)
 
    if(n_solved < e_h%n_states) then
-      call elsi_stop(e_h,"SIPS solver failed.",caller)
+      call elsi_stop(e_h,"SLEPc-SIPs solver failed.",caller)
    endif
 
    call elsi_get_time(t1)

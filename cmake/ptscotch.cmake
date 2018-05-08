@@ -1,23 +1,23 @@
 IF(PTSCOTCH_INC AND PTSCOTCH_LIB)
-  MESSAGE(STATUS "Using external PtScotch")
+  MESSAGE(STATUS "Using external PT-SCOTCH")
   MESSAGE(STATUS "${GREEN}PTSCOTCH_LIB${COLORRESET}: ${PTSCOTCH_LIB}")
   MESSAGE(STATUS "${GREEN}PTSCOTCH_INC${COLORRESET}: ${PTSCOTCH_INC}")
 
   FOREACH(usr_lib ${PTSCOTCH_LIB})
     IF(NOT EXISTS ${usr_lib})
-      MESSAGE(FATAL_ERROR "${MAGENTA}User provided PtScotch library not found: ${usr_lib}${COLORRESET}")
+      MESSAGE(FATAL_ERROR "${MAGENTA}User provided PT-SCOTCH library not found: ${usr_lib}${COLORRESET}")
     ENDIF()
   ENDFOREACH()
 
   FOREACH(usr_dir ${PTSCOTCH_INC})
     IF(NOT EXISTS ${usr_dir})
-      MESSAGE(FATAL_ERROR "${MAGENTA}User provided PtScotch include path not found: ${usr_dir}${COLORRESET}")
+      MESSAGE(FATAL_ERROR "${MAGENTA}User provided PT-SCOTCH include path not found: ${usr_dir}${COLORRESET}")
     ENDIF()
   ENDFOREACH()
 
   SET(PTSCOTCH_FOUND TRUE)
 ELSE()
-  MESSAGE(FATAL_ERROR "${MAGENTA}PtScotch not provided${COLORRESET}")
+  MESSAGE(FATAL_ERROR "${MAGENTA}PT-SCOTCH not provided${COLORRESET}")
 
   SET(PTSCOTCH_FOUND FALSE)
 ENDIF()

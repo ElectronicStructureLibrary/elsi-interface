@@ -174,21 +174,6 @@ extern "C" {
       const dcomplex* y, const Int* incy,
       dcomplex* A, const Int* lda  );
 
-  void BLAS(chemv)
-    ( const char* uplo, const Int* m,
-      const scomplex* alpha,
-      const scomplex* A, const Int* lda,
-      const scomplex* x, const Int* incx,
-      const scomplex* beta,
-      scomplex* y, const Int* incy );
-  void BLAS(zhemv)
-    ( const char* uplo, const Int* m,
-      const dcomplex* alpha,
-      const dcomplex* A, const Int* lda,
-      const dcomplex* x, const Int* incx,
-      const dcomplex* beta,
-      dcomplex* y, const Int* incy );
-
   void BLAS(cher)
     ( const char* uplo, const Int* m,
       const scomplex* alpha,
@@ -211,54 +196,6 @@ extern "C" {
       const dcomplex* alpha,
       const dcomplex* x, const Int* incx,
       const dcomplex* y, const Int* incy,
-      dcomplex* A, const Int* lda  );
-
-  void BLAS(ssymv)
-    ( const char* uplo, const Int* m,
-      const float* alpha, const float* A, const Int* lda,
-      const float* x, const Int* incx,
-      const float* beta,        float* y, const Int* incy );
-  void BLAS(dsymv)
-    ( const char* uplo, const Int* m,
-      const double* alpha, const double* A, const Int* lda,
-      const double* x, const Int* incx,
-      const double* beta,        double* y, const Int* incy );
-  // 'csymv' is an auxiliary LAPACK routine, but we will treat it as BLAS
-  void LAPACK(csymv)
-    ( const char* uplo, const Int* m,
-      const scomplex* alpha,
-      const scomplex* A, const Int* lda,
-      const scomplex* x, const Int* incx,
-      const scomplex* beta,
-      scomplex* y, const Int* incy );
-  // 'zsymv' is an auxiliary LAPACK routine, but we will treat it as BLAS
-  void LAPACK(zsymv)
-    ( const char* uplo, const Int* m,
-      const dcomplex* alpha,
-      const dcomplex* A, const Int* lda,
-      const dcomplex* x, const Int* incx,
-      const dcomplex* beta,
-      dcomplex* y, const Int* incy );
-
-  void BLAS(ssyr)
-    ( const char* uplo, const Int* m,
-      const float* alpha, const float* x, const Int* incx,
-      float* A, const Int* lda  );
-  void BLAS(dsyr)
-    ( const char* uplo, const Int* m,
-      const double* alpha, const double* x, const Int* incx,
-      double* A, const Int* lda  );
-  // 'csyr' is an auxilliary LAPACK routine, but we will treat it as BLAS
-  void LAPACK(csyr)
-    ( const char* uplo, const Int* m,
-      const scomplex* alpha,
-      const scomplex* x, const Int* incx,
-      scomplex* A, const Int* lda  );
-  // 'zsyr' is an auxilliary LAPACK routine, but we will treat it as BLAS
-  void LAPACK(zsyr)
-    ( const char* uplo, const Int* m,
-      const dcomplex* alpha,
-      const dcomplex* x, const Int* incx,
       dcomplex* A, const Int* lda  );
 
   void BLAS(ssyr2)
@@ -746,50 +683,6 @@ void Geru
   dcomplex* A, Int lda )
 { BLAS(zgeru)( &m, &n, &alpha, x, &incx, y, &incy, A, &lda ); }
 
-void Hemv
-( char uplo, Int m,
-  float alpha, const float* A, Int lda, const float* x, Int incx,
-  float beta,        float* y, Int incy )
-{ BLAS(ssymv)( &uplo, &m, &alpha, A, &lda, x, &incx, &beta, y, &incy ); }
-
-void Hemv
-( char uplo, Int m,
-  double alpha, const double* A, Int lda, const double* x, Int incx,
-  double beta,        double* y, Int incy )
-{ BLAS(dsymv)( &uplo, &m, &alpha, A, &lda, x, &incx, &beta, y, &incy ); }
-
-void Hemv
-( char uplo, Int m,
-  scomplex alpha, const scomplex* A, Int lda, const scomplex* x, Int incx,
-  scomplex beta,        scomplex* y, Int incy )
-{ BLAS(chemv)( &uplo, &m, &alpha, A, &lda, x, &incx, &beta, y, &incy ); }
-
-void Hemv
-( char uplo, Int m,
-  dcomplex alpha, const dcomplex* A, Int lda, const dcomplex* x, Int incx,
-  dcomplex beta,        dcomplex* y, Int incy )
-{ BLAS(zhemv)( &uplo, &m, &alpha, A, &lda, x, &incx, &beta, y, &incy ); }
-
-void Her
-( char uplo, Int m,
-  float alpha, const float* x, Int incx, float* A, Int lda )
-{ BLAS(ssyr)( &uplo, &m, &alpha, x, &incx, A, &lda ); }
-
-void Her
-( char uplo, Int m,
-  double alpha, const double* x, Int incx, double* A, Int lda )
-{ BLAS(dsyr)( &uplo, &m, &alpha, x, &incx, A, &lda ); }
-
-void Her
-( char uplo, Int m,
-  scomplex alpha, const scomplex* x, Int incx, scomplex* A, Int lda )
-{ BLAS(cher)( &uplo, &m, &alpha, x, &incx, A, &lda ); }
-
-void Her
-( char uplo, Int m,
-  dcomplex alpha, const dcomplex* x, Int incx, dcomplex* A, Int lda )
-{ BLAS(zher)( &uplo, &m, &alpha, x, &incx, A, &lda ); }
-
 void Her2
 ( char uplo, Int m,
   float alpha, const float* x, Int incx, const float* y, Int incy,
@@ -813,62 +706,6 @@ void Her2
   dcomplex alpha, const dcomplex* x, Int incx, const dcomplex* y, Int incy,
   dcomplex* A, Int lda )
 { BLAS(zher2)( &uplo, &m, &alpha, x, &incx, y, &incy, A, &lda ); }
-
-void Symv
-( char uplo, Int m,
-  float alpha, const float* A, Int lda, const float* x, Int incx,
-  float beta,        float* y, Int incy )
-{ BLAS(ssymv)( &uplo, &m, &alpha, A, &lda, x, &incx, &beta, y, &incy ); }
-
-void Symv
-( char uplo, Int m,
-  double alpha, const double* A, Int lda, const double* x, Int incx,
-  double beta,        double* y, Int incy )
-{ BLAS(dsymv)( &uplo, &m, &alpha, A, &lda, x, &incx, &beta, y, &incy ); }
-
-void Symv
-( char uplo, Int m,
-  scomplex alpha, const scomplex* A, Int lda, const scomplex* x, Int incx,
-  scomplex beta,        scomplex* y, Int incy )
-{
-  // Recall that 'csymv' is an LAPACK auxiliary routine
-  LAPACK(csymv)( &uplo, &m, &alpha, A, &lda, x, &incx, &beta, y, &incy );
-}
-
-void Symv
-( char uplo, Int m,
-  dcomplex alpha, const dcomplex* A, Int lda, const dcomplex* x, Int incx,
-  dcomplex beta,        dcomplex* y, Int incy )
-{
-  // Recall that 'zsymv' is an LAPACK auxiliary routine
-  LAPACK(zsymv)( &uplo, &m, &alpha, A, &lda, x, &incx, &beta, y, &incy );
-}
-
-void Syr
-( char uplo, Int m,
-  float alpha, const float* x, Int incx, float* A, Int lda  )
-{ BLAS(ssyr)( &uplo, &m, &alpha, x, &incx, A, &lda ); }
-
-void Syr
-( char uplo, Int m,
-  double alpha, const double* x, Int incx, double* A, Int lda )
-{ BLAS(dsyr)( &uplo, &m, &alpha, x, &incx, A, &lda ); }
-
-void Syr
-( char uplo, Int m,
-  scomplex alpha, const scomplex* x, Int incx, scomplex* A, Int lda )
-{
-  // Recall that 'csyr' is an LAPACK auxiliary routine
-  LAPACK(csyr)( &uplo, &m, &alpha, x, &incx, A, &lda ); 
-}
-
-void Syr
-( char uplo, Int m,
-  dcomplex alpha, const dcomplex* x, Int incx, dcomplex* A, Int lda )
-{
-  // Recall that 'zsyr' is an LAPACK auxiliary routine
-  LAPACK(zsyr)( &uplo, &m, &alpha, x, &incx, A, &lda ); 
-}
 
 void Syr2
 ( char uplo, Int m,

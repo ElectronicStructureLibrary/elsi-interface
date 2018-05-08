@@ -270,7 +270,7 @@ subroutine elsi_print_handle_summary(e_h,io_h)
       elseif(e_h%solver == PEXSI_SOLVER) then
          call elsi_say_setting(io_h,"Solver requested","PEXSI")
       elseif(e_h%solver == SIPS_SOLVER) then
-         call elsi_say_setting(io_h,"Solver requested","SIPS")
+         call elsi_say_setting(io_h,"Solver requested","SLEPc_SIPs")
       elseif(e_h%solver == DMP_SOLVER) then
          call elsi_say_setting(io_h,"Solver requested","DMP")
       else
@@ -314,7 +314,7 @@ subroutine elsi_print_handle_summary(e_h,io_h)
       elseif(e_h%solver == PEXSI_SOLVER) then
          call elsi_say_setting(io_h,"solver","PEXSI")
       elseif(e_h%solver == SIPS_SOLVER) then
-         call elsi_say_setting(io_h,"solver","SIPS")
+         call elsi_say_setting(io_h,"solver","SLEPc_SIPs")
       elseif(e_h%solver == DMP_SOLVER) then
          call elsi_say_setting(io_h,"solver","DMP")
       else
@@ -613,7 +613,7 @@ subroutine elsi_print_sips_settings(e_h,io_h)
 
    ! Header
    if(io_h%file_format == HUMAN) then
-      write(info_str,"(A)") "Solver Settings (SIPS)"
+      write(info_str,"(A)") "Solver Settings (SLEPc-SIPs)"
       call elsi_say(io_h,info_str)
       call elsi_append_string(io_h%prefix,"  ")
    elseif(io_h%file_format == JSON) then
