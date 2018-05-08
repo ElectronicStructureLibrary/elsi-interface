@@ -7,7 +7,7 @@ SET(elsi_URL "http://elsi-interchange.org")
 SET(elsi_EMAIL "elsi-team@duke.edu")
 SET(elsi_LICENSE "BSD 3")
 SET(elsi_DESCRIPTION "Electronic Structure Infrastructure")
-SET(elsi_DATESTAMP "180427")
+SET(elsi_DATESTAMP "180507")
 
 ### CMake modules ###
 LIST(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
@@ -89,7 +89,6 @@ ENDIF()
 
 IF(ENABLE_PEXSI)
   MESSAGE(STATUS "Enabling PEXSI")
-
   INCLUDE(superlu)
   IF(NOT SUPERLU_FOUND)
     ADD_SUBDIRECTORY(external/SuperLU_DIST)
@@ -99,8 +98,8 @@ IF(ENABLE_PEXSI)
 ENDIF()
 
 IF(ENABLE_SIPS)
-  INCLUDE(slepc)
   MESSAGE(STATUS "Enabling SIPS")
+  INCLUDE(slepc)
   ADD_SUBDIRECTORY(external/SIPS)
 ENDIF()
 
@@ -108,7 +107,6 @@ ADD_SUBDIRECTORY(src)
 
 IF(ENABLE_TESTS OR ENABLE_C_TESTS OR BUILD_SHARED_LIBS)
   INCLUDE(mathlib)
-  INCLUDE_DIRECTORIES(src)
 ENDIF()
 
 IF(ENABLE_TESTS OR ENABLE_C_TESTS)

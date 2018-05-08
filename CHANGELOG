@@ -5,26 +5,27 @@
    ELSI:
    * CMake build system has replaced the Makefile-based system.
    * Support for spin channels and k-points has been added.
+   * Support for energy-weighted density matrix has been added.
+   * Support for electronic entropy calculation has been added.
+   * Support for complex sparse matrix formats has been added for eigensolver
+     and density matrix solver interfaces.
+   * Mutator subroutines no longer use optional variables.
    * Matrix I/O subroutines using the MPI I/O standard have been added.
    * Removed ToMatO dependency for test suite.
    * Added a unified timing framework with JSON output via the FortJSON library.
-   * Occupation number determination will now also compute electronic entropy.
-   * Mutator subroutines no longer use optional variables.
 
    New Solvers:
    * SLEPc-SIPs added via external linkage.
    * (Experimental) CheSS added via external linkage.
-   * (Experimental) Density matrix purification added as redistributed solver.
+   * (Experimental) Density matrix purification added.
 
    New Matrix Storage Formats:
-   * SIESTA's compressed sparse column (SIESTA_CSC format)
+   * Added 1D block-cyclic compressed sparse column (SIESTA_CSC format).
 
    ELPA:
    * Redistributed version updated to 2016.11.001.
-   * Support for sparse matrix formats (real and complex) has been added.
    * AVX512 kernel has been added.
-   * The two-stage solver is now the default solver version for all matrix
-     sizes.
+   * The two-stage solver is now the default solver for all matrix sizes.
 
    ELPA AEO:
    * The interface for externally linked ELPA has been updated to the AEO
@@ -34,21 +35,19 @@
    * The ability to run the first X ELSI invocations using single-precision
      ELPA, then switch to double-precision ELPA, has been added for externally
      linked ELPA.
-   * GPU acceleration and GPU kernels may be enabled through the ELSI
-     interface for externally linked ELPA.
-
-   libOMM:
-   * Support for complex sparse matrix formats has been added.
+   * GPU acceleration and GPU kernels may be enabled through the ELSI interface
+     for externally linked ELPA.
 
    PEXSI:
    * Redistributed version updated to v1.0.
-     - TODO:  Update README
-   * TODO: Short description of changes by PEXSI devs
-   * Support for complex sparse matrix formats has been added.
+   * Default number of poles reduced to 20.
+   * Switched to the PT-SCOTCH library as the default sparse matrix reordering
+     software.
    * SuperLU_DIST 5.3.0 redistributed with ELSI.  Compiling SuperLU_DIST within
-     ELSI requires that PTScotch be linked as an external dependency.
-     (Alternatively, the user may provide their own SuperLU_DIST library.)
-   * Removed (Par)METIS as an external dependency for PEXSI.
+     ELSI requires that PT-SCOTCH be linked as an external dependency.
+     (Alternatively, the user may provide their own SuperLU_DIST library linked
+     against any compatible sparse matrix reordering library.)
+   * Removed ParMETIS as a mandatory external dependency for PEXSI.
 
 ===================
    ELSI May 2017
