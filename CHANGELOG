@@ -12,7 +12,7 @@
    * Mutator subroutines no longer use optional variables.
 
    New Solvers:
-   * SIPs added via external linkage.
+   * SLEPc-SIPs added via external linkage.
    * (Experimental) CheSS added via external linkage.
    * (Experimental) Density matrix purification added as redistributed solver.
 
