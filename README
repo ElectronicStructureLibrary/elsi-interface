@@ -33,7 +33,6 @@ B) INSTALLATION OF ELSI
    *  C++ compiler      [with C++11 standard]
    *  MPI library
    *  Math libraries    [BLAS, LAPACK, BLACS, and ScaLAPACK]
-   *  PT-SCOTCH library [version 6.0.4 or newer]
 
    Installation with recent versions of Cray, GNU, IBM, Intel, and PGI
    compilers has been tested.
