@@ -10,7 +10,6 @@ SET(CMAKE_CXX_FLAGS "-fast -no-ipo -std=c++11" CACHE STRING "C++ flags")
 
 SET(ELPA2_KERNEL "AVX512" CACHE STRING "Use ELPA AVX512 kernel")
 SET(ENABLE_PEXSI ON CACHE BOOL "Enable PEXSI")
-SET(ADD_UNDERSCORE ON CACHE BOOL "Suffix C functions with an underscore")
 
 SET(PTSCOTCH_DIR "/home/huhn/opt/scotch/6.0.5a" CACHE PATH "PT-SCOTCH directory")
 SET(PTSCOTCH_LIB "${PTSCOTCH_DIR}/lib/libptscotchparmetis.a;${PTSCOTCH_DIR}/lib/libptscotch.a;${PTSCOTCH_DIR}/lib/libptscotcherr.a;${PTSCOTCH_DIR}/lib/libscotchmetis.a;${PTSCOTCH_DIR}/lib/libscotch.a;${PTSCOTCH_DIR}/lib/libscotcherr.a" CACHE STRING "PT-SCOTCH libraries")
