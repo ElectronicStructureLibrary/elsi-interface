@@ -35,9 +35,21 @@ MACRO(add_test_target arg1)
   ENDIF()
   IF(ENABLE_PEXSI)
     IF(NOT SUPERLU_FOUND)
-      TARGET_LINK_LIBRARIES(${arg1} PRIVATE pexsi superlu_dist ${PTSCOTCH_LIB})
+      TARGET_LINK_LIBRARIES(${arg1} PRIVATE pexsi superlu_dist)
     ELSE()
-      TARGET_LINK_LIBRARIES(${arg1} PRIVATE pexsi ${SUPERLU_LIB} ${PTSCOTCH_LIB})
+      TARGET_LINK_LIBRARIES(${arg1} PRIVATE pexsi ${SUPERLU_LIB})
+    ENDIF()
+    IF(NOT PTSCOTCH_FOUND)
+      TARGET_LINK_LIBRARIES(${arg1} PRIVATE
+        ptscotchparmetis
+        ptscotch
+        ptscotcherr
+        scotchmetis
+        scotch
+        scotcherr
+      )
+    ELSE()
+      TARGET_LINK_LIBRARIES(${arg1} PRIVATE ${PTSCOTCH_LIB})
     ENDIF()
   ENDIF()
   TARGET_LINK_LIBRARIES(${arg1} PRIVATE ${MATH_LIB})

@@ -1,12 +1,12 @@
 ### Generate version info ###
-ADD_CUSTOM_COMMAND(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/elsi_version.f90
-  COMMAND perl ${PROJECT_SOURCE_DIR}/src/elsi_version_writer.pl > ${CMAKE_CURRENT_BINARY_DIR}/elsi_version.f90
+ADD_CUSTOM_COMMAND(OUTPUT ${PROJECT_BINARY_DIR}/generated/elsi_version.f90
+  COMMAND perl ${PROJECT_SOURCE_DIR}/src/elsi_version_writer.pl > ${PROJECT_BINARY_DIR}/generated/elsi_version.f90
   VERBATIM
 )
 
 ### Source files ###
 LIST(APPEND elsi_src
-  ${CMAKE_CURRENT_BINARY_DIR}/elsi_version.f90
+  ${PROJECT_BINARY_DIR}/generated/elsi_version.f90
   elsi_c_interface.f90
   elsi_c2f.f90
   elsi_constants.f90
@@ -32,7 +32,7 @@ LIST(APPEND elsi_src
   elsi_utils.f90
 )
 
-SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_BINARY_DIR}/elsi_version.f90
+SET_SOURCE_FILES_PROPERTIES(${PROJECT_BINARY_DIR}/generated/elsi_version.f90
   PROPERTIES GENERATED TRUE)
 
 IF(NOT ENABLE_PEXSI)
@@ -97,12 +97,23 @@ IF(ENABLE_SIPS)
   TARGET_INCLUDE_DIRECTORIES(elsi PRIVATE ${SLEPC_INC})
 ENDIF()
 IF(ENABLE_PEXSI)
+  TARGET_LINK_LIBRARIES(elsi PRIVATE pexsi)
   IF(NOT SUPERLU_FOUND)
-    TARGET_LINK_LIBRARIES(elsi PRIVATE pexsi superlu_dist ${PTSCOTCH_LIB})
-  TARGET_INCLUDE_DIRECTORIES(elsi PRIVATE ${PTSCOTCH_INC})
+    TARGET_LINK_LIBRARIES(elsi PRIVATE superlu_dist)
   ELSE()
-    TARGET_LINK_LIBRARIES(elsi PRIVATE pexsi ${SUPERLU_LIB} ${PTSCOTCH_LIB})
-  TARGET_INCLUDE_DIRECTORIES(elsi PRIVATE ${SUPERLU_INC} ${PTSCOTCH_INC})
+    TARGET_LINK_LIBRARIES(elsi PRIVATE ${SUPERLU_LIB})
+  ENDIF()
+  IF(NOT PTSCOTCH_FOUND)
+    TARGET_LINK_LIBRARIES(elsi PRIVATE
+      ptscotchparmetis
+      ptscotch
+      ptscotcherr
+      scotchmetis
+      scotch
+      scotcherr
+    )
+  ELSE()
+    TARGET_LINK_LIBRARIES(elsi PRIVATE ${PTSCOTCH_LIB})
   ENDIF()
 ENDIF()
 TARGET_LINK_LIBRARIES(elsi PRIVATE ${MATH_LIB})
