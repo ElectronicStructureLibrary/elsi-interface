@@ -10,3 +10,4 @@ SET(CMAKE_C_FLAGS "-Ofast -qarch=pwr8 -qstrict -qlanglvl=stdc99" CACHE STRING "C
 SET(CMAKE_CXX_FLAGS "-Ofast -qarch=pwr8 -qstrict -qlanglvl=extended0x" CACHE STRING "C++ flags")
 
 SET(ENABLE_PEXSI ON CACHE BOOL "Enable PEXSI")
+SET(ADD_UNDERSCORE OFF CACHE BOOL "Do not suffix C functions with an underscore")
