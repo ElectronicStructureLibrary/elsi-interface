@@ -73,7 +73,7 @@ IF(ENABLE_PEXSI)
 ENDIF()
 
 ### External libraries ###
-STRING(REPLACE "-l" "" ${LIBS} "${LIBS}")
+STRING(REPLACE "-l" "" LIBS "${LIBS}")
 FOREACH(str LIBS LIB_PATH INC_PATH) 
   convert_to_list(${str})
 ENDFOREACH()
