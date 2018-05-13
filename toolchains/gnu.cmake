@@ -8,9 +8,9 @@ SET(CMAKE_Fortran_FLAGS "-O3 -mavx" CACHE STRING "Fortran flags")
 SET(CMAKE_C_FLAGS "-O3 -mavx -std=c99" CACHE STRING "C flags")
 SET(CMAKE_CXX_FLAGS "-O3 -mavx -std=c++11" CACHE STRING "C++ flags")
 
-SET(ENABLE_TESTS ON CACHE BOOL "Enable Fortran tests")
-SET(ENABLE_C_TESTS ON CACHE BOOL "Enable C tests")
+#SET(ENABLE_TESTS ON CACHE BOOL "Enable Fortran tests")
+#SET(ENABLE_C_TESTS ON CACHE BOOL "Enable C tests")
 SET(ENABLE_PEXSI ON CACHE BOOL "Enable PEXSI")
 SET(ELPA2_KERNEL "AVX" CACHE STRING "Use ELPA AVX kernel")
 
-SET(MATH_LIB "/home/wy29/opt/scalapack-2.0.2/libscalapack.a;/home/wy29/opt/lapack-3.8.0/liblapack.a;/home/wy29/opt/lapack-3.8.0/librefblas.a" CACHE STRING "Linear algebra libraries")
+#SET(MATH_LIB "/home/wy29/opt/scalapack-2.0.2/libscalapack.a;/home/wy29/opt/lapack-3.8.0/liblapack.a;/home/wy29/opt/lapack-3.8.0/librefblas.a" CACHE STRING "Linear algebra libraries")

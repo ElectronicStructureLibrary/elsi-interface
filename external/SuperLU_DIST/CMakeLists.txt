@@ -117,8 +117,8 @@ TARGET_LINK_LIBRARIES(superlu_dist PRIVATE
   scotchmetis
   scotch
   scotcherr
+  ${LIBS}
 )
-TARGET_LINK_LIBRARIES(superlu_dist PRIVATE ${MATH_LIB})
 
 TARGET_INCLUDE_DIRECTORIES(superlu_dist PRIVATE
   src

@@ -25,8 +25,9 @@ A) PREREQUISITES
 
      - BLAS, LAPACK, BLACS, ScaLAPACK
 
-   By default, solver libraries redistributed within ELSI will be built.
-   Optionally, they may be substituted by user's optimized versions:
+   By default, solver libraries and their dependencies redistributed within
+   ELSI will be built.  Optionally, they may be substituted by user's
+   optimized versions:
 
      - ELPA          [2017.05.003 or newer]
      - libOMM
@@ -67,8 +68,8 @@ B) CMAKE BASICS
    to the command line when invoking CMake.
 
    If "Keyword" is of type boolean, its "Value" can be "ON" or "OFF".  If
-   "Keyword" defines a list of libraries or include paths, the items should
-   be separated with ";" (semicolon).
+   "Keyword" is a list of libraries or paths, the items should be separated
+   with ";" (semicolon) or " " (space).
 
    For example,
 
@@ -76,8 +77,8 @@ B) CMAKE BASICS
    -DCMAKE_C_COMPILER=gcc
    -DENABLE_TESTS=OFF
    -DENABLE_PEXSI=ON
-   -DMATH_LIB="/path/to/libscalapack.a;/path/to/lapack.a;/path/to/blas.a"
-   -DELPA_INC="/path/to/include;/another/path/to/include"
+   -DINC_PATH="/path/to/include;/another/path/to/include"
+   -DLIBS="library1 library2 library3"
 
 ===========================================================================
 C) CONFIGURATION
@@ -112,31 +113,27 @@ C) CONFIGURATION
    external, better optimized solver libraries.  Relevant options for this
    purpose are:
 
-     -DELPA_LIB=[YOUR_ELPA_LIBRARY(-IES)]
-     -DELPA_INC=[YOUR_ELPA_INCLUDE_PATH(S)]
+     -DEXTERNAL_ELPA=ON
+     -DEXTERNAL_OMM=ON
+     -DEXTERNAL_SUPERLU=ON
 
-     -DOMM_LIB=[YOUR_LIBOMM_AND_MATRIXSWITCH_LIBRARY(-IES)]
-     -DOMM_INC=[YOUR_LIBOMM_AND_MATRIXSWITCH_INCLUDE_PATH(S)]
+   The external libraries and the corresponding include paths should be set
+   via the following three keywords:
+
+     -DLIB_PATH=[ALL_DIRECTORIES_CONTAINING_YOUR_EXTERNAL_LIBRARIES]
+     -DINC_PATH=[ALL_INCLUDE_DIRECTORIES_OF_YOUR_EXTERNAL_LIBRARIES]
+     -DLIBS=[NAMES_OF_ALL_YOUR_EXTERNAL_LIBRARIES]
+
+   Please note that in the current version of ELSI, an external version of
+   PEXSI is not officially supported, and the internal version of PEXSI is
+   not enabled by default.  It may be enabled by specifying:
 
      -DENABLE_PEXSI=ON
-     -DSUPERLU_LIB=[YOUR_SUPERLU_DIST_LIBRARY(-IES)]
-     -DSUPERLU_INC=[YOUR_SUPERLU_DIST_INCLUDE_PATH(S)]
-     -DPTSCOTCH_LIB=[YOUR_PTSCOTCH_LIBRARY(-IES)]
-     -DPTSCOTCH_INC=[YOUR_PTSCOTCH_INCLUDE_PATH(S)]
-
-   If both "XXX_LIB" and "XXX_INC" are valid, the internal version of "XXX"
-   library will not be built.
-
-   Please note that in the current version of ELSI, PEXSI is not enabled by
-   default, and an external version of PEXSI is not officially supported.
 
    3) Build targets
 
-   By default, a static library (libelsi.a) will be created as the target
-   of the compilation.  Since no shared library or executable is generated,
-   there is no need to provide linear algebra libraries, i.e. BLAS, LAPACK,
-   BLACS, and ScaLAPACK.  Building ELSI as a shared library may be enabled
-   by:
+   By default, a static library will be created as the target of the ELSI
+   installation.  Building ELSI as a shared library may be enabled by:
 
      -DBUILD_SHARED_LIBS=ON
 
@@ -144,10 +141,8 @@ C) CONFIGURATION
 
      -DENABLE_TESTS=ON
 
-   In either case, the linear algebra libraries mentioned above must be
-   valid through
-
-     -DMATH_LIB=[YOUR_LINEAR_ALGEBRA_LIBRARY(-IES)]
+   In either case, linear algebra libraries BLAS, LAPACK, BLACS, and
+   ScaLAPACK must be valid through LIB_PATH and LIBS.
 
    If the test programs are enabled, the installation may be verified by
 
