@@ -10,7 +10,4 @@ SET(CMAKE_C_FLAGS "-Ofast -qarch=pwr8 -qstrict -qlanglvl=stdc99" CACHE STRING "C
 SET(CMAKE_CXX_FLAGS "-Ofast -qarch=pwr8 -qstrict -qlanglvl=extended0x" CACHE STRING "C++ flags")
 
 SET(ENABLE_PEXSI ON CACHE BOOL "Enable PEXSI")
-
-SET(PTSCOTCH_DIR "/ccs/home/vwzyu/summitdev/scotch_6.0.5a" CACHE PATH "PT-SCOTCH directory")
-SET(PTSCOTCH_LIB "${PTSCOTCH_DIR}/lib/libptscotchparmetis.a;${PTSCOTCH_DIR}/lib/libptscotch.a;${PTSCOTCH_DIR}/lib/libptscotcherr.a;${PTSCOTCH_DIR}/lib/libscotchmetis.a;${PTSCOTCH_DIR}/lib/libscotch.a;${PTSCOTCH_DIR}/lib/libscotcherr.a" CACHE STRING "PT-SCOTCH libraries")
-SET(PTSCOTCH_INC "${PTSCOTCH_DIR}/include" CACHE STRING "PT-SCOTCH include directory")
+SET(ADD_UNDERSCORE OFF CACHE BOOL "Do not suffix C functions with an underscore")

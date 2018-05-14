@@ -27,7 +27,7 @@ LIST(APPEND elpa_src
 
 ### Kernels ###
 IF(ELPA2_KERNEL STREQUAL "AVX512")
-  MESSAGE(STATUS "Enabling ELPA AVX 512 kernel")
+  MESSAGE(STATUS "Using ELPA AVX 512 kernel")
   LIST(APPEND elpa_src
     src/mod_compute_hh_trafo_real_avx512.f90
     src/mod_compute_hh_trafo_complex_avx512.f90
@@ -37,7 +37,7 @@ IF(ELPA2_KERNEL STREQUAL "AVX512")
     src/elpa2_kernels_complex_avx512_1hv.c
   )
 ELSEIF(ELPA2_KERNEL STREQUAL "AVX2")
-  MESSAGE(STATUS "Enabling ELPA AVX 2 kernel")
+  MESSAGE(STATUS "Using ELPA AVX 2 kernel")
   LIST(APPEND elpa_src
     src/mod_compute_hh_trafo_real_avx2.f90
     src/mod_compute_hh_trafo_complex_avx2.f90
@@ -47,7 +47,7 @@ ELSEIF(ELPA2_KERNEL STREQUAL "AVX2")
     src/elpa2_kernels_complex_avx2_1hv.c
   )
 ELSEIF(ELPA2_KERNEL STREQUAL "AVX")
-  MESSAGE(STATUS "Enabling ELPA AVX kernel")
+  MESSAGE(STATUS "Using ELPA AVX kernel")
   LIST(APPEND elpa_src
     src/mod_compute_hh_trafo_real_avx.f90
     src/mod_compute_hh_trafo_complex_avx.f90
@@ -57,7 +57,7 @@ ELSEIF(ELPA2_KERNEL STREQUAL "AVX")
     src/elpa2_kernels_complex_avx_1hv.c
   )
 ELSEIF(ELPA2_KERNEL STREQUAL "BGQ")
-  MESSAGE(STATUS "Enabling ELPA Blue Gene Q kernel")
+  MESSAGE(STATUS "Using ELPA Blue Gene Q kernel")
   LIST(APPEND elpa_src
     src/mod_compute_hh_trafo_real_bgq.f90
     src/mod_compute_hh_trafo_complex.f90
@@ -80,11 +80,7 @@ ENDIF()
 
 ADD_LIBRARY(elpa ${elpa_src})
 
-TARGET_LINK_LIBRARIES(elpa PRIVATE ${MATH_LIB})
-IF(ENABLE_MKL)
-  SET_TARGET_PROPERTIES(elpa
-    PROPERTIES LINK_FLAGS "-mkl=cluster")
-ENDIF()
+TARGET_LINK_LIBRARIES(elpa PRIVATE ${LIBS})
 
 IF(NOT "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}" STREQUAL "${PROJECT_BINARY_DIR}/lib")
   INSTALL(TARGETS elpa

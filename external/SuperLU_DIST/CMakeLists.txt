@@ -101,14 +101,31 @@ IF(ADD_UNDERSCORE)
   TARGET_COMPILE_DEFINITIONS(superlu_dist PRIVATE Add_)
 ENDIF()
 
-TARGET_LINK_LIBRARIES(superlu_dist PRIVATE ${PTSCOTCH_LIB} ${MATH_LIB})
-IF(ENABLE_MKL)
-  SET_TARGET_PROPERTIES(superlu_dist
-    PROPERTIES LINK_FLAGS "-mkl=cluster")
-ENDIF()
+ADD_DEPENDENCIES(superlu_dist
+  ptscotchparmetis
+  ptscotch
+  ptscotcherr
+  scotchmetis
+  scotch
+  scotcherr
+)
 
-TARGET_INCLUDE_DIRECTORIES(superlu_dist PRIVATE src)
-TARGET_INCLUDE_DIRECTORIES(superlu_dist PRIVATE ${PTSCOTCH_INC})
+TARGET_LINK_LIBRARIES(superlu_dist PRIVATE
+  ptscotchparmetis
+  ptscotch
+  ptscotcherr
+  scotchmetis
+  scotch
+  scotcherr
+  ${LIBS}
+)
+
+TARGET_INCLUDE_DIRECTORIES(superlu_dist PRIVATE
+  src
+  ${PROJECT_SOURCE_DIR}/external/SCOTCH/src/libscotch
+  ${PROJECT_SOURCE_DIR}/external/SCOTCH/src/libscotchmetis
+  ${PROJECT_BINARY_DIR}/generated
+)
 
 IF(NOT "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}" STREQUAL "${PROJECT_BINARY_DIR}/lib")
   INSTALL(TARGETS superlu_dist

@@ -11,16 +11,10 @@ SET(CMAKE_CXX_FLAGS "-O3 -xAVX -fp-model precise -std=c++11" CACHE STRING "C++ f
 SET(ENABLE_TESTS ON CACHE BOOL "Enable Fortran tests")
 SET(ENABLE_C_TESTS ON CACHE BOOL "Enable C tests")
 SET(ENABLE_PEXSI ON CACHE BOOL "Enable PEXSI")
-SET(ENABLE_MKL ON CACHE BOOL "Pass -mkl=cluster to linker")
-# ENABLE_MLK is valid only if linking with Intel compiler and MKL libraries
-# exist; use "MATH_LIB" otherwise
+SET(USE_EXTERNAL_ELPA ON CACHE BOOL "Use external ELPA")
+SET(USE_EXTERNAL_OMM ON CACHE BOOL "Use external libOMM")
+SET(USE_EXTERNAL_SUPERLU ON CACHE BOOL "Use external SuperLU_DIST")
 
-SET(ELPA_LIB "/home/wy29/opt/elpa-2017.11.001/lib/libelpa.a" CACHE STRING "ELPA libraries")
-SET(ELPA_INC "/home/wy29/opt/elpa-2017.11.001/include" CACHE PATH "ELPA include directory")
-SET(OMM_LIB "/home/wy29/opt/omm/build/lib/libOMM.a;/home/wy29/opt/omm/build/lib/libMatrixSwitch.a" CACHE STRING "libOMM libraries")
-SET(OMM_INC "/home/wy29/opt/omm/build/include" CACHE PATH "libOMM include directory")
-SET(SUPERLU_LIB "/home/wy29/opt/SuperLU_DIST_5.3.0/lib/libsuperlu_dist.a" CACHE STRING "SuperLU_DIST libraries")
-SET(SUPERLU_INC "/home/wy29/opt/SuperLU_DIST_5.3.0/SRC" CACHE PATH "SuperLU_DIST include directory")
-SET(PTSCOTCH_DIR "/home/wy29/opt/scotch_6.0.5a" CACHE PATH "PT-SCOTCH directory")
-SET(PTSCOTCH_LIB "${PTSCOTCH_DIR}/lib/libptscotchparmetis.a;${PTSCOTCH_DIR}/lib/libptscotch.a;${PTSCOTCH_DIR}/lib/libptscotcherr.a;${PTSCOTCH_DIR}/lib/libscotchmetis.a;${PTSCOTCH_DIR}/lib/libscotch.a;${PTSCOTCH_DIR}/lib/libscotcherr.a" CACHE STRING "PT-SCOTCH libraries")
-SET(PTSCOTCH_INC "${PTSCOTCH_DIR}/include" CACHE STRING "PT-SCOTCH include directory")
+SET(LIB_PATHS "/home/wy29/opt/intel/mkl/lib/intel64 /home/wy29/opt/elpa-2017.11.001/lib /home/wy29/opt/omm/build/lib /home/wy29/opt/SuperLU_DIST_5.3.0/lib /home/wy29/opt/scotch_6.0.5a/lib" CACHE STRING "External library paths")
+SET(INC_PATHS "/home/wy29/opt/elpa-2017.11.001/include /home/wy29/opt/omm/build/include /home/wy29/opt/SuperLU_DIST_5.3.0/SRC /home/wy29/opt/scotch_6.0.5a/include" CACHE STRING "External library include paths")
+SET(LIBS "OMM MatrixSwitch elpa superlu_dist ptscotchparmetis ptscotch ptscotcherr scotchmetis scotch scotcherr mkl_scalapack_lp64 mkl_blacs_intelmpi_lp64 mkl_intel_lp64 mkl_sequential mkl_core" CACHE STRING "External libraries")

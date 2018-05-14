@@ -12,10 +12,6 @@ SET(ENABLE_TESTS ON CACHE BOOL "Enable Fortran tests")
 SET(ENABLE_C_TESTS ON CACHE BOOL "Enable C tests")
 SET(ENABLE_PEXSI ON CACHE BOOL "Enable PEXSI")
 SET(ELPA2_KERNEL "AVX" CACHE STRING "Use ELPA AVX kernel")
-SET(ENABLE_MKL ON CACHE BOOL "Pass -mkl=cluster to linker")
-# ENABLE_MLK is valid only if linking with Intel compiler and MKL libraries
-# exist; use "MATH_LIB" otherwise
 
-SET(PTSCOTCH_DIR "/home/wy29/opt/scotch_6.0.5a" CACHE PATH "PT-SCOTCH directory")
-SET(PTSCOTCH_LIB "${PTSCOTCH_DIR}/lib/libptscotchparmetis.a;${PTSCOTCH_DIR}/lib/libptscotch.a;${PTSCOTCH_DIR}/lib/libptscotcherr.a;${PTSCOTCH_DIR}/lib/libscotchmetis.a;${PTSCOTCH_DIR}/lib/libscotch.a;${PTSCOTCH_DIR}/lib/libscotcherr.a" CACHE STRING "PT-SCOTCH libraries")
-SET(PTSCOTCH_INC "${PTSCOTCH_DIR}/include" CACHE STRING "PT-SCOTCH include directory")
+SET(LIB_PATHS "/home/wy29/opt/intel/mkl/lib/intel64" CACHE STRING "External library paths")
+SET(LIBS "mkl_scalapack_lp64 mkl_blacs_intelmpi_lp64 mkl_intel_lp64 mkl_sequential mkl_core" CACHE STRING "External libraries")
