@@ -9,8 +9,7 @@ MACRO(convert_to_list var)
   ENDIF()
 ENDMACRO()
 
-# Go through directories listed in LIBRARY_PATHS and turn the entries of
-# LIBRARIES into actual targets
+# Go through directories listed in LIB_PATHS and turn entries of LIBS into targets.
 FUNCTION(generate_library_targets _PATHS _LIBRARIES)
   FOREACH(LIB ${${_LIBRARIES}})
     FIND_LIBRARY(LIB_FULLPATH ${LIB} PATHS ${${_PATHS}})

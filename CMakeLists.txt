@@ -46,8 +46,8 @@ OPTION(ADD_UNDERSCORE "Suffix C functions with an underscore" ON)
 SET(ELPA2_KERNEL "" CACHE STRING "Use AVX/AVX2/AVX512/BGQ ELPA2 kernel")
 SET(MPIEXEC "mpiexec" CACHE STRING "Name of MPI job launcher")
 SET(MPISIZE "4" CACHE STRING "Number of MPI tasks to run tests")
-SET(LIB_PATH "" CACHE STRING "List of directories containing libraries to be linked against")
-SET(INC_PATH "" CACHE STRING "List of include directories")
+SET(LIB_PATHS "" CACHE STRING "List of directories containing libraries to be linked against")
+SET(INC_PATHS "" CACHE STRING "List of include directories")
 SET(LIBS "" CACHE STRING "List of external libraries to be linked against")
 
 ### Compilers ###
@@ -74,10 +74,10 @@ ENDIF()
 
 ### External libraries ###
 STRING(REPLACE "-l" "" LIBS "${LIBS}")
-FOREACH(str LIBS LIB_PATH INC_PATH) 
+FOREACH(str LIBS LIB_PATHS INC_PATHS) 
   convert_to_list(${str})
 ENDFOREACH()
-generate_library_targets(LIB_PATH LIBS)
+generate_library_targets(LIB_PATHS LIBS)
 
 ### Compilations ###
 INCLUDE_DIRECTORIES(${CMAKE_Fortran_MODULE_DIRECTORY})

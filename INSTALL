@@ -77,7 +77,7 @@ B) CMAKE BASICS
    -DCMAKE_C_COMPILER=gcc
    -DENABLE_TESTS=OFF
    -DENABLE_PEXSI=ON
-   -DINC_PATH="/path/to/include;/another/path/to/include"
+   -DINC_PATHS="/path/to/include;/another/path/to/include"
    -DLIBS="library1 library2 library3"
 
 ===========================================================================
@@ -120,8 +120,8 @@ C) CONFIGURATION
    The external libraries and the corresponding include paths should be set
    via the following three keywords:
 
-     -DLIB_PATH=[ALL_DIRECTORIES_CONTAINING_YOUR_EXTERNAL_LIBRARIES]
-     -DINC_PATH=[ALL_INCLUDE_DIRECTORIES_OF_YOUR_EXTERNAL_LIBRARIES]
+     -DLIB_PATHS=[ALL_DIRECTORIES_CONTAINING_YOUR_EXTERNAL_LIBRARIES]
+     -DINC_PATHS=[ALL_INCLUDE_DIRECTORIES_OF_YOUR_EXTERNAL_LIBRARIES]
      -DLIBS=[NAMES_OF_ALL_YOUR_EXTERNAL_LIBRARIES]
 
    Please note that in the current version of ELSI, an external version of
@@ -142,7 +142,7 @@ C) CONFIGURATION
      -DENABLE_TESTS=ON
 
    In either case, linear algebra libraries BLAS, LAPACK, BLACS, and
-   ScaLAPACK must be valid through LIB_PATH and LIBS.
+   ScaLAPACK must be valid through LIB_PATHS and LIBS.
 
    If the test programs are enabled, the installation may be verified by
 
