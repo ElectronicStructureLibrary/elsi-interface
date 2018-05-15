@@ -52,7 +52,6 @@ module ELSI
    public :: elsi_set_omm_flavor
    public :: elsi_set_omm_n_elpa
    public :: elsi_set_omm_tol
-   public :: elsi_set_omm_ev_shift
    public :: elsi_set_pexsi_n_mu
    public :: elsi_set_pexsi_n_pole
    public :: elsi_set_pexsi_np_per_pole
@@ -80,8 +79,6 @@ module ELSI
    public :: elsi_set_mu_spin_degen
    public :: elsi_set_mu_mp_order
    public :: elsi_set_output_log
-   public :: elsi_set_log_unit
-   public :: elsi_set_log_file
    public :: elsi_set_log_tag
    public :: elsi_set_uuid
    public :: elsi_set_calling_code

@@ -285,7 +285,7 @@ subroutine elsi_solve_pexsi_real(e_h,ham,ovlp,dm)
 
       do i = 2,n_shift-1
          if(ne_upper(i) < e_h%n_electrons .and. &
-            ne_upper(i+1) >= e_h%n_electrons)  then
+            ne_upper(i+1) >= e_h%n_electrons) then
             aux_min = i
          endif
 
@@ -816,7 +816,7 @@ subroutine elsi_solve_pexsi_cmplx(e_h,ham,ovlp,dm)
 
       do i = 2,n_shift-1
          if(ne_upper(i) < e_h%n_electrons .and. &
-            ne_upper(i+1) >= e_h%n_electrons)  then
+            ne_upper(i+1) >= e_h%n_electrons) then
             aux_min = i
          endif
 

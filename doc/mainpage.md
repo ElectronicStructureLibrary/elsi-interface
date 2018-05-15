@@ -15,4 +15,6 @@ The libraries supported and enhanced in ELSI are:
 
 * <a href="http://pexsi.org">PEXSI</a> (the Pole EXpansion and Selected Inversion method)
 
+* <a href="http://keceli.github.io/SLEPc-SIPs">SLEPc-SIPs</a> (the SLEPc Shift-and-Invert Parallel Spectral transformations eigensolver)
+
 We expect that related strong libraries will be supported by ELSI in the future, providing electronic structure codes and users with a flexible, customizable choice of solutions for the central algebraic problems that are often the bottleneck of our simulations.
