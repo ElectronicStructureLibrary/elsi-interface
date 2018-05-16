@@ -10,4 +10,8 @@ SET(CMAKE_C_FLAGS "-Ofast -qarch=pwr8 -qstrict -qlanglvl=stdc99" CACHE STRING "C
 SET(CMAKE_CXX_FLAGS "-Ofast -qarch=pwr8 -qstrict -qlanglvl=extended0x" CACHE STRING "C++ flags")
 
 SET(ENABLE_PEXSI ON CACHE BOOL "Enable PEXSI")
+SET(ENABLE_TESTS ON CACHE BOOL "Enable tests")
 SET(ADD_UNDERSCORE OFF CACHE BOOL "Do not suffix C functions with an underscore")
+
+SET(LIB_PATHS "/sw/summitdev/essl/5.5.0-20161110/lib64" CACHE STRING "External library paths")
+SET(LIBS "essl;scalapack;lapack;blas" CACHE STRING "External libraries")
