@@ -54,7 +54,6 @@ module ELSI_MUTATOR
    public :: elsi_set_omm_flavor
    public :: elsi_set_omm_n_elpa
    public :: elsi_set_omm_tol
-   public :: elsi_set_omm_ev_shift
    public :: elsi_set_pexsi_n_mu
    public :: elsi_set_pexsi_n_pole
    public :: elsi_set_pexsi_np_per_pole
@@ -82,8 +81,6 @@ module ELSI_MUTATOR
    public :: elsi_set_mu_spin_degen
    public :: elsi_set_mu_mp_order
    public :: elsi_set_output_log
-   public :: elsi_set_log_unit
-   public :: elsi_set_log_file
    public :: elsi_set_log_tag
    public :: elsi_set_uuid
    public :: elsi_set_calling_code
@@ -431,24 +428,6 @@ subroutine elsi_set_omm_tol(e_h,min_tol)
 end subroutine
 
 !>
-!! This routine sets the shift of the eigenspectrum.
-!!
-subroutine elsi_set_omm_ev_shift(e_h,ev_shift)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: e_h      !< Handle
-   real(kind=r8),     intent(in)    :: ev_shift !< Shift of the eigenspectrum
-
-   character(len=40), parameter :: caller = "elsi_set_omm_ev_shift"
-
-   call elsi_check_handle(e_h,caller)
-
-   e_h%omm_ev_shift = ev_shift
-
-end subroutine
-
-!>
 !! This routine sets the number of mu points when using PEXSI driver 2.
 !!
 subroutine elsi_set_pexsi_n_mu(e_h,n_mu)
@@ -658,7 +637,7 @@ subroutine elsi_set_pexsi_inertia_tol(e_h,inertia_tol)
    implicit none
 
    type(elsi_handle), intent(inout) :: e_h         !< Handle
-   real(kind=r8),     intent(in)    :: inertia_tol !< Tolerance of inertia counting
+   real(kind=r8),     intent(in)    :: inertia_tol !< Inertia counting tolerance
 
    character(len=40), parameter :: caller = "elsi_set_pexsi_inertia_tol"
 
@@ -998,40 +977,6 @@ subroutine elsi_set_output_log(e_h,output_log)
 end subroutine
 
 !>
-!! This routine sets the unit to which the log is output.
-!!
-subroutine elsi_set_log_unit(e_h,log_unit)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: e_h      !< Handle
-   integer(kind=i4),  intent(in)    :: log_unit !< Unit
-
-   character(len=40), parameter :: caller = "elsi_set_log_unit"
-
-   call elsi_check_handle(e_h,caller)
-
-   e_h%log_file%print_unit = log_unit
-
-end subroutine
-
-!>
-!! This routine sets the name of the log file.
-!!
-subroutine elsi_set_log_file(e_h,file_name)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: e_h       !< Handle
-   character(len=*),  intent(in)    :: file_name !< File name
-
-   character(len=40), parameter :: caller = "elsi_set_log_file"
-
-   e_h%log_file%file_name = file_name
-
-end subroutine
-
-!>
 !! This routine sets the user_tag for the log.
 !!
 subroutine elsi_set_log_tag(e_h,user_tag)
@@ -1065,7 +1010,7 @@ subroutine elsi_set_uuid(e_h,uuid)
 end subroutine
 
 !>
-!! This routine sets the name of the calling code.
+!! This routine sets the name of the code calling ELSI, for output purpose only.
 !!
 subroutine elsi_set_calling_code(e_h,code)
 

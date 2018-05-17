@@ -568,6 +568,38 @@ subroutine elsi_set_elpa_solver_c_wrapper(handle_c,elpa_solver)&
 
 end subroutine
 
+subroutine elsi_set_elpa_gpu_c_wrapper(handle_c,use_gpu)&
+   bind(C,name="c_elsi_set_elpa_gpu")
+
+   implicit none
+
+   type(c_ptr),         value, intent(in) :: handle_c
+   integer(kind=c_int), value, intent(in) :: use_gpu
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_elpa_gpu(handle_f,use_gpu)
+
+end subroutine
+
+subroutine elsi_set_elpa_gpu_kernels_c_wrapper(handle_c,use_gpu_kernels)&
+   bind(C,name="c_elsi_set_elpa_gpu_kernels")
+
+   implicit none
+
+   type(c_ptr),         value, intent(in) :: handle_c
+   integer(kind=c_int), value, intent(in) :: use_gpu_kernels
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_elpa_gpu_kernels(handle_f,use_gpu_kernels)
+
+end subroutine
+
 subroutine elsi_set_omm_flavor_c_wrapper(handle_c,omm_flavor)&
    bind(C,name="c_elsi_set_omm_flavor")
 
@@ -613,22 +645,6 @@ subroutine elsi_set_omm_tol_c_wrapper(handle_c,min_tol)&
    call c_f_pointer(handle_c,handle_f)
 
    call elsi_set_omm_tol(handle_f,min_tol)
-
-end subroutine
-
-subroutine elsi_set_omm_ev_shift_c_wrapper(handle_c,ev_shift)&
-   bind(C,name="c_elsi_set_omm_ev_shift")
-
-   implicit none
-
-   type(c_ptr),         value, intent(in) :: handle_c
-   real(kind=c_double), value, intent(in) :: ev_shift
-
-   type(elsi_handle), pointer :: handle_f
-
-   call c_f_pointer(handle_c,handle_f)
-
-   call elsi_set_omm_ev_shift(handle_f,ev_shift)
 
 end subroutine
 
@@ -1049,6 +1065,22 @@ subroutine elsi_set_mu_mp_order_c_wrapper(handle_c,mp_order)&
 
 end subroutine
 
+subroutine elsi_set_output_log_c_wrapper(handle_c,out_log)&
+   bind(C,name="c_elsi_set_output_log")
+
+   implicit none
+
+   type(c_ptr),         value, intent(in) :: handle_c
+   integer(kind=c_int), value, intent(in) :: out_log
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_output_log(handle_f,out_log)
+
+end subroutine
+
 subroutine elsi_get_pexsi_mu_min_c_wrapper(handle_c,mu_min)&
    bind(C,name="c_elsi_get_pexsi_mu_min")
 
@@ -1294,22 +1326,6 @@ subroutine elsi_finalize_rw_c_wrapper(handle_c)&
    call c_f_pointer(handle_c,handle_f)
 
    call elsi_finalize_rw(handle_f)
-
-end subroutine
-
-subroutine elsi_set_rw_output_c_wrapper(handle_c,out_level)&
-   bind(C,name="c_elsi_set_rw_output")
-
-   implicit none
-
-   type(c_ptr),         value, intent(in) :: handle_c
-   integer(kind=c_int), value, intent(in) :: out_level
-
-   type(elsi_rw_handle), pointer :: handle_f
-
-   call c_f_pointer(handle_c,handle_f)
-
-   call elsi_set_rw_output(handle_f,out_level)
 
 end subroutine
 

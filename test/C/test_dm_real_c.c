@@ -96,7 +96,6 @@ void test_dm_real_c(MPI_Comm comm,
    c_elsi_init_rw(&rw_h,0,1,0,0.0);
    c_elsi_set_rw_mpi(rw_h,comm_f);
    c_elsi_set_rw_blacs(rw_h,blacs_ctxt,blk);
-   c_elsi_set_rw_output(rw_h,2);
 
    c_elsi_read_mat_dim(rw_h,h_file,&n_electrons,&n_basis,&l_row,&l_col);
 

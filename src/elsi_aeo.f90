@@ -17,7 +17,7 @@ module ELSI_ELPA
                              mpi_integer4
    use ELSI_OCC,       only: elsi_compute_mu_and_occ,elsi_compute_entropy
    use ELSI_PRECISION, only: r4,r8,i4
-   use ELSI_UTILS,     only: elsi_get_local_nnz_real,elsi_get_local_nnz_cmplx
+   use ELSI_UTILS,     only: elsi_get_nnz_real,elsi_get_nnz_cmplx
    use ELPA,           only: elpa_t,elpa_init,elpa_uninit,elpa_allocate,&
                              elpa_deallocate,elpa_autotune_deallocate,&
                              ELPA_SOLVER_1STAGE,ELPA_SOLVER_2STAGE,&
@@ -589,7 +589,7 @@ subroutine elsi_solve_elpa_real(e_h,ham,ovlp,eval,evec)
 
    ! Compute sparsity
    if(e_h%n_elsi_calls == 1 .and. e_h%matrix_format == BLACS_DENSE) then
-      call elsi_get_local_nnz_real(e_h,ham,e_h%n_lrow,e_h%n_lcol,e_h%nnz_l)
+      call elsi_get_nnz_real(e_h%zero_def,ham,e_h%n_lrow,e_h%n_lcol,e_h%nnz_l)
 
       call MPI_Allreduce(e_h%nnz_l,e_h%nnz_g,1,mpi_integer4,mpi_sum,&
               e_h%mpi_comm,ierr)
@@ -1071,7 +1071,7 @@ subroutine elsi_solve_elpa_cmplx(e_h,ham,ovlp,eval,evec)
 
    ! Compute sparsity
    if(e_h%n_elsi_calls == 1 .and. e_h%matrix_format == BLACS_DENSE) then
-      call elsi_get_local_nnz_cmplx(e_h,ham,e_h%n_lrow,e_h%n_lcol,e_h%nnz_l)
+      call elsi_get_nnz_cmplx(e_h%zero_def,ham,e_h%n_lrow,e_h%n_lcol,e_h%nnz_l)
 
       call MPI_Allreduce(e_h%nnz_l,e_h%nnz_g,1,mpi_integer4,mpi_sum,&
               e_h%mpi_comm,ierr)
