@@ -265,8 +265,6 @@ module ELSI_DATATYPE
       integer(kind=i4) :: matrix_format
 
       ! Output
-      logical          :: print_info
-      logical          :: print_mem
       integer(kind=i4) :: print_unit
 
       ! MPI
@@ -280,14 +278,12 @@ module ELSI_DATATYPE
       integer(kind=i4) :: blk
       integer(kind=i4) :: n_lrow
       integer(kind=i4) :: n_lcol
-      logical          :: blacs_ready = .false.
 
       ! Sparse matrix information
       integer(kind=i4) :: nnz_g     ! Global number of nonzeros
       integer(kind=i4) :: nnz_l_sp  ! Local number of nonzeros
       integer(kind=i4) :: n_lcol_sp ! Local number of columns
       real(kind=r8)    :: zero_def
-      logical          :: pexsi_csc_ready = .false.
 
       ! Physics
       real(kind=r8)    :: n_electrons

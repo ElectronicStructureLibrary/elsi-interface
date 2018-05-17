@@ -17,9 +17,9 @@ module ELSI_MAT_REDIST
                              mpi_integer4,mpi_comm_self
    use ELSI_PRECISION, only: r8,i4,i8
    use ELSI_SORT,      only: elsi_heapsort
-   use ELSI_UTILS,     only: elsi_get_local_nnz_real,elsi_get_local_nnz_cmplx,&
-                             elsi_get_global_col,elsi_get_global_row,&
-                             elsi_get_global_col_sp2
+   use ELSI_UTILS,     only: elsi_get_nnz_real,elsi_get_nnz_cmplx,&
+                             elsi_get_col_gid,elsi_get_row_gid,&
+                             elsi_get_col_gid_sp2
 
    implicit none
 
@@ -110,12 +110,14 @@ subroutine elsi_blacs_to_pexsi_hs_real(e_h,ham,ovlp)
 
    if(e_h%n_elsi_calls == 1) then
       if(.not. e_h%ovlp_is_unit) then
-         call elsi_get_local_nnz_real(e_h,ovlp,e_h%n_lrow,e_h%n_lcol,e_h%nnz_l)
+         call elsi_get_nnz_real(e_h%zero_def,ovlp,e_h%n_lrow,e_h%n_lcol,&
+                 e_h%nnz_l)
 
          call elsi_allocate(e_h,s_val_send_buf,e_h%nnz_l,"s_val_send_buf",&
                  caller)
       else
-         call elsi_get_local_nnz_real(e_h,ham,e_h%n_lrow,e_h%n_lcol,e_h%nnz_l)
+         call elsi_get_nnz_real(e_h%zero_def,ham,e_h%n_lrow,e_h%n_lcol,&
+                 e_h%nnz_l)
       endif
    endif
 
@@ -193,7 +195,7 @@ subroutine elsi_blacs_to_pexsi_hs_real(e_h,ham,ovlp)
 
    if(.not. e_h%ovlp_is_unit) then
       do i_col = 1,e_h%n_lcol
-         call elsi_get_global_col(e_h,g_col_id,i_col)
+         call elsi_get_col_gid(e_h,g_col_id,i_col)
 
          ! Compute destination
          dest = min(locat(g_col_id),e_h%n_procs-1)
@@ -202,7 +204,7 @@ subroutine elsi_blacs_to_pexsi_hs_real(e_h,ham,ovlp)
             if(abs(ovlp(i_row,i_col)) > e_h%zero_def) then
                i_val = i_val+1
 
-               call elsi_get_global_row(e_h,g_row_id,i_row)
+               call elsi_get_row_gid(e_h,g_row_id,i_row)
 
                ! Pack global id and data into bufs
                row_send_buf(i_val)   = g_row_id
@@ -219,7 +221,7 @@ subroutine elsi_blacs_to_pexsi_hs_real(e_h,ham,ovlp)
       enddo
    else
       do i_col = 1,e_h%n_lcol
-         call elsi_get_global_col(e_h,g_col_id,i_col)
+         call elsi_get_col_gid(e_h,g_col_id,i_col)
 
          ! Compute destination
          dest = min(locat(g_col_id),e_h%n_procs-1)
@@ -228,7 +230,7 @@ subroutine elsi_blacs_to_pexsi_hs_real(e_h,ham,ovlp)
             if(abs(ham(i_row,i_col)) > e_h%zero_def) then
                i_val = i_val+1
 
-               call elsi_get_global_row(e_h,g_row_id,i_row)
+               call elsi_get_row_gid(e_h,g_row_id,i_row)
 
                ! Pack global id and data into bufs
                row_send_buf(i_val)   = g_row_id
@@ -505,12 +507,14 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(e_h,ham,ovlp)
 
    if(e_h%n_elsi_calls == 1) then
       if(.not. e_h%ovlp_is_unit) then
-         call elsi_get_local_nnz_cmplx(e_h,ovlp,e_h%n_lrow,e_h%n_lcol,e_h%nnz_l)
+         call elsi_get_nnz_cmplx(e_h%zero_def,ovlp,e_h%n_lrow,e_h%n_lcol,&
+                 e_h%nnz_l)
 
          call elsi_allocate(e_h,s_val_send_buf,e_h%nnz_l,"s_val_send_buf",&
                  caller)
       else
-         call elsi_get_local_nnz_cmplx(e_h,ham,e_h%n_lrow,e_h%n_lcol,e_h%nnz_l)
+         call elsi_get_nnz_cmplx(e_h%zero_def,ham,e_h%n_lrow,e_h%n_lcol,&
+                 e_h%nnz_l)
       endif
    endif
 
@@ -587,7 +591,7 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(e_h,ham,ovlp)
    i_val = 0
    if(.not. e_h%ovlp_is_unit) then
       do i_col = 1,e_h%n_lcol
-         call elsi_get_global_col(e_h,g_col_id,i_col)
+         call elsi_get_col_gid(e_h,g_col_id,i_col)
 
          ! Compute destination
          dest = min(locat(g_col_id),e_h%n_procs-1)
@@ -596,7 +600,7 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(e_h,ham,ovlp)
             if(abs(ovlp(i_row,i_col)) > e_h%zero_def) then
                i_val = i_val+1
 
-               call elsi_get_global_row(e_h,g_row_id,i_row)
+               call elsi_get_row_gid(e_h,g_row_id,i_row)
 
                ! Pack global id and data into bufs
                row_send_buf(i_val)   = g_row_id
@@ -613,7 +617,7 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(e_h,ham,ovlp)
       enddo
    else
       do i_col = 1,e_h%n_lcol
-         call elsi_get_global_col(e_h,g_col_id,i_col)
+         call elsi_get_col_gid(e_h,g_col_id,i_col)
 
          ! Compute destination
          dest = min(locat(g_col_id),e_h%n_procs-1)
@@ -622,7 +626,7 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(e_h,ham,ovlp)
             if(abs(ham(i_row,i_col)) > e_h%zero_def) then
                i_val = i_val+1
 
-               call elsi_get_global_row(e_h,g_row_id,i_row)
+               call elsi_get_row_gid(e_h,g_row_id,i_row)
 
                ! Pack global id and data into bufs
                row_send_buf(i_val)   = g_row_id
@@ -1215,12 +1219,14 @@ subroutine elsi_blacs_to_sips_hs_real(e_h,ham,ovlp)
 
    if(e_h%n_elsi_calls == 1+e_h%sips_n_elpa) then
       if(.not. e_h%ovlp_is_unit) then
-         call elsi_get_local_nnz_real(e_h,ovlp,e_h%n_lrow,e_h%n_lcol,e_h%nnz_l)
+         call elsi_get_nnz_real(e_h%zero_def,ovlp,e_h%n_lrow,e_h%n_lcol,&
+                 e_h%nnz_l)
 
          call elsi_allocate(e_h,s_val_send_buf,e_h%nnz_l,"s_val_send_buf",&
                  caller)
       else
-         call elsi_get_local_nnz_real(e_h,ham,e_h%n_lrow,e_h%n_lcol,e_h%nnz_l)
+         call elsi_get_nnz_real(e_h%zero_def,ham,e_h%n_lrow,e_h%n_lcol,&
+                 e_h%nnz_l)
       endif
    endif
 
@@ -1234,7 +1240,7 @@ subroutine elsi_blacs_to_sips_hs_real(e_h,ham,ovlp)
 
    if(.not. e_h%ovlp_is_unit) then
       do i_col = 1,e_h%n_lcol
-         call elsi_get_global_col(e_h,g_col_id,i_col)
+         call elsi_get_col_gid(e_h,g_col_id,i_col)
 
          ! Compute destination
          dest = (g_col_id-1)/(e_h%n_basis/e_h%n_procs)
@@ -1245,7 +1251,7 @@ subroutine elsi_blacs_to_sips_hs_real(e_h,ham,ovlp)
             if(abs(ovlp(i_row,i_col)) > e_h%zero_def) then
                i_val = i_val+1
 
-               call elsi_get_global_row(e_h,g_row_id,i_row)
+               call elsi_get_row_gid(e_h,g_row_id,i_row)
 
                ! Pack global id and data into bufs
                row_send_buf(i_val)   = g_row_id
@@ -1262,7 +1268,7 @@ subroutine elsi_blacs_to_sips_hs_real(e_h,ham,ovlp)
       enddo
    else
       do i_col = 1,e_h%n_lcol
-         call elsi_get_global_col(e_h,g_col_id,i_col)
+         call elsi_get_col_gid(e_h,g_col_id,i_col)
 
          ! Compute destination
          dest = (g_col_id-1)/(e_h%n_basis/e_h%n_procs)
@@ -1273,7 +1279,7 @@ subroutine elsi_blacs_to_sips_hs_real(e_h,ham,ovlp)
             if(abs(ham(i_row,i_col)) > e_h%zero_def) then
                i_val = i_val+1
 
-               call elsi_get_global_row(e_h,g_row_id,i_row)
+               call elsi_get_row_gid(e_h,g_row_id,i_row)
 
                ! Pack global id and data into bufs
                row_send_buf(i_val)   = g_row_id
@@ -1467,12 +1473,14 @@ subroutine elsi_blacs_to_sips_hs_cmplx(e_h,ham,ovlp)
 
    if(e_h%n_elsi_calls == 1+e_h%sips_n_elpa) then
       if(.not. e_h%ovlp_is_unit) then
-         call elsi_get_local_nnz_cmplx(e_h,ovlp,e_h%n_lrow,e_h%n_lcol,e_h%nnz_l)
+         call elsi_get_nnz_cmplx(e_h%zero_def,ovlp,e_h%n_lrow,e_h%n_lcol,&
+                 e_h%nnz_l)
 
          call elsi_allocate(e_h,s_val_send_buf,e_h%nnz_l,"s_val_send_buf",&
                  caller)
       else
-         call elsi_get_local_nnz_cmplx(e_h,ham,e_h%n_lrow,e_h%n_lcol,e_h%nnz_l)
+         call elsi_get_nnz_cmplx(e_h%zero_def,ham,e_h%n_lrow,e_h%n_lcol,&
+                 e_h%nnz_l)
       endif
    endif
 
@@ -1486,7 +1494,7 @@ subroutine elsi_blacs_to_sips_hs_cmplx(e_h,ham,ovlp)
 
    if(.not. e_h%ovlp_is_unit) then
       do i_col = 1,e_h%n_lcol
-         call elsi_get_global_col(e_h,g_col_id,i_col)
+         call elsi_get_col_gid(e_h,g_col_id,i_col)
 
          ! Compute destination
          dest = (g_col_id-1)/(e_h%n_basis/e_h%n_procs)
@@ -1497,7 +1505,7 @@ subroutine elsi_blacs_to_sips_hs_cmplx(e_h,ham,ovlp)
             if(abs(ovlp(i_row,i_col)) > e_h%zero_def) then
                i_val = i_val+1
 
-               call elsi_get_global_row(e_h,g_row_id,i_row)
+               call elsi_get_row_gid(e_h,g_row_id,i_row)
 
                ! Pack global id and data into bufs
                row_send_buf(i_val)   = g_row_id
@@ -1514,7 +1522,7 @@ subroutine elsi_blacs_to_sips_hs_cmplx(e_h,ham,ovlp)
       enddo
    else
       do i_col = 1,e_h%n_lcol
-         call elsi_get_global_col(e_h,g_col_id,i_col)
+         call elsi_get_col_gid(e_h,g_col_id,i_col)
 
          ! Compute destination
          dest = (g_col_id-1)/(e_h%n_basis/e_h%n_procs)
@@ -1525,7 +1533,7 @@ subroutine elsi_blacs_to_sips_hs_cmplx(e_h,ham,ovlp)
             if(abs(ham(i_row,i_col)) > e_h%zero_def) then
                i_val = i_val+1
 
-               call elsi_get_global_row(e_h,g_row_id,i_row)
+               call elsi_get_row_gid(e_h,g_row_id,i_row)
 
                ! Pack global id and data into bufs
                row_send_buf(i_val)   = g_row_id
@@ -2316,7 +2324,7 @@ subroutine elsi_blacs_to_sips_dm_real(e_h,dm)
 
    call elsi_get_time(t0)
 
-   call elsi_get_local_nnz_real(e_h,e_h%dm_real_elpa,e_h%n_lrow,e_h%n_lcol,&
+   call elsi_get_nnz_real(e_h%zero_def,e_h%dm_real_elpa,e_h%n_lrow,e_h%n_lcol,&
            e_h%nnz_l)
 
    call elsi_allocate(e_h,val_send_buf,e_h%nnz_l,"val_send_buf",caller)
@@ -2332,8 +2340,8 @@ subroutine elsi_blacs_to_sips_dm_real(e_h,dm)
          if(abs(e_h%dm_real_elpa(i_row,i_col)) > e_h%zero_def) then
             i_val = i_val+1
 
-            call elsi_get_global_row(e_h,row_send_buf(i_val),i_row)
-            call elsi_get_global_col(e_h,col_send_buf(i_val),i_col)
+            call elsi_get_row_gid(e_h,row_send_buf(i_val),i_row)
+            call elsi_get_col_gid(e_h,col_send_buf(i_val),i_col)
 
             ! Compute destination
             dest = (col_send_buf(i_val)-1)/(e_h%n_basis/e_h%n_procs)
@@ -2472,8 +2480,8 @@ subroutine elsi_blacs_to_sips_dm_cmplx(e_h,dm)
 
    call elsi_get_time(t0)
 
-   call elsi_get_local_nnz_cmplx(e_h,e_h%dm_cmplx_elpa,e_h%n_lrow,e_h%n_lcol,&
-           e_h%nnz_l)
+   call elsi_get_nnz_cmplx(e_h%zero_def,e_h%dm_cmplx_elpa,e_h%n_lrow,&
+           e_h%n_lcol,e_h%nnz_l)
 
    call elsi_allocate(e_h,val_send_buf,e_h%nnz_l,"val_send_buf",caller)
    call elsi_allocate(e_h,row_send_buf,e_h%nnz_l,"row_send_buf",caller)
@@ -2488,8 +2496,8 @@ subroutine elsi_blacs_to_sips_dm_cmplx(e_h,dm)
          if(abs(e_h%dm_cmplx_elpa(i_row,i_col)) > e_h%zero_def) then
             i_val = i_val+1
 
-            call elsi_get_global_row(e_h,row_send_buf(i_val),i_row)
-            call elsi_get_global_col(e_h,col_send_buf(i_val),i_col)
+            call elsi_get_row_gid(e_h,row_send_buf(i_val),i_row)
+            call elsi_get_col_gid(e_h,col_send_buf(i_val),i_col)
 
             ! Compute destination
             dest = (col_send_buf(i_val)-1)/(e_h%n_basis/e_h%n_procs)
@@ -2651,7 +2659,7 @@ subroutine elsi_siesta_to_blacs_hs_real(e_h,ham,ovlp)
       i_row = e_h%row_ind_sp2(i_val)
 
       ! Compute global id
-      call elsi_get_global_col_sp2(e_h,col_send_buf(i_val),i_col)
+      call elsi_get_col_gid_sp2(e_h,col_send_buf(i_val),i_col)
       row_send_buf(i_val)   = i_row
       h_val_send_buf(i_val) = ham(i_val)
       if(e_h%n_elsi_calls == 1 .and. .not. e_h%ovlp_is_unit) then
@@ -2866,7 +2874,7 @@ subroutine elsi_siesta_to_blacs_hs_cmplx(e_h,ham,ovlp)
       i_row = e_h%row_ind_sp2(i_val)
 
       ! Compute global id
-      call elsi_get_global_col_sp2(e_h,col_send_buf(i_val),i_col)
+      call elsi_get_col_gid_sp2(e_h,col_send_buf(i_val),i_col)
       row_send_buf(i_val)   = i_row
       h_val_send_buf(i_val) = ham(i_val)
       if(e_h%n_elsi_calls == 1 .and. .not. e_h%ovlp_is_unit) then
@@ -3059,7 +3067,7 @@ subroutine elsi_blacs_to_siesta_dm_real(e_h,dm)
 
    call elsi_get_time(t0)
 
-   call elsi_get_local_nnz_real(e_h,e_h%dm_real_elpa,e_h%n_lrow,e_h%n_lcol,&
+   call elsi_get_nnz_real(e_h%zero_def,e_h%dm_real_elpa,e_h%n_lrow,e_h%n_lcol,&
            e_h%nnz_l)
 
    call elsi_allocate(e_h,val_send_buf,e_h%nnz_l,"val_send_buf",caller)
@@ -3076,8 +3084,8 @@ subroutine elsi_blacs_to_siesta_dm_real(e_h,dm)
          if(abs(e_h%dm_real_elpa(i_row,i_col)) > e_h%zero_def) then
             i_val = i_val+1
 
-            call elsi_get_global_row(e_h,row_send_buf(i_val),i_row)
-            call elsi_get_global_col(e_h,col_send_buf(i_val),i_col)
+            call elsi_get_row_gid(e_h,row_send_buf(i_val),i_row)
+            call elsi_get_col_gid(e_h,col_send_buf(i_val),i_col)
 
             ! Compute destination
             dest(i_val) = mod((col_send_buf(i_val)-1)/e_h%blk_sp2,e_h%n_procs)
@@ -3219,8 +3227,8 @@ subroutine elsi_blacs_to_siesta_dm_cmplx(e_h,dm)
 
    call elsi_get_time(t0)
 
-   call elsi_get_local_nnz_cmplx(e_h,e_h%dm_cmplx_elpa,e_h%n_lrow,e_h%n_lcol,&
-           e_h%nnz_l)
+   call elsi_get_nnz_cmplx(e_h%zero_def,e_h%dm_cmplx_elpa,e_h%n_lrow,&
+           e_h%n_lcol,e_h%nnz_l)
 
    call elsi_allocate(e_h,val_send_buf,e_h%nnz_l,"val_send_buf",caller)
    call elsi_allocate(e_h,row_send_buf,e_h%nnz_l,"row_send_buf",caller)
@@ -3236,8 +3244,8 @@ subroutine elsi_blacs_to_siesta_dm_cmplx(e_h,dm)
          if(abs(e_h%dm_cmplx_elpa(i_row,i_col)) > e_h%zero_def) then
             i_val = i_val+1
 
-            call elsi_get_global_row(e_h,row_send_buf(i_val),i_row)
-            call elsi_get_global_col(e_h,col_send_buf(i_val),i_col)
+            call elsi_get_row_gid(e_h,row_send_buf(i_val),i_row)
+            call elsi_get_col_gid(e_h,col_send_buf(i_val),i_col)
 
             ! Compute destination
             dest(i_val) = mod((col_send_buf(i_val)-1)/e_h%blk_sp2,e_h%n_procs)
@@ -3401,7 +3409,7 @@ subroutine elsi_siesta_to_pexsi_hs_real(e_h,ham,ovlp)
       i_row = e_h%row_ind_sp2(i_val)
 
       ! Compute global id
-      call elsi_get_global_col_sp2(e_h,col_send_buf(i_val),i_col)
+      call elsi_get_col_gid_sp2(e_h,col_send_buf(i_val),i_col)
       row_send_buf(i_val)   = i_row
       h_val_send_buf(i_val) = ham(i_val)
       if(e_h%n_elsi_calls == 1 .and. .not. e_h%ovlp_is_unit) then
@@ -3617,7 +3625,7 @@ subroutine elsi_siesta_to_pexsi_hs_cmplx(e_h,ham,ovlp)
       i_row = e_h%row_ind_sp2(i_val)
 
       ! Compute global id
-      call elsi_get_global_col_sp2(e_h,col_send_buf(i_val),i_col)
+      call elsi_get_col_gid_sp2(e_h,col_send_buf(i_val),i_col)
       row_send_buf(i_val)   = i_row
       h_val_send_buf(i_val) = ham(i_val)
       if(e_h%n_elsi_calls == 1 .and. .not. e_h%ovlp_is_unit) then
@@ -3906,7 +3914,7 @@ subroutine elsi_pexsi_to_siesta_dm_real(e_h,dm)
 
    ! Unpack matrix
    do i_val = 1,e_h%nnz_l_sp2
-      l_col_id = (col_recv_buf(i_val)-1)/(e_h%n_procs*e_h%blk_sp2)*e_h%blk_sp2+& 
+      l_col_id = (col_recv_buf(i_val)-1)/(e_h%n_procs*e_h%blk_sp2)*e_h%blk_sp2+&
                     mod((col_recv_buf(i_val)-1),e_h%blk_sp2)+1
       l_row_id = row_recv_buf(i_val)
 

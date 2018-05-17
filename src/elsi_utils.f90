@@ -26,11 +26,11 @@ module ELSI_UTILS
    public :: elsi_check
    public :: elsi_check_handle
    public :: elsi_reset_handle
-   public :: elsi_get_global_row
-   public :: elsi_get_global_col
-   public :: elsi_get_global_col_sp2
-   public :: elsi_get_local_nnz_real
-   public :: elsi_get_local_nnz_cmplx
+   public :: elsi_get_row_gid
+   public :: elsi_get_col_gid
+   public :: elsi_get_col_gid_sp2
+   public :: elsi_get_nnz_real
+   public :: elsi_get_nnz_cmplx
    public :: elsi_trace_mat_real
    public :: elsi_trace_mat_cmplx
    public :: elsi_trace_mat_mat_real
@@ -354,9 +354,9 @@ subroutine elsi_check_handle(e_h,caller)
 end subroutine
 
 !>
-!! This routine computes the global row index based on the local row index.
+!! This routine gets the global row index in a 2D block-cyclic distribution.
 !!
-subroutine elsi_get_global_row(e_h,g_id,l_id)
+subroutine elsi_get_row_gid(e_h,g_id,l_id)
 
    implicit none
 
@@ -367,7 +367,7 @@ subroutine elsi_get_global_row(e_h,g_id,l_id)
    integer(kind=i4) :: blk
    integer(kind=i4) :: idx
 
-   character(len=40), parameter :: caller = "elsi_get_global_row"
+   character(len=40), parameter :: caller = "elsi_get_row_gid"
 
    blk  = (l_id-1)/e_h%blk_row
    idx  = l_id-blk*e_h%blk_row
@@ -376,9 +376,9 @@ subroutine elsi_get_global_row(e_h,g_id,l_id)
 end subroutine
 
 !>
-!! This routine computes the global column index based on the local column index.
+!! This routine gets the global column index in a 2D block-cyclic distribution.
 !!
-subroutine elsi_get_global_col(e_h,g_id,l_id)
+subroutine elsi_get_col_gid(e_h,g_id,l_id)
 
    implicit none
 
@@ -389,7 +389,7 @@ subroutine elsi_get_global_col(e_h,g_id,l_id)
    integer(kind=i4) :: blk
    integer(kind=i4) :: idx
 
-   character(len=40), parameter :: caller = "elsi_get_global_col"
+   character(len=40), parameter :: caller = "elsi_get_col_gid"
 
    blk  = (l_id-1)/e_h%blk_col
    idx  = l_id-blk*e_h%blk_col
@@ -398,9 +398,9 @@ subroutine elsi_get_global_col(e_h,g_id,l_id)
 end subroutine
 
 !>
-!! This routine computes the global column index based on the local column index.
+!! This routine gets the global column index in a 1D block-cyclic distribution.
 !!
-subroutine elsi_get_global_col_sp2(e_h,g_id,l_id)
+subroutine elsi_get_col_gid_sp2(e_h,g_id,l_id)
 
    implicit none
 
@@ -411,7 +411,7 @@ subroutine elsi_get_global_col_sp2(e_h,g_id,l_id)
    integer(kind=i4) :: blk
    integer(kind=i4) :: idx
 
-   character(len=40), parameter :: caller = "elsi_get_global_col_sp2"
+   character(len=40), parameter :: caller = "elsi_get_col_gid_sp2"
 
    blk  = (l_id-1)/e_h%blk_sp2
    idx  = l_id-blk*e_h%blk_sp2
@@ -420,13 +420,13 @@ subroutine elsi_get_global_col_sp2(e_h,g_id,l_id)
 end subroutine
 
 !>
-!! This routine counts the local number of non_zero elements.
+!! This routine counts the number of non_zero elements in a matrix.
 !!
-subroutine elsi_get_local_nnz_real(e_h,mat,n_row,n_col,nnz)
+subroutine elsi_get_nnz_real(zero_def,mat,n_row,n_col,nnz)
 
    implicit none
 
-   type(elsi_handle), intent(in)  :: e_h
+   real(kind=r8),     intent(in)  :: zero_def
    real(kind=r8),     intent(in)  :: mat(n_row,n_col)
    integer(kind=i4),  intent(in)  :: n_row
    integer(kind=i4),  intent(in)  :: n_col
@@ -435,13 +435,13 @@ subroutine elsi_get_local_nnz_real(e_h,mat,n_row,n_col,nnz)
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
 
-   character(len=40), parameter :: caller = "elsi_get_local_nnz_real"
+   character(len=40), parameter :: caller = "elsi_get_nnz_real"
 
    nnz = 0
 
    do i_col = 1,n_col
       do i_row = 1,n_row
-         if(abs(mat(i_row,i_col)) > e_h%zero_def) then
+         if(abs(mat(i_row,i_col)) > zero_def) then
             nnz = nnz+1
          endif
       enddo
@@ -450,13 +450,13 @@ subroutine elsi_get_local_nnz_real(e_h,mat,n_row,n_col,nnz)
 end subroutine
 
 !>
-!! This routine counts the local number of non_zero elements.
+!! This routine counts the number of non_zero elements in a matrix.
 !!
-subroutine elsi_get_local_nnz_cmplx(e_h,mat,n_row,n_col,nnz)
+subroutine elsi_get_nnz_cmplx(zero_def,mat,n_row,n_col,nnz)
 
    implicit none
 
-   type(elsi_handle), intent(in)  :: e_h
+   real(kind=r8),     intent(in)  :: zero_def
    complex(kind=r8),  intent(in)  :: mat(n_row,n_col)
    integer(kind=i4),  intent(in)  :: n_row
    integer(kind=i4),  intent(in)  :: n_col
@@ -465,13 +465,13 @@ subroutine elsi_get_local_nnz_cmplx(e_h,mat,n_row,n_col,nnz)
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
 
-   character(len=40), parameter :: caller = "elsi_get_local_nnz_cmplx"
+   character(len=40), parameter :: caller = "elsi_get_nnz_cmplx"
 
    nnz = 0
 
    do i_col = 1,n_col
       do i_row = 1,n_row
-         if(abs(mat(i_row,i_col)) > e_h%zero_def) then
+         if(abs(mat(i_row,i_col)) > zero_def) then
             nnz = nnz+1
          endif
       enddo

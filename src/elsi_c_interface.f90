@@ -1329,22 +1329,6 @@ subroutine elsi_finalize_rw_c_wrapper(handle_c)&
 
 end subroutine
 
-subroutine elsi_set_rw_output_c_wrapper(handle_c,out_level)&
-   bind(C,name="c_elsi_set_rw_output")
-
-   implicit none
-
-   type(c_ptr),         value, intent(in) :: handle_c
-   integer(kind=c_int), value, intent(in) :: out_level
-
-   type(elsi_rw_handle), pointer :: handle_f
-
-   call c_f_pointer(handle_c,handle_f)
-
-   call elsi_set_rw_output(handle_f,out_level)
-
-end subroutine
-
 subroutine elsi_set_rw_zero_def_c_wrapper(handle_c,zero_def)&
    bind(C,name="c_elsi_set_rw_zero_def")
 

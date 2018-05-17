@@ -15,7 +15,6 @@ module ELSI_MAT_IO
                               PEXSI_SOLVER,SIPS_SOLVER,MULTI_PROC,SINGLE_PROC,&
                               UNSET,N_MATRIX_FORMATS,N_PARALLEL_MODES
    use ELSI_DATATYPE,   only: elsi_handle,elsi_rw_handle
-   use ELSI_IO,         only: elsi_say,elsi_get_time
    use ELSI_MALLOC,     only: elsi_allocate,elsi_deallocate
    use ELSI_MAT_REDIST, only: elsi_sips_to_blacs_dm_real,&
                               elsi_sips_to_blacs_dm_cmplx,&
@@ -27,7 +26,7 @@ module ELSI_MAT_IO
    use ELSI_PRECISION,  only: r8,i4,i8
    use ELSI_SETUP,      only: elsi_init,elsi_set_mpi,elsi_set_blacs,&
                               elsi_set_csc,elsi_cleanup
-   use ELSI_UTILS,      only: elsi_get_local_nnz_real,elsi_get_local_nnz_cmplx
+   use ELSI_UTILS,      only: elsi_get_nnz_real,elsi_get_nnz_cmplx
 
    implicit none
 
@@ -38,8 +37,6 @@ module ELSI_MAT_IO
    public :: elsi_set_rw_mpi
    public :: elsi_set_rw_blacs
    public :: elsi_set_rw_csc
-   public :: elsi_set_rw_output
-   public :: elsi_set_rw_write_unit
    public :: elsi_set_rw_zero_def
    public :: elsi_set_rw_header
    public :: elsi_get_rw_header
@@ -166,8 +163,6 @@ subroutine elsi_set_rw_blacs(rw_h,blacs_ctxt,block_size)
          rw_h%n_lrow = numroc(rw_h%n_basis,rw_h%blk,my_prow,0,n_prow)
          rw_h%n_lcol = numroc(rw_h%n_basis,rw_h%blk,my_pcol,0,n_pcol)
       endif
-
-      rw_h%blacs_ready = .true.
    endif
 
 end subroutine
@@ -188,58 +183,9 @@ subroutine elsi_set_rw_csc(rw_h,nnz_g,nnz_l_sp,n_lcol_sp)
 
    call elsi_check_rw_handle(rw_h,caller)
 
-   rw_h%nnz_g           = nnz_g
-   rw_h%nnz_l_sp        = nnz_l_sp
-   rw_h%n_lcol_sp       = n_lcol_sp
-   rw_h%pexsi_csc_ready = .true.
-
-end subroutine
-
-!>
-!! This routine sets ELSI output level.
-!!
-subroutine elsi_set_rw_output(rw_h,out_level)
-
-   implicit none
-
-   type(elsi_rw_handle), intent(inout) :: rw_h      !< Handle
-   integer(kind=i4),     intent(in)    :: out_level !< Output level
-
-   character(len=40), parameter :: caller = "elsi_set_rw_output"
-
-   call elsi_check_rw_handle(rw_h,caller)
-
-   if(out_level <= 0) then
-      rw_h%print_info = .false.
-      rw_h%print_mem  = .false.
-   elseif(out_level == 1) then
-      rw_h%print_info = .true.
-      rw_h%print_mem  = .false.
-   elseif(out_level == 2) then
-      rw_h%print_info = .true.
-      rw_h%print_mem  = .false.
-   else
-      rw_h%print_info = .true.
-      rw_h%print_mem  = .true.
-   endif
-
-end subroutine
-
-!>
-!! This routine sets the unit to be used by ELSI output.
-!!
-subroutine elsi_set_rw_write_unit(rw_h,write_unit)
-
-   implicit none
-
-   type(elsi_rw_handle), intent(inout) :: rw_h       !< Handle
-   integer(kind=i4),     intent(in)    :: write_unit !< Unit
-
-   character(len=40), parameter :: caller = "elsi_set_rw_write_unit"
-
-   call elsi_check_rw_handle(rw_h,caller)
-
-   rw_h%print_unit = write_unit
+   rw_h%nnz_g     = nnz_g
+   rw_h%nnz_l_sp  = nnz_l_sp
+   rw_h%n_lcol_sp = n_lcol_sp
 
 end subroutine
 
@@ -353,29 +299,25 @@ subroutine elsi_reset_rw_handle(rw_h)
 
    character(len=40), parameter :: caller = "elsi_reset_rw_handle"
 
-   rw_h%handle_init     = .false.
-   rw_h%rw_task         = UNSET
-   rw_h%parallel_mode   = UNSET
-   rw_h%print_info      = .false.
-   rw_h%print_mem       = .false.
-   rw_h%print_unit      = 6
-   rw_h%myid            = UNSET
-   rw_h%n_procs         = UNSET
-   rw_h%mpi_comm        = UNSET
-   rw_h%mpi_ready       = .false.
-   rw_h%blacs_ctxt      = UNSET
-   rw_h%blk             = UNSET
-   rw_h%n_lrow          = UNSET
-   rw_h%n_lcol          = UNSET
-   rw_h%blacs_ready     = .false.
-   rw_h%nnz_g           = UNSET
-   rw_h%nnz_l_sp        = UNSET
-   rw_h%n_lcol_sp       = UNSET
-   rw_h%zero_def        = 1.0e-20_r8
-   rw_h%pexsi_csc_ready = .false.
-   rw_h%n_electrons     = 0.0_r8
-   rw_h%n_basis         = UNSET
-   rw_h%header_user     = UNSET
+   rw_h%handle_init   = .false.
+   rw_h%rw_task       = UNSET
+   rw_h%parallel_mode = UNSET
+   rw_h%print_unit    = 6
+   rw_h%myid          = UNSET
+   rw_h%n_procs       = UNSET
+   rw_h%mpi_comm      = UNSET
+   rw_h%mpi_ready     = .false.
+   rw_h%blacs_ctxt    = UNSET
+   rw_h%blk           = UNSET
+   rw_h%n_lrow        = UNSET
+   rw_h%n_lcol        = UNSET
+   rw_h%nnz_g         = UNSET
+   rw_h%nnz_l_sp      = UNSET
+   rw_h%n_lcol_sp     = UNSET
+   rw_h%zero_def      = 1.0e-20_r8
+   rw_h%n_electrons   = 0.0_r8
+   rw_h%n_basis       = UNSET
+   rw_h%header_user   = UNSET
 
 end subroutine
 
@@ -438,7 +380,7 @@ subroutine elsi_read_mat_dim(rw_h,f_name,n_electron,n_basis,n_lrow,n_lcol)
    implicit none
 
    type(elsi_rw_handle), intent(inout) :: rw_h       !< Handle
-   character(*),         intent(in)    :: f_name     !< File name
+   character(len=*),     intent(in)    :: f_name     !< File name
    real(kind=r8),        intent(out)   :: n_electron !< Number of electrons
    integer(kind=i4),     intent(out)   :: n_basis    !< Matrix size
    integer(kind=i4),     intent(out)   :: n_lrow     !< Local number of rows
@@ -462,7 +404,7 @@ subroutine elsi_read_mat_real(rw_h,f_name,mat)
    implicit none
 
    type(elsi_rw_handle), intent(inout) :: rw_h                         !< Handle
-   character(*),         intent(in)    :: f_name                       !< File name
+   character(len=*),     intent(in)    :: f_name                       !< File name
    real(kind=r8),        intent(out)   :: mat(rw_h%n_lrow,rw_h%n_lcol) !< Matrix
 
    character(len=40), parameter :: caller = "elsi_read_mat_real"
@@ -485,7 +427,7 @@ subroutine elsi_write_mat_real(rw_h,f_name,mat)
    implicit none
 
    type(elsi_rw_handle), intent(in) :: rw_h                         !< Handle
-   character(*),         intent(in) :: f_name                       !< File name
+   character(len=*),     intent(in) :: f_name                       !< File name
    real(kind=r8),        intent(in) :: mat(rw_h%n_lrow,rw_h%n_lcol) !< Matrix
 
    character(len=40), parameter :: caller = "elsi_write_mat_real"
@@ -508,7 +450,7 @@ subroutine elsi_read_mat_complex(rw_h,f_name,mat)
    implicit none
 
    type(elsi_rw_handle), intent(inout) :: rw_h                         !< Handle
-   character(*),         intent(in)    :: f_name                       !< File name
+   character(len=*),     intent(in)    :: f_name                       !< File name
    complex(kind=r8),     intent(out)   :: mat(rw_h%n_lrow,rw_h%n_lcol) !< Matrix
 
    character(len=40), parameter :: caller = "elsi_read_mat_complex"
@@ -531,7 +473,7 @@ subroutine elsi_write_mat_complex(rw_h,f_name,mat)
    implicit none
 
    type(elsi_rw_handle), intent(in) :: rw_h                         !< Handle
-   character(*),         intent(in) :: f_name                       !< File name
+   character(len=*),     intent(in) :: f_name                       !< File name
    complex(kind=r8),     intent(in) :: mat(rw_h%n_lrow,rw_h%n_lcol) !< Matrix
 
    character(len=40), parameter :: caller = "elsi_write_mat_complex"
@@ -555,34 +497,25 @@ subroutine elsi_read_mat_dim_mp(rw_h,f_name,n_electron,n_basis,n_lrow,n_lcol)
    implicit none
 
    type(elsi_rw_handle), intent(inout) :: rw_h       !< Handle
-   character(*),         intent(in)    :: f_name     !< File name
+   character(len=*),     intent(in)    :: f_name     !< File name
    real(kind=r8),        intent(out)   :: n_electron !< Number of electrons
    integer(kind=i4),     intent(out)   :: n_basis    !< Matrix size
    integer(kind=i4),     intent(out)   :: n_lrow     !< Local number of rows
    integer(kind=i4),     intent(out)   :: n_lcol     !< Local number of columns
 
-   integer(kind=i4)   :: ierr
-   integer(kind=i4)   :: f_handle
-   integer(kind=i4)   :: f_mode
-   integer(kind=i4)   :: header(HEADER_SIZE)
-   integer(kind=i4)   :: n_prow
-   integer(kind=i4)   :: n_pcol
-   integer(kind=i4)   :: my_prow
-   integer(kind=i4)   :: my_pcol
-   integer(kind=i8)   :: offset
-   logical            :: file_ok
-   character(len=200) :: info_str
+   integer(kind=i4) :: ierr
+   integer(kind=i4) :: f_handle
+   integer(kind=i4) :: f_mode
+   integer(kind=i4) :: header(HEADER_SIZE)
+   integer(kind=i4) :: n_prow
+   integer(kind=i4) :: n_pcol
+   integer(kind=i4) :: my_prow
+   integer(kind=i4) :: my_pcol
+   integer(kind=i8) :: offset
 
    integer(kind=i4), external :: numroc
 
    character(len=40), parameter :: caller = "elsi_read_mat_dim_mp"
-
-   inquire(file=f_name,exist=file_ok)
-
-   if(.not. file_ok) then
-      write(info_str,"(3A)") "File '",trim(f_name),"' does not exist."
-      call elsi_rw_stop(rw_h,info_str,caller)
-   endif
 
    ! Open file
    f_mode = mpi_mode_rdonly
@@ -639,33 +572,24 @@ subroutine elsi_read_mat_dim_sparse(rw_h,f_name,n_electron,n_basis,nnz_g,&
    implicit none
 
    type(elsi_rw_handle), intent(inout) :: rw_h       !< Handle
-   character(*),         intent(in)    :: f_name     !< File name
+   character(len=*),     intent(in)    :: f_name     !< File name
    real(kind=r8),        intent(out)   :: n_electron !< Number of electrons
    integer(kind=i4),     intent(out)   :: n_basis    !< Matrix size
    integer(kind=i4),     intent(out)   :: nnz_g      !< Global number of nonzeros
    integer(kind=i4),     intent(out)   :: nnz_l_sp   !< Local number of nonzeros
    integer(kind=i4),     intent(out)   :: n_lcol_sp  !< Local number of columns
 
-   integer(kind=i4)   :: ierr
-   integer(kind=i4)   :: f_handle
-   integer(kind=i4)   :: f_mode
-   integer(kind=i4)   :: header(HEADER_SIZE)
-   integer(kind=i4)   :: n_lcol0
-   integer(kind=i4)   :: prev_nnz
-   integer(kind=i8)   :: offset
-   logical            :: file_ok
-   character(len=200) :: info_str
+   integer(kind=i4) :: ierr
+   integer(kind=i4) :: f_handle
+   integer(kind=i4) :: f_mode
+   integer(kind=i4) :: header(HEADER_SIZE)
+   integer(kind=i4) :: n_lcol0
+   integer(kind=i4) :: prev_nnz
+   integer(kind=i8) :: offset
 
    integer(kind=i4), allocatable :: col_ptr(:)
 
    character(len=40), parameter :: caller = "elsi_read_mat_dim_sparse"
-
-   inquire(file=f_name,exist=file_ok)
-
-   if(.not. file_ok) then
-      write(info_str,"(3A)") "File '",trim(f_name),"' does not exist."
-      call elsi_rw_stop(rw_h,info_str,caller)
-   endif
 
    ! Open file
    f_mode = mpi_mode_rdonly
@@ -745,19 +669,15 @@ subroutine elsi_read_mat_real_mp(rw_h,f_name,mat)
    implicit none
 
    type(elsi_rw_handle), intent(inout) :: rw_h                         !< Handle
-   character(*),         intent(in)    :: f_name                       !< File name
+   character(len=*),     intent(in)    :: f_name                       !< File name
    real(kind=r8),        intent(out)   :: mat(rw_h%n_lrow,rw_h%n_lcol) !< Matrix
 
-   integer(kind=i4)   :: ierr
-   integer(kind=i4)   :: f_handle
-   integer(kind=i4)   :: f_mode
-   integer(kind=i4)   :: n_lcol0
-   integer(kind=i4)   :: prev_nnz
-   integer(kind=i8)   :: offset
-   logical            :: file_ok
-   real(kind=r8)      :: t0
-   real(kind=r8)      :: t1
-   character(len=200) :: info_str
+   integer(kind=i4) :: ierr
+   integer(kind=i4) :: f_handle
+   integer(kind=i4) :: f_mode
+   integer(kind=i4) :: n_lcol0
+   integer(kind=i4) :: prev_nnz
+   integer(kind=i8) :: offset
 
    integer(kind=i4), allocatable :: row_ind(:)
    integer(kind=i4), allocatable :: col_ptr(:)
@@ -767,13 +687,6 @@ subroutine elsi_read_mat_real_mp(rw_h,f_name,mat)
 
    character(len=40), parameter :: caller = "elsi_read_mat_real_mp"
 
-   inquire(file=f_name,exist=file_ok)
-
-   if(.not. file_ok) then
-      write(info_str,"(3A)") "File '",trim(f_name),"' does not exist."
-      call elsi_rw_stop(rw_h,info_str,caller)
-   endif
-
    call elsi_init(aux_h,PEXSI_SOLVER,MULTI_PROC,BLACS_DENSE,rw_h%n_basis,&
            rw_h%n_electrons,0)
    call elsi_set_mpi(aux_h,rw_h%mpi_comm)
@@ -781,11 +694,7 @@ subroutine elsi_read_mat_real_mp(rw_h,f_name,mat)
 
    ! Output
    aux_h%myid_all         = rw_h%myid
-   aux_h%stdio%print_info = rw_h%print_info
-   aux_h%print_mem        = rw_h%print_mem
    aux_h%stdio%print_unit = rw_h%print_unit
-
-   call elsi_get_time(t0)
 
    ! Open file
    f_mode = mpi_mode_rdonly
@@ -865,13 +774,6 @@ subroutine elsi_read_mat_real_mp(rw_h,f_name,mat)
    call elsi_deallocate(aux_h,row_ind,"row_ind")
    call elsi_deallocate(aux_h,nnz_val,"nnz_val")
 
-   call elsi_get_time(t1)
-
-   write(info_str,"('  Finished reading matrix')")
-   call elsi_say(aux_h%stdio,info_str)
-   write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(aux_h%stdio,info_str)
-
    call elsi_cleanup(aux_h)
 
 end subroutine
@@ -884,41 +786,21 @@ subroutine elsi_read_mat_real_sparse(rw_h,f_name,row_ind,col_ptr,mat)
    implicit none
 
    type(elsi_rw_handle), intent(inout) :: rw_h                      !< Handle
-   character(*),         intent(in)    :: f_name                    !< File name
+   character(len=*),     intent(in)    :: f_name                    !< File name
    integer(kind=i4),     intent(out)   :: row_ind(rw_h%nnz_l_sp)    !< Row index
    integer(kind=i4),     intent(out)   :: col_ptr(rw_h%n_lcol_sp+1) !< Column pointer
    real(kind=r8),        intent(out)   :: mat(rw_h%nnz_l_sp)        !< Matrix
 
-   integer(kind=i4)   :: ierr
-   integer(kind=i4)   :: f_handle
-   integer(kind=i4)   :: f_mode
-   integer(kind=i4)   :: n_lcol0
-   integer(kind=i4)   :: prev_nnz
-   integer(kind=i8)   :: offset
-   logical            :: file_ok
-   real(kind=r8)      :: t0
-   real(kind=r8)      :: t1
-   character(len=200) :: info_str
-
-   type(elsi_handle) :: aux_h
+   integer(kind=i4) :: ierr
+   integer(kind=i4) :: f_handle
+   integer(kind=i4) :: f_mode
+   integer(kind=i4) :: n_lcol0
+   integer(kind=i4) :: prev_nnz
+   integer(kind=i8) :: offset
 
    character(len=40), parameter :: caller = "elsi_read_mat_real_sparse"
 
    call elsi_check_rw(rw_h,caller)
-
-   inquire(file=f_name,exist=file_ok)
-
-   if(.not. file_ok) then
-      write(info_str,"(3A)") "File '",trim(f_name),"' does not exist."
-      call elsi_rw_stop(rw_h,info_str,caller)
-   endif
-
-   ! Output
-   aux_h%myid_all         = rw_h%myid
-   aux_h%stdio%print_info = rw_h%print_info
-   aux_h%stdio%print_unit = rw_h%print_unit
-
-   call elsi_get_time(t0)
 
    ! Open file
    f_mode = mpi_mode_rdonly
@@ -967,13 +849,6 @@ subroutine elsi_read_mat_real_sparse(rw_h,f_name,row_ind,col_ptr,mat)
 
    call elsi_check_rw_mpi(rw_h,"MPI_File_close",ierr,caller)
 
-   call elsi_get_time(t1)
-
-   write(info_str,"('  Finished reading matrix')")
-   call elsi_say(aux_h%stdio,info_str)
-   write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(aux_h%stdio,info_str)
-
 end subroutine
 
 !>
@@ -984,19 +859,15 @@ subroutine elsi_read_mat_complex_mp(rw_h,f_name,mat)
    implicit none
 
    type(elsi_rw_handle), intent(inout) :: rw_h                         !< Handle
-   character(*),         intent(in)    :: f_name                       !< File name
+   character(len=*),     intent(in)    :: f_name                       !< File name
    complex(kind=r8),     intent(out)   :: mat(rw_h%n_lrow,rw_h%n_lcol) !< Matrix
 
-   integer(kind=i4)   :: ierr
-   integer(kind=i4)   :: f_handle
-   integer(kind=i4)   :: f_mode
-   integer(kind=i4)   :: n_lcol0
-   integer(kind=i4)   :: prev_nnz
-   integer(kind=i8)   :: offset
-   logical            :: file_ok
-   real(kind=r8)      :: t0
-   real(kind=r8)      :: t1
-   character(len=200) :: info_str
+   integer(kind=i4) :: ierr
+   integer(kind=i4) :: f_handle
+   integer(kind=i4) :: f_mode
+   integer(kind=i4) :: n_lcol0
+   integer(kind=i4) :: prev_nnz
+   integer(kind=i8) :: offset
 
    integer(kind=i4), allocatable :: row_ind(:)
    integer(kind=i4), allocatable :: col_ptr(:)
@@ -1006,13 +877,6 @@ subroutine elsi_read_mat_complex_mp(rw_h,f_name,mat)
 
    character(len=40), parameter :: caller = "elsi_read_mat_complex_mp"
 
-   inquire(file=f_name,exist=file_ok)
-
-   if(.not. file_ok) then
-      write(info_str,"(3A)") "File '",trim(f_name),"' does not exist."
-      call elsi_rw_stop(rw_h,info_str,caller)
-   endif
-
    call elsi_init(aux_h,PEXSI_SOLVER,MULTI_PROC,BLACS_DENSE,rw_h%n_basis,&
            rw_h%n_electrons,0)
    call elsi_set_mpi(aux_h,rw_h%mpi_comm)
@@ -1020,11 +884,7 @@ subroutine elsi_read_mat_complex_mp(rw_h,f_name,mat)
 
    ! Output
    aux_h%myid_all         = rw_h%myid
-   aux_h%stdio%print_info = rw_h%print_info
-   aux_h%print_mem        = rw_h%print_mem
    aux_h%stdio%print_unit = rw_h%print_unit
-
-   call elsi_get_time(t0)
 
    ! Open file
    f_mode = mpi_mode_rdonly
@@ -1104,13 +964,6 @@ subroutine elsi_read_mat_complex_mp(rw_h,f_name,mat)
    call elsi_deallocate(aux_h,row_ind,"row_ind")
    call elsi_deallocate(aux_h,nnz_val,"nnz_val")
 
-   call elsi_get_time(t1)
-
-   write(info_str,"('  Finished reading matrix')")
-   call elsi_say(aux_h%stdio,info_str)
-   write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(aux_h%stdio,info_str)
-
    call elsi_cleanup(aux_h)
 
 end subroutine
@@ -1123,41 +976,21 @@ subroutine elsi_read_mat_complex_sparse(rw_h,f_name,row_ind,col_ptr,mat)
    implicit none
 
    type(elsi_rw_handle), intent(inout) :: rw_h                      !< Handle
-   character(*),         intent(in)    :: f_name                    !< File name
+   character(len=*),     intent(in)    :: f_name                    !< File name
    integer(kind=i4),     intent(out)   :: row_ind(rw_h%nnz_l_sp)    !< Row index
    integer(kind=i4),     intent(out)   :: col_ptr(rw_h%n_lcol_sp+1) !< Column pointer
    complex(kind=r8),     intent(out)   :: mat(rw_h%nnz_l_sp)        !< Matrix
 
-   integer(kind=i4)   :: ierr
-   integer(kind=i4)   :: f_handle
-   integer(kind=i4)   :: f_mode
-   integer(kind=i4)   :: n_lcol0
-   integer(kind=i4)   :: prev_nnz
-   integer(kind=i8)   :: offset
-   logical            :: file_ok
-   real(kind=r8)      :: t0
-   real(kind=r8)      :: t1
-   character(len=200) :: info_str
-
-   type(elsi_handle) :: aux_h
+   integer(kind=i4) :: ierr
+   integer(kind=i4) :: f_handle
+   integer(kind=i4) :: f_mode
+   integer(kind=i4) :: n_lcol0
+   integer(kind=i4) :: prev_nnz
+   integer(kind=i8) :: offset
 
    character(len=40), parameter :: caller = "elsi_read_mat_complex_sparse"
 
    call elsi_check_rw(rw_h,caller)
-
-   inquire(file=f_name,exist=file_ok)
-
-   if(.not. file_ok) then
-      write(info_str,"(3A)") "File '",trim(f_name),"' does not exist."
-      call elsi_rw_stop(rw_h,info_str,caller)
-   endif
-
-   ! Output
-   aux_h%myid_all         = rw_h%myid
-   aux_h%stdio%print_info = rw_h%print_info
-   aux_h%stdio%print_unit = rw_h%print_unit
-
-   call elsi_get_time(t0)
 
    ! Open file
    f_mode = mpi_mode_rdonly
@@ -1206,15 +1039,6 @@ subroutine elsi_read_mat_complex_sparse(rw_h,f_name,row_ind,col_ptr,mat)
 
    call elsi_check_rw_mpi(rw_h,"MPI_File_close",ierr,caller)
 
-   call elsi_get_time(t1)
-
-   write(info_str,"('  Finished reading matrix')")
-   call elsi_say(aux_h%stdio,info_str)
-   write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(aux_h%stdio,info_str)
-
-   call elsi_cleanup(aux_h)
-
 end subroutine
 
 !>
@@ -1225,19 +1049,16 @@ subroutine elsi_write_mat_real_mp(rw_h,f_name,mat)
    implicit none
 
    type(elsi_rw_handle), intent(in) :: rw_h                         !< Handle
-   character(*),         intent(in) :: f_name                       !< File name
+   character(len=*),     intent(in) :: f_name                       !< File name
    real(kind=r8),        intent(in) :: mat(rw_h%n_lrow,rw_h%n_lcol) !< Matrix
 
-   integer(kind=i4)   :: ierr
-   integer(kind=i4)   :: f_handle
-   integer(kind=i4)   :: f_mode
-   integer(kind=i4)   :: header(HEADER_SIZE)
-   integer(kind=i4)   :: n_lcol0
-   integer(kind=i4)   :: prev_nnz
-   integer(kind=i8)   :: offset
-   real(kind=r8)      :: t0
-   real(kind=r8)      :: t1
-   character(len=200) :: info_str
+   integer(kind=i4) :: ierr
+   integer(kind=i4) :: f_handle
+   integer(kind=i4) :: f_mode
+   integer(kind=i4) :: header(HEADER_SIZE)
+   integer(kind=i4) :: n_lcol0
+   integer(kind=i4) :: prev_nnz
+   integer(kind=i8) :: offset
 
    real(kind=r8), allocatable :: dummy(:,:)
 
@@ -1249,12 +1070,9 @@ subroutine elsi_write_mat_real_mp(rw_h,f_name,mat)
            rw_h%n_electrons,0)
    call elsi_set_mpi(aux_h,rw_h%mpi_comm)
    call elsi_set_blacs(aux_h,rw_h%blacs_ctxt,rw_h%blk)
-   call elsi_get_time(t0)
 
    ! Output
    aux_h%myid_all         = rw_h%myid
-   aux_h%stdio%print_info = rw_h%print_info
-   aux_h%print_mem        = rw_h%print_mem
    aux_h%stdio%print_unit = rw_h%print_unit
 
    aux_h%zero_def     = rw_h%zero_def
@@ -1337,13 +1155,6 @@ subroutine elsi_write_mat_real_mp(rw_h,f_name,mat)
 
    call elsi_check_rw_mpi(rw_h,"MPI_File_close",ierr,caller)
 
-   call elsi_get_time(t1)
-
-   write(info_str,"('  Finished writing matrix')")
-   call elsi_say(aux_h%stdio,info_str)
-   write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(aux_h%stdio,info_str)
-
    call elsi_cleanup(aux_h)
 
 end subroutine
@@ -1356,19 +1167,16 @@ subroutine elsi_write_mat_complex_mp(rw_h,f_name,mat)
    implicit none
 
    type(elsi_rw_handle), intent(in) :: rw_h                         !< Handle
-   character(*),         intent(in) :: f_name                       !< File name
+   character(len=*),     intent(in) :: f_name                       !< File name
    complex(kind=r8),     intent(in) :: mat(rw_h%n_lrow,rw_h%n_lcol) !< Matrix
 
-   integer(kind=i4)   :: ierr
-   integer(kind=i4)   :: f_handle
-   integer(kind=i4)   :: f_mode
-   integer(kind=i4)   :: header(HEADER_SIZE)
-   integer(kind=i4)   :: n_lcol0
-   integer(kind=i4)   :: prev_nnz
-   integer(kind=i8)   :: offset
-   real(kind=r8)      :: t0
-   real(kind=r8)      :: t1
-   character(len=200) :: info_str
+   integer(kind=i4) :: ierr
+   integer(kind=i4) :: f_handle
+   integer(kind=i4) :: f_mode
+   integer(kind=i4) :: header(HEADER_SIZE)
+   integer(kind=i4) :: n_lcol0
+   integer(kind=i4) :: prev_nnz
+   integer(kind=i8) :: offset
 
    complex(kind=r8), allocatable :: dummy(:,:)
 
@@ -1380,12 +1188,9 @@ subroutine elsi_write_mat_complex_mp(rw_h,f_name,mat)
            rw_h%n_electrons,0)
    call elsi_set_mpi(aux_h,rw_h%mpi_comm)
    call elsi_set_blacs(aux_h,rw_h%blacs_ctxt,rw_h%blk)
-   call elsi_get_time(t0)
 
    ! Output
    aux_h%myid_all         = rw_h%myid
-   aux_h%stdio%print_info = rw_h%print_info
-   aux_h%print_mem        = rw_h%print_mem
    aux_h%stdio%print_unit = rw_h%print_unit
 
    aux_h%zero_def     = rw_h%zero_def
@@ -1468,13 +1273,6 @@ subroutine elsi_write_mat_complex_mp(rw_h,f_name,mat)
 
    call elsi_check_rw_mpi(rw_h,"MPI_File_close",ierr,caller)
 
-   call elsi_get_time(t1)
-
-   write(info_str,"('  Finished writing matrix')")
-   call elsi_say(aux_h%stdio,info_str)
-   write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(aux_h%stdio,info_str)
-
    call elsi_cleanup(aux_h)
 
 end subroutine
@@ -1487,36 +1285,24 @@ subroutine elsi_write_mat_real_sparse(rw_h,f_name,row_ind,col_ptr,mat)
    implicit none
 
    type(elsi_rw_handle), intent(in) :: rw_h                      !< Handle
-   character(*),         intent(in) :: f_name                    !< File name
+   character(len=*),     intent(in) :: f_name                    !< File name
    integer(kind=i4),     intent(in) :: row_ind(rw_h%nnz_l_sp)    !< Row index
    integer(kind=i4),     intent(in) :: col_ptr(rw_h%n_lcol_sp+1) !< Column pointer
    real(kind=r8),        intent(in) :: mat(rw_h%nnz_l_sp)        !< Matrix
 
-   integer(kind=i4)   :: ierr
-   integer(kind=i4)   :: f_handle
-   integer(kind=i4)   :: f_mode
-   integer(kind=i4)   :: header(HEADER_SIZE)
-   integer(kind=i4)   :: prev_nnz
-   integer(kind=i4)   :: n_lcol0
-   integer(kind=i8)   :: offset
-   real(kind=r8)      :: t0
-   real(kind=r8)      :: t1
-   character(len=200) :: info_str
+   integer(kind=i4) :: ierr
+   integer(kind=i4) :: f_handle
+   integer(kind=i4) :: f_mode
+   integer(kind=i4) :: header(HEADER_SIZE)
+   integer(kind=i4) :: prev_nnz
+   integer(kind=i4) :: n_lcol0
+   integer(kind=i8) :: offset
 
    integer(kind=i4), allocatable :: col_ptr_shift(:)
-
-   type(elsi_handle) :: aux_h
 
    character(len=40), parameter :: caller = "elsi_write_mat_real_sparse"
 
    call elsi_check_rw(rw_h,caller)
-
-   ! Output
-   aux_h%myid_all         = rw_h%myid
-   aux_h%stdio%print_info = rw_h%print_info
-   aux_h%stdio%print_unit = rw_h%print_unit
-
-   call elsi_get_time(t0)
 
    ! Open file
    f_mode = mpi_mode_wronly+mpi_mode_create
@@ -1589,13 +1375,6 @@ subroutine elsi_write_mat_real_sparse(rw_h,f_name,row_ind,col_ptr,mat)
 
    call elsi_check_rw_mpi(rw_h,"MPI_File_close",ierr,caller)
 
-   call elsi_get_time(t1)
-
-   write(info_str,"('  Finished writing matrix')")
-   call elsi_say(aux_h%stdio,info_str)
-   write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(aux_h%stdio,info_str)
-
 end subroutine
 
 !>
@@ -1606,36 +1385,24 @@ subroutine elsi_write_mat_complex_sparse(rw_h,f_name,row_ind,col_ptr,mat)
    implicit none
 
    type(elsi_rw_handle), intent(in) :: rw_h                      !< Handle
-   character(*),         intent(in) :: f_name                    !< File name
+   character(len=*),     intent(in) :: f_name                    !< File name
    integer(kind=i4),     intent(in) :: row_ind(rw_h%nnz_l_sp)    !< Row index
    integer(kind=i4),     intent(in) :: col_ptr(rw_h%n_lcol_sp+1) !< Column pointer
    complex(kind=r8),     intent(in) :: mat(rw_h%nnz_l_sp)        !< Matrix
 
-   integer(kind=i4)   :: ierr
-   integer(kind=i4)   :: f_handle
-   integer(kind=i4)   :: f_mode
-   integer(kind=i4)   :: header(HEADER_SIZE)
-   integer(kind=i4)   :: prev_nnz
-   integer(kind=i4)   :: n_lcol0
-   integer(kind=i8)   :: offset
-   real(kind=r8)      :: t0
-   real(kind=r8)      :: t1
-   character(len=200) :: info_str
+   integer(kind=i4) :: ierr
+   integer(kind=i4) :: f_handle
+   integer(kind=i4) :: f_mode
+   integer(kind=i4) :: header(HEADER_SIZE)
+   integer(kind=i4) :: prev_nnz
+   integer(kind=i4) :: n_lcol0
+   integer(kind=i8) :: offset
 
    integer(kind=i4), allocatable :: col_ptr_shift(:)
-
-   type(elsi_handle) :: aux_h
 
    character(len=40), parameter :: caller = "elsi_write_mat_complex_sparse"
 
    call elsi_check_rw(rw_h,caller)
-
-   ! Output
-   aux_h%myid_all         = rw_h%myid
-   aux_h%stdio%print_info = rw_h%print_info
-   aux_h%stdio%print_unit = rw_h%print_unit
-
-   call elsi_get_time(t0)
 
    ! Open file
    f_mode = mpi_mode_wronly+mpi_mode_create
@@ -1708,13 +1475,6 @@ subroutine elsi_write_mat_complex_sparse(rw_h,f_name,row_ind,col_ptr,mat)
 
    call elsi_check_rw_mpi(rw_h,"MPI_File_close",ierr,caller)
 
-   call elsi_get_time(t1)
-
-   write(info_str,"('  Finished writing matrix')")
-   call elsi_say(aux_h%stdio,info_str)
-   write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(aux_h%stdio,info_str)
-
 end subroutine
 
 !>
@@ -1726,25 +1486,16 @@ subroutine elsi_read_mat_dim_sp(rw_h,f_name,n_electron,n_basis,n_lrow,n_lcol)
    implicit none
 
    type(elsi_rw_handle), intent(inout) :: rw_h       !< Handle
-   character(*),         intent(in)    :: f_name     !< File name
+   character(len=*),     intent(in)    :: f_name     !< File name
    real(kind=r8),        intent(out)   :: n_electron !< Number of electrons
    integer(kind=i4),     intent(out)   :: n_basis    !< Matrix size
    integer(kind=i4),     intent(out)   :: n_lrow     !< Local number of rows
    integer(kind=i4),     intent(out)   :: n_lcol     !< Local number of columns
 
-   integer(kind=i4)   :: header(HEADER_SIZE)
-   integer(kind=i8)   :: offset
-   logical            :: file_ok
-   character(len=200) :: info_str
+   integer(kind=i4) :: header(HEADER_SIZE)
+   integer(kind=i8) :: offset
 
    character(len=40), parameter :: caller = "elsi_read_mat_dim_sp"
-
-   inquire(file=f_name,exist=file_ok)
-
-   if(.not. file_ok) then
-      write(info_str,"(3A)") "File '",trim(f_name),"' does not exist."
-      call elsi_rw_stop(rw_h,info_str,caller)
-   endif
 
    ! Open file
    open(file=f_name,unit=99,access="stream",form="unformatted")
@@ -1777,19 +1528,15 @@ subroutine elsi_read_mat_real_sp(rw_h,f_name,mat)
    implicit none
 
    type(elsi_rw_handle), intent(inout) :: rw_h                         !< Handle
-   character(*),         intent(in)    :: f_name                       !< File name
+   character(len=*),     intent(in)    :: f_name                       !< File name
    real(kind=r8),        intent(out)   :: mat(rw_h%n_lrow,rw_h%n_lcol) !< Matrix
 
-   integer(kind=i4)   :: header(HEADER_SIZE)
-   integer(kind=i4)   :: i_val
-   integer(kind=i4)   :: i
-   integer(kind=i4)   :: j
-   integer(kind=i4)   :: this_nnz
-   integer(kind=i8)   :: offset
-   logical            :: file_ok
-   real(kind=r8)      :: t0
-   real(kind=r8)      :: t1
-   character(len=200) :: info_str
+   integer(kind=i4) :: header(HEADER_SIZE)
+   integer(kind=i4) :: i_val
+   integer(kind=i4) :: i
+   integer(kind=i4) :: j
+   integer(kind=i4) :: this_nnz
+   integer(kind=i8) :: offset
 
    integer(kind=i4), allocatable :: row_ind(:)
    integer(kind=i4), allocatable :: col_ptr(:)
@@ -1799,19 +1546,9 @@ subroutine elsi_read_mat_real_sp(rw_h,f_name,mat)
 
    character(len=40), parameter :: caller = "elsi_read_mat_real_sp"
 
-   inquire(file=f_name,exist=file_ok)
-
-   if(.not. file_ok) then
-      write(info_str,"(3A)") "File '",trim(f_name),"' does not exist."
-      call elsi_rw_stop(rw_h,info_str,caller)
-   endif
-
    ! Output
    aux_h%myid_all         = rw_h%myid
-   aux_h%stdio%print_info = rw_h%print_info
    aux_h%stdio%print_unit = rw_h%print_unit
-
-   call elsi_get_time(t0)
 
    ! Open file
    open(file=f_name,unit=99,access="stream",form="unformatted")
@@ -1869,13 +1606,6 @@ subroutine elsi_read_mat_real_sp(rw_h,f_name,mat)
    call elsi_deallocate(aux_h,row_ind,"row_ind")
    call elsi_deallocate(aux_h,nnz_val,"nnz_val")
 
-   call elsi_get_time(t1)
-
-   write(info_str,"('  Finished reading matrix')")
-   call elsi_say(aux_h%stdio,info_str)
-   write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(aux_h%stdio,info_str)
-
 end subroutine
 
 !>
@@ -1886,19 +1616,15 @@ subroutine elsi_read_mat_complex_sp(rw_h,f_name,mat)
    implicit none
 
    type(elsi_rw_handle), intent(inout) :: rw_h                         !< Handle
-   character(*),         intent(in)    :: f_name                       !< File name
+   character(len=*),     intent(in)    :: f_name                       !< File name
    complex(kind=r8),     intent(out)   :: mat(rw_h%n_lrow,rw_h%n_lcol) !< Matrix
 
-   integer(kind=i4)   :: header(HEADER_SIZE)
-   integer(kind=i4)   :: i_val
-   integer(kind=i4)   :: i
-   integer(kind=i4)   :: j
-   integer(kind=i4)   :: this_nnz
-   integer(kind=i8)   :: offset
-   logical            :: file_ok
-   real(kind=r8)      :: t0
-   real(kind=r8)      :: t1
-   character(len=200) :: info_str
+   integer(kind=i4) :: header(HEADER_SIZE)
+   integer(kind=i4) :: i_val
+   integer(kind=i4) :: i
+   integer(kind=i4) :: j
+   integer(kind=i4) :: this_nnz
+   integer(kind=i8) :: offset
 
    integer(kind=i4), allocatable :: row_ind(:)
    integer(kind=i4), allocatable :: col_ptr(:)
@@ -1908,19 +1634,9 @@ subroutine elsi_read_mat_complex_sp(rw_h,f_name,mat)
 
    character(len=40), parameter :: caller = "elsi_read_mat_complex_sp"
 
-   inquire(file=f_name,exist=file_ok)
-
-   if(.not. file_ok) then
-      write(info_str,"(3A)") "File '",trim(f_name),"' does not exist."
-      call elsi_rw_stop(rw_h,info_str,caller)
-   endif
-
    ! Output
    aux_h%myid_all         = rw_h%myid
-   aux_h%stdio%print_info = rw_h%print_info
    aux_h%stdio%print_unit = rw_h%print_unit
-
-   call elsi_get_time(t0)
 
    ! Open file
    open(file=f_name,unit=99,access="stream",form="unformatted")
@@ -1978,13 +1694,6 @@ subroutine elsi_read_mat_complex_sp(rw_h,f_name,mat)
    call elsi_deallocate(aux_h,row_ind,"row_ind")
    call elsi_deallocate(aux_h,nnz_val,"nnz_val")
 
-   call elsi_get_time(t1)
-
-   write(info_str,"('  Finished reading matrix')")
-   call elsi_say(aux_h%stdio,info_str)
-   write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(aux_h%stdio,info_str)
-
 end subroutine
 
 !>
@@ -1995,19 +1704,16 @@ subroutine elsi_write_mat_real_sp(rw_h,f_name,mat)
    implicit none
 
    type(elsi_rw_handle), intent(in) :: rw_h                         !< Handle
-   character(*),         intent(in) :: f_name                       !< File name
+   character(len=*),     intent(in) :: f_name                       !< File name
    real(kind=r8),        intent(in) :: mat(rw_h%n_lrow,rw_h%n_lcol) !< Matrix
 
-   integer(kind=i4)   :: header(HEADER_SIZE)
-   integer(kind=i4)   :: i_val
-   integer(kind=i4)   :: i
-   integer(kind=i4)   :: j
-   integer(kind=i4)   :: this_nnz
-   integer(kind=i4)   :: nnz_g
-   integer(kind=i8)   :: offset
-   real(kind=r8)      :: t0
-   real(kind=r8)      :: t1
-   character(len=200) :: info_str
+   integer(kind=i4) :: header(HEADER_SIZE)
+   integer(kind=i4) :: i_val
+   integer(kind=i4) :: i
+   integer(kind=i4) :: j
+   integer(kind=i4) :: this_nnz
+   integer(kind=i4) :: nnz_g
+   integer(kind=i8) :: offset
 
    integer(kind=i4), allocatable :: row_ind(:)
    integer(kind=i4), allocatable :: col_ptr(:)
@@ -2019,14 +1725,11 @@ subroutine elsi_write_mat_real_sp(rw_h,f_name,mat)
 
    ! Output
    aux_h%myid_all         = rw_h%myid
-   aux_h%stdio%print_info = rw_h%print_info
    aux_h%stdio%print_unit = rw_h%print_unit
    aux_h%zero_def         = rw_h%zero_def
 
-   call elsi_get_time(t0)
-
    ! Compute nnz
-   call elsi_get_local_nnz_real(aux_h,mat,rw_h%n_lrow,rw_h%n_lcol,nnz_g)
+   call elsi_get_nnz_real(rw_h%zero_def,mat,rw_h%n_lrow,rw_h%n_lcol,nnz_g)
 
    ! Convert to CSC
    call elsi_allocate(aux_h,col_ptr,rw_h%n_basis+1,"col_ptr",caller)
@@ -2089,13 +1792,6 @@ subroutine elsi_write_mat_real_sp(rw_h,f_name,mat)
    call elsi_deallocate(aux_h,row_ind,"row_ind")
    call elsi_deallocate(aux_h,nnz_val,"nnz_val")
 
-   call elsi_get_time(t1)
-
-   write(info_str,"('  Finished writing matrix')")
-   call elsi_say(aux_h%stdio,info_str)
-   write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(aux_h%stdio,info_str)
-
 end subroutine
 
 !>
@@ -2106,19 +1802,16 @@ subroutine elsi_write_mat_complex_sp(rw_h,f_name,mat)
    implicit none
 
    type(elsi_rw_handle), intent(in) :: rw_h                         !< Handle
-   character(*),         intent(in) :: f_name                       !< File name
+   character(len=*),     intent(in) :: f_name                       !< File name
    complex(kind=r8),     intent(in) :: mat(rw_h%n_lrow,rw_h%n_lcol) !< Matrix
 
-   integer(kind=i4)   :: header(HEADER_SIZE)
-   integer(kind=i4)   :: i_val
-   integer(kind=i4)   :: i
-   integer(kind=i4)   :: j
-   integer(kind=i4)   :: this_nnz
-   integer(kind=i4)   :: nnz_g
-   integer(kind=i8)   :: offset
-   real(kind=r8)      :: t0
-   real(kind=r8)      :: t1
-   character(len=200) :: info_str
+   integer(kind=i4) :: header(HEADER_SIZE)
+   integer(kind=i4) :: i_val
+   integer(kind=i4) :: i
+   integer(kind=i4) :: j
+   integer(kind=i4) :: this_nnz
+   integer(kind=i4) :: nnz_g
+   integer(kind=i8) :: offset
 
    integer(kind=i4), allocatable :: row_ind(:)
    integer(kind=i4), allocatable :: col_ptr(:)
@@ -2130,14 +1823,11 @@ subroutine elsi_write_mat_complex_sp(rw_h,f_name,mat)
 
    ! Output
    aux_h%myid_all         = rw_h%myid
-   aux_h%stdio%print_info = rw_h%print_info
    aux_h%stdio%print_unit = rw_h%print_unit
    aux_h%zero_def         = rw_h%zero_def
 
-   call elsi_get_time(t0)
-
    ! Compute nnz
-   call elsi_get_local_nnz_cmplx(aux_h,mat,rw_h%n_lrow,rw_h%n_lcol,nnz_g)
+   call elsi_get_nnz_cmplx(rw_h%zero_def,mat,rw_h%n_lrow,rw_h%n_lcol,nnz_g)
 
    ! Convert to CSC
    call elsi_allocate(aux_h,col_ptr,rw_h%n_basis+1,"col_ptr",caller)
@@ -2199,13 +1889,6 @@ subroutine elsi_write_mat_complex_sp(rw_h,f_name,mat)
    call elsi_deallocate(aux_h,col_ptr,"col_ptr")
    call elsi_deallocate(aux_h,row_ind,"row_ind")
    call elsi_deallocate(aux_h,nnz_val,"nnz_val")
-
-   call elsi_get_time(t1)
-
-   write(info_str,"('  Finished writing matrix')")
-   call elsi_say(aux_h%stdio,info_str)
-   write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(aux_h%stdio,info_str)
 
 end subroutine
 

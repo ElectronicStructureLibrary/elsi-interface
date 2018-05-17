@@ -269,9 +269,6 @@ void c_elsi_set_rw_csc(elsi_rw_handle handle_c,
 
 void c_elsi_finalize_rw(elsi_rw_handle handle_c);
 
-void c_elsi_set_rw_output(elsi_rw_handle handle_c,
-                          int out_level);
-
 void c_elsi_set_rw_zero_def(elsi_rw_handle handle_c,
                             double zero_def);
 

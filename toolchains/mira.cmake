@@ -14,5 +14,5 @@ SET(ENABLE_TESTS ON CACHE BOOL "Enable tests")
 SET(ENABLE_PEXSI ON CACHE BOOL "Enable PEXSI")
 
 SET(IBM_MAIN_DIR "/soft/compilers/ibmcmp-oct2017" CACHE PATH "IBM main directory")
-SET(LIB_PATHS "/soft/libraries/alcf/current/xl/SCALAPACK/lib;/soft/libraries/alcf/current/xl/LAPACK/lib;/soft/libraries/essl/current/essl/5.1/lib64;${IBM_MAIN_DIR}/xlf/bg/14.1/bglib64;${IBM_MAIN_DIR}/xlsmp/bg/3.1/bglib64;${IBM_MAIN_DIR}/xlmass/bg/7.3/bglib64" CACHE STRING "External library include paths")
+SET(LIB_PATHS "/soft/libraries/alcf/current/xl/SCALAPACK/lib;/soft/libraries/alcf/current/xl/LAPACK/lib;/soft/libraries/essl/current/essl/5.1/lib64;${IBM_MAIN_DIR}/xlf/bg/14.1/bglib64;${IBM_MAIN_DIR}/xlsmp/bg/3.1/bglib64;${IBM_MAIN_DIR}/xlmass/bg/7.3/bglib64" CACHE STRING "External library paths")
 SET(LIBS "libscalapack.a;liblapack.a;libesslsmpbg.a;libxlf90_r.a;libxlopt.a;libxlfmath.a;libxl.a;libxlsmp.a;libmass.a" CACHE STRING "External libraries")
