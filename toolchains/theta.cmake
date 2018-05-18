@@ -11,8 +11,4 @@ SET(CMAKE_CXX_FLAGS "-fast -no-ipo -std=c++11" CACHE STRING "C++ flags")
 SET(ELPA2_KERNEL "AVX512" CACHE STRING "Use ELPA AVX512 kernel")
 SET(ENABLE_TESTS ON CACHE BOOL "Enable tests")
 SET(ENABLE_PEXSI OFF CACHE BOOL "Enable PEXSI")
-
-# Currently external SuperLU_DIST and PT-SCOTCH libraries are needed on Theta
-SET(LIB_PATHS "/home/wzvyu/theta/opt/SuperLU_DIST_5.3.0/lib /home/wzvyu/theta/opt/scotch_6.0.5a/lib" CACHE STRING "External library paths")
-SET(INC_PATHS "/home/wzvyu/theta/opt/SuperLU_DIST_5.3.0/SRC /home/wzvyu/theta/opt/scotch_6.0.5a/include" CACHE STRING "External library include paths")
-SET(LIBS "superlu_dist ptscotchparmetis ptscotch ptscotcherr scotchmetis scotch scotcherr" CACHE STRING "External libraries")
+SET(SCOTCH_LAST_RESORT "aprun -n 1 -N 1" CACHE STRING "Command to run PT-SCOTCH header generation")
