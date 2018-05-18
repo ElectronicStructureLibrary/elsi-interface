@@ -4,6 +4,7 @@
 
    ELSI:
    * CMake build system has replaced the Makefile-based system.
+   * Support for building ELSI as a shared library has been added.
    * Support for spin channels and k-points has been added.
    * Support for energy-weighted density matrix has been added.
    * Support for electronic entropy calculations has been added.
@@ -27,11 +28,8 @@
    * AVX512 kernel has been added.
    * The two-stage solver is now the default solver for all matrix sizes.
    * The interface for externally linked ELPA has been updated to the AEO
-     verison (release 2017.05 or later).  This enables a number of new
-     features including:
-   * Autotuning is enabled by default for externally linked ELPA.
-   * GPU acceleration and GPU kernels may be enabled through the ELSI
-     interface for externally linked ELPA.
+     verison (release 2017.05 or later).  GPU acceleration and GPU kernels
+     may be enabled through the ELSI interface for externally linked ELPA.
 
    PEXSI:
    * Redistributed version updated to v1.0.

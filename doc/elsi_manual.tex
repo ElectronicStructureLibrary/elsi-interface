@@ -465,47 +465,53 @@ Note that the tests may not run if launching MPI jobs is prohibited on the user'
 \label{subsec:config_keywords}
 The options accepted by the ELSI CMake build system are listed here in alphabetical order.  Some additional explanations are made below the table.\\
 
-\begin{tabular}[]{|p{50mm}|p{15mm}|p{15mm}|p{85mm}|}
+\begin{tabular}[]{|p{50mm}|p{15mm}|p{20mm}|p{80mm}|}
 \hline
 \multicolumn{1}{|c|}{\textbf{Option}} & \multicolumn{1}{c|}{\textbf{Type}} & \multicolumn{1}{c|}{\textbf{Default}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
 \hline
-\textcolor{blue}{ADD\_UNDERSCORE}            & boolean & ON         & Suffix C functions with an underscore\\
+\textcolor{blue}{ADD\_UNDERSCORE}            & boolean & ON          & Suffix C functions with an underscore\\
 \hline
-\textcolor{blue}{CMAKE\_C\_COMPILER}         & string  & none       & MPI C compiler\\
+\textcolor{blue}{CMAKE\_C\_COMPILER}         & string  & none        & MPI C compiler\\
 \hline
-\textcolor{blue}{CMAKE\_C\_FLAGS}            & string  & none       & C flags\\
+\textcolor{blue}{CMAKE\_C\_FLAGS}            & string  & none        & C flags\\
 \hline
-\textcolor{blue}{CMAKE\_CXX\_COMPILER}       & string  & none       & MPI C++ compiler\\
+\textcolor{blue}{CMAKE\_CXX\_COMPILER}       & string  & none        & MPI C++ compiler\\
 \hline
-\textcolor{blue}{CMAKE\_CXX\_FLAGS}          & string  & none       & C++ flags\\
+\textcolor{blue}{CMAKE\_CXX\_FLAGS}          & string  & none        & C++ flags\\
 \hline
-\textcolor{blue}{CMAKE\_Fortran\_COMPILER}   & string  & none       & MPI Fortran compiler\\
+\textcolor{blue}{CMAKE\_Fortran\_COMPILER}   & string  & none        & MPI Fortran compiler\\
 \hline
-\textcolor{blue}{CMAKE\_Fortran\_FLAGS}      & string  & none       & Fortran flags\\
+\textcolor{blue}{CMAKE\_Fortran\_FLAGS}      & string  & none        & Fortran flags\\
 \hline
-\textcolor{blue}{CMAKE\_INSTALL\_PREFIX}     & path    & /usr/local & Path to install ELSI\\
+\textcolor{blue}{CMAKE\_INSTALL\_PREFIX}     & path    & /usr/local  & Path to install ELSI\\
 \hline
-\textcolor{blue}{ELPA2\_KERNEL}              & string  & none       & ELPA2 kernel\\
+\textcolor{blue}{ELPA2\_KERNEL}              & string  & none        & ELPA2 kernel\\
 \hline
-\textcolor{blue}{ENABLE\_C\_TESTS}           & boolean & OFF        & Build C test programs\\
+\textcolor{blue}{ENABLE\_C\_TESTS}           & boolean & OFF         & Build C test programs\\
 \hline
-\textcolor{blue}{ENABLE\_PEXSI}              & boolean & OFF        & Enable PEXSI support\\
+\textcolor{blue}{ENABLE\_PEXSI}              & boolean & OFF         & Enable PEXSI support\\
 \hline
-\textcolor{blue}{ENABLE\_SIPS}               & boolean & OFF        & Enable SLEPc-SIPs support\\
+\textcolor{blue}{ENABLE\_SIPS}               & boolean & OFF         & Enable SLEPc-SIPs support\\
 \hline
-\textcolor{blue}{ENABLE\_TESTS}              & boolean & OFF        & Build Fortran test programs\\
+\textcolor{blue}{ENABLE\_TESTS}              & boolean & OFF         & Build Fortran test programs\\
 \hline
-\textcolor{blue}{INC\_PATHS}                 & string  & none       & Include directories of external libraries\\
+\textcolor{blue}{INC\_PATHS}                 & string  & none        & Include directories of external libraries\\
 \hline
-\textcolor{blue}{LIB\_PATHS}                 & string  & none       & Directories containing external libraries\\
+\textcolor{blue}{LIB\_PATHS}                 & string  & none        & Directories containing external libraries\\
 \hline
-\textcolor{blue}{LIBS}                       & string  & none       & External libraries\\
+\textcolor{blue}{LIBS}                       & string  & none        & External libraries\\
 \hline
-\textcolor{blue}{USE\_EXTERNAL\_ELPA}        & boolean & OFF        & Use external ELPA\\
+\textcolor{blue}{MPIEXEC\_NP}                & string  & mpirun -n 4 & Command to run tests in parallel with MPI\\
 \hline
-\textcolor{blue}{USE\_EXTERNAL\_OMM}         & boolean & OFF        & Use external libOMM and MatrixSwitch\\
+\textcolor{blue}{MPIEXEC\_1P}                & string  & mpirun -n 1 & Command to run tests in serial with MPI\\
 \hline
-\textcolor{blue}{USE\_EXTERNAL\_SUPERLU}     & boolean & OFF        & Use external SuperLU\_DIST\\
+\textcolor{blue}{SCOTCH\_LAST\_RESORT}       & string  & none        & Command to invoke PT-SCOTCH header generator\\
+\hline
+\textcolor{blue}{USE\_EXTERNAL\_ELPA}        & boolean & OFF         & Use external ELPA\\
+\hline
+\textcolor{blue}{USE\_EXTERNAL\_OMM}         & boolean & OFF         & Use external libOMM and MatrixSwitch\\
+\hline
+\textcolor{blue}{USE\_EXTERNAL\_SUPERLU}     & boolean & OFF         & Use external SuperLU\_DIST\\
 \hline
 \end{tabular}
 
@@ -516,7 +522,9 @@ The options accepted by the ELSI CMake build system are listed here in alphabeti
 
 \textbf{2)} \textcolor{blue}{ELPA2\_KERNEL}:  There are a number of computational kernels available with the ELPA solver.  Choose from ``BGQ'' (IBM Blue Gene Q), ``AVX'' (Intel AVX), ``AVX2'' (Intel AVX2), and ``AVX512'' (Intel AVX512).  See \ref{subsec:config_solvers} for more information.\\
 
-\textbf{3)} External libraries:  ELSI redistributes source code of ELPA, libOMM, PEXSI, SuperLU\_DIST, and PT-SCOTCH libraries, which by default will be built together with the ELSI interface.  Experienced users are encouraged to link the ELSI interface against external, better optimized solver libraries.  See \ref{subsec:config_solvers} for more information.\\
+\textbf{3)} \textcolor{blue}{SCOTCH\_LAST\_RESORT}:  The compilation of the PT-SCOTCH library is a multi-step process.  First, two auxiliary executables are compiled.  Then, header files of the library are generated by running the two compiled executables.  Finally, the main source files of the library are compiled with the generated header files included.  The header generation step may fail on platforms where directly running an executable is prohibited on a login/compile node.  Often this can be circumvented by requesting an interactive session to a compute node and performing the compilation there, or by submitting the whole compilation as a job to the queuing system.  However, this may still fail on platforms where an executable compiled with MPI must be launched by an MPI job launcher (aprun, mpirun, srun, etc).  If the standard compilation of PT-SCOTCH fails due to this reason, the user may set \textcolor{blue}{SCOTCH\_LAST\_RESORT} to the command that starts an MPI job with one MPI task, e.g. ``mpirun -n 1''.  This command will be used to launch the auxiliary executables to generate necessary header files for PT-SCOTCH.\\
+
+\textbf{4)} External libraries:  ELSI redistributes source code of ELPA, libOMM, PEXSI, SuperLU\_DIST, and PT-SCOTCH libraries, which by default will be built together with the ELSI interface.  Experienced users are encouraged to link the ELSI interface against external, better optimized solver libraries.  See \ref{subsec:config_solvers} for more information.\\
 
 \subsection{``Toolchain'' Files}
 \label{subsec:config_toolchain}
