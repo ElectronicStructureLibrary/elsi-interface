@@ -16,9 +16,8 @@ ENDMACRO()
 
 SET(SCOTCH_SOURCE_DIR "${PROJECT_SOURCE_DIR}/external/SCOTCH/src")
 
-### Auxiliary executables ###
+### Generate headers ###
 LIST(APPEND dsize_src src/libscotch/dummysizes.c)
-
 LIST(APPEND pdsize_src src/libscotch/ptdummysizes.c)
 
 ADD_EXECUTABLE(dummysizes ${dsize_src})
@@ -31,32 +30,59 @@ TARGET_COMPILE_DEFINITIONS(ptdummysizes PRIVATE SCOTCH_PTSCOTCH)
 inc_scotch(dummysizes)
 inc_scotch(ptdummysizes)
 
-### Generate headers ###
-ADD_CUSTOM_COMMAND(OUTPUT ${PROJECT_BINARY_DIR}/generated/scotch.h ${PROJECT_BINARY_DIR}/generated/scotchf.h
-  COMMAND dummysizes ${SCOTCH_SOURCE_DIR}/libscotch/library.h ${PROJECT_BINARY_DIR}/generated/scotch.h
-  COMMAND dummysizes ${SCOTCH_SOURCE_DIR}/libscotch/library_f.h ${PROJECT_BINARY_DIR}/generated/scotchf.h
-  DEPENDS dummysizes
-  VERBATIM
-)
+IF(SCOTCH_LAST_RESORT)
+  ADD_CUSTOM_COMMAND(OUTPUT ${PROJECT_BINARY_DIR}/generated/scotch.h ${PROJECT_BINARY_DIR}/generated/scotchf.h
+    COMMAND ${MPIEXEC} ${MPIEXEC_NP_FLAG} 1 ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/dummysizes ${SCOTCH_SOURCE_DIR}/libscotch/library.h ${PROJECT_BINARY_DIR}/generated/scotch.h
+    COMMAND ${MPIEXEC} ${MPIEXEC_NP_FLAG} 1 ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/dummysizes ${SCOTCH_SOURCE_DIR}/libscotch/library_f.h ${PROJECT_BINARY_DIR}/generated/scotchf.h
+    DEPENDS dummysizes
+    VERBATIM
+  )
 
-ADD_CUSTOM_COMMAND(OUTPUT ${PROJECT_BINARY_DIR}/generated/metis.h
-  COMMAND dummysizes ${SCOTCH_SOURCE_DIR}/libscotchmetis/library_metis.h ${PROJECT_BINARY_DIR}/generated/metis.h
-  DEPENDS dummysizes
-  VERBATIM
-)
+  ADD_CUSTOM_COMMAND(OUTPUT ${PROJECT_BINARY_DIR}/generated/metis.h
+    COMMAND ${MPIEXEC} ${MPIEXEC_NP_FLAG} 1 ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/dummysizes ${SCOTCH_SOURCE_DIR}/libscotchmetis/library_metis.h ${PROJECT_BINARY_DIR}/generated/metis.h
+    DEPENDS dummysizes
+    VERBATIM
+  )
 
-ADD_CUSTOM_COMMAND(OUTPUT ${PROJECT_BINARY_DIR}/generated/parmetis.h
-  COMMAND dummysizes ${SCOTCH_SOURCE_DIR}/libscotchmetis/library_parmetis.h ${PROJECT_BINARY_DIR}/generated/parmetis.h
-  DEPENDS dummysizes
-  VERBATIM
-)
+  ADD_CUSTOM_COMMAND(OUTPUT ${PROJECT_BINARY_DIR}/generated/parmetis.h
+    COMMAND ${MPIEXEC} ${MPIEXEC_NP_FLAG} 1 ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/dummysizes ${SCOTCH_SOURCE_DIR}/libscotchmetis/library_parmetis.h ${PROJECT_BINARY_DIR}/generated/parmetis.h
+    DEPENDS dummysizes
+    VERBATIM
+  )
 
-ADD_CUSTOM_COMMAND(OUTPUT ${PROJECT_BINARY_DIR}/generated/ptscotch.h ${PROJECT_BINARY_DIR}/generated/ptscotchf.h
-  COMMAND ptdummysizes ${SCOTCH_SOURCE_DIR}/libscotch/library_pt.h ${PROJECT_BINARY_DIR}/generated/ptscotch.h
-  COMMAND ptdummysizes ${SCOTCH_SOURCE_DIR}/libscotch/library_pt_f.h ${PROJECT_BINARY_DIR}/generated/ptscotchf.h
-  DEPENDS ptdummysizes
-  VERBATIM
-)
+  ADD_CUSTOM_COMMAND(OUTPUT ${PROJECT_BINARY_DIR}/generated/ptscotch.h ${PROJECT_BINARY_DIR}/generated/ptscotchf.h
+    COMMAND ${MPIEXEC} ${MPIEXEC_NP_FLAG} 1 ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ptdummysizes ${SCOTCH_SOURCE_DIR}/libscotch/library_pt.h ${PROJECT_BINARY_DIR}/generated/ptscotch.h
+    COMMAND ${MPIEXEC} ${MPIEXEC_NP_FLAG} 1 ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ptdummysizes ${SCOTCH_SOURCE_DIR}/libscotch/library_pt_f.h ${PROJECT_BINARY_DIR}/generated/ptscotchf.h
+    DEPENDS ptdummysizes
+    VERBATIM
+  )
+ELSE()
+  ADD_CUSTOM_COMMAND(OUTPUT ${PROJECT_BINARY_DIR}/generated/scotch.h ${PROJECT_BINARY_DIR}/generated/scotchf.h
+    COMMAND dummysizes ${SCOTCH_SOURCE_DIR}/libscotch/library.h ${PROJECT_BINARY_DIR}/generated/scotch.h
+    COMMAND dummysizes ${SCOTCH_SOURCE_DIR}/libscotch/library_f.h ${PROJECT_BINARY_DIR}/generated/scotchf.h
+    DEPENDS dummysizes
+    VERBATIM
+  )
+
+  ADD_CUSTOM_COMMAND(OUTPUT ${PROJECT_BINARY_DIR}/generated/metis.h
+    COMMAND dummysizes ${SCOTCH_SOURCE_DIR}/libscotchmetis/library_metis.h ${PROJECT_BINARY_DIR}/generated/metis.h
+    DEPENDS dummysizes
+    VERBATIM
+  )
+
+  ADD_CUSTOM_COMMAND(OUTPUT ${PROJECT_BINARY_DIR}/generated/parmetis.h
+    COMMAND dummysizes ${SCOTCH_SOURCE_DIR}/libscotchmetis/library_parmetis.h ${PROJECT_BINARY_DIR}/generated/parmetis.h
+    DEPENDS dummysizes
+    VERBATIM
+  )
+
+  ADD_CUSTOM_COMMAND(OUTPUT ${PROJECT_BINARY_DIR}/generated/ptscotch.h ${PROJECT_BINARY_DIR}/generated/ptscotchf.h
+    COMMAND ptdummysizes ${SCOTCH_SOURCE_DIR}/libscotch/library_pt.h ${PROJECT_BINARY_DIR}/generated/ptscotch.h
+    COMMAND ptdummysizes ${SCOTCH_SOURCE_DIR}/libscotch/library_pt_f.h ${PROJECT_BINARY_DIR}/generated/ptscotchf.h
+    DEPENDS ptdummysizes
+    VERBATIM
+  )
+ENDIF()
 
 ADD_CUSTOM_COMMAND(OUTPUT ${PROJECT_BINARY_DIR}/generated/parser_ll.c ${PROJECT_BINARY_DIR}/generated/parser_yy.c
   COMMAND bison -pscotchyy -y -b y -d -v -o${PROJECT_BINARY_DIR}/generated/tmp2.c ${SCOTCH_SOURCE_DIR}/libscotch/parser_yy.y
