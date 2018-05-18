@@ -94,13 +94,12 @@ SET(s_cmplx "${PROJECT_SOURCE_DIR}/test/matrices/S_complex.csc")
 ### CTest ###
 INCLUDE(CTest)
 
-IF(NOT DEFINED MPIEXEC)
-  SET(MPIEXEC "mpiexec")
-ENDIF()
+SEPARATE_ARGUMENTS(MPIEXEC_NP UNIX_COMMAND "${MPIEXEC_NP}")
+SEPARATE_ARGUMENTS(MPIEXEC_1P UNIX_COMMAND "${MPIEXEC_1P}")
 
 MACRO(test_fortran arg1 arg2 arg3 arg4 arg5 arg6 arg7)
   ADD_TEST(test_fortran_${arg1}
-    ${MPIEXEC} -n ${MPISIZE} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test
+    ${MPIEXEC_NP} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test
     ${arg2} ${arg3} ${arg4} ${arg5} ${arg6} ${arg7}
   )
   SET_TESTS_PROPERTIES(test_fortran_${arg1}
@@ -144,7 +143,7 @@ ENDIF()
 
 ### Serial Fortran tests: ev + ELPA (LAPACK) ###
 ADD_TEST(test_serial_01
-  ${MPIEXEC} -n 1 ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test
+  ${MPIEXEC_1P} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test
   e d r 1 ${h_real} ${s_real}
 )
 SET_TESTS_PROPERTIES(test_serial_01
@@ -152,7 +151,7 @@ SET_TESTS_PROPERTIES(test_serial_01
 )
 
 ADD_TEST(test_serial_02
-  ${MPIEXEC} -n 1 ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test
+  ${MPIEXEC_1P} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test
   e d c 1 ${h_cmplx} ${s_cmplx}
 )
 SET_TESTS_PROPERTIES(test_serial_02
@@ -161,7 +160,7 @@ SET_TESTS_PROPERTIES(test_serial_02
 
 ### Fortran tests: matrix IO ###
 ADD_TEST(test_matio_01
-  ${MPIEXEC} -n 1 ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test_rw
+  ${MPIEXEC_1P} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test_rw
   r ${h_real} ${s_real}
 )
 SET_TESTS_PROPERTIES(test_matio_01
@@ -169,7 +168,7 @@ SET_TESTS_PROPERTIES(test_matio_01
 )
 
 ADD_TEST(test_matio_02
-  ${MPIEXEC} -n 1 ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test_rw
+  ${MPIEXEC_1P} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test_rw
   c ${h_cmplx} ${s_cmplx}
 )
 SET_TESTS_PROPERTIES(test_matio_02
@@ -177,7 +176,7 @@ SET_TESTS_PROPERTIES(test_matio_02
 )
 
 ADD_TEST(test_matio_03
-  ${MPIEXEC} -n ${MPISIZE} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test_rw
+  ${MPIEXEC_NP} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test_rw
   r ${h_real} ${s_real}
 )
 SET_TESTS_PROPERTIES(test_matio_03
@@ -185,7 +184,7 @@ SET_TESTS_PROPERTIES(test_matio_03
 )
 
 ADD_TEST(test_matio_04
-  ${MPIEXEC} -n ${MPISIZE} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test_rw
+  ${MPIEXEC_NP} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test_rw
   c ${h_cmplx} ${s_cmplx}
 )
 SET_TESTS_PROPERTIES(test_matio_04
@@ -195,7 +194,7 @@ SET_TESTS_PROPERTIES(test_matio_04
 IF(ENABLE_C_TESTS)
   MACRO(test_c arg1 arg2 arg3 arg4 arg5 arg6 arg7)
     ADD_TEST(test_c_${arg1}
-      ${MPIEXEC} -n ${MPISIZE} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test_c
+      ${MPIEXEC_NP} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test_c
       ${arg2} ${arg3} ${arg4} ${arg5} ${arg6} ${arg7}
     )
     SET_TESTS_PROPERTIES(test_c_${arg1}
