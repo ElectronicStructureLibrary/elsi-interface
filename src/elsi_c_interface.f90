@@ -1113,7 +1113,7 @@ subroutine elsi_get_pexsi_mu_max_c_wrapper(handle_c,mu_max)&
 
 end subroutine
 
-subroutine elsi_get_initialized(handle_c,handle_init)&
+subroutine elsi_get_initialized_c_wrapper(handle_c,handle_init)&
    bind(C,name="c_elsi_get_initialized")
 
    implicit none
