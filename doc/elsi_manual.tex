@@ -1347,6 +1347,7 @@ In \ref{sec:ev} and \ref{sec:dm}, the interfaces to compute and return the eigen
 In all the subroutines listed below, the first argument (input and output) is an \texttt{elsi\_handle}.  The second argument (output) of each subroutine is the name of parameter to get.\\
 
 \begin{labeling}{\hspace{6cm}}
+\item [\hspace{0.3cm} \textcolor{blue}{elsi\_get\_initialized}(handle, handle\_init)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_get\_n\_sing}(handle, n\_sing)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_get\_mu}(handle, mu)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_get\_entropy}(handle, ts)]
@@ -1359,6 +1360,8 @@ In all the subroutines listed below, the first argument (input and output) is an
 \begin{tabular}[]{|p{30mm}|p{45mm}|p{90mm}|}
 \hline
 \multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\hline
+\textcolor{blue}{handle\_init}         & integer                      & 0 if the ELSI handle has not been initialized; 1 if initialized.\\
 \hline
 \textcolor{blue}{n\_sing}              & integer                      & Number of eigenvalues of the overlap matrix that are smaller than the singularity tolerance.  See \ref{subsec:setter_elsi}.\\
 \hline

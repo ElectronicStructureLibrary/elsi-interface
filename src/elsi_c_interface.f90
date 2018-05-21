@@ -1113,6 +1113,22 @@ subroutine elsi_get_pexsi_mu_max_c_wrapper(handle_c,mu_max)&
 
 end subroutine
 
+subroutine elsi_get_initialized(handle_c,handle_init)&
+   bind(C,name="c_elsi_get_initialized")
+
+   implicit none
+
+   type(c_ptr), value,  intent(in)  :: handle_c
+   integer(kind=c_int), intent(out) :: handle_init
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_get_initialized(handle_f,handle_init)
+
+end subroutine
+
 subroutine elsi_get_n_sing_c_wrapper(handle_c,n_sing)&
    bind(C,name="c_elsi_get_n_sing")
 
