@@ -194,15 +194,19 @@ subroutine elsi_check(e_h,caller)
    endif
 
    if(e_h%uplo /= FULL_MAT) then
-      call elsi_stop(e_h,"Triangular matrix input not yet supported.",caller)
+      call elsi_stop(e_h,"Triangular matrix input not supported.",caller)
    endif
 
-   ! Spin and k-point
-   if(e_h%n_spins*e_h%n_kpts > 1) then
-      if(.not. e_h%global_mpi_ready) then
-         call elsi_stop(e_h,"Spin/k-point calculations require a global MPI"//&
-                 " communicator.",caller)
-      endif
+   ! Spin
+   if(e_h%n_spins > 1 .and. .not. e_h%global_mpi_ready) then
+      call elsi_stop(e_h,"Calculations with two spin channels require a"//&
+              " global MPI communicator.",caller)
+   endif
+
+   ! k-point
+   if(e_h%n_kpts > 1 .and. .not. e_h%global_mpi_ready) then
+      call elsi_stop(e_h,"Calculations with multiple k-points require a"//&
+              " global MPI communicator.",caller)
    endif
 
    if(.not. e_h%spin_is_set) then
@@ -241,14 +245,24 @@ subroutine elsi_check(e_h,caller)
          call elsi_stop(e_h,"BLACS matrix format not properly set up.",caller)
       endif
    elseif(e_h%matrix_format == SIESTA_CSC) then
-      if(e_h%blk_sp2 == UNSET .or. .not. e_h%siesta_csc_ready) then
+      if(.not. e_h%siesta_csc_ready) then
          call elsi_stop(e_h,"SIESTA_CSC matrix format not properly set up.",&
                  caller)
+      endif
+
+      if(e_h%blk_sp2 == UNSET) then
+         call elsi_stop(e_h,"Block size should be set to use SIESTA_CSC"//&
+                 " matrix format.",caller)
       endif
    elseif(e_h%matrix_format == PEXSI_CSC) then
       if(.not. e_h%pexsi_csc_ready) then
          call elsi_stop(e_h,"PEXSI_CSC matrix format not properly set up.",&
                  caller)
+      endif
+
+      if(e_h%solver == PEXSI_SOLVER .and. e_h%pexsi_np_per_pole == UNSET) then
+         call elsi_stop(e_h,"Number of MPI tasks per pole should be set to"//&
+                 " use PEXSI_CSC matrix format and PEXSI solver.",caller)
       endif
    endif
 
@@ -269,38 +283,31 @@ subroutine elsi_check(e_h,caller)
                  caller)
       endif
 
-      if(e_h%n_basis < e_h%pexsi_np_per_pole) then
-         call elsi_stop(e_h,"For this number of MPI tasks, the matrix size"//&
-                 " is too small to use PEXSI.",caller)
+      if(mod(e_h%n_procs,e_h%pexsi_options%nPoints) /= 0) then
+         call elsi_stop(e_h,"To use PEXSI, number of mu points must be a"//&
+                 " divisor of number of MPI tasks.",caller)
       endif
 
-      if(e_h%pexsi_np_per_pole == UNSET) then
-         if(mod(e_h%n_procs,e_h%pexsi_options%numPole*&
-            e_h%pexsi_options%nPoints) /= 0) then
-            call elsi_stop(e_h,"To use PEXSI, the total number of MPI tasks"//&
-                    " must be a multiple of the number of MPI tasks per pole"//&
-                    " times the number of mu points.",caller)
-         endif
-      else
+      if(e_h%pexsi_np_per_pole /= UNSET) then
          if(mod(e_h%n_procs,e_h%pexsi_np_per_pole*&
             e_h%pexsi_options%nPoints) /= 0) then
-            call elsi_stop(e_h,"To use PEXSI, the total number of MPI tasks"//&
-                    " must be a multiple of the number of MPI tasks per pole"//&
-                    " times the number of mu points.",caller)
+            call elsi_stop(e_h,"To use PEXSI, specified number of MPI tasks"//&
+                    " per pole times number of mu points must be a divisor"//&
+                    " of number of MPI tasks.",caller)
          endif
 
          if(e_h%pexsi_np_per_pole*e_h%pexsi_options%numPole*&
             e_h%pexsi_options%nPoints < e_h%n_procs) then
-            call elsi_stop(e_h,"Specified number of MPI tasks per pole is"//&
-                    " too small for the total number of MPI tasks.",caller)
+            call elsi_stop(e_h,"Specified number of MPI tasks per pole too"//&
+                    " small for this number of MPI tasks.",caller)
          endif
       endif
    case(CHESS_SOLVER)
       call elsi_stop(e_h,"CheSS solver not yet supported.",caller)
    case(SIPS_SOLVER)
       if(e_h%n_basis < e_h%n_procs) then
-         call elsi_stop(e_h,"For this number of MPI tasks, the matrix size"//&
-                 " is too small to use SLEPc-SIPs.",caller)
+         call elsi_stop(e_h,"Matrix size too small to use SLEPc-SIPs with"//&
+                 " this number of MPI tasks.",caller)
       endif
 
       if(e_h%parallel_mode /= MULTI_PROC) then
@@ -309,13 +316,13 @@ subroutine elsi_check(e_h,caller)
       endif
 
       if(e_h%n_spins > 1) then
-         call elsi_stop(e_h,"Spin-polarized case not yet supported with"//&
-                 " SLEPc-SIPs.",caller)
+         call elsi_stop(e_h,"Calculations with two spin channels not yet"//&
+                 " supported with SLEPc-SIPs.",caller)
       endif
 
       if(e_h%n_kpts > 1) then
-         call elsi_stop(e_h,"k-points not yet supported with SLEPc-SIPs.",&
-                 caller)
+         call elsi_stop(e_h,"Calculations with multiple k-points not yet"//&
+                 " supported with SLEPc-SIPs.",caller)
       endif
    case(DMP_SOLVER)
       if(e_h%parallel_mode /= MULTI_PROC) then
@@ -324,12 +331,13 @@ subroutine elsi_check(e_h,caller)
       endif
 
       if(e_h%n_spins > 1) then
-         call elsi_stop(e_h,"Spin-polarized case not yet supported with DMP.",&
-                 caller)
+         call elsi_stop(e_h,"Calculations with two spin channels not yet"//&
+                 " supported with DMP.",caller)
       endif
 
       if(e_h%n_kpts > 1) then
-         call elsi_stop(e_h,"k-points not yet supported with DMP.",caller)
+         call elsi_stop(e_h,"Calculations with multiple k-points not yet"//&
+                 " supported with DMP.",caller)
       endif
    case default
       call elsi_stop(e_h,"Unsupported solver.",caller)

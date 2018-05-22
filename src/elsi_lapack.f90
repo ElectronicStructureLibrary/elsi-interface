@@ -310,7 +310,9 @@ subroutine elsi_check_singularity_sp_real(e_h,ovlp,eval,evec)
    eval = -eval
 
    do i = 1,e_h%n_basis
-      if(eval(i) < e_h%sing_tol) exit
+      if(eval(i) < e_h%sing_tol) then
+         exit
+      endif
    enddo
 
    e_h%n_nonsing = i-1
@@ -670,7 +672,9 @@ subroutine elsi_check_singularity_sp_cmplx(e_h,ovlp,eval,evec)
    eval = -eval
 
    do i = 1,e_h%n_basis
-      if(eval(i) < e_h%sing_tol) exit
+      if(eval(i) < e_h%sing_tol) then
+         exit
+      endif
    enddo
 
    e_h%n_nonsing = i-1

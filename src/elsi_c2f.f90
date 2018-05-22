@@ -58,7 +58,10 @@ function c_string_to_f_string(string_c) result(string_f)
    string_f_len = 0
 
    do
-     if(string_c(string_f_len+1) == C_NULL_CHAR) exit
+     if(string_c(string_f_len+1) == C_NULL_CHAR) then
+        exit
+     endif
+
      string_f_len = string_f_len+1
    enddo
 
