@@ -58,7 +58,8 @@ subroutine elsi_init_pexsi(e_h)
 
    type(elsi_handle), intent(inout) :: e_h
 
-   integer(kind=i4) :: n_rows_tmp
+   integer(kind=i4) :: i
+   integer(kind=i4) :: j
    integer(kind=i4) :: output_id
    integer(kind=i4) :: ierr
 
@@ -67,27 +68,38 @@ subroutine elsi_init_pexsi(e_h)
    if(.not. e_h%pexsi_started) then
       e_h%pexsi_options%spin = e_h%spin_degen
 
-      if(e_h%pexsi_np_per_pole == UNSET) then
-         e_h%pexsi_np_per_pole = e_h%n_procs/(e_h%pexsi_options%numPole*&
-                                    e_h%pexsi_options%nPoints)
-      endif
-
-      ! Set square-like process grid for selected inversion of each pole
-      do n_rows_tmp = nint(sqrt(real(e_h%pexsi_np_per_pole))),2,-1
-         if(mod(e_h%pexsi_np_per_pole,n_rows_tmp) == 0) exit
-      enddo
-
-      e_h%pexsi_n_prow = n_rows_tmp
-      e_h%pexsi_n_pcol = e_h%pexsi_np_per_pole/n_rows_tmp
-
-      ! PEXSI process grid
-      e_h%pexsi_my_pcol = mod(e_h%myid,e_h%pexsi_np_per_pole)
-      e_h%pexsi_my_prow = e_h%myid/e_h%pexsi_np_per_pole
-
       ! Point parallelization
       e_h%pexsi_np_per_point = e_h%n_procs/e_h%pexsi_options%nPoints
       e_h%pexsi_my_point     = e_h%myid/e_h%pexsi_np_per_point
       e_h%pexsi_myid_point   = mod(e_h%myid,e_h%pexsi_np_per_point)
+
+      if(e_h%pexsi_np_per_pole == UNSET) then
+         j = nint(sqrt(real(e_h%pexsi_np_per_point,kind=r8)))
+
+         do i = e_h%pexsi_np_per_point,j,-1
+            if(mod(e_h%pexsi_np_per_point,i) == 0) then
+               if((e_h%pexsi_np_per_point/i) > e_h%pexsi_options%numPole) then
+                  exit
+               endif
+
+               e_h%pexsi_np_per_pole = i
+            endif
+         enddo
+      endif
+
+      ! Set square-like process grid for selected inversion of each pole
+      do i = nint(sqrt(real(e_h%pexsi_np_per_pole,kind=r8))),2,-1
+         if(mod(e_h%pexsi_np_per_pole,i) == 0) then
+            exit
+         endif
+      enddo
+
+      e_h%pexsi_n_prow = i
+      e_h%pexsi_n_pcol = e_h%pexsi_np_per_pole/i
+
+      ! PEXSI process grid
+      e_h%pexsi_my_pcol = mod(e_h%myid,e_h%pexsi_np_per_pole)
+      e_h%pexsi_my_prow = e_h%myid/e_h%pexsi_np_per_pole
 
       ! PEXSI MPI communicators
       call MPI_Comm_split(e_h%mpi_comm,e_h%pexsi_my_pcol,e_h%pexsi_my_prow,&

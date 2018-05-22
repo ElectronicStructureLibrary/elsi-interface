@@ -86,6 +86,7 @@ module ELSI_MUTATOR
    public :: elsi_set_calling_code
    public :: elsi_get_pexsi_mu_min
    public :: elsi_get_pexsi_mu_max
+   public :: elsi_get_initialized
    public :: elsi_get_n_sing
    public :: elsi_get_mu
    public :: elsi_get_entropy
@@ -1060,6 +1061,27 @@ subroutine elsi_get_pexsi_mu_max(e_h,mu_max)
    call elsi_check_handle(e_h,caller)
 
    mu_max = e_h%pexsi_options%muMax0
+
+end subroutine
+
+!>
+!! This routine returns 0 if the input handle has not been initialized; returns
+!! 1 if it has been initialized.
+!!
+subroutine elsi_get_initialized(e_h,handle_init)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: e_h         !< Handle
+   integer(kind=i4),  intent(out)   :: handle_init !< Handle initialized?
+
+   character(len=40), parameter :: caller = "elsi_get_initialized"
+
+   if(e_h%handle_init) then
+      handle_init = 1
+   else
+      handle_init = 0
+   endif
 
 end subroutine
 

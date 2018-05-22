@@ -21,8 +21,8 @@
 
 \begin{document}
 % Title
-\title{\includegraphics[scale=0.07]{elsi_logo.png}\\ \textbf{ELSI Interface (Development Version)\\ User's Guide}}
-\author{The ELSI Team\\ elsi-interchange.org}
+\title{\includegraphics[scale=0.07]{elsi_logo.png}\\ \textcolor{white}{nothing}\\ \textbf{ELSI Interface\\ May 2018 Release Candidate\\ \textcolor{white}{nothing} \\ User's Guide}}
+\author{The ELSI Team\\ \textcolor{white}{nothing}\\ \url{http://elsi-interchange.org}}
 \maketitle
 
 % Table of contents
@@ -420,9 +420,11 @@ SLEPc-SIPs may be activated by specifying:\\
 \begin{verbatim}
 -DENABLE_SIPS=ON
 -DUSE_EXTERNAL_SUPERLU=ON
--DINC_PATHS="/path/to/slepc/include;/path/to/petsc/include"
--DLIB_PATHS="/path/to/slepc/library;/path/to/petsc/library"
--DLIBS="slepc;petsc;superlu_dist;mumps;parmetis;ptscotch"
+-DINC_PATHS="/path/to/slepc/include;/path/to/slepc/${PETSC_ARCH}/include;
+/path/to/petsc/include;/path/to/${PETSC_ARCH}/include"
+-DLIB_PATHS="/path/to/slepc/${PETSC_ARCH}/library;/path/to/petsc/${PETSC_ARCH}/library"
+-DLIBS="slepc;petsc;cmumps;dmumps;smumps;zmumps;mumps_common;pord;superlu_dist;parmetis;
+metis;ptesmumps;ptscotchparmetis;ptscotch;ptscotcherr;esmumps;scotchmetis;scotch;scotcherr"
 \end{verbatim}
 
 SLEPc 3.8.3 and PETSc 3.8.4, which have been extensively tested with ELSI, are recommended.  Older/newer versions may or may not work properly with this version of ELSI.  The PETSc library must be compiled with MPI support, and (at least) with external packages SuperLU\_DIST, MUMPS, ParMETIS, and PT-SCOTCH enabled.  The SuperLU\_DIST library redistributed through ELSI must be turned off by setting \textcolor{blue}{USE\_EXTERNAL\_SUPERLU} to ``ON'', as SuperLU\_DIST is already present in the PETSc installation.\\
@@ -620,9 +622,6 @@ The ELSI interface must be initialized via the \textcolor{blue}{elsi\_init} subr
 
 \textbf{3a)} \textcolor{blue}{SINGLE\_PROC}:  Solves the KS eigenproblem following a LAPACK-like fashion.  This option may only be selected when ELPA is chosen as the solver.  This allows the following parallelization strategy:\\
 
-\noindent\rule{18cm}{0.4pt}
-\bigskip
-
 \textbf{\textcolor{blue}{SINGLE\_PROC} Example}:\\
 
 Every MPI task independently handles a group of \textbf{\textit{k}}-points uniquely assigned to it.\\
@@ -641,7 +640,7 @@ MPI task 3 handles \textbf{\textit{k}}-points 13, 14, 15, 16 sequentially.\\
 \textcolor{blue}{elsi\_init}(elsi\_h, ..., parallel\_mode=0, ...)\\
 ...
 \hspace{0.3cm}\\
-\For{i\_kpt = 1, n\_kpoints\_local, 1}{
+\For{i\_kpt = 1, n\_kpt\_local, 1}{
   \hspace{0.3cm}\\
   \textcolor{blue}{elsi\_ev\_\{real$\vert$complex\}}(elsi\_h, ham\_this\_kpt, ovlp\_this\_kpt, eval\_this\_kpt, evec\_this\_kpt)\\
   \hspace{0.3cm}
@@ -653,9 +652,6 @@ MPI task 3 handles \textbf{\textit{k}}-points 13, 14, 15, 16 sequentially.\\
 
 \bigskip
 \textbf{3b)} \textcolor{blue}{MULTI\_PROC}:  Solves the KS eigenproblem following a ScaLAPACK-like fashion.  This allows the usage of the following two parallelization strategies:\\
-
-\noindent\rule{18cm}{0.4pt}
-\bigskip
 
 \textbf{\textcolor{blue}{MULTI\_PROC} Example}:\\
 
@@ -688,9 +684,7 @@ MPI tasks 12, 13, 14, 15 cooperatively handle \textbf{\textit{k}}-point 4.\\
 \end{algorithm}
 
 \bigskip
-\noindent\rule{18cm}{0.4pt}
-
-In the last example, please note that when there is more than one \textbf{\textit{k}}-point, a global MPI communicator must be provided for inter-\textbf{\textit{k}}-point communications.  See the documentation of \textcolor{blue}{elsi\_set\_kpoint}, \textcolor{blue}{elsi\_set\_spin}, and \textcolor{blue}{elsi\_set\_mpi\_global}.
+Please note that when there is more than one \textbf{\textit{k}}-point, a global MPI communicator must be provided for inter-\textbf{\textit{k}}-point communications.  See \ref{subsec:setup_kpt} for \textcolor{blue}{elsi\_set\_kpoint}, \textcolor{blue}{elsi\_set\_spin}, and \textcolor{blue}{elsi\_set\_mpi\_global}, which are used to set up a calculation with two spin channels and/or multiple \textbf{\textit{k}}-points.
 
 \subsection{Setting Up MPI}
 \label{subsec:setup_mpi}
@@ -712,7 +706,7 @@ The MPI communicator used by ELSI is passed into ELSI by the calling code via th
 
 \subsection{Setting Up Matrix Formats}
 \label{subsec:setup_matrix}
-When using the BLACS matrix format (\textcolor{blue}{BLACS\_DENSE}), BLACS parameters are passed into ELSI via the \textcolor{blue}{elsi\_set\_blacs} subroutine.  The matrix format used internally in the ELSI interface and the ELPA solver requires the block sizes of the 2-dimensional block-cyclic distribution are the same in the row and column directions.  It is necessary to call this subroutine before calling any solver interface that makes use of the \textcolor{blue}{BLACS\_DENSE} matrix format.\\
+When using the 2D block-cyclic distributed dense matrix format (\textcolor{blue}{BLACS\_DENSE}), BLACS parameters are passed into ELSI via the \textcolor{blue}{elsi\_set\_blacs} subroutine.  The matrix format used internally in the ELSI interface and the ELPA solver requires the block sizes of the 2-dimensional block-cyclic distribution are the same in the row and column directions.  It is necessary to call this subroutine before calling any solver interface that makes use of the \textcolor{blue}{BLACS\_DENSE} matrix format.\\
 
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_blacs}(handle, blacs\_ctxt, block\_size)]
@@ -757,7 +751,7 @@ When using the sparse matrix formats, namely 1D block distributed compressed spa
 \end{tabular}
 
 \bigskip
-When using the 1D block distributed compressed sparse column (\textcolor{blue}{PEXSI\_CSC}) format, the block size of the 1D distribution cannot be set by the user.  This is because the PEXSI solver requires that the block size must be \textcolor{blue}{n\_basis $/$ n\_procs}, where \textcolor{blue}{n\_basis} is the total number of basis functions, and \textcolor{blue}{n\_procs} is the number of MPI tasks assigned to this problem.  When using the 1D block-cyclic distributed compressed sparse column (\textcolor{blue}{SIESTA\_CSC}) format, the block size of the 1D distribution must be set by the user.\\
+When using the 1D block distributed compressed sparse column (\textcolor{blue}{PEXSI\_CSC}) format, the block size of the distribution cannot be set by the user.  This is because the PEXSI solver requires that the block size must be floor(\textcolor{blue}{$\text{N}\_\text{basis}$}/\textcolor{blue}{$\text{N}\_\text{procs}$}), where floor(x) is the greatest integer less than or equal to x, \textcolor{blue}{\text{N}\_\text{basis}} and \textcolor{blue}{\text{N}\_\text{procs}} are the number of basis functions and the number of MPI tasks, respectively.  When using the 1D block-cyclic distributed compressed sparse column (\textcolor{blue}{SIESTA\_CSC}) format, the block size of the 1D distribution must be explicitly set by calling \textcolor{blue}{elsi\_set\_csc\_blk}.\\
 
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_csc\_blk}(handle, block\_size)]
@@ -772,6 +766,9 @@ When using the 1D block distributed compressed sparse column (\textcolor{blue}{P
 \textcolor{blue}{global\_nnz}  & integer            & in    & Block size of the 1D block-cyclic distribution.\\
 \hline
 \end{tabular}
+
+\bigskip
+In most cases, input and output matrices should be distributed across all MPI tasks.  The only exception happens when using the PEXSI solver, one of the sparse density matrix interfaces (\textcolor{blue}{elsi\_dm\_real\_sparse} or \textcolor{blue}{elsi\_dm\_complex\_sparse}), and the \textcolor{blue}{PEXSI\_CSC} matrix format.  In this case, an additional parameter, \textcolor{blue}{pexsi\_np\_per\_pole}, must be set by the user.  Input and output matrices should be 1D-block-distributed among the first \textcolor{blue}{pexsi\_np\_per\_pole} MPI tasks (not all the MPI tasks).  Please also read the 2$^\text{nd}$ remark in \ref{subsec:setter_pexsi} for more information.\\
 
 \subsection{Setting Up Multiple \textbf{\textit{k}}-points and/or Spin Channels}
 \label{subsec:setup_kpt}
@@ -813,15 +810,13 @@ The handling of spin-polarized case and periodic case in ELSI are more or less e
 N_\text{electron} = \sum_{n=1}^{N_\text{kpt}} \sum_{m=1}^{N_\text{spin}} \sum_{l=1}^{N_\text{basis}} w_n f_{lmn} ,
 \end{equation}
 
-\noindent where $N_\text{kpt}$, $N_\text{spin}$, and $N_\text{basis}$ are the number of \textbf{\textit{k}}-points, the number of spin channels, and the number of basis functions, respectively.  $w_n$ is again the weight of the n$^\text{th}$ \textbf{\textit{k}}-point.  $f_{lmn}$ is the occupation number of the l$^\text{th}$ state in the m$^\text{th}$ spin channel and the n$^\text{th}$ \textbf{\textit{k}}-point.\\
+\noindent where $N_\text{kpt}$, $N_\text{spin}$, and $N_\text{basis}$ are the number of \textbf{\textit{k}}-points, the number of spin channels, and the number of basis functions, respectively.  $w_n$ is again the weight of the n$^\text{th}$ \textbf{\textit{k}}-point.  $f_{lmn}$ is the occupation number of the l$^\text{th}$ state in the m$^\text{th}$ spin channel and the n$^\text{th}$ \textbf{\textit{k}}-point.  To determine the occupation numbers, the eigenvalues at each unit task need to be collected across all the tasks.  With the correct occupation numbers, density matrices can be computed by \ref{eq:density_matrix} and returned to the KS-DFT code.\\
 
-To determine the occupation numbers, the eigenvalues at each task need to be collected across all the tasks.  With the correct occupation numbers, density matrices can be computed by \ref{eq:density_matrix} and returned to the KS-DFT code.\\
-
-If the PEXSI solver is in use, the pole expansion in \ref{eq:pole} is performed for all the unit tasks in parallel, with the same trial chemical potential $\mu$.  The resulting number of electrons needs to be determined in order to refine the chemical potential.  The chemical potential yielding the correct number of electrons is used to construct the density matrices on the unit tasks.\\
+If the PEXSI solver is chosen, the pole expansion in \ref{eq:pole} is performed for all the unit tasks in parallel, with the same trial chemical potential $\mu$.  The resulting number of electrons needs to be determined in order to refine the chemical potential.  The chemical potential yielding the correct number of electrons is used to construct the density matrices on the unit tasks.\\
 
 If the OMM solver is chosen, the orbital minimization in \ref{eq:omm_energy} is performed for all the unit tasks to obtain density matrices.  Again, OMM cannot handle systems with fractional occupation numbers.\\
 
-To set up the ELSI interface for a calculation with more than one \textbf{\textit{k}}-point and/or more than one spin channel,  the \textcolor{blue}{elsi\_set\_kpoint} and/or \textcolor{blue}{elsi\_set\_spin} subroutines are called to pass the required information into ELSI.  The MPI communicator for each unit task is passed into ELSI by calling \textcolor{blue}{elsi\_set\_mpi}.  In addition, a global MPI communicator for all tasks is passed into ELSI by calling \textcolor{blue}{elsi\_set\_mpi\_global}.  Note that the current ELSI interface only supports the case where the eigenproblems for all the \textbf{\textit{k}}-points and spin channels are fully parallelized, i.e., there is no MPI task that handles more than one \textbf{\textit{k}}-point and/or more than one spin channel.\\
+To set up the ELSI interface for a calculation with more than one \textbf{\textit{k}}-point and/or more than one spin channel,  the \textcolor{blue}{elsi\_set\_kpoint} and/or \textcolor{blue}{elsi\_set\_spin} subroutines are called to pass the required information into ELSI.  The MPI communicator for each unit task is passed into ELSI by calling \textcolor{blue}{elsi\_set\_mpi}.  In addition, a global MPI communicator for all tasks is passed into ELSI by calling \textcolor{blue}{elsi\_set\_mpi\_global}.  Note that the current ELSI interface only supports the case where the eigenproblems for all the \textbf{\textit{k}}-points and spin channels are fully parallelized, i.e., there is no MPI task handling more than one \textbf{\textit{k}}-point and/or more than one spin channel.  Another limitation is that the two spin channels are always coupled by the normalization condition \ref{eq:normalization}, with a uniform chemical potential for the two channels.  The distribution of electrons among the two channels, and thus the net spin moment of the system, is solely determined by \ref{eq:normalization}.  Future work will enable calculations with a fixed, user-specified spin moment.\\
 
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_kpoint}(handle, n\_kpt, i\_kpt, weight)]
@@ -1255,11 +1250,13 @@ Note that logical variables are not used in all ELSI API.  Integers are used to 
 
 In short, we recommend \textcolor{blue}{pexsi\_n\_pole} = 20 and \textcolor{blue}{pexsi\_n\_mu} = 2.\\
 
-\textbf{2)} \textcolor{blue}{pexsi\_np\_per\_pole}:  PEXSI has, by construction, a 3-level parallelization:  the 1st level independently handles all the poles in parallel; within each pole, the 2nd level evaluates the Fermi operator at all the chemical potential points in parallel; finally, within each point, parallel selected inversion is performed as the 3rd level.  The value of \textcolor{blue}{pexsi\_np\_per\_pole} is the number of MPI tasks assigned to a single chemical potential point, for the parallel selected inversion at that point.  Ideally, the total number of MPI tasks should be \textcolor{blue}{pexsi\_np\_per\_pole} $\times$ \textcolor{blue}{pexsi\_n\_mu} $\times$ \textcolor{blue}{pexsi\_n\_pole}, that is, all the three levels of the parallelization in PEXSI are fully exploited.  In case that this is not feasible, PEXSI can also process the poles in serial, while the points must be handled simultaneously.  The user should make sure that the total number of MPI tasks is a multiple of the number of MPI tasks per point times the number of points.  The code will stop if this requirement is not fulfilled.\\
+\textbf{2)} \textcolor{blue}{pexsi\_np\_per\_pole}:  PEXSI has, by construction, a 3-level parallelism:  the 1st level independently handles all the poles in parallel; within each pole, the 2nd level evaluates the Fermi operator at all the chemical potential points in parallel; finally, within each point, parallel selected inversion is performed as the 3rd level.  The value of \textcolor{blue}{pexsi\_np\_per\_pole} is the number of MPI tasks assigned to a single chemical potential point, for the parallel selected inversion at that point.  Ideally, the total number of MPI tasks should be \textcolor{blue}{pexsi\_np\_per\_pole} $\times$ \textcolor{blue}{pexsi\_n\_mu} $\times$ \textcolor{blue}{pexsi\_n\_pole}, i.e., all the three levels of parallelism are fully exploited.  In case that this is not feasible, PEXSI can also process the poles in serial, whereas all the chemical potential points must be evaluated simultaneously.  The user should make sure that the total number of MPI tasks is divisible by the product of the number of MPI tasks per pole and the number of points.  The code will stop if this requirement is not fulfilled.\\
 
-Assuming the ideal case, the default value for \textcolor{blue}{pexsi\_np\_per\_pole} is:  n\_total\_mpi / (n\_pole $\times$ n\_mu).\\
+When using the \textcolor{blue}{BLACS\_DENSE} or \textcolor{blue}{SIESTA\_CSC} matrix formats, \textcolor{blue}{pexsi\_np\_per\_pole} is automatically determined to balance the three levels of parallelism in PEXSI.  Input and output matrices should be distributed across all MPI tasks in either a 2D block-cyclic distribution (\textcolor{blue}{BLACS\_DENSE}) or a 1D block-cyclic distribution (\textcolor{blue}{SIESTA\_CSC}).\\
 
-To use the dense density matrix solver interfaces, input and output matrices should be 2D-block-cyclic-distributed among all available MPI tasks.  To use the sparse density matrix solver interfaces with the \textcolor{blue}{SIESTA\_CSC} format, input and output matrices should be 1D-block-cyclic-distributed among all available MPI tasks.  Note that to use the sparse density matrix solver interfaces with the \textcolor{blue}{PEXSI\_CSC} format, input and output matrices should be 1D-block-distributed on the first \textcolor{blue}{pexsi\_np\_per\_pole} MPI tasks.  PEXSI will then take over and automatically perform any necessary conversions to fit its need.\\
+Note that when using the \textcolor{blue}{PEXSI\_CSC} matrix format together with the PEXSI solver, input and output matrices should be distributed among the first \textcolor{blue}{pexsi\_np\_per\_pole} MPI tasks (not all the MPI tasks) in a 1D block distribution.  The block size of the distribution must be floor(\textcolor{blue}{$\text{N}\_\text{basis}$}/\textcolor{blue}{$\text{N}\_\text{procs}$}), where floor(x) is the greatest integer less than or equal to x, \textcolor{blue}{\text{N}\_\text{basis}} and \textcolor{blue}{\text{N}\_\text{procs}} are the number of basis functions and the number of MPI tasks, respectively.\\
+
+when using the \textcolor{blue}{PEXSI\_CSC} matrix format with the ELPA, libOMM, or SLEPc-SIPs solver, input and output matrices should be distributed across all the MPI tasks in a 1D block distribution.  Again, the block size of the distribution must be floor(\textcolor{blue}{$\text{N}\_\text{basis}$}/\textcolor{blue}{$\text{N}\_\text{procs}$}).\\
 
 \textbf{3)} \textcolor{blue}{pexsi\_np\_symbo}:  The number of MPI tasks used for symbolic factorization cannot be too large.  Otherwise, the symbolic factorization may fail.  The default number of MPI tasks for symbolic factorization is set to 1 for safety.  It is worth testing and increasing this number.  The default matrix reordering method in PEXSI is set to parallel ordering (0).  This may also fail in rare cases, where the sequential ordering (1) is worth trying.\\
 
@@ -1347,6 +1344,7 @@ In \ref{sec:ev} and \ref{sec:dm}, the interfaces to compute and return the eigen
 In all the subroutines listed below, the first argument (input and output) is an \texttt{elsi\_handle}.  The second argument (output) of each subroutine is the name of parameter to get.\\
 
 \begin{labeling}{\hspace{6cm}}
+\item [\hspace{0.3cm} \textcolor{blue}{elsi\_get\_initialized}(handle, handle\_init)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_get\_n\_sing}(handle, n\_sing)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_get\_mu}(handle, mu)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_get\_entropy}(handle, ts)]
@@ -1359,6 +1357,8 @@ In all the subroutines listed below, the first argument (input and output) is an
 \begin{tabular}[]{|p{30mm}|p{45mm}|p{90mm}|}
 \hline
 \multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\hline
+\textcolor{blue}{handle\_init}         & integer                      & 0 if the ELSI handle has not been initialized; 1 if initialized.\\
 \hline
 \textcolor{blue}{n\_sing}              & integer                      & Number of eigenvalues of the overlap matrix that are smaller than the singularity tolerance.  See \ref{subsec:setter_elsi}.\\
 \hline
@@ -1409,7 +1409,7 @@ In all the subroutines listed below, the first argument (input and output) is an
 \label{sec:rw}
 To test the solvers in ELSI, it is convenient to use matrices generated from actual electronic structure calculations.  There exist a number of libraries invented for high-performance parallel I/O that are particularly capable of reading and writing a large amount of data with hierarchical structures and complex metadata.  However, the I/O task in ELSI is very simple in terms of the complexity of the data to manipulate.  The data structure is simply arrays that represent matrices, with a few integers to define the dimension of the matrices.  In order to circumvent the unavoidable development and performance overhead associated with a high level I/O library, the parallel I/O functionality defined in the MPI standard is directly used to read and write matrices in ELSI.\\
 
-When ELSI runs in parallel with multiple MPI tasks, the matrices are distributed across tasks.  The choice of writing the distributed matrices into $N_\text{MPI}$ separate files, where $N_\text{MPI}$ is the number of MPI tasks, is not promising due to the difficulty of managing and post-processing a large number of files, especially with a different number of MPI tasks.  The implementation of matrix I/O in ELSI adopts collective MPI I/O routines to write data to (read data from) a single binary file, as if the data was gathered onto a single MPI task then written to one file (read from one file by one MPI task then scattered to all tasks).  The optimal I/O performance, both with MPI I/O and in general, is often obtained by making large and contiguous requests to access the file system, rather than small, non-contiguous, or random requests.  Therefore, before being written to file, matrices are always redistributed to a 1D block distribution.  This guarantees that each MPI task writes a contiguous trunk of data to a contiguous piece of file.  Similarly, matrices read from file are in a 1D block distribution, and can be redistributed automatically if needed.\\
+When ELSI runs in parallel with multiple MPI tasks, the matrices are distributed across tasks.  The choice of writing the distributed matrices into $N_\text{procs}$ separate files, where $N_\text{procs}$ is the number of MPI tasks, is not promising due to the difficulty of managing and post-processing a large number of files, especially with a different number of MPI tasks.  The implementation of matrix I/O in ELSI adopts collective MPI I/O routines to write data to (read data from) a single binary file, as if the data was gathered onto a single MPI task then written to one file (read from one file by one MPI task then scattered to all tasks).  The optimal I/O performance, both with MPI I/O and in general, is often obtained by making large and contiguous requests to access the file system, rather than small, non-contiguous, or random requests.  Therefore, before being written to file, matrices are always redistributed to a 1D block distribution.  This guarantees that each MPI task writes a contiguous trunk of data to a contiguous piece of file.  Similarly, matrices read from file are in a 1D block distribution, and can be redistributed automatically if needed.\\
 
 A matrix is always stored in the CSC format in an ELSI matrix file.  A dense matrix is automatically converted to the CSC format before writing to file, and can be converted back after reading from file.\\
 

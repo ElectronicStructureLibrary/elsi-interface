@@ -435,7 +435,9 @@ subroutine elsi_adjust_occ(e_h,n_state,n_spin,n_kpt,k_weights,evals,occ_nums,&
          occ_nums(i_state,i_spin,i_kpt) = 0.0_r8
       endif
 
-      if(diff_ne <= e_h%occ_tolerance) exit
+      if(diff_ne <= e_h%occ_tolerance) then
+         exit
+      endif
    enddo
 
    call elsi_deallocate(e_h,eval_aux,"eval_aux")

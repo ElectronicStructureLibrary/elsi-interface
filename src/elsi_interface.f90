@@ -84,6 +84,7 @@ module ELSI
    public :: elsi_set_calling_code
    public :: elsi_get_pexsi_mu_min
    public :: elsi_get_pexsi_mu_max
+   public :: elsi_get_initialized
    public :: elsi_get_n_sing
    public :: elsi_get_mu
    public :: elsi_get_entropy

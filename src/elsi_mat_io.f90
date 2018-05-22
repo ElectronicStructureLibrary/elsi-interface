@@ -365,8 +365,12 @@ subroutine elsi_check_rw_mpi(rw_h,routine,ierr,caller)
    integer(kind=i4),     intent(in) :: ierr
    character(len=*),     intent(in) :: caller
 
+   character(len=200) :: info_str
+
    if(ierr /= MPI_SUCCESS) then
-      call elsi_rw_stop(rw_h,routine,caller)
+      write(info_str,"(2A)") routine," failed."
+
+      call elsi_rw_stop(rw_h,info_str,caller)
    endif
 
 end subroutine

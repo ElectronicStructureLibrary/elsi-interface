@@ -231,6 +231,9 @@ void c_elsi_get_pexsi_mu_min(elsi_handle handle_c,
 void c_elsi_get_pexsi_mu_max(elsi_handle handle_c,
                              double *mu_max);
 
+void c_elsi_get_initialized(elsi_handle handle_c,
+                            int *handle_init);
+
 void c_elsi_get_n_sing(elsi_handle handle_c,
                        int *n_sing);
 
