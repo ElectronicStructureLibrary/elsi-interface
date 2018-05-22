@@ -1,5 +1,8 @@
 ### Theta ###
 
+# To compile PT-SCOTCH on Theta, either request an interactive session or submit
+# the compilation as a job to the queue
+
 SET(CMAKE_Fortran_COMPILER "ftn" CACHE STRING "MPI Fortran compiler")
 SET(CMAKE_C_COMPILER "cc" CACHE STRING "MPI C compiler")
 SET(CMAKE_CXX_COMPILER "CC" CACHE STRING "MPI C++ compiler")
