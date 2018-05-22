@@ -4,39 +4,41 @@
 
    ELSI:
    * CMake build system has replaced the Makefile-based system.
-   * Support for building ELSI as a shared library has been added.
-   * Support for spin channels and k-points has been added.
-   * Support for energy-weighted density matrix has been added.
-   * Support for electronic entropy calculations has been added.
-   * Support for complex sparse matrix formats has been added for
-     eigensolver and density matrix solver interfaces.
-   * Mutator subroutines no longer use optional variables.
-   * Matrix I/O subroutines using the MPI I/O standard have been added.
-   * Removed ToMatO dependency for test suite.
+   * Added support for building ELSI as a shared library.
+   * Added support for spin channels and k-points.
+   * Added support for energy-weighted density matrix.
+   * Added support for electronic entropy calculations.
+   * Added support for complex sparse matrix formats for eigensolver and
+     density matrix solver interfaces.
+   * Removed optional variables from mutator subroutines.
+   * Added matrix I/O subroutines using the MPI I/O standard.
+   * Removed TOMATO dependency for the test suite.
    * Added a unified JSON output framework via the FortJSON library.
 
    New Solvers:
-   * SLEPc-SIPs added via external linkage.
-   * (Experimental) Density matrix purification implemented with dense
+   * Added support for the SLEPc-SIPs solver (PETSc 3.8.4 and SLEPc 3.8.3
+     required)
+   * (Experimental) Implemented density matrix purification with dense
      linear algebra operations.
 
    New Matrix Storage Formats:
-   * Added 1D block-cyclic compressed sparse column (SIESTA_CSC format).
+   * Added 1D block-cyclic compressed sparse column (SIESTA_CSC) format.
 
    ELPA:
-   * Redistributed version updated to 2016.11.001.
-   * AVX512 kernel has been added.
-   * The two-stage solver is now the default solver for all matrix sizes.
-   * The interface for externally linked ELPA has been updated to the AEO
-     verison (release 2017.05 or later).  GPU acceleration and GPU kernels
+   * Updated redistributed ELPA source code to version 2016.11.001.
+   * Added AVX512 kernel.
+   * Made the two-stage solver default for all matrix sizes.
+   * Updated the interface for externally linked ELPA the AEO version
+     (ELPA release 2017.05 or later).  GPU acceleration and GPU kernels
      may be enabled through the ELSI interface for externally linked ELPA.
 
    PEXSI:
-   * Redistributed version updated to v1.0.
-   * Default number of poles reduced to 20.
+   * Updated redistributed PEXSI source code to version 1.0.
+   * Reduced the default number of poles to 20 without sacrificing
+     accuracy.
    * Switched to the PT-SCOTCH library as the default sparse matrix
      reordering software.
-   * SuperLU_DIST 5.3.0 and (PT-)SCOTCH 6.0.5a redistributed with ELSI.
+   * Redistributed superLU_DIST 5.3.0 and (PT-)SCOTCH 6.0.5a libraries.
      The user may still provide their own SuperLU_DIST library linked
      against any compatible sparse matrix reordering library.
    * Removed ParMETIS as a mandatory external dependency for PEXSI.
