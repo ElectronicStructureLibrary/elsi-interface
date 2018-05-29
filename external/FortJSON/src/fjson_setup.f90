@@ -35,13 +35,13 @@ contains
       type(fjson_handle), intent(out) :: fj_h
 
       !> Fortran unit to modify
-      integer(kind=i4),      intent(in)  :: print_unit
+      integer(kind=i4), intent(in) :: print_unit
 
       !> Filename for file to modify (if relevant)
-      character(len=*),      intent(in)  :: file_name
+      character(len=*), intent(in) :: file_name
 
       !> Prefix to append to beginning of every line
-      character(len=*),      intent(in)  :: prefix
+      character(len=*), intent(in) :: prefix
 
       character(len=*), parameter :: caller = "fjson_init_io"
 
@@ -102,14 +102,14 @@ contains
       type(fjson_handle), intent(out) :: fj_h
 
       !> Fortran unit to modify
-      integer(kind=i4),      intent(in)  :: print_unit
+      integer(kind=i4), intent(in) :: print_unit
 
       !> Filename for file to modify (if relevant)
-      character(len=*),      intent(in)  :: file_name
+      character(len=*), intent(in) :: file_name
 
-      integer(kind=i4)                   :: ios
+      integer(kind=i4) :: ios
 
-      character(len=*), parameter :: caller = "fjson_open_json_file"
+      character(len=*), parameter :: caller = "fjson_open_file"
 
       call fjson_init_io(fj_h, print_unit, file_name, "")
 
@@ -124,10 +124,10 @@ contains
 
       implicit none
 
-      !> FortJSON handle associated with this file to be closed
+      !> FortJSON handle associated with the file to be closed
       type(fjson_handle), intent(inout) :: fj_h
 
-      character(len=*), parameter :: caller = "fjson_close_json_file"
+      character(len=*), parameter :: caller = "fjson_close_file"
 
       close(fj_h%print_unit)
 

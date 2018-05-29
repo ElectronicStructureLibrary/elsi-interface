@@ -49,12 +49,12 @@ contains
       integer(kind=i4), allocatable, intent(inout) :: array(:)
 
       !> New size for array
-      integer(kind=i4),              intent(in)    :: new_size
+      integer(kind=i4), intent(in) :: new_size
 
       integer(kind=i4), allocatable :: old_array(:)
-      integer(kind=i4)              :: old_size
+      integer(kind=i4) :: old_size
 
-      character(len=*), parameter  :: caller = "fjson_resize_array_1D_i4"
+      character(len=*), parameter :: caller = "fjson_resize_array_1D_i4"
 
       if (.not.allocated(array)) then
          allocate(array(new_size))
@@ -99,7 +99,7 @@ contains
 
       character(len=40) :: int_string ! Number of digits for unsigned 8-byte int
 
-      character(len=*), parameter  :: caller = "fjson_convert_i4_to_value"
+      character(len=*), parameter :: caller = "fjson_convert_i4_to_value"
 
       write(int_string, "(I20)") var
       val_string = trim(adjustl(int_string))
@@ -119,7 +119,7 @@ contains
 
       character(len=40) :: int_string ! Number of digits for unsigned 8-byte int
 
-      character(len=*), parameter  :: caller = "fjson_convert_i8_to_value"
+      character(len=*), parameter :: caller = "fjson_convert_i8_to_value"
 
       write(int_string, "(I30)") var
       val_string = trim(adjustl(int_string))
@@ -139,7 +139,7 @@ contains
 
       character(len=40) :: real_string ! Num. characters in format specifier
 
-      character(len=*), parameter  :: caller = "fjson_convert_r4_to_value"
+      character(len=*), parameter :: caller = "fjson_convert_r4_to_value"
 
       write(real_string, "(E20.8)") var
       val_string = trim(adjustl(real_string))
@@ -159,7 +159,7 @@ contains
 
       character(len=40) :: real_string ! Num. characters in format specifier
 
-      character(len=*), parameter  :: caller = "fjson_convert_r8_to_value"
+      character(len=*), parameter :: caller = "fjson_convert_r8_to_value"
 
       ! WPH (23 April 2018): Exponent field width of 3 needed to circumvent
       !     a bug in ifort 14, where a negative exponent of -100 or lower will
@@ -182,7 +182,7 @@ contains
 
       character(len=:), allocatable :: str_string
 
-      character(len=*), parameter  :: caller = "fjson_convert_str_to_value"
+      character(len=*), parameter :: caller = "fjson_convert_str_to_value"
 
       str_string = '"' // var // '"'
       val_string = trim(adjustl(str_string))
@@ -204,7 +204,7 @@ contains
 
       character(len=:), allocatable :: bool_string
 
-      character(len=*), parameter  :: caller = "fjson_convert_bool_to_value"
+      character(len=*), parameter :: caller = "fjson_convert_bool_to_value"
 
       if (var) then
          bool_string = "true"
@@ -225,7 +225,7 @@ contains
 
       character(len=:), allocatable :: null_string
 
-      character(len=*), parameter  :: caller = "fjson_convert_null_to_value"
+      character(len=*), parameter :: caller = "fjson_convert_null_to_value"
 
       null_string = "null"
       val_string = trim(adjustl(null_string))
@@ -242,7 +242,7 @@ contains
       character(len=:), allocatable, intent(inout) :: target_str
 
       !> String to append to end of target string
-      character(len=*),              intent(in)    :: append_str
+      character(len=*), intent(in) :: append_str
 
       character(len=:), allocatable :: tmp_string
 
@@ -275,10 +275,9 @@ contains
       character(len=:), allocatable, intent(inout) :: target_str
 
       !> Number of characters to remove from end of string
-      integer(kind=i4),              intent(in)    :: n_chars_to_remove
+      integer(kind=i4), intent(in) :: n_chars_to_remove
 
       integer(kind=i4) :: size_new_str
-
       character(len=:), allocatable :: tmp_str
 
       character(len=*), parameter :: caller = "fjson_truncate_string"

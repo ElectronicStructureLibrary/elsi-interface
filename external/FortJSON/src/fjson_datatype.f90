@@ -18,13 +18,13 @@ module FJSON_DATATYPE
    type, public :: fjson_handle
 
       !> Has handle been initialized?
-      logical                       :: handle_init = .false.
+      logical :: handle_init = .false.
 
       !> Filename of JSON file associated with this handle (when relevant)
       character(len=:), allocatable :: file_name
 
       !> Fortran unit associated with JSON file
-      integer(kind=i4)              :: print_unit
+      integer(kind=i4) :: print_unit
 
       !> String to append to beginning of each line.  Will be modified to add
       !! indentation of the JSON output to make it "pretty".
@@ -41,7 +41,7 @@ module FJSON_DATATYPE
 
       !> The number of valid entries on the stack, i.e. index of the top element
       !! of the stack.
-      integer(kind=i4)              :: n_entries_scope
+      integer(kind=i4) :: n_entries_scope
 
       !> Whether we've finished writing the unique root entry to the JSON file.
       !! The root of a JSON file should contain a single object or array, but
@@ -50,7 +50,7 @@ module FJSON_DATATYPE
       !! supported) which will break more careful parsers.
       !! When we've reached the root level of the JSON file, we mark the file as
       !! finished and do not allow any additional writing.
-      logical                       :: finished
+      logical :: finished
 
       !> Controls placement of commas in objects and arrays.  The first
       !! name/value pair in an object or value in an array will not have a comma
@@ -58,11 +58,11 @@ module FJSON_DATATYPE
       !! scope; once we've entered into a new scope, the fact that we've entered
       !! into a new scope means that the previous scope has at least one
       !! name/value pair or value in it.
-      logical                       :: first_entry
+      logical :: first_entry
 
       !> The last error encountered.  This is a dirty bit and, once an error is
       !! encountered, it will remain set until a new error is encountered.
-      integer(kind=i4)              :: last_error
+      integer(kind=i4) :: last_error
 
    end type
 

@@ -68,7 +68,7 @@ module FJSON_RW
 
 contains
 
-   !> Writes a message to the inidicated unit.  All writing to file should be
+   !> Writes a message to the indicated unit.  All writing to file should be
    !! done through this subroutine, to minimize code rewrite for non-standard
    !! IO infrastructures
    subroutine fjson_write(fj_h, message, should_advance)
@@ -81,12 +81,10 @@ contains
       type(fjson_handle), intent(inout) :: fj_h
 
       !> Message to be written
-      character(len=*),   intent(in)    :: message
-
-      logical :: is_opened
+      character(len=*), intent(in) :: message
 
       !> Should there be a line break afterwards?  (default:. true..)
-      logical, optional,  intent(in)    :: should_advance
+      logical, optional, intent(in) :: should_advance
 
       character(len=*), parameter :: caller = "fjson_write"
 
@@ -97,16 +95,16 @@ contains
          call fjson_raise_error(fj_h, FILE_WRITE_ERROR)
          return
       end if
-      inquire(file=fj_h%file_name, opened=is_opened)
-      if (.not.is_opened) then
-         call fjson_raise_error(fj_h, FILE_WRITE_ERROR)
-         return
-      end if
-      inquire(unit=fj_h%print_unit, opened=is_opened)
-      if (.not.is_opened) then
-         call fjson_raise_error(fj_h, FILE_WRITE_ERROR)
-         return
-      end if
+
+      ! WPH, 10 May 2018: I've uncovered a strange error in Intel 18.0.2
+      ! on my local development cluster in which the INQUIRE built-in will
+      ! claim that a file or unit has not been opened unless it has been
+      ! previously written to within the present scope.  This occurs even if
+      ! the file has been written to previously during program execution.
+      ! This bug does not occur with Intel 14.0.1, GNU 4.9.0, or PGI 17.10.
+      ! Accordingly, I've left the check in here but commented it out.
+      !call fjson_check_file_io(fj_h)
+      !if (fjson_get_last_error(fj_h) == FILE_WRITE_ERROR) return
 
       if (.not.present(should_advance)) then
          write(fj_h%print_unit,"(A)") message
@@ -133,10 +131,10 @@ contains
       type(fjson_handle), intent(inout) :: fj_h
 
       !> name in name/value pair
-      character(len=*),      intent(in) :: label
+      character(len=*), intent(in) :: label
 
       !> value in name/value pair
-      character(len=*),      intent(in) :: setting
+      character(len=*), intent(in) :: setting
 
       character(len=:), allocatable :: message
 
@@ -174,10 +172,10 @@ contains
       type(fjson_handle), intent(inout) :: fj_h
 
       !> name in name/value pair
-      character(len=*),      intent(in)    :: label
+      character(len=*), intent(in) :: label
 
       !> value in name/value pair
-      integer(kind=i4),      intent(in)    :: setting
+      integer(kind=i4), intent(in) :: setting
 
       character(len=:), allocatable :: val_string
 
@@ -201,10 +199,10 @@ contains
       type(fjson_handle), intent(inout) :: fj_h
 
       !> name in name/value pair
-      character(len=*),      intent(in)    :: label
+      character(len=*), intent(in) :: label
 
       !> value in name/value pair
-      integer(kind=i8),      intent(in)    :: setting
+      integer(kind=i8), intent(in) :: setting
 
       character(len=:), allocatable :: val_string
 
@@ -229,10 +227,10 @@ contains
       type(fjson_handle), intent(inout) :: fj_h
 
       !> name in name/value pair
-      character(len=*),      intent(in)    :: label
+      character(len=*), intent(in) :: label
 
       !> value in name/value pair
-      real(kind=r4),         intent(in)    :: setting
+      real(kind=r4), intent(in) :: setting
 
       character(len=:), allocatable :: val_string
 
@@ -257,10 +255,10 @@ contains
       type(fjson_handle), intent(inout) :: fj_h
 
       !> name in name/value pair
-      character(len=*),      intent(in)    :: label
+      character(len=*), intent(in) :: label
 
       !> value in name/value pair
-      real(kind=r8),         intent(in)    :: setting
+      real(kind=r8), intent(in) :: setting
 
       character(len=:), allocatable :: val_string
 
@@ -284,10 +282,10 @@ contains
       type(fjson_handle), intent(inout) :: fj_h
 
       !> name in name/value pair
-      character(len=*),      intent(in) :: label
+      character(len=*), intent(in) :: label
 
       !> value in name/value pair
-      character(len=*),      intent(in) :: setting
+      character(len=*), intent(in) :: setting
 
       character(len=:), allocatable :: val_string
 
@@ -313,10 +311,10 @@ contains
       type(fjson_handle), intent(inout) :: fj_h
 
       !> name in name/value pair
-      character(len=*),      intent(in)    :: label
+      character(len=*), intent(in) :: label
 
       !> value in name/value pair
-      logical,               intent(in)    :: setting
+      logical, intent(in) :: setting
 
       character(len=:), allocatable :: val_string
 
@@ -341,7 +339,7 @@ contains
       type(fjson_handle), intent(inout) :: fj_h
 
       !> name in name/value pair
-      character(len=*),      intent(in)    :: label
+      character(len=*), intent(in) :: label
 
       character(len=:), allocatable :: val_string
 
@@ -364,13 +362,13 @@ contains
       type(fjson_handle), intent(inout) :: fj_h
 
       !> name in name/value pair
-      character(len=*),   intent(in)    :: label
+      character(len=*), intent(in) :: label
 
       !> value
-      integer(kind=i4),   intent(in)    :: setting(*)
+      integer(kind=i4), intent(in) :: setting(*)
 
       !> number of elements to print
-      integer(kind=i4),   intent(in)    :: len_arr
+      integer(kind=i4), intent(in) :: len_arr
 
       integer(kind=i4) :: num
 
@@ -396,13 +394,13 @@ contains
       type(fjson_handle), intent(inout) :: fj_h
 
       !> name in name/value pair
-      character(len=*),   intent(in)    :: label
+      character(len=*), intent(in) :: label
 
       !> value in name/value pair
-      integer(kind=i8),   intent(in)    :: setting(*)
+      integer(kind=i8), intent(in) :: setting(*)
 
       !> number of elements to print
-      integer(kind=i4),   intent(in)    :: len_arr
+      integer(kind=i4), intent(in) :: len_arr
 
       integer(kind=i4) :: num
 
@@ -428,13 +426,13 @@ contains
       type(fjson_handle), intent(inout) :: fj_h
 
       !> name in name/value pair
-      character(len=*),   intent(in)    :: label
+      character(len=*), intent(in) :: label
 
       !> value in name/value pair
-      real(kind=r4),      intent(in) :: setting(*)
+      real(kind=r4), intent(in) :: setting(*)
 
       !> number of elements to print
-      integer(kind=i4),   intent(in) :: len_arr
+      integer(kind=i4), intent(in) :: len_arr
 
       integer(kind=i4) :: num
 
@@ -460,13 +458,13 @@ contains
       type(fjson_handle), intent(inout) :: fj_h
 
       !> name in name/value pair
-      character(len=*),   intent(in)    :: label
+      character(len=*), intent(in) :: label
 
       !> value in name/value pair
-      real(kind=r8),      intent(in) :: setting(*)
+      real(kind=r8), intent(in) :: setting(*)
 
       !> number of elements to print
-      integer(kind=i4),   intent(in) :: len_arr
+      integer(kind=i4), intent(in) :: len_arr
 
       integer(kind=i4) :: num
 
@@ -491,13 +489,13 @@ contains
       type(fjson_handle), intent(inout) :: fj_h
 
       !> name in name/value pair
-      character(len=*),   intent(in)    :: label
+      character(len=*), intent(in) :: label
 
       !> value in name/value pair
-      logical,            intent(in)    :: setting(*)
+      logical, intent(in) :: setting(*)
 
       !> number of elements to print
-      integer(kind=i4),   intent(in)    :: len_arr
+      integer(kind=i4), intent(in) :: len_arr
 
       integer(kind=i4) :: num
 
@@ -529,7 +527,7 @@ contains
       type(fjson_handle), intent(inout) :: fj_h
 
       !> value
-      character(len=*),      intent(in)    :: setting
+      character(len=*), intent(in) :: setting
 
       character(len=:), allocatable :: message
 
@@ -573,7 +571,7 @@ contains
       type(fjson_handle), intent(inout) :: fj_h
 
       !> value
-      integer(kind=i4),      intent(in)    :: setting
+      integer(kind=i4), intent(in) :: setting
 
       character(len=:), allocatable :: val_string
 
@@ -597,7 +595,7 @@ contains
       type(fjson_handle), intent(inout) :: fj_h
 
       !> value
-      integer(kind=i8),      intent(in)    :: setting
+      integer(kind=i8), intent(in) :: setting
 
       character(len=:), allocatable :: val_string
 
@@ -622,7 +620,7 @@ contains
       type(fjson_handle), intent(inout) :: fj_h
 
       !> value
-      real(kind=r4),      intent(in)    :: setting
+      real(kind=r4), intent(in) :: setting
 
       character(len=:), allocatable :: val_string
 
@@ -645,7 +643,7 @@ contains
       type(fjson_handle), intent(inout) :: fj_h
 
       !> value
-      real(kind=r8),         intent(in)    :: setting
+      real(kind=r8), intent(in) :: setting
 
       character(len=:), allocatable :: val_string
 
@@ -669,7 +667,7 @@ contains
       type(fjson_handle), intent(inout) :: fj_h
 
       !> value
-      character(len=*),      intent(in)    :: setting
+      character(len=*), intent(in) :: setting
 
       character(len=:), allocatable :: val_string
 
@@ -695,7 +693,7 @@ contains
       type(fjson_handle), intent(inout) :: fj_h
 
       !> value
-      logical,               intent(in)    :: setting
+      logical, intent(in) :: setting
 
       character(len=:), allocatable :: val_string
 
@@ -739,10 +737,10 @@ contains
       type(fjson_handle), intent(inout) :: fj_h
 
       !> value
-      integer(kind=i4),      intent(in) :: setting(*)
+      integer(kind=i4), intent(in) :: setting(*)
 
       !> number of elements to print
-      integer(kind=i4),      intent(in) :: len_arr
+      integer(kind=i4), intent(in) :: len_arr
 
       integer(kind=i4) :: num
 
@@ -767,10 +765,10 @@ contains
       type(fjson_handle), intent(inout) :: fj_h
 
       !> value
-      integer(kind=i8),      intent(in) :: setting(*)
+      integer(kind=i8), intent(in) :: setting(*)
 
       !> number of elements to print
-      integer(kind=i4),      intent(in) :: len_arr
+      integer(kind=i4), intent(in) :: len_arr
 
       integer(kind=i4) :: num
 
@@ -796,10 +794,10 @@ contains
       type(fjson_handle), intent(inout) :: fj_h
 
       !> value
-      real(kind=r4),         intent(in) :: setting(*)
+      real(kind=r4), intent(in) :: setting(*)
 
       !> number of elements to print
-      integer(kind=i4),      intent(in) :: len_arr
+      integer(kind=i4), intent(in) :: len_arr
 
       integer(kind=i4) :: num
 
@@ -825,10 +823,10 @@ contains
       type(fjson_handle), intent(inout) :: fj_h
 
       !> value
-      real(kind=r8),         intent(in) :: setting(*)
+      real(kind=r8), intent(in) :: setting(*)
 
       !> number of elements to print
-      integer(kind=i4),      intent(in) :: len_arr
+      integer(kind=i4), intent(in) :: len_arr
 
       integer(kind=i4) :: num
 
@@ -853,10 +851,10 @@ contains
       type(fjson_handle), intent(inout) :: fj_h
 
       !> value
-      logical,            intent(in)    :: setting(*)
+      logical, intent(in) :: setting(*)
 
       !> number of elements to print
-      integer(kind=i4),   intent(in)    :: len_arr
+      integer(kind=i4), intent(in) :: len_arr
 
       integer(kind=i4) :: num
 
@@ -918,7 +916,7 @@ contains
       type(fjson_handle), intent(inout) :: fj_h
 
       !> name in name/value pair
-      character(len=*),      intent(in)    :: label
+      character(len=*), intent(in) :: label
 
       character(len=*), parameter :: caller = "fjson_start_name_object"
 
@@ -1032,7 +1030,7 @@ contains
       type(fjson_handle), intent(inout) :: fj_h
 
       !> name in name/value pair
-      character(len=*),      intent(in)    :: label
+      character(len=*), intent(in) :: label
 
       character(len=*), parameter :: caller = "fjson_start_name_array"
 
@@ -1111,7 +1109,7 @@ contains
       type(fjson_handle), intent(inout) :: fj_h
 
       !> Error code being raised
-      integer(kind=i4),   intent(in)    :: error_code
+      integer(kind=i4), intent(in) :: error_code
 
       character(len=:), allocatable :: message
 
@@ -1142,7 +1140,7 @@ contains
       implicit none
 
       !> Error code being raised
-      integer(kind=i4),  intent(in) :: error_code
+      integer(kind=i4), intent(in) :: error_code
 
       !> Error message for provided error code
       character(len=:), allocatable :: error_message
@@ -1222,5 +1220,39 @@ contains
       if (.not.handle_init) call fjson_raise_error(fj_h, HANDLE_UNINIT_ERROR)
 
    end function
+
+   !> Checks if the unit and JSON file associated with the current handle
+   !! are open
+   subroutine fjson_check_file_io(fj_h)
+
+      use FJSON_CONSTANTS, only: FILE_WRITE_ERROR
+
+      implicit none
+
+      !> FortJSON handle associated with the file/unit
+      type(fjson_handle), intent(inout) :: fj_h
+
+      character(len=*), parameter :: caller = "fjson_check_file_io"
+
+      logical :: is_opened
+
+      if (.not.allocated(fj_h%file_name)) then
+         call fjson_raise_error(fj_h, FILE_WRITE_ERROR)
+         return
+      end if
+
+      inquire(file=fj_h%file_name, opened=is_opened)
+      if (.not.is_opened) then
+         call fjson_raise_error(fj_h, FILE_WRITE_ERROR)
+         return
+      end if
+
+      inquire(unit=fj_h%print_unit, opened=is_opened)
+      if (.not.is_opened) then
+         call fjson_raise_error(fj_h, FILE_WRITE_ERROR)
+         return
+      end if
+
+   end subroutine
 
 end module FJSON_RW
