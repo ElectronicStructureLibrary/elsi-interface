@@ -186,9 +186,9 @@ subroutine elsi_ev_real_c_wrapper(handle_c,ham_c,ovlp_c,eval_c,evec_c)&
 
    call c_f_pointer(handle_c,handle_f)
 
-   n_basis = handle_f%n_basis
-   lrow    = handle_f%n_lrow
-   lcol    = handle_f%n_lcol
+   n_basis = handle_f%ph%n_basis
+   lrow    = handle_f%bh%n_lrow
+   lcol    = handle_f%bh%n_lcol
 
    call c_f_pointer(ham_c,ham_f,shape=[lrow,lcol])
    call c_f_pointer(ovlp_c,ovlp_f,shape=[lrow,lcol])
@@ -222,9 +222,9 @@ subroutine elsi_ev_complex_c_wrapper(handle_c,ham_c,ovlp_c,eval_c,evec_c)&
 
    call c_f_pointer(handle_c,handle_f)
 
-   n_basis = handle_f%n_basis
-   lrow    = handle_f%n_lrow
-   lcol    = handle_f%n_lcol
+   n_basis = handle_f%ph%n_basis
+   lrow    = handle_f%bh%n_lrow
+   lcol    = handle_f%bh%n_lcol
 
    call c_f_pointer(ham_c,ham_f,shape=[lrow,lcol])
    call c_f_pointer(ovlp_c,ovlp_f,shape=[lrow,lcol])
@@ -259,10 +259,10 @@ subroutine elsi_ev_real_sparse_c_wrapper(handle_c,ham_c,ovlp_c,eval_c,evec_c)&
 
    call c_f_pointer(handle_c,handle_f)
 
-   n_basis = handle_f%n_basis
-   nnz_l   = handle_f%nnz_l_sp
-   lrow    = handle_f%n_lrow
-   lcol    = handle_f%n_lcol
+   n_basis = handle_f%ph%n_basis
+   nnz_l   = handle_f%bh%nnz_l_sp
+   lrow    = handle_f%bh%n_lrow
+   lcol    = handle_f%bh%n_lcol
 
    call c_f_pointer(ham_c,ham_f,shape=[nnz_l])
    call c_f_pointer(ovlp_c,ovlp_f,shape=[nnz_l])
@@ -298,10 +298,10 @@ subroutine elsi_ev_complex_sparse_c_wrapper(handle_c,ham_c,ovlp_c,eval_c,&
 
    call c_f_pointer(handle_c,handle_f)
 
-   n_basis = handle_f%n_basis
-   nnz_l   = handle_f%nnz_l_sp
-   lrow    = handle_f%n_lrow
-   lcol    = handle_f%n_lcol
+   n_basis = handle_f%ph%n_basis
+   nnz_l   = handle_f%bh%nnz_l_sp
+   lrow    = handle_f%bh%n_lrow
+   lcol    = handle_f%bh%n_lcol
 
    call c_f_pointer(ham_c,ham_f,shape=[nnz_l])
    call c_f_pointer(ovlp_c,ovlp_f,shape=[nnz_l])
@@ -334,9 +334,9 @@ subroutine elsi_dm_real_c_wrapper(handle_c,ham_c,ovlp_c,dm_c,energy)&
 
    call c_f_pointer(handle_c,handle_f)
 
-   n_basis = handle_f%n_basis
-   lrow    = handle_f%n_lrow
-   lcol    = handle_f%n_lcol
+   n_basis = handle_f%ph%n_basis
+   lrow    = handle_f%bh%n_lrow
+   lcol    = handle_f%bh%n_lcol
 
    call c_f_pointer(ham_c,ham_f,shape=[lrow,lcol])
    call c_f_pointer(ovlp_c,ovlp_f,shape=[lrow,lcol])
@@ -368,9 +368,9 @@ subroutine elsi_dm_complex_c_wrapper(handle_c,ham_c,ovlp_c,dm_c,energy)&
 
    call c_f_pointer(handle_c,handle_f)
 
-   n_basis = handle_f%n_basis
-   lrow    = handle_f%n_lrow
-   lcol    = handle_f%n_lcol
+   n_basis = handle_f%ph%n_basis
+   lrow    = handle_f%bh%n_lrow
+   lcol    = handle_f%bh%n_lcol
 
    call c_f_pointer(ham_c,ham_f,shape=[lrow,lcol])
    call c_f_pointer(ovlp_c,ovlp_f,shape=[lrow,lcol])
@@ -400,7 +400,7 @@ subroutine elsi_dm_real_sparse_c_wrapper(handle_c,ham_c,ovlp_c,dm_c,energy)&
 
    call c_f_pointer(handle_c,handle_f)
 
-   nnz_l = handle_f%nnz_l_sp
+   nnz_l = handle_f%bh%nnz_l_sp
 
    call c_f_pointer(ham_c,ham_f,shape=[nnz_l])
    call c_f_pointer(ovlp_c,ovlp_f,shape=[nnz_l])
@@ -430,7 +430,7 @@ subroutine elsi_dm_complex_sparse_c_wrapper(handle_c,ham_c,ovlp_c,dm_c,energy)&
 
    call c_f_pointer(handle_c,handle_f)
 
-   nnz_l = handle_f%nnz_l_sp
+   nnz_l = handle_f%bh%nnz_l_sp
 
    call c_f_pointer(ham_c,ham_f,shape=[nnz_l])
    call c_f_pointer(ovlp_c,ovlp_f,shape=[nnz_l])
@@ -1177,8 +1177,8 @@ subroutine elsi_get_edm_real_c_wrapper(handle_c,edm_c)&
 
    call c_f_pointer(handle_c,handle_f)
 
-   lrow = handle_f%n_lrow
-   lcol = handle_f%n_lcol
+   lrow = handle_f%bh%n_lrow
+   lcol = handle_f%bh%n_lcol
 
    call c_f_pointer(edm_c,edm_f,shape=[lrow,lcol])
 
@@ -1202,8 +1202,8 @@ subroutine elsi_get_edm_complex_c_wrapper(handle_c,edm_c)&
 
    call c_f_pointer(handle_c,handle_f)
 
-   lrow = handle_f%n_lrow
-   lcol = handle_f%n_lcol
+   lrow = handle_f%bh%n_lrow
+   lcol = handle_f%bh%n_lcol
 
    call c_f_pointer(edm_c,edm_f,shape=[lrow,lcol])
 
@@ -1226,7 +1226,7 @@ subroutine elsi_get_edm_real_sparse_c_wrapper(handle_c,edm_c)&
 
    call c_f_pointer(handle_c,handle_f)
 
-   nnz_l = handle_f%nnz_l_sp
+   nnz_l = handle_f%bh%nnz_l_sp
 
    call c_f_pointer(edm_c,edm_f,shape=[nnz_l])
 
@@ -1249,7 +1249,7 @@ subroutine elsi_get_edm_complex_sparse_c_wrapper(handle_c,edm_c)&
 
    call c_f_pointer(handle_c,handle_f)
 
-   nnz_l = handle_f%nnz_l_sp
+   nnz_l = handle_f%bh%nnz_l_sp
 
    call c_f_pointer(edm_c,edm_f,shape=[nnz_l])
 
@@ -1432,8 +1432,8 @@ subroutine elsi_read_mat_real_c_wrapper(handle_c,name_c,mat_c)&
 
    call c_f_pointer(handle_c,handle_f)
 
-   lrow = handle_f%n_lrow
-   lcol = handle_f%n_lcol
+   lrow = handle_f%bh%n_lrow
+   lcol = handle_f%bh%n_lcol
 
    call c_f_pointer(mat_c,mat_f,shape=[lrow,lcol])
 
@@ -1467,8 +1467,8 @@ subroutine elsi_read_mat_real_sparse_c_wrapper(handle_c,name_c,row_ind_c,&
 
    call c_f_pointer(handle_c,handle_f)
 
-   nnz_l = handle_f%nnz_l_sp
-   lcol  = handle_f%n_lcol_sp
+   nnz_l = handle_f%bh%nnz_l_sp
+   lcol  = handle_f%bh%n_lcol_sp
 
    call c_f_pointer(row_ind_c,row_ind_f,shape=[nnz_l])
    call c_f_pointer(col_ptr_c,col_ptr_f,shape=[lcol+1])
@@ -1499,8 +1499,8 @@ subroutine elsi_write_mat_real_c_wrapper(handle_c,name_c,mat_c)&
 
    call c_f_pointer(handle_c,handle_f)
 
-   lrow = handle_f%n_lrow
-   lcol = handle_f%n_lcol
+   lrow = handle_f%bh%n_lrow
+   lcol = handle_f%bh%n_lcol
 
    call c_f_pointer(mat_c,mat_f,shape=[lrow,lcol])
 
@@ -1534,8 +1534,8 @@ subroutine elsi_write_mat_real_sparse_c_wrapper(handle_c,name_c,row_ind_c,&
 
    call c_f_pointer(handle_c,handle_f)
 
-   nnz_l = handle_f%nnz_l_sp
-   lcol  = handle_f%n_lcol_sp
+   nnz_l = handle_f%bh%nnz_l_sp
+   lcol  = handle_f%bh%n_lcol_sp
 
    call c_f_pointer(row_ind_c,row_ind_f,shape=[nnz_l])
    call c_f_pointer(col_ptr_c,col_ptr_f,shape=[lcol+1])
@@ -1566,8 +1566,8 @@ subroutine elsi_read_mat_complex_c_wrapper(handle_c,name_c,mat_c)&
 
    call c_f_pointer(handle_c,handle_f)
 
-   lrow = handle_f%n_lrow
-   lcol = handle_f%n_lcol
+   lrow = handle_f%bh%n_lrow
+   lcol = handle_f%bh%n_lcol
 
    call c_f_pointer(mat_c,mat_f,shape=[lrow,lcol])
 
@@ -1601,8 +1601,8 @@ subroutine elsi_read_mat_complex_sparse_c_wrapper(handle_c,name_c,row_ind_c,&
 
    call c_f_pointer(handle_c,handle_f)
 
-   nnz_l = handle_f%nnz_l_sp
-   lcol  = handle_f%n_lcol_sp
+   nnz_l = handle_f%bh%nnz_l_sp
+   lcol  = handle_f%bh%n_lcol_sp
 
    call c_f_pointer(row_ind_c,row_ind_f,shape=[nnz_l])
    call c_f_pointer(col_ptr_c,col_ptr_f,shape=[lcol+1])
@@ -1633,8 +1633,8 @@ subroutine elsi_write_mat_complex_c_wrapper(handle_c,name_c,mat_c)&
 
    call c_f_pointer(handle_c,handle_f)
 
-   lrow = handle_f%n_lrow
-   lcol = handle_f%n_lcol
+   lrow = handle_f%bh%n_lrow
+   lcol = handle_f%bh%n_lcol
 
    call c_f_pointer(mat_c,mat_f,shape=[lrow,lcol])
 
@@ -1668,8 +1668,8 @@ subroutine elsi_write_mat_complex_sparse_c_wrapper(handle_c,name_c,row_ind_c,&
 
    call c_f_pointer(handle_c,handle_f)
 
-   nnz_l = handle_f%nnz_l_sp
-   lcol  = handle_f%n_lcol_sp
+   nnz_l = handle_f%bh%nnz_l_sp
+   lcol  = handle_f%bh%n_lcol_sp
 
    call c_f_pointer(row_ind_c,row_ind_f,shape=[nnz_l])
    call c_f_pointer(col_ptr_c,col_ptr_f,shape=[lcol+1])

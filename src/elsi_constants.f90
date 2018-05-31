@@ -66,10 +66,6 @@ module ELSI_CONSTANTS
    integer(kind=i4), parameter :: WRITE_FILE = 1
 
    ! IO
-   character(len=*), parameter :: UNSET_STR    = "N/A"
-   integer(kind=i4), parameter :: FILENAME_LEN = 80
-   integer(kind=i4), parameter :: HUMAN        = 0
-   integer(kind=i4), parameter :: JSON         = 1
    integer(kind=i4), parameter :: STR_LEN      = 20
    integer(kind=i4), parameter :: DATETIME_LEN = 29
    integer(kind=i4), parameter :: UUID_LEN     = 36 ! RFC 4122 format

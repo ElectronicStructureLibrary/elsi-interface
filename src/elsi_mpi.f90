@@ -9,7 +9,7 @@
 !!
 module ELSI_MPI
 
-   use ELSI_DATATYPE,  only: elsi_handle
+   use ELSI_DATATYPE,  only: elsi_basic_t
    use ELSI_PRECISION, only: i4
 
    implicit none
@@ -24,37 +24,32 @@ contains
 !>
 !! Clean shutdown in case of errors.
 !!
-subroutine elsi_stop(e_h,info,caller)
+subroutine elsi_stop(bh,info,caller)
 
    implicit none
 
-   type(elsi_handle), intent(in) :: e_h
-   character(len=*),  intent(in) :: info
-   character(len=*),  intent(in) :: caller
+   type(elsi_basic_t), intent(in) :: bh
+   character(len=*),   intent(in) :: info
+   character(len=*),   intent(in) :: caller
 
    character(len=200) :: info_str
    integer(kind=i4)   :: ierr
 
-   if(e_h%global_mpi_ready) then
-      write(info_str,"(A,I7,5A)") "**Error! MPI task ",e_h%myid_all," in ",&
-         trim(caller),": ",trim(info)," Exiting..."
-      write(e_h%stdio%print_unit,"(A)") trim(info_str)
+   if(bh%mpi_all_ready) then
+      write(info_str,"(A,I7,4A)") "**Error! MPI task ",bh%myid_all," in ",&
+         trim(caller),": ",trim(info)
+      write(*,"(A)") trim(info_str)
 
-      if(e_h%n_procs_all > 1) then
-         call MPI_Abort(e_h%mpi_comm_all,0,ierr)
-      endif
-   elseif(e_h%mpi_ready) then
-      write(info_str,"(A,I7,5A)") "**Error! MPI task ",e_h%myid," in ",&
-         trim(caller),": ",trim(info)," Exiting..."
-      write(e_h%stdio%print_unit,"(A)") trim(info_str)
+      call MPI_Abort(bh%comm_all,0,ierr)
+   elseif(bh%mpi_ready) then
+      write(info_str,"(A,I7,4A)") "**Error! MPI task ",bh%myid," in ",&
+         trim(caller),": ",trim(info)
+      write(*,"(A)") trim(info_str)
 
-      if(e_h%n_procs > 1) then
-         call MPI_Abort(e_h%mpi_comm,0,ierr)
-      endif
+      call MPI_Abort(bh%comm,0,ierr)
    else
-      write(info_str,"(5A)") "**Error! ",trim(caller),": ",trim(info),&
-         " Exiting..."
-      write(e_h%stdio%print_unit,"(A)") trim(info_str)
+      write(info_str,"(4A)") "**Error! ",trim(caller),": ",trim(info)
+      write(*,"(A)") trim(info_str)
    endif
 
    stop
@@ -64,21 +59,21 @@ end subroutine
 !>
 !! Checks if an MPI call is successful.
 !!
-subroutine elsi_check_mpi(e_h,routine,ierr,caller)
+subroutine elsi_check_mpi(bh,routine,ierr,caller)
 
    implicit none
 
-   type(elsi_handle), intent(in) :: e_h
-   character(len=*),  intent(in) :: routine
-   integer(kind=i4),  intent(in) :: ierr
-   character(len=*),  intent(in) :: caller
+   type(elsi_basic_t), intent(in) :: bh
+   character(len=*),   intent(in) :: routine
+   integer(kind=i4),   intent(in) :: ierr
+   character(len=*),   intent(in) :: caller
 
    character(len=200) :: info_str
 
    if(ierr /= MPI_SUCCESS) then
       write(info_str,"(2A)") routine," failed."
 
-      call elsi_stop(e_h,info_str,caller)
+      call elsi_stop(bh,info_str,caller)
    endif
 
 end subroutine

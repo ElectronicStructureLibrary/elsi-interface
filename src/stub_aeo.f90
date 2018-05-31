@@ -40,8 +40,7 @@ subroutine elpa_dummy()
 
    implicit none
 
-   write(*,"(A)") " An ELPA stub routine was called. Check ELSI installation."
-   write(*,"(A)") " Exiting..."
+   write(*,"(A)") "**Error! An ELPA stub routine was called."
    stop
 
 end subroutine
@@ -50,8 +49,7 @@ subroutine elpa_autotune_dummy()
 
    implicit none
 
-   write(*,"(A)") " An ELPA stub routine was called. Check ELSI installation."
-   write(*,"(A)") " Exiting..."
+   write(*,"(A)") "**Error! An ELPA stub routine was called."
    stop
 
 end subroutine

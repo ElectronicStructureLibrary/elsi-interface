@@ -14,17 +14,16 @@ LIST(APPEND elsi_src
   elsi_dmp.f90
   elsi_interface.f90
   elsi_io.f90
-  elsi_json.f90
   elsi_lapack.f90
   elsi_malloc.f90
-  elsi_mat_io.f90
-  elsi_mat_redist.f90
   elsi_mpi.f90
   elsi_mutator.f90
   elsi_occ.f90
   elsi_omm.f90
   elsi_pexsi.f90
   elsi_precision.f90
+  elsi_redist.f90
+  elsi_rw.f90
   elsi_setup.f90
   elsi_sips.f90
   elsi_solver.f90
