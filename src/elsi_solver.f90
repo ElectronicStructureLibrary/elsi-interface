@@ -46,8 +46,7 @@ module ELSI_SOLVER
                              elsi_sips_to_siesta_dm_real
    use ELSI_MPI,       only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8
    use ELSI_OMM,       only: elsi_init_omm,elsi_solve_omm_real,&
-                             elsi_solve_omm_cmplx,elsi_init_coeff_omm_real,&
-                             elsi_init_coeff_omm_cmplx
+                             elsi_solve_omm_cmplx
    use ELSI_PEXSI,     only: elsi_init_pexsi,elsi_solve_pexsi_real,&
                              elsi_solve_pexsi_cmplx
    use ELSI_PRECISION, only: r8,i4
@@ -143,7 +142,8 @@ subroutine elsi_ev_real(eh,ham,ovlp,eval,evec)
          call elsi_solve_lapack_real(eh%ph,eh%bh,ham,ovlp,eval,evec)
       else
          call elsi_init_elpa(eh%ph,eh%bh)
-         call elsi_solve_elpa_real(eh,eh%ph,eh%bh,ham,ovlp,eval,evec)
+         call elsi_solve_elpa_real(eh%ph,eh%bh,eh%row_map,eh%col_map,ham,ovlp,&
+                 eval,evec)
       endif
    case(SIPS_SOLVER)
       if(eh%ph%n_calls <= eh%ph%sips_n_elpa) then
@@ -155,18 +155,23 @@ subroutine elsi_ev_real(eh,ham,ovlp,eval,evec)
          endif
 
          call elsi_init_elpa(eh%ph,eh%bh)
-         call elsi_solve_elpa_real(eh,eh%ph,eh%bh,ham,ovlp,eval,evec)
+         call elsi_solve_elpa_real(eh%ph,eh%bh,eh%row_map,eh%col_map,ham,ovlp,&
+                 eval,evec)
       else ! ELPA is done
          if(allocated(eh%ovlp_real_copy)) then
             ! Retrieve overlap matrix that has been destroyed by Cholesky
             ovlp = eh%ovlp_real_copy
             call elsi_deallocate(eh%bh,eh%ovlp_real_copy,"ovlp_real_copy")
          endif
+         if(.not. allocated(eh%evec_real)) then
+            call elsi_allocate(eh%bh,eh%evec_real,eh%bh%n_lcol_sp1,&
+                    eh%ph%n_states,"evec_real",caller)
+         endif
 
          call elsi_init_sips(eh%ph,eh%bh)
          call elsi_blacs_to_sips_hs_real(eh,eh%ph,eh%bh,ham,ovlp)
-         call elsi_solve_sips_real(eh,eh%ph,eh%bh,eh%ham_real_pexsi,&
-                 eh%ovlp_real_pexsi,eval)
+         call elsi_solve_sips_real(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
+                 eh%ham_real_csc,eh%ovlp_real_csc,eval,eh%evec_real)
          call elsi_sips_to_blacs_ev_real(eh,eh%ph,eh%bh,evec)
       endif
    case default
@@ -210,7 +215,8 @@ subroutine elsi_ev_complex(eh,ham,ovlp,eval,evec)
          call elsi_solve_lapack_cmplx(eh%ph,eh%bh,ham,ovlp,eval,evec)
       else
          call elsi_init_elpa(eh%ph,eh%bh)
-         call elsi_solve_elpa_cmplx(eh,eh%ph,eh%bh,ham,ovlp,eval,evec)
+         call elsi_solve_elpa_cmplx(eh%ph,eh%bh,eh%row_map,eh%col_map,ham,ovlp,&
+                 eval,evec)
       endif
    case default
       call elsi_stop(eh%bh,"Unsupported eigensolver.",caller)
@@ -260,8 +266,8 @@ subroutine elsi_ev_real_sparse(eh,ham,ovlp,eval,evec)
          call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
       end select
 
-      call elsi_solve_elpa_real(eh,eh%ph,eh%bh,eh%ham_real_elpa,&
-              eh%ovlp_real_elpa,eval,evec)
+      call elsi_solve_elpa_real(eh%ph,eh%bh,eh%row_map,eh%col_map,&
+              eh%ham_real_den,eh%ovlp_real_den,eval,evec)
    case(SIPS_SOLVER)
       if(eh%ph%n_calls <= eh%ph%sips_n_elpa) then
          call elsi_init_elpa(eh%ph,eh%bh)
@@ -275,25 +281,32 @@ subroutine elsi_ev_real_sparse(eh,ham,ovlp,eval,evec)
             call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
          end select
 
-         call elsi_solve_elpa_real(eh,eh%ph,eh%bh,eh%ham_real_elpa,&
-                 eh%ovlp_real_elpa,eval,evec)
+         call elsi_solve_elpa_real(eh%ph,eh%bh,eh%row_map,eh%col_map,&
+                 eh%ham_real_den,eh%ovlp_real_den,eval,evec)
       else ! ELPA is done
-         if(allocated(eh%ham_real_elpa)) then
-            call elsi_deallocate(eh%bh,eh%ham_real_elpa,"ham_real_elpa")
+         if(allocated(eh%ham_real_den)) then
+            call elsi_deallocate(eh%bh,eh%ham_real_den,"ham_real_den")
          endif
-         if(allocated(eh%ovlp_real_elpa)) then
-            call elsi_deallocate(eh%bh,eh%ovlp_real_elpa,"ovlp_real_elpa")
+         if(allocated(eh%ovlp_real_den)) then
+            call elsi_deallocate(eh%bh,eh%ovlp_real_den,"ovlp_real_den")
          endif
 
          call elsi_init_sips(eh%ph,eh%bh)
 
+         if(.not. allocated(eh%evec_real)) then
+            call elsi_allocate(eh%bh,eh%evec_real,eh%bh%n_lcol_sp1,&
+                    eh%ph%n_states,"evec_real",caller)
+         endif
+
          select case(eh%ph%matrix_format)
          case(PEXSI_CSC)
-            call elsi_solve_sips_real(eh,eh%ph,eh%bh,ham,ovlp,eval)
+            call elsi_solve_sips_real(eh%ph,eh%bh,eh%row_ind_sp1,&
+                    eh%col_ptr_sp1,ham,ovlp,eval,eh%evec_real)
          case(SIESTA_CSC)
             call elsi_siesta_to_sips_hs_real(eh,eh%ph,eh%bh,ham,ovlp)
-            call elsi_solve_sips_real(eh,eh%ph,eh%bh,eh%ham_real_pexsi,&
-                    eh%ovlp_real_pexsi,eval)
+            call elsi_solve_sips_real(eh%ph,eh%bh,eh%row_ind_sp1,&
+                    eh%col_ptr_sp1,eh%ham_real_csc,eh%ovlp_real_csc,eval,&
+                    eh%evec_real)
          case default
             call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
          end select
@@ -348,8 +361,8 @@ subroutine elsi_ev_complex_sparse(eh,ham,ovlp,eval,evec)
          call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
       end select
 
-      call elsi_solve_elpa_cmplx(eh,eh%ph,eh%bh,eh%ham_cmplx_elpa,&
-              eh%ovlp_cmplx_elpa,eval,evec)
+      call elsi_solve_elpa_cmplx(eh%ph,eh%bh,eh%row_map,eh%col_map,&
+              eh%ham_cmplx_den,eh%ovlp_cmplx_den,eval,evec)
    case default
       call elsi_stop(eh%bh,"Unsupported eigensolver.",caller)
    end select
@@ -388,18 +401,23 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,energy)
    case(ELPA_SOLVER)
       call elsi_init_elpa(eh%ph,eh%bh)
 
-      if(.not. allocated(eh%eval_elpa)) then
-         call elsi_allocate(eh%bh,eh%eval_elpa,eh%ph%n_basis,"eval_elpa",caller)
+      if(.not. allocated(eh%eval)) then
+         call elsi_allocate(eh%bh,eh%eval,eh%ph%n_basis,"eval",caller)
       endif
-      if(.not. allocated(eh%evec_real_elpa)) then
-         call elsi_allocate(eh%bh,eh%evec_real_elpa,eh%bh%n_lrow,eh%bh%n_lcol,&
-                 "evec_real_elpa",caller)
+      if(.not. allocated(eh%evec_real)) then
+         call elsi_allocate(eh%bh,eh%evec_real,eh%bh%n_lrow,eh%bh%n_lcol,&
+                 "evec_real",caller)
+      endif
+      if(.not. allocated(eh%occ)) then
+         call elsi_allocate(eh%bh,eh%occ,eh%ph%n_basis,eh%ph%n_spins,&
+                 eh%ph%n_kpts,"occ",caller)
       endif
 
-      call elsi_solve_elpa_real(eh,eh%ph,eh%bh,ham,ovlp,eh%eval_elpa,&
-              eh%evec_real_elpa)
-      call elsi_compute_occ_elpa(eh,eh%ph,eh%bh,eh%eval_elpa)
-      call elsi_compute_dm_elpa_real(eh,eh%ph,eh%bh,eh%evec_real_elpa,dm,ham)
+      call elsi_solve_elpa_real(eh%ph,eh%bh,eh%row_map,eh%col_map,ham,ovlp,&
+              eh%eval,eh%evec_real)
+      call elsi_compute_occ_elpa(eh%ph,eh%bh,eh%eval,eh%occ)
+      call elsi_compute_dm_elpa_real(eh%ph,eh%bh,eh%row_map,eh%col_map,&
+              eh%evec_real,eh%occ,dm,ham)
       call elsi_get_energy(eh%ph,eh%bh,energy,ELPA_SOLVER)
    case(OMM_SOLVER)
       if(eh%ph%n_calls <= eh%ph%omm_n_elpa) then
@@ -412,19 +430,23 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,energy)
             eh%ovlp_real_copy = ovlp
          endif
 
-         if(.not. allocated(eh%eval_elpa)) then
-            call elsi_allocate(eh%bh,eh%eval_elpa,eh%ph%n_basis,"eval_elpa",&
-                    caller)
+         if(.not. allocated(eh%eval)) then
+            call elsi_allocate(eh%bh,eh%eval,eh%ph%n_basis,"eval",caller)
          endif
-         if(.not. allocated(eh%evec_real_elpa)) then
-            call elsi_allocate(eh%bh,eh%evec_real_elpa,eh%bh%n_lrow,&
-                    eh%bh%n_lcol,"evec_real_elpa",caller)
+         if(.not. allocated(eh%evec_real)) then
+            call elsi_allocate(eh%bh,eh%evec_real,eh%bh%n_lrow,eh%bh%n_lcol,&
+                    "evec_real",caller)
+         endif
+         if(.not. allocated(eh%occ)) then
+            call elsi_allocate(eh%bh,eh%occ,eh%ph%n_basis,eh%ph%n_spins,&
+                    eh%ph%n_kpts,"occ",caller)
          endif
 
-         call elsi_solve_elpa_real(eh,eh%ph,eh%bh,ham,ovlp,eh%eval_elpa,&
-                 eh%evec_real_elpa)
-         call elsi_compute_occ_elpa(eh,eh%ph,eh%bh,eh%eval_elpa)
-         call elsi_compute_dm_elpa_real(eh,eh%ph,eh%bh,eh%evec_real_elpa,dm,ham)
+         call elsi_solve_elpa_real(eh%ph,eh%bh,eh%row_map,eh%col_map,ham,ovlp,&
+                 eh%eval,eh%evec_real)
+         call elsi_compute_occ_elpa(eh%ph,eh%bh,eh%eval,eh%occ)
+         call elsi_compute_dm_elpa_real(eh%ph,eh%bh,eh%row_map,eh%col_map,&
+                 eh%evec_real,eh%occ,dm,ham)
          call elsi_get_energy(eh%ph,eh%bh,energy,ELPA_SOLVER)
       else ! ELPA is done
          call elsi_init_omm(eh%ph,eh%bh)
@@ -435,60 +457,57 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,energy)
             call elsi_deallocate(eh%bh,eh%ovlp_real_copy,"ovlp_real_copy")
          endif
 
-         if(.not. eh%c_omm%is_initialized) then
-            call elsi_init_coeff_omm_real(eh,eh%ph)
-         endif
-
          ! Initialize coefficient matrix with ELPA eigenvectors if possible
          if(eh%ph%omm_n_elpa > 0 .and. eh%ph%n_calls == eh%ph%omm_n_elpa+1) then
             ! libOMM coefficient matrix is the transpose of ELPA eigenvectors
-            call pdtran(eh%ph%n_basis,eh%ph%n_basis,1.0_r8,eh%evec_real_elpa,1,&
-                    1,eh%bh%desc,0.0_r8,dm,1,1,eh%bh%desc)
+            call pdtran(eh%ph%n_basis,eh%ph%n_basis,1.0_r8,eh%evec_real,1,1,&
+                    eh%bh%desc,0.0_r8,dm,1,1,eh%bh%desc)
 
-            eh%c_omm%dval(1:eh%c_omm%iaux2(1),1:eh%c_omm%iaux2(2)) = &
-               dm(1:eh%c_omm%iaux2(1),1:eh%c_omm%iaux2(2))
+            if(.not. allocated(eh%omm_c_real)) then
+               call elsi_allocate(eh%bh,eh%omm_c_real,eh%ph%omm_n_lrow,&
+                       eh%bh%n_lcol,"omm_c_real",caller)
+            endif
+            eh%omm_c_real(1:eh%ph%omm_n_lrow,:) = dm(1:eh%ph%omm_n_lrow,:)
 
-            if(allocated(eh%evec_real_elpa)) then
-               call elsi_deallocate(eh%bh,eh%evec_real_elpa,"evec_real_elpa")
+            if(allocated(eh%evec_real)) then
+               call elsi_deallocate(eh%bh,eh%evec_real,"evec_real")
             endif
-            if(allocated(eh%eval_elpa)) then
-               call elsi_deallocate(eh%bh,eh%eval_elpa,"eval_elpa")
+            if(allocated(eh%eval)) then
+               call elsi_deallocate(eh%bh,eh%eval,"eval")
             endif
-            if(allocated(eh%eval_all)) then
-               call elsi_deallocate(eh%bh,eh%eval_all,"eval_all")
-            endif
-            if(allocated(eh%occ_num)) then
-               call elsi_deallocate(eh%bh,eh%occ_num,"occ_num")
-            endif
-            if(allocated(eh%k_weight)) then
-               call elsi_deallocate(eh%bh,eh%k_weight,"k_weight")
+            if(allocated(eh%occ)) then
+               call elsi_deallocate(eh%bh,eh%occ,"occ")
             endif
          endif
 
-         call elsi_solve_omm_real(eh,eh%ph,eh%bh,ham,ovlp,dm)
+         call elsi_solve_omm_real(eh%ph,eh%bh,ham,ovlp,eh%omm_c_real,dm)
          call elsi_get_energy(eh%ph,eh%bh,energy,OMM_SOLVER)
       endif
    case(PEXSI_SOLVER)
       call elsi_init_pexsi(eh%ph,eh%bh)
       call elsi_blacs_to_pexsi_hs_real(eh,eh%ph,eh%bh,ham,ovlp)
 
-      if(.not. allocated(eh%dm_real_pexsi)) then
-         call elsi_allocate(eh%bh,eh%dm_real_pexsi,eh%bh%nnz_l_sp,&
-                 "dm_real_pexsi",caller)
+      if(.not. allocated(eh%pexsi_ne_vec)) then
+         call elsi_allocate(eh%bh,eh%pexsi_ne_vec,eh%ph%pexsi_options%nPoints,&
+                 "pexsi_ne_vec",caller)
       endif
-      eh%dm_real_pexsi = 0.0_r8
+      if(.not. allocated(eh%dm_real_csc)) then
+         call elsi_allocate(eh%bh,eh%dm_real_csc,eh%bh%nnz_l_sp,"dm_real_csc",&
+                 caller)
+      endif
+      eh%dm_real_csc = 0.0_r8
 
-      call elsi_solve_pexsi_real(eh,eh%ph,eh%bh,eh%ham_real_pexsi,&
-              eh%ovlp_real_pexsi,eh%dm_real_pexsi)
+      call elsi_solve_pexsi_real(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
+              eh%pexsi_ne_vec,eh%ham_real_csc,eh%ovlp_real_csc,eh%dm_real_csc)
       call elsi_pexsi_to_blacs_dm_real(eh,eh%ph,eh%bh,dm)
       call elsi_get_energy(eh%ph,eh%bh,energy,PEXSI_SOLVER)
    case(SIPS_SOLVER)
-      if(.not. allocated(eh%eval_elpa)) then
-         call elsi_allocate(eh%bh,eh%eval_elpa,eh%ph%n_basis,"eval_elpa",caller)
+      if(.not. allocated(eh%eval)) then
+         call elsi_allocate(eh%bh,eh%eval,eh%ph%n_basis,"eval",caller)
       endif
-      if(.not. allocated(eh%evec_real_elpa)) then
-         call elsi_allocate(eh%bh,eh%evec_real_elpa,eh%bh%n_lrow,eh%bh%n_lcol,&
-                 "evec_real_elpa",caller)
+      if(.not. allocated(eh%evec_real)) then
+         call elsi_allocate(eh%bh,eh%evec_real,eh%bh%n_lrow,eh%bh%n_lcol,&
+                 "evec_real",caller)
       endif
 
       if(eh%ph%n_calls <= eh%ph%sips_n_elpa) then
@@ -501,40 +520,59 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,energy)
             eh%ovlp_real_copy = ovlp
          endif
 
-         call elsi_solve_elpa_real(eh,eh%ph,eh%bh,ham,ovlp,eh%eval_elpa,&
-                 eh%evec_real_elpa)
-         call elsi_compute_occ_elpa(eh,eh%ph,eh%bh,eh%eval_elpa)
-         call elsi_compute_dm_elpa_real(eh,eh%ph,eh%bh,eh%evec_real_elpa,dm,ham)
+         if(.not. allocated(eh%occ)) then
+            call elsi_allocate(eh%bh,eh%occ,eh%ph%n_basis,eh%ph%n_spins,&
+                    eh%ph%n_kpts,"occ",caller)
+         endif
+
+         call elsi_solve_elpa_real(eh%ph,eh%bh,eh%row_map,eh%col_map,ham,ovlp,&
+                 eh%eval,eh%evec_real)
+         call elsi_compute_occ_elpa(eh%ph,eh%bh,eh%eval,eh%occ)
+         call elsi_compute_dm_elpa_real(eh%ph,eh%bh,eh%row_map,eh%col_map,&
+                 eh%evec_real,eh%occ,dm,ham)
          call elsi_get_energy(eh%ph,eh%bh,energy,ELPA_SOLVER)
       else ! ELPA is done
          if(allocated(eh%ovlp_real_copy)) then
             ! Retrieve overlap matrix that has been destroyed by Cholesky
             ovlp = eh%ovlp_real_copy
             call elsi_deallocate(eh%bh,eh%ovlp_real_copy,"ovlp_real_copy")
-            call elsi_deallocate(eh%bh,eh%evec_real_elpa,"evec_real_elpa")
+            call elsi_deallocate(eh%bh,eh%evec_real,"evec_real")
          endif
 
          call elsi_init_sips(eh%ph,eh%bh)
          call elsi_blacs_to_sips_hs_real(eh,eh%ph,eh%bh,ham,ovlp)
 
-         if(.not. allocated(eh%dm_real_pexsi)) then
-            call elsi_allocate(eh%bh,eh%dm_real_pexsi,eh%bh%nnz_l_sp,&
-                    "dm_real_pexsi",caller)
+         if(.not. allocated(eh%evec_real)) then
+            call elsi_allocate(eh%bh,eh%evec_real,eh%bh%n_lcol_sp1,&
+                    eh%ph%n_states,"evec_real",caller)
          endif
-         eh%dm_real_pexsi = 0.0_r8
+         if(.not. allocated(eh%occ)) then
+            call elsi_allocate(eh%bh,eh%occ,eh%ph%n_basis,eh%ph%n_spins,&
+                    eh%ph%n_kpts,"occ",caller)
+         endif
+         if(.not. allocated(eh%dm_real_csc)) then
+            call elsi_allocate(eh%bh,eh%dm_real_csc,eh%bh%nnz_l_sp,&
+                    "dm_real_csc",caller)
+         endif
+         eh%dm_real_csc = 0.0_r8
 
-         call elsi_solve_sips_real(eh,eh%ph,eh%bh,eh%ham_real_pexsi,&
-                 eh%ovlp_real_pexsi,eh%eval_elpa)
-         call elsi_compute_occ_elpa(eh,eh%ph,eh%bh,eh%eval_elpa)
-         call elsi_compute_dm_sips_real(eh,eh%ph,eh%bh,eh%dm_real_pexsi)
+         call elsi_solve_sips_real(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
+                 eh%ham_real_csc,eh%ovlp_real_csc,eh%eval,eh%evec_real)
+         call elsi_compute_occ_elpa(eh%ph,eh%bh,eh%eval,eh%occ)
+         call elsi_compute_dm_sips_real(eh%ph,eh%bh,eh%row_ind_sp1,&
+                 eh%col_ptr_sp1,eh%occ,eh%dm_real_csc)
          call elsi_sips_to_blacs_dm_real(eh,eh%ph,eh%bh,dm)
          call elsi_get_energy(eh%ph,eh%bh,energy,SIPS_SOLVER)
       endif
    case(DMP_SOLVER)
       ! Save Hamiltonian and overlap
       if(eh%ph%n_calls==1) then
+         call elsi_allocate(eh%bh,eh%dmp_vec1,eh%bh%n_lrow,"dmp_vec1",caller)
+         call elsi_allocate(eh%bh,eh%dmp_vec2,eh%bh%n_lrow,"dmp_vec2",caller)
          call elsi_allocate(eh%bh,eh%ham_real_copy,eh%bh%n_lrow,eh%bh%n_lcol,&
                  "ham_real_copy",caller)
+         call elsi_allocate(eh%bh,eh%ovlp_real_inv,eh%bh%n_lrow,eh%bh%n_lcol,&
+                 "ovlp_real_inv",caller)
          call elsi_allocate(eh%bh,eh%ovlp_real_copy,eh%bh%n_lrow,eh%bh%n_lcol,&
                  "ovlp_real_copy",caller)
          eh%ovlp_real_copy = ovlp
@@ -543,7 +581,9 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,energy)
 
       call elsi_init_elpa(eh%ph,eh%bh)
       call elsi_init_dmp(eh%ph)
-      call elsi_solve_dmp_real(eh,eh%ph,eh%bh,ham,ovlp,dm)
+      call elsi_solve_dmp_real(eh%ph,eh%bh,eh%row_map,eh%col_map,ham,ovlp,&
+              eh%ham_real_copy,eh%ovlp_real_copy,eh%ovlp_real_inv,eh%dmp_vec1,&
+              eh%dmp_vec2,dm)
       call elsi_get_energy(eh%ph,eh%bh,energy,DMP_SOLVER)
    case default
       call elsi_stop(eh%bh,"Unsupported density matrix solver.",caller)
@@ -583,19 +623,24 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,energy)
 
    select case(eh%ph%solver)
    case(ELPA_SOLVER)
-      if(.not. allocated(eh%eval_elpa)) then
-         call elsi_allocate(eh%bh,eh%eval_elpa,eh%ph%n_basis,"eval_elpa",caller)
+      if(.not. allocated(eh%eval)) then
+         call elsi_allocate(eh%bh,eh%eval,eh%ph%n_basis,"eval",caller)
       endif
-      if(.not. allocated(eh%evec_cmplx_elpa)) then
-         call elsi_allocate(eh%bh,eh%evec_cmplx_elpa,eh%bh%n_lrow,eh%bh%n_lcol,&
-                 "evec_cmplx_elpa",caller)
+      if(.not. allocated(eh%evec_cmplx)) then
+         call elsi_allocate(eh%bh,eh%evec_cmplx,eh%bh%n_lrow,eh%bh%n_lcol,&
+                 "evec_cmplx",caller)
+      endif
+      if(.not. allocated(eh%occ)) then
+         call elsi_allocate(eh%bh,eh%occ,eh%ph%n_basis,eh%ph%n_spins,&
+                 eh%ph%n_kpts,"occ",caller)
       endif
 
       call elsi_init_elpa(eh%ph,eh%bh)
-      call elsi_solve_elpa_cmplx(eh,eh%ph,eh%bh,ham,ovlp,eh%eval_elpa,&
-              eh%evec_cmplx_elpa)
-      call elsi_compute_occ_elpa(eh,eh%ph,eh%bh,eh%eval_elpa)
-      call elsi_compute_dm_elpa_cmplx(eh,eh%ph,eh%bh,eh%evec_cmplx_elpa,dm,ham)
+      call elsi_solve_elpa_cmplx(eh%ph,eh%bh,eh%row_map,eh%col_map,ham,ovlp,&
+              eh%eval,eh%evec_cmplx)
+      call elsi_compute_occ_elpa(eh%ph,eh%bh,eh%eval,eh%occ)
+      call elsi_compute_dm_elpa_cmplx(eh%ph,eh%bh,eh%row_map,eh%col_map,&
+              eh%evec_cmplx,eh%occ,dm,ham)
       call elsi_get_energy(eh%ph,eh%bh,energy,ELPA_SOLVER)
    case(OMM_SOLVER)
       if(eh%ph%n_calls <= eh%ph%omm_n_elpa) then
@@ -608,20 +653,23 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,energy)
             eh%ovlp_cmplx_copy = ovlp
          endif
 
-         if(.not. allocated(eh%eval_elpa)) then
-            call elsi_allocate(eh%bh,eh%eval_elpa,eh%ph%n_basis,"eval_elpa",&
-                    caller)
+         if(.not. allocated(eh%eval)) then
+            call elsi_allocate(eh%bh,eh%eval,eh%ph%n_basis,"eval",caller)
          endif
-         if(.not. allocated(eh%evec_cmplx_elpa)) then
-            call elsi_allocate(eh%bh,eh%evec_cmplx_elpa,eh%bh%n_lrow,&
-                    eh%bh%n_lcol,"evec_cmplx_elpa",caller)
+         if(.not. allocated(eh%evec_cmplx)) then
+            call elsi_allocate(eh%bh,eh%evec_cmplx,eh%bh%n_lrow,eh%bh%n_lcol,&
+                    "evec_cmplx",caller)
+         endif
+         if(.not. allocated(eh%occ)) then
+            call elsi_allocate(eh%bh,eh%occ,eh%ph%n_basis,eh%ph%n_spins,&
+                    eh%ph%n_kpts,"occ",caller)
          endif
 
-         call elsi_solve_elpa_cmplx(eh,eh%ph,eh%bh,ham,ovlp,eh%eval_elpa,&
-                 eh%evec_cmplx_elpa)
-         call elsi_compute_occ_elpa(eh,eh%ph,eh%bh,eh%eval_elpa)
-         call elsi_compute_dm_elpa_cmplx(eh,eh%ph,eh%bh,eh%evec_cmplx_elpa,dm,&
-                 ham)
+         call elsi_solve_elpa_cmplx(eh%ph,eh%bh,eh%row_map,eh%col_map,ham,ovlp,&
+                 eh%eval,eh%evec_cmplx)
+         call elsi_compute_occ_elpa(eh%ph,eh%bh,eh%eval,eh%occ)
+         call elsi_compute_dm_elpa_cmplx(eh%ph,eh%bh,eh%row_map,eh%col_map,&
+                 eh%evec_cmplx,eh%occ,dm,ham)
          call elsi_get_energy(eh%ph,eh%bh,energy,ELPA_SOLVER)
       else ! ELPA is done
          call elsi_init_omm(eh%ph,eh%bh)
@@ -632,52 +680,50 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,energy)
             call elsi_deallocate(eh%bh,eh%ovlp_cmplx_copy,"ovlp_cmplx_copy")
          endif
 
-         if(.not. eh%c_omm%is_initialized) then
-            call elsi_init_coeff_omm_cmplx(eh,eh%ph)
-         endif
-
          ! Initialize coefficient matrix with ELPA eigenvectors if possible
          if(eh%ph%omm_n_elpa > 0 .and. eh%ph%n_calls == eh%ph%omm_n_elpa+1) then
             ! libOMM coefficient matrix is the transpose of ELPA eigenvectors
             call pztranc(eh%ph%n_basis,eh%ph%n_basis,(1.0_r8,0.0_r8),&
-                    eh%evec_cmplx_elpa,1,1,eh%bh%desc,(0.0_r8,0.0_r8),dm,1,1,&
+                    eh%evec_cmplx,1,1,eh%bh%desc,(0.0_r8,0.0_r8),dm,1,1,&
                     eh%bh%desc)
 
-            eh%c_omm%zval(1:eh%c_omm%iaux2(1),1:eh%c_omm%iaux2(2)) = &
-               dm(1:eh%c_omm%iaux2(1),1:eh%c_omm%iaux2(2))
+            if(.not. allocated(eh%omm_c_cmplx)) then
+               call elsi_allocate(eh%bh,eh%omm_c_cmplx,eh%ph%omm_n_lrow,&
+                       eh%bh%n_lcol,"omm_c_cmplx",caller)
+            endif
+            eh%omm_c_cmplx(1:eh%ph%omm_n_lrow,:) = dm(1:eh%ph%omm_n_lrow,:)
 
-            if(allocated(eh%evec_cmplx_elpa)) then
-               call elsi_deallocate(eh%bh,eh%evec_cmplx_elpa,"evec_cmplx_elpa")
+            if(allocated(eh%evec_cmplx)) then
+               call elsi_deallocate(eh%bh,eh%evec_cmplx,"evec_cmplx")
             endif
-            if(allocated(eh%eval_elpa)) then
-               call elsi_deallocate(eh%bh,eh%eval_elpa,"eval_elpa")
+            if(allocated(eh%eval)) then
+               call elsi_deallocate(eh%bh,eh%eval,"eval")
             endif
-            if(allocated(eh%eval_all)) then
-               call elsi_deallocate(eh%bh,eh%eval_all,"eval_all")
-            endif
-            if(allocated(eh%occ_num)) then
-               call elsi_deallocate(eh%bh,eh%occ_num,"occ_num")
-            endif
-            if(allocated(eh%k_weight)) then
-               call elsi_deallocate(eh%bh,eh%k_weight,"k_weight")
+            if(allocated(eh%occ)) then
+               call elsi_deallocate(eh%bh,eh%occ,"occ")
             endif
          endif
 
-         call elsi_solve_omm_cmplx(eh,eh%ph,eh%bh,ham,ovlp,dm)
+         call elsi_solve_omm_cmplx(eh%ph,eh%bh,ham,ovlp,eh%omm_c_cmplx,dm)
          call elsi_get_energy(eh%ph,eh%bh,energy,OMM_SOLVER)
       endif
    case(PEXSI_SOLVER)
       call elsi_init_pexsi(eh%ph,eh%bh)
       call elsi_blacs_to_pexsi_hs_cmplx(eh,eh%ph,eh%bh,ham,ovlp)
 
-      if(.not. allocated(eh%dm_cmplx_pexsi)) then
-         call elsi_allocate(eh%bh,eh%dm_cmplx_pexsi,eh%bh%nnz_l_sp,&
-                 "dm_cmplx_pexsi",caller)
+      if(.not. allocated(eh%pexsi_ne_vec)) then
+         call elsi_allocate(eh%bh,eh%pexsi_ne_vec,eh%ph%pexsi_options%nPoints,&
+                 "pexsi_ne_vec",caller)
       endif
-      eh%dm_cmplx_pexsi = (0.0_r8,0.0_r8)
+      if(.not. allocated(eh%dm_cmplx_csc)) then
+         call elsi_allocate(eh%bh,eh%dm_cmplx_csc,eh%bh%nnz_l_sp,&
+                 "dm_cmplx_csc",caller)
+      endif
+      eh%dm_cmplx_csc = (0.0_r8,0.0_r8)
 
-      call elsi_solve_pexsi_cmplx(eh,eh%ph,eh%bh,eh%ham_cmplx_pexsi,&
-              eh%ovlp_cmplx_pexsi,eh%dm_cmplx_pexsi)
+      call elsi_solve_pexsi_cmplx(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
+              eh%pexsi_ne_vec,eh%ham_cmplx_csc,eh%ovlp_cmplx_csc,&
+              eh%dm_cmplx_csc)
       call elsi_pexsi_to_blacs_dm_cmplx(eh,eh%ph,eh%bh,dm)
       call elsi_get_energy(eh%ph,eh%bh,energy,PEXSI_SOLVER)
    case default
@@ -734,23 +780,27 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,energy)
          call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
       end select
 
-      if(.not. allocated(eh%eval_elpa)) then
-         call elsi_allocate(eh%bh,eh%eval_elpa,eh%ph%n_basis,"eval_elpa",caller)
+      if(.not. allocated(eh%eval)) then
+         call elsi_allocate(eh%bh,eh%eval,eh%ph%n_basis,"eval",caller)
       endif
-      if(.not. allocated(eh%evec_real_elpa)) then
-         call elsi_allocate(eh%bh,eh%evec_real_elpa,eh%bh%n_lrow,eh%bh%n_lcol,&
-                 "evec_real_elpa",caller)
+      if(.not. allocated(eh%evec_real)) then
+         call elsi_allocate(eh%bh,eh%evec_real,eh%bh%n_lrow,eh%bh%n_lcol,&
+                 "evec_real",caller)
       endif
-      if(.not. allocated(eh%dm_real_elpa)) then
-         call elsi_allocate(eh%bh,eh%dm_real_elpa,eh%bh%n_lrow,eh%bh%n_lcol,&
-                 "dm_real_elpa",caller)
+      if(.not. allocated(eh%dm_real_den)) then
+         call elsi_allocate(eh%bh,eh%dm_real_den,eh%bh%n_lrow,eh%bh%n_lcol,&
+                 "dm_real_den",caller)
+      endif
+      if(.not. allocated(eh%occ)) then
+         call elsi_allocate(eh%bh,eh%occ,eh%ph%n_basis,eh%ph%n_spins,&
+                 eh%ph%n_kpts,"occ",caller)
       endif
 
-      call elsi_solve_elpa_real(eh,eh%ph,eh%bh,eh%ham_real_elpa,&
-              eh%ovlp_real_elpa,eh%eval_elpa,eh%evec_real_elpa)
-      call elsi_compute_occ_elpa(eh,eh%ph,eh%bh,eh%eval_elpa)
-      call elsi_compute_dm_elpa_real(eh,eh%ph,eh%bh,eh%evec_real_elpa,&
-              eh%dm_real_elpa,eh%ham_real_elpa)
+      call elsi_solve_elpa_real(eh%ph,eh%bh,eh%row_map,eh%col_map,&
+              eh%ham_real_den,eh%ovlp_real_den,eh%eval,eh%evec_real)
+      call elsi_compute_occ_elpa(eh%ph,eh%bh,eh%eval,eh%occ)
+      call elsi_compute_dm_elpa_real(eh%ph,eh%bh,eh%row_map,eh%col_map,&
+              eh%evec_real,eh%occ,eh%dm_real_den,eh%ham_real_den)
 
       select case(eh%ph%matrix_format)
       case(PEXSI_CSC)
@@ -784,27 +834,30 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,energy)
             ! Overlap will be destroyed by Cholesky
             call elsi_allocate(eh%bh,eh%ovlp_real_copy,eh%bh%n_lrow,&
                     eh%bh%n_lcol,"ovlp_real_copy",caller)
-            eh%ovlp_real_copy = eh%ovlp_real_elpa
+            eh%ovlp_real_copy = eh%ovlp_real_den
          endif
 
-         if(.not. allocated(eh%eval_elpa)) then
-            call elsi_allocate(eh%bh,eh%eval_elpa,eh%ph%n_basis,"eval_elpa",&
-                    caller)
+         if(.not. allocated(eh%eval)) then
+            call elsi_allocate(eh%bh,eh%eval,eh%ph%n_basis,"eval",caller)
          endif
-         if(.not. allocated(eh%evec_real_elpa)) then
-            call elsi_allocate(eh%bh,eh%evec_real_elpa,eh%bh%n_lrow,&
-                    eh%bh%n_lcol,"evec_real_elpa",caller)
+         if(.not. allocated(eh%evec_real)) then
+            call elsi_allocate(eh%bh,eh%evec_real,eh%bh%n_lrow,eh%bh%n_lcol,&
+                    "evec_real",caller)
          endif
-         if(.not. allocated(eh%dm_real_elpa)) then
-            call elsi_allocate(eh%bh,eh%dm_real_elpa,eh%bh%n_lrow,eh%bh%n_lcol,&
-                    "dm_real_elpa",caller)
+         if(.not. allocated(eh%dm_real_den)) then
+            call elsi_allocate(eh%bh,eh%dm_real_den,eh%bh%n_lrow,eh%bh%n_lcol,&
+                    "dm_real_den",caller)
+         endif
+         if(.not. allocated(eh%occ)) then
+            call elsi_allocate(eh%bh,eh%occ,eh%ph%n_basis,eh%ph%n_spins,&
+                    eh%ph%n_kpts,"occ",caller)
          endif
 
-         call elsi_solve_elpa_real(eh,eh%ph,eh%bh,eh%ham_real_elpa,&
-                 eh%ovlp_real_elpa,eh%eval_elpa,eh%evec_real_elpa)
-         call elsi_compute_occ_elpa(eh,eh%ph,eh%bh,eh%eval_elpa)
-         call elsi_compute_dm_elpa_real(eh,eh%ph,eh%bh,eh%evec_real_elpa,&
-                 eh%dm_real_elpa,eh%ham_real_elpa)
+         call elsi_solve_elpa_real(eh%ph,eh%bh,eh%row_map,eh%col_map,&
+                 eh%ham_real_den,eh%ovlp_real_den,eh%eval,eh%evec_real)
+         call elsi_compute_occ_elpa(eh%ph,eh%bh,eh%eval,eh%occ)
+         call elsi_compute_dm_elpa_real(eh%ph,eh%bh,eh%row_map,eh%col_map,&
+                 eh%evec_real,eh%occ,eh%dm_real_den,eh%ham_real_den)
 
          select case(eh%ph%matrix_format)
          case(PEXSI_CSC)
@@ -821,40 +874,41 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,energy)
 
          if(allocated(eh%ovlp_real_copy)) then
             ! Retrieve overlap matrix that has been destroyed by Cholesky
-            eh%ovlp_real_elpa = eh%ovlp_real_copy
+            eh%ovlp_real_den = eh%ovlp_real_copy
             call elsi_deallocate(eh%bh,eh%ovlp_real_copy,"ovlp_real_copy")
          endif
 
-         if(.not. eh%c_omm%is_initialized) then
-            call elsi_init_coeff_omm_real(eh,eh%ph)
-         endif
-         if(.not. allocated(eh%dm_real_elpa)) then
-            call elsi_allocate(eh%bh,eh%dm_real_elpa,eh%bh%n_lrow,eh%bh%n_lcol,&
-                    "dm_real_elpa",caller)
+         if(.not. allocated(eh%dm_real_den)) then
+            call elsi_allocate(eh%bh,eh%dm_real_den,eh%bh%n_lrow,eh%bh%n_lcol,&
+                    "dm_real_den",caller)
          endif
 
          ! Initialize coefficient matrix with ELPA eigenvectors if possible
          if(eh%ph%omm_n_elpa > 0 .and. eh%ph%n_calls == eh%ph%omm_n_elpa+1) then
             ! libOMM coefficient matrix is the transpose of ELPA eigenvectors
-            call pdtran(eh%ph%n_basis,eh%ph%n_basis,1.0_r8,eh%evec_real_elpa,1,&
-                    1,eh%bh%desc,0.0_r8,eh%dm_real_elpa,1,1,eh%bh%desc)
+            call pdtran(eh%ph%n_basis,eh%ph%n_basis,1.0_r8,eh%evec_real,1,1,&
+                    eh%bh%desc,0.0_r8,eh%dm_real_den,1,1,eh%bh%desc)
 
-            eh%c_omm%dval(1:eh%c_omm%iaux2(1),1:eh%c_omm%iaux2(2)) = &
-               eh%dm_real_elpa(1:eh%c_omm%iaux2(1),1:eh%c_omm%iaux2(2))
+            if(.not. allocated(eh%omm_c_real)) then
+               call elsi_allocate(eh%bh,eh%omm_c_real,eh%ph%omm_n_lrow,&
+                       eh%bh%n_lcol,"omm_c_real",caller)
+            endif
+            eh%omm_c_real(1:eh%ph%omm_n_lrow,:) = &
+               eh%dm_real_den(1:eh%ph%omm_n_lrow,:)
 
-            if(allocated(eh%evec_real_elpa)) then
-               call elsi_deallocate(eh%bh,eh%evec_real_elpa,"evec_real_elpa")
+            if(allocated(eh%evec_real)) then
+               call elsi_deallocate(eh%bh,eh%evec_real,"evec_real")
             endif
-            if(allocated(eh%eval_elpa)) then
-               call elsi_deallocate(eh%bh,eh%eval_elpa,"eval_elpa")
+            if(allocated(eh%eval)) then
+               call elsi_deallocate(eh%bh,eh%eval,"eval")
             endif
-            if(allocated(eh%occ_num)) then
-               call elsi_deallocate(eh%bh,eh%occ_num,"occ_num")
+            if(allocated(eh%occ)) then
+               call elsi_deallocate(eh%bh,eh%occ,"occ")
             endif
          endif
 
-         call elsi_solve_omm_real(eh,eh%ph,eh%bh,eh%ham_real_elpa,&
-                 eh%ovlp_real_elpa,eh%dm_real_elpa)
+         call elsi_solve_omm_real(eh%ph,eh%bh,eh%ham_real_den,eh%ovlp_real_den,&
+                 eh%omm_c_real,eh%dm_real_den)
 
          select case(eh%ph%matrix_format)
          case(PEXSI_CSC)
@@ -870,20 +924,27 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,energy)
    case(PEXSI_SOLVER)
       call elsi_init_pexsi(eh%ph,eh%bh)
 
+      if(.not. allocated(eh%pexsi_ne_vec)) then
+         call elsi_allocate(eh%bh,eh%pexsi_ne_vec,eh%ph%pexsi_options%nPoints,&
+                 "pexsi_ne_vec",caller)
+      endif
+
       select case(eh%ph%matrix_format)
       case(PEXSI_CSC)
-         call elsi_solve_pexsi_real(eh,eh%ph,eh%bh,ham,ovlp,dm)
+         call elsi_solve_pexsi_real(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
+                 eh%pexsi_ne_vec,ham,ovlp,dm)
       case(SIESTA_CSC)
          call elsi_siesta_to_pexsi_hs_real(eh,eh%ph,eh%bh,ham,ovlp)
 
-         if(.not. allocated(eh%dm_real_pexsi)) then
-            call elsi_allocate(eh%bh,eh%dm_real_pexsi,eh%bh%nnz_l_sp1,&
-                    "dm_real_pexsi",caller)
+         if(.not. allocated(eh%dm_real_csc)) then
+            call elsi_allocate(eh%bh,eh%dm_real_csc,eh%bh%nnz_l_sp1,&
+                    "dm_real_csc",caller)
          endif
-         eh%dm_real_pexsi = 0.0_r8
+         eh%dm_real_csc = 0.0_r8
 
-         call elsi_solve_pexsi_real(eh,eh%ph,eh%bh,eh%ham_real_pexsi,&
-                 eh%ovlp_real_pexsi,eh%dm_real_pexsi)
+         call elsi_solve_pexsi_real(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
+                 eh%pexsi_ne_vec,eh%ham_real_csc,eh%ovlp_real_csc,&
+                 eh%dm_real_csc)
          call elsi_pexsi_to_siesta_dm_real(eh,eh%ph,eh%bh,dm)
       case default
          call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
@@ -908,24 +969,27 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,energy)
             call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
          end select
 
-         if(.not. allocated(eh%eval_elpa)) then
-            call elsi_allocate(eh%bh,eh%eval_elpa,eh%ph%n_basis,"eval_elpa",&
-                    caller)
+         if(.not. allocated(eh%eval)) then
+            call elsi_allocate(eh%bh,eh%eval,eh%ph%n_basis,"eval",caller)
          endif
-         if(.not. allocated(eh%evec_real_elpa)) then
-            call elsi_allocate(eh%bh,eh%evec_real_elpa,eh%bh%n_lrow,&
-                    eh%bh%n_lcol,"evec_real_elpa",caller)
+         if(.not. allocated(eh%evec_real)) then
+            call elsi_allocate(eh%bh,eh%evec_real,eh%bh%n_lrow,eh%bh%n_lcol,&
+                    "evec_real",caller)
          endif
-         if(.not. allocated(eh%dm_real_elpa)) then
-            call elsi_allocate(eh%bh,eh%dm_real_elpa,eh%bh%n_lrow,eh%bh%n_lcol,&
-                    "dm_real_elpa",caller)
+         if(.not. allocated(eh%dm_real_den)) then
+            call elsi_allocate(eh%bh,eh%dm_real_den,eh%bh%n_lrow,eh%bh%n_lcol,&
+                    "dm_real_den",caller)
+         endif
+         if(.not. allocated(eh%occ)) then
+            call elsi_allocate(eh%bh,eh%occ,eh%ph%n_basis,eh%ph%n_spins,&
+                    eh%ph%n_kpts,"occ",caller)
          endif
 
-         call elsi_solve_elpa_real(eh,eh%ph,eh%bh,eh%ham_real_elpa,&
-                 eh%ovlp_real_elpa,eh%eval_elpa,eh%evec_real_elpa)
-         call elsi_compute_occ_elpa(eh,eh%ph,eh%bh,eh%eval_elpa)
-         call elsi_compute_dm_elpa_real(eh,eh%ph,eh%bh,eh%evec_real_elpa,&
-                 eh%dm_real_elpa,eh%ham_real_elpa)
+         call elsi_solve_elpa_real(eh%ph,eh%bh,eh%row_map,eh%col_map,&
+                 eh%ham_real_den,eh%ovlp_real_den,eh%eval,eh%evec_real)
+         call elsi_compute_occ_elpa(eh%ph,eh%bh,eh%eval,eh%occ)
+         call elsi_compute_dm_elpa_real(eh%ph,eh%bh,eh%row_map,eh%col_map,&
+                 eh%evec_real,eh%occ,eh%dm_real_den,eh%ham_real_den)
 
          select case(eh%ph%matrix_format)
          case(PEXSI_CSC)
@@ -938,41 +1002,52 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,energy)
 
          call elsi_get_energy(eh%ph,eh%bh,energy,ELPA_SOLVER)
       else ! ELPA is done
-         if(allocated(eh%ham_real_elpa)) then
-            call elsi_deallocate(eh%bh,eh%ham_real_elpa,"ham_real_elpa")
+         if(allocated(eh%ham_real_den)) then
+            call elsi_deallocate(eh%bh,eh%ham_real_den,"ham_real_den")
          endif
-         if(allocated(eh%ovlp_real_elpa)) then
-            call elsi_deallocate(eh%bh,eh%ovlp_real_elpa,"ovlp_real_elpa")
+         if(allocated(eh%ovlp_real_den)) then
+            call elsi_deallocate(eh%bh,eh%ovlp_real_den,"ovlp_real_den")
          endif
-         if(allocated(eh%dm_real_elpa)) then
-            call elsi_deallocate(eh%bh,eh%dm_real_elpa,"dm_real_elpa")
+         if(allocated(eh%dm_real_den)) then
+            call elsi_deallocate(eh%bh,eh%dm_real_den,"dm_real_den")
          endif
-         if(.not. allocated(eh%eval_elpa)) then
-            call elsi_allocate(eh%bh,eh%eval_elpa,eh%ph%n_basis,"eval_elpa",&
-                    caller)
+         if(.not. allocated(eh%occ)) then
+            call elsi_allocate(eh%bh,eh%occ,eh%ph%n_basis,eh%ph%n_spins,&
+                    eh%ph%n_kpts,"occ",caller)
+         endif
+         if(.not. allocated(eh%eval)) then
+            call elsi_allocate(eh%bh,eh%eval,eh%ph%n_basis,"eval",caller)
+         endif
+         if(.not. allocated(eh%evec_real)) then
+            call elsi_allocate(eh%bh,eh%evec_real,eh%bh%n_lcol_sp1,&
+                    eh%ph%n_states,"evec_real",caller)
          endif
 
          call elsi_init_sips(eh%ph,eh%bh)
 
          select case(eh%ph%matrix_format)
          case(PEXSI_CSC)
-            call elsi_solve_sips_real(eh,eh%ph,eh%bh,ham,ovlp,eh%eval_elpa)
-            call elsi_compute_occ_elpa(eh,eh%ph,eh%bh,eh%eval_elpa)
-            call elsi_compute_dm_sips_real(eh,eh%ph,eh%bh,dm)
+            call elsi_solve_sips_real(eh%ph,eh%bh,eh%row_ind_sp1,&
+                    eh%col_ptr_sp1,ham,ovlp,eh%eval,eh%evec_real)
+            call elsi_compute_occ_elpa(eh%ph,eh%bh,eh%eval,eh%occ)
+            call elsi_compute_dm_sips_real(eh%ph,eh%bh,eh%row_ind_sp1,&
+                    eh%col_ptr_sp1,eh%occ,dm)
             call elsi_get_energy(eh%ph,eh%bh,energy,SIPS_SOLVER)
          case(SIESTA_CSC)
             call elsi_siesta_to_sips_hs_real(eh,eh%ph,eh%bh,ham,ovlp)
 
-            if(.not. allocated(eh%dm_real_pexsi)) then
-               call elsi_allocate(eh%bh,eh%dm_real_pexsi,eh%bh%nnz_l_sp1,&
-                       "dm_real_pexsi",caller)
+            if(.not. allocated(eh%dm_real_csc)) then
+               call elsi_allocate(eh%bh,eh%dm_real_csc,eh%bh%nnz_l_sp1,&
+                       "dm_real_csc",caller)
             endif
-            eh%dm_real_pexsi = 0.0_r8
+            eh%dm_real_csc = 0.0_r8
 
-            call elsi_solve_sips_real(eh,eh%ph,eh%bh,eh%ham_real_pexsi,&
-                    eh%ovlp_real_pexsi,eh%eval_elpa)
-            call elsi_compute_occ_elpa(eh,eh%ph,eh%bh,eh%eval_elpa)
-            call elsi_compute_dm_sips_real(eh,eh%ph,eh%bh,eh%dm_real_pexsi)
+            call elsi_solve_sips_real(eh%ph,eh%bh,eh%row_ind_sp1,&
+                    eh%col_ptr_sp1,eh%ham_real_csc,eh%ovlp_real_csc,eh%eval,&
+                    eh%evec_real)
+            call elsi_compute_occ_elpa(eh%ph,eh%bh,eh%eval,eh%occ)
+            call elsi_compute_dm_sips_real(eh%ph,eh%bh,eh%row_ind_sp1,&
+                    eh%col_ptr_sp1,eh%occ,eh%dm_real_csc)
             call elsi_sips_to_siesta_dm_real(eh,eh%ph,eh%bh,dm)
             call elsi_get_energy(eh%ph,eh%bh,energy,SIPS_SOLVER)
          case default
@@ -997,23 +1072,29 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,energy)
          call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
       end select
 
-      if(.not. allocated(eh%dm_real_elpa)) then
-         call elsi_allocate(eh%bh,eh%dm_real_elpa,eh%bh%n_lrow,eh%bh%n_lcol,&
-                 "dm_real_elpa",caller)
+      if(.not. allocated(eh%dm_real_den)) then
+         call elsi_allocate(eh%bh,eh%dm_real_den,eh%bh%n_lrow,eh%bh%n_lcol,&
+                 "dm_real_den",caller)
       endif
 
       ! Save Hamiltonian and overlap
       if(eh%ph%n_calls==1) then
+         call elsi_allocate(eh%bh,eh%dmp_vec1,eh%bh%n_lrow,"dmp_vec1",caller)
+         call elsi_allocate(eh%bh,eh%dmp_vec2,eh%bh%n_lrow,"dmp_vec2",caller)
          call elsi_allocate(eh%bh,eh%ham_real_copy,eh%bh%n_lrow,eh%bh%n_lcol,&
                  "ham_real_copy",caller)
+         call elsi_allocate(eh%bh,eh%ovlp_real_inv,eh%bh%n_lrow,eh%bh%n_lcol,&
+                 "ovlp_real_inv",caller)
          call elsi_allocate(eh%bh,eh%ovlp_real_copy,eh%bh%n_lrow,eh%bh%n_lcol,&
                  "ovlp_real_copy",caller)
-         eh%ham_real_copy  = eh%ham_real_elpa
-         eh%ovlp_real_copy = eh%ovlp_real_elpa
+         eh%ovlp_real_copy = eh%ovlp_real_den
       endif
+      eh%ham_real_copy  = eh%ham_real_den
 
-      call elsi_solve_dmp_real(eh,eh%ph,eh%bh,eh%ham_real_elpa,&
-              eh%ovlp_real_elpa,eh%dm_real_elpa)
+      call elsi_solve_dmp_real(eh%ph,eh%bh,eh%row_map,eh%col_map,&
+              eh%ham_real_den,eh%ovlp_real_den,eh%ham_real_copy,&
+              eh%ovlp_real_copy,eh%ovlp_real_inv,eh%dmp_vec1,eh%dmp_vec2,&
+              eh%dm_real_den)
 
       select case(eh%ph%matrix_format)
       case(PEXSI_CSC)
@@ -1079,23 +1160,27 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,energy)
          call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
       end select
 
-      if(.not. allocated(eh%eval_elpa)) then
-         call elsi_allocate(eh%bh,eh%eval_elpa,eh%ph%n_basis,"eval_elpa",caller)
+      if(.not. allocated(eh%eval)) then
+         call elsi_allocate(eh%bh,eh%eval,eh%ph%n_basis,"eval",caller)
       endif
-      if(.not. allocated(eh%evec_cmplx_elpa)) then
-         call elsi_allocate(eh%bh,eh%evec_cmplx_elpa,eh%bh%n_lrow,eh%bh%n_lcol,&
-                 "evec_cmplx_elpa",caller)
+      if(.not. allocated(eh%evec_cmplx)) then
+         call elsi_allocate(eh%bh,eh%evec_cmplx,eh%bh%n_lrow,eh%bh%n_lcol,&
+                 "evec_cmplx",caller)
       endif
-      if(.not. allocated(eh%dm_cmplx_elpa)) then
-         call elsi_allocate(eh%bh,eh%dm_cmplx_elpa,eh%bh%n_lrow,eh%bh%n_lcol,&
-                 "dm_cmplx_elpa",caller)
+      if(.not. allocated(eh%dm_cmplx_den)) then
+         call elsi_allocate(eh%bh,eh%dm_cmplx_den,eh%bh%n_lrow,eh%bh%n_lcol,&
+                 "dm_cmplx_den",caller)
+      endif
+      if(.not. allocated(eh%occ)) then
+         call elsi_allocate(eh%bh,eh%occ,eh%ph%n_basis,eh%ph%n_spins,&
+                 eh%ph%n_kpts,"occ",caller)
       endif
 
-      call elsi_solve_elpa_cmplx(eh,eh%ph,eh%bh,eh%ham_cmplx_elpa,&
-              eh%ovlp_cmplx_elpa,eh%eval_elpa,eh%evec_cmplx_elpa)
-      call elsi_compute_occ_elpa(eh,eh%ph,eh%bh,eh%eval_elpa)
-      call elsi_compute_dm_elpa_cmplx(eh,eh%ph,eh%bh,eh%evec_cmplx_elpa,&
-              eh%dm_cmplx_elpa,eh%ham_cmplx_elpa)
+      call elsi_solve_elpa_cmplx(eh%ph,eh%bh,eh%row_map,eh%col_map,&
+              eh%ham_cmplx_den,eh%ovlp_cmplx_den,eh%eval,eh%evec_cmplx)
+      call elsi_compute_occ_elpa(eh%ph,eh%bh,eh%eval,eh%occ)
+      call elsi_compute_dm_elpa_cmplx(eh%ph,eh%bh,eh%row_map,eh%col_map,&
+              eh%evec_cmplx,eh%occ,eh%dm_cmplx_den,eh%ham_cmplx_den)
 
       select case(eh%ph%matrix_format)
       case(PEXSI_CSC)
@@ -1129,27 +1214,30 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,energy)
             ! Overlap will be destroyed by Cholesky
             call elsi_allocate(eh%bh,eh%ovlp_cmplx_copy,eh%bh%n_lrow,&
                     eh%bh%n_lcol,"ovlp_cmplx_copy",caller)
-            eh%ovlp_cmplx_copy = eh%ovlp_cmplx_elpa
+            eh%ovlp_cmplx_copy = eh%ovlp_cmplx_den
          endif
 
-         if(.not. allocated(eh%eval_elpa)) then
-            call elsi_allocate(eh%bh,eh%eval_elpa,eh%ph%n_basis,"eval_elpa",&
-                    caller)
+         if(.not. allocated(eh%eval)) then
+            call elsi_allocate(eh%bh,eh%eval,eh%ph%n_basis,"eval",caller)
          endif
-         if(.not. allocated(eh%evec_cmplx_elpa)) then
-            call elsi_allocate(eh%bh,eh%evec_cmplx_elpa,eh%bh%n_lrow,&
-                    eh%bh%n_lcol,"evec_cmplx_elpa",caller)
+         if(.not. allocated(eh%evec_cmplx)) then
+            call elsi_allocate(eh%bh,eh%evec_cmplx,eh%bh%n_lrow,eh%bh%n_lcol,&
+                    "evec_cmplx",caller)
          endif
-         if(.not. allocated(eh%dm_cmplx_elpa)) then
-            call elsi_allocate(eh%bh,eh%dm_cmplx_elpa,eh%bh%n_lrow,&
-                    eh%bh%n_lcol,"dm_cmplx_elpa",caller)
+         if(.not. allocated(eh%dm_cmplx_den)) then
+            call elsi_allocate(eh%bh,eh%dm_cmplx_den,eh%bh%n_lrow,eh%bh%n_lcol,&
+                    "dm_cmplx_den",caller)
+         endif
+         if(.not. allocated(eh%occ)) then
+            call elsi_allocate(eh%bh,eh%occ,eh%ph%n_basis,eh%ph%n_spins,&
+                    eh%ph%n_kpts,"occ",caller)
          endif
 
-         call elsi_solve_elpa_cmplx(eh,eh%ph,eh%bh,eh%ham_cmplx_elpa,&
-                 eh%ovlp_cmplx_elpa,eh%eval_elpa,eh%evec_cmplx_elpa)
-         call elsi_compute_occ_elpa(eh,eh%ph,eh%bh,eh%eval_elpa)
-         call elsi_compute_dm_elpa_cmplx(eh,eh%ph,eh%bh,eh%evec_cmplx_elpa,&
-                 eh%dm_cmplx_elpa,eh%ham_cmplx_elpa)
+         call elsi_solve_elpa_cmplx(eh%ph,eh%bh,eh%row_map,eh%col_map,&
+                 eh%ham_cmplx_den,eh%ovlp_cmplx_den,eh%eval,eh%evec_cmplx)
+         call elsi_compute_occ_elpa(eh%ph,eh%bh,eh%eval,eh%occ)
+         call elsi_compute_dm_elpa_cmplx(eh%ph,eh%bh,eh%row_map,eh%col_map,&
+                 eh%evec_cmplx,eh%occ,eh%dm_cmplx_den,eh%ham_cmplx_den)
 
          select case(eh%ph%matrix_format)
          case(PEXSI_CSC)
@@ -1166,41 +1254,42 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,energy)
 
          if(allocated(eh%ovlp_cmplx_copy)) then
             ! Retrieve overlap matrix that has been destroyed by Cholesky
-            eh%ovlp_cmplx_elpa = eh%ovlp_cmplx_copy
+            eh%ovlp_cmplx_den = eh%ovlp_cmplx_copy
             call elsi_deallocate(eh%bh,eh%ovlp_cmplx_copy,"ovlp_cmplx_copy")
          endif
 
-         if(.not. eh%c_omm%is_initialized) then
-            call elsi_init_coeff_omm_cmplx(eh,eh%ph)
-         endif
-         if(.not. allocated(eh%dm_cmplx_elpa)) then
-            call elsi_allocate(eh%bh,eh%dm_cmplx_elpa,eh%bh%n_lrow,&
-                    eh%bh%n_lcol,"dm_cmplx_elpa",caller)
+         if(.not. allocated(eh%dm_cmplx_den)) then
+            call elsi_allocate(eh%bh,eh%dm_cmplx_den,eh%bh%n_lrow,eh%bh%n_lcol,&
+                    "dm_cmplx_den",caller)
          endif
 
          ! Initialize coefficient matrix with ELPA eigenvectors if possible
          if(eh%ph%omm_n_elpa > 0 .and. eh%ph%n_calls == eh%ph%omm_n_elpa+1) then
             ! libOMM coefficient matrix is the transpose of ELPA eigenvectors
             call pztranc(eh%ph%n_basis,eh%ph%n_basis,(1.0_r8,0.0_r8),&
-                    eh%evec_cmplx_elpa,1,1,eh%bh%desc,(0.0_r8,0.0_r8),&
-                    eh%dm_cmplx_elpa,1,1,eh%bh%desc)
+                    eh%evec_cmplx,1,1,eh%bh%desc,(0.0_r8,0.0_r8),&
+                    eh%dm_cmplx_den,1,1,eh%bh%desc)
 
-            eh%c_omm%zval(1:eh%c_omm%iaux2(1),1:eh%c_omm%iaux2(2)) = &
-               eh%dm_cmplx_elpa(1:eh%c_omm%iaux2(1),1:eh%c_omm%iaux2(2))
+            if(.not. allocated(eh%omm_c_cmplx)) then
+               call elsi_allocate(eh%bh,eh%omm_c_cmplx,eh%ph%omm_n_lrow,&
+                       eh%bh%n_lcol,"omm_c_cmplx",caller)
+            endif
+            eh%omm_c_cmplx(1:eh%ph%omm_n_lrow,:) = &
+               eh%dm_cmplx_den(1:eh%ph%omm_n_lrow,:)
 
-            if(allocated(eh%evec_cmplx_elpa)) then
-               call elsi_deallocate(eh%bh,eh%evec_cmplx_elpa,"evec_cmplx_elpa")
+            if(allocated(eh%evec_cmplx)) then
+               call elsi_deallocate(eh%bh,eh%evec_cmplx,"evec_cmplx")
             endif
-            if(allocated(eh%eval_elpa)) then
-               call elsi_deallocate(eh%bh,eh%eval_elpa,"eval_elpa")
+            if(allocated(eh%eval)) then
+               call elsi_deallocate(eh%bh,eh%eval,"eval")
             endif
-            if(allocated(eh%occ_num)) then
-               call elsi_deallocate(eh%bh,eh%occ_num,"occ_num")
+            if(allocated(eh%occ)) then
+               call elsi_deallocate(eh%bh,eh%occ,"occ")
             endif
          endif
 
-         call elsi_solve_omm_cmplx(eh,eh%ph,eh%bh,eh%ham_cmplx_elpa,&
-                 eh%ovlp_cmplx_elpa,eh%dm_cmplx_elpa)
+         call elsi_solve_omm_cmplx(eh%ph,eh%bh,eh%ham_cmplx_den,&
+                 eh%ovlp_cmplx_den,eh%omm_c_cmplx,eh%dm_cmplx_den)
 
          select case(eh%ph%matrix_format)
          case(PEXSI_CSC)
@@ -1216,20 +1305,27 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,energy)
    case(PEXSI_SOLVER)
       call elsi_init_pexsi(eh%ph,eh%bh)
 
+      if(.not. allocated(eh%pexsi_ne_vec)) then
+         call elsi_allocate(eh%bh,eh%pexsi_ne_vec,eh%ph%pexsi_options%nPoints,&
+                 "pexsi_ne_vec",caller)
+      endif
+
       select case(eh%ph%matrix_format)
       case(PEXSI_CSC)
-         call elsi_solve_pexsi_cmplx(eh,eh%ph,eh%bh,ham,ovlp,dm)
+         call elsi_solve_pexsi_cmplx(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
+                 eh%pexsi_ne_vec,ham,ovlp,dm)
       case(SIESTA_CSC)
          call elsi_siesta_to_pexsi_hs_cmplx(eh,eh%ph,eh%bh,ham,ovlp)
 
-         if(.not. allocated(eh%dm_cmplx_pexsi)) then
-            call elsi_allocate(eh%bh,eh%dm_cmplx_pexsi,eh%bh%nnz_l_sp1,&
-                    "dm_cmplx_pexsi",caller)
+         if(.not. allocated(eh%dm_cmplx_csc)) then
+            call elsi_allocate(eh%bh,eh%dm_cmplx_csc,eh%bh%nnz_l_sp1,&
+                    "dm_cmplx_csc",caller)
          endif
-         eh%dm_cmplx_pexsi = (0.0_r8,0.0_r8)
+         eh%dm_cmplx_csc = (0.0_r8,0.0_r8)
 
-         call elsi_solve_pexsi_cmplx(eh,eh%ph,eh%bh,eh%ham_cmplx_pexsi,&
-                 eh%ovlp_cmplx_pexsi,eh%dm_cmplx_pexsi)
+         call elsi_solve_pexsi_cmplx(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
+                 eh%pexsi_ne_vec,eh%ham_cmplx_csc,eh%ovlp_cmplx_csc,&
+                 eh%dm_cmplx_csc)
          call elsi_pexsi_to_siesta_dm_cmplx(eh,eh%ph,eh%bh,dm)
       case default
          call elsi_stop(eh%bh,"Unsupported matrix format.",caller)

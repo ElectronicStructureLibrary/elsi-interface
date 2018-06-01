@@ -692,12 +692,12 @@ subroutine elsi_read_mat_real_mp(rwh,f_name,mat)
    call elsi_set_csc(aux_h,rwh%bh%nnz_g,rwh%bh%nnz_l_sp,rwh%bh%n_lcol_sp,&
            row_ind,col_ptr)
 
-   if(.not. allocated(aux_h%dm_real_pexsi)) then
-      call elsi_allocate(rwh%bh,aux_h%dm_real_pexsi,rwh%bh%nnz_l_sp,&
-              "dm_real_pexsi",caller)
+   if(.not. allocated(aux_h%dm_real_csc)) then
+      call elsi_allocate(rwh%bh,aux_h%dm_real_csc,rwh%bh%nnz_l_sp,&
+             "dm_real_csc",caller)
    endif
 
-   aux_h%dm_real_pexsi = nnz_val
+   aux_h%dm_real_csc = nnz_val
 
    call elsi_sips_to_blacs_dm_real(aux_h,aux_h%ph,aux_h%bh,mat)
 
@@ -879,12 +879,12 @@ subroutine elsi_read_mat_complex_mp(rwh,f_name,mat)
    call elsi_set_csc(aux_h,rwh%bh%nnz_g,rwh%bh%nnz_l_sp,rwh%bh%n_lcol_sp,&
            row_ind,col_ptr)
 
-   if(.not. allocated(aux_h%dm_cmplx_pexsi)) then
-      call elsi_allocate(rwh%bh,aux_h%dm_cmplx_pexsi,rwh%bh%nnz_l_sp,&
-              "dm_cmplx_pexsi",caller)
+   if(.not. allocated(aux_h%dm_cmplx_csc)) then
+      call elsi_allocate(rwh%bh,aux_h%dm_cmplx_csc,rwh%bh%nnz_l_sp,&
+              "dm_cmplx_csc",caller)
    endif
 
-   aux_h%dm_cmplx_pexsi = nnz_val
+   aux_h%dm_cmplx_csc = nnz_val
 
    call elsi_sips_to_blacs_dm_cmplx(aux_h,aux_h%ph,aux_h%bh,mat)
 
@@ -1050,13 +1050,13 @@ subroutine elsi_write_mat_real_mp(rwh,f_name,mat)
    call elsi_check_mpi(rwh%bh,"MPI_Exscan",ierr,caller)
 
    ! Shift column pointer
-   aux_h%col_ptr_pexsi = aux_h%col_ptr_pexsi+prev_nnz
+   aux_h%col_ptr_sp1 = aux_h%col_ptr_sp1+prev_nnz
 
    ! Write column pointer
    n_lcol0 = rwh%n_basis/rwh%bh%n_procs
    offset  = int(HEADER_SIZE,kind=i8)*4+rwh%bh%myid*n_lcol0*4
 
-   call MPI_File_write_at_all(f_handle,offset,aux_h%col_ptr_pexsi,&
+   call MPI_File_write_at_all(f_handle,offset,aux_h%col_ptr_sp1,&
            aux_h%bh%n_lcol_sp,mpi_integer4,mpi_status_ignore,ierr)
 
    call elsi_check_mpi(rwh%bh,"MPI_File_write_at_all",ierr,caller)
@@ -1064,7 +1064,7 @@ subroutine elsi_write_mat_real_mp(rwh,f_name,mat)
    ! Write row index
    offset = int(HEADER_SIZE,kind=i8)*4+rwh%n_basis*4+prev_nnz*4
 
-   call MPI_File_write_at_all(f_handle,offset,aux_h%row_ind_pexsi,&
+   call MPI_File_write_at_all(f_handle,offset,aux_h%row_ind_sp1,&
            aux_h%bh%nnz_l_sp,mpi_integer4,mpi_status_ignore,ierr)
 
    call elsi_check_mpi(rwh%bh,"MPI_File_write_at_all",ierr,caller)
@@ -1072,7 +1072,7 @@ subroutine elsi_write_mat_real_mp(rwh,f_name,mat)
    ! Write non-zero value
    offset = int(HEADER_SIZE,kind=i8)*4+rwh%n_basis*4+aux_h%bh%nnz_g*4+prev_nnz*8
 
-   call MPI_File_write_at_all(f_handle,offset,aux_h%ham_real_pexsi,&
+   call MPI_File_write_at_all(f_handle,offset,aux_h%ham_real_csc,&
            aux_h%bh%nnz_l_sp,mpi_real8,mpi_status_ignore,ierr)
 
    call elsi_check_mpi(rwh%bh,"MPI_File_write_at_all",ierr,caller)
@@ -1166,13 +1166,13 @@ subroutine elsi_write_mat_complex_mp(rwh,f_name,mat)
    call elsi_check_mpi(rwh%bh,"MPI_Exscan",ierr,caller)
 
    ! Shift column pointer
-   aux_h%col_ptr_pexsi = aux_h%col_ptr_pexsi+prev_nnz
+   aux_h%col_ptr_sp1 = aux_h%col_ptr_sp1+prev_nnz
 
    ! Write column pointer
    n_lcol0 = rwh%n_basis/rwh%bh%n_procs
    offset  = int(HEADER_SIZE,kind=i8)*4+rwh%bh%myid*n_lcol0*4
 
-   call MPI_File_write_at_all(f_handle,offset,aux_h%col_ptr_pexsi,&
+   call MPI_File_write_at_all(f_handle,offset,aux_h%col_ptr_sp1,&
            aux_h%bh%n_lcol_sp,mpi_integer4,mpi_status_ignore,ierr)
 
    call elsi_check_mpi(rwh%bh,"MPI_File_write_at_all",ierr,caller)
@@ -1180,7 +1180,7 @@ subroutine elsi_write_mat_complex_mp(rwh,f_name,mat)
    ! Write row index
    offset = int(HEADER_SIZE,kind=i8)*4+rwh%n_basis*4+prev_nnz*4
 
-   call MPI_File_write_at_all(f_handle,offset,aux_h%row_ind_pexsi,&
+   call MPI_File_write_at_all(f_handle,offset,aux_h%row_ind_sp1,&
            aux_h%bh%nnz_l_sp,mpi_integer4,mpi_status_ignore,ierr)
 
    call elsi_check_mpi(rwh%bh,"MPI_File_write_at_all",ierr,caller)
@@ -1189,7 +1189,7 @@ subroutine elsi_write_mat_complex_mp(rwh,f_name,mat)
    offset = int(HEADER_SIZE,kind=i8)*4+rwh%n_basis*4+aux_h%bh%nnz_g*4+&
                prev_nnz*16
 
-   call MPI_File_write_at_all(f_handle,offset,aux_h%ham_cmplx_pexsi,&
+   call MPI_File_write_at_all(f_handle,offset,aux_h%ham_cmplx_csc,&
            aux_h%bh%nnz_l_sp,mpi_complex16,mpi_status_ignore,ierr)
 
    call elsi_check_mpi(rwh%bh,"MPI_File_write_at_all",ierr,caller)

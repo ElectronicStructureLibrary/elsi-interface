@@ -129,9 +129,11 @@ module ELSI_DATATYPE
       class(elpa_autotune_t), pointer :: elpa_tune
 
       ! libOMM
+      integer(kind=i4) :: omm_n_lrow
       integer(kind=i4) :: omm_n_states ! Number of states used in libOMM
       integer(kind=i4) :: omm_n_elpa   ! Number of ELPA steps
       integer(kind=i4) :: omm_flavor   ! 0 (basic) or 2 (Cholesky)
+      integer(kind=i4) :: omm_desc(9)
       real(kind=r8)    :: omm_tol
       logical          :: omm_output
       logical          :: omm_started = .false.
@@ -183,51 +185,42 @@ module ELSI_DATATYPE
       type(elsi_param_t) :: ph
       type(fjson_handle) :: jh
 
-      ! ELPA
-      real(kind=r8),    allocatable :: ham_real_elpa(:,:)
-      complex(kind=r8), allocatable :: ham_cmplx_elpa(:,:)
-      real(kind=r8),    allocatable :: ovlp_real_elpa(:,:)
-      complex(kind=r8), allocatable :: ovlp_cmplx_elpa(:,:)
-      real(kind=r8),    allocatable :: eval_elpa(:)
-      real(kind=r8),    allocatable :: evec_real_elpa(:,:)
-      complex(kind=r8), allocatable :: evec_cmplx_elpa(:,:)
-      real(kind=r8),    allocatable :: dm_real_elpa(:,:)
-      complex(kind=r8), allocatable :: dm_cmplx_elpa(:,:)
+      ! Dense
+      real(kind=r8),    allocatable :: ham_real_den(:,:)
+      complex(kind=r8), allocatable :: ham_cmplx_den(:,:)
+      real(kind=r8),    allocatable :: ovlp_real_den(:,:)
+      complex(kind=r8), allocatable :: ovlp_cmplx_den(:,:)
+      real(kind=r8),    allocatable :: eval(:)
+      real(kind=r8),    allocatable :: evec_real(:,:)
+      complex(kind=r8), allocatable :: evec_cmplx(:,:)
+      real(kind=r8),    allocatable :: dm_real_den(:,:)
+      complex(kind=r8), allocatable :: dm_cmplx_den(:,:)
 
-      ! libOMM
-      type(matrix) :: c_omm
-
-      ! PESXI
-      real(kind=r8),    allocatable :: ham_real_pexsi(:)
-      complex(kind=r8), allocatable :: ham_cmplx_pexsi(:)
-      real(kind=r8),    allocatable :: ovlp_real_pexsi(:)
-      complex(kind=r8), allocatable :: ovlp_cmplx_pexsi(:)
-      real(kind=r8),    allocatable :: dm_real_pexsi(:)
-      complex(kind=r8), allocatable :: dm_cmplx_pexsi(:)
-      integer(kind=i4), allocatable :: row_ind_pexsi(:)
-      integer(kind=i4), allocatable :: col_ptr_pexsi(:)
-      real(kind=r8),    allocatable :: ne_vec_pexsi(:)
-
-      ! SIPS
-      real(kind=r8),    allocatable :: evec_real_sips(:,:)
-      complex(kind=r8), allocatable :: evec_cmplx_sips(:,:)
-
-      ! DMP
-      real(kind=r8),    allocatable :: evec1_dmp(:)
-      real(kind=r8),    allocatable :: evec2_dmp(:)
+      ! Sparse
+      real(kind=r8),    allocatable :: ham_real_csc(:)
+      complex(kind=r8), allocatable :: ham_cmplx_csc(:)
+      real(kind=r8),    allocatable :: ovlp_real_csc(:)
+      complex(kind=r8), allocatable :: ovlp_cmplx_csc(:)
+      real(kind=r8),    allocatable :: dm_real_csc(:)
+      complex(kind=r8), allocatable :: dm_cmplx_csc(:)
+      integer(kind=i4), allocatable :: row_ind_sp1(:)
+      integer(kind=i4), allocatable :: col_ptr_sp1(:)
+      integer(kind=i4), allocatable :: row_ind_sp2(:)
+      integer(kind=i4), allocatable :: col_ptr_sp2(:)
 
       ! Auxiliary
       real(kind=r8),    allocatable :: ham_real_copy(:,:)
       real(kind=r8),    allocatable :: ovlp_real_copy(:,:)
       complex(kind=r8), allocatable :: ovlp_cmplx_copy(:,:)
       real(kind=r8),    allocatable :: ovlp_real_inv(:,:)
-      integer(kind=i4), allocatable :: loc_row(:)
-      integer(kind=i4), allocatable :: loc_col(:)
-      integer(kind=i4), allocatable :: row_ind_sp2(:)
-      integer(kind=i4), allocatable :: col_ptr_sp2(:)
-      real(kind=r8),    allocatable :: occ_num(:,:,:)
-      real(kind=r8),    allocatable :: eval_all(:,:,:) ! All eigenvalues
-      real(kind=r8),    allocatable :: k_weight(:)
+      real(kind=r8),    allocatable :: occ(:,:,:)
+      integer(kind=i4), allocatable :: row_map(:)
+      integer(kind=i4), allocatable :: col_map(:)
+      real(kind=r8),    allocatable :: omm_c_real(:,:)
+      complex(kind=r8), allocatable :: omm_c_cmplx(:,:)
+      real(kind=r8),    allocatable :: pexsi_ne_vec(:)
+      real(kind=r8),    allocatable :: dmp_vec1(:)
+      real(kind=r8),    allocatable :: dmp_vec2(:)
 
       logical :: handle_init = .false.
 

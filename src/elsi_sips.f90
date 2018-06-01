@@ -10,7 +10,7 @@
 module ELSI_SIPS
 
    use ELSI_CONSTANTS, only: UNSET
-   use ELSI_DATATYPE,  only: elsi_handle,elsi_param_t,elsi_basic_t
+   use ELSI_DATATYPE,  only: elsi_param_t,elsi_basic_t
    use ELSI_IO,        only: elsi_say,elsi_get_time
    use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
    use ELSI_MPI,       only: elsi_stop
@@ -75,16 +75,18 @@ end subroutine
 !>
 !! This routine interfaces to SIPS.
 !!
-subroutine elsi_solve_sips_real(eh,ph,bh,ham,ovlp,eval)
+subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
 
    implicit none
 
-   type(elsi_handle),  intent(inout) :: eh
    type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(in)    :: bh
-   real(kind=r8),      intent(inout) :: ham(bh%nnz_l_sp1)
-   real(kind=r8),      intent(inout) :: ovlp(bh%nnz_l_sp1)
+   integer(kind=i4),   intent(in)    :: row_ind(bh%nnz_l_sp1)
+   integer(kind=i4),   intent(in)    :: col_ptr(bh%n_lcol_sp1+1)
+   real(kind=r8),      intent(in)    :: ham(bh%nnz_l_sp1)
+   real(kind=r8),      intent(in)    :: ovlp(bh%nnz_l_sp1)
    real(kind=r8),      intent(inout) :: eval(ph%n_states)
+   real(kind=r8),      intent(out)   :: evec(bh%n_lcol_sp1,ph%n_states)
 
    real(kind=r8)      :: t0
    real(kind=r8)      :: t1
@@ -110,21 +112,21 @@ subroutine elsi_solve_sips_real(eh,ph,bh,ham,ovlp,eval)
    if(ph%n_calls == ph%sips_n_elpa+1) then
       if(.not. ph%ovlp_is_unit) then
          ! Load H and S
-         call sips_load_ham_ovlp(ph%n_basis,bh%n_lcol_sp1,bh%nnz_l_sp1,&
-                 eh%row_ind_pexsi,eh%col_ptr_pexsi,ham,ovlp)
+         call sips_load_ham_ovlp(ph%n_basis,bh%n_lcol_sp1,bh%nnz_l_sp1,row_ind,&
+                 col_ptr,ham,ovlp)
 
          call sips_set_eps(0)
       else
          ! Load H
-         call sips_load_ham(ph%n_basis,bh%n_lcol_sp1,bh%nnz_l_sp1,&
-                 eh%row_ind_pexsi,eh%col_ptr_pexsi,ham)
+         call sips_load_ham(ph%n_basis,bh%n_lcol_sp1,bh%nnz_l_sp1,row_ind,&
+                 col_ptr,ham)
 
          call sips_set_eps(1)
       endif
    else ! n_calls > sips_n_elpa+1
       ! Update H matrix
-      call sips_update_ham(ph%n_basis,bh%n_lcol_sp1,bh%nnz_l_sp1,&
-              eh%row_ind_pexsi,eh%col_ptr_pexsi,ham)
+      call sips_update_ham(ph%n_basis,bh%n_lcol_sp1,bh%nnz_l_sp1,row_ind,&
+              col_ptr,ham)
 
       call sips_update_eps(ph%sips_n_slices)
    endif
@@ -231,15 +233,11 @@ subroutine elsi_solve_sips_real(eh,ph,bh,ham,ovlp,eval)
 
    ! Get solutions
    call elsi_allocate(bh,eval_save,ph%n_states,"eval_save",caller)
-   if(.not. allocated(eh%evec_real_sips)) then
-      call elsi_allocate(bh,eh%evec_real_sips,bh%n_lcol_sp1,ph%n_states,&
-              "evec_real_sips",caller)
-   endif
 
    eval_save = eval
 
    call sips_get_eigenvalues(ph%n_states,eval(1:ph%n_states))
-   call sips_get_eigenvectors(ph%n_states,bh%n_lcol_sp1,eh%evec_real_sips)
+   call sips_get_eigenvectors(ph%n_states,bh%n_lcol_sp1,evec)
 
    max_diff = maxval(abs(eval_save-eval))
 
@@ -264,14 +262,16 @@ end subroutine
 !>
 !! This routine constructs the density matrix.
 !!
-subroutine elsi_compute_dm_sips_real(eh,ph,bh,dm)
+subroutine elsi_compute_dm_sips_real(ph,bh,row_ind,col_ptr,occ,dm)
 
    implicit none
 
-   type(elsi_handle),  intent(inout) :: eh
-   type(elsi_param_t), intent(in)    :: ph
-   type(elsi_basic_t), intent(in)    :: bh
-   real(kind=r8),      intent(inout) :: dm(bh%nnz_l_sp1)
+   type(elsi_param_t), intent(in)  :: ph
+   type(elsi_basic_t), intent(in)  :: bh
+   integer(kind=i4),   intent(in)  :: row_ind(bh%nnz_l_sp1)
+   integer(kind=i4),   intent(in)  :: col_ptr(bh%n_lcol_sp1+1)
+   real(kind=r8),      intent(in)  :: occ(ph%n_states,ph%n_spins,ph%n_kpts)
+   real(kind=r8),      intent(out) :: dm(bh%nnz_l_sp1)
 
    real(kind=r8)      :: t0
    real(kind=r8)      :: t1
@@ -281,8 +281,8 @@ subroutine elsi_compute_dm_sips_real(eh,ph,bh,dm)
 
    call elsi_get_time(t0)
 
-   call sips_get_dm(bh%n_lcol_sp1,bh%nnz_l_sp1,eh%row_ind_pexsi,&
-           eh%col_ptr_pexsi,ph%n_states,eh%occ_num,dm)
+   call sips_get_dm(bh%n_lcol_sp1,bh%nnz_l_sp1,row_ind,col_ptr,ph%n_states,&
+           occ(:,1,1),dm)
 
    call elsi_get_time(t1)
 
@@ -296,14 +296,16 @@ end subroutine
 !>
 !! This routine constructs the energy-weighted density matrix.
 !!
-subroutine elsi_compute_edm_sips_real(eh,ph,bh,edm)
+subroutine elsi_compute_edm_sips_real(ph,bh,row_ind,col_ptr,occ,edm)
 
    implicit none
 
-   type(elsi_handle),  intent(inout) :: eh
-   type(elsi_param_t), intent(in)    :: ph
-   type(elsi_basic_t), intent(in)    :: bh
-   real(kind=r8),      intent(inout) :: edm(bh%nnz_l_sp1)
+   type(elsi_param_t), intent(in)  :: ph
+   type(elsi_basic_t), intent(in)  :: bh
+   integer(kind=i4),   intent(in)  :: row_ind(bh%nnz_l_sp1)
+   integer(kind=i4),   intent(in)  :: col_ptr(bh%n_lcol_sp1+1)
+   real(kind=r8),      intent(in)  :: occ(ph%n_states,ph%n_spins,ph%n_kpts)
+   real(kind=r8),      intent(out) :: edm(bh%nnz_l_sp1)
 
    real(kind=r8)      :: t0
    real(kind=r8)      :: t1
@@ -313,8 +315,8 @@ subroutine elsi_compute_edm_sips_real(eh,ph,bh,edm)
 
    call elsi_get_time(t0)
 
-   call sips_get_edm(bh%n_lcol_sp1,bh%nnz_l_sp1,eh%row_ind_pexsi,&
-           eh%col_ptr_pexsi,ph%n_states,eh%occ_num,edm)
+   call sips_get_edm(bh%n_lcol_sp1,bh%nnz_l_sp1,row_ind,col_ptr,ph%n_states,&
+           occ(:,1,1),edm)
 
    call elsi_get_time(t1)
 
@@ -328,22 +330,13 @@ end subroutine
 !>
 !! This routine cleans up SIPS.
 !!
-subroutine elsi_cleanup_sips(eh,ph,bh)
+subroutine elsi_cleanup_sips(ph)
 
    implicit none
 
-   type(elsi_handle),  intent(inout) :: eh
    type(elsi_param_t), intent(inout) :: ph
-   type(elsi_basic_t), intent(in)    :: bh
 
    character(len=40), parameter :: caller = "elsi_cleanup_sips"
-
-   if(allocated(eh%evec_real_sips)) then
-      call elsi_deallocate(bh,eh%evec_real_sips,"evec_real_sips")
-   endif
-   if(allocated(eh%evec_cmplx_sips)) then
-      call elsi_deallocate(bh,eh%evec_cmplx_sips,"evec_cmplx_sips")
-   endif
 
    if(ph%sips_started) then
       call sips_finalize()

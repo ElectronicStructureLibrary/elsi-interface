@@ -38,8 +38,8 @@ subroutine elsi_to_standard_evp_sp_real(ph,bh,ham,ovlp,eval,evec)
    type(elsi_basic_t), intent(in)    :: bh
    real(kind=r8),      intent(inout) :: ham(bh%n_lrow,bh%n_lcol)
    real(kind=r8),      intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
-   real(kind=r8),      intent(inout) :: eval(ph%n_basis)
-   real(kind=r8),      intent(inout) :: evec(bh%n_lrow,bh%n_lcol)
+   real(kind=r8),      intent(out)   :: eval(ph%n_basis)
+   real(kind=r8),      intent(out)   :: evec(bh%n_lrow,bh%n_lcol)
 
    integer(kind=i4)   :: nwork
    integer(kind=i4)   :: n
@@ -139,7 +139,7 @@ subroutine elsi_to_original_ev_sp_real(ph,bh,ovlp,evec)
 
    type(elsi_param_t), intent(in)    :: ph
    type(elsi_basic_t), intent(in)    :: bh
-   real(kind=r8),      intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
+   real(kind=r8),      intent(in)    :: ovlp(bh%n_lrow,bh%n_lcol)
    real(kind=r8),      intent(inout) :: evec(bh%n_lrow,bh%n_lcol)
 
    real(kind=r8)      :: t0
@@ -185,8 +185,8 @@ subroutine elsi_solve_lapack_real(ph,bh,ham,ovlp,eval,evec)
    type(elsi_basic_t), intent(in)    :: bh
    real(kind=r8),      intent(inout) :: ham(bh%n_lrow,bh%n_lcol)
    real(kind=r8),      intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
-   real(kind=r8),      intent(inout) :: eval(ph%n_basis)
-   real(kind=r8),      intent(inout) :: evec(bh%n_lrow,bh%n_lcol)
+   real(kind=r8),      intent(out)   :: eval(ph%n_basis)
+   real(kind=r8),      intent(out)   :: evec(bh%n_lrow,bh%n_lcol)
 
    real(kind=r8), allocatable :: off_diag(:)
    real(kind=r8), allocatable :: tau_real(:)
@@ -268,8 +268,8 @@ subroutine elsi_check_singularity_sp_real(ph,bh,ovlp,eval,evec)
    type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(in)    :: bh
    real(kind=r8),      intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
-   real(kind=r8),      intent(inout) :: eval(ph%n_basis)
-   real(kind=r8),      intent(inout) :: evec(bh%n_lrow,bh%n_lcol)
+   real(kind=r8),      intent(out)   :: eval(ph%n_basis)
+   real(kind=r8),      intent(out)   :: evec(bh%n_lrow,bh%n_lcol)
 
    integer(kind=i4)   :: i
    integer(kind=i4)   :: ierr
@@ -388,8 +388,8 @@ subroutine elsi_to_standard_evp_sp_cmplx(ph,bh,ham,ovlp,eval,evec)
    type(elsi_basic_t), intent(in)    :: bh
    complex(kind=r8),   intent(inout) :: ham(bh%n_lrow,bh%n_lcol)
    complex(kind=r8),   intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
-   real(kind=r8),      intent(inout) :: eval(ph%n_basis)
-   complex(kind=r8),   intent(inout) :: evec(bh%n_lrow,bh%n_lcol)
+   real(kind=r8),      intent(out)   :: eval(ph%n_basis)
+   complex(kind=r8),   intent(out)   :: evec(bh%n_lrow,bh%n_lcol)
 
    integer(kind=i4)   :: nwork
    integer(kind=i4)   :: n
@@ -491,7 +491,7 @@ subroutine elsi_to_original_ev_sp_cmplx(ph,bh,ovlp,evec)
 
    type(elsi_param_t), intent(in)    :: ph
    type(elsi_basic_t), intent(in)    :: bh
-   complex(kind=r8),   intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
+   complex(kind=r8),   intent(in)    :: ovlp(bh%n_lrow,bh%n_lcol)
    complex(kind=r8),   intent(inout) :: evec(bh%n_lrow,bh%n_lcol)
 
    real(kind=r8)      :: t0
@@ -538,8 +538,8 @@ subroutine elsi_solve_lapack_cmplx(ph,bh,ham,ovlp,eval,evec)
    type(elsi_basic_t), intent(in)    :: bh
    complex(kind=r8),   intent(inout) :: ham(bh%n_lrow,bh%n_lcol)
    complex(kind=r8),   intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
-   real(kind=r8),      intent(inout) :: eval(ph%n_basis)
-   complex(kind=r8),   intent(inout) :: evec(bh%n_lrow,bh%n_lcol)
+   real(kind=r8),      intent(out)   :: eval(ph%n_basis)
+   complex(kind=r8),   intent(out)   :: evec(bh%n_lrow,bh%n_lcol)
 
    real(kind=r8),    allocatable :: off_diag(:)
    complex(kind=r8), allocatable :: tau_cmplx(:)
@@ -624,8 +624,8 @@ subroutine elsi_check_singularity_sp_cmplx(ph,bh,ovlp,eval,evec)
    type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(in)    :: bh
    complex(kind=r8),   intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
-   real(kind=r8),      intent(inout) :: eval(ph%n_basis)
-   complex(kind=r8),   intent(inout) :: evec(bh%n_lrow,bh%n_lcol)
+   real(kind=r8),      intent(out)   :: eval(ph%n_basis)
+   complex(kind=r8),   intent(out)   :: evec(bh%n_lrow,bh%n_lcol)
 
    integer(kind=i4)   :: i
    integer(kind=i4)   :: ierr

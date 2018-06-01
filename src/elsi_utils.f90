@@ -89,9 +89,11 @@ subroutine elsi_reset_param(ph)
    ph%elpa_gpu_kernels       = .false.
    ph%elpa_output            = .false.
    ph%elpa_started           = .false.
+   ph%omm_n_lrow             = UNSET
    ph%omm_n_states           = UNSET
    ph%omm_n_elpa             = 5
    ph%omm_flavor             = 0
+   ph%omm_desc               = UNSET
    ph%omm_tol                = 1.0e-12_r8
    ph%omm_output             = .false.
    ph%omm_started            = .false.
@@ -470,14 +472,14 @@ end subroutine
 !! This routine computes the trace of a matrix. The size of the matrix is
 !! restricted to be identical to Hamiltonian.
 !!
-subroutine elsi_trace_mat_real(ph,bh,loc_row,loc_col,mat,trace)
+subroutine elsi_trace_mat_real(ph,bh,row_map,col_map,mat,trace)
 
    implicit none
 
    type(elsi_param_t), intent(in)  :: ph
    type(elsi_basic_t), intent(in)  :: bh
-   integer(kind=i4),   intent(in)  :: loc_row(ph%n_basis)
-   integer(kind=i4),   intent(in)  :: loc_col(ph%n_basis)
+   integer(kind=i4),   intent(in)  :: row_map(ph%n_basis)
+   integer(kind=i4),   intent(in)  :: col_map(ph%n_basis)
    real(kind=r8),      intent(in)  :: mat(bh%n_lrow,bh%n_lcol)
    real(kind=r8),      intent(out) :: trace
 
@@ -490,8 +492,8 @@ subroutine elsi_trace_mat_real(ph,bh,loc_row,loc_col,mat,trace)
    l_trace = 0.0_r8
 
    do i = 1,ph%n_basis
-      if(loc_row(i) > 0 .and. loc_col(i) > 0) then
-         l_trace = l_trace + mat(loc_row(i),loc_col(i))
+      if(row_map(i) > 0 .and. col_map(i) > 0) then
+         l_trace = l_trace + mat(row_map(i),col_map(i))
       endif
    enddo
 
@@ -505,14 +507,14 @@ end subroutine
 !! This routine computes the trace of a matrix. The size of the matrix is
 !! restricted to be identical to Hamiltonian.
 !!
-subroutine elsi_trace_mat_cmplx(ph,bh,loc_row,loc_col,mat,trace)
+subroutine elsi_trace_mat_cmplx(ph,bh,row_map,col_map,mat,trace)
 
    implicit none
 
    type(elsi_param_t), intent(in)  :: ph
    type(elsi_basic_t), intent(in)  :: bh
-   integer(kind=i4),   intent(in)  :: loc_row(ph%n_basis)
-   integer(kind=i4),   intent(in)  :: loc_col(ph%n_basis)
+   integer(kind=i4),   intent(in)  :: row_map(ph%n_basis)
+   integer(kind=i4),   intent(in)  :: col_map(ph%n_basis)
    complex(kind=r8),   intent(in)  :: mat(bh%n_lrow,bh%n_lcol)
    complex(kind=r8),   intent(out) :: trace
 
@@ -525,8 +527,8 @@ subroutine elsi_trace_mat_cmplx(ph,bh,loc_row,loc_col,mat,trace)
    l_trace = 0.0_r8
 
    do i = 1,ph%n_basis
-      if(loc_row(i) > 0 .and. loc_col(i) > 0) then
-         l_trace = l_trace + mat(loc_row(i),loc_col(i))
+      if(row_map(i) > 0 .and. col_map(i) > 0) then
+         l_trace = l_trace + mat(row_map(i),col_map(i))
       endif
    enddo
 

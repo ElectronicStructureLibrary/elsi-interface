@@ -10,7 +10,7 @@
 module ELSI_OMM
 
    use ELSI_CONSTANTS, only: BLACS_DENSE
-   use ELSI_DATATYPE,  only: elsi_handle,elsi_param_t,elsi_basic_t
+   use ELSI_DATATYPE,  only: elsi_param_t,elsi_basic_t
    use ELSI_IO,        only: elsi_say,elsi_get_time
    use ELSI_MPI,       only: elsi_check_mpi,mpi_sum,mpi_integer4
    use ELSI_PRECISION, only: r8,i4
@@ -19,8 +19,8 @@ module ELSI_OMM
                              elpa_cholesky_complex_double,&
                              elpa_invert_trm_real_double,&
                              elpa_invert_trm_complex_double
-   use MATRIXSWITCH,   only: matrix,m_add,m_register_pdbc,ms_scalapack_setup,&
-                             m_allocate,m_deallocate
+   use MATRIXSWITCH,   only: matrix,m_register_pdbc,ms_scalapack_setup,&
+                             m_deallocate
 
    implicit none
 
@@ -28,10 +28,8 @@ module ELSI_OMM
 
    public :: elsi_init_omm
    public :: elsi_cleanup_omm
-   public :: elsi_init_coeff_omm_real
    public :: elsi_solve_omm_real
    public :: elsi_compute_edm_omm_real
-   public :: elsi_init_coeff_omm_cmplx
    public :: elsi_solve_omm_cmplx
    public :: elsi_compute_edm_omm_cmplx
 
@@ -47,51 +45,45 @@ subroutine elsi_init_omm(ph,bh)
    type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(in)    :: bh
 
+   integer(kind=i4) :: ierr
+
+   integer(kind=i4), external :: numroc
+
    character(len=40), parameter :: caller = "elsi_init_omm"
 
    if(.not. ph%omm_started) then
       call ms_scalapack_setup(bh%comm,bh%n_prow,'r',bh%blk,&
               icontxt=bh%blacs_ctxt)
 
+      ph%omm_n_lrow = numroc(ph%omm_n_states,bh%blk,bh%my_prow,0,bh%n_prow)
+
+      call descinit(ph%omm_desc,ph%omm_n_states,ph%n_basis,bh%blk,bh%blk,0,0,&
+              bh%blacs_ctxt,max(1,ph%omm_n_lrow),ierr)
+
       ph%omm_started = .true.
    endif
 
 end subroutine
 
-!>
-!! This routine initializes Wannier function coefficients.
-!!
-subroutine elsi_init_coeff_omm_real(eh,ph)
-
-   implicit none
-
-   type(elsi_handle),  intent(inout) :: eh
-   type(elsi_param_t), intent(in)    :: ph
-
-   character(len=40), parameter :: caller = "elsi_init_coeff_omm_real"
-
-   if(.not. eh%c_omm%is_initialized) then
-      call m_allocate(eh%c_omm,ph%omm_n_states,ph%n_basis,"pddbc")
-   endif
-
-end subroutine
+!      call m_allocate(eh%c_omm,ph%omm_n_states,ph%n_basis,"pddbc")
 
 !>
 !! This routine interfaces to libOMM.
 !!
-subroutine elsi_solve_omm_real(eh,ph,bh,ham,ovlp,dm)
+subroutine elsi_solve_omm_real(ph,bh,ham,ovlp,coeff,dm)
 
    implicit none
 
-   type(elsi_handle),  intent(inout) :: eh
    type(elsi_param_t), intent(in)    :: ph
    type(elsi_basic_t), intent(inout) :: bh
    real(kind=r8),      intent(inout) :: ham(bh%n_lrow,bh%n_lcol)
    real(kind=r8),      intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
+   real(kind=r8),      intent(inout) :: coeff(ph%omm_n_lrow,bh%n_lcol)
    real(kind=r8),      intent(inout) :: dm(bh%n_lrow,bh%n_lcol)
 
    type(matrix)       :: ham_omm
    type(matrix)       :: ovlp_omm
+   type(matrix)       :: c_omm
    type(matrix)       :: dm_omm
    type(matrix)       :: t_omm
    logical            :: coeff_ready
@@ -106,6 +98,7 @@ subroutine elsi_solve_omm_real(eh,ph,bh,ham,ovlp,dm)
 
    call m_register_pdbc(ham_omm,ham,bh%desc)
    call m_register_pdbc(ovlp_omm,ovlp,bh%desc)
+   call m_register_pdbc(c_omm,coeff,ph%omm_desc)
    call m_register_pdbc(dm_omm,dm,bh%desc)
 
    ! Compute sparsity
@@ -165,13 +158,14 @@ subroutine elsi_solve_omm_real(eh,ph,bh,ham,ovlp,dm)
    call elsi_say(bh,info_str)
 
    call omm(ph%n_basis,ph%omm_n_states,ham_omm,ovlp_omm,new_ovlp,ph%ebs,dm_omm,&
-           .false.,0.0_r8,eh%c_omm,coeff_ready,t_omm,0.0_r8,ph%omm_flavor,1,1,&
+           .false.,0.0_r8,c_omm,coeff_ready,t_omm,0.0_r8,ph%omm_flavor,1,1,&
            ph%omm_tol,ph%omm_output,.false.,"pddbc","lap")
 
    dm = ph%spin_degen*dm
 
    call m_deallocate(ham_omm)
    call m_deallocate(ovlp_omm)
+   call m_deallocate(c_omm)
    call m_deallocate(dm_omm)
 
    call elsi_get_time(t1)
@@ -186,17 +180,18 @@ end subroutine
 !>
 !! This routine computes the energy-weighted density matrix.
 !!
-subroutine elsi_compute_edm_omm_real(eh,ph,bh,edm)
+subroutine elsi_compute_edm_omm_real(ph,bh,coeff,edm)
 
    implicit none
 
-   type(elsi_handle),  intent(inout) :: eh
    type(elsi_param_t), intent(in)    :: ph
    type(elsi_basic_t), intent(in)    :: bh
+   real(kind=r8),      intent(inout) :: coeff(ph%omm_n_lrow,bh%n_lcol)
    real(kind=r8),      intent(inout) :: edm(bh%n_lrow,bh%n_lcol)
 
    type(matrix)       :: ham_omm
    type(matrix)       :: ovlp_omm
+   type(matrix)       :: c_omm
    type(matrix)       :: edm_omm
    type(matrix)       :: t_omm
    real(kind=r8)      :: t0
@@ -207,14 +202,16 @@ subroutine elsi_compute_edm_omm_real(eh,ph,bh,edm)
 
    call elsi_get_time(t0)
 
+   call m_register_pdbc(c_omm,coeff,ph%omm_desc)
    call m_register_pdbc(edm_omm,edm,bh%desc)
 
    call omm(ph%n_basis,ph%omm_n_states,ham_omm,ovlp_omm,.false.,ph%ebs,edm_omm,&
-           .true.,0.0_r8,eh%c_omm,.true.,t_omm,0.0_r8,ph%omm_flavor,1,1,&
+           .true.,0.0_r8,c_omm,.true.,t_omm,0.0_r8,ph%omm_flavor,1,1,&
            ph%omm_tol,ph%omm_output,.false.,"pddbc","lap")
 
    edm = ph%spin_degen*edm
 
+   call m_deallocate(c_omm)
    call m_deallocate(edm_omm)
 
    call elsi_get_time(t1)
@@ -229,19 +226,20 @@ end subroutine
 !>
 !! This routine interfaces to libOMM.
 !!
-subroutine elsi_solve_omm_cmplx(eh,ph,bh,ham,ovlp,dm)
+subroutine elsi_solve_omm_cmplx(ph,bh,ham,ovlp,coeff,dm)
 
    implicit none
 
-   type(elsi_handle),  intent(inout) :: eh
    type(elsi_param_t), intent(in)    :: ph
    type(elsi_basic_t), intent(inout) :: bh
    complex(kind=r8),   intent(inout) :: ham(bh%n_lrow,bh%n_lcol)
    complex(kind=r8),   intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
+   complex(kind=r8),   intent(inout) :: coeff(ph%omm_n_lrow,bh%n_lcol)
    complex(kind=r8),   intent(inout) :: dm(bh%n_lrow,bh%n_lcol)
 
    type(matrix)       :: ham_omm
    type(matrix)       :: ovlp_omm
+   type(matrix)       :: c_omm
    type(matrix)       :: dm_omm
    type(matrix)       :: t_omm
    logical            :: coeff_ready
@@ -256,6 +254,7 @@ subroutine elsi_solve_omm_cmplx(eh,ph,bh,ham,ovlp,dm)
 
    call m_register_pdbc(ham_omm,ham,bh%desc)
    call m_register_pdbc(ovlp_omm,ovlp,bh%desc)
+   call m_register_pdbc(c_omm,coeff,ph%omm_desc)
    call m_register_pdbc(dm_omm,dm,bh%desc)
 
    ! Compute sparsity
@@ -315,13 +314,14 @@ subroutine elsi_solve_omm_cmplx(eh,ph,bh,ham,ovlp,dm)
    call elsi_say(bh,info_str)
 
    call omm(ph%n_basis,ph%omm_n_states,ham_omm,ovlp_omm,new_ovlp,ph%ebs,dm_omm,&
-           .false.,0.0_r8,eh%c_omm,coeff_ready,t_omm,0.0_r8,ph%omm_flavor,1,1,&
+           .false.,0.0_r8,c_omm,coeff_ready,t_omm,0.0_r8,ph%omm_flavor,1,1,&
            ph%omm_tol,ph%omm_output,.false.,"pzdbc","lap")
 
    dm = ph%spin_degen*dm
 
    call m_deallocate(ham_omm)
    call m_deallocate(ovlp_omm)
+   call m_deallocate(c_omm)
    call m_deallocate(dm_omm)
 
    call elsi_get_time(t1)
@@ -334,37 +334,20 @@ subroutine elsi_solve_omm_cmplx(eh,ph,bh,ham,ovlp,dm)
 end subroutine
 
 !>
-!! This routine initializes Wannier function coefficients.
-!!
-subroutine elsi_init_coeff_omm_cmplx(eh,ph)
-
-   implicit none
-
-   type(elsi_handle),  intent(inout) :: eh
-   type(elsi_param_t), intent(in)    :: ph
-
-   character(len=40), parameter :: caller = "elsi_init_coeff_omm_cmplx"
-
-   if(.not. eh%c_omm%is_initialized) then
-      call m_allocate(eh%c_omm,ph%omm_n_states,ph%n_basis,"pzdbc")
-   endif
-
-end subroutine
-
-!>
 !! This routine computes the energy-weighted density matrix.
 !!
-subroutine elsi_compute_edm_omm_cmplx(eh,ph,bh,edm)
+subroutine elsi_compute_edm_omm_cmplx(ph,bh,coeff,edm)
 
    implicit none
 
-   type(elsi_handle),  intent(inout) :: eh
    type(elsi_param_t), intent(in)    :: ph
    type(elsi_basic_t), intent(in)    :: bh
+   complex(kind=r8),   intent(inout) :: coeff(ph%omm_n_lrow,bh%n_lcol)
    complex(kind=r8),   intent(inout) :: edm(bh%n_lrow,bh%n_lcol)
 
    type(matrix)       :: ham_omm
    type(matrix)       :: ovlp_omm
+   type(matrix)       :: c_omm
    type(matrix)       :: edm_omm
    type(matrix)       :: t_omm
    real(kind=r8)      :: t0
@@ -375,10 +358,11 @@ subroutine elsi_compute_edm_omm_cmplx(eh,ph,bh,edm)
 
    call elsi_get_time(t0)
 
+   call m_register_pdbc(c_omm,coeff,ph%omm_desc)
    call m_register_pdbc(edm_omm,edm,bh%desc)
 
    call omm(ph%n_basis,ph%omm_n_states,ham_omm,ovlp_omm,.false.,ph%ebs,edm_omm,&
-           .true.,0.0_r8,eh%c_omm,.true.,t_omm,0.0_r8,ph%omm_flavor,1,1,&
+           .true.,0.0_r8,c_omm,.true.,t_omm,0.0_r8,ph%omm_flavor,1,1,&
            ph%omm_tol,ph%omm_output,.false.,"pzdbc","lap")
 
    edm = ph%spin_degen*edm
@@ -397,18 +381,13 @@ end subroutine
 !>
 !! This routine cleans up libOMM.
 !!
-subroutine elsi_cleanup_omm(eh,ph)
+subroutine elsi_cleanup_omm(ph)
 
    implicit none
 
-   type(elsi_handle),  intent(inout) :: eh
    type(elsi_param_t), intent(inout) :: ph
 
    character(len=40), parameter :: caller = "elsi_cleanup_omm"
-
-   if(eh%c_omm%is_initialized) then
-      call m_deallocate(eh%c_omm)
-   endif
 
    ph%omm_started = .false.
 

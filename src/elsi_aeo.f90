@@ -15,7 +15,7 @@ module ELSI_ELPA
    use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
    use ELSI_MPI,       only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8,&
                              mpi_integer4
-   use ELSI_OCC,       only: elsi_compute_mu_and_occ,elsi_compute_entropy
+   use ELSI_OCC,       only: elsi_mu_and_occ,elsi_entropy
    use ELSI_PRECISION, only: r4,r8,i4
    use ELSI_UTILS,     only: elsi_get_nnz_real,elsi_get_nnz_cmplx
    use ELPA,           only: elpa_t,elpa_init,elpa_uninit,elpa_allocate,&
@@ -98,14 +98,14 @@ end subroutine
 !>
 !! This routine computes the chemical potential and occupation numbers.
 !!
-subroutine elsi_compute_occ_elpa(eh,ph,bh,eval)
+subroutine elsi_compute_occ_elpa(ph,bh,eval,occ)
 
    implicit none
 
-   type(elsi_handle),  intent(inout) :: eh
    type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(in)    :: bh
    real(kind=r8),      intent(in)    :: eval(ph%n_basis)
+   real(kind=r8),      intent(out)   :: occ(ph%n_states,ph%n_spins,ph%n_kpts)
 
    real(kind=r8)    :: mu
    real(kind=r8)    :: ts
@@ -116,35 +116,33 @@ subroutine elsi_compute_occ_elpa(eh,ph,bh,eval)
    integer(kind=i4) :: i
    integer(kind=i4) :: ierr
 
+   real(kind=r8), allocatable :: eval_all(:,:,:)
+   real(kind=r8), allocatable :: k_weight(:)
    real(kind=r8), allocatable :: tmp_real1(:)
    real(kind=r8), allocatable :: tmp_real2(:,:,:)
 
    character(len=40), parameter :: caller = "elsi_compute_occ_elpa"
 
    ! Gather eigenvalues and occupation numbers
-   if(ph%n_calls == 1) then
-      call elsi_allocate(bh,eh%eval_all,ph%n_states,ph%n_spins,ph%n_kpts,&
-              "eval_all",caller)
-      call elsi_allocate(bh,eh%occ_num,ph%n_states,ph%n_spins,ph%n_kpts,&
-              "occ_num",caller)
-      call elsi_allocate(bh,eh%k_weight,ph%n_kpts,"k_weight",caller)
+   call elsi_allocate(bh,eval_all,ph%n_states,ph%n_spins,ph%n_kpts,&
+           "eval_all",caller)
+   call elsi_allocate(bh,k_weight,ph%n_kpts,"k_weight",caller)
 
-      if(ph%n_kpts > 1) then
-         call elsi_allocate(bh,tmp_real1,ph%n_kpts,"tmp_real",caller)
+   if(ph%n_kpts > 1) then
+      call elsi_allocate(bh,tmp_real1,ph%n_kpts,"tmp_real",caller)
 
-         if(bh%myid == 0 .and. ph%i_spin == 1) then
-            tmp_real1(ph%i_kpt) = ph%i_weight
-         endif
-
-         call MPI_Allreduce(tmp_real1,eh%k_weight,ph%n_kpts,mpi_real8,mpi_sum,&
-                 bh%comm_all,ierr)
-
-         call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
-
-         call elsi_deallocate(bh,tmp_real1,"tmp_real")
-      else
-         eh%k_weight = ph%i_weight
+      if(bh%myid == 0 .and. ph%i_spin == 1) then
+         tmp_real1(ph%i_kpt) = ph%i_weight
       endif
+
+      call MPI_Allreduce(tmp_real1,k_weight,ph%n_kpts,mpi_real8,mpi_sum,&
+              bh%comm_all,ierr)
+
+      call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
+
+      call elsi_deallocate(bh,tmp_real1,"tmp_real")
+   else
+      k_weight = ph%i_weight
    endif
 
    if(ph%n_spins*ph%n_kpts > 1) then
@@ -155,15 +153,14 @@ subroutine elsi_compute_occ_elpa(eh,ph,bh,eval)
          tmp_real2(:,ph%i_spin,ph%i_kpt) = eval(1:ph%n_states)
       endif
 
-      call MPI_Allreduce(tmp_real2,eh%eval_all,&
-              ph%n_states*ph%n_spins*ph%n_kpts,mpi_real8,mpi_sum,bh%comm_all,&
-              ierr)
+      call MPI_Allreduce(tmp_real2,eval_all,ph%n_states*ph%n_spins*ph%n_kpts,&
+              mpi_real8,mpi_sum,bh%comm_all,ierr)
 
       call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
 
       call elsi_deallocate(bh,tmp_real2,"tmp_real")
    else
-      eh%eval_all(:,ph%i_spin,ph%i_kpt) = eval(1:ph%n_states)
+      eval_all(:,ph%i_spin,ph%i_kpt) = eval(1:ph%n_states)
    endif
 
    ! Calculate chemical potential, occupation numbers, and electronic entropy
@@ -172,11 +169,10 @@ subroutine elsi_compute_occ_elpa(eh,ph,bh,eval)
    n_spins     = ph%n_spins
    n_kpts      = ph%n_kpts
 
-   call elsi_compute_mu_and_occ(eh,n_electrons,n_states,n_spins,n_kpts,&
-           eh%k_weight,eh%eval_all,eh%occ_num,mu)
+   call elsi_mu_and_occ(ph,bh,n_electrons,n_states,n_spins,n_kpts,k_weight,&
+           eval_all,occ,mu)
 
-   call elsi_compute_entropy(eh,n_states,n_spins,n_kpts,eh%k_weight,&
-           eh%eval_all,eh%occ_num,mu,ts)
+   call elsi_entropy(ph,n_states,n_spins,n_kpts,k_weight,eval_all,occ,mu,ts)
 
    ph%mu = mu
    ph%ts = ts
@@ -185,24 +181,29 @@ subroutine elsi_compute_occ_elpa(eh,ph,bh,eval)
    ph%ebs = 0.0_r8
 
    do i = 1,ph%n_states_solve
-      ph%ebs = ph%ebs+eval(i)*eh%occ_num(i,ph%i_spin,ph%i_kpt)
+      ph%ebs = ph%ebs+eval(i)*occ(i,ph%i_spin,ph%i_kpt)
    enddo
+
+   call elsi_deallocate(bh,eval_all,"eval_all")
+   call elsi_deallocate(bh,k_weight,"k_weight")
 
 end subroutine
 
 !>
 !! This routine constructs the density matrix.
 !!
-subroutine elsi_compute_dm_elpa_real(eh,ph,bh,evec,dm,work)
+subroutine elsi_compute_dm_elpa_real(ph,bh,row_map,col_map,evec,occ,dm,work)
 
    implicit none
 
-   type(elsi_handle),  intent(inout) :: eh
-   type(elsi_param_t), intent(in)    :: ph
-   type(elsi_basic_t), intent(in)    :: bh
-   real(kind=r8),      intent(in)    :: evec(bh%n_lrow,bh%n_lcol)
-   real(kind=r8),      intent(inout) :: dm(bh%n_lrow,bh%n_lcol)
-   real(kind=r8),      intent(inout) :: work(bh%n_lrow,bh%n_lcol)
+   type(elsi_param_t), intent(in)  :: ph
+   type(elsi_basic_t), intent(in)  :: bh
+   integer(kind=i4),   intent(in)  :: row_map(ph%n_basis)
+   integer(kind=i4),   intent(in)  :: col_map(ph%n_basis)
+   real(kind=r8),      intent(in)  :: evec(bh%n_lrow,bh%n_lcol)
+   real(kind=r8),      intent(in)  :: occ(ph%n_states,ph%n_spins,ph%n_kpts)
+   real(kind=r8),      intent(out) :: dm(bh%n_lrow,bh%n_lcol)
+   real(kind=r8),      intent(out) :: work(bh%n_lrow,bh%n_lcol)
 
    integer(kind=i4)   :: i
    integer(kind=i4)   :: i_col
@@ -223,8 +224,8 @@ subroutine elsi_compute_dm_elpa_real(eh,ph,bh,evec,dm,work)
    max_state = 0
 
    do i = 1,ph%n_states_solve
-      if(eh%occ_num(i,ph%i_spin,ph%i_kpt) > 0.0_r8) then
-         factor(i) = sqrt(eh%occ_num(i,ph%i_spin,ph%i_kpt))
+      if(occ(i,ph%i_spin,ph%i_kpt) > 0.0_r8) then
+         factor(i) = sqrt(occ(i,ph%i_spin,ph%i_kpt))
          max_state = i
       endif
    enddo
@@ -233,11 +234,11 @@ subroutine elsi_compute_dm_elpa_real(eh,ph,bh,evec,dm,work)
 
    do i = 1,ph%n_states_solve
       if(factor(i) > 0.0_r8) then
-         if(eh%loc_col(i) > 0) then
-            work(:,eh%loc_col(i)) = work(:,eh%loc_col(i))*factor(i)
+         if(col_map(i) > 0) then
+            work(:,col_map(i)) = work(:,col_map(i))*factor(i)
          endif
-      elseif(eh%loc_col(i) /= 0) then
-         work(:,eh%loc_col(i)) = 0.0_r8
+      elseif(col_map(i) /= 0) then
+         work(:,col_map(i)) = 0.0_r8
       endif
    enddo
 
@@ -254,11 +255,11 @@ subroutine elsi_compute_dm_elpa_real(eh,ph,bh,evec,dm,work)
            bh%desc)
 
    do i_col = 1,ph%n_basis-1
-      if(eh%loc_col(i_col) > 0) then
+      if(col_map(i_col) > 0) then
          do i_row = i_col+1,ph%n_basis
-            if(eh%loc_row(i_row) > 0) then
-               dm(eh%loc_row(i_row),eh%loc_col(i_col)) = &
-                  work(eh%loc_row(i_row),eh%loc_col(i_col))
+            if(row_map(i_row) > 0) then
+               dm(row_map(i_row),col_map(i_col)) = &
+                  work(row_map(i_row),col_map(i_col))
             endif
          enddo
       endif
@@ -276,17 +277,20 @@ end subroutine
 !>
 !! This routine constructs the energy-weighted density matrix.
 !!
-subroutine elsi_compute_edm_elpa_real(eh,ph,bh,eval,evec,edm,work)
+subroutine elsi_compute_edm_elpa_real(ph,bh,row_map,col_map,eval,evec,occ,edm,&
+              work)
 
    implicit none
 
-   type(elsi_handle),  intent(inout) :: eh
-   type(elsi_param_t), intent(in)    :: ph
-   type(elsi_basic_t), intent(in)    :: bh
-   real(kind=r8),      intent(in)    :: eval(ph%n_basis)
-   real(kind=r8),      intent(in)    :: evec(bh%n_lrow,bh%n_lcol)
-   real(kind=r8),      intent(inout) :: edm(bh%n_lrow,bh%n_lcol)
-   real(kind=r8),      intent(inout) :: work(bh%n_lrow,bh%n_lcol)
+   type(elsi_param_t), intent(in)  :: ph
+   type(elsi_basic_t), intent(in)  :: bh
+   integer(kind=i4),   intent(in)  :: row_map(ph%n_basis)
+   integer(kind=i4),   intent(in)  :: col_map(ph%n_basis)
+   real(kind=r8),      intent(in)  :: eval(ph%n_basis)
+   real(kind=r8),      intent(in)  :: evec(bh%n_lrow,bh%n_lcol)
+   real(kind=r8),      intent(in)  :: occ(ph%n_states,ph%n_spins,ph%n_kpts)
+   real(kind=r8),      intent(out) :: edm(bh%n_lrow,bh%n_lcol)
+   real(kind=r8),      intent(out) :: work(bh%n_lrow,bh%n_lcol)
 
    integer(kind=i4)   :: i
    integer(kind=i4)   :: i_col
@@ -307,7 +311,7 @@ subroutine elsi_compute_edm_elpa_real(eh,ph,bh,eval,evec,edm,work)
    max_state = 0
 
    do i = 1,ph%n_states_solve
-      factor(i) = -1.0_r8*eh%occ_num(i,ph%i_spin,ph%i_kpt)*eval(i)
+      factor(i) = -1.0_r8*occ(i,ph%i_spin,ph%i_kpt)*eval(i)
       if(factor(i) > 0.0_r8) then
          factor(i) = sqrt(factor(i))
          max_state = i
@@ -320,11 +324,11 @@ subroutine elsi_compute_edm_elpa_real(eh,ph,bh,eval,evec,edm,work)
 
    do i = 1,ph%n_states_solve
       if(factor(i) > 0.0_r8) then
-         if(eh%loc_col(i) > 0) then
-            work(:,eh%loc_col(i)) = work(:,eh%loc_col(i))*factor(i)
+         if(col_map(i) > 0) then
+            work(:,col_map(i)) = work(:,col_map(i))*factor(i)
          endif
-      elseif(eh%loc_col(i) /= 0) then
-         work(:,eh%loc_col(i)) = 0.0_r8
+      elseif(col_map(i) /= 0) then
+         work(:,col_map(i)) = 0.0_r8
       endif
    enddo
 
@@ -343,11 +347,11 @@ subroutine elsi_compute_edm_elpa_real(eh,ph,bh,eval,evec,edm,work)
            bh%desc)
 
    do i_col = 1,ph%n_basis-1
-      if(eh%loc_col(i_col) > 0) then
+      if(col_map(i_col) > 0) then
          do i_row = i_col+1,ph%n_basis
-            if(eh%loc_row(i_row) > 0) then
-               edm(eh%loc_row(i_row),eh%loc_col(i_col)) = &
-                  work(eh%loc_row(i_row),eh%loc_col(i_col))
+            if(row_map(i_row) > 0) then
+               edm(row_map(i_row),col_map(i_col)) = &
+                  work(row_map(i_row),col_map(i_col))
             endif
          enddo
       endif
@@ -366,17 +370,18 @@ end subroutine
 !! This routine transforms a generalized eigenproblem to standard and returns
 !! the Cholesky factor for later use.
 !!
-subroutine elsi_to_standard_evp_real(eh,ph,bh,ham,ovlp,eval,evec)
+subroutine elsi_to_standard_evp_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
 
    implicit none
 
-   type(elsi_handle),  intent(inout) :: eh
    type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(in)    :: bh
+   integer(kind=i4),   intent(in)    :: row_map(ph%n_basis)
+   integer(kind=i4),   intent(in)    :: col_map(ph%n_basis)
    real(kind=r8),      intent(inout) :: ham(bh%n_lrow,bh%n_lcol)
    real(kind=r8),      intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
-   real(kind=r8),      intent(inout) :: eval(ph%n_basis)
-   real(kind=r8),      intent(inout) :: evec(bh%n_lrow,bh%n_lcol)
+   real(kind=r8),      intent(out)   :: eval(ph%n_basis)
+   real(kind=r8),      intent(out)   :: evec(bh%n_lrow,bh%n_lcol)
 
    integer(kind=i4)   :: i_row
    integer(kind=i4)   :: i_col
@@ -390,7 +395,7 @@ subroutine elsi_to_standard_evp_real(eh,ph,bh,ham,ovlp,eval,evec)
 
    if(ph%n_calls == 1) then
       if(ph%check_sing) then
-         call elsi_check_singularity_real(eh,ph,bh,ovlp,eval,evec)
+         call elsi_check_singularity_real(ph,bh,col_map,ovlp,eval,evec)
       endif
 
       if(ph%n_good == ph%n_basis) then ! Not singular
@@ -440,11 +445,11 @@ subroutine elsi_to_standard_evp_real(eh,ph,bh,ham,ovlp,eval,evec)
 
       ! Set the lower part from the upper
       do i_col = 1,ph%n_basis-1
-         if(eh%loc_col(i_col) > 0) then
+         if(col_map(i_col) > 0) then
             do i_row = i_col+1,ph%n_basis
-               if(eh%loc_row(i_row) > 0) then
-                  ham(eh%loc_row(i_row),eh%loc_col(i_col)) = &
-                     evec(eh%loc_row(i_row),eh%loc_col(i_col))
+               if(row_map(i_row) > 0) then
+                  ham(row_map(i_row),col_map(i_col)) = &
+                     evec(row_map(i_row),col_map(i_col))
                endif
             enddo
          endif
@@ -466,16 +471,16 @@ end subroutine
 !! scaled eigenvectors if singular, which can be used to transform the
 !! generalized eigenproblem to the standard form.
 !!
-subroutine elsi_check_singularity_real(eh,ph,bh,ovlp,eval,evec)
+subroutine elsi_check_singularity_real(ph,bh,col_map,ovlp,eval,evec)
 
    implicit none
 
-   type(elsi_handle),  intent(inout) :: eh
    type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(in)    :: bh
+   integer(kind=i4),   intent(in)    :: col_map(ph%n_basis)
    real(kind=r8),      intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
-   real(kind=r8),      intent(inout) :: eval(ph%n_basis)
-   real(kind=r8),      intent(inout) :: evec(bh%n_lrow,bh%n_lcol)
+   real(kind=r8),      intent(out)   :: eval(ph%n_basis)
+   real(kind=r8),      intent(out)   :: evec(bh%n_lrow,bh%n_lcol)
 
    integer(kind=i4)   :: i
    real(kind=r8)      :: ev_sqrt
@@ -519,8 +524,8 @@ subroutine elsi_check_singularity_real(eh,ph,bh,ovlp,eval,evec)
       do i = ph%n_basis-ph%n_good+1,ph%n_basis
          ev_sqrt = sqrt(eval(i))
 
-         if(eh%loc_col(i) > 0) then
-            ovlp(:,eh%loc_col(i)) = evec(:,eh%loc_col(i))/ev_sqrt
+         if(col_map(i) > 0) then
+            ovlp(:,col_map(i)) = evec(:,col_map(i))/ev_sqrt
          endif
       enddo
    else ! Nonsingular
@@ -546,15 +551,14 @@ end subroutine
 !! This routine back-transforms eigenvectors in the standard form to the
 !! original generalized form.
 !!
-subroutine elsi_to_original_ev_real(eh,ph,bh,ham,ovlp,evec)
+subroutine elsi_to_original_ev_real(ph,bh,ham,ovlp,evec)
 
    implicit none
 
-   type(elsi_handle),  intent(inout) :: eh
    type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(in)    :: bh
-   real(kind=r8),      intent(inout) :: ham(bh%n_lrow,bh%n_lcol)
-   real(kind=r8),      intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
+   real(kind=r8),      intent(out)   :: ham(bh%n_lrow,bh%n_lcol)
+   real(kind=r8),      intent(in)    :: ovlp(bh%n_lrow,bh%n_lcol)
    real(kind=r8),      intent(inout) :: evec(bh%n_lrow,bh%n_lcol)
 
    real(kind=r8)      :: t0
@@ -595,17 +599,18 @@ end subroutine
 !>
 !! This routine interfaces to ELPA.
 !!
-subroutine elsi_solve_elpa_real(eh,ph,bh,ham,ovlp,eval,evec)
+subroutine elsi_solve_elpa_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
 
    implicit none
 
-   type(elsi_handle),  intent(inout) :: eh
    type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(inout) :: bh
+   integer(kind=i4),   intent(in)    :: row_map(ph%n_basis)
+   integer(kind=i4),   intent(in)    :: col_map(ph%n_basis)
    real(kind=r8),      intent(inout) :: ham(bh%n_lrow,bh%n_lcol)
    real(kind=r8),      intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
-   real(kind=r8),      intent(inout) :: eval(ph%n_basis)
-   real(kind=r8),      intent(inout) :: evec(bh%n_lrow,bh%n_lcol)
+   real(kind=r8),      intent(out)   :: eval(ph%n_basis)
+   real(kind=r8),      intent(out)   :: evec(bh%n_lrow,bh%n_lcol)
 
    integer(kind=i4)   :: ierr
    real(kind=r8)      :: t0
@@ -625,7 +630,7 @@ subroutine elsi_solve_elpa_real(eh,ph,bh,ham,ovlp,eval,evec)
 
    ! Transform to standard form
    if(.not. ph%ovlp_is_unit) then
-      call elsi_to_standard_evp_real(eh,ph,bh,ham,ovlp,eval,evec)
+      call elsi_to_standard_evp_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    endif
 
    call elsi_get_time(t0)
@@ -647,7 +652,7 @@ subroutine elsi_solve_elpa_real(eh,ph,bh,ham,ovlp,eval,evec)
 
    ! Back-transform eigenvectors
    if(.not. ph%ovlp_is_unit) then
-      call elsi_to_original_ev_real(eh,ph,bh,ham,ovlp,evec)
+      call elsi_to_original_ev_real(ph,bh,ham,ovlp,evec)
    endif
 
 end subroutine
@@ -655,16 +660,18 @@ end subroutine
 !>
 !! This routine constructs the density matrix.
 !!
-subroutine elsi_compute_dm_elpa_cmplx(eh,ph,bh,evec,dm,work)
+subroutine elsi_compute_dm_elpa_cmplx(ph,bh,row_map,col_map,evec,occ,dm,work)
 
    implicit none
 
-   type(elsi_handle),  intent(inout) :: eh
-   type(elsi_param_t), intent(in)    :: ph
-   type(elsi_basic_t), intent(in)    :: bh
-   complex(kind=r8),   intent(in)    :: evec(bh%n_lrow,bh%n_lcol)
-   complex(kind=r8),   intent(inout) :: dm(bh%n_lrow,bh%n_lcol)
-   complex(kind=r8),   intent(inout) :: work(bh%n_lrow,bh%n_lcol)
+   type(elsi_param_t), intent(in)  :: ph
+   type(elsi_basic_t), intent(in)  :: bh
+   integer(kind=i4),   intent(in)  :: row_map(ph%n_basis)
+   integer(kind=i4),   intent(in)  :: col_map(ph%n_basis)
+   complex(kind=r8),   intent(in)  :: evec(bh%n_lrow,bh%n_lcol)
+   real(kind=r8),      intent(in)  :: occ(ph%n_states,ph%n_spins,ph%n_kpts)
+   complex(kind=r8),   intent(out) :: dm(bh%n_lrow,bh%n_lcol)
+   complex(kind=r8),   intent(out) :: work(bh%n_lrow,bh%n_lcol)
 
    integer(kind=i4)   :: i
    integer(kind=i4)   :: i_col
@@ -685,8 +692,8 @@ subroutine elsi_compute_dm_elpa_cmplx(eh,ph,bh,evec,dm,work)
    max_state = 0
 
    do i = 1,ph%n_states_solve
-      if(eh%occ_num(i,ph%i_spin,ph%i_kpt) > 0.0_r8) then
-         factor(i) = sqrt(eh%occ_num(i,ph%i_spin,ph%i_kpt))
+      if(occ(i,ph%i_spin,ph%i_kpt) > 0.0_r8) then
+         factor(i) = sqrt(occ(i,ph%i_spin,ph%i_kpt))
          max_state = i
       endif
    enddo
@@ -695,11 +702,11 @@ subroutine elsi_compute_dm_elpa_cmplx(eh,ph,bh,evec,dm,work)
 
    do i = 1,ph%n_states_solve
       if(factor(i) > 0.0_r8) then
-         if(eh%loc_col(i) > 0) then
-            work(:,eh%loc_col(i)) = work(:,eh%loc_col(i))*factor(i)
+         if(col_map(i) > 0) then
+            work(:,col_map(i)) = work(:,col_map(i))*factor(i)
          endif
-      elseif(eh%loc_col(i) /= 0) then
-         work(:,eh%loc_col(i)) = (0.0_r8,0.0_r8)
+      elseif(col_map(i) /= 0) then
+         work(:,col_map(i)) = (0.0_r8,0.0_r8)
       endif
    enddo
 
@@ -716,11 +723,11 @@ subroutine elsi_compute_dm_elpa_cmplx(eh,ph,bh,evec,dm,work)
            (0.0_r8,0.0_r8),work,1,1,bh%desc)
 
    do i_col = 1,ph%n_basis-1
-      if(eh%loc_col(i_col) > 0) then
+      if(col_map(i_col) > 0) then
          do i_row = i_col+1,ph%n_basis
-            if(eh%loc_row(i_row) > 0) then
-               dm(eh%loc_row(i_row),eh%loc_col(i_col)) = &
-                  work(eh%loc_row(i_row),eh%loc_col(i_col))
+            if(row_map(i_row) > 0) then
+               dm(row_map(i_row),col_map(i_col)) = &
+                  work(row_map(i_row),col_map(i_col))
             endif
          enddo
       endif
@@ -728,9 +735,9 @@ subroutine elsi_compute_dm_elpa_cmplx(eh,ph,bh,evec,dm,work)
 
    ! Make diagonal real
    do i_col = 1,ph%n_basis
-      if(eh%loc_col(i_col) > 0 .and. eh%loc_row(i_col) > 0) then
-         dm(eh%loc_row(i_col),eh%loc_col(i_col)) = &
-            real(dm(eh%loc_row(i_col),eh%loc_col(i_col)),kind=r8)
+      if(col_map(i_col) > 0 .and. row_map(i_col) > 0) then
+         dm(row_map(i_col),col_map(i_col)) = &
+            real(dm(row_map(i_col),col_map(i_col)),kind=r8)
       endif
    enddo
 
@@ -746,17 +753,20 @@ end subroutine
 !>
 !! This routine constructs the energy-weighted density matrix.
 !!
-subroutine elsi_compute_edm_elpa_cmplx(eh,ph,bh,eval,evec,edm,work)
+subroutine elsi_compute_edm_elpa_cmplx(ph,bh,row_map,col_map,eval,evec,occ,edm,&
+              work)
 
    implicit none
 
-   type(elsi_handle),  intent(inout) :: eh
-   type(elsi_param_t), intent(in)    :: ph
-   type(elsi_basic_t), intent(in)    :: bh
-   real(kind=r8),      intent(in)    :: eval(ph%n_basis)
-   complex(kind=r8),   intent(in)    :: evec(bh%n_lrow,bh%n_lcol)
-   complex(kind=r8),   intent(inout) :: edm(bh%n_lrow,bh%n_lcol)
-   complex(kind=r8),   intent(inout) :: work(bh%n_lrow,bh%n_lcol)
+   type(elsi_param_t), intent(in)  :: ph
+   type(elsi_basic_t), intent(in)  :: bh
+   integer(kind=i4),   intent(in)  :: row_map(ph%n_basis)
+   integer(kind=i4),   intent(in)  :: col_map(ph%n_basis)
+   real(kind=r8),      intent(in)  :: eval(ph%n_basis)
+   complex(kind=r8),   intent(in)  :: evec(bh%n_lrow,bh%n_lcol)
+   real(kind=r8),      intent(in)  :: occ(ph%n_states,ph%n_spins,ph%n_kpts)
+   complex(kind=r8),   intent(out) :: edm(bh%n_lrow,bh%n_lcol)
+   complex(kind=r8),   intent(out) :: work(bh%n_lrow,bh%n_lcol)
 
    integer(kind=i4)   :: i
    integer(kind=i4)   :: i_col
@@ -777,7 +787,7 @@ subroutine elsi_compute_edm_elpa_cmplx(eh,ph,bh,eval,evec,edm,work)
    max_state = 0
 
    do i = 1,ph%n_states_solve
-      factor(i) = -1.0_r8*eh%occ_num(i,ph%i_spin,ph%i_kpt)*eval(i)
+      factor(i) = -1.0_r8*occ(i,ph%i_spin,ph%i_kpt)*eval(i)
       if(factor(i) > 0.0_r8) then
          factor(i) = sqrt(factor(i))
          max_state = i
@@ -790,11 +800,11 @@ subroutine elsi_compute_edm_elpa_cmplx(eh,ph,bh,eval,evec,edm,work)
 
    do i = 1,ph%n_states_solve
       if(factor(i) > 0.0_r8) then
-         if(eh%loc_col(i) > 0) then
-            work(:,eh%loc_col(i)) = work(:,eh%loc_col(i))*factor(i)
+         if(col_map(i) > 0) then
+            work(:,col_map(i)) = work(:,col_map(i))*factor(i)
          endif
-      elseif(eh%loc_col(i) /= 0) then
-         work(:,eh%loc_col(i)) = (0.0_r8,0.0_r8)
+      elseif(col_map(i) /= 0) then
+         work(:,col_map(i)) = (0.0_r8,0.0_r8)
       endif
    enddo
 
@@ -813,11 +823,11 @@ subroutine elsi_compute_edm_elpa_cmplx(eh,ph,bh,eval,evec,edm,work)
            (0.0_r8,0.0_r8),work,1,1,bh%desc)
 
    do i_col = 1,ph%n_basis-1
-      if(eh%loc_col(i_col) > 0) then
+      if(col_map(i_col) > 0) then
          do i_row = i_col+1,ph%n_basis
-            if(eh%loc_row(i_row) > 0) then
-               edm(eh%loc_row(i_row),eh%loc_col(i_col)) = &
-                  work(eh%loc_row(i_row),eh%loc_col(i_col))
+            if(row_map(i_row) > 0) then
+               edm(row_map(i_row),col_map(i_col)) = &
+                  work(row_map(i_row),col_map(i_col))
             endif
          enddo
       endif
@@ -825,9 +835,9 @@ subroutine elsi_compute_edm_elpa_cmplx(eh,ph,bh,eval,evec,edm,work)
 
    ! Make diagonal real
    do i_col = 1,ph%n_basis
-      if(eh%loc_col(i_col) > 0 .and. eh%loc_row(i_col) > 0) then
-         edm(eh%loc_row(i_col),eh%loc_col(i_col)) = &
-            real(edm(eh%loc_row(i_col),eh%loc_col(i_col)),kind=r8)
+      if(col_map(i_col) > 0 .and. row_map(i_col) > 0) then
+         edm(row_map(i_col),col_map(i_col)) = &
+            real(edm(row_map(i_col),col_map(i_col)),kind=r8)
       endif
    enddo
 
@@ -844,17 +854,18 @@ end subroutine
 !! This routine transforms a generalized eigenproblem to standard and returns
 !! the Cholesky factor for later use.
 !!
-subroutine elsi_to_standard_evp_cmplx(eh,ph,bh,ham,ovlp,eval,evec)
+subroutine elsi_to_standard_evp_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
 
    implicit none
 
-   type(elsi_handle),  intent(inout) :: eh
    type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(in)    :: bh
+   integer(kind=i4),   intent(in)    :: row_map(ph%n_basis)
+   integer(kind=i4),   intent(in)    :: col_map(ph%n_basis)
    complex(kind=r8),   intent(inout) :: ham(bh%n_lrow,bh%n_lcol)
    complex(kind=r8),   intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
-   real(kind=r8),      intent(inout) :: eval(ph%n_basis)
-   complex(kind=r8),   intent(inout) :: evec(bh%n_lrow,bh%n_lcol)
+   real(kind=r8),      intent(out)   :: eval(ph%n_basis)
+   complex(kind=r8),   intent(out)   :: evec(bh%n_lrow,bh%n_lcol)
 
    integer(kind=i4)   :: i_row
    integer(kind=i4)   :: i_col
@@ -868,7 +879,7 @@ subroutine elsi_to_standard_evp_cmplx(eh,ph,bh,ham,ovlp,eval,evec)
 
    if(ph%n_calls == 1) then
       if(ph%check_sing) then
-         call elsi_check_singularity_cmplx(eh,ph,bh,ovlp,eval,evec)
+         call elsi_check_singularity_cmplx(ph,bh,col_map,ovlp,eval,evec)
       endif
 
       if(ph%n_good == ph%n_basis) then ! Not singular
@@ -917,11 +928,11 @@ subroutine elsi_to_standard_evp_cmplx(eh,ph,bh,ham,ovlp,eval,evec)
 
       ! Set the lower part from the upper
       do i_col = 1,ph%n_basis-1
-         if(eh%loc_col(i_col) > 0) then
+         if(col_map(i_col) > 0) then
             do i_row = i_col+1,ph%n_basis
-               if(eh%loc_row(i_row) > 0) then
-                  ham(eh%loc_row(i_row),eh%loc_col(i_col)) = &
-                     evec(eh%loc_row(i_row),eh%loc_col(i_col))
+               if(row_map(i_row) > 0) then
+                  ham(row_map(i_row),col_map(i_col)) = &
+                     evec(row_map(i_row),col_map(i_col))
                endif
             enddo
          endif
@@ -929,9 +940,9 @@ subroutine elsi_to_standard_evp_cmplx(eh,ph,bh,ham,ovlp,eval,evec)
 
       ! Make diagonal real
       do i_col = 1,ph%n_basis
-         if(eh%loc_col(i_col) > 0 .and. eh%loc_row(i_col) > 0) then
-            ham(eh%loc_row(i_col),eh%loc_col(i_col)) = &
-               real(ham(eh%loc_row(i_col),eh%loc_col(i_col)),kind=r8)
+         if(col_map(i_col) > 0 .and. row_map(i_col) > 0) then
+            ham(row_map(i_col),col_map(i_col)) = &
+               real(ham(row_map(i_col),col_map(i_col)),kind=r8)
          endif
       enddo
    endif
@@ -951,16 +962,16 @@ end subroutine
 !! scaled eigenvectors if singular, which can be used to transform the
 !! generalized eigenproblem to the standard form.
 !!
-subroutine elsi_check_singularity_cmplx(eh,ph,bh,ovlp,eval,evec)
+subroutine elsi_check_singularity_cmplx(ph,bh,col_map,ovlp,eval,evec)
 
    implicit none
 
-   type(elsi_handle),  intent(inout) :: eh
    type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(in)    :: bh
+   integer(kind=i4),   intent(in)    :: col_map(ph%n_basis)
    complex(kind=r8),   intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
-   real(kind=r8),      intent(inout) :: eval(ph%n_basis)
-   complex(kind=r8),   intent(inout) :: evec(bh%n_lrow,bh%n_lcol)
+   real(kind=r8),      intent(out)   :: eval(ph%n_basis)
+   complex(kind=r8),   intent(out)   :: evec(bh%n_lrow,bh%n_lcol)
 
    integer(kind=i4)   :: i
    real(kind=r8)      :: ev_sqrt
@@ -1004,8 +1015,8 @@ subroutine elsi_check_singularity_cmplx(eh,ph,bh,ovlp,eval,evec)
       do i = ph%n_basis-ph%n_good+1,ph%n_basis
          ev_sqrt = sqrt(eval(i))
 
-         if(eh%loc_col(i) > 0) then
-            ovlp(:,eh%loc_col(i)) = evec(:,eh%loc_col(i))/ev_sqrt
+         if(col_map(i) > 0) then
+            ovlp(:,col_map(i)) = evec(:,col_map(i))/ev_sqrt
          endif
       enddo
    else ! Nonsingular
@@ -1031,11 +1042,10 @@ end subroutine
 !! This routine back-transforms eigenvectors in the standard form to the
 !! original generalized form.
 !!
-subroutine elsi_to_original_ev_cmplx(eh,ph,bh,ham,ovlp,evec)
+subroutine elsi_to_original_ev_cmplx(ph,bh,ham,ovlp,evec)
 
    implicit none
 
-   type(elsi_handle),  intent(inout) :: eh
    type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(in)    :: bh
    complex(kind=r8),   intent(inout) :: ham(bh%n_lrow,bh%n_lcol)
@@ -1080,17 +1090,18 @@ end subroutine
 !>
 !! This routine interfaces to ELPA.
 !!
-subroutine elsi_solve_elpa_cmplx(eh,ph,bh,ham,ovlp,eval,evec)
+subroutine elsi_solve_elpa_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
 
    implicit none
 
-   type(elsi_handle),  intent(inout) :: eh
    type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(inout) :: bh
+   integer(kind=i4),   intent(in)    :: row_map(ph%n_basis)
+   integer(kind=i4),   intent(in)    :: col_map(ph%n_basis)
    complex(kind=r8),   intent(inout) :: ham(bh%n_lrow,bh%n_lcol)
    complex(kind=r8),   intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
-   real(kind=r8),      intent(inout) :: eval(ph%n_basis)
-   complex(kind=r8),   intent(inout) :: evec(bh%n_lrow,bh%n_lcol)
+   real(kind=r8),      intent(out)   :: eval(ph%n_basis)
+   complex(kind=r8),   intent(out)   :: evec(bh%n_lrow,bh%n_lcol)
 
    integer(kind=i4)   :: ierr
    real(kind=r8)      :: t0
@@ -1110,7 +1121,7 @@ subroutine elsi_solve_elpa_cmplx(eh,ph,bh,ham,ovlp,eval,evec)
 
    ! Transform to standard form
    if(.not. ph%ovlp_is_unit) then
-      call elsi_to_standard_evp_cmplx(eh,ph,bh,ham,ovlp,eval,evec)
+      call elsi_to_standard_evp_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    endif
 
    call elsi_get_time(t0)
@@ -1132,7 +1143,7 @@ subroutine elsi_solve_elpa_cmplx(eh,ph,bh,ham,ovlp,eval,evec)
 
    ! Back-transform eigenvectors
    if(.not. ph%ovlp_is_unit) then
-      call elsi_to_original_ev_cmplx(eh,ph,bh,ham,ovlp,evec)
+      call elsi_to_original_ev_cmplx(ph,bh,ham,ovlp,evec)
    endif
 
 end subroutine
@@ -1140,46 +1151,15 @@ end subroutine
 !>
 !! This routine cleans up ELPA.
 !!
-subroutine elsi_cleanup_elpa(eh,ph,bh)
+subroutine elsi_cleanup_elpa(ph)
 
    implicit none
 
-   type(elsi_handle),  intent(inout) :: eh
    type(elsi_param_t), intent(inout) :: ph
-   type(elsi_basic_t), intent(in)    :: bh
 
    integer(kind=i4) :: ierr
 
    character(len=40), parameter :: caller = "elsi_cleanup_elpa"
-
-   ! ELPA
-   if(allocated(eh%ham_real_elpa)) then
-      call elsi_deallocate(bh,eh%ham_real_elpa,"ham_real_elpa")
-   endif
-   if(allocated(eh%ham_cmplx_elpa)) then
-      call elsi_deallocate(bh,eh%ham_cmplx_elpa,"ham_cmplx_elpa")
-   endif
-   if(allocated(eh%ovlp_real_elpa)) then
-      call elsi_deallocate(bh,eh%ovlp_real_elpa,"ovlp_real_elpa")
-   endif
-   if(allocated(eh%ovlp_cmplx_elpa)) then
-      call elsi_deallocate(bh,eh%ovlp_cmplx_elpa,"ovlp_cmplx_elpa")
-   endif
-   if(allocated(eh%eval_elpa)) then
-      call elsi_deallocate(bh,eh%eval_elpa,"eval_elpa")
-   endif
-   if(allocated(eh%evec_real_elpa)) then
-      call elsi_deallocate(bh,eh%evec_real_elpa,"evec_real_elpa")
-   endif
-   if(allocated(eh%evec_cmplx_elpa)) then
-      call elsi_deallocate(bh,eh%evec_cmplx_elpa,"evec_cmplx_elpa")
-   endif
-   if(allocated(eh%dm_real_elpa)) then
-      call elsi_deallocate(bh,eh%dm_real_elpa,"dm_real_elpa")
-   endif
-   if(allocated(eh%dm_cmplx_elpa)) then
-      call elsi_deallocate(bh,eh%dm_cmplx_elpa,"dm_cmplx_elpa")
-   endif
 
    if(ph%elpa_started) then
       nullify(ph%elpa_main)
