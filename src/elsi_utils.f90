@@ -29,12 +29,24 @@ module ELSI_UTILS
    public :: elsi_reset_basic
    public :: elsi_get_gid
    public :: elsi_get_lid
-   public :: elsi_get_nnz_real
-   public :: elsi_get_nnz_cmplx
-   public :: elsi_trace_mat_real
-   public :: elsi_trace_mat_cmplx
-   public :: elsi_trace_mat_mat_real
-   public :: elsi_trace_mat_mat_cmplx
+   public :: elsi_get_nnz
+   public :: elsi_trace_mat
+   public :: elsi_trace_mat_mat
+
+   interface elsi_get_nnz
+      module procedure elsi_get_nnz_real
+      module procedure elsi_get_nnz_cmplx
+   end interface
+
+   interface elsi_trace_mat
+      module procedure elsi_trace_mat_real
+      module procedure elsi_trace_mat_cmplx
+   end interface
+
+   interface elsi_trace_mat_mat
+      module procedure elsi_trace_mat_mat_real
+      module procedure elsi_trace_mat_mat_cmplx
+   end interface
 
 contains
 
@@ -172,7 +184,7 @@ subroutine elsi_reset_basic(bh)
    bh%nnz_g            = UNSET
    bh%nnz_l_sp         = UNSET
    bh%n_lcol_sp        = UNSET
-   bh%zero_def         = 1.0e-15_r8
+   bh%def0             = 1.0e-15_r8
    bh%nnz_l_sp1        = UNSET
    bh%n_lcol_sp1       = UNSET
    bh%pexsi_csc_ready  = .false.
@@ -411,11 +423,11 @@ end subroutine
 !>
 !! This routine counts the number of non_zero elements in a matrix.
 !!
-subroutine elsi_get_nnz_real(zero_def,mat,n_row,n_col,nnz)
+subroutine elsi_get_nnz_real(def0,mat,n_row,n_col,nnz)
 
    implicit none
 
-   real(kind=r8),    intent(in)  :: zero_def
+   real(kind=r8),    intent(in)  :: def0
    real(kind=r8),    intent(in)  :: mat(n_row,n_col)
    integer(kind=i4), intent(in)  :: n_row
    integer(kind=i4), intent(in)  :: n_col
@@ -430,7 +442,7 @@ subroutine elsi_get_nnz_real(zero_def,mat,n_row,n_col,nnz)
 
    do i_col = 1,n_col
       do i_row = 1,n_row
-         if(abs(mat(i_row,i_col)) > zero_def) then
+         if(abs(mat(i_row,i_col)) > def0) then
             nnz = nnz+1
          endif
       enddo
@@ -441,11 +453,11 @@ end subroutine
 !>
 !! This routine counts the number of non_zero elements in a matrix.
 !!
-subroutine elsi_get_nnz_cmplx(zero_def,mat,n_row,n_col,nnz)
+subroutine elsi_get_nnz_cmplx(def0,mat,n_row,n_col,nnz)
 
    implicit none
 
-   real(kind=r8),    intent(in)  :: zero_def
+   real(kind=r8),    intent(in)  :: def0
    complex(kind=r8), intent(in)  :: mat(n_row,n_col)
    integer(kind=i4), intent(in)  :: n_row
    integer(kind=i4), intent(in)  :: n_col
@@ -460,7 +472,7 @@ subroutine elsi_get_nnz_cmplx(zero_def,mat,n_row,n_col,nnz)
 
    do i_col = 1,n_col
       do i_row = 1,n_row
-         if(abs(mat(i_row,i_col)) > zero_def) then
+         if(abs(mat(i_row,i_col)) > def0) then
             nnz = nnz+1
          endif
       enddo

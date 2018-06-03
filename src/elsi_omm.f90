@@ -14,7 +14,7 @@ module ELSI_OMM
    use ELSI_IO,        only: elsi_say,elsi_get_time
    use ELSI_MPI,       only: elsi_check_mpi,mpi_sum,mpi_integer4
    use ELSI_PRECISION, only: r8,i4
-   use ELSI_UTILS,     only: elsi_get_nnz_real,elsi_get_nnz_cmplx
+   use ELSI_UTILS,     only: elsi_get_nnz
    use ELPA1,          only: elpa_cholesky_real_double,&
                              elpa_cholesky_complex_double,&
                              elpa_invert_trm_real_double,&
@@ -28,10 +28,18 @@ module ELSI_OMM
 
    public :: elsi_init_omm
    public :: elsi_cleanup_omm
-   public :: elsi_solve_omm_real
-   public :: elsi_compute_edm_omm_real
-   public :: elsi_solve_omm_cmplx
-   public :: elsi_compute_edm_omm_cmplx
+   public :: elsi_solve_omm
+   public :: elsi_compute_edm_omm
+
+   interface elsi_solve_omm
+      module procedure elsi_solve_omm_real
+      module procedure elsi_solve_omm_cmplx
+   end interface
+
+   interface elsi_compute_edm_omm
+      module procedure elsi_compute_edm_omm_real
+      module procedure elsi_compute_edm_omm_cmplx
+   end interface
 
 contains
 
@@ -103,7 +111,7 @@ subroutine elsi_solve_omm_real(ph,bh,ham,ovlp,coeff,dm)
 
    ! Compute sparsity
    if(ph%n_calls == 1 .and. ph%matrix_format == BLACS_DENSE) then
-      call elsi_get_nnz_real(bh%zero_def,ham,bh%n_lrow,bh%n_lcol,bh%nnz_l)
+      call elsi_get_nnz(bh%def0,ham,bh%n_lrow,bh%n_lcol,bh%nnz_l)
 
       call MPI_Allreduce(bh%nnz_l,bh%nnz_g,1,mpi_integer4,mpi_sum,bh%comm,ierr)
 
@@ -259,7 +267,7 @@ subroutine elsi_solve_omm_cmplx(ph,bh,ham,ovlp,coeff,dm)
 
    ! Compute sparsity
    if(ph%n_calls == 1 .and. ph%matrix_format == BLACS_DENSE) then
-      call elsi_get_nnz_cmplx(bh%zero_def,ham,bh%n_lrow,bh%n_lcol,bh%nnz_l)
+      call elsi_get_nnz(bh%def0,ham,bh%n_lrow,bh%n_lcol,bh%nnz_l)
 
       call MPI_Allreduce(bh%nnz_l,bh%nnz_g,1,mpi_integer4,mpi_sum,bh%comm,ierr)
 

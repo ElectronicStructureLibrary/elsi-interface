@@ -42,10 +42,18 @@ module ELSI_PEXSI
    public :: elsi_init_pexsi
    public :: elsi_set_pexsi_default
    public :: elsi_cleanup_pexsi
-   public :: elsi_solve_pexsi_real
-   public :: elsi_compute_edm_pexsi_real
-   public :: elsi_solve_pexsi_cmplx
-   public :: elsi_compute_edm_pexsi_cmplx
+   public :: elsi_solve_pexsi
+   public :: elsi_compute_edm_pexsi
+
+   interface elsi_solve_pexsi
+      module procedure elsi_solve_pexsi_real
+      module procedure elsi_solve_pexsi_cmplx
+   end interface
+
+   interface elsi_compute_edm_pexsi
+      module procedure elsi_compute_edm_pexsi_real
+      module procedure elsi_compute_edm_pexsi_cmplx
+   end interface
 
 contains
 
@@ -1162,7 +1170,7 @@ subroutine elsi_compute_edm_pexsi_cmplx(ph,bh,ne_vec,edm)
       do i = aux_min,aux_max
          if(abs(ne_vec(i)-ph%n_electrons) < &
             ph%pexsi_options%numElectronPEXSITolerance) then
-            ph%mu  = shifts(i)
+            ph%mu     = shifts(i)
             converged = .true.
 
             call MPI_Bcast(tmp_cmplx,bh%nnz_l_sp1,mpi_complex16,i-1,&

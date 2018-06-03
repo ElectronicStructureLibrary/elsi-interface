@@ -231,28 +231,28 @@ subroutine elsi_print_versioning(uuid,jh)
    character(len=UUID_LEN), intent(in)    :: uuid
    type(fjson_handle),      intent(inout) :: jh
 
-   logical            :: COMMIT_MODIFIED
-   character(len=10)  :: DATE_STAMP
+   logical            :: MODIFIED
+   character(len=10)  :: DATESTAMP
    character(len=40)  :: COMMIT
    character(len=8)   :: COMMIT_ABBREV
-   character(len=40)  :: COMMIT_MSG_ABBREV
+   character(len=40)  :: COMMIT_MSG
    character(len=40)  :: HOSTNAME
    character(len=20)  :: DATETIME
 
    character(len=40), parameter :: caller = "elsi_print_versioning"
 
-   call elsi_version_info(DATE_STAMP,COMMIT,COMMIT_ABBREV,COMMIT_MODIFIED,&
-           COMMIT_MSG_ABBREV,HOSTNAME,DATETIME)
+   call elsi_version_info(DATESTAMP,COMMIT,COMMIT_ABBREV,MODIFIED,COMMIT_MSG,&
+           HOSTNAME,DATETIME)
 
    call fjson_write_name_value(jh,"data_source","ELSI")
-   call fjson_write_name_value(jh,"date_stamp",trim(adjustl(DATE_STAMP)))
+   call fjson_write_name_value(jh,"date_stamp",trim(adjustl(DATESTAMP)))
    call fjson_write_name_value(jh,"git_commit",trim(adjustl(COMMIT)))
-   call fjson_write_name_value(jh,"git_commit_modified",COMMIT_MODIFIED)
+   call fjson_write_name_value(jh,"git_commit_modified",MODIFIED)
    call fjson_write_name_value(jh,"git_message_abbrev",&
-           trim(adjustl(COMMIT_MSG_ABBREV)))
-   call fjson_write_name_value(jh,"source_created_on_hostname",&
+           trim(adjustl(COMMIT_MSG)))
+   call fjson_write_name_value(jh,"compiled_on_hostname",&
            trim(adjustl(HOSTNAME)))
-   call fjson_write_name_value(jh,"source_created_at_datetime",&
+   call fjson_write_name_value(jh,"compiled_at_datetime",&
            trim(adjustl(DATETIME)))
    call fjson_write_name_value(jh,"uuid",trim(adjustl(uuid)))
 
@@ -417,7 +417,7 @@ subroutine elsi_print_csc_settings(bh,jh)
    character(len=40), parameter :: caller = "elsi_print_csc_settings"
 
    call fjson_start_name_object(jh,"matrix_format_settings")
-   call fjson_write_name_value(jh,"zero_def",bh%zero_def)
+   call fjson_write_name_value(jh,"def0",bh%def0)
    call fjson_write_name_value(jh,"blk_sp2",bh%blk_sp2)
    call fjson_write_name_value(jh,"pexsi_csc_ready",bh%pexsi_csc_ready)
    call fjson_write_name_value(jh,"siesta_csc_ready",bh%siesta_csc_ready)

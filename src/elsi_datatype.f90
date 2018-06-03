@@ -59,7 +59,7 @@ module ELSI_DATATYPE
       integer(kind=i4) :: nnz_g     ! Global number of nonzeros
       integer(kind=i4) :: nnz_l_sp  ! Local number of nonzeros
       integer(kind=i4) :: n_lcol_sp ! Local number of columns
-      real(kind=r8)    :: zero_def
+      real(kind=r8)    :: def0
 
       ! Sparse matrix information (1D block)
       integer(kind=i4) :: nnz_l_sp1  ! Local number of nonzeros

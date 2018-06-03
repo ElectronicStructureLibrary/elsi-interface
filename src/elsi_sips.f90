@@ -28,9 +28,21 @@ module ELSI_SIPS
 
    public :: elsi_init_sips
    public :: elsi_cleanup_sips
-   public :: elsi_solve_sips_real
-   public :: elsi_compute_dm_sips_real
-   public :: elsi_compute_edm_sips_real
+   public :: elsi_solve_sips
+   public :: elsi_compute_dm_sips
+   public :: elsi_compute_edm_sips
+
+   interface elsi_solve_sips
+      module procedure elsi_solve_sips_real
+   end interface
+
+   interface elsi_compute_dm_sips
+      module procedure elsi_compute_dm_sips_real
+   end interface
+
+   interface elsi_compute_edm_sips
+      module procedure elsi_compute_edm_sips_real
+   end interface
 
 contains
 
@@ -195,8 +207,8 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
          endif
       enddo
 
-      call sips_get_slices_from_inertias(ph%n_states,ph%sips_n_slices,&
-              inertias,slices)
+      call sips_get_slices_from_inertias(ph%n_states,ph%sips_n_slices,inertias,&
+              slices)
 
       call elsi_deallocate(bh,inertias,"inertias")
 

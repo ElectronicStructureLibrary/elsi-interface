@@ -12,26 +12,16 @@ module ELSI_MUTATOR
    use ELSI_CONSTANTS, only: ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,SIPS_SOLVER,&
                              DMP_SOLVER,PEXSI_CSC,SIESTA_CSC
    use ELSI_DATATYPE,  only: elsi_handle
-   use ELSI_ELPA,      only: elsi_compute_edm_elpa_real,&
-                             elsi_compute_edm_elpa_cmplx
+   use ELSI_ELPA,      only: elsi_compute_edm_elpa
    use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
-   use ELSI_REDIST,    only: elsi_blacs_to_siesta_dm_cmplx,&
-                             elsi_blacs_to_siesta_dm_real,&
-                             elsi_blacs_to_sips_dm_cmplx,&
-                             elsi_blacs_to_sips_dm_real,&
-                             elsi_pexsi_to_blacs_dm_cmplx,&
-                             elsi_pexsi_to_blacs_dm_real,&
-                             elsi_pexsi_to_siesta_dm_cmplx,&
-                             elsi_pexsi_to_siesta_dm_real,&
-                             elsi_sips_to_blacs_dm_real,&
-                             elsi_sips_to_siesta_dm_real
+   use ELSI_REDIST,    only: elsi_blacs_to_siesta_dm,elsi_blacs_to_sips_dm,&
+                             elsi_pexsi_to_blacs_dm,elsi_pexsi_to_siesta_dm,&
+                             elsi_sips_to_blacs_dm,elsi_sips_to_siesta_dm
    use ELSI_MPI,       only: elsi_stop
-   use ELSI_OMM,       only: elsi_compute_edm_omm_real,&
-                             elsi_compute_edm_omm_cmplx
-   use ELSI_PEXSI,     only: elsi_compute_edm_pexsi_real,&
-                             elsi_compute_edm_pexsi_cmplx
+   use ELSI_OMM,       only: elsi_compute_edm_omm
+   use ELSI_PEXSI,     only: elsi_compute_edm_pexsi
    use ELSI_PRECISION, only: r8,i4
-   use ELSI_SIPS,      only: elsi_compute_edm_sips_real
+   use ELSI_SIPS,      only: elsi_compute_edm_sips
    use ELSI_UTILS,     only: elsi_check_init
 
    implicit none
@@ -188,7 +178,7 @@ subroutine elsi_set_zero_def(eh,zero_def)
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   eh%bh%zero_def = zero_def
+   eh%bh%def0 = zero_def
 
 end subroutine
 
@@ -1157,20 +1147,21 @@ subroutine elsi_get_edm_real(eh,edm)
          call elsi_allocate(eh%bh,tmp_real,eh%bh%n_lrow,eh%bh%n_lcol,&
                  "tmp_real",caller)
 
-         call elsi_compute_edm_elpa_real(eh%ph,eh%bh,eh%row_map,eh%col_map,&
-                 eh%eval,eh%evec_real,eh%occ,edm,tmp_real)
+         call elsi_compute_edm_elpa(eh%ph,eh%bh,eh%row_map,eh%col_map,eh%eval,&
+                 eh%evec_real,eh%occ,edm,tmp_real)
 
          call elsi_deallocate(eh%bh,tmp_real,"tmp_real")
       case(OMM_SOLVER)
-         call elsi_compute_edm_omm_real(eh%ph,eh%bh,eh%omm_c_real,edm)
+         call elsi_compute_edm_omm(eh%ph,eh%bh,eh%omm_c_real,edm)
       case(PEXSI_SOLVER)
-         call elsi_compute_edm_pexsi_real(eh%ph,eh%bh,eh%pexsi_ne_vec,&
-                 eh%dm_real_csc)
-         call elsi_pexsi_to_blacs_dm_real(eh,eh%ph,eh%bh,edm)
+         call elsi_compute_edm_pexsi(eh%ph,eh%bh,eh%pexsi_ne_vec,eh%dm_real_csc)
+         call elsi_pexsi_to_blacs_dm(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
+                 eh%dm_real_csc,edm)
       case(SIPS_SOLVER)
-         call elsi_compute_edm_sips_real(eh%ph,eh%bh,eh%row_ind_sp1,&
-                 eh%col_ptr_sp1,eh%occ,eh%dm_real_csc)
-         call elsi_sips_to_blacs_dm_real(eh,eh%ph,eh%bh,edm)
+         call elsi_compute_edm_sips(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
+                 eh%occ,eh%dm_real_csc)
+         call elsi_sips_to_blacs_dm(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
+                 eh%dm_real_csc,edm)
       case default
          call elsi_stop(eh%bh,"Unsupported density matrix solver.",caller)
       end select
@@ -1221,51 +1212,58 @@ subroutine elsi_get_edm_real_sparse(eh,edm)
          call elsi_allocate(eh%bh,tmp_real,eh%bh%n_lrow,eh%bh%n_lcol,&
                  "tmp_real",caller)
 
-         call elsi_compute_edm_elpa_real(eh%ph,eh%bh,eh%row_map,eh%col_map,&
-                 eh%eval,eh%evec_real,eh%occ,eh%dm_real_den,tmp_real)
+         call elsi_compute_edm_elpa(eh%ph,eh%bh,eh%row_map,eh%col_map,eh%eval,&
+                 eh%evec_real,eh%occ,eh%dm_real_den,tmp_real)
 
          call elsi_deallocate(eh%bh,tmp_real,"tmp_real")
 
          select case(eh%ph%matrix_format)
          case(PEXSI_CSC)
-            call elsi_blacs_to_sips_dm_real(eh,eh%ph,eh%bh,edm)
+            call elsi_blacs_to_sips_dm(eh%ph,eh%bh,eh%row_ind_sp1,&
+                    eh%col_ptr_sp1,eh%dm_real_den,edm)
          case(SIESTA_CSC)
-            call elsi_blacs_to_siesta_dm_real(eh,eh%bh,edm)
+            call elsi_blacs_to_siesta_dm(eh%bh,eh%row_ind_sp2,eh%col_ptr_sp2,&
+                    eh%dm_real_den,edm)
          case default
             call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
          end select
       case(OMM_SOLVER)
-         call elsi_compute_edm_omm_real(eh%ph,eh%bh,eh%omm_c_real,&
-                 eh%dm_real_den)
+         call elsi_compute_edm_omm(eh%ph,eh%bh,eh%omm_c_real,eh%dm_real_den)
 
          select case(eh%ph%matrix_format)
          case(PEXSI_CSC)
-            call elsi_blacs_to_sips_dm_real(eh,eh%ph,eh%bh,edm)
+            call elsi_blacs_to_sips_dm(eh%ph,eh%bh,eh%row_ind_sp1,&
+                    eh%col_ptr_sp1,eh%dm_real_den,edm)
          case(SIESTA_CSC)
-            call elsi_blacs_to_siesta_dm_real(eh,eh%bh,edm)
+            call elsi_blacs_to_siesta_dm(eh%bh,eh%row_ind_sp2,eh%col_ptr_sp2,&
+                    eh%dm_real_den,edm)
          case default
             call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
          end select
       case(PEXSI_SOLVER)
          select case(eh%ph%matrix_format)
          case(PEXSI_CSC)
-            call elsi_compute_edm_pexsi_real(eh%ph,eh%bh,eh%pexsi_ne_vec,edm)
+            call elsi_compute_edm_pexsi(eh%ph,eh%bh,eh%pexsi_ne_vec,edm)
          case(SIESTA_CSC)
-            call elsi_compute_edm_pexsi_real(eh%ph,eh%bh,eh%pexsi_ne_vec,&
+            call elsi_compute_edm_pexsi(eh%ph,eh%bh,eh%pexsi_ne_vec,&
                     eh%dm_real_csc)
-            call elsi_pexsi_to_siesta_dm_real(eh,eh%ph,eh%bh,edm)
+            call elsi_pexsi_to_siesta_dm(eh%ph,eh%bh,eh%row_ind_sp1,&
+                    eh%col_ptr_sp1,eh%dm_real_csc,eh%row_ind_sp2,&
+                    eh%col_ptr_sp2,edm)
          case default
             call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
          end select
       case(SIPS_SOLVER)
          select case(eh%ph%matrix_format)
          case(PEXSI_CSC)
-            call elsi_compute_edm_sips_real(eh%ph,eh%bh,eh%row_ind_sp1,&
+            call elsi_compute_edm_sips(eh%ph,eh%bh,eh%row_ind_sp1,&
                     eh%col_ptr_sp1,eh%occ,edm)
          case(SIESTA_CSC)
-            call elsi_compute_edm_sips_real(eh%ph,eh%bh,eh%row_ind_sp1,&
+            call elsi_compute_edm_sips(eh%ph,eh%bh,eh%row_ind_sp1,&
                     eh%col_ptr_sp1,eh%occ,eh%dm_real_csc)
-            call elsi_sips_to_siesta_dm_real(eh,eh%ph,eh%bh,edm)
+            call elsi_sips_to_siesta_dm(eh%ph,eh%bh,eh%row_ind_sp1,&
+                    eh%col_ptr_sp1,eh%dm_real_csc,eh%row_ind_sp2,&
+                    eh%col_ptr_sp2,edm)
          case default
             call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
          end select
@@ -1314,16 +1312,17 @@ subroutine elsi_get_edm_complex(eh,edm)
          call elsi_allocate(eh%bh,tmp_cmplx,eh%bh%n_lrow,eh%bh%n_lcol,&
                  "tmp_cmplx",caller)
 
-         call elsi_compute_edm_elpa_cmplx(eh%ph,eh%bh,eh%row_map,eh%col_map,&
-                 eh%eval,eh%evec_cmplx,eh%occ,edm,tmp_cmplx)
+         call elsi_compute_edm_elpa(eh%ph,eh%bh,eh%row_map,eh%col_map,eh%eval,&
+                 eh%evec_cmplx,eh%occ,edm,tmp_cmplx)
 
          call elsi_deallocate(eh%bh,tmp_cmplx,"tmp_cmplx")
       case(OMM_SOLVER)
-         call elsi_compute_edm_omm_cmplx(eh%ph,eh%bh,eh%omm_c_cmplx,edm)
+         call elsi_compute_edm_omm(eh%ph,eh%bh,eh%omm_c_cmplx,edm)
       case(PEXSI_SOLVER)
-         call elsi_compute_edm_pexsi_cmplx(eh%ph,eh%bh,eh%pexsi_ne_vec,&
+         call elsi_compute_edm_pexsi(eh%ph,eh%bh,eh%pexsi_ne_vec,&
                  eh%dm_cmplx_csc)
-         call elsi_pexsi_to_blacs_dm_cmplx(eh,eh%ph,eh%bh,edm)
+         call elsi_pexsi_to_blacs_dm(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
+                 eh%dm_cmplx_csc,edm)
       case default
          call elsi_stop(eh%bh,"Unsupported density matrix solver.",caller)
       end select
@@ -1369,39 +1368,44 @@ subroutine elsi_get_edm_complex_sparse(eh,edm)
          call elsi_allocate(eh%bh,tmp_cmplx,eh%bh%n_lrow,eh%bh%n_lcol,&
                  "tmp_cmplx",caller)
 
-         call elsi_compute_edm_elpa_cmplx(eh%ph,eh%bh,eh%row_map,eh%col_map,&
-                 eh%eval,eh%evec_cmplx,eh%occ,eh%dm_cmplx_den,tmp_cmplx)
+         call elsi_compute_edm_elpa(eh%ph,eh%bh,eh%row_map,eh%col_map,eh%eval,&
+                 eh%evec_cmplx,eh%occ,eh%dm_cmplx_den,tmp_cmplx)
 
          call elsi_deallocate(eh%bh,tmp_cmplx,"tmp_cmplx")
 
          select case(eh%ph%matrix_format)
          case(PEXSI_CSC)
-            call elsi_blacs_to_sips_dm_cmplx(eh,eh%ph,eh%bh,edm)
+            call elsi_blacs_to_sips_dm(eh%ph,eh%bh,eh%row_ind_sp1,&
+                    eh%col_ptr_sp1,eh%dm_cmplx_den,edm)
          case(SIESTA_CSC)
-            call elsi_blacs_to_siesta_dm_cmplx(eh,eh%bh,edm)
+            call elsi_blacs_to_siesta_dm(eh%bh,eh%row_ind_sp2,eh%col_ptr_sp2,&
+                    eh%dm_cmplx_den,edm)
          case default
             call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
          end select
       case(OMM_SOLVER)
-         call elsi_compute_edm_omm_cmplx(eh%ph,eh%bh,eh%omm_c_cmplx,&
-                 eh%dm_cmplx_den)
+         call elsi_compute_edm_omm(eh%ph,eh%bh,eh%omm_c_cmplx,eh%dm_cmplx_den)
 
          select case(eh%ph%matrix_format)
          case(PEXSI_CSC)
-            call elsi_blacs_to_sips_dm_cmplx(eh,eh%ph,eh%bh,edm)
+            call elsi_blacs_to_sips_dm(eh%ph,eh%bh,eh%row_ind_sp1,&
+                    eh%col_ptr_sp1,eh%dm_cmplx_den,edm)
          case(SIESTA_CSC)
-            call elsi_blacs_to_siesta_dm_cmplx(eh,eh%bh,edm)
+            call elsi_blacs_to_siesta_dm(eh%bh,eh%row_ind_sp2,eh%col_ptr_sp2,&
+                    eh%dm_cmplx_den,edm)
          case default
             call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
          end select
       case(PEXSI_SOLVER)
          select case(eh%ph%matrix_format)
          case(PEXSI_CSC)
-            call elsi_compute_edm_pexsi_cmplx(eh%ph,eh%bh,eh%pexsi_ne_vec,edm)
+            call elsi_compute_edm_pexsi(eh%ph,eh%bh,eh%pexsi_ne_vec,edm)
          case(SIESTA_CSC)
-            call elsi_compute_edm_pexsi_cmplx(eh%ph,eh%bh,eh%pexsi_ne_vec,&
+            call elsi_compute_edm_pexsi(eh%ph,eh%bh,eh%pexsi_ne_vec,&
                     eh%dm_cmplx_csc)
-            call elsi_pexsi_to_siesta_dm_cmplx(eh,eh%ph,eh%bh,edm)
+            call elsi_pexsi_to_siesta_dm(eh%ph,eh%bh,eh%row_ind_sp1,&
+                    eh%col_ptr_sp1,eh%dm_cmplx_csc,eh%row_ind_sp2,&
+                    eh%col_ptr_sp2,edm)
          case default
             call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
          end select

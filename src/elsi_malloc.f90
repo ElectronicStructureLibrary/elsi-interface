@@ -22,35 +22,35 @@ module ELSI_MALLOC
    public :: elsi_deallocate
 
    interface elsi_allocate
-      module procedure elsi_allocate_integer4_1d,&
-                       elsi_allocate_integer4_2d,&
-                       elsi_allocate_integer4_3d,&
-                       elsi_allocate_integer8_1d,&
-                       elsi_allocate_real8_1d,&
-                       elsi_allocate_real8_2d,&
-                       elsi_allocate_real8_3d,&
-                       elsi_allocate_real4_1d,&
-                       elsi_allocate_real4_2d,&
-                       elsi_allocate_complex16_1d,&
-                       elsi_allocate_complex16_2d,&
-                       elsi_allocate_complex16_3d,&
-                       elsi_allocate_complex8_2d
+      module procedure elsi_allocate_integer4_1d
+      module procedure elsi_allocate_integer4_2d
+      module procedure elsi_allocate_integer4_3d
+      module procedure elsi_allocate_integer8_1d
+      module procedure elsi_allocate_real8_1d
+      module procedure elsi_allocate_real8_2d
+      module procedure elsi_allocate_real8_3d
+      module procedure elsi_allocate_real4_1d
+      module procedure elsi_allocate_real4_2d
+      module procedure elsi_allocate_complex16_1d
+      module procedure elsi_allocate_complex16_2d
+      module procedure elsi_allocate_complex16_3d
+      module procedure elsi_allocate_complex8_2d
    end interface
 
    interface elsi_deallocate
-      module procedure elsi_deallocate_integer4_1d,&
-                       elsi_deallocate_integer4_2d,&
-                       elsi_deallocate_integer4_3d,&
-                       elsi_deallocate_integer8_1d,&
-                       elsi_deallocate_real8_1d,&
-                       elsi_deallocate_real8_2d,&
-                       elsi_deallocate_real8_3d,&
-                       elsi_deallocate_real4_1d,&
-                       elsi_deallocate_real4_2d,&
-                       elsi_deallocate_complex16_1d,&
-                       elsi_deallocate_complex16_2d,&
-                       elsi_deallocate_complex16_3d,&
-                       elsi_deallocate_complex8_2d
+      module procedure elsi_deallocate_integer4_1d
+      module procedure elsi_deallocate_integer4_2d
+      module procedure elsi_deallocate_integer4_3d
+      module procedure elsi_deallocate_integer8_1d
+      module procedure elsi_deallocate_real8_1d
+      module procedure elsi_deallocate_real8_2d
+      module procedure elsi_deallocate_real8_3d
+      module procedure elsi_deallocate_real4_1d
+      module procedure elsi_deallocate_real4_2d
+      module procedure elsi_deallocate_complex16_1d
+      module procedure elsi_deallocate_complex16_2d
+      module procedure elsi_deallocate_complex16_3d
+      module procedure elsi_deallocate_complex8_2d
    end interface
 
 contains

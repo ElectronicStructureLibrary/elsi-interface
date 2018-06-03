@@ -18,8 +18,7 @@ module ELSI_DMP
    use ELSI_MPI,       only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8,&
                              mpi_integer4
    use ELSI_PRECISION, only: r8,i4
-   use ELSI_UTILS,     only: elsi_get_nnz_real,elsi_trace_mat_real,&
-                             elsi_trace_mat_mat_real
+   use ELSI_UTILS,     only: elsi_get_nnz,elsi_trace_mat,elsi_trace_mat_mat
 
    implicit none
 
@@ -27,7 +26,11 @@ module ELSI_DMP
 
    public :: elsi_init_dmp
    public :: elsi_cleanup_dmp
-   public :: elsi_solve_dmp_real
+   public :: elsi_solve_dmp
+
+   interface elsi_solve_dmp
+      module procedure elsi_solve_dmp_real
+   end interface
 
 contains
 
@@ -102,7 +105,7 @@ subroutine elsi_solve_dmp_real(ph,bh,row_map,col_map,ham,ovlp,ham_copy,&
 
    ! Compute sparsity
    if(ph%n_calls == 1 .and. ph%matrix_format == BLACS_DENSE) then
-      call elsi_get_nnz_real(bh%zero_def,ham,bh%n_lrow,bh%n_lcol,bh%nnz_l)
+      call elsi_get_nnz(bh%def0,ham,bh%n_lrow,bh%n_lcol,bh%nnz_l)
 
       call MPI_Allreduce(bh%nnz_l,bh%nnz_g,1,mpi_integer4,mpi_sum,bh%comm,ierr)
 
@@ -281,7 +284,7 @@ subroutine elsi_solve_dmp_real(ph,bh,row_map,col_map,ham,ovlp,ham_copy,&
    ! Initialization
    call elsi_get_time(t0)
 
-   call elsi_trace_mat_real(ph,bh,row_map,col_map,ham,mu)
+   call elsi_trace_mat(ph,bh,row_map,col_map,ham,mu)
 
    mu     = mu/ph%n_basis
    lambda = min(ph%dmp_n_states/(ph%dmp_ev_ham_max-mu),&
@@ -312,7 +315,7 @@ subroutine elsi_solve_dmp_real(ph,bh,row_map,col_map,ham,ovlp,ham_copy,&
          call pdgemm('N','N',ph%n_basis,ph%n_basis,ph%n_basis,1.0_r8,ham,1,1,&
                  bh%desc,ovlp_copy,1,1,bh%desc,0.0_r8,dm,1,1,bh%desc)
 
-         call elsi_trace_mat_real(ph,bh,row_map,col_map,dm,c1)
+         call elsi_trace_mat(ph,bh,row_map,col_map,dm,c1)
 
          call pdgemm('N','N',ph%n_basis,ph%n_basis,ph%n_basis,1.0_r8,dm,1,1,&
                  bh%desc,ham,1,1,bh%desc,0.0_r8,dsd,1,1,bh%desc)
@@ -334,11 +337,11 @@ subroutine elsi_solve_dmp_real(ph,bh,row_map,col_map,ham,ovlp,ham_copy,&
 
          dm = dsd-dsdsd
 
-         call elsi_trace_mat_mat_real(bh,dm,ovlp_copy,c1)
+         call elsi_trace_mat_mat(bh,dm,ovlp_copy,c1)
 
          dm = ham-dsd
 
-         call elsi_trace_mat_mat_real(bh,dm,ovlp_copy,c2)
+         call elsi_trace_mat_mat(bh,dm,ovlp_copy,c2)
 
          c = c1/c2
 
@@ -376,10 +379,10 @@ subroutine elsi_solve_dmp_real(ph,bh,row_map,col_map,ham,ovlp,ham_copy,&
 
    if(dmp_conv) then
       ! E = Trace(H * DM)
-      call elsi_trace_mat_mat_real(bh,ham_copy,dm,ph%ebs)
+      call elsi_trace_mat_mat(bh,ham_copy,dm,ph%ebs)
 
       ! n_electrons = Trace(S * DM)
-      call elsi_trace_mat_mat_real(bh,ovlp_copy,dm,dmp_ne)
+      call elsi_trace_mat_mat(bh,ovlp_copy,dm,dmp_ne)
       dmp_ne = ph%spin_degen*dmp_ne
 
       write(info_str,"(2X,A,I10,A)") &

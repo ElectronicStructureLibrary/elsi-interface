@@ -21,8 +21,12 @@ module ELSI_LAPACK
 
    private
 
-   public :: elsi_solve_lapack_real
-   public :: elsi_solve_lapack_cmplx
+   public :: elsi_solve_lapack
+
+   interface elsi_solve_lapack
+      module procedure elsi_solve_lapack_real
+      module procedure elsi_solve_lapack_cmplx
+   end interface
 
 contains
 

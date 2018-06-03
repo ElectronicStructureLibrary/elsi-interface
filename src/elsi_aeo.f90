@@ -10,14 +10,14 @@
 module ELSI_ELPA
 
    use ELSI_CONSTANTS, only: BLACS_DENSE
-   use ELSI_DATATYPE,  only: elsi_handle,elsi_param_t,elsi_basic_t
+   use ELSI_DATATYPE,  only: elsi_param_t,elsi_basic_t
    use ELSI_IO,        only: elsi_say,elsi_get_time
    use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
    use ELSI_MPI,       only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8,&
                              mpi_integer4
    use ELSI_OCC,       only: elsi_mu_and_occ,elsi_entropy
    use ELSI_PRECISION, only: r4,r8,i4
-   use ELSI_UTILS,     only: elsi_get_nnz_real,elsi_get_nnz_cmplx
+   use ELSI_UTILS,     only: elsi_get_nnz
    use ELPA,           only: elpa_t,elpa_init,elpa_uninit,elpa_allocate,&
                              elpa_deallocate,elpa_autotune_deallocate,&
                              ELPA_SOLVER_1STAGE,ELPA_SOLVER_2STAGE,&
@@ -33,33 +33,44 @@ module ELSI_ELPA
    public :: elsi_init_elpa
    public :: elsi_cleanup_elpa
    public :: elsi_compute_occ_elpa
-   public :: elsi_compute_dm_elpa_real
-   public :: elsi_compute_edm_elpa_real
+   public :: elsi_compute_dm_elpa
+   public :: elsi_compute_edm_elpa
+   public :: elsi_solve_elpa
    public :: elsi_to_standard_evp_real
-   public :: elsi_solve_elpa_real
-   public :: elsi_compute_dm_elpa_cmplx
-   public :: elsi_compute_edm_elpa_cmplx
-   public :: elsi_to_standard_evp_cmplx
-   public :: elsi_solve_elpa_cmplx
+
+   interface elsi_compute_dm_elpa
+      module procedure elsi_compute_dm_elpa_real
+      module procedure elsi_compute_dm_elpa_cmplx
+   end interface
+
+   interface elsi_compute_edm_elpa
+      module procedure elsi_compute_edm_elpa_real
+      module procedure elsi_compute_edm_elpa_cmplx
+   end interface
+
+   interface elsi_solve_elpa
+      module procedure elsi_solve_elpa_real
+      module procedure elsi_solve_elpa_cmplx
+   end interface
 
    interface elsi_elpa_evec
-      module procedure elsi_elpa_evec_cmplx,&
-                       elsi_elpa_evec_real
+      module procedure elsi_elpa_evec_cmplx
+      module procedure elsi_elpa_evec_real
    end interface
 
    interface elsi_elpa_mult
-      module procedure elsi_elpa_mult_cmplx,&
-                       elsi_elpa_mult_real
+      module procedure elsi_elpa_mult_cmplx
+      module procedure elsi_elpa_mult_real
    end interface
 
    interface elsi_elpa_chol
-      module procedure elsi_elpa_chol_cmplx,&
-                       elsi_elpa_chol_real
+      module procedure elsi_elpa_chol_cmplx
+      module procedure elsi_elpa_chol_real
    end interface
 
    interface elsi_elpa_invt
-      module procedure elsi_elpa_invt_cmplx,&
-                       elsi_elpa_invt_real
+      module procedure elsi_elpa_invt_cmplx
+      module procedure elsi_elpa_invt_real
    end interface
 
 contains
@@ -124,8 +135,8 @@ subroutine elsi_compute_occ_elpa(ph,bh,eval,occ)
    character(len=40), parameter :: caller = "elsi_compute_occ_elpa"
 
    ! Gather eigenvalues and occupation numbers
-   call elsi_allocate(bh,eval_all,ph%n_states,ph%n_spins,ph%n_kpts,&
-           "eval_all",caller)
+   call elsi_allocate(bh,eval_all,ph%n_states,ph%n_spins,ph%n_kpts,"eval_all",&
+           caller)
    call elsi_allocate(bh,k_weight,ph%n_kpts,"k_weight",caller)
 
    if(ph%n_kpts > 1) then
@@ -621,7 +632,7 @@ subroutine elsi_solve_elpa_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
 
    ! Compute sparsity
    if(ph%n_calls == 1 .and. ph%matrix_format == BLACS_DENSE) then
-      call elsi_get_nnz_real(bh%zero_def,ham,bh%n_lrow,bh%n_lcol,bh%nnz_l)
+      call elsi_get_nnz(bh%def0,ham,bh%n_lrow,bh%n_lcol,bh%nnz_l)
 
       call MPI_Allreduce(bh%nnz_l,bh%nnz_g,1,mpi_integer4,mpi_sum,bh%comm,ierr)
 
@@ -1112,7 +1123,7 @@ subroutine elsi_solve_elpa_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
 
    ! Compute sparsity
    if(ph%n_calls == 1 .and. ph%matrix_format == BLACS_DENSE) then
-      call elsi_get_nnz_cmplx(bh%zero_def,ham,bh%n_lrow,bh%n_lcol,bh%nnz_l)
+      call elsi_get_nnz(bh%def0,ham,bh%n_lrow,bh%n_lcol,bh%nnz_l)
 
       call MPI_Allreduce(bh%nnz_l,bh%nnz_g,1,mpi_integer4,mpi_sum,bh%comm,ierr)
 
