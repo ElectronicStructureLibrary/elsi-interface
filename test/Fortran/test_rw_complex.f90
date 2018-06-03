@@ -38,6 +38,8 @@ subroutine test_rw_complex(mpi_comm,h_file,s_file)
    real(kind=r8) :: t1
    real(kind=r8) :: t2
 
+   logical :: den_ok
+
    integer(kind=i4), allocatable :: row_ind(:)
    integer(kind=i4), allocatable :: col_ptr(:)
 
@@ -167,11 +169,10 @@ subroutine test_rw_complex(mpi_comm,h_file,s_file)
 
    err = max(maxval(abs(ham-ham_save)),maxval(abs(ovlp-ovlp_save)))
 
-   if(myid == 0) then
-      if(err <= tol) then
-         write(*,'("  Passed.")')
-      endif
-      write(*,*)
+   if(err < tol) then
+      den_ok = .true.
+   else
+      den_ok = .false.
    endif
 
    deallocate(ham)
@@ -253,7 +254,7 @@ subroutine test_rw_complex(mpi_comm,h_file,s_file)
             maxval(abs(ovlp_csc-ovlp_csc_save)))
 
    if(myid == 0) then
-      if(err <= tol) then
+      if(err < tol .and. den_ok) then
          write(*,'("  Passed.")')
       else
          write(*,'("  Failed.")')
