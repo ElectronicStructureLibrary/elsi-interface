@@ -1017,8 +1017,6 @@ subroutine elsi_write_mat_real_mp(rwh,f_name,mat)
    call elsi_deallocate(rwh%bh,dummy1,"dummy1")
    call elsi_deallocate(rwh%bh,dummy2,"dummy2")
 
-print *, eh%bh
-
    ! Open file
    f_mode = mpi_mode_wronly+mpi_mode_create
 
