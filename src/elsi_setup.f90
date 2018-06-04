@@ -277,12 +277,12 @@ subroutine elsi_set_csc(eh,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)
       if(allocated(eh%row_ind_sp1)) then
          call elsi_deallocate(eh%bh,eh%row_ind_sp1,"row_ind_sp1")
       endif
-      if(allocated(eh%col_ptr_sp2)) then
-         call elsi_deallocate(eh%bh,eh%col_ptr_sp2,"col_ptr_sp2")
+      if(allocated(eh%col_ptr_sp1)) then
+         call elsi_deallocate(eh%bh,eh%col_ptr_sp1,"col_ptr_sp1")
       endif
 
       call elsi_allocate(eh%bh,eh%row_ind_sp1,nnz_l,"row_ind_sp1",caller)
-      call elsi_allocate(eh%bh,eh%col_ptr_sp2,n_lcol+1,"col_ptr_sp2",caller)
+      call elsi_allocate(eh%bh,eh%col_ptr_sp1,n_lcol+1,"col_ptr_sp1",caller)
 
       eh%row_ind_sp1 = row_ind
       eh%col_ptr_sp1 = col_ptr

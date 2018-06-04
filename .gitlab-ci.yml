@@ -3,7 +3,7 @@ gnu:
   script:
     - module purge
     - module load gcc-7.1
-    - module load cmake-3.11.1
+    - module load cmake-3.11.3
     - module load openmpi-3.0.0
     - cat ./toolchains/gnu.cmake
     - rm -rf build
@@ -19,8 +19,8 @@ intel:
   script:
     - module purge
     - module load gcc-7.1
-    - module load cmake-3.11.1
-    - module load intel-2017.4
+    - module load cmake-3.11.3
+    - module load intel-2018
     - cat ./toolchains/intel.cmake
     - rm -rf build
     - mkdir build
@@ -35,8 +35,8 @@ intel-debug:
   script:
     - module purge
     - module load gcc-7.1
-    - module load cmake-3.11.1
-    - module load intel-2017.4
+    - module load cmake-3.11.3
+    - module load intel-2018
     - cat ./toolchains/intel_debug.cmake
     - rm -rf build
     - mkdir build

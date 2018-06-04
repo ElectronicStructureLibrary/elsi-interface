@@ -3549,7 +3549,7 @@ subroutine elsi_siesta_to_pexsi_hs_dim(ph,bh,col_ptr2)
 
    type(elsi_param_t), intent(in)    :: ph
    type(elsi_basic_t), intent(inout) :: bh
-   integer(kind=i4),   intent(in)    :: col_ptr2(bh%n_lcol_sp2)
+   integer(kind=i4),   intent(in)    :: col_ptr2(bh%n_lcol_sp2+1)
 
    integer(kind=i4) :: i_col
    integer(kind=i4) :: g_col
@@ -3582,7 +3582,7 @@ subroutine elsi_siesta_to_pexsi_hs_dim(ph,bh,col_ptr2)
 
    call elsi_check_mpi(bh,"MPI_Comm_rank",ierr,caller)
 
-   bh%nnz_l_sp1 = bh%nnz_l_sp
+   bh%nnz_l_sp1 = nnz(myid_in_pole+1)
 
    call elsi_deallocate(bh,dest,"dest")
    call elsi_deallocate(bh,nnz,"nnz")
@@ -4415,7 +4415,7 @@ subroutine elsi_siesta_to_sips_hs_dim(ph,bh,col_ptr2)
 
    type(elsi_param_t), intent(in)    :: ph
    type(elsi_basic_t), intent(inout) :: bh
-   integer(kind=i4),   intent(in)    :: col_ptr2(bh%n_lcol_sp2)
+   integer(kind=i4),   intent(in)    :: col_ptr2(bh%n_lcol_sp2+1)
 
    integer(kind=i4) :: i_col
    integer(kind=i4) :: g_col
@@ -4443,7 +4443,7 @@ subroutine elsi_siesta_to_sips_hs_dim(ph,bh,col_ptr2)
 
    call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
 
-   bh%nnz_l_sp1 = bh%nnz_l_sp
+   bh%nnz_l_sp1 = nnz(bh%myid+1)
 
    call elsi_deallocate(bh,dest,"dest")
    call elsi_deallocate(bh,nnz,"nnz")
