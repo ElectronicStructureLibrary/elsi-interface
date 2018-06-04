@@ -189,6 +189,8 @@ subroutine elsi_check_electrons(ph,n_electron,n_state,n_spin,n_kpt,k_weights,&
       else
          spin_degen = 2.0_r8
       endif
+   else
+      spin_degen = ph%spin_degen
    endif
 
    select case(ph%mu_scheme)
@@ -543,6 +545,8 @@ subroutine elsi_entropy(ph,n_state,n_spin,n_kpt,k_weights,evals,occ_nums,mu,&
       else
          spin_degen = 2.0_r8
       endif
+   else
+      spin_degen = ph%spin_degen
    endif
 
    select case(ph%mu_scheme)

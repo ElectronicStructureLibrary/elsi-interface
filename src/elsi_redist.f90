@@ -2334,10 +2334,10 @@ subroutine elsi_sips_to_blacs_ev_real(ph,bh,evec_sips,evec)
 
    implicit none
 
-   type(elsi_param_t), intent(in)    :: ph
-   type(elsi_basic_t), intent(in)    :: bh
-   real(kind=r8),      intent(in)    :: evec_sips(bh%n_lcol_sp1,ph%n_states)
-   real(kind=r8),      intent(out)   :: evec(bh%n_lrow,bh%n_lcol)
+   type(elsi_param_t), intent(in)  :: ph
+   type(elsi_basic_t), intent(in)  :: bh
+   real(kind=r8),      intent(in)  :: evec_sips(bh%n_lcol_sp1,ph%n_states)
+   real(kind=r8),      intent(out) :: evec(bh%n_lrow,bh%n_lcol)
 
    integer(kind=i4)   :: ierr
    integer(kind=i4)   :: i_row
