@@ -45,21 +45,30 @@ program elsi_test
    select case(arg1(1:1))
    case("e") ! ev
       select case(arg2(1:1))
-      case("d") ! dense
+      case("0") ! BLACS_DENSE
          select case(arg3(1:1))
          case("r") ! real
-            call test_ev_real(MPI_COMM_WORLD,solver,arg5,arg6)
+            call test_ev_real_den(MPI_COMM_WORLD,solver,arg5,arg6)
          case("c") ! complex
-            call test_ev_complex(MPI_COMM_WORLD,solver,arg5,arg6)
+            call test_ev_cmplx_den(MPI_COMM_WORLD,solver,arg5,arg6)
          case default
             call test_die()
          end select
-      case("s") ! sparse
+      case("1") ! PEXSI_CSC
          select case(arg3(1:1))
          case("r") ! real
-            call test_ev_real_sparse(MPI_COMM_WORLD,solver,arg5,arg6)
+            call test_ev_real_csc1(MPI_COMM_WORLD,solver,arg5,arg6)
          case("c") ! complex
-            call test_ev_complex_sparse(MPI_COMM_WORLD,solver,arg5,arg6)
+            call test_ev_cmplx_csc1(MPI_COMM_WORLD,solver,arg5,arg6)
+         case default
+            call test_die()
+         end select
+      case("2") ! SIESTA_CSC
+         select case(arg3(1:1))
+         case("r") ! real
+            call test_ev_real_csc2(MPI_COMM_WORLD,solver,arg5,arg6)
+         case("c") ! complex
+            call test_ev_cmplx_csc2(MPI_COMM_WORLD,solver,arg5,arg6)
          case default
             call test_die()
          end select
@@ -68,21 +77,30 @@ program elsi_test
       end select
    case("d") ! dm
       select case(arg2(1:1))
-      case("d") ! dense
+      case("0") ! BLACS_DENSE
          select case(arg3(1:1))
          case("r") ! real
-            call test_dm_real(MPI_COMM_WORLD,solver,arg5,arg6)
+            call test_dm_real_den(MPI_COMM_WORLD,solver,arg5,arg6)
          case("c") ! complex
-            call test_dm_complex(MPI_COMM_WORLD,solver,arg5,arg6)
+            call test_dm_cmplx_den(MPI_COMM_WORLD,solver,arg5,arg6)
          case default
             call test_die()
          end select
-      case("s") ! sparse
+      case("1") ! PEXSI_CSC
          select case(arg3(1:1))
          case("r") ! real
-            call test_dm_real_sparse(MPI_COMM_WORLD,solver,arg5,arg6)
+            call test_dm_real_csc1(MPI_COMM_WORLD,solver,arg5,arg6)
          case("c") ! complex
-            call test_dm_complex_sparse(MPI_COMM_WORLD,solver,arg5,arg6)
+            call test_dm_cmplx_csc1(MPI_COMM_WORLD,solver,arg5,arg6)
+         case default
+            call test_die()
+         end select
+      case("2") ! SIESTA_CSC
+         select case(arg3(1:1))
+         case("r") ! real
+            call test_dm_real_csc2(MPI_COMM_WORLD,solver,arg5,arg6)
+         case("c") ! complex
+            call test_dm_cmplx_csc2(MPI_COMM_WORLD,solver,arg5,arg6)
          case default
             call test_die()
          end select
@@ -102,21 +120,23 @@ subroutine test_die()
    implicit none
 
    if(myid == 0) then
-      write(*,'(A)') "  ########################################"
-      write(*,'(A)') "  ##                                    ##"
-      write(*,'(A)') "  ##  Wrong command line argument(s)!!  ##"
-      write(*,'(A)') "  ##                                    ##"
-      write(*,'(A)') "  ##  Arg #1: 'ev' or 'dm'              ##"
-      write(*,'(A)') "  ##  Arg #2: 'dense' or 'sparse'       ##"
-      write(*,'(A)') "  ##  Arg #3: 'real' or 'complex'       ##"
-      write(*,'(A)') "  ##  Arg #4: 1 = ELPA                  ##"
-      write(*,'(A)') "  ##          2 = libOMM                ##"
-      write(*,'(A)') "  ##          3 = PEXSI                 ##"
-      write(*,'(A)') "  ##          5 = SIPS                  ##"
-      write(*,'(A)') "  ##  Arg #5: H matrix file             ##"
-      write(*,'(A)') "  ##  Arg #6: S matrix file             ##"
-      write(*,'(A)') "  ##                                    ##"
-      write(*,'(A)') "  ########################################"
+      write(*,"(A)") "  ########################################"
+      write(*,"(A)") "  ##                                    ##"
+      write(*,"(A)") "  ##  Wrong command line argument(s)!!  ##"
+      write(*,"(A)") "  ##                                    ##"
+      write(*,"(A)") "  ##  Arg #1: 'ev' or 'dm'              ##"
+      write(*,"(A)") "  ##  Arg #2: 0 = BLACS_DENSE           ##"
+      write(*,"(A)") "  ##          1 = PEXSI_CSC             ##"
+      write(*,"(A)") "  ##          2 = SIESTA_CSC            ##"
+      write(*,"(A)") "  ##  Arg #3: 'real' or 'complex'       ##"
+      write(*,"(A)") "  ##  Arg #4: 1 = ELPA                  ##"
+      write(*,"(A)") "  ##          2 = libOMM                ##"
+      write(*,"(A)") "  ##          3 = PEXSI                 ##"
+      write(*,"(A)") "  ##          5 = SIPS                  ##"
+      write(*,"(A)") "  ##  Arg #5: H matrix file             ##"
+      write(*,"(A)") "  ##  Arg #6: S matrix file             ##"
+      write(*,"(A)") "  ##                                    ##"
+      write(*,"(A)") "  ########################################"
       call MPI_Abort(MPI_COMM_WORLD,0,mpierr)
       stop
    endif

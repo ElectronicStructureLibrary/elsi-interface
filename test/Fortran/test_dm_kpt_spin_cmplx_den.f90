@@ -5,9 +5,10 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! This program tests elsi_dm_complex with 2 k-points and 2 spin channels.
+!! This program tests complex density matrix solver, BLACS_DENSE format, with 2
+!! k-points and 2 spin channels.
 !!
-program test_dm_kpt_spin_complex
+program test_dm_kpt_spin_cmplx_den
 
    use ELSI_PRECISION, only: r8,i4
    use ELSI
@@ -82,13 +83,14 @@ program test_dm_kpt_spin_complex
       read(arg1,*) solver
    else
       if(myid == 0) then
-         write(*,'("  ################################################")')
-         write(*,'("  ##  Wrong number of command line arguments!!  ##")')
-         write(*,'("  ##  Arg#1: Choice of solver.                  ##")')
-         write(*,'("  ##         (ELPA = 1; libOMM = 2; PEXSI = 3)  ##")')
-         write(*,'("  ##  Arg#2: H matrix file.                     ##")')
-         write(*,'("  ##  Arg#3: S matrix file.                     ##")')
-         write(*,'("  ################################################")')
+         write(*,"(2X,A)") "################################################"
+         write(*,"(2X,A)") "##  Wrong number of command line arguments!!  ##"
+         write(*,"(2X,A)") "##  Arg#1: 1 = ELPA                           ##"
+         write(*,"(2X,A)") "##         2 = libOMM                         ##"
+         write(*,"(2X,A)") "##         3 = PEXSI                          ##"
+         write(*,"(2X,A)") "##  Arg#2: H matrix file                      ##"
+         write(*,"(2X,A)") "##  Arg#3: S matrix file                      ##"
+         write(*,"(2X,A)") "################################################"
          call MPI_Abort(mpi_comm,0,mpierr)
          stop
       endif
@@ -97,9 +99,9 @@ program test_dm_kpt_spin_complex
    ! Require at least 4 MPI tasks
    if(mod(n_proc,4) /= 0) then
       if(myid == 0) then
-         write(*,'("  #########################################################")')
-         write(*,'("  ##  Number of MPI tasks needs to be a multiple of 4!!  ##")')
-         write(*,'("  #########################################################")')
+         write(*,"(2X,A)") "#########################################################"
+         write(*,"(2X,A)") "##  Number of MPI tasks needs to be a multiple of 4!!  ##"
+         write(*,"(2X,A)") "#########################################################"
          call MPI_Abort(mpi_comm,0,mpierr)
          stop
       endif
@@ -107,18 +109,18 @@ program test_dm_kpt_spin_complex
 
    if(myid == 0) then
       e_tol = 1.0e-8_r8
-      write(*,'("  ################################")')
-      write(*,'("  ##     ELSI TEST PROGRAMS     ##")')
-      write(*,'("  ################################")')
+      write(*,"(2X,A)") "################################"
+      write(*,"(2X,A)") "##     ELSI TEST PROGRAMS     ##"
+      write(*,"(2X,A)") "################################"
       write(*,*)
       if(solver == 1) then
-         write(*,'("  Now start testing  elsi_dm_complex + ELPA")')
+         write(*,"(2X,A)") "Now start testing  elsi_dm_complex + ELPA"
          e_ref = e_elpa
       elseif(solver == 2) then
-         write(*,'("  Now start testing  elsi_dm_complex + libOMM")')
+         write(*,"(2X,A)") "Now start testing  elsi_dm_complex + libOMM"
          e_ref = e_omm
       elseif(solver == 3) then
-         write(*,'("  Now start testing  elsi_dm_complex + PEXSI")')
+         write(*,"(2X,A)") "Now start testing  elsi_dm_complex + PEXSI"
          e_ref = e_pexsi
          e_tol = 1.0e-4_r8
       endif
@@ -139,8 +141,8 @@ program test_dm_kpt_spin_complex
 
    call MPI_Comm_split(mpi_comm,my_group,myid_in_group,mpi_comm_group,mpierr)
 
-   write(*,'("  Task ",I4," solving spin channel ",I2," and k-point",I2)') &
-      myid,my_spin,my_kpt
+   wirte(*,"(2X,A,I4,A,I2,A,I2)") "| Task",myid," solving spin channel",&
+      my_spin," and k-point",my_kpt
 
    ! Set up square-like processor grid within each group
    do npcol = nint(sqrt(real(group_size))),2,-1
@@ -182,8 +184,8 @@ program test_dm_kpt_spin_complex
 
    if(myid == 0) then
       write(*,*)
-      write(*,'("  Finished reading H and S matrices")')
-      write(*,'("  | Time :",F10.3,"s")') t2-t1
+      write(*,"(2X,A)") "Finished reading H and S matrices"
+      write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
       write(*,*)
    endif
 
@@ -216,8 +218,8 @@ program test_dm_kpt_spin_complex
    t2 = MPI_Wtime()
 
    if(myid == 0) then
-      write(*,'("  Finished SCF #1")')
-      write(*,'("  | Time :",F10.3,"s")') t2-t1
+      write(*,"(2X,A)") "Finished SCF #1"
+      write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
       write(*,*)
    endif
 
@@ -236,13 +238,17 @@ program test_dm_kpt_spin_complex
    endif
 
    if(myid == 0) then
-      write(*,'("  Finished SCF #2")')
-      write(*,'("  | Time :",F10.3,"s")') t2-t1
+      write(*,"(2X,A)") "Finished SCF #2"
+      write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
       write(*,*)
-      write(*,'("  Finished test program")')
+      write(*,"(2X,A)") "Finished test program"
       write(*,*)
-      if(abs(e_test-e_ref) < e_tol) then
-         write(*,'("  Passed.")')
+      if(header(8) == 1111) then
+         if(abs(e_test-e_ref) < e_tol) then
+            write(*,"(2X,A)") "Passed."
+         else
+            write(*,"(2X,A)") "Failed."
+         endif
       endif
       write(*,*)
    endif

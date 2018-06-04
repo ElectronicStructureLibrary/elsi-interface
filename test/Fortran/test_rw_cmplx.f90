@@ -5,9 +5,9 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! This subroutine tests reading and writing matrices.
+!! This subroutine tests reading and writing complex matrices.
 !!
-subroutine test_rw_complex(mpi_comm,h_file,s_file)
+subroutine test_rw_cmplx(mpi_comm,h_file,s_file)
 
    use ELSI_PRECISION, only: r8,i4
    use ELSI
@@ -110,8 +110,8 @@ subroutine test_rw_complex(mpi_comm,h_file,s_file)
    t2 = MPI_Wtime()
 
    if(myid == 0) then
-      write(*,'("  Finished reading H and S matrices")')
-      write(*,'("  | Time :",F10.3,"s")') t2-t1
+      write(*,"(2X,A)") "Finished reading H and S matrices"
+      write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
       write(*,*)
    endif
 
@@ -135,8 +135,8 @@ subroutine test_rw_complex(mpi_comm,h_file,s_file)
    t1 = MPI_Wtime()
 
    if(myid == 0) then
-      write(*,'("  Finished writing H and S matrices")')
-      write(*,'("  | Time :",F10.3,"s")') t1-t2
+      write(*,"(2X,A)") "Finished writing H and S matrices"
+      write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
       write(*,*)
    endif
 
@@ -162,8 +162,8 @@ subroutine test_rw_complex(mpi_comm,h_file,s_file)
    t2 = MPI_Wtime()
 
    if(myid == 0) then
-      write(*,'("  Finished reading H and S matrices")')
-      write(*,'("  | Time :",F10.3,"s")') t2-t1
+      write(*,"(2X,A)") "Finished reading H and S matrices"
+      write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
       write(*,*)
    endif
 
@@ -207,8 +207,8 @@ subroutine test_rw_complex(mpi_comm,h_file,s_file)
    t2 = MPI_Wtime()
 
    if(myid == 0) then
-      write(*,'("  Finished reading H and S matrices")')
-      write(*,'("  | Time :",F10.3,"s")') t2-t1
+      write(*,"(2X,A)") "Finished reading H and S matrices"
+      write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
       write(*,*)
    endif
 
@@ -225,8 +225,8 @@ subroutine test_rw_complex(mpi_comm,h_file,s_file)
    t1 = MPI_Wtime()
 
    if(myid == 0) then
-      write(*,'("  Finished writing H and S matrices")')
-      write(*,'("  | Time :",F10.3,"s")') t1-t2
+      write(*,"(2X,A)") "Finished writing H and S matrices"
+      write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
       write(*,*)
    endif
 
@@ -245,8 +245,8 @@ subroutine test_rw_complex(mpi_comm,h_file,s_file)
    t2 = MPI_Wtime()
 
    if(myid == 0) then
-      write(*,'("  Finished reading H and S matrices")')
-      write(*,'("  | Time :",F10.3,"s")') t2-t1
+      write(*,"(2X,A)") "Finished reading H and S matrices"
+      write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
       write(*,*)
    endif
 
@@ -255,9 +255,9 @@ subroutine test_rw_complex(mpi_comm,h_file,s_file)
 
    if(myid == 0) then
       if(err < tol .and. den_ok) then
-         write(*,'("  Passed.")')
+         write(*,"(2X,A)") "Passed."
       else
-         write(*,'("  Failed.")')
+         write(*,"(2X,A)") "Failed."
       endif
       write(*,*)
    endif

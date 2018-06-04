@@ -8,10 +8,10 @@
 #include <stdlib.h>
 #include <mpi.h>
 
-void test_dm_real_c(MPI_Comm comm, int solver, char *h_file, char *s_file);
-void test_dm_complex_c(MPI_Comm comm, int solver, char *h_file, char *s_file);
-void test_ev_real_c(MPI_Comm comm, int solver, char *h_file, char *s_file);
-void test_ev_complex_c(MPI_Comm comm, int solver, char *h_file, char *s_file);
+void test_dm_real_den_c(MPI_Comm comm, int solver, char *h_file, char *s_file);
+void test_dm_cmplx_den_c(MPI_Comm comm, int solver, char *h_file, char *s_file);
+void test_ev_real_den_c(MPI_Comm comm, int solver, char *h_file, char *s_file);
+void test_ev_cmplx_den_c(MPI_Comm comm, int solver, char *h_file, char *s_file);
 
 int main(int argc, char** argv) {
 
@@ -33,10 +33,10 @@ int main(int argc, char** argv) {
        case 'e' :
            switch(argv[3][0]) {
                case 'r' :
-                   test_ev_real_c(comm,solver,argv[5],argv[6]);
+                   test_ev_real_den_c(comm,solver,argv[5],argv[6]);
                    break;
                case 'c' :
-                   test_ev_complex_c(comm,solver,argv[5],argv[6]);
+                   test_ev_cmplx_den_c(comm,solver,argv[5],argv[6]);
                    break;
                default :
                    if (myid == 0) {
@@ -47,10 +47,10 @@ int main(int argc, char** argv) {
        case 'd' :
            switch(argv[3][0]) {
                case 'r' :
-                   test_dm_real_c(comm,solver,argv[5],argv[6]);
+                   test_dm_real_den_c(comm,solver,argv[5],argv[6]);
                    break;
                case 'c' :
-                   test_dm_complex_c(comm,solver,argv[5],argv[6]);
+                   test_dm_cmplx_den_c(comm,solver,argv[5],argv[6]);
                    break;
                default :
                    if (myid == 0) {

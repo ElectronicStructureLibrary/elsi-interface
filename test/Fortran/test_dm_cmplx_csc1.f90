@@ -5,9 +5,9 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! This subroutine tests elsi_dm_real_sparse.
+!! This subroutine tests complex density matrix solver, PEXSI_CSC format.
 !!
-subroutine test_dm_real_sparse(mpi_comm,solver,h_file,s_file)
+subroutine test_dm_cmplx_csc1(mpi_comm,solver,h_file,s_file)
 
    use ELSI_PRECISION, only: r8,i4
    use ELSI
@@ -43,11 +43,11 @@ subroutine test_dm_real_sparse(mpi_comm,solver,h_file,s_file)
    real(kind=r8) :: t1
    real(kind=r8) :: t2
 
-   real(kind=r8),    allocatable :: ham(:)
-   real(kind=r8),    allocatable :: ham_save(:)
-   real(kind=r8),    allocatable :: ovlp(:)
-   real(kind=r8),    allocatable :: dm(:)
-   real(kind=r8),    allocatable :: edm(:)
+   complex(kind=r8), allocatable :: ham(:)
+   complex(kind=r8), allocatable :: ham_save(:)
+   complex(kind=r8), allocatable :: ovlp(:)
+   complex(kind=r8), allocatable :: dm(:)
+   complex(kind=r8), allocatable :: edm(:)
    integer(kind=i4), allocatable :: row_ind(:)
    integer(kind=i4), allocatable :: col_ptr(:)
 
@@ -58,34 +58,26 @@ subroutine test_dm_real_sparse(mpi_comm,solver,h_file,s_file)
    real(kind=r8), parameter :: e_elpa  = -2622.88214509316_r8
    real(kind=r8), parameter :: e_omm   = -2622.88214509316_r8
    real(kind=r8), parameter :: e_pexsi = -2622.88194292325_r8
-   real(kind=r8), parameter :: e_sips  = -2622.88214509316_r8
-   real(kind=r8), parameter :: e_dmp   = -1833.07932666691_r8
 
    call MPI_Comm_size(mpi_comm,n_proc,mpierr)
    call MPI_Comm_rank(mpi_comm,myid,mpierr)
 
    if(myid == 0) then
       e_tol = 1.0e-8_r8
-      write(*,'("  ################################")')
-      write(*,'("  ##     ELSI TEST PROGRAMS     ##")')
-      write(*,'("  ################################")')
+      write(*,"(2X,A)") "################################"
+      write(*,"(2X,A)") "##     ELSI TEST PROGRAMS     ##"
+      write(*,"(2X,A)") "################################"
       write(*,*)
       if(solver == 1) then
-         write(*,'("  Now start testing  elsi_dm_real_sparse + ELPA")')
+         write(*,"(2X,A)") "Now start testing  elsi_dm_complex_sparse + ELPA"
          e_ref = e_elpa
       elseif(solver == 2) then
-         write(*,'("  Now start testing  elsi_dm_real_sparse + libOMM")')
+         write(*,"(2X,A)") "Now start testing  elsi_dm_complex_sparse + libOMM"
          e_ref = e_omm
       elseif(solver == 3) then
-         write(*,'("  Now start testing  elsi_dm_real_sparse + PEXSI")')
+         write(*,"(2X,A)") "Now start testing  elsi_dm_complex_sparse + PEXSI"
          e_ref = e_pexsi
          e_tol = 1.0e-4_r8
-      elseif(solver == 5) then
-         write(*,'("  Now start testing  elsi_dm_real_sparse + SIPS")')
-         e_ref = e_sips
-      elseif(solver == 6) then
-         write(*,'("  Now start testing  elsi_dm_real_sparse + DMP")')
-         e_ref = e_dmp
       endif
       write(*,*)
    endif
@@ -140,8 +132,8 @@ subroutine test_dm_real_sparse(mpi_comm,solver,h_file,s_file)
    t1 = MPI_Wtime()
 
    if(task_id == 0) then
-      call elsi_read_mat_real_sparse(rw_h,h_file,row_ind,col_ptr,ham)
-      call elsi_read_mat_real_sparse(rw_h,s_file,row_ind,col_ptr,ovlp)
+      call elsi_read_mat_complex_sparse(rw_h,h_file,row_ind,col_ptr,ham)
+      call elsi_read_mat_complex_sparse(rw_h,s_file,row_ind,col_ptr,ovlp)
 
       call elsi_finalize_rw(rw_h)
 
@@ -151,8 +143,8 @@ subroutine test_dm_real_sparse(mpi_comm,solver,h_file,s_file)
    t2 = MPI_Wtime()
 
    if(myid == 0) then
-      write(*,'("  Finished reading H and S matrices")')
-      write(*,'("  | Time :",F10.3,"s")') t2-t1
+      write(*,"(2X,A)") "Finished reading H and S matrices"
+      write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
       write(*,*)
    endif
 
@@ -171,18 +163,17 @@ subroutine test_dm_real_sparse(mpi_comm,solver,h_file,s_file)
    call elsi_set_omm_n_elpa(e_h,1)
    call elsi_set_pexsi_delta_e(e_h,80.0_r8)
    call elsi_set_pexsi_np_per_pole(e_h,2)
-   call elsi_set_sips_n_elpa(e_h,1)
 
    t1 = MPI_Wtime()
 
    ! Solve (pseudo SCF 1)
-   call elsi_dm_real_sparse(e_h,ham,ovlp,dm,e_test)
+   call elsi_dm_complex_sparse(e_h,ham,ovlp,dm,e_test)
 
    t2 = MPI_Wtime()
 
    if(myid == 0) then
-      write(*,'("  Finished SCF #1")')
-      write(*,'("  | Time :",F10.3,"s")') t2-t1
+      write(*,"(2X,A)") "Finished SCF #1"
+      write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
       write(*,*)
    endif
 
@@ -193,26 +184,26 @@ subroutine test_dm_real_sparse(mpi_comm,solver,h_file,s_file)
    t1 = MPI_Wtime()
 
    ! Solve (pseudo SCF 2, with the same H)
-   call elsi_dm_real_sparse(e_h,ham,ovlp,dm,e_test)
+   call elsi_dm_complex_sparse(e_h,ham,ovlp,dm,e_test)
 
    t2 = MPI_Wtime()
 
    ! Compute energy density matrix
    if(solver == 1 .or. solver == 2 .or. solver == 3) then
-      call elsi_get_edm_real_sparse(e_h,edm)
+      call elsi_get_edm_complex_sparse(e_h,edm)
    endif
 
    if(myid == 0) then
-      write(*,'("  Finished SCF #2")')
-      write(*,'("  | Time :",F10.3,"s")') t2-t1
+      write(*,"(2X,A)") "Finished SCF #2"
+      write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
       write(*,*)
-      write(*,'("  Finished test program")')
+      write(*,"(2X,A)") "Finished test program"
       write(*,*)
       if(header(8) == 1111) then
          if(abs(e_test-e_ref) < e_tol) then
-            write(*,'("  Passed.")')
+            write(*,"(2X,A)") "Passed."
          else
-            write(*,'("  Failed.")')
+            write(*,"(2X,A)") "Failed."
          endif
       endif
       write(*,*)
