@@ -956,11 +956,7 @@ subroutine elsi_set_output_log(eh,output_log)
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   if(output_log == 0) then
-      eh%bh%print_json = .false.
-   else
-      eh%bh%print_json = .true.
-   endif
+   eh%bh%print_json = output_log
 
 end subroutine
 
