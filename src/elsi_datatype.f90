@@ -103,7 +103,7 @@ module ELSI_DATATYPE
       real(kind=r8)    :: i_weight
       real(kind=r8)    :: spin_degen
       logical          :: spin_is_set = .false.
-      real(kind=r8)    :: ebs
+      real(kind=r8)    :: ebs ! Band structure energy
       logical          :: edm_ready_real = .false.
       logical          :: edm_ready_cmplx = .false.
 
@@ -151,6 +151,7 @@ module ELSI_DATATYPE
       integer(kind=i4)         :: pexsi_comm_in_pole
       integer(kind=i4)         :: pexsi_comm_among_point
       integer(kind=i4)         :: pexsi_comm_in_point
+      real(kind=r8)            :: pexsi_ne
       logical                  :: pexsi_started = .false.
       integer(kind=c_intptr_t) :: pexsi_plan
       type(f_ppexsi_options)   :: pexsi_options

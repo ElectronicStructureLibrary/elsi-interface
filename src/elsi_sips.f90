@@ -105,7 +105,6 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
    real(kind=r8)      :: max_diff
    integer(kind=i4)   :: i
    integer(kind=i4)   :: n_solved
-   integer(kind=i4)   :: ierr
    logical            :: inertia_ok
    character(len=200) :: info_str
 

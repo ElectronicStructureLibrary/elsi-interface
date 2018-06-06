@@ -180,7 +180,6 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    real(kind=r8),      intent(in)    :: ovlp(bh%nnz_l_sp1)
    real(kind=r8),      intent(out)   :: dm(bh%nnz_l_sp1)
 
-   real(kind=r8)      :: pexsi_ne
    real(kind=r8)      :: ne_drv
    real(kind=r8)      :: mu_range
    real(kind=r8)      :: shift_width
@@ -364,13 +363,13 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
 
       if(ph%pexsi_my_point == i-1) then
          call f_ppexsi_calculate_fermi_operator_real3(ph%pexsi_plan,&
-                 ph%pexsi_options,ph%mu,ph%n_electrons,pexsi_ne,ne_drv,ierr)
+                 ph%pexsi_options,ph%mu,ph%n_electrons,ph%pexsi_ne,ne_drv,ierr)
       endif
    enddo
 
    call elsi_allocate(bh,send_buf,ph%pexsi_options%nPoints,"send_buf",caller)
 
-   send_buf(ph%pexsi_my_point+1) = pexsi_ne*ph%i_weight
+   send_buf(ph%pexsi_my_point+1) = ph%pexsi_ne*ph%i_weight
 
    call MPI_Allreduce(send_buf,ne_vec,ph%pexsi_options%nPoints,mpi_real8,&
            mpi_sum,ph%pexsi_comm_among_point,ierr)
@@ -438,7 +437,7 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
 
    if(ph%pexsi_options%nPoints == 1) then
       ! Scale density matrix
-      tmp_real  = (ph%n_electrons/pexsi_ne)*tmp_real
+      tmp_real  = (ph%n_electrons/ph%pexsi_ne)*tmp_real
       converged = .true.
       ph%mu     = shifts(1)
    else
@@ -544,7 +543,6 @@ subroutine elsi_compute_edm_pexsi_real(ph,bh,ne_vec,edm)
    real(kind=r8),      intent(in)    :: ne_vec(ph%pexsi_options%nPoints)
    real(kind=r8),      intent(out)   :: edm(bh%nnz_l_sp1)
 
-   real(kind=r8)      :: pexsi_ne
    real(kind=r8)      :: mu_range
    real(kind=r8)      :: shift_width
    real(kind=r8)      :: local_energy
@@ -614,7 +612,7 @@ subroutine elsi_compute_edm_pexsi_real(ph,bh,ne_vec,edm)
 
    if(ph%pexsi_options%nPoints == 1) then
       ! Scale energy density matrix
-      tmp_real  = (ph%n_electrons/pexsi_ne)*tmp_real
+      tmp_real  = (ph%n_electrons/ph%pexsi_ne)*tmp_real
       converged = .true.
       ph%mu  = shifts(1)
    else
@@ -707,7 +705,6 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    complex(kind=r8),   intent(inout) :: ovlp(bh%nnz_l_sp1)
    complex(kind=r8),   intent(out)   :: dm(bh%nnz_l_sp1)
 
-   real(kind=r8)      :: pexsi_ne
    real(kind=r8)      :: ne_drv
    real(kind=r8)      :: mu_range
    real(kind=r8)      :: shift_width
@@ -893,13 +890,13 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
 
       if(ph%pexsi_my_point == i-1) then
          call f_ppexsi_calculate_fermi_operator_complex(ph%pexsi_plan,&
-                 ph%pexsi_options,ph%mu,ph%n_electrons,pexsi_ne,ne_drv,ierr)
+                 ph%pexsi_options,ph%mu,ph%n_electrons,ph%pexsi_ne,ne_drv,ierr)
       endif
    enddo
 
    call elsi_allocate(bh,send_buf,ph%pexsi_options%nPoints,"send_buf",caller)
 
-   send_buf(ph%pexsi_my_point+1) = pexsi_ne*ph%i_weight
+   send_buf(ph%pexsi_my_point+1) = ph%pexsi_ne*ph%i_weight
 
    call MPI_Allreduce(send_buf,ne_vec,ph%pexsi_options%nPoints,mpi_real8,&
            mpi_sum,ph%pexsi_comm_among_point,ierr)
@@ -967,7 +964,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
 
    if(ph%pexsi_options%nPoints == 1) then
       ! Scale density matrix
-      tmp_cmplx = (ph%n_electrons/pexsi_ne)*tmp_cmplx
+      tmp_cmplx = (ph%n_electrons/ph%pexsi_ne)*tmp_cmplx
       converged = .true.
       ph%mu  = shifts(1)
    else
@@ -1076,7 +1073,6 @@ subroutine elsi_compute_edm_pexsi_cmplx(ph,bh,ne_vec,edm)
    real(kind=r8),      intent(in)    :: ne_vec(ph%pexsi_options%nPoints)
    complex(kind=r8),   intent(out)   :: edm(bh%nnz_l_sp1)
 
-   real(kind=r8)      :: pexsi_ne
    real(kind=r8)      :: mu_range
    real(kind=r8)      :: shift_width
    real(kind=r8)      :: local_energy
@@ -1146,7 +1142,7 @@ subroutine elsi_compute_edm_pexsi_cmplx(ph,bh,ne_vec,edm)
 
    if(ph%pexsi_options%nPoints == 1) then
       ! Scale energy density matrix
-      tmp_cmplx = (ph%n_electrons/pexsi_ne)*tmp_cmplx
+      tmp_cmplx = (ph%n_electrons/ph%pexsi_ne)*tmp_cmplx
       converged = .true.
       ph%mu     = shifts(1)
    else

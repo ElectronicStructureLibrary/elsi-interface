@@ -68,7 +68,6 @@ subroutine elsi_get_energy(ph,bh,energy,solver)
    real(kind=r8),      intent(out)   :: energy
 
    real(kind=r8)    :: tmp_real
-   integer(kind=i4) :: i_state
    integer(kind=i4) :: ierr
 
    character(len=40), parameter :: caller = "elsi_get_energy"
