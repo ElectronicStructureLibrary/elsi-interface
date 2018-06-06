@@ -5,9 +5,9 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! This subroutine tests elsi_ev_real_sparse.
+!! This subroutine tests real eigensolver, PEXSI_CSC format.
 !!
-subroutine test_ev_real_sparse(mpi_comm,solver,h_file,s_file)
+subroutine test_ev_real_csc1(mpi_comm,solver,h_file,s_file)
 
    use ELSI_PRECISION, only: r8,i4
    use ELSI
@@ -72,15 +72,15 @@ subroutine test_ev_real_sparse(mpi_comm,solver,h_file,s_file)
 
    if(myid == 0) then
       e_tol = 1.0e-8_r8
-      write(*,'("  ################################")')
-      write(*,'("  ##     ELSI TEST PROGRAMS     ##")')
-      write(*,'("  ################################")')
+      write(*,"(2X,A)") "################################"
+      write(*,"(2X,A)") "##     ELSI TEST PROGRAMS     ##"
+      write(*,"(2X,A)") "################################"
       write(*,*)
       if(solver == 1) then
-         write(*,'("  Now start testing  elsi_ev_real_sparse + ELPA")')
+         write(*,"(2X,A)") "Now start testing  elsi_ev_real_sparse + ELPA"
          e_ref = e_elpa
       elseif(solver == 5) then
-         write(*,'("  Now start testing  elsi_ev_real_sparse + SIPS")')
+         write(*,"(2X,A)") "Now start testing  elsi_ev_real_sparse + SIPS"
          e_ref = e_sips
          e_tol = 1.0e-6_r8
       endif
@@ -133,8 +133,8 @@ subroutine test_ev_real_sparse(mpi_comm,solver,h_file,s_file)
    t2 = MPI_Wtime()
 
    if(myid == 0) then
-      write(*,'("  Finished reading H and S matrices")')
-      write(*,'("  | Time :",F10.3,"s")') t2-t1
+      write(*,"(2X,A)") "Finished reading H and S matrices"
+      write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
       write(*,*)
    endif
 
@@ -161,8 +161,8 @@ subroutine test_ev_real_sparse(mpi_comm,solver,h_file,s_file)
    t2 = MPI_Wtime()
 
    if(myid == 0) then
-      write(*,'("  Finished SCF #1")')
-      write(*,'("  | Time :",F10.3,"s")') t2-t1
+      write(*,"(2X,A)") "Finished SCF #1"
+      write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
       write(*,*)
    endif
 
@@ -184,16 +184,16 @@ subroutine test_ev_real_sparse(mpi_comm,solver,h_file,s_file)
    enddo
 
    if(myid == 0) then
-      write(*,'("  Finished SCF #2")')
-      write(*,'("  | Time :",F10.3,"s")') t2-t1
+      write(*,"(2X,A)") "Finished SCF #2"
+      write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
       write(*,*)
-      write(*,'("  Finished test program")')
+      write(*,"(2X,A)") "Finished test program"
       write(*,*)
       if(header(8) == 1111) then
          if(abs(e_test-e_ref) < e_tol) then
-            write(*,'("  Passed.")')
+            write(*,"(2X,A)") "Passed."
          else
-            write(*,'("  Failed.")')
+            write(*,"(2X,A)") "Failed."
          endif
       endif
       write(*,*)

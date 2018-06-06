@@ -10,83 +10,90 @@
 module ELSI_OMM
 
    use ELSI_CONSTANTS, only: BLACS_DENSE
-   use ELSI_DATATYPE,  only: elsi_handle
+   use ELSI_DATATYPE,  only: elsi_param_t,elsi_basic_t
    use ELSI_IO,        only: elsi_say,elsi_get_time
    use ELSI_MPI,       only: elsi_check_mpi,mpi_sum,mpi_integer4
    use ELSI_PRECISION, only: r8,i4
-   use ELSI_UTILS,     only: elsi_get_nnz_real,elsi_get_nnz_cmplx
+   use ELSI_UTILS,     only: elsi_get_nnz
    use ELPA1,          only: elpa_cholesky_real_double,&
                              elpa_cholesky_complex_double,&
                              elpa_invert_trm_real_double,&
                              elpa_invert_trm_complex_double
-   use MATRIXSWITCH,   only: m_add,m_register_pdbc,ms_scalapack_setup,&
-                             m_allocate,m_deallocate
+   use MATRIXSWITCH,   only: matrix,m_register_pdbc,ms_scalapack_setup,&
+                             m_deallocate
 
    implicit none
 
    private
 
    public :: elsi_init_omm
-   public :: elsi_set_omm_default
    public :: elsi_cleanup_omm
-   public :: elsi_init_coeff_omm_real
-   public :: elsi_solve_omm_real
-   public :: elsi_compute_edm_omm_real
-   public :: elsi_init_coeff_omm_cmplx
-   public :: elsi_solve_omm_cmplx
-   public :: elsi_compute_edm_omm_cmplx
+   public :: elsi_solve_omm
+   public :: elsi_compute_edm_omm
+
+   interface elsi_solve_omm
+      module procedure elsi_solve_omm_real
+      module procedure elsi_solve_omm_cmplx
+   end interface
+
+   interface elsi_compute_edm_omm
+      module procedure elsi_compute_edm_omm_real
+      module procedure elsi_compute_edm_omm_cmplx
+   end interface
 
 contains
 
 !>
 !! This routine initializes libOMM.
 !!
-subroutine elsi_init_omm(e_h)
+subroutine elsi_init_omm(ph,bh)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h
+   type(elsi_param_t), intent(inout) :: ph
+   type(elsi_basic_t), intent(in)    :: bh
+
+   integer(kind=i4) :: ierr
+
+   integer(kind=i4), external :: numroc
 
    character(len=40), parameter :: caller = "elsi_init_omm"
 
-   if(.not. e_h%omm_started) then
-      call ms_scalapack_setup(e_h%mpi_comm,e_h%n_prow,'r',e_h%blk_row,&
-              icontxt=e_h%blacs_ctxt)
+   if(.not. ph%omm_started) then
+      call ms_scalapack_setup(bh%comm,bh%n_prow,'r',bh%blk,&
+              icontxt=bh%blacs_ctxt)
 
-      e_h%omm_started = .true.
+      ph%omm_n_lrow = numroc(ph%omm_n_states,bh%blk,bh%my_prow,0,bh%n_prow)
+
+      call descinit(ph%omm_desc,ph%omm_n_states,ph%n_basis,bh%blk,bh%blk,0,0,&
+              bh%blacs_ctxt,max(1,ph%omm_n_lrow),ierr)
+
+      ph%omm_started = .true.
    endif
 
 end subroutine
 
-!>
-!! This routine initializes Wannier function coefficients.
-!!
-subroutine elsi_init_coeff_omm_real(e_h)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: e_h
-
-   character(len=40), parameter :: caller = "elsi_init_coeff_omm_real"
-
-   if(.not. e_h%c_omm%is_initialized) then
-      call m_allocate(e_h%c_omm,e_h%omm_n_states,e_h%n_basis,"pddbc")
-   endif
-
-end subroutine
+!      call m_allocate(eh%c_omm,ph%omm_n_states,ph%n_basis,"pddbc")
 
 !>
 !! This routine interfaces to libOMM.
 !!
-subroutine elsi_solve_omm_real(e_h,ham,ovlp,dm)
+subroutine elsi_solve_omm_real(ph,bh,ham,ovlp,coeff,dm)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h
-   real(kind=r8),     intent(inout) :: ham(e_h%n_lrow,e_h%n_lcol)
-   real(kind=r8),     intent(inout) :: ovlp(e_h%n_lrow,e_h%n_lcol)
-   real(kind=r8),     intent(inout) :: dm(e_h%n_lrow,e_h%n_lcol)
+   type(elsi_param_t), intent(in)    :: ph
+   type(elsi_basic_t), intent(inout) :: bh
+   real(kind=r8),      intent(inout) :: ham(bh%n_lrow,bh%n_lcol)
+   real(kind=r8),      intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
+   real(kind=r8),      intent(inout) :: coeff(ph%omm_n_lrow,bh%n_lcol)
+   real(kind=r8),      intent(inout) :: dm(bh%n_lrow,bh%n_lcol)
 
+   type(matrix)       :: ham_omm
+   type(matrix)       :: ovlp_omm
+   type(matrix)       :: c_omm
+   type(matrix)       :: dm_omm
+   type(matrix)       :: t_omm
    logical            :: coeff_ready
    logical            :: new_ovlp
    logical            :: success
@@ -97,57 +104,57 @@ subroutine elsi_solve_omm_real(e_h,ham,ovlp,dm)
 
    character(len=40), parameter :: caller = "elsi_solve_omm_real"
 
-   call m_register_pdbc(e_h%ham_omm,ham,e_h%sc_desc)
-   call m_register_pdbc(e_h%ovlp_omm,ovlp,e_h%sc_desc)
-   call m_register_pdbc(e_h%dm_omm,dm,e_h%sc_desc)
+   call m_register_pdbc(ham_omm,ham,bh%desc)
+   call m_register_pdbc(ovlp_omm,ovlp,bh%desc)
+   call m_register_pdbc(c_omm,coeff,ph%omm_desc)
+   call m_register_pdbc(dm_omm,dm,bh%desc)
 
    ! Compute sparsity
-   if(e_h%n_elsi_calls == 1 .and. e_h%matrix_format == BLACS_DENSE) then
-      call elsi_get_nnz_real(e_h%zero_def,ham,e_h%n_lrow,e_h%n_lcol,e_h%nnz_l)
+   if(ph%n_calls == 1 .and. ph%matrix_format == BLACS_DENSE) then
+      call elsi_get_nnz(bh%def0,ham,bh%n_lrow,bh%n_lcol,bh%nnz_l)
 
-      call MPI_Allreduce(e_h%nnz_l,e_h%nnz_g,1,mpi_integer4,mpi_sum,&
-              e_h%mpi_comm,ierr)
+      call MPI_Allreduce(bh%nnz_l,bh%nnz_g,1,mpi_integer4,mpi_sum,bh%comm,ierr)
 
-      call elsi_check_mpi(e_h,"MPI_Allreduce",ierr,caller)
+      call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
    endif
 
-   if(.not. e_h%ovlp_is_unit) then
-      if(e_h%omm_flavor == 2) then
-         if(e_h%n_elsi_calls == 1) then
+   if(.not. ph%ovlp_is_unit) then
+      if(ph%omm_flavor == 2) then
+         if(ph%n_calls == 1) then
             call elsi_get_time(t0)
 
             ! Cholesky factorization
-            success = elpa_cholesky_real_double(e_h%n_basis,ovlp,e_h%n_lrow,&
-                         e_h%blk_row,e_h%n_lcol,e_h%mpi_comm_row,&
-                         e_h%mpi_comm_col,.false.)
+            success = elpa_cholesky_real_double(ph%n_basis,ovlp,bh%n_lrow,&
+                         bh%blk,bh%n_lcol,ph%elpa_comm_row,ph%elpa_comm_col,&
+                         .false.)
 
-            success = elpa_invert_trm_real_double(e_h%n_basis,ovlp,e_h%n_lrow,&
-                         e_h%blk_row,e_h%n_lcol,e_h%mpi_comm_row,&
-                         e_h%mpi_comm_col,.false.)
+            success = elpa_invert_trm_real_double(ph%n_basis,ovlp,bh%n_lrow,&
+                         bh%blk,bh%n_lcol,ph%elpa_comm_row,ph%elpa_comm_col,&
+                         .false.)
 
             call elsi_get_time(t1)
 
-            write(info_str,"('  Finished Cholesky decomposition')")
-            call elsi_say(e_h%stdio,info_str)
-            write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-            call elsi_say(e_h%stdio,info_str)
+            write(info_str,"(2X,A)") "Finished Cholesky decomposition"
+            call elsi_say(bh,info_str)
+            write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+            call elsi_say(bh,info_str)
          endif
 
-         if(e_h%n_elsi_calls > e_h%omm_n_elpa+1) then
-            success = elpa_invert_trm_real_double(e_h%n_basis,ovlp,e_h%n_lrow,&
-                         e_h%blk_row,e_h%n_lcol,e_h%mpi_comm_row,&
-                         e_h%mpi_comm_col,.false.)
+         if(ph%n_calls > ph%omm_n_elpa+1) then
+            success = elpa_invert_trm_real_double(ph%n_basis,ovlp,bh%n_lrow,&
+                         bh%blk,bh%n_lcol,ph%elpa_comm_row,ph%elpa_comm_col,&
+                         .false.)
          endif
       endif ! omm_flavor == 2
    endif ! ovlp_is_unit
 
-   if(e_h%n_elsi_calls == 1) then
+   if(ph%n_calls == 1) then
       coeff_ready = .false.
    else
       coeff_ready = .true.
    endif
 
-   if(e_h%n_elsi_calls == e_h%omm_n_elpa+1) then
+   if(ph%n_calls == ph%omm_n_elpa+1) then
       new_ovlp = .true.
    else
       new_ovlp = .false.
@@ -155,39 +162,46 @@ subroutine elsi_solve_omm_real(e_h,ham,ovlp,dm)
 
    call elsi_get_time(t0)
 
-   write(info_str,"('  Starting OMM density matrix solver')")
-   call elsi_say(e_h%stdio,info_str)
+   write(info_str,"(2X,A)") "Starting OMM density matrix solver"
+   call elsi_say(bh,info_str)
 
-   call omm(e_h%n_basis,e_h%omm_n_states,e_h%ham_omm,e_h%ovlp_omm,new_ovlp,&
-           e_h%energy_hdm,e_h%dm_omm,.false.,e_h%omm_ev_shift,e_h%c_omm,&
-           coeff_ready,e_h%tdm_omm,0.0_r8,e_h%omm_flavor,1,1,e_h%omm_tol,&
-           e_h%omm_output,.false.,"pddbc","lap")
+   call omm(ph%n_basis,ph%omm_n_states,ham_omm,ovlp_omm,new_ovlp,ph%ebs,dm_omm,&
+           .false.,0.0_r8,c_omm,coeff_ready,t_omm,0.0_r8,ph%omm_flavor,1,1,&
+           ph%omm_tol,ph%omm_output,.false.,"pddbc","lap")
 
-   dm = e_h%spin_degen*dm
+   dm = ph%spin_degen*dm
 
-   call MPI_Barrier(e_h%mpi_comm,ierr)
-
-   call elsi_check_mpi(e_h,"MPI_Barrier",ierr,caller)
+   call m_deallocate(ham_omm)
+   call m_deallocate(ovlp_omm)
+   call m_deallocate(c_omm)
+   call m_deallocate(dm_omm)
 
    call elsi_get_time(t1)
 
-   write(info_str,"('  Finished density matrix calculation')")
-   call elsi_say(e_h%stdio,info_str)
-   write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h%stdio,info_str)
+   write(info_str,"(2X,A)") "Finished density matrix calculation"
+   call elsi_say(bh,info_str)
+   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,info_str)
 
 end subroutine
 
 !>
 !! This routine computes the energy-weighted density matrix.
 !!
-subroutine elsi_compute_edm_omm_real(e_h,edm)
+subroutine elsi_compute_edm_omm_real(ph,bh,coeff,edm)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h
-   real(kind=r8),     intent(inout) :: edm(e_h%n_lrow,e_h%n_lcol)
+   type(elsi_param_t), intent(in)    :: ph
+   type(elsi_basic_t), intent(in)    :: bh
+   real(kind=r8),      intent(inout) :: coeff(ph%omm_n_lrow,bh%n_lcol)
+   real(kind=r8),      intent(inout) :: edm(bh%n_lrow,bh%n_lcol)
 
+   type(matrix)       :: ham_omm
+   type(matrix)       :: ovlp_omm
+   type(matrix)       :: c_omm
+   type(matrix)       :: edm_omm
+   type(matrix)       :: t_omm
    real(kind=r8)      :: t0
    real(kind=r8)      :: t1
    character(len=200) :: info_str
@@ -196,36 +210,46 @@ subroutine elsi_compute_edm_omm_real(e_h,edm)
 
    call elsi_get_time(t0)
 
-   call m_register_pdbc(e_h%dm_omm,edm,e_h%sc_desc)
+   call m_register_pdbc(c_omm,coeff,ph%omm_desc)
+   call m_register_pdbc(edm_omm,edm,bh%desc)
 
-   call omm(e_h%n_basis,e_h%omm_n_states,e_h%ham_omm,e_h%ovlp_omm,.false.,&
-           e_h%energy_hdm,e_h%dm_omm,.true.,e_h%omm_ev_shift,e_h%c_omm,.true.,&
-           e_h%tdm_omm,0.0_r8,e_h%omm_flavor,1,1,e_h%omm_tol,e_h%omm_output,&
-           .false.,"pddbc","lap")
+   call omm(ph%n_basis,ph%omm_n_states,ham_omm,ovlp_omm,.false.,ph%ebs,edm_omm,&
+           .true.,0.0_r8,c_omm,.true.,t_omm,0.0_r8,ph%omm_flavor,1,1,&
+           ph%omm_tol,ph%omm_output,.false.,"pddbc","lap")
 
-   edm = e_h%spin_degen*edm
+   edm = ph%spin_degen*edm
+
+   call m_deallocate(c_omm)
+   call m_deallocate(edm_omm)
 
    call elsi_get_time(t1)
 
-   write(info_str,"('  Finished energy density matrix calculation')")
-   call elsi_say(e_h%stdio,info_str)
-   write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h%stdio,info_str)
+   write(info_str,"(2X,A)") "Finished energy density matrix calculation"
+   call elsi_say(bh,info_str)
+   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,info_str)
 
 end subroutine
 
 !>
 !! This routine interfaces to libOMM.
 !!
-subroutine elsi_solve_omm_cmplx(e_h,ham,ovlp,dm)
+subroutine elsi_solve_omm_cmplx(ph,bh,ham,ovlp,coeff,dm)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h
-   complex(kind=r8),  intent(inout) :: ham(e_h%n_lrow,e_h%n_lcol)
-   complex(kind=r8),  intent(inout) :: ovlp(e_h%n_lrow,e_h%n_lcol)
-   complex(kind=r8),  intent(inout) :: dm(e_h%n_lrow,e_h%n_lcol)
+   type(elsi_param_t), intent(in)    :: ph
+   type(elsi_basic_t), intent(inout) :: bh
+   complex(kind=r8),   intent(inout) :: ham(bh%n_lrow,bh%n_lcol)
+   complex(kind=r8),   intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
+   complex(kind=r8),   intent(inout) :: coeff(ph%omm_n_lrow,bh%n_lcol)
+   complex(kind=r8),   intent(inout) :: dm(bh%n_lrow,bh%n_lcol)
 
+   type(matrix)       :: ham_omm
+   type(matrix)       :: ovlp_omm
+   type(matrix)       :: c_omm
+   type(matrix)       :: dm_omm
+   type(matrix)       :: t_omm
    logical            :: coeff_ready
    logical            :: new_ovlp
    logical            :: success
@@ -236,57 +260,57 @@ subroutine elsi_solve_omm_cmplx(e_h,ham,ovlp,dm)
 
    character(len=40), parameter :: caller = "elsi_solve_omm_cmplx"
 
-   call m_register_pdbc(e_h%ham_omm,ham,e_h%sc_desc)
-   call m_register_pdbc(e_h%ovlp_omm,ovlp,e_h%sc_desc)
-   call m_register_pdbc(e_h%dm_omm,dm,e_h%sc_desc)
+   call m_register_pdbc(ham_omm,ham,bh%desc)
+   call m_register_pdbc(ovlp_omm,ovlp,bh%desc)
+   call m_register_pdbc(c_omm,coeff,ph%omm_desc)
+   call m_register_pdbc(dm_omm,dm,bh%desc)
 
    ! Compute sparsity
-   if(e_h%n_elsi_calls == 1 .and. e_h%matrix_format == BLACS_DENSE) then
-      call elsi_get_nnz_cmplx(e_h%zero_def,ham,e_h%n_lrow,e_h%n_lcol,e_h%nnz_l)
+   if(ph%n_calls == 1 .and. ph%matrix_format == BLACS_DENSE) then
+      call elsi_get_nnz(bh%def0,ham,bh%n_lrow,bh%n_lcol,bh%nnz_l)
 
-      call MPI_Allreduce(e_h%nnz_l,e_h%nnz_g,1,mpi_integer4,mpi_sum,&
-              e_h%mpi_comm,ierr)
+      call MPI_Allreduce(bh%nnz_l,bh%nnz_g,1,mpi_integer4,mpi_sum,bh%comm,ierr)
 
-      call elsi_check_mpi(e_h,"MPI_Allreduce",ierr,caller)
+      call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
    endif
 
-   if(.not. e_h%ovlp_is_unit) then
-      if(e_h%omm_flavor == 2) then
-         if(e_h%n_elsi_calls == 1) then
+   if(.not. ph%ovlp_is_unit) then
+      if(ph%omm_flavor == 2) then
+         if(ph%n_calls == 1) then
             call elsi_get_time(t0)
 
             ! Cholesky factorization
-            success = elpa_cholesky_complex_double(e_h%n_basis,ovlp,e_h%n_lrow,&
-                         e_h%blk_row,e_h%n_lcol,e_h%mpi_comm_row,&
-                         e_h%mpi_comm_col,.false.)
+            success = elpa_cholesky_complex_double(ph%n_basis,ovlp,bh%n_lrow,&
+                         bh%blk,bh%n_lcol,ph%elpa_comm_row,ph%elpa_comm_col,&
+                         .false.)
 
-            success = elpa_invert_trm_complex_double(e_h%n_basis,ovlp,&
-                         e_h%n_lrow,e_h%blk_row,e_h%n_lcol,e_h%mpi_comm_row,&
-                         e_h%mpi_comm_col,.false.)
+            success = elpa_invert_trm_complex_double(ph%n_basis,ovlp,bh%n_lrow,&
+                         bh%blk,bh%n_lcol,ph%elpa_comm_row,ph%elpa_comm_col,&
+                         .false.)
 
             call elsi_get_time(t1)
 
-            write(info_str,"('  Finished Cholesky decomposition')")
-            call elsi_say(e_h%stdio,info_str)
-            write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-            call elsi_say(e_h%stdio,info_str)
+            write(info_str,"(2X,A)") "Finished Cholesky decomposition"
+            call elsi_say(bh,info_str)
+            write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+            call elsi_say(bh,info_str)
          endif
 
-         if(e_h%n_elsi_calls > e_h%omm_n_elpa+1) then
-            success = elpa_invert_trm_complex_double(e_h%n_basis,ovlp,&
-                         e_h%n_lrow,e_h%blk_row,e_h%n_lcol,e_h%mpi_comm_row,&
-                         e_h%mpi_comm_col,.false.)
+         if(ph%n_calls > ph%omm_n_elpa+1) then
+            success = elpa_invert_trm_complex_double(ph%n_basis,ovlp,bh%n_lrow,&
+                         bh%blk,bh%n_lcol,ph%elpa_comm_row,ph%elpa_comm_col,&
+                         .false.)
          endif
       endif ! omm_flavor == 2
    endif ! ovlp_is_unit
 
-   if(e_h%n_elsi_calls == 1) then
+   if(ph%n_calls == 1) then
       coeff_ready = .false.
    else
       coeff_ready = .true.
    endif
 
-   if(e_h%n_elsi_calls == e_h%omm_n_elpa+1) then
+   if(ph%n_calls == ph%omm_n_elpa+1) then
       new_ovlp = .true.
    else
       new_ovlp = .false.
@@ -294,56 +318,46 @@ subroutine elsi_solve_omm_cmplx(e_h,ham,ovlp,dm)
 
    call elsi_get_time(t0)
 
-   write(info_str,"('  Starting OMM density matrix solver')")
-   call elsi_say(e_h%stdio,info_str)
+   write(info_str,"(2X,A)") "Starting OMM density matrix solver"
+   call elsi_say(bh,info_str)
 
-   call omm(e_h%n_basis,e_h%omm_n_states,e_h%ham_omm,e_h%ovlp_omm,new_ovlp,&
-           e_h%energy_hdm,e_h%dm_omm,.false.,e_h%omm_ev_shift,e_h%c_omm,&
-           coeff_ready,e_h%tdm_omm,0.0_r8,e_h%omm_flavor,1,1,e_h%omm_tol,&
-           e_h%omm_output,.false.,"pzdbc","lap")
+   call omm(ph%n_basis,ph%omm_n_states,ham_omm,ovlp_omm,new_ovlp,ph%ebs,dm_omm,&
+           .false.,0.0_r8,c_omm,coeff_ready,t_omm,0.0_r8,ph%omm_flavor,1,1,&
+           ph%omm_tol,ph%omm_output,.false.,"pzdbc","lap")
 
-   dm = e_h%spin_degen*dm
+   dm = ph%spin_degen*dm
 
-   call MPI_Barrier(e_h%mpi_comm,ierr)
-
-   call elsi_check_mpi(e_h,"MPI_Barrier",ierr,caller)
+   call m_deallocate(ham_omm)
+   call m_deallocate(ovlp_omm)
+   call m_deallocate(c_omm)
+   call m_deallocate(dm_omm)
 
    call elsi_get_time(t1)
 
-   write(info_str,"('  Finished density matrix calculation')")
-   call elsi_say(e_h%stdio,info_str)
-   write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h%stdio,info_str)
-
-end subroutine
-
-!>
-!! This routine initializes Wannier function coefficients.
-!!
-subroutine elsi_init_coeff_omm_cmplx(e_h)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: e_h
-
-   character(len=40), parameter :: caller = "elsi_init_coeff_omm_cmplx"
-
-   if(.not. e_h%c_omm%is_initialized) then
-      call m_allocate(e_h%c_omm,e_h%omm_n_states,e_h%n_basis,"pzdbc")
-   endif
+   write(info_str,"(2X,A)") "Finished density matrix calculation"
+   call elsi_say(bh,info_str)
+   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,info_str)
 
 end subroutine
 
 !>
 !! This routine computes the energy-weighted density matrix.
 !!
-subroutine elsi_compute_edm_omm_cmplx(e_h,edm)
+subroutine elsi_compute_edm_omm_cmplx(ph,bh,coeff,edm)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h
-   complex(kind=r8),  intent(inout) :: edm(e_h%n_lrow,e_h%n_lcol)
+   type(elsi_param_t), intent(in)    :: ph
+   type(elsi_basic_t), intent(in)    :: bh
+   complex(kind=r8),   intent(inout) :: coeff(ph%omm_n_lrow,bh%n_lcol)
+   complex(kind=r8),   intent(inout) :: edm(bh%n_lrow,bh%n_lcol)
 
+   type(matrix)       :: ham_omm
+   type(matrix)       :: ovlp_omm
+   type(matrix)       :: c_omm
+   type(matrix)       :: edm_omm
+   type(matrix)       :: t_omm
    real(kind=r8)      :: t0
    real(kind=r8)      :: t1
    character(len=200) :: info_str
@@ -352,82 +366,38 @@ subroutine elsi_compute_edm_omm_cmplx(e_h,edm)
 
    call elsi_get_time(t0)
 
-   call m_register_pdbc(e_h%dm_omm,edm,e_h%sc_desc)
+   call m_register_pdbc(c_omm,coeff,ph%omm_desc)
+   call m_register_pdbc(edm_omm,edm,bh%desc)
 
-   call omm(e_h%n_basis,e_h%omm_n_states,e_h%ham_omm,e_h%ovlp_omm,.false.,&
-           e_h%energy_hdm,e_h%dm_omm,.true.,e_h%omm_ev_shift,e_h%c_omm,.true.,&
-           e_h%tdm_omm,0.0_r8,e_h%omm_flavor,1,1,e_h%omm_tol,e_h%omm_output,&
-           .false.,"pzdbc","lap")
+   call omm(ph%n_basis,ph%omm_n_states,ham_omm,ovlp_omm,.false.,ph%ebs,edm_omm,&
+           .true.,0.0_r8,c_omm,.true.,t_omm,0.0_r8,ph%omm_flavor,1,1,&
+           ph%omm_tol,ph%omm_output,.false.,"pzdbc","lap")
 
-   edm = e_h%spin_degen*edm
+   edm = ph%spin_degen*edm
+
+   call m_deallocate(edm_omm)
 
    call elsi_get_time(t1)
 
-   write(info_str,"('  Finished energy density matrix calculation')")
-   call elsi_say(e_h%stdio,info_str)
-   write(info_str,"('  | Time :',F10.3,' s')") t1-t0
-   call elsi_say(e_h%stdio,info_str)
-
-end subroutine
-
-!>
-!! This routine sets default libOMM parameters.
-!!
-subroutine elsi_set_omm_default(e_h)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: e_h
-
-   character(len=40), parameter :: caller = "elsi_set_omm_default"
-
-   ! How many steps of ELPA to run before OMM
-   e_h%omm_n_elpa = 6
-
-   ! How do we perform the calculation
-   ! 0 = Basic
-   ! 2 = Cholesky already performed, U is provided in S
-   e_h%omm_flavor = 0
-
-   ! Eigenspectrum shift parameter
-   e_h%omm_ev_shift = 0.0_r8
-
-   ! Tolerance for minimization
-   e_h%omm_tol = 1.0e-12_r8
-
-   ! Output level?
-   e_h%omm_output = .false.
+   write(info_str,"(2X,A)") "Finished energy density matrix calculation"
+   call elsi_say(bh,info_str)
+   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,info_str)
 
 end subroutine
 
 !>
 !! This routine cleans up libOMM.
 !!
-subroutine elsi_cleanup_omm(e_h)
+subroutine elsi_cleanup_omm(ph)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h
+   type(elsi_param_t), intent(inout) :: ph
 
    character(len=40), parameter :: caller = "elsi_cleanup_omm"
 
-   if(e_h%ham_omm%is_initialized) then
-      call m_deallocate(e_h%ham_omm)
-   endif
-   if(e_h%ovlp_omm%is_initialized) then
-      call m_deallocate(e_h%ovlp_omm)
-   endif
-   if(e_h%dm_omm%is_initialized) then
-      call m_deallocate(e_h%dm_omm)
-   endif
-   if(e_h%c_omm%is_initialized) then
-      call m_deallocate(e_h%c_omm)
-   endif
-   if(e_h%tdm_omm%is_initialized) then
-      call m_deallocate(e_h%tdm_omm)
-   endif
-
-   e_h%omm_started = .false.
+   ph%omm_started = .false.
 
 end subroutine
 

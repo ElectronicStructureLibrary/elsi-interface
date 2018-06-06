@@ -5,7 +5,8 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! This program tests elsi_ev_real.
+!! This program tests real eigensolver for a standard eigenvalue problem,
+!! BLACS_DENSE format.
 !!
 program test_standard_ev_real
 
@@ -77,27 +78,27 @@ program test_standard_ev_real
       read(arg3,*) solver
    else
       if(myid == 0) then
-         write(*,'("  ################################################")')
-         write(*,'("  ##  Wrong number of command line arguments!!  ##")')
-         write(*,'("  ##  Arg#1: Size of test matrix.               ##")')
-         write(*,'("  ##  Arg#2: Number of eigenvectors to compute. ##")')
-         write(*,'("  ##  Arg#3: Choice of solver.                  ##")')
-         write(*,'("  ##         (ELPA = 1; SIPS = 5)               ##")')
-         write(*,'("  ################################################")')
+         write(*,"(2X,A)") "################################################"
+         write(*,"(2X,A)") "##  Wrong number of command line arguments!!  ##"
+         write(*,"(2X,A)") "##  Arg#1: Size of test matrix.               ##"
+         write(*,"(2X,A)") "##  Arg#2: Number of eigenvectors to compute. ##"
+         write(*,"(2X,A)") "##  Arg#3: 1 = ELPA                           ##"
+         write(*,"(2X,A)") "##         5 = SIPS                           ##"
+         write(*,"(2X,A)") "################################################"
          call MPI_Abort(mpi_comm,0,mpierr)
          stop
       endif
    endif
 
    if(myid == 0) then
-      write(*,'("  ################################")')
-      write(*,'("  ##     ELSI TEST PROGRAMS     ##")')
-      write(*,'("  ################################")')
+      write(*,"(2X,A)") "################################"
+      write(*,"(2X,A)") "##     ELSI TEST PROGRAMS     ##"
+      write(*,"(2X,A)") "################################"
       write(*,*)
       if(solver == 1) then
-         write(*,'("  Now start testing  elsi_ev_real + ELPA")')
+         write(*,"(2X,A)") "Now start testing  elsi_ev_real + ELPA"
       elseif(solver == 5) then
-         write(*,'("  Now start testing  elsi_ev_real + SIPS")')
+         write(*,"(2X,A)") "Now start testing  elsi_ev_real + SIPS"
       endif
       write(*,*)
    endif
@@ -146,7 +147,7 @@ program test_standard_ev_real
    deallocate(mat_tmp)
 
    if(myid == 0) then
-      write(*,'("  Finished test matrices generation")')
+      write(*,"(2X,A)") "Finished generating test matrices"
       write(*,*)
    endif
 
@@ -172,8 +173,9 @@ program test_standard_ev_real
    t2 = MPI_Wtime()
 
    if(myid == 0) then
-      write(*,'("  Finished test program")')
-      write(*,'("  | Total computation time :",F10.3,"s")') t2-t1
+      write(*,"(2X,A)") "Finished test program"
+      write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
+      write(*,*)
       write(*,*)
    endif
 

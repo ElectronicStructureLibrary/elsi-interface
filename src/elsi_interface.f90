@@ -12,7 +12,7 @@ module ELSI
 
    use ELSI_DATATYPE, only: elsi_handle,elsi_rw_handle
    use ELSI_IO
-   use ELSI_MAT_IO
+   use ELSI_RW
    use ELSI_OCC
    use ELSI_MUTATOR
    use ELSI_SETUP
@@ -81,7 +81,6 @@ module ELSI
    public :: elsi_set_output_log
    public :: elsi_set_log_tag
    public :: elsi_set_uuid
-   public :: elsi_set_calling_code
    public :: elsi_get_pexsi_mu_min
    public :: elsi_get_pexsi_mu_max
    public :: elsi_get_initialized

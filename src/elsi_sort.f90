@@ -18,32 +18,32 @@ module ELSI_SORT
    public :: elsi_heapsort
 
    interface swap
-      module procedure swap_i8,&
-                       swap_i4,&
-                       swap_r8,&
-                       swap_c16
+      module procedure swap_i8
+      module procedure swap_i4
+      module procedure swap_r8
+      module procedure swap_c16
    end interface
 
    interface downheap
-      module procedure downheap_real_v1,&
-                       downheap_real_v2,&
-                       downheap_real_v3,&
-                       downheap_real_v4,&
-                       downheap_cmplx_v1,&
-                       downheap_cmplx_v2,&
-                       downheap_cmplx_v3,&
-                       downheap_cmplx_v4
+      module procedure downheap_real_v1
+      module procedure downheap_real_v2
+      module procedure downheap_real_v3
+      module procedure downheap_real_v4
+      module procedure downheap_cmplx_v1
+      module procedure downheap_cmplx_v2
+      module procedure downheap_cmplx_v3
+      module procedure downheap_cmplx_v4
    end interface
 
    interface elsi_heapsort
-      module procedure heapsort_real_v1,&
-                       heapsort_real_v2,&
-                       heapsort_real_v3,&
-                       heapsort_real_v4,&
-                       heapsort_cmplx_v1,&
-                       heapsort_cmplx_v2,&
-                       heapsort_cmplx_v3,&
-                       heapsort_cmplx_v4
+      module procedure heapsort_real_v1
+      module procedure heapsort_real_v2
+      module procedure heapsort_real_v3
+      module procedure heapsort_real_v4
+      module procedure heapsort_cmplx_v1
+      module procedure heapsort_cmplx_v2
+      module procedure heapsort_cmplx_v3
+      module procedure heapsort_cmplx_v4
    end interface
 
 contains

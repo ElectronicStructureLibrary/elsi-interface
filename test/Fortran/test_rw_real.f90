@@ -5,7 +5,7 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! This subroutine tests reading and writing matrices.
+!! This subroutine tests reading and writing real matrices.
 !!
 subroutine test_rw_real(mpi_comm,h_file,s_file)
 
@@ -38,6 +38,8 @@ subroutine test_rw_real(mpi_comm,h_file,s_file)
    real(kind=r8) :: t1
    real(kind=r8) :: t2
 
+   logical :: den_ok
+
    integer(kind=i4), allocatable :: row_ind(:)
    integer(kind=i4), allocatable :: col_ptr(:)
 
@@ -58,9 +60,9 @@ subroutine test_rw_real(mpi_comm,h_file,s_file)
    call MPI_Comm_rank(mpi_comm,myid,mpierr)
 
    if(myid == 0) then
-      write(*,'("  ################################")')
-      write(*,'("  ##     ELSI TEST PROGRAMS     ##")')
-      write(*,'("  ################################")')
+      write(*,"(2X,A)") "################################"
+      write(*,"(2X,A)") "##     ELSI TEST PROGRAMS     ##"
+      write(*,"(2X,A)") "################################"
       write(*,*)
    endif
 
@@ -108,8 +110,8 @@ subroutine test_rw_real(mpi_comm,h_file,s_file)
    t2 = MPI_Wtime()
 
    if(myid == 0) then
-      write(*,'("  Finished reading H and S matrices")')
-      write(*,'("  | Time :",F10.3,"s")') t2-t1
+      write(*,"(2X,A)") "Finished reading H and S matrices"
+      write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
       write(*,*)
    endif
 
@@ -133,8 +135,8 @@ subroutine test_rw_real(mpi_comm,h_file,s_file)
    t1 = MPI_Wtime()
 
    if(myid == 0) then
-      write(*,'("  Finished writing H and S matrices")')
-      write(*,'("  | Time :",F10.3,"s")') t1-t2
+      write(*,"(2X,A)") "Finished writing H and S matrices"
+      write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
       write(*,*)
    endif
 
@@ -160,18 +162,17 @@ subroutine test_rw_real(mpi_comm,h_file,s_file)
    t2 = MPI_Wtime()
 
    if(myid == 0) then
-      write(*,'("  Finished reading H and S matrices")')
-      write(*,'("  | Time :",F10.3,"s")') t2-t1
+      write(*,"(2X,A)") "Finished reading H and S matrices"
+      write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
       write(*,*)
    endif
 
    err = max(maxval(abs(ham-ham_save)),maxval(abs(ovlp-ovlp_save)))
 
-   if(myid == 0) then
-      if(err <= tol) then
-         write(*,'("  Passed.")')
-      endif
-      write(*,*)
+   if(err < tol) then
+      den_ok = .true.
+   else
+      den_ok = .false.
    endif
 
    deallocate(ham)
@@ -206,8 +207,8 @@ subroutine test_rw_real(mpi_comm,h_file,s_file)
    t2 = MPI_Wtime()
 
    if(myid == 0) then
-      write(*,'("  Finished reading H and S matrices")')
-      write(*,'("  | Time :",F10.3,"s")') t2-t1
+      write(*,"(2X,A)") "Finished reading H and S matrices"
+      write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
       write(*,*)
    endif
 
@@ -224,8 +225,8 @@ subroutine test_rw_real(mpi_comm,h_file,s_file)
    t1 = MPI_Wtime()
 
    if(myid == 0) then
-      write(*,'("  Finished writing H and S matrices")')
-      write(*,'("  | Time :",F10.3,"s")') t1-t2
+      write(*,"(2X,A)") "Finished writing H and S matrices"
+      write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
       write(*,*)
    endif
 
@@ -244,8 +245,8 @@ subroutine test_rw_real(mpi_comm,h_file,s_file)
    t2 = MPI_Wtime()
 
    if(myid == 0) then
-      write(*,'("  Finished reading H and S matrices")')
-      write(*,'("  | Time :",F10.3,"s")') t2-t1
+      write(*,"(2X,A)") "Finished reading H and S matrices"
+      write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
       write(*,*)
    endif
 
@@ -253,10 +254,10 @@ subroutine test_rw_real(mpi_comm,h_file,s_file)
             maxval(abs(ovlp_csc-ovlp_csc_save)))
 
    if(myid == 0) then
-      if(err <= tol) then
-         write(*,'("  Passed.")')
+      if(err < tol .and. den_ok) then
+         write(*,"(2X,A)") "Passed."
       else
-         write(*,'("  Failed.")')
+         write(*,"(2X,A)") "Failed."
       endif
       write(*,*)
    endif

@@ -9,118 +9,47 @@
 !!
 module ELSI_IO
 
-   use ELSI_CONSTANTS, only: UNSET,UNSET_STR,HUMAN,JSON,MULTI_PROC,SINGLE_PROC,&
-                             BLACS_DENSE,PEXSI_CSC,SIESTA_CSC,STR_LEN,&
-                             ELPA_SOLVER,PEXSI_SOLVER,SIPS_SOLVER,OMM_SOLVER,&
-                             DMP_SOLVER,FILENAME_LEN,DATETIME_LEN
-   use ELSI_DATATYPE,  only: elsi_handle,elsi_io_handle
-   use ELSI_MPI,       only: elsi_stop,elsi_check_mpi
+   use ELSI_CONSTANTS, only: MULTI_PROC,SINGLE_PROC,BLACS_DENSE,PEXSI_CSC,&
+                             SIESTA_CSC,UNSET,STR_LEN,UUID_LEN,ELPA_SOLVER,&
+                             PEXSI_SOLVER,SIPS_SOLVER,OMM_SOLVER,DMP_SOLVER,&
+                             DATETIME_LEN
+   use ELSI_DATATYPE,  only: elsi_param_t,elsi_basic_t
    use ELSI_PRECISION, only: r8,i4,i8
-   use ELSI_JSON,      only: elsi_append_string,elsi_truncate_string,&
-                             elsi_write_json_name_value,elsi_reset_json_handle,&
-                             elsi_start_json_name_object,elsi_start_json_array,&
-                             elsi_finish_json_object,elsi_open_json_file,&
-                             elsi_start_json_object,elsi_get_datetime_rfc3339
+   use FORTJSON,       only: fjson_write_name_value,fjson_reset_fj_handle,&
+                             fjson_start_name_object,fjson_start_array,&
+                             fjson_finish_object,fjson_open_file,fjson_handle,&
+                             fjson_start_object,fjson_get_datetime_rfc3339,&
+                             fjson_close_file,fjson_finish_array
 
    implicit none
 
    private
 
    public :: elsi_say
-   public :: elsi_say_setting
-   public :: elsi_init_io
-   public :: elsi_reset_io_handle
-   public :: elsi_io_add_entry
-   public :: elsi_print_handle_summary
-   public :: elsi_print_versioning
-   public :: elsi_print_solver_settings
-   public :: elsi_print_matrix_settings
+   public :: elsi_add_log
    public :: elsi_get_time
-
-   interface elsi_say_setting
-      module procedure elsi_say_setting_i4,&
-                       elsi_say_setting_r8,&
-                       elsi_say_setting_log,&
-                       elsi_say_setting_str
-   end interface
+   public :: elsi_final_print
+   public :: fjson_close_file
+   public :: fjson_finish_array
+   public :: fjson_get_datetime_rfc3339
+   public :: fjson_reset_fj_handle
 
 contains
 
 !>
 !! This routine prints a message.
 !!
-subroutine elsi_say(io_h,info_str)
+subroutine elsi_say(bh,info_str)
 
    implicit none
 
-   type(elsi_io_handle), intent(in) :: io_h
-   character(len=*),     intent(in) :: info_str
+   type(elsi_basic_t), intent(in) :: bh
+   character(len=*),   intent(in) :: info_str
 
    character(len=40), parameter :: caller = "elsi_say"
 
-   if(io_h%print_info) then
-      if(allocated(io_h%prefix)) then
-         write(io_h%print_unit,"(2A)") io_h%prefix,trim(info_str)
-      else
-         write(io_h%print_unit,"(A)") trim(info_str)
-      endif
-   endif
-
-end subroutine
-
-!>
-!! This routine initializes a handle for reading and writing to files.
-!!
-subroutine elsi_init_io(io_h,print_unit,file_name,file_format,print_info,prefix)
-
-   implicit none
-
-   type(elsi_io_handle), intent(out) :: io_h
-   integer(kind=i4),     intent(in)  :: print_unit
-   character(len=*),     intent(in)  :: file_name
-   integer(kind=i4),     intent(in)  :: file_format
-   logical,              intent(in)  :: print_info
-   character(len=*),     intent(in)  :: prefix
-
-   character(len=40), parameter :: caller = "elsi_init_io"
-
-   ! For safety
-   call elsi_reset_io_handle(io_h)
-   call elsi_reset_json_handle(io_h%json_h)
-
-   io_h%handle_init = .true.
-   io_h%print_unit  = print_unit
-   io_h%file_name   = file_name
-   io_h%file_format = file_format
-   io_h%print_info  = print_info
-   io_h%prefix      = prefix
-
-end subroutine
-
-!>
-!! This routine resets a handle.
-!!
-subroutine elsi_reset_io_handle(io_h)
-
-   implicit none
-
-   type(elsi_io_handle), intent(inout) :: io_h
-
-   character(len=40), parameter :: caller = "elsi_reset_io_handle"
-
-   call elsi_reset_json_handle(io_h%json_h)
-
-   io_h%handle_init = .false.
-   io_h%file_name   = UNSET_STR
-   io_h%file_format = UNSET
-   io_h%print_info  = .false.
-   io_h%print_unit  = UNSET
-   io_h%n_records   = 0
-   io_h%user_tag    = UNSET_STR
-   io_h%elsi_tag    = UNSET_STR
-
-   if(allocated(io_h%prefix)) then
-      deallocate(io_h%prefix)
+   if(bh%print_info > 0) then
+      write(bh%print_unit,"(A)") trim(info_str)
    endif
 
 end subroutine
@@ -128,75 +57,111 @@ end subroutine
 !>
 !! This routine adds an entry to the log file.
 !!
-subroutine elsi_io_add_entry(e_h,dt0,t0,caller)
+subroutine elsi_add_log(ph,bh,jh,dt0,t0,caller)
 
    implicit none
 
-   type(elsi_handle),           intent(inout) :: e_h
+   type(elsi_param_t),          intent(in)    :: ph
+   type(elsi_basic_t),          intent(inout) :: bh
+   type(fjson_handle),          intent(inout) :: jh
    character(len=DATETIME_LEN), intent(in)    :: dt0
    real(kind=r8),               intent(in)    :: t0
    character(len=*),            intent(in)    :: caller
 
    real(kind=r8)               :: t1
    real(kind=r8)               :: t_total
-   integer(kind=i4)            :: log_unit
-   character(len=FILENAME_LEN) :: log_name
    character(len=STR_LEN)      :: solver_tag
    character(len=STR_LEN)      :: elsi_tag
    character(len=STR_LEN)      :: user_tag
    character(len=DATETIME_LEN) :: dt_record
 
-   if(e_h%log_file%print_info .and. e_h%myid_all == 0) then
-      if(.not. e_h%log_file%handle_init) then
-         log_unit = e_h%log_file%print_unit
-         log_name = e_h%log_file%file_name
+   if(bh%print_json > 0) then
+      if(.not. bh%json_init) then
+         call fjson_open_file(jh,66,"elsi_log.json")
+         call fjson_start_array(jh)
 
-         call elsi_open_json_file(e_h%log_file%json_h,log_unit,log_name)
-         call elsi_start_json_array(e_h%log_file%json_h)
-
-         if(.not. e_h%uuid_exists) then
-            call elsi_gen_uuid(e_h)
-            e_h%uuid_exists = .true.
+         if(.not. bh%uuid_ready) then
+            call elsi_gen_uuid(bh%uuid)
+            bh%uuid_ready = .true.
          endif
 
-         e_h%log_file%handle_init = .true.
+         bh%json_init = .true.
       endif
 
       call elsi_get_time(t1)
-      call elsi_get_solver_tag(e_h,solver_tag)
-      call elsi_get_datetime_rfc3339(dt_record)
+      call fjson_get_datetime_rfc3339(dt_record)
 
-      t_total                = t1-t0
-      e_h%log_file%n_records = e_h%log_file%n_records+1
-      elsi_tag               = adjustr(trim(solver_tag))
-      user_tag               = adjustr(trim(e_h%log_file%user_tag))
+      select case(ph%solver)
+      case(ELPA_SOLVER)
+         if(ph%parallel_mode == SINGLE_PROC) then
+            solver_tag = "LAPACK"
+         else
+            solver_tag = "ELPA"
+         endif
+      case(OMM_SOLVER)
+         if(ph%n_calls <= ph%omm_n_elpa) then
+            solver_tag = "ELPA"
+         else
+            solver_tag = "LIBOMM"
+         endif
+      case(PEXSI_SOLVER)
+         solver_tag = "PEXSI"
+      case(SIPS_SOLVER)
+         if(ph%n_calls <= ph%sips_n_elpa) then
+            solver_tag = "ELPA"
+         else
+            solver_tag = "SIPS"
+         endif
+      case(DMP_SOLVER)
+         solver_tag = "DMP"
+      end select
 
-      call elsi_start_json_object(e_h%log_file%json_h)
+      t_total  = t1-t0
+      elsi_tag = adjustr(trim(solver_tag))
+      user_tag = adjustr(trim(bh%user_tag))
 
-      call elsi_print_versioning(e_h,e_h%log_file)
-      call elsi_say_setting(e_h%log_file,"iteration",e_h%log_file%n_records)
+      call fjson_start_object(jh)
+
+      call elsi_print_versioning(bh%uuid,jh)
+      call fjson_write_name_value(jh,"iteration",ph%n_calls)
       if(caller(6:6) == "e") then
-         call elsi_say_setting(e_h%log_file,"output_type","EIGENSOLUTION")
+         call fjson_write_name_value(jh,"output_type","EIGENSOLUTION")
       else
-         call elsi_say_setting(e_h%log_file,"output_type","DENSITY MATRIX")
+         call fjson_write_name_value(jh,"output_type","DENSITY MATRIX")
       endif
       if(caller(9:9) == "r") then
-         call elsi_say_setting(e_h%log_file,"data_type","REAL")
+         call fjson_write_name_value(jh,"data_type","REAL")
       else
-         call elsi_say_setting(e_h%log_file,"data_type","COMPLEX")
+         call fjson_write_name_value(jh,"data_type","COMPLEX")
       endif
-      call elsi_say_setting(e_h%log_file,"elsi_tag",trim(adjustl(elsi_tag)))
-      call elsi_say_setting(e_h%log_file,"user_tag",trim(adjustl(user_tag)))
-      call elsi_say_setting(e_h%log_file,"start_datetime",dt0)
-      call elsi_say_setting(e_h%log_file,"record_datetime",dt_record)
-      call elsi_say_setting(e_h%log_file,"total_time",t_total)
+      call fjson_write_name_value(jh,"elsi_tag",elsi_tag)
+      call fjson_write_name_value(jh,"user_tag",user_tag)
+      call fjson_write_name_value(jh,"start_datetime",dt0)
+      call fjson_write_name_value(jh,"record_datetime",dt_record)
+      call fjson_write_name_value(jh,"total_time",t_total)
 
-      call elsi_print_handle_summary(e_h,e_h%log_file)
-      call elsi_print_matrix_settings(e_h,e_h%log_file)
+      call elsi_print_handle_summary(ph,bh,jh)
 
-      call elsi_print_solver_settings(e_h,e_h%log_file)
+      if(ph%matrix_format == BLACS_DENSE) then
+         call elsi_print_den_settings(bh,jh)
+      else
+         call elsi_print_csc_settings(bh,jh)
+      endif
 
-      call elsi_finish_json_object(e_h%log_file%json_h)
+      select case(ph%solver)
+      case(DMP_SOLVER)
+         call elsi_print_dmp_settings(ph,jh)
+      case(ELPA_SOLVER)
+         call elsi_print_elpa_settings(ph,jh)
+      case(OMM_SOLVER)
+         call elsi_print_omm_settings(ph,jh)
+      case(PEXSI_SOLVER)
+         call elsi_print_pexsi_settings(ph,jh)
+      case(SIPS_SOLVER)
+         call elsi_print_sips_settings(ph,jh)
+      end select
+
+      call fjson_finish_object(jh)
    endif
 
 end subroutine
@@ -204,124 +169,54 @@ end subroutine
 !>
 !! This routine prints the state of the handle.
 !!
-subroutine elsi_print_handle_summary(e_h,io_h)
+subroutine elsi_print_handle_summary(ph,bh,jh)
 
    implicit none
 
-   type(elsi_handle),    intent(in)    :: e_h
-   type(elsi_io_handle), intent(inout) :: io_h
+   type(elsi_param_t), intent(in)    :: ph
+   type(elsi_basic_t), intent(in)    :: bh
+   type(fjson_handle), intent(inout) :: jh
 
-   real(kind=r8)      :: sparsity
-   character(len=200) :: info_str
+   real(kind=r8) :: sparsity
 
    character(len=40), parameter :: caller = "elsi_print_handle_summary"
 
-   if(io_h%file_format == HUMAN) then
-      write(info_str,"(A)") "Physical Properties"
-      call elsi_say(io_h,info_str)
-
-      call elsi_append_string(io_h%prefix,"  ")
-      call elsi_say_setting(io_h,"Number of electrons",e_h%n_electrons)
-      if(e_h%parallel_mode == MULTI_PROC) then
-         call elsi_say_setting(io_h,"Number of spins",e_h%n_spins)
-         call elsi_say_setting(io_h,"Number of k-points",e_h%n_kpts)
-      endif
-      if(e_h%solver == ELPA_SOLVER .or. e_h%solver == SIPS_SOLVER) then
-         call elsi_say_setting(io_h,"Number of states",e_h%n_states)
-      endif
-      call elsi_truncate_string(io_h%prefix,2)
-
-      write(info_str,"(A)") ""
-      call elsi_say(io_h,info_str)
-      write(info_str,"(A)") "Matrix Properties"
-      call elsi_say(io_h,info_str)
-
-      call elsi_append_string(io_h%prefix,"  ")
-      if(e_h%matrix_format == BLACS_DENSE) then
-         call elsi_say_setting(io_h,"Matrix format","BLACS_DENSE")
-      elseif(e_h%matrix_format == PEXSI_CSC) then
-         call elsi_say_setting(io_h,"Matrix format","PEXSI_CSC")
-      elseif(e_h%matrix_format == SIESTA_CSC) then
-         call elsi_say_setting(io_h,"Matrix format","SIESTA_CSC")
-      endif
-      call elsi_say_setting(io_h,"Number of basis functions",e_h%n_basis)
-      if(e_h%parallel_mode == MULTI_PROC) then
-         sparsity = 1.0_r8-(1.0_r8*e_h%nnz_g/e_h%n_basis/e_h%n_basis)
-         call elsi_say_setting(io_h,"Matrix sparsity",sparsity)
-      endif
-      call elsi_truncate_string(io_h%prefix,2)
-
-      write(info_str,"(A)") ""
-      call elsi_say(io_h,info_str)
-      write(info_str,"(A)") "Computational Details"
-      call elsi_say(io_h,info_str)
-
-      call elsi_append_string(io_h%prefix,"  ")
-      if(e_h%parallel_mode == MULTI_PROC) then
-         call elsi_say_setting(io_h,"Parallel mode","MULTI_PROC")
-      elseif(e_h%parallel_mode == SINGLE_PROC) then
-         call elsi_say_setting(io_h,"Parallel mode","SINGLE_PROC")
-      endif
-      call elsi_say_setting(io_h,"Number of MPI tasks",e_h%n_procs)
-      if(e_h%solver == ELPA_SOLVER) then
-         call elsi_say_setting(io_h,"Solver requested","ELPA")
-      elseif(e_h%solver == OMM_SOLVER) then
-         call elsi_say_setting(io_h,"Solver requested","libOMM")
-      elseif(e_h%solver == PEXSI_SOLVER) then
-         call elsi_say_setting(io_h,"Solver requested","PEXSI")
-      elseif(e_h%solver == SIPS_SOLVER) then
-         call elsi_say_setting(io_h,"Solver requested","SLEPc_SIPs")
-      elseif(e_h%solver == DMP_SOLVER) then
-         call elsi_say_setting(io_h,"Solver requested","DMP")
-      else
-         call elsi_stop(e_h,"Unsupported solver.",caller)
-      endif
-      call elsi_say_setting(io_h,"Number of ELSI calls",e_h%n_elsi_calls)
-      call elsi_truncate_string(io_h%prefix,2)
-   elseif(io_h%file_format == JSON) then
-      call elsi_say_setting(io_h,"n_electrons",e_h%n_electrons)
-      if(e_h%parallel_mode == MULTI_PROC) then
-         call elsi_say_setting(io_h,"n_spin",e_h%n_spins)
-         call elsi_say_setting(io_h,"n_kpts",e_h%n_kpts)
-      endif
-      if(e_h%solver == ELPA_SOLVER .or. e_h%solver == SIPS_SOLVER) then
-         call elsi_say_setting(io_h,"n_states",e_h%n_states)
-      endif
-
-      if(e_h%matrix_format == BLACS_DENSE) then
-         call elsi_say_setting(io_h,"matrix_format","BLACS_DENSE")
-      elseif(e_h%matrix_format == PEXSI_CSC) then
-         call elsi_say_setting(io_h,"matrix_format","PEXSI_CSC")
-      elseif(e_h%matrix_format == SIESTA_CSC) then
-         call elsi_say_setting(io_h,"matrix_format","SIESTA_CSC")
-      endif
-      call elsi_say_setting(io_h,"n_basis",e_h%n_basis)
-      if(e_h%parallel_mode == MULTI_PROC) then
-         sparsity = 1.0_r8-(1.0_r8*e_h%nnz_g/e_h%n_basis/e_h%n_basis)
-         call elsi_say_setting(io_h,"sparsity",sparsity)
-      endif
-
-      if(e_h%parallel_mode == MULTI_PROC) then
-         call elsi_say_setting(io_h,"parallel_mode","MULTI_PROC")
-      elseif(e_h%parallel_mode == SINGLE_PROC) then
-         call elsi_say_setting(io_h,"parallel_mode","SINGLE_PROC")
-      endif
-      call elsi_say_setting(io_h,"n_procs",e_h%n_procs)
-      if(e_h%solver == ELPA_SOLVER) then
-         call elsi_say_setting(io_h,"solver","ELPA")
-      elseif(e_h%solver == OMM_SOLVER) then
-         call elsi_say_setting(io_h,"solver","libOMM")
-      elseif(e_h%solver == PEXSI_SOLVER) then
-         call elsi_say_setting(io_h,"solver","PEXSI")
-      elseif(e_h%solver == SIPS_SOLVER) then
-         call elsi_say_setting(io_h,"solver","SLEPc_SIPs")
-      elseif(e_h%solver == DMP_SOLVER) then
-         call elsi_say_setting(io_h,"solver","DMP")
-      else
-         call elsi_stop(e_h,"Unsupported solver.",caller)
-      endif
-   else
-      call elsi_stop(e_h,"Unsupported output format.",caller)
+   call fjson_write_name_value(jh,"n_electrons",ph%n_electrons)
+   if(ph%parallel_mode == MULTI_PROC) then
+      call fjson_write_name_value(jh,"n_spin",ph%n_spins)
+      call fjson_write_name_value(jh,"n_kpts",ph%n_kpts)
+   endif
+   if(ph%solver == ELPA_SOLVER .or. ph%solver == SIPS_SOLVER) then
+      call fjson_write_name_value(jh,"n_states",ph%n_states)
+   endif
+   if(ph%matrix_format == BLACS_DENSE) then
+      call fjson_write_name_value(jh,"matrix_format","BLACS_DENSE")
+   elseif(ph%matrix_format == PEXSI_CSC) then
+      call fjson_write_name_value(jh,"matrix_format","PEXSI_CSC")
+   elseif(ph%matrix_format == SIESTA_CSC) then
+      call fjson_write_name_value(jh,"matrix_format","SIESTA_CSC")
+   endif
+   call fjson_write_name_value(jh,"n_basis",ph%n_basis)
+   if(ph%parallel_mode == MULTI_PROC) then
+      sparsity = 1.0_r8-(1.0_r8*bh%nnz_g/ph%n_basis/ph%n_basis)
+      call fjson_write_name_value(jh,"sparsity",sparsity)
+   endif
+   if(ph%parallel_mode == MULTI_PROC) then
+      call fjson_write_name_value(jh,"parallel_mode","MULTI_PROC")
+   elseif(ph%parallel_mode == SINGLE_PROC) then
+      call fjson_write_name_value(jh,"parallel_mode","SINGLE_PROC")
+   endif
+   call fjson_write_name_value(jh,"n_procs",bh%n_procs)
+   if(ph%solver == ELPA_SOLVER) then
+      call fjson_write_name_value(jh,"solver","ELPA")
+   elseif(ph%solver == OMM_SOLVER) then
+      call fjson_write_name_value(jh,"solver","libOMM")
+   elseif(ph%solver == PEXSI_SOLVER) then
+      call fjson_write_name_value(jh,"solver","PEXSI")
+   elseif(ph%solver == SIPS_SOLVER) then
+      call fjson_write_name_value(jh,"solver","SLEPc_SIPs")
+   elseif(ph%solver == DMP_SOLVER) then
+      call fjson_write_name_value(jh,"solver","DMP")
    endif
 
 end subroutine
@@ -329,558 +224,325 @@ end subroutine
 !>
 !! This routine prints versioning information.
 !!
-subroutine elsi_print_versioning(e_h,io_h)
+subroutine elsi_print_versioning(uuid,jh)
 
    implicit none
 
-   type(elsi_handle),    intent(in)    :: e_h
-   type(elsi_io_handle), intent(inout) :: io_h
+   character(len=UUID_LEN), intent(in)    :: uuid
+   type(fjson_handle),      intent(inout) :: jh
 
-   logical            :: COMMIT_MODIFIED
-   character(len=10)  :: DATE_STAMP
+   logical            :: MODIFIED
+   character(len=10)  :: DATESTAMP
    character(len=40)  :: COMMIT
    character(len=8)   :: COMMIT_ABBREV
-   character(len=40)  :: COMMIT_MSG_ABBREV
+   character(len=40)  :: COMMIT_MSG
    character(len=40)  :: HOSTNAME
    character(len=20)  :: DATETIME
-   character(len=200) :: info_str
 
    character(len=40), parameter :: caller = "elsi_print_versioning"
 
-   call elsi_version_info(DATE_STAMP,COMMIT,COMMIT_ABBREV,COMMIT_MODIFIED,&
-           COMMIT_MSG_ABBREV,HOSTNAME,DATETIME)
+   call elsi_version_info(DATESTAMP,COMMIT,COMMIT_ABBREV,MODIFIED,COMMIT_MSG,&
+           HOSTNAME,DATETIME)
 
-   if(io_h%file_format == HUMAN) then
-      write(info_str,"(A)") "ELSI Versioning Information"
-      call elsi_say(io_h,info_str)
-      call elsi_append_string(io_h%prefix,"  ")
-
-      call elsi_say_setting(io_h,"Date stamp",trim(adjustl(DATE_STAMP)))
-      call elsi_say_setting(io_h,"Git commit (abbrev.)",&
-              trim(adjustl(COMMIT_ABBREV)))
-      call elsi_say_setting(io_h,"Git commit modified?",COMMIT_MODIFIED)
-
-      call elsi_truncate_string(io_h%prefix,2)
-   elseif(io_h%file_format == JSON) then
-      call elsi_write_json_name_value(io_h%json_h,"data_source","ELSI")
-      call elsi_write_json_name_value(io_h%json_h,"date_stamp",&
-              trim(adjustl(DATE_STAMP)))
-      call elsi_write_json_name_value(io_h%json_h,"git_commit",&
-              trim(adjustl(COMMIT)))
-      call elsi_write_json_name_value(io_h%json_h,"git_commit_modified",&
-              COMMIT_MODIFIED)
-      call elsi_write_json_name_value(io_h%json_h,"git_message_abbrev",&
-              trim(adjustl(COMMIT_MSG_ABBREV)))
-      call elsi_write_json_name_value(io_h%json_h,"source_created_on_hostname",&
-              trim(adjustl(HOSTNAME)))
-      call elsi_write_json_name_value(io_h%json_h,"source_created_at_datetime",&
-              trim(adjustl(DATETIME)))
-      call elsi_write_json_name_value(io_h%json_h,"calling_code",&
-              trim(adjustl(e_h%caller)))
-      call elsi_write_json_name_value(io_h%json_h,"uuid",trim(adjustl(e_h%uuid)))
-   else
-      call elsi_stop(e_h,"Unsupported output format.",caller)
-   endif
-
-end subroutine
-
-!>
-!! This routine prints out settings for the current (user-indicated) solver.
-!!
-subroutine elsi_print_solver_settings(e_h,io_h)
-
-   implicit none
-
-   type(elsi_handle),    intent(in)    :: e_h
-   type(elsi_io_handle), intent(inout) :: io_h
-
-   character(len=40), parameter :: caller = "elsi_print_solver_settings"
-
-   select case(e_h%solver)
-   case(DMP_SOLVER)
-      call elsi_print_dmp_settings(e_h,io_h)
-   case(ELPA_SOLVER)
-      call elsi_print_elpa_settings(e_h,io_h)
-   case(OMM_SOLVER)
-      call elsi_print_omm_settings(e_h,io_h)
-   case(PEXSI_SOLVER)
-      call elsi_print_pexsi_settings(e_h,io_h)
-   case(SIPS_SOLVER)
-      call elsi_print_sips_settings(e_h,io_h)
-   case default
-      call elsi_stop(e_h,"Unsupported solver.",caller)
-   end select
+   call fjson_write_name_value(jh,"data_source","ELSI")
+   call fjson_write_name_value(jh,"date_stamp",trim(adjustl(DATESTAMP)))
+   call fjson_write_name_value(jh,"git_commit",trim(adjustl(COMMIT)))
+   call fjson_write_name_value(jh,"git_commit_modified",MODIFIED)
+   call fjson_write_name_value(jh,"git_message_abbrev",&
+           trim(adjustl(COMMIT_MSG)))
+   call fjson_write_name_value(jh,"compiled_on_hostname",&
+           trim(adjustl(HOSTNAME)))
+   call fjson_write_name_value(jh,"compiled_at_datetime",&
+           trim(adjustl(DATETIME)))
+   call fjson_write_name_value(jh,"uuid",trim(adjustl(uuid)))
 
 end subroutine
 
 !>
 !! This routine prints out settings for DMP.
 !!
-subroutine elsi_print_dmp_settings(e_h,io_h)
+subroutine elsi_print_dmp_settings(ph,jh)
 
    implicit none
 
-   type(elsi_handle),    intent(in)    :: e_h
-   type(elsi_io_handle), intent(inout) :: io_h
-
-   character(len=200) :: info_str
+   type(elsi_param_t), intent(in)    :: ph
+   type(fjson_handle), intent(inout) :: jh
 
    character(len=40), parameter :: caller = "elsi_print_dmp_settings"
 
-   ! Header
-   if(io_h%file_format == HUMAN) then
-      write(info_str,"(A)") "Solver Settings (DMP)"
-      call elsi_say(io_h,info_str)
-      call elsi_append_string(io_h%prefix,"  ")
-   elseif(io_h%file_format == JSON) then
-      call elsi_start_json_name_object(io_h%json_h, "solver_settings")
-   else
-      call elsi_stop(e_h,"Unsupported output format.",caller)
-   endif
-
-   ! Settings
-   call elsi_say_setting(io_h,"dmp_n_states",e_h%dmp_n_states)
-   call elsi_say_setting(io_h,"dmp_method",e_h%dmp_method)
-   call elsi_say_setting(io_h,"dmp_max_power",e_h%dmp_max_power)
-   call elsi_say_setting(io_h,"dmp_max_iter",e_h%dmp_max_iter)
-   call elsi_say_setting(io_h,"dmp_tol",e_h%dmp_tol)
-
-   ! Footer
-   if(io_h%file_format == HUMAN) then
-      call elsi_truncate_string(io_h%prefix,2)
-   elseif(io_h%file_format == JSON) then
-      call elsi_finish_json_object(io_h%json_h)
-   else
-      call elsi_stop(e_h,"Unsupported output format.",caller)
-   endif
+   call fjson_start_name_object(jh,"solver_settings")
+   call fjson_write_name_value(jh,"dmp_n_states",ph%dmp_n_states)
+   call fjson_write_name_value(jh,"dmp_method",ph%dmp_method)
+   call fjson_write_name_value(jh,"dmp_max_power",ph%dmp_max_power)
+   call fjson_write_name_value(jh,"dmp_max_iter",ph%dmp_max_iter)
+   call fjson_write_name_value(jh,"dmp_tol",ph%dmp_tol)
+   call fjson_finish_object(jh)
 
 end subroutine
 
 !>
 !! This routine prints out settings for ELPA.
 !!
-subroutine elsi_print_elpa_settings(e_h,io_h)
+subroutine elsi_print_elpa_settings(ph,jh)
 
    implicit none
 
-   type(elsi_handle),    intent(in)    :: e_h
-   type(elsi_io_handle), intent(inout) :: io_h
-
-   character(len=200) :: info_str
+   type(elsi_param_t), intent(in)    :: ph
+   type(fjson_handle), intent(inout) :: jh
 
    character(len=40), parameter :: caller = "elsi_print_elpa_settings"
 
-   ! Header
-   if(io_h%file_format == HUMAN) then
-      write(info_str,"(A)") "Solver Settings (ELPA)"
-      call elsi_say(io_h,info_str)
-      call elsi_append_string(io_h%prefix,"  ")
-   elseif(io_h%file_format == JSON) then
-      call elsi_start_json_name_object(io_h%json_h, "solver_settings")
-   else
-      call elsi_stop(e_h,"Unsupported output format.",caller)
-   endif
-
-   ! Settings
-   call elsi_say_setting(io_h,"elpa_solver",e_h%elpa_solver)
-   call elsi_say_setting(io_h,"elpa_n_states",e_h%n_states)
-   call elsi_say_setting(io_h,"elpa_gpu",e_h%elpa_gpu)
-   call elsi_say_setting(io_h,"elpa_gpu_kernels",e_h%elpa_gpu_kernels)
-
-   ! Footer
-   if(io_h%file_format == HUMAN) then
-      call elsi_truncate_string(io_h%prefix,2)
-   elseif(io_h%file_format == JSON) then
-      call elsi_finish_json_object(io_h%json_h)
-   else
-      call elsi_stop(e_h,"Unsupported output format.",caller)
-   endif
+   call fjson_start_name_object(jh,"solver_settings")
+   call fjson_write_name_value(jh,"elpa_solver",ph%elpa_solver)
+   call fjson_write_name_value(jh,"elpa_n_states",ph%n_states)
+   call fjson_write_name_value(jh,"elpa_gpu",ph%elpa_gpu)
+   call fjson_write_name_value(jh,"elpa_gpu_kernels",ph%elpa_gpu_kernels)
+   call fjson_finish_object(jh)
 
 end subroutine
 
 !>
 !! This routine prints out settings for libOMM.
 !!
-subroutine elsi_print_omm_settings(e_h,io_h)
+subroutine elsi_print_omm_settings(ph,jh)
 
    implicit none
 
-   type(elsi_handle),    intent(in)    :: e_h
-   type(elsi_io_handle), intent(inout) :: io_h
-
-   character(len=200) :: info_str
+   type(elsi_param_t), intent(in)    :: ph
+   type(fjson_handle), intent(inout) :: jh
 
    character(len=40), parameter :: caller = "elsi_print_omm_settings"
 
-   ! Header
-   if(io_h%file_format == HUMAN) then
-      write(info_str,"(A)") "Solver Settings (libOMM)"
-      call elsi_say(io_h,info_str)
-      call elsi_append_string(io_h%prefix,"  ")
-   elseif(io_h%file_format == JSON) then
-      call elsi_start_json_name_object(io_h%json_h, "solver_settings")
-   else
-      call elsi_stop(e_h,"Unsupported output format.",caller)
-   endif
-
-  ! Settings
-   call elsi_say_setting(io_h,"omm_n_states",e_h%omm_n_states)
-   call elsi_say_setting(io_h,"omm_n_elpa",e_h%omm_n_elpa)
-   call elsi_say_setting(io_h,"omm_flavor",e_h%omm_flavor)
-   call elsi_say_setting(io_h,"omm_tol",e_h%omm_tol)
-
-   ! Footer
-   if(io_h%file_format == HUMAN) then
-      call elsi_truncate_string(io_h%prefix,2)
-   elseif(io_h%file_format == JSON) then
-      call elsi_finish_json_object(io_h%json_h)
-   else
-      call elsi_stop(e_h,"Unsupported output format.",caller)
-   endif
+   call fjson_start_name_object(jh,"solver_settings")
+   call fjson_write_name_value(jh,"omm_n_states",ph%omm_n_states)
+   call fjson_write_name_value(jh,"omm_n_elpa",ph%omm_n_elpa)
+   call fjson_write_name_value(jh,"omm_flavor",ph%omm_flavor)
+   call fjson_write_name_value(jh,"omm_tol",ph%omm_tol)
+   call fjson_finish_object(jh)
 
 end subroutine
 
 !>
 !! This routine prints out settings for PEXSI.
 !!
-subroutine elsi_print_pexsi_settings(e_h,io_h)
+subroutine elsi_print_pexsi_settings(ph,jh)
 
    implicit none
 
-   type(elsi_handle),    intent(in)    :: e_h
-   type(elsi_io_handle), intent(inout) :: io_h
-
-   character(len=200) :: info_str
+   type(elsi_param_t), intent(in)    :: ph
+   type(fjson_handle), intent(inout) :: jh
 
    character(len=40), parameter :: caller = "elsi_print_pexsi_settings"
 
-   ! Header
-   if(io_h%file_format == HUMAN) then
-      write(info_str,"(A)") "Solver Settings (PEXSI)"
-      call elsi_say(io_h,info_str)
-      call elsi_append_string(io_h%prefix,"  ")
-   elseif(io_h%file_format == JSON) then
-      call elsi_start_json_name_object(io_h%json_h, "solver_settings")
-   else
-      call elsi_stop(e_h,"Unsupported output format.",caller)
-   endif
-
-   ! Settings
-   call elsi_say_setting(io_h,"pexsi_n_pole",e_h%pexsi_options%numPole)
-   call elsi_say_setting(io_h,"pexsi_n_point",e_h%pexsi_options%nPoints)
-   call elsi_say_setting(io_h,"pexsi_np_per_pole",e_h%pexsi_np_per_pole)
-   call elsi_say_setting(io_h,"pexsi_np_per_point",e_h%pexsi_np_per_point)
-   call elsi_say_setting(io_h,"pexsi_n_prow_pexsi",e_h%pexsi_n_prow)
-   call elsi_say_setting(io_h,"pexsi_n_pcol_pexsi",e_h%pexsi_n_pcol)
-   call elsi_say_setting(io_h,"pexsi_temperature",e_h%pexsi_options%temperature)
-   call elsi_say_setting(io_h,"pexsi_delta_e",e_h%pexsi_options%deltaE)
-   call elsi_say_setting(io_h,"pexsi_gap",e_h%pexsi_options%gap)
-   call elsi_say_setting(io_h,"pexsi_mu_min",e_h%pexsi_options%muMin0)
-   call elsi_say_setting(io_h,"pexsi_mu_max",e_h%pexsi_options%muMax0)
-   call elsi_say_setting(io_h,"pexsi_do_inertia",&
-           e_h%pexsi_options%isInertiaCount)
-   call elsi_say_setting(io_h,"pexsi_intertia_tol",&
-           e_h%pexsi_options%muInertiaTolerance)
-   call elsi_say_setting(io_h,"pexsi_tol",&
-           e_h%pexsi_options%numElectronPEXSITolerance)
-   call elsi_say_setting(io_h,"pexsi_np_symbfact",e_h%pexsi_options%npSymbFact)
-   call elsi_say_setting(io_h,"pexsi_reordering",e_h%pexsi_options%ordering)
-
-   ! Footer
-   if(io_h%file_format == HUMAN) then
-      call elsi_truncate_string(io_h%prefix,2)
-   elseif(io_h%file_format == JSON) then
-      call elsi_finish_json_object(io_h%json_h)
-   else
-      call elsi_stop(e_h,"Unsupported output format.",caller)
-   endif
+   call fjson_start_name_object(jh,"solver_settings")
+   call fjson_write_name_value(jh,"pexsi_n_pole",ph%pexsi_options%numPole)
+   call fjson_write_name_value(jh,"pexsi_n_point",ph%pexsi_options%nPoints)
+   call fjson_write_name_value(jh,"pexsi_np_per_pole",ph%pexsi_np_per_pole)
+   call fjson_write_name_value(jh,"pexsi_np_per_point",ph%pexsi_np_per_point)
+   call fjson_write_name_value(jh,"pexsi_n_prow_pexsi",ph%pexsi_n_prow)
+   call fjson_write_name_value(jh,"pexsi_n_pcol_pexsi",ph%pexsi_n_pcol)
+   call fjson_write_name_value(jh,"pexsi_temperature",&
+           ph%pexsi_options%temperature)
+   call fjson_write_name_value(jh,"pexsi_delta_e",ph%pexsi_options%deltaE)
+   call fjson_write_name_value(jh,"pexsi_gap",ph%pexsi_options%gap)
+   call fjson_write_name_value(jh,"pexsi_mu_min",ph%pexsi_options%muMin0)
+   call fjson_write_name_value(jh,"pexsi_mu_max",ph%pexsi_options%muMax0)
+   call fjson_write_name_value(jh,"pexsi_do_inertia",&
+           ph%pexsi_options%isInertiaCount)
+   call fjson_write_name_value(jh,"pexsi_intertia_tol",&
+           ph%pexsi_options%muInertiaTolerance)
+   call fjson_write_name_value(jh,"pexsi_tol",&
+           ph%pexsi_options%numElectronPEXSITolerance)
+   call fjson_write_name_value(jh,"pexsi_np_symbfact",&
+           ph%pexsi_options%npSymbFact)
+   call fjson_write_name_value(jh,"pexsi_reordering",ph%pexsi_options%ordering)
+   call fjson_finish_object(jh)
 
 end subroutine
 
 !>
 !! This routine prints out settings for SIPS.
 !!
-subroutine elsi_print_sips_settings(e_h,io_h)
+subroutine elsi_print_sips_settings(ph,jh)
 
    implicit none
 
-   type(elsi_handle),    intent(in)    :: e_h
-   type(elsi_io_handle), intent(inout) :: io_h
-
-   character(len=200) :: info_str
+   type(elsi_param_t), intent(in)    :: ph
+   type(fjson_handle), intent(inout) :: jh
 
    character(len=40), parameter :: caller = "elsi_print_sips_settings"
 
-   ! Header
-   if(io_h%file_format == HUMAN) then
-      write(info_str,"(A)") "Solver Settings (SLEPc-SIPs)"
-      call elsi_say(io_h,info_str)
-      call elsi_append_string(io_h%prefix,"  ")
-   elseif(io_h%file_format == JSON) then
-      call elsi_start_json_name_object(io_h%json_h, "solver_settings")
-   else
-      call elsi_stop(e_h,"Unsupported output format.",caller)
-   endif
-
-   ! Settings
-   call elsi_say_setting(io_h,"sips_n_states",e_h%n_states)
-   call elsi_say_setting(io_h,"sips_n_elpa",e_h%sips_n_elpa)
-   call elsi_say_setting(io_h,"sips_slice_type",e_h%sips_slice_type)
-   call elsi_say_setting(io_h,"sips_n_slices",e_h%sips_n_slices)
-   call elsi_say_setting(io_h,"sips_np_per_slice",e_h%sips_np_per_slice)
-   call elsi_say_setting(io_h,"sips_buffer",e_h%sips_buffer)
-
-   ! Footer
-   if(io_h%file_format == HUMAN) then
-      call elsi_truncate_string(io_h%prefix,2)
-   elseif(io_h%file_format == JSON) then
-      call elsi_finish_json_object(io_h%json_h)
-   else
-      call elsi_stop(e_h,"Unsupported output format.",caller)
-   endif
-
-end subroutine
-
-!>
-!! This routine prints out settings for the matirx format.
-!!
-subroutine elsi_print_matrix_settings(e_h,io_h)
-
-   implicit none
-
-   type(elsi_handle),    intent(in)    :: e_h
-   type(elsi_io_handle), intent(inout) :: io_h
-
-   character(len=40), parameter :: caller = "elsi_print_matrix_settings"
-
-   if(e_h%matrix_format == BLACS_DENSE) then
-      call elsi_print_den_settings(e_h,io_h)
-   else
-      call elsi_print_csc_settings(e_h,io_h)
-   endif
+   call fjson_start_name_object(jh,"solver_settings")
+   call fjson_write_name_value(jh,"sips_n_states",ph%n_states)
+   call fjson_write_name_value(jh,"sips_n_elpa",ph%sips_n_elpa)
+   call fjson_write_name_value(jh,"sips_slice_type",ph%sips_slice_type)
+   call fjson_write_name_value(jh,"sips_n_slices",ph%sips_n_slices)
+   call fjson_write_name_value(jh,"sips_np_per_slice",ph%sips_np_per_slice)
+   call fjson_write_name_value(jh,"sips_buffer",ph%sips_buffer)
+   call fjson_finish_object(jh)
 
 end subroutine
 
 !>
 !! This routine prints out settings for the dense matrix format.
 !!
-subroutine elsi_print_den_settings(e_h,io_h)
+subroutine elsi_print_den_settings(bh,jh)
 
    implicit none
 
-   type(elsi_handle),    intent(in)    :: e_h
-   type(elsi_io_handle), intent(inout) :: io_h
-
-   character(len=200) :: info_str
+   type(elsi_basic_t), intent(in)    :: bh
+   type(fjson_handle), intent(inout) :: jh
 
    character(len=40), parameter :: caller = "elsi_print_den_settings"
 
-   ! Header
-   if(io_h%file_format == HUMAN) then
-      write(info_str,"(A)") "Dense Matrix Format Settings"
-      call elsi_say(io_h,info_str)
-      call elsi_append_string(io_h%prefix,"  ")
-   elseif(io_h%file_format == JSON) then
-      call elsi_start_json_name_object(io_h%json_h, "matrix_format_settings")
-   else
-      call elsi_stop(e_h,"Unsupported output format.",caller)
-   endif
-
-   ! Settings
-   call elsi_say_setting(io_h,"blk_row",e_h%blk_row)
-   call elsi_say_setting(io_h,"blk_col",e_h%blk_col)
-   call elsi_say_setting(io_h,"n_prow",e_h%n_prow)
-   call elsi_say_setting(io_h,"n_pcol",e_h%n_pcol)
-   call elsi_say_setting(io_h,"blacs_ready",e_h%blacs_ready)
-
-   ! Footer
-   if(io_h%file_format == HUMAN) then
-      call elsi_truncate_string(io_h%prefix,2)
-   elseif(io_h%file_format == JSON) then
-      call elsi_finish_json_object(io_h%json_h)
-   else
-      call elsi_stop(e_h,"Unsupported output format.",caller)
-   endif
+   call fjson_start_name_object(jh,"matrix_format_settings")
+   call fjson_write_name_value(jh,"blk",bh%blk)
+   call fjson_write_name_value(jh,"n_prow",bh%n_prow)
+   call fjson_write_name_value(jh,"n_pcol",bh%n_pcol)
+   call fjson_write_name_value(jh,"blacs_ready",bh%blacs_ready)
+   call fjson_finish_object(jh)
 
 end subroutine
 
 !>
 !! This routine prints out settings for the sparse matrix format.
 !!
-subroutine elsi_print_csc_settings(e_h,io_h)
+subroutine elsi_print_csc_settings(bh,jh)
 
    implicit none
 
-   type(elsi_handle),    intent(in)    :: e_h
-   type(elsi_io_handle), intent(inout) :: io_h
-
-   character(len=200) :: info_str
+   type(elsi_basic_t), intent(in)    :: bh
+   type(fjson_handle), intent(inout) :: jh
 
    character(len=40), parameter :: caller = "elsi_print_csc_settings"
 
-   ! Header
-   if(io_h%file_format == HUMAN) then
-      write(info_str,"(A)") "Sparse Matrix Format Settings"
-      call elsi_say(io_h,info_str)
-      call elsi_append_string(io_h%prefix,"  ")
-   elseif(io_h%file_format == JSON) then
-      call elsi_start_json_name_object(io_h%json_h, "matrix_format_settings")
-   else
-      call elsi_stop(e_h,"Unsupported output format.",caller)
-   endif
-
-   ! Settings
-   call elsi_say_setting(io_h,"zero_def",e_h%zero_def)
-   call elsi_say_setting(io_h,"blk_sp2",e_h%blk_sp2)
-   call elsi_say_setting(io_h,"pexsi_csc_ready",e_h%pexsi_csc_ready)
-   call elsi_say_setting(io_h,"siesta_csc_ready",e_h%siesta_csc_ready)
-
-   ! Footer
-   if(io_h%file_format == HUMAN) then
-      call elsi_truncate_string(io_h%prefix,2)
-   elseif(io_h%file_format == JSON) then
-      call elsi_finish_json_object(io_h%json_h)
-   else
-      call elsi_stop(e_h,"Unsupported output format.",caller)
-   endif
+   call fjson_start_name_object(jh,"matrix_format_settings")
+   call fjson_write_name_value(jh,"def0",bh%def0)
+   call fjson_write_name_value(jh,"blk_sp2",bh%blk_sp2)
+   call fjson_write_name_value(jh,"pexsi_csc_ready",bh%pexsi_csc_ready)
+   call fjson_write_name_value(jh,"siesta_csc_ready",bh%siesta_csc_ready)
+   call fjson_finish_object(jh)
 
 end subroutine
 
 !>
-!! This routine prints out an integer-type setting.
+!! This routine prints a final output.
 !!
-subroutine elsi_say_setting_i4(io_h,label,setting)
+subroutine elsi_final_print(ph,bh)
 
    implicit none
 
-   type(elsi_io_handle), intent(inout) :: io_h
-   character(len=*),     intent(in)    :: label
-   integer(kind=i4),     intent(in)    :: setting
+   type(elsi_param_t), intent(in) :: ph
+   type(elsi_basic_t), intent(in) :: bh
 
-   character(len=28) :: label_ljust
-   character(len=20) :: int_string
+   real(kind=r8)      :: sparsity
+   character(len=200) :: ll
+   character(len=200) :: info_str
 
-   character(len=40), parameter :: caller = "elsi_say_setting_i4"
+   character(len=40), parameter :: caller = "elsi_final_print"
 
-   if(io_h%print_info) then
-      if(io_h%file_format == HUMAN) then
-         write(int_string,"(I20)") setting
-         label_ljust = label
+   write(ll,"(2X,A)") "|------------------------------------------------------"
+   call elsi_say(bh,ll)
 
-         if(allocated(io_h%prefix)) then
-            write(io_h%print_unit,"(A,A28,A3,I25)") io_h%prefix,label_ljust,&
-               " : ",setting
-         else
-            write(io_h%print_unit,"(A28,A3,I25)") label_ljust," : ",setting
-         endif
-      elseif(io_h%file_format == JSON) then
-         call elsi_write_json_name_value(io_h%json_h, label, setting)
-      endif
+   write(info_str,"(2X,A)") "| Final ELSI Output"
+   call elsi_say(bh,info_str)
+
+   call elsi_say(bh,ll)
+
+   write(info_str,"(2X,A)") "|"
+   call elsi_say(bh,info_str)
+
+   write(info_str,"(2X,A)") "| Physical Properties"
+   call elsi_say(bh,info_str)
+
+   write(info_str,"(2X,A,E22.8)") "|   Number of electrons       :",&
+      ph%n_electrons
+   call elsi_say(bh,info_str)
+
+   if(ph%parallel_mode == MULTI_PROC) then
+      write(info_str,"(2X,A,I22)") "|   Number of spins           :",ph%n_spins
+      call elsi_say(bh,info_str)
+
+      write(info_str,"(2X,A,I22)") "|   Number of k-points        :",ph%n_kpts
+      call elsi_say(bh,info_str)
    endif
 
-end subroutine
-
-!>
-!! This routine prints out a real-type setting.
-!!
-subroutine elsi_say_setting_r8(io_h,label,setting)
-
-   implicit none
-
-   type(elsi_io_handle), intent(inout) :: io_h
-   character(len=*),     intent(in)    :: label
-   real(kind=r8),        intent(in)    :: setting
-
-   character(len=28) :: label_ljust
-   character(len=20) :: real_string
-
-   character(len=40), parameter :: caller = "elsi_say_setting_r8"
-
-   if(io_h%print_info) then
-      if(io_h%file_format == HUMAN) then
-         write(real_string,"(E20.8)") setting
-         label_ljust = label
-
-         if(allocated(io_h%prefix)) then
-            write(io_h%print_unit,"(A,A28,A3,E25.8)") io_h%prefix,label_ljust,&
-               " : ",setting
-         else
-            write(io_h%print_unit,"(A28,A3,E25.8)") label_ljust," : ",setting
-         endif
-      elseif(io_h%file_format == JSON) then
-         call elsi_write_json_name_value(io_h%json_h, label, setting)
-      endif
+   if(ph%solver == ELPA_SOLVER .or. ph%solver == SIPS_SOLVER) then
+      write(info_str,"(2X,A,I22)") "|   Number of states          :",ph%n_states
+      call elsi_say(bh,info_str)
    endif
 
-end subroutine
+   write(info_str,"(2X,A)") "|"
+   call elsi_say(bh,info_str)
 
-!>
-!! This routine prints out a logical-type setting.
-!!
-subroutine elsi_say_setting_log(io_h,label,setting)
+   write(info_str,"(2X,A)") "| Matrix Properties"
+   call elsi_say(bh,info_str)
 
-   implicit none
+   if(ph%matrix_format == BLACS_DENSE) then
+      write(info_str,"(2X,A,A22)") "|   Matrix format             :",&
+         "BLACS_DENSE"
+   elseif(ph%matrix_format == PEXSI_CSC) then
+      write(info_str,"(2X,A,A22)") "|   Matrix format             :",&
+         "PEXSI_CSC"
+   elseif(ph%matrix_format == SIESTA_CSC) then
+      write(info_str,"(2X,A,A22)") "|   Matrix format             :",&
+         "SIESTA_CSC"
+   endif
+   call elsi_say(bh,info_str)
 
-   type(elsi_io_handle), intent(inout) :: io_h
-   character(len=*),     intent(in)    :: label
-   logical,              intent(in)    :: setting
+   write(info_str,"(2X,A,I22)") "|   Number of basis functions :",ph%n_basis
+   call elsi_say(bh,info_str)
 
-   character(len=28) :: label_ljust
-   character(len=20) :: log_string
+   if(ph%parallel_mode == MULTI_PROC) then
+      sparsity = 1.0_r8-(1.0_r8*bh%nnz_g/ph%n_basis/ph%n_basis)
 
-   character(len=40), parameter :: caller = "elsi_say_setting_log"
-
-   if(io_h%print_info) then
-      if(io_h%file_format == HUMAN) then
-         if(setting) then
-            log_string = "                TRUE"
-         else
-            log_string = "               FALSE"
-         endif
-         label_ljust = label
-
-         if(allocated(io_h%prefix)) then
-            write(io_h%print_unit,"(A,A28,A3,A25)") io_h%prefix,label_ljust,&
-               " : ",log_string
-         else
-            write(io_h%print_unit,"(A28,A3,A25)") label_ljust," : ",log_string
-         endif
-      elseif(io_h%file_format == JSON) then
-         call elsi_write_json_name_value(io_h%json_h, label, setting)
-      endif
+      write(info_str,"(2X,A,E22.8)") "|   Matrix sparsity           :",sparsity
+      call elsi_say(bh,info_str)
    endif
 
-end subroutine
+   write(info_str,"(2X,A)") "|"
+   call elsi_say(bh,info_str)
 
-!>
-!! This routine prints out a string-type setting.
-!!
-subroutine elsi_say_setting_str(io_h,label,setting)
+   write(info_str,"(2X,A)") "| Computational Details"
+   call elsi_say(bh,info_str)
 
-   implicit none
-
-   type(elsi_io_handle), intent(inout) :: io_h
-   character(len=*),     intent(in)    :: label
-   character(len=*),     intent(in)    :: setting
-
-   character(len=28) :: label_ljust
-
-   character(len=40), parameter :: caller = "elsi_say_setting_str"
-
-   if(io_h%print_info) then
-      if(io_h%file_format == HUMAN) then
-         label_ljust = label
-
-         if(allocated(io_h%prefix)) then
-            write(io_h%print_unit,"(A,A28,A3,A25)") io_h%prefix,label_ljust,&
-               " : ",setting
-         else
-            write(io_h%print_unit,"(A28,A3,A25)") label_ljust," : ",setting
-         endif
-      elseif(io_h%file_format == JSON) then
-         call elsi_write_json_name_value(io_h%json_h, label, setting)
-      endif
+   if(ph%parallel_mode == MULTI_PROC) then
+      write(info_str,"(2X,A,A22)") "|   Parallel mode             :",&
+         "MULTI_PROC"
+   elseif(ph%parallel_mode == SINGLE_PROC) then
+      write(info_str,"(2X,A,A22)") "|   Parallel mode             :",&
+         "SINGLE_PROC"
    endif
+   call elsi_say(bh,info_str)
+
+   write(info_str,"(2X,A,I22)") "|   Number of MPI tasks       :",bh%n_procs
+   call elsi_say(bh,info_str)
+
+   if(ph%solver == ELPA_SOLVER) then
+      write(info_str,"(2X,A,A22)") "|   Solver requested          :","ELPA"
+   elseif(ph%solver == OMM_SOLVER) then
+      write(info_str,"(2X,A,A22)") "|   Solver requested          :","libOMM"
+   elseif(ph%solver == PEXSI_SOLVER) then
+      write(info_str,"(2X,A,A22)") "|   Solver requested          :","PEXSI"
+   elseif(ph%solver == SIPS_SOLVER) then
+      write(info_str,"(2X,A,A22)") "|   Solver requested          :","SIPs"
+   elseif(ph%solver == DMP_SOLVER) then
+      write(info_str,"(2X,A,A22)") "|   Solver requested          :","DMP"
+   endif
+   call elsi_say(bh,info_str)
+
+   write(info_str,"(2X,A,I22)") "|   Number of ELSI calls      :",ph%n_calls
+   call elsi_say(bh,info_str)
+
+   write(info_str,"(2X,A)") "|"
+   call elsi_say(bh,info_str)
+
+   call elsi_say(bh,ll)
+
+   write(info_str,"(2X,A)") "| ELSI Project (c)  elsi-interchange.org"
+   call elsi_say(bh,info_str)
+
+   call elsi_say(bh,ll)
 
 end subroutine
 
@@ -972,53 +634,14 @@ subroutine elsi_get_time(wtime)
 end subroutine
 
 !>
-!! This routine generates a string identifying the current solver.
-!!
-subroutine elsi_get_solver_tag(e_h,tag)
-
-   implicit none
-
-   type(elsi_handle),      intent(in)  :: e_h
-   character(len=STR_LEN), intent(out) :: tag
-
-   character(len=40), parameter :: caller = "elsi_get_solver_tag"
-
-   select case(e_h%solver)
-   case(ELPA_SOLVER)
-      if(e_h%parallel_mode == SINGLE_PROC) then
-         tag = "LAPACK"
-      else
-         tag = "ELPA"
-      endif
-   case(OMM_SOLVER)
-      if(e_h%n_elsi_calls <= e_h%omm_n_elpa) then
-         tag = "ELPA"
-      else
-         tag = "LIBOMM"
-      endif
-   case(PEXSI_SOLVER)
-      tag = "PEXSI"
-   case(SIPS_SOLVER)
-      if(e_h%n_elsi_calls <= e_h%sips_n_elpa) then
-         tag = "ELPA"
-      else
-         tag = "SIPS"
-      endif
-   case(DMP_SOLVER)
-      tag = "DMP"
-   end select
-
-end subroutine
-
-!>
 !! Generate a UUID (unique identifier) in RFC 4122 format.
 !! (Taken from FHI-aims with permission of copyright holders)
 !!
-subroutine elsi_gen_uuid(e_h)
+subroutine elsi_gen_uuid(uuid)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: e_h
+   character(len=UUID_LEN), intent(out) :: uuid
 
    integer(kind=i4) :: ii3
    integer(kind=i4) :: ii4
@@ -1041,17 +664,17 @@ subroutine elsi_gen_uuid(e_h)
       write(ss4,"(Z4.4)") transfer(int(rr(i_entry)*ii4),16)
 
       if(i_entry == 1) then
-         write(e_h%uuid,"(A)") ss4
+         write(uuid,"(A)") ss4
       elseif(i_entry == 2) then
-         write(e_h%uuid,"(2A)") trim(e_h%uuid),ss4
+         write(uuid,"(2A)") trim(uuid),ss4
       elseif(i_entry == 3) then
-         write(e_h%uuid,"(3A)") trim(e_h%uuid),"-",ss4
+         write(uuid,"(3A)") trim(uuid),"-",ss4
       elseif(i_entry == 4) then
-         write(e_h%uuid,"(3A)") trim(e_h%uuid),"-4",ss3
+         write(uuid,"(3A)") trim(uuid),"-4",ss3
       elseif(i_entry == 5) then
-         write(e_h%uuid,"(4A)") trim(e_h%uuid),"-A",ss3,"-"
+         write(uuid,"(4A)") trim(uuid),"-A",ss3,"-"
       else
-         write(e_h%uuid,"(2A)") trim(e_h%uuid),ss4
+         write(uuid,"(2A)") trim(uuid),ss4
       endif
    enddo
 

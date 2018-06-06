@@ -93,8 +93,7 @@ function f_ppexsi_plan_initialize(fcomm,numProcRow,numProcCol,outputFileIndex,in
 
    f_ppexsi_plan_initialize = int(0,kind=c_intptr_t)
 
-   write(*,"(A)") " A PEXSI stub routine was called. Check ELSI installation."
-   write(*,"(A)") " Exiting..."
+   write(*,"(A)") "**Error! A PEXSI stub routine was called."
    stop
 
 end function
@@ -118,8 +117,7 @@ subroutine f_ppexsi_load_real_hs_matrix(plan,options,nrows,nnz,nnzLocal,&
    real(kind=r8)            :: SnzvalLocal(*)
    integer(kind=i4)         :: info
 
-   write(*,"(A)") " A PEXSI stub routine was called. Check ELSI installation."
-   write(*,"(A)") " Exiting..."
+   write(*,"(A)") "**Error! A PEXSI stub routine was called."
    stop
 
 end subroutine
@@ -143,8 +141,7 @@ subroutine f_ppexsi_load_complex_hs_matrix(plan,options,nrows,nnz,nnzLocal,&
    complex(kind=r8)         :: SnzvalLocal(*)
    integer(kind=i4)         :: info
 
-   write(*,"(A)") " A PEXSI stub routine was called. Check ELSI installation."
-   write(*,"(A)") " Exiting..."
+   write(*,"(A)") "**Error! A PEXSI stub routine was called."
    stop
 
 end subroutine
@@ -157,8 +154,7 @@ subroutine f_ppexsi_symbolic_factorize_real_symmetric_matrix(plan,options,info)
    type(f_ppexsi_options)   :: options
    integer(kind=i4)         :: info
 
-   write(*,"(A)") " A PEXSI stub routine was called. Check ELSI installation."
-   write(*,"(A)") " Exiting..."
+   write(*,"(A)") "**Error! A PEXSI stub routine was called."
    stop
 
 end subroutine
@@ -172,8 +168,7 @@ subroutine f_ppexsi_symbolic_factorize_complex_symmetric_matrix(plan,options,&
    type(f_ppexsi_options)   :: options
    integer(kind=i4)         :: info
 
-   write(*,"(A)") " A PEXSI stub routine was called. Check ELSI installation."
-   write(*,"(A)") " Exiting..."
+   write(*,"(A)") "**Error! A PEXSI stub routine was called."
    stop
 
 end subroutine
@@ -188,8 +183,7 @@ subroutine f_ppexsi_symbolic_factorize_complex_unsymmetric_matrix(plan,options,&
    complex(kind=r8)         :: AnzvalLocal(*)
    integer(kind=i4)         :: info
 
-   write(*,"(A)") " A PEXSI stub routine was called. Check ELSI installation."
-   write(*,"(A)") " Exiting..."
+   write(*,"(A)") "**Error! A PEXSI stub routine was called."
    stop
 
 end subroutine
@@ -206,8 +200,7 @@ subroutine f_ppexsi_inertia_count_real_matrix(plan,options,numShift,shiftList,&
    real(kind=r8)          :: inertiaList(*)
    integer(kind=i4)       :: info
 
-   write(*,"(A)") " A PEXSI stub routine was called. Check ELSI installation."
-   write(*,"(A)") " Exiting..."
+   write(*,"(A)") "**Error! A PEXSI stub routine was called."
    stop
 
 end subroutine
@@ -224,8 +217,7 @@ subroutine f_ppexsi_inertia_count_complex_matrix(plan,options,numShift,&
    real(kind=r8)          :: inertiaList(*)
    integer(kind=i4)       :: info
 
-   write(*,"(A)") " A PEXSI stub routine was called. Check ELSI installation."
-   write(*,"(A)") " Exiting..."
+   write(*,"(A)") "**Error! A PEXSI stub routine was called."
    stop
 
 end subroutine
@@ -243,8 +235,7 @@ subroutine f_ppexsi_calculate_fermi_operator_real3(plan,options,mu,&
    real(kind=r8)          :: numElectronDrvMuPEXSI
    integer(kind=i4)       :: info
 
-   write(*,"(A)") " A PEXSI stub routine was called. Check ELSI installation."
-   write(*,"(A)") " Exiting..."
+   write(*,"(A)") "**Error! A PEXSI stub routine was called."
    stop
 
 end subroutine
@@ -262,8 +253,7 @@ subroutine f_ppexsi_calculate_fermi_operator_complex(plan,options,mu,&
    real(kind=r8)          :: numElectronDrvMuPEXSI
    integer(kind=i4)       :: info
 
-   write(*,"(A)") " A PEXSI stub routine was called. Check ELSI installation."
-   write(*,"(A)") " Exiting..."
+   write(*,"(A)") "**Error! A PEXSI stub routine was called."
    stop
 
 end subroutine
@@ -276,8 +266,7 @@ subroutine f_ppexsi_calculate_edm_correction_real(plan,options,info)
    type(f_ppexsi_options) :: options
    integer(kind=i4)       :: info
 
-   write(*,"(A)") " A PEXSI stub routine was called. Check ELSI installation."
-   write(*,"(A)") " Exiting..."
+   write(*,"(A)") "**Error! A PEXSI stub routine was called."
    stop
 
 end subroutine
@@ -290,8 +279,7 @@ subroutine f_ppexsi_calculate_edm_correction_complex(plan,options,info)
    type(f_ppexsi_options) :: options
    integer(kind=i4)       :: info
 
-   write(*,"(A)") " A PEXSI stub routine was called. Check ELSI installation."
-   write(*,"(A)") " Exiting..."
+   write(*,"(A)") "**Error! A PEXSI stub routine was called."
    stop
 
 end subroutine
@@ -305,8 +293,7 @@ subroutine f_ppexsi_retrieve_real_dm(plan,DMnzvalLocal,totalEnergyH,info)
    real(kind=r8)            :: totalEnergyH
    integer(kind=i4)         :: info
 
-   write(*,"(A)") " A PEXSI stub routine was called. Check ELSI installation."
-   write(*,"(A)") " Exiting..."
+   write(*,"(A)") "**Error! A PEXSI stub routine was called."
    stop
 
 end subroutine
@@ -320,8 +307,7 @@ subroutine f_ppexsi_retrieve_complex_dm(plan,DMnzvalLocal,totalEnergyH,info)
    real(kind=r8)            :: totalEnergyH
    integer(kind=i4)         :: info
 
-   write(*,"(A)") " A PEXSI stub routine was called. Check ELSI installation."
-   write(*,"(A)") " Exiting..."
+   write(*,"(A)") "**Error! A PEXSI stub routine was called."
    stop
 
 end subroutine
@@ -335,8 +321,7 @@ subroutine f_ppexsi_retrieve_real_edm(plan,EDMnzvalLocal,totalEnergyS,info)
    real(kind=r8)            :: totalEnergyS
    integer(kind=i4)         :: info
 
-   write(*,"(A)") " A PEXSI stub routine was called. Check ELSI installation."
-   write(*,"(A)") " Exiting..."
+   write(*,"(A)") "**Error! A PEXSI stub routine was called."
    stop
 
 end subroutine
@@ -350,8 +335,7 @@ subroutine f_ppexsi_retrieve_complex_edm(plan,EDMnzvalLocal,totalEnergyS,info)
    real(kind=r8)            :: totalEnergyS
    integer(kind=i4)         :: info
 
-   write(*,"(A)") " A PEXSI stub routine was called. Check ELSI installation."
-   write(*,"(A)") " Exiting..."
+   write(*,"(A)") "**Error! A PEXSI stub routine was called."
    stop
 
 end subroutine
@@ -363,8 +347,7 @@ subroutine f_ppexsi_plan_finalize(plan,info)
    integer(kind=c_intptr_t) :: plan
    integer(kind=i4)         :: info
 
-   write(*,"(A)") " A PEXSI stub routine was called. Check ELSI installation."
-   write(*,"(A)") " Exiting..."
+   write(*,"(A)") "**Error! A PEXSI stub routine was called."
    stop
 
 end subroutine

@@ -38,7 +38,7 @@ program elsi_test_rw
    case("r") ! real
       call test_rw_real(MPI_COMM_WORLD,arg2,arg3)
    case("c") ! complex
-      call test_rw_complex(MPI_COMM_WORLD,arg2,arg3)
+      call test_rw_cmplx(MPI_COMM_WORLD,arg2,arg3)
    case default
       call test_die()
    end select
@@ -52,15 +52,15 @@ subroutine test_die()
    implicit none
 
    if(myid == 0) then
-      write(*,'(A)') "  ########################################"
-      write(*,'(A)') "  ##                                    ##"
-      write(*,'(A)') "  ##  Wrong command line argument(s)!!  ##"
-      write(*,'(A)') "  ##                                    ##"
-      write(*,'(A)') "  ##  Arg #1: 'real' or 'complex'       ##"
-      write(*,'(A)') "  ##  Arg #2: H matrix file             ##"
-      write(*,'(A)') "  ##  Arg #3: S matrix file             ##"
-      write(*,'(A)') "  ##                                    ##"
-      write(*,'(A)') "  ########################################"
+      write(*,"(A)") "  ########################################"
+      write(*,"(A)") "  ##                                    ##"
+      write(*,"(A)") "  ##  Wrong command line argument(s)!!  ##"
+      write(*,"(A)") "  ##                                    ##"
+      write(*,"(A)") "  ##  Arg #1: 'real' or 'complex'       ##"
+      write(*,"(A)") "  ##  Arg #2: H matrix file             ##"
+      write(*,"(A)") "  ##  Arg #3: S matrix file             ##"
+      write(*,"(A)") "  ##                                    ##"
+      write(*,"(A)") "  ########################################"
       call MPI_Abort(MPI_COMM_WORLD,0,mpierr)
       stop
    endif

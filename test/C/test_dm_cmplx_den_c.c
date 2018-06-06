@@ -10,10 +10,10 @@
 #include <mpi.h>
 #include <elsi.h>
 
-void test_ev_complex_c(MPI_Comm comm,
-                       int solver,
-                       char *h_file,
-                       char *s_file) {
+void test_dm_cmplx_den_c(MPI_Comm comm,
+                         int solver,
+                         char *h_file,
+                         char *s_file) {
 
    int n_proc;
    int n_prow;
@@ -36,20 +36,23 @@ void test_ev_complex_c(MPI_Comm comm,
    int i;
 
    double n_electrons;
-   double *eval;
    double _Complex *h;
    double _Complex *s;
-   double _Complex *evec;
+   double _Complex *dm;
    double e_elpa;
+   double e_omm;
+   double e_pexsi;
    double e_test;
    double e_tol;
+   double e_ref;
 
    MPI_Fint comm_f;
    elsi_handle e_h;
    elsi_rw_handle rw_h;
 
-   e_elpa = -2564.61963724048;
-   e_tol  = 0.00000001;
+   e_elpa  = -2622.88214509316;
+   e_omm   = -2622.88214509316;
+   e_pexsi = -2622.88143358352;
 
    MPI_Comm_size(comm,&n_proc);
    MPI_Comm_rank(comm,&myid);
@@ -60,8 +63,22 @@ void test_ev_complex_c(MPI_Comm comm,
    // Parameters
    blk      = 16;
    format   = 0; // BLACS_DENSE
+   parallel = 1; // MULTI_PROC
    int_one  = 1;
    int_zero = 0;
+
+   if (solver == 1) {
+       e_ref = e_elpa;
+       e_tol = 0.00000001;
+   }
+   if (solver == 2) {
+       e_ref = e_omm;
+       e_tol = 0.00000001;
+   }
+   if (solver == 3) {
+       e_ref = e_pexsi;
+       e_tol = 0.0001;
+   }
 
    tmp = (int) round(sqrt((double) n_proc));
    for (n_pcol=tmp; n_pcol>1; n_pcol--) {
@@ -85,8 +102,7 @@ void test_ev_complex_c(MPI_Comm comm,
    l_size = l_row * l_col;
    h      = malloc(l_size * sizeof(double _Complex));
    s      = malloc(l_size * sizeof(double _Complex));
-   evec   = malloc(l_size * sizeof(double _Complex));
-   eval   = malloc(n_basis * sizeof(double));
+   dm     = malloc(l_size * sizeof(double _Complex));
 
    c_elsi_read_mat_complex(rw_h,h_file,h);
    c_elsi_read_mat_complex(rw_h,s_file,s);
@@ -96,43 +112,33 @@ void test_ev_complex_c(MPI_Comm comm,
    n_states = n_electrons;
 
    // Initialize ELSI
-   if (n_proc == 1) {
-       parallel = 0; // Test SINGLE_PROC mode
-
-       c_elsi_init(&e_h,solver,parallel,format,n_basis,n_electrons,n_states);
-   }
-   else {
-       parallel = 1; // Test MULTI_PROC mode
-
-       c_elsi_init(&e_h,solver,parallel,format,n_basis,n_electrons,n_states);
-       c_elsi_set_mpi(e_h,comm_f);
-       c_elsi_set_blacs(e_h,blacs_ctxt,blk);
-   }
+   c_elsi_init(&e_h,solver,parallel,format,n_basis,n_electrons,n_states);
+   c_elsi_set_mpi(e_h,comm_f);
+   c_elsi_set_blacs(e_h,blacs_ctxt,blk);
 
    // Customize ELSI
    c_elsi_set_output(e_h,2);
+   c_elsi_set_sing_check(e_h,0);
+   c_elsi_set_mu_broaden_width(e_h,0.000001);
+   c_elsi_set_omm_n_elpa(e_h,1);
+   c_elsi_set_pexsi_delta_e(e_h,80.0);
+   c_elsi_set_pexsi_np_per_pole(e_h,2);
 
-   // Call ELSI eigensolver
-   c_elsi_ev_complex(e_h,h,s,eval,evec);
+   // Call ELSI density matrix solver
+   c_elsi_dm_complex(e_h,h,s,dm,&e_test);
 
    // Finalize ELSI
    c_elsi_finalize(e_h);
 
-   e_test = 0.0;
-   for (i=0; i<n_states; i++) {
-        e_test += 2.0*eval[i];
-   }
-
    if (myid == 0) {
-       if (fabs(e_test-e_elpa) < e_tol) {
+       if (fabs(e_test-e_ref) < e_tol) {
            printf("  Passed.\n");
        }
    }
 
    free(h);
    free(s);
-   free(evec);
-   free(eval);
+   free(dm);
 
    Cblacs_gridexit(blacs_ctxt);
 
