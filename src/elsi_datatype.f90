@@ -79,7 +79,6 @@ module ELSI_DATATYPE
       ! General info
       integer(kind=i4) :: solver
       integer(kind=i4) :: matrix_format
-      integer(kind=i4) :: uplo
       integer(kind=i4) :: parallel_mode
       integer(kind=i4) :: n_calls
 

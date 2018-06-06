@@ -9,8 +9,7 @@
 !!
 module ELSI_DMP
 
-   use ELSI_CONSTANTS, only: BLACS_DENSE,UT_MAT,LT_MAT,CANONICAL,&
-                             TRACE_CORRECTING
+   use ELSI_CONSTANTS, only: BLACS_DENSE,UT_MAT,CANONICAL,TRACE_CORRECTING
    use ELSI_DATATYPE,  only: elsi_param_t,elsi_basic_t
    use ELSI_ELPA,      only: elsi_to_standard_evp_real
    use ELSI_IO,        only: elsi_say,elsi_get_time
@@ -18,7 +17,8 @@ module ELSI_DMP
    use ELSI_MPI,       only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8,&
                              mpi_integer4
    use ELSI_PRECISION, only: r8,i4
-   use ELSI_UTILS,     only: elsi_get_nnz,elsi_trace_mat,elsi_trace_mat_mat
+   use ELSI_UTILS,     only: elsi_get_nnz,elsi_trace_mat,elsi_trace_mat_mat,&
+                             elsi_set_full_mat
 
    implicit none
 
@@ -97,7 +97,6 @@ subroutine elsi_solve_dmp_real(ph,bh,row_map,col_map,ham,ovlp,ham_copy,&
 
    real(kind=r8), allocatable :: tmp_real1(:)
    real(kind=r8), allocatable :: tmp_real2(:)
-   real(kind=r8), allocatable :: tmp_real3(:,:)
    real(kind=r8), allocatable :: dsd(:,:)
    real(kind=r8), allocatable :: dsdsd(:,:)
 
@@ -131,23 +130,7 @@ subroutine elsi_solve_dmp_real(ph,bh,row_map,col_map,ham,ovlp,ham_copy,&
       call pdpotrf('U',ph%n_basis,ovlp_inv,1,1,bh%desc,ierr)
       call pdpotri('U',ph%n_basis,ovlp_inv,1,1,bh%desc,ierr)
 
-      call elsi_allocate(bh,tmp_real3,bh%n_lrow,bh%n_lcol,"tmp_real3",caller)
-
-      call pdtran(ph%n_basis,ph%n_basis,1.0_r8,ovlp_inv,1,1,bh%desc,0.0_r8,&
-              tmp_real3,1,1,bh%desc)
-
-      do j = 1,ph%n_basis-1
-         if(col_map(j) > 0) then
-            do i = j+1,ph%n_basis
-               if(row_map(i) > 0) then
-                  ovlp_inv(row_map(i),col_map(j)) = &
-                     tmp_real3(row_map(i),col_map(j))
-               endif
-            enddo
-         endif
-      enddo
-
-      call elsi_deallocate(bh,tmp_real3,"tmp_real3")
+      call elsi_set_full_mat(ph,bh,UT_MAT,row_map,col_map,ovlp_inv)
    endif
 
    ! Use power iteration to find the largest in magnitude eigenvalue

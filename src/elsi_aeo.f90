@@ -9,7 +9,7 @@
 !!
 module ELSI_ELPA
 
-   use ELSI_CONSTANTS, only: BLACS_DENSE
+   use ELSI_CONSTANTS, only: BLACS_DENSE,UT_MAT
    use ELSI_DATATYPE,  only: elsi_param_t,elsi_basic_t
    use ELSI_IO,        only: elsi_say,elsi_get_time
    use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
@@ -17,7 +17,7 @@ module ELSI_ELPA
                              mpi_integer4
    use ELSI_OCC,       only: elsi_mu_and_occ,elsi_entropy
    use ELSI_PRECISION, only: r4,r8,i4
-   use ELSI_UTILS,     only: elsi_get_nnz
+   use ELSI_UTILS,     only: elsi_get_nnz,elsi_set_full_mat
    use ELPA,           only: elpa_t,elpa_init,elpa_uninit,elpa_allocate,&
                              elpa_deallocate,elpa_autotune_deallocate,&
                              ELPA_SOLVER_1STAGE,ELPA_SOLVER_2STAGE,&
@@ -217,8 +217,6 @@ subroutine elsi_compute_dm_elpa_real(ph,bh,row_map,col_map,evec,occ,dm,work)
    real(kind=r8),      intent(out) :: work(bh%n_lrow,bh%n_lcol)
 
    integer(kind=i4)   :: i
-   integer(kind=i4)   :: i_col
-   integer(kind=i4)   :: i_row
    integer(kind=i4)   :: max_state
    real(kind=r8)      :: t0
    real(kind=r8)      :: t1
@@ -261,20 +259,7 @@ subroutine elsi_compute_dm_elpa_real(ph,bh,row_map,col_map,evec,occ,dm,work)
 
    call elsi_deallocate(bh,factor,"factor")
 
-   ! Set full matrix from upper triangle
-   call pdtran(ph%n_basis,ph%n_basis,1.0_r8,dm,1,1,bh%desc,0.0_r8,work,1,1,&
-           bh%desc)
-
-   do i_col = 1,ph%n_basis-1
-      if(col_map(i_col) > 0) then
-         do i_row = i_col+1,ph%n_basis
-            if(row_map(i_row) > 0) then
-               dm(row_map(i_row),col_map(i_col)) = &
-                  work(row_map(i_row),col_map(i_col))
-            endif
-         enddo
-      endif
-   enddo
+   call elsi_set_full_mat(ph,bh,UT_MAT,row_map,col_map,dm)
 
    call elsi_get_time(t1)
 
@@ -304,8 +289,6 @@ subroutine elsi_compute_edm_elpa_real(ph,bh,row_map,col_map,eval,evec,occ,edm,&
    real(kind=r8),      intent(out) :: work(bh%n_lrow,bh%n_lcol)
 
    integer(kind=i4)   :: i
-   integer(kind=i4)   :: i_col
-   integer(kind=i4)   :: i_row
    integer(kind=i4)   :: max_state
    real(kind=r8)      :: t0
    real(kind=r8)      :: t1
@@ -353,20 +336,7 @@ subroutine elsi_compute_edm_elpa_real(ph,bh,row_map,col_map,eval,evec,occ,edm,&
 
    edm = -1.0_r8*edm
 
-   ! Set full matrix from upper triangle
-   call pdtran(ph%n_basis,ph%n_basis,1.0_r8,edm,1,1,bh%desc,0.0_r8,work,1,1,&
-           bh%desc)
-
-   do i_col = 1,ph%n_basis-1
-      if(col_map(i_col) > 0) then
-         do i_row = i_col+1,ph%n_basis
-            if(row_map(i_row) > 0) then
-               edm(row_map(i_row),col_map(i_col)) = &
-                  work(row_map(i_row),col_map(i_col))
-            endif
-         enddo
-      endif
-   enddo
+   call elsi_set_full_mat(ph,bh,UT_MAT,row_map,col_map,edm)
 
    call elsi_get_time(t1)
 
@@ -394,8 +364,6 @@ subroutine elsi_to_standard_evp_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    real(kind=r8),      intent(out)   :: eval(ph%n_basis)
    real(kind=r8),      intent(out)   :: evec(bh%n_lrow,bh%n_lcol)
 
-   integer(kind=i4)   :: i_row
-   integer(kind=i4)   :: i_col
    real(kind=r8)      :: t0
    real(kind=r8)      :: t1
    character(len=200) :: info_str
@@ -451,20 +419,7 @@ subroutine elsi_to_standard_evp_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
 
       call elsi_elpa_mult(ph,bh,'U','U',ovlp,evec,ham)
 
-      call pdtran(ph%n_basis,ph%n_basis,1.0_r8,ham,1,1,bh%desc,0.0_r8,evec,1,1,&
-              bh%desc)
-
-      ! Set the lower part from the upper
-      do i_col = 1,ph%n_basis-1
-         if(col_map(i_col) > 0) then
-            do i_row = i_col+1,ph%n_basis
-               if(row_map(i_row) > 0) then
-                  ham(row_map(i_row),col_map(i_col)) = &
-                     evec(row_map(i_row),col_map(i_col))
-               endif
-            enddo
-         endif
-      enddo
+      call elsi_set_full_mat(ph,bh,UT_MAT,row_map,col_map,ham)
    endif
 
    call elsi_get_time(t1)
@@ -685,8 +640,6 @@ subroutine elsi_compute_dm_elpa_cmplx(ph,bh,row_map,col_map,evec,occ,dm,work)
    complex(kind=r8),   intent(out) :: work(bh%n_lrow,bh%n_lcol)
 
    integer(kind=i4)   :: i
-   integer(kind=i4)   :: i_col
-   integer(kind=i4)   :: i_row
    integer(kind=i4)   :: max_state
    real(kind=r8)      :: t0
    real(kind=r8)      :: t1
@@ -729,28 +682,7 @@ subroutine elsi_compute_dm_elpa_cmplx(ph,bh,row_map,col_map,evec,occ,dm,work)
 
    call elsi_deallocate(bh,factor,"factor")
 
-   ! Set full matrix from upper triangle
-   call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),dm,1,1,bh%desc,&
-           (0.0_r8,0.0_r8),work,1,1,bh%desc)
-
-   do i_col = 1,ph%n_basis-1
-      if(col_map(i_col) > 0) then
-         do i_row = i_col+1,ph%n_basis
-            if(row_map(i_row) > 0) then
-               dm(row_map(i_row),col_map(i_col)) = &
-                  work(row_map(i_row),col_map(i_col))
-            endif
-         enddo
-      endif
-   enddo
-
-   ! Make diagonal real
-   do i_col = 1,ph%n_basis
-      if(col_map(i_col) > 0 .and. row_map(i_col) > 0) then
-         dm(row_map(i_col),col_map(i_col)) = &
-            real(dm(row_map(i_col),col_map(i_col)),kind=r8)
-      endif
-   enddo
+   call elsi_set_full_mat(ph,bh,UT_MAT,row_map,col_map,dm)
 
    call elsi_get_time(t1)
 
@@ -780,8 +712,6 @@ subroutine elsi_compute_edm_elpa_cmplx(ph,bh,row_map,col_map,eval,evec,occ,edm,&
    complex(kind=r8),   intent(out) :: work(bh%n_lrow,bh%n_lcol)
 
    integer(kind=i4)   :: i
-   integer(kind=i4)   :: i_col
-   integer(kind=i4)   :: i_row
    integer(kind=i4)   :: max_state
    real(kind=r8)      :: t0
    real(kind=r8)      :: t1
@@ -829,28 +759,7 @@ subroutine elsi_compute_edm_elpa_cmplx(ph,bh,row_map,col_map,eval,evec,occ,edm,&
 
    edm = (-1.0_r8,0.0_r8)*edm
 
-   ! Set full matrix from upper triangle
-   call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),edm,1,1,bh%desc,&
-           (0.0_r8,0.0_r8),work,1,1,bh%desc)
-
-   do i_col = 1,ph%n_basis-1
-      if(col_map(i_col) > 0) then
-         do i_row = i_col+1,ph%n_basis
-            if(row_map(i_row) > 0) then
-               edm(row_map(i_row),col_map(i_col)) = &
-                  work(row_map(i_row),col_map(i_col))
-            endif
-         enddo
-      endif
-   enddo
-
-   ! Make diagonal real
-   do i_col = 1,ph%n_basis
-      if(col_map(i_col) > 0 .and. row_map(i_col) > 0) then
-         edm(row_map(i_col),col_map(i_col)) = &
-            real(edm(row_map(i_col),col_map(i_col)),kind=r8)
-      endif
-   enddo
+   call elsi_set_full_mat(ph,bh,UT_MAT,row_map,col_map,edm)
 
    call elsi_get_time(t1)
 
@@ -878,8 +787,6 @@ subroutine elsi_to_standard_evp_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    real(kind=r8),      intent(out)   :: eval(ph%n_basis)
    complex(kind=r8),   intent(out)   :: evec(bh%n_lrow,bh%n_lcol)
 
-   integer(kind=i4)   :: i_row
-   integer(kind=i4)   :: i_col
    real(kind=r8)      :: t0
    real(kind=r8)      :: t1
    character(len=200) :: info_str
@@ -934,28 +841,7 @@ subroutine elsi_to_standard_evp_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
 
       call elsi_elpa_mult(ph,bh,'U','U',ovlp,evec,ham)
 
-      call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),ham,1,1,bh%desc,&
-              (0.0_r8,0.0_r8),evec,1,1,bh%desc)
-
-      ! Set the lower part from the upper
-      do i_col = 1,ph%n_basis-1
-         if(col_map(i_col) > 0) then
-            do i_row = i_col+1,ph%n_basis
-               if(row_map(i_row) > 0) then
-                  ham(row_map(i_row),col_map(i_col)) = &
-                     evec(row_map(i_row),col_map(i_col))
-               endif
-            enddo
-         endif
-      enddo
-
-      ! Make diagonal real
-      do i_col = 1,ph%n_basis
-         if(col_map(i_col) > 0 .and. row_map(i_col) > 0) then
-            ham(row_map(i_col),col_map(i_col)) = &
-               real(ham(row_map(i_col),col_map(i_col)),kind=r8)
-         endif
-      enddo
+      call elsi_set_full_mat(ph,bh,UT_MAT,row_map,col_map,ham)
    endif
 
    call elsi_get_time(t1)
