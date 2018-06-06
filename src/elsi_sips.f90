@@ -93,8 +93,8 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
 
    type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(in)    :: bh
-   integer(kind=i4),   intent(in)    :: row_ind(bh%nnz_l_sp1)
-   integer(kind=i4),   intent(in)    :: col_ptr(bh%n_lcol_sp1+1)
+   integer(kind=i4),   intent(inout) :: row_ind(bh%nnz_l_sp1)
+   integer(kind=i4),   intent(inout) :: col_ptr(bh%n_lcol_sp1+1)
    real(kind=r8),      intent(in)    :: ham(bh%nnz_l_sp1)
    real(kind=r8),      intent(in)    :: ovlp(bh%nnz_l_sp1)
    real(kind=r8),      intent(inout) :: eval(ph%n_states)
@@ -277,12 +277,12 @@ subroutine elsi_compute_dm_sips_real(ph,bh,row_ind,col_ptr,occ,dm)
 
    implicit none
 
-   type(elsi_param_t), intent(in)  :: ph
-   type(elsi_basic_t), intent(in)  :: bh
-   integer(kind=i4),   intent(in)  :: row_ind(bh%nnz_l_sp1)
-   integer(kind=i4),   intent(in)  :: col_ptr(bh%n_lcol_sp1+1)
-   real(kind=r8),      intent(in)  :: occ(ph%n_states,ph%n_spins,ph%n_kpts)
-   real(kind=r8),      intent(out) :: dm(bh%nnz_l_sp1)
+   type(elsi_param_t), intent(in)    :: ph
+   type(elsi_basic_t), intent(in)    :: bh
+   integer(kind=i4),   intent(inout) :: row_ind(bh%nnz_l_sp1)
+   integer(kind=i4),   intent(inout) :: col_ptr(bh%n_lcol_sp1+1)
+   real(kind=r8),      intent(in)    :: occ(ph%n_states,ph%n_spins,ph%n_kpts)
+   real(kind=r8),      intent(out)   :: dm(bh%nnz_l_sp1)
 
    real(kind=r8)      :: t0
    real(kind=r8)      :: t1
@@ -311,12 +311,12 @@ subroutine elsi_compute_edm_sips_real(ph,bh,row_ind,col_ptr,occ,edm)
 
    implicit none
 
-   type(elsi_param_t), intent(in)  :: ph
-   type(elsi_basic_t), intent(in)  :: bh
-   integer(kind=i4),   intent(in)  :: row_ind(bh%nnz_l_sp1)
-   integer(kind=i4),   intent(in)  :: col_ptr(bh%n_lcol_sp1+1)
-   real(kind=r8),      intent(in)  :: occ(ph%n_states,ph%n_spins,ph%n_kpts)
-   real(kind=r8),      intent(out) :: edm(bh%nnz_l_sp1)
+   type(elsi_param_t), intent(in)    :: ph
+   type(elsi_basic_t), intent(in)    :: bh
+   integer(kind=i4),   intent(inout) :: row_ind(bh%nnz_l_sp1)
+   integer(kind=i4),   intent(inout) :: col_ptr(bh%n_lcol_sp1+1)
+   real(kind=r8),      intent(in)    :: occ(ph%n_states,ph%n_spins,ph%n_kpts)
+   real(kind=r8),      intent(out)   :: edm(bh%nnz_l_sp1)
 
    real(kind=r8)      :: t0
    real(kind=r8)      :: t1

@@ -146,10 +146,6 @@ subroutine elsi_ev_real(eh,ham,ovlp,eval,evec)
             ovlp = eh%ovlp_real_copy
             call elsi_deallocate(eh%bh,eh%ovlp_real_copy,"ovlp_real_copy")
          endif
-         if(.not. allocated(eh%evec_real)) then
-            call elsi_allocate(eh%bh,eh%evec_real,eh%bh%n_lcol_sp1,&
-                    eh%ph%n_states,"evec_real",caller)
-         endif
 
          call elsi_init_sips(eh%ph,eh%bh)
 
@@ -165,6 +161,8 @@ subroutine elsi_ev_real(eh,ham,ovlp,eval,evec)
             endif
             call elsi_allocate(eh%bh,eh%ham_real_csc,eh%bh%nnz_l_sp1,&
                     "ham_real_csc",caller)
+            call elsi_allocate(eh%bh,eh%evec_real,eh%bh%n_lcol_sp1,&
+                    eh%ph%n_states,"evec_real",caller)
             call elsi_allocate(eh%bh,eh%row_ind_sp1,eh%bh%nnz_l_sp1,&
                     "row_ind_sp1",caller)
             call elsi_allocate(eh%bh,eh%col_ptr_sp1,eh%bh%n_lcol_sp1+1,&
