@@ -36,7 +36,6 @@ module ELSI_MUTATOR
    public :: elsi_set_sing_check
    public :: elsi_set_sing_tol
    public :: elsi_set_sing_stop
-   public :: elsi_set_uplo
    public :: elsi_set_csc_blk
    public :: elsi_set_elpa_solver
    public :: elsi_set_elpa_gpu
@@ -243,25 +242,6 @@ subroutine elsi_set_sing_stop(eh,sing_stop)
    else
       eh%ph%stop_sing = .true.
    endif
-
-end subroutine
-
-!>
-!! This routine sets the input matrices to be full, upper triangular, or lower
-!! triangular.
-!!
-subroutine elsi_set_uplo(eh,uplo)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: eh   !< Handle
-   integer(kind=i4),  intent(in)    :: uplo !< Input matrix triangular?
-
-   character(len=40), parameter :: caller = "elsi_set_uplo"
-
-   call elsi_check_init(eh%bh,eh%handle_init,caller)
-
-   eh%ph%uplo = uplo
 
 end subroutine
 

@@ -536,22 +536,6 @@ subroutine elsi_set_sing_stop_c_wrapper(handle_c,sing_stop)&
 
 end subroutine
 
-subroutine elsi_set_uplo_c_wrapper(handle_c,uplo)&
-   bind(C,name="c_elsi_set_uplo")
-
-   implicit none
-
-   type(c_ptr),         value, intent(in) :: handle_c
-   integer(kind=c_int), value, intent(in) :: uplo
-
-   type(elsi_handle), pointer :: handle_f
-
-   call c_f_pointer(handle_c,handle_f)
-
-   call elsi_set_uplo(handle_f,uplo)
-
-end subroutine
-
 subroutine elsi_set_elpa_solver_c_wrapper(handle_c,elpa_solver)&
    bind(C,name="c_elsi_set_elpa_solver")
 

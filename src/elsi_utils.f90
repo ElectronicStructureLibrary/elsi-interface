@@ -9,12 +9,13 @@
 !!
 module ELSI_UTILS
 
-   use ELSI_CONSTANTS, only: UNSET,FULL_MAT,N_SOLVERS,N_PARALLEL_MODES,&
+   use ELSI_CONSTANTS, only: UNSET,UT_MAT,LT_MAT,N_SOLVERS,N_PARALLEL_MODES,&
                              N_MATRIX_FORMATS,MULTI_PROC,SINGLE_PROC,&
                              BLACS_DENSE,PEXSI_CSC,SIESTA_CSC,AUTO,ELPA_SOLVER,&
                              OMM_SOLVER,PEXSI_SOLVER,CHESS_SOLVER,SIPS_SOLVER,&
                              DMP_SOLVER
    use ELSI_DATATYPE,  only: elsi_param_t,elsi_basic_t
+   use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
    use ELSI_MPI,       only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8,&
                              mpi_complex16,mpi_comm_self
    use ELSI_PRECISION, only: i4,r8
@@ -32,6 +33,7 @@ module ELSI_UTILS
    public :: elsi_get_nnz
    public :: elsi_trace_mat
    public :: elsi_trace_mat_mat
+   public :: elsi_set_full_mat
 
    interface elsi_get_nnz
       module procedure elsi_get_nnz_real
@@ -46,6 +48,11 @@ module ELSI_UTILS
    interface elsi_trace_mat_mat
       module procedure elsi_trace_mat_mat_real
       module procedure elsi_trace_mat_mat_cmplx
+   end interface
+
+   interface elsi_set_full_mat
+      module procedure elsi_set_full_mat_real
+      module procedure elsi_set_full_mat_cmplx
    end interface
 
 contains
@@ -63,7 +70,6 @@ subroutine elsi_reset_param(ph)
 
    ph%solver                 = UNSET
    ph%matrix_format          = UNSET
-   ph%uplo                   = FULL_MAT
    ph%parallel_mode          = UNSET
    ph%n_calls                = 0
    ph%ovlp_is_unit           = .false.
@@ -219,10 +225,6 @@ subroutine elsi_check(ph,bh,caller)
 
    if(ph%matrix_format < 0 .or. ph%matrix_format >= N_MATRIX_FORMATS) then
       call elsi_stop(bh,"Unsupported matirx format.",caller)
-   endif
-
-   if(ph%uplo /= FULL_MAT) then
-      call elsi_stop(bh,"Triangular matrix input not supported.",caller)
    endif
 
    ! Spin
@@ -604,6 +606,121 @@ subroutine elsi_trace_mat_mat_cmplx(bh,mat1,mat2,trace)
    call MPI_Allreduce(l_trace,trace,1,mpi_complex16,mpi_sum,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
+
+end subroutine
+
+!>
+!! This routine symmetrizes an upper or lower triangular matrix. The size of
+!! the matrix should be the same as the Hamiltonian matrix.
+!!
+subroutine elsi_set_full_mat_real(ph,bh,uplo,row_map,col_map,mat)
+
+   implicit none
+
+   type(elsi_param_t), intent(in)    :: ph
+   type(elsi_basic_t), intent(in)    :: bh
+   integer(kind=i4),   intent(in)    :: uplo
+   integer(kind=i4),   intent(in)    :: row_map(ph%n_basis)
+   integer(kind=i4),   intent(in)    :: col_map(ph%n_basis)
+   real(kind=r8),      intent(inout) :: mat(bh%n_lrow,bh%n_lcol)
+
+   integer(kind=i4) :: i
+   integer(kind=i4) :: j
+
+   real(kind=r8), allocatable :: tmp_real(:,:)
+
+   character(len=40), parameter :: caller = "elsi_set_full_mat_real"
+
+   call elsi_allocate(bh,tmp_real,bh%n_lrow,bh%n_lcol+2*bh%blk,"tmp_real",&
+           caller)
+
+   call pdtran(ph%n_basis,ph%n_basis,1.0_r8,mat,1,1,bh%desc,0.0_r8,tmp_real,1,&
+           1,bh%desc)
+
+   if(uplo == UT_MAT) then ! Upper triangular
+      do j = 1,ph%n_basis-1
+         if(col_map(j) > 0) then
+            do i = j+1,ph%n_basis
+               if(row_map(i) > 0) then
+                  mat(row_map(i),col_map(j)) = tmp_real(row_map(i),col_map(j))
+               endif
+            enddo
+         endif
+      enddo
+   elseif(uplo == LT_MAT) then ! Lower triangular
+      do j = 2,ph%n_basis
+         if(col_map(j) > 0) then
+            do i = 1,j-1
+               if(row_map(i) > 0) then
+                  mat(row_map(i),col_map(j)) = tmp_real(row_map(i),col_map(j))
+               endif
+            enddo
+         endif
+      enddo
+   endif
+
+   call elsi_deallocate(bh,tmp_real,"tmp_real")
+
+end subroutine
+
+!>
+!! This routine symmetrizes an upper or lower triangular matrix. The size of
+!! the matrix should be the same as the Hamiltonian matrix.
+!!
+subroutine elsi_set_full_mat_cmplx(ph,bh,uplo,row_map,col_map,mat)
+
+   implicit none
+
+   type(elsi_param_t), intent(in)    :: ph
+   type(elsi_basic_t), intent(in)    :: bh
+   integer(kind=i4),   intent(in)    :: uplo
+   integer(kind=i4),   intent(in)    :: row_map(ph%n_basis)
+   integer(kind=i4),   intent(in)    :: col_map(ph%n_basis)
+   complex(kind=r8),   intent(inout) :: mat(bh%n_lrow,bh%n_lcol)
+
+   integer(kind=i4) :: i
+   integer(kind=i4) :: j
+
+   complex(kind=r8), allocatable :: tmp_cmplx(:,:)
+
+   character(len=40), parameter :: caller = "elsi_set_full_mat_cmplx"
+
+   call elsi_allocate(bh,tmp_cmplx,bh%n_lrow,bh%n_lcol+2*bh%blk,"tmp_cmplx",&
+           caller)
+
+   call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),mat,1,1,bh%desc,&
+           (0.0_r8,0.0_r8),tmp_cmplx,1,1,bh%desc)
+
+   if(uplo == UT_MAT) then ! Upper triangular
+      do j = 1,ph%n_basis-1
+         if(col_map(j) > 0) then
+            do i = j+1,ph%n_basis
+               if(row_map(i) > 0) then
+                  mat(row_map(i),col_map(j)) = tmp_cmplx(row_map(i),col_map(j))
+               endif
+            enddo
+         endif
+      enddo
+   elseif(uplo == LT_MAT) then ! Lower triangular
+      do j = 2,ph%n_basis
+         if(col_map(j) > 0) then
+            do i = 1,j-1
+               if(row_map(i) > 0) then
+                  mat(row_map(i),col_map(j)) = tmp_cmplx(row_map(i),col_map(j))
+               endif
+            enddo
+         endif
+      enddo
+   endif
+
+   call elsi_deallocate(bh,tmp_cmplx,"tmp_cmplx")
+
+   ! Make diagonal real
+   do j = 1,ph%n_basis
+      if(col_map(j) > 0 .and. row_map(j) > 0) then
+         mat(row_map(j),col_map(j)) = real(mat(row_map(j),col_map(j)),kind=r8)
+      endif
+   enddo
 
 end subroutine
 

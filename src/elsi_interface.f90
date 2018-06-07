@@ -44,7 +44,6 @@ module ELSI
    public :: elsi_set_sing_check
    public :: elsi_set_sing_tol
    public :: elsi_set_sing_stop
-   public :: elsi_set_uplo
    public :: elsi_set_csc_blk
    public :: elsi_set_elpa_solver
    public :: elsi_set_elpa_gpu
