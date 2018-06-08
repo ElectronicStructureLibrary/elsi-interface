@@ -70,6 +70,7 @@ subroutine elsi_init_pexsi(ph,bh)
    integer(kind=i4) :: i
    integer(kind=i4) :: j
    integer(kind=i4) :: log_id
+   integer(kind=i4) :: tmp_int
    integer(kind=i4) :: ierr
 
    character(len=40), parameter :: caller = "elsi_init_pexsi"
@@ -107,11 +108,13 @@ subroutine elsi_init_pexsi(ph,bh)
       ph%pexsi_n_pcol = ph%pexsi_np_per_pole/i
 
       ! PEXSI process grid
-      ph%pexsi_my_pcol = mod(bh%myid,ph%pexsi_np_per_pole)
       ph%pexsi_my_prow = bh%myid/ph%pexsi_np_per_pole
+      ph%pexsi_my_pcol = mod(bh%myid,ph%pexsi_np_per_pole)
 
       ! PEXSI MPI communicators
-      call MPI_Comm_split(bh%comm,ph%pexsi_my_pcol,ph%pexsi_my_prow,&
+      tmp_int = ph%pexsi_my_pcol+ph%pexsi_my_point*ph%pexsi_np_per_point
+
+      call MPI_Comm_split(bh%comm,tmp_int,ph%pexsi_my_prow,&
               ph%pexsi_comm_among_pole,ierr)
 
       call elsi_check_mpi(bh,"MPI_Comm_split",ierr,caller)

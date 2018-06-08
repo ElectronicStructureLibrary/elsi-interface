@@ -4480,7 +4480,7 @@ subroutine elsi_siesta_to_sips_hs_real(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
    ph%pexsi_my_prow         = 0
    ph%pexsi_np_per_pole     = bh%n_procs
    ph%pexsi_comm_among_pole = mpi_comm_self
-   n_calls_save                = ph%n_calls
+   n_calls_save             = ph%n_calls
 
    if(ph%n_calls == 1+ph%sips_n_elpa) then
       ph%n_calls = 1
@@ -4520,7 +4520,7 @@ subroutine elsi_siesta_to_sips_hs_cmplx(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
    ph%pexsi_my_prow         = 0
    ph%pexsi_np_per_pole     = bh%n_procs
    ph%pexsi_comm_among_pole = mpi_comm_self
-   n_calls_save                = ph%n_calls
+   n_calls_save             = ph%n_calls
 
    if(ph%n_calls == 1+ph%sips_n_elpa) then
       ph%n_calls = 1
