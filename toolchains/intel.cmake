@@ -13,5 +13,5 @@ SET(ENABLE_C_TESTS ON CACHE BOOL "Enable C tests")
 SET(ENABLE_PEXSI ON CACHE BOOL "Enable PEXSI")
 SET(ELPA2_KERNEL "AVX" CACHE STRING "Use ELPA AVX kernel")
 
-SET(LIB_PATHS "/home/wy29/opt/intel/mkl/lib/intel64" CACHE STRING "External library paths")
+SET(LIB_PATHS "$ENV{MKLROOT}/lib/intel64" CACHE STRING "External library paths")
 SET(LIBS "mkl_scalapack_lp64 mkl_blacs_intelmpi_lp64 mkl_intel_lp64 mkl_sequential mkl_core" CACHE STRING "External libraries")
